@@ -1,69 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:38207 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932884AbdKPL1L (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 16 Nov 2017 06:27:11 -0500
-Date: Thu, 16 Nov 2017 09:27:06 -0200
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: =?UTF-8?B?UmFmYcOrbCBDYXJyw6k=?= <funman@videolan.org>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH] dvb_local_open(): strdup fname before calling
- dvb_fe_open_fname()
-Message-ID: <20171116092706.5f14142f@vento.lan>
-In-Reply-To: <20171114111526.5500-1-funman@videolan.org>
-References: <20171114111526.5500-1-funman@videolan.org>
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:38721 "EHLO
+        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752511AbdKWEhH (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 22 Nov 2017 23:37:07 -0500
+Received: by mail-wm0-f66.google.com with SMTP id 128so13936107wmo.3
+        for <linux-media@vger.kernel.org>; Wed, 22 Nov 2017 20:37:06 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+In-Reply-To: <20171122073606.56ldk3bzg23dkkfm@valkosipuli.retiisi.org.uk>
+References: <1510253136-14153-1-git-send-email-tharvey@gateworks.com>
+ <1510253136-14153-3-git-send-email-tharvey@gateworks.com> <20171122073606.56ldk3bzg23dkkfm@valkosipuli.retiisi.org.uk>
+From: Tim Harvey <tharvey@gateworks.com>
+Date: Wed, 22 Nov 2017 20:37:04 -0800
+Message-ID: <CAJ+vNU1FEp5aU6aXXOuGr3ifcngfP0Pj0rnBBxDh_mVtQyvLAQ@mail.gmail.com>
+Subject: Re: [PATCH 2/5] media: dt-bindings: Add bindings for TDA1997X
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media <linux-media@vger.kernel.org>,
+        alsa-devel@alsa-project.org,
+        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        Shawn Guo <shawnguo@kernel.org>,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Hans Verkuil <hansverk@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Rob Herring <robh@kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 14 Nov 2017 12:15:26 +0100
-Rafaël Carré <funman@videolan.org> escreveu:
+On Tue, Nov 21, 2017 at 11:36 PM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
+> Hi Tim,
+>
+> On Thu, Nov 09, 2017 at 10:45:33AM -0800, Tim Harvey wrote:
+>> Cc: Rob Herring <robh@kernel.org>
+>> Signed-off-by: Tim Harvey <tharvey@gateworks.com>
+>> ---
+>> v3:
+>>  - fix typo
+>>
+>> v2:
+>>  - add vendor prefix and remove _ from vidout-portcfg
+>>  - remove _ from labels
+>>  - remove max-pixel-rate property
+>>  - describe and provide example for single output port
+>>  - update to new audio port bindings
+>> ---
+>>  .../devicetree/bindings/media/i2c/tda1997x.txt     | 179 +++++++++++++++++++++
+>>  1 file changed, 179 insertions(+)
+>>  create mode 100644 Documentation/devicetree/bindings/media/i2c/tda1997x.txt
+>>
+>> diff --git a/Documentation/devicetree/bindings/media/i2c/tda1997x.txt b/Documentation/devicetree/bindings/media/i2c/tda1997x.txt
+>> new file mode 100644
+>> index 0000000..dd37f14
+>> --- /dev/null
+>> +++ b/Documentation/devicetree/bindings/media/i2c/tda1997x.txt
+>> @@ -0,0 +1,179 @@
+>> +Device-Tree bindings for the NXP TDA1997x HDMI receiver
+>> +
+>> +The TDA19971/73 are HDMI video receivers.
+>> +
+>> +The TDA19971 Video port output pins can be used as follows:
+>> + - RGB 8bit per color (24 bits total): R[11:4] B[11:4] G[11:4]
+>> + - YUV444 8bit per color (24 bits total): Y[11:4] Cr[11:4] Cb[11:4]
+>> + - YUV422 semi-planar 8bit per component (16 bits total): Y[11:4] CbCr[11:4]
+>> + - YUV422 semi-planar 10bit per component (20 bits total): Y[11:2] CbCr[11:2]
+>> + - YUV422 semi-planar 12bit per component (24 bits total): - Y[11:0] CbCr[11:0]
+>> + - YUV422 BT656 8bit per component (8 bits total): YCbCr[11:4] (2-cycles)
+>> + - YUV422 BT656 10bit per component (10 bits total): YCbCr[11:2] (2-cycles)
+>> + - YUV422 BT656 12bit per component (12 bits total): YCbCr[11:0] (2-cycles)
+>> +
+>> +The TDA19973 Video port output pins can be used as follows:
+>> + - RGB 12bit per color (36 bits total): R[11:0] B[11:0] G[11:0]
+>> + - YUV444 12bit per color (36 bits total): Y[11:0] Cb[11:0] Cr[11:0]
+>> + - YUV422 semi-planar 12bit per component (24 bits total): Y[11:0] CbCr[11:0]
+>> + - YUV422 BT656 12bit per component (12 bits total): YCbCr[11:0] (2-cycles)
+>> +
+>> +The Video port output pins are mapped via 4-bit 'pin groups' allowing
+>> +for a variety of connection possibilities including swapping pin order within
+>> +pin groups. The video_portcfg device-tree property consists of register mapping
+>> +pairs which map a chip-specific VP output register to a 4-bit pin group. If
+>> +the pin group needs to be bit-swapped you can use the *_S pin-group defines.
+>> +
+>> +Required Properties:
+>> + - compatible          :
+>> +  - "nxp,tda19971" for the TDA19971
+>> +  - "nxp,tda19973" for the TDA19973
+>> + - reg                 : I2C slave address
+>> + - interrupts          : The interrupt number
+>> + - DOVDD-supply        : Digital I/O supply
+>> + - DVDD-supply         : Digital Core supply
+>> + - AVDD-supply         : Analog supply
+>> + - nxp,vidout-portcfg  : array of pairs mapping VP output pins to pin groups.
+>> +
+>> +Optional Properties:
+>> + - nxp,audout-format   : DAI bus format: "i2s" or "spdif".
+>> + - nxp,audout-width    : width of audio output data bus (1-4).
+>> + - nxp,audout-layout   : data layout (0=AP0 used, 1=AP0/AP1/AP2/AP3 used).
+>> + - nxp,audout-mclk-fs  : Multiplication factor between stream rate and codec
+>> +                         mclk.
+>> +
+>> +The device node must contain one 'port' child node for its digital output
+>> +video port, in accordance with the video interface bindings defined in
+>> +Documentation/devicetree/bindings/media/video-interfaces.txt.
+>
+> Could you add that this port has one endpoint node as well? (Unless you
+> support multiple, that is.)
 
-> Issue spotted by valgrind:
-> 
-> ==5290== Invalid free() / delete / delete[] / realloc()
-> ==5290==    at 0x4C30D3B: free (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
-> ==5290==    by 0x4E54401: free_dvb_dev (dvb-dev.c:49)
-> ==5290==    by 0x4E5449A: dvb_dev_free_devices (dvb-dev.c:94)
-> ==5290==    by 0x4E547BA: dvb_dev_free (dvb-dev.c:121)
-> ==5290==    by 0x10881A: main (leak.c:26)
-> ==5290==  Address 0x5e55910 is 0 bytes inside a block of size 28 free'd
-> ==5290==    at 0x4C30D3B: free (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
-> ==5290==    by 0x4E56504: dvb_v5_free (dvb-fe.c:85)
-> ==5290==    by 0x4E547B2: dvb_dev_free (dvb-dev.c:119)
-> ==5290==    by 0x10881A: main (leak.c:26)
-> ==5290==  Block was alloc'd at
-> ==5290==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
-> ==5290==    by 0x5119C39: strdup (strdup.c:42)
-> ==5290==    by 0x4E55B42: handle_device_change (dvb-dev-local.c:137)
-> ==5290==    by 0x4E561DA: dvb_local_find (dvb-dev-local.c:323)
-> ==5290==    by 0x10880E: main (leak.c:10)
+Sure... will clarify as:
 
-SOB?
+The device node must contain one endpoint 'port' child node for its
+digital output
+video port, in accordance with the video interface bindings defined in
+Documentation/devicetree/bindings/media/video-interfaces.txt.
 
-> 
-> Signed-off-by: Rafaël Carré <funman@videolan.org>
-> ---
->  lib/libdvbv5/dvb-dev-local.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/lib/libdvbv5/dvb-dev-local.c b/lib/libdvbv5/dvb-dev-local.c
-> index 920e81fb..b50b61b4 100644
-> --- a/lib/libdvbv5/dvb-dev-local.c
-> +++ b/lib/libdvbv5/dvb-dev-local.c
-> @@ -440,7 +440,7 @@ static struct dvb_open_descriptor
->  		 */
->  		flags &= ~O_NONBLOCK;
->  
-> -		ret = dvb_fe_open_fname(parms, dev->path, flags);
-> +		ret = dvb_fe_open_fname(parms, strdup(dev->path), flags);
->  		if (ret) {
->  			free(open_dev);
->  			return NULL;
+>> +
+>> +Optional Endpoint Properties:
+>> +  The following three properties are defined in video-interfaces.txt and
+>> +  are valid for source endpoints only:
+>
+> Transmitters? Don't you have an endpoint only in the port representing the
+> transmitter?
 
+I'm not usre what you mean.
 
+The TDA1997x is an HDMI receiver meaning it receives HDMI and decodes
+it to a parallel video bus. HDMI transmitters are the opposite.
 
-Thanks,
-Mauro
+Regards,
+
+Tim
