@@ -1,42 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f193.google.com ([209.85.128.193]:54381 "EHLO
-        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751012AbdKMJTQ (ORCPT
+Received: from mail-qt0-f177.google.com ([209.85.216.177]:34400 "EHLO
+        mail-qt0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751967AbdKWJlX (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 13 Nov 2017 04:19:16 -0500
-Received: by mail-wr0-f193.google.com with SMTP id l22so13757992wrc.11
-        for <linux-media@vger.kernel.org>; Mon, 13 Nov 2017 01:19:16 -0800 (PST)
-From: =?UTF-8?q?Rafa=C3=ABl=20Carr=C3=A9?= <funman@videolan.org>
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        =?UTF-8?q?Rafa=C3=ABl=20Carr=C3=A9?= <funman@videolan.org>
-Subject: [PATCH 1/2] sdlcam: fix linking
-Date: Mon, 13 Nov 2017 10:19:07 +0100
-Message-Id: <20171113091908.23531-1-funman@videolan.org>
+        Thu, 23 Nov 2017 04:41:23 -0500
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <1510743363-25798-5-git-send-email-jacopo+renesas@jmondi.org>
+References: <1510743363-25798-1-git-send-email-jacopo+renesas@jmondi.org> <1510743363-25798-5-git-send-email-jacopo+renesas@jmondi.org>
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Date: Thu, 23 Nov 2017 10:41:22 +0100
+Message-ID: <CAMuHMdVvMvM8+yFwQVPvR+Sfei7OAEDCLfxX=V0qfdozmdQB6A@mail.gmail.com>
+Subject: Re: [PATCH v1 04/10] ARM: dts: r7s72100: Add Capture Engine Unit (CEU)
+To: Jacopo Mondi <jacopo+renesas@jmondi.org>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Magnus Damm <magnus.damm@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Linux-Renesas <linux-renesas-soc@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux-sh list <linux-sh@vger.kernel.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Rafaël Carré <funman@videolan.org>
----
- contrib/test/Makefile.am | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Hi Jacopo,
 
-diff --git a/contrib/test/Makefile.am b/contrib/test/Makefile.am
-index 6a4303d7..0188fe21 100644
---- a/contrib/test/Makefile.am
-+++ b/contrib/test/Makefile.am
-@@ -37,7 +37,7 @@ v4l2gl_LDADD = ../../lib/libv4l2/libv4l2.la ../../lib/libv4lconvert/libv4lconver
- 
- sdlcam_LDFLAGS = $(JPEG_LIBS) $(SDL2_LIBS) -lm -ldl -lrt
- sdlcam_CFLAGS = -I../.. $(SDL2_CFLAGS)
--sdlcam_LDADD = ../../lib/libv4l2/.libs/libv4l2.a  ../../lib/libv4lconvert/.libs/libv4lconvert.a
-+sdlcam_LDADD = ../../lib/libv4l2/libv4l2.la  ../../lib/libv4lconvert/libv4lconvert.la
- 
- mc_nextgen_test_CFLAGS = $(LIBUDEV_CFLAGS)
- mc_nextgen_test_LDFLAGS = $(LIBUDEV_LIBS)
--- 
-2.14.1
+On Wed, Nov 15, 2017 at 11:55 AM, Jacopo Mondi
+<jacopo+renesas@jmondi.org> wrote:
+> Add Capture Engine Unit (CEU) node to device tree.
+>
+> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+
+Thanks for your patch!
+
+> --- a/arch/arm/boot/dts/r7s72100.dtsi
+> +++ b/arch/arm/boot/dts/r7s72100.dtsi
+> @@ -136,8 +136,8 @@
+>                         compatible = "renesas,r7s72100-mstp-clocks", "renesas,cpg-mstp-clocks";
+>                         reg = <0xfcfe042c 4>;
+>                         clocks = <&p0_clk>;
+
+You forgot to add an entry to clocks.
+The parent clock of the CEU module clock is b_clk.
+
+> -                       clock-indices = <R7S72100_CLK_RTC>;
+> -                       clock-output-names = "rtc";
+> +                       clock-indices = <R7S72100_CLK_RTC R7S72100_CLK_CEU>;
+> +                       clock-output-names = "rtc", "ceu";
+
+Usually we follow the order from <dt-bindings/clock/r7s72100-clock.h>,
+so CEU should come before RTC.
+
+> @@ -666,4 +666,12 @@
+>                 power-domains = <&cpg_clocks>;
+>                 status = "disabled";
+>         };
+> +
+> +       ceu: ceu@e8210000 {
+> +               reg = <0xe8210000 0x209c>;
+> +               compatible = "renesas,renesas-ceu";
+> +               interrupts = <GIC_SPI 332 IRQ_TYPE_LEVEL_HIGH>;
+> +               power-domains = <&cpg_clocks>;
+
+if you describe the device to be part of the CPG clock domain, you should
+provide a clocks property:
+
+        clocks = <&mstp6_clks R7S72100_CLK_CEU>;
+
+> +               status = "disabled";
+> +       };
+>  };
+
+Gr{oetje,eeting}s,
+
+                        Geert
+
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
