@@ -1,69 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f195.google.com ([209.85.216.195]:37584 "EHLO
-        mail-qt0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S936377AbdKPXKC (ORCPT
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:38863 "EHLO
+        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753450AbdKXMxa (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 16 Nov 2017 18:10:02 -0500
-Received: by mail-qt0-f195.google.com with SMTP id d15so1800813qte.4
-        for <linux-media@vger.kernel.org>; Thu, 16 Nov 2017 15:10:02 -0800 (PST)
+        Fri, 24 Nov 2017 07:53:30 -0500
+Received: by mail-wm0-f67.google.com with SMTP id 128so22369891wmo.3
+        for <linux-media@vger.kernel.org>; Fri, 24 Nov 2017 04:53:30 -0800 (PST)
+Subject: Re: [PATCH 2/2] media: venus: venc: Apply inloop deblocking filter
+To: Loic Poulain <loic.poulain@linaro.org>,
+        stanimir.varbanov@linaro.org, mchehab@kernel.org
+Cc: linux-media@vger.kernel.org, linux-arm-msm@vger.kernel.org
+References: <1511516042-11415-1-git-send-email-loic.poulain@linaro.org>
+ <1511516042-11415-2-git-send-email-loic.poulain@linaro.org>
+From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Message-ID: <efc2292d-a963-94ef-8f33-cb286e1d903f@linaro.org>
+Date: Fri, 24 Nov 2017 14:53:27 +0200
 MIME-Version: 1.0
-From: Dan Gopstein <dgopstein@nyu.edu>
-Date: Thu, 16 Nov 2017 18:09:20 -0500
-Message-ID: <CAAqN1Z6YN2y3kvKu+SOsSh8EozY1+J_k3XHnH9F0F5z8bB402g@mail.gmail.com>
-Subject: [PATCH] media: ABS macro parameter parenthesization
-To: linux-media@vger.kernel.org
-Cc: mchehab@s-opensource.com
-Content-Type: text/plain; charset="UTF-8"
+In-Reply-To: <1511516042-11415-2-git-send-email-loic.poulain@linaro.org>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Dan Gopstein <dgopstein@nyu.edu>
+Hi Loic,
 
-Two definitions of the ABS (absolute value) macro fail to parenthesize their
-parameter properly. This can lead to a bad expansion for low-precedence
-expression arguments. Add parens to protect against troublesome arguments.
+Thanks for the patch!
 
-Signed-off-by: Dan Gopstein <dgopstein@nyu.edu>
----
-See an example bad usage in
-drivers/media/dvb-frontends/mb86a16.c b/drivers/media/dvb-frontends/mb86a16.c
-on line 1204:
+On 11/24/2017 11:34 AM, Loic Poulain wrote:
+> Deblocking filter allows to reduce blocking artifacts and improve
+> visual quality. This is configurable via the V4L2 API but eventually
+> not applied to the encoder.
+> 
+> Note that alpha and beta deblocking values are 32-bit signed (-6;+6).
+> 
+> Signed-off-by: Loic Poulain <loic.poulain@linaro.org>
+> ---
+>  drivers/media/platform/qcom/venus/core.h       |  4 ++--
+>  drivers/media/platform/qcom/venus/hfi_helper.h |  4 ++--
+>  drivers/media/platform/qcom/venus/venc.c       | 22 ++++++++++++++++++++++
+>  3 files changed, 26 insertions(+), 4 deletions(-)
 
-ABS(prev_swp_freq[j] - swp_freq)
+Reviewed-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
 
-For example: ABS(1-2) currently expands to ((1-2) < 0 ? (-1-2) : (1-2)) which
-evaluates to -3. But the correct expansion would be ((1-2) < 0 ? -(1-2) : (1-2))
-which evaluates to 1.
-
-I found this issue as part of the "Atoms of Confusion" research at NYU's Secure
-Systems Lab. As the work continues, hopefully we'll be able to find more issues
-like this one.
-
-diff --git a/drivers/media/dvb-frontends/dibx000_common.h
-b/drivers/media/dvb-frontends/dibx000_common.h
-index 8784af9..ae60f5d 100644
---- a/drivers/media/dvb-frontends/dibx000_common.h
-+++ b/drivers/media/dvb-frontends/dibx000_common.h
-@@ -223,7 +223,7 @@ struct dvb_frontend_parametersContext {
-
-#define FE_CALLBACK_TIME_NEVER 0xffffffff
-
--#define ABS(x) ((x < 0) ? (-x) : (x))
-+#define ABS(x) (((x) < 0) ? -(x) : (x))
-
-#define DATA_BUS_ACCESS_MODE_8BIT                 0x01
-#define DATA_BUS_ACCESS_MODE_16BIT                0x02
-diff --git a/drivers/media/dvb-frontends/mb86a16.c
-b/drivers/media/dvb-frontends/mb86a16.c
-index dfe322e..2d921c7 100644
---- a/drivers/media/dvb-frontends/mb86a16.c
-+++ b/drivers/media/dvb-frontends/mb86a16.c
-@@ -31,7 +31,7 @@
-static unsigned int verbose = 5;
-module_param(verbose, int, 0644);
-
--#define ABS(x)         ((x) < 0 ? (-x) : (x))
-+#define ABS(x)         ((x) < 0 ? -(x) : (x))
-
-struct mb86a16_state {
-        struct i2c_adapter              *i2c_adap;
+-- 
+regards,
+Stan
