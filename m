@@ -1,139 +1,172 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:50958 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750837AbdKIFms (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 9 Nov 2017 00:42:48 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Subject: Re: [PATCH 2/6 v5] V4L: Add a UVC Metadata format
-Date: Thu, 09 Nov 2017 07:42:54 +0200
-Message-ID: <1861262.E5lR5RDANx@avalon>
-In-Reply-To: <alpine.DEB.2.20.1711081126370.20370@axis700.grange>
-References: <1501245205-15802-1-git-send-email-g.liakhovetski@gmx.de> <17991420.GWclfaas9a@avalon> <alpine.DEB.2.20.1711081126370.20370@axis700.grange>
+Received: from smtpbg62.qq.com ([103.7.29.139]:37388 "EHLO smtpbg64.qq.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1750914AbdKXGXG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 24 Nov 2017 01:23:06 -0500
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <20171124023706.5702-1-jacob-chen@iotwrt.com>
+References: <20171124023706.5702-1-jacob-chen@iotwrt.com>
+From: Jacob Chen <jacob-chen@iotwrt.com>
+Date: Fri, 24 Nov 2017 14:15:51 +0800
+Message-ID: <CAFLEztQaQf2EHGEkZN-KT-SF-xoB+MCz0+P2T=4bQwHp0YEqgA@mail.gmail.com>
+Subject: Re: [PATCH v2 00/11] Rockchip ISP1 Driver
+To: "open list:ARM/Rockchip SoC..." <linux-rockchip@lists.infradead.org>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Tomasz Figa <tfiga@chromium.org>,
+        Shunqian Zheng <zhengsq@rock-chips.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        =?UTF-8?B?6ZKf5Lul5bSH?= <zyc@rock-chips.com>,
+        Eddie Cai <eddie.cai.linux@gmail.com>,
+        Jeffy Chen <jeffy.chen@rock-chips.com>,
+        Allon Huang <allon.huang@rock-chips.com>,
+        devicetree@vger.kernel.org, Heiko Stuebner <heiko@sntech.de>,
+        robh+dt@kernel.org, Jacob Chen <jacob-chen@iotwrt.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
+HI all,
 
-On Wednesday, 8 November 2017 12:43:46 EET Guennadi Liakhovetski wrote:
-> On Tue, 7 Nov 2017, Laurent Pinchart wrote:
-> > On Monday, 6 November 2017 16:53:10 EET Guennadi Liakhovetski wrote:
-> > > On Mon, 30 Oct 2017, Hans Verkuil wrote:
-> > > > On 07/28/2017 02:46 PM, Hans Verkuil wrote:
-> > > >> On 07/28/2017 02:33 PM, Guennadi Liakhovetski wrote:
-> > > >>> Add a pixel format, used by the UVC driver to stream metadata.
-> > > >>> 
-> > > >>> Signed-off-by: Guennadi Liakhovetski
-> > > >>> <guennadi.liakhovetski@intel.com>
-> > > >>> ---
-> > > >>> 
-> > > >>>  Documentation/media/uapi/v4l/meta-formats.rst    |  1 +
-> > > >>>  Documentation/media/uapi/v4l/pixfmt-meta-uvc.rst | 39
-> > > >>>  +++++++++++++++++
-> > > >>>  include/uapi/linux/videodev2.h                   |  1 +
-> > > >>>  3 files changed, 41 insertions(+)
-> > > >>>  create mode 100644 Documentation/media/uapi/v4l/pixfmt-meta-uvc.rst
-> > > 
-> > > [snip]
-> > > 
-> > > >>> diff --git a/include/uapi/linux/videodev2.h
-> > > >>> b/include/uapi/linux/videodev2.h index 45cf735..0aad91c 100644
-> > > >>> --- a/include/uapi/linux/videodev2.h
-> > > >>> +++ b/include/uapi/linux/videodev2.h
-> > > >>> @@ -682,6 +682,7 @@ struct v4l2_pix_format {
-> > > >>> 
-> > > >>>  /* Meta-data formats */
-> > > >>>  #define V4L2_META_FMT_VSP1_HGO    v4l2_fourcc('V', 'S', 'P', 'H')
-> > > >>>  /*
-> > > >>>  R-Car VSP1 1-D Histogram */ #define V4L2_META_FMT_VSP1_HGT
-> > > >>>  v4l2_fourcc('V', 'S', 'P', 'T') /* R-Car VSP1 2-D Histogram */> >>
-> > > >>> 
-> > > >>> +#define V4L2_META_FMT_UVC         v4l2_fourcc('U', 'V', 'C', 'H')
-> > > >>> /*
-> > > >>> UVC Payload Header metadata */
-> > > > 
-> > > > I discussed this with Laurent last week and since the metadata for UVC
-> > > > starts with a standard header followed by vendor-specific data it
-> > > > makes
-> > > > sense to use V4L2_META_FMT_UVC for just the standard header. Any
-> > > > vendor
-> > > > specific formats should have their own fourcc which starts with the
-> > > > standard header followed by the custom data. The UVC driver would
-> > > > enumerate both the standard and the vendor specific fourcc. This would
-> > > > allow generic UVC applications to use the standard header.
-> > > > Applications
-> > > > that know about the vendor specific data can select the vendor
-> > > > specific
-> > > > format.
-> > > > 
-> > > > This change would make this much more convenient to use.
-> > > 
-> > > Then the driver should be able to decide, which private fourcc code to
-> > > use
-> > > for each of those devices. A natural way to do that seems to be to put
-> > > that in the .driver_info field of struct usb_device_id. For that I'd
-> > > replace the current use of that field for quirks with a pointer to a
-> > > struct in a separate patch. Laurent, would that be acceptable? Then add
-> > > a
-> > > field to that struct for a private metadata fourcc code.
-> > 
-> > I've been thinking about doing so for some time now. If you can write a
-> > patch it would be great ! What I've been wondering is how to keep the
-> > code both readable and small. If we declared those structures separately
-> > from the devices array we could use one instance for multiple devices,
-> > but naming might become awkward. On the other hand, if we defined them
-> > inline within the devices array, we'd get rid of the naming issue, but at
-> > the expense of increased memory usage.
-> 
-> We have in the meantime agreed to always use structs and to create named
-> structs for reoccurring quirk flags and in-place structs for
-> single-occurrance flags.
-> 
-> While implementing this I came across yet one more compromise, that we'll
-> have to accept with this approach:
-> 
-> To recall the metadata buffer layout should be
-> 
-> struct uvc_meta_buf {
-> 	uint64_t ns;
-> 	uint16_t sof;
-> 	uint8_t length;
-> 	uint8_t flags;
-> 	uint8_t buf[];
-> } __attribute__((packed));
-> 
-> where all the fields, beginning with "length" are a direct copy from the
-> UVC payload header. If multiple such payload headers have arrived for a
-> single frame, they will be appended and .bytesused will as usually have
-> the total byte count, used up in this frame. An application would then
-> calculate lengths of those individual metadata blocks as
-> 
-> sizeof(.ns) + sizeof(.sof) + .length
-> 
-> But this won't work with the "standard" UVC metadata format where any
-> private data, following standard fields, are dropped. In that case
-> applications would have to look at .flags and calculate the block length
-> based on them. Another possibility would be to rewrite the .length field
-> in the driver to only include standard fields, but I really don't think
-> that would be a good idea.
+2017-11-24 10:36 GMT+08:00 Jacob Chen <jacob-chen@iotwrt.com>:
+> This patch series add a ISP(Camera) v4l2 driver for rockchip rk3288/rk3399 SoC.
+>
+> Kernel Branch:
+> https://github.com/wzyy2/linux/tree/rkisp1/drivers/media/platform/rockchip/isp1
+>
+> Below are some infomations about driver/hardware:
+>
+> Rockchip ISP1 have many Hardware Blocks(simplied):
+>
+>   MIPI      --> ISP --> DCrop(Mainpath) --> RSZ(Mainpath) --> DMA(Mainpath)
+>   DMA-Input -->     --> DCrop(Selfpath) --> RSZ(Selfpath) --> DMA(Selfpath);)
+>
+> (Acutally the TRM(rk3288, isp) could be found online...... which contains a more detailed block diagrams ;-P)
+>
+> The funcitons of each hardware block:
+>
+>   Mainpath : up to 4k resolution, support raw/yuv format
+>   Selfpath : up tp 1080p, support rotate, support rgb/yuv format
+>   RSZ: scaling
+>   DCrop: crop
+>   ISP: 3A, Color processing, Crop
+>   MIPI: MIPI Camera interface
+>
+> Media pipelines:
+>
+>   Mainpath, Selfpath <-- ISP subdev <-- MIPI  <-- Sensor
+>   3A stats           <--            <-- 3A parms
+>
+> Code struct:
+>
+>   capture.c : Mainpath, Selfpath, RSZ, DCROP : capture device.
+>   rkisp1.c : ISP : v4l2 sub-device.
+>   isp_params.c : 3A parms : output device.
+>   isp_stats.c : 3A stats : capture device.
+>   mipi_dphy_sy.c : MIPI : sperated v4l2 sub-device.
+>
+> Usage:
+>   ChromiumOS:
+>     use below v4l2-ctl command to capture frames.
+>
+>       v4l2-ctl --verbose -d /dev/video4 --stream-mmap=2
+>       --stream-to=/tmp/stream.out --stream-count=60 --stream-poll
+>
+>     use below command to playback the video on your PC.
+>
+>       mplayer /tmp/stream.out -loop 0 --demuxer=rawvideo
+>       --rawvideo=w=800:h=600:size=$((800*600*2)):format=yuy2
+>     or
+>       mplayer ./stream.out -loop 0 -demuxer rawvideo -rawvideo
+>       w=800:h=600:size=$((800*600*2)):format=yuy2
+>
+>   Linux:
+>     use rkcamsrc gstreamer plugin(just a modified v4l2src) to preview.
+>
+>       gst-launch-1.0 rkcamsrc device=/dev/video0 io-mode=4 disable-3A=true
+>       videoconvert ! video/x-raw,format=NV12,width=640,height=480 ! kmssink
+>
+> Jacob Chen (7):
+>   media: rkisp1: add rockchip isp1 driver
+>   media: rkisp1: add Rockchip MIPI Synopsys DPHY driver
+>   dt-bindings: Document the Rockchip ISP1 bindings
+>   dt-bindings: Document the Rockchip MIPI RX D-PHY bindings
+>   ARM: dts: rockchip: add isp node for rk3288
+>   ARM: dts: rockchip: add rx0 mipi-phy for rk3288
+>   MAINTAINERS: add entry for Rockchip ISP1 driver
+>
+> Jeffy Chen (1):
+>   media: rkisp1: Add user space ABI definitions
+>
+> Shunqian Zheng (3):
+>   media: videodev2.h, v4l2-ioctl: add rkisp1 meta buffer format
+>   arm64: dts: rockchip: add isp0 node for rk3399
+>   arm64: dts: rockchip: add rx0 mipi-phy for rk3399
+>
+>  .../devicetree/bindings/media/rockchip-isp1.txt    |   61 +
+>  .../bindings/media/rockchip-mipi-dphy.txt          |   77 +
+>  MAINTAINERS                                        |   10 +
+>  arch/arm/boot/dts/rk3288.dtsi                      |   24 +
+>  arch/arm64/boot/dts/rockchip/rk3399.dtsi           |   26 +
+>  drivers/media/platform/Kconfig                     |   10 +
+>  drivers/media/platform/Makefile                    |    1 +
+>  drivers/media/platform/rockchip/isp1/Makefile      |    8 +
+>  drivers/media/platform/rockchip/isp1/capture.c     | 1691 ++++++++++++++++++++
+>  drivers/media/platform/rockchip/isp1/capture.h     |   46 +
+>  drivers/media/platform/rockchip/isp1/common.h      |  330 ++++
+>  drivers/media/platform/rockchip/isp1/dev.c         |  632 ++++++++
+>  drivers/media/platform/rockchip/isp1/isp_params.c  | 1556 ++++++++++++++++++
+>  drivers/media/platform/rockchip/isp1/isp_params.h  |   81 +
+>  drivers/media/platform/rockchip/isp1/isp_stats.c   |  537 +++++++
+>  drivers/media/platform/rockchip/isp1/isp_stats.h   |   81 +
+>  .../media/platform/rockchip/isp1/mipi_dphy_sy.c    |  805 ++++++++++
+>  drivers/media/platform/rockchip/isp1/regs.c        |  251 +++
+>  drivers/media/platform/rockchip/isp1/regs.h        | 1578 ++++++++++++++++++
+>  drivers/media/platform/rockchip/isp1/rkisp1.c      | 1230 ++++++++++++++
+>  drivers/media/platform/rockchip/isp1/rkisp1.h      |  130 ++
+>  drivers/media/v4l2-core/v4l2-ioctl.c               |    2 +
+>  include/uapi/linux/rkisp1-config.h                 |  554 +++++++
+>  include/uapi/linux/videodev2.h                     |    4 +
+>  24 files changed, 9725 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/rockchip-isp1.txt
+>  create mode 100644 Documentation/devicetree/bindings/media/rockchip-mipi-dphy.txt
+>  create mode 100644 drivers/media/platform/rockchip/isp1/Makefile
+>  create mode 100644 drivers/media/platform/rockchip/isp1/capture.c
+>  create mode 100644 drivers/media/platform/rockchip/isp1/capture.h
+>  create mode 100644 drivers/media/platform/rockchip/isp1/common.h
+>  create mode 100644 drivers/media/platform/rockchip/isp1/dev.c
+>  create mode 100644 drivers/media/platform/rockchip/isp1/isp_params.c
+>  create mode 100644 drivers/media/platform/rockchip/isp1/isp_params.h
+>  create mode 100644 drivers/media/platform/rockchip/isp1/isp_stats.c
+>  create mode 100644 drivers/media/platform/rockchip/isp1/isp_stats.h
+>  create mode 100644 drivers/media/platform/rockchip/isp1/mipi_dphy_sy.c
+>  create mode 100644 drivers/media/platform/rockchip/isp1/regs.c
+>  create mode 100644 drivers/media/platform/rockchip/isp1/regs.h
+>  create mode 100644 drivers/media/platform/rockchip/isp1/rkisp1.c
+>  create mode 100644 drivers/media/platform/rockchip/isp1/rkisp1.h
+>  create mode 100644 include/uapi/linux/rkisp1-config.h
+>
+> --
+> 2.15.0
+>
 
-For the standard header the length can indeed be easily computed from the 
-flags. I wonder, however, why you think rewriting length would be a bad idea ?
 
-> > One middle-ground option would be to allow storing either a structure
-> > pointer or quirks flags in the field, relying on the fact that the low
-> > order bit of a pointer will be NULL. We could repurpose flag BIT(0) to
-> > indicate that the field contains flags instead of a pointer.
-> > 
-> > Maybe I'm over-engineering this and that the extra memory consumption
-> > won't be too bad, or separately defined structures will be easy to name.
-> > I'd appreciate your opinion on this matter.
+Sorry, i forget to add a changelog.
 
--- 
-Regards,
+changes in V2:
+  mipi-phy:
+    - use async probing
+    - make it be a child device of the GRF
 
-Laurent Pinchart
+  isp:
+    - add dummy buffer
+    - change the way to get bus configuration, which make it possible to
+            add parallel sensor support in the future(without mipi-phy driver).
+
+
+I resend it for now because i think v2 patch looks more clearly than
+the old one,
+the v1 patch could just be superseded.
