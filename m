@@ -1,156 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.horus.com ([78.46.148.228]:60367 "EHLO mail.horus.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1161094AbdKQRtI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 17 Nov 2017 12:49:08 -0500
-Date: Fri, 17 Nov 2017 18:49:06 +0100
-From: Matthias Reichl <hias@horus.com>
-To: Sean Young <sean@mess.org>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] media: rc: double keypresses due to timeout expiring to
- early
-Message-ID: <20171117174906.fouyirka4tho3guf@camel2.lan>
-References: <20171116152700.filid3ask3gowegl@camel2.lan>
- <20171116163920.ouxinvde5ai4fle3@gofer.mess.org>
- <20171116215451.min7sqdo7itiyyif@gofer.mess.org>
- <20171117145249.wc4ql2hw46enxu7d@camel2.lan>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20171117145249.wc4ql2hw46enxu7d@camel2.lan>
+Received: from mail-pl0-f66.google.com ([209.85.160.66]:42389 "EHLO
+        mail-pl0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753427AbdKXCiC (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 23 Nov 2017 21:38:02 -0500
+From: Jacob Chen <jacob-chen@iotwrt.com>
+To: linux-rockchip@lists.infradead.org
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        mchehab@kernel.org, linux-media@vger.kernel.org,
+        sakari.ailus@linux.intel.com, hans.verkuil@cisco.com,
+        tfiga@chromium.org, zhengsq@rock-chips.com,
+        laurent.pinchart@ideasonboard.com, zyc@rock-chips.com,
+        eddie.cai.linux@gmail.com, jeffy.chen@rock-chips.com,
+        allon.huang@rock-chips.com, devicetree@vger.kernel.org,
+        heiko@sntech.de, robh+dt@kernel.org,
+        Jacob Chen <jacob-chen@iotwrt.com>,
+        Jacob Chen <jacob2.chen@rock-chips.com>
+Subject: [PATCH v2 06/11] dt-bindings: Document the Rockchip MIPI RX D-PHY bindings
+Date: Fri, 24 Nov 2017 10:37:01 +0800
+Message-Id: <20171124023706.5702-7-jacob-chen@iotwrt.com>
+In-Reply-To: <20171124023706.5702-1-jacob-chen@iotwrt.com>
+References: <20171124023706.5702-1-jacob-chen@iotwrt.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Nov 17, 2017 at 03:52:50PM +0100, Matthias Reichl wrote:
-> Hi Sean!
-> 
-> On Thu, Nov 16, 2017 at 09:54:51PM +0000, Sean Young wrote:
-> > Since commit d57ea877af38 ("media: rc: per-protocol repeat period"),
-> > double keypresses are reported on the ite-cir driver. This is due
-> > two factors: that commit reduced the timeout used for some protocols
-> > (it became protocol dependant) and the high default IR timeout used
-> > by the ite-cir driver.
-> > 
-> > Some of the IR decoders wait for a trailing space, as that is
-> > the only way to know if the bit stream has ended (e.g. rc-6 can be
-> > 16, 20 or 32 bits). The longer the IR timeout, the longer it will take
-> > to receive the trailing space, delaying decoding and pushing it past the
-> > keyup timeout.
-> > 
-> > So, add the IR timeout to the keyup timeout.
-> 
-> Thanks a lot for the patch, I've asked the people with ite-cir
-> receivers to test it.
+Add DT bindings documentation for Rockchip MIPI D-PHY RX
 
-Just got the first test results from ite-cir + rc-6 remote back,
-events were the same as I was seeing with gpio-ir-recv with 200ms
-timeout - key repeat event from input layer.
+Signed-off-by: Jacob Chen <jacob2.chen@rock-chips.com>
+---
+ .../bindings/media/rockchip-mipi-dphy.txt          | 77 ++++++++++++++++++++++
+ 1 file changed, 77 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/rockchip-mipi-dphy.txt
 
-Kernel 4.14 + your patch:
-Event: time 1510938801.797335, type 4 (EV_MSC), code 4 (MSC_SCAN), value 800f041f
-Event: time 1510938801.797335, type 1 (EV_KEY), code 108 (KEY_DOWN), value 1
-Event: time 1510938801.797335, -------------- SYN_REPORT ------------
-Event: time 1510938802.034331, type 4 (EV_MSC), code 4 (MSC_SCAN), value 800f041f
-Event: time 1510938802.034331, -------------- SYN_REPORT ------------
-Event: time 1510938802.301333, type 1 (EV_KEY), code 108 (KEY_DOWN), value 2
-Event: time 1510938802.301333, -------------- SYN_REPORT ------------
-Event: time 1510938802.408003, type 1 (EV_KEY), code 108 (KEY_DOWN), value 0
-Event: time 1510938802.408003, -------------- SYN_REPORT ------------
-
-Kernel 4.13.2:
-Event: time 1510938637.791450, type 4 (EV_MSC), code 4 (MSC_SCAN), value 800f041f
-Event: time 1510938637.791450, type 1 (EV_KEY), code 108 (KEY_DOWN), value 1
-Event: time 1510938637.791450, -------------- SYN_REPORT ------------
-Event: time 1510938638.028301, type 4 (EV_MSC), code 4 (MSC_SCAN), value 800f041f
-Event: time 1510938638.028301, -------------- SYN_REPORT ------------
-Event: time 1510938638.292323, type 1 (EV_KEY), code 108 (KEY_DOWN), value 0
-Event: time 1510938638.292323, -------------- SYN_REPORT ------------
-
-so long,
-
-Hias
-
-> 
-> In the meanwhile I ran some tests with gpio-ir-recv and timeout
-> set to 200ms with a rc-5 remote (that's as close to the original
-> setup as I can test right now).
-> 
-> While the patch fixes the additional key down/up event on longer
-> presses, I still get a repeated key event on a short button
-> press - which makes it hard to do a single click with the
-> remote.
-> 
-> Test on kernel 4.14 with your patch:
-> 1510927844.292126: event type EV_MSC(0x04): scancode = 0x1015
-> 1510927844.292126: event type EV_KEY(0x01) key_down: KEY_ENTER(0x001c)
-> 1510927844.292126: event type EV_SYN(0x00).
-> 1510927844.498773: event type EV_MSC(0x04): scancode = 0x1015
-> 1510927844.498773: event type EV_SYN(0x00).
-> 1510927844.795410: event type EV_KEY(0x01) key_down: KEY_ENTER(0x001c)
-> 1510927844.795410: event type EV_SYN(0x00).
-> 1510927844.875412: event type EV_KEY(0x01) key_up: KEY_ENTER(0x001c)
-> 1510927844.875412: event type EV_SYN(0x00).
-> 
-> Same signal received on kernel 4.9:
-> 1510927844.280350: event type EV_MSC(0x04): scancode = 0x1015
-> 1510927844.280350: event type EV_KEY(0x01) key_down: KEY_OK(0x0160)
-> 1510927844.280350: event type EV_SYN(0x00).
-> 1510927844.506477: event type EV_MSC(0x04): scancode = 0x1015
-> 1510927844.506477: event type EV_SYN(0x00).
-> 1510927844.763111: event type EV_KEY(0x01) key_up: KEY_OK(0x0160)
-> 1510927844.763111: event type EV_SYN(0x00).
-> 
-> If I understand it correctly it's the input layer repeat (500ms delay)
-> kicking in, because time between initial scancode and timeout is
-> now signal time + 200ms + 164ms + 200ms (about 570-580ms).
-> On older kernels this was signal time + 200ms + 250ms, so typically
-> just below the 500ms default repeat delay.
-> 
-> I'm still trying to wrap my head around the timeout code in the
-> rc layer. One problem seems to be that we apply the rather large
-> timeout twice. Maybe detecting scancodes generated via timeout
-> (sth like timestamp - last_timestamp > protocol_repeat_period)
-> and in that case immediately signalling keyup could help? Could well
-> be that I'm missing somehting important and this is a bad idea.
-> I guess I'd better let you figure something out :)
-> 
-> so long,
-> 
-> Hias
-> 
-> > 
-> > Cc: <stable@vger.kernel.org> # 4.14
-> > Reported-by: Matthias Reichl <hias@horus.com>
-> > Signed-off-by: Sean Young <sean@mess.org>
-> > ---
-> >  drivers/media/rc/rc-main.c | 6 ++++--
-> >  1 file changed, 4 insertions(+), 2 deletions(-)
-> > 
-> > diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
-> > index 17950e29d4e3..fae721534517 100644
-> > --- a/drivers/media/rc/rc-main.c
-> > +++ b/drivers/media/rc/rc-main.c
-> > @@ -672,7 +672,8 @@ void rc_repeat(struct rc_dev *dev)
-> >  	input_event(dev->input_dev, EV_MSC, MSC_SCAN, dev->last_scancode);
-> >  	input_sync(dev->input_dev);
-> >  
-> > -	dev->keyup_jiffies = jiffies + msecs_to_jiffies(timeout);
-> > +	dev->keyup_jiffies = jiffies + msecs_to_jiffies(timeout) +
-> > +					nsecs_to_jiffies(dev->timeout);
-> >  	mod_timer(&dev->timer_keyup, dev->keyup_jiffies);
-> >  
-> >  out:
-> > @@ -744,7 +745,8 @@ void rc_keydown(struct rc_dev *dev, enum rc_proto protocol, u32 scancode,
-> >  
-> >  	if (dev->keypressed) {
-> >  		dev->keyup_jiffies = jiffies +
-> > -			msecs_to_jiffies(protocols[protocol].repeat_period);
-> > +			msecs_to_jiffies(protocols[protocol].repeat_period) +
-> > +			nsecs_to_jiffies(dev->timeout);
-> >  		mod_timer(&dev->timer_keyup, dev->keyup_jiffies);
-> >  	}
-> >  	spin_unlock_irqrestore(&dev->keylock, flags);
-> > -- 
-> > 2.14.3
-> > 
+diff --git a/Documentation/devicetree/bindings/media/rockchip-mipi-dphy.txt b/Documentation/devicetree/bindings/media/rockchip-mipi-dphy.txt
+new file mode 100644
+index 000000000000..b5773b67c250
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/rockchip-mipi-dphy.txt
+@@ -0,0 +1,77 @@
++Rockchip SoC MIPI RX D-PHY
++-------------------------------------------------------------
++
++Required properties:
++
++- compatible: value should be one of the following
++    "rockchip,rk3288-mipi-dphy";
++    "rockchip,rk3399-mipi-dphy";
++- rockchip,grf: GRF regs.
++- bus-width	  : maximum number of data lanes supported (SoC specific);
++- clocks	  : list of clock specifiers, corresponding to entries in
++		    clock-names property;
++- clock-names: required clock name.
++
++The device node should contain two 'port' child node, according to the bindings
++defined in Documentation/devicetree/bindings/media/video-interfaces.txt.
++The first port should be connected to sensor nodes, and the second port should be
++connected to isp node. The following are properties specific to those nodes.
++
++endpoint node
++-------------
++
++- data-lanes	  : (required) an array specifying active physical MIPI-CSI2
++		    data input lanes and their mapping to logical lanes; the
++		    array's content is unused, only its length is meaningful;
++
++
++Example:
++
++/* SoC properties */
++
++    mipi_dphy_rx0: mipi-dphy-rx0 {
++        compatible = "rockchip,rk3399-mipi-dphy";
++        clocks = <&cru SCLK_MIPIDPHY_REF>,
++            <&cru SCLK_DPHY_RX0_CFG>,
++            <&cru PCLK_VIO_GRF>;
++        clock-names = "dphy-ref", "dphy-cfg", "grf";
++        power-domains = <&power RK3399_PD_VIO>;
++        bus-width = <4>;
++    };
++
++/* Board properties */
++
++    &mipi_phy_rx0 {
++        ports {
++            #address-cells = <1>;
++            #size-cells = <0>;
++
++            port@0 {
++                reg = <0>;
++                #address-cells = <1>;
++                #size-cells = <0>;
++
++                mipi_in_wcam: endpoint@0 {
++                    reg = <0>;
++                    remote-endpoint = <&wcam_out>;
++                    data-lanes = <1 2>;
++                };
++                mipi_in_ucam: endpoint@1 {
++                    reg = <1>;
++                    remote-endpoint = <&ucam_out>;
++                    data-lanes = <1>;
++                };
++            };
++
++            port@1 {
++                reg = <1>;
++                #address-cells = <1>;
++                #size-cells = <0>;
++
++                dphy_rx0_out: endpoint@0 {
++                    reg = <0>;
++                    remote-endpoint = <&isp0_mipi_in>;
++                };
++            };
++        };
++    };
+\ No newline at end of file
+-- 
+2.15.0
