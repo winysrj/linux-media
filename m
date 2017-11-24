@@ -1,85 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:47537 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751599AbdKKQO4 (ORCPT
+Received: from mail-pl0-f66.google.com ([209.85.160.66]:35798 "EHLO
+        mail-pl0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753693AbdKXOlJ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 11 Nov 2017 11:14:56 -0500
-Reply-To: kieran.bingham@ideasonboard.com
-Subject: Re: [PATCH v2] media: vsp1: Prevent suspending and resuming DRM
- pipelines
-To: laurent.pinchart@ideasonboard.com, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org
-References: <cover.3bc8f413af3b3a9548574c3591aad0bf5b10e181.1505493461.git-series.kieran.bingham+renesas@ideasonboard.com>
- <c1f99c379343a52a4923b3bf74a9e366f4e89dcb.1505898862.git-series.kieran.bingham+renesas@ideasonboard.com>
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Message-ID: <a35d3339-b1d3-cef0-4e20-8144095b1e2e@ideasonboard.com>
-Date: Sat, 11 Nov 2017 16:14:51 +0000
-MIME-Version: 1.0
-In-Reply-To: <c1f99c379343a52a4923b3bf74a9e366f4e89dcb.1505898862.git-series.kieran.bingham+renesas@ideasonboard.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 7bit
+        Fri, 24 Nov 2017 09:41:09 -0500
+Received: by mail-pl0-f66.google.com with SMTP id 62so4559460plc.2
+        for <linux-media@vger.kernel.org>; Fri, 24 Nov 2017 06:41:09 -0800 (PST)
+From: Akinobu Mita <akinobu.mita@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Akinobu Mita <akinobu.mita@gmail.com>,
+        Jonathan Corbet <corbet@lwn.net>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Subject: [PATCH] media: ov7670: use v4l2_async_unregister_subdev()
+Date: Fri, 24 Nov 2017 23:40:44 +0900
+Message-Id: <1511534445-30512-1-git-send-email-akinobu.mita@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Ping ...
+The sub-device for ov7670 is registered by v4l2_async_register_subdev().
+So it should be unregistered by v4l2_async_unregister_subdev() instead of
+v4l2_device_unregister_subdev().
 
-This patch appears to have got lost in the post.
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+---
+ drivers/media/i2c/ov7670.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Could someone pick it up please?
-
---
-Regards
-
-Kieran
-
-On 20/09/17 10:16, Kieran Bingham wrote:
-> When used as part of a display pipeline, the VSP is stopped and
-> restarted explicitly by the DU from its suspend and resume handlers.
-> There is thus no need to stop or restart pipelines in the VSP suspend
-> and resume handlers, and doing so would cause the hardware to be
-> left in a misconfigured state.
-> 
-> Ensure that the VSP suspend and resume handlers do not affect DRM
-> based pipelines.
-> 
-> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-> ---
->  drivers/media/platform/vsp1/vsp1_drv.c | 16 ++++++++++++++--
->  1 file changed, 14 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/media/platform/vsp1/vsp1_drv.c b/drivers/media/platform/vsp1/vsp1_drv.c
-> index 962e4c304076..ed25ba9d551b 100644
-> --- a/drivers/media/platform/vsp1/vsp1_drv.c
-> +++ b/drivers/media/platform/vsp1/vsp1_drv.c
-> @@ -571,7 +571,13 @@ static int __maybe_unused vsp1_pm_suspend(struct device *dev)
->  {
->  	struct vsp1_device *vsp1 = dev_get_drvdata(dev);
->  
-> -	vsp1_pipelines_suspend(vsp1);
-> +	/*
-> +	 * When used as part of a display pipeline, the VSP is stopped and
-> +	 * restarted explicitly by the DU
-> +	 */
-> +	if (!vsp1->drm)
-> +		vsp1_pipelines_suspend(vsp1);
-> +
->  	pm_runtime_force_suspend(vsp1->dev);
->  
->  	return 0;
-> @@ -582,7 +588,13 @@ static int __maybe_unused vsp1_pm_resume(struct device *dev)
->  	struct vsp1_device *vsp1 = dev_get_drvdata(dev);
->  
->  	pm_runtime_force_resume(vsp1->dev);
-> -	vsp1_pipelines_resume(vsp1);
-> +
-> +	/*
-> +	 * When used as part of a display pipeline, the VSP is stopped and
-> +	 * restarted explicitly by the DU
-> +	 */
-> +	if (!vsp1->drm)
-> +		vsp1_pipelines_resume(vsp1);
->  
->  	return 0;
->  }
-> 
+diff --git a/drivers/media/i2c/ov7670.c b/drivers/media/i2c/ov7670.c
+index 950a0ac..b61d88e 100644
+--- a/drivers/media/i2c/ov7670.c
++++ b/drivers/media/i2c/ov7670.c
+@@ -1820,7 +1820,7 @@ static int ov7670_remove(struct i2c_client *client)
+ 	struct v4l2_subdev *sd = i2c_get_clientdata(client);
+ 	struct ov7670_info *info = to_state(sd);
+ 
+-	v4l2_device_unregister_subdev(sd);
++	v4l2_async_unregister_subdev(sd);
+ 	v4l2_ctrl_handler_free(&info->hdl);
+ 	clk_disable_unprepare(info->clk);
+ #if defined(CONFIG_MEDIA_CONTROLLER)
+-- 
+2.7.4
