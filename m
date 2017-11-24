@@ -1,541 +1,864 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.math.uni-bielefeld.de ([129.70.45.10]:45553 "EHLO
-        smtp.math.uni-bielefeld.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752076AbdKCP2t (ORCPT
+Received: from mail-pg0-f66.google.com ([74.125.83.66]:44817 "EHLO
+        mail-pg0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751622AbdKXChw (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 3 Nov 2017 11:28:49 -0400
-Subject: Re: [PATCH v2] media: s5p-mfc: Add support for V4L2_MEMORY_DMABUF
- type
-To: Tobias Jakobi <tjakobi@math.uni-bielefeld.de>,
-        Nicolas Dufresne <nicolas@ndufresne.ca>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        Andrzej Hajda <a.hajda@samsung.com>,
-        Marian Mihailescu <mihailescu2m@gmail.com>,
-        Chanwoo Choi <cw00.choi@samsung.com>,
-        JaeChul Lee <jcsing.lee@samsung.com>,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Seung-Woo Kim <sw0312.kim@samsung.com>
-References: <CGME20171103081132eucas1p2212e32d26e7921340336d78d0d92cb1b@eucas1p2.samsung.com>
- <20171103081124.30119-1-m.szyprowski@samsung.com>
- <1509716721.3607.6.camel@ndufresne.ca>
- <d95ce7de-38cb-00e6-0c8d-a1d6d9f35d69@math.uni-bielefeld.de>
-From: Tobias Jakobi <tjakobi@math.uni-bielefeld.de>
-Message-ID: <cadfc1dc-b19a-497a-bc66-f3b1ef9a5bae@math.uni-bielefeld.de>
-Date: Fri, 3 Nov 2017 16:28:46 +0100
-MIME-Version: 1.0
-In-Reply-To: <d95ce7de-38cb-00e6-0c8d-a1d6d9f35d69@math.uni-bielefeld.de>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+        Thu, 23 Nov 2017 21:37:52 -0500
+From: Jacob Chen <jacob-chen@iotwrt.com>
+To: linux-rockchip@lists.infradead.org
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        mchehab@kernel.org, linux-media@vger.kernel.org,
+        sakari.ailus@linux.intel.com, hans.verkuil@cisco.com,
+        tfiga@chromium.org, zhengsq@rock-chips.com,
+        laurent.pinchart@ideasonboard.com, zyc@rock-chips.com,
+        eddie.cai.linux@gmail.com, jeffy.chen@rock-chips.com,
+        allon.huang@rock-chips.com, devicetree@vger.kernel.org,
+        heiko@sntech.de, robh+dt@kernel.org,
+        Jacob Chen <jacob2.chen@rock-chips.com>
+Subject: [PATCH v2 04/11] media: rkisp1: add Rockchip MIPI Synopsys DPHY driver
+Date: Fri, 24 Nov 2017 10:36:59 +0800
+Message-Id: <20171124023706.5702-5-jacob-chen@iotwrt.com>
+In-Reply-To: <20171124023706.5702-1-jacob-chen@iotwrt.com>
+References: <20171124023706.5702-1-jacob-chen@iotwrt.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Tobias Jakobi wrote:
-> Nicolas Dufresne wrote:
->> Le vendredi 03 novembre 2017 à 09:11 +0100, Marek Szyprowski a écrit :
->>> MFC driver supports only MMAP operation mode mainly due to the hardware
->>> restrictions of the addresses of the DMA buffers (MFC v5 hardware can
->>> access buffers only in 128MiB memory region starting from the base address
->>> of its firmware). When IOMMU is available, this requirement is easily
->>> fulfilled even for the buffers located anywhere in the memory - typically
->>> by mapping them in the DMA address space as close as possible to the
->>> firmware. Later hardware revisions don't have this limitations at all.
->>>
->>> The second limitation of the MFC hardware related to the memory buffers
->>> is constant buffer address. Once the hardware has been initialized for
->>> operation on given buffer set, the addresses of the buffers cannot be
->>> changed.
->>>
->>> With the above assumptions, a limited support for USERPTR and DMABUF
->>> operation modes can be added. The main requirement is to have all buffers
->>> known when starting hardware. This has been achieved by postponing
->>> hardware initialization once all the DMABUF or USERPTR buffers have been
->>> queued for the first time. Once then, buffers cannot be modified to point
->>> to other memory area.
->>
->> I am concerned about enabling this support with existing userspace.
->> Userspace application will be left with some driver with this
->> limitation and other drivers without. I think it is harmful to enable
->> that feature without providing userspace the ability to know.
-> I voiced similar concern in my previous mail. I have to admit that I know very
-> little about V4L2, but when I investigated this some time ago I saw that
-> previously used/queued DMABUF buffers can be removed again, and, under certain
-> conditions are 'reacquired', which issues a buf_cleanup() -- which does nothing
-> atm. My guess is that, in the worst case, one could trigger an IOMMU pagefault
-> (or simply memory corruption, if not under IOMMU) this way.
-> 
-> Like Marek says, the hw needs to know DMA adresses of all available buffers on
-> hw init. Hence a proper implementation would need to trigger some
-> re-initialization once these adresses changes (DMABUFs removed/reacquired/etc.).
+From: Jacob Chen <jacob2.chen@rock-chips.com>
 
-Forgot to mention something here. Back when I looked at the code, I saw that the
-MFC state machine has a state when the resolution of the video changes. IIRC
-then this also triggers a reconfiguration of the hw buffers. I thought that
-maybe one could re-use the states in the event of changed buffers. I didn't get
-very far there, mainly because documentation of the whole state machine and the
-interaction with the hw core is very sparse...
+This commit adds a subdev driver for Rockchip MIPI Synopsys DPHY driver.
 
-- Tobias
+The phy driver is kind of independent compare to the other parts, but i'd like
+to keep it in rkisp1 driver, unless people want to generalize it
 
+Signed-off-by: Jacob Chen <jacob2.chen@rock-chips.com>
+Signed-off-by: Shunqian Zheng <zhengsq@rock-chips.com>
+Signed-off-by: Tomasz Figa <tfiga@chromium.org>
+---
+ drivers/media/platform/rockchip/isp1/Makefile      |   1 +
+ .../media/platform/rockchip/isp1/mipi_dphy_sy.c    | 805 +++++++++++++++++++++
+ 2 files changed, 806 insertions(+)
+ create mode 100644 drivers/media/platform/rockchip/isp1/mipi_dphy_sy.c
 
-
-
-> These extra constraints which are introduced here, IMO they violate the API then.
-> 
-> 
-> 
->> This is specially conflicting with let's say UVC driver providing
->> buffers, since UVC driver implementing CREATE_BUFS ioctl. So even if
->> userspace start making an effort to maintain the same DMABuf for the
->> same buffer index, if a new buffer is created, we won't be able to use
->> it.
->>
->>>
->>> This patch also removes unconditional USERPTR operation mode from encoder
->>> video node, because it doesn't work with v5 MFC hardware without IOMMU
->>> being enabled.
->>>
->>> In case of MFC v5 a bidirectional queue flag has to be enabled as a
->>> workaround of the strange hardware behavior - MFC performs a few writes
->>> to source data during the operation.
->>
->> Do you have more information about this ? It is quite terrible, since
->> if you enable buffer importation, the buffer might be multi-plex across
->> multiple encoder instance. That is another way this feature can be
->> harmful to existing userspace.
-> IIRC the hw stores some "housekeeping" data in the input buffers used during
-> decoding. So input buffers are not strictly "input", but also output, in the
-> following sense. If the buffer has total size N, and the data stored inside has
-> size n (with n < N), then the hw uses the remaining N-n bytes at the end of the
-> buffer for this housekeeping data. I'm not sure what happens if n equals N, or
-> if that's even possible.
-> 
-> With best wishes,
-> Tobias
-> 
-> 
->>
->>>
->>> Signed-off-by: Seung-Woo Kim <sw0312.kim@samsung.com>
->>> [mszyprow: adapted to v4.14 code base, rewrote and extended commit message,
->>>  added checks for changing buffer addresses, added bidirectional queue
->>>  flags and comments]
->>> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
->>> ---
->>> v2:
->>> - fixed copy/paste bug, which broke encoding support (thanks to Marian
->>>   Mihailescu for reporting it)
->>> - added checks for changing buffers DMA addresses
->>> - added bidirectional queue flags
->>>
->>> v1:
->>> - inital version
->>> ---
->>>  drivers/media/platform/s5p-mfc/s5p_mfc.c     |  23 +++++-
->>>  drivers/media/platform/s5p-mfc/s5p_mfc_dec.c | 111 +++++++++++++++++++--------
->>>  drivers/media/platform/s5p-mfc/s5p_mfc_enc.c |  64 +++++++++++----
->>>  3 files changed, 147 insertions(+), 51 deletions(-)
->>>
->>> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
->>> index 1839a86cc2a5..f1ab8d198158 100644
->>> --- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
->>> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
->>> @@ -754,6 +754,7 @@ static int s5p_mfc_open(struct file *file)
->>>  	struct s5p_mfc_dev *dev =ideo_drvdata(file);
->>>  	struct s5p_mfc_ctx *ctx =ULL;
->>>  	struct vb2_queue *q;
->>> +	unsigned int io_modes;
->>>  	int ret =;
->>>  
->>>  	mfc_debug_enter();
->>> @@ -839,16 +840,25 @@ static int s5p_mfc_open(struct file *file)
->>>  		if (ret)
->>>  			goto err_init_hw;
->>>  	}
->>> +
->>> +	io_modes =B2_MMAP;
->>> +	if (exynos_is_iommu_available(&dev->plat_dev->dev) || !IS_TWOPORT(dev))
->>> +		io_modes |=B2_USERPTR | VB2_DMABUF;
->>> +
->>>  	/* Init videobuf2 queue for CAPTURE */
->>>  	q =ctx->vq_dst;
->>>  	q->type =4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
->>> +	q->io_modes =o_modes;
->>> +	/*
->>> +	 * Destination buffers are always bidirectional, they use used as
->>> +	 * reference data, which require READ access
->>> +	 */
->>> +	q->bidirectional =rue;
->>>  	q->drv_priv =ctx->fh;
->>>  	q->lock =dev->mfc_mutex;
->>>  	if (vdev =dev->vfd_dec) {
->>> -		q->io_modes =B2_MMAP;
->>>  		q->ops =et_dec_queue_ops();
->>>  	} else if (vdev =dev->vfd_enc) {
->>> -		q->io_modes =B2_MMAP | VB2_USERPTR;
->>>  		q->ops =et_enc_queue_ops();
->>>  	} else {
->>>  		ret =ENOENT;
->>> @@ -869,13 +879,18 @@ static int s5p_mfc_open(struct file *file)
->>>  	/* Init videobuf2 queue for OUTPUT */
->>>  	q =ctx->vq_src;
->>>  	q->type =4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE;
->>> +	q->io_modes =o_modes;
->>> +	/*
->>> +	 * MFV v5 performs write operations on source data, so make queue
->>> +	 * bidirectional to avoid IOMMU protection fault.
->>> +	 */
->>> +	if (!IS_MFCV6_PLUS(dev))
->>> +		q->bidirectional =rue;
->>>  	q->drv_priv =ctx->fh;
->>>  	q->lock =dev->mfc_mutex;
->>>  	if (vdev =dev->vfd_dec) {
->>> -		q->io_modes =B2_MMAP;
->>>  		q->ops =et_dec_queue_ops();
->>>  	} else if (vdev =dev->vfd_enc) {
->>> -		q->io_modes =B2_MMAP | VB2_USERPTR;
->>>  		q->ops =et_enc_queue_ops();
->>>  	} else {
->>>  		ret =ENOENT;
->>> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
->>> index e3e5c442902a..26ee8315e2cf 100644
->>> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
->>> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
->>> @@ -551,14 +551,27 @@ static int reqbufs_capture(struct s5p_mfc_dev *dev, struct s5p_mfc_ctx *ctx,
->>>  			goto out;
->>>  		}
->>>  
->>> -		WARN_ON(ctx->dst_bufs_cnt !=tx->total_dpb_count);
->>> -		ctx->capture_state =UEUE_BUFS_MMAPED;
->>> +		if (reqbufs->memory =V4L2_MEMORY_MMAP) {
->>> +			if (ctx->dst_bufs_cnt =ctx->total_dpb_count) {
->>> +				ctx->capture_state =UEUE_BUFS_MMAPED;
->>> +			} else {
->>> +				mfc_err("Not all buffers passed to buf_init\n");
->>> +				reqbufs->count =;
->>> +				ret =b2_reqbufs(&ctx->vq_dst, reqbufs);
->>> +				s5p_mfc_hw_call(dev->mfc_ops,
->>> +						release_codec_buffers, ctx);
->>> +				ret =ENOMEM;
->>> +				goto out;
->>> +			}
->>> +		}
->>>  
->>>  		if (s5p_mfc_ctx_ready(ctx))
->>>  			set_work_bit_irqsave(ctx);
->>>  		s5p_mfc_hw_call(dev->mfc_ops, try_run, dev);
->>> -		s5p_mfc_wait_for_done_ctx(ctx, S5P_MFC_R2H_CMD_INIT_BUFFERS_RET,
->>> -					  0);
->>> +		if (reqbufs->memory =V4L2_MEMORY_MMAP) {
->>> +			s5p_mfc_wait_for_done_ctx(ctx,
->>> +					 S5P_MFC_R2H_CMD_INIT_BUFFERS_RET, 0);
->>> +		}
->>>  	} else {
->>>  		mfc_err("Buffers have already been requested\n");
->>>  		ret =EINVAL;
->>> @@ -576,15 +589,19 @@ static int vidioc_reqbufs(struct file *file, void *priv,
->>>  {
->>>  	struct s5p_mfc_dev *dev =ideo_drvdata(file);
->>>  	struct s5p_mfc_ctx *ctx =h_to_ctx(priv);
->>> -
->>> -	if (reqbufs->memory !=4L2_MEMORY_MMAP) {
->>> -		mfc_debug(2, "Only V4L2_MEMORY_MMAP is supported\n");
->>> -		return -EINVAL;
->>> -	}
->>> +	int ret;
->>>  
->>>  	if (reqbufs->type =V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
->>> +		ret =b2_verify_memory_type(&ctx->vq_src, reqbufs->memory,
->>> +					     reqbufs->type);
->>> +		if (ret)
->>> +			return ret;
->>>  		return reqbufs_output(dev, ctx, reqbufs);
->>>  	} else if (reqbufs->type =V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
->>> +		ret =b2_verify_memory_type(&ctx->vq_dst, reqbufs->memory,
->>> +					     reqbufs->type);
->>> +		if (ret)
->>> +			return ret;
->>>  		return reqbufs_capture(dev, ctx, reqbufs);
->>>  	} else {
->>>  		mfc_err("Invalid type requested\n");
->>> @@ -600,16 +617,20 @@ static int vidioc_querybuf(struct file *file, void *priv,
->>>  	int ret;
->>>  	int i;
->>>  
->>> -	if (buf->memory !=4L2_MEMORY_MMAP) {
->>> -		mfc_err("Only mmaped buffers can be used\n");
->>> -		return -EINVAL;
->>> -	}
->>>  	mfc_debug(2, "State: %d, buf->type: %d\n", ctx->state, buf->type);
->>>  	if (ctx->state =MFCINST_GOT_INST &&
->>>  			buf->type =V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
->>> +		ret =b2_verify_memory_type(&ctx->vq_src, buf->memory,
->>> +					     buf->type);
->>> +		if (ret)
->>> +			return ret;
->>>  		ret =b2_querybuf(&ctx->vq_src, buf);
->>>  	} else if (ctx->state =MFCINST_RUNNING &&
->>>  			buf->type =V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
->>> +		ret =b2_verify_memory_type(&ctx->vq_dst, buf->memory,
->>> +					     buf->type);
->>> +		if (ret)
->>> +			return ret;
->>>  		ret =b2_querybuf(&ctx->vq_dst, buf);
->>>  		for (i =; i < buf->length; i++)
->>>  			buf->m.planes[i].m.mem_offset +=ST_QUEUE_OFF_BASE;
->>> @@ -940,10 +961,12 @@ static int s5p_mfc_queue_setup(struct vb2_queue *vq,
->>>  		else
->>>  			alloc_devs[0] =tx->dev->mem_dev[BANK_R_CTX];
->>>  		alloc_devs[1] =tx->dev->mem_dev[BANK_L_CTX];
->>> +		memset(ctx->dst_bufs, 0, sizeof(ctx->dst_bufs));
->>>  	} else if (vq->type =V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE &&
->>>  		   ctx->state =MFCINST_INIT) {
->>>  		psize[0] =tx->dec_src_buf_size;
->>>  		alloc_devs[0] =tx->dev->mem_dev[BANK_L_CTX];
->>> +		memset(ctx->src_bufs, 0, sizeof(ctx->src_bufs));
->>>  	} else {
->>>  		mfc_err("This video node is dedicated to decoding. Decoding not initialized\n");
->>>  		return -EINVAL;
->>> @@ -959,30 +982,35 @@ static int s5p_mfc_buf_init(struct vb2_buffer *vb)
->>>  	unsigned int i;
->>>  
->>>  	if (vq->type =V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
->>> +		dma_addr_t luma, chroma;
->>> +
->>>  		if (ctx->capture_state =QUEUE_BUFS_MMAPED)
->>>  			return 0;
->>> -		for (i =; i < ctx->dst_fmt->num_planes; i++) {
->>> -			if (IS_ERR_OR_NULL(ERR_PTR(
->>> -					vb2_dma_contig_plane_dma_addr(vb, i)))) {
->>> -				mfc_err("Plane mem not allocated\n");
->>> -				return -EINVAL;
->>> -			}
->>> -		}
->>> -		if (vb2_plane_size(vb, 0) < ctx->luma_size ||
->>> -			vb2_plane_size(vb, 1) < ctx->chroma_size) {
->>> -			mfc_err("Plane buffer (CAPTURE) is too small\n");
->>> +
->>> +		luma =b2_dma_contig_plane_dma_addr(vb, 0);
->>> +		chroma =b2_dma_contig_plane_dma_addr(vb, 1);
->>> +		if (!luma || !chroma) {
->>> +			mfc_err("Plane mem not allocated\n");
->>>  			return -EINVAL;
->>>  		}
->>> +
->>>  		i =b->index;
->>> +		if ((ctx->dst_bufs[i].cookie.raw.luma &&
->>> +		     ctx->dst_bufs[i].cookie.raw.luma !=uma) ||
->>> +		    (ctx->dst_bufs[i].cookie.raw.chroma &&
->>> +		     ctx->dst_bufs[i].cookie.raw.chroma !=hroma)) {
->>> +			mfc_err("Changing CAPTURE buffer address during straming is not possible\n");
->>> +			return -EINVAL;
->>> +		}
->>> +
->>>  		ctx->dst_bufs[i].b =buf;
->>> -		ctx->dst_bufs[i].cookie.raw.luma >> -					vb2_dma_contig_plane_dma_addr(vb, 0);
->>> -		ctx->dst_bufs[i].cookie.raw.chroma >> -					vb2_dma_contig_plane_dma_addr(vb, 1);
->>> +		ctx->dst_bufs[i].cookie.raw.luma =uma;
->>> +		ctx->dst_bufs[i].cookie.raw.chroma =hroma;
->>>  		ctx->dst_bufs_cnt++;
->>>  	} else if (vq->type =V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
->>> -		if (IS_ERR_OR_NULL(ERR_PTR(
->>> -					vb2_dma_contig_plane_dma_addr(vb, 0)))) {
->>> +		dma_addr_t stream =b2_dma_contig_plane_dma_addr(vb, 0);
->>> +
->>> +		if (!stream) {
->>>  			mfc_err("Plane memory not allocated\n");
->>>  			return -EINVAL;
->>>  		}
->>> @@ -992,9 +1020,14 @@ static int s5p_mfc_buf_init(struct vb2_buffer *vb)
->>>  		}
->>>  
->>>  		i =b->index;
->>> +		if (ctx->src_bufs[i].cookie.stream &&
->>> +		     ctx->src_bufs[i].cookie.stream !=tream) {
->>> +			mfc_err("Changing OUTPUT buffer address during straming is not possible\n");
->>> +			return -EINVAL;
->>> +		}
->>> +
->>>  		ctx->src_bufs[i].b =buf;
->>> -		ctx->src_bufs[i].cookie.stream >> -					vb2_dma_contig_plane_dma_addr(vb, 0);
->>> +		ctx->src_bufs[i].cookie.stream =tream;
->>>  		ctx->src_bufs_cnt++;
->>>  	} else {
->>>  		mfc_err("s5p_mfc_buf_init: unknown queue type\n");
->>> @@ -1071,6 +1104,7 @@ static void s5p_mfc_buf_queue(struct vb2_buffer *vb)
->>>  	struct s5p_mfc_dev *dev =tx->dev;
->>>  	unsigned long flags;
->>>  	struct s5p_mfc_buf *mfc_buf;
->>> +	int wait_flag =;
->>>  
->>>  	if (vq->type =V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
->>>  		mfc_buf =ctx->src_bufs[vb->index];
->>> @@ -1088,12 +1122,25 @@ static void s5p_mfc_buf_queue(struct vb2_buffer *vb)
->>>  		list_add_tail(&mfc_buf->list, &ctx->dst_queue);
->>>  		ctx->dst_queue_cnt++;
->>>  		spin_unlock_irqrestore(&dev->irqlock, flags);
->>> +		if ((vq->memory =V4L2_MEMORY_USERPTR ||
->>> +			vq->memory =V4L2_MEMORY_DMABUF) &&
->>> +			ctx->dst_queue_cnt =ctx->total_dpb_count)
->>> +			ctx->capture_state =UEUE_BUFS_MMAPED;
->>>  	} else {
->>>  		mfc_err("Unsupported buffer type (%d)\n", vq->type);
->>>  	}
->>> -	if (s5p_mfc_ctx_ready(ctx))
->>> +	if (s5p_mfc_ctx_ready(ctx)) {
->>>  		set_work_bit_irqsave(ctx);
->>> +		if ((vq->memory =V4L2_MEMORY_USERPTR ||
->>> +			vq->memory =V4L2_MEMORY_DMABUF) &&
->>> +			ctx->state =MFCINST_HEAD_PARSED &&
->>> +			ctx->capture_state =QUEUE_BUFS_MMAPED)
->>> +			wait_flag =;
->>> +	}
->>>  	s5p_mfc_hw_call(dev->mfc_ops, try_run, dev);
->>> +	if (wait_flag)
->>> +		s5p_mfc_wait_for_done_ctx(ctx,
->>> +				S5P_MFC_R2H_CMD_INIT_BUFFERS_RET, 0);
->>>  }
->>>  
->>>  static struct vb2_ops s5p_mfc_dec_qops =
->>> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
->>> index 7b041e5ee4be..33fc3f3ef48a 100644
->>> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
->>> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
->>> @@ -1125,11 +1125,11 @@ static int vidioc_reqbufs(struct file *file, void *priv,
->>>  	struct s5p_mfc_ctx *ctx =h_to_ctx(priv);
->>>  	int ret =;
->>>  
->>> -	/* if memory is not mmp or userptr return error */
->>> -	if ((reqbufs->memory !=4L2_MEMORY_MMAP) &&
->>> -		(reqbufs->memory !=4L2_MEMORY_USERPTR))
->>> -		return -EINVAL;
->>>  	if (reqbufs->type =V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
->>> +		ret =b2_verify_memory_type(&ctx->vq_dst, reqbufs->memory,
->>> +					     reqbufs->type);
->>> +		if (ret)
->>> +			return ret;
->>>  		if (reqbufs->count =0) {
->>>  			mfc_debug(2, "Freeing buffers\n");
->>>  			ret =b2_reqbufs(&ctx->vq_dst, reqbufs);
->>> @@ -1159,6 +1159,10 @@ static int vidioc_reqbufs(struct file *file, void *priv,
->>>  			return -ENOMEM;
->>>  		}
->>>  	} else if (reqbufs->type =V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
->>> +		ret =b2_verify_memory_type(&ctx->vq_src, reqbufs->memory,
->>> +					     reqbufs->type);
->>> +		if (ret)
->>> +			return ret;
->>>  		if (reqbufs->count =0) {
->>>  			mfc_debug(2, "Freeing buffers\n");
->>>  			ret =b2_reqbufs(&ctx->vq_src, reqbufs);
->>> @@ -1190,6 +1194,8 @@ static int vidioc_reqbufs(struct file *file, void *priv,
->>>  			mfc_err("error in vb2_reqbufs() for E(S)\n");
->>>  			return ret;
->>>  		}
->>> +		if (reqbufs->memory !=4L2_MEMORY_MMAP)
->>> +			ctx->src_bufs_cnt =eqbufs->count;
->>>  		ctx->output_state =UEUE_BUFS_REQUESTED;
->>>  	} else {
->>>  		mfc_err("invalid buf type\n");
->>> @@ -1204,11 +1210,11 @@ static int vidioc_querybuf(struct file *file, void *priv,
->>>  	struct s5p_mfc_ctx *ctx =h_to_ctx(priv);
->>>  	int ret =;
->>>  
->>> -	/* if memory is not mmp or userptr return error */
->>> -	if ((buf->memory !=4L2_MEMORY_MMAP) &&
->>> -		(buf->memory !=4L2_MEMORY_USERPTR))
->>> -		return -EINVAL;
->>>  	if (buf->type =V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
->>> +		ret =b2_verify_memory_type(&ctx->vq_dst, buf->memory,
->>> +					     buf->type);
->>> +		if (ret)
->>> +			return ret;
->>>  		if (ctx->state !=FCINST_GOT_INST) {
->>>  			mfc_err("invalid context state: %d\n", ctx->state);
->>>  			return -EINVAL;
->>> @@ -1220,6 +1226,10 @@ static int vidioc_querybuf(struct file *file, void *priv,
->>>  		}
->>>  		buf->m.planes[0].m.mem_offset +=ST_QUEUE_OFF_BASE;
->>>  	} else if (buf->type =V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
->>> +		ret =b2_verify_memory_type(&ctx->vq_src, buf->memory,
->>> +					     buf->type);
->>> +		if (ret)
->>> +			return ret;
->>>  		ret =b2_querybuf(&ctx->vq_src, buf);
->>>  		if (ret !=) {
->>>  			mfc_err("error in vb2_querybuf() for E(S)\n");
->>> @@ -1828,6 +1838,7 @@ static int s5p_mfc_queue_setup(struct vb2_queue *vq,
->>>  			*buf_count =FC_MAX_BUFFERS;
->>>  		psize[0] =tx->enc_dst_buf_size;
->>>  		alloc_devs[0] =tx->dev->mem_dev[BANK_L_CTX];
->>> +		memset(ctx->dst_bufs, 0, sizeof(ctx->dst_bufs));
->>>  	} else if (vq->type =V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
->>>  		if (ctx->src_fmt)
->>>  			*plane_count =tx->src_fmt->num_planes;
->>> @@ -1849,6 +1860,7 @@ static int s5p_mfc_queue_setup(struct vb2_queue *vq,
->>>  			alloc_devs[0] =tx->dev->mem_dev[BANK_R_CTX];
->>>  			alloc_devs[1] =tx->dev->mem_dev[BANK_R_CTX];
->>>  		}
->>> +		memset(ctx->src_bufs, 0, sizeof(ctx->src_bufs));
->>>  	} else {
->>>  		mfc_err("invalid queue type: %d\n", vq->type);
->>>  		return -EINVAL;
->>> @@ -1865,25 +1877,47 @@ static int s5p_mfc_buf_init(struct vb2_buffer *vb)
->>>  	int ret;
->>>  
->>>  	if (vq->type =V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
->>> +		dma_addr_t stream;
->>> +
->>>  		ret =heck_vb_with_fmt(ctx->dst_fmt, vb);
->>>  		if (ret < 0)
->>>  			return ret;
->>> +
->>> +		stream =b2_dma_contig_plane_dma_addr(vb, 0);
->>>  		i =b->index;
->>> +		if (ctx->dst_bufs[i].cookie.stream &&
->>> +		    ctx->src_bufs[i].cookie.stream !=tream) {
->>> +			mfc_err("Changing CAPTURE buffer address during straming is not possible\n");
->>> +			return -EINVAL;
->>> +		}
->>> +
->>>  		ctx->dst_bufs[i].b =buf;
->>> -		ctx->dst_bufs[i].cookie.stream >> -					vb2_dma_contig_plane_dma_addr(vb, 0);
->>> +		ctx->dst_bufs[i].cookie.stream =tream;
->>>  		ctx->dst_bufs_cnt++;
->>>  	} else if (vq->type =V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
->>> +		dma_addr_t luma, chroma;
->>> +
->>>  		ret =heck_vb_with_fmt(ctx->src_fmt, vb);
->>>  		if (ret < 0)
->>>  			return ret;
->>> +
->>> +		luma =b2_dma_contig_plane_dma_addr(vb, 0);
->>> +		chroma =b2_dma_contig_plane_dma_addr(vb, 1);
->>> +
->>>  		i =b->index;
->>> +		if ((ctx->src_bufs[i].cookie.raw.luma &&
->>> +		     ctx->src_bufs[i].cookie.raw.luma !=uma) ||
->>> +		    (ctx->src_bufs[i].cookie.raw.chroma &&
->>> +		     ctx->src_bufs[i].cookie.raw.chroma !=hroma)) {
->>> +			mfc_err("Changing OUTPUT buffer address during straming is not possible\n");
->>> +			return -EINVAL;
->>> +		}
->>> +
->>>  		ctx->src_bufs[i].b =buf;
->>> -		ctx->src_bufs[i].cookie.raw.luma >> -					vb2_dma_contig_plane_dma_addr(vb, 0);
->>> -		ctx->src_bufs[i].cookie.raw.chroma >> -					vb2_dma_contig_plane_dma_addr(vb, 1);
->>> -		ctx->src_bufs_cnt++;
->>> +		ctx->src_bufs[i].cookie.raw.luma =uma;
->>> +		ctx->src_bufs[i].cookie.raw.chroma =hroma;
->>> +		if (vb->memory =V4L2_MEMORY_MMAP)
->>> +			ctx->src_bufs_cnt++;
->>>  	} else {
->>>  		mfc_err("invalid queue type: %d\n", vq->type);
->>>  		return -EINVAL;
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-samsung-soc" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+diff --git a/drivers/media/platform/rockchip/isp1/Makefile b/drivers/media/platform/rockchip/isp1/Makefile
+index 8f52f959398e..18af64853734 100644
+--- a/drivers/media/platform/rockchip/isp1/Makefile
++++ b/drivers/media/platform/rockchip/isp1/Makefile
+@@ -4,4 +4,5 @@ video_rkisp1-objs 	   += 	rkisp1.o \
+ 				regs.o \
+ 				isp_stats.o \
+ 				isp_params.o \
++				mipi_dphy_sy.o \
+ 				capture.o
+diff --git a/drivers/media/platform/rockchip/isp1/mipi_dphy_sy.c b/drivers/media/platform/rockchip/isp1/mipi_dphy_sy.c
+new file mode 100644
+index 000000000000..56deff2be6fd
+--- /dev/null
++++ b/drivers/media/platform/rockchip/isp1/mipi_dphy_sy.c
+@@ -0,0 +1,805 @@
++/*
++ * Rockchip MIPI Synopsys DPHY driver
++ *
++ * Copyright (C) 2017 Fuzhou Rockchip Electronics Co., Ltd.
++ *
++ * This software is available to you under a choice of one of two
++ * licenses.  You may choose to be licensed under the terms of the GNU
++ * General Public License (GPL) Version 2, available from the file
++ * COPYING in the main directory of this source tree, or the
++ * OpenIB.org BSD license below:
++ *
++ *     Redistribution and use in source and binary forms, with or
++ *     without modification, are permitted provided that the following
++ *     conditions are met:
++ *
++ *      - Redistributions of source code must retain the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer.
++ *
++ *      - Redistributions in binary form must reproduce the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer in the documentation and/or other materials
++ *        provided with the distribution.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
++ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
++ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
++ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
++ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
++ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
++ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
++ * SOFTWARE.
++ */
++
++#include <linux/clk.h>
++#include <linux/delay.h>
++#include <linux/module.h>
++#include <linux/of.h>
++#include <linux/of_platform.h>
++#include <linux/platform_device.h>
++#include <linux/pm_runtime.h>
++#include <linux/regmap.h>
++#include <linux/mfd/syscon.h>
++#include <media/media-entity.h>
++#include <media/v4l2-ctrls.h>
++#include <media/v4l2-fwnode.h>
++#include <media/v4l2-subdev.h>
++
++#define RK3288_GRF_SOC_CON6	0x025c
++#define RK3288_GRF_SOC_CON8	0x0264
++#define RK3288_GRF_SOC_CON9	0x0268
++#define RK3288_GRF_SOC_CON10	0x026c
++#define RK3288_GRF_SOC_CON14	0x027c
++#define RK3288_GRF_SOC_STATUS21	0x02d4
++#define RK3288_GRF_IO_VSEL	0x0380
++#define RK3288_GRF_SOC_CON15	0x03a4
++
++#define RK3399_GRF_SOC_CON9	0x6224
++#define RK3399_GRF_SOC_CON21	0x6254
++#define RK3399_GRF_SOC_CON22	0x6258
++#define RK3399_GRF_SOC_CON23	0x625c
++#define RK3399_GRF_SOC_CON24	0x6260
++#define RK3399_GRF_SOC_CON25	0x6264
++#define RK3399_GRF_SOC_STATUS1	0xe2a4
++
++#define CLOCK_LANE_HS_RX_CONTROL		0x34
++#define LANE0_HS_RX_CONTROL			0x44
++#define LANE1_HS_RX_CONTROL			0x54
++#define LANE2_HS_RX_CONTROL			0x84
++#define LANE3_HS_RX_CONTROL			0x94
++#define HS_RX_DATA_LANES_THS_SETTLE__CONTROL	0x75
++
++#define HIWORD_UPDATE(val, mask, shift) \
++	((val) << (shift) | (mask) << ((shift) + 16))
++
++enum mipi_dphy_sy_pads {
++	MIPI_DPHY_SY_PAD_SINK = 0,
++	MIPI_DPHY_SY_PAD_SOURCE,
++	MIPI_DPHY_SY_PADS_NUM,
++};
++
++enum dphy_reg_id {
++	GRF_DPHY_RX0_TURNDISABLE = 0,
++	GRF_DPHY_RX0_FORCERXMODE,
++	GRF_DPHY_RX0_FORCETXSTOPMODE,
++	GRF_DPHY_RX0_ENABLE,
++	GRF_DPHY_RX0_TESTCLR,
++	GRF_DPHY_RX0_TESTCLK,
++	GRF_DPHY_RX0_TESTEN,
++	GRF_DPHY_RX0_TESTDIN,
++	GRF_DPHY_RX0_TURNREQUEST,
++	GRF_DPHY_RX0_TESTDOUT,
++	GRF_DPHY_TX0_TURNDISABLE,
++	GRF_DPHY_TX0_FORCERXMODE,
++	GRF_DPHY_TX0_FORCETXSTOPMODE,
++	GRF_DPHY_TX0_TURNREQUEST,
++	GRF_DPHY_TX1RX1_TURNDISABLE,
++	GRF_DPHY_TX1RX1_FORCERXMODE,
++	GRF_DPHY_TX1RX1_FORCETXSTOPMODE,
++	GRF_DPHY_TX1RX1_ENABLE,
++	GRF_DPHY_TX1RX1_MASTERSLAVEZ,
++	GRF_DPHY_TX1RX1_BASEDIR,
++	GRF_DPHY_TX1RX1_ENABLECLK,
++	GRF_DPHY_TX1RX1_TURNREQUEST,
++	GRF_DPHY_RX1_SRC_SEL,
++	/* rk3288 only */
++	GRF_CON_DISABLE_ISP,
++	GRF_CON_ISP_DPHY_SEL,
++	GRF_DSI_CSI_TESTBUS_SEL,
++	GRF_DVP_V18SEL,
++	/* below is for rk3399 only */
++	GRF_DPHY_RX0_CLK_INV_SEL,
++	GRF_DPHY_RX1_CLK_INV_SEL,
++};
++
++struct dphy_reg {
++	u32 offset;
++	u32 mask;
++	u32 shift;
++};
++
++#define PHY_REG(_offset, _width, _shift) \
++	{ .offset = _offset, .mask = BIT(_width) - 1, .shift = _shift, }
++
++static const struct dphy_reg rk3399_grf_dphy_regs[] = {
++	[GRF_DPHY_RX0_TURNREQUEST] = PHY_REG(RK3399_GRF_SOC_CON9, 4, 0),
++	[GRF_DPHY_RX0_CLK_INV_SEL] = PHY_REG(RK3399_GRF_SOC_CON9, 1, 10),
++	[GRF_DPHY_RX1_CLK_INV_SEL] = PHY_REG(RK3399_GRF_SOC_CON9, 1, 11),
++	[GRF_DPHY_RX0_ENABLE] = PHY_REG(RK3399_GRF_SOC_CON21, 4, 0),
++	[GRF_DPHY_RX0_FORCERXMODE] = PHY_REG(RK3399_GRF_SOC_CON21, 4, 4),
++	[GRF_DPHY_RX0_FORCETXSTOPMODE] = PHY_REG(RK3399_GRF_SOC_CON21, 4, 8),
++	[GRF_DPHY_RX0_TURNDISABLE] = PHY_REG(RK3399_GRF_SOC_CON21, 4, 12),
++	[GRF_DPHY_TX0_FORCERXMODE] = PHY_REG(RK3399_GRF_SOC_CON22, 4, 0),
++	[GRF_DPHY_TX0_FORCETXSTOPMODE] = PHY_REG(RK3399_GRF_SOC_CON22, 4, 4),
++	[GRF_DPHY_TX0_TURNDISABLE] = PHY_REG(RK3399_GRF_SOC_CON22, 4, 8),
++	[GRF_DPHY_TX0_TURNREQUEST] = PHY_REG(RK3399_GRF_SOC_CON22, 4, 12),
++	[GRF_DPHY_TX1RX1_ENABLE] = PHY_REG(RK3399_GRF_SOC_CON23, 4, 0),
++	[GRF_DPHY_TX1RX1_FORCERXMODE] = PHY_REG(RK3399_GRF_SOC_CON23, 4, 4),
++	[GRF_DPHY_TX1RX1_FORCETXSTOPMODE] = PHY_REG(RK3399_GRF_SOC_CON23, 4, 8),
++	[GRF_DPHY_TX1RX1_TURNDISABLE] = PHY_REG(RK3399_GRF_SOC_CON23, 4, 12),
++	[GRF_DPHY_TX1RX1_TURNREQUEST] = PHY_REG(RK3399_GRF_SOC_CON24, 4, 0),
++	[GRF_DPHY_RX1_SRC_SEL] = PHY_REG(RK3399_GRF_SOC_CON24, 1, 4),
++	[GRF_DPHY_TX1RX1_BASEDIR] = PHY_REG(RK3399_GRF_SOC_CON24, 1, 5),
++	[GRF_DPHY_TX1RX1_ENABLECLK] = PHY_REG(RK3399_GRF_SOC_CON24, 1, 6),
++	[GRF_DPHY_TX1RX1_MASTERSLAVEZ] = PHY_REG(RK3399_GRF_SOC_CON24, 1, 7),
++	[GRF_DPHY_RX0_TESTDIN] = PHY_REG(RK3399_GRF_SOC_CON25, 8, 0),
++	[GRF_DPHY_RX0_TESTEN] = PHY_REG(RK3399_GRF_SOC_CON25, 1, 8),
++	[GRF_DPHY_RX0_TESTCLK] = PHY_REG(RK3399_GRF_SOC_CON25, 1, 9),
++	[GRF_DPHY_RX0_TESTCLR] = PHY_REG(RK3399_GRF_SOC_CON25, 1, 10),
++	[GRF_DPHY_RX0_TESTDOUT] = PHY_REG(RK3399_GRF_SOC_STATUS1, 8, 0),
++};
++
++static const struct dphy_reg rk3288_grf_dphy_regs[] = {
++	[GRF_CON_DISABLE_ISP] = PHY_REG(RK3288_GRF_SOC_CON6, 1, 0),
++	[GRF_CON_ISP_DPHY_SEL] = PHY_REG(RK3288_GRF_SOC_CON6, 1, 1),
++	[GRF_DSI_CSI_TESTBUS_SEL] = PHY_REG(RK3288_GRF_SOC_CON6, 1, 14),
++	[GRF_DPHY_TX0_TURNDISABLE] = PHY_REG(RK3288_GRF_SOC_CON8, 4, 0),
++	[GRF_DPHY_TX0_FORCERXMODE] = PHY_REG(RK3288_GRF_SOC_CON8, 4, 4),
++	[GRF_DPHY_TX0_FORCETXSTOPMODE] = PHY_REG(RK3288_GRF_SOC_CON8, 4, 8),
++	[GRF_DPHY_TX1RX1_TURNDISABLE] = PHY_REG(RK3288_GRF_SOC_CON9, 4, 0),
++	[GRF_DPHY_TX1RX1_FORCERXMODE] = PHY_REG(RK3288_GRF_SOC_CON9, 4, 4),
++	[GRF_DPHY_TX1RX1_FORCETXSTOPMODE] = PHY_REG(RK3288_GRF_SOC_CON9, 4, 8),
++	[GRF_DPHY_TX1RX1_ENABLE] = PHY_REG(RK3288_GRF_SOC_CON9, 4, 12),
++	[GRF_DPHY_RX0_TURNDISABLE] = PHY_REG(RK3288_GRF_SOC_CON10, 4, 0),
++	[GRF_DPHY_RX0_FORCERXMODE] = PHY_REG(RK3288_GRF_SOC_CON10, 4, 4),
++	[GRF_DPHY_RX0_FORCETXSTOPMODE] = PHY_REG(RK3288_GRF_SOC_CON10, 4, 8),
++	[GRF_DPHY_RX0_ENABLE] = PHY_REG(RK3288_GRF_SOC_CON10, 4, 12),
++	[GRF_DPHY_RX0_TESTCLR] = PHY_REG(RK3288_GRF_SOC_CON14, 1, 0),
++	[GRF_DPHY_RX0_TESTCLK] = PHY_REG(RK3288_GRF_SOC_CON14, 1, 1),
++	[GRF_DPHY_RX0_TESTEN] = PHY_REG(RK3288_GRF_SOC_CON14, 1, 2),
++	[GRF_DPHY_RX0_TESTDIN] = PHY_REG(RK3288_GRF_SOC_CON14, 8, 3),
++	[GRF_DPHY_TX1RX1_ENABLECLK] = PHY_REG(RK3288_GRF_SOC_CON14, 1, 12),
++	[GRF_DPHY_RX1_SRC_SEL] = PHY_REG(RK3288_GRF_SOC_CON14, 1, 13),
++	[GRF_DPHY_TX1RX1_MASTERSLAVEZ] = PHY_REG(RK3288_GRF_SOC_CON14, 1, 14),
++	[GRF_DPHY_TX1RX1_BASEDIR] = PHY_REG(RK3288_GRF_SOC_CON14, 1, 15),
++	[GRF_DPHY_RX0_TURNREQUEST] = PHY_REG(RK3288_GRF_SOC_CON15, 4, 0),
++	[GRF_DPHY_TX1RX1_TURNREQUEST] = PHY_REG(RK3288_GRF_SOC_CON15, 4, 4),
++	[GRF_DPHY_TX0_TURNREQUEST] = PHY_REG(RK3288_GRF_SOC_CON15, 3, 8),
++	[GRF_DVP_V18SEL] = PHY_REG(RK3288_GRF_IO_VSEL, 1, 1),
++	[GRF_DPHY_RX0_TESTDOUT] = PHY_REG(RK3288_GRF_SOC_STATUS21, 8, 0),
++};
++
++struct hsfreq_range {
++	u32 range_h;
++	u8 cfg_bit;
++};
++
++struct dphy_drv_data {
++	const char * const *clks;
++	int num_clks;
++	const struct hsfreq_range *hsfreq_ranges;
++	int num_hsfreq_ranges;
++	const struct dphy_reg *regs;
++};
++
++struct sensor_async_subdev {
++	struct v4l2_async_subdev asd;
++	struct v4l2_mbus_config mbus;
++	int lanes;
++};
++
++#define MAX_DPHY_CLK		8
++#define MAX_DPHY_SENSORS	2
++
++struct mipidphy_sensor {
++	struct v4l2_subdev *sd;
++	struct v4l2_mbus_config mbus;
++	int lanes;
++};
++
++struct mipidphy_priv {
++	struct device *dev;
++	struct regmap *regmap_grf;
++	const struct dphy_reg *grf_regs;
++	struct clk *clks[MAX_DPHY_CLK];
++	const struct dphy_drv_data *drv_data;
++	u64 data_rate_mbps;
++	struct v4l2_async_notifier notifier;
++	struct v4l2_subdev sd;
++	struct media_pad pads[MIPI_DPHY_SY_PADS_NUM];
++	struct mipidphy_sensor sensors[MAX_DPHY_SENSORS];
++	int num_sensors;
++	bool is_streaming;
++};
++
++static inline struct mipidphy_priv *to_dphy_priv(struct v4l2_subdev *subdev)
++{
++	return container_of(subdev, struct mipidphy_priv, sd);
++}
++
++static inline void write_reg(struct mipidphy_priv *priv, int index, u8 value)
++{
++	const struct dphy_reg *reg = &priv->grf_regs[index];
++	unsigned int val = HIWORD_UPDATE(value, reg->mask, reg->shift);
++
++	WARN_ON(!reg->offset);
++	regmap_write(priv->regmap_grf, reg->offset, val);
++}
++
++static void mipidphy_wr_reg(struct mipidphy_priv *priv,
++			    u8 test_code, u8 test_data)
++{
++	/*
++	 * With the falling edge on TESTCLK, the TESTDIN[7:0] signal content
++	 * is latched internally as the current test code. Test data is
++	 * programmed internally by rising edge on TESTCLK.
++	 */
++	write_reg(priv, GRF_DPHY_RX0_TESTCLK, 1);
++	write_reg(priv, GRF_DPHY_RX0_TESTDIN, test_code);
++	write_reg(priv, GRF_DPHY_RX0_TESTEN, 1);
++	write_reg(priv, GRF_DPHY_RX0_TESTCLK, 0);
++	write_reg(priv, GRF_DPHY_RX0_TESTEN, 0);
++	write_reg(priv, GRF_DPHY_RX0_TESTDIN, test_data);
++	write_reg(priv, GRF_DPHY_RX0_TESTCLK, 1);
++}
++
++static struct v4l2_subdev *get_remote_sensor(struct v4l2_subdev *sd)
++{
++	struct media_pad *local, *remote;
++	struct media_entity *sensor_me;
++
++	local = &sd->entity.pads[MIPI_DPHY_SY_PAD_SINK];
++	remote = media_entity_remote_pad(local);
++	if (!remote) {
++		v4l2_warn(sd, "No link between dphy and sensor\n");
++		return NULL;
++	}
++
++	sensor_me = media_entity_remote_pad(local)->entity;
++	return media_entity_to_v4l2_subdev(sensor_me);
++}
++
++static struct mipidphy_sensor *sd_to_sensor(struct mipidphy_priv *priv,
++					    struct v4l2_subdev *sd)
++{
++	int i;
++
++	for (i = 0; i < priv->num_sensors; ++i)
++		if (priv->sensors[i].sd == sd)
++			return &priv->sensors[i];
++
++	return NULL;
++}
++
++static int mipidphy_get_sensor_data_rate(struct v4l2_subdev *sd)
++{
++	struct mipidphy_priv *priv = to_dphy_priv(sd);
++	struct v4l2_subdev *sensor_sd = get_remote_sensor(sd);
++	struct v4l2_ctrl *link_freq;
++	struct v4l2_querymenu qm = { .id = V4L2_CID_LINK_FREQ, };
++	int ret;
++
++	link_freq = v4l2_ctrl_find(sensor_sd->ctrl_handler, V4L2_CID_LINK_FREQ);
++	if (!link_freq) {
++		v4l2_warn(sd, "No pixel rate control in subdev\n");
++		return -EPIPE;
++	}
++
++	qm.index = v4l2_ctrl_g_ctrl(link_freq);
++	ret = v4l2_querymenu(sensor_sd->ctrl_handler, &qm);
++	if (ret < 0) {
++		v4l2_err(sd, "Failed to get menu item\n");
++		return ret;
++	}
++
++	if (!qm.value) {
++		v4l2_err(sd, "Invalid link_freq\n");
++		return -EINVAL;
++	}
++	priv->data_rate_mbps = qm.value * 2;
++	do_div(priv->data_rate_mbps, 1000 * 1000);
++
++	return 0;
++}
++
++static int mipidphy_s_stream_start(struct v4l2_subdev *sd)
++{
++	struct mipidphy_priv *priv = to_dphy_priv(sd);
++	const struct dphy_drv_data *drv_data = priv->drv_data;
++	const struct hsfreq_range *hsfreq_ranges = drv_data->hsfreq_ranges;
++	int num_hsfreq_ranges = drv_data->num_hsfreq_ranges;
++	struct v4l2_subdev *sensor_sd = get_remote_sensor(sd);
++	struct mipidphy_sensor *sensor = sd_to_sensor(priv, sensor_sd);
++	int i, ret, hsfreq = 0;
++
++	if (priv->is_streaming)
++		return 0;
++
++	ret = mipidphy_get_sensor_data_rate(sd);
++	if (ret < 0)
++		return ret;
++
++	for (i = 0; i < num_hsfreq_ranges; i++) {
++		if (hsfreq_ranges[i].range_h >= priv->data_rate_mbps) {
++			hsfreq = hsfreq_ranges[i].cfg_bit;
++			break;
++		}
++	}
++
++	write_reg(priv, GRF_DPHY_RX0_FORCERXMODE, 0);
++	write_reg(priv, GRF_DPHY_RX0_FORCETXSTOPMODE, 0);
++	/* Disable lan turn around, which is ignored in receive mode */
++	write_reg(priv, GRF_DPHY_RX0_TURNREQUEST, 0);
++	write_reg(priv, GRF_DPHY_RX0_TURNDISABLE, 0xf);
++
++	write_reg(priv, GRF_DPHY_RX0_ENABLE, GENMASK(sensor->lanes - 1, 0));
++
++	/* dphy start */
++	write_reg(priv, GRF_DPHY_RX0_TESTCLK, 1);
++	write_reg(priv, GRF_DPHY_RX0_TESTCLR, 1);
++	usleep_range(100, 150);
++	write_reg(priv, GRF_DPHY_RX0_TESTCLR, 0);
++	usleep_range(100, 150);
++
++	/* set clock lane */
++	/* HS hsfreq_range & lane 0  settle bypass */
++	mipidphy_wr_reg(priv, CLOCK_LANE_HS_RX_CONTROL, 0);
++	/* HS RX Control of lane0 */
++	mipidphy_wr_reg(priv, LANE0_HS_RX_CONTROL, hsfreq << 1);
++	/* HS RX Control of lane1 */
++	mipidphy_wr_reg(priv, LANE1_HS_RX_CONTROL, 0);
++	/* HS RX Control of lane2 */
++	mipidphy_wr_reg(priv, LANE2_HS_RX_CONTROL, 0);
++	/* HS RX Control of lane3 */
++	mipidphy_wr_reg(priv, LANE3_HS_RX_CONTROL, 0);
++	/* HS RX Data Lanes Settle State Time Control */
++	mipidphy_wr_reg(priv, HS_RX_DATA_LANES_THS_SETTLE__CONTROL, 0x04);
++
++	/* Normal operation */
++	mipidphy_wr_reg(priv, 0x0, 0);
++
++	priv->is_streaming = true;
++
++	return 0;
++}
++
++static int mipidphy_s_stream_stop(struct v4l2_subdev *sd)
++{
++	struct mipidphy_priv *priv = to_dphy_priv(sd);
++
++	if (!priv->is_streaming)
++		return 0;
++
++	priv->is_streaming = false;
++
++	return 0;
++}
++
++static int mipidphy_s_stream(struct v4l2_subdev *sd, int on)
++{
++	if (on)
++		return mipidphy_s_stream_start(sd);
++	else
++		return mipidphy_s_stream_stop(sd);
++}
++
++static int mipidphy_g_mbus_config(struct v4l2_subdev *sd,
++				  struct v4l2_mbus_config *config)
++{
++	struct mipidphy_priv *priv = to_dphy_priv(sd);
++	struct v4l2_subdev *sensor_sd = get_remote_sensor(sd);
++	struct mipidphy_sensor *sensor = sd_to_sensor(priv, sensor_sd);
++
++	*config = sensor->mbus;
++
++	return 0;
++}
++
++static int mipidphy_s_power(struct v4l2_subdev *sd, int on)
++{
++	struct mipidphy_priv *priv = to_dphy_priv(sd);
++
++	if (on)
++		return pm_runtime_get_sync(priv->dev);
++	else
++		return pm_runtime_put(priv->dev);
++}
++
++static int mipidphy_runtime_suspend(struct device *dev)
++{
++	struct media_entity *me = dev_get_drvdata(dev);
++	struct v4l2_subdev *sd = media_entity_to_v4l2_subdev(me);
++	struct mipidphy_priv *priv = to_dphy_priv(sd);
++	int i, num_clks;
++
++	num_clks = priv->drv_data->num_clks;
++	for (i = num_clks - 1; i >= 0; i--)
++		clk_disable_unprepare(priv->clks[i]);
++
++	return 0;
++}
++
++static int mipidphy_runtime_resume(struct device *dev)
++{
++	struct media_entity *me = dev_get_drvdata(dev);
++	struct v4l2_subdev *sd = media_entity_to_v4l2_subdev(me);
++	struct mipidphy_priv *priv = to_dphy_priv(sd);
++	int i, num_clks, ret;
++
++	num_clks = priv->drv_data->num_clks;
++	for (i = 0; i < num_clks; i++) {
++		ret = clk_prepare_enable(priv->clks[i]);
++		if (ret < 0)
++			goto err;
++	}
++
++	return 0;
++err:
++	while (--i >= 0)
++		clk_disable_unprepare(priv->clks[i]);
++	return ret;
++}
++
++/* dphy accepts all fmt/size from sensor */
++static int mipidphy_get_set_fmt(struct v4l2_subdev *sd,
++				struct v4l2_subdev_pad_config *cfg,
++				struct v4l2_subdev_format *fmt)
++{
++	struct v4l2_subdev *sensor = get_remote_sensor(sd);
++
++	/*
++	 * Do not allow format changes and just relay whatever
++	 * set currently in the sensor.
++	 */
++	return v4l2_subdev_call(sensor, pad, get_fmt, NULL, fmt);
++}
++
++static const struct v4l2_subdev_pad_ops mipidphy_subdev_pad_ops = {
++	.set_fmt = mipidphy_get_set_fmt,
++	.get_fmt = mipidphy_get_set_fmt,
++};
++
++static const struct v4l2_subdev_core_ops mipidphy_core_ops = {
++	.s_power = mipidphy_s_power,
++};
++
++static const struct v4l2_subdev_video_ops mipidphy_video_ops = {
++	.g_mbus_config = mipidphy_g_mbus_config,
++	.s_stream = mipidphy_s_stream,
++};
++
++static const struct v4l2_subdev_ops mipidphy_subdev_ops = {
++	.core = &mipidphy_core_ops,
++	.video = &mipidphy_video_ops,
++	.pad = &mipidphy_subdev_pad_ops,
++};
++
++/* These tables must be sorted by .range_h ascending. */
++static const struct hsfreq_range rk3288_mipidphy_hsfreq_ranges[] = {
++	{  89, 0x00}, {  99, 0x10}, { 109, 0x20}, { 129, 0x01},
++	{ 139, 0x11}, { 149, 0x21}, { 169, 0x02}, { 179, 0x12},
++	{ 199, 0x22}, { 219, 0x03}, { 239, 0x13}, { 249, 0x23},
++	{ 269, 0x04}, { 299, 0x14}, { 329, 0x05}, { 359, 0x15},
++	{ 399, 0x25}, { 449, 0x06}, { 499, 0x16}, { 549, 0x07},
++	{ 599, 0x17}, { 649, 0x08}, { 699, 0x18}, { 749, 0x09},
++	{ 799, 0x19}, { 849, 0x29}, { 899, 0x39}, { 949, 0x0a},
++	{ 999, 0x1a}
++};
++
++static const struct hsfreq_range rk3399_mipidphy_hsfreq_ranges[] = {
++	{  89, 0x00}, {  99, 0x10}, { 109, 0x20}, { 129, 0x01},
++	{ 139, 0x11}, { 149, 0x21}, { 169, 0x02}, { 179, 0x12},
++	{ 199, 0x22}, { 219, 0x03}, { 239, 0x13}, { 249, 0x23},
++	{ 269, 0x04}, { 299, 0x14}, { 329, 0x05}, { 359, 0x15},
++	{ 399, 0x25}, { 449, 0x06}, { 499, 0x16}, { 549, 0x07},
++	{ 599, 0x17}, { 649, 0x08}, { 699, 0x18}, { 749, 0x09},
++	{ 799, 0x19}, { 849, 0x29}, { 899, 0x39}, { 949, 0x0a},
++	{ 999, 0x1a}, {1049, 0x2a}, {1099, 0x3a}, {1149, 0x0b},
++	{1199, 0x1b}, {1249, 0x2b}, {1299, 0x3b}, {1349, 0x0c},
++	{1399, 0x1c}, {1449, 0x2c}, {1500, 0x3c}
++};
++
++static const char * const rk3399_mipidphy_clks[] = {
++	"dphy-ref",
++	"dphy-cfg",
++	"grf",
++};
++
++static const char * const rk3288_mipidphy_clks[] = {
++	"dphy-ref",
++	"pclk",
++};
++
++static const struct dphy_drv_data rk3288_mipidphy_drv_data = {
++	.clks = rk3288_mipidphy_clks,
++	.num_clks = ARRAY_SIZE(rk3288_mipidphy_clks),
++	.hsfreq_ranges = rk3288_mipidphy_hsfreq_ranges,
++	.num_hsfreq_ranges = ARRAY_SIZE(rk3288_mipidphy_hsfreq_ranges),
++	.regs = rk3288_grf_dphy_regs,
++};
++
++static const struct dphy_drv_data rk3399_mipidphy_drv_data = {
++	.clks = rk3399_mipidphy_clks,
++	.num_clks = ARRAY_SIZE(rk3399_mipidphy_clks),
++	.hsfreq_ranges = rk3399_mipidphy_hsfreq_ranges,
++	.num_hsfreq_ranges = ARRAY_SIZE(rk3399_mipidphy_hsfreq_ranges),
++	.regs = rk3399_grf_dphy_regs,
++};
++
++static const struct of_device_id rockchip_mipidphy_match_id[] = {
++	{
++		.compatible = "rockchip,rk3399-mipi-dphy",
++		.data = &rk3399_mipidphy_drv_data,
++	},
++	{
++		.compatible = "rockchip,rk3288-mipi-dphy",
++		.data = &rk3288_mipidphy_drv_data,
++	},
++	{}
++};
++MODULE_DEVICE_TABLE(of, rockchip_mipidphy_match_id);
++
++/* The .bound() notifier callback when a match is found */
++static int
++rockchip_mipidphy_notifier_bound(struct v4l2_async_notifier *notifier,
++				 struct v4l2_subdev *sd,
++				 struct v4l2_async_subdev *asd)
++{
++	struct mipidphy_priv *priv = container_of(notifier,
++						  struct mipidphy_priv,
++						  notifier);
++	struct sensor_async_subdev *s_asd = container_of(asd,
++					struct sensor_async_subdev, asd);
++	struct mipidphy_sensor *sensor;
++
++	if (priv->num_sensors == ARRAY_SIZE(priv->sensors))
++		return -EBUSY;
++
++	sensor = &priv->sensors[priv->num_sensors++];
++	sensor->lanes = s_asd->lanes;
++	sensor->mbus = s_asd->mbus;
++	sensor->sd = sd;
++
++	return 0;
++}
++
++/* The .unbind callback */
++static void
++rockchip_mipidphy_notifier_unbind(struct v4l2_async_notifier *notifier,
++				  struct v4l2_subdev *sd,
++				  struct v4l2_async_subdev *asd)
++{
++	struct mipidphy_priv *priv = container_of(notifier,
++						  struct mipidphy_priv,
++						  notifier);
++	struct mipidphy_sensor *sensor = sd_to_sensor(priv, sd);
++
++	sensor->sd = NULL;
++}
++
++/* .complete() is called after all subdevices have been located */
++static int
++rockchip_mipidphy_notifier_complete(struct v4l2_async_notifier *notifier)
++{
++	struct mipidphy_priv *priv = container_of(notifier,
++						  struct mipidphy_priv,
++						  notifier);
++	unsigned int pad;
++	int ret;
++	int i;
++
++	for (i = 0; i < priv->num_sensors; ++i) {
++		struct mipidphy_sensor *sensor = &priv->sensors[i];
++
++		for (pad = 0; pad < sensor->sd->entity.num_pads; pad++)
++			if (sensor->sd->entity.pads[pad].flags
++						& MEDIA_PAD_FL_SOURCE)
++				break;
++
++		if (pad == sensor->sd->entity.num_pads) {
++			dev_err(priv->dev,
++				"failed to find src pad for %s\n",
++				sensor->sd->name);
++
++			return -ENXIO;
++		}
++
++		ret = media_create_pad_link(
++				&sensor->sd->entity, pad,
++				&priv->sd.entity, MIPI_DPHY_SY_PAD_SINK,
++				i ? 0 : MEDIA_LNK_FL_ENABLED);
++		if (ret) {
++			dev_err(priv->dev,
++				"failed to create link for %s\n",
++				sensor->sd->name);
++			return ret;
++		}
++	}
++
++	return 0;
++}
++
++static const
++struct v4l2_async_notifier_operationsrockchip_mipidphy_async_ops = {
++	.bound = rockchip_mipidphy_notifier_bound,
++	.unbind = rockchip_mipidphy_notifier_unbind,
++	.complete = rockchip_mipidphy_notifier_complete,
++};
++
++static int rockchip_mipidphy_fwnode_parse(struct device *dev,
++			     struct v4l2_fwnode_endpoint *vep,
++			     struct v4l2_async_subdev *asd)
++{
++	struct sensor_async_subdev *s_asd =
++			container_of(asd, struct sensor_async_subdev, asd);
++	struct v4l2_mbus_config *config = &s_asd->mbus;
++
++	if (vep->bus_type != V4L2_MBUS_CSI2) {
++		dev_err(dev, "Only CSI2 bus type is currently supported\n");
++		return -EINVAL;
++	}
++
++	if (vep->base.port != 0) {
++		dev_err(dev, "The PHY has only port 0\n");
++		return -EINVAL;
++	}
++
++	config->type = V4L2_MBUS_CSI2;
++	config->flags = vep->bus.mipi_csi2.flags;
++	s_asd->lanes = vep->bus.mipi_csi2.num_data_lanes;
++
++	switch (vep->bus.mipi_csi2.num_data_lanes) {
++	case 1:
++		config->flags |= V4L2_MBUS_CSI2_1_LANE;
++		break;
++	case 2:
++		config->flags |= V4L2_MBUS_CSI2_2_LANE;
++		break;
++	case 3:
++		config->flags |= V4L2_MBUS_CSI2_3_LANE;
++		break;
++	case 4:
++		config->flags |= V4L2_MBUS_CSI2_4_LANE;
++		break;
++	default:
++		return -EINVAL;
++	}
++
++	return 0;
++}
++
++static int rockchip_mipidphy_media_init(struct mipidphy_priv *priv)
++{
++	int ret;
++
++	priv->pads[MIPI_DPHY_SY_PAD_SOURCE].flags =
++		MEDIA_PAD_FL_SOURCE | MEDIA_PAD_FL_MUST_CONNECT;
++	priv->pads[MIPI_DPHY_SY_PAD_SINK].flags =
++		MEDIA_PAD_FL_SINK | MEDIA_PAD_FL_MUST_CONNECT;
++
++	ret = media_entity_pads_init(&priv->sd.entity,
++				 MIPI_DPHY_SY_PADS_NUM, priv->pads);
++	if (ret < 0)
++		return ret;
++
++	ret = v4l2_async_notifier_parse_fwnode_endpoints_by_port(
++		priv->dev, &priv->notifier,
++		sizeof(struct sensor_async_subdev), 0,
++		rockchip_mipidphy_fwnode_parse);
++	if (ret < 0)
++		return ret;
++
++	if (!priv->notifier.num_subdevs)
++		return -ENODEV;	/* no endpoint */
++
++	priv->sd.subdev_notifier = &priv->notifier;
++	priv->notifier.ops = &rockchip_mipidphy_async_ops;
++	ret = v4l2_async_subdev_notifier_register(&priv->sd, &priv->notifier);
++	if (ret) {
++		dev_err(priv->dev,
++			"failed to register async notifier : %d\n", ret);
++		v4l2_async_notifier_cleanup(&priv->notifier);
++		return ret;
++	}
++
++	return v4l2_async_register_subdev(&priv->sd);
++}
++
++static int rockchip_mipidphy_probe(struct platform_device *pdev)
++{
++	struct device *dev = &pdev->dev;
++	struct v4l2_subdev *sd;
++	struct mipidphy_priv *priv;
++	struct regmap *grf;
++	const struct of_device_id *of_id;
++	const struct dphy_drv_data *drv_data;
++	int i, ret;
++
++	priv = devm_kzalloc(dev, sizeof(*priv), GFP_KERNEL);
++	if (!priv)
++		return -ENOMEM;
++	priv->dev = dev;
++
++	of_id = of_match_device(rockchip_mipidphy_match_id, dev);
++	if (!of_id)
++		return -EINVAL;
++
++	grf = syscon_node_to_regmap(dev->parent->of_node);
++	if (IS_ERR(grf)) {
++		dev_err(dev, "Can't find GRF syscon\n");
++		return -ENODEV;
++	}
++	priv->regmap_grf = grf;
++
++	drv_data = of_id->data;
++	for (i = 0; i < drv_data->num_clks; i++) {
++		priv->clks[i] = devm_clk_get(dev, drv_data->clks[i]);
++
++		if (IS_ERR(priv->clks[i])) {
++			dev_err(dev, "Failed to get %s\n", drv_data->clks[i]);
++			return PTR_ERR(priv->clks[i]);
++		}
++	}
++
++	priv->grf_regs = drv_data->regs;
++	priv->drv_data = drv_data;
++
++	sd = &priv->sd;
++	v4l2_subdev_init(sd, &mipidphy_subdev_ops);
++	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
++	snprintf(sd->name, sizeof(sd->name), "rockchip-sy-mipi-dphy");
++	sd->dev = dev;
++
++	platform_set_drvdata(pdev, &sd->entity);
++
++	ret = rockchip_mipidphy_media_init(priv);
++	if (ret < 0)
++		return ret;
++
++	pm_runtime_enable(&pdev->dev);
++
++	return 0;
++}
++
++static int rockchip_mipidphy_remove(struct platform_device *pdev)
++{
++	struct media_entity *me = platform_get_drvdata(pdev);
++	struct v4l2_subdev *sd = media_entity_to_v4l2_subdev(me);
++
++	media_entity_cleanup(&sd->entity);
++
++	pm_runtime_disable(&pdev->dev);
++
++	return 0;
++}
++
++static const struct dev_pm_ops rockchip_mipidphy_pm_ops = {
++	SET_RUNTIME_PM_OPS(mipidphy_runtime_suspend,
++			   mipidphy_runtime_resume, NULL)
++};
++
++static struct platform_driver rockchip_isp_mipidphy_driver = {
++	.probe = rockchip_mipidphy_probe,
++	.remove = rockchip_mipidphy_remove,
++	.driver = {
++			.name = "rockchip-sy-mipi-dphy",
++			.pm = &rockchip_mipidphy_pm_ops,
++			.of_match_table = rockchip_mipidphy_match_id,
++	},
++};
++
++module_platform_driver(rockchip_isp_mipidphy_driver);
++MODULE_AUTHOR("Rockchip Camera/ISP team");
++MODULE_DESCRIPTION("Rockchip MIPI DPHY driver");
++MODULE_LICENSE("Dual BSD/GPL");
+-- 
+2.15.0
