@@ -1,79 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f172.google.com ([209.85.216.172]:43477 "EHLO
-        mail-qt0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934366AbdKPUAA (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 16 Nov 2017 15:00:00 -0500
-Received: by mail-qt0-f172.google.com with SMTP id n61so521988qte.10
-        for <linux-media@vger.kernel.org>; Thu, 16 Nov 2017 12:00:00 -0800 (PST)
-Message-ID: <1510862395.8053.39.camel@ndufresne.ca>
-Subject: Re: [linux-sunxi] Cedrus driver
-From: Nicolas Dufresne <nicolas@ndufresne.ca>
-To: Maxime Ripard <maxime.ripard@free-electrons.com>,
-        Giulio Benetti <giulio.benetti@micronovasrl.com>
-Cc: Andreas Baierl <list@imkreisrum.de>, linux-sunxi@googlegroups.com,
-        robh+dt@kernel.org, mark.rutland@arm.com, linux@armlinux.org.uk,
-        wens@csie.org, devicetree@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        thomas@vitsch.nl, linux-media@vger.kernel.org
-Date: Thu, 16 Nov 2017 14:59:55 -0500
-In-Reply-To: <20171116110204.poakahqjz4sj7pmu@flea>
-References: <1510059543-7064-1-git-send-email-giulio.benetti@micronovasrl.com>
-         <1b12fa21-bfe6-9ba7-ae1d-8131ac6f4668@micronovasrl.com>
-         <6fcdc0d9-d0f8-785a-bb00-b1b41c684e59@imkreisrum.de>
-         <693e8786-af83-9d77-0fd4-50fa1f6a135f@micronovasrl.com>
-         <20171116110204.poakahqjz4sj7pmu@flea>
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
-        boundary="=-pt46Lg9YAHMlu1JVn4N1"
-Mime-Version: 1.0
+Received: from mail.ispras.ru ([83.149.199.45]:41040 "EHLO mail.ispras.ru"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753813AbdKXWEq (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 24 Nov 2017 17:04:46 -0500
+From: Alexey Khoroshilov <khoroshilov@ispras.ru>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Alexey Khoroshilov <khoroshilov@ispras.ru>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        ldv-project@linuxtesting.org
+Subject: [PATCH] [media] v4l: mt9v032: Disable clock on error paths
+Date: Sat, 25 Nov 2017 01:04:37 +0300
+Message-Id: <1511561077-25192-1-git-send-email-khoroshilov@ispras.ru>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+mt9v032_power_on() leaves clk enabled in case of errors,
+but it is not expected by its callers.
+There is a similar problem in mt9v032_registered().
 
---=-pt46Lg9YAHMlu1JVn4N1
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Found by Linux Driver Verification project (linuxtesting.org).
 
-Le jeudi 16 novembre 2017 =C3=A0 12:02 +0100, Maxime Ripard a =C3=A9crit :
-> Assuming that the request API is in, we'd need to:
->   - Finish the MPEG4 support
->   - Work on more useful codecs (H264 comes to my mind)
+Signed-off-by: Alexey Khoroshilov <khoroshilov@ispras.ru>
+---
+ drivers/media/i2c/mt9v032.c | 21 +++++++++++++++------
+ 1 file changed, 15 insertions(+), 6 deletions(-)
 
-For which we will have to review the tables and make sure they match
-the spec (the easy part). But as an example, that branch uses a table
-that merge Mpeg4 VOP and VOP Short Header. We need to make sure it does
-not pause problems or split it up. On top of that, ST and Rockchip
-teams should give some help and sync with these tables on their side.
-We also need to consider decoder like Tegra 2. In H264, they don't need
-frame parsing, but just the PPS/SPS data (might just be parsed in the
-driver, like CODA ?). There is other mode of operation, specially in
-H264/HEVC low latency, where the decoder will be similar, but will
-accept and process slices right away, without waiting for the full
-frame.
-
-We also need some doc, to be able to tell the GStreamer and FFMPEG team
-how to detect and handle these decoder. I doubt the libv4l2 proposed
-approach will be used for these two projects since they already have
-their own parser and would like to not parse twice. As an example, we
-need to document that V4L2_PIX_FMT_MPEG2_FRAME implies using the
-Request API and specific CID. We should probably also ping the Chrome
-Devs, which probably have couple of pending branches around this.
-
-regards,
-Nicolas
-
-
-
---=-pt46Lg9YAHMlu1JVn4N1
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-Content-Transfer-Encoding: 7bit
-
------BEGIN PGP SIGNATURE-----
-
-iF0EABECAB0WIQSScpfJiL+hb5vvd45xUwItrAaoHAUCWg3uOwAKCRBxUwItrAao
-HHECAJwOUnKhoJ9VFvV+vJrW0glC6f4t/wCfZP+7PkLnwxrO2BUgXXTJ3ZJdnCM=
-=UWFg
------END PGP SIGNATURE-----
-
---=-pt46Lg9YAHMlu1JVn4N1--
+diff --git a/drivers/media/i2c/mt9v032.c b/drivers/media/i2c/mt9v032.c
+index 8a430640c85d..4de63b2df334 100644
+--- a/drivers/media/i2c/mt9v032.c
++++ b/drivers/media/i2c/mt9v032.c
+@@ -294,14 +294,22 @@ static int mt9v032_power_on(struct mt9v032 *mt9v032)
+ 	/* Reset the chip and stop data read out */
+ 	ret = regmap_write(map, MT9V032_RESET, 1);
+ 	if (ret < 0)
+-		return ret;
++		goto err;
+ 
+ 	ret = regmap_write(map, MT9V032_RESET, 0);
+ 	if (ret < 0)
+-		return ret;
++		goto err;
++
++	ret = regmap_write(map, MT9V032_CHIP_CONTROL,
++			   MT9V032_CHIP_CONTROL_MASTER_MODE);
++	if (ret < 0)
++		goto err;
++
++	return 0;
+ 
+-	return regmap_write(map, MT9V032_CHIP_CONTROL,
+-			    MT9V032_CHIP_CONTROL_MASTER_MODE);
++err:
++	clk_disable_unprepare(mt9v032->clk);
++	return ret;
+ }
+ 
+ static void mt9v032_power_off(struct mt9v032 *mt9v032)
+@@ -876,6 +884,9 @@ static int mt9v032_registered(struct v4l2_subdev *subdev)
+ 
+ 	/* Read and check the sensor version */
+ 	ret = regmap_read(mt9v032->regmap, MT9V032_CHIP_VERSION, &version);
++
++	mt9v032_power_off(mt9v032);
++
+ 	if (ret < 0) {
+ 		dev_err(&client->dev, "Failed reading chip version\n");
+ 		return ret;
+@@ -894,8 +905,6 @@ static int mt9v032_registered(struct v4l2_subdev *subdev)
+ 		return -ENODEV;
+ 	}
+ 
+-	mt9v032_power_off(mt9v032);
+-
+ 	dev_info(&client->dev, "%s detected at address 0x%02x\n",
+ 		 mt9v032->version->name, client->addr);
+ 
+-- 
+2.7.4
