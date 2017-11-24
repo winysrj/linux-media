@@ -1,118 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:43250 "EHLO
-        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S965045AbdKQPi6 (ORCPT
+Received: from mail-pl0-f65.google.com ([209.85.160.65]:42950 "EHLO
+        mail-pl0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753771AbdKXOlM (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 17 Nov 2017 10:38:58 -0500
-Received: by mail-wm0-f66.google.com with SMTP id x63so7265593wmf.2
-        for <linux-media@vger.kernel.org>; Fri, 17 Nov 2017 07:38:57 -0800 (PST)
-From: Romain Reignier <r.reignier@robopec.com>
+        Fri, 24 Nov 2017 09:41:12 -0500
+Received: by mail-pl0-f65.google.com with SMTP id z3so4561987plh.9
+        for <linux-media@vger.kernel.org>; Fri, 24 Nov 2017 06:41:11 -0800 (PST)
+From: Akinobu Mita <akinobu.mita@gmail.com>
 To: linux-media@vger.kernel.org
-Cc: r.reignier@robopec.com
-Subject: [PATCH] media: cx231xx: add support for TheImagingSource DFG/USB2pro
-Date: Fri, 17 Nov 2017 16:38:55 +0100
-Message-ID: <1674718.MAKsif4q92@xps-rre>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Cc: Akinobu Mita <akinobu.mita@gmail.com>,
+        Jonathan Corbet <corbet@lwn.net>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Subject: [PATCH] media: ov7670: add V4L2_CID_TEST_PATTERN control
+Date: Fri, 24 Nov 2017 23:40:45 +0900
+Message-Id: <1511534445-30512-2-git-send-email-akinobu.mita@gmail.com>
+In-Reply-To: <1511534445-30512-1-git-send-email-akinobu.mita@gmail.com>
+References: <1511534445-30512-1-git-send-email-akinobu.mita@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+The ov7670 has the test pattern generator features.  This makes use of
+it through V4L2_CID_TEST_PATTERN control.
 
-This is my first patch to the kernel so please be indulgent if I have done 
-anything wrong and help me produce a better submission.
-
-This is a patch to add the support for The Imaging Source DFG/USB2pro USB 
-capture device. It is based on the Conexant CX23102 chip do the patch only 
-consists in adding one entry in the devices list.
-
-Note that the inputs for the Composite and S-Video are inverted in regard to 
-most of the other boards.
-
-I could test the Composite input that is working for several months in some of 
-our products. But did not have the chance to try the S-Video input because I 
-do not own any device with that standard (I have tried a simple Composite to 
-S-Video cable but it does not work, even on Windows). So I have applied the 
-same settings as the Windows driver.
-
-I have created a page on the Wiki to describe the board:
-https://www.linuxtv.org/wiki/index.php/The_Imaging_Source_DFG-USB2pro
-
-Sincerely,
-
-Romain Reignier
-
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
 ---
+ drivers/media/i2c/ov7670.c | 46 +++++++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 45 insertions(+), 1 deletion(-)
 
->From 13d83af3e6e5c01b43875d67cdcc3312ebbc6c7a Mon Sep 17 00:00:00 2001
-From: Romain Reignier <r.reignier@robopec.com>
-Date: Fri, 17 Nov 2017 15:52:40 +0100
-Subject: [PATCH] media: cx231xx: add support for TheImagingSource DFG/USB2pro
-
-Signed-off-by: Romain Reignier <r.reignier@robopec.com>
----
- drivers/media/usb/cx231xx/cx231xx-cards.c | 28 ++++++++++++++++++++++++++++
- drivers/media/usb/cx231xx/cx231xx.h       |  1 +
- 2 files changed, 29 insertions(+)
-
-diff --git a/drivers/media/usb/cx231xx/cx231xx-cards.c b/drivers/media/usb/cx231xx/cx231xx-cards.c
-index 54d9d0c..99c8b1a 100644
---- a/drivers/media/usb/cx231xx/cx231xx-cards.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-cards.c
-@@ -896,6 +896,32 @@ struct cx231xx_board cx231xx_boards[] = {
- 			},
- 		},
- 	},
-+	[CX231XX_BOARD_THE_IMAGING_SOURCE_DFG_USB2_PRO] = {
-+		.name = "The Imaging Source DFG/USB2pro",
-+		.tuner_type = TUNER_ABSENT,
-+		.decoder = CX231XX_AVDECODER,
-+		.output_mode = OUT_MODE_VIP11,
-+		.demod_xfer_mode = 0,
-+		.ctl_pin_status_mask = 0xFFFFFFC4,
-+		.agc_analog_digital_select_gpio = 0x0c,
-+		.gpio_pin_status_mask = 0x4001000,
-+		.norm = V4L2_STD_PAL,
-+		.no_alt_vanc = 1,
-+		.external_av = 1,
-+		.input = {{
-+			.type = CX231XX_VMUX_COMPOSITE1,
-+			.vmux = CX231XX_VIN_1_1,
-+			.amux = CX231XX_AMUX_LINE_IN,
-+			.gpio = NULL,
-+		}, {
-+			.type = CX231XX_VMUX_SVIDEO,
-+			.vmux = CX231XX_VIN_2_1 |
-+				(CX231XX_VIN_2_2 << 8) |
-+				CX25840_SVIDEO_ON,
-+			.amux = CX231XX_AMUX_LINE_IN,
-+			.gpio = NULL,
-+		} },
-+	},
- };
- const unsigned int cx231xx_bcount = ARRAY_SIZE(cx231xx_boards);
+diff --git a/drivers/media/i2c/ov7670.c b/drivers/media/i2c/ov7670.c
+index b61d88e..c6c32f6 100644
+--- a/drivers/media/i2c/ov7670.c
++++ b/drivers/media/i2c/ov7670.c
+@@ -163,6 +163,11 @@ MODULE_PARM_DESC(debug, "Debug level (0-1)");
+ #define   DBLV_X6	  0x10	  /* clock x6 */
+ #define   DBLV_X8	  0x11	  /* clock x8 */
  
-@@ -967,6 +993,8 @@ struct usb_device_id cx231xx_id_table[] = {
- 	.driver_info = CX231XX_BOARD_EVROMEDIA_FULL_HYBRID_FULLHD},
- 	{USB_DEVICE(0x15f4, 0x0135),
- 	.driver_info = CX231XX_BOARD_ASTROMETA_T2HYBRID},
-+	{USB_DEVICE(0x199e, 0x8002),
-+	 .driver_info = CX231XX_BOARD_THE_IMAGING_SOURCE_DFG_USB2_PRO},
- 	{},
- };
++#define REG_SCALING_XSC	0x70	/* Test pattern and horizontal scale factor */
++#define   TEST_PATTTERN_0 0x80
++#define REG_SCALING_YSC	0x71	/* Test pattern and vertical scale factor */
++#define   TEST_PATTTERN_1 0x80
++
+ #define REG_REG76	0x76	/* OV's name */
+ #define   R76_BLKPCOR	  0x80	  /* Black pixel correction enable */
+ #define   R76_WHTPCOR	  0x40	  /* White pixel correction enable */
+@@ -292,7 +297,8 @@ static struct regval_list ov7670_default_regs[] = {
  
-diff --git a/drivers/media/usb/cx231xx/cx231xx.h b/drivers/media/usb/cx231xx/cx231xx.h
-index 72d5937..65b039c 100644
---- a/drivers/media/usb/cx231xx/cx231xx.h
-+++ b/drivers/media/usb/cx231xx/cx231xx.h
-@@ -80,6 +80,7 @@
- #define CX231XX_BOARD_TERRATEC_GRABBY 22
- #define CX231XX_BOARD_EVROMEDIA_FULL_HYBRID_FULLHD 23
- #define CX231XX_BOARD_ASTROMETA_T2HYBRID 24
-+#define CX231XX_BOARD_THE_IMAGING_SOURCE_DFG_USB2_PRO 25
+ 	{ REG_COM3, 0 },	{ REG_COM14, 0 },
+ 	/* Mystery scaling numbers */
+-	{ 0x70, 0x3a },		{ 0x71, 0x35 },
++	{ REG_SCALING_XSC, 0x3a },
++	{ REG_SCALING_YSC, 0x35 },
+ 	{ 0x72, 0x11 },		{ 0x73, 0xf0 },
+ 	{ 0xa2, 0x02 },		{ REG_COM10, 0x0 },
  
- /* Limits minimum and default number of buffers */
- #define CX231XX_MIN_BUF                 4
+@@ -568,6 +574,19 @@ static int ov7670_write(struct v4l2_subdev *sd, unsigned char reg,
+ 		return ov7670_write_i2c(sd, reg, value);
+ }
+ 
++static int ov7670_update_bits(struct v4l2_subdev *sd, unsigned char reg,
++		unsigned char mask, unsigned char value)
++{
++	unsigned char orig;
++	int ret;
++
++	ret = ov7670_read(sd, reg, &orig);
++	if (ret)
++		return ret;
++
++	return ov7670_write(sd, reg, (orig & ~mask) | (value & mask));
++}
++
+ /*
+  * Write a list of register settings; ff/ff stops the process.
+  */
+@@ -1470,6 +1489,25 @@ static int ov7670_s_autoexp(struct v4l2_subdev *sd,
+ 	return ret;
+ }
+ 
++static const char * const ov7670_test_pattern_menu[] = {
++	"No test output",
++	"Shifting \"1\"",
++	"8-bar color bar",
++	"Fade to gray color bar",
++};
++
++static int ov7670_s_test_pattern(struct v4l2_subdev *sd, int value)
++{
++	int ret;
++
++	ret = ov7670_update_bits(sd, REG_SCALING_XSC, TEST_PATTTERN_0,
++				value & BIT(0) ? TEST_PATTTERN_0 : 0);
++	if (ret)
++		return ret;
++
++	return ov7670_update_bits(sd, REG_SCALING_YSC, TEST_PATTTERN_1,
++				value & BIT(1) ? TEST_PATTTERN_1 : 0);
++}
+ 
+ static int ov7670_g_volatile_ctrl(struct v4l2_ctrl *ctrl)
+ {
+@@ -1516,6 +1554,8 @@ static int ov7670_s_ctrl(struct v4l2_ctrl *ctrl)
+ 			return ov7670_s_exp(sd, info->exposure->val);
+ 		}
+ 		return ov7670_s_autoexp(sd, ctrl->val);
++	case V4L2_CID_TEST_PATTERN:
++		return ov7670_s_test_pattern(sd, ctrl->val);
+ 	}
+ 	return -EINVAL;
+ }
+@@ -1770,6 +1810,10 @@ static int ov7670_probe(struct i2c_client *client,
+ 	info->auto_exposure = v4l2_ctrl_new_std_menu(&info->hdl, &ov7670_ctrl_ops,
+ 			V4L2_CID_EXPOSURE_AUTO, V4L2_EXPOSURE_MANUAL, 0,
+ 			V4L2_EXPOSURE_AUTO);
++	v4l2_ctrl_new_std_menu_items(&info->hdl, &ov7670_ctrl_ops,
++			V4L2_CID_TEST_PATTERN,
++			ARRAY_SIZE(ov7670_test_pattern_menu) - 1, 0, 0,
++			ov7670_test_pattern_menu);
+ 	sd->ctrl_handler = &info->hdl;
+ 	if (info->hdl.error) {
+ 		ret = info->hdl.error;
 -- 
 2.7.4
