@@ -1,72 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:35762 "EHLO
-        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752570AbdKWKTV (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 23 Nov 2017 05:19:21 -0500
-From: Colin King <colin.king@canonical.com>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org
-Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH] [media] dvb_frontend: remove redundant status self assignment
-Date: Thu, 23 Nov 2017 10:19:19 +0000
-Message-Id: <20171123101919.16844-1-colin.king@canonical.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Received: from gofer.mess.org ([88.97.38.141]:43419 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753402AbdKXLoD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 24 Nov 2017 06:44:03 -0500
+From: Sean Young <sean@mess.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+        Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-input@vger.kernel.org, linux-media@vger.kernel.org
+Subject: [PATCH 0/3] Improve CEC autorepeat handling
+Date: Fri, 24 Nov 2017 11:43:58 +0000
+Message-Id: <cover.1511523174.git.sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Colin Ian King <colin.king@canonical.com>
+Due to the slowness of the CEC bus, autorepeat handling rather special
+on CEC. If the repeated user control pressed message is received, a 
+keydown repeat should be sent immediately.
 
-The assignment status to itself is redundant and can be removed.
-Detected with Coccinelle.
+By handling this in the input layer, we can remove some ugly code from
+cec, which also sends a keyup event after the first keydown, to prevent
+autorepeat.
 
-Signed-off-by: Colin Ian King <colin.king@canonical.com>
----
- drivers/media/dvb-frontends/drxd_hard.c    | 3 ---
- drivers/media/dvb-frontends/tda18271c2dd.c | 1 -
- 2 files changed, 4 deletions(-)
+Sean Young (3):
+  input: remove redundant check for EV_REP
+  input: handle case whether first repeated key triggers repeat
+  media: cec: move cec autorepeat handling to rc-core
 
-diff --git a/drivers/media/dvb-frontends/drxd_hard.c b/drivers/media/dvb-frontends/drxd_hard.c
-index 0696bc62dcc9..ff18a0f7dc41 100644
---- a/drivers/media/dvb-frontends/drxd_hard.c
-+++ b/drivers/media/dvb-frontends/drxd_hard.c
-@@ -2140,7 +2140,6 @@ static int DRX_Start(struct drxd_state *state, s32 off)
- 			}
- 			break;
- 		}
--		status = status;
- 		if (status < 0)
- 			break;
- 
-@@ -2251,7 +2250,6 @@ static int DRX_Start(struct drxd_state *state, s32 off)
- 			break;
- 
- 		}
--		status = status;
- 		if (status < 0)
- 			break;
- 
-@@ -2318,7 +2316,6 @@ static int DRX_Start(struct drxd_state *state, s32 off)
- 			}
- 			break;
- 		}
--		status = status;
- 		if (status < 0)
- 			break;
- 
-diff --git a/drivers/media/dvb-frontends/tda18271c2dd.c b/drivers/media/dvb-frontends/tda18271c2dd.c
-index 2d2778be2d2f..45cd5ba0cf8a 100644
---- a/drivers/media/dvb-frontends/tda18271c2dd.c
-+++ b/drivers/media/dvb-frontends/tda18271c2dd.c
-@@ -674,7 +674,6 @@ static int PowerScan(struct tda_state *state,
- 			Count = 200000;
- 			wait = true;
- 		}
--		status = status;
- 		if (status < 0)
- 			break;
- 		if (CID_Gain >= CID_Target) {
+ Documentation/input/input.rst |  4 +++-
+ drivers/input/input.c         | 21 ++++++++++++----
+ drivers/media/cec/cec-adap.c  | 56 ++++---------------------------------------
+ drivers/media/cec/cec-core.c  | 12 ----------
+ drivers/media/rc/rc-main.c    | 10 +++++++-
+ include/media/cec.h           |  5 ----
+ 6 files changed, 33 insertions(+), 75 deletions(-)
+
 -- 
-2.14.1
+2.14.3
