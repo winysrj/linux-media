@@ -1,76 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:59927 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754336AbdKAMhl (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 1 Nov 2017 08:37:41 -0400
-Date: Wed, 1 Nov 2017 10:37:35 -0200
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Olli Salonen <olli.salonen@iki.fi>
-Cc: Michael Ira Krufky <mkrufky@linuxtv.org>,
-        linux-media <linux-media@vger.kernel.org>
-Subject: Re: [PATCHv3 1/2] tda18250: support for new silicon tuner
-Message-ID: <20171101103735.59e9c77c@vento.lan>
-In-Reply-To: <CAAZRmGwuHRHxzvfQCBc+uTq+FCo6Z_2f_oT=H70TCpwQfouLvA@mail.gmail.com>
-References: <CAAZRmGwuHRHxzvfQCBc+uTq+FCo6Z_2f_oT=H70TCpwQfouLvA@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:38249 "EHLO
+        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752257AbdKXJeF (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 24 Nov 2017 04:34:05 -0500
+Received: by mail-wm0-f67.google.com with SMTP id 128so21175531wmo.3
+        for <linux-media@vger.kernel.org>; Fri, 24 Nov 2017 01:34:05 -0800 (PST)
+From: Loic Poulain <loic.poulain@linaro.org>
+To: stanimir.varbanov@linaro.org, mchehab@kernel.org
+Cc: linux-media@vger.kernel.org, linux-arm-msm@vger.kernel.org,
+        Loic Poulain <loic.poulain@linaro.org>
+Subject: [PATCH 1/2] media: venus: venc: configure entropy mode
+Date: Fri, 24 Nov 2017 10:34:01 +0100
+Message-Id: <1511516042-11415-1-git-send-email-loic.poulain@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 30 Oct 2017 05:31:40 +0200
-Olli Salonen <olli.salonen@iki.fi> escreveu:
+H264 entropy mode can be selected via V4L2 API but is eventually not
+applied. Configure encoder with selected mode, CALVC (def) or CABAC.
 
-> Hello Michael,
-> 
-> Many thanks for taking the time to review the patches.
-> 
-> On 27 October 2017 at 13:27, Michael Ira Krufky <mkrufky@linuxtv.org> wrote:
-> >> +static int tda18250_sleep(struct dvb_frontend *fe)
-> >> +{
-> >> +       struct i2c_client *client = fe->tuner_priv;
-> >> +       struct tda18250_dev *dev = i2c_get_clientdata(client);
-> >> +       int ret;
-> >> +
-> >> +       dev_dbg(&client->dev, "\n");
-> >> +
-> >> +       /* power down LNA */
-> >> +       ret = regmap_write_bits(dev->regmap, R0C_AGC11, 0x80, 0x00);
-> >> +       if (ret)
-> >> +               return ret;
-> >> +
-> >> +       ret = tda18250_power_control(fe, TDA18250_POWER_STANDBY);
-> >> +       return ret;
-> >> +}  
-> >
-> > Do we know for sure if the IF_FREQUENCY is preserved after returning
-> > from a sleep?   It might be a good idea to set `dev->if_frequency = 0`
-> > within `tda18250_sleep` to be sure that it gets set again on the next
-> > tune, but you may want to check the specification first, if its
-> > available.
-> >
-> > This is not a show-stopper -- We can merge this as-is and this can be
-> > handled in a follow-up patch.  
-> 
-> I will look into this and send a patch on top of this one if needed.
-> 
-> Thank you for pointing it out.
+Note that hw/firmware also expects a CABAC model configuration which
+currently doesn't have existing V4L2 API control. For now, use model_0
+which seems always supported and so the default one.
 
-There is a show-stopper issue here, though: it lacks adding an
-entry for the driver at MAINTAINERS file :-)
+Signed-off-by: Loic Poulain <loic.poulain@linaro.org>
+---
+ drivers/media/platform/qcom/venus/venc.c | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-Please add it.
-
-While here, please look at the checkpatch warnings:
-
-WARNING: msleep < 20ms can sleep for up to 20ms; see Documentation/timers/timers-howto.txt
-#746: FILE: drivers/media/tuners/tda18250.c:678:
-+ msleep(5);
-
-and the 80 column ones. I was unable to see, at the places it complained,
-a reason why not limit the lines to 80 columns.
-
-Regards,
-
-Thanks,
-Mauro
+diff --git a/drivers/media/platform/qcom/venus/venc.c b/drivers/media/platform/qcom/venus/venc.c
+index 6f123a3..d5d824e 100644
+--- a/drivers/media/platform/qcom/venus/venc.c
++++ b/drivers/media/platform/qcom/venus/venc.c
+@@ -641,6 +641,7 @@ static int venc_set_properties(struct venus_inst *inst)
+ 
+ 	if (inst->fmt_cap->pixfmt == V4L2_PIX_FMT_H264) {
+ 		struct hfi_h264_vui_timing_info info;
++		struct hfi_h264_entropy_control entropy;
+ 
+ 		ptype = HFI_PROPERTY_PARAM_VENC_H264_VUI_TIMING_INFO;
+ 		info.enable = 1;
+@@ -650,6 +651,16 @@ static int venc_set_properties(struct venus_inst *inst)
+ 		ret = hfi_session_set_property(inst, ptype, &info);
+ 		if (ret)
+ 			return ret;
++
++		ptype = HFI_PROPERTY_PARAM_VENC_H264_ENTROPY_CONTROL;
++		entropy.entropy_mode = venc_v4l2_to_hfi(
++					  V4L2_CID_MPEG_VIDEO_H264_ENTROPY_MODE,
++					  ctr->h264_entropy_mode);
++		entropy.cabac_model = HFI_H264_CABAC_MODEL_0;
++
++		ret = hfi_session_set_property(inst, ptype, &entropy);
++		if (ret)
++			return ret;
+ 	}
+ 
+ 	ptype = HFI_PROPERTY_CONFIG_VENC_IDR_PERIOD;
+-- 
+2.7.4
