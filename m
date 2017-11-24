@@ -1,140 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:41339 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751281AbdKPQjW (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 16 Nov 2017 11:39:22 -0500
-Date: Thu, 16 Nov 2017 16:39:20 +0000
-From: Sean Young <sean@mess.org>
-To: Matthias Reichl <hias@horus.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: 4.14 regression from commit d57ea877af38 media: rc: per-protocol
- repeat period
-Message-ID: <20171116163920.ouxinvde5ai4fle3@gofer.mess.org>
-References: <20171116152700.filid3ask3gowegl@camel2.lan>
+Received: from mail-ua0-f176.google.com ([209.85.217.176]:38558 "EHLO
+        mail-ua0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753249AbdKXJT7 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 24 Nov 2017 04:19:59 -0500
+Received: by mail-ua0-f176.google.com with SMTP id f14so14331049uaa.5
+        for <linux-media@vger.kernel.org>; Fri, 24 Nov 2017 01:19:58 -0800 (PST)
+Received: from mail-vk0-f53.google.com (mail-vk0-f53.google.com. [209.85.213.53])
+        by smtp.gmail.com with ESMTPSA id d77sm2868399vkf.22.2017.11.24.01.19.56
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Fri, 24 Nov 2017 01:19:57 -0800 (PST)
+Received: by mail-vk0-f53.google.com with SMTP id s197so13183085vkh.11
+        for <linux-media@vger.kernel.org>; Fri, 24 Nov 2017 01:19:56 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20171116152700.filid3ask3gowegl@camel2.lan>
+In-Reply-To: <20171124091716.jasz6rkusazcwhpd@paasikivi.fi.intel.com>
+References: <CAFLEztQg2R0oLcSfRKsQGFWTC1pTzPVqoksdKtGAYEYV6nAf9A@mail.gmail.com>
+ <20171124085511.pehj5kwvykpzc25a@paasikivi.fi.intel.com> <CAAFQd5DowE=EdLkTi3q02hcKr_tr7GqKOZbKGYaz6uvvzEACHw@mail.gmail.com>
+ <20171124091716.jasz6rkusazcwhpd@paasikivi.fi.intel.com>
+From: Tomasz Figa <tfiga@chromium.org>
+Date: Fri, 24 Nov 2017 18:19:36 +0900
+Message-ID: <CAAFQd5Cz0VfZB-JMf3YESAb4z0i+koQq=BRSzu7vy9Sdwi157A@mail.gmail.com>
+Subject: Re: notifier is skipped in some situations
+To: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Jacob Chen <jacob-chen@iotwrt.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Nov 16, 2017 at 04:27:01PM +0100, Matthias Reichl wrote:
-> The following commit introduced a regression
-> 
-> commit d57ea877af38057b0ef31758cf3b99765dc33695
-> Author: Sean Young <sean@mess.org>
-> Date:   Wed Aug 9 13:19:16 2017 -0400
-> 
->     media: rc: per-protocol repeat period
-> 
->     CEC needs a keypress timeout of 550ms, which is too high for the IR
->     protocols. Also fill in known repeat times, with 50ms error margin.
-> 
->     Also, combine all protocol data into one structure.
-> 
-> We received a report that an RC6 MCE remote used with the ite-cir
-> produces "double events" on short button presses:
-> 
-> https://forum.kodi.tv/showthread.php?tid=298462&pid=2667855#pid2667855
-> 
-> Looking at the ir-keytable -t output an additional key event is also
-> generated after longer button presses:
-> 
-> # ir-keytable -t
-> Testing events. Please, press CTRL-C to abort.
-> 1510680591.697657: event type EV_MSC(0x04): scancode = 0x800f041f
-> 1510680591.697657: event type EV_KEY(0x01) key_down: KEY_DOWN(0x006c)
-> 1510680591.697657: event type EV_SYN(0x00).
-> 1510680591.867355: event type EV_KEY(0x01) key_up: KEY_DOWN(0x006c)
-> 1510680591.867355: event type EV_SYN(0x00).
-> 1510680591.935026: event type EV_MSC(0x04): scancode = 0x800f041f
-> 1510680591.935026: event type EV_KEY(0x01) key_down: KEY_DOWN(0x006c)
-> 1510680591.935026: event type EV_SYN(0x00).
-> 1510680592.104100: event type EV_KEY(0x01) key_up: KEY_DOWN(0x006c)
-> 1510680592.104100: event type EV_SYN(0x00).
-> 
-> 1510680597.714055: event type EV_MSC(0x04): scancode = 0x800f0405
-> 1510680597.714055: event type EV_KEY(0x01) key_down: KEY_NUMERIC_5(0x0205)
-> 1510680597.714055: event type EV_SYN(0x00).
-> 1510680597.819939: event type EV_MSC(0x04): scancode = 0x800f0405
-> 1510680597.819939: event type EV_SYN(0x00).
-> 1510680597.925614: event type EV_MSC(0x04): scancode = 0x800f0405
-> 1510680597.925614: event type EV_SYN(0x00).
-> 1510680598.032422: event type EV_MSC(0x04): scancode = 0x800f0405
-> 1510680598.032422: event type EV_SYN(0x00).
-> ...
-> 1510680598.562114: event type EV_MSC(0x04): scancode = 0x800f0405
-> 1510680598.562114: event type EV_SYN(0x00).
-> 1510680598.630641: event type EV_KEY(0x01) key_down: KEY_NUMERIC_5(0x0205)
-> 1510680598.630641: event type EV_SYN(0x00).
-> 1510680598.667906: event type EV_MSC(0x04): scancode = 0x800f0405
-> 1510680598.667906: event type EV_SYN(0x00).
-> 1510680598.760760: event type EV_KEY(0x01) key_down: KEY_NUMERIC_5(0x0205)
-> 1510680598.760760: event type EV_SYN(0x00).
-> 1510680598.837412: event type EV_KEY(0x01) key_up: KEY_NUMERIC_5(0x0205)
-> 1510680598.837412: event type EV_SYN(0x00).
-> 1510680598.905003: event type EV_MSC(0x04): scancode = 0x800f0405
-> 1510680598.905003: event type EV_KEY(0x01) key_down: KEY_NUMERIC_5(0x0205)
-> 1510680598.905003: event type EV_SYN(0x00).
-> 1510680599.074092: event type EV_KEY(0x01) key_up: KEY_NUMERIC_5(0x0205)
-> 1510680599.074092: event type EV_SYN(0x00).
-> 
-> Looking at the timestamps of the scancode events it seems that
-> signals are received every ~106ms but the last signal seems to be
-> received 237ms after the last-but-one - which is then interpreted
-> as a new key press cycle as the delay is longer than the 164ms
-> "repeat_period" setting of the RC6 protocol (before that commit
-> 250ms was used).
-> 
-> This 237ms delay seems to be coming from the 200ms timeout value
-> of the ite-cir driver (237ms is in the ballpark of ~30ms rc6 signal
-> time plus 200ms timeout).
-> 
-> The original author hasn't reported back yet but others confirmed
-> that changing the timeout to 100ms (minimum idle timeout value
-> of ite-cir) using "ir-ctl -t 100000" fixes the issue.
+On Fri, Nov 24, 2017 at 6:17 PM, Sakari Ailus
+<sakari.ailus@linux.intel.com> wrote:
+> Hi Tomasz,
+>
+> On Fri, Nov 24, 2017 at 06:03:26PM +0900, Tomasz Figa wrote:
+>> Hi Sakari,
+>>
+>> We have the following graph:
+>>
+>>     ISP (registers notifier for v4l2_dev)
+>>
+>>      |
+>>
+>>     PHY (registers notifier for v4l2_subdev, just like sensors for
+>> flash/focuser)
+>>
+>>   |       \
+>>
+>> sensor0   sensor1
+>>
+>> ...
+>>
+>> Both ISP and PHY are completely separate drivers not directly aware of
+>> each other, since we have several different PHY IP blocks that we need
+>> to support and some of them are multi-functional, such as CSI+DSI PHY
+>> and need to be supported by drivers independent from the ISP driver.
+>
+> That should work fine. In the above case there are two notifiers, indeed,
+> but they're not expecting the *same* sub-devices.
 
-Right, so some of the IR decoders wait for a trailing space, as that is
-the only way to know if the bit stream has ended (e.g. rc-6 can be 
-16 bits, 20 or 32). The longer the timeout, the longer it will take
-to receive the trailing space, pushing decoding further along and
-pushing it past the keyup timeout.
+Got it.
 
-For any IR which is not the "last", decoding is triggered by the IR which
-follows it.
+Jacob, could you make sure there are no mistakes in the Device Tree source?
 
-I think the resolution is to add the rcdev timeout to the keyup
-timeout; else this problem will start occuring again if someone sets
-a high timeout (e.g. 300ms).
+Best regards,
+Tomasz
 
-> I could locally reproduce this with gpio-ir-recv (which uses the
-> default 125ms timeout) and the sony protocol (repeat_period = 100ms):
-> 
-> 1510838115.272021: event type EV_MSC(0x04): scancode = 0x110001
-> 1510838115.272021: event type EV_KEY(0x01) key_down: KEY_2(0x0003)
-> 1510838115.272021: event type EV_SYN(0x00).
-> 1510838115.322014: event type EV_MSC(0x04): scancode = 0x110001
-> 1510838115.322014: event type EV_SYN(0x00).
-> 1510838115.362003: event type EV_MSC(0x04): scancode = 0x110001
-> 1510838115.362003: event type EV_SYN(0x00).
-> 1510838115.412002: event type EV_MSC(0x04): scancode = 0x110001
-> 1510838115.412002: event type EV_SYN(0x00).
-> 1510838115.521973: event type EV_KEY(0x01) key_up: KEY_2(0x0003)
-> 1510838115.521973: event type EV_SYN(0x00).
-> 1510838115.532007: event type EV_MSC(0x04): scancode = 0x110001
-> 1510838115.532007: event type EV_KEY(0x01) key_down: KEY_2(0x0003)
-> 1510838115.532007: event type EV_SYN(0x00).
-> 1510838115.641972: event type EV_KEY(0x01) key_up: KEY_2(0x0003)
-> 1510838115.641972: event type EV_SYN(0x00).
-> 
-> Reducing the timeout to 20ms removes the addional key_down/up event.
-> 
-> Another test with a rc-5 remote on gpio-ir-recv worked fine at the
-> default 125ms timeout but with 200ms as on the ite-cir I again
-> got the additional key event.
-
-Thanks for the excellent analysis.
-
-
-Sean
+>
+> What this could be about is that in some version of the set I disabled the
+> complete callback on the sub-notifiers for two reasons: there was no need
+> seen for them and the complete callback is problematic in general (there's
+> been discussion on that, mostly related to earlier versions of the fwnode
+> parsing patchset, on #v4l and along the Renesas rcar-csi2 patchsets).
+>
+>>
+>> Best regards,
+>> Tomasz
+>>
+>>
+>> On Fri, Nov 24, 2017 at 5:55 PM, Sakari Ailus
+>> <sakari.ailus@linux.intel.com> wrote:
+>> > Hi Jacob,
+>> >
+>> > On Fri, Nov 24, 2017 at 09:00:14AM +0800, Jacob Chen wrote:
+>> >> Hi Sakari,
+>> >>
+>> >> I encountered a problem when using async sub-notifiers.
+>> >>
+>> >> It's like that:
+>> >>     There are two notifiers, and they are waiting for one subdev.
+>> >>     When this subdev is probing, only one notifier is completed and
+>> >> the other one is skipped.
+>> >
+>> > Do you have a graph that has two master drivers (that register the
+>> > notifier) and both are connected to the same sub-device? Could you provide
+>> > exact graph you have?
+>> >
+>> >>
+>> >> I found that in v15 of patch "v4l: async: Allow binding notifiers to
+>> >> sub-devices", "v4l2_async_notifier_complete" is replaced by
+>> >> v4l2_async_notifier_call_complete, which make it only complete one
+>> >> notifier.
+>> >>
+>> >> Why is it changed? Can this be fixed?
+>> >
+>> > --
+>> > Sakari Ailus
+>> > sakari.ailus@linux.intel.com
+>
+> --
+> Sakari Ailus
+> sakari.ailus@linux.intel.com
