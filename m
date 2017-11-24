@@ -1,182 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:62591 "EHLO mga14.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754845AbdKFXpe (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 6 Nov 2017 18:45:34 -0500
-From: "Mani, Rajmohan" <rajmohan.mani@intel.com>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-CC: "Zhi, Yong" <yong.zhi@intel.com>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
-        "tfiga@chromium.org" <tfiga@chromium.org>,
-        "Toivonen, Tuukka" <tuukka.toivonen@intel.com>,
-        "Yang, Hyungwoo" <hyungwoo.yang@intel.com>,
-        "Rapolu, Chiranjeevi" <chiranjeevi.rapolu@intel.com>,
-        "Hu, Jerry W" <jerry.w.hu@intel.com>,
-        "Vijaykumar, Ramya" <ramya.vijaykumar@intel.com>
-Subject: RE: [PATCH v7 3/3] intel-ipu3: cio2: Add new MIPI-CSI2 driver
-Date: Mon, 6 Nov 2017 23:45:31 +0000
-Message-ID: <6F87890CF0F5204F892DEA1EF0D77A5972FD0BF6@FMSMSX114.amr.corp.intel.com>
-References: <1509652801-9729-1-git-send-email-yong.zhi@intel.com>
- <1509652801-9729-4-git-send-email-yong.zhi@intel.com>
- <20171102224120.zp7adyuajwhag7ye@kekkonen.localdomain>
- <6F87890CF0F5204F892DEA1EF0D77A5972FD0A9F@FMSMSX114.amr.corp.intel.com>
- <20171106233824.f4wkeewkyx6hotvs@kekkonen.localdomain>
-In-Reply-To: <20171106233824.f4wkeewkyx6hotvs@kekkonen.localdomain>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Received: from mo4-p00-ob.smtp.rzone.de ([81.169.146.219]:20458 "EHLO
+        mo4-p00-ob.smtp.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753828AbdKXOCc (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 24 Nov 2017 09:02:32 -0500
+Date: Fri, 24 Nov 2017 15:02:30 +0100
+From: Wolfgang Rohdewald <wolfgang@rohdewald.de>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] media: dvb_frontend: dvb_unregister_frontend must not call
+ dvb_detach for fe->ops.release
+Message-ID: <20171124140230.saeqbltjkdjkwtyo@rohdewald.de>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+because ops.release was never dvb_attached.
+Which makes sense because f->ops.release does not attach anything.
 
-> -----Original Message-----
-> From: Sakari Ailus [mailto:sakari.ailus@linux.intel.com]
-> Sent: Monday, November 06, 2017 3:38 PM
-> To: Mani, Rajmohan <rajmohan.mani@intel.com>
-> Cc: Zhi, Yong <yong.zhi@intel.com>; linux-media@vger.kernel.org; Zheng, Jian
-> Xu <jian.xu.zheng@intel.com>; tfiga@chromium.org; Toivonen, Tuukka
-> <tuukka.toivonen@intel.com>; Yang, Hyungwoo
-> <hyungwoo.yang@intel.com>; Rapolu, Chiranjeevi
-> <chiranjeevi.rapolu@intel.com>; Hu, Jerry W <jerry.w.hu@intel.com>;
-> Vijaykumar, Ramya <ramya.vijaykumar@intel.com>
-> Subject: Re: [PATCH v7 3/3] intel-ipu3: cio2: Add new MIPI-CSI2 driver
-> 
-> Hi Rajmohan,
-> 
-> On Mon, Nov 06, 2017 at 07:32:52PM +0000, Mani, Rajmohan wrote:
-> > Hi Sakari, Yong,
-> >
-> > > Subject: Re: [PATCH v7 3/3] intel-ipu3: cio2: Add new MIPI-CSI2
-> > > driver
-> > >
-> > > Hi Yong,
-> > >
-> > > Thanks for the update!
-> > >
-> > > I took a final glance, there are a few matters that still need to be
-> > > addressed but then I think we're done. Please see below.
-> > >
-> > > Then we'll need an entry in the MAINTAINERS file in the kernel root
-> directory.
-> > > Could you add an entry for this driver in v8?
-> > >
-> > > On Thu, Nov 02, 2017 at 03:00:01PM -0500, Yong Zhi wrote:
-> > > ...
-> > > > +static int cio2_fbpt_rearrange(struct cio2_device *cio2, struct
-> > > > +cio2_queue *q) {
-> > > > +	unsigned int i, j;
-> > > > +
-> > > > +	for (i = 0, j = q->bufs_first; i < CIO2_MAX_BUFFERS;
-> > > > +		i++, j = (j + 1) % CIO2_MAX_BUFFERS)
-> > > > +		if (q->bufs[j])
-> > > > +			break;
-> > > > +
-> > > > +	if (i == CIO2_MAX_BUFFERS)
-> > > > +		return 0;
-> > >
-> > > You always return 0. The return type could be void.
-> > >
-> > > You could also move this function just above the function using it
-> > > (it's a single location).
-> > >
-> > > > +
-> > > > +	if (j) {
-> > > > +		arrange(q->fbpt, sizeof(struct cio2_fbpt_entry) *
-> > > CIO2_MAX_LOPS,
-> > > > +			CIO2_MAX_BUFFERS, j);
-> > > > +		arrange(q->bufs, sizeof(struct cio2_buffer *),
-> > > > +			CIO2_MAX_BUFFERS, j);
-> > > > +	}
-> > > > +
-> > > > +	/*
-> > > > +	 * DMA clears the valid bit when accessing the buffer.
-> > > > +	 * When stopping stream in suspend callback, some of the buffers
-> > > > +	 * may be in invalid state. After resume, when DMA meets the invalid
-> > > > +	 * buffer, it will halt and stop receiving new data.
-> > > > +	 * To avoid DMA halting, set the valid bit for all buffers in FBPT.
-> > > > +	 */
-> > > > +	for (i = 0; i < CIO2_MAX_BUFFERS; i++)
-> > > > +		cio2_fbpt_entry_enable(cio2, q->fbpt + i * CIO2_MAX_LOPS);
-> > > > +
-> > > > +	return 0;
-> > > > +}
-> > >
-> > > ...
-> > >
-> > > > +static int cio2_vb2_start_streaming(struct vb2_queue *vq,
-> > > > +unsigned int count) {
-> > > > +	struct cio2_queue *q = vb2q_to_cio2_queue(vq);
-> > > > +	struct cio2_device *cio2 = vb2_get_drv_priv(vq);
-> > > > +	int r;
-> > > > +
-> > > > +	cio2->cur_queue = q;
-> > > > +	atomic_set(&q->frame_sequence, 0);
-> > > > +
-> > > > +	r = pm_runtime_get_sync(&cio2->pci_dev->dev);
-> > > > +	if (r < 0) {
-> > > > +		dev_info(&cio2->pci_dev->dev, "failed to set power %d\n", r);
-> > > > +		pm_runtime_put(&cio2->pci_dev->dev);
-> >
-> > Shouldn't we use pm_runtime_put_noidle() here, so the usage_count gets
-> decremented?
-> 
-> Yeah, pm_runtime_put_noidle() would be perhaps more appropriate. The
-> difference is that the noidle variant won't suspend the device (but it was
-> already suspended to begin with as resuming failed).
-> 
+Now, rmmod dvb_usb_pctv452e correctly sets counters for
+stb6100/stb0899 to 0.
 
-Thanks for confirming.
+Before, stb0899 got a counter -1, and for my 4 receivers I got 3 OOPses
+like
 
-> >
-> > > > +		return r;
-> > > > +	}
-> > > > +
-> > > > +	r = media_pipeline_start(&q->vdev.entity, &q->pipe);
-> > > > +	if (r)
-> > > > +		goto fail_pipeline;
-> > > > +
-> > > > +	r = cio2_hw_init(cio2, q);
-> > > > +	if (r)
-> > > > +		goto fail_hw;
-> > > > +
-> > > > +	/* Start streaming on sensor */
-> > > > +	r = v4l2_subdev_call(q->sensor, video, s_stream, 1);
-> > > > +	if (r)
-> > > > +		goto fail_csi2_subdev;
-> > > > +
-> > > > +	cio2->streaming = true;
-> > > > +
-> > > > +	return 0;
-> > > > +
-> > > > +fail_csi2_subdev:
-> > > > +	cio2_hw_exit(cio2, q);
-> > > > +fail_hw:
-> > > > +	media_pipeline_stop(&q->vdev.entity);
-> > > > +fail_pipeline:
-> > > > +	dev_dbg(&cio2->pci_dev->dev, "failed to start streaming (%d)\n", r);
-> > > > +	cio2_vb2_return_all_buffers(q);
-> > >
-> > > I believe there should be
-> > >
-> > > 	pm_runtime_put(&cio2->pci_dev->dev);
-> > >
-> > > here. You should also add a label and use goto from where you do
-> > > pm_runtime_put() in error handling in this function in order to make
-> > > this cleaner.
-> > >
-> > > > +
-> > > > +	return r;
-> > > > +}
-> > >
-> > > --
-> > > Kind regards,
-> > >
-> > > Sakari Ailus
-> > > sakari.ailus@linux.intel.com
-> 
-> --
-> Sakari Ailus
-> sakari.ailus@linux.intel.com
+Nov 24 14:40:41 s5 kernel: [  194.211014] WARNING: CPU: 6 PID: 3055 at
+   module_put.part.45+0x132/0x1a0
+Call Trace:
+ ? _stb0899_read_reg+0x100/0x100 [stb0899]
+ ? _stb0899_read_reg+0x100/0x100 [stb0899]
+ symbol_put_addr+0x38/0x60
+ dvb_frontend_put+0x42/0x60 [dvb_core]
+ ? stb0899_sleep+0x50/0x50 [stb0899]
+ dvb_frontend_detach+0x7c/0x90 [dvb_core]
+ dvb_usb_adapter_frontend_exit+0x57/0x80 [dvb_usb]
+ dvb_usb_exit+0x39/0xb0 [dvb_usb]
+ dvb_usb_device_exit+0x3f/0x60 [dvb_usb]
+ pctv452e_usb_disconnect+0x6f/0x80 [dvb_usb_pctv452e]
+ usb_unbind_interface+0x75/0x290
+ ? _raw_spin_unlock_irqrestore+0x4a/0x80
+ device_release_driver_internal+0x160/0x210
+ driver_detach+0x40/0x80
+ bus_remove_driver+0x5c/0xd0
+ driver_unregister+0x2c/0x40
+ usb_deregister+0x6c/0xf0
+ pctv452e_usb_driver_exit+0x10/0xec0 [dvb_usb_pctv452e]
+
+Signed-off-by: Wolfgang Rohdewald <wolfgang@rohdewald.de>
+---
+ drivers/media/dvb-core/dvb_frontend.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
+index 9139d01ba7ed..c2cc794299c9 100644
+--- a/drivers/media/dvb-core/dvb_frontend.c
++++ b/drivers/media/dvb-core/dvb_frontend.c
+@@ -150,7 +150,8 @@ static void __dvb_frontend_free(struct dvb_frontend *fe)
+ 
+ 	dvb_free_device(fepriv->dvbdev);
+ 
+-	dvb_frontend_invoke_release(fe, fe->ops.release);
++	if (fe->ops.release)
++		fe->ops.release(fe);
+ 
+ 	kfree(fepriv);
+ 	fe->frontend_priv = NULL;
+-- 
+2.11.0
