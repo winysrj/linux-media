@@ -1,145 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-3.sys.kth.se ([130.237.48.192]:47690 "EHLO
-        smtp-3.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754799AbdKKAjF (ORCPT
+Received: from smtp.codeaurora.org ([198.145.29.96]:42744 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751557AbdKXIEN (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 10 Nov 2017 19:39:05 -0500
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH v7 07/25] rcar-vin: all Gen2 boards can scale simplify logic
-Date: Sat, 11 Nov 2017 01:38:17 +0100
-Message-Id: <20171111003835.4909-8-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20171111003835.4909-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20171111003835.4909-1-niklas.soderlund+renesas@ragnatech.se>
+        Fri, 24 Nov 2017 03:04:13 -0500
+Subject: Re: [PATCH v3] drm: bridge: synopsys/dw-hdmi: Enable cec clock
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+        Pierre-Hugues Husson <phh@phh.me>,
+        linux-rockchip@lists.infradead.org
+Cc: heiko@sntech.de, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        linux@armlinux.org.uk, Andrzej Hajda <a.hajda@samsung.com>,
+        dri-devel@lists.freedesktop.org
+References: <20171026181942.9516-1-phh@phh.me>
+ <75adf743-18a2-2c55-b4bb-95d83bd26f03@xs4all.nl>
+From: Archit Taneja <architt@codeaurora.org>
+Message-ID: <0cf328e7-772b-f634-e1b1-6653b513f2ec@codeaurora.org>
+Date: Fri, 24 Nov 2017 13:34:06 +0530
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <75adf743-18a2-2c55-b4bb-95d83bd26f03@xs4all.nl>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The logic to preserve the requested format width and height are too
-complex and come from a premature optimization for Gen3. All Gen2 SoC
-can scale and the Gen3 implementation will not use these functions at
-all so simply preserve the width and height when interacting with the
-subdevice much like the field is preserved simplifies the logic quite a
-bit.
+Hi,
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/platform/rcar-vin/rcar-dma.c  |  8 --------
- drivers/media/platform/rcar-vin/rcar-v4l2.c | 22 ++++++++++------------
- drivers/media/platform/rcar-vin/rcar-vin.h  |  2 --
- 3 files changed, 10 insertions(+), 22 deletions(-)
+On 11/20/2017 06:00 PM, Hans Verkuil wrote:
+> I didn't see this merged for 4.15, is it too late to include this?
+> All other changes needed to get CEC to work on rk3288 and rk3399 are all merged.
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
-index b71259701d2da20f..daf01bb32b5fc3c2 100644
---- a/drivers/media/platform/rcar-vin/rcar-dma.c
-+++ b/drivers/media/platform/rcar-vin/rcar-dma.c
-@@ -585,14 +585,6 @@ void rvin_crop_scale_comp(struct rvin_dev *vin)
- 		0, 0);
- }
- 
--void rvin_scale_try(struct rvin_dev *vin, struct v4l2_pix_format *pix,
--		    u32 width, u32 height)
--{
--	/* All VIN channels on Gen2 have scalers */
--	pix->width = width;
--	pix->height = height;
--}
--
- /* -----------------------------------------------------------------------------
-  * Hardware setup
-  */
-diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-index f501da9df48c288b..02b081d2d8826e90 100644
---- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-+++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-@@ -166,6 +166,7 @@ static int __rvin_try_format_source(struct rvin_dev *vin,
- 		.which = which,
- 	};
- 	enum v4l2_field field;
-+	u32 width, height;
- 	int ret;
- 
- 	sd = vin_to_source(vin);
-@@ -178,7 +179,10 @@ static int __rvin_try_format_source(struct rvin_dev *vin,
- 
- 	format.pad = vin->digital->source_pad;
- 
-+	/* Allow the video device to override field and to scale */
- 	field = pix->field;
-+	width = pix->width;
-+	height = pix->height;
- 
- 	ret = v4l2_subdev_call(sd, pad, set_fmt, pad_cfg, &format);
- 	if (ret < 0 && ret != -ENOIOCTLCMD)
-@@ -191,6 +195,9 @@ static int __rvin_try_format_source(struct rvin_dev *vin,
- 	source->width = pix->width;
- 	source->height = pix->height;
- 
-+	pix->width = width;
-+	pix->height = height;
-+
- 	vin_dbg(vin, "Source resolution: %ux%u\n", source->width,
- 		source->height);
- 
-@@ -204,13 +211,9 @@ static int __rvin_try_format(struct rvin_dev *vin,
- 			     struct v4l2_pix_format *pix,
- 			     struct rvin_source_fmt *source)
- {
--	u32 rwidth, rheight, walign;
-+	u32 walign;
- 	int ret;
- 
--	/* Requested */
--	rwidth = pix->width;
--	rheight = pix->height;
--
- 	/* Keep current field if no specific one is asked for */
- 	if (pix->field == V4L2_FIELD_ANY)
- 		pix->field = vin->format.field;
-@@ -248,10 +251,6 @@ static int __rvin_try_format(struct rvin_dev *vin,
- 		break;
- 	}
- 
--	/* If source can't match format try if VIN can scale */
--	if (source->width != rwidth || source->height != rheight)
--		rvin_scale_try(vin, pix, rwidth, rheight);
--
- 	/* HW limit width to a multiple of 32 (2^5) for NV16 else 2 (2^1) */
- 	walign = vin->format.pixelformat == V4L2_PIX_FMT_NV16 ? 5 : 1;
- 
-@@ -270,9 +269,8 @@ static int __rvin_try_format(struct rvin_dev *vin,
- 		return -EINVAL;
- 	}
- 
--	vin_dbg(vin, "Requested %ux%u Got %ux%u bpl: %d size: %d\n",
--		rwidth, rheight, pix->width, pix->height,
--		pix->bytesperline, pix->sizeimage);
-+	vin_dbg(vin, "Format %ux%u bpl: %d size: %d\n",
-+		pix->width, pix->height, pix->bytesperline, pix->sizeimage);
- 
- 	return 0;
- }
-diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
-index e41dc3bff7fdc649..80f38b89ed8d9992 100644
---- a/drivers/media/platform/rcar-vin/rcar-vin.h
-+++ b/drivers/media/platform/rcar-vin/rcar-vin.h
-@@ -177,8 +177,6 @@ int rvin_reset_format(struct rvin_dev *vin);
- const struct rvin_video_format *rvin_format_from_pixel(u32 pixelformat);
- 
- /* Cropping, composing and scaling */
--void rvin_scale_try(struct rvin_dev *vin, struct v4l2_pix_format *pix,
--		    u32 width, u32 height);
- void rvin_crop_scale_comp(struct rvin_dev *vin);
- 
- #endif
+Sorry for the late reply. I was out last week.
+
+Dave recently sent the second pull request for 4.15, so I think it would be hard to get it
+in the merge window now. We could target it for the 4.15-rcs since it is preventing the
+feature from working. Is it possible to rephrase the commit message a bit so that it's clear
+that we need it for CEC to work?
+
+Thanks,
+Archit
+
+> 
+> Regards,
+> 
+> 	Hans
+> 
+> On 10/26/2017 08:19 PM, Pierre-Hugues Husson wrote:
+>> The documentation already mentions "cec" optional clock, but
+>> currently the driver doesn't enable it.
+>>
+>> Changes:
+>> v3:
+>> - Drop useless braces
+>>
+>> v2:
+>> - Separate ENOENT errors from others
+>> - Propagate other errors (especially -EPROBE_DEFER)
+>>
+>> Signed-off-by: Pierre-Hugues Husson <phh@phh.me>
+>> ---
+>>   drivers/gpu/drm/bridge/synopsys/dw-hdmi.c | 25 +++++++++++++++++++++++++
+>>   1 file changed, 25 insertions(+)
+>>
+>> diff --git a/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c b/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c
+>> index bf14214fa464..d82b9747a979 100644
+>> --- a/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c
+>> +++ b/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c
+>> @@ -138,6 +138,7 @@ struct dw_hdmi {
+>>   	struct device *dev;
+>>   	struct clk *isfr_clk;
+>>   	struct clk *iahb_clk;
+>> +	struct clk *cec_clk;
+>>   	struct dw_hdmi_i2c *i2c;
+>>   
+>>   	struct hdmi_data_info hdmi_data;
+>> @@ -2382,6 +2383,26 @@ __dw_hdmi_probe(struct platform_device *pdev,
+>>   		goto err_isfr;
+>>   	}
+>>   
+>> +	hdmi->cec_clk = devm_clk_get(hdmi->dev, "cec");
+>> +	if (PTR_ERR(hdmi->cec_clk) == -ENOENT) {
+>> +		hdmi->cec_clk = NULL;
+>> +	} else if (IS_ERR(hdmi->cec_clk)) {
+>> +		ret = PTR_ERR(hdmi->cec_clk);
+>> +		if (ret != -EPROBE_DEFER)
+>> +			dev_err(hdmi->dev, "Cannot get HDMI cec clock: %d\n",
+>> +					ret);
+>> +
+>> +		hdmi->cec_clk = NULL;
+>> +		goto err_iahb;
+>> +	} else {
+>> +		ret = clk_prepare_enable(hdmi->cec_clk);
+>> +		if (ret) {
+>> +			dev_err(hdmi->dev, "Cannot enable HDMI cec clock: %d\n",
+>> +					ret);
+>> +			goto err_iahb;
+>> +		}
+>> +	}
+>> +
+>>   	/* Product and revision IDs */
+>>   	hdmi->version = (hdmi_readb(hdmi, HDMI_DESIGN_ID) << 8)
+>>   		      | (hdmi_readb(hdmi, HDMI_REVISION_ID) << 0);
+>> @@ -2518,6 +2539,8 @@ __dw_hdmi_probe(struct platform_device *pdev,
+>>   		cec_notifier_put(hdmi->cec_notifier);
+>>   
+>>   	clk_disable_unprepare(hdmi->iahb_clk);
+>> +	if (hdmi->cec_clk)
+>> +		clk_disable_unprepare(hdmi->cec_clk);
+>>   err_isfr:
+>>   	clk_disable_unprepare(hdmi->isfr_clk);
+>>   err_res:
+>> @@ -2541,6 +2564,8 @@ static void __dw_hdmi_remove(struct dw_hdmi *hdmi)
+>>   
+>>   	clk_disable_unprepare(hdmi->iahb_clk);
+>>   	clk_disable_unprepare(hdmi->isfr_clk);
+>> +	if (hdmi->cec_clk)
+>> +		clk_disable_unprepare(hdmi->cec_clk);
+>>   
+>>   	if (hdmi->i2c)
+>>   		i2c_del_adapter(&hdmi->i2c->adap);
+>>
+> 
+
 -- 
-2.15.0
+Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
+a Linux Foundation Collaborative Project
