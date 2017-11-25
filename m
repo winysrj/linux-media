@@ -1,65 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f181.google.com ([209.85.128.181]:33771 "EHLO
-        mail-wr0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751060AbdKQLy5 (ORCPT
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:43894 "EHLO
+        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750724AbdKYFI4 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 17 Nov 2017 06:54:57 -0500
-Received: by mail-wr0-f181.google.com with SMTP id 4so1904765wrt.0
-        for <linux-media@vger.kernel.org>; Fri, 17 Nov 2017 03:54:56 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <fd92263a2c04a10d58ce465058391e6e8703dc90.1510913595.git.mchehab@s-opensource.com>
-References: <e0917bf82693b0a7383310f9d8fb3aea10ef6615.1510913595.git.mchehab@s-opensource.com>
- <fd92263a2c04a10d58ce465058391e6e8703dc90.1510913595.git.mchehab@s-opensource.com>
-From: Philippe Ombredanne <pombredanne@nexb.com>
-Date: Fri, 17 Nov 2017 12:54:15 +0100
-Message-ID: <CAOFm3uFQGftabX93YEiLfpAoR+7kEvwuLudH+A7Bo4zKa60TOQ@mail.gmail.com>
-Subject: Re: [PATCH 6/6] media: usb: add SPDX identifiers to some code I wrote
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Sean Young <sean@mess.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Andi Shyti <andi.shyti@samsung.com>,
-        =?UTF-8?Q?David_H=C3=A4rdeman?= <david@hardeman.nu>,
-        Bhumika Goyal <bhumirks@gmail.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Arvind Yadav <arvind.yadav.cs@gmail.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Julia Lawall <Julia.Lawall@lip6.fr>,
-        Christophe JAILLET <christophe.jaillet@wanadoo.fr>,
-        Santosh Kumar Singh <kumar.san1093@gmail.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Thomas Gleixner <tglx@linutronix.de>
-Content-Type: text/plain; charset="UTF-8"
+        Sat, 25 Nov 2017 00:08:56 -0500
+Message-ID: <f9df7ca90cdfd410666a3f6a5eb51438@smtp-cloud9.xs4all.net>
+Date: Sat, 25 Nov 2017 06:08:53 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Nov 17, 2017 at 11:21 AM, Mauro Carvalho Chehab
-<mchehab@s-opensource.com> wrote:
-> As we're now using SPDX identifiers, on several
-> media drivers I wrote, add the proper SPDX, identifying
-> the license I meant.
->
-> As we're now using the short license, it doesn't make sense to
-> keep the original license text.
->
-> Also, fix MODULE_LICENSE to properly identify GPL v2.
->
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Mauro,
-Thanks ++ .... I can now get rid of a special license detection rule I
-had added for the specific language of your notices in the
-scancode-toolkit!
+Results of the daily build of media_tree:
 
-FWIW for this 6 patch series:
+date:			Sat Nov 25 05:00:17 CET 2017
+media-tree git hash:	30b4e122d71cbec2944a5f8b558b88936ee42f10
+media_build git hash:	097aaf3e4e4bfdeff130db9697dec1befeb3221b
+v4l-utils git hash:	a8a04d397e929381a2150bee2100fc28ad2cfbec
+gcc version:		i686-linux-gcc (GCC) 7.1.0
+sparse version:		0.5.1 (Debian: 0.5.1-2)
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.13.0-164
 
-Reviewed-by: Philippe Ombredanne <pombredanne@nexb.com>
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: WARNINGS
+linux-3.11.1-i686: WARNINGS
+linux-3.12.67-i686: WARNINGS
+linux-3.13.11-i686: WARNINGS
+linux-3.14.9-i686: WARNINGS
+linux-3.15.2-i686: WARNINGS
+linux-3.16.7-i686: WARNINGS
+linux-3.17.8-i686: WARNINGS
+linux-3.18.7-i686: WARNINGS
+linux-3.19-i686: WARNINGS
+linux-4.0.9-i686: WARNINGS
+linux-4.1.33-i686: WARNINGS
+linux-4.2.8-i686: WARNINGS
+linux-4.3.6-i686: WARNINGS
+linux-4.4.22-i686: WARNINGS
+linux-4.5.7-i686: WARNINGS
+linux-4.6.7-i686: WARNINGS
+linux-4.7.5-i686: WARNINGS
+linux-4.8-i686: OK
+linux-4.9.26-i686: OK
+linux-4.10.14-i686: OK
+linux-4.11-i686: OK
+linux-4.12.1-i686: OK
+linux-4.13-i686: OK
+linux-4.14-i686: OK
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-x86_64: WARNINGS
+linux-3.12.67-x86_64: WARNINGS
+linux-3.13.11-x86_64: WARNINGS
+linux-3.14.9-x86_64: WARNINGS
+linux-3.15.2-x86_64: WARNINGS
+linux-3.16.7-x86_64: WARNINGS
+linux-3.17.8-x86_64: WARNINGS
+linux-3.18.7-x86_64: WARNINGS
+linux-3.19-x86_64: WARNINGS
+linux-4.0.9-x86_64: WARNINGS
+linux-4.1.33-x86_64: WARNINGS
+linux-4.2.8-x86_64: WARNINGS
+linux-4.3.6-x86_64: WARNINGS
+linux-4.4.22-x86_64: WARNINGS
+linux-4.5.7-x86_64: WARNINGS
+linux-4.6.7-x86_64: WARNINGS
+linux-4.7.5-x86_64: WARNINGS
+linux-4.8-x86_64: WARNINGS
+linux-4.9.26-x86_64: WARNINGS
+linux-4.10.14-x86_64: WARNINGS
+linux-4.11-x86_64: WARNINGS
+linux-4.12.1-x86_64: WARNINGS
+linux-4.13-x86_64: OK
+linux-4.14-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
 
-CC: Thomas Gleixner <tglx@linutronix.de>
-CC: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Detailed results are available here:
 
--- 
-Cordially
-Philippe Ombredanne
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
