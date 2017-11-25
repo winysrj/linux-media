@@ -1,114 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:51404 "EHLO
-        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751174AbdKMOeL (ORCPT
+Received: from relay2-d.mail.gandi.net ([217.70.183.194]:40953 "EHLO
+        relay2-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750729AbdKYSSG (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 13 Nov 2017 09:34:11 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Alexandre Courbot <acourbot@chromium.org>
-Subject: [RFCv1 PATCH 0/6] v4l2-ctrls: implement requests
-Date: Mon, 13 Nov 2017 15:34:02 +0100
-Message-Id: <20171113143408.19644-1-hverkuil@xs4all.nl>
+        Sat, 25 Nov 2017 13:18:06 -0500
+Date: Sat, 25 Nov 2017 19:17:59 +0100
+From: jacopo mondi <jacopo@jmondi.org>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        laurent.pinchart@ideasonboard.com, magnus.damm@gmail.com,
+        geert@glider.be, mchehab@kernel.org, hverkuil@xs4all.nl,
+        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-sh@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v1 03/10] v4l: platform: Add Renesas CEU driver
+Message-ID: <20171125181759.GE12305@w540>
+References: <1510743363-25798-1-git-send-email-jacopo+renesas@jmondi.org>
+ <1510743363-25798-4-git-send-email-jacopo+renesas@jmondi.org>
+ <20171115124551.xrmrd34l4u4qgcms@valkosipuli.retiisi.org.uk>
+ <20171115142511.GJ19070@w540>
+ <20171117003651.e7oj362eqivyukcu@valkosipuli.retiisi.org.uk>
+ <20171117093355.GE4668@w540>
+ <20171125155613.ebblr7hdr6irs2h7@valkosipuli.retiisi.org.uk>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20171125155613.ebblr7hdr6irs2h7@valkosipuli.retiisi.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Sakari!
 
-Hi Alexandre,
+On Sat, Nov 25, 2017 at 05:56:14PM +0200, Sakari Ailus wrote:
+> On Fri, Nov 17, 2017 at 10:33:55AM +0100, jacopo mondi wrote:
+> > Hi Sakari!
+> >
 
-This is a first implementation of the request API in the
-control framework. It is fairly simplistic at the moment in that
-it just clones all the control values (so no refcounting yet for
-values as Laurent proposed, I will work on that later). But this
-should not be a problem for codecs since there aren't all that many
-controls involved.
+[snip]
 
-The API is as follows:
+> > I would like to make sure we're all on the same page with this. My
+> > preference would be:
+> >
+> > 1) Have renesas-ceu.c driver merged with Migo-R ported to use this new
+> > driver as an 'example'.
+> > 2) Do not remove any of the existing soc_camera code at this point
+> > 3) Port all other 4 SH users of sh_mobile_ceu_camera to use the now
+> > merged renesas-ceu driver
+> > 4) Remove sh_mobile_ceu_camera and soc_camera sensor drivers whose
+> > only users were those 4 SH boards
+> > 5) Remove soc_camera completely. For my understanding there are some
+> > PXA platforms still using soc_camera provided utilities somewhere.
+> > Hans knows better, but we can discuss this once we'll get there.
+>
+> The first point here is basically done by this patchset and your intent
+> would be to proceed with the rest, right?
 
-struct v4l2_ctrl_handler *v4l2_ctrl_request_alloc(void);
+Yep, you're right!
 
-This allocates a struct v4l2_ctrl_handler that is empty (i.e. has
-no controls) but is refcounted and is marked as representing a
-request.
+>
+> The above seems good; what I wanted to say was that I'd like to avoid
+> ending up in a permanent situation where some hardware works with the new
+> driver and some will continue to use the old one.
 
-int v4l2_ctrl_request_clone(struct v4l2_ctrl_handler *hdl,
-                            const struct v4l2_ctrl_handler *from,
-                            bool (*filter)(const struct v4l2_ctrl *ctrl));
+I hope that being the last users of soc_camera, there will be enough
+motivations to complete all the above points :)
 
-Delete any existing controls in handler 'hdl', then clone the values
-from an existing handler 'from' into 'hdl'. If 'from' == NULL, then
-this just clears the handler. 'from' can either be another request
-control handler or a regular control handler in which case the
-current values are cloned. If 'filter' != NULL then you can
-filter which controls you want to clone.
+Thanks
+   j
 
-void v4l2_ctrl_request_get(struct v4l2_ctrl_handler *hdl);
-
-Increase the refcount.
-
-void v4l2_ctrl_request_put(struct v4l2_ctrl_handler *hdl);
-
-Decrease the refcount and delete hdl if it reaches 0.
-
-void v4l2_ctrl_request_setup(struct v4l2_ctrl_handler *hdl);
-
-Apply the values from the handler (i.e. request object) to the
-hardware.
-
-You will have to modify v4l_g/s/try_ext_ctrls in v4l2-ioctls.c to
-obtain the request v4l2_ctrl_handler pointer based on the request
-field in struct v4l2_ext_controls.
-
-The first patch in this series is necessary to avoid cloning
-controls that belong to other devices (as opposed to the subdev
-or bridge device for which you make a request). It can probably
-be dropped for codecs, but it is needed for MC devices like
-omap3isp.
-
-This series has only been compile tested! So if it crashes as
-soon as you try to use it, then that's why :-)
-
-Note: I'm not sure if it makes sense to refcount the control
-handler, you might prefer to have a refcount in a higher-level
-request struct. If that's the case, then I can drop the _get
-function and replace the _put function by a v4l2_ctrl_request_free()
-function.
-
-Good luck!
-
-	Hans
-
-Hans Verkuil (6):
-  v4l2-ctrls: v4l2_ctrl_add_handler: add from_other_dev
-  v4l2-ctrls: prepare internal structs for request API
-  v4l2-ctrls: add core request API
-  v4l2-ctrls: use ref in helper instead of ctrl
-  v4l2-ctrls: support g/s_ext_ctrls for requests
-  v4l2-ctrls: add v4l2_ctrl_request_setup
-
- drivers/media/dvb-frontends/rtl2832_sdr.c        |   5 +-
- drivers/media/pci/bt8xx/bttv-driver.c            |   2 +-
- drivers/media/pci/cx23885/cx23885-417.c          |   2 +-
- drivers/media/pci/cx88/cx88-blackbird.c          |   2 +-
- drivers/media/pci/cx88/cx88-video.c              |   2 +-
- drivers/media/pci/saa7134/saa7134-empress.c      |   4 +-
- drivers/media/pci/saa7134/saa7134-video.c        |   2 +-
- drivers/media/platform/exynos4-is/fimc-capture.c |   2 +-
- drivers/media/platform/rcar-vin/rcar-v4l2.c      |   3 +-
- drivers/media/platform/rcar_drif.c               |   2 +-
- drivers/media/platform/soc_camera/soc_camera.c   |   3 +-
- drivers/media/platform/vivid/vivid-ctrls.c       |  42 ++--
- drivers/media/usb/cx231xx/cx231xx-417.c          |   2 +-
- drivers/media/usb/cx231xx/cx231xx-video.c        |   4 +-
- drivers/media/usb/msi2500/msi2500.c              |   2 +-
- drivers/media/usb/tm6000/tm6000-video.c          |   2 +-
- drivers/media/v4l2-core/v4l2-ctrls.c             | 242 +++++++++++++++++++++--
- drivers/media/v4l2-core/v4l2-device.c            |   3 +-
- drivers/staging/media/imx/imx-media-dev.c        |   2 +-
- drivers/staging/media/imx/imx-media-fim.c        |   2 +-
- include/media/v4l2-ctrls.h                       |  17 +-
- 21 files changed, 287 insertions(+), 60 deletions(-)
-
--- 
-2.14.1
+>
+> --
+> Kind regards,
+>
+> Sakari Ailus
+> e-mail: sakari.ailus@iki.fi
