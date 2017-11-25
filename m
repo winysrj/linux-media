@@ -1,118 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:46013 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750739AbdKXSlB (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:42534 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751277AbdKYP4R (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 24 Nov 2017 13:41:01 -0500
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Subject: Re: [PATCH] v4l: vsp1: Fix function declaration/definition mismatch
-To: Eugeniu Rosca <roscaeugeniu@gmail.com>,
-        laurent.pinchart@ideasonboard.com, mchehab@kernel.org
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        Eugeniu Rosca <erosca@de.adit-jv.com>
-References: <20170820124006.4256-1-rosca.eugeniu@gmail.com>
-Reply-To: kieran.bingham@ideasonboard.com
-Message-ID: <85aabc6e-b332-1f9e-3fbf-87f0d7bcf9f3@ideasonboard.com>
-Date: Fri, 24 Nov 2017 18:40:57 +0000
+        Sat, 25 Nov 2017 10:56:17 -0500
+Date: Sat, 25 Nov 2017 17:56:14 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: jacopo mondi <jacopo@jmondi.org>
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        laurent.pinchart@ideasonboard.com, magnus.damm@gmail.com,
+        geert@glider.be, mchehab@kernel.org, hverkuil@xs4all.nl,
+        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-sh@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v1 03/10] v4l: platform: Add Renesas CEU driver
+Message-ID: <20171125155613.ebblr7hdr6irs2h7@valkosipuli.retiisi.org.uk>
+References: <1510743363-25798-1-git-send-email-jacopo+renesas@jmondi.org>
+ <1510743363-25798-4-git-send-email-jacopo+renesas@jmondi.org>
+ <20171115124551.xrmrd34l4u4qgcms@valkosipuli.retiisi.org.uk>
+ <20171115142511.GJ19070@w540>
+ <20171117003651.e7oj362eqivyukcu@valkosipuli.retiisi.org.uk>
+ <20171117093355.GE4668@w540>
 MIME-Version: 1.0
-In-Reply-To: <20170820124006.4256-1-rosca.eugeniu@gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20171117093355.GE4668@w540>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Eugeniu,
-
-Thankyou for the patch,
-
-Laurent - Any comments on this? Otherwise I'll bundle this in with my
-suspend/resume patch for a pull request.
-
-On 20/08/17 13:40, Eugeniu Rosca wrote:
-> From: Eugeniu Rosca <erosca@de.adit-jv.com>
+On Fri, Nov 17, 2017 at 10:33:55AM +0100, jacopo mondi wrote:
+> Hi Sakari!
 > 
-> Cppcheck v1.81 complains that the parameter names of certain vsp1
-> functions don't match between declaration and definition. Fix this.
-> No functional change is confirmed by the empty delta between the
-> disassembled object files before and after the change.
+> On Fri, Nov 17, 2017 at 02:36:51AM +0200, Sakari Ailus wrote:
+> > Hi Jacopo,
+> >
+> > On Wed, Nov 15, 2017 at 03:25:11PM +0100, jacopo mondi wrote:
+> > > Hi Sakari,
+> > >    thanks for review!
+> >
+> > You're welcome!
+> >
+> > > On Wed, Nov 15, 2017 at 02:45:51PM +0200, Sakari Ailus wrote:
+> > > > Hi Jacopo,
+> > > >
+> > > > Could you remove the original driver and send the patch using git
+> > > > send-email -C ? That way a single patch would address converting it to a
+> > > > proper V4L2 driver as well as move it to the correct location. The changes
+> > > > would be easier to review that way since then, well, it'd be easier to see
+> > > > the changes. :-)
+> > >
+> > > Actually I prefer not to remove the existing driver at the moment. See
+> > > the cover letter for reasons why not to do so right now...
+> >
+> > So it's about testing mostly? Does someone (possibly you) have those boards
+> > to test? I'd like to see this patchset to remove that last remaining SoC
+> > camera bridge driver. :-)
 > 
-> Signed-off-by: Eugeniu Rosca <erosca@de.adit-jv.com>
-
-Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-
-
-> ---
->  drivers/media/platform/vsp1/vsp1_entity.h | 5 +++--
->  drivers/media/platform/vsp1/vsp1_hgo.h    | 2 +-
->  drivers/media/platform/vsp1/vsp1_hgt.h    | 2 +-
->  drivers/media/platform/vsp1/vsp1_uds.h    | 2 +-
->  4 files changed, 6 insertions(+), 5 deletions(-)
+> Well, we agreed that for most of those platforms, compile testing it
+> would be enough (let's believe in "if it compiles, it works"). I
+> personally don't have access to those boards, and frankly I'm not even
+> sure there are many of them around these days (I guess most of them
+> are not even produced anymore).
 > 
-> diff --git a/drivers/media/platform/vsp1/vsp1_entity.h b/drivers/media/platform/vsp1/vsp1_entity.h
-> index c169a060b6d2..1087d7e5c126 100644
-> --- a/drivers/media/platform/vsp1/vsp1_entity.h
-> +++ b/drivers/media/platform/vsp1/vsp1_entity.h
-> @@ -161,7 +161,8 @@ int vsp1_subdev_enum_mbus_code(struct v4l2_subdev *subdev,
->  int vsp1_subdev_enum_frame_size(struct v4l2_subdev *subdev,
->  				struct v4l2_subdev_pad_config *cfg,
->  				struct v4l2_subdev_frame_size_enum *fse,
-> -				unsigned int min_w, unsigned int min_h,
-> -				unsigned int max_w, unsigned int max_h);
-> +				unsigned int min_width, unsigned int min_height,
-> +				unsigned int max_width,
-> +				unsigned int max_height);
-
-This is fine.
-
->  
->  #endif /* __VSP1_ENTITY_H__ */
-> diff --git a/drivers/media/platform/vsp1/vsp1_hgo.h b/drivers/media/platform/vsp1/vsp1_hgo.h
-> index c6c0b7a80e0c..76a9cf97b9d3 100644
-> --- a/drivers/media/platform/vsp1/vsp1_hgo.h
-> +++ b/drivers/media/platform/vsp1/vsp1_hgo.h
-> @@ -40,6 +40,6 @@ static inline struct vsp1_hgo *to_hgo(struct v4l2_subdev *subdev)
->  }
->  
->  struct vsp1_hgo *vsp1_hgo_create(struct vsp1_device *vsp1);
-> -void vsp1_hgo_frame_end(struct vsp1_entity *hgo);
-> +void vsp1_hgo_frame_end(struct vsp1_entity *entity);
-
-I was going to say: We know the object is an entity by it's type. Isn't hgo more
-descriptive for it's name ?
-
-However to answer my own question - The implementation function goes on to
-define a struct vsp1_hgo *hgo, so no ... the Entity object shouldn't be hgo.
-
-So this looks reasonable to me, and the same logic applies to the other instances.
-
-
-
->  
->  #endif /* __VSP1_HGO_H__ */
-> diff --git a/drivers/media/platform/vsp1/vsp1_hgt.h b/drivers/media/platform/vsp1/vsp1_hgt.h
-> index 83f2e130942a..37139d54b6c8 100644
-> --- a/drivers/media/platform/vsp1/vsp1_hgt.h
-> +++ b/drivers/media/platform/vsp1/vsp1_hgt.h
-> @@ -37,6 +37,6 @@ static inline struct vsp1_hgt *to_hgt(struct v4l2_subdev *subdev)
->  }
->  
->  struct vsp1_hgt *vsp1_hgt_create(struct vsp1_device *vsp1);
-> -void vsp1_hgt_frame_end(struct vsp1_entity *hgt);
-> +void vsp1_hgt_frame_end(struct vsp1_entity *entity);
->  
->  #endif /* __VSP1_HGT_H__ */
-> diff --git a/drivers/media/platform/vsp1/vsp1_uds.h b/drivers/media/platform/vsp1/vsp1_uds.h
-> index 7bf3cdcffc65..9c7f8497b5da 100644
-> --- a/drivers/media/platform/vsp1/vsp1_uds.h
-> +++ b/drivers/media/platform/vsp1/vsp1_uds.h
-> @@ -35,7 +35,7 @@ static inline struct vsp1_uds *to_uds(struct v4l2_subdev *subdev)
->  
->  struct vsp1_uds *vsp1_uds_create(struct vsp1_device *vsp1, unsigned int index);
->  
-> -void vsp1_uds_set_alpha(struct vsp1_entity *uds, struct vsp1_dl_list *dl,
-> +void vsp1_uds_set_alpha(struct vsp1_entity *entity, struct vsp1_dl_list *dl,
->  			unsigned int alpha);
->  
->  #endif /* __VSP1_UDS_H__ */
+> >
+> > >
+> > > Also, there's not that much code from the old driver in here, surely
+> > > less than the default 50% -C and -M options of 'git format-patch' use
+> > > as a threshold for detecting copies iirc..
+> >
+> > Oh, if that's so, then makes sense to review it as a new driver.
 > 
+> thanks :)
+> 
+> >
+> > >
+> > > > The same goes for the two V4L2 SoC camera sensor / video decoder drivers at
+> > > > the end of the set.
+> > > >
+> > >
+> > > Also in this case I prefer not to remove existing code, as long as
+> > > there are platforms using it..
+> >
+> > Couldn't they use this driver instead?
+> 
+> Oh, they will eventually, I hope :)
+> 
+> I would like to make sure we're all on the same page with this. My
+> preference would be:
+> 
+> 1) Have renesas-ceu.c driver merged with Migo-R ported to use this new
+> driver as an 'example'.
+> 2) Do not remove any of the existing soc_camera code at this point
+> 3) Port all other 4 SH users of sh_mobile_ceu_camera to use the now
+> merged renesas-ceu driver
+> 4) Remove sh_mobile_ceu_camera and soc_camera sensor drivers whose
+> only users were those 4 SH boards
+> 5) Remove soc_camera completely. For my understanding there are some
+> PXA platforms still using soc_camera provided utilities somewhere.
+> Hans knows better, but we can discuss this once we'll get there.
+
+The first point here is basically done by this patchset and your intent
+would be to proceed with the rest, right?
+
+The above seems good; what I wanted to say was that I'd like to avoid
+ending up in a permanent situation where some hardware works with the new
+driver and some will continue to use the old one.
+
+-- 
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
