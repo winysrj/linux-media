@@ -1,167 +1,165 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from slow1-d.mail.gandi.net ([217.70.178.86]:40065 "EHLO
-        slow1-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752073AbdKQSPd (ORCPT
+Received: from mail.free-electrons.com ([62.4.15.54]:37661 "EHLO
+        mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751591AbdKYQCq (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 17 Nov 2017 13:15:33 -0500
-Received: from relay3-d.mail.gandi.net (relay3-d.mail.gandi.net [217.70.183.195])
-        by slow1-d.mail.gandi.net (Postfix) with ESMTP id B768D487600
-        for <linux-media@vger.kernel.org>; Fri, 17 Nov 2017 19:14:34 +0100 (CET)
-Date: Fri, 17 Nov 2017 19:14:31 +0100
-From: jacopo mondi <jacopo@jmondi.org>
-To: Romain Reignier <r.reignier@robopec.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH] media: cx231xx: add support for TheImagingSource
- DFG/USB2pro
-Message-ID: <20171117181431.GG4668@w540>
-References: <1674718.MAKsif4q92@xps-rre>
+        Sat, 25 Nov 2017 11:02:46 -0500
+Date: Sat, 25 Nov 2017 17:02:33 +0100
+From: Maxime Ripard <maxime.ripard@free-electrons.com>
+To: Yong <yong.deng@magewell.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Chen-Yu Tsai <wens@csie.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Yannick Fertre <yannick.fertre@st.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Benoit Parrot <bparrot@ti.com>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Jean-Christophe Trotin <jean-christophe.trotin@st.com>,
+        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
+        Minghsiu Tsai <minghsiu.tsai@mediatek.com>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Robert Jarzmik <robert.jarzmik@free.fr>,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-sunxi@googlegroups.com
+Subject: Re: [PATCH v2 1/3] media: V3s: Add support for Allwinner CSI.
+Message-ID: <20171125160233.skefdpkjy4peh7et@flea.lan>
+References: <1501131697-1359-1-git-send-email-yong.deng@magewell.com>
+ <1501131697-1359-2-git-send-email-yong.deng@magewell.com>
+ <20171121154827.5a35xa6zlqrrvkxx@flea.lan>
+ <20171122093306.d30fe641f269d62daa1f66b4@magewell.com>
+ <20171122094526.nqxfy2e5jzxw7nl4@flea.lan>
+ <20171123091444.4bed66dffeb36ecea8dfa706@magewell.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="3nh54js2ysxviywq"
 Content-Disposition: inline
-In-Reply-To: <1674718.MAKsif4q92@xps-rre>
+In-Reply-To: <20171123091444.4bed66dffeb36ecea8dfa706@magewell.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Romain,
 
-On Fri, Nov 17, 2017 at 04:38:55PM +0100, Romain Reignier wrote:
-> Hello,
->
-> This is my first patch to the kernel so please be indulgent if I have done
-> anything wrong and help me produce a better submission.
+--3nh54js2ysxviywq
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-With this formatting (email text + patch below) applying with 'git am'
-results in having the whole email text as commit message, which is not
-what you want.
+On Thu, Nov 23, 2017 at 09:14:44AM +0800, Yong wrote:
+> > On Wed, Nov 22, 2017 at 09:33:06AM +0800, Yong wrote:
+> > > > On Thu, Jul 27, 2017 at 01:01:35PM +0800, Yong Deng wrote:
+> > > > > Allwinner V3s SoC have two CSI module. CSI0 is used for MIPI inte=
+rface
+> > > > > and CSI1 is used for parallel interface. This is not documented in
+> > > > > datasheet but by testing and guess.
+> > > > >=20
+> > > > > This patch implement a v4l2 framework driver for it.
+> > > > >=20
+> > > > > Currently, the driver only support the parallel interface. MIPI-C=
+SI2,
+> > > > > ISP's support are not included in this patch.
+> > > > >=20
+> > > > > Signed-off-by: Yong Deng <yong.deng@magewell.com>
+> > > >=20
+> > > > Thanks again for this driver.
+> > > >=20
+> > > > It seems like at least this iteration is behaving in a weird way wi=
+th
+> > > > DMA transfers for at least YU12 and NV12 (and I would assume YV12).
+> > > >=20
+> > > > Starting a transfer of multiple frames in either of these formats,
+> > > > using either ffmpeg (ffmpeg -f v4l2 -video_size 640x480 -framerate =
+30
+> > > > -i /dev/video0 output.mkv) or yavta (yavta -c80 -p -F --skip 0 -f N=
+V12
+> > > > -s 640x480 $(media-c tl -e 'sun6i-csi')) will end up in a panic.
+> > > >=20
+> > > > The panic seems to be generated with random data going into parts of
+> > > > the kernel memory, the pattern being in my case something like
+> > > > 0x8287868a which is very odd (always around 0x88)
+> > > >=20
+> > > > It turns out that when you cover the sensor, the values change to
+> > > > around 0x28, so it really seems like it's pixels that have been cop=
+ied
+> > > > there.
+> > > >=20
+> > > > I've looked quickly at the DMA setup, and it seems reasonable to
+> > > > me. Do you have the same issue on your side? Have you been able to
+> > > > test those formats using your hardware?
+> > >=20
+> > > I had tested the following formats with BT1120 input:
+> > > V4L2_PIX_FMT_NV12		-> NV12
+> > > V4L2_PIX_FMT_NV21		-> NV21
+> > > V4L2_PIX_FMT_NV16		-> NV16
+> > > V4L2_PIX_FMT_NV61		-> NV61
+> > > V4L2_PIX_FMT_YUV420		-> YU12
+> > > V4L2_PIX_FMT_YVU420		-> YV12
+> > > V4L2_PIX_FMT_YUV422P		-> 422P
+> > > And they all work fine.
+> >=20
+> > Ok, that's good to know.
+> >=20
+> > > > Given that they all are planar formats and YUYV and the likes work
+> > > > just fine, maybe we can leave them aside for now?
+> > >=20
+> > > V4L2_PIX_FMT_YUV422P and V4L2_PIX_FMT_YUYV is OK, and V4L2_PIX_FMT_NV=
+12
+> > > is bad? It's really weird.
+> > >=20
+> > > What's your input bus code format, type and width?
+> >=20
+> > The sensor is an ov5640, so the MBUS code for the bus is
+> > MEDIA_BUS_FMT_YUYV8_2X8.
+>=20
+> Did you test on V3s?
 
-My suggestion is to amend your patch and insert a meaningful commit
-message after the commit title (I think you should rework title a bit
-as well, eg. captial 'A' on 'Add', space in between 'TheImagingSource'
-if needed etc)
+No, this is on an H3, but that would be the first difference so far.
 
-Then you can generate patch with 'git format-patch -s' and insert all
-text you want -after- the commit message (everything after the
-three dashes '---' gets ignored when git applies the patch)
+> I haven't tested it with MEDIA_BUS_FMT_YUYV8_2X8.
 
-Eg:
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-commit title
+Ok, it's good to know that at least it works on your end, it's useful
+for us to debug things :)
 
-multi line commit message:
-blah blah blah
-blah blah blah
+> The Allwinner CSI's DMA is definitely weird. Ond=C5=99ej Jirman thought
+> that CSI has an internal queue (Ond=C5=99ej's commit has explained in det=
+ail).
+> I think CSI just pick up the buffer address before the frame done=20
+> interrupt triggered.=20
+> The patch in attachment can deal with this. You can see if it is
+> useful to solve your problem.
 
-Your sign-off
----
-The email text you sent us
+I'll test that on monday, thanks!
 
----
-The actual patch
+Maxime
 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+--=20
+Maxime Ripard, Free Electrons
+Embedded Linux and Kernel engineering
+http://free-electrons.com
 
-Run checkpatch.pl on the resulting patch and then, once checkpatch is happy,
-you can send your v2 with git send-email.
+--3nh54js2ysxviywq
+Content-Type: application/pgp-signature; name="signature.asc"
 
-When you'll be sending a series of multiple patches instead, please use
---cover-letter option with 'git format-patch' and place your email text there.
+-----BEGIN PGP SIGNATURE-----
 
-Thanks
-  j
+iQIzBAABCAAdFiEE0VqZU19dR2zEVaqr0rTAlCFNr3QFAloZlBUACgkQ0rTAlCFN
+r3RAaxAAiA3iBILt3eBf5t25Qcr1lhJdI2uh7MsblNlOCI8OY+3SmB9vjkqYWjcU
+wtQz11nUJ9a6vpxYGkTATJ6yPzCrKKE3HBuSkjR4p4fJvdgkiVoUu5sGQGIZmr64
+5tOaSLp3/ce7LAjPES8nNZNi8LiQkNH93iDOJZSNV8wbSviJe+hU8YxhVw4XV5bJ
+E084qP+HE5lkse7qtOW8j/D+nZwcquJHOqO8vnQqNVYsWGL56gnmzQdciY8Yomjh
+5BYXdTckdNX6fACx/phQVvXVPFdPaP3GT+Nh0m4Y1es62lhhlxND3celh9rugRvt
+t2yEooo9CtRthrafG7QISjGImi/Rj58y9ewbrhcmW7rg1BaOKkmZD5h0Ym+U/jqa
+9QCOOfHTsZCPKpwhaWE3QF1OGLpPXWwKrnhXU42nBR1o2+uYsDM6hD6Lbc6Z98C0
+wYmRGkEUidsGlnMUX7BMo4xGHikOUaf02UIl6LermHbYBxXliq/MhdrThR2meeVB
+79OrPI6/s5HcHniyLk9UblP1Wsaa7ztocFLfL1WMEEoUms4kif3AKvXie3Q11g2L
+Q0dgVlCwEuSF+kW8lr3cXvuo94GzMMGEGAVoYl2iZ4vp8nYzLv5sIRHK1JaQ4FvG
+v1gknqV9BpTW0zobJex6yAZKE78olyQ5fwBodHgtqnxdBOO1Hxk=
+=VXwo
+-----END PGP SIGNATURE-----
 
-
->
-> This is a patch to add the support for The Imaging Source DFG/USB2pro USB
-> capture device. It is based on the Conexant CX23102 chip do the patch only
-> consists in adding one entry in the devices list.
->
-> Note that the inputs for the Composite and S-Video are inverted in regard to
-> most of the other boards.
->
-> I could test the Composite input that is working for several months in some of
-> our products. But did not have the chance to try the S-Video input because I
-> do not own any device with that standard (I have tried a simple Composite to
-> S-Video cable but it does not work, even on Windows). So I have applied the
-> same settings as the Windows driver.
->
-> I have created a page on the Wiki to describe the board:
-> https://www.linuxtv.org/wiki/index.php/The_Imaging_Source_DFG-USB2pro
->
-> Sincerely,
->
-> Romain Reignier
->
-> ---
->
-> From 13d83af3e6e5c01b43875d67cdcc3312ebbc6c7a Mon Sep 17 00:00:00 2001
-> From: Romain Reignier <r.reignier@robopec.com>
-> Date: Fri, 17 Nov 2017 15:52:40 +0100
-> Subject: [PATCH] media: cx231xx: add support for TheImagingSource DFG/USB2pro
->
-> Signed-off-by: Romain Reignier <r.reignier@robopec.com>
-> ---
->  drivers/media/usb/cx231xx/cx231xx-cards.c | 28 ++++++++++++++++++++++++++++
->  drivers/media/usb/cx231xx/cx231xx.h       |  1 +
->  2 files changed, 29 insertions(+)
->
-> diff --git a/drivers/media/usb/cx231xx/cx231xx-cards.c b/drivers/media/usb/cx231xx/cx231xx-cards.c
-> index 54d9d0c..99c8b1a 100644
-> --- a/drivers/media/usb/cx231xx/cx231xx-cards.c
-> +++ b/drivers/media/usb/cx231xx/cx231xx-cards.c
-> @@ -896,6 +896,32 @@ struct cx231xx_board cx231xx_boards[] = {
->  			},
->  		},
->  	},
-> +	[CX231XX_BOARD_THE_IMAGING_SOURCE_DFG_USB2_PRO] = {
-> +		.name = "The Imaging Source DFG/USB2pro",
-> +		.tuner_type = TUNER_ABSENT,
-> +		.decoder = CX231XX_AVDECODER,
-> +		.output_mode = OUT_MODE_VIP11,
-> +		.demod_xfer_mode = 0,
-> +		.ctl_pin_status_mask = 0xFFFFFFC4,
-> +		.agc_analog_digital_select_gpio = 0x0c,
-> +		.gpio_pin_status_mask = 0x4001000,
-> +		.norm = V4L2_STD_PAL,
-> +		.no_alt_vanc = 1,
-> +		.external_av = 1,
-> +		.input = {{
-> +			.type = CX231XX_VMUX_COMPOSITE1,
-> +			.vmux = CX231XX_VIN_1_1,
-> +			.amux = CX231XX_AMUX_LINE_IN,
-> +			.gpio = NULL,
-> +		}, {
-> +			.type = CX231XX_VMUX_SVIDEO,
-> +			.vmux = CX231XX_VIN_2_1 |
-> +				(CX231XX_VIN_2_2 << 8) |
-> +				CX25840_SVIDEO_ON,
-> +			.amux = CX231XX_AMUX_LINE_IN,
-> +			.gpio = NULL,
-> +		} },
-> +	},
->  };
->  const unsigned int cx231xx_bcount = ARRAY_SIZE(cx231xx_boards);
->
-> @@ -967,6 +993,8 @@ struct usb_device_id cx231xx_id_table[] = {
->  	.driver_info = CX231XX_BOARD_EVROMEDIA_FULL_HYBRID_FULLHD},
->  	{USB_DEVICE(0x15f4, 0x0135),
->  	.driver_info = CX231XX_BOARD_ASTROMETA_T2HYBRID},
-> +	{USB_DEVICE(0x199e, 0x8002),
-> +	 .driver_info = CX231XX_BOARD_THE_IMAGING_SOURCE_DFG_USB2_PRO},
->  	{},
->  };
->
-> diff --git a/drivers/media/usb/cx231xx/cx231xx.h b/drivers/media/usb/cx231xx/cx231xx.h
-> index 72d5937..65b039c 100644
-> --- a/drivers/media/usb/cx231xx/cx231xx.h
-> +++ b/drivers/media/usb/cx231xx/cx231xx.h
-> @@ -80,6 +80,7 @@
->  #define CX231XX_BOARD_TERRATEC_GRABBY 22
->  #define CX231XX_BOARD_EVROMEDIA_FULL_HYBRID_FULLHD 23
->  #define CX231XX_BOARD_ASTROMETA_T2HYBRID 24
-> +#define CX231XX_BOARD_THE_IMAGING_SOURCE_DFG_USB2_PRO 25
->
->  /* Limits minimum and default number of buffers */
->  #define CX231XX_MIN_BUF                 4
-> --
-> 2.7.4
->
+--3nh54js2ysxviywq--
