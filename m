@@ -1,108 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:46118 "EHLO
-        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751152AbdKTMae (ORCPT
+Received: from mail-wm0-f50.google.com ([74.125.82.50]:43138 "EHLO
+        mail-wm0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751603AbdKYQyU (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 20 Nov 2017 07:30:34 -0500
-Subject: Re: [PATCH v3] drm: bridge: synopsys/dw-hdmi: Enable cec clock
-To: Pierre-Hugues Husson <phh@phh.me>,
-        linux-rockchip@lists.infradead.org
-Cc: heiko@sntech.de, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        linux@armlinux.org.uk, Archit Taneja <architt@codeaurora.org>,
-        Andrzej Hajda <a.hajda@samsung.com>,
-        dri-devel@lists.freedesktop.org
-References: <20171026181942.9516-1-phh@phh.me>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <75adf743-18a2-2c55-b4bb-95d83bd26f03@xs4all.nl>
-Date: Mon, 20 Nov 2017 13:30:27 +0100
+        Sat, 25 Nov 2017 11:54:20 -0500
+Received: by mail-wm0-f50.google.com with SMTP id x63so27051521wmf.2
+        for <linux-media@vger.kernel.org>; Sat, 25 Nov 2017 08:54:19 -0800 (PST)
+Subject: Re: dvbv5-scan: Missing NID, TID, and RID in VDR channel output
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <f65773a8-603a-ba10-b420-896efc70c26a@googlemail.com>
+ <20171125090819.1a55e11a@vento.lan> <20171125095435.75c982f4@vento.lan>
+From: Gregor Jasny <gjasny@googlemail.com>
+Message-ID: <e7dfa685-e3f9-d0fe-5a33-5a994b7fea88@googlemail.com>
+Date: Sat, 25 Nov 2017 17:54:16 +0100
 MIME-Version: 1.0
-In-Reply-To: <20171026181942.9516-1-phh@phh.me>
+In-Reply-To: <20171125095435.75c982f4@vento.lan>
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I didn't see this merged for 4.15, is it too late to include this?
-All other changes needed to get CEC to work on rk3288 and rk3399 are all merged.
+Hello Mauro,
 
-Regards,
+On 11/25/17 12:54 PM, Mauro Carvalho Chehab wrote:
+> Em Sat, 25 Nov 2017 09:08:19 -0200
+> Mauro Carvalho Chehab <mchehab@osg.samsung.com> escreveu:
+>> Em Wed, 22 Nov 2017 20:50:56 +0100
+>> Gregor Jasny <gjasny@googlemail.com> escreveu:
+>>>
+>>> Mauro, do you think it would be possible to parse / output NID, TID, and
+>>> RID from dvbv5_scan? It would greatly improve usability.  
+>>
+>> It is possible. Not sure how much efforts it would take. Could you please
+>> send me, in priv, a capture of ~30-60 seconds of a recent DVB-T2 channel
+>> in Germany with those fields, and the corresponding output from w_scan,
+>> for all channels at the same frequency?
+>>
+>> I'll use it to test it with my RF generator here, and see if I can tweak
+>> dvbv5-scan to produce the same output.
+>>
+>> The syntax to capture the full MPEG-TS is:
+>>
+>> 	$ dvbv5-zap -P -o channel.ts -t 60 scan_file.conf
 
-	Hans
+I captured all DVB-T2 frequencies I observed so far:
+https://drive.google.com/open?id=1As5Ek0iN0n9FgH7xU-HsrFIRBE0hGOWQ
+(that is in Germany / Saxony / Dresden)
 
-On 10/26/2017 08:19 PM, Pierre-Hugues Husson wrote:
-> The documentation already mentions "cec" optional clock, but
-> currently the driver doesn't enable it.
+> Btw, it follows a quick hack that should output network and transport ID.
 > 
-> Changes:
-> v3:
-> - Drop useless braces
-> 
-> v2:
-> - Separate ENOENT errors from others
-> - Propagate other errors (especially -EPROBE_DEFER)
-> 
-> Signed-off-by: Pierre-Hugues Husson <phh@phh.me>
-> ---
->  drivers/gpu/drm/bridge/synopsys/dw-hdmi.c | 25 +++++++++++++++++++++++++
->  1 file changed, 25 insertions(+)
-> 
-> diff --git a/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c b/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c
-> index bf14214fa464..d82b9747a979 100644
-> --- a/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c
-> +++ b/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c
-> @@ -138,6 +138,7 @@ struct dw_hdmi {
->  	struct device *dev;
->  	struct clk *isfr_clk;
->  	struct clk *iahb_clk;
-> +	struct clk *cec_clk;
->  	struct dw_hdmi_i2c *i2c;
->  
->  	struct hdmi_data_info hdmi_data;
-> @@ -2382,6 +2383,26 @@ __dw_hdmi_probe(struct platform_device *pdev,
->  		goto err_isfr;
->  	}
->  
-> +	hdmi->cec_clk = devm_clk_get(hdmi->dev, "cec");
-> +	if (PTR_ERR(hdmi->cec_clk) == -ENOENT) {
-> +		hdmi->cec_clk = NULL;
-> +	} else if (IS_ERR(hdmi->cec_clk)) {
-> +		ret = PTR_ERR(hdmi->cec_clk);
-> +		if (ret != -EPROBE_DEFER)
-> +			dev_err(hdmi->dev, "Cannot get HDMI cec clock: %d\n",
-> +					ret);
-> +
-> +		hdmi->cec_clk = NULL;
-> +		goto err_iahb;
-> +	} else {
-> +		ret = clk_prepare_enable(hdmi->cec_clk);
-> +		if (ret) {
-> +			dev_err(hdmi->dev, "Cannot enable HDMI cec clock: %d\n",
-> +					ret);
-> +			goto err_iahb;
-> +		}
-> +	}
-> +
->  	/* Product and revision IDs */
->  	hdmi->version = (hdmi_readb(hdmi, HDMI_DESIGN_ID) << 8)
->  		      | (hdmi_readb(hdmi, HDMI_REVISION_ID) << 0);
-> @@ -2518,6 +2539,8 @@ __dw_hdmi_probe(struct platform_device *pdev,
->  		cec_notifier_put(hdmi->cec_notifier);
->  
->  	clk_disable_unprepare(hdmi->iahb_clk);
-> +	if (hdmi->cec_clk)
-> +		clk_disable_unprepare(hdmi->cec_clk);
->  err_isfr:
->  	clk_disable_unprepare(hdmi->isfr_clk);
->  err_res:
-> @@ -2541,6 +2564,8 @@ static void __dw_hdmi_remove(struct dw_hdmi *hdmi)
->  
->  	clk_disable_unprepare(hdmi->iahb_clk);
->  	clk_disable_unprepare(hdmi->isfr_clk);
-> +	if (hdmi->cec_clk)
-> +		clk_disable_unprepare(hdmi->cec_clk);
->  
->  	if (hdmi->i2c)
->  		i2c_del_adapter(&hdmi->i2c->adap);
-> 
+> Please test. It should be noticed that it adds two new fields on a struct
+> that it is part of the API. I didn't care to check if this patch would break
+> userspace API.
+
+That works like a charm! Thank you for writing it.
+
+Thanks,
+Gregor
