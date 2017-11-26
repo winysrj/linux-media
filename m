@@ -1,81 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:50697 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753405AbdK2J04 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 29 Nov 2017 04:26:56 -0500
-From: Sean Young <sean@mess.org>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 2/2] keytable: allow a period or delay of 0 to be set
-Date: Wed, 29 Nov 2017 09:26:55 +0000
-Message-Id: <20171129092655.17201-2-sean@mess.org>
-In-Reply-To: <20171129092655.17201-1-sean@mess.org>
-References: <20171129092655.17201-1-sean@mess.org>
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:46473 "EHLO
+        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751950AbdKZNAN (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 26 Nov 2017 08:00:13 -0500
+Received: by mail-wm0-f66.google.com with SMTP id u83so29456758wmb.5
+        for <linux-media@vger.kernel.org>; Sun, 26 Nov 2017 05:00:13 -0800 (PST)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: linux-media@vger.kernel.org, mchehab@kernel.org,
+        mchehab@s-opensource.com
+Cc: rjkm@metzlerbros.de, rascobie@slingshot.co.nz, jasmin@anw.at
+Subject: [PATCH 0/7] stv0910+stv6111 updates/fixes/improvements
+Date: Sun, 26 Nov 2017 14:00:02 +0100
+Message-Id: <20171126130009.6798-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If both period or delay are zero, then autorepeat is turned off.
+From: Daniel Scheller <d.scheller@gmx.net>
 
-Signed-off-by: Sean Young <sean@mess.org>
----
- utils/keytable/keytable.c | 20 ++++++++++++--------
- 1 file changed, 12 insertions(+), 8 deletions(-)
+This series improves (and fixes) a few pending things and a few new ones
+which were discovered by Richard (thanks!), removing some redundant
+calls and checks here and there, and putting the symbolrate readout and
+reporting to get_frontend(). The changes have been thoroughly tested and
+didn't cause any harm or regressions.
 
-diff --git a/utils/keytable/keytable.c b/utils/keytable/keytable.c
-index 4c1e8641..988e9857 100644
---- a/utils/keytable/keytable.c
-+++ b/utils/keytable/keytable.c
-@@ -250,8 +250,8 @@ static int readtable = 0;
- static int clear = 0;
- static int debug = 0;
- static int test = 0;
--static int delay = 0;
--static int period = 0;
-+static int delay = -1;
-+static int period = -1;
- static enum sysfs_protocols ch_proto = 0;
- 
- struct cfgfile cfg = {
-@@ -477,10 +477,14 @@ static error_t parse_opt(int k, char *arg, struct argp_state *state)
- 		clear++;
- 		break;
- 	case 'D':
--		delay = atoi(arg);
-+		delay = strtol(arg, &p, 10);
-+		if (!p || *p || delay < 0)
-+			argp_error(state, _("Invalid delay: %s"), arg);
- 		break;
- 	case 'P':
--		period = atoi(arg);
-+		period = strtol(arg, &p, 10);
-+		if (!p || *p || period < 0)
-+			argp_error(state, _("Invalid period: %s"), arg);
- 		break;
- 	case 'd':
- 		devicename = arg;
-@@ -1513,7 +1517,7 @@ int main(int argc, char *argv[])
- 	argp_parse(&argp, argc, argv, ARGP_NO_HELP, 0, 0);
- 
- 	/* Just list all devices */
--	if (!clear && !readtable && !keytable && !ch_proto && !cfg.next && !test && !delay && !period) {
-+	if (!clear && !readtable && !keytable && !ch_proto && !cfg.next && !test && delay < 0 && period < 0) {
- 		if (devicename) {
- 			fd = open(devicename, O_RDONLY);
- 			if (fd < 0) {
-@@ -1659,12 +1663,12 @@ int main(int argc, char *argv[])
- 	/*
- 	 * Fiveth step: change repeat rate/delay
- 	 */
--	if (delay || period) {
-+	if (delay >= 0 || period >= 0) {
- 		unsigned int new_delay, new_period;
- 		get_rate(fd, &new_delay, &new_period);
--		if (delay)
-+		if (delay >= 0)
- 			new_delay = delay;
--		if (period)
-+		if (period >= 0)
- 			new_period = period;
- 		set_rate(fd, new_delay, new_period);
- 	}
+This series also includes the WARN_ON() variant of the multi-mutexunlock-
+protect ([1] for ref) so users can report misbehaving subdrivers (tuners)
+and devs get a chance to fix their code. Also updates stv6111 to take
+care that on reported errors, it won't unconditionally penetrate the demod
+anymore (so the WARN_ON() in stv0910 won't even be triggered).
+
+Please pull during the upcoming media_tree merge cycle.
+
+[1] http://www.spinics.net/lists/linux-media/msg124573.html
+
+Daniel Scheller (7):
+  [media] frontends/stv0910: add field offsets to field defines
+  [media] dvb-frontends/stv0910: WARN_ON() on consecutive mutex_unlock()
+  [media] dvb-frontends/stv6111: handle gate_ctrl errors
+  [media] dvb-frontends/stv0910: remove unneeded check/call to
+    get_if_freq
+  [media] dvb-frontends/stv0910: read symbolrate in get_frontend()
+  [media] dvb-frontends/stv0910: remove unneeded symbol rate inquiry
+  [media] dvb-frontends/stv0910: remove unneeded dvb_math.h include
+
+ drivers/media/dvb-frontends/stv0910.c      |   17 +-
+ drivers/media/dvb-frontends/stv0910_regs.h | 1854 ++++++++++++++--------------
+ drivers/media/dvb-frontends/stv6111.c      |   44 +-
+ 3 files changed, 963 insertions(+), 952 deletions(-)
+
 -- 
-2.14.3
+2.13.6
