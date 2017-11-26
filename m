@@ -1,125 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f174.google.com ([209.85.128.174]:55607 "EHLO
-        mail-wr0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752629AbdKOOZp (ORCPT
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:38920 "EHLO
+        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752160AbdKZNAR (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 15 Nov 2017 09:25:45 -0500
-Received: by mail-wr0-f174.google.com with SMTP id l8so20589814wre.12
-        for <linux-media@vger.kernel.org>; Wed, 15 Nov 2017 06:25:45 -0800 (PST)
-Received: from localhost.localdomain ([62.147.246.169])
-        by smtp.gmail.com with ESMTPSA id k13sm18727650wrd.95.2017.11.15.06.25.43
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Wed, 15 Nov 2017 06:25:43 -0800 (PST)
-From: =?UTF-8?q?Rafa=C3=ABl=20Carr=C3=A9?= <funman@videolan.org>
-To: linux-media@vger.kernel.org
-Subject: [PATCH v2] dvb_dev_get_fd(): return fd of local devices
-Date: Wed, 15 Nov 2017 15:25:39 +0100
-Message-Id: <20171115142539.18032-1-funman@videolan.org>
-In-Reply-To: <20171115104711.5418-1-funman@videolan.org>
-References: <20171115104711.5418-1-funman@videolan.org>
+        Sun, 26 Nov 2017 08:00:17 -0500
+Received: by mail-wm0-f65.google.com with SMTP id x63so29771220wmf.4
+        for <linux-media@vger.kernel.org>; Sun, 26 Nov 2017 05:00:17 -0800 (PST)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: linux-media@vger.kernel.org, mchehab@kernel.org,
+        mchehab@s-opensource.com
+Cc: rjkm@metzlerbros.de, rascobie@slingshot.co.nz, jasmin@anw.at
+Subject: [PATCH 4/7] [media] dvb-frontends/stv0910: remove unneeded check/call to get_if_freq
+Date: Sun, 26 Nov 2017 14:00:06 +0100
+Message-Id: <20171126130009.6798-5-d.scheller.oss@gmail.com>
+In-Reply-To: <20171126130009.6798-1-d.scheller.oss@gmail.com>
+References: <20171126130009.6798-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This makes it possible to poll a local device.
-Getting the fd is preferrable to adding a dvb_dev_poll() function,
-because we can poll several fds together in an event-based program.
+From: Daniel Scheller <d.scheller@gmx.net>
 
-This is not implemented for remote devices, as polling a remote fd
-does not make sense.
-We could instead return the socket to know when to expect messages
-from the remote device, but the current implementation in
-dvb-dev-remote.c already runs a thread to receive remote messages
-as soon as possible.
+The result (if any) isn't used anywhere besides being assigned to a local
+variable (and the only current companion stv6111 doesn't even implement
+get_if_frequency()), thus remove the ptr check and the call, and also
+remove the now unused iffreq variable.
+
+Reported-by: Richard Scobie <rascobie@slingshot.co.nz>
+Cc: Ralph Metzler <rjkm@metzlerbros.de>
+Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+Tested-by: Richard Scobie <rascobie@slingshot.co.nz>
 ---
-v2: get the private dvb_device_priv correctly
+ drivers/media/dvb-frontends/stv0910.c | 3 ---
+ 1 file changed, 3 deletions(-)
 
- lib/include/libdvbv5/dvb-dev.h | 12 ++++++++++++
- lib/libdvbv5/dvb-dev-local.c   |  6 ++++++
- lib/libdvbv5/dvb-dev-priv.h    |  1 +
- lib/libdvbv5/dvb-dev.c         | 11 +++++++++++
- 4 files changed, 30 insertions(+)
-
-diff --git a/lib/include/libdvbv5/dvb-dev.h b/lib/include/libdvbv5/dvb-dev.h
-index 98bee5e7..55e0f065 100644
---- a/lib/include/libdvbv5/dvb-dev.h
-+++ b/lib/include/libdvbv5/dvb-dev.h
-@@ -289,6 +289,18 @@ struct dvb_open_descriptor *dvb_dev_open(struct dvb_device *dvb,
-  */
- void dvb_dev_close(struct dvb_open_descriptor *open_dev);
- 
-+/**
-+ * @brief returns fd from a local device
-+ * This will not work for remote devices.
-+ * @ingroup dvb_device
-+ *
-+ * @param open_dev	Points to the struct dvb_open_descriptor
-+ *
-+ * @return On success, returns the fd.
-+ * Returns -1 on error.
-+ */
-+int dvb_dev_get_fd(struct dvb_open_descriptor *open_dev);
-+
- /**
-  * @brief read from a dvb demux or dvr file
-  * @ingroup dvb_device
-diff --git a/lib/libdvbv5/dvb-dev-local.c b/lib/libdvbv5/dvb-dev-local.c
-index b50b61b4..eb2f0775 100644
---- a/lib/libdvbv5/dvb-dev-local.c
-+++ b/lib/libdvbv5/dvb-dev-local.c
-@@ -775,6 +775,11 @@ static void dvb_dev_local_free(struct dvb_device_priv *dvb)
- 	free(priv);
- }
- 
-+static int dvb_local_get_fd(struct dvb_open_descriptor *open_dev)
-+{
-+    return open_dev->fd;
-+}
-+
- /* Initialize for local usage */
- void dvb_dev_local_init(struct dvb_device_priv *dvb)
+diff --git a/drivers/media/dvb-frontends/stv0910.c b/drivers/media/dvb-frontends/stv0910.c
+index cd247ab9c62d..074374fe00be 100644
+--- a/drivers/media/dvb-frontends/stv0910.c
++++ b/drivers/media/dvb-frontends/stv0910.c
+@@ -1273,14 +1273,11 @@ static int set_parameters(struct dvb_frontend *fe)
  {
-@@ -788,6 +793,7 @@ void dvb_dev_local_init(struct dvb_device_priv *dvb)
- 	ops->stop_monitor = dvb_local_stop_monitor;
- 	ops->open = dvb_local_open;
- 	ops->close = dvb_local_close;
-+	ops->get_fd = dvb_local_get_fd;
+ 	int stat = 0;
+ 	struct stv *state = fe->demodulator_priv;
+-	u32 iffreq;
+ 	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
  
- 	ops->dmx_stop = dvb_local_dmx_stop;
- 	ops->set_bufsize = dvb_local_set_bufsize;
-diff --git a/lib/libdvbv5/dvb-dev-priv.h b/lib/libdvbv5/dvb-dev-priv.h
-index e05fcad2..2e69f766 100644
---- a/lib/libdvbv5/dvb-dev-priv.h
-+++ b/lib/libdvbv5/dvb-dev-priv.h
-@@ -72,6 +72,7 @@ struct dvb_dev_ops {
- 	int (*fe_get_stats)(struct dvb_v5_fe_parms *p);
- 
- 	void (*free)(struct dvb_device_priv *dvb);
-+	int (*get_fd)(struct dvb_open_descriptor *dvb);
- };
- 
- struct dvb_device_priv {
-diff --git a/lib/libdvbv5/dvb-dev.c b/lib/libdvbv5/dvb-dev.c
-index 7e2da1fb..e6a8fc76 100644
---- a/lib/libdvbv5/dvb-dev.c
-+++ b/lib/libdvbv5/dvb-dev.c
-@@ -218,6 +218,17 @@ struct dvb_open_descriptor *dvb_dev_open(struct dvb_device *d,
- 	return ops->open(dvb, sysname, flags);
- }
- 
-+int dvb_dev_get_fd(struct dvb_open_descriptor *open_dev)
-+{
-+	struct dvb_device_priv *dvb = open_dev->dvb;
-+	struct dvb_dev_ops *ops = &dvb->ops;
-+
-+	if (!ops->get_fd)
-+		return -1;
-+
-+	return ops->get_fd(open_dev);
-+}
-+
- void dvb_dev_close(struct dvb_open_descriptor *open_dev)
- {
- 	struct dvb_device_priv *dvb = open_dev->dvb;
+ 	stop(state);
+ 	if (fe->ops.tuner_ops.set_params)
+ 		fe->ops.tuner_ops.set_params(fe);
+-	if (fe->ops.tuner_ops.get_if_frequency)
+-		fe->ops.tuner_ops.get_if_frequency(fe, &iffreq);
+ 	state->symbol_rate = p->symbol_rate;
+ 	stat = start(state, p);
+ 	return stat;
 -- 
-2.14.1
+2.13.6
