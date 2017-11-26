@@ -1,93 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f195.google.com ([209.85.128.195]:54284 "EHLO
-        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755566AbdKBNwe (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 2 Nov 2017 09:52:34 -0400
-Received: by mail-wr0-f195.google.com with SMTP id o44so5076540wrf.11
-        for <linux-media@vger.kernel.org>; Thu, 02 Nov 2017 06:52:34 -0700 (PDT)
-From: Andrey Konovalov <andreyknvl@google.com>
-To: Mike Isely <isely@pobox.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Dmitry Vyukov <dvyukov@google.com>,
-        Kostya Serebryany <kcc@google.com>,
-        Andrey Konovalov <andreyknvl@google.com>
-Subject: [PATCH] media: pvrusb2: properly check endpoint types
-Date: Thu,  2 Nov 2017 14:52:27 +0100
-Message-Id: <33aff2c8fed7ea8fb30c58b5a255a4e8a0aad6d5.1509630639.git.andreyknvl@google.com>
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:38917 "EHLO
+        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752145AbdKZNAP (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 26 Nov 2017 08:00:15 -0500
+Received: by mail-wm0-f65.google.com with SMTP id x63so29771131wmf.4
+        for <linux-media@vger.kernel.org>; Sun, 26 Nov 2017 05:00:15 -0800 (PST)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: linux-media@vger.kernel.org, mchehab@kernel.org,
+        mchehab@s-opensource.com
+Cc: rjkm@metzlerbros.de, rascobie@slingshot.co.nz, jasmin@anw.at
+Subject: [PATCH 2/7] [media] dvb-frontends/stv0910: WARN_ON() on consecutive mutex_unlock()
+Date: Sun, 26 Nov 2017 14:00:04 +0100
+Message-Id: <20171126130009.6798-3-d.scheller.oss@gmail.com>
+In-Reply-To: <20171126130009.6798-1-d.scheller.oss@gmail.com>
+References: <20171126130009.6798-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As syzkaller detected, pvrusb2 driver submits bulk urb withount checking
-the the endpoint type is actually blunk. Add a check.
+From: Daniel Scheller <d.scheller@gmx.net>
 
-usb 1-1: BOGUS urb xfer, pipe 3 != type 1
-------------[ cut here ]------------
-WARNING: CPU: 1 PID: 2713 at drivers/usb/core/urb.c:449 usb_submit_urb+0xf8a/0x11d0
-Modules linked in:
-CPU: 1 PID: 2713 Comm: pvrusb2-context Not tainted
-4.14.0-rc1-42251-gebb2c2437d80 #210
-Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS Bochs 01/01/2011
-task: ffff88006b7a18c0 task.stack: ffff880069978000
-RIP: 0010:usb_submit_urb+0xf8a/0x11d0 drivers/usb/core/urb.c:448
-RSP: 0018:ffff88006997f990 EFLAGS: 00010286
-RAX: 0000000000000029 RBX: ffff880063661900 RCX: 0000000000000000
-RDX: 0000000000000029 RSI: ffffffff86876d60 RDI: ffffed000d32ff24
-RBP: ffff88006997fa90 R08: 1ffff1000d32fdca R09: 0000000000000000
-R10: 0000000000000000 R11: 0000000000000000 R12: 1ffff1000d32ff39
-R13: 0000000000000001 R14: 0000000000000003 R15: ffff880068bbed68
-FS:  0000000000000000(0000) GS:ffff88006c600000(0000) knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-CR2: 0000000001032000 CR3: 000000006a0ff000 CR4: 00000000000006f0
-Call Trace:
- pvr2_send_request_ex+0xa57/0x1d80 drivers/media/usb/pvrusb2/pvrusb2-hdw.c:3645
- pvr2_hdw_check_firmware drivers/media/usb/pvrusb2/pvrusb2-hdw.c:1812
- pvr2_hdw_setup_low drivers/media/usb/pvrusb2/pvrusb2-hdw.c:2107
- pvr2_hdw_setup drivers/media/usb/pvrusb2/pvrusb2-hdw.c:2250
- pvr2_hdw_initialize+0x548/0x3c10 drivers/media/usb/pvrusb2/pvrusb2-hdw.c:2327
- pvr2_context_check drivers/media/usb/pvrusb2/pvrusb2-context.c:118
- pvr2_context_thread_func+0x361/0x8c0 drivers/media/usb/pvrusb2/pvrusb2-context.c:167
- kthread+0x3a1/0x470 kernel/kthread.c:231
- ret_from_fork+0x2a/0x40 arch/x86/entry/entry_64.S:431
-Code: 48 8b 85 30 ff ff ff 48 8d b8 98 00 00 00 e8 ee 82 89 fe 45 89
-e8 44 89 f1 4c 89 fa 48 89 c6 48 c7 c7 40 c0 ea 86 e8 30 1b dc fc <0f>
-ff e9 9b f7 ff ff e8 aa 95 25 fd e9 80 f7 ff ff e8 50 74 f3
----[ end trace 6919030503719da6 ]---
+Stack dump when gate_ctrl() is called in a way that consecutive unlocks
+happen. This is a clear indication that other drivers interfacing with
+the stv0910 driver don't do things properly or don't check for failures,
+so dump stack so that those drivers can be identified and fixed.
 
-Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
+Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+Tested-by: Richard Scobie <rascobie@slingshot.co.nz>
 ---
- drivers/media/usb/pvrusb2/pvrusb2-hdw.c | 12 ++++++++++++
- 1 file changed, 12 insertions(+)
+ drivers/media/dvb-frontends/stv0910.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/usb/pvrusb2/pvrusb2-hdw.c b/drivers/media/usb/pvrusb2/pvrusb2-hdw.c
-index ad5b25b89699..44975061b953 100644
---- a/drivers/media/usb/pvrusb2/pvrusb2-hdw.c
-+++ b/drivers/media/usb/pvrusb2/pvrusb2-hdw.c
-@@ -3642,6 +3642,12 @@ static int pvr2_send_request_ex(struct pvr2_hdw *hdw,
- 				  hdw);
- 		hdw->ctl_write_urb->actual_length = 0;
- 		hdw->ctl_write_pend_flag = !0;
-+		if (usb_urb_ep_type_check(hdw->ctl_write_urb)) {
-+			pvr2_trace(
-+				PVR2_TRACE_ERROR_LEGS,
-+				"Invalid write control endpoint");
-+			return -EINVAL;
-+		}
- 		status = usb_submit_urb(hdw->ctl_write_urb,GFP_KERNEL);
- 		if (status < 0) {
- 			pvr2_trace(PVR2_TRACE_ERROR_LEGS,
-@@ -3666,6 +3672,12 @@ status);
- 				  hdw);
- 		hdw->ctl_read_urb->actual_length = 0;
- 		hdw->ctl_read_pend_flag = !0;
-+		if (usb_urb_ep_type_check(hdw->ctl_read_urb)) {
-+			pvr2_trace(
-+				PVR2_TRACE_ERROR_LEGS,
-+				"Invalid read control endpoint");
-+			return -EINVAL;
-+		}
- 		status = usb_submit_urb(hdw->ctl_read_urb,GFP_KERNEL);
- 		if (status < 0) {
- 			pvr2_trace(PVR2_TRACE_ERROR_LEGS,
+diff --git a/drivers/media/dvb-frontends/stv0910.c b/drivers/media/dvb-frontends/stv0910.c
+index 8bf855c301f5..cd247ab9c62d 100644
+--- a/drivers/media/dvb-frontends/stv0910.c
++++ b/drivers/media/dvb-frontends/stv0910.c
+@@ -1241,7 +1241,8 @@ static int gate_ctrl(struct dvb_frontend *fe, int enable)
+ 	if (write_reg(state, state->nr ? RSTV0910_P2_I2CRPT :
+ 		      RSTV0910_P1_I2CRPT, i2crpt) < 0) {
+ 		/* don't hold the I2C bus lock on failure */
+-		mutex_unlock(&state->base->i2c_lock);
++		if (!WARN_ON(!mutex_is_locked(&state->base->i2c_lock)))
++			mutex_unlock(&state->base->i2c_lock);
+ 		dev_err(&state->base->i2c->dev,
+ 			"%s() write_reg failure (enable=%d)\n",
+ 			__func__, enable);
+@@ -1251,7 +1252,8 @@ static int gate_ctrl(struct dvb_frontend *fe, int enable)
+ 	state->i2crpt = i2crpt;
+ 
+ 	if (!enable)
+-		mutex_unlock(&state->base->i2c_lock);
++		if (!WARN_ON(!mutex_is_locked(&state->base->i2c_lock)))
++			mutex_unlock(&state->base->i2c_lock);
+ 	return 0;
+ }
+ 
 -- 
-2.15.0.403.gc27cc4dac6-goog
+2.13.6
