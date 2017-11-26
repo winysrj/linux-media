@@ -1,102 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay6-d.mail.gandi.net ([217.70.183.198]:51562 "EHLO
-        relay6-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750745AbdKQJeB (ORCPT
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:34818 "EHLO
+        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750720AbdKZFF7 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 17 Nov 2017 04:34:01 -0500
-Date: Fri, 17 Nov 2017 10:33:55 +0100
-From: jacopo mondi <jacopo@jmondi.org>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        laurent.pinchart@ideasonboard.com, magnus.damm@gmail.com,
-        geert@glider.be, mchehab@kernel.org, hverkuil@xs4all.nl,
-        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-sh@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v1 03/10] v4l: platform: Add Renesas CEU driver
-Message-ID: <20171117093355.GE4668@w540>
-References: <1510743363-25798-1-git-send-email-jacopo+renesas@jmondi.org>
- <1510743363-25798-4-git-send-email-jacopo+renesas@jmondi.org>
- <20171115124551.xrmrd34l4u4qgcms@valkosipuli.retiisi.org.uk>
- <20171115142511.GJ19070@w540>
- <20171117003651.e7oj362eqivyukcu@valkosipuli.retiisi.org.uk>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20171117003651.e7oj362eqivyukcu@valkosipuli.retiisi.org.uk>
+        Sun, 26 Nov 2017 00:05:59 -0500
+Message-ID: <a14e7c1d754495ea8851e3c60bb6ed45@smtp-cloud9.xs4all.net>
+Date: Sun, 26 Nov 2017 06:05:57 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari!
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-On Fri, Nov 17, 2017 at 02:36:51AM +0200, Sakari Ailus wrote:
-> Hi Jacopo,
->
-> On Wed, Nov 15, 2017 at 03:25:11PM +0100, jacopo mondi wrote:
-> > Hi Sakari,
-> >    thanks for review!
->
-> You're welcome!
->
-> > On Wed, Nov 15, 2017 at 02:45:51PM +0200, Sakari Ailus wrote:
-> > > Hi Jacopo,
-> > >
-> > > Could you remove the original driver and send the patch using git
-> > > send-email -C ? That way a single patch would address converting it to a
-> > > proper V4L2 driver as well as move it to the correct location. The changes
-> > > would be easier to review that way since then, well, it'd be easier to see
-> > > the changes. :-)
-> >
-> > Actually I prefer not to remove the existing driver at the moment. See
-> > the cover letter for reasons why not to do so right now...
->
-> So it's about testing mostly? Does someone (possibly you) have those boards
-> to test? I'd like to see this patchset to remove that last remaining SoC
-> camera bridge driver. :-)
+Results of the daily build of media_tree:
 
-Well, we agreed that for most of those platforms, compile testing it
-would be enough (let's believe in "if it compiles, it works"). I
-personally don't have access to those boards, and frankly I'm not even
-sure there are many of them around these days (I guess most of them
-are not even produced anymore).
+date:			Sun Nov 26 05:00:16 CET 2017
+media-tree git hash:	30b4e122d71cbec2944a5f8b558b88936ee42f10
+media_build git hash:	097aaf3e4e4bfdeff130db9697dec1befeb3221b
+v4l-utils git hash:	a8a04d397e929381a2150bee2100fc28ad2cfbec
+gcc version:		i686-linux-gcc (GCC) 7.1.0
+sparse version:		0.5.1 (Debian: 0.5.1-2)
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.13.0-164
 
->
-> >
-> > Also, there's not that much code from the old driver in here, surely
-> > less than the default 50% -C and -M options of 'git format-patch' use
-> > as a threshold for detecting copies iirc..
->
-> Oh, if that's so, then makes sense to review it as a new driver.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: WARNINGS
+linux-3.11.1-i686: WARNINGS
+linux-3.12.67-i686: WARNINGS
+linux-3.13.11-i686: WARNINGS
+linux-3.14.9-i686: WARNINGS
+linux-3.15.2-i686: WARNINGS
+linux-3.16.7-i686: WARNINGS
+linux-3.17.8-i686: WARNINGS
+linux-3.18.7-i686: WARNINGS
+linux-3.19-i686: WARNINGS
+linux-4.0.9-i686: WARNINGS
+linux-4.1.33-i686: WARNINGS
+linux-4.2.8-i686: WARNINGS
+linux-4.3.6-i686: WARNINGS
+linux-4.4.22-i686: WARNINGS
+linux-4.5.7-i686: WARNINGS
+linux-4.6.7-i686: WARNINGS
+linux-4.7.5-i686: WARNINGS
+linux-4.8-i686: OK
+linux-4.9.26-i686: OK
+linux-4.10.14-i686: OK
+linux-4.11-i686: OK
+linux-4.12.1-i686: OK
+linux-4.13-i686: OK
+linux-4.14-i686: OK
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-x86_64: WARNINGS
+linux-3.12.67-x86_64: WARNINGS
+linux-3.13.11-x86_64: WARNINGS
+linux-3.14.9-x86_64: WARNINGS
+linux-3.15.2-x86_64: WARNINGS
+linux-3.16.7-x86_64: WARNINGS
+linux-3.17.8-x86_64: WARNINGS
+linux-3.18.7-x86_64: WARNINGS
+linux-3.19-x86_64: WARNINGS
+linux-4.0.9-x86_64: WARNINGS
+linux-4.1.33-x86_64: WARNINGS
+linux-4.2.8-x86_64: WARNINGS
+linux-4.3.6-x86_64: WARNINGS
+linux-4.4.22-x86_64: WARNINGS
+linux-4.5.7-x86_64: WARNINGS
+linux-4.6.7-x86_64: WARNINGS
+linux-4.7.5-x86_64: WARNINGS
+linux-4.8-x86_64: WARNINGS
+linux-4.9.26-x86_64: WARNINGS
+linux-4.10.14-x86_64: WARNINGS
+linux-4.11-x86_64: WARNINGS
+linux-4.12.1-x86_64: WARNINGS
+linux-4.13-x86_64: OK
+linux-4.14-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
 
-thanks :)
+Detailed results are available here:
 
->
-> >
-> > > The same goes for the two V4L2 SoC camera sensor / video decoder drivers at
-> > > the end of the set.
-> > >
-> >
-> > Also in this case I prefer not to remove existing code, as long as
-> > there are platforms using it..
->
-> Couldn't they use this driver instead?
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
 
-Oh, they will eventually, I hope :)
+Full logs are available here:
 
-I would like to make sure we're all on the same page with this. My
-preference would be:
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
 
-1) Have renesas-ceu.c driver merged with Migo-R ported to use this new
-driver as an 'example'.
-2) Do not remove any of the existing soc_camera code at this point
-3) Port all other 4 SH users of sh_mobile_ceu_camera to use the now
-merged renesas-ceu driver
-4) Remove sh_mobile_ceu_camera and soc_camera sensor drivers whose
-only users were those 4 SH boards
-5) Remove soc_camera completely. For my understanding there are some
-PXA platforms still using soc_camera provided utilities somewhere.
-Hans knows better, but we can discuss this once we'll get there.
+The Media Infrastructure API from this daily build is here:
 
-Let me know if this is ok for everyone.
-
-Thanks
-   j
+http://www.xs4all.nl/~hverkuil/spec/index.html
