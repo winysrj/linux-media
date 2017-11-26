@@ -1,50 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:44139 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753855AbdKAMQV (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 1 Nov 2017 08:16:21 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Todor Tomov <todor.tomov@linaro.org>
-Subject: [PATCH] [RFC] media: camss-vfe: always initialize reg at vfe_set_xbar_cfg()
-Date: Wed,  1 Nov 2017 08:16:11 -0400
-Message-Id: <20e982c47af6eafe58274fa299ec587b2fb91d32.1509538566.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:34988 "EHLO
+        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752160AbdKZNAT (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 26 Nov 2017 08:00:19 -0500
+Received: by mail-wm0-f65.google.com with SMTP id w73so1121562wmw.0
+        for <linux-media@vger.kernel.org>; Sun, 26 Nov 2017 05:00:19 -0800 (PST)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: linux-media@vger.kernel.org, mchehab@kernel.org,
+        mchehab@s-opensource.com
+Cc: rjkm@metzlerbros.de, rascobie@slingshot.co.nz, jasmin@anw.at
+Subject: [PATCH 6/7] [media] dvb-frontends/stv0910: remove unneeded symbol rate inquiry
+Date: Sun, 26 Nov 2017 14:00:08 +0100
+Message-Id: <20171126130009.6798-7-d.scheller.oss@gmail.com>
+In-Reply-To: <20171126130009.6798-1-d.scheller.oss@gmail.com>
+References: <20171126130009.6798-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-if output->wm_num is bigger than 1, the value for reg is
-not initialized, as warned by smatch:
-	drivers/media/platform/qcom/camss-8x16/camss-vfe.c:633 vfe_set_xbar_cfg() error: uninitialized symbol 'reg'.
-	drivers/media/platform/qcom/camss-8x16/camss-vfe.c:637 vfe_set_xbar_cfg() error: uninitialized symbol 'reg'.
+From: Daniel Scheller <d.scheller@gmx.net>
 
-I didn't check the logic into its details, but there is at least
-one point where wm_num is made equal to two. So, something
-seem broken.
+tracking_optimization() doesn't make use of the symbol rate reported by
+the demodulator, so remove the unneeded inquiry and the now unneeded
+variable.
 
-For now, I just reset it to zero, and added a FIXME. Hopefully,
-the driver authors will know if this is OK, or if something else
-is needed there.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Reported-by: Richard Scobie <rascobie@slingshot.co.nz>
+Cc: Ralph Metzler <rjkm@metzlerbros.de>
+Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+Tested-by: Richard Scobie <rascobie@slingshot.co.nz>
 ---
- drivers/media/platform/qcom/camss-8x16/camss-vfe.c | 2 ++
- 1 file changed, 2 insertions(+)
+ drivers/media/dvb-frontends/stv0910.c | 2 --
+ 1 file changed, 2 deletions(-)
 
-diff --git a/drivers/media/platform/qcom/camss-8x16/camss-vfe.c b/drivers/media/platform/qcom/camss-8x16/camss-vfe.c
-index b22d2dfcd3c2..388431f747fa 100644
---- a/drivers/media/platform/qcom/camss-8x16/camss-vfe.c
-+++ b/drivers/media/platform/qcom/camss-8x16/camss-vfe.c
-@@ -622,6 +622,8 @@ static void vfe_set_xbar_cfg(struct vfe_device *vfe, struct vfe_output *output,
- 			reg = VFE_0_BUS_XBAR_CFG_x_M_PAIR_STREAM_EN;
- 			if (p == V4L2_PIX_FMT_NV12 || p == V4L2_PIX_FMT_NV16)
- 				reg |= VFE_0_BUS_XBAR_CFG_x_M_PAIR_STREAM_SWAP_INTER_INTRA;
-+		} else {
-+			reg = 0;	/* FIXME: is it the right value for i > 1? */
- 		}
+diff --git a/drivers/media/dvb-frontends/stv0910.c b/drivers/media/dvb-frontends/stv0910.c
+index e9517e11b399..de8702fcffbd 100644
+--- a/drivers/media/dvb-frontends/stv0910.c
++++ b/drivers/media/dvb-frontends/stv0910.c
+@@ -533,10 +533,8 @@ static int get_signal_parameters(struct stv *state)
  
- 		if (output->wm_idx[i] % 2 == 1)
+ static int tracking_optimization(struct stv *state)
+ {
+-	u32 symbol_rate = 0;
+ 	u8 tmp;
+ 
+-	get_cur_symbol_rate(state, &symbol_rate);
+ 	read_reg(state, RSTV0910_P2_DMDCFGMD + state->regoff, &tmp);
+ 	tmp &= ~0xC0;
+ 
 -- 
 2.13.6
