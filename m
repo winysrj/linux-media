@@ -1,226 +1,144 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay4-d.mail.gandi.net ([217.70.183.196]:60512 "EHLO
-        relay4-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751537AbdK0K1L (ORCPT
+Received: from mout.kundenserver.de ([212.227.126.135]:53391 "EHLO
+        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752369AbdK0P0t (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 27 Nov 2017 05:27:11 -0500
-From: Jacopo Mondi <jacopo+renesas@jmondi.org>
-To: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>
-Subject: [RFC] v4l: i2c: ov7670: Implement mbus configuration
-Date: Mon, 27 Nov 2017 11:26:53 +0100
-Message-Id: <1511778413-27348-1-git-send-email-jacopo+renesas@jmondi.org>
+        Mon, 27 Nov 2017 10:26:49 -0500
+From: Arnd Bergmann <arnd@arndb.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: y2038@lists.linaro.org, Arnd Bergmann <arnd@arndb.de>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Vincent ABRIOU <vincent.abriou@st.com>,
+        Ingo Molnar <mingo@kernel.org>, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: [PATCH v2] [media] vivid: use ktime_t for timestamp calculation
+Date: Mon, 27 Nov 2017 16:25:56 +0100
+Message-Id: <20171127152624.2340381-1-arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-ov7670 currently supports configuration of a few parameters only through
-platform data. Implement media bus configuration by parsing DT properties
-at probe() time and opportunely configure REG_COM10 during s_format().
+timespec is generally deprecated because of the y2038 overflow.
+In vivid, the usage is fine, since we are dealing with monotonic
+timestamps, but we can also simplify the code by going to ktime_t.
 
-Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+Using ktime_divns() should be roughly as efficient as the old code,
+since the constant 64-bit division gets turned into a multiplication
+on modern platforms, and we save multiple 32-bit divisions that can be
+expensive e.g. on ARMv7.
 
+Tested-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 ---
-
-Hi linux-media,
-   I'm using this sensor to test the CEU driver I have submitted some time ago
-and I would like to change synchronization signal polarities to test them in
-combination with that driver.
-
-So I added support for retrieving some properties listed in the device tree
-bindings documentation from sensor's DT node and made a patch, BUT I'm
-slightly confused about this (and that's why this is an RFC).
-
-I did a grep for "sync-active" in drivers/media/i2c/ and no sensor driver
-implements any property parsing, so I guess I'm doing something wrong here.
-
-I thought that maybe sensor media bus configuration should come from the
-platform driver, through the s_mbus_config() operation in v4l2_subdev_video_ops,
-but that's said to be deprecated. So maybe is the framework providing support
-for parsing those properties? Another grep there and I found only v4l2-fwnode.c
-has support for parsing serial/parallel bus properties, but my understanding is
-that those functions are meant to be used by the platform driver when
-parsing the remote fw node.
-
-So please help me out here: where should I implement media bus configuration
-for sensor drivers?
-
-Thanks
-   j
-
-PS: being this just an RFC I have not updated dt bindings, and only
-compile-tested the patch
-
+v2: fix a small mistake in the use_alternates computation
 ---
- drivers/media/i2c/ov7670.c | 108 ++++++++++++++++++++++++++++++++++++++++++---
- 1 file changed, 101 insertions(+), 7 deletions(-)
+ drivers/media/platform/vivid/vivid-core.c     |  2 +-
+ drivers/media/platform/vivid/vivid-core.h     |  2 +-
+ drivers/media/platform/vivid/vivid-radio-rx.c | 11 +++++------
+ drivers/media/platform/vivid/vivid-radio-tx.c |  8 +++-----
+ drivers/media/platform/vivid/vivid-rds-gen.h  |  1 +
+ 5 files changed, 11 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/media/i2c/ov7670.c b/drivers/media/i2c/ov7670.c
-index e88549f..7e2de7e 100644
---- a/drivers/media/i2c/ov7670.c
-+++ b/drivers/media/i2c/ov7670.c
-@@ -88,6 +88,7 @@ MODULE_PARM_DESC(debug, "Debug level (0-1)");
- #define REG_COM10	0x15	/* Control 10 */
- #define   COM10_HSYNC	  0x40	  /* HSYNC instead of HREF */
- #define   COM10_PCLK_HB	  0x20	  /* Suppress PCLK on horiz blank */
-+#define   COM10_PCLK_REV  0x10	  /* Latch data on PCLK rising edge */
- #define   COM10_HREF_REV  0x08	  /* Reverse HREF */
- #define   COM10_VS_LEAD	  0x04	  /* VSYNC on clock leading edge */
- #define   COM10_VS_NEG	  0x02	  /* VSYNC negative */
-@@ -233,6 +234,7 @@ struct ov7670_info {
- 	struct clk *clk;
- 	struct gpio_desc *resetb_gpio;
- 	struct gpio_desc *pwdn_gpio;
-+	unsigned int mbus_config;	/* Media bus configuration flags */
- 	int min_width;			/* Filter out smaller sizes */
- 	int min_height;			/* Filter out smaller sizes */
- 	int clock_speed;		/* External clock speed (MHz) */
-@@ -985,7 +987,7 @@ static int ov7670_set_fmt(struct v4l2_subdev *sd,
- 	struct ov7670_format_struct *ovfmt;
- 	struct ov7670_win_size *wsize;
- 	struct ov7670_info *info = to_state(sd);
--	unsigned char com7;
-+	unsigned char com7, com10;
- 	int ret;
-
- 	if (format->pad)
-@@ -1021,6 +1023,9 @@ static int ov7670_set_fmt(struct v4l2_subdev *sd,
- 	ret = 0;
- 	if (wsize->regs)
- 		ret = ov7670_write_array(sd, wsize->regs);
-+	if (ret)
-+		return ret;
-+
- 	info->fmt = ovfmt;
-
- 	/*
-@@ -1033,8 +1038,26 @@ static int ov7670_set_fmt(struct v4l2_subdev *sd,
- 	 * to write it unconditionally, and that will make the frame
- 	 * rate persistent too.
- 	 */
--	if (ret == 0)
--		ret = ov7670_write(sd, REG_CLKRC, info->clkrc);
-+	ret = ov7670_write(sd, REG_CLKRC, info->clkrc);
-+	if (ret)
-+		return ret;
-+
-+	/* Configure the media bus after the image format */
-+	com10 = 0;
-+	if (info->mbus_config & V4L2_MBUS_VSYNC_ACTIVE_LOW)
-+		com10 |= COM10_VS_NEG;
-+	if (info->mbus_config & V4L2_MBUS_HSYNC_ACTIVE_LOW)
-+		com10 |= COM10_HS_NEG;
-+	if (info->mbus_config & V4L2_MBUS_PCLK_SAMPLE_RISING)
-+		com10 |= COM10_PCLK_REV;
-+	if (info->pclk_hb_disable)
-+		com10 |= COM10_PCLK_HB;
-+
-+	if (com10)
-+		ret = ov7670_write(sd, REG_COM10, com10);
-+	if (ret)
-+		return ret;
-+
- 	return 0;
- }
-
-@@ -1572,6 +1595,29 @@ static int ov7670_init_gpio(struct i2c_client *client, struct ov7670_info *info)
- 	return 0;
- }
-
-+/**
-+ * ov7670_parse_dt_prop() - parse property "prop_name" in OF node
-+ *
-+ * @return The property value or < 0 if property not present
-+ *	   or wrongly specified.
-+ */
-+static int ov7670_parse_dt_prop(struct device *dev, char *prop_name)
-+{
-+	struct device_node *np = dev->of_node;
-+	u32 prop_val;
-+	int ret;
-+
-+	ret = of_property_read_u32(np, prop_name, &prop_val);
-+	if (ret) {
-+		if (ret != -EINVAL)
-+			dev_err(dev, "Unable to parse property %s: %d\n",
-+				prop_name, ret);
-+		return ret;
-+	}
-+
-+	return prop_val;
-+}
-+
- static int ov7670_probe(struct i2c_client *client,
- 			const struct i2c_device_id *id)
+diff --git a/drivers/media/platform/vivid/vivid-core.c b/drivers/media/platform/vivid/vivid-core.c
+index 5f316a5e38db..a091cfd93164 100644
+--- a/drivers/media/platform/vivid/vivid-core.c
++++ b/drivers/media/platform/vivid/vivid-core.c
+@@ -995,7 +995,7 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
+ 
+ 	dev->edid_max_blocks = dev->edid_blocks = 2;
+ 	memcpy(dev->edid, vivid_hdmi_edid, sizeof(vivid_hdmi_edid));
+-	ktime_get_ts(&dev->radio_rds_init_ts);
++	dev->radio_rds_init_time = ktime_get();
+ 
+ 	/* create all controls */
+ 	ret = vivid_create_controls(dev, ccs_cap == -1, ccs_out == -1, no_error_inj,
+diff --git a/drivers/media/platform/vivid/vivid-core.h b/drivers/media/platform/vivid/vivid-core.h
+index 5cdf95bdc4d1..d8bff4dcefb7 100644
+--- a/drivers/media/platform/vivid/vivid-core.h
++++ b/drivers/media/platform/vivid/vivid-core.h
+@@ -510,7 +510,7 @@ struct vivid_dev {
+ 
+ 	/* Shared between radio receiver and transmitter */
+ 	bool				radio_rds_loop;
+-	struct timespec			radio_rds_init_ts;
++	ktime_t				radio_rds_init_time;
+ 
+ 	/* CEC */
+ 	struct cec_adapter		*cec_rx_adap;
+diff --git a/drivers/media/platform/vivid/vivid-radio-rx.c b/drivers/media/platform/vivid/vivid-radio-rx.c
+index 47c36c26096b..35fbff490535 100644
+--- a/drivers/media/platform/vivid/vivid-radio-rx.c
++++ b/drivers/media/platform/vivid/vivid-radio-rx.c
+@@ -38,9 +38,9 @@ ssize_t vivid_radio_rx_read(struct file *file, char __user *buf,
+ 			 size_t size, loff_t *offset)
  {
-@@ -1587,7 +1633,58 @@ static int ov7670_probe(struct i2c_client *client,
- 	v4l2_i2c_subdev_init(sd, client, &ov7670_ops);
-
- 	info->clock_speed = 30; /* default: a guess */
--	if (client->dev.platform_data) {
+ 	struct vivid_dev *dev = video_drvdata(file);
+-	struct timespec ts;
+ 	struct v4l2_rds_data *data = dev->rds_gen.data;
+ 	bool use_alternates;
++	ktime_t timestamp;
+ 	unsigned blk;
+ 	int perc;
+ 	int i;
+@@ -64,17 +64,16 @@ ssize_t vivid_radio_rx_read(struct file *file, char __user *buf,
+ 	}
+ 
+ retry:
+-	ktime_get_ts(&ts);
+-	use_alternates = ts.tv_sec % 10 >= 5;
++	timestamp = ktime_sub(ktime_get(), dev->radio_rds_init_time);
++	blk = ktime_divns(timestamp, VIVID_RDS_NSEC_PER_BLK);
++	use_alternates = (blk % VIVID_RDS_GEN_BLOCKS) & 1;
 +
-+	if (IS_ENABLED(CONFIG_OF) && client->dev.of_node) {
-+		/*
-+		 * Parse OF properties to initialize media bus configuration.
-+		 *
-+		 * Use sensor's default configuration if a property is not
-+		 * specified (ret == -EINVAL):
-+		 */
-+		info->mbus_config = 0;
-+
-+		ret = ov7670_parse_dt_prop(&client->dev, "hsync-active");
-+		if (ret < 0 && ret != -EINVAL)
-+			return ret;
-+		else if (ret == 0)
-+			info->mbus_config |= V4L2_MBUS_HSYNC_ACTIVE_LOW;
-+		else
-+			info->mbus_config |= V4L2_MBUS_HSYNC_ACTIVE_HIGH;
-+
-+		ret = ov7670_parse_dt_prop(&client->dev, "vsync-active");
-+		if (ret < 0 && ret != -EINVAL)
-+			return ret;
-+		else if (ret == 0)
-+			info->mbus_config |= V4L2_MBUS_VSYNC_ACTIVE_LOW;
-+		else
-+			info->mbus_config |= V4L2_MBUS_VSYNC_ACTIVE_HIGH;
-+
-+		ret = ov7670_parse_dt_prop(&client->dev, "pclk-sample");
-+		if (ret < 0 && ret != -EINVAL)
-+			return ret;
-+		else if (ret > 0)
-+			info->mbus_config |= V4L2_MBUS_PCLK_SAMPLE_RISING;
-+		else
-+			info->mbus_config |= V4L2_MBUS_PCLK_SAMPLE_FALLING;
-+
-+		ret = ov7670_parse_dt_prop(&client->dev,
-+					    "ov7670,pclk-hb-disable");
-+		if (ret < 0 && ret != -EINVAL)
-+			return ret;
-+		else if (ret > 0)
-+			info->pclk_hb_disable = true;
-+		else
-+			info->pclk_hb_disable = false;
-+
-+		ret = ov7670_parse_dt_prop(&client->dev, "ov7670,pll-bypass");
-+		if (ret < 0 && ret != -EINVAL)
-+			return ret;
-+		else if (ret > 0)
-+			info->pll_bypass = true;
-+		else
-+			info->pll_bypass = false;
-+
-+	} else if (client->dev.platform_data) {
- 		struct ov7670_config *config = client->dev.platform_data;
-
- 		/*
-@@ -1649,9 +1746,6 @@ static int ov7670_probe(struct i2c_client *client,
- 	tpf.denominator = 30;
- 	info->devtype->set_framerate(sd, &tpf);
-
--	if (info->pclk_hb_disable)
--		ov7670_write(sd, REG_COM10, COM10_PCLK_HB);
--
- 	v4l2_ctrl_handler_init(&info->hdl, 10);
- 	v4l2_ctrl_new_std(&info->hdl, &ov7670_ctrl_ops,
- 			V4L2_CID_BRIGHTNESS, 0, 255, 1, 128);
---
-2.7.4
+ 	if (dev->radio_rx_rds_last_block == 0 ||
+ 	    dev->radio_rx_rds_use_alternates != use_alternates) {
+ 		dev->radio_rx_rds_use_alternates = use_alternates;
+ 		/* Re-init the RDS generator */
+ 		vivid_radio_rds_init(dev);
+ 	}
+-	ts = timespec_sub(ts, dev->radio_rds_init_ts);
+-	blk = ts.tv_sec * 100 + ts.tv_nsec / 10000000;
+-	blk = (blk * VIVID_RDS_GEN_BLOCKS) / 500;
+ 	if (blk >= dev->radio_rx_rds_last_block + VIVID_RDS_GEN_BLOCKS)
+ 		dev->radio_rx_rds_last_block = blk - VIVID_RDS_GEN_BLOCKS + 1;
+ 
+diff --git a/drivers/media/platform/vivid/vivid-radio-tx.c b/drivers/media/platform/vivid/vivid-radio-tx.c
+index 0e8025b7b4dd..897b56195ca7 100644
+--- a/drivers/media/platform/vivid/vivid-radio-tx.c
++++ b/drivers/media/platform/vivid/vivid-radio-tx.c
+@@ -37,7 +37,7 @@ ssize_t vivid_radio_tx_write(struct file *file, const char __user *buf,
+ {
+ 	struct vivid_dev *dev = video_drvdata(file);
+ 	struct v4l2_rds_data *data = dev->rds_gen.data;
+-	struct timespec ts;
++	ktime_t timestamp;
+ 	unsigned blk;
+ 	int i;
+ 
+@@ -58,10 +58,8 @@ ssize_t vivid_radio_tx_write(struct file *file, const char __user *buf,
+ 	dev->radio_tx_rds_owner = file->private_data;
+ 
+ retry:
+-	ktime_get_ts(&ts);
+-	ts = timespec_sub(ts, dev->radio_rds_init_ts);
+-	blk = ts.tv_sec * 100 + ts.tv_nsec / 10000000;
+-	blk = (blk * VIVID_RDS_GEN_BLOCKS) / 500;
++	timestamp = ktime_sub(ktime_get(), dev->radio_rds_init_time);
++	blk = ktime_divns(timestamp, VIVID_RDS_NSEC_PER_BLK);
+ 	if (blk - VIVID_RDS_GEN_BLOCKS >= dev->radio_tx_rds_last_block)
+ 		dev->radio_tx_rds_last_block = blk - VIVID_RDS_GEN_BLOCKS + 1;
+ 
+diff --git a/drivers/media/platform/vivid/vivid-rds-gen.h b/drivers/media/platform/vivid/vivid-rds-gen.h
+index eff4bf552ed3..e55e3b22b7ca 100644
+--- a/drivers/media/platform/vivid/vivid-rds-gen.h
++++ b/drivers/media/platform/vivid/vivid-rds-gen.h
+@@ -29,6 +29,7 @@
+ #define VIVID_RDS_GEN_GROUPS 57
+ #define VIVID_RDS_GEN_BLKS_PER_GRP 4
+ #define VIVID_RDS_GEN_BLOCKS (VIVID_RDS_GEN_BLKS_PER_GRP * VIVID_RDS_GEN_GROUPS)
++#define VIVID_RDS_NSEC_PER_BLK (u32)(5ull * NSEC_PER_SEC / VIVID_RDS_GEN_BLOCKS)
+ 
+ struct vivid_rds_gen {
+ 	struct v4l2_rds_data	data[VIVID_RDS_GEN_BLOCKS];
+-- 
+2.9.0
