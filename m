@@ -1,66 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f67.google.com ([74.125.83.67]:50254 "EHLO
-        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750998AbdKOHbl (ORCPT
+Received: from kadath.azazel.net ([81.187.231.250]:36922 "EHLO
+        kadath.azazel.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751951AbdK0Mph (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 15 Nov 2017 02:31:41 -0500
-From: Jacob Chen <jacob-chen@iotwrt.com>
-To: linux-rockchip@lists.infradead.org
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, heiko@sntech.de,
-        mchehab@kernel.org, laurent.pinchart+renesas@ideasonboard.com,
-        hans.verkuil@cisco.com, tfiga@chromium.org, nicolas@ndufresne.ca,
-        sakari.ailus@linux.intel.com, zhengsq@rock-chips.com,
-        zyc@rock-chips.com, eddie.cai.linux@gmail.com,
-        jeffy.chen@rock-chips.com, allon.huang@rock-chips.com,
-        p.zabel@pengutronix.de, slongerbeam@gmail.com,
-        linux@armlinux.org.uk, Jacob Chen <jacob2.chen@rock-chips.com>
-Subject: [RFC PATCH 1/5] media: videodev2.h, v4l2-ioctl: add rkisp1 meta buffer format
-Date: Wed, 15 Nov 2017 15:31:28 +0800
-Message-Id: <20171115073132.30123-1-jacob-chen@iotwrt.com>
+        Mon, 27 Nov 2017 07:45:37 -0500
+From: Jeremy Sowden <jeremy@azazel.net>
+To: linux-media@vger.kernel.org, devel@driverdev.osuosl.org
+Cc: Jeremy Sowden <jeremy@azazel.net>
+Subject: [PATCH v2 0/3] Sparse fixes for the Atom ISP Staging Driver
+Date: Mon, 27 Nov 2017 12:44:47 +0000
+Message-Id: <20171127124450.28799-1-jeremy@azazel.net>
+In-Reply-To: <20171127122125.GB8561@kroah.com>
+References: <20171127122125.GB8561@kroah.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Shunqian Zheng <zhengsq@rock-chips.com>
+Fixed some sparse warnings in the Atom ISP staging driver and the checkpatch
+warnings that affected my patches.
 
-Add the Rockchip ISP1 specific processing parameter format
-V4L2_META_FMT_RK_ISP1_PARAMS and metadata format
-V4L2_META_FMT_RK_ISP1_STAT_3A for 3A.
+This time with longer commit messages. :)
 
-Signed-off-by: Shunqian Zheng <zhengsq@rock-chips.com>
-Signed-off-by: Jacob Chen <jacob2.chen@rock-chips.com>
----
- drivers/media/v4l2-core/v4l2-ioctl.c | 2 ++
- include/uapi/linux/videodev2.h       | 4 ++++
- 2 files changed, 6 insertions(+)
+Jeremy Sowden (3):
+  media: staging: atomisp: fix for sparse "using plain integer as NULL
+    pointer" warnings.
+  media: staging: atomisp: fixes for "symbol was not declared. Should it
+    be static?" sparse warnings.
+  media: staging: atomisp: fixed some checkpatch integer type warnings.
 
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index d6587b3ec33e..0604ae9ea444 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -1252,6 +1252,8 @@ static void v4l_fill_fmtdesc(struct v4l2_fmtdesc *fmt)
- 	case V4L2_TCH_FMT_TU08:		descr = "8-bit unsigned touch data"; break;
- 	case V4L2_META_FMT_VSP1_HGO:	descr = "R-Car VSP1 1-D Histogram"; break;
- 	case V4L2_META_FMT_VSP1_HGT:	descr = "R-Car VSP1 2-D Histogram"; break;
-+	case V4L2_META_FMT_RK_ISP1_PARAMS:	descr = "Rockchip ISP1 3A params"; break;
-+	case V4L2_META_FMT_RK_ISP1_STAT_3A:	descr = "Rockchip ISP1 3A statistics"; break;
- 
- 	default:
- 		/* Compressed formats */
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index e507b29ba1e0..14efa6513126 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -690,6 +690,10 @@ struct v4l2_pix_format {
- #define V4L2_META_FMT_VSP1_HGO    v4l2_fourcc('V', 'S', 'P', 'H') /* R-Car VSP1 1-D Histogram */
- #define V4L2_META_FMT_VSP1_HGT    v4l2_fourcc('V', 'S', 'P', 'T') /* R-Car VSP1 2-D Histogram */
- 
-+/* Vendor specific - used for IPU3 camera sub-system */
-+#define V4L2_META_FMT_RK_ISP1_PARAMS	v4l2_fourcc('R', 'K', '1', 'P') /* Rockchip ISP1 params */
-+#define V4L2_META_FMT_RK_ISP1_STAT_3A	v4l2_fourcc('R', 'K', '1', 'S') /* Rockchip ISP1 3A statistics */
-+
- /* priv field value to indicates that subsequent fields are valid. */
- #define V4L2_PIX_FMT_PRIV_MAGIC		0xfeedcafe
- 
+ .../isp/kernels/eed1_8/ia_css_eed1_8.host.c        | 25 +++++++++++-----------
+ .../isp_param/interface/ia_css_isp_param_types.h   |  2 +-
+ 2 files changed, 13 insertions(+), 14 deletions(-)
+
+
+base-commit: 844056fd74ebdd826bd23a7d989597e15f478acb
 -- 
-2.14.2
+2.15.0
