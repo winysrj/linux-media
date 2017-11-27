@@ -1,87 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 178.115.242.59.static.drei.at ([178.115.242.59]:41869 "EHLO
-        mail.osadl.at" rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org
-        with ESMTP id S1750708AbdK3TR2 (ORCPT
+Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:48699 "EHLO
+        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750726AbdK0FDQ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 30 Nov 2017 14:17:28 -0500
-Date: Thu, 30 Nov 2017 19:17:09 +0000
-From: Nicholas Mc Guire <der.herr@hofr.at>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Nicholas Mc Guire <hofrat@osadl.org>,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: Re: [PATCH 07/22] media: s5k6aa: describe some function parameters
-Message-ID: <20171130191709.GA9040@osadl.at>
-References: <73497577f67fbb917e40ab4328104ff310a7c356.1511982439.git.mchehab@s-opensource.com>
- <edc0fd71b2c52f8e79357eb1e25be606017005a2.1511982439.git.mchehab@s-opensource.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <edc0fd71b2c52f8e79357eb1e25be606017005a2.1511982439.git.mchehab@s-opensource.com>
+        Mon, 27 Nov 2017 00:03:16 -0500
+Message-ID: <8b32a3bb99d2f3bd4483d98acc16c561@smtp-cloud9.xs4all.net>
+Date: Mon, 27 Nov 2017 06:03:13 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Nov 29, 2017 at 02:08:25PM -0500, Mauro Carvalho Chehab wrote:
-> as warned:
->   drivers/media/i2c/s5k6aa.c:429: warning: No description found for parameter 's5k6aa'
->   drivers/media/i2c/s5k6aa.c:679: warning: No description found for parameter 's5k6aa'
->   drivers/media/i2c/s5k6aa.c:733: warning: No description found for parameter 's5k6aa'
->   drivers/media/i2c/s5k6aa.c:733: warning: No description found for parameter 'preset'
->   drivers/media/i2c/s5k6aa.c:787: warning: No description found for parameter 'sd'
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> ---
->  drivers/media/i2c/s5k6aa.c | 5 +++++
->  1 file changed, 5 insertions(+)
-> 
-> diff --git a/drivers/media/i2c/s5k6aa.c b/drivers/media/i2c/s5k6aa.c
-> index 9fd254a8e20d..13c10b5e2b45 100644
-> --- a/drivers/media/i2c/s5k6aa.c
-> +++ b/drivers/media/i2c/s5k6aa.c
-> @@ -421,6 +421,7 @@ static int s5k6aa_set_ahb_address(struct i2c_client *client)
->  
->  /**
->   * s5k6aa_configure_pixel_clock - apply ISP main clock/PLL configuration
-> + * @s5k6aa: pointer to &struct s5k6aa describing the device
->   *
->   * Configure the internal ISP PLL for the required output frequency.
->   * Locking: called with s5k6aa.lock mutex held.
-> @@ -669,6 +670,7 @@ static int s5k6aa_set_input_params(struct s5k6aa *s5k6aa)
->  
->  /**
->   * s5k6aa_configure_video_bus - configure the video output interface
-> + * @s5k6aa: pointer to &struct s5k6aa describing the device
->   * @bus_type: video bus type: parallel or MIPI-CSI
->   * @nlanes: number of MIPI lanes to be used (MIPI-CSI only)
->   *
-> @@ -724,6 +726,8 @@ static int s5k6aa_new_config_sync(struct i2c_client *client, int timeout,
->  
->  /**
->   * s5k6aa_set_prev_config - write user preview register set
-> + * @s5k6aa: pointer to &struct s5k6aa describing the device
-> + * @preset: s5kaa preset to be applied
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-that looks like a minor typo  s5kaa  should be  s5k6aa  
+Results of the daily build of media_tree:
 
-also it might be more meaningful to describe its content e.g.
+date:			Mon Nov 27 05:00:15 CET 2017
+media-tree git hash:	30b4e122d71cbec2944a5f8b558b88936ee42f10
+media_build git hash:	097aaf3e4e4bfdeff130db9697dec1befeb3221b
+v4l-utils git hash:	a8a04d397e929381a2150bee2100fc28ad2cfbec
+gcc version:		i686-linux-gcc (GCC) 7.1.0
+sparse version:		0.5.1 (Debian: 0.5.1-2)
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.13.0-164
 
-   * @preset: s5k6aa preset pixel format and resolution to be applied
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: WARNINGS
+linux-3.11.1-i686: WARNINGS
+linux-3.12.67-i686: WARNINGS
+linux-3.13.11-i686: WARNINGS
+linux-3.14.9-i686: WARNINGS
+linux-3.15.2-i686: WARNINGS
+linux-3.16.7-i686: WARNINGS
+linux-3.17.8-i686: WARNINGS
+linux-3.18.7-i686: WARNINGS
+linux-3.19-i686: WARNINGS
+linux-4.0.9-i686: WARNINGS
+linux-4.1.33-i686: WARNINGS
+linux-4.2.8-i686: WARNINGS
+linux-4.3.6-i686: WARNINGS
+linux-4.4.22-i686: WARNINGS
+linux-4.5.7-i686: WARNINGS
+linux-4.6.7-i686: WARNINGS
+linux-4.7.5-i686: WARNINGS
+linux-4.8-i686: OK
+linux-4.9.26-i686: OK
+linux-4.10.14-i686: OK
+linux-4.11-i686: OK
+linux-4.12.1-i686: OK
+linux-4.13-i686: OK
+linux-4.14-i686: OK
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-x86_64: WARNINGS
+linux-3.12.67-x86_64: WARNINGS
+linux-3.13.11-x86_64: WARNINGS
+linux-3.14.9-x86_64: WARNINGS
+linux-3.15.2-x86_64: WARNINGS
+linux-3.16.7-x86_64: WARNINGS
+linux-3.17.8-x86_64: WARNINGS
+linux-3.18.7-x86_64: WARNINGS
+linux-3.19-x86_64: WARNINGS
+linux-4.0.9-x86_64: WARNINGS
+linux-4.1.33-x86_64: WARNINGS
+linux-4.2.8-x86_64: WARNINGS
+linux-4.3.6-x86_64: WARNINGS
+linux-4.4.22-x86_64: WARNINGS
+linux-4.5.7-x86_64: WARNINGS
+linux-4.6.7-x86_64: WARNINGS
+linux-4.7.5-x86_64: WARNINGS
+linux-4.8-x86_64: WARNINGS
+linux-4.9.26-x86_64: WARNINGS
+linux-4.10.14-x86_64: WARNINGS
+linux-4.11-x86_64: WARNINGS
+linux-4.12.1-x86_64: WARNINGS
+linux-4.13-x86_64: OK
+linux-4.14-x86_64: OK
+apps: OK
+spec-git: OK
+sparse: WARNINGS
 
->   *
->   * Configure output resolution and color fromat, pixel clock
->   * frequency range, device frame rate type and frame period range.
-> @@ -777,6 +781,7 @@ static int s5k6aa_set_prev_config(struct s5k6aa *s5k6aa,
->  
->  /**
->   * s5k6aa_initialize_isp - basic ISP MCU initialization
-> + * @sd: pointer to V4L2 sub-device descriptor
->   *
->   * Configure AHB addresses for registers read/write; configure PLLs for
->   * required output pixel clock. The ISP power supply needs to be already
-> -- 
-> 2.14.3
->
+Detailed results are available here:
 
-thx!
-hofrat 
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
