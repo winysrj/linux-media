@@ -1,59 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:53979 "EHLO
-        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751303AbdKWOFM (ORCPT
+Received: from kadath.azazel.net ([81.187.231.250]:35448 "EHLO
+        kadath.azazel.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751712AbdK0L50 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 23 Nov 2017 09:05:12 -0500
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH] cec-core.rst: document the new adap_monitor_pin_enable op
-Message-ID: <e71c9720-1dae-b2e5-8c4d-12223431d230@xs4all.nl>
-Date: Thu, 23 Nov 2017 15:05:06 +0100
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+        Mon, 27 Nov 2017 06:57:26 -0500
+From: Jeremy Sowden <jeremy@azazel.net>
+To: linux-media@vger.kernel.org, devel@driverdev.osuosl.org
+Cc: Jeremy Sowden <jeremy@azazel.net>
+Subject: [PATCH 2/3] media: staging: atomisp: defined as static some const arrays which don't need external linkage.
+Date: Mon, 27 Nov 2017 11:30:53 +0000
+Message-Id: <20171127113054.27657-3-jeremy@azazel.net>
+In-Reply-To: <20171127113054.27657-1-jeremy@azazel.net>
+References: <20171127113054.27657-1-jeremy@azazel.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Document what this op does.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
 ---
- Documentation/media/kapi/cec-core.rst | 14 ++++++++++++++
- 1 file changed, 14 insertions(+)
+ .../isp/kernels/eed1_8/ia_css_eed1_8.host.c        | 24 +++++++++++-----------
+ 1 file changed, 12 insertions(+), 12 deletions(-)
 
-diff --git a/Documentation/media/kapi/cec-core.rst b/Documentation/media/kapi/cec-core.rst
-index d37e107f2fde..62b9a1448177 100644
---- a/Documentation/media/kapi/cec-core.rst
-+++ b/Documentation/media/kapi/cec-core.rst
-@@ -103,6 +103,7 @@ your driver:
- 		/* Low-level callbacks */
- 		int (*adap_enable)(struct cec_adapter *adap, bool enable);
- 		int (*adap_monitor_all_enable)(struct cec_adapter *adap, bool enable);
-+		int (*adap_monitor_pin_enable)(struct cec_adapter *adap, bool enable);
- 		int (*adap_log_addr)(struct cec_adapter *adap, u8 logical_addr);
- 		int (*adap_transmit)(struct cec_adapter *adap, u8 attempts,
- 				      u32 signal_free_time, struct cec_msg *msg);
-@@ -144,6 +145,19 @@ called if the CEC_CAP_MONITOR_ALL capability is set. This callback is optional
- Note that adap_monitor_all_enable must return 0 if enable is false.
-
-
-+To enable/disable the 'monitor pin' mode:
-+
-+.. c:function::
-+	int (*adap_monitor_pin_enable)(struct cec_adapter *adap, bool enable);
-+
-+If enabled, then the adapter should be put in a mode to also monitor CEC pin
-+changes. Not all hardware supports this and this function is only called if
-+the CEC_CAP_MONITOR_PIN capability is set. This callback is optional
-+(some hardware may always be in 'monitor pin' mode).
-+
-+Note that adap_monitor_pin_enable must return 0 if enable is false.
-+
-+
- To program a new logical address:
-
- .. c:function::
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/eed1_8/ia_css_eed1_8.host.c b/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/eed1_8/ia_css_eed1_8.host.c
+index 682f8b709ff9..47bb5042381b 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/eed1_8/ia_css_eed1_8.host.c
++++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/eed1_8/ia_css_eed1_8.host.c
+@@ -32,44 +32,44 @@
+ #define NUMBER_OF_TCINV_POINTS 9
+ #define NUMBER_OF_FCINV_POINTS 9
+ 
+-const int16_t chgrinv_x[NUMBER_OF_CHGRINV_POINTS] = {
++static const int16_t chgrinv_x[NUMBER_OF_CHGRINV_POINTS] = {
+ 0, 16, 64, 144, 272, 448, 672, 976,
+ 1376, 1888, 2528, 3312, 4256, 5376, 6688};
+ 
+-const int16_t chgrinv_a[NUMBER_OF_CHGRINV_POINTS] = {
++static const int16_t chgrinv_a[NUMBER_OF_CHGRINV_POINTS] = {
+ -7171, -256, -29, -3456, -1071, -475, -189, -102,
+ -48, -38, -10, -9, -7, -6, 0};
+ 
+-const int16_t chgrinv_b[NUMBER_OF_CHGRINV_POINTS] = {
++static const int16_t chgrinv_b[NUMBER_OF_CHGRINV_POINTS] = {
+ 8191, 1021, 256, 114, 60, 37, 24, 17,
+ 12, 9, 6, 5, 4, 3, 2};
+ 
+-const int16_t chgrinv_c[NUMBER_OF_CHGRINV_POINTS] = {
++static const int16_t chgrinv_c[NUMBER_OF_CHGRINV_POINTS] = {
+ 1, 1, 1, 0, 0, 0, 0, 0,
+ 0, 0, 0, 0, 0, 0, 0};
+ 
+-const int16_t tcinv_x[NUMBER_OF_TCINV_POINTS] = {
++static const int16_t tcinv_x[NUMBER_OF_TCINV_POINTS] = {
+ 0, 4, 11, 23, 42, 68, 102, 148, 205};
+ 
+-const int16_t tcinv_a[NUMBER_OF_TCINV_POINTS] = {
++static const int16_t tcinv_a[NUMBER_OF_TCINV_POINTS] = {
+ -6364, -631, -126, -34, -13, -6, -4452, -2156, 0};
+ 
+-const int16_t tcinv_b[NUMBER_OF_TCINV_POINTS] = {
++static const int16_t tcinv_b[NUMBER_OF_TCINV_POINTS] = {
+ 8191, 1828, 726, 352, 197, 121, 80, 55, 40};
+ 
+-const int16_t tcinv_c[NUMBER_OF_TCINV_POINTS] = {
++static const int16_t tcinv_c[NUMBER_OF_TCINV_POINTS] = {
+ 1, 1, 1, 1, 1, 1, 0, 0, 0};
+ 
+-const int16_t fcinv_x[NUMBER_OF_FCINV_POINTS] = {
++static const int16_t fcinv_x[NUMBER_OF_FCINV_POINTS] = {
+ 0, 80, 216, 456, 824, 1344, 2040, 2952, 4096};
+ 
+-const int16_t fcinv_a[NUMBER_OF_FCINV_POINTS] = {
++static const int16_t fcinv_a[NUMBER_OF_FCINV_POINTS] = {
+ -5244, -486, -86, -2849, -961, -400, -180, -86, 0};
+ 
+-const int16_t fcinv_b[NUMBER_OF_FCINV_POINTS] = {
++static const int16_t fcinv_b[NUMBER_OF_FCINV_POINTS] = {
+ 8191, 1637, 607, 287, 159, 98, 64, 44, 32};
+ 
+-const int16_t fcinv_c[NUMBER_OF_FCINV_POINTS] = {
++static const int16_t fcinv_c[NUMBER_OF_FCINV_POINTS] = {
+ 1, 1, 1, 0, 0, 0, 0, 0, 0};
+ 
+ 
 -- 
-2.14.1
+2.15.0
