@@ -1,87 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f193.google.com ([209.85.216.193]:54299 "EHLO
-        mail-qt0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933281AbdKORLW (ORCPT
+Received: from mail-wr0-f193.google.com ([209.85.128.193]:33399 "EHLO
+        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752759AbdK0Vp0 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 15 Nov 2017 12:11:22 -0500
-From: Gustavo Padovan <gustavo@padovan.org>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        Pawel Osciak <pawel@osciak.com>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Brian Starkey <brian.starkey@arm.com>,
-        Thierry Escande <thierry.escande@collabora.com>,
-        linux-kernel@vger.kernel.org,
-        Gustavo Padovan <gustavo.padovan@collabora.com>
-Subject: [RFC v5 04/11] [media] vivid: mark vivid queues as ordered_in_driver
-Date: Wed, 15 Nov 2017 15:10:50 -0200
-Message-Id: <20171115171057.17340-5-gustavo@padovan.org>
-In-Reply-To: <20171115171057.17340-1-gustavo@padovan.org>
-References: <20171115171057.17340-1-gustavo@padovan.org>
+        Mon, 27 Nov 2017 16:45:26 -0500
+Received: by mail-wr0-f193.google.com with SMTP id 55so11598996wrx.0
+        for <linux-media@vger.kernel.org>; Mon, 27 Nov 2017 13:45:26 -0800 (PST)
+From: Riccardo Schirone <sirmy15@gmail.com>
+To: alan@linux.intel.com, gregkh@linuxfoundation.org,
+        linux-media@vger.kernel.org
+Cc: Riccardo Schirone <sirmy15@gmail.com>
+Subject: [PATCH 3/4] staging: improves comparisons readability in atomisp-ov5693
+Date: Mon, 27 Nov 2017 22:44:12 +0100
+Message-Id: <20171127214413.10749-4-sirmy15@gmail.com>
+In-Reply-To: <20171127214413.10749-1-sirmy15@gmail.com>
+References: <20171127214413.10749-1-sirmy15@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Gustavo Padovan <gustavo.padovan@collabora.com>
+Fix "Comparisons should place the constant on the right side of the
+test" issue.
 
-ordered_in_driver is used to optimize the use of explicit synchronization
-when the driver guarantees ordering we can use the same fence context for
-out-fences. In this case userspace will know that the buffers won't be
-signaling out of order. vivid queues are already ordered by default so no
-changes are needed.
-
-v2: rename 'ordered' to 'ordered_in_driver' to avoid confusion.
-
-Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
+Signed-off-by: Riccardo Schirone <sirmy15@gmail.com>
 ---
- drivers/media/platform/vivid/vivid-core.c | 5 +++++
- 1 file changed, 5 insertions(+)
+ drivers/staging/media/atomisp/i2c/ov5693/atomisp-ov5693.c | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/media/platform/vivid/vivid-core.c b/drivers/media/platform/vivid/vivid-core.c
-index f19391fa2d6a..1b830ebe1cd8 100644
---- a/drivers/media/platform/vivid/vivid-core.c
-+++ b/drivers/media/platform/vivid/vivid-core.c
-@@ -1068,6 +1068,7 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
- 		q->type = dev->multiplanar ? V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE :
- 			V4L2_BUF_TYPE_VIDEO_CAPTURE;
- 		q->io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF | VB2_READ;
-+		q->ordered_in_driver = 1;
- 		q->drv_priv = dev;
- 		q->buf_struct_size = sizeof(struct vivid_buffer);
- 		q->ops = &vivid_vid_cap_qops;
-@@ -1088,6 +1089,7 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
- 		q->type = dev->multiplanar ? V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE :
- 			V4L2_BUF_TYPE_VIDEO_OUTPUT;
- 		q->io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF | VB2_WRITE;
-+		q->ordered_in_driver = 1;
- 		q->drv_priv = dev;
- 		q->buf_struct_size = sizeof(struct vivid_buffer);
- 		q->ops = &vivid_vid_out_qops;
-@@ -1108,6 +1110,7 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
- 		q->type = dev->has_raw_vbi_cap ? V4L2_BUF_TYPE_VBI_CAPTURE :
- 					      V4L2_BUF_TYPE_SLICED_VBI_CAPTURE;
- 		q->io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF | VB2_READ;
-+		q->ordered_in_driver = 1;
- 		q->drv_priv = dev;
- 		q->buf_struct_size = sizeof(struct vivid_buffer);
- 		q->ops = &vivid_vbi_cap_qops;
-@@ -1128,6 +1131,7 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
- 		q->type = dev->has_raw_vbi_out ? V4L2_BUF_TYPE_VBI_OUTPUT :
- 					      V4L2_BUF_TYPE_SLICED_VBI_OUTPUT;
- 		q->io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF | VB2_WRITE;
-+		q->ordered_in_driver = 1;
- 		q->drv_priv = dev;
- 		q->buf_struct_size = sizeof(struct vivid_buffer);
- 		q->ops = &vivid_vbi_out_qops;
-@@ -1147,6 +1151,7 @@ static int vivid_create_instance(struct platform_device *pdev, int inst)
- 		q = &dev->vb_sdr_cap_q;
- 		q->type = V4L2_BUF_TYPE_SDR_CAPTURE;
- 		q->io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF | VB2_READ;
-+		q->ordered_in_driver = 1;
- 		q->drv_priv = dev;
- 		q->buf_struct_size = sizeof(struct vivid_buffer);
- 		q->ops = &vivid_sdr_cap_qops;
+diff --git a/drivers/staging/media/atomisp/i2c/ov5693/atomisp-ov5693.c b/drivers/staging/media/atomisp/i2c/ov5693/atomisp-ov5693.c
+index ecd607b7b005..4eeb478ae84b 100644
+--- a/drivers/staging/media/atomisp/i2c/ov5693/atomisp-ov5693.c
++++ b/drivers/staging/media/atomisp/i2c/ov5693/atomisp-ov5693.c
+@@ -764,7 +764,7 @@ static int __ov5693_otp_read(struct v4l2_subdev *sd, u8 *buf)
+ 		//pr_debug("BANK[%2d] %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x\n", i, *b, *(b+1), *(b+2), *(b+3), *(b+4), *(b+5), *(b+6), *(b+7), *(b+8), *(b+9), *(b+10), *(b+11), *(b+12), *(b+13), *(b+14), *(b+15));
+ 
+ 		//Intel OTP map, try to read 320byts first.
+-		if (21 == i) {
++		if (i == 21) {
+ 			if ((*b) == 0) {
+ 				dev->otp_size = 320;
+ 				break;
+@@ -772,7 +772,7 @@ static int __ov5693_otp_read(struct v4l2_subdev *sd, u8 *buf)
+ 				b = buf;
+ 				continue;
+ 			}
+-		} else if (24 == i) {		//if the first 320bytes data doesn't not exist, try to read the next 32bytes data.
++		} else if (i == 24) {		//if the first 320bytes data doesn't not exist, try to read the next 32bytes data.
+ 			if ((*b) == 0) {
+ 				dev->otp_size = 32;
+ 				break;
+@@ -780,7 +780,7 @@ static int __ov5693_otp_read(struct v4l2_subdev *sd, u8 *buf)
+ 				b = buf;
+ 				continue;
+ 			}
+-		} else if (27 == i) {		//if the prvious 32bytes data doesn't exist, try to read the next 32bytes data again.
++		} else if (i == 27) {		//if the prvious 32bytes data doesn't exist, try to read the next 32bytes data again.
+ 			if ((*b) == 0) {
+ 				dev->otp_size = 32;
+ 				break;
+@@ -1351,7 +1351,7 @@ static int __power_up(struct v4l2_subdev *sd)
+ 	struct i2c_client *client = v4l2_get_subdevdata(sd);
+ 	int ret;
+ 
+-	if (NULL == dev->platform_data) {
++	if (!dev->platform_data) {
+ 		dev_err(&client->dev,
+ 			"no camera_sensor_platform_data");
+ 		return -ENODEV;
+@@ -1399,7 +1399,7 @@ static int power_down(struct v4l2_subdev *sd)
+ 	int ret = 0;
+ 
+ 	dev->focus = OV5693_INVALID_CONFIG;
+-	if (NULL == dev->platform_data) {
++	if (!dev->platform_data) {
+ 		dev_err(&client->dev,
+ 			"no camera_sensor_platform_data");
+ 		return -ENODEV;
 -- 
-2.13.6
+2.14.3
