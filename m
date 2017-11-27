@@ -1,134 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:34818 "EHLO
-        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750720AbdKZFF7 (ORCPT
+Received: from bombadil.infradead.org ([65.50.211.133]:58272 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751402AbdK0LYS (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 26 Nov 2017 00:05:59 -0500
-Message-ID: <a14e7c1d754495ea8851e3c60bb6ed45@smtp-cloud9.xs4all.net>
-Date: Sun, 26 Nov 2017 06:05:57 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
+        Mon, 27 Nov 2017 06:24:18 -0500
+Date: Mon, 27 Nov 2017 09:24:08 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Tycho =?UTF-8?B?TMO8cnNlbg==?= <tycholursen@gmail.com>
+Cc: Soeren Moch <smoch@web.de>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org
+Subject: Re: [GIT PULL] SAA716x DVB driver
+Message-ID: <20171127092408.20de0fe0@vento.lan>
+In-Reply-To: <7c17c0a1-1c98-1272-8430-4a194b658872@gmail.com>
+References: <50e5ba3c-4e32-f2e4-7844-150eefdf71b5@web.de>
+        <d693cf1b-de3d-5994-5ef0-eeb0e37065a3@web.de>
+        <20170827073040.6e96d79a@vento.lan>
+        <e9d87f55-18fc-e57b-f9aa-a41c7f983b34@web.de>
+        <20170909181123.392cfbb0@vento.lan>
+        <a44b8eb0-cdd5-aa28-ad30-68db0126b6f6@web.de>
+        <20170916125042.78c4abad@recife.lan>
+        <fab215f8-29f3-1857-6f33-c45e78bb5e3c@web.de>
+        <7c17c0a1-1c98-1272-8430-4a194b658872@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Em Fri, 24 Nov 2017 17:28:37 +0100
+Tycho L=C3=BCrsen <tycholursen@gmail.com> escreveu:
 
-Results of the daily build of media_tree:
+> Hi Mauro,
+>=20
+> afaik the last communication about submission of this driver was about=20
+> two months ago.
+>=20
+> This driver is important to me, because I own several TurboSight cards=20
+> that are saa716x based. I want to submit a patch that supports my cards.=
+=20
+> Of course I can only do so when you accept this driver in the first place.
+>=20
+> Any chance you and S=C3=B6ren agree about how to proceed about this drive=
+r=20
+> anytime soon?
 
-date:			Sun Nov 26 05:00:16 CET 2017
-media-tree git hash:	30b4e122d71cbec2944a5f8b558b88936ee42f10
-media_build git hash:	097aaf3e4e4bfdeff130db9697dec1befeb3221b
-v4l-utils git hash:	a8a04d397e929381a2150bee2100fc28ad2cfbec
-gcc version:		i686-linux-gcc (GCC) 7.1.0
-sparse version:		0.5.1 (Debian: 0.5.1-2)
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.13.0-164
+If we can reach an agreement about what should be done for the driver
+to be promoted from staging some day, I'll merge it. Otherwise,
+it can be kept maintained out of tree. This driver has been maintained
+OOT for a very long time, and it seems that people were happy with
+that, as only at the second half of this year someone is requesting
+to merge it.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: WARNINGS
-linux-3.12.67-i686: WARNINGS
-linux-3.13.11-i686: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.16.7-i686: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.18.7-i686: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-4.0.9-i686: WARNINGS
-linux-4.1.33-i686: WARNINGS
-linux-4.2.8-i686: WARNINGS
-linux-4.3.6-i686: WARNINGS
-linux-4.4.22-i686: WARNINGS
-linux-4.5.7-i686: WARNINGS
-linux-4.6.7-i686: WARNINGS
-linux-4.7.5-i686: WARNINGS
-linux-4.8-i686: OK
-linux-4.9.26-i686: OK
-linux-4.10.14-i686: OK
-linux-4.11-i686: OK
-linux-4.12.1-i686: OK
-linux-4.13-i686: OK
-linux-4.14-i686: OK
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: WARNINGS
-linux-3.12.67-x86_64: WARNINGS
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16.7-x86_64: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.7-x86_64: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0.9-x86_64: WARNINGS
-linux-4.1.33-x86_64: WARNINGS
-linux-4.2.8-x86_64: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.22-x86_64: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-x86_64: WARNINGS
-linux-4.9.26-x86_64: WARNINGS
-linux-4.10.14-x86_64: WARNINGS
-linux-4.11-x86_64: WARNINGS
-linux-4.12.1-x86_64: WARNINGS
-linux-4.13-x86_64: OK
-linux-4.14-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
+So, while I agree that the best is to merge it upstream and
+address the issues that made it OOT for a long time, we shouldn't
+rush it with the risk of doing more harm than good.
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+Thanks,
+Mauro
