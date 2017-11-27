@@ -1,62 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:33711 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S933304AbdKAVGR (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 1 Nov 2017 17:06:17 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Malcolm Priestley <tvboxspy@gmail.com>
-Subject: [PATCH v2 21/26] media: m88rs2000: handle the case where tuner doesn't have get_frequency
-Date: Wed,  1 Nov 2017 17:05:58 -0400
-Message-Id: <ba63d758d1ef892fd27e8dd6d356afa74c7583ee.1509569763.git.mchehab@s-opensource.com>
-In-Reply-To: <c4389ab1c02bb08c1a55012fdb859c8b10bdc47e.1509569763.git.mchehab@s-opensource.com>
-References: <c4389ab1c02bb08c1a55012fdb859c8b10bdc47e.1509569763.git.mchehab@s-opensource.com>
-In-Reply-To: <c4389ab1c02bb08c1a55012fdb859c8b10bdc47e.1509569763.git.mchehab@s-opensource.com>
-References: <c4389ab1c02bb08c1a55012fdb859c8b10bdc47e.1509569763.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+Received: from mout.kundenserver.de ([217.72.192.74]:64383 "EHLO
+        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751570AbdK0NVA (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 27 Nov 2017 08:21:00 -0500
+From: Arnd Bergmann <arnd@arndb.de>
+To: Bluecherry Maintainers <maintainers@bluecherrydvr.com>,
+        Anton Sviridenko <anton@corp.bluecherry.net>,
+        Andrey Utkin <andrey.utkin@corp.bluecherry.net>,
+        Ismael Luceno <ismael@iodev.co.uk>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: y2038@lists.linaro.org, Arnd Bergmann <arnd@arndb.de>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH 3/8] [media] solo6x10: use ktime_get_ts64() for time sync
+Date: Mon, 27 Nov 2017 14:19:55 +0100
+Message-Id: <20171127132027.1734806-3-arnd@arndb.de>
+In-Reply-To: <20171127132027.1734806-1-arnd@arndb.de>
+References: <20171127132027.1734806-1-arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If the tuner doesn't have get_frequency() callback, the current
-code will place a random value as the frequency offset. That
-doesn't seem right! The better is to just assume that, on such
-case, the tuner was able to set the exact frequency that was
-requested.
+solo6x10 correctly deals with time stamps and will never
+suffer from overflows, but it uses the deprecated 'struct timespec'
+type and 'ktime_get_ts()' interface to read the monotonic clock.
 
-Fixes a smatch warning:
-	drivers/media/dvb-frontends/m88rs2000.c:639 m88rs2000_set_frontend() error: uninitialized symbol 'tuner_freq'.
+This changes it to use ktime_get_ts64() instead, so we can
+eventually remove ktime_get_ts().
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 ---
- drivers/media/dvb-frontends/m88rs2000.c | 11 +++++++----
- 1 file changed, 7 insertions(+), 4 deletions(-)
+ drivers/media/pci/solo6x10/solo6x10-core.c | 17 +++++++++--------
+ 1 file changed, 9 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/media/dvb-frontends/m88rs2000.c b/drivers/media/dvb-frontends/m88rs2000.c
-index ce6c21d405ee..e34dab41d104 100644
---- a/drivers/media/dvb-frontends/m88rs2000.c
-+++ b/drivers/media/dvb-frontends/m88rs2000.c
-@@ -630,13 +630,16 @@ static int m88rs2000_set_frontend(struct dvb_frontend *fe)
- 	if (ret < 0)
- 		return -ENODEV;
+diff --git a/drivers/media/pci/solo6x10/solo6x10-core.c b/drivers/media/pci/solo6x10/solo6x10-core.c
+index ca0873e47bea..19ffd2ed3cc7 100644
+--- a/drivers/media/pci/solo6x10/solo6x10-core.c
++++ b/drivers/media/pci/solo6x10/solo6x10-core.c
+@@ -47,18 +47,19 @@ MODULE_PARM_DESC(full_eeprom, "Allow access to full 128B EEPROM (dangerous)");
  
--	if (fe->ops.tuner_ops.get_frequency)
-+	if (fe->ops.tuner_ops.get_frequency) {
- 		ret = fe->ops.tuner_ops.get_frequency(fe, &tuner_freq);
+ static void solo_set_time(struct solo_dev *solo_dev)
+ {
+-	struct timespec ts;
++	struct timespec64 ts;
  
--	if (ret < 0)
--		return -ENODEV;
-+		if (ret < 0)
-+			return -ENODEV;
+-	ktime_get_ts(&ts);
++	ktime_get_ts64(&ts);
  
--	offset = (s16)((s32)tuner_freq - c->frequency);
-+		offset = (s16)((s32)tuner_freq - c->frequency);
-+	} else {
-+		offset = 0;
-+	}
+-	solo_reg_write(solo_dev, SOLO_TIMER_SEC, ts.tv_sec);
+-	solo_reg_write(solo_dev, SOLO_TIMER_USEC, ts.tv_nsec / NSEC_PER_USEC);
++	/* no overflow because we use monotonic timestamps */
++	solo_reg_write(solo_dev, SOLO_TIMER_SEC, (u32)ts.tv_sec);
++	solo_reg_write(solo_dev, SOLO_TIMER_USEC, (u32)ts.tv_nsec / NSEC_PER_USEC);
+ }
  
- 	/* default mclk value 96.4285 * 2 * 1000 = 192857 */
- 	if (((c->frequency % 192857) >= (192857 - 3000)) ||
+ static void solo_timer_sync(struct solo_dev *solo_dev)
+ {
+ 	u32 sec, usec;
+-	struct timespec ts;
++	struct timespec64 ts;
+ 	long diff;
+ 
+ 	if (solo_dev->type != SOLO_DEV_6110)
+@@ -72,11 +73,11 @@ static void solo_timer_sync(struct solo_dev *solo_dev)
+ 	sec = solo_reg_read(solo_dev, SOLO_TIMER_SEC);
+ 	usec = solo_reg_read(solo_dev, SOLO_TIMER_USEC);
+ 
+-	ktime_get_ts(&ts);
++	ktime_get_ts64(&ts);
+ 
+-	diff = (long)ts.tv_sec - (long)sec;
++	diff = (s32)ts.tv_sec - (s32)sec;
+ 	diff = (diff * 1000000)
+-		+ ((long)(ts.tv_nsec / NSEC_PER_USEC) - (long)usec);
++		+ ((s32)(ts.tv_nsec / NSEC_PER_USEC) - (s32)usec);
+ 
+ 	if (diff > 1000 || diff < -1000) {
+ 		solo_set_time(solo_dev);
 -- 
-2.13.6
+2.9.0
