@@ -1,99 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:36572 "EHLO mx1.redhat.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752244AbdLAAYM (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 30 Nov 2017 19:24:12 -0500
-From: Lyude Paul <lyude@redhat.com>
-To: stable@vger.kernel.org
-Cc: "Alex Deucher" <alexander.deucher@amd.com>,
-        "Sinclair Yeh" <syeh@vmware.com>,
-        =?UTF-8?q?Christian=20K=C3=B6nig?= <christian.koenig@amd.com>,
-        "David Airlie" <airlied@linux.ie>, linux-kernel@vger.kernel.org,
-        =?UTF-8?q?Nicolai=20H=C3=A4hnle?= <nicolai.haehnle@amd.com>,
-        dri-devel@lists.freedesktop.org,
-        "Peter Zijlstra" <peterz@infradead.org>,
-        "Chunming Zhou" <david1.zhou@amd.com>,
-        =?UTF-8?q?Michel=20D=C3=A4nzer?= <michel.daenzer@amd.com>,
-        "Sumit Semwal" <sumit.semwal@linaro.org>,
-        linux-media@vger.kernel.org, linaro-mm-sig@lists.linaro.org,
-        "Harish Kasiviswanathan" <harish.kasiviswanathan@amd.com>,
-        "Alex Xie" <alexbin.xie@amd.com>,
-        "Zhang, Jerry" <jerry.zhang@amd.com>,
-        "Felix Kuehling" <felix.kuehling@amd.com>,
-        amd-gfx@lists.freedesktop.org
-Subject: [PATCH 0/4] Backported amdgpu ttm deadlock fixes for 4.14
-Date: Thu, 30 Nov 2017 19:23:02 -0500
-Message-Id: <20171201002311.28098-1-lyude@redhat.com>
+Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:33812 "EHLO
+        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751277AbdK0JN5 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 27 Nov 2017 04:13:57 -0500
+Subject: Re: [PATCH 0/3] Improve CEC autorepeat handling
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+        Sean Young <sean@mess.org>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-input@vger.kernel.org, linux-media@vger.kernel.org
+References: <cover.1511523174.git.sean@mess.org>
+ <20171125234752.2z46d3ya7qiaovby@dtor-ws>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <27b40fb8-a422-e43d-45d4-b4f763f7b82a@xs4all.nl>
+Date: Mon, 27 Nov 2017 10:13:51 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <20171125234752.2z46d3ya7qiaovby@dtor-ws>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I haven't gone to see where it started, but as of late a good number of
-pretty nasty deadlock issues have appeared with the kernel. Easy
-reproduction recipe on a laptop with i915/amdgpu prime with lockdep enabled:
+On 11/26/2017 12:47 AM, Dmitry Torokhov wrote:
+> Hi Sean,
+> 
+> On Fri, Nov 24, 2017 at 11:43:58AM +0000, Sean Young wrote:
+>> Due to the slowness of the CEC bus, autorepeat handling rather special
+>> on CEC. If the repeated user control pressed message is received, a 
+>> keydown repeat should be sent immediately.
+> 
+> This sounds like you want to have hardware autorepeat combined with
+> software one. This seems fairly specific to CEC and I do not think that
+> this should be in input core; but stay in the driver.
+> 
+> Another option just to decide what common delay for CEC autorepeat is
+> and rely on the standard autorepeat handling. The benefit is that users
+> can control the delay before autorepeat kicks in.
 
-DRI_PRIME=1 glxinfo
+They are not allowed to. Autorepeat is only allowed to start when a second
+keydown message arrives within 550 ms as per the spec. After that autorepeat
+continues as long as keydown messages are received within 550ms from the
+previous one. The actual REP_PERIOD time is unrelated to the frequency of
+the CEC messages but should be that of the local system.
 
-Additionally, some more race conditions exist that I've managed to
-trigger with piglit and lockdep enabled after applying these patches:
+The thing to remember here is that CEC is slooow (400 bits/s) so you cannot
+send messages at REP_PERIOD rate. You should see it as messages that tell
+you to enter/stay in autorepeat mode. Not as actual autorepeat messages.
 
-    =============================
-    WARNING: suspicious RCU usage
-    4.14.3Lyude-Test+ #2 Not tainted
-    -----------------------------
-    ./include/linux/reservation.h:216 suspicious rcu_dereference_protected() usage!
+> 
+>>
+>> By handling this in the input layer, we can remove some ugly code from
+>> cec, which also sends a keyup event after the first keydown, to prevent
+>> autorepeat.
+> 
+> If driver does not want input core to handle autorepeat (but handle
+> autorepeat by themselves) they should indicate it by setting appropriate
+> dev->rep[REP_DELAY] and dev->rep[REP_PERIOD] before calling
+> input_register_device(). This will let input core know that it should
+> not setup its autorepeat timer.
 
-    other info that might help us debug this:
+That only means that I have to setup the autorepeat timer myself, there
+is no benefit in that :-)
 
-    rcu_scheduler_active = 2, debug_locks = 1
-    1 lock held by ext_image_dma_b/27451:
-     #0:  (reservation_ww_class_mutex){+.+.}, at: [<ffffffffa034f2ff>] ttm_bo_unref+0x9f/0x3c0 [ttm]
+Sean, I kind of agree with Dmitry here. The way autorepeat works for CEC
+is pretty specific to that protocol and unlikely to be needed for other
+protocols.
 
-    stack backtrace:
-    CPU: 0 PID: 27451 Comm: ext_image_dma_b Not tainted 4.14.3Lyude-Test+ #2
-    Hardware name: HP HP ZBook 15 G4/8275, BIOS P70 Ver. 01.02 06/09/2017
-    Call Trace:
-     dump_stack+0x8e/0xce
-     lockdep_rcu_suspicious+0xc5/0x100
-     reservation_object_copy_fences+0x292/0x2b0
-     ? ttm_bo_unref+0x9f/0x3c0 [ttm]
-     ttm_bo_unref+0xbd/0x3c0 [ttm]
-     amdgpu_bo_unref+0x2a/0x50 [amdgpu]
-     amdgpu_gem_object_free+0x4b/0x50 [amdgpu]
-     drm_gem_object_free+0x1f/0x40 [drm]
-     drm_gem_object_put_unlocked+0x40/0xb0 [drm]
-     drm_gem_object_handle_put_unlocked+0x6c/0xb0 [drm]
-     drm_gem_object_release_handle+0x51/0x90 [drm]
-     drm_gem_handle_delete+0x5e/0x90 [drm]
-     ? drm_gem_handle_create+0x40/0x40 [drm]
-     drm_gem_close_ioctl+0x20/0x30 [drm]
-     drm_ioctl_kernel+0x5d/0xb0 [drm]
-     drm_ioctl+0x2f7/0x3b0 [drm]
-     ? drm_gem_handle_create+0x40/0x40 [drm]
-     ? trace_hardirqs_on_caller+0xf4/0x190
-     ? trace_hardirqs_on+0xd/0x10
-     amdgpu_drm_ioctl+0x4f/0x90 [amdgpu]
-     do_vfs_ioctl+0x93/0x670
-     ? __fget+0x108/0x1f0
-     SyS_ioctl+0x79/0x90
-     entry_SYSCALL_64_fastpath+0x23/0xc2
+It is also no big deal to keep knowledge of that within cec-adap.c.
 
-I've also added the relevant fixes for the issue mentioned above.
+The only thing that would be nice to have control over is that with CEC
+userspace shouldn't be able to change REP_DELAY and that REP_DELAY should
+always be identical to REP_PERIOD. If this can be done easily, then that
+would be nice, but it's a nice-to-have in my opinion.
 
-Christian König (3):
-  drm/ttm: fix ttm_bo_cleanup_refs_or_queue once more
-  dma-buf: make reservation_object_copy_fences rcu save
-  drm/amdgpu: reserve root PD while releasing it
+Regards,
 
-Michel Dänzer (1):
-  drm/ttm: Always and only destroy bo->ttm_resv in ttm_bo_release_list
-
- drivers/dma-buf/reservation.c          | 56 +++++++++++++++++++++++++---------
- drivers/gpu/drm/amd/amdgpu/amdgpu_vm.c | 13 ++++++--
- drivers/gpu/drm/ttm/ttm_bo.c           | 43 +++++++++++++-------------
- 3 files changed, 74 insertions(+), 38 deletions(-)
-
---
-2.14.3
+	Hans
