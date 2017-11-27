@@ -1,134 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:43894 "EHLO
-        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750724AbdKYFI4 (ORCPT
+Received: from kadath.azazel.net ([81.187.231.250]:35454 "EHLO
+        kadath.azazel.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751712AbdK0L52 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 25 Nov 2017 00:08:56 -0500
-Message-ID: <f9df7ca90cdfd410666a3f6a5eb51438@smtp-cloud9.xs4all.net>
-Date: Sat, 25 Nov 2017 06:08:53 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
+        Mon, 27 Nov 2017 06:57:28 -0500
+From: Jeremy Sowden <jeremy@azazel.net>
+To: linux-media@vger.kernel.org, devel@driverdev.osuosl.org
+Cc: Jeremy Sowden <jeremy@azazel.net>
+Subject: [PATCH 1/3] media: staging: atomisp: address member of struct ia_css_host_data is a pointer-to-char, so define default as NULL.
+Date: Mon, 27 Nov 2017 11:30:52 +0000
+Message-Id: <20171127113054.27657-2-jeremy@azazel.net>
+In-Reply-To: <20171127113054.27657-1-jeremy@azazel.net>
+References: <20171127113054.27657-1-jeremy@azazel.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
+---
+ .../css2400/runtime/isp_param/interface/ia_css_isp_param_types.h        | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Results of the daily build of media_tree:
-
-date:			Sat Nov 25 05:00:17 CET 2017
-media-tree git hash:	30b4e122d71cbec2944a5f8b558b88936ee42f10
-media_build git hash:	097aaf3e4e4bfdeff130db9697dec1befeb3221b
-v4l-utils git hash:	a8a04d397e929381a2150bee2100fc28ad2cfbec
-gcc version:		i686-linux-gcc (GCC) 7.1.0
-sparse version:		0.5.1 (Debian: 0.5.1-2)
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.13.0-164
-
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: WARNINGS
-linux-3.12.67-i686: WARNINGS
-linux-3.13.11-i686: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.16.7-i686: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.18.7-i686: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-4.0.9-i686: WARNINGS
-linux-4.1.33-i686: WARNINGS
-linux-4.2.8-i686: WARNINGS
-linux-4.3.6-i686: WARNINGS
-linux-4.4.22-i686: WARNINGS
-linux-4.5.7-i686: WARNINGS
-linux-4.6.7-i686: WARNINGS
-linux-4.7.5-i686: WARNINGS
-linux-4.8-i686: OK
-linux-4.9.26-i686: OK
-linux-4.10.14-i686: OK
-linux-4.11-i686: OK
-linux-4.12.1-i686: OK
-linux-4.13-i686: OK
-linux-4.14-i686: OK
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: WARNINGS
-linux-3.12.67-x86_64: WARNINGS
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16.7-x86_64: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.7-x86_64: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0.9-x86_64: WARNINGS
-linux-4.1.33-x86_64: WARNINGS
-linux-4.2.8-x86_64: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.22-x86_64: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-x86_64: WARNINGS
-linux-4.9.26-x86_64: WARNINGS
-linux-4.10.14-x86_64: WARNINGS
-linux-4.11-x86_64: WARNINGS
-linux-4.12.1-x86_64: WARNINGS
-linux-4.13-x86_64: OK
-linux-4.14-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/runtime/isp_param/interface/ia_css_isp_param_types.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/runtime/isp_param/interface/ia_css_isp_param_types.h
+index 8e651b80345a..6fee3f7fd184 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/runtime/isp_param/interface/ia_css_isp_param_types.h
++++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/runtime/isp_param/interface/ia_css_isp_param_types.h
+@@ -95,7 +95,7 @@ union ia_css_all_memory_offsets {
+ };
+ 
+ #define IA_CSS_DEFAULT_ISP_MEM_PARAMS \
+-		{ { { { 0, 0 } } } }
++		{ { { { NULL, 0 } } } }
+ 
+ #define IA_CSS_DEFAULT_ISP_CSS_PARAMS \
+ 		{ { { { 0, 0 } } } }
+-- 
+2.15.0
