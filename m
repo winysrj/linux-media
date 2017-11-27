@@ -1,75 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f194.google.com ([209.85.216.194]:45845 "EHLO
-        mail-qt0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933277AbdKORLT (ORCPT
+Received: from mout.kundenserver.de ([212.227.126.134]:50205 "EHLO
+        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752369AbdK0PXT (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 15 Nov 2017 12:11:19 -0500
-From: Gustavo Padovan <gustavo@padovan.org>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        Pawel Osciak <pawel@osciak.com>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Brian Starkey <brian.starkey@arm.com>,
-        Thierry Escande <thierry.escande@collabora.com>,
-        linux-kernel@vger.kernel.org,
-        Gustavo Padovan <gustavo.padovan@collabora.com>
-Subject: [RFC v5 03/11] [media] vb2: add 'ordered_in_driver' property to queues
-Date: Wed, 15 Nov 2017 15:10:49 -0200
-Message-Id: <20171115171057.17340-4-gustavo@padovan.org>
-In-Reply-To: <20171115171057.17340-1-gustavo@padovan.org>
-References: <20171115171057.17340-1-gustavo@padovan.org>
+        Mon, 27 Nov 2017 10:23:19 -0500
+From: Arnd Bergmann <arnd@arndb.de>
+To: Alan Cox <alan@linux.intel.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: y2038@lists.linaro.org, Arnd Bergmann <arnd@arndb.de>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        linux-kernel@vger.kernel.org
+Subject: [PATCH v2] [media] staging: atomisp: convert timestamps to ktime_t
+Date: Mon, 27 Nov 2017 16:21:41 +0100
+Message-Id: <20171127152256.2184193-1-arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Gustavo Padovan <gustavo.padovan@collabora.com>
+timespec overflows in 2038 on 32-bit architectures, and the
+getnstimeofday() suffers from possible time jumps, so the
+timestamps here are better done using ktime_get(), which has
+neither of those problems.
 
-We use ordered_in_driver property to optimize for the case where
-the driver can deliver the buffers in an ordered fashion. When it
-is ordered we can use the same fence context for all fences, but
-when it is not we need to a new context for each out-fence.
+In case of ov2680, we don't seem to use the timestamp at
+all, so I just remove it.
 
-So the ordered_in_driver flag will help us with identifying the queues
-that can be optimized and use the same fence context.
-
-v4: make the property a vector for optimization and not a mandatory thing
-that drivers need to set if they want to use explicit synchronization.
-
-v3: improve doc (Hans Verkuil)
-
-v2: rename property to 'ordered_in_driver' to avoid confusion
-
-Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 ---
- include/media/videobuf2-core.h | 7 +++++++
- 1 file changed, 7 insertions(+)
+v2: use min_t() as suggested by Andy Shevchenko
+---
+ drivers/staging/media/atomisp/i2c/ov2680.h            |  1 -
+ .../staging/media/atomisp/i2c/ov5693/atomisp-ov5693.c | 19 ++++++++-----------
+ drivers/staging/media/atomisp/i2c/ov5693/ov5693.h     |  2 +-
+ 3 files changed, 9 insertions(+), 13 deletions(-)
 
-diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index ef9b64398c8c..38b9c8dd42c6 100644
---- a/include/media/videobuf2-core.h
-+++ b/include/media/videobuf2-core.h
-@@ -440,6 +440,12 @@ struct vb2_buf_ops {
-  * @fileio_read_once:		report EOF after reading the first buffer
-  * @fileio_write_immediately:	queue buffer after each write() call
-  * @allow_zero_bytesused:	allow bytesused == 0 to be passed to the driver
-+ * @ordered_in_driver: if the driver can guarantee that the queue will be
-+ *		ordered or not, i.e., the buffers are dequeued from the driver
-+ *		in the same order they are queued to the driver. The default
-+ *		is not ordered unless the driver sets this flag. Setting it
-+ *		when ordering can be guaranted helps to optimize explicit
-+ *		fences.
-  * @quirk_poll_must_check_waiting_for_buffers: Return POLLERR at poll when QBUF
-  *              has not been called. This is a vb1 idiom that has been adopted
-  *              also by vb2.
-@@ -510,6 +516,7 @@ struct vb2_queue {
- 	unsigned			fileio_read_once:1;
- 	unsigned			fileio_write_immediately:1;
- 	unsigned			allow_zero_bytesused:1;
-+	unsigned			ordered_in_driver:1;
- 	unsigned		   quirk_poll_must_check_waiting_for_buffers:1;
+diff --git a/drivers/staging/media/atomisp/i2c/ov2680.h b/drivers/staging/media/atomisp/i2c/ov2680.h
+index bf4897347df7..03f75dd80f87 100644
+--- a/drivers/staging/media/atomisp/i2c/ov2680.h
++++ b/drivers/staging/media/atomisp/i2c/ov2680.h
+@@ -174,7 +174,6 @@ struct ov2680_format {
+ 		struct mutex input_lock;
+ 	struct v4l2_ctrl_handler ctrl_handler;
+ 		struct camera_sensor_platform_data *platform_data;
+-		struct timespec timestamp_t_focus_abs;
+ 		int vt_pix_clk_freq_mhz;
+ 		int fmt_idx;
+ 		int run_mode;
+diff --git a/drivers/staging/media/atomisp/i2c/ov5693/atomisp-ov5693.c b/drivers/staging/media/atomisp/i2c/ov5693/atomisp-ov5693.c
+index 3e7c3851280f..9fa25bb8f1ee 100644
+--- a/drivers/staging/media/atomisp/i2c/ov5693/atomisp-ov5693.c
++++ b/drivers/staging/media/atomisp/i2c/ov5693/atomisp-ov5693.c
+@@ -973,7 +973,7 @@ static int ov5693_t_focus_abs(struct v4l2_subdev *sd, s32 value)
+ 	if (ret == 0) {
+ 		dev->number_of_steps = value - dev->focus;
+ 		dev->focus = value;
+-		getnstimeofday(&(dev->timestamp_t_focus_abs));
++		dev->timestamp_t_focus_abs = ktime_get();
+ 	} else
+ 		dev_err(&client->dev,
+ 			"%s: i2c failed. ret %d\n", __func__, ret);
+@@ -993,16 +993,13 @@ static int ov5693_q_focus_status(struct v4l2_subdev *sd, s32 *value)
+ {
+ 	u32 status = 0;
+ 	struct ov5693_device *dev = to_ov5693_sensor(sd);
+-	struct timespec temptime;
+-	const struct timespec timedelay = {
+-		0,
+-		min((u32)abs(dev->number_of_steps) * DELAY_PER_STEP_NS,
+-		(u32)DELAY_MAX_PER_STEP_NS),
+-	};
+-
+-	getnstimeofday(&temptime);
+-	temptime = timespec_sub(temptime, (dev->timestamp_t_focus_abs));
+-	if (timespec_compare(&temptime, &timedelay) <= 0) {
++	ktime_t temptime;
++	ktime_t timedelay = ns_to_ktime(min_t(u32,
++			abs(dev->number_of_steps) * DELAY_PER_STEP_NS,
++			DELAY_MAX_PER_STEP_NS));
++
++	temptime = ktime_sub(ktime_get(), (dev->timestamp_t_focus_abs));
++	if (ktime_compare(temptime, timedelay) <= 0) {
+ 		status |= ATOMISP_FOCUS_STATUS_MOVING;
+ 		status |= ATOMISP_FOCUS_HP_IN_PROGRESS;
+ 	} else {
+diff --git a/drivers/staging/media/atomisp/i2c/ov5693/ov5693.h b/drivers/staging/media/atomisp/i2c/ov5693/ov5693.h
+index 2ea63807c56d..68cfcb4a6c3c 100644
+--- a/drivers/staging/media/atomisp/i2c/ov5693/ov5693.h
++++ b/drivers/staging/media/atomisp/i2c/ov5693/ov5693.h
+@@ -221,7 +221,7 @@ struct ov5693_device {
+ 	struct v4l2_ctrl_handler ctrl_handler;
  
- 	struct mutex			*lock;
+ 	struct camera_sensor_platform_data *platform_data;
+-	struct timespec timestamp_t_focus_abs;
++	ktime_t timestamp_t_focus_abs;
+ 	int vt_pix_clk_freq_mhz;
+ 	int fmt_idx;
+ 	int run_mode;
 -- 
-2.13.6
+2.9.0
