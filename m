@@ -1,68 +1,33 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pl0-f67.google.com ([209.85.160.67]:40077 "EHLO
-        mail-pl0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752964AbdKXChe (ORCPT
+Received: from kadath.azazel.net ([81.187.231.250]:35460 "EHLO
+        kadath.azazel.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751712AbdK0L5b (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 23 Nov 2017 21:37:34 -0500
-From: Jacob Chen <jacob-chen@iotwrt.com>
-To: linux-rockchip@lists.infradead.org
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        mchehab@kernel.org, linux-media@vger.kernel.org,
-        sakari.ailus@linux.intel.com, hans.verkuil@cisco.com,
-        tfiga@chromium.org, zhengsq@rock-chips.com,
-        laurent.pinchart@ideasonboard.com, zyc@rock-chips.com,
-        eddie.cai.linux@gmail.com, jeffy.chen@rock-chips.com,
-        allon.huang@rock-chips.com, devicetree@vger.kernel.org,
-        heiko@sntech.de, robh+dt@kernel.org,
-        Jacob Chen <jacob2.chen@rock-chips.com>
-Subject: [PATCH v2 01/11] media: videodev2.h, v4l2-ioctl: add rkisp1 meta buffer format
-Date: Fri, 24 Nov 2017 10:36:56 +0800
-Message-Id: <20171124023706.5702-2-jacob-chen@iotwrt.com>
-In-Reply-To: <20171124023706.5702-1-jacob-chen@iotwrt.com>
-References: <20171124023706.5702-1-jacob-chen@iotwrt.com>
+        Mon, 27 Nov 2017 06:57:31 -0500
+From: Jeremy Sowden <jeremy@azazel.net>
+To: linux-media@vger.kernel.org, devel@driverdev.osuosl.org
+Cc: Jeremy Sowden <jeremy@azazel.net>
+Subject: [PATCH 0/3] Sparse fixes for the Atom ISP Staging Driver
+Date: Mon, 27 Nov 2017 11:30:51 +0000
+Message-Id: <20171127113054.27657-1-jeremy@azazel.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Shunqian Zheng <zhengsq@rock-chips.com>
+Fixed some sparse warnings in the Atom ISP staging driver and the checkpatch
+warnings that affected my patches.
 
-Add the Rockchip ISP1 specific processing parameter format
-V4L2_META_FMT_RK_ISP1_PARAMS and metadata format
-V4L2_META_FMT_RK_ISP1_STAT_3A for 3A.
+Jeremy Sowden (3):
+  media: staging: atomisp: address member of struct ia_css_host_data is
+    a pointer-to-char, so define default as NULL.
+  media: staging: atomisp: defined as static some const arrays which
+    don't need external linkage.
+  media: staging: atomisp: prefer s16 to int16_t.
 
-Signed-off-by: Shunqian Zheng <zhengsq@rock-chips.com>
-Signed-off-by: Jacob Chen <jacob2.chen@rock-chips.com>
----
- drivers/media/v4l2-core/v4l2-ioctl.c | 2 ++
- include/uapi/linux/videodev2.h       | 4 ++++
- 2 files changed, 6 insertions(+)
+ .../isp/kernels/eed1_8/ia_css_eed1_8.host.c        | 25 +++++++++++-----------
+ .../isp_param/interface/ia_css_isp_param_types.h   |  2 +-
+ 2 files changed, 13 insertions(+), 14 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index d6587b3ec33e..0604ae9ea444 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -1252,6 +1252,8 @@ static void v4l_fill_fmtdesc(struct v4l2_fmtdesc *fmt)
- 	case V4L2_TCH_FMT_TU08:		descr = "8-bit unsigned touch data"; break;
- 	case V4L2_META_FMT_VSP1_HGO:	descr = "R-Car VSP1 1-D Histogram"; break;
- 	case V4L2_META_FMT_VSP1_HGT:	descr = "R-Car VSP1 2-D Histogram"; break;
-+	case V4L2_META_FMT_RK_ISP1_PARAMS:	descr = "Rockchip ISP1 3A params"; break;
-+	case V4L2_META_FMT_RK_ISP1_STAT_3A:	descr = "Rockchip ISP1 3A statistics"; break;
- 
- 	default:
- 		/* Compressed formats */
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 7c871291c1fa..961545e64c12 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -691,6 +691,10 @@ struct v4l2_pix_format {
- #define V4L2_META_FMT_VSP1_HGO    v4l2_fourcc('V', 'S', 'P', 'H') /* R-Car VSP1 1-D Histogram */
- #define V4L2_META_FMT_VSP1_HGT    v4l2_fourcc('V', 'S', 'P', 'T') /* R-Car VSP1 2-D Histogram */
- 
-+/* Vendor specific - used for IPU3 camera sub-system */
-+#define V4L2_META_FMT_RK_ISP1_PARAMS	v4l2_fourcc('R', 'K', '1', 'P') /* Rockchip ISP1 params */
-+#define V4L2_META_FMT_RK_ISP1_STAT_3A	v4l2_fourcc('R', 'K', '1', 'S') /* Rockchip ISP1 3A statistics */
-+
- /* priv field value to indicates that subsequent fields are valid. */
- #define V4L2_PIX_FMT_PRIV_MAGIC		0xfeedcafe
- 
+
+base-commit: 844056fd74ebdd826bd23a7d989597e15f478acb
 -- 
 2.15.0
