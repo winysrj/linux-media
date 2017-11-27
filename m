@@ -1,42 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.hosts.co.uk ([85.233.160.19]:12440 "EHLO smtp.hosts.co.uk"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S935086AbdKQWwa (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 17 Nov 2017 17:52:30 -0500
-From: Ian Jamison <ian.dev@arkver.com>
-To: linux-media@vger.kernel.org,
-        Steve Longerbeam <slongerbeam@gmail.com>
-Cc: Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH] media: imx: Remove incorrect check for queue state in start_streaming
-Date: Fri, 17 Nov 2017 18:23:14 +0000
-Message-Id: <37124a40f1388b0b0a2f2226661280962f23102d.1510942589.git.ian.dev@arkver.com>
+Received: from mail-wr0-f194.google.com ([209.85.128.194]:44564 "EHLO
+        mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752275AbdK0Vp2 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 27 Nov 2017 16:45:28 -0500
+Received: by mail-wr0-f194.google.com with SMTP id l22so27853889wrc.11
+        for <linux-media@vger.kernel.org>; Mon, 27 Nov 2017 13:45:27 -0800 (PST)
+From: Riccardo Schirone <sirmy15@gmail.com>
+To: alan@linux.intel.com, gregkh@linuxfoundation.org,
+        linux-media@vger.kernel.org
+Cc: Riccardo Schirone <sirmy15@gmail.com>
+Subject: [PATCH 4/4] staging: fix indentation in atomisp-ov5693
+Date: Mon, 27 Nov 2017 22:44:13 +0100
+Message-Id: <20171127214413.10749-5-sirmy15@gmail.com>
+In-Reply-To: <20171127214413.10749-1-sirmy15@gmail.com>
+References: <20171127214413.10749-1-sirmy15@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-It is possible to call STREAMON without the minimum number of
-buffers queued. In this case the vb2_queue state will be set to
-streaming but the start_streaming vb2_op will not be called.
-Later when enough buffers are queued, start_streaming will
-be called but vb2_is_streaming will already return true.
+Fix "suspect code indent for conditional statements" issue
 
-Signed-off-by: Ian Jamison <ian.dev@arkver.com>
+Signed-off-by: Riccardo Schirone <sirmy15@gmail.com>
 ---
- drivers/staging/media/imx/imx-media-capture.c | 3 ---
- 1 file changed, 3 deletions(-)
+ drivers/staging/media/atomisp/i2c/ov5693/atomisp-ov5693.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/staging/media/imx/imx-media-capture.c b/drivers/staging/media/imx/imx-media-capture.c
-index ddab4c249da2..34b492c2419c 100644
---- a/drivers/staging/media/imx/imx-media-capture.c
-+++ b/drivers/staging/media/imx/imx-media-capture.c
-@@ -449,9 +449,6 @@ static int capture_start_streaming(struct vb2_queue *vq, unsigned int count)
- 	unsigned long flags;
- 	int ret;
- 
--	if (vb2_is_streaming(vq))
--		return 0;
--
- 	ret = imx_media_pipeline_set_stream(priv->md, &priv->src_sd->entity,
- 					    true);
- 	if (ret) {
+diff --git a/drivers/staging/media/atomisp/i2c/ov5693/atomisp-ov5693.c b/drivers/staging/media/atomisp/i2c/ov5693/atomisp-ov5693.c
+index 4eeb478ae84b..6eb6afdc730e 100644
+--- a/drivers/staging/media/atomisp/i2c/ov5693/atomisp-ov5693.c
++++ b/drivers/staging/media/atomisp/i2c/ov5693/atomisp-ov5693.c
+@@ -776,7 +776,7 @@ static int __ov5693_otp_read(struct v4l2_subdev *sd, u8 *buf)
+ 			if ((*b) == 0) {
+ 				dev->otp_size = 32;
+ 				break;
+-		} else {
++			} else {
+ 				b = buf;
+ 				continue;
+ 			}
 -- 
-2.15.0
+2.14.3
