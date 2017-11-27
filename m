@@ -1,474 +1,175 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:55278 "EHLO
-        mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754080AbdKCILg (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 3 Nov 2017 04:11:36 -0400
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        Andrzej Hajda <a.hajda@samsung.com>,
-        Marian Mihailescu <mihailescu2m@gmail.com>,
-        Chanwoo Choi <cw00.choi@samsung.com>,
-        JaeChul Lee <jcsing.lee@samsung.com>,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Seung-Woo Kim <sw0312.kim@samsung.com>
-Subject: [PATCH v2] media: s5p-mfc: Add support for V4L2_MEMORY_DMABUF type
-Date: Fri, 03 Nov 2017 09:11:24 +0100
-Message-id: <20171103081124.30119-1-m.szyprowski@samsung.com>
-References: <CGME20171103081132eucas1p2212e32d26e7921340336d78d0d92cb1b@eucas1p2.samsung.com>
+Received: from mout.kundenserver.de ([212.227.17.10]:63751 "EHLO
+        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752363AbdK0NUv (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 27 Nov 2017 08:20:51 -0500
+From: Arnd Bergmann <arnd@arndb.de>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: y2038@lists.linaro.org, Arnd Bergmann <arnd@arndb.de>,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH 2/8] [media] uvc_video: use ktime_t for timestamps
+Date: Mon, 27 Nov 2017 14:19:54 +0100
+Message-Id: <20171127132027.1734806-2-arnd@arndb.de>
+In-Reply-To: <20171127132027.1734806-1-arnd@arndb.de>
+References: <20171127132027.1734806-1-arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-MFC driver supports only MMAP operation mode mainly due to the hardware
-restrictions of the addresses of the DMA buffers (MFC v5 hardware can
-access buffers only in 128MiB memory region starting from the base address
-of its firmware). When IOMMU is available, this requirement is easily
-fulfilled even for the buffers located anywhere in the memory - typically
-by mapping them in the DMA address space as close as possible to the
-firmware. Later hardware revisions don't have this limitations at all.
+uvc_video_get_ts() returns a 'struct timespec', but all its users
+really want a nanoseconds variable anyway.
 
-The second limitation of the MFC hardware related to the memory buffers
-is constant buffer address. Once the hardware has been initialized for
-operation on given buffer set, the addresses of the buffers cannot be
-changed.
+Changing the deprecated ktime_get_ts/ktime_get_real_ts to ktime_get
+and ktime_get_real simplifies the code noticeably, while keeping
+the resulting numbers unchanged.
 
-With the above assumptions, a limited support for USERPTR and DMABUF
-operation modes can be added. The main requirement is to have all buffers
-known when starting hardware. This has been achieved by postponing
-hardware initialization once all the DMABUF or USERPTR buffers have been
-queued for the first time. Once then, buffers cannot be modified to point
-to other memory area.
-
-This patch also removes unconditional USERPTR operation mode from encoder
-video node, because it doesn't work with v5 MFC hardware without IOMMU
-being enabled.
-
-In case of MFC v5 a bidirectional queue flag has to be enabled as a
-workaround of the strange hardware behavior - MFC performs a few writes
-to source data during the operation.
-
-Signed-off-by: Seung-Woo Kim <sw0312.kim@samsung.com>
-[mszyprow: adapted to v4.14 code base, rewrote and extended commit message,
- added checks for changing buffer addresses, added bidirectional queue
- flags and comments]
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 ---
-v2:
-- fixed copy/paste bug, which broke encoding support (thanks to Marian
-  Mihailescu for reporting it)
-- added checks for changing buffers DMA addresses
-- added bidirectional queue flags
+ drivers/media/usb/uvc/uvc_video.c | 37 ++++++++++++-------------------------
+ drivers/media/usb/uvc/uvcvideo.h  |  2 +-
+ 2 files changed, 13 insertions(+), 26 deletions(-)
 
-v1:
-- inital version
----
- drivers/media/platform/s5p-mfc/s5p_mfc.c     |  23 +++++-
- drivers/media/platform/s5p-mfc/s5p_mfc_dec.c | 111 +++++++++++++++++++--------
- drivers/media/platform/s5p-mfc/s5p_mfc_enc.c |  64 +++++++++++----
- 3 files changed, 147 insertions(+), 51 deletions(-)
-
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-index 1839a86cc2a5..f1ab8d198158 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-@@ -754,6 +754,7 @@ static int s5p_mfc_open(struct file *file)
- 	struct s5p_mfc_dev *dev = video_drvdata(file);
- 	struct s5p_mfc_ctx *ctx = NULL;
- 	struct vb2_queue *q;
-+	unsigned int io_modes;
- 	int ret = 0;
+diff --git a/drivers/media/usb/uvc/uvc_video.c b/drivers/media/usb/uvc/uvc_video.c
+index d6bee37cd1b8..f7a919490b2b 100644
+--- a/drivers/media/usb/uvc/uvc_video.c
++++ b/drivers/media/usb/uvc/uvc_video.c
+@@ -369,12 +369,12 @@ static int uvc_commit_video(struct uvc_streaming *stream,
+  * Clocks and timestamps
+  */
  
- 	mfc_debug_enter();
-@@ -839,16 +840,25 @@ static int s5p_mfc_open(struct file *file)
- 		if (ret)
- 			goto err_init_hw;
- 	}
-+
-+	io_modes = VB2_MMAP;
-+	if (exynos_is_iommu_available(&dev->plat_dev->dev) || !IS_TWOPORT(dev))
-+		io_modes |= VB2_USERPTR | VB2_DMABUF;
-+
- 	/* Init videobuf2 queue for CAPTURE */
- 	q = &ctx->vq_dst;
- 	q->type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
-+	q->io_modes = io_modes;
-+	/*
-+	 * Destination buffers are always bidirectional, they use used as
-+	 * reference data, which require READ access
-+	 */
-+	q->bidirectional = true;
- 	q->drv_priv = &ctx->fh;
- 	q->lock = &dev->mfc_mutex;
- 	if (vdev == dev->vfd_dec) {
--		q->io_modes = VB2_MMAP;
- 		q->ops = get_dec_queue_ops();
- 	} else if (vdev == dev->vfd_enc) {
--		q->io_modes = VB2_MMAP | VB2_USERPTR;
- 		q->ops = get_enc_queue_ops();
- 	} else {
- 		ret = -ENOENT;
-@@ -869,13 +879,18 @@ static int s5p_mfc_open(struct file *file)
- 	/* Init videobuf2 queue for OUTPUT */
- 	q = &ctx->vq_src;
- 	q->type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE;
-+	q->io_modes = io_modes;
-+	/*
-+	 * MFV v5 performs write operations on source data, so make queue
-+	 * bidirectional to avoid IOMMU protection fault.
-+	 */
-+	if (!IS_MFCV6_PLUS(dev))
-+		q->bidirectional = true;
- 	q->drv_priv = &ctx->fh;
- 	q->lock = &dev->mfc_mutex;
- 	if (vdev == dev->vfd_dec) {
--		q->io_modes = VB2_MMAP;
- 		q->ops = get_dec_queue_ops();
- 	} else if (vdev == dev->vfd_enc) {
--		q->io_modes = VB2_MMAP | VB2_USERPTR;
- 		q->ops = get_enc_queue_ops();
- 	} else {
- 		ret = -ENOENT;
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-index e3e5c442902a..26ee8315e2cf 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-@@ -551,14 +551,27 @@ static int reqbufs_capture(struct s5p_mfc_dev *dev, struct s5p_mfc_ctx *ctx,
- 			goto out;
- 		}
- 
--		WARN_ON(ctx->dst_bufs_cnt != ctx->total_dpb_count);
--		ctx->capture_state = QUEUE_BUFS_MMAPED;
-+		if (reqbufs->memory == V4L2_MEMORY_MMAP) {
-+			if (ctx->dst_bufs_cnt == ctx->total_dpb_count) {
-+				ctx->capture_state = QUEUE_BUFS_MMAPED;
-+			} else {
-+				mfc_err("Not all buffers passed to buf_init\n");
-+				reqbufs->count = 0;
-+				ret = vb2_reqbufs(&ctx->vq_dst, reqbufs);
-+				s5p_mfc_hw_call(dev->mfc_ops,
-+						release_codec_buffers, ctx);
-+				ret = -ENOMEM;
-+				goto out;
-+			}
-+		}
- 
- 		if (s5p_mfc_ctx_ready(ctx))
- 			set_work_bit_irqsave(ctx);
- 		s5p_mfc_hw_call(dev->mfc_ops, try_run, dev);
--		s5p_mfc_wait_for_done_ctx(ctx, S5P_MFC_R2H_CMD_INIT_BUFFERS_RET,
--					  0);
-+		if (reqbufs->memory == V4L2_MEMORY_MMAP) {
-+			s5p_mfc_wait_for_done_ctx(ctx,
-+					 S5P_MFC_R2H_CMD_INIT_BUFFERS_RET, 0);
-+		}
- 	} else {
- 		mfc_err("Buffers have already been requested\n");
- 		ret = -EINVAL;
-@@ -576,15 +589,19 @@ static int vidioc_reqbufs(struct file *file, void *priv,
+-static inline void uvc_video_get_ts(struct timespec *ts)
++static inline ktime_t uvc_video_get_time(void)
  {
- 	struct s5p_mfc_dev *dev = video_drvdata(file);
- 	struct s5p_mfc_ctx *ctx = fh_to_ctx(priv);
--
--	if (reqbufs->memory != V4L2_MEMORY_MMAP) {
--		mfc_debug(2, "Only V4L2_MEMORY_MMAP is supported\n");
--		return -EINVAL;
--	}
-+	int ret;
- 
- 	if (reqbufs->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
-+		ret = vb2_verify_memory_type(&ctx->vq_src, reqbufs->memory,
-+					     reqbufs->type);
-+		if (ret)
-+			return ret;
- 		return reqbufs_output(dev, ctx, reqbufs);
- 	} else if (reqbufs->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
-+		ret = vb2_verify_memory_type(&ctx->vq_dst, reqbufs->memory,
-+					     reqbufs->type);
-+		if (ret)
-+			return ret;
- 		return reqbufs_capture(dev, ctx, reqbufs);
- 	} else {
- 		mfc_err("Invalid type requested\n");
-@@ -600,16 +617,20 @@ static int vidioc_querybuf(struct file *file, void *priv,
- 	int ret;
- 	int i;
- 
--	if (buf->memory != V4L2_MEMORY_MMAP) {
--		mfc_err("Only mmaped buffers can be used\n");
--		return -EINVAL;
--	}
- 	mfc_debug(2, "State: %d, buf->type: %d\n", ctx->state, buf->type);
- 	if (ctx->state == MFCINST_GOT_INST &&
- 			buf->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
-+		ret = vb2_verify_memory_type(&ctx->vq_src, buf->memory,
-+					     buf->type);
-+		if (ret)
-+			return ret;
- 		ret = vb2_querybuf(&ctx->vq_src, buf);
- 	} else if (ctx->state == MFCINST_RUNNING &&
- 			buf->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
-+		ret = vb2_verify_memory_type(&ctx->vq_dst, buf->memory,
-+					     buf->type);
-+		if (ret)
-+			return ret;
- 		ret = vb2_querybuf(&ctx->vq_dst, buf);
- 		for (i = 0; i < buf->length; i++)
- 			buf->m.planes[i].m.mem_offset += DST_QUEUE_OFF_BASE;
-@@ -940,10 +961,12 @@ static int s5p_mfc_queue_setup(struct vb2_queue *vq,
- 		else
- 			alloc_devs[0] = ctx->dev->mem_dev[BANK_R_CTX];
- 		alloc_devs[1] = ctx->dev->mem_dev[BANK_L_CTX];
-+		memset(ctx->dst_bufs, 0, sizeof(ctx->dst_bufs));
- 	} else if (vq->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE &&
- 		   ctx->state == MFCINST_INIT) {
- 		psize[0] = ctx->dec_src_buf_size;
- 		alloc_devs[0] = ctx->dev->mem_dev[BANK_L_CTX];
-+		memset(ctx->src_bufs, 0, sizeof(ctx->src_bufs));
- 	} else {
- 		mfc_err("This video node is dedicated to decoding. Decoding not initialized\n");
- 		return -EINVAL;
-@@ -959,30 +982,35 @@ static int s5p_mfc_buf_init(struct vb2_buffer *vb)
- 	unsigned int i;
- 
- 	if (vq->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
-+		dma_addr_t luma, chroma;
-+
- 		if (ctx->capture_state == QUEUE_BUFS_MMAPED)
- 			return 0;
--		for (i = 0; i < ctx->dst_fmt->num_planes; i++) {
--			if (IS_ERR_OR_NULL(ERR_PTR(
--					vb2_dma_contig_plane_dma_addr(vb, i)))) {
--				mfc_err("Plane mem not allocated\n");
--				return -EINVAL;
--			}
--		}
--		if (vb2_plane_size(vb, 0) < ctx->luma_size ||
--			vb2_plane_size(vb, 1) < ctx->chroma_size) {
--			mfc_err("Plane buffer (CAPTURE) is too small\n");
-+
-+		luma = vb2_dma_contig_plane_dma_addr(vb, 0);
-+		chroma = vb2_dma_contig_plane_dma_addr(vb, 1);
-+		if (!luma || !chroma) {
-+			mfc_err("Plane mem not allocated\n");
- 			return -EINVAL;
- 		}
-+
- 		i = vb->index;
-+		if ((ctx->dst_bufs[i].cookie.raw.luma &&
-+		     ctx->dst_bufs[i].cookie.raw.luma != luma) ||
-+		    (ctx->dst_bufs[i].cookie.raw.chroma &&
-+		     ctx->dst_bufs[i].cookie.raw.chroma != chroma)) {
-+			mfc_err("Changing CAPTURE buffer address during straming is not possible\n");
-+			return -EINVAL;
-+		}
-+
- 		ctx->dst_bufs[i].b = vbuf;
--		ctx->dst_bufs[i].cookie.raw.luma =
--					vb2_dma_contig_plane_dma_addr(vb, 0);
--		ctx->dst_bufs[i].cookie.raw.chroma =
--					vb2_dma_contig_plane_dma_addr(vb, 1);
-+		ctx->dst_bufs[i].cookie.raw.luma = luma;
-+		ctx->dst_bufs[i].cookie.raw.chroma = chroma;
- 		ctx->dst_bufs_cnt++;
- 	} else if (vq->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
--		if (IS_ERR_OR_NULL(ERR_PTR(
--					vb2_dma_contig_plane_dma_addr(vb, 0)))) {
-+		dma_addr_t stream = vb2_dma_contig_plane_dma_addr(vb, 0);
-+
-+		if (!stream) {
- 			mfc_err("Plane memory not allocated\n");
- 			return -EINVAL;
- 		}
-@@ -992,9 +1020,14 @@ static int s5p_mfc_buf_init(struct vb2_buffer *vb)
- 		}
- 
- 		i = vb->index;
-+		if (ctx->src_bufs[i].cookie.stream &&
-+		     ctx->src_bufs[i].cookie.stream != stream) {
-+			mfc_err("Changing OUTPUT buffer address during straming is not possible\n");
-+			return -EINVAL;
-+		}
-+
- 		ctx->src_bufs[i].b = vbuf;
--		ctx->src_bufs[i].cookie.stream =
--					vb2_dma_contig_plane_dma_addr(vb, 0);
-+		ctx->src_bufs[i].cookie.stream = stream;
- 		ctx->src_bufs_cnt++;
- 	} else {
- 		mfc_err("s5p_mfc_buf_init: unknown queue type\n");
-@@ -1071,6 +1104,7 @@ static void s5p_mfc_buf_queue(struct vb2_buffer *vb)
- 	struct s5p_mfc_dev *dev = ctx->dev;
- 	unsigned long flags;
- 	struct s5p_mfc_buf *mfc_buf;
-+	int wait_flag = 0;
- 
- 	if (vq->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
- 		mfc_buf = &ctx->src_bufs[vb->index];
-@@ -1088,12 +1122,25 @@ static void s5p_mfc_buf_queue(struct vb2_buffer *vb)
- 		list_add_tail(&mfc_buf->list, &ctx->dst_queue);
- 		ctx->dst_queue_cnt++;
- 		spin_unlock_irqrestore(&dev->irqlock, flags);
-+		if ((vq->memory == V4L2_MEMORY_USERPTR ||
-+			vq->memory == V4L2_MEMORY_DMABUF) &&
-+			ctx->dst_queue_cnt == ctx->total_dpb_count)
-+			ctx->capture_state = QUEUE_BUFS_MMAPED;
- 	} else {
- 		mfc_err("Unsupported buffer type (%d)\n", vq->type);
- 	}
--	if (s5p_mfc_ctx_ready(ctx))
-+	if (s5p_mfc_ctx_ready(ctx)) {
- 		set_work_bit_irqsave(ctx);
-+		if ((vq->memory == V4L2_MEMORY_USERPTR ||
-+			vq->memory == V4L2_MEMORY_DMABUF) &&
-+			ctx->state == MFCINST_HEAD_PARSED &&
-+			ctx->capture_state == QUEUE_BUFS_MMAPED)
-+			wait_flag = 1;
-+	}
- 	s5p_mfc_hw_call(dev->mfc_ops, try_run, dev);
-+	if (wait_flag)
-+		s5p_mfc_wait_for_done_ctx(ctx,
-+				S5P_MFC_R2H_CMD_INIT_BUFFERS_RET, 0);
+ 	if (uvc_clock_param == CLOCK_MONOTONIC)
+-		ktime_get_ts(ts);
++		return ktime_get();
+ 	else
+-		ktime_get_real_ts(ts);
++		return ktime_get_real();
  }
  
- static struct vb2_ops s5p_mfc_dec_qops = {
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-index 7b041e5ee4be..33fc3f3ef48a 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-@@ -1125,11 +1125,11 @@ static int vidioc_reqbufs(struct file *file, void *priv,
- 	struct s5p_mfc_ctx *ctx = fh_to_ctx(priv);
- 	int ret = 0;
+ static void
+@@ -386,7 +386,7 @@ uvc_video_clock_decode(struct uvc_streaming *stream, struct uvc_buffer *buf,
+ 	bool has_pts = false;
+ 	bool has_scr = false;
+ 	unsigned long flags;
+-	struct timespec ts;
++	ktime_t time;
+ 	u16 host_sof;
+ 	u16 dev_sof;
  
--	/* if memory is not mmp or userptr return error */
--	if ((reqbufs->memory != V4L2_MEMORY_MMAP) &&
--		(reqbufs->memory != V4L2_MEMORY_USERPTR))
--		return -EINVAL;
- 	if (reqbufs->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
-+		ret = vb2_verify_memory_type(&ctx->vq_dst, reqbufs->memory,
-+					     reqbufs->type);
-+		if (ret)
-+			return ret;
- 		if (reqbufs->count == 0) {
- 			mfc_debug(2, "Freeing buffers\n");
- 			ret = vb2_reqbufs(&ctx->vq_dst, reqbufs);
-@@ -1159,6 +1159,10 @@ static int vidioc_reqbufs(struct file *file, void *priv,
- 			return -ENOMEM;
- 		}
- 	} else if (reqbufs->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
-+		ret = vb2_verify_memory_type(&ctx->vq_src, reqbufs->memory,
-+					     reqbufs->type);
-+		if (ret)
-+			return ret;
- 		if (reqbufs->count == 0) {
- 			mfc_debug(2, "Freeing buffers\n");
- 			ret = vb2_reqbufs(&ctx->vq_src, reqbufs);
-@@ -1190,6 +1194,8 @@ static int vidioc_reqbufs(struct file *file, void *priv,
- 			mfc_err("error in vb2_reqbufs() for E(S)\n");
- 			return ret;
- 		}
-+		if (reqbufs->memory != V4L2_MEMORY_MMAP)
-+			ctx->src_bufs_cnt = reqbufs->count;
- 		ctx->output_state = QUEUE_BUFS_REQUESTED;
- 	} else {
- 		mfc_err("invalid buf type\n");
-@@ -1204,11 +1210,11 @@ static int vidioc_querybuf(struct file *file, void *priv,
- 	struct s5p_mfc_ctx *ctx = fh_to_ctx(priv);
- 	int ret = 0;
+@@ -436,7 +436,7 @@ uvc_video_clock_decode(struct uvc_streaming *stream, struct uvc_buffer *buf,
+ 	stream->clock.last_sof = dev_sof;
  
--	/* if memory is not mmp or userptr return error */
--	if ((buf->memory != V4L2_MEMORY_MMAP) &&
--		(buf->memory != V4L2_MEMORY_USERPTR))
--		return -EINVAL;
- 	if (buf->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
-+		ret = vb2_verify_memory_type(&ctx->vq_dst, buf->memory,
-+					     buf->type);
-+		if (ret)
-+			return ret;
- 		if (ctx->state != MFCINST_GOT_INST) {
- 			mfc_err("invalid context state: %d\n", ctx->state);
- 			return -EINVAL;
-@@ -1220,6 +1226,10 @@ static int vidioc_querybuf(struct file *file, void *priv,
- 		}
- 		buf->m.planes[0].m.mem_offset += DST_QUEUE_OFF_BASE;
- 	} else if (buf->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
-+		ret = vb2_verify_memory_type(&ctx->vq_src, buf->memory,
-+					     buf->type);
-+		if (ret)
-+			return ret;
- 		ret = vb2_querybuf(&ctx->vq_src, buf);
- 		if (ret != 0) {
- 			mfc_err("error in vb2_querybuf() for E(S)\n");
-@@ -1828,6 +1838,7 @@ static int s5p_mfc_queue_setup(struct vb2_queue *vq,
- 			*buf_count = MFC_MAX_BUFFERS;
- 		psize[0] = ctx->enc_dst_buf_size;
- 		alloc_devs[0] = ctx->dev->mem_dev[BANK_L_CTX];
-+		memset(ctx->dst_bufs, 0, sizeof(ctx->dst_bufs));
- 	} else if (vq->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
- 		if (ctx->src_fmt)
- 			*plane_count = ctx->src_fmt->num_planes;
-@@ -1849,6 +1860,7 @@ static int s5p_mfc_queue_setup(struct vb2_queue *vq,
- 			alloc_devs[0] = ctx->dev->mem_dev[BANK_R_CTX];
- 			alloc_devs[1] = ctx->dev->mem_dev[BANK_R_CTX];
- 		}
-+		memset(ctx->src_bufs, 0, sizeof(ctx->src_bufs));
- 	} else {
- 		mfc_err("invalid queue type: %d\n", vq->type);
- 		return -EINVAL;
-@@ -1865,25 +1877,47 @@ static int s5p_mfc_buf_init(struct vb2_buffer *vb)
- 	int ret;
+ 	host_sof = usb_get_current_frame_number(stream->dev->udev);
+-	uvc_video_get_ts(&ts);
++	time = uvc_video_get_time();
  
- 	if (vq->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE) {
-+		dma_addr_t stream;
-+
- 		ret = check_vb_with_fmt(ctx->dst_fmt, vb);
- 		if (ret < 0)
- 			return ret;
-+
-+		stream = vb2_dma_contig_plane_dma_addr(vb, 0);
- 		i = vb->index;
-+		if (ctx->dst_bufs[i].cookie.stream &&
-+		    ctx->src_bufs[i].cookie.stream != stream) {
-+			mfc_err("Changing CAPTURE buffer address during straming is not possible\n");
-+			return -EINVAL;
-+		}
-+
- 		ctx->dst_bufs[i].b = vbuf;
--		ctx->dst_bufs[i].cookie.stream =
--					vb2_dma_contig_plane_dma_addr(vb, 0);
-+		ctx->dst_bufs[i].cookie.stream = stream;
- 		ctx->dst_bufs_cnt++;
- 	} else if (vq->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE) {
-+		dma_addr_t luma, chroma;
-+
- 		ret = check_vb_with_fmt(ctx->src_fmt, vb);
- 		if (ret < 0)
- 			return ret;
-+
-+		luma = vb2_dma_contig_plane_dma_addr(vb, 0);
-+		chroma = vb2_dma_contig_plane_dma_addr(vb, 1);
-+
- 		i = vb->index;
-+		if ((ctx->src_bufs[i].cookie.raw.luma &&
-+		     ctx->src_bufs[i].cookie.raw.luma != luma) ||
-+		    (ctx->src_bufs[i].cookie.raw.chroma &&
-+		     ctx->src_bufs[i].cookie.raw.chroma != chroma)) {
-+			mfc_err("Changing OUTPUT buffer address during straming is not possible\n");
-+			return -EINVAL;
-+		}
-+
- 		ctx->src_bufs[i].b = vbuf;
--		ctx->src_bufs[i].cookie.raw.luma =
--					vb2_dma_contig_plane_dma_addr(vb, 0);
--		ctx->src_bufs[i].cookie.raw.chroma =
--					vb2_dma_contig_plane_dma_addr(vb, 1);
--		ctx->src_bufs_cnt++;
-+		ctx->src_bufs[i].cookie.raw.luma = luma;
-+		ctx->src_bufs[i].cookie.raw.chroma = chroma;
-+		if (vb->memory == V4L2_MEMORY_MMAP)
-+			ctx->src_bufs_cnt++;
- 	} else {
- 		mfc_err("invalid queue type: %d\n", vq->type);
- 		return -EINVAL;
+ 	/* The UVC specification allows device implementations that can't obtain
+ 	 * the USB frame number to keep their own frame counters as long as they
+@@ -473,7 +473,7 @@ uvc_video_clock_decode(struct uvc_streaming *stream, struct uvc_buffer *buf,
+ 	sample->dev_stc = get_unaligned_le32(&data[header_size - 6]);
+ 	sample->dev_sof = dev_sof;
+ 	sample->host_sof = host_sof;
+-	sample->host_ts = ts;
++	sample->host_time = time;
+ 
+ 	/* Update the sliding window head and count. */
+ 	stream->clock.head = (stream->clock.head + 1) % stream->clock.size;
+@@ -613,14 +613,12 @@ void uvc_video_clock_update(struct uvc_streaming *stream,
+ 	struct uvc_clock_sample *first;
+ 	struct uvc_clock_sample *last;
+ 	unsigned long flags;
+-	struct timespec ts;
++	u64 timestamp;
+ 	u32 delta_stc;
+ 	u32 y1, y2;
+ 	u32 x1, x2;
+ 	u32 mean;
+ 	u32 sof;
+-	u32 div;
+-	u32 rem;
+ 	u64 y;
+ 
+ 	if (!uvc_hw_timestamps_param)
+@@ -667,9 +665,8 @@ void uvc_video_clock_update(struct uvc_streaming *stream,
+ 	if (x1 == x2)
+ 		goto done;
+ 
+-	ts = timespec_sub(last->host_ts, first->host_ts);
+ 	y1 = NSEC_PER_SEC;
+-	y2 = (ts.tv_sec + 1) * NSEC_PER_SEC + ts.tv_nsec;
++	y2 = (u32)ktime_to_ns(ktime_sub(last->host_time, first->host_time)) + y1;
+ 
+ 	/* Interpolated and host SOF timestamps can wrap around at slightly
+ 	 * different times. Handle this by adding or removing 2048 to or from
+@@ -686,24 +683,18 @@ void uvc_video_clock_update(struct uvc_streaming *stream,
+ 	  - (u64)y2 * (u64)x1;
+ 	y = div_u64(y, x2 - x1);
+ 
+-	div = div_u64_rem(y, NSEC_PER_SEC, &rem);
+-	ts.tv_sec = first->host_ts.tv_sec - 1 + div;
+-	ts.tv_nsec = first->host_ts.tv_nsec + rem;
+-	if (ts.tv_nsec >= NSEC_PER_SEC) {
+-		ts.tv_sec++;
+-		ts.tv_nsec -= NSEC_PER_SEC;
+-	}
++	timestamp = ktime_to_ns(first->host_time) + y - y1;
+ 
+ 	uvc_trace(UVC_TRACE_CLOCK, "%s: SOF %u.%06llu y %llu ts %llu "
+ 		  "buf ts %llu (x1 %u/%u/%u x2 %u/%u/%u y1 %u y2 %u)\n",
+ 		  stream->dev->name,
+ 		  sof >> 16, div_u64(((u64)sof & 0xffff) * 1000000LLU, 65536),
+-		  y, timespec_to_ns(&ts), vbuf->vb2_buf.timestamp,
++		  y, timestamp, vbuf->vb2_buf.timestamp,
+ 		  x1, first->host_sof, first->dev_sof,
+ 		  x2, last->host_sof, last->dev_sof, y1, y2);
+ 
+ 	/* Update the V4L2 buffer. */
+-	vbuf->vb2_buf.timestamp = timespec_to_ns(&ts);
++	vbuf->vb2_buf.timestamp = timestamp;
+ 
+ done:
+ 	spin_unlock_irqrestore(&clock->lock, flags);
+@@ -1007,8 +998,6 @@ static int uvc_video_decode_start(struct uvc_streaming *stream,
+ 	 * when the EOF bit is set to force synchronisation on the next packet.
+ 	 */
+ 	if (buf->state != UVC_BUF_STATE_ACTIVE) {
+-		struct timespec ts;
+-
+ 		if (fid == stream->last_fid) {
+ 			uvc_trace(UVC_TRACE_FRAME, "Dropping payload (out of "
+ 				"sync).\n");
+@@ -1018,11 +1007,9 @@ static int uvc_video_decode_start(struct uvc_streaming *stream,
+ 			return -ENODATA;
+ 		}
+ 
+-		uvc_video_get_ts(&ts);
+-
+ 		buf->buf.field = V4L2_FIELD_NONE;
+ 		buf->buf.sequence = stream->sequence;
+-		buf->buf.vb2_buf.timestamp = timespec_to_ns(&ts);
++		buf->buf.vb2_buf.timestamp = uvc_video_get_time();
+ 
+ 		/* TODO: Handle PTS and SCR. */
+ 		buf->state = UVC_BUF_STATE_ACTIVE;
+diff --git a/drivers/media/usb/uvc/uvcvideo.h b/drivers/media/usb/uvc/uvcvideo.h
+index a2c190937067..d7797dfb6468 100644
+--- a/drivers/media/usb/uvc/uvcvideo.h
++++ b/drivers/media/usb/uvc/uvcvideo.h
+@@ -536,8 +536,8 @@ struct uvc_streaming {
+ 		struct uvc_clock_sample {
+ 			u32 dev_stc;
+ 			u16 dev_sof;
+-			struct timespec host_ts;
+ 			u16 host_sof;
++			ktime_t host_time;
+ 		} *samples;
+ 
+ 		unsigned int head;
 -- 
-2.14.2
+2.9.0
