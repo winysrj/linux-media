@@ -1,228 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:43065 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750895AbdKQNeH (ORCPT
+Received: from mout.kundenserver.de ([217.72.192.73]:64621 "EHLO
+        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751311AbdK0NYz (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 17 Nov 2017 08:34:07 -0500
-Subject: Re: [RFC v5 10/11] [media] vb2: add out-fence support to QBUF
-To: Gustavo Padovan <gustavo@padovan.org>, linux-media@vger.kernel.org
-References: <20171115171057.17340-1-gustavo@padovan.org>
- <20171115171057.17340-11-gustavo@padovan.org>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        Pawel Osciak <pawel@osciak.com>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Brian Starkey <brian.starkey@arm.com>,
-        Thierry Escande <thierry.escande@collabora.com>,
-        linux-kernel@vger.kernel.org,
-        Gustavo Padovan <gustavo.padovan@collabora.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <7b7b0413-46d3-c904-70b9-e7f5236145cd@xs4all.nl>
-Date: Fri, 17 Nov 2017 14:34:04 +0100
-MIME-Version: 1.0
-In-Reply-To: <20171115171057.17340-11-gustavo@padovan.org>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+        Mon, 27 Nov 2017 08:24:55 -0500
+From: Arnd Bergmann <arnd@arndb.de>
+To: Alan Cox <alan@linux.intel.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: y2038@lists.linaro.org, Arnd Bergmann <arnd@arndb.de>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        linux-kernel@vger.kernel.org
+Subject: [PATCH 7/8] [media] staging: atomisp: convert timestamps to ktime_t
+Date: Mon, 27 Nov 2017 14:19:59 +0100
+Message-Id: <20171127132027.1734806-7-arnd@arndb.de>
+In-Reply-To: <20171127132027.1734806-1-arnd@arndb.de>
+References: <20171127132027.1734806-1-arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 15/11/17 18:10, Gustavo Padovan wrote:
-> From: Gustavo Padovan <gustavo.padovan@collabora.com>
-> 
-> If V4L2_BUF_FLAG_OUT_FENCE flag is present on the QBUF call we create
-> an out_fence and send its fd to userspace on the fence_fd field as a
-> return arg for the QBUF call.
-> 
-> The fence is signaled on buffer_done(), when the job on the buffer is
-> finished.
-> 
-> With out-fences we do not allow drivers to requeue buffers through vb2,
-> instead we flag an error on the buffer, signals it fence with error and
-> return it to userspace.
-> 
-> v6
-> 	- get rid of the V4L2_EVENT_OUT_FENCE event. We always keep the
-> 	ordering in vb2 for queueing in the driver, so the event is not
-> 	necessary anymore and the out_fence_fd is sent back to userspace
-> 	on QBUF call return arg
-> 	- do not allow requeueing with out-fences, instead mark the buffer
-> 	with an error and wake up to userspace.
-> 	- send the out_fence_fd back to userspace on the fence_fd field
-> 
-> v5:
-> 	- delay fd_install to DQ_EVENT (Hans)
-> 	- if queue is fully ordered send OUT_FENCE event right away
-> 	(Brian)
-> 	- rename 'q->ordered' to 'q->ordered_in_driver'
-> 	- merge change to implement OUT_FENCE event here
-> 
-> v4:
-> 	- return the out_fence_fd in the BUF_QUEUED event(Hans)
-> 
-> v3:	- add WARN_ON_ONCE(q->ordered) on requeueing (Hans)
-> 	- set the OUT_FENCE flag if there is a fence pending (Hans)
-> 	- call fd_install() after vb2_core_qbuf() (Hans)
-> 	- clean up fence if vb2_core_qbuf() fails (Hans)
-> 	- add list to store sync_file and fence for the next queued buffer
-> 
-> v2: check if the queue is ordered.
-> 
-> Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
-> ---
->  drivers/media/v4l2-core/videobuf2-core.c | 42 +++++++++++++++++++++++++++++---
->  drivers/media/v4l2-core/videobuf2-v4l2.c | 21 +++++++++++++++-
->  2 files changed, 58 insertions(+), 5 deletions(-)
-> 
-> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-> index 8b4f0e9bcb36..2eb5ffa8e028 100644
-> --- a/drivers/media/v4l2-core/videobuf2-core.c
-> +++ b/drivers/media/v4l2-core/videobuf2-core.c
-> @@ -354,6 +354,7 @@ static int __vb2_queue_alloc(struct vb2_queue *q, enum vb2_memory memory,
->  			vb->planes[plane].length = plane_sizes[plane];
->  			vb->planes[plane].min_length = plane_sizes[plane];
->  		}
-> +		vb->out_fence_fd = -1;
->  		q->bufs[vb->index] = vb;
->  
->  		/* Allocate video buffer memory for the MMAP type */
-> @@ -934,10 +935,26 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
->  	case VB2_BUF_STATE_QUEUED:
->  		return;
->  	case VB2_BUF_STATE_REQUEUEING:
-> -		if (q->start_streaming_called)
-> -			__enqueue_in_driver(vb);
-> -		return;
-> +
-> +		if (!vb->out_fence) {
-> +			if (q->start_streaming_called)
-> +				__enqueue_in_driver(vb);
-> +			return;
-> +		}
-> +
-> +		/* Do not allow requeuing with explicit synchronization,
-> +		 * report it as an error to userspace */
-> +		state = VB2_BUF_STATE_ERROR;
+timespec overflows in 2038 on 32-bit architectures, and the
+getnstimeofday() suffers from possible time jumps, so the
+timestamps here are better done using ktime_get(), which has
+neither of those problems.
 
-No, don't do this. Drivers that use requeueing simply cannot use fences.
-I.e., it should be a WARN_ON_ONCE(), then continue with the original
-code. The only mainline driver that requeues is the cobalt PCI driver
-and it is OK to disable fences there. I maintain that one and I can take
-a look later whether I can replace the requeuing with something better.
+In case of ov2680, we don't seem to use the timestamp at
+all, so I just remove it.
 
-Regards,
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+---
+ drivers/staging/media/atomisp/i2c/ov2680.h                |  1 -
+ drivers/staging/media/atomisp/i2c/ov5693/atomisp-ov5693.c | 15 ++++++---------
+ drivers/staging/media/atomisp/i2c/ov5693/ov5693.h         |  2 +-
+ 3 files changed, 7 insertions(+), 11 deletions(-)
 
-	Hans
-
-> +
-> +		/* fall through */
->  	default:
-> +		if (state == VB2_BUF_STATE_ERROR)
-> +			dma_fence_set_error(vb->out_fence, -EFAULT);
-> +		dma_fence_signal(vb->out_fence);
-> +		dma_fence_put(vb->out_fence);
-> +		vb->out_fence = NULL;
-> +		vb->out_fence_fd = -1;
-> +
->  		/* Inform any processes that may be waiting for buffers */
->  		wake_up(&q->done_wq);
->  		break;
-> @@ -1325,12 +1342,18 @@ EXPORT_SYMBOL_GPL(vb2_core_prepare_buf);
->  int vb2_setup_out_fence(struct vb2_queue *q, unsigned int index)
->  {
->  	struct vb2_buffer *vb;
-> +	u64 context;
->  
->  	vb = q->bufs[index];
->  
->  	vb->out_fence_fd = get_unused_fd_flags(O_CLOEXEC);
->  
-> -	vb->out_fence = vb2_fence_alloc(q->out_fence_context);
-> +	if (q->ordered_in_driver)
-> +		context = q->out_fence_context;
-> +	else
-> +		context = dma_fence_context_alloc(1);
-> +
-> +	vb->out_fence = vb2_fence_alloc(context);
->  	if (!vb->out_fence) {
->  		put_unused_fd(vb->out_fence_fd);
->  		return -ENOMEM;
-> @@ -1594,6 +1617,9 @@ int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb,
->  	if (pb)
->  		call_void_bufop(q, fill_user_buffer, vb, pb);
->  
-> +	fd_install(vb->out_fence_fd, vb->sync_file->file);
-> +	vb->sync_file = NULL;
-> +
->  	dprintk(2, "qbuf of buffer %d succeeded\n", vb->index);
->  	return 0;
->  
-> @@ -1860,6 +1886,12 @@ static void __vb2_queue_cancel(struct vb2_queue *q)
->  	}
->  
->  	/*
-> +	 * Renew out-fence context.
-> +	 */
-> +	if (q->ordered_in_driver)
-> +		q->out_fence_context = dma_fence_context_alloc(1);
-> +
-> +	/*
->  	 * Remove all buffers from videobuf's list...
->  	 */
->  	INIT_LIST_HEAD(&q->queued_list);
-> @@ -2191,6 +2223,8 @@ int vb2_core_queue_init(struct vb2_queue *q)
->  	spin_lock_init(&q->done_lock);
->  	mutex_init(&q->mmap_lock);
->  	init_waitqueue_head(&q->done_wq);
-> +	if (q->ordered_in_driver)
-> +		q->out_fence_context = dma_fence_context_alloc(1);
->  
->  	if (q->buf_struct_size == 0)
->  		q->buf_struct_size = sizeof(struct vb2_buffer);
-> diff --git a/drivers/media/v4l2-core/videobuf2-v4l2.c b/drivers/media/v4l2-core/videobuf2-v4l2.c
-> index 4c09ea007d90..f2e60d2908ae 100644
-> --- a/drivers/media/v4l2-core/videobuf2-v4l2.c
-> +++ b/drivers/media/v4l2-core/videobuf2-v4l2.c
-> @@ -212,7 +212,13 @@ static void __fill_v4l2_buffer(struct vb2_buffer *vb, void *pb)
->  	b->sequence = vbuf->sequence;
->  	b->reserved = 0;
->  
-> -	b->fence_fd = -1;
-> +	if (vb->out_fence) {
-> +		b->flags |= V4L2_BUF_FLAG_OUT_FENCE;
-> +		b->fence_fd = vb->out_fence_fd;
-> +	} else {
-> +		b->fence_fd = -1;
-> +	}
-> +
->  	if (vb->in_fence)
->  		b->flags |= V4L2_BUF_FLAG_IN_FENCE;
->  	else
-> @@ -489,6 +495,10 @@ int vb2_querybuf(struct vb2_queue *q, struct v4l2_buffer *b)
->  	ret = __verify_planes_array(vb, b);
->  	if (!ret)
->  		vb2_core_querybuf(q, b->index, b);
-> +
-> +	/* Do not return the out-fence fd on querybuf */
-> +	if (vb->out_fence)
-> +		b->fence_fd = -1;
->  	return ret;
->  }
->  EXPORT_SYMBOL(vb2_querybuf);
-> @@ -593,6 +603,15 @@ int vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
->  		}
->  	}
->  
-> +	if (b->flags & V4L2_BUF_FLAG_OUT_FENCE) {
-> +		ret = vb2_setup_out_fence(q, b->index);
-> +		if (ret) {
-> +			dprintk(1, "failed to set up out-fence\n");
-> +			dma_fence_put(fence);
-> +			return ret;
-> +		}
-> +	}
-> +
->  	return vb2_core_qbuf(q, b->index, b, fence);
->  }
->  EXPORT_SYMBOL_GPL(vb2_qbuf);
-> 
+diff --git a/drivers/staging/media/atomisp/i2c/ov2680.h b/drivers/staging/media/atomisp/i2c/ov2680.h
+index bf4897347df7..03f75dd80f87 100644
+--- a/drivers/staging/media/atomisp/i2c/ov2680.h
++++ b/drivers/staging/media/atomisp/i2c/ov2680.h
+@@ -174,7 +174,6 @@ struct ov2680_format {
+ 		struct mutex input_lock;
+ 	struct v4l2_ctrl_handler ctrl_handler;
+ 		struct camera_sensor_platform_data *platform_data;
+-		struct timespec timestamp_t_focus_abs;
+ 		int vt_pix_clk_freq_mhz;
+ 		int fmt_idx;
+ 		int run_mode;
+diff --git a/drivers/staging/media/atomisp/i2c/ov5693/atomisp-ov5693.c b/drivers/staging/media/atomisp/i2c/ov5693/atomisp-ov5693.c
+index 3e7c3851280f..a715ea0e4230 100644
+--- a/drivers/staging/media/atomisp/i2c/ov5693/atomisp-ov5693.c
++++ b/drivers/staging/media/atomisp/i2c/ov5693/atomisp-ov5693.c
+@@ -973,7 +973,7 @@ static int ov5693_t_focus_abs(struct v4l2_subdev *sd, s32 value)
+ 	if (ret == 0) {
+ 		dev->number_of_steps = value - dev->focus;
+ 		dev->focus = value;
+-		getnstimeofday(&(dev->timestamp_t_focus_abs));
++		dev->timestamp_t_focus_abs = ktime_get();
+ 	} else
+ 		dev_err(&client->dev,
+ 			"%s: i2c failed. ret %d\n", __func__, ret);
+@@ -993,16 +993,13 @@ static int ov5693_q_focus_status(struct v4l2_subdev *sd, s32 *value)
+ {
+ 	u32 status = 0;
+ 	struct ov5693_device *dev = to_ov5693_sensor(sd);
+-	struct timespec temptime;
+-	const struct timespec timedelay = {
+-		0,
++	ktime_t temptime;
++	ktime_t timedelay = ns_to_ktime(
+ 		min((u32)abs(dev->number_of_steps) * DELAY_PER_STEP_NS,
+-		(u32)DELAY_MAX_PER_STEP_NS),
+-	};
++		    (u32)DELAY_MAX_PER_STEP_NS));
+ 
+-	getnstimeofday(&temptime);
+-	temptime = timespec_sub(temptime, (dev->timestamp_t_focus_abs));
+-	if (timespec_compare(&temptime, &timedelay) <= 0) {
++	temptime = ktime_sub(ktime_get(), (dev->timestamp_t_focus_abs));
++	if (ktime_compare(temptime, timedelay) <= 0) {
+ 		status |= ATOMISP_FOCUS_STATUS_MOVING;
+ 		status |= ATOMISP_FOCUS_HP_IN_PROGRESS;
+ 	} else {
+diff --git a/drivers/staging/media/atomisp/i2c/ov5693/ov5693.h b/drivers/staging/media/atomisp/i2c/ov5693/ov5693.h
+index 2ea63807c56d..68cfcb4a6c3c 100644
+--- a/drivers/staging/media/atomisp/i2c/ov5693/ov5693.h
++++ b/drivers/staging/media/atomisp/i2c/ov5693/ov5693.h
+@@ -221,7 +221,7 @@ struct ov5693_device {
+ 	struct v4l2_ctrl_handler ctrl_handler;
+ 
+ 	struct camera_sensor_platform_data *platform_data;
+-	struct timespec timestamp_t_focus_abs;
++	ktime_t timestamp_t_focus_abs;
+ 	int vt_pix_clk_freq_mhz;
+ 	int fmt_idx;
+ 	int run_mode;
+-- 
+2.9.0
