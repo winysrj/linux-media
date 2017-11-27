@@ -1,67 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:56440 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S933663AbdKQNr6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 17 Nov 2017 08:47:58 -0500
-Date: Fri, 17 Nov 2017 11:47:51 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Gustavo Padovan <gustavo@padovan.org>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        Pawel Osciak <pawel@osciak.com>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Brian Starkey <brian.starkey@arm.com>,
-        Thierry Escande <thierry.escande@collabora.com>,
-        linux-kernel@vger.kernel.org,
-        Gustavo Padovan <gustavo.padovan@collabora.com>
-Subject: Re: [RFC v5 07/11] [media] vb2: add in-fence support to QBUF
-Message-ID: <20171117114751.2dc10542@vento.lan>
-In-Reply-To: <20171117131248.GI19033@jade>
-References: <20171115171057.17340-1-gustavo@padovan.org>
-        <20171115171057.17340-8-gustavo@padovan.org>
-        <20171117105351.3bb0af32@vento.lan>
-        <20171117131248.GI19033@jade>
+Received: from mail-pg0-f68.google.com ([74.125.83.68]:36570 "EHLO
+        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752282AbdK0NMv (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 27 Nov 2017 08:12:51 -0500
+Date: Tue, 28 Nov 2017 00:12:41 +1100
+From: Simon Shields <simon@lineageos.org>
+To: linux-media@vger.kernel.org
+Cc: Krzysztof Kozlowski <krzk@kernel.org>,
+        Kukjin Kim <kgene@kernel.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-samsung-soc@vger.kernel.org,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH] media: exynos4-is: check pipe is valid before calling subdev
+Message-ID: <20171127131241.GA32492@lineageos.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 17 Nov 2017 11:12:48 -0200
-Gustavo Padovan <gustavo@padovan.org> escreveu:
+if the subdev is not yet present (probably because the subdev
+module has not yet been loaded), the pipe will be NULL. Make sure
+that this is not the case before attempting to call the op.
 
-> > >  	/*
-> > >  	 * If streamon has been called, and we haven't yet called
-> > >  	 * start_streaming() since not enough buffers were queued, and
-> > >  	 * we now have reached the minimum number of queued buffers,
-> > >  	 * then we can finally call start_streaming().
-> > > -	 *
-> > > -	 * If already streaming, give the buffer to driver for processing.
-> > > -	 * If not, the buffer will be given to driver on next streamon.
-> > >  	 */
-> > >  	if (q->streaming && !q->start_streaming_called &&
-> > > -	    q->queued_count >= q->min_buffers_needed) {
-> > > +	    __get_num_ready_buffers(q) >= q->min_buffers_needed) {  
-> > 
-> > I guess the case where fences is not used is not covered here.
-> > 
-> > You probably should add a check at __get_num_ready_buffers(q)
-> > as well, making it just return q->queued_count if fences isn't
-> > used.  
-> 
-> We can't know that beforehand, some buffer ahead may have a fence,
-> but there is already a check for !fence for each buffer. If none of
-> them have fences the return will be equal to q->queued_count.
+Signed-off-by: Simon Shields <simon@lineageos.org>
+---
+ include/media/drv-intf/exynos-fimc.h | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-Hmm... are we willing to support the case where just some
-buffers have fences? Why?
-
-In any case, we should add a notice at the documentation telling
-about what happens if not all buffers have fences, and if fences
-are required to be setup before starting streaming, or if it is
-possible to dynamically change the fances behavior while streaming.
-
+diff --git a/include/media/drv-intf/exynos-fimc.h b/include/media/drv-intf/exynos-fimc.h
+index 69bcd2a07d5c..f9c64338841f 100644
+--- a/include/media/drv-intf/exynos-fimc.h
++++ b/include/media/drv-intf/exynos-fimc.h
+@@ -155,7 +155,8 @@ static inline struct exynos_video_entity *vdev_to_exynos_video_entity(
+ }
+ 
+ #define fimc_pipeline_call(ent, op, args...)				  \
+-	(!(ent) ? -ENOENT : (((ent)->pipe->ops && (ent)->pipe->ops->op) ? \
++	((!(ent) || !(ent)->pipe) ? -ENOENT : \
++	(((ent)->pipe->ops && (ent)->pipe->ops->op) ? \
+ 	(ent)->pipe->ops->op(((ent)->pipe), ##args) : -ENOIOCTLCMD))	  \
+ 
+ #endif /* S5P_FIMC_H_ */
 -- 
-Thanks,
-Mauro
+2.15.0
