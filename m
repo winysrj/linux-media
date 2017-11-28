@@ -1,446 +1,620 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-4.sys.kth.se ([130.237.48.193]:54530 "EHLO
-        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752587AbdK2ToN (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 29 Nov 2017 14:44:13 -0500
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH v8 23/28] rcar-vin: parse Gen3 OF and setup media graph
-Date: Wed, 29 Nov 2017 20:43:37 +0100
-Message-Id: <20171129194342.26239-24-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20171129194342.26239-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20171129194342.26239-1-niklas.soderlund+renesas@ragnatech.se>
+Received: from mout.gmx.net ([212.227.15.19]:64892 "EHLO mout.gmx.net"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753793AbdK1QUx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 28 Nov 2017 11:20:53 -0500
+Date: Tue, 28 Nov 2017 17:20:47 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [PATCH 2/3 v7] uvcvideo: add extensible device information
+In-Reply-To: <4235306.7C2kvEcLJA@avalon>
+Message-ID: <alpine.DEB.2.20.1711281720140.16991@axis700.grange>
+References: <1510156814-28645-1-git-send-email-g.liakhovetski@gmx.de> <1510156814-28645-3-git-send-email-g.liakhovetski@gmx.de> <4235306.7C2kvEcLJA@avalon>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Parse the VIN Gen3 OF graph and register all CSI-2 devices in the VIN
-group common media device. Once all CSI-2 subdevices are added to the
-common media device create links between them.
+Hi Laurent,
 
-The parsing and registering CSI-2 subdevices with the v4l2 async
-framework is a collaborative effort shared between the VIN instances
-which are part of the group. The first rcar-vin instance parses OF and
-finds all other VIN and CSI-2 nodes which are part of the graph. It
-stores a bit mask of all VIN instances found and handles to all CSI-2
-nodes.
+Thanks for reviewing.
 
-The bit mask is used to figure out when all VIN instances have been
-probed. Once the last VIN instance is probed this is detected and this
-instance registers all CSI-2 subdevices in its private async notifier.
-Once the .complete() callback of this notifier is called it register all
-video devices and creates the media controller links between all
-entities.
+On Tue, 28 Nov 2017, Laurent Pinchart wrote:
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
----
- drivers/media/platform/rcar-vin/rcar-core.c | 322 +++++++++++++++++++++++++++-
- drivers/media/platform/rcar-vin/rcar-vin.h  |  10 +-
- 2 files changed, 327 insertions(+), 5 deletions(-)
+> Hi Guennadi,
+> 
+> Thank you for the patch.
+> 
+> On Wednesday, 8 November 2017 18:00:13 EET Guennadi Liakhovetski wrote:
+> > From: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>
+> > 
+> > Currently the UVC driver assigns a quirk bitmask to the .driver_info
+> > field of struct usb_device_id. This patch instroduces a struct to store
+> > quirks and possibly other per-device parameters in the future.
+> 
+> I'd drop the "possibly" as I'm fairly certain we will have other parameters in 
+> the future. Otherwise the patch would be a bit pointless :-)
+> 
+> > Signed-off-by: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>
+> > ---
+> > 
+> > v7: this is a new patch in the series. Needed to enable specifying
+> > private camera metadata formats
+> > 
+> >  drivers/media/usb/uvc/uvc_driver.c | 127 ++++++++++++++++++++--------------
+> >  1 file changed, 78 insertions(+), 49 deletions(-)
+> > 
+> > diff --git a/drivers/media/usb/uvc/uvc_driver.c
+> > b/drivers/media/usb/uvc/uvc_driver.c index 6d22b22..cbf79b9 100644
+> > --- a/drivers/media/usb/uvc/uvc_driver.c
+> > +++ b/drivers/media/usb/uvc/uvc_driver.c
+> > @@ -2001,11 +2001,18 @@ static int uvc_register_chains(struct uvc_device
+> > *dev) * USB probe, disconnect, suspend and resume
+> >   */
+> > 
+> > +struct uvc_device_info {
+> > +	u32	quirks;
+> > +};
+> > +
+> >  static int uvc_probe(struct usb_interface *intf,
+> >  		     const struct usb_device_id *id)
+> >  {
+> >  	struct usb_device *udev = interface_to_usbdev(intf);
+> >  	struct uvc_device *dev;
+> > +	const struct uvc_device_info *info =
+> > +		(const struct uvc_device_info *)id->driver_info;
+> > +	u32 quirks = info ? info->quirks : 0;
+> >  	int function;
+> >  	int ret;
+> > 
+> > @@ -2032,7 +2039,7 @@ static int uvc_probe(struct usb_interface *intf,
+> >  	dev->intf = usb_get_intf(intf);
+> >  	dev->intfnum = intf->cur_altsetting->desc.bInterfaceNumber;
+> >  	dev->quirks = (uvc_quirks_param == -1)
+> > -		    ? id->driver_info : uvc_quirks_param;
+> > +		    ? quirks : uvc_quirks_param;
+> > 
+> >  	if (udev->product != NULL)
+> >  		strlcpy(dev->name, udev->product, sizeof dev->name);
+> > @@ -2073,7 +2080,7 @@ static int uvc_probe(struct usb_interface *intf,
+> >  		le16_to_cpu(udev->descriptor.idVendor),
+> >  		le16_to_cpu(udev->descriptor.idProduct));
+> > 
+> > -	if (dev->quirks != id->driver_info) {
+> > +	if (dev->quirks != quirks) {
+> >  		uvc_printk(KERN_INFO, "Forcing device quirks to 0x%x by module "
+> >  			"parameter for testing purpose.\n", dev->quirks);
+> >  		uvc_printk(KERN_INFO, "Please report required quirks to the "
+> > @@ -2271,6 +2278,28 @@ static int uvc_clock_param_set(const char *val,
+> > struct kernel_param *kp) * Driver initialization and cleanup
+> >   */
+> > 
+> > +static struct uvc_device_info uvc_quirk_probe_minmax = {
+> > +	.quirks = UVC_QUIRK_PROBE_MINMAX,
+> > +};
+> > +
+> > +static struct uvc_device_info uvc_quirk_fix_bandwidth = {
+> > +	.quirks = UVC_QUIRK_FIX_BANDWIDTH,
+> > +};
+> > +
+> > +static struct uvc_device_info uvc_quirk_probe_def = {
+> > +	.quirks = UVC_QUIRK_PROBE_DEF,
+> > +};
+> > +
+> > +static struct uvc_device_info uvc_quirk_stream_no_fid = {
+> > +	.quirks = UVC_QUIRK_STREAM_NO_FID,
+> > +};
+> > +
+> > +static struct uvc_device_info uvc_quirk_force_y8 = {
+> > +	.quirks = UVC_QUIRK_FORCE_Y8,
+> > +};
+> 
+> You can make all of these static const.
+> 
+> > +#define UVC_QUIRK_INFO(q) (kernel_ulong_t)&(struct uvc_device_info){.quirks
+> > = q}
+> > +
+> >  /*
+> >   * The Logitech cameras listed below have their interface class set to
+> >   * VENDOR_SPEC because they don't announce themselves as UVC devices, even
+> > @@ -2285,7 +2314,7 @@ static int uvc_clock_param_set(const char *val, struct
+> > kernel_param *kp) .bInterfaceClass	= USB_CLASS_VIDEO,
+> >  	  .bInterfaceSubClass	= 1,
+> >  	  .bInterfaceProtocol	= 0,
+> > -	  .driver_info		= UVC_QUIRK_PROBE_MINMAX },
+> > +	  .driver_info		= (kernel_ulong_t)&uvc_quirk_probe_minmax },
+> >  	/* Genius eFace 2025 */
+> >  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
+> > 
+> >  				| USB_DEVICE_ID_MATCH_INT_INFO,
+> > 
+> > @@ -2294,7 +2323,7 @@ static int uvc_clock_param_set(const char *val, struct
+> > kernel_param *kp) .bInterfaceClass	= USB_CLASS_VIDEO,
+> >  	  .bInterfaceSubClass	= 1,
+> >  	  .bInterfaceProtocol	= 0,
+> > -	  .driver_info		= UVC_QUIRK_PROBE_MINMAX },
+> > +	  .driver_info		= (kernel_ulong_t)&uvc_quirk_probe_minmax },
+> >  	/* Microsoft Lifecam NX-6000 */
+> >  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
+> > 
+> >  				| USB_DEVICE_ID_MATCH_INT_INFO,
+> > 
+> > @@ -2303,7 +2332,7 @@ static int uvc_clock_param_set(const char *val, struct
+> > kernel_param *kp) .bInterfaceClass	= USB_CLASS_VIDEO,
+> >  	  .bInterfaceSubClass	= 1,
+> >  	  .bInterfaceProtocol	= 0,
+> > -	  .driver_info		= UVC_QUIRK_PROBE_MINMAX },
+> > +	  .driver_info		= (kernel_ulong_t)&uvc_quirk_probe_minmax },
+> >  	/* Microsoft Lifecam NX-3000 */
+> >  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
+> > 
+> >  				| USB_DEVICE_ID_MATCH_INT_INFO,
+> > 
+> > @@ -2312,7 +2341,7 @@ static int uvc_clock_param_set(const char *val, struct
+> > kernel_param *kp) .bInterfaceClass	= USB_CLASS_VIDEO,
+> >  	  .bInterfaceSubClass	= 1,
+> >  	  .bInterfaceProtocol	= 0,
+> > -	  .driver_info		= UVC_QUIRK_PROBE_DEF },
+> > +	  .driver_info		= (kernel_ulong_t)&uvc_quirk_probe_def },
+> >  	/* Microsoft Lifecam VX-7000 */
+> >  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
+> > 
+> >  				| USB_DEVICE_ID_MATCH_INT_INFO,
+> > 
+> > @@ -2321,7 +2350,7 @@ static int uvc_clock_param_set(const char *val, struct
+> > kernel_param *kp) .bInterfaceClass	= USB_CLASS_VIDEO,
+> >  	  .bInterfaceSubClass	= 1,
+> >  	  .bInterfaceProtocol	= 0,
+> > -	  .driver_info		= UVC_QUIRK_PROBE_MINMAX },
+> > +	  .driver_info		= (kernel_ulong_t)&uvc_quirk_probe_minmax },
+> >  	/* Logitech Quickcam Fusion */
+> >  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
+> > 
+> >  				| USB_DEVICE_ID_MATCH_INT_INFO,
+> > 
+> > @@ -2378,7 +2407,7 @@ static int uvc_clock_param_set(const char *val, struct
+> > kernel_param *kp) .bInterfaceClass	= USB_CLASS_VIDEO,
+> >  	  .bInterfaceSubClass	= 1,
+> >  	  .bInterfaceProtocol	= 0,
+> > -	  .driver_info		= UVC_QUIRK_RESTORE_CTRLS_ON_INIT },
+> > +	  .driver_info		= UVC_QUIRK_INFO(UVC_QUIRK_RESTORE_CTRLS_ON_INIT) },
+> >  	/* Chicony CNF7129 (Asus EEE 100HE) */
+> >  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
+> > 
+> >  				| USB_DEVICE_ID_MATCH_INT_INFO,
+> > 
+> > @@ -2387,7 +2416,7 @@ static int uvc_clock_param_set(const char *val, struct
+> > kernel_param *kp) .bInterfaceClass	= USB_CLASS_VIDEO,
+> >  	  .bInterfaceSubClass	= 1,
+> >  	  .bInterfaceProtocol	= 0,
+> > -	  .driver_info		= UVC_QUIRK_RESTRICT_FRAME_RATE },
+> > +	  .driver_info		= UVC_QUIRK_INFO(UVC_QUIRK_RESTRICT_FRAME_RATE) },
+> >  	/* Alcor Micro AU3820 (Future Boy PC USB Webcam) */
+> >  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
+> > 
+> >  				| USB_DEVICE_ID_MATCH_INT_INFO,
+> > 
+> > @@ -2396,7 +2425,7 @@ static int uvc_clock_param_set(const char *val, struct
+> > kernel_param *kp) .bInterfaceClass	= USB_CLASS_VIDEO,
+> >  	  .bInterfaceSubClass	= 1,
+> >  	  .bInterfaceProtocol	= 0,
+> > -	  .driver_info		= UVC_QUIRK_PROBE_MINMAX },
+> > +	  .driver_info		= (kernel_ulong_t)&uvc_quirk_probe_minmax },
+> >  	/* Dell XPS m1530 */
+> >  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
+> > 
+> >  				| USB_DEVICE_ID_MATCH_INT_INFO,
+> > 
+> > @@ -2405,7 +2434,7 @@ static int uvc_clock_param_set(const char *val, struct
+> > kernel_param *kp) .bInterfaceClass	= USB_CLASS_VIDEO,
+> >  	  .bInterfaceSubClass	= 1,
+> >  	  .bInterfaceProtocol	= 0,
+> > -	  .driver_info 		= UVC_QUIRK_PROBE_DEF },
+> > +	  .driver_info 		= (kernel_ulong_t)&uvc_quirk_probe_def },
+> >  	/* Dell SP2008WFP Monitor */
+> >  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
+> > 
+> >  				| USB_DEVICE_ID_MATCH_INT_INFO,
+> > 
+> > @@ -2414,7 +2443,7 @@ static int uvc_clock_param_set(const char *val, struct
+> > kernel_param *kp) .bInterfaceClass	= USB_CLASS_VIDEO,
+> >  	  .bInterfaceSubClass	= 1,
+> >  	  .bInterfaceProtocol	= 0,
+> > -	  .driver_info 		= UVC_QUIRK_PROBE_DEF },
+> > +	  .driver_info 		= (kernel_ulong_t)&uvc_quirk_probe_def },
+> >  	/* Dell Alienware X51 */
+> >  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
+> > 
+> >  				| USB_DEVICE_ID_MATCH_INT_INFO,
+> > 
+> > @@ -2423,7 +2452,7 @@ static int uvc_clock_param_set(const char *val, struct
+> > kernel_param *kp) .bInterfaceClass	= USB_CLASS_VIDEO,
+> >  	  .bInterfaceSubClass	= 1,
+> >  	  .bInterfaceProtocol	= 0,
+> > -	  .driver_info	= UVC_QUIRK_PROBE_DEF },
+> > +	  .driver_info		= UVC_QUIRK_INFO(UVC_QUIRK_PROBE_DEF) },
+> 
+> This one can be (kernel_ulong_t)&uvc_quirk_probe_def.
+> 
+> If you're fine with those changes there's no need to resubmit, I'll update the 
+> patch when applying, and
+> 
+> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
-index a6713fd61dd87a88..2081637e493e1941 100644
---- a/drivers/media/platform/rcar-vin/rcar-core.c
-+++ b/drivers/media/platform/rcar-vin/rcar-core.c
-@@ -86,6 +86,7 @@ static struct rvin_group *__rvin_group_allocate(struct rvin_dev *vin)
- 		return NULL;
- 
- 	kref_init(&group->refcount);
-+	group->notifier = NULL;
- 	rvin_group_data = group;
- 
- 	vin_dbg(vin, "%s: alloc group=%p\n", __func__, group);
-@@ -392,10 +393,281 @@ static int rvin_digital_graph_init(struct rvin_dev *vin)
-  * Group async notifier
-  */
- 
--static int rvin_group_init(struct rvin_dev *vin)
-+/* group lock should be held when calling this function */
-+static int rvin_group_add_link(struct rvin_dev *vin,
-+			       struct media_entity *source,
-+			       unsigned int source_idx,
-+			       struct media_entity *sink,
-+			       unsigned int sink_idx,
-+			       u32 flags)
-+{
-+	struct media_pad *source_pad, *sink_pad;
-+	int ret = 0;
-+
-+	source_pad = &source->pads[source_idx];
-+	sink_pad = &sink->pads[sink_idx];
-+
-+	if (!media_entity_find_link(source_pad, sink_pad))
-+		ret = media_create_pad_link(source, source_idx,
-+					    sink, sink_idx, flags);
-+
-+	if (ret)
-+		vin_err(vin, "Error adding link from %s to %s\n",
-+			source->name, sink->name);
-+
-+	return ret;
-+}
-+
-+static int rvin_group_update_links(struct rvin_dev *vin)
-+{
-+	struct media_entity *source, *sink;
-+	struct rvin_dev *master;
-+	unsigned int i, n, idx, csi;
-+	int ret = 0;
-+
-+	mutex_lock(&vin->group->lock);
-+
-+	for (n = 0; n < RCAR_VIN_NUM; n++) {
-+
-+		/* Check that VIN is part of the group */
-+		if (!vin->group->vin[n])
-+			continue;
-+
-+		/* Check that subgroup master is part of the group */
-+		master = vin->group->vin[n < 4 ? 0 : 4];
-+		if (!master)
-+			continue;
-+
-+		for (i = 0; i < vin->info->num_chsels; i++) {
-+			csi = vin->info->chsels[n][i].csi;
-+
-+			/* If the CSI-2 is out of bounds it's a noop, skip */
-+			if (csi >= RVIN_CSI_MAX)
-+				continue;
-+
-+			/* Check that CSI-2 are part of the group */
-+			if (!vin->group->csi[csi].subdev)
-+				continue;
-+
-+			source = &vin->group->csi[csi].subdev->entity;
-+			sink = &vin->group->vin[n]->vdev.entity;
-+			idx = vin->info->chsels[n][i].chan + 1;
-+
-+			ret = rvin_group_add_link(vin, source, idx, sink, 0,
-+						  0);
-+			if (ret)
-+				goto out;
-+		}
-+	}
-+out:
-+	mutex_unlock(&vin->group->lock);
-+
-+	return ret;
-+}
-+
-+static int rvin_group_notify_complete(struct v4l2_async_notifier *notifier)
- {
-+	struct rvin_dev *vin = notifier_to_vin(notifier);
-+	unsigned int i;
- 	int ret;
- 
-+	ret = v4l2_device_register_subdev_nodes(&vin->v4l2_dev);
-+	if (ret) {
-+		vin_err(vin, "Failed to register subdev nodes\n");
-+		return ret;
-+	}
-+
-+	for (i = 0; i < RCAR_VIN_NUM; i++) {
-+		if (vin->group->vin[i]) {
-+			ret = rvin_v4l2_register(vin->group->vin[i]);
-+			if (ret)
-+				return ret;
-+		}
-+	}
-+
-+	return rvin_group_update_links(vin);
-+}
-+
-+static void rvin_group_notify_unbind(struct v4l2_async_notifier *notifier,
-+				     struct v4l2_subdev *subdev,
-+				     struct v4l2_async_subdev *asd)
-+{
-+	struct rvin_dev *vin = notifier_to_vin(notifier);
-+	struct rvin_graph_entity *csi = to_rvin_graph_entity(asd);
-+	unsigned int i;
-+
-+	for (i = 0; i < RCAR_VIN_NUM; i++)
-+		if (vin->group->vin[i])
-+			rvin_v4l2_unregister(vin->group->vin[i]);
-+
-+	mutex_lock(&vin->group->lock);
-+	csi->subdev = NULL;
-+	mutex_unlock(&vin->group->lock);
-+}
-+
-+static int rvin_group_notify_bound(struct v4l2_async_notifier *notifier,
-+				   struct v4l2_subdev *subdev,
-+				   struct v4l2_async_subdev *asd)
-+{
-+	struct rvin_dev *vin = notifier_to_vin(notifier);
-+	struct rvin_graph_entity *csi = to_rvin_graph_entity(asd);
-+
-+	v4l2_set_subdev_hostdata(subdev, vin);
-+
-+	mutex_lock(&vin->group->lock);
-+	vin_dbg(vin, "Bound CSI-2 %s\n", subdev->name);
-+	csi->subdev = subdev;
-+	mutex_unlock(&vin->group->lock);
-+
-+	return 0;
-+}
-+
-+static const struct v4l2_async_notifier_operations rvin_group_notify_ops = {
-+	.bound = rvin_group_notify_bound,
-+	.unbind = rvin_group_notify_unbind,
-+	.complete = rvin_group_notify_complete,
-+};
-+
-+static struct device_node *rvin_group_get_remote(struct rvin_dev *vin,
-+						 struct device_node *node)
-+{
-+	struct device_node *np;
-+
-+	np = of_graph_get_remote_port_parent(node);
-+	if (!np) {
-+		vin_err(vin, "Remote port not found %pOF\n", node);
-+		return NULL;
-+	}
-+
-+	/* Not all remote ports are available, this is OK */
-+	if (!of_device_is_available(np)) {
-+		vin_dbg(vin, "Remote port %pOF is not available\n", np);
-+		of_node_put(np);
-+		return NULL;
-+	}
-+
-+	return np;
-+}
-+
-+/* group lock should be held when calling this function */
-+static int rvin_group_graph_parse(struct rvin_dev *vin, struct device_node *np)
-+{
-+	int i, id, ret;
-+
-+	/* Read VIN id from DT */
-+	id = rvin_group_read_id(vin, np);
-+	if (id < 0)
-+		return id;
-+
-+	/* Check if VIN is already handled */
-+	if (vin->group->mask & BIT(id))
-+		return 0;
-+
-+	vin->group->mask |= BIT(id);
-+
-+	vin_dbg(vin, "Handling VIN%d\n", id);
-+
-+	/* Parse all endpoints for CSI-2 and VIN nodes */
-+	for (i = 0; i < RVIN_CSI_MAX; i++) {
-+		struct device_node *ep, *csi, *remote;
-+
-+		/* Check if instance is connected to the CSI-2 */
-+		ep = of_graph_get_endpoint_by_regs(np, 1, i);
-+		if (!ep) {
-+			vin_dbg(vin, "VIN%d: ep %d not connected\n", id, i);
-+			continue;
-+		}
-+
-+		if (vin->group->csi[i].asd.match.fwnode.fwnode) {
-+			of_node_put(ep);
-+			vin_dbg(vin, "VIN%d: ep %d already handled\n", id, i);
-+			continue;
-+		}
-+
-+		csi = rvin_group_get_remote(vin, ep);
-+		of_node_put(ep);
-+		if (!csi)
-+			continue;
-+
-+		vin->group->csi[i].asd.match.fwnode.fwnode =
-+			of_fwnode_handle(csi);
-+		vin->group->csi[i].asd.match_type = V4L2_ASYNC_MATCH_FWNODE;
-+
-+		vin_dbg(vin, "VIN%d ep: %d handled CSI-2 %pOF\n", id, i, csi);
-+
-+		/* Parse the CSI-2 for all VIN nodes connected to it */
-+		ep = NULL;
-+		while (1) {
-+			ep = of_graph_get_next_endpoint(csi, ep);
-+			if (!ep)
-+				break;
-+
-+			remote = rvin_group_get_remote(vin, ep);
-+			if (!remote)
-+				continue;
-+
-+			if (of_match_node(vin->dev->driver->of_match_table,
-+					  remote)) {
-+				ret = rvin_group_graph_parse(vin, remote);
-+				if (ret)
-+					return ret;
-+
-+			}
-+		}
-+	}
-+
-+	return 0;
-+}
-+
-+static int rvin_group_graph_register(struct rvin_dev *vin)
-+{
-+	struct v4l2_async_subdev **subdevs = NULL;
-+	int i, n, ret, count = 0;
-+
-+	mutex_lock(&vin->group->lock);
-+
-+	/* Count how many CSI-2 nodes found */
-+	for (i = 0; i < RVIN_CSI_MAX; i++)
-+		if (vin->group->csi[i].asd.match.fwnode.fwnode)
-+			count++;
-+
-+	if (!count) {
-+		mutex_unlock(&vin->group->lock);
-+		return 0;
-+	}
-+
-+	/* Allocate and setup list of subdevices for the notifier */
-+	subdevs = devm_kzalloc(vin->dev, sizeof(*subdevs) * count, GFP_KERNEL);
-+	if (subdevs == NULL) {
-+		mutex_unlock(&vin->group->lock);
-+		return -ENOMEM;
-+	}
-+
-+	n = 0;
-+	for (i = 0; i < RVIN_CSI_MAX; i++)
-+		if (vin->group->csi[i].asd.match.fwnode.fwnode)
-+			subdevs[n++] = &vin->group->csi[i].asd;
-+
-+	vin_dbg(vin, "Claimed %d subdevices for group\n", count);
-+
-+	vin->notifier.num_subdevs = count;
-+	vin->notifier.subdevs = subdevs;
-+	vin->notifier.ops = &rvin_group_notify_ops;
-+
-+	mutex_unlock(&vin->group->lock);
-+
-+	ret = v4l2_async_notifier_register(&vin->v4l2_dev, &vin->notifier);
-+	if (ret < 0)
-+		vin_err(vin, "Notifier registration failed\n");
-+
-+	return ret;
-+}
-+
-+static int rvin_group_init(struct rvin_dev *vin)
-+{
-+	int i, ret, count_mask, count_vin = 0;
-+	bool reg_notifier = false;
-+
- 	ret = rvin_group_allocate(vin);
- 	if (ret)
- 		return ret;
-@@ -409,8 +681,45 @@ static int rvin_group_init(struct rvin_dev *vin)
- 	if (ret)
- 		goto error_group;
- 
--	return 0;
-+	/*
-+	 * Check number of registered VINs in group against the group mask.
-+	 * If the mask is empty DT has not yet been parsed and if the
-+	 * count matches all VINs are registered and it's safe to register
-+	 * the async notifier
-+	 */
-+	mutex_lock(&vin->group->lock);
- 
-+	if (!vin->group->mask) {
-+		ret = rvin_group_graph_parse(vin, vin->dev->of_node);
-+		if (ret) {
-+			mutex_unlock(&vin->group->lock);
-+			goto error_group;
-+		}
-+	}
-+
-+	for (i = 0; i < RCAR_VIN_NUM; i++)
-+		if (vin->group->vin[i])
-+			count_vin++;
-+
-+	count_mask = hweight_long(vin->group->mask);
-+
-+	if (count_vin == count_mask && !vin->group->notifier) {
-+		vin->group->notifier = &vin->notifier;
-+		reg_notifier = true;
-+	}
-+
-+	mutex_unlock(&vin->group->lock);
-+
-+	if (reg_notifier) {
-+		ret = rvin_group_graph_register(vin);
-+		if (ret)
-+			goto error_vdev;
-+	}
-+
-+	return rvin_group_update_links(vin);
-+
-+error_vdev:
-+	rvin_v4l2_unregister(vin);
- error_group:
- 	rvin_group_delete(vin);
- 
-@@ -534,10 +843,15 @@ static int rcar_vin_remove(struct platform_device *pdev)
- 	v4l2_async_notifier_unregister(&vin->notifier);
- 	v4l2_async_notifier_cleanup(&vin->notifier);
- 
--	if (vin->info->use_mc)
-+	if (vin->info->use_mc) {
-+		mutex_lock(&vin->group->lock);
-+		if (vin->group->notifier == &vin->notifier)
-+			vin->group->notifier = NULL;
-+		mutex_unlock(&vin->group->lock);
- 		rvin_group_delete(vin);
--	else
-+	} else {
- 		v4l2_ctrl_handler_free(&vin->ctrl_handler);
-+	}
- 
- 	rvin_dma_unregister(vin);
- 
-diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
-index 41bf24aa8a1a0aed..2081ec6d3e7ac64f 100644
---- a/drivers/media/platform/rcar-vin/rcar-vin.h
-+++ b/drivers/media/platform/rcar-vin/rcar-vin.h
-@@ -92,6 +92,9 @@ struct rvin_graph_entity {
- 	unsigned int sink_pad;
- };
- 
-+#define to_rvin_graph_entity(asd) \
-+	container_of(asd, struct rvin_graph_entity, asd)
-+
- struct rvin_group;
- 
- /** struct rvin_group_chsel - Map a CSI-2 receiver and channel to a CHSEL value
-@@ -211,7 +214,10 @@ struct rvin_dev {
-  *
-  * @mdev:		media device which represents the group
-  *
-- * @lock:		protects the vin and csi members
-+ * @lock:		protects the mask, vin and csi members
-+ * @mask:		Mask of VIN instances found in DT
-+ * @notifier:		Pointer to the notifer of a VIN which handles the
-+ *			groups async sub-devices.
-  * @vin:		VIN instances which are part of the group
-  * @csi:		CSI-2 entities that are part of the group
-  */
-@@ -221,6 +227,8 @@ struct rvin_group {
- 	struct media_device mdev;
- 
- 	struct mutex lock;
-+	unsigned long mask;
-+	struct v4l2_async_notifier *notifier;
- 	struct rvin_dev *vin[RCAR_VIN_NUM];
- 	struct rvin_graph_entity csi[RVIN_CSI_MAX];
- };
--- 
-2.15.0
+Yes, please, do.
+
+Thanks
+Guennadi
+
+> 
+> >  	/* Dell Studio Hybrid 140g (OmniVision webcam) */
+> >  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
+> > 
+> >  				| USB_DEVICE_ID_MATCH_INT_INFO,
+> > 
+> > @@ -2432,7 +2461,7 @@ static int uvc_clock_param_set(const char *val, struct
+> > kernel_param *kp) .bInterfaceClass	= USB_CLASS_VIDEO,
+> >  	  .bInterfaceSubClass	= 1,
+> >  	  .bInterfaceProtocol	= 0,
+> > -	  .driver_info		= UVC_QUIRK_PROBE_DEF },
+> > +	  .driver_info		= (kernel_ulong_t)&uvc_quirk_probe_def },
+> >  	/* Dell XPS M1330 (OmniVision OV7670 webcam) */
+> >  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
+> > 
+> >  				| USB_DEVICE_ID_MATCH_INT_INFO,
+> > 
+> > @@ -2441,7 +2470,7 @@ static int uvc_clock_param_set(const char *val, struct
+> > kernel_param *kp) .bInterfaceClass	= USB_CLASS_VIDEO,
+> >  	  .bInterfaceSubClass	= 1,
+> >  	  .bInterfaceProtocol	= 0,
+> > -	  .driver_info		= UVC_QUIRK_PROBE_DEF },
+> > +	  .driver_info		= (kernel_ulong_t)&uvc_quirk_probe_def },
+> >  	/* Apple Built-In iSight */
+> >  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
+> > 
+> >  				| USB_DEVICE_ID_MATCH_INT_INFO,
+> > 
+> > @@ -2450,8 +2479,8 @@ static int uvc_clock_param_set(const char *val, struct
+> > kernel_param *kp) .bInterfaceClass	= USB_CLASS_VIDEO,
+> >  	  .bInterfaceSubClass	= 1,
+> >  	  .bInterfaceProtocol	= 0,
+> > -	  .driver_info 		= UVC_QUIRK_PROBE_MINMAX
+> > -				| UVC_QUIRK_BUILTIN_ISIGHT },
+> > +	  .driver_info 		= UVC_QUIRK_INFO(UVC_QUIRK_PROBE_MINMAX
+> > +					| UVC_QUIRK_BUILTIN_ISIGHT) },
+> >  	/* Apple Built-In iSight via iBridge */
+> >  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
+> > 
+> >  				| USB_DEVICE_ID_MATCH_INT_INFO,
+> > 
+> > @@ -2460,7 +2489,7 @@ static int uvc_clock_param_set(const char *val, struct
+> > kernel_param *kp) .bInterfaceClass	= USB_CLASS_VIDEO,
+> >  	  .bInterfaceSubClass	= 1,
+> >  	  .bInterfaceProtocol	= 0,
+> > -	  .driver_info		= UVC_QUIRK_PROBE_DEF },
+> > +	  .driver_info		= (kernel_ulong_t)&uvc_quirk_probe_def },
+> >  	/* Foxlink ("HP Webcam" on HP Mini 5103) */
+> >  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
+> > 
+> >  				| USB_DEVICE_ID_MATCH_INT_INFO,
+> > 
+> > @@ -2469,7 +2498,7 @@ static int uvc_clock_param_set(const char *val, struct
+> > kernel_param *kp) .bInterfaceClass	= USB_CLASS_VIDEO,
+> >  	  .bInterfaceSubClass	= 1,
+> >  	  .bInterfaceProtocol	= 0,
+> > -	  .driver_info		= UVC_QUIRK_FIX_BANDWIDTH },
+> > +	  .driver_info		= (kernel_ulong_t)&uvc_quirk_fix_bandwidth },
+> >  	/* Genesys Logic USB 2.0 PC Camera */
+> >  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
+> > 
+> >  				| USB_DEVICE_ID_MATCH_INT_INFO,
+> > 
+> > @@ -2478,7 +2507,7 @@ static int uvc_clock_param_set(const char *val, struct
+> > kernel_param *kp) .bInterfaceClass	= USB_CLASS_VIDEO,
+> >  	  .bInterfaceSubClass	= 1,
+> >  	  .bInterfaceProtocol	= 0,
+> > -	  .driver_info		= UVC_QUIRK_STREAM_NO_FID },
+> > +	  .driver_info		= (kernel_ulong_t)&uvc_quirk_stream_no_fid },
+> >  	/* Hercules Classic Silver */
+> >  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
+> > 
+> >  				| USB_DEVICE_ID_MATCH_INT_INFO,
+> > 
+> > @@ -2487,7 +2516,7 @@ static int uvc_clock_param_set(const char *val, struct
+> > kernel_param *kp) .bInterfaceClass	= USB_CLASS_VIDEO,
+> >  	  .bInterfaceSubClass	= 1,
+> >  	  .bInterfaceProtocol	= 0,
+> > -	  .driver_info		= UVC_QUIRK_FIX_BANDWIDTH },
+> > +	  .driver_info		= (kernel_ulong_t)&uvc_quirk_fix_bandwidth },
+> >  	/* ViMicro Vega */
+> >  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
+> > 
+> >  				| USB_DEVICE_ID_MATCH_INT_INFO,
+> > 
+> > @@ -2496,7 +2525,7 @@ static int uvc_clock_param_set(const char *val, struct
+> > kernel_param *kp) .bInterfaceClass	= USB_CLASS_VIDEO,
+> >  	  .bInterfaceSubClass	= 1,
+> >  	  .bInterfaceProtocol	= 0,
+> > -	  .driver_info		= UVC_QUIRK_FIX_BANDWIDTH },
+> > +	  .driver_info		= (kernel_ulong_t)&uvc_quirk_fix_bandwidth },
+> >  	/* ViMicro - Minoru3D */
+> >  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
+> > 
+> >  				| USB_DEVICE_ID_MATCH_INT_INFO,
+> > 
+> > @@ -2505,7 +2534,7 @@ static int uvc_clock_param_set(const char *val, struct
+> > kernel_param *kp) .bInterfaceClass	= USB_CLASS_VIDEO,
+> >  	  .bInterfaceSubClass	= 1,
+> >  	  .bInterfaceProtocol	= 0,
+> > -	  .driver_info		= UVC_QUIRK_FIX_BANDWIDTH },
+> > +	  .driver_info		= (kernel_ulong_t)&uvc_quirk_fix_bandwidth },
+> >  	/* ViMicro Venus - Minoru3D */
+> >  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
+> > 
+> >  				| USB_DEVICE_ID_MATCH_INT_INFO,
+> > 
+> > @@ -2514,7 +2543,7 @@ static int uvc_clock_param_set(const char *val, struct
+> > kernel_param *kp) .bInterfaceClass	= USB_CLASS_VIDEO,
+> >  	  .bInterfaceSubClass	= 1,
+> >  	  .bInterfaceProtocol	= 0,
+> > -	  .driver_info		= UVC_QUIRK_FIX_BANDWIDTH },
+> > +	  .driver_info		= (kernel_ulong_t)&uvc_quirk_fix_bandwidth },
+> >  	/* Ophir Optronics - SPCAM 620U */
+> >  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
+> > 
+> >  				| USB_DEVICE_ID_MATCH_INT_INFO,
+> > 
+> > @@ -2523,7 +2552,7 @@ static int uvc_clock_param_set(const char *val, struct
+> > kernel_param *kp) .bInterfaceClass	= USB_CLASS_VIDEO,
+> >  	  .bInterfaceSubClass	= 1,
+> >  	  .bInterfaceProtocol	= 0,
+> > -	  .driver_info		= UVC_QUIRK_PROBE_MINMAX },
+> > +	  .driver_info		= (kernel_ulong_t)&uvc_quirk_probe_minmax },
+> >  	/* MT6227 */
+> >  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
+> > 
+> >  				| USB_DEVICE_ID_MATCH_INT_INFO,
+> > 
+> > @@ -2532,8 +2561,8 @@ static int uvc_clock_param_set(const char *val, struct
+> > kernel_param *kp) .bInterfaceClass	= USB_CLASS_VIDEO,
+> >  	  .bInterfaceSubClass	= 1,
+> >  	  .bInterfaceProtocol	= 0,
+> > -	  .driver_info		= UVC_QUIRK_PROBE_MINMAX
+> > -				| UVC_QUIRK_PROBE_DEF },
+> > +	  .driver_info		= UVC_QUIRK_INFO(UVC_QUIRK_PROBE_MINMAX
+> > +					| UVC_QUIRK_PROBE_DEF) },
+> >  	/* IMC Networks (Medion Akoya) */
+> >  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
+> > 
+> >  				| USB_DEVICE_ID_MATCH_INT_INFO,
+> > 
+> > @@ -2542,7 +2571,7 @@ static int uvc_clock_param_set(const char *val, struct
+> > kernel_param *kp) .bInterfaceClass	= USB_CLASS_VIDEO,
+> >  	  .bInterfaceSubClass	= 1,
+> >  	  .bInterfaceProtocol	= 0,
+> > -	  .driver_info		= UVC_QUIRK_STREAM_NO_FID },
+> > +	  .driver_info		= (kernel_ulong_t)&uvc_quirk_stream_no_fid },
+> >  	/* JMicron USB2.0 XGA WebCam */
+> >  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
+> > 
+> >  				| USB_DEVICE_ID_MATCH_INT_INFO,
+> > 
+> > @@ -2551,7 +2580,7 @@ static int uvc_clock_param_set(const char *val, struct
+> > kernel_param *kp) .bInterfaceClass	= USB_CLASS_VIDEO,
+> >  	  .bInterfaceSubClass	= 1,
+> >  	  .bInterfaceProtocol	= 0,
+> > -	  .driver_info		= UVC_QUIRK_PROBE_MINMAX },
+> > +	  .driver_info		= (kernel_ulong_t)&uvc_quirk_probe_minmax },
+> >  	/* Syntek (HP Spartan) */
+> >  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
+> > 
+> >  				| USB_DEVICE_ID_MATCH_INT_INFO,
+> > 
+> > @@ -2560,7 +2589,7 @@ static int uvc_clock_param_set(const char *val, struct
+> > kernel_param *kp) .bInterfaceClass	= USB_CLASS_VIDEO,
+> >  	  .bInterfaceSubClass	= 1,
+> >  	  .bInterfaceProtocol	= 0,
+> > -	  .driver_info		= UVC_QUIRK_STREAM_NO_FID },
+> > +	  .driver_info		= (kernel_ulong_t)&uvc_quirk_stream_no_fid },
+> >  	/* Syntek (Samsung Q310) */
+> >  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
+> > 
+> >  				| USB_DEVICE_ID_MATCH_INT_INFO,
+> > 
+> > @@ -2569,7 +2598,7 @@ static int uvc_clock_param_set(const char *val, struct
+> > kernel_param *kp) .bInterfaceClass	= USB_CLASS_VIDEO,
+> >  	  .bInterfaceSubClass	= 1,
+> >  	  .bInterfaceProtocol	= 0,
+> > -	  .driver_info		= UVC_QUIRK_STREAM_NO_FID },
+> > +	  .driver_info		= (kernel_ulong_t)&uvc_quirk_stream_no_fid },
+> >  	/* Syntek (Packard Bell EasyNote MX52 */
+> >  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
+> > 
+> >  				| USB_DEVICE_ID_MATCH_INT_INFO,
+> > 
+> > @@ -2578,7 +2607,7 @@ static int uvc_clock_param_set(const char *val, struct
+> > kernel_param *kp) .bInterfaceClass	= USB_CLASS_VIDEO,
+> >  	  .bInterfaceSubClass	= 1,
+> >  	  .bInterfaceProtocol	= 0,
+> > -	  .driver_info		= UVC_QUIRK_STREAM_NO_FID },
+> > +	  .driver_info		= (kernel_ulong_t)&uvc_quirk_stream_no_fid },
+> >  	/* Syntek (Asus F9SG) */
+> >  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
+> > 
+> >  				| USB_DEVICE_ID_MATCH_INT_INFO,
+> > 
+> > @@ -2587,7 +2616,7 @@ static int uvc_clock_param_set(const char *val, struct
+> > kernel_param *kp) .bInterfaceClass	= USB_CLASS_VIDEO,
+> >  	  .bInterfaceSubClass	= 1,
+> >  	  .bInterfaceProtocol	= 0,
+> > -	  .driver_info		= UVC_QUIRK_STREAM_NO_FID },
+> > +	  .driver_info		= (kernel_ulong_t)&uvc_quirk_stream_no_fid },
+> >  	/* Syntek (Asus U3S) */
+> >  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
+> > 
+> >  				| USB_DEVICE_ID_MATCH_INT_INFO,
+> > 
+> > @@ -2596,7 +2625,7 @@ static int uvc_clock_param_set(const char *val, struct
+> > kernel_param *kp) .bInterfaceClass	= USB_CLASS_VIDEO,
+> >  	  .bInterfaceSubClass	= 1,
+> >  	  .bInterfaceProtocol	= 0,
+> > -	  .driver_info		= UVC_QUIRK_STREAM_NO_FID },
+> > +	  .driver_info		= (kernel_ulong_t)&uvc_quirk_stream_no_fid },
+> >  	/* Syntek (JAOtech Smart Terminal) */
+> >  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
+> > 
+> >  				| USB_DEVICE_ID_MATCH_INT_INFO,
+> > 
+> > @@ -2605,7 +2634,7 @@ static int uvc_clock_param_set(const char *val, struct
+> > kernel_param *kp) .bInterfaceClass	= USB_CLASS_VIDEO,
+> >  	  .bInterfaceSubClass	= 1,
+> >  	  .bInterfaceProtocol	= 0,
+> > -	  .driver_info		= UVC_QUIRK_STREAM_NO_FID },
+> > +	  .driver_info		= (kernel_ulong_t)&uvc_quirk_stream_no_fid },
+> >  	/* Miricle 307K */
+> >  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
+> > 
+> >  				| USB_DEVICE_ID_MATCH_INT_INFO,
+> > 
+> > @@ -2614,7 +2643,7 @@ static int uvc_clock_param_set(const char *val, struct
+> > kernel_param *kp) .bInterfaceClass	= USB_CLASS_VIDEO,
+> >  	  .bInterfaceSubClass	= 1,
+> >  	  .bInterfaceProtocol	= 0,
+> > -	  .driver_info		= UVC_QUIRK_STREAM_NO_FID },
+> > +	  .driver_info		= (kernel_ulong_t)&uvc_quirk_stream_no_fid },
+> >  	/* Lenovo Thinkpad SL400/SL500 */
+> >  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
+> > 
+> >  				| USB_DEVICE_ID_MATCH_INT_INFO,
+> > 
+> > @@ -2623,7 +2652,7 @@ static int uvc_clock_param_set(const char *val, struct
+> > kernel_param *kp) .bInterfaceClass	= USB_CLASS_VIDEO,
+> >  	  .bInterfaceSubClass	= 1,
+> >  	  .bInterfaceProtocol	= 0,
+> > -	  .driver_info		= UVC_QUIRK_STREAM_NO_FID },
+> > +	  .driver_info		= (kernel_ulong_t)&uvc_quirk_stream_no_fid },
+> >  	/* Aveo Technology USB 2.0 Camera */
+> >  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
+> > 
+> >  				| USB_DEVICE_ID_MATCH_INT_INFO,
+> > 
+> > @@ -2632,8 +2661,8 @@ static int uvc_clock_param_set(const char *val, struct
+> > kernel_param *kp) .bInterfaceClass	= USB_CLASS_VIDEO,
+> >  	  .bInterfaceSubClass	= 1,
+> >  	  .bInterfaceProtocol	= 0,
+> > -	  .driver_info		= UVC_QUIRK_PROBE_MINMAX
+> > -				| UVC_QUIRK_PROBE_EXTRAFIELDS },
+> > +	  .driver_info		= UVC_QUIRK_INFO(UVC_QUIRK_PROBE_MINMAX
+> > +					| UVC_QUIRK_PROBE_EXTRAFIELDS) },
+> >  	/* Aveo Technology USB 2.0 Camera (Tasco USB Microscope) */
+> >  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
+> > 
+> >  				| USB_DEVICE_ID_MATCH_INT_INFO,
+> > 
+> > @@ -2650,7 +2679,7 @@ static int uvc_clock_param_set(const char *val, struct
+> > kernel_param *kp) .bInterfaceClass	= USB_CLASS_VIDEO,
+> >  	  .bInterfaceSubClass	= 1,
+> >  	  .bInterfaceProtocol	= 0,
+> > -	  .driver_info		= UVC_QUIRK_PROBE_EXTRAFIELDS },
+> > +	  .driver_info		= UVC_QUIRK_INFO(UVC_QUIRK_PROBE_EXTRAFIELDS) },
+> >  	/* Manta MM-353 Plako */
+> >  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
+> > 
+> >  				| USB_DEVICE_ID_MATCH_INT_INFO,
+> > 
+> > @@ -2659,7 +2688,7 @@ static int uvc_clock_param_set(const char *val, struct
+> > kernel_param *kp) .bInterfaceClass	= USB_CLASS_VIDEO,
+> >  	  .bInterfaceSubClass	= 1,
+> >  	  .bInterfaceProtocol	= 0,
+> > -	  .driver_info		= UVC_QUIRK_PROBE_MINMAX },
+> > +	  .driver_info		= (kernel_ulong_t)&uvc_quirk_probe_minmax },
+> >  	/* FSC WebCam V30S */
+> >  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
+> > 
+> >  				| USB_DEVICE_ID_MATCH_INT_INFO,
+> > 
+> > @@ -2668,7 +2697,7 @@ static int uvc_clock_param_set(const char *val, struct
+> > kernel_param *kp) .bInterfaceClass	= USB_CLASS_VIDEO,
+> >  	  .bInterfaceSubClass	= 1,
+> >  	  .bInterfaceProtocol	= 0,
+> > -	  .driver_info		= UVC_QUIRK_PROBE_MINMAX },
+> > +	  .driver_info		= (kernel_ulong_t)&uvc_quirk_probe_minmax },
+> >  	/* Arkmicro unbranded */
+> >  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
+> > 
+> >  				| USB_DEVICE_ID_MATCH_INT_INFO,
+> > 
+> > @@ -2677,7 +2706,7 @@ static int uvc_clock_param_set(const char *val, struct
+> > kernel_param *kp) .bInterfaceClass	= USB_CLASS_VIDEO,
+> >  	  .bInterfaceSubClass	= 1,
+> >  	  .bInterfaceProtocol	= 0,
+> > -	  .driver_info		= UVC_QUIRK_PROBE_DEF },
+> > +	  .driver_info		= (kernel_ulong_t)&uvc_quirk_probe_def },
+> >  	/* The Imaging Source USB CCD cameras */
+> >  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
+> > 
+> >  				| USB_DEVICE_ID_MATCH_INT_INFO,
+> > 
+> > @@ -2696,7 +2725,7 @@ static int uvc_clock_param_set(const char *val, struct
+> > kernel_param *kp) .bInterfaceClass	= USB_CLASS_VIDEO,
+> >  	  .bInterfaceSubClass	= 1,
+> >  	  .bInterfaceProtocol	= 0,
+> > -	  .driver_info		= UVC_QUIRK_STATUS_INTERVAL },
+> > +	  .driver_info		= UVC_QUIRK_INFO(UVC_QUIRK_STATUS_INTERVAL) },
+> >  	/* MSI StarCam 370i */
+> >  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
+> > 
+> >  				| USB_DEVICE_ID_MATCH_INT_INFO,
+> > 
+> > @@ -2705,7 +2734,7 @@ static int uvc_clock_param_set(const char *val, struct
+> > kernel_param *kp) .bInterfaceClass	= USB_CLASS_VIDEO,
+> >  	  .bInterfaceSubClass	= 1,
+> >  	  .bInterfaceProtocol	= 0,
+> > -	  .driver_info		= UVC_QUIRK_PROBE_MINMAX },
+> > +	  .driver_info		= (kernel_ulong_t)&uvc_quirk_probe_minmax },
+> >  	/* SiGma Micro USB Web Camera */
+> >  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
+> > 
+> >  				| USB_DEVICE_ID_MATCH_INT_INFO,
+> > 
+> > @@ -2714,8 +2743,8 @@ static int uvc_clock_param_set(const char *val, struct
+> > kernel_param *kp) .bInterfaceClass	= USB_CLASS_VIDEO,
+> >  	  .bInterfaceSubClass	= 1,
+> >  	  .bInterfaceProtocol	= 0,
+> > -	  .driver_info		= UVC_QUIRK_PROBE_MINMAX
+> > -				| UVC_QUIRK_IGNORE_SELECTOR_UNIT },
+> > +	  .driver_info		= UVC_QUIRK_INFO(UVC_QUIRK_PROBE_MINMAX
+> > +					| UVC_QUIRK_IGNORE_SELECTOR_UNIT) },
+> >  	/* Oculus VR Positional Tracker DK2 */
+> >  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
+> > 
+> >  				| USB_DEVICE_ID_MATCH_INT_INFO,
+> > 
+> > @@ -2724,7 +2753,7 @@ static int uvc_clock_param_set(const char *val, struct
+> > kernel_param *kp) .bInterfaceClass	= USB_CLASS_VIDEO,
+> >  	  .bInterfaceSubClass	= 1,
+> >  	  .bInterfaceProtocol	= 0,
+> > -	  .driver_info		= UVC_QUIRK_FORCE_Y8 },
+> > +	  .driver_info		= (kernel_ulong_t)&uvc_quirk_force_y8 },
+> >  	/* Oculus VR Rift Sensor */
+> >  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
+> > 
+> >  				| USB_DEVICE_ID_MATCH_INT_INFO,
+> > 
+> > @@ -2733,7 +2762,7 @@ static int uvc_clock_param_set(const char *val, struct
+> > kernel_param *kp) .bInterfaceClass	= USB_CLASS_VENDOR_SPEC,
+> >  	  .bInterfaceSubClass	= 1,
+> >  	  .bInterfaceProtocol	= 0,
+> > -	  .driver_info		= UVC_QUIRK_FORCE_Y8 },
+> > +	  .driver_info		= (kernel_ulong_t)&uvc_quirk_force_y8 },
+> >  	/* Generic USB Video Class */
+> >  	{ USB_INTERFACE_INFO(USB_CLASS_VIDEO, 1, UVC_PC_PROTOCOL_UNDEFINED) },
+> >  	{ USB_INTERFACE_INFO(USB_CLASS_VIDEO, 1, UVC_PC_PROTOCOL_15) },
+> 
+> 
+> -- 
+> Regards,
+> 
+> Laurent Pinchart
+> 
