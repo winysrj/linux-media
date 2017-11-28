@@ -1,80 +1,181 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay5-d.mail.gandi.net ([217.70.183.197]:44722 "EHLO
-        relay5-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S965309AbdKQJQE (ORCPT
+Received: from mail.micronovasrl.com ([212.103.203.10]:33159 "EHLO
+        mail.micronovasrl.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752836AbdK1AD7 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 17 Nov 2017 04:16:04 -0500
-Date: Fri, 17 Nov 2017 10:15:57 +0100
-From: jacopo mondi <jacopo@jmondi.org>
-To: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Magnus Damm <magnus.damm@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Linux-Renesas <linux-renesas-soc@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux-sh list <linux-sh@vger.kernel.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH v1 06/10] sh: sh7722: Rename CEU clock
-Message-ID: <20171117091557.GD4668@w540>
-References: <1510743363-25798-1-git-send-email-jacopo+renesas@jmondi.org>
- <1510743363-25798-7-git-send-email-jacopo+renesas@jmondi.org>
- <CAMuHMdVTQpkXLEk9NvG6gEAfo5whiLBjUrRL0X0Y924tcy7OVw@mail.gmail.com>
+        Mon, 27 Nov 2017 19:03:59 -0500
+Received: from mail.micronovasrl.com (mail.micronovasrl.com [127.0.0.1])
+        by mail.micronovasrl.com (Postfix) with ESMTP id D9FA4B00A51
+        for <linux-media@vger.kernel.org>; Tue, 28 Nov 2017 01:03:57 +0100 (CET)
+Received: from mail.micronovasrl.com ([127.0.0.1])
+        by mail.micronovasrl.com (mail.micronovasrl.com [127.0.0.1]) (amavisd-new, port 10026)
+        with ESMTP id vC2iqAa9GUZk for <linux-media@vger.kernel.org>;
+        Tue, 28 Nov 2017 01:03:57 +0100 (CET)
+Subject: Re: [linux-sunxi] Cedrus driver
+From: Giulio Benetti <giulio.benetti@micronovasrl.com>
+To: Maxime Ripard <maxime.ripard@free-electrons.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+        Andreas Baierl <list@imkreisrum.de>,
+        linux-sunxi <linux-sunxi@googlegroups.com>,
+        linux@armlinux.org.uk, wens@csie.org, linux-kernel@vger.kernel.org,
+        thomas@vitsch.nl, linux-media@vger.kernel.org
+References: <1510059543-7064-1-git-send-email-giulio.benetti@micronovasrl.com>
+ <1b12fa21-bfe6-9ba7-ae1d-8131ac6f4668@micronovasrl.com>
+ <6fcdc0d9-d0f8-785a-bb00-b1b41c684e59@imkreisrum.de>
+ <693e8786-af83-9d77-0fd4-50fa1f6a135f@micronovasrl.com>
+ <20171116110204.poakahqjz4sj7pmu@flea>
+ <5fcf64db-c654-37d0-5863-20379c04f99c@micronovasrl.com>
+ <20171116125310.yavjs7352nw2sm7r@flea>
+ <e03cfdb5-57b3-fefd-75c3-6b97348682ff@micronovasrl.com>
+ <6f94505d-69bb-6688-4b13-6a0ed2af8dd4@xs4all.nl>
+ <d0b7f6e5-8758-ac92-e6a2-9ed4ff3cbc63@micronovasrl.com>
+ <20171116133906.xsrpkdflgf34kkoy@flea>
+ <b5c23ea7-4efa-1565-0c53-014c8a1ee37d@micronovasrl.com>
+Message-ID: <5d019a33-9266-1e81-cc36-6e87c22bf382@micronovasrl.com>
+Date: Tue, 28 Nov 2017 01:03:59 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <CAMuHMdVTQpkXLEk9NvG6gEAfo5whiLBjUrRL0X0Y924tcy7OVw@mail.gmail.com>
+In-Reply-To: <b5c23ea7-4efa-1565-0c53-014c8a1ee37d@micronovasrl.com>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Language: it
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Geert,
+Hi Maxime,
 
-On Wed, Nov 15, 2017 at 02:13:43PM +0100, Geert Uytterhoeven wrote:
-> Hi Jacopo,
->
-> On Wed, Nov 15, 2017 at 11:55 AM, Jacopo Mondi
-> <jacopo+renesas@jmondi.org> wrote:
-> > Rename CEU clock to match the new platform driver name used in Migo-R.
-> >
-> > There are no other sh7722 based devices Migo-R apart, so we can safely
-> > rename this.
-> >
-> > Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
-> > ---
-> >  arch/sh/kernel/cpu/sh4a/clock-sh7722.c | 2 +-
-> >  1 file changed, 1 insertion(+), 1 deletion(-)
-> >
-> > diff --git a/arch/sh/kernel/cpu/sh4a/clock-sh7722.c b/arch/sh/kernel/cpu/sh4a/clock-sh7722.c
-> > index 8f07a1a..d85091e 100644
-> > --- a/arch/sh/kernel/cpu/sh4a/clock-sh7722.c
-> > +++ b/arch/sh/kernel/cpu/sh4a/clock-sh7722.c
-> > @@ -223,7 +223,7 @@ static struct clk_lookup lookups[] = {
-> >         CLKDEV_DEV_ID("sh-vou.0", &mstp_clks[HWBLK_VOU]),
-> >         CLKDEV_CON_ID("jpu0", &mstp_clks[HWBLK_JPU]),
-> >         CLKDEV_CON_ID("beu0", &mstp_clks[HWBLK_BEU]),
-> > -       CLKDEV_DEV_ID("sh_mobile_ceu.0", &mstp_clks[HWBLK_CEU]),
-> > +       CLKDEV_DEV_ID("renesas-ceu.0", &mstp_clks[HWBLK_CEU]),
-> >         CLKDEV_CON_ID("veu0", &mstp_clks[HWBLK_VEU]),
-> >         CLKDEV_CON_ID("vpu0", &mstp_clks[HWBLK_VPU]),
-> >         CLKDEV_DEV_ID("sh_mobile_lcdc_fb.0", &mstp_clks[HWBLK_LCDC]),
->
-> Shouldn't this be merged with "[PATCH v1 05/10] arch: sh: migor: Use new
-> renesas-ceu camera driver", to avoid breaking bisection?
+Il 16/11/2017 14:42, Giulio Benetti ha scritto:
+> Hi,
+> 
+> Il 16/11/2017 14:39, Maxime Ripard ha scritto:
+>> On Thu, Nov 16, 2017 at 02:17:08PM +0100, Giulio Benetti wrote:
+>>> Hi Hans,
+>>>
+>>> Il 16/11/2017 14:12, Hans Verkuil ha scritto:
+>>>> On 16/11/17 13:57, Giulio Benetti wrote:
+>>>>> Il 16/11/2017 13:53, Maxime Ripard ha scritto:
+>>>>>> On Thu, Nov 16, 2017 at 01:30:52PM +0100, Giulio Benetti wrote:
+>>>>>>>> On Thu, Nov 16, 2017 at 11:37:30AM +0100, Giulio Benetti wrote:
+>>>>>>>>> Il 16/11/2017 11:31, Andreas Baierl ha scritto:
+>>>>>>>>>> Am 16.11.2017 um 11:13 schrieb Giulio Benetti:
+>>>>>>>>>>> Hello,
+>>>>>>>>>>>
+>>>>>>>>>> Hello,
+>>>>>>>>>>> I'm wondering why cedrus
+>>>>>>>>>>> https://github.com/FlorentRevest/linux-sunxi-cedrus has never 
+>>>>>>>>>>> been
+>>>>>>>>>>> merged with linux-sunxi sunxi-next.
+>>>>>>>>>>>
+>>>>>>>>>> Because it is not ready to be merged. It depends on the v4l2 
+>>>>>>>>>> request
+>>>>>>>>>> API, which was not merged and which is re-worked atm.
+>>>>>>>>>> Also, sunxi-cedrus itself is not in a finished state and is 
+>>>>>>>>>> not as
+>>>>>>>>>> feature-complete to be merged. Anyway it might be something for
+>>>>>>>>>> staging... Has there been a [RFC] on the mailing list at all?
+>>>>>>>>>
+>>>>>>>>> Where can I find a list of TODOs to get it ready to be merged?
+>>>>>>>>
+>>>>>>>> Assuming that the request API is in, we'd need to:
+>>>>>>>>       - Finish the MPEG4 support
+>>>>>>>>       - Work on more useful codecs (H264 comes to my mind)
+>>>>>>>>       - Implement the DRM planes support for the custom frame 
+>>>>>>>> format
+>>>>>>>>       - Implement the DRM planes support for scaling
+>>>>>>>>       - Test it on more SoCs
+>>>>>>>>
+>>>>>>>> Or something along those lines.
+>>>>>>>
+>>>>>>> Lot of work to do
+>>>>>>
+>>>>>> Well... If it was fast and easy it would have been done already :)
+>>>>>
+>>>>> :))
+>>>>>
+>>>>>>
+>>>>>>>>>>> I see it seems to be dead, no commit in 1 year.
+>>>>>>>>>>
+>>>>>>>>>> Yes, because the author did this during an internship, which 
+>>>>>>>>>> ended ...
+>>>>>>>>>> Afaik nobody picked up his work yet.
+>>>>>>>>
+>>>>>>>> That's not entirely true. Some work has been done by Thomas (in 
+>>>>>>>> CC),
+>>>>>>>> especially on the display engine side, but last time we talked his
+>>>>>>>> work was not really upstreamable.
+>>>>>>>>
+>>>>>>>> We will also resume that effort starting next march.
+>>>>>>>
+>>>>>>> Is it possible a preview on a separate Reporitory to start 
+>>>>>>> working on now?
+>>>>>>> Expecially to start porting everything done by FlorentRevest to 
+>>>>>>> mainline,
+>>>>>>> admitted you've not already done.
+>>>>>>
+>>>>>> I'm not sure what you're asking for. Florent's work *was* on 
+>>>>>> mainline.
+>>>>>
+>>>>> and then they took it off because it was unmantained?
+>>>>> You've spoken about Thomas(in CC) not ready,
+>>>>> maybe I could help on that if it's public to accelerate.
+>>>>> If I'm able to of course, this is my primary concern.
+>>>>>
+>>>>> Otherwise, in which way can I help improving it to make it accept 
+>>>>> to linux-sunxi?
+>>>>> Starting from Florent's work and porting it to sunxi-next to begin?
+>>>>> And after that adding all features you've listed?
+>>>>> Tell me what I can do(I repeat, if I'm able to).
+>>>>
+>>>> The bottleneck is that the Request API is not mainlined. We 
+>>>> restarted work
+>>>> on it after a meeting a few weeks back where we all agreed on the 
+>>>> roadmap
+>>>> so hopefully it will go into mainline Q1 or Q2 next year.
+>>>>
+>>>> That said, you can use Florent's patch series for further development.
+>>>> It should be relatively easy to convert it to the final version of the
+>>>> Request API. Just note that the public API of the final Request API 
+>>>> will
+>>>> be somewhat different from the old version Florent's patch series is 
+>>>> using.
+>>>
+>>> So I'm going to try soon to :
+>>> 1) adapt that patchset to sunxi-next
+>>> 2) add A20 support
+>>> 3) add A33 support
+>>> 4) after mainlined APIs, merge
+>>
+>> That sounds good. Thomas already has the support for the A20, and as I
+>> was saying, there is someone that is going to work full time on this
+>> in a couple monthes on our side.
+>>
+>> I'll set up a git repo on github so that we can collaborate until the
+>> request API is ready.
 
-That's a good idea. I will merge these two commits in v2.
+Any news about git repo?
+When do you plan to do it more or less?
 
-Thanks
-   j
+> 
+> Great!
+> Write me when you've got news.
+> 
+> Thank you very much!
+> 
+>>
+>> Maxime
+>>
+> 
+> 
 
->
-> Gr{oetje,eeting}s,
->
->                         Geert
->
-> --
-> Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
->
-> In personal conversations with technical people, I call myself a hacker. But
-> when I'm talking to journalists I just say "programmer" or something like that.
->                                 -- Linus Torvalds
+
+-- 
+Giulio Benetti
+R&D Manager &
+Advanced Research
+
+MICRONOVA SRL
+Sede: Via A. Niedda 3 - 35010 Vigonza (PD)
+Tel. 049/8931563 - Fax 049/8931346
+Cod.Fiscale - P.IVA 02663420285
+Capitale Sociale € 26.000 i.v.
+Iscritta al Reg. Imprese di Padova N. 02663420285
+Numero R.E.A. 258642
