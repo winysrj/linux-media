@@ -1,139 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:56318 "EHLO
-        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752083AbdKMOeL (ORCPT
+Received: from mail.free-electrons.com ([62.4.15.54]:59696 "EHLO
+        mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751443AbdK1NHt (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 13 Nov 2017 09:34:11 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Alexandre Courbot <acourbot@chromium.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv1 PATCH 6/6] v4l2-ctrls: add v4l2_ctrl_request_setup
-Date: Mon, 13 Nov 2017 15:34:08 +0100
-Message-Id: <20171113143408.19644-7-hverkuil@xs4all.nl>
-In-Reply-To: <20171113143408.19644-1-hverkuil@xs4all.nl>
-References: <20171113143408.19644-1-hverkuil@xs4all.nl>
+        Tue, 28 Nov 2017 08:07:49 -0500
+Date: Tue, 28 Nov 2017 14:07:37 +0100
+From: Maxime Ripard <maxime.ripard@free-electrons.com>
+To: Giulio Benetti <giulio.benetti@micronovasrl.com>
+Cc: Thomas van Kleef <thomas@vitsch.nl>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Andreas Baierl <list@imkreisrum.de>,
+        linux-sunxi <linux-sunxi@googlegroups.com>,
+        linux@armlinux.org.uk, wens@csie.org, linux-kernel@vger.kernel.org,
+        linux-media@vger.kernel.org
+Subject: Re: [linux-sunxi] Cedrus driver
+Message-ID: <20171128130737.cpohndeskuczcpa7@flea.home>
+References: <1511868558-1962148761.366cc20c7e@prakkezator.vehosting.nl>
+ <d8135c3d-7ba8-2b88-11cb-5b81dfa04be2@vitsch.nl>
+ <f8cc0633-8c29-e3b0-0216-f8f5c69ebb34@micronovasrl.com>
+ <20171128125203.h7cnu3gkfmogqhxu@flea.home>
+ <6A617A27-DBE8-4537-A122-6ACA98B8A6B4@micronovasrl.com>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="h63ssfpb3z5suvqn"
+Content-Disposition: inline
+In-Reply-To: <6A617A27-DBE8-4537-A122-6ACA98B8A6B4@micronovasrl.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Add a helper function that can set controls from a request.
+--h63ssfpb3z5suvqn
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/v4l2-core/v4l2-ctrls.c | 71 ++++++++++++++++++++++++++++++++++++
- include/media/v4l2-ctrls.h           |  2 +
- 2 files changed, 73 insertions(+)
+On Tue, Nov 28, 2017 at 02:03:43PM +0100, Giulio Benetti wrote:
+> Hi,
+>=20
+> > Il giorno 28 nov 2017, alle ore 13:52, Maxime Ripard <maxime.ripard@fre=
+e-electrons.com> ha scritto:
+> >=20
+> > On Tue, Nov 28, 2017 at 12:54:08PM +0100, Giulio Benetti wrote:
+> >>>>> Should I be working in sunxi-next I wonder?
+> >>>>=20
+> >>>> Yes, this is the best way, cedrus is very specific to sunxi.
+> >>>> So before working on mainline, I think the best is to work un sunxi-=
+next branch.
+> >>>=20
+> >>> Is the requests2 api in sunxi-next?
+> >>=20
+> >> It should be there,
+> >> take a look at latest commit of yesterday:
+> >> https://github.com/linux-sunxi/linux-sunxi/commit/df7cacd062cd84c551d7=
+e72f15b1af6d71abc198
+> >=20
+> > No, it shouldn't. sunxi-next is about patches that are related to
+> > sunxi that have been accepted in their respective maintainers'
+> > branches.
+> >=20
+> > While we could argue about the first criteria, the second one is not
+> > respected.
+> >=20
+> > And really, just develop against 4.14. sunxi-next is rebased, and it's
+> > just not something you can base some work on.
+>=20
+> Where do we can work on then?
+> Should Thomas setup his own github repo?
+> What about the one you=E2=80=99ve set up @free-electrons?
 
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index 36b00ad2d5cb..5513061b033d 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -1662,6 +1662,14 @@ static void new_to_req(struct v4l2_ctrl_ref *ref)
- 	ptr_to_ptr(ref->ctrl, ref->ctrl->p_new, ref->p_req);
- }
- 
-+/* Copy the request value to the new value */
-+static void req_to_new(struct v4l2_ctrl_ref *ref)
-+{
-+	if (!ref)
-+		return;
-+	ptr_to_ptr(ref->ctrl, ref->p_req, ref->ctrl->p_new);
-+}
-+
- /* Return non-zero if one or more of the controls in the cluster has a new
-    value that differs from the current value. */
- static int cluster_changed(struct v4l2_ctrl *master)
-@@ -3431,6 +3439,69 @@ int __v4l2_ctrl_s_ctrl_string(struct v4l2_ctrl *ctrl, const char *s)
- }
- EXPORT_SYMBOL(__v4l2_ctrl_s_ctrl_string);
- 
-+void v4l2_ctrl_request_setup(struct v4l2_ctrl_handler *hdl)
-+{
-+	struct v4l2_ctrl_ref *ref;
-+
-+	if (!hdl)
-+		return;
-+
-+	mutex_lock(hdl->lock);
-+
-+	list_for_each_entry(ref, &hdl->ctrl_refs, node)
-+		ref->done = false;
-+
-+	list_for_each_entry(ref, &hdl->ctrl_refs, node) {
-+		struct v4l2_ctrl *ctrl = ref->ctrl;
-+		struct v4l2_ctrl *master = ctrl->cluster[0];
-+		int i;
-+
-+		/* Skip if this control was already handled by a cluster. */
-+		/* Skip button controls and read-only controls. */
-+		if (ref->done || ctrl->type == V4L2_CTRL_TYPE_BUTTON ||
-+		    (ctrl->flags & V4L2_CTRL_FLAG_READ_ONLY))
-+			continue;
-+
-+		v4l2_ctrl_lock(master);
-+		for (i = 0; i < master->ncontrols; i++) {
-+			if (master->cluster[i]) {
-+				struct v4l2_ctrl_ref *r =
-+					find_ref(hdl, master->cluster[i]->id);
-+
-+				req_to_new(r);
-+				master->cluster[i]->is_new = 1;
-+				r->done = true;
-+			}
-+		}
-+		/*
-+		 * For volatile autoclusters that are currently in auto mode
-+		 * we need to discover if it will be set to manual mode.
-+		 * If so, then we have to copy the current volatile values
-+		 * first since those will become the new manual values (which
-+		 * may be overwritten by explicit new values from this set
-+		 * of controls).
-+		 */
-+		if (master->is_auto && master->has_volatiles &&
-+		    !is_cur_manual(master)) {
-+			s32 new_auto_val = *master->p_new.p_s32;
-+
-+			/*
-+			 * If the new value == the manual value, then copy
-+			 * the current volatile values.
-+			 */
-+			if (new_auto_val == master->manual_mode_value)
-+				update_from_auto_cluster(master);
-+		}
-+
-+		try_or_set_cluster(NULL, master, true, 0);
-+
-+		v4l2_ctrl_unlock(master);
-+	}
-+
-+	mutex_unlock(hdl->lock);
-+}
-+EXPORT_SYMBOL(v4l2_ctrl_request_setup);
-+
- void v4l2_ctrl_notify(struct v4l2_ctrl *ctrl, v4l2_ctrl_notify_fnc notify, void *priv)
- {
- 	if (ctrl == NULL)
-diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
-index f86d680880e1..2770bff1d6bd 100644
---- a/include/media/v4l2-ctrls.h
-+++ b/include/media/v4l2-ctrls.h
-@@ -252,6 +252,7 @@ struct v4l2_ctrl_ref {
- 	struct v4l2_ctrl *ctrl;
- 	struct v4l2_ctrl_helper *helper;
- 	union v4l2_ctrl_ptr p_req;
-+	bool done;
- 	bool from_other_dev;
- };
- 
-@@ -1049,6 +1050,7 @@ struct v4l2_ctrl_handler *v4l2_ctrl_request_alloc(void);
- int v4l2_ctrl_request_clone(struct v4l2_ctrl_handler *hdl,
- 			    const struct v4l2_ctrl_handler *from,
- 			    bool (*filter)(const struct v4l2_ctrl *ctrl));
-+void v4l2_ctrl_request_setup(struct v4l2_ctrl_handler *hdl);
- void v4l2_ctrl_request_get(struct v4l2_ctrl_handler *hdl);
- void v4l2_ctrl_request_put(struct v4l2_ctrl_handler *hdl);
- 
--- 
-2.14.1
+I already said that, please make pull requests to that repo.
+
+Maxime
+
+--=20
+Maxime Ripard, Free Electrons
+Embedded Linux and Kernel engineering
+http://free-electrons.com
+
+--h63ssfpb3z5suvqn
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCAAdFiEE0VqZU19dR2zEVaqr0rTAlCFNr3QFAlodX5UACgkQ0rTAlCFN
+r3TmJA//YOMQ4e6tpU2b2/NiTyg7yevBA0d4YYGnsT5CBhV74+i+HGNW+skWt2Sq
+zytGjQ8GnaY8zIQLxizSIWLqo/3Rn5ElB5KROsCq0Wq5yY/a9kktLnldIp5XDXDH
+YmY9xvhhusGo3gwExKTBRpFBRiwHd2kF+zTYEKWOtSh3sftaPcqjne7r2UvBIVZ5
+vKGUMQyVp7VdSKkTCtyqbhcZ2iBTyw1Uvrzhr9Kxl8DTXVpHAykORjyXhpUfjiWq
+KigRIs19r/DDhnmgCRVoAH3MmyzpN5UBvbL8kYHH1Z+++xssOtaWEuZvuFHaB13K
+jA2wS4fGFN9/gvS8UUeDD6Y0EoJLoVVdT90J7GOm1CNgTOxv3JPQCq5BoaKvYqEV
+nq+U+XOzuItuSrsJQDbO6MyYPUrfENCuKxlvgQQlB8CKCF6cPsyk9Sph5V7BKhx9
+PbExirWF/IV2dDDw8emC4Ifm0QATBvmp2s4KRwAA8EOrE8cyIrUtEBBI1SN8sBmc
+HCyyXXZxVaJpZTM52OnKMT7WpYp9dyCeHxD65dPx3WKYG0bfpq3ZZdBhGarstmTt
+wVt7tJ7IR8yRRd4zZJc+NDivSAENFSmWGZemqkP2KNlHdKaX9U1VpaT7amaOgf8O
+792AhJBFtxcYgyGxibrkHH1RtFgUZkzpGxrxhAkiSEoZZ7ZfqlQ=
+=ojPL
+-----END PGP SIGNATURE-----
+
+--h63ssfpb3z5suvqn--
