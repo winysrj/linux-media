@@ -1,59 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:34643 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752310AbdK2TIu (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 29 Nov 2017 14:08:50 -0500
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Minghsiu Tsai <minghsiu.tsai@mediatek.com>,
-        Houlong Wei <houlong.wei@mediatek.com>,
-        Andrew-CT Chen <andrew-ct.chen@mediatek.com>,
-        Tiffany Lin <tiffany.lin@mediatek.com>,
-        Matthias Brugger <matthias.bgg@gmail.com>,
-        linux-arm-kernel@lists.infradead.org,
-        linux-mediatek@lists.infradead.org
-Subject: [PATCH 11/22] media: mtk-vpu: add description for wdt fields at struct mtk_vpu
-Date: Wed, 29 Nov 2017 14:08:29 -0500
-Message-Id: <51d70fd5c5c5d154674ba93655b4bb333f4cc96e.1511982439.git.mchehab@s-opensource.com>
-In-Reply-To: <73497577f67fbb917e40ab4328104ff310a7c356.1511982439.git.mchehab@s-opensource.com>
-References: <73497577f67fbb917e40ab4328104ff310a7c356.1511982439.git.mchehab@s-opensource.com>
-In-Reply-To: <73497577f67fbb917e40ab4328104ff310a7c356.1511982439.git.mchehab@s-opensource.com>
-References: <73497577f67fbb917e40ab4328104ff310a7c356.1511982439.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+Received: from mail.micronovasrl.com ([212.103.203.10]:57572 "EHLO
+        mail.micronovasrl.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752417AbdK1NMd (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 28 Nov 2017 08:12:33 -0500
+Received: from mail.micronovasrl.com (mail.micronovasrl.com [127.0.0.1])
+        by mail.micronovasrl.com (Postfix) with ESMTP id 10B00B00D75
+        for <linux-media@vger.kernel.org>; Tue, 28 Nov 2017 14:12:32 +0100 (CET)
+Received: from mail.micronovasrl.com ([127.0.0.1])
+        by mail.micronovasrl.com (mail.micronovasrl.com [127.0.0.1]) (amavisd-new, port 10026)
+        with ESMTP id wlxPP4noPEBF for <linux-media@vger.kernel.org>;
+        Tue, 28 Nov 2017 14:12:31 +0100 (CET)
+Subject: Re: [linux-sunxi] Cedrus driver
+To: Maxime Ripard <maxime.ripard@free-electrons.com>
+Cc: Thomas van Kleef <thomas@vitsch.nl>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Andreas Baierl <list@imkreisrum.de>,
+        linux-sunxi <linux-sunxi@googlegroups.com>,
+        linux@armlinux.org.uk, wens@csie.org, linux-kernel@vger.kernel.org,
+        linux-media@vger.kernel.org
+References: <1511868558-1962148761.366cc20c7e@prakkezator.vehosting.nl>
+ <d8135c3d-7ba8-2b88-11cb-5b81dfa04be2@vitsch.nl>
+ <f8cc0633-8c29-e3b0-0216-f8f5c69ebb34@micronovasrl.com>
+ <20171128125203.h7cnu3gkfmogqhxu@flea.home>
+ <6A617A27-DBE8-4537-A122-6ACA98B8A6B4@micronovasrl.com>
+ <20171128130737.cpohndeskuczcpa7@flea.home>
+From: Giulio Benetti <giulio.benetti@micronovasrl.com>
+Message-ID: <d2f659ed-1750-2859-7b43-0a4780bd3343@micronovasrl.com>
+Date: Tue, 28 Nov 2017 14:12:31 +0100
+MIME-Version: 1.0
+In-Reply-To: <20171128130737.cpohndeskuczcpa7@flea.home>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: it
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fix those warnings:
-  drivers/media/platform/mtk-vpu/mtk_vpu.c:223: warning: No description found for parameter 'wdt'
-  drivers/media/platform/mtk-vpu/mtk_vpu.c:223: warning: No description found for parameter 'wdt_refcnt'
+Il 28/11/2017 14:07, Maxime Ripard ha scritto:
+> On Tue, Nov 28, 2017 at 02:03:43PM +0100, Giulio Benetti wrote:
+>> Hi,
+>>
+>>> Il giorno 28 nov 2017, alle ore 13:52, Maxime Ripard <maxime.ripard@free-electrons.com> ha scritto:
+>>>
+>>> On Tue, Nov 28, 2017 at 12:54:08PM +0100, Giulio Benetti wrote:
+>>>>>>> Should I be working in sunxi-next I wonder?
+>>>>>>
+>>>>>> Yes, this is the best way, cedrus is very specific to sunxi.
+>>>>>> So before working on mainline, I think the best is to work un sunxi-next branch.
+>>>>>
+>>>>> Is the requests2 api in sunxi-next?
+>>>>
+>>>> It should be there,
+>>>> take a look at latest commit of yesterday:
+>>>> https://github.com/linux-sunxi/linux-sunxi/commit/df7cacd062cd84c551d7e72f15b1af6d71abc198
+>>>
+>>> No, it shouldn't. sunxi-next is about patches that are related to
+>>> sunxi that have been accepted in their respective maintainers'
+>>> branches.
+>>>
+>>> While we could argue about the first criteria, the second one is not
+>>> respected.
+>>>
+>>> And really, just develop against 4.14. sunxi-next is rebased, and it's
+>>> just not something you can base some work on.
+>>
+>> Where do we can work on then?
+>> Should Thomas setup his own github repo?
+>> What about the one you’ve set up @free-electrons?
+> 
+> I already said that, please make pull requests to that repo.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/platform/mtk-vpu/mtk_vpu.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+Sorry I can't understand which repo,
+do you mean https://github.com/free-electrons/linux-cedrus?
 
-diff --git a/drivers/media/platform/mtk-vpu/mtk_vpu.c b/drivers/media/platform/mtk-vpu/mtk_vpu.c
-index 853d598937f6..1ff6a93262b7 100644
---- a/drivers/media/platform/mtk-vpu/mtk_vpu.c
-+++ b/drivers/media/platform/mtk-vpu/mtk_vpu.c
-@@ -181,6 +181,7 @@ struct share_obj {
-  * @extmem:		VPU extended memory information
-  * @reg:		VPU TCM and configuration registers
-  * @run:		VPU initialization status
-+ * @wdt:		VPU watchdog workqueue
-  * @ipi_desc:		VPU IPI descriptor
-  * @recv_buf:		VPU DTCM share buffer for receiving. The
-  *			receive buffer is only accessed in interrupt context.
-@@ -194,7 +195,7 @@ struct share_obj {
-  *			suppose a client is using VPU to decode VP8.
-  *			If the other client wants to encode VP8,
-  *			it has to wait until VP8 decode completes.
-- * @wdt_refcnt		WDT reference count to make sure the watchdog can be
-+ * @wdt_refcnt:		WDT reference count to make sure the watchdog can be
-  *			disabled if no other client is using VPU service
-  * @ack_wq:		The wait queue for each codec and mdp. When sleeping
-  *			processes wake up, they will check the condition
+And sorry for dumb question,
+but which branch do I have to use if I want to develop a project with sunxi?
+Directly mainline patched with sunxi-next branch,
+or another branch @linux-sunxi?
+
+Thank you for you patience.
+
+> 
+> Maxime
+> 
+
+
 -- 
-2.14.3
+Giulio Benetti
+R&D Manager &
+Advanced Research
+
+MICRONOVA SRL
+Sede: Via A. Niedda 3 - 35010 Vigonza (PD)
+Tel. 049/8931563 - Fax 049/8931346
+Cod.Fiscale - P.IVA 02663420285
+Capitale Sociale € 26.000 i.v.
+Iscritta al Reg. Imprese di Padova N. 02663420285
+Numero R.E.A. 258642
