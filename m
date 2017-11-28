@@ -1,151 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:3291 "EHLO mga01.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753801AbdKMREj (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 13 Nov 2017 12:04:39 -0500
-From: Ville Syrjala <ville.syrjala@linux.intel.com>
-To: dri-devel@lists.freedesktop.org
-Cc: intel-gfx@lists.freedesktop.org,
-        Shashank Sharma <shashank.sharma@intel.com>,
-        Andrzej Hajda <a.hajda@samsung.com>,
-        Thierry Reding <thierry.reding@gmail.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        linux-media@vger.kernel.org
-Subject: [PATCH 01/10] video/hdmi: Allow "empty" HDMI infoframes
-Date: Mon, 13 Nov 2017 19:04:18 +0200
-Message-Id: <20171113170427.4150-2-ville.syrjala@linux.intel.com>
-In-Reply-To: <20171113170427.4150-1-ville.syrjala@linux.intel.com>
-References: <20171113170427.4150-1-ville.syrjala@linux.intel.com>
+Received: from mail-lf0-f66.google.com ([209.85.215.66]:35390 "EHLO
+        mail-lf0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752628AbdK1Nff (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 28 Nov 2017 08:35:35 -0500
+Received: by mail-lf0-f66.google.com with SMTP id o41so461992lfi.2
+        for <linux-media@vger.kernel.org>; Tue, 28 Nov 2017 05:35:34 -0800 (PST)
+Date: Tue, 28 Nov 2017 14:35:32 +0100
+From: Niklas =?iso-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund@ragnatech.se>
+To: Fabrizio Castro <fabrizio.castro@bp.renesas.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Rob Herring <robh+dt@kernel.org>, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org, devicetree@vger.kernel.org,
+        Simon Horman <horms+renesas@verge.net.au>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        Chris Paterson <Chris.Paterson2@renesas.com>,
+        Biju Das <biju.das@bp.renesas.com>
+Subject: Re: [PATCH v2 2/4] dt-bindings: media: rcar_vin: add device tree
+ support for r8a774[35]
+Message-ID: <20171128133532.GJ23832@bigcity.dyn.berto.se>
+References: <1510856571-30281-1-git-send-email-fabrizio.castro@bp.renesas.com>
+ <1510856571-30281-3-git-send-email-fabrizio.castro@bp.renesas.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
+In-Reply-To: <1510856571-30281-3-git-send-email-fabrizio.castro@bp.renesas.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Ville Syrjälä <ville.syrjala@linux.intel.com>
+On 2017-11-16 18:22:49 +0000, Fabrizio Castro wrote:
+> Add compatible strings for r8a7743 and r8a7745. No driver change
+> is needed as "renesas,rcar-gen2-vin" will activate the right code.
+> However, it is good practice to document compatible strings for the
+> specific SoC as this allows SoC specific changes to the driver if
+> needed, in addition to document SoC support and therefore allow
+> checkpatch.pl to validate compatible string values.
+> 
+> Signed-off-by: Fabrizio Castro <fabrizio.castro@bp.renesas.com>
+> Reviewed-by: Biju Das <biju.das@bp.renesas.com>
 
-HDMI 2.0 Appendix F suggest that we should keep sending the infoframe
-when switching from 3D to 2D mode, even if the infoframe isn't strictly
-necessary (ie. not needed to transmit the VIC or stereo information).
-This is a workaround against some sinks that fail to realize that they
-should switch from 3D to 2D mode when the source stop transmitting
-the infoframe.
+Acked-by: Niklas S�derlund <niklas.soderlund+renesas@ragnatech.se>
 
-v2: Handle unpack() as well
-    Pull the length calculation into a helper
+> ---
+> v1->v2:
+> * Fixed double "change" in changelog
+> 
+>  Documentation/devicetree/bindings/media/rcar_vin.txt | 5 ++++-
+>  1 file changed, 4 insertions(+), 1 deletion(-)
+> 
+> diff --git a/Documentation/devicetree/bindings/media/rcar_vin.txt b/Documentation/devicetree/bindings/media/rcar_vin.txt
+> index 98931f5..ff9697e 100644
+> --- a/Documentation/devicetree/bindings/media/rcar_vin.txt
+> +++ b/Documentation/devicetree/bindings/media/rcar_vin.txt
+> @@ -6,6 +6,8 @@ family of devices. The current blocks are always slaves and suppot one input
+>  channel which can be either RGB, YUYV or BT656.
+>  
+>   - compatible: Must be one or more of the following
+> +   - "renesas,vin-r8a7743" for the R8A7743 device
+> +   - "renesas,vin-r8a7745" for the R8A7745 device
+>     - "renesas,vin-r8a7778" for the R8A7778 device
+>     - "renesas,vin-r8a7779" for the R8A7779 device
+>     - "renesas,vin-r8a7790" for the R8A7790 device
+> @@ -14,7 +16,8 @@ channel which can be either RGB, YUYV or BT656.
+>     - "renesas,vin-r8a7793" for the R8A7793 device
+>     - "renesas,vin-r8a7794" for the R8A7794 device
+>     - "renesas,vin-r8a7795" for the R8A7795 device
+> -   - "renesas,rcar-gen2-vin" for a generic R-Car Gen2 compatible device.
+> +   - "renesas,rcar-gen2-vin" for a generic R-Car Gen2 or RZ/G1 compatible
+> +     device.
+>     - "renesas,rcar-gen3-vin" for a generic R-Car Gen3 compatible device.
+>  
+>     When compatible with the generic version nodes must list the
+> -- 
+> 2.7.4
+> 
 
-Cc: Shashank Sharma <shashank.sharma@intel.com>
-Cc: Andrzej Hajda <a.hajda@samsung.com>
-Cc: Thierry Reding <thierry.reding@gmail.com>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: linux-media@vger.kernel.org
-Reviewed-by: Andrzej Hajda <a.hajda@samsung.com> #v1
-Signed-off-by: Ville Syrjälä <ville.syrjala@linux.intel.com>
----
- drivers/video/hdmi.c | 51 +++++++++++++++++++++++++++++++--------------------
- 1 file changed, 31 insertions(+), 20 deletions(-)
-
-diff --git a/drivers/video/hdmi.c b/drivers/video/hdmi.c
-index 1cf907ecded4..111a0ab6280a 100644
---- a/drivers/video/hdmi.c
-+++ b/drivers/video/hdmi.c
-@@ -321,6 +321,17 @@ int hdmi_vendor_infoframe_init(struct hdmi_vendor_infoframe *frame)
- }
- EXPORT_SYMBOL(hdmi_vendor_infoframe_init);
- 
-+static int hdmi_vendor_infoframe_length(const struct hdmi_vendor_infoframe *frame)
-+{
-+	/* for side by side (half) we also need to provide 3D_Ext_Data */
-+	if (frame->s3d_struct >= HDMI_3D_STRUCTURE_SIDE_BY_SIDE_HALF)
-+		return 6;
-+	else if (frame->vic != 0 || frame->s3d_struct != HDMI_3D_STRUCTURE_INVALID)
-+		return 5;
-+	else
-+		return 4;
-+}
-+
- /**
-  * hdmi_vendor_infoframe_pack() - write a HDMI vendor infoframe to binary buffer
-  * @frame: HDMI infoframe
-@@ -341,19 +352,11 @@ ssize_t hdmi_vendor_infoframe_pack(struct hdmi_vendor_infoframe *frame,
- 	u8 *ptr = buffer;
- 	size_t length;
- 
--	/* empty info frame */
--	if (frame->vic == 0 && frame->s3d_struct == HDMI_3D_STRUCTURE_INVALID)
--		return -EINVAL;
--
- 	/* only one of those can be supplied */
- 	if (frame->vic != 0 && frame->s3d_struct != HDMI_3D_STRUCTURE_INVALID)
- 		return -EINVAL;
- 
--	/* for side by side (half) we also need to provide 3D_Ext_Data */
--	if (frame->s3d_struct >= HDMI_3D_STRUCTURE_SIDE_BY_SIDE_HALF)
--		frame->length = 6;
--	else
--		frame->length = 5;
-+	frame->length = hdmi_vendor_infoframe_length(frame);
- 
- 	length = HDMI_INFOFRAME_HEADER_SIZE + frame->length;
- 
-@@ -372,14 +375,16 @@ ssize_t hdmi_vendor_infoframe_pack(struct hdmi_vendor_infoframe *frame,
- 	ptr[5] = 0x0c;
- 	ptr[6] = 0x00;
- 
--	if (frame->vic) {
--		ptr[7] = 0x1 << 5;	/* video format */
--		ptr[8] = frame->vic;
--	} else {
-+	if (frame->s3d_struct != HDMI_3D_STRUCTURE_INVALID) {
- 		ptr[7] = 0x2 << 5;	/* video format */
- 		ptr[8] = (frame->s3d_struct & 0xf) << 4;
- 		if (frame->s3d_struct >= HDMI_3D_STRUCTURE_SIDE_BY_SIDE_HALF)
- 			ptr[9] = (frame->s3d_ext_data & 0xf) << 4;
-+	} else if (frame->vic) {
-+		ptr[7] = 0x1 << 5;	/* video format */
-+		ptr[8] = frame->vic;
-+	} else {
-+		ptr[7] = 0x0 << 5;	/* video format */
- 	}
- 
- 	hdmi_infoframe_set_checksum(buffer, length);
-@@ -1165,7 +1170,7 @@ hdmi_vendor_any_infoframe_unpack(union hdmi_vendor_any_infoframe *frame,
- 
- 	if (ptr[0] != HDMI_INFOFRAME_TYPE_VENDOR ||
- 	    ptr[1] != 1 ||
--	    (ptr[2] != 5 && ptr[2] != 6))
-+	    (ptr[2] != 4 && ptr[2] != 5 && ptr[2] != 6))
- 		return -EINVAL;
- 
- 	length = ptr[2];
-@@ -1193,16 +1198,22 @@ hdmi_vendor_any_infoframe_unpack(union hdmi_vendor_any_infoframe *frame,
- 
- 	hvf->length = length;
- 
--	if (hdmi_video_format == 0x1) {
--		hvf->vic = ptr[4];
--	} else if (hdmi_video_format == 0x2) {
-+	if (hdmi_video_format == 0x2) {
-+		if (length != 5 && length != 6)
-+			return -EINVAL;
- 		hvf->s3d_struct = ptr[4] >> 4;
- 		if (hvf->s3d_struct >= HDMI_3D_STRUCTURE_SIDE_BY_SIDE_HALF) {
--			if (length == 6)
--				hvf->s3d_ext_data = ptr[5] >> 4;
--			else
-+			if (length != 6)
- 				return -EINVAL;
-+			hvf->s3d_ext_data = ptr[5] >> 4;
- 		}
-+	} else if (hdmi_video_format == 0x1) {
-+		if (length != 5)
-+			return -EINVAL;
-+		hvf->vic = ptr[4];
-+	} else {
-+		if (length != 4)
-+			return -EINVAL;
- 	}
- 
- 	return 0;
 -- 
-2.13.6
+Regards,
+Niklas S�derlund
