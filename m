@@ -1,127 +1,139 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pl0-f65.google.com ([209.85.160.65]:42950 "EHLO
-        mail-pl0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753771AbdKXOlM (ORCPT
+Received: from mail-wr0-f195.google.com ([209.85.128.195]:35229 "EHLO
+        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754319AbdK1Ukf (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 24 Nov 2017 09:41:12 -0500
-Received: by mail-pl0-f65.google.com with SMTP id z3so4561987plh.9
-        for <linux-media@vger.kernel.org>; Fri, 24 Nov 2017 06:41:11 -0800 (PST)
-From: Akinobu Mita <akinobu.mita@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: Akinobu Mita <akinobu.mita@gmail.com>,
-        Jonathan Corbet <corbet@lwn.net>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: [PATCH] media: ov7670: add V4L2_CID_TEST_PATTERN control
-Date: Fri, 24 Nov 2017 23:40:45 +0900
-Message-Id: <1511534445-30512-2-git-send-email-akinobu.mita@gmail.com>
-In-Reply-To: <1511534445-30512-1-git-send-email-akinobu.mita@gmail.com>
-References: <1511534445-30512-1-git-send-email-akinobu.mita@gmail.com>
+        Tue, 28 Nov 2017 15:40:35 -0500
+Received: by mail-wr0-f195.google.com with SMTP id g53so1367480wra.2
+        for <linux-media@vger.kernel.org>; Tue, 28 Nov 2017 12:40:35 -0800 (PST)
+From: Riccardo Schirone <sirmy15@gmail.com>
+To: alan@linux.intel.com, gregkh@linuxfoundation.org,
+        linux-media@vger.kernel.org
+Cc: Riccardo Schirone <sirmy15@gmail.com>
+Subject: [PATCHv2 1/4] staging: add missing blank line after declarations in atomisp-ov5693
+Date: Tue, 28 Nov 2017 21:40:01 +0100
+Message-Id: <20171128204004.9345-2-sirmy15@gmail.com>
+In-Reply-To: <20171128204004.9345-1-sirmy15@gmail.com>
+References: <20171127214413.10749-1-sirmy15@gmail.com>
+ <20171128204004.9345-1-sirmy15@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The ov7670 has the test pattern generator features.  This makes use of
-it through V4L2_CID_TEST_PATTERN control.
+Fix "Missing a blank line after declarations" warning reported by
+checkpatch.
 
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Signed-off-by: Riccardo Schirone <sirmy15@gmail.com>
 ---
- drivers/media/i2c/ov7670.c | 46 +++++++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 45 insertions(+), 1 deletion(-)
+ drivers/staging/media/atomisp/i2c/ov5693/atomisp-ov5693.c | 13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
-diff --git a/drivers/media/i2c/ov7670.c b/drivers/media/i2c/ov7670.c
-index b61d88e..c6c32f6 100644
---- a/drivers/media/i2c/ov7670.c
-+++ b/drivers/media/i2c/ov7670.c
-@@ -163,6 +163,11 @@ MODULE_PARM_DESC(debug, "Debug level (0-1)");
- #define   DBLV_X6	  0x10	  /* clock x6 */
- #define   DBLV_X8	  0x11	  /* clock x8 */
- 
-+#define REG_SCALING_XSC	0x70	/* Test pattern and horizontal scale factor */
-+#define   TEST_PATTTERN_0 0x80
-+#define REG_SCALING_YSC	0x71	/* Test pattern and vertical scale factor */
-+#define   TEST_PATTTERN_1 0x80
-+
- #define REG_REG76	0x76	/* OV's name */
- #define   R76_BLKPCOR	  0x80	  /* Black pixel correction enable */
- #define   R76_WHTPCOR	  0x40	  /* White pixel correction enable */
-@@ -292,7 +297,8 @@ static struct regval_list ov7670_default_regs[] = {
- 
- 	{ REG_COM3, 0 },	{ REG_COM14, 0 },
- 	/* Mystery scaling numbers */
--	{ 0x70, 0x3a },		{ 0x71, 0x35 },
-+	{ REG_SCALING_XSC, 0x3a },
-+	{ REG_SCALING_YSC, 0x35 },
- 	{ 0x72, 0x11 },		{ 0x73, 0xf0 },
- 	{ 0xa2, 0x02 },		{ REG_COM10, 0x0 },
- 
-@@ -568,6 +574,19 @@ static int ov7670_write(struct v4l2_subdev *sd, unsigned char reg,
- 		return ov7670_write_i2c(sd, reg, value);
- }
- 
-+static int ov7670_update_bits(struct v4l2_subdev *sd, unsigned char reg,
-+		unsigned char mask, unsigned char value)
-+{
-+	unsigned char orig;
-+	int ret;
-+
-+	ret = ov7670_read(sd, reg, &orig);
-+	if (ret)
-+		return ret;
-+
-+	return ov7670_write(sd, reg, (orig & ~mask) | (value & mask));
-+}
-+
- /*
-  * Write a list of register settings; ff/ff stops the process.
-  */
-@@ -1470,6 +1489,25 @@ static int ov7670_s_autoexp(struct v4l2_subdev *sd,
- 	return ret;
- }
- 
-+static const char * const ov7670_test_pattern_menu[] = {
-+	"No test output",
-+	"Shifting \"1\"",
-+	"8-bar color bar",
-+	"Fade to gray color bar",
-+};
-+
-+static int ov7670_s_test_pattern(struct v4l2_subdev *sd, int value)
-+{
-+	int ret;
-+
-+	ret = ov7670_update_bits(sd, REG_SCALING_XSC, TEST_PATTTERN_0,
-+				value & BIT(0) ? TEST_PATTTERN_0 : 0);
-+	if (ret)
-+		return ret;
-+
-+	return ov7670_update_bits(sd, REG_SCALING_YSC, TEST_PATTTERN_1,
-+				value & BIT(1) ? TEST_PATTTERN_1 : 0);
-+}
- 
- static int ov7670_g_volatile_ctrl(struct v4l2_ctrl *ctrl)
+diff --git a/drivers/staging/media/atomisp/i2c/ov5693/atomisp-ov5693.c b/drivers/staging/media/atomisp/i2c/ov5693/atomisp-ov5693.c
+index 3e7c3851280f..387c65be10f4 100644
+--- a/drivers/staging/media/atomisp/i2c/ov5693/atomisp-ov5693.c
++++ b/drivers/staging/media/atomisp/i2c/ov5693/atomisp-ov5693.c
+@@ -82,6 +82,7 @@ static int ad5823_i2c_write(struct i2c_client *client, u8 reg, u8 val)
  {
-@@ -1516,6 +1554,8 @@ static int ov7670_s_ctrl(struct v4l2_ctrl *ctrl)
- 			return ov7670_s_exp(sd, info->exposure->val);
- 		}
- 		return ov7670_s_autoexp(sd, ctrl->val);
-+	case V4L2_CID_TEST_PATTERN:
-+		return ov7670_s_test_pattern(sd, ctrl->val);
+ 	struct i2c_msg msg;
+ 	u8 buf[2];
++
+ 	buf[0] = reg;
+ 	buf[1] = val;
+ 	msg.addr = AD5823_VCM_ADDR;
+@@ -98,6 +99,7 @@ static int ad5823_i2c_read(struct i2c_client *client, u8 reg, u8 *val)
+ {
+ 	struct i2c_msg msg[2];
+ 	u8 buf[2];
++
+ 	buf[0] = reg;
+ 	buf[1] = 0;
+ 
+@@ -228,6 +230,7 @@ static int vcm_detect(struct i2c_client *client)
+ 	int i, ret;
+ 	struct i2c_msg msg;
+ 	u16 data0 = 0, data;
++
+ 	for (i = 0; i < 4; i++) {
+ 		msg.addr = VCM_ADDR;
+ 		msg.flags = I2C_M_RD;
+@@ -690,6 +693,7 @@ static long ov5693_s_exposure(struct v4l2_subdev *sd,
+ 	/* we should not accept the invalid value below */
+ 	if (analog_gain == 0) {
+ 		struct i2c_client *client = v4l2_get_subdevdata(sd);
++
+ 		v4l2_err(client, "%s: invalid value\n", __func__);
+ 		return -EINVAL;
  	}
- 	return -EINVAL;
+@@ -722,6 +726,7 @@ static int __ov5693_otp_read(struct v4l2_subdev *sd, u8 *buf)
+ 	int ret;
+ 	int i;
+ 	u8 *b = buf;
++
+ 	dev->otp_size = 0;
+ 	for (i = 1; i < OV5693_OTP_BANK_MAX; i++) {
+ 		/*set bank NO and OTP read mode. */
+@@ -984,6 +989,7 @@ static int ov5693_t_focus_abs(struct v4l2_subdev *sd, s32 value)
+ static int ov5693_t_focus_rel(struct v4l2_subdev *sd, s32 value)
+ {
+ 	struct ov5693_device *dev = to_ov5693_sensor(sd);
++
+ 	return ov5693_t_focus_abs(sd, dev->focus + value);
  }
-@@ -1770,6 +1810,10 @@ static int ov7670_probe(struct i2c_client *client,
- 	info->auto_exposure = v4l2_ctrl_new_std_menu(&info->hdl, &ov7670_ctrl_ops,
- 			V4L2_CID_EXPOSURE_AUTO, V4L2_EXPOSURE_MANUAL, 0,
- 			V4L2_EXPOSURE_AUTO);
-+	v4l2_ctrl_new_std_menu_items(&info->hdl, &ov7670_ctrl_ops,
-+			V4L2_CID_TEST_PATTERN,
-+			ARRAY_SIZE(ov7670_test_pattern_menu) - 1, 0, 0,
-+			ov7670_test_pattern_menu);
- 	sd->ctrl_handler = &info->hdl;
- 	if (info->hdl.error) {
- 		ret = info->hdl.error;
+ 
+@@ -1033,6 +1039,7 @@ static int ov5693_q_focus_abs(struct v4l2_subdev *sd, s32 *value)
+ static int ov5693_t_vcm_slew(struct v4l2_subdev *sd, s32 value)
+ {
+ 	struct ov5693_device *dev = to_ov5693_sensor(sd);
++
+ 	dev->number_of_steps = value;
+ 	dev->vcm_update = true;
+ 	return 0;
+@@ -1041,6 +1048,7 @@ static int ov5693_t_vcm_slew(struct v4l2_subdev *sd, s32 value)
+ static int ov5693_t_vcm_timing(struct v4l2_subdev *sd, s32 value)
+ {
+ 	struct ov5693_device *dev = to_ov5693_sensor(sd);
++
+ 	dev->number_of_steps = value;
+ 	dev->vcm_update = true;
+ 	return 0;
+@@ -1563,6 +1571,7 @@ static int ov5693_set_fmt(struct v4l2_subdev *sd,
+ 	struct camera_mipi_info *ov5693_info = NULL;
+ 	int ret = 0;
+ 	int idx;
++
+ 	if (format->pad)
+ 		return -EINVAL;
+ 	if (!fmt)
+@@ -1599,6 +1608,7 @@ static int ov5693_set_fmt(struct v4l2_subdev *sd,
+ 	ret = startup(sd);
+ 	if (ret) {
+ 		int i = 0;
++
+ 		dev_err(&client->dev, "ov5693 startup err, retry to power up\n");
+ 		for (i = 0; i < OV5693_POWER_UP_RETRY_NUM; i++) {
+ 			dev_err(&client->dev,
+@@ -1655,6 +1665,7 @@ static int ov5693_get_fmt(struct v4l2_subdev *sd,
+ {
+ 	struct v4l2_mbus_framefmt *fmt = &format->format;
+ 	struct ov5693_device *dev = to_ov5693_sensor(sd);
++
+ 	if (format->pad)
+ 		return -EINVAL;
+ 
+@@ -1818,6 +1829,7 @@ static int ov5693_s_parm(struct v4l2_subdev *sd,
+ 			struct v4l2_streamparm *param)
+ {
+ 	struct ov5693_device *dev = to_ov5693_sensor(sd);
++
+ 	dev->run_mode = param->parm.capture.capturemode;
+ 
+ 	mutex_lock(&dev->input_lock);
+@@ -1907,6 +1919,7 @@ static int ov5693_remove(struct i2c_client *client)
+ {
+ 	struct v4l2_subdev *sd = i2c_get_clientdata(client);
+ 	struct ov5693_device *dev = to_ov5693_sensor(sd);
++
+ 	dev_dbg(&client->dev, "ov5693_remove...\n");
+ 
+ 	dev->platform_data->csi_cfg(sd, 0);
 -- 
-2.7.4
+2.14.3
