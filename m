@@ -1,58 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:40541 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S933425AbdKAVGP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 1 Nov 2017 17:06:15 -0400
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sean Young <sean@mess.org>
-Subject: [PATCH v2 18/26] media: dvbsky: shut up a bogus warning
-Date: Wed,  1 Nov 2017 17:05:55 -0400
-Message-Id: <346f93f074e79236398d275343adc63a87b75c78.1509569763.git.mchehab@s-opensource.com>
-In-Reply-To: <c4389ab1c02bb08c1a55012fdb859c8b10bdc47e.1509569763.git.mchehab@s-opensource.com>
-References: <c4389ab1c02bb08c1a55012fdb859c8b10bdc47e.1509569763.git.mchehab@s-opensource.com>
-In-Reply-To: <c4389ab1c02bb08c1a55012fdb859c8b10bdc47e.1509569763.git.mchehab@s-opensource.com>
-References: <c4389ab1c02bb08c1a55012fdb859c8b10bdc47e.1509569763.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+Received: from mx08-00178001.pphosted.com ([91.207.212.93]:37909 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1752809AbdK1PkN (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 28 Nov 2017 10:40:13 -0500
+From: Hugues FRUCHET <hugues.fruchet@st.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+CC: Steve Longerbeam <slongerbeam@gmail.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "Benjamin Gaignard" <benjamin.gaignard@linaro.org>
+Subject: Re: [PATCH v1 4/4] media: ov5640: add support of RGB565 and YUYV
+ formats
+Date: Tue, 28 Nov 2017 15:39:51 +0000
+Message-ID: <1879117b-6d43-4622-d571-fd342bfea967@st.com>
+References: <1510839702-2454-1-git-send-email-hugues.fruchet@st.com>
+ <1510839702-2454-5-git-send-email-hugues.fruchet@st.com>
+ <20171124140916.kwjfsq5yfzchb2il@valkosipuli.retiisi.org.uk>
+In-Reply-To: <20171124140916.kwjfsq5yfzchb2il@valkosipuli.retiisi.org.uk>
+Content-Language: en-US
+Content-Type: text/plain; charset="utf-8"
+Content-ID: <4EA7A395148AEF48832256D894F1C28A@st.com>
+Content-Transfer-Encoding: base64
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Smatch gives two bogus warnings on this driver:
-	drivers/media/usb/dvb-usb-v2/dvbsky.c:336 dvbsky_s960_attach() error: uninitialized symbol 'i2c_adapter'.
-	drivers/media/usb/dvb-usb-v2/dvbsky.c:459 dvbsky_s960c_attach() error: uninitialized symbol 'i2c_adapter'.
-
-Shut them up.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/usb/dvb-usb-v2/dvbsky.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/media/usb/dvb-usb-v2/dvbsky.c b/drivers/media/usb/dvb-usb-v2/dvbsky.c
-index 131b6c08e199..f90540f947f8 100644
---- a/drivers/media/usb/dvb-usb-v2/dvbsky.c
-+++ b/drivers/media/usb/dvb-usb-v2/dvbsky.c
-@@ -309,7 +309,7 @@ static int dvbsky_s960_attach(struct dvb_usb_adapter *adap)
- 	struct dvb_usb_device *d = adap_to_d(adap);
- 	int ret = 0;
- 	/* demod I2C adapter */
--	struct i2c_adapter *i2c_adapter;
-+	struct i2c_adapter *i2c_adapter = NULL;
- 	struct i2c_client *client;
- 	struct i2c_board_info info;
- 	struct ts2020_config ts2020_config = {};
-@@ -431,7 +431,7 @@ static int dvbsky_s960c_attach(struct dvb_usb_adapter *adap)
- 	struct dvb_usb_device *d = adap_to_d(adap);
- 	int ret = 0;
- 	/* demod I2C adapter */
--	struct i2c_adapter *i2c_adapter;
-+	struct i2c_adapter *i2c_adapter = NULL;
- 	struct i2c_client *client_tuner, *client_ci;
- 	struct i2c_board_info info;
- 	struct sp2_config sp2_config;
--- 
-2.13.6
+VGhhbmtzIGZvciByZXZpZXcgU2FrYXJpLA0KDQpPbiAxMS8yNC8yMDE3IDAzOjA5IFBNLCBTYWth
+cmkgQWlsdXMgd3JvdGU6DQo+IEhpIEh1Z3VlcywNCj4gDQo+IE9uIFRodSwgTm92IDE2LCAyMDE3
+IGF0IDAyOjQxOjQyUE0gKzAxMDAsIEh1Z3VlcyBGcnVjaGV0IHdyb3RlOg0KPj4gQWRkIFJHQjU2
+NSAoTEUgJiBCRSkgYW5kIFlVVjQyMiBZVVlWIGZvcm1hdCBpbiBhZGRpdGlvbg0KPj4gdG8gZXhp
+c3RpbmcgWVVWNDIyIFVZVlkgZm9ybWF0Lg0KPj4NCj4+IFNpZ25lZC1vZmYtYnk6IEh1Z3VlcyBG
+cnVjaGV0IDxodWd1ZXMuZnJ1Y2hldEBzdC5jb20+DQo+PiAtLS0NCj4+ICAgZHJpdmVycy9tZWRp
+YS9pMmMvb3Y1NjQwLmMgfCA3OSArKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysr
+KysrKy0tLS0tDQo+PiAgIDEgZmlsZSBjaGFuZ2VkLCA3MSBpbnNlcnRpb25zKCspLCA4IGRlbGV0
+aW9ucygtKQ0KPj4NCj4+IGRpZmYgLS1naXQgYS9kcml2ZXJzL21lZGlhL2kyYy9vdjU2NDAuYyBi
+L2RyaXZlcnMvbWVkaWEvaTJjL292NTY0MC5jDQo+PiBpbmRleCBmYjUxOWFkLi4wODZhNDUxIDEw
+MDY0NA0KPj4gLS0tIGEvZHJpdmVycy9tZWRpYS9pMmMvb3Y1NjQwLmMNCj4+ICsrKyBiL2RyaXZl
+cnMvbWVkaWEvaTJjL292NTY0MC5jDQo+PiBAQCAtNzcsOCArNzcsMTAgQEANCj4+ICAgI2RlZmlu
+ZSBPVjU2NDBfUkVHX0haNTA2MF9DVFJMMDEJMHgzYzAxDQo+PiAgICNkZWZpbmUgT1Y1NjQwX1JF
+R19TSUdNQURFTFRBX0NUUkwwQwkweDNjMGMNCj4+ICAgI2RlZmluZSBPVjU2NDBfUkVHX0ZSQU1F
+X0NUUkwwMQkJMHg0MjAyDQo+PiArI2RlZmluZSBPVjU2NDBfUkVHX0ZPUk1BVF9DT05UUk9MMDAJ
+MHg0MzAwDQo+PiAgICNkZWZpbmUgT1Y1NjQwX1JFR19NSVBJX0NUUkwwMAkJMHg0ODAwDQo+PiAg
+ICNkZWZpbmUgT1Y1NjQwX1JFR19ERUJVR19NT0RFCQkweDQ4MTQNCj4+ICsjZGVmaW5lIE9WNTY0
+MF9SRUdfSVNQX0ZPUk1BVF9NVVhfQ1RSTAkweDUwMWYNCj4+ICAgI2RlZmluZSBPVjU2NDBfUkVH
+X1BSRV9JU1BfVEVTVF9TRVQxCTB4NTAzZA0KPj4gICAjZGVmaW5lIE9WNTY0MF9SRUdfU0RFX0NU
+UkwwCQkweDU1ODANCj4+ICAgI2RlZmluZSBPVjU2NDBfUkVHX1NERV9DVFJMMQkJMHg1NTgxDQo+
+PiBAQCAtMTA2LDYgKzEwOCwxOCBAQCBlbnVtIG92NTY0MF9mcmFtZV9yYXRlIHsNCj4+ICAgCU9W
+NTY0MF9OVU1fRlJBTUVSQVRFUywNCj4+ICAgfTsNCj4+ICAgDQo+PiArc3RydWN0IG92NTY0MF9w
+aXhmbXQgew0KPj4gKwl1MzIgY29kZTsNCj4+ICsJdTMyIGNvbG9yc3BhY2U7DQo+PiArfTsNCj4+
+ICsNCj4+ICtzdGF0aWMgY29uc3Qgc3RydWN0IG92NTY0MF9waXhmbXQgb3Y1NjQwX2Zvcm1hdHNb
+XSA9IHsNCj4+ICsJeyBNRURJQV9CVVNfRk1UX1VZVlk4XzJYOCwgVjRMMl9DT0xPUlNQQUNFX1NS
+R0IsIH0sDQo+PiArCXsgTUVESUFfQlVTX0ZNVF9ZVVlWOF8yWDgsIFY0TDJfQ09MT1JTUEFDRV9T
+UkdCLCB9LA0KPj4gKwl7IE1FRElBX0JVU19GTVRfUkdCNTY1XzJYOF9MRSwgVjRMMl9DT0xPUlNQ
+QUNFX1NSR0IsIH0sDQo+PiArCXsgTUVESUFfQlVTX0ZNVF9SR0I1NjVfMlg4X0JFLCBWNEwyX0NP
+TE9SU1BBQ0VfU1JHQiwgfSwNCj4+ICt9Ow0KPj4gKw0KPj4gICAvKg0KPj4gICAgKiBGSVhNRTog
+cmVtb3ZlIHRoaXMgd2hlbiBhIHN1YmRldiBBUEkgYmVjb21lcyBhdmFpbGFibGUNCj4+ICAgICog
+dG8gc2V0IHRoZSBNSVBJIENTSS0yIHZpcnR1YWwgY2hhbm5lbC4NCj4+IEBAIC0xNzk4LDE3ICsx
+ODEyLDIzIEBAIHN0YXRpYyBpbnQgb3Y1NjQwX3RyeV9mbXRfaW50ZXJuYWwoc3RydWN0IHY0bDJf
+c3ViZGV2ICpzZCwNCj4+ICAgew0KPj4gICAJc3RydWN0IG92NTY0MF9kZXYgKnNlbnNvciA9IHRv
+X292NTY0MF9kZXYoc2QpOw0KPj4gICAJY29uc3Qgc3RydWN0IG92NTY0MF9tb2RlX2luZm8gKm1v
+ZGU7DQo+PiArCWludCBpOw0KPj4gICANCj4+ICAgCW1vZGUgPSBvdjU2NDBfZmluZF9tb2RlKHNl
+bnNvciwgZnIsIGZtdC0+d2lkdGgsIGZtdC0+aGVpZ2h0LCB0cnVlKTsNCj4+ICAgCWlmICghbW9k
+ZSkNCj4+ICAgCQlyZXR1cm4gLUVJTlZBTDsNCj4+IC0NCj4+ICAgCWZtdC0+d2lkdGggPSBtb2Rl
+LT53aWR0aDsNCj4+ICAgCWZtdC0+aGVpZ2h0ID0gbW9kZS0+aGVpZ2h0Ow0KPj4gLQlmbXQtPmNv
+ZGUgPSBzZW5zb3ItPmZtdC5jb2RlOw0KPj4gICANCj4+ICAgCWlmIChuZXdfbW9kZSkNCj4+ICAg
+CQkqbmV3X21vZGUgPSBtb2RlOw0KPj4gKw0KPj4gKwlmb3IgKGkgPSAwOyBpIDwgQVJSQVlfU0la
+RShvdjU2NDBfZm9ybWF0cyk7IGkrKykNCj4+ICsJCWlmIChvdjU2NDBfZm9ybWF0c1tpXS5jb2Rl
+ID09IGZtdC0+Y29kZSkNCj4+ICsJCQlicmVhazsNCj4+ICsJaWYgKGkgPj0gQVJSQVlfU0laRShv
+djU2NDBfZm9ybWF0cykpDQo+PiArCQlmbXQtPmNvZGUgPSBvdjU2NDBfZm9ybWF0c1swXS5jb2Rl
+Ow0KPj4gKw0KPj4gICAJcmV0dXJuIDA7DQo+PiAgIH0NCj4+ICAgDQo+PiBAQCAtMTg1MSw2ICsx
+ODcxLDQ5IEBAIHN0YXRpYyBpbnQgb3Y1NjQwX3NldF9mbXQoc3RydWN0IHY0bDJfc3ViZGV2ICpz
+ZCwNCj4+ICAgCXJldHVybiByZXQ7DQo+PiAgIH0NCj4+ICAgDQo+PiArc3RhdGljIGludCBvdjU2
+NDBfc2V0X2ZyYW1lZm10KHN0cnVjdCBvdjU2NDBfZGV2ICpzZW5zb3IsDQo+PiArCQkJICAgICAg
+IHN0cnVjdCB2NGwyX21idXNfZnJhbWVmbXQgKmZvcm1hdCkNCj4+ICt7DQo+PiArCWludCByZXQg
+PSAwOw0KPj4gKwlib29sIGlzX3JnYiA9IGZhbHNlOw0KPj4gKwl1OCB2YWw7DQo+PiArDQo+PiAr
+CXN3aXRjaCAoZm9ybWF0LT5jb2RlKSB7DQo+PiArCWNhc2UgTUVESUFfQlVTX0ZNVF9VWVZZOF8y
+WDg6DQo+PiArCQkvKiBZVVY0MjIsIFVZVlkgKi8NCj4+ICsJCXZhbCA9IDB4M2Y7DQo+PiArCQli
+cmVhazsNCj4+ICsJY2FzZSBNRURJQV9CVVNfRk1UX1lVWVY4XzJYODoNCj4+ICsJCS8qIFlVVjQy
+MiwgWVVZViAqLw0KPj4gKwkJdmFsID0gMHgzMDsNCj4+ICsJCWJyZWFrOw0KPj4gKwljYXNlIE1F
+RElBX0JVU19GTVRfUkdCNTY1XzJYOF9MRToNCj4+ICsJCS8qIFJHQjU2NSB7Z1syOjBdLGJbNDow
+XX0se3JbNDowXSxnWzU6M119ICovDQo+PiArCQl2YWwgPSAweDZGOw0KPj4gKwkJaXNfcmdiID0g
+dHJ1ZTsNCj4+ICsJCWJyZWFrOw0KPj4gKwljYXNlIE1FRElBX0JVU19GTVRfUkdCNTY1XzJYOF9C
+RToNCj4+ICsJCS8qIFJHQjU2NSB7cls0OjBdLGdbNTozXX0se2dbMjowXSxiWzQ6MF19ICovDQo+
+PiArCQl2YWwgPSAweDYxOw0KPj4gKwkJaXNfcmdiID0gdHJ1ZTsNCj4+ICsJCWJyZWFrOw0KPj4g
+KwlkZWZhdWx0Og0KPj4gKwkJcmV0dXJuIC1FSU5WQUw7DQo+PiArCX0NCj4+ICsNCj4+ICsJLyog
+Rk9STUFUIENPTlRST0wwMDogWVVWIGFuZCBSR0IgZm9ybWF0dGluZyAqLw0KPj4gKwlyZXQgPSBv
+djU2NDBfd3JpdGVfcmVnKHNlbnNvciwgT1Y1NjQwX1JFR19GT1JNQVRfQ09OVFJPTDAwLCB2YWwp
+Ow0KPj4gKwlpZiAocmV0KQ0KPj4gKwkJcmV0dXJuIHJldDsNCj4+ICsNCj4+ICsJLyogRk9STUFU
+IE1VWCBDT05UUk9MOiBJU1AgWVVWIG9yIFJHQiAqLw0KPj4gKwlyZXQgPSBvdjU2NDBfd3JpdGVf
+cmVnKHNlbnNvciwgT1Y1NjQwX1JFR19JU1BfRk9STUFUX01VWF9DVFJMLA0KPj4gKwkJCSAgICAg
+ICBpc19yZ2IgPyAweDAxIDogMHgwMCk7DQo+IA0KPiByZXR1cm4gb3Y1NjQwLi4uOw0KPiANCk9L
+Lg0KDQo+PiArCWlmIChyZXQpDQo+PiArCQlyZXR1cm4gcmV0Ow0KPj4gKw0KPj4gKwlyZXR1cm4g
+cmV0Ow0KPj4gK30NCj4+ICAgDQo+PiAgIC8qDQo+PiAgICAqIFNlbnNvciBDb250cm9scy4NCj4+
+IEBAIC0yMjM2LDE1ICsyMjk5LDEyIEBAIHN0YXRpYyBpbnQgb3Y1NjQwX2VudW1fbWJ1c19jb2Rl
+KHN0cnVjdCB2NGwyX3N1YmRldiAqc2QsDQo+PiAgIAkJCQkgIHN0cnVjdCB2NGwyX3N1YmRldl9w
+YWRfY29uZmlnICpjZmcsDQo+PiAgIAkJCQkgIHN0cnVjdCB2NGwyX3N1YmRldl9tYnVzX2NvZGVf
+ZW51bSAqY29kZSkNCj4+ICAgew0KPj4gLQlzdHJ1Y3Qgb3Y1NjQwX2RldiAqc2Vuc29yID0gdG9f
+b3Y1NjQwX2RldihzZCk7DQo+PiAtDQo+PiAgIAlpZiAoY29kZS0+cGFkICE9IDApDQo+PiAgIAkJ
+cmV0dXJuIC1FSU5WQUw7DQo+PiAtCWlmIChjb2RlLT5pbmRleCAhPSAwKQ0KPj4gKwlpZiAoY29k
+ZS0+aW5kZXggPj0gQVJSQVlfU0laRShvdjU2NDBfZm9ybWF0cykpDQo+PiAgIAkJcmV0dXJuIC1F
+SU5WQUw7DQo+PiAgIA0KPj4gLQljb2RlLT5jb2RlID0gc2Vuc29yLT5mbXQuY29kZTsNCj4+IC0N
+Cj4+ICsJY29kZS0+Y29kZSA9IG92NTY0MF9mb3JtYXRzW2NvZGUtPmluZGV4XS5jb2RlOw0KPj4g
+ICAJcmV0dXJuIDA7DQo+PiAgIH0NCj4+ICAgDQo+PiBAQCAtMjI1NCwxMiArMjMxNCwxNSBAQCBz
+dGF0aWMgaW50IG92NTY0MF9zX3N0cmVhbShzdHJ1Y3QgdjRsMl9zdWJkZXYgKnNkLCBpbnQgZW5h
+YmxlKQ0KPj4gICAJaW50IHJldCA9IDA7DQo+PiAgIA0KPj4gICAJbXV0ZXhfbG9jaygmc2Vuc29y
+LT5sb2NrKTsNCj4+IC0NCj4gDQo+IEkgcmF0aGVyIGxpa2VkIHRoaXMgbmV3bGluZSENCj4gDQpP
+Sy4NCg0KPj4gICAJaWYgKHNlbnNvci0+c3RyZWFtaW5nID09ICFlbmFibGUpIHsNCj4+ICAgCQlp
+ZiAoZW5hYmxlICYmIHNlbnNvci0+cGVuZGluZ19tb2RlX2NoYW5nZSkgew0KPj4gICAJCQlyZXQg
+PSBvdjU2NDBfc2V0X21vZGUoc2Vuc29yLCBzZW5zb3ItPmN1cnJlbnRfbW9kZSk7DQo+PiAgIAkJ
+CWlmIChyZXQpDQo+PiAgIAkJCQlnb3RvIG91dDsNCj4+ICsNCj4+ICsJCQlyZXQgPSBvdjU2NDBf
+c2V0X2ZyYW1lZm10KHNlbnNvciwgJnNlbnNvci0+Zm10KTsNCj4+ICsJCQlpZiAocmV0KQ0KPj4g
+KwkJCQlnb3RvIG91dDsNCj4+ICAgCQl9DQo+PiAgIA0KPj4gICAJCWlmIChzZW5zb3ItPmVwLmJ1
+c190eXBlID09IFY0TDJfTUJVU19DU0kyKQ0KPiA=
