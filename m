@@ -1,164 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-4.sys.kth.se ([130.237.48.193]:54530 "EHLO
-        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752681AbdK2ToL (ORCPT
+Received: from mail.micronovasrl.com ([212.103.203.10]:35308 "EHLO
+        mail.micronovasrl.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751982AbdK1PTn (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 29 Nov 2017 14:44:11 -0500
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH v8 18/28] rcar-vin: break out format alignment and checking
-Date: Wed, 29 Nov 2017 20:43:32 +0100
-Message-Id: <20171129194342.26239-19-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20171129194342.26239-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20171129194342.26239-1-niklas.soderlund+renesas@ragnatech.se>
+        Tue, 28 Nov 2017 10:19:43 -0500
+Received: from mail.micronovasrl.com (mail.micronovasrl.com [127.0.0.1])
+        by mail.micronovasrl.com (Postfix) with ESMTP id B107CB008C7
+        for <linux-media@vger.kernel.org>; Tue, 28 Nov 2017 16:19:41 +0100 (CET)
+Received: from mail.micronovasrl.com ([127.0.0.1])
+        by mail.micronovasrl.com (mail.micronovasrl.com [127.0.0.1]) (amavisd-new, port 10026)
+        with ESMTP id D8yJBg-e66-4 for <linux-media@vger.kernel.org>;
+        Tue, 28 Nov 2017 16:19:41 +0100 (CET)
+Subject: Re: [linux-sunxi] Cedrus driver
+To: Maxime Ripard <maxime.ripard@free-electrons.com>
+Cc: Thomas van Kleef <thomas@vitsch.nl>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Andreas Baierl <list@imkreisrum.de>,
+        linux-sunxi <linux-sunxi@googlegroups.com>,
+        linux@armlinux.org.uk, wens@csie.org, linux-kernel@vger.kernel.org,
+        linux-media@vger.kernel.org
+References: <1511868558-1962148761.366cc20c7e@prakkezator.vehosting.nl>
+ <d8135c3d-7ba8-2b88-11cb-5b81dfa04be2@vitsch.nl>
+ <f8cc0633-8c29-e3b0-0216-f8f5c69ebb34@micronovasrl.com>
+ <20171128125203.h7cnu3gkfmogqhxu@flea.home>
+ <6A617A27-DBE8-4537-A122-6ACA98B8A6B4@micronovasrl.com>
+ <20171128130737.cpohndeskuczcpa7@flea.home>
+ <d2f659ed-1750-2859-7b43-0a4780bd3343@micronovasrl.com>
+ <20171128151740.eyke3i4nuprconwf@flea.home>
+From: Giulio Benetti <giulio.benetti@micronovasrl.com>
+Message-ID: <e9f3189c-4508-2bf3-12c0-481a815e11d1@micronovasrl.com>
+Date: Tue, 28 Nov 2017 16:19:41 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+In-Reply-To: <20171128151740.eyke3i4nuprconwf@flea.home>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: it
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Part of the format alignment and checking can be shared with the Gen3
-format handling. Break that part out to its own function. While doing
-this clean up the checking and add more checks.
+Il 28/11/2017 16:17, Maxime Ripard ha scritto:
+> On Tue, Nov 28, 2017 at 02:12:31PM +0100, Giulio Benetti wrote:
+>>>>> And really, just develop against 4.14. sunxi-next is rebased, and it's
+>>>>> just not something you can base some work on.
+>>>>
+>>>> Where do we can work on then?
+>>>> Should Thomas setup his own github repo?
+>>>> What about the one you’ve set up @free-electrons?
+>>>
+>>> I already said that, please make pull requests to that repo.
+>>
+>> Sorry I can't understand which repo,
+>> do you mean https://github.com/free-electrons/linux-cedrus?
+> 
+> Yes.
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/platform/rcar-vin/rcar-v4l2.c | 98 +++++++++++++++--------------
- 1 file changed, 51 insertions(+), 47 deletions(-)
+Ok
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-index 56c5183f55922e1d..0ffbf0c16fb7b00e 100644
---- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-+++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-@@ -86,6 +86,56 @@ static u32 rvin_format_sizeimage(struct v4l2_pix_format *pix)
- 	return pix->bytesperline * pix->height;
- }
- 
-+static int rvin_format_align(struct rvin_dev *vin, struct v4l2_pix_format *pix)
-+{
-+	u32 walign;
-+
-+	/* If requested format is not supported fallback to the default */
-+	if (!rvin_format_from_pixel(pix->pixelformat)) {
-+		vin_dbg(vin, "Format 0x%x not found, using default 0x%x\n",
-+			pix->pixelformat, RVIN_DEFAULT_FORMAT);
-+		pix->pixelformat = RVIN_DEFAULT_FORMAT;
-+	}
-+
-+	switch (pix->field) {
-+	case V4L2_FIELD_TOP:
-+	case V4L2_FIELD_BOTTOM:
-+	case V4L2_FIELD_NONE:
-+	case V4L2_FIELD_INTERLACED_TB:
-+	case V4L2_FIELD_INTERLACED_BT:
-+	case V4L2_FIELD_INTERLACED:
-+		break;
-+	default:
-+		pix->field = V4L2_FIELD_NONE;
-+		break;
-+	}
-+
-+	/* Check that colorspace is reasonable, if not keep current */
-+	if (!pix->colorspace || pix->colorspace >= 0xff)
-+		pix->colorspace = vin->format.colorspace;
-+
-+	/* HW limit width to a multiple of 32 (2^5) for NV16 else 2 (2^1) */
-+	walign = vin->format.pixelformat == V4L2_PIX_FMT_NV16 ? 5 : 1;
-+
-+	/* Limit to VIN capabilities */
-+	v4l_bound_align_image(&pix->width, 2, vin->info->max_width, walign,
-+			      &pix->height, 4, vin->info->max_height, 2, 0);
-+
-+	pix->bytesperline = rvin_format_bytesperline(pix);
-+	pix->sizeimage = rvin_format_sizeimage(pix);
-+
-+	if (vin->info->chip == RCAR_M1 &&
-+	    pix->pixelformat == V4L2_PIX_FMT_XBGR32) {
-+		vin_err(vin, "pixel format XBGR32 not supported on M1\n");
-+		return -EINVAL;
-+	}
-+
-+	vin_dbg(vin, "Format %ux%u bpl: %d size: %d\n",
-+		pix->width, pix->height, pix->bytesperline, pix->sizeimage);
-+
-+	return 0;
-+}
-+
- /* -----------------------------------------------------------------------------
-  * V4L2
-  */
-@@ -191,64 +241,18 @@ static int __rvin_try_format_source(struct rvin_dev *vin,
- static int __rvin_try_format(struct rvin_dev *vin,
- 			     u32 which, struct v4l2_pix_format *pix)
- {
--	u32 walign;
- 	int ret;
- 
- 	/* Keep current field if no specific one is asked for */
- 	if (pix->field == V4L2_FIELD_ANY)
- 		pix->field = vin->format.field;
- 
--	/* If requested format is not supported fallback to the default */
--	if (!rvin_format_from_pixel(pix->pixelformat)) {
--		vin_dbg(vin, "Format 0x%x not found, using default 0x%x\n",
--			pix->pixelformat, RVIN_DEFAULT_FORMAT);
--		pix->pixelformat = RVIN_DEFAULT_FORMAT;
--	}
--
--	/* Always recalculate */
--	pix->bytesperline = 0;
--	pix->sizeimage = 0;
--
- 	/* Limit to source capabilities */
- 	ret = __rvin_try_format_source(vin, which, pix);
- 	if (ret)
- 		return ret;
- 
--	switch (pix->field) {
--	case V4L2_FIELD_TOP:
--	case V4L2_FIELD_BOTTOM:
--	case V4L2_FIELD_NONE:
--	case V4L2_FIELD_INTERLACED_TB:
--	case V4L2_FIELD_INTERLACED_BT:
--	case V4L2_FIELD_INTERLACED:
--		break;
--	default:
--		pix->field = V4L2_FIELD_NONE;
--		break;
--	}
--
--	/* HW limit width to a multiple of 32 (2^5) for NV16 else 2 (2^1) */
--	walign = vin->format.pixelformat == V4L2_PIX_FMT_NV16 ? 5 : 1;
--
--	/* Limit to VIN capabilities */
--	v4l_bound_align_image(&pix->width, 2, vin->info->max_width, walign,
--			      &pix->height, 4, vin->info->max_height, 2, 0);
--
--	pix->bytesperline = max_t(u32, pix->bytesperline,
--				  rvin_format_bytesperline(pix));
--	pix->sizeimage = max_t(u32, pix->sizeimage,
--			       rvin_format_sizeimage(pix));
--
--	if (vin->info->chip == RCAR_M1 &&
--	    pix->pixelformat == V4L2_PIX_FMT_XBGR32) {
--		vin_err(vin, "pixel format XBGR32 not supported on M1\n");
--		return -EINVAL;
--	}
--
--	vin_dbg(vin, "Format %ux%u bpl: %d size: %d\n",
--		pix->width, pix->height, pix->bytesperline, pix->sizeimage);
--
--	return 0;
-+	return rvin_format_align(vin, pix);
- }
- 
- static int rvin_querycap(struct file *file, void *priv,
+> 
+>> And sorry for dumb question,
+>> but which branch do I have to use if I want to develop a project with sunxi?
+>> Directly mainline patched with sunxi-next branch,
+>> or another branch @linux-sunxi?
+> 
+> Use 4.14.
+
+Ok,
+
+thanks again.
+Best regards
+
+> 
+> Maxime
+> 
+
+
 -- 
-2.15.0
+Giulio Benetti
+R&D Manager &
+Advanced Research
+
+MICRONOVA SRL
+Sede: Via A. Niedda 3 - 35010 Vigonza (PD)
+Tel. 049/8931563 - Fax 049/8931346
+Cod.Fiscale - P.IVA 02663420285
+Capitale Sociale € 26.000 i.v.
+Iscritta al Reg. Imprese di Padova N. 02663420285
+Numero R.E.A. 258642
