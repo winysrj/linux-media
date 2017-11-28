@@ -1,201 +1,202 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.free-electrons.com ([62.4.15.54]:53934 "EHLO
-        mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751418AbdK1IgF (ORCPT
+Received: from PrakOutbound.VEHosting.nl ([85.17.51.155]:62661 "EHLO
+        Prakkezator.VEHosting.nl" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751982AbdK1Ov2 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 28 Nov 2017 03:36:05 -0500
-Date: Tue, 28 Nov 2017 09:35:53 +0100
-From: Maxime Ripard <maxime.ripard@free-electrons.com>
-To: Giulio Benetti <giulio.benetti@micronovasrl.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+        Tue, 28 Nov 2017 09:51:28 -0500
+Subject: Re: [linux-sunxi] Cedrus driver
+To: Maxime Ripard <maxime.ripard@free-electrons.com>
+Cc: Giulio Benetti <giulio.benetti@micronovasrl.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
         Andreas Baierl <list@imkreisrum.de>,
         linux-sunxi <linux-sunxi@googlegroups.com>,
         linux@armlinux.org.uk, wens@csie.org, linux-kernel@vger.kernel.org,
-        thomas@vitsch.nl, linux-media@vger.kernel.org
-Subject: Re: [linux-sunxi] Cedrus driver
-Message-ID: <20171128083553.s3upey4ulmva7qoz@flea.home>
-References: <693e8786-af83-9d77-0fd4-50fa1f6a135f@micronovasrl.com>
- <20171116110204.poakahqjz4sj7pmu@flea>
- <5fcf64db-c654-37d0-5863-20379c04f99c@micronovasrl.com>
- <20171116125310.yavjs7352nw2sm7r@flea>
- <e03cfdb5-57b3-fefd-75c3-6b97348682ff@micronovasrl.com>
- <6f94505d-69bb-6688-4b13-6a0ed2af8dd4@xs4all.nl>
- <d0b7f6e5-8758-ac92-e6a2-9ed4ff3cbc63@micronovasrl.com>
- <20171116133906.xsrpkdflgf34kkoy@flea>
- <b5c23ea7-4efa-1565-0c53-014c8a1ee37d@micronovasrl.com>
- <5d019a33-9266-1e81-cc36-6e87c22bf382@micronovasrl.com>
+        linux-media@vger.kernel.org
+References: <1511880674-3399460038.fc60fb9a7b@prakkezator.vehosting.nl>
+From: Thomas van Kleef <thomas@vitsch.nl>
+Message-ID: <54da46c6-48d1-544c-1379-d8e4d1aad089@vitsch.nl>
+Date: Tue, 28 Nov 2017 15:51:14 +0100
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="fqm2npgrr66jkn5f"
-Content-Disposition: inline
-In-Reply-To: <5d019a33-9266-1e81-cc36-6e87c22bf382@micronovasrl.com>
+In-Reply-To: <20171128122648.akxe7ro2mxmliedw@flea.home>
+Content-Type: text/plain; charset=windows-1252
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On 28-11-17 13:26, Maxime Ripard wrote:
+> On Tue, Nov 28, 2017 at 12:20:59PM +0100, Thomas van Kleef wrote:
+>>> So, I have been rebasing to 4.14.0 and have the cedrus driver working.
+>> I have pulled linux-mainline 4.14.0. Then pulled the requests2 branch from Hans
+>> Verkuil's media_tree. I have a patch available of the merge between these 2
+>> branches.
+>> After this I pulled the sunxi-cedrus repository from Florent Revests github. I
+>> believe this one is the same as the ones you are cloning right now.
+>> I have merged this and have a patch available for this as well.
+>>
+>> So to summarize:
+>>  o pulled linux 4.14 from:
+>>     https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git
+>>  o pulled requests2 from:
+>>     https://git.linuxtv.org/hverkuil/media_tree.git?h=requests2
+>>     will be replaced with the work, when it is done, in:
+>>      https://git.linuxtv.org/hverkuil/media_tree.git?h=ctrl-req-v2
+>>  o pulled linux-sunxi-cedrus from:
+>>     https://github.com/FlorentRevest/linux-sunxi-cedrus
+>>
+>>  o merged and made patch between linux4.14 and requests2
+>>  o merged and made patch with linux-sunxi-cedrus
+>>  o Verified that the video-engine is decofing mpeg-2 on the Allwinner A20.
+>>
+>> So maybe if someone is interested in this, I could place the patches somewhere?
+>> Just let me know.
+> 
+> Please create a pull request on the github repo. The point we set it
+> up was to share code. Forking repos and so on is kind of pointless.
+> 
+So, I started with linux-mainline 4.14 and created a pull request with that commit.
+Never made one before so if I did something wrong tell me.
 
---fqm2npgrr66jkn5f
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+The following changes since commit e1d1ea549b57790a3d8cf6300e6ef86118d692a3:
 
-On Tue, Nov 28, 2017 at 01:03:59AM +0100, Giulio Benetti wrote:
-> Hi Maxime,
->=20
-> Il 16/11/2017 14:42, Giulio Benetti ha scritto:
-> > Hi,
-> >=20
-> > Il 16/11/2017 14:39, Maxime Ripard ha scritto:
-> > > On Thu, Nov 16, 2017 at 02:17:08PM +0100, Giulio Benetti wrote:
-> > > > Hi Hans,
-> > > >=20
-> > > > Il 16/11/2017 14:12, Hans Verkuil ha scritto:
-> > > > > On 16/11/17 13:57, Giulio Benetti wrote:
-> > > > > > Il 16/11/2017 13:53, Maxime Ripard ha scritto:
-> > > > > > > On Thu, Nov 16, 2017 at 01:30:52PM +0100, Giulio Benetti wrot=
-e:
-> > > > > > > > > On Thu, Nov 16, 2017 at 11:37:30AM +0100, Giulio Benetti =
-wrote:
-> > > > > > > > > > Il 16/11/2017 11:31, Andreas Baierl ha scritto:
-> > > > > > > > > > > Am 16.11.2017 um 11:13 schrieb Giulio Benetti:
-> > > > > > > > > > > > Hello,
-> > > > > > > > > > > >=20
-> > > > > > > > > > > Hello,
-> > > > > > > > > > > > I'm wondering why cedrus
-> > > > > > > > > > > > https://github.com/FlorentRevest/linux-sunxi-cedrus
-> > > > > > > > > > > > has never been
-> > > > > > > > > > > > merged with linux-sunxi sunxi-next.
-> > > > > > > > > > > >=20
-> > > > > > > > > > > Because it is not ready to be
-> > > > > > > > > > > merged. It depends on the v4l2
-> > > > > > > > > > > request
-> > > > > > > > > > > API, which was not merged and which is re-worked atm.
-> > > > > > > > > > > Also, sunxi-cedrus itself is not in
-> > > > > > > > > > > a finished state and is not as
-> > > > > > > > > > > feature-complete to be merged. Anyway it might be som=
-ething for
-> > > > > > > > > > > staging... Has there been a [RFC] on the mailing list=
- at all?
-> > > > > > > > > >=20
-> > > > > > > > > > Where can I find a list of TODOs to get it ready to be =
-merged?
-> > > > > > > > >=20
-> > > > > > > > > Assuming that the request API is in, we'd need to:
-> > > > > > > > > =A0=A0=A0=A0=A0 - Finish the MPEG4 support
-> > > > > > > > > =A0=A0=A0=A0=A0 - Work on more useful codecs (H264 comes =
-to my mind)
-> > > > > > > > > =A0=A0=A0=A0=A0 - Implement the DRM planes support for
-> > > > > > > > > the custom frame format
-> > > > > > > > > =A0=A0=A0=A0=A0 - Implement the DRM planes support for sc=
-aling
-> > > > > > > > > =A0=A0=A0=A0=A0 - Test it on more SoCs
-> > > > > > > > >=20
-> > > > > > > > > Or something along those lines.
-> > > > > > > >=20
-> > > > > > > > Lot of work to do
-> > > > > > >=20
-> > > > > > > Well... If it was fast and easy it would have been done alrea=
-dy :)
-> > > > > >=20
-> > > > > > :))
-> > > > > >=20
-> > > > > > >=20
-> > > > > > > > > > > > I see it seems to be dead, no commit in 1 year.
-> > > > > > > > > > >=20
-> > > > > > > > > > > Yes, because the author did this
-> > > > > > > > > > > during an internship, which ended
-> > > > > > > > > > > ...
-> > > > > > > > > > > Afaik nobody picked up his work yet.
-> > > > > > > > >=20
-> > > > > > > > > That's not entirely true. Some work has been
-> > > > > > > > > done by Thomas (in CC),
-> > > > > > > > > especially on the display engine side, but last time we t=
-alked his
-> > > > > > > > > work was not really upstreamable.
-> > > > > > > > >=20
-> > > > > > > > > We will also resume that effort starting next march.
-> > > > > > > >=20
-> > > > > > > > Is it possible a preview on a separate
-> > > > > > > > Reporitory to start working on now?
-> > > > > > > > Expecially to start porting everything done by
-> > > > > > > > FlorentRevest to mainline,
-> > > > > > > > admitted you've not already done.
-> > > > > > >=20
-> > > > > > > I'm not sure what you're asking for. Florent's work
-> > > > > > > *was* on mainline.
-> > > > > >=20
-> > > > > > and then they took it off because it was unmantained?
-> > > > > > You've spoken about Thomas(in CC) not ready,
-> > > > > > maybe I could help on that if it's public to accelerate.
-> > > > > > If I'm able to of course, this is my primary concern.
-> > > > > >=20
-> > > > > > Otherwise, in which way can I help improving it to make
-> > > > > > it accept to linux-sunxi?
-> > > > > > Starting from Florent's work and porting it to sunxi-next to be=
-gin?
-> > > > > > And after that adding all features you've listed?
-> > > > > > Tell me what I can do(I repeat, if I'm able to).
-> > > > >=20
-> > > > > The bottleneck is that the Request API is not mainlined. We
-> > > > > restarted work
-> > > > > on it after a meeting a few weeks back where we all agreed
-> > > > > on the roadmap
-> > > > > so hopefully it will go into mainline Q1 or Q2 next year.
-> > > > >=20
-> > > > > That said, you can use Florent's patch series for further develop=
-ment.
-> > > > > It should be relatively easy to convert it to the final version o=
-f the
-> > > > > Request API. Just note that the public API of the final
-> > > > > Request API will
-> > > > > be somewhat different from the old version Florent's patch
-> > > > > series is using.
-> > > >=20
-> > > > So I'm going to try soon to :
-> > > > 1) adapt that patchset to sunxi-next
-> > > > 2) add A20 support
-> > > > 3) add A33 support
-> > > > 4) after mainlined APIs, merge
-> > >=20
-> > > That sounds good. Thomas already has the support for the A20, and as I
-> > > was saying, there is someone that is going to work full time on this
-> > > in a couple monthes on our side.
-> > >=20
-> > > I'll set up a git repo on github so that we can collaborate until the
-> > > request API is ready.
->=20
-> Any news about git repo?
-> When do you plan to do it more or less?
+  Merge tag 'fbdev-v4.15' of git://github.com/bzolnier/linux (2017-11-20 21:50:24 -1000)
 
-I started to do it yesterday.
+are available in the git repository at:
 
-https://github.com/free-electrons/linux-cedrus
-https://github.com/free-electrons/libva-cedrus
+  https://github.com/thomas-vitsch/linux-a20-cedrus.git 
 
-Maxime
+for you to fetch changes up to 508ad12eb737fde07f4a25446ed941a01480d6dc:
 
---=20
-Maxime Ripard, Free Electrons
-Embedded Linux and Kernel engineering
-http://free-electrons.com
+  Merge branch 'master' of https://github.com/thomas-vitsch/linux-a20-cedrus into linux-sunxi-cedrus-a20 (2017-11-28 15:28:18 +0100)
 
---fqm2npgrr66jkn5f
-Content-Type: application/pgp-signature; name="signature.asc"
+----------------------------------------------------------------
+Bob Ham (1):
+      sunxi-cedrus: Fix compilation errors from bad types under GCC 6.2
 
------BEGIN PGP SIGNATURE-----
+Florent Revest (8):
+      cherry-pick sunxi_cedrus
+      cherry-pick sunxi_cedrus
+      v4l: Add MPEG4 low-level decoder API control
+      media: platform: Add Sunxi Cedrus decoder driver
+      sunxi-cedrus: Add a MPEG 2 codec
+      sunxi-cedrus: Add a MPEG 4 codec
+      sunxi-cedrus: Add device tree binding document
+      cherry-pick sunxi_cedrus
 
-iQIzBAABCAAdFiEE0VqZU19dR2zEVaqr0rTAlCFNr3QFAlodH+YACgkQ0rTAlCFN
-r3QXdg/+JBi4C+LDlP8JA729tV3J9T0o81mBVdEr5m44n83eiwvOQzut2G7xAJZc
-7zEPlKm230/+D09+Zap6O+mxq+4NH4CpJ+kZ+Cw1y1Sg/tEHsZ6JUluOUU73GtmJ
-9PI1qCgoCErhLJ9jY2VYCy4JOWFfJxVZ8HOhfqkySLf52PfJYgaLqVIlZ/+7jNer
-RrrZZQw4QhSA5IJFLPWXnZ5ebdlnuuLSlBkuFsXfLupdj5EQAD4sz0765nunJDv2
-kPISzfDHSZMNeYguQWZbc1bol/xPrXlpcoO0vf5mJ2TOlXAqG8P66Zg2VujI6pH/
-89H1jfag3xg3icd45UFmilf9bWFjEACbKNmfeeFXbZtbc9gFV4f3BkTwIdQ2GsMx
-W+iOvbNti+s7ZRrGxQqP0KxNwp0hMaHCEuAUMOj2PV+UQYTG92HSgJkKHDFRu6lQ
-CPj7UWwoZctkwIqRG8OxLXSh3D0aMIu/ud/hC+yttnGK63PEW1V8Tgd5anAh7unq
-YiNk+XhGRy18DFfXOlnSMLtX/XG45PaWp8F0xN5lLFGwyxg1dWHPxtgkxi4ofzPr
-sAt9r2R730cRpJIHt0Pe7q+FF0KMfW6ntlg6r+10ke8TwijDv8R2lCze34HuP46a
-HKowwJzL7bVgyQpjWPfixMJTXZEelXMwTRWrBt3hJzGeNWmII5w=
-=qUCz
------END PGP SIGNATURE-----
+Hans Verkuil (15):
+      videodev2.h: add max_reqs to struct v4l2_query_ext_ctrl
+      videodev2.h: add request to v4l2_ext_controls
+      videodev2.h: add request field to v4l2_buffer.
+      vb2: add allow_requests flag
+      v4l2-ctrls: add request support
+      v4l2-ctrls: add function to apply a request.
+      v4l2-ctrls: implement delete request(s)
+      v4l2-ctrls: add VIDIOC_REQUEST_CMD
+      v4l2: add initial V4L2_REQ_CMD_QUEUE support
+      vb2: add helper function to queue request-specific buffer.
+      v4l2-device: keep track of registered video_devices
+      v4l2-device: add v4l2_device_req_queue
+      vivid: add request support for video capture.
+      v4l2-ctrls: add REQ_KEEP flag
+      Documentation: add v4l2-requests.txt
 
---fqm2npgrr66jkn5f--
+Icenowy Zheng (2):
+      sunxi-cedrus: add syscon support
+      cherry-pick sunxi_cedrus
+
+Thomas van Kleef (11):
+      Appears that the requests2 API is currently based on linux 3.9 :(. Made some changes that needed to be merged manually, let's hope I did not make to many errors
+      Fixed last missing calls for a buildable kernel with the requests2 API. Tested with a mock mem2mem device which selects the VIDEOBUF2_CORE.
+      Kconfig option used to enable the VIDEOBUF2_CORE
+      Fix sun5i-a13 merge errors. Mainline has moved some device nodes which resulted in nodes existing multiple times in device trees.
+      o Added reserved memory region for the video-engine.     o Added device node for the video engine.
+      style commit
+      Apply patch which adds requests2 branch from media-tree:     https://git.linuxtv.org/hverkuil/media_tree.git?h=requests2
+      Apply patch which adds linux-sunxi-cedrus from: https://github.com/FlorentRevest/sunxi-cedrus-drv-video
+      Add reserved region and video-engine node to sun7i.dtsi
+      Merge branch 'master' of https://github.com/thomas-vitsch/linux-a20-cedrus into linux-a20-cedrus
+      Merge branch 'master' of https://github.com/thomas-vitsch/linux-a20-cedrus into linux-sunxi-cedrus-a20
+
+Vitsch Electronics (1):
+      Update README
+
+ .../devicetree/bindings/media/sunxi-cedrus.txt     |   44 +
+ Documentation/video4linux/v4l2-requests.txt        |  233 ++
+ README                                             |   18 +-
+ arch/arm/boot/dts/sun5i-a13-difrnce-dit4350.dts    |   50 -
+ arch/arm/boot/dts/sun5i-a13.dtsi                   |   30 +
+ arch/arm/boot/dts/sun7i-a20.dtsi                   |   44 +
+ arch/arm/boot/dts/sun8i-a33.dtsi                   |   45 +-
+ arch/arm/configs/xpo_player_v1_defconfig           | 3507 ++++++++++++++++++++
+ drivers/media/platform/Kconfig                     |   13 +
+ drivers/media/platform/Makefile                    |    1 +
+ drivers/media/platform/sunxi-cedrus/Makefile       |    4 +
+ drivers/media/platform/sunxi-cedrus/sunxi_cedrus.c |  285 ++
+ .../platform/sunxi-cedrus/sunxi_cedrus_common.h    |  104 +
+ .../media/platform/sunxi-cedrus/sunxi_cedrus_dec.c |  588 ++++
+ .../media/platform/sunxi-cedrus/sunxi_cedrus_dec.h |   33 +
+ .../media/platform/sunxi-cedrus/sunxi_cedrus_hw.c  |  180 +
+ .../media/platform/sunxi-cedrus/sunxi_cedrus_hw.h  |   39 +
+ .../platform/sunxi-cedrus/sunxi_cedrus_mpeg2.c     |  152 +
+ .../platform/sunxi-cedrus/sunxi_cedrus_mpeg4.c     |  140 +
+ .../platform/sunxi-cedrus/sunxi_cedrus_regs.h      |  170 +
+ drivers/media/platform/vivid/vivid-core.c          |    2 +
+ drivers/media/platform/vivid/vivid-ctrls.c         |    4 +
+ drivers/media/platform/vivid/vivid-kthread-cap.c   |    2 +
+ drivers/media/usb/cpia2/cpia2_v4l.c                |    1 +
+ drivers/media/v4l2-core/v4l2-compat-ioctl32.c      |    4 +-
+ drivers/media/v4l2-core/v4l2-ctrls.c               |  460 ++-
+ drivers/media/v4l2-core/v4l2-dev.c                 |    9 +
+ drivers/media/v4l2-core/v4l2-device.c              |   26 +
+ drivers/media/v4l2-core/v4l2-ioctl.c               |  121 +-
+ drivers/media/v4l2-core/v4l2-subdev.c              |   78 +-
+ drivers/media/v4l2-core/videobuf2-v4l2.c           |   28 +
+ include/media/v4l2-ctrls.h                         |   35 +-
+ include/media/v4l2-dev.h                           |    3 +
+ include/media/v4l2-device.h                        |    6 +
+ include/media/v4l2-fh.h                            |    4 +
+ include/media/videobuf2-core.h                     |    3 +
+ include/media/videobuf2-v4l2.h                     |    4 +
+ include/uapi/linux/v4l2-controls.h                 |   68 +
+ include/uapi/linux/videodev2.h                     |   43 +-
+ 39 files changed, 6438 insertions(+), 143 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/media/sunxi-cedrus.txt
+ create mode 100644 Documentation/video4linux/v4l2-requests.txt
+ delete mode 100644 arch/arm/boot/dts/sun5i-a13-difrnce-dit4350.dts
+ create mode 100644 arch/arm/configs/xpo_player_v1_defconfig
+ create mode 100644 drivers/media/platform/sunxi-cedrus/Makefile
+ create mode 100644 drivers/media/platform/sunxi-cedrus/sunxi_cedrus.c
+ create mode 100644 drivers/media/platform/sunxi-cedrus/sunxi_cedrus_common.h
+ create mode 100644 drivers/media/platform/sunxi-cedrus/sunxi_cedrus_dec.c
+ create mode 100644 drivers/media/platform/sunxi-cedrus/sunxi_cedrus_dec.h
+ create mode 100644 drivers/media/platform/sunxi-cedrus/sunxi_cedrus_hw.c
+ create mode 100644 drivers/media/platform/sunxi-cedrus/sunxi_cedrus_hw.h
+ create mode 100644 drivers/media/platform/sunxi-cedrus/sunxi_cedrus_mpeg2.c
+ create mode 100644 drivers/media/platform/sunxi-cedrus/sunxi_cedrus_mpeg4.c
+ create mode 100644 drivers/media/platform/sunxi-cedrus/sunxi_cedrus_regs.h
+
+
+>> It would be nice to be able to play a file, so I would have to prepare our
+>> custom player and make a patch between the current sunxi-cedrus-drv-video and
+>> the one on https://github.com/FlorentRevest/sunxi-cedrus-drv-video.
+>> So I will start with this if there is any interest.
+>>
+>> Should I be working in sunxi-next I wonder?
+> 
+> I'd rather stick on 4.14. sunxi-next wouldn't bring any benefit, and
+> we want to provide something that works first, and always merging next
+> will always distract us from the actual code.
+> 
+> Maxime
+> 
+
+Thomas van Kleef
+Vitsch Electronics
+http://Vitsch.nl/
+http://VitschVPN.nl/
+tel: +31-(0)40-7113051
+KvK nr: 17174380
+BTW nr: NL142748201B01
+-- 
+Machines en netwerken op afstand beheren? Vitsch VPN oplossing!
+Kijk voor meer informatie op: http://www.VitschVPN.nl/
