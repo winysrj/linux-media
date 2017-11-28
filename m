@@ -1,129 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:48903 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752508AbdK2URf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 29 Nov 2017 15:17:35 -0500
-From: Sean Young <sean@mess.org>
-To: linux-media@vger.kernel.org
-Cc: Matthias Reichl <hias@horus.com>
-Subject: [PATCH 2/2] ir-ctl: specify the gap between scancodes or files
-Date: Wed, 29 Nov 2017 20:17:32 +0000
-Message-Id: <20171129201732.23797-2-sean@mess.org>
-In-Reply-To: <20171129201732.23797-1-sean@mess.org>
-References: <20171129200521.z4phw7kzcmf56qgi@gofer.mess.org>
- <20171129201732.23797-1-sean@mess.org>
+Received: from userp1040.oracle.com ([156.151.31.81]:26068 "EHLO
+        userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751693AbdK1OPs (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 28 Nov 2017 09:15:48 -0500
+Date: Tue, 28 Nov 2017 17:15:24 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: Jeremy Sowden <jeremy@azazel.net>
+Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org
+Subject: Re: [PATCH v2 1/3] media: staging: atomisp: fix for sparse "using
+ plain integer as NULL pointer" warnings.
+Message-ID: <20171128141524.kpvqbowgmpkzwfuz@mwanda>
+References: <20171127122125.GB8561@kroah.com>
+ <20171127124450.28799-1-jeremy@azazel.net>
+ <20171127124450.28799-2-jeremy@azazel.net>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20171127124450.28799-2-jeremy@azazel.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When sending multiple scancodes, or pulse space files, by default there
-is 125ms gap between them. Allow this to be specified.
+On Mon, Nov 27, 2017 at 12:44:48PM +0000, Jeremy Sowden wrote:
+> The "address" member of struct ia_css_host_data is a pointer-to-char, so define default as NULL.
+> 
+> Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
+> ---
+>  .../css2400/runtime/isp_param/interface/ia_css_isp_param_types.h        | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/runtime/isp_param/interface/ia_css_isp_param_types.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/runtime/isp_param/interface/ia_css_isp_param_types.h
+> index 8e651b80345a..6fee3f7fd184 100644
+> --- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/runtime/isp_param/interface/ia_css_isp_param_types.h
+> +++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/runtime/isp_param/interface/ia_css_isp_param_types.h
+> @@ -95,7 +95,7 @@ union ia_css_all_memory_offsets {
+>  };
+>  
+>  #define IA_CSS_DEFAULT_ISP_MEM_PARAMS \
+> -		{ { { { 0, 0 } } } }
+> +		{ { { { NULL, 0 } } } }
 
-Signed-off-by: Sean Young <sean@mess.org>
----
- utils/ir-ctl/ir-ctl.1.in |  5 +++++
- utils/ir-ctl/ir-ctl.c    | 18 +++++++++++++-----
- 2 files changed, 18 insertions(+), 5 deletions(-)
+This define is way ugly and instead of making superficial changes, you
+should try to eliminate it.
 
-diff --git a/utils/ir-ctl/ir-ctl.1.in b/utils/ir-ctl/ir-ctl.1.in
-index 05550fb1..89aa281f 100644
---- a/utils/ir-ctl/ir-ctl.1.in
-+++ b/utils/ir-ctl/ir-ctl.1.in
-@@ -93,6 +93,11 @@ Comma separated list of emitters to use for sending. The first emitter is
- number 1. Some devices only support enabling one emitter (the winbond-cir
- driver).
- .TP
-+\fB\-g\fR, \fB\-\-gap\fR=\fIGAP\fR
-+Set the gap time between scancodes, or the gap between files when
-+multiple are specified on the command line. By default this is 125000
-+microseconds.
-+.TP
- \fB\-?\fR, \fB\-\-help\fR
- Prints the help message
- .TP
-diff --git a/utils/ir-ctl/ir-ctl.c b/utils/ir-ctl/ir-ctl.c
-index 8538ec5d..6fb05b1a 100644
---- a/utils/ir-ctl/ir-ctl.c
-+++ b/utils/ir-ctl/ir-ctl.c
-@@ -82,6 +82,7 @@ struct arguments {
- 	int wideband;
- 	unsigned carrier_low, carrier_high;
- 	unsigned timeout;
-+	unsigned gap;
- 	int carrier_reports;
- 	int timeout_reports;
- 	unsigned carrier;
-@@ -111,6 +112,7 @@ static const struct argp_option options[] = {
- 	{ "carrier",	'c',	N_("CARRIER"),	0,	N_("set send carrier") },
- 	{ "duty-cycle",	'D',	N_("DUTY"),	0,	N_("set duty cycle") },
- 	{ "emitters",	'e',	N_("EMITTERS"),	0,	N_("set send emitters") },
-+	{ "gap",	'g',	N_("GAP"),	0,	N_("set gap between files or scancodes") },
- 	{ }
- };
- 
-@@ -130,6 +132,7 @@ static const char doc[] = N_(
- 	"  CARRIER  - the carrier frequency to use for sending\n"
- 	"  DUTY     - the duty cycle to use for sending\n"
- 	"  EMITTERS - comma separated list of emitters to use for sending, e.g. 1,2\n"
-+	"  GAP      - gap between pulse and files or scancodes in microseconds\n"
- 	"  RANGE    - set range of accepted carrier frequencies, e.g. 20000-40000\n"
- 	"  TIMEOUT  - set length of space before recording stops in microseconds\n"
- 	"  SCANCODE - protocol:scancode, e.g. nec:0xa814\n\n"
-@@ -185,7 +188,7 @@ static unsigned parse_emitters(char *p)
- 	return emit;
- }
- 
--static struct file *read_file(const char *fname)
-+static struct file *read_file(struct arguments *args, const char *fname)
- {
- 	bool expect_pulse = true;
- 	int lineno = 0, lastspace = 0;
-@@ -230,7 +233,7 @@ static struct file *read_file(const char *fname)
- 			char *scancodestr;
- 
- 			if (!expect_pulse) {
--				f->buf[len++] = IR_DEFAULT_TIMEOUT;
-+				f->buf[len++] = args->gap;
- 				expect_pulse = true;
- 			}
- 
-@@ -486,6 +489,11 @@ static error_t parse_opt(int k, char *arg, struct argp_state *state)
- 		if (arguments->emitters == 0)
- 			argp_error(state, _("cannot parse emitters `%s'"), arg);
- 		break;
-+	case 'g':
-+		arguments->gap = strtoint(arg, "");
-+		if (arguments->gap == 0)
-+			argp_error(state, _("cannot parse gap `%s'"), arg);
-+		break;
- 	case 'D':
- 		arguments->duty = strtoint(arg, "%");
- 		if (arguments->duty == 0 || arguments->duty >= 100)
-@@ -494,7 +502,7 @@ static error_t parse_opt(int k, char *arg, struct argp_state *state)
- 	case 's':
- 		if (arguments->record || arguments->features)
- 			argp_error(state, _("send can not be combined with record or features option"));
--		s = read_file(arg);
-+		s = read_file(arguments, arg);
- 		if (s == NULL)
- 			exit(EX_DATAERR);
- 
-@@ -884,7 +892,7 @@ err:
- 
- int main(int argc, char *argv[])
- {
--	struct arguments args = {};
-+	struct arguments args = { .gap = IR_DEFAULT_TIMEOUT };
- 
- #ifdef ENABLE_NLS
-         setlocale (LC_ALL, "");
-@@ -912,7 +920,7 @@ int main(int argc, char *argv[])
- 	while (s) {
- 		struct file *next = s->next;
- 		if (s != args.send)
--			usleep(IR_DEFAULT_TIMEOUT);
-+			usleep(args.gap);
- 
- 		rc = lirc_send(&args, fd, features, s);
- 		if (rc) {
--- 
-2.14.3
+People look at warnings as a bad thing but they are actually a valuable
+resource which call attention to bad code.  By making this change you're
+kind of wasting the warning.  The bad code is still there, it's just
+swept under the rug but like a dead mouse carcass it's still stinking up
+the living room.  We should leave the warning there until it irritates
+someone enough to fix it properly.
+
+regards,
+dan carpenter
