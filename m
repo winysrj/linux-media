@@ -1,74 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:64347 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751590AbdKYSBX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 25 Nov 2017 13:01:23 -0500
-Date: Sat, 25 Nov 2017 16:01:14 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Gregor Jasny <gjasny@googlemail.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: dvbv5-scan: Missing NID, TID, and RID in VDR channel output
-Message-ID: <20171125160114.6aa8c418@vento.lan>
-In-Reply-To: <e7dfa685-e3f9-d0fe-5a33-5a994b7fea88@googlemail.com>
-References: <f65773a8-603a-ba10-b420-896efc70c26a@googlemail.com>
-        <20171125090819.1a55e11a@vento.lan>
-        <20171125095435.75c982f4@vento.lan>
-        <e7dfa685-e3f9-d0fe-5a33-5a994b7fea88@googlemail.com>
+Received: from wp215.webpack.hosteurope.de ([80.237.132.222]:54416 "EHLO
+        wp215.webpack.hosteurope.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751976AbdK1Rrs (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 28 Nov 2017 12:47:48 -0500
+Subject: [PATCH Resend] staging: media: lirc: style fix - replace hard-coded
+ function names
+From: Martin Homuth <martin@martinhomuth.de>
+To: mchehab@kernel.org
+Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org
+References: <8bfec3aa-8f12-365c-9cf2-10d97f54adec@martinhomuth.de>
+Message-ID: <671e53b1-5cfd-ee34-1680-e7c5f1722137@martinhomuth.de>
+Date: Tue, 28 Nov 2017 18:47:08 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+In-Reply-To: <8bfec3aa-8f12-365c-9cf2-10d97f54adec@martinhomuth.de>
+Content-Type: text/plain; charset=windows-1252
+Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sat, 25 Nov 2017 17:54:16 +0100
-Gregor Jasny <gjasny@googlemail.com> escreveu:
+This patch fixes the remaining coding style warnings in the lirc module.
+Instead of hard coding the function name the __func__ variable
+should be used.
 
-> Hello Mauro,
-> 
-> On 11/25/17 12:54 PM, Mauro Carvalho Chehab wrote:
-> > Em Sat, 25 Nov 2017 09:08:19 -0200
-> > Mauro Carvalho Chehab <mchehab@osg.samsung.com> escreveu:  
-> >> Em Wed, 22 Nov 2017 20:50:56 +0100
-> >> Gregor Jasny <gjasny@googlemail.com> escreveu:  
-> >>>
-> >>> Mauro, do you think it would be possible to parse / output NID, TID, and
-> >>> RID from dvbv5_scan? It would greatly improve usability.    
-> >>
-> >> It is possible. Not sure how much efforts it would take. Could you please
-> >> send me, in priv, a capture of ~30-60 seconds of a recent DVB-T2 channel
-> >> in Germany with those fields, and the corresponding output from w_scan,
-> >> for all channels at the same frequency?
-> >>
-> >> I'll use it to test it with my RF generator here, and see if I can tweak
-> >> dvbv5-scan to produce the same output.
-> >>
-> >> The syntax to capture the full MPEG-TS is:
-> >>
-> >> 	$ dvbv5-zap -P -o channel.ts -t 60 scan_file.conf  
-> 
-> I captured all DVB-T2 frequencies I observed so far:
-> https://drive.google.com/open?id=1As5Ek0iN0n9FgH7xU-HsrFIRBE0hGOWQ
-> (that is in Germany / Saxony / Dresden)
+It fixes the following checkpatch.pl warning:
 
-Downloaded. Thanks!
+WARNING: Prefer using '"%s...", __func__' to using 'read', this
+function's name, in a string
 
-> 
-> > Btw, it follows a quick hack that should output network and transport ID.
-> > 
-> > Please test. It should be noticed that it adds two new fields on a struct
-> > that it is part of the API. I didn't care to check if this patch would break
-> > userspace API.  
-> 
-> That works like a charm! Thank you for writing it.
+Signed-off-by: Martin Homuth <martin@martinhomuth.de>
+---
+ drivers/staging/media/lirc/lirc_zilog.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-Good! I'll take a better look on it tomorrow, in order to check what
-should be needed to avoid breaking userspace (if any) with this patch).
+diff --git a/drivers/staging/media/lirc/lirc_zilog.c
+b/drivers/staging/media/lirc/lirc_zilog.c
+index 6bd0717bf76e..be68ee652071 100644
+--- a/drivers/staging/media/lirc/lirc_zilog.c
++++ b/drivers/staging/media/lirc/lirc_zilog.c
+@@ -888,9 +888,9 @@ static ssize_t read(struct file *filep, char __user
+*outbuf, size_t n,
+ 	unsigned int m;
+ 	DECLARE_WAITQUEUE(wait, current);
 
-> 
-> Thanks,
-> Gregor
+-	dev_dbg(ir->dev, "read called\n");
++	dev_dbg(ir->dev, "%s called\n", __func__);
+ 	if (n % rbuf->chunk_size) {
+-		dev_dbg(ir->dev, "read result = -EINVAL\n");
++		dev_dbg(ir->dev, "%s result = -EINVAL\n", __func__);
+ 		return -EINVAL;
+ 	}
 
+@@ -949,7 +949,7 @@ static ssize_t read(struct file *filep, char __user
+*outbuf, size_t n,
+ 				retries++;
+ 			}
+ 			if (retries >= 5) {
+-				dev_err(ir->dev, "Buffer read failed!\n");
++				dev_err(ir->dev, "%s failed!\n", __func__);
+ 				ret = -EIO;
+ 			}
+ 		}
+@@ -959,7 +959,7 @@ static ssize_t read(struct file *filep, char __user
+*outbuf, size_t n,
+ 	put_ir_rx(rx, false);
+ 	set_current_state(TASK_RUNNING);
 
+-	dev_dbg(ir->dev, "read result = %d (%s)\n", ret,
++	dev_dbg(ir->dev, "%s result = %d (%s)\n", __func__, ret,
+ 		ret ? "Error" : "OK");
+
+ 	return ret ? ret : written;
 -- 
-Thanks,
-Mauro
+2.13.6
