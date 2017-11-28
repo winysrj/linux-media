@@ -1,117 +1,152 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:51763 "EHLO
-        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752134AbdKCHx5 (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:57602 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753014AbdK1PUI (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 3 Nov 2017 03:53:57 -0400
-Subject: Re: [RFC v4 17/17] [media] v4l: Document explicit synchronization
- behaviour
-To: Gustavo Padovan <gustavo@padovan.org>, linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        Pawel Osciak <pawel@osciak.com>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Brian Starkey <brian.starkey@arm.com>,
-        linux-kernel@vger.kernel.org,
-        Gustavo Padovan <gustavo.padovan@collabora.com>
-References: <20171020215012.20646-1-gustavo@padovan.org>
- <20171020215012.20646-18-gustavo@padovan.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <340973f9-11d5-467f-f2b6-01ee481fc6f0@xs4all.nl>
-Date: Fri, 3 Nov 2017 08:53:52 +0100
+        Tue, 28 Nov 2017 10:20:08 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+        Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>
+Subject: Re: [PATCH 1/3 v7] V4L: Add a UVC Metadata format
+Date: Tue, 28 Nov 2017 17:20:13 +0200
+Message-ID: <6959169.cj8yPDWWnC@avalon>
+In-Reply-To: <1510156814-28645-2-git-send-email-g.liakhovetski@gmx.de>
+References: <1510156814-28645-1-git-send-email-g.liakhovetski@gmx.de> <1510156814-28645-2-git-send-email-g.liakhovetski@gmx.de>
 MIME-Version: 1.0
-In-Reply-To: <20171020215012.20646-18-gustavo@padovan.org>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/20/2017 11:50 PM, Gustavo Padovan wrote:
-> From: Gustavo Padovan <gustavo.padovan@collabora.com>
+Hi Guennadi,
+
+Thank you for the patch.
+
+Overall this looks good to me. Please see below for one small comment.
+
+On Wednesday, 8 November 2017 18:00:12 EET Guennadi Liakhovetski wrote:
+> From: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>
 > 
-> Add section to VIDIOC_QBUF about it
+> Add a pixel format, used by the UVC driver to stream metadata.
 > 
-> v3:
-> 	- make the out_fence refer to the current buffer (Hans)
-> 	- Note what happens when the IN_FENCE is not set (Hans)
-> 
-> v2:
-> 	- mention that fences are files (Hans)
-> 	- rework for the new API
-> 
-> Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
+> Signed-off-by: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>
 > ---
->  Documentation/media/uapi/v4l/vidioc-qbuf.rst | 31 ++++++++++++++++++++++++++++
->  1 file changed, 31 insertions(+)
 > 
-> diff --git a/Documentation/media/uapi/v4l/vidioc-qbuf.rst b/Documentation/media/uapi/v4l/vidioc-qbuf.rst
-> index 9e448a4aa3aa..a65a50578bad 100644
-> --- a/Documentation/media/uapi/v4l/vidioc-qbuf.rst
-> +++ b/Documentation/media/uapi/v4l/vidioc-qbuf.rst
-> @@ -118,6 +118,37 @@ immediately with an ``EAGAIN`` error code when no buffer is available.
->  The struct :c:type:`v4l2_buffer` structure is specified in
->  :ref:`buffer`.
->  
-> +Explicit Synchronization
-> +------------------------
-> +
-> +Explicit Synchronization allows us to control the synchronization of
-> +shared buffers from userspace by passing fences to the kernel and/or
-> +receiving them from it. Fences passed to the kernel are named in-fences and
-> +the kernel should wait on them to signal before using the buffer, i.e., queueing
-> +it to the driver. On the other side, the kernel can create out-fences for the
-> +buffers it queues to the drivers. Out-fences signal when the driver is
-> +finished with buffer, i.e., the buffer is ready. The fences are represented
-> +as a file and passed as a file descriptor to userspace.
-> +
-> +The in-fences are communicated to the kernel at the ``VIDIOC_QBUF`` ioctl
-> +using the ``V4L2_BUF_FLAG_IN_FENCE`` buffer
-> +flags and the `fence_fd` field. If an in-fence needs to be passed to the kernel,
-> +`fence_fd` should be set to the fence file descriptor number and the
-> +``V4L2_BUF_FLAG_IN_FENCE`` should be set as well Setting one but not the other
-
-Missing '.' after 'as well'.
-
-To what value is fence_fd set when VIDIOC_QBUF returns? If you don't set the
-IN_FENCE flag, what should userspace set fence_fd to? (I recommend 0).
-
-> +will cause ``VIDIOC_QBUF`` to return with error.
-> +
-> +The fence_fd field (formely the reserved2 field) will be ignored if the
-
-Drop the "(formely the reserved2 field)" part. We're not interested in the
-history here.
-
-> +``V4L2_BUF_FLAG_IN_FENCE`` is not set.
-> +
-> +To get an out-fence back from V4L2 the ``V4L2_BUF_FLAG_OUT_FENCE`` flag should
-> +be set to ask for a fence to be attached to the buffer. To become aware of
-> +the out-fence created one should listen for the ``V4L2_EVENT_OUT_FENCE`` event.
-> +An event will be triggered for every buffer queued to the V4L2 driver with the
-> +``V4L2_BUF_FLAG_OUT_FENCE``.
-> +
-> +At streamoff the out-fences will either signal normally if the drivers waits
-
-drivers -> driver
-
-> +for the operations on the buffers to finish or signal with error if the
-
-error -> an error
-
-> +driver cancels the pending operations.
->  
->  Return Value
->  ============
+> v7: alphabetic order, update documentation.
 > 
+>  Documentation/media/uapi/v4l/meta-formats.rst    |  1 +
+>  Documentation/media/uapi/v4l/pixfmt-meta-uvc.rst | 50 +++++++++++++++++++++
+>  include/uapi/linux/videodev2.h                   |  1 +
+>  3 files changed, 52 insertions(+)
+>  create mode 100644 Documentation/media/uapi/v4l/pixfmt-meta-uvc.rst
+> 
+> diff --git a/Documentation/media/uapi/v4l/meta-formats.rst
+> b/Documentation/media/uapi/v4l/meta-formats.rst index 01e24e3..0c4e1ec
+> 100644
+> --- a/Documentation/media/uapi/v4l/meta-formats.rst
+> +++ b/Documentation/media/uapi/v4l/meta-formats.rst
+> @@ -12,5 +12,6 @@ These formats are used for the :ref:`metadata` interface
+> only.
+>  .. toctree::
+>      :maxdepth: 1
+> 
+> +    pixfmt-meta-uvc
+>      pixfmt-meta-vsp1-hgo
+>      pixfmt-meta-vsp1-hgt
+> diff --git a/Documentation/media/uapi/v4l/pixfmt-meta-uvc.rst
+> b/Documentation/media/uapi/v4l/pixfmt-meta-uvc.rst new file mode 100644
+> index 0000000..06f603c
+> --- /dev/null
+> +++ b/Documentation/media/uapi/v4l/pixfmt-meta-uvc.rst
+> @@ -0,0 +1,50 @@
+> +.. -*- coding: utf-8; mode: rst -*-
+> +
+> +.. _v4l2-meta-fmt-uvc:
+> +
+> +*******************************
+> +V4L2_META_FMT_UVC ('UVCH')
+> +*******************************
+> +
+> +UVC Payload Header Data
+> +
+> +
+> +Description
+> +===========
+> +
+> +This format describes standard UVC metadata, extracted from UVC packet
+> headers +and provided by the UVC driver through metadata video nodes. That
+> data includes +exact copies of the standard part of UVC Payload Header
+> contents and auxiliary +timing information, required for precise
+> interpretation of timestamps, contained +in those headers. See section
+> "2.4.3.3 Video and Still Image Payload Headers" of +the "UVC 1.5 Class
+> specification" for details.
+> +
+> +Each UVC payload header can be between 2 and 12 bytes large. Buffers can
+> contain +multiple headers, if multiple such headers have been transmitted
+> by the camera +for the respective frame. However, headers, containing no
+> useful information, +e.g. those without the SCR field or with that field
+> identical to the previous +header, will be dropped by the driver.
 
-What should be done if the driver doesn't set ordered_in_driver? How does userspace
-know whether in and/or out fences are supported? I'm leaning towards a new capability
-flag for QUERYCAPS.
+If the driver receives too many headers with different SCR (more than the 
+buffer can hold for instance) it will have to drop some of them. The simplest 
+implementation would be to start dropping them when the buffer is full, but 
+I'd like to leave room for the driver to be a bit more clever and drop headers 
+that have a SCR too close to the previous one for instance. I propose wording 
+the above paragraph as follows.
 
-What does VIDIOC_QUERYBUF return w.r.t. the fence flags and fence_fd?
+"Each UVC payload header can be between 2 and 12 bytes large. Buffers can
+contain multiple headers, if multiple such headers have been transmitted
+by the camera for the respective frame. However, the driver may drop headers 
+when the buffer is full, when they contain no useful information (e.g. those 
+without the SCR field or with that field identical to the previous header), or 
+generally to perform rate limiting when the device sends a large number of 
+headers".
 
+If you're fine with this there's no need to resent, I can update the 
+documentation when applying, and
+
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+> +Each individual block contains the following fields:
+> +
+> +.. flat-table:: UVC Metadata Block
+> +    :widths: 1 4
+> +    :header-rows:  1
+> +    :stub-columns: 0
+> +
+> +    * - Field
+> +      - Description
+> +    * - __u64 ts;
+> +      - system timestamp in host byte order, measured by the driver upon
+> +        reception of the payload
+> +    * - __u16 sof;
+> +      - USB Frame Number in host byte order, also obtained by the driver as
+> +        close as possible to the above timestamp to enable correlation
+> between +        them
+> +    * - :cspan:`1` *The rest is an exact copy of the UVC payload header:*
+> +    * - __u8 length;
+> +      - length of the rest of the block, including this field
+> +    * - __u8 flags;
+> +      - Flags, indicating presence of other standard UVC fields
+> +    * - __u8 buf[];
+> +      - The rest of the header, possibly including UVC PTS and SCR fields
+> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+> index 185d6a0..0d07b2d 100644
+> --- a/include/uapi/linux/videodev2.h
+> +++ b/include/uapi/linux/videodev2.h
+> @@ -687,6 +687,7 @@ struct v4l2_pix_format {
+>  /* Meta-data formats */
+>  #define V4L2_META_FMT_VSP1_HGO    v4l2_fourcc('V', 'S', 'P', 'H') /* R-Car
+> VSP1 1-D Histogram */ #define V4L2_META_FMT_VSP1_HGT    v4l2_fourcc('V',
+> 'S', 'P', 'T') /* R-Car VSP1 2-D Histogram */ +#define V4L2_META_FMT_UVC   
+>      v4l2_fourcc('U', 'V', 'C', 'H') /* UVC Payload Header metadata */
+> 
+>  /* priv field value to indicates that subsequent fields are valid. */
+>  #define V4L2_PIX_FMT_PRIV_MAGIC		0xfeedcafe
+
+
+-- 
 Regards,
 
-	Hans
+Laurent Pinchart
