@@ -1,46 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay2-d.mail.gandi.net ([217.70.183.194]:47551 "EHLO
-        relay2-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752901AbdKWRDQ (ORCPT
+Received: from mail-wr0-f172.google.com ([209.85.128.172]:46017 "EHLO
+        mail-wr0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754315AbdK1Uke (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 23 Nov 2017 12:03:16 -0500
-Received: from classic (mon69-7-83-155-44-161.fbx.proxad.net [83.155.44.161])
-        (Authenticated sender: hadess@hadess.net)
-        by relay2-d.mail.gandi.net (Postfix) with ESMTPSA id 91399C5A73
-        for <linux-media@vger.kernel.org>; Thu, 23 Nov 2017 18:03:15 +0100 (CET)
-Message-ID: <1511456594.11411.3.camel@hadess.net>
-Subject: Tons of input devices for USB camera in monitor
-From: Bastien Nocera <hadess@hadess.net>
-To: linux-media@vger.kernel.org
-Date: Thu, 23 Nov 2017 18:03:14 +0100
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+        Tue, 28 Nov 2017 15:40:34 -0500
+Received: by mail-wr0-f172.google.com with SMTP id h1so1334134wre.12
+        for <linux-media@vger.kernel.org>; Tue, 28 Nov 2017 12:40:34 -0800 (PST)
+From: Riccardo Schirone <sirmy15@gmail.com>
+To: alan@linux.intel.com, gregkh@linuxfoundation.org,
+        linux-media@vger.kernel.org
+Cc: Riccardo Schirone <sirmy15@gmail.com>
+Subject: [PATCHv2 0/4] fix some checkpatch style issues in atomisp driver
+Date: Tue, 28 Nov 2017 21:40:00 +0100
+Message-Id: <20171128204004.9345-1-sirmy15@gmail.com>
+In-Reply-To: <20171127214413.10749-1-sirmy15@gmail.com>
+References: <20171127214413.10749-1-sirmy15@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hey,
+This patch series fixes some coding style issues in atomisp driver
+reported by checkpatch, like: missing blank lines after declarations,
+comments style, comparisons and indentation.
 
-My monitor, a Dell S2340T, has a builtin webcam. There's no camera
-button for it, though that wasn't a problem up until recently.
+It is based on next-20171128.
 
-This is a trimmed output of evtest:
-/dev/input/event14:	DELL S2340T Webcam: DELL S2340T
-/dev/input/event15:	DELL S2340T Webcam: DELL S2340T
-/dev/input/event16:	DELL S2340T Webcam: DELL S2340T
-<snip>
-/dev/input/event31:	DELL S2340T Webcam: DELL S2340T
-/dev/input/event256:	DELL S2340T Webcam: DELL S2340T
-<snip>
-/dev/input/event365:	DELL S2340T Webcam: DELL S2340T
-/dev/input/event366:	DELL S2340T Webcam: DELL S2340T
+Changes since v1:
+ - Add commit message to first patch as reported by Jacopo Mondi
+   <jacopo@jmondi.org>
 
-More than a hundred device nodes registered. Only one of them shows up
-in the output of "udevadm info --export-db".
+Riccardo Schirone (4):
+  staging: add missing blank line after declarations in atomisp-ov5693
+  staging: improve comments usage in atomisp-ov5693
+  staging: improves comparisons readability in atomisp-ov5693
+  staging: fix indentation in atomisp-ov5693
 
-Current tip of my tree is commit 37cb8e1f8e10.
+ .../media/atomisp/i2c/ov5693/atomisp-ov5693.c      | 63 +++++++++++++++-------
+ 1 file changed, 44 insertions(+), 19 deletions(-)
 
-Did I miss a fix going in for this problem? Do I need to try and bisect
-it?
-
-Cheers
+-- 
+2.14.3
