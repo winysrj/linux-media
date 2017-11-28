@@ -1,108 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-4.sys.kth.se ([130.237.48.193]:54480 "EHLO
-        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752565AbdK2ToH (ORCPT
+Received: from f5out.microchip.com ([198.175.253.81]:51671 "EHLO
+        DVREDG02.corp.atmel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1751567AbdK1F2K (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 29 Nov 2017 14:44:07 -0500
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH v8 06/28] rcar-vin: move max width and height information to chip information
-Date: Wed, 29 Nov 2017 20:43:20 +0100
-Message-Id: <20171129194342.26239-7-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20171129194342.26239-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20171129194342.26239-1-niklas.soderlund+renesas@ragnatech.se>
+        Tue, 28 Nov 2017 00:28:10 -0500
+From: Wenyou Yang <wenyou.yang@microchip.com>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>
+CC: <linux-kernel@vger.kernel.org>,
+        Nicolas Ferre <nicolas.ferre@microchip.com>,
+        <devicetree@vger.kernel.org>, Sakari Ailus <sakari.ailus@iki.fi>,
+        Jonathan Corbet <corbet@lwn.net>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        <linux-arm-kernel@lists.infradead.org>,
+        "Linux Media Mailing List" <linux-media@vger.kernel.org>,
+        Wenyou Yang <wenyou.yang@microchip.com>
+Subject: [PATCH v5 1/2] media: ov7740: Document device tree bindings
+Date: Tue, 28 Nov 2017 13:22:58 +0800
+Message-ID: <20171128052259.4957-2-wenyou.yang@microchip.com>
+In-Reply-To: <20171128052259.4957-1-wenyou.yang@microchip.com>
+References: <20171128052259.4957-1-wenyou.yang@microchip.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Gen3 the max supported width and height will be different from Gen2.
-Move the limits to the struct rvin_info to prepare for Gen3 support.
+Add the device tree binding documentation for the ov7740 sensor driver.
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Wenyou Yang <wenyou.yang@microchip.com>
 ---
- drivers/media/platform/rcar-vin/rcar-core.c | 6 ++++++
- drivers/media/platform/rcar-vin/rcar-v4l2.c | 6 ++----
- drivers/media/platform/rcar-vin/rcar-vin.h  | 6 ++++++
- 3 files changed, 14 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
-index 73c1700a409bfd35..03d3cd63e38bee11 100644
---- a/drivers/media/platform/rcar-vin/rcar-core.c
-+++ b/drivers/media/platform/rcar-vin/rcar-core.c
-@@ -232,14 +232,20 @@ static int rvin_digital_graph_init(struct rvin_dev *vin)
- 
- static const struct rvin_info rcar_info_h1 = {
- 	.chip = RCAR_H1,
-+	.max_width = 2048,
-+	.max_height = 2048,
- };
- 
- static const struct rvin_info rcar_info_m1 = {
- 	.chip = RCAR_M1,
-+	.max_width = 2048,
-+	.max_height = 2048,
- };
- 
- static const struct rvin_info rcar_info_gen2 = {
- 	.chip = RCAR_GEN2,
-+	.max_width = 2048,
-+	.max_height = 2048,
- };
- 
- static const struct of_device_id rvin_of_id_table[] = {
-diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-index b1caa04921aa23bb..59ec6d3d119590aa 100644
---- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-+++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-@@ -23,8 +23,6 @@
- #include "rcar-vin.h"
- 
- #define RVIN_DEFAULT_FORMAT	V4L2_PIX_FMT_YUYV
--#define RVIN_MAX_WIDTH		2048
--#define RVIN_MAX_HEIGHT		2048
- 
- /* -----------------------------------------------------------------------------
-  * Format Conversions
-@@ -258,8 +256,8 @@ static int __rvin_try_format(struct rvin_dev *vin,
- 	walign = vin->format.pixelformat == V4L2_PIX_FMT_NV16 ? 5 : 1;
- 
- 	/* Limit to VIN capabilities */
--	v4l_bound_align_image(&pix->width, 2, RVIN_MAX_WIDTH, walign,
--			      &pix->height, 4, RVIN_MAX_HEIGHT, 2, 0);
-+	v4l_bound_align_image(&pix->width, 2, vin->info->max_width, walign,
-+			      &pix->height, 4, vin->info->max_height, 2, 0);
- 
- 	pix->bytesperline = max_t(u32, pix->bytesperline,
- 				  rvin_format_bytesperline(pix));
-diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
-index 0d3949c8c08c8f63..646f897f5c05ec4e 100644
---- a/drivers/media/platform/rcar-vin/rcar-vin.h
-+++ b/drivers/media/platform/rcar-vin/rcar-vin.h
-@@ -91,9 +91,15 @@ struct rvin_graph_entity {
- /**
-  * struct rvin_info - Information about the particular VIN implementation
-  * @chip:		type of VIN chip
-+ *
-+ * max_width:		max input width the VIN supports
-+ * max_height:		max input height the VIN supports
-  */
- struct rvin_info {
- 	enum chip_id chip;
+Changes in v5: None
+Changes in v4: None
+Changes in v3:
+ - Explicitly document the "remote-endpoint" property.
+
+Changes in v2: None
+
+ .../devicetree/bindings/media/i2c/ov7740.txt       | 47 ++++++++++++++++++++++
+ 1 file changed, 47 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/ov7740.txt
+
+diff --git a/Documentation/devicetree/bindings/media/i2c/ov7740.txt b/Documentation/devicetree/bindings/media/i2c/ov7740.txt
+new file mode 100644
+index 000000000000..af781c3a5f0e
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/i2c/ov7740.txt
+@@ -0,0 +1,47 @@
++* Omnivision OV7740 CMOS image sensor
 +
-+	unsigned int max_width;
-+	unsigned int max_height;
- };
- 
- /**
++The Omnivision OV7740 image sensor supports multiple output image
++size, such as VGA, and QVGA, CIF and any size smaller. It also
++supports the RAW RGB and YUV output formats.
++
++The common video interfaces bindings (see video-interfaces.txt) should
++be used to specify link to the image data receiver. The OV7740 device
++node should contain one 'port' child node with an 'endpoint' subnode.
++
++Required Properties:
++- compatible:	"ovti,ov7740".
++- reg:		I2C slave address of the sensor.
++- clocks:	Reference to the xvclk input clock.
++- clock-names:	"xvclk".
++
++Optional Properties:
++- reset-gpios: Rreference to the GPIO connected to the reset_b pin,
++  if any. Active low with pull-ip resistor.
++- powerdown-gpios: Reference to the GPIO connected to the pwdn pin,
++  if any. Active high with pull-down resistor.
++
++Endpoint node mandatory properties:
++- remote-endpoint: A phandle to the bus receiver's endpoint node.
++
++Example:
++
++	i2c1: i2c@fc028000 {
++		ov7740: camera@21 {
++			compatible = "ovti,ov7740";
++			reg = <0x21>;
++			pinctrl-names = "default";
++			pinctrl-0 = <&pinctrl_sensor_power &pinctrl_sensor_reset>;
++			clocks = <&isc>;
++			clock-names = "xvclk";
++			assigned-clocks = <&isc>;
++			assigned-clock-rates = <24000000>;
++			reset-gpios = <&pioA 43 GPIO_ACTIVE_LOW>;
++			powerdown-gpios = <&pioA 44 GPIO_ACTIVE_HIGH>;
++
++			port {
++				ov7740_0: endpoint {
++					remote-endpoint = <&isc_0>;
++				};
++			};
++		};
++	};
 -- 
 2.15.0
