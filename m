@@ -1,227 +1,215 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f68.google.com ([74.125.83.68]:47762 "EHLO
-        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752790AbdKISpw (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 9 Nov 2017 13:45:52 -0500
-Received: by mail-pg0-f68.google.com with SMTP id o7so5397527pgc.4
-        for <linux-media@vger.kernel.org>; Thu, 09 Nov 2017 10:45:52 -0800 (PST)
-From: Tim Harvey <tharvey@gateworks.com>
-To: linux-media@vger.kernel.org, alsa-devel@alsa-project.org
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        shawnguo@kernel.org, Steve Longerbeam <slongerbeam@gmail.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Hans Verkuil <hansverk@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Rob Herring <robh@kernel.org>
-Subject: [PATCH 2/5] media: dt-bindings: Add bindings for TDA1997X
-Date: Thu,  9 Nov 2017 10:45:33 -0800
-Message-Id: <1510253136-14153-3-git-send-email-tharvey@gateworks.com>
-In-Reply-To: <1510253136-14153-1-git-send-email-tharvey@gateworks.com>
-References: <1510253136-14153-1-git-send-email-tharvey@gateworks.com>
+Received: from PrakOutbound.VEHosting.nl ([85.17.51.155]:63825 "EHLO
+        Prakkezator.VEHosting.nl" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1752458AbdK1L3a (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 28 Nov 2017 06:29:30 -0500
+Subject: Re: [linux-sunxi] Cedrus driver
+To: Giulio Benetti <giulio.benetti@micronovasrl.com>,
+        Maxime Ripard <maxime.ripard@free-electrons.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+        Andreas Baierl <list@imkreisrum.de>,
+        linux-sunxi <linux-sunxi@googlegroups.com>,
+        linux@armlinux.org.uk, wens@csie.org, linux-kernel@vger.kernel.org,
+        linux-media@vger.kernel.org
+References: <1511868558-1962148761.366cc20c7e@prakkezator.vehosting.nl>
+From: Thomas van Kleef <thomas@vitsch.nl>
+Message-ID: <d8135c3d-7ba8-2b88-11cb-5b81dfa04be2@vitsch.nl>
+Date: Tue, 28 Nov 2017 12:29:18 +0100
+MIME-Version: 1.0
+In-Reply-To: <866ca479-dfbd-01a9-9ab6-0e52bd72ac28@micronovasrl.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Language: en-US
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Cc: Rob Herring <robh@kernel.org>
-Signed-off-by: Tim Harvey <tharvey@gateworks.com>
----
-v3:
- - fix typo
+Hi,
 
-v2:
- - add vendor prefix and remove _ from vidout-portcfg
- - remove _ from labels
- - remove max-pixel-rate property
- - describe and provide example for single output port
- - update to new audio port bindings
----
- .../devicetree/bindings/media/i2c/tda1997x.txt     | 179 +++++++++++++++++++++
- 1 file changed, 179 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/i2c/tda1997x.txt
-
-diff --git a/Documentation/devicetree/bindings/media/i2c/tda1997x.txt b/Documentation/devicetree/bindings/media/i2c/tda1997x.txt
-new file mode 100644
-index 0000000..dd37f14
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/i2c/tda1997x.txt
-@@ -0,0 +1,179 @@
-+Device-Tree bindings for the NXP TDA1997x HDMI receiver
-+
-+The TDA19971/73 are HDMI video receivers.
-+
-+The TDA19971 Video port output pins can be used as follows:
-+ - RGB 8bit per color (24 bits total): R[11:4] B[11:4] G[11:4]
-+ - YUV444 8bit per color (24 bits total): Y[11:4] Cr[11:4] Cb[11:4]
-+ - YUV422 semi-planar 8bit per component (16 bits total): Y[11:4] CbCr[11:4]
-+ - YUV422 semi-planar 10bit per component (20 bits total): Y[11:2] CbCr[11:2]
-+ - YUV422 semi-planar 12bit per component (24 bits total): - Y[11:0] CbCr[11:0]
-+ - YUV422 BT656 8bit per component (8 bits total): YCbCr[11:4] (2-cycles)
-+ - YUV422 BT656 10bit per component (10 bits total): YCbCr[11:2] (2-cycles)
-+ - YUV422 BT656 12bit per component (12 bits total): YCbCr[11:0] (2-cycles)
-+
-+The TDA19973 Video port output pins can be used as follows:
-+ - RGB 12bit per color (36 bits total): R[11:0] B[11:0] G[11:0]
-+ - YUV444 12bit per color (36 bits total): Y[11:0] Cb[11:0] Cr[11:0]
-+ - YUV422 semi-planar 12bit per component (24 bits total): Y[11:0] CbCr[11:0]
-+ - YUV422 BT656 12bit per component (12 bits total): YCbCr[11:0] (2-cycles)
-+
-+The Video port output pins are mapped via 4-bit 'pin groups' allowing
-+for a variety of connection possibilities including swapping pin order within
-+pin groups. The video_portcfg device-tree property consists of register mapping
-+pairs which map a chip-specific VP output register to a 4-bit pin group. If
-+the pin group needs to be bit-swapped you can use the *_S pin-group defines.
-+
-+Required Properties:
-+ - compatible          :
-+  - "nxp,tda19971" for the TDA19971
-+  - "nxp,tda19973" for the TDA19973
-+ - reg                 : I2C slave address
-+ - interrupts          : The interrupt number
-+ - DOVDD-supply        : Digital I/O supply
-+ - DVDD-supply         : Digital Core supply
-+ - AVDD-supply         : Analog supply
-+ - nxp,vidout-portcfg  : array of pairs mapping VP output pins to pin groups.
-+
-+Optional Properties:
-+ - nxp,audout-format   : DAI bus format: "i2s" or "spdif".
-+ - nxp,audout-width    : width of audio output data bus (1-4).
-+ - nxp,audout-layout   : data layout (0=AP0 used, 1=AP0/AP1/AP2/AP3 used).
-+ - nxp,audout-mclk-fs  : Multiplication factor between stream rate and codec
-+                         mclk.
-+
-+The device node must contain one 'port' child node for its digital output
-+video port, in accordance with the video interface bindings defined in
-+Documentation/devicetree/bindings/media/video-interfaces.txt.
-+
-+Optional Endpoint Properties:
-+  The following three properties are defined in video-interfaces.txt and
-+  are valid for source endpoints only:
-+  - hsync-active: Horizontal synchronization polarity. Defaults to active high.
-+  - vsync-active: Vertical synchronization polarity. Defaults to active high.
-+  - data-active: Data polarity. Defaults to active high.
-+
-+Examples:
-+ - VP[15:0] connected to IMX6 CSI_DATA[19:4] for 16bit YUV422
-+   16bit I2S layout0 with a 128*fs clock (A_WS, AP0, A_CLK pins)
-+	hdmi-receiver@48 {
-+		compatible = "nxp,tda19971";
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&pinctrl_tda1997x>;
-+		reg = <0x48>;
-+		interrupt-parent = <&gpio1>;
-+		interrupts = <7 IRQ_TYPE_LEVEL_LOW>;
-+		DOVDD-supply = <&reg_3p3v>;
-+		AVDD-supply = <&reg_1p8v>;
-+		DVDD-supply = <&reg_1p8v>;
-+		/* audio */
-+		#sound-dai-cells = <0>;
-+		nxp,audout-format = "i2s";
-+		nxp,audout-layout = <0>;
-+		nxp,audout-width = <16>;
-+		nxp,audout-mclk-fs = <128>;
-+		/*
-+		 * The 8bpp YUV422 semi-planar mode outputs CbCr[11:4]
-+		 * and Y[11:4] across 16bits in the same pixclk cycle.
-+		 */
-+		nxp,vidout-portcfg =
-+			/* Y[11:8]<->VP[15:12]<->CSI_DATA[19:16] */
-+			< TDA1997X_VP24_V15_12 TDA1997X_G_Y_11_8 >,
-+			/* Y[7:4]<->VP[11:08]<->CSI_DATA[15:12] */
-+			< TDA1997X_VP24_V11_08 TDA1997X_G_Y_7_4 >,
-+			/* CbCc[11:8]<->VP[07:04]<->CSI_DATA[11:8] */
-+			< TDA1997X_VP24_V07_04 TDA1997X_R_CR_CBCR_11_8 >,
-+			/* CbCr[7:4]<->VP[03:00]<->CSI_DATA[7:4] */
-+			< TDA1997X_VP24_V03_00 TDA1997X_R_CR_CBCR_7_4 >;
-+
-+		port {
-+			tda1997x_to_ipu1_csi0_mux: endpoint {
-+				remote-endpoint = <&ipu1_csi0_mux_from_parallel_sensor>;
-+				bus-width = <16>;
-+				hsync-active = <1>;
-+				vsync-active = <1>;
-+				data-active = <1>;
-+			};
-+		};
-+	};
-+ - VP[15:8] connected to IMX6 CSI_DATA[19:12] for 8bit BT656
-+   16bit I2S layout0 with a 128*fs clock (A_WS, AP0, A_CLK pins)
-+	hdmi-receiver@48 {
-+		compatible = "nxp,tda19971";
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&pinctrl_tda1997x>;
-+		reg = <0x48>;
-+		interrupt-parent = <&gpio1>;
-+		interrupts = <7 IRQ_TYPE_LEVEL_LOW>;
-+		DOVDD-supply = <&reg_3p3v>;
-+		AVDD-supply = <&reg_1p8v>;
-+		DVDD-supply = <&reg_1p8v>;
-+		/* audio */
-+		#sound-dai-cells = <0>;
-+		nxp,audout-format = "i2s";
-+		nxp,audout-layout = <0>;
-+		nxp,audout-width = <16>;
-+		nxp,audout-mclk-fs = <128>;
-+		/*
-+		 * The 8bpp YUV422 semi-planar mode outputs CbCr[11:4]
-+		 * and Y[11:4] across 16bits in the same pixclk cycle.
-+		 */
-+		nxp,vidout-portcfg =
-+			/* Y[11:8]<->VP[15:12]<->CSI_DATA[19:16] */
-+			< TDA1997X_VP24_V15_12 TDA1997X_G_Y_11_8 >,
-+			/* Y[7:4]<->VP[11:08]<->CSI_DATA[15:12] */
-+			< TDA1997X_VP24_V11_08 TDA1997X_G_Y_7_4 >,
-+			/* CbCc[11:8]<->VP[07:04]<->CSI_DATA[11:8] */
-+			< TDA1997X_VP24_V07_04 TDA1997X_R_CR_CBCR_11_8 >,
-+			/* CbCr[7:4]<->VP[03:00]<->CSI_DATA[7:4] */
-+			< TDA1997X_VP24_V03_00 TDA1997X_R_CR_CBCR_7_4 >;
-+
-+		port {
-+			tda1997x_to_ipu1_csi0_mux: endpoint {
-+				remote-endpoint = <&ipu1_csi0_mux_from_parallel_sensor>;
-+				bus-width = <16>;
-+				hsync-active = <1>;
-+				vsync-active = <1>;
-+				data-active = <1>;
-+			};
-+		};
-+	};
-+ - VP[15:8] connected to IMX6 CSI_DATA[19:12] for 8bit BT656
-+   16bit I2S layout0 with a 128*fs clock (A_WS, AP0, A_CLK pins)
-+	hdmi-receiver@48 {
-+		compatible = "nxp,tda19971";
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&pinctrl_tda1997x>;
-+		reg = <0x48>;
-+		interrupt-parent = <&gpio1>;
-+		interrupts = <7 IRQ_TYPE_LEVEL_LOW>;
-+		DOVDD-supply = <&reg_3p3v>;
-+		AVDD-supply = <&reg_1p8v>;
-+		DVDD-supply = <&reg_1p8v>;
-+		/* audio */
-+		#sound-dai-cells = <0>;
-+		nxp,audout-format = "i2s";
-+		nxp,audout-layout = <0>;
-+		nxp,audout-width = <16>;
-+		nxp,audout-mclk-fs = <128>;
-+		/*
-+		 * The 8bpp BT656 mode outputs YCbCr[11:4] across 8bits over
-+		 * 2 pixclk cycles.
-+		 */
-+		nxp,vidout-portcfg =
-+			/* YCbCr[11:8]<->VP[15:12]<->CSI_DATA[19:16] */
-+			< TDA1997X_VP24_V15_12 TDA1997X_R_CR_CBCR_11_8 >,
-+			/* YCbCr[7:4]<->VP[11:08]<->CSI_DATA[15:12] */
-+			< TDA1997X_VP24_V11_08 TDA1997X_R_CR_CBCR_7_4 >,
-+
-+		port {
-+			tda1997x_to_ipu1_csi0_mux: endpoint {
-+				remote-endpoint = <&ipu1_csi0_mux_from_parallel_sensor>;
-+				bus-width = <16>;
-+				hsync-active = <1>;
-+				vsync-active = <1>;
-+				data-active = <1>;
-+			};
-+		};
-+	};
-+
--- 
-2.7.4
+On 28-11-17 12:26, Giulio Benetti wrote:
+> Hi Thomas,
+> 
+> Il 28/11/2017 12:20, Thomas van Kleef ha scritto:
+>> On 28-11-17 10:50, Giulio Benetti wrote:
+>>> Hi Maxime,
+>>>
+>>> Il 28/11/2017 09:35, Maxime Ripard ha scritto:
+>>>> On Tue, Nov 28, 2017 at 01:03:59AM +0100, Giulio Benetti wrote:
+>>>>> Hi Maxime,
+>>>>>
+>>>>> Il 16/11/2017 14:42, Giulio Benetti ha scritto:
+>>>>>> Hi,
+>>>>>>
+>>>>>> Il 16/11/2017 14:39, Maxime Ripard ha scritto:
+>>>>>>> On Thu, Nov 16, 2017 at 02:17:08PM +0100, Giulio Benetti wrote:
+>>>>>>>> Hi Hans,
+>>>>>>>>
+>>>>>>>> Il 16/11/2017 14:12, Hans Verkuil ha scritto:
+>>>>>>>>> On 16/11/17 13:57, Giulio Benetti wrote:
+>>>>>>>>>> Il 16/11/2017 13:53, Maxime Ripard ha scritto:
+>>>>>>>>>>> On Thu, Nov 16, 2017 at 01:30:52PM +0100, Giulio Benetti wrote:
+>>>>>>>>>>>>> On Thu, Nov 16, 2017 at 11:37:30AM +0100, Giulio Benetti wrote:
+>>>>>>>>>>>>>> Il 16/11/2017 11:31, Andreas Baierl ha scritto:
+>>>>>>>>>>>>>>> Am 16.11.2017 um 11:13 schrieb Giulio Benetti:
+>>>>>>>>>>>>>>>> Hello,
+>>>>>>>>>>>>>>>>
+>>>>>>>>>>>>>>> Hello,
+>>>>>>>>>>>>>>>> I'm wondering why cedrus
+>>>>>>>>>>>>>>>> https://github.com/FlorentRevest/linux-sunxi-cedrus
+>>>>>>>>>>>>>>>> has never been
+>>>>>>>>>>>>>>>> merged with linux-sunxi sunxi-next.
+>>>>>>>>>>>>>>>>
+>>>>>>>>>>>>>>> Because it is not ready to be
+>>>>>>>>>>>>>>> merged. It depends on the v4l2
+>>>>>>>>>>>>>>> request
+>>>>>>>>>>>>>>> API, which was not merged and which is re-worked atm.
+>>>>>>>>>>>>>>> Also, sunxi-cedrus itself is not in
+>>>>>>>>>>>>>>> a finished state and is not as
+>>>>>>>>>>>>>>> feature-complete to be merged. Anyway it might be something for
+>>>>>>>>>>>>>>> staging... Has there been a [RFC] on the mailing list at all?
+>>>>>>>>>>>>>>
+>>>>>>>>>>>>>> Where can I find a list of TODOs to get it ready to be merged?
+>>>>>>>>>>>>>
+>>>>>>>>>>>>> Assuming that the request API is in, we'd need to:
+>>>>>>>>>>>>>         - Finish the MPEG4 support
+>>>>>>>>>>>>>         - Work on more useful codecs (H264 comes to my mind)
+>>>>>>>>>>>>>         - Implement the DRM planes support for
+>>>>>>>>>>>>> the custom frame format
+>>>>>>>>>>>>>         - Implement the DRM planes support for scaling
+>>>>>>>>>>>>>         - Test it on more SoCs
+>>>>>>>>>>>>>
+>>>>>>>>>>>>> Or something along those lines.
+>>>>>>>>>>>>
+>>>>>>>>>>>> Lot of work to do
+>>>>>>>>>>>
+>>>>>>>>>>> Well... If it was fast and easy it would have been done already :)
+>>>>>>>>>>
+>>>>>>>>>> :))
+>>>>>>>>>>
+>>>>>>>>>>>
+>>>>>>>>>>>>>>>> I see it seems to be dead, no commit in 1 year.
+>>>>>>>>>>>>>>>
+>>>>>>>>>>>>>>> Yes, because the author did this
+>>>>>>>>>>>>>>> during an internship, which ended
+>>>>>>>>>>>>>>> ...
+>>>>>>>>>>>>>>> Afaik nobody picked up his work yet.
+>>>>>>>>>>>>>
+>>>>>>>>>>>>> That's not entirely true. Some work has been
+>>>>>>>>>>>>> done by Thomas (in CC),
+>>>>>>>>>>>>> especially on the display engine side, but last time we talked his
+>>>>>>>>>>>>> work was not really upstreamable.
+>>>>>>>>>>>>>
+>>>>>>>>>>>>> We will also resume that effort starting next march.
+>>>>>>>>>>>>
+>>>>>>>>>>>> Is it possible a preview on a separate
+>>>>>>>>>>>> Reporitory to start working on now?
+>>>>>>>>>>>> Expecially to start porting everything done by
+>>>>>>>>>>>> FlorentRevest to mainline,
+>>>>>>>>>>>> admitted you've not already done.
+>>>>>>>>>>>
+>>>>>>>>>>> I'm not sure what you're asking for. Florent's work
+>>>>>>>>>>> *was* on mainline.
+>>>>>>>>>>
+>>>>>>>>>> and then they took it off because it was unmantained?
+>>>>>>>>>> You've spoken about Thomas(in CC) not ready,
+>>>>>>>>>> maybe I could help on that if it's public to accelerate.
+>>>>>>>>>> If I'm able to of course, this is my primary concern.
+>>>>>>>>>>
+>>>>>>>>>> Otherwise, in which way can I help improving it to make
+>>>>>>>>>> it accept to linux-sunxi?
+>>>>>>>>>> Starting from Florent's work and porting it to sunxi-next to begin?
+>>>>>>>>>> And after that adding all features you've listed?
+>>>>>>>>>> Tell me what I can do(I repeat, if I'm able to).
+>>>>>>>>>
+>>>>>>>>> The bottleneck is that the Request API is not mainlined. We
+>>>>>>>>> restarted work
+>>>>>>>>> on it after a meeting a few weeks back where we all agreed
+>>>>>>>>> on the roadmap
+>>>>>>>>> so hopefully it will go into mainline Q1 or Q2 next year.
+>>>>>>>>>
+>>>>>>>>> That said, you can use Florent's patch series for further development.
+>>>>>>>>> It should be relatively easy to convert it to the final version of the
+>>>>>>>>> Request API. Just note that the public API of the final
+>>>>>>>>> Request API will
+>>>>>>>>> be somewhat different from the old version Florent's patch
+>>>>>>>>> series is using.
+>>>>>>>>
+>>>>>>>> So I'm going to try soon to :
+>>>>>>>> 1) adapt that patchset to sunxi-next
+>>>>>>>> 2) add A20 support
+>>>>>>>> 3) add A33 support
+>>>>>>>> 4) after mainlined APIs, merge
+>>>>>>>
+>>>>>>> That sounds good. Thomas already has the support for the A20, and as I
+>>>>>>> was saying, there is someone that is going to work full time on this
+>>>>>>> in a couple monthes on our side.
+>>>>>>>
+>>>>>>> I'll set up a git repo on github so that we can collaborate until the
+>>>>>>> request API is ready.
+>>>>>
+>>>>> Any news about git repo?
+>>>>> When do you plan to do it more or less?
+>>>>
+>>>> I started to do it yesterday.
+>>>>
+>>>> https://github.com/free-electrons/linux-cedrus
+>>>> https://github.com/free-electrons/libva-cedrus
+>>>
+>>> Great, I'm cloning.
+>>> 1st: have it working with A20 with kernel as is and libva as buildroot package
+>>> 2nd: porting to sunxi-next branch of linux-sunxi and check libva if can work as is
+>>>
+>>> Thank you
+>>> So, I have been rebasing to 4.14.0 and have the cedrus driver working.
+>> I have pulled linux-mainline 4.14.0. Then pulled the requests2 branch from Hans
+>> Verkuil's media_tree. I have a patch available of the merge between these 2
+>> branches.
+>> After this I pulled the sunxi-cedrus repository from Florent Revests github. I
+>> believe this one is the same as the ones you are cloning right now.
+>> I have merged this and have a patch available for this as well.
+>>
+>> So to summarize:
+>>   o pulled linux 4.14 from:
+>>      https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git
+>>   o pulled requests2 from:
+>>      https://git.linuxtv.org/hverkuil/media_tree.git?h=requests2
+>>      will be replaced with the work, when it is done, in:
+>>       https://git.linuxtv.org/hverkuil/media_tree.git?h=ctrl-req-v2
+>>   o pulled linux-sunxi-cedrus from:
+>>      https://github.com/FlorentRevest/linux-sunxi-cedrus
+>>
+>>   o merged and made patch between linux4.14 and requests2
+>>   o merged and made patch with linux-sunxi-cedrus
+>>   o Verified that the video-engine is decofing mpeg-2 on the Allwinner A20.
+>>
+>> So maybe if someone is interested in this, I could place the patches somewhere?
+>> Just let me know.
+> 
+> Sure it's interesting!
+> You could setup your github repo with all you patches applied as commits, but I think you should work against linux-sunxi sunxi-next branch.
+> 
+>>
+>> It would be nice to be able to play a file, so I would have to prepare our
+>> custom player and make a patch between the current sunxi-cedrus-drv-video and
+>> the one on https://github.com/FlorentRevest/sunxi-cedrus-drv-video.
+>> So I will start with this if there is any interest.
+> 
+> I am interested for sure.
+> 
+>>
+>> Should I be working in sunxi-next I wonder?
+> 
+> Yes, this is the best way, cedrus is very specific to sunxi.
+> So before working on mainline, I think the best is to work un sunxi-next branch.
+Is the requests2 api in sunxi-next?
+> 
+> Is it right Maxime?
+> 
+>>>>
+>>>> Maxime
+>>>>
+>>>
+>>>
+> 
+> 
+Thomas
