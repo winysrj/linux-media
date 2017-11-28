@@ -1,50 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f180.google.com ([209.85.216.180]:34124 "EHLO
-        mail-qt0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753602AbdKQLX7 (ORCPT
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:32811 "EHLO
+        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753037AbdK1Ukj (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 17 Nov 2017 06:23:59 -0500
-Date: Fri, 17 Nov 2017 09:23:50 -0200
-From: Gustavo Padovan <gustavo@padovan.org>
-To: Alexandre Courbot <acourbot@chromium.org>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        Pawel Osciak <pawel@osciak.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Brian Starkey <brian.starkey@arm.com>,
-        Thierry Escande <thierry.escande@collabora.com>,
-        linux-kernel@vger.kernel.org,
-        Gustavo Padovan <gustavo.padovan@collabora.com>
-Subject: Re: [RFC v5 03/11] [media] vb2: add 'ordered_in_driver' property to
- queues
-Message-ID: <20171117112350.GA19033@jade>
-References: <20171115171057.17340-1-gustavo@padovan.org>
- <20171115171057.17340-4-gustavo@padovan.org>
- <42409bb3-a6b6-43e7-a915-7e8e5f1f2198@chromium.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <42409bb3-a6b6-43e7-a915-7e8e5f1f2198@chromium.org>
+        Tue, 28 Nov 2017 15:40:39 -0500
+Received: by mail-wm0-f65.google.com with SMTP id g130so33464164wme.0
+        for <linux-media@vger.kernel.org>; Tue, 28 Nov 2017 12:40:38 -0800 (PST)
+From: Riccardo Schirone <sirmy15@gmail.com>
+To: alan@linux.intel.com, gregkh@linuxfoundation.org,
+        linux-media@vger.kernel.org
+Cc: Riccardo Schirone <sirmy15@gmail.com>
+Subject: [PATCHv2 4/4] staging: fix indentation in atomisp-ov5693
+Date: Tue, 28 Nov 2017 21:40:04 +0100
+Message-Id: <20171128204004.9345-5-sirmy15@gmail.com>
+In-Reply-To: <20171128204004.9345-1-sirmy15@gmail.com>
+References: <20171127214413.10749-1-sirmy15@gmail.com>
+ <20171128204004.9345-1-sirmy15@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2017-11-17 Alexandre Courbot <acourbot@chromium.org>:
+Fix "suspect code indent for conditional statements" checkpatch issue
 
-> On Thursday, November 16, 2017 2:10:49 AM JST, Gustavo Padovan wrote:
-> > From: Gustavo Padovan <gustavo.padovan@collabora.com>
-> > 
-> > We use ordered_in_driver property to optimize for the case where
-> > the driver can deliver the buffers in an ordered fashion. When it
-> > is ordered we can use the same fence context for all fences, but
-> > when it is not we need to a new context for each out-fence.
-> 
-> "we need to a new context" looks like it is missing a word.
+Signed-off-by: Riccardo Schirone <sirmy15@gmail.com>
+---
+ drivers/staging/media/atomisp/i2c/ov5693/atomisp-ov5693.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-oh
-
-"we need to create a new context" 
-
-Thanks for reviewing the patches!
-
-Gustavo
+diff --git a/drivers/staging/media/atomisp/i2c/ov5693/atomisp-ov5693.c b/drivers/staging/media/atomisp/i2c/ov5693/atomisp-ov5693.c
+index 4eeb478ae84b..6eb6afdc730e 100644
+--- a/drivers/staging/media/atomisp/i2c/ov5693/atomisp-ov5693.c
++++ b/drivers/staging/media/atomisp/i2c/ov5693/atomisp-ov5693.c
+@@ -776,7 +776,7 @@ static int __ov5693_otp_read(struct v4l2_subdev *sd, u8 *buf)
+ 			if ((*b) == 0) {
+ 				dev->otp_size = 32;
+ 				break;
+-		} else {
++			} else {
+ 				b = buf;
+ 				continue;
+ 			}
+-- 
+2.14.3
