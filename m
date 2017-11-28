@@ -1,138 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:41051 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750729AbdKYSJj (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 25 Nov 2017 13:09:39 -0500
-Date: Sat, 25 Nov 2017 16:09:33 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Gregor Jasny <gjasny@googlemail.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        "Reynaldo H. Verdejo Pinochet" <r.verdejo@samsung.com>
-Subject: Re: dvbv5-scan: Channel auto detection fails
-Message-ID: <20171125160933.685063ee@vento.lan>
-In-Reply-To: <cbd47f94-7852-63e5-a449-265d75aa7e35@googlemail.com>
-References: <cbd47f94-7852-63e5-a449-265d75aa7e35@googlemail.com>
+Received: from mail.free-electrons.com ([62.4.15.54]:36232 "EHLO
+        mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753141AbdK1PRm (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 28 Nov 2017 10:17:42 -0500
+Date: Tue, 28 Nov 2017 16:17:40 +0100
+From: Maxime Ripard <maxime.ripard@free-electrons.com>
+To: Giulio Benetti <giulio.benetti@micronovasrl.com>
+Cc: Thomas van Kleef <thomas@vitsch.nl>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Andreas Baierl <list@imkreisrum.de>,
+        linux-sunxi <linux-sunxi@googlegroups.com>,
+        linux@armlinux.org.uk, wens@csie.org, linux-kernel@vger.kernel.org,
+        linux-media@vger.kernel.org
+Subject: Re: [linux-sunxi] Cedrus driver
+Message-ID: <20171128151740.eyke3i4nuprconwf@flea.home>
+References: <1511868558-1962148761.366cc20c7e@prakkezator.vehosting.nl>
+ <d8135c3d-7ba8-2b88-11cb-5b81dfa04be2@vitsch.nl>
+ <f8cc0633-8c29-e3b0-0216-f8f5c69ebb34@micronovasrl.com>
+ <20171128125203.h7cnu3gkfmogqhxu@flea.home>
+ <6A617A27-DBE8-4537-A122-6ACA98B8A6B4@micronovasrl.com>
+ <20171128130737.cpohndeskuczcpa7@flea.home>
+ <d2f659ed-1750-2859-7b43-0a4780bd3343@micronovasrl.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="f5hs7o5dm66367ro"
+Content-Disposition: inline
+In-Reply-To: <d2f659ed-1750-2859-7b43-0a4780bd3343@micronovasrl.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sat, 25 Nov 2017 18:50:28 +0100
-Gregor Jasny <gjasny@googlemail.com> escreveu:
 
-> Hello,
-> 
-> I found the culprit why dvbv5-scan only find some of the channels in my
-> DVB-T2 region: Some broadcasted NIT tables announce the 578MHz channel
-> transmission mode as 16k where it should be 32k.
+--f5hs7o5dm66367ro
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Ah! Yeah, it is hard for it to work properly when the MPEG tables
-are wrong :-)
+On Tue, Nov 28, 2017 at 02:12:31PM +0100, Giulio Benetti wrote:
+> > > > And really, just develop against 4.14. sunxi-next is rebased, and i=
+t's
+> > > > just not something you can base some work on.
+> > >=20
+> > > Where do we can work on then?
+> > > Should Thomas setup his own github repo?
+> > > What about the one you=E2=80=99ve set up @free-electrons?
+> >=20
+> > I already said that, please make pull requests to that repo.
+>=20
+> Sorry I can't understand which repo,
+> do you mean https://github.com/free-electrons/linux-cedrus?
 
-> The tables at 578MHz
-> look ok, but that does not help with discovery.
-> 
-> Long story:
-> 
-> I have the following initial scan file:
-> 
-> T2 538000000 8MHz AUTO NONE     AUTO  32k 1/16 NONE
-> T2 642000000 8MHz AUTO NONE     AUTO  32k 1/16 NONE 1
-> T2 618000000 8MHz AUTO NONE     AUTO  32k 19/256 NONE
-> T2 754000000 8MHz AUTO NONE     AUTO  16k 19/128 NONE
-> T2 578000000 8MHz AUTO NONE     AUTO  32k 19/256 NONE
-> 
-> The last line was added manually because even w_scan gets confused.
-> 
-> > Scanning frequency #1 538000000
-> > Lock   (0x1f) C/N= 21.50dB UCB= 3790 postBER= 166x10^-3
-> > Service SAT.1 HD, provider ProSiebenSat.1 Media: reserved
-> > Service ProSieben HD, provider ProSiebenSat.1 Media: reserved
-> > Service kabel eins HD, provider ProSiebenSat.1 Media: reserved
-> > Service SIXX HD, provider ProSiebenSat.1 Media: reserved
-> > Service Pro7 MAXX HD, provider ProSiebenSat.1 Media: reserved
-> > Service SAT.1 Gold HD, provider ProSiebenSat.1 Media: reserved
-> > Service Sport1 HD, provider ProSiebenSat.1 Media: reserved
-> > New transponder/channel found: #6: 578000000
-> > New transponder/channel found: #7: 522000000
-> > New transponder/channel found: #8: 658000000
-> > New transponder/channel found: #9: 626000000
-> > New transponder/channel found: #10: 602000000
-> > New transponder/channel found: #11: 586000000
-> > New transponder/channel found: #12: 698000000
-> > New transponder/channel found: #13: 554000000
-> > New transponder/channel found: #14: 498000000
-> > New transponder/channel found: #15: 650000000
-> > New transponder/channel found: #16: 738000000
-> > New transponder/channel found: #17: 690000000
-> > New transponder/channel found: #18: 594000000
-> > New transponder/channel found: #19: 778000000
-> > New transponder/channel found: #20: 666000000
-> > New transponder/channel found: #21: 498000000
-> > Scanning frequency #2 642000000  
-> 
-> Scanning #5 (from manually added table works):
-> 
-> > Scanning frequency #5 578000000
-> > FREQUENCY = 578000000
-> > MODULATION = QAM/AUTO
-> > BANDWIDTH_HZ = 8000000
-> > INVERSION = AUTO
-> > CODE_RATE_HP = AUTO
-> > CODE_RATE_LP = NONE
-> > GUARD_INTERVAL = 19/256
-> > TRANSMISSION_MODE = 32K
-> > HIERARCHY = NONE
-> > STREAM_ID = 4294967295
-> > DELIVERY_SYSTEM = DVBT2
-> > Carrier(0x03) Signal= -54.00dBm
-> > Got parameters for DVBT2:
-> > FREQUENCY = 578000000
-> > MODULATION = QAM/AUTO
-> > BANDWIDTH_HZ = 8000000
-> > INVERSION = AUTO
-> > CODE_RATE_HP = AUTO
-> > CODE_RATE_LP = AUTO
-> > GUARD_INTERVAL = 19/256
-> > TRANSMISSION_MODE = 32K
-> > HIERARCHY = NONE
-> > STREAM_ID = 4294967295  
-> 
-> Scanning #6 (detected at #1) fails:
-> 
-> > Scanning frequency #6 578000000
-> > FREQUENCY = 578000000
-> > MODULATION = QAM/AUTO
-> > BANDWIDTH_HZ = 8000000
-> > INVERSION = AUTO
-> > CODE_RATE_HP = AUTO
-> > CODE_RATE_LP = NONE
-> > GUARD_INTERVAL = 19/128
-> > TRANSMISSION_MODE = 16K
-> > HIERARCHY = NONE
-> > STREAM_ID = 1
-> > DELIVERY_SYSTEM = DVBT2
-> > Carrier(0x03) Signal= -47.00dBm  
-> 
-> Is there anything that could / should be done at dvbv5-scan side? Maybe
-> re-trying a frequency with different parameters if tuning failed?
+Yes.
 
-Well, deep scan software (like w_scan) can read the device's 
-capabilities and, for all parameters that aren't auto-detected, try
-all possible combinations when a channel is not found.
+> And sorry for dumb question,
+> but which branch do I have to use if I want to develop a project with sun=
+xi?
+> Directly mainline patched with sunxi-next branch,
+> or another branch @linux-sunxi?
 
-The problem is that, while a normal channel scan lasts a couple of
-minutes, a deep scan can take several hours.
+Use 4.14.
 
-There is one additional issue: we didn't add all possible
-capabilities that are present on modern DTV standards. The
-rationale is simple: we would need additional bits, as we're almost
-out of capabilities bits with the current API.
+Maxime
 
-So, a complete solution would very likely require DVB core, DVB
-driver and libv4l5 changes.
+--=20
+Maxime Ripard, Free Electrons
+Embedded Linux and Kernel engineering
+http://free-electrons.com
 
--- 
-Thanks,
-Mauro
+--f5hs7o5dm66367ro
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCAAdFiEE0VqZU19dR2zEVaqr0rTAlCFNr3QFAlodfhAACgkQ0rTAlCFN
+r3S4XRAAhg4kNRvjfhtO4I11+p+IjzwFsF63xRoW5oXAzYc0xPEjkzrh77GqLgcJ
+hh+vnn0Z6g/GnK1OB8gv//1/Bl9Z2cCpLUyoxxdRq1mhyo4MFrnm4C0VmSIVLiuA
+y27lrGbpUxX20qn9/pO75neYUtleRHJsABTYc66i9DCr7U0a/xO6JEcFFM7v9I+3
+zHRORDiPfntvj/6jxy+G5h8hF/P6p73PQpVIE04Y/Zxmn3Mvnnt/0EDuN5mW2WoP
+mxSMYgxb9iE2K4AyYnm+NBJ5bFiQnMZPzp7SSuFZddU7xgcAV7KiVy5qRtb/W4Ff
+QD9PlRF4S3/mtO7XwhxUvxMxbRDkUs4EuY4GYDah52YEoTP9Ayzd8B/R8htK+76t
+T9tsqaoyG+3BVRVRrghcoIQ8napw/SxZwr3QfwIjStJWXb04n2pQp7AO00LqVifF
+/IXfUAqu4m6/UX5fcQwQuTj3Ilb993v20/MQhg+igDKbfynsHnPnavdTGa6B5fCM
+3x9qneRqauwM9tvkaYHVzENhfZHlOVZbxZ3BI9PBpO1UWzhj14Idl/K3T/53Xsjx
+GMlqFsYNfJp4JvYf2XRH/26eApdXID/RUj+Dp/jYwDr5WPZZq1sn1b/CXH0XHynO
+9sfaxHiOci/WrDYnSN1HucZHLHziKRICXwgq9WAw3ZRHk8fPvTo=
+=yewu
+-----END PGP SIGNATURE-----
+
+--f5hs7o5dm66367ro--
