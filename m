@@ -1,62 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:33932 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752227AbdK2TIs (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 29 Nov 2017 14:08:48 -0500
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Tiffany Lin <tiffany.lin@mediatek.com>,
-        Andrew-CT Chen <andrew-ct.chen@mediatek.com>,
-        Matthias Brugger <matthias.bgg@gmail.com>,
-        Kees Cook <keescook@chromium.org>,
-        linux-arm-kernel@lists.infradead.org,
-        linux-mediatek@lists.infradead.org
-Subject: [PATCH 10/22] media: vdec: fix some kernel-doc warnings
-Date: Wed, 29 Nov 2017 14:08:28 -0500
-Message-Id: <0ddb6632dd9afa919656e0bd8f0651af82e98a9d.1511982439.git.mchehab@s-opensource.com>
-In-Reply-To: <73497577f67fbb917e40ab4328104ff310a7c356.1511982439.git.mchehab@s-opensource.com>
-References: <73497577f67fbb917e40ab4328104ff310a7c356.1511982439.git.mchehab@s-opensource.com>
-In-Reply-To: <73497577f67fbb917e40ab4328104ff310a7c356.1511982439.git.mchehab@s-opensource.com>
-References: <73497577f67fbb917e40ab4328104ff310a7c356.1511982439.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+Received: from galahad.ideasonboard.com ([185.26.127.97]:57433 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752005AbdK1OC3 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 28 Nov 2017 09:02:29 -0500
+Subject: Re: [PATCH] media: i2c: adv748x: Restore full DT paths in kernel
+ messages
+To: Geert Uytterhoeven <geert+renesas@glider.be>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Rob Herring <robh+dt@kernel.org>
+Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org, linux-kernel@vger.kernel.org
+References: <1511874084-5068-1-git-send-email-geert+renesas@glider.be>
+From: Kieran Bingham <kieran.bingham@ideasonboard.com>
+Message-ID: <60496d91-446a-435e-41a4-3e579c6fe08b@ideasonboard.com>
+Date: Tue, 28 Nov 2017 14:02:25 +0000
+MIME-Version: 1.0
+In-Reply-To: <1511874084-5068-1-git-send-email-geert+renesas@glider.be>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fix those warnings:
-  drivers/media/platform/mtk-vcodec/vdec/vdec_h264_if.c:69: warning: No description found for parameter 'reserved'
-  drivers/media/platform/mtk-vcodec/vdec/vdec_vp8_if.c:175: warning: Excess struct member 'dev' description in 'vdec_vp8_inst'
+Hi Geert,
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/platform/mtk-vcodec/vdec/vdec_h264_if.c | 1 +
- drivers/media/platform/mtk-vcodec/vdec/vdec_vp8_if.c  | 1 -
- 2 files changed, 1 insertion(+), 1 deletion(-)
+Thanks for the patch.
 
-diff --git a/drivers/media/platform/mtk-vcodec/vdec/vdec_h264_if.c b/drivers/media/platform/mtk-vcodec/vdec/vdec_h264_if.c
-index b7731b18ecae..aa3ce41898bc 100644
---- a/drivers/media/platform/mtk-vcodec/vdec/vdec_h264_if.c
-+++ b/drivers/media/platform/mtk-vcodec/vdec/vdec_h264_if.c
-@@ -59,6 +59,7 @@ struct h264_fb {
-  * @read_idx  : read index
-  * @write_idx : write index
-  * @count     : buffer count in list
-+ * @reserved  : for 8 bytes alignment
-  */
- struct h264_ring_fb_list {
- 	struct h264_fb fb_list[H264_MAX_FB_NUM];
-diff --git a/drivers/media/platform/mtk-vcodec/vdec/vdec_vp8_if.c b/drivers/media/platform/mtk-vcodec/vdec/vdec_vp8_if.c
-index b9fad6a48879..3e84a761db3a 100644
---- a/drivers/media/platform/mtk-vcodec/vdec/vdec_vp8_if.c
-+++ b/drivers/media/platform/mtk-vcodec/vdec/vdec_vp8_if.c
-@@ -155,7 +155,6 @@ struct vdec_vp8_vpu_inst {
-  * @reg_base		   : HW register base address
-  * @frm_cnt		   : decode frame count
-  * @ctx			   : V4L2 context
-- * @dev			   : platform device
-  * @vpu			   : VPU instance for decoder
-  * @vsi			   : VPU share information
-  */
--- 
-2.14.3
+On 28/11/17 13:01, Geert Uytterhoeven wrote:
+> As of_node_full_name() now returns only the basename, the endpoint
+> information printed became useless:
+> 
+>     adv748x 4-0070: Endpoint endpoint on port 7
+>     adv748x 4-0070: Endpoint endpoint on port 8
+>     adv748x 4-0070: Endpoint endpoint on port 10
+>     adv748x 4-0070: Endpoint endpoint on port 11
+> 
+> Restore the old behavior by using "%pOF" instead:
+> 
+>     adv748x 4-0070: Endpoint /soc/i2c@e66d8000/video-receiver@70/port@7/endpoint on port 7
+>     adv748x 4-0070: Endpoint /soc/i2c@e66d8000/video-receiver@70/port@8/endpoint on port 8
+>     adv748x 4-0070: Endpoint /soc/i2c@e66d8000/video-receiver@70/port@10/endpoint on port 10
+>     adv748x 4-0070: Endpoint /soc/i2c@e66d8000/video-receiver@70/port@11/endpoint on port 11
+> 
+> Fixes: a7e4cfb0a7ca4773 ("of/fdt: only store the device node basename in full_name")
+> Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
+
+Acked-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+
+> ---
+>  drivers/media/i2c/adv748x/adv748x-core.c | 10 ++++------
+>  1 file changed, 4 insertions(+), 6 deletions(-)
+> 
+> diff --git a/drivers/media/i2c/adv748x/adv748x-core.c b/drivers/media/i2c/adv748x/adv748x-core.c
+> index 5ee14f2c27478e3a..c1001db6a172e256 100644
+> --- a/drivers/media/i2c/adv748x/adv748x-core.c
+> +++ b/drivers/media/i2c/adv748x/adv748x-core.c
+> @@ -646,14 +646,12 @@ static int adv748x_parse_dt(struct adv748x_state *state)
+>  
+>  	for_each_endpoint_of_node(state->dev->of_node, ep_np) {
+>  		of_graph_parse_endpoint(ep_np, &ep);
+> -		adv_info(state, "Endpoint %s on port %d",
+> -				of_node_full_name(ep.local_node),
+> -				ep.port);
+> +		adv_info(state, "Endpoint %pOF on port %d", ep.local_node,
+> +			 ep.port);
+>  
+>  		if (ep.port >= ADV748X_PORT_MAX) {
+> -			adv_err(state, "Invalid endpoint %s on port %d",
+> -				of_node_full_name(ep.local_node),
+> -				ep.port);
+> +			adv_err(state, "Invalid endpoint %pOF on port %d",
+> +				ep.local_node, ep.port);
+>  
+>  			continue;
+>  		}
+> 
