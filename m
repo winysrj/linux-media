@@ -1,60 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:33394 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751307AbdKEXOi (ORCPT
+Received: from bombadil.infradead.org ([65.50.211.133]:58683 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932075AbdK1SgI (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 5 Nov 2017 18:14:38 -0500
-Received: from valkosipuli.localdomain (valkosipuli.retiisi.org.uk [IPv6:2001:1bc8:1a6:d3d5::80:2])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by hillosipuli.retiisi.org.uk (Postfix) with ESMTPS id 5675F60103
-        for <linux-media@vger.kernel.org>; Mon,  6 Nov 2017 01:14:37 +0200 (EET)
-Received: from sakke by valkosipuli.localdomain with local (Exim 4.89)
-        (envelope-from <sakari.ailus@retiisi.org.uk>)
-        id 1eBU7g-00027W-QY
-        for linux-media@vger.kernel.org; Mon, 06 Nov 2017 01:14:36 +0200
-Date: Mon, 6 Nov 2017 01:14:36 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Subject: [GIT PULL for 4.15] V4L2 async NULL dereference fix
-Message-ID: <20171105231436.xdq6lslrgc22xu77@valkosipuli.retiisi.org.uk>
+        Tue, 28 Nov 2017 13:36:08 -0500
+Date: Tue, 28 Nov 2017 16:35:54 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Soeren Moch <smoch@web.de>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Andreas Regel <andreas.regel@gmx.de>,
+        Manu Abraham <manu@linuxtv.org>,
+        Oliver Endriss <o.endriss@gmx.de>, linux-media@vger.kernel.org,
+        Eugene Syromiatnikov <esyr@redhat.com>,
+        Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [GIT PULL] SAA716x DVB driver
+Message-ID: <20171128163554.449dcb72@vento.lan>
+In-Reply-To: <fab215f8-29f3-1857-6f33-c45e78bb5e3c@web.de>
+References: <50e5ba3c-4e32-f2e4-7844-150eefdf71b5@web.de>
+        <d693cf1b-de3d-5994-5ef0-eeb0e37065a3@web.de>
+        <20170827073040.6e96d79a@vento.lan>
+        <e9d87f55-18fc-e57b-f9aa-a41c7f983b34@web.de>
+        <20170909181123.392cfbb0@vento.lan>
+        <a44b8eb0-cdd5-aa28-ad30-68db0126b6f6@web.de>
+        <20170916125042.78c4abad@recife.lan>
+        <fab215f8-29f3-1857-6f33-c45e78bb5e3c@web.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Em Mon, 25 Sep 2017 00:17:00 +0200
+Soeren Moch <smoch@web.de> escreveu:
 
-There was a rather subtle problem in the recent V4L2 async patches that
-could lead to NULL pointer dereference in some situations. This simple
-patch from Niklas addresses that.
+> >  What I'm saying is that,
+> > if we're adding it on staging, we need to have a plan to reimplement
+> > it to whatever API replaces the DVB video API, as this API likely
+> > won't stay upstream much longer.  
+> AFAIK it is not usual linux policy to remove existing drivers
+> with happy users and even someone who volunteered to
+> maintain this.
 
-Please pull.
+The usual Linux policy doesn't apply to staging. The goal of staging is
+to add drivers that have problems, but are fixable, and whose someone
+is working to solve those issues. 
 
+The staging policies include adding a TODO file describing the problems
+that should be solved for the driver to be promoted. If such problems
+aren't solved, the driver can be removed.
 
-The following changes since commit 9917fbcfa20ab987d6381fd0365665e5c1402d75:
+For example, this year, we removed some lirc staging drivers because
+no developers were interested (and/or had the hardware) to convert
+them to use the RC core (with is a Kernel's internal API).
 
-  media: camss-vfe: always initialize reg at vfe_set_xbar_cfg() (2017-11-01 12:25:59 -0400)
+In the case of saa716x, the issue is that it uses a deprecated
+and undocumented userspace API, with is a way more serious issue.
 
-are available in the git repository at:
+I'm ok to add this driver to staging if we can agree on what
+should be fixed, and if someone commits to try fixing it, knowing,
+in advance, that, if it doesn't get fixed on a reasonable time, it
+can be removed on later Kernel versions.
 
-  ssh://linuxtv.org/git/sailus/media_tree.git for-4.15-7
-
-for you to fetch changes up to a01b5d89dc19d7b622104bbd27698687bbb2ffe6:
-
-  media: v4l: async: fix unregister for implicitly registered sub-device notifiers (2017-11-06 00:44:45 +0200)
-
-----------------------------------------------------------------
-Niklas Söderlund (1):
-      media: v4l: async: fix unregister for implicitly registered sub-device notifiers
-
- drivers/media/v4l2-core/v4l2-async.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
--- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+Thanks,
+Mauro
