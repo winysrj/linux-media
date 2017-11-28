@@ -1,155 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:61684 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S934556AbdKCA1T (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 2 Nov 2017 20:27:19 -0400
-Subject: Re: [PATCH 2/2] media: s5p-mfc: fix lock confection -
- request_firmware() once and keep state
-To: Andrzej Hajda <a.hajda@samsung.com>, kyungmin.park@samsung.com,
-        kamil@wypas.org, jtp.park@samsung.com, mchehab@kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org, Shuah Khan <shuahkh@osg.samsung.com>
-References: <cover.1507325072.git.shuahkh@osg.samsung.com>
- <CGME20171006213016epcas3p20e34abea60ca43f7c3f79a68fc7a38d7@epcas3p2.samsung.com>
- <fab205fc9ba1bc00e5dda4db6d426fde69116c37.1507325072.git.shuahkh@osg.samsung.com>
- <c1704d1b-95e8-e6a2-9086-3079f78daa00@samsung.com>
-From: Shuah Khan <shuahkh@osg.samsung.com>
-Message-ID: <93d0668e-1fa6-ac2b-d998-9e0317469dd1@osg.samsung.com>
-Date: Thu, 2 Nov 2017 18:27:17 -0600
-MIME-Version: 1.0
-In-Reply-To: <c1704d1b-95e8-e6a2-9086-3079f78daa00@samsung.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Received: from kadath.azazel.net ([81.187.231.250]:45302 "EHLO
+        kadath.azazel.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752822AbdK1K2B (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 28 Nov 2017 05:28:01 -0500
+From: Jeremy Sowden <jeremy@azazel.net>
+To: linux-media@vger.kernel.org, devel@driverdev.osuosl.org
+Cc: Jeremy Sowden <jeremy@azazel.net>
+Subject: [PATCH v3 2/2] media: staging: atomisp: fixes for "symbol was not declared. Should it be static?" sparse warnings.
+Date: Tue, 28 Nov 2017 10:27:26 +0000
+Message-Id: <20171128102726.30542-3-jeremy@azazel.net>
+In-Reply-To: <20171128102726.30542-1-jeremy@azazel.net>
+References: <20171127190938.73c6b15a@alans-desktop>
+ <20171128102726.30542-1-jeremy@azazel.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/02/2017 02:31 AM, Andrzej Hajda wrote:
-> On 06.10.2017 23:30, Shuah Khan wrote:
->> Driver calls request_firmware() whenever the device is opened for the
->> first time. As the device gets opened and closed, dev->num_inst == 1
->> is true several times. This is not necessary since the firmware is saved
->> in the fw_buf. s5p_mfc_load_firmware() copies the buffer returned by
->> the request_firmware() to dev->fw_buf.
->>
->> fw_buf sticks around until it gets released from s5p_mfc_remove(), hence
->> there is no need to keep requesting firmware and copying it to fw_buf.
->>
->> This might have been overlooked when changes are made to free fw_buf from
->> the device release interface s5p_mfc_release().
->>
->> Fix s5p_mfc_load_firmware() to call request_firmware() once and keep state.
->> Change _probe() to load firmware once fw_buf has been allocated.
->>
->> s5p_mfc_open() and it continues to call s5p_mfc_load_firmware() and init
->> hardware which is the step where firmware is written to the device.
->>
->> This addresses the mfc_mutex contention due to repeated request_firmware()
->> calls from open() in the following circular locking warning:
->>
->> [  552.194115] qtdemux0:sink/2710 is trying to acquire lock:
->> [  552.199488]  (&dev->mfc_mutex){+.+.}, at: [<bf145544>] s5p_mfc_mmap+0x28/0xd4 [s5p_mfc]
->> [  552.207459]
->>                but task is already holding lock:
->> [  552.213264]  (&mm->mmap_sem){++++}, at: [<c01df2e4>] vm_mmap_pgoff+0x44/0xb8
->> [  552.220284]
->>                which lock already depends on the new lock.
->>
->> [  552.228429]
->>                the existing dependency chain (in reverse order) is:
->> [  552.235881]
->>                -> #2 (&mm->mmap_sem){++++}:
->> [  552.241259]        __might_fault+0x80/0xb0
->> [  552.245331]        filldir64+0xc0/0x2f8
->> [  552.249144]        call_filldir+0xb0/0x14c
->> [  552.253214]        ext4_readdir+0x768/0x90c
->> [  552.257374]        iterate_dir+0x74/0x168
->> [  552.261360]        SyS_getdents64+0x7c/0x1a0
->> [  552.265608]        ret_fast_syscall+0x0/0x28
->> [  552.269850]
->>                -> #1 (&type->i_mutex_dir_key#2){++++}:
->> [  552.276180]        down_read+0x48/0x90
->> [  552.279904]        lookup_slow+0x74/0x178
->> [  552.283889]        walk_component+0x1a4/0x2e4
->> [  552.288222]        link_path_walk+0x174/0x4a0
->> [  552.292555]        path_openat+0x68/0x944
->> [  552.296541]        do_filp_open+0x60/0xc4
->> [  552.300528]        file_open_name+0xe4/0x114
->> [  552.304772]        filp_open+0x28/0x48
->> [  552.308499]        kernel_read_file_from_path+0x30/0x78
->> [  552.313700]        _request_firmware+0x3ec/0x78c
->> [  552.318291]        request_firmware+0x3c/0x54
->> [  552.322642]        s5p_mfc_load_firmware+0x54/0x150 [s5p_mfc]
->> [  552.328358]        s5p_mfc_open+0x4e4/0x550 [s5p_mfc]
->> [  552.333394]        v4l2_open+0xa0/0x104 [videodev]
->> [  552.338137]        chrdev_open+0xa4/0x18c
->> [  552.342121]        do_dentry_open+0x208/0x310
->> [  552.346454]        path_openat+0x28c/0x944
->> [  552.350526]        do_filp_open+0x60/0xc4
->> [  552.354512]        do_sys_open+0x118/0x1c8
->> [  552.358586]        ret_fast_syscall+0x0/0x28
->> [  552.362830]
->>                -> #0 (&dev->mfc_mutex){+.+.}:
->>                -> #0 (&dev->mfc_mutex){+.+.}:
->> [  552.368379]        lock_acquire+0x6c/0x88
->> [  552.372364]        __mutex_lock+0x68/0xa34
->> [  552.376437]        mutex_lock_interruptible_nested+0x1c/0x24
->> [  552.382086]        s5p_mfc_mmap+0x28/0xd4 [s5p_mfc]
->> [  552.386939]        v4l2_mmap+0x54/0x88 [videodev]
->> [  552.391601]        mmap_region+0x3a8/0x638
->> [  552.395673]        do_mmap+0x330/0x3a4
->> [  552.399400]        vm_mmap_pgoff+0x90/0xb8
->> [  552.403472]        SyS_mmap_pgoff+0x90/0xc0
->> [  552.407632]        ret_fast_syscall+0x0/0x28
->> [  552.411876]
->>                other info that might help us debug this:
->>
->> [  552.419848] Chain exists of:
->>                  &dev->mfc_mutex --> &type->i_mutex_dir_key#2 --> &mm->mmap_sem
->>
->> [  552.431200]  Possible unsafe locking scenario:
->>
->> [  552.437092]        CPU0                    CPU1
->> [  552.441598]        ----                    ----
->> [  552.446104]   lock(&mm->mmap_sem);
->> [  552.449484]                                lock(&type->i_mutex_dir_key#2);
->> [  552.456329]                                lock(&mm->mmap_sem);
->> [  552.462222]   lock(&dev->mfc_mutex);
->> [  552.465775]
->>                 *** DEADLOCK ***
-> 
-> I am not 100% but it looks like false positive. Could you describe
-> scenario when it deadlocks?
-> 
->>
->> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
->> ---
->>  drivers/media/platform/s5p-mfc/s5p_mfc.c        | 4 ++++
->>  drivers/media/platform/s5p-mfc/s5p_mfc_common.h | 3 +++
->>  drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c   | 5 +++++
->>  3 files changed, 12 insertions(+)
->>
->> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
->> index 1afde50..4c253fb 100644
->> --- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
->> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
->> @@ -1315,6 +1315,10 @@ static int s5p_mfc_probe(struct platform_device *pdev)
->>  		goto err_dma;
->>  	}
->>  
->> +	ret = s5p_mfc_load_firmware(dev);
->> +	if (ret)
->> +		mfc_err("Failed to load FW - try loading from open()\n");
->> +
-> 
-> What is the point of adding it? It will produce error log in case
-> filesystem is not yet mounted, and as I remember it was the reason to
-> put fw load to open callback.
+Defined some const arrays as static since they don't need external linkage.
 
-"What is the point of adding it" does it mean the error message or the
-attempt to load the firmware. Would it be okay to just try to load and
-not print error if it fails? If it works at this stage, _open() doesn't
-have to take time hit trying to load it.
+Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
+---
+ .../isp/kernels/eed1_8/ia_css_eed1_8.host.c        | 24 +++++++++++-----------
+ 1 file changed, 12 insertions(+), 12 deletions(-)
 
-thanks,
--- Shuah
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/eed1_8/ia_css_eed1_8.host.c b/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/eed1_8/ia_css_eed1_8.host.c
+index 682f8b709ff9..47bb5042381b 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/eed1_8/ia_css_eed1_8.host.c
++++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/eed1_8/ia_css_eed1_8.host.c
+@@ -32,44 +32,44 @@
+ #define NUMBER_OF_TCINV_POINTS 9
+ #define NUMBER_OF_FCINV_POINTS 9
+ 
+-const int16_t chgrinv_x[NUMBER_OF_CHGRINV_POINTS] = {
++static const int16_t chgrinv_x[NUMBER_OF_CHGRINV_POINTS] = {
+ 0, 16, 64, 144, 272, 448, 672, 976,
+ 1376, 1888, 2528, 3312, 4256, 5376, 6688};
+ 
+-const int16_t chgrinv_a[NUMBER_OF_CHGRINV_POINTS] = {
++static const int16_t chgrinv_a[NUMBER_OF_CHGRINV_POINTS] = {
+ -7171, -256, -29, -3456, -1071, -475, -189, -102,
+ -48, -38, -10, -9, -7, -6, 0};
+ 
+-const int16_t chgrinv_b[NUMBER_OF_CHGRINV_POINTS] = {
++static const int16_t chgrinv_b[NUMBER_OF_CHGRINV_POINTS] = {
+ 8191, 1021, 256, 114, 60, 37, 24, 17,
+ 12, 9, 6, 5, 4, 3, 2};
+ 
+-const int16_t chgrinv_c[NUMBER_OF_CHGRINV_POINTS] = {
++static const int16_t chgrinv_c[NUMBER_OF_CHGRINV_POINTS] = {
+ 1, 1, 1, 0, 0, 0, 0, 0,
+ 0, 0, 0, 0, 0, 0, 0};
+ 
+-const int16_t tcinv_x[NUMBER_OF_TCINV_POINTS] = {
++static const int16_t tcinv_x[NUMBER_OF_TCINV_POINTS] = {
+ 0, 4, 11, 23, 42, 68, 102, 148, 205};
+ 
+-const int16_t tcinv_a[NUMBER_OF_TCINV_POINTS] = {
++static const int16_t tcinv_a[NUMBER_OF_TCINV_POINTS] = {
+ -6364, -631, -126, -34, -13, -6, -4452, -2156, 0};
+ 
+-const int16_t tcinv_b[NUMBER_OF_TCINV_POINTS] = {
++static const int16_t tcinv_b[NUMBER_OF_TCINV_POINTS] = {
+ 8191, 1828, 726, 352, 197, 121, 80, 55, 40};
+ 
+-const int16_t tcinv_c[NUMBER_OF_TCINV_POINTS] = {
++static const int16_t tcinv_c[NUMBER_OF_TCINV_POINTS] = {
+ 1, 1, 1, 1, 1, 1, 0, 0, 0};
+ 
+-const int16_t fcinv_x[NUMBER_OF_FCINV_POINTS] = {
++static const int16_t fcinv_x[NUMBER_OF_FCINV_POINTS] = {
+ 0, 80, 216, 456, 824, 1344, 2040, 2952, 4096};
+ 
+-const int16_t fcinv_a[NUMBER_OF_FCINV_POINTS] = {
++static const int16_t fcinv_a[NUMBER_OF_FCINV_POINTS] = {
+ -5244, -486, -86, -2849, -961, -400, -180, -86, 0};
+ 
+-const int16_t fcinv_b[NUMBER_OF_FCINV_POINTS] = {
++static const int16_t fcinv_b[NUMBER_OF_FCINV_POINTS] = {
+ 8191, 1637, 607, 287, 159, 98, 64, 44, 32};
+ 
+-const int16_t fcinv_c[NUMBER_OF_FCINV_POINTS] = {
++static const int16_t fcinv_c[NUMBER_OF_FCINV_POINTS] = {
+ 1, 1, 1, 0, 0, 0, 0, 0, 0};
+ 
+ 
+-- 
+2.15.0
