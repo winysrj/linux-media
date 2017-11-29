@@ -1,91 +1,148 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:38820 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750953AbdKLOZv (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 12 Nov 2017 09:25:51 -0500
-Date: Sun, 12 Nov 2017 15:25:47 +0100
-From: Sebastian Reichel <sre@kernel.org>
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
-        maxime.ripard@free-electrons.com, hverkuil@xs4all.nl,
-        laurent.pinchart@ideasonboard.com, linux-acpi@vger.kernel.org,
-        devicetree@vger.kernel.org
-Subject: Re: et8ek8: Document support for flash and lens devices
-Message-ID: <20171112142547.km6haalndqiohoq2@earth>
-References: <20171026075342.5760-1-sakari.ailus@linux.intel.com>
- <20171026075342.5760-30-sakari.ailus@linux.intel.com>
- <20171112112729.GA21247@amd>
+Received: from mail-wr0-f195.google.com ([209.85.128.195]:36823 "EHLO
+        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753752AbdK2Pye (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 29 Nov 2017 10:54:34 -0500
+Received: by mail-wr0-f195.google.com with SMTP id v105so3832084wrc.3
+        for <linux-media@vger.kernel.org>; Wed, 29 Nov 2017 07:54:33 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="3pw3ukvse2a7ndb5"
-Content-Disposition: inline
-In-Reply-To: <20171112112729.GA21247@amd>
+In-Reply-To: <20171123082532.znxnmwpgrdjbhxbi@valkosipuli.retiisi.org.uk>
+References: <1510253136-14153-1-git-send-email-tharvey@gateworks.com>
+ <1510253136-14153-3-git-send-email-tharvey@gateworks.com> <20171122073606.56ldk3bzg23dkkfm@valkosipuli.retiisi.org.uk>
+ <CAJ+vNU1FEp5aU6aXXOuGr3ifcngfP0Pj0rnBBxDh_mVtQyvLAQ@mail.gmail.com> <20171123082532.znxnmwpgrdjbhxbi@valkosipuli.retiisi.org.uk>
+From: Tim Harvey <tharvey@gateworks.com>
+Date: Wed, 29 Nov 2017 07:54:32 -0800
+Message-ID: <CAJ+vNU37WG-X1TOgOeuv7NkqjkEmDiQChC-v4WOv-CrS9oTnTw@mail.gmail.com>
+Subject: Re: [PATCH 2/5] media: dt-bindings: Add bindings for TDA1997X
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media <linux-media@vger.kernel.org>,
+        alsa-devel@alsa-project.org,
+        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        Shawn Guo <shawnguo@kernel.org>,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Hans Verkuil <hansverk@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Rob Herring <robh@kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Thu, Nov 23, 2017 at 12:25 AM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
+> On Wed, Nov 22, 2017 at 08:37:04PM -0800, Tim Harvey wrote:
+>> On Tue, Nov 21, 2017 at 11:36 PM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
+>> > Hi Tim,
+>> >
+>> > On Thu, Nov 09, 2017 at 10:45:33AM -0800, Tim Harvey wrote:
+>> >> Cc: Rob Herring <robh@kernel.org>
+>> >> Signed-off-by: Tim Harvey <tharvey@gateworks.com>
+>> >> ---
+>> >> v3:
+>> >>  - fix typo
+>> >>
+>> >> v2:
+>> >>  - add vendor prefix and remove _ from vidout-portcfg
+>> >>  - remove _ from labels
+>> >>  - remove max-pixel-rate property
+>> >>  - describe and provide example for single output port
+>> >>  - update to new audio port bindings
+>> >> ---
+>> >>  .../devicetree/bindings/media/i2c/tda1997x.txt     | 179 +++++++++++++++++++++
+>> >>  1 file changed, 179 insertions(+)
+>> >>  create mode 100644 Documentation/devicetree/bindings/media/i2c/tda1997x.txt
+>> >>
+>> >> diff --git a/Documentation/devicetree/bindings/media/i2c/tda1997x.txt b/Documentation/devicetree/bindings/media/i2c/tda1997x.txt
+>> >> new file mode 100644
+>> >> index 0000000..dd37f14
+>> >> --- /dev/null
+>> >> +++ b/Documentation/devicetree/bindings/media/i2c/tda1997x.txt
+>> >> @@ -0,0 +1,179 @@
+>> >> +Device-Tree bindings for the NXP TDA1997x HDMI receiver
+>> >> +
+>> >> +The TDA19971/73 are HDMI video receivers.
+>> >> +
+>> >> +The TDA19971 Video port output pins can be used as follows:
+>> >> + - RGB 8bit per color (24 bits total): R[11:4] B[11:4] G[11:4]
+>> >> + - YUV444 8bit per color (24 bits total): Y[11:4] Cr[11:4] Cb[11:4]
+>> >> + - YUV422 semi-planar 8bit per component (16 bits total): Y[11:4] CbCr[11:4]
+>> >> + - YUV422 semi-planar 10bit per component (20 bits total): Y[11:2] CbCr[11:2]
+>> >> + - YUV422 semi-planar 12bit per component (24 bits total): - Y[11:0] CbCr[11:0]
+>> >> + - YUV422 BT656 8bit per component (8 bits total): YCbCr[11:4] (2-cycles)
+>> >> + - YUV422 BT656 10bit per component (10 bits total): YCbCr[11:2] (2-cycles)
+>> >> + - YUV422 BT656 12bit per component (12 bits total): YCbCr[11:0] (2-cycles)
+>> >> +
+>> >> +The TDA19973 Video port output pins can be used as follows:
+>> >> + - RGB 12bit per color (36 bits total): R[11:0] B[11:0] G[11:0]
+>> >> + - YUV444 12bit per color (36 bits total): Y[11:0] Cb[11:0] Cr[11:0]
+>> >> + - YUV422 semi-planar 12bit per component (24 bits total): Y[11:0] CbCr[11:0]
+>> >> + - YUV422 BT656 12bit per component (12 bits total): YCbCr[11:0] (2-cycles)
+>> >> +
+>> >> +The Video port output pins are mapped via 4-bit 'pin groups' allowing
+>> >> +for a variety of connection possibilities including swapping pin order within
+>> >> +pin groups. The video_portcfg device-tree property consists of register mapping
+>> >> +pairs which map a chip-specific VP output register to a 4-bit pin group. If
+>> >> +the pin group needs to be bit-swapped you can use the *_S pin-group defines.
+>> >> +
+>> >> +Required Properties:
+>> >> + - compatible          :
+>> >> +  - "nxp,tda19971" for the TDA19971
+>> >> +  - "nxp,tda19973" for the TDA19973
+>> >> + - reg                 : I2C slave address
+>> >> + - interrupts          : The interrupt number
+>> >> + - DOVDD-supply        : Digital I/O supply
+>> >> + - DVDD-supply         : Digital Core supply
+>> >> + - AVDD-supply         : Analog supply
+>> >> + - nxp,vidout-portcfg  : array of pairs mapping VP output pins to pin groups.
+>> >> +
+>> >> +Optional Properties:
+>> >> + - nxp,audout-format   : DAI bus format: "i2s" or "spdif".
+>> >> + - nxp,audout-width    : width of audio output data bus (1-4).
+>> >> + - nxp,audout-layout   : data layout (0=AP0 used, 1=AP0/AP1/AP2/AP3 used).
+>> >> + - nxp,audout-mclk-fs  : Multiplication factor between stream rate and codec
+>> >> +                         mclk.
+>> >> +
+>> >> +The device node must contain one 'port' child node for its digital output
+>> >> +video port, in accordance with the video interface bindings defined in
+>> >> +Documentation/devicetree/bindings/media/video-interfaces.txt.
+>> >
+>> > Could you add that this port has one endpoint node as well? (Unless you
+>> > support multiple, that is.)
+>>
+>> Sure... will clarify as:
+>>
+>> The device node must contain one endpoint 'port' child node for its
+>> digital output
+>> video port, in accordance with the video interface bindings defined in
+>> Documentation/devicetree/bindings/media/video-interfaces.txt.
+>
+> I think it'd be clearer if you just add "The port node shall contain one
+> endpoint child node".
 
---3pw3ukvse2a7ndb5
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+ok
 
-Hi,
+>
+>>
+>> >> +
+>> >> +Optional Endpoint Properties:
+>> >> +  The following three properties are defined in video-interfaces.txt and
+>> >> +  are valid for source endpoints only:
+>> >
+>> > Transmitters? Don't you have an endpoint only in the port representing the
+>> > transmitter?
+>>
+>> I'm not usre what you mean.
+>>
+>> The TDA1997x is an HDMI receiver meaning it receives HDMI and decodes
+>> it to a parallel video bus. HDMI transmitters are the opposite.
+>
+> The parallel bus. If you mean that, then you could just say that. "Source
+> endpoint" is a bit vague, or requires knowing V4L2.
+>
 
-On Sun, Nov 12, 2017 at 12:27:29PM +0100, Pavel Machek wrote:
->=20
-> Document dts support of LED/focus.
->=20
-> Signed-off-by: Pavel Machek <pavel@ucw.cz>
+agreed
 
-Reviewed-by: Sebastian Reichel <sebastian.reichel@collabora.co.uk>
+Thanks,
 
--- Sebastian
-
-> diff --git a/Documentation/devicetree/bindings/media/i2c/toshiba,et8ek8.t=
-xt b/Documentation/devicetree/bindings/media/i2c/toshiba,et8ek8.txt
-> index 0b7b6a4..e80d589 100644
-> --- a/Documentation/devicetree/bindings/media/i2c/toshiba,et8ek8.txt
-> +++ b/Documentation/devicetree/bindings/media/i2c/toshiba,et8ek8.txt
-> @@ -20,6 +20,13 @@ Mandatory properties
->    is in hardware standby mode when the signal is in the low state.
-> =20
-> =20
-> +Optional properties
-> +-------------------
-> +
-> +- flash-leds: See ../video-interfaces.txt
-> +- lens-focus: See ../video-interfaces.txt
-> +
-> +
->  Endpoint node mandatory properties
->  ----------------------------------
-> =20
-> --=20
-> (english) http://www.livejournal.com/~pavelmachek
-> (cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/b=
-log.html
-
-
-
---3pw3ukvse2a7ndb5
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCgAdFiEE72YNB0Y/i3JqeVQT2O7X88g7+poFAloIWegACgkQ2O7X88g7
-+proKQ/+KOGfLfkSFbgtSH2ZVZcJCv20jLTJLcXxCGxb8MTWUOebG2iVUskGaWiv
-14SozCnsr+mizd02bbztEkJ6eYnDXPycCcQAE8UAN770XnEp8mfXkMTR/d/Ckemr
-SBfLQiyh+F2Wo3gIkP6O5oIAO8aGj3v/TqTjVTPqaa5iF40xNJHMrgOEUFpsYyAj
-OcbB9wQq7CQaP/RXDKLgtxWXG+HpzQme6B160m2yk93tPttQysnyWDkoJRlORC5s
-5CTAbkq0jGMHKgLdWunC2+BmCZ1iaY5M7UVgDJjzd9hIKNIBH7w7PnhYG7yvtykY
-FSfmEm/1qEY/EQizfVMUeXhHONJTLAdvOL2SX4H9ZySpGnw+8a4s3TE/pUWUACpj
-y4xmMfZaCJ15GWuOIgy867yBeZHERu2LQzYGmdHghQiKL+n6i3ReDL38ksc5bLm5
-AW72surqxMJtWmcYgPlSgDSeORy4NhvidnlDX4FO9AgkMK4ENP7wToGJWvtyaPPl
-OAXXLsmRvk2qwuWKPyAVFgO3zcqIkKMMesolgTx5DQ+koXBApZ7HVym5WULrLHs4
-45JwIr4GO/dYNcSDZvKjvigN7vbrg+18e9FUiRRe6bQrwQJkWRY5TX3ggB1aWbYD
-xQLbQJ1HNWZcV9YWU1/j1yxv8iGYXgDiByMNT5I8lVDD9BycRlY=
-=Up9e
------END PGP SIGNATURE-----
-
---3pw3ukvse2a7ndb5--
+Tim
