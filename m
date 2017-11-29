@@ -1,67 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ot0-f176.google.com ([74.125.82.176]:33335 "EHLO
-        mail-ot0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753457AbdK0QUB (ORCPT
+Received: from mx07-00178001.pphosted.com ([62.209.51.94]:24303 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751943AbdK2RLl (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 27 Nov 2017 11:20:01 -0500
-Received: by mail-ot0-f176.google.com with SMTP id s12so24678565otc.0
-        for <linux-media@vger.kernel.org>; Mon, 27 Nov 2017 08:20:01 -0800 (PST)
+        Wed, 29 Nov 2017 12:11:41 -0500
+From: Hugues Fruchet <hugues.fruchet@st.com>
+To: Steve Longerbeam <slongerbeam@gmail.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        "Mauro Carvalho Chehab" <mchehab@kernel.org>
+CC: <linux-media@vger.kernel.org>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Subject: [PATCH v2 1/4] media: ov5640: switch to gpiod_set_value_cansleep()
+Date: Wed, 29 Nov 2017 18:11:09 +0100
+Message-ID: <1511975472-26659-2-git-send-email-hugues.fruchet@st.com>
+In-Reply-To: <1511975472-26659-1-git-send-email-hugues.fruchet@st.com>
+References: <1511975472-26659-1-git-send-email-hugues.fruchet@st.com>
 MIME-Version: 1.0
-In-Reply-To: <20171127161511.GE5977@quack2.suse.cz>
-References: <151068938905.7446.12333914805308312313.stgit@dwillia2-desk3.amr.corp.intel.com>
- <151068939985.7446.15684639617389154187.stgit@dwillia2-desk3.amr.corp.intel.com>
- <20171127161511.GE5977@quack2.suse.cz>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Mon, 27 Nov 2017 08:19:59 -0800
-Message-ID: <CAPcyv4iayd=dmq18he3EqW-2SO62-s93GLzf8FKWa9s_Pa1Tsw@mail.gmail.com>
-Subject: Re: [PATCH v2 2/4] mm: fail get_vaddr_frames() for filesystem-dax mappings
-To: Jan Kara <jack@suse.cz>
-Cc: Andrew Morton <akpm@linux-foundation.org>,
-        Joonyoung Shim <jy0922.shim@samsung.com>,
-        "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>,
-        Seung-Woo Kim <sw0312.kim@samsung.com>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "stable@vger.kernel.org" <stable@vger.kernel.org>,
-        Inki Dae <inki.dae@samsung.com>, Linux MM <linux-mm@kvack.org>,
-        Kyungmin Park <kyungmin.park@samsung.com>,
-        Mel Gorman <mgorman@suse.de>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Vlastimil Babka <vbabka@suse.cz>,
-        "Linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Nov 27, 2017 at 8:15 AM, Jan Kara <jack@suse.cz> wrote:
-> On Tue 14-11-17 11:56:39, Dan Williams wrote:
->> Until there is a solution to the dma-to-dax vs truncate problem it is
->> not safe to allow V4L2, Exynos, and other frame vector users to create
->> long standing / irrevocable memory registrations against filesytem-dax
->> vmas.
->>
->> Cc: Inki Dae <inki.dae@samsung.com>
->> Cc: Seung-Woo Kim <sw0312.kim@samsung.com>
->> Cc: Joonyoung Shim <jy0922.shim@samsung.com>
->> Cc: Kyungmin Park <kyungmin.park@samsung.com>
->> Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
->> Cc: linux-media@vger.kernel.org
->> Cc: Jan Kara <jack@suse.cz>
->> Cc: Mel Gorman <mgorman@suse.de>
->> Cc: Vlastimil Babka <vbabka@suse.cz>
->> Cc: Andrew Morton <akpm@linux-foundation.org>
->> Cc: <stable@vger.kernel.org>
->> Fixes: 3565fce3a659 ("mm, x86: get_user_pages() for dax mappings")
->> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
->
-> Makes sense. I'd just note that in principle get_vaddr_frames() is no more
-> long-term than get_user_pages(). It is just so that all the users of
-> get_vaddr_frames() currently want a long-term reference. Maybe could you
-> add here also a comment that the vma_is_fsdax() check is there because all
-> users of this function want a long term page reference? With that you can
-> add:
+Switch gpiod_set_value to gpiod_set_value_cansleep to avoid
+warnings when powering sensor.
 
-Ok, will do.
+Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
+---
+ drivers/media/i2c/ov5640.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-> Reviewed-by: Jan Kara <jack@suse.cz>
-
-Thanks.
+diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
+index c89ed66..61071f5 100644
+--- a/drivers/media/i2c/ov5640.c
++++ b/drivers/media/i2c/ov5640.c
+@@ -1524,7 +1524,7 @@ static int ov5640_restore_mode(struct ov5640_dev *sensor)
+ 
+ static void ov5640_power(struct ov5640_dev *sensor, bool enable)
+ {
+-	gpiod_set_value(sensor->pwdn_gpio, enable ? 0 : 1);
++	gpiod_set_value_cansleep(sensor->pwdn_gpio, enable ? 0 : 1);
+ }
+ 
+ static void ov5640_reset(struct ov5640_dev *sensor)
+@@ -1532,7 +1532,7 @@ static void ov5640_reset(struct ov5640_dev *sensor)
+ 	if (!sensor->reset_gpio)
+ 		return;
+ 
+-	gpiod_set_value(sensor->reset_gpio, 0);
++	gpiod_set_value_cansleep(sensor->reset_gpio, 0);
+ 
+ 	/* camera power cycle */
+ 	ov5640_power(sensor, false);
+@@ -1540,10 +1540,10 @@ static void ov5640_reset(struct ov5640_dev *sensor)
+ 	ov5640_power(sensor, true);
+ 	usleep_range(5000, 10000);
+ 
+-	gpiod_set_value(sensor->reset_gpio, 1);
++	gpiod_set_value_cansleep(sensor->reset_gpio, 1);
+ 	usleep_range(1000, 2000);
+ 
+-	gpiod_set_value(sensor->reset_gpio, 0);
++	gpiod_set_value_cansleep(sensor->reset_gpio, 0);
+ 	usleep_range(5000, 10000);
+ }
+ 
+-- 
+1.9.1
