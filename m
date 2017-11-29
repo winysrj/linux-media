@@ -1,181 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.micronovasrl.com ([212.103.203.10]:33159 "EHLO
-        mail.micronovasrl.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752836AbdK1AD7 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 27 Nov 2017 19:03:59 -0500
-Received: from mail.micronovasrl.com (mail.micronovasrl.com [127.0.0.1])
-        by mail.micronovasrl.com (Postfix) with ESMTP id D9FA4B00A51
-        for <linux-media@vger.kernel.org>; Tue, 28 Nov 2017 01:03:57 +0100 (CET)
-Received: from mail.micronovasrl.com ([127.0.0.1])
-        by mail.micronovasrl.com (mail.micronovasrl.com [127.0.0.1]) (amavisd-new, port 10026)
-        with ESMTP id vC2iqAa9GUZk for <linux-media@vger.kernel.org>;
-        Tue, 28 Nov 2017 01:03:57 +0100 (CET)
-Subject: Re: [linux-sunxi] Cedrus driver
-From: Giulio Benetti <giulio.benetti@micronovasrl.com>
-To: Maxime Ripard <maxime.ripard@free-electrons.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-        Andreas Baierl <list@imkreisrum.de>,
-        linux-sunxi <linux-sunxi@googlegroups.com>,
-        linux@armlinux.org.uk, wens@csie.org, linux-kernel@vger.kernel.org,
-        thomas@vitsch.nl, linux-media@vger.kernel.org
-References: <1510059543-7064-1-git-send-email-giulio.benetti@micronovasrl.com>
- <1b12fa21-bfe6-9ba7-ae1d-8131ac6f4668@micronovasrl.com>
- <6fcdc0d9-d0f8-785a-bb00-b1b41c684e59@imkreisrum.de>
- <693e8786-af83-9d77-0fd4-50fa1f6a135f@micronovasrl.com>
- <20171116110204.poakahqjz4sj7pmu@flea>
- <5fcf64db-c654-37d0-5863-20379c04f99c@micronovasrl.com>
- <20171116125310.yavjs7352nw2sm7r@flea>
- <e03cfdb5-57b3-fefd-75c3-6b97348682ff@micronovasrl.com>
- <6f94505d-69bb-6688-4b13-6a0ed2af8dd4@xs4all.nl>
- <d0b7f6e5-8758-ac92-e6a2-9ed4ff3cbc63@micronovasrl.com>
- <20171116133906.xsrpkdflgf34kkoy@flea>
- <b5c23ea7-4efa-1565-0c53-014c8a1ee37d@micronovasrl.com>
-Message-ID: <5d019a33-9266-1e81-cc36-6e87c22bf382@micronovasrl.com>
-Date: Tue, 28 Nov 2017 01:03:59 +0100
-MIME-Version: 1.0
-In-Reply-To: <b5c23ea7-4efa-1565-0c53-014c8a1ee37d@micronovasrl.com>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Language: it
-Content-Transfer-Encoding: 8bit
+Received: from osg.samsung.com ([64.30.133.232]:52878 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752321AbdK2TIw (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 29 Nov 2017 14:08:52 -0500
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Petr Cvek <petr.cvek@tul.cz>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>,
+        Rob Herring <robh@kernel.org>,
+        Julia Lawall <Julia.Lawall@lip6.fr>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [PATCH 02/22] media: pxa_camera: get rid of kernel_doc warnings
+Date: Wed, 29 Nov 2017 14:08:20 -0500
+Message-Id: <05ea85d38bcc2087aa61ea2787ca33f5131546f0.1511982439.git.mchehab@s-opensource.com>
+In-Reply-To: <73497577f67fbb917e40ab4328104ff310a7c356.1511982439.git.mchehab@s-opensource.com>
+References: <73497577f67fbb917e40ab4328104ff310a7c356.1511982439.git.mchehab@s-opensource.com>
+In-Reply-To: <73497577f67fbb917e40ab4328104ff310a7c356.1511982439.git.mchehab@s-opensource.com>
+References: <73497577f67fbb917e40ab4328104ff310a7c356.1511982439.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Maxime,
+Get rid of the following warnings:
+    drivers/media/platform/pxa_camera.c:247: warning: No description found for parameter 'layout'
+    drivers/media/platform/pxa_camera.c:867: warning: No description found for parameter 'buf'
+    drivers/media/platform/pxa_camera.c:867: warning: No description found for parameter 'sg'
+    drivers/media/platform/pxa_camera.c:867: warning: No description found for parameter 'sglen'
+    drivers/media/platform/pxa_camera.c:867: warning: Excess function parameter 'vb' description in 'pxa_init_dma_channel'
+    drivers/media/platform/pxa_camera.c:867: warning: Excess function parameter 'dma' description in 'pxa_init_dma_channel'
+    drivers/media/platform/pxa_camera.c:867: warning: Excess function parameter 'cibr' description in 'pxa_init_dma_channel'
+    drivers/media/platform/pxa_camera.c:1029: warning: No description found for parameter 'last_submitted'
+    drivers/media/platform/pxa_camera.c:1029: warning: No description found for parameter 'last_issued'
 
-Il 16/11/2017 14:42, Giulio Benetti ha scritto:
-> Hi,
-> 
-> Il 16/11/2017 14:39, Maxime Ripard ha scritto:
->> On Thu, Nov 16, 2017 at 02:17:08PM +0100, Giulio Benetti wrote:
->>> Hi Hans,
->>>
->>> Il 16/11/2017 14:12, Hans Verkuil ha scritto:
->>>> On 16/11/17 13:57, Giulio Benetti wrote:
->>>>> Il 16/11/2017 13:53, Maxime Ripard ha scritto:
->>>>>> On Thu, Nov 16, 2017 at 01:30:52PM +0100, Giulio Benetti wrote:
->>>>>>>> On Thu, Nov 16, 2017 at 11:37:30AM +0100, Giulio Benetti wrote:
->>>>>>>>> Il 16/11/2017 11:31, Andreas Baierl ha scritto:
->>>>>>>>>> Am 16.11.2017 um 11:13 schrieb Giulio Benetti:
->>>>>>>>>>> Hello,
->>>>>>>>>>>
->>>>>>>>>> Hello,
->>>>>>>>>>> I'm wondering why cedrus
->>>>>>>>>>> https://github.com/FlorentRevest/linux-sunxi-cedrus has never 
->>>>>>>>>>> been
->>>>>>>>>>> merged with linux-sunxi sunxi-next.
->>>>>>>>>>>
->>>>>>>>>> Because it is not ready to be merged. It depends on the v4l2 
->>>>>>>>>> request
->>>>>>>>>> API, which was not merged and which is re-worked atm.
->>>>>>>>>> Also, sunxi-cedrus itself is not in a finished state and is 
->>>>>>>>>> not as
->>>>>>>>>> feature-complete to be merged. Anyway it might be something for
->>>>>>>>>> staging... Has there been a [RFC] on the mailing list at all?
->>>>>>>>>
->>>>>>>>> Where can I find a list of TODOs to get it ready to be merged?
->>>>>>>>
->>>>>>>> Assuming that the request API is in, we'd need to:
->>>>>>>>       - Finish the MPEG4 support
->>>>>>>>       - Work on more useful codecs (H264 comes to my mind)
->>>>>>>>       - Implement the DRM planes support for the custom frame 
->>>>>>>> format
->>>>>>>>       - Implement the DRM planes support for scaling
->>>>>>>>       - Test it on more SoCs
->>>>>>>>
->>>>>>>> Or something along those lines.
->>>>>>>
->>>>>>> Lot of work to do
->>>>>>
->>>>>> Well... If it was fast and easy it would have been done already :)
->>>>>
->>>>> :))
->>>>>
->>>>>>
->>>>>>>>>>> I see it seems to be dead, no commit in 1 year.
->>>>>>>>>>
->>>>>>>>>> Yes, because the author did this during an internship, which 
->>>>>>>>>> ended ...
->>>>>>>>>> Afaik nobody picked up his work yet.
->>>>>>>>
->>>>>>>> That's not entirely true. Some work has been done by Thomas (in 
->>>>>>>> CC),
->>>>>>>> especially on the display engine side, but last time we talked his
->>>>>>>> work was not really upstreamable.
->>>>>>>>
->>>>>>>> We will also resume that effort starting next march.
->>>>>>>
->>>>>>> Is it possible a preview on a separate Reporitory to start 
->>>>>>> working on now?
->>>>>>> Expecially to start porting everything done by FlorentRevest to 
->>>>>>> mainline,
->>>>>>> admitted you've not already done.
->>>>>>
->>>>>> I'm not sure what you're asking for. Florent's work *was* on 
->>>>>> mainline.
->>>>>
->>>>> and then they took it off because it was unmantained?
->>>>> You've spoken about Thomas(in CC) not ready,
->>>>> maybe I could help on that if it's public to accelerate.
->>>>> If I'm able to of course, this is my primary concern.
->>>>>
->>>>> Otherwise, in which way can I help improving it to make it accept 
->>>>> to linux-sunxi?
->>>>> Starting from Florent's work and porting it to sunxi-next to begin?
->>>>> And after that adding all features you've listed?
->>>>> Tell me what I can do(I repeat, if I'm able to).
->>>>
->>>> The bottleneck is that the Request API is not mainlined. We 
->>>> restarted work
->>>> on it after a meeting a few weeks back where we all agreed on the 
->>>> roadmap
->>>> so hopefully it will go into mainline Q1 or Q2 next year.
->>>>
->>>> That said, you can use Florent's patch series for further development.
->>>> It should be relatively easy to convert it to the final version of the
->>>> Request API. Just note that the public API of the final Request API 
->>>> will
->>>> be somewhat different from the old version Florent's patch series is 
->>>> using.
->>>
->>> So I'm going to try soon to :
->>> 1) adapt that patchset to sunxi-next
->>> 2) add A20 support
->>> 3) add A33 support
->>> 4) after mainlined APIs, merge
->>
->> That sounds good. Thomas already has the support for the A20, and as I
->> was saying, there is someone that is going to work full time on this
->> in a couple monthes on our side.
->>
->> I'll set up a git repo on github so that we can collaborate until the
->> request API is ready.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/platform/pxa_camera.c | 9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
-Any news about git repo?
-When do you plan to do it more or less?
-
-> 
-> Great!
-> Write me when you've got news.
-> 
-> Thank you very much!
-> 
->>
->> Maxime
->>
-> 
-> 
-
-
+diff --git a/drivers/media/platform/pxa_camera.c b/drivers/media/platform/pxa_camera.c
+index 9d3f0cb1d95a..295f34ad1080 100644
+--- a/drivers/media/platform/pxa_camera.c
++++ b/drivers/media/platform/pxa_camera.c
+@@ -235,6 +235,7 @@ enum pxa_mbus_layout {
+  *			stored in memory in the following way:
+  * @packing:		Type of sample-packing, that has to be used
+  * @order:		Sample order when storing in memory
++ * @layout:		Planes layout in memory
+  * @bits_per_sample:	How many bits the bridge has to sample
+  */
+ struct pxa_mbus_pixelfmt {
+@@ -852,10 +853,10 @@ static void pxa_camera_dma_irq_v(void *data)
+ /**
+  * pxa_init_dma_channel - init dma descriptors
+  * @pcdev: pxa camera device
+- * @vb: videobuffer2 buffer
+- * @dma: dma video buffer
++ * @buf: pxa camera buffer
+  * @channel: dma channel (0 => 'Y', 1 => 'U', 2 => 'V')
+- * @cibr: camera Receive Buffer Register
++ * @sg: dma scatter list
++ * @sglen: dma scatter list length
+  *
+  * Prepares the pxa dma descriptors to transfer one camera channel.
+  *
+@@ -1010,6 +1011,8 @@ static void pxa_camera_wakeup(struct pxa_camera_dev *pcdev,
+ /**
+  * pxa_camera_check_link_miss - check missed DMA linking
+  * @pcdev: camera device
++ * @last_submitted: an opaque DMA cookie for last submitted
++ * @last_issued: an opaque DMA cookie for last issued
+  *
+  * The DMA chaining is done with DMA running. This means a tiny temporal window
+  * remains, where a buffer is queued on the chain, while the chain is already
 -- 
-Giulio Benetti
-R&D Manager &
-Advanced Research
-
-MICRONOVA SRL
-Sede: Via A. Niedda 3 - 35010 Vigonza (PD)
-Tel. 049/8931563 - Fax 049/8931346
-Cod.Fiscale - P.IVA 02663420285
-Capitale Sociale € 26.000 i.v.
-Iscritta al Reg. Imprese di Padova N. 02663420285
-Numero R.E.A. 258642
+2.14.3
