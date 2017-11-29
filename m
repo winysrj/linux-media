@@ -1,173 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mo4-p00-ob.smtp.rzone.de ([81.169.146.219]:31949 "EHLO
-        mo4-p00-ob.smtp.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751954AbdKHN20 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 8 Nov 2017 08:28:26 -0500
-Message-ID: <1510147704.2225.329.camel@rohdewald.de>
-Subject: Re: pctv452e oops without HTML
-From: Wolfgang Rohdewald <wolfgang@rohdewald.de>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Max Kellermann <max.kellermann@gmail.com>,
-        linux-media@vger.kernel.org
-Date: Wed, 08 Nov 2017 14:28:24 +0100
-In-Reply-To: <1510146389.2225.324.camel@rohdewald.de>
-References: <1510146389.2225.324.camel@rohdewald.de>
-Content-Type: multipart/mixed; boundary="=-18BcaRFZ+pV0qhg1T/7R"
-Mime-Version: 1.0
+Received: from smtp-4.sys.kth.se ([130.237.48.193]:54474 "EHLO
+        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752626AbdK2ToI (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 29 Nov 2017 14:44:08 -0500
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH v8 11/28] rcar-vin: do not allow changing scaling and composing while streaming
+Date: Wed, 29 Nov 2017 20:43:25 +0100
+Message-Id: <20171129194342.26239-12-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20171129194342.26239-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20171129194342.26239-1-niklas.soderlund+renesas@ragnatech.se>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+It is possible on Gen2 to change the registers controlling composing and
+scaling while the stream is running. It is however not a good idea to do
+so and could result in trouble. There are also no good reasons to allow
+this, remove immediate reflection in hardware registers from
+vidioc_s_selection and only configure scaling and composing when the
+stream starts.
 
---=-18BcaRFZ+pV0qhg1T/7R
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/platform/rcar-vin/rcar-dma.c  | 2 +-
+ drivers/media/platform/rcar-vin/rcar-v4l2.c | 3 ---
+ drivers/media/platform/rcar-vin/rcar-vin.h  | 3 ---
+ 3 files changed, 1 insertion(+), 7 deletions(-)
 
-since kernel 4.9 I cannot use my four dvb-s2 USB receivers anymore, so
-I am stuck with 4.8.x
-
-Now I tried again with an unmodified kernel 4.13.12. After some time, 
-I get 3 oopses (remember - I have 4 devices). The call trace is always
-the same.
-
-
-attached:
-
-tasks.txt showing the timing of the oopses
-oops.txt with one of them
-
-
+diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
+index fd14be20a6604d7a..7be5080f742825fb 100644
+--- a/drivers/media/platform/rcar-vin/rcar-dma.c
++++ b/drivers/media/platform/rcar-vin/rcar-dma.c
+@@ -514,7 +514,7 @@ static void rvin_set_coeff(struct rvin_dev *vin, unsigned short xs)
+ 	rvin_write(vin, p_set->coeff_set[23], VNC8C_REG);
+ }
+ 
+-void rvin_crop_scale_comp(struct rvin_dev *vin)
++static void rvin_crop_scale_comp(struct rvin_dev *vin)
+ {
+ 	u32 xs, ys;
+ 
+diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+index 254fa1c8770275a5..d6298c684ab2d731 100644
+--- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
++++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+@@ -436,9 +436,6 @@ static int rvin_s_selection(struct file *file, void *fh,
+ 		return -EINVAL;
+ 	}
+ 
+-	/* HW supports modifying configuration while running */
+-	rvin_crop_scale_comp(vin);
+-
+ 	return 0;
+ }
+ 
+diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
+index 36d0f0cc4ce01a6e..67541b483ee43c52 100644
+--- a/drivers/media/platform/rcar-vin/rcar-vin.h
++++ b/drivers/media/platform/rcar-vin/rcar-vin.h
+@@ -175,7 +175,4 @@ void rvin_v4l2_unregister(struct rvin_dev *vin);
+ 
+ const struct rvin_video_format *rvin_format_from_pixel(u32 pixelformat);
+ 
+-/* Cropping, composing and scaling */
+-void rvin_crop_scale_comp(struct rvin_dev *vin);
+-
+ #endif
 -- 
-mit freundlichen Grüssen
-
-Wolfgang Rohdewald
---=-18BcaRFZ+pV0qhg1T/7R
-Content-Disposition: attachment; filename="oops.txt"
-Content-Type: text/plain; name="oops.txt"; charset="UTF-8"
-Content-Transfer-Encoding: base64
-
-Tm92ICA4IDEzOjA1OjUxIHM1IGtlcm5lbDogWyAgIDgxLjU4ODU2OF0gV0FSTklORzogQ1BVOiAx
-IFBJRDogMjMzMSBhdCBtb2R1bGVfcHV0LnBhcnQuMzMrMHhiOC8weGQwCk5vdiAgOCAxMzowNTo1
-MSBzNSBrZXJuZWw6IFsgICA4MS41ODg1NjldIE1vZHVsZXMgbGlua2VkIGluOiBzbmRfaGRhX2Nv
-ZGVjX2hkbWkgeDg2X3BrZ190ZW1wX3RoZXJtYWwgaW50ZWxfcG93ZXJjbGFtcCBjb3JldGVtcCBr
-dm1faW50ZWwga3ZtIGlycWJ5cGFzcyBjcmN0MTBkaWZfcGNsbXVsIGNyYzMyX3BjbG11bCBnaGFz
-aF9jbG11bG5pX2ludGVsIHNuZF9oZGFfaW50ZWwgc25kX2hkYV9jb2RlYyBzbmRfaHdkZXAgYWVz
-bmlfaW50ZWwgc25kX2hkYV9jb3JlIHJjX3R0XzE1MDAgYWVzX3g4Nl82NCBjcnlwdG9fc2ltZCBz
-dGI2MTAwIGNyeXB0ZCBnbHVlX2hlbHBlciBsbmJwMjIgc25kX3BjbSBzbmRfc2VxX21pZGkgc25k
-X3NlcV9taWRpX2V2ZW50IHNuZF9yYXdtaWRpIGpveWRldiBzbmRfc2VxIHNnIGZ0ZGlfc2lvIHVz
-YnNlcmlhbCBkdmJfdXNiX3BjdHY0NTJlKC0pIGxwY19pY2ggc25kX3RpbWVyIHR0cGNpX2VlcHJv
-bSBkdmJfdXNiIGR2Yl9jb3JlIHNuZF9zZXFfZGV2aWNlIHJjX2NvcmUgc25kIG1laV9tZSBzb3Vu
-ZGNvcmUgbWVpIHNocGNocCB0cG1fdGlzIHRwbV90aXNfY29yZSBuZnNkIGF1dGhfcnBjZ3NzIG5m
-c19hY2wgbG9ja2QgZ3JhY2Ugc3RiMDg5OSBzdW5ycGMgaXBfdGFibGVzIHhfdGFibGVzIGF1dG9m
-czQgdXNiX3N0b3JhZ2UgaGlkX2dlbmVyaWMgaGlkX2xvZ2l0ZWNoX2hpZHBwIGhpZF9sb2dpdGVj
-aF9kaiB1c2JoaWQgaGlkIHNkX21vZCBub3V2ZWF1IGUxMDAwZSBhaGNpIHdtaSBwdHAgbGliYWhj
-aSBwcHNfY29yZSB0dG0gdmlkZW8KTm92ICA4IDEzOjA1OjUxIHM1IGtlcm5lbDogWyAgIDgxLjU4
-ODYwMl0gQ1BVOiAxIFBJRDogMjMzMSBDb21tOiBybW1vZCBOb3QgdGFpbnRlZCA0LjEzLjEyICMx
-Ck5vdiAgOCAxMzowNTo1MSBzNSBrZXJuZWw6IFsgICA4MS41ODg2MDNdIEhhcmR3YXJlIG5hbWU6
-ICAgICAgICAgICAgICAgICAgL0RIODdSTCwgQklPUyBSTEg4NzEwSC44NkEuMDMyMy4yMDEzLjEy
-MDQuMTcyNiAxMi8wNC8yMDEzCk5vdiAgOCAxMzowNTo1MSBzNSBrZXJuZWw6IFsgICA4MS41ODg2
-MDRdIHRhc2s6IGZmZmY4ODAxZWI2YmJjMDAgdGFzay5zdGFjazogZmZmZmM5MDAwODQ5NDAwMApO
-b3YgIDggMTM6MDU6NTEgczUga2VybmVsOiBbICAgODEuNTg4NjA2XSBSSVA6IDAwMTA6bW9kdWxl
-X3B1dC5wYXJ0LjMzKzB4YjgvMHhkMApOb3YgIDggMTM6MDU6NTEgczUga2VybmVsOiBbICAgODEu
-NTg4NjA2XSBSU1A6IDAwMTg6ZmZmZmM5MDAwODQ5N2NjMCBFRkxBR1M6IDAwMDEwMjk3Ck5vdiAg
-OCAxMzowNTo1MSBzNSBrZXJuZWw6IFsgICA4MS41ODg2MDddIFJBWDogMDAwMDAwMDAwMDAwMDAw
-MiBSQlg6IGZmZmZmZmZmYTAyNjcxNzAgUkNYOiAwMDAwMDAwMGZmZmZmZmZmCk5vdiAgOCAxMzow
-NTo1MSBzNSBrZXJuZWw6IFsgICA4MS41ODg2MDhdIFJEWDogMDAwMDAwMDAwMDAwMDAwMCBSU0k6
-IGZmZmZmZmZmYTAyNjcwMDAgUkRJOiAwMDAwMDAwMDAwMDAwMDAxCk5vdiAgOCAxMzowNTo1MSBz
-NSBrZXJuZWw6IFsgICA4MS41ODg2MDldIFJCUDogZmZmZmM5MDAwODQ5N2NkOCBSMDg6IDAwMDAw
-MDAwMDAwMDAwMDAgUjA5OiAwMDAwMDAwMDAwMDAwMWIwCk5vdiAgOCAxMzowNTo1MSBzNSBrZXJu
-ZWw6IFsgICA4MS41ODg2MDldIFIxMDogZmZmZmZmZmY4MWMwNmE4MCBSMTE6IGZmZmZmZmZmODFm
-MGYyMDAgUjEyOiBmZmZmZmZmZmEwMjZmMjgwCk5vdiAgOCAxMzowNTo1MSBzNSBrZXJuZWw6IFsg
-ICA4MS41ODg2MTBdIFIxMzogZmZmZjg4MDIxMDM2N2MwMCBSMTQ6IGZmZmY4ODAyMTRjZmQ4MDAg
-UjE1OiBmZmZmODgwMjE0Y2ZkODk4Ck5vdiAgOCAxMzowNTo1MSBzNSBrZXJuZWw6IFsgICA4MS41
-ODg2MTFdIEZTOiAgMDAwMDdmMDM1ZjZiMDc0MCgwMDAwKSBHUzpmZmZmODgwMjFlYzQwMDAwKDAw
-MDApIGtubEdTOjAwMDAwMDAwMDAwMDAwMDAKTm92ICA4IDEzOjA1OjUxIHM1IGtlcm5lbDogWyAg
-IDgxLjU4ODYxMV0gQ1M6ICAwMDEwIERTOiAwMDAwIEVTOiAwMDAwIENSMDogMDAwMDAwMDA4MDA1
-MDAzMwpOb3YgIDggMTM6MDU6NTEgczUga2VybmVsOiBbICAgODEuNTg4NjEyXSBDUjI6IDAwMDA3
-ZjM1NzcyOTMwMTggQ1IzOiAwMDAwMDAwMWIxZDNjMDAwIENSNDogMDAwMDAwMDAwMDE0MDZlMApO
-b3YgIDggMTM6MDU6NTEgczUga2VybmVsOiBbICAgODEuNTg4NjEzXSBDYWxsIFRyYWNlOgpOb3Yg
-IDggMTM6MDU6NTEgczUga2VybmVsOiBbICAgODEuNTg4NjE2XSAgPyBfc3RiMDg5OV9yZWFkX3Jl
-ZysweDEwMC8weDEwMCBbc3RiMDg5OV0KTm92ICA4IDEzOjA1OjUxIHM1IGtlcm5lbDogWyAgIDgx
-LjU4ODYxN10gID8gX3N0YjA4OTlfcmVhZF9yZWcrMHgxMDAvMHgxMDAgW3N0YjA4OTldCk5vdiAg
-OCAxMzowNTo1MSBzNSBrZXJuZWw6IFsgICA4MS41ODg2MTldICBzeW1ib2xfcHV0X2FkZHIrMHgz
-OC8weDYwCk5vdiAgOCAxMzowNTo1MSBzNSBrZXJuZWw6IFsgICA4MS41ODg2MjNdICBkdmJfZnJv
-bnRlbmRfcHV0KzB4NDIvMHg2MCBbZHZiX2NvcmVdCk5vdiAgOCAxMzowNTo1MSBzNSBrZXJuZWw6
-IFsgICA4MS41ODg2MjVdICA/IHN0YjA4OTlfc2xlZXArMHg1MC8weDUwIFtzdGIwODk5XQpOb3Yg
-IDggMTM6MDU6NTEgczUga2VybmVsOiBbICAgODEuNTg4NjI3XSAgZHZiX2Zyb250ZW5kX2RldGFj
-aCsweDdjLzB4OTAgW2R2Yl9jb3JlXQpOb3YgIDggMTM6MDU6NTEgczUga2VybmVsOiBbICAgODEu
-NTg4NjI5XSAgZHZiX3VzYl9hZGFwdGVyX2Zyb250ZW5kX2V4aXQrMHg1Ny8weDgwIFtkdmJfdXNi
-XQpOb3YgIDggMTM6MDU6NTEgczUga2VybmVsOiBbICAgODEuNTg4NjMxXSAgZHZiX3VzYl9leGl0
-KzB4MzkvMHhiMCBbZHZiX3VzYl0KTm92ICA4IDEzOjA1OjUxIHM1IGtlcm5lbDogWyAgIDgxLjU4
-ODYzM10gIGR2Yl91c2JfZGV2aWNlX2V4aXQrMHgzZi8weDYwIFtkdmJfdXNiXQpOb3YgIDggMTM6
-MDU6NTEgczUga2VybmVsOiBbICAgODEuNTg4NjM0XSAgcGN0djQ1MmVfdXNiX2Rpc2Nvbm5lY3Qr
-MHg2Zi8weDgwIFtkdmJfdXNiX3BjdHY0NTJlXQpOb3YgIDggMTM6MDU6NTEgczUga2VybmVsOiBb
-ICAgODEuNTg4NjM4XSAgdXNiX3VuYmluZF9pbnRlcmZhY2UrMHg3Mi8weDI4MApOb3YgIDggMTM6
-MDU6NTEgczUga2VybmVsOiBbICAgODEuNTg4NjQwXSAgPyBfcmF3X3NwaW5fdW5sb2NrX2lycXJl
-c3RvcmUrMHgyNC8weDQwCk5vdiAgOCAxMzowNTo1MSBzNSBrZXJuZWw6IFsgICA4MS41ODg2NDNd
-ICBkZXZpY2VfcmVsZWFzZV9kcml2ZXJfaW50ZXJuYWwrMHgxNTgvMHgyMTAKTm92ICA4IDEzOjA1
-OjUxIHM1IGtlcm5lbDogWyAgIDgxLjU4ODY0NF0gIGRyaXZlcl9kZXRhY2grMHgzZC8weDgwCk5v
-diAgOCAxMzowNTo1MSBzNSBrZXJuZWw6IFsgICA4MS41ODg2NDVdICBidXNfcmVtb3ZlX2RyaXZl
-cisweDU5LzB4ZDAKTm92ICA4IDEzOjA1OjUxIHM1IGtlcm5lbDogWyAgIDgxLjU4ODY0Nl0gIGRy
-aXZlcl91bnJlZ2lzdGVyKzB4MmMvMHg0MApOb3YgIDggMTM6MDU6NTEgczUga2VybmVsOiBbICAg
-ODEuNTg4NjQ4XSAgdXNiX2RlcmVnaXN0ZXIrMHg2OS8weGUwCk5vdiAgOCAxMzowNTo1MSBzNSBr
-ZXJuZWw6IFsgICA4MS41ODg2NDldICBwY3R2NDUyZV91c2JfZHJpdmVyX2V4aXQrMHgxMC8weGVj
-MCBbZHZiX3VzYl9wY3R2NDUyZV0KTm92ICA4IDEzOjA1OjUxIHM1IGtlcm5lbDogWyAgIDgxLjU4
-ODY1MV0gIFN5U19kZWxldGVfbW9kdWxlKzB4MTdlLzB4MjEwCk5vdiAgOCAxMzowNTo1MSBzNSBr
-ZXJuZWw6IFsgICA4MS41ODg2NTNdICBlbnRyeV9TWVNDQUxMXzY0X2Zhc3RwYXRoKzB4MWUvMHhh
-OQpOb3YgIDggMTM6MDU6NTEgczUga2VybmVsOiBbICAgODEuNTg4NjU0XSBSSVA6IDAwMzM6MHg3
-ZjAzNWYxZWIyNTcKTm92ICA4IDEzOjA1OjUxIHM1IGtlcm5lbDogWyAgIDgxLjU4ODY1NF0gUlNQ
-OiAwMDJiOjAwMDA3ZmZlYjgwMjEzYTggRUZMQUdTOiAwMDAwMDIwNiBPUklHX1JBWDogMDAwMDAw
-MDAwMDAwMDBiMApOb3YgIDggMTM6MDU6NTEgczUga2VybmVsOiBbICAgODEuNTg4NjU1XSBSQVg6
-IGZmZmZmZmZmZmZmZmZmZGEgUkJYOiAwMDAwMDAwMDAwMDAwMDAwIFJDWDogMDAwMDdmMDM1ZjFl
-YjI1NwpOb3YgIDggMTM6MDU6NTEgczUga2VybmVsOiBbICAgODEuNTg4NjU2XSBSRFg6IDAwMDAw
-MDAwMDAwMDAwMGEgUlNJOiAwMDAwMDAwMDAwMDAwODAwIFJESTogMDAwMDU1ZjE4YmFhZjdmOApO
-b3YgIDggMTM6MDU6NTEgczUga2VybmVsOiBbICAgODEuNTg4NjU2XSBSQlA6IDAwMDA1NWYxOGJh
-YWY3OTAgUjA4OiAwMDAwMDAwMDAwMDAwMDBhIFIwOTogMDAwMDAwMDAwMDAwMDAwMApOb3YgIDgg
-MTM6MDU6NTEgczUga2VybmVsOiBbICAgODEuNTg4NjU3XSBSMTA6IDAwMDA3ZjAzNWYyNjQyNDAg
-UjExOiAwMDAwMDAwMDAwMDAwMjA2IFIxMjogMDAwMDAwMDAwMDAwMDAwMwpOb3YgIDggMTM6MDU6
-NTEgczUga2VybmVsOiBbICAgODEuNTg4NjU3XSBSMTM6IDAwMDA3ZmZlYjgwMjAzOTAgUjE0OiAw
-MDAwNTVmMThiYWFlMjYwIFIxNTogMDAwMDU1ZjE4YmFhZjc5MApOb3YgIDggMTM6MDU6NTEgczUg
-a2VybmVsOiBbICAgODEuNTg4NjU4XSBDb2RlOiA0OCA4YiAwMyA0OCA4YiA3YiAwOCA0OCA4MyBj
-MyAxOCA0YyA4OSBlYSA0YyA4OSBlNiBmZiBkMCA0OCA4YiAwMyA0OCA4NSBjMCA3NSBlOCA2NSBm
-ZiAwZCA4MSA4NCBmMSA3ZSA3NSA5YSBlOCA0NSBlMCBmMCBmZiBlYiA5MyA8MGY+IGZmIGViIDg2
-IGU4IDIyIGUwIGYwIGZmIDViIDQxIDVjIDQxIDVkIDVkIGMzIDg5IGMyIGU5IDU0IGZmIApOb3Yg
-IDggMTM6MDU6NTEgczUga2VybmVsOiBbICAgODEuNTg4Njc3XSAtLS1bIGVuZCB0cmFjZSA2M2U4
-YjkxMjVjMzZkZDg5IF0tLS0KTm92ICA4IDEzOjA1OjUxIHM1IGtlcm5lbDogWyAgIDgxLjU4ODky
-OF0gZHZiLXVzYjogVGVjaG5vdHJlbmQgVFQgQ29ubmVjdCBTMi0zNjAwIHN1Y2Nlc3NmdWxseSBk
-ZWluaXRpYWxpemVkIGFuZCBkaXNjb25uZWN0ZWQuCk5vdiAgOCAxMzowNTo1MSBzNSBrZXJuZWw6
-IFsgICA4MS42MzY1MTRdIGR2Yi11c2I6IGJ1bGsgbWVzc2FnZSBmYWlsZWQ6IC0yICgxMS8wKQpO
-b3YgIDggMTM6MDU6NTEgczUga2VybmVsOiBbICAgODEuNjM2NTE4XSBwY3R2NDUyZTogSTJDIGVy
-cm9yIC0yOyBBQSA0NCAgMTAgMDQgMDAgLT4gYWEgNDQgMzEgMDcgMTAgMDQgMDAKTm92ICA4IDEz
-OjA1OjUxIHM1IGtlcm5lbDogWyAgIDgxLjYzNjUyMl0gZHZiLXVzYjogYnVsayBtZXNzYWdlIGZh
-aWxlZDogLTIgKDEwLzApCk5vdiAgOCAxMzowNTo1MSBzNSBrZXJuZWw6IFsgICA4MS42MzY1MjRd
-IHBjdHY0NTJlOiBJMkMgZXJyb3IgLTI7IEFBIDQ1ICBEMCAwMyAwMCAtPiBhYSA0NSAzMSAwNiBk
-MCAwMyAwMAo=
-
-
---=-18BcaRFZ+pV0qhg1T/7R
-Content-Disposition: attachment; filename="tasks.txt"
-Content-Type: text/plain; name="tasks.txt"; charset="UTF-8"
-Content-Transfer-Encoding: base64
-
-Tm92ICA3IDIwOjA2OjAwIHM1IGtlcm5lbDogWzExNTM4My42NzQ2NTRdIHRhc2s6IGZmZmY4ODAy
-MTQ5MmJjMDAgdGFzay5zdGFjazogZmZmZmM5MDAwZGI5NDAwMApOb3YgIDcgMjA6MDY6MDEgczUg
-a2VybmVsOiBbMTE1MzgzLjcyNjY2OF0gdGFzazogZmZmZjg4MDIxNDkyYmMwMCB0YXNrLnN0YWNr
-OiBmZmZmYzkwMDBkYjk0MDAwCk5vdiAgNyAyMDowNjowMSBzNSBrZXJuZWw6IFsxMTUzODMuNzI2
-Nzc0XSB0YXNrOiBmZmZmODgwMjE0OTJiYzAwIHRhc2suc3RhY2s6IGZmZmZjOTAwMGRiOTQwMDAK
-Tm92ICA3IDIwOjE1OjQ4IHM1IGtlcm5lbDogWyAgIDgxLjc4NTQ2MV0gdGFzazogZmZmZjg4MDFi
-OTNhODAwMCB0YXNrLnN0YWNrOiBmZmZmYzkwMDAzZmQ4MDAwCk5vdiAgNyAyMDoxNTo0OCBzNSBr
-ZXJuZWw6IFsgICA4MS44Mjk0MDFdIHRhc2s6IGZmZmY4ODAxYjkzYTgwMDAgdGFzay5zdGFjazog
-ZmZmZmM5MDAwM2ZkODAwMApOb3YgIDcgMjA6MTU6NDggczUga2VybmVsOiBbICAgODEuODI5NDk0
-XSB0YXNrOiBmZmZmODgwMWI5M2E4MDAwIHRhc2suc3RhY2s6IGZmZmZjOTAwMDNmZDgwMDAKTm92
-ICA3IDIzOjQxOjAxIHM1IGtlcm5lbDogWyA2NDI4LjUyMDc2MF0gdGFzazogZmZmZjg4MDIwMjQ1
-NWEwMCB0YXNrLnN0YWNrOiBmZmZmYzkwMDBjYzU0MDAwCk5vdiAgNyAyMzo0MTowMSBzNSBrZXJu
-ZWw6IFsgNjQyOC41NzY3NjBdIHRhc2s6IGZmZmY4ODAyMDI0NTVhMDAgdGFzay5zdGFjazogZmZm
-ZmM5MDAwY2M1NDAwMApOb3YgIDcgMjM6NDE6MDEgczUga2VybmVsOiBbIDY0MjguNTc2OTA0XSB0
-YXNrOiBmZmZmODgwMjAyNDU1YTAwIHRhc2suc3RhY2s6IGZmZmZjOTAwMGNjNTQwMDAKTm92ICA4
-IDEzOjA1OjUxIHM1IGtlcm5lbDogWyAgIDgxLjU4ODYwNF0gdGFzazogZmZmZjg4MDFlYjZiYmMw
-MCB0YXNrLnN0YWNrOiBmZmZmYzkwMDA4NDk0MDAwCk5vdiAgOCAxMzowNTo1MSBzNSBrZXJuZWw6
-IFsgICA4MS42MzY1NjddIHRhc2s6IGZmZmY4ODAxZWI2YmJjMDAgdGFzay5zdGFjazogZmZmZmM5
-MDAwODQ5NDAwMApOb3YgIDggMTM6MDU6NTEgczUga2VybmVsOiBbICAgODEuNjM2NjY3XSB0YXNr
-OiBmZmZmODgwMWViNmJiYzAwIHRhc2suc3RhY2s6IGZmZmZjOTAwMDg0OTQwMDAK
-
-
---=-18BcaRFZ+pV0qhg1T/7R--
+2.15.0
