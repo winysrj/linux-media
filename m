@@ -1,78 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:57433 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752005AbdK1OC3 (ORCPT
+Received: from smtp-4.sys.kth.se ([130.237.48.193]:54516 "EHLO
+        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752659AbdK2ToK (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 28 Nov 2017 09:02:29 -0500
-Subject: Re: [PATCH] media: i2c: adv748x: Restore full DT paths in kernel
- messages
-To: Geert Uytterhoeven <geert+renesas@glider.be>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>
-Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org, linux-kernel@vger.kernel.org
-References: <1511874084-5068-1-git-send-email-geert+renesas@glider.be>
-From: Kieran Bingham <kieran.bingham@ideasonboard.com>
-Message-ID: <60496d91-446a-435e-41a4-3e579c6fe08b@ideasonboard.com>
-Date: Tue, 28 Nov 2017 14:02:25 +0000
+        Wed, 29 Nov 2017 14:44:10 -0500
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH v8 16/28] rcar-vin: add function to manipulate Gen3 chsel value
+Date: Wed, 29 Nov 2017 20:43:30 +0100
+Message-Id: <20171129194342.26239-17-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20171129194342.26239-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20171129194342.26239-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-In-Reply-To: <1511874084-5068-1-git-send-email-geert+renesas@glider.be>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Geert,
+On Gen3 the CSI-2 routing is controlled by the VnCSI_IFMD register. One
+feature of this register is that it's only present in the VIN0 and VIN4
+instances. The register in VIN0 controls the routing for VIN0-3 and the
+register in VIN4 controls routing for VIN4-7.
 
-Thanks for the patch.
+To be able to control routing from a media device this function is need
+to control runtime PM for the subgroup master (VIN0 and VIN4). The
+subgroup master must be switched on before the register is manipulated,
+once the operation is complete it's safe to switch the master off and
+the new routing will still be in effect.
 
-On 28/11/17 13:01, Geert Uytterhoeven wrote:
-> As of_node_full_name() now returns only the basename, the endpoint
-> information printed became useless:
-> 
->     adv748x 4-0070: Endpoint endpoint on port 7
->     adv748x 4-0070: Endpoint endpoint on port 8
->     adv748x 4-0070: Endpoint endpoint on port 10
->     adv748x 4-0070: Endpoint endpoint on port 11
-> 
-> Restore the old behavior by using "%pOF" instead:
-> 
->     adv748x 4-0070: Endpoint /soc/i2c@e66d8000/video-receiver@70/port@7/endpoint on port 7
->     adv748x 4-0070: Endpoint /soc/i2c@e66d8000/video-receiver@70/port@8/endpoint on port 8
->     adv748x 4-0070: Endpoint /soc/i2c@e66d8000/video-receiver@70/port@10/endpoint on port 10
->     adv748x 4-0070: Endpoint /soc/i2c@e66d8000/video-receiver@70/port@11/endpoint on port 11
-> 
-> Fixes: a7e4cfb0a7ca4773 ("of/fdt: only store the device node basename in full_name")
-> Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/platform/rcar-vin/rcar-dma.c | 25 +++++++++++++++++++++++++
+ drivers/media/platform/rcar-vin/rcar-vin.h |  2 ++
+ 2 files changed, 27 insertions(+)
 
-Acked-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-
-> ---
->  drivers/media/i2c/adv748x/adv748x-core.c | 10 ++++------
->  1 file changed, 4 insertions(+), 6 deletions(-)
-> 
-> diff --git a/drivers/media/i2c/adv748x/adv748x-core.c b/drivers/media/i2c/adv748x/adv748x-core.c
-> index 5ee14f2c27478e3a..c1001db6a172e256 100644
-> --- a/drivers/media/i2c/adv748x/adv748x-core.c
-> +++ b/drivers/media/i2c/adv748x/adv748x-core.c
-> @@ -646,14 +646,12 @@ static int adv748x_parse_dt(struct adv748x_state *state)
->  
->  	for_each_endpoint_of_node(state->dev->of_node, ep_np) {
->  		of_graph_parse_endpoint(ep_np, &ep);
-> -		adv_info(state, "Endpoint %s on port %d",
-> -				of_node_full_name(ep.local_node),
-> -				ep.port);
-> +		adv_info(state, "Endpoint %pOF on port %d", ep.local_node,
-> +			 ep.port);
->  
->  		if (ep.port >= ADV748X_PORT_MAX) {
-> -			adv_err(state, "Invalid endpoint %s on port %d",
-> -				of_node_full_name(ep.local_node),
-> -				ep.port);
-> +			adv_err(state, "Invalid endpoint %pOF on port %d",
-> +				ep.local_node, ep.port);
->  
->  			continue;
->  		}
-> 
+diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
+index ace95d5b543a17e3..d2788d8bb9565aaa 100644
+--- a/drivers/media/platform/rcar-vin/rcar-dma.c
++++ b/drivers/media/platform/rcar-vin/rcar-dma.c
+@@ -16,6 +16,7 @@
+ 
+ #include <linux/delay.h>
+ #include <linux/interrupt.h>
++#include <linux/pm_runtime.h>
+ 
+ #include <media/videobuf2-dma-contig.h>
+ 
+@@ -1228,3 +1229,27 @@ int rvin_dma_register(struct rvin_dev *vin, int irq)
+ 
+ 	return ret;
+ }
++
++/* -----------------------------------------------------------------------------
++ * Gen3 CHSEL manipulation
++ */
++
++void rvin_set_chsel(struct rvin_dev *vin, u8 chsel)
++{
++	u32 ifmd, vnmc;
++
++	pm_runtime_get_sync(vin->dev);
++
++	/* Make register writes take effect immediately */
++	vnmc = rvin_read(vin, VNMC_REG) & ~VNMC_VUP;
++	rvin_write(vin, vnmc, VNMC_REG);
++
++	ifmd = VNCSI_IFMD_DES2 | VNCSI_IFMD_DES1 | VNCSI_IFMD_DES0 |
++		VNCSI_IFMD_CSI_CHSEL(chsel);
++
++	rvin_write(vin, ifmd, VNCSI_IFMD_REG);
++
++	vin_dbg(vin, "Set IFMD 0x%x\n", ifmd);
++
++	pm_runtime_put(vin->dev);
++}
+diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
+index a440effe4b86af31..7819c760c2c13422 100644
+--- a/drivers/media/platform/rcar-vin/rcar-vin.h
++++ b/drivers/media/platform/rcar-vin/rcar-vin.h
+@@ -163,4 +163,6 @@ void rvin_v4l2_unregister(struct rvin_dev *vin);
+ 
+ const struct rvin_video_format *rvin_format_from_pixel(u32 pixelformat);
+ 
++void rvin_set_chsel(struct rvin_dev *vin, u8 chsel);
++
+ #endif
+-- 
+2.15.0
