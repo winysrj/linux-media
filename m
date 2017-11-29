@@ -1,54 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from userp1040.oracle.com ([156.151.31.81]:26068 "EHLO
-        userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751693AbdK1OPs (ORCPT
+Received: from wp215.webpack.hosteurope.de ([80.237.132.222]:37314 "EHLO
+        wp215.webpack.hosteurope.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S933185AbdK2Pg7 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 28 Nov 2017 09:15:48 -0500
-Date: Tue, 28 Nov 2017 17:15:24 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: Jeremy Sowden <jeremy@azazel.net>
+        Wed, 29 Nov 2017 10:36:59 -0500
+Subject: [PATCH Resend] staging: media: cxd2099: style fix - replace
+ hard-coded function names
+From: Martin Homuth <martin@martinhomuth.de>
+To: mchehab@kernel.org
 Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org
-Subject: Re: [PATCH v2 1/3] media: staging: atomisp: fix for sparse "using
- plain integer as NULL pointer" warnings.
-Message-ID: <20171128141524.kpvqbowgmpkzwfuz@mwanda>
-References: <20171127122125.GB8561@kroah.com>
- <20171127124450.28799-1-jeremy@azazel.net>
- <20171127124450.28799-2-jeremy@azazel.net>
+References: <d7fcc467-55df-15eb-51c8-effa8ece304f@martinhomuth.de>
+ <0c9de06d-4e7d-bc10-9980-3a55dde71b68@martinhomuth.de>
+Message-ID: <b41acde7-ccf0-e630-0ff5-3904b7199484@martinhomuth.de>
+Date: Wed, 29 Nov 2017 16:36:56 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20171127124450.28799-2-jeremy@azazel.net>
+In-Reply-To: <0c9de06d-4e7d-bc10-9980-3a55dde71b68@martinhomuth.de>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Nov 27, 2017 at 12:44:48PM +0000, Jeremy Sowden wrote:
-> The "address" member of struct ia_css_host_data is a pointer-to-char, so define default as NULL.
-> 
-> Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
-> ---
->  .../css2400/runtime/isp_param/interface/ia_css_isp_param_types.h        | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/runtime/isp_param/interface/ia_css_isp_param_types.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/runtime/isp_param/interface/ia_css_isp_param_types.h
-> index 8e651b80345a..6fee3f7fd184 100644
-> --- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/runtime/isp_param/interface/ia_css_isp_param_types.h
-> +++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/runtime/isp_param/interface/ia_css_isp_param_types.h
-> @@ -95,7 +95,7 @@ union ia_css_all_memory_offsets {
->  };
->  
->  #define IA_CSS_DEFAULT_ISP_MEM_PARAMS \
-> -		{ { { { 0, 0 } } } }
-> +		{ { { { NULL, 0 } } } }
+This patch fixes the remaining coding style warnings in the cxd2099
+module. Instead of hard coding the function name the __func__ variable
+should be used.
 
-This define is way ugly and instead of making superficial changes, you
-should try to eliminate it.
+It fixes the following checkpatch.pl warning:
 
-People look at warnings as a bad thing but they are actually a valuable
-resource which call attention to bad code.  By making this change you're
-kind of wasting the warning.  The bad code is still there, it's just
-swept under the rug but like a dead mouse carcass it's still stinking up
-the living room.  We should leave the warning there until it irritates
-someone enough to fix it properly.
+WARNING: Prefer using '"%s...", __func__' to using 'i2c_read_reg', this
+function's name, in a string
 
-regards,
-dan carpenter
+Signed-off-by: Martin Homuth <martin.homuth@martinhomuth.de>
+---
+ drivers/staging/media/cxd2099/cxd2099.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/staging/media/cxd2099/cxd2099.c
+b/drivers/staging/media/cxd2099/cxd2099.c
+index 3e30f48..6641dd2 100644
+--- a/drivers/staging/media/cxd2099/cxd2099.c
++++ b/drivers/staging/media/cxd2099/cxd2099.c
+@@ -101,7 +101,7 @@ static int i2c_read_reg(struct i2c_adapter *adapter,
+u8 adr,
+ 				   .buf = val, .len = 1} };
+
+ 	if (i2c_transfer(adapter, msgs, 2) != 2) {
+-		dev_err(&adapter->dev, "error in i2c_read_reg\n");
++		dev_err(&adapter->dev, "error in %s\n", __func__);
+ 		return -1;
+ 	}
+ 	return 0;
+@@ -116,7 +116,7 @@ static int i2c_read(struct i2c_adapter *adapter, u8 adr,
+ 				   .buf = data, .len = n} };
+
+ 	if (i2c_transfer(adapter, msgs, 2) != 2) {
+-		dev_err(&adapter->dev, "error in i2c_read\n");
++		dev_err(&adapter->dev, "error in %s\n", __func__);
+ 		return -1;
+ 	}
+ 	return 0;
+-- 
+2.10.0
