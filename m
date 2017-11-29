@@ -1,134 +1,191 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:48699 "EHLO
-        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750726AbdK0FDQ (ORCPT
+Received: from PrakOutbound.VEHosting.nl ([85.17.51.155]:59693 "EHLO
+        Prakkezator.VEHosting.nl" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S933240AbdK2Pg0 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 27 Nov 2017 00:03:16 -0500
-Message-ID: <8b32a3bb99d2f3bd4483d98acc16c561@smtp-cloud9.xs4all.net>
-Date: Mon, 27 Nov 2017 06:03:13 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
+        Wed, 29 Nov 2017 10:36:26 -0500
+From: Thomas van Kleef <thomas@vitsch.nl>
+Subject: Re: [linux-sunxi] Cedrus driver
+To: Maxime Ripard <maxime.ripard@free-electrons.com>
+Cc: Giulio Benetti <giulio.benetti@micronovasrl.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Andreas Baierl <list@imkreisrum.de>,
+        linux-sunxi <linux-sunxi@googlegroups.com>,
+        linux@armlinux.org.uk, wens@csie.org, linux-kernel@vger.kernel.org,
+        linux-media@vger.kernel.org
+References: <1511969761-6608110782.e622897b62@prakkezator.vehosting.nl>
+Message-ID: <cc728978-e723-289c-ec85-d2d27e937083@vitsch.nl>
+Date: Wed, 29 Nov 2017 16:36:01 +0100
+MIME-Version: 1.0
+In-Reply-To: <20171128153533.ncqe4lkgjdzjiyuw@flea.home>
+Content-Type: text/plain; charset=windows-1252
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Maxime,
+> 
+> So there's a couple of issues with those patches (the pull request
+> itself is fine though :))
+> 
+> I'll try to break them down as much as possible.
+> 
+> A) If you want to have proper commit logs, you will usually do two
+>    things: first create a commit title, which is what appears in the
+>    above summary. That commit title should not be longer than 72
+>    characters, and it should explain roughly what you're trying to
+>    do. The actual description should be in the commit log itself, and
+>    you should document what is the issue you're trying to fix /
+>    improve, how you're doing it and why you've done it that way.
+Ah, so the pull-request commits are not proper, I will try do that from
+now on. these last ones are quite bad.
+> 
+>    The final line of that commit log shoud be your Signed-off-by,
+>    which is your agreement to the Developer Certificate of Origin
+>    (DCO), that you'll find documented here:
+>    https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/tree/Documentation/process/submitting-patches.rst#n429
+> 
+> B) Please base your work on a known release (4.14) and not the middle
+>    of Linus' branch.
+Should be fixed now.
+> 
+> C) I'm not sure what you tried to do with the application of the
+>    request API patches (such as e1ca861c168f) but we want to have the
+>    whole commits in there, and not a patch adding all of them. This
+>    will make the work so much easier to rebase to a later version when
+>    some patches wouldn't have been merged and some would have.
+> 
+> D) Rebase :)
+Thank you. Giulio asked before if I could add a repo and commit the 
+patches so that is what I did. I will push a different code where the
+full history is present in commits.
 
-Results of the daily build of media_tree:
+So, I got it setup. As I did test it before on the slightly newer branch,
+I did not verify, again, if the video-decoder worked on this specific 
+state of the linux kernel, 4.14. But it should x:
+If you rather wait for me to tell if it work let me know, but we could do
+a pull request then again anyway.
 
-date:			Mon Nov 27 05:00:15 CET 2017
-media-tree git hash:	30b4e122d71cbec2944a5f8b558b88936ee42f10
-media_build git hash:	097aaf3e4e4bfdeff130db9697dec1befeb3221b
-v4l-utils git hash:	a8a04d397e929381a2150bee2100fc28ad2cfbec
-gcc version:		i686-linux-gcc (GCC) 7.1.0
-sparse version:		0.5.1 (Debian: 0.5.1-2)
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.13.0-164
+So here is the new pull-request
+The following changes since commit bebc6082da0a9f5d47a1ea2edc099bf671058bd4:
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: WARNINGS
-linux-3.12.67-i686: WARNINGS
-linux-3.13.11-i686: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.16.7-i686: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.18.7-i686: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-4.0.9-i686: WARNINGS
-linux-4.1.33-i686: WARNINGS
-linux-4.2.8-i686: WARNINGS
-linux-4.3.6-i686: WARNINGS
-linux-4.4.22-i686: WARNINGS
-linux-4.5.7-i686: WARNINGS
-linux-4.6.7-i686: WARNINGS
-linux-4.7.5-i686: WARNINGS
-linux-4.8-i686: OK
-linux-4.9.26-i686: OK
-linux-4.10.14-i686: OK
-linux-4.11-i686: OK
-linux-4.12.1-i686: OK
-linux-4.13-i686: OK
-linux-4.14-i686: OK
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: WARNINGS
-linux-3.12.67-x86_64: WARNINGS
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16.7-x86_64: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.7-x86_64: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0.9-x86_64: WARNINGS
-linux-4.1.33-x86_64: WARNINGS
-linux-4.2.8-x86_64: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.22-x86_64: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-x86_64: WARNINGS
-linux-4.9.26-x86_64: WARNINGS
-linux-4.10.14-x86_64: WARNINGS
-linux-4.11-x86_64: WARNINGS
-linux-4.12.1-x86_64: WARNINGS
-linux-4.13-x86_64: OK
-linux-4.14-x86_64: OK
-apps: OK
-spec-git: OK
-sparse: WARNINGS
+  Linux 4.14 (2017-11-12 10:46:13 -0800)
 
-Detailed results are available here:
+are available in the git repository at:
 
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
+  https://github.com/thomas-vitsch/linux-a20-cedrus.git linux-sunxi-cedrus
 
-Full logs are available here:
+for you to fetch changes up to 26701eca67a07ab002c7fd18038fa299b9589939:
 
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+  Fix the sun5i and sun8i dts files (2017-11-29 15:18:05 +0100)
 
-The Media Infrastructure API from this daily build is here:
+----------------------------------------------------------------
+Bob Ham (1):
+      sunxi-cedrus: Fix compilation errors from bad types under GCC 6.2
 
-http://www.xs4all.nl/~hverkuil/spec/index.html
+Florent Revest (8):
+      Both mainline and cedrus had added their own formats with both are added.
+      v4l: Add MPEG2 low-level decoder API control
+      v4l: Add MPEG4 low-level decoder API control
+      media: platform: Add Sunxi Cedrus decoder driver
+      sunxi-cedrus: Add a MPEG 2 codec
+      sunxi-cedrus: Add a MPEG 4 codec
+      sunxi-cedrus: Add device tree binding document
+      ARM: dts: sun5i: Use video-engine node
+
+Hans Verkuil (15):
+      videodev2.h: add max_reqs to struct v4l2_query_ext_ctrl
+      videodev2.h: add request to v4l2_ext_controls
+      videodev2.h: add request field to v4l2_buffer.
+      vb2: add allow_requests flag
+      v4l2-ctrls: add request support
+      v4l2-ctrls: add function to apply a request.
+      v4l2-ctrls: implement delete request(s)
+      v4l2-ctrls: add VIDIOC_REQUEST_CMD
+      v4l2: add initial V4L2_REQ_CMD_QUEUE support
+      vb2: add helper function to queue request-specific buffer.
+      v4l2-device: keep track of registered video_devices
+      v4l2-device: add v4l2_device_req_queue
+      vivid: add request support for video capture.
+      v4l2-ctrls: add REQ_KEEP flag
+      Documentation: add v4l2-requests.txt
+
+Icenowy Zheng (2):
+      sunxi-cedrus: add syscon support
+      ARM: dts: sun8i: add video engine support for A33
+
+Thomas van Kleef (4):
+      Merged requests2 into linux 4.14
+      Fix merge error
+      Remove reject file from merge
+      Fix the sun5i and sun8i dts files
+
+ .../devicetree/bindings/media/sunxi-cedrus.txt     |  44 ++
+ Documentation/video4linux/v4l2-requests.txt        | 233 ++++++++
+ arch/arm/boot/dts/sun5i-a13-difrnce-dit4350.dts    |  50 --
+ arch/arm/boot/dts/sun5i-a13.dtsi                   |  30 ++
+ arch/arm/boot/dts/sun8i-a33.dtsi                   |  39 ++
+ drivers/media/platform/Kconfig                     |  13 +
+ drivers/media/platform/Makefile                    |   1 +
+ drivers/media/platform/sunxi-cedrus/Makefile       |   4 +
+ drivers/media/platform/sunxi-cedrus/sunxi_cedrus.c | 285 ++++++++++
+ .../platform/sunxi-cedrus/sunxi_cedrus_common.h    | 104 ++++
+ .../media/platform/sunxi-cedrus/sunxi_cedrus_dec.c | 588 +++++++++++++++++++++
+ .../media/platform/sunxi-cedrus/sunxi_cedrus_dec.h |  33 ++
+ .../media/platform/sunxi-cedrus/sunxi_cedrus_hw.c  | 180 +++++++
+ .../media/platform/sunxi-cedrus/sunxi_cedrus_hw.h  |  39 ++
+ .../platform/sunxi-cedrus/sunxi_cedrus_mpeg2.c     | 152 ++++++
+ .../platform/sunxi-cedrus/sunxi_cedrus_mpeg4.c     | 140 +++++
+ .../platform/sunxi-cedrus/sunxi_cedrus_regs.h      | 170 ++++++
+ drivers/media/platform/vivid/vivid-core.c          |   2 +
+ drivers/media/platform/vivid/vivid-ctrls.c         |   4 +
+ drivers/media/platform/vivid/vivid-kthread-cap.c   |   2 +
+ drivers/media/usb/cpia2/cpia2_v4l.c                |   1 +
+ drivers/media/v4l2-core/v4l2-compat-ioctl32.c      |   4 +-
+ drivers/media/v4l2-core/v4l2-ctrls.c               | 460 ++++++++++++++--
+ drivers/media/v4l2-core/v4l2-dev.c                 |   9 +
+ drivers/media/v4l2-core/v4l2-device.c              |  28 +
+ drivers/media/v4l2-core/v4l2-ioctl.c               | 121 ++++-
+ drivers/media/v4l2-core/v4l2-subdev.c              |  78 ++-
+ drivers/media/v4l2-core/videobuf2-v4l2.c           |  28 +
+ include/media/v4l2-ctrls.h                         |  45 +-
+ include/media/v4l2-dev.h                           |   3 +
+ include/media/v4l2-device.h                        |   6 +
+ include/media/v4l2-fh.h                            |   4 +
+ include/media/videobuf2-core.h                     |   3 +
+ include/media/videobuf2-v4l2.h                     |   3 +
+ include/uapi/linux/v4l2-controls.h                 |  68 +++
+ include/uapi/linux/videodev2.h                     |  41 +-
+ 36 files changed, 2883 insertions(+), 132 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/media/sunxi-cedrus.txt
+ create mode 100644 Documentation/video4linux/v4l2-requests.txt
+ delete mode 100644 arch/arm/boot/dts/sun5i-a13-difrnce-dit4350.dts
+ create mode 100644 drivers/media/platform/sunxi-cedrus/Makefile
+ create mode 100644 drivers/media/platform/sunxi-cedrus/sunxi_cedrus.c
+ create mode 100644 drivers/media/platform/sunxi-cedrus/sunxi_cedrus_common.h
+ create mode 100644 drivers/media/platform/sunxi-cedrus/sunxi_cedrus_dec.c
+ create mode 100644 drivers/media/platform/sunxi-cedrus/sunxi_cedrus_dec.h
+ create mode 100644 drivers/media/platform/sunxi-cedrus/sunxi_cedrus_hw.c
+ create mode 100644 drivers/media/platform/sunxi-cedrus/sunxi_cedrus_hw.h
+ create mode 100644 drivers/media/platform/sunxi-cedrus/sunxi_cedrus_mpeg2.c
+ create mode 100644 drivers/media/platform/sunxi-cedrus/sunxi_cedrus_mpeg4.c
+ create mode 100644 drivers/media/platform/sunxi-cedrus/sunxi_cedrus_regs.h
+
+> 
+> Thanks!
+> Maxime
+> 
+
+
+
+Thomas van Kleef
+Vitsch Electronics
+http://Vitsch.nl/
+http://VitschVPN.nl/
+tel: +31-(0)40-7113051
+KvK nr: 17174380
+BTW nr: NL142748201B01
+-- 
+Machines en netwerken op afstand beheren? Vitsch VPN oplossing!
+Kijk voor meer informatie op: http://www.VitschVPN.nl/
