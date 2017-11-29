@@ -1,69 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:52592 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1752237AbdKBJ7U (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 2 Nov 2017 05:59:20 -0400
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: devicetree@vger.kernel.org, mchehab@s-opensource.com
-Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-        robh@kernel.org, hyun.kwon@xilinx.com, soren.brinkmann@xilinx.com,
-        linux-arm-kernel@lists.infradead.org
-Subject: [RESEND PATCH 1/1] of: Make return types of to_of_node and of_fwnode_handle macros consistent
-Date: Thu,  2 Nov 2017 11:59:18 +0200
-Message-Id: <20171102095918.7041-1-sakari.ailus@linux.intel.com>
-In-Reply-To: <2117711.dO2rQLXOup@avalon>
-References: <2117711.dO2rQLXOup@avalon>
+Received: from osg.samsung.com ([64.30.133.232]:43961 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752316AbdK2TIv (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 29 Nov 2017 14:08:51 -0500
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Nicholas Mc Guire <hofrat@osadl.org>,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH 07/22] media: s5k6aa: describe some function parameters
+Date: Wed, 29 Nov 2017 14:08:25 -0500
+Message-Id: <edc0fd71b2c52f8e79357eb1e25be606017005a2.1511982439.git.mchehab@s-opensource.com>
+In-Reply-To: <73497577f67fbb917e40ab4328104ff310a7c356.1511982439.git.mchehab@s-opensource.com>
+References: <73497577f67fbb917e40ab4328104ff310a7c356.1511982439.git.mchehab@s-opensource.com>
+In-Reply-To: <73497577f67fbb917e40ab4328104ff310a7c356.1511982439.git.mchehab@s-opensource.com>
+References: <73497577f67fbb917e40ab4328104ff310a7c356.1511982439.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-(Fixed Mauro's e-mail.)
+as warned:
+  drivers/media/i2c/s5k6aa.c:429: warning: No description found for parameter 's5k6aa'
+  drivers/media/i2c/s5k6aa.c:679: warning: No description found for parameter 's5k6aa'
+  drivers/media/i2c/s5k6aa.c:733: warning: No description found for parameter 's5k6aa'
+  drivers/media/i2c/s5k6aa.c:733: warning: No description found for parameter 'preset'
+  drivers/media/i2c/s5k6aa.c:787: warning: No description found for parameter 'sd'
 
-to_of_node() macro checks whether the fwnode_handle passed to it is not an
-OF node, and if so, returns NULL in order to be NULL-safe. Otherwise it
-returns the pointer to the OF node which the fwnode_handle contains.
-
-The problem with returning NULL is that its type was void *, which
-sometimes matters. Explicitly return struct device_node * instead.
-
-Make a similar change to of_fwnode_handle() as well.
-
-Fixes: d20dc1493db4 ("of: Support const and non-const use for to_of_node()")
-Fixes: debd3a3b27c7 ("of: Make of_fwnode_handle() safer")
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
-Hi Mauro,
+ drivers/media/i2c/s5k6aa.c | 5 +++++
+ 1 file changed, 5 insertions(+)
 
-Could you check whether this addresses the smatch issue with the xilinx
-driver?
-
-Thanks.
-
- include/linux/of.h | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
-
-diff --git a/include/linux/of.h b/include/linux/of.h
-index b240ed69dc96..0651231c115e 100644
---- a/include/linux/of.h
-+++ b/include/linux/of.h
-@@ -161,7 +161,7 @@ static inline bool is_of_node(const struct fwnode_handle *fwnode)
- 		is_of_node(__to_of_node_fwnode) ?			\
- 			container_of(__to_of_node_fwnode,		\
- 				     struct device_node, fwnode) :	\
--			NULL;						\
-+			(struct device_node *)NULL;			\
- 	})
+diff --git a/drivers/media/i2c/s5k6aa.c b/drivers/media/i2c/s5k6aa.c
+index 9fd254a8e20d..13c10b5e2b45 100644
+--- a/drivers/media/i2c/s5k6aa.c
++++ b/drivers/media/i2c/s5k6aa.c
+@@ -421,6 +421,7 @@ static int s5k6aa_set_ahb_address(struct i2c_client *client)
  
- #define of_fwnode_handle(node)						\
-@@ -169,7 +169,8 @@ static inline bool is_of_node(const struct fwnode_handle *fwnode)
- 		typeof(node) __of_fwnode_handle_node = (node);		\
- 									\
- 		__of_fwnode_handle_node ?				\
--			&__of_fwnode_handle_node->fwnode : NULL;	\
-+			&__of_fwnode_handle_node->fwnode :		\
-+			(struct fwnode_handle *)NULL;			\
- 	})
+ /**
+  * s5k6aa_configure_pixel_clock - apply ISP main clock/PLL configuration
++ * @s5k6aa: pointer to &struct s5k6aa describing the device
+  *
+  * Configure the internal ISP PLL for the required output frequency.
+  * Locking: called with s5k6aa.lock mutex held.
+@@ -669,6 +670,7 @@ static int s5k6aa_set_input_params(struct s5k6aa *s5k6aa)
  
- static inline bool of_have_populated_dt(void)
+ /**
+  * s5k6aa_configure_video_bus - configure the video output interface
++ * @s5k6aa: pointer to &struct s5k6aa describing the device
+  * @bus_type: video bus type: parallel or MIPI-CSI
+  * @nlanes: number of MIPI lanes to be used (MIPI-CSI only)
+  *
+@@ -724,6 +726,8 @@ static int s5k6aa_new_config_sync(struct i2c_client *client, int timeout,
+ 
+ /**
+  * s5k6aa_set_prev_config - write user preview register set
++ * @s5k6aa: pointer to &struct s5k6aa describing the device
++ * @preset: s5kaa preset to be applied
+  *
+  * Configure output resolution and color fromat, pixel clock
+  * frequency range, device frame rate type and frame period range.
+@@ -777,6 +781,7 @@ static int s5k6aa_set_prev_config(struct s5k6aa *s5k6aa,
+ 
+ /**
+  * s5k6aa_initialize_isp - basic ISP MCU initialization
++ * @sd: pointer to V4L2 sub-device descriptor
+  *
+  * Configure AHB addresses for registers read/write; configure PLLs for
+  * required output pixel clock. The ISP power supply needs to be already
 -- 
-2.11.0
+2.14.3
