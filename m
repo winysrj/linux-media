@@ -1,290 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:38494 "EHLO
-        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751109AbdKTNg0 (ORCPT
+Received: from mail-pg0-f66.google.com ([74.125.83.66]:43364 "EHLO
+        mail-pg0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752862AbdK2VUX (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 20 Nov 2017 08:36:26 -0500
-Subject: Re: [PATCH 10/10] video/hdmi: Pass buffer size to infoframe unpack
- functions
-To: Ville Syrjala <ville.syrjala@linux.intel.com>,
-        dri-devel@lists.freedesktop.org
-Cc: intel-gfx@lists.freedesktop.org,
-        Thierry Reding <thierry.reding@gmail.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        linux-media@vger.kernel.org
-References: <20171113170427.4150-1-ville.syrjala@linux.intel.com>
- <20171113170427.4150-11-ville.syrjala@linux.intel.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <7722c9f6-4bad-7698-da5d-41fe50974562@xs4all.nl>
-Date: Mon, 20 Nov 2017 14:36:20 +0100
-MIME-Version: 1.0
-In-Reply-To: <20171113170427.4150-11-ville.syrjala@linux.intel.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 8bit
+        Wed, 29 Nov 2017 16:20:23 -0500
+Received: by mail-pg0-f66.google.com with SMTP id b18so2052684pgv.10
+        for <linux-media@vger.kernel.org>; Wed, 29 Nov 2017 13:20:22 -0800 (PST)
+From: Tim Harvey <tharvey@gateworks.com>
+To: linux-media@vger.kernel.org, alsa-devel@alsa-project.org
+Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        shawnguo@kernel.org, Steve Longerbeam <slongerbeam@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Hans Verkuil <hansverk@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Subject: [PATCH v4 1/5] MAINTAINERS: add entry for NXP TDA1997x driver
+Date: Wed, 29 Nov 2017 13:19:53 -0800
+Message-Id: <1511990397-27647-2-git-send-email-tharvey@gateworks.com>
+In-Reply-To: <1511990397-27647-1-git-send-email-tharvey@gateworks.com>
+References: <1511990397-27647-1-git-send-email-tharvey@gateworks.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/13/2017 06:04 PM, Ville Syrjala wrote:
-> From: Ville Syrjälä <ville.syrjala@linux.intel.com>
-> 
-> To make sure the infoframe unpack functions don't end up examining
-> stack garbage or oopsing, let's pass in the size of the buffer.
-> 
-> Cc: Thierry Reding <thierry.reding@gmail.com>
-> Cc: Hans Verkuil <hans.verkuil@cisco.com>
-> Cc: linux-media@vger.kernel.org
-> Signed-off-by: Ville Syrjälä <ville.syrjala@linux.intel.com>
-> ---
->  drivers/media/i2c/adv7511.c  |  2 +-
->  drivers/media/i2c/adv7604.c  |  2 +-
->  drivers/media/i2c/adv7842.c  |  2 +-
->  drivers/media/i2c/tc358743.c |  2 +-
->  drivers/video/hdmi.c         | 51 ++++++++++++++++++++++++++++++++------------
->  include/linux/hdmi.h         |  2 +-
->  6 files changed, 42 insertions(+), 19 deletions(-)
-> 
-> diff --git a/drivers/media/i2c/adv7511.c b/drivers/media/i2c/adv7511.c
-> index 2817bafc67bf..dec09c18ea34 100644
-> --- a/drivers/media/i2c/adv7511.c
-> +++ b/drivers/media/i2c/adv7511.c
-> @@ -562,7 +562,7 @@ static void log_infoframe(struct v4l2_subdev *sd, const struct adv7511_cfg_read_
->  	buffer[3] = 0;
->  	buffer[3] = hdmi_infoframe_checksum(buffer, len + 4);
->  
-> -	if (hdmi_infoframe_unpack(&frame, buffer) < 0) {
-> +	if (hdmi_infoframe_unpack(&frame, buffer, sizeof(buffer)) < 0) {
->  		v4l2_err(sd, "%s: unpack of %s infoframe failed\n", __func__, cri->desc);
->  		return;
->  	}
-> diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
-> index f289b8aca1da..8500438af0d3 100644
-> --- a/drivers/media/i2c/adv7604.c
-> +++ b/drivers/media/i2c/adv7604.c
-> @@ -2429,7 +2429,7 @@ static int adv76xx_read_infoframe(struct v4l2_subdev *sd, int index,
->  		buffer[i + 3] = infoframe_read(sd,
->  				       adv76xx_cri[index].payload_addr + i);
->  
-> -	if (hdmi_infoframe_unpack(frame, buffer) < 0) {
-> +	if (hdmi_infoframe_unpack(frame, buffer, sizeof(buffer)) < 0) {
->  		v4l2_err(sd, "%s: unpack of %s infoframe failed\n", __func__,
->  			 adv76xx_cri[index].desc);
->  		return -ENOENT;
-> diff --git a/drivers/media/i2c/adv7842.c b/drivers/media/i2c/adv7842.c
-> index 65f34e7e146f..fd5d5e84dcbf 100644
-> --- a/drivers/media/i2c/adv7842.c
-> +++ b/drivers/media/i2c/adv7842.c
-> @@ -2576,7 +2576,7 @@ static void log_infoframe(struct v4l2_subdev *sd, struct adv7842_cfg_read_infofr
->  	for (i = 0; i < len; i++)
->  		buffer[i + 3] = infoframe_read(sd, cri->payload_addr + i);
->  
-> -	if (hdmi_infoframe_unpack(&frame, buffer) < 0) {
-> +	if (hdmi_infoframe_unpack(&frame, buffer, sizeof(buffer)) < 0) {
->  		v4l2_err(sd, "%s: unpack of %s infoframe failed\n", __func__, cri->desc);
->  		return;
->  	}
-> diff --git a/drivers/media/i2c/tc358743.c b/drivers/media/i2c/tc358743.c
-> index e6f5c363ccab..f6a5ebffd9c6 100644
-> --- a/drivers/media/i2c/tc358743.c
-> +++ b/drivers/media/i2c/tc358743.c
-> @@ -453,7 +453,7 @@ static void print_avi_infoframe(struct v4l2_subdev *sd)
->  
->  	i2c_rd(sd, PK_AVI_0HEAD, buffer, HDMI_INFOFRAME_SIZE(AVI));
->  
-> -	if (hdmi_infoframe_unpack(&frame, buffer) < 0) {
-> +	if (hdmi_infoframe_unpack(&frame, buffer, sizeof(buffer)) < 0) {
->  		v4l2_err(sd, "%s: unpack of AVI infoframe failed\n", __func__);
->  		return;
->  	}
-> diff --git a/drivers/video/hdmi.c b/drivers/video/hdmi.c
-> index 65b915ea4936..b5d491014b0b 100644
-> --- a/drivers/video/hdmi.c
-> +++ b/drivers/video/hdmi.c
-> @@ -1005,8 +1005,9 @@ EXPORT_SYMBOL(hdmi_infoframe_log);
->  
->  /**
->   * hdmi_avi_infoframe_unpack() - unpack binary buffer to a HDMI AVI infoframe
-> - * @buffer: source buffer
->   * @frame: HDMI AVI infoframe
-> + * @buffer: source buffer
-> + * @size: size of buffer
->   *
->   * Unpacks the information contained in binary @buffer into a structured
->   * @frame of the HDMI Auxiliary Video (AVI) information frame.
-> @@ -1016,11 +1017,14 @@ EXPORT_SYMBOL(hdmi_infoframe_log);
->   * Returns 0 on success or a negative error code on failure.
->   */
->  static int hdmi_avi_infoframe_unpack(struct hdmi_avi_infoframe *frame,
-> -				     const void *buffer)
-> +				     const void *buffer, size_t size)
->  {
->  	const u8 *ptr = buffer;
->  	int ret;
->  
-> +	if (size < HDMI_INFOFRAME_SIZE(AVI))
-> +		return -EINVAL;
-> +
->  	if (ptr[0] != HDMI_INFOFRAME_TYPE_AVI ||
->  	    ptr[1] != 2 ||
->  	    ptr[2] != HDMI_AVI_INFOFRAME_SIZE)
-> @@ -1068,8 +1072,9 @@ static int hdmi_avi_infoframe_unpack(struct hdmi_avi_infoframe *frame,
->  
->  /**
->   * hdmi_spd_infoframe_unpack() - unpack binary buffer to a HDMI SPD infoframe
-> - * @buffer: source buffer
->   * @frame: HDMI SPD infoframe
-> + * @buffer: source buffer
-> + * @size: size of buffer
->   *
->   * Unpacks the information contained in binary @buffer into a structured
->   * @frame of the HDMI Source Product Description (SPD) information frame.
-> @@ -1079,11 +1084,14 @@ static int hdmi_avi_infoframe_unpack(struct hdmi_avi_infoframe *frame,
->   * Returns 0 on success or a negative error code on failure.
->   */
->  static int hdmi_spd_infoframe_unpack(struct hdmi_spd_infoframe *frame,
-> -				     const void *buffer)
-> +				     const void *buffer, size_t size)
->  {
->  	const u8 *ptr = buffer;
->  	int ret;
->  
-> +	if (size < HDMI_INFOFRAME_SIZE(SPD))
-> +		return -EINVAL;
-> +
->  	if (ptr[0] != HDMI_INFOFRAME_TYPE_SPD ||
->  	    ptr[1] != 1 ||
->  	    ptr[2] != HDMI_SPD_INFOFRAME_SIZE) {
-> @@ -1106,8 +1114,9 @@ static int hdmi_spd_infoframe_unpack(struct hdmi_spd_infoframe *frame,
->  
->  /**
->   * hdmi_audio_infoframe_unpack() - unpack binary buffer to a HDMI AUDIO infoframe
-> - * @buffer: source buffer
->   * @frame: HDMI Audio infoframe
-> + * @buffer: source buffer
-> + * @size: size of buffer
->   *
->   * Unpacks the information contained in binary @buffer into a structured
->   * @frame of the HDMI Audio information frame.
-> @@ -1117,11 +1126,14 @@ static int hdmi_spd_infoframe_unpack(struct hdmi_spd_infoframe *frame,
->   * Returns 0 on success or a negative error code on failure.
->   */
->  static int hdmi_audio_infoframe_unpack(struct hdmi_audio_infoframe *frame,
-> -				       const void *buffer)
-> +				       const void *buffer, size_t size)
->  {
->  	const u8 *ptr = buffer;
->  	int ret;
->  
-> +	if (size < HDMI_INFOFRAME_SIZE(AUDIO))
-> +		return -EINVAL;
-> +
->  	if (ptr[0] != HDMI_INFOFRAME_TYPE_AUDIO ||
->  	    ptr[1] != 1 ||
->  	    ptr[2] != HDMI_AUDIO_INFOFRAME_SIZE) {
-> @@ -1151,8 +1163,9 @@ static int hdmi_audio_infoframe_unpack(struct hdmi_audio_infoframe *frame,
->  
->  /**
->   * hdmi_vendor_infoframe_unpack() - unpack binary buffer to a HDMI vendor infoframe
-> - * @buffer: source buffer
->   * @frame: HDMI Vendor infoframe
-> + * @buffer: source buffer
-> + * @size: size of buffer
->   *
->   * Unpacks the information contained in binary @buffer into a structured
->   * @frame of the HDMI Vendor information frame.
-> @@ -1163,7 +1176,7 @@ static int hdmi_audio_infoframe_unpack(struct hdmi_audio_infoframe *frame,
->   */
->  static int
->  hdmi_vendor_any_infoframe_unpack(union hdmi_vendor_any_infoframe *frame,
-> -				 const void *buffer)
-> +				 const void *buffer, size_t size)
->  {
->  	const u8 *ptr = buffer;
->  	size_t length;
-> @@ -1171,6 +1184,9 @@ hdmi_vendor_any_infoframe_unpack(union hdmi_vendor_any_infoframe *frame,
->  	u8 hdmi_video_format;
->  	struct hdmi_vendor_infoframe *hvf = &frame->hdmi;
->  
-> +	if (size < HDMI_INFOFRAME_HEADER_SIZE)
-> +		return -EINVAL;
-> +
+Signed-off-by: Tim Harvey <tharvey@gateworks.com>
+---
+ MAINTAINERS | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-This check is not needed since that is already done in hdmi_infoframe_unpack().
-
->  	if (ptr[0] != HDMI_INFOFRAME_TYPE_VENDOR ||
->  	    ptr[1] != 1 ||
->  	    (ptr[2] != 4 && ptr[2] != 5 && ptr[2] != 6))
-> @@ -1178,6 +1194,9 @@ hdmi_vendor_any_infoframe_unpack(union hdmi_vendor_any_infoframe *frame,
->  
->  	length = ptr[2];
->  
-> +	if (size < HDMI_INFOFRAME_HEADER_SIZE + length)
-> +		return -EINVAL;
-> +
->  	if (hdmi_infoframe_checksum(buffer,
->  				    HDMI_INFOFRAME_HEADER_SIZE + length) != 0)
->  		return -EINVAL;
-> @@ -1224,8 +1243,9 @@ hdmi_vendor_any_infoframe_unpack(union hdmi_vendor_any_infoframe *frame,
->  
->  /**
->   * hdmi_infoframe_unpack() - unpack binary buffer to a HDMI infoframe
-> - * @buffer: source buffer
->   * @frame: HDMI infoframe
-> + * @buffer: source buffer
-> + * @size: size of buffer
->   *
->   * Unpacks the information contained in binary buffer @buffer into a structured
->   * @frame of a HDMI infoframe.
-> @@ -1235,23 +1255,26 @@ hdmi_vendor_any_infoframe_unpack(union hdmi_vendor_any_infoframe *frame,
->   * Returns 0 on success or a negative error code on failure.
->   */
->  int hdmi_infoframe_unpack(union hdmi_infoframe *frame,
-> -			  const void *buffer)
-> +			  const void *buffer, size_t size)
->  {
->  	int ret;
->  	const u8 *ptr = buffer;
->  
-> +	if (size < HDMI_INFOFRAME_HEADER_SIZE)
-> +		return -EINVAL;
-> +
->  	switch (ptr[0]) {
->  	case HDMI_INFOFRAME_TYPE_AVI:
-> -		ret = hdmi_avi_infoframe_unpack(&frame->avi, buffer);
-> +		ret = hdmi_avi_infoframe_unpack(&frame->avi, buffer, size);
->  		break;
->  	case HDMI_INFOFRAME_TYPE_SPD:
-> -		ret = hdmi_spd_infoframe_unpack(&frame->spd, buffer);
-> +		ret = hdmi_spd_infoframe_unpack(&frame->spd, buffer, size);
->  		break;
->  	case HDMI_INFOFRAME_TYPE_AUDIO:
-> -		ret = hdmi_audio_infoframe_unpack(&frame->audio, buffer);
-> +		ret = hdmi_audio_infoframe_unpack(&frame->audio, buffer, size);
->  		break;
->  	case HDMI_INFOFRAME_TYPE_VENDOR:
-> -		ret = hdmi_vendor_any_infoframe_unpack(&frame->vendor, buffer);
-> +		ret = hdmi_vendor_any_infoframe_unpack(&frame->vendor, buffer, size);
->  		break;
->  	default:
->  		ret = -EINVAL;
-> diff --git a/include/linux/hdmi.h b/include/linux/hdmi.h
-> index d3816170c062..a577d4ae2570 100644
-> --- a/include/linux/hdmi.h
-> +++ b/include/linux/hdmi.h
-> @@ -333,7 +333,7 @@ union hdmi_infoframe {
->  ssize_t
->  hdmi_infoframe_pack(union hdmi_infoframe *frame, void *buffer, size_t size);
->  int hdmi_infoframe_unpack(union hdmi_infoframe *frame,
-> -			  const void *buffer);
-> +			  const void *buffer, size_t size);
->  void hdmi_infoframe_log(const char *level, struct device *dev,
->  			union hdmi_infoframe *frame);
->  
-> 
-
-FYI: I'll be posting two other hdmi.c patches today that we (Cisco) have in our queue
-for some time.
-
-Regards,
-
-	Hans
+diff --git a/MAINTAINERS b/MAINTAINERS
+index aa71ab52f..502bc97 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -13244,6 +13244,14 @@ T:	git git://linuxtv.org/mkrufky/tuners.git
+ S:	Maintained
+ F:	drivers/media/tuners/tda18271*
+ 
++TDA1997x MEDIA DRIVER
++M:	Tim Harvey <tharvey@gateworks.com>
++L:	linux-media@vger.kernel.org
++W:	https://linuxtv.org
++Q:	http://patchwork.linuxtv.org/project/linux-media/list/
++S:	Maintained
++F:	drivers/media/i2c/tda1997x.*
++
+ TDA827x MEDIA DRIVER
+ M:	Michael Krufky <mkrufky@linuxtv.org>
+ L:	linux-media@vger.kernel.org
+-- 
+2.7.4
