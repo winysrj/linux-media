@@ -1,110 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f68.google.com ([209.85.215.68]:49540 "EHLO
-        mail-lf0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751581AbdKLQ2L (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sun, 12 Nov 2017 11:28:11 -0500
-Subject: Re: [PATCH v4 1/5] ARM: tegra: Add device tree node to describe IRAM
-To: Vladimir Zapolskiy <vz@mleia.com>,
-        Thierry Reding <thierry.reding@gmail.com>,
-        Jonathan Hunter <jonathanh@nvidia.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Stephen Warren <swarren@wwwdotorg.org>
-Cc: Dan Carpenter <dan.carpenter@oracle.com>,
-        linux-media@vger.kernel.org, linux-tegra@vger.kernel.org,
-        devel@driverdev.osuosl.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-References: <cover.1508448293.git.digetx@gmail.com>
- <8ce696bc2b4b1808f6c7f7a967a3dacd954d2a4e.1508448293.git.digetx@gmail.com>
- <ffa5f1d0-f156-0bc3-6adb-bb55a0a855c4@mleia.com>
-From: Dmitry Osipenko <digetx@gmail.com>
-Message-ID: <ba975656-359d-c46e-a6a6-7ca81d00ce56@gmail.com>
-Date: Sun, 12 Nov 2017 19:28:06 +0300
-MIME-Version: 1.0
-In-Reply-To: <ffa5f1d0-f156-0bc3-6adb-bb55a0a855c4@mleia.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Received: from osg.samsung.com ([64.30.133.232]:40293 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751897AbdK2TIu (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 29 Nov 2017 14:08:50 -0500
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: [PATCH 15/22] media: soc_camera: fix a kernel-doc markup
+Date: Wed, 29 Nov 2017 14:08:33 -0500
+Message-Id: <b7ed68fff22e3ce5a6c635099ed5662c6dd7c1a5.1511982439.git.mchehab@s-opensource.com>
+In-Reply-To: <73497577f67fbb917e40ab4328104ff310a7c356.1511982439.git.mchehab@s-opensource.com>
+References: <73497577f67fbb917e40ab4328104ff310a7c356.1511982439.git.mchehab@s-opensource.com>
+In-Reply-To: <73497577f67fbb917e40ab4328104ff310a7c356.1511982439.git.mchehab@s-opensource.com>
+References: <73497577f67fbb917e40ab4328104ff310a7c356.1511982439.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11.11.2017 17:18, Vladimir Zapolskiy wrote:
-> Hi Dmitry,
-> 
-> On 10/20/2017 12:34 AM, Dmitry Osipenko wrote:
->> From: Vladimir Zapolskiy <vz@mleia.com>
->>
->> All Tegra SoCs contain 256KiB IRAM, which is used to store CPU resume code
->> and by hardware engines like a video decoder.
->>
->> Signed-off-by: Vladimir Zapolskiy <vz@mleia.com>
-> 
-> Please add also your own closing "Signed-off-by" tag, please reference
-> to "Developer's Certificate of Origin 1.1", point (c), it is found in
-> Documentation/process/submitting-patches.rst
-> 
+Remove this warning:
+	drivers/media/platform/soc_camera/soc_scale_crop.c:309: warning: Cannot understand  * @icd		- soc-camera device
+	 on line 309 - I thought it was a doc line
 
-Indeed, thanks!
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/platform/soc_camera/soc_scale_crop.c | 21 +++++++++++----------
+ 1 file changed, 11 insertions(+), 10 deletions(-)
 
->> ---
->>  arch/arm/boot/dts/tegra114.dtsi | 8 ++++++++
->>  arch/arm/boot/dts/tegra124.dtsi | 8 ++++++++
->>  arch/arm/boot/dts/tegra20.dtsi  | 8 ++++++++
->>  arch/arm/boot/dts/tegra30.dtsi  | 8 ++++++++
-> 
-> My assumption is that Thierry would prefer to get 4 separate patches,
-> one for each platform, please split the patch.
-> 
-
-Thierry, would you?
-
-> Also thanks for your time and your efforts applied to push my occasional
-> change, please feel free to take your own authorship for 3 out of 4 patches.
-> 
-
-Okay.
-
->>  4 files changed, 32 insertions(+)
->>
->> diff --git a/arch/arm/boot/dts/tegra114.dtsi b/arch/arm/boot/dts/tegra114.dtsi
->> index 8932ea3afd5f..13f6087790c8 100644
->> --- a/arch/arm/boot/dts/tegra114.dtsi
->> +++ b/arch/arm/boot/dts/tegra114.dtsi
->> @@ -10,6 +10,14 @@
->>  	compatible = "nvidia,tegra114";
->>  	interrupt-parent = <&lic>;
->>  
->> +	iram@40000000 {
->> +		compatible = "mmio-sram";
-> 
-> Unfortunately Thierry hasn't yet replied, but my assumption is that
-> the list of compatibles should be extended with one more SoC specific
-> value like
-> 
-> 	compatible = "nvidia,tegra114-sysram", "mmio-sram";
-> 
-> I'm not sure, if Tegra maintainers want to see a new compatible
-> described in Documentation/devicetree/bindings.
-> 
-
-The custom compatible string shouldn't be needed. AFAIK, IRAM doesn't have any
-exposed controls, so just a generic "mmio-sram" suits well here.
-
->> +		reg = <0x40000000 0x40000>;
->> +		#address-cells = <1>;
->> +		#size-cells = <1>;
->> +		ranges = <0 0x40000000 0x40000>;
->> +	};
->> +
->>  	host1x@50000000 {
->>  		compatible = "nvidia,tegra114-host1x", "simple-bus";
->>  		reg = <0x50000000 0x00028000>;
->> diff --git a/arch/arm/boot/dts/tegra124.dtsi b/arch/arm/boot/dts/tegra124.dtsi
->> index 8baf00b89efb..a3585ed82646 100644
->> --- a/arch/arm/boot/dts/tegra124.dtsi
->> +++ b/arch/arm/boot/dts/tegra124.dtsi
-> 
-> The considerations from above are applicable to the rest of
-> the touched platforms.
+diff --git a/drivers/media/platform/soc_camera/soc_scale_crop.c b/drivers/media/platform/soc_camera/soc_scale_crop.c
+index 0116097c0c0f..270ec613c27c 100644
+--- a/drivers/media/platform/soc_camera/soc_scale_crop.c
++++ b/drivers/media/platform/soc_camera/soc_scale_crop.c
+@@ -306,16 +306,17 @@ static int client_set_fmt(struct soc_camera_device *icd,
+ }
+ 
+ /**
+- * @icd		- soc-camera device
+- * @rect	- camera cropping window
+- * @subrect	- part of rect, sent to the user
+- * @mf		- in- / output camera output window
+- * @width	- on input: max host input width
+- *		  on output: user width, mapped back to input
+- * @height	- on input: max host input height
+- *		  on output: user height, mapped back to input
+- * @host_can_scale - host can scale this pixel format
+- * @shift	- shift, used for scaling
++ * soc_camera_client_scale
++ * @icd:		soc-camera device
++ * @rect:		camera cropping window
++ * @subrect:		part of rect, sent to the user
++ * @mf:			in- / output camera output window
++ * @width:		on input: max host input width;
++ *			on output: user width, mapped back to input
++ * @height:		on input: max host input height;
++ *			on output: user height, mapped back to input
++ * @host_can_scale:	host can scale this pixel format
++ * @shift:		shift, used for scaling
+  */
+ int soc_camera_client_scale(struct soc_camera_device *icd,
+ 			struct v4l2_rect *rect, struct v4l2_rect *subrect,
+-- 
+2.14.3
