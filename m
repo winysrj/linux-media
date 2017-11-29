@@ -1,66 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:44221 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752494AbdK2TIv (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 29 Nov 2017 14:08:51 -0500
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Malcolm Priestley <tvboxspy@gmail.com>
-Subject: [PATCH 04/22] media: ix2505v: get rid of /** comments
-Date: Wed, 29 Nov 2017 14:08:22 -0500
-Message-Id: <99823b61eea8e30149953092ab3611597ec9d0e3.1511982439.git.mchehab@s-opensource.com>
-In-Reply-To: <73497577f67fbb917e40ab4328104ff310a7c356.1511982439.git.mchehab@s-opensource.com>
-References: <73497577f67fbb917e40ab4328104ff310a7c356.1511982439.git.mchehab@s-opensource.com>
-In-Reply-To: <73497577f67fbb917e40ab4328104ff310a7c356.1511982439.git.mchehab@s-opensource.com>
-References: <73497577f67fbb917e40ab4328104ff310a7c356.1511982439.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+Received: from smtp-4.sys.kth.se ([130.237.48.193]:54502 "EHLO
+        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752573AbdK2ToH (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 29 Nov 2017 14:44:07 -0500
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH v8 07/28] rcar-vin: change name of video device
+Date: Wed, 29 Nov 2017 20:43:21 +0100
+Message-Id: <20171129194342.26239-8-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20171129194342.26239-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20171129194342.26239-1-niklas.soderlund+renesas@ragnatech.se>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As warned:
+The rcar-vin driver needs to be part of a media controller to support
+Gen3. Give each VIN instance a unique name so it can be referenced from
+userspace.
 
-  drivers/media/dvb-frontends/ix2505v.c:24: warning: cannot understand function prototype: 'int ix2505v_debug; '
-  drivers/media/dvb-frontends/ix2505v.c:59: warning: No description found for parameter 'state'
-  drivers/media/dvb-frontends/ix2505v.c:128: warning: No description found for parameter 'fe'
-
-None of the comments there are kernel-doc. So, remove them with:
-
-	perl -pi -e 's,\/\*\*,/*,g' drivers/media/dvb-frontends/ix2505v.c
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/dvb-frontends/ix2505v.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/media/platform/rcar-vin/rcar-v4l2.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/dvb-frontends/ix2505v.c b/drivers/media/dvb-frontends/ix2505v.c
-index 534b24fa2b95..965012ad5c59 100644
---- a/drivers/media/dvb-frontends/ix2505v.c
-+++ b/drivers/media/dvb-frontends/ix2505v.c
-@@ -1,4 +1,4 @@
--/**
-+/*
-  * Driver for Sharp IX2505V (marked B0017) DVB-S silicon tuner
-  *
-  * Copyright (C) 2010 Malcolm Priestley
-@@ -36,7 +36,7 @@ struct ix2505v_state {
- 	u32 frequency;
- };
- 
--/**
-+/*
-  *  Data read format of the Sharp IX2505V B0017
-  *
-  *  byte1:   1   |   1   |   0   |   0   |   0   |  MA1  |  MA0  |  1
-@@ -99,7 +99,7 @@ static void ix2505v_release(struct dvb_frontend *fe)
- 
- }
- 
--/**
-+/*
-  *  Data write format of the Sharp IX2505V B0017
-  *
-  *  byte1:   1   |   1   |   0   |   0   |   0   | 0(MA1)| 0(MA0)|  0
+diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+index 59ec6d3d119590aa..19de99133f048960 100644
+--- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
++++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+@@ -876,7 +876,8 @@ int rvin_v4l2_register(struct rvin_dev *vin)
+ 	vdev->fops = &rvin_fops;
+ 	vdev->v4l2_dev = &vin->v4l2_dev;
+ 	vdev->queue = &vin->queue;
+-	strlcpy(vdev->name, KBUILD_MODNAME, sizeof(vdev->name));
++	snprintf(vdev->name, sizeof(vdev->name), "%s %s", KBUILD_MODNAME,
++		 dev_name(vin->dev));
+ 	vdev->release = video_device_release_empty;
+ 	vdev->ioctl_ops = &rvin_ioctl_ops;
+ 	vdev->lock = &vin->lock;
 -- 
-2.14.3
+2.15.0
