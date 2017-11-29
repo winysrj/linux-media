@@ -1,40 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f51.google.com ([74.125.83.51]:40397 "EHLO
-        mail-pg0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932554AbdKQF4K (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 17 Nov 2017 00:56:10 -0500
-Received: by mail-pg0-f51.google.com with SMTP id u3so1188449pgn.7
-        for <linux-media@vger.kernel.org>; Thu, 16 Nov 2017 21:56:10 -0800 (PST)
-From: Alexandre Courbot <acourbot@chromium.org>
-To: Gustavo Padovan <gustavo@padovan.org>
-Cc: <linux-media@vger.kernel.org>, Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        Pawel Osciak <pawel@osciak.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Brian Starkey <brian.starkey@arm.com>,
-        Thierry Escande <thierry.escande@collabora.com>,
-        <linux-kernel@vger.kernel.org>,
-        Gustavo Padovan <gustavo.padovan@collabora.com>
-Subject: Re: [RFC v5 03/11] [media] vb2: add =?iso-8859-1?Q?'ordered=5Fin=5Fdriver'_property_to_queues?=
-Date: Fri, 17 Nov 2017 14:56:05 +0900
+Received: from mga07.intel.com ([134.134.136.100]:45210 "EHLO mga07.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750713AbdK2MPC (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 29 Nov 2017 07:15:02 -0500
+Date: Wed, 29 Nov 2017 14:14:54 +0200
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Alan Cox <alan@linux.intel.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Daeseok Youn <daeseok.youn@gmail.com>,
+        Dan Carpenter <dan.carpenter@oracle.com>,
+        Geliang Tang <geliangtang@gmail.com>,
+        Amitoj Kaur Chawla <amitoj1606@gmail.com>,
+        Georgiana Chelu <georgiana.chelu93@gmail.com>,
+        simran singhal <singhalsimran0@gmail.com>,
+        Julia Lawall <julia.lawall@lip6.fr>,
+        Hans de Goede <hdegoede@redhat.com>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Guru Das Srinagesh <gurooodas@gmail.com>,
+        Arushi Singhal <arushisinghal19971997@gmail.com>,
+        Paolo Cretaro <melko@frugalware.org>,
+        Joe Perches <joe@perches.com>,
+        =?iso-8859-1?B?Suly6W15?= Lefaure <jeremy.lefaure@lse.epita.fr>,
+        Colin Ian King <colin.king@canonical.com>,
+        Thomas Meyer <thomas@m3y3r.de>, Shy More <smklearn@gmail.com>,
+        Varsha Rao <rvarsha016@gmail.com>,
+        Srishti Sharma <srishtishar@gmail.com>,
+        devel@driverdev.osuosl.org
+Subject: Re: [PATCH 1/7] media: atomisp: stop producing hundreds of
+ kernel-doc warnings
+Message-ID: <20171129121453.i2qmuwxzcajgx5ev@paasikivi.fi.intel.com>
+References: <c73fcbc4af259923feac19eda4bb5e996b6de0fd.1511952403.git.mchehab@s-opensource.com>
 MIME-Version: 1.0
-Message-ID: <42409bb3-a6b6-43e7-a915-7e8e5f1f2198@chromium.org>
-In-Reply-To: <20171115171057.17340-4-gustavo@padovan.org>
-References: <20171115171057.17340-1-gustavo@padovan.org>
- <20171115171057.17340-4-gustavo@padovan.org>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <c73fcbc4af259923feac19eda4bb5e996b6de0fd.1511952403.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thursday, November 16, 2017 2:10:49 AM JST, Gustavo Padovan wrote:
-> From: Gustavo Padovan <gustavo.padovan@collabora.com>
->
-> We use ordered_in_driver property to optimize for the case where
-> the driver can deliver the buffers in an ordered fashion. When it
-> is ordered we can use the same fence context for all fences, but
-> when it is not we need to a new context for each out-fence.
+Hi Mauro,
 
-"we need to a new context" looks like it is missing a word.
+Thanks for the patch.
+
+On Wed, Nov 29, 2017 at 07:08:04AM -0500, Mauro Carvalho Chehab wrote:
+> A recent change on Kernel 4.15-rc1 causes all tags with
+> /** to be handled as kernel-doc markups. Well, several
+> atomisp modules, it doesn't use kernel-doc, but some other
+> documentation markup (doxygen?).
+> 
+> So, suppress all those warns by replacing /** by /*.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+
+I presume you haven't written the patch manually. There are other changes
+that described by the comment, too, such as removing lesser
+than-characaters.
+
+It'd be good to mention how it's been generated.
+
+-- 
+Kind regards,
+
+Sakari Ailus
+sakari.ailus@linux.intel.com
