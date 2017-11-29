@@ -1,196 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:58452 "EHLO
-        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1756499AbdKDJxi (ORCPT
+Received: from smtp-4.sys.kth.se ([130.237.48.193]:54540 "EHLO
+        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752631AbdK2ToI (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 4 Nov 2017 05:53:38 -0400
-Subject: Re: [PATCH v2 3/4] media: i2c: Add TDA1997x HDMI receiver driver
-To: Tim Harvey <tharvey@gateworks.com>
-Cc: linux-media <linux-media@vger.kernel.org>,
-        alsa-devel@alsa-project.org,
-        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        Shawn Guo <shawnguo@kernel.org>,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Hans Verkuil <hansverk@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-References: <1507783506-3884-1-git-send-email-tharvey@gateworks.com>
- <1507783506-3884-4-git-send-email-tharvey@gateworks.com>
- <230ceb18-1d69-7fa8-acb0-c810094f8e50@xs4all.nl>
- <CAJ+vNU0Z988G+wTfpiSXXOM9QsPj-eRvH=F1b9__8kJ+18xk4g@mail.gmail.com>
- <a5bd27c9-10e4-b9f5-f0ac-293528fa570e@xs4all.nl>
- <CAJ+vNU2yHKDf5tCVyj6iw83z0sDuV0ZsZ-=sLfa+fTFbtjVo0A@mail.gmail.com>
- <5c68003a-380d-d339-718f-47bce64cdae8@xs4all.nl>
- <CAJ+vNU2a8qtL4hbg5FQamF3WanQG1610QsJv=2cCxpD8OsiQ6w@mail.gmail.com>
- <CAJ+vNU1ipKzm5AX4HY0ckrBM3aMC1mn0Dp7nQfsjzJcEYgBV5Q@mail.gmail.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <fbb14b36-73cd-e81f-11f4-26cd488d567d@xs4all.nl>
-Date: Sat, 4 Nov 2017 10:53:31 +0100
+        Wed, 29 Nov 2017 14:44:08 -0500
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH v8 10/28] rcar-vin: do not reset crop and compose when setting format
+Date: Wed, 29 Nov 2017 20:43:24 +0100
+Message-Id: <20171129194342.26239-11-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20171129194342.26239-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20171129194342.26239-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-In-Reply-To: <CAJ+vNU1ipKzm5AX4HY0ckrBM3aMC1mn0Dp7nQfsjzJcEYgBV5Q@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/04/2017 01:17 AM, Tim Harvey wrote:
-> On Mon, Oct 23, 2017 at 10:05 AM, Tim Harvey <tharvey@gateworks.com> wrote:
->>
->> On Fri, Oct 20, 2017 at 9:23 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->>
->>>>
->>>> I see the AVI infoframe has hdmi_quantization_range and
->>>> hdmi_ycc_quantization_range along with vid_code.
->>>>
->>>> I'm not at all clear what to do with this information. Is there
->>>> anything you see in the datasheet [1] that points to something I need
->>>> to be doing?
->>>
->>> You can ignore hdmi_ycc_quantization_range, it is the hdmi_quantization_range
->>> that you need to read out.
->>>
->>> The TDA can receive the following formats:
->>>
->>> RGB Full Range
->>> RGB Limited Range
->>> YUV Bt.601 (aka SMPTE 170M)
->>> YUV Rec.709
->>>
->>> The YUV formats are always limited range.
->>>
->>> The TDA can transmit RGB and YUV to the SoC. You want RGB to be full range and
->>> YUV to be limited range. YUV can be either 601 or 709.
->>>
->>> So if the TDA transmits RGB then you need to support the following conversions:
->>>
->>> RGB Full -> RGB Full
->>> RGB Limited -> RGB Full
->>> YUV 601 -> RGB Full
->>> YUV 709 -> RGB Full
->>>
->>> And if the TDA transmits YUV then you need these conversions:
->>>
->>> RGB Full -> YUV601 or YUV709
->>> RGB Limited -> YUV601 or YUV709
->>> YUV601 -> YUV601
->>> YUV709 -> YUV709
->>>
->>> For the RGB to YUV conversion you have a choice of converting to YUV601 or 709.
->>> I recommend to either always convert to YUV601 or to let it depend on the resolution
->>> (SDTV YUV601, HDTV YUV709).
->>>
->>
->> Ok - this is a good explanation that I should be able to follow. I
->> will make sure to take into account hdmi_quantization_range when I
->> setup the colorspace conversion matrix for v3.
-> 
-> Hans,
-> 
-> I'm having trouble figuring out the conversion matrix to use between
-> limited and full.
-> 
-> Currently I have the following conversion matrices, the values which
-> came from some old vendor code:
-> 
->         /* Colorspace conversion matrix coefficients and offsets */
->         struct color_matrix_coefs {
->                 /* Input offsets */
->                 s16 offint1;
->                 s16 offint2;
->                 s16 offint3;
->                 /* Coeficients */
->                 s16 p11coef;
->                 s16 p12coef;
->                 s16 p13coef;
->                 s16 p21coef;
->                 s16 p22coef;
->                 s16 p23coef;
->                 s16 p31coef;
->                 s16 p32coef;
->                 s16 p33coef;
->                 /* Output offsets */
->                 s16 offout1;
->                 s16 offout2;
->                 s16 offout3;
->         };
->         /* Conversion matrixes */
->         enum {
->                 ITU709_RGBLIMITED,
->                 ITU601_RGBLIMITED,
->                 RGBLIMITED_ITU601,
->        };
->        static const struct color_matrix_coefs conv_matrix[] = {
->                 /* ITU709 -> RGBLimited */
->                 {
->                         -256, -2048,  -2048,
->                         4096, -1875,   -750,
->                         4096,  6307,      0,
->                         4096,     0,   7431,
->                          256,   256,    256,
->                 },
->                 /* YUV601 limited -> RGB limited */
->                 {
->                         -256, -2048,  -2048,
->                         4096, -2860,  -1378,
->                         4096,  5615,      0,
->                         4096,     0,   7097,
->                         256,    256,    256,
->                 },
->                 /* RGB limited -> ITU601 */
->                 {
->                         -256,  -256,   -256,
->                         2404,  1225,    467,
->                         -1754, 2095,   -341,
->                         -1388, -707,   2095,
->                         256,   2048,   2048,
->                 },
->         };
-> 
-> Assuming the above are correct this leaves me missing RGB limitted ->
-> RGB full, YUV601 -> RGB full, YUV709 -> RGB full, and RGB Full ->
-> YUV601.
-> 
-> I don't have documentation for the registers but I'm assuming the
-> input offset is applied first, then the multiplication by the coef,
-> then the output offset is applied. I'm looking over
-> https://en.wikipedia.org/wiki/YUV for colorspace conversion matrices
-> but I'm unable to figure out how to apply those to the above. Any
-> ideas?
+It was a bad idea to reset the crop and compose settings when a new
+format is set. This would overwrite any crop/compose set by s_select and
+cause unexpected behaviors, remove it. Also fold the reset helper in to
+the only remaining caller.
 
-For the YUV to RGB full conversions all you need to do is to change
-the last row to 0, 0, 0 (since you no longer apply an offset) and
-multiply all matrix coefficients by (255 / 219) to ensure the matrix
-result is in the range [0-255] instead of [0-219].
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/platform/rcar-vin/rcar-v4l2.c | 21 +++++++--------------
+ 1 file changed, 7 insertions(+), 14 deletions(-)
 
-For the RGB lim to RGB full conversion you need this matrix:
-
--256, -256, -256,
-S, 0, 0,
-0, S, 0,
-0, 0, S,
-0, 0, 0
-
-Where S = 4096 * 255 / 219. I'm assuming 4096 equals 1.0 using fixed
-point format.
-
-Actually, looking at the order of the matrix values I suspect it might
-be:
-
--256, -256, -256,
-0, S, 0,
-0, 0, S,
-S, 0, 0,
-0, 0, 0
-
-You'll have to test this to verify which of the two is the right one.
-
-For RGB Full to YUV you use the RGB lim to YUV values but replace the
-first line by 0, 0, 0 and multiply the 3x3 matrix values with (219 / 255).
-
-That should do it.
-
-Regards,
-
-	Hans
+diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+index 1c5e7f6d5b963740..254fa1c8770275a5 100644
+--- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
++++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+@@ -90,17 +90,6 @@ static u32 rvin_format_sizeimage(struct v4l2_pix_format *pix)
+  * V4L2
+  */
+ 
+-static void rvin_reset_crop_compose(struct rvin_dev *vin)
+-{
+-	vin->crop.top = vin->crop.left = 0;
+-	vin->crop.width = vin->source.width;
+-	vin->crop.height = vin->source.height;
+-
+-	vin->compose.top = vin->compose.left = 0;
+-	vin->compose.width = vin->format.width;
+-	vin->compose.height = vin->format.height;
+-}
+-
+ static int rvin_reset_format(struct rvin_dev *vin)
+ {
+ 	struct v4l2_subdev_format fmt = {
+@@ -147,7 +136,13 @@ static int rvin_reset_format(struct rvin_dev *vin)
+ 		break;
+ 	}
+ 
+-	rvin_reset_crop_compose(vin);
++	vin->crop.top = vin->crop.left = 0;
++	vin->crop.width = mf->width;
++	vin->crop.height = mf->height;
++
++	vin->compose.top = vin->compose.left = 0;
++	vin->compose.width = mf->width;
++	vin->compose.height = mf->height;
+ 
+ 	vin->format.bytesperline = rvin_format_bytesperline(&vin->format);
+ 	vin->format.sizeimage = rvin_format_sizeimage(&vin->format);
+@@ -317,8 +312,6 @@ static int rvin_s_fmt_vid_cap(struct file *file, void *priv,
+ 
+ 	vin->format = f->fmt.pix;
+ 
+-	rvin_reset_crop_compose(vin);
+-
+ 	return 0;
+ }
+ 
+-- 
+2.15.0
