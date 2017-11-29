@@ -1,59 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([217.72.192.73]:52642 "EHLO
-        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753141AbdKJQqN (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:60722 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1753310AbdK2IIE (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 10 Nov 2017 11:46:13 -0500
-From: Arnd Bergmann <arnd@arndb.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>,
-        Jose Abreu <Jose.Abreu@synopsys.com>,
-        Arvind Yadav <arvind.yadav.cs@gmail.com>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH] [media] pulse8-cec: print time using time64_t.
-Date: Fri, 10 Nov 2017 17:45:54 +0100
-Message-Id: <20171110164559.3737072-1-arnd@arndb.de>
+        Wed, 29 Nov 2017 03:08:04 -0500
+Received: from valkosipuli.localdomain (valkosipuli.retiisi.org.uk [IPv6:2001:1bc8:1a6:d3d5::80:2])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by hillosipuli.retiisi.org.uk (Postfix) with ESMTPS id F1F4C600EF
+        for <linux-media@vger.kernel.org>; Wed, 29 Nov 2017 10:08:02 +0200 (EET)
+Received: from sakke by valkosipuli.localdomain with local (Exim 4.89)
+        (envelope-from <sakari.ailus@retiisi.org.uk>)
+        id 1eJxPW-00069e-6e
+        for linux-media@vger.kernel.org; Wed, 29 Nov 2017 10:08:02 +0200
+Date: Wed, 29 Nov 2017 10:08:02 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Subject: [GIT FIXES for 4.15] Sensor driver and V4L2 async, fwnode fixes
+Message-ID: <20171129080801.j6v4ehizcir5oc7f@valkosipuli.retiisi.org.uk>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The firmware timestamp is an unsigned 32-bit value, but we copy it into
-a signed 32-bit variable, so we can theoretically get an overflow in
-the calculation when the timestamp is between 2038 and 2106.
+Hi Mauro,
 
-This changes the temporary variable to time64_t and changes the deprecated
-time_to_tm() over to time64_to_tm() accordingly.
+Here are fixes for sensor drivers and the V4L2 async and fwnode frameworks.
 
-There is still an overflow in y2106, but that is a limitation of the
-firmware interface, not a kernel problem.
+Please pull.
 
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
----
- drivers/media/usb/pulse8-cec/pulse8-cec.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/usb/pulse8-cec/pulse8-cec.c b/drivers/media/usb/pulse8-cec/pulse8-cec.c
-index 50146f263d90..350635826aae 100644
---- a/drivers/media/usb/pulse8-cec/pulse8-cec.c
-+++ b/drivers/media/usb/pulse8-cec/pulse8-cec.c
-@@ -329,7 +329,7 @@ static int pulse8_setup(struct pulse8 *pulse8, struct serio *serio,
- 	u8 cmd[2];
- 	int err;
- 	struct tm tm;
--	time_t date;
-+	time64_t date;
- 
- 	pulse8->vers = 0;
- 
-@@ -349,7 +349,7 @@ static int pulse8_setup(struct pulse8 *pulse8, struct serio *serio,
- 	if (err)
- 		return err;
- 	date = (data[0] << 24) | (data[1] << 16) | (data[2] << 8) | data[3];
--	time_to_tm(date, 0, &tm);
-+	time64_to_tm(date, 0, &tm);
- 	dev_info(pulse8->dev, "Firmware build date %04ld.%02d.%02d %02d:%02d:%02d\n",
- 		 tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday,
- 		 tm.tm_hour, tm.tm_min, tm.tm_sec);
+The following changes since commit 30b4e122d71cbec2944a5f8b558b88936ee42f10:
+
+  media: rc: sir_ir: detect presence of port (2017-11-15 08:57:34 -0500)
+
+are available in the git repository at:
+
+  ssh://linuxtv.org/git/sailus/media_tree.git for-4.15-fix-1
+
+for you to fetch changes up to f1f16dc62ee643f70fc14dea871599d40ac4a927:
+
+  v4l: async: use the v4l2_dev from the root notifier when matching sub-devices (2017-11-29 09:55:21 +0200)
+
+----------------------------------------------------------------
+Arnd Bergmann (1):
+      media: et8ek8: select V4L2_FWNODE
+
+Niklas Söderlund (1):
+      v4l: async: use the v4l2_dev from the root notifier when matching sub-devices
+
+Sakari Ailus (1):
+      ov13858: Select V4L2_FWNODE
+
+Tomasz Figa (1):
+      media: v4l2-fwnode: Check subdev count after checking port
+
+ drivers/media/i2c/Kconfig             |  1 +
+ drivers/media/i2c/et8ek8/Kconfig      |  1 +
+ drivers/media/v4l2-core/v4l2-async.c  |  3 +--
+ drivers/media/v4l2-core/v4l2-fwnode.c | 10 +++++-----
+ 4 files changed, 8 insertions(+), 7 deletions(-)
+
 -- 
-2.9.0
+Regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
