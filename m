@@ -1,192 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from PrakOutbound.VEHosting.nl ([85.17.51.155]:57630 "EHLO
-        Prakkezator.VEHosting.nl" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1752278AbdK1L2S (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 28 Nov 2017 06:28:18 -0500
-Subject: Re: [linux-sunxi] Cedrus driver
-To: Giulio Benetti <giulio.benetti@micronovasrl.com>,
-        Maxime Ripard <maxime.ripard@free-electrons.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-        Andreas Baierl <list@imkreisrum.de>,
-        linux-sunxi <linux-sunxi@googlegroups.com>,
-        linux@armlinux.org.uk, wens@csie.org, linux-kernel@vger.kernel.org,
-        linux-media@vger.kernel.org
-References: <1511868059-2055094631.224aeb721c@prakkezator.vehosting.nl>
-From: Thomas van Kleef <thomas@vitsch.nl>
-Message-ID: <5d1cad5b-7d36-71fd-2e23-3bfe05f6e56f@vitsch.nl>
-Date: Tue, 28 Nov 2017 12:20:59 +0100
-MIME-Version: 1.0
-In-Reply-To: <2c0f9ae3-a29d-736b-655e-5affbd931b4d@micronovasrl.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Language: en-US
-Content-Transfer-Encoding: 8bit
+Received: from osg.samsung.com ([64.30.133.232]:56830 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752538AbdK2MIR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 29 Nov 2017 07:08:17 -0500
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Tiffany Lin <tiffany.lin@mediatek.com>,
+        Andrew-CT Chen <andrew-ct.chen@mediatek.com>,
+        Matthias Brugger <matthias.bgg@gmail.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Kees Cook <keescook@chromium.org>,
+        Matthias Kaehlcke <mka@chromium.org>,
+        linux-arm-kernel@lists.infradead.org,
+        linux-mediatek@lists.infradead.org
+Subject: [PATCH 5/7] media: venc: don't use kernel-doc for undescribed enums
+Date: Wed, 29 Nov 2017 07:08:08 -0500
+Message-Id: <a4070956e83a5bd5cac48e07e11ed7aa45bb8ade.1511952403.git.mchehab@s-opensource.com>
+In-Reply-To: <c73fcbc4af259923feac19eda4bb5e996b6de0fd.1511952403.git.mchehab@s-opensource.com>
+References: <c73fcbc4af259923feac19eda4bb5e996b6de0fd.1511952403.git.mchehab@s-opensource.com>
+In-Reply-To: <c73fcbc4af259923feac19eda4bb5e996b6de0fd.1511952403.git.mchehab@s-opensource.com>
+References: <c73fcbc4af259923feac19eda4bb5e996b6de0fd.1511952403.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 28-11-17 10:50, Giulio Benetti wrote:
-> Hi Maxime,
-> 
-> Il 28/11/2017 09:35, Maxime Ripard ha scritto:
->> On Tue, Nov 28, 2017 at 01:03:59AM +0100, Giulio Benetti wrote:
->>> Hi Maxime,
->>>
->>> Il 16/11/2017 14:42, Giulio Benetti ha scritto:
->>>> Hi,
->>>>
->>>> Il 16/11/2017 14:39, Maxime Ripard ha scritto:
->>>>> On Thu, Nov 16, 2017 at 02:17:08PM +0100, Giulio Benetti wrote:
->>>>>> Hi Hans,
->>>>>>
->>>>>> Il 16/11/2017 14:12, Hans Verkuil ha scritto:
->>>>>>> On 16/11/17 13:57, Giulio Benetti wrote:
->>>>>>>> Il 16/11/2017 13:53, Maxime Ripard ha scritto:
->>>>>>>>> On Thu, Nov 16, 2017 at 01:30:52PM +0100, Giulio Benetti wrote:
->>>>>>>>>>> On Thu, Nov 16, 2017 at 11:37:30AM +0100, Giulio Benetti wrote:
->>>>>>>>>>>> Il 16/11/2017 11:31, Andreas Baierl ha scritto:
->>>>>>>>>>>>> Am 16.11.2017 um 11:13 schrieb Giulio Benetti:
->>>>>>>>>>>>>> Hello,
->>>>>>>>>>>>>>
->>>>>>>>>>>>> Hello,
->>>>>>>>>>>>>> I'm wondering why cedrus
->>>>>>>>>>>>>> https://github.com/FlorentRevest/linux-sunxi-cedrus
->>>>>>>>>>>>>> has never been
->>>>>>>>>>>>>> merged with linux-sunxi sunxi-next.
->>>>>>>>>>>>>>
->>>>>>>>>>>>> Because it is not ready to be
->>>>>>>>>>>>> merged. It depends on the v4l2
->>>>>>>>>>>>> request
->>>>>>>>>>>>> API, which was not merged and which is re-worked atm.
->>>>>>>>>>>>> Also, sunxi-cedrus itself is not in
->>>>>>>>>>>>> a finished state and is not as
->>>>>>>>>>>>> feature-complete to be merged. Anyway it might be something for
->>>>>>>>>>>>> staging... Has there been a [RFC] on the mailing list at all?
->>>>>>>>>>>>
->>>>>>>>>>>> Where can I find a list of TODOs to get it ready to be merged?
->>>>>>>>>>>
->>>>>>>>>>> Assuming that the request API is in, we'd need to:
->>>>>>>>>>>        - Finish the MPEG4 support
->>>>>>>>>>>        - Work on more useful codecs (H264 comes to my mind)
->>>>>>>>>>>        - Implement the DRM planes support for
->>>>>>>>>>> the custom frame format
->>>>>>>>>>>        - Implement the DRM planes support for scaling
->>>>>>>>>>>        - Test it on more SoCs
->>>>>>>>>>>
->>>>>>>>>>> Or something along those lines.
->>>>>>>>>>
->>>>>>>>>> Lot of work to do
->>>>>>>>>
->>>>>>>>> Well... If it was fast and easy it would have been done already :)
->>>>>>>>
->>>>>>>> :))
->>>>>>>>
->>>>>>>>>
->>>>>>>>>>>>>> I see it seems to be dead, no commit in 1 year.
->>>>>>>>>>>>>
->>>>>>>>>>>>> Yes, because the author did this
->>>>>>>>>>>>> during an internship, which ended
->>>>>>>>>>>>> ...
->>>>>>>>>>>>> Afaik nobody picked up his work yet.
->>>>>>>>>>>
->>>>>>>>>>> That's not entirely true. Some work has been
->>>>>>>>>>> done by Thomas (in CC),
->>>>>>>>>>> especially on the display engine side, but last time we talked his
->>>>>>>>>>> work was not really upstreamable.
->>>>>>>>>>>
->>>>>>>>>>> We will also resume that effort starting next march.
->>>>>>>>>>
->>>>>>>>>> Is it possible a preview on a separate
->>>>>>>>>> Reporitory to start working on now?
->>>>>>>>>> Expecially to start porting everything done by
->>>>>>>>>> FlorentRevest to mainline,
->>>>>>>>>> admitted you've not already done.
->>>>>>>>>
->>>>>>>>> I'm not sure what you're asking for. Florent's work
->>>>>>>>> *was* on mainline.
->>>>>>>>
->>>>>>>> and then they took it off because it was unmantained?
->>>>>>>> You've spoken about Thomas(in CC) not ready,
->>>>>>>> maybe I could help on that if it's public to accelerate.
->>>>>>>> If I'm able to of course, this is my primary concern.
->>>>>>>>
->>>>>>>> Otherwise, in which way can I help improving it to make
->>>>>>>> it accept to linux-sunxi?
->>>>>>>> Starting from Florent's work and porting it to sunxi-next to begin?
->>>>>>>> And after that adding all features you've listed?
->>>>>>>> Tell me what I can do(I repeat, if I'm able to).
->>>>>>>
->>>>>>> The bottleneck is that the Request API is not mainlined. We
->>>>>>> restarted work
->>>>>>> on it after a meeting a few weeks back where we all agreed
->>>>>>> on the roadmap
->>>>>>> so hopefully it will go into mainline Q1 or Q2 next year.
->>>>>>>
->>>>>>> That said, you can use Florent's patch series for further development.
->>>>>>> It should be relatively easy to convert it to the final version of the
->>>>>>> Request API. Just note that the public API of the final
->>>>>>> Request API will
->>>>>>> be somewhat different from the old version Florent's patch
->>>>>>> series is using.
->>>>>>
->>>>>> So I'm going to try soon to :
->>>>>> 1) adapt that patchset to sunxi-next
->>>>>> 2) add A20 support
->>>>>> 3) add A33 support
->>>>>> 4) after mainlined APIs, merge
->>>>>
->>>>> That sounds good. Thomas already has the support for the A20, and as I
->>>>> was saying, there is someone that is going to work full time on this
->>>>> in a couple monthes on our side.
->>>>>
->>>>> I'll set up a git repo on github so that we can collaborate until the
->>>>> request API is ready.
->>>
->>> Any news about git repo?
->>> When do you plan to do it more or less?
->>
->> I started to do it yesterday.
->>
->> https://github.com/free-electrons/linux-cedrus
->> https://github.com/free-electrons/libva-cedrus
-> 
-> Great, I'm cloning.
-> 1st: have it working with A20 with kernel as is and libva as buildroot package
-> 2nd: porting to sunxi-next branch of linux-sunxi and check libva if can work as is
-> 
-> Thank you
-> So, I have been rebasing to 4.14.0 and have the cedrus driver working.
-I have pulled linux-mainline 4.14.0. Then pulled the requests2 branch from Hans
-Verkuil's media_tree. I have a patch available of the merge between these 2
-branches.
-After this I pulled the sunxi-cedrus repository from Florent Revests github. I
-believe this one is the same as the ones you are cloning right now.
-I have merged this and have a patch available for this as well.
+There are no descriptions for some enums, with produces lots
+of warnings:
 
-So to summarize:
- o pulled linux 4.14 from:
-    https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git
- o pulled requests2 from:
-    https://git.linuxtv.org/hverkuil/media_tree.git?h=requests2
-    will be replaced with the work, when it is done, in:
-     https://git.linuxtv.org/hverkuil/media_tree.git?h=ctrl-req-v2
- o pulled linux-sunxi-cedrus from:
-    https://github.com/FlorentRevest/linux-sunxi-cedrus
+    drivers/media/platform/mtk-vcodec/venc/venc_vp8_if.c:55: warning: Enum value 'VENC_VP8_VPU_WORK_BUF_LUMA' not described in enum 'venc_vp8_vpu_work_buf'
+    drivers/media/platform/mtk-vcodec/venc/venc_vp8_if.c:55: warning: Enum value 'VENC_VP8_VPU_WORK_BUF_LUMA2' not described in enum 'venc_vp8_vpu_work_buf'
+    drivers/media/platform/mtk-vcodec/venc/venc_vp8_if.c:55: warning: Enum value 'VENC_VP8_VPU_WORK_BUF_LUMA3' not described in enum 'venc_vp8_vpu_work_buf'
+    drivers/media/platform/mtk-vcodec/venc/venc_vp8_if.c:55: warning: Enum value 'VENC_VP8_VPU_WORK_BUF_CHROMA' not described in enum 'venc_vp8_vpu_work_buf'
+    drivers/media/platform/mtk-vcodec/venc/venc_vp8_if.c:55: warning: Enum value 'VENC_VP8_VPU_WORK_BUF_CHROMA2' not described in enum 'venc_vp8_vpu_work_buf'
+    drivers/media/platform/mtk-vcodec/venc/venc_vp8_if.c:55: warning: Enum value 'VENC_VP8_VPU_WORK_BUF_CHROMA3' not described in enum 'venc_vp8_vpu_work_buf'
+    drivers/media/platform/mtk-vcodec/venc/venc_vp8_if.c:55: warning: Enum value 'VENC_VP8_VPU_WORK_BUF_MV_INFO' not described in enum 'venc_vp8_vpu_work_buf'
+    drivers/media/platform/mtk-vcodec/venc/venc_vp8_if.c:55: warning: Enum value 'VENC_VP8_VPU_WORK_BUF_BS_HEADER' not described in enum 'venc_vp8_vpu_work_buf'
+    drivers/media/platform/mtk-vcodec/venc/venc_vp8_if.c:55: warning: Enum value 'VENC_VP8_VPU_WORK_BUF_PROB_BUF' not described in enum 'venc_vp8_vpu_work_buf'
+    drivers/media/platform/mtk-vcodec/venc/venc_vp8_if.c:55: warning: Enum value 'VENC_VP8_VPU_WORK_BUF_RC_INFO' not described in enum 'venc_vp8_vpu_work_buf'
+    drivers/media/platform/mtk-vcodec/venc/venc_vp8_if.c:55: warning: Enum value 'VENC_VP8_VPU_WORK_BUF_RC_CODE' not described in enum 'venc_vp8_vpu_work_buf'
+    drivers/media/platform/mtk-vcodec/venc/venc_vp8_if.c:55: warning: Enum value 'VENC_VP8_VPU_WORK_BUF_RC_CODE2' not described in enum 'venc_vp8_vpu_work_buf'
+    drivers/media/platform/mtk-vcodec/venc/venc_vp8_if.c:55: warning: Enum value 'VENC_VP8_VPU_WORK_BUF_RC_CODE3' not described in enum 'venc_vp8_vpu_work_buf'
+    drivers/media/platform/mtk-vcodec/venc/venc_vp8_if.c:55: warning: Enum value 'VENC_VP8_VPU_WORK_BUF_MAX' not described in enum 'venc_vp8_vpu_work_buf'
+    drivers/media/platform/mtk-vcodec/venc/venc_h264_if.c:51: warning: Enum value 'VENC_H264_VPU_WORK_BUF_RC_INFO' not described in enum 'venc_h264_vpu_work_buf'
+    drivers/media/platform/mtk-vcodec/venc/venc_h264_if.c:51: warning: Enum value 'VENC_H264_VPU_WORK_BUF_RC_CODE' not described in enum 'venc_h264_vpu_work_buf'
+    drivers/media/platform/mtk-vcodec/venc/venc_h264_if.c:51: warning: Enum value 'VENC_H264_VPU_WORK_BUF_REC_LUMA' not described in enum 'venc_h264_vpu_work_buf'
+    drivers/media/platform/mtk-vcodec/venc/venc_h264_if.c:51: warning: Enum value 'VENC_H264_VPU_WORK_BUF_REC_CHROMA' not described in enum 'venc_h264_vpu_work_buf'
+    drivers/media/platform/mtk-vcodec/venc/venc_h264_if.c:51: warning: Enum value 'VENC_H264_VPU_WORK_BUF_REF_LUMA' not described in enum 'venc_h264_vpu_work_buf'
+    drivers/media/platform/mtk-vcodec/venc/venc_h264_if.c:51: warning: Enum value 'VENC_H264_VPU_WORK_BUF_REF_CHROMA' not described in enum 'venc_h264_vpu_work_buf'
+    drivers/media/platform/mtk-vcodec/venc/venc_h264_if.c:51: warning: Enum value 'VENC_H264_VPU_WORK_BUF_MV_INFO_1' not described in enum 'venc_h264_vpu_work_buf'
+    drivers/media/platform/mtk-vcodec/venc/venc_h264_if.c:51: warning: Enum value 'VENC_H264_VPU_WORK_BUF_MV_INFO_2' not described in enum 'venc_h264_vpu_work_buf'
+    drivers/media/platform/mtk-vcodec/venc/venc_h264_if.c:51: warning: Enum value 'VENC_H264_VPU_WORK_BUF_SKIP_FRAME' not described in enum 'venc_h264_vpu_work_buf'
+    drivers/media/platform/mtk-vcodec/venc/venc_h264_if.c:51: warning: Enum value 'VENC_H264_VPU_WORK_BUF_MAX' not described in enum 'venc_h264_vpu_work_buf'
+    drivers/media/platform/mtk-vcodec/venc/venc_h264_if.c:60: warning: Enum value 'H264_BS_MODE_SPS' not described in enum 'venc_h264_bs_mode'
+    drivers/media/platform/mtk-vcodec/venc/venc_h264_if.c:60: warning: Enum value 'H264_BS_MODE_PPS' not described in enum 'venc_h264_bs_mode'
+    drivers/media/platform/mtk-vcodec/venc/venc_h264_if.c:60: warning: Enum value 'H264_BS_MODE_FRAME' not described in enum 'venc_h264_bs_mode'
 
- o merged and made patch between linux4.14 and requests2
- o merged and made patch with linux-sunxi-cedrus
- o Verified that the video-engine is decofing mpeg-2 on the Allwinner A20.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/platform/mtk-vcodec/venc/venc_h264_if.c | 4 ++--
+ drivers/media/platform/mtk-vcodec/venc/venc_vp8_if.c  | 2 +-
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-So maybe if someone is interested in this, I could place the patches somewhere?
-Just let me know.
-
-It would be nice to be able to play a file, so I would have to prepare our
-custom player and make a patch between the current sunxi-cedrus-drv-video and
-the one on https://github.com/FlorentRevest/sunxi-cedrus-drv-video.
-So I will start with this if there is any interest.
-
-Should I be working in sunxi-next I wonder?
->>
->> Maxime
->>
-> 
-> 
+diff --git a/drivers/media/platform/mtk-vcodec/venc/venc_h264_if.c b/drivers/media/platform/mtk-vcodec/venc/venc_h264_if.c
+index 4eb3be37ba14..6cf31b366aad 100644
+--- a/drivers/media/platform/mtk-vcodec/venc/venc_h264_if.c
++++ b/drivers/media/platform/mtk-vcodec/venc/venc_h264_if.c
+@@ -34,7 +34,7 @@ static const char h264_filler_marker[] = {0x0, 0x0, 0x0, 0x1, 0xc};
+ #define H264_FILLER_MARKER_SIZE ARRAY_SIZE(h264_filler_marker)
+ #define VENC_PIC_BITSTREAM_BYTE_CNT 0x0098
+ 
+-/**
++/*
+  * enum venc_h264_vpu_work_buf - h264 encoder buffer index
+  */
+ enum venc_h264_vpu_work_buf {
+@@ -50,7 +50,7 @@ enum venc_h264_vpu_work_buf {
+ 	VENC_H264_VPU_WORK_BUF_MAX,
+ };
+ 
+-/**
++/*
+  * enum venc_h264_bs_mode - for bs_mode argument in h264_enc_vpu_encode
+  */
+ enum venc_h264_bs_mode {
+diff --git a/drivers/media/platform/mtk-vcodec/venc/venc_vp8_if.c b/drivers/media/platform/mtk-vcodec/venc/venc_vp8_if.c
+index acb639c4abd2..957420dd60de 100644
+--- a/drivers/media/platform/mtk-vcodec/venc/venc_vp8_if.c
++++ b/drivers/media/platform/mtk-vcodec/venc/venc_vp8_if.c
+@@ -34,7 +34,7 @@
+ /* This ac_tag is vp8 frame tag. */
+ #define MAX_AC_TAG_SIZE 10
+ 
+-/**
++/*
+  * enum venc_vp8_vpu_work_buf - vp8 encoder buffer index
+  */
+ enum venc_vp8_vpu_work_buf {
+-- 
+2.14.3
