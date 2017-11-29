@@ -1,517 +1,207 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:35605 "EHLO mga02.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755629AbdKQC66 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 16 Nov 2017 21:58:58 -0500
-From: "Mani, Rajmohan" <rajmohan.mani@intel.com>
-To: "Zhi, Yong" <yong.zhi@intel.com>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>
-CC: "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
-        "Toivonen, Tuukka" <tuukka.toivonen@intel.com>,
-        "Hu, Jerry W" <jerry.w.hu@intel.com>,
-        "arnd@arndb.de" <arnd@arndb.de>, "hch@lst.de" <hch@lst.de>,
-        "robin.murphy@arm.com" <robin.murphy@arm.com>,
-        "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>
-Subject: RE: [PATCH v4 00/12] Intel IPU3 ImgU patchset
-Date: Fri, 17 Nov 2017 02:58:56 +0000
-Message-ID: <6F87890CF0F5204F892DEA1EF0D77A5972FD4195@FMSMSX114.amr.corp.intel.com>
-References: <1508298408-25822-1-git-send-email-yong.zhi@intel.com>
-In-Reply-To: <1508298408-25822-1-git-send-email-yong.zhi@intel.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Received: from aserp1040.oracle.com ([141.146.126.69]:33754 "EHLO
+        aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751427AbdK2AFI (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 28 Nov 2017 19:05:08 -0500
+Date: Wed, 29 Nov 2017 03:04:53 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: Jeremy Sowden <jeremy@azazel.net>
+Cc: devel@driverdev.osuosl.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH v2 1/3] media: staging: atomisp: fix for sparse "using
+ plain integer as NULL pointer" warnings.
+Message-ID: <20171129000452.5mcbijzedww34ojc@mwanda>
+References: <20171127122125.GB8561@kroah.com>
+ <20171127124450.28799-1-jeremy@azazel.net>
+ <20171127124450.28799-2-jeremy@azazel.net>
+ <20171128141524.kpvqbowgmpkzwfuz@mwanda>
+ <20171128233337.nwelcxvgaqtpgv5o@azazel.net>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20171128233337.nwelcxvgaqtpgv5o@azazel.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari and all,
+On Tue, Nov 28, 2017 at 11:33:37PM +0000, Jeremy Sowden wrote:
+> On 2017-11-28, at 17:15:24 +0300, Dan Carpenter wrote:
+> > On Mon, Nov 27, 2017 at 12:44:48PM +0000, Jeremy Sowden wrote:
+> > > The "address" member of struct ia_css_host_data is a
+> > > pointer-to-char, so define default as NULL.
+> > >
+> > > --- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/runtime/isp_param/interface/ia_css_isp_param_types.h
+> > > +++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/runtime/isp_param/interface/ia_css_isp_param_types.h
+> > > @@ -95,7 +95,7 @@ union ia_css_all_memory_offsets {
+> > >  };
+> > >
+> > >  #define IA_CSS_DEFAULT_ISP_MEM_PARAMS \
+> > > -		{ { { { 0, 0 } } } }
+> > > +		{ { { { NULL, 0 } } } }
+> >
+> > This define is way ugly and instead of making superficial changes, you
+> > should try to eliminate it.
+> >
+> > People look at warnings as a bad thing but they are actually a
+> > valuable resource which call attention to bad code.  By making this
+> > change you're kind of wasting the warning.  The bad code is still
+> > there, it's just swept under the rug but like a dead mouse carcass
+> > it's still stinking up the living room.  We should leave the warning
+> > there until it irritates someone enough to fix it properly.
+> 
+> Tracking down the offending initializer was definitely a pain.
+> 
+> Compound literals with designated initializers would make this macro
+> (and a number of others) easier to understand and more type-safe:
+> 
+>    #define IA_CSS_DEFAULT_ISP_MEM_PARAMS \
+>   -		{ { { { 0, 0 } } } }
+>   +	(struct ia_css_isp_param_host_segments) { \
+>   +		.params = { { \
+>   +			(struct ia_css_host_data) { \
+>   +				.address = NULL, \
+>   +				.size = 0 \
+>   +			} \
+>   +		} } \
+>   +	}
 
-> -----Original Message-----
-> From: Zhi, Yong
-> Sent: Tuesday, October 17, 2017 8:47 PM
-> To: linux-media@vger.kernel.org; sakari.ailus@linux.intel.com
-> Cc: Zheng, Jian Xu <jian.xu.zheng@intel.com>; Mani, Rajmohan
-> <rajmohan.mani@intel.com>; Toivonen, Tuukka
-> <tuukka.toivonen@intel.com>; Hu, Jerry W <jerry.w.hu@intel.com>;
-> arnd@arndb.de; hch@lst.de; robin.murphy@arm.com; iommu@lists.linux-
-> foundation.org; Zhi, Yong <yong.zhi@intel.com>
-> Subject: [PATCH v4 00/12] Intel IPU3 ImgU patchset
-> 
-> This patchset adds support for the Intel IPU3 (Image Processing Unit) ImgU
-> which is essentially a modern memory-to-memory ISP. It implements raw
-> Bayer to YUV image format conversion as well as a large number of other pixel
-> processing algorithms for improving the image quality.
-> 
-> Meta data formats are defined for image statistics (3A, i.e. automatic white
-> balance, exposure and focus, histogram and local area contrast
-> enhancement) as well as for the pixel processing algorithm parameters.
-> The documentation for these formats is currently not included in the patchset
-> but will be added in a future version of this set.
-> 
+Using designated initializers is good, yes.  Can't we just use an
+empty initializer since this is all zeroed memory anyway?
 
-Here is an update on the IPU3 documentation that we are currently working on.
+	(struct ia_css_isp_param_host_segments) { }
 
-Image processing in IPU3 relies on the following.
+I haven't tried it.
 
-1) HW configuration to enable ISP and
-2) setting customer specific 3A Tuning / Algorithm Parameters to achieve desired image quality. 
+> 
+> Unfortunately this default value is one end of a chain of default values
 
-We intend to provide documentation on ImgU driver programming interface to help users of this driver to configure and enable ISP HW to meet their needs.  This documentation will include details on complete V4L2 Kernel driver interface and IO-Control parameters, except for the ISP internal algorithm and its parameters (which is Intel proprietary IP).
 
-We will also provide an user space library in binary form to help users of this driver, to convert the public 3A tuning parameters to IPU3 algorithm parameters. This tool will be released under NDA to the users of this driver.
+Yeah.  A really long chain...
 
-> The algorithm parameters need to be considered specific to a given frame and
-> typically a large number of these parameters change on frame to frame basis.
-> Additionally, the parameters are highly structured (and not a flat space of
-> independent configuration primitives). They also reflect the data structures
-> used by the firmware and the hardware. On top of that, the algorithms require
-> highly specialized user space to make meaningful use of them. For these
-> reasons it has been chosen video buffers to pass the parameters to the device.
-> 
-> On individual patches:
-> 
-> The heart of ImgU is the CSS, or Camera Subsystem, which contains the image
-> processors and HW accelerators.
-> 
-> The 3A statistics and other firmware parameter computation related functions
-> are implemented in patch 8.
-> 
-> All h/w programming related code can be found in patch 9.
-> 
-> To access DDR via ImgU's own memory space, IPU3 is also equipped with its
-> own MMU unit, the driver is implemented in patch 2.
-> 
-> Currently, the MMU driver has dependency on two exported symbols
-> (iommu_group_ref_get and iommu_group_get_for_dev))to build as ko.
-> 
-> Patch 3 uses above IOMMU driver for DMA mem related functions.
-> 
-> Patch 5-10 are basically IPU3 CSS specific implementations:
-> 
-> 6 and 7 provide some utility functions and manage IPU3 fw download and
-> install.
-> 
-> The firmware which is called ipu3-fw.bin can be downloaded from:
-> 
-> git://git.kernel.org/pub/scm/linux/kernel/git/firmware/linux-firmware.git
-> (commit 2c27b0cb02f18c022d8378e0e1abaf8b7ae8188f)
-> 
-> Patch 9 and 10 are of the same file, the latter implements interface functions
-> for access fw & hw capabilities defined in patch 8.
-> 
-> Patch 11 has a dependency on Sakari's V4L2_BUF_TYPE_META_OUTPUT work:
-> 
-> <URL:https://patchwork.kernel.org/patch/9976293/>
-> <URL:https://patchwork.kernel.org/patch/9976295/>
-> 
-> Patch 12 uses Kconfig and Makefile created by IPU3 cio2 patch series.
-> 
-> Link to user space implementation:
-> 
-> <URL:https://chromium.googlesource.com/chromiumos/platform/arc-
-> camera/+/master>
-> 
-> Device topology:
-> 
-> ./media-ctl -d /dev/media0 -p
-> Media controller API version 4.14.0
-> 
-> Media device information
-> ------------------------
-> driver          ipu3-imgu
-> model           ipu3-imgu
-> serial
-> bus info        0000:00:05.0
-> hw revision     0x0
-> driver version  4.14.0
-> 
-> Device topology
-> - entity 1: ipu3-imgu:0 (8 pads, 8 links)
->             type V4L2 subdev subtype Unknown flags 0
->             device node name /dev/v4l-subdev0
-> 	pad0: Sink
-> 		[fmt:UYVY8_2X8/1920x1080 field:none colorspace:unknown]
-> 		<- "input":0 [ENABLED,IMMUTABLE]
-> 	pad1: Sink
-> 		[fmt:UYVY8_2X8/1920x1080 field:none colorspace:unknown]
-> 		<- "parameters":0 []
-> 	pad2: Source
-> 		[fmt:UYVY8_2X8/1920x1080 field:none colorspace:unknown]
-> 		-> "output":0 []
-> 	pad3: Source
-> 		[fmt:UYVY8_2X8/1920x1080 field:none colorspace:unknown]
-> 		-> "viewfinder":0 []
-> 	pad4: Source
-> 		[fmt:UYVY8_2X8/1920x1080 field:none colorspace:unknown]
-> 		-> "postview":0 []
-> 	pad5: Source
-> 		[fmt:UYVY8_2X8/1920x1080 field:none colorspace:unknown]
-> 		-> "3a stat":0 []
-> 	pad6: Source
-> 		[fmt:UYVY8_2X8/1920x1080 field:none colorspace:unknown]
-> 		-> "dvs stat":0 []
-> 	pad7: Source
-> 		[fmt:UYVY8_2X8/1920x1080 field:none colorspace:unknown]
-> 		-> "lace stat":0 []
-> 
-> - entity 12: input (1 pad, 1 link)
->              type Node subtype V4L flags 0
->              device node name /dev/video0
-> 	pad0: Source
-> 		-> "ipu3-imgu:0":0 [ENABLED,IMMUTABLE]
-> 
-> - entity 18: parameters (1 pad, 1 link)
->              type Node subtype V4L flags 0
->              device node name /dev/video1
-> 	pad0: Source
-> 		-> "ipu3-imgu:0":1 []
-> 
-> - entity 24: output (1 pad, 1 link)
->              type Node subtype V4L flags 0
->              device node name /dev/video2
-> 	pad0: Sink
-> 		<- "ipu3-imgu:0":2 []
-> 
-> - entity 30: viewfinder (1 pad, 1 link)
->              type Node subtype V4L flags 0
->              device node name /dev/video3
-> 	pad0: Sink
-> 		<- "ipu3-imgu:0":3 []
-> 
-> - entity 36: postview (1 pad, 1 link)
->              type Node subtype V4L flags 0
->              device node name /dev/video4
-> 	pad0: Sink
-> 		<- "ipu3-imgu:0":4 []
-> 
-> - entity 42: 3a stat (1 pad, 1 link)
->              type Node subtype V4L flags 0
->              device node name /dev/video5
-> 	pad0: Sink
-> 		<- "ipu3-imgu:0":5 []
-> 
-> - entity 48: dvs stat (1 pad, 1 link)
->              type Node subtype V4L flags 0
->              device node name /dev/video6
-> 	pad0: Sink
-> 		<- "ipu3-imgu:0":6 []
-> 
-> - entity 54: lace stat (1 pad, 1 link)
->              type Node subtype V4L flags 0
->              device node name /dev/video7
-> 	pad0: Sink
-> 		<- "ipu3-imgu:0":7 []
-> 
-> 
-> Sample test results on input and 3A video nodes:
-> 
-> localhost # ./v4l2-compliance -d /dev/video0
-> v4l2-compliance SHA   : f71ba5a1779ddb6a5a59562504dcf4fabf5c1de1
-> 
-> Driver Info:
-> 	Driver name   : ipu3-imgu:0
-> 	Card type     : ipu3-imgu
-> 	Bus info      : PCI:input
-> 	Driver version: 4.14.0
-> 	Capabilities  : 0x84202000
-> 		Video Output Multiplanar
-> 		Streaming
-> 		Extended Pix Format
-> 		Device Capabilities
-> 	Device Caps   : 0x04202000
-> 		Video Output Multiplanar
-> 		Streaming
-> 		Extended Pix Format
-> 
-> Compliance test for device /dev/video0 (not using libv4l2):
-> 
-> Required ioctls:
-> 	test VIDIOC_QUERYCAP: OK
-> 
-> Allow for multiple opens:
-> 	test second video open: OK
-> 	test VIDIOC_QUERYCAP: OK
-> 	test VIDIOC_G/S_PRIORITY: OK
-> 	test for unlimited opens: OK
-> 
-> Debug ioctls:
-> 	test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
-> 	test VIDIOC_LOG_STATUS: OK (Not Supported)
-> 
-> Input ioctls:
-> 	test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
-> 	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-> 	test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
-> 	test VIDIOC_ENUMAUDIO: OK (Not Supported)
-> 	test VIDIOC_G/S/ENUMINPUT: OK (Not Supported)
-> 	test VIDIOC_G/S_AUDIO: OK (Not Supported)
-> 	Inputs: 0 Audio Inputs: 0 Tuners: 0
-> 
-> Output ioctls:
-> 	test VIDIOC_G/S_MODULATOR: OK (Not Supported)
-> 	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-> 	test VIDIOC_ENUMAUDOUT: OK (Not Supported)
-> 	test VIDIOC_G/S/ENUMOUTPUT: OK
-> 	test VIDIOC_G/S_AUDOUT: OK (Not Supported)
-> 	Outputs: 1 Audio Outputs: 0 Modulators: 0
-> 
-> Input/Output configuration ioctls:
-> 	test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
-> 	test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
-> 	test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
-> 	test VIDIOC_G/S_EDID: OK (Not Supported)
-> 
-> Test output 0:
-> 
-> 	Control ioctls:
-> 		test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK (Not
-> Supported)
-> 		test VIDIOC_QUERYCTRL: OK (Not Supported)
-> 		test VIDIOC_G/S_CTRL: OK (Not Supported)
-> 		test VIDIOC_G/S/TRY_EXT_CTRLS: OK (Not Supported)
-> 		test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK (Not
-> Supported)
-> 		test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
-> 		Standard Controls: 0 Private Controls: 0
-> 
-> 	Format ioctls:
-> 		test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
-> 		test VIDIOC_G/S_PARM: OK (Not Supported)
-> 		test VIDIOC_G_FBUF: OK (Not Supported)
-> 		test VIDIOC_G_FMT: OK
-> 		test VIDIOC_TRY_FMT: OK
-> 		test VIDIOC_S_FMT: OK
-> 		test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
-> 		test Cropping: OK (Not Supported)
-> 		test Composing: OK (Not Supported)
-> 		test Scaling: OK
-> 
-> 	Codec ioctls:
-> 		test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
-> 		test VIDIOC_G_ENC_INDEX: OK (Not Supported)
-> 		test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
-> 
-> 	Buffer ioctls:
-> 		test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
-> 		test VIDIOC_EXPBUF: OK
-> 
-> Test output 0:
-> 
-> 
-> Total: 43, Succeeded: 43, Failed: 0, Warnings: 0
-> 
-> localhost # ./v4l2-compliance -d /dev/video5
-> v4l2-compliance SHA   : f71ba5a1779ddb6a5a59562504dcf4fabf5c1de1
-> 
-> Driver Info:
-> 	Driver name   : ipu3-imgu:0
-> 	Card type     : ipu3-imgu
-> 	Bus info      : PCI:3a stat
-> 	Driver version: 4.14.0
-> 	Capabilities  : 0x84A00000
-> 		Metadata Capture
-> 		Streaming
-> 		Extended Pix Format
-> 		Device Capabilities
-> 	Device Caps   : 0x04A00000
-> 		Metadata Capture
-> 		Streaming
-> 		Extended Pix Format
-> 
-> Compliance test for device /dev/video5 (not using libv4l2):
-> 
-> Required ioctls:
-> 	test VIDIOC_QUERYCAP: OK
-> 
-> Allow for multiple opens:
-> 	test second video open: OK
-> 	test VIDIOC_QUERYCAP: OK
-> 	test VIDIOC_G/S_PRIORITY: OK
-> 	test for unlimited opens: OK
-> 
-> Debug ioctls:
-> 	test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
-> 	test VIDIOC_LOG_STATUS: OK (Not Supported)
-> 
-> Input ioctls:
-> 	test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
-> 	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-> 	test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
-> 	test VIDIOC_ENUMAUDIO: OK (Not Supported)
-> 	test VIDIOC_G/S/ENUMINPUT: OK (Not Supported)
-> 	test VIDIOC_G/S_AUDIO: OK (Not Supported)
-> 	Inputs: 0 Audio Inputs: 0 Tuners: 0
-> 
-> Output ioctls:
-> 	test VIDIOC_G/S_MODULATOR: OK (Not Supported)
-> 	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-> 	test VIDIOC_ENUMAUDOUT: OK (Not Supported)
-> 	test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
-> 	test VIDIOC_G/S_AUDOUT: OK (Not Supported)
-> 	Outputs: 0 Audio Outputs: 0 Modulators: 0
-> 
-> Input/Output configuration ioctls:
-> 	test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
-> 	test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
-> 	test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
-> 	test VIDIOC_G/S_EDID: OK (Not Supported)
-> 
-> 	Control ioctls:
-> 		test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK (Not
-> Supported)
-> 		test VIDIOC_QUERYCTRL: OK (Not Supported)
-> 		test VIDIOC_G/S_CTRL: OK (Not Supported)
-> 		test VIDIOC_G/S/TRY_EXT_CTRLS: OK (Not Supported)
-> 		test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK (Not
-> Supported)
-> 		test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
-> 		Standard Controls: 0 Private Controls: 0
-> 
-> 	Format ioctls:
-> 		test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
-> 		test VIDIOC_G/S_PARM: OK (Not Supported)
-> 		test VIDIOC_G_FBUF: OK (Not Supported)
-> 		test VIDIOC_G_FMT: OK
-> 		test VIDIOC_TRY_FMT: OK
-> 		test VIDIOC_S_FMT: OK
-> 		test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
-> 		test Cropping: OK (Not Supported)
-> 		test Composing: OK (Not Supported)
-> 		test Scaling: OK (Not Supported)
-> 
-> 	Codec ioctls:
-> 		test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
-> 		test VIDIOC_G_ENC_INDEX: OK (Not Supported)
-> 		test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
-> 
-> 	Buffer ioctls:
-> 		test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
-> 		test VIDIOC_EXPBUF: OK
-> 
-> Test input 0:
-> 
-> 
-> Total: 43, Succeeded: 43, Failed: 0, Warnings: 0
-> 
-> Note: stream test with -f fails as pre-configuration of sub-devs is required.
-> 
-> ===========
-> = history =
-> ===========
-> 
-> version 4:
-> - Used V4L2_BUF_TYPE_META_OUTPUT for:
->     - V4L2_META_FMT_IPU3_STAT_PARAMS
-> - Used V4L2_BUF_TYPE_META_CAPTURE for:
->     - V4L2_META_FMT_IPU3_STAT_3A
->     - V4L2_META_FMT_IPU3_STAT_DVS
->     - V4L2_META_FMT_IPU3_STAT_LACE
-> - Supported v4l2 MPLANE format on video nodes.
-> - ipu3-dmamap.c: Removed dma ops and dependencies on IOMMU_DMA lib.
-> - ipu3-mmu.c: Re-structured the driver:
->   Removed dependencies on linux/dma-iommu.h
->   Add dev and dma_dev to struct ipu3_mmu to faciliate the dma_map_ops-less
-> way of
->   binding between mmu, dmamap and ipu3 driver.
->   Addressed MMU review comments of v3.
->   Removed cache flush via setting page table as un-cache for improved
-> performance.
-> - intel-ipu3.h: Added __padding qualifier for uapi definitions.
-> - Internal fix: power and performance related issues.
-> - Fixed v4l2-compliance test failures on video and meta nodes.
-> - Fixed build failure for x86 with 32bit config.
-> - Fixed checkpatch.pl errors/warnings/checks.
-> 
-> version 3:
-> - ipu3-mmu.c and ipu3-dmamap.c:
->   Tomasz Figa reworked both drivers and updated related files.
-> - ipu2-abi.h:
->   update imgu_abi_binary_info ABI to support latest ipu3-fw.bin.
->   use __packed qualifier on structs suggested by Sakari Ailus.
-> - ipu3-css-fw.c/ipu3-css-fw.h: following fix were suggested by Tomasz Figa:
->   remove pointer type in firmware blob structs.
->   fix binary_header array in struct imgu_fw_header.
->   fix calling ipu3_css_fw_show_binary() before proper checking.
->   fix logic error for valid length checking of blob name.
-> - ipu3-css-params.c/ipu3_css_scaler_get_exp():
->   use lib helper suggested by Andy Shevchenko.
-> - ipu3-v4l2.c/ipu3_videoc_querycap():
->   fill device_caps fix suggested by Hans Verkuil.
->   add VB2_DMABUF suggested by Tomasz Figa.
-> - ipu3-css.c: increase IMGU freq from 300MHZ to 450MHZ (internal fix)
-> - ipu3.c: use vb2_dma_sg_memop for the time being(internal fix).
-> 
-> version 2:
-> This version cherry-picked firmware ABI change and other fix in order to bring
-> the code up-to-date with our internal release.
-> 
-> I will go over the review comments in v1 and address them in v3 and future
-> update.
-> 
-> version 1:
-> - Initial submission
-> 
-> Tomasz Figa (2):
->   intel-ipu3: Add mmu driver
->   intel-ipu3: Add IOMMU based dmamap support
-> 
-> Yong Zhi (10):
->   videodev2.h, v4l2-ioctl: add IPU3 meta buffer format
->   intel-ipu3: Add user space ABI definitions
->   intel-ipu3: css: tables
->   intel-ipu3: css: imgu dma buff pool
->   intel-ipu3: css: firmware management
->   intel-ipu3: params: compute and program ccs
->   intel-ipu3: css hardware setup
->   intel-ipu3: css pipeline
->   intel-ipu3: Add imgu v4l2 driver
->   intel-ipu3: imgu top level pci device
-> 
->  drivers/media/pci/intel/ipu3/Kconfig           |   33 +
->  drivers/media/pci/intel/ipu3/Makefile          |   21 +
->  drivers/media/pci/intel/ipu3/ipu3-abi.h        | 1579 ++++
->  drivers/media/pci/intel/ipu3/ipu3-css-fw.c     |  270 +
->  drivers/media/pci/intel/ipu3/ipu3-css-fw.h     |  206 +
->  drivers/media/pci/intel/ipu3/ipu3-css-params.c | 3161 ++++++++
-> drivers/media/pci/intel/ipu3/ipu3-css-params.h |  105 +
->  drivers/media/pci/intel/ipu3/ipu3-css-pool.c   |  132 +
->  drivers/media/pci/intel/ipu3/ipu3-css-pool.h   |   54 +
->  drivers/media/pci/intel/ipu3/ipu3-css.c        | 2278 ++++++
->  drivers/media/pci/intel/ipu3/ipu3-css.h        |  225 +
->  drivers/media/pci/intel/ipu3/ipu3-dmamap.c     |  342 +
->  drivers/media/pci/intel/ipu3/ipu3-dmamap.h     |   33 +
->  drivers/media/pci/intel/ipu3/ipu3-mmu.c        |  580 ++
->  drivers/media/pci/intel/ipu3/ipu3-mmu.h        |   26 +
->  drivers/media/pci/intel/ipu3/ipu3-tables.c     | 9621
-> ++++++++++++++++++++++++
->  drivers/media/pci/intel/ipu3/ipu3-tables.h     |   82 +
->  drivers/media/pci/intel/ipu3/ipu3-v4l2.c       | 1150 +++
->  drivers/media/pci/intel/ipu3/ipu3.c            |  882 +++
->  drivers/media/pci/intel/ipu3/ipu3.h            |  186 +
->  drivers/media/v4l2-core/v4l2-ioctl.c           |    4 +
->  include/uapi/linux/intel-ipu3.h                | 2199 ++++++
->  include/uapi/linux/videodev2.h                 |    6 +
->  23 files changed, 23175 insertions(+)
->  create mode 100644 drivers/media/pci/intel/ipu3/ipu3-abi.h
->  create mode 100644 drivers/media/pci/intel/ipu3/ipu3-css-fw.c
->  create mode 100644 drivers/media/pci/intel/ipu3/ipu3-css-fw.h
->  create mode 100644 drivers/media/pci/intel/ipu3/ipu3-css-params.c
->  create mode 100644 drivers/media/pci/intel/ipu3/ipu3-css-params.h
->  create mode 100644 drivers/media/pci/intel/ipu3/ipu3-css-pool.c
->  create mode 100644 drivers/media/pci/intel/ipu3/ipu3-css-pool.h
->  create mode 100644 drivers/media/pci/intel/ipu3/ipu3-css.c
->  create mode 100644 drivers/media/pci/intel/ipu3/ipu3-css.h
->  create mode 100644 drivers/media/pci/intel/ipu3/ipu3-dmamap.c
->  create mode 100644 drivers/media/pci/intel/ipu3/ipu3-dmamap.h
->  create mode 100644 drivers/media/pci/intel/ipu3/ipu3-mmu.c
->  create mode 100644 drivers/media/pci/intel/ipu3/ipu3-mmu.h
->  create mode 100644 drivers/media/pci/intel/ipu3/ipu3-tables.c
->  create mode 100644 drivers/media/pci/intel/ipu3/ipu3-tables.h
->  create mode 100644 drivers/media/pci/intel/ipu3/ipu3-v4l2.c
->  create mode 100644 drivers/media/pci/intel/ipu3/ipu3.c
->  create mode 100644 drivers/media/pci/intel/ipu3/ipu3.h
->  create mode 100644 include/uapi/linux/intel-ipu3.h
-> 
-> --
-> 2.7.4
+
+> used to initialize members of default values of enclosing structs where
+> the outermost values are used to initialize some static variables:
+> 
+>   static enum ia_css_err
+>   init_pipe_defaults(enum ia_css_pipe_mode mode,
+> 		     struct ia_css_pipe *pipe,
+> 		     bool copy_pipe)
+>   {
+>     static struct ia_css_pipe default_pipe = IA_CSS_DEFAULT_PIPE;
+>     static struct ia_css_preview_settings prev  = IA_CSS_DEFAULT_PREVIEW_SETTINGS;
+>     static struct ia_css_capture_settings capt  = IA_CSS_DEFAULT_CAPTURE_SETTINGS;
+>     static struct ia_css_video_settings   video = IA_CSS_DEFAULT_VIDEO_SETTINGS;
+>     static struct ia_css_yuvpp_settings   yuvpp = IA_CSS_DEFAULT_YUVPP_SETTINGS;
+> 
+>     if (pipe == NULL) {
+>       IA_CSS_ERROR("NULL pipe parameter");
+>       return IA_CSS_ERR_INVALID_ARGUMENTS;
+>     }
+> 
+>     /* Initialize pipe to pre-defined defaults */
+>     *pipe = default_pipe;
+> 
+>     /* TODO: JB should not be needed, but temporary backward reference */
+>     switch (mode) {
+>     case IA_CSS_PIPE_MODE_PREVIEW:
+>       pipe->mode = IA_CSS_PIPE_ID_PREVIEW;
+>       pipe->pipe_settings.preview = prev;
+>       break;
+>     case IA_CSS_PIPE_MODE_CAPTURE:
+>       if (copy_pipe) {
+> 	pipe->mode = IA_CSS_PIPE_ID_COPY;
+>       } else {
+> 	pipe->mode = IA_CSS_PIPE_ID_CAPTURE;
+>       }
+>       pipe->pipe_settings.capture = capt;
+>       break;
+>     case IA_CSS_PIPE_MODE_VIDEO:
+>       pipe->mode = IA_CSS_PIPE_ID_VIDEO;
+>       pipe->pipe_settings.video = video;
+>       break;
+>     case IA_CSS_PIPE_MODE_ACC:
+>       pipe->mode = IA_CSS_PIPE_ID_ACC;
+>       break;
+>     case IA_CSS_PIPE_MODE_COPY:
+>       pipe->mode = IA_CSS_PIPE_ID_CAPTURE;
+>       break;
+>     case IA_CSS_PIPE_MODE_YUVPP:
+>       pipe->mode = IA_CSS_PIPE_ID_YUVPP;
+>       pipe->pipe_settings.yuvpp = yuvpp;
+>       break;
+>     default:
+>       return IA_CSS_ERR_INVALID_ARGUMENTS;
+>     }
+> 
+>     return IA_CSS_SUCCESS;
+>   }
+> 
+> and GCC's limited support for using compound literals to initialize
+> static variables doesn't stretch this far.
+> 
+> I'm not convinced, however, that those variables actually achieve very
+> much.  If I change the code to assign the defaults directly, the problem
+> goes away:
+> 
+>   diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css.c b/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css.c
+>   index f92b6a9f77eb..671b2c732a46 100644
+>   --- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css.c
+>   +++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css.c
+>   @@ -2291,25 +2291,19 @@ init_pipe_defaults(enum ia_css_pipe_mode mode,
+> 		 struct ia_css_pipe *pipe,
+> 		 bool copy_pipe)
+>    {
+>   -       static struct ia_css_pipe default_pipe = IA_CSS_DEFAULT_PIPE;
+>   -       static struct ia_css_preview_settings prev  = IA_CSS_DEFAULT_PREVIEW_SETTINGS;
+>   -       static struct ia_css_capture_settings capt  = IA_CSS_DEFAULT_CAPTURE_SETTINGS;
+>   -       static struct ia_css_video_settings   video = IA_CSS_DEFAULT_VIDEO_SETTINGS;
+>   -       static struct ia_css_yuvpp_settings   yuvpp = IA_CSS_DEFAULT_YUVPP_SETTINGS;
+>   -
+> 	  if (pipe == NULL) {
+> 		  IA_CSS_ERROR("NULL pipe parameter");
+> 		  return IA_CSS_ERR_INVALID_ARGUMENTS;
+> 	  }
+> 
+> 	  /* Initialize pipe to pre-defined defaults */
+>   -       *pipe = default_pipe;
+>   +       *pipe = IA_CSS_DEFAULT_PIPE;
+> 
+> 	  /* TODO: JB should not be needed, but temporary backward reference */
+> 	  switch (mode) {
+> 	  case IA_CSS_PIPE_MODE_PREVIEW:
+> 		  pipe->mode = IA_CSS_PIPE_ID_PREVIEW;
+>   -               pipe->pipe_settings.preview = prev;
+>   +               pipe->pipe_settings.preview = IA_CSS_DEFAULT_PREVIEW_SETTINGS;
+> 		  break;
+> 	  case IA_CSS_PIPE_MODE_CAPTURE:
+> 		  if (copy_pipe) {
+>   @@ -2317,11 +2311,11 @@ init_pipe_defaults(enum ia_css_pipe_mode mode,
+> 		  } else {
+> 			  pipe->mode = IA_CSS_PIPE_ID_CAPTURE;
+> 		  }
+>   -               pipe->pipe_settings.capture = capt;
+>   +               pipe->pipe_settings.capture = IA_CSS_DEFAULT_CAPTURE_SETTINGS;
+> 		  break;
+> 	  case IA_CSS_PIPE_MODE_VIDEO:
+> 		  pipe->mode = IA_CSS_PIPE_ID_VIDEO;
+>   -               pipe->pipe_settings.video = video;
+>   +               pipe->pipe_settings.video = IA_CSS_DEFAULT_VIDEO_SETTINGS;
+> 		  break;
+> 	  case IA_CSS_PIPE_MODE_ACC:
+> 		  pipe->mode = IA_CSS_PIPE_ID_ACC;
+>   @@ -2331,7 +2325,7 @@ init_pipe_defaults(enum ia_css_pipe_mode mode,
+> 		  break;
+> 	  case IA_CSS_PIPE_MODE_YUVPP:
+> 		  pipe->mode = IA_CSS_PIPE_ID_YUVPP;
+>   -               pipe->pipe_settings.yuvpp = yuvpp;
+>   +               pipe->pipe_settings.yuvpp = IA_CSS_DEFAULT_YUVPP_SETTINGS;
+> 		  break;
+> 	  default:
+> 		  return IA_CSS_ERR_INVALID_ARGUMENTS;
+> 
+> Does this seem reasonable or am I barking up the wrong tree?
+
+Yes.  Chopping the chain down and deleting as much of this code as
+possible seems a good thing.
+
+regards,
+dan carpenter
