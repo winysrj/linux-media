@@ -1,69 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:46114 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750964AbdK3NnD (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 30 Nov 2017 08:43:03 -0500
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Jonathan Corbet <corbet@lwn.net>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        linux-doc@vger.kernel.org
-Subject: [PATCH] kernel-doc: parse DECLARE_KFIFO_PTR()
-Date: Thu, 30 Nov 2017 08:42:57 -0500
-Message-Id: <a0a0392564bd4405b919241de9fb0fc7ec9be8cd.1512049320.git.mchehab@s-opensource.com>
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47820 "EHLO
+        mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753366AbdK2JPD (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 29 Nov 2017 04:15:03 -0500
+Date: Wed, 29 Nov 2017 10:15:06 +0100
+From: Greg KH <gregkh@linuxfoundation.org>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Jeremy Sowden <jeremy@azazel.net>, linux-media@vger.kernel.org,
+        devel@driverdev.osuosl.org
+Subject: Re: [PATCH 2/3] media: staging: atomisp: defined as static some
+ const arrays which don't need external linkage.
+Message-ID: <20171129091506.GB4414@kroah.com>
+References: <20171127113054.27657-1-jeremy@azazel.net>
+ <20171127113054.27657-3-jeremy@azazel.net>
+ <20171127122125.GB8561@kroah.com>
+ <20171129090817.3u7bfxa3dapue44t@valkosipuli.retiisi.org.uk>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20171129090817.3u7bfxa3dapue44t@valkosipuli.retiisi.org.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On media, we now have an struct declared with:
+On Wed, Nov 29, 2017 at 11:08:17AM +0200, Sakari Ailus wrote:
+> Hi Greg,
+> 
+> On Mon, Nov 27, 2017 at 01:21:25PM +0100, Greg KH wrote:
+> > On Mon, Nov 27, 2017 at 11:30:53AM +0000, Jeremy Sowden wrote:
+> > > Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
+> > > ---
+> > >  .../isp/kernels/eed1_8/ia_css_eed1_8.host.c        | 24 +++++++++++-----------
+> > >  1 file changed, 12 insertions(+), 12 deletions(-)
+> > 
+> > I can never take patches without any changelog text, and so no one
+> > should write them that way :)
+> 
+> I've been applying the atomisp patches to my tree for some time now,
+> further on passing them to Mauro to be merged via the media tree. To avoid
+> conflicts, I suggest to avoid merging them via the staging tree.
 
-struct lirc_fh {
-        struct list_head list;
-        struct rc_dev *rc;
-        int                             carrier_low;
-        bool                            send_timeout_reports;
-        DECLARE_KFIFO_PTR(rawir, unsigned int);
-        DECLARE_KFIFO_PTR(scancodes, struct lirc_scancode);
-        wait_queue_head_t               wait_poll;
-        u8                              send_mode;
-        u8                              rec_mode;
-};
+I'm not touching any of these patches, just commenting that patches
+without changelogs should not be written :)
 
-Currently, it produces the following error:
+thanks,
 
-	./include/media/rc-core.h:96: warning: No description found for parameter 'int'
-	./include/media/rc-core.h:96: warning: No description found for parameter 'lirc_scancode'
-	./include/media/rc-core.h:96: warning: Excess struct member 'rawir' description in 'lirc_fh'
-	./include/media/rc-core.h:96: warning: Excess struct member 'scancodes' description in 'lirc_fh'
-
-So, teach kernel-doc how to parse a DECLARE_KFIFO_PTR();
-
-While here, relax at the past DECLARE_foo() macros,
-accepting a random number of spaces after comma.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- scripts/kernel-doc | 7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
-
-diff --git a/scripts/kernel-doc b/scripts/kernel-doc
-index bd29a92b4b48..5c12208f8c89 100755
---- a/scripts/kernel-doc
-+++ b/scripts/kernel-doc
-@@ -2208,10 +2208,11 @@ sub dump_struct($$) {
- 	$members =~ s/__aligned\s*\([^;]*\)//gos;
- 	$members =~ s/\s*CRYPTO_MINALIGN_ATTR//gos;
- 	# replace DECLARE_BITMAP
--	$members =~ s/DECLARE_BITMAP\s*\(([^,)]+), ([^,)]+)\)/unsigned long $1\[BITS_TO_LONGS($2)\]/gos;
-+	$members =~ s/DECLARE_BITMAP\s*\(([^,)]+),\s*([^,)]+)\)/unsigned long $1\[BITS_TO_LONGS($2)\]/gos;
- 	# replace DECLARE_HASHTABLE
--	$members =~ s/DECLARE_HASHTABLE\s*\(([^,)]+), ([^,)]+)\)/unsigned long $1\[1 << (($2) - 1)\]/gos;
--
-+	$members =~ s/DECLARE_HASHTABLE\s*\(([^,)]+),\s*([^,)]+)\)/unsigned long $1\[1 << (($2) - 1)\]/gos;
-+	# replace DECLARE_KFIFO_PTR(fifo, type)
-+	$members =~ s/DECLARE_KFIFO_PTR\s*\(([^,)]+),\s*([^,)]+)\)/$2 \*$1/gos;
- 	create_parameterlist($members, ';', $file);
- 	check_sections($file, $declaration_name, $decl_type, $sectcheck, $struct_actual, $nested);
- 
--- 
-2.14.3
+greg k-h
