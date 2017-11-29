@@ -1,123 +1,202 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.horus.com ([78.46.148.228]:53375 "EHLO mail.horus.com"
+Received: from osg.samsung.com ([64.30.133.232]:56247 "EHLO osg.samsung.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S933982AbdKPPfw (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 16 Nov 2017 10:35:52 -0500
-Date: Thu, 16 Nov 2017 16:27:01 +0100
-From: Matthias Reichl <hias@horus.com>
-To: Sean Young <sean@mess.org>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: 4.14 regression from commit d57ea877af38 media: rc: per-protocol
- repeat period
-Message-ID: <20171116152700.filid3ask3gowegl@camel2.lan>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+        id S1752529AbdK2MIQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 29 Nov 2017 07:08:16 -0500
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: [PATCH 4/7] media: davinci: fix kernel-doc warnings
+Date: Wed, 29 Nov 2017 07:08:07 -0500
+Message-Id: <a62cc016ab4e397cd822d80967dd840c7dc40d40.1511952403.git.mchehab@s-opensource.com>
+In-Reply-To: <c73fcbc4af259923feac19eda4bb5e996b6de0fd.1511952403.git.mchehab@s-opensource.com>
+References: <c73fcbc4af259923feac19eda4bb5e996b6de0fd.1511952403.git.mchehab@s-opensource.com>
+In-Reply-To: <c73fcbc4af259923feac19eda4bb5e996b6de0fd.1511952403.git.mchehab@s-opensource.com>
+References: <c73fcbc4af259923feac19eda4bb5e996b6de0fd.1511952403.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The following commit introduced a regression
+There are several of kernel-doc warnings:
 
-commit d57ea877af38057b0ef31758cf3b99765dc33695
-Author: Sean Young <sean@mess.org>
-Date:   Wed Aug 9 13:19:16 2017 -0400
+    drivers/media/platform/davinci/vpif_display.c:114: warning: No description found for parameter 'sizes'
+    drivers/media/platform/davinci/vpif_display.c:165: warning: No description found for parameter 'vq'
+    drivers/media/platform/davinci/vpif_display.c:165: warning: Excess function parameter 'vb' description in 'vpif_start_streaming'
+    drivers/media/platform/davinci/vpif_display.c:780: warning: No description found for parameter 'vpif_cfg'
+    drivers/media/platform/davinci/vpif_display.c:780: warning: No description found for parameter 'chan_cfg'
+    drivers/media/platform/davinci/vpif_display.c:780: warning: No description found for parameter 'index'
+    drivers/media/platform/davinci/vpif_display.c:813: warning: No description found for parameter 'vpif_cfg'
+    drivers/media/platform/davinci/vpif_display.c:813: warning: No description found for parameter 'ch'
+    drivers/media/platform/davinci/vpif_display.c:813: warning: No description found for parameter 'index'
+    drivers/media/platform/davinci/vpif_capture.c:121: warning: No description found for parameter 'sizes'
+    drivers/media/platform/davinci/vpif_capture.c:174: warning: No description found for parameter 'vq'
+    drivers/media/platform/davinci/vpif_capture.c:174: warning: Excess function parameter 'vb' description in 'vpif_start_streaming'
+    drivers/media/platform/davinci/vpif_capture.c:636: warning: No description found for parameter 'iface'
+    drivers/media/platform/davinci/vpif_capture.c:647: warning: No description found for parameter 'ch'
+    drivers/media/platform/davinci/vpif_capture.c:647: warning: No description found for parameter 'muxmode'
+    drivers/media/platform/davinci/vpif_capture.c:676: warning: No description found for parameter 'vpif_cfg'
+    drivers/media/platform/davinci/vpif_capture.c:676: warning: No description found for parameter 'chan_cfg'
+    drivers/media/platform/davinci/vpif_capture.c:676: warning: No description found for parameter 'input_index'
+    drivers/media/platform/davinci/vpif_capture.c:712: warning: No description found for parameter 'vpif_cfg'
+    drivers/media/platform/davinci/vpif_capture.c:712: warning: No description found for parameter 'ch'
+    drivers/media/platform/davinci/vpif_capture.c:712: warning: No description found for parameter 'index'
+    drivers/media/platform/davinci/vpif_capture.c:798: warning: No description found for parameter 'std'
+    drivers/media/platform/davinci/vpif_capture.c:798: warning: Excess function parameter 'std_id' description in 'vpif_g_std'
+    drivers/media/platform/davinci/vpif_capture.c:940: warning: No description found for parameter 'fmt'
+    drivers/media/platform/davinci/vpif_capture.c:940: warning: Excess function parameter 'index' description in 'vpif_enum_fmt_vid_cap'
+    drivers/media/platform/davinci/vpif_capture.c:1750: warning: No description found for parameter 'dev'
 
-    media: rc: per-protocol repeat period
+Fix them.
 
-    CEC needs a keypress timeout of 550ms, which is too high for the IR
-    protocols. Also fill in known repeat times, with 50ms error margin.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/platform/davinci/vpif_capture.c | 27 ++++++++++++++-------------
+ drivers/media/platform/davinci/vpif_display.c | 16 ++++++++--------
+ 2 files changed, 22 insertions(+), 21 deletions(-)
 
-    Also, combine all protocol data into one structure.
-
-We received a report that an RC6 MCE remote used with the ite-cir
-produces "double events" on short button presses:
-
-https://forum.kodi.tv/showthread.php?tid=298462&pid=2667855#pid2667855
-
-Looking at the ir-keytable -t output an additional key event is also
-generated after longer button presses:
-
-# ir-keytable -t
-Testing events. Please, press CTRL-C to abort.
-1510680591.697657: event type EV_MSC(0x04): scancode = 0x800f041f
-1510680591.697657: event type EV_KEY(0x01) key_down: KEY_DOWN(0x006c)
-1510680591.697657: event type EV_SYN(0x00).
-1510680591.867355: event type EV_KEY(0x01) key_up: KEY_DOWN(0x006c)
-1510680591.867355: event type EV_SYN(0x00).
-1510680591.935026: event type EV_MSC(0x04): scancode = 0x800f041f
-1510680591.935026: event type EV_KEY(0x01) key_down: KEY_DOWN(0x006c)
-1510680591.935026: event type EV_SYN(0x00).
-1510680592.104100: event type EV_KEY(0x01) key_up: KEY_DOWN(0x006c)
-1510680592.104100: event type EV_SYN(0x00).
-
-1510680597.714055: event type EV_MSC(0x04): scancode = 0x800f0405
-1510680597.714055: event type EV_KEY(0x01) key_down: KEY_NUMERIC_5(0x0205)
-1510680597.714055: event type EV_SYN(0x00).
-1510680597.819939: event type EV_MSC(0x04): scancode = 0x800f0405
-1510680597.819939: event type EV_SYN(0x00).
-1510680597.925614: event type EV_MSC(0x04): scancode = 0x800f0405
-1510680597.925614: event type EV_SYN(0x00).
-1510680598.032422: event type EV_MSC(0x04): scancode = 0x800f0405
-1510680598.032422: event type EV_SYN(0x00).
-...
-1510680598.562114: event type EV_MSC(0x04): scancode = 0x800f0405
-1510680598.562114: event type EV_SYN(0x00).
-1510680598.630641: event type EV_KEY(0x01) key_down: KEY_NUMERIC_5(0x0205)
-1510680598.630641: event type EV_SYN(0x00).
-1510680598.667906: event type EV_MSC(0x04): scancode = 0x800f0405
-1510680598.667906: event type EV_SYN(0x00).
-1510680598.760760: event type EV_KEY(0x01) key_down: KEY_NUMERIC_5(0x0205)
-1510680598.760760: event type EV_SYN(0x00).
-1510680598.837412: event type EV_KEY(0x01) key_up: KEY_NUMERIC_5(0x0205)
-1510680598.837412: event type EV_SYN(0x00).
-1510680598.905003: event type EV_MSC(0x04): scancode = 0x800f0405
-1510680598.905003: event type EV_KEY(0x01) key_down: KEY_NUMERIC_5(0x0205)
-1510680598.905003: event type EV_SYN(0x00).
-1510680599.074092: event type EV_KEY(0x01) key_up: KEY_NUMERIC_5(0x0205)
-1510680599.074092: event type EV_SYN(0x00).
-
-Looking at the timestamps of the scancode events it seems that
-signals are received every ~106ms but the last signal seems to be
-received 237ms after the last-but-one - which is then interpreted
-as a new key press cycle as the delay is longer than the 164ms
-"repeat_period" setting of the RC6 protocol (before that commit
-250ms was used).
-
-This 237ms delay seems to be coming from the 200ms timeout value
-of the ite-cir driver (237ms is in the ballpark of ~30ms rc6 signal
-time plus 200ms timeout).
-
-The original author hasn't reported back yet but others confirmed
-that changing the timeout to 100ms (minimum idle timeout value
-of ite-cir) using "ir-ctl -t 100000" fixes the issue.
-
-I could locally reproduce this with gpio-ir-recv (which uses the
-default 125ms timeout) and the sony protocol (repeat_period = 100ms):
-
-1510838115.272021: event type EV_MSC(0x04): scancode = 0x110001
-1510838115.272021: event type EV_KEY(0x01) key_down: KEY_2(0x0003)
-1510838115.272021: event type EV_SYN(0x00).
-1510838115.322014: event type EV_MSC(0x04): scancode = 0x110001
-1510838115.322014: event type EV_SYN(0x00).
-1510838115.362003: event type EV_MSC(0x04): scancode = 0x110001
-1510838115.362003: event type EV_SYN(0x00).
-1510838115.412002: event type EV_MSC(0x04): scancode = 0x110001
-1510838115.412002: event type EV_SYN(0x00).
-1510838115.521973: event type EV_KEY(0x01) key_up: KEY_2(0x0003)
-1510838115.521973: event type EV_SYN(0x00).
-1510838115.532007: event type EV_MSC(0x04): scancode = 0x110001
-1510838115.532007: event type EV_KEY(0x01) key_down: KEY_2(0x0003)
-1510838115.532007: event type EV_SYN(0x00).
-1510838115.641972: event type EV_KEY(0x01) key_up: KEY_2(0x0003)
-1510838115.641972: event type EV_SYN(0x00).
-
-Reducing the timeout to 20ms removes the addional key_down/up event.
-
-Another test with a rc-5 remote on gpio-ir-recv worked fine at the
-default 125ms timeout but with 200ms as on the ite-cir I again
-got the additional key event.
-
-so long,
-
-Hias
+diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
+index a89367ab1e06..fca4dc829f73 100644
+--- a/drivers/media/platform/davinci/vpif_capture.c
++++ b/drivers/media/platform/davinci/vpif_capture.c
+@@ -109,7 +109,7 @@ static int vpif_buffer_prepare(struct vb2_buffer *vb)
+  * @vq: vb2_queue ptr
+  * @nbuffers: ptr to number of buffers requested by application
+  * @nplanes:: contains number of distinct video planes needed to hold a frame
+- * @sizes[]: contains the size (in bytes) of each plane.
++ * @sizes: contains the size (in bytes) of each plane.
+  * @alloc_devs: ptr to allocation context
+  *
+  * This callback function is called when reqbuf() is called to adjust
+@@ -167,7 +167,7 @@ static void vpif_buffer_queue(struct vb2_buffer *vb)
+ 
+ /**
+  * vpif_start_streaming : Starts the DMA engine for streaming
+- * @vb: ptr to vb2_buffer
++ * @vq: ptr to vb2_buffer
+  * @count: number of buffers
+  */
+ static int vpif_start_streaming(struct vb2_queue *vq, unsigned int count)
+@@ -629,7 +629,7 @@ static void vpif_calculate_offsets(struct channel_obj *ch)
+ 
+ /**
+  * vpif_get_default_field() - Get default field type based on interface
+- * @vpif_params - ptr to vpif params
++ * @iface: ptr to vpif interface
+  */
+ static inline enum v4l2_field vpif_get_default_field(
+ 				struct vpif_interface *iface)
+@@ -640,8 +640,8 @@ static inline enum v4l2_field vpif_get_default_field(
+ 
+ /**
+  * vpif_config_addr() - function to configure buffer address in vpif
+- * @ch - channel ptr
+- * @muxmode - channel mux mode
++ * @ch: channel ptr
++ * @muxmode: channel mux mode
+  */
+ static void vpif_config_addr(struct channel_obj *ch, int muxmode)
+ {
+@@ -661,9 +661,9 @@ static void vpif_config_addr(struct channel_obj *ch, int muxmode)
+ 
+ /**
+  * vpif_input_to_subdev() - Maps input to sub device
+- * @vpif_cfg - global config ptr
+- * @chan_cfg - channel config ptr
+- * @input_index - Given input index from application
++ * @vpif_cfg: global config ptr
++ * @chan_cfg: channel config ptr
++ * @input_index: Given input index from application
+  *
+  * lookup the sub device information for a given input index.
+  * we report all the inputs to application. inputs table also
+@@ -699,9 +699,9 @@ static int vpif_input_to_subdev(
+ 
+ /**
+  * vpif_set_input() - Select an input
+- * @vpif_cfg - global config ptr
+- * @ch - channel
+- * @_index - Given input index from application
++ * @vpif_cfg: global config ptr
++ * @ch: channel
++ * @index: Given input index from application
+  *
+  * Select the given input.
+  */
+@@ -792,7 +792,7 @@ static int vpif_querystd(struct file *file, void *priv, v4l2_std_id *std_id)
+  * vpif_g_std() - get STD handler
+  * @file: file ptr
+  * @priv: file handle
+- * @std_id: ptr to std id
++ * @std: ptr to std id
+  */
+ static int vpif_g_std(struct file *file, void *priv, v4l2_std_id *std)
+ {
+@@ -933,7 +933,7 @@ static int vpif_s_input(struct file *file, void *priv, unsigned int index)
+  * vpif_enum_fmt_vid_cap() - ENUM_FMT handler
+  * @file: file ptr
+  * @priv: file handle
+- * @index: input index
++ * @fmt: ptr to V4L2 format descriptor
+  */
+ static int vpif_enum_fmt_vid_cap(struct file *file, void  *priv,
+ 					struct v4l2_fmtdesc *fmt)
+@@ -1745,6 +1745,7 @@ static int vpif_remove(struct platform_device *device)
+ #ifdef CONFIG_PM_SLEEP
+ /**
+  * vpif_suspend: vpif device suspend
++ * @dev: pointer to &struct device
+  */
+ static int vpif_suspend(struct device *dev)
+ {
+diff --git a/drivers/media/platform/davinci/vpif_display.c b/drivers/media/platform/davinci/vpif_display.c
+index ff2f75a328c9..7be636237acf 100644
+--- a/drivers/media/platform/davinci/vpif_display.c
++++ b/drivers/media/platform/davinci/vpif_display.c
+@@ -102,7 +102,7 @@ static int vpif_buffer_prepare(struct vb2_buffer *vb)
+  * @vq: vb2_queue ptr
+  * @nbuffers: ptr to number of buffers requested by application
+  * @nplanes:: contains number of distinct video planes needed to hold a frame
+- * @sizes[]: contains the size (in bytes) of each plane.
++ * @sizes: contains the size (in bytes) of each plane.
+  * @alloc_devs: ptr to allocation context
+  *
+  * This callback function is called when reqbuf() is called to adjust
+@@ -158,7 +158,7 @@ static void vpif_buffer_queue(struct vb2_buffer *vb)
+ 
+ /**
+  * vpif_start_streaming : Starts the DMA engine for streaming
+- * @vb: ptr to vb2_buffer
++ * @vq: ptr to vb2_buffer
+  * @count: number of buffers
+  */
+ static int vpif_start_streaming(struct vb2_queue *vq, unsigned int count)
+@@ -766,9 +766,9 @@ static int vpif_enum_output(struct file *file, void *fh,
+ 
+ /**
+  * vpif_output_to_subdev() - Maps output to sub device
+- * @vpif_cfg - global config ptr
+- * @chan_cfg - channel config ptr
+- * @index - Given output index from application
++ * @vpif_cfg: global config ptr
++ * @chan_cfg: channel config ptr
++ * @index: Given output index from application
+  *
+  * lookup the sub device information for a given output index.
+  * we report all the output to application. output table also
+@@ -802,9 +802,9 @@ vpif_output_to_subdev(struct vpif_display_config *vpif_cfg,
+ 
+ /**
+  * vpif_set_output() - Select an output
+- * @vpif_cfg - global config ptr
+- * @ch - channel
+- * @index - Given output index from application
++ * @vpif_cfg: global config ptr
++ * @ch: channel
++ * @index: Given output index from application
+  *
+  * Select the given output.
+  */
+-- 
+2.14.3
