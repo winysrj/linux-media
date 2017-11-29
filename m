@@ -1,52 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-io0-f173.google.com ([209.85.223.173]:46540 "EHLO
-        mail-io0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751776AbdKYXrz (ORCPT
+Received: from mx07-00178001.pphosted.com ([62.209.51.94]:35323 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1754100AbdK2RLl (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 25 Nov 2017 18:47:55 -0500
-Date: Sat, 25 Nov 2017 15:47:52 -0800
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-To: Sean Young <sean@mess.org>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-input@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH 0/3] Improve CEC autorepeat handling
-Message-ID: <20171125234752.2z46d3ya7qiaovby@dtor-ws>
-References: <cover.1511523174.git.sean@mess.org>
+        Wed, 29 Nov 2017 12:11:41 -0500
+From: Hugues Fruchet <hugues.fruchet@st.com>
+To: Steve Longerbeam <slongerbeam@gmail.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        "Mauro Carvalho Chehab" <mchehab@kernel.org>
+CC: <linux-media@vger.kernel.org>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Subject: [PATCH v2 2/4] media: ov5640: check chip id
+Date: Wed, 29 Nov 2017 18:11:10 +0100
+Message-ID: <1511975472-26659-3-git-send-email-hugues.fruchet@st.com>
+In-Reply-To: <1511975472-26659-1-git-send-email-hugues.fruchet@st.com>
+References: <1511975472-26659-1-git-send-email-hugues.fruchet@st.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <cover.1511523174.git.sean@mess.org>
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sean,
+Verify that chip identifier is correct before starting streaming
 
-On Fri, Nov 24, 2017 at 11:43:58AM +0000, Sean Young wrote:
-> Due to the slowness of the CEC bus, autorepeat handling rather special
-> on CEC. If the repeated user control pressed message is received, a 
-> keydown repeat should be sent immediately.
+Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
+---
+ drivers/media/i2c/ov5640.c | 30 +++++++++++++++++++++++++++++-
+ 1 file changed, 29 insertions(+), 1 deletion(-)
 
-This sounds like you want to have hardware autorepeat combined with
-software one. This seems fairly specific to CEC and I do not think that
-this should be in input core; but stay in the driver.
-
-Another option just to decide what common delay for CEC autorepeat is
-and rely on the standard autorepeat handling. The benefit is that users
-can control the delay before autorepeat kicks in.
-
-> 
-> By handling this in the input layer, we can remove some ugly code from
-> cec, which also sends a keyup event after the first keydown, to prevent
-> autorepeat.
-
-If driver does not want input core to handle autorepeat (but handle
-autorepeat by themselves) they should indicate it by setting appropriate
-dev->rep[REP_DELAY] and dev->rep[REP_PERIOD] before calling
-input_register_device(). This will let input core know that it should
-not setup its autorepeat timer.
-
-Thanks.
-
+diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
+index 61071f5..a576d11 100644
+--- a/drivers/media/i2c/ov5640.c
++++ b/drivers/media/i2c/ov5640.c
+@@ -34,7 +34,8 @@
+ 
+ #define OV5640_DEFAULT_SLAVE_ID 0x3c
+ 
+-#define OV5640_REG_CHIP_ID		0x300a
++#define OV5640_REG_CHIP_ID_HIGH		0x300a
++#define OV5640_REG_CHIP_ID_LOW		0x300b
+ #define OV5640_REG_PAD_OUTPUT00		0x3019
+ #define OV5640_REG_SC_PLL_CTRL0		0x3034
+ #define OV5640_REG_SC_PLL_CTRL1		0x3035
+@@ -926,6 +927,29 @@ static int ov5640_load_regs(struct ov5640_dev *sensor,
+ 	return ret;
+ }
+ 
++static int ov5640_check_chip_id(struct ov5640_dev *sensor)
++{
++	struct i2c_client *client = sensor->i2c_client;
++	int ret;
++	u8 chip_id_h, chip_id_l;
++
++	ret = ov5640_read_reg(sensor, OV5640_REG_CHIP_ID_HIGH, &chip_id_h);
++	if (ret)
++		return ret;
++
++	ret = ov5640_read_reg(sensor, OV5640_REG_CHIP_ID_LOW, &chip_id_l);
++	if (ret)
++		return ret;
++
++	if (!(chip_id_h == 0x56 && chip_id_l == 0x40)) {
++		dev_err(&client->dev, "%s: wrong chip identifier, expected 0x5640, got 0x%x%x\n",
++			__func__, chip_id_h, chip_id_l);
++		return -EINVAL;
++	}
++
++	return 0;
++}
++
+ /* read exposure, in number of line periods */
+ static int ov5640_get_exposure(struct ov5640_dev *sensor)
+ {
+@@ -1562,6 +1586,10 @@ static int ov5640_set_power(struct ov5640_dev *sensor, bool on)
+ 		ov5640_reset(sensor);
+ 		ov5640_power(sensor, true);
+ 
++		ret = ov5640_check_chip_id(sensor);
++		if (ret)
++			goto power_off;
++
+ 		ret = ov5640_init_slave_id(sensor);
+ 		if (ret)
+ 			goto power_off;
 -- 
-Dmitry
+1.9.1
