@@ -1,73 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:40424 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750735AbdKLL1b (ORCPT
+Received: from smtp-4.sys.kth.se ([130.237.48.193]:54530 "EHLO
+        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752743AbdK2ToQ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 12 Nov 2017 06:27:31 -0500
-Date: Sun, 12 Nov 2017 12:27:29 +0100
-From: Pavel Machek <pavel@ucw.cz>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
-        maxime.ripard@free-electrons.com, hverkuil@xs4all.nl,
-        laurent.pinchart@ideasonboard.com, sre@kernel.org,
-        linux-acpi@vger.kernel.org, devicetree@vger.kernel.org
-Subject: et8ek8: Document support for flash and lens devices
-Message-ID: <20171112112729.GA21247@amd>
-References: <20171026075342.5760-1-sakari.ailus@linux.intel.com>
- <20171026075342.5760-30-sakari.ailus@linux.intel.com>
+        Wed, 29 Nov 2017 14:44:16 -0500
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>,
+        Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org
+Subject: [PATCH v8 28/28] rcar-vin: enable support for r8a77970
+Date: Wed, 29 Nov 2017 20:43:42 +0100
+Message-Id: <20171129194342.26239-29-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20171129194342.26239-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20171129194342.26239-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="VS++wcV0S1rZb1Fb"
-Content-Disposition: inline
-In-Reply-To: <20171026075342.5760-30-sakari.ailus@linux.intel.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Add the SoC specific information for Renesas r8a77970.
 
---VS++wcV0S1rZb1Fb
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+---
+ .../devicetree/bindings/media/rcar_vin.txt         |  1 +
+ drivers/media/platform/rcar-vin/rcar-core.c        | 40 ++++++++++++++++++++++
+ 2 files changed, 41 insertions(+)
 
-
-Document dts support of LED/focus.
-
-Signed-off-by: Pavel Machek <pavel@ucw.cz>
-
-diff --git a/Documentation/devicetree/bindings/media/i2c/toshiba,et8ek8.txt=
- b/Documentation/devicetree/bindings/media/i2c/toshiba,et8ek8.txt
-index 0b7b6a4..e80d589 100644
---- a/Documentation/devicetree/bindings/media/i2c/toshiba,et8ek8.txt
-+++ b/Documentation/devicetree/bindings/media/i2c/toshiba,et8ek8.txt
-@@ -20,6 +20,13 @@ Mandatory properties
-   is in hardware standby mode when the signal is in the low state.
-=20
-=20
-+Optional properties
-+-------------------
+diff --git a/Documentation/devicetree/bindings/media/rcar_vin.txt b/Documentation/devicetree/bindings/media/rcar_vin.txt
+index 314743532bbb4523..6b98f8a3398fa493 100644
+--- a/Documentation/devicetree/bindings/media/rcar_vin.txt
++++ b/Documentation/devicetree/bindings/media/rcar_vin.txt
+@@ -21,6 +21,7 @@ on Gen3 to a CSI-2 receiver.
+    - "renesas,vin-r8a7794" for the R8A7794 device
+    - "renesas,vin-r8a7795" for the R8A7795 device
+    - "renesas,vin-r8a7796" for the R8A7796 device
++   - "renesas,vin-r8a77970" for the R8A77970 device
+    - "renesas,rcar-gen2-vin" for a generic R-Car Gen2 or RZ/G1 compatible
+      device.
+    - "renesas,rcar-gen3-vin" for a generic R-Car Gen3 compatible device.
+diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
+index 62eb89b36fbb2ee1..bbdf36b5c3c8178d 100644
+--- a/drivers/media/platform/rcar-vin/rcar-core.c
++++ b/drivers/media/platform/rcar-vin/rcar-core.c
+@@ -1145,6 +1145,42 @@ static const struct rvin_info rcar_info_r8a7796 = {
+ 	},
+ };
+ 
++static const struct rvin_info rcar_info_r8a77970 = {
++	.chip = RCAR_GEN3,
++	.use_mc = true,
++	.max_width = 4096,
++	.max_height = 4096,
 +
-+- flash-leds: See ../video-interfaces.txt
-+- lens-focus: See ../video-interfaces.txt
++	.num_chsels = 5,
++	.chsels = {
++		{
++			{ .csi = RVIN_CSI40, .chan = 0 },
++			{ .csi = RVIN_NC, .chan = 0 },
++			{ .csi = RVIN_NC, .chan = 0 },
++			{ .csi = RVIN_CSI40, .chan = 0 },
++			{ .csi = RVIN_NC, .chan = 0 },
++		}, {
++			{ .csi = RVIN_NC, .chan = 0 },
++			{ .csi = RVIN_NC, .chan = 0 },
++			{ .csi = RVIN_CSI40, .chan = 0 },
++			{ .csi = RVIN_CSI40, .chan = 1 },
++			{ .csi = RVIN_NC, .chan = 0 },
++		}, {
++			{ .csi = RVIN_NC, .chan = 0 },
++			{ .csi = RVIN_CSI40, .chan = 0 },
++			{ .csi = RVIN_NC, .chan = 0 },
++			{ .csi = RVIN_CSI40, .chan = 2 },
++			{ .csi = RVIN_NC, .chan = 0 },
++		}, {
++			{ .csi = RVIN_CSI40, .chan = 1 },
++			{ .csi = RVIN_NC, .chan = 0 },
++			{ .csi = RVIN_NC, .chan = 0 },
++			{ .csi = RVIN_CSI40, .chan = 3 },
++			{ .csi = RVIN_NC, .chan = 0 },
++		},
++	},
++};
 +
-+
- Endpoint node mandatory properties
- ----------------------------------
-=20
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---VS++wcV0S1rZb1Fb
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAloIMCEACgkQMOfwapXb+vIvvwCgovOzLS5wXz8nFZhPHXmoXMf5
-yzAAnRVd8KAhtF72KttFGW2keU/MFEeH
-=5wB8
------END PGP SIGNATURE-----
-
---VS++wcV0S1rZb1Fb--
+ static const struct of_device_id rvin_of_id_table[] = {
+ 	{
+ 		.compatible = "renesas,vin-r8a7778",
+@@ -1182,6 +1218,10 @@ static const struct of_device_id rvin_of_id_table[] = {
+ 		.compatible = "renesas,vin-r8a7796",
+ 		.data = &rcar_info_r8a7796,
+ 	},
++	{
++		.compatible = "renesas,vin-r8a77970",
++		.data = &rcar_info_r8a77970,
++	},
+ 	{ },
+ };
+ MODULE_DEVICE_TABLE(of, rvin_of_id_table);
+-- 
+2.15.0
