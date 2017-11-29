@@ -1,172 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-4.sys.kth.se ([130.237.48.193]:54474 "EHLO
-        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751890AbdK2ToG (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 29 Nov 2017 14:44:06 -0500
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH v8 05/28] rcar-vin: move chip information to own struct
-Date: Wed, 29 Nov 2017 20:43:19 +0100
-Message-Id: <20171129194342.26239-6-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20171129194342.26239-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20171129194342.26239-1-niklas.soderlund+renesas@ragnatech.se>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from osg.samsung.com ([64.30.133.232]:37501 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1754180AbdK2Kql (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 29 Nov 2017 05:46:41 -0500
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Sean Young <sean@mess.org>, James Hogan <jhogan@kernel.org>,
+        =?UTF-8?q?Antti=20Sepp=C3=A4l=C3=A4?= <a.seppala@gmail.com>,
+        Andi Shyti <andi.shyti@samsung.com>,
+        =?UTF-8?q?David=20H=C3=A4rdeman?= <david@hardeman.nu>,
+        Heiner Kallweit <hkallweit1@gmail.com>,
+        Jasmin Jessich <jasmin@anw.at>
+Subject: [PATCH 08/12] media: rc-ir-raw: cleanup kernel-doc markups
+Date: Wed, 29 Nov 2017 05:46:29 -0500
+Message-Id: <c4365922d5cd9720cb114f75089bc290571993a3.1511952372.git.mchehab@s-opensource.com>
+In-Reply-To: <46e42a303178ca1341d1ab3e0b5c1227b89b60ee.1511952372.git.mchehab@s-opensource.com>
+References: <46e42a303178ca1341d1ab3e0b5c1227b89b60ee.1511952372.git.mchehab@s-opensource.com>
+In-Reply-To: <46e42a303178ca1341d1ab3e0b5c1227b89b60ee.1511952372.git.mchehab@s-opensource.com>
+References: <46e42a303178ca1341d1ab3e0b5c1227b89b60ee.1511952372.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When Gen3 support is added to the driver more than chip ID will be
-different for the different SoCs. To avoid a lot of if statements in the
-code create a struct chip_info to store this information.
+Cleanup those warnings:
+	drivers/media/rc/rc-ir-raw.c:141: warning: No description found for parameter 'ev'
+	drivers/media/rc/rc-ir-raw.c:141: warning: Excess function parameter 'type' description in 'ir_raw_event_store_with_filter'
 
-And while we are at it sort the compatible string entries and make use
-of of_device_get_match_data() which will always work as the driver is DT
-only, so there's always a valid match.
-
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/media/platform/rcar-vin/rcar-core.c | 54 ++++++++++++++++++++++-------
- drivers/media/platform/rcar-vin/rcar-v4l2.c |  3 +-
- drivers/media/platform/rcar-vin/rcar-vin.h  | 12 +++++--
- 3 files changed, 53 insertions(+), 16 deletions(-)
+ drivers/media/rc/rc-ir-raw.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
-index 6ab51acd676641ec..73c1700a409bfd35 100644
---- a/drivers/media/platform/rcar-vin/rcar-core.c
-+++ b/drivers/media/platform/rcar-vin/rcar-core.c
-@@ -230,21 +230,53 @@ static int rvin_digital_graph_init(struct rvin_dev *vin)
-  * Platform Device Driver
-  */
- 
-+static const struct rvin_info rcar_info_h1 = {
-+	.chip = RCAR_H1,
-+};
-+
-+static const struct rvin_info rcar_info_m1 = {
-+	.chip = RCAR_M1,
-+};
-+
-+static const struct rvin_info rcar_info_gen2 = {
-+	.chip = RCAR_GEN2,
-+};
-+
- static const struct of_device_id rvin_of_id_table[] = {
--	{ .compatible = "renesas,vin-r8a7794", .data = (void *)RCAR_GEN2 },
--	{ .compatible = "renesas,vin-r8a7793", .data = (void *)RCAR_GEN2 },
--	{ .compatible = "renesas,vin-r8a7791", .data = (void *)RCAR_GEN2 },
--	{ .compatible = "renesas,vin-r8a7790", .data = (void *)RCAR_GEN2 },
--	{ .compatible = "renesas,vin-r8a7779", .data = (void *)RCAR_H1 },
--	{ .compatible = "renesas,vin-r8a7778", .data = (void *)RCAR_M1 },
--	{ .compatible = "renesas,rcar-gen2-vin", .data = (void *)RCAR_GEN2 },
-+	{
-+		.compatible = "renesas,vin-r8a7778",
-+		.data = &rcar_info_m1,
-+	},
-+	{
-+		.compatible = "renesas,vin-r8a7779",
-+		.data = &rcar_info_h1,
-+	},
-+	{
-+		.compatible = "renesas,vin-r8a7790",
-+		.data = &rcar_info_gen2,
-+	},
-+	{
-+		.compatible = "renesas,vin-r8a7791",
-+		.data = &rcar_info_gen2,
-+	},
-+	{
-+		.compatible = "renesas,vin-r8a7793",
-+		.data = &rcar_info_gen2,
-+	},
-+	{
-+		.compatible = "renesas,vin-r8a7794",
-+		.data = &rcar_info_gen2,
-+	},
-+	{
-+		.compatible = "renesas,rcar-gen2-vin",
-+		.data = &rcar_info_gen2,
-+	},
- 	{ },
- };
- MODULE_DEVICE_TABLE(of, rvin_of_id_table);
- 
- static int rcar_vin_probe(struct platform_device *pdev)
- {
--	const struct of_device_id *match;
- 	struct rvin_dev *vin;
- 	struct resource *mem;
- 	int irq, ret;
-@@ -253,12 +285,8 @@ static int rcar_vin_probe(struct platform_device *pdev)
- 	if (!vin)
- 		return -ENOMEM;
- 
--	match = of_match_device(of_match_ptr(rvin_of_id_table), &pdev->dev);
--	if (!match)
--		return -ENODEV;
--
- 	vin->dev = &pdev->dev;
--	vin->chip = (enum chip_id)match->data;
-+	vin->info = of_device_get_match_data(&pdev->dev);
- 
- 	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
- 	if (mem == NULL)
-diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-index 4a0610a6b4503501..b1caa04921aa23bb 100644
---- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-+++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-@@ -266,7 +266,8 @@ static int __rvin_try_format(struct rvin_dev *vin,
- 	pix->sizeimage = max_t(u32, pix->sizeimage,
- 			       rvin_format_sizeimage(pix));
- 
--	if (vin->chip == RCAR_M1 && pix->pixelformat == V4L2_PIX_FMT_XBGR32) {
-+	if (vin->info->chip == RCAR_M1 &&
-+	    pix->pixelformat == V4L2_PIX_FMT_XBGR32) {
- 		vin_err(vin, "pixel format XBGR32 not supported on M1\n");
- 		return -EINVAL;
- 	}
-diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
-index 85cb7ec53d2b08b5..0d3949c8c08c8f63 100644
---- a/drivers/media/platform/rcar-vin/rcar-vin.h
-+++ b/drivers/media/platform/rcar-vin/rcar-vin.h
-@@ -88,11 +88,19 @@ struct rvin_graph_entity {
- 	unsigned int sink_pad;
- };
- 
-+/**
-+ * struct rvin_info - Information about the particular VIN implementation
-+ * @chip:		type of VIN chip
-+ */
-+struct rvin_info {
-+	enum chip_id chip;
-+};
-+
+diff --git a/drivers/media/rc/rc-ir-raw.c b/drivers/media/rc/rc-ir-raw.c
+index f6e5ba4fbb49..d78483a504c9 100644
+--- a/drivers/media/rc/rc-ir-raw.c
++++ b/drivers/media/rc/rc-ir-raw.c
+@@ -128,7 +128,7 @@ EXPORT_SYMBOL_GPL(ir_raw_event_store_edge);
  /**
-  * struct rvin_dev - Renesas VIN device structure
-  * @dev:		(OF) device
-  * @base:		device I/O register space remapped to virtual memory
-- * @chip:		type of VIN chip
-+ * @info:		info about VIN instance
+  * ir_raw_event_store_with_filter() - pass next pulse/space to decoders with some processing
+  * @dev:	the struct rc_dev device descriptor
+- * @type:	the type of the event that has occurred
++ * @ev:		the event that has occurred
   *
-  * @vdev:		V4L2 video device associated with VIN
-  * @v4l2_dev:		V4L2 device
-@@ -120,7 +128,7 @@ struct rvin_graph_entity {
- struct rvin_dev {
- 	struct device *dev;
- 	void __iomem *base;
--	enum chip_id chip;
-+	const struct rvin_info *info;
- 
- 	struct video_device vdev;
- 	struct v4l2_device v4l2_dev;
+  * This routine (which may be called from an interrupt context) works
+  * in similar manner to ir_raw_event_store_edge.
 -- 
-2.15.0
+2.14.3
