@@ -1,208 +1,219 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:60481 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752476AbdK2MIQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 29 Nov 2017 07:08:16 -0500
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Kyungmin Park <kyungmin.park@samsung.com>,
-        Heungjun Kim <riverful.kim@samsung.com>
-Subject: [PATCH 7/7] media: m5mols: fix some kernel-doc markups
-Date: Wed, 29 Nov 2017 07:08:10 -0500
-Message-Id: <c1abf81b6489858c7acfa13570eaec910f4ea409.1511952403.git.mchehab@s-opensource.com>
-In-Reply-To: <c73fcbc4af259923feac19eda4bb5e996b6de0fd.1511952403.git.mchehab@s-opensource.com>
-References: <c73fcbc4af259923feac19eda4bb5e996b6de0fd.1511952403.git.mchehab@s-opensource.com>
-In-Reply-To: <c73fcbc4af259923feac19eda4bb5e996b6de0fd.1511952403.git.mchehab@s-opensource.com>
-References: <c73fcbc4af259923feac19eda4bb5e996b6de0fd.1511952403.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+Received: from smtp-4.sys.kth.se ([130.237.48.193]:54474 "EHLO
+        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752665AbdK2ToK (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 29 Nov 2017 14:44:10 -0500
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH v8 15/28] rcar-vin: enable Gen3 hardware configuration
+Date: Wed, 29 Nov 2017 20:43:29 +0100
+Message-Id: <20171129194342.26239-16-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20171129194342.26239-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20171129194342.26239-1-niklas.soderlund+renesas@ragnatech.se>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fix those warnings:
-	drivers/media/i2c/m5mols/m5mols_capture.c:42: warning: No description found for parameter 'sd'
-	drivers/media/i2c/m5mols/m5mols_capture.c:42: warning: No description found for parameter 'addr_num'
-	drivers/media/i2c/m5mols/m5mols_capture.c:42: warning: No description found for parameter 'addr_den'
-	drivers/media/i2c/m5mols/m5mols_capture.c:42: warning: No description found for parameter 'val'
-	drivers/media/i2c/m5mols/m5mols_capture.c:60: warning: No description found for parameter 'info'
-	drivers/media/i2c/m5mols/m5mols_controls.c:134: warning: No description found for parameter 'info'
-	drivers/media/i2c/m5mols/m5mols_core.c:124: warning: No description found for parameter 'data'
-	drivers/media/i2c/m5mols/m5mols_core.c:124: warning: No description found for parameter 'length'
-	drivers/media/i2c/m5mols/m5mols_core.c:124: warning: Excess function parameter 'size' description in 'm5mols_swap_byte'
-	drivers/media/i2c/m5mols/m5mols_core.c:142: warning: No description found for parameter 'sd'
-	drivers/media/i2c/m5mols/m5mols_core.c:241: warning: No description found for parameter 'sd'
-	drivers/media/i2c/m5mols/m5mols_core.c:299: warning: No description found for parameter 'sd'
-	drivers/media/i2c/m5mols/m5mols_core.c:324: warning: No description found for parameter 'sd'
-	drivers/media/i2c/m5mols/m5mols_core.c:324: warning: No description found for parameter 'reg'
-	drivers/media/i2c/m5mols/m5mols_core.c:357: warning: No description found for parameter 'sd'
-	drivers/media/i2c/m5mols/m5mols_core.c:357: warning: No description found for parameter 'mode'
-	drivers/media/i2c/m5mols/m5mols_core.c:374: warning: No description found for parameter 'info'
-	drivers/media/i2c/m5mols/m5mols_core.c:429: warning: No description found for parameter 'sd'
-	drivers/media/i2c/m5mols/m5mols_core.c:503: warning: No description found for parameter 'sd'
-	drivers/media/i2c/m5mols/m5mols_core.c:671: warning: No description found for parameter 'info'
-	drivers/media/i2c/m5mols/m5mols_core.c:694: warning: No description found for parameter 'info'
-	drivers/media/i2c/m5mols/m5mols_core.c:798: warning: No description found for parameter 'sd'
-	drivers/media/i2c/m5mols/m5mols_core.c:853: warning: No description found for parameter 'sd'
-	drivers/media/i2c/m5mols/m5mols_core.c:853: warning: No description found for parameter 'on'
+Add the register needed to work with Gen3 hardware. This patch adds
+the logic for how to work with the Gen3 hardware. More work is required
+to enable the subdevice structure needed to configure capturing.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/i2c/m5mols/m5mols_capture.c  |  5 +++++
- drivers/media/i2c/m5mols/m5mols_controls.c |  1 +
- drivers/media/i2c/m5mols/m5mols_core.c     | 20 ++++++++++++++++++--
- 3 files changed, 24 insertions(+), 2 deletions(-)
+ drivers/media/platform/rcar-vin/rcar-dma.c | 94 ++++++++++++++++++++----------
+ drivers/media/platform/rcar-vin/rcar-vin.h |  1 +
+ 2 files changed, 64 insertions(+), 31 deletions(-)
 
-diff --git a/drivers/media/i2c/m5mols/m5mols_capture.c b/drivers/media/i2c/m5mols/m5mols_capture.c
-index a0cd6dc32eb0..0fb457f57995 100644
---- a/drivers/media/i2c/m5mols/m5mols_capture.c
-+++ b/drivers/media/i2c/m5mols/m5mols_capture.c
-@@ -33,6 +33,10 @@
+diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
+index d7660f485a2df9e4..ace95d5b543a17e3 100644
+--- a/drivers/media/platform/rcar-vin/rcar-dma.c
++++ b/drivers/media/platform/rcar-vin/rcar-dma.c
+@@ -33,21 +33,23 @@
+ #define VNELPRC_REG	0x10	/* Video n End Line Pre-Clip Register */
+ #define VNSPPRC_REG	0x14	/* Video n Start Pixel Pre-Clip Register */
+ #define VNEPPRC_REG	0x18	/* Video n End Pixel Pre-Clip Register */
+-#define VNSLPOC_REG	0x1C	/* Video n Start Line Post-Clip Register */
+-#define VNELPOC_REG	0x20	/* Video n End Line Post-Clip Register */
+-#define VNSPPOC_REG	0x24	/* Video n Start Pixel Post-Clip Register */
+-#define VNEPPOC_REG	0x28	/* Video n End Pixel Post-Clip Register */
+ #define VNIS_REG	0x2C	/* Video n Image Stride Register */
+ #define VNMB_REG(m)	(0x30 + ((m) << 2)) /* Video n Memory Base m Register */
+ #define VNIE_REG	0x40	/* Video n Interrupt Enable Register */
+ #define VNINTS_REG	0x44	/* Video n Interrupt Status Register */
+ #define VNSI_REG	0x48	/* Video n Scanline Interrupt Register */
+ #define VNMTC_REG	0x4C	/* Video n Memory Transfer Control Register */
+-#define VNYS_REG	0x50	/* Video n Y Scale Register */
+-#define VNXS_REG	0x54	/* Video n X Scale Register */
+ #define VNDMR_REG	0x58	/* Video n Data Mode Register */
+ #define VNDMR2_REG	0x5C	/* Video n Data Mode Register 2 */
+ #define VNUVAOF_REG	0x60	/* Video n UV Address Offset Register */
++
++/* Register offsets specific for Gen2 */
++#define VNSLPOC_REG	0x1C	/* Video n Start Line Post-Clip Register */
++#define VNELPOC_REG	0x20	/* Video n End Line Post-Clip Register */
++#define VNSPPOC_REG	0x24	/* Video n Start Pixel Post-Clip Register */
++#define VNEPPOC_REG	0x28	/* Video n End Pixel Post-Clip Register */
++#define VNYS_REG	0x50	/* Video n Y Scale Register */
++#define VNXS_REG	0x54	/* Video n X Scale Register */
+ #define VNC1A_REG	0x80	/* Video n Coefficient Set C1A Register */
+ #define VNC1B_REG	0x84	/* Video n Coefficient Set C1B Register */
+ #define VNC1C_REG	0x88	/* Video n Coefficient Set C1C Register */
+@@ -73,9 +75,13 @@
+ #define VNC8B_REG	0xF4	/* Video n Coefficient Set C8B Register */
+ #define VNC8C_REG	0xF8	/* Video n Coefficient Set C8C Register */
  
- /**
-  * m5mols_read_rational - I2C read of a rational number
-+ * @sd: sub-device, as pointed by struct v4l2_subdev
-+ * @addr_num: numerator register
-+ * @addr_den: denominator register
-+ * @val: place to store the division result
-  *
-  * Read numerator and denominator from registers @addr_num and @addr_den
-  * respectively and return the division result in @val.
-@@ -53,6 +57,7 @@ static int m5mols_read_rational(struct v4l2_subdev *sd, u32 addr_num,
++/* Register offsets specific for Gen3 */
++#define VNCSI_IFMD_REG		0x20 /* Video n CSI2 Interface Mode Register */
  
- /**
-  * m5mols_capture_info - Gather captured image information
-+ * @info: M-5MOLS driver data structure
-  *
-  * For now it gathers only EXIF information and file size.
+ /* Register bit fields for R-Car VIN */
+ /* Video n Main Control Register bits */
++#define VNMC_DPINE		(1 << 27) /* Gen3 specific */
++#define VNMC_SCLE		(1 << 26) /* Gen3 specific */
+ #define VNMC_FOC		(1 << 21)
+ #define VNMC_YCAL		(1 << 19)
+ #define VNMC_INF_YUV8_BT656	(0 << 16)
+@@ -119,6 +125,13 @@
+ #define VNDMR2_FTEV		(1 << 17)
+ #define VNDMR2_VLV(n)		((n & 0xf) << 12)
+ 
++/* Video n CSI2 Interface Mode Register (Gen3) */
++#define VNCSI_IFMD_DES2		(1 << 27)
++#define VNCSI_IFMD_DES1		(1 << 26)
++#define VNCSI_IFMD_DES0		(1 << 25)
++#define VNCSI_IFMD_CSI_CHSEL(n) ((n & 0xf) << 0)
++#define VNCSI_IFMD_CSI_CHSEL_MASK 0xf
++
+ struct rvin_buffer {
+ 	struct vb2_v4l2_buffer vb;
+ 	struct list_head list;
+@@ -514,28 +527,10 @@ static void rvin_set_coeff(struct rvin_dev *vin, unsigned short xs)
+ 	rvin_write(vin, p_set->coeff_set[23], VNC8C_REG);
+ }
+ 
+-static void rvin_crop_scale_comp(struct rvin_dev *vin)
++static void rvin_crop_scale_comp_gen2(struct rvin_dev *vin)
+ {
+ 	u32 xs, ys;
+ 
+-	/* Set Start/End Pixel/Line Pre-Clip */
+-	rvin_write(vin, vin->crop.left, VNSPPRC_REG);
+-	rvin_write(vin, vin->crop.left + vin->crop.width - 1, VNEPPRC_REG);
+-	switch (vin->format.field) {
+-	case V4L2_FIELD_INTERLACED:
+-	case V4L2_FIELD_INTERLACED_TB:
+-	case V4L2_FIELD_INTERLACED_BT:
+-		rvin_write(vin, vin->crop.top / 2, VNSLPRC_REG);
+-		rvin_write(vin, (vin->crop.top + vin->crop.height) / 2 - 1,
+-			   VNELPRC_REG);
+-		break;
+-	default:
+-		rvin_write(vin, vin->crop.top, VNSLPRC_REG);
+-		rvin_write(vin, vin->crop.top + vin->crop.height - 1,
+-			   VNELPRC_REG);
+-		break;
+-	}
+-
+ 	/* Set scaling coefficient */
+ 	ys = 0;
+ 	if (vin->crop.height != vin->compose.height)
+@@ -573,11 +568,6 @@ static void rvin_crop_scale_comp(struct rvin_dev *vin)
+ 		break;
+ 	}
+ 
+-	if (vin->format.pixelformat == V4L2_PIX_FMT_NV16)
+-		rvin_write(vin, ALIGN(vin->format.width, 0x20), VNIS_REG);
+-	else
+-		rvin_write(vin, ALIGN(vin->format.width, 0x10), VNIS_REG);
+-
+ 	vin_dbg(vin,
+ 		"Pre-Clip: %ux%u@%u:%u YS: %d XS: %d Post-Clip: %ux%u@%u:%u\n",
+ 		vin->crop.width, vin->crop.height, vin->crop.left,
+@@ -585,6 +575,37 @@ static void rvin_crop_scale_comp(struct rvin_dev *vin)
+ 		0, 0);
+ }
+ 
++static void rvin_crop_scale_comp(struct rvin_dev *vin)
++{
++	/* Set Start/End Pixel/Line Pre-Clip */
++	rvin_write(vin, vin->crop.left, VNSPPRC_REG);
++	rvin_write(vin, vin->crop.left + vin->crop.width - 1, VNEPPRC_REG);
++
++	switch (vin->format.field) {
++	case V4L2_FIELD_INTERLACED:
++	case V4L2_FIELD_INTERLACED_TB:
++	case V4L2_FIELD_INTERLACED_BT:
++		rvin_write(vin, vin->crop.top / 2, VNSLPRC_REG);
++		rvin_write(vin, (vin->crop.top + vin->crop.height) / 2 - 1,
++			   VNELPRC_REG);
++		break;
++	default:
++		rvin_write(vin, vin->crop.top, VNSLPRC_REG);
++		rvin_write(vin, vin->crop.top + vin->crop.height - 1,
++			   VNELPRC_REG);
++		break;
++	}
++
++	/* TODO: Add support for the UDS scaler. */
++	if (vin->info->chip != RCAR_GEN3)
++		rvin_crop_scale_comp_gen2(vin);
++
++	if (vin->format.pixelformat == V4L2_PIX_FMT_NV16)
++		rvin_write(vin, ALIGN(vin->format.width, 0x20), VNIS_REG);
++	else
++		rvin_write(vin, ALIGN(vin->format.width, 0x10), VNIS_REG);
++}
++
+ /* -----------------------------------------------------------------------------
+  * Hardware setup
   */
-diff --git a/drivers/media/i2c/m5mols/m5mols_controls.c b/drivers/media/i2c/m5mols/m5mols_controls.c
-index c2218c0a9e6f..82eab7c2bc8c 100644
---- a/drivers/media/i2c/m5mols/m5mols_controls.c
-+++ b/drivers/media/i2c/m5mols/m5mols_controls.c
-@@ -126,6 +126,7 @@ static struct m5mols_scenemode m5mols_default_scenemode[] = {
+@@ -659,7 +680,10 @@ static int rvin_setup(struct rvin_dev *vin)
+ 	}
+ 
+ 	/* Enable VSYNC Field Toogle mode after one VSYNC input */
+-	dmr2 = VNDMR2_FTEV | VNDMR2_VLV(1);
++	if (vin->info->chip == RCAR_GEN3)
++		dmr2 = VNDMR2_FTEV;
++	else
++		dmr2 = VNDMR2_FTEV | VNDMR2_VLV(1);
+ 
+ 	/* Hsync Signal Polarity Select */
+ 	if (!(vin->mbus_cfg.flags & V4L2_MBUS_HSYNC_ACTIVE_LOW))
+@@ -711,6 +735,14 @@ static int rvin_setup(struct rvin_dev *vin)
+ 	if (input_is_yuv == output_is_yuv)
+ 		vnmc |= VNMC_BPS;
+ 
++	if (vin->info->chip == RCAR_GEN3) {
++		/* Select between CSI-2 and Digital input */
++		if (vin->mbus_cfg.type == V4L2_MBUS_CSI2)
++			vnmc &= ~VNMC_DPINE;
++		else
++			vnmc |= VNMC_DPINE;
++	}
++
+ 	/* Progressive or interlaced mode */
+ 	interrupts = progressive ? VNIE_FIE : VNIE_EFE;
+ 
+diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
+index 118f45b656920d39..a440effe4b86af31 100644
+--- a/drivers/media/platform/rcar-vin/rcar-vin.h
++++ b/drivers/media/platform/rcar-vin/rcar-vin.h
+@@ -33,6 +33,7 @@ enum chip_id {
+ 	RCAR_H1,
+ 	RCAR_M1,
+ 	RCAR_GEN2,
++	RCAR_GEN3,
+ };
  
  /**
-  * m5mols_do_scenemode() - Change current scenemode
-+ * @info: M-5MOLS driver data structure
-  * @mode:	Desired mode of the scenemode
-  *
-  * WARNING: The execution order is important. Do not change the order.
-diff --git a/drivers/media/i2c/m5mols/m5mols_core.c b/drivers/media/i2c/m5mols/m5mols_core.c
-index 463534d44756..12e79f9e32d5 100644
---- a/drivers/media/i2c/m5mols/m5mols_core.c
-+++ b/drivers/media/i2c/m5mols/m5mols_core.c
-@@ -114,7 +114,8 @@ static const struct m5mols_resolution m5mols_reg_res[] = {
- 
- /**
-  * m5mols_swap_byte - an byte array to integer conversion function
-- * @size: size in bytes of I2C packet defined in the M-5MOLS datasheet
-+ * @data: byte array
-+ * @length: size in bytes of I2C packet defined in the M-5MOLS datasheet
-  *
-  * Convert I2C data byte array with performing any required byte
-  * reordering to assure proper values for each data type, regardless
-@@ -132,8 +133,9 @@ static u32 m5mols_swap_byte(u8 *data, u8 length)
- 
- /**
-  * m5mols_read -  I2C read function
-- * @reg: combination of size, category and command for the I2C packet
-+ * @sd: sub-device, as pointed by struct v4l2_subdev
-  * @size: desired size of I2C packet
-+ * @reg: combination of size, category and command for the I2C packet
-  * @val: read value
-  *
-  * Returns 0 on success, or else negative errno.
-@@ -232,6 +234,7 @@ int m5mols_read_u32(struct v4l2_subdev *sd, u32 reg, u32 *val)
- 
- /**
-  * m5mols_write - I2C command write function
-+ * @sd: sub-device, as pointed by struct v4l2_subdev
-  * @reg: combination of size, category and command for the I2C packet
-  * @val: value to write
-  *
-@@ -284,6 +287,7 @@ int m5mols_write(struct v4l2_subdev *sd, u32 reg, u32 val)
- 
- /**
-  * m5mols_busy_wait - Busy waiting with I2C register polling
-+ * @sd: sub-device, as pointed by struct v4l2_subdev
-  * @reg: the I2C_REG() address of an 8-bit status register to check
-  * @value: expected status register value
-  * @mask: bit mask for the read status register value
-@@ -316,6 +320,8 @@ int m5mols_busy_wait(struct v4l2_subdev *sd, u32 reg, u32 value, u32 mask,
- 
- /**
-  * m5mols_enable_interrupt - Clear interrupt pending bits and unmask interrupts
-+ * @sd: sub-device, as pointed by struct v4l2_subdev
-+ * @reg: combination of size, category and command for the I2C packet
-  *
-  * Before writing desired interrupt value the INT_FACTOR register should
-  * be read to clear pending interrupts.
-@@ -349,6 +355,8 @@ int m5mols_wait_interrupt(struct v4l2_subdev *sd, u8 irq_mask, u32 timeout)
- 
- /**
-  * m5mols_reg_mode - Write the mode and check busy status
-+ * @sd: sub-device, as pointed by struct v4l2_subdev
-+ * @mode: the required operation mode
-  *
-  * It always accompanies a little delay changing the M-5MOLS mode, so it is
-  * needed checking current busy status to guarantee right mode.
-@@ -364,6 +372,7 @@ static int m5mols_reg_mode(struct v4l2_subdev *sd, u8 mode)
- 
- /**
-  * m5mols_set_mode - set the M-5MOLS controller mode
-+ * @info: M-5MOLS driver data structure
-  * @mode: the required operation mode
-  *
-  * The commands of M-5MOLS are grouped into specific modes. Each functionality
-@@ -421,6 +430,7 @@ int m5mols_set_mode(struct m5mols_info *info, u8 mode)
- 
- /**
-  * m5mols_get_version - retrieve full revisions information of M-5MOLS
-+ * @sd: sub-device, as pointed by struct v4l2_subdev
-  *
-  * The version information includes revisions of hardware and firmware,
-  * AutoFocus alghorithm version and the version string.
-@@ -489,6 +499,7 @@ static enum m5mols_restype __find_restype(u32 code)
- 
- /**
-  * __find_resolution - Lookup preset and type of M-5MOLS's resolution
-+ * @sd: sub-device, as pointed by struct v4l2_subdev
-  * @mf: pixel format to find/negotiate the resolution preset for
-  * @type: M-5MOLS resolution type
-  * @resolution:	M-5MOLS resolution preset register value
-@@ -662,6 +673,7 @@ static const struct v4l2_subdev_pad_ops m5mols_pad_ops = {
- 
- /**
-  * m5mols_restore_controls - Apply current control values to the registers
-+ * @info: M-5MOLS driver data structure
-  *
-  * m5mols_do_scenemode() handles all parameters for which there is yet no
-  * individual control. It should be replaced at some point by setting each
-@@ -686,6 +698,7 @@ int m5mols_restore_controls(struct m5mols_info *info)
- 
- /**
-  * m5mols_start_monitor - Start the monitor mode
-+ * @info: M-5MOLS driver data structure
-  *
-  * Before applying the controls setup the resolution and frame rate
-  * in PARAMETER mode, and then switch over to MONITOR mode.
-@@ -789,6 +802,7 @@ int __attribute__ ((weak)) m5mols_update_fw(struct v4l2_subdev *sd,
- 
- /**
-  * m5mols_fw_start - M-5MOLS internal ARM controller initialization
-+ * @sd: sub-device, as pointed by struct v4l2_subdev
-  *
-  * Execute the M-5MOLS internal ARM controller initialization sequence.
-  * This function should be called after the supply voltage has been
-@@ -844,6 +858,8 @@ static int m5mols_auto_focus_stop(struct m5mols_info *info)
- 
- /**
-  * m5mols_s_power - Main sensor power control function
-+ * @sd: sub-device, as pointed by struct v4l2_subdev
-+ * @on: if true, powers on the device; powers off otherwise.
-  *
-  * To prevent breaking the lens when the sensor is powered off the Soft-Landing
-  * algorithm is called where available. The Soft-Landing algorithm availability
 -- 
-2.14.3
+2.15.0
