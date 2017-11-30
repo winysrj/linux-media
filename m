@@ -1,137 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.horus.com ([78.46.148.228]:39617 "EHLO mail.horus.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751335AbdKUTUW (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 21 Nov 2017 14:20:22 -0500
-Date: Tue, 21 Nov 2017 20:20:19 +0100
-From: Matthias Reichl <hias@horus.com>
-To: Sean Young <sean@mess.org>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] media: rc: double keypresses due to timeout expiring to
- early
-Message-ID: <20171121192019.y7srcsiy4othnpxb@camel2.lan>
-References: <20171116152700.filid3ask3gowegl@camel2.lan>
- <20171116163920.ouxinvde5ai4fle3@gofer.mess.org>
- <20171116215451.min7sqdo7itiyyif@gofer.mess.org>
- <20171117145249.wc4ql2hw46enxu7d@camel2.lan>
- <20171119215727.slnzxumlun5lh6ae@gofer.mess.org>
+Received: from mail-ot0-f195.google.com ([74.125.82.195]:36662 "EHLO
+        mail-ot0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751591AbdK3OGQ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 30 Nov 2017 09:06:16 -0500
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20171119215727.slnzxumlun5lh6ae@gofer.mess.org>
+In-Reply-To: <20171130104934.30dcfdf6@vento.lan>
+References: <20171130110939.1140969-1-arnd@arndb.de> <20171130104934.30dcfdf6@vento.lan>
+From: Arnd Bergmann <arnd@arndb.de>
+Date: Thu, 30 Nov 2017 15:06:15 +0100
+Message-ID: <CAK8P3a0dp0S8h0pV+1mexD=-LdRRW8D55tLmx5x9usCQkzNTqw@mail.gmail.com>
+Subject: Re: [PATCH, RESEND 1/2] dvb-frontends: fix i2c access helpers for KASAN
+To: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: "# 3.4.x" <stable@vger.kernel.org>, Sergey Kozlov <serjk@netup.ru>,
+        Abylay Ospan <aospan@netup.ru>,
+        Daniel Scheller <d.scheller@gmx.net>,
+        Alexey Dobriyan <adobriyan@gmail.com>,
+        Masanari Iida <standby24x7@gmail.com>,
+        Jiri Kosina <jkosina@suse.cz>,
+        Randy Dunlap <rdunlap@infradead.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sean!
+On Thu, Nov 30, 2017 at 1:49 PM, Mauro Carvalho Chehab
+<mchehab@kernel.org> wrote:
+>> Link: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=81715
+>> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+>> ---
+>> I'm undecided here whether there should be a comment pointing
+>> to PR81715 for each file that the bogus local variable workaround
+>> to prevent it from being cleaned up again. It's probably not
+>> necessary since anything that causes actual problems would also
+>> trigger a build warning.
 
-On Sun, Nov 19, 2017 at 09:57:27PM +0000, Sean Young wrote:
-> I think for now the best solution is to revert to 250ms for all protocols
-> (except for cec which needs 550ms), and reconsider for another kernel.
+>
+> This kind of sucks, and it is completely unexpected... why val is
+> so special that it would require this kind of hack?
 
-Thanks, this sounds like a good idea!
+It's explained in the gcc bug report: basically gcc always skipped
+one optimization on inline function arguments that it does on
+normal variables. Without KASAN and asan-stack, we didn't
+notice because the impact was fairly small, but I ended up finally
+getting to the bottom of it in September, and it finally got fixed.
 
-> >>From 2f1135f3f9873778ca5c013d1118710152840cb2 Mon Sep 17 00:00:00 2001
-> From: Sean Young <sean@mess.org>
-> Date: Sun, 19 Nov 2017 21:11:17 +0000
-> Subject: [PATCH] media: rc: partial revert of "media: rc: per-protocol repeat
->  period"
-> 
-> Since commit d57ea877af38 ("media: rc: per-protocol repeat period"), most
-> IR protocols have a lower keyup timeout. This causes problems on the
-> ite-cir, which has default IR timeout of 200ms.
-> 
-> Since the IR decoders read the trailing space, with a IR timeout of 200ms,
-> the last keydown will have at least a delay of 200ms. This is more than
-> the protocol timeout of e.g. rc-6 (which is 164ms). As a result the last
-> IR will be interpreted as a new keydown event, and we get two keypresses.
-> 
-> Revert the protocol timeout to 250ms, except for cec which needs a timeout
-> of 550ms.
-> 
-> Fixes: d57ea877af38 ("media: rc: per-protocol repeat period")
-> Cc: <stable@vger.kernel.org> # 4.14
-> Signed-off-by: Sean Young <sean@mess.org>
+I had an older version of the patch that was much more invasive
+before we understood what exactly is happening, see
+https://lkml.org/lkml/2017/3/2/484
 
-Tested-by: Matthias Reichl <hias@horus.com>
+> Also, there's always a risk of someone see it and decide to
+> simplify the code, returning it to the previous state.
+>
+> So, if we're willing to do something like that, IMHO, we should have
+> some macro that would document it, and fall back to the direct
+> code if the compiler is not gcc 5, 6 or 7.
 
-I tested this locally with gpio-ir configured to 200ms timeout and
-we also received feedback from 2 users that this change fixed the
-issue with the ite-cir receiver.
+Older compilers are also affected and will produce better code
+with my change, the difference is just smaller without asan-stack
+(added ion gcc-5) is disabled, since that increases the stack
+space used by each variable to (IIRC) 32 bytes.
 
-https://forum.kodi.tv/showthread.php?tid=298462&pid=2670637#pid2670637
+The fixed gcc-8 produces identical code with and without my
+change.
 
-Thanks a lot for fixing this so quickly!
+I don't think that a macro would help here at all, but if you
+prefer, I could add a link to that gcc bug in each function that
+has the problem.
 
-so long,
-
-Hias
-> ---
->  drivers/media/rc/rc-main.c | 32 ++++++++++++++++----------------
->  1 file changed, 16 insertions(+), 16 deletions(-)
-> 
-> diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
-> index 17950e29d4e3..5057b2ba0c10 100644
-> --- a/drivers/media/rc/rc-main.c
-> +++ b/drivers/media/rc/rc-main.c
-> @@ -39,41 +39,41 @@ static const struct {
->  	[RC_PROTO_UNKNOWN] = { .name = "unknown", .repeat_period = 250 },
->  	[RC_PROTO_OTHER] = { .name = "other", .repeat_period = 250 },
->  	[RC_PROTO_RC5] = { .name = "rc-5",
-> -		.scancode_bits = 0x1f7f, .repeat_period = 164 },
-> +		.scancode_bits = 0x1f7f, .repeat_period = 250 },
->  	[RC_PROTO_RC5X_20] = { .name = "rc-5x-20",
-> -		.scancode_bits = 0x1f7f3f, .repeat_period = 164 },
-> +		.scancode_bits = 0x1f7f3f, .repeat_period = 250 },
->  	[RC_PROTO_RC5_SZ] = { .name = "rc-5-sz",
-> -		.scancode_bits = 0x2fff, .repeat_period = 164 },
-> +		.scancode_bits = 0x2fff, .repeat_period = 250 },
->  	[RC_PROTO_JVC] = { .name = "jvc",
->  		.scancode_bits = 0xffff, .repeat_period = 250 },
->  	[RC_PROTO_SONY12] = { .name = "sony-12",
-> -		.scancode_bits = 0x1f007f, .repeat_period = 100 },
-> +		.scancode_bits = 0x1f007f, .repeat_period = 250 },
->  	[RC_PROTO_SONY15] = { .name = "sony-15",
-> -		.scancode_bits = 0xff007f, .repeat_period = 100 },
-> +		.scancode_bits = 0xff007f, .repeat_period = 250 },
->  	[RC_PROTO_SONY20] = { .name = "sony-20",
-> -		.scancode_bits = 0x1fff7f, .repeat_period = 100 },
-> +		.scancode_bits = 0x1fff7f, .repeat_period = 250 },
->  	[RC_PROTO_NEC] = { .name = "nec",
-> -		.scancode_bits = 0xffff, .repeat_period = 160 },
-> +		.scancode_bits = 0xffff, .repeat_period = 250 },
->  	[RC_PROTO_NECX] = { .name = "nec-x",
-> -		.scancode_bits = 0xffffff, .repeat_period = 160 },
-> +		.scancode_bits = 0xffffff, .repeat_period = 250 },
->  	[RC_PROTO_NEC32] = { .name = "nec-32",
-> -		.scancode_bits = 0xffffffff, .repeat_period = 160 },
-> +		.scancode_bits = 0xffffffff, .repeat_period = 250 },
->  	[RC_PROTO_SANYO] = { .name = "sanyo",
->  		.scancode_bits = 0x1fffff, .repeat_period = 250 },
->  	[RC_PROTO_MCIR2_KBD] = { .name = "mcir2-kbd",
-> -		.scancode_bits = 0xffff, .repeat_period = 150 },
-> +		.scancode_bits = 0xffff, .repeat_period = 250 },
->  	[RC_PROTO_MCIR2_MSE] = { .name = "mcir2-mse",
-> -		.scancode_bits = 0x1fffff, .repeat_period = 150 },
-> +		.scancode_bits = 0x1fffff, .repeat_period = 250 },
->  	[RC_PROTO_RC6_0] = { .name = "rc-6-0",
-> -		.scancode_bits = 0xffff, .repeat_period = 164 },
-> +		.scancode_bits = 0xffff, .repeat_period = 250 },
->  	[RC_PROTO_RC6_6A_20] = { .name = "rc-6-6a-20",
-> -		.scancode_bits = 0xfffff, .repeat_period = 164 },
-> +		.scancode_bits = 0xfffff, .repeat_period = 250 },
->  	[RC_PROTO_RC6_6A_24] = { .name = "rc-6-6a-24",
-> -		.scancode_bits = 0xffffff, .repeat_period = 164 },
-> +		.scancode_bits = 0xffffff, .repeat_period = 250 },
->  	[RC_PROTO_RC6_6A_32] = { .name = "rc-6-6a-32",
-> -		.scancode_bits = 0xffffffff, .repeat_period = 164 },
-> +		.scancode_bits = 0xffffffff, .repeat_period = 250 },
->  	[RC_PROTO_RC6_MCE] = { .name = "rc-6-mce",
-> -		.scancode_bits = 0xffff7fff, .repeat_period = 164 },
-> +		.scancode_bits = 0xffff7fff, .repeat_period = 250 },
->  	[RC_PROTO_SHARP] = { .name = "sharp",
->  		.scancode_bits = 0x1fff, .repeat_period = 250 },
->  	[RC_PROTO_XMP] = { .name = "xmp", .repeat_period = 250 },
-> -- 
-> 2.14.3
-> 
+         Arnd
