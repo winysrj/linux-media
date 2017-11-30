@@ -1,59 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f172.google.com ([209.85.216.172]:50401 "EHLO
-        mail-qt0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S964817AbdKPNUV (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 16 Nov 2017 08:20:21 -0500
-MIME-Version: 1.0
-In-Reply-To: <1510834290-25434-2-git-send-email-fabrizio.castro@bp.renesas.com>
-References: <1510834290-25434-1-git-send-email-fabrizio.castro@bp.renesas.com> <1510834290-25434-2-git-send-email-fabrizio.castro@bp.renesas.com>
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Date: Thu, 16 Nov 2017 14:20:20 +0100
-Message-ID: <CAMuHMdW+krUp5ELO4NFxGi8NZ5-H4vrtm-=OXyvZKMCk2f-WcQ@mail.gmail.com>
-Subject: Re: [PATCH 1/2] dt-bindings: media: rcar_vin: add device tree support
- for r8a774[35]
-To: Fabrizio Castro <fabrizio.castro@bp.renesas.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Rob Herring <robh+dt@kernel.org>,
-        =?UTF-8?Q?Niklas_S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>,
+Received: from osg.samsung.com ([64.30.133.232]:38743 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752951AbdK3NVB (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 30 Nov 2017 08:21:01 -0500
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
         Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux-Renesas <linux-renesas-soc@vger.kernel.org>,
-        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-        Simon Horman <horms+renesas@verge.net.au>,
-        Chris Paterson <Chris.Paterson2@renesas.com>,
-        Biju Das <biju.das@bp.renesas.com>
-Content-Type: text/plain; charset="UTF-8"
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Sean Young <sean@mess.org>
+Subject: [PATCH 1/2] media: RC docs: add enum rc_proto description at the docs
+Date: Thu, 30 Nov 2017 08:20:55 -0500
+Message-Id: <44530601e2f49433690aeec1c76e425907ae6842.1512048047.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Nov 16, 2017 at 1:11 PM, Fabrizio Castro
-<fabrizio.castro@bp.renesas.com> wrote:
-> --- a/Documentation/devicetree/bindings/media/rcar_vin.txt
-> +++ b/Documentation/devicetree/bindings/media/rcar_vin.txt
-> @@ -14,7 +14,10 @@ channel which can be either RGB, YUYV or BT656.
->     - "renesas,vin-r8a7790" for the R8A7790 device
->     - "renesas,vin-r8a7779" for the R8A7779 device
->     - "renesas,vin-r8a7778" for the R8A7778 device
-> -   - "renesas,rcar-gen2-vin" for a generic R-Car Gen2 compatible device.
-> +   - "renesas,vin-r8a7745" for the R8A7745 device
-> +   - "renesas,vin-r8a7743" for the R8A7743 device
+This is part of the uAPI. Add it to the documentation again,
+and fix cross-references.
 
-Please keep the list sorted by SoC part number.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ Documentation/media/uapi/rc/lirc-dev-intro.rst | 19 +++++++++++++------
+ Documentation/media/uapi/rc/lirc-read.rst      |  2 +-
+ Documentation/media/uapi/rc/lirc-write.rst     |  4 ++--
+ 3 files changed, 16 insertions(+), 9 deletions(-)
 
-> +   - "renesas,rcar-gen2-vin" for a generic R-Car Gen2 or RZ/G1 compatible
-> +     device.
->     - "renesas,rcar-gen3-vin" for a generic R-Car Gen3 compatible device.
->
->     When compatible with the generic version nodes must list the
-
-Gr{oetje,eeting}s,
-
-                        Geert
-
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+diff --git a/Documentation/media/uapi/rc/lirc-dev-intro.rst b/Documentation/media/uapi/rc/lirc-dev-intro.rst
+index 47c6c218e72a..3a74fec66d69 100644
+--- a/Documentation/media/uapi/rc/lirc-dev-intro.rst
++++ b/Documentation/media/uapi/rc/lirc-dev-intro.rst
+@@ -46,13 +46,13 @@ on the following table.
+     This mode is for both sending and receiving IR.
+ 
+     For transmitting (aka sending), create a ``struct lirc_scancode`` with
+-    the desired scancode set in the ``scancode`` member, ``rc_proto`` set
+-    the IR protocol, and all other members set to 0. Write this struct to
++    the desired scancode set in the ``scancode`` member, :c:type:`rc_proto`
++    set the IR protocol, and all other members set to 0. Write this struct to
+     the lirc device.
+ 
+     For receiving, you read ``struct lirc_scancode`` from the lirc device,
+     with ``scancode`` set to the received scancode and the IR protocol
+-    ``rc_proto``. If the scancode maps to a valid key code, this is set
++    :c:type:`rc_proto`. If the scancode maps to a valid key code, this is set
+     in the ``keycode`` field, else it is set to ``KEY_RESERVED``.
+ 
+     The ``flags`` can have ``LIRC_SCANCODE_FLAG_TOGGLE`` set if the toggle
+@@ -74,9 +74,6 @@ on the following table.
+     The ``timestamp`` field is filled with the time nanoseconds
+     (in ``CLOCK_MONOTONIC``) when the scancode was decoded.
+ 
+-    An ``enum rc_proto`` in the :ref:`lirc_header` lists all the supported
+-    IR protocols.
+-
+ .. _lirc-mode-mode2:
+ 
+ ``LIRC_MODE_MODE2``
+@@ -125,3 +122,13 @@ on the following table.
+     of entries.
+ 
+     This mode is used only for IR send.
++
++
++**************************
++Remote Controller protocol
++**************************
++
++An enum :c:type:`rc_proto` in the :ref:`lirc_header` lists all the
++supported IR protocols:
++
++.. kernel-doc:: include/uapi/linux/lirc.h
+diff --git a/Documentation/media/uapi/rc/lirc-read.rst b/Documentation/media/uapi/rc/lirc-read.rst
+index 51d37ed10194..c024aaffb8ad 100644
+--- a/Documentation/media/uapi/rc/lirc-read.rst
++++ b/Documentation/media/uapi/rc/lirc-read.rst
+@@ -54,7 +54,7 @@ read from the chardev.
+ 
+ Alternatively, :ref:`LIRC_MODE_SCANCODE <lirc-mode-scancode>` can be available,
+ in this mode scancodes which are either decoded by software decoders, or
+-by hardware decoders. The ``rc_proto`` member is set to the
++by hardware decoders. The :c:type:`rc_proto` member is set to the
+ protocol used for transmission, and ``scancode`` to the decoded scancode,
+ and the ``keycode`` set to the keycode or ``KEY_RESERVED``.
+ 
+diff --git a/Documentation/media/uapi/rc/lirc-write.rst b/Documentation/media/uapi/rc/lirc-write.rst
+index 3d7541bad8b9..dd3d1fe807a6 100644
+--- a/Documentation/media/uapi/rc/lirc-write.rst
++++ b/Documentation/media/uapi/rc/lirc-write.rst
+@@ -57,8 +57,8 @@ driver returns ``EINVAL``.
+ When in :ref:`LIRC_MODE_SCANCODE <lirc-mode-scancode>` mode, one
+ ``struct lirc_scancode`` must be written to the chardev at a time, else
+ ``EINVAL`` is returned. Set the desired scancode in the ``scancode`` member,
+-and the protocol in the ``rc_proto`` member. All other members must be set
+-to 0, else ``EINVAL`` is returned. If there is no protocol encoder
++and the protocol in the :c:type:`rc_proto`: member. All other members must be
++set to 0, else ``EINVAL`` is returned. If there is no protocol encoder
+ for the protocol or the scancode is not valid for the specified protocol,
+ ``EINVAL`` is returned. The write function may not wait until the scancode
+ is transmitted.
+-- 
+2.14.3
