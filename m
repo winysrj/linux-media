@@ -1,126 +1,133 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f195.google.com ([209.85.128.195]:37790 "EHLO
-        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752712AbdK0VpZ (ORCPT
+Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:59483 "EHLO
+        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753018AbdK3Elh (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 27 Nov 2017 16:45:25 -0500
-Received: by mail-wr0-f195.google.com with SMTP id k61so27891997wrc.4
-        for <linux-media@vger.kernel.org>; Mon, 27 Nov 2017 13:45:24 -0800 (PST)
-From: Riccardo Schirone <sirmy15@gmail.com>
-To: alan@linux.intel.com, gregkh@linuxfoundation.org,
-        linux-media@vger.kernel.org
-Cc: Riccardo Schirone <sirmy15@gmail.com>
-Subject: [PATCH 2/4] staging: improve comments usage in atomisp-ov5693
-Date: Mon, 27 Nov 2017 22:44:11 +0100
-Message-Id: <20171127214413.10749-3-sirmy15@gmail.com>
-In-Reply-To: <20171127214413.10749-1-sirmy15@gmail.com>
-References: <20171127214413.10749-1-sirmy15@gmail.com>
+        Wed, 29 Nov 2017 23:41:37 -0500
+Message-ID: <8b0903d70b41e61ec52382df58629259@smtp-cloud8.xs4all.net>
+Date: Thu, 30 Nov 2017 05:41:34 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-* Fix "Block comments use a trailing */ on a separate line" issue
-* Fix "Block comments use * on subsequent lines" issue
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Signed-off-by: Riccardo Schirone <sirmy15@gmail.com>
----
- .../media/atomisp/i2c/ov5693/atomisp-ov5693.c      | 38 ++++++++++++++--------
- 1 file changed, 25 insertions(+), 13 deletions(-)
+Results of the daily build of media_tree:
 
-diff --git a/drivers/staging/media/atomisp/i2c/ov5693/atomisp-ov5693.c b/drivers/staging/media/atomisp/i2c/ov5693/atomisp-ov5693.c
-index 387c65be10f4..ecd607b7b005 100644
---- a/drivers/staging/media/atomisp/i2c/ov5693/atomisp-ov5693.c
-+++ b/drivers/staging/media/atomisp/i2c/ov5693/atomisp-ov5693.c
-@@ -213,7 +213,8 @@ static int vcm_dw_i2c_write(struct i2c_client *client, u16 data)
- 	return ret == num_msg ? 0 : -EIO;
- }
- 
--/* Theory: per datasheet, the two VCMs both allow for a 2-byte read.
-+/*
-+ * Theory: per datasheet, the two VCMs both allow for a 2-byte read.
-  * The DW9714 doesn't actually specify what this does (it has a
-  * two-byte write-only protocol, but specifies the read sequence as
-  * legal), but it returns the same data (zeroes) always, after an
-@@ -224,7 +225,8 @@ static int vcm_dw_i2c_write(struct i2c_client *client, u16 data)
-  * these) in AD5823 are not pairwise repetitions of the same 16 bit
-  * word.  So all we have to do is sequentially read two bytes at a
-  * time and see if we detect a difference in any of the first four
-- * pairs.  */
-+ * pairs.
-+ */
- static int vcm_detect(struct i2c_client *client)
- {
- 	int i, ret;
-@@ -238,8 +240,10 @@ static int vcm_detect(struct i2c_client *client)
- 		msg.buf = (u8 *)&data;
- 		ret = i2c_transfer(client->adapter, &msg, 1);
- 
--		/* DW9714 always fails the first read and returns
--		 * zeroes for subsequent ones */
-+		/*
-+		 * DW9714 always fails the first read and returns
-+		 * zeroes for subsequent ones
-+		 */
- 		if (i == 0 && ret == -EREMOTEIO) {
- 			data0 = 0;
- 			continue;
-@@ -533,9 +537,11 @@ static long __ov5693_set_exposure(struct v4l2_subdev *sd, int coarse_itg,
- 
- 	hts = ov5693_res[dev->fmt_idx].pixels_per_line;
- 	vts = ov5693_res[dev->fmt_idx].lines_per_frame;
--	/*If coarse_itg is larger than 1<<15, can not write to reg directly.
--	  The way is to write coarse_itg/2 to the reg, meanwhile write 2*hts
--	  to the reg. */
-+	/*
-+	 * If coarse_itg is larger than 1<<15, can not write to reg directly.
-+	 * The way is to write coarse_itg/2 to the reg, meanwhile write 2*hts
-+	 * to the reg.
-+	 */
- 	if (coarse_itg > (1 << 15)) {
- 		hts = hts * 2;
- 		coarse_itg = (int)coarse_itg / 2;
-@@ -880,8 +886,10 @@ static long ov5693_ioctl(struct v4l2_subdev *sd, unsigned int cmd, void *arg)
- 	return 0;
- }
- 
--/* This returns the exposure time being used. This should only be used
--   for filling in EXIF data, not for actual image processing. */
-+/*
-+ * This returns the exposure time being used. This should only be used
-+ * for filling in EXIF data, not for actual image processing.
-+ */
- static int ov5693_q_exposure(struct v4l2_subdev *sd, s32 *value)
- {
- 	struct i2c_client *client = v4l2_get_subdevdata(sd);
-@@ -1301,11 +1309,13 @@ static int power_ctrl(struct v4l2_subdev *sd, bool flag)
- 	if (!dev || !dev->platform_data)
- 		return -ENODEV;
- 
--	/* This driver assumes "internal DVDD, PWDNB tied to DOVDD".
-+	/*
-+	 * This driver assumes "internal DVDD, PWDNB tied to DOVDD".
- 	 * In this set up only gpio0 (XSHUTDN) should be available
- 	 * but in some products (for example ECS) gpio1 (PWDNB) is
- 	 * also available. If gpio1 is available we emulate it being
--	 * tied to DOVDD here. */
-+	 * tied to DOVDD here.
-+	 */
- 	if (flag) {
- 		ret = dev->platform_data->v2p8_ctrl(sd, 1);
- 		dev->platform_data->gpio1_ctrl(sd, 1);
-@@ -1944,10 +1954,12 @@ static int ov5693_probe(struct i2c_client *client)
- 	struct acpi_device *adev;
- 	unsigned int i;
- 
--	/* Firmware workaround: Some modules use a "secondary default"
-+	/*
-+	 * Firmware workaround: Some modules use a "secondary default"
- 	 * address of 0x10 which doesn't appear on schematics, and
- 	 * some BIOS versions haven't gotten the memo.  Work around
--	 * via config. */
-+	 * via config.
-+	 */
- 	i2c = gmin_get_var_int(&client->dev, "I2CAddr", -1);
- 	if (i2c != -1) {
- 		dev_info(&client->dev,
--- 
-2.14.3
+date:			Thu Nov 30 05:00:17 CET 2017
+media-tree git hash:	04226916d2360f56d57ad00bc48d2d1854d1e0b0
+media_build git hash:	320b9b80ebbf318a67a9479c18a0e4be244c8409
+v4l-utils git hash:	85f8e5a99fe2a3097964b69f34dceaa6702d071a
+gcc version:		i686-linux-gcc (GCC) 7.1.0
+sparse version:		0.5.1 (Debian: 0.5.1-2)
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.13.0-164
+
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12.67-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.7-i686: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.18.7-i686: ERRORS
+linux-3.19-i686: ERRORS
+linux-4.0.9-i686: ERRORS
+linux-4.1.33-i686: ERRORS
+linux-4.2.8-i686: ERRORS
+linux-4.3.6-i686: ERRORS
+linux-4.4.22-i686: ERRORS
+linux-4.5.7-i686: ERRORS
+linux-4.6.7-i686: ERRORS
+linux-4.7.5-i686: ERRORS
+linux-4.8-i686: ERRORS
+linux-4.9.26-i686: ERRORS
+linux-4.10.14-i686: ERRORS
+linux-4.11-i686: ERRORS
+linux-4.12.1-i686: ERRORS
+linux-4.13-i686: ERRORS
+linux-4.14-i686: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.67-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.7-x86_64: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.7-x86_64: ERRORS
+linux-3.19-x86_64: ERRORS
+linux-4.0.9-x86_64: ERRORS
+linux-4.1.33-x86_64: ERRORS
+linux-4.2.8-x86_64: ERRORS
+linux-4.3.6-x86_64: ERRORS
+linux-4.4.22-x86_64: ERRORS
+linux-4.5.7-x86_64: ERRORS
+linux-4.6.7-x86_64: ERRORS
+linux-4.7.5-x86_64: ERRORS
+linux-4.8-x86_64: ERRORS
+linux-4.9.26-x86_64: ERRORS
+linux-4.10.14-x86_64: ERRORS
+linux-4.11-x86_64: ERRORS
+linux-4.12.1-x86_64: ERRORS
+linux-4.13-x86_64: ERRORS
+linux-4.14-x86_64: ERRORS
+apps: OK
+spec-git: OK
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
