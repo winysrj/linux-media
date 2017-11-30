@@ -1,156 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:42075 "EHLO
-        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751863AbdKVJMo (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:56125 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753824AbdK3SGV (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 22 Nov 2017 04:12:44 -0500
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH] cec: disable the hardware when unregistered
-Message-ID: <e5bac5e8-1058-034e-3371-929d83aa2fc1@xs4all.nl>
-Date: Wed, 22 Nov 2017 10:12:39 +0100
+        Thu, 30 Nov 2017 13:06:21 -0500
+Subject: Re: [PATCH v8 28/28] rcar-vin: enable support for r8a77970
+To: =?UTF-8?Q?Niklas_S=c3=b6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org
+References: <20171129194342.26239-1-niklas.soderlund+renesas@ragnatech.se>
+ <20171129194342.26239-29-niklas.soderlund+renesas@ragnatech.se>
+Reply-To: kieran.bingham@ideasonboard.com
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Message-ID: <849882b9-c7d1-0a04-29b1-2a11ffa6faf6@ideasonboard.com>
+Date: Thu, 30 Nov 2017 18:06:16 +0000
 MIME-Version: 1.0
+In-Reply-To: <20171129194342.26239-29-niklas.soderlund+renesas@ragnatech.se>
 Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
+Content-Language: en-GB
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When the device is being unregistered disable the hardware, don't wait
-until cec_delete_adapter is called as the hardware may have disappeared by
-then. This would be the case for hotplugable devices.
+Hi Niklas,
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Reported-by: Bård Eirik Winther <bwinther@cisco.com>
-Tested-by: Bård Eirik Winther <bwinther@cisco.com>
----
- drivers/media/cec/cec-api.c  | 11 ++++-------
- drivers/media/cec/cec-core.c | 15 +++++++++------
- include/media/cec.h          | 12 ++++++++++++
- 3 files changed, 25 insertions(+), 13 deletions(-)
+On 29/11/17 19:43, Niklas Söderlund wrote:
+> Add the SoC specific information for Renesas r8a77970.
+> 
+> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 
-diff --git a/drivers/media/cec/cec-api.c b/drivers/media/cec/cec-api.c
-index a079f7fe018c..766b16e60c3b 100644
---- a/drivers/media/cec/cec-api.c
-+++ b/drivers/media/cec/cec-api.c
-@@ -45,12 +45,11 @@ static inline struct cec_devnode *cec_devnode_data(struct file *filp)
- static unsigned int cec_poll(struct file *filp,
- 			     struct poll_table_struct *poll)
- {
--	struct cec_devnode *devnode = cec_devnode_data(filp);
- 	struct cec_fh *fh = filp->private_data;
- 	struct cec_adapter *adap = fh->adap;
- 	unsigned int res = 0;
+Not going through the details on this one, as I don't know where to start yet
+other than the cursory chip, width, and height all look correct ... but as this
+has helped me capture video this evening this patch can at least have:
 
--	if (!devnode->registered)
-+	if (!cec_is_registered(adap))
- 		return POLLERR | POLLHUP;
- 	mutex_lock(&adap->lock);
- 	if (adap->is_configured &&
-@@ -474,13 +473,12 @@ static long cec_s_mode(struct cec_adapter *adap, struct cec_fh *fh,
+Tested-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
 
- static long cec_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
- {
--	struct cec_devnode *devnode = cec_devnode_data(filp);
- 	struct cec_fh *fh = filp->private_data;
- 	struct cec_adapter *adap = fh->adap;
- 	bool block = !(filp->f_flags & O_NONBLOCK);
- 	void __user *parg = (void __user *)arg;
-
--	if (!devnode->registered)
-+	if (!cec_is_registered(adap))
- 		return -ENODEV;
-
- 	switch (cmd) {
-@@ -604,9 +602,8 @@ static int cec_release(struct inode *inode, struct file *filp)
-
- 	mutex_lock(&devnode->lock);
- 	list_del(&fh->list);
--	if (list_empty(&devnode->fhs) &&
--	    !adap->needs_hpd &&
--	    adap->phys_addr == CEC_PHYS_ADDR_INVALID) {
-+	if (cec_is_registered(adap) && list_empty(&devnode->fhs) &&
-+	    !adap->needs_hpd && adap->phys_addr == CEC_PHYS_ADDR_INVALID) {
- 		WARN_ON(adap->ops->adap_enable(adap, false));
- 	}
- 	mutex_unlock(&devnode->lock);
-diff --git a/drivers/media/cec/cec-core.c b/drivers/media/cec/cec-core.c
-index 648136e552d5..a56171d4d072 100644
---- a/drivers/media/cec/cec-core.c
-+++ b/drivers/media/cec/cec-core.c
-@@ -164,8 +164,9 @@ static int __must_check cec_devnode_register(struct cec_devnode *devnode,
-  * This function can safely be called if the device node has never been
-  * registered or has already been unregistered.
-  */
--static void cec_devnode_unregister(struct cec_devnode *devnode)
-+static void cec_devnode_unregister(struct cec_adapter *adap)
- {
-+	struct cec_devnode *devnode = &adap->devnode;
- 	struct cec_fh *fh;
-
- 	mutex_lock(&devnode->lock);
-@@ -183,6 +184,11 @@ static void cec_devnode_unregister(struct cec_devnode *devnode)
- 	devnode->unregistered = true;
- 	mutex_unlock(&devnode->lock);
-
-+	mutex_lock(&adap->lock);
-+	__cec_s_phys_addr(adap, CEC_PHYS_ADDR_INVALID, false);
-+	__cec_s_log_addrs(adap, NULL, false);
-+	mutex_unlock(&adap->lock);
-+
- 	cdev_device_del(&devnode->cdev, &devnode->dev);
- 	put_device(&devnode->dev);
- }
-@@ -196,7 +202,7 @@ static void cec_cec_notify(struct cec_adapter *adap, u16 pa)
- void cec_register_cec_notifier(struct cec_adapter *adap,
- 			       struct cec_notifier *notifier)
- {
--	if (WARN_ON(!adap->devnode.registered))
-+	if (WARN_ON(!cec_is_registered(adap)))
- 		return;
-
- 	adap->notifier = notifier;
-@@ -374,7 +380,7 @@ void cec_unregister_adapter(struct cec_adapter *adap)
- 	if (adap->notifier)
- 		cec_notifier_unregister(adap->notifier);
- #endif
--	cec_devnode_unregister(&adap->devnode);
-+	cec_devnode_unregister(adap);
- }
- EXPORT_SYMBOL_GPL(cec_unregister_adapter);
-
-@@ -382,9 +388,6 @@ void cec_delete_adapter(struct cec_adapter *adap)
- {
- 	if (IS_ERR_OR_NULL(adap))
- 		return;
--	mutex_lock(&adap->lock);
--	__cec_s_phys_addr(adap, CEC_PHYS_ADDR_INVALID, false);
--	mutex_unlock(&adap->lock);
- 	kthread_stop(adap->kthread);
- 	if (adap->kthread_config)
- 		kthread_stop(adap->kthread_config);
-diff --git a/include/media/cec.h b/include/media/cec.h
-index df6b3bd31284..c3cb1af3ccc0 100644
---- a/include/media/cec.h
-+++ b/include/media/cec.h
-@@ -229,6 +229,18 @@ static inline bool cec_is_sink(const struct cec_adapter *adap)
- 	return adap->phys_addr == 0;
- }
-
-+/**
-+ * cec_is_registered() - is the CEC adapter registered?
-+ *
-+ * @adap:	the CEC adapter, may be NULL.
-+ *
-+ * Return: true if the adapter is registered, false otherwise.
-+ */
-+static inline bool cec_is_registered(const struct cec_adapter *adap)
-+{
-+	return adap && adap->devnode.registered;
-+}
-+
- #define cec_phys_addr_exp(pa) \
- 	((pa) >> 12), ((pa) >> 8) & 0xf, ((pa) >> 4) & 0xf, (pa) & 0xf
-
--- 
-2.14.1
+> ---
+>  .../devicetree/bindings/media/rcar_vin.txt         |  1 +
+>  drivers/media/platform/rcar-vin/rcar-core.c        | 40 ++++++++++++++++++++++
+>  2 files changed, 41 insertions(+)
+> 
+> diff --git a/Documentation/devicetree/bindings/media/rcar_vin.txt b/Documentation/devicetree/bindings/media/rcar_vin.txt
+> index 314743532bbb4523..6b98f8a3398fa493 100644
+> --- a/Documentation/devicetree/bindings/media/rcar_vin.txt
+> +++ b/Documentation/devicetree/bindings/media/rcar_vin.txt
+> @@ -21,6 +21,7 @@ on Gen3 to a CSI-2 receiver.
+>     - "renesas,vin-r8a7794" for the R8A7794 device
+>     - "renesas,vin-r8a7795" for the R8A7795 device
+>     - "renesas,vin-r8a7796" for the R8A7796 device
+> +   - "renesas,vin-r8a77970" for the R8A77970 device
+>     - "renesas,rcar-gen2-vin" for a generic R-Car Gen2 or RZ/G1 compatible
+>       device.
+>     - "renesas,rcar-gen3-vin" for a generic R-Car Gen3 compatible device.
+> diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
+> index 62eb89b36fbb2ee1..bbdf36b5c3c8178d 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-core.c
+> +++ b/drivers/media/platform/rcar-vin/rcar-core.c
+> @@ -1145,6 +1145,42 @@ static const struct rvin_info rcar_info_r8a7796 = {
+>  	},
+>  };
+>  
+> +static const struct rvin_info rcar_info_r8a77970 = {
+> +	.chip = RCAR_GEN3,
+> +	.use_mc = true,
+> +	.max_width = 4096,
+> +	.max_height = 4096,
+> +
+> +	.num_chsels = 5,
+> +	.chsels = {
+> +		{
+> +			{ .csi = RVIN_CSI40, .chan = 0 },
+> +			{ .csi = RVIN_NC, .chan = 0 },
+> +			{ .csi = RVIN_NC, .chan = 0 },
+> +			{ .csi = RVIN_CSI40, .chan = 0 },
+> +			{ .csi = RVIN_NC, .chan = 0 },
+> +		}, {
+> +			{ .csi = RVIN_NC, .chan = 0 },
+> +			{ .csi = RVIN_NC, .chan = 0 },
+> +			{ .csi = RVIN_CSI40, .chan = 0 },
+> +			{ .csi = RVIN_CSI40, .chan = 1 },
+> +			{ .csi = RVIN_NC, .chan = 0 },
+> +		}, {
+> +			{ .csi = RVIN_NC, .chan = 0 },
+> +			{ .csi = RVIN_CSI40, .chan = 0 },
+> +			{ .csi = RVIN_NC, .chan = 0 },
+> +			{ .csi = RVIN_CSI40, .chan = 2 },
+> +			{ .csi = RVIN_NC, .chan = 0 },
+> +		}, {
+> +			{ .csi = RVIN_CSI40, .chan = 1 },
+> +			{ .csi = RVIN_NC, .chan = 0 },
+> +			{ .csi = RVIN_NC, .chan = 0 },
+> +			{ .csi = RVIN_CSI40, .chan = 3 },
+> +			{ .csi = RVIN_NC, .chan = 0 },
+> +		},
+> +	},
+> +};
+> +
+>  static const struct of_device_id rvin_of_id_table[] = {
+>  	{
+>  		.compatible = "renesas,vin-r8a7778",
+> @@ -1182,6 +1218,10 @@ static const struct of_device_id rvin_of_id_table[] = {
+>  		.compatible = "renesas,vin-r8a7796",
+>  		.data = &rcar_info_r8a7796,
+>  	},
+> +	{
+> +		.compatible = "renesas,vin-r8a77970",
+> +		.data = &rcar_info_r8a77970,
+> +	},
+>  	{ },
+>  };
+>  MODULE_DEVICE_TABLE(of, rvin_of_id_table);
+> 
