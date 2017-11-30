@@ -1,88 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.17.10]:55950 "EHLO
-        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752083AbdK0NUh (ORCPT
+Received: from bombadil.infradead.org ([65.50.211.133]:49178 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752440AbdK3Mtp (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 27 Nov 2017 08:20:37 -0500
-From: Arnd Bergmann <arnd@arndb.de>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: y2038@lists.linaro.org, Arnd Bergmann <arnd@arndb.de>,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
+        Thu, 30 Nov 2017 07:49:45 -0500
+Date: Thu, 30 Nov 2017 10:49:34 -0200
+From: Mauro Carvalho Chehab <mchehab@kernel.org>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: stable@vger.kernel.org, Sergey Kozlov <serjk@netup.ru>,
+        Abylay Ospan <aospan@netup.ru>,
+        Daniel Scheller <d.scheller@gmx.net>,
+        Alexey Dobriyan <adobriyan@gmail.com>,
+        Masanari Iida <standby24x7@gmail.com>,
+        Jiri Kosina <jkosina@suse.cz>,
+        Randy Dunlap <rdunlap@infradead.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
         linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH 1/8] [media] uvc_video: use ktime_t for stats
-Date: Mon, 27 Nov 2017 14:19:53 +0100
-Message-Id: <20171127132027.1734806-1-arnd@arndb.de>
+Subject: Re: [PATCH, RESEND 1/2] dvb-frontends: fix i2c access helpers for
+ KASAN
+Message-ID: <20171130104934.30dcfdf6@vento.lan>
+In-Reply-To: <20171130110939.1140969-1-arnd@arndb.de>
+References: <20171130110939.1140969-1-arnd@arndb.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-'struct timespec' works fine here, but we try to migrate
-away from it in favor of ktime_t or timespec64. In this
-case, using ktime_t produces the simplest code.
+Hi Arnd,
 
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
----
- drivers/media/usb/uvc/uvc_video.c | 11 ++++-------
- drivers/media/usb/uvc/uvcvideo.h  |  4 ++--
- 2 files changed, 6 insertions(+), 9 deletions(-)
+Em Thu, 30 Nov 2017 12:08:04 +0100
+Arnd Bergmann <arnd@arndb.de> escreveu:
 
-diff --git a/drivers/media/usb/uvc/uvc_video.c b/drivers/media/usb/uvc/uvc_video.c
-index fb86d6af398d..d6bee37cd1b8 100644
---- a/drivers/media/usb/uvc/uvc_video.c
-+++ b/drivers/media/usb/uvc/uvc_video.c
-@@ -725,7 +725,7 @@ static void uvc_video_stats_decode(struct uvc_streaming *stream,
- 
- 	if (stream->stats.stream.nb_frames == 0 &&
- 	    stream->stats.frame.nb_packets == 0)
--		ktime_get_ts(&stream->stats.stream.start_ts);
-+		stream->stats.stream.start_ts = ktime_get();
- 
- 	switch (data[1] & (UVC_STREAM_PTS | UVC_STREAM_SCR)) {
- 	case UVC_STREAM_PTS | UVC_STREAM_SCR:
-@@ -865,16 +865,13 @@ size_t uvc_video_stats_dump(struct uvc_streaming *stream, char *buf,
- {
- 	unsigned int scr_sof_freq;
- 	unsigned int duration;
--	struct timespec ts;
- 	size_t count = 0;
- 
--	ts = timespec_sub(stream->stats.stream.stop_ts,
--			  stream->stats.stream.start_ts);
--
- 	/* Compute the SCR.SOF frequency estimate. At the nominal 1kHz SOF
- 	 * frequency this will not overflow before more than 1h.
- 	 */
--	duration = ts.tv_sec * 1000 + ts.tv_nsec / 1000000;
-+	duration = ktime_ms_delta(stream->stats.stream.stop_ts,
-+				  stream->stats.stream.start_ts);
- 	if (duration != 0)
- 		scr_sof_freq = stream->stats.stream.scr_sof_count * 1000
- 			     / duration;
-@@ -915,7 +912,7 @@ static void uvc_video_stats_start(struct uvc_streaming *stream)
- 
- static void uvc_video_stats_stop(struct uvc_streaming *stream)
- {
--	ktime_get_ts(&stream->stats.stream.stop_ts);
-+	stream->stats.stream.stop_ts = ktime_get();
- }
- 
- /* ------------------------------------------------------------------------
-diff --git a/drivers/media/usb/uvc/uvcvideo.h b/drivers/media/usb/uvc/uvcvideo.h
-index 05398784d1c8..a2c190937067 100644
---- a/drivers/media/usb/uvc/uvcvideo.h
-+++ b/drivers/media/usb/uvc/uvcvideo.h
-@@ -452,8 +452,8 @@ struct uvc_stats_frame {
- };
- 
- struct uvc_stats_stream {
--	struct timespec start_ts;	/* Stream start timestamp */
--	struct timespec stop_ts;	/* Stream stop timestamp */
-+	ktime_t start_ts;		/* Stream start timestamp */
-+	ktime_t stop_ts;		/* Stream stop timestamp */
- 
- 	unsigned int nb_frames;		/* Number of frames */
- 
--- 
-2.9.0
+> A typical code fragment was copied across many dvb-frontend drivers and
+> causes large stack frames when built with with CONFIG_KASAN on gcc-5/6/7:
+> 
+> drivers/media/dvb-frontends/cxd2841er.c:3225:1: error: the frame size of 3992 bytes is larger than 3072 bytes [-Werror=frame-larger-than=]
+> drivers/media/dvb-frontends/cxd2841er.c:3404:1: error: the frame size of 3136 bytes is larger than 3072 bytes [-Werror=frame-larger-than=]
+> drivers/media/dvb-frontends/stv0367.c:3143:1: error: the frame size of 4016 bytes is larger than 3072 bytes [-Werror=frame-larger-than=]
+> drivers/media/dvb-frontends/stv090x.c:3430:1: error: the frame size of 5312 bytes is larger than 3072 bytes [-Werror=frame-larger-than=]
+> drivers/media/dvb-frontends/stv090x.c:4248:1: error: the frame size of 4872 bytes is larger than 3072 bytes [-Werror=frame-larger-than=]
+> 
+> gcc-8 now solves this by consolidating the stack slots for the argument
+> variables, but on older compilers we can get the same behavior by taking
+> the pointer of a local variable rather than the inline function argument.
+> 
+> Cc: stable@vger.kernel.org
+> Link: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=81715
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> ---
+> I'm undecided here whether there should be a comment pointing
+> to PR81715 for each file that the bogus local variable workaround
+> to prevent it from being cleaned up again. It's probably not
+> necessary since anything that causes actual problems would also
+> trigger a build warning.
+> ---
+>  drivers/media/dvb-frontends/ascot2e.c     | 4 +++-
+>  drivers/media/dvb-frontends/cxd2841er.c   | 4 +++-
+>  drivers/media/dvb-frontends/helene.c      | 4 +++-
+>  drivers/media/dvb-frontends/horus3a.c     | 4 +++-
+>  drivers/media/dvb-frontends/itd1000.c     | 5 +++--
+>  drivers/media/dvb-frontends/mt312.c       | 4 +++-
+>  drivers/media/dvb-frontends/stb0899_drv.c | 3 ++-
+>  drivers/media/dvb-frontends/stb6100.c     | 6 ++++--
+>  drivers/media/dvb-frontends/stv0367.c     | 4 +++-
+>  drivers/media/dvb-frontends/stv090x.c     | 4 +++-
+>  drivers/media/dvb-frontends/stv6110x.c    | 4 +++-
+>  drivers/media/dvb-frontends/zl10039.c     | 4 +++-
+>  12 files changed, 36 insertions(+), 14 deletions(-)
+> 
+> diff --git a/drivers/media/dvb-frontends/ascot2e.c b/drivers/media/dvb-frontends/ascot2e.c
+> index 0ee0df53b91b..1219272ca3f0 100644
+> --- a/drivers/media/dvb-frontends/ascot2e.c
+> +++ b/drivers/media/dvb-frontends/ascot2e.c
+> @@ -155,7 +155,9 @@ static int ascot2e_write_regs(struct ascot2e_priv *priv,
+>  
+>  static int ascot2e_write_reg(struct ascot2e_priv *priv, u8 reg, u8 val)
+>  {
+> -	return ascot2e_write_regs(priv, reg, &val, 1);
+> +	u8 tmp = val;
+> +
+> +	return ascot2e_write_regs(priv, reg, &tmp, 1);
+>  }
+>  
+>  static int ascot2e_read_regs(struct ascot2e_priv *priv,
+> diff --git a/drivers/media/dvb-frontends/cxd2841er.c b/drivers/media/dvb-frontends/cxd2841er.c
+> index 48ee9bc00c06..b7574deff5c6 100644
+> --- a/drivers/media/dvb-frontends/cxd2841er.c
+> +++ b/drivers/media/dvb-frontends/cxd2841er.c
+> @@ -257,7 +257,9 @@ static int cxd2841er_write_regs(struct cxd2841er_priv *priv,
+>  static int cxd2841er_write_reg(struct cxd2841er_priv *priv,
+>  			       u8 addr, u8 reg, u8 val)
+>  {
+> -	return cxd2841er_write_regs(priv, addr, reg, &val, 1);
+> +	u8 tmp = val;
+> +
+> +	return cxd2841er_write_regs(priv, addr, reg, &tmp, 1);
+>  }
+
+
+This kind of sucks, and it is completely unexpected... why val is
+so special that it would require this kind of hack?
+
+Also, there's always a risk of someone see it and decide to 
+simplify the code, returning it to the previous state.
+
+So, if we're willing to do something like that, IMHO, we should have
+some macro that would document it, and fall back to the direct
+code if the compiler is not gcc 5, 6 or 7.
+
+Regards,
+Mauro
