@@ -1,79 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:58538 "EHLO mail.kernel.org"
+Received: from gofer.mess.org ([88.97.38.141]:60051 "EHLO gofer.mess.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S965332AbdKQPrk (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 17 Nov 2017 10:47:40 -0500
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-To: laurent.pinchart@ideasonboard.com, kieran.bingham@ideasonboard.com
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Subject: [PATCH v4 2/9] v4l: vsp1: Protect bodies against overflow
-Date: Fri, 17 Nov 2017 15:47:25 +0000
-Message-Id: <a1a8c17836b5f6b07f2d5bbc983bfb188e424127.1510933306.git-series.kieran.bingham+renesas@ideasonboard.com>
-In-Reply-To: <cover.04beabdebfb3483e7f009337bc09953e6d78701d.1510933306.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.04beabdebfb3483e7f009337bc09953e6d78701d.1510933306.git-series.kieran.bingham+renesas@ideasonboard.com>
-In-Reply-To: <cover.04beabdebfb3483e7f009337bc09953e6d78701d.1510933306.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.04beabdebfb3483e7f009337bc09953e6d78701d.1510933306.git-series.kieran.bingham+renesas@ideasonboard.com>
+        id S1750768AbdK3W1v (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 30 Nov 2017 17:27:51 -0500
+Date: Thu, 30 Nov 2017 22:27:49 +0000
+From: Sean Young <sean@mess.org>
+To: Matthias Reichl <hias@horus.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [BUG] ir-ctl: error sending file with multiple scancodes
+Message-ID: <20171130222749.zuh6iqv63354wflf@gofer.mess.org>
+References: <20171129144400.ojhd32gz33wabp33@camel2.lan>
+ <20171129200521.z4phw7kzcmf56qgi@gofer.mess.org>
+ <20171130153433.yiunybv2sgfwwt3t@camel2.lan>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20171130153433.yiunybv2sgfwwt3t@camel2.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The body write function relies on the code never asking it to write more
-than the entries available in the list.
+Hi Matthias,
 
-Currently with each list body containing 256 entries, this is fine, but
-we can reduce this number greatly saving memory. In preparation of this
-add a level of protection to catch any buffer overflows.
+On Thu, Nov 30, 2017 at 04:34:33PM +0100, Matthias Reichl wrote:
+> Hi Sean,
+> 
+> On Wed, Nov 29, 2017 at 08:05:21PM +0000, Sean Young wrote:
+> > On Wed, Nov 29, 2017 at 03:44:00PM +0100, Matthias Reichl wrote:
+> > > The goal I'm trying to achieve is to send a repeated signal with ir-ctl
+> > > (a user reported his sony receiver needs this to actually power up).
+> > 
+> > That's interesting.
+> 
+> I'm not sure how common that is. I've got a Panasonic TV here
+> that needs a 0.5-1sec button press to power up from standby,
+> but it could well be that this is a rather nieche issue.
+> 
+> I had a look at what it would take to add proper repeat handling
+> to ir-ctl (similar to the --count <NUMBER> option in lirc's irsend)
+> but that looks like a larger endeavour: implement automatic
+> variable length gaps to get fixed repeat times, handle toggle
+> bits in some protocols, send special repeat codes eg in NEC etc.
 
-Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Yes, I've thought about that too. I'm not sure what the user inferface
+should look like (and how useful it is).
 
----
+> As I'm not sure if all of this is even needed I think it's best
+> to leave it for maybe some time later. For now the current
+> functionality in ir-ctl looks sufficient.
 
-v3:
- - adapt for new 'body' terminology
- - simplify WARN_ON macro usage
----
- drivers/media/platform/vsp1/vsp1_dl.c | 7 +++++++
- 1 file changed, 7 insertions(+)
+If you have any suggestions. :-)
 
-diff --git a/drivers/media/platform/vsp1/vsp1_dl.c b/drivers/media/platform/vsp1/vsp1_dl.c
-index 643f7ea3af24..a45d35aa676e 100644
---- a/drivers/media/platform/vsp1/vsp1_dl.c
-+++ b/drivers/media/platform/vsp1/vsp1_dl.c
-@@ -50,6 +50,7 @@ struct vsp1_dl_entry {
-  * @dma: DMA address of the entries
-  * @size: size of the DMA memory in bytes
-  * @num_entries: number of stored entries
-+ * @max_entries: number of entries available
-  */
- struct vsp1_dl_body {
- 	struct list_head list;
-@@ -60,6 +61,7 @@ struct vsp1_dl_body {
- 	size_t size;
- 
- 	unsigned int num_entries;
-+	unsigned int max_entries;
- };
- 
- /**
-@@ -138,6 +140,7 @@ static int vsp1_dl_body_init(struct vsp1_device *vsp1,
- 
- 	dlb->vsp1 = vsp1;
- 	dlb->size = size;
-+	dlb->max_entries = num_entries;
- 
- 	dlb->entries = dma_alloc_wc(vsp1->bus_master, dlb->size, &dlb->dma,
- 				    GFP_KERNEL);
-@@ -219,6 +222,10 @@ void vsp1_dl_body_free(struct vsp1_dl_body *dlb)
-  */
- void vsp1_dl_body_write(struct vsp1_dl_body *dlb, u32 reg, u32 data)
- {
-+	if (WARN_ONCE(dlb->num_entries >= dlb->max_entries,
-+		      "DLB size exceeded (max %u)", dlb->max_entries))
-+		return;
-+
- 	dlb->entries[dlb->num_entries].addr = reg;
- 	dlb->entries[dlb->num_entries].data = data;
- 	dlb->num_entries++;
--- 
-git-series 0.9.1
+> > > Using the -S option multiple times comes rather close, but the 125ms
+> > > delay between signals is a bit long for the sony protocol - would be
+> > > nice if that would be adjustable :)
+> > 
+> > Yes, that would be a useful feature.
+> > 
+> > I've got some patches for this, I'll send them as a reply to this. Please
+> > let me know what you think.
+> 
+> [PATCH 1/2] ir-ctl: fix multiple scancodes in one file 01-multiple-scancodes.patch
+> [PATCH 2/2] ir-ctl: specify the gap between scancodes or files
+> 
+> Tested-by: Matthias Reichl <hias@horus.com>
+> 
+> Thanks, the patches look and tested fine!
+> 
+> I've tested multiple scancodes in a file with and without explicit
+> space in between and the gap option with multiple -S scancodes on
+> the command line. I also tested rc5 protocol in addition to sony12.
+> 
+> So I'd like to say a big thank you for fixing the issue so quickly!
+
+Thanks for making ir-ctl a better tool :)
+
+
+Sean
