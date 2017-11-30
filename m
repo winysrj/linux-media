@@ -1,38 +1,33 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f41.google.com ([74.125.82.41]:51716 "EHLO
-        mail-wm0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751133AbdKJQF7 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 10 Nov 2017 11:05:59 -0500
-Received: by mail-wm0-f41.google.com with SMTP id b9so3741502wmh.0
-        for <linux-media@vger.kernel.org>; Fri, 10 Nov 2017 08:05:58 -0800 (PST)
-Received: from localhost.localdomain ([62.147.246.169])
-        by smtp.gmail.com with ESMTPSA id 56sm5153746wrx.2.2017.11.10.08.05.54
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Fri, 10 Nov 2017 08:05:55 -0800 (PST)
-From: =?UTF-8?q?Rafa=C3=ABl=20Carr=C3=A9?= <funman@videolan.org>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 2/2] sdlcam: ignore binary
-Date: Fri, 10 Nov 2017 17:05:47 +0100
-Message-Id: <20171110160547.32639-2-funman@videolan.org>
-In-Reply-To: <20171110160547.32639-1-funman@videolan.org>
-References: <20171110160547.32639-1-funman@videolan.org>
+Received: from osg.samsung.com ([64.30.133.232]:45124 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751441AbdK3OyU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 30 Nov 2017 09:54:20 -0500
+Date: Thu, 30 Nov 2017 12:54:14 -0200
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Sean Young <sean@mess.org>
+Subject: Re: [PATCH 2/2] media: rc-core.rst: add the lirc_dev.h header
+Message-ID: <20171130125414.6e968e3d@vento.lan>
+In-Reply-To: <f6d3f536250fd85bfab10695548f313250b14618.1512048047.git.mchehab@s-opensource.com>
+References: <44530601e2f49433690aeec1c76e425907ae6842.1512048047.git.mchehab@s-opensource.com>
+        <f6d3f536250fd85bfab10695548f313250b14618.1512048047.git.mchehab@s-opensource.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
----
- contrib/test/.gitignore | 1 +
- 1 file changed, 1 insertion(+)
+Em Thu, 30 Nov 2017 08:20:56 -0500
+Mauro Carvalho Chehab <mchehab@s-opensource.com> escreveu:
 
-diff --git a/contrib/test/.gitignore b/contrib/test/.gitignore
-index ad64325b..5bd81d01 100644
---- a/contrib/test/.gitignore
-+++ b/contrib/test/.gitignore
-@@ -8,3 +8,4 @@ stress-buffer
- v4l2gl
- v4l2grab
- mc_nextgen_test
-+sdlcam
--- 
-2.14.1
+> There is a kAPI declaration there. Add it to the documentation.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+
+Please ignore this one. Was sent by mistake.
+
+Thanks,
+Mauro
