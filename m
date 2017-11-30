@@ -1,76 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from wp215.webpack.hosteurope.de ([80.237.132.222]:54416 "EHLO
-        wp215.webpack.hosteurope.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751976AbdK1Rrs (ORCPT
+Received: from mail-vk0-f42.google.com ([209.85.213.42]:40911 "EHLO
+        mail-vk0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750782AbdK3Tio (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 28 Nov 2017 12:47:48 -0500
-Subject: [PATCH Resend] staging: media: lirc: style fix - replace hard-coded
- function names
-From: Martin Homuth <martin@martinhomuth.de>
-To: mchehab@kernel.org
-Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org
-References: <8bfec3aa-8f12-365c-9cf2-10d97f54adec@martinhomuth.de>
-Message-ID: <671e53b1-5cfd-ee34-1680-e7c5f1722137@martinhomuth.de>
-Date: Tue, 28 Nov 2017 18:47:08 +0100
+        Thu, 30 Nov 2017 14:38:44 -0500
+Received: by mail-vk0-f42.google.com with SMTP id w190so4137731vkd.7
+        for <linux-media@vger.kernel.org>; Thu, 30 Nov 2017 11:38:43 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <8bfec3aa-8f12-365c-9cf2-10d97f54adec@martinhomuth.de>
-Content-Type: text/plain; charset=windows-1252
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+From: "Werner, Zachary" <werner@teralogics.com>
+Date: Thu, 30 Nov 2017 14:38:42 -0500
+Message-ID: <CAHJmb1eUB8JS0g23mo7C-SFfoyN9X8MdFE5zoBgL5QpAFjSmew@mail.gmail.com>
+Subject: Unknown symbol errors with latest RH7 kernel using meda_build
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch fixes the remaining coding style warnings in the lirc module.
-Instead of hard coding the function name the __func__ variable
-should be used.
+I'm new to mailing lists, so I'm sorry if this message is poorly formatted.
 
-It fixes the following checkpatch.pl warning:
+I have been compiling v4l on RH7 using very minor changes (made it
+into an rpm, have to remove 'v3.16_wait_on_bit.patch' from the
+backports) for a while now. I had been using an older set of firmware
+and git hash from the media_build repo for several kernels, but the
+latest kernel release had an issue loading the modules. I've tried
+some of the latest kernel releases, 3.10.0-693.el7.x86_64 and
+3.10.0-693.5.2.el7.x86_64. They build with a few compiler warnings,
+but still build successfully. After installing the new kernel, updated
+rpm, and rebooting, I get the following in dmesg:
 
-WARNING: Prefer using '"%s...", __func__' to using 'read', this
-function's name, in a string
+videobuf2_v4l2: Unknown symbol vb2_buffer_in_use (err 0)
+videobuf2_v4l2: Unknown symbol vb2_core_queue_init (err 0)
+videobuf2_v4l2: Unknown symbol vb2_verify_memory_type (err 0)
+videobuf2_v4l2: Unknown symbol vb2_core_reqbufs (err 0)
+videobuf2_v4l2: Unknown symbol vb2_core_expbuf (err 0)
+videobuf2_v4l2: Unknown symbol vb2_core_create_bufs (err 0)
+videobuf2_v4l2: disagrees about version of symbol vb2_write
+videobuf2_v4l2: Unknown symbol vb2_write (err -22)
+videobuf2_v4l2: Unknown symbol vb2_core_queue_release (err 0)
+videobuf2_v4l2: Unknown symbol vb2_core_prepare_buf (err 0)
+videobuf2_v4l2: disagrees about version of symbol vb2_read
+videobuf2_v4l2: Unknown symbol vb2_read (err -22)
+videobuf2_v4l2: Unknown symbol vb2_core_poll (err 0)
+videobuf2_v4l2: Unknown symbol vb2_core_streamon (err 0)
+videobuf2_v4l2: Unknown symbol vb2_core_querybuf (err 0)
+videobuf2_v4l2: Unknown symbol vb2_core_qbuf (err 0)
+videobuf2_v4l2: disagrees about version of symbol vb2_mmap
+videobuf2_v4l2: Unknown symbol vb2_mmap (err -22)
+videobuf2_v4l2: Unknown symbol vb2_core_dqbuf (err 0)
+videobuf2_v4l2: Unknown symbol vb2_core_streamoff (err 0)
 
-Signed-off-by: Martin Homuth <martin@martinhomuth.de>
----
- drivers/staging/media/lirc/lirc_zilog.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+Since the videobuf2-core module loaded, I'm not sure why the symbols
+are missing. If I compile and install using the latest git versions
+using the rpm and locally on the box (using './build' and 'make
+install'), I get the same results. I've tried looking into issues with
+the symbols not being exported, but the code seems to have them there,
+and considering this used to work, I'm a at a loss.
 
-diff --git a/drivers/staging/media/lirc/lirc_zilog.c
-b/drivers/staging/media/lirc/lirc_zilog.c
-index 6bd0717bf76e..be68ee652071 100644
---- a/drivers/staging/media/lirc/lirc_zilog.c
-+++ b/drivers/staging/media/lirc/lirc_zilog.c
-@@ -888,9 +888,9 @@ static ssize_t read(struct file *filep, char __user
-*outbuf, size_t n,
- 	unsigned int m;
- 	DECLARE_WAITQUEUE(wait, current);
+Some of the warnings on build include various files that report:
 
--	dev_dbg(ir->dev, "read called\n");
-+	dev_dbg(ir->dev, "%s called\n", __func__);
- 	if (n % rbuf->chunk_size) {
--		dev_dbg(ir->dev, "read result = -EINVAL\n");
-+		dev_dbg(ir->dev, "%s result = -EINVAL\n", __func__);
- 		return -EINVAL;
- 	}
+WARNING: /root/rpmbuild/BUILD/v4l/media_build/v4l/dvb-core.o
+(.discard.unreachable): unexpected non-allocatable section.
+Did you forget to use "ax"/"aw" in a .S file?
+Note that for example <linux/init.h> contains
+section definitions for use in .S files.
 
-@@ -949,7 +949,7 @@ static ssize_t read(struct file *filep, char __user
-*outbuf, size_t n,
- 				retries++;
- 			}
- 			if (retries >= 5) {
--				dev_err(ir->dev, "Buffer read failed!\n");
-+				dev_err(ir->dev, "%s failed!\n", __func__);
- 				ret = -EIO;
- 			}
- 		}
-@@ -959,7 +959,7 @@ static ssize_t read(struct file *filep, char __user
-*outbuf, size_t n,
- 	put_ir_rx(rx, false);
- 	set_current_state(TASK_RUNNING);
+After which this block comes up:
 
--	dev_dbg(ir->dev, "read result = %d (%s)\n", ret,
-+	dev_dbg(ir->dev, "%s result = %d (%s)\n", __func__, ret,
- 		ret ? "Error" : "OK");
+WARNING: "frame_vector_to_pages"
+[/root/rpmbuild/BUILD/v4l/media_build/v4l/videobuf2-vmalloc.ko]
+undefined!
+WARNING: "frame_vector_to_pfns"
+[/root/rpmbuild/BUILD/v4l/media_build/v4l/videobuf2-vmalloc.ko]
+undefined!
+WARNING: "dma_buf_export_named"
+[/root/rpmbuild/BUILD/v4l/media_build/v4l/videobuf2-vmalloc.ko]
+undefined!
+WARNING: "frame_vector_create"
+[/root/rpmbuild/BUILD/v4l/media_build/v4l/videobuf2-memops.ko]
+undefined!
+WARNING: "frame_vector_destroy"
+[/root/rpmbuild/BUILD/v4l/media_build/v4l/videobuf2-memops.ko]
+undefined!
+WARNING: "get_vaddr_frames"
+[/root/rpmbuild/BUILD/v4l/media_build/v4l/videobuf2-memops.ko]
+undefined!
+WARNING: "put_vaddr_frames"
+[/root/rpmbuild/BUILD/v4l/media_build/v4l/videobuf2-memops.ko]
+undefined!
+WARNING: "frame_vector_to_pages"
+[/root/rpmbuild/BUILD/v4l/media_build/v4l/videobuf2-dma-sg.ko]
+undefined!
+WARNING: "dma_buf_export_named"
+[/root/rpmbuild/BUILD/v4l/media_build/v4l/videobuf2-dma-sg.ko]
+undefined!
+WARNING: "frame_vector_to_pages"
+[/root/rpmbuild/BUILD/v4l/media_build/v4l/videobuf2-dma-contig.ko]
+undefined!
+WARNING: "frame_vector_to_pfns"
+[/root/rpmbuild/BUILD/v4l/media_build/v4l/videobuf2-dma-contig.ko]
+undefined!
+WARNING: "dma_buf_export_named"
+[/root/rpmbuild/BUILD/v4l/media_build/v4l/videobuf2-dma-contig.ko]
+undefined!
+WARNING: "v4l_vb2q_enable_media_source"
+[/root/rpmbuild/BUILD/v4l/media_build/v4l/videobuf2-core.ko]
+undefined!
+WARNING: "v4l2_mc_create_media_graph"
+[/root/rpmbuild/BUILD/v4l/media_build/v4l/saa7134.ko] undefined!
+WARNING: "syscon_regmap_lookup_by_phandle"
+[/root/rpmbuild/BUILD/v4l/media_build/v4l/ir-hix5hd2.ko] undefined!
+WARNING: "v4l2_mc_create_media_graph"
+[/root/rpmbuild/BUILD/v4l/media_build/v4l/em28xx-v4l.ko] undefined!
+WARNING: "__v4l2_ctrl_s_ctrl"
+[/root/rpmbuild/BUILD/v4l/media_build/v4l/cx8800.ko] undefined!
+WARNING: "__v4l2_ctrl_s_ctrl"
+[/root/rpmbuild/BUILD/v4l/media_build/v4l/cx88-alsa.ko] undefined!
+WARNING: "__v4l2_ctrl_s_ctrl"
+[/root/rpmbuild/BUILD/v4l/media_build/v4l/cx23885.ko] undefined!
 
- 	return ret ? ret : written;
--- 
-2.13.6
+I don't recall these errors in earlier builds, and I'm not sure if
+they are perhaps related to the issues I'm getting on module load.
+
+Any help is appreciated.
+
+Zach
