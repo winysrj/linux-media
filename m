@@ -1,49 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:14327 "EHLO mga01.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752278AbdKXIzP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 24 Nov 2017 03:55:15 -0500
-Date: Fri, 24 Nov 2017 10:55:12 +0200
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: Jacob Chen <jacob-chen@iotwrt.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Tomasz Figa <tfiga@chromium.org>
-Subject: Re: notifier is skipped in some situations
-Message-ID: <20171124085511.pehj5kwvykpzc25a@paasikivi.fi.intel.com>
-References: <CAFLEztQg2R0oLcSfRKsQGFWTC1pTzPVqoksdKtGAYEYV6nAf9A@mail.gmail.com>
+Received: from bombadil.infradead.org ([65.50.211.133]:37887 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752816AbdK3Ox1 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 30 Nov 2017 09:53:27 -0500
+Date: Thu, 30 Nov 2017 12:53:17 -0200
+From: Mauro Carvalho Chehab <mchehab@kernel.org>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: "# 3.4.x" <stable@vger.kernel.org>, Sergey Kozlov <serjk@netup.ru>,
+        Abylay Ospan <aospan@netup.ru>,
+        Daniel Scheller <d.scheller@gmx.net>,
+        Alexey Dobriyan <adobriyan@gmail.com>,
+        Masanari Iida <standby24x7@gmail.com>,
+        Jiri Kosina <jkosina@suse.cz>,
+        Randy Dunlap <rdunlap@infradead.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH, RESEND 1/2] dvb-frontends: fix i2c access helpers for
+ KASAN
+Message-ID: <20171130125317.1cfb4c09@vento.lan>
+In-Reply-To: <CAK8P3a0dp0S8h0pV+1mexD=-LdRRW8D55tLmx5x9usCQkzNTqw@mail.gmail.com>
+References: <20171130110939.1140969-1-arnd@arndb.de>
+        <20171130104934.30dcfdf6@vento.lan>
+        <CAK8P3a0dp0S8h0pV+1mexD=-LdRRW8D55tLmx5x9usCQkzNTqw@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAFLEztQg2R0oLcSfRKsQGFWTC1pTzPVqoksdKtGAYEYV6nAf9A@mail.gmail.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jacob,
+Em Thu, 30 Nov 2017 15:06:15 +0100
+Arnd Bergmann <arnd@arndb.de> escreveu:
 
-On Fri, Nov 24, 2017 at 09:00:14AM +0800, Jacob Chen wrote:
-> Hi Sakari,
+> On Thu, Nov 30, 2017 at 1:49 PM, Mauro Carvalho Chehab
+> <mchehab@kernel.org> wrote:
+> >> Link: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=81715
+> >> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> >> ---
+> >> I'm undecided here whether there should be a comment pointing
+> >> to PR81715 for each file that the bogus local variable workaround
+> >> to prevent it from being cleaned up again. It's probably not
+> >> necessary since anything that causes actual problems would also
+> >> trigger a build warning.  
 > 
-> I encountered a problem when using async sub-notifiers.
+> >
+> > This kind of sucks, and it is completely unexpected... why val is
+> > so special that it would require this kind of hack?  
 > 
-> It's like that:
->     There are two notifiers, and they are waiting for one subdev.
->     When this subdev is probing, only one notifier is completed and
-> the other one is skipped.
+> It's explained in the gcc bug report: basically gcc always skipped
+> one optimization on inline function arguments that it does on
+> normal variables. Without KASAN and asan-stack, we didn't
+> notice because the impact was fairly small, but I ended up finally
+> getting to the bottom of it in September, and it finally got fixed.
+> 
+> I had an older version of the patch that was much more invasive
+> before we understood what exactly is happening, see
+> https://lkml.org/lkml/2017/3/2/484
 
-Do you have a graph that has two master drivers (that register the
-notifier) and both are connected to the same sub-device? Could you provide
-exact graph you have?
+Yeah, I saw the old versions and I'm following this thread.
 
+> > Also, there's always a risk of someone see it and decide to
+> > simplify the code, returning it to the previous state.
+> >
+> > So, if we're willing to do something like that, IMHO, we should have
+> > some macro that would document it, and fall back to the direct
+> > code if the compiler is not gcc 5, 6 or 7.  
 > 
-> I found that in v15 of patch "v4l: async: Allow binding notifiers to
-> sub-devices", "v4l2_async_notifier_complete" is replaced by
-> v4l2_async_notifier_call_complete, which make it only complete one
-> notifier.
+> Older compilers are also affected and will produce better code
+> with my change, the difference is just smaller without asan-stack
+> (added ion gcc-5) is disabled, since that increases the stack
+> space used by each variable to (IIRC) 32 bytes.
 > 
-> Why is it changed? Can this be fixed?
+> The fixed gcc-8 produces identical code with and without my
+> change.
+> 
+> I don't think that a macro would help here at all, but if you
+> prefer, I could add a link to that gcc bug in each function that
+> has the problem.
 
--- 
-Sakari Ailus
-sakari.ailus@linux.intel.com
+My main concern here is to avoid someone to undo the changes.
+Adding a quick note on each of those changes is helpful, in
+order to warn people and refrain undoing.
+
+So, adding a quick comment works for me.
+
+Regards,
+Mauro
