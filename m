@@ -1,37 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtprelay0204.hostedemail.com ([216.40.44.204]:52167 "EHLO
-        smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751628AbdKBCDw (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:52639 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750903AbdK3Jcy (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 1 Nov 2017 22:03:52 -0400
-Message-ID: <1509587669.31043.66.camel@perches.com>
-Subject: MAINTAINERS has a AS3645A LED FLASH duplicated section in -next
-From: Joe Perches <joe@perches.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Linux LED Subsystem <linux-leds@vger.kernel.org>,
-        linux-media <linux-media@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>
-Date: Wed, 01 Nov 2017 18:54:29 -0700
-Content-Type: text/plain; charset="ISO-8859-1"
-Mime-Version: 1.0
+        Thu, 30 Nov 2017 04:32:54 -0500
+Subject: Re: [PATCH 16/22] media: vsp1: add a missing kernel-doc parameter
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-renesas-soc@vger.kernel.org
+References: <73497577f67fbb917e40ab4328104ff310a7c356.1511982439.git.mchehab@s-opensource.com>
+ <cf39264f87c1ca4436c11e07df455feb3ea6d1e1.1511982439.git.mchehab@s-opensource.com>
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Reply-To: kieran.bingham@ideasonboard.com
+Message-ID: <bf0f9eee-66fc-2c01-5f85-bcb47c130c11@ideasonboard.com>
+Date: Thu, 30 Nov 2017 09:32:49 +0000
+MIME-Version: 1.0
+In-Reply-To: <cf39264f87c1ca4436c11e07df455feb3ea6d1e1.1511982439.git.mchehab@s-opensource.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-MAINTAINERS is not supposed to have duplicated sections.
-Can you both please resolve this?
+Hi Mauro,
 
-AS3645A LED FLASH CONTROLLER DRIVER
-M:	Sakari Ailus <sakari.ailus@iki.fi>
-L:	linux-leds@vger.kernel.org
-S:	Maintained
-F:	drivers/leds/leds-as3645a.c
+Thanks for the patch.
 
-AS3645A LED FLASH CONTROLLER DRIVER
-M:	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-L:	linux-media@vger.kernel.org
-T:	git git://linuxtv.org/media_tree.git
-S:	Maintained
-F:	drivers/media/i2c/as3645a.c
-F:	include/media/i2c/as3645a.h
+On 29/11/17 19:08, Mauro Carvalho Chehab wrote:
+> Fix this warning:
+> 	drivers/media/platform/vsp1/vsp1_dl.c:87: warning: No description found for parameter 'has_chain'
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+
+Ah yes, I missed that... Thanks for fixing.
+
+Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+
+> ---
+>  drivers/media/platform/vsp1/vsp1_dl.c | 1 +
+>  1 file changed, 1 insertion(+)
+> 
+> diff --git a/drivers/media/platform/vsp1/vsp1_dl.c b/drivers/media/platform/vsp1/vsp1_dl.c
+> index 8b5cbb6b7a70..4257451f1bd8 100644
+> --- a/drivers/media/platform/vsp1/vsp1_dl.c
+> +++ b/drivers/media/platform/vsp1/vsp1_dl.c
+> @@ -70,6 +70,7 @@ struct vsp1_dl_body {
+>   * @dma: DMA address for the header
+>   * @body0: first display list body
+>   * @fragments: list of extra display list bodies
+> + * @has_chain: if true, indicates that there's a partition chain
+>   * @chain: entry in the display list partition chain
+>   */
+>  struct vsp1_dl_list {
+> 
