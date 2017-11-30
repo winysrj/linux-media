@@ -1,188 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-3.sys.kth.se ([130.237.48.192]:47786 "EHLO
-        smtp-3.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754179AbdKKAjK (ORCPT
+Received: from 178.115.242.59.static.drei.at ([178.115.242.59]:41869 "EHLO
+        mail.osadl.at" rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org
+        with ESMTP id S1750708AbdK3TR2 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 10 Nov 2017 19:39:10 -0500
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH v7 23/25] rcar-vin: extend {start,stop}_streaming to work with media controller
-Date: Sat, 11 Nov 2017 01:38:33 +0100
-Message-Id: <20171111003835.4909-24-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20171111003835.4909-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20171111003835.4909-1-niklas.soderlund+renesas@ragnatech.se>
+        Thu, 30 Nov 2017 14:17:28 -0500
+Date: Thu, 30 Nov 2017 19:17:09 +0000
+From: Nicholas Mc Guire <der.herr@hofr.at>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Nicholas Mc Guire <hofrat@osadl.org>,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: Re: [PATCH 07/22] media: s5k6aa: describe some function parameters
+Message-ID: <20171130191709.GA9040@osadl.at>
+References: <73497577f67fbb917e40ab4328104ff310a7c356.1511982439.git.mchehab@s-opensource.com>
+ <edc0fd71b2c52f8e79357eb1e25be606017005a2.1511982439.git.mchehab@s-opensource.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <edc0fd71b2c52f8e79357eb1e25be606017005a2.1511982439.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The procedure to start or stop streaming using the non-MC single
-subdevice and the MC graph and multiple subdevices are quite different.
-Create a new function to abstract which method is used based on which
-mode the driver is running in and add logic to start the MC graph.
+On Wed, Nov 29, 2017 at 02:08:25PM -0500, Mauro Carvalho Chehab wrote:
+> as warned:
+>   drivers/media/i2c/s5k6aa.c:429: warning: No description found for parameter 's5k6aa'
+>   drivers/media/i2c/s5k6aa.c:679: warning: No description found for parameter 's5k6aa'
+>   drivers/media/i2c/s5k6aa.c:733: warning: No description found for parameter 's5k6aa'
+>   drivers/media/i2c/s5k6aa.c:733: warning: No description found for parameter 'preset'
+>   drivers/media/i2c/s5k6aa.c:787: warning: No description found for parameter 'sd'
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> ---
+>  drivers/media/i2c/s5k6aa.c | 5 +++++
+>  1 file changed, 5 insertions(+)
+> 
+> diff --git a/drivers/media/i2c/s5k6aa.c b/drivers/media/i2c/s5k6aa.c
+> index 9fd254a8e20d..13c10b5e2b45 100644
+> --- a/drivers/media/i2c/s5k6aa.c
+> +++ b/drivers/media/i2c/s5k6aa.c
+> @@ -421,6 +421,7 @@ static int s5k6aa_set_ahb_address(struct i2c_client *client)
+>  
+>  /**
+>   * s5k6aa_configure_pixel_clock - apply ISP main clock/PLL configuration
+> + * @s5k6aa: pointer to &struct s5k6aa describing the device
+>   *
+>   * Configure the internal ISP PLL for the required output frequency.
+>   * Locking: called with s5k6aa.lock mutex held.
+> @@ -669,6 +670,7 @@ static int s5k6aa_set_input_params(struct s5k6aa *s5k6aa)
+>  
+>  /**
+>   * s5k6aa_configure_video_bus - configure the video output interface
+> + * @s5k6aa: pointer to &struct s5k6aa describing the device
+>   * @bus_type: video bus type: parallel or MIPI-CSI
+>   * @nlanes: number of MIPI lanes to be used (MIPI-CSI only)
+>   *
+> @@ -724,6 +726,8 @@ static int s5k6aa_new_config_sync(struct i2c_client *client, int timeout,
+>  
+>  /**
+>   * s5k6aa_set_prev_config - write user preview register set
+> + * @s5k6aa: pointer to &struct s5k6aa describing the device
+> + * @preset: s5kaa preset to be applied
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
----
- drivers/media/platform/rcar-vin/rcar-dma.c | 113 +++++++++++++++++++++++++++--
- 1 file changed, 106 insertions(+), 7 deletions(-)
+that looks like a minor typo  s5kaa  should be  s5k6aa  
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
-index fe1319eb4c5df02d..b16b892a4de876bb 100644
---- a/drivers/media/platform/rcar-vin/rcar-dma.c
-+++ b/drivers/media/platform/rcar-vin/rcar-dma.c
-@@ -1087,15 +1087,116 @@ static void rvin_buffer_queue(struct vb2_buffer *vb)
- 	spin_unlock_irqrestore(&vin->qlock, flags);
- }
- 
-+static int rvin_set_stream(struct rvin_dev *vin, int on)
-+{
-+	struct v4l2_subdev_format fmt = {
-+		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
-+	};
-+	struct media_pipeline *pipe;
-+	struct  v4l2_subdev *sd;
-+	struct media_pad *pad;
-+	int ret;
-+
-+	/* No media controller used, simply pass operation to subdevice */
-+	if (!vin->info->use_mc) {
-+		ret = v4l2_subdev_call(vin->digital->subdev, video, s_stream,
-+				       on);
-+
-+		return ret == -ENOIOCTLCMD ? 0 : ret;
-+	}
-+
-+	pad = media_entity_remote_pad(&vin->pad);
-+	if (!pad)
-+		return -EPIPE;
-+
-+	sd = media_entity_to_v4l2_subdev(pad->entity);
-+	if (!sd)
-+		return -EPIPE;
-+
-+	if (!on) {
-+		media_pipeline_stop(&vin->vdev.entity);
-+		ret = v4l2_subdev_call(sd, video, s_stream, 0);
-+		return 0;
-+	}
-+
-+	fmt.pad = pad->index;
-+	if (v4l2_subdev_call(sd, pad, get_fmt, NULL, &fmt))
-+		return -EPIPE;
-+
-+	switch (fmt.format.code) {
-+	case MEDIA_BUS_FMT_YUYV8_1X16:
-+	case MEDIA_BUS_FMT_UYVY8_2X8:
-+	case MEDIA_BUS_FMT_UYVY10_2X10:
-+	case MEDIA_BUS_FMT_RGB888_1X24:
-+		vin->code = fmt.format.code;
-+		break;
-+	default:
-+		return -EPIPE;
-+	}
-+
-+	switch (fmt.format.field) {
-+	case V4L2_FIELD_TOP:
-+	case V4L2_FIELD_BOTTOM:
-+	case V4L2_FIELD_NONE:
-+	case V4L2_FIELD_INTERLACED_TB:
-+	case V4L2_FIELD_INTERLACED_BT:
-+	case V4L2_FIELD_INTERLACED:
-+	case V4L2_FIELD_SEQ_TB:
-+	case V4L2_FIELD_SEQ_BT:
-+		/* Supported nativly */
-+		break;
-+	case V4L2_FIELD_ALTERNATE:
-+		switch (vin->format.field) {
-+		case V4L2_FIELD_TOP:
-+		case V4L2_FIELD_BOTTOM:
-+		case V4L2_FIELD_NONE:
-+			break;
-+		case V4L2_FIELD_INTERLACED_TB:
-+		case V4L2_FIELD_INTERLACED_BT:
-+		case V4L2_FIELD_INTERLACED:
-+		case V4L2_FIELD_SEQ_TB:
-+		case V4L2_FIELD_SEQ_BT:
-+			/* Use VIN hardware to combine the two fields */
-+			fmt.format.height *= 2;
-+			break;
-+		default:
-+			return -EPIPE;
-+		}
-+		break;
-+	default:
-+		return -EPIPE;
-+	}
-+
-+	if (fmt.format.width != vin->format.width ||
-+	    fmt.format.height != vin->format.height)
-+		return -EPIPE;
-+
-+	pipe = sd->entity.pipe ? sd->entity.pipe : &vin->vdev.pipe;
-+	if (media_pipeline_start(&vin->vdev.entity, pipe))
-+		return -EPIPE;
-+
-+	ret = v4l2_subdev_call(sd, video, s_stream, 1);
-+	if (ret == -ENOIOCTLCMD)
-+		ret = 0;
-+	if (ret)
-+		media_pipeline_stop(&vin->vdev.entity);
-+
-+	return ret;
-+}
-+
- static int rvin_start_streaming(struct vb2_queue *vq, unsigned int count)
- {
- 	struct rvin_dev *vin = vb2_get_drv_priv(vq);
--	struct v4l2_subdev *sd;
- 	unsigned long flags;
- 	int ret;
- 
--	sd = vin_to_source(vin);
--	v4l2_subdev_call(sd, video, s_stream, 1);
-+	ret = rvin_set_stream(vin, 1);
-+	if (ret) {
-+		spin_lock_irqsave(&vin->qlock, flags);
-+		return_all_buffers(vin, VB2_BUF_STATE_QUEUED);
-+		spin_unlock_irqrestore(&vin->qlock, flags);
-+		return ret;
-+	}
- 
- 	spin_lock_irqsave(&vin->qlock, flags);
- 
-@@ -1104,7 +1205,7 @@ static int rvin_start_streaming(struct vb2_queue *vq, unsigned int count)
- 	ret = rvin_capture_start(vin);
- 	if (ret) {
- 		return_all_buffers(vin, VB2_BUF_STATE_QUEUED);
--		v4l2_subdev_call(sd, video, s_stream, 0);
-+		rvin_set_stream(vin, 0);
- 	}
- 
- 	spin_unlock_irqrestore(&vin->qlock, flags);
-@@ -1115,7 +1216,6 @@ static int rvin_start_streaming(struct vb2_queue *vq, unsigned int count)
- static void rvin_stop_streaming(struct vb2_queue *vq)
- {
- 	struct rvin_dev *vin = vb2_get_drv_priv(vq);
--	struct v4l2_subdev *sd;
- 	unsigned long flags;
- 	int retries = 0;
- 
-@@ -1154,8 +1254,7 @@ static void rvin_stop_streaming(struct vb2_queue *vq)
- 
- 	spin_unlock_irqrestore(&vin->qlock, flags);
- 
--	sd = vin_to_source(vin);
--	v4l2_subdev_call(sd, video, s_stream, 0);
-+	rvin_set_stream(vin, 0);
- 
- 	/* disable interrupts */
- 	rvin_disable_interrupts(vin);
--- 
-2.15.0
+also it might be more meaningful to describe its content e.g.
+
+   * @preset: s5k6aa preset pixel format and resolution to be applied
+
+>   *
+>   * Configure output resolution and color fromat, pixel clock
+>   * frequency range, device frame rate type and frame period range.
+> @@ -777,6 +781,7 @@ static int s5k6aa_set_prev_config(struct s5k6aa *s5k6aa,
+>  
+>  /**
+>   * s5k6aa_initialize_isp - basic ISP MCU initialization
+> + * @sd: pointer to V4L2 sub-device descriptor
+>   *
+>   * Configure AHB addresses for registers read/write; configure PLLs for
+>   * required output pixel clock. The ISP power supply needs to be already
+> -- 
+> 2.14.3
+>
+
+thx!
+hofrat 
