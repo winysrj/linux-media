@@ -1,121 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.gentoo.org ([140.211.166.183]:44698 "EHLO smtp.gentoo.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751241AbdKEOZ2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 5 Nov 2017 09:25:28 -0500
-From: Matthias Schwarzott <zzam@gentoo.org>
-To: mchehab@kernel.org, linux-media@vger.kernel.org
-Cc: Matthias Schwarzott <zzam@gentoo.org>
-Subject: [PATCH 11/15] si2165: add DVBv5 C/N statistics for DVB-C
-Date: Sun,  5 Nov 2017 15:25:07 +0100
-Message-Id: <20171105142511.16563-11-zzam@gentoo.org>
-In-Reply-To: <20171105142511.16563-1-zzam@gentoo.org>
-References: <20171105142511.16563-1-zzam@gentoo.org>
+Received: from mail-it0-f67.google.com ([209.85.214.67]:43382 "EHLO
+        mail-it0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750971AbdK3KZX (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 30 Nov 2017 05:25:23 -0500
+Received: by mail-it0-f67.google.com with SMTP id u62so7733153ita.2
+        for <linux-media@vger.kernel.org>; Thu, 30 Nov 2017 02:25:23 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <20171130095825.ubdg6swiupe7rv6d@mwanda>
+References: <20171130095825.ubdg6swiupe7rv6d@mwanda>
+From: Menion <menion@gmail.com>
+Date: Thu, 30 Nov 2017 11:25:02 +0100
+Message-ID: <CAJVZm6ebZt13Zf45+zCbVZuM1bVT+bWTDe-6c5GvgpM8UXVwMA@mail.gmail.com>
+Subject: Re: [bug report] media: dvb_frontend: cleanup ioctl handling logic
+To: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: mchehab@kernel.org, linux-media@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add C/N statistics in dB to read_status (DVBv5).
+Hello
+Is anyone working on adding compact_ioctl?
+So far it is impossible to use linux-media from 32bit userland on 64bit kernels
+Bye
 
-Signed-off-by: Matthias Schwarzott <zzam@gentoo.org>
----
- drivers/media/dvb-frontends/si2165.c      | 43 +++++++++++++++++++++++++++++--
- drivers/media/dvb-frontends/si2165_priv.h |  1 +
- 2 files changed, 42 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/media/dvb-frontends/si2165.c b/drivers/media/dvb-frontends/si2165.c
-index 30ceba664f5f..777b7d049ae7 100644
---- a/drivers/media/dvb-frontends/si2165.c
-+++ b/drivers/media/dvb-frontends/si2165.c
-@@ -116,6 +116,17 @@ static int si2165_readreg16(struct si2165_state *state,
- 	return ret;
- }
- 
-+static int si2165_readreg24(struct si2165_state *state,
-+			    const u16 reg, u32 *val)
-+{
-+	u8 buf[3];
-+
-+	int ret = si2165_read(state, reg, buf, 3);
-+	*val = buf[0] | buf[1] << 8 | buf[2] << 16;
-+	dev_dbg(&state->client->dev, "reg read: R(0x%04x)=0x%06x\n", reg, *val);
-+	return ret;
-+}
-+
- static int si2165_writereg8(struct si2165_state *state, const u16 reg, u8 val)
- {
- 	return regmap_write(state->regmap, reg, val);
-@@ -518,6 +529,7 @@ static int si2165_init(struct dvb_frontend *fe)
- {
- 	int ret = 0;
- 	struct si2165_state *state = fe->demodulator_priv;
-+	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
- 	u8 val;
- 	u8 patch_version = 0x00;
- 
-@@ -627,6 +639,10 @@ static int si2165_init(struct dvb_frontend *fe)
- 	if (ret < 0)
- 		return ret;
- 
-+	c = &state->fe.dtv_property_cache;
-+	c->cnr.len = 1;
-+	c->cnr.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
-+
- 	return 0;
- error:
- 	return ret;
-@@ -652,9 +668,10 @@ static int si2165_read_status(struct dvb_frontend *fe, enum fe_status *status)
- {
- 	int ret;
- 	u8 u8tmp;
-+	u32 u32tmp;
- 	struct si2165_state *state = fe->demodulator_priv;
--	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
--	u32 delsys = p->delivery_system;
-+	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
-+	u32 delsys = c->delivery_system;
- 
- 	*status = 0;
- 
-@@ -699,6 +716,28 @@ static int si2165_read_status(struct dvb_frontend *fe, enum fe_status *status)
- 		*status |= FE_HAS_LOCK;
- 	}
- 
-+	/* CNR */
-+	if (delsys == SYS_DVBC_ANNEX_A && *status & FE_HAS_VITERBI) {
-+		ret = si2165_readreg24(state, REG_C_N, &u32tmp);
-+		if (ret < 0)
-+			return ret;
-+		/*
-+		 * svalue =
-+		 * 1000 * c_n/dB =
-+		 * 1000 * 10 * log10(2^24 / regval) =
-+		 * 1000 * 10 * (log10(2^24) - log10(regval)) =
-+		 * 1000 * 10 * (intlog10(2^24) - intlog10(regval)) / 2^24
-+		 *
-+		 * intlog10(x) = log10(x) * 2^24
-+		 * intlog10(2^24) = log10(2^24) * 2^24 = 121210686
-+		 */
-+		u32tmp = (1000 * 10 * (121210686 - (u64)intlog10(u32tmp)))
-+				>> 24;
-+		c->cnr.stat[0].scale = FE_SCALE_DECIBEL;
-+		c->cnr.stat[0].svalue = u32tmp;
-+	} else
-+		c->cnr.stat[0].scale = FE_SCALE_NOT_AVAILABLE;
-+
- 	return 0;
- }
- 
-diff --git a/drivers/media/dvb-frontends/si2165_priv.h b/drivers/media/dvb-frontends/si2165_priv.h
-index 47f18ff69fe5..9d79e86d04c2 100644
---- a/drivers/media/dvb-frontends/si2165_priv.h
-+++ b/drivers/media/dvb-frontends/si2165_priv.h
-@@ -74,6 +74,7 @@ struct si2165_config {
- #define REG_KP_LOCK			0x023a
- #define REG_UNKNOWN_24C			0x024c
- #define REG_CENTRAL_TAP			0x0261
-+#define REG_C_N				0x026c
- #define REG_EQ_AUTO_CONTROL		0x0278
- #define REG_UNKNOWN_27C			0x027c
- #define REG_START_SYNCHRO		0x02e0
--- 
-2.15.0
+2017-11-30 10:58 GMT+01:00 Dan Carpenter <dan.carpenter@oracle.com>:
+> Hello Mauro Carvalho Chehab,
+>
+> The patch d73dcf0cdb95: "media: dvb_frontend: cleanup ioctl handling
+> logic" from Sep 18, 2017, leads to the following static checker
+> warning:
+>
+>         drivers/media/dvb-core/dvb_frontend.c:2469 dvb_frontend_handle_ioctl()
+>         error: uninitialized symbol 'err'.
+>
+> drivers/media/dvb-core/dvb_frontend.c
+>   2427          case FE_READ_UNCORRECTED_BLOCKS:
+>   2428                  if (fe->ops.read_ucblocks) {
+>   2429                          if (fepriv->thread)
+>   2430                                  err = fe->ops.read_ucblocks(fe, parg);
+>   2431                          else
+>   2432                                  err = -EAGAIN;
+>   2433                  }
+>
+> "err" isn't initialized if ->ops.read_ucblocks is NULL.
+>
+>   2434                  break;
+>   2435
+>   2436          /* DEPRECATED DVBv3 ioctls */
+>   2437
+>   2438          case FE_SET_FRONTEND:
+>   2439                  err = dvbv3_set_delivery_system(fe);
+>   2440                  if (err)
+>   2441                          break;
+>   2442
+>   2443                  err = dtv_property_cache_sync(fe, c, parg);
+>   2444                  if (err)
+>   2445                          break;
+>   2446                  err = dtv_set_frontend(fe);
+>   2447                  break;
+>   2448          case FE_GET_EVENT:
+>   2449                  err = dvb_frontend_get_event (fe, parg, file->f_flags);
+>   2450                  break;
+>   2451
+>   2452          case FE_GET_FRONTEND: {
+>   2453                  struct dtv_frontend_properties getp = fe->dtv_property_cache;
+>   2454
+>   2455                  /*
+>   2456                   * Let's use our own copy of property cache, in order to
+>   2457                   * avoid mangling with DTV zigzag logic, as drivers might
+>   2458                   * return crap, if they don't check if the data is available
+>   2459                   * before updating the properties cache.
+>   2460                   */
+>   2461                  err = dtv_get_frontend(fe, &getp, parg);
+>   2462                  break;
+>   2463          }
+>   2464
+>   2465          default:
+>   2466                  return -ENOTSUPP;
+>   2467          } /* switch */
+>   2468
+>   2469          return err;
+>                 ^^^^^^^^^^
+>   2470  }
+>
+> regards,
+> dan carpenter
