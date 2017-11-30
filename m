@@ -1,63 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from wp215.webpack.hosteurope.de ([80.237.132.222]:37314 "EHLO
-        wp215.webpack.hosteurope.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S933185AbdK2Pg7 (ORCPT
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:35501 "EHLO
+        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751519AbdK3T5c (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 29 Nov 2017 10:36:59 -0500
-Subject: [PATCH Resend] staging: media: cxd2099: style fix - replace
- hard-coded function names
-From: Martin Homuth <martin@martinhomuth.de>
-To: mchehab@kernel.org
-Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org
-References: <d7fcc467-55df-15eb-51c8-effa8ece304f@martinhomuth.de>
- <0c9de06d-4e7d-bc10-9980-3a55dde71b68@martinhomuth.de>
-Message-ID: <b41acde7-ccf0-e630-0ff5-3904b7199484@martinhomuth.de>
-Date: Wed, 29 Nov 2017 16:36:56 +0100
+        Thu, 30 Nov 2017 14:57:32 -0500
+Received: by mail-wm0-f67.google.com with SMTP id f9so14692782wmh.0
+        for <linux-media@vger.kernel.org>; Thu, 30 Nov 2017 11:57:31 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <0c9de06d-4e7d-bc10-9980-3a55dde71b68@martinhomuth.de>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <159308106aa0aa0873ee6e000b05db08a9413f58.1511952372.git.mchehab@s-opensource.com>
+References: <46e42a303178ca1341d1ab3e0b5c1227b89b60ee.1511952372.git.mchehab@s-opensource.com>
+ <159308106aa0aa0873ee6e000b05db08a9413f58.1511952372.git.mchehab@s-opensource.com>
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Date: Thu, 30 Nov 2017 19:57:00 +0000
+Message-ID: <CA+V-a8vGNJJGoqarMN871j-rqeCfEmwfytXWGaGDwT23Le-b1Q@mail.gmail.com>
+Subject: Re: [PATCH 06/12] media: vpif: don't generate a kernel-doc warning on
+ a constant
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch fixes the remaining coding style warnings in the cxd2099
-module. Instead of hard coding the function name the __func__ variable
-should be used.
+On Wed, Nov 29, 2017 at 10:46 AM, Mauro Carvalho Chehab
+<mchehab@s-opensource.com> wrote:
+> Constants documentation is not supported by kernel-doc markups.
+> So, change the comment label to avoid this warning:
+>         drivers/media/platform/davinci/vpif.c:54: warning: cannot understand function prototype: 'const struct vpif_channel_config_params vpif_ch_params[] = '
+>
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> ---
+>  drivers/media/platform/davinci/vpif.c | 3 ++-
+>  1 file changed, 2 insertions(+), 1 deletion(-)
+>
 
-It fixes the following checkpatch.pl warning:
+Acked-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 
-WARNING: Prefer using '"%s...", __func__' to using 'i2c_read_reg', this
-function's name, in a string
-
-Signed-off-by: Martin Homuth <martin.homuth@martinhomuth.de>
----
- drivers/staging/media/cxd2099/cxd2099.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/staging/media/cxd2099/cxd2099.c
-b/drivers/staging/media/cxd2099/cxd2099.c
-index 3e30f48..6641dd2 100644
---- a/drivers/staging/media/cxd2099/cxd2099.c
-+++ b/drivers/staging/media/cxd2099/cxd2099.c
-@@ -101,7 +101,7 @@ static int i2c_read_reg(struct i2c_adapter *adapter,
-u8 adr,
- 				   .buf = val, .len = 1} };
-
- 	if (i2c_transfer(adapter, msgs, 2) != 2) {
--		dev_err(&adapter->dev, "error in i2c_read_reg\n");
-+		dev_err(&adapter->dev, "error in %s\n", __func__);
- 		return -1;
- 	}
- 	return 0;
-@@ -116,7 +116,7 @@ static int i2c_read(struct i2c_adapter *adapter, u8 adr,
- 				   .buf = data, .len = n} };
-
- 	if (i2c_transfer(adapter, msgs, 2) != 2) {
--		dev_err(&adapter->dev, "error in i2c_read\n");
-+		dev_err(&adapter->dev, "error in %s\n", __func__);
- 		return -1;
- 	}
- 	return 0;
--- 
-2.10.0
+Regards,
+--Prabhakar Lad
