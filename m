@@ -1,47 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:33394 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1753373AbdK2JIU (ORCPT
+Received: from userp1040.oracle.com ([156.151.31.81]:18100 "EHLO
+        userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750760AbdK3J6i (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 29 Nov 2017 04:08:20 -0500
-Date: Wed, 29 Nov 2017 11:08:17 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Greg KH <gregkh@linuxfoundation.org>
-Cc: Jeremy Sowden <jeremy@azazel.net>, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org
-Subject: Re: [PATCH 2/3] media: staging: atomisp: defined as static some
- const arrays which don't need external linkage.
-Message-ID: <20171129090817.3u7bfxa3dapue44t@valkosipuli.retiisi.org.uk>
-References: <20171127113054.27657-1-jeremy@azazel.net>
- <20171127113054.27657-3-jeremy@azazel.net>
- <20171127122125.GB8561@kroah.com>
+        Thu, 30 Nov 2017 04:58:38 -0500
+Date: Thu, 30 Nov 2017 12:58:25 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: mchehab@kernel.org
+Cc: linux-media@vger.kernel.org
+Subject: [bug report] media: dvb_frontend: cleanup ioctl handling logic
+Message-ID: <20171130095825.ubdg6swiupe7rv6d@mwanda>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20171127122125.GB8561@kroah.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Greg,
+Hello Mauro Carvalho Chehab,
 
-On Mon, Nov 27, 2017 at 01:21:25PM +0100, Greg KH wrote:
-> On Mon, Nov 27, 2017 at 11:30:53AM +0000, Jeremy Sowden wrote:
-> > Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
-> > ---
-> >  .../isp/kernels/eed1_8/ia_css_eed1_8.host.c        | 24 +++++++++++-----------
-> >  1 file changed, 12 insertions(+), 12 deletions(-)
-> 
-> I can never take patches without any changelog text, and so no one
-> should write them that way :)
+The patch d73dcf0cdb95: "media: dvb_frontend: cleanup ioctl handling
+logic" from Sep 18, 2017, leads to the following static checker
+warning:
 
-I've been applying the atomisp patches to my tree for some time now,
-further on passing them to Mauro to be merged via the media tree. To avoid
-conflicts, I suggest to avoid merging them via the staging tree.
+	drivers/media/dvb-core/dvb_frontend.c:2469 dvb_frontend_handle_ioctl()
+	error: uninitialized symbol 'err'.
 
-Thanks.
+drivers/media/dvb-core/dvb_frontend.c
+  2427          case FE_READ_UNCORRECTED_BLOCKS:
+  2428                  if (fe->ops.read_ucblocks) {
+  2429                          if (fepriv->thread)
+  2430                                  err = fe->ops.read_ucblocks(fe, parg);
+  2431                          else
+  2432                                  err = -EAGAIN;
+  2433                  }
 
--- 
-Kind regards,
+"err" isn't initialized if ->ops.read_ucblocks is NULL.
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+  2434                  break;
+  2435  
+  2436          /* DEPRECATED DVBv3 ioctls */
+  2437  
+  2438          case FE_SET_FRONTEND:
+  2439                  err = dvbv3_set_delivery_system(fe);
+  2440                  if (err)
+  2441                          break;
+  2442  
+  2443                  err = dtv_property_cache_sync(fe, c, parg);
+  2444                  if (err)
+  2445                          break;
+  2446                  err = dtv_set_frontend(fe);
+  2447                  break;
+  2448          case FE_GET_EVENT:
+  2449                  err = dvb_frontend_get_event (fe, parg, file->f_flags);
+  2450                  break;
+  2451  
+  2452          case FE_GET_FRONTEND: {
+  2453                  struct dtv_frontend_properties getp = fe->dtv_property_cache;
+  2454  
+  2455                  /*
+  2456                   * Let's use our own copy of property cache, in order to
+  2457                   * avoid mangling with DTV zigzag logic, as drivers might
+  2458                   * return crap, if they don't check if the data is available
+  2459                   * before updating the properties cache.
+  2460                   */
+  2461                  err = dtv_get_frontend(fe, &getp, parg);
+  2462                  break;
+  2463          }
+  2464  
+  2465          default:
+  2466                  return -ENOTSUPP;
+  2467          } /* switch */
+  2468  
+  2469          return err;
+                ^^^^^^^^^^
+  2470  }
+
+regards,
+dan carpenter
