@@ -1,133 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:58580 "EHLO
-        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751779AbdLCElg (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 2 Dec 2017 23:41:36 -0500
-Message-ID: <574f52c12d027ff4d410d8e561b582cd@smtp-cloud8.xs4all.net>
-Date: Sun, 03 Dec 2017 05:41:33 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+Received: from osg.samsung.com ([64.30.133.232]:42069 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752553AbdLAN7q (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 1 Dec 2017 08:59:46 -0500
+Date: Fri, 1 Dec 2017 11:59:33 -0200
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        lkml@vger.kernel.org, Sean Young <sean@mess.org>,
+        Philippe Ombredanne <pombredanne@nexb.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Colin Ian King <colin.king@canonical.com>,
+        Andi Shyti <andi.shyti@samsung.com>,
+        David =?UTF-8?B?SMOkcmRlbWFu?= <david@hardeman.nu>,
+        Bhumika Goyal <bhumirks@gmail.com>,
+        Markus Elfring <elfring@users.sourceforge.net>,
+        Arvind Yadav <arvind.yadav.cs@gmail.com>,
+        Julia Lawall <Julia.Lawall@lip6.fr>,
+        Christophe JAILLET <christophe.jaillet@wanadoo.fr>,
+        Santosh Kumar Singh <kumar.san1093@gmail.com>
+Subject: Re: [PATCH v2 4/7] media: usb: add SPDX identifiers to some code I
+ wrote
+Message-ID: <20171201115933.587528d4@vento.lan>
+In-Reply-To: <20171201135255.vc5duelcqc7n52hm@paasikivi.fi.intel.com>
+References: <87092e1fd6509e7272bd7b95865cdc4b793c714e.1512135871.git.mchehab@s-opensource.com>
+        <e3c101aab92fa400f6ac532b39cdf82b39be6784.1512135871.git.mchehab@s-opensource.com>
+        <20171201135255.vc5duelcqc7n52hm@paasikivi.fi.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Em Fri, 1 Dec 2017 15:52:55 +0200
+Sakari Ailus <sakari.ailus@linux.intel.com> escreveu:
 
-Results of the daily build of media_tree:
+> Hi Mauro,
+> 
+> On Fri, Dec 01, 2017 at 11:47:10AM -0200, Mauro Carvalho Chehab wrote:
+> > diff --git a/drivers/media/usb/au0828/au0828-input.c b/drivers/media/usb/au0828/au0828-input.c
+> > index af68afe085b5..832ed9f25784 100644
+> > --- a/drivers/media/usb/au0828/au0828-input.c
+> > +++ b/drivers/media/usb/au0828/au0828-input.c
+> > @@ -1,21 +1,10 @@
+> > -/*
+> > -  handle au0828 IR remotes via linux kernel input layer.
+> > -
+> > -   Copyright (C) 2014 Mauro Carvalho Chehab <mchehab@samsung.com>
+> > -   Copyright (c) 2014 Samsung Electronics Co., Ltd.
+> > -
+> > -  Based on em28xx-input.c.
+> > -
+> > -  This program is free software; you can redistribute it and/or modify
+> > -  it under the terms of the GNU General Public License as published by
+> > -  the Free Software Foundation; either version 2 of the License, or
+> > -  (at your option) any later version.
+> > -
+> > -  This program is distributed in the hope that it will be useful,
+> > -  but WITHOUT ANY WARRANTY; without even the implied warranty of
+> > -  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> > -  GNU General Public License for more details.
+> > - */
+> > +// SPDX-License-Identifier: GPL-2.0+
+> > +// handle au0828 IR remotes via linux kernel input layer.
+> > +//
+> > +// Copyright (c) 2014 Mauro Carvalho Chehab <mchehab@samsung.com>
+> > +// Copyright (c) 2014 Samsung Electronics Co., Ltd.
+> > +//
+> > +// Based on em28xx-input.c.  
+> 
+> Is the intention really to use C++ comments? 
 
-date:			Sun Dec  3 05:00:16 CET 2017
-media-tree git hash:	781b045baefdabf7e0bc9f33672ca830d3db9f27
-media_build git hash:	320b9b80ebbf318a67a9479c18a0e4be244c8409
-v4l-utils git hash:	26eca33b62f988ecbc4df8134ebdef20f9f75c97
-gcc version:		i686-linux-gcc (GCC) 7.1.0
-sparse version:		0.5.1 (Debian: 0.5.1-2)
-smatch version:		v0.5.0-3553-g78b2ea6
-host hardware:		x86_64
-host os:		4.13.0-164
+Yes.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: ERRORS
-linux-3.10.1-i686: ERRORS
-linux-3.11.1-i686: ERRORS
-linux-3.12.67-i686: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: ERRORS
-linux-3.15.2-i686: ERRORS
-linux-3.16.7-i686: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.18.7-i686: ERRORS
-linux-3.19-i686: ERRORS
-linux-4.0.9-i686: ERRORS
-linux-4.1.33-i686: ERRORS
-linux-4.2.8-i686: ERRORS
-linux-4.3.6-i686: ERRORS
-linux-4.4.22-i686: ERRORS
-linux-4.5.7-i686: ERRORS
-linux-4.6.7-i686: ERRORS
-linux-4.7.5-i686: ERRORS
-linux-4.8-i686: ERRORS
-linux-4.9.26-i686: ERRORS
-linux-4.10.14-i686: ERRORS
-linux-4.11-i686: ERRORS
-linux-4.12.1-i686: ERRORS
-linux-4.13-i686: ERRORS
-linux-4.14-i686: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: ERRORS
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.67-x86_64: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-x86_64: ERRORS
-linux-3.15.2-x86_64: ERRORS
-linux-3.16.7-x86_64: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.7-x86_64: ERRORS
-linux-3.19-x86_64: ERRORS
-linux-4.0.9-x86_64: ERRORS
-linux-4.1.33-x86_64: ERRORS
-linux-4.2.8-x86_64: ERRORS
-linux-4.3.6-x86_64: ERRORS
-linux-4.4.22-x86_64: ERRORS
-linux-4.5.7-x86_64: ERRORS
-linux-4.6.7-x86_64: ERRORS
-linux-4.7.5-x86_64: ERRORS
-linux-4.8-x86_64: ERRORS
-linux-4.9.26-x86_64: ERRORS
-linux-4.10.14-x86_64: ERRORS
-linux-4.11-x86_64: ERRORS
-linux-4.12.1-x86_64: ERRORS
-linux-4.13-x86_64: ERRORS
-linux-4.14-x86_64: ERRORS
-apps: OK
-spec-git: OK
+> I see that the SPDX license identifiers elsewhere use C comments.
 
-Detailed results are available here:
+Linus defined this way:
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+	https://www.spinics.net/lists/linux-xfs/msg13289.html
 
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+Regards,
+Mauro
