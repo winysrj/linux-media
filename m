@@ -1,97 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:50379 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750745AbdLMXoo (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 13 Dec 2017 18:44:44 -0500
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mike Isely <isely@pobox.com>
-Cc: Oleksandr Ostrenko <oleksandr.ostrenko@tu-dresden.de>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH] pvrusb2: correctly return V4L2_PIX_FMT_MPEG in enum_fmt
-Message-ID: <3c98b33d-c92d-6fd1-ac69-215fa70de1b7@xs4all.nl>
-Date: Thu, 14 Dec 2017 00:44:42 +0100
+Received: from mail-pl0-f67.google.com ([209.85.160.67]:46739 "EHLO
+        mail-pl0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751208AbdLAS7A (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 1 Dec 2017 13:59:00 -0500
+Received: by mail-pl0-f67.google.com with SMTP id i6so6763356plt.13
+        for <linux-media@vger.kernel.org>; Fri, 01 Dec 2017 10:59:00 -0800 (PST)
+Subject: Re: [PATCH v2] media: imx: Remove incorrect check for queue state in
+ start/stop_streaming
+To: Ian Jamison <ian.dev@arkver.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: Philipp Zabel <p.zabel@pengutronix.de>
+References: <ac504a93b483b40a8b2f9087af8c6d25672c7d6c.1512154062.git.ian.dev@arkver.com>
+From: Steve Longerbeam <slongerbeam@gmail.com>
+Message-ID: <07fd2bff-03b4-dfbe-86e1-ddd7f5d98cf2@gmail.com>
+Date: Fri, 1 Dec 2017 10:58:57 -0800
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+In-Reply-To: <ac504a93b483b40a8b2f9087af8c6d25672c7d6c.1512154062.git.ian.dev@arkver.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The pvrusb2 code appears to have a some old workaround code for xawtv that causes a
-WARN() due to an unrecognized pixelformat 0 in v4l2_ioctl.c.
 
-Since all other MPEG drivers fill this in correctly, it is a safe assumption that
-this particular problem no longer exists.
 
-While I'm at it, clean up the code a bit.
+On 12/01/2017 10:53 AM, Ian Jamison wrote:
+> It is possible to call STREAMON without the minimum number of
+> buffers queued. In this case the vb2_queue state will be set to
+> streaming but the start_streaming vb2_op will not be called.
+> Later when enough buffers are queued, start_streaming will
+> be called but vb2_is_streaming will already return true.
+>
+> Also removed the queue state check in stop_streaming since it's
+> not valid there either.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
-I'll try to give this a spin in the morning with xawtv and my ivtv card (that also
-uses V4L2_PIX_FMT_MPEG), just to make sure xawtv no longer breaks if it sees it.
+Reviewed-by: Steve Longerbeam <steve_longerbeam@mentor.com>
 
-Oleksandr, are you able to test this as well on your pvrusb2?
-
-Regards,
-
-	Hans
----
-diff --git a/drivers/media/usb/pvrusb2/pvrusb2-v4l2.c b/drivers/media/usb/pvrusb2/pvrusb2-v4l2.c
-index 4320bda9352d..cc90be364a30 100644
---- a/drivers/media/usb/pvrusb2/pvrusb2-v4l2.c
-+++ b/drivers/media/usb/pvrusb2/pvrusb2-v4l2.c
-@@ -78,18 +78,6 @@ static int vbi_nr[PVR_NUM] = {[0 ... PVR_NUM-1] = -1};
- module_param_array(vbi_nr, int, NULL, 0444);
- MODULE_PARM_DESC(vbi_nr, "Offset for device's vbi dev minor");
-
--static struct v4l2_fmtdesc pvr_fmtdesc [] = {
--	{
--		.index          = 0,
--		.type           = V4L2_BUF_TYPE_VIDEO_CAPTURE,
--		.flags          = V4L2_FMT_FLAG_COMPRESSED,
--		.description    = "MPEG1/2",
--		// This should really be V4L2_PIX_FMT_MPEG, but xawtv
--		// breaks when I do that.
--		.pixelformat    = 0, // V4L2_PIX_FMT_MPEG,
--	}
--};
--
- #define PVR_FORMAT_PIX  0
- #define PVR_FORMAT_VBI  1
-
-@@ -99,17 +87,11 @@ static struct v4l2_format pvr_format [] = {
- 		.fmt    = {
- 			.pix        = {
- 				.width          = 720,
--				.height             = 576,
--				// This should really be V4L2_PIX_FMT_MPEG,
--				// but xawtv breaks when I do that.
--				.pixelformat    = 0, // V4L2_PIX_FMT_MPEG,
-+				.height         = 576,
-+				.pixelformat    = V4L2_PIX_FMT_MPEG,
- 				.field          = V4L2_FIELD_INTERLACED,
--				.bytesperline   = 0,  // doesn't make sense
--						      // here
--				//FIXME : Don't know what to put here...
--				.sizeimage          = (32*1024),
--				.colorspace     = 0, // doesn't make sense here
--				.priv           = 0
-+				/* FIXME : Don't know what to put here... */
-+				.sizeimage      = 32 * 1024,
- 			}
- 		}
- 	},
-@@ -407,11 +389,11 @@ static int pvr2_g_frequency(struct file *file, void *priv, struct v4l2_frequency
-
- static int pvr2_enum_fmt_vid_cap(struct file *file, void *priv, struct v4l2_fmtdesc *fd)
- {
--	/* Only one format is supported : mpeg.*/
--	if (fd->index != 0)
-+	/* Only one format is supported: MPEG. */
-+	if (fd->index)
- 		return -EINVAL;
-
--	memcpy(fd, pvr_fmtdesc, sizeof(struct v4l2_fmtdesc));
-+	fd->pixelformat = V4L2_PIX_FMT_MPEG;
- 	return 0;
- }
+> Signed-off-by: Ian Jamison <ian.dev@arkver.com>
+> ---
+> Since v1:
+>      Remove check in capture_stop_streaming as recommended by Hans.
+>
+>   drivers/staging/media/imx/imx-media-capture.c | 6 ------
+>   1 file changed, 6 deletions(-)
+>
+> diff --git a/drivers/staging/media/imx/imx-media-capture.c b/drivers/staging/media/imx/imx-media-capture.c
+> index ea145bafb880..7b6763802db8 100644
+> --- a/drivers/staging/media/imx/imx-media-capture.c
+> +++ b/drivers/staging/media/imx/imx-media-capture.c
+> @@ -449,9 +449,6 @@ static int capture_start_streaming(struct vb2_queue *vq, unsigned int count)
+>   	unsigned long flags;
+>   	int ret;
+>   
+> -	if (vb2_is_streaming(vq))
+> -		return 0;
+> -
+>   	ret = imx_media_pipeline_set_stream(priv->md, &priv->src_sd->entity,
+>   					    true);
+>   	if (ret) {
+> @@ -480,9 +477,6 @@ static void capture_stop_streaming(struct vb2_queue *vq)
+>   	unsigned long flags;
+>   	int ret;
+>   
+> -	if (!vb2_is_streaming(vq))
+> -		return;
+> -
+>   	spin_lock_irqsave(&priv->q_lock, flags);
+>   	priv->stop = true;
+>   	spin_unlock_irqrestore(&priv->q_lock, flags);
