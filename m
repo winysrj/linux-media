@@ -1,43 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>, kernel@pengutronix.de,
-        Lucas Stach <l.stach@pengutronix.de>,
-        Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH] [media] coda: set min_buffers_needed
-Date: Thu,  7 Dec 2017 12:09:46 +0100
-Message-Id: <20171207110946.691-1-p.zabel@pengutronix.de>
+Received: from mail-pg0-f66.google.com ([74.125.83.66]:43190 "EHLO
+        mail-pg0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752364AbdLAMbm (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 1 Dec 2017 07:31:42 -0500
+Received: by mail-pg0-f66.google.com with SMTP id b18so4426997pgv.10
+        for <linux-media@vger.kernel.org>; Fri, 01 Dec 2017 04:31:41 -0800 (PST)
+From: Jaedon Shin <jaedon.shin@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Shuah Khan <shuah@kernel.org>,
+        Colin Ian King <colin.king@canonical.com>,
+        Satendra Singh Thakur <satendra.t@samsung.com>,
+        linux-media@vger.kernel.org, Jaedon Shin <jaedon.shin@gmail.com>
+Subject: [PATCH 1/3] media: dvb_frontend: Add unlocked_ioctl in dvb_frontend.c
+Date: Fri,  1 Dec 2017 21:31:28 +0900
+Message-Id: <20171201123130.23128-2-jaedon.shin@gmail.com>
+In-Reply-To: <20171201123130.23128-1-jaedon.shin@gmail.com>
+References: <20171201123130.23128-1-jaedon.shin@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Lucas Stach <l.stach@pengutronix.de>
+Adds unlocked ioctl function directly in dvb_frontend.c instead of using
+dvb_generic_ioctl().
 
-The current driver implementation expects at least one buffer on
-all queues to start streaming. Properly signal this to the vb2
-core, to avoid confusion when streamon is racing with qbuf.
-
-Signed-off-by: Lucas Stach <l.stach@pengutronix.de>
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+Signed-off-by: Jaedon Shin <jaedon.shin@gmail.com>
 ---
- drivers/media/platform/coda/coda-common.c | 6 ++++++
- 1 file changed, 6 insertions(+)
+ drivers/media/dvb-core/dvb_frontend.c | 17 ++++++++++++++---
+ 1 file changed, 14 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
-index 15eb5dc4dff9a..46a628a548d9f 100644
---- a/drivers/media/platform/coda/coda-common.c
-+++ b/drivers/media/platform/coda/coda-common.c
-@@ -1884,6 +1884,12 @@ static int coda_queue_init(struct coda_ctx *ctx, struct vb2_queue *vq)
- 	 * that videobuf2 will keep the value of bytesused intact.
- 	 */
- 	vq->allow_zero_bytesused = 1;
-+	/*
-+	 * We might be fine with no buffers on some of the queues, but that
-+	 * would need to be reflected in job_ready(). Currently we expect all
-+	 * queues to have at least one buffer queued.
-+	 */
-+	vq->min_buffers_needed = 1;
- 	vq->dev = &ctx->dev->plat_dev->dev;
+diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
+index 3ad83359098b..6d8f4dd39c0c 100644
+--- a/drivers/media/dvb-core/dvb_frontend.c
++++ b/drivers/media/dvb-core/dvb_frontend.c
+@@ -1920,7 +1920,8 @@ static int dtv_property_process_set(struct dvb_frontend *fe,
+ 	return r;
+ }
  
- 	return vb2_queue_init(vq);
+-static int dvb_frontend_ioctl(struct file *file, unsigned int cmd, void *parg)
++static int dvb_frontend_do_ioctl(struct file *file, unsigned int cmd,
++				 void *parg)
+ {
+ 	struct dvb_device *dvbdev = file->private_data;
+ 	struct dvb_frontend *fe = dvbdev->priv;
+@@ -1963,6 +1964,17 @@ static int dvb_frontend_ioctl(struct file *file, unsigned int cmd, void *parg)
+ 	return err;
+ }
+ 
++static long dvb_frontend_ioctl(struct file *file, unsigned int cmd,
++			       unsigned long arg)
++{
++	struct dvb_device *dvbdev = file->private_data;
++
++	if (!dvbdev)
++		return -ENODEV;
++
++	return dvb_usercopy(file, cmd, arg, dvb_frontend_do_ioctl);
++}
++
+ static int dtv_set_frontend(struct dvb_frontend *fe)
+ {
+ 	struct dvb_frontend_private *fepriv = fe->frontend_priv;
+@@ -2644,7 +2656,7 @@ static int dvb_frontend_release(struct inode *inode, struct file *file)
+ 
+ static const struct file_operations dvb_frontend_fops = {
+ 	.owner		= THIS_MODULE,
+-	.unlocked_ioctl	= dvb_generic_ioctl,
++	.unlocked_ioctl	= dvb_frontend_ioctl,
+ 	.poll		= dvb_frontend_poll,
+ 	.open		= dvb_frontend_open,
+ 	.release	= dvb_frontend_release,
+@@ -2712,7 +2724,6 @@ int dvb_register_frontend(struct dvb_adapter* dvb,
+ #if defined(CONFIG_MEDIA_CONTROLLER_DVB)
+ 		.name = fe->ops.info.name,
+ #endif
+-		.kernel_ioctl = dvb_frontend_ioctl
+ 	};
+ 
+ 	dev_dbg(dvb->device, "%s:\n", __func__);
 -- 
-2.11.0
+2.15.0
