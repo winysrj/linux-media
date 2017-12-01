@@ -1,113 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:18484 "EHLO mga02.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750822AbdLZWad (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 26 Dec 2017 17:30:33 -0500
-From: "Mani, Rajmohan" <rajmohan.mani@intel.com>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-CC: "Zhi, Yong" <yong.zhi@intel.com>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>,
-        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
-        "Toivonen, Tuukka" <tuukka.toivonen@intel.com>,
-        "Hu, Jerry W" <jerry.w.hu@intel.com>,
-        "arnd@arndb.de" <arnd@arndb.de>, "hch@lst.de" <hch@lst.de>,
-        "robin.murphy@arm.com" <robin.murphy@arm.com>,
-        "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>
-Subject: RE: [PATCH v4 00/12] Intel IPU3 ImgU patchset
-Date: Tue, 26 Dec 2017 22:30:31 +0000
-Message-ID: <6F87890CF0F5204F892DEA1EF0D77A5972FECBB2@FMSMSX114.amr.corp.intel.com>
-References: <1508298408-25822-1-git-send-email-yong.zhi@intel.com>
-        <6F87890CF0F5204F892DEA1EF0D77A5972FD4195@FMSMSX114.amr.corp.intel.com>
- <20171220115744.591a12e2@vento.lan>
-In-Reply-To: <20171220115744.591a12e2@vento.lan>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Received: from mx1.grimmerink.nl ([84.245.15.195]:60455 "EHLO
+        mx1.grimmerink.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752124AbdLALqR (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 1 Dec 2017 06:46:17 -0500
+Received: from [192.168.1.13] (mx1.grimmerink.nl [84.245.15.195])
+        (using TLSv1 with cipher DHE-RSA-AES128-SHA (128/128 bits))
+        (No client certificate requested)
+        by mx1.grimmerink.nl (Postfix) with ESMTPSA id 4775B6A12F
+        for <linux-media@vger.kernel.org>; Fri,  1 Dec 2017 12:38:15 +0100 (CET)
+To: linux-media@vger.kernel.org
+From: pieterg <pieterg@gmx.com>
+Subject: multiple frontends on a single dvb adapter
+Message-ID: <2a083a5e-a3dd-6225-4201-a4d62333fcfa@gmx.com>
+Date: Fri, 1 Dec 2017 12:38:14 +0100
 MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Hi,
 
-> -----Original Message-----
-> From: Mauro Carvalho Chehab [mailto:mchehab@s-opensource.com]
-> Sent: Wednesday, December 20, 2017 5:58 AM
-> To: Mani, Rajmohan <rajmohan.mani@intel.com>
-> Cc: Zhi, Yong <yong.zhi@intel.com>; linux-media@vger.kernel.org;
-> sakari.ailus@linux.intel.com; Zheng, Jian Xu <jian.xu.zheng@intel.com>;
-> Toivonen, Tuukka <tuukka.toivonen@intel.com>; Hu, Jerry W
-> <jerry.w.hu@intel.com>; arnd@arndb.de; hch@lst.de;
-> robin.murphy@arm.com; iommu@lists.linux-foundation.org
-> Subject: Re: [PATCH v4 00/12] Intel IPU3 ImgU patchset
-> 
-> Hi,
-> 
-> Em Fri, 17 Nov 2017 02:58:56 +0000
-> "Mani, Rajmohan" <rajmohan.mani@intel.com> escreveu:
-> 
-> > Here is an update on the IPU3 documentation that we are currently working
-> on.
-> >
-> > Image processing in IPU3 relies on the following.
-> >
-> > 1) HW configuration to enable ISP and
-> > 2) setting customer specific 3A Tuning / Algorithm Parameters to achieve
-> desired image quality.
-> >
-> > We intend to provide documentation on ImgU driver programming interface
-> to help users of this driver to configure and enable ISP HW to meet their
-> needs.  This documentation will include details on complete V4L2 Kernel driver
-> interface and IO-Control parameters, except for the ISP internal algorithm and
-> its parameters (which is Intel proprietary IP).
-> 
-> Sakari asked me to take a look on this thread, specifically on this email. I took a
-> look on the other e-mails from this thread that are discussing about this IP
-> block.
-> 
-> I understand that Intel wants to keep their internal 3A algorithm protected,
-> just like other vendors protect their own algos. It was never a requirement to
-> open whatever algorithm are used inside a hardware (or firmware). The only
-> requirement is that firmwares should be licensed with redistribution
-> permission, ideally merged at linux-firmware git tree.
-> 
-> Yet, what I don't understand is why Intel also wants to also protect the
-> interface for such 3A hardware/firmware algorithm. The parameters that are
-> passed from an userspace application to Intel ISP logic doesn't contain the
-> algorithm itself. What's the issue of documenting the meaning of each
-> parameter?
-> 
+The recent removal of DMX_SET_SOURCE
 
-Thanks for looking into this.
+https://github.com/torvalds/linux/commit/13adefbe9e566c6db91579e4ce17f1e5193d6f2c
 
-To achieve improved image quality using IPU3, 3A (Auto White balance, Auto Focus
-and Auto Exposure) Tuning parameters specific to a given camera sensor module,
-are converted to Intel ISP algorithm parameters in user space camera HAL using
-AIC (Automatic ISP Configuration) library.
+and earlier removal of the set_source callback
 
-As a unique design of Intel ISP, it exposes very detailed algorithm parameters
-(~ 10000 parameters) to configure ISP's image processing algorithm per each
-image fame in runtime. Typical Camera SW developers (including those at Intel)
-are not expected to fully understand and directly set these parameters to
-configure the ISP algorithm blocks. Due to the above, a user space AIC library
-(in binary form) is provided to generate ISP Algorithm specific parameters, for
-a given set of 3A tuning parameters. It significantly reduces the efforts of SW
-development in ISP HW configuration.
+https://github.com/torvalds/linux/commit/1e92bbe08ad9fc0d5ec05174c176a9bc54921733
 
-On the other hand, the ISP algorithm details could be deduced readily through
-these detailed parameters by other ISP experts outside Intel. This is the reason
-that we want to keep these parameter definitions as Intel proprietary IP.
+leads to the question how the situation of having multiple frontends on
+a single dvb adapter should be handled nowadays.
+Suppose the routing is flexible, any demux could be sourced by any frontend.
+In the past, this has been achieved by using the set_source callback,
+allowing userspace to configure the routing by using the DMX_SET_SOURCE
+ioctl.
 
-We are fully aware of your concerns on how to enable open source developers
-to use Intel ISP through up-streamed Kernel Driver. Internally, we are working
-on the license for this AIC library release now (as Hans said NDA license is not
-acceptable). We believe this will be more efficient way to help open source
-developers.
+The connect_frontend / disconnect_frontend callbacks are currently only
+called for the memory frontend, so it seems no longer possible to select
+hardware frontends.
+How do you guys see this, what does the standard dictate in this case?
+Should we assume a 1:1 mapping between frontendN:demuxN and forbid
+dynamic routing? Or am I overlooking something?
 
-This AIC library release would be a binary-only release. This AIC library does
-not use any kernel uAPIs directly. The user space Camera HAL that uses kernel
-uAPIs is available at 
-https://chromium.googlesource.com/chromiumos/platform/arc-camera/+/master
+In my opinion, supporting dynamic routing would be an advantage.
+Especially when the number of (hardware) demuxes is smaller than the
+number of (hardware) frontends.
 
-Thanks
-Raj
+Regards,
+Pieter
