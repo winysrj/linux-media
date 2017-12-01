@@ -1,123 +1,829 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:37040 "EHLO
-        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752647AbdLANuh (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 1 Dec 2017 08:50:37 -0500
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [GIT PULL FOR v4.16] Various fixes all over the place
-Message-ID: <55bb26e5-e4e1-12f5-520f-bda5a63969d9@xs4all.nl>
-Date: Fri, 1 Dec 2017 14:50:32 +0100
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Received: from kadath.azazel.net ([81.187.231.250]:39512 "EHLO
+        kadath.azazel.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751077AbdLARUB (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 1 Dec 2017 12:20:01 -0500
+From: Jeremy Sowden <jeremy@azazel.net>
+To: linux-media@vger.kernel.org, devel@driverdev.osuosl.org
+Cc: Jeremy Sowden <jeremy@azazel.net>
+Subject: [PATCH v2 2/3] media: atomisp: delete zero-valued struct members.
+Date: Fri,  1 Dec 2017 17:19:38 +0000
+Message-Id: <20171201171939.3432-3-jeremy@azazel.net>
+In-Reply-To: <20171201171939.3432-1-jeremy@azazel.net>
+References: <20171201150725.cfcp6b4bs2ncqsip@mwanda>
+ <20171201171939.3432-1-jeremy@azazel.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Various fixes.
+A lot of the members of the default struct values used by the CSS API
+were explicitly initialized to zero values.  Designated initializers
+have allowed these members to be removed.
 
-Regards,
+Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
+---
+ .../hive_isp_css_common/input_formatter_global.h   |  17 ----
+ .../pci/atomisp2/css2400/ia_css_frame_public.h     |  17 ----
+ .../atomisp/pci/atomisp2/css2400/ia_css_pipe.h     |  44 +-------
+ .../pci/atomisp2/css2400/ia_css_pipe_public.h      |  81 ---------------
+ .../atomisp/pci/atomisp2/css2400/ia_css_types.h    |  48 +--------
+ .../isp/kernels/s3a/s3a_1.0/ia_css_s3a_types.h     | 111 ---------------------
+ .../kernels/sdis/common/ia_css_sdis_common_types.h |  35 -------
+ .../runtime/binary/interface/ia_css_binary.h       |  89 ++---------------
+ .../isp_param/interface/ia_css_isp_param_types.h   |   9 --
+ .../runtime/pipeline/interface/ia_css_pipeline.h   |   6 --
+ .../atomisp/pci/atomisp2/css2400/sh_css_legacy.h   |   7 --
+ .../atomisp/pci/atomisp2/css2400/sh_css_metrics.h  |   7 --
+ 12 files changed, 20 insertions(+), 451 deletions(-)
 
-	Hans
-
-The following changes since commit 781b045baefdabf7e0bc9f33672ca830d3db9f27:
-
-  media: imx274: Fix error handling, add MAINTAINERS entry (2017-11-30 04:45:12 -0500)
-
-are available in the git repository at:
-
-  git://linuxtv.org/hverkuil/media_tree.git for-v4.16a
-
-for you to fetch changes up to 1d655e66a92c0a18893d89716800ee8574fb86b2:
-
-  media: exynos4-is: Use PTR_ERR_OR_ZERO() (2017-12-01 14:25:28 +0100)
-
-----------------------------------------------------------------
-Arnd Bergmann (5):
-      pulse8-cec: print time using time64_t.
-      vivid: print time in y2038-safe way
-      solo6x10: use ktime_get_ts64() for time sync
-      staging: imx: use ktime_t for timestamps
-      vivid: use ktime_t for timestamp calculation
-
-Dan Carpenter (1):
-      cpia2: Fix a couple off by one bugs
-
-Dean A (1):
-      s2255drv: update firmware load.
-
-Geert Uytterhoeven (1):
-      media: i2c: adv748x: Restore full DT paths in kernel messages
-
-Greg Kroah-Hartman (1):
-      media: usbvision: remove unneeded DRIVER_LICENSE #define
-
-Gustavo A. R. Silva (2):
-      staging: media: imx: fix inconsistent IS_ERR and PTR_ERR
-      davinci: vpif_capture: add NULL check on devm_kzalloc return value
-
-Hans Verkuil (4):
-      vimc: add test_pattern and h/vflip controls to the sensor
-      cec: add the adap_monitor_pin_enable op
-      cec-core.rst: document the new adap_monitor_pin_enable op
-      cec: disable the hardware when unregistered
-
-Jesse Chan (3):
-      media: mtk-vcodec: add missing MODULE_LICENSE/DESCRIPTION
-      soc_camera: soc_scale_crop: add missing MODULE_DESCRIPTION/AUTHOR/LICENSE
-      media: tegra-cec: add missing MODULE_DESCRIPTION/AUTHOR/LICENSE
-
-Loic Poulain (2):
-      media: venus: venc: configure entropy mode
-      media: venus: venc: Apply inloop deblocking filter
-
-Martin Kepplinger (1):
-      media: coda: remove definition of CODA_STD_MJPG
-
-Stanimir Varbanov (1):
-      venus: cleanup set_property controls
-
-Steve Longerbeam (1):
-      media: staging/imx: do not return error in link_notify for unknown sources
-
-Vasyl Gomonovych (1):
-      media: exynos4-is: Use PTR_ERR_OR_ZERO()
-
- Documentation/media/kapi/cec-core.rst               | 14 ++++++++++++++
- drivers/media/cec/cec-adap.c                        | 23 +++++++++++++++++++++++
- drivers/media/cec/cec-api.c                         | 32 ++++++++++++++++++++------------
- drivers/media/cec/cec-core.c                        | 15 +++++++++------
- drivers/media/cec/cec-priv.h                        |  2 ++
- drivers/media/i2c/adv748x/adv748x-core.c            | 10 ++++------
- drivers/media/pci/solo6x10/solo6x10-core.c          | 17 +++++++++--------
- drivers/media/platform/coda/coda_regs.h             |  1 -
- drivers/media/platform/davinci/vpif_capture.c       |  2 ++
- drivers/media/platform/exynos4-is/fimc-lite.c       |  5 +----
- drivers/media/platform/mtk-vcodec/mtk_vcodec_util.c |  3 +++
- drivers/media/platform/qcom/venus/core.h            |  4 ++--
- drivers/media/platform/qcom/venus/hfi_cmds.c        | 73 ++-----------------------------------------------------------------------
- drivers/media/platform/qcom/venus/hfi_helper.h      |  4 ++--
- drivers/media/platform/qcom/venus/venc.c            | 33 +++++++++++++++++++++++++++++++++
- drivers/media/platform/soc_camera/soc_scale_crop.c  |  4 ++++
- drivers/media/platform/tegra-cec/tegra_cec.c        |  5 +++++
- drivers/media/platform/vimc/vimc-common.h           |  5 +++++
- drivers/media/platform/vimc/vimc-sensor.c           | 63 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-
- drivers/media/platform/vivid/vivid-core.c           |  2 +-
- drivers/media/platform/vivid/vivid-core.h           |  2 +-
- drivers/media/platform/vivid/vivid-radio-rx.c       | 11 +++++------
- drivers/media/platform/vivid/vivid-radio-tx.c       |  8 +++-----
- drivers/media/platform/vivid/vivid-rds-gen.c        |  2 +-
- drivers/media/platform/vivid/vivid-rds-gen.h        |  1 +
- drivers/media/platform/vivid/vivid-vbi-gen.c        |  2 +-
- drivers/media/usb/cpia2/cpia2_v4l.c                 |  4 ++--
- drivers/media/usb/pulse8-cec/pulse8-cec.c           |  4 ++--
- drivers/media/usb/s2255/s2255drv.c                  | 13 ++++++-------
- drivers/media/usb/usbvision/usbvision-video.c       |  3 +--
- drivers/staging/media/imx/imx-media-csi.c           | 10 +++-------
- drivers/staging/media/imx/imx-media-dev.c           | 12 ++++++++++--
- drivers/staging/media/imx/imx-media-fim.c           | 30 +++++++++++++++++-------------
- drivers/staging/media/imx/imx-media.h               |  2 +-
- include/media/cec.h                                 | 13 +++++++++++++
- 35 files changed, 270 insertions(+), 164 deletions(-)
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_common/input_formatter_global.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_common/input_formatter_global.h
+index 5e19b5bd56e6..7558f4964313 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_common/input_formatter_global.h
++++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_common/input_formatter_global.h
+@@ -107,23 +107,6 @@ struct input_formatter_cfg_s {
+ 	uint32_t	block_no_reqs;
+ };
+ 
+-#define DEFAULT_IF_CONFIG ( \
+-	(struct input_formatter_cfg_s) { \
+-		.start_line		= 0, \
+-		.start_column		= 0, \
+-		.left_padding		= 0, \
+-		.cropped_height		= 0, \
+-		.cropped_width		= 0, \
+-		.deinterleaving		= 0, \
+-		.buf_vecs		= 0, \
+-		.buf_start_index	= 0, \
+-		.buf_increment		= 0, \
+-		.buf_eol_offset		= 0, \
+-		.is_yuv420_format	= false, \
+-		.block_no_reqs		= false \
+-	} \
+-)
+-
+ extern const hrt_address HIVE_IF_SRST_ADDRESS[N_INPUT_FORMATTER_ID];
+ extern const hrt_data HIVE_IF_SRST_MASK[N_INPUT_FORMATTER_ID];
+ extern const uint8_t HIVE_IF_SWITCH_CODE[N_INPUT_FORMATTER_ID];
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/ia_css_frame_public.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/ia_css_frame_public.h
+index 56527feeb558..980b36171ca7 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/ia_css_frame_public.h
++++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/ia_css_frame_public.h
+@@ -122,18 +122,8 @@ struct ia_css_frame_info {
+ 
+ #define IA_CSS_BINARY_DEFAULT_FRAME_INFO ( \
+ 	(struct ia_css_frame_info) { \
+-		.res			= (struct ia_css_resolution) { \
+-						.width = 0, \
+-						.height = 0 \
+-					}, \
+-		.padded_width		= 0, \
+ 		.format			= IA_CSS_FRAME_FORMAT_NUM,  \
+-		.raw_bit_depth		= 0, \
+ 		.raw_bayer_order	= IA_CSS_BAYER_ORDER_NUM, \
+-		.crop_info		= (struct ia_css_crop_info) { \
+-						.start_column	= 0, \
+-						.start_line	= 0 \
+-					}, \
+ 	} \
+ )
+ 
+@@ -197,16 +187,9 @@ struct ia_css_frame {
+ #define DEFAULT_FRAME ( \
+ 	(struct ia_css_frame) { \
+ 		.info			= IA_CSS_BINARY_DEFAULT_FRAME_INFO, \
+-		.data			= 0, \
+-		.data_bytes		= 0, \
+ 		.dynamic_queue_id	= SH_CSS_INVALID_QUEUE_ID, \
+ 		.buf_type		= IA_CSS_BUFFER_TYPE_INVALID, \
+ 		.flash_state		= IA_CSS_FRAME_FLASH_STATE_NONE, \
+-		.exp_id			= 0, \
+-		.isp_config_id		= 0, \
+-		.valid			= false, \
+-		.contiguous		= false, \
+-		.planes			= { 0 } \
+ 	} \
+ )
+ 
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/ia_css_pipe.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/ia_css_pipe.h
+index bfebfd8d6e63..a68eac6de36a 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/ia_css_pipe.h
++++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/ia_css_pipe.h
+@@ -39,16 +39,11 @@ struct ia_css_preview_settings {
+ 	struct ia_css_pipe *acc_pipe;
+ };
+ 
+-#define IA_CSS_DEFAULT_PREVIEW_SETTINGS  ( \
++#define IA_CSS_DEFAULT_PREVIEW_SETTINGS ( \
+ 	(struct ia_css_preview_settings) { \
+ 		.copy_binary	= IA_CSS_BINARY_DEFAULT_SETTINGS, \
+ 		.preview_binary	= IA_CSS_BINARY_DEFAULT_SETTINGS, \
+ 		.vf_pp_binary	= IA_CSS_BINARY_DEFAULT_SETTINGS, \
+-		.delay_frames	= { NULL }, \
+-		.tnr_frames	= { NULL }, \
+-		.copy_pipe	= NULL, \
+-		.capture_pipe	= NULL, \
+-		.acc_pipe	= NULL, \
+ 	} \
+ )
+ 
+@@ -74,17 +69,12 @@ struct ia_css_capture_settings {
+ 	(struct ia_css_capture_settings) { \
+ 		.copy_binary		= IA_CSS_BINARY_DEFAULT_SETTINGS, \
+ 		.primary_binary		= {IA_CSS_BINARY_DEFAULT_SETTINGS}, \
+-		.num_primary_stage	= 0, \
+ 		.pre_isp_binary		= IA_CSS_BINARY_DEFAULT_SETTINGS, \
+ 		.anr_gdc_binary		= IA_CSS_BINARY_DEFAULT_SETTINGS, \
+ 		.post_isp_binary	= IA_CSS_BINARY_DEFAULT_SETTINGS, \
+ 		.capture_pp_binary	= IA_CSS_BINARY_DEFAULT_SETTINGS, \
+ 		.vf_pp_binary		= IA_CSS_BINARY_DEFAULT_SETTINGS, \
+ 		.capture_ldc_binary	= IA_CSS_BINARY_DEFAULT_SETTINGS, \
+-		.yuv_scaler_binary	= NULL, \
+-		.delay_frames		= { NULL }, \
+-		.is_output_stage	= NULL, \
+-		.num_yuv_scaler		= 0, \
+ 	} \
+ )
+ 
+@@ -108,17 +98,9 @@ struct ia_css_video_settings {
+ 
+ #define IA_CSS_DEFAULT_VIDEO_SETTINGS ( \
+ 	(struct ia_css_video_settings) { \
+-		.copy_binary		= IA_CSS_BINARY_DEFAULT_SETTINGS, \
+-		.video_binary		= IA_CSS_BINARY_DEFAULT_SETTINGS, \
+-		.vf_pp_binary		= IA_CSS_BINARY_DEFAULT_SETTINGS, \
+-		.yuv_scaler_binary	= NULL, \
+-		.delay_frames		= { NULL }, \
+-		.tnr_frames		= { NULL }, \
+-		.vf_pp_in_frame		= NULL, \
+-		.copy_pipe		= NULL, \
+-		.capture_pipe		= NULL, \
+-		.is_output_stage	= NULL, \
+-		.num_yuv_scaler		= 0, \
++		.copy_binary	= IA_CSS_BINARY_DEFAULT_SETTINGS, \
++		.video_binary	= IA_CSS_BINARY_DEFAULT_SETTINGS, \
++		.vf_pp_binary	= IA_CSS_BINARY_DEFAULT_SETTINGS, \
+ 	} \
+ )
+ 
+@@ -134,13 +116,7 @@ struct ia_css_yuvpp_settings {
+ 
+ #define IA_CSS_DEFAULT_YUVPP_SETTINGS ( \
+ 	(struct ia_css_yuvpp_settings) { \
+-		.copy_binary		= IA_CSS_BINARY_DEFAULT_SETTINGS, \
+-		.yuv_scaler_binary	= NULL, \
+-		.vf_pp_binary		= NULL, \
+-		.is_output_stage	= NULL, \
+-		.num_yuv_scaler		= 0, \
+-		.num_vf_pp		= 0, \
+-		.num_output		= 0, \
++		.copy_binary	= IA_CSS_BINARY_DEFAULT_SETTINGS, \
+ 	} \
+ )
+ 
+@@ -190,35 +166,25 @@ struct ia_css_pipe {
+ 
+ #define IA_CSS_DEFAULT_PIPE ( \
+ 	(struct ia_css_pipe) { \
+-		.stop_requested		= false, \
+ 		.config			= DEFAULT_PIPE_CONFIG, \
+ 		.extra_config		= DEFAULT_PIPE_EXTRA_CONFIG, \
+ 		.info			= DEFAULT_PIPE_INFO, \
+ 		.mode			= IA_CSS_PIPE_ID_ACC, /* (pipe_id) */ \
+-		.shading_table		= NULL, \
+ 		.pipeline		= DEFAULT_PIPELINE, \
+ 		.output_info		= {IA_CSS_BINARY_DEFAULT_FRAME_INFO}, \
+ 		.bds_output_info	= IA_CSS_BINARY_DEFAULT_FRAME_INFO, \
+ 		.vf_output_info		= {IA_CSS_BINARY_DEFAULT_FRAME_INFO}, \
+ 		.out_yuv_ds_input_info	= IA_CSS_BINARY_DEFAULT_FRAME_INFO, \
+ 		.vf_yuv_ds_input_info	= IA_CSS_BINARY_DEFAULT_FRAME_INFO, \
+-		.output_stage		= NULL, \
+-		.vf_stage		= NULL, \
+ 		.required_bds_factor	= SH_CSS_BDS_FACTOR_1_00, \
+ 		.dvs_frame_delay	= 1, \
+-		.num_invalid_frames	= 0, \
+ 		.enable_viewfinder	= {true}, \
+-		.stream			= NULL, \
+ 		.in_frame_struct	= DEFAULT_FRAME, \
+ 		.out_frame_struct	= DEFAULT_FRAME, \
+ 		.vf_frame_struct	= DEFAULT_FRAME, \
+-		.continuous_frames	= { NULL }, \
+-		.cont_md_buffers	= { NULL }, \
+ 		.pipe_settings		= { \
+ 			.preview = IA_CSS_DEFAULT_PREVIEW_SETTINGS \
+ 		}, \
+-		.scaler_pp_lut		= 0, \
+-		.osys_obj		= NULL, \
+ 		.pipe_num		= PIPE_ENTRY_EMPTY_TOKEN, \
+ 	} \
+ )
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/ia_css_pipe_public.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/ia_css_pipe_public.h
+index b23e23cdf086..89300886ee4e 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/ia_css_pipe_public.h
++++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/ia_css_pipe_public.h
+@@ -152,14 +152,6 @@ struct ia_css_pipe_config {
+ };
+ 
+ 
+-#ifdef ISP2401
+-/**
+- * Default origin of internal frame positioned on shading table.
+- */
+-#define IA_CSS_PIPE_DEFAULT_INTERNAL_FRAME_ORIGIN_BQS_ON_SCTBL ( \
+-	(struct ia_css_coordinate) { .x = 0, .y = 0 } \
+-)
+-
+ /**
+  * Default settings for newly created pipe configurations.
+  */
+@@ -167,68 +159,14 @@ struct ia_css_pipe_config {
+ 	(struct ia_css_pipe_config) { \
+ 		.mode			= IA_CSS_PIPE_MODE_PREVIEW, \
+ 		.isp_pipe_version	= 1, \
+-		.input_effective_res	= { 0, 0 }, \
+-		.bayer_ds_out_res	= { 0, 0 }, \
+-		.capt_pp_in_res		= { 0, 0 }, \
+-		.vf_pp_in_res		= { 0, 0 }, \
+-		.output_system_in_res	= { 0, 0 }, \
+-		.dvs_crop_out_res	= { 0, 0 }, \
+ 		.output_info		= {IA_CSS_BINARY_DEFAULT_FRAME_INFO}, \
+ 		.vf_output_info		= {IA_CSS_BINARY_DEFAULT_FRAME_INFO}, \
+-		.acc_extension		= NULL, \
+-		.acc_stages		= NULL, \
+-		.num_acc_stages		= 0, \
+ 		.default_capture_config	= DEFAULT_CAPTURE_CONFIG, \
+-		.dvs_envelope		= { 0, 0 }, \
+ 		.dvs_frame_delay	= IA_CSS_FRAME_DELAY_1, \
+ 		.acc_num_execs		= -1, \
+-		.enable_dz		= false, \
+-		.enable_dpc		= false, \
+-		.enable_vfpp_bci	= false, \
+-		.enable_luma_only	= false, \
+-		.enable_tnr		= false, \
+-		.p_isp_config		= NULL, \
+-		.gdc_in_buffer_res	= { 0, 0 }, \
+-		.gdc_in_buffer_offset	= { 0, 0 }, \
+-		.internal_frame_origin_bqs_on_sctbl \
+-					= IA_CSS_PIPE_DEFAULT_INTERNAL_FRAME_ORIGIN_BQS_ON_SCTBL \
+ 	} \
+ )
+ 
+-#else
+-
+-/**
+- * Default settings for newly created pipe configurations.
+- */
+-#define DEFAULT_PIPE_CONFIG ( \
+-	(struct ia_css_pipe_config) { \
+-		.mode			= IA_CSS_PIPE_MODE_PREVIEW, \
+-		.isp_pipe_version	= 1, \
+-		.input_effective_res	= { 0, 0 }, \
+-		.bayer_ds_out_res	= { 0, 0 }, \
+-		.capt_pp_in_res		= { 0, 0 }, \
+-		.vf_pp_in_res		= { 0, 0 }, \
+-		.dvs_crop_out_res	= { 0, 0 }, \
+-		.output_info		= {IA_CSS_BINARY_DEFAULT_FRAME_INFO}, \
+-		.vf_output_info		= {IA_CSS_BINARY_DEFAULT_FRAME_INFO}, \
+-		.acc_extension		= NULL, \
+-		.acc_stages		= NULL, \
+-		.num_acc_stages		= 0, \
+-		.default_capture_config	= DEFAULT_CAPTURE_CONFIG, \
+-		.dvs_envelope		= { 0, 0 }, \
+-		.dvs_frame_delay	= IA_CSS_FRAME_DELAY_1, \
+-		.acc_num_execs		= -1, \
+-		.enable_dz		= false, \
+-		.enable_dpc		= false, \
+-		.enable_vfpp_bci	= false, \
+-		.p_isp_config		= NULL, \
+-		.gdc_in_buffer_res	= { 0, 0 }, \
+-		.gdc_in_buffer_offset	= { 0, 0 } \
+-	} \
+-)
+-
+-#endif
+-
+ /** Pipe info, this struct describes properties of a pipe after it's stream has
+  * been created.
+  * ~~~** DO NOT ADD NEW FIELD **~~~ This structure will be deprecated.
+@@ -273,22 +211,6 @@ struct ia_css_pipe_info {
+ /**
+  * Defaults for ia_css_pipe_info structs.
+  */
+-#ifdef ISP2401
+-
+-#define DEFAULT_PIPE_INFO ( \
+-	(struct ia_css_pipe_info) { \
+-		.output_info			= {IA_CSS_BINARY_DEFAULT_FRAME_INFO}, \
+-		.vf_output_info			= {IA_CSS_BINARY_DEFAULT_FRAME_INFO}, \
+-		.raw_output_info		= IA_CSS_BINARY_DEFAULT_FRAME_INFO, \
+-		.output_system_in_res_info	= { 0, 0 }, \
+-		.shading_info			= DEFAULT_SHADING_INFO, \
+-		.grid_info			= DEFAULT_GRID_INFO, \
+-		.num_invalid_frames		= 0 \
+-	} \
+-)
+-
+-#else
+-
+ #define DEFAULT_PIPE_INFO ( \
+ 	(struct ia_css_pipe_info) { \
+ 		.output_info		= {IA_CSS_BINARY_DEFAULT_FRAME_INFO}, \
+@@ -296,12 +218,9 @@ struct ia_css_pipe_info {
+ 		.raw_output_info	= IA_CSS_BINARY_DEFAULT_FRAME_INFO, \
+ 		.shading_info		= DEFAULT_SHADING_INFO, \
+ 		.grid_info		= DEFAULT_GRID_INFO, \
+-		.num_invalid_frames	= 0 \
+ 	} \
+ )
+ 
+-#endif
+-
+ /** @brief Load default pipe configuration
+  * @param[out]	pipe_config The pipe configuration.
+  * @return	None
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/ia_css_types.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/ia_css_types.h
+index 506f92bbc226..afde2d10ad70 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/ia_css_types.h
++++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/ia_css_types.h
+@@ -370,54 +370,21 @@ struct ia_css_shading_info {
+ 	} info;
+ };
+ 
+-#ifndef ISP2401
+-
+ /** Default Shading Correction information of Shading Correction Type 1. */
+ #define DEFAULT_SHADING_INFO_TYPE_1 ( \
+ 	(struct ia_css_shading_info) { \
+ 		.type = IA_CSS_SHADING_CORRECTION_TYPE_1, \
+ 		.info = { \
+ 			.type_1 = { \
+-				.enable					= 0, \
+-				.num_hor_grids				= 0, \
+-				.num_ver_grids				= 0, \
+-				.bqs_per_grid_cell			= 0, \
+-				.bayer_scale_hor_ratio_in		= 1, \
+-				.bayer_scale_hor_ratio_out		= 1, \
+-				.bayer_scale_ver_ratio_in		= 1, \
+-				.bayer_scale_ver_ratio_out		= 1, \
+-				.sc_bayer_origin_x_bqs_on_shading_table	= 0, \
+-				.sc_bayer_origin_y_bqs_on_shading_table	= 0 \
++				.bayer_scale_hor_ratio_in	= 1, \
++				.bayer_scale_hor_ratio_out	= 1, \
++				.bayer_scale_ver_ratio_in	= 1, \
++				.bayer_scale_ver_ratio_out	= 1, \
+ 			} \
+ 		} \
+ 	} \
+ )
+ 
+-#else
+-
+-/** Default Shading Correction information of Shading Correction Type 1. */
+-#define DEFAULT_SHADING_INFO_TYPE_1 ( \
+-	(struct ia_css_shading_info) { \
+-		.type = IA_CSS_SHADING_CORRECTION_TYPE_1, \
+-		.info = { \
+-			.type_1 = { \
+-				.num_hor_grids				= 0, \
+-				.num_ver_grids				= 0, \
+-				.bqs_per_grid_cell			= 0, \
+-				.bayer_scale_hor_ratio_in		= 1, \
+-				.bayer_scale_hor_ratio_out		= 1, \
+-				.bayer_scale_ver_ratio_in		= 1, \
+-				.bayer_scale_ver_ratio_out		= 1, \
+-				.isp_input_sensor_data_res_bqs		= {0, 0}, \
+-				.sensor_data_res_bqs			= {0, 0}, \
+-				.sensor_data_origin_bqs_on_sctbl	= {0, 0} \
+-			} \
+-		} \
+-	} \
+-)
+-
+-#endif
+-
+ /** Default Shading Correction information. */
+ #define DEFAULT_SHADING_INFO	DEFAULT_SHADING_INFO_TYPE_1
+ 
+@@ -441,8 +408,6 @@ struct ia_css_grid_info {
+ /** defaults for ia_css_grid_info structs */
+ #define DEFAULT_GRID_INFO ( \
+ 	(struct ia_css_grid_info) { \
+-		.isp_in_width	= 0, \
+-		.isp_in_height	= 0, \
+ 		.s3a_grid	= DEFAULT_3A_GRID_INFO, \
+ 		.dvs_grid	= DEFAULT_DVS_GRID_INFO, \
+ 		.vamem_type	= IA_CSS_VAMEM_TYPE_1 \
+@@ -538,10 +503,7 @@ struct ia_css_capture_config {
+ /** default settings for ia_css_capture_config structs */
+ #define DEFAULT_CAPTURE_CONFIG ( \
+ 	(struct ia_css_capture_config) { \
+-		.mode			= IA_CSS_CAPTURE_MODE_PRIMARY, \
+-		.enable_xnr		= false, \
+-		.enable_raw_output	= false, \
+-		.enable_capture_pp_bli	= false \
++		.mode	= IA_CSS_CAPTURE_MODE_PRIMARY, \
+ 	} \
+ )
+ 
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/s3a/s3a_1.0/ia_css_s3a_types.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/s3a/s3a_1.0/ia_css_s3a_types.h
+index 76316fbabbd5..e62410cdb282 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/s3a/s3a_1.0/ia_css_s3a_types.h
++++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/s3a/s3a_1.0/ia_css_s3a_types.h
+@@ -98,122 +98,11 @@ struct ia_css_3a_grid_info {
+ };
+ 
+ 
+-#if defined(SYSTEM_css_skycam_c0_system)
+-#if defined USE_NEW_AE_STRUCT || defined USE_NEW_AWB_STRUCT
+ #define DEFAULT_3A_GRID_INFO ( \
+ 	(struct ia_css_3a_grid_info) { \
+-		.ae_enable		= 0, \
+-		.ae_grd_info		= (struct ae_public_config_grid_config) { \
+-						.width = 0, \
+-						.height = 0, \
+-						.b_width = 0, \
+-						.b_height = 0, \
+-						.x_start = 0, \
+-						.y_start = 0, \
+-						.x_end = 0, \
+-						.y_end = 0 \
+-					  } \
+-		.awb_enable		= 0, \
+-		.awb_grd_info		= (struct awb_public_config_grid_config) { \
+-						.width = 0, \
+-						.height = 0, \
+-						.b_width = 0, \
+-						.b_height = 0, \
+-						.x_start = 0, \
+-						.y_start = 0, \
+-						.x_end = 0, \
+-						.y_end = 0 \
+-					  }	\
+-		.af_enable		= 0, \
+-		.af_grd_info		= (struct af_public_grid_config) { \
+-						.width = 0, \
+-						.height = 0, \
+-						.b_width = 0, \
+-						.b_height = 0, \
+-						.x_start = 0, \
+-						.y_start = 0, \
+-						.ff_en = 0 \
+-					  } \
+-		.awb_fr_enable		= 0, \
+-		.awb_fr_grd_info	= (struct awb_fr_public_grid_config) { \
+-						.width = 0, \
+-						.height = 0, \
+-						.b_width = 0, \
+-						.b_height = 0, \
+-						.x_start = 0, \
+-						.y_start = 0, \
+-						.ff_en = 0 \
+-					  } \
+-		.elem_bit_depth		= 0, \
+ 	} \
+ )
+-#else
+-#define DEFAULT_3A_GRID_INFO ( \
+-	(struct ia_css_3a_grid_info) { \
+-		.ae_enable		= 0, \
+-		.ae_grd_info		= (struct ae_public_config_grid_config) { \
+-						.width = 0, \
+-						.height = 0, \
+-						.b_width = 0, \
+-						.b_height = 0, \
+-						.x_start = 0, \
+-						.y_start = 0, \
+-						.x_end = 0, \
+-						.y_end = 0 \
+-					  } \
+-		.awb_enable		= 0, \
+-		.awb_grd_info		= (struct awb_public_config_grid_config) { \
+-						.width = 0, \
+-						.height = 0, \
+-						.b_width = 0, \
+-						.b_height = 0, \
+-						.x_start = 0, \
+-						.y_start = 0, \
+-						.x_end = 0, \
+-						.y_end = 0 \
+-					  }	\
+-		.af_enable		= 0, \
+-		.af_grd_info		= (struct af_public_grid_config) { \
+-						.width = 0, \
+-						.height = 0, \
+-						.b_width = 0, \
+-						.b_height = 0, \
+-						.x_start = 0, \
+-						.y_start = 0, \
+-						.ff_en = 0 \
+-					  } \
+-		.awb_fr_enable		= 0, \
+-		.awb_fr_grd_info	= (struct awb_fr_public_grid_config) { \
+-						.width = 0, \
+-						.height = 0, \
+-						.b_width = 0, \
+-						.b_height = 0, \
+-						.x_start = 0, \
+-						.y_start = 0, \
+-						.ff_en = 0 \
+-					  } \
+-		.elem_bit_depth		= 0, \
+-	} \
+-)
+-#endif /* USE_NEW_AE_STRUCT || defined USE_NEW_AWB_STRUCT */
+ 
+-#else
+-#define DEFAULT_3A_GRID_INFO ( \
+-	(struct ia_css_3a_grid_info) { \
+-		.enable			= 0, \
+-		.use_dmem		= 0, \
+-		.has_histogram		= 0, \
+-		.width			= 0, \
+-		.height			= 0, \
+-		.aligned_width		= 0, \
+-		.aligned_height		= 0, \
+-		.bqs_per_grid_cell	= 0, \
+-		.deci_factor_log2	= 0, \
+-		.elem_bit_depth		= 0, \
+-	} \
+-)
+-
+-#endif
+ 
+ /* This struct should be split into 3, for AE, AWB and AF.
+  * However, that will require driver/ 3A lib modifications.
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/sdis/common/ia_css_sdis_common_types.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/sdis/common/ia_css_sdis_common_types.h
+index 4365049f0049..4319e0191f6d 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/sdis/common/ia_css_sdis_common_types.h
++++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/sdis/common/ia_css_sdis_common_types.h
+@@ -43,23 +43,9 @@ struct ia_css_sdis_info {
+ 
+ #define IA_CSS_DEFAULT_SDIS_INFO ( \
+ 	(struct ia_css_sdis_info) { \
+-		.grid = { \
+-			.dim = (struct ia_css_dvs_grid_dim) { .width = 0, .height = 0 }, \
+-			.pad = (struct ia_css_dvs_grid_dim) { .width = 0, .height = 0 }, \
+-		}, \
+-		.coef = { \
+-			.dim = (struct ia_css_dvs_grid_dim) { .width = 0, .height = 0 }, \
+-			.pad = (struct ia_css_dvs_grid_dim) { .width = 0, .height = 0 }, \
+-		}, \
+-		.proj = { \
+-			.dim = (struct ia_css_dvs_grid_dim) { .width = 0, .height = 0 }, \
+-			.pad = (struct ia_css_dvs_grid_dim) { .width = 0, .height = 0 }, \
+-		}, \
+-		.deci_factor_log2 = 0, \
+ 	} \
+ )
+ 
+-
+ /** DVS statistics grid
+  *
+  *  ISP block: SDVS1 (DIS/DVS Support for DIS/DVS ver.1 (2-axes))
+@@ -216,38 +202,17 @@ struct ia_css_dvs_stat_grid_info {
+  */
+ #define DEFAULT_DVS_STAT_PUBLIC_DVS_GLOBAL_CFG ( \
+ 	(struct dvs_stat_public_dvs_global_cfg) { \
+-		.kappa		= 0, \
+-		.match_shift	= 0, \
+-		.ybin_mode	= 0, \
+ 	} \
+ )
+ 
+ #define DEFAULT_DVS_STAT_PUBLIC_DVS_GRD_CFG ( \
+ 	(struct dvs_stat_public_dvs_grd_cfg) { \
+-		.grd_cfg	= (struct dvs_stat_public_dvs_level_grid_cfg) { \
+-					.grid_width = 0, \
+-					.grid_height = 0, \
+-					.block_width = 0, \
+-					.block_height = 0 \
+-				}, \
+-		.grd_start	= (struct dvs_stat_public_dvs_level_grid_start) { \
+-					.x_start = 0, \
+-					.y_start = 0, \
+-					.enable = 0 \
+-				}, \
+-		.grd_end	= (struct dvs_stat_public_dvs_level_grid_end) { \
+-					.x_end = 0, \
+-					.y_end = 0, \
+-				}, \
+ 	} \
+ )
+ 
+ #define DEFAULT_DVS_STAT_PUBLIC_DVS_LEVEL_FE_ROI_CFG(X_START) ( \
+ 	(struct dvs_stat_public_dvs_level_fe_roi_cfg) { \
+ 		.x_start = X_START, \
+-		.y_start = 0, \
+-		.x_end   = 0, \
+-		.y_end   = 0, \
+ 	} \
+ )
+ 
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/runtime/binary/interface/ia_css_binary.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/runtime/binary/interface/ia_css_binary.h
+index b2934149f76a..ee1df8f9172d 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/runtime/binary/interface/ia_css_binary.h
++++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/runtime/binary/interface/ia_css_binary.h
+@@ -94,14 +94,7 @@ struct ia_css_cas_binary_descr {
+ };
+ 
+ #define IA_CSS_DEFAULT_CAS_BINARY_DESCR ( \
+-	(struct ia_css_cas_binary_descr) {	\
+-		.num_stage		= 0,	\
+-		.num_output_stage	= 0,	\
+-		.in_info		= NULL,	\
+-		.internal_out_info	= NULL,	\
+-		.out_info		= NULL,	\
+-		.vf_info		= NULL,	\
+-		.is_output_stage	= NULL,	\
++	(struct ia_css_cas_binary_descr) { \
+ 	} \
+ )
+ 
+@@ -172,82 +165,20 @@ struct ia_css_binary {
+ 	struct ia_css_isp_param_css_segments  css_params;
+ };
+ 
+-#ifdef ISP2401
+-
+ #define IA_CSS_BINARY_DEFAULT_SETTINGS ( \
+ 	(struct ia_css_binary) { \
+-		.info				= NULL, \
+-		.input_format			= IA_CSS_STREAM_FORMAT_YUV420_8_LEGACY, \
+-		.in_frame_info			= IA_CSS_BINARY_DEFAULT_FRAME_INFO, \
+-		.internal_frame_info		= IA_CSS_BINARY_DEFAULT_FRAME_INFO, \
+-		.out_frame_info			= {IA_CSS_BINARY_DEFAULT_FRAME_INFO}, \
+-		.effective_in_frame_res		= { 0, 0 }, \
+-		.vf_frame_info			= IA_CSS_BINARY_DEFAULT_FRAME_INFO, \
+-		.input_buf_vectors		= 0, \
+-		.deci_factor_log2		= 0, \
+-		.vf_downscale_log2		= 0, \
+-		.s3atbl_width			= 0, \
+-		.s3atbl_height			= 0, \
+-		.s3atbl_isp_width		= 0, \
+-		.s3atbl_isp_height		= 0, \
+-		.morph_tbl_width		= 0, \
+-		.morph_tbl_aligned_width	= 0, \
+-		.morph_tbl_height		= 0, \
+-		.sctbl_width_per_color		= 0, \
+-		.sctbl_aligned_width_per_color	= 0, \
+-		.sctbl_height			= 0, \
+-		.sctbl_legacy_width_per_color	= 0, \
+-		.sctbl_legacy_height		= 0, \
+-		.dis				= IA_CSS_DEFAULT_SDIS_INFO, \
+-		.dvs_envelope			= { 0, 0 }, \
+-		.online				= false, \
+-		.uds_xc				= 0, \
+-		.uds_yc				= 0, \
+-		.left_padding			= 0, \
+-		.metrics			= DEFAULT_BINARY_METRICS, \
+-		.mem_params			= IA_CSS_DEFAULT_ISP_MEM_PARAMS, \
+-		.css_params			= IA_CSS_DEFAULT_ISP_CSS_PARAMS, \
++		.input_format		= IA_CSS_STREAM_FORMAT_YUV420_8_LEGACY, \
++		.in_frame_info		= IA_CSS_BINARY_DEFAULT_FRAME_INFO, \
++		.internal_frame_info	= IA_CSS_BINARY_DEFAULT_FRAME_INFO, \
++		.out_frame_info		= {IA_CSS_BINARY_DEFAULT_FRAME_INFO}, \
++		.vf_frame_info		= IA_CSS_BINARY_DEFAULT_FRAME_INFO, \
++		.dis			= IA_CSS_DEFAULT_SDIS_INFO, \
++		.metrics		= DEFAULT_BINARY_METRICS, \
++		.mem_params		= IA_CSS_DEFAULT_ISP_MEM_PARAMS, \
++		.css_params		= IA_CSS_DEFAULT_ISP_CSS_PARAMS, \
+ 	} \
+ )
+ 
+-#else
+-
+-#define IA_CSS_BINARY_DEFAULT_SETTINGS ( \
+-	(struct ia_css_binary) { \
+-		.info				= NULL, \
+-		.input_format			= IA_CSS_STREAM_FORMAT_YUV420_8_LEGACY, \
+-		.in_frame_info			= IA_CSS_BINARY_DEFAULT_FRAME_INFO, \
+-		.internal_frame_info		= IA_CSS_BINARY_DEFAULT_FRAME_INFO, \
+-		.out_frame_info			= {IA_CSS_BINARY_DEFAULT_FRAME_INFO}, \
+-		.effective_in_frame_res		= { 0, 0 }, \
+-		.vf_frame_info			= IA_CSS_BINARY_DEFAULT_FRAME_INFO, \
+-		.input_buf_vectors		= 0, \
+-		.deci_factor_log2		= 0, \
+-		.vf_downscale_log2		= 0, \
+-		.s3atbl_width			= 0, \
+-		.s3atbl_height			= 0, \
+-		.s3atbl_isp_width		= 0, \
+-		.s3atbl_isp_height		= 0, \
+-		.morph_tbl_width		= 0, \
+-		.morph_tbl_aligned_width	= 0, \
+-		.morph_tbl_height		= 0, \
+-		.sctbl_width_per_color		= 0, \
+-		.sctbl_aligned_width_per_color	= 0, \
+-		.sctbl_height			= 0, \
+-		.dis				= IA_CSS_DEFAULT_SDIS_INFO, \
+-		.dvs_envelope			= { 0, 0 }, \
+-		.online				= false, \
+-		.uds_xc				= 0, \
+-		.uds_yc				= 0, \
+-		.left_padding			= 0, \
+-		.metrics			= DEFAULT_BINARY_METRICS, \
+-		.mem_params			= IA_CSS_DEFAULT_ISP_MEM_PARAMS, \
+-		.css_params			= IA_CSS_DEFAULT_ISP_CSS_PARAMS, \
+-	} \
+-)
+-
+-#endif
+-
+ enum ia_css_err
+ ia_css_binary_init_infos(void);
+ 
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/runtime/isp_param/interface/ia_css_isp_param_types.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/runtime/isp_param/interface/ia_css_isp_param_types.h
+index f88c23f38e38..76ae006cb173 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/runtime/isp_param/interface/ia_css_isp_param_types.h
++++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/runtime/isp_param/interface/ia_css_isp_param_types.h
+@@ -96,25 +96,16 @@ union ia_css_all_memory_offsets {
+ 
+ #define IA_CSS_DEFAULT_ISP_MEM_PARAMS ( \
+ 	(struct ia_css_isp_param_host_segments) { \
+-		.params = { { \
+-			(struct ia_css_host_data) { .address = NULL, .size = 0 } \
+-		} } \
+ 	} \
+ )
+ 
+ #define IA_CSS_DEFAULT_ISP_CSS_PARAMS ( \
+ 	(struct ia_css_isp_param_css_segments) { \
+-		.params = { { \
+-			(struct ia_css_data) { .address = 0, .size = 0 } \
+-		} } \
+ 	} \
+ )
+ 
+ #define IA_CSS_DEFAULT_ISP_ISP_PARAMS ( \
+ 	(struct ia_css_isp_param_isp_segments) { \
+-		.params = { { \
+-			(struct ia_css_isp_data) { .address = 0, .size = 0 } \
+-		} } \
+ 	} \
+ )
+ 
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/runtime/pipeline/interface/ia_css_pipeline.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/runtime/pipeline/interface/ia_css_pipeline.h
+index 4a2dd996364f..f44eb5bf112e 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/runtime/pipeline/interface/ia_css_pipeline.h
++++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/runtime/pipeline/interface/ia_css_pipeline.h
+@@ -76,16 +76,10 @@ struct ia_css_pipeline {
+ #define DEFAULT_PIPELINE ( \
+ 	(struct ia_css_pipeline) { \
+ 		.pipe_id		= IA_CSS_PIPE_ID_PREVIEW, \
+-		.pipe_num		= 0, \
+-		.stop_requested		= false, \
+-		.stages			= NULL, \
+-		.current_stage		= NULL, \
+-		.num_stages		= 0, \
+ 		.in_frame		= DEFAULT_FRAME, \
+ 		.out_frame		= {DEFAULT_FRAME}, \
+ 		.vf_frame		= {DEFAULT_FRAME}, \
+ 		.dvs_frame_delay	= IA_CSS_FRAME_DELAY_1, \
+-		.inout_port_config	= 0, \
+ 		.num_execs		= -1, \
+ 		.acquire_isp_each_stage	= true, \
+ 		.pipe_qos_config	= QOS_INVALID \
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_legacy.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_legacy.h
+index cc9b432b63ef..18f2027aeb86 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_legacy.h
++++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_legacy.h
+@@ -54,13 +54,6 @@ struct ia_css_pipe_extra_config {
+ 
+ #define DEFAULT_PIPE_EXTRA_CONFIG ( \
+ 	(struct ia_css_pipe_extra_config) { \
+-		.enable_raw_binning	= false, \
+-		.enable_yuv_ds		= false, \
+-		.enable_high_speed	= false, \
+-		.enable_dvs_6axis	= false, \
+-		.enable_reduced_pipe	= false, \
+-		.enable_fractional_ds	= false, \
+-		.disable_vf_pp		= false, \
+ 	} \
+ )
+ 
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_metrics.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_metrics.h
+index e5f49d1f5390..aa3badd7e9da 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_metrics.h
++++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_metrics.h
+@@ -26,10 +26,6 @@ struct sh_css_pc_histogram {
+ 
+ #define DEFAULT_PC_HISTOGRAM ( \
+ 	(struct sh_css_pc_histogram) { \
+-		.length	= 0, \
+-		.run	= NULL, \
+-		.stall	= NULL, \
+-		.msink	= NULL \
+ 	} \
+ )
+ 
+@@ -43,11 +39,8 @@ struct sh_css_binary_metrics {
+ 
+ #define DEFAULT_BINARY_METRICS ( \
+ 	(struct sh_css_binary_metrics) { \
+-		.mode		= 0, \
+-		.id		= 0, \
+ 		.isp_histogram	= DEFAULT_PC_HISTOGRAM, \
+ 		.sp_histogram	= DEFAULT_PC_HISTOGRAM, \
+-		.next		= NULL \
+ 	} \
+ )
+ 
+-- 
+2.15.0
