@@ -1,162 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:40801 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751200AbdLDXXb (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 4 Dec 2017 18:23:31 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>
-Cc: linux-media@vger.kernel.org
-Subject: [PATCH 1/2] uvcvideo: Factor out video device registration to a function
-Date: Tue,  5 Dec 2017 01:23:32 +0200
-Message-Id: <20171204232333.30084-2-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <20171204232333.30084-1-laurent.pinchart@ideasonboard.com>
-References: <20171204232333.30084-1-laurent.pinchart@ideasonboard.com>
+Received: from r0.smtpout1.paris1.alwaysdata.com ([188.72.70.1]:34725 "EHLO
+        r0.smtpout1.paris1.alwaysdata.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752035AbdLACIz (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 30 Nov 2017 21:08:55 -0500
+From: Alexandre Macabies <web+oss@zopieux.com>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [PATCH 1/1] media: uvcvideo: Add quirk to support light switch on Dino-Lite cameras
+Date: Fri,  1 Dec 2017 02:21:25 +0100
+Message-Id: <20171201012125.8941-2-web+oss@zopieux.com>
+In-Reply-To: <20171201012125.8941-1-web+oss@zopieux.com>
+References: <20171201012125.8941-1-web+oss@zopieux.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The function will then be used to register the video device for metadata
-capture.
+The Dino-Lite cameras are equipped with LED lights that can be switched
+on and off by setting a proprietary control. For this control, the
+camera reports a length of 1 byte, but actually the value set by the
+original Windows driver is 3 byte long. This makes it impossible to
+toggle the camera lights from uvcvideo, as the length from GET_LEN is
+trusted as being the right one.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+This is to make GET_LEN indicate a length of 3 instead of 1 for this
+specific device.
+
+Signed-off-by: Alexandre Macabies <web+oss@zopieux.com>
 ---
- drivers/media/usb/uvc/uvc_driver.c | 66 +++++++++++++++++++++++---------------
- drivers/media/usb/uvc/uvcvideo.h   |  8 +++++
- 2 files changed, 49 insertions(+), 25 deletions(-)
+ drivers/media/usb/uvc/uvc_driver.c |  9 +++++++++
+ drivers/media/usb/uvc/uvc_video.c  | 10 ++++++++++
+ drivers/media/usb/uvc/uvcvideo.h   |  1 +
+ 3 files changed, 20 insertions(+)
 
 diff --git a/drivers/media/usb/uvc/uvc_driver.c b/drivers/media/usb/uvc/uvc_driver.c
-index f77e31fcfc57..b832929d3382 100644
+index 28b91b7d7..17689a242 100644
 --- a/drivers/media/usb/uvc/uvc_driver.c
 +++ b/drivers/media/usb/uvc/uvc_driver.c
-@@ -24,6 +24,7 @@
- #include <asm/unaligned.h>
+@@ -2734,6 +2734,15 @@ static const struct usb_device_id uvc_ids[] = {
+ 	  .bInterfaceSubClass	= 1,
+ 	  .bInterfaceProtocol	= 0,
+ 	  .driver_info		= UVC_QUIRK_FORCE_Y8 },
++	/* Dino-Lite Premier AM4111T */
++	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
++				| USB_DEVICE_ID_MATCH_INT_INFO,
++	  .idVendor		= 0xa168,
++	  .idProduct		= 0x0870,
++	  .bInterfaceClass	= USB_CLASS_VIDEO,
++	  .bInterfaceSubClass	= 1,
++	  .bInterfaceProtocol	= 0,
++	  .driver_info		= UVC_QUIRK_LIGHT_CTRL_LEN },
+ 	/* Generic USB Video Class */
+ 	{ USB_INTERFACE_INFO(USB_CLASS_VIDEO, 1, UVC_PC_PROTOCOL_UNDEFINED) },
+ 	{ USB_INTERFACE_INFO(USB_CLASS_VIDEO, 1, UVC_PC_PROTOCOL_15) },
+diff --git a/drivers/media/usb/uvc/uvc_video.c b/drivers/media/usb/uvc/uvc_video.c
+index fb86d6af3..702bf03c7 100644
+--- a/drivers/media/usb/uvc/uvc_video.c
++++ b/drivers/media/usb/uvc/uvc_video.c
+@@ -83,6 +83,16 @@ int uvc_query_ctrl(struct uvc_device *dev, __u8 query, __u8 unit,
+ 		return -EIO;
+ 	}
  
- #include <media/v4l2-common.h>
-+#include <media/v4l2-ioctl.h>
- 
- #include "uvcvideo.h"
- 
-@@ -1895,52 +1896,63 @@ static void uvc_unregister_video(struct uvc_device *dev)
- 	kref_put(&dev->ref, uvc_delete);
- }
- 
--static int uvc_register_video(struct uvc_device *dev,
--		struct uvc_streaming *stream)
-+int uvc_register_video_device(struct uvc_device *dev,
-+			      struct uvc_streaming *stream,
-+			      struct video_device *vdev,
-+			      struct uvc_video_queue *queue,
-+			      enum v4l2_buf_type type,
-+			      const struct v4l2_file_operations *fops,
-+			      const struct v4l2_ioctl_ops *ioctl_ops)
- {
--	struct video_device *vdev = &stream->vdev;
- 	int ret;
- 
- 	/* Initialize the video buffers queue. */
--	ret = uvc_queue_init(&stream->queue, stream->type, !uvc_no_drop_param);
-+	ret = uvc_queue_init(queue, type, !uvc_no_drop_param);
- 	if (ret)
- 		return ret;
- 
--	/* Initialize the streaming interface with default streaming
--	 * parameters.
--	 */
--	ret = uvc_video_init(stream);
--	if (ret < 0) {
--		uvc_printk(KERN_ERR, "Failed to initialize the device "
--			"(%d).\n", ret);
--		return ret;
--	}
--
--	uvc_debugfs_init_stream(stream);
--
- 	/* Register the device with V4L. */
- 
--	/* We already hold a reference to dev->udev. The video device will be
-+	/*
-+	 * We already hold a reference to dev->udev. The video device will be
- 	 * unregistered before the reference is released, so we don't need to
- 	 * get another one.
- 	 */
- 	vdev->v4l2_dev = &dev->vdev;
--	vdev->fops = &uvc_fops;
--	vdev->ioctl_ops = &uvc_ioctl_ops;
-+	vdev->fops = fops;
-+	vdev->ioctl_ops = ioctl_ops;
- 	vdev->release = uvc_release;
- 	vdev->prio = &stream->chain->prio;
--	if (stream->type == V4L2_BUF_TYPE_VIDEO_OUTPUT)
-+	if (type == V4L2_BUF_TYPE_VIDEO_OUTPUT)
- 		vdev->vfl_dir = VFL_DIR_TX;
- 	strlcpy(vdev->name, dev->name, sizeof vdev->name);
- 
--	/* Set the driver data before calling video_register_device, otherwise
--	 * uvc_v4l2_open might race us.
-+	/*
-+	 * Set the driver data before calling video_register_device, otherwise
-+	 * the file open() handler might race us.
- 	 */
- 	video_set_drvdata(vdev, stream);
- 
- 	ret = video_register_device(vdev, VFL_TYPE_GRABBER, -1);
- 	if (ret < 0) {
--		uvc_printk(KERN_ERR, "Failed to register video device (%d).\n",
-+		uvc_printk(KERN_ERR, "Failed to register %s device (%d).\n",
-+			   v4l2_type_names[type], ret);
-+		return ret;
++	/* The Dino-Lite Premier camera lies about a specific query length:
++	 * control 3 unit 4 (LED light on/off) expects a 3 byte payload but
++	 * the camera reports only 1 byte when queried for GET_LEN.
++	 */
++	if ((dev->quirks & UVC_QUIRK_LIGHT_CTRL_LEN) && query == UVC_GET_LEN
++		&& cs == 3 && unit == 4 && size == 2) {
++		put_unaligned_le16(3, data);
++		return 0;
 +	}
 +
-+	kref_get(&dev->ref);
-+	return 0;
-+}
-+
-+static int uvc_register_video(struct uvc_device *dev,
-+		struct uvc_streaming *stream)
-+{
-+	int ret;
-+
-+	/* Initialize the streaming interface with default parameters. */
-+	ret = uvc_video_init(stream);
-+	if (ret < 0) {
-+		uvc_printk(KERN_ERR, "Failed to initialize the device (%d).\n",
- 			   ret);
- 		return ret;
- 	}
-@@ -1950,8 +1962,12 @@ static int uvc_register_video(struct uvc_device *dev,
- 	else
- 		stream->chain->caps |= V4L2_CAP_VIDEO_OUTPUT;
- 
--	kref_get(&dev->ref);
--	return 0;
-+	uvc_debugfs_init_stream(stream);
-+
-+	/* Register the device with V4L. */
-+	return uvc_register_video_device(dev, stream, &stream->vdev,
-+					 &stream->queue, stream->type,
-+					 &uvc_fops, &uvc_ioctl_ops);
+ 	return 0;
  }
  
- /*
 diff --git a/drivers/media/usb/uvc/uvcvideo.h b/drivers/media/usb/uvc/uvcvideo.h
-index e2169caefe9e..f5e8a9b17296 100644
+index 05398784d..bb6a74920 100644
 --- a/drivers/media/usb/uvc/uvcvideo.h
 +++ b/drivers/media/usb/uvc/uvcvideo.h
-@@ -716,6 +716,14 @@ void uvc_video_clock_update(struct uvc_streaming *stream,
- 			    struct vb2_v4l2_buffer *vbuf,
- 			    struct uvc_buffer *buf);
+@@ -186,6 +186,7 @@
+ #define UVC_QUIRK_RESTRICT_FRAME_RATE	0x00000200
+ #define UVC_QUIRK_RESTORE_CTRLS_ON_INIT	0x00000400
+ #define UVC_QUIRK_FORCE_Y8		0x00000800
++#define UVC_QUIRK_LIGHT_CTRL_LEN	0x00001000
  
-+int uvc_register_video_device(struct uvc_device *dev,
-+			      struct uvc_streaming *stream,
-+			      struct video_device *vdev,
-+			      struct uvc_video_queue *queue,
-+			      enum v4l2_buf_type type,
-+			      const struct v4l2_file_operations *fops,
-+			      const struct v4l2_ioctl_ops *ioctl_ops);
-+
- /* Status */
- extern int uvc_status_init(struct uvc_device *dev);
- extern void uvc_status_unregister(struct uvc_device *dev);
+ /* Format flags */
+ #define UVC_FMT_FLAG_COMPRESSED		0x00000001
 -- 
-Regards,
-
-Laurent Pinchart
+2.15.1
