@@ -1,69 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f45.google.com ([74.125.82.45]:37238 "EHLO
-        mail-wm0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S935074AbdLSMjD (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 19 Dec 2017 07:39:03 -0500
-Received: by mail-wm0-f45.google.com with SMTP id f140so3410318wmd.2
-        for <linux-media@vger.kernel.org>; Tue, 19 Dec 2017 04:39:02 -0800 (PST)
-Subject: Re: iMX6q/coda encoder failures with ffmpeg/gstreamer m2m encoders
-To: Philipp Zabel <p.zabel@pengutronix.de>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <8bfe88cc-28ec-fa07-5da3-614745ac125f@baylibre.com>
- <1513682278.7538.6.camel@pengutronix.de>
-From: Neil Armstrong <narmstrong@baylibre.com>
-Message-ID: <d2fc4aac-209c-c4c5-d487-e6e06013d1b5@baylibre.com>
-Date: Tue, 19 Dec 2017 13:38:59 +0100
+Received: from osg.samsung.com ([64.30.133.232]:34697 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752492AbdLAMHQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 1 Dec 2017 07:07:16 -0500
+Date: Fri, 1 Dec 2017 10:07:03 -0200
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: pieterg <pieterg@gmx.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: multiple frontends on a single dvb adapter
+Message-ID: <20171201100703.65f55a7e@vento.lan>
+In-Reply-To: <2a083a5e-a3dd-6225-4201-a4d62333fcfa@gmx.com>
+References: <2a083a5e-a3dd-6225-4201-a4d62333fcfa@gmx.com>
 MIME-Version: 1.0
-In-Reply-To: <1513682278.7538.6.camel@pengutronix.de>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 19/12/2017 12:17, Philipp Zabel wrote:
-> Hi Neil,
-> 
-> On Tue, 2017-11-21 at 10:50 +0100, Neil Armstrong wrote:
->> Hi,
->>
->> I'm trying to make the coda960 h.264 encoder work on an i.MX6q SoC with Linux 4.14 and the 3.1.1 firmware.
->>
->> # dmesg | grep coda
->> [    4.846574] coda 2040000.vpu: Direct firmware load for vpu_fw_imx6q.bin failed with error -2
->> [    4.901351] coda 2040000.vpu: Using fallback firmware vpu/vpu_fw_imx6q.bin
->> [    4.916039] coda 2040000.vpu: Firmware code revision: 46072
->> [    4.921641] coda 2040000.vpu: Initialized CODA960.
->> [    4.926589] coda 2040000.vpu: Firmware version: 3.1.1
->> [    4.932223] coda 2040000.vpu: codec registered as /dev/video[8-9]
->>
->> Using gstreamer-plugins-good and the m2m v4l2 encoder, I have :
->>
->> # gst-launch-1.0 videotestsrc num-buffers=1000 pattern=snow ! video/x-raw, framerate=30/1, width=1280, height=720 ! v4l2h264enc ! h264parse ! mp4mux ! filesink location=/dev/null
->> Setting pipeline to PAUSED ...
->> Pipeline is PREROLLING ...
->> Redistribute latency...
->> [ 1569.473717] coda 2040000.vpu: coda_s_fmt queue busy
->> ERROR: from element /GstPipeline:pipeline0/v4l2h264enc:v4l2h264enc0: Device '/dev/video8' is busy
->> Additional debug info:
->> ../../../gst-plugins-good-1.12.3/sys/v4l2/gstv4l2object.c(3609): gst_v4l2_object_set_format_full (): /GstPipeline:pipeline0/v4l2h264enc:v4l2h264enc0:
->> Call to S_FMT failed for YU12 @ 1280x720: Device or resource busy
->> ERROR: pipeline doesn't want to preroll.
->> Setting pipeline to NULL ...
->> Freeing pipeline ...
-> 
-> The coda driver does not allow S_FMT anymore, as soon as the buffers are
-> allocated with REQBUFS:
-> 
-> https://bugzilla.gnome.org/show_bug.cgi?id=791338
-> 
-> regards
-> Philipp
-> 
+Em Fri, 1 Dec 2017 12:38:14 +0100
+pieterg <pieterg@gmx.com> escreveu:
 
-Thanks Philipp,
+> Hi,
+> 
+> The recent removal of DMX_SET_SOURCE
+> 
+> https://github.com/torvalds/linux/commit/13adefbe9e566c6db91579e4ce17f1e5193d6f2c
+> 
+> and earlier removal of the set_source callback
+> 
+> https://github.com/torvalds/linux/commit/1e92bbe08ad9fc0d5ec05174c176a9bc54921733
+> 
+> leads to the question how the situation of having multiple frontends on
+> a single dvb adapter should be handled nowadays.
+> Suppose the routing is flexible, any demux could be sourced by any frontend.
+> In the past, this has been achieved by using the set_source callback,
+> allowing userspace to configure the routing by using the DMX_SET_SOURCE
+> ioctl.
+> 
+> The connect_frontend / disconnect_frontend callbacks are currently only
+> called for the memory frontend, so it seems no longer possible to select
+> hardware frontends.
+> How do you guys see this, what does the standard dictate in this case?
+> Should we assume a 1:1 mapping between frontendN:demuxN and forbid
+> dynamic routing? Or am I overlooking something?
+> 
+> In my opinion, supporting dynamic routing would be an advantage.
+> Especially when the number of (hardware) demuxes is smaller than the
+> number of (hardware) frontends.
 
-It solves the gstreamer encoding.
+The best way to support dynamic routing is via the media controller
+API. the DVB core already creates media controller entities for
+the existing hardware, but the links for the non-trivial case
+(e. g. there's no 1:1 mapping) should be created by the driver.
 
-Neil
+The big advantage of using the media controller is that you could
+dynamically setup the pipeline, not only between frontend and
+demux, but also with some other hardware. For example, with that,
+you could easily add a CI module at the pipeline, for an scrambled
+channel, or remove it, when the channel doesn't require, or when
+it is required to store a movie scrambled (that's usually required
+for embedded systems). At reproduction, a pipeline with the CI
+descrambler could be used.
+
+
+Thanks,
+Mauro
