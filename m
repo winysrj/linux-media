@@ -1,169 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46116 "EHLO
-        mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752410AbdKWOU5 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 23 Nov 2017 09:20:57 -0500
-Date: Thu, 23 Nov 2017 15:21:01 +0100
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        Niklas =?iso-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH/RFC 1/2] v4l: v4l2-dev: Add infrastructure to protect
- device unplug race
-Message-ID: <20171123142101.GA5155@kroah.com>
-References: <20171116003349.19235-1-laurent.pinchart+renesas@ideasonboard.com>
- <20171116003349.19235-2-laurent.pinchart+renesas@ideasonboard.com>
- <20171123110751.72f76d7d@vento.lan>
+Received: from mx1.redhat.com ([209.132.183.28]:36572 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752244AbdLAAYM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 30 Nov 2017 19:24:12 -0500
+From: Lyude Paul <lyude@redhat.com>
+To: stable@vger.kernel.org
+Cc: "Alex Deucher" <alexander.deucher@amd.com>,
+        "Sinclair Yeh" <syeh@vmware.com>,
+        =?UTF-8?q?Christian=20K=C3=B6nig?= <christian.koenig@amd.com>,
+        "David Airlie" <airlied@linux.ie>, linux-kernel@vger.kernel.org,
+        =?UTF-8?q?Nicolai=20H=C3=A4hnle?= <nicolai.haehnle@amd.com>,
+        dri-devel@lists.freedesktop.org,
+        "Peter Zijlstra" <peterz@infradead.org>,
+        "Chunming Zhou" <david1.zhou@amd.com>,
+        =?UTF-8?q?Michel=20D=C3=A4nzer?= <michel.daenzer@amd.com>,
+        "Sumit Semwal" <sumit.semwal@linaro.org>,
+        linux-media@vger.kernel.org, linaro-mm-sig@lists.linaro.org,
+        "Harish Kasiviswanathan" <harish.kasiviswanathan@amd.com>,
+        "Alex Xie" <alexbin.xie@amd.com>,
+        "Zhang, Jerry" <jerry.zhang@amd.com>,
+        "Felix Kuehling" <felix.kuehling@amd.com>,
+        amd-gfx@lists.freedesktop.org
+Subject: [PATCH 0/4] Backported amdgpu ttm deadlock fixes for 4.14
+Date: Thu, 30 Nov 2017 19:23:02 -0500
+Message-Id: <20171201002311.28098-1-lyude@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20171123110751.72f76d7d@vento.lan>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Nov 23, 2017 at 11:07:51AM -0200, Mauro Carvalho Chehab wrote:
-> Hi Laurent,
-> 
-> Em Thu, 16 Nov 2017 02:33:48 +0200
-> Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com> escreveu:
-> 
-> > Device unplug being asynchronous, it naturally races with operations
-> > performed by userspace through ioctls or other file operations on video
-> > device nodes.
-> > 
-> > This leads to potential access to freed memory or to other resources
-> > during device access if unplug occurs during device access. To solve
-> > this, we need to wait until all device access completes when unplugging
-> > the device, and block all further access when the device is being
-> > unplugged.
-> > 
-> > Three new functions are introduced. The video_device_enter() and
-> > video_device_exit() functions must be used to mark entry and exit from
-> > all code sections where the device can be accessed. The
-> > video_device_unplug() function is then used in the unplug handler to
-> > mark the device as being unplugged and wait for all access to complete.
-> > 
-> > As an example mark the ioctl handler as a device access section. Other
-> > file operations need to be protected too, and blocking ioctls (such as
-> > VIDIOC_DQBUF) need to be handled as well.
-> > 
-> > Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-> > ---
-> >  drivers/media/v4l2-core/v4l2-dev.c | 57 ++++++++++++++++++++++++++++++++++++++
-> >  include/media/v4l2-dev.h           | 47 +++++++++++++++++++++++++++++++
-> >  2 files changed, 104 insertions(+)
-> > 
-> > diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
-> > index c647ba648805..c73c6d49e7cf 100644
-> > --- a/drivers/media/v4l2-core/v4l2-dev.c
-> > +++ b/drivers/media/v4l2-core/v4l2-dev.c
-> > @@ -156,6 +156,52 @@ void video_device_release_empty(struct video_device *vdev)
-> >  }
-> >  EXPORT_SYMBOL(video_device_release_empty);
-> >  
-> > +int video_device_enter(struct video_device *vdev)
-> > +{
-> > +	bool unplugged;
-> > +
-> > +	spin_lock(&vdev->unplug_lock);
-> > +	unplugged = vdev->unplugged;
-> > +	if (!unplugged)
-> > +		vdev->access_refcount++;
-> > +	spin_unlock(&vdev->unplug_lock);
-> > +
-> > +	return unplugged ? -ENODEV : 0;
-> > +}
-> > +EXPORT_SYMBOL_GPL(video_device_enter);
-> > +
-> > +void video_device_exit(struct video_device *vdev)
-> > +{
-> > +	bool wake_up;
-> > +
-> > +	spin_lock(&vdev->unplug_lock);
-> > +	WARN_ON(--vdev->access_refcount < 0);
-> > +	wake_up = vdev->access_refcount == 0;
-> > +	spin_unlock(&vdev->unplug_lock);
-> > +
-> > +	if (wake_up)
-> > +		wake_up(&vdev->unplug_wait);
-> > +}
-> > +EXPORT_SYMBOL_GPL(video_device_exit);
-> > +
-> > +void video_device_unplug(struct video_device *vdev)
-> > +{
-> > +	bool unplug_blocked;
-> > +
-> > +	spin_lock(&vdev->unplug_lock);
-> > +	unplug_blocked = vdev->access_refcount > 0;
-> > +	vdev->unplugged = true;
-> > +	spin_unlock(&vdev->unplug_lock);
-> > +
-> > +	if (!unplug_blocked)
-> > +		return;
-> > +
-> > +	if (!wait_event_timeout(vdev->unplug_wait, !vdev->access_refcount,
-> > +				msecs_to_jiffies(150000)))
-> > +		WARN(1, "Timeout waiting for device access to complete\n");
-> > +}
-> > +EXPORT_SYMBOL_GPL(video_device_unplug);
-> > +
-> >  static inline void video_get(struct video_device *vdev)
-> >  {
-> >  	get_device(&vdev->dev);
-> > @@ -351,6 +397,10 @@ static long v4l2_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
-> >  	struct video_device *vdev = video_devdata(filp);
-> >  	int ret = -ENODEV;
-> >  
-> > +	ret = video_device_enter(vdev);
-> > +	if (ret < 0)
-> > +		return ret;
-> > +
-> >  	if (vdev->fops->unlocked_ioctl) {
-> >  		struct mutex *lock = v4l2_ioctl_get_lock(vdev, cmd);
-> >  
-> > @@ -358,11 +408,14 @@ static long v4l2_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
-> >  			return -ERESTARTSYS;
-> >  		if (video_is_registered(vdev))
-> >  			ret = vdev->fops->unlocked_ioctl(filp, cmd, arg);
-> > +		else
-> > +			ret = -ENODEV;
-> >  		if (lock)
-> >  			mutex_unlock(lock);
-> >  	} else
-> >  		ret = -ENOTTY;
-> >  
-> > +	video_device_exit(vdev);
-> >  	return ret;
-> >  }
-> >  
-> > @@ -841,6 +894,10 @@ int __video_register_device(struct video_device *vdev, int type, int nr,
-> >  	if (WARN_ON(!vdev->v4l2_dev))
-> >  		return -EINVAL;
-> >  
-> > +	/* unplug support */
-> > +	spin_lock_init(&vdev->unplug_lock);
-> > +	init_waitqueue_head(&vdev->unplug_wait);
-> > +
-> 
-> I'm c/c Greg here, as I don't think, that, the way it is, it
-> belongs at V4L2 core.
-> 
-> I mean: if this is a problem that affects all drivers, it would should, 
-> instead, be sitting at the driver's core.
+I haven't gone to see where it started, but as of late a good number of
+pretty nasty deadlock issues have appeared with the kernel. Easy
+reproduction recipe on a laptop with i915/amdgpu prime with lockdep enabled:
 
-What "problem" is trying to be solved here?  One where your specific
-device type races with your specific user api?  Doesn't sound very
-driver-core specific to me :)
+DRI_PRIME=1 glxinfo
 
-As an example, what other bus/device type needs this?  If you can see
-others that do, then sure, move it into the core.  But for just one, I
-don't know if that's really needed here, do you?
+Additionally, some more race conditions exist that I've managed to
+trigger with piglit and lockdep enabled after applying these patches:
 
-thanks,
+    =============================
+    WARNING: suspicious RCU usage
+    4.14.3Lyude-Test+ #2 Not tainted
+    -----------------------------
+    ./include/linux/reservation.h:216 suspicious rcu_dereference_protected() usage!
 
-greg k-h
+    other info that might help us debug this:
+
+    rcu_scheduler_active = 2, debug_locks = 1
+    1 lock held by ext_image_dma_b/27451:
+     #0:  (reservation_ww_class_mutex){+.+.}, at: [<ffffffffa034f2ff>] ttm_bo_unref+0x9f/0x3c0 [ttm]
+
+    stack backtrace:
+    CPU: 0 PID: 27451 Comm: ext_image_dma_b Not tainted 4.14.3Lyude-Test+ #2
+    Hardware name: HP HP ZBook 15 G4/8275, BIOS P70 Ver. 01.02 06/09/2017
+    Call Trace:
+     dump_stack+0x8e/0xce
+     lockdep_rcu_suspicious+0xc5/0x100
+     reservation_object_copy_fences+0x292/0x2b0
+     ? ttm_bo_unref+0x9f/0x3c0 [ttm]
+     ttm_bo_unref+0xbd/0x3c0 [ttm]
+     amdgpu_bo_unref+0x2a/0x50 [amdgpu]
+     amdgpu_gem_object_free+0x4b/0x50 [amdgpu]
+     drm_gem_object_free+0x1f/0x40 [drm]
+     drm_gem_object_put_unlocked+0x40/0xb0 [drm]
+     drm_gem_object_handle_put_unlocked+0x6c/0xb0 [drm]
+     drm_gem_object_release_handle+0x51/0x90 [drm]
+     drm_gem_handle_delete+0x5e/0x90 [drm]
+     ? drm_gem_handle_create+0x40/0x40 [drm]
+     drm_gem_close_ioctl+0x20/0x30 [drm]
+     drm_ioctl_kernel+0x5d/0xb0 [drm]
+     drm_ioctl+0x2f7/0x3b0 [drm]
+     ? drm_gem_handle_create+0x40/0x40 [drm]
+     ? trace_hardirqs_on_caller+0xf4/0x190
+     ? trace_hardirqs_on+0xd/0x10
+     amdgpu_drm_ioctl+0x4f/0x90 [amdgpu]
+     do_vfs_ioctl+0x93/0x670
+     ? __fget+0x108/0x1f0
+     SyS_ioctl+0x79/0x90
+     entry_SYSCALL_64_fastpath+0x23/0xc2
+
+I've also added the relevant fixes for the issue mentioned above.
+
+Christian König (3):
+  drm/ttm: fix ttm_bo_cleanup_refs_or_queue once more
+  dma-buf: make reservation_object_copy_fences rcu save
+  drm/amdgpu: reserve root PD while releasing it
+
+Michel Dänzer (1):
+  drm/ttm: Always and only destroy bo->ttm_resv in ttm_bo_release_list
+
+ drivers/dma-buf/reservation.c          | 56 +++++++++++++++++++++++++---------
+ drivers/gpu/drm/amd/amdgpu/amdgpu_vm.c | 13 ++++++--
+ drivers/gpu/drm/ttm/ttm_bo.c           | 43 +++++++++++++-------------
+ 3 files changed, 74 insertions(+), 38 deletions(-)
+
+--
+2.14.3
