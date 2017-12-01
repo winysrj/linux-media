@@ -1,29 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.anw.at ([195.234.101.228]:55789 "EHLO mail.anw.at"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751554AbdLJOb6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 10 Dec 2017 09:31:58 -0500
-Subject: Re: [PATCH] build: Revert 41e33085284dd2bc6b6180d8381ff8a509b9d8ba
- for < 3.19
-To: linux-media@vger.kernel.org
-Cc: hverkuil@xs4all.nl, d.scheller@gmx.net
-References: <1512916080-5938-1-git-send-email-jasmin@anw.at>
-From: "Jasmin J." <jasmin@anw.at>
-Message-ID: <2459b0d7-bb8d-a580-6869-20313f910713@anw.at>
-Date: Sun, 10 Dec 2017 15:31:53 +0100
+Received: from aserp1040.oracle.com ([141.146.126.69]:20896 "EHLO
+        aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750975AbdLAPHp (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 1 Dec 2017 10:07:45 -0500
+Date: Fri, 1 Dec 2017 18:07:25 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: Jeremy Sowden <jeremy@azazel.net>
+Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org
+Subject: Re: [PATCH 1/3] media: atomisp: convert default struct values to use
+ compound-literals with designated initializers.
+Message-ID: <20171201150725.cfcp6b4bs2ncqsip@mwanda>
+References: <20171129083835.tam3avqz5vishwqw@azazel.net>
+ <20171130214014.31412-1-jeremy@azazel.net>
+ <20171130214014.31412-2-jeremy@azazel.net>
 MIME-Version: 1.0
-In-Reply-To: <1512916080-5938-1-git-send-email-jasmin@anw.at>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20171130214014.31412-2-jeremy@azazel.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi!
+I can't apply this (to today's linux-next) but does this really work:
 
-With this patch it compiles back to kernel 2.6.36.
-I tested it with 3.13, 3.4 and 2.6.36.
-Don't forget to merge also my "READ_ONCE" patch.
+> +(struct ia_css_3a_grid_info) { \
+> +	.ae_enable		= 0, \
+> +	.ae_grd_info		= (struct ae_public_config_grid_config) { \
+> +					width = 0, \
+> +					height = 0, \
+> +					b_width = 0, \
+> +					b_height = 0, \
+> +					x_start = 0, \
+> +					y_start = 0, \
+> +					x_end = 0, \
+> +					y_end = 0 \
 
-BR,
-   Jasmin
+I'm pretty sure those lines should start with a period.
+
+- 					width = 0, \
++					.width = 0, \
+
+regards,
+dan
