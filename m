@@ -1,64 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f48.google.com ([74.125.82.48]:45485 "EHLO
-        mail-wm0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752587AbdLKTF7 (ORCPT
+Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:39691 "EHLO
+        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751236AbdLAHX6 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 11 Dec 2017 14:05:59 -0500
-Received: by mail-wm0-f48.google.com with SMTP id 9so16446955wme.4
-        for <linux-media@vger.kernel.org>; Mon, 11 Dec 2017 11:05:58 -0800 (PST)
+        Fri, 1 Dec 2017 02:23:58 -0500
+Subject: Re: [PATCHv5 0/3] drm/i915: add DisplayPort CEC-Tunneling-over-AUX
+ support
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Daniel Vetter <daniel.vetter@ffwll.ch>,
+        dri-devel@lists.freedesktop.org,
+        Carlos Santa <carlos.santa@intel.com>
+References: <20171120114211.21825-1-hverkuil@xs4all.nl>
+Message-ID: <3f7a93ba-8a7d-c2bf-151a-b5b59a3c6fbd@xs4all.nl>
+Date: Fri, 1 Dec 2017 08:23:53 +0100
 MIME-Version: 1.0
-In-Reply-To: <c80aee3d6556f9acad8ea39bbded8b73e73d5d17.1513013948.git.joabreu@synopsys.com>
-References: <cover.1513013948.git.joabreu@synopsys.com> <c80aee3d6556f9acad8ea39bbded8b73e73d5d17.1513013948.git.joabreu@synopsys.com>
-From: Philippe Ombredanne <pombredanne@nexb.com>
-Date: Mon, 11 Dec 2017 20:05:17 +0100
-Message-ID: <CAOFm3uEv67Z4B4q8QSAD4t=QZaU08N3t9W8mgODL1-X=pMKN9Q@mail.gmail.com>
-Subject: Re: [PATCH v10 3/4] [media] platform: Add Synopsys DesignWare HDMI RX
- PHY e405 Driver
-To: Jose Abreu <Jose.Abreu@synopsys.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>,
-        Joao Pinto <Joao.Pinto@synopsys.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sylwester Nawrocki <snawrocki@kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+In-Reply-To: <20171120114211.21825-1-hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Dec 11, 2017 at 6:41 PM, Jose Abreu <Jose.Abreu@synopsys.com> wrote:
-> This adds support for the Synopsys DesignWare HDMI RX PHY e405. This
-> phy receives and decodes HDMI video that is delivered to a controller.
->
-> Main features included in this driver are:
->         - Equalizer algorithm that chooses the phy best settings
->         according to the detected HDMI cable characteristics.
->         - Support for scrambling
->         - Support for HDMI 2.0 modes up to 6G (HDMI 4k@60Hz).
->
-> The driver was implemented as a standalone V4L2 subdevice and the
-> phy interface with the controller was implemented using V4L2 ioctls. I
-> do not know if this is the best option but it is not possible to use the
-> existing API functions directly as we need specific functions that will
-> be called by the controller at specific configuration stages.
->
-> There is also a bidirectional communication between controller and phy:
-> The phy must provide functions that the controller will call (i.e.
-> configuration functions) and the controller must provide read/write
-> callbacks, as well as other specific functions.
->
-> Signed-off-by: Jose Abreu <joabreu@synopsys.com>
-> Cc: Joao Pinto <jpinto@synopsys.com>
-> Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
-> Cc: Hans Verkuil <hans.verkuil@cisco.com>
-> Cc: Sylwester Nawrocki <snawrocki@kernel.org>
-> Cc: Philippe Ombredanne <pombredanne@nexb.com>
-> ---
-> Changes from v9:
->         - Use SPDX License ID (Philippe)
+Ping!
 
-Acked-by: Philippe Ombredanne <pombredanne@nexb.com>
+I really like to get this in for 4.16 so I can move forward with hooking
+this up for nouveau/amd.
 
-Thanks!
--- 
-Cordially
-Philippe Ombredanne
+Regards,
+
+	Hans
+
+On 11/20/2017 12:42 PM, Hans Verkuil wrote:
+> This patch series adds support for the DisplayPort CEC-Tunneling-over-AUX
+> feature. This patch series is based on the 4.14 mainline release but applies
+> as well to drm-next.
+> 
+> This patch series has been tested with my NUC7i5BNK, a Samsung USB-C to 
+> HDMI adapter and a Club 3D DisplayPort MST Hub + modified UpTab DP-to-HDMI
+> adapter (where the CEC pin is wired up).
+> 
+> Please note this comment at the start of drm_dp_cec.c:
+> 
+> ----------------------------------------------------------------------
+> Unfortunately it turns out that we have a chicken-and-egg situation
+> here. Quite a few active (mini-)DP-to-HDMI or USB-C-to-HDMI adapters
+> have a converter chip that supports CEC-Tunneling-over-AUX (usually the
+> Parade PS176 or MegaChips MCDP2900), but they do not wire up the CEC pin,
+> thus making CEC useless.
+> 
+> Sadly there is no way for this driver to know this. What happens is
+> that a /dev/cecX device is created that is isolated and unable to see
+> any of the other CEC devices. Quite literally the CEC wire is cut
+> (or in this case, never connected in the first place).
+> 
+> I suspect that the reason so few adapters support this is that this
+> tunneling protocol was never supported by any OS. So there was no
+> easy way of testing it, and no incentive to correctly wire up the
+> CEC pin.
+> 
+> Hopefully by creating this driver it will be easier for vendors to
+> finally fix their adapters and test the CEC functionality.
+> 
+> I keep a list of known working adapters here:
+> 
+> https://hverkuil.home.xs4all.nl/cec-status.txt
+> 
+> Please mail me (hverkuil@xs4all.nl) if you find an adapter that works
+> and is not yet listed there.
+> 
+> Note that the current implementation does not support CEC over an MST hub.
+> As far as I can see there is no mechanism defined in the DisplayPort
+> standard to transport CEC interrupts over an MST device. It might be
+> possible to do this through polling, but I have not been able to get that
+> to work.
+> ----------------------------------------------------------------------
+> 
+> I really hope that this work will provide an incentive for vendors to
+> finally connect the CEC pin. It's a shame that there are so few adapters
+> that work (I found only two USB-C to HDMI adapters that work, and no
+> (mini-)DP to HDMI adapters at all).
+> 
+> Hopefully if this gets merged there will be an incentive for vendors
+> to make adapters where this actually works. It is a very nice feature
+> for HTPC boxes.
+> 
+> The main reason why this v5 is delayed by 2 months is due to the fact
+> that I needed some dedicated time to investigate what happens when an
+> MST hub is in use. It turns out that this is not working. There is no
+> mechanism defined in the DisplayPort standard to transport the CEC
+> interrupt back up the MST chain. I was actually able to send a CEC
+> message but the interrupt that tells when the transmit finished is
+> unavailable.
+> 
+> I attempted to implement this via polling, but I got weird errors
+> and was not able to read the DP_DEVICE_SERVICE_IRQ_VECTOR_ESI1
+> register. I decided to give up on this for now and just disable CEC
+> for DP-to-HDMI adapters after an MST hub. I plan to revisit this
+> later since it would be neat to make this work as well. Although it
+> might not be possible at all.
+> 
+> If anyone is interested, work-in-progress for this is here:
+> 
+> https://git.linuxtv.org/hverkuil/media_tree.git/log/?h=dp-cec-mst
+> 
+> Note that I removed the Tested-by tag from Carlos Santa due to the
+> almost complete rework of the third patch. Carlos, can you test this again?
+> 
+> Regards,
+> 
+>         Hans
+> 
+> Changes since v4:
+> 
+> - Updated comment at the start of drm_dp_cec.c
+> - Add edid pointer to drm_dp_cec_configure_adapter
+> - Reworked the last patch (adding CEC to i915) based on Ville's comments
+>   and my MST testing:
+> 	- register/unregister CEC in intel_dp_connector_register/unregister
+> 	- add comment and check if connector is registered in long_pulse
+> 	- unregister CEC if an MST 'connector' is detected.
+> 
+> _______________________________________________
+> dri-devel mailing list
+> dri-devel@lists.freedesktop.org
+> https://lists.freedesktop.org/mailman/listinfo/dri-devel
+> 
