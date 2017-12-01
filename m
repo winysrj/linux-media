@@ -1,104 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:57083 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751688AbdLKNd4 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 11 Dec 2017 08:33:56 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: linux-media@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Hyun Kwon <hyun.kwon@xilinx.com>
-Subject: Re: [PATCH] media: xilinx-video: fix bad of_node_put() on endpoint error
-Date: Mon, 11 Dec 2017 15:33:57 +0200
-Message-ID: <10967298.zCYyocrkeW@avalon>
-In-Reply-To: <1507824284-17809-1-git-send-email-akinobu.mita@gmail.com>
-References: <1507824284-17809-1-git-send-email-akinobu.mita@gmail.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from smtp.hosts.co.uk ([85.233.160.19]:29028 "EHLO smtp.hosts.co.uk"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751308AbdLASxx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 1 Dec 2017 13:53:53 -0500
+From: Ian Jamison <ian.dev@arkver.com>
+To: Steve Longerbeam <slongerbeam@gmail.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH v2] media: imx: Remove incorrect check for queue state in start/stop_streaming
+Date: Fri,  1 Dec 2017 18:53:50 +0000
+Message-Id: <ac504a93b483b40a8b2f9087af8c6d25672c7d6c.1512154062.git.ian.dev@arkver.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Akinobu,
+It is possible to call STREAMON without the minimum number of
+buffers queued. In this case the vb2_queue state will be set to
+streaming but the start_streaming vb2_op will not be called.
+Later when enough buffers are queued, start_streaming will
+be called but vb2_is_streaming will already return true.
 
-Thank you for the patch.
+Also removed the queue state check in stop_streaming since it's
+not valid there either.
 
-On Thursday, 12 October 2017 19:04:44 EET Akinobu Mita wrote:
-> When iterating through all endpoints using of_graph_get_next_endpoint(),
-> the refcount of the returned endpoint node is incremented and the refcount
-> of the node which is passed as previous endpoint is decremented.
-> 
-> So the caller doesn't need to call of_node_put() for each iterated node
-> except for error exit paths.  Otherwise we get "OF: ERROR: Bad
-> of_node_put() on ..." messages.
-> 
-> Cc: Hyun Kwon <hyun.kwon@xilinx.com>
-> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Signed-off-by: Ian Jamison <ian.dev@arkver.com>
+---
+Since v1:
+    Remove check in capture_stop_streaming as recommended by Hans.
 
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+ drivers/staging/media/imx/imx-media-capture.c | 6 ------
+ 1 file changed, 6 deletions(-)
 
-and applied to my tree.
-
-> ---
->  drivers/media/platform/xilinx/xilinx-vipp.c | 16 ++++------------
->  1 file changed, 4 insertions(+), 12 deletions(-)
-> 
-> diff --git a/drivers/media/platform/xilinx/xilinx-vipp.c
-> b/drivers/media/platform/xilinx/xilinx-vipp.c index ebfdf33..e5c80c9 100644
-> --- a/drivers/media/platform/xilinx/xilinx-vipp.c
-> +++ b/drivers/media/platform/xilinx/xilinx-vipp.c
-> @@ -76,20 +76,16 @@ static int xvip_graph_build_one(struct
-> xvip_composite_device *xdev, struct xvip_graph_entity *ent;
->  	struct v4l2_fwnode_link link;
->  	struct device_node *ep = NULL;
-> -	struct device_node *next;
->  	int ret = 0;
-> 
->  	dev_dbg(xdev->dev, "creating links for entity %s\n", local->name);
-> 
->  	while (1) {
->  		/* Get the next endpoint and parse its link. */
-> -		next = of_graph_get_next_endpoint(entity->node, ep);
-> -		if (next == NULL)
-> +		ep = of_graph_get_next_endpoint(entity->node, ep);
-> +		if (ep == NULL)
->  			break;
-> 
-> -		of_node_put(ep);
-> -		ep = next;
-> -
->  		dev_dbg(xdev->dev, "processing endpoint %pOF\n", ep);
-> 
->  		ret = v4l2_fwnode_parse_link(of_fwnode_handle(ep), &link);
-> @@ -200,7 +196,6 @@ static int xvip_graph_build_dma(struct
-> xvip_composite_device *xdev) struct xvip_graph_entity *ent;
->  	struct v4l2_fwnode_link link;
->  	struct device_node *ep = NULL;
-> -	struct device_node *next;
->  	struct xvip_dma *dma;
->  	int ret = 0;
-> 
-> @@ -208,13 +203,10 @@ static int xvip_graph_build_dma(struct
-> xvip_composite_device *xdev)
-> 
->  	while (1) {
->  		/* Get the next endpoint and parse its link. */
-> -		next = of_graph_get_next_endpoint(node, ep);
-> -		if (next == NULL)
-> +		ep = of_graph_get_next_endpoint(node, ep);
-> +		if (ep == NULL)
->  			break;
-> 
-> -		of_node_put(ep);
-> -		ep = next;
-> -
->  		dev_dbg(xdev->dev, "processing endpoint %pOF\n", ep);
-> 
->  		ret = v4l2_fwnode_parse_link(of_fwnode_handle(ep), &link);
-
+diff --git a/drivers/staging/media/imx/imx-media-capture.c b/drivers/staging/media/imx/imx-media-capture.c
+index ea145bafb880..7b6763802db8 100644
+--- a/drivers/staging/media/imx/imx-media-capture.c
++++ b/drivers/staging/media/imx/imx-media-capture.c
+@@ -449,9 +449,6 @@ static int capture_start_streaming(struct vb2_queue *vq, unsigned int count)
+ 	unsigned long flags;
+ 	int ret;
+ 
+-	if (vb2_is_streaming(vq))
+-		return 0;
+-
+ 	ret = imx_media_pipeline_set_stream(priv->md, &priv->src_sd->entity,
+ 					    true);
+ 	if (ret) {
+@@ -480,9 +477,6 @@ static void capture_stop_streaming(struct vb2_queue *vq)
+ 	unsigned long flags;
+ 	int ret;
+ 
+-	if (!vb2_is_streaming(vq))
+-		return;
+-
+ 	spin_lock_irqsave(&priv->q_lock, flags);
+ 	priv->stop = true;
+ 	spin_unlock_irqrestore(&priv->q_lock, flags);
 -- 
-Regards,
-
-Laurent Pinchart
+2.15.0
