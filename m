@@ -1,242 +1,255 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:46657 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751321AbdLHHqG (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 8 Dec 2017 02:46:06 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Niklas =?ISO-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>
-Subject: Re: [PATCH v9 01/28] rcar-vin: add Gen3 devicetree bindings documentation
-Date: Fri, 08 Dec 2017 09:46:24 +0200
-Message-ID: <1516159.4MxLsDy55H@avalon>
-In-Reply-To: <20171208010842.20047-2-niklas.soderlund+renesas@ragnatech.se>
-References: <20171208010842.20047-1-niklas.soderlund+renesas@ragnatech.se> <20171208010842.20047-2-niklas.soderlund+renesas@ragnatech.se>
-MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset="iso-8859-1"
+Received: from osg.samsung.com ([64.30.133.232]:40468 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752803AbdLANrU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 1 Dec 2017 08:47:20 -0500
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        lkml@vger.kernel.org, Sean Young <sean@mess.org>,
+        Philippe Ombredanne <pombredanne@nexb.com>,
+        Shawn Guo <shawn.guo@linaro.org>,
+        James Hogan <jhogan@kernel.org>,
+        =?UTF-8?q?David=20H=C3=A4rdeman?= <david@hardeman.nu>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        =?UTF-8?q?Antti=20Sepp=C3=A4l=C3=A4?= <a.seppala@gmail.com>,
+        Heiner Kallweit <hkallweit1@gmail.com>,
+        Jasmin Jessich <jasmin@anw.at>,
+        Andi Shyti <andi.shyti@samsung.com>
+Subject: [PATCH v2 2/7] media: rc: add SPDX identifiers to the code I wrote
+Date: Fri,  1 Dec 2017 11:47:08 -0200
+Message-Id: <8d6c6cc360547cbfa397c9c3c55bac40cca62903.1512135871.git.mchehab@s-opensource.com>
+In-Reply-To: <87092e1fd6509e7272bd7b95865cdc4b793c714e.1512135871.git.mchehab@s-opensource.com>
+References: <87092e1fd6509e7272bd7b95865cdc4b793c714e.1512135871.git.mchehab@s-opensource.com>
+In-Reply-To: <87092e1fd6509e7272bd7b95865cdc4b793c714e.1512135871.git.mchehab@s-opensource.com>
+References: <87092e1fd6509e7272bd7b95865cdc4b793c714e.1512135871.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Niklas,
+As we're now using SPDX identifiers, on the several
+media drivers I wrote, add the proper SPDX, identifying
+the license I meant.
 
-Thank you for the patch.
+As we're now using the short license, it doesn't make sense to
+keep the original license text.
 
-On Friday, 8 December 2017 03:08:15 EET Niklas S=F6derlund wrote:
-> Document the devicetree bindings for the CSI-2 inputs available on Gen3.
->=20
-> There is a need to add a custom property 'renesas,id' and to define
-> which CSI-2 input is described in which endpoint under the port@1 node.
-> This information is needed since there are a set of predefined routes
-> between each VIN and CSI-2 block. This routing table will be kept
-> inside the driver but in order for it to act on it it must know which
-> VIN and CSI-2 is which.
->=20
-> Signed-off-by: Niklas S=F6derlund <niklas.soderlund+renesas@ragnatech.se>
-> Acked-by: Rob Herring <robh@kernel.org>
-> ---
->  .../devicetree/bindings/media/rcar_vin.txt         | 116 +++++++++++++++=
-=2D--
->  1 file changed, 104 insertions(+), 12 deletions(-)
->=20
-> diff --git a/Documentation/devicetree/bindings/media/rcar_vin.txt
-> b/Documentation/devicetree/bindings/media/rcar_vin.txt index
-> ff9697ed81396e64..5a95d9668d2c7dfd 100644
-> --- a/Documentation/devicetree/bindings/media/rcar_vin.txt
-> +++ b/Documentation/devicetree/bindings/media/rcar_vin.txt
-> @@ -2,8 +2,12 @@ Renesas R-Car Video Input driver (rcar_vin)
->  -------------------------------------------
->=20
->  The rcar_vin device provides video input capabilities for the Renesas R-=
-Car
-> -family of devices. The current blocks are always slaves and suppot one
-> input
-> -channel which can be either RGB, YUYV or BT656.
-> +family of devices.
-> +
-> +Each VIN instance has a single parallel input that supports RGB and YUV
-> video,
-> +with both external synchronization and BT.656 synchronization for the
-> latter.
-> +Depending on the instance the VIN input is connected to external SoC pin=
-s,
-> or
-> +on Gen3 to a CSI-2 receiver.
->=20
->   - compatible: Must be one or more of the following
->     - "renesas,vin-r8a7743" for the R8A7743 device
-> @@ -31,21 +35,38 @@ channel which can be either RGB, YUYV or BT656.
->  Additionally, an alias named vinX will need to be created to specify
->  which video input device this is.
->=20
-> -The per-board settings:
-> +The per-board settings Gen2:
+Also, fix MODULE_LICENSE to properly identify GPL v2.
 
-Nitpicking, s/Gen2/for Gen2 platforms/
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Reviewed-by: Philippe Ombredanne <pombredanne@nexb.com>
+---
+ drivers/media/rc/ir-nec-decoder.c   | 19 +++++--------------
+ drivers/media/rc/ir-rc5-decoder.c   | 21 ++++++---------------
+ drivers/media/rc/ir-sanyo-decoder.c | 37 ++++++++++++++-----------------------
+ drivers/media/rc/rc-core-priv.h     | 18 ++++--------------
+ drivers/media/rc/rc-ir-raw.c        | 17 ++++-------------
+ drivers/media/rc/rc-main.c          | 19 +++++--------------
+ 6 files changed, 38 insertions(+), 93 deletions(-)
 
-(or Gen2 hardware, or Gen2 systems, pick the one you like best)
-
->   - port sub-node describing a single endpoint connected to the vin
->     as described in video-interfaces.txt[1]. Only the first one will
->     be considered as each vin interface has one input port.
->=20
-> -   These settings are used to work out video input format and widths
-> -   into the system.
-> +The per-board settings Gen3:
-
-Ditto.
-
-> +
-> +Gen3 can support both a single connected parallel input source from
-> +external SoC pins (port0) and/or multiple parallel input sources from
-> +local SoC CSI-2 receivers (port1) depending on SoC.
->=20
-> +- renesas,id - ID number of the VIN, VINx in the documentation.
-> +- ports
-> +    - port0 - sub-node describing a single endpoint connected to the VIN
-> +      from external SoC pins described in video-interfaces.txt[1]. Only
-> +      the first one will be considered as each VIN interface has at most
-> +      one set of SoC external input pins.
-
-s/port0/port 0/ or s/port0/port@0/
-
-I'd go further than that and make it invalid to have multiple endpoints=20
-instead of ignoring all but the first one.
-
-I would also explicitly state that VIN instances not connected to external=
-=20
-pins shall have no port 0.
-
-> +    - port1 - sub-nodes describing one or more endpoints connected to
-> +      the VIN from local SoC CSI-2 receivers. The endpoint numbers must
-> +      use the following schema.
-
-Nitpicking again, the Gen2-specific properties are indented above while the=
-=20
-Gen3 properties are not indented here. Pick the one you prefer :-)
-
-> -Device node example
-> --------------------
-> +        - Endpoint 0 - sub-node describing the endpoint which is CSI20
-> +        - Endpoint 1 - sub-node describing the endpoint which is CSI21
-> +        - Endpoint 2 - sub-node describing the endpoint which is CSI40
-> +        - Endpoint 3 - sub-node describing the endpoint which is CSI41
-
-How about s/which is/connected to/ ?
-
-> -	aliases {
-> -	       vin0 =3D &vin0;
-> -	};
-> +Device node example Gen2
-
-s/Gen2/for Gen2 platforms/
-
-and same in a few places below.
-
-> +------------------------
-> +
-> +        aliases {
-> +                vin0 =3D &vin0;
-> +        };
-
-This is unrelated, but do we need aliases ?
-
->          vin0: vin@0xe6ef0000 {
->                  compatible =3D "renesas,vin-r8a7790",
-> "renesas,rcar-gen2-vin"; @@ -55,8 +76,8 @@ Device node example
->                  status =3D "disabled";
->          };
->=20
-> -Board setup example (vin1 composite video input)
-> -------------------------------------------------
-> +Board setup example Gen2 (vin1 composite video input)
-> +-----------------------------------------------------
->=20
->  &i2c2   {
->          status =3D "ok";
-> @@ -95,6 +116,77 @@ Board setup example (vin1 composite video input)
->          };
->  };
->=20
-> +Device node example Gen3
-> +------------------------
-> +
-> +        vin0: video@e6ef0000 {
-> +                compatible =3D "renesas,vin-r8a7795";
-> +                reg =3D <0 0xe6ef0000 0 0x1000>;
-> +                interrupts =3D <GIC_SPI 188 IRQ_TYPE_LEVEL_HIGH>;
-> +                clocks =3D <&cpg CPG_MOD 811>;
-> +                power-domains =3D <&sysc R8A7795_PD_ALWAYS_ON>;
-> +                resets =3D <&cpg 811>;
-> +                renesas,id =3D <0>;
-> +
-> +                ports {
-> +                        #address-cells =3D <1>;
-> +                        #size-cells =3D <0>;
-> +
-> +                        port@1 {
-> +                                #address-cells =3D <1>;
-> +                                #size-cells =3D <0>;
-> +
-> +                                reg =3D <1>;
-> +
-> +                                vin0csi20: endpoint@0 {
-> +                                        reg =3D <0>;
-> +                                        remote-endpoint=3D <&csi20vin0>;
-> +                                };
-> +                                vin0csi21: endpoint@1 {
-> +                                        reg =3D <1>;
-> +                                        remote-endpoint=3D <&csi21vin0>;
-> +                                };
-> +                                vin0csi40: endpoint@2 {
-> +                                        reg =3D <2>;
-> +                                        remote-endpoint=3D <&csi40vin0>;
-> +                                };
-> +                        };
-> +                };
-> +        };
-> +
-> +        csi20: csi2@fea80000 {
-> +                compatible =3D "renesas,r8a7795-csi2";
-> +                reg =3D <0 0xfea80000 0 0x10000>;
-> +                interrupts =3D <GIC_SPI 184 IRQ_TYPE_LEVEL_HIGH>;
-> +                clocks =3D <&cpg CPG_MOD 714>;
-> +                power-domains =3D <&sysc R8A7795_PD_ALWAYS_ON>;
-> +                resets =3D <&cpg 714>;
-> +
-> +                ports {
-> +                        #address-cells =3D <1>;
-> +                        #size-cells =3D <0>;
-> +
-> +                        port@0 {
-> +                                reg =3D <0>;
-> +                                csi20_in: endpoint {
-> +                                        clock-lanes =3D <0>;
-> +                                        data-lanes =3D <1>;
-> +                                        remote-endpoint =3D <&adv7482_tx=
-b>;
-> +                                };
-> +                        };
-> +
-> +                        port@1 {
-> +                                #address-cells =3D <1>;
-> +                                #size-cells =3D <0>;
->=20
-> +                                reg =3D <1>;
-> +
-> +                                csi20vin0: endpoint@0 {
-> +                                        reg =3D <0>;
-> +                                        remote-endpoint =3D <&vin0csi20>;
-> +                                };
-> +                        };
-> +                };
-> +        };
->=20
->  [1] video-interfaces.txt common video media interface
-
-=2D-=20
-Regards,
-
-Laurent Pinchart
+diff --git a/drivers/media/rc/ir-nec-decoder.c b/drivers/media/rc/ir-nec-decoder.c
+index 6880c190dcd2..22eed9505244 100644
+--- a/drivers/media/rc/ir-nec-decoder.c
++++ b/drivers/media/rc/ir-nec-decoder.c
+@@ -1,16 +1,7 @@
+-/* ir-nec-decoder.c - handle NEC IR Pulse/Space protocol
+- *
+- * Copyright (C) 2010 by Mauro Carvalho Chehab
+- *
+- * This program is free software; you can redistribute it and/or modify
+- *  it under the terms of the GNU General Public License as published by
+- *  the Free Software Foundation version 2 of the License.
+- *
+- *  This program is distributed in the hope that it will be useful,
+- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- *  GNU General Public License for more details.
+- */
++// SPDX-License-Identifier: GPL-2.0
++// ir-nec-decoder.c - handle NEC IR Pulse/Space protocol
++//
++// Copyright (C) 2010 by Mauro Carvalho Chehab
+ 
+ #include <linux/bitrev.h>
+ #include <linux/module.h>
+@@ -281,7 +272,7 @@ static void __exit ir_nec_decode_exit(void)
+ module_init(ir_nec_decode_init);
+ module_exit(ir_nec_decode_exit);
+ 
+-MODULE_LICENSE("GPL");
++MODULE_LICENSE("GPL v2");
+ MODULE_AUTHOR("Mauro Carvalho Chehab");
+ MODULE_AUTHOR("Red Hat Inc. (http://www.redhat.com)");
+ MODULE_DESCRIPTION("NEC IR protocol decoder");
+diff --git a/drivers/media/rc/ir-rc5-decoder.c b/drivers/media/rc/ir-rc5-decoder.c
+index 1292f534de43..cbff3e26d481 100644
+--- a/drivers/media/rc/ir-rc5-decoder.c
++++ b/drivers/media/rc/ir-rc5-decoder.c
+@@ -1,17 +1,8 @@
+-/* ir-rc5-decoder.c - decoder for RC5(x) and StreamZap protocols
+- *
+- * Copyright (C) 2010 by Mauro Carvalho Chehab
+- * Copyright (C) 2010 by Jarod Wilson <jarod@redhat.com>
+- *
+- * This program is free software; you can redistribute it and/or modify
+- *  it under the terms of the GNU General Public License as published by
+- *  the Free Software Foundation version 2 of the License.
+- *
+- *  This program is distributed in the hope that it will be useful,
+- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- *  GNU General Public License for more details.
+- */
++// SPDX-License-Identifier: GPL-2.0
++// ir-rc5-decoder.c - decoder for RC5(x) and StreamZap protocols
++//
++// Copyright (C) 2010 by Mauro Carvalho Chehab
++// Copyright (C) 2010 by Jarod Wilson <jarod@redhat.com>
+ 
+ /*
+  * This decoder handles the 14 bit RC5 protocol, 15 bit "StreamZap" protocol
+@@ -300,7 +291,7 @@ static void __exit ir_rc5_decode_exit(void)
+ module_init(ir_rc5_decode_init);
+ module_exit(ir_rc5_decode_exit);
+ 
+-MODULE_LICENSE("GPL");
++MODULE_LICENSE("GPL v2");
+ MODULE_AUTHOR("Mauro Carvalho Chehab and Jarod Wilson");
+ MODULE_AUTHOR("Red Hat Inc. (http://www.redhat.com)");
+ MODULE_DESCRIPTION("RC5(x/sz) IR protocol decoder");
+diff --git a/drivers/media/rc/ir-sanyo-decoder.c b/drivers/media/rc/ir-sanyo-decoder.c
+index d94e07b02f3b..2138f0e9472d 100644
+--- a/drivers/media/rc/ir-sanyo-decoder.c
++++ b/drivers/media/rc/ir-sanyo-decoder.c
+@@ -1,25 +1,16 @@
+-/* ir-sanyo-decoder.c - handle SANYO IR Pulse/Space protocol
+- *
+- * Copyright (C) 2011 by Mauro Carvalho Chehab
+- *
+- * This program is free software; you can redistribute it and/or modify
+- *  it under the terms of the GNU General Public License as published by
+- *  the Free Software Foundation version 2 of the License.
+- *
+- *  This program is distributed in the hope that it will be useful,
+- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- *  GNU General Public License for more details.
+- *
+- * This protocol uses the NEC protocol timings. However, data is formatted as:
+- *	13 bits Custom Code
+- *	13 bits NOT(Custom Code)
+- *	8 bits Key data
+- *	8 bits NOT(Key data)
+- *
+- * According with LIRC, this protocol is used on Sanyo, Aiwa and Chinon
+- * Information for this protocol is available at the Sanyo LC7461 datasheet.
+- */
++// SPDX-License-Identifier: GPL-2.0
++// ir-sanyo-decoder.c - handle SANYO IR Pulse/Space protocol
++//
++// Copyright (C) 2011 by Mauro Carvalho Chehab
++//
++// This protocol uses the NEC protocol timings. However, data is formatted as:
++//	13 bits Custom Code
++//	13 bits NOT(Custom Code)
++//	8 bits Key data
++//	8 bits NOT(Key data)
++//
++// According with LIRC, this protocol is used on Sanyo, Aiwa and Chinon
++// Information for this protocol is available at the Sanyo LC7461 datasheet.
+ 
+ #include <linux/module.h>
+ #include <linux/bitrev.h>
+@@ -236,7 +227,7 @@ static void __exit ir_sanyo_decode_exit(void)
+ module_init(ir_sanyo_decode_init);
+ module_exit(ir_sanyo_decode_exit);
+ 
+-MODULE_LICENSE("GPL");
++MODULE_LICENSE("GPL v2");
+ MODULE_AUTHOR("Mauro Carvalho Chehab");
+ MODULE_AUTHOR("Red Hat Inc. (http://www.redhat.com)");
+ MODULE_DESCRIPTION("SANYO IR protocol decoder");
+diff --git a/drivers/media/rc/rc-core-priv.h b/drivers/media/rc/rc-core-priv.h
+index ae4dd0c27731..564d6e13585e 100644
+--- a/drivers/media/rc/rc-core-priv.h
++++ b/drivers/media/rc/rc-core-priv.h
+@@ -1,17 +1,7 @@
+-/*
+- * Remote Controller core raw events header
+- *
+- * Copyright (C) 2010 by Mauro Carvalho Chehab
+- *
+- * This program is free software; you can redistribute it and/or modify
+- *  it under the terms of the GNU General Public License as published by
+- *  the Free Software Foundation version 2 of the License.
+- *
+- *  This program is distributed in the hope that it will be useful,
+- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- *  GNU General Public License for more details.
+- */
++// SPDX-License-Identifier: GPL-2.0
++// Remote Controller core raw events header
++//
++// Copyright (C) 2010 by Mauro Carvalho Chehab
+ 
+ #ifndef _RC_CORE_PRIV
+ #define _RC_CORE_PRIV
+diff --git a/drivers/media/rc/rc-ir-raw.c b/drivers/media/rc/rc-ir-raw.c
+index d78483a504c9..0616eee564a8 100644
+--- a/drivers/media/rc/rc-ir-raw.c
++++ b/drivers/media/rc/rc-ir-raw.c
+@@ -1,16 +1,7 @@
+-/* rc-ir-raw.c - handle IR pulse/space events
+- *
+- * Copyright (C) 2010 by Mauro Carvalho Chehab
+- *
+- * This program is free software; you can redistribute it and/or modify
+- *  it under the terms of the GNU General Public License as published by
+- *  the Free Software Foundation version 2 of the License.
+- *
+- *  This program is distributed in the hope that it will be useful,
+- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- *  GNU General Public License for more details.
+- */
++// SPDX-License-Identifier: GPL-2.0
++// rc-ir-raw.c - handle IR pulse/space events
++//
++// Copyright (C) 2010 by Mauro Carvalho Chehab
+ 
+ #include <linux/export.h>
+ #include <linux/kthread.h>
+diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
+index c144b77eac98..372f4d61cb48 100644
+--- a/drivers/media/rc/rc-main.c
++++ b/drivers/media/rc/rc-main.c
+@@ -1,16 +1,7 @@
+-/* rc-main.c - Remote Controller core module
+- *
+- * Copyright (C) 2009-2010 by Mauro Carvalho Chehab
+- *
+- * This program is free software; you can redistribute it and/or modify
+- *  it under the terms of the GNU General Public License as published by
+- *  the Free Software Foundation version 2 of the License.
+- *
+- *  This program is distributed in the hope that it will be useful,
+- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- *  GNU General Public License for more details.
+- */
++// SPDX-License-Identifier: GPL-2.0
++// rc-main.c - Remote Controller core module
++//
++// Copyright (C) 2009-2010 by Mauro Carvalho Chehab
+ 
+ #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+ 
+@@ -1905,4 +1896,4 @@ EXPORT_SYMBOL_GPL(rc_core_debug);
+ module_param_named(debug, rc_core_debug, int, 0644);
+ 
+ MODULE_AUTHOR("Mauro Carvalho Chehab");
+-MODULE_LICENSE("GPL");
++MODULE_LICENSE("GPL v2");
+-- 
+2.14.3
