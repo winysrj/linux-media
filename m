@@ -1,66 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f67.google.com ([74.125.83.67]:35103 "EHLO
-        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754954AbdL2HxN (ORCPT
+Received: from mail-ot0-f196.google.com ([74.125.82.196]:33572 "EHLO
+        mail-ot0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750735AbdLACRs (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 29 Dec 2017 02:53:13 -0500
-From: Shunqian Zheng <zhengsq@rock-chips.com>
-To: linux-rockchip@lists.infradead.org, linux-media@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        mchehab@kernel.org, sakari.ailus@linux.intel.com,
-        hans.verkuil@cisco.com, tfiga@chromium.org, zhengsq@rock-chips.com,
-        laurent.pinchart@ideasonboard.com, zyc@rock-chips.com,
-        eddie.cai.linux@gmail.com, jeffy.chen@rock-chips.com,
-        allon.huang@rock-chips.com, devicetree@vger.kernel.org,
-        heiko@sntech.de, robh+dt@kernel.org, Joao.Pinto@synopsys.com,
-        Luis.Oliveira@synopsys.com, Jose.Abreu@synopsys.com,
-        jacob2.chen@rock-chips.com
-Subject: [PATCH v5 01/16] media: videodev2.h, v4l2-ioctl: add rkisp1 meta buffer format
-Date: Fri, 29 Dec 2017 15:52:43 +0800
-Message-Id: <1514533978-20408-2-git-send-email-zhengsq@rock-chips.com>
-In-Reply-To: <1514533978-20408-1-git-send-email-zhengsq@rock-chips.com>
-References: <1514533978-20408-1-git-send-email-zhengsq@rock-chips.com>
+        Thu, 30 Nov 2017 21:17:48 -0500
+Date: Thu, 30 Nov 2017 20:17:46 -0600
+From: Rob Herring <robh@kernel.org>
+To: Niklas =?iso-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        devicetree@vger.kernel.org
+Subject: Re: [PATCH v8 27/28] rcar-vin: enable support for r8a7796
+Message-ID: <20171201021746.ujhlvirxexnqk5po@rob-hp-laptop>
+References: <20171129194342.26239-1-niklas.soderlund+renesas@ragnatech.se>
+ <20171129194342.26239-28-niklas.soderlund+renesas@ragnatech.se>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20171129194342.26239-28-niklas.soderlund+renesas@ragnatech.se>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add the Rockchip ISP1 specific processing parameter format
-V4L2_META_FMT_RK_ISP1_PARAMS and metadata format
-V4L2_META_FMT_RK_ISP1_STAT_3A for 3A.
+On Wed, Nov 29, 2017 at 08:43:41PM +0100, Niklas Söderlund wrote:
+> Add the SoC specific information for Renesas r8a7796.
+> 
+> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+> Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  .../devicetree/bindings/media/rcar_vin.txt         |  1 +
 
-Signed-off-by: Shunqian Zheng <zhengsq@rock-chips.com>
-Signed-off-by: Jacob Chen <jacob2.chen@rock-chips.com>
----
- drivers/media/v4l2-core/v4l2-ioctl.c | 2 ++
- include/uapi/linux/videodev2.h       | 4 ++++
- 2 files changed, 6 insertions(+)
+Acked-by: Rob Herring <robh@kernel.org>
 
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index 7961499..035fd22 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -1246,6 +1246,8 @@ static void v4l_fill_fmtdesc(struct v4l2_fmtdesc *fmt)
- 	case V4L2_TCH_FMT_TU08:		descr = "8-bit unsigned touch data"; break;
- 	case V4L2_META_FMT_VSP1_HGO:	descr = "R-Car VSP1 1-D Histogram"; break;
- 	case V4L2_META_FMT_VSP1_HGT:	descr = "R-Car VSP1 2-D Histogram"; break;
-+	case V4L2_META_FMT_RK_ISP1_PARAMS:	descr = "Rockchip ISP1 3A params"; break;
-+	case V4L2_META_FMT_RK_ISP1_STAT_3A:	descr = "Rockchip ISP1 3A statistics"; break;
- 
- 	default:
- 		/* Compressed formats */
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 1c095b5..c023c3a 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -689,6 +689,10 @@ struct v4l2_pix_format {
- #define V4L2_META_FMT_VSP1_HGO    v4l2_fourcc('V', 'S', 'P', 'H') /* R-Car VSP1 1-D Histogram */
- #define V4L2_META_FMT_VSP1_HGT    v4l2_fourcc('V', 'S', 'P', 'T') /* R-Car VSP1 2-D Histogram */
- 
-+/* Vendor specific - used for IPU3 camera sub-system */
-+#define V4L2_META_FMT_RK_ISP1_PARAMS	v4l2_fourcc('R', 'K', '1', 'P') /* Rockchip ISP1 params */
-+#define V4L2_META_FMT_RK_ISP1_STAT_3A	v4l2_fourcc('R', 'K', '1', 'S') /* Rockchip ISP1 3A statistics */
-+
- /* priv field value to indicates that subsequent fields are valid. */
- #define V4L2_PIX_FMT_PRIV_MAGIC		0xfeedcafe
- 
--- 
-1.9.1
+>  drivers/media/platform/rcar-vin/rcar-core.c        | 64 ++++++++++++++++++++++
+>  2 files changed, 65 insertions(+)
