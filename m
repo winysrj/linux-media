@@ -1,104 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:41177 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750995AbdLEAjw (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 4 Dec 2017 19:39:52 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>, y2038@lists.linaro.org,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 1/8] [media] uvc_video: use ktime_t for stats
-Date: Tue, 05 Dec 2017 02:40:05 +0200
-Message-ID: <5754187.M8RXguK81k@avalon>
-In-Reply-To: <20171127132027.1734806-1-arnd@arndb.de>
-References: <20171127132027.1734806-1-arnd@arndb.de>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+From: Lucas Stach <l.stach@pengutronix.de>
+To: Sumit Semwal <sumit.semwal@linaro.org>
+Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        linaro-mm-sig@lists.linaro.org, kernel@pengutronix.de,
+        patchwork-lst@pengutronix.de
+Subject: [PATCH] dma-buf: add some lockdep asserts to the reservation object implementation
+Date: Fri,  1 Dec 2017 12:12:16 +0100
+Message-Id: <20171201111216.7050-1-l.stach@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Arnd,
+This adds lockdep asserts to the reservation functions which state in their
+documentation that obj->lock must be held. Allows builds with PROVE_LOCKING
+enabled to check that the locking requirements are met.
 
-Thank you for the patch.
+Signed-off-by: Lucas Stach <l.stach@pengutronix.de>
+---
+ drivers/dma-buf/reservation.c | 8 ++++++++
+ include/linux/reservation.h   | 2 ++
+ 2 files changed, 10 insertions(+)
 
-On Monday, 27 November 2017 15:19:53 EET Arnd Bergmann wrote:
-> 'struct timespec' works fine here, but we try to migrate
-> away from it in favor of ktime_t or timespec64. In this
-> case, using ktime_t produces the simplest code.
-> 
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-> ---
->  drivers/media/usb/uvc/uvc_video.c | 11 ++++-------
->  drivers/media/usb/uvc/uvcvideo.h  |  4 ++--
->  2 files changed, 6 insertions(+), 9 deletions(-)
-> 
-> diff --git a/drivers/media/usb/uvc/uvc_video.c
-> b/drivers/media/usb/uvc/uvc_video.c index fb86d6af398d..d6bee37cd1b8 100644
-> --- a/drivers/media/usb/uvc/uvc_video.c
-> +++ b/drivers/media/usb/uvc/uvc_video.c
-> @@ -725,7 +725,7 @@ static void uvc_video_stats_decode(struct uvc_streaming
-> *stream,
-> 
->  	if (stream->stats.stream.nb_frames == 0 &&
->  	    stream->stats.frame.nb_packets == 0)
-> -		ktime_get_ts(&stream->stats.stream.start_ts);
-> +		stream->stats.stream.start_ts = ktime_get();
-> 
->  	switch (data[1] & (UVC_STREAM_PTS | UVC_STREAM_SCR)) {
->  	case UVC_STREAM_PTS | UVC_STREAM_SCR:
-> @@ -865,16 +865,13 @@ size_t uvc_video_stats_dump(struct uvc_streaming
-> *stream, char *buf, {
->  	unsigned int scr_sof_freq;
->  	unsigned int duration;
-> -	struct timespec ts;
->  	size_t count = 0;
-> 
-> -	ts = timespec_sub(stream->stats.stream.stop_ts,
-> -			  stream->stats.stream.start_ts);
-> -
->  	/* Compute the SCR.SOF frequency estimate. At the nominal 1kHz SOF
->  	 * frequency this will not overflow before more than 1h.
->  	 */
-> -	duration = ts.tv_sec * 1000 + ts.tv_nsec / 1000000;
-> +	duration = ktime_ms_delta(stream->stats.stream.stop_ts,
-> +				  stream->stats.stream.start_ts);
->  	if (duration != 0)
->  		scr_sof_freq = stream->stats.stream.scr_sof_count * 1000
->  			     / duration;
-> @@ -915,7 +912,7 @@ static void uvc_video_stats_start(struct uvc_streaming
-> *stream)
-> 
->  static void uvc_video_stats_stop(struct uvc_streaming *stream)
->  {
-> -	ktime_get_ts(&stream->stats.stream.stop_ts);
-> +	stream->stats.stream.stop_ts = ktime_get();
->  }
-> 
->  /* ------------------------------------------------------------------------
-> diff --git a/drivers/media/usb/uvc/uvcvideo.h
-> b/drivers/media/usb/uvc/uvcvideo.h index 05398784d1c8..a2c190937067 100644
-> --- a/drivers/media/usb/uvc/uvcvideo.h
-> +++ b/drivers/media/usb/uvc/uvcvideo.h
-> @@ -452,8 +452,8 @@ struct uvc_stats_frame {
->  };
-> 
->  struct uvc_stats_stream {
-> -	struct timespec start_ts;	/* Stream start timestamp */
-> -	struct timespec stop_ts;	/* Stream stop timestamp */
-> +	ktime_t start_ts;		/* Stream start timestamp */
-> +	ktime_t stop_ts;		/* Stream stop timestamp */
-> 
->  	unsigned int nb_frames;		/* Number of frames */
-
-
+diff --git a/drivers/dma-buf/reservation.c b/drivers/dma-buf/reservation.c
+index b44d9d7db347..accd398e2ea6 100644
+--- a/drivers/dma-buf/reservation.c
++++ b/drivers/dma-buf/reservation.c
+@@ -71,6 +71,8 @@ int reservation_object_reserve_shared(struct reservation_object *obj)
+ 	struct reservation_object_list *fobj, *old;
+ 	u32 max;
+ 
++	reservation_object_assert_held(obj);
++
+ 	old = reservation_object_get_list(obj);
+ 
+ 	if (old && old->shared_max) {
+@@ -211,6 +213,8 @@ void reservation_object_add_shared_fence(struct reservation_object *obj,
+ {
+ 	struct reservation_object_list *old, *fobj = obj->staged;
+ 
++	reservation_object_assert_held(obj);
++
+ 	old = reservation_object_get_list(obj);
+ 	obj->staged = NULL;
+ 
+@@ -236,6 +240,8 @@ void reservation_object_add_excl_fence(struct reservation_object *obj,
+ 	struct reservation_object_list *old;
+ 	u32 i = 0;
+ 
++	reservation_object_assert_held(obj);
++
+ 	old = reservation_object_get_list(obj);
+ 	if (old)
+ 		i = old->shared_count;
+@@ -276,6 +282,8 @@ int reservation_object_copy_fences(struct reservation_object *dst,
+ 	size_t size;
+ 	unsigned i;
+ 
++	reservation_object_assert_held(dst);
++
+ 	rcu_read_lock();
+ 	src_list = rcu_dereference(src->fence);
+ 
+diff --git a/include/linux/reservation.h b/include/linux/reservation.h
+index 21fc84d82d41..55e7318800fd 100644
+--- a/include/linux/reservation.h
++++ b/include/linux/reservation.h
+@@ -212,6 +212,8 @@ reservation_object_unlock(struct reservation_object *obj)
+ static inline struct dma_fence *
+ reservation_object_get_excl(struct reservation_object *obj)
+ {
++	reservation_object_assert_held(obj);
++
+ 	return rcu_dereference_protected(obj->fence_excl,
+ 					 reservation_object_held(obj));
+ }
 -- 
-Regards,
-
-Laurent Pinchart
+2.11.0
