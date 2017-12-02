@@ -1,150 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:43848 "EHLO
-        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1757074AbdLPRaq (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 16 Dec 2017 12:30:46 -0500
-Subject: Re: [RFC 1/5] [media] rc: update sunxi-ir driver to get base
- frequency from devicetree
-To: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: robh+dt@kernel.org, mark.rutland@arm.com,
-        maxime.ripard@free-electrons.com, wens@csie.org,
-        linux@armlinux.org.uk, sean@mess.org, p.zabel@pengutronix.de,
-        andi.shyti@samsung.com, linux-media@vger.kernel.org,
-        devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-kernel@vger.kernel.org, linux-sunxi@googlegroups.com
-References: <20171216024914.7550-1-embed3d@gmail.com>
- <20171216024914.7550-2-embed3d@gmail.com>
- <20171216071855.0ef43f7b@recife.lan>
-From: Philipp Rossak <embed3d@gmail.com>
-Message-ID: <342789cb-9b49-f1d2-e5f1-2d7e17f774b0@gmail.com>
-Date: Sat, 16 Dec 2017 18:30:41 +0100
+Received: from mail-wm0-f43.google.com ([74.125.82.43]:35342 "EHLO
+        mail-wm0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751197AbdLBSvU (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sat, 2 Dec 2017 13:51:20 -0500
+Received: by mail-wm0-f43.google.com with SMTP id f9so8237369wmh.0
+        for <linux-media@vger.kernel.org>; Sat, 02 Dec 2017 10:51:20 -0800 (PST)
+Subject: Re: [GIT PULL] SAA716x DVB driver
+To: Mauro Carvalho Chehab <mchehab@infradead.org>,
+        =?UTF-8?Q?Tycho_L=c3=bcrsen?= <tycholursen@gmail.com>
+Cc: Soeren Moch <smoch@web.de>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org
+References: <50e5ba3c-4e32-f2e4-7844-150eefdf71b5@web.de>
+ <d693cf1b-de3d-5994-5ef0-eeb0e37065a3@web.de>
+ <20170827073040.6e96d79a@vento.lan>
+ <e9d87f55-18fc-e57b-f9aa-a41c7f983b34@web.de>
+ <20170909181123.392cfbb0@vento.lan>
+ <a44b8eb0-cdd5-aa28-ad30-68db0126b6f6@web.de>
+ <20170916125042.78c4abad@recife.lan>
+ <fab215f8-29f3-1857-6f33-c45e78bb5e3c@web.de>
+ <7c17c0a1-1c98-1272-8430-4a194b658872@gmail.com>
+ <20171127092408.20de0fe0@vento.lan>
+From: Jemma Denson <jdenson@gmail.com>
+Message-ID: <e2076533-5c33-f3be-b438-a1616f743a92@gmail.com>
+Date: Sat, 2 Dec 2017 18:51:16 +0000
 MIME-Version: 1.0
-In-Reply-To: <20171216071855.0ef43f7b@recife.lan>
+In-Reply-To: <20171127092408.20de0fe0@vento.lan>
 Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
+Content-Language: en-GB
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hey Mauro,
+Hi Mauro,
 
-Thanks for your fast feedback!
-
-I will rework the driver like you suggested it.
-
-Does somebody have any concerns about the Devicetree property 
-(base-clk-frequency = < frequency >;)?
-
-
-Regards,
-Philipp
-
-On 16.12.2017 10:18, Mauro Carvalho Chehab wrote:
-> Em Sat, 16 Dec 2017 03:49:10 +0100
-> Philipp Rossak <embed3d@gmail.com> escreveu:
-> 
-> Hi Phillip,
-> 
-> This is not a full review of this patchset. I just want to point you
-> that you should keep supporting existing DT files.
-> 
->> This patch updates the sunxi-ir driver to set the ir base clock from
->> devicetree.
+On 27/11/17 11:24, Mauro Carvalho Chehab wrote:
+> Em Fri, 24 Nov 2017 17:28:37 +0100
+> Tycho Lürsen <tycholursen@gmail.com> escreveu:
+>
+>> Hi Mauro,
 >>
->> This is neccessary since there are different ir recievers on the
->> market, that operate with different frequencys. So this value needs to
->> be set depending on the attached receiver.
-> 
-> Please don't break backward compatibility with old DT files. In this
-> specific case, it seems simple enough to be backward-compatible.
-> 
+>> afaik the last communication about submission of this driver was about
+>> two months ago.
 >>
->> Signed-off-by: Philipp Rossak <embed3d@gmail.com>
->> ---
->>   drivers/media/rc/sunxi-cir.c | 20 +++++++++++---------
->>   1 file changed, 11 insertions(+), 9 deletions(-)
+>> This driver is important to me, because I own several TurboSight cards
+>> that are saa716x based. I want to submit a patch that supports my cards.
+>> Of course I can only do so when you accept this driver in the first place.
 >>
->> diff --git a/drivers/media/rc/sunxi-cir.c b/drivers/media/rc/sunxi-cir.c
->> index 97f367b446c4..55b53d6463e9 100644
->> --- a/drivers/media/rc/sunxi-cir.c
->> +++ b/drivers/media/rc/sunxi-cir.c
->> @@ -72,12 +72,6 @@
->>   /* CIR_REG register idle threshold */
->>   #define REG_CIR_ITHR(val)    (((val) << 8) & (GENMASK(15, 8)))
->>   
->> -/* Required frequency for IR0 or IR1 clock in CIR mode */
->> -#define SUNXI_IR_BASE_CLK     8000000
->> -/* Frequency after IR internal divider  */
->> -#define SUNXI_IR_CLK          (SUNXI_IR_BASE_CLK / 64)
-> 
-> Keep those to definitions...
-> 
->> -/* Sample period in ns */
->> -#define SUNXI_IR_SAMPLE       (1000000000ul / SUNXI_IR_CLK)
->>   /* Noise threshold in samples  */
->>   #define SUNXI_IR_RXNOISE      1
->>   /* Idle Threshold in samples */
->> @@ -122,7 +116,7 @@ static irqreturn_t sunxi_ir_irq(int irqno, void *dev_id)
->>   			/* for each bit in fifo */
->>   			dt = readb(ir->base + SUNXI_IR_RXFIFO_REG);
->>   			rawir.pulse = (dt & 0x80) != 0;
->> -			rawir.duration = ((dt & 0x7f) + 1) * SUNXI_IR_SAMPLE;
->> +			rawir.duration = ((dt & 0x7f) + 1) * ir->rc->rx_resolution;
->>   			ir_raw_event_store_with_filter(ir->rc, &rawir);
->>   		}
->>   	}
->> @@ -148,6 +142,7 @@ static int sunxi_ir_probe(struct platform_device *pdev)
->>   	struct device_node *dn = dev->of_node;
->>   	struct resource *res;
->>   	struct sunxi_ir *ir;
->> +	u32 b_clk_freq;
->>   
->>   	ir = devm_kzalloc(dev, sizeof(struct sunxi_ir), GFP_KERNEL);
->>   	if (!ir)
->> @@ -172,6 +167,12 @@ static int sunxi_ir_probe(struct platform_device *pdev)
->>   		return PTR_ERR(ir->clk);
->>   	}
->>   
->> +	/* Required frequency for IR0 or IR1 clock in CIR mode */
->> +	if (of_property_read_u32(dn, "base-clk-frequency", &b_clk_freq)) {
->> +		dev_err(dev, "failed to get ir base clock frequency.\n");
->> +		return -ENODATA;
->> +	}
->> +
-> 
-> And here, instead of returning an error, if the property can't be read,
-> it means it is an older DT file. Just default to SUNXI_IR_BASE_CLK.
-> This will make it backward-compatible with old DT files that don't have
-> such property.
-> 
-> Regards,
-> Mauro
-> 
-> 
->>   	/* Reset (optional) */
->>   	ir->rst = devm_reset_control_get_optional_exclusive(dev, NULL);
->>   	if (IS_ERR(ir->rst))
->> @@ -180,7 +181,7 @@ static int sunxi_ir_probe(struct platform_device *pdev)
->>   	if (ret)
->>   		return ret;
->>   
->> -	ret = clk_set_rate(ir->clk, SUNXI_IR_BASE_CLK);
->> +	ret = clk_set_rate(ir->clk, b_clk_freq);
->>   	if (ret) {
->>   		dev_err(dev, "set ir base clock failed!\n");
->>   		goto exit_reset_assert;
->> @@ -225,7 +226,8 @@ static int sunxi_ir_probe(struct platform_device *pdev)
->>   	ir->rc->map_name = ir->map_name ?: RC_MAP_EMPTY;
->>   	ir->rc->dev.parent = dev;
->>   	ir->rc->allowed_protocols = RC_PROTO_BIT_ALL_IR_DECODER;
->> -	ir->rc->rx_resolution = SUNXI_IR_SAMPLE;
->> +	/* Frequency after IR internal divider with sample period in ns */
->> +	ir->rc->rx_resolution = (1000000000ul / (b_clk_freq / 64));
->>   	ir->rc->timeout = MS_TO_NS(SUNXI_IR_TIMEOUT);
->>   	ir->rc->driver_name = SUNXI_IR_DEV;
->>   
-> 
+>> Any chance you and Sören agree about how to proceed about this driver
+>> anytime soon?
+> If we can reach an agreement about what should be done for the driver
+> to be promoted from staging some day, I'll merge it. Otherwise,
+> it can be kept maintained out of tree. This driver has been maintained
+> OOT for a very long time, and it seems that people were happy with
+> that, as only at the second half of this year someone is requesting
+> to merge it.
+>
+> So, while I agree that the best is to merge it upstream and
+> address the issues that made it OOT for a long time, we shouldn't
+> rush it with the risk of doing more harm than good.
+>
 > Thanks,
 > Mauro
-> 
+
+Would I be correct in thinking the main blocker to this is the *_ff features
+used by the S2-6400 card? There's plenty of other cards using this chipset
+that don't need that part.
+
+Would a solution for now to be a driver with the ff components stripped out,
+and then the ff API work can be done later when / if there's any interest?
+
+I guess a problem would be finding a maintainer, I'm happy to put together
+a stripped down driver just supporting the TBS card I use (I already have
+one I use with dkms), but I'm not sure I have the time or knowledge of this
+chipset to be a maintainer. Unfortunately my workplace is phasing out
+these cards otherwise I'd try and get them to sponsor me rather than do it
+on my own time!
+
+
+Jemma.
