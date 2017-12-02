@@ -1,100 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:47318 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752354AbdLLOya (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 12 Dec 2017 09:54:30 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        Niklas =?ISO-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: Re: [PATCH/RFC 1/2] v4l: v4l2-dev: Add infrastructure to protect device unplug race
-Date: Tue, 12 Dec 2017 16:54:32 +0200
-Message-ID: <11553186.BHtCKiYHsT@avalon>
-In-Reply-To: <20171123110751.72f76d7d@vento.lan>
-References: <20171116003349.19235-1-laurent.pinchart+renesas@ideasonboard.com> <20171116003349.19235-2-laurent.pinchart+renesas@ideasonboard.com> <20171123110751.72f76d7d@vento.lan>
+Received: from kadath.azazel.net ([81.187.231.250]:59140 "EHLO
+        kadath.azazel.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752121AbdLBUlw (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sat, 2 Dec 2017 15:41:52 -0500
+Date: Sat, 2 Dec 2017 20:41:48 +0000
+From: Jeremy Sowden <jeremy@azazel.net>
+To: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org
+Subject: Re: [PATCH v2 1/3] media: atomisp: convert default struct values to
+ use compound-literals with designated initializers.
+Message-ID: <20171202204147.GB32301@azazel.net>
+References: <20171201150725.cfcp6b4bs2ncqsip@mwanda>
+ <20171201171939.3432-1-jeremy@azazel.net>
+ <20171201171939.3432-2-jeremy@azazel.net>
+ <20171202102009.pdly5urlxkt4rdcx@mwanda>
+ <20171202103506.4ffadm3qkxtv3rge@azazel.net>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="7iMSBzlTiPOCCT2k"
+Content-Disposition: inline
+In-Reply-To: <20171202103506.4ffadm3qkxtv3rge@azazel.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
 
-On Thursday, 23 November 2017 15:07:51 EET Mauro Carvalho Chehab wrote:
-> Em Thu, 16 Nov 2017 02:33:48 +0200 Laurent Pinchart escreveu:
-> > Device unplug being asynchronous, it naturally races with operations
-> > performed by userspace through ioctls or other file operations on video
-> > device nodes.
-> > 
-> > This leads to potential access to freed memory or to other resources
-> > during device access if unplug occurs during device access. To solve
-> > this, we need to wait until all device access completes when unplugging
-> > the device, and block all further access when the device is being
-> > unplugged.
-> > 
-> > Three new functions are introduced. The video_device_enter() and
-> > video_device_exit() functions must be used to mark entry and exit from
-> > all code sections where the device can be accessed. The
-> > video_device_unplug() function is then used in the unplug handler to
-> > mark the device as being unplugged and wait for all access to complete.
-> > 
-> > As an example mark the ioctl handler as a device access section. Other
-> > file operations need to be protected too, and blocking ioctls (such as
-> > VIDIOC_DQBUF) need to be handled as well.
-> > 
-> > Signed-off-by: Laurent Pinchart
-> > <laurent.pinchart+renesas@ideasonboard.com>
-> > ---
-> > 
-> >  drivers/media/v4l2-core/v4l2-dev.c | 57 +++++++++++++++++++++++++++++++++
-> >  include/media/v4l2-dev.h           | 47 +++++++++++++++++++++++++++++++
-> >  2 files changed, 104 insertions(+)
+--7iMSBzlTiPOCCT2k
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-[snip]
+On 2017-12-02, at 10:35:06 +0000, Jeremy Sowden wrote:
+> On 2017-12-02, at 13:20:09 +0300, Dan Carpenter wrote:
+> > On Fri, Dec 01, 2017 at 05:19:37PM +0000, Jeremy Sowden wrote:
+> > > -#define DEFAULT_PIPE_INFO \
+> > > -{ \
+> > > -	{IA_CSS_BINARY_DEFAULT_FRAME_INFO},	/* output_info */ \
+> > > -	{IA_CSS_BINARY_DEFAULT_FRAME_INFO},	/* vf_output_info */ \
+> > > -	IA_CSS_BINARY_DEFAULT_FRAME_INFO,	/* raw_output_info */ \
+> > > -	{ 0, 0},				/* output system in res */ \
+> > > -	DEFAULT_SHADING_INFO,			/* shading_info */ \
+> > > -	DEFAULT_GRID_INFO,			/* grid_info */ \
+> > > -	0					/* num_invalid_frames */ \
+> > > -}
+> > > +#define DEFAULT_PIPE_INFO ( \
+> >
+> > Why does this have a ( now?  That can't compile can it??
+>
+> It does.
 
-> I'm c/c Greg here, as I don't think, that, the way it is, it
-> belongs at V4L2 core.
-> 
-> I mean: if this is a problem that affects all drivers, it would should,
-> instead, be sitting at the driver's core.
-> 
-> If, otherwise, this is specific to rcar-vin (and other platform drivers),
-> that's likely should be inside the drivers that require it.
-> 
-> That's said, I remember we had to add some things in the past for
-> USB drivers hot unplug to happen softly. I don't remember the specifics
-> anymore, but it was solved by both a V4L2 core and changes at USB
-> drivers.
-> 
-> One of the things that it was added, on that time, was this patch:
-> 
-> 	commit ae6cfaace120f4330715b56265ce0e4a710e1276
-> 	Author: Hans Verkuil <hverkuil@xs4all.nl>
-> 	Date:   Sat Mar 14 08:28:45 2009 -0300
-> 
-> 	    V4L/DVB (11044): v4l2-device: add v4l2_device_disconnect
-> 
-> So, I would expect that a change at V4L2 core (or at driver core) that
-> would be applied would also be affecting USB drivers disconnect logic
-> and v4l2_device_disconnect() function.
+That was a bit terse: the macros expand to compound-literals, so
+putting parens around them is no different from:
 
-I wasn't aware of v4l2_device_disconnect(), thank you for pointing it out.
+  #define THREE (3)
 
-I don't know what the full history behind that function is, but I don't see 
-why it's needed. struct device instances are refcounted, the struct device 
-corresponding to a USB device or USB interface doesn't get freed when a device 
-is disconnected as long as a reference is present. We take such a reference in 
-v4l2_device_register(), so there should be no problem.
+It's also superfluous, of course.
 
-[snip]
+> > > +	(struct ia_css_pipe_info) { \
+> > > +		.output_info			= {IA_CSS_BINARY_DEFAULT_FRAME_INFO}, \
+> > > +		.vf_output_info			= {IA_CSS_BINARY_DEFAULT_FRAME_INFO}, \
+> > > +		.raw_output_info		= IA_CSS_BINARY_DEFAULT_FRAME_INFO, \
+> > > +		.output_system_in_res_info	= { 0, 0 }, \
+> > > +		.shading_info			= DEFAULT_SHADING_INFO, \
+> > > +		.grid_info			= DEFAULT_GRID_INFO, \
+> > > +		.num_invalid_frames		= 0 \
+> > > +	} \
+> > > +)
+>
+> Checkpatch got quite shouty, e.g.:
+>
+>   ERROR: Macros with complex values should be enclosed in parentheses
+>   #826: FILE: drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/sdis/common/ia_css_sdis_common_types.h:215:
+>   +#define DEFAULT_DVS_STAT_PUBLIC_DVS_GLOBAL_CFG \
+>   +(struct dvs_stat_public_dvs_global_cfg) { \
+>   +       .kappa          = 0, \
+>   +       .match_shift    = 0, \
+>   +       .ybin_mode      = 0, \
+>   +}
+>
+> so I just wrapped all of them.
 
--- 
-Regards,
+I've run checkpatch.pl against the unparenthesized patches, and it only
+objects to some of the macros.  I've also taken a look at the source of
+checkpatch.pl itself, and at first glance it appears that it should
+accept them.  I'll see if I can work out why it's complaining.
 
-Laurent Pinchart
+J.
+
+--7iMSBzlTiPOCCT2k
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCgAdFiEEVbDTMOAK4SXP2yyD0czNNmRE1J0FAlojEAQACgkQ0czNNmRE
+1J0+dA/+M89jF4BNt+bpGD46KgmJSNOHVmPCTUUA66RdoPocr2L6Pi1YxCoKGQne
+H2cZLpGBVFNclExxvTTx83gkP3OPd5PXwq9mV3CGHYijJ2VaLaC/LdnP2y2soJmA
+FNjU0ZArwl6gZgKAk6s3mZ2gwSuPlpupB70ZrDYkSnf2Ok7phDqLsv4uPEKIcW2Q
+M1XxyvRlmgcMnii3TI6KYVjDlyPzoYy9ulRaMzG1OUOO65GLJ+lwq7oLwU7MGBuV
+/yw1UerW67cVUu72M3yWvh7WQOlg6PG3svPRgQGMC01m5Ba8e1W3nx9nfHoXUdfO
+V9lLh1NJqiQ3boUOzIIwxwX0VmeiE7bOvpj8OQNzhsPbac5evlqtluvitKXlR2jd
+P0frIsClyNe6Wg/z/bLmME6Fg/flGyeUBxZ6t+CQOVhASFzB5AceKpzQ+ivIcQ5Z
+5z/4Yd/qwrM6IX2EY9XaLv3mVvG0Asl3RJbhVEJDl9XobhpAWUayRjLRCQ22FCiI
+CT2FmF3F6F2KpzkwGXvjTbvPUnPO8IkWw4F0OEAyiGaKdUPyPc0d3c0JHOtS1Ti4
+h/2uD1LyVDyEd/oujtEkskSwpU6PLst5An4lv64eUQLYgykTAlEOenI7P6sNoOcB
+IoYZv5J4jUECY5m8oUfRcSNheF8VHwnL/WhuXAg0jZjh0VEKjBg=
+=TSvz
+-----END PGP SIGNATURE-----
+
+--7iMSBzlTiPOCCT2k--
