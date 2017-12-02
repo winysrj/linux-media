@@ -1,272 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from out20-15.mail.aliyun.com ([115.124.20.15]:38639 "EHLO
-        out20-15.mail.aliyun.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751287AbdLYDP6 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sun, 24 Dec 2017 22:15:58 -0500
-Date: Mon, 25 Dec 2017 11:15:26 +0800
-From: Yong <yong.deng@magewell.com>
-To: =?UTF-8?B?T25kxZllag==?= Jirman <megous@megous.com>
-Cc: "Maxime Ripard" <maxime.ripard@free-electrons.com>,
+Received: from mout.web.de ([212.227.15.4]:49663 "EHLO mout.web.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751494AbdLCAAY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sat, 2 Dec 2017 19:00:24 -0500
+Subject: Re: [GIT PULL] SAA716x DVB driver
+To: Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Jemma Denson <jdenson@gmail.com>
+Cc: =?UTF-8?Q?Tycho_L=c3=bcrsen?= <tycholursen@gmail.com>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Chen-Yu Tsai <wens@csie.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Randy Dunlap <rdunlap@infradead.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Yannick Fertre <yannick.fertre@st.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Rick Chang <rick.chang@mediatek.com>,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-sunxi@googlegroups.com
-Subject: Re: [linux-sunxi] [PATCH v4 0/2] Initial Allwinner V3s CSI Support
-Message-Id: <20171225111526.4663f997f5d6bfc6cf157f10@magewell.com>
-In-Reply-To: <1513950408.841.81.camel@megous.com>
-References: <1513935138-35223-1-git-send-email-yong.deng@magewell.com>
-        <1513950408.841.81.camel@megous.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+        linux-media@vger.kernel.org
+References: <50e5ba3c-4e32-f2e4-7844-150eefdf71b5@web.de>
+ <d693cf1b-de3d-5994-5ef0-eeb0e37065a3@web.de>
+ <20170827073040.6e96d79a@vento.lan>
+ <e9d87f55-18fc-e57b-f9aa-a41c7f983b34@web.de>
+ <20170909181123.392cfbb0@vento.lan>
+ <a44b8eb0-cdd5-aa28-ad30-68db0126b6f6@web.de>
+ <20170916125042.78c4abad@recife.lan>
+ <fab215f8-29f3-1857-6f33-c45e78bb5e3c@web.de>
+ <7c17c0a1-1c98-1272-8430-4a194b658872@gmail.com>
+ <20171127092408.20de0fe0@vento.lan>
+ <e2076533-5c33-f3be-b438-a1616f743a92@gmail.com>
+ <20171202174922.34a6f9b9@vento.lan>
+From: Soeren Moch <smoch@web.de>
+Message-ID: <ce4f25e6-7d75-2391-d685-35b50a0639bb@web.de>
+Date: Sun, 3 Dec 2017 00:59:20 +0100
+MIME-Version: 1.0
+In-Reply-To: <20171202174922.34a6f9b9@vento.lan>
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 8bit
+Content-Language: en-GB
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On 02.12.2017 20:49, Mauro Carvalho Chehab wrote:
+> Em Sat, 2 Dec 2017 18:51:16 +0000
+> Jemma Denson <jdenson@gmail.com> escreveu:
+>
+>> Hi Mauro,
+>>
+>> On 27/11/17 11:24, Mauro Carvalho Chehab wrote:
+>>> Em Fri, 24 Nov 2017 17:28:37 +0100
+>>> Tycho Lürsen <tycholursen@gmail.com> escreveu:
+>>>  
+>>>> Hi Mauro,
+>>>>
+>>>> afaik the last communication about submission of this driver was about
+>>>> two months ago.
+>>>>
+>>>> This driver is important to me, because I own several TurboSight cards
+>>>> that are saa716x based. I want to submit a patch that supports my cards.
+>>>> Of course I can only do so when you accept this driver in the first place.
+>>>>
+>>>> Any chance you and Sören agree about how to proceed about this driver
+>>>> anytime soon?  
+>>> If we can reach an agreement about what should be done for the driver
+>>> to be promoted from staging some day, I'll merge it. Otherwise,
+>>> it can be kept maintained out of tree. This driver has been maintained
+>>> OOT for a very long time, and it seems that people were happy with
+>>> that, as only at the second half of this year someone is requesting
+>>> to merge it.
+>>>
+>>> So, while I agree that the best is to merge it upstream and
+>>> address the issues that made it OOT for a long time, we shouldn't
+>>> rush it with the risk of doing more harm than good.
+>>>
+>>> Thanks,
+>>> Mauro  
+>> Would I be correct in thinking the main blocker to this is the *_ff features
+>> used by the S2-6400 card? There's plenty of other cards using this chipset
+>> that don't need that part.
+>>
+>> Would a solution for now to be a driver with the ff components stripped out,
+>> and then the ff API work can be done later when / if there's any interest?
+> Works for me. In such case (and provided that the driver without *_ff are
+> in good shape), we could merge it under drivers/media (instead of merging
+> it on staging).
+All the entries in the TODO file are not specific for saa716x_ff.
+>> I guess a problem would be finding a maintainer, I'm happy to put together
+>> a stripped down driver just supporting the TBS card I use (I already have
+>> one I use with dkms), but I'm not sure I have the time or knowledge of this
+>> chipset to be a maintainer.
+There is chipset specific stuff to fix, especially irq handling.
+> As we're talking more about touching at uAPI, probably it doesn't require
+> chipsed knowledge. Only time and interest on doing it.
+>
+> Please sync with Soeren. Perhaps if you both could help on it, it would
+> make the task easier.
+As I already wrote to different people off-list: I'm happy to support
+more cards with the saa7160 bridge and maintain these in this driver. As
+hobbyist programmer this of course makes no sense to me, if the hardware
+I own (S2-6400) is not supported.
 
-On Fri, 22 Dec 2017 14:46:48 +0100
-Ondřej Jirman <megous@megous.com> wrote:
-
-> Hello,
-> 
-> Yong Deng píše v Pá 22. 12. 2017 v 17:32 +0800:
-> > This patchset add initial support for Allwinner V3s CSI.
-> > 
-> > Allwinner V3s SoC have two CSI module. CSI0 is used for MIPI interface
-> > and CSI1 is used for parallel interface. This is not documented in
-> > datasheet but by testing and guess.
-> > 
-> > This patchset implement a v4l2 framework driver and add a binding 
-> > documentation for it. 
-> > 
-> > Currently, the driver only support the parallel interface. And has been
-> > tested with a BT1120 signal which generating from FPGA. The following
-> > fetures are not support with this patchset:
-> >   - ISP 
-> >   - MIPI-CSI2
-> >   - Master clock for camera sensor
-> >   - Power regulator for the front end IC
-> > 
-> > Thanks for Ondřej Jirman's help.
-> > 
-> > Changes in v4:
-> >   * Deal with the CSI 'INNER QUEUE'.
-> >     CSI will lookup the next dma buffer for next frame before the
-> >     the current frame done IRQ triggered. This is not documented
-> >     but reported by Ondřej Jirman.
-> >     The BSP code has workaround for this too. It skip to mark the
-> >     first buffer as frame done for VB2 and pass the second buffer
-> >     to CSI in the first frame done ISR call. Then in second frame
-> >     done ISR call, it mark the first buffer as frame done for VB2
-> >     and pass the third buffer to CSI. And so on. The bad thing is
-> >     that the first buffer will be written twice and the first frame
-> >     is dropped even the queued buffer is sufficient.
-> >     So, I make some improvement here. Pass the next buffer to CSI
-> >     just follow starting the CSI. In this case, the first frame
-> >     will be stored in first buffer, second frame in second buffer.
-> >     This mothed is used to avoid dropping the first frame, it
-> >     would also drop frame when lacking of queued buffer.
-> >   * Fix: using a wrong mbus_code when getting the supported formats
-> >   * Change all fourcc to pixformat
-> >   * Change some function names
-> > 
-> > Changes in v3:
-> >   * Get rid of struct sun6i_csi_ops
-> >   * Move sun6i-csi to new directory drivers/media/platform/sunxi
-> >   * Merge sun6i_csi.c and sun6i_csi_v3s.c into sun6i_csi.c
-> >   * Use generic fwnode endpoints parser
-> >   * Only support a single subdev to make things simple
-> >   * Many complaintion fix
-> > 
-> > Changes in v2: 
-> >   * Change sunxi-csi to sun6i-csi
-> >   * Rebase to media_tree master branch 
-> > 
-> > Following is the 'v4l2-compliance -s -f' output, I have test this
-> > with both interlaced and progressive signal:
-> > 
-> > # ./v4l2-compliance -s -f
-> > v4l2-compliance SHA   : 6049ea8bd64f9d78ef87ef0c2b3dc9b5de1ca4a1
-> > 
-> > Driver Info:
-> >         Driver name   : sun6i-video
-> >         Card type     : sun6i-csi
-> >         Bus info      : platform:csi
-> >         Driver version: 4.15.0
-> >         Capabilities  : 0x84200001
-> >                 Video Capture
-> >                 Streaming
-> >                 Extended Pix Format
-> >                 Device Capabilities
-> >         Device Caps   : 0x04200001
-> >                 Video Capture
-> >                 Streaming
-> >                 Extended Pix Format
-> > 
-> > Compliance test for device /dev/video0 (not using libv4l2):
-> > 
-> > Required ioctls:
-> >         test VIDIOC_QUERYCAP: OK
-> > 
-> > Allow for multiple opens:
-> >         test second video open: OK
-> >         test VIDIOC_QUERYCAP: OK
-> >         test VIDIOC_G/S_PRIORITY: OK
-> >         test for unlimited opens: OK
-> > 
-> > Debug ioctls:
-> >         test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
-> >         test VIDIOC_LOG_STATUS: OK (Not Supported)
-> > 
-> > Input ioctls:
-> >         test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
-> >         test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-> >         test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
-> >         test VIDIOC_ENUMAUDIO: OK (Not Supported)
-> >         test VIDIOC_G/S/ENUMINPUT: OK
-> >         test VIDIOC_G/S_AUDIO: OK (Not Supported)
-> >         Inputs: 1 Audio Inputs: 0 Tuners: 0
-> > 
-> > Output ioctls:
-> >         test VIDIOC_G/S_MODULATOR: OK (Not Supported)
-> >         test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-> >         test VIDIOC_ENUMAUDOUT: OK (Not Supported)
-> >         test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
-> >         test VIDIOC_G/S_AUDOUT: OK (Not Supported)
-> >         Outputs: 0 Audio Outputs: 0 Modulators: 0
-> > 
-> > Input/Output configuration ioctls:
-> >         test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
-> >         test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
-> >         test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
-> >         test VIDIOC_G/S_EDID: OK (Not Supported)
-> > 
-> > Test input 0:
-> > 
-> >         Control ioctls:
-> >                 test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK (Not Supported)
-> >                 test VIDIOC_QUERYCTRL: OK (Not Supported)
-> >                 test VIDIOC_G/S_CTRL: OK (Not Supported)
-> >                 test VIDIOC_G/S/TRY_EXT_CTRLS: OK (Not Supported)
-> >                 test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK (Not Supported)
-> >                 test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
-> >                 Standard Controls: 0 Private Controls: 0
-> 
-> I'm not sure if your driver passes control queries to the subdev. It
-> did not originally, and I'm not sure you picked up the change from my
-> version of the driver. "Not supported" here seems to indicate that it
-> does not.
-> 
-> I'd be interested what's the recommended practice here. It sure helps
-> with some apps that expect to be able to modify various input controls
-> directly on the /dev/video# device. These are then supported out of the
-> box.
-> 
-> It's a one-line change. See:
-> 
-> https://www.kernel.org/doc/html/latest/media/kapi/v4l2-controls.html#in
-> heriting-controls
-
-I think this is a feature and not affect the driver's main function.
-I just focused on making the CSI main function to work properly in 
-the initial version. Is this feature mandatory or most commonly used?
-
-> 
-> >         Format ioctls:
-> >                 test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
-> >                 test VIDIOC_G/S_PARM: OK (Not Supported)
-> >                 test VIDIOC_G_FBUF: OK (Not Supported)
-> >                 test VIDIOC_G_FMT: OK
-> >                 test VIDIOC_TRY_FMT: OK
-> >                 test VIDIOC_S_FMT: OK
-> >                 test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
-> >                 test Cropping: OK (Not Supported)
-> >                 test Composing: OK (Not Supported)
-> >                 test Scaling: OK (Not Supported)
-> > 
-> >         Codec ioctls:
-> >                 test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
-> >                 test VIDIOC_G_ENC_INDEX: OK (Not Supported)
-> >                 test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
-> > 
-> >         Buffer ioctls:
-> >                 test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
-> >                 test VIDIOC_EXPBUF: OK
-> > 
-> > Test input 0:
-> > 
-> > Streaming ioctls:
-> >         test read/write: OK (Not Supported)
-> >         test MMAP: OK                                     
-> >         test USERPTR: OK (Not Supported)
-> >         test DMABUF: Cannot test, specify --expbuf-device
-> > 
-> > Stream using all formats:
-> >         test MMAP for Format HM12, Frame Size 1280x720:
-> >                 Stride 1920, Field None: OK                                 
-> >         test MMAP for Format NV12, Frame Size 1280x720:
-> >                 Stride 1920, Field None: OK                                 
-> >         test MMAP for Format NV21, Frame Size 1280x720:
-> >                 Stride 1920, Field None: OK                                 
-> >         test MMAP for Format YU12, Frame Size 1280x720:
-> >                 Stride 1920, Field None: OK                                 
-> >         test MMAP for Format YV12, Frame Size 1280x720:
-> >                 Stride 1920, Field None: OK                                 
-> >         test MMAP for Format NV16, Frame Size 1280x720:
-> >                 Stride 2560, Field None: OK                                 
-> >         test MMAP for Format NV61, Frame Size 1280x720:
-> >                 Stride 2560, Field None: OK                                 
-> >         test MMAP for Format 422P, Frame Size 1280x720:
-> >                 Stride 2560, Field None: OK                                 
-> > 
-> > Total: 54, Succeeded: 54, Failed: 0, Warnings: 0
-> > 
-> > Yong Deng (2):
-> >   dt-bindings: media: Add Allwinner V3s Camera Sensor Interface (CSI)
-> >   media: V3s: Add support for Allwinner CSI.
-> > 
-> >  .../devicetree/bindings/media/sun6i-csi.txt        |  51 ++
-> >  MAINTAINERS                                        |   8 +
-> >  drivers/media/platform/Kconfig                     |   1 +
-> >  drivers/media/platform/Makefile                    |   2 +
-> >  drivers/media/platform/sunxi/sun6i-csi/Kconfig     |   9 +
-> >  drivers/media/platform/sunxi/sun6i-csi/Makefile    |   3 +
-> >  drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.c | 878 +++++++++++++++++++++
-> >  drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.h | 147 ++++
-> >  .../media/platform/sunxi/sun6i-csi/sun6i_csi_reg.h | 203 +++++
-> >  .../media/platform/sunxi/sun6i-csi/sun6i_video.c   | 752 ++++++++++++++++++
-> >  .../media/platform/sunxi/sun6i-csi/sun6i_video.h   |  60 ++
-> >  11 files changed, 2114 insertions(+)
-> >  create mode 100644 Documentation/devicetree/bindings/media/sun6i-csi.txt
-> >  create mode 100644 drivers/media/platform/sunxi/sun6i-csi/Kconfig
-> >  create mode 100644 drivers/media/platform/sunxi/sun6i-csi/Makefile
-> >  create mode 100644 drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.c
-> >  create mode 100644 drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.h
-> >  create mode 100644 drivers/media/platform/sunxi/sun6i-csi/sun6i_csi_reg.h
-> >  create mode 100644 drivers/media/platform/sunxi/sun6i-csi/sun6i_video.c
-> >  create mode 100644 drivers/media/platform/sunxi/sun6i-csi/sun6i_video.h
-> > 
-> > -- 
-> > 1.8.3.1
-> > 
-
-
-Thanks,
-Yong
+Regards,
+Soeren
+>> Unfortunately my workplace is phasing out
+>> these cards otherwise I'd try and get them to sponsor me rather than do it
+>> on my own time!
+> Yeah, getting sponsored to do it would make things easier.
+>
+> Thanks,
+> Mauro
