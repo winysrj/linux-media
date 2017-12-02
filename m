@@ -1,64 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f193.google.com ([209.85.192.193]:44521 "EHLO
-        mail-pf0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751500AbdLFLU5 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 6 Dec 2017 06:20:57 -0500
-From: Jacob Chen <jacob-chen@iotwrt.com>
-To: linux-rockchip@lists.infradead.org
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        mchehab@kernel.org, linux-media@vger.kernel.org,
-        sakari.ailus@linux.intel.com, hans.verkuil@cisco.com,
-        tfiga@chromium.org, zhengsq@rock-chips.com,
-        laurent.pinchart@ideasonboard.com, zyc@rock-chips.com,
-        eddie.cai.linux@gmail.com, jeffy.chen@rock-chips.com,
-        allon.huang@rock-chips.com, devicetree@vger.kernel.org,
-        heiko@sntech.de, robh+dt@kernel.org, Joao.Pinto@synopsys.com,
-        Luis.Oliveira@synopsys.com, Jose.Abreu@synopsys.com,
-        Jacob Chen <jacob2.chen@rock-chips.com>
-Subject: [PATCH v3 08/12] ARM: dts: rockchip: add isp node for rk3288
-Date: Wed,  6 Dec 2017 19:19:35 +0800
-Message-Id: <20171206111939.1153-9-jacob-chen@iotwrt.com>
-In-Reply-To: <20171206111939.1153-1-jacob-chen@iotwrt.com>
-References: <20171206111939.1153-1-jacob-chen@iotwrt.com>
+Received: from userp2120.oracle.com ([156.151.31.85]:32990 "EHLO
+        userp2120.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751271AbdLBKo2 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sat, 2 Dec 2017 05:44:28 -0500
+Date: Sat, 2 Dec 2017 13:20:09 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: Jeremy Sowden <jeremy@azazel.net>
+Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org
+Subject: Re: [PATCH v2 1/3] media: atomisp: convert default struct values to
+ use compound-literals with designated initializers.
+Message-ID: <20171202102009.pdly5urlxkt4rdcx@mwanda>
+References: <20171201150725.cfcp6b4bs2ncqsip@mwanda>
+ <20171201171939.3432-1-jeremy@azazel.net>
+ <20171201171939.3432-2-jeremy@azazel.net>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20171201171939.3432-2-jeremy@azazel.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Jacob Chen <jacob2.chen@rock-chips.com>
+On Fri, Dec 01, 2017 at 05:19:37PM +0000, Jeremy Sowden wrote:
+> -#define DEFAULT_PIPE_INFO \
+> -{ \
+> -	{IA_CSS_BINARY_DEFAULT_FRAME_INFO},	/* output_info */ \
+> -	{IA_CSS_BINARY_DEFAULT_FRAME_INFO},	/* vf_output_info */ \
+> -	IA_CSS_BINARY_DEFAULT_FRAME_INFO,	/* raw_output_info */ \
+> -	{ 0, 0},				/* output system in res */ \
+> -	DEFAULT_SHADING_INFO,			/* shading_info */ \
+> -	DEFAULT_GRID_INFO,			/* grid_info */ \
+> -	0					/* num_invalid_frames */ \
+> -}
+> +#define DEFAULT_PIPE_INFO ( \
 
-rk3288 have a Embedded 13M ISP
+Why does this have a ( now?  That can't compile can it??
 
-Signed-off-by: Jacob Chen <jacob2.chen@rock-chips.com>
----
- arch/arm/boot/dts/rk3288.dtsi | 17 +++++++++++++++++
- 1 file changed, 17 insertions(+)
+> +	(struct ia_css_pipe_info) { \
+> +		.output_info			= {IA_CSS_BINARY_DEFAULT_FRAME_INFO}, \
+> +		.vf_output_info			= {IA_CSS_BINARY_DEFAULT_FRAME_INFO}, \
+> +		.raw_output_info		= IA_CSS_BINARY_DEFAULT_FRAME_INFO, \
+> +		.output_system_in_res_info	= { 0, 0 }, \
+> +		.shading_info			= DEFAULT_SHADING_INFO, \
+> +		.grid_info			= DEFAULT_GRID_INFO, \
+> +		.num_invalid_frames		= 0 \
+> +	} \
+> +)
 
-diff --git a/arch/arm/boot/dts/rk3288.dtsi b/arch/arm/boot/dts/rk3288.dtsi
-index a3c015628421..ea1dda001043 100644
---- a/arch/arm/boot/dts/rk3288.dtsi
-+++ b/arch/arm/boot/dts/rk3288.dtsi
-@@ -962,6 +962,23 @@
- 		status = "disabled";
- 	};
- 
-+	isp: isp@ff910000 {
-+		compatible = "rockchip,rk3288-cif-isp";
-+		reg = <0x0 0xff910000 0x0 0x4000>;
-+		interrupts = <GIC_SPI 14 IRQ_TYPE_LEVEL_HIGH>;
-+		clocks = <&cru SCLK_ISP>, <&cru ACLK_ISP>,
-+			 <&cru HCLK_ISP>, <&cru PCLK_ISP_IN>,
-+			 <&cru SCLK_ISP_JPE>;
-+		clock-names = "clk_isp", "aclk_isp",
-+			      "hclk_isp", "pclk_isp_in",
-+			      "sclk_isp_jpe";
-+		assigned-clocks = <&cru SCLK_ISP>, <&cru SCLK_ISP_JPE>;
-+		assigned-clock-rates = <400000000>, <400000000>;
-+		power-domains = <&power RK3288_PD_VIO>;
-+		iommus = <&isp_mmu>;
-+		status = "disabled";
-+	};
-+
- 	isp_mmu: iommu@ff914000 {
- 		compatible = "rockchip,iommu";
- 		reg = <0x0 0xff914000 0x0 0x100>, <0x0 0xff915000 0x0 0x100>;
--- 
-2.15.0
+We need to get better compile test coverage on this...  :/  There are
+some others as well.
+
+regards,
+dan carpenter
