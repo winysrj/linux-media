@@ -1,166 +1,189 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f176.google.com ([209.85.128.176]:34424 "EHLO
-        mail-wr0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932454AbdLGNXJ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 7 Dec 2017 08:23:09 -0500
-Received: by mail-wr0-f176.google.com with SMTP id y21so7481116wrc.1
-        for <linux-media@vger.kernel.org>; Thu, 07 Dec 2017 05:23:08 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <d39690b8-ca6d-c7b4-3ddc-ba049d830b0f@cisco.com>
-References: <cover.1512582979.git.joabreu@synopsys.com> <fd906727f9f507bcc748125972cae447cf1e5644.1512582979.git.joabreu@synopsys.com>
- <d39690b8-ca6d-c7b4-3ddc-ba049d830b0f@cisco.com>
-From: Philippe Ombredanne <pombredanne@nexb.com>
-Date: Thu, 7 Dec 2017 14:22:27 +0100
-Message-ID: <CAOFm3uEkPKzVWUhk7JP_inusZjCVgqtxDguRxVgB-DHh1J1o9g@mail.gmail.com>
-Subject: Re: [PATCH v9 4/4] [media] platform: Add Synopsys DesignWare HDMI RX
- Controller Driver
-To: Jose Abreu <Jose.Abreu@synopsys.com>
-Cc: Hans Verkuil <hansverk@cisco.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>,
-        Joao Pinto <Joao.Pinto@synopsys.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sylwester Nawrocki <snawrocki@kernel.org>,
-        Sakari Ailus <sakari.ailus@iki.fi>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Received: from mga07.intel.com ([134.134.136.100]:40515 "EHLO mga07.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751582AbdLBEdc (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 1 Dec 2017 23:33:32 -0500
+From: Yong Zhi <yong.zhi@intel.com>
+To: linux-media@vger.kernel.org, sakari.ailus@linux.intel.com
+Cc: jian.xu.zheng@intel.com, tfiga@chromium.org,
+        rajmohan.mani@intel.com, tuukka.toivonen@intel.com,
+        hyungwoo.yang@intel.com, chiranjeevi.rapolu@intel.com,
+        jerry.w.hu@intel.com, Yong Zhi <yong.zhi@intel.com>
+Subject: [PATCH v5 05/12] intel-ipu3: css: Add dma buff pool utility functions
+Date: Fri,  1 Dec 2017 22:32:15 -0600
+Message-Id: <1512189142-19863-6-git-send-email-yong.zhi@intel.com>
+In-Reply-To: <1512189142-19863-1-git-send-email-yong.zhi@intel.com>
+References: <1512189142-19863-1-git-send-email-yong.zhi@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Jose,
+The pools are used to store previous parameters set by
+user with the parameter queue. Due to pipelining,
+there needs to be multiple sets (up to four)
+of parameters which are queued in a host-to-sp queue.
 
-On Thu, Dec 7, 2017 at 1:33 PM, Hans Verkuil <hansverk@cisco.com> wrote:
-> Hi Jose,
->
-> Some (small) comments below:
->
-> On 12/07/17 10:47, Jose Abreu wrote:
->> This is an initial submission for the Synopsys DesignWare HDMI RX
->> Controller Driver. This driver interacts with a phy driver so that
->> a communication between them is created and a video pipeline is
->> configured.
->>
->> The controller + phy pipeline can then be integrated into a fully
->> featured system that can be able to receive video up to 4k@60Hz
->> with deep color 48bit RGB, depending on the platform. Although,
->> this initial version does not yet handle deep color modes.
->>
->> This driver was implemented as a standard V4L2 subdevice and its
->> main features are:
->>       - Internal state machine that reconfigures phy until the
->>       video is not stable
->>       - JTAG communication with phy
->>       - Inter-module communication with phy driver
->>       - Debug write/read ioctls
->>
->> Some notes:
->>       - RX sense controller (cable connection/disconnection) must
->>       be handled by the platform wrapper as this is not integrated
->>       into the controller RTL
->>       - The same goes for EDID ROM's
->>       - ZCAL calibration is needed only in FPGA platforms, in ASIC
->>       this is not needed
->>       - The state machine is not an ideal solution as it creates a
->>       kthread but it is needed because some sources might not be
->>       very stable at sending the video (i.e. we must react
->>       accordingly).
->>
->> Signed-off-by: Jose Abreu <joabreu@synopsys.com>
->> Cc: Joao Pinto <jpinto@synopsys.com>
->> Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
->> Cc: Hans Verkuil <hans.verkuil@cisco.com>
->> Cc: Sylwester Nawrocki <snawrocki@kernel.org>
->> Cc: Sakari Ailus <sakari.ailus@iki.fi>
-[]
->> --- /dev/null
->> +++ b/drivers/media/platform/dwc/dw-hdmi-rx.h
->> @@ -0,0 +1,441 @@
->> +/*
->> + * Synopsys Designware HDMI Receiver controller driver
->> + *
->> + * This Synopsys dw-hdmi-rx software and associated documentation
->> + * (hereinafter the "Software") is an unsupported proprietary work of
->> + * Synopsys, Inc. unless otherwise expressly agreed to in writing betwe=
-en
->> + * Synopsys and you. The Software IS NOT an item of Licensed Software o=
-r a
->> + * Licensed Product under any End User Software License Agreement or
->> + * Agreement for Licensed Products with Synopsys or any supplement ther=
-eto.
->> + * Synopsys is a registered trademark of Synopsys, Inc. Other names inc=
-luded
->> + * in the SOFTWARE may be the trademarks of their respective owners.
->> + *
->> + * The contents of this file are dual-licensed; you may select either v=
-ersion 2
->> + * of the GNU General Public License (=E2=80=9CGPL=E2=80=9D) or the MIT=
- license (=E2=80=9CMIT=E2=80=9D).
->> + *
->> + * Copyright (c) 2017 Synopsys, Inc. and/or its affiliates.
->> + *
->> + * THIS SOFTWARE IS PROVIDED "AS IS"  WITHOUT WARRANTY OF ANY KIND, EXP=
-RESS OR
->> + * IMPLIED, INCLUDING, BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABI=
-LITY,
->> + * FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT. IN NO EVENT S=
-HALL THE
->> + * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
->> + * OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT, OR OTHERWIS=
-E
->> + * ARISING FROM, OUT OF, OR IN CONNECTION WITH THE SOFTWARE THE USE OR
->> + * OTHER DEALINGS IN THE SOFTWARE.
->> + */
+Signed-off-by: Yong Zhi <yong.zhi@intel.com>
+---
+ drivers/media/pci/intel/ipu3/ipu3-css-pool.c | 137 +++++++++++++++++++++++++++
+ drivers/media/pci/intel/ipu3/ipu3-css-pool.h |   2 +-
+ 2 files changed, 138 insertions(+), 1 deletion(-)
+ create mode 100644 drivers/media/pci/intel/ipu3/ipu3-css-pool.c
 
-
-My heart bleeds when I see such a long legalese crap obstructing your
-otherwise fine code contributions.
-
-Would you be kind enough to consider using the new SPDX ids as
-documented by Thomas and commented and agreed by Linus, Greg and other
-maintainers?
-This has the same effect, but is much more concise and readable.
-
-This could come out this way in this example:
-
->> +/* SPDX-License-Identifier: (GPL-2.0 OR MIT) */
->> +/*
->> + * Synopsys Designware HDMI Receiver controller driver
->> + *
->> + * Copyright (c) 2017 Synopsys, Inc. and/or its affiliates.
->> + *
->> + */
-
-Or even better using C++ /// style comments if this works for your
-code. These are preferred by Linus for such things (and requested for
-.c files SPDX ids vs. .h includes):
-
->> +// SPDX-License-Identifier: (GPL-2.0 OR MIT)
->> +// Copyright (c) 2017 Synopsys, Inc. and/or its affiliates.
->> +// Synopsys Designware HDMI Receiver controller driver
-
-Think of it this way: unless you are a legalese lover or a
-lawyer-who-codes and confused the kernel with a licensing contract
-draft, you now have improved the signal/noise ratio of your code quite
-nicely by removing about 20 lines of comments.
-
-And if someone ever prints your code, you will have saved a tree or
-two and be a good earth citizen.
-And even better, you can now grep your code for licenses, unambiguously.
-
-If you could do this that would be really nice: we already have tagged
-~13K files with SPDX and they are now in Linus's tree. We still have
-roughly 60K files to do... so every little help that would avoid
-piling up more work for us with new and innovative legalese
-boilerplate would really be much appreciated.
-
-Extra bonus: you can also do this for all your past, present and
-future contributions.... and spread the good word at your company so
-that everyone does the same: with this small thing you will earn at
-least 10 or more extra good karma points and my eternal gratitude.
-
-Thank you for your kind consideration, your friendly kernel licensing janit=
-or!
---=20
-Cordially
-Philippe Ombredanne
+diff --git a/drivers/media/pci/intel/ipu3/ipu3-css-pool.c b/drivers/media/pci/intel/ipu3/ipu3-css-pool.c
+new file mode 100644
+index 000000000000..2f9cdda803de
+--- /dev/null
++++ b/drivers/media/pci/intel/ipu3/ipu3-css-pool.c
+@@ -0,0 +1,137 @@
++/*
++ * Copyright (c) 2017 Intel Corporation.
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License version
++ * 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
++
++#include <linux/device.h>
++
++#include "ipu3-css-pool.h"
++#include "ipu3-dmamap.h"
++
++int ipu3_css_dma_buffer_resize(struct device *dev, struct ipu3_css_map *map,
++			       size_t size)
++{
++	if (map->size < size && map->vaddr) {
++		dev_warn(dev, "dma buffer is resized from %zu to %zu",
++			 map->size, size);
++
++		ipu3_dmamap_free(dev, map);
++		if (!ipu3_dmamap_alloc(dev, map, size))
++			return -ENOMEM;
++	}
++
++	return 0;
++}
++
++void ipu3_css_pool_cleanup(struct device *dev, struct ipu3_css_pool *pool)
++{
++	unsigned int i;
++
++	for (i = 0; i < IPU3_CSS_POOL_SIZE; i++)
++		ipu3_dmamap_free(dev, &pool->entry[i].param);
++}
++
++int ipu3_css_pool_init(struct device *dev, struct ipu3_css_pool *pool,
++		       size_t size)
++{
++	unsigned int i;
++
++	for (i = 0; i < IPU3_CSS_POOL_SIZE; i++) {
++		/*
++		 * entry[i].framenum is initialized to INT_MIN so that
++		 * ipu3_css_pool_check() can treat it as usesable slot.
++		 */
++		pool->entry[i].framenum = INT_MIN;
++
++		if (size == 0) {
++			pool->entry[i].param.vaddr = NULL;
++			continue;
++		}
++
++		if (!ipu3_dmamap_alloc(dev, &pool->entry[i].param, size))
++			goto fail;
++	}
++
++	pool->last = IPU3_CSS_POOL_SIZE;
++
++	return 0;
++
++fail:
++	ipu3_css_pool_cleanup(dev, pool);
++	return -ENOMEM;
++}
++
++/*
++ * Check that the following call to pool_get succeeds.
++ * Return negative on error.
++ */
++static int ipu3_css_pool_check(struct ipu3_css_pool *pool, long framenum)
++{
++	/* Get the oldest entry */
++	int n = (pool->last + 1) % IPU3_CSS_POOL_SIZE;
++	long diff = framenum - pool->entry[n].framenum;
++
++	/* if framenum wraps around and becomes smaller than entry n */
++	if (diff < 0)
++		diff += LONG_MAX;
++
++	/*
++	 * pool->entry[n].framenum stores the frame number where that
++	 * entry was allocated. If that was allocated more than POOL_SIZE
++	 * frames back, it is old enough that we know it is no more in
++	 * use by firmware.
++	 */
++	if (diff > IPU3_CSS_POOL_SIZE)
++		return n;
++
++	return -ENOSPC;
++}
++
++/*
++ * Allocate a new parameter from pool at frame number `framenum'.
++ * Release the oldest entry in the pool to make space for the new entry.
++ * Return negative on error.
++ */
++int ipu3_css_pool_get(struct ipu3_css_pool *pool, long framenum)
++{
++	int n = ipu3_css_pool_check(pool, framenum);
++
++	if (n < 0)
++		return n;
++
++	pool->entry[n].framenum = framenum;
++	pool->last = n;
++
++	return n;
++}
++
++/*
++ * Undo, for all practical purposes, the effect of pool_get().
++ */
++void ipu3_css_pool_put(struct ipu3_css_pool *pool)
++{
++	pool->entry[pool->last].framenum = INT_MIN;
++	pool->last = (pool->last + IPU3_CSS_POOL_SIZE - 1) % IPU3_CSS_POOL_SIZE;
++}
++
++const struct ipu3_css_map *
++ipu3_css_pool_last(struct ipu3_css_pool *pool, unsigned int n)
++{
++	static const struct ipu3_css_map null_map = { 0 };
++	int i = (pool->last + IPU3_CSS_POOL_SIZE - n) % IPU3_CSS_POOL_SIZE;
++
++	WARN_ON(n >= IPU3_CSS_POOL_SIZE);
++
++	if (pool->entry[i].framenum < 0)
++		return &null_map;
++
++	return &pool->entry[i].param;
++}
+diff --git a/drivers/media/pci/intel/ipu3/ipu3-css-pool.h b/drivers/media/pci/intel/ipu3/ipu3-css-pool.h
+index b60bcf2ad432..a94760a6de82 100644
+--- a/drivers/media/pci/intel/ipu3/ipu3-css-pool.h
++++ b/drivers/media/pci/intel/ipu3/ipu3-css-pool.h
+@@ -44,7 +44,7 @@ int ipu3_css_dma_buffer_resize(struct device *dev, struct ipu3_css_map *map,
+ 			       size_t size);
+ void ipu3_css_pool_cleanup(struct device *dev, struct ipu3_css_pool *pool);
+ int ipu3_css_pool_init(struct device *dev, struct ipu3_css_pool *pool,
+-		       int size);
++		       size_t size);
+ int ipu3_css_pool_get(struct ipu3_css_pool *pool, long framenum);
+ void ipu3_css_pool_put(struct ipu3_css_pool *pool);
+ const struct ipu3_css_map *ipu3_css_pool_last(struct ipu3_css_pool *pool,
+-- 
+2.7.4
