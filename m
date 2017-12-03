@@ -1,117 +1,396 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pl0-f68.google.com ([209.85.160.68]:33400 "EHLO
-        mail-pl0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751163AbdLZVzn (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 26 Dec 2017 16:55:43 -0500
-Date: Tue, 26 Dec 2017 15:55:37 -0600
-From: Rob Herring <robh@kernel.org>
-To: Yong Deng <yong.deng@magewell.com>
-Cc: Maxime Ripard <maxime.ripard@free-electrons.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Chen-Yu Tsai <wens@csie.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Randy Dunlap <rdunlap@infradead.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Yannick Fertre <yannick.fertre@st.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Rick Chang <rick.chang@mediatek.com>,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-sunxi@googlegroups.com
-Subject: Re: [PATCH v4 1/2] dt-bindings: media: Add Allwinner V3s Camera
- Sensor Interface (CSI)
-Message-ID: <20171226215537.cmn4l7k2w764yrsg@rob-hp-laptop>
-References: <1513935689-35415-1-git-send-email-yong.deng@magewell.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1513935689-35415-1-git-send-email-yong.deng@magewell.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:53685 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752145AbdLCK5i (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sun, 3 Dec 2017 05:57:38 -0500
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
+Cc: linux-renesas-soc@vger.kernel.org
+Subject: [PATCH 3/9] v4l: vsp1: Share the CLU, LIF and LUT set_fmt pad operation code
+Date: Sun,  3 Dec 2017 12:57:29 +0200
+Message-Id: <20171203105735.10529-4-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <20171203105735.10529-1-laurent.pinchart+renesas@ideasonboard.com>
+References: <20171203105735.10529-1-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Dec 22, 2017 at 05:41:29PM +0800, Yong Deng wrote:
-> Add binding documentation for Allwinner V3s CSI.
-> 
-> Signed-off-by: Yong Deng <yong.deng@magewell.com>
-> ---
->  .../devicetree/bindings/media/sun6i-csi.txt        | 51 ++++++++++++++++++++++
->  1 file changed, 51 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/media/sun6i-csi.txt
-> 
-> diff --git a/Documentation/devicetree/bindings/media/sun6i-csi.txt b/Documentation/devicetree/bindings/media/sun6i-csi.txt
-> new file mode 100644
-> index 0000000..b5bfe3f
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/media/sun6i-csi.txt
-> @@ -0,0 +1,51 @@
-> +Allwinner V3s Camera Sensor Interface
-> +------------------------------
-> +
-> +Required properties:
-> +  - compatible: value must be "allwinner,sun8i-v3s-csi"
-> +  - reg: base address and size of the memory-mapped region.
-> +  - interrupts: interrupt associated to this IP
-> +  - clocks: phandles to the clocks feeding the CSI
-> +    * bus: the CSI interface clock
-> +    * mod: the CSI module clock
-> +    * ram: the CSI DRAM clock
-> +  - clock-names: the clock names mentioned above
-> +  - resets: phandles to the reset line driving the CSI
-> +
-> +- ports: A ports node with endpoint definitions as defined in
-> +  Documentation/devicetree/bindings/media/video-interfaces.txt.
-> +  Currently, the driver only support the parallel interface. So, a single port
-> +  node with one endpoint and parallel bus is supported.
+The implementation of the set_fmt pad operation is identical in the
+three modules. Move it to a generic helper function.
 
-What the driver supports is not relevant. Please document what the h/w 
-has.
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+---
+ drivers/media/platform/vsp1/vsp1_clu.c    | 65 +++++----------------------
+ drivers/media/platform/vsp1/vsp1_entity.c | 75 +++++++++++++++++++++++++++++++
+ drivers/media/platform/vsp1/vsp1_entity.h |  6 +++
+ drivers/media/platform/vsp1/vsp1_lif.c    | 65 +++++----------------------
+ drivers/media/platform/vsp1/vsp1_lut.c    | 65 +++++----------------------
+ 5 files changed, 116 insertions(+), 160 deletions(-)
 
-> +
-> +Example:
-> +
-> +	csi1: csi@1cb4000 {
-> +		compatible = "allwinner,sun8i-v3s-csi";
-> +		reg = <0x01cb4000 0x1000>;
-> +		interrupts = <GIC_SPI 84 IRQ_TYPE_LEVEL_HIGH>;
-> +		clocks = <&ccu CLK_BUS_CSI>,
-> +			 <&ccu CLK_CSI1_SCLK>,
-> +			 <&ccu CLK_DRAM_CSI>;
-> +		clock-names = "bus", "mod", "ram";
-> +		resets = <&ccu RST_BUS_CSI>;
-> +
-> +		port {
+diff --git a/drivers/media/platform/vsp1/vsp1_clu.c b/drivers/media/platform/vsp1/vsp1_clu.c
+index f2fb26e5ab4e..bc931a3ab498 100644
+--- a/drivers/media/platform/vsp1/vsp1_clu.c
++++ b/drivers/media/platform/vsp1/vsp1_clu.c
+@@ -118,18 +118,18 @@ static const struct v4l2_ctrl_config clu_mode_control = {
+  * V4L2 Subdevice Pad Operations
+  */
+ 
++static const unsigned int clu_codes[] = {
++	MEDIA_BUS_FMT_ARGB8888_1X32,
++	MEDIA_BUS_FMT_AHSV8888_1X32,
++	MEDIA_BUS_FMT_AYUV8_1X32,
++};
++
+ static int clu_enum_mbus_code(struct v4l2_subdev *subdev,
+ 			      struct v4l2_subdev_pad_config *cfg,
+ 			      struct v4l2_subdev_mbus_code_enum *code)
+ {
+-	static const unsigned int codes[] = {
+-		MEDIA_BUS_FMT_ARGB8888_1X32,
+-		MEDIA_BUS_FMT_AHSV8888_1X32,
+-		MEDIA_BUS_FMT_AYUV8_1X32,
+-	};
+-
+-	return vsp1_subdev_enum_mbus_code(subdev, cfg, code, codes,
+-					  ARRAY_SIZE(codes));
++	return vsp1_subdev_enum_mbus_code(subdev, cfg, code, clu_codes,
++					  ARRAY_SIZE(clu_codes));
+ }
+ 
+ static int clu_enum_frame_size(struct v4l2_subdev *subdev,
+@@ -145,51 +145,10 @@ static int clu_set_format(struct v4l2_subdev *subdev,
+ 			  struct v4l2_subdev_pad_config *cfg,
+ 			  struct v4l2_subdev_format *fmt)
+ {
+-	struct vsp1_clu *clu = to_clu(subdev);
+-	struct v4l2_subdev_pad_config *config;
+-	struct v4l2_mbus_framefmt *format;
+-	int ret = 0;
+-
+-	mutex_lock(&clu->entity.lock);
+-
+-	config = vsp1_entity_get_pad_config(&clu->entity, cfg, fmt->which);
+-	if (!config) {
+-		ret = -EINVAL;
+-		goto done;
+-	}
+-
+-	/* Default to YUV if the requested format is not supported. */
+-	if (fmt->format.code != MEDIA_BUS_FMT_ARGB8888_1X32 &&
+-	    fmt->format.code != MEDIA_BUS_FMT_AHSV8888_1X32 &&
+-	    fmt->format.code != MEDIA_BUS_FMT_AYUV8_1X32)
+-		fmt->format.code = MEDIA_BUS_FMT_AYUV8_1X32;
+-
+-	format = vsp1_entity_get_pad_format(&clu->entity, config, fmt->pad);
+-
+-	if (fmt->pad == CLU_PAD_SOURCE) {
+-		/* The CLU output format can't be modified. */
+-		fmt->format = *format;
+-		goto done;
+-	}
+-
+-	format->code = fmt->format.code;
+-	format->width = clamp_t(unsigned int, fmt->format.width,
+-				CLU_MIN_SIZE, CLU_MAX_SIZE);
+-	format->height = clamp_t(unsigned int, fmt->format.height,
+-				 CLU_MIN_SIZE, CLU_MAX_SIZE);
+-	format->field = V4L2_FIELD_NONE;
+-	format->colorspace = V4L2_COLORSPACE_SRGB;
+-
+-	fmt->format = *format;
+-
+-	/* Propagate the format to the source pad. */
+-	format = vsp1_entity_get_pad_format(&clu->entity, config,
+-					    CLU_PAD_SOURCE);
+-	*format = fmt->format;
+-
+-done:
+-	mutex_unlock(&clu->entity.lock);
+-	return ret;
++	return vsp1_subdev_set_pad_format(subdev, cfg, fmt, clu_codes,
++					  ARRAY_SIZE(clu_codes),
++					  CLU_MIN_SIZE, CLU_MIN_SIZE,
++					  CLU_MAX_SIZE, CLU_MAX_SIZE);
+ }
+ 
+ /* -----------------------------------------------------------------------------
+diff --git a/drivers/media/platform/vsp1/vsp1_entity.c b/drivers/media/platform/vsp1/vsp1_entity.c
+index 54de15095709..0fa310f1a8d1 100644
+--- a/drivers/media/platform/vsp1/vsp1_entity.c
++++ b/drivers/media/platform/vsp1/vsp1_entity.c
+@@ -311,6 +311,81 @@ int vsp1_subdev_enum_frame_size(struct v4l2_subdev *subdev,
+ 	return ret;
+ }
+ 
++/*
++ * vsp1_subdev_set_pad_format - Subdev pad set_fmt handler
++ * @subdev: V4L2 subdevice
++ * @cfg: V4L2 subdev pad configuration
++ * @fmt: V4L2 subdev format
++ * @codes: Array of supported media bus codes
++ * @ncodes: Number of supported media bus codes
++ * @min_width: Minimum image width
++ * @min_height: Minimum image height
++ * @max_width: Maximum image width
++ * @max_height: Maximum image height
++ *
++ * This function implements the subdev set_fmt pad operation for entities that
++ * do not support scaling or cropping. It defaults to the first supplied media
++ * bus code if the requested code isn't supported, clamps the size to the
++ * supplied minimum and maximum, and propagates the sink pad format to the
++ * source pad.
++ */
++int vsp1_subdev_set_pad_format(struct v4l2_subdev *subdev,
++			       struct v4l2_subdev_pad_config *cfg,
++			       struct v4l2_subdev_format *fmt,
++			       const unsigned int *codes, unsigned int ncodes,
++			       unsigned int min_width, unsigned int min_height,
++			       unsigned int max_width, unsigned int max_height)
++{
++	struct vsp1_entity *entity = to_vsp1_entity(subdev);
++	struct v4l2_subdev_pad_config *config;
++	struct v4l2_mbus_framefmt *format;
++	unsigned int i;
++	int ret = 0;
++
++	mutex_lock(&entity->lock);
++
++	config = vsp1_entity_get_pad_config(entity, cfg, fmt->which);
++	if (!config) {
++		ret = -EINVAL;
++		goto done;
++	}
++
++	format = vsp1_entity_get_pad_format(entity, config, fmt->pad);
++
++	if (fmt->pad != 0) {
++		/* The output format can't be modified. */
++		fmt->format = *format;
++		goto done;
++	}
++
++	/*
++	 * Default to the first media bus code if the requested format is not
++	 * supported.
++	 */
++	for (i = 0; i < ncodes; ++i) {
++		if (fmt->format.code == codes[i])
++			break;
++	}
++
++	format->code = i < ncodes ? codes[i] : codes[0];
++	format->width = clamp_t(unsigned int, fmt->format.width,
++				min_width, max_width);
++	format->height = clamp_t(unsigned int, fmt->format.height,
++				 min_height, max_height);
++	format->field = V4L2_FIELD_NONE;
++	format->colorspace = V4L2_COLORSPACE_SRGB;
++
++	fmt->format = *format;
++
++	/* Propagate the format to the source pad. */
++	format = vsp1_entity_get_pad_format(entity, config, 1);
++	*format = fmt->format;
++
++done:
++	mutex_unlock(&entity->lock);
++	return ret;
++}
++
+ /* -----------------------------------------------------------------------------
+  * Media Operations
+  */
+diff --git a/drivers/media/platform/vsp1/vsp1_entity.h b/drivers/media/platform/vsp1/vsp1_entity.h
+index 408602ebeb97..319e053737fd 100644
+--- a/drivers/media/platform/vsp1/vsp1_entity.h
++++ b/drivers/media/platform/vsp1/vsp1_entity.h
+@@ -162,6 +162,12 @@ struct media_pad *vsp1_entity_remote_pad(struct media_pad *pad);
+ int vsp1_subdev_get_pad_format(struct v4l2_subdev *subdev,
+ 			       struct v4l2_subdev_pad_config *cfg,
+ 			       struct v4l2_subdev_format *fmt);
++int vsp1_subdev_set_pad_format(struct v4l2_subdev *subdev,
++			       struct v4l2_subdev_pad_config *cfg,
++			       struct v4l2_subdev_format *fmt,
++			       const unsigned int *codes, unsigned int ncodes,
++			       unsigned int min_width, unsigned int min_height,
++			       unsigned int max_width, unsigned int max_height);
+ int vsp1_subdev_enum_mbus_code(struct v4l2_subdev *subdev,
+ 			       struct v4l2_subdev_pad_config *cfg,
+ 			       struct v4l2_subdev_mbus_code_enum *code,
+diff --git a/drivers/media/platform/vsp1/vsp1_lif.c b/drivers/media/platform/vsp1/vsp1_lif.c
+index e6fa16d7fda8..ad56629450ec 100644
+--- a/drivers/media/platform/vsp1/vsp1_lif.c
++++ b/drivers/media/platform/vsp1/vsp1_lif.c
+@@ -37,17 +37,17 @@ static inline void vsp1_lif_write(struct vsp1_lif *lif, struct vsp1_dl_list *dl,
+  * V4L2 Subdevice Operations
+  */
+ 
++static const unsigned int lif_codes[] = {
++	MEDIA_BUS_FMT_ARGB8888_1X32,
++	MEDIA_BUS_FMT_AYUV8_1X32,
++};
++
+ static int lif_enum_mbus_code(struct v4l2_subdev *subdev,
+ 			      struct v4l2_subdev_pad_config *cfg,
+ 			      struct v4l2_subdev_mbus_code_enum *code)
+ {
+-	static const unsigned int codes[] = {
+-		MEDIA_BUS_FMT_ARGB8888_1X32,
+-		MEDIA_BUS_FMT_AYUV8_1X32,
+-	};
+-
+-	return vsp1_subdev_enum_mbus_code(subdev, cfg, code, codes,
+-					  ARRAY_SIZE(codes));
++	return vsp1_subdev_enum_mbus_code(subdev, cfg, code, lif_codes,
++					  ARRAY_SIZE(lif_codes));
+ }
+ 
+ static int lif_enum_frame_size(struct v4l2_subdev *subdev,
+@@ -63,53 +63,10 @@ static int lif_set_format(struct v4l2_subdev *subdev,
+ 			  struct v4l2_subdev_pad_config *cfg,
+ 			  struct v4l2_subdev_format *fmt)
+ {
+-	struct vsp1_lif *lif = to_lif(subdev);
+-	struct v4l2_subdev_pad_config *config;
+-	struct v4l2_mbus_framefmt *format;
+-	int ret = 0;
+-
+-	mutex_lock(&lif->entity.lock);
+-
+-	config = vsp1_entity_get_pad_config(&lif->entity, cfg, fmt->which);
+-	if (!config) {
+-		ret = -EINVAL;
+-		goto done;
+-	}
+-
+-	/* Default to YUV if the requested format is not supported. */
+-	if (fmt->format.code != MEDIA_BUS_FMT_ARGB8888_1X32 &&
+-	    fmt->format.code != MEDIA_BUS_FMT_AYUV8_1X32)
+-		fmt->format.code = MEDIA_BUS_FMT_AYUV8_1X32;
+-
+-	format = vsp1_entity_get_pad_format(&lif->entity, config, fmt->pad);
+-
+-	if (fmt->pad == LIF_PAD_SOURCE) {
+-		/*
+-		 * The LIF source format is always identical to its sink
+-		 * format.
+-		 */
+-		fmt->format = *format;
+-		goto done;
+-	}
+-
+-	format->code = fmt->format.code;
+-	format->width = clamp_t(unsigned int, fmt->format.width,
+-				LIF_MIN_SIZE, LIF_MAX_SIZE);
+-	format->height = clamp_t(unsigned int, fmt->format.height,
+-				 LIF_MIN_SIZE, LIF_MAX_SIZE);
+-	format->field = V4L2_FIELD_NONE;
+-	format->colorspace = V4L2_COLORSPACE_SRGB;
+-
+-	fmt->format = *format;
+-
+-	/* Propagate the format to the source pad. */
+-	format = vsp1_entity_get_pad_format(&lif->entity, config,
+-					    LIF_PAD_SOURCE);
+-	*format = fmt->format;
+-
+-done:
+-	mutex_unlock(&lif->entity.lock);
+-	return ret;
++	return vsp1_subdev_set_pad_format(subdev, cfg, fmt, lif_codes,
++					  ARRAY_SIZE(lif_codes),
++					  LIF_MIN_SIZE, LIF_MIN_SIZE,
++					  LIF_MAX_SIZE, LIF_MAX_SIZE);
+ }
+ 
+ static const struct v4l2_subdev_pad_ops lif_pad_ops = {
+diff --git a/drivers/media/platform/vsp1/vsp1_lut.c b/drivers/media/platform/vsp1/vsp1_lut.c
+index c67cc60db0db..63f8127a65a4 100644
+--- a/drivers/media/platform/vsp1/vsp1_lut.c
++++ b/drivers/media/platform/vsp1/vsp1_lut.c
+@@ -94,18 +94,18 @@ static const struct v4l2_ctrl_config lut_table_control = {
+  * V4L2 Subdevice Pad Operations
+  */
+ 
++static const unsigned int lut_codes[] = {
++	MEDIA_BUS_FMT_ARGB8888_1X32,
++	MEDIA_BUS_FMT_AHSV8888_1X32,
++	MEDIA_BUS_FMT_AYUV8_1X32,
++};
++
+ static int lut_enum_mbus_code(struct v4l2_subdev *subdev,
+ 			      struct v4l2_subdev_pad_config *cfg,
+ 			      struct v4l2_subdev_mbus_code_enum *code)
+ {
+-	static const unsigned int codes[] = {
+-		MEDIA_BUS_FMT_ARGB8888_1X32,
+-		MEDIA_BUS_FMT_AHSV8888_1X32,
+-		MEDIA_BUS_FMT_AYUV8_1X32,
+-	};
+-
+-	return vsp1_subdev_enum_mbus_code(subdev, cfg, code, codes,
+-					  ARRAY_SIZE(codes));
++	return vsp1_subdev_enum_mbus_code(subdev, cfg, code, lut_codes,
++					  ARRAY_SIZE(lut_codes));
+ }
+ 
+ static int lut_enum_frame_size(struct v4l2_subdev *subdev,
+@@ -121,51 +121,10 @@ static int lut_set_format(struct v4l2_subdev *subdev,
+ 			  struct v4l2_subdev_pad_config *cfg,
+ 			  struct v4l2_subdev_format *fmt)
+ {
+-	struct vsp1_lut *lut = to_lut(subdev);
+-	struct v4l2_subdev_pad_config *config;
+-	struct v4l2_mbus_framefmt *format;
+-	int ret = 0;
+-
+-	mutex_lock(&lut->entity.lock);
+-
+-	config = vsp1_entity_get_pad_config(&lut->entity, cfg, fmt->which);
+-	if (!config) {
+-		ret = -EINVAL;
+-		goto done;
+-	}
+-
+-	/* Default to YUV if the requested format is not supported. */
+-	if (fmt->format.code != MEDIA_BUS_FMT_ARGB8888_1X32 &&
+-	    fmt->format.code != MEDIA_BUS_FMT_AHSV8888_1X32 &&
+-	    fmt->format.code != MEDIA_BUS_FMT_AYUV8_1X32)
+-		fmt->format.code = MEDIA_BUS_FMT_AYUV8_1X32;
+-
+-	format = vsp1_entity_get_pad_format(&lut->entity, config, fmt->pad);
+-
+-	if (fmt->pad == LUT_PAD_SOURCE) {
+-		/* The LUT output format can't be modified. */
+-		fmt->format = *format;
+-		goto done;
+-	}
+-
+-	format->code = fmt->format.code;
+-	format->width = clamp_t(unsigned int, fmt->format.width,
+-				LUT_MIN_SIZE, LUT_MAX_SIZE);
+-	format->height = clamp_t(unsigned int, fmt->format.height,
+-				 LUT_MIN_SIZE, LUT_MAX_SIZE);
+-	format->field = V4L2_FIELD_NONE;
+-	format->colorspace = V4L2_COLORSPACE_SRGB;
+-
+-	fmt->format = *format;
+-
+-	/* Propagate the format to the source pad. */
+-	format = vsp1_entity_get_pad_format(&lut->entity, config,
+-					    LUT_PAD_SOURCE);
+-	*format = fmt->format;
+-
+-done:
+-	mutex_unlock(&lut->entity.lock);
+-	return ret;
++	return vsp1_subdev_set_pad_format(subdev, cfg, fmt, lut_codes,
++					  ARRAY_SIZE(lut_codes),
++					  LUT_MIN_SIZE, LUT_MIN_SIZE,
++					  LUT_MAX_SIZE, LUT_MAX_SIZE);
+ }
+ 
+ /* -----------------------------------------------------------------------------
+-- 
+Regards,
 
-> +			#address-cells = <1>;
-> +			#size-cells = <0>;
-
-These are not needed with a single endpoint.
-
-> +
-> +			/* Parallel bus endpoint */
-> +			csi1_ep: endpoint {
-> +				remote-endpoint = <&adv7611_ep>;
-> +				bus-width = <16>;
-> +				data-shift = <0>;
-> +
-> +				/* If hsync-active/vsync-active are missing,
-> +				   embedded BT.656 sync is used */
-> +				hsync-active = <0>; /* Active low */
-> +				vsync-active = <0>; /* Active low */
-> +				data-active = <1>;  /* Active high */
-> +				pclk-sample = <1>;  /* Rising */
-> +			};
-> +		};
-> +	};
-> +
-> -- 
-> 1.8.3.1
-> 
+Laurent Pinchart
