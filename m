@@ -1,57 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ipmail06.adl6.internode.on.net ([150.101.137.145]:45019 "EHLO
-        ipmail06.adl6.internode.on.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S933147AbdLRWPu (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 18 Dec 2017 17:15:50 -0500
-Date: Tue, 19 Dec 2017 09:10:41 +1100
-From: Dave Chinner <david@fromorbit.com>
-To: Joe Perches <joe@perches.com>
-Cc: Jiri Kosina <trivial@kernel.org>,
-        Linus Torvalds <torvalds@linux-foundation.org>,
-        linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
-        amd-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org,
-        linux-media@vger.kernel.org, MPT-FusionLinux.pdl@broadcom.com,
-        linux-scsi@vger.kernel.org, netdev@vger.kernel.org,
-        linux-wireless@vger.kernel.org,
-        acpi4asus-user@lists.sourceforge.net,
-        platform-driver-x86@vger.kernel.org, linux-rtc@vger.kernel.org,
-        linux-fsdevel@vger.kernel.org, ocfs2-devel@oss.oracle.com,
-        linux-xfs@vger.kernel.org, linux-audit@redhat.com,
-        alsa-devel@alsa-project.org,
-        linuxppc-dev <linuxppc-dev@lists.ozlabs.org>
-Subject: Re: [trivial PATCH] treewide: Align function definition open/close
- braces
-Message-ID: <20171218221040.GG4094@dastard>
-References: <1513556924.31581.51.camel@perches.com>
+Received: from relay1.mentorg.com ([192.94.38.131]:48620 "EHLO
+        relay1.mentorg.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752462AbdLCVez (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sun, 3 Dec 2017 16:34:55 -0500
+Subject: Re: [PATCH v2 2/4] media: ov5640: check chip id
+To: Hugues Fruchet <hugues.fruchet@st.com>,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+CC: <linux-media@vger.kernel.org>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>
+References: <1511975472-26659-1-git-send-email-hugues.fruchet@st.com>
+ <1511975472-26659-3-git-send-email-hugues.fruchet@st.com>
+From: Steve Longerbeam <steve_longerbeam@mentor.com>
+Message-ID: <fcf7a6e3-e4b7-bf45-feca-8b9fa5b08716@mentor.com>
+Date: Sun, 3 Dec 2017 13:34:48 -0800
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1513556924.31581.51.camel@perches.com>
+In-Reply-To: <1511975472-26659-3-git-send-email-hugues.fruchet@st.com>
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Dec 17, 2017 at 04:28:44PM -0800, Joe Perches wrote:
-> Some functions definitions have either the initial open brace and/or
-> the closing brace outside of column 1.
-> 
-> Move those braces to column 1.
-> 
-> This allows various function analyzers like gnu complexity to work
-> properly for these modified functions.
-> 
-> Miscellanea:
-> 
-> o Remove extra trailing ; and blank line from xfs_agf_verify
-> 
-> Signed-off-by: Joe Perches <joe@perches.com>
+
+
+On 11/29/2017 09:11 AM, Hugues Fruchet wrote:
+> Verify that chip identifier is correct before starting streaming
+>
+> Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
 > ---
-....
+>   drivers/media/i2c/ov5640.c | 30 +++++++++++++++++++++++++++++-
+>   1 file changed, 29 insertions(+), 1 deletion(-)
+>
+> diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
+> index 61071f5..a576d11 100644
+> --- a/drivers/media/i2c/ov5640.c
+> +++ b/drivers/media/i2c/ov5640.c
+> @@ -34,7 +34,8 @@
+>   
+>   #define OV5640_DEFAULT_SLAVE_ID 0x3c
+>   
+> -#define OV5640_REG_CHIP_ID		0x300a
+> +#define OV5640_REG_CHIP_ID_HIGH		0x300a
+> +#define OV5640_REG_CHIP_ID_LOW		0x300b
 
-XFS bits look fine.
+There is no need to separate low and high byte addresses.
+See below.
 
-Acked-by: Dave Chinner <dchinner@redhat.com>
+>   #define OV5640_REG_PAD_OUTPUT00		0x3019
+>   #define OV5640_REG_SC_PLL_CTRL0		0x3034
+>   #define OV5640_REG_SC_PLL_CTRL1		0x3035
+> @@ -926,6 +927,29 @@ static int ov5640_load_regs(struct ov5640_dev *sensor,
+>   	return ret;
+>   }
+>   
+> +static int ov5640_check_chip_id(struct ov5640_dev *sensor)
+> +{
+> +	struct i2c_client *client = sensor->i2c_client;
+> +	int ret;
+> +	u8 chip_id_h, chip_id_l;
+> +
+> +	ret = ov5640_read_reg(sensor, OV5640_REG_CHIP_ID_HIGH, &chip_id_h);
+> +	if (ret)
+> +		return ret;
+> +
+> +	ret = ov5640_read_reg(sensor, OV5640_REG_CHIP_ID_LOW, &chip_id_l);
+> +	if (ret)
+> +		return ret;
+> +
+> +	if (!(chip_id_h == 0x56 && chip_id_l == 0x40)) {
+> +		dev_err(&client->dev, "%s: wrong chip identifier, expected 0x5640, got 0x%x%x\n",
+> +			__func__, chip_id_h, chip_id_l);
+> +		return -EINVAL;
+> +	}
+> +
 
--- 
-Dave Chinner
-david@fromorbit.com
+This should all be be replaced by:
+
+u16 chip_id;
+
+ret = ov5640_read_reg16(sensor, OV5640_REG_CHIP_ID, &chip_id);
+
+etc.
+
+> +	return 0;
+> +}
+> +
+>   /* read exposure, in number of line periods */
+>   static int ov5640_get_exposure(struct ov5640_dev *sensor)
+>   {
+> @@ -1562,6 +1586,10 @@ static int ov5640_set_power(struct ov5640_dev *sensor, bool on)
+>   		ov5640_reset(sensor);
+>   		ov5640_power(sensor, true);
+>   
+> +		ret = ov5640_check_chip_id(sensor);
+> +		if (ret)
+> +			goto power_off;
+> +
+>   		ret = ov5640_init_slave_id(sensor);
+>   		if (ret)
+>   			goto power_off;
