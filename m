@@ -1,41 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f52.google.com ([74.125.82.52]:33481 "EHLO
-        mail-wm0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752558AbdLQQAj (ORCPT
+Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:36317 "EHLO
+        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752006AbdLCPDQ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 17 Dec 2017 11:00:39 -0500
-Received: by mail-wm0-f52.google.com with SMTP id g130so4437117wme.0
-        for <linux-media@vger.kernel.org>; Sun, 17 Dec 2017 08:00:39 -0800 (PST)
-Date: Sun, 17 Dec 2017 17:00:36 +0100
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: linux-media@vger.kernel.org, mchehab@kernel.org,
-        mchehab@s-opensource.com
-Subject: Re: [PATCH 0/8] ddbridge improvements and cleanups
-Message-ID: <20171217170036.7dd3dac4@macbox>
-In-Reply-To: <20171217154049.1125-1-d.scheller.oss@gmail.com>
-References: <20171217154049.1125-1-d.scheller.oss@gmail.com>
+        Sun, 3 Dec 2017 10:03:16 -0500
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH] adv7604.c: add missing return
+Message-ID: <305e2caf-fc15-20f1-3464-9454e641de95@xs4all.nl>
+Date: Sun, 3 Dec 2017 16:03:11 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, 17 Dec 2017 16:40:41 +0100
-Daniel Scheller <d.scheller.oss@gmail.com> wrote:
+A 'return' was missing when detecting Arbitration Lost and
+calling transmit_done. With the return transmit_done could be
+called a second time, confusing the CEC framework. Luckily
+the Arbitration Lost condition is very rare.
 
-> I verified this by simply removing tda18212.ko with this DD setup:
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/i2c/adv7604.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-Sorry, I forgot to outline this: I also tested by removing stv0367.ko
-and cxd2841er.ko of course, which resulted in partially working
-hardware, either the cxd-based hardware or the stv-based one didn't
-work, while everything else did. Unload worked cleanly, without leaving
-any side effects.
-
-All this worked without these patches before of course, but as they
-touch the attach logic and make failure cleanup resources instantly
-now, this required retesting.
-
-Best regards,
-Daniel Scheller
+diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+index c786cd125417..1544920ec52d 100644
+--- a/drivers/media/i2c/adv7604.c
++++ b/drivers/media/i2c/adv7604.c
+@@ -1982,6 +1982,7 @@ static void adv76xx_cec_tx_raw_status(struct v4l2_subdev *sd, u8 tx_raw_status)
+ 			 __func__);
+ 		cec_transmit_done(state->cec_adap, CEC_TX_STATUS_ARB_LOST,
+ 				  1, 0, 0, 0);
++		return;
+ 	}
+ 	if (tx_raw_status & 0x04) {
+ 		u8 status;
 -- 
-https://github.com/herrnst
+2.14.1
