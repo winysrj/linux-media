@@ -1,116 +1,145 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:38541 "EHLO
-        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753752AbdLLMyi (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 12 Dec 2017 07:54:38 -0500
-Subject: Re: [PATCH v4 3/5] staging: Introduce NVIDIA Tegra video decoder
- driver
-To: Dmitry Osipenko <digetx@gmail.com>,
-        Thierry Reding <thierry.reding@gmail.com>,
-        Jonathan Hunter <jonathanh@nvidia.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Stephen Warren <swarren@wwwdotorg.org>,
-        Vladimir Zapolskiy <vz@mleia.com>
-References: <cover.1508448293.git.digetx@gmail.com>
- <1a3798f337c0097e67d70226ae3ba665fd9156c2.1508448293.git.digetx@gmail.com>
- <ad2da9f4-8899-7db3-493f-5aa15297c33c@xs4all.nl>
- <3ac6a087-def2-014f-673d-1be9d5094635@gmail.com>
- <93c98569-0282-80d9-78ad-c8ab8fd9db92@xs4all.nl>
- <f46f397d-28e1-f4e5-55d4-9863214e8f6c@gmail.com>
-Cc: Dan Carpenter <dan.carpenter@oracle.com>,
-        linux-media@vger.kernel.org, linux-tegra@vger.kernel.org,
-        devel@driverdev.osuosl.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org,
-        Maxime Ripard <maxime.ripard@free-electrons.com>,
-        Giulio Benetti <giulio.benetti@micronovasrl.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <a293c278-0c44-6a8b-55bb-7a1c5c9575f6@xs4all.nl>
-Date: Tue, 12 Dec 2017 13:54:34 +0100
-MIME-Version: 1.0
-In-Reply-To: <f46f397d-28e1-f4e5-55d4-9863214e8f6c@gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Received: from galahad.ideasonboard.com ([185.26.127.97]:53684 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752189AbdLCK5m (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sun, 3 Dec 2017 05:57:42 -0500
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
+Cc: linux-renesas-soc@vger.kernel.org
+Subject: [PATCH 6/9] v4l: vsp1: Extend the DU API to support CRC computation
+Date: Sun,  3 Dec 2017 12:57:32 +0200
+Message-Id: <20171203105735.10529-7-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <20171203105735.10529-1-laurent.pinchart+renesas@ideasonboard.com>
+References: <20171203105735.10529-1-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/12/17 19:56, Dmitry Osipenko wrote:
-> On 05.12.2017 16:03, Hans Verkuil wrote:
->> On 12/05/17 13:17, Dmitry Osipenko wrote:
->>> Hi Hans,
->>>
->>> On 04.12.2017 17:04, Hans Verkuil wrote:
->>>> Hi Dmitry,
->>>>
->>>> As you already mention in the TODO, this should become a v4l2 codec driver.
->>>>
->>>> Good existing examples are the coda, qcom/venus and mtk-vcodec drivers.
->>>>
->>>> One thing that is not clear from this code is if the tegra hardware is a
->>>> stateful or stateless codec, i.e. does it keep track of the decoder state
->>>> in the hardware, or does the application have to keep track of the state and
->>>> provide the state information together with the video data?
->>>>
->>>> I ask because at the moment only stateful codecs are supported. Work is ongoing
->>>> to support stateless codecs, but we don't support that for now.
->>>>
->>>
->>> It is stateless. Is there anything ready to try out? If yes, could you please
->>> give a reference to that work?
->>
->> I rebased my two year old 'requests2' branch to the latest mainline version and
->> gave it the imaginative name 'requests3':
->>
->> https://git.linuxtv.org/hverkuil/media_tree.git/log/?h=requests3
->>
->> (Note: only compile tested!)
-> 
-> Thank you very much.
-> 
->> This is what ChromeOS has been using (actually they use a slightly older version)
->> and the new version that is currently being developed will be similar, so any work
->> you do on top of this will carry over to the final version without too much effort.
->>
->> At least, that's the intention :-)
->>
->> I've CC-ed Maxime and Giulio as well: they are looking into adding support for
->> the stateless allwinner codec based on this code as well. There may well be
->> opportunities for you to work together, esp. on the userspace side. Note that
->> Rockchip has the same issue, they too have a stateless HW codec.
-> 
-> IIUC, we will have to define video decoder parameters in V4L API and then make a
-> V4L driver / userspace prototype (ffmpeg for example) that will use the requests
-> API for video decoding in order to upstream the requests API. Does it sound good?
+Add a parameter (in the form of a structure to ease future API
+extensions) to the VSP atomic flush handler to pass CRC source
+configuration, and pass the CRC value to the completion callback.
 
-Correct.
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+---
+ drivers/gpu/drm/rcar-du/rcar_du_vsp.c  |  6 ++++--
+ drivers/media/platform/vsp1/vsp1_drm.c |  6 ++++--
+ drivers/media/platform/vsp1/vsp1_drm.h |  2 +-
+ include/media/vsp1.h                   | 29 +++++++++++++++++++++++++++--
+ 4 files changed, 36 insertions(+), 7 deletions(-)
 
-Hugues Fruchet made an example bit parser for mpeg:
-
-https://www.spinics.net/lists/linux-media/msg115017.html
-
-So something similar would work.
-
-My recommendation would be to make a separate library that can be shared among
-different implementations (i.e. in gstreamer, in vdpau, using a libv4l2 plugin, etc., etc.).
-
-That can easily be hosted as part of v4l-utils to keep it in sync with the
-kernel drivers. If it's independent of the various drivers, then it can be
-hosted anywhere of course.
-
-BTW, we as V4L2 core developers have no plans on working on such a library :-)
-
+diff --git a/drivers/gpu/drm/rcar-du/rcar_du_vsp.c b/drivers/gpu/drm/rcar-du/rcar_du_vsp.c
+index 2c260c33840b..bdcec201591f 100644
+--- a/drivers/gpu/drm/rcar-du/rcar_du_vsp.c
++++ b/drivers/gpu/drm/rcar-du/rcar_du_vsp.c
+@@ -31,7 +31,7 @@
+ #include "rcar_du_kms.h"
+ #include "rcar_du_vsp.h"
+ 
+-static void rcar_du_vsp_complete(void *private, bool completed)
++static void rcar_du_vsp_complete(void *private, bool completed, u32 crc)
+ {
+ 	struct rcar_du_crtc *crtc = private;
+ 
+@@ -102,7 +102,9 @@ void rcar_du_vsp_atomic_begin(struct rcar_du_crtc *crtc)
+ 
+ void rcar_du_vsp_atomic_flush(struct rcar_du_crtc *crtc)
+ {
+-	vsp1_du_atomic_flush(crtc->vsp->vsp, crtc->vsp_pipe);
++	struct vsp1_du_atomic_pipe_config cfg = { { 0, } };
++
++	vsp1_du_atomic_flush(crtc->vsp->vsp, crtc->vsp_pipe, &cfg);
+ }
+ 
+ /* Keep the two tables in sync. */
+diff --git a/drivers/media/platform/vsp1/vsp1_drm.c b/drivers/media/platform/vsp1/vsp1_drm.c
+index 0fe541084f5c..97d2be3b0023 100644
+--- a/drivers/media/platform/vsp1/vsp1_drm.c
++++ b/drivers/media/platform/vsp1/vsp1_drm.c
+@@ -38,7 +38,7 @@ static void vsp1_du_pipeline_frame_end(struct vsp1_pipeline *pipe,
+ 	struct vsp1_drm_pipeline *drm_pipe = to_vsp1_drm_pipeline(pipe);
+ 
+ 	if (drm_pipe->du_complete)
+-		drm_pipe->du_complete(drm_pipe->du_private, completed);
++		drm_pipe->du_complete(drm_pipe->du_private, completed, 0);
+ }
+ 
+ /* -----------------------------------------------------------------------------
+@@ -505,8 +505,10 @@ static unsigned int rpf_zpos(struct vsp1_device *vsp1, struct vsp1_rwpf *rpf)
+  * vsp1_du_atomic_flush - Commit an atomic update
+  * @dev: the VSP device
+  * @pipe_index: the DRM pipeline index
++ * @cfg: atomic pipe configuration
+  */
+-void vsp1_du_atomic_flush(struct device *dev, unsigned int pipe_index)
++void vsp1_du_atomic_flush(struct device *dev, unsigned int pipe_index,
++			  const struct vsp1_du_atomic_pipe_config *cfg)
+ {
+ 	struct vsp1_device *vsp1 = dev_get_drvdata(dev);
+ 	struct vsp1_drm_pipeline *drm_pipe = &vsp1->drm->pipe[pipe_index];
+diff --git a/drivers/media/platform/vsp1/vsp1_drm.h b/drivers/media/platform/vsp1/vsp1_drm.h
+index 1cd9db785bf7..c6515272da7d 100644
+--- a/drivers/media/platform/vsp1/vsp1_drm.h
++++ b/drivers/media/platform/vsp1/vsp1_drm.h
+@@ -29,7 +29,7 @@ struct vsp1_drm_pipeline {
+ 	bool enabled;
+ 
+ 	/* Frame synchronisation */
+-	void (*du_complete)(void *, bool);
++	void (*du_complete)(void *data, bool completed, u32 crc);
+ 	void *du_private;
+ };
+ 
+diff --git a/include/media/vsp1.h b/include/media/vsp1.h
+index 7850f96fb708..89af1606ecb3 100644
+--- a/include/media/vsp1.h
++++ b/include/media/vsp1.h
+@@ -34,7 +34,7 @@ struct vsp1_du_lif_config {
+ 	unsigned int width;
+ 	unsigned int height;
+ 
+-	void (*callback)(void *, bool);
++	void (*callback)(void *data, bool completed, u32 crc);
+ 	void *callback_data;
+ };
+ 
+@@ -61,11 +61,36 @@ struct vsp1_du_atomic_config {
+ 	unsigned int zpos;
+ };
+ 
++/**
++ * enum vsp1_du_crc_source - Source used for CRC calculation
++ * @VSP1_DU_CRC_NONE: CRC calculation disabled
++ * @VSP_DU_CRC_PLANE: Perform CRC calculation on an input plane
++ * @VSP_DU_CRC_OUTPUT: Perform CRC calculation on the composed output
++ */
++enum vsp1_du_crc_source {
++	VSP1_DU_CRC_NONE,
++	VSP1_DU_CRC_PLANE,
++	VSP1_DU_CRC_OUTPUT,
++};
++
++/**
++ * struct vsp1_du_atomic_pipe_config - VSP atomic pipe configuration parameters
++ * @crc.source: source for CRC calculation
++ * @crc.index: index of the CRC source plane (when crc.source is set to plane)
++ */
++struct vsp1_du_atomic_pipe_config {
++	struct  {
++		enum vsp1_du_crc_source source;
++		unsigned int index;
++	} crc;
++};
++
+ void vsp1_du_atomic_begin(struct device *dev, unsigned int pipe_index);
+ int vsp1_du_atomic_update(struct device *dev, unsigned int pipe_index,
+ 			  unsigned int rpf,
+ 			  const struct vsp1_du_atomic_config *cfg);
+-void vsp1_du_atomic_flush(struct device *dev, unsigned int pipe_index);
++void vsp1_du_atomic_flush(struct device *dev, unsigned int pipe_index,
++			  const struct vsp1_du_atomic_pipe_config *cfg);
+ int vsp1_du_map_sg(struct device *dev, struct sg_table *sgt);
+ void vsp1_du_unmap_sg(struct device *dev, struct sg_table *sgt);
+ 
+-- 
 Regards,
 
-	Hans
-
-> 
->>>
->>>> Anyway, I'm OK with merging this in staging. Although I think it should go
->>>> to staging/media since we want to keep track of it.
->>>>
->>>
->>> Awesome, I'll move driver to staging/media in V5. Thanks!
->>
->> Nice, thanks!
+Laurent Pinchart
