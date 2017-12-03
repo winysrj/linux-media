@@ -1,85 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.anw.at ([195.234.101.228]:42253 "EHLO mail.anw.at"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751323AbdLXKnY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 24 Dec 2017 05:43:24 -0500
-From: "Jasmin J." <jasmin@anw.at>
-To: linux-media@vger.kernel.org
-Cc: hverkuil@xs4all.nl, d.scheller@gmx.net, jasmin@anw.at
-Subject: [PATCH] build: Added missing get_user_pages_longterm
-Date: Sun, 24 Dec 2017 11:43:03 +0000
-Message-Id: <1514115783-12306-1-git-send-email-jasmin@anw.at>
+Received: from mail-wr0-f193.google.com ([209.85.128.193]:37539 "EHLO
+        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751177AbdLCPEe (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sun, 3 Dec 2017 10:04:34 -0500
+Received: by mail-wr0-f193.google.com with SMTP id k61so14609044wrc.4
+        for <linux-media@vger.kernel.org>; Sun, 03 Dec 2017 07:04:34 -0800 (PST)
+Subject: Re: [GIT PULL] SAA716x DVB driver
+To: Soeren Moch <smoch@web.de>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: =?UTF-8?Q?Tycho_L=c3=bcrsen?= <tycholursen@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org, Manu Abraham <manu@linuxtv.org>,
+        Andreas Regel <andreas.regel@gmx.de>,
+        Oliver Endriss <o.endriss@gmx.de>
+References: <50e5ba3c-4e32-f2e4-7844-150eefdf71b5@web.de>
+ <d693cf1b-de3d-5994-5ef0-eeb0e37065a3@web.de>
+ <20170827073040.6e96d79a@vento.lan>
+ <e9d87f55-18fc-e57b-f9aa-a41c7f983b34@web.de>
+ <20170909181123.392cfbb0@vento.lan>
+ <a44b8eb0-cdd5-aa28-ad30-68db0126b6f6@web.de>
+ <20170916125042.78c4abad@recife.lan>
+ <fab215f8-29f3-1857-6f33-c45e78bb5e3c@web.de>
+ <7c17c0a1-1c98-1272-8430-4a194b658872@gmail.com>
+ <20171127092408.20de0fe0@vento.lan>
+ <e2076533-5c33-f3be-b438-a1616f743a92@gmail.com>
+ <20171202174922.34a6f9b9@vento.lan>
+ <ce4f25e6-7d75-2391-d685-35b50a0639bb@web.de>
+ <335e279e-d498-135f-8077-770c77cf353b@gmail.com>
+ <3251f1f3-ce9b-529d-b155-ac433d1b0ae5@web.de>
+From: Jemma Denson <jdenson@gmail.com>
+Message-ID: <740078a3-ce40-c16d-79dd-5e55c5496060@gmail.com>
+Date: Sun, 3 Dec 2017 15:04:31 +0000
+MIME-Version: 1.0
+In-Reply-To: <3251f1f3-ce9b-529d-b155-ac433d1b0ae5@web.de>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
+Content-Language: en-GB
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Jasmin Jessich <jasmin@anw.at>
+On 03/12/17 14:11, Soeren Moch wrote:
+> On 03.12.2017 11:57, Jemma Denson wrote:
+>> On 02/12/17 23:59, Soeren Moch wrote:
+>>> All the entries in the TODO file are not specific for saa716x_ff.
+>> Ah, it's been a few months since I looked at that. I think some of the
+>> things listed I had already identified as problems - checkpatch
+>> especially,
+> Finding checkpatch problems is easy...
 
-Also fixed v4.8_user_pages_flag.patch.
+Indeed they are. They still take some time to go though.
 
-Signed-off-by: Jasmin Jessich <jasmin@anw.at>
----
- backports/v4.8_user_pages_flag.patch |  5 +++--
- v4l/compat.h                         | 13 +++++++++++++
- v4l/scripts/make_config_compat.pl    |  1 +
- 3 files changed, 17 insertions(+), 2 deletions(-)
+>> Hence my comment about finding a maintainer - I had assumed if the
+>> immediate result didn't support your card you probably wouldn't be
+>> willing
+>> to do that.
+>>
+>> What I'm trying to do here is get *something* merged, and then once
+>> that work is done any interested parties can add to it. Or at the very
+>> least if some patches are left OOT the constant workload required to
+>> keep that up to date should be reduced significantly because they'll be
+>> far less to look after.
+>>
+> Why not merge the driver as-is? The community would get support for
+> several cards, easy access to the code without the need for separate git
+> repositories or dkms packages, and a maintainer that understands the
+> hardware and driver code.
+>
+> The whole purpose of driver development is bringing support for existing
+> hardware to available user applications, preferably with existing APIs.
+> And exactly that is in this pull request.
+> In the whole discussion I cannot find a single reason, how merging this
+> driver would violate the linux development principles.
 
-diff --git a/backports/v4.8_user_pages_flag.patch b/backports/v4.8_user_pages_flag.patch
-index 82ecea2..7216626 100644
---- a/backports/v4.8_user_pages_flag.patch
-+++ b/backports/v4.8_user_pages_flag.patch
-@@ -33,7 +33,7 @@ index 44936d6..a61f632 100644
-  
-  	if (y_pages != y_dma.page_count || uv_pages != uv_dma.page_count) {
- diff --git a/drivers/media/v4l2-core/videobuf-dma-sg.c b/drivers/media/v4l2-core/videobuf-dma-sg.c
--index 1db0af6..f300f06 100644
-+index f412429..323ae3a 100644
- --- a/drivers/media/v4l2-core/videobuf-dma-sg.c
- +++ b/drivers/media/v4l2-core/videobuf-dma-sg.c
- @@ -156,7 +156,6 @@ static int videobuf_dma_init_user_locked(struct videobuf_dmabuf *dma,
-@@ -54,8 +54,9 @@ index 1db0af6..f300f06 100644
-  	dprintk(1, "init user [0x%lx+0x%lx => %d pages]\n",
-  		data, size, dma->nr_pages);
-  
-- 	err = get_user_pages(data & PAGE_MASK, dma->nr_pages,
-+-	err = get_user_pages_longterm(data & PAGE_MASK, dma->nr_pages,
- -			     flags, dma->pages, NULL);
-++	err = get_user_pages(data & PAGE_MASK, dma->nr_pages,
- +			     rw == READ, 1, /* force */
- +			     dma->pages, NULL);
-  
-diff --git a/v4l/compat.h b/v4l/compat.h
-index c50e74d..c5680c3 100644
---- a/v4l/compat.h
-+++ b/v4l/compat.h
-@@ -2301,4 +2301,17 @@ static inline int usb_urb_ep_type_check(void *urb)
- }
- #endif
- 
-+/* prototype of get_user_pages changed in Kernel 4.6. For older Kernels
-+ * this will not compile */
-+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 6, 0)
-+#ifdef NEED_GET_USER_PAGES_LONGTERM
-+static inline long get_user_pages_longterm(unsigned long start,
-+                unsigned long nr_pages, unsigned int gup_flags,
-+                struct page **pages, struct vm_area_struct **vmas)
-+{
-+        return get_user_pages(start, nr_pages, gup_flags, pages, vmas);
-+}
-+#endif
-+#endif
-+
- #endif /*  _COMPAT_H */
-diff --git a/v4l/scripts/make_config_compat.pl b/v4l/scripts/make_config_compat.pl
-index 9e2055a..5be868a 100644
---- a/v4l/scripts/make_config_compat.pl
-+++ b/v4l/scripts/make_config_compat.pl
-@@ -715,6 +715,7 @@ sub check_other_dependencies()
- 	check_files_for_func("time64_to_tm", "NEED_TIME64_TO_TM", "include/linux/time.h");
- 	check_files_for_func("READ_ONCE", "NEED_READ_ONCE", "include/linux/compiler.h");
- 	check_files_for_func("usb_urb_ep_type_check", "NEED_USB_EP_CHECK", "include/linux/usb.h");
-+	check_files_for_func("get_user_pages_longterm", "NEED_GET_USER_PAGES_LONGTERM", "include/linux/mm.h");
- 
- 	# For tests for uapi-dependent logic
- 	check_files_for_func_uapi("usb_endpoint_maxp", "NEED_USB_ENDPOINT_MAXP", "usb/ch9.h");
--- 
-2.7.4
+That's not really one for me to answer, but Mauro has raised objections
+so it can't be merged as is. I'm just trying to find a way forward that
+avoids this getting stuck for another few years.
+
+>> One of the problems though is choosing which fork to use. I *think* there
+>> are 2 - the one you've got which is the original powARman branch and the
+>> one I would be using is the CrazyCat / Luis /  TBS line. There are
+>> going to be
+>> some differences but hopefully that's all frontend support based and
+>> one cut
+>> down to a single frontend would end up a good base to add the rest back
+>> in.
+>>
+> I think my repository represents the main development branch, just
+> maintained by different people (adding Manu, Andreas, Oliver, in case
+> they want to object). The CrazyCat repo is not a fork (including
+> history), it is just a snapshot of the driver plus several patches.
+>
+
+Well I know of several patches I've made to that repo that haven't
+made it back to the "main" branch, so whilst maybe not a fork in
+the traditional sense it certainly is functioning like one.
+
+As I said, I'm just trying to get *something* merged.  I can base a
+ff-stripped patch on the powarman branch instead but it does represent
+more work for me as I need to work out what else might be missing to
+support the only card I have for testing this with. It might end up being
+easy but I don't know that yet.
+
+Let's get something happening here rather than just trying to argue
+with the maintainers. There's absolutely nothing stopping further patches
+being sent in later on once the chipset driver is merged.
+
+
+Jemma.
