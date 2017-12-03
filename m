@@ -1,135 +1,247 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:2647 "EHLO mga14.intel.com"
+Received: from gofer.mess.org ([88.97.38.141]:54123 "EHLO gofer.mess.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751411AbdL1M5v (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 28 Dec 2017 07:57:51 -0500
-Date: Thu, 28 Dec 2017 14:57:46 +0200
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Hans Verkuil <hansverk@cisco.com>,
-        Christophe JAILLET <christophe.jaillet@wanadoo.fr>,
-        Hirokazu Honda <hiroh@chromium.org>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Satendra Singh Thakur <satendra.t@samsung.com>
-Subject: Re: [PATCH] videobuf2-core: don't go out of the buffer range
-Message-ID: <20171228125746.7pherhu6vpxvu6az@kekkonen.localdomain>
-References: <9d7d743966f05181299fbf18cec9243e62bdfd25.1514462548.git.mchehab@s-opensource.com>
- <20171228121956.4zec6bzragjvofha@kekkonen.localdomain>
- <20171228102529.5c96e863@vento.lan>
+        id S1751143AbdLCSXp (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 3 Dec 2017 13:23:45 -0500
+Date: Sun, 3 Dec 2017 18:23:42 +0000
+From: Sean Young <sean@mess.org>
+To: Yasunari.Takiguchi@sony.com
+Cc: linux-kernel@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-media@vger.kernel.org, tbird20d@gmail.com,
+        frowand.list@gmail.com,
+        Masayuki Yamamoto <Masayuki.Yamamoto@sony.com>,
+        Hideki Nozawa <Hideki.Nozawa@sony.com>,
+        Kota Yonezawa <Kota.Yonezawa@sony.com>,
+        Toshihiko Matsumoto <Toshihiko.Matsumoto@sony.com>,
+        Satoshi Watanabe <Satoshi.C.Watanabe@sony.com>
+Subject: Re: [PATCH v4 06/12] [media] cxd2880: Add integration layer for the
+ driver
+Message-ID: <20171203182342.gemdt2u46zytifab@gofer.mess.org>
+References: <20171013054635.20946-1-Yasunari.Takiguchi@sony.com>
+ <20171013060834.21526-1-Yasunari.Takiguchi@sony.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20171228102529.5c96e863@vento.lan>
+In-Reply-To: <20171013060834.21526-1-Yasunari.Takiguchi@sony.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Dec 28, 2017 at 10:25:29AM -0200, Mauro Carvalho Chehab wrote:
-> Em Thu, 28 Dec 2017 14:19:56 +0200
-> Sakari Ailus <sakari.ailus@linux.intel.com> escreveu:
+On Fri, Oct 13, 2017 at 03:08:34PM +0900, Yasunari.Takiguchi@sony.com wrote:
+> From: Yasunari Takiguchi <Yasunari.Takiguchi@sony.com>
 > 
-> > Hi Mauro,
-> > 
-> > Thanks for the patch.
-> > 
-> > On Thu, Dec 28, 2017 at 10:02:33AM -0200, Mauro Carvalho Chehab wrote:
-> > > Currently, there's no check if an invalid buffer range
-> > > is passed. However, while testing DVB memory mapped apps,
-> > > I got this:
-> > > 
-> > >    videobuf2_core: VB: num_buffers -2143943680, buffer 33, index -2143943647
-> > >    unable to handle kernel paging request at ffff888b773c0890
-> > >    IP: __vb2_queue_alloc+0x134/0x4e0 [videobuf2_core]
-> > >    PGD 4142c7067 P4D 4142c7067 PUD 0
-> > >    Oops: 0002 [#1] SMP
-> > >    Modules linked in: xt_CHECKSUM iptable_mangle ipt_MASQUERADE nf_nat_masquerade_ipv4 iptable_nat nf_nat_ipv4 nf_nat nf_conntrack_ipv4 nf_defrag_ipv4 xt_conntrack nf_conntrack tun bridge stp llc ebtable_filter ebtables ip6table_filter ip6_tables bluetooth rfkill ecdh_generic binfmt_misc rc_dvbsky sp2 ts2020 intel_rapl x86_pkg_temp_thermal dvb_usb_dvbsky intel_powerclamp dvb_usb_v2 coretemp m88ds3103 kvm_intel i2c_mux dvb_core snd_hda_codec_hdmi crct10dif_pclmul crc32_pclmul videobuf2_vmalloc videobuf2_memops snd_hda_intel ghash_clmulni_intel videobuf2_core snd_hda_codec rc_core mei_me intel_cstate snd_hwdep snd_hda_core videodev intel_uncore snd_pcm mei media tpm_tis tpm_tis_core intel_rapl_perf tpm snd_timer lpc_ich snd soundcore kvm irqbypass libcrc32c i915 i2c_algo_bit drm_kms_helper
-> > >    e1000e ptp drm crc32c_intel video pps_core
-> > >    CPU: 3 PID: 1776 Comm: dvbv5-zap Not tainted 4.14.0+ #78
-> > >    Hardware name:                  /NUC5i7RYB, BIOS RYBDWi35.86A.0364.2017.0511.0949 05/11/2017
-> > >    task: ffff88877c73bc80 task.stack: ffffb7c402418000
-> > >    RIP: 0010:__vb2_queue_alloc+0x134/0x4e0 [videobuf2_core]
-> > >    RSP: 0018:ffffb7c40241bc60 EFLAGS: 00010246
-> > >    RAX: 0000000080360421 RBX: 0000000000000021 RCX: 000000000000000a
-> > >    RDX: ffffb7c40241bcf4 RSI: ffff888780362c60 RDI: ffff888796d8e130
-> > >    RBP: ffffb7c40241bcc8 R08: 0000000000000316 R09: 0000000000000004
-> > >    R10: ffff888780362c00 R11: 0000000000000001 R12: 000000000002f000
-> > >    R13: ffff8887758be700 R14: 0000000000021000 R15: 0000000000000001
-> > >    FS:  00007f2849024740(0000) GS:ffff888796d80000(0000) knlGS:0000000000000000
-> > >    CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-> > >    CR2: ffff888b773c0890 CR3: 000000043beb2005 CR4: 00000000003606e0
-> > >    Call Trace:
-> > >     vb2_core_reqbufs+0x226/0x420 [videobuf2_core]
-> > >     dvb_vb2_reqbufs+0x2d/0xc0 [dvb_core]
-> > >     dvb_dvr_do_ioctl+0x98/0x1d0 [dvb_core]
-> > >     dvb_usercopy+0x53/0x1b0 [dvb_core]
-> > >     ? dvb_demux_ioctl+0x20/0x20 [dvb_core]
-> > >     ? tty_ldisc_deref+0x16/0x20
-> > >     ? tty_write+0x1f9/0x310
-> > >     ? process_echoes+0x70/0x70
-> > >     dvb_dvr_ioctl+0x15/0x20 [dvb_core]
-> > >     do_vfs_ioctl+0xa5/0x600
-> > >     SyS_ioctl+0x79/0x90
-> > >     entry_SYSCALL_64_fastpath+0x1a/0xa5
-> > >    RIP: 0033:0x7f28486f7ea7
-> > >    RSP: 002b:00007ffc13b2db18 EFLAGS: 00000246 ORIG_RAX: 0000000000000010
-> > >    RAX: ffffffffffffffda RBX: 000055b10fc06130 RCX: 00007f28486f7ea7
-> > >    RDX: 00007ffc13b2db48 RSI: 00000000c0086f3c RDI: 0000000000000007
-> > >    RBP: 0000000000000203 R08: 000055b10df1e02c R09: 000000000000002e
-> > >    R10: 0036b42415108357 R11: 0000000000000246 R12: 0000000000000000
-> > >    R13: 00007f2849062f60 R14: 00000000000001f1 R15: 00007ffc13b2da54
-> > >    Code: 74 0a 60 8b 0a 48 83 c0 30 48 83 c2 04 89 48 d0 89 48 d4 48 39 f0 75 eb 41 8b 42 08 83 7d d4 01 41 c7 82 ec 01 00 00 ff ff ff ff <4d> 89 94 c5 88 00 00 00 74 14 83 c3 01 41 39 dc 0f 85 f1 fe ff
-> > >    RIP: __vb2_queue_alloc+0x134/0x4e0 [videobuf2_core] RSP: ffffb7c40241bc60
-> > >    CR2: ffff888b773c0890
-> > > 
-> > > So, add a sanity check in order to prevent going past array.
-> > > 
-> > > Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> > > ---
-> > >  drivers/media/common/videobuf/videobuf2-core.c | 4 ++++
-> > >  1 file changed, 4 insertions(+)
-> > > 
-> > > diff --git a/drivers/media/common/videobuf/videobuf2-core.c b/drivers/media/common/videobuf/videobuf2-core.c
-> > > index cb115ba6a1d2..9107ffc4d808 100644
-> > > --- a/drivers/media/common/videobuf/videobuf2-core.c
-> > > +++ b/drivers/media/common/videobuf/videobuf2-core.c
-> > > @@ -332,6 +332,10 @@ static int __vb2_queue_alloc(struct vb2_queue *q, enum vb2_memory memory,
-> > >  	struct vb2_buffer *vb;
-> > >  	int ret;
-> > >  
-> > > +	/* Sanity check to avoid going past q->bufs size */
-> > > +	if (q->num_buffers < 0 || q->num_buffers + num_buffers > VB2_MAX_FRAME)  
-> > 
-> > These checks already exists in vb2_core_reqbufs as well as in
-> > vb2_core_create_bufs. The queue_setup callback can change it though, so the
-> > check appears to be worth it.
-> > 
-> > I'm just trying to figure out whether it's only DVB that's affected.
+> These functions monitor the driver and watch for task completion.
+> This is part of the Sony CXD2880 DVB-T2/T tuner + demodulator driver.
 > 
-> I suspect so. At dvb-vb2, it just calls the VB2 core, without validating
-> the buffers.
+> Signed-off-by: Yasunari Takiguchi <Yasunari.Takiguchi@sony.com>
+> Signed-off-by: Masayuki Yamamoto <Masayuki.Yamamoto@sony.com>
+> Signed-off-by: Hideki Nozawa <Hideki.Nozawa@sony.com>
+> Signed-off-by: Kota Yonezawa <Kota.Yonezawa@sony.com>
+> Signed-off-by: Toshihiko Matsumoto <Toshihiko.Matsumoto@sony.com>
+> Signed-off-by: Satoshi Watanabe <Satoshi.C.Watanabe@sony.com>
+> ---
 > 
-> Without this patch, it is accepting q->num_buffers + num_buffers to be
-> greater than VB2_MAX_FRAME.
+> [Change list]
+> Changes in V4   
+>    drivers/media/dvb-frontends/cxd2880/cxd2880_integ.c
+>       -removed unnecessary initialization at variable declaration
 > 
-> In any case, as this causes a buffer overflow, it is worth having
-> the check there, where q->bufs[q->num_buffers + index] is
-> used for the first time.
+> Changes in V3
+>    drivers/media/dvb-frontends/cxd2880/cxd2880_integ.c
+>       -changed cxd2880_atomic_read to atomic_read
+>       -changed cxd2880_atomic_set to atomic_set
+>       -modified return code
+>       -modified coding style of if() 
+>    drivers/media/dvb-frontends/cxd2880/cxd2880_integ.h
+>       -modified return code
 > 
-> I still think I'll add an additional check at dvb-vb2, but, as we
-> could have other clients in the future, it seems worth that the core
-> itself to double-check.
+>  .../media/dvb-frontends/cxd2880/cxd2880_integ.c    | 98 ++++++++++++++++++++++
+>  .../media/dvb-frontends/cxd2880/cxd2880_integ.h    | 44 ++++++++++
+>  2 files changed, 142 insertions(+)
+>  create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_integ.c
+>  create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_integ.h
+> 
+> diff --git a/drivers/media/dvb-frontends/cxd2880/cxd2880_integ.c b/drivers/media/dvb-frontends/cxd2880/cxd2880_integ.c
+> new file mode 100644
+> index 000000000000..7264fc355d6b
+> --- /dev/null
+> +++ b/drivers/media/dvb-frontends/cxd2880/cxd2880_integ.c
+> @@ -0,0 +1,98 @@
+> +/*
+> + * cxd2880_integ.c
+> + * Sony CXD2880 DVB-T2/T tuner + demodulator driver
+> + * integration layer common functions
+> + *
+> + * Copyright (C) 2016, 2017 Sony Semiconductor Solutions Corporation
+> + *
+> + * This program is free software; you can redistribute it and/or modify it
+> + * under the terms of the GNU General Public License as published by the
+> + * Free Software Foundation; version 2 of the License.
+> + *
+> + * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESS OR IMPLIED
+> + * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+> + * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN
+> + * NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
+> + * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+> + * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
+> + * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+> + * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+> + * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+> + * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+> + *
+> + * You should have received a copy of the GNU General Public License along
+> + * with this program; if not, see <http://www.gnu.org/licenses/>.
+> + */
+> +
+> +#include "cxd2880_tnrdmd.h"
+> +#include "cxd2880_tnrdmd_mon.h"
+> +#include "cxd2880_integ.h"
+> +
+> +int cxd2880_integ_init(struct cxd2880_tnrdmd *tnr_dmd)
+> +{
+> +	int ret;
+> +	struct cxd2880_stopwatch timer;
+> +	unsigned int elapsed_time = 0;
+> +	u8 cpu_task_completed = 0;
+> +
+> +	if (!tnr_dmd)
+> +		return -EINVAL;
+> +
+> +	ret = cxd2880_tnrdmd_init1(tnr_dmd);
+> +	if (ret)
+> +		return ret;
+> +
+> +	ret = cxd2880_stopwatch_start(&timer);
+> +	if (ret)
+> +		return ret;
+> +
+> +	while (1) {
+> +		ret = cxd2880_stopwatch_elapsed(&timer, &elapsed_time);
+> +		if (ret)
+> +			return ret;
+> +
+> +		ret =
+> +		    cxd2880_tnrdmd_check_internal_cpu_status(tnr_dmd,
+> +						     &cpu_task_completed);
+> +		if (ret)
+> +			return ret;
+> +
+> +		if (cpu_task_completed)
+> +			break;
+> +
+> +		if (elapsed_time > CXD2880_TNRDMD_WAIT_INIT_TIMEOUT)
+> +			return -ETIME;
 
-These checks are in core, or that appears to be the intention at least. As
-far as I can tell, with existing checks you don't end up with
-q->num_buffers + num_buffers greater than VB2_MAX_FRAME (unless queue_setup
-does that).
+ETIMEOUT?
 
-q->num_buffers is also zero when __vb2_queue_alloc() is called through
-vb2_core_reqbufs.
+> +		ret =
+> +		    cxd2880_stopwatch_sleep(&timer,
+> +					    CXD2880_TNRDMD_WAIT_INIT_INTVL);
+> +		if (ret)
+> +			return ret;
+> +	}
 
-So could there be something else that's wrong, too?
+This could be simplified. Also, I'm worried that the jiffies code in
+cxd2880_stopwatch_port.c does not deal with jiffies wrapping correctly; working 
+with ktime easier in that regard.
 
--- 
-Sakari Ailus
-sakari.ailus@linux.intel.com
+{
+	ktime_t start = ktime_get();
+
+	for (;;) {
+		ret = check_status(&task_completed);
+		if (ret)
+			return ret;
+
+		if (task_completed)
+			break;
+
+		if (ktime_to_ms(ktime_sub(ktime_get(), start)) > 
+		    CXD2880_TNRDMD_WAIT_INIT_TIMEOUT)
+			return -ETIMEDOUT;
+
+		usleep_range(CXD2880_TNRDMD_WAIT_INIT_INTVL, 
+			     CXD2880_TNRDMD_WAIT_INIT_INTVL + 1000);
+	}
+}
+
+This removes the need for the cxd2880_stopwatch_* functions.
+> +
+> +	ret = cxd2880_tnrdmd_init2(tnr_dmd);
+> +	if (ret)
+> +		return ret;
+> +
+> +	return 0;
+> +}
+> +
+> +int cxd2880_integ_cancel(struct cxd2880_tnrdmd *tnr_dmd)
+> +{
+> +	if (!tnr_dmd)
+> +		return -EINVAL;
+> +
+> +	atomic_set(&tnr_dmd->cancel, 1);
+> +
+> +	return 0;
+> +}
+> +
+> +int cxd2880_integ_check_cancellation(struct cxd2880_tnrdmd *tnr_dmd)
+> +{
+> +	if (!tnr_dmd)
+> +		return -EINVAL;
+> +
+> +	if (atomic_read(&tnr_dmd->cancel) != 0)
+> +		return -ECANCELED;
+> +
+> +	return 0;
+> +}
+> diff --git a/drivers/media/dvb-frontends/cxd2880/cxd2880_integ.h b/drivers/media/dvb-frontends/cxd2880/cxd2880_integ.h
+> new file mode 100644
+> index 000000000000..2b4fe5c3743b
+> --- /dev/null
+> +++ b/drivers/media/dvb-frontends/cxd2880/cxd2880_integ.h
+> @@ -0,0 +1,44 @@
+> +/*
+> + * cxd2880_integ.h
+> + * Sony CXD2880 DVB-T2/T tuner + demodulator driver
+> + * integration layer common interface
+> + *
+> + * Copyright (C) 2016, 2017 Sony Semiconductor Solutions Corporation
+> + *
+> + * This program is free software; you can redistribute it and/or modify it
+> + * under the terms of the GNU General Public License as published by the
+> + * Free Software Foundation; version 2 of the License.
+> + *
+> + * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESS OR IMPLIED
+> + * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+> + * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN
+> + * NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
+> + * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+> + * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
+> + * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+> + * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+> + * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+> + * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+> + *
+> + * You should have received a copy of the GNU General Public License along
+> + * with this program; if not, see <http://www.gnu.org/licenses/>.
+> + */
+> +
+> +#ifndef CXD2880_INTEG_H
+> +#define CXD2880_INTEG_H
+> +
+> +#include "cxd2880_tnrdmd.h"
+> +
+> +#define CXD2880_TNRDMD_WAIT_INIT_TIMEOUT	500
+> +#define CXD2880_TNRDMD_WAIT_INIT_INTVL	10
+> +
+> +#define CXD2880_TNRDMD_WAIT_AGC_STABLE		100
+> +
+> +int cxd2880_integ_init(struct cxd2880_tnrdmd *tnr_dmd);
+> +
+> +int cxd2880_integ_cancel(struct cxd2880_tnrdmd *tnr_dmd);
+> +
+> +int cxd2880_integ_check_cancellation(struct cxd2880_tnrdmd
+> +				     *tnr_dmd);
+> +
+> +#endif
+> -- 
+> 2.13.0
