@@ -1,74 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:25544 "EHLO
-        mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932413AbdLOQsZ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 15 Dec 2017 11:48:25 -0500
-To: linux-media@vger.kernel.org
-Cc: linux-samsung-soc@vger.kernel.org,
-        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [GIT PULL] Samsung SoC related updates
-Message-id: <5e06c3d6-a3f2-c146-9176-9fc26f5edaa5@samsung.com>
-Date: Fri, 15 Dec 2017 17:48:19 +0100
-MIME-version: 1.0
-Content-type: text/plain; charset="utf-8"
-Content-language: en-GB
-Content-transfer-encoding: 7bit
-References: <CGME20171215164822epcas1p48be80ad37f83734d9a4f28aabff6a78d@epcas1p4.samsung.com>
+Received: from kadath.azazel.net ([81.187.231.250]:55998 "EHLO
+        kadath.azazel.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750914AbdLCKy3 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sun, 3 Dec 2017 05:54:29 -0500
+Date: Sun, 3 Dec 2017 10:54:23 +0000
+From: Jeremy Sowden <jeremy@azazel.net>
+To: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: devel@driverdev.osuosl.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH v2 1/3] media: atomisp: convert default struct values to
+ use compound-literals with designated initializers.
+Message-ID: <20171203105423.GE32301@azazel.net>
+References: <20171201150725.cfcp6b4bs2ncqsip@mwanda>
+ <20171201171939.3432-1-jeremy@azazel.net>
+ <20171201171939.3432-2-jeremy@azazel.net>
+ <20171202102009.pdly5urlxkt4rdcx@mwanda>
+ <20171202103506.4ffadm3qkxtv3rge@azazel.net>
+ <20171202204147.GB32301@azazel.net>
+ <20171203053921.tvvvttx63zi2p725@mwanda>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="hwvH6HDNit2nSK4j"
+Content-Disposition: inline
+In-Reply-To: <20171203053921.tvvvttx63zi2p725@mwanda>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
 
-The following changes since commit 0ca4e3130402caea8731a7b54afde56a6edb17c9:
+--hwvH6HDNit2nSK4j
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-  media: pxa_camera: rename the soc_camera_ prefix to pxa_camera_ (2017-12-14 12:40:01 -0500)
+On 2017-12-03, at 08:39:21 +0300, Dan Carpenter wrote:
+> On Sat, Dec 02, 2017 at 08:41:48PM +0000, Jeremy Sowden wrote:
+> > On 2017-12-02, at 10:35:06 +0000, Jeremy Sowden wrote:
+> > > On 2017-12-02, at 13:20:09 +0300, Dan Carpenter wrote:
+> > > > On Fri, Dec 01, 2017 at 05:19:37PM +0000, Jeremy Sowden wrote:
+> > > > > -#define DEFAULT_PIPE_INFO \
+> > > > > -{ \
+> > > > > -	{IA_CSS_BINARY_DEFAULT_FRAME_INFO},	/* output_info */ \
+> > > > > -	{IA_CSS_BINARY_DEFAULT_FRAME_INFO},	/* vf_output_info */ \
+> > > > > -	IA_CSS_BINARY_DEFAULT_FRAME_INFO,	/* raw_output_info */ \
+> > > > > -	{ 0, 0},				/* output system in res */ \
+> > > > > -	DEFAULT_SHADING_INFO,			/* shading_info */ \
+> > > > > -	DEFAULT_GRID_INFO,			/* grid_info */ \
+> > > > > -	0					/* num_invalid_frames */ \
+> > > > > -}
+> > > > > +#define DEFAULT_PIPE_INFO ( \
+> > > >
+> > > > Why does this have a ( now?  That can't compile can it??
+> > >
+> > > It does.
+> >
+> > That was a bit terse: the macros expand to compound-literals, so
+> > putting parens around them is no different from:
+> >
+> >   #define THREE (3)
+>
+> Yeah.  Thanks.  I figured it out despite the terseness...  I try
+> review as fast as I can, so it means you get the stream of
+> conciousness output that often has mistakes.  Sorry about that.
 
-are available in the git repository at:
+No worries.  The feedback has been very helpful.
 
-  git://linuxtv.org/snawrocki/samsung.git for-v4.16/media/next
+J.
 
-for you to fetch changes up to 8d10c3a3fa56badd9d8691b59a88e7f00fdeaa7b:
+--hwvH6HDNit2nSK4j
+Content-Type: application/pgp-signature; name="signature.asc"
 
-  s5p-jpeg: Fix off-by-one problem (2017-12-15 17:33:50 +0100)
+-----BEGIN PGP SIGNATURE-----
 
-----------------------------------------------------------------
-Arnd Bergmann (1):
-      exynos4-is: properly initialize frame format
+iQIzBAABCgAdFiEEVbDTMOAK4SXP2yyD0czNNmRE1J0FAloj19cACgkQ0czNNmRE
+1J2QqQ/8DqlHy+7UgJp5efppCmiu0jaqoFwK7Gf1q5zMDWNNlScnS6vxVa73v+9V
+B7zdj84h/rAQ0hSyUCWIux+9iI7dWS+7D5Q7VbnFGWT8oobVliaDruNAKCGKSQnq
+XenSfh9fEbScyQCLLiu5LuYBXEaaJ6QJM6RYSA3c5HIqquxbOBrFJFnQFrCGeEmC
+3lrERvfNHLf4xD8s0ltXoYYCTesfql30h2XzzlTdqdUsu6pkSrFXwsvjfUxgKtsT
+sNKWNQDC48cRUdB5I06pZojo5LL76LAkp2DwzR9HUFjIJUF9XAGT/75/pya/wqxc
+2yCIST7dAfWVQhfn2acLtWqRQ8qLHG4ganVEhHoODAXp1HgT311YiQgZ5ujApkKu
+FpnA2fXlMUiWYkUdv2SMZltzuClVLFSdeADVnJuL7PTwo5V+LN1/84mFmD7zcWlF
+WjKVigOSz0f0gyaD2YS/6r5nXOtF0/kGJjMCgWVDvc7gnH3w4Y3aSlGfBLgpjZHV
+vPfzyZCvCdYxXRxd0sLUv8g7GwvVtb5EOLcsYMJaN3yzeJpyhcNLOiIifZTX4Mqh
+fUSd3QwIm7U5WZwr4VorVyjBZ8eXeTsZJZ2LiC4Cm7m+AnUYPB+I/ReVash34m22
+dXmbWkYqaiCOOPA2M+3jmIUjTq8eQJ44MPceeeqOwd8kDgG+bWI=
+=1646
+-----END PGP SIGNATURE-----
 
-Flavio Ceolin (1):
-      s5p-jpeg: Fix off-by-one problem
-
-Marek Szyprowski (3):
-      exynos-gsc: Drop obsolete capabilities
-      exynos4-is: Drop obsolete capabilities
-      exynos4-is: Remove dependency on obsolete SoC support
-
-Shuah Khan (2):
-      s5p-mfc: Remove firmware buf null check in s5p_mfc_load_firmware()
-      s5p-mfc: Fix lock contention - request_firmware() once
-
-Simon Shields (1):
-      exynos4-is: Check pipe is valid before calling subdev
-
-Sylwester Nawrocki (1):
-      s5p-mfc: Fix encoder menu controls initialization
-
- drivers/media/platform/exynos-gsc/gsc-m2m.c     |  4 +---
- drivers/media/platform/exynos4-is/Kconfig       |  2 +-
- drivers/media/platform/exynos4-is/fimc-core.c   |  2 +-
- drivers/media/platform/exynos4-is/fimc-isp.c    | 14 +++++++-------
- drivers/media/platform/exynos4-is/fimc-lite.c   |  2 +-
- drivers/media/platform/exynos4-is/fimc-m2m.c    | 10 +---------
- drivers/media/platform/s5p-jpeg/jpeg-core.c     |  2 +-
- drivers/media/platform/s5p-mfc/s5p_mfc.c        |  6 ++++++
- drivers/media/platform/s5p-mfc/s5p_mfc_common.h |  3 +++
- drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c   | 10 +++++-----
- drivers/media/platform/s5p-mfc/s5p_mfc_enc.c    |  2 +-
- include/media/drv-intf/exynos-fimc.h            |  3 ++-
- 12 files changed, 30 insertions(+), 30 deletions(-)
-
--- 
-Regards,
-Sylwester
+--hwvH6HDNit2nSK4j--
