@@ -1,61 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:32945 "EHLO mga14.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750920AbdLUWes (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 21 Dec 2017 17:34:48 -0500
-Date: Fri, 22 Dec 2017 00:34:43 +0200
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: Andy Shevchenko <andy.shevchenko@gmail.com>
-Cc: Dan Carpenter <dan.carpenter@oracle.com>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Alan Cox <alan@linux.intel.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        devel@driverdev.osuosl.org, Kristian Beilke <beilke@posteo.de>
-Subject: Re: [PATCH v1 05/10] staging: atomisp: Remove non-ACPI leftovers
-Message-ID: <20171221223443.4uvp7ahrnjv5ga6a@kekkonen.localdomain>
-References: <20171219205957.10933-1-andriy.shevchenko@linux.intel.com>
- <20171219205957.10933-5-andriy.shevchenko@linux.intel.com>
- <20171220045416.qbge74ntj4s4zlcm@mwanda>
- <CAHp75VcoYnvwrdVQnMmtPfuiRg0AFOSa5WwfhTk3HP0ww7x5VA@mail.gmail.com>
+Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:45861 "EHLO
+        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753525AbdLDI45 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 4 Dec 2017 03:56:57 -0500
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH] cec-adap: add '0x' prefix when printing status
+Message-ID: <a284aa68-2292-1532-aa45-6fe5b69b979c@xs4all.nl>
+Date: Mon, 4 Dec 2017 09:56:52 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAHp75VcoYnvwrdVQnMmtPfuiRg0AFOSa5WwfhTk3HP0ww7x5VA@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Andy and Dan,
+It's not clear if the transmit status that is printed when debugging
+is enabled is hex or decimal. Add 0x prefix to make this explicit.
 
-On Wed, Dec 20, 2017 at 12:24:36PM +0200, Andy Shevchenko wrote:
-> On Wed, Dec 20, 2017 at 6:54 AM, Dan Carpenter <dan.carpenter@oracle.com> wrote:
-> > On Tue, Dec 19, 2017 at 10:59:52PM +0200, Andy Shevchenko wrote:
-> >> @@ -1147,10 +1145,8 @@ static int gc2235_probe(struct i2c_client *client)
-> >>       if (ret)
-> >>               gc2235_remove(client);
-> >
-> > This error handling is probably wrong...
-> >
-> 
-> Thanks for pointing to this, but I'm not going to fix this by the
-> following reasons:
-> 1. I admit the driver's code is ugly
-> 2. It's staging code
-> 3. My patch does not touch those lines
-> 4. My purpose is to get it working first.
-> 
-> Feel free to send a followup with a good clean up which I agree with.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/cec/cec-adap.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Yeah, there's a lot of ugly stuff in this driver... I understand Andy's
-patches address problems with functionality, let's make error handling
-fixes separately.
+diff --git a/drivers/media/cec/cec-adap.c b/drivers/media/cec/cec-adap.c
+index 9219dc96d575..2a097e016414 100644
+--- a/drivers/media/cec/cec-adap.c
++++ b/drivers/media/cec/cec-adap.c
+@@ -540,7 +540,7 @@ void cec_transmit_done_ts(struct cec_adapter *adap, u8 status,
+ 	unsigned int attempts_made = arb_lost_cnt + nack_cnt +
+ 				     low_drive_cnt + error_cnt;
 
-So I'm applying these now.
-
-Thanks!
+-	dprintk(2, "%s: status %02x\n", __func__, status);
++	dprintk(2, "%s: status 0x%02x\n", __func__, status);
+ 	if (attempts_made < 1)
+ 		attempts_made = 1;
 
 -- 
-Kind regards,
-
-Sakari Ailus
-sakari.ailus@linux.intel.com
+2.14.1
