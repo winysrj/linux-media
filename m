@@ -1,50 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:59761 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753710AbdLLMvo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 12 Dec 2017 07:51:44 -0500
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Geert Uytterhoeven <geert@linux-m68k.org>,
-        Arnd Bergmann <arnd@arndb.de>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Shuah Khan <shuah@kernel.org>,
-        Colin Ian King <colin.king@canonical.com>,
-        Satendra Singh Thakur <satendra.t@samsung.com>
-Subject: [PATCH] media: dvb_frontend: fix return error code
-Date: Tue, 12 Dec 2017 07:51:31 -0500
-Message-Id: <330dada5957e3ca0c8811b14c45e3ac42c694651.1513083074.git.mchehab@s-opensource.com>
+Received: from eusmtp01.atmel.com ([212.144.249.242]:25383 "EHLO
+        eusmtp01.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752904AbdLDHEY (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 4 Dec 2017 02:04:24 -0500
+From: Wenyou Yang <wenyou.yang@microchip.com>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>
+CC: <linux-kernel@vger.kernel.org>,
+        Nicolas Ferre <nicolas.ferre@microchip.com>,
+        <devicetree@vger.kernel.org>, Sakari Ailus <sakari.ailus@iki.fi>,
+        Jonathan Corbet <corbet@lwn.net>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        <linux-arm-kernel@lists.infradead.org>,
+        "Linux Media Mailing List" <linux-media@vger.kernel.org>,
+        Wenyou Yang <wenyou.yang@microchip.com>
+Subject: [PATCH v6 0/2] media: ov7740: Add a V4L2 sensor-level driver
+Date: Mon, 4 Dec 2017 14:58:56 +0800
+Message-ID: <20171204065858.3138-1-wenyou.yang@microchip.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The correct error code when a function is not defined is
--ENOTSUPP. It was typoed wrong as -EOPNOTSUPP, with,
-unfortunately, exists, but it is not used by the DVB core.
+Add a Video4Linux2 sensor-level driver for the OmniVision OV7740
+VGA camera image sensor.
 
-Thanks-to: Geert Uytterhoeven <geert@linux-m68k.org>
-Thanks-to: Arnd Bergmann <arnd@arndb.de>
+Changes in v6:
+ - Remove unnecessary #include <linux/init>.
+ - Remove unnecessary comments and extra newline.
+ - Add const for some structures.
+ - Add the check of the return value from regmap_write().
+ - Simplify the calling of __v4l2_ctrl_handler_setup().
+ - Add the default format initialization function.
+ - Integrate the set_power() and enable/disable the clock into
+   one function.
 
-To make me revisit this code.
+Changes in v5:
+ - Squash the driver and MAINTAINERS entry patches to one.
+ - Precede the driver patch with the bindings patch.
 
-Fixes: a9cb97c3e628 ("media: dvb_frontend: be sure to init dvb_frontend_handle_ioctl() return code")
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/dvb-core/dvb_frontend.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Changes in v4:
+ - Assign 'val' a initial value to avoid warning: 'val' may be
+   used uninitialized.
+ - Rename REG_REG15 to avoid warning: "REG_REG15" redefined.
 
-diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
-index 46f977177faf..4eedaa5922eb 100644
---- a/drivers/media/dvb-core/dvb_frontend.c
-+++ b/drivers/media/dvb-core/dvb_frontend.c
-@@ -2110,7 +2110,7 @@ static int dvb_frontend_handle_ioctl(struct file *file,
- 	struct dvb_frontend *fe = dvbdev->priv;
- 	struct dvb_frontend_private *fepriv = fe->frontend_priv;
- 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
--	int i, err = -EOPNOTSUPP;
-+	int i, err = -ENOTSUPP;
- 
- 	dev_dbg(fe->dvb->device, "%s:\n", __func__);
- 
+Changes in v3:
+ - Explicitly document the "remote-endpoint" property.
+ - Put the MAINTAINERS change to a separate patch.
+
+Changes in v2:
+ - Split off the bindings into a separate patch.
+ - Add a new entry to the MAINTAINERS file.
+
+Wenyou Yang (2):
+  media: ov7740: Document device tree bindings
+  media: i2c: Add the ov7740 image sensor driver
+
+ .../devicetree/bindings/media/i2c/ov7740.txt       |   47 +
+ MAINTAINERS                                        |    8 +
+ drivers/media/i2c/Kconfig                          |    8 +
+ drivers/media/i2c/Makefile                         |    1 +
+ drivers/media/i2c/ov7740.c                         | 1226 ++++++++++++++++++++
+ 5 files changed, 1290 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/ov7740.txt
+ create mode 100644 drivers/media/i2c/ov7740.c
+
 -- 
-2.14.3
+2.15.0
