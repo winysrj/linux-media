@@ -1,81 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ot0-f173.google.com ([74.125.82.173]:46816 "EHLO
-        mail-ot0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751542AbdLLOVs (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 12 Dec 2017 09:21:48 -0500
+Received: from galahad.ideasonboard.com ([185.26.127.97]:36080 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752403AbdLDLOm (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 4 Dec 2017 06:14:42 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        linux-renesas-soc@vger.kernel.org
+Subject: Re: [PATCH 5/9] v4l: vsp1: Document the vsp1_du_atomic_config structure
+Date: Mon, 04 Dec 2017 13:14:55 +0200
+Message-ID: <108031064.g4TCGARr8e@avalon>
+In-Reply-To: <9703309e-d841-f8dc-b37a-be7a96ce91ae@cogentembedded.com>
+References: <20171203105735.10529-1-laurent.pinchart+renesas@ideasonboard.com> <20171203105735.10529-6-laurent.pinchart+renesas@ideasonboard.com> <9703309e-d841-f8dc-b37a-be7a96ce91ae@cogentembedded.com>
 MIME-Version: 1.0
-In-Reply-To: <20171212104530.46ac4ffe@vento.lan>
-References: <20171211120612.3775893-1-arnd@arndb.de> <1513020868.3036.0.camel@perches.com>
- <CAOcJUbyARps1CeRFvLau3w-rBvn2QLbsY2PHGymbpUyuFCJ2HA@mail.gmail.com>
- <CAK8P3a01sOsWSw4t-x6rv+9pzbfhZtEMc6iwV54Xq-48h6CN=Q@mail.gmail.com>
- <1513078952.3036.36.camel@perches.com> <20171212104530.46ac4ffe@vento.lan>
-From: Arnd Bergmann <arnd@arndb.de>
-Date: Tue, 12 Dec 2017 15:21:47 +0100
-Message-ID: <CAK8P3a2=FG-cO5G0S5xssrEcX-rmem2xS-SDsaLOGfYmcHWGBQ@mail.gmail.com>
-Subject: Re: [PATCH] tuners: tda8290: reduce stack usage with kasan
-To: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Joe Perches <joe@perches.com>,
-        Michael Ira Krufky <mkrufky@linuxtv.org>,
-        linux-media <linux-media@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Dec 12, 2017 at 1:45 PM, Mauro Carvalho Chehab
-<mchehab@kernel.org> wrote:
-> Em Tue, 12 Dec 2017 03:42:32 -0800
-> Joe Perches <joe@perches.com> escreveu:
->
->> > I actually thought about marking them 'const' here before sending
->> > (without noticing the changelog text) and then ran into what must
->> > have led me to drop the 'const' originally: tuner_i2c_xfer_send()
->> > takes a non-const pointer. This can be fixed but it requires
->> > an ugly cast:
->>
->> Casting away const is always a horrible hack.
->>
->> Until it could be changed, my preference would
->> be to update the changelog and perhaps add to
->> the changelog the reason why it can not be const
->> as detailed below.
->>
->> ie: xfer_send and xfer_xend_recv both take a
->>     non-const unsigned char *
+Hi Sergei,
 
-Ok.
+On Monday, 4 December 2017 11:31:49 EET Sergei Shtylyov wrote:
+> On 12/3/2017 1:57 PM, Laurent Pinchart wrote:
+> > The structure is used in the API that the VSP1 driver exposes to the DU
+> > driver. Documenting it is thus important.
+> > 
+> > Signed-off-by: Laurent Pinchart
+> > <laurent.pinchart+renesas@ideasonboard.com>
+> > ---
+> > 
+> >   include/media/vsp1.h | 10 ++++++++++
+> >   1 file changed, 10 insertions(+)
+> > 
+> > diff --git a/include/media/vsp1.h b/include/media/vsp1.h
+> > index 68a8abe4fac5..7850f96fb708 100644
+> > --- a/include/media/vsp1.h
+> > +++ b/include/media/vsp1.h
+> > @@ -41,6 +41,16 @@ struct vsp1_du_lif_config {
+> >   int vsp1_du_setup_lif(struct device *dev, unsigned int pipe_index,
+> >   		      const struct vsp1_du_lif_config *cfg);
+> > 
+> > +/**
+> > + * struct vsp1_du_atomic_config - VSP atomic configuration parameters
+> > + * @pixelformat: plan pixel format (V4L2 4CC)
+> 
+>     s/plan/plane/?
 
-> Perhaps, on a separate changeset, we could change I2C routines to
-> accept const unsigned char pointers. This is unrelated to tda8290
-> KASAN fixes. So, it should go via I2C tree, and, once accepted
-> there, we can change V4L2 drivers (and other drivers) accordingly.
+Of course, my bad. This will be fixed in v2. Thank you for catching the typo.
 
-I don't see how that would work unfortunately. i2c_msg contains
-a pointer to the data, and that is used for both input and output,
-including arrays like
+-- 
+Regards,
 
-        struct i2c_msg msgs[] = {
-                {
-                        .addr = dvo->slave_addr,
-                        .flags = 0,
-                        .len = 1,
-                        .buf = &addr,
-                },
-                {
-                        .addr = dvo->slave_addr,
-                        .flags = I2C_M_RD,
-                        .len = 1,
-                        .buf = val,
-                }
-        };
-
-that have one constant output pointer and one non-constant
-input pointer. We could add an anonymous union for 'buf'
-to make that two separate pointers, but that's barely any
-better than the cast, and it would break the named initializers
-in the example above, at least on older compilers. Adding
-a second pointer to i2c_msg would add a bit of bloat and
-also require tree-wide changes or ugly hacks.
-
-       Arnd
+Laurent Pinchart
