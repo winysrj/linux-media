@@ -1,53 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:39693 "EHLO
-        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756728AbdLPCtS (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 15 Dec 2017 21:49:18 -0500
-From: Philipp Rossak <embed3d@gmail.com>
-To: mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
-        maxime.ripard@free-electrons.com, wens@csie.org,
-        linux@armlinux.org.uk, sean@mess.org, p.zabel@pengutronix.de,
-        andi.shyti@samsung.com
-Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-sunxi@googlegroups.com
-Subject: [RFC 0/5] IR support for A83T - sunxi-ir driver update
-Date: Sat, 16 Dec 2017 03:49:09 +0100
-Message-Id: <20171216024914.7550-1-embed3d@gmail.com>
+Received: from smtp1.de.adit-jv.com ([62.225.105.245]:35262 "EHLO
+        smtp1.de.adit-jv.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752436AbdLDSTP (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 4 Dec 2017 13:19:15 -0500
+Date: Mon, 4 Dec 2017 19:10:34 +0100
+From: Eugeniu Rosca <erosca@de.adit-jv.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        <kieran.bingham@ideasonboard.com>
+CC: <erosca@de.adit-jv.com>, <mchehab@kernel.org>,
+        <linux-media@vger.kernel.org>, <linux-renesas-soc@vger.kernel.org>
+Subject: Re: [PATCH] v4l: vsp1: Fix function declaration/definition mismatch
+Message-ID: <20171204181034.GA28598@vmlxhi-102.adit-jv.com>
+References: <20170820124006.4256-1-rosca.eugeniu@gmail.com>
+ <85aabc6e-b332-1f9e-3fbf-87f0d7bcf9f3@ideasonboard.com>
+ <3327408.dYccgZQZOG@avalon>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Disposition: inline
+In-Reply-To: <3327408.dYccgZQZOG@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch series adds support for the sunxi A83T ir module and enhances the sunxi-ir driver.
-Right now the base clock frequency for the ir driver is a hard coded define and is set to 8 MHz.
-This works for the most common ir receivers. On the Sinovoip Bananapi M3 the ir receiver needs,
-a 3 MHz base clock frequency to work without problems with this driver (like in the legacy kernel).
+Hello Laurent, Kieran,
 
-To fix this issue I reworked the driver that this value could be set over the devicetree.
+On Mon, Dec 04, 2017 at 12:52:17PM +0200, Laurent Pinchart wrote:
+> Hello,
+> 
+> On Friday, 24 November 2017 20:40:57 EET Kieran Bingham wrote:
+> > Hi Eugeniu,
+> > 
+> > Thankyou for the patch,
+> > 
+> > Laurent - Any comments on this? Otherwise I'll bundle this in with my
+> > suspend/resume patch for a pull request.
+> > 
+> > <CUT>
+> > 
+> > I was going to say: We know the object is an entity by it's type. Isn't hgo
+> > more descriptive for it's name ?
+> > 
+> > However to answer my own question - The implementation function goes on to
+> > define a struct vsp1_hgo *hgo, so no ... the Entity object shouldn't be hgo.
+> 
+> And that's exactly why there's a difference between the declaration and 
+> implementation :-) Naming the parameter hgo in the declaration makes it clear 
+> to the reader what entity is expected. The parameter is then named entity in 
+> the function definition to allow for the vsp1_hgo *hgo local variable.
+> 
+> Is the mismatch a real issue ? I don't think the kernel coding style mandates 
+> parameter names to be identical between function declaration and definition.
 
-About 37 devices would have a devicetree change if this patch series would be applied.
-Therfore I would like to ask you to give me some feedback about the patch series, before I finialize it.
+You are the DRM/VSP1 and kernel experts, so feel free to drop the patch.
+Still IMO what makes kernel coding style sweet is its simplicity [1].
+Here is some statistics computed with exuberant ctags and cpccheck.
 
+$ git describe HEAD
+v4.15-rc2
 
-Thanks in advance!
+$ ctags --version
+Exuberant Ctags 5.9~svn20110310, Copyright (C) 1996-2009 Darren Hiebert
+  Addresses: <dhiebert@users.sourceforge.net>,
+  http://ctags.sourceforge.net
+    Optional compiled features: +wildcards, +regex
 
-Philipp
+# Number of function definitions in drivers/media:
+$ find drivers/media -type d | \
+  xargs -I {} sh -c "ctags -x --c-types=f {}/*" | wc -l
+24913
 
+# Number of func declaration/definition mismatches found by cppcheck:
+$ cppcheck --force --enable=all --inconclusive  drivers/media/ 2>&1 | \
+  grep declaration | wc -l
+168
 
-Philipp Rossak (5):
-  [media] rc: update sunxi-ir driver to get base frequency from
-    devicetree
-  [media] dt: bindings: Update binding documentation for sunxi IR
-    controller
-  ARM: dts: sun8i: a83t: Add the ir pin for the A83T
-  ARM: dts: sun8i: a83t: Add support for the ir interface
-  ARM: dts: sun8i: a83t: bananapi-m3: Enable IR controller
+It looks like only (168/24913) * 100% = 0,67% of all drivers/media
+functions have a mismatch between function declaration and function
+definition. Why making this number worse?
 
- Documentation/devicetree/bindings/media/sunxi-ir.txt | 14 ++++++++------
- arch/arm/boot/dts/sun8i-a83t-bananapi-m3.dts         |  7 +++++++
- arch/arm/boot/dts/sun8i-a83t.dtsi                    | 15 +++++++++++++++
- drivers/media/rc/sunxi-cir.c                         | 20 +++++++++++---------
- 4 files changed, 41 insertions(+), 15 deletions(-)
+BR,
+Eugeniu.
 
--- 
-2.11.0
+[1] ./Documentation/process/coding-style.rst: Kernel coding style is super simple.
