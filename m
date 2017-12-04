@@ -1,103 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from f5out.microchip.com ([198.175.253.81]:29134 "EHLO
-        DVREDG01.corp.atmel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-        with ESMTP id S1753666AbdLFC3u (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 5 Dec 2017 21:29:50 -0500
-From: Wenyou Yang <wenyou.yang@microchip.com>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>
-CC: <linux-kernel@vger.kernel.org>,
-        Nicolas Ferre <nicolas.ferre@microchip.com>,
-        <devicetree@vger.kernel.org>, Sakari Ailus <sakari.ailus@iki.fi>,
-        Jonathan Corbet <corbet@lwn.net>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        <linux-arm-kernel@lists.infradead.org>,
-        "Linux Media Mailing List" <linux-media@vger.kernel.org>,
-        Wenyou Yang <wenyou.yang@microchip.com>
-Subject: [PATCH v7 1/2] media: ov7740: Document device tree bindings
-Date: Wed, 6 Dec 2017 10:23:42 +0800
-Message-ID: <20171206022343.31104-2-wenyou.yang@microchip.com>
-In-Reply-To: <20171206022343.31104-1-wenyou.yang@microchip.com>
-References: <20171206022343.31104-1-wenyou.yang@microchip.com>
+Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:37681 "EHLO
+        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752507AbdLDJtB (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 4 Dec 2017 04:49:01 -0500
+Subject: Re: [PATCH v8 28/28] rcar-vin: enable support for r8a77970
+To: =?UTF-8?Q?Niklas_S=c3=b6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org
+References: <20171129194342.26239-1-niklas.soderlund+renesas@ragnatech.se>
+ <20171129194342.26239-29-niklas.soderlund+renesas@ragnatech.se>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <25017e02-ee2b-c5fc-7980-55d5d9d6211f@xs4all.nl>
+Date: Mon, 4 Dec 2017 10:48:56 +0100
 MIME-Version: 1.0
-Content-Type: text/plain
+In-Reply-To: <20171129194342.26239-29-niklas.soderlund+renesas@ragnatech.se>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add the device tree binding documentation for the ov7740 sensor driver.
+On 11/29/2017 08:43 PM, Niklas Söderlund wrote:
+> Add the SoC specific information for Renesas r8a77970.
+> 
+> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 
-Signed-off-by: Wenyou Yang <wenyou.yang@microchip.com>
-Acked-by: Rob Herring <robh@kernel.org>
----
+Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-Changes in v7:
- - Add Acked-by tag.
+Regards,
 
-Changes in v6: None
-Changes in v5: None
-Changes in v4: None
-Changes in v3:
- - Explicitly document the "remote-endpoint" property.
+	Hans
 
-Changes in v2: None
-
- .../devicetree/bindings/media/i2c/ov7740.txt       | 47 ++++++++++++++++++++++
- 1 file changed, 47 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/i2c/ov7740.txt
-
-diff --git a/Documentation/devicetree/bindings/media/i2c/ov7740.txt b/Documentation/devicetree/bindings/media/i2c/ov7740.txt
-new file mode 100644
-index 000000000000..af781c3a5f0e
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/i2c/ov7740.txt
-@@ -0,0 +1,47 @@
-+* Omnivision OV7740 CMOS image sensor
-+
-+The Omnivision OV7740 image sensor supports multiple output image
-+size, such as VGA, and QVGA, CIF and any size smaller. It also
-+supports the RAW RGB and YUV output formats.
-+
-+The common video interfaces bindings (see video-interfaces.txt) should
-+be used to specify link to the image data receiver. The OV7740 device
-+node should contain one 'port' child node with an 'endpoint' subnode.
-+
-+Required Properties:
-+- compatible:	"ovti,ov7740".
-+- reg:		I2C slave address of the sensor.
-+- clocks:	Reference to the xvclk input clock.
-+- clock-names:	"xvclk".
-+
-+Optional Properties:
-+- reset-gpios: Rreference to the GPIO connected to the reset_b pin,
-+  if any. Active low with pull-ip resistor.
-+- powerdown-gpios: Reference to the GPIO connected to the pwdn pin,
-+  if any. Active high with pull-down resistor.
-+
-+Endpoint node mandatory properties:
-+- remote-endpoint: A phandle to the bus receiver's endpoint node.
-+
-+Example:
-+
-+	i2c1: i2c@fc028000 {
-+		ov7740: camera@21 {
-+			compatible = "ovti,ov7740";
-+			reg = <0x21>;
-+			pinctrl-names = "default";
-+			pinctrl-0 = <&pinctrl_sensor_power &pinctrl_sensor_reset>;
-+			clocks = <&isc>;
-+			clock-names = "xvclk";
-+			assigned-clocks = <&isc>;
-+			assigned-clock-rates = <24000000>;
-+			reset-gpios = <&pioA 43 GPIO_ACTIVE_LOW>;
-+			powerdown-gpios = <&pioA 44 GPIO_ACTIVE_HIGH>;
-+
-+			port {
-+				ov7740_0: endpoint {
-+					remote-endpoint = <&isc_0>;
-+				};
-+			};
-+		};
-+	};
--- 
-2.15.0
+> ---
+>  .../devicetree/bindings/media/rcar_vin.txt         |  1 +
+>  drivers/media/platform/rcar-vin/rcar-core.c        | 40 ++++++++++++++++++++++
+>  2 files changed, 41 insertions(+)
+> 
+> diff --git a/Documentation/devicetree/bindings/media/rcar_vin.txt b/Documentation/devicetree/bindings/media/rcar_vin.txt
+> index 314743532bbb4523..6b98f8a3398fa493 100644
+> --- a/Documentation/devicetree/bindings/media/rcar_vin.txt
+> +++ b/Documentation/devicetree/bindings/media/rcar_vin.txt
+> @@ -21,6 +21,7 @@ on Gen3 to a CSI-2 receiver.
+>     - "renesas,vin-r8a7794" for the R8A7794 device
+>     - "renesas,vin-r8a7795" for the R8A7795 device
+>     - "renesas,vin-r8a7796" for the R8A7796 device
+> +   - "renesas,vin-r8a77970" for the R8A77970 device
+>     - "renesas,rcar-gen2-vin" for a generic R-Car Gen2 or RZ/G1 compatible
+>       device.
+>     - "renesas,rcar-gen3-vin" for a generic R-Car Gen3 compatible device.
+> diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
+> index 62eb89b36fbb2ee1..bbdf36b5c3c8178d 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-core.c
+> +++ b/drivers/media/platform/rcar-vin/rcar-core.c
+> @@ -1145,6 +1145,42 @@ static const struct rvin_info rcar_info_r8a7796 = {
+>  	},
+>  };
+>  
+> +static const struct rvin_info rcar_info_r8a77970 = {
+> +	.chip = RCAR_GEN3,
+> +	.use_mc = true,
+> +	.max_width = 4096,
+> +	.max_height = 4096,
+> +
+> +	.num_chsels = 5,
+> +	.chsels = {
+> +		{
+> +			{ .csi = RVIN_CSI40, .chan = 0 },
+> +			{ .csi = RVIN_NC, .chan = 0 },
+> +			{ .csi = RVIN_NC, .chan = 0 },
+> +			{ .csi = RVIN_CSI40, .chan = 0 },
+> +			{ .csi = RVIN_NC, .chan = 0 },
+> +		}, {
+> +			{ .csi = RVIN_NC, .chan = 0 },
+> +			{ .csi = RVIN_NC, .chan = 0 },
+> +			{ .csi = RVIN_CSI40, .chan = 0 },
+> +			{ .csi = RVIN_CSI40, .chan = 1 },
+> +			{ .csi = RVIN_NC, .chan = 0 },
+> +		}, {
+> +			{ .csi = RVIN_NC, .chan = 0 },
+> +			{ .csi = RVIN_CSI40, .chan = 0 },
+> +			{ .csi = RVIN_NC, .chan = 0 },
+> +			{ .csi = RVIN_CSI40, .chan = 2 },
+> +			{ .csi = RVIN_NC, .chan = 0 },
+> +		}, {
+> +			{ .csi = RVIN_CSI40, .chan = 1 },
+> +			{ .csi = RVIN_NC, .chan = 0 },
+> +			{ .csi = RVIN_NC, .chan = 0 },
+> +			{ .csi = RVIN_CSI40, .chan = 3 },
+> +			{ .csi = RVIN_NC, .chan = 0 },
+> +		},
+> +	},
+> +};
+> +
+>  static const struct of_device_id rvin_of_id_table[] = {
+>  	{
+>  		.compatible = "renesas,vin-r8a7778",
+> @@ -1182,6 +1218,10 @@ static const struct of_device_id rvin_of_id_table[] = {
+>  		.compatible = "renesas,vin-r8a7796",
+>  		.data = &rcar_info_r8a7796,
+>  	},
+> +	{
+> +		.compatible = "renesas,vin-r8a77970",
+> +		.data = &rcar_info_r8a77970,
+> +	},
+>  	{ },
+>  };
+>  MODULE_DEVICE_TABLE(of, rvin_of_id_table);
+> 
