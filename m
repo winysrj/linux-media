@@ -1,84 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:44083 "EHLO
+Received: from galahad.ideasonboard.com ([185.26.127.97]:40802 "EHLO
         galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756194AbdLOKNK (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 15 Dec 2017 05:13:10 -0500
-Subject: Re: [PATCH 2/9] v4l: vsp1: Print the correct blending unit name in
- debug messages
-To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
-Cc: linux-renesas-soc@vger.kernel.org
-References: <20171203105735.10529-1-laurent.pinchart+renesas@ideasonboard.com>
- <20171203105735.10529-3-laurent.pinchart+renesas@ideasonboard.com>
-Reply-To: kieran.bingham@ideasonboard.com
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Message-ID: <e20b4d4a-9e97-e825-9c15-824224819156@ideasonboard.com>
-Date: Fri, 15 Dec 2017 10:13:06 +0000
-MIME-Version: 1.0
-In-Reply-To: <20171203105735.10529-3-laurent.pinchart+renesas@ideasonboard.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 7bit
+        with ESMTP id S1751546AbdLDXXd (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 4 Dec 2017 18:23:33 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>
+Cc: linux-media@vger.kernel.org
+Subject: [PATCH 2/2] uvcvideo: Report V4L2 device caps through the video_device structure
+Date: Tue,  5 Dec 2017 01:23:33 +0200
+Message-Id: <20171204232333.30084-3-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <20171204232333.30084-1-laurent.pinchart@ideasonboard.com>
+References: <20171204232333.30084-1-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+The V4L2 core populates the struct v4l2_capability device_caps field
+from the same field in video_device. There's no need to handle that
+manually in the driver.
 
-On 03/12/17 10:57, Laurent Pinchart wrote:
-> The DRM pipelines can use either the BRU or the BRS for blending. Make
-> sure the right name is used in debugging messages to avoid confusion.
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/usb/uvc/uvc_driver.c | 11 +++++++++++
+ drivers/media/usb/uvc/uvc_v4l2.c   |  4 ----
+ 2 files changed, 11 insertions(+), 4 deletions(-)
 
-This could likely tag along with the preceding [PATCH 1/9] on it's short cut to
-mainline before the rest of the CRC series is reviewed.
+diff --git a/drivers/media/usb/uvc/uvc_driver.c b/drivers/media/usb/uvc/uvc_driver.c
+index b832929d3382..0ebdcc8b4ff6 100644
+--- a/drivers/media/usb/uvc/uvc_driver.c
++++ b/drivers/media/usb/uvc/uvc_driver.c
+@@ -1925,6 +1925,17 @@ int uvc_register_video_device(struct uvc_device *dev,
+ 	vdev->prio = &stream->chain->prio;
+ 	if (type == V4L2_BUF_TYPE_VIDEO_OUTPUT)
+ 		vdev->vfl_dir = VFL_DIR_TX;
++
++	switch (type) {
++	case V4L2_BUF_TYPE_VIDEO_CAPTURE:
++	default:
++		vdev->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING;
++		break;
++	case V4L2_BUF_TYPE_VIDEO_OUTPUT:
++		vdev->device_caps = V4L2_CAP_VIDEO_OUTPUT | V4L2_CAP_STREAMING;
++		break;
++	}
++
+ 	strlcpy(vdev->name, dev->name, sizeof vdev->name);
+ 
+ 	/*
+diff --git a/drivers/media/usb/uvc/uvc_v4l2.c b/drivers/media/usb/uvc/uvc_v4l2.c
+index 3e7e283a44a8..5e0323982577 100644
+--- a/drivers/media/usb/uvc/uvc_v4l2.c
++++ b/drivers/media/usb/uvc/uvc_v4l2.c
+@@ -568,10 +568,6 @@ static int uvc_ioctl_querycap(struct file *file, void *fh,
+ 	usb_make_path(stream->dev->udev, cap->bus_info, sizeof(cap->bus_info));
+ 	cap->capabilities = V4L2_CAP_DEVICE_CAPS | V4L2_CAP_STREAMING
+ 			  | chain->caps;
+-	if (stream->type == V4L2_BUF_TYPE_VIDEO_CAPTURE)
+-		cap->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING;
+-	else
+-		cap->device_caps = V4L2_CAP_VIDEO_OUTPUT | V4L2_CAP_STREAMING;
+ 
+ 	return 0;
+ }
+-- 
+Regards,
 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-
-Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-
-> ---
->  drivers/media/platform/vsp1/vsp1_drm.c | 12 +++++++-----
->  1 file changed, 7 insertions(+), 5 deletions(-)
-> 
-> diff --git a/drivers/media/platform/vsp1/vsp1_drm.c b/drivers/media/platform/vsp1/vsp1_drm.c
-> index ac85942162c1..0fe541084f5c 100644
-> --- a/drivers/media/platform/vsp1/vsp1_drm.c
-> +++ b/drivers/media/platform/vsp1/vsp1_drm.c
-> @@ -400,8 +400,11 @@ static int vsp1_du_setup_rpf_pipe(struct vsp1_device *vsp1,
->  	struct v4l2_subdev_selection sel;
->  	struct v4l2_subdev_format format;
->  	const struct v4l2_rect *crop;
-> +	const char *bru_name;
->  	int ret;
->  
-> +	bru_name = pipe->bru->type == VSP1_ENTITY_BRU ? "BRU" : "BRS";
-> +
->  	/*
->  	 * Configure the format on the RPF sink pad and propagate it up to the
->  	 * BRU sink pad.
-> @@ -473,9 +476,9 @@ static int vsp1_du_setup_rpf_pipe(struct vsp1_device *vsp1,
->  	if (ret < 0)
->  		return ret;
->  
-> -	dev_dbg(vsp1->dev, "%s: set format %ux%u (%x) on BRU pad %u\n",
-> +	dev_dbg(vsp1->dev, "%s: set format %ux%u (%x) on %s pad %u\n",
->  		__func__, format.format.width, format.format.height,
-> -		format.format.code, format.pad);
-> +		format.format.code, bru_name, format.pad);
->  
->  	sel.pad = bru_input;
->  	sel.target = V4L2_SEL_TGT_COMPOSE;
-> @@ -486,10 +489,9 @@ static int vsp1_du_setup_rpf_pipe(struct vsp1_device *vsp1,
->  	if (ret < 0)
->  		return ret;
->  
-> -	dev_dbg(vsp1->dev,
-> -		"%s: set selection (%u,%u)/%ux%u on BRU pad %u\n",
-> +	dev_dbg(vsp1->dev, "%s: set selection (%u,%u)/%ux%u on %s pad %u\n",
->  		__func__, sel.r.left, sel.r.top, sel.r.width, sel.r.height,
-> -		sel.pad);
-> +		bru_name, sel.pad);
->  
->  	return 0;
->  }
-> 
+Laurent Pinchart
