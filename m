@@ -1,100 +1,133 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:40102 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751198AbdLSPnR (ORCPT
+Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:60139 "EHLO
+        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753182AbdLDElg (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 19 Dec 2017 10:43:17 -0500
-Date: Tue, 19 Dec 2017 17:43:13 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Sebastian Reichel <sre@kernel.org>, mchehab@s-opensource.com,
-        laurent.pinchart@ideasonboard.com, ivo.g.dimitrov.75@gmail.com,
-        pali.rohar@gmail.com, linux-media@vger.kernel.org,
-        galak@codeaurora.org, mchehab@osg.samsung.com,
-        linux-kernel@vger.kernel.org, niklas.soderlund@ragnatech.se
-Subject: Re: [PATCH] media: add operation to get configuration of "the other
- side" of the link
-Message-ID: <20171219154313.6dn3fauij7iw7rev@valkosipuli.retiisi.org.uk>
-References: <20161224152031.GA8420@amd>
- <20170203123508.GA10286@amd>
- <20170203130740.GB12291@valkosipuli.retiisi.org.uk>
- <20170203210610.GA18379@amd>
- <20170203213454.GD12291@valkosipuli.retiisi.org.uk>
- <20170204215610.GA9243@amd>
- <20170204223350.GF12291@valkosipuli.retiisi.org.uk>
- <20170205211219.GA27072@amd>
- <20170205234011.nyttcpurodvoztor@earth>
- <20170206093748.GA17017@amd>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20170206093748.GA17017@amd>
+        Sun, 3 Dec 2017 23:41:36 -0500
+Message-ID: <7484afcdfe5599c0cdb4b249f117968d@smtp-cloud7.xs4all.net>
+Date: Mon, 04 Dec 2017 05:41:34 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Pavel,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-On Mon, Feb 06, 2017 at 10:37:48AM +0100, Pavel Machek wrote:
-> 
-> Normally, link configuration can be determined at probe time... but
-> Nokia N900 has two cameras, and can switch between them at runtime, so
-> that mechanism is not suitable here.
-> 
-> Add a hook that tells us link configuration.
-> 
-> Signed-off-by: Pavel Machek <pavel@ucw.cz>
-> 
-> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-> index cf778c5..74148b9 100644
-> --- a/include/media/v4l2-subdev.h
-> +++ b/include/media/v4l2-subdev.h
-> @@ -25,6 +25,7 @@
->  #include <media/v4l2-dev.h>
->  #include <media/v4l2-fh.h>
->  #include <media/v4l2-mediabus.h>
-> +#include <media/v4l2-of.h>
->  
->  /* generic v4l2_device notify callback notification values */
->  #define V4L2_SUBDEV_IR_RX_NOTIFY		_IOW('v', 0, u32)
-> @@ -383,6 +384,8 @@ struct v4l2_mbus_frame_desc {
->   * @s_rx_buffer: set a host allocated memory buffer for the subdev. The subdev
->   *	can adjust @size to a lower value and must not write more data to the
->   *	buffer starting at @data than the original value of @size.
-> + *
-> + * @g_endpoint_config: get link configuration required by this device.
->   */
->  struct v4l2_subdev_video_ops {
->  	int (*s_routing)(struct v4l2_subdev *sd, u32 input, u32 output, u32 config);
-> @@ -415,6 +418,8 @@ struct v4l2_subdev_video_ops {
->  			     const struct v4l2_mbus_config *cfg);
->  	int (*s_rx_buffer)(struct v4l2_subdev *sd, void *buf,
->  			   unsigned int *size);
-> +	int (*g_endpoint_config)(struct v4l2_subdev *sd,
-> +			    struct v4l2_of_endpoint *cfg);
->  };
->  
->  /**
-> 
-> 
-> 
-> 
+Results of the daily build of media_tree:
 
-I think Laurent has a board that has a similar issue.
+date:			Mon Dec  4 05:00:16 CET 2017
+media-tree git hash:	781b045baefdabf7e0bc9f33672ca830d3db9f27
+media_build git hash:	320b9b80ebbf318a67a9479c18a0e4be244c8409
+v4l-utils git hash:	1864eb9d5908f87d3922ef627cb6bdd096a77edc
+gcc version:		i686-linux-gcc (GCC) 7.1.0
+sparse version:		0.5.1 (Debian: 0.5.1-2)
+smatch version:		v0.5.0-3553-g78b2ea6
+host hardware:		x86_64
+host os:		4.13.0-164
 
-I'd like to address such issues in conjunction with the CSI-2 virtual
-channel and data type support, with the patches in the vc branch here:
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12.67-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.7-i686: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.18.7-i686: ERRORS
+linux-3.19-i686: ERRORS
+linux-4.0.9-i686: ERRORS
+linux-4.1.33-i686: ERRORS
+linux-4.2.8-i686: ERRORS
+linux-4.3.6-i686: ERRORS
+linux-4.4.22-i686: ERRORS
+linux-4.5.7-i686: ERRORS
+linux-4.6.7-i686: ERRORS
+linux-4.7.5-i686: ERRORS
+linux-4.8-i686: ERRORS
+linux-4.9.26-i686: ERRORS
+linux-4.10.14-i686: ERRORS
+linux-4.11-i686: ERRORS
+linux-4.12.1-i686: ERRORS
+linux-4.13-i686: ERRORS
+linux-4.14-i686: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.67-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.7-x86_64: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.7-x86_64: ERRORS
+linux-3.19-x86_64: ERRORS
+linux-4.0.9-x86_64: ERRORS
+linux-4.1.33-x86_64: ERRORS
+linux-4.2.8-x86_64: ERRORS
+linux-4.3.6-x86_64: ERRORS
+linux-4.4.22-x86_64: ERRORS
+linux-4.5.7-x86_64: ERRORS
+linux-4.6.7-x86_64: ERRORS
+linux-4.7.5-x86_64: ERRORS
+linux-4.8-x86_64: ERRORS
+linux-4.9.26-x86_64: ERRORS
+linux-4.10.14-x86_64: ERRORS
+linux-4.11-x86_64: ERRORS
+linux-4.12.1-x86_64: ERRORS
+linux-4.13-x86_64: ERRORS
+linux-4.14-x86_64: ERRORS
+apps: OK
+spec-git: OK
 
-<URL:https://git.linuxtv.org/sailus/media_tree.git/log/?h=vc>
+Detailed results are available here:
 
-V4L2 OF (or fwnode) endpoint alone doesn't contain all the related
-information, and it'd be nice if the solution was indeed independent of OF
-(or fwnode).
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
 
-Niklas has been working on more driver support for this so we're getting
-closer to having these merged.
+Full logs are available here:
 
--- 
-Kind regards,
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
