@@ -1,178 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:40091 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751234AbdLKVPI (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 11 Dec 2017 16:15:08 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-        linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH v8] uvcvideo: Add a metadata device node
-Date: Mon, 11 Dec 2017 23:15:09 +0200
-Message-ID: <4126225.WNi1TyRUA5@avalon>
-In-Reply-To: <6758104.TntGDxqkIy@avalon>
-References: <1510156814-28645-1-git-send-email-g.liakhovetski@gmx.de> <alpine.DEB.2.20.1712061202230.26640@axis700.grange> <6758104.TntGDxqkIy@avalon>
+Received: from eusmtp01.atmel.com ([212.144.249.243]:16168 "EHLO
+        eusmtp01.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752896AbdLDHEt (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 4 Dec 2017 02:04:49 -0500
+From: Wenyou Yang <wenyou.yang@microchip.com>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>
+CC: <linux-kernel@vger.kernel.org>,
+        Nicolas Ferre <nicolas.ferre@microchip.com>,
+        <devicetree@vger.kernel.org>, Sakari Ailus <sakari.ailus@iki.fi>,
+        Jonathan Corbet <corbet@lwn.net>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        <linux-arm-kernel@lists.infradead.org>,
+        "Linux Media Mailing List" <linux-media@vger.kernel.org>,
+        Wenyou Yang <wenyou.yang@microchip.com>
+Subject: [PATCH v6 1/2] media: ov7740: Document device tree bindings
+Date: Mon, 4 Dec 2017 14:58:57 +0800
+Message-ID: <20171204065858.3138-2-wenyou.yang@microchip.com>
+In-Reply-To: <20171204065858.3138-1-wenyou.yang@microchip.com>
+References: <20171204065858.3138-1-wenyou.yang@microchip.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
+Add the device tree binding documentation for the ov7740 sensor driver.
 
-On Monday, 11 December 2017 22:16:23 EET Laurent Pinchart wrote:
-> On Wednesday, 6 December 2017 17:15:40 EET Guennadi Liakhovetski wrote:
-> > From: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>
-> > 
-> > Some UVC video cameras contain metadata in their payload headers. This
-> > patch extracts that data, adding more clock synchronisation information,
-> > on both bulk and isochronous endpoints and makes it available to the user
-> > space on a separate video node, using the V4L2_CAP_META_CAPTURE capability
-> > and the V4L2_BUF_TYPE_META_CAPTURE buffer queue type. By default, only the
-> > V4L2_META_FMT_UVC pixel format is available from those nodes. However,
-> > cameras can be added to the device ID table to additionally specify their
-> > own metadata format, in which case that format will also become available
-> > from the metadata node.
-> > 
-> > Signed-off-by: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>
-> > ---
-> > 
-> > v8: addressed comments and integrated changes from Laurent, thanks again,
-> > e.g.:
-> > 
-> > - multiple stylistic changes
-> > - remove the UVC_DEV_FLAG_METADATA_NODE flag / quirk: nodes are now
-> >   created unconditionally
-> > - reuse uvc_ioctl_querycap()
-> > - reuse code in uvc_register_video()
-> > - set an error flag when the metadata buffer overflows
-> > 
-> >  drivers/media/usb/uvc/Makefile       |   2 +-
-> >  drivers/media/usb/uvc/uvc_driver.c   |  15 ++-
-> >  drivers/media/usb/uvc/uvc_isight.c   |   2 +-
-> >  drivers/media/usb/uvc/uvc_metadata.c | 179 ++++++++++++++++++++++++++++++
-> >  drivers/media/usb/uvc/uvc_queue.c    |  44 +++++++--
-> >  drivers/media/usb/uvc/uvc_video.c    | 132 ++++++++++++++++++++++++--
-> >  drivers/media/usb/uvc/uvcvideo.h     |  16 +++-
-> >  include/uapi/linux/uvcvideo.h        |  26 +++++
-> >  8 files changed, 394 insertions(+), 22 deletions(-)
-> >  create mode 100644 drivers/media/usb/uvc/uvc_metadata.c
-> 
-> [snip]
-> 
-> > diff --git a/drivers/media/usb/uvc/uvc_video.c
-> > b/drivers/media/usb/uvc/uvc_video.c index 13f459e..2fc0bf2 100644
-> > --- a/drivers/media/usb/uvc/uvc_video.c
-> > +++ b/drivers/media/usb/uvc/uvc_video.c
-> 
-> [snip]
-> 
-> > +static void uvc_video_decode_meta(struct uvc_streaming *stream,
-> > +				  struct uvc_buffer *meta_buf,
-> > +				  const u8 *mem, unsigned int length)
-> > +{
-> > +	struct uvc_meta_buf *meta;
-> > +	size_t len_std = 2;
-> > +	bool has_pts, has_scr;
-> > +	unsigned long flags;
-> > +	ktime_t time;
-> > +	const u8 *scr;
-> > +
-> > +	if (!meta_buf || length == 2)
-> > +		return;
-> > +
-> > +	if (meta_buf->length - meta_buf->bytesused <
-> > +	    length + sizeof(meta->ns) + sizeof(meta->sof)) {
-> > +		meta_buf->error = 1;
-> > +		return;
-> > +	}
-> > +
-> > +	has_pts = mem[1] & UVC_STREAM_PTS;
-> > +	has_scr = mem[1] & UVC_STREAM_SCR;
-> > +
-> > +	if (has_pts) {
-> > +		len_std += 4;
-> > +		scr = mem + 6;
-> > +	} else {
-> > +		scr = mem + 2;
-> > +	}
-> > +
-> > +	if (has_scr)
-> > +		len_std += 6;
-> > +
-> > +	if (stream->meta.format == V4L2_META_FMT_UVC)
-> > +		length = len_std;
-> > +
-> > +	if (length == len_std && (!has_scr ||
-> > +				  !memcmp(scr, stream->clock.last_scr, 6)))
-> > +		return;
-> > +
-> > +	meta = (struct uvc_meta_buf *)((u8 *)meta_buf->mem +
-> > meta_buf->bytesused); +	local_irq_save(flags);
-> > +	time = uvc_video_get_time();
-> > +	meta->sof = usb_get_current_frame_number(stream->dev->udev);
-> 
-> You need a put_unaligned here too. If you're fine with the patch below
-> there's no need to resubmit, and
+Signed-off-by: Wenyou Yang <wenyou.yang@microchip.com>
+---
 
-One more thing, __put_unaligned_cpu16() and __put_unaligned_cpu64() don't 
-compile on x86_64 with v4.12 (using media_build.git). I propose replacing them 
-with put_unaligned() which compiles and should do the right thing.
+Changes in v6: None
+Changes in v5: None
+Changes in v4: None
+Changes in v3:
+ - Explicitly document the "remote-endpoint" property.
 
-> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> 
-> Would you mind sending me your test tool patch ?
-> 
-> diff --git a/drivers/media/usb/uvc/uvc_video.c b/drivers/media/usb/uvc/
-> uvc_video.c
-> index 2fc0bf2221db..02e4997a32bb 100644
-> --- a/drivers/media/usb/uvc/uvc_video.c
-> +++ b/drivers/media/usb/uvc/uvc_video.c
-> @@ -1142,6 +1142,7 @@ static void uvc_video_decode_meta(struct uvc_streaming
-> *stream,
->  	size_t len_std = 2;
->  	bool has_pts, has_scr;
->  	unsigned long flags;
-> +	unsigned int sof;
->  	ktime_t time;
->  	const u8 *scr;
-> 
-> @@ -1177,9 +1178,10 @@ static void uvc_video_decode_meta(struct
-> uvc_streaming *stream,
->  	meta = (struct uvc_meta_buf *)((u8 *)meta_buf->mem + meta_buf->bytesused);
-> local_irq_save(flags);
->  	time = uvc_video_get_time();
-> -	meta->sof = usb_get_current_frame_number(stream->dev->udev);
-> +	sof = usb_get_current_frame_number(stream->dev->udev);
->  	local_irq_restore(flags);
->  	__put_unaligned_cpu64(ktime_to_ns(time), &meta->ns);
-> +	__put_unaligned_cpu16(sof, &meta->sof);
-> 
->  	if (has_scr)
->  		memcpy(stream->clock.last_scr, scr, 6);
-> 
-> > +	local_irq_restore(flags);
-> > +	__put_unaligned_cpu64(ktime_to_ns(time), &meta->ns);
-> > +
-> > +	if (has_scr)
-> > +		memcpy(stream->clock.last_scr, scr, 6);
-> > +
-> > +	memcpy(&meta->length, mem, length);
-> > +	meta_buf->bytesused += length + sizeof(meta->ns) + sizeof(meta->sof);
-> > +
-> > +	uvc_trace(UVC_TRACE_FRAME,
-> > +		  "%s(): t-sys %lluns, SOF %u, len %u, flags 0x%x, PTS %u, STC %u 
-frame
-> > SOF %u\n", +		  __func__, time, meta->sof, meta->length, meta->flags,
-> > +		  has_pts ? *(u32 *)meta->buf : 0,
-> > +		  has_scr ? *(u32 *)scr : 0,
-> > +		  has_scr ? *(u32 *)(scr + 4) & 0x7ff : 0);
-> > +}
-> 
-> [snip]
+Changes in v2: None
 
+ .../devicetree/bindings/media/i2c/ov7740.txt       | 47 ++++++++++++++++++++++
+ 1 file changed, 47 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/ov7740.txt
+
+diff --git a/Documentation/devicetree/bindings/media/i2c/ov7740.txt b/Documentation/devicetree/bindings/media/i2c/ov7740.txt
+new file mode 100644
+index 000000000000..af781c3a5f0e
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/i2c/ov7740.txt
+@@ -0,0 +1,47 @@
++* Omnivision OV7740 CMOS image sensor
++
++The Omnivision OV7740 image sensor supports multiple output image
++size, such as VGA, and QVGA, CIF and any size smaller. It also
++supports the RAW RGB and YUV output formats.
++
++The common video interfaces bindings (see video-interfaces.txt) should
++be used to specify link to the image data receiver. The OV7740 device
++node should contain one 'port' child node with an 'endpoint' subnode.
++
++Required Properties:
++- compatible:	"ovti,ov7740".
++- reg:		I2C slave address of the sensor.
++- clocks:	Reference to the xvclk input clock.
++- clock-names:	"xvclk".
++
++Optional Properties:
++- reset-gpios: Rreference to the GPIO connected to the reset_b pin,
++  if any. Active low with pull-ip resistor.
++- powerdown-gpios: Reference to the GPIO connected to the pwdn pin,
++  if any. Active high with pull-down resistor.
++
++Endpoint node mandatory properties:
++- remote-endpoint: A phandle to the bus receiver's endpoint node.
++
++Example:
++
++	i2c1: i2c@fc028000 {
++		ov7740: camera@21 {
++			compatible = "ovti,ov7740";
++			reg = <0x21>;
++			pinctrl-names = "default";
++			pinctrl-0 = <&pinctrl_sensor_power &pinctrl_sensor_reset>;
++			clocks = <&isc>;
++			clock-names = "xvclk";
++			assigned-clocks = <&isc>;
++			assigned-clock-rates = <24000000>;
++			reset-gpios = <&pioA 43 GPIO_ACTIVE_LOW>;
++			powerdown-gpios = <&pioA 44 GPIO_ACTIVE_HIGH>;
++
++			port {
++				ov7740_0: endpoint {
++					remote-endpoint = <&isc_0>;
++				};
++			};
++		};
++	};
 -- 
-Regards,
-
-Laurent Pinchart
+2.15.0
