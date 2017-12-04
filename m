@@ -1,79 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga05.intel.com ([192.55.52.43]:43909 "EHLO mga05.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755153AbdLOLxU (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 15 Dec 2017 06:53:20 -0500
-Date: Fri, 15 Dec 2017 13:51:46 +0200
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: Niklas =?iso-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
-        Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        Benoit Parrot <bparrot@ti.com>,
-        Maxime Ripard <maxime.ripard@free-electrons.com>
-Subject: Re: [PATCH/RFC v2 01/15] v4l2-subdev.h: add pad and stream aware
- s_stream
-Message-ID: <20171215115146.rme5bv2qbebft2ba@paasikivi.fi.intel.com>
-References: <20171214190835.7672-1-niklas.soderlund+renesas@ragnatech.se>
- <20171214190835.7672-2-niklas.soderlund+renesas@ragnatech.se>
+Received: from heliosphere.sirena.org.uk ([172.104.155.198]:58928 "EHLO
+        heliosphere.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752904AbdLDWFp (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 4 Dec 2017 17:05:45 -0500
+Date: Mon, 4 Dec 2017 22:05:41 +0000
+From: Mark Brown <broonie@kernel.org>
+To: Wolfram Sang <wsa@the-dreams.de>
+Cc: Wolfram Sang <wsa+renesas@sang-engineering.com>,
+        linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org, linux-iio@vger.kernel.org,
+        linux-input@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH v6 0/9] i2c: document DMA handling and add helpers for it
+Message-ID: <20171204220541.GA11658@finisterre>
+References: <20171104202009.3818-1-wsa+renesas@sang-engineering.com>
+ <20171108225037.i4dx5iu5zxc542oq@sirena.co.uk>
+ <20171127185116.j2vmkhbik33vk4f7@ninjato>
+ <20171128153446.6pyqtkcvuepil5gi@sirena.org.uk>
+ <20171203194347.bbds47a72xbc4nvl@ninjato>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: multipart/signed; micalg=pgp-sha512;
+        protocol="application/pgp-signature"; boundary="vkogqOf2sHV7VnPd"
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20171214190835.7672-2-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20171203194347.bbds47a72xbc4nvl@ninjato>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hejssan Niklas,
 
-Tack för uppdaterade lappor!
+--vkogqOf2sHV7VnPd
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-On Thu, Dec 14, 2017 at 08:08:21PM +0100, Niklas Söderlund wrote:
-> To be able to start and stop individual streams of a multiplexed pad the
-> s_stream operation needs to be both pad and stream aware. Add a new
-> operation to pad ops to facilitate this.
-> 
-> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-> ---
->  include/media/v4l2-subdev.h | 5 +++++
->  1 file changed, 5 insertions(+)
-> 
-> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-> index a30a94fad8dbacde..7288209338a48fda 100644
-> --- a/include/media/v4l2-subdev.h
-> +++ b/include/media/v4l2-subdev.h
-> @@ -669,6 +669,9 @@ struct v4l2_subdev_pad_config {
->   *
->   * @set_frame_desc: set the low level media bus frame parameters, @fd array
->   *                  may be adjusted by the subdev driver to device capabilities.
-> + *
-> + * @s_stream: used to notify the driver that a stream will start or has
-> + *	stopped.
+On Sun, Dec 03, 2017 at 08:43:47PM +0100, Wolfram Sang wrote:
 
-This is actually the callback which is used to control the stream state.
-The above suggests that it's a notification of something that has happened
-(or about to happen). How about:
+> > It's a bit different in that it's much more likely that a SPI controller
+> > will actually do DMA than an I2C one since the speeds are higher and
+> > there's frequent applications that do large transfers so it's more
+> > likely that people will do the right thing as issues would tend to come
+> > up if they don't.
 
-Enable or disable streaming on a sub-device pad.
+> Yes, for SPI this is true. I was thinking more of regmap with its
+> usage of different transport mechanisms. But I guess they should all be
+> DMA safe because some of them need to be DMA safe?
 
->   */
->  struct v4l2_subdev_pad_ops {
->  	int (*init_cfg)(struct v4l2_subdev *sd,
-> @@ -713,6 +716,8 @@ struct v4l2_subdev_pad_ops {
->  			   struct v4l2_subdev_routing *route);
->  	int (*set_routing)(struct v4l2_subdev *sd,
->  			   struct v4l2_subdev_routing *route);
-> +	int (*s_stream)(struct v4l2_subdev *sd, unsigned int pad,
-> +			unsigned int stream, int enable);
+Possibly.  Hopefully.  I guess we'll find out.
 
-How about bool for enable?
+--vkogqOf2sHV7VnPd
+Content-Type: application/pgp-signature; name="signature.asc"
 
->  };
->  
->  /**
+-----BEGIN PGP SIGNATURE-----
 
--- 
-Sakari Ailus
-sakari.ailus@linux.intel.com
+iQEzBAABCgAdFiEEreZoqmdXGLWf4p/qJNaLcl1Uh9AFAlolxrEACgkQJNaLcl1U
+h9BIpwgAgHPDxEsQuguVjEwmYUaDlg6+A7KqNKkDscBkBtcjuJjy6wdqhhhRiyzU
+JNcqsxq2Ogb83mLZGQnsibgWunG+z1deqiEd55t5V+SvRL/tkdBvu89jZu3CptXF
+2XX50fgea8FDLlShznSwBzkLUfKX8klKJidfZ0d8VWy8xxZPcXf36WF2g+JWtIzT
+YHoCbhoIgNemyfwMVoa/CIiqm1dy9jflCzIRR23mWKTTBBU9sXITRl5/Ytq+pBlw
+B+pSwFfzRA6FiuDDa493eIk2Ktrtb4ONFR7o2Tz2wDMCAN+b3ABpRoS+WPWgSfbt
+8EKHoaQTLPpRohGy3CPZvJiZ4wZznA==
+=OkaE
+-----END PGP SIGNATURE-----
+
+--vkogqOf2sHV7VnPd--
