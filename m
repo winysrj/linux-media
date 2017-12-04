@@ -1,139 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:36001 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751390AbdLDKwF (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 4 Dec 2017 05:52:05 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: kieran.bingham@ideasonboard.com
-Cc: Eugeniu Rosca <roscaeugeniu@gmail.com>, mchehab@kernel.org,
-        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        Eugeniu Rosca <erosca@de.adit-jv.com>
-Subject: Re: [PATCH] v4l: vsp1: Fix function declaration/definition mismatch
-Date: Mon, 04 Dec 2017 12:52:17 +0200
-Message-ID: <3327408.dYccgZQZOG@avalon>
-In-Reply-To: <85aabc6e-b332-1f9e-3fbf-87f0d7bcf9f3@ideasonboard.com>
-References: <20170820124006.4256-1-rosca.eugeniu@gmail.com> <85aabc6e-b332-1f9e-3fbf-87f0d7bcf9f3@ideasonboard.com>
+Received: from out4-smtp.messagingengine.com ([66.111.4.28]:34373 "EHLO
+        out4-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753788AbdLDLpJ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 4 Dec 2017 06:45:09 -0500
+Date: Mon, 4 Dec 2017 12:45:17 +0100
+From: Greg KH <greg@kroah.com>
+To: Lyude Paul <lyude@redhat.com>
+Cc: stable@vger.kernel.org, Alex Deucher <alexander.deucher@amd.com>,
+        Sinclair Yeh <syeh@vmware.com>,
+        Christian =?iso-8859-1?Q?K=F6nig?= <christian.koenig@amd.com>,
+        David Airlie <airlied@linux.ie>, linux-kernel@vger.kernel.org,
+        Nicolai =?iso-8859-1?Q?H=E4hnle?= <nicolai.haehnle@amd.com>,
+        dri-devel@lists.freedesktop.org,
+        Peter Zijlstra <peterz@infradead.org>,
+        Chunming Zhou <david1.zhou@amd.com>,
+        Michel =?iso-8859-1?Q?D=E4nzer?= <michel.daenzer@amd.com>,
+        Sumit Semwal <sumit.semwal@linaro.org>,
+        linux-media@vger.kernel.org, linaro-mm-sig@lists.linaro.org,
+        Harish Kasiviswanathan <harish.kasiviswanathan@amd.com>,
+        Alex Xie <alexbin.xie@amd.com>,
+        "Zhang, Jerry" <jerry.zhang@amd.com>,
+        Felix Kuehling <felix.kuehling@amd.com>,
+        amd-gfx@lists.freedesktop.org
+Subject: Re: [PATCH 0/4] Backported amdgpu ttm deadlock fixes for 4.14
+Message-ID: <20171204114517.GA28068@kroah.com>
+References: <20171201002311.28098-1-lyude@redhat.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20171201002311.28098-1-lyude@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+On Thu, Nov 30, 2017 at 07:23:02PM -0500, Lyude Paul wrote:
+> I haven't gone to see where it started, but as of late a good number of
+> pretty nasty deadlock issues have appeared with the kernel. Easy
+> reproduction recipe on a laptop with i915/amdgpu prime with lockdep enabled:
+> 
+> DRI_PRIME=1 glxinfo
+> 
+> Additionally, some more race conditions exist that I've managed to
+> trigger with piglit and lockdep enabled after applying these patches:
+> 
+>     =============================
+>     WARNING: suspicious RCU usage
+>     4.14.3Lyude-Test+ #2 Not tainted
+>     -----------------------------
+>     ./include/linux/reservation.h:216 suspicious rcu_dereference_protected() usage!
+> 
+>     other info that might help us debug this:
+> 
+>     rcu_scheduler_active = 2, debug_locks = 1
+>     1 lock held by ext_image_dma_b/27451:
+>      #0:  (reservation_ww_class_mutex){+.+.}, at: [<ffffffffa034f2ff>] ttm_bo_unref+0x9f/0x3c0 [ttm]
+> 
+>     stack backtrace:
+>     CPU: 0 PID: 27451 Comm: ext_image_dma_b Not tainted 4.14.3Lyude-Test+ #2
+>     Hardware name: HP HP ZBook 15 G4/8275, BIOS P70 Ver. 01.02 06/09/2017
+>     Call Trace:
+>      dump_stack+0x8e/0xce
+>      lockdep_rcu_suspicious+0xc5/0x100
+>      reservation_object_copy_fences+0x292/0x2b0
+>      ? ttm_bo_unref+0x9f/0x3c0 [ttm]
+>      ttm_bo_unref+0xbd/0x3c0 [ttm]
+>      amdgpu_bo_unref+0x2a/0x50 [amdgpu]
+>      amdgpu_gem_object_free+0x4b/0x50 [amdgpu]
+>      drm_gem_object_free+0x1f/0x40 [drm]
+>      drm_gem_object_put_unlocked+0x40/0xb0 [drm]
+>      drm_gem_object_handle_put_unlocked+0x6c/0xb0 [drm]
+>      drm_gem_object_release_handle+0x51/0x90 [drm]
+>      drm_gem_handle_delete+0x5e/0x90 [drm]
+>      ? drm_gem_handle_create+0x40/0x40 [drm]
+>      drm_gem_close_ioctl+0x20/0x30 [drm]
+>      drm_ioctl_kernel+0x5d/0xb0 [drm]
+>      drm_ioctl+0x2f7/0x3b0 [drm]
+>      ? drm_gem_handle_create+0x40/0x40 [drm]
+>      ? trace_hardirqs_on_caller+0xf4/0x190
+>      ? trace_hardirqs_on+0xd/0x10
+>      amdgpu_drm_ioctl+0x4f/0x90 [amdgpu]
+>      do_vfs_ioctl+0x93/0x670
+>      ? __fget+0x108/0x1f0
+>      SyS_ioctl+0x79/0x90
+>      entry_SYSCALL_64_fastpath+0x23/0xc2
+> 
+> I've also added the relevant fixes for the issue mentioned above.
+> 
+> Christian König (3):
+>   drm/ttm: fix ttm_bo_cleanup_refs_or_queue once more
+>   dma-buf: make reservation_object_copy_fences rcu save
+>   drm/amdgpu: reserve root PD while releasing it
+> 
+> Michel Dänzer (1):
+>   drm/ttm: Always and only destroy bo->ttm_resv in ttm_bo_release_list
 
-On Friday, 24 November 2017 20:40:57 EET Kieran Bingham wrote:
-> Hi Eugeniu,
-> 
-> Thankyou for the patch,
-> 
-> Laurent - Any comments on this? Otherwise I'll bundle this in with my
-> suspend/resume patch for a pull request.
-> 
-> On 20/08/17 13:40, Eugeniu Rosca wrote:
-> > From: Eugeniu Rosca <erosca@de.adit-jv.com>
-> > 
-> > Cppcheck v1.81 complains that the parameter names of certain vsp1
-> > functions don't match between declaration and definition. Fix this.
-> > No functional change is confirmed by the empty delta between the
-> > disassembled object files before and after the change.
-> > 
-> > Signed-off-by: Eugeniu Rosca <erosca@de.adit-jv.com>
-> 
-> Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-> 
-> > ---
-> > 
-> >  drivers/media/platform/vsp1/vsp1_entity.h | 5 +++--
-> >  drivers/media/platform/vsp1/vsp1_hgo.h    | 2 +-
-> >  drivers/media/platform/vsp1/vsp1_hgt.h    | 2 +-
-> >  drivers/media/platform/vsp1/vsp1_uds.h    | 2 +-
-> >  4 files changed, 6 insertions(+), 5 deletions(-)
-> > 
-> > diff --git a/drivers/media/platform/vsp1/vsp1_entity.h
-> > b/drivers/media/platform/vsp1/vsp1_entity.h index
-> > c169a060b6d2..1087d7e5c126 100644
-> > --- a/drivers/media/platform/vsp1/vsp1_entity.h
-> > +++ b/drivers/media/platform/vsp1/vsp1_entity.h
-> > @@ -161,7 +161,8 @@ int vsp1_subdev_enum_mbus_code(struct v4l2_subdev
-> > *subdev,
-> >  int vsp1_subdev_enum_frame_size(struct v4l2_subdev *subdev,
-> >  				struct v4l2_subdev_pad_config *cfg,
-> >  				struct v4l2_subdev_frame_size_enum *fse,
-> > -				unsigned int min_w, unsigned int min_h,
-> > -				unsigned int max_w, unsigned int max_h);
-> > +				unsigned int min_width, unsigned int min_height,
-> > +				unsigned int max_width,
-> > +				unsigned int max_height);
-> 
-> This is fine.
-> 
-> >  #endif /* __VSP1_ENTITY_H__ */
-> > 
-> > diff --git a/drivers/media/platform/vsp1/vsp1_hgo.h
-> > b/drivers/media/platform/vsp1/vsp1_hgo.h index c6c0b7a80e0c..76a9cf97b9d3
-> > 100644
-> > --- a/drivers/media/platform/vsp1/vsp1_hgo.h
-> > +++ b/drivers/media/platform/vsp1/vsp1_hgo.h
-> > @@ -40,6 +40,6 @@ static inline struct vsp1_hgo *to_hgo(struct v4l2_subdev
-> > *subdev)> 
-> >  }
-> >  
-> >  struct vsp1_hgo *vsp1_hgo_create(struct vsp1_device *vsp1);
-> > 
-> > -void vsp1_hgo_frame_end(struct vsp1_entity *hgo);
-> > +void vsp1_hgo_frame_end(struct vsp1_entity *entity);
-> 
-> I was going to say: We know the object is an entity by it's type. Isn't hgo
-> more descriptive for it's name ?
-> 
-> However to answer my own question - The implementation function goes on to
-> define a struct vsp1_hgo *hgo, so no ... the Entity object shouldn't be hgo.
+All now queued up, thanks.
 
-And that's exactly why there's a difference between the declaration and 
-implementation :-) Naming the parameter hgo in the declaration makes it clear 
-to the reader what entity is expected. The parameter is then named entity in 
-the function definition to allow for the vsp1_hgo *hgo local variable.
-
-Is the mismatch a real issue ? I don't think the kernel coding style mandates 
-parameter names to be identical between function declaration and definition.
-
-> So this looks reasonable to me, and the same logic applies to the other
-> instances.
-> >  #endif /* __VSP1_HGO_H__ */
-> > 
-> > diff --git a/drivers/media/platform/vsp1/vsp1_hgt.h
-> > b/drivers/media/platform/vsp1/vsp1_hgt.h index 83f2e130942a..37139d54b6c8
-> > 100644
-> > --- a/drivers/media/platform/vsp1/vsp1_hgt.h
-> > +++ b/drivers/media/platform/vsp1/vsp1_hgt.h
-> > @@ -37,6 +37,6 @@ static inline struct vsp1_hgt *to_hgt(struct v4l2_subdev
-> > *subdev)> 
-> >  }
-> >  
-> >  struct vsp1_hgt *vsp1_hgt_create(struct vsp1_device *vsp1);
-> > 
-> > -void vsp1_hgt_frame_end(struct vsp1_entity *hgt);
-> > +void vsp1_hgt_frame_end(struct vsp1_entity *entity);
-> > 
-> >  #endif /* __VSP1_HGT_H__ */
-> > 
-> > diff --git a/drivers/media/platform/vsp1/vsp1_uds.h
-> > b/drivers/media/platform/vsp1/vsp1_uds.h index 7bf3cdcffc65..9c7f8497b5da
-> > 100644
-> > --- a/drivers/media/platform/vsp1/vsp1_uds.h
-> > +++ b/drivers/media/platform/vsp1/vsp1_uds.h
-> > @@ -35,7 +35,7 @@ static inline struct vsp1_uds *to_uds(struct v4l2_subdev
-> > *subdev)
-> >  struct vsp1_uds *vsp1_uds_create(struct vsp1_device *vsp1, unsigned int
-> >  index);
-> > -void vsp1_uds_set_alpha(struct vsp1_entity *uds, struct vsp1_dl_list *dl,
-> > +void vsp1_uds_set_alpha(struct vsp1_entity *entity, struct vsp1_dl_list
-> > *dl,
-> >  			unsigned int alpha);
-> >  
-> >  #endif /* __VSP1_UDS_H__ */
-
--- 
-Regards,
-
-Laurent Pinchart
+greg k-h
