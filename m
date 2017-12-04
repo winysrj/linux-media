@@ -1,162 +1,1353 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx07-00178001.pphosted.com ([62.209.51.94]:28103 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1754619AbdLFKB6 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 6 Dec 2017 05:01:58 -0500
-From: Hugues FRUCHET <hugues.fruchet@st.com>
-To: Steve Longerbeam <steve_longerbeam@mentor.com>,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
+Received: from f5out.microchip.com ([198.175.253.81]:26345 "EHLO
+        DVREDG01.corp.atmel.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+        with ESMTP id S1750897AbdLDHFU (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 4 Dec 2017 02:05:20 -0500
+From: Wenyou Yang <wenyou.yang@microchip.com>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>
+CC: <linux-kernel@vger.kernel.org>,
+        Nicolas Ferre <nicolas.ferre@microchip.com>,
+        <devicetree@vger.kernel.org>, Sakari Ailus <sakari.ailus@iki.fi>,
+        Jonathan Corbet <corbet@lwn.net>,
         Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "Benjamin Gaignard" <benjamin.gaignard@linaro.org>
-Subject: Re: [PATCH v2 3/4] media: ov5640: add support of DVP parallel
- interface
-Date: Wed, 6 Dec 2017 10:01:44 +0000
-Message-ID: <ef496546-dc67-60be-20a6-8361b15a421d@st.com>
-References: <1511975472-26659-1-git-send-email-hugues.fruchet@st.com>
- <1511975472-26659-4-git-send-email-hugues.fruchet@st.com>
- <2f640898-872b-3211-0e7c-c1707e8a63c4@mentor.com>
-In-Reply-To: <2f640898-872b-3211-0e7c-c1707e8a63c4@mentor.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-ID: <15D653967FF1414FA45AB3890F2BD2AB@st.com>
-Content-Transfer-Encoding: base64
+        <linux-arm-kernel@lists.infradead.org>,
+        "Linux Media Mailing List" <linux-media@vger.kernel.org>,
+        Wenyou Yang <wenyou.yang@microchip.com>,
+        Songjun Wu <songjun.wu@microchip.com>
+Subject: [PATCH v6 2/2] media: i2c: Add the ov7740 image sensor driver
+Date: Mon, 4 Dec 2017 14:58:58 +0800
+Message-ID: <20171204065858.3138-3-wenyou.yang@microchip.com>
+In-Reply-To: <20171204065858.3138-1-wenyou.yang@microchip.com>
+References: <20171204065858.3138-1-wenyou.yang@microchip.com>
 MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-SGkgU3RldmUsDQoNCk9uIDEyLzAzLzIwMTcgMTA6NTggUE0sIFN0ZXZlIExvbmdlcmJlYW0gd3Jv
-dGU6DQo+IA0KPiANCj4gT24gMTEvMjkvMjAxNyAwOToxMSBBTSwgSHVndWVzIEZydWNoZXQgd3Jv
-dGU6DQo+PiBBZGQgc3VwcG9ydCBvZiBEVlAgcGFyYWxsZWwgbW9kZSBpbiBhZGRpdGlvbiBvZg0K
-Pj4gZXhpc3RpbmcgTUlQSSBDU0kgbW9kZS4gVGhlIGNob2ljZSBiZXR3ZWVuIHR3byBtb2Rlcw0K
-Pj4gYW5kIGNvbmZpZ3VyYXRpb24gaXMgbWFkZSB0aHJvdWdoIGRldmljZSB0cmVlLg0KPj4NCj4+
-IFNpZ25lZC1vZmYtYnk6IEh1Z3VlcyBGcnVjaGV0IDxodWd1ZXMuZnJ1Y2hldEBzdC5jb20+DQo+
-PiAtLS0NCj4+IMKgIGRyaXZlcnMvbWVkaWEvaTJjL292NTY0MC5jIHwgMTAxIA0KPj4gKysrKysr
-KysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKy0tLS0tLS0tDQo+PiDCoCAxIGZpbGUgY2hh
-bmdlZCwgODMgaW5zZXJ0aW9ucygrKSwgMTggZGVsZXRpb25zKC0pDQo+Pg0KPj4gZGlmZiAtLWdp
-dCBhL2RyaXZlcnMvbWVkaWEvaTJjL292NTY0MC5jIGIvZHJpdmVycy9tZWRpYS9pMmMvb3Y1NjQw
-LmMNCj4+IGluZGV4IGE1NzZkMTEuLjgyNmIxMDIgMTAwNjQ0DQo+PiAtLS0gYS9kcml2ZXJzL21l
-ZGlhL2kyYy9vdjU2NDAuYw0KPj4gKysrIGIvZHJpdmVycy9tZWRpYS9pMmMvb3Y1NjQwLmMNCj4+
-IEBAIC0zNCwxNCArMzQsMjAgQEANCj4+IMKgICNkZWZpbmUgT1Y1NjQwX0RFRkFVTFRfU0xBVkVf
-SUQgMHgzYw0KPj4gKyNkZWZpbmUgT1Y1NjQwX1JFR19TWVNfQ1RSTDDCoMKgwqDCoMKgwqDCoCAw
-eDMwMDgNCj4+IMKgICNkZWZpbmUgT1Y1NjQwX1JFR19DSElQX0lEX0hJR0jCoMKgwqDCoMKgwqDC
-oCAweDMwMGENCj4+IMKgICNkZWZpbmUgT1Y1NjQwX1JFR19DSElQX0lEX0xPV8KgwqDCoMKgwqDC
-oMKgIDB4MzAwYg0KPj4gKyNkZWZpbmUgT1Y1NjQwX1JFR19JT19NSVBJX0NUUkwwMMKgwqDCoCAw
-eDMwMGUNCj4+ICsjZGVmaW5lIE9WNTY0MF9SRUdfUEFEX09VVFBVVF9FTkFCTEUwMcKgwqDCoCAw
-eDMwMTcNCj4+ICsjZGVmaW5lIE9WNTY0MF9SRUdfUEFEX09VVFBVVF9FTkFCTEUwMsKgwqDCoCAw
-eDMwMTgNCj4+IMKgICNkZWZpbmUgT1Y1NjQwX1JFR19QQURfT1VUUFVUMDDCoMKgwqDCoMKgwqDC
-oCAweDMwMTkNCj4+ICsjZGVmaW5lIE9WNTY0MF9SRUdfU1lTVEVNX0NPTlRST0wxwqDCoMKgIDB4
-MzAyZQ0KPj4gwqAgI2RlZmluZSBPVjU2NDBfUkVHX1NDX1BMTF9DVFJMMMKgwqDCoMKgwqDCoMKg
-IDB4MzAzNA0KPj4gwqAgI2RlZmluZSBPVjU2NDBfUkVHX1NDX1BMTF9DVFJMMcKgwqDCoMKgwqDC
-oMKgIDB4MzAzNQ0KPj4gwqAgI2RlZmluZSBPVjU2NDBfUkVHX1NDX1BMTF9DVFJMMsKgwqDCoMKg
-wqDCoMKgIDB4MzAzNg0KPj4gwqAgI2RlZmluZSBPVjU2NDBfUkVHX1NDX1BMTF9DVFJMM8KgwqDC
-oMKgwqDCoMKgIDB4MzAzNw0KPj4gwqAgI2RlZmluZSBPVjU2NDBfUkVHX1NMQVZFX0lEwqDCoMKg
-wqDCoMKgwqAgMHgzMTAwDQo+PiArI2RlZmluZSBPVjU2NDBfUkVHX1NDQ0JfU1lTX0NUUkwxwqDC
-oMKgIDB4MzEwMw0KPj4gwqAgI2RlZmluZSBPVjU2NDBfUkVHX1NZU19ST09UX0RJVklERVLCoMKg
-wqAgMHgzMTA4DQo+PiDCoCAjZGVmaW5lIE9WNTY0MF9SRUdfQVdCX1JfR0FJTsKgwqDCoMKgwqDC
-oMKgIDB4MzQwMA0KPj4gwqAgI2RlZmluZSBPVjU2NDBfUkVHX0FXQl9HX0dBSU7CoMKgwqDCoMKg
-wqDCoCAweDM0MDINCj4+IEBAIC0xMDA2LDcgKzEwMTIsNjUgQEAgc3RhdGljIGludCBvdjU2NDBf
-Z2V0X2dhaW4oc3RydWN0IG92NTY0MF9kZXYgDQo+PiAqc2Vuc29yKQ0KPj4gwqDCoMKgwqDCoCBy
-ZXR1cm4gZ2FpbiAmIDB4M2ZmOw0KPj4gwqAgfQ0KPj4gLXN0YXRpYyBpbnQgb3Y1NjQwX3NldF9z
-dHJlYW0oc3RydWN0IG92NTY0MF9kZXYgKnNlbnNvciwgYm9vbCBvbikNCj4+ICtzdGF0aWMgaW50
-IG92NTY0MF9zZXRfc3RyZWFtX2R2cChzdHJ1Y3Qgb3Y1NjQwX2RldiAqc2Vuc29yLCBib29sIG9u
-KQ0KPj4gK3sNCj4+ICvCoMKgwqAgaW50IHJldDsNCj4+ICsNCj4+ICvCoMKgwqAgaWYgKG9uKSB7
-DQo+PiArwqDCoMKgwqDCoMKgwqAgLyoNCj4+ICvCoMKgwqDCoMKgwqDCoMKgICogcmVzZXQgTUlQ
-SSBQQ0xLL1NFUkNMSyBkaXZpZGVyDQo+PiArwqDCoMKgwqDCoMKgwqDCoCAqDQo+PiArwqDCoMKg
-wqDCoMKgwqDCoCAqIFNDIFBMTCBDT05UUkwxIDANCj4+ICvCoMKgwqDCoMKgwqDCoMKgICogLSBb
-My4uMF06wqDCoMKgIE1JUEkgUENMSy9TRVJDTEsgZGl2aWRlcg0KPj4gK8KgwqDCoMKgwqDCoMKg
-wqAgKi8NCj4+ICvCoMKgwqDCoMKgwqDCoCByZXQgPSBvdjU2NDBfbW9kX3JlZyhzZW5zb3IsIE9W
-NTY0MF9SRUdfU0NfUExMX0NUUkwxLCAweEYsIDApOw0KPj4gK8KgwqDCoMKgwqDCoMKgIGlmIChy
-ZXQpDQo+PiArwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCByZXR1cm4gcmV0Ow0KPj4gK8KgwqDCoCB9
-DQo+PiArDQo+PiArwqDCoMKgIC8qDQo+PiArwqDCoMKgwqAgKiBwb3dlcmRvd24gTUlQSSBUWC9S
-WCBQSFkgJiBkaXNhYmxlIE1JUEkNCj4+ICvCoMKgwqDCoCAqDQo+PiArwqDCoMKgwqAgKiBNSVBJ
-IENPTlRST0wgMDANCj4+ICvCoMKgwqDCoCAqIDQ6wqDCoMKgwqAgUFdETiBQSFkgVFgNCj4+ICvC
-oMKgwqDCoCAqIDM6wqDCoMKgwqAgUFdETiBQSFkgUlgNCj4+ICvCoMKgwqDCoCAqIDI6wqDCoMKg
-wqAgTUlQSSBlbmFibGUNCj4+ICvCoMKgwqDCoCAqLw0KPj4gK8KgwqDCoCByZXQgPSBvdjU2NDBf
-d3JpdGVfcmVnKHNlbnNvciwNCj4+ICvCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
-wqAgT1Y1NjQwX1JFR19JT19NSVBJX0NUUkwwMCwgb24gPyAweDE4IDogMCk7DQo+PiArwqDCoMKg
-IGlmIChyZXQpDQo+PiArwqDCoMKgwqDCoMKgwqAgcmV0dXJuIHJldDsNCj4+ICsNCj4+ICvCoMKg
-wqAgLyoNCj4+ICvCoMKgwqDCoCAqIGVuYWJsZSBWU1lOQy9IUkVGL1BDTEsgRFZQIGNvbnRyb2wg
-bGluZXMNCj4+ICvCoMKgwqDCoCAqICYgRFs5OjZdIERWUCBkYXRhIGxpbmVzDQo+PiArwqDCoMKg
-wqAgKg0KPj4gK8KgwqDCoMKgICogUEFEIE9VVFBVVCBFTkFCTEUgMDENCj4+ICvCoMKgwqDCoCAq
-IC0gNjrCoMKgwqDCoMKgwqDCoCBWU1lOQyBvdXRwdXQgZW5hYmxlDQo+PiArwqDCoMKgwqAgKiAt
-IDU6wqDCoMKgwqDCoMKgwqAgSFJFRiBvdXRwdXQgZW5hYmxlDQo+PiArwqDCoMKgwqAgKiAtIDQ6
-wqDCoMKgwqDCoMKgwqAgUENMSyBvdXRwdXQgZW5hYmxlDQo+PiArwqDCoMKgwqAgKiAtIFszOjBd
-OsKgwqDCoCBEWzk6Nl0gb3V0cHV0IGVuYWJsZQ0KPj4gK8KgwqDCoMKgICovDQo+PiArwqDCoMKg
-IHJldCA9IG92NTY0MF93cml0ZV9yZWcoc2Vuc29yLA0KPj4gK8KgwqDCoMKgwqDCoMKgwqDCoMKg
-wqDCoMKgwqDCoMKgwqDCoCBPVjU2NDBfUkVHX1BBRF9PVVRQVVRfRU5BQkxFMDEsIG9uID8gMHg3
-ZiA6IDApOw0KPj4gK8KgwqDCoCBpZiAocmV0KQ0KPj4gK8KgwqDCoMKgwqDCoMKgIHJldHVybiBy
-ZXQ7DQo+PiArDQo+PiArwqDCoMKgIC8qDQo+PiArwqDCoMKgwqAgKiBlbmFibGUgRFs1OjJdIERW
-UCBkYXRhIGxpbmVzIChEWzA6MV0gYXJlIHVudXNlZCB3aXRoIDggYml0cw0KPj4gK8KgwqDCoMKg
-ICogcGFyYWxsZWwgbW9kZSwgOCBiaXRzIG91dHB1dCBhcmUgbWFwcGVkIG9uIERbOToyXSkNCj4+
-ICvCoMKgwqDCoCAqDQo+PiArwqDCoMKgwqAgKiBQQUQgT1VUUFVUIEVOQUJMRSAwMg0KPj4gK8Kg
-wqDCoMKgICogLSBbNzo0XTrCoMKgwqAgRFs1OjJdIG91dHB1dCBlbmFibGUNCj4+ICvCoMKgwqDC
-oCAqwqDCoMKgwqDCoMKgwqAgMDoxIGFyZSB1bnVzZWQgd2l0aCA4IGJpdHMNCj4+ICvCoMKgwqDC
-oCAqwqDCoMKgwqDCoMKgwqAgcGFyYWxsZWwgbW9kZSAoOCBiaXRzIG91dHB1dA0KPj4gK8KgwqDC
-oMKgICrCoMKgwqDCoMKgwqDCoCBhcmUgb24gRFs5OjJdKQ0KPj4gK8KgwqDCoMKgICovDQo+IA0K
-PiBJdCBzaG91bGQgYmUgdmVyaWZpZWQgaW4gdGhpcyBkcml2ZXIsIGF0IHByb2JlLCB0aGF0IHRo
-ZSBkZXZpY2UgdHJlZQ0KPiBlbmRwb2ludCBmb3IgdGhlIE9WNTY0MCBvdXRwdXQgcGFyYWxsZWwg
-aW50ZXJmYWNlIGhhcyBzcGVjaWZpZWQgdGhpcw0KPiB3aXRoICJidXMtd2lkdGg9PDg+OyBkYXRh
-LXNoaWZ0PTwyPjsiDQo+IA0KPiBTdGV2ZQ0KPiANCg0KSSBoYXZlIGNoYW5nZWQgdGhlIGNvZGUg
-ZW5hYmxpbmcgdGhlIHdob2xlIDEwIGJpdHM6DQoJLyoNCgkgKiBlbmFibGUgVlNZTkMvSFJFRi9Q
-Q0xLIERWUCBjb250cm9sIGxpbmVzDQoJICogJiBEWzk6Nl0gRFZQIGRhdGEgbGluZXMNCgkgKg0K
-CSAqIFBBRCBPVVRQVVQgRU5BQkxFIDAxDQoJICogLSA2OgkJVlNZTkMgb3V0cHV0IGVuYWJsZQ0K
-CSAqIC0gNToJCUhSRUYgb3V0cHV0IGVuYWJsZQ0KCSAqIC0gNDoJCVBDTEsgb3V0cHV0IGVuYWJs
-ZQ0KCSAqIC0gWzM6MF06CURbOTo2XSBvdXRwdXQgZW5hYmxlDQoJICovDQoJcmV0ID0gb3Y1NjQw
-X3dyaXRlX3JlZyhzZW5zb3IsDQoJCQkgICAgICAgT1Y1NjQwX1JFR19QQURfT1VUUFVUX0VOQUJM
-RTAxLA0KCQkJICAgICAgIG9uID8gMHg3RiA6IDApOw0KDQpkb2luZyBzbywgbm8gbmVlZCB0byB2
-ZXJpZnkgYnVzLXdpZHRoL2RhdGEtc2hpZnQsIGFuZCBzZW5zb3IgaXMgcmVhZHkgDQpmb3IgMTAg
-Yml0cyBvdXRwdXQuDQpJbiBhZGRpdGlvbiB0byB0aGlzIEkgY2FuIGRvIGEgY2hlY2sgYXQgcHJv
-YmUgdmVyaWZ5aW5nIHRoYXQgDQpidXMtd2lkdGgvZGF0YS1zaGlmdCBhcmUgdmFsaWQsIGllIDgv
-MiBvciAxMC8wLCB3aGF0IGRvIHlvdSB0aGluayBhYm91dCANCnRoaXMgPw0KDQoNCj4+ICvCoMKg
-wqAgcmV0dXJuIG92NTY0MF93cml0ZV9yZWcoc2Vuc29yLA0KPj4gK8KgwqDCoMKgwqDCoMKgwqDC
-oMKgwqDCoMKgwqDCoCBPVjU2NDBfUkVHX1BBRF9PVVRQVVRfRU5BQkxFMDIsIG9uID8gMHhmMCA6
-IDApOw0KPj4gK30NCj4+ICsNCj4+ICtzdGF0aWMgaW50IG92NTY0MF9zZXRfc3RyZWFtX21pcGko
-c3RydWN0IG92NTY0MF9kZXYgKnNlbnNvciwgYm9vbCBvbikNCj4+IMKgIHsNCj4+IMKgwqDCoMKg
-wqAgaW50IHJldDsNCj4+IEBAIC0xNTk4LDE3ICsxNjYyLDE5IEBAIHN0YXRpYyBpbnQgb3Y1NjQw
-X3NldF9wb3dlcihzdHJ1Y3Qgb3Y1NjQwX2RldiANCj4+ICpzZW5zb3IsIGJvb2wgb24pDQo+PiDC
-oMKgwqDCoMKgwqDCoMKgwqAgaWYgKHJldCkNCj4+IMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
-IGdvdG8gcG93ZXJfb2ZmOw0KPj4gLcKgwqDCoMKgwqDCoMKgIC8qDQo+PiAtwqDCoMKgwqDCoMKg
-wqDCoCAqIHN0YXJ0IHN0cmVhbWluZyBicmllZmx5IGZvbGxvd2VkIGJ5IHN0cmVhbSBvZmYgaW4N
-Cj4+IC3CoMKgwqDCoMKgwqDCoMKgICogb3JkZXIgdG8gY29heCB0aGUgY2xvY2sgbGFuZSBpbnRv
-IExQLTExIHN0YXRlLg0KPj4gLcKgwqDCoMKgwqDCoMKgwqAgKi8NCj4+IC3CoMKgwqDCoMKgwqDC
-oCByZXQgPSBvdjU2NDBfc2V0X3N0cmVhbShzZW5zb3IsIHRydWUpOw0KPj4gLcKgwqDCoMKgwqDC
-oMKgIGlmIChyZXQpDQo+PiAtwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCBnb3RvIHBvd2VyX29mZjsN
-Cj4+IC3CoMKgwqDCoMKgwqDCoCB1c2xlZXBfcmFuZ2UoMTAwMCwgMjAwMCk7DQo+PiAtwqDCoMKg
-wqDCoMKgwqAgcmV0ID0gb3Y1NjQwX3NldF9zdHJlYW0oc2Vuc29yLCBmYWxzZSk7DQo+PiAtwqDC
-oMKgwqDCoMKgwqAgaWYgKHJldCkNCj4+IC3CoMKgwqDCoMKgwqDCoMKgwqDCoMKgIGdvdG8gcG93
-ZXJfb2ZmOw0KPj4gK8KgwqDCoMKgwqDCoMKgIGlmIChzZW5zb3ItPmVwLmJ1c190eXBlID09IFY0
-TDJfTUJVU19DU0kyKSB7DQo+PiArwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCAvKg0KPj4gK8KgwqDC
-oMKgwqDCoMKgwqDCoMKgwqDCoCAqIHN0YXJ0IHN0cmVhbWluZyBicmllZmx5IGZvbGxvd2VkIGJ5
-IHN0cmVhbSBvZmYgaW4NCj4+ICvCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqAgKiBvcmRlciB0byBj
-b2F4IHRoZSBjbG9jayBsYW5lIGludG8gTFAtMTEgc3RhdGUuDQo+PiArwqDCoMKgwqDCoMKgwqDC
-oMKgwqDCoMKgICovDQo+PiArwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCByZXQgPSBvdjU2NDBfc2V0
-X3N0cmVhbV9taXBpKHNlbnNvciwgdHJ1ZSk7DQo+PiArwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCBp
-ZiAocmV0KQ0KPj4gK8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCBnb3RvIHBvd2VyX29m
-ZjsNCj4+ICvCoMKgwqDCoMKgwqDCoMKgwqDCoMKgIHVzbGVlcF9yYW5nZSgxMDAwLCAyMDAwKTsN
-Cj4+ICvCoMKgwqDCoMKgwqDCoMKgwqDCoMKgIHJldCA9IG92NTY0MF9zZXRfc3RyZWFtX21pcGko
-c2Vuc29yLCBmYWxzZSk7DQo+PiArwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCBpZiAocmV0KQ0KPj4g
-K8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCBnb3RvIHBvd2VyX29mZjsNCj4+ICvCoMKg
-wqDCoMKgwqDCoCB9DQo+PiDCoMKgwqDCoMKgwqDCoMKgwqAgcmV0dXJuIDA7DQo+PiDCoMKgwqDC
-oMKgIH0NCj4+IEBAIC0yMTg1LDcgKzIyNTEsMTEgQEAgc3RhdGljIGludCBvdjU2NDBfc19zdHJl
-YW0oc3RydWN0IHY0bDJfc3ViZGV2IA0KPj4gKnNkLCBpbnQgZW5hYmxlKQ0KPj4gwqDCoMKgwqDC
-oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCBnb3RvIG91dDsNCj4+IMKgwqDCoMKgwqDCoMKgwqDC
-oCB9DQo+PiAtwqDCoMKgwqDCoMKgwqAgcmV0ID0gb3Y1NjQwX3NldF9zdHJlYW0oc2Vuc29yLCBl
-bmFibGUpOw0KPj4gK8KgwqDCoMKgwqDCoMKgIGlmIChzZW5zb3ItPmVwLmJ1c190eXBlID09IFY0
-TDJfTUJVU19DU0kyKQ0KPj4gK8KgwqDCoMKgwqDCoMKgwqDCoMKgwqAgcmV0ID0gb3Y1NjQwX3Nl
-dF9zdHJlYW1fbWlwaShzZW5zb3IsIGVuYWJsZSk7DQo+PiArwqDCoMKgwqDCoMKgwqAgZWxzZQ0K
-Pj4gK8KgwqDCoMKgwqDCoMKgwqDCoMKgwqAgcmV0ID0gb3Y1NjQwX3NldF9zdHJlYW1fZHZwKHNl
-bnNvciwgZW5hYmxlKTsNCj4+ICsNCj4+IMKgwqDCoMKgwqDCoMKgwqDCoCBpZiAoIXJldCkNCj4+
-IMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgIHNlbnNvci0+c3RyZWFtaW5nID0gZW5hYmxlOw0K
-Pj4gwqDCoMKgwqDCoCB9DQo+PiBAQCAtMjI3MCwxMSArMjM0MCw2IEBAIHN0YXRpYyBpbnQgb3Y1
-NjQwX3Byb2JlKHN0cnVjdCBpMmNfY2xpZW50ICpjbGllbnQsDQo+PiDCoMKgwqDCoMKgwqDCoMKg
-wqAgcmV0dXJuIHJldDsNCj4+IMKgwqDCoMKgwqAgfQ0KPj4gLcKgwqDCoCBpZiAoc2Vuc29yLT5l
-cC5idXNfdHlwZSAhPSBWNEwyX01CVVNfQ1NJMikgew0KPj4gLcKgwqDCoMKgwqDCoMKgIGRldl9l
-cnIoZGV2LCAiaW52YWxpZCBidXMgdHlwZSwgbXVzdCBiZSBNSVBJIENTSTJcbiIpOw0KPj4gLcKg
-wqDCoMKgwqDCoMKgIHJldHVybiAtRUlOVkFMOw0KPj4gLcKgwqDCoCB9DQo+PiAtDQo+PiDCoMKg
-wqDCoMKgIC8qIGdldCBzeXN0ZW0gY2xvY2sgKHhjbGspICovDQo+PiDCoMKgwqDCoMKgIHNlbnNv
-ci0+eGNsayA9IGRldm1fY2xrX2dldChkZXYsICJ4Y2xrIik7DQo+PiDCoMKgwqDCoMKgIGlmIChJ
-U19FUlIoc2Vuc29yLT54Y2xrKSkgew0KPiANCg0KQmVzdCByZWdhcmRzLA0KSHVndWVzLg==
+The ov7740 (color) image sensor is a high performance VGA CMOS
+image snesor, which supports for output formats: RAW RGB and YUV
+and image sizes: VGA, and QVGA, CIF and any size smaller.
+
+Signed-off-by: Songjun Wu <songjun.wu@microchip.com>
+Signed-off-by: Wenyou Yang <wenyou.yang@microchip.com>
+---
+
+Changes in v6:
+ - Remove unnecessary #include <linux/init>.
+ - Remove unnecessary comments and extra newline.
+ - Add const for some structures.
+ - Add the check of the return value from regmap_write().
+ - Simplify the calling of __v4l2_ctrl_handler_setup().
+ - Add the default format initialization function.
+ - Integrate the set_power() and enable/disable the clock into
+   one function.
+
+Changes in v5:
+ - Squash the driver and MAINTAINERS entry patches to one.
+ - Precede the driver patch with the bindings patch.
+
+Changes in v4:
+ - Assign 'val' a initial value to avoid warning: 'val' may be
+   used uninitialized.
+ - Rename REG_REG15 to avoid warning: "REG_REG15" redefined.
+
+Changes in v3:
+ - Put the MAINTAINERS change to a separate patch.
+
+Changes in v2:
+ - Split off the bindings into a separate patch.
+ - Add a new entry to the MAINTAINERS file.
+
+ MAINTAINERS                |    8 +
+ drivers/media/i2c/Kconfig  |    8 +
+ drivers/media/i2c/Makefile |    1 +
+ drivers/media/i2c/ov7740.c | 1226 ++++++++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 1243 insertions(+)
+ create mode 100644 drivers/media/i2c/ov7740.c
+
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 7a52a66aa991..1de965009b13 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -10053,6 +10053,14 @@ S:	Maintained
+ F:	drivers/media/i2c/ov7670.c
+ F:	Documentation/devicetree/bindings/media/i2c/ov7670.txt
+ 
++OMNIVISION OV7740 SENSOR DRIVER
++M:	Wenyou Yang <wenyou.yang@microchip.com>
++L:	linux-media@vger.kernel.org
++T:	git git://linuxtv.org/media_tree.git
++S:	Maintained
++F:	drivers/media/i2c/ov7740.c
++F:	Documentation/devicetree/bindings/media/i2c/ov7740.txt
++
+ ONENAND FLASH DRIVER
+ M:	Kyungmin Park <kyungmin.park@samsung.com>
+ L:	linux-mtd@lists.infradead.org
+diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
+index cb5d7ff82915..00b1c4c031d4 100644
+--- a/drivers/media/i2c/Kconfig
++++ b/drivers/media/i2c/Kconfig
+@@ -665,6 +665,14 @@ config VIDEO_OV7670
+ 	  OV7670 VGA camera.  It currently only works with the M88ALP01
+ 	  controller.
+ 
++config VIDEO_OV7740
++	tristate "OmniVision OV7740 sensor support"
++	depends on I2C && VIDEO_V4L2
++	depends on MEDIA_CAMERA_SUPPORT
++	---help---
++	  This is a Video4Linux2 sensor-level driver for the OmniVision
++	  OV7740 VGA camera sensor.
++
+ config VIDEO_OV9650
+ 	tristate "OmniVision OV9650/OV9652 sensor support"
+ 	depends on I2C && VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
+diff --git a/drivers/media/i2c/Makefile b/drivers/media/i2c/Makefile
+index 548a9efce966..9b19ec7fcaf4 100644
+--- a/drivers/media/i2c/Makefile
++++ b/drivers/media/i2c/Makefile
+@@ -68,6 +68,7 @@ obj-$(CONFIG_VIDEO_OV5670) += ov5670.o
+ obj-$(CONFIG_VIDEO_OV6650) += ov6650.o
+ obj-$(CONFIG_VIDEO_OV7640) += ov7640.o
+ obj-$(CONFIG_VIDEO_OV7670) += ov7670.o
++obj-$(CONFIG_VIDEO_OV7740) += ov7740.o
+ obj-$(CONFIG_VIDEO_OV9650) += ov9650.o
+ obj-$(CONFIG_VIDEO_OV13858) += ov13858.o
+ obj-$(CONFIG_VIDEO_MT9M032) += mt9m032.o
+diff --git a/drivers/media/i2c/ov7740.c b/drivers/media/i2c/ov7740.c
+new file mode 100644
+index 000000000000..42c25277d005
+--- /dev/null
++++ b/drivers/media/i2c/ov7740.c
+@@ -0,0 +1,1226 @@
++/*
++ * Copyright (c) 2017 Microchip Corporation.
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License version
++ * 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
++ * GNU General Public License for more details.
++ *
++ */
++#include <linux/clk.h>
++#include <linux/delay.h>
++#include <linux/gpio.h>
++#include <linux/i2c.h>
++#include <linux/module.h>
++#include <linux/pm_runtime.h>
++#include <linux/regmap.h>
++#include <media/v4l2-ctrls.h>
++#include <media/v4l2-event.h>
++#include <media/v4l2-image-sizes.h>
++#include <media/v4l2-subdev.h>
++
++#define REG_OUTSIZE_LSB 0x34
++
++/* OV7740 register tables */
++#define REG_GAIN	0x00	/* Gain lower 8 bits (rest in vref) */
++#define REG_BGAIN	0x01	/* blue gain */
++#define REG_RGAIN	0x02	/* red gain */
++#define REG_GGAIN	0x03	/* green gain */
++#define REG_REG04	0x04	/* analog setting, dont change*/
++#define REG_BAVG	0x05	/* b channel average */
++#define REG_GAVG	0x06	/* g channel average */
++#define REG_RAVG	0x07	/* r channel average */
++
++#define REG_REG0C	0x0C	/* filp enable */
++#define REG0C_IMG_FLIP		0x80
++#define REG0C_IMG_MIRROR	0x40
++
++#define REG_REG0E	0x0E	/* blc line */
++#define REG_HAEC	0x0F	/* auto exposure cntrl */
++#define REG_AEC		0x10	/* auto exposure cntrl */
++
++#define REG_CLK		0x11	/* Clock control */
++#define REG_REG55	0x55	/* Clock PLL DIV/PreDiv */
++
++#define REG_REG12	0x12
++
++#define REG_REG13	0x13	/* auto/manual AGC, AEC, Write Balance*/
++#define REG13_AEC_EN	0x01
++#define REG13_AGC_EN	0x04
++
++#define REG_REG14	0x14
++#define REG_CTRL15	0x15
++#define REG15_GAIN_MSB	0x03
++
++#define REG_REG16	0x16
++
++#define REG_MIDH	0x1C	/* manufacture id byte */
++#define REG_MIDL	0x1D	/* manufacture id byre */
++#define REG_PIDH	0x0A	/* Product ID MSB */
++#define REG_PIDL	0x0B	/* Product ID LSB */
++
++#define REG_84		0x84	/* lots of stuff */
++#define REG_REG38	0x38	/* sub-addr */
++
++#define REG_AHSTART	0x17	/* Horiz start high bits */
++#define REG_AHSIZE	0x18
++#define REG_AVSTART	0x19	/* Vert start high bits */
++#define REG_AVSIZE	0x1A
++#define REG_PSHFT	0x1b	/* Pixel delay after HREF */
++
++#define REG_HOUTSIZE	0x31
++#define REG_VOUTSIZE	0x32
++#define REG_HVSIZEOFF	0x33
++#define REG_REG34	0x34	/* DSP output size H/V LSB*/
++
++#define REG_ISP_CTRL00	0x80
++#define ISPCTRL00_AWB_EN	0x10
++#define ISPCTRL00_AWB_GAIN_EN	0x04
++
++#define	REG_YGAIN	0xE2	/* ygain for contrast control */
++
++#define	REG_YBRIGHT	  0xE3
++#define	REG_SGNSET	  0xE4
++#define	SGNSET_YBRIGHT_MASK	  0x08
++
++#define REG_USAT	0xDD
++#define REG_VSAT	0xDE
++
++
++struct ov7740 {
++	struct v4l2_subdev subdev;
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	struct media_pad pad;
++#endif
++	struct v4l2_mbus_framefmt format;
++	const struct ov7740_pixfmt *fmt;  /* Current format */
++	const struct ov7740_framesize *frmsize;
++	struct regmap *regmap;
++	struct clk *xvclk;
++	struct v4l2_ctrl_handler ctrl_handler;
++	struct {
++		/* gain cluster */
++		struct v4l2_ctrl *auto_gain;
++		struct v4l2_ctrl *gain;
++	};
++	struct {
++		struct v4l2_ctrl *auto_wb;
++		struct v4l2_ctrl *blue_balance;
++		struct v4l2_ctrl *red_balance;
++	};
++	struct {
++		struct v4l2_ctrl *hflip;
++		struct v4l2_ctrl *vflip;
++	};
++	struct {
++		/* exposure cluster */
++		struct v4l2_ctrl *auto_exposure;
++		struct v4l2_ctrl *exposure;
++	};
++	struct {
++		/* saturation/hue cluster */
++		struct v4l2_ctrl *saturation;
++		struct v4l2_ctrl *hue;
++	};
++	struct v4l2_ctrl *brightness;
++	struct v4l2_ctrl *contrast;
++
++	struct mutex mutex;	/* To serialize asynchronus callbacks */
++	bool streaming;		/* Streaming on/off */
++
++	struct gpio_desc *resetb_gpio;
++	struct gpio_desc *pwdn_gpio;
++};
++
++struct ov7740_pixfmt {
++	u32 mbus_code;
++	enum v4l2_colorspace colorspace;
++	const struct reg_sequence *regs;
++	u32 reg_num;
++};
++
++struct ov7740_framesize {
++	u16 width;
++	u16 height;
++	const struct reg_sequence *regs;
++	u32 reg_num;
++};
++
++static const struct reg_sequence ov7740_vga[] = {
++	{0x55, 0x40},
++	{0x11, 0x02},
++
++	{0xd5, 0x10},
++	{0x0c, 0x12},
++	{0x0d, 0x34},
++	{0x17, 0x25},
++	{0x18, 0xa0},
++	{0x19, 0x03},
++	{0x1a, 0xf0},
++	{0x1b, 0x89},
++	{0x22, 0x03},
++	{0x29, 0x18},
++	{0x2b, 0xf8},
++	{0x2c, 0x01},
++	{REG_HOUTSIZE, 0xa0},
++	{REG_VOUTSIZE, 0xf0},
++	{0x33, 0xc4},
++	{REG_OUTSIZE_LSB, 0x0},
++	{0x35, 0x05},
++	{0x04, 0x60},
++	{0x27, 0x80},
++	{0x3d, 0x0f},
++	{0x3e, 0x80},
++	{0x3f, 0x40},
++	{0x40, 0x7f},
++	{0x41, 0x6a},
++	{0x42, 0x29},
++	{0x44, 0x22},
++	{0x45, 0x41},
++	{0x47, 0x02},
++	{0x49, 0x64},
++	{0x4a, 0xa1},
++	{0x4b, 0x40},
++	{0x4c, 0x1a},
++	{0x4d, 0x50},
++	{0x4e, 0x13},
++	{0x64, 0x00},
++	{0x67, 0x88},
++	{0x68, 0x1a},
++
++	{0x14, 0x28},
++	{0x24, 0x3c},
++	{0x25, 0x30},
++	{0x26, 0x72},
++	{0x50, 0x97},
++	{0x51, 0x1f},
++	{0x52, 0x00},
++	{0x53, 0x00},
++	{0x20, 0x00},
++	{0x21, 0xcf},
++	{0x50, 0x4b},
++	{0x38, 0x14},
++	{0xe9, 0x00},
++	{0x56, 0x55},
++	{0x57, 0xff},
++	{0x58, 0xff},
++	{0x59, 0xff},
++	{0x5f, 0x04},
++	{0xec, 0x00},
++	{0x13, 0xff},
++
++	{0x81, 0x3f},
++	{0x82, 0x32},
++	{0x38, 0x11},
++	{0x84, 0x70},
++	{0x85, 0x00},
++	{0x86, 0x03},
++	{0x87, 0x01},
++	{0x88, 0x05},
++	{0x89, 0x30},
++	{0x8d, 0x30},
++	{0x8f, 0x85},
++	{0x93, 0x30},
++	{0x95, 0x85},
++	{0x99, 0x30},
++	{0x9b, 0x85},
++
++	{0x9c, 0x08},
++	{0x9d, 0x12},
++	{0x9e, 0x23},
++	{0x9f, 0x45},
++	{0xa0, 0x55},
++	{0xa1, 0x64},
++	{0xa2, 0x72},
++	{0xa3, 0x7f},
++	{0xa4, 0x8b},
++	{0xa5, 0x95},
++	{0xa6, 0xa7},
++	{0xa7, 0xb5},
++	{0xa8, 0xcb},
++	{0xa9, 0xdd},
++	{0xaa, 0xec},
++	{0xab, 0x1a},
++
++	{0xce, 0x78},
++	{0xcf, 0x6e},
++	{0xd0, 0x0a},
++	{0xd1, 0x0c},
++	{0xd2, 0x84},
++	{0xd3, 0x90},
++	{0xd4, 0x1e},
++
++	{0x5a, 0x24},
++	{0x5b, 0x1f},
++	{0x5c, 0x88},
++	{0x5d, 0x60},
++
++	{0xac, 0x6e},
++	{0xbe, 0xff},
++	{0xbf, 0x00},
++
++	{0x0f, 0x1d},
++	{0x0f, 0x1f},
++};
++
++static const struct ov7740_framesize ov7740_framesizes[] = {
++	{
++		.width		= VGA_WIDTH,
++		.height		= VGA_HEIGHT,
++		.regs		= ov7740_vga,
++		.reg_num	= ARRAY_SIZE(ov7740_vga),
++	},
++};
++
++#ifdef CONFIG_VIDEO_ADV_DEBUG
++static int ov7740_get_register(struct v4l2_subdev *sd,
++			       struct v4l2_dbg_register *reg)
++{
++	struct ov7740 *ov7740 = container_of(sd, struct ov7740, subdev);
++	struct regmap *regmap = ov7740->regmap;
++	unsigned int val = 0;
++	int ret;
++
++	ret = regmap_read(regmap, reg->reg & 0xff, &val);
++	reg->val = val;
++	reg->size = 1;
++
++	return 0;
++}
++
++static int ov7740_set_register(struct v4l2_subdev *sd,
++			       const struct v4l2_dbg_register *reg)
++{
++	struct ov7740 *ov7740 = container_of(sd, struct ov7740, subdev);
++	struct regmap *regmap = ov7740->regmap;
++
++	regmap_write(regmap, reg->reg & 0xff, reg->val & 0xff);
++
++	return 0;
++}
++#endif
++
++static int ov7740_set_power(struct ov7740 *ov7740, int on)
++{
++	int ret;
++
++	if (on) {
++		ret = clk_prepare_enable(ov7740->xvclk);
++		if (ret)
++			return ret;
++
++		if (ov7740->pwdn_gpio)
++			gpiod_direction_output(ov7740->pwdn_gpio, 0);
++
++		if (ov7740->resetb_gpio) {
++			gpiod_set_value(ov7740->resetb_gpio, 1);
++			usleep_range(500, 1000);
++			gpiod_set_value(ov7740->resetb_gpio, 0);
++			usleep_range(3000, 5000);
++		}
++	} else {
++		clk_disable_unprepare(ov7740->xvclk);
++
++		if (ov7740->pwdn_gpio)
++			gpiod_direction_output(ov7740->pwdn_gpio, 0);
++	}
++
++	return 0;
++}
++
++static struct v4l2_subdev_core_ops ov7740_subdev_core_ops = {
++	.log_status = v4l2_ctrl_subdev_log_status,
++#ifdef CONFIG_VIDEO_ADV_DEBUG
++	.g_register = ov7740_get_register,
++	.s_register = ov7740_set_register,
++#endif
++	.subscribe_event = v4l2_ctrl_subdev_subscribe_event,
++	.unsubscribe_event = v4l2_event_subdev_unsubscribe,
++};
++
++static int ov7740_set_white_balance(struct ov7740 *ov7740, int awb)
++{
++	struct regmap *regmap = ov7740->regmap;
++	unsigned int value;
++	int ret;
++
++	ret = regmap_read(regmap, REG_ISP_CTRL00, &value);
++	if (!ret) {
++		if (awb)
++			value |= (ISPCTRL00_AWB_EN | ISPCTRL00_AWB_GAIN_EN);
++		else
++			value &= ~(ISPCTRL00_AWB_EN | ISPCTRL00_AWB_GAIN_EN);
++		ret = regmap_write(regmap, REG_ISP_CTRL00, value);
++		if (ret)
++			return ret;
++	}
++
++	if (!awb) {
++		ret = regmap_write(regmap, REG_BGAIN,
++				   ov7740->blue_balance->val);
++		if (ret)
++			return ret;
++
++		ret = regmap_write(regmap, REG_RGAIN, ov7740->red_balance->val);
++		if (ret)
++			return ret;
++	}
++
++	return 0;
++}
++
++static int ov7740_set_saturation(struct regmap *regmap, int value)
++{
++	int ret;
++
++	ret = regmap_write(regmap, REG_USAT, (unsigned char)value);
++	if (ret)
++		return ret;
++
++	return regmap_write(regmap, REG_VSAT, (unsigned char)value);
++}
++
++static int ov7740_set_gain(struct regmap *regmap, int value)
++{
++	int ret;
++
++	ret = regmap_write(regmap, REG_GAIN, value & 0xff);
++	if (ret)
++		return ret;
++
++	ret = regmap_update_bits(regmap, REG_CTRL15,
++				 REG15_GAIN_MSB, (value >> 8) & 0x3);
++	if (!ret)
++		ret = regmap_update_bits(regmap, REG_REG13, REG13_AGC_EN, 0);
++
++	return ret;
++}
++
++static int ov7740_set_autogain(struct regmap *regmap, int value)
++{
++	unsigned int reg;
++	int ret;
++
++	ret = regmap_read(regmap, REG_REG13, &reg);
++	if (ret)
++		return ret;
++	if (value)
++		reg |= REG13_AGC_EN;
++	else
++		reg &= ~REG13_AGC_EN;
++	return regmap_write(regmap, REG_REG13, reg);
++}
++
++static int ov7740_set_brightness(struct regmap *regmap, int value)
++{
++	/* Turn off AEC/AGC */
++	regmap_update_bits(regmap, REG_REG13, REG13_AEC_EN, 0);
++	regmap_update_bits(regmap, REG_REG13, REG13_AGC_EN, 0);
++
++	if (value >= 0) {
++		regmap_write(regmap, REG_YBRIGHT, (unsigned char)value);
++		regmap_update_bits(regmap, REG_SGNSET, SGNSET_YBRIGHT_MASK, 0);
++	} else{
++		regmap_write(regmap, REG_YBRIGHT, (unsigned char)(-value));
++		regmap_update_bits(regmap, REG_SGNSET, SGNSET_YBRIGHT_MASK, 1);
++	}
++
++	return 0;
++}
++
++static int ov7740_set_contrast(struct regmap *regmap, int value)
++{
++	return regmap_write(regmap, REG_YGAIN, (unsigned char)value);
++}
++
++static int ov7740_get_gain(struct ov7740 *ov7740, struct v4l2_ctrl *ctrl)
++{
++	struct regmap *regmap = ov7740->regmap;
++	unsigned int value0, value1;
++	int ret;
++
++	if (!ctrl->val)
++		return 0;
++
++	ret = regmap_read(regmap, REG_GAIN, &value0);
++	if (ret)
++		return ret;
++	ret = regmap_read(regmap, REG_CTRL15, &value1);
++	if (ret)
++		return ret;
++
++	ov7740->gain->val = (value1 << 8) | (value0 & 0xff);
++
++	return 0;
++}
++
++static int ov7740_set_exp(struct regmap *regmap, int value)
++{
++	int ret;
++
++	/* Turn off AEC/AGC */
++	ret = regmap_update_bits(regmap, REG_REG13,
++				 REG13_AEC_EN | REG13_AGC_EN, 0);
++	if (ret)
++		return ret;
++
++	ret = regmap_write(regmap, REG_AEC, (unsigned char)value);
++	if (ret)
++		return ret;
++
++	return regmap_write(regmap, REG_HAEC, (unsigned char)(value >> 8));
++}
++
++static int ov7740_set_autoexp(struct regmap *regmap,
++			      enum v4l2_exposure_auto_type value)
++{
++	unsigned int reg;
++	int ret;
++
++	ret = regmap_read(regmap, REG_REG13, &reg);
++	if (!ret) {
++		if (value == V4L2_EXPOSURE_AUTO)
++			reg |= (REG13_AEC_EN | REG13_AGC_EN);
++		else
++			reg &= ~(REG13_AEC_EN | REG13_AGC_EN);
++		ret = regmap_write(regmap, REG_REG13, reg);
++	}
++
++	return ret;
++}
++
++
++static int ov7740_get_volatile_ctrl(struct v4l2_ctrl *ctrl)
++{
++	struct ov7740 *ov7740 = container_of(ctrl->handler,
++					     struct ov7740, ctrl_handler);
++	int ret;
++
++	switch (ctrl->id) {
++	case V4L2_CID_AUTOGAIN:
++		ret = ov7740_get_gain(ov7740, ctrl);
++		break;
++	default:
++		ret = -EINVAL;
++		break;
++	}
++	return ret;
++}
++
++static int ov7740_set_ctrl(struct v4l2_ctrl *ctrl)
++{
++	struct ov7740 *ov7740 = container_of(ctrl->handler,
++					     struct ov7740, ctrl_handler);
++	struct i2c_client *client = v4l2_get_subdevdata(&ov7740->subdev);
++	struct regmap *regmap = ov7740->regmap;
++	int ret;
++	u8 val = 0;
++
++	if (pm_runtime_get_if_in_use(&client->dev) <= 0)
++		return 0;
++
++	switch (ctrl->id) {
++	case V4L2_CID_AUTO_WHITE_BALANCE:
++		ret = ov7740_set_white_balance(ov7740, ctrl->val);
++		break;
++	case V4L2_CID_SATURATION:
++		ret = ov7740_set_saturation(regmap, ctrl->val);
++		break;
++	case V4L2_CID_BRIGHTNESS:
++		ret = ov7740_set_brightness(regmap, ctrl->val);
++		break;
++	case V4L2_CID_CONTRAST:
++		ret = ov7740_set_contrast(regmap, ctrl->val);
++		break;
++	case V4L2_CID_VFLIP:
++		ret = regmap_update_bits(regmap, REG_REG0C,
++					 REG0C_IMG_FLIP, val);
++		break;
++	case V4L2_CID_HFLIP:
++		val = ctrl->val ? REG0C_IMG_MIRROR : 0x00;
++		ret = regmap_update_bits(regmap, REG_REG0C,
++					 REG0C_IMG_MIRROR, val);
++		break;
++	case V4L2_CID_AUTOGAIN:
++		if (!ctrl->val)
++			return ov7740_set_gain(regmap, ov7740->gain->val);
++
++		ret = ov7740_set_autogain(regmap, ctrl->val);
++		break;
++
++	case V4L2_CID_EXPOSURE_AUTO:
++		if (ctrl->val == V4L2_EXPOSURE_MANUAL)
++			return ov7740_set_exp(regmap, ov7740->exposure->val);
++
++		ret = ov7740_set_autoexp(regmap, ctrl->val);
++		break;
++	default:
++		ret = -EINVAL;
++		break;
++	}
++
++	pm_runtime_put(&client->dev);
++
++	return ret;
++}
++
++static const struct v4l2_ctrl_ops ov7740_ctrl_ops = {
++	.g_volatile_ctrl = ov7740_get_volatile_ctrl,
++	.s_ctrl = ov7740_set_ctrl,
++};
++
++static int ov7740_start_streaming(struct ov7740 *ov7740)
++{
++	return __v4l2_ctrl_handler_setup(ov7740->subdev.ctrl_handler);
++}
++
++static int ov7740_set_stream(struct v4l2_subdev *sd, int enable)
++{
++	struct ov7740 *ov7740 = container_of(sd, struct ov7740, subdev);
++	struct i2c_client *client = v4l2_get_subdevdata(sd);
++	int ret = 0;
++
++	mutex_lock(&ov7740->mutex);
++	if (ov7740->streaming == enable) {
++		mutex_unlock(&ov7740->mutex);
++		return 0;
++	}
++
++	if (enable) {
++		ret = pm_runtime_get_sync(&client->dev);
++		if (ret < 0) {
++			pm_runtime_put_noidle(&client->dev);
++			goto err_unlock;
++		}
++
++		ret = ov7740_start_streaming(ov7740);
++		if (ret)
++			goto err_rpm_put;
++	} else {
++		pm_runtime_put(&client->dev);
++	}
++
++	ov7740->streaming = enable;
++
++	mutex_unlock(&ov7740->mutex);
++	return ret;
++
++err_rpm_put:
++	pm_runtime_put(&client->dev);
++err_unlock:
++	mutex_unlock(&ov7740->mutex);
++	return ret;
++}
++
++static int ov7740_get_parm(struct v4l2_subdev *sd,
++			   struct v4l2_streamparm *parms)
++{
++	struct v4l2_captureparm *cp = &parms->parm.capture;
++	struct v4l2_fract *tpf = &cp->timeperframe;
++
++	if (parms->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
++		return -EINVAL;
++
++	memset(cp, 0, sizeof(struct v4l2_captureparm));
++	cp->capability = V4L2_CAP_TIMEPERFRAME;
++
++	tpf->numerator = 1;
++	tpf->denominator = 60;
++
++	return 0;
++}
++
++static int ov7740_set_parm(struct v4l2_subdev *sd,
++			   struct v4l2_streamparm *parms)
++{
++	struct v4l2_captureparm *cp = &parms->parm.capture;
++	struct v4l2_fract *tpf = &cp->timeperframe;
++
++	if (parms->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
++		return -EINVAL;
++	if (cp->extendedmode != 0)
++		return -EINVAL;
++
++	cp->capability = V4L2_CAP_TIMEPERFRAME;
++
++	tpf->numerator = 1;
++	tpf->denominator = 60;
++
++	return 0;
++}
++
++static struct v4l2_subdev_video_ops ov7740_subdev_video_ops = {
++	.s_stream = ov7740_set_stream,
++	.s_parm = ov7740_set_parm,
++	.g_parm = ov7740_get_parm,
++};
++
++static const struct reg_sequence ov7740_format_yuyv[] = {
++	{0x12, 0x00},
++	{0x36, 0x3f},
++	{0x80, 0x7f},
++	{0x83, 0x01},
++};
++
++static const struct reg_sequence ov7740_format_bggr8[] = {
++	{0x36, 0x2f},
++	{0x80, 0x01},
++	{0x83, 0x04},
++};
++
++static const struct ov7740_pixfmt ov7740_formats[] = {
++	{
++		.mbus_code = MEDIA_BUS_FMT_YUYV8_2X8,
++		.colorspace = V4L2_COLORSPACE_SRGB,
++		.regs = ov7740_format_yuyv,
++		.reg_num = ARRAY_SIZE(ov7740_format_yuyv),
++	},
++	{
++		.mbus_code = MEDIA_BUS_FMT_SBGGR8_1X8,
++		.colorspace = V4L2_COLORSPACE_SRGB,
++		.regs = ov7740_format_bggr8,
++		.reg_num = ARRAY_SIZE(ov7740_format_bggr8),
++	}
++};
++#define N_OV7740_FMTS ARRAY_SIZE(ov7740_formats)
++
++static int ov7740_enum_mbus_code(struct v4l2_subdev *sd,
++				 struct v4l2_subdev_pad_config *cfg,
++				 struct v4l2_subdev_mbus_code_enum *code)
++{
++	if (code->pad || code->index >= N_OV7740_FMTS)
++		return -EINVAL;
++
++	code->code = ov7740_formats[code->index].mbus_code;
++
++	return 0;
++}
++
++static int ov7740_enum_frame_interval(struct v4l2_subdev *sd,
++				struct v4l2_subdev_pad_config *cfg,
++				struct v4l2_subdev_frame_interval_enum *fie)
++{
++	if (fie->pad)
++		return -EINVAL;
++
++	if (fie->index >= 1)
++		return -EINVAL;
++
++	if ((fie->width != VGA_WIDTH) || (fie->height != VGA_HEIGHT))
++		return -EINVAL;
++
++	fie->interval.numerator = 1;
++	fie->interval.denominator = 60;
++
++	return 0;
++}
++
++static int ov7740_enum_frame_size(struct v4l2_subdev *sd,
++				  struct v4l2_subdev_pad_config *cfg,
++				  struct v4l2_subdev_frame_size_enum *fse)
++{
++	if (fse->pad)
++		return -EINVAL;
++
++	if (fse->index > 0)
++		return -EINVAL;
++
++	fse->min_width = fse->max_width = VGA_WIDTH;
++	fse->min_height = fse->max_height = VGA_HEIGHT;
++
++	return 0;
++}
++
++static int ov7740_try_fmt_internal(struct v4l2_subdev *sd,
++				   struct v4l2_mbus_framefmt *fmt,
++				   const struct ov7740_pixfmt **ret_fmt,
++				   const struct ov7740_framesize **ret_frmsize)
++{
++	struct ov7740 *ov7740 = container_of(sd, struct ov7740, subdev);
++	const struct ov7740_framesize *fsize = &ov7740_framesizes[0];
++	int index, i;
++
++	for (index = 0; index < N_OV7740_FMTS; index++) {
++		if (ov7740_formats[index].mbus_code == fmt->code)
++			break;
++	}
++	if (index >= N_OV7740_FMTS) {
++		/* default to first format */
++		index = 0;
++		fmt->code = ov7740_formats[0].mbus_code;
++	}
++	if (ret_fmt != NULL)
++		*ret_fmt = ov7740_formats + index;
++
++	for (i = 0; i < ARRAY_SIZE(ov7740_framesizes); i++) {
++		if ((fsize->width >= fmt->width) &&
++		    (fsize->height >= fmt->height)) {
++			fmt->width = fsize->width;
++			fmt->height = fsize->height;
++			break;
++		}
++
++		fsize++;
++	}
++
++	if (ret_frmsize != NULL)
++		*ret_frmsize = fsize;
++
++	fmt->field = V4L2_FIELD_NONE;
++	fmt->colorspace = ov7740_formats[index].colorspace;
++
++	ov7740->format = *fmt;
++
++	return 0;
++}
++
++static int ov7740_set_fmt(struct v4l2_subdev *sd,
++			  struct v4l2_subdev_pad_config *cfg,
++			  struct v4l2_subdev_format *format)
++{
++	struct ov7740 *ov7740 = container_of(sd, struct ov7740, subdev);
++	const struct ov7740_pixfmt *ovfmt;
++	const struct ov7740_framesize *fsize;
++#ifdef CONFIG_VIDEO_V4L2_SUBDEV_API
++	struct v4l2_mbus_framefmt *mbus_fmt;
++#endif
++	int ret;
++
++	mutex_lock(&ov7740->mutex);
++	if (format->pad) {
++		ret = -EINVAL;
++		goto error;
++	}
++
++	if (format->which == V4L2_SUBDEV_FORMAT_TRY) {
++		ret = ov7740_try_fmt_internal(sd, &format->format, NULL, NULL);
++		if (ret)
++			goto error;
++#ifdef CONFIG_VIDEO_V4L2_SUBDEV_API
++		mbus_fmt = v4l2_subdev_get_try_format(sd, cfg, format->pad);
++		*mbus_fmt = format->format;
++
++		mutex_unlock(&ov7740->mutex);
++		return 0;
++#else
++		ret = -ENOTTY;
++		goto error;
++#endif
++	}
++
++	ret = ov7740_try_fmt_internal(sd, &format->format, &ovfmt, &fsize);
++	if (ret)
++		goto error;
++
++	if (format->which == V4L2_SUBDEV_FORMAT_ACTIVE) {
++		regmap_multi_reg_write(ov7740->regmap,
++				       ovfmt->regs, ovfmt->reg_num);
++
++		regmap_multi_reg_write(ov7740->regmap,
++				       fsize->regs, fsize->reg_num);
++	}
++
++	ov7740->fmt = ovfmt;
++
++	mutex_unlock(&ov7740->mutex);
++	return 0;
++
++error:
++	mutex_unlock(&ov7740->mutex);
++	return ret;
++}
++
++static int ov7740_get_fmt(struct v4l2_subdev *sd,
++			  struct v4l2_subdev_pad_config *cfg,
++			  struct v4l2_subdev_format *format)
++{
++	struct ov7740 *ov7740 = container_of(sd, struct ov7740, subdev);
++#ifdef CONFIG_VIDEO_V4L2_SUBDEV_API
++	struct v4l2_mbus_framefmt *mbus_fmt;
++#endif
++	int ret = 0;
++
++	mutex_lock(&ov7740->mutex);
++	if (format->which == V4L2_SUBDEV_FORMAT_TRY) {
++#ifdef CONFIG_VIDEO_V4L2_SUBDEV_API
++		mbus_fmt = v4l2_subdev_get_try_format(sd, cfg, 0);
++		format->format = *mbus_fmt;
++		ret = 0;
++#else
++		ret = -ENOTTY;
++#endif
++	} else {
++		format->format = ov7740->format;
++	}
++	mutex_unlock(&ov7740->mutex);
++
++	return ret;
++}
++
++static const struct v4l2_subdev_pad_ops ov7740_subdev_pad_ops = {
++	.enum_frame_interval = ov7740_enum_frame_interval,
++	.enum_frame_size = ov7740_enum_frame_size,
++	.enum_mbus_code = ov7740_enum_mbus_code,
++	.get_fmt = ov7740_get_fmt,
++	.set_fmt = ov7740_set_fmt,
++};
++
++static const struct v4l2_subdev_ops ov7740_subdev_ops = {
++	.core	= &ov7740_subdev_core_ops,
++	.video	= &ov7740_subdev_video_ops,
++	.pad	= &ov7740_subdev_pad_ops,
++};
++
++static void ov7740_get_default_format(struct v4l2_subdev *sd,
++				      struct v4l2_mbus_framefmt *format)
++{
++	struct ov7740 *ov7740 = container_of(sd, struct ov7740, subdev);
++
++	format->width = ov7740->frmsize->width;
++	format->height = ov7740->frmsize->height;
++	format->colorspace = ov7740->fmt->colorspace;
++	format->code = ov7740->fmt->mbus_code;
++	format->field = V4L2_FIELD_NONE;
++}
++
++#ifdef CONFIG_VIDEO_V4L2_SUBDEV_API
++static int ov7740_open(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
++{
++	struct ov7740 *ov7740 = container_of(sd, struct ov7740, subdev);
++	struct v4l2_mbus_framefmt *format =
++				v4l2_subdev_get_try_format(sd, fh->pad, 0);
++
++	mutex_lock(&ov7740->mutex);
++	ov7740_get_default_format(sd, format);
++	mutex_unlock(&ov7740->mutex);
++
++	return 0;
++}
++
++static const struct v4l2_subdev_internal_ops ov7740_subdev_internal_ops = {
++	.open = ov7740_open,
++};
++#endif
++
++static void ov7740_init_default_format(struct ov7740 *ov7740)
++{
++	ov7740->frmsize = &ov7740_framesizes[0];
++	ov7740->fmt = &ov7740_formats[0];
++
++	regmap_multi_reg_write(ov7740->regmap,
++			       ov7740->fmt->regs, ov7740->fmt->reg_num);
++
++	regmap_multi_reg_write(ov7740->regmap,
++			       ov7740->frmsize->regs, ov7740->frmsize->reg_num);
++}
++
++static int ov7740_probe_dt(struct i2c_client *client,
++			   struct ov7740 *ov7740)
++{
++	ov7740->resetb_gpio = devm_gpiod_get_optional(&client->dev, "reset",
++			GPIOD_OUT_HIGH);
++	if (IS_ERR(ov7740->resetb_gpio)) {
++		dev_info(&client->dev, "can't get %s GPIO\n", "reset");
++		return PTR_ERR(ov7740->resetb_gpio);
++	}
++
++	ov7740->pwdn_gpio = devm_gpiod_get_optional(&client->dev, "powerdown",
++			GPIOD_OUT_LOW);
++	if (IS_ERR(ov7740->pwdn_gpio)) {
++		dev_info(&client->dev, "can't get %s GPIO\n", "powerdown");
++		return PTR_ERR(ov7740->pwdn_gpio);
++	}
++
++	return 0;
++}
++
++static int ov7740_detect(struct ov7740 *ov7740)
++{
++	struct regmap *regmap = ov7740->regmap;
++	unsigned int midh, midl, pidh, pidl;
++	int ret;
++
++	ret = regmap_read(regmap, REG_MIDH, &midh);
++	if (ret)
++		return ret;
++	if (midh != 0x7f)
++		return -ENODEV;
++
++	ret = regmap_read(regmap, REG_MIDL, &midl);
++	if (ret)
++		return ret;
++	if (midl != 0xa2)
++		return -ENODEV;
++
++	ret = regmap_read(regmap, REG_PIDH, &pidh);
++	if (ret)
++		return ret;
++	if (pidh != 0x77)
++		return -ENODEV;
++
++	ret = regmap_read(regmap, REG_PIDL, &pidl);
++	if (ret)
++		return ret;
++	if ((pidl != 0x40) && (pidl != 0x41) && (pidl != 0x42))
++		return -ENODEV;
++
++	return 0;
++}
++
++static int ov7740_init_controls(struct ov7740 *ov7740)
++{
++	struct i2c_client *client = v4l2_get_subdevdata(&ov7740->subdev);
++	struct v4l2_ctrl_handler *ctrl_hdlr = &ov7740->ctrl_handler;
++	int ret;
++
++	ret = v4l2_ctrl_handler_init(ctrl_hdlr, 2);
++	if (ret < 0)
++		return ret;
++
++	ctrl_hdlr->lock = &ov7740->mutex;
++	ov7740->auto_wb = v4l2_ctrl_new_std(ctrl_hdlr, &ov7740_ctrl_ops,
++					  V4L2_CID_AUTO_WHITE_BALANCE,
++					  0, 1, 1, 1);
++	ov7740->blue_balance = v4l2_ctrl_new_std(ctrl_hdlr, &ov7740_ctrl_ops,
++					       V4L2_CID_BLUE_BALANCE,
++					       0, 0xff, 1, 0x80);
++	ov7740->red_balance = v4l2_ctrl_new_std(ctrl_hdlr, &ov7740_ctrl_ops,
++					      V4L2_CID_RED_BALANCE,
++					      0, 0xff, 1, 0x80);
++
++	ov7740->brightness = v4l2_ctrl_new_std(ctrl_hdlr, &ov7740_ctrl_ops,
++					     V4L2_CID_BRIGHTNESS,
++					     -255, 255, 1, 0);
++	ov7740->contrast = v4l2_ctrl_new_std(ctrl_hdlr, &ov7740_ctrl_ops,
++					   V4L2_CID_CONTRAST,
++					   0, 127, 1, 0x20);
++	ov7740->saturation = v4l2_ctrl_new_std(ctrl_hdlr, &ov7740_ctrl_ops,
++			  V4L2_CID_SATURATION, 0, 256, 1, 0x80);
++	ov7740->hflip = v4l2_ctrl_new_std(ctrl_hdlr, &ov7740_ctrl_ops,
++					V4L2_CID_HFLIP, 0, 1, 1, 0);
++	ov7740->vflip = v4l2_ctrl_new_std(ctrl_hdlr, &ov7740_ctrl_ops,
++					V4L2_CID_VFLIP, 0, 1, 1, 0);
++	ov7740->gain = v4l2_ctrl_new_std(ctrl_hdlr, &ov7740_ctrl_ops,
++				       V4L2_CID_GAIN, 0, 1023, 1, 500);
++	ov7740->auto_gain = v4l2_ctrl_new_std(ctrl_hdlr, &ov7740_ctrl_ops,
++					    V4L2_CID_AUTOGAIN, 0, 1, 1, 1);
++	ov7740->exposure = v4l2_ctrl_new_std(ctrl_hdlr, &ov7740_ctrl_ops,
++					   V4L2_CID_EXPOSURE, 0, 65535, 1, 500);
++	ov7740->auto_exposure = v4l2_ctrl_new_std_menu(ctrl_hdlr,
++					&ov7740_ctrl_ops,
++					V4L2_CID_EXPOSURE_AUTO,
++					V4L2_EXPOSURE_MANUAL, 0,
++					V4L2_EXPOSURE_AUTO);
++
++	ov7740->gain->flags |= V4L2_CTRL_FLAG_VOLATILE;
++	ov7740->exposure->flags |= V4L2_CTRL_FLAG_VOLATILE;
++
++	v4l2_ctrl_auto_cluster(3, &ov7740->auto_wb, 0, false);
++	v4l2_ctrl_auto_cluster(2, &ov7740->auto_gain, 0, true);
++	v4l2_ctrl_auto_cluster(2, &ov7740->auto_exposure,
++			       V4L2_EXPOSURE_MANUAL, false);
++	v4l2_ctrl_cluster(2, &ov7740->hflip);
++
++	ret = v4l2_ctrl_handler_setup(ctrl_hdlr);
++	if (ret) {
++		dev_err(&client->dev, "%s control init failed (%d)\n",
++			__func__, ret);
++		goto error;
++	}
++
++	ov7740->subdev.ctrl_handler = ctrl_hdlr;
++	return 0;
++
++error:
++	v4l2_ctrl_handler_free(ctrl_hdlr);
++	mutex_destroy(&ov7740->mutex);
++	return ret;
++}
++
++static void ov7740_free_controls(struct ov7740 *ov7740)
++{
++	v4l2_ctrl_handler_free(ov7740->subdev.ctrl_handler);
++	mutex_destroy(&ov7740->mutex);
++}
++
++#define OV7740_MAX_REGISTER     0xff
++static const struct regmap_config ov7740_regmap_config = {
++	.reg_bits	= 8,
++	.val_bits	= 8,
++	.max_register	= OV7740_MAX_REGISTER,
++};
++
++static int ov7740_probe(struct i2c_client *client,
++			const struct i2c_device_id *id)
++{
++	struct ov7740 *ov7740;
++	struct v4l2_subdev *sd;
++	int ret;
++
++	if (!i2c_check_functionality(client->adapter,
++				     I2C_FUNC_SMBUS_BYTE_DATA)) {
++		dev_err(&client->dev,
++			"OV7740: I2C-Adapter doesn't support SMBUS\n");
++		return -EIO;
++	}
++
++	ov7740 = devm_kzalloc(&client->dev, sizeof(*ov7740), GFP_KERNEL);
++	if (!ov7740)
++		return -ENOMEM;
++
++	ov7740->xvclk = devm_clk_get(&client->dev, "xvclk");
++	if (IS_ERR(ov7740->xvclk)) {
++		ret = PTR_ERR(ov7740->xvclk);
++		dev_err(&client->dev,
++			"OV7740: fail to get xvclk: %d\n", ret);
++		return ret;
++	}
++
++	ret = ov7740_probe_dt(client, ov7740);
++	if (ret)
++		return ret;
++
++	ov7740->regmap = devm_regmap_init_i2c(client, &ov7740_regmap_config);
++	if (IS_ERR(ov7740->regmap)) {
++		ret = PTR_ERR(ov7740->regmap);
++		dev_err(&client->dev, "Failed to allocate register map: %d\n",
++			ret);
++		return ret;
++	}
++
++	sd = &ov7740->subdev;
++	client->flags |= I2C_CLIENT_SCCB;
++	v4l2_i2c_subdev_init(sd, client, &ov7740_subdev_ops);
++
++#ifdef CONFIG_VIDEO_V4L2_SUBDEV_API
++	sd->internal_ops = &ov7740_subdev_internal_ops;
++	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
++#endif
++
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	ov7740->pad.flags = MEDIA_PAD_FL_SOURCE;
++	sd->entity.function = MEDIA_ENT_F_CAM_SENSOR;
++	ret = media_entity_pads_init(&sd->entity, 1, &ov7740->pad);
++	if (ret)
++		return ret;
++#endif
++
++	ret = ov7740_set_power(ov7740, 1);
++	if (ret)
++		return ret;
++
++	ret = ov7740_detect(ov7740);
++	if (ret)
++		goto error_detect;
++
++	mutex_init(&ov7740->mutex);
++
++	ret = ov7740_init_controls(ov7740);
++	if (ret)
++		goto error_init_controls;
++
++	v4l_info(client, "chip found @ 0x%02x (%s)\n",
++			client->addr << 1, client->adapter->name);
++
++	ov7740_init_default_format(ov7740);
++
++	ov7740_get_default_format(sd, &ov7740->format);
++
++	ret = v4l2_async_register_subdev(sd);
++	if (ret)
++		goto error_async_register;
++
++	pm_runtime_set_active(&client->dev);
++	pm_runtime_enable(&client->dev);
++	pm_runtime_idle(&client->dev);
++
++	return 0;
++
++error_async_register:
++	v4l2_ctrl_handler_free(ov7740->subdev.ctrl_handler);
++error_init_controls:
++	ov7740_free_controls(ov7740);
++error_detect:
++	ov7740_set_power(ov7740, 0);
++	media_entity_cleanup(&ov7740->subdev.entity);
++
++	return ret;
++}
++
++static int ov7740_remove(struct i2c_client *client)
++{
++	struct v4l2_subdev *sd = i2c_get_clientdata(client);
++	struct ov7740 *ov7740 = container_of(sd, struct ov7740, subdev);
++
++	mutex_destroy(&ov7740->mutex);
++	v4l2_ctrl_handler_free(ov7740->subdev.ctrl_handler);
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	media_entity_cleanup(&ov7740->subdev.entity);
++#endif
++	v4l2_async_unregister_subdev(sd);
++	ov7740_free_controls(ov7740);
++
++	pm_runtime_get_sync(&client->dev);
++	pm_runtime_disable(&client->dev);
++	pm_runtime_set_suspended(&client->dev);
++	pm_runtime_put_noidle(&client->dev);
++
++	ov7740_set_power(ov7740, 0);
++	return 0;
++}
++
++static int __maybe_unused ov7740_runtime_suspend(struct device *dev)
++{
++	struct i2c_client *client = to_i2c_client(dev);
++	struct v4l2_subdev *sd = i2c_get_clientdata(client);
++	struct ov7740 *ov7740 = container_of(sd, struct ov7740, subdev);
++
++	ov7740_set_power(ov7740, 0);
++
++	return 0;
++}
++
++static int __maybe_unused ov7740_runtime_resume(struct device *dev)
++{
++	struct i2c_client *client = to_i2c_client(dev);
++	struct v4l2_subdev *sd = i2c_get_clientdata(client);
++	struct ov7740 *ov7740 = container_of(sd, struct ov7740, subdev);
++
++	return ov7740_set_power(ov7740, 1);
++}
++
++static const struct i2c_device_id ov7740_id[] = {
++	{ "ov7740", 0 },
++	{ /* sentinel */ }
++};
++MODULE_DEVICE_TABLE(i2c, ov7740_id);
++
++static const struct dev_pm_ops ov7740_pm_ops = {
++	SET_RUNTIME_PM_OPS(ov7740_runtime_suspend, ov7740_runtime_resume, NULL)
++};
++
++static const struct of_device_id ov7740_of_match[] = {
++	{.compatible = "ovti,ov7740", },
++	{ /* sentinel */ },
++};
++MODULE_DEVICE_TABLE(of, ov7740_of_match);
++
++static struct i2c_driver ov7740_i2c_driver = {
++	.driver = {
++		.name = "ov7740",
++		.pm = &ov7740_pm_ops,
++		.of_match_table = of_match_ptr(ov7740_of_match),
++	},
++	.probe    = ov7740_probe,
++	.remove   = ov7740_remove,
++	.id_table = ov7740_id,
++};
++module_i2c_driver(ov7740_i2c_driver);
++
++MODULE_DESCRIPTION("The V4L2 driver for Omnivision 7740 sensor");
++MODULE_AUTHOR("Songjun Wu <songjun.wu@atmel.com>");
++MODULE_LICENSE("GPL v2");
+-- 
+2.15.0
