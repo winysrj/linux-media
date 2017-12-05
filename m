@@ -1,325 +1,146 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:54167 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754986AbdLFKn1 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 6 Dec 2017 05:43:27 -0500
-Subject: Re: [RFC 1/1] v4l: async: Use endpoint node, not device node, for
- fwnode match
-To: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org
-Cc: niklas.soderlund@ragnatech.se, kieran.bingham@ideasonboard.com
-References: <20171204210302.24707-1-sakari.ailus@linux.intel.com>
-From: Kieran Bingham <kieran.bingham@ideasonboard.com>
-Message-ID: <e57b1bdb-e80e-e965-e06e-157937872684@ideasonboard.com>
-Date: Wed, 6 Dec 2017 10:43:23 +0000
+Received: from mail-ua0-f171.google.com ([209.85.217.171]:39538 "EHLO
+        mail-ua0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751934AbdLEDWd (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 4 Dec 2017 22:22:33 -0500
+Received: by mail-ua0-f171.google.com with SMTP id i20so12138977uak.6
+        for <linux-media@vger.kernel.org>; Mon, 04 Dec 2017 19:22:33 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <20171204210302.24707-1-sakari.ailus@linux.intel.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <6F87890CF0F5204F892DEA1EF0D77A5972FD8ACC@FMSMSX114.amr.corp.intel.com>
+References: <1508298408-25822-1-git-send-email-yong.zhi@intel.com>
+ <6F87890CF0F5204F892DEA1EF0D77A5972FD4195@FMSMSX114.amr.corp.intel.com>
+ <ae6dbc33-d4e8-83c4-1d3d-e05bccc2113b@xs4all.nl> <6F87890CF0F5204F892DEA1EF0D77A5972FD8ACC@FMSMSX114.amr.corp.intel.com>
+From: Tomasz Figa <tfiga@google.com>
+Date: Tue, 5 Dec 2017 12:22:12 +0900
+Message-ID: <CAAFQd5AnoWyayibP2o+sXKh_2WsdT_E4Q1kxosy8ySP+D3Cf2w@mail.gmail.com>
+Subject: Re: [PATCH v4 00/12] Intel IPU3 ImgU patchset
+To: "Mani, Rajmohan" <rajmohan.mani@intel.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+        "Zhi, Yong" <yong.zhi@intel.com>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>,
+        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
+        "Toivonen, Tuukka" <tuukka.toivonen@intel.com>,
+        "Hu, Jerry W" <jerry.w.hu@intel.com>,
+        "arnd@arndb.de" <arnd@arndb.de>, "hch@lst.de" <hch@lst.de>,
+        "robin.murphy@arm.com" <robin.murphy@arm.com>,
+        "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Hi Raj,
 
-Thanks for the patch.
+On Tue, Dec 5, 2017 at 9:13 AM, Mani, Rajmohan <rajmohan.mani@intel.com> wrote:
+> Hi Hans,
+>
+> Thanks for your patience and sharing your thoughts on this.
+>
+>> Subject: Re: [PATCH v4 00/12] Intel IPU3 ImgU patchset
+>>
+>> Hi Rajmohan,
+>>
+>> On 11/17/2017 03:58 AM, Mani, Rajmohan wrote:
+>> > Hi Sakari and all,
+>> >
+>> >> -----Original Message-----
+>> >> From: Zhi, Yong
+>> >> Sent: Tuesday, October 17, 2017 8:47 PM
+>> >> To: linux-media@vger.kernel.org; sakari.ailus@linux.intel.com
+>> >> Cc: Zheng, Jian Xu <jian.xu.zheng@intel.com>; Mani, Rajmohan
+>> >> <rajmohan.mani@intel.com>; Toivonen, Tuukka
+>> >> <tuukka.toivonen@intel.com>; Hu, Jerry W <jerry.w.hu@intel.com>;
+>> >> arnd@arndb.de; hch@lst.de; robin.murphy@arm.com; iommu@lists.linux-
+>> >> foundation.org; Zhi, Yong <yong.zhi@intel.com>
+>> >> Subject: [PATCH v4 00/12] Intel IPU3 ImgU patchset
+>> >>
+>> >> This patchset adds support for the Intel IPU3 (Image Processing Unit)
+>> >> ImgU which is essentially a modern memory-to-memory ISP. It
+>> >> implements raw Bayer to YUV image format conversion as well as a
+>> >> large number of other pixel processing algorithms for improving the image
+>> quality.
+>> >>
+>> >> Meta data formats are defined for image statistics (3A, i.e.
+>> >> automatic white balance, exposure and focus, histogram and local area
+>> >> contrast
+>> >> enhancement) as well as for the pixel processing algorithm parameters.
+>> >> The documentation for these formats is currently not included in the
+>> >> patchset but will be added in a future version of this set.
+>> >>
+>> >
+>> > Here is an update on the IPU3 documentation that we are currently working
+>> on.
+>> >
+>> > Image processing in IPU3 relies on the following.
+>> >
+>> > 1) HW configuration to enable ISP and
+>> > 2) setting customer specific 3A Tuning / Algorithm Parameters to achieve
+>> desired image quality.
+>> >
+>> > We intend to provide documentation on ImgU driver programming interface
+>> to help users of this driver to configure and enable ISP HW to meet their
+>> needs.  This documentation will include details on complete V4L2 Kernel driver
+>> interface and IO-Control parameters, except for the ISP internal algorithm and
+>> its parameters (which is Intel proprietary IP).
+>> >
+>> > We will also provide an user space library in binary form to help users of this
+>> driver, to convert the public 3A tuning parameters to IPU3 algorithm
+>> parameters. This tool will be released under NDA to the users of this driver.
+>>
+>> So I discussed this situation with Sakari in Prague during the ELCE. I am not
+>> happy with adding a driver to the kernel that needs an NDA to be usable. I
+>> can't agree to that. It's effectively the same as firmware that's only available
+>> under an NDA and we wouldn't accept such drivers either.
+>>
+>
+> Ack
+>
+>> There are a few options:
+>>
+>> 1) Document the ISP parameters and that format they are stored in allowing
+>> for
+>>    open source implementations. While this is the ideal, I suspect that this is
+>>    a no-go for Intel.
+>>
+>
+> Ack
+>
+>> 2) The driver can be used without using these ISP parameters and still achieve
+>>    'OK' quality. I.e., it's usable for basic webcam usage under normal lighting
+>>    conditions. I'm not sure if this is possible at all, though.
+>>
+>
+> This is something that we have tried and are able to do image capture with
+> the default ISP parameters using ov5670 sensor.
+> Additionally we had to set optimal values for the ov5670 sensor's exposure and
+> gain settings.
 
-On 04/12/17 21:03, Sakari Ailus wrote:
-> V4L2 async framework can use both device's fwnode and endpoints's fwnode
-> for matching the async sub-device with the sub-device. In order to proceed
-> moving towards endpoint matching assign the endpoint to the async
-> sub-device.
-> 
-> As most async sub-device drivers (and the related hardware) only supports
-> a single endpoint, use the first endpoint found. This works for all
-> current drivers --- we only ever supported a single async sub-device per
-> device to begin with.
-> 
-> For async devices that have no endpoints, continue to use the fwnode
-> related to the device. This includes e.g. lens devices.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Does it mean hardcoding some ov5670-specific settings in the ISP
+driver? If not, I guess it might be good enough?
 
-Excellent - this looks like some good progression towards full endpoint matching
-which I think is essential for more complicated devices... (I would say that
-though wouldn't I :D )
+>
+> Please see if the following image looks to meet the 'OK' quality.
+>
+> git clone https://github.com/RajmohanMani/ipu3-misc.git
+> ipu3-misc/ov5670.jpg is the image file.
+>
+>> 3) Make the library available without requiring an NDA.
+>>
+>
+> We are also actively exploring this option to see if this can be done.
+>
+>> 4) Provide a non-NDA library (ideally open source) that achieves at minimum
+>>    the quality as described in 2: i.e. usable for basic webcam.
+>>
+>
+> I see this is the same as option 3) + open sourcing the library.
+> Open sourcing the library does not look to be an option.
+> I will reconfirm this.
 
-Spotted that the error messages hadn't been updated in this patch - but as this
-is an RFC, then that's not entirely unexpected, though I've highlighted them anyway.
+In my understanding, that could be quite different from option 3). The
+open source library would not have to implement all of the
+capabilities, just enough to get the "OK" quality and the implemented
+part could use some simpler algorithms not covered by IP.
 
-Regards
-
-Kieran
-
-> ---
-> Hi Niklas,
-> 
-> What do you think of this one? I've tested this on N9, both sensor and
-> flash devices work nicely there. No opportunistic checks for backwards
-> compatibility are needed.
-> 
-> The changes were surprisingly simple, there are only two drivers that
-> weren't entirely trivial to change (this part is truly weird in exynos4-is
-> and xilinx-vipp). Converting the two to use the common parsing functions
-> would be quite a bit more work and would be very nice to test. The changes
-> in this patch were still relatively simple.
-> 
->  drivers/media/platform/am437x/am437x-vpfe.c    |  2 +-
->  drivers/media/platform/atmel/atmel-isc.c       |  2 +-
->  drivers/media/platform/atmel/atmel-isi.c       |  2 +-
->  drivers/media/platform/davinci/vpif_capture.c  |  2 +-
->  drivers/media/platform/exynos4-is/media-dev.c  | 14 ++++++++++----
->  drivers/media/platform/pxa_camera.c            |  2 +-
->  drivers/media/platform/qcom/camss-8x16/camss.c |  2 +-
->  drivers/media/platform/rcar_drif.c             |  2 +-
->  drivers/media/platform/stm32/stm32-dcmi.c      |  2 +-
->  drivers/media/platform/ti-vpe/cal.c            |  2 +-
->  drivers/media/platform/xilinx/xilinx-vipp.c    | 16 +++++++++++++---
->  drivers/media/v4l2-core/v4l2-async.c           |  8 ++++++--
->  drivers/media/v4l2-core/v4l2-fwnode.c          |  2 +-
->  13 files changed, 39 insertions(+), 19 deletions(-)
-> 
-> diff --git a/drivers/media/platform/am437x/am437x-vpfe.c b/drivers/media/platform/am437x/am437x-vpfe.c
-> index 0997c640191d..892d9e935d25 100644
-> --- a/drivers/media/platform/am437x/am437x-vpfe.c
-> +++ b/drivers/media/platform/am437x/am437x-vpfe.c
-> @@ -2493,7 +2493,7 @@ vpfe_get_pdata(struct platform_device *pdev)
->  		if (flags & V4L2_MBUS_VSYNC_ACTIVE_HIGH)
->  			sdinfo->vpfe_param.vdpol = 1;
->  
-> -		rem = of_graph_get_remote_port_parent(endpoint);
-> +		rem = of_graph_get_remote_endpoint(endpoint);
->  		if (!rem) {
->  			dev_err(&pdev->dev, "Remote device at %pOF not found\n",
->  				endpoint);
-> diff --git a/drivers/media/platform/atmel/atmel-isc.c b/drivers/media/platform/atmel/atmel-isc.c
-> index 13f1c1c797b0..c8bb60eeb629 100644
-> --- a/drivers/media/platform/atmel/atmel-isc.c
-> +++ b/drivers/media/platform/atmel/atmel-isc.c
-> @@ -2044,7 +2044,7 @@ static int isc_parse_dt(struct device *dev, struct isc_device *isc)
->  		if (!epn)
->  			break;
->  
-> -		rem = of_graph_get_remote_port_parent(epn);
-> +		rem = of_graph_get_remote_endpoint(epn);
->  		if (!rem) {
->  			dev_notice(dev, "Remote device at %pOF not found\n",
->  				   epn);
-> diff --git a/drivers/media/platform/atmel/atmel-isi.c b/drivers/media/platform/atmel/atmel-isi.c
-> index e900995143a3..eafdf91a4541 100644
-> --- a/drivers/media/platform/atmel/atmel-isi.c
-> +++ b/drivers/media/platform/atmel/atmel-isi.c
-> @@ -1119,7 +1119,7 @@ static int isi_graph_parse(struct atmel_isi *isi, struct device_node *node)
->  		if (!ep)
->  			return -EINVAL;
->  
-> -		remote = of_graph_get_remote_port_parent(ep);
-> +		remote = of_graph_get_remote_endpoint(ep);
->  		if (!remote) {
->  			of_node_put(ep);
->  			return -EINVAL;
-> diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
-> index fca4dc829f73..7c9c2b2bb710 100644
-> --- a/drivers/media/platform/davinci/vpif_capture.c
-> +++ b/drivers/media/platform/davinci/vpif_capture.c
-> @@ -1572,7 +1572,7 @@ vpif_capture_get_pdata(struct platform_device *pdev)
->  		if (flags & V4L2_MBUS_VSYNC_ACTIVE_HIGH)
->  			chan->vpif_if.vd_pol = 1;
->  
-> -		rem = of_graph_get_remote_port_parent(endpoint);
-> +		rem = of_graph_get_remote_endpoint(endpoint);
->  		if (!rem) {
->  			dev_dbg(&pdev->dev, "Remote device at %pOF not found\n",
->  				endpoint);
-> diff --git a/drivers/media/platform/exynos4-is/media-dev.c b/drivers/media/platform/exynos4-is/media-dev.c
-> index 0ef583cfc424..ab5dfe6d7ac4 100644
-> --- a/drivers/media/platform/exynos4-is/media-dev.c
-> +++ b/drivers/media/platform/exynos4-is/media-dev.c
-> @@ -411,7 +411,7 @@ static int fimc_md_parse_port_node(struct fimc_md *fmd,
->  
->  	pd->mux_id = (endpoint.base.port - 1) & 0x1;
->  
-> -	rem = of_graph_get_remote_port_parent(ep);
-> +	rem = of_graph_get_remote_endpoint(ep);
->  	of_node_put(ep);
->  	if (rem == NULL) {
->  		v4l2_info(&fmd->v4l2_dev, "Remote device at %pOF not found\n",
-> @@ -1363,11 +1363,17 @@ static int subdev_notifier_bound(struct v4l2_async_notifier *notifier,
->  	int i;
->  
->  	/* Find platform data for this sensor subdev */
-> -	for (i = 0; i < ARRAY_SIZE(fmd->sensor); i++)
-> -		if (fmd->sensor[i].asd.match.fwnode.fwnode ==
-> -		    of_fwnode_handle(subdev->dev->of_node))
-> +	for (i = 0; i < ARRAY_SIZE(fmd->sensor); i++) {
-> +		struct fwnode_handle *fwnode =
-> +			fwnode_graph_get_port_parent(
-> +				of_fwnode_handle(subdev->dev->of_node));
-> +
-> +		if (fmd->sensor[i].asd.match.fwnode.fwnode == fwnode)
->  			si = &fmd->sensor[i];
->  
-> +		fwnode_handle_put(fwnode);
-> +	}
-> +
->  	if (si == NULL)
->  		return -EINVAL;
->  
-> diff --git a/drivers/media/platform/pxa_camera.c b/drivers/media/platform/pxa_camera.c
-> index 4e0839829e6e..82aaafd113d4 100644
-> --- a/drivers/media/platform/pxa_camera.c
-> +++ b/drivers/media/platform/pxa_camera.c
-> @@ -2334,7 +2334,7 @@ static int pxa_camera_pdata_from_dt(struct device *dev,
->  		pcdev->platform_flags |= PXA_CAMERA_PCLK_EN;
->  
->  	asd->match_type = V4L2_ASYNC_MATCH_FWNODE;
-> -	remote = of_graph_get_remote_port_parent(np);
-> +	remote = of_graph_get_remote_endpoint(np);
->  	if (remote) {
->  		asd->match.fwnode.fwnode = of_fwnode_handle(remote);
->  		of_node_put(remote);
-> diff --git a/drivers/media/platform/qcom/camss-8x16/camss.c b/drivers/media/platform/qcom/camss-8x16/camss.c
-> index 390a42c17b66..73cac6301756 100644
-> --- a/drivers/media/platform/qcom/camss-8x16/camss.c
-> +++ b/drivers/media/platform/qcom/camss-8x16/camss.c
-> @@ -332,7 +332,7 @@ static int camss_of_parse_ports(struct device *dev,
->  			return ret;
->  		}
->  
-> -		remote = of_graph_get_remote_port_parent(node);
-> +		remote = of_graph_get_remote_endpoint(node);
->  		of_node_put(node);
->  
->  		if (!remote) {
-> diff --git a/drivers/media/platform/rcar_drif.c b/drivers/media/platform/rcar_drif.c
-> index 63c94f4028a7..f6e0a08d72f4 100644
-> --- a/drivers/media/platform/rcar_drif.c
-> +++ b/drivers/media/platform/rcar_drif.c
-> @@ -1228,7 +1228,7 @@ static int rcar_drif_parse_subdevs(struct rcar_drif_sdr *sdr)
->  		return 0;
->  
->  	notifier->subdevs[notifier->num_subdevs] = &sdr->ep.asd;
-> -	fwnode = fwnode_graph_get_remote_port_parent(ep);
-> +	fwnode = fwnode_graph_get_remote_endpoint(ep);
->  	if (!fwnode) {
->  		dev_warn(sdr->dev, "bad remote port parent\n");
-
-s/port parent/endpoint/
-
->  		fwnode_handle_put(ep);
-> diff --git a/drivers/media/platform/stm32/stm32-dcmi.c b/drivers/media/platform/stm32/stm32-dcmi.c
-> index ac4c450a6c7d..18e0aa8af3b3 100644
-> --- a/drivers/media/platform/stm32/stm32-dcmi.c
-> +++ b/drivers/media/platform/stm32/stm32-dcmi.c
-> @@ -1511,7 +1511,7 @@ static int dcmi_graph_parse(struct stm32_dcmi *dcmi, struct device_node *node)
->  		if (!ep)
->  			return -EINVAL;
->  
-> -		remote = of_graph_get_remote_port_parent(ep);
-> +		remote = of_graph_get_remote_endpoint(ep);
->  		if (!remote) {
->  			of_node_put(ep);
->  			return -EINVAL;
-> diff --git a/drivers/media/platform/ti-vpe/cal.c b/drivers/media/platform/ti-vpe/cal.c
-> index a1748b84deea..f4af6c5a7c6c 100644
-> --- a/drivers/media/platform/ti-vpe/cal.c
-> +++ b/drivers/media/platform/ti-vpe/cal.c
-> @@ -1697,7 +1697,7 @@ static int of_cal_create_instance(struct cal_ctx *ctx, int inst)
->  		goto cleanup_exit;
->  	}
->  
-> -	sensor_node = of_graph_get_remote_port_parent(ep_node);
-> +	sensor_node = of_graph_get_remote_endpoint(ep_node);
->  	if (!sensor_node) {
->  		ctx_dbg(3, ctx, "can't get remote parent\n");
->  		goto cleanup_exit;
-> diff --git a/drivers/media/platform/xilinx/xilinx-vipp.c b/drivers/media/platform/xilinx/xilinx-vipp.c
-> index d881cf09876d..17d4ac0a908d 100644
-> --- a/drivers/media/platform/xilinx/xilinx-vipp.c
-> +++ b/drivers/media/platform/xilinx/xilinx-vipp.c
-> @@ -82,6 +82,8 @@ static int xvip_graph_build_one(struct xvip_composite_device *xdev,
->  	dev_dbg(xdev->dev, "creating links for entity %s\n", local->name);
->  
->  	while (1) {
-> +		struct fwnode_handle *fwnode;
-> +
->  		/* Get the next endpoint and parse its link. */
->  		next = of_graph_get_next_endpoint(entity->node, ep);
->  		if (next == NULL)
-> @@ -121,8 +123,11 @@ static int xvip_graph_build_one(struct xvip_composite_device *xdev,
->  			continue;
->  		}
->  
-> +		fwnode = fwnode_graph_get_port_parent(link.remote_node);
-> +		fwnode_handle_put(fwnode);
-> +
->  		/* Skip DMA engines, they will be processed separately. */
-> -		if (link.remote_node == of_fwnode_handle(xdev->dev->of_node)) {
-> +		if (fwnode == of_fwnode_handle(xdev->dev->of_node)) {
->  			dev_dbg(xdev->dev, "skipping DMA port %pOF:%u\n",
->  				to_of_node(link.local_node),
->  				link.local_port);
-> @@ -367,20 +372,25 @@ static int xvip_graph_parse_one(struct xvip_composite_device *xdev,
->  	dev_dbg(xdev->dev, "parsing node %pOF\n", node);
->  
->  	while (1) {
-> +		struct fwnode_handle *fwnode;
-> +
->  		ep = of_graph_get_next_endpoint(node, ep);
->  		if (ep == NULL)
->  			break;
->  
->  		dev_dbg(xdev->dev, "handling endpoint %pOF\n", ep);
->  
-> -		remote = of_graph_get_remote_port_parent(ep);
-> +		remote = of_graph_get_remote_endpoint(ep);
->  		if (remote == NULL) {
->  			ret = -EINVAL;
->  			break;
->  		}
->  
-> +		fwnode = fwnode_graph_get_port_parent(of_fwnode_handle(remote));
-> +		fwnode_handle_put(fwnode);
-> +
->  		/* Skip entities that we have already processed. */
-> -		if (remote == xdev->dev->of_node ||
-> +		if (fwnode == xdev->dev->of_node ||
->  		    xvip_graph_find_entity(xdev, remote)) {
->  			of_node_put(remote);
->  			continue;
-> diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
-> index e5acfab470a5..f53eff07e8b8 100644
-> --- a/drivers/media/v4l2-core/v4l2-async.c
-> +++ b/drivers/media/v4l2-core/v4l2-async.c
-> @@ -539,8 +539,12 @@ int v4l2_async_register_subdev(struct v4l2_subdev *sd)
->  	 * (struct v4l2_subdev.dev), and async sub-device does not
->  	 * exist independently of the device at any point of time.
->  	 */
-> -	if (!sd->fwnode && sd->dev)
-> -		sd->fwnode = dev_fwnode(sd->dev);
-> +	if (!sd->fwnode && sd->dev) {
-> +		sd->fwnode = fwnode_graph_get_next_endpoint(
-> +			dev_fwnode(sd->dev), NULL);
-> +		if (!sd->fwnode)
-> +			sd->fwnode = dev_fwnode(sd->dev);
-> +	}
->  
->  	mutex_lock(&list_lock);
->  
-> diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
-> index fb72c7ac04d4..9c17a26d544c 100644
-> --- a/drivers/media/v4l2-core/v4l2-fwnode.c
-> +++ b/drivers/media/v4l2-core/v4l2-fwnode.c
-> @@ -360,7 +360,7 @@ static int v4l2_async_notifier_fwnode_parse_endpoint(
->  
->  	asd->match_type = V4L2_ASYNC_MATCH_FWNODE;
->  	asd->match.fwnode.fwnode =
-> -		fwnode_graph_get_remote_port_parent(endpoint);
-> +		fwnode_graph_get_remote_endpoint(endpoint);
->  	if (!asd->match.fwnode.fwnode) {
->  		dev_warn(dev, "bad remote port parent\n");
-
-s/port parent/endpoint/
-
->  		ret = -EINVAL;
-> 
+Best regards,
+Tomasz
