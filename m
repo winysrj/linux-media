@@ -1,126 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:37294 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751554AbdLSLxc (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 19 Dec 2017 06:53:32 -0500
-Date: Tue, 19 Dec 2017 13:53:28 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Yong Deng <yong.deng@magewell.com>
-Cc: maxime.ripard@free-electrons.com,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Chen-Yu Tsai <wens@csie.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Yannick Fertre <yannick.fertre@st.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Benoit Parrot <bparrot@ti.com>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Jean-Christophe Trotin <jean-christophe.trotin@st.com>,
-        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
-        Minghsiu Tsai <minghsiu.tsai@mediatek.com>,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Robert Jarzmik <robert.jarzmik@free.fr>,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-sunxi@googlegroups.com
-Subject: Re: [PATCH v2 2/3] dt-bindings: media: Add Allwinner V3s Camera
- Sensor Interface (CSI)
-Message-ID: <20171219115327.ofs5xwwimpn7x72n@valkosipuli.retiisi.org.uk>
-References: <1501131697-1359-1-git-send-email-yong.deng@magewell.com>
- <1501131697-1359-3-git-send-email-yong.deng@magewell.com>
+Received: from mga04.intel.com ([192.55.52.120]:30342 "EHLO mga04.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751200AbdLEANS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 4 Dec 2017 19:13:18 -0500
+From: "Mani, Rajmohan" <rajmohan.mani@intel.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+        "Zhi, Yong" <yong.zhi@intel.com>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>
+CC: "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
+        "Toivonen, Tuukka" <tuukka.toivonen@intel.com>,
+        "Hu, Jerry W" <jerry.w.hu@intel.com>,
+        "arnd@arndb.de" <arnd@arndb.de>, "hch@lst.de" <hch@lst.de>,
+        "robin.murphy@arm.com" <robin.murphy@arm.com>,
+        "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>
+Subject: RE: [PATCH v4 00/12] Intel IPU3 ImgU patchset
+Date: Tue, 5 Dec 2017 00:13:16 +0000
+Message-ID: <6F87890CF0F5204F892DEA1EF0D77A5972FD8ACC@FMSMSX114.amr.corp.intel.com>
+References: <1508298408-25822-1-git-send-email-yong.zhi@intel.com>
+ <6F87890CF0F5204F892DEA1EF0D77A5972FD4195@FMSMSX114.amr.corp.intel.com>
+ <ae6dbc33-d4e8-83c4-1d3d-e05bccc2113b@xs4all.nl>
+In-Reply-To: <ae6dbc33-d4e8-83c4-1d3d-e05bccc2113b@xs4all.nl>
+Content-Language: en-US
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1501131697-1359-3-git-send-email-yong.deng@magewell.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Yong,
-
-On Thu, Jul 27, 2017 at 01:01:36PM +0800, Yong Deng wrote:
-> Add binding documentation for Allwinner V3s CSI.
-> 
-> Signed-off-by: Yong Deng <yong.deng@magewell.com>
-
-DT bindings should precede the driver.
-
-> ---
->  .../devicetree/bindings/media/sun6i-csi.txt        | 49 ++++++++++++++++++++++
->  1 file changed, 49 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/media/sun6i-csi.txt
-> 
-> diff --git a/Documentation/devicetree/bindings/media/sun6i-csi.txt b/Documentation/devicetree/bindings/media/sun6i-csi.txt
-> new file mode 100644
-> index 0000000..f8d83f6
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/media/sun6i-csi.txt
-> @@ -0,0 +1,49 @@
-> +Allwinner V3s Camera Sensor Interface
-> +------------------------------
-> +
-> +Required properties:
-> +  - compatible: value must be "allwinner,sun8i-v3s-csi"
-
-What are sun6i and sun8i? Is this device first present in sun6i SoCs,
-whereas you have only defined bindings for sun8i?
-
-> +  - reg: base address and size of the memory-mapped region.
-> +  - interrupts: interrupt associated to this IP
-> +  - clocks: phandles to the clocks feeding the CSI
-> +    * ahb: the CSI interface clock
-> +    * mod: the CSI module clock
-> +    * ram: the CSI DRAM clock
-> +  - clock-names: the clock names mentioned above
-> +  - resets: phandles to the reset line driving the CSI
-> +
-> +- ports: A ports node with endpoint definitions as defined in
-> +  Documentation/devicetree/bindings/media/video-interfaces.txt.
-
-Please document mandatory and optional endpoint properties relevant for the
-hardware.
-
-> +
-> +Example:
-> +
-> +	csi1: csi@01cb4000 {
-> +		compatible = "allwinner,sun8i-v3s-csi";
-> +		reg = <0x01cb4000 0x1000>;
-> +		interrupts = <GIC_SPI 84 IRQ_TYPE_LEVEL_HIGH>;
-> +		clocks = <&ccu CLK_BUS_CSI>,
-> +			 <&ccu CLK_CSI1_SCLK>,
-> +			 <&ccu CLK_DRAM_CSI>;
-> +		clock-names = "ahb", "mod", "ram";
-> +		resets = <&ccu RST_BUS_CSI>;
-> +
-> +		port {
-> +			#address-cells = <1>;
-> +			#size-cells = <0>;
-> +
-> +			/* Parallel bus endpoint */
-> +			csi1_ep: endpoint {
-> +				remote-endpoint = <&adv7611_ep>;
-> +				bus-width = <16>;
-> +				data-shift = <0>;
-> +
-> +				/* If hsync-active/vsync-active are missing,
-> +				   embedded BT.656 sync is used */
-> +				hsync-active = <0>; /* Active low */
-> +				vsync-active = <0>; /* Active low */
-> +				data-active = <1>;  /* Active high */
-> +				pclk-sample = <1>;  /* Rising */
-> +			};
-> +		};
-> +	};
-> +
-
--- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+SGkgSGFucywNCg0KVGhhbmtzIGZvciB5b3VyIHBhdGllbmNlIGFuZCBzaGFyaW5nIHlvdXIgdGhv
+dWdodHMgb24gdGhpcy4NCg0KPiBTdWJqZWN0OiBSZTogW1BBVENIIHY0IDAwLzEyXSBJbnRlbCBJ
+UFUzIEltZ1UgcGF0Y2hzZXQNCj4gDQo+IEhpIFJham1vaGFuLA0KPiANCj4gT24gMTEvMTcvMjAx
+NyAwMzo1OCBBTSwgTWFuaSwgUmFqbW9oYW4gd3JvdGU6DQo+ID4gSGkgU2FrYXJpIGFuZCBhbGws
+DQo+ID4NCj4gPj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gPj4gRnJvbTogWmhpLCBZ
+b25nDQo+ID4+IFNlbnQ6IFR1ZXNkYXksIE9jdG9iZXIgMTcsIDIwMTcgODo0NyBQTQ0KPiA+PiBU
+bzogbGludXgtbWVkaWFAdmdlci5rZXJuZWwub3JnOyBzYWthcmkuYWlsdXNAbGludXguaW50ZWwu
+Y29tDQo+ID4+IENjOiBaaGVuZywgSmlhbiBYdSA8amlhbi54dS56aGVuZ0BpbnRlbC5jb20+OyBN
+YW5pLCBSYWptb2hhbg0KPiA+PiA8cmFqbW9oYW4ubWFuaUBpbnRlbC5jb20+OyBUb2l2b25lbiwg
+VHV1a2thDQo+ID4+IDx0dXVra2EudG9pdm9uZW5AaW50ZWwuY29tPjsgSHUsIEplcnJ5IFcgPGpl
+cnJ5LncuaHVAaW50ZWwuY29tPjsNCj4gPj4gYXJuZEBhcm5kYi5kZTsgaGNoQGxzdC5kZTsgcm9i
+aW4ubXVycGh5QGFybS5jb207IGlvbW11QGxpc3RzLmxpbnV4LQ0KPiA+PiBmb3VuZGF0aW9uLm9y
+ZzsgWmhpLCBZb25nIDx5b25nLnpoaUBpbnRlbC5jb20+DQo+ID4+IFN1YmplY3Q6IFtQQVRDSCB2
+NCAwMC8xMl0gSW50ZWwgSVBVMyBJbWdVIHBhdGNoc2V0DQo+ID4+DQo+ID4+IFRoaXMgcGF0Y2hz
+ZXQgYWRkcyBzdXBwb3J0IGZvciB0aGUgSW50ZWwgSVBVMyAoSW1hZ2UgUHJvY2Vzc2luZyBVbml0
+KQ0KPiA+PiBJbWdVIHdoaWNoIGlzIGVzc2VudGlhbGx5IGEgbW9kZXJuIG1lbW9yeS10by1tZW1v
+cnkgSVNQLiBJdA0KPiA+PiBpbXBsZW1lbnRzIHJhdyBCYXllciB0byBZVVYgaW1hZ2UgZm9ybWF0
+IGNvbnZlcnNpb24gYXMgd2VsbCBhcyBhDQo+ID4+IGxhcmdlIG51bWJlciBvZiBvdGhlciBwaXhl
+bCBwcm9jZXNzaW5nIGFsZ29yaXRobXMgZm9yIGltcHJvdmluZyB0aGUgaW1hZ2UNCj4gcXVhbGl0
+eS4NCj4gPj4NCj4gPj4gTWV0YSBkYXRhIGZvcm1hdHMgYXJlIGRlZmluZWQgZm9yIGltYWdlIHN0
+YXRpc3RpY3MgKDNBLCBpLmUuDQo+ID4+IGF1dG9tYXRpYyB3aGl0ZSBiYWxhbmNlLCBleHBvc3Vy
+ZSBhbmQgZm9jdXMsIGhpc3RvZ3JhbSBhbmQgbG9jYWwgYXJlYQ0KPiA+PiBjb250cmFzdA0KPiA+
+PiBlbmhhbmNlbWVudCkgYXMgd2VsbCBhcyBmb3IgdGhlIHBpeGVsIHByb2Nlc3NpbmcgYWxnb3Jp
+dGhtIHBhcmFtZXRlcnMuDQo+ID4+IFRoZSBkb2N1bWVudGF0aW9uIGZvciB0aGVzZSBmb3JtYXRz
+IGlzIGN1cnJlbnRseSBub3QgaW5jbHVkZWQgaW4gdGhlDQo+ID4+IHBhdGNoc2V0IGJ1dCB3aWxs
+IGJlIGFkZGVkIGluIGEgZnV0dXJlIHZlcnNpb24gb2YgdGhpcyBzZXQuDQo+ID4+DQo+ID4NCj4g
+PiBIZXJlIGlzIGFuIHVwZGF0ZSBvbiB0aGUgSVBVMyBkb2N1bWVudGF0aW9uIHRoYXQgd2UgYXJl
+IGN1cnJlbnRseSB3b3JraW5nDQo+IG9uLg0KPiA+DQo+ID4gSW1hZ2UgcHJvY2Vzc2luZyBpbiBJ
+UFUzIHJlbGllcyBvbiB0aGUgZm9sbG93aW5nLg0KPiA+DQo+ID4gMSkgSFcgY29uZmlndXJhdGlv
+biB0byBlbmFibGUgSVNQIGFuZA0KPiA+IDIpIHNldHRpbmcgY3VzdG9tZXIgc3BlY2lmaWMgM0Eg
+VHVuaW5nIC8gQWxnb3JpdGhtIFBhcmFtZXRlcnMgdG8gYWNoaWV2ZQ0KPiBkZXNpcmVkIGltYWdl
+IHF1YWxpdHkuDQo+ID4NCj4gPiBXZSBpbnRlbmQgdG8gcHJvdmlkZSBkb2N1bWVudGF0aW9uIG9u
+IEltZ1UgZHJpdmVyIHByb2dyYW1taW5nIGludGVyZmFjZQ0KPiB0byBoZWxwIHVzZXJzIG9mIHRo
+aXMgZHJpdmVyIHRvIGNvbmZpZ3VyZSBhbmQgZW5hYmxlIElTUCBIVyB0byBtZWV0IHRoZWlyDQo+
+IG5lZWRzLiAgVGhpcyBkb2N1bWVudGF0aW9uIHdpbGwgaW5jbHVkZSBkZXRhaWxzIG9uIGNvbXBs
+ZXRlIFY0TDIgS2VybmVsIGRyaXZlcg0KPiBpbnRlcmZhY2UgYW5kIElPLUNvbnRyb2wgcGFyYW1l
+dGVycywgZXhjZXB0IGZvciB0aGUgSVNQIGludGVybmFsIGFsZ29yaXRobSBhbmQNCj4gaXRzIHBh
+cmFtZXRlcnMgKHdoaWNoIGlzIEludGVsIHByb3ByaWV0YXJ5IElQKS4NCj4gPg0KPiA+IFdlIHdp
+bGwgYWxzbyBwcm92aWRlIGFuIHVzZXIgc3BhY2UgbGlicmFyeSBpbiBiaW5hcnkgZm9ybSB0byBo
+ZWxwIHVzZXJzIG9mIHRoaXMNCj4gZHJpdmVyLCB0byBjb252ZXJ0IHRoZSBwdWJsaWMgM0EgdHVu
+aW5nIHBhcmFtZXRlcnMgdG8gSVBVMyBhbGdvcml0aG0NCj4gcGFyYW1ldGVycy4gVGhpcyB0b29s
+IHdpbGwgYmUgcmVsZWFzZWQgdW5kZXIgTkRBIHRvIHRoZSB1c2VycyBvZiB0aGlzIGRyaXZlci4N
+Cj4gDQo+IFNvIEkgZGlzY3Vzc2VkIHRoaXMgc2l0dWF0aW9uIHdpdGggU2FrYXJpIGluIFByYWd1
+ZSBkdXJpbmcgdGhlIEVMQ0UuIEkgYW0gbm90DQo+IGhhcHB5IHdpdGggYWRkaW5nIGEgZHJpdmVy
+IHRvIHRoZSBrZXJuZWwgdGhhdCBuZWVkcyBhbiBOREEgdG8gYmUgdXNhYmxlLiBJDQo+IGNhbid0
+IGFncmVlIHRvIHRoYXQuIEl0J3MgZWZmZWN0aXZlbHkgdGhlIHNhbWUgYXMgZmlybXdhcmUgdGhh
+dCdzIG9ubHkgYXZhaWxhYmxlDQo+IHVuZGVyIGFuIE5EQSBhbmQgd2Ugd291bGRuJ3QgYWNjZXB0
+IHN1Y2ggZHJpdmVycyBlaXRoZXIuDQo+IA0KDQpBY2sNCg0KPiBUaGVyZSBhcmUgYSBmZXcgb3B0
+aW9uczoNCj4gDQo+IDEpIERvY3VtZW50IHRoZSBJU1AgcGFyYW1ldGVycyBhbmQgdGhhdCBmb3Jt
+YXQgdGhleSBhcmUgc3RvcmVkIGluIGFsbG93aW5nDQo+IGZvcg0KPiAgICBvcGVuIHNvdXJjZSBp
+bXBsZW1lbnRhdGlvbnMuIFdoaWxlIHRoaXMgaXMgdGhlIGlkZWFsLCBJIHN1c3BlY3QgdGhhdCB0
+aGlzIGlzDQo+ICAgIGEgbm8tZ28gZm9yIEludGVsLg0KPiANCg0KQWNrDQoNCj4gMikgVGhlIGRy
+aXZlciBjYW4gYmUgdXNlZCB3aXRob3V0IHVzaW5nIHRoZXNlIElTUCBwYXJhbWV0ZXJzIGFuZCBz
+dGlsbCBhY2hpZXZlDQo+ICAgICdPSycgcXVhbGl0eS4gSS5lLiwgaXQncyB1c2FibGUgZm9yIGJh
+c2ljIHdlYmNhbSB1c2FnZSB1bmRlciBub3JtYWwgbGlnaHRpbmcNCj4gICAgY29uZGl0aW9ucy4g
+SSdtIG5vdCBzdXJlIGlmIHRoaXMgaXMgcG9zc2libGUgYXQgYWxsLCB0aG91Z2guDQo+IA0KDQpU
+aGlzIGlzIHNvbWV0aGluZyB0aGF0IHdlIGhhdmUgdHJpZWQgYW5kIGFyZSBhYmxlIHRvIGRvIGlt
+YWdlIGNhcHR1cmUgd2l0aA0KdGhlIGRlZmF1bHQgSVNQIHBhcmFtZXRlcnMgdXNpbmcgb3Y1Njcw
+IHNlbnNvci4NCkFkZGl0aW9uYWxseSB3ZSBoYWQgdG8gc2V0IG9wdGltYWwgdmFsdWVzIGZvciB0
+aGUgb3Y1NjcwIHNlbnNvcidzIGV4cG9zdXJlIGFuZA0KZ2FpbiBzZXR0aW5ncy4NCg0KUGxlYXNl
+IHNlZSBpZiB0aGUgZm9sbG93aW5nIGltYWdlIGxvb2tzIHRvIG1lZXQgdGhlICdPSycgcXVhbGl0
+eS4NCg0KZ2l0IGNsb25lIGh0dHBzOi8vZ2l0aHViLmNvbS9SYWptb2hhbk1hbmkvaXB1My1taXNj
+LmdpdA0KaXB1My1taXNjL292NTY3MC5qcGcgaXMgdGhlIGltYWdlIGZpbGUuDQoNCj4gMykgTWFr
+ZSB0aGUgbGlicmFyeSBhdmFpbGFibGUgd2l0aG91dCByZXF1aXJpbmcgYW4gTkRBLg0KPiANCg0K
+V2UgYXJlIGFsc28gYWN0aXZlbHkgZXhwbG9yaW5nIHRoaXMgb3B0aW9uIHRvIHNlZSBpZiB0aGlz
+IGNhbiBiZSBkb25lLg0KDQo+IDQpIFByb3ZpZGUgYSBub24tTkRBIGxpYnJhcnkgKGlkZWFsbHkg
+b3BlbiBzb3VyY2UpIHRoYXQgYWNoaWV2ZXMgYXQgbWluaW11bQ0KPiAgICB0aGUgcXVhbGl0eSBh
+cyBkZXNjcmliZWQgaW4gMjogaS5lLiB1c2FibGUgZm9yIGJhc2ljIHdlYmNhbS4NCj4gDQoNCkkg
+c2VlIHRoaXMgaXMgdGhlIHNhbWUgYXMgb3B0aW9uIDMpICsgb3BlbiBzb3VyY2luZyB0aGUgbGli
+cmFyeS4NCk9wZW4gc291cmNpbmcgdGhlIGxpYnJhcnkgZG9lcyBub3QgbG9vayB0byBiZSBhbiBv
+cHRpb24uDQpJIHdpbGwgcmVjb25maXJtIHRoaXMuDQoNCj4gNSkgT3RoZXIgc29sdXRpb25zIEkg
+ZGlkbid0IHRoaW5rIG9mPw0KPiANCj4gSSB0aGluayA0IG1pZ2h0IGJlIHRoZSBiZXN0IG9wdGlv
+biwgZXNwZWNpYWxseSBpZiBpdCBpcyBvcGVuIHNvdXJjZWQgYW5kIGp1c3QgdXNlcw0KPiBub24t
+SVAgM0EgYWxnb3JpdGhtcy4gSXQgY291bGQgZXZlbiBiZSBhZGRlZCB0byB0aGUgdjRsLXV0aWxz
+IGdpdCByZXBvLg0KPiANCj4gQSBjbG9zZWQgc291cmNlIG5vbi1OREEgbGlicmFyeSBtaWdodCBh
+bHNvIHdvcmssIGJ1dCB5b3Ugd2lsbCBuZWVkIHRvIGNoZWNrDQo+IHdoYXQgTWF1cm8gdGhpbmtz
+IGFib3V0IHRoYXQuDQoNCkkgYmVsaWV2ZSB0aGlzIGlzIG9wdGlvbiAzKSB0aGF0IHlvdSBhcmUg
+cmVmZXJyaW5nIGhlcmUuDQpEZXBlbmRpbmcgb24gdGhlIHByb2dyZXNzIHRoYXQgd2UgbWFrZSBv
+biBvcHRpb24gMyksIHdlIGNhbiB3b3JrIG9uIHRoZQ0KbmV4dCBzdGVwcy4NCg0KPiBNeSBwcm9i
+bGVtIGlzIHRoYXQgc3VjaCBsaWJyYXJpZXMgdGVuZCB0byBiZQ0KPiBhYmFuZG9uZWQgYWZ0ZXIg
+YSBmZXcgeWVhcnMgYW5kIHRoZW4gYml0LXJvdCBzZXRzIGluLiBBbiBvcGVuLXNvdXJjZSBzb2x1
+dGlvbg0KPiBpcyBtdWNoIGVhc2llciB0byBtYWludGFpbiBpbiB0aGUgbG9uZyB0ZXJtLg0KPiAN
+Cj4gUmVnYXJkcywNCj4gDQo+IAlIYW5zDQo+IA0KDQo=
