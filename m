@@ -1,69 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:39194 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1752650AbdLAObj (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 1 Dec 2017 09:31:39 -0500
-Date: Fri, 1 Dec 2017 16:31:36 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: rajmohan.mani@intel.com, yong.zhi@intel.com
-Subject: [RESEND GIT PULL for 4.16] Intel IPU3 CIO2 CSI-2 receiver driver
-Message-ID: <20171201143135.c6r2e2iaoxcvyxpi@valkosipuli.retiisi.org.uk>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Received: from mout.kundenserver.de ([212.227.17.13]:61517 "EHLO
+        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751937AbdLEVxS (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 5 Dec 2017 16:53:18 -0500
+From: Arnd Bergmann <arnd@arndb.de>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Kees Cook <keescook@chromium.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org, kasan-dev@googlegroups.com,
+        Dmitry Vyukov <dvyukov@google.com>,
+        Alexander Potapenko <glider@google.com>,
+        Andrey Ryabinin <aryabinin@virtuozzo.com>,
+        linux-kbuild@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>,
+        stable@vger.kernel.org, Daniel Micay <danielmicay@gmail.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Martin Wilck <mwilck@suse.com>,
+        Dan Williams <dan.j.williams@intel.com>,
+        linux-kernel@vger.kernel.org
+Subject: [PATCH] string.h: work around for increased stack usage
+Date: Tue,  5 Dec 2017 22:51:19 +0100
+Message-Id: <20171205215143.3085755-1-arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+The hardened strlen() function causes rather large stack usage in at
+least one file in the kernel, in particular when CONFIG_KASAN is enabled:
 
-Here's the Intel IPU3 CIO2 CSI-2 receiver driver, with the accompanying
-format definitions.
+drivers/media/usb/em28xx/em28xx-dvb.c: In function 'em28xx_dvb_init':
+drivers/media/usb/em28xx/em28xx-dvb.c:2062:1: error: the frame size of 3256 bytes is larger than 204 bytes [-Werror=frame-larger-than=]
 
-Please pull.
+Analyzing this problem led to the discovery that gcc fails to merge the
+stack slots for the i2c_board_info[] structures after we strlcpy() into
+them, due to the 'noreturn' attribute on the source string length check.
 
+I reported this as a gcc bug, but it is unlikely to get fixed for gcc-8,
+since it is relatively easy to work around, and it gets triggered rarely.
+An earlier workaround I did added an empty inline assembly statement
+before the call to fortify_panic(), which works surprisingly well,
+but is really ugly and unintuitive.
 
-The following changes since commit be9b53c83792e3898755dce90f8c632d40e7c83e:
+This is a new approach to the same problem, this time addressing it by
+not calling the 'extern __real_strnlen()' function for string constants
+where __builtin_strlen() is a compile-time constant and therefore known
+to be safe. We do this by checking if the last character in the string
+is a compile-time constant '\0'. If it is, we can assume that
+strlen() of the string is also constant. As a side-effect, this should
+also improve the object code output for any other call of strlen()
+on a string constant.
 
-  media: dvb-frontends: complete kernel-doc markups (2017-11-30 04:19:05 -0500)
+Cc: stable@vger.kernel.org
+Link: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=82365
+Link: https://patchwork.kernel.org/patch/9980413/
+Link: https://patchwork.kernel.org/patch/9974047/
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+---
+v3: don't use an asm barrier but use a constant string change.
 
-are available in the git repository at:
+Aside from two other patches for drivers/media that I sent last week,
+this should fix all stack frames above 2KB, once all three are merged,
+I'll send the patch to re-enable the warning.
+---
+ include/linux/string.h | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-  ssh://linuxtv.org/git/sailus/media_tree.git ipu3
-
-for you to fetch changes up to f178207daa68e817ab6fd702d81ed7c8637ab72c:
-
-  intel-ipu3: cio2: add new MIPI-CSI2 driver (2017-11-30 14:19:47 +0200)
-
-----------------------------------------------------------------
-Yong Zhi (3):
-      videodev2.h, v4l2-ioctl: add IPU3 raw10 color format
-      doc-rst: add IPU3 raw10 bayer pixel format definitions
-      intel-ipu3: cio2: add new MIPI-CSI2 driver
-
- Documentation/media/uapi/v4l/pixfmt-rgb.rst        |    1 +
- .../media/uapi/v4l/pixfmt-srggb10-ipu3.rst         |  335 ++++
- MAINTAINERS                                        |    8 +
- drivers/media/pci/Kconfig                          |    2 +
- drivers/media/pci/Makefile                         |    3 +-
- drivers/media/pci/intel/Makefile                   |    5 +
- drivers/media/pci/intel/ipu3/Kconfig               |   19 +
- drivers/media/pci/intel/ipu3/Makefile              |    1 +
- drivers/media/pci/intel/ipu3/ipu3-cio2.c           | 2052 ++++++++++++++++++++
- drivers/media/pci/intel/ipu3/ipu3-cio2.h           |  449 +++++
- drivers/media/v4l2-core/v4l2-ioctl.c               |    4 +
- include/uapi/linux/videodev2.h                     |    6 +
- 12 files changed, 2884 insertions(+), 1 deletion(-)
- create mode 100644 Documentation/media/uapi/v4l/pixfmt-srggb10-ipu3.rst
- create mode 100644 drivers/media/pci/intel/Makefile
- create mode 100644 drivers/media/pci/intel/ipu3/Kconfig
- create mode 100644 drivers/media/pci/intel/ipu3/Makefile
- create mode 100644 drivers/media/pci/intel/ipu3/ipu3-cio2.c
- create mode 100644 drivers/media/pci/intel/ipu3/ipu3-cio2.h
-
+diff --git a/include/linux/string.h b/include/linux/string.h
+index 410ecf17de3c..e5cc3f27f6e0 100644
+--- a/include/linux/string.h
++++ b/include/linux/string.h
+@@ -259,7 +259,8 @@ __FORTIFY_INLINE __kernel_size_t strlen(const char *p)
+ {
+ 	__kernel_size_t ret;
+ 	size_t p_size = __builtin_object_size(p, 0);
+-	if (p_size == (size_t)-1)
++	if (p_size == (size_t)-1 ||
++	    (__builtin_constant_p(p[p_size - 1]) && p[p_size - 1] == '\0'))
+ 		return __builtin_strlen(p);
+ 	ret = strnlen(p, p_size);
+ 	if (p_size <= ret)
 -- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+2.9.0
