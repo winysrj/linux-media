@@ -1,230 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay2-d.mail.gandi.net ([217.70.183.194]:58698 "EHLO
-        relay2-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753709AbdLMS0k (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 13 Dec 2017 13:26:40 -0500
-From: Jacopo Mondi <jacopo+renesas@jmondi.org>
-To: sakari.ailus@linux.intel.com
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        niklas.soderlund@ragnatech.se, kieran.bingham@ideasonboard.com,
-        laurent.pinchart@ideasonboard.com, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org
-Subject: [PATCH 5/5] v4l2: async: Add debug output to v4l2-async module
-Date: Wed, 13 Dec 2017 19:26:20 +0100
-Message-Id: <1513189580-32202-6-git-send-email-jacopo+renesas@jmondi.org>
-In-Reply-To: <1513189580-32202-1-git-send-email-jacopo+renesas@jmondi.org>
-References: <1513189580-32202-1-git-send-email-jacopo+renesas@jmondi.org>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:43100 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751582AbdLEA5t (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 4 Dec 2017 19:57:49 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Arnd Bergmann <arnd@arndb.de>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        y2038@lists.linaro.org,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 2/8] [media] uvc_video: use ktime_t for timestamps
+Date: Tue, 05 Dec 2017 02:58:02 +0200
+Message-ID: <5754191.7VT3CuYHXL@avalon>
+In-Reply-To: <2878836.BpTQ5Kp5iv@avalon>
+References: <20171127132027.1734806-1-arnd@arndb.de> <20171127132027.1734806-2-arnd@arndb.de> <2878836.BpTQ5Kp5iv@avalon>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The v4l2-async module operations are quite complex to follow, due to the
-asynchronous nature of subdevices and notifiers registration and
-matching procedures. In order to help with debugging of failed or
-erroneous matching between a subdevice and the notifier collected
-async_subdevice it gets matched against, introduce a few dev_dbg() calls
-in v4l2_async core operations.
+Hi Arnd,
 
-Protect the debug operations with a Kconfig defined symbol, to make sure
-when debugging is disabled, no additional code or data is added to the
-module.
+On Tuesday, 5 December 2017 02:37:27 EET Laurent Pinchart wrote:
+> On Monday, 27 November 2017 15:19:54 EET Arnd Bergmann wrote:
+> > uvc_video_get_ts() returns a 'struct timespec', but all its users
+> > really want a nanoseconds variable anyway.
+> > 
+> > Changing the deprecated ktime_get_ts/ktime_get_real_ts to ktime_get
+> > and ktime_get_real simplifies the code noticeably, while keeping
+> > the resulting numbers unchanged.
+> > 
+> > Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> > ---
+> > 
+> >  drivers/media/usb/uvc/uvc_video.c | 37 ++++++++++++---------------------
+> >  drivers/media/usb/uvc/uvcvideo.h  |  2 +-
+> >  2 files changed, 13 insertions(+), 26 deletions(-)
 
-Notifiers are identified by the name of the subdevice or v4l2_dev they are
-registered by, while subdevice matching which now happens on endpoints,
-need a longer description built walking the fwnode graph backwards
-collecting parent nodes names (otherwise we would have had printouts
-like: "Matching "endpoint" with "endpoint"" which are not that useful).
+[snip]
 
-Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+> > -	struct timespec ts;
+> > +	u64 timestamp;
 
----
-For fwnodes backed by OF, I may have used the "%pOF" format modifier to
-get the full node name instead of parsing the fwnode graph by myself with
-"v4l2_async_fwnode_full_name()". Unfortunately I'm not aware of anything
-like "%pOF" for ACPI backed fwnodes. Also, walking the fwnode graph by
-myself allows me to reduce the depth, to reduce the debug messages output
-length which is anyway long enough to result disturbing on a 80columns
-terminal window.
----
+[snip]
 
- drivers/media/v4l2-core/Kconfig      |  8 ++++
- drivers/media/v4l2-core/v4l2-async.c | 81 ++++++++++++++++++++++++++++++++++++
- 2 files changed, 89 insertions(+)
+> >  	uvc_trace(UVC_TRACE_CLOCK, "%s: SOF %u.%06llu y %llu ts %llu "
+> >  		  "buf ts %llu (x1 %u/%u/%u x2 %u/%u/%u y1 %u y2 %u)\n",
+> >  		  stream->dev->name,
+> >  		  sof >> 16, div_u64(((u64)sof & 0xffff) * 1000000LLU, 65536),
+> > -		  y, timespec_to_ns(&ts), vbuf->vb2_buf.timestamp,
+> > +		  y, timestamp, vbuf->vb2_buf.timestamp,
+> >  		  x1, first->host_sof, first->dev_sof,
+> >  		  x2, last->host_sof, last->dev_sof, y1, y2);
 
-diff --git a/drivers/media/v4l2-core/Kconfig b/drivers/media/v4l2-core/Kconfig
-index a35c336..8331736 100644
---- a/drivers/media/v4l2-core/Kconfig
-+++ b/drivers/media/v4l2-core/Kconfig
-@@ -17,6 +17,14 @@ config VIDEO_ADV_DEBUG
- 	  V4L devices.
- 	  In doubt, say N.
+As you've done lots of work moving code away from timespec I figured out I 
+would ask, what is the preferred way to print a ktime in secs.nsecs format ? 
+Should I use ktime_to_timespec and print ts.tv_sec and ts.tv_nsec, or is there 
+a better way ?
 
-+config VIDEO_V4L2_ASYNC_DEBUG
-+	bool "Enable debug functionalities for V4L2 async module"
-+	depends on VIDEO_V4L2
-+	default n
-+	---help---
-+	  Say Y here to enable debug output in V4L2 async module.
-+	  In doubt, say N.
-+
- config VIDEO_FIXED_MINOR_RANGES
- 	bool "Enable old-style fixed minor ranges on drivers/video devices"
- 	default n
-diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
-index c13a781..307e1a5 100644
---- a/drivers/media/v4l2-core/v4l2-async.c
-+++ b/drivers/media/v4l2-core/v4l2-async.c
-@@ -8,6 +8,10 @@
-  * published by the Free Software Foundation.
-  */
+-- 
+Regards,
 
-+#if defined(CONFIG_VIDEO_V4L2_ASYNC_DEBUG)
-+#define DEBUG
-+#endif
-+
- #include <linux/device.h>
- #include <linux/err.h>
- #include <linux/i2c.h>
-@@ -25,6 +29,52 @@
- #include <media/v4l2-fwnode.h>
- #include <media/v4l2-subdev.h>
-
-+#if defined(CONFIG_VIDEO_V4L2_ASYNC_DEBUG)
-+#define V4L2_ASYNC_FWNODE_NAME_LEN	512
-+
-+static void __v4l2_async_fwnode_full_name(char *name,
-+					  unsigned int len,
-+					  unsigned int max_depth,
-+					  struct fwnode_handle *fwnode)
-+{
-+	unsigned int buf_len = len < V4L2_ASYNC_FWNODE_NAME_LEN ?
-+			       len : V4L2_ASYNC_FWNODE_NAME_LEN;
-+	char __tmp[V4L2_ASYNC_FWNODE_NAME_LEN];
-+	struct fwnode_handle *parent;
-+
-+	memset(name, 0, buf_len);
-+	buf_len -= snprintf(__tmp, buf_len, "%s", fwnode_get_name(fwnode));
-+
-+	parent = fwnode;
-+	while ((parent = fwnode_get_parent(parent)) && buf_len &&
-+		--max_depth) {
-+		buf_len -= snprintf(name, buf_len, "%s/%s",
-+				    fwnode_get_name(parent), __tmp);
-+		strcpy(__tmp, name);
-+	}
-+}
-+
-+static void v4l2_async_fwnode_full_name(char *name,
-+					unsigned int len,
-+					struct fwnode_handle *fwnode)
-+{
-+	/*
-+	 * Usually 4 as nesting level is sufficient to identify an
-+	 * endpoint firmware node uniquely.
-+	 */
-+	__v4l2_async_fwnode_full_name(name, len, 4, fwnode);
-+}
-+
-+#else /* CONFIG_VIDEO_V4L2_ASYNC_DEBUG */
-+#define V4L2_ASYNC_FWNODE_NAME_LEN	0
-+
-+static void v4l2_async_fwnode_full_name(char *name,
-+					unsigned int len,
-+					struct fwnode_handle *fwnode)
-+{
-+}
-+#endif /* CONFIG_VIDEO_V4L2_ASYNC_DEBUG */
-+
- static struct device *v4l2_async_notifier_dev(
- 					struct v4l2_async_notifier *notifier)
- {
-@@ -54,9 +104,12 @@ static void v4l2_async_notifier_call_unbind(struct v4l2_async_notifier *n,
-
- static int v4l2_async_notifier_call_complete(struct v4l2_async_notifier *n)
- {
-+	struct device *dev = v4l2_async_notifier_dev(n);
- 	if (!n->ops || !n->ops->complete)
- 		return 0;
-
-+	dev_dbg(dev, "Complete notifier \"%s\"\n", fwnode_get_name(n->owner));
-+
- 	return n->ops->complete(n);
- }
-
-@@ -100,8 +153,17 @@ static struct v4l2_async_subdev *v4l2_async_find_match(
- 	struct v4l2_async_notifier *notifier, struct v4l2_subdev *sd)
- {
- 	bool (*match)(struct v4l2_subdev *, struct v4l2_async_subdev *);
-+	struct device *dev = v4l2_async_notifier_dev(notifier);
-+	char asd_full_name[V4L2_ASYNC_FWNODE_NAME_LEN];
-+	char sd_full_name[V4L2_ASYNC_FWNODE_NAME_LEN];
- 	struct v4l2_async_subdev *asd;
-
-+	v4l2_async_fwnode_full_name(sd_full_name, V4L2_ASYNC_FWNODE_NAME_LEN,
-+				    sd->fwnode);
-+
-+	dev_dbg(dev, "Match notifier \"%s\" with subdevice \"%s\"\n",
-+		fwnode_get_name(notifier->owner), sd_full_name);
-+
- 	list_for_each_entry(asd, &notifier->waiting, list) {
- 		/* bus_type has been verified valid before */
- 		switch (asd->match_type) {
-@@ -115,6 +177,11 @@ static struct v4l2_async_subdev *v4l2_async_find_match(
- 			match = match_i2c;
- 			break;
- 		case V4L2_ASYNC_MATCH_FWNODE:
-+			v4l2_async_fwnode_full_name(asd_full_name,
-+						    V4L2_ASYNC_FWNODE_NAME_LEN,
-+						    asd->match.fwnode.fwnode);
-+			dev_dbg(dev, "Test sd \"%s\" with async_sd \"%s\"\n",
-+				sd_full_name, asd_full_name);
- 			match = match_fwnode;
- 			break;
- 		default:
-@@ -198,9 +265,16 @@ static int v4l2_async_match_notify(struct v4l2_async_notifier *notifier,
- 				   struct v4l2_subdev *sd,
- 				   struct v4l2_async_subdev *asd)
- {
-+	struct device *dev = v4l2_async_notifier_dev(notifier);
- 	struct v4l2_async_notifier *subdev_notifier;
-+	char sd_full_name[V4L2_ASYNC_FWNODE_NAME_LEN];
- 	int ret;
-
-+	v4l2_async_fwnode_full_name(sd_full_name, V4L2_ASYNC_FWNODE_NAME_LEN,
-+				    sd->fwnode);
-+	dev_dbg(dev, "Matched sd: \"%s\" with notifier \"%s\"\n",
-+		sd_full_name, fwnode_get_name(notifier->owner));
-+
- 	ret = v4l2_device_register_subdev(v4l2_dev, sd);
- 	if (ret < 0)
- 		return ret;
-@@ -240,6 +314,7 @@ static int v4l2_async_match_notify(struct v4l2_async_notifier *notifier,
- static int v4l2_async_notifier_try_all_subdevs(
- 	struct v4l2_async_notifier *notifier)
- {
-+	struct device *dev = v4l2_async_notifier_dev(notifier);
- 	struct v4l2_device *v4l2_dev =
- 		v4l2_async_notifier_find_v4l2_dev(notifier);
- 	struct v4l2_subdev *sd;
-@@ -247,6 +322,9 @@ static int v4l2_async_notifier_try_all_subdevs(
- 	if (!v4l2_dev)
- 		return 0;
-
-+	dev_dbg(dev, "Testing notifier \"%s\" against all subdevices\n",
-+		fwnode_get_name(notifier->owner));
-+
- again:
- 	list_for_each_entry(sd, &subdev_list, async_list) {
- 		struct v4l2_async_subdev *asd;
-@@ -378,6 +456,9 @@ static int __v4l2_async_notifier_register(struct v4l2_async_notifier *notifier)
-
- 	notifier->owner = dev_fwnode(dev);
-
-+	dev_dbg(dev, "Registering notifier \"%s\"\n",
-+		fwnode_get_name(notifier->owner));
-+
- 	mutex_lock(&list_lock);
-
- 	for (i = 0; i < notifier->num_subdevs; i++) {
---
-2.7.4
+Laurent Pinchart
