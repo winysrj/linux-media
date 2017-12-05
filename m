@@ -1,59 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from vps-vb.mhejs.net ([37.28.154.113]:56324 "EHLO vps-vb.mhejs.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1757331AbdLQRgR (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 17 Dec 2017 12:36:17 -0500
-From: "Maciej S. Szmigiero" <mail@maciej.szmigiero.name>
-Subject: [PATCH v3 4/6] tuner-simple: allow setting mono radio mode
-To: Michael Krufky <mkrufky@linuxtv.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Andy Walls <awalls@md.metrocast.net>,
-        linux-kernel <linux-kernel@vger.kernel.org>,
-        linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
-References: <cover.1513530138.git.mail@maciej.szmigiero.name>
-Message-ID: <3ee631bd-b75c-1a77-fea9-f8d96def5ad3@maciej.szmigiero.name>
-Date: Sun, 17 Dec 2017 18:36:15 +0100
-MIME-Version: 1.0
-In-Reply-To: <cover.1513530138.git.mail@maciej.szmigiero.name>
-Content-Type: text/plain; charset=iso-8859-2
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Received: from relay4-d.mail.gandi.net ([217.70.183.196]:47085 "EHLO
+        relay4-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751443AbdLEUl5 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 5 Dec 2017 15:41:57 -0500
+From: Jacopo Mondi <jacopo+renesas@jmondi.org>
+To: niklas.soderlund+renesas@ragnatech.se,
+        laurent.pinchart@ideasonboard.com, kieran.bingham@ideasonboard.com
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+Subject: [PATCH] v4l: rcar-csi2: Don't bail out from probe on no ep
+Date: Tue,  5 Dec 2017 21:41:48 +0100
+Message-Id: <1512506508-17418-1-git-send-email-jacopo+renesas@jmondi.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-For some types of tuners (Philips FMD1216ME(X) MK3 currently) we know that
-letting TDA9887 output port 1 remain high (inactive) will switch FM radio
-to mono mode.
-Let's make use of this functionality - nothing changes for the default
-stereo radio mode.
+When rcar-csi interface is not connected to any endpoint, it fails and
+bails out from probe before registering its own video subdevice.
+This prevents rcar-vin registered notifier from completing and no
+subdevice is ever registered, also for other properly connected csi
+interfaces.
 
-Tested on a Medion 95700 board which has a FMD1216ME tuner.
+Fix this not returning an error when no endpoint is connected to a csi
+interface and let the driver complete its probe function and register its
+own video subdevice.
 
-Signed-off-by: Maciej S. Szmigiero <mail@maciej.szmigiero.name>
 ---
- drivers/media/tuners/tuner-simple.c | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+Niklas,
+   please squash this patch in your next rcar-csi2 series (if you like it ;)
 
-diff --git a/drivers/media/tuners/tuner-simple.c b/drivers/media/tuners/tuner-simple.c
-index cf44d3657f55..01ab94681d2d 100644
---- a/drivers/media/tuners/tuner-simple.c
-+++ b/drivers/media/tuners/tuner-simple.c
-@@ -670,6 +670,7 @@ static int simple_set_radio_freq(struct dvb_frontend *fe,
- 	int rc, j;
- 	struct tuner_params *t_params;
- 	unsigned int freq = params->frequency;
-+	bool mono = params->audmode == V4L2_TUNER_MODE_MONO;
- 
- 	tun = priv->tun;
- 
-@@ -736,8 +737,8 @@ static int simple_set_radio_freq(struct dvb_frontend *fe,
- 			config |= TDA9887_PORT2_ACTIVE;
- 		if (t_params->intercarrier_mode)
- 			config |= TDA9887_INTERCARRIER;
--/*		if (t_params->port1_set_for_fm_mono)
--			config &= ~TDA9887_PORT1_ACTIVE;*/
-+		if (t_params->port1_set_for_fm_mono && mono)
-+			config &= ~TDA9887_PORT1_ACTIVE;
- 		if (t_params->fm_gain_normal)
- 			config |= TDA9887_GAIN_NORMAL;
- 		if (t_params->radio_if == 2)
+As we have discussed this is particularly useful for gmsl setup, where adv748x
+is connected to CSI20 and max9286 to CSI40/CSI41. If we disable adv748x from DTS
+we need CSI20 probe to complete anyhow otherwise no subdevice gets registered
+for the two deserializers.
+
+Please note we cannot disable CSI20 entirely otherwise VIN's graph parsing
+breaks.
+
+Thanks
+   j
+
+---
+ drivers/media/platform/rcar-vin/rcar-csi2.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/media/platform/rcar-vin/rcar-csi2.c b/drivers/media/platform/rcar-vin/rcar-csi2.c
+index 2793efb..90c4062 100644
+--- a/drivers/media/platform/rcar-vin/rcar-csi2.c
++++ b/drivers/media/platform/rcar-vin/rcar-csi2.c
+@@ -928,8 +928,8 @@ static int rcar_csi2_parse_dt(struct rcar_csi2 *priv)
+
+ 	ep = of_graph_get_endpoint_by_regs(priv->dev->of_node, 0, 0);
+ 	if (!ep) {
+-		dev_err(priv->dev, "Not connected to subdevice\n");
+-		return -EINVAL;
++		dev_dbg(priv->dev, "Not connected to subdevice\n");
++		return 0;
+ 	}
+
+ 	ret = v4l2_fwnode_endpoint_parse(of_fwnode_handle(ep), &v4l2_ep);
+--
+2.7.4
