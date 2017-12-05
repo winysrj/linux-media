@@ -1,157 +1,197 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:51399 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1759310AbdLRMai (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 18 Dec 2017 07:30:38 -0500
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>
-Subject: [PATCH v4 14/18] scripts: kernel-doc: print the declaration name on warnings
-Date: Mon, 18 Dec 2017 10:30:15 -0200
-Message-Id: <a5b340fc5ceca59bbcf9f8034fec3322754a2737.1513599193.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1513599193.git.mchehab@s-opensource.com>
-References: <cover.1513599193.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1513599193.git.mchehab@s-opensource.com>
-References: <cover.1513599193.git.mchehab@s-opensource.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:41163 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750995AbdLEAhO (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 4 Dec 2017 19:37:14 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>, y2038@lists.linaro.org,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 2/8] [media] uvc_video: use ktime_t for timestamps
+Date: Tue, 05 Dec 2017 02:37:27 +0200
+Message-ID: <2878836.BpTQ5Kp5iv@avalon>
+In-Reply-To: <20171127132027.1734806-2-arnd@arndb.de>
+References: <20171127132027.1734806-1-arnd@arndb.de> <20171127132027.1734806-2-arnd@arndb.de>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The logic at create_parameterlist()'s ancillary push_parameter()
-function has already a way to output the declaration name, with
-would help to discover what declaration is missing.
+Hi Arnd,
 
-However, currently, the logic is utterly broken, as it uses
-the var $type with a wrong meaning. With the current code,
-it will never print anything. I suspect that originally
-it was using the second argument of output_declaration().
+Thank you for the patch.
 
-I opted to not rely on a globally defined $declaration_name,
-but, instead, to pass it explicitly as a parameter.
+On Monday, 27 November 2017 15:19:54 EET Arnd Bergmann wrote:
+> uvc_video_get_ts() returns a 'struct timespec', but all its users
+> really want a nanoseconds variable anyway.
+> 
+> Changing the deprecated ktime_get_ts/ktime_get_real_ts to ktime_get
+> and ktime_get_real simplifies the code noticeably, while keeping
+> the resulting numbers unchanged.
+> 
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> ---
+>  drivers/media/usb/uvc/uvc_video.c | 37 ++++++++++++-----------------------
+>  drivers/media/usb/uvc/uvcvideo.h  |  2 +-
+>  2 files changed, 13 insertions(+), 26 deletions(-)
+> 
+> diff --git a/drivers/media/usb/uvc/uvc_video.c
+> b/drivers/media/usb/uvc/uvc_video.c index d6bee37cd1b8..f7a919490b2b 100644
+> --- a/drivers/media/usb/uvc/uvc_video.c
+> +++ b/drivers/media/usb/uvc/uvc_video.c
+> @@ -369,12 +369,12 @@ static int uvc_commit_video(struct uvc_streaming
+> *stream, * Clocks and timestamps
+>   */
+> 
+> -static inline void uvc_video_get_ts(struct timespec *ts)
+> +static inline ktime_t uvc_video_get_time(void)
+>  {
+>  	if (uvc_clock_param == CLOCK_MONOTONIC)
+> -		ktime_get_ts(ts);
+> +		return ktime_get();
+>  	else
+> -		ktime_get_real_ts(ts);
+> +		return ktime_get_real();
+>  }
+> 
+>  static void
+> @@ -386,7 +386,7 @@ uvc_video_clock_decode(struct uvc_streaming *stream,
+> struct uvc_buffer *buf, bool has_pts = false;
+>  	bool has_scr = false;
+>  	unsigned long flags;
+> -	struct timespec ts;
+> +	ktime_t time;
+>  	u16 host_sof;
+>  	u16 dev_sof;
+> 
+> @@ -436,7 +436,7 @@ uvc_video_clock_decode(struct uvc_streaming *stream,
+> struct uvc_buffer *buf, stream->clock.last_sof = dev_sof;
+> 
+>  	host_sof = usb_get_current_frame_number(stream->dev->udev);
+> -	uvc_video_get_ts(&ts);
+> +	time = uvc_video_get_time();
+> 
+>  	/* The UVC specification allows device implementations that can't obtain
+>  	 * the USB frame number to keep their own frame counters as long as they
+> @@ -473,7 +473,7 @@ uvc_video_clock_decode(struct uvc_streaming *stream,
+> struct uvc_buffer *buf, sample->dev_stc =
+> get_unaligned_le32(&data[header_size - 6]);
+>  	sample->dev_sof = dev_sof;
+>  	sample->host_sof = host_sof;
+> -	sample->host_ts = ts;
+> +	sample->host_time = time;
+> 
+>  	/* Update the sliding window head and count. */
+>  	stream->clock.head = (stream->clock.head + 1) % stream->clock.size;
+> @@ -613,14 +613,12 @@ void uvc_video_clock_update(struct uvc_streaming
+> *stream, struct uvc_clock_sample *first;
+>  	struct uvc_clock_sample *last;
+>  	unsigned long flags;
+> -	struct timespec ts;
+> +	u64 timestamp;
+>  	u32 delta_stc;
+>  	u32 y1, y2;
+>  	u32 x1, x2;
+>  	u32 mean;
+>  	u32 sof;
+> -	u32 div;
+> -	u32 rem;
+>  	u64 y;
+> 
+>  	if (!uvc_hw_timestamps_param)
+> @@ -667,9 +665,8 @@ void uvc_video_clock_update(struct uvc_streaming
+> *stream, if (x1 == x2)
+>  		goto done;
+> 
+> -	ts = timespec_sub(last->host_ts, first->host_ts);
+>  	y1 = NSEC_PER_SEC;
+> -	y2 = (ts.tv_sec + 1) * NSEC_PER_SEC + ts.tv_nsec;
+> +	y2 = (u32)ktime_to_ns(ktime_sub(last->host_time, first->host_time)) + y1;
+> 
+>  	/* Interpolated and host SOF timestamps can wrap around at slightly
+>  	 * different times. Handle this by adding or removing 2048 to or from
+> @@ -686,24 +683,18 @@ void uvc_video_clock_update(struct uvc_streaming
+> *stream, - (u64)y2 * (u64)x1;
+>  	y = div_u64(y, x2 - x1);
+> 
+> -	div = div_u64_rem(y, NSEC_PER_SEC, &rem);
+> -	ts.tv_sec = first->host_ts.tv_sec - 1 + div;
+> -	ts.tv_nsec = first->host_ts.tv_nsec + rem;
+> -	if (ts.tv_nsec >= NSEC_PER_SEC) {
+> -		ts.tv_sec++;
+> -		ts.tv_nsec -= NSEC_PER_SEC;
+> -	}
+> +	timestamp = ktime_to_ns(first->host_time) + y - y1;
 
-While here, I removed a unaligned check for !$anon_struct_union.
-This is not needed, as, if $anon_struct_union is not zero,
-$parameterdescs{$param} will be defined.
+It took me a few minutes to see that the -1 and -y1 were equivalent. And then 
+more time to re-read the code and the comments to understand what I had done. 
+I'm impressed that you haven't blindly replaced the +1s and -1s by 
++NSEC_PER_SEC and -NSEC_PER_SEC, but used +y1 and -y1 which I think improves 
+readability.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- scripts/kernel-doc | 38 ++++++++++++++++----------------------
- 1 file changed, 16 insertions(+), 22 deletions(-)
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-diff --git a/scripts/kernel-doc b/scripts/kernel-doc
-index fadb832733d9..c97b89f47795 100755
---- a/scripts/kernel-doc
-+++ b/scripts/kernel-doc
-@@ -1063,7 +1063,7 @@ sub dump_struct($$) {
- 	# Ignore other nested elements, like enums
- 	$members =~ s/({[^\{\}]*})//g;
- 
--	create_parameterlist($members, ';', $file);
-+	create_parameterlist($members, ';', $file, $declaration_name);
- 	check_sections($file, $declaration_name, $decl_type, $sectcheck, $struct_actual);
- 
- 	# Adjust declaration for better display
-@@ -1172,7 +1172,7 @@ sub dump_typedef($$) {
- 	$declaration_name = $2;
- 	my $args = $3;
- 
--	create_parameterlist($args, ',', $file);
-+	create_parameterlist($args, ',', $file, $declaration_name);
- 
- 	output_declaration($declaration_name,
- 			   'function',
-@@ -1221,10 +1221,11 @@ sub save_struct_actual($) {
-     $struct_actual = $struct_actual . $actual . " ";
- }
- 
--sub create_parameterlist($$$) {
-+sub create_parameterlist($$$$) {
-     my $args = shift;
-     my $splitter = shift;
-     my $file = shift;
-+    my $declaration_name = shift;
-     my $type;
-     my $param;
- 
-@@ -1254,7 +1255,7 @@ sub create_parameterlist($$$) {
- 	    $type = $arg;
- 	    $type =~ s/([^\(]+\(\*?)\s*$param/$1/;
- 	    save_struct_actual($param);
--	    push_parameter($param, $type, $file);
-+	    push_parameter($param, $type, $file, $declaration_name);
- 	} elsif ($arg) {
- 	    $arg =~ s/\s*:\s*/:/g;
- 	    $arg =~ s/\s*\[/\[/g;
-@@ -1279,27 +1280,28 @@ sub create_parameterlist($$$) {
- 	    foreach $param (@args) {
- 		if ($param =~ m/^(\*+)\s*(.*)/) {
- 		    save_struct_actual($2);
--		    push_parameter($2, "$type $1", $file);
-+		    push_parameter($2, "$type $1", $file, $declaration_name);
- 		}
- 		elsif ($param =~ m/(.*?):(\d+)/) {
- 		    if ($type ne "") { # skip unnamed bit-fields
- 			save_struct_actual($1);
--			push_parameter($1, "$type:$2", $file)
-+			push_parameter($1, "$type:$2", $file, $declaration_name)
- 		    }
- 		}
- 		else {
- 		    save_struct_actual($param);
--		    push_parameter($param, $type, $file);
-+		    push_parameter($param, $type, $file, $declaration_name);
- 		}
- 	    }
- 	}
-     }
- }
- 
--sub push_parameter($$$) {
-+sub push_parameter($$$$) {
- 	my $param = shift;
- 	my $type = shift;
- 	my $file = shift;
-+	my $declaration_name = shift;
- 
- 	if (($anon_struct_union == 1) && ($type eq "") &&
- 	    ($param eq "}")) {
-@@ -1336,21 +1338,13 @@ sub push_parameter($$$) {
- 	# warn if parameter has no description
- 	# (but ignore ones starting with # as these are not parameters
- 	# but inline preprocessor statements);
--	# also ignore unnamed structs/unions;
--	if (!$anon_struct_union) {
-+	# Note: It will also ignore void params and unnamed structs/unions
- 	if (!defined $parameterdescs{$param} && $param !~ /^#/) {
-+		$parameterdescs{$param} = $undescribed;
- 
--	    $parameterdescs{$param} = $undescribed;
--
--	    if (($type eq 'function') || ($type eq 'enum')) {
--		print STDERR "${file}:$.: warning: Function parameter ".
--		    "or member '$param' not " .
--		    "described in '$declaration_name'\n";
--	    }
--	    print STDERR "${file}:$.: warning:" .
--			 " No description found for parameter '$param'\n";
--	    ++$warnings;
--	}
-+		print STDERR
-+		      "${file}:$.: warning: Function parameter or member '$param' not described in '$declaration_name'\n";
-+		++$warnings;
- 	}
- 
- 	$param = xml_escape($param);
-@@ -1507,7 +1501,7 @@ sub dump_function($$) {
- 	$declaration_name = $2;
- 	my $args = $3;
- 
--	create_parameterlist($args, ',', $file);
-+	create_parameterlist($args, ',', $file, $declaration_name);
-     } else {
- 	print STDERR "${file}:$.: warning: cannot understand function prototype: '$prototype'\n";
- 	return;
+with the highest honors :-)
+
+Should I merge this through my tree ?
+
+>  	uvc_trace(UVC_TRACE_CLOCK, "%s: SOF %u.%06llu y %llu ts %llu "
+>  		  "buf ts %llu (x1 %u/%u/%u x2 %u/%u/%u y1 %u y2 %u)\n",
+>  		  stream->dev->name,
+>  		  sof >> 16, div_u64(((u64)sof & 0xffff) * 1000000LLU, 65536),
+> -		  y, timespec_to_ns(&ts), vbuf->vb2_buf.timestamp,
+> +		  y, timestamp, vbuf->vb2_buf.timestamp,
+>  		  x1, first->host_sof, first->dev_sof,
+>  		  x2, last->host_sof, last->dev_sof, y1, y2);
+> 
+>  	/* Update the V4L2 buffer. */
+> -	vbuf->vb2_buf.timestamp = timespec_to_ns(&ts);
+> +	vbuf->vb2_buf.timestamp = timestamp;
+> 
+>  done:
+>  	spin_unlock_irqrestore(&clock->lock, flags);
+> @@ -1007,8 +998,6 @@ static int uvc_video_decode_start(struct uvc_streaming
+> *stream, * when the EOF bit is set to force synchronisation on the next
+> packet. */
+>  	if (buf->state != UVC_BUF_STATE_ACTIVE) {
+> -		struct timespec ts;
+> -
+>  		if (fid == stream->last_fid) {
+>  			uvc_trace(UVC_TRACE_FRAME, "Dropping payload (out of "
+>  				"sync).\n");
+> @@ -1018,11 +1007,9 @@ static int uvc_video_decode_start(struct
+> uvc_streaming *stream, return -ENODATA;
+>  		}
+> 
+> -		uvc_video_get_ts(&ts);
+> -
+>  		buf->buf.field = V4L2_FIELD_NONE;
+>  		buf->buf.sequence = stream->sequence;
+> -		buf->buf.vb2_buf.timestamp = timespec_to_ns(&ts);
+> +		buf->buf.vb2_buf.timestamp = uvc_video_get_time();
+> 
+>  		/* TODO: Handle PTS and SCR. */
+>  		buf->state = UVC_BUF_STATE_ACTIVE;
+> diff --git a/drivers/media/usb/uvc/uvcvideo.h
+> b/drivers/media/usb/uvc/uvcvideo.h index a2c190937067..d7797dfb6468 100644
+> --- a/drivers/media/usb/uvc/uvcvideo.h
+> +++ b/drivers/media/usb/uvc/uvcvideo.h
+> @@ -536,8 +536,8 @@ struct uvc_streaming {
+>  		struct uvc_clock_sample {
+>  			u32 dev_stc;
+>  			u16 dev_sof;
+> -			struct timespec host_ts;
+>  			u16 host_sof;
+> +			ktime_t host_time;
+>  		} *samples;
+> 
+>  		unsigned int head;
+
 -- 
-2.14.3
+Regards,
+
+Laurent Pinchart
