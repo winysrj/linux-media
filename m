@@ -1,214 +1,223 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:52256 "EHLO
+Received: from galahad.ideasonboard.com ([185.26.127.97]:41182 "EHLO
         galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750908AbdLHUpn (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 8 Dec 2017 15:45:43 -0500
+        with ESMTP id S1752162AbdLEAlL (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 4 Dec 2017 19:41:11 -0500
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Niklas =?ISO-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>
-Subject: Re: [PATCH v9 25/28] rcar-vin: extend {start,stop}_streaming to work with media controller
-Date: Fri, 08 Dec 2017 22:45:41 +0200
-Message-ID: <9062233.viFt96TuT9@avalon>
-In-Reply-To: <20171208010842.20047-26-niklas.soderlund+renesas@ragnatech.se>
-References: <20171208010842.20047-1-niklas.soderlund+renesas@ragnatech.se> <20171208010842.20047-26-niklas.soderlund+renesas@ragnatech.se>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>, y2038@lists.linaro.org,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: [PATCH 5/8] [media] omap3isp: support 64-bit version of omap3isp_stat_data
+Date: Tue, 05 Dec 2017 02:41:24 +0200
+Message-ID: <1517434.pRS3rpdWG0@avalon>
+In-Reply-To: <20171127132027.1734806-5-arnd@arndb.de>
+References: <20171127132027.1734806-1-arnd@arndb.de> <20171127132027.1734806-5-arnd@arndb.de>
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Niklas,
+Hi Arnd,
 
 Thank you for the patch.
 
-On Friday, 8 December 2017 03:08:39 EET Niklas S=F6derlund wrote:
-> The procedure to start or stop streaming using the non-MC single
-> subdevice and the MC graph and multiple subdevices are quite different.
-> Create a new function to abstract which method is used based on which
-> mode the driver is running in and add logic to start the MC graph.
->=20
-> Signed-off-by: Niklas S=F6derlund <niklas.soderlund+renesas@ragnatech.se>
-> Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+I'll try to review this without too much delay. In the meantime, I'm CC'ing 
+Sakari Ailus who might be faster than me :-)
+
+On Monday, 27 November 2017 15:19:57 EET Arnd Bergmann wrote:
+> C libraries with 64-bit time_t use an incompatible format for
+> struct omap3isp_stat_data. This changes the kernel code to
+> support either version, by moving over the normal handling
+> to the 64-bit variant, and adding compatiblity code to handle
+> the old binary format with the existing ioctl command code.
+> 
+> Fortunately, the command code includes the size of the structure,
+> so the difference gets handled automatically. In the process of
+> eliminating the references to 'struct timeval' from the kernel,
+> I also change the way the timestamp is generated internally,
+> basically by open-coding the v4l2_get_timestamp() call.
+> 
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 > ---
->  drivers/media/platform/rcar-vin/rcar-dma.c | 112 +++++++++++++++++++++++=
-+--
->  1 file changed, 105 insertions(+), 7 deletions(-)
->=20
-> diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c
-> b/drivers/media/platform/rcar-vin/rcar-dma.c index
-> 6c5df13b30d6dd14..8a6674a891aab357 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-dma.c
-> +++ b/drivers/media/platform/rcar-vin/rcar-dma.c
-> @@ -1087,15 +1087,115 @@ static void rvin_buffer_queue(struct vb2_buffer
-> *vb) spin_unlock_irqrestore(&vin->qlock, flags);
+>  drivers/media/platform/omap3isp/isph3a_aewb.c |  2 ++
+>  drivers/media/platform/omap3isp/isph3a_af.c   |  2 ++
+>  drivers/media/platform/omap3isp/isphist.c     |  2 ++
+>  drivers/media/platform/omap3isp/ispstat.c     | 21 +++++++++++++++++++--
+>  drivers/media/platform/omap3isp/ispstat.h     |  4 +++-
+>  include/uapi/linux/omap3isp.h                 | 22 ++++++++++++++++++++++
+>  6 files changed, 50 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/media/platform/omap3isp/isph3a_aewb.c
+> b/drivers/media/platform/omap3isp/isph3a_aewb.c index
+> d44626f20ac6..3c82dea4d375 100644
+> --- a/drivers/media/platform/omap3isp/isph3a_aewb.c
+> +++ b/drivers/media/platform/omap3isp/isph3a_aewb.c
+> @@ -250,6 +250,8 @@ static long h3a_aewb_ioctl(struct v4l2_subdev *sd,
+> unsigned int cmd, void *arg) return omap3isp_stat_config(stat, arg);
+>  	case VIDIOC_OMAP3ISP_STAT_REQ:
+>  		return omap3isp_stat_request_statistics(stat, arg);
+> +	case VIDIOC_OMAP3ISP_STAT_REQ_TIME32:
+> +		return omap3isp_stat_request_statistics_time32(stat, arg);
+>  	case VIDIOC_OMAP3ISP_STAT_EN: {
+>  		unsigned long *en = arg;
+>  		return omap3isp_stat_enable(stat, !!*en);
+> diff --git a/drivers/media/platform/omap3isp/isph3a_af.c
+> b/drivers/media/platform/omap3isp/isph3a_af.c index
+> 99bd6cc21d86..4da25c84f0c6 100644
+> --- a/drivers/media/platform/omap3isp/isph3a_af.c
+> +++ b/drivers/media/platform/omap3isp/isph3a_af.c
+> @@ -314,6 +314,8 @@ static long h3a_af_ioctl(struct v4l2_subdev *sd,
+> unsigned int cmd, void *arg) return omap3isp_stat_config(stat, arg);
+>  	case VIDIOC_OMAP3ISP_STAT_REQ:
+>  		return omap3isp_stat_request_statistics(stat, arg);
+> +	case VIDIOC_OMAP3ISP_STAT_REQ_TIME32:
+> +		return omap3isp_stat_request_statistics_time32(stat, arg);
+>  	case VIDIOC_OMAP3ISP_STAT_EN: {
+>  		int *en = arg;
+>  		return omap3isp_stat_enable(stat, !!*en);
+> diff --git a/drivers/media/platform/omap3isp/isphist.c
+> b/drivers/media/platform/omap3isp/isphist.c index
+> a4ed5d140d48..d4be3d0e06f9 100644
+> --- a/drivers/media/platform/omap3isp/isphist.c
+> +++ b/drivers/media/platform/omap3isp/isphist.c
+> @@ -435,6 +435,8 @@ static long hist_ioctl(struct v4l2_subdev *sd, unsigned
+> int cmd, void *arg) return omap3isp_stat_config(stat, arg);
+>  	case VIDIOC_OMAP3ISP_STAT_REQ:
+>  		return omap3isp_stat_request_statistics(stat, arg);
+> +	case VIDIOC_OMAP3ISP_STAT_REQ_TIME32:
+> +		return omap3isp_stat_request_statistics_time32(stat, arg);
+>  	case VIDIOC_OMAP3ISP_STAT_EN: {
+>  		int *en = arg;
+>  		return omap3isp_stat_enable(stat, !!*en);
+> diff --git a/drivers/media/platform/omap3isp/ispstat.c
+> b/drivers/media/platform/omap3isp/ispstat.c index
+> 47cbc7e3d825..5967dfd0a9f7 100644
+> --- a/drivers/media/platform/omap3isp/ispstat.c
+> +++ b/drivers/media/platform/omap3isp/ispstat.c
+> @@ -18,6 +18,7 @@
+>  #include <linux/dma-mapping.h>
+>  #include <linux/slab.h>
+>  #include <linux/uaccess.h>
+> +#include <linux/timekeeping.h>
+> 
+>  #include "isp.h"
+> 
+> @@ -237,7 +238,7 @@ static int isp_stat_buf_queue(struct ispstat *stat)
+>  	if (!stat->active_buf)
+>  		return STAT_NO_BUF;
+> 
+> -	v4l2_get_timestamp(&stat->active_buf->ts);
+> +	ktime_get_ts64(&stat->active_buf->ts);
+> 
+>  	stat->active_buf->buf_size = stat->buf_size;
+>  	if (isp_stat_buf_check_magic(stat, stat->active_buf)) {
+> @@ -500,7 +501,8 @@ int omap3isp_stat_request_statistics(struct ispstat
+> *stat, return PTR_ERR(buf);
+>  	}
+> 
+> -	data->ts = buf->ts;
+> +	data->ts.tv_sec = buf->ts.tv_sec;
+> +	data->ts.tv_usec = buf->ts.tv_nsec / NSEC_PER_USEC;
+>  	data->config_counter = buf->config_counter;
+>  	data->frame_number = buf->frame_number;
+>  	data->buf_size = buf->buf_size;
+> @@ -512,6 +514,21 @@ int omap3isp_stat_request_statistics(struct ispstat
+> *stat, return 0;
 >  }
->=20
-> +static int rvin_set_stream(struct rvin_dev *vin, int on)
+> 
+> +int omap3isp_stat_request_statistics_time32(struct ispstat *stat,
+> +					struct omap3isp_stat_data_time32 *data)
 > +{
-> +	struct v4l2_subdev_format fmt =3D {
-> +		.which =3D V4L2_SUBDEV_FORMAT_ACTIVE,
-> +	};
-> +	struct media_pipeline *pipe;
-> +	struct  v4l2_subdev *sd;
-> +	struct media_pad *pad;
+> +	struct omap3isp_stat_data data64;
 > +	int ret;
 > +
-> +	/* No media controller used, simply pass operation to subdevice */
-> +	if (!vin->info->use_mc) {
-> +		ret =3D v4l2_subdev_call(vin->digital->subdev, video, s_stream,
-> +				       on);
+> +	ret = omap3isp_stat_request_statistics(stat, &data64);
 > +
-> +		return ret =3D=3D -ENOIOCTLCMD ? 0 : ret;
-> +	}
-> +
-> +	pad =3D media_entity_remote_pad(&vin->pad);
-> +	if (!pad)
-> +		return -EPIPE;
-> +
-> +	sd =3D media_entity_to_v4l2_subdev(pad->entity);
-> +	if (!sd)
-> +		return -EPIPE;
-
-Can a pad have no entity ?
-
-> +	if (!on) {
-> +		media_pipeline_stop(&vin->vdev.entity);
-> +		return v4l2_subdev_call(sd, video, s_stream, 0);
-> +	}
-> +
-> +	fmt.pad =3D pad->index;
-> +	if (v4l2_subdev_call(sd, pad, get_fmt, NULL, &fmt))
-> +		return -EPIPE;
-> +
-> +	switch (fmt.format.code) {
-> +	case MEDIA_BUS_FMT_YUYV8_1X16:
-> +	case MEDIA_BUS_FMT_UYVY8_2X8:
-> +	case MEDIA_BUS_FMT_UYVY10_2X10:
-> +	case MEDIA_BUS_FMT_RGB888_1X24:
-> +		vin->code =3D fmt.format.code;
-> +		break;
-> +	default:
-> +		return -EPIPE;
-> +	}
-> +
-> +	switch (fmt.format.field) {
-> +	case V4L2_FIELD_TOP:
-> +	case V4L2_FIELD_BOTTOM:
-> +	case V4L2_FIELD_NONE:
-> +	case V4L2_FIELD_INTERLACED_TB:
-> +	case V4L2_FIELD_INTERLACED_BT:
-> +	case V4L2_FIELD_INTERLACED:
-> +	case V4L2_FIELD_SEQ_TB:
-> +	case V4L2_FIELD_SEQ_BT:
-> +		/* Supported natively */
-> +		break;
-> +	case V4L2_FIELD_ALTERNATE:
-> +		switch (vin->format.field) {
-> +		case V4L2_FIELD_TOP:
-> +		case V4L2_FIELD_BOTTOM:
-> +		case V4L2_FIELD_NONE:
-> +			break;
-> +		case V4L2_FIELD_INTERLACED_TB:
-> +		case V4L2_FIELD_INTERLACED_BT:
-> +		case V4L2_FIELD_INTERLACED:
-> +		case V4L2_FIELD_SEQ_TB:
-> +		case V4L2_FIELD_SEQ_BT:
-> +			/* Use VIN hardware to combine the two fields */
-> +			fmt.format.height *=3D 2;
-> +			break;
-> +		default:
-> +			return -EPIPE;
-> +		}
-> +		break;
-> +	default:
-> +		return -EPIPE;
-> +	}
-> +
-> +	if (fmt.format.width !=3D vin->format.width ||
-> +	    fmt.format.height !=3D vin->format.height)
-> +		return -EPIPE;
-
-Shouldn't you also validate the media bus pixel code against the pixel form=
-at=20
-?
-
-> +	pipe =3D sd->entity.pipe ? sd->entity.pipe : &vin->vdev.pipe;
-
-How is this protected against race conditions if you call VIDIOC_STREAMON o=
-n=20
-two VIN instances connected to the same CSI-2 receiver ?
-
-And how does this handle two VIN instances connected to two different CSI-2=
-=20
-receivers that are both connected to the same source ? We will use two=20
-different pipeline objects, is that a problem ?
-
-> +	if (media_pipeline_start(&vin->vdev.entity, pipe))
-> +		return -EPIPE;
-> +
-> +	ret =3D v4l2_subdev_call(sd, video, s_stream, 1);
-> +	if (ret =3D=3D -ENOIOCTLCMD)
-> +		ret =3D 0;
-> +	if (ret)
-> +		media_pipeline_stop(&vin->vdev.entity);
+> +	data->ts.tv_sec = data64.ts.tv_sec;
+> +	data->ts.tv_usec = data64.ts.tv_usec;
+> +	memcpy(&data->buf, &data64.buf, sizeof(*data) - sizeof(data->ts));
 > +
 > +	return ret;
 > +}
 > +
->  static int rvin_start_streaming(struct vb2_queue *vq, unsigned int count)
->  {
->  	struct rvin_dev *vin =3D vb2_get_drv_priv(vq);
-> -	struct v4l2_subdev *sd;
->  	unsigned long flags;
->  	int ret;
->=20
-> -	sd =3D vin_to_source(vin);
-> -	v4l2_subdev_call(sd, video, s_stream, 1);
-> +	ret =3D rvin_set_stream(vin, 1);
-> +	if (ret) {
-> +		spin_lock_irqsave(&vin->qlock, flags);
-> +		return_all_buffers(vin, VB2_BUF_STATE_QUEUED);
-> +		spin_unlock_irqrestore(&vin->qlock, flags);
-> +		return ret;
-> +	}
->=20
->  	spin_lock_irqsave(&vin->qlock, flags);
->=20
-> @@ -1104,7 +1204,7 @@ static int rvin_start_streaming(struct vb2_queue *v=
-q,
-> unsigned int count) ret =3D rvin_capture_start(vin);
->  	if (ret) {
->  		return_all_buffers(vin, VB2_BUF_STATE_QUEUED);
-> -		v4l2_subdev_call(sd, video, s_stream, 0);
-> +		rvin_set_stream(vin, 0);
->  	}
->=20
->  	spin_unlock_irqrestore(&vin->qlock, flags);
-> @@ -1115,7 +1215,6 @@ static int rvin_start_streaming(struct vb2_queue *v=
-q,
-> unsigned int count) static void rvin_stop_streaming(struct vb2_queue *vq)
->  {
->  	struct rvin_dev *vin =3D vb2_get_drv_priv(vq);
-> -	struct v4l2_subdev *sd;
->  	unsigned long flags;
->  	int retries =3D 0;
->=20
-> @@ -1154,8 +1253,7 @@ static void rvin_stop_streaming(struct vb2_queue *v=
-q)
->=20
->  	spin_unlock_irqrestore(&vin->qlock, flags);
->=20
-> -	sd =3D vin_to_source(vin);
-> -	v4l2_subdev_call(sd, video, s_stream, 0);
-> +	rvin_set_stream(vin, 0);
->=20
->  	/* disable interrupts */
->  	rvin_disable_interrupts(vin);
+>  /*
+>   * omap3isp_stat_config - Receives new statistic engine configuration.
+>   * @new_conf: Pointer to config structure.
+> diff --git a/drivers/media/platform/omap3isp/ispstat.h
+> b/drivers/media/platform/omap3isp/ispstat.h index
+> 6d9b0244f320..923b38cfc682 100644
+> --- a/drivers/media/platform/omap3isp/ispstat.h
+> +++ b/drivers/media/platform/omap3isp/ispstat.h
+> @@ -39,7 +39,7 @@ struct ispstat_buffer {
+>  	struct sg_table sgt;
+>  	void *virt_addr;
+>  	dma_addr_t dma_addr;
+> -	struct timeval ts;
+> +	struct timespec64 ts;
+>  	u32 buf_size;
+>  	u32 frame_number;
+>  	u16 config_counter;
+> @@ -130,6 +130,8 @@ struct ispstat_generic_config {
+>  int omap3isp_stat_config(struct ispstat *stat, void *new_conf);
+>  int omap3isp_stat_request_statistics(struct ispstat *stat,
+>  				     struct omap3isp_stat_data *data);
+> +int omap3isp_stat_request_statistics_time32(struct ispstat *stat,
+> +				     struct omap3isp_stat_data_time32 *data);
+>  int omap3isp_stat_init(struct ispstat *stat, const char *name,
+>  		       const struct v4l2_subdev_ops *sd_ops);
+>  void omap3isp_stat_cleanup(struct ispstat *stat);
+> diff --git a/include/uapi/linux/omap3isp.h b/include/uapi/linux/omap3isp.h
+> index 1a920145db04..87b55755f4ff 100644
+> --- a/include/uapi/linux/omap3isp.h
+> +++ b/include/uapi/linux/omap3isp.h
+> @@ -55,6 +55,8 @@
+>  	_IOWR('V', BASE_VIDIOC_PRIVATE + 5, struct omap3isp_h3a_af_config)
+>  #define VIDIOC_OMAP3ISP_STAT_REQ \
+>  	_IOWR('V', BASE_VIDIOC_PRIVATE + 6, struct omap3isp_stat_data)
+> +#define VIDIOC_OMAP3ISP_STAT_REQ_TIME32 \
+> +	_IOWR('V', BASE_VIDIOC_PRIVATE + 6, struct omap3isp_stat_data_time32)
+>  #define VIDIOC_OMAP3ISP_STAT_EN \
+>  	_IOWR('V', BASE_VIDIOC_PRIVATE + 7, unsigned long)
+> 
+> @@ -165,7 +167,14 @@ struct omap3isp_h3a_aewb_config {
+>   * @config_counter: Number of the configuration associated with the data.
+>   */
+>  struct omap3isp_stat_data {
+> +#ifdef __KERNEL__
+> +	struct {
+> +		__s64	tv_sec;
+> +		__s64	tv_usec;
+> +	} ts;
+> +#else
+>  	struct timeval ts;
+> +#endif
+>  	void __user *buf;
+>  	__u32 buf_size;
+>  	__u16 frame_number;
+> @@ -173,6 +182,19 @@ struct omap3isp_stat_data {
+>  	__u16 config_counter;
+>  };
+> 
+> +#ifdef __KERNEL__
+> +struct omap3isp_stat_data_time32 {
+> +	struct {
+> +		__s32	tv_sec;
+> +		__s32	tv_usec;
+> +	} ts;
+> +	__u32 buf;
+> +	__u32 buf_size;
+> +	__u16 frame_number;
+> +	__u16 cur_frame;
+> +	__u16 config_counter;
+> +};
+> +#endif
+> 
+>  /* Histogram related structs */
 
-=2D-=20
+
+-- 
 Regards,
 
 Laurent Pinchart
