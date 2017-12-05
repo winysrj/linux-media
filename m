@@ -1,81 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.17.13]:61517 "EHLO
-        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751937AbdLEVxS (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 5 Dec 2017 16:53:18 -0500
-From: Arnd Bergmann <arnd@arndb.de>
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Kees Cook <keescook@chromium.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org, kasan-dev@googlegroups.com,
-        Dmitry Vyukov <dvyukov@google.com>,
-        Alexander Potapenko <glider@google.com>,
-        Andrey Ryabinin <aryabinin@virtuozzo.com>,
-        linux-kbuild@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>,
-        stable@vger.kernel.org, Daniel Micay <danielmicay@gmail.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Martin Wilck <mwilck@suse.com>,
-        Dan Williams <dan.j.williams@intel.com>,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH] string.h: work around for increased stack usage
-Date: Tue,  5 Dec 2017 22:51:19 +0100
-Message-Id: <20171205215143.3085755-1-arnd@arndb.de>
+Received: from mout.gmx.net ([212.227.17.20]:53918 "EHLO mout.gmx.net"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752856AbdLEJh5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 5 Dec 2017 04:37:57 -0500
+Date: Tue, 5 Dec 2017 10:37:53 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/2] uvcvideo: Factor out video device registration to
+ a function
+In-Reply-To: <2198509.Q7DjPqLdEd@avalon>
+Message-ID: <alpine.DEB.2.20.1712051032440.22421@axis700.grange>
+References: <20171204232333.30084-1-laurent.pinchart@ideasonboard.com> <20171204232333.30084-2-laurent.pinchart@ideasonboard.com> <alpine.DEB.2.20.1712051008040.22421@axis700.grange> <2198509.Q7DjPqLdEd@avalon>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The hardened strlen() function causes rather large stack usage in at
-least one file in the kernel, in particular when CONFIG_KASAN is enabled:
+On Tue, 5 Dec 2017, Laurent Pinchart wrote:
 
-drivers/media/usb/em28xx/em28xx-dvb.c: In function 'em28xx_dvb_init':
-drivers/media/usb/em28xx/em28xx-dvb.c:2062:1: error: the frame size of 3256 bytes is larger than 204 bytes [-Werror=frame-larger-than=]
+> Hi Guennadi,
+> 
+> On Tuesday, 5 December 2017 11:14:18 EET Guennadi Liakhovetski wrote:
+> > On Tue, 5 Dec 2017, Laurent Pinchart wrote:
+> > > The function will then be used to register the video device for metadata
+> > > capture.
+> > > 
+> > > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > > ---
+> > > 
+> > >  drivers/media/usb/uvc/uvc_driver.c | 66 ++++++++++++++++++++-------------
+> > >  drivers/media/usb/uvc/uvcvideo.h   |  8 +++++
+> > >  2 files changed, 49 insertions(+), 25 deletions(-)
+> > > 
+> > > diff --git a/drivers/media/usb/uvc/uvc_driver.c
+> > > b/drivers/media/usb/uvc/uvc_driver.c index f77e31fcfc57..b832929d3382
+> > > 100644
+> > > --- a/drivers/media/usb/uvc/uvc_driver.c
+> > > +++ b/drivers/media/usb/uvc/uvc_driver.c
+> > > @@ -24,6 +24,7 @@
+> > >  #include <asm/unaligned.h>
+> > >  
+> > >  #include <media/v4l2-common.h>
+> > > +#include <media/v4l2-ioctl.h>
+> > > 
+> > >  #include "uvcvideo.h"
+> > > @@ -1895,52 +1896,63 @@ static void uvc_unregister_video(struct uvc_device
+> > > *dev)
+> > 
+> > [snip]
+> > 
+> > >  	vdev->release = uvc_release;
+> > >  	vdev->prio = &stream->chain->prio;
+> > > 
+> > > -	if (stream->type == V4L2_BUF_TYPE_VIDEO_OUTPUT)
+> > > +	if (type == V4L2_BUF_TYPE_VIDEO_OUTPUT)
+> > >  		vdev->vfl_dir = VFL_DIR_TX;
+> > 
+> > Why isn't .vfl_dir set for other stream types? Are you jusut relying on
+> > VFL_DIR_RX == 0? I'd use a switch (type) here which then would be extended
+> > in your next patch with .device_caps fields.
+> 
+> Yes, and I agree it's not right. How about
+> 
+> 	if (type == V4L2_BUF_TYPE_VIDEO_OUTPUT)
+>  		vdev->vfl_dir = VFL_DIR_TX;
+> 	else
+>  		vdev->vfl_dir = VFL_DIR_RX;
+> 
+> Then it won't need to be touched when adding metadata support.
 
-Analyzing this problem led to the discovery that gcc fails to merge the
-stack slots for the i2c_board_info[] structures after we strlcpy() into
-them, due to the 'noreturn' attribute on the source string length check.
+Well, I personally find it a bit less than elegant to have
 
-I reported this as a gcc bug, but it is unlikely to get fixed for gcc-8,
-since it is relatively easy to work around, and it gets triggered rarely.
-An earlier workaround I did added an empty inline assembly statement
-before the call to fortify_panic(), which works surprisingly well,
-but is really ugly and unintuitive.
+	if (x = a)
+		...
+	else
+		...
 
-This is a new approach to the same problem, this time addressing it by
-not calling the 'extern __real_strnlen()' function for string constants
-where __builtin_strlen() is a compile-time constant and therefore known
-to be safe. We do this by checking if the last character in the string
-is a compile-time constant '\0'. If it is, we can assume that
-strlen() of the string is also constant. As a side-effect, this should
-also improve the object code output for any other call of strlen()
-on a string constant.
+	switch (x) {
+	case a:
+		...
+	...
+	}
 
-Cc: stable@vger.kernel.org
-Link: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=82365
-Link: https://patchwork.kernel.org/patch/9980413/
-Link: https://patchwork.kernel.org/patch/9974047/
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
----
-v3: don't use an asm barrier but use a constant string change.
+Also, if I did end up having these two separate, I'd also rather use the 
+?: operator for the first one, but in the end it's up to you, I won't 
+fight for that :-)
 
-Aside from two other patches for drivers/media that I sent last week,
-this should fix all stack frames above 2KB, once all three are merged,
-I'll send the patch to re-enable the warning.
----
- include/linux/string.h | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
-
-diff --git a/include/linux/string.h b/include/linux/string.h
-index 410ecf17de3c..e5cc3f27f6e0 100644
---- a/include/linux/string.h
-+++ b/include/linux/string.h
-@@ -259,7 +259,8 @@ __FORTIFY_INLINE __kernel_size_t strlen(const char *p)
- {
- 	__kernel_size_t ret;
- 	size_t p_size = __builtin_object_size(p, 0);
--	if (p_size == (size_t)-1)
-+	if (p_size == (size_t)-1 ||
-+	    (__builtin_constant_p(p[p_size - 1]) && p[p_size - 1] == '\0'))
- 		return __builtin_strlen(p);
- 	ret = strnlen(p, p_size);
- 	if (p_size <= ret)
--- 
-2.9.0
+Thanks
+Guennadi
