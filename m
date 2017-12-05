@@ -1,131 +1,171 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:47050 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751021AbdLHIK0 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 8 Dec 2017 03:10:26 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Niklas =?ISO-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>
-Subject: Re: [PATCH v9 06/28] rcar-vin: move max width and height information to chip information
-Date: Fri, 08 Dec 2017 10:10:45 +0200
-Message-ID: <1517674.IBOQih2ykn@avalon>
-In-Reply-To: <20171208010842.20047-7-niklas.soderlund+renesas@ragnatech.se>
-References: <20171208010842.20047-1-niklas.soderlund+renesas@ragnatech.se> <20171208010842.20047-7-niklas.soderlund+renesas@ragnatech.se>
+Received: from mout.gmx.net ([212.227.17.20]:50146 "EHLO mout.gmx.net"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752720AbdLENop (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 5 Dec 2017 08:44:45 -0500
+Date: Tue, 5 Dec 2017 14:44:34 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [PATCH 3/3 v7] uvcvideo: add a metadata device node
+In-Reply-To: <29678788.jfO5ktnOBC@avalon>
+Message-ID: <alpine.DEB.2.20.1712051440590.22421@axis700.grange>
+References: <1510156814-28645-1-git-send-email-g.liakhovetski@gmx.de> <2006709.83fRcNtr9s@avalon> <alpine.DEB.2.20.1712050918330.22421@axis700.grange> <29678788.jfO5ktnOBC@avalon>
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset="iso-8859-1"
+Content-Type: text/plain; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Niklas,
+On Tue, 5 Dec 2017, Laurent Pinchart wrote:
 
-Thank you for the patch.
+> Hi Guennadi,
+> 
+> On Tuesday, 5 December 2017 12:56:53 EET Guennadi Liakhovetski wrote:
+> > On Tue, 5 Dec 2017, Laurent Pinchart wrote:
+> > > On Wednesday, 8 November 2017 18:00:14 EET Guennadi Liakhovetski wrote:
+> > >> Some UVC video cameras contain metadata in their payload headers. This
+> > >> patch extracts that data, adding more clock synchronisation information,
+> > >> on both bulk and isochronous endpoints and makes it available to the
+> > >> user space on a separate video node, using the V4L2_CAP_META_CAPTURE
+> > >> capability and the V4L2_BUF_TYPE_META_CAPTURE buffer queue type. Even
+> > >> though different cameras will have different metadata formats, we use
+> > >> the same V4L2_META_FMT_UVC pixel format for all of them. Users have to
+> > >> parse data, based on the specific camera model information. This
+> > >> version of the patch only creates such metadata nodes for cameras,
+> > >> specifying a UVC_QUIRK_METADATA_NODE quirk flag.
+> > > 
+> > > I don't think this is correct anymore, as we'll use different 4CCs for
+> > > different vendor metadata. How would you like to rephrase the commit
+> > > message ?
+> > 
+> > Something like
+> > 
+> > "
+> > Some UVC video cameras contain metadata in their payload headers. This
+> > patch extracts that data, adding more clock synchronisation information,
+> > on both bulk and isochronous endpoints and makes it available to the user
+> > space on a separate video node, using the V4L2_CAP_META_CAPTURE capability
+> > and the V4L2_BUF_TYPE_META_CAPTURE buffer queue type. By default, only the
+> > V4L2_META_FMT_UVC pixel format is available from those nodes. However,
+> > cameras can be added to the device ID table to additionally specify their
+> > own metadata format, in which case that format will also become available
+> > from the metadata node.
+> > "
+> 
+> Sounds good to me.
+> 
+> > >> Signed-off-by: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>
+> > >> ---
+> > >> 
+> > >> v7: support up to two metadata formats per camera - the standard one and
+> > >> an optional private one, if specified in device information
+> > >> 
+> > >>  drivers/media/usb/uvc/Makefile       |   2 +-
+> > >>  drivers/media/usb/uvc/uvc_driver.c   |  15 +++
+> > >>  drivers/media/usb/uvc/uvc_isight.c   |   2 +-
+> > >>  drivers/media/usb/uvc/uvc_metadata.c | 204 +++++++++++++++++++++++++++++
+> > >>  drivers/media/usb/uvc/uvc_queue.c    |  41 +++++--
+> > >>  drivers/media/usb/uvc/uvc_video.c    | 127 ++++++++++++++++++++--
+> > >>  drivers/media/usb/uvc/uvcvideo.h     |  19 +++-
+> > >>  drivers/media/v4l2-core/v4l2-ioctl.c |   1 +
+> > >>  include/uapi/linux/uvcvideo.h        |  26 +++++
+> > >>  9 files changed, 416 insertions(+), 21 deletions(-)
+> > >>  create mode 100644 drivers/media/usb/uvc/uvc_metadata.c
+> [snip]
+> 
+> > >> diff --git a/drivers/media/usb/uvc/uvc_metadata.c
+> > >> b/drivers/media/usb/uvc/uvc_metadata.c new file mode 100644
+> > >> index 0000000..21eeee9
+> > >> --- /dev/null
+> > >> +++ b/drivers/media/usb/uvc/uvc_metadata.c
+> 
+> [snip]
+> 
+> > >> +static int uvc_meta_v4l2_querycap(struct file *file, void *fh,
+> > >> +				  struct v4l2_capability *cap)
+> > >> +{
+> > >> +	struct v4l2_fh *vfh = file->private_data;
+> > >> +	struct uvc_streaming *stream = video_get_drvdata(vfh->vdev);
+> > >> +
+> > >> +	strlcpy(cap->driver, "uvcvideo", sizeof(cap->driver));
+> > >> +	strlcpy(cap->card, vfh->vdev->name, sizeof(cap->card));
+> > >> +	usb_make_path(stream->dev->udev, cap->bus_info,
+> > >> sizeof(cap->bus_info));
+> > >> +
+> > >> +	return 0;
+> > >> +}
+> > > 
+> > > Do you think we could reuse uvc_ioctl_querycap() as-is ?
+> > 
+> > AFAICS it still has
+> > 
+> > 	cap->capabilities = V4L2_CAP_DEVICE_CAPS | V4L2_CAP_STREAMING
+> > 			  | chain->caps;
+> > 
+> > in it, which doesn't suit the metadata node?
+> 
+> I'd say this is debatable, isn't the capabilities field supposed to include 
+> all capabilities from all video nodes for the device ? chain->caps would need 
+> to include metadata capability in that case.
+> 
+> Code reuse is not a big deal as the function is small, but getting the 
+> capabilities value right is important regardless.
 
-On Friday, 8 December 2017 03:08:20 EET Niklas S=F6derlund wrote:
-> On Gen3 the max supported width and height will be different from Gen2.
-> Move the limits to the struct rvin_info to prepare for Gen3 support.
->=20
-> Signed-off-by: Niklas S=F6derlund <niklas.soderlund+renesas@ragnatech.se>
-> Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-> Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  drivers/media/platform/rcar-vin/rcar-core.c | 6 ++++++
->  drivers/media/platform/rcar-vin/rcar-v4l2.c | 6 ++----
->  drivers/media/platform/rcar-vin/rcar-vin.h  | 6 ++++++
->  3 files changed, 14 insertions(+), 4 deletions(-)
->=20
-> diff --git a/drivers/media/platform/rcar-vin/rcar-core.c
-> b/drivers/media/platform/rcar-vin/rcar-core.c index
-> 73c1700a409bfd35..03d3cd63e38bee11 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-core.c
-> +++ b/drivers/media/platform/rcar-vin/rcar-core.c
-> @@ -232,14 +232,20 @@ static int rvin_digital_graph_init(struct rvin_dev
-> *vin)
->=20
->  static const struct rvin_info rcar_info_h1 =3D {
->  	.chip =3D RCAR_H1,
-> +	.max_width =3D 2048,
-> +	.max_height =3D 2048,
->  };
->=20
->  static const struct rvin_info rcar_info_m1 =3D {
->  	.chip =3D RCAR_M1,
-> +	.max_width =3D 2048,
-> +	.max_height =3D 2048,
->  };
->=20
->  static const struct rvin_info rcar_info_gen2 =3D {
->  	.chip =3D RCAR_GEN2,
-> +	.max_width =3D 2048,
-> +	.max_height =3D 2048,
->  };
->=20
->  static const struct of_device_id rvin_of_id_table[] =3D {
-> diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> b/drivers/media/platform/rcar-vin/rcar-v4l2.c index
-> b1caa04921aa23bb..59ec6d3d119590aa 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> +++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> @@ -23,8 +23,6 @@
->  #include "rcar-vin.h"
->=20
->  #define RVIN_DEFAULT_FORMAT	V4L2_PIX_FMT_YUYV
-> -#define RVIN_MAX_WIDTH		2048
-> -#define RVIN_MAX_HEIGHT		2048
->=20
->  /*
-> -------------------------------------------------------------------------=
-=2D-
-> -- * Format Conversions
-> @@ -258,8 +256,8 @@ static int __rvin_try_format(struct rvin_dev *vin,
->  	walign =3D vin->format.pixelformat =3D=3D V4L2_PIX_FMT_NV16 ? 5 : 1;
->=20
->  	/* Limit to VIN capabilities */
-> -	v4l_bound_align_image(&pix->width, 2, RVIN_MAX_WIDTH, walign,
-> -			      &pix->height, 4, RVIN_MAX_HEIGHT, 2, 0);
-> +	v4l_bound_align_image(&pix->width, 2, vin->info->max_width, walign,
-> +			      &pix->height, 4, vin->info->max_height, 2, 0);
->=20
->  	pix->bytesperline =3D max_t(u32, pix->bytesperline,
->  				  rvin_format_bytesperline(pix));
-> diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h
-> b/drivers/media/platform/rcar-vin/rcar-vin.h index
-> 0d3949c8c08c8f63..646f897f5c05ec4e 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-vin.h
-> +++ b/drivers/media/platform/rcar-vin/rcar-vin.h
-> @@ -91,9 +91,15 @@ struct rvin_graph_entity {
->  /**
->   * struct rvin_info - Information about the particular VIN implementation
->   * @chip:		type of VIN chip
-> + *
+Hm, but that's how applications would naturally work - open a node, query 
+its capabilities and handle it accordingly. What good would be having 
+equal capabilities on all nodes? Why do you think that should be the case?
 
-Nitpicking, there's no need for a blank line here.
+> > >> +
+> > >> +static int uvc_meta_v4l2_get_format(struct file *file, void *fh,
+> > >> +				    struct v4l2_format *format)
+> > >> +{
+> > >> +	struct v4l2_fh *vfh = file->private_data;
+> > >> +	struct uvc_streaming *stream = video_get_drvdata(vfh->vdev);
+> > >> +	struct v4l2_meta_format *fmt = &format->fmt.meta;
+> > >> +
+> > >> +	if (format->type != vfh->vdev->queue->type)
+> > >> +		return -EINVAL;
+> > >> +
+> > >> +	memset(fmt, 0, sizeof(*fmt));
+> > >> +
+> > >> +	fmt->dataformat = stream->cur_meta_format;
+> > >> +	fmt->buffersize = UVC_METATADA_BUF_SIZE;
+> > > 
+> > > You need to take the stream->mutex lock here to protect against races with
+> > > the set format ioctl.
+> > 
+> > Well, strictly speaking you don't? The buffersize is constant and getting
+> > the current metadata format is an atomic read.
+> 
+> I was concerned by the race condition due to lack of memory barriers, but if 
+> userspace issues concurrent G_FMT and S_FMT calls the order isn't guaranteed 
+> anyway, so you're right about that.
+> 
+> [snip]
+> 
+> > > > diff --git a/drivers/media/usb/uvc/uvc_queue.c
+> > > > b/drivers/media/usb/uvc/uvc_queue.c index c8d78b2..b2998f5 100644
+> > > > --- a/drivers/media/usb/uvc/uvc_queue.c
+> > > > +++ b/drivers/media/usb/uvc/uvc_queue.c
+> > 
+> > [snip]
+> > 
+> > >> +	if (!meta_buf || length == 2 ||
+> > >> +	    meta_buf->length - meta_buf->bytesused <
+> > >> +	    length + sizeof(meta->ns) + sizeof(meta->sof))
+> > >> +		return;
+> > > 
+> > > If the metadata buffer overflows should we also set the error bit like we
+> > > do for video buffers ? I have mixed feelings about this, I'd appreciate
+> > > your input.
+> > 
+> > I think it would be good to know if we ever run into such overruns.
+> > Setting an error flag is more likely to be noticed and reported than a
+> > printk()?
+> 
+> I believe so, yes.
 
-> + * max_width:		max input width the VIN supports
-> + * max_height:		max input height the VIN supports
+OK, so we set an error.
 
-And you're missing the @ before the field names. Please make sure to compil=
-e=20
-the documentation to check for kerneldoc errors.
-
-With this fixed,
-
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
->   */
->  struct rvin_info {
->  	enum chip_id chip;
-> +
-> +	unsigned int max_width;
-> +	unsigned int max_height;
->  };
->=20
->  /**
-
-=2D-=20
-Regards,
-
-Laurent Pinchart
+Thanks
+Guennadi
