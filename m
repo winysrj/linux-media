@@ -1,184 +1,275 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:63323 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1758693AbdLRTyI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 18 Dec 2017 14:54:08 -0500
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
-        Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Subject: [PATCH 2/8] media: v4l2-ioctl.h: convert debug into an enum of bits
-Date: Mon, 18 Dec 2017 17:53:56 -0200
-Message-Id: <333b63fa1857f6819ce64666beba969c22e2f468.1513625884.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1513625884.git.mchehab@s-opensource.com>
-References: <cover.1513625884.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1513625884.git.mchehab@s-opensource.com>
-References: <cover.1513625884.git.mchehab@s-opensource.com>
+Received: from mail-lf0-f66.google.com ([209.85.215.66]:36174 "EHLO
+        mail-lf0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751946AbdLEUfc (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 5 Dec 2017 15:35:32 -0500
+Received: by mail-lf0-f66.google.com with SMTP id f20so1811784lfe.3
+        for <linux-media@vger.kernel.org>; Tue, 05 Dec 2017 12:35:31 -0800 (PST)
+Date: Tue, 5 Dec 2017 21:35:27 +0100
+From: Niklas =?iso-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund@ragnatech.se>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/1] v4l: fwnode: Add debug prints for V4L2 endpoint
+ property parsing
+Message-ID: <20171205203527.GC31989@bigcity.dyn.berto.se>
+References: <20171204214501.11729-1-sakari.ailus@linux.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20171204214501.11729-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The V4L2_DEV_DEBUG_IOCTL macros actually define a bitmask,
-but without using Kernel's modern standards. Also,
-documentation looks akward.
+Hi Sakari,
 
-So, convert them into an enum with valid bits, adding
-the correspoinding kernel-doc documentation for it.
+Thanks for your patch.
 
-In order to avoid possible conflicts, rename them from
-V4L2_DEV_DEBUG_foo to V4L2_DEBUG_foo.
+On 2017-12-04 23:45:01 +0200, Sakari Ailus wrote:
+> Print debug info as standard V4L2 endpoint are parsed.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/v4l2-core/v4l2-dev.c   | 18 +++++++++---------
- drivers/media/v4l2-core/v4l2-ioctl.c |  7 ++++---
- include/media/v4l2-ioctl.h           | 33 +++++++++++++++++++--------------
- 3 files changed, 32 insertions(+), 26 deletions(-)
+Reviewed-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 
-diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
-index d5e0e536ef04..ab876ddaa707 100644
---- a/drivers/media/v4l2-core/v4l2-dev.c
-+++ b/drivers/media/v4l2-core/v4l2-dev.c
-@@ -307,8 +307,8 @@ static ssize_t v4l2_read(struct file *filp, char __user *buf,
- 		return -EINVAL;
- 	if (video_is_registered(vdev))
- 		ret = vdev->fops->read(filp, buf, sz, off);
--	if ((vdev->dev_debug & V4L2_DEV_DEBUG_FOP) &&
--	    (vdev->dev_debug & V4L2_DEV_DEBUG_STREAMING))
-+	if ((vdev->dev_debug & BIT(V4L2_DEBUG_FOP)) &&
-+	    (vdev->dev_debug & BIT(V4L2_DEBUG_STREAMING)))
- 		printk(KERN_DEBUG "%s: read: %zd (%d)\n",
- 			video_device_node_name(vdev), sz, ret);
- 	return ret;
-@@ -324,8 +324,8 @@ static ssize_t v4l2_write(struct file *filp, const char __user *buf,
- 		return -EINVAL;
- 	if (video_is_registered(vdev))
- 		ret = vdev->fops->write(filp, buf, sz, off);
--	if ((vdev->dev_debug & V4L2_DEV_DEBUG_FOP) &&
--	    (vdev->dev_debug & V4L2_DEV_DEBUG_STREAMING))
-+	if ((vdev->dev_debug & BIT(V4L2_DEBUG_FOP)) &&
-+	    (vdev->dev_debug & BIT(V4L2_DEBUG_STREAMING)))
- 		printk(KERN_DEBUG "%s: write: %zd (%d)\n",
- 			video_device_node_name(vdev), sz, ret);
- 	return ret;
-@@ -340,7 +340,7 @@ static unsigned int v4l2_poll(struct file *filp, struct poll_table_struct *poll)
- 		return DEFAULT_POLLMASK;
- 	if (video_is_registered(vdev))
- 		res = vdev->fops->poll(filp, poll);
--	if (vdev->dev_debug & V4L2_DEV_DEBUG_POLL)
-+	if (vdev->dev_debug & BIT(V4L2_DEBUG_POLL))
- 		printk(KERN_DEBUG "%s: poll: %08x\n",
- 			video_device_node_name(vdev), res);
- 	return res;
-@@ -381,7 +381,7 @@ static unsigned long v4l2_get_unmapped_area(struct file *filp,
- 	if (!video_is_registered(vdev))
- 		return -ENODEV;
- 	ret = vdev->fops->get_unmapped_area(filp, addr, len, pgoff, flags);
--	if (vdev->dev_debug & V4L2_DEV_DEBUG_FOP)
-+	if (vdev->dev_debug & BIT(V4L2_DEBUG_FOP))
- 		printk(KERN_DEBUG "%s: get_unmapped_area (%d)\n",
- 			video_device_node_name(vdev), ret);
- 	return ret;
-@@ -397,7 +397,7 @@ static int v4l2_mmap(struct file *filp, struct vm_area_struct *vm)
- 		return -ENODEV;
- 	if (video_is_registered(vdev))
- 		ret = vdev->fops->mmap(filp, vm);
--	if (vdev->dev_debug & V4L2_DEV_DEBUG_FOP)
-+	if (vdev->dev_debug & BIT(V4L2_DEBUG_FOP))
- 		printk(KERN_DEBUG "%s: mmap (%d)\n",
- 			video_device_node_name(vdev), ret);
- 	return ret;
-@@ -427,7 +427,7 @@ static int v4l2_open(struct inode *inode, struct file *filp)
- 			ret = -ENODEV;
- 	}
- 
--	if (vdev->dev_debug & V4L2_DEV_DEBUG_FOP)
-+	if (vdev->dev_debug & BIT(V4L2_DEBUG_FOP))
- 		printk(KERN_DEBUG "%s: open (%d)\n",
- 			video_device_node_name(vdev), ret);
- 	/* decrease the refcount in case of an error */
-@@ -444,7 +444,7 @@ static int v4l2_release(struct inode *inode, struct file *filp)
- 
- 	if (vdev->fops->release)
- 		ret = vdev->fops->release(filp);
--	if (vdev->dev_debug & V4L2_DEV_DEBUG_FOP)
-+	if (vdev->dev_debug & BIT(V4L2_DEBUG_FOP))
- 		printk(KERN_DEBUG "%s: release\n",
- 			video_device_node_name(vdev));
- 
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index 79614992ee21..cdd1e9470dbe 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -2760,15 +2760,16 @@ static long __video_do_ioctl(struct file *file,
- 	}
- 
- done:
--	if (dev_debug & (V4L2_DEV_DEBUG_IOCTL | V4L2_DEV_DEBUG_IOCTL_ARG)) {
--		if (!(dev_debug & V4L2_DEV_DEBUG_STREAMING) &&
-+	if (dev_debug & (BIT(V4L2_DEBUG_IOCTL)
-+			 | BIT(V4L2_DEBUG_IOCTL_ARG))) {
-+		if (!(dev_debug & BIT(V4L2_DEBUG_STREAMING)) &&
- 		    (cmd == VIDIOC_QBUF || cmd == VIDIOC_DQBUF))
- 			return ret;
- 
- 		v4l_printk_ioctl(video_device_node_name(vfd), cmd);
- 		if (ret < 0)
- 			pr_cont(": error %ld", ret);
--		if (!(dev_debug & V4L2_DEV_DEBUG_IOCTL_ARG))
-+		if (!(dev_debug & BIT(V4L2_DEBUG_IOCTL_ARG)))
- 			pr_cont("\n");
- 		else if (_IOC_DIR(cmd) == _IOC_NONE)
- 			info->debug(arg, write_only);
-diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
-index a7b3f7c75d62..9f8d04ad4bdd 100644
---- a/include/media/v4l2-ioctl.h
-+++ b/include/media/v4l2-ioctl.h
-@@ -589,20 +589,25 @@ struct v4l2_ioctl_ops {
- };
- 
- 
--/* v4l debugging and diagnostics */
--
--/* Device debug flags to be used with the video device debug attribute */
--
--/* Just log the ioctl name + error code */
--#define V4L2_DEV_DEBUG_IOCTL		0x01
--/* Log the ioctl name arguments + error code */
--#define V4L2_DEV_DEBUG_IOCTL_ARG	0x02
--/* Log the file operations open, release, mmap and get_unmapped_area */
--#define V4L2_DEV_DEBUG_FOP		0x04
--/* Log the read and write file operations and the VIDIOC_(D)QBUF ioctls */
--#define V4L2_DEV_DEBUG_STREAMING	0x08
--/* Log poll() */
--#define V4L2_DEV_DEBUG_POLL		0x10
-+/**
-+ * enum v4l2_debug_bits - Device debug bits to be used with the video
-+ *	device debug attribute
-+ *
-+ * @V4L2_DEBUG_IOCTL:		Just log the ioctl name + error code.
-+ * @V4L2_DEBUG_IOCTL_ARG:	Log the ioctl name arguments + error code.
-+ * @V4L2_DEBUG_FOP:		Log the file operations and open, release,
-+ *				mmap and get_unmapped_area syscalls.
-+ * @V4L2_DEBUG_STREAMING:	Log the read and write syscalls and
-+ *				:c:ref:`VIDIOC_[Q|DQ]BUF <VIDIOC_QBUF>` ioctls.
-+ * @V4L2_DEBUG_POLL:		Log poll syscalls.
-+ */
-+enum v4l2_debug_bits {
-+	V4L2_DEBUG_IOCTL	= 0,
-+	V4L2_DEBUG_IOCTL_ARG	= 1,
-+	V4L2_DEBUG_FOP		= 2,
-+	V4L2_DEBUG_STREAMING	= 3,
-+	V4L2_DEBUG_POLL		= 4,
-+};
- 
- /*  Video standard functions  */
- 
+> ---
+>  drivers/media/v4l2-core/v4l2-fwnode.c | 101 +++++++++++++++++++++++++++-------
+>  1 file changed, 80 insertions(+), 21 deletions(-)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
+> index 9c17a26d544c..bc927bbd4160 100644
+> --- a/drivers/media/v4l2-core/v4l2-fwnode.c
+> +++ b/drivers/media/v4l2-core/v4l2-fwnode.c
+> @@ -66,6 +66,7 @@ static int v4l2_fwnode_endpoint_parse_csi2_bus(struct fwnode_handle *fwnode,
+>  			lanes_used |= BIT(array[i]);
+>  
+>  			bus->data_lanes[i] = array[i];
+> +			pr_debug("lane %u position %u\n", i, array[i]);
+>  		}
+>  
+>  		rval = fwnode_property_read_u32_array(fwnode,
+> @@ -82,8 +83,13 @@ static int v4l2_fwnode_endpoint_parse_csi2_bus(struct fwnode_handle *fwnode,
+>  						       "lane-polarities", array,
+>  						       1 + bus->num_data_lanes);
+>  
+> -			for (i = 0; i < 1 + bus->num_data_lanes; i++)
+> +			for (i = 0; i < 1 + bus->num_data_lanes; i++) {
+>  				bus->lane_polarities[i] = array[i];
+> +				pr_debug("lane %u polarity %sinverted",
+> +					 i, array[i] ? "" : "not ");
+> +			}
+> +		} else {
+> +			pr_debug("no lane polarities defined, assuming not inverted\n");
+>  		}
+>  
+>  	}
+> @@ -95,12 +101,15 @@ static int v4l2_fwnode_endpoint_parse_csi2_bus(struct fwnode_handle *fwnode,
+>  
+>  		bus->clock_lane = v;
+>  		have_clk_lane = true;
+> +		pr_debug("clock lane position %u\n", v);
+>  	}
+>  
+> -	if (fwnode_property_present(fwnode, "clock-noncontinuous"))
+> +	if (fwnode_property_present(fwnode, "clock-noncontinuous")) {
+>  		flags |= V4L2_MBUS_CSI2_NONCONTINUOUS_CLOCK;
+> -	else if (have_clk_lane || bus->num_data_lanes > 0)
+> +		pr_debug("contiguous clock\n");
+> +	} else if (have_clk_lane || bus->num_data_lanes > 0) {
+>  		flags |= V4L2_MBUS_CSI2_CONTINUOUS_CLOCK;
+> +	}
+>  
+>  	bus->flags = flags;
+>  	vep->bus_type = V4L2_MBUS_CSI2;
+> @@ -115,44 +124,63 @@ static void v4l2_fwnode_endpoint_parse_parallel_bus(
+>  	unsigned int flags = 0;
+>  	u32 v;
+>  
+> -	if (!fwnode_property_read_u32(fwnode, "hsync-active", &v))
+> +	if (!fwnode_property_read_u32(fwnode, "hsync-active", &v)) {
+>  		flags |= v ? V4L2_MBUS_HSYNC_ACTIVE_HIGH :
+>  			V4L2_MBUS_HSYNC_ACTIVE_LOW;
+> +		pr_debug("hsync-active %s\n", v ? "high" : "low");
+> +	}
+>  
+> -	if (!fwnode_property_read_u32(fwnode, "vsync-active", &v))
+> +	if (!fwnode_property_read_u32(fwnode, "vsync-active", &v)) {
+>  		flags |= v ? V4L2_MBUS_VSYNC_ACTIVE_HIGH :
+>  			V4L2_MBUS_VSYNC_ACTIVE_LOW;
+> +		pr_debug("vsync-active %s\n", v ? "high" : "low");
+> +	}
+>  
+> -	if (!fwnode_property_read_u32(fwnode, "field-even-active", &v))
+> +	if (!fwnode_property_read_u32(fwnode, "field-even-active", &v)) {
+>  		flags |= v ? V4L2_MBUS_FIELD_EVEN_HIGH :
+>  			V4L2_MBUS_FIELD_EVEN_LOW;
+> +		pr_debug("field-even-active %s\n", v ? "high": "low");
+> +	}
+> +
+>  	if (flags)
+>  		vep->bus_type = V4L2_MBUS_PARALLEL;
+>  	else
+>  		vep->bus_type = V4L2_MBUS_BT656;
+>  
+> -	if (!fwnode_property_read_u32(fwnode, "pclk-sample", &v))
+> +	if (!fwnode_property_read_u32(fwnode, "pclk-sample", &v)) {
+>  		flags |= v ? V4L2_MBUS_PCLK_SAMPLE_RISING :
+>  			V4L2_MBUS_PCLK_SAMPLE_FALLING;
+> +		pr_debug("pclk-sample %s\n", v ? "high" : "low");
+> +	}
+>  
+> -	if (!fwnode_property_read_u32(fwnode, "data-active", &v))
+> +	if (!fwnode_property_read_u32(fwnode, "data-active", &v)) {
+>  		flags |= v ? V4L2_MBUS_DATA_ACTIVE_HIGH :
+>  			V4L2_MBUS_DATA_ACTIVE_LOW;
+> +		pr_debug("data-active %s\n", v ? "high" : "low");
+> +	}
+>  
+> -	if (fwnode_property_present(fwnode, "slave-mode"))
+> +	if (fwnode_property_present(fwnode, "slave-mode")) {
+> +		pr_debug("slave mode\n");
+>  		flags |= V4L2_MBUS_SLAVE;
+> -	else
+> +	} else {
+>  		flags |= V4L2_MBUS_MASTER;
+> +	}
+>  
+> -	if (!fwnode_property_read_u32(fwnode, "bus-width", &v))
+> +	if (!fwnode_property_read_u32(fwnode, "bus-width", &v)) {
+>  		bus->bus_width = v;
+> +		pr_debug("bus-width %u\n", v);
+> +	}
+>  
+> -	if (!fwnode_property_read_u32(fwnode, "data-shift", &v))
+> +	if (!fwnode_property_read_u32(fwnode, "data-shift", &v)) {
+>  		bus->data_shift = v;
+> +		pr_debug("data-shift %u\n", v);
+> +	}
+>  
+> -	if (!fwnode_property_read_u32(fwnode, "sync-on-green-active", &v))
+> +	if (!fwnode_property_read_u32(fwnode, "sync-on-green-active", &v)) {
+>  		flags |= v ? V4L2_MBUS_VIDEO_SOG_ACTIVE_HIGH :
+>  			V4L2_MBUS_VIDEO_SOG_ACTIVE_LOW;
+> +		pr_debug("sync-on-green-active %s\n", v ? "high" : "low");
+> +	}
+>  
+>  	bus->flags = flags;
+>  
+> @@ -166,17 +194,25 @@ v4l2_fwnode_endpoint_parse_csi1_bus(struct fwnode_handle *fwnode,
+>  	struct v4l2_fwnode_bus_mipi_csi1 *bus = &vep->bus.mipi_csi1;
+>  	u32 v;
+>  
+> -	if (!fwnode_property_read_u32(fwnode, "clock-inv", &v))
+> +	if (!fwnode_property_read_u32(fwnode, "clock-inv", &v)) {
+>  		bus->clock_inv = v;
+> +		pr_debug("clock-inv %u\n", v);
+> +	}
+>  
+> -	if (!fwnode_property_read_u32(fwnode, "strobe", &v))
+> +	if (!fwnode_property_read_u32(fwnode, "strobe", &v)) {
+>  		bus->strobe = v;
+> +		pr_debug("strobe %u\n", v);
+> +	}
+>  
+> -	if (!fwnode_property_read_u32(fwnode, "data-lanes", &v))
+> +	if (!fwnode_property_read_u32(fwnode, "data-lanes", &v)) {
+>  		bus->data_lane = v;
+> +		pr_debug("data-lanes %u\n", v);
+> +	}
+>  
+> -	if (!fwnode_property_read_u32(fwnode, "clock-lanes", &v))
+> +	if (!fwnode_property_read_u32(fwnode, "clock-lanes", &v)) {
+>  		bus->clock_lane = v;
+> +		pr_debug("clock-lanes %u\n", v);
+> +	}
+>  
+>  	if (bus_type == V4L2_FWNODE_BUS_TYPE_CCP2)
+>  		vep->bus_type = V4L2_MBUS_CCP2;
+> @@ -184,12 +220,14 @@ v4l2_fwnode_endpoint_parse_csi1_bus(struct fwnode_handle *fwnode,
+>  		vep->bus_type = V4L2_MBUS_CSI1;
+>  }
+>  
+> -int v4l2_fwnode_endpoint_parse(struct fwnode_handle *fwnode,
+> +int __v4l2_fwnode_endpoint_parse(struct fwnode_handle *fwnode,
+>  			       struct v4l2_fwnode_endpoint *vep)
+>  {
+>  	u32 bus_type = 0;
+>  	int rval;
+>  
+> +	pr_debug("===== begin V4L2 endpoint properties\n");
+> +
+>  	fwnode_graph_parse_endpoint(fwnode, &vep->base);
+>  
+>  	/* Zero fields from bus_type to until the end */
+> @@ -210,16 +248,29 @@ int v4l2_fwnode_endpoint_parse(struct fwnode_handle *fwnode,
+>  		if (vep->bus.mipi_csi2.flags == 0)
+>  			v4l2_fwnode_endpoint_parse_parallel_bus(fwnode, vep);
+>  
+> -		return 0;
+> +		break;
+>  	case V4L2_FWNODE_BUS_TYPE_CCP2:
+>  	case V4L2_FWNODE_BUS_TYPE_CSI1:
+>  		v4l2_fwnode_endpoint_parse_csi1_bus(fwnode, vep, bus_type);
+>  
+> -		return 0;
+> +		break;
+>  	default:
+>  		pr_warn("unsupported bus type %u\n", bus_type);
+>  		return -EINVAL;
+>  	}
+> +
+> +	return 0;
+> +}
+> +int v4l2_fwnode_endpoint_parse(struct fwnode_handle *fwnode,
+> +			       struct v4l2_fwnode_endpoint *vep)
+> +{
+> +	int ret;
+> +
+> +	ret = __v4l2_fwnode_endpoint_parse(fwnode, vep);
+> +
+> +	pr_debug("===== end V4L2 endpoint properties\n");
+> +
+> +	return ret;
+>  }
+>  EXPORT_SYMBOL_GPL(v4l2_fwnode_endpoint_parse);
+>  
+> @@ -243,13 +294,15 @@ struct v4l2_fwnode_endpoint *v4l2_fwnode_endpoint_alloc_parse(
+>  	if (!vep)
+>  		return ERR_PTR(-ENOMEM);
+>  
+> -	rval = v4l2_fwnode_endpoint_parse(fwnode, vep);
+> +	rval = __v4l2_fwnode_endpoint_parse(fwnode, vep);
+>  	if (rval < 0)
+>  		goto out_err;
+>  
+>  	rval = fwnode_property_read_u64_array(fwnode, "link-frequencies",
+>  					      NULL, 0);
+>  	if (rval > 0) {
+> +		unsigned int i;
+> +
+>  		vep->link_frequencies =
+>  			kmalloc_array(rval, sizeof(*vep->link_frequencies),
+>  				      GFP_KERNEL);
+> @@ -265,8 +318,14 @@ struct v4l2_fwnode_endpoint *v4l2_fwnode_endpoint_alloc_parse(
+>  			vep->nr_of_link_frequencies);
+>  		if (rval < 0)
+>  			goto out_err;
+> +
+> +		for (i = 0; i < vep->nr_of_link_frequencies; i++)
+> +			pr_info("link-frequencies %u value %llu\n", i,
+> +				vep->link_frequencies[i]);
+>  	}
+>  
+> +	pr_debug("===== end V4L2 endpoint properties\n");
+> +
+>  	return vep;
+>  
+>  out_err:
+> -- 
+> 2.11.0
+> 
+
 -- 
-2.14.3
+Regards,
+Niklas Söderlund
