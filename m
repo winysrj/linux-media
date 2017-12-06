@@ -1,132 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pl0-f43.google.com ([209.85.160.43]:38771 "EHLO
-        mail-pl0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751356AbdL2HxJ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 29 Dec 2017 02:53:09 -0500
-From: Shunqian Zheng <zhengsq@rock-chips.com>
-To: linux-rockchip@lists.infradead.org, linux-media@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        mchehab@kernel.org, sakari.ailus@linux.intel.com,
-        hans.verkuil@cisco.com, tfiga@chromium.org, zhengsq@rock-chips.com,
-        laurent.pinchart@ideasonboard.com, zyc@rock-chips.com,
-        eddie.cai.linux@gmail.com, jeffy.chen@rock-chips.com,
-        allon.huang@rock-chips.com, devicetree@vger.kernel.org,
-        heiko@sntech.de, robh+dt@kernel.org, Joao.Pinto@synopsys.com,
-        Luis.Oliveira@synopsys.com, Jose.Abreu@synopsys.com,
-        jacob2.chen@rock-chips.com
-Subject: [PATCH v5 00/16] Rockchip ISP1 Driver
-Date: Fri, 29 Dec 2017 15:52:42 +0800
-Message-Id: <1514533978-20408-1-git-send-email-zhengsq@rock-chips.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:57303 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751463AbdLFPvI (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 6 Dec 2017 10:51:08 -0500
+Subject: Re: [PATCH v5] v4l2-async: Match parent devices
+To: jacopo mondi <jacopo@jmondi.org>
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        niklas.soderlund@ragnatech.se,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+References: <1512572319-20179-1-git-send-email-kbingham@kernel.org>
+ <20171206153301.GA3479@w540>
+Reply-To: kieran.bingham@ideasonboard.com
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Message-ID: <4b1f4c4b-7be2-72bb-0142-31a037684693@ideasonboard.com>
+Date: Wed, 6 Dec 2017 15:51:04 +0000
+MIME-Version: 1.0
+In-Reply-To: <20171206153301.GA3479@w540>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-changes in V5: Sync with local changes,
-  - fix the SP height limit
-  - speed up the second stream capture
-  - the second stream can't force sync for rsz when start/stop streaming
-  - add frame id to param vb2 buf
-  - enable luminance maximum threshold
+Hi Jacopo,
 
-changes in V4:
-  - fix some bugs during development
-  - move quantization settings to rkisp1 subdev
-  - correct some spelling problems
-  - describe ports in dt-binding documents
+On 06/12/17 15:33, jacopo mondi wrote:
+> Hi Kieran,
+> 
+> On Wed, Dec 06, 2017 at 02:58:39PM +0000, Kieran Bingham wrote:
+>> From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+>>
+>> Devices supporting multiple endpoints on a single device node must set
+>> their subdevice fwnode to the endpoint to allow distinct comparisons.
+>>
+>> Adapt the match_fwnode call to compare against the provided fwnodes
+>> first, but to also perform a cross reference comparison against the
+>> parent fwnodes of each other.
+>>
+>> This allows notifiers to pass the endpoint for comparison and still
+>> support existing subdevices which store their default parent device
+>> node.
+>>
+>> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+>> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> 
+> please append:
+> 
+> Reported-by: Jacopo Mondi <jacopo.mondi+renesas@jmondi.org>
 
-changes in V3:
-  - add some comments
-  - fix wrong use of v4l2_async_subdev_notifier_register
-  - optimize two paths capture at a time
-  - remove compose
-  - re-struct headers
-  - add a tmp wiki page: http://opensource.rock-chips.com/wiki_Rockchip-isp1
+Ahh yes of course!
 
-changes in V2:
-  mipi-phy:
-    - use async probing
-    - make it be a child device of the GRF
-  isp:
-    - add dummy buffer
-    - change the way to get bus configuration, which make it possible to
-            add parallel sensor support in the future(without mipi-phy driver).
 
-This patch series add a ISP(Camera) v4l2 driver for rockchip rk3288/rk3399 SoC.
 
-Wiki Pages:
-http://opensource.rock-chips.com/wiki_Rockchip-isp1
-
-Jacob Chen (12):
-  media: doc: add document for rkisp1 meta buffer format
-  media: rkisp1: add Rockchip MIPI Synopsys DPHY driver
-  media: rkisp1: add Rockchip ISP1 subdev driver
-  media: rkisp1: add ISP1 statistics driver
-  media: rkisp1: add ISP1 params driver
-  media: rkisp1: add capture device driver
-  media: rkisp1: add rockchip isp1 core driver
-  dt-bindings: Document the Rockchip ISP1 bindings
-  dt-bindings: Document the Rockchip MIPI RX D-PHY bindings
-  ARM: dts: rockchip: add isp node for rk3288
-  ARM: dts: rockchip: add rx0 mipi-phy for rk3288
-  MAINTAINERS: add entry for Rockchip ISP1 driver
-
-Jeffy Chen (1):
-  media: rkisp1: Add user space ABI definitions
-
-Shunqian Zheng (3):
-  media: videodev2.h, v4l2-ioctl: add rkisp1 meta buffer format
-  arm64: dts: rockchip: add isp0 node for rk3399
-  arm64: dts: rockchip: add rx0 mipi-phy for rk3399
-
- .../devicetree/bindings/media/rockchip-isp1.txt    |   69 +
- .../bindings/media/rockchip-mipi-dphy.txt          |   88 +
- Documentation/media/uapi/v4l/meta-formats.rst      |    2 +
- .../media/uapi/v4l/pixfmt-meta-rkisp1-params.rst   |   17 +
- .../media/uapi/v4l/pixfmt-meta-rkisp1-stat.rst     |   18 +
- MAINTAINERS                                        |   10 +
- arch/arm/boot/dts/rk3288.dtsi                      |   24 +
- arch/arm64/boot/dts/rockchip/rk3399.dtsi           |   25 +
- drivers/media/platform/Kconfig                     |   10 +
- drivers/media/platform/Makefile                    |    1 +
- drivers/media/platform/rockchip/isp1/Makefile      |    8 +
- drivers/media/platform/rockchip/isp1/capture.c     | 1728 ++++++++++++++++++++
- drivers/media/platform/rockchip/isp1/capture.h     |  194 +++
- drivers/media/platform/rockchip/isp1/common.h      |  137 ++
- drivers/media/platform/rockchip/isp1/dev.c         |  653 ++++++++
- drivers/media/platform/rockchip/isp1/dev.h         |  120 ++
- drivers/media/platform/rockchip/isp1/isp_params.c  | 1553 ++++++++++++++++++
- drivers/media/platform/rockchip/isp1/isp_params.h  |   76 +
- drivers/media/platform/rockchip/isp1/isp_stats.c   |  522 ++++++
- drivers/media/platform/rockchip/isp1/isp_stats.h   |   85 +
- .../media/platform/rockchip/isp1/mipi_dphy_sy.c    |  787 +++++++++
- drivers/media/platform/rockchip/isp1/regs.c        |  266 +++
- drivers/media/platform/rockchip/isp1/regs.h        | 1577 ++++++++++++++++++
- drivers/media/platform/rockchip/isp1/rkisp1.c      | 1205 ++++++++++++++
- drivers/media/platform/rockchip/isp1/rkisp1.h      |  132 ++
- drivers/media/v4l2-core/v4l2-ioctl.c               |    2 +
- include/uapi/linux/rkisp1-config.h                 |  757 +++++++++
- include/uapi/linux/videodev2.h                     |    4 +
- 28 files changed, 10070 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/rockchip-isp1.txt
- create mode 100644 Documentation/devicetree/bindings/media/rockchip-mipi-dphy.txt
- create mode 100644 Documentation/media/uapi/v4l/pixfmt-meta-rkisp1-params.rst
- create mode 100644 Documentation/media/uapi/v4l/pixfmt-meta-rkisp1-stat.rst
- create mode 100644 drivers/media/platform/rockchip/isp1/Makefile
- create mode 100644 drivers/media/platform/rockchip/isp1/capture.c
- create mode 100644 drivers/media/platform/rockchip/isp1/capture.h
- create mode 100644 drivers/media/platform/rockchip/isp1/common.h
- create mode 100644 drivers/media/platform/rockchip/isp1/dev.c
- create mode 100644 drivers/media/platform/rockchip/isp1/dev.h
- create mode 100644 drivers/media/platform/rockchip/isp1/isp_params.c
- create mode 100644 drivers/media/platform/rockchip/isp1/isp_params.h
- create mode 100644 drivers/media/platform/rockchip/isp1/isp_stats.c
- create mode 100644 drivers/media/platform/rockchip/isp1/isp_stats.h
- create mode 100644 drivers/media/platform/rockchip/isp1/mipi_dphy_sy.c
- create mode 100644 drivers/media/platform/rockchip/isp1/regs.c
- create mode 100644 drivers/media/platform/rockchip/isp1/regs.h
- create mode 100644 drivers/media/platform/rockchip/isp1/rkisp1.c
- create mode 100644 drivers/media/platform/rockchip/isp1/rkisp1.h
- create mode 100644 include/uapi/linux/rkisp1-config.h
-
--- 
-1.9.1
+> Thanks
+>    j
+> 
+>>
+>> ---
+>>
+>> Hi Sakari,
+>>
+>> Since you signed-off on this patch - it has had to be reworked due to the
+>> changes on the of_node_full_name() functionality.
+>>
+>> I believe it is correct now to *just* do the pointer matching, as that matches
+>> the current implementation, and converting to device_nodes will be just as
+>> equal as the fwnodes, as they are simply containers.
+>>
+>> Let me know if you are happy to maintain your SOB on this patch - and if we need
+>> to work towards getting this integrated upstream, especially in light of your new
+>> endpoint matching work.
+>>
+>> --
+>> Regards
+>>
+>> Kieran
+>>
+>>
+>> v2:
+>>  - Added documentation comments
+>>  - simplified the OF match by adding match_fwnode_of()
+>>
+>> v3:
+>>  - Fix comments
+>>  - Fix sd_parent, and asd_parent usage
+>>
+>> v4:
+>>  - Clean up and simplify match_fwnode and comparisons
+>>
+>> v5:
+>>  - Updated for v4.15-rc1:
+>>    of_node no longer specifies a full path, and only returns the
+>>    basename with of_node_full_name(), thus this ends up matching
+>>    "endpoint" for all endpoints. Fall back to pointer matching,
+>>    whilst maintaining the parent comparisons.
+>> ---
+>>  drivers/media/v4l2-core/v4l2-async.c | 17 ++++++++++++++++-
+>>  1 file changed, 16 insertions(+), 1 deletion(-)
+>>
+>> diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+>> index fcadad305336..780bda70d8b3 100644
+>> --- a/drivers/media/v4l2-core/v4l2-async.c
+>> +++ b/drivers/media/v4l2-core/v4l2-async.c
+>> @@ -71,9 +71,24 @@ static bool match_devname(struct v4l2_subdev *sd,
+>>  	return !strcmp(asd->match.device_name.name, dev_name(sd->dev));
+>>  }
+>>
+>> +/*
+>> + * As a measure to support drivers which have not been converted to use
+>> + * endpoint matching, we also find the parent devices for cross-matching.
+>> + *
+>> + * This also allows continued support for matching subdevices which will not
+>> + * have an endpoint themselves.
+>> + */
+>>  static bool match_fwnode(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
+>>  {
+>> -	return sd->fwnode == asd->match.fwnode.fwnode;
+>> +	struct fwnode_handle *asd_fwnode = asd->match.fwnode.fwnode;
+>> +	struct fwnode_handle *sd_parent, *asd_parent;
+>> +
+>> +	sd_parent = fwnode_graph_get_port_parent(sd->fwnode);
+>> +	asd_parent = fwnode_graph_get_port_parent(asd_fwnode);
+>> +
+>> +	return sd->fwnode == asd_fwnode ||
+>> +	       sd->fwnode == asd_parent ||
+>> +	       sd_parent == asd_fwnode;
+>>  }
+>>
+>>  static bool match_custom(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
+>> --
+>> 2.7.4
+>>
