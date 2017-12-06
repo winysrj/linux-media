@@ -1,114 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:37681 "EHLO
-        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752507AbdLDJtB (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 4 Dec 2017 04:49:01 -0500
-Subject: Re: [PATCH v8 28/28] rcar-vin: enable support for r8a77970
-To: =?UTF-8?Q?Niklas_S=c3=b6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org
-References: <20171129194342.26239-1-niklas.soderlund+renesas@ragnatech.se>
- <20171129194342.26239-29-niklas.soderlund+renesas@ragnatech.se>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <25017e02-ee2b-c5fc-7980-55d5d9d6211f@xs4all.nl>
-Date: Mon, 4 Dec 2017 10:48:56 +0100
-MIME-Version: 1.0
-In-Reply-To: <20171129194342.26239-29-niklas.soderlund+renesas@ragnatech.se>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 8bit
+Received: from mail-pf0-f193.google.com ([209.85.192.193]:44521 "EHLO
+        mail-pf0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751500AbdLFLU5 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 6 Dec 2017 06:20:57 -0500
+From: Jacob Chen <jacob-chen@iotwrt.com>
+To: linux-rockchip@lists.infradead.org
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        mchehab@kernel.org, linux-media@vger.kernel.org,
+        sakari.ailus@linux.intel.com, hans.verkuil@cisco.com,
+        tfiga@chromium.org, zhengsq@rock-chips.com,
+        laurent.pinchart@ideasonboard.com, zyc@rock-chips.com,
+        eddie.cai.linux@gmail.com, jeffy.chen@rock-chips.com,
+        allon.huang@rock-chips.com, devicetree@vger.kernel.org,
+        heiko@sntech.de, robh+dt@kernel.org, Joao.Pinto@synopsys.com,
+        Luis.Oliveira@synopsys.com, Jose.Abreu@synopsys.com,
+        Jacob Chen <jacob2.chen@rock-chips.com>
+Subject: [PATCH v3 08/12] ARM: dts: rockchip: add isp node for rk3288
+Date: Wed,  6 Dec 2017 19:19:35 +0800
+Message-Id: <20171206111939.1153-9-jacob-chen@iotwrt.com>
+In-Reply-To: <20171206111939.1153-1-jacob-chen@iotwrt.com>
+References: <20171206111939.1153-1-jacob-chen@iotwrt.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/29/2017 08:43 PM, Niklas Söderlund wrote:
-> Add the SoC specific information for Renesas r8a77970.
-> 
-> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+From: Jacob Chen <jacob2.chen@rock-chips.com>
 
-Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+rk3288 have a Embedded 13M ISP
 
-Regards,
+Signed-off-by: Jacob Chen <jacob2.chen@rock-chips.com>
+---
+ arch/arm/boot/dts/rk3288.dtsi | 17 +++++++++++++++++
+ 1 file changed, 17 insertions(+)
 
-	Hans
-
-> ---
->  .../devicetree/bindings/media/rcar_vin.txt         |  1 +
->  drivers/media/platform/rcar-vin/rcar-core.c        | 40 ++++++++++++++++++++++
->  2 files changed, 41 insertions(+)
-> 
-> diff --git a/Documentation/devicetree/bindings/media/rcar_vin.txt b/Documentation/devicetree/bindings/media/rcar_vin.txt
-> index 314743532bbb4523..6b98f8a3398fa493 100644
-> --- a/Documentation/devicetree/bindings/media/rcar_vin.txt
-> +++ b/Documentation/devicetree/bindings/media/rcar_vin.txt
-> @@ -21,6 +21,7 @@ on Gen3 to a CSI-2 receiver.
->     - "renesas,vin-r8a7794" for the R8A7794 device
->     - "renesas,vin-r8a7795" for the R8A7795 device
->     - "renesas,vin-r8a7796" for the R8A7796 device
-> +   - "renesas,vin-r8a77970" for the R8A77970 device
->     - "renesas,rcar-gen2-vin" for a generic R-Car Gen2 or RZ/G1 compatible
->       device.
->     - "renesas,rcar-gen3-vin" for a generic R-Car Gen3 compatible device.
-> diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
-> index 62eb89b36fbb2ee1..bbdf36b5c3c8178d 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-core.c
-> +++ b/drivers/media/platform/rcar-vin/rcar-core.c
-> @@ -1145,6 +1145,42 @@ static const struct rvin_info rcar_info_r8a7796 = {
->  	},
->  };
->  
-> +static const struct rvin_info rcar_info_r8a77970 = {
-> +	.chip = RCAR_GEN3,
-> +	.use_mc = true,
-> +	.max_width = 4096,
-> +	.max_height = 4096,
-> +
-> +	.num_chsels = 5,
-> +	.chsels = {
-> +		{
-> +			{ .csi = RVIN_CSI40, .chan = 0 },
-> +			{ .csi = RVIN_NC, .chan = 0 },
-> +			{ .csi = RVIN_NC, .chan = 0 },
-> +			{ .csi = RVIN_CSI40, .chan = 0 },
-> +			{ .csi = RVIN_NC, .chan = 0 },
-> +		}, {
-> +			{ .csi = RVIN_NC, .chan = 0 },
-> +			{ .csi = RVIN_NC, .chan = 0 },
-> +			{ .csi = RVIN_CSI40, .chan = 0 },
-> +			{ .csi = RVIN_CSI40, .chan = 1 },
-> +			{ .csi = RVIN_NC, .chan = 0 },
-> +		}, {
-> +			{ .csi = RVIN_NC, .chan = 0 },
-> +			{ .csi = RVIN_CSI40, .chan = 0 },
-> +			{ .csi = RVIN_NC, .chan = 0 },
-> +			{ .csi = RVIN_CSI40, .chan = 2 },
-> +			{ .csi = RVIN_NC, .chan = 0 },
-> +		}, {
-> +			{ .csi = RVIN_CSI40, .chan = 1 },
-> +			{ .csi = RVIN_NC, .chan = 0 },
-> +			{ .csi = RVIN_NC, .chan = 0 },
-> +			{ .csi = RVIN_CSI40, .chan = 3 },
-> +			{ .csi = RVIN_NC, .chan = 0 },
-> +		},
-> +	},
-> +};
-> +
->  static const struct of_device_id rvin_of_id_table[] = {
->  	{
->  		.compatible = "renesas,vin-r8a7778",
-> @@ -1182,6 +1218,10 @@ static const struct of_device_id rvin_of_id_table[] = {
->  		.compatible = "renesas,vin-r8a7796",
->  		.data = &rcar_info_r8a7796,
->  	},
-> +	{
-> +		.compatible = "renesas,vin-r8a77970",
-> +		.data = &rcar_info_r8a77970,
-> +	},
->  	{ },
->  };
->  MODULE_DEVICE_TABLE(of, rvin_of_id_table);
-> 
+diff --git a/arch/arm/boot/dts/rk3288.dtsi b/arch/arm/boot/dts/rk3288.dtsi
+index a3c015628421..ea1dda001043 100644
+--- a/arch/arm/boot/dts/rk3288.dtsi
++++ b/arch/arm/boot/dts/rk3288.dtsi
+@@ -962,6 +962,23 @@
+ 		status = "disabled";
+ 	};
+ 
++	isp: isp@ff910000 {
++		compatible = "rockchip,rk3288-cif-isp";
++		reg = <0x0 0xff910000 0x0 0x4000>;
++		interrupts = <GIC_SPI 14 IRQ_TYPE_LEVEL_HIGH>;
++		clocks = <&cru SCLK_ISP>, <&cru ACLK_ISP>,
++			 <&cru HCLK_ISP>, <&cru PCLK_ISP_IN>,
++			 <&cru SCLK_ISP_JPE>;
++		clock-names = "clk_isp", "aclk_isp",
++			      "hclk_isp", "pclk_isp_in",
++			      "sclk_isp_jpe";
++		assigned-clocks = <&cru SCLK_ISP>, <&cru SCLK_ISP_JPE>;
++		assigned-clock-rates = <400000000>, <400000000>;
++		power-domains = <&power RK3288_PD_VIO>;
++		iommus = <&isp_mmu>;
++		status = "disabled";
++	};
++
+ 	isp_mmu: iommu@ff914000 {
+ 		compatible = "rockchip,iommu";
+ 		reg = <0x0 0xff914000 0x0 0x100>, <0x0 0xff915000 0x0 0x100>;
+-- 
+2.15.0
