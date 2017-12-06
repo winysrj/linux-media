@@ -1,53 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f196.google.com ([209.85.128.196]:39595 "EHLO
-        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1758420AbdLSIH5 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 19 Dec 2017 03:07:57 -0500
-From: Philipp Rossak <embed3d@gmail.com>
-To: mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
-        maxime.ripard@free-electrons.com, wens@csie.org,
-        linux@armlinux.org.uk, sean@mess.org, p.zabel@pengutronix.de,
-        andi.shyti@samsung.com
-Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-sunxi@googlegroups.com
-Subject: [PATCH v3 4/6] arm: dts: sun8i: a83t: Add support for the cir interface
-Date: Tue, 19 Dec 2017 09:07:45 +0100
-Message-Id: <20171219080747.4507-5-embed3d@gmail.com>
-In-Reply-To: <20171219080747.4507-1-embed3d@gmail.com>
-References: <20171219080747.4507-1-embed3d@gmail.com>
+Received: from mail-pf0-f194.google.com ([209.85.192.194]:46686 "EHLO
+        mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752561AbdLFLVO (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 6 Dec 2017 06:21:14 -0500
+From: Jacob Chen <jacob-chen@iotwrt.com>
+To: linux-rockchip@lists.infradead.org
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        mchehab@kernel.org, linux-media@vger.kernel.org,
+        sakari.ailus@linux.intel.com, hans.verkuil@cisco.com,
+        tfiga@chromium.org, zhengsq@rock-chips.com,
+        laurent.pinchart@ideasonboard.com, zyc@rock-chips.com,
+        eddie.cai.linux@gmail.com, jeffy.chen@rock-chips.com,
+        allon.huang@rock-chips.com, devicetree@vger.kernel.org,
+        heiko@sntech.de, robh+dt@kernel.org, Joao.Pinto@synopsys.com,
+        Luis.Oliveira@synopsys.com, Jose.Abreu@synopsys.com,
+        Jacob Chen <jacob2.chen@rock-chips.com>
+Subject: [PATCH v3 11/12] arm64: dts: rockchip: add rx0 mipi-phy for rk3399
+Date: Wed,  6 Dec 2017 19:19:38 +0800
+Message-Id: <20171206111939.1153-12-jacob-chen@iotwrt.com>
+In-Reply-To: <20171206111939.1153-1-jacob-chen@iotwrt.com>
+References: <20171206111939.1153-1-jacob-chen@iotwrt.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The cir interface is like on the H3 located at 0x01f02000 and is exactly
-the same. This patch adds support for the ir interface on the A83T.
+From: Shunqian Zheng <zhengsq@rock-chips.com>
 
-Signed-off-by: Philipp Rossak <embed3d@gmail.com>
+It's a Designware MIPI D-PHY, used for ISP0 in rk3399.
+
+Signed-off-by: Shunqian Zheng <zhengsq@rock-chips.com>
+Signed-off-by: Jacob Chen <jacob2.chen@rock-chips.com>
 ---
- arch/arm/boot/dts/sun8i-a83t.dtsi | 10 ++++++++++
- 1 file changed, 10 insertions(+)
+ arch/arm64/boot/dts/rockchip/rk3399.dtsi | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-diff --git a/arch/arm/boot/dts/sun8i-a83t.dtsi b/arch/arm/boot/dts/sun8i-a83t.dtsi
-index 06e96db7c41a..ddc0d592107f 100644
---- a/arch/arm/boot/dts/sun8i-a83t.dtsi
-+++ b/arch/arm/boot/dts/sun8i-a83t.dtsi
-@@ -605,6 +605,16 @@
- 			#reset-cells = <1>;
+diff --git a/arch/arm64/boot/dts/rockchip/rk3399.dtsi b/arch/arm64/boot/dts/rockchip/rk3399.dtsi
+index 66a912fab5dd..a65b110afaf3 100644
+--- a/arch/arm64/boot/dts/rockchip/rk3399.dtsi
++++ b/arch/arm64/boot/dts/rockchip/rk3399.dtsi
+@@ -1292,6 +1292,17 @@
+ 			status = "disabled";
  		};
  
-+		cir: cir@01f02000 {
-+			compatible = "allwinner,sun5i-a13-ir";
-+			clocks = <&r_ccu CLK_APB0_IR>, <&r_ccu CLK_IR>;
-+			clock-names = "apb", "ir";
-+			resets = <&r_ccu RST_APB0_IR>;
-+			interrupts = <GIC_SPI 37 IRQ_TYPE_LEVEL_HIGH>;
-+			reg = <0x01f02000 0x400>;
++		mipi_dphy_rx0: mipi-dphy-rx0 {
++			compatible = "rockchip,rk3399-mipi-dphy";
++			clocks = <&cru SCLK_MIPIDPHY_REF>,
++				<&cru SCLK_DPHY_RX0_CFG>,
++				<&cru PCLK_VIO_GRF>;
++			clock-names = "dphy-ref", "dphy-cfg", "grf";
++			power-domains = <&power RK3399_PD_VIO>;
++			bus-width = <4>;
 +			status = "disabled";
 +		};
 +
- 		r_pio: pinctrl@1f02c00 {
- 			compatible = "allwinner,sun8i-a83t-r-pinctrl";
- 			reg = <0x01f02c00 0x400>;
+ 		u2phy0: usb2-phy@e450 {
+ 			compatible = "rockchip,rk3399-usb2phy";
+ 			reg = <0xe450 0x10>;
 -- 
-2.11.0
+2.15.0
