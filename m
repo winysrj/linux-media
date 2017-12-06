@@ -1,86 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.anw.at ([195.234.101.228]:56869 "EHLO mail.anw.at"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752662AbdLHX3y (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 8 Dec 2017 18:29:54 -0500
-Subject: Re: [PATCH] build: Added missing timer_setup_on_stack
-To: Vincent McIntyre <vincent.mcintyre@gmail.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, d.scheller@gmx.net
-References: <1512766859-7667-1-git-send-email-jasmin@anw.at>
- <3343c1fd-d0f0-46b1-fd3f-150f36de6fa4@anw.at>
- <21ccbddb-eada-fa44-93ea-f0b80e17d409@xs4all.nl>
- <20171208231606.GA5540@shambles.windy>
-From: "Jasmin J." <jasmin@anw.at>
-Message-ID: <d3854754-84be-3bb8-6726-f5f351e7c142@anw.at>
-Date: Sat, 9 Dec 2017 00:29:48 +0100
-MIME-Version: 1.0
-In-Reply-To: <20171208231606.GA5540@shambles.windy>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 8bit
+Received: from mail-pg0-f67.google.com ([74.125.83.67]:43225 "EHLO
+        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751598AbdLFLVD (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 6 Dec 2017 06:21:03 -0500
+From: Jacob Chen <jacob-chen@iotwrt.com>
+To: linux-rockchip@lists.infradead.org
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        mchehab@kernel.org, linux-media@vger.kernel.org,
+        sakari.ailus@linux.intel.com, hans.verkuil@cisco.com,
+        tfiga@chromium.org, zhengsq@rock-chips.com,
+        laurent.pinchart@ideasonboard.com, zyc@rock-chips.com,
+        eddie.cai.linux@gmail.com, jeffy.chen@rock-chips.com,
+        allon.huang@rock-chips.com, devicetree@vger.kernel.org,
+        heiko@sntech.de, robh+dt@kernel.org, Joao.Pinto@synopsys.com,
+        Luis.Oliveira@synopsys.com, Jose.Abreu@synopsys.com,
+        Jacob Chen <jacob2.chen@rock-chips.com>
+Subject: [PATCH v3 09/12] ARM: dts: rockchip: add rx0 mipi-phy for rk3288
+Date: Wed,  6 Dec 2017 19:19:36 +0800
+Message-Id: <20171206111939.1153-10-jacob-chen@iotwrt.com>
+In-Reply-To: <20171206111939.1153-1-jacob-chen@iotwrt.com>
+References: <20171206111939.1153-1-jacob-chen@iotwrt.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Vincent!
+From: Jacob Chen <jacob2.chen@rock-chips.com>
 
-> Not quite there yet however.
-I always test with several Kernel headers ...
+It's a Designware MIPI D-PHY, used by ISP in rk3288.
 
-> patch -s -f -N -p1 -i ../backports/api_version.patch
-> patch -s -f -N -p1 -i ../backports/pr_fmt.patch
-> 1 out of 1 hunk FAILED
-I have tested the patches on Linux Mint 18.1 (Kernel 4.4.0-62-generic):
-Applying patches for kernel 4.4.0-62-generic
-patch -f -N -p1 -i ../backports/api_version.patch
-checking file drivers/media/cec/cec-api.c
-Hunk #1 succeeded at 95 (offset 2 lines).
-checking file drivers/media/v4l2-core/v4l2-ioctl.c
-Hunk #1 succeeded at 1004 (offset 4 lines).
-checking file drivers/media/media-device.c
-patching file drivers/media/cec/cec-api.c
-Hunk #1 succeeded at 95 (offset 2 lines).
-patching file drivers/media/v4l2-core/v4l2-ioctl.c
-Hunk #1 succeeded at 1004 (offset 4 lines).
-patching file drivers/media/media-device.c
-patch -f -N -p1 -i ../backports/pr_fmt.patch
-checking file drivers/media/common/saa7146/saa7146_core.c
-checking file drivers/media/common/saa7146/saa7146_fops.c
-checking file drivers/media/common/saa7146/saa7146_hlp.c
-checking file drivers/media/common/saa7146/saa7146_i2c.c
-checking file drivers/media/common/saa7146/saa7146_video.c
-checking file drivers/media/common/siano/smscoreapi.h
+Signed-off-by: Jacob Chen <jacob2.chen@rock-chips.com>
+---
+ arch/arm/boot/dts/rk3288.dtsi | 7 +++++++
+ 1 file changed, 7 insertions(+)
 
-Apply this patch, so we can see on which file it stops:
-diff --git a/linux/Makefile b/linux/Makefile
-index ce39f82..5fc5150 100644
---- a/linux/Makefile
-+++ b/linux/Makefile
-@@ -147,9 +147,9 @@ apply_patches apply-patches:
-        touch .patches_applied; \
-        rm -f mm/frame_vector.c; \
-        for i in $$PATCHES; do \
--               echo patch -s -f -N -p1 -i ../backports/$$i; \
--               patch -s -f -N -p1 -i ../backports/$$i --dry-run || exit 1; \
--               patch -s -f -N -p1 -i ../backports/$$i; \
-+               echo patch -f -N -p1 -i ../backports/$$i; \
-+               patch -f -N -p1 -i ../backports/$$i --dry-run || exit 1; \
-+               patch -f -N -p1 -i ../backports/$$i; \
-                mv .patches_applied .patches_applied.old; \
-                echo $$i > .patches_applied; \
-                cat .patches_applied.old >> .patches_applied; \
-@@ -165,8 +165,8 @@ unapply_patches unapply-patches:
-        @if [ -e .patches_applied ]; then \
-        echo "Unapplying patches"; \
-        for i in `cat .patches_applied|grep -v '^#'`; do \
--               echo patch -s -f -R -p1 -i ../backports/$$i; \
--               patch -s -f -R -p1 -i ../backports/$$i || break; \
-+               echo patch -f -R -p1 -i ../backports/$$i; \
-+               patch -f -R -p1 -i ../backports/$$i || break; \
-        done; \
-        rm -f mm/frame_vector.c; \
-        rm -f .patches_applied; fi
-
-
-BR,
-   Jasmin
+diff --git a/arch/arm/boot/dts/rk3288.dtsi b/arch/arm/boot/dts/rk3288.dtsi
+index ea1dda001043..baeedd2cb351 100644
+--- a/arch/arm/boot/dts/rk3288.dtsi
++++ b/arch/arm/boot/dts/rk3288.dtsi
+@@ -864,6 +864,13 @@
+ 			status = "disabled";
+ 		};
+ 
++		mipi_phy_rx0: mipi-phy-rx0 {
++			compatible = "rockchip,rk3288-mipi-dphy";
++			clocks = <&cru SCLK_MIPIDSI_24M>, <&cru PCLK_MIPI_CSI>;
++			clock-names = "dphy-ref", "pclk";
++			status = "disabled";
++		};
++
+ 		io_domains: io-domains {
+ 			compatible = "rockchip,rk3288-io-voltage-domain";
+ 			status = "disabled";
+-- 
+2.15.0
