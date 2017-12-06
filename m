@@ -1,113 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:44646 "EHLO
-        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751495AbdLVIqY (ORCPT
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:43514 "EHLO
+        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1754942AbdLFLOK (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 22 Dec 2017 03:46:24 -0500
-Received: by mail-wm0-f68.google.com with SMTP id t8so20317611wmc.3
-        for <linux-media@vger.kernel.org>; Fri, 22 Dec 2017 00:46:23 -0800 (PST)
+        Wed, 6 Dec 2017 06:14:10 -0500
+Subject: Re: build failure on ubuntu 16.04 LTS
+To: Vincent McIntyre <vincent.mcintyre@gmail.com>,
+        linux-media@vger.kernel.org
+References: <20171206104324.GA7941@ubuntu.windy>
+Cc: "Jasmin J." <jasmin@anw.at>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <678e6f04-187b-48bf-52a1-c431c6df94bf@xs4all.nl>
+Date: Wed, 6 Dec 2017 12:14:05 +0100
 MIME-Version: 1.0
-In-Reply-To: <CAFLEztTxXRQu-VJ2FzYbA_vkYZtkDur1nQ6goftdZdnbn63aQQ@mail.gmail.com>
-References: <1513060095-29588-1-git-send-email-leo.wen@rock-chips.com>
- <1513060095-29588-2-git-send-email-leo.wen@rock-chips.com> <CAFLEztTxXRQu-VJ2FzYbA_vkYZtkDur1nQ6goftdZdnbn63aQQ@mail.gmail.com>
-From: Philippe Ombredanne <pombredanne@nexb.com>
-Date: Fri, 22 Dec 2017 09:45:42 +0100
-Message-ID: <CAOFm3uGWgYs06NRrrjJSrvDG5ebR_K0y2e_qQeOALMSsNnpXsQ@mail.gmail.com>
-Subject: Re: [PATCH 1/2] [media] Add Rockchip RK1608 driver
-To: Leo Wen <leo.wen@rock-chips.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        "David S. Miller" <davem@davemloft.net>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        rdunlap@infradead.org,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        "open list:OPEN FIRMWARE AND FLATTENED DEVICE TREE BINDINGS"
-        <devicetree@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>,
-        "open list:ARM/Rockchip SoC..." <linux-rockchip@lists.infradead.org>,
-        Eddie Cai <eddie.cai@rock-chips.com>,
-        Jacob Chen <jacobchen110@gmail.com>
-Content-Type: text/plain; charset="UTF-8"
+In-Reply-To: <20171206104324.GA7941@ubuntu.windy>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dear Leo,
+On 12/06/17 11:43, Vincent McIntyre wrote:
+> Hi,
+> 
+> the build has been broken for over a week for me.
+> Possibly my checkout is out of date??
 
-On Fri, Dec 22, 2017 at 5:33 AM, Jacob Chen <jacobchen110@gmail.com> wrote:
-> Hi leo,
->
->
-> 2017-12-12 14:28 GMT+08:00 Leo Wen <leo.wen@rock-chips.com>:
->> Rk1608 is used as a PreISP to link on Soc, which mainly has two functions.
->> One is to download the firmware of RK1608, and the other is to match the
->> extra sensor such as camera and enable sensor by calling sensor's s_power.
->>
->> use below v4l2-ctl command to capture frames.
->>
->>     v4l2-ctl --verbose -d /dev/video1 --stream-mmap=2
->>     --stream-to=/tmp/stream.out --stream-count=60 --stream-poll
->>
->> use below command to playback the video on your PC.
->>
->>     mplayer ./stream.out -loop 0 -demuxer rawvideo -rawvideo
->>     w=640:h=480:size=$((640*480*3/2)):format=NV12
->>
->> Signed-off-by: Leo Wen <leo.wen@rock-chips.com>
+No, it really is broken. I don't quite understand why it is failing or
+how to fix it, and I lack time to dig into this. Hopefully I can find
+some time next week for this.
 
-<snip>
+Jasmin, you've done some work on this in the past. Let me know if you
+have time to look at this, I would really appreciate that.
 
->> --- /dev/null
->> +++ b/drivers/media/spi/rk1608.c
->> @@ -0,0 +1,1165 @@
->> +/**
->> + * Rockchip rk1608 driver
->> + *
->> + * Copyright (C) 2017 Rockchip Electronics Co., Ltd.
->> + *
->> + * This software is available to you under a choice of one of two
->> + * licenses.  You may choose to be licensed under the terms of the GNU
->> + * General Public License (GPL) Version 2, available from the file
->> + * COPYING in the main directory of this source tree, or the
->> + * OpenIB.org BSD license below:
->> + *
->> + *     Redistribution and use in source and binary forms, with or
->> + *     without modification, are permitted provided that the following
->> + *     conditions are met:
->> + *
->> + *      - Redistributions of source code must retain the above
->> + *        copyright notice, this list of conditions and the following
->> + *        disclaimer.
->> + *
->> + *      - Redistributions in binary form must reproduce the above
->> + *        copyright notice, this list of conditions and the following
->> + *        disclaimer in the documentation and/or other materials
->> + *        provided with the distribution.
->> + *
->> + * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
->> + * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
->> + * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
->> + * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
->> + * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
->> + * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
->> + * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
->> + * SOFTWARE.
->> + */
+Regards,
 
-Have you considered using the new SPDX tags instead of this fine but
-long legalese?
-I know what you are about to say: everyone loves legalese so much that
-it is hard to let go of so much of it and replace all this only with a
-single SPDX tag line ;)
-But then everyone loves code much more than legalese too! so you would
-be making the world a service anyway.
+	Hans
 
-And if other contributors in your team could follow suit and you could
-spread the word that would be even better!
-
-See Thomas doc patches [1] for details.
-
-[1] https://lkml.org/lkml/2017/12/4/934
-
--- 
-Cordially
-Philippe Ombredanne
+> I am using the normal build --main-git method.
+> 
+> Setup details:
+> 
+> + date
+> Wednesday 6 December  21:25:28 AEDT 2017
+> + uname -a
+> Linux ubuntu 4.4.0-101-generic #124-Ubuntu SMP Fri Nov 10 18:29:59 UTC 2017 x86_64 x86_64 x86_64 GNU/Linux
+> + cat /proc/version_signature
+> Ubuntu 4.4.0-101.124-generic 4.4.95
+> 
+> + git --no-pager log -1
+> commit 320b9b80ebbf318a67a9479c18a0e4be244c8409
+> Author: Hans Verkuil <hans.verkuil@cisco.com>
+> Date:   Tue Nov 28 08:48:04 2017 +0100
+> 
+>     Update backports/pr_fmt.patch
+> 
+>     Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> + cd media
+> + git --no-pager log -1
+> commit 781b045baefdabf7e0bc9f33672ca830d3db9f27
+> Author: Sakari Ailus <sakari.ailus@linux.intel.com>
+> Date:   Wed Nov 1 05:40:58 2017 -0400
+> 
+>     media: imx274: Fix error handling, add MAINTAINERS entry
+> 
+>     Add the missing MAINTAINERS entry for imx274, fix error handling in driver
+>     probe and unregister the correct control handler in driver remove.
+> 
+>     Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+>     Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> 
+> 
+> This is the build failure
+> ...
+> 
+> Created default (all yes) .config file
+> ./scripts/fix_kconfig.pl
+> make[1]: Leaving directory '/home/me/git/clones/media_build/v4l'
+> $ make
+> make -C /home/me/git/clones/media_build/v4l
+> make[1]: Entering directory '/home/me/git/clones/media_build/v4l'
+> scripts/make_makefile.pl
+> ./scripts/make_myconfig.pl
+> perl scripts/make_config_compat.pl /lib/modules/4.4.0-101-generic/build ./.myconfig ./config-compat.h
+> creating symbolic links...
+> Kernel build directory is /lib/modules/4.4.0-101-generic/build
+> make -C ../linux apply_patches
+> make[2]: Entering directory '/home/me/git/clones/media_build/linux'
+> Syncing with dir ../media/
+> Patches for 4.4.0-101-generic already applied.
+> make[2]: Leaving directory '/home/me/git/clones/media_build/linux'
+> make -C /lib/modules/4.4.0-101-generic/build SUBDIRS=/home/me/git/clones/media_build/v4l  modules
+> make[2]: Entering directory '/usr/src/linux-headers-4.4.0-101-generic'
+>   CC [M]  /home/me/git/clones/media_build/v4l/msp3400-driver.o
+> In file included from include/linux/compiler.h:56:0,
+>                  from include/asm-generic/bug.h:4,
+>                  from ./arch/x86/include/asm/bug.h:35,
+>                  from include/linux/bug.h:4,
+>                  from include/linux/mmdebug.h:4,
+>                  from /home/me/git/clones/media_build/v4l/config-compat.h:12,
+>                  from /home/me/git/clones/media_build/v4l/compat.h:10,
+>                  from <command-line>:0:
+> /home/me/git/clones/media_build/v4l/../linux/include/linux/compiler-gcc.h:3:2: error: #error "Please don't include <linux/compiler-gcc.h> directly, include <linux/compiler.h> instead."
+>  #error "Please don't include <linux/compiler-gcc.h> directly, include <linux/compiler.h> instead."
+>   ^
+> scripts/Makefile.build:258: recipe for target '/home/me/git/clones/media_build/v4l/msp3400-driver.o' failed
+> make[3]: *** [/home/me/git/clones/media_build/v4l/msp3400-driver.o] Error 1
+> Makefile:1423: recipe for target '_module_/home/me/git/clones/media_build/v4l' failed
+> make[2]: *** [_module_/home/me/git/clones/media_build/v4l] Error 2
+> make[2]: Leaving directory '/usr/src/linux-headers-4.4.0-101-generic'
+> Makefile:51: recipe for target 'default' failed
+> make[1]: *** [default] Error 2
+> make[1]: Leaving directory '/home/me/git/clones/media_build/v4l'
+> Makefile:26: recipe for target 'all' failed
+> make: *** [all] Error 2
+> build failed at ./build line 526
+> + status=29
+> 
+> I'm struggling to follow the depedency chain here so I thought I'd better ask.
+> 
+> ubuntu(master)$ grep -r compiler-gcc.h|grep -F '#include'
+> 
+> media/include/linux/compiler_types.h:#include <linux/compiler-gcc.h>
+> media/tools/include/linux/compiler.h:#include <linux/compiler-gcc.h>
+> 
+> Cheers
+> Vince
+> 
+> 
