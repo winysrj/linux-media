@@ -1,128 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:39691 "EHLO
-        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751236AbdLAHX6 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 1 Dec 2017 02:23:58 -0500
-Subject: Re: [PATCHv5 0/3] drm/i915: add DisplayPort CEC-Tunneling-over-AUX
- support
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Daniel Vetter <daniel.vetter@ffwll.ch>,
-        dri-devel@lists.freedesktop.org,
-        Carlos Santa <carlos.santa@intel.com>
-References: <20171120114211.21825-1-hverkuil@xs4all.nl>
-Message-ID: <3f7a93ba-8a7d-c2bf-151a-b5b59a3c6fbd@xs4all.nl>
-Date: Fri, 1 Dec 2017 08:23:53 +0100
+Received: from relay2-d.mail.gandi.net ([217.70.183.194]:56273 "EHLO
+        relay2-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751453AbdLFPdM (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 6 Dec 2017 10:33:12 -0500
+Date: Wed, 6 Dec 2017 16:33:01 +0100
+From: jacopo mondi <jacopo@jmondi.org>
+To: Kieran Bingham <kbingham@kernel.org>
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        niklas.soderlund@ragnatech.se,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: Re: [PATCH v5] v4l2-async: Match parent devices
+Message-ID: <20171206153301.GA3479@w540>
+References: <1512572319-20179-1-git-send-email-kbingham@kernel.org>
 MIME-Version: 1.0
-In-Reply-To: <20171120114211.21825-1-hverkuil@xs4all.nl>
 Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+In-Reply-To: <1512572319-20179-1-git-send-email-kbingham@kernel.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Ping!
+Hi Kieran,
 
-I really like to get this in for 4.16 so I can move forward with hooking
-this up for nouveau/amd.
+On Wed, Dec 06, 2017 at 02:58:39PM +0000, Kieran Bingham wrote:
+> From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+>
+> Devices supporting multiple endpoints on a single device node must set
+> their subdevice fwnode to the endpoint to allow distinct comparisons.
+>
+> Adapt the match_fwnode call to compare against the provided fwnodes
+> first, but to also perform a cross reference comparison against the
+> parent fwnodes of each other.
+>
+> This allows notifiers to pass the endpoint for comparison and still
+> support existing subdevices which store their default parent device
+> node.
+>
+> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-Regards,
+please append:
 
-	Hans
+Reported-by: Jacopo Mondi <jacopo.mondi+renesas@jmondi.org>
 
-On 11/20/2017 12:42 PM, Hans Verkuil wrote:
-> This patch series adds support for the DisplayPort CEC-Tunneling-over-AUX
-> feature. This patch series is based on the 4.14 mainline release but applies
-> as well to drm-next.
-> 
-> This patch series has been tested with my NUC7i5BNK, a Samsung USB-C to 
-> HDMI adapter and a Club 3D DisplayPort MST Hub + modified UpTab DP-to-HDMI
-> adapter (where the CEC pin is wired up).
-> 
-> Please note this comment at the start of drm_dp_cec.c:
-> 
-> ----------------------------------------------------------------------
-> Unfortunately it turns out that we have a chicken-and-egg situation
-> here. Quite a few active (mini-)DP-to-HDMI or USB-C-to-HDMI adapters
-> have a converter chip that supports CEC-Tunneling-over-AUX (usually the
-> Parade PS176 or MegaChips MCDP2900), but they do not wire up the CEC pin,
-> thus making CEC useless.
-> 
-> Sadly there is no way for this driver to know this. What happens is
-> that a /dev/cecX device is created that is isolated and unable to see
-> any of the other CEC devices. Quite literally the CEC wire is cut
-> (or in this case, never connected in the first place).
-> 
-> I suspect that the reason so few adapters support this is that this
-> tunneling protocol was never supported by any OS. So there was no
-> easy way of testing it, and no incentive to correctly wire up the
-> CEC pin.
-> 
-> Hopefully by creating this driver it will be easier for vendors to
-> finally fix their adapters and test the CEC functionality.
-> 
-> I keep a list of known working adapters here:
-> 
-> https://hverkuil.home.xs4all.nl/cec-status.txt
-> 
-> Please mail me (hverkuil@xs4all.nl) if you find an adapter that works
-> and is not yet listed there.
-> 
-> Note that the current implementation does not support CEC over an MST hub.
-> As far as I can see there is no mechanism defined in the DisplayPort
-> standard to transport CEC interrupts over an MST device. It might be
-> possible to do this through polling, but I have not been able to get that
-> to work.
-> ----------------------------------------------------------------------
-> 
-> I really hope that this work will provide an incentive for vendors to
-> finally connect the CEC pin. It's a shame that there are so few adapters
-> that work (I found only two USB-C to HDMI adapters that work, and no
-> (mini-)DP to HDMI adapters at all).
-> 
-> Hopefully if this gets merged there will be an incentive for vendors
-> to make adapters where this actually works. It is a very nice feature
-> for HTPC boxes.
-> 
-> The main reason why this v5 is delayed by 2 months is due to the fact
-> that I needed some dedicated time to investigate what happens when an
-> MST hub is in use. It turns out that this is not working. There is no
-> mechanism defined in the DisplayPort standard to transport the CEC
-> interrupt back up the MST chain. I was actually able to send a CEC
-> message but the interrupt that tells when the transmit finished is
-> unavailable.
-> 
-> I attempted to implement this via polling, but I got weird errors
-> and was not able to read the DP_DEVICE_SERVICE_IRQ_VECTOR_ESI1
-> register. I decided to give up on this for now and just disable CEC
-> for DP-to-HDMI adapters after an MST hub. I plan to revisit this
-> later since it would be neat to make this work as well. Although it
-> might not be possible at all.
-> 
-> If anyone is interested, work-in-progress for this is here:
-> 
-> https://git.linuxtv.org/hverkuil/media_tree.git/log/?h=dp-cec-mst
-> 
-> Note that I removed the Tested-by tag from Carlos Santa due to the
-> almost complete rework of the third patch. Carlos, can you test this again?
-> 
-> Regards,
-> 
->         Hans
-> 
-> Changes since v4:
-> 
-> - Updated comment at the start of drm_dp_cec.c
-> - Add edid pointer to drm_dp_cec_configure_adapter
-> - Reworked the last patch (adding CEC to i915) based on Ville's comments
->   and my MST testing:
-> 	- register/unregister CEC in intel_dp_connector_register/unregister
-> 	- add comment and check if connector is registered in long_pulse
-> 	- unregister CEC if an MST 'connector' is detected.
-> 
-> _______________________________________________
-> dri-devel mailing list
-> dri-devel@lists.freedesktop.org
-> https://lists.freedesktop.org/mailman/listinfo/dri-devel
-> 
+Thanks
+   j
+
+>
+> ---
+>
+> Hi Sakari,
+>
+> Since you signed-off on this patch - it has had to be reworked due to the
+> changes on the of_node_full_name() functionality.
+>
+> I believe it is correct now to *just* do the pointer matching, as that matches
+> the current implementation, and converting to device_nodes will be just as
+> equal as the fwnodes, as they are simply containers.
+>
+> Let me know if you are happy to maintain your SOB on this patch - and if we need
+> to work towards getting this integrated upstream, especially in light of your new
+> endpoint matching work.
+>
+> --
+> Regards
+>
+> Kieran
+>
+>
+> v2:
+>  - Added documentation comments
+>  - simplified the OF match by adding match_fwnode_of()
+>
+> v3:
+>  - Fix comments
+>  - Fix sd_parent, and asd_parent usage
+>
+> v4:
+>  - Clean up and simplify match_fwnode and comparisons
+>
+> v5:
+>  - Updated for v4.15-rc1:
+>    of_node no longer specifies a full path, and only returns the
+>    basename with of_node_full_name(), thus this ends up matching
+>    "endpoint" for all endpoints. Fall back to pointer matching,
+>    whilst maintaining the parent comparisons.
+> ---
+>  drivers/media/v4l2-core/v4l2-async.c | 17 ++++++++++++++++-
+>  1 file changed, 16 insertions(+), 1 deletion(-)
+>
+> diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+> index fcadad305336..780bda70d8b3 100644
+> --- a/drivers/media/v4l2-core/v4l2-async.c
+> +++ b/drivers/media/v4l2-core/v4l2-async.c
+> @@ -71,9 +71,24 @@ static bool match_devname(struct v4l2_subdev *sd,
+>  	return !strcmp(asd->match.device_name.name, dev_name(sd->dev));
+>  }
+>
+> +/*
+> + * As a measure to support drivers which have not been converted to use
+> + * endpoint matching, we also find the parent devices for cross-matching.
+> + *
+> + * This also allows continued support for matching subdevices which will not
+> + * have an endpoint themselves.
+> + */
+>  static bool match_fwnode(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
+>  {
+> -	return sd->fwnode == asd->match.fwnode.fwnode;
+> +	struct fwnode_handle *asd_fwnode = asd->match.fwnode.fwnode;
+> +	struct fwnode_handle *sd_parent, *asd_parent;
+> +
+> +	sd_parent = fwnode_graph_get_port_parent(sd->fwnode);
+> +	asd_parent = fwnode_graph_get_port_parent(asd_fwnode);
+> +
+> +	return sd->fwnode == asd_fwnode ||
+> +	       sd->fwnode == asd_parent ||
+> +	       sd_parent == asd_fwnode;
+>  }
+>
+>  static bool match_custom(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
+> --
+> 2.7.4
+>
