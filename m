@@ -1,49 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:37880 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751644AbdLMJgs (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 13 Dec 2017 04:36:48 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH 0/2] uvcvideo: Refactor code to ease metadata implementation
-Date: Wed, 13 Dec 2017 11:36:52 +0200
-Message-ID: <19177434.yaqnhLVI9Y@avalon>
-In-Reply-To: <alpine.DEB.2.20.1712120832090.26789@axis700.grange>
-References: <20171204232333.30084-1-laurent.pinchart@ideasonboard.com> <alpine.DEB.2.20.1712120832090.26789@axis700.grange>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mail-pf0-f196.google.com ([209.85.192.196]:46665 "EHLO
+        mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752472AbdLFLUw (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 6 Dec 2017 06:20:52 -0500
+From: Jacob Chen <jacob-chen@iotwrt.com>
+To: linux-rockchip@lists.infradead.org
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        mchehab@kernel.org, linux-media@vger.kernel.org,
+        sakari.ailus@linux.intel.com, hans.verkuil@cisco.com,
+        tfiga@chromium.org, zhengsq@rock-chips.com,
+        laurent.pinchart@ideasonboard.com, zyc@rock-chips.com,
+        eddie.cai.linux@gmail.com, jeffy.chen@rock-chips.com,
+        allon.huang@rock-chips.com, devicetree@vger.kernel.org,
+        heiko@sntech.de, robh+dt@kernel.org, Joao.Pinto@synopsys.com,
+        Luis.Oliveira@synopsys.com, Jose.Abreu@synopsys.com,
+        Jacob Chen <jacob2.chen@rock-chips.com>
+Subject: [PATCH v3 07/12] dt-bindings: Document the Rockchip MIPI RX D-PHY bindings
+Date: Wed,  6 Dec 2017 19:19:34 +0800
+Message-Id: <20171206111939.1153-8-jacob-chen@iotwrt.com>
+In-Reply-To: <20171206111939.1153-1-jacob-chen@iotwrt.com>
+References: <20171206111939.1153-1-jacob-chen@iotwrt.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
+From: Jacob Chen <jacob2.chen@rock-chips.com>
 
-On Tuesday, 12 December 2017 09:45:11 EET Guennadi Liakhovetski wrote:
-> Hi Laurent,
-> 
-> Thanks for the patches. Please feel free to add either or both of
-> 
-> Reviewed-by: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>
-> Tested-by: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>
-> 
-> to both of the patches. Whereas in fact strictly speaking your current
-> tree has updated improved versions of the patches, at least of the first
-> of them - it now correctly handles the struct video_device::vfl_dir field,
-> even thoough I'd still find merging that "if" with the following "switch"
-> prettier ;-) So, strictly speaking you'd have to post those updated
-> versions, in any case my approval tags refer to versions in your tree with
-> commit IDs
-> 
-> 53464c9f76da054ac3c291d27f348170d2a346c6
-> and
-> b6c5f10563c4ee8437cd9131bc3d389514456519
+Add DT bindings documentation for Rockchip MIPI D-PHY RX
 
-Thank you. You're absolutely right, I've reposted the patches in a v2 with 
-your tags included.
+Signed-off-by: Jacob Chen <jacob2.chen@rock-chips.com>
+---
+ .../bindings/media/rockchip-mipi-dphy.txt          | 71 ++++++++++++++++++++++
+ 1 file changed, 71 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/rockchip-mipi-dphy.txt
 
+diff --git a/Documentation/devicetree/bindings/media/rockchip-mipi-dphy.txt b/Documentation/devicetree/bindings/media/rockchip-mipi-dphy.txt
+new file mode 100644
+index 000000000000..cef9450db051
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/rockchip-mipi-dphy.txt
+@@ -0,0 +1,71 @@
++Rockchip SoC MIPI RX D-PHY
++-------------------------------------------------------------
++
++Required properties:
++
++- compatible: value should be one of the following
++    "rockchip,rk3288-mipi-dphy";
++    "rockchip,rk3399-mipi-dphy";
++- rockchip,grf: GRF regs.
++- bus-width : maximum number of data lanes supported (SoC specific);
++- clocks : list of clock specifiers, corresponding to entries in
++		    clock-names property;
++- clock-names: required clock name.
++
++The device node should contain two 'port' child node, according to the bindings
++defined in Documentation/devicetree/bindings/media/video-interfaces.txt.
++The first port should be connected to sensor nodes, and the second port should be
++connected to isp node. The following are properties specific to those nodes.
++
++endpoint node
++-------------
++
++- data-lanes : (required) an array specifying active physical MIPI-CSI2
++		data input lanes and their mapping to logical lanes; the
++		array's content is unused, only its length is meaningful;
++
++Device node example
++-------------------
++
++    mipi_dphy_rx0: mipi-dphy-rx0 {
++        compatible = "rockchip,rk3399-mipi-dphy";
++        clocks = <&cru SCLK_MIPIDPHY_REF>,
++            <&cru SCLK_DPHY_RX0_CFG>,
++            <&cru PCLK_VIO_GRF>;
++        clock-names = "dphy-ref", "dphy-cfg", "grf";
++        power-domains = <&power RK3399_PD_VIO>;
++        bus-width = <4>;
++
++        ports {
++            #address-cells = <1>;
++            #size-cells = <0>;
++
++            port@0 {
++                reg = <0>;
++                #address-cells = <1>;
++                #size-cells = <0>;
++
++                mipi_in_wcam: endpoint@0 {
++                    reg = <0>;
++                    remote-endpoint = <&wcam_out>;
++                    data-lanes = <1 2>;
++                };
++                mipi_in_ucam: endpoint@1 {
++                    reg = <1>;
++                    remote-endpoint = <&ucam_out>;
++                    data-lanes = <1>;
++                };
++            };
++
++            port@1 {
++                reg = <1>;
++                #address-cells = <1>;
++                #size-cells = <0>;
++
++                dphy_rx0_out: endpoint@0 {
++                    reg = <0>;
++                    remote-endpoint = <&isp0_mipi_in>;
++                };
++            };
++        };
++    };
+\ No newline at end of file
 -- 
-Regards,
-
-Laurent Pinchart
+2.15.0
