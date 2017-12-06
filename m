@@ -1,59 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f65.google.com ([74.125.83.65]:44290 "EHLO
-        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752561AbdLFLVV (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 6 Dec 2017 06:21:21 -0500
-From: Jacob Chen <jacob-chen@iotwrt.com>
-To: linux-rockchip@lists.infradead.org
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        mchehab@kernel.org, linux-media@vger.kernel.org,
-        sakari.ailus@linux.intel.com, hans.verkuil@cisco.com,
-        tfiga@chromium.org, zhengsq@rock-chips.com,
-        laurent.pinchart@ideasonboard.com, zyc@rock-chips.com,
-        eddie.cai.linux@gmail.com, jeffy.chen@rock-chips.com,
-        allon.huang@rock-chips.com, devicetree@vger.kernel.org,
-        heiko@sntech.de, robh+dt@kernel.org, Joao.Pinto@synopsys.com,
-        Luis.Oliveira@synopsys.com, Jose.Abreu@synopsys.com,
-        Jacob Chen <jacob2.chen@rock-chips.com>
-Subject: [PATCH v3 12/12] MAINTAINERS: add entry for Rockchip ISP1 driver
-Date: Wed,  6 Dec 2017 19:19:39 +0800
-Message-Id: <20171206111939.1153-13-jacob-chen@iotwrt.com>
-In-Reply-To: <20171206111939.1153-1-jacob-chen@iotwrt.com>
-References: <20171206111939.1153-1-jacob-chen@iotwrt.com>
+Received: from mail-wm0-f46.google.com ([74.125.82.46]:38492 "EHLO
+        mail-wm0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751788AbdLFSGe (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 6 Dec 2017 13:06:34 -0500
+Received: by mail-wm0-f46.google.com with SMTP id 64so8632906wme.3
+        for <linux-media@vger.kernel.org>; Wed, 06 Dec 2017 10:06:34 -0800 (PST)
+Date: Wed, 6 Dec 2017 19:06:26 +0100
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: linux-media@vger.kernel.org, mchehab@kernel.org,
+        mchehab@s-opensource.com
+Cc: jasmin@anw.at, rjkm@metzlerbros.de
+Subject: Re: [PATCH for 4.15] ddbridge update to 0.9.32
+Message-ID: <20171206190626.13a2daeb@audiostation.wuest.de>
+In-Reply-To: <20171015205157.14342-1-d.scheller.oss@gmail.com>
+References: <20171015205157.14342-1-d.scheller.oss@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Jacob Chen <jacob2.chen@rock-chips.com>
+Am Sun, 15 Oct 2017 22:51:49 +0200
+schrieb Daniel Scheller <d.scheller.oss@gmail.com>:
 
-Add MAINTAINERS entry for the rockchip isp1 driver.
-This driver is maintained by rockchip officially and it
-will be used for rockchip SoC on all linux-kernel based OS.
+> From: Daniel Scheller <d.scheller@gmx.net>
+> 
+> For the 4.15 merge window. These patches update the mainline ddbridge
+> driver to version 0.9.32, which was released ~3 weeks ago by upstream.
+> 
+> Nothing really fancy in this series, in fact upstream applied many of
+> the changes that went into the mainline driver, which was released as
+> 0.9.32. A few more changes were applied though, namely the CI DuoFlex/
+> PCIe Bridge support has been split from -core (like ie. the MaxS8 card
+> support), upstream named the files with the MaxS8 support code
+> "-max.[c|h]" (thus the rename), and everything was made checkpatch-
+> strict clean.
+> 
+> One condition in stv0910.c:read_status() was missing in mainline and
+> is being added in 7/8.
+> 
+> The series was tested for bisect safety and checked with smatch.
+> 
+> Please pull for 4.15.
 
-Signed-off-by: Jacob Chen <jacob2.chen@rock-chips.com>
----
- MAINTAINERS | 10 ++++++++++
- 1 file changed, 10 insertions(+)
+Ping.
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index b05bc2c5e85c..614196ed7265 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -11665,6 +11665,16 @@ F:	drivers/hid/hid-roccat*
- F:	include/linux/hid-roccat*
- F:	Documentation/ABI/*/sysfs-driver-hid-roccat*
- 
-+ROCKCHIP ISP V1 DRIVER
-+M:	Jacob chen <jacob2.chen@rock-chips.com>
-+M:	Shunqian Zheng <zhengsq@rock-chips.com>
-+M:	Yichong Zhong <zyc@rock-chips.com>
-+L:	linux-media@vger.kernel.org
-+S:	Maintained
-+F:	drivers/media/platform/rockchip/isp1/
-+F:	Documentation/devicetree/bindings/media/rockchip-isp1.txt
-+F:	Documentation/devicetree/bindings/media/rockchip-mipi-dphy.txt
-+
- ROCKCHIP RASTER 2D GRAPHIC ACCELERATION UNIT DRIVER
- M:	Jacob chen <jacob2.chen@rock-chips.com>
- L:	linux-media@vger.kernel.org
+Best regards,
+Daniel Scheller
 -- 
-2.15.0
+https://github.com/herrnst
