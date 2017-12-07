@@ -1,99 +1,171 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp3-1.goneo.de ([85.220.129.38]:49351 "EHLO smtp3-1.goneo.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753830AbdLHQLT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 8 Dec 2017 11:11:19 -0500
-Content-Type: text/plain; charset=us-ascii
-Mime-Version: 1.0 (Mac OS X Mail 10.3 \(3273\))
-Subject: Re: [PATCH v2] kernel-doc: parse DECLARE_KFIFO and
- DECLARE_KFIFO_PTR()
-From: Markus Heiser <markus.heiser@darmarit.de>
-In-Reply-To: <37a81ae259c9d3a90fbdbe1532f904946139bfdd.1512741889.git.mchehab@s-opensource.com>
-Date: Fri, 8 Dec 2017 17:01:03 +0100
-Cc: Jonathan Corbet <corbet@lwn.net>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>
-Content-Transfer-Encoding: 8BIT
-Message-Id: <B95120B7-C714-4CF5-B531-1CC609FE84EE@darmarit.de>
-References: <37a81ae259c9d3a90fbdbe1532f904946139bfdd.1512741889.git.mchehab@s-opensource.com>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Received: from mx07-00178001.pphosted.com ([62.209.51.94]:60746 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753178AbdLGMlh (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 7 Dec 2017 07:41:37 -0500
+From: Hugues Fruchet <hugues.fruchet@st.com>
+To: Steve Longerbeam <slongerbeam@gmail.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        "Mauro Carvalho Chehab" <mchehab@kernel.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>
+CC: <linux-media@vger.kernel.org>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Subject: [PATCH v3 5/5] media: ov5640: add support of RGB565 and YUYV formats
+Date: Thu, 7 Dec 2017 13:40:53 +0100
+Message-ID: <1512650453-24476-6-git-send-email-hugues.fruchet@st.com>
+In-Reply-To: <1512650453-24476-1-git-send-email-hugues.fruchet@st.com>
+References: <1512650453-24476-1-git-send-email-hugues.fruchet@st.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-FYI: added similar patch to the linuxdoc sphinx-extension
+Add RGB565 (LE & BE) and YUV422 YUYV format in addition
+to existing YUV422 UYVY format.
 
- https://github.com/return42/linuxdoc/commit/726af7a
+Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
+---
+ drivers/media/i2c/ov5640.c | 74 +++++++++++++++++++++++++++++++++++++++++-----
+ 1 file changed, 67 insertions(+), 7 deletions(-)
 
-Thanks!
-
--- Markus -- 
-
-> Am 08.12.2017 um 15:05 schrieb Mauro Carvalho Chehab <mchehab@s-opensource.com>:
-> 
-> On media, we now have an struct declared with:
-> 
-> struct lirc_fh {
->       struct list_head list;
->       struct rc_dev *rc;
->       int                             carrier_low;
->       bool                            send_timeout_reports;
->       DECLARE_KFIFO_PTR(rawir, unsigned int);
->       DECLARE_KFIFO_PTR(scancodes, struct lirc_scancode);
->       wait_queue_head_t               wait_poll;
->       u8                              send_mode;
->       u8                              rec_mode;
-> };
-> 
-> gpiolib.c has a similar declaration with DECLARE_KFIFO().
-> 
-> Currently, those produce the following error:
-> 
-> 	./include/media/rc-core.h:96: warning: No description found for parameter 'int'
-> 	./include/media/rc-core.h:96: warning: No description found for parameter 'lirc_scancode'
-> 	./include/media/rc-core.h:96: warning: Excess struct member 'rawir' description in 'lirc_fh'
-> 	./include/media/rc-core.h:96: warning: Excess struct member 'scancodes' description in 'lirc_fh'
-> 	../drivers/gpio/gpiolib.c:601: warning: No description found for parameter '16'
-> 	../drivers/gpio/gpiolib.c:601: warning: Excess struct member 'events' description in 'lineevent_state'
-> 
-> So, teach kernel-doc how to parse DECLARE_KFIFO() and DECLARE_KFIFO_PTR().
-> 
-> While here, relax at the past DECLARE_foo() macros, accepting a random
-> number of spaces after comma.
-> 
-> The addition of DECLARE_KFIFO() was
-> Suggested-by: Randy Dunlap <rdunlap@infradead.org>
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> ---
-> scripts/kernel-doc | 8 ++++++--
-> 1 file changed, 6 insertions(+), 2 deletions(-)
-> 
-> diff --git a/scripts/kernel-doc b/scripts/kernel-doc
-> index bd29a92b4b48..cfdabdd08631 100755
-> --- a/scripts/kernel-doc
-> +++ b/scripts/kernel-doc
-> @@ -2208,9 +2208,13 @@ sub dump_struct($$) {
-> 	$members =~ s/__aligned\s*\([^;]*\)//gos;
-> 	$members =~ s/\s*CRYPTO_MINALIGN_ATTR//gos;
-> 	# replace DECLARE_BITMAP
-> -	$members =~ s/DECLARE_BITMAP\s*\(([^,)]+), ([^,)]+)\)/unsigned long $1\[BITS_TO_LONGS($2)\]/gos;
-> +	$members =~ s/DECLARE_BITMAP\s*\(([^,)]+),\s*([^,)]+)\)/unsigned long $1\[BITS_TO_LONGS($2)\]/gos;
-> 	# replace DECLARE_HASHTABLE
-> -	$members =~ s/DECLARE_HASHTABLE\s*\(([^,)]+), ([^,)]+)\)/unsigned long $1\[1 << (($2) - 1)\]/gos;
-> +	$members =~ s/DECLARE_HASHTABLE\s*\(([^,)]+),\s*([^,)]+)\)/unsigned long $1\[1 << (($2) - 1)\]/gos;
-> +	# replace DECLARE_KFIFO
-> +	$members =~ s/DECLARE_KFIFO\s*\(([^,)]+),\s*([^,)]+),\s*([^,)]+)\)/$2 \*$1/gos;
-> +	# replace DECLARE_KFIFO_PTR
-> +	$members =~ s/DECLARE_KFIFO_PTR\s*\(([^,)]+),\s*([^,)]+)\)/$2 \*$1/gos;
-> 
-> 	create_parameterlist($members, ';', $file);
-> 	check_sections($file, $declaration_name, $decl_type, $sectcheck, $struct_actual, $nested);
-> -- 
-> 2.14.3
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-doc" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
+index c791a67..4206f43 100644
+--- a/drivers/media/i2c/ov5640.c
++++ b/drivers/media/i2c/ov5640.c
+@@ -76,8 +76,10 @@
+ #define OV5640_REG_HZ5060_CTRL01	0x3c01
+ #define OV5640_REG_SIGMADELTA_CTRL0C	0x3c0c
+ #define OV5640_REG_FRAME_CTRL01		0x4202
++#define OV5640_REG_FORMAT_CONTROL00	0x4300
+ #define OV5640_REG_MIPI_CTRL00		0x4800
+ #define OV5640_REG_DEBUG_MODE		0x4814
++#define OV5640_REG_ISP_FORMAT_MUX_CTRL	0x501f
+ #define OV5640_REG_PRE_ISP_TEST_SET1	0x503d
+ #define OV5640_REG_SDE_CTRL0		0x5580
+ #define OV5640_REG_SDE_CTRL1		0x5581
+@@ -105,6 +107,18 @@ enum ov5640_frame_rate {
+ 	OV5640_NUM_FRAMERATES,
+ };
+ 
++struct ov5640_pixfmt {
++	u32 code;
++	u32 colorspace;
++};
++
++static const struct ov5640_pixfmt ov5640_formats[] = {
++	{ MEDIA_BUS_FMT_UYVY8_2X8, V4L2_COLORSPACE_SRGB, },
++	{ MEDIA_BUS_FMT_YUYV8_2X8, V4L2_COLORSPACE_SRGB, },
++	{ MEDIA_BUS_FMT_RGB565_2X8_LE, V4L2_COLORSPACE_SRGB, },
++	{ MEDIA_BUS_FMT_RGB565_2X8_BE, V4L2_COLORSPACE_SRGB, },
++};
++
+ /*
+  * FIXME: remove this when a subdev API becomes available
+  * to set the MIPI CSI-2 virtual channel.
+@@ -1803,17 +1817,23 @@ static int ov5640_try_fmt_internal(struct v4l2_subdev *sd,
+ {
+ 	struct ov5640_dev *sensor = to_ov5640_dev(sd);
+ 	const struct ov5640_mode_info *mode;
++	int i;
+ 
+ 	mode = ov5640_find_mode(sensor, fr, fmt->width, fmt->height, true);
+ 	if (!mode)
+ 		return -EINVAL;
+-
+ 	fmt->width = mode->width;
+ 	fmt->height = mode->height;
+-	fmt->code = sensor->fmt.code;
+ 
+ 	if (new_mode)
+ 		*new_mode = mode;
++
++	for (i = 0; i < ARRAY_SIZE(ov5640_formats); i++)
++		if (ov5640_formats[i].code == fmt->code)
++			break;
++	if (i >= ARRAY_SIZE(ov5640_formats))
++		fmt->code = ov5640_formats[0].code;
++
+ 	return 0;
+ }
+ 
+@@ -1856,6 +1876,45 @@ static int ov5640_set_fmt(struct v4l2_subdev *sd,
+ 	return ret;
+ }
+ 
++static int ov5640_set_framefmt(struct ov5640_dev *sensor,
++			       struct v4l2_mbus_framefmt *format)
++{
++	int ret = 0;
++	bool is_rgb = false;
++	u8 val;
++
++	switch (format->code) {
++	case MEDIA_BUS_FMT_UYVY8_2X8:
++		/* YUV422, UYVY */
++		val = 0x3f;
++		break;
++	case MEDIA_BUS_FMT_YUYV8_2X8:
++		/* YUV422, YUYV */
++		val = 0x30;
++		break;
++	case MEDIA_BUS_FMT_RGB565_2X8_LE:
++		/* RGB565 {g[2:0],b[4:0]},{r[4:0],g[5:3]} */
++		val = 0x6F;
++		is_rgb = true;
++		break;
++	case MEDIA_BUS_FMT_RGB565_2X8_BE:
++		/* RGB565 {r[4:0],g[5:3]},{g[2:0],b[4:0]} */
++		val = 0x61;
++		is_rgb = true;
++		break;
++	default:
++		return -EINVAL;
++	}
++
++	/* FORMAT CONTROL00: YUV and RGB formatting */
++	ret = ov5640_write_reg(sensor, OV5640_REG_FORMAT_CONTROL00, val);
++	if (ret)
++		return ret;
++
++	/* FORMAT MUX CONTROL: ISP YUV or RGB */
++	return ov5640_write_reg(sensor, OV5640_REG_ISP_FORMAT_MUX_CTRL,
++				is_rgb ? 0x01 : 0x00);
++}
+ 
+ /*
+  * Sensor Controls.
+@@ -2241,15 +2300,12 @@ static int ov5640_enum_mbus_code(struct v4l2_subdev *sd,
+ 				  struct v4l2_subdev_pad_config *cfg,
+ 				  struct v4l2_subdev_mbus_code_enum *code)
+ {
+-	struct ov5640_dev *sensor = to_ov5640_dev(sd);
+-
+ 	if (code->pad != 0)
+ 		return -EINVAL;
+-	if (code->index != 0)
++	if (code->index >= ARRAY_SIZE(ov5640_formats))
+ 		return -EINVAL;
+ 
+-	code->code = sensor->fmt.code;
+-
++	code->code = ov5640_formats[code->index].code;
+ 	return 0;
+ }
+ 
+@@ -2265,6 +2321,10 @@ static int ov5640_s_stream(struct v4l2_subdev *sd, int enable)
+ 			ret = ov5640_set_mode(sensor, sensor->current_mode);
+ 			if (ret)
+ 				goto out;
++
++			ret = ov5640_set_framefmt(sensor, &sensor->fmt);
++			if (ret)
++				goto out;
+ 		}
+ 
+ 		if (sensor->ep.bus_type == V4L2_MBUS_CSI2)
+-- 
+1.9.1
