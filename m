@@ -1,1614 +1,2507 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from regular1.263xmail.com ([211.150.99.136]:48028 "EHLO
-        regular1.263xmail.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750955AbdLLG3U (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 12 Dec 2017 01:29:20 -0500
-From: Leo Wen <leo.wen@rock-chips.com>
-To: mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
-        davem@davemloft.net, gregkh@linuxfoundation.org,
-        rdunlap@infradead.org
-Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-rockchip@lists.infradead.org,
-        eddie.cai@rock-chips.com, Leo Wen <leo.wen@rock-chips.com>
-Subject: [PATCH 1/2] [media] Add Rockchip RK1608 driver
-Date: Tue, 12 Dec 2017 14:28:14 +0800
-Message-Id: <1513060095-29588-2-git-send-email-leo.wen@rock-chips.com>
-In-Reply-To: <1513060095-29588-1-git-send-email-leo.wen@rock-chips.com>
-References: <1513060095-29588-1-git-send-email-leo.wen@rock-chips.com>
+Received: from smtprelay4.synopsys.com ([198.182.47.9]:40284 "EHLO
+        smtprelay.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750967AbdLGJsX (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 7 Dec 2017 04:48:23 -0500
+From: Jose Abreu <Jose.Abreu@synopsys.com>
+To: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Jose Abreu <Jose.Abreu@synopsys.com>,
+        Joao Pinto <Joao.Pinto@synopsys.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sylwester Nawrocki <snawrocki@kernel.org>,
+        Sakari Ailus <sakari.ailus@iki.fi>
+Subject: [PATCH v9 4/4] [media] platform: Add Synopsys DesignWare HDMI RX Controller Driver
+Date: Thu,  7 Dec 2017 09:47:46 +0000
+Message-Id: <fd906727f9f507bcc748125972cae447cf1e5644.1512582979.git.joabreu@synopsys.com>
+In-Reply-To: <cover.1512582979.git.joabreu@synopsys.com>
+References: <cover.1512582979.git.joabreu@synopsys.com>
+In-Reply-To: <cover.1512582979.git.joabreu@synopsys.com>
+References: <cover.1512582979.git.joabreu@synopsys.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Rk1608 is used as a PreISP to link on Soc, which mainly has two functions.
-One is to download the firmware of RK1608, and the other is to match the
-extra sensor such as camera and enable sensor by calling sensor's s_power.
+This is an initial submission for the Synopsys DesignWare HDMI RX
+Controller Driver. This driver interacts with a phy driver so that
+a communication between them is created and a video pipeline is
+configured.
 
-use below v4l2-ctl command to capture frames.
+The controller + phy pipeline can then be integrated into a fully
+featured system that can be able to receive video up to 4k@60Hz
+with deep color 48bit RGB, depending on the platform. Although,
+this initial version does not yet handle deep color modes.
 
-    v4l2-ctl --verbose -d /dev/video1 --stream-mmap=2
-    --stream-to=/tmp/stream.out --stream-count=60 --stream-poll
+This driver was implemented as a standard V4L2 subdevice and its
+main features are:
+	- Internal state machine that reconfigures phy until the
+	video is not stable
+	- JTAG communication with phy
+	- Inter-module communication with phy driver
+	- Debug write/read ioctls
 
-use below command to playback the video on your PC.
+Some notes:
+	- RX sense controller (cable connection/disconnection) must
+	be handled by the platform wrapper as this is not integrated
+	into the controller RTL
+	- The same goes for EDID ROM's
+	- ZCAL calibration is needed only in FPGA platforms, in ASIC
+	this is not needed
+	- The state machine is not an ideal solution as it creates a
+	kthread but it is needed because some sources might not be
+	very stable at sending the video (i.e. we must react
+	accordingly).
 
-    mplayer ./stream.out -loop 0 -demuxer rawvideo -rawvideo
-    w=640:h=480:size=$((640*480*3/2)):format=NV12
-
-Signed-off-by: Leo Wen <leo.wen@rock-chips.com>
+Signed-off-by: Jose Abreu <joabreu@synopsys.com>
+Cc: Joao Pinto <jpinto@synopsys.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Sylwester Nawrocki <snawrocki@kernel.org>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>
 ---
- MAINTAINERS                |    6 +
- drivers/media/spi/Makefile |    1 +
- drivers/media/spi/rk1608.c | 1165 ++++++++++++++++++++++++++++++++++++++++++++
- drivers/media/spi/rk1608.h |  366 ++++++++++++++
- 4 files changed, 1538 insertions(+)
- create mode 100644 drivers/media/spi/rk1608.c
- create mode 100644 drivers/media/spi/rk1608.h
+Changes from v8:
+	- Incorporate Sakari's work on ASYNC subdevs
+Changes from v6:
+	- edid-phandle now also looks for parent node (Sylwester)
+	- Fix kbuild build warnings
+Changes from v5:
+	- Removed HDCP 1.4 support (Hans)
+	- Removed some CEC debug messages (Hans)
+	- Add s_dv_timings callback (Hans)
+	- Add V4L2_CID_DV_RX_POWER_PRESENT ctrl (Hans)
+Changes from v4:
+	- Add flag V4L2_SUBDEV_FL_HAS_DEVNODE (Sylwester)
+	- Remove some comments and change some messages to dev_dbg (Sylwester)
+	- Use v4l2_async_subnotifier_register() (Sylwester)
+Changes from v3:
+	- Use v4l2 async API (Sylwester)
+	- Do not block waiting for phy
+	- Do not use busy waiting delays (Sylwester)
+	- Simplify dw_hdmi_power_on (Sylwester)
+	- Use clock API (Sylwester)
+	- Use compatible string (Sylwester)
+	- Minor fixes (Sylwester)
+Changes from v2:
+	- Address review comments from Hans regarding CEC
+	- Use CEC notifier
+	- Enable SCDC
+Changes from v1:
+	- Add support for CEC
+	- Correct typo errors
+	- Correctly detect interlaced video modes
+	- Correct VIC parsing
+Changes from RFC:
+	- Add support for HDCP 1.4
+	- Fixup HDMI_VIC not being parsed (Hans)
+	- Send source change signal when powering off (Hans)
+	- Add a "wait stable delay"
+	- Detect interlaced video modes (Hans)
+	- Restrain g/s_register from reading/writing to HDCP regs (Hans)
+---
+ drivers/media/platform/dwc/Kconfig      |   15 +
+ drivers/media/platform/dwc/Makefile     |    1 +
+ drivers/media/platform/dwc/dw-hdmi-rx.c | 1834 +++++++++++++++++++++++++++++++
+ drivers/media/platform/dwc/dw-hdmi-rx.h |  441 ++++++++
+ include/media/dwc/dw-hdmi-rx-pdata.h    |   70 ++
+ 5 files changed, 2361 insertions(+)
+ create mode 100644 drivers/media/platform/dwc/dw-hdmi-rx.c
+ create mode 100644 drivers/media/platform/dwc/dw-hdmi-rx.h
+ create mode 100644 include/media/dwc/dw-hdmi-rx-pdata.h
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 82ad0ea..48235d8 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -128,6 +128,12 @@ Maintainers List (try to look for most precise areas first)
+diff --git a/drivers/media/platform/dwc/Kconfig b/drivers/media/platform/dwc/Kconfig
+index 361d38d..3ddccde 100644
+--- a/drivers/media/platform/dwc/Kconfig
++++ b/drivers/media/platform/dwc/Kconfig
+@@ -6,3 +6,18 @@ config VIDEO_DWC_HDMI_PHY_E405
  
- 		-----------------------------------
- 
-+ROCKCHIP RK1608 DRIVER
-+M:	Leo Wen <leo.wen@rock-chips.com>
-+S:	Maintained
-+F:	drivers/media/platform/spi/rk1608.c
-+F:	drivers/media/platform/spi/rk1608.h
+ 	  To compile this driver as a module, choose M here. The module
+ 	  will be called dw-hdmi-phy-e405.
 +
- 3C59X NETWORK DRIVER
- M:	Steffen Klassert <klassert@mathematik.tu-chemnitz.de>
- L:	netdev@vger.kernel.org
-diff --git a/drivers/media/spi/Makefile b/drivers/media/spi/Makefile
-index ea64013..9d9d9ec 100644
---- a/drivers/media/spi/Makefile
-+++ b/drivers/media/spi/Makefile
++config VIDEO_DWC_HDMI_RX
++	tristate "Synopsys Designware HDMI Receiver driver"
++	depends on VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
++	help
++	  Support for Synopsys Designware HDMI RX controller.
++
++	  To compile this driver as a module, choose M here. The module
++	  will be called dw-hdmi-rx.
++
++config VIDEO_DWC_HDMI_RX_CEC
++	bool
++	depends on VIDEO_DWC_HDMI_RX
++	select CEC_CORE
++	select CEC_NOTIFIER
+diff --git a/drivers/media/platform/dwc/Makefile b/drivers/media/platform/dwc/Makefile
+index fc3b62c..cd04ca9 100644
+--- a/drivers/media/platform/dwc/Makefile
++++ b/drivers/media/platform/dwc/Makefile
 @@ -1 +1,2 @@
- obj-$(CONFIG_VIDEO_GS1662) += gs1662.o
-+obj-$(CONFIG_ROCKCHIP_RK1608) += rk1608.o
-diff --git a/drivers/media/spi/rk1608.c b/drivers/media/spi/rk1608.c
+ obj-$(CONFIG_VIDEO_DWC_HDMI_PHY_E405) += dw-hdmi-phy-e405.o
++obj-$(CONFIG_VIDEO_DWC_HDMI_RX) += dw-hdmi-rx.o
+diff --git a/drivers/media/platform/dwc/dw-hdmi-rx.c b/drivers/media/platform/dwc/dw-hdmi-rx.c
 new file mode 100644
-index 0000000..e646204
+index 0000000..95bc810
 --- /dev/null
-+++ b/drivers/media/spi/rk1608.c
-@@ -0,0 +1,1165 @@
-+/**
-+ * Rockchip rk1608 driver
++++ b/drivers/media/platform/dwc/dw-hdmi-rx.c
+@@ -0,0 +1,1834 @@
++/*
++ * Synopsys DesignWare HDMI Receiver controller driver
 + *
-+ * Copyright (C) 2017 Rockchip Electronics Co., Ltd.
++ * This Synopsys dw-hdmi-rx software and associated documentation
++ * (hereinafter the "Software") is an unsupported proprietary work of
++ * Synopsys, Inc. unless otherwise expressly agreed to in writing between
++ * Synopsys and you. The Software IS NOT an item of Licensed Software or a
++ * Licensed Product under any End User Software License Agreement or
++ * Agreement for Licensed Products with Synopsys or any supplement thereto.
++ * Synopsys is a registered trademark of Synopsys, Inc. Other names included
++ * in the SOFTWARE may be the trademarks of their respective owners.
 + *
-+ * This software is available to you under a choice of one of two
-+ * licenses.  You may choose to be licensed under the terms of the GNU
-+ * General Public License (GPL) Version 2, available from the file
-+ * COPYING in the main directory of this source tree, or the
-+ * OpenIB.org BSD license below:
++ * The contents of this file are dual-licensed; you may select either version 2
++ * of the GNU General Public License (“GPL”) or the MIT license (“MIT”).
 + *
-+ *     Redistribution and use in source and binary forms, with or
-+ *     without modification, are permitted provided that the following
-+ *     conditions are met:
++ * Copyright (c) 2017 Synopsys, Inc. and/or its affiliates.
 + *
-+ *      - Redistributions of source code must retain the above
-+ *        copyright notice, this list of conditions and the following
-+ *        disclaimer.
-+ *
-+ *      - Redistributions in binary form must reproduce the above
-+ *        copyright notice, this list of conditions and the following
-+ *        disclaimer in the documentation and/or other materials
-+ *        provided with the distribution.
-+ *
-+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-+ * SOFTWARE.
++ * THIS SOFTWARE IS PROVIDED "AS IS"  WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
++ * IMPLIED, INCLUDING, BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
++ * FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT. IN NO EVENT SHALL THE
++ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
++ * OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT, OR OTHERWISE
++ * ARISING FROM, OUT OF, OR IN CONNECTION WITH THE SOFTWARE THE USE OR
++ * OTHER DEALINGS IN THE SOFTWARE.
 + */
++
++#include <linux/clk.h>
 +#include <linux/delay.h>
-+#include <linux/firmware.h>
 +#include <linux/interrupt.h>
++#include <linux/module.h>
++#include <linux/of.h>
 +#include <linux/of_platform.h>
-+#include <linux/of_gpio.h>
++#include <linux/platform_device.h>
++#include <linux/v4l2-dv-timings.h>
++#include <linux/workqueue.h>
++#include <media/cec.h>
++#include <media/cec-notifier.h>
++#include <media/v4l2-async.h>
 +#include <media/v4l2-ctrls.h>
-+#include <media/v4l2-subdev.h>
 +#include <media/v4l2-device.h>
-+#include <media/v4l2-fwnode.h>
-+#include <media/v4l2-image-sizes.h>
-+#include <media/v4l2-mediabus.h>
-+#include <media/v4l2-of.h>
-+#include "rk1608.h"
++#include <media/v4l2-dv-timings.h>
++#include <media/v4l2-event.h>
++#include <media/v4l2-subdev.h>
++#include <media/dwc/dw-hdmi-phy-pdata.h>
++#include <media/dwc/dw-hdmi-rx-pdata.h>
++#include "dw-hdmi-rx.h"
 +
-+/**
-+ * Rk1608 is used as the Pre-ISP to link on Soc, which mainly has two
-+ * functions. One is to download the firmware of RK1608, and the other
-+ * is to match the extra sensor such as camera and enable sensor by
-+ * calling sensor's s_power.
-+ *	|-----------------------|
-+ *	|     Sensor Camera     |
-+ *	|-----------------------|
-+ *	|-----------||----------|
-+ *	|-----------||----------|
-+ *	|-----------\/----------|
-+ *	|     Pre-ISP RK1608	|
-+ *	|-----------------------|
-+ *	|-----------||----------|
-+ *	|-----------||----------|
-+ *	|-----------\/----------|
-+ *	|      Rockchip Soc     |
-+ *	|-----------------------|
-+ * Data Transfer As shown above. In RK1608, the data received from the
-+ * extra sensor,and it is passed to the Soc through ISP.
-+ */
-+struct rk1608_state {
-+	struct v4l2_subdev	sd;
-+	struct v4l2_subdev	*sensor_sd;
-+	struct device		*dev;
-+	struct spi_device	*spi;
-+	struct media_pad	pad;
-+	struct clk			*mclk;
-+	struct mutex		lock;		/* protect resource */
-+	struct mutex		sensor_lock;	/* protect sensor */
-+	struct mutex		send_msg_lock;	/* protect msg */
-+	int power_count;
-+	int reset_gpio;
-+	int reset_active;
-+	int irq_gpio;
-+	int irq;
-+	int sleepst_gpio;
-+	int sleepst_irq;
-+	int wakeup_gpio;
-+	int wakeup_active;
-+	int powerdown_gpio;
-+	int powerdown_active;
-+	int msg_num;
-+	u32 sensor_cnt;
-+	u32 sensor_nums;
-+	u32 max_speed_hz;
-+	u32 min_speed_hz;
-+	atomic_t			msg_done[8];
-+	wait_queue_head_t	msg_wait;
-+	struct v4l2_ctrl	*link_freq;
-+	struct v4l2_ctrl_handler ctrl_handler;
++#define HDMI_DEFAULT_TIMING		V4L2_DV_BT_CEA_640X480P59_94
++#define HDMI_CEC_MAX_LOG_ADDRS		CEC_MAX_LOG_ADDRS
++
++MODULE_AUTHOR("Jose Abreu <joabreu@synopsys.com>");
++MODULE_DESCRIPTION("DesignWare HDMI Receiver Driver");
++MODULE_LICENSE("Dual MIT/GPL");
++
++static const struct v4l2_dv_timings_cap dw_hdmi_timings_cap = {
++	.type = V4L2_DV_BT_656_1120,
++	.reserved = { 0 },
++	V4L2_INIT_BT_TIMINGS(
++			640, 4096,		/* min/max width */
++			480, 4455,		/* min/max height */
++			20000000, 600000000,	/* min/max pixelclock */
++			V4L2_DV_BT_STD_CEA861,	/* standards */
++			/* capabilities */
++			V4L2_DV_BT_CAP_PROGRESSIVE
++	)
 +};
 +
-+static const s64 link_freq_menu_items[] = {
-+	1000000000
++static const struct v4l2_event dw_hdmi_event_fmt = {
++	.type = V4L2_EVENT_SOURCE_CHANGE,
++	.u.src_change.changes = V4L2_EVENT_SRC_CH_RESOLUTION,
 +};
 +
-+static inline struct rk1608_state *to_state(struct v4l2_subdev *sd)
-+{
-+	return container_of(sd, struct rk1608_state, sd);
-+}
-+
-+/**
-+ * rk1608_operation_query - RK1608 last operation state query
-+ *
-+ * @spi: device from which data will be read
-+ * @state: last operation state [out]
-+ * Context: can sleep
-+ *
-+ * It returns zero on success, else a negative error code.
-+ */
-+int rk1608_operation_query(struct spi_device *spi, s32 *state)
-+{
-+	s32 query_cmd = RK1608_CMD_QUERY;
-+	struct spi_transfer query_cmd_packet = {
-+		.tx_buf = &query_cmd,
-+		.len    = sizeof(query_cmd),
-+	};
-+	struct spi_transfer state_packet = {
-+		.rx_buf = state,
-+		.len    = sizeof(*state),
-+	};
-+	struct spi_message  m;
-+
-+	spi_message_init(&m);
-+	spi_message_add_tail(&query_cmd_packet, &m);
-+	spi_message_add_tail(&state_packet, &m);
-+	spi_sync(spi, &m);
-+
-+	return ((*state & RK1608_STATE_ID_MASK) == RK1608_STATE_ID) ? 0 : -1;
-+}
-+
-+int rk1608_write(struct spi_device *spi,
-+		 s32 addr, const s32 *data, size_t data_len)
-+{
-+	s32 write_cmd = RK1608_CMD_WRITE;
-+	struct spi_transfer write_cmd_packet = {
-+		.tx_buf = &write_cmd,
-+		.len    = sizeof(write_cmd),
-+	};
-+	struct spi_transfer addr_packet = {
-+		.tx_buf = &addr,
-+		.len    = sizeof(addr),
-+	};
-+	struct spi_transfer data_packet = {
-+		.tx_buf = data,
-+		.len    = data_len,
-+	};
-+	struct spi_message  m;
-+
-+	spi_message_init(&m);
-+	spi_message_add_tail(&write_cmd_packet, &m);
-+	spi_message_add_tail(&addr_packet, &m);
-+	spi_message_add_tail(&data_packet, &m);
-+	return spi_sync(spi, &m);
-+}
-+
-+/**
-+ * rk1608_safe_write - RK1608 synchronous write with state check
-+ *
-+ * @spi: spi device
-+ * @addr: resource address
-+ * @data: data buffer
-+ * @data_len: data buffer size, in bytes
-+ * Context: can sleep
-+ *
-+ * It returns zero on success, else operation state code.
-+ */
-+int rk1608_safe_write(struct spi_device *spi,
-+		      s32 addr, const s32 *data, size_t data_len)
-+{
-+	int ret = 0;
-+	s32 state, retry = 0;
-+
-+	while (data_len > 0) {
-+		size_t slen = MIN(data_len, RK1608_MAX_OP_BYTES);
-+
-+		do {
-+			rk1608_write(spi, addr, data, data_len);
-+			if (rk1608_operation_query(spi, &state) != 0)
-+				return -1;
-+			if ((state & RK1608_STATE_MASK) == 0)
-+				break;
-+
-+			udelay(RK1608_OP_TRY_DELAY);
-+		} while (retry++ != RK1608_OP_TRY_MAX);
-+
-+		data_len = data_len - slen;
-+		data = (s32 *)((s8 *)data + slen);
-+		addr += slen;
-+	}
-+	return ret;
-+}
-+
-+void rk1608_hw_init(struct spi_device *spi)
-+{
-+	s32 write_data = SPI0_PLL_SEL_APLL;
-+
-+	/* modify rk1608 spi slave clk to 300M */
-+	rk1608_safe_write(spi, CRUPMU_CLKSEL14_CON, &write_data, 4);
-+
-+	/* modify rk1608 spi io driver strength to 8mA */
-+	write_data = BIT7_6_SEL_8MA;
-+	rk1608_safe_write(spi, PMUGRF_GPIO1A_E, &write_data, 4);
-+	write_data = BIT1_0_SEL_8MA;
-+	rk1608_safe_write(spi, PMUGRF_GPIO1B_E, &write_data, 4);
-+}
-+
-+/**
-+ * rk1608_read - RK1608 synchronous read
-+ *
-+ * @spi: spi device
-+ * @addr: resource address
-+ * @data: data buffer [out]
-+ * @data_len: data buffer size, in bytes
-+ * Context: can sleep
-+ *
-+ * It returns zero on success, else a negative error code.
-+ */
-+int rk1608_read(struct spi_device *spi,
-+		s32 addr, s32 *data, size_t data_len)
-+{
-+	s32 real_len = MIN(data_len, RK1608_MAX_OP_BYTES);
-+	s32 read_cmd = RK1608_CMD_READ | (real_len << 14 &
-+					   RK1608_STATE_ID_MASK);
-+	s32 read_begin_cmd = RK1608_CMD_READ_BEGIN;
-+	s32 dummy = 0;
-+	struct spi_transfer read_cmd_packet = {
-+		.tx_buf = &read_cmd,
-+		.len    = sizeof(read_cmd),
-+	};
-+	struct spi_transfer addr_packet = {
-+		.tx_buf = &addr,
-+		.len    = sizeof(addr),
-+	};
-+	struct spi_transfer read_dummy_packet = {
-+		.tx_buf = &dummy,
-+		.len    = sizeof(dummy),
-+	};
-+	struct spi_transfer read_begin_cmd_packet = {
-+		.tx_buf = &read_begin_cmd,
-+		.len    = sizeof(read_begin_cmd),
-+	};
-+	struct spi_transfer data_packet = {
-+		.rx_buf = data,
-+		.len    = data_len,
-+	};
-+	struct spi_message  m;
-+
-+	spi_message_init(&m);
-+	spi_message_add_tail(&read_cmd_packet, &m);
-+	spi_message_add_tail(&addr_packet, &m);
-+	spi_message_add_tail(&read_dummy_packet, &m);
-+	spi_message_add_tail(&read_begin_cmd_packet, &m);
-+	spi_message_add_tail(&data_packet, &m);
-+	return spi_sync(spi, &m);
-+}
-+
-+/**
-+ * rk1608_safe_read - RK1608 synchronous read with state check
-+ *
-+ * @spi: spi device
-+ * @addr: resource address
-+ * @data: data buffer [out]
-+ * @data_len: data buffer size, in bytes
-+ * Context: can sleep
-+ *
-+ * It returns zero on success, else operation state code.
-+ */
-+int rk1608_safe_read(struct spi_device *spi,
-+		     s32 addr, s32 *data, size_t data_len)
-+{
-+	s32 state = 0;
-+	s32 retry = 0;
-+
-+	do {
-+		rk1608_read(spi, addr, data, data_len);
-+		if (rk1608_operation_query(spi, &state) != 0)
-+			return -1;
-+		if ((state & RK1608_STATE_MASK) == 0)
-+			break;
-+		udelay(RK1608_OP_TRY_DELAY);
-+	} while (retry++ != RK1608_OP_TRY_MAX);
-+
-+	return (state & RK1608_STATE_MASK);
-+}
-+
-+static int rk1608_read_wait(struct spi_device *spi,
-+			    const struct rk1608_section *sec)
-+{
-+	s32 value = 0;
-+	int retry = 0;
-+	int ret = 0;
-+
-+	do {
-+		ret = rk1608_safe_read(spi, sec->wait_addr, &value, 4);
-+		if (!ret && value == sec->wait_value)
-+			break;
-+
-+		if (retry++ == sec->timeout) {
-+			ret = -1;
-+			dev_err(&spi->dev, "read 0x%x is %x != %x timeout\n",
-+				sec->wait_addr, value, sec->wait_value);
-+			break;
-+		}
-+		mdelay(sec->wait_time);
-+	} while (1);
-+
-+	return ret;
-+}
-+
-+static int rk1608_boot_request(struct spi_device *spi,
-+			       const struct rk1608_section *sec)
-+{
-+	struct rk1608_boot_req boot_req;
-+	int retry = 0;
-+	int ret = 0;
-+
-+	/*send boot request to rk1608 for ddr init*/
-+	boot_req.flag = sec->flag;
-+	boot_req.load_addr = sec->load_addr;
-+	boot_req.boot_len = sec->size;
-+	boot_req.status = 1;
-+	boot_req.cmd = 2;
-+
-+	ret = rk1608_safe_write(spi, BOOT_REQUEST_ADDR,
-+				(s32 *)&boot_req, sizeof(boot_req));
-+	if (ret)
-+		return ret;
-+
-+	if (sec->flag & BOOT_FLAG_READ_WAIT) {
-+	/*waitting for rk1608 init ddr done*/
-+		do {
-+			ret = rk1608_safe_read(spi, BOOT_REQUEST_ADDR,
-+					       (s32 *)&boot_req,
-+					       sizeof(boot_req));
-+
-+			if (!ret && boot_req.status == 0)
-+				break;
-+
-+			if (retry++ == sec->timeout) {
-+				ret = -1;
-+				dev_err(&spi->dev, "boot_request timeout\n");
-+				break;
-+			}
-+			mdelay(sec->wait_time);
-+		} while (1);
-+	}
-+
-+	return ret;
-+}
-+
-+static int rk1608_download_section(struct spi_device *spi, const u8 *data,
-+				   const struct rk1608_section *sec)
-+{
-+	int ret = 0;
-+
-+	dev_info(&spi->dev, "offset:%x,size:%x,addr:%x,wait_time:%x",
-+		 sec->offset, sec->size, sec->load_addr, sec->wait_time);
-+	dev_info(&spi->dev, "timeout:%x,crc:%x,flag:%x,type:%x",
-+		 sec->timeout, sec->crc_16, sec->flag, sec->type);
-+
-+	if (sec->size > 0) {
-+		ret = rk1608_safe_write(spi, sec->load_addr,
-+					(s32 *)(data + sec->offset),
-+					sec->size);
-+		if (ret) {
-+			dev_err(&spi->dev, "rk1608_safe_write err =%d\n", ret);
-+			return ret;
-+		}
-+	}
-+
-+	if (sec->flag & BOOT_FLAG_BOOT_REQUEST)
-+		ret = rk1608_boot_request(spi, sec);
-+	else if (sec->flag & BOOT_FLAG_READ_WAIT)
-+		ret = rk1608_read_wait(spi, sec);
-+
-+	return ret;
-+}
-+
-+/**
-+ * rk1608_download_fw: - rk1608 firmware download through spi
-+ *
-+ * @spi: spi device
-+ * @fw_name: name of firmware file, NULL for default firmware name
-+ * Context: can sleep
-+ *
-+ * It returns zero on success, else a negative error code.
-+ **/
-+int rk1608_download_fw(struct spi_device *spi, const char *fw_name)
-+{
-+	const struct rk1608_header *head;
-+	const struct firmware *fw;
-+	int i = 0;
-+	int ret = 0;
-+
-+	if (!fw_name)
-+		fw_name = RK1608_FW_NAME;
-+
-+	dev_info(&spi->dev, "before request firmware");
-+	ret = request_firmware(&fw, fw_name, &spi->dev);
-+	if (ret) {
-+		dev_err(&spi->dev, "request firmware %s failed!", fw_name);
-+		return ret;
-+	}
-+
-+	head = (const struct rk1608_header *)fw->data;
-+
-+	dev_info(&spi->dev, "request firmware %s (version:%s) success!",
-+		 fw_name, head->version);
-+
-+	for (i = 0; i < head->section_count; i++) {
-+		ret = rk1608_download_section(spi, fw->data,
-+					      &head->sections[i]);
-+		if (ret)
-+			break;
-+	}
-+
-+	release_firmware(fw);
-+	return ret;
-+}
-+
-+int rk1608_lsb_w32(struct spi_device *spi, s32 addr, s32 data)
-+{
-+	s32 write_cmd = RK1608_CMD_WRITE;
-+	struct spi_transfer write_cmd_packet = {
-+		.tx_buf = &write_cmd,
-+		.len    = sizeof(write_cmd),
-+	};
-+	struct spi_transfer addr_packet = {
-+		.tx_buf = &addr,
-+		.len    = sizeof(addr),
-+	};
-+	struct spi_transfer data_packet = {
-+		.tx_buf = &data,
-+		.len    = sizeof(data),
-+	};
-+	struct spi_message  m;
-+
-+	write_cmd = MSB2LSB32(write_cmd);
-+	addr = MSB2LSB32(addr);
-+	data = MSB2LSB32(data);
-+	spi_message_init(&m);
-+	spi_message_add_tail(&write_cmd_packet, &m);
-+	spi_message_add_tail(&addr_packet, &m);
-+	spi_message_add_tail(&data_packet, &m);
-+	return spi_sync(spi, &m);
-+}
-+
-+void rk1608_cs_set_value(struct rk1608_state *pdata, int value)
-+{
-+	s8 null_cmd = 0;
-+	struct spi_transfer null_cmd_packet = {
-+		.tx_buf = &null_cmd,
-+		.len    = sizeof(null_cmd),
-+		.cs_change = !value,
-+	};
-+	struct spi_message  m;
-+
-+	spi_message_init(&m);
-+	spi_message_add_tail(&null_cmd_packet, &m);
-+	spi_sync(pdata->spi, &m);
-+}
-+
-+void rk1608_set_spi_speed(struct rk1608_state *pdata, u32 hz)
-+{
-+	pdata->spi->max_speed_hz = hz;
-+}
-+
-+static int rk1608_sensor_power(struct v4l2_subdev *sd, int on)
-+{
-+	int ret = 0;
-+	struct rk1608_state *pdata = to_state(sd);
-+	struct spi_device *spi = pdata->spi;
-+
-+	mutex_lock(&pdata->lock);
-+	/*start Sensor power on/off*/
-+	if (pdata->sensor_sd)
-+		pdata->sensor_sd->ops->core->s_power(pdata->sensor_sd, on);
-+	if (on && !pdata->power_count)	{
-+		clk_prepare_enable(pdata->mclk);
-+		clk_set_rate(pdata->mclk, RK1608_MCLK_RATE);
-+		/*request rk1608 enter slave mode*/
-+		rk1608_cs_set_value(pdata, 0);
-+		if (pdata->powerdown_gpio > 0) {
-+			gpio_set_value(pdata->powerdown_gpio,
-+				       pdata->powerdown_active);
-+		}
-+		if (pdata->wakeup_gpio > 0) {
-+			gpio_set_value(pdata->wakeup_gpio,
-+				       pdata->wakeup_active);
-+		}
-+		mdelay(3);
-+		if (pdata->reset_gpio > 0)
-+			gpio_set_value(pdata->reset_gpio, pdata->reset_active);
-+		mdelay(5);
-+		rk1608_cs_set_value(pdata, 1);
-+		rk1608_set_spi_speed(pdata, pdata->min_speed_hz);
-+		rk1608_lsb_w32(spi, SPI_ENR, 0);
-+		rk1608_lsb_w32(spi, SPI_CTRL0,
-+			       OPM_SLAVE_MODE | RSD_SEL_2CYC | DFS_SEL_16BIT);
-+		rk1608_hw_init(pdata->spi);
-+		rk1608_set_spi_speed(pdata, pdata->max_speed_hz);
-+		/*download system firmware*/
-+		ret = rk1608_download_fw(pdata->spi, NULL);
-+		if (ret)
-+			dev_err(pdata->dev, "Download firmware failed!");
-+		else
-+			dev_info(pdata->dev, "Download firmware success!");
-+		enable_irq(pdata->irq);
-+		if (pdata->sleepst_irq > 0)
-+			enable_irq(pdata->sleepst_irq);
-+
-+	} else if (!on && pdata->power_count == 1) {
-+		disable_irq(pdata->irq);
-+		if (pdata->sleepst_irq > 0)
-+			disable_irq(pdata->sleepst_irq);
-+		if (pdata->powerdown_gpio > 0)
-+			gpio_set_value(pdata->powerdown_gpio,
-+				       !pdata->powerdown_active);
-+
-+		if (pdata->wakeup_gpio > 0)
-+			gpio_set_value(pdata->wakeup_gpio,
-+				       !pdata->wakeup_active);
-+
-+		if (pdata->reset_gpio > 0)
-+			gpio_set_value(pdata->reset_gpio, !pdata->reset_active);
-+
-+		rk1608_cs_set_value(pdata, 0);
-+		clk_disable_unprepare(pdata->mclk);
-+	}
-+	/* Update the power count. */
-+	pdata->power_count += on ? 1 : -1;
-+	WARN_ON(pdata->power_count < 0);
-+	mutex_unlock(&pdata->lock);
-+
-+	return ret;
-+}
-+
-+static int rk1608_stream_on(struct rk1608_state *pdata)
-+{
-+	int  cnt = 0;
-+
-+	/*Waiting for the sensor to be ready*/
-+	while (pdata->sensor_cnt < pdata->sensor_nums) {
-+		/* TIMEOUT 10s break*/
-+		if (cnt++ > SENSOR_TIMEOUT) {
-+			dev_err(pdata->dev, "Sensor%d is ready to timeout!",
-+				pdata->sensor_cnt);
-+			break;
-+		}
-+	mdelay(10);
-+	}
-+
-+	if (pdata->sensor_nums) {
-+		if (pdata->sensor_cnt == pdata->sensor_nums)
-+			dev_info(pdata->dev, "Sensor(num %d) is ready!",
-+				 pdata->sensor_cnt);
-+	} else {
-+		dev_warn(pdata->dev, "No sensor is found!");
-+	}
-+
-+	return 0;
-+}
-+
-+static int rk1608_stream_off(struct rk1608_state *pdata)
-+{
-+	mutex_lock(&pdata->sensor_lock);
-+	pdata->sensor_cnt = 0;
-+	mutex_unlock(&pdata->sensor_lock);
-+	return 0;
-+}
-+
-+static int rk1608_s_stream(struct v4l2_subdev *sd, int enable)
-+{
-+	struct rk1608_state *pdata = to_state(sd);
-+
-+	if (enable)
-+		return rk1608_stream_on(pdata);
-+	else
-+		return rk1608_stream_off(pdata);
-+}
-+
-+static int rk1608_enum_mbus_code(struct v4l2_subdev *sd,
-+				 struct v4l2_subdev_pad_config *cfg,
-+				 struct v4l2_subdev_mbus_code_enum *code)
-+{
-+	if (code->index > 0)
-+		return -EINVAL;
-+
-+	code->code = MEDIA_BUS_FMT_SGRBG8_1X8;
-+
-+	return 0;
-+}
-+
-+static int rk1608_get_fmt(struct v4l2_subdev *sd,
-+			  struct v4l2_subdev_pad_config *cfg,
-+			  struct v4l2_subdev_format *fmt)
-+{
-+	struct v4l2_mbus_framefmt *mf = &fmt->format;
-+
-+	mf->code = MEDIA_BUS_FMT_SGRBG8_1X8;
-+	mf->width = RK1608_WINDOW_WIDTH_DEF;
-+	mf->height = RK1608_WINDOW_HEIGHT_DEF;
-+	mf->field = V4L2_FIELD_NONE;
-+	mf->colorspace = V4L2_COLORSPACE_SRGB;
-+
-+	return 0;
-+}
-+
-+static const struct v4l2_subdev_internal_ops rk1608_subdev_internal_ops = {
-+	.open	= NULL,
++enum dw_hdmi_state {
++	HDMI_STATE_NO_INIT = 0,
++	HDMI_STATE_POWER_OFF,
++	HDMI_STATE_PHY_CONFIG,
++	HDMI_STATE_EQUALIZER,
++	HDMI_STATE_VIDEO_UNSTABLE,
++	HDMI_STATE_POWER_ON,
 +};
 +
-+static const struct v4l2_subdev_video_ops rk1608_subdev_video_ops = {
-+	.s_stream	= rk1608_s_stream,
++struct dw_hdmi_dev {
++	struct v4l2_async_notifier v4l2_notifier;
++	struct v4l2_async_subdev phy_async_sd;
++	struct dw_hdmi_rx_pdata *config;
++	struct workqueue_struct *wq;
++	struct work_struct work;
++	enum dw_hdmi_state state;
++	bool registered;
++	bool pending_config;
++	bool force_off;
++	spinlock_t lock;
++	void __iomem *regs;
++	struct device_node *of_node;
++	struct v4l2_subdev sd;
++	struct v4l2_dv_timings timings;
++	struct dw_phy_pdata phy_config;
++	struct platform_device *notifier_pdev;
++	struct v4l2_subdev *phy_sd;
++	bool phy_eq_force;
++	u8 phy_jtag_addr;
++	struct device *dev;
++	u32 mbus_code;
++	unsigned int selected_input;
++	unsigned int configured_input;
++	struct clk *clk;
++	u32 cfg_clk;
++	struct cec_adapter *cec_adap;
++	struct cec_notifier *cec_notifier;
++	struct v4l2_ctrl_handler hdl;
++	struct v4l2_ctrl *detect_tx_5v_ctrl;
 +};
 +
-+static const struct v4l2_subdev_pad_ops rk1608_subdev_pad_ops = {
-+	.enum_mbus_code	= rk1608_enum_mbus_code,
-+	.get_fmt	= rk1608_get_fmt,
-+};
-+
-+static const struct v4l2_subdev_core_ops rk1608_core_ops = {
-+	.s_power	= rk1608_sensor_power,
-+};
-+
-+static const struct v4l2_subdev_ops rk1608_subdev_ops = {
-+	.core	= &rk1608_core_ops,
-+	.video	= &rk1608_subdev_video_ops,
-+	.pad	= &rk1608_subdev_pad_ops,
-+};
-+
-+/**
-+ * rk1608_msq_read_head - read rk1608 msg queue head
-+ *
-+ * @spi: spi device
-+ * @addr: msg queue head addr
-+ * @m: msg queue pointer
-+ *
-+ * It returns zero on success, else a negative error code.
-+ */
-+int rk1608_msq_read_head(struct spi_device *spi,
-+			 u32 addr, struct rk1608_msg_queue *q)
++static const char *get_state_name(enum dw_hdmi_state state)
 +{
-+	int err = 0;
-+	s32 reg;
-+
-+	err = rk1608_safe_read(spi, RK1608_PMU_SYS_REG0, &reg, 4);
-+
-+	if (err || ((reg & RK1608_MSG_QUEUE_OK_MASK) !=
-+			 RK1608_MSG_QUEUE_OK_TAG))
-+		return -1;
-+
-+	err = rk1608_safe_read(spi, addr, (s32 *)q, sizeof(*q));
-+
-+	return err;
-+}
-+
-+/**
-+ * rk1608_msq_recv_msg - receive a msg from RK1608 -> AP msg queue
-+ *
-+ * @q: msg queue
-+ * @m: a msg pointer buf [out]
-+ *
-+ * need call rk1608_msq_recv_msg_free to free msg after msg use done
-+ *
-+ * It returns zero on success, else a negative error code.
-+ */
-+int rk1608_msq_recv_msg(struct spi_device *spi, struct msg **m)
-+{
-+	struct rk1608_msg_queue queue;
-+	struct rk1608_msg_queue *q = &queue;
-+	u32 size = 0, msg_size = 0;
-+	u32 recv_addr = 0;
-+	u32 next_recv_addr = 0;
-+	int err = 0;
-+
-+	*m = NULL;
-+	err = rk1608_msq_read_head(spi, RK1608_S_MSG_QUEUE_ADDR, q);
-+	if (err)
-+		return err;
-+
-+	if (q->cur_send == q->cur_recv)
-+		return -1;
-+	/*skip to head when size is 0*/
-+	err = rk1608_safe_read(spi, (s32)q->cur_recv, (s32 *)&size, 4);
-+	if (err)
-+		return err;
-+	if (size == 0) {
-+		err = rk1608_safe_read(spi, (s32)q->buf_head, (s32 *)&size, 4);
-+		if (err)
-+			return err;
-+
-+		msg_size = size * sizeof(u32);
-+		recv_addr = q->buf_head;
-+		next_recv_addr = q->buf_head + msg_size;
-+	} else {
-+		msg_size = size * sizeof(u32);
-+		recv_addr = q->cur_recv;
-+		next_recv_addr = q->cur_recv + msg_size;
-+		if (next_recv_addr == q->buf_tail)
-+			next_recv_addr = q->buf_head;
++	switch (state) {
++	case HDMI_STATE_NO_INIT:
++		return "NO_INIT";
++	case HDMI_STATE_POWER_OFF:
++		return "POWER_OFF";
++	case HDMI_STATE_PHY_CONFIG:
++		return "PHY_CONFIG";
++	case HDMI_STATE_EQUALIZER:
++		return "EQUALIZER";
++	case HDMI_STATE_VIDEO_UNSTABLE:
++		return "VIDEO_UNSTABLE";
++	case HDMI_STATE_POWER_ON:
++		return "POWER_ON";
++	default:
++		return "UNKNOWN";
 +	}
-+
-+	if (msg_size > (q->buf_tail - q->buf_head))
-+		return -2;
-+
-+	*m = kmalloc(msg_size, GFP_KERNEL);
-+	err = rk1608_safe_read(spi, recv_addr, (s32 *)*m, msg_size);
-+	if (err == 0) {
-+		err = rk1608_safe_write(spi, RK1608_S_MSG_QUEUE_ADDR +
-+				       (u8 *)&q->cur_recv - (u8 *)q,
-+				       &next_recv_addr, 4);
-+	}
-+	if (err)
-+		kfree(*m);
-+
-+	return err;
 +}
 +
-+static void print_rk1608_log(struct rk1608_state *pdata,
-+			     struct msg_rk1608_log_t *log)
++static inline void dw_hdmi_set_state(struct dw_hdmi_dev *dw_dev,
++		enum dw_hdmi_state new_state)
 +{
-+	char *str = (char *)(log);
++	unsigned long flags;
 +
-+	str[log->size * sizeof(s32) - 1] = 0;
-+	str += sizeof(struct msg_rk1608_log_t);
-+	dev_info(pdata->dev, "RK1608%d: %s", log->core_id, str);
++	spin_lock_irqsave(&dw_dev->lock, flags);
++	dev_dbg(dw_dev->dev, "old_state=%s, new_state=%s\n",
++			get_state_name(dw_dev->state),
++			get_state_name(new_state));
++	dw_dev->state = new_state;
++	spin_unlock_irqrestore(&dw_dev->lock, flags);
 +}
 +
-+void int32_hexdump(const char *prefix, int32_t *data, int len)
++static inline struct dw_hdmi_dev *to_dw_dev(struct v4l2_subdev *sd)
 +{
-+	pr_err("%s\n", prefix);
-+	print_hex_dump(KERN_ERR, "offset ", DUMP_PREFIX_OFFSET,
-+		       16, 4, data, len, false);
-+	pr_err("\n");
++	return container_of(sd, struct dw_hdmi_dev, sd);
 +}
 +
-+static void dispatch_received_msg(struct rk1608_state *pdata,
-+				  struct msg *msg)
++static inline struct dw_hdmi_dev *notifier_to_dw_dev(
++		struct v4l2_async_notifier *notifier)
 +{
-+	#if DEBUG_DUMP_ALL_SEND_RECV_MSG == 1
-+	int32_hexdump("recv msg:", (s32 *)msg, msg->size * 4);
-+	#endif
-+
-+	if (msg->type == id_msg_set_stream_out_on_ret_t) {
-+		mutex_lock(&pdata->sensor_lock);
-+		pdata->sensor_cnt++;
-+		mutex_unlock(&pdata->sensor_lock);
-+	}
-+
-+	if (msg->type == id_msg_rk1608_log_t)
-+		print_rk1608_log(pdata, (struct msg_rk1608_log_t *)msg);
++	return container_of(notifier, struct dw_hdmi_dev, v4l2_notifier);
 +}
 +
-+static irqreturn_t rk1608_threaded_isr(int irq, void *dev_id)
++static inline void hdmi_writel(struct dw_hdmi_dev *dw_dev, u32 val, int reg)
 +{
-+	struct rk1608_state *pdata = dev_id;
-+	struct msg *msg;
-+
-+	WARN_ON(irq != pdata->irq);
-+	while (!rk1608_msq_recv_msg(pdata->spi, &msg) && NULL != msg) {
-+		dispatch_received_msg(pdata, msg);
-+		/* for kernel msg sync */
-+		if (pdata->msg_num != 0 && msg->sync) {
-+			dev_info(pdata->dev, "rk1608 kernel sync\n");
-+			mutex_lock(&pdata->send_msg_lock);
-+			pdata->msg_num--;
-+			atomic_set(&pdata->msg_done[pdata->msg_num], 1);
-+			mutex_unlock(&pdata->send_msg_lock);
-+			wake_up(&pdata->msg_wait);
-+		}
-+		kfree(msg);
-+	}
-+
-+	return IRQ_HANDLED;
++	writel(val, dw_dev->regs + reg);
 +}
 +
-+static irqreturn_t rk1608_sleep_isr(int irq, void *dev_id)
++static inline u32 hdmi_readl(struct dw_hdmi_dev *dw_dev, int reg)
 +{
-+	struct rk1608_state *pdata = dev_id;
-+
-+	WARN_ON(irq != pdata->sleepst_irq);
-+	if (pdata->powerdown_gpio > 0)
-+		gpio_set_value(pdata->powerdown_gpio, !pdata->powerdown_active);
-+
-+	return IRQ_HANDLED;
++	return readl(dw_dev->regs + reg);
 +}
 +
-+static int rk1608_parse_dt_property(struct rk1608_state *pdata)
++static void hdmi_modl(struct dw_hdmi_dev *dw_dev, u32 data, u32 mask, int reg)
 +{
-+	int ret = 0;
++	u32 val = hdmi_readl(dw_dev, reg) & ~mask;
++
++	val |= data & mask;
++	hdmi_writel(dw_dev, val, reg);
++}
++
++static void hdmi_mask_writel(struct dw_hdmi_dev *dw_dev, u32 data, int reg,
++		u32 shift, u32 mask)
++{
++	hdmi_modl(dw_dev, data << shift, mask, reg);
++}
++
++static u32 hdmi_mask_readl(struct dw_hdmi_dev *dw_dev, int reg, u32 shift,
++		u32 mask)
++{
++	return (hdmi_readl(dw_dev, reg) & mask) >> shift;
++}
++
++static bool dw_hdmi_5v_status(struct dw_hdmi_dev *dw_dev, int input)
++{
++	void __iomem *arg = dw_dev->config->dw_5v_arg;
++
++	if (dw_dev->config->dw_5v_status)
++		return dw_dev->config->dw_5v_status(arg, input);
++	return false;
++}
++
++static void dw_hdmi_5v_clear(struct dw_hdmi_dev *dw_dev)
++{
++	void __iomem *arg = dw_dev->config->dw_5v_arg;
++
++	if (dw_dev->config->dw_5v_clear)
++		dw_dev->config->dw_5v_clear(arg);
++}
++
++static inline bool is_off(struct dw_hdmi_dev *dw_dev)
++{
++	return dw_dev->state <= HDMI_STATE_POWER_OFF;
++}
++
++static bool has_signal(struct dw_hdmi_dev *dw_dev, unsigned int input)
++{
++	return dw_hdmi_5v_status(dw_dev, input);
++}
++
++#define HDMI_JTAG_TAP_ADDR_CMD		0
++#define HDMI_JTAG_TAP_WRITE_CMD		1
++#define HDMI_JTAG_TAP_READ_CMD		3
++
++static void hdmi_phy_jtag_send_pulse(struct dw_hdmi_dev *dw_dev, u8 tms, u8 tdi)
++{
++	u8 val;
++
++	val = tms ? HDMI_PHY_JTAG_TAP_IN_TMS : 0;
++	val |= tdi ? HDMI_PHY_JTAG_TAP_IN_TDI : 0;
++
++	hdmi_writel(dw_dev, 0, HDMI_PHY_JTAG_TAP_TCLK);
++	hdmi_writel(dw_dev, val, HDMI_PHY_JTAG_TAP_IN);
++	hdmi_writel(dw_dev, 1, HDMI_PHY_JTAG_TAP_TCLK);
++}
++
++static void hdmi_phy_jtag_shift_dr(struct dw_hdmi_dev *dw_dev)
++{
++	hdmi_phy_jtag_send_pulse(dw_dev, 1, 0);
++	hdmi_phy_jtag_send_pulse(dw_dev, 0, 0);
++	hdmi_phy_jtag_send_pulse(dw_dev, 0, 0);
++}
++
++static void hdmi_phy_jtag_shift_ir(struct dw_hdmi_dev *dw_dev)
++{
++	hdmi_phy_jtag_send_pulse(dw_dev, 1, 0);
++	hdmi_phy_jtag_send_pulse(dw_dev, 1, 0);
++	hdmi_phy_jtag_send_pulse(dw_dev, 0, 0);
++	hdmi_phy_jtag_send_pulse(dw_dev, 0, 0);
++}
++
++static u16 hdmi_phy_jtag_send(struct dw_hdmi_dev *dw_dev, u8 cmd, u16 val)
++{
++	u32 in = (cmd << 16) | val;
++	u16 out = 0;
 +	int i;
-+	struct device *dev = pdata->dev;
-+	struct device_node *node = dev->of_node;
-+	enum of_gpio_flags flags;
 +
-+	if (!node)
-+		return 1;
-+
-+	ret = of_property_read_u32(node, "spi-max-frequency",
-+				   &pdata->max_speed_hz);
-+	if (ret <= 0) {
-+		dev_warn(dev, "can not get spi-max-frequency!");
-+		pdata->max_speed_hz = RK1608_MCLK_RATE;
++	for (i = 0; i < 16; i++) {
++		hdmi_phy_jtag_send_pulse(dw_dev, 0, in & 0x1);
++		out |= (hdmi_readl(dw_dev, HDMI_PHY_JTAG_TAP_OUT) & 0x1) << i;
++		in >>= 1;
 +	}
 +
-+	ret = of_property_read_u32(node, "spi-min-frequency",
-+				   &pdata->min_speed_hz);
-+	if (ret <= 0) {
-+		dev_warn(dev, "can not get spi-min-frequency!");
-+		pdata->min_speed_hz = pdata->max_speed_hz / 2;
-+	}
++	hdmi_phy_jtag_send_pulse(dw_dev, 0, in & 0x1);
++	in >>= 1;
++	hdmi_phy_jtag_send_pulse(dw_dev, 1, in & 0x1);
 +
-+	pdata->mclk = devm_clk_get(dev, "mclk");
-+	if (IS_ERR(pdata->mclk)) {
-+		dev_err(dev, "can not get mclk, error %ld\n",
-+			PTR_ERR(pdata->mclk));
-+		pdata->mclk = NULL;
-+		return -1;
-+	}
-+
-+	ret = of_get_named_gpio_flags(node, "reset-gpio", 0, &flags);
-+	if (ret <= 0) {
-+		dev_warn(dev, "can not find reset-gpio, error %d\n", ret);
-+		return ret;
-+	}
-+	pdata->reset_gpio = ret;
-+	pdata->reset_active = 1;
-+	if (flags == OF_GPIO_ACTIVE_LOW)
-+		pdata->reset_active = 0;
-+
-+	if (pdata->reset_gpio > 0) {
-+		ret = devm_gpio_request(dev, pdata->reset_gpio, "rk1608-reset");
-+		if (ret) {
-+			dev_err(dev, "gpio %d request error %d\n",
-+				pdata->reset_gpio, ret);
-+			return ret;
-+		}
-+
-+		ret = gpio_direction_output(pdata->reset_gpio,
-+					    !pdata->reset_active);
-+		if (ret) {
-+			dev_err(dev, "gpio %d direction output error %d\n",
-+				pdata->reset_gpio, ret);
-+			return ret;
-+		}
-+	}
-+
-+	ret = of_get_named_gpio_flags(node, "irq-gpio", 0, NULL);
-+	if (ret <= 0) {
-+		dev_warn(dev, "can not find irq-gpio, error %d\n", ret);
-+		return ret;
-+	}
-+
-+	pdata->irq_gpio = ret;
-+
-+	ret = devm_gpio_request(dev, pdata->irq_gpio, "rk1608-irq");
-+	if (ret) {
-+		dev_err(dev, "gpio %d request error %d\n", pdata->irq_gpio,
-+			ret);
-+		return ret;
-+	}
-+
-+	ret = gpio_direction_input(pdata->irq_gpio);
-+	if (ret) {
-+		dev_err(dev, "gpio %d direction input error %d\n",
-+			pdata->irq_gpio, ret);
-+		return ret;
-+	}
-+
-+	ret = gpio_to_irq(pdata->irq_gpio);
-+	if (ret < 0) {
-+		dev_err(dev, "Unable to get irq number for GPIO %d, error %d\n",
-+			pdata->irq_gpio, ret);
-+		return ret;
-+	}
-+	pdata->irq = ret;
-+	ret = request_threaded_irq(pdata->irq, NULL, rk1608_threaded_isr,
-+				   IRQF_TRIGGER_RISING | IRQF_ONESHOT,
-+				   "rk1608-irq", pdata);
-+	if (ret) {
-+		dev_err(dev, "cannot request thread irq: %d\n", ret);
-+		return ret;
-+	}
-+
-+	disable_irq(pdata->irq);
-+
-+	ret = of_get_named_gpio_flags(node, "powerdown-gpio", 0, &flags);
-+	if (ret <= 0)
-+		dev_warn(dev, "can not find  powerdown-gpio, error %d\n", ret);
-+
-+	pdata->powerdown_gpio = ret;
-+	pdata->powerdown_active = 1;
-+	if (flags == OF_GPIO_ACTIVE_LOW)
-+		pdata->powerdown_active = 0;
-+
-+	if (pdata->powerdown_gpio > 0) {
-+		ret = devm_gpio_request(dev, pdata->powerdown_gpio,
-+					"rk1608-powerdown");
-+		if (ret) {
-+			dev_err(dev, "gpio %d request error %d\n",
-+				pdata->powerdown_gpio, ret);
-+			return ret;
-+		}
-+
-+		ret = gpio_direction_output(pdata->powerdown_gpio,
-+					    !pdata->powerdown_active);
-+		if (ret) {
-+			dev_err(dev, "gpio %d direction output error %d\n",
-+				pdata->powerdown_gpio, ret);
-+			return ret;
-+		}
-+	}
-+
-+	pdata->sleepst_gpio = -1;
-+	pdata->sleepst_irq = -1;
-+	pdata->wakeup_gpio = -1;
-+
-+	ret = of_get_named_gpio_flags(node, "sleepst-gpio", 0, NULL);
-+	if (ret <= 0) {
-+		dev_warn(dev, "can not find property sleepst-gpio, error %d\n",
-+			 ret);
-+		return ret;
-+	}
-+
-+	pdata->sleepst_gpio = ret;
-+
-+	ret = devm_gpio_request(dev, pdata->sleepst_gpio, "rk1608-sleep-irq");
-+	if (ret) {
-+		dev_err(dev, "gpio %d request error %d\n",
-+			pdata->sleepst_gpio, ret);
-+		return ret;
-+	}
-+
-+	ret = gpio_direction_input(pdata->sleepst_gpio);
-+	if (ret) {
-+		dev_err(dev, "gpio %d direction input error %d\n",
-+			pdata->sleepst_gpio, ret);
-+		return ret;
-+	}
-+
-+	ret = gpio_to_irq(pdata->sleepst_gpio);
-+	if (ret < 0) {
-+		dev_err(dev, "Unable to get irq number for GPIO %d, error %d\n",
-+			pdata->sleepst_gpio, ret);
-+		return ret;
-+	}
-+	pdata->sleepst_irq = ret;
-+	ret = request_any_context_irq(pdata->sleepst_irq,
-+				      rk1608_sleep_isr,
-+				      IRQF_TRIGGER_RISING,
-+				      "rk1608-sleepst", pdata);
-+	disable_irq(pdata->sleepst_irq);
-+
-+	ret = of_get_named_gpio_flags(node, "wakeup-gpio", 0, &flags);
-+	if (ret <= 0)
-+		dev_warn(dev, "can not find wakeup-gpio error %d\n", ret);
-+
-+	pdata->wakeup_gpio = ret;
-+	pdata->wakeup_active = 1;
-+	if (flags == OF_GPIO_ACTIVE_LOW)
-+		pdata->wakeup_active = 0;
-+
-+	if (pdata->wakeup_gpio > 0) {
-+		ret = devm_gpio_request(dev, pdata->wakeup_gpio,
-+					"rk1608-wakeup");
-+		if (ret) {
-+			dev_err(dev, "gpio %d request error %d\n",
-+				pdata->wakeup_gpio, ret);
-+			return ret;
-+		}
-+
-+		ret = gpio_direction_output(pdata->wakeup_gpio,
-+					    !pdata->wakeup_active);
-+		if (ret) {
-+			dev_err(dev, "gpio %d direction output error %d\n",
-+				pdata->wakeup_gpio, ret);
-+			return ret;
-+		}
-+	}
-+	pdata->msg_num = 0;
-+	init_waitqueue_head(&pdata->msg_wait);
-+	for (i = 0; i < 8; i++)
-+		atomic_set(&pdata->msg_done[i], 0);
-+
-+	return ret;
++	out |= (hdmi_readl(dw_dev, HDMI_PHY_JTAG_TAP_OUT) & 0x1) << ++i;
++	return out;
 +}
 +
-+static int get_remote_node_dev(struct rk1608_state *pdev)
++static void hdmi_phy_jtag_idle(struct dw_hdmi_dev *dw_dev)
 +{
-+	struct platform_device *sensor_pdev = NULL;
-+	struct device *dev = pdev->dev;
-+	struct device_node *parent = dev->of_node;
-+	struct device_node *node, *pre_node = NULL;
-+	struct device_node  *remote = NULL;
-+	int ret, sensor_nums = 0;
-+
-+	node = of_graph_get_next_endpoint(parent, pre_node);
-+	if (node) {
-+		of_node_put(pre_node);
-+		pre_node = node;
-+	} else {
-+		dev_err(dev, "fieled to get endpoint\n");
-+		return -EINVAL;
-+	}
-+	while ((node = of_graph_get_next_endpoint(parent, pre_node)) != NULL) {
-+		of_node_put(pre_node);
-+		pre_node = node;
-+		remote = of_graph_get_remote_port_parent(node);
-+		if (!remote) {
-+			dev_err(dev, "%s: no valid device\n", __func__);
-+			of_node_put(remote);
-+			ret = -EINVAL;
-+		}
-+
-+		sensor_pdev = of_find_device_by_node(remote);
-+		of_node_put(remote);
-+
-+		if (!sensor_pdev) {
-+			dev_err(dev, "fieled to get Sensor device\n");
-+			ret = -EINVAL;
-+		} else {
-+			pdev->sensor_sd = platform_get_drvdata(sensor_pdev);
-+			if (pdev->sensor_sd)
-+				sensor_nums++;
-+			else
-+				dev_err(dev, "fieled to get Sensor drvdata\n");
-+			ret = 0;
-+		}
-+	}
-+	pdev->sensor_nums = sensor_nums;
-+	if (pdev->sensor_nums)
-+		dev_info(dev, "get Sensor (nums=%d) dev is OK!\n",
-+			 pdev->sensor_nums);
-+
-+	return ret;
++	hdmi_phy_jtag_send_pulse(dw_dev, 1, 0);
++	hdmi_phy_jtag_send_pulse(dw_dev, 0, 0);
 +}
 +
-+static int rk1608_probe(struct spi_device *spi)
++static void hdmi_phy_jtag_init(struct dw_hdmi_dev *dw_dev, u8 addr)
 +{
-+	struct rk1608_state		*rk1608;
-+	struct v4l2_subdev		*sd;
-+	struct v4l2_ctrl_handler	*handler;
++	int i;
++
++	hdmi_writel(dw_dev, addr, HDMI_PHY_JTAG_ADDR);
++	/* reset */
++	hdmi_writel(dw_dev, 0x10, HDMI_PHY_JTAG_TAP_IN);
++	hdmi_writel(dw_dev, 0x0, HDMI_PHY_JTAG_CONF);
++	hdmi_writel(dw_dev, 0x1, HDMI_PHY_JTAG_CONF);
++	hdmi_phy_jtag_send_pulse(dw_dev, 0, 0);
++	/* soft reset */
++	for (i = 0; i < 5; i++)
++		hdmi_phy_jtag_send_pulse(dw_dev, 1, 0);
++	hdmi_phy_jtag_send_pulse(dw_dev, 0, 0);
++	/* set slave address */
++	hdmi_phy_jtag_shift_ir(dw_dev);
++	for (i = 0; i < 7; i++) {
++		hdmi_phy_jtag_send_pulse(dw_dev, 0, addr & 0x1);
++		addr >>= 1;
++	}
++	hdmi_phy_jtag_send_pulse(dw_dev, 1, addr & 0x1);
++	hdmi_phy_jtag_idle(dw_dev);
++}
++
++static void hdmi_phy_jtag_write(struct dw_hdmi_dev *dw_dev, u16 val, u16 addr)
++{
++	hdmi_phy_jtag_shift_dr(dw_dev);
++	hdmi_phy_jtag_send(dw_dev, HDMI_JTAG_TAP_ADDR_CMD, addr << 8);
++	hdmi_phy_jtag_idle(dw_dev);
++	hdmi_phy_jtag_shift_dr(dw_dev);
++	hdmi_phy_jtag_send(dw_dev, HDMI_JTAG_TAP_WRITE_CMD, val);
++	hdmi_phy_jtag_idle(dw_dev);
++}
++
++static u16 hdmi_phy_jtag_read(struct dw_hdmi_dev *dw_dev, u16 addr)
++{
++	u16 val;
++
++	hdmi_phy_jtag_shift_dr(dw_dev);
++	hdmi_phy_jtag_send(dw_dev, HDMI_JTAG_TAP_ADDR_CMD, addr << 8);
++	hdmi_phy_jtag_idle(dw_dev);
++	hdmi_phy_jtag_shift_dr(dw_dev);
++	val = hdmi_phy_jtag_send(dw_dev, HDMI_JTAG_TAP_READ_CMD, 0xFFFF);
++	hdmi_phy_jtag_idle(dw_dev);
++	
++	return val;
++}
++
++static void dw_hdmi_phy_write(void *arg, u16 val, u16 addr)
++{
++	struct dw_hdmi_dev *dw_dev = arg;
++	u16 rval;
++
++	hdmi_phy_jtag_init(dw_dev, dw_dev->phy_jtag_addr);
++	hdmi_phy_jtag_write(dw_dev, val, addr);
++	rval = hdmi_phy_jtag_read(dw_dev, addr);
++
++	if (rval != val) {
++		dev_err(dw_dev->dev,
++			"JTAG read-back failed: expected=0x%x, got=0x%x\n",
++			val, rval);
++	}
++}
++
++static u16 dw_hdmi_phy_read(void *arg, u16 addr)
++{
++	struct dw_hdmi_dev *dw_dev = arg;
++
++	hdmi_phy_jtag_init(dw_dev, dw_dev->phy_jtag_addr);
++	return hdmi_phy_jtag_read(dw_dev, addr);
++}
++
++static void dw_hdmi_phy_reset(void *arg, int enable)
++{
++	struct dw_hdmi_dev *dw_dev = arg;
++
++	hdmi_mask_writel(dw_dev, enable, HDMI_PHY_CTRL,
++			HDMI_PHY_CTRL_RESET_OFFSET,
++			HDMI_PHY_CTRL_RESET_MASK);
++}
++
++static void dw_hdmi_phy_pddq(void *arg, int enable)
++{
++	struct dw_hdmi_dev *dw_dev = arg;
++
++	hdmi_mask_writel(dw_dev, enable, HDMI_PHY_CTRL,
++			HDMI_PHY_CTRL_PDDQ_OFFSET,
++			HDMI_PHY_CTRL_PDDQ_MASK);
++}
++
++static void dw_hdmi_phy_svsmode(void *arg, int enable)
++{
++	struct dw_hdmi_dev *dw_dev = arg;
++
++	hdmi_mask_writel(dw_dev, enable, HDMI_PHY_CTRL,
++			HDMI_PHY_CTRL_SVSRETMODEZ_OFFSET,
++			HDMI_PHY_CTRL_SVSRETMODEZ_MASK);
++}
++
++static void dw_hdmi_zcal_reset(void *arg)
++{
++	struct dw_hdmi_dev *dw_dev = arg;
++
++	if (dw_dev->config->dw_zcal_reset)
++		dw_dev->config->dw_zcal_reset(dw_dev->config->dw_zcal_arg);
++}
++
++static bool dw_hdmi_zcal_done(void *arg)
++{
++	struct dw_hdmi_dev *dw_dev = arg;
++
++	if (dw_dev->config->dw_zcal_done)
++		return dw_dev->config->dw_zcal_done(dw_dev->config->dw_zcal_arg);
++	return true;
++}
++
++static bool dw_hdmi_tmds_valid(void *arg)
++{
++	struct dw_hdmi_dev *dw_dev = arg;
++
++	return hdmi_readl(dw_dev, HDMI_PLL_LCK_STS) & HDMI_PLL_LCK_STS_PLL_LOCKED;
++}
++
++static const struct dw_phy_funcs dw_hdmi_phy_funcs = {
++	.write = dw_hdmi_phy_write,
++	.read = dw_hdmi_phy_read,
++	.reset = dw_hdmi_phy_reset,
++	.pddq = dw_hdmi_phy_pddq,
++	.svsmode = dw_hdmi_phy_svsmode,
++	.zcal_reset = dw_hdmi_zcal_reset,
++	.zcal_done = dw_hdmi_zcal_done,
++	.tmds_valid = dw_hdmi_tmds_valid,
++};
++
++static const struct of_device_id dw_hdmi_supported_phys[] = {
++	{ .compatible = "snps,dw-hdmi-phy-e405", .data = DW_PHY_E405_DRVNAME, },
++	{ },
++};
++
++static struct device_node *dw_hdmi_get_phy_of_node(struct dw_hdmi_dev *dw_dev,
++		const struct of_device_id **found_id)
++{
++	struct device_node *child = NULL;
++	const struct of_device_id *id;
++
++	for_each_child_of_node(dw_dev->of_node, child) {
++		id = of_match_node(dw_hdmi_supported_phys, child);
++		if (id)
++			break;
++	}
++
++	if (!id)
++		return NULL;
++	if (found_id)
++		*found_id = id;
++
++	return child;
++}
++
++static int dw_hdmi_phy_init(struct dw_hdmi_dev *dw_dev)
++{
++	struct dw_phy_pdata *phy = &dw_dev->phy_config;
++	struct of_dev_auxdata lookup = { };
++	const struct of_device_id *of_id;
++	struct device_node *child;
++	const char *drvname;
 +	int ret;
 +
-+	rk1608 = devm_kzalloc(&spi->dev, sizeof(*rk1608), GFP_KERNEL);
-+	if (!rk1608)
-+		return -ENOMEM;
-+	rk1608->dev = &spi->dev;
-+	rk1608->spi = spi;
-+	spi_set_drvdata(spi, rk1608);
-+	ret = rk1608_parse_dt_property(rk1608);
-+	if (ret) {
-+		dev_err(rk1608->dev, "rk1608 parse dt property err(%x)\n", ret);
-+		goto parse_err;
++	child = dw_hdmi_get_phy_of_node(dw_dev, &of_id);
++	if (!child || !of_id || !of_id->data) {
++		dev_err(dw_dev->dev, "no supported phy found in DT\n");
++		return -EINVAL;
 +	}
-+	ret = get_remote_node_dev(rk1608);
-+	if (ret)
-+		dev_warn(rk1608->dev, "get remote node dev err(%x)\n", ret);
-+	rk1608->sensor_cnt = 0;
-+	mutex_init(&rk1608->sensor_lock);
-+	mutex_init(&rk1608->send_msg_lock);
-+	mutex_init(&rk1608->lock);
-+	sd = &rk1608->sd;
-+	v4l2_spi_subdev_init(sd, spi, &rk1608_subdev_ops);
 +
-+	handler = &rk1608->ctrl_handler;
-+	ret = v4l2_ctrl_handler_init(handler, 1);
-+	if (ret)
-+		goto handler_init_err;
++	drvname = of_id->data;
++	phy->funcs = &dw_hdmi_phy_funcs;
++	phy->funcs_arg = dw_dev;
 +
-+	rk1608->link_freq = v4l2_ctrl_new_int_menu(handler, NULL,
-+						   V4L2_CID_LINK_FREQ,
-+						   0, 0, link_freq_menu_items);
-+	if (rk1608->link_freq)
-+		rk1608->link_freq->flags |= V4L2_CTRL_FLAG_READ_ONLY;
++	lookup.compatible = (char *)of_id->compatible;
++	lookup.platform_data = phy;
 +
-+	if (handler->error)
-+		goto handler_err;
++	request_module(drvname);
 +
-+	sd->ctrl_handler = handler;
-+	sd->internal_ops = &rk1608_subdev_internal_ops;
-+	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
-+
-+	rk1608->pad.flags = MEDIA_PAD_FL_SOURCE;
-+	sd->entity.type = MEDIA_ENT_T_V4L2_SUBDEV_SENSOR;
-+
-+	ret = media_entity_init(&sd->entity, 1, &rk1608->pad, 0);
-+	if (ret < 0)
-+		goto handler_err;
-+
-+	ret = v4l2_async_register_subdev(sd);
-+	if (ret < 0)
-+		goto register_err;
-+	dev_info(rk1608->dev, "DSP rk1608 Driver probe is OK!\n");
++	ret = of_platform_populate(dw_dev->of_node, NULL, &lookup, dw_dev->dev);
++	if (ret) {
++		dev_err(dw_dev->dev, "failed to populate phy driver\n");
++		return ret;
++	}
 +
 +	return 0;
-+register_err:
-+	media_entity_cleanup(&sd->entity);
-+handler_err:
-+	v4l2_ctrl_handler_free(handler);
-+handler_init_err:
-+	v4l2_device_unregister_subdev(&rk1608->sd);
-+	mutex_destroy(&rk1608->lock);
-+	mutex_destroy(&rk1608->send_msg_lock);
-+	mutex_destroy(&rk1608->sensor_lock);
-+parse_err:
-+	kfree(rk1608);
++}
++
++static void dw_hdmi_phy_exit(struct dw_hdmi_dev *dw_dev)
++{
++	of_platform_depopulate(dw_dev->dev);
++}
++
++static int dw_hdmi_phy_eq_init(struct dw_hdmi_dev *dw_dev, u16 acq, bool force)
++{
++	struct dw_phy_eq_command cmd = {
++		.result = 0,
++		.nacq = acq,
++		.force = force,
++	};
++	int ret;
++
++	ret = v4l2_subdev_call(dw_dev->phy_sd, core, ioctl,
++			DW_PHY_IOCTL_EQ_INIT, &cmd);
++	if (ret)
++		return ret;
++	return cmd.result;
++}
++
++static int dw_hdmi_phy_config(struct dw_hdmi_dev *dw_dev,
++		unsigned char color_depth, bool hdmi2, bool scrambling)
++{
++	struct dw_phy_config_command cmd = {
++		.result = 0,
++		.color_depth = color_depth,
++		.hdmi2 = hdmi2,
++		.scrambling = scrambling,
++	};
++	int ret;
++
++	hdmi_mask_writel(dw_dev, 0x1, HDMI_CBUSIOCTRL,
++			HDMI_CBUSIOCTRL_DATAPATH_CBUSZ_OFFSET,
++			HDMI_CBUSIOCTRL_DATAPATH_CBUSZ_MASK);
++	hdmi_mask_writel(dw_dev, 0x1, HDMI_CBUSIOCTRL,
++			HDMI_CBUSIOCTRL_SVSRETMODEZ_OFFSET,
++			HDMI_CBUSIOCTRL_SVSRETMODEZ_MASK);
++	hdmi_mask_writel(dw_dev, 0x1, HDMI_CBUSIOCTRL,
++			HDMI_CBUSIOCTRL_PDDQ_OFFSET,
++			HDMI_CBUSIOCTRL_PDDQ_MASK);
++	hdmi_mask_writel(dw_dev, 0x1, HDMI_CBUSIOCTRL,
++			HDMI_CBUSIOCTRL_RESET_OFFSET,
++			HDMI_CBUSIOCTRL_RESET_MASK);
++
++	ret = v4l2_subdev_call(dw_dev->phy_sd, core, ioctl,
++			DW_PHY_IOCTL_CONFIG, &cmd);
++	if (ret)
++		return ret;
++	return cmd.result;
++}
++
++static void dw_hdmi_phy_s_power(struct dw_hdmi_dev *dw_dev, bool on)
++{
++	v4l2_subdev_call(dw_dev->phy_sd, core, s_power, on);
++}
++
++static void dw_hdmi_event_source_change(struct dw_hdmi_dev *dw_dev)
++{
++	if (dw_dev->registered)
++		v4l2_subdev_notify_event(&dw_dev->sd, &dw_hdmi_event_fmt);
++}
++
++static int dw_hdmi_wait_phy_lock_poll(struct dw_hdmi_dev *dw_dev)
++{
++	int timeout = 10;
++
++	while (!dw_hdmi_tmds_valid(dw_dev) && timeout-- && !dw_dev->force_off)
++		usleep_range(5000, 10000);
++
++	if (!dw_hdmi_tmds_valid(dw_dev))
++		return -ETIMEDOUT;
++	return 0;
++}
++
++static void dw_hdmi_reset_datapath(struct dw_hdmi_dev *dw_dev)
++{
++	u32 val = HDMI_DMI_SW_RST_TMDS |
++		HDMI_DMI_SW_RST_HDCP |
++		HDMI_DMI_SW_RST_VID |
++		HDMI_DMI_SW_RST_PIXEL |
++		HDMI_DMI_SW_RST_CEC |
++		HDMI_DMI_SW_RST_AUD |
++		HDMI_DMI_SW_RST_BUS |
++		HDMI_DMI_SW_RST_HDMI |
++		HDMI_DMI_SW_RST_MODET;
++
++	hdmi_writel(dw_dev, val, HDMI_DMI_SW_RST);
++}
++
++static void dw_hdmi_wait_video_stable(struct dw_hdmi_dev *dw_dev)
++{
++	/*
++	 * Empiric value. Video should be stable way longer before the
++	 * end of this sleep time. Though, we can have some video change
++	 * interrupts before the video is stable so filter them by sleeping.
++	 */
++	msleep(200);
++}
++
++static void dw_hdmi_enable_ints(struct dw_hdmi_dev *dw_dev)
++{
++	hdmi_writel(dw_dev, HDMI_ISTS_CLK_CHANGE | HDMI_ISTS_PLL_LCK_CHG,
++			HDMI_IEN_SET);
++	hdmi_writel(dw_dev, (~0x0) & (~HDMI_MD_ISTS_VOFS_LIN), HDMI_MD_IEN_SET);
++}
++
++static void dw_hdmi_disable_ints(struct dw_hdmi_dev *dw_dev)
++{
++	hdmi_writel(dw_dev, ~0x0, HDMI_IEN_CLR);
++	hdmi_writel(dw_dev, ~0x0, HDMI_MD_IEN_CLR);
++}
++
++static void dw_hdmi_clear_ints(struct dw_hdmi_dev *dw_dev)
++{
++	hdmi_writel(dw_dev, ~0x0, HDMI_ICLR);
++	hdmi_writel(dw_dev, ~0x0, HDMI_MD_ICLR);
++}
++
++static u32 dw_hdmi_get_int_val(struct dw_hdmi_dev *dw_dev, u32 ists, u32 ien)
++{
++	return hdmi_readl(dw_dev, ists) & hdmi_readl(dw_dev, ien);
++}
++
++#if IS_ENABLED(CONFIG_VIDEO_DWC_HDMI_RX_CEC)
++static void dw_hdmi_cec_enable_ints(struct dw_hdmi_dev *dw_dev)
++{
++	u32 mask = HDMI_AUD_CEC_ISTS_DONE | HDMI_AUD_CEC_ISTS_EOM |
++		HDMI_AUD_CEC_ISTS_NACK | HDMI_AUD_CEC_ISTS_ARBLST |
++		HDMI_AUD_CEC_ISTS_ERROR_INIT | HDMI_AUD_CEC_ISTS_ERROR_FOLL;
++
++	hdmi_writel(dw_dev, mask, HDMI_AUD_CEC_IEN_SET);
++	hdmi_writel(dw_dev, 0x0, HDMI_CEC_MASK);
++}
++
++static void dw_hdmi_cec_disable_ints(struct dw_hdmi_dev *dw_dev)
++{
++	hdmi_writel(dw_dev, ~0x0, HDMI_AUD_CEC_IEN_CLR);
++	hdmi_writel(dw_dev, ~0x0, HDMI_CEC_MASK);
++}
++
++static void dw_hdmi_cec_clear_ints(struct dw_hdmi_dev *dw_dev)
++{
++	hdmi_writel(dw_dev, ~0x0, HDMI_AUD_CEC_ICLR);
++}
++
++static void dw_hdmi_cec_tx_raw_status(struct dw_hdmi_dev *dw_dev, u32 stat)
++{
++	if (hdmi_readl(dw_dev, HDMI_CEC_CTRL) & HDMI_CEC_CTRL_SEND_MASK) {
++		dev_dbg(dw_dev->dev, "%s: tx is busy\n", __func__);
++		return;
++	}
++
++	if (stat & HDMI_AUD_CEC_ISTS_ARBLST) {
++		cec_transmit_attempt_done(dw_dev->cec_adap,
++				CEC_TX_STATUS_ARB_LOST);
++		return;
++	}
++
++	if (stat & HDMI_AUD_CEC_ISTS_NACK) {
++		cec_transmit_attempt_done(dw_dev->cec_adap, CEC_TX_STATUS_NACK);
++		return;
++	}
++
++	if (stat & HDMI_AUD_CEC_ISTS_ERROR_INIT) {
++		dev_dbg(dw_dev->dev, "%s: got initiator error\n", __func__);
++		cec_transmit_attempt_done(dw_dev->cec_adap, CEC_TX_STATUS_ERROR);
++		return;
++	}
++
++	if (stat & HDMI_AUD_CEC_ISTS_DONE) {
++		cec_transmit_attempt_done(dw_dev->cec_adap, CEC_TX_STATUS_OK);
++		return;
++	}
++}
++
++static void dw_hdmi_cec_received_msg(struct dw_hdmi_dev *dw_dev)
++{
++	struct cec_msg msg;
++	u8 i;
++
++	msg.len = hdmi_readl(dw_dev, HDMI_CEC_RX_CNT);
++	if (!msg.len || msg.len > HDMI_CEC_RX_DATA_MAX)
++		return; /* it's an invalid/non-existent message */
++
++	for (i = 0; i < msg.len; i++)
++		msg.msg[i] = hdmi_readl(dw_dev, HDMI_CEC_RX_DATA(i));
++
++	hdmi_writel(dw_dev, 0x0, HDMI_CEC_LOCK);
++	cec_received_msg(dw_dev->cec_adap, &msg);
++}
++
++static int dw_hdmi_cec_adap_enable(struct cec_adapter *adap, bool enable)
++{
++	struct dw_hdmi_dev *dw_dev = cec_get_drvdata(adap);
++
++	if (enable) {
++		hdmi_writel(dw_dev, 0x0, HDMI_CEC_ADDR_L);
++		hdmi_writel(dw_dev, 0x0, HDMI_CEC_ADDR_H);
++		hdmi_writel(dw_dev, 0x0, HDMI_CEC_LOCK);
++		dw_hdmi_cec_clear_ints(dw_dev);
++		dw_hdmi_cec_enable_ints(dw_dev);
++	} else {
++		hdmi_writel(dw_dev, 0x0, HDMI_CEC_ADDR_L);
++		hdmi_writel(dw_dev, 0x0, HDMI_CEC_ADDR_H);
++		dw_hdmi_cec_disable_ints(dw_dev);
++		dw_hdmi_cec_clear_ints(dw_dev);
++	}
++
++	return 0;
++}
++
++static int dw_hdmi_cec_adap_log_addr(struct cec_adapter *adap, u8 addr)
++{
++	struct dw_hdmi_dev *dw_dev = cec_get_drvdata(adap);
++	u32 tmp;
++
++	if (addr == CEC_LOG_ADDR_INVALID) {
++		hdmi_writel(dw_dev, 0x0, HDMI_CEC_ADDR_L);
++		hdmi_writel(dw_dev, 0x0, HDMI_CEC_ADDR_H);
++		return 0;
++	}
++
++	if (addr >= 8) {
++		tmp = hdmi_readl(dw_dev, HDMI_CEC_ADDR_H);
++		tmp |= BIT(addr - 8);
++		hdmi_writel(dw_dev, tmp, HDMI_CEC_ADDR_H);
++	} else {
++		tmp = hdmi_readl(dw_dev, HDMI_CEC_ADDR_L);
++		tmp |= BIT(addr);
++		hdmi_writel(dw_dev, tmp, HDMI_CEC_ADDR_L);
++	}
++
++	return 0;
++}
++
++static int dw_hdmi_cec_adap_transmit(struct cec_adapter *adap, u8 attempts,
++		u32 signal_free_time, struct cec_msg *msg)
++{
++	struct dw_hdmi_dev *dw_dev = cec_get_drvdata(adap);
++	u8 len = msg->len;
++	u32 reg;
++	int i;
++
++	if (hdmi_readl(dw_dev, HDMI_CEC_CTRL) & HDMI_CEC_CTRL_SEND_MASK) {
++		dev_err(dw_dev->dev, "%s: tx is busy\n", __func__);
++		return -EBUSY;
++	}
++
++	for (i = 0; i < len; i++)
++		hdmi_writel(dw_dev, msg->msg[i], HDMI_CEC_TX_DATA(i));
++
++	switch (signal_free_time) {
++	case CEC_SIGNAL_FREE_TIME_RETRY:
++		reg = 0x0;
++		break;
++	case CEC_SIGNAL_FREE_TIME_NEXT_XFER:
++		reg = 0x2;
++		break;
++	case CEC_SIGNAL_FREE_TIME_NEW_INITIATOR:
++	default:
++		reg = 0x1;
++		break;
++	}
++
++	hdmi_writel(dw_dev, len, HDMI_CEC_TX_CNT);
++	hdmi_mask_writel(dw_dev, reg, HDMI_CEC_CTRL,
++			HDMI_CEC_CTRL_FRAME_TYP_OFFSET,
++			HDMI_CEC_CTRL_FRAME_TYP_MASK);
++	hdmi_mask_writel(dw_dev, 0x1, HDMI_CEC_CTRL,
++			HDMI_CEC_CTRL_SEND_OFFSET,
++			HDMI_CEC_CTRL_SEND_MASK);
++	return 0;
++}
++
++static const struct cec_adap_ops dw_hdmi_cec_adap_ops = {
++	.adap_enable = dw_hdmi_cec_adap_enable,
++	.adap_log_addr = dw_hdmi_cec_adap_log_addr,
++	.adap_transmit = dw_hdmi_cec_adap_transmit,
++};
++
++static void dw_hdmi_cec_irq_handler(struct dw_hdmi_dev *dw_dev)
++{
++	u32 cec_ists = dw_hdmi_get_int_val(dw_dev, HDMI_AUD_CEC_ISTS,
++			HDMI_AUD_CEC_IEN);
++
++	dw_hdmi_cec_clear_ints(dw_dev);
++
++	if (cec_ists) {
++		dw_hdmi_cec_tx_raw_status(dw_dev, cec_ists);
++		if (cec_ists & HDMI_AUD_CEC_ISTS_EOM)
++			dw_hdmi_cec_received_msg(dw_dev);
++	}
++}
++#endif
++
++static u8 dw_hdmi_get_curr_vic(struct dw_hdmi_dev *dw_dev, bool *is_hdmi_vic)
++{
++	u8 vic = hdmi_mask_readl(dw_dev, HDMI_PDEC_AVI_PB,
++			HDMI_PDEC_AVI_PB_VID_IDENT_CODE_OFFSET,
++			HDMI_PDEC_AVI_PB_VID_IDENT_CODE_MASK) & 0xff;
++
++	if (!vic) {
++		vic = hdmi_mask_readl(dw_dev, HDMI_PDEC_VSI_PAYLOAD0,
++				HDMI_PDEC_VSI_PAYLOAD0_HDMI_VIC_OFFSET,
++				HDMI_PDEC_VSI_PAYLOAD0_HDMI_VIC_MASK) & 0xff;
++		if (is_hdmi_vic)
++			*is_hdmi_vic = true;
++	} else {
++		if (is_hdmi_vic)
++			*is_hdmi_vic = false;
++	}
++
++	return vic;
++}
++
++static u64 dw_hdmi_get_pixelclk(struct dw_hdmi_dev *dw_dev)
++{
++	u32 rate = hdmi_mask_readl(dw_dev, HDMI_CKM_RESULT,
++			HDMI_CKM_RESULT_CLKRATE_OFFSET,
++			HDMI_CKM_RESULT_CLKRATE_MASK);
++	u32 evaltime = hdmi_mask_readl(dw_dev, HDMI_CKM_EVLTM,
++			HDMI_CKM_EVLTM_EVAL_TIME_OFFSET,
++			HDMI_CKM_EVLTM_EVAL_TIME_MASK);
++	u64 tmp = (u64)rate * (u64)dw_dev->cfg_clk * 1000000;
++
++	do_div(tmp, evaltime);
++	return tmp;
++}
++
++static u32 dw_hdmi_get_colordepth(struct dw_hdmi_dev *dw_dev)
++{
++	u32 dcm = hdmi_mask_readl(dw_dev, HDMI_STS,
++			HDMI_STS_DCM_CURRENT_MODE_OFFSET,
++			HDMI_STS_DCM_CURRENT_MODE_MASK);
++
++	switch (dcm) {
++	case 0x4:
++		return 24;
++	case 0x5:
++		return 30;
++	case 0x6:
++		return 36;
++	case 0x7:
++		return 48;
++	default:
++		return 24;
++	}
++}
++
++static void dw_hdmi_set_input(struct dw_hdmi_dev *dw_dev, u32 input)
++{
++	hdmi_mask_writel(dw_dev, input, HDMI_PHY_CTRL,
++			HDMI_PHY_CTRL_PORTSELECT_OFFSET,
++			HDMI_PHY_CTRL_PORTSELECT_MASK);
++}
++
++static void dw_hdmi_enable_hpd(struct dw_hdmi_dev *dw_dev, u32 input_mask)
++{
++	hdmi_mask_writel(dw_dev, input_mask, HDMI_SETUP_CTRL,
++			HDMI_SETUP_CTRL_HOT_PLUG_DETECT_INPUT_X_OFFSET,
++			HDMI_SETUP_CTRL_HOT_PLUG_DETECT_INPUT_X_MASK);
++	hdmi_mask_writel(dw_dev, 0x1, HDMI_SETUP_CTRL,
++			HDMI_SETUP_CTRL_HOT_PLUG_DETECT_OFFSET,
++			HDMI_SETUP_CTRL_HOT_PLUG_DETECT_MASK);
++}
++
++static void dw_hdmi_disable_hpd(struct dw_hdmi_dev *dw_dev)
++{
++	hdmi_mask_writel(dw_dev, 0x0, HDMI_SETUP_CTRL,
++			HDMI_SETUP_CTRL_HOT_PLUG_DETECT_INPUT_X_OFFSET,
++			HDMI_SETUP_CTRL_HOT_PLUG_DETECT_INPUT_X_MASK);
++	hdmi_mask_writel(dw_dev, 0x0, HDMI_SETUP_CTRL,
++			HDMI_SETUP_CTRL_HOT_PLUG_DETECT_OFFSET,
++			HDMI_SETUP_CTRL_HOT_PLUG_DETECT_MASK);
++}
++
++static void dw_hdmi_enable_scdc(struct dw_hdmi_dev *dw_dev)
++{
++	hdmi_mask_writel(dw_dev, 0x1, HDMI_SCDC_CONFIG,
++			HDMI_SCDC_CONFIG_POWERPROVIDED_OFFSET,
++			HDMI_SCDC_CONFIG_POWERPROVIDED_MASK);
++}
++
++static void dw_hdmi_disable_scdc(struct dw_hdmi_dev *dw_dev)
++{
++	hdmi_mask_writel(dw_dev, 0x0, HDMI_SCDC_CONFIG,
++			HDMI_SCDC_CONFIG_POWERPROVIDED_OFFSET,
++			HDMI_SCDC_CONFIG_POWERPROVIDED_MASK);
++}
++
++static int dw_hdmi_config(struct dw_hdmi_dev *dw_dev, u32 input)
++{
++	int eqret, ret = 0;
++
++	while (1) {
++		/* Give up silently if we are forcing off */
++		if (dw_dev->force_off) {
++			ret = 0;
++			goto out;
++		}
++		/* Give up silently if input has disconnected */
++		if (!has_signal(dw_dev, input)) {
++			ret = 0;
++			goto out;
++		}
++
++		switch (dw_dev->state) {
++		case HDMI_STATE_POWER_OFF:
++			dw_hdmi_disable_ints(dw_dev);
++			dw_hdmi_set_state(dw_dev, HDMI_STATE_PHY_CONFIG);
++			break;
++		case HDMI_STATE_PHY_CONFIG:
++			dw_hdmi_phy_s_power(dw_dev, true);
++			dw_hdmi_phy_config(dw_dev, 8, false, false);
++			dw_hdmi_set_state(dw_dev, HDMI_STATE_EQUALIZER);
++			break;
++		case HDMI_STATE_EQUALIZER:
++			eqret = dw_hdmi_phy_eq_init(dw_dev, 5,
++					dw_dev->phy_eq_force);
++			ret = dw_hdmi_wait_phy_lock_poll(dw_dev);
++
++			/* Do not force equalizer */
++			dw_dev->phy_eq_force = false;
++
++			if (ret || eqret) {
++				if (ret || eqret == -ETIMEDOUT) {
++					/* No TMDSVALID signal:
++					 * 	- force equalizer */
++					dw_dev->phy_eq_force = true;
++				}
++				break;
++			}
++
++			dw_hdmi_set_state(dw_dev, HDMI_STATE_VIDEO_UNSTABLE);
++			break;
++		case HDMI_STATE_VIDEO_UNSTABLE:
++			dw_hdmi_reset_datapath(dw_dev);
++			dw_hdmi_wait_video_stable(dw_dev);
++			dw_hdmi_clear_ints(dw_dev);
++			dw_hdmi_enable_ints(dw_dev);
++			dw_hdmi_set_state(dw_dev, HDMI_STATE_POWER_ON);
++			break;
++		case HDMI_STATE_POWER_ON:
++			break;
++		default:
++			dev_err(dw_dev->dev, "%s called with state (%d)\n",
++					__func__, dw_dev->state);
++			ret = -EINVAL;
++			goto out;
++		}
++
++		if (dw_dev->state == HDMI_STATE_POWER_ON) {
++			dev_info(dw_dev->dev, "HDMI-RX configured\n");
++			dw_hdmi_event_source_change(dw_dev);
++			return 0;
++		}
++	}
++
++out:
++	dw_hdmi_set_state(dw_dev, HDMI_STATE_POWER_OFF);
 +	return ret;
 +}
 +
-+static int rk1608_remove(struct spi_device *spi)
++static void dw_hdmi_config_hdcp(struct dw_hdmi_dev *dw_dev)
 +{
-+	struct rk1608_state *rk1608 = spi_get_drvdata(spi);
++	hdmi_mask_writel(dw_dev, 0x0, HDMI_HDCP22_CONTROL,
++			HDMI_HDCP22_CONTROL_OVR_VAL_OFFSET,
++			HDMI_HDCP22_CONTROL_OVR_VAL_MASK);
++	hdmi_mask_writel(dw_dev, 0x1, HDMI_HDCP22_CONTROL,
++			HDMI_HDCP22_CONTROL_OVR_EN_OFFSET,
++			HDMI_HDCP22_CONTROL_OVR_EN_MASK);
++}
 +
-+	v4l2_async_unregister_subdev(&rk1608->sd);
-+	media_entity_cleanup(&rk1608->sd.entity);
-+	v4l2_ctrl_handler_free(&rk1608->ctrl_handler);
-+	v4l2_device_unregister_subdev(&rk1608->sd);
-+	mutex_destroy(&rk1608->lock);
-+	mutex_destroy(&rk1608->send_msg_lock);
-+	mutex_destroy(&rk1608->sensor_lock);
-+	kfree(rk1608);
++static int __dw_hdmi_power_on(struct dw_hdmi_dev *dw_dev, u32 input)
++{
++	unsigned long flags;
++	int ret;
++
++	ret = dw_hdmi_config(dw_dev, input);
++
++	spin_lock_irqsave(&dw_dev->lock, flags);
++	dw_dev->pending_config = false;
++	spin_unlock_irqrestore(&dw_dev->lock, flags);
++
++	return ret;
++}
++
++static void dw_hdmi_work_handler(struct work_struct *work)
++{
++	struct dw_hdmi_dev *dw_dev = container_of(work, struct dw_hdmi_dev, work);
++
++	__dw_hdmi_power_on(dw_dev, dw_dev->configured_input);
++}
++
++static int dw_hdmi_power_on(struct dw_hdmi_dev *dw_dev, u32 input)
++{
++	unsigned long flags;
++
++	spin_lock_irqsave(&dw_dev->lock, flags);
++	if (dw_dev->pending_config) {
++		spin_unlock_irqrestore(&dw_dev->lock, flags);
++		return 0;
++	}
++
++	INIT_WORK(&dw_dev->work, dw_hdmi_work_handler);
++	dw_dev->configured_input = input;
++	dw_dev->pending_config = true;
++	queue_work(dw_dev->wq, &dw_dev->work);
++	spin_unlock_irqrestore(&dw_dev->lock, flags);
++	return 0;
++}
++
++static void dw_hdmi_power_off(struct dw_hdmi_dev *dw_dev)
++{
++	unsigned long flags;
++
++	dw_dev->force_off = true;
++	flush_workqueue(dw_dev->wq);
++	dw_dev->force_off = false;
++
++	spin_lock_irqsave(&dw_dev->lock, flags);
++	dw_dev->pending_config = false;
++	dw_dev->state = HDMI_STATE_POWER_OFF;
++	spin_unlock_irqrestore(&dw_dev->lock, flags);
++
++	/* Reset variables */
++	dw_dev->phy_eq_force = true;
++
++	/* Send source change event to userspace */
++	dw_hdmi_event_source_change(dw_dev);
++}
++
++static irqreturn_t dw_hdmi_irq_handler(int irq, void *dev_data)
++{
++	struct dw_hdmi_dev *dw_dev = dev_data;
++	u32 hdmi_ists = dw_hdmi_get_int_val(dw_dev, HDMI_ISTS, HDMI_IEN);
++	u32 md_ists = dw_hdmi_get_int_val(dw_dev, HDMI_MD_ISTS, HDMI_MD_IEN);
++
++	dw_hdmi_clear_ints(dw_dev);
++
++	if ((hdmi_ists & HDMI_ISTS_CLK_CHANGE) ||
++	    (hdmi_ists & HDMI_ISTS_PLL_LCK_CHG) || md_ists) {
++		dw_hdmi_power_off(dw_dev);
++		if (has_signal(dw_dev, dw_dev->configured_input))
++			dw_hdmi_power_on(dw_dev, dw_dev->configured_input);
++	}
++
++#if IS_ENABLED(CONFIG_VIDEO_DWC_HDMI_RX_CEC)
++	dw_hdmi_cec_irq_handler(dw_dev);
++#endif
++
++	return IRQ_HANDLED;
++}
++
++static void dw_hdmi_detect_tx_5v(struct dw_hdmi_dev *dw_dev)
++{
++	unsigned int input_count = 4; /* TODO: Get from DT node this value */
++	unsigned int old_input = dw_dev->configured_input;
++	unsigned int new_input = old_input;
++	bool pending_config = false, current_on = true;
++	u32 stat = 0;
++	int i;
++
++	if (!has_signal(dw_dev, old_input)) {
++		dw_hdmi_disable_ints(dw_dev);
++		dw_hdmi_power_off(dw_dev);
++		current_on = false;
++	}
++
++	for (i = 0; i < input_count; i++) {
++		bool on = has_signal(dw_dev, i);
++		stat |= on << i;
++
++		if (is_off(dw_dev) && on && !pending_config) {
++			dw_hdmi_power_on(dw_dev, i);
++			dw_hdmi_set_input(dw_dev, i);
++			new_input = i;
++			pending_config = true;
++		}
++	}
++
++	if ((new_input == old_input) && !pending_config && !current_on)
++		dw_hdmi_phy_s_power(dw_dev, false);
++
++	if (stat) {
++		/*
++		 * If there are any connected ports enable the HPD and the SCDC
++		 * for these ports.
++		 */
++		dw_hdmi_enable_scdc(dw_dev);
++		dw_hdmi_enable_hpd(dw_dev, stat);
++	} else {
++		/*
++		 * If there are no connected ports disable whole HPD and SCDC
++		 * also.
++		 */
++		dw_hdmi_disable_hpd(dw_dev);
++		dw_hdmi_disable_scdc(dw_dev);
++	}
++
++	v4l2_ctrl_s_ctrl(dw_dev->detect_tx_5v_ctrl, stat);
++	dev_dbg(dw_dev->dev, "%s: stat=0x%x\n", __func__, stat);
++}
++
++static irqreturn_t dw_hdmi_5v_irq_handler(int irq, void *dev_data)
++{
++	struct dw_hdmi_dev *dw_dev = dev_data;
++
++	dw_hdmi_detect_tx_5v(dw_dev);
++	return IRQ_HANDLED;
++}
++
++static irqreturn_t dw_hdmi_5v_hard_irq_handler(int irq, void *dev_data)
++{
++	struct dw_hdmi_dev *dw_dev = dev_data;
++
++	dev_dbg(dw_dev->dev, "%s\n", __func__);
++	dw_hdmi_5v_clear(dw_dev);
++	return IRQ_WAKE_THREAD;
++}
++
++static int dw_hdmi_s_routing(struct v4l2_subdev *sd, u32 input, u32 output,
++		u32 config)
++{
++	struct dw_hdmi_dev *dw_dev = to_dw_dev(sd);
++
++	if (!has_signal(dw_dev, input))
++		return -EINVAL;
++
++	dw_dev->selected_input = input;
++	if (input == dw_dev->configured_input)
++		return 0;
++
++	dw_hdmi_power_off(dw_dev);
++	return dw_hdmi_power_on(dw_dev, input);
++}
++
++static int dw_hdmi_g_input_status(struct v4l2_subdev *sd, u32 *status)
++{
++	struct dw_hdmi_dev *dw_dev = to_dw_dev(sd);
++
++	*status = 0;
++	if (!has_signal(dw_dev, dw_dev->selected_input))
++		*status |= V4L2_IN_ST_NO_POWER;
++	if (is_off(dw_dev))
++		*status |= V4L2_IN_ST_NO_SIGNAL;
++
++	dev_dbg(dw_dev->dev, "%s: status=0x%x\n", __func__, *status);
++	return 0;
++}
++
++static int dw_hdmi_g_parm(struct v4l2_subdev *sd, struct v4l2_streamparm *parm)
++{
++	struct dw_hdmi_dev *dw_dev = to_dw_dev(sd);
++
++	dev_dbg(dw_dev->dev, "%s\n", __func__);
++
++	/* TODO: Use helper to compute timeperframe */
++	parm->parm.capture.timeperframe.numerator = 1;
++	parm->parm.capture.timeperframe.denominator = 60;
++	return 0;
++}
++
++static int dw_hdmi_s_dv_timings(struct v4l2_subdev *sd,
++		struct v4l2_dv_timings *timings)
++{
++	struct dw_hdmi_dev *dw_dev = to_dw_dev(sd);
++
++	dev_dbg(dw_dev->dev, "%s\n", __func__);
++	if (!v4l2_valid_dv_timings(timings, &dw_hdmi_timings_cap, NULL, NULL))
++		return -EINVAL;
++	if (v4l2_match_dv_timings(timings, &dw_dev->timings, 0, false))
++		return 0;
++
++	dw_dev->timings = *timings;
++	return 0;
++}
++
++static int dw_hdmi_g_dv_timings(struct v4l2_subdev *sd,
++		struct v4l2_dv_timings *timings)
++{
++	struct dw_hdmi_dev *dw_dev = to_dw_dev(sd);
++
++	dev_dbg(dw_dev->dev, "%s\n", __func__);
++
++	*timings = dw_dev->timings;
++	return 0;
++}
++
++static int dw_hdmi_query_dv_timings(struct v4l2_subdev *sd,
++		struct v4l2_dv_timings *timings)
++{
++	struct dw_hdmi_dev *dw_dev = to_dw_dev(sd);
++	struct v4l2_bt_timings *bt = &timings->bt;
++	bool is_hdmi_vic;
++	u32 htot, hofs;
++	u32 vtot;
++	u8 vic;
++
++	dev_dbg(dw_dev->dev, "%s\n", __func__);
++
++	memset(timings, 0, sizeof(*timings));
++
++	timings->type = V4L2_DV_BT_656_1120;
++	bt->width = hdmi_readl(dw_dev, HDMI_MD_HACT_PX);
++	bt->height = hdmi_readl(dw_dev, HDMI_MD_VAL);
++	bt->interlaced = hdmi_readl(dw_dev, HDMI_MD_STS) & HDMI_MD_STS_ILACE;
++
++	if (hdmi_readl(dw_dev, HDMI_ISTS) & HDMI_ISTS_VS_POL_ADJ)
++		bt->polarities |= V4L2_DV_VSYNC_POS_POL;
++	if (hdmi_readl(dw_dev, HDMI_ISTS) & HDMI_ISTS_HS_POL_ADJ)
++		bt->polarities |= V4L2_DV_HSYNC_POS_POL;
++
++	bt->pixelclock = dw_hdmi_get_pixelclk(dw_dev);
++
++	/* HTOT = HACT + HFRONT + HSYNC + HBACK */
++	htot = hdmi_mask_readl(dw_dev, HDMI_MD_HT1,
++			HDMI_MD_HT1_HTOT_PIX_OFFSET,
++			HDMI_MD_HT1_HTOT_PIX_MASK);
++	/* HOFS = HSYNC + HBACK */
++	hofs = hdmi_mask_readl(dw_dev, HDMI_MD_HT1,
++			HDMI_MD_HT1_HOFS_PIX_OFFSET,
++			HDMI_MD_HT1_HOFS_PIX_MASK);
++
++	bt->hfrontporch = htot - hofs - bt->width;
++	bt->hsync = hdmi_mask_readl(dw_dev, HDMI_MD_HT0,
++			HDMI_MD_HT0_HS_CLK_OFFSET,
++			HDMI_MD_HT0_HS_CLK_MASK);
++	bt->hbackporch = hofs - bt->hsync;
++
++	/* VTOT = VACT + VFRONT + VSYNC + VBACK */
++	vtot = hdmi_readl(dw_dev, HDMI_MD_VTL);
++
++	hdmi_mask_writel(dw_dev, 0x1, HDMI_MD_VCTRL,
++			HDMI_MD_VCTRL_V_OFFS_LIN_MODE_OFFSET,
++			HDMI_MD_VCTRL_V_OFFS_LIN_MODE_MASK);
++	msleep(50);
++	bt->vsync = hdmi_readl(dw_dev, HDMI_MD_VOL);
++
++	hdmi_mask_writel(dw_dev, 0x0, HDMI_MD_VCTRL,
++			HDMI_MD_VCTRL_V_OFFS_LIN_MODE_OFFSET,
++			HDMI_MD_VCTRL_V_OFFS_LIN_MODE_MASK);
++	msleep(50);
++	bt->vbackporch = hdmi_readl(dw_dev, HDMI_MD_VOL);
++	bt->vfrontporch = vtot - bt->height - bt->vsync - bt->vbackporch;
++	bt->standards = V4L2_DV_BT_STD_CEA861;
++
++	vic = dw_hdmi_get_curr_vic(dw_dev, &is_hdmi_vic);
++	if (vic) {
++		if (is_hdmi_vic) {
++			bt->flags |= V4L2_DV_FL_HAS_HDMI_VIC;
++			bt->hdmi_vic = vic;
++			bt->cea861_vic = 0;
++		} else {
++			bt->flags |= V4L2_DV_FL_HAS_CEA861_VIC;
++			bt->hdmi_vic = 0;
++			bt->cea861_vic = vic;
++		}
++	}
 +
 +	return 0;
 +}
 +
-+static const struct spi_device_id rk1608_id[] = {
-+	{ "RK1608", 0 },
-+	{ }
-+};
-+MODULE_DEVICE_TABLE(spi, rk1608_id);
++static int dw_hdmi_enum_mbus_code(struct v4l2_subdev *sd,
++		struct v4l2_subdev_pad_config *cfg,
++		struct v4l2_subdev_mbus_code_enum *code)
++{
++	struct dw_hdmi_dev *dw_dev = to_dw_dev(sd);
 +
-+#if IS_ENABLED(CONFIG_OF)
-+static const struct of_device_id rk1608_of_match[] = {
-+	{ .compatible = "rockchip,rk1608" },
-+	{ /* sentinel */ },
-+};
-+MODULE_DEVICE_TABLE(of, rk1608_of_match);
++	dev_dbg(dw_dev->dev, "%s\n", __func__);
++	if (code->index != 0)
++		return -EINVAL;
++
++	code->code = dw_dev->mbus_code;
++	return 0;
++}
++
++static int dw_hdmi_fill_format(struct dw_hdmi_dev *dw_dev,
++		struct v4l2_mbus_framefmt *format)
++{
++	memset(format, 0, sizeof(*format));
++
++	format->width = dw_dev->timings.bt.width;
++	format->height = dw_dev->timings.bt.height;
++	format->colorspace = V4L2_COLORSPACE_SRGB;
++	format->code = dw_dev->mbus_code;
++	if (dw_dev->timings.bt.interlaced)
++		format->field = V4L2_FIELD_ALTERNATE;
++	else
++		format->field = V4L2_FIELD_NONE;
++
++	return 0;
++}
++
++static int dw_hdmi_get_fmt(struct v4l2_subdev *sd,
++		struct v4l2_subdev_pad_config *cfg,
++		struct v4l2_subdev_format *format)
++{
++	struct dw_hdmi_dev *dw_dev = to_dw_dev(sd);
++
++	dev_dbg(dw_dev->dev, "%s\n", __func__);
++	return dw_hdmi_fill_format(dw_dev, &format->format);
++}
++
++static int dw_hdmi_set_fmt(struct v4l2_subdev *sd,
++		struct v4l2_subdev_pad_config *cfg,
++		struct v4l2_subdev_format *format)
++{
++	struct dw_hdmi_dev *dw_dev = to_dw_dev(sd);
++
++	dev_dbg(dw_dev->dev, "%s\n", __func__);
++
++	if (format->format.code != dw_dev->mbus_code) {
++		dev_dbg(dw_dev->dev, "invalid format\n");
++		return -EINVAL;
++	}
++
++	return dw_hdmi_get_fmt(sd, cfg, format);
++}
++
++static int dw_hdmi_dv_timings_cap(struct v4l2_subdev *sd,
++		struct v4l2_dv_timings_cap *cap)
++{
++	struct dw_hdmi_dev *dw_dev = to_dw_dev(sd);
++	unsigned int pad = cap->pad;
++
++	dev_dbg(dw_dev->dev, "%s\n", __func__);
++
++	*cap = dw_hdmi_timings_cap;
++	cap->pad = pad;
++	return 0;
++}
++
++static int dw_hdmi_enum_dv_timings(struct v4l2_subdev *sd,
++		struct v4l2_enum_dv_timings *timings)
++{
++	struct dw_hdmi_dev *dw_dev = to_dw_dev(sd);
++
++	dev_dbg(dw_dev->dev, "%s\n", __func__);
++	return v4l2_enum_dv_timings_cap(timings, &dw_hdmi_timings_cap,
++			NULL, NULL);
++}
++
++static int dw_hdmi_log_status(struct v4l2_subdev *sd)
++{
++	struct dw_hdmi_dev *dw_dev = to_dw_dev(sd);
++	struct v4l2_dv_timings timings;
++
++	v4l2_info(sd, "--- Chip configuration ---\n");
++	v4l2_info(sd, "cfg_clk=%dMHz\n", dw_dev->cfg_clk);
++	v4l2_info(sd, "phy_drv=%s, phy_jtag_addr=0x%x\n",
++			dw_dev->phy_sd ? "present" : "not present",
++			dw_dev->phy_jtag_addr);
++
++	v4l2_info(sd, "--- Chip status ---\n");
++	v4l2_info(sd, "selected_input=%d: signal=%d\n", dw_dev->selected_input,
++			has_signal(dw_dev, dw_dev->selected_input));
++	v4l2_info(sd, "configured_input=%d: signal=%d\n",
++			dw_dev->configured_input,
++			has_signal(dw_dev, dw_dev->configured_input));
++
++	v4l2_info(sd, "--- Video status ---\n");
++	v4l2_info(sd, "type=%s, color_depth=%dbits",
++			hdmi_readl(dw_dev, HDMI_PDEC_STS) &
++			HDMI_PDEC_STS_DVIDET ? "dvi" : "hdmi",
++			dw_hdmi_get_colordepth(dw_dev));
++
++	v4l2_info(sd, "--- Video timings ---\n");
++	if (dw_hdmi_query_dv_timings(sd, &timings))
++		v4l2_info(sd, "No video detected\n");
++	else
++		v4l2_print_dv_timings(sd->name, "Detected format: ",
++				&timings, true);
++	v4l2_print_dv_timings(sd->name, "Configured format: ",
++			&dw_dev->timings, true);
++
++	v4l2_ctrl_subdev_log_status(sd);
++	return 0;
++}
++
++#ifdef CONFIG_VIDEO_ADV_DEBUG
++static void dw_hdmi_invalid_register(struct dw_hdmi_dev *dw_dev, u64 reg)
++{
++	dev_err(dw_dev->dev, "register 0x%llx not supported\n", reg);
++	dev_err(dw_dev->dev, "0x0000-0x7fff: Main controller map\n");
++	dev_err(dw_dev->dev, "0x8000-0x80ff: PHY map\n");
++}
++
++static bool dw_hdmi_is_reserved_register(struct dw_hdmi_dev *dw_dev, u32 reg)
++{
++	/*
++	 * NOTE: Some of the HDCP registers are write only. This means that
++	 * a read from these registers will never return and can block the bus
++	 * in some architectures. Disable the read to these registers and also
++	 * disable the write as a safety measure because userspace should not
++	 * be able to set HDCP registers.
++	 */
++	if (reg >= HDMI_HDCP_CTRL && reg <= HDMI_HDCP_STS)
++		return true;
++	if (reg == HDMI_HDCP22_CONTROL)
++		return true;
++	if (reg == HDMI_HDCP22_STATUS)
++		return true;
++	return false;
++}
++
++static int dw_hdmi_g_register(struct v4l2_subdev *sd,
++		struct v4l2_dbg_register *reg)
++{
++	struct dw_hdmi_dev *dw_dev = to_dw_dev(sd);
++
++	switch (reg->reg >> 15) {
++	case 0: /* Controller core read */
++		if (dw_hdmi_is_reserved_register(dw_dev, reg->reg & 0x7fff))
++			return -EINVAL;
++
++		reg->size = 4;
++		reg->val = hdmi_readl(dw_dev, reg->reg & 0x7fff);
++		return 0;
++	case 1: /* PHY read */
++		if ((reg->reg & ~0xff) != BIT(15))
++			break;
++
++		reg->size = 2;
++		reg->val = dw_hdmi_phy_read(dw_dev, reg->reg & 0xff);
++		return 0;
++	default:
++		break;
++	}
++
++	dw_hdmi_invalid_register(dw_dev, reg->reg);
++	return 0;
++}
++
++static int dw_hdmi_s_register(struct v4l2_subdev *sd,
++		const struct v4l2_dbg_register *reg)
++{
++	struct dw_hdmi_dev *dw_dev = to_dw_dev(sd);
++
++	switch (reg->reg >> 15) {
++	case 0: /* Controller core write */
++		if (dw_hdmi_is_reserved_register(dw_dev, reg->reg & 0x7fff))
++			return -EINVAL;
++
++		hdmi_writel(dw_dev, reg->val & GENMASK(31,0), reg->reg & 0x7fff);
++		return 0;
++	case 1: /* PHY write */
++		if ((reg->reg & ~0xff) != BIT(15))
++			break;
++		dw_hdmi_phy_write(dw_dev, reg->val & 0xffff, reg->reg & 0xff);
++		return 0;
++	default:
++		break;
++	}
++
++	dw_hdmi_invalid_register(dw_dev, reg->reg);
++	return 0;
++}
 +#endif
 +
-+static struct spi_driver rk1608_driver = {
++static int dw_hdmi_subscribe_event(struct v4l2_subdev *sd, struct v4l2_fh *fh,
++		struct v4l2_event_subscription *sub)
++{
++	switch (sub->type) {
++	case V4L2_EVENT_SOURCE_CHANGE:
++		return v4l2_src_change_event_subdev_subscribe(sd, fh, sub);
++	default:
++		return v4l2_ctrl_subdev_subscribe_event(sd, fh, sub);
++	}
++}
++
++static int dw_hdmi_registered(struct v4l2_subdev *sd)
++{
++	struct dw_hdmi_dev *dw_dev = to_dw_dev(sd);
++	int ret;
++
++	ret = cec_register_adapter(dw_dev->cec_adap, dw_dev->dev);
++	if (ret) {
++		dev_err(dw_dev->dev, "failed to register CEC adapter\n");
++		cec_delete_adapter(dw_dev->cec_adap);
++		return ret;
++	}
++
++	cec_register_cec_notifier(dw_dev->cec_adap, dw_dev->cec_notifier);
++	dw_dev->registered = true;
++
++	return 0;
++	/*return v4l2_async_subdev_notifier_register(&dw_dev->sd,
++			&dw_dev->v4l2_notifier);*/
++}
++
++static void dw_hdmi_unregistered(struct v4l2_subdev *sd)
++{
++	struct dw_hdmi_dev *dw_dev = to_dw_dev(sd);
++
++	cec_unregister_adapter(dw_dev->cec_adap);
++	cec_notifier_put(dw_dev->cec_notifier);
++	v4l2_async_notifier_unregister(&dw_dev->v4l2_notifier);
++}
++
++static const struct v4l2_subdev_core_ops dw_hdmi_sd_core_ops = {
++	.log_status = dw_hdmi_log_status,
++#ifdef CONFIG_VIDEO_ADV_DEBUG
++	.g_register = dw_hdmi_g_register,
++	.s_register = dw_hdmi_s_register,
++#endif
++	.subscribe_event = dw_hdmi_subscribe_event,
++};
++
++static const struct v4l2_subdev_video_ops dw_hdmi_sd_video_ops = {
++	.s_routing = dw_hdmi_s_routing,
++	.g_input_status = dw_hdmi_g_input_status,
++	.g_parm = dw_hdmi_g_parm,
++	.s_dv_timings = dw_hdmi_s_dv_timings,
++	.g_dv_timings = dw_hdmi_g_dv_timings,
++	.query_dv_timings = dw_hdmi_query_dv_timings,
++};
++
++static const struct v4l2_subdev_pad_ops dw_hdmi_sd_pad_ops = {
++	.enum_mbus_code = dw_hdmi_enum_mbus_code,
++	.get_fmt = dw_hdmi_get_fmt,
++	.set_fmt = dw_hdmi_set_fmt,
++	.dv_timings_cap = dw_hdmi_dv_timings_cap,
++	.enum_dv_timings = dw_hdmi_enum_dv_timings,
++};
++
++static const struct v4l2_subdev_ops dw_hdmi_sd_ops = {
++	.core = &dw_hdmi_sd_core_ops,
++	.video = &dw_hdmi_sd_video_ops,
++	.pad = &dw_hdmi_sd_pad_ops,
++};
++
++static const struct v4l2_subdev_internal_ops dw_hdmi_internal_ops = {
++	.registered = dw_hdmi_registered,
++	.unregistered = dw_hdmi_unregistered,
++};
++
++static int dw_hdmi_v4l2_notify_bound(struct v4l2_async_notifier *notifier,
++		struct v4l2_subdev *subdev, struct v4l2_async_subdev *asd)
++{
++	struct dw_hdmi_dev *dw_dev = notifier_to_dw_dev(notifier);
++
++	if (dw_dev->phy_async_sd.match.fwnode.fwnode == dev_fwnode(subdev->dev)) {
++		dev_dbg(dw_dev->dev, "found new subdev '%s'\n", subdev->name);
++		dw_dev->phy_sd = subdev;
++		return 0;
++	}
++
++	return -EINVAL;
++}
++
++static void dw_hdmi_v4l2_notify_unbind(struct v4l2_async_notifier *notifier,
++		struct v4l2_subdev *subdev, struct v4l2_async_subdev *asd)
++{
++	struct dw_hdmi_dev *dw_dev = notifier_to_dw_dev(notifier);
++
++	if (dw_dev->phy_sd == subdev) {
++		dev_dbg(dw_dev->dev, "unbinding '%s'\n", subdev->name);
++		dw_dev->phy_sd = NULL;
++	}
++}
++
++static const struct v4l2_async_notifier_operations dw_hdmi_notifier_ops = {
++	.bound = dw_hdmi_v4l2_notify_bound,
++	.unbind = dw_hdmi_v4l2_notify_unbind,
++};
++
++static int dw_hdmi_v4l2_init_notifier(struct dw_hdmi_dev *dw_dev)
++{
++	struct v4l2_async_subdev **subdevs = NULL;
++	struct device_node *child = NULL;
++
++	subdevs = devm_kzalloc(dw_dev->dev, sizeof(*subdevs), GFP_KERNEL);
++	if (!subdevs)
++		return -ENOMEM;
++
++	child = dw_hdmi_get_phy_of_node(dw_dev, NULL);
++	if (!child)
++		return -EINVAL;
++
++	dw_dev->phy_async_sd.match.fwnode.fwnode = of_fwnode_handle(child);
++	dw_dev->phy_async_sd.match_type = V4L2_ASYNC_MATCH_FWNODE;
++
++	subdevs[0] = &dw_dev->phy_async_sd;
++	dw_dev->v4l2_notifier.num_subdevs = 1;
++	dw_dev->v4l2_notifier.subdevs = subdevs;
++	dw_dev->v4l2_notifier.ops = &dw_hdmi_notifier_ops;
++	return 0;
++}
++
++static int dw_hdmi_parse_notifier(struct dw_hdmi_dev *dw_dev)
++{
++#if IS_ENABLED(CONFIG_VIDEO_DWC_HDMI_RX_CEC)
++	struct device_node *notifier, *np = dw_dev->of_node;
++
++	/* Notifier device parsing */
++	notifier = of_parse_phandle(np, "edid-phandle", 0);
++	if (!notifier && dw_dev->dev->parent)
++		notifier = dw_dev->dev->parent->of_node;
++
++	if (!notifier) {
++		dev_err(dw_dev->dev, "missing edid-phandle in DT\n");
++		return -EINVAL;
++	}
++
++	dw_dev->notifier_pdev = of_find_device_by_node(notifier);
++	if (!dw_dev->notifier_pdev)
++		return -EPROBE_DEFER;
++
++	return 0;
++#else
++	return 0;
++#endif
++}
++
++static int dw_hdmi_parse_dt(struct dw_hdmi_dev *dw_dev)
++{
++	struct device_node *phy_node, *np = dw_dev->of_node;
++	u32 tmp;
++	int ret;
++
++	if (!np) {
++		dev_err(dw_dev->dev, "missing DT node\n");
++		return -EINVAL;
++	}
++
++	/* PHY properties parsing */
++	phy_node = dw_hdmi_get_phy_of_node(dw_dev, NULL);
++	of_property_read_u32(phy_node, "reg", &tmp);
++
++	dw_dev->phy_jtag_addr = tmp & 0xff;
++	if (!dw_dev->phy_jtag_addr) {
++		dev_err(dw_dev->dev, "missing phy jtag address in DT\n");
++		return -EINVAL;
++	}
++
++	/* Get config clock value */
++	dw_dev->clk = devm_clk_get(dw_dev->dev, "cfg");
++	if (IS_ERR(dw_dev->clk)) {
++		dev_err(dw_dev->dev, "failed to get cfg clock\n");
++		return PTR_ERR(dw_dev->clk);
++	}
++
++	ret = clk_prepare_enable(dw_dev->clk);
++	if (ret) {
++		dev_err(dw_dev->dev, "failed to enable cfg clock\n");
++		return ret;
++	}
++
++	dw_dev->cfg_clk = clk_get_rate(dw_dev->clk) / 1000000U;
++	if (!dw_dev->cfg_clk) {
++		dev_err(dw_dev->dev, "invalid cfg clock frequency\n");
++		ret = -EINVAL;
++		goto err_clk;
++	}
++
++	ret = dw_hdmi_parse_notifier(dw_dev);
++	if (ret)
++		goto err_clk;
++
++	return 0;
++
++err_clk:
++	clk_disable_unprepare(dw_dev->clk);
++	return ret;
++}
++
++static int dw_hdmi_rx_probe(struct platform_device *pdev)
++{
++	const struct v4l2_dv_timings timings_def = HDMI_DEFAULT_TIMING;
++	struct dw_hdmi_rx_pdata *pdata = pdev->dev.platform_data;
++	struct device *dev = &pdev->dev;
++	struct v4l2_ctrl_handler *hdl;
++	struct dw_hdmi_dev *dw_dev;
++	struct v4l2_subdev *sd;
++	struct resource *res;
++	int ret, irq;
++
++	dev_dbg(dev, "%s\n", __func__);
++
++	dw_dev = devm_kzalloc(dev, sizeof(*dw_dev), GFP_KERNEL);
++	if (!dw_dev)
++		return -ENOMEM;
++
++	if (!pdata) {
++		dev_err(dev, "missing platform data\n");
++		return -EINVAL;
++	}
++
++	dw_dev->dev = dev;
++	dw_dev->config = pdata;
++	dw_dev->state = HDMI_STATE_NO_INIT;
++	dw_dev->of_node = dev->of_node;
++	spin_lock_init(&dw_dev->lock);
++
++	ret = dw_hdmi_parse_dt(dw_dev);
++	if (ret)
++		return ret;
++
++	/* Deferred work */
++	dw_dev->wq = create_singlethread_workqueue(DW_HDMI_RX_DRVNAME);
++	if (!dw_dev->wq) {
++		dev_err(dev, "failed to create workqueue\n");
++		return -ENOMEM;
++	}
++
++	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	dw_dev->regs = devm_ioremap_resource(dev, res);
++	if (IS_ERR(dw_dev->regs)) {
++		dev_err(dev, "failed to remap resource\n");
++		ret = PTR_ERR(dw_dev->regs);
++		goto err_wq;
++	}
++
++	/* Disable HPD as soon as posssible */
++	dw_hdmi_disable_hpd(dw_dev);
++	/* Prevent HDCP from tampering video */
++	dw_hdmi_config_hdcp(dw_dev);
++
++	irq = platform_get_irq(pdev, 0);
++	if (irq < 0) {
++		ret = irq;
++		goto err_wq;
++	}
++
++	ret = devm_request_threaded_irq(dev, irq, NULL, dw_hdmi_irq_handler,
++			IRQF_ONESHOT, DW_HDMI_RX_DRVNAME, dw_dev);
++	if (ret)
++		goto err_wq;
++
++	/* V4L2 initialization */
++	sd = &dw_dev->sd;
++	v4l2_subdev_init(sd, &dw_hdmi_sd_ops);
++	strlcpy(sd->name, dev_name(dev), sizeof(sd->name));
++	sd->dev = dev;
++	sd->internal_ops = &dw_hdmi_internal_ops;
++	sd->flags |= V4L2_SUBDEV_FL_HAS_EVENTS | V4L2_SUBDEV_FL_HAS_DEVNODE;
++
++	/* Control handlers */
++	hdl = &dw_dev->hdl;
++	v4l2_ctrl_handler_init(hdl, 1);
++	dw_dev->detect_tx_5v_ctrl = v4l2_ctrl_new_std(hdl, NULL,
++			V4L2_CID_DV_RX_POWER_PRESENT, 0, BIT(4) - 1, 0, 0);
++
++	sd->ctrl_handler = hdl;
++	if (hdl->error) {
++		ret = hdl->error;
++		goto err_hdl;
++	}
++
++	/* Wait for ctrl handler register before requesting 5v interrupt */
++	irq = platform_get_irq(pdev, 1);
++	if (irq < 0) {
++		ret = irq;
++		goto err_hdl;
++	}
++
++	ret = devm_request_threaded_irq(dev, irq, dw_hdmi_5v_hard_irq_handler,
++			dw_hdmi_5v_irq_handler, IRQF_ONESHOT,
++			DW_HDMI_RX_DRVNAME "-5v-handler", dw_dev);
++	if (ret)
++		goto err_hdl;
++
++	/* Notifier for subdev binding */
++	ret = dw_hdmi_v4l2_init_notifier(dw_dev);
++	if (ret) {
++		dev_err(dev, "failed to init v4l2 notifier\n");
++		goto err_hdl;
++	}
++
++	/* PHY loading */
++	ret = dw_hdmi_phy_init(dw_dev);
++	if (ret)
++		goto err_hdl;
++
++	/* CEC */
++#if IS_ENABLED(CONFIG_VIDEO_DWC_HDMI_RX_CEC)
++	dw_dev->cec_adap = cec_allocate_adapter(&dw_hdmi_cec_adap_ops,
++			dw_dev, dev_name(dev), CEC_CAP_TRANSMIT |
++			CEC_CAP_LOG_ADDRS | CEC_CAP_RC | CEC_CAP_PASSTHROUGH,
++			HDMI_CEC_MAX_LOG_ADDRS);
++	ret = PTR_ERR_OR_ZERO(dw_dev->cec_adap);
++	if (ret) {
++		dev_err(dev, "failed to allocate CEC adapter\n");
++		goto err_cec;
++	}
++
++	dw_dev->cec_notifier = cec_notifier_get(&dw_dev->notifier_pdev->dev);
++	if (!dw_dev->cec_notifier) {
++		dev_err(dev, "failed to allocate CEC notifier\n");
++		ret = -ENOMEM;
++		goto err_cec;
++	}
++
++	dev_info(dev, "CEC is enabled\n");
++#else
++	dev_info(dev, "CEC is disabled\n");
++#endif
++
++	ret = v4l2_async_register_subdev(sd);
++	if (ret) {
++		dev_err(dev, "failed to register subdev\n");
++		goto err_cec;
++	}
++
++	ret = v4l2_async_subdev_notifier_register(sd, &dw_dev->v4l2_notifier);
++	if (ret) {
++		dev_err(dev, "failed to register notifier\n");
++		goto err_subdev;
++	}
++
++	/* Fill initial format settings */
++	dw_dev->timings = timings_def;
++	dw_dev->mbus_code = MEDIA_BUS_FMT_BGR888_1X24;
++
++	dev_set_drvdata(dev, sd);
++	dw_dev->state = HDMI_STATE_POWER_OFF;
++	dw_hdmi_detect_tx_5v(dw_dev);
++	dev_dbg(dev, "driver probed\n");
++	return 0;
++
++err_subdev:
++	v4l2_async_unregister_subdev(sd);
++err_cec:
++	cec_delete_adapter(dw_dev->cec_adap);
++	dw_hdmi_phy_exit(dw_dev);
++err_hdl:
++	v4l2_ctrl_handler_free(hdl);
++err_wq:
++	destroy_workqueue(dw_dev->wq);
++	return ret;
++}
++
++static int dw_hdmi_rx_remove(struct platform_device *pdev)
++{
++	struct device *dev = &pdev->dev;
++	struct v4l2_subdev *sd = dev_get_drvdata(dev);
++	struct dw_hdmi_dev *dw_dev = to_dw_dev(sd);
++
++	dw_hdmi_disable_ints(dw_dev);
++	dw_hdmi_disable_hpd(dw_dev);
++	dw_hdmi_disable_scdc(dw_dev);
++	dw_hdmi_power_off(dw_dev);
++	dw_hdmi_phy_s_power(dw_dev, false);
++	flush_workqueue(dw_dev->wq);
++	destroy_workqueue(dw_dev->wq);
++	dw_hdmi_phy_exit(dw_dev);
++	v4l2_async_notifier_unregister(&dw_dev->v4l2_notifier);
++	v4l2_async_unregister_subdev(sd);
++	v4l2_ctrl_handler_free(sd->ctrl_handler);
++	clk_disable_unprepare(dw_dev->clk);
++	dev_dbg(dev, "driver removed\n");
++	return 0;
++}
++
++static const struct of_device_id dw_hdmi_rx_id[] = {
++	{ .compatible = "snps,dw-hdmi-rx" },
++	{ },
++};
++MODULE_DEVICE_TABLE(of, dw_hdmi_rx_id);
++
++static struct platform_driver dw_hdmi_rx_driver = {
++	.probe = dw_hdmi_rx_probe,
++	.remove = dw_hdmi_rx_remove,
 +	.driver = {
-+		.of_match_table = of_match_ptr(rk1608_of_match),
-+		.name	= "RK1608",
-+	},
-+	.probe		= rk1608_probe,
-+	.remove		= rk1608_remove,
-+	.id_table	= rk1608_id,
++		.name = DW_HDMI_RX_DRVNAME,
++		.of_match_table = dw_hdmi_rx_id,
++	}
 +};
-+
-+module_spi_driver(rk1608_driver);
-+
-+MODULE_AUTHOR("Rockchip Camera/ISP team");
-+MODULE_DESCRIPTION("A DSP driver for rk1608 chip");
-+MODULE_LICENSE("Dual BSD/GPL");
-diff --git a/drivers/media/spi/rk1608.h b/drivers/media/spi/rk1608.h
++module_platform_driver(dw_hdmi_rx_driver);
+diff --git a/drivers/media/platform/dwc/dw-hdmi-rx.h b/drivers/media/platform/dwc/dw-hdmi-rx.h
 new file mode 100644
-index 0000000..bf0c5ec
+index 0000000..14ec5a6
 --- /dev/null
-+++ b/drivers/media/spi/rk1608.h
-@@ -0,0 +1,366 @@
-+/**
-+ * Rockchip rk1608 driver
++++ b/drivers/media/platform/dwc/dw-hdmi-rx.h
+@@ -0,0 +1,441 @@
++/*
++ * Synopsys Designware HDMI Receiver controller driver
 + *
-+ * Copyright (C) 2017 Rockchip Electronics Co., Ltd.
++ * This Synopsys dw-hdmi-rx software and associated documentation
++ * (hereinafter the "Software") is an unsupported proprietary work of
++ * Synopsys, Inc. unless otherwise expressly agreed to in writing between
++ * Synopsys and you. The Software IS NOT an item of Licensed Software or a
++ * Licensed Product under any End User Software License Agreement or
++ * Agreement for Licensed Products with Synopsys or any supplement thereto.
++ * Synopsys is a registered trademark of Synopsys, Inc. Other names included
++ * in the SOFTWARE may be the trademarks of their respective owners.
 + *
-+ * This software is available to you under a choice of one of two
-+ * licenses.  You may choose to be licensed under the terms of the GNU
-+ * General Public License (GPL) Version 2, available from the file
-+ * COPYING in the main directory of this source tree, or the
-+ * OpenIB.org BSD license below:
++ * The contents of this file are dual-licensed; you may select either version 2
++ * of the GNU General Public License (“GPL”) or the MIT license (“MIT”).
 + *
-+ *     Redistribution and use in source and binary forms, with or
-+ *     without modification, are permitted provided that the following
-+ *     conditions are met:
++ * Copyright (c) 2017 Synopsys, Inc. and/or its affiliates.
 + *
-+ *      - Redistributions of source code must retain the above
-+ *        copyright notice, this list of conditions and the following
-+ *        disclaimer.
-+ *
-+ *      - Redistributions in binary form must reproduce the above
-+ *        copyright notice, this list of conditions and the following
-+ *        disclaimer in the documentation and/or other materials
-+ *        provided with the distribution.
-+ *
-+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-+ * SOFTWARE.
++ * THIS SOFTWARE IS PROVIDED "AS IS"  WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
++ * IMPLIED, INCLUDING, BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
++ * FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT. IN NO EVENT SHALL THE
++ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
++ * OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT, OR OTHERWISE
++ * ARISING FROM, OUT OF, OR IN CONNECTION WITH THE SOFTWARE THE USE OR
++ * OTHER DEALINGS IN THE SOFTWARE.
 + */
-+#ifndef __RK1608_H__
-+#define __RK1608_H__
 +
-+#include <linux/types.h>
-+#include <linux/string.h>
-+#include <linux/spi/spi.h>
-+#include "linux/i2c.h"
++#ifndef __DW_HDMI_RX_H__
++#define __DW_HDMI_RX_H__
 +
-+#define RK1608_OP_TRY_MAX			3
-+#define RK1608_OP_TRY_DELAY			10
-+#define RK1608_CMD_WRITE			0x00000011
-+#define RK1608_CMD_WRITE_REG0		0X00010011
-+#define RK1608_CMD_WRITE_REG1		0X00020011
-+#define RK1608_CMD_READ				0x00000077
-+#define RK1608_CMD_READ_BEGIN		0x000000aa
-+#define RK1608_CMD_QUERY			0x000000ff
-+#define RK1608_CMD_QUERY_REG2		0x000001ff
-+#define RK1608_STATE_ID_MASK		(0xffff0000)
-+#define RK1608_STATE_ID				(0X16080000)
-+#define RK1608_STATE_MASK			(0x0000ffff)
++#include <linux/bitops.h>
 +
-+#define BOOT_REQUEST_ADDR			0x18000010
-+#define RK1608_HEAD_ADDR			0x60000000
-+#define RK1608_FW_NAME				"rk1608.rkl"
-+#define RK1608_S_MSG_QUEUE_ADDR		0x60050010
-+#define RK1608_PMU_SYS_REG0			0x120000f0
-+#define RK1608_MSG_QUEUE_OK_MASK	0xffff0001
-+#define RK1608_MSG_QUEUE_OK_TAG		0x16080001
-+#define RK1608_MAX_OP_BYTES			60000
++/* id_hdmi Registers */
++#define HDMI_SETUP_CTRL				0x0000
++#define HDMI_PLL_LCK_STS			0x0030
++#define HDMI_CKM_EVLTM				0x0094
++#define HDMI_CKM_RESULT				0x009c
++#define HDMI_STS				0x00bc
 +
-+#define RK1608_WINDOW_HEIGHT_DEF	480
-+#define RK1608_WINDOW_WIDTH_DEF		640
++/* id_hdcp_1_4 Registers */
++#define HDMI_HDCP_CTRL				0x00c0
++#define HDMI_HDCP_SETTINGS			0x00c4
++#define HDMI_HDCP_SEED				0x00c8
++#define HDMI_HDCP_BKSV1				0x00cc
++#define HDMI_HDCP_BKSV0				0x00d0
++#define HDMI_HDCP_KIDX				0x00d4
++#define HDMI_HDCP_KEY1				0x00d8
++#define HDMI_HDCP_KEY0				0x00dc
++#define HDMI_HDCP_DBG				0x00e0
++#define HDMI_HDCP_AKSV1				0x00e4
++#define HDMI_HDCP_AKSV0				0x00e8
++#define HDMI_HDCP_AN1				0x00ec
++#define HDMI_HDCP_AN0				0x00f0
++#define HDMI_HDCP_EESS_WOO			0x00f4
++#define HDMI_HDCP_I2C_TIMEOUT			0x00f8
++#define HDMI_HDCP_STS				0x00fc
 +
-+#define BOOT_FLAG_CRC				(0x01 << 0)
-+#define BOOT_FLAG_EXE				(0x01 << 1)
-+#define BOOT_FLAG_LOAD_PMEM			(0x01 << 2)
-+#define BOOT_FLAG_ACK				(0x01 << 3)
-+#define BOOT_FLAG_READ_WAIT			(0x01 << 4)
-+#define BOOT_FLAG_BOOT_REQUEST		(0x01 << 5)
++/* id_mode_detection Registers */
++#define HDMI_MD_HT0				0x0148
++#define HDMI_MD_HT1				0x014c
++#define HDMI_MD_HACT_PX				0x0150
++#define HDMI_MD_VCTRL				0x0158
++#define HDMI_MD_VOL				0x0164
++#define HDMI_MD_VAL				0x0168
++#define HDMI_MD_VTL				0x0170
++#define HDMI_MD_STS				0x0180
 +
-+#define DEBUG_DUMP_ALL_SEND_RECV_MSG	0
-+#define RK1608_MCLK_RATE			(24 * 1000 * 1000ul)
-+#define SENSOR_TIMEOUT				1000
-+#define GRF_BASE_ADDR				0xff770000
-+#define GRF_GPIO2B_IOMUX			0x0014
-+#define GRF_IO_VSEL					0x0380
-+#define	OPM_SLAVE_MODE				0X100000
-+#define	RSD_SEL_2CYC				0X008000
-+#define	DFS_SEL_16BIT				0X000002
-+#define SPI_CTRL0					0x11060000
-+#define SPI_ENR						0x11060008
-+#define CRUPMU_CLKSEL14_CON			0x12008098
-+#define PMUGRF_GPIO1A_E				0x12030040
-+#define PMUGRF_GPIO1B_E				0x12030044
-+#define BIT7_6_SEL_8MA				0xf000a000
-+#define BIT1_0_SEL_8MA				0x000f000a
-+#define SPI0_PLL_SEL_APLL			0xff004000
-+#define INVALID_ID					-1
-+#define RK1608_MAX_SEC_NUM			10
++/* id_phy_configuration Registers */
++#define HDMI_PHY_CTRL				0x02c0
++#define HDMI_PHY_JTAG_CONF			0x02ec
++#define HDMI_PHY_JTAG_TAP_TCLK			0x02f0
++#define HDMI_PHY_JTAG_TAP_IN			0x02f4
++#define HDMI_PHY_JTAG_TAP_OUT			0x02f8
++#define HDMI_PHY_JTAG_ADDR			0x02fc
 +
-+#ifndef MIN
-+#define MIN(a, b) ((a) < (b) ? (a) : (b))
-+#endif
++/* id_packet_decoder Registers */
++#define HDMI_PDEC_STS				0x0360
++#define HDMI_PDEC_VSI_PAYLOAD0			0x0368
++#define HDMI_PDEC_AVI_PB			0x03a4
 +
-+#ifndef MSB2LSB32
-+#define MSB2LSB32(x)	((((u32)x & 0x80808080) >> 7) | \
-+			(((u32)x & 0x40404040) >> 5) | \
-+			(((u32)x & 0x20202020) >> 3) | \
-+			(((u32)x & 0x10101010) >> 1) | \
-+			(((u32)x & 0x08080808) << 1) | \
-+			(((u32)x & 0x04040404) << 3) | \
-+			(((u32)x & 0x02020202) << 5) | \
-+			(((u32)x & 0x01010101) << 7))
-+#endif
++/* id_hdmi_2_0 Registers */
++#define HDMI_SCDC_CONFIG			0x0808
++#define HDMI_HDCP22_CONTROL			0x081c
++#define HDMI_HDCP22_STATUS			0x08fc
 +
-+struct rk1608_section {
-+	union {
-+		u32	offset;
-+		u32	wait_value;
-+	};
-+	u32 size;
-+	union {
-+		u32	load_addr;
-+		u32	wait_addr;
-+	};
-+	u16	wait_time;
-+	u16	timeout;
-+	u16	crc_16;
-+	u8	flag;
-+	u8	type;
-+};
++/* id_audio_and_cec_interrupt Registers */
++#define HDMI_AUD_CEC_IEN_CLR			0x0f90
++#define HDMI_AUD_CEC_IEN_SET			0x0f94
++#define HDMI_AUD_CEC_ISTS			0x0f98
++#define HDMI_AUD_CEC_IEN			0x0f9c
++#define HDMI_AUD_CEC_ICLR			0x0fa0
++#define HDMI_AUD_CEC_ISET			0x0fa4
 +
-+struct rk1608_header {
-+	char version[32];
-+	u32 header_size;
-+	u32 section_count;
-+	struct rk1608_section sections[RK1608_MAX_SEC_NUM];
-+};
++/* id_mode_detection_interrupt Registers */
++#define HDMI_MD_IEN_CLR				0x0fc0
++#define HDMI_MD_IEN_SET				0x0fc4
++#define HDMI_MD_ISTS				0x0fc8
++#define HDMI_MD_IEN				0x0fcc
++#define HDMI_MD_ICLR				0x0fd0
++#define HDMI_MD_ISET				0x0fd4
 +
-+struct rk1608_boot_req {
-+	u32 flag;
-+	u32 load_addr;
-+	u32 boot_len;
-+	u8 status;
-+	u8 dummy[2];
-+	u8 cmd;
-+};
++/* id_hdmi_interrupt Registers */
++#define HDMI_IEN_CLR				0x0fd8
++#define HDMI_IEN_SET				0x0fdc
++#define HDMI_ISTS				0x0fe0
++#define HDMI_IEN				0x0fe4
++#define HDMI_ICLR				0x0fe8
++#define HDMI_ISET				0x0fec
 +
-+struct rk1608_msg_queue {
-+	u32 buf_head; /* msg buffer head */
-+	u32 buf_tail; /* msg buffer tail */
-+	u32 cur_send; /* current msg send postition */
-+	u32 cur_recv; /* current msg receive position */
-+};
++/* id_dmi Registers */
++#define HDMI_DMI_SW_RST				0x0ff0
 +
-+struct msg {
-+	u32 size; /* unit 4 bytes */
-+	u16 type; /* msg identification */
-+	s8  camera_id;
-+	s8  sync;
-+};
++/* id_cec Registers */
++#define HDMI_CEC_CTRL				0x1f00
++#define HDMI_CEC_MASK				0x1f08
++#define HDMI_CEC_ADDR_L				0x1f14
++#define HDMI_CEC_ADDR_H				0x1f18
++#define HDMI_CEC_TX_CNT				0x1f1c
++#define HDMI_CEC_RX_CNT				0x1f20
++#define HDMI_CEC_TX_DATA(i)			(0x1f40 + ((i) * 4))
++#define HDMI_CEC_TX_DATA_MAX			16
++#define HDMI_CEC_RX_DATA(i)			(0x1f80 + ((i) * 4))
++#define HDMI_CEC_RX_DATA_MAX			16
++#define HDMI_CEC_LOCK				0x1fc0
++#define HDMI_CEC_WAKEUPCTRL			0x1fc4
++
++/* id_cbus Registers */
++#define HDMI_CBUSIOCTRL				0x3020
 +
 +enum {
-+	/** AP -> RK1608
-+	 *   1 msg of sensor
-+	 */
-+	id_msg_init_sensor_t =			0x0001,
-+	id_msg_set_input_size_t,
-+	id_msg_set_output_size_t,
-+	id_msg_set_stream_in_on_t,
-+	id_msg_set_stream_in_off_t,
-+	id_msg_set_stream_out_on_t,
-+	id_msg_set_stream_out_off_t,
-+
-+	/** AP -> RK1608
-+	 *   2 msg of take picture
-+	 */
-+	id_msg_take_picture_t =			0x0021,
-+	id_msg_take_picture_done_t,
-+
-+	/** AP -> RK1608
-+	 *   3 msg of realtime parameter
-+	 */
-+	id_msg_rt_args_t =				0x0031,
-+
-+	/** AP -> RK1608
-+	 *   4 msg of power manager
-+	 */
-+	id_msg_set_sys_mode_bypass_t =	0x0200,
-+	id_msg_set_sys_mode_standby_t,
-+	id_msg_set_sys_mode_idle_enable_t,
-+	id_msg_set_sys_mode_idle_disable_t,
-+	id_msg_set_sys_mode_slave_rk1608_on_t,
-+	id_msg_set_sys_mode_slave_rk1608_off_t,
-+
-+	/** AP -> RK1608
-+	 *   5 msg of debug config
-+	 */
-+	id_msg_set_log_level_t =		0x0250,
-+
-+	/** RK1608 -> AP
-+	 *   6 response of sensor msg
-+	 */
-+	id_msg_init_sensor_ret_t =		0x0301,
-+	id_msg_set_input_size_ret_t,
-+	id_msg_set_output_size_ret_t,
-+	id_msg_set_stream_in_on_ret_t,
-+	id_msg_set_stream_in_off_ret_t,
-+	id_msg_set_stream_out_on_ret_t,
-+	id_msg_set_stream_out_off_ret_t,
-+
-+	/** RK1608 -> AP
-+	 *   7 response of take picture msg
-+	 */
-+	id_msg_take_picture_ret_t =		0x0320,
-+	id_msg_take_picture_done_ret_t,
-+
-+	/** RK1608 -> AP
-+	 *   8 response of realtime parameter msg
-+	 */
-+	id_msg_rt_args_ret_t =			0x0330,
-+
-+	/*rk1608 -> ap*/
-+	id_msg_do_i2c_t =				0x0390,
-+	/*ap -> rk1608*/
-+	id_msg_do_i2c_ret_t,
-+
-+	/** RK1608 -> AP
-+	 *   9 msg of print log
-+	 */
-+	id_msg_rk1608_log_t =			0x0400,
-+
-+	/* dsi2csi dump */
-+	id_msg_dsi2sci_rgb_dump_t =		0x6000,
-+	id_msg_dsi2sci_nv12_dump_t =	0x6001,
-+
-+	/** RK1608 -> AP
-+	 *	10  msg of xfile
-+	 */
-+	id_msg_xfile_import_t =		0x8000 + 0x0600,
-+	id_msg_xfile_export_t,
-+	id_msg_xfile_mkdir_t
++	/* SETUP_CTRL field values */
++	HDMI_SETUP_CTRL_HOT_PLUG_DETECT_INPUT_X_MASK = GENMASK(27,24),
++	HDMI_SETUP_CTRL_HOT_PLUG_DETECT_INPUT_X_OFFSET = 24,
++	HDMI_SETUP_CTRL_HDMIBUS_RESET_OVR_EN_MASK = BIT(21),
++	HDMI_SETUP_CTRL_HDMIBUS_RESET_OVR_EN_OFFSET = 21,
++	HDMI_SETUP_CTRL_BUS_RESET_OVR_MASK = BIT(20),
++	HDMI_SETUP_CTRL_BUS_RESET_OVR_OFFSET = 20,
++	HDMI_SETUP_CTRL_HDMI_RESET_OVR_MASK = BIT(19),
++	HDMI_SETUP_CTRL_HDMI_RESET_OVR_OFFSET = 19,
++	HDMI_SETUP_CTRL_PON_RESET_OVR_MASK = BIT(18),
++	HDMI_SETUP_CTRL_PON_RESET_OVR_OFFSET = 18,
++	HDMI_SETUP_CTRL_RESET_OVR_MASK = BIT(17),
++	HDMI_SETUP_CTRL_RESET_OVR_OFFSET = 17,
++	HDMI_SETUP_CTRL_RESET_OVR_EN_MASK = BIT(16),
++	HDMI_SETUP_CTRL_RESET_OVR_EN_OFFSET = 16,
++	HDMI_SETUP_CTRL_EQ_OSM_OVR_MASK = BIT(15),
++	HDMI_SETUP_CTRL_EQ_OSM_OVR_OFFSET = 15,
++	HDMI_SETUP_CTRL_EQ_OSM_OVR_EN_MASK = BIT(14),
++	HDMI_SETUP_CTRL_EQ_OSM_OVR_EN_OFFSET = 14,
++	HDMI_SETUP_CTRL_NOWAIT_ACTIVITY_MASK = BIT(13),
++	HDMI_SETUP_CTRL_NOWAIT_ACTIVITY_OFFSET = 13,
++	HDMI_SETUP_CTRL_EQ_CAL_TIME_MASK = GENMASK(12,7),
++	HDMI_SETUP_CTRL_EQ_CAL_TIME_OFFSET = 7,
++	HDMI_SETUP_CTRL_USE_PLL_LOCK_MASK = BIT(6),
++	HDMI_SETUP_CTRL_USE_PLL_LOCK_OFFSET = 6,
++	HDMI_SETUP_CTRL_FORCE_STATE_MASK = BIT(5),
++	HDMI_SETUP_CTRL_FORCE_STATE_OFFSET = 5,
++	HDMI_SETUP_CTRL_TARGET_STATE_MASK = GENMASK(4,1),
++	HDMI_SETUP_CTRL_TARGET_STATE_OFFSET = 1,
++	HDMI_SETUP_CTRL_HOT_PLUG_DETECT_MASK = BIT(0),
++	HDMI_SETUP_CTRL_HOT_PLUG_DETECT_OFFSET = 0,
++	/* PLL_LCK_STS field values */
++	HDMI_PLL_LCK_STS_PLL_LOCKED = BIT(0),
++	/* CKM_EVLTM field values */
++	HDMI_CKM_EVLTM_LOCK_HYST_MASK = GENMASK(21,20),
++	HDMI_CKM_EVLTM_LOCK_HYST_OFFSET = 20,
++	HDMI_CKM_EVLTM_CLK_HYST_MASK = GENMASK(18,16),
++	HDMI_CKM_EVLTM_CLK_HYST_OFFSET = 16,
++	HDMI_CKM_EVLTM_EVAL_TIME_MASK = GENMASK(15,4),
++	HDMI_CKM_EVLTM_EVAL_TIME_OFFSET = 4,
++	HDMI_CKM_EVLTM_CLK_MEAS_INPUT_SRC_MASK = BIT(0),
++	HDMI_CKM_EVLTM_CLK_MEAS_INPUT_SRC_OFFSET = 0,
++	/* CKM_RESULT field values */
++	HDMI_CKM_RESULT_CLOCK_IN_RANGE = BIT(17),
++	HDMI_CKM_RESULT_FREQ_LOCKED = BIT(16),
++	HDMI_CKM_RESULT_CLKRATE_MASK = GENMASK(15,0),
++	HDMI_CKM_RESULT_CLKRATE_OFFSET = 0,
++	/* STS field values */
++	HDMI_STS_DCM_CURRENT_MODE_MASK = GENMASK(31,28),
++	HDMI_STS_DCM_CURRENT_MODE_OFFSET = 28,
++	HDMI_STS_DCM_LAST_PIXEL_PHASE_STS_MASK = GENMASK(27,24),
++	HDMI_STS_DCM_LAST_PIXEL_PHASE_STS_OFFSET = 24,
++	HDMI_STS_DCM_PHASE_DIFF_CNT_MASK = GENMASK(23,16),
++	HDMI_STS_DCM_PH_DIFF_CNT_OVERFL = BIT(15),
++	HDMI_STS_DCM_GCP_ZERO_FIELDS_PASS = BIT(14),
++	HDMI_STS_CTL3_STS = BIT(13),
++	HDMI_STS_CTL2_STS = BIT(12),
++	HDMI_STS_CTL1_STS = BIT(11),
++	HDMI_STS_CTL0_STS = BIT(10),
++	HDMI_STS_VS_POL_ADJ_STS = BIT(9),
++	HDMI_STS_HS_POL_ADJ_STS = BIT(8),
++	HDMI_STS_RES_OVERLOAD_STS = BIT(7),
++	HDMI_STS_DCM_CURRENT_PP_MASK = GENMASK(3,0),
++	HDMI_STS_DCM_CURRENT_PP_OFFSET = 0,
++	/* HDCP_CTRL field values */
++	HDMI_HDCP_CTRL_ENDISLOCK_MASK = BIT(25),
++	HDMI_HDCP_CTRL_ENDISLOCK_OFFSET = 25,
++	HDMI_HDCP_CTRL_ENABLE_MASK = BIT(24),
++	HDMI_HDCP_CTRL_ENABLE_OFFSET = 24,
++	HDMI_HDCP_CTRL_FREEZE_HDCP_FSM_MASK = BIT(21),
++	HDMI_HDCP_CTRL_FREEZE_HDCP_FSM_OFFSET = 21,
++	HDMI_HDCP_CTRL_FREEZE_HDCP_STATE_MASK = GENMASK(20,15),
++	HDMI_HDCP_CTRL_FREEZE_HDCP_STATE_OFFSET = 15,
++	HDMI_HDCP_CTRL_VID_DE_MASK = BIT(14),
++	HDMI_HDCP_CTRL_VID_DE_OFFSET = 14,
++	HDMI_HDCP_CTRL_SEL_AVMUTE_MASK = GENMASK(11,10),
++	HDMI_HDCP_CTRL_SEL_AVMUTE_OFFSET = 10,
++	HDMI_HDCP_CTRL_CTL_MASK = GENMASK(9,8),
++	HDMI_HDCP_CTRL_CTL_OFFSET = 8,
++	HDMI_HDCP_CTRL_RI_RATE_MASK = GENMASK(7,6),
++	HDMI_HDCP_CTRL_RI_RATE_OFFSET = 6,
++	HDMI_HDCP_CTRL_HDMI_MODE_ENABLE_MASK = BIT(2),
++	HDMI_HDCP_CTRL_HDMI_MODE_ENABLE_OFFSET = 2,
++	HDMI_HDCP_CTRL_KEY_DECRYPT_ENABLE_MASK = BIT(1),
++	HDMI_HDCP_CTRL_KEY_DECRYPT_ENABLE_OFFSET = 1,
++	HDMI_HDCP_CTRL_ENC_EN_MASK = BIT(0),
++	HDMI_HDCP_CTRL_ENC_EN_OFFSET = 0,
++	/* HDCP_SEED field values */
++	HDMI_HDCP_SEED_KEY_DECRYPT_SEED_MASK = GENMASK(15,0),
++	HDMI_HDCP_SEED_KEY_DECRYPT_SEED_OFFSET = 0,
++	/* HDCP_STS field values */
++	HDMI_HDCP_STS_ENC_STATE = BIT(9),
++	HDMI_HDCP_STS_AUTH_START = BIT(8),
++	HDMI_HDCP_STS_KEY_WR_OK = BIT(0),
++	/* MD_HT0 field values */
++	HDMI_MD_HT0_HTOT32_CLK_MASK = GENMASK(31,16),
++	HDMI_MD_HT0_HTOT32_CLK_OFFSET = 16,
++	HDMI_MD_HT0_HS_CLK_MASK = GENMASK(15,0),
++	HDMI_MD_HT0_HS_CLK_OFFSET = 0,
++	/* MD_HT1 field values */
++	HDMI_MD_HT1_HTOT_PIX_MASK = GENMASK(31,16),
++	HDMI_MD_HT1_HTOT_PIX_OFFSET = 16,
++	HDMI_MD_HT1_HOFS_PIX_MASK = GENMASK(15,0),
++	HDMI_MD_HT1_HOFS_PIX_OFFSET = 0,
++	/* MD_VCTRL field values */
++	HDMI_MD_VCTRL_V_OFFS_LIN_MODE_MASK = BIT(4),
++	HDMI_MD_VCTRL_V_OFFS_LIN_MODE_OFFSET = 4,
++	HDMI_MD_VCTRL_V_EDGE_MASK = BIT(1),
++	HDMI_MD_VCTRL_V_EDGE_OFFSET = 1,
++	HDMI_MD_VCTRL_V_MODE_MASK = BIT(0),
++	HDMI_MD_VCTRL_V_MODE_OFFSET = 0,
++	/* MD_STS field values */
++	HDMI_MD_STS_ILACE = BIT(3),
++	HDMI_MD_STS_DE_ACTIVITY = BIT(2),
++	HDMI_MD_STS_VS_ACT = BIT(1),
++	HDMI_MD_STS_HS_ACT = BIT(0),
++	/* PHY_CTRL field values */
++	HDMI_PHY_CTRL_SVSRETMODEZ_MASK = BIT(6),
++	HDMI_PHY_CTRL_SVSRETMODEZ_OFFSET = 6,
++	HDMI_PHY_CTRL_CFGCLKFREQ_MASK = GENMASK(5,4),
++	HDMI_PHY_CTRL_CFGCLKFREQ_OFFSET = 4,
++	HDMI_PHY_CTRL_PORTSELECT_MASK = GENMASK(3,2),
++	HDMI_PHY_CTRL_PORTSELECT_OFFSET = 2,
++	HDMI_PHY_CTRL_PDDQ_MASK = BIT(1),
++	HDMI_PHY_CTRL_PDDQ_OFFSET = 1,
++	HDMI_PHY_CTRL_RESET_MASK = BIT(0),
++	HDMI_PHY_CTRL_RESET_OFFSET = 0,
++	/* PHY_JTAG_TAP_IN field values */
++	HDMI_PHY_JTAG_TAP_IN_TMS = BIT(4),
++	HDMI_PHY_JTAG_TAP_IN_TDI = BIT(0),
++	/* PDEC_STS field values */
++	HDMI_PDEC_STS_DRM_CKS_CHG = BIT(31),
++	HDMI_PDEC_STS_DRM_RCV = BIT(30),
++	HDMI_PDEC_STS_NTSCVBI_CKS_CHG = BIT(29),
++	HDMI_PDEC_STS_DVIDET = BIT(28),
++	HDMI_PDEC_STS_VSI_CKS_CHG = BIT(27),
++	HDMI_PDEC_STS_GMD_CKS_CHG = BIT(26),
++	HDMI_PDEC_STS_AIF_CKS_CHG = BIT(25),
++	HDMI_PDEC_STS_AVI_CKS_CHG = BIT(24),
++	HDMI_PDEC_STS_ACR_N_CHG = BIT(23),
++	HDMI_PDEC_STS_ACR_CTS_CHG = BIT(22),
++	HDMI_PDEC_STS_GCP_AV_MUTE_CHG = BIT(21),
++	HDMI_PDEC_STS_GMD_RCV = BIT(20),
++	HDMI_PDEC_STS_AIF_RCV = BIT(19),
++	HDMI_PDEC_STS_AVI_RCV = BIT(18),
++	HDMI_PDEC_STS_ACR_RCV = BIT(17),
++	HDMI_PDEC_STS_GCP_RCV = BIT(16),
++	HDMI_PDEC_STS_VSI_RCV = BIT(15),
++	HDMI_PDEC_STS_AMP_RCV = BIT(14),
++	HDMI_PDEC_STS_NTSCVBI_RCV = BIT(13),
++	HDMI_PDEC_STS_OBA_LAYOUT = BIT(12),
++	HDMI_PDEC_STS_AUDS_LAYOUT = BIT(11),
++	HDMI_PDEC_STS_PD_FIFO_NEW_ENTRY = BIT(8),
++	HDMI_PDEC_STS_PD_FIFO_OVERFL = BIT(4),
++	HDMI_PDEC_STS_PD_FIFO_UNDERFL = BIT(3),
++	HDMI_PDEC_STS_PD_FIFO_TH_START_PASS = BIT(2),
++	HDMI_PDEC_STS_PD_FIFO_TH_MAX_PASS = BIT(1),
++	HDMI_PDEC_STS_PD_FIFO_TH_MIN_PASS = BIT(0),
++	/* PDEC_VSI_PAYLOAD0 field values */
++	HDMI_PDEC_VSI_PAYLOAD0_HDMI_VIC_MASK = GENMASK(15,8),
++	HDMI_PDEC_VSI_PAYLOAD0_HDMI_VIC_OFFSET = 8,
++	/* PDEC_AVI_PB field values */
++	HDMI_PDEC_AVI_PB_VID_IDENT_CODE_MASK = GENMASK(31,24),
++	HDMI_PDEC_AVI_PB_VID_IDENT_CODE_OFFSET = 24,
++	HDMI_PDEC_AVI_PB_IT_CONTENT = BIT(23),
++	HDMI_PDEC_AVI_PB_EXT_COLORIMETRY_MASK = GENMASK(22,20),
++	HDMI_PDEC_AVI_PB_EXT_COLORIMETRY_OFFSET = 20,
++	HDMI_PDEC_AVI_PB_RGB_QUANT_RANGE_MASK = GENMASK(19,18),
++	HDMI_PDEC_AVI_PB_RGB_QUANT_RANGE_OFFSET = 18,
++	HDMI_PDEC_AVI_PB_NON_UNIF_SCALE_MASK = GENMASK(17,16),
++	HDMI_PDEC_AVI_PB_NON_UNIF_SCALE_OFFSET = 16,
++	HDMI_PDEC_AVI_PB_COLORIMETRY_MASK = GENMASK(15,14),
++	HDMI_PDEC_AVI_PB_COLORIMETRY_OFFSET = 14,
++	HDMI_PDEC_AVI_PB_PIC_ASPECT_RAT_MASK = GENMASK(13,12),
++	HDMI_PDEC_AVI_PB_PIC_ASPECT_RAT_OFFSET = 12,
++	HDMI_PDEC_AVI_PB_ACT_ASPECT_RAT_MASK = GENMASK(11,8),
++	HDMI_PDEC_AVI_PB_ACT_ASPECT_RAT_OFFSET = 8,
++	HDMI_PDEC_AVI_PB_VIDEO_FORMAT_MASK = GENMASK(7,5),
++	HDMI_PDEC_AVI_PB_VIDEO_FORMAT_OFFSET = 5,
++	HDMI_PDEC_AVI_PB_ACT_INFO_PRESENT = BIT(4),
++	HDMI_PDEC_AVI_PB_BAR_INFO_VALID_MASK = GENMASK(3,2),
++	HDMI_PDEC_AVI_PB_BAR_INFO_VALID_OFFSET = 2,
++	HDMI_PDEC_AVI_PB_SCAN_INFO_MASK = GENMASK(1,0),
++	HDMI_PDEC_AVI_PB_SCAN_INFO_OFFSET = 0,
++	/* SCDC_CONFIG field values */
++	HDMI_SCDC_CONFIG_HPDLOW_MASK = BIT(1),
++	HDMI_SCDC_CONFIG_HPDLOW_OFFSET = 1,
++	HDMI_SCDC_CONFIG_POWERPROVIDED_MASK = BIT(0),
++	HDMI_SCDC_CONFIG_POWERPROVIDED_OFFSET = 0,
++	/* HDCP22_CONTROL field values */
++	HDMI_HDCP22_CONTROL_CD_OVR_VAL_MASK = GENMASK(23,20),
++	HDMI_HDCP22_CONTROL_CD_OVR_VAL_OFFSET = 20,
++	HDMI_HDCP22_CONTROL_CD_OVR_EN_MASK = BIT(16),
++	HDMI_HDCP22_CONTROL_CD_OVR_EN_OFFSET = 16,
++	HDMI_HDCP22_CONTROL_HPD_MASK = BIT(12),
++	HDMI_HDCP22_CONTROL_HPD_OFFSET = 12,
++	HDMI_HDCP22_CONTROL_PKT_ERR_OVR_VAL_MASK = BIT(9),
++	HDMI_HDCP22_CONTROL_PKT_ERR_OVR_VAL_OFFSET= 9,
++	HDMI_HDCP22_CONTROL_PKT_ERR_OVR_EN_MASK = BIT(8),
++	HDMI_HDCP22_CONTROL_PKT_ERR_OVR_EN_OFFSET = 8,
++	HDMI_HDCP22_CONTROL_AVMUTE_OVR_VAL_MASK = BIT(5),
++	HDMI_HDCP22_CONTROL_AVMUTE_OVR_VAL_OFFSET = 5,
++	HDMI_HDCP22_CONTROL_AVMUTE_OVR_EN_MASK = BIT(4),
++	HDMI_HDCP22_CONTROL_AVMUTE_OVR_EN_OFFSET = 4,
++	HDMI_HDCP22_CONTROL_OVR_VAL_MASK = BIT(2),
++	HDMI_HDCP22_CONTROL_OVR_VAL_OFFSET = 2,
++	HDMI_HDCP22_CONTROL_OVR_EN_MASK = BIT(1),
++	HDMI_HDCP22_CONTROL_OVR_EN_OFFSET = 1,
++	HDMI_HDCP22_CONTROL_SWITCH_LCK_MASK = BIT(0),
++	HDMI_HDCP22_CONTROL_SWITCH_LCK_OFFSET = 0,
++	/* AUD_CEC_ISTS field values */
++	HDMI_AUD_CEC_ISTS_WAKEUPCTRL = BIT(22),
++	HDMI_AUD_CEC_ISTS_ERROR_FOLL = BIT(21),
++	HDMI_AUD_CEC_ISTS_ERROR_INIT = BIT(20),
++	HDMI_AUD_CEC_ISTS_ARBLST = BIT(19),
++	HDMI_AUD_CEC_ISTS_NACK = BIT(18),
++	HDMI_AUD_CEC_ISTS_EOM = BIT(17),
++	HDMI_AUD_CEC_ISTS_DONE = BIT(16),
++	HDMI_AUD_CEC_ISTS_SCK_STABLE = BIT(1),
++	HDMI_AUD_CEC_ISTS_CTSN_CNT = BIT(0),
++	/* MD_ISTS field values */
++	HDMI_MD_ISTS_VOFS_LIN = BIT(11),
++	HDMI_MD_ISTS_VTOT_LIN = BIT(10),
++	HDMI_MD_ISTS_VACT_LIN = BIT(9),
++	HDMI_MD_ISTS_VS_CLK = BIT(8),
++	HDMI_MD_ISTS_VTOT_CLK = BIT(7),
++	HDMI_MD_ISTS_HACT_PIX = BIT(6),
++	HDMI_MD_ISTS_HS_CLK = BIT(5),
++	HDMI_MD_ISTS_HTOT32_CLK = BIT(4),
++	HDMI_MD_ISTS_ILACE = BIT(3),
++	HDMI_MD_ISTS_DE_ACTIVITY = BIT(2),
++	HDMI_MD_ISTS_VS_ACT = BIT(1),
++	HDMI_MD_ISTS_HS_ACT = BIT(0),
++	/* ISTS field values */
++	HDMI_ISTS_I2CMP_ARBLOST = BIT(30),
++	HDMI_ISTS_I2CMPNACK = BIT(29),
++	HDMI_ISTS_I2CMPDONE = BIT(28),
++	HDMI_ISTS_VS_THR_REACHED = BIT(27),
++	HDMI_ISTS_VSYNC_ACT_EDGE = BIT(26),
++	HDMI_ISTS_AKSV_RCV = BIT(25),
++	HDMI_ISTS_PLL_CLOCK_GATED = BIT(24),
++	HDMI_ISTS_DESER_MISAL = BIT(23),
++	HDMI_ISTS_CDSENSE_CHG = BIT(22),
++	HDMI_ISTS_CEAVID_EMPTY = BIT(21),
++	HDMI_ISTS_CEAVID_FULL = BIT(20),
++	HDMI_ISTS_SCDCTMDSCFGCHANGE = BIT(19),
++	HDMI_ISTS_SCDCSCSTATUSCHANGE = BIT(18),
++	HDMI_ISTS_SCDCCFGCHANGE = BIT(17),
++	HDMI_ISTS_DCM_CURRENT_MODE_CHG = BIT(16),
++	HDMI_ISTS_DCM_PH_DIFF_CNT_OVERFL = BIT(15),
++	HDMI_ISTS_DCM_GCP_ZERO_FIELDS_PASS = BIT(14),
++	HDMI_ISTS_CTL3_CHANGE = BIT(13),
++	HDMI_ISTS_CTL2_CHANGE = BIT(12),
++	HDMI_ISTS_CTL1_CHANGE = BIT(11),
++	HDMI_ISTS_CTL0_CHANGE = BIT(10),
++	HDMI_ISTS_VS_POL_ADJ = BIT(9),
++	HDMI_ISTS_HS_POL_ADJ = BIT(8),
++	HDMI_ISTS_RES_OVERLOAD = BIT(7),
++	HDMI_ISTS_CLK_CHANGE = BIT(6),
++	HDMI_ISTS_PLL_LCK_CHG = BIT(5),
++	HDMI_ISTS_EQGAIN_DONE = BIT(4),
++	HDMI_ISTS_OFFSCAL_DONE = BIT(3),
++	HDMI_ISTS_RESCAL_DONE = BIT(2),
++	HDMI_ISTS_ACT_CHANGE = BIT(1),
++	HDMI_ISTS_STATE_REACHED = BIT(0),
++	/* DMI_SW_RST field values */
++	HDMI_DMI_SW_RST_TMDS = BIT(16),
++	HDMI_DMI_SW_RST_HDCP = BIT(8),
++	HDMI_DMI_SW_RST_VID = BIT(7),
++	HDMI_DMI_SW_RST_PIXEL = BIT(6),
++	HDMI_DMI_SW_RST_CEC = BIT(5),
++	HDMI_DMI_SW_RST_AUD = BIT(4),
++	HDMI_DMI_SW_RST_BUS = BIT(3),
++	HDMI_DMI_SW_RST_HDMI = BIT(2),
++	HDMI_DMI_SW_RST_MODET = BIT(1),
++	HDMI_DMI_SW_RST_MAIN = BIT(0),
++	/* CEC_CTRL field values */
++	HDMI_CEC_CTRL_STANDBY_MASK = BIT(4),
++	HDMI_CEC_CTRL_STANDBY_OFFSET = 4,
++	HDMI_CEC_CTRL_BC_NACK_MASK = BIT(3),
++	HDMI_CEC_CTRL_BC_NACK_OFFSET = 3,
++	HDMI_CEC_CTRL_FRAME_TYP_MASK = GENMASK(2,1),
++	HDMI_CEC_CTRL_FRAME_TYP_OFFSET = 1,
++	HDMI_CEC_CTRL_SEND_MASK = BIT(0),
++	HDMI_CEC_CTRL_SEND_OFFSET = 0,
++	/* CEC_MASK field values */
++	HDMI_CEC_MASK_WAKEUP_MASK = BIT(6),
++	HDMI_CEC_MASK_WAKEUP_OFFSET = 6,
++	HDMI_CEC_MASK_ERROR_FLOW_MASK = BIT(5),
++	HDMI_CEC_MASK_ERROR_FLOW_OFFSET = 5,
++	HDMI_CEC_MASK_ERROR_INITITATOR_MASK = BIT(4),
++	HDMI_CEC_MASK_ERROR_INITITATOR_OFFSET = 4,
++	HDMI_CEC_MASK_ARB_LOST_MASK = BIT(3),
++	HDMI_CEC_MASK_ARB_LOST_OFFSET = 3,
++	HDMI_CEC_MASK_NACK_MASK = BIT(2),
++	HDMI_CEC_MASK_NACK_OFFSET = 2,
++	HDMI_CEC_MASK_EOM_MASK = BIT(1),
++	HDMI_CEC_MASK_EOM_OFFSET = 1,
++	HDMI_CEC_MASK_DONE_MASK = BIT(0),
++	HDMI_CEC_MASK_DONE_OFFSET = 0,
++	/* CBUSIOCTRL field values */
++	HDMI_CBUSIOCTRL_DATAPATH_CBUSZ_MASK = BIT(24),
++	HDMI_CBUSIOCTRL_DATAPATH_CBUSZ_OFFSET = 24,
++	HDMI_CBUSIOCTRL_SVSRETMODEZ_MASK = BIT(16),
++	HDMI_CBUSIOCTRL_SVSRETMODEZ_OFFSET = 16,
++	HDMI_CBUSIOCTRL_PDDQ_MASK = BIT(8),
++	HDMI_CBUSIOCTRL_PDDQ_OFFSET = 8,
++	HDMI_CBUSIOCTRL_RESET_MASK = BIT(0),
++	HDMI_CBUSIOCTRL_RESET_OFFSET = 0,
 +};
 +
-+struct msg_rk1608_log_t {
-+	u32	size;
-+	u16	type;
-+	s8	core_id;
-+	s8	log_level;
++#endif /* __DW_HDMI_RX_H__ */
+diff --git a/include/media/dwc/dw-hdmi-rx-pdata.h b/include/media/dwc/dw-hdmi-rx-pdata.h
+new file mode 100644
+index 0000000..41d5c8d
+--- /dev/null
++++ b/include/media/dwc/dw-hdmi-rx-pdata.h
+@@ -0,0 +1,70 @@
++/*
++ * Synopsys Designware HDMI Receiver controller platform data
++ *
++ * This Synopsys dw-hdmi-rx software and associated documentation
++ * (hereinafter the "Software") is an unsupported proprietary work of
++ * Synopsys, Inc. unless otherwise expressly agreed to in writing between
++ * Synopsys and you. The Software IS NOT an item of Licensed Software or a
++ * Licensed Product under any End User Software License Agreement or
++ * Agreement for Licensed Products with Synopsys or any supplement thereto.
++ * Synopsys is a registered trademark of Synopsys, Inc. Other names included
++ * in the SOFTWARE may be the trademarks of their respective owners.
++ *
++ * The contents of this file are dual-licensed; you may select either version 2
++ * of the GNU General Public License (“GPL”) or the MIT license (“MIT”).
++ *
++ * Copyright (c) 2017 Synopsys, Inc. and/or its affiliates.
++ *
++ * THIS SOFTWARE IS PROVIDED "AS IS"  WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
++ * IMPLIED, INCLUDING, BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
++ * FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT. IN NO EVENT SHALL THE
++ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
++ * OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT, OR OTHERWISE
++ * ARISING FROM, OUT OF, OR IN CONNECTION WITH THE SOFTWARE THE USE OR
++ * OTHER DEALINGS IN THE SOFTWARE.
++ */
++
++#ifndef __DW_HDMI_RX_PDATA_H__
++#define __DW_HDMI_RX_PDATA_H__
++
++#define DW_HDMI_RX_DRVNAME			"dw-hdmi-rx"
++
++/* Notify events */
++#define DW_HDMI_NOTIFY_IS_OFF		1
++#define DW_HDMI_NOTIFY_INPUT_CHANGED	2
++#define DW_HDMI_NOTIFY_AUDIO_CHANGED	3
++#define DW_HDMI_NOTIFY_IS_STABLE	4
++
++/**
++ * struct dw_hdmi_rx_pdata - Platform Data configuration for HDMI receiver.
++ *
++ * @dw_5v_status: 5v status callback. Shall return the status of the given
++ * input, i.e. shall be true if a cable is connected to the specified input.
++ *
++ * @dw_5v_clear: 5v clear callback. Shall clear the interrupt associated with
++ * the 5v sense controller.
++ *
++ * @dw_5v_arg: Argument to be used with the 5v sense callbacks.
++ *
++ * @dw_zcal_reset: Impedance calibration reset callback. Shall be called when
++ * the impedance calibration needs to be restarted. This is used by phy driver
++ * only.
++ *
++ * @dw_zcal_done: Impedance calibration status callback. Shall return true if
++ * the impedance calibration procedure has ended. This is used by phy driver
++ * only.
++ *
++ * @dw_zcal_arg: Argument to be used with the ZCAL calibration callbacks.
++ */
++struct dw_hdmi_rx_pdata {
++	/* 5V sense interface */
++	bool (*dw_5v_status)(void __iomem *regs, int input);
++	void (*dw_5v_clear)(void __iomem *regs);
++	void __iomem *dw_5v_arg;
++	/* Zcal interface */
++	void (*dw_zcal_reset)(void __iomem *regs);
++	bool (*dw_zcal_done)(void __iomem *regs);
++	void __iomem *dw_zcal_arg;
 +};
 +
-+/**
-+ * rk1608_write - RK1608 synchronous write
-+ *
-+ * @spi: spi device
-+ * @addr: resource address
-+ * @data: data buffer
-+ * @data_len: data buffer size, in bytes
-+ * Context: can sleep
-+ *
-+ * It returns zero on success, else a negative error code.
-+ */
-+int rk1608_write(struct spi_device *spi, s32 addr,
-+		 const s32 *data, size_t data_len);
-+
-+/**
-+ * rk1608_safe_write - RK1608 synchronous write with state check
-+ *
-+ * @spi: spi device
-+ * @addr: resource address
-+ * @data: data buffer
-+ * @data_len: data buffer size, in bytes
-+ * Context: can sleep
-+ *
-+ * It returns zero on success, else operation state code.
-+ */
-+int rk1608_safe_write(struct spi_device *spi,
-+		      s32 addr, const s32 *data, size_t data_len);
-+
-+/**
-+ * rk1608_read - RK1608 synchronous read
-+ *
-+ * @spi: spi device
-+ * @addr: resource address
-+ * @data: data buffer [out]
-+ * @data_len: data buffer size, in bytes
-+ * Context: can sleep
-+ *
-+ * It returns zero on success, else a negative error code.
-+ */
-+int rk1608_read(struct spi_device *spi, s32 addr,
-+		s32 *data, size_t data_len);
-+
-+/**
-+ * rk1608_safe_read - RK1608 synchronous read with state check
-+ *
-+ * @spi: spi device
-+ * @addr: resource address
-+ * @data: data buffer [out]
-+ * @data_len: data buffer size, in bytes
-+ * Context: can sleep
-+ *
-+ * It returns zero on success, else operation state code.
-+ */
-+int rk1608_safe_read(struct spi_device *spi,
-+		     s32 addr, s32 *data, size_t data_len);
-+
-+/**
-+ * rk1608_operation_query - RK1608 last operation state query
-+ *
-+ * @spi: spi device
-+ * @state: last operation state [out]
-+ * Context: can sleep
-+ *
-+ * It returns zero on success, else a negative error code.
-+ */
-+int rk1608_operation_query(struct spi_device *spi, s32 *state);
-+
-+/**
-+ * rk1608_interrupt_request - RK1608 request a rk1608 interrupt
-+ *
-+ * @spi: spi device
-+ * @interrupt_num: interrupt identification
-+ * Context: can sleep
-+ *
-+ * It returns zero on success, else a negative error code.
-+ */
-+int rk1608_interrupt_request(struct spi_device *spi,
-+			     s32 interrupt_num);
-+
-+static int rk1608_read_wait(struct spi_device *spi,
-+			    const struct rk1608_section *sec);
-+
-+static int rk1608_boot_request(struct spi_device *spi,
-+			       const struct rk1608_section *sec);
-+
-+static int rk1608_download_section(struct spi_device *spi, const u8 *data,
-+				   const struct rk1608_section *sec);
-+/**
-+ * rk1608_download_fw: - rk1608 firmware download through spi
-+ *
-+ * @spi: spi device
-+ * @fw_name: name of firmware file, NULL for default firmware name
-+ * Context: can sleep
-+ *
-+ * It returns zero on success, else a negative error code.
-+ **/
-+int rk1608_download_fw(struct spi_device *spi, const char *fw_name);
-+
-+/**
-+ * rk1608_msq_read_head - read rk1608 msg queue head
-+ *
-+ * @spi: spi device
-+ * @addr: msg queue head addr
-+ * @m: msg queue pointer
-+ *
-+ * It returns zero on success, else a negative error code.
-+ */
-+int rk1608_msq_read_head(struct spi_device *spi,
-+			 u32 addr, struct rk1608_msg_queue *q);
-+
-+/**
-+ * rk1608_msq_recv_msg - receive a msg from RK1608 -> AP msg queue
-+ *
-+ * @q: msg queue
-+ * @m: a msg pointer buf [out]
-+ *
-+ * need call rk1608_msq_free_received_msg to free msg after msg use done
-+ *
-+ * It returns zero on success, else a negative error code.
-+ */
-+int rk1608_msq_recv_msg(struct spi_device *spi, struct msg **m);
-+#endif
++#endif /* __DW_HDMI_RX_PDATA_H__ */
 -- 
-2.7.4
+1.9.1
