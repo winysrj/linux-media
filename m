@@ -1,54 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:34222 "EHLO
-        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750937AbdLaNkL (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sun, 31 Dec 2017 08:40:11 -0500
-Received: by mail-wm0-f66.google.com with SMTP id y82so10817427wmg.1
-        for <linux-media@vger.kernel.org>; Sun, 31 Dec 2017 05:40:11 -0800 (PST)
-Subject: Re: [PATCH 01/33] clk_ops: change round_rate() to return unsigned
- long
-To: Mikko Perttunen <cyndis@kapsi.fi>, mturquette@baylibre.com,
-        sboyd@codeaurora.org, linux-kernel@vger.kernel.org,
-        linux-clk@vger.kernel.org
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-mips@linux-mips.org, linux-rpi-kernel@lists.infradead.org,
-        patches@opensource.cirrus.com,
-        uclinux-h8-devel@lists.sourceforge.jp,
-        linux-amlogic@lists.infradead.org, linux-arm-msm@vger.kernel.org,
-        linux-soc@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        linux-rockchip@lists.infradead.org,
-        linux-samsung-soc@vger.kernel.org, linux-tegra@vger.kernel.org,
-        dri-devel@lists.freedesktop.org,
-        linux-mediatek@lists.infradead.org,
-        freedreno@lists.freedesktop.org, linux-media@vger.kernel.org,
-        linux-rtc@vger.kernel.org
-References: <1514596392-22270-1-git-send-email-pure.logic@nexus-software.ie>
- <1514596392-22270-2-git-send-email-pure.logic@nexus-software.ie>
- <9f4bef5a-8a71-6f30-5cfb-5e8fe133e3d3@kapsi.fi>
-From: Bryan O'Donoghue <pure.logic@nexus-software.ie>
-Message-ID: <6d83a5c3-6589-24bc-4ca5-4d1bbca47432@nexus-software.ie>
-Date: Sun, 31 Dec 2017 13:40:07 +0000
-MIME-Version: 1.0
-In-Reply-To: <9f4bef5a-8a71-6f30-5cfb-5e8fe133e3d3@kapsi.fi>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Received: from smtprelay.synopsys.com ([198.182.47.9]:40282 "EHLO
+        smtprelay.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750967AbdLGJsP (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 7 Dec 2017 04:48:15 -0500
+From: Jose Abreu <Jose.Abreu@synopsys.com>
+To: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Jose Abreu <Jose.Abreu@synopsys.com>,
+        Joao Pinto <Joao.Pinto@synopsys.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sylwester Nawrocki <snawrocki@kernel.org>,
+        devicetree@vger.kernel.org
+Subject: [PATCH v9 1/4] dt-bindings: media: Document Synopsys DesignWare HDMI RX
+Date: Thu,  7 Dec 2017 09:47:43 +0000
+Message-Id: <befe90fc55bfa4d1dc599270bc0372cf8691247a.1512582979.git.joabreu@synopsys.com>
+In-Reply-To: <cover.1512582979.git.joabreu@synopsys.com>
+References: <cover.1512582979.git.joabreu@synopsys.com>
+In-Reply-To: <cover.1512582979.git.joabreu@synopsys.com>
+References: <cover.1512582979.git.joabreu@synopsys.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 30/12/17 16:36, Mikko Perttunen wrote:
-> FWIW, we had this problem some years ago with the Tegra CPU clock - then 
-> it was determined that a simpler solution was to have the determine_rate 
-> callback support unsigned long rates - so clock drivers that need to 
-> return rates higher than 2^31 can instead implement the determine_rate 
-> callback. That is what's currently implemented.
-> 
-> Mikko
+Document the bindings for the Synopsys DesignWare HDMI RX.
 
-Granted we could work around it but, having both zero and less than zero 
-indicate error means you can't support larger than LONG_MAX which is I 
-think worth fixing.
-
+Signed-off-by: Jose Abreu <joabreu@synopsys.com>
+Acked-by: Rob Herring <robh@kernel.org> (v8)
+Cc: Joao Pinto <jpinto@synopsys.com>
+Cc: Rob Herring <robh+dt@kernel.org>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Sylwester Nawrocki <snawrocki@kernel.org>
+Cc: devicetree@vger.kernel.org
 ---
-bod
+Changes from v7:
+	- Remove SoC specific bindings (Rob)
+Changes from v6:
+	- Document which properties are required/optional (Sylwester)
+	- Drop compatible string for SoC (Sylwester)
+	- Reword edid-phandle property (Sylwester)
+	- Typo fixes (Sylwester)
+Changes from v4:
+	- Use "cfg" instead of "cfg-clk" (Rob)
+	- Change node names (Rob)
+Changes from v3:
+	- Document the new DT bindings suggested by Sylwester
+Changes from v2:
+	- Document edid-phandle property
+---
+ .../devicetree/bindings/media/snps,dw-hdmi-rx.txt  | 58 ++++++++++++++++++++++
+ 1 file changed, 58 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/snps,dw-hdmi-rx.txt
+
+diff --git a/Documentation/devicetree/bindings/media/snps,dw-hdmi-rx.txt b/Documentation/devicetree/bindings/media/snps,dw-hdmi-rx.txt
+new file mode 100644
+index 0000000..1dc09c6
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/snps,dw-hdmi-rx.txt
+@@ -0,0 +1,58 @@
++Synopsys DesignWare HDMI RX Decoder
++===================================
++
++This document defines device tree properties for the Synopsys DesignWare HDMI
++RX Decoder (DWC HDMI RX).
++
++The properties bellow belong to the Synopsys DesignWare HDMI RX Decoder node.
++
++Required properties:
++
++- compatible: Shall be "snps,dw-hdmi-rx".
++- reg: Memory mapped base address and length of the DWC HDMI RX registers.
++- interrupts: Reference to the DWC HDMI RX interrupt and the HDMI 5V sense
++interrupt.
++- clocks: Reference to the config clock.
++- clock-names: Shall be "cfg".
++- #address-cells: Shall be 1.
++- #size-cells: Shall be 0.
++
++Optional properties:
++
++- edid-phandle: Reference to the EDID handler block; if this property is not
++specified it is assumed that EDID is handled by device described by parent
++node of the HDMI RX node. You should not specify this property if your HDMI RX
++controller does not have CEC.
++
++You also have to create a subnode for the PHY device. PHY node properties are
++as follows.
++
++Required properties:
++
++- compatible: Shall be "snps,dw-hdmi-phy-e405".
++- reg: Shall be the JTAG address of the PHY.
++- clocks: Reference to the config clock.
++- clock-names: Shall be "cfg".
++
++Example:
++
++hdmi_rx: hdmi-rx@0 {
++	compatible = "snps,dw-hdmi-rx";
++	reg = <0x0 0x10000>;
++	interrupts = <1 2>;
++	edid-phandle = <&dw_hdmi_edid>;
++
++	clocks = <&dw_hdmi_refclk>;
++	clock-names = "cfg";
++
++	#address-cells = <1>;
++	#size-cells = <0>;
++
++	hdmi-phy@fc {
++		compatible = "snps,dw-hdmi-phy-e405";
++		reg = <0xfc>;
++
++		clocks = <&dw_hdmi_refclk>;
++		clock-names = "cfg";
++	};
++};
+-- 
+1.9.1
