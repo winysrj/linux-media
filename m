@@ -1,80 +1,149 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:43736 "EHLO osg.samsung.com"
+Received: from mga14.intel.com ([192.55.52.115]:35550 "EHLO mga14.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753035AbdLPN6L (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 16 Dec 2017 08:58:11 -0500
-Date: Sat, 16 Dec 2017 11:58:04 -0200
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Ralph Metzler <rjkm@metzlerbros.de>,
-        Michael Ira Krufky <mkrufky@linuxtv.org>
-Cc: Dan Carpenter <dan.carpenter@oracle.com>,
-        linux-media@vger.kernel.org
-Subject: Re: [bug report] drx: add initial drx-d driver
-Message-ID: <20171216115804.64636ac0@recife.lan>
-In-Reply-To: <23090.62262.800851.660592@morden.metzler>
-References: <20171214080316.nadtlgwyng3r7gro@mwanda>
-        <23090.62262.800851.660592@morden.metzler>
+        id S1750857AbdLGHj5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 7 Dec 2017 02:39:57 -0500
+Date: Thu, 7 Dec 2017 09:39:51 +0200
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: Niklas =?iso-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund@ragnatech.se>
+Cc: linux-media@vger.kernel.org, jmondi <jacopo@jmondi.org>,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>
+Subject: Re: [RFC 1/1] v4l: async: Use endpoint node, not device node, for
+ fwnode match
+Message-ID: <20171207073950.22wkpqy5l335ylo5@kekkonen.localdomain>
+References: <20171204210302.24707-1-sakari.ailus@linux.intel.com>
+ <20171206155748.GF31989@bigcity.dyn.berto.se>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20171206155748.GF31989@bigcity.dyn.berto.se>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 14 Dec 2017 22:55:02 +0100
-Ralph Metzler <rjkm@metzlerbros.de> escreveu:
+Hej Niklas,
 
-> Hello Dan Carpenter,
+Tack för dina kommentarer!
+
+On Wed, Dec 06, 2017 at 04:57:48PM +0100, Niklas Söderlund wrote:
+> CC Jacopo, Kieran
 > 
-> Dan Carpenter writes:
->  > Hello Ralph Metzler,
->  > 
->  > The patch 126f1e618870: "drx: add initial drx-d driver" from Mar 12,
->  > 2011, leads to the following static checker warning:
->  > 
->  > 	drivers/media/dvb-frontends/drxd_hard.c:1305 SC_WaitForReady()
->  > 	info: return a literal instead of 'status'
->  > 
->  > drivers/media/dvb-frontends/drxd_hard.c
->  >   1298  static int SC_WaitForReady(struct drxd_state *state)
->  >   1299  {
->  >   1300          int i;
->  >   1301  
->  >   1302          for (i = 0; i < DRXD_MAX_RETRIES; i += 1) {
->  >   1303                  int status = Read16(state, SC_RA_RAM_CMD__A, NULL, 0);
->  >   1304                  if (status == 0)
->  >   1305                          return status;
->  >                                 ^^^^^^^^^^^^^
->  > The register is set to zero when ready?  The answer should obviously be
->  > yes, but it wouldn't totally surprise me if this function just always
->  > looped 1000 times...  Few of the callers check the return.  Anyway, it's
->  > more clear to just "return 0;"
->  > 
->  >   1306          }
->  >   1307          return -1;
->  >                        ^^
->  > -1 is not a proper error code.
->  > 
->  >   1308  }
->  > 
->  > regards,
->  > dan carpenter  
+> Hi Sakari,
 > 
-> I think I wrote the driver more than 10 years ago and somebody later submitted it
-> to the kernel.
+> Thanks for your patch.
 > 
-> I don't know if there is a anybody still maintaining this. Is it even used anymore?
-> I could write a patch but cannot test it (e.g. to see if it really always
-> loops 1000 times ...)
+> On 2017-12-04 23:03:02 +0200, Sakari Ailus wrote:
+> > V4L2 async framework can use both device's fwnode and endpoints's fwnode
+> > for matching the async sub-device with the sub-device. In order to proceed
+> > moving towards endpoint matching assign the endpoint to the async
+> > sub-device.
+> 
+> Endpoint matching I think is the way to go forward. It will solve a set 
+> of problems that exists today. So I think this a good step in the right 
+> direction.
+> 
+> > 
+> > As most async sub-device drivers (and the related hardware) only supports
+> > a single endpoint, use the first endpoint found. This works for all
+> > current drivers --- we only ever supported a single async sub-device per
+> > device to begin with.
+> 
+> This assumption is not true, the adv748x exposes multiple subdevice from 
+> a single device node in DT and registers them using different endpoints.  
+> Now the only user of the adv748x driver I know of is the rcar-csi2 
+> driver which is not yet upstream so this can be consider a special case.
 
-It seems that it is used on this board (besides ngene):
-	EM2880_BOARD_HAUPPAUGE_WINTV_HVR_900_R2
-	a. k. a.: Hauppauge WinTV HVR 900 (R2)
+Right, the adv748x is an exception to this but I could argue it should
+never have been merged in its current state: it does not work with other
+bridge / ISP drivers.
 
-I might have a HVR-900 rev 2 somewhere, but if so, it is not at the
-usual place. I moved a few times since when I touched at the
-drxd driver, at the time it was merged upstream. Maybe Michael or
-someone at Hauppauge could test a patch for it, if they still have
-this device.
+> 
+> Unfortunately this patch do break already existing configurations 
+> upstream :-( For example the Koelsch board, from r8a7791-koelsch.dts:
+> 
+> hdmi-in {
+>         compatible = "hdmi-connector";
+>         type = "a";
+> 
+>         port {
+>                 hdmi_con_in: endpoint {
+>                         remote-endpoint = <&adv7612_in>;
+>                 };
+>         };
+> };
+> 
+> hdmi-in@4c {
+>         compatible = "adi,adv7612";
+>         reg = <0x4c>;
+>         interrupt-parent = <&gpio4>;
+>         interrupts = <2 IRQ_TYPE_LEVEL_LOW>;
+>         default-input = <0>;
+> 
+>         ports {
+>                 #address-cells = <1>;
+>                 #size-cells = <0>;
+> 
+>                 port@0 {
+>                         reg = <0>;
+>                         adv7612_in: endpoint {
+>                                 remote-endpoint = <&hdmi_con_in>;
+>                         };
+>                 };
+> 
+>                 port@2 {
+>                         reg = <2>;
+>                         adv7612_out: endpoint {
+>                                 remote-endpoint = <&vin0ep2>;
+>                         };
+>                 };
+>         };
+> };
+> 
+> &vin0 {
+>         status = "okay";
+>         pinctrl-0 = <&vin0_pins>;
+>         pinctrl-names = "default";
+> 
+>         port {
+>                 #address-cells = <1>;
+>                 #size-cells = <0>;
+> 
+>                 vin0ep2: endpoint {
+>                         remote-endpoint = <&adv7612_out>;
+>                         bus-width = <24>;
+>                         hsync-active = <0>;
+>                         vsync-active = <0>;
+>                         pclk-sample = <1>;
+>                         data-active = <1>;
+>                 };
+>         };
+> };
+> 
+> Here the adv7612 driver would register a subdevice using the endpoint 
+> 'hdmi-in@4c/ports/port@0/endpoint' while the rcar-vin driver which uses 
 
-Thanks,
-Mauro
+The adv7612 needs to register both of these endpoints. I wonder if there
+are repercussions by doing that. 
+
+> the async parsing helpers would register a notifier looking for 
+> 'hdmi-in@4c/ports/port@2/endpoint'.
+> 
+> Something like Kieran's '[PATCH v5] v4l2-async: Match parent devices' 
+> would be needed in addition to this patch. I tried Kieran's patch 
+> together with this and it did not solve the problem upstream. I did make 
+
+The more I've been working on this problem, the less I think
+opportunistically matching devices or endpoints is a good idea. Lens
+devices will always use device nodes and flash devices use LED nodes found
+under device nodes.
+
+It's getting messy with opportunistic matching. And as this patch shows,
+it's not that hard to convert all drivers either, so why not to do just
+that?
+
+-- 
+Hälsningar,
+
+Sakari Ailus
+sakari.ailus@linux.intel.com
