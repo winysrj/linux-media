@@ -1,82 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f196.google.com ([209.85.128.196]:42587 "EHLO
-        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751357AbdLZXiG (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 26 Dec 2017 18:38:06 -0500
-Received: by mail-wr0-f196.google.com with SMTP id w107so9724046wrb.9
-        for <linux-media@vger.kernel.org>; Tue, 26 Dec 2017 15:38:06 -0800 (PST)
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: linux-media@vger.kernel.org, mchehab@kernel.org,
-        mchehab@s-opensource.com
-Cc: Ralph Metzler <rjkm@metzlerbros.de>
-Subject: [PATCH 3/4] [media] dvb-frontends/stv0910: field and register access helpers
-Date: Wed, 27 Dec 2017 00:37:58 +0100
-Message-Id: <20171226233759.16116-4-d.scheller.oss@gmail.com>
-In-Reply-To: <20171226233759.16116-1-d.scheller.oss@gmail.com>
-References: <20171226233759.16116-1-d.scheller.oss@gmail.com>
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>, kernel@pengutronix.de,
+        Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH 3/3] [media] coda: use correct offset for mpeg4 decoder mvcol buffer
+Date: Thu,  7 Dec 2017 15:59:51 +0100
+Message-Id: <20171207145951.15450-3-p.zabel@pengutronix.de>
+In-Reply-To: <20171207145951.15450-1-p.zabel@pengutronix.de>
+References: <20171207145951.15450-1-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Daniel Scheller <d.scheller@gmx.net>
+The mvcol buffer needs to be placed behind the chroma plane(s) when
+decoding MPEG-4, same as for the h.264 decoder. Use the real offset
+with the required rounding.
 
-Add a write_field() function that acts as helper to update specific bits
-specified in the field defines (FSTV0910_*) in stv0910_regs.h, which was
-recently updated to carry the missing offset values. With that, add the
-SET_FIELD(), SET_REG() and GET_REG() macros that wrap the write_field(),
-write_reg() and read_reg() functions to allow for making all demod
-access code cleaner.
-
-The write_field() function is annotated with __maybe_unused temporarily
-to silence eventual compile warnings.
-
-Picked up from the dddvb upstream, with the macro names made uppercase
-so they are distinguishable as such.
-
-Cc: Ralph Metzler <rjkm@metzlerbros.de>
-Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
 ---
- drivers/media/dvb-frontends/stv0910.c | 28 ++++++++++++++++++++++++++++
- 1 file changed, 28 insertions(+)
+ drivers/media/platform/coda/coda-bit.c | 16 +++++++---------
+ 1 file changed, 7 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/media/dvb-frontends/stv0910.c b/drivers/media/dvb-frontends/stv0910.c
-index 06d2587125dd..5fed22685e28 100644
---- a/drivers/media/dvb-frontends/stv0910.c
-+++ b/drivers/media/dvb-frontends/stv0910.c
-@@ -194,6 +194,34 @@ static int write_shared_reg(struct stv *state, u16 reg, u8 mask, u8 val)
- 	return status;
+diff --git a/drivers/media/platform/coda/coda-bit.c b/drivers/media/platform/coda/coda-bit.c
+index 32db1227d0258..9fe113cb901f8 100644
+--- a/drivers/media/platform/coda/coda-bit.c
++++ b/drivers/media/platform/coda/coda-bit.c
+@@ -455,18 +455,16 @@ static int coda_alloc_framebuffers(struct coda_ctx *ctx,
+ 		coda_parabuf_write(ctx, i * 3 + 1, cb);
+ 		coda_parabuf_write(ctx, i * 3 + 2, cr);
+ 
+-		/* mvcol buffer for h.264 */
+-		if (ctx->codec->src_fourcc == V4L2_PIX_FMT_H264 &&
+-		    dev->devtype->product != CODA_DX6)
++		if (dev->devtype->product == CODA_DX6)
++			continue;
++
++		/* mvcol buffer for h.264 and mpeg4 */
++		if (ctx->codec->src_fourcc == V4L2_PIX_FMT_H264)
+ 			coda_parabuf_write(ctx, 96 + i, mvcol);
++		if (ctx->codec->src_fourcc == V4L2_PIX_FMT_MPEG4 && i == 0)
++			coda_parabuf_write(ctx, 97, mvcol);
+ 	}
+ 
+-	/* mvcol buffer for mpeg4 */
+-	if ((dev->devtype->product != CODA_DX6) &&
+-	    (ctx->codec->src_fourcc == V4L2_PIX_FMT_MPEG4))
+-		coda_parabuf_write(ctx, 97, ctx->internal_frames[0].paddr +
+-					    ysize + ysize/4 + ysize/4);
+-
+ 	return 0;
  }
  
-+static int __maybe_unused write_field(struct stv *state, u32 field, u8 val)
-+{
-+	int status;
-+	u8 shift, mask, old, new;
-+
-+	status = read_reg(state, field >> 16, &old);
-+	if (status)
-+		return status;
-+	mask = field & 0xff;
-+	shift = (field >> 12) & 0xf;
-+	new = ((val << shift) & mask) | (old & ~mask);
-+	if (new == old)
-+		return 0;
-+	return write_reg(state, field >> 16, new);
-+}
-+
-+#define SET_FIELD(_reg, _val)					\
-+	write_field(state, state->nr ? FSTV0910_P2_##_reg :	\
-+		    FSTV0910_P1_##_reg, _val)
-+
-+#define SET_REG(_reg, _val)					\
-+	write_reg(state, state->nr ? RSTV0910_P2_##_reg :	\
-+		  RSTV0910_P1_##_reg, _val)
-+
-+#define GET_REG(_reg, _val)					\
-+	read_reg(state, state->nr ? RSTV0910_P2_##_reg :	\
-+		 RSTV0910_P1_##_reg, _val)
-+
- static const struct slookup s1_sn_lookup[] = {
- 	{   0,    9242  }, /* C/N=   0dB */
- 	{   5,    9105  }, /* C/N= 0.5dB */
 -- 
-2.13.6
+2.11.0
