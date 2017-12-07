@@ -1,210 +1,336 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from out20-38.mail.aliyun.com ([115.124.20.38]:53653 "EHLO
-        out20-38.mail.aliyun.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755928AbdLUCj1 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 20 Dec 2017 21:39:27 -0500
-Date: Thu, 21 Dec 2017 10:38:58 +0800
-From: Yong <yong.deng@magewell.com>
-To: Chen-Yu Tsai <wens@csie.org>
-Cc: Maxime Ripard <maxime.ripard@free-electrons.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        "David S. Miller" <davem@davemloft.net>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Randy Dunlap <rdunlap@infradead.org>,
-        Benoit Parrot <bparrot@ti.com>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
-        Yannick Fertre <yannick.fertre@st.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Rick Chang <rick.chang@mediatek.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        devicetree <devicetree@vger.kernel.org>,
-        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-        linux-kernel <linux-kernel@vger.kernel.org>,
-        linux-sunxi <linux-sunxi@googlegroups.com>,
-        =?UTF-8?B?T25kxZllag==?= Jirman <megous@megous.com>
-Subject: Re: [linux-sunxi] [PATCH v3 1/3] media: V3s: Add support for
- Allwinner CSI.
-Message-Id: <20171221103858.94ead278ccc591ff218e72f6@magewell.com>
-In-Reply-To: <CAGb2v65vSRs-OzR91VWG=LMk2z0y=f9CSSJm_3-U_ywyMidgaw@mail.gmail.com>
-References: <1510558216-43800-1-git-send-email-yong.deng@magewell.com>
-        <CAGb2v65vSRs-OzR91VWG=LMk2z0y=f9CSSJm_3-U_ywyMidgaw@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from relay6-d.mail.gandi.net ([217.70.183.198]:51959 "EHLO
+        relay6-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753762AbdLGO34 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 7 Dec 2017 09:29:56 -0500
+Date: Thu, 7 Dec 2017 15:29:40 +0100
+From: jacopo mondi <jacopo@jmondi.org>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org, niklas.soderlund@ragnatech.se,
+        kieran bingham <kieran.bingham+renesas@ideasonboard.com>
+Subject: Re: [RFC 1/1] v4l: async: Use endpoint node, not device node, for
+ fwnode match
+Message-ID: <20171207142940.GA13280@w540>
+References: <20171204210302.24707-1-sakari.ailus@linux.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20171204210302.24707-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hi Sakari!
+    thanks for proposing this
 
-On Tue, 19 Dec 2017 18:35:49 +0800
-Chen-Yu Tsai <wens@csie.org> wrote:
+While we all agree that full endpoint matching is the right
+thing to do (see also Kieran's last reply to his "v4l2-async: Match
+parent devices" patch) I have some perplexity on this proposal,
+please see below
 
-> On Mon, Nov 13, 2017 at 3:30 PM, Yong Deng <yong.deng@magewell.com> wrote:
-> > Allwinner V3s SoC have two CSI module. CSI0 is used for MIPI interface
-> > and CSI1 is used for parallel interface. This is not documented in
-> > datasheet but by testing and guess.
-> >
-> > This patch implement a v4l2 framework driver for it.
-> >
-> > Currently, the driver only support the parallel interface. MIPI-CSI2,
-> > ISP's support are not included in this patch.
-> >
-> > Signed-off-by: Yong Deng <yong.deng@magewell.com>
-> > ---
-> >  drivers/media/platform/Kconfig                     |   1 +
-> >  drivers/media/platform/Makefile                    |   2 +
-> >  drivers/media/platform/sunxi/sun6i-csi/Kconfig     |   9 +
-> >  drivers/media/platform/sunxi/sun6i-csi/Makefile    |   3 +
-> >  drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.c | 918 +++++++++++++++++++++
-> >  drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.h | 146 ++++
-> >  .../media/platform/sunxi/sun6i-csi/sun6i_csi_reg.h | 203 +++++
-> >  .../media/platform/sunxi/sun6i-csi/sun6i_video.c   | 722 ++++++++++++++++
-> >  .../media/platform/sunxi/sun6i-csi/sun6i_video.h   |  61 ++
-> >  9 files changed, 2065 insertions(+)
-> >  create mode 100644 drivers/media/platform/sunxi/sun6i-csi/Kconfig
-> >  create mode 100644 drivers/media/platform/sunxi/sun6i-csi/Makefile
-> >  create mode 100644 drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.c
-> >  create mode 100644 drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.h
-> >  create mode 100644 drivers/media/platform/sunxi/sun6i-csi/sun6i_csi_reg.h
-> >  create mode 100644 drivers/media/platform/sunxi/sun6i-csi/sun6i_video.c
-> >  create mode 100644 drivers/media/platform/sunxi/sun6i-csi/sun6i_video.h
-> >
-> 
-> [...]
-> 
-> > diff --git a/drivers/media/platform/sunxi/sun6i-csi/sun6i_video.c b/drivers/media/platform/sunxi/sun6i-csi/sun6i_video.c
-> > new file mode 100644
-> > index 0000000..0cebcbd
-> > --- /dev/null
-> > +++ b/drivers/media/platform/sunxi/sun6i-csi/sun6i_video.c
-> 
-> [...]
-> 
-> > +/* -----------------------------------------------------------------------------
-> > + * Media Operations
-> > + */
-> > +static int sun6i_video_formats_init(struct sun6i_video *video)
-> > +{
-> > +       struct v4l2_subdev_mbus_code_enum mbus_code = { 0 };
-> > +       struct sun6i_csi *csi = video->csi;
-> > +       struct v4l2_format format;
-> > +       struct v4l2_subdev *subdev;
-> > +       u32 pad;
-> > +       const u32 *pixformats;
-> > +       int pixformat_count = 0;
-> > +       u32 subdev_codes[32]; /* subdev format codes, 32 should be enough */
-> > +       int codes_count = 0;
-> > +       int num_fmts = 0;
-> > +       int i, j;
-> > +
-> > +       subdev = sun6i_video_remote_subdev(video, &pad);
-> > +       if (subdev == NULL)
-> > +               return -ENXIO;
-> > +
-> > +       /* Get supported pixformats of CSI */
-> > +       pixformat_count = sun6i_csi_get_supported_pixformats(csi, &pixformats);
-> > +       if (pixformat_count <= 0)
-> > +               return -ENXIO;
-> > +
-> > +       /* Get subdev formats codes */
-> > +       mbus_code.pad = pad;
-> > +       mbus_code.which = V4L2_SUBDEV_FORMAT_ACTIVE;
-> > +       while (!v4l2_subdev_call(subdev, pad, enum_mbus_code, NULL,
-> > +                                &mbus_code)) {
-> > +               if (codes_count >= ARRAY_SIZE(subdev_codes)) {
-> > +                       dev_warn(video->csi->dev,
-> > +                                "subdev_codes array is full!\n");
-> > +                       break;
-> > +               }
-> > +               subdev_codes[codes_count] = mbus_code.code;
-> > +               codes_count++;
-> > +               mbus_code.index++;
-> > +       }
-> > +
-> > +       if (!codes_count)
-> > +               return -ENXIO;
-> > +
-> > +       /* Get supported formats count */
-> > +       for (i = 0; i < codes_count; i++) {
-> > +               for (j = 0; j < pixformat_count; j++) {
-> > +                       if (!sun6i_csi_is_format_support(csi, pixformats[j],
-> > +                                       mbus_code.code)) {
-> 
-> Bug here. You are testing against mbus_code.code, which would be whatever
-> was leftover from the previous section. Instead you should be testing
-> against subdev_codes[i], the list you just built.
-> 
-> Without it, it won't get past this part of the code if the last enumerated
-> media bus format isn't supported.
-> 
-> > +                               continue;
-> > +                       }
-> > +                       num_fmts++;
-> > +               }
-> > +       }
-> > +
-> > +       if (!num_fmts)
-> > +               return -ENXIO;
-> > +
-> > +       video->num_formats = num_fmts;
-> > +       video->formats = devm_kcalloc(video->csi->dev, num_fmts,
-> > +                       sizeof(struct sun6i_csi_format), GFP_KERNEL);
-> > +       if (!video->formats)
-> > +               return -ENOMEM;
-> > +
-> > +       /* Get supported formats */
-> > +       num_fmts = 0;
-> > +       for (i = 0; i < codes_count; i++) {
-> > +               for (j = 0; j < pixformat_count; j++) {
-> > +                       if (!sun6i_csi_is_format_support(csi, pixformats[j],
-> > +                                       mbus_code.code)) {
-> 
-> Same here.
-> 
-> This gets me past the enumeration part of things...
-> 
-> > +                               continue;
-> > +                       }
-> > +
-> > +                       video->formats[num_fmts].fourcc = pixformats[j];
-> > +                       video->formats[num_fmts].mbus_code =
-> > +                                       mbus_code.code;
-> > +                       video->formats[num_fmts].bpp =
-> > +                                       v4l2_pixformat_get_bpp(pixformats[j]);
-> > +                       num_fmts++;
-> > +               }
-> > +       }
-> > +
-> > +       /* setup default format */
-> > +       format.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-> > +       format.fmt.pix.width = 1280;
-> > +       format.fmt.pix.height = 720;
-> > +       format.fmt.pix.pixelformat = video->formats[0].fourcc;
-> > +       sun6i_video_set_fmt(video, &format);
-> 
-> But my system crashes here within the OV5640 driver.
-> So no tests about the actual functionality. This was on the Bananapi M3,
-> which has an A83T SoC.
-> 
-> 
-> In general I think you should make your driver much more noisy than it
-> currently is. I spent the whole afternoon adding error messages and
-> debug traces to narrow down the issue.
+On Mon, Dec 04, 2017 at 11:03:02PM +0200, Sakari Ailus wrote:
+> V4L2 async framework can use both device's fwnode and endpoints's fwnode
+> for matching the async sub-device with the sub-device. In order to proceed
+> moving towards endpoint matching assign the endpoint to the async
+> sub-device.
+>
+> As most async sub-device drivers (and the related hardware) only supports
+> a single endpoint, use the first endpoint found. This works for all
+> current drivers --- we only ever supported a single async sub-device per
+> device to begin with.
+>
+> For async devices that have no endpoints, continue to use the fwnode
+> related to the device. This includes e.g. lens devices.
+>
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> ---
+> Hi Niklas,
+>
+> What do you think of this one? I've tested this on N9, both sensor and
+> flash devices work nicely there. No opportunistic checks for backwards
+> compatibility are needed.
+>
+> The changes were surprisingly simple, there are only two drivers that
+> weren't entirely trivial to change (this part is truly weird in exynos4-is
+> and xilinx-vipp). Converting the two to use the common parsing functions
+> would be quite a bit more work and would be very nice to test. The changes
+> in this patch were still relatively simple.
+>
+>  drivers/media/platform/am437x/am437x-vpfe.c    |  2 +-
+>  drivers/media/platform/atmel/atmel-isc.c       |  2 +-
+>  drivers/media/platform/atmel/atmel-isi.c       |  2 +-
+>  drivers/media/platform/davinci/vpif_capture.c  |  2 +-
+>  drivers/media/platform/exynos4-is/media-dev.c  | 14 ++++++++++----
+>  drivers/media/platform/pxa_camera.c            |  2 +-
+>  drivers/media/platform/qcom/camss-8x16/camss.c |  2 +-
+>  drivers/media/platform/rcar_drif.c             |  2 +-
+>  drivers/media/platform/stm32/stm32-dcmi.c      |  2 +-
+>  drivers/media/platform/ti-vpe/cal.c            |  2 +-
+>  drivers/media/platform/xilinx/xilinx-vipp.c    | 16 +++++++++++++---
+>  drivers/media/v4l2-core/v4l2-async.c           |  8 ++++++--
+>  drivers/media/v4l2-core/v4l2-fwnode.c          |  2 +-
+>  13 files changed, 39 insertions(+), 19 deletions(-)
+>
+> diff --git a/drivers/media/platform/am437x/am437x-vpfe.c b/drivers/media/platform/am437x/am437x-vpfe.c
+> index 0997c640191d..892d9e935d25 100644
+> --- a/drivers/media/platform/am437x/am437x-vpfe.c
+> +++ b/drivers/media/platform/am437x/am437x-vpfe.c
+> @@ -2493,7 +2493,7 @@ vpfe_get_pdata(struct platform_device *pdev)
+>  		if (flags & V4L2_MBUS_VSYNC_ACTIVE_HIGH)
+>  			sdinfo->vpfe_param.vdpol = 1;
+>
+> -		rem = of_graph_get_remote_port_parent(endpoint);
+> +		rem = of_graph_get_remote_endpoint(endpoint);
+>  		if (!rem) {
+>  			dev_err(&pdev->dev, "Remote device at %pOF not found\n",
+>  				endpoint);
+> diff --git a/drivers/media/platform/atmel/atmel-isc.c b/drivers/media/platform/atmel/atmel-isc.c
+> index 13f1c1c797b0..c8bb60eeb629 100644
+> --- a/drivers/media/platform/atmel/atmel-isc.c
+> +++ b/drivers/media/platform/atmel/atmel-isc.c
+> @@ -2044,7 +2044,7 @@ static int isc_parse_dt(struct device *dev, struct isc_device *isc)
+>  		if (!epn)
+>  			break;
+>
+> -		rem = of_graph_get_remote_port_parent(epn);
+> +		rem = of_graph_get_remote_endpoint(epn);
+>  		if (!rem) {
+>  			dev_notice(dev, "Remote device at %pOF not found\n",
+>  				   epn);
+> diff --git a/drivers/media/platform/atmel/atmel-isi.c b/drivers/media/platform/atmel/atmel-isi.c
+> index e900995143a3..eafdf91a4541 100644
+> --- a/drivers/media/platform/atmel/atmel-isi.c
+> +++ b/drivers/media/platform/atmel/atmel-isi.c
+> @@ -1119,7 +1119,7 @@ static int isi_graph_parse(struct atmel_isi *isi, struct device_node *node)
+>  		if (!ep)
+>  			return -EINVAL;
+>
+> -		remote = of_graph_get_remote_port_parent(ep);
+> +		remote = of_graph_get_remote_endpoint(ep);
+>  		if (!remote) {
+>  			of_node_put(ep);
+>  			return -EINVAL;
+> diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
+> index fca4dc829f73..7c9c2b2bb710 100644
+> --- a/drivers/media/platform/davinci/vpif_capture.c
+> +++ b/drivers/media/platform/davinci/vpif_capture.c
+> @@ -1572,7 +1572,7 @@ vpif_capture_get_pdata(struct platform_device *pdev)
+>  		if (flags & V4L2_MBUS_VSYNC_ACTIVE_HIGH)
+>  			chan->vpif_if.vd_pol = 1;
+>
+> -		rem = of_graph_get_remote_port_parent(endpoint);
+> +		rem = of_graph_get_remote_endpoint(endpoint);
+>  		if (!rem) {
+>  			dev_dbg(&pdev->dev, "Remote device at %pOF not found\n",
+>  				endpoint);
+> diff --git a/drivers/media/platform/exynos4-is/media-dev.c b/drivers/media/platform/exynos4-is/media-dev.c
+> index 0ef583cfc424..ab5dfe6d7ac4 100644
+> --- a/drivers/media/platform/exynos4-is/media-dev.c
+> +++ b/drivers/media/platform/exynos4-is/media-dev.c
+> @@ -411,7 +411,7 @@ static int fimc_md_parse_port_node(struct fimc_md *fmd,
+>
+>  	pd->mux_id = (endpoint.base.port - 1) & 0x1;
+>
+> -	rem = of_graph_get_remote_port_parent(ep);
+> +	rem = of_graph_get_remote_endpoint(ep);
+>  	of_node_put(ep);
+>  	if (rem == NULL) {
+>  		v4l2_info(&fmd->v4l2_dev, "Remote device at %pOF not found\n",
+> @@ -1363,11 +1363,17 @@ static int subdev_notifier_bound(struct v4l2_async_notifier *notifier,
+>  	int i;
+>
+>  	/* Find platform data for this sensor subdev */
+> -	for (i = 0; i < ARRAY_SIZE(fmd->sensor); i++)
+> -		if (fmd->sensor[i].asd.match.fwnode.fwnode ==
+> -		    of_fwnode_handle(subdev->dev->of_node))
+> +	for (i = 0; i < ARRAY_SIZE(fmd->sensor); i++) {
+> +		struct fwnode_handle *fwnode =
+> +			fwnode_graph_get_port_parent(
+> +				of_fwnode_handle(subdev->dev->of_node));
+> +
+> +		if (fmd->sensor[i].asd.match.fwnode.fwnode == fwnode)
+>  			si = &fmd->sensor[i];
+>
+> +		fwnode_handle_put(fwnode);
+> +	}
+> +
+>  	if (si == NULL)
+>  		return -EINVAL;
+>
+> diff --git a/drivers/media/platform/pxa_camera.c b/drivers/media/platform/pxa_camera.c
+> index 4e0839829e6e..82aaafd113d4 100644
+> --- a/drivers/media/platform/pxa_camera.c
+> +++ b/drivers/media/platform/pxa_camera.c
+> @@ -2334,7 +2334,7 @@ static int pxa_camera_pdata_from_dt(struct device *dev,
+>  		pcdev->platform_flags |= PXA_CAMERA_PCLK_EN;
+>
+>  	asd->match_type = V4L2_ASYNC_MATCH_FWNODE;
+> -	remote = of_graph_get_remote_port_parent(np);
+> +	remote = of_graph_get_remote_endpoint(np);
+>  	if (remote) {
+>  		asd->match.fwnode.fwnode = of_fwnode_handle(remote);
+>  		of_node_put(remote);
+> diff --git a/drivers/media/platform/qcom/camss-8x16/camss.c b/drivers/media/platform/qcom/camss-8x16/camss.c
+> index 390a42c17b66..73cac6301756 100644
+> --- a/drivers/media/platform/qcom/camss-8x16/camss.c
+> +++ b/drivers/media/platform/qcom/camss-8x16/camss.c
+> @@ -332,7 +332,7 @@ static int camss_of_parse_ports(struct device *dev,
+>  			return ret;
+>  		}
+>
+> -		remote = of_graph_get_remote_port_parent(node);
+> +		remote = of_graph_get_remote_endpoint(node);
+>  		of_node_put(node);
+>
+>  		if (!remote) {
+> diff --git a/drivers/media/platform/rcar_drif.c b/drivers/media/platform/rcar_drif.c
+> index 63c94f4028a7..f6e0a08d72f4 100644
+> --- a/drivers/media/platform/rcar_drif.c
+> +++ b/drivers/media/platform/rcar_drif.c
+> @@ -1228,7 +1228,7 @@ static int rcar_drif_parse_subdevs(struct rcar_drif_sdr *sdr)
+>  		return 0;
+>
+>  	notifier->subdevs[notifier->num_subdevs] = &sdr->ep.asd;
+> -	fwnode = fwnode_graph_get_remote_port_parent(ep);
+> +	fwnode = fwnode_graph_get_remote_endpoint(ep);
+>  	if (!fwnode) {
+>  		dev_warn(sdr->dev, "bad remote port parent\n");
+>  		fwnode_handle_put(ep);
+> diff --git a/drivers/media/platform/stm32/stm32-dcmi.c b/drivers/media/platform/stm32/stm32-dcmi.c
+> index ac4c450a6c7d..18e0aa8af3b3 100644
+> --- a/drivers/media/platform/stm32/stm32-dcmi.c
+> +++ b/drivers/media/platform/stm32/stm32-dcmi.c
+> @@ -1511,7 +1511,7 @@ static int dcmi_graph_parse(struct stm32_dcmi *dcmi, struct device_node *node)
+>  		if (!ep)
+>  			return -EINVAL;
+>
+> -		remote = of_graph_get_remote_port_parent(ep);
+> +		remote = of_graph_get_remote_endpoint(ep);
+>  		if (!remote) {
+>  			of_node_put(ep);
+>  			return -EINVAL;
+> diff --git a/drivers/media/platform/ti-vpe/cal.c b/drivers/media/platform/ti-vpe/cal.c
+> index a1748b84deea..f4af6c5a7c6c 100644
+> --- a/drivers/media/platform/ti-vpe/cal.c
+> +++ b/drivers/media/platform/ti-vpe/cal.c
+> @@ -1697,7 +1697,7 @@ static int of_cal_create_instance(struct cal_ctx *ctx, int inst)
+>  		goto cleanup_exit;
+>  	}
+>
+> -	sensor_node = of_graph_get_remote_port_parent(ep_node);
+> +	sensor_node = of_graph_get_remote_endpoint(ep_node);
+>  	if (!sensor_node) {
+>  		ctx_dbg(3, ctx, "can't get remote parent\n");
+>  		goto cleanup_exit;
+> diff --git a/drivers/media/platform/xilinx/xilinx-vipp.c b/drivers/media/platform/xilinx/xilinx-vipp.c
+> index d881cf09876d..17d4ac0a908d 100644
+> --- a/drivers/media/platform/xilinx/xilinx-vipp.c
+> +++ b/drivers/media/platform/xilinx/xilinx-vipp.c
+> @@ -82,6 +82,8 @@ static int xvip_graph_build_one(struct xvip_composite_device *xdev,
+>  	dev_dbg(xdev->dev, "creating links for entity %s\n", local->name);
+>
+>  	while (1) {
+> +		struct fwnode_handle *fwnode;
+> +
+>  		/* Get the next endpoint and parse its link. */
+>  		next = of_graph_get_next_endpoint(entity->node, ep);
+>  		if (next == NULL)
+> @@ -121,8 +123,11 @@ static int xvip_graph_build_one(struct xvip_composite_device *xdev,
+>  			continue;
+>  		}
+>
+> +		fwnode = fwnode_graph_get_port_parent(link.remote_node);
+> +		fwnode_handle_put(fwnode);
+> +
+>  		/* Skip DMA engines, they will be processed separately. */
+> -		if (link.remote_node == of_fwnode_handle(xdev->dev->of_node)) {
+> +		if (fwnode == of_fwnode_handle(xdev->dev->of_node)) {
+>  			dev_dbg(xdev->dev, "skipping DMA port %pOF:%u\n",
+>  				to_of_node(link.local_node),
+>  				link.local_port);
+> @@ -367,20 +372,25 @@ static int xvip_graph_parse_one(struct xvip_composite_device *xdev,
+>  	dev_dbg(xdev->dev, "parsing node %pOF\n", node);
+>
+>  	while (1) {
+> +		struct fwnode_handle *fwnode;
+> +
+>  		ep = of_graph_get_next_endpoint(node, ep);
+>  		if (ep == NULL)
+>  			break;
+>
+>  		dev_dbg(xdev->dev, "handling endpoint %pOF\n", ep);
+>
+> -		remote = of_graph_get_remote_port_parent(ep);
+> +		remote = of_graph_get_remote_endpoint(ep);
+>  		if (remote == NULL) {
+>  			ret = -EINVAL;
+>  			break;
+>  		}
+>
+> +		fwnode = fwnode_graph_get_port_parent(of_fwnode_handle(remote));
+> +		fwnode_handle_put(fwnode);
+> +
+>  		/* Skip entities that we have already processed. */
+> -		if (remote == xdev->dev->of_node ||
+> +		if (fwnode == xdev->dev->of_node ||
+>  		    xvip_graph_find_entity(xdev, remote)) {
+>  			of_node_put(remote);
+>  			continue;
+> diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+> index e5acfab470a5..f53eff07e8b8 100644
+> --- a/drivers/media/v4l2-core/v4l2-async.c
+> +++ b/drivers/media/v4l2-core/v4l2-async.c
+> @@ -539,8 +539,12 @@ int v4l2_async_register_subdev(struct v4l2_subdev *sd)
+>  	 * (struct v4l2_subdev.dev), and async sub-device does not
+>  	 * exist independently of the device at any point of time.
+>  	 */
+> -	if (!sd->fwnode && sd->dev)
+> -		sd->fwnode = dev_fwnode(sd->dev);
+> +	if (!sd->fwnode && sd->dev) {
+> +		sd->fwnode = fwnode_graph_get_next_endpoint(
+> +			dev_fwnode(sd->dev), NULL);
+> +		if (!sd->fwnode)
+> +			sd->fwnode = dev_fwnode(sd->dev);
+> +	}
 
-Sorry for making such a simple mistake.
+I'm facing these days issues with endpoint matching and imo assuming
+the first available endpoint is the one the subdevice should be
+matched on is a limitation that will bite us back in future.
 
-> 
-> ChenYu
+What I'm dealing with is a device with 5 'ports' node, and a single
+endpoint per 'ports'. Your patch here takes the first available
+endpoint with 'fwnode_graph_get_next_endpoint()', and unfortunately
+that's not the one the notifier expects to match with.
 
+The only way around it that I have found is set explicitly the
+fwnode before registering the subdevice and having the framework
+make assumptions like this (match on the first available endpoint) may
+actually hide subtle issues difficult to debug.
 
-Thanks,
-Yong
+Should we force subdevices to set their fwnode explicitly before
+registering the subdevice or at least WARN() when they don't?
+Converting existing sensor drivers to do so, should be as easy as
+converting platform drivers to match endpoints, as you did in this
+series.
+
+Thanks!
+   j
+
+>
+>  	mutex_lock(&list_lock);
+>
+> diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
+> index fb72c7ac04d4..9c17a26d544c 100644
+> --- a/drivers/media/v4l2-core/v4l2-fwnode.c
+> +++ b/drivers/media/v4l2-core/v4l2-fwnode.c
+> @@ -360,7 +360,7 @@ static int v4l2_async_notifier_fwnode_parse_endpoint(
+>
+>  	asd->match_type = V4L2_ASYNC_MATCH_FWNODE;
+>  	asd->match.fwnode.fwnode =
+> -		fwnode_graph_get_remote_port_parent(endpoint);
+> +		fwnode_graph_get_remote_endpoint(endpoint);
+>  	if (!asd->match.fwnode.fwnode) {
+>  		dev_warn(dev, "bad remote port parent\n");
+>  		ret = -EINVAL;
+> --
+> 2.11.0
+>
