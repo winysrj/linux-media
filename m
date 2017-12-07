@@ -1,206 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx07-00178001.pphosted.com ([62.209.51.94]:45281 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750813AbdLRKZB (ORCPT
+Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:34327 "EHLO
+        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752129AbdLGEkV (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 18 Dec 2017 05:25:01 -0500
-From: Hugues FRUCHET <hugues.fruchet@st.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-CC: Steve Longerbeam <slongerbeam@gmail.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "Benjamin Gaignard" <benjamin.gaignard@linaro.org>
-Subject: Re: [PATCH v3 3/5] media: dt-bindings: ov5640: add support of DVP
- parallel interface
-Date: Mon, 18 Dec 2017 10:24:40 +0000
-Message-ID: <18a586ae-28f9-fd04-095a-f7e904257e37@st.com>
-References: <1512650453-24476-1-git-send-email-hugues.fruchet@st.com>
- <1512650453-24476-4-git-send-email-hugues.fruchet@st.com>
- <20171207135911.urs6sg2sd35jcnqq@valkosipuli.retiisi.org.uk>
- <8e47931b-b2d2-fbd4-b987-cf3bda5623c0@st.com>
- <65189cec-b12f-4719-9d95-2a14db1ae2a3@iki.fi>
-In-Reply-To: <65189cec-b12f-4719-9d95-2a14db1ae2a3@iki.fi>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-ID: <EF0A361376FD0A498B7C5A0FC693B003@st.com>
-Content-Transfer-Encoding: base64
-MIME-Version: 1.0
+        Wed, 6 Dec 2017 23:40:21 -0500
+Message-ID: <69bbcc232328e4c9d23d37d6e18262ad@smtp-cloud9.xs4all.net>
+Date: Thu, 07 Dec 2017 05:40:18 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-SGkgU2FrYXJpLA0KDQpPbiAxMi8xMy8yMDE3IDA4OjQ3IFBNLCBTYWthcmkgQWlsdXMgd3JvdGU6
-DQo+IEhpIEh1Z3VlcywNCj4gDQo+IEh1Z3VlcyBGUlVDSEVUIHdyb3RlOg0KPj4gSGkgU2FrYXJp
-LA0KPj4NCj4+IE9uIDEyLzA3LzIwMTcgMDI6NTkgUE0sIFNha2FyaSBBaWx1cyB3cm90ZToNCj4+
-PiBIaSBIdWd1ZXMsDQo+Pj4NCj4+PiBPbiBUaHUsIERlYyAwNywgMjAxNyBhdCAwMTo0MDo1MVBN
-ICswMTAwLCBIdWd1ZXMgRnJ1Y2hldCB3cm90ZToNCj4+Pj4gQWRkIGJpbmRpbmdzIGZvciBPVjU2
-NDAgRFZQIHBhcmFsbGVsIGludGVyZmFjZSBzdXBwb3J0Lg0KPj4+Pg0KPj4+PiBTaWduZWQtb2Zm
-LWJ5OiBIdWd1ZXMgRnJ1Y2hldCA8aHVndWVzLmZydWNoZXRAc3QuY29tPg0KPj4+PiAtLS0NCj4+
-Pj4gICAgLi4uL2RldmljZXRyZWUvYmluZGluZ3MvbWVkaWEvaTJjL292NTY0MC50eHQgICAgICAg
-fCAyNyArKysrKysrKysrKysrKysrKysrKy0tDQo+Pj4+ICAgIDEgZmlsZSBjaGFuZ2VkLCAyNSBp
-bnNlcnRpb25zKCspLCAyIGRlbGV0aW9ucygtKQ0KPj4+Pg0KPj4+PiBkaWZmIC0tZ2l0IGEvRG9j
-dW1lbnRhdGlvbi9kZXZpY2V0cmVlL2JpbmRpbmdzL21lZGlhL2kyYy9vdjU2NDAudHh0IGIvRG9j
-dW1lbnRhdGlvbi9kZXZpY2V0cmVlL2JpbmRpbmdzL21lZGlhL2kyYy9vdjU2NDAudHh0DQo+Pj4+
-IGluZGV4IDU0MGIzNmMuLjA0ZTJhOTEgMTAwNjQ0DQo+Pj4+IC0tLSBhL0RvY3VtZW50YXRpb24v
-ZGV2aWNldHJlZS9iaW5kaW5ncy9tZWRpYS9pMmMvb3Y1NjQwLnR4dA0KPj4+PiArKysgYi9Eb2N1
-bWVudGF0aW9uL2RldmljZXRyZWUvYmluZGluZ3MvbWVkaWEvaTJjL292NTY0MC50eHQNCj4+Pj4g
-QEAgLTEsNCArMSw0IEBADQo+Pj4+IC0qIE9tbml2aXNpb24gT1Y1NjQwIE1JUEkgQ1NJLTIgc2Vu
-c29yDQo+Pj4+ICsqIE9tbml2aXNpb24gT1Y1NjQwIE1JUEkgQ1NJLTIgLyBwYXJhbGxlbCBzZW5z
-b3INCj4+Pj4gICAgDQo+Pj4+ICAgIFJlcXVpcmVkIFByb3BlcnRpZXM6DQo+Pj4+ICAgIC0gY29t
-cGF0aWJsZTogc2hvdWxkIGJlICJvdnRpLG92NTY0MCINCj4+Pj4gQEAgLTE4LDcgKzE4LDExIEBA
-IFRoZSBkZXZpY2Ugbm9kZSBtdXN0IGNvbnRhaW4gb25lICdwb3J0JyBjaGlsZCBub2RlIGZvciBp
-dHMgZGlnaXRhbCBvdXRwdXQNCj4+Pj4gICAgdmlkZW8gcG9ydCwgaW4gYWNjb3JkYW5jZSB3aXRo
-IHRoZSB2aWRlbyBpbnRlcmZhY2UgYmluZGluZ3MgZGVmaW5lZCBpbg0KPj4+PiAgICBEb2N1bWVu
-dGF0aW9uL2RldmljZXRyZWUvYmluZGluZ3MvbWVkaWEvdmlkZW8taW50ZXJmYWNlcy50eHQuDQo+
-Pj4+ICAgIA0KPj4+PiAtRXhhbXBsZToNCj4+Pj4gK1BhcmFsbGVsIG9yIENTSSBtb2RlIGlzIHNl
-bGVjdGVkIGFjY29yZGluZyB0byBvcHRpb25hbCBlbmRwb2ludCBwcm9wZXJ0aWVzLg0KPj4+PiAr
-V2l0aG91dCBwcm9wZXJ0aWVzIChvciBidXMgcHJvcGVydGllcyksIHBhcmFsbGVsIG1vZGUgaXMg
-c2VsZWN0ZWQuDQo+Pj4+ICtTcGVjaWZ5aW5nIGFueSBDU0kgcHJvcGVydGllcyBzdWNoIGFzIGxh
-bmVzIHdpbGwgZW5hYmxlIENTSSBtb2RlLg0KPj4+DQo+Pj4gVGhlc2UgYmluZGluZ3MgbmV2ZXIg
-ZG9jdW1lbnRlZCB3aGF0IHdoaWNoIGVuZHBvaW50IHByb3BlcnRpZXMgd2VyZSBuZWVkZWQuDQo+
-Pg0KPj4gT2sgSSB3aWxsIGFkZCBhIHNlY3Rpb24gcmVsYXRlZCB0byBlbmRwb2ludCBwcm9wZXJ0
-aWVzIGZvciBib3RoIENTSSBhbmQNCj4+IHBhcmFsbGVsLg0KPj4NCj4+Pg0KPj4+IEJleW9uZCB0
-aGF0LCB0aGUgc2Vuc29yIHN1cHBvcnRzIHR3byBDU0ktMiBsYW5lcy4gWW91IHNob3VsZCBleHBs
-aWNpdGx5DQo+Pj4gc3BlY2lmeSB0aGF0LCBpbiBvdGhlciB3b3JkcywgeW91J2xsIG5lZWQgImRh
-dGEtbGFuZXMiIHByb3BlcnR5LiBDb3VsZCB5b3UNCj4+PiBhZGQgdGhhdD8NCj4+IE9rIEkgd2ls
-bCBhZGQgaXQgdG8gcmVxdWlyZWQgZW5kcG9pbnQgcHJvcGVydHkgaW4gY2FzZSBvZiBDU0kgbW9k
-ZS4NCj4+IEkgd2lsbCBjaGFuZ2UgY29tbWl0IGhlYWRlciB0byByZWZsZWN0IGNoYW5nZXMgb24g
-cGFyYWxsZWwgYnV0IGFsc28gQ1NJDQo+PiBkb2N1bWVudGF0aW9uLg0KPj4NCj4+Pg0KPj4+IExv
-bmcgdGltZSBhZ28gd2hlbiB0aGUgdmlkZW8taW50ZXJmYWNlcy50eHQgYW5kIHRoZSBWNEwyIE9G
-IGZyYW1ld29yayB3ZXJlDQo+Pj4gd3JpdHRlbiwgdGhlIGJ1cyB0eXBlIHNlbGVjdGlvbiB3YXMg
-bWFkZSBpbXBsaWNpdCBhbmQgb25seSBsYXRlciBvbg0KPj4+IGV4cGxpY2l0LiBUaGlzIGlzIHN0
-aWxsIHJlZmxlY3RlZCBpbiBob3cgdGhlIGJ1cyB0eXBlIGdldHMgc2V0IGJldHdlZW4NCj4+PiBD
-U0ktMiBELVBIWSwgcGFyYWxsZWwgYW5kIEJ0LjY1Ni4NCj4+Pg0KPj4gSSdtIGEgbGl0dGxlIGJp
-dCBjb25mdXNlZCwgbXVzdCBJIGV4cGxpY2l0bHkgYWRkIGFzIHJlcXVpcmVkIHByb3BlcnR5DQo+
-PiAiYnVzLXR5cGU9MCIgKGF1dG9kZXRlY3QpIGZvciBib3RoIGNhc2VzID8gT3IgbXVzdCBJIHJl
-cXVpcmUNCj4+ICJidXMtdHlwZT0xIiBmb3IgQ1NJIGFuZCAiYnVzLXR5cGU9MyIgZm9yIHBhcmFs
-bGVsID8NCj4gDQo+IFllcywgdGhlIGNvbmZ1c2lvbiB3aWxsIHN0YXkgZm9yIHNvbWUgdGltZSB0
-byBjb21lIGluIHNvbWUgd2F5LiA6LSkNCj4gDQo+IFdoYXQgSSB3YW50ZWQgdG8gc2F5IHRoYXQg
-dGhlIG9yaWdpbmFsIGRlY2lzaW9uIHRvIG1ha2UgdGhpcyBpbXBsaWNpdA0KPiBmcm9tIHRoZSBi
-aW5kaW5ncyB3YXNuJ3QgZ3JlYXQgLS0tIHdlIGhhdmUgaGVyZSB0aGUgZGV2aWNlIHRoYXQgZG9l
-cw0KPiBib3RoIHBhcmFsbGVsIGFuZCBDU0ktMiBELVBIWS4NCj4gDQo+IEJ1dCBkdWUgdG8gZGF0
-YS1sYW5lcywgeW91IGNhbiByZWx5IG9uIGltcGxpY2l0IGJ1cyB0eXBlIHNlbGVjdGlvbg0KPiB3
-b3JraW5nLiBTbyBubyBidXMtdHlwZSBpcyBuZWVkZWQuDQo+IA0KDQpPSywgZ290IGl0IG5vdzoN
-Ci0gImJ1cy10eXBlPTAiIChhdXRvZGV0ZWN0KSA9PiBWNEwyX01CVVNfUEFSQUxMRUwgb3IgVjRM
-Ml9NQlVTX0JUNjU2IG9yIA0KVjRMMl9NQlVTX0NTSTIgZGVwZW5kaW5nIG9uIHByb3BlcnRpZXMN
-Ci0gImJ1cy10eXBlPTEiID0+IE1JUEkgQ1NJLTIgQy1QSFkNCi0gImJ1cy10eXBlPTIiID0+IE1J
-UEkgQ1NJMQ0KLSAiYnVzLXR5cGU9MyIgPT4gQ0NQMg0KDQovKioNCiAgKiBlbnVtIHY0bDJfbWJ1
-c190eXBlIC0gbWVkaWEgYnVzIHR5cGUNCiAgKiBAVjRMMl9NQlVTX1BBUkFMTEVMOglwYXJhbGxl
-bCBpbnRlcmZhY2Ugd2l0aCBoc3luYyBhbmQgdnN5bmMNCiAgKiBAVjRMMl9NQlVTX0JUNjU2Oglw
-YXJhbGxlbCBpbnRlcmZhY2Ugd2l0aCBlbWJlZGRlZCBzeW5jaHJvbmlzYXRpb24sIGNhbg0KICAq
-CQkJYWxzbyBiZSB1c2VkIGZvciBCVC4xMTIwDQogICogQFY0TDJfTUJVU19DU0kxOglNSVBJIENT
-SS0xIHNlcmlhbCBpbnRlcmZhY2UNCiAgKiBAVjRMMl9NQlVTX0NDUDI6CUNDUDIgKENvbXBhY3Qg
-Q2FtZXJhIFBvcnQgMikNCiAgKiBAVjRMMl9NQlVTX0NTSTI6CU1JUEkgQ1NJLTIgc2VyaWFsIGlu
-dGVyZmFjZQ0KICAqLw0KZW51bSB2NGwyX21idXNfdHlwZSB7DQoJVjRMMl9NQlVTX1BBUkFMTEVM
-LA0KCVY0TDJfTUJVU19CVDY1NiwNCglWNEwyX01CVVNfQ1NJMSwNCglWNEwyX01CVVNfQ0NQMiwN
-CglWNEwyX01CVVNfQ1NJMiwNCn07DQoNClRoaXMgZXhwbGFpbiBteSBjb25mdXNpb24gb24gQ1NJ
-LTIgQ1BIWSBhbmQgQ0NQMiBiZWxvdy4uLg0KDQo+Pg0KPj4NCj4+IFRhbGtpbmcgYmluZGluZ3Ms
-IEkgZmVlbCB0aGF0IGl0IGNvdWxkIGJlIG9mIGdyZWF0IGhlbHAgdG8gZG9jdW1lbnQgYWxzbw0K
-Pj4gdGhlIHBvbGFyaXR5IG9mIGNvbnRyb2wgc2lnbmFscyAoaHN5bmMvdnN5bmMvcGNsayksIHRo
-ZXkgYXJlIGN1cnJlbnRseQ0KPj4gc2V0IGJ5IG92NTY0MCBpbml0IHNlcXVlbmNlIGFuZCBub3Qg
-Y29uZmlndXJhYmxlLg0KPj4gTW9yZW92ZXIsIHNob3VsZCBzb21lIGNoZWNrcyBiZSBhZGRlZCBp
-biBwcm9iZSBzZXF1ZW5jZSB0byB2ZXJpZnkgdGhhdA0KPj4gdGhlIGRlZmluZWQgY29udHJvbCBz
-aWduYWxzIHBvbGFyaXR5IGFyZSBhbGlnbmVkIHdpdGggZGVmYXVsdCBvbmVzIGZyb20NCj4+IGlu
-aXQgc2VxdWVuY2UgPw0KPiANCj4gWWVzLCB0aGF0J3MgYSB2ZXJ5IGdvb2QgaWRlYS4gSXQgc2hv
-dWxkIGhhdmUgYmVlbiB0aGVyZSBhbGwgYWxvbmcuDQo+IA0KPj4NCj4+DQo+PiBIZXJlIGlzIGEg
-cHJvcG9zYWw6DQo+Pg0KPj4gIg0KPj4gVGhlIGRldmljZSBub2RlIG11c3QgY29udGFpbiBvbmUg
-J3BvcnQnIGNoaWxkIG5vZGUgZm9yIGl0cyBkaWdpdGFsDQo+PiBvdXRwdXQgdmlkZW8gcG9ydCB3
-aXRoIGEgc2luZ2xlICdlbmRwb2ludCcgc3Vibm9kZSwgaW4gYWNjb3JkYW5jZQ0KPj4gd2l0aCB0
-aGUgdmlkZW8gaW50ZXJmYWNlIGJpbmRpbmdzIGRlZmluZWQgaW4NCj4+IERvY3VtZW50YXRpb24v
-ZGV2aWNldHJlZS9iaW5kaW5ncy9tZWRpYS92aWRlby1pbnRlcmZhY2VzLnR4dC4NCj4+DQo+PiBP
-VjU2NDAgY2FuIGJlIGNvbm5lY3RlZCB0byBhIE1JUEkgQ1NJIGJ1cyBvciBhIHBhcmFsbGVsIGJ1
-cyBlbmRwb2ludDoNCj4gDQo+IENTSS0yLCBwbGVhc2UuDQo+IA0KT0sNCg0KPj4NCj4+IEVuZHBv
-aW50IG5vZGUgcmVxdWlyZWQgcHJvcGVydGllcyBmb3IgQ1NJIGNvbm5lY3Rpb24gYXJlOg0KPj4g
-LSByZW1vdGUtZW5kcG9pbnQ6IGEgcGhhbmRsZSB0byB0aGUgYnVzIHJlY2VpdmVyJ3MgZW5kcG9p
-bnQgbm9kZS4NCj4+IC0gYnVzLXR5cGU6IHNob3VsZCBiZSBzZXQgdG8gPDE+IChNSVBJIENTSS0y
-IEMtUEhZKQ0KPiANCj4gWW91IGNhbiBvbWl0IGJ1cy10eXBlLiBPciBpcyB0aGlzIHJlYWxseSBD
-LVBIWT8/IFdlIGRvbid0IGFjdHVhbGx5IGhhdmUNCj4gYW55IG90aGVyIGRldmljZXMgdGhhdCBz
-dXBwb3J0IEMtUEhZIHlldCBBRkFJSy4NCj4gDQpObyBpdCdzIEQtUEhZLCBjb25mdXNpb24gb24g
-bXkgc2lkZS4uLg0KDQo+PiAtIGNsb2NrLWxhbmVzOiBzaG91bGQgYmUgc2V0IHRvIDwwPiAoY2xv
-Y2sgbGFuZSBvbiBoYXJkd2FyZSBsYW5lIDApDQo+IA0KPiBCdXQgY2xvY2stbGFuZXMgaXNuJ3Qg
-cmVsZXZhbnQgZm9yIEMtUEhZLiBTbyB5b3UgaGF2ZSBELVBIWSwgSSBwcmVzdW1lLg0KPiANCk9L
-IEknbGwgcmVtb3ZlLg0KDQo+PiAtIGRhdGEtbGFuZXM6IHNob3VsZCBiZSBzZXQgdG8gPDEgMj4g
-KHR3byBDU0ktMiBsYW5lcyBzdXBwb3J0ZWQpDQo+IA0KPiBUaGlzIHNob3VsZCBkb2N1bWVudCB3
-aGF0IHRoZSBoYXJkd2FyZSBjYW4gZG8sIG5vdCB3aGF0IHRoZSBkcml2ZXINCj4gc3VwcG9ydHMu
-IFNvIDwxPiBvciA8MSAyPiBpdCBzaG91bGQgYmUuDQpPSw0KDQo+IA0KPj4NCj4+IEVuZHBvaW50
-IG5vZGUgcmVxdWlyZWQgcHJvcGVydGllcyBmb3IgcGFyYWxsZWwgY29ubmVjdGlvbiBhcmU6DQo+
-PiAtIHJlbW90ZS1lbmRwb2ludDogYSBwaGFuZGxlIHRvIHRoZSBidXMgcmVjZWl2ZXIncyBlbmRw
-b2ludCBub2RlLg0KPj4gLSBidXMtdHlwZTogc2hvdWxkIGJlIHNldCB0byA8Mz4gKHBhcmFsbGVs
-IENDUDIpDQo+IA0KPiBDQ1AyIGlzIENvbXBhY3QgQ2FtZXJhIFBvcnQgMiwgYW4gb2xkZXIgc2Vy
-aWFsIGJ1cyAoYmV0d2VlbiBDU0kgYW5kIENTSS0yKS4NCk5vIGl0J3MgcGFyYWxsZWwsIGNvbmZ1
-c2lvbiBvbiBteSBzaWRlLi4uDQoNCj4gDQo+IChJIGFjdHVhbGx5IHdvbmRlciBpZiB3ZSBjb3Vs
-ZCBmaXggdGhlIGJ1cy10eXBlIHByb3BlcnR5IGJ5IGdpdmluZw0KPiBzZXBhcmF0ZSBlbnRyaWVz
-IGZvciBwYXJhbGxlbCBhbmQgQ1NJLTIgRC1QSFk7IEknbGwgc3RpbGwgbmVlZCB0byBjaGVjaw0K
-PiB3aGV0aGVyIGl0J3MgdXNlZCBzb21ld2hlcmUuIEkgdGhpbmsgbm90LiBOb3QgcmVsZXZhbnQg
-Zm9yIHRoaXMgcGF0Y2hzZXQNCj4gdGhvdWdoLikNCj4gDQo+PiAtIGJ1cy13aWR0aDogc2hvdWxk
-IGJlIHNldCB0byA8OD4gZm9yIDggYml0cyBwYXJhbGxlbCBidXMNCj4+ICAgICAgICAgICAgICAg
-IG9yIDwxMD4gZm9yIDEwIGJpdHMgcGFyYWxsZWwgYnVzDQo+PiAtIGRhdGEtc2hpZnQ6IHNob3Vs
-ZCBiZSBzZXQgdG8gPDI+IGZvciA4IGJpdHMgcGFyYWxsZWwgYnVzDQo+PiAgICAgICAgICAgICAg
-ICAgKGxpbmVzIDk6MiBhcmUgdXNlZCkgb3IgPDA+IGZvciAxMCBiaXRzIHBhcmFsbGVsIGJ1cw0K
-PiANCj4gcy9zaG91bGQvc2hhbGwvIGZvciBib3RoLg0KPiANCk9LDQoNCj4+IC0gaHN5bmMtYWN0
-aXZlOiBzaG91bGQgYmUgc2V0IHRvIDwwPiAoSG9yaXpvbnRhbCBzeW5jaHJvbml6YXRpb24NCj4+
-ICAgICAgICAgICAgICAgICAgIHBvbGFyaXR5IGlzIGFjdGl2ZSBsb3cpLg0KPj4gLSB2c3luYy1h
-Y3RpdmU6IHNob3VsZCBiZSBzZXQgdG8gPDE+IChhY3RpdmUgaGlnaCkgKEhvcml6b250YWwNCj4+
-ICAgICAgICAgICAgICAgICAgIHN5bmNocm9uaXphdGlvbiBwb2xhcml0eSBpcyBhY3RpdmUgbG93
-KS4NCj4+IC0gcGNsay1zYW1wbGU6ICBzaG91bGQgYmUgc2V0IHRvIDwxPiAoZGF0YSBhcmUgc2Ft
-cGxlZCBvbiB0aGUgcmlzaW5nDQo+PiAgICAgICAgICAgICAgICAgICBlZGdlIG9mIHRoZSBwaXhl
-bCBjbG9jayBzaWduYWwpLg0KPiANCj4gSXMgdGhpcyBjb25maWd1cmFibGUgb24gaGFyZHdhcmU/
-IElmIHNvLCBubyByZWNvbW1lbmRhdGlvbiBzaG91bGQgYmUNCj4gbWFkZSBmb3IgaGFyZHdhcmUg
-Y29uZmlndXJhdGlvbiBhcyBpdCdzIGJvYXJkIHNwZWNpZmljLg0KPiANCkFzIGV4cGxhaW5lZCwg
-YWJvdmU6DQogPj4gVGFsa2luZyBiaW5kaW5ncywgSSBmZWVsIHRoYXQgaXQgY291bGQgYmUgb2Yg
-Z3JlYXQgaGVscCB0byBkb2N1bWVudCANCiA+PiBhbHNvIHRoZSBwb2xhcml0eSBvZiBjb250cm9s
-IHNpZ25hbHMgKGhzeW5jL3ZzeW5jL3BjbGspLCB0aGV5IGFyZQ0KID4+IGN1cnJlbnRseSBzZXQg
-Ynkgb3Y1NjQwIGluaXQgc2VxdWVuY2UgYW5kIG5vdCBjb25maWd1cmFibGUuDQoNClNvIHRoaXMg
-aXMgY29uZmlndXJhYmxlIGJ5IHNvbWUgc2Vuc29yIHJlZ2lzdGVycyBidXQgY3VycmVudGx5IGhh
-cmRjb2RlZCANCmluIHNlbnNvciBpbml0IHNlcXVlbmNlIGluc2lkZSBkcml2ZXIuDQpTbyBpbiBv
-cmRlciB0byBtYWtlIGl0IGZ1bmN0aW9uYWwsIHRoZSByZW1vdGUgc2lkZSAoSVNQIGVuZHBvaW50
-IA0KInBhcmFsbGVsX2Zyb21fb3Y1NjQwIikgaGF2ZSB0byBiZSBjb25maWd1cmVkIHRvIG1hdGNo
-IHRob3NlIHNpZ25hbCBsZXZlbHMuDQpTbyBoZXJlIHdlIGhhdmUgMyBvcHRpb25zOg0KDQoxKSBu
-byByZWNvbW1lbmRhdGlvbg0KSW4gdGhpcyBjYXNlIG5vIGluZm9ybWF0aW9uIGNhbiBiZSBmb3Vu
-ZCBpbiBiaW5kaW5nIG9uIGhvdyB0byBzZXQgdGhlIA0Kc2lnbmFsIGxldmVscyBvbiBJU1Agc2lk
-ZSwgaW5mb3JtYXRpb24gaXMgZ2l2ZW4gaW4gb3Y1NjQwIHNvdXJjZSBjb2RlOg0KDQorc3RhdGlj
-IGludCBvdjU2NDBfc2V0X3N0cmVhbV9kdnAoc3RydWN0IG92NTY0MF9kZXYgKnNlbnNvciwgYm9v
-bCBvbikNCjwuLi4+DQorCSAqIFRoZSBpbml0IHNlcXVlbmNlIGluaXRpYWxpemVzIGNvbnRyb2wg
-bGluZXMgYXMgZGVmaW5lZCBiZWxvdzoNCisJICogLSBWU1lOQzoJYWN0aXZlIGhpZ2gNCisJICog
-LSBIUkVGOglhY3RpdmUgbG93DQorCSAqIC0gUENMSzoJYWN0aXZlIGhpZ2gNCisJICovDQoNCiBG
-cm9tIHRoaXMgc291cmNlIGNvZGUgaW5mb3JtYXRpb24gYW5kIHNjaGVtYXRpY3Mgc3R1ZHkgZm9y
-IHBvdGVudGlhbCANCmludmVydGVycyBpbi1iZXR3ZWVuLCB3ZSBjYW4gZGVkdWNlIHRoZSBJU1Ag
-ZW5kcG9pbnQgDQoicGFyYWxsZWxfZnJvbV9vdjU2NDAiIHNpZ25hbCBsZXZlbHMgcHJvcGVydGll
-cy4NCg0KMikgaHN5bmMvdnN5bmMvcGNsayBzaWduYWwgbGV2ZWxzIGFyZSBvcHRpb25hbCBlbmRw
-b2ludCBwcm9wZXJ0aWVzDQpUaGV5IGFmZmVjdCBvdjU2NDAgaGFyZHdhcmUgc2lnbmFscyBwb2xh
-cml0eS4gb3Y1NjQwIHNlbnNvciBkcml2ZXIgY29kZSANCm11c3QgYmUgdXBkYXRlZCB0byBzZW5k
-IHRoZSByaWdodCBpMmMgc2VxdWVuY2VzIHRvIHByb2dyYW0gc2lnbmFsIA0KcG9sYXJpdGllcyBk
-ZXBlbmRpbmcgb24gdGhvc2UgZGV2aWNldHJlZSBlbmRwb2ludCB2YWx1ZXMgKG5vdCBjdXJyZW50
-bHkgDQpkb25lKS4NCg0KV2l0aCBzY2hlbWF0aWNzIHN0dWR5IGZvciBwb3RlbnRpYWwgaW52ZXJ0
-ZXJzIGluLWJldHdlZW4sIHdlIGNhbiBlYXNpbHkgDQpzZXQgdGhlIElTUCBlbmRwb2ludCAicGFy
-YWxsZWxfZnJvbV9vdjU2NDAiIHNpZ25hbCBsZXZlbHMgcHJvcGVydGllcy4NCk5vIHNvdXJjZSBj
-b2RlIGNoZWNrIGlzIHJlcXVpcmVkLg0KDQoNCjMpIGhzeW5jL3ZzeW5jL3BjbGsgc2lnbmFsIGxl
-dmVscyBhcmUgZml4ZWQgcmVxdWlyZWQgZW5kcG9pbnQgcHJvcGVydGllcw0KVGhpcyBpcyBteSBj
-dXJyZW50IHByb3Bvc2FsLg0KVGhleSByZWZsZWN0IGluIGJpbmRpbmcgZG9jdW1lbnRhdGlvbiB0
-aGUgaGFyZHdhcmUgc2lnbmFsIGxldmVscyBvZiANCm92NTY0MCBzZXQgYnkgaW5pdCBzZXF1ZW5j
-ZS4NCkkgY2FuIHVwZGF0ZSB0aGUgb3Y1NjQwIHNlbnNvciBkcml2ZXIgY29kZSBpbiBvcmRlciB0
-byBjaGVjayB0aGF0IHRob3NlDQptYW5kYXRvcnkgcHJvcGVydGllcyBhcmUgc2V0IHRvIHRoZSBy
-aWdodCB2YWx1ZS4NCg0KV2l0aCBzY2hlbWF0aWNzIHN0dWR5IGZvciBwb3RlbnRpYWwgaW52ZXJ0
-ZXJzIGluLWJldHdlZW4sIHdlIGNhbiBlYXNpbHkgDQpzZXQgdGhlIElTUCBlbmRwb2ludCAicGFy
-YWxsZWxfZnJvbV9vdjU2NDAiIHNpZ25hbCBsZXZlbHMgcHJvcGVydGllcy4NCk5vIHNvdXJjZSBj
-b2RlIGNoZWNrIGlzIHJlcXVpcmVkLg0KDQoNCg0KPj4NCj4+DQo+Pj4+ICsNCj4+Pj4gK0V4YW1w
-bGVzOg0KPj4+PiAgICANCj4+Pj4gICAgJmkyYzEgew0KPj4+PiAgICAJb3Y1NjQwOiBjYW1lcmFA
-M2Mgew0KPj4+PiBAQCAtMzUsNiArMzksNyBAQCBFeGFtcGxlOg0KPj4+PiAgICAJCXJlc2V0LWdw
-aW9zID0gPCZncGlvMSAyMCBHUElPX0FDVElWRV9MT1c+Ow0KPj4+PiAgICANCj4+Pj4gICAgCQlw
-b3J0IHsNCj4+Pj4gKwkJCS8qIE1JUEkgQ1NJLTIgYnVzIGVuZHBvaW50ICovDQo+Pj4+ICAgIAkJ
-CW92NTY0MF90b19taXBpX2NzaTI6IGVuZHBvaW50IHsNCj4+Pj4gICAgCQkJCXJlbW90ZS1lbmRw
-b2ludCA9IDwmbWlwaV9jc2kyX2Zyb21fb3Y1NjQwPjsNCj4+Pj4gICAgCQkJCWNsb2NrLWxhbmVz
-ID0gPDA+Ow0KPj4+PiBAQCAtNDMsMyArNDgsMjEgQEAgRXhhbXBsZToNCj4+Pj4gICAgCQl9Ow0K
-Pj4+PiAgICAJfTsNCj4+Pj4gICAgfTsNCj4+Pj4gKw0KPj4+PiArJmkyYzEgew0KPj4+PiArCW92
-NTY0MDogY2FtZXJhQDNjIHsNCj4+Pj4gKwkJY29tcGF0aWJsZSA9ICJvdnRpLG92NTY0MCI7DQo+
-Pj4+ICsJCXBpbmN0cmwtbmFtZXMgPSAiZGVmYXVsdCI7DQo+Pj4+ICsJCXBpbmN0cmwtMCA9IDwm
-cGluY3RybF9vdjU2NDA+Ow0KPj4+PiArCQlyZWcgPSA8MHgzYz47DQo+Pj4+ICsJCWNsb2NrcyA9
-IDwmY2xrX2V4dF9jYW1lcmE+Ow0KPj4+PiArCQljbG9jay1uYW1lcyA9ICJ4Y2xrIjsNCj4+Pj4g
-Kw0KPj4+PiArCQlwb3J0IHsNCj4+Pj4gKwkJCS8qIFBhcmFsbGVsIGJ1cyBlbmRwb2ludCAqLw0K
-Pj4+PiArCQkJb3Y1NjQwX3RvX3BhcmFsbGVsOiBlbmRwb2ludCB7DQo+Pj4+ICsJCQkJcmVtb3Rl
-LWVuZHBvaW50ID0gPCZwYXJhbGxlbF9mcm9tX292NTY0MD47DQo+Pj4+ICsJCQl9Ow0KPj4+PiAr
-CQl9Ow0KPj4+PiArCX07DQo+Pj4+ICt9Ow0KPj4+PiAtLSANCj4+Pj4gMS45LjENCj4+Pj4NCj4+
-Pg0KPj4NCj4+IEJlc3QgcmVnYXJkcywNCj4+IEh1Z3Vlcy4NCj4+DQo+IA0KPiANCg0KQmVzdCBy
-ZWdhcmRzLA0KSHVndWVz
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
+
+Results of the daily build of media_tree:
+
+date:			Thu Dec  7 05:00:17 CET 2017
+media-tree git hash:	781b045baefdabf7e0bc9f33672ca830d3db9f27
+media_build git hash:	320b9b80ebbf318a67a9479c18a0e4be244c8409
+v4l-utils git hash:	58803000a99c22dceabfb45bec402e746ce966c3
+gcc version:		i686-linux-gcc (GCC) 7.1.0
+sparse version:		v0.5.0-3911-g6f737e1f
+smatch version:		v0.5.0-3911-g6f737e1f
+host hardware:		x86_64
+host os:		4.13.0-164
+
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12.67-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.7-i686: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.18.7-i686: ERRORS
+linux-3.19-i686: ERRORS
+linux-4.0.9-i686: ERRORS
+linux-4.1.33-i686: ERRORS
+linux-4.2.8-i686: ERRORS
+linux-4.3.6-i686: ERRORS
+linux-4.4.22-i686: ERRORS
+linux-4.5.7-i686: ERRORS
+linux-4.6.7-i686: ERRORS
+linux-4.7.5-i686: ERRORS
+linux-4.8-i686: ERRORS
+linux-4.9.26-i686: ERRORS
+linux-4.10.14-i686: ERRORS
+linux-4.11-i686: ERRORS
+linux-4.12.1-i686: ERRORS
+linux-4.13-i686: ERRORS
+linux-4.14-i686: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.67-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.7-x86_64: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.7-x86_64: ERRORS
+linux-3.19-x86_64: ERRORS
+linux-4.0.9-x86_64: ERRORS
+linux-4.1.33-x86_64: ERRORS
+linux-4.2.8-x86_64: ERRORS
+linux-4.3.6-x86_64: ERRORS
+linux-4.4.22-x86_64: ERRORS
+linux-4.5.7-x86_64: ERRORS
+linux-4.6.7-x86_64: ERRORS
+linux-4.7.5-x86_64: ERRORS
+linux-4.8-x86_64: ERRORS
+linux-4.9.26-x86_64: ERRORS
+linux-4.10.14-x86_64: ERRORS
+linux-4.11-x86_64: ERRORS
+linux-4.12.1-x86_64: ERRORS
+linux-4.13-x86_64: ERRORS
+linux-4.14-x86_64: ERRORS
+apps: OK
+spec-git: OK
+smatch: OK
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
