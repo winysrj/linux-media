@@ -1,68 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:45970 "EHLO
-        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752998AbdLROLu (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 18 Dec 2017 09:11:50 -0500
-From: Philipp Rossak <embed3d@gmail.com>
-To: mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
-        maxime.ripard@free-electrons.com, wens@csie.org,
-        linux@armlinux.org.uk, sean@mess.org, p.zabel@pengutronix.de,
-        andi.shyti@samsung.com
-Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-sunxi@googlegroups.com
-Subject: [PATCH v2 0/6] arm: sunxi: IR support for A83T
-Date: Mon, 18 Dec 2017 15:11:40 +0100
-Message-Id: <20171218141146.23746-1-embed3d@gmail.com>
+Received: from mail-pg0-f41.google.com ([74.125.83.41]:46872 "EHLO
+        mail-pg0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752730AbdLHXQU (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 8 Dec 2017 18:16:20 -0500
+Received: by mail-pg0-f41.google.com with SMTP id b11so7793586pgu.13
+        for <linux-media@vger.kernel.org>; Fri, 08 Dec 2017 15:16:20 -0800 (PST)
+Date: Sat, 9 Dec 2017 10:16:08 +1100
+From: Vincent McIntyre <vincent.mcintyre@gmail.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: "Jasmin J." <jasmin@anw.at>, linux-media@vger.kernel.org,
+        d.scheller@gmx.net
+Subject: Re: [PATCH] build: Added missing timer_setup_on_stack
+Message-ID: <20171208231606.GA5540@shambles.windy>
+References: <1512766859-7667-1-git-send-email-jasmin@anw.at>
+ <3343c1fd-d0f0-46b1-fd3f-150f36de6fa4@anw.at>
+ <21ccbddb-eada-fa44-93ea-f0b80e17d409@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <21ccbddb-eada-fa44-93ea-f0b80e17d409@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch series adds support for the sunxi A83T ir module and enhances 
-the sunxi-ir driver. Right now the base clock frequency for the ir driver
-is a hard coded define and is set to 8 MHz.
-This works for the most common ir receivers. On the Sinovoip Bananapi M3 
-the ir receiver needs, a 3 MHz base clock frequency to work without
-problems with this driver.
+On Fri, Dec 08, 2017 at 10:12:05PM +0100, Hans Verkuil wrote:
+...
+> 
+> I've applied all your patches. Thank you very much for working on this.
+> 
+> Let's see what the result of the nightly build will be.
+> 
+> In general reverting kernel patches to make a driver compile is something of a
+> last resort. It tends to be painful to maintain in the long run, at least, that's
+> been my experience.
+> 
 
-This patch series adds support for an optinal property that makes it able
-to override the default base clock frequency and enables the ir interface 
-on the a83t and the Bananapi M3.
+Hi,
 
-changes since v1:
-* fix typos, reword Documentation
-* initialize 'b_clk_freq' to 'SUNXI_IR_BASE_CLK' & remove if statement
-* change dev_info() to dev_dbg()
-* change naming to cir* in dts/dtsi
-* Added acked Ackedi-by to related patch
-* use whole memory block instead of registers needed + fix for h3/h5
+thanks both for your work on this. Not quite there yet however.
 
-changes since rfc:
-* The property is now optinal. If the property is not available in 
-  the dtb the driver uses the default base clock frequency.
-* the driver prints out the the selected base clock frequency.
-* changed devicetree property from base-clk-frequency to clock-frequency
+$ make allyesconfig
+make -C /home/me/git/clones/media_build/v4l allyesconfig
+make[1]: Entering directory '/home/me/git/clones/media_build/v4l'
+No version yet, using 4.4.0-103-generic
+make[2]: Entering directory '/home/me/git/clones/media_build/linux'
+Syncing with dir ../media/
+Applying patches for kernel 4.4.0-103-generic
+patch -s -f -N -p1 -i ../backports/api_version.patch
+patch -s -f -N -p1 -i ../backports/pr_fmt.patch
+1 out of 1 hunk FAILED
+Makefile:130: recipe for target 'apply_patches' failed
+make[2]: *** [apply_patches] Error 1
+make[2]: Leaving directory '/home/me/git/clones/media_build/linux'
+Makefile:374: recipe for target 'allyesconfig' failed
+make[1]: *** [allyesconfig] Error 2
+make[1]: Leaving directory '/home/me/git/clones/media_build/v4l'
+Makefile:26: recipe for target 'allyesconfig' failed
+make: *** [allyesconfig] Error 2
+can't select all drivers at ./build line 525
++ status=29
 
-Regards,
-Philipp
+FWIW I also get the same failure on a 4.10 machine:
++ cat /proc/version_signature
+Ubuntu 4.10.0-38.42~16.04.1-generic 4.10.17
 
-Philipp Rossak (6):
-  media: rc: update sunxi-ir driver to get base clock frequency from
-    devicetree
-  media: dt: bindings: Update binding documentation for sunxi IR
-    controller
-  arm: dts: sun8i: a83t: Add the cir pin for the A83T
-  arm: dts: sun8i: a83t: Add support for the cir interface
-  arm: dts: sun8i: a83t: bananapi-m3: Enable IR controller
-  arm: dts: sun8i: h3-h8: ir register size should be the whole memory
-    block
-
- Documentation/devicetree/bindings/media/sunxi-ir.txt |  3 +++
- arch/arm/boot/dts/sun8i-a83t-bananapi-m3.dts         |  7 +++++++
- arch/arm/boot/dts/sun8i-a83t.dtsi                    | 15 +++++++++++++++
- arch/arm/boot/dts/sunxi-h3-h5.dtsi                   |  2 +-
- drivers/media/rc/sunxi-cir.c                         | 19 +++++++++++--------
- 5 files changed, 37 insertions(+), 9 deletions(-)
-
--- 
-2.11.0
+I will have a look to see if I can spot this one.
+Cheers
+Vince
