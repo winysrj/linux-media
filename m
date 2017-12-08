@@ -1,281 +1,195 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.15.15]:51090 "EHLO mout.gmx.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751325AbdLWLLE (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 23 Dec 2017 06:11:04 -0500
-Date: Sat, 23 Dec 2017 12:11:00 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: [PATCH] uvcvideo: add a D4M camera description
-Message-ID: <alpine.DEB.2.20.1712231208440.21222@axis700.grange>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:47247 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753270AbdLHJfC (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 8 Dec 2017 04:35:02 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Niklas =?ISO-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>
+Subject: Re: [PATCH v9 13/28] rcar-vin: fix handling of single field frames (top, bottom and alternate fields)
+Date: Fri, 08 Dec 2017 11:35:18 +0200
+Message-ID: <1830403.Cn442MVTMc@avalon>
+In-Reply-To: <20171208010842.20047-14-niklas.soderlund+renesas@ragnatech.se>
+References: <20171208010842.20047-1-niklas.soderlund+renesas@ragnatech.se> <20171208010842.20047-14-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="iso-8859-1"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>
+Hi Niklas,
 
-D4M is a mobile model from the D4XX family of Intel RealSense cameras.
-This patch adds a descriptor for it, which enables reading per-frame
-metadata from it.
+Thank you for the patch.
 
-Signed-off-by: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>
----
- Documentation/media/uapi/v4l/pixfmt-meta-d4xx.rst | 202 ++++++++++++++++++++++
- drivers/media/usb/uvc/uvc_driver.c                |  11 ++
- include/uapi/linux/videodev2.h                    |   1 +
- 3 files changed, 214 insertions(+)
- create mode 100644 Documentation/media/uapi/v4l/pixfmt-meta-d4xx.rst
+On Friday, 8 December 2017 03:08:27 EET Niklas S=F6derlund wrote:
+> There was never proper support in the VIN driver to deliver ALTERNATING
+> field format to user-space, remove this field option. For sources using
+> this field format instead use the VIN hardware feature of combining the
+> fields to an interlaced format. This mode of operation was previously
+> the default behavior and ALTERNATING was only delivered to user-space if
+> explicitly requested. Allowing this to be explicitly requested was a
+> mistake and was never properly tested and never worked due to the
+> constraints put on the field format when it comes to sequence numbers and
+> timestamps etc.
 
-diff --git a/Documentation/media/uapi/v4l/pixfmt-meta-d4xx.rst b/Documentation/media/uapi/v4l/pixfmt-meta-d4xx.rst
-new file mode 100644
-index 0000000..950780d
---- /dev/null
-+++ b/Documentation/media/uapi/v4l/pixfmt-meta-d4xx.rst
-@@ -0,0 +1,202 @@
-+.. -*- coding: utf-8; mode: rst -*-
-+
-+.. _v4l2-meta-fmt-d4xx:
-+
-+*******************************
-+V4L2_META_FMT_D4XX ('D4XX')
-+*******************************
-+
-+D4XX Metadata
-+
-+
-+Description
-+===========
-+
-+D4XX (D435 and other) cameras include per-frame metadata in their UVC payload
-+headers, following the Microsoft(R) UVC extension proposal [1_]. That means,
-+that the private D4XX metadata, following the standard UVC header, is organised
-+in blocks. D4XX cameras implement several standard block types, proposed by
-+Microsoft, and several proprietary ones. Supported standard metadata types
-+include MetadataId_CaptureStats (ID 3), MetadataId_CameraExtrinsics (ID 4), and
-+MetadataId_CameraIntrinsics (ID 5). For their description see [1_]. This
-+document describes proprietary metadata types, used by DS4XX cameras.
-+
-+V4L2_META_FMT_D4XX buffers follow the metadata buffer layout of
-+V4L2_META_FMT_UVC with the only difference, that it also includes proprietary
-+payload header data. D4XX cameras use bulk transfers and only send one payload
-+per frame, therefore their headers cannot be larger than 255 bytes.
-+
-+Below are proprietary Microsoft style metadata types, used by D4XX cameras,
-+where all fields are in little endian order:
-+
-+.. flat-table:: D4XX metadata
-+    :widths: 1 4
-+    :header-rows:  1
-+    :stub-columns: 0
-+
-+    * - Field
-+      - Description
-+    * - :cspan:`1` *Depth Control*
-+    * - __u32 ID
-+      - 0x80000000
-+    * - __u32 Size
-+      - Size in bytes (currently 56)
-+    * - __u32 Version
-+      - Version of the struct
-+    * - __u32 Flags
-+      - A bitmask of flags: see [2_] below
-+    * - __u32 Gain
-+      - Manual gain value
-+    * - __u32 Exposure
-+      - Manual exposure time in microseconds
-+    * - __u32 Laser power
-+      - Power of the laser LED 0-360, used for depth measurement
-+    * - __u32 AE mode
-+      - 0: manual; 1: automatic exposure
-+    * - __u32 Exposure priority
-+      - Exposure priority value: 0 - constant frameerate
-+    * - __u32 AE ROI left
-+      - Left border of the AE Region of Interest
-+    * - __u32 AE ROI right
-+      - Right border of the AE Region of Interest
-+    * - __u32 AE ROI top
-+      - Top border of the AE Region of Interest
-+    * - __u32 AE ROI bottom
-+      - Bottom border of the AE Region of Interest
-+    * - __u32 Preset
-+      - Preset selector value
-+    * - __u32 Laser mode
-+      - 0: off, 1: on
-+    * - :cspan:`1` *Capture Timing*
-+    * - __u32 ID
-+      - 0x80000001
-+    * - __u32 Size
-+      - Size in bytes (currently 40)
-+    * - __u32 Version
-+      - Version of the struct
-+    * - __u32 Flags
-+      - A bitmask of flags: see [3_] below
-+    * - __u32 Frame counter
-+      - Monotonically increasing counter
-+    * - __u32 Optical time
-+      - Time in microseconds from the beginning of a frame till its middle
-+    * - __u32 Readout time
-+      - Time, used to read out a frame in microseconds
-+    * - __u32 Exposure time
-+      - Frame exposure time in microseconds
-+    * - __u32 Frame interval
-+      - In microseconds = 1000000 / framerate
-+    * - __u32 Pipe latency
-+      - Time in microseconds from start of frame to data in USB buffer
-+    * - :cspan:`1` *Configuration*
-+    * - __u32 ID
-+      - 0x80000002
-+    * - __u32 Size
-+      - Size in bytes (currently 40)
-+    * - __u32 Version
-+      - Version of the struct
-+    * - __u32 Flags
-+      - A bitmask of flags: see [4_] below
-+    * - __u8 Hardware type
-+      - Camera hardware version [5_]
-+    * - __u8 SKU ID
-+      - Camera hardware configuration [6_]
-+    * - __u32 Cookie
-+      - Internal synchronisation
-+    * - __u16 Format
-+      - Image format code [7_]
-+    * - __u16 Width
-+      - Width in pixels
-+    * - __u16 Height
-+      - Height in pixels
-+    * - __u16 Framerate
-+      - Requested framerate
-+    * - __u16 Trigger
-+      - Byte 0: bit 0:  depth and RGB are synchronised, bit 1: external trigger
-+
-+.. _1:
-+
-+[1] https://docs.microsoft.com/en-us/windows-hardware/drivers/stream/uvc-extensions-1-5
-+
-+.. _2:
-+
-+[2] Depth Control flags specify, which fields are valid: ::
-+
-+  0x00000001 Gain
-+  0x00000002 Manual exposure
-+  0x00000004 Laser power
-+  0x00000008 AE mode
-+  0x00000010 Exposure priority
-+  0x00000020 AE ROI
-+  0x00000040 Preset
-+
-+.. _3:
-+
-+[3] Capture Timing flags specify, which fields are valid: ::
-+
-+  0x00000001 Frame counter
-+  0x00000002 Optical time
-+  0x00000004 Readout time
-+  0x00000008 Exposure time
-+  0x00000010 Frame interval
-+  0x00000020 Pipe latency
-+
-+.. _4:
-+
-+[4] Configuration flags specify, which fields are valid: ::
-+
-+  0x00000001 Hardware type
-+  0x00000002 SKU ID
-+  0x00000004 Cookie
-+  0x00000008 Format
-+  0x00000010 Width
-+  0x00000020 Height
-+  0x00000040 Framerate
-+  0x00000080 Trigger
-+  0x00000100 Cal count
-+
-+.. _5:
-+
-+[5] Camera model: ::
-+
-+  0 DS5
-+  1 IVCAM2
-+
-+.. _6:
-+
-+[6] 8-bit camera hardware configuration bitfield: ::
-+
-+  [1:0] depthCamera
-+	00: no depth
-+	01: standard depth
-+	10: wide depth
-+	11: reserved
-+  [2]   depthIsActive - has a laser projector
-+  [3]   RGB presence
-+  [4]   IMU presence
-+  [5]   projectorType
-+	0: HPTG
-+	1: Princeton
-+  [6]   0: a projector, 1: an LED
-+  [7]   reserved
-+
-+.. _7:
-+
-+[7] Image format codes per camera interface:
-+
-+Depth: ::
-+
-+  1 Z16
-+  2 Z
-+
-+Left sensor: ::
-+
-+  1 Y8
-+  2 UYVY
-+  3 R8L8
-+  4 Calibration
-+  5 W10
-+
-+Fish Eye sensor: ::
-+
-+  1 RAW8
-diff --git a/drivers/media/usb/uvc/uvc_driver.c b/drivers/media/usb/uvc/uvc_driver.c
-index 36061f3..30dbbbf 100644
---- a/drivers/media/usb/uvc/uvc_driver.c
-+++ b/drivers/media/usb/uvc/uvc_driver.c
-@@ -2346,6 +2346,8 @@ static int uvc_clock_param_set(const char *val, struct kernel_param *kp)
- };
- 
- #define UVC_QUIRK_INFO(q) (kernel_ulong_t)&(struct uvc_device_info){.quirks = q}
-+#define UVC_QUIRK_META(m) (kernel_ulong_t)&(struct uvc_device_info) \
-+	{.meta_format = m}
- 
- /*
-  * The Logitech cameras listed below have their interface class set to
-@@ -2810,6 +2812,15 @@ static int uvc_clock_param_set(const char *val, struct kernel_param *kp)
- 	  .bInterfaceSubClass	= 1,
- 	  .bInterfaceProtocol	= 0,
- 	  .driver_info		= (kernel_ulong_t)&uvc_quirk_force_y8 },
-+	/* Intel RealSense D4M */
-+	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
-+				| USB_DEVICE_ID_MATCH_INT_INFO,
-+	  .idVendor		= 0x8086,
-+	  .idProduct		= 0x0b03,
-+	  .bInterfaceClass	= USB_CLASS_VIDEO,
-+	  .bInterfaceSubClass	= 1,
-+	  .bInterfaceProtocol	= 0,
-+	  .driver_info		= UVC_QUIRK_META(V4L2_META_FMT_D4XX) },
- 	/* Generic USB Video Class */
- 	{ USB_INTERFACE_INFO(USB_CLASS_VIDEO, 1, UVC_PC_PROTOCOL_UNDEFINED) },
- 	{ USB_INTERFACE_INFO(USB_CLASS_VIDEO, 1, UVC_PC_PROTOCOL_15) },
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 0d07b2d..7d3fbc6 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -688,6 +688,7 @@ struct v4l2_pix_format {
- #define V4L2_META_FMT_VSP1_HGO    v4l2_fourcc('V', 'S', 'P', 'H') /* R-Car VSP1 1-D Histogram */
- #define V4L2_META_FMT_VSP1_HGT    v4l2_fourcc('V', 'S', 'P', 'T') /* R-Car VSP1 2-D Histogram */
- #define V4L2_META_FMT_UVC         v4l2_fourcc('U', 'V', 'C', 'H') /* UVC Payload Header metadata */
-+#define V4L2_META_FMT_D4XX        v4l2_fourcc('D', '4', 'X', 'X') /* D4XX Payload Header metadata */
- 
- /* priv field value to indicates that subsequent fields are valid. */
- #define V4L2_PIX_FMT_PRIV_MAGIC		0xfeedcafe
--- 
-1.9.3
+I'm puzzled, why can't we support V4L2_FIELD_ALTERNATE if we can support=20
+V4L2_FIELD_TOP and V4L2_FIELD_BOTTOM ? I don't dispute the fact that the=20
+currently implemented logic might be wrong (although I haven't double-check=
+ed=20
+that), but what prevents us from implementing it correctly ?
+
+> The height should not be cut in half for the format for TOP or BOTTOM
+> fields settings. This was a mistake and it was made visible by the
+> scaling refactoring. Correct behavior is that the user should request a
+> frame size that fits the half height frame reflected in the field
+> setting. If not the VIN will do its best to scale the top or bottom to
+> the requested format and cropping and scaling do not work as expected.
+>=20
+> Signed-off-by: Niklas S=F6derlund <niklas.soderlund+renesas@ragnatech.se>
+> Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  drivers/media/platform/rcar-vin/rcar-dma.c  | 15 +--------
+>  drivers/media/platform/rcar-vin/rcar-v4l2.c | 48 ++++++++++-------------=
+=2D--
+>  2 files changed, 19 insertions(+), 44 deletions(-)
+>=20
+> diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c
+> b/drivers/media/platform/rcar-vin/rcar-dma.c index
+> 7be5080f742825fb..e6478088d9464221 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-dma.c
+> +++ b/drivers/media/platform/rcar-vin/rcar-dma.c
+> @@ -617,7 +617,6 @@ static int rvin_setup(struct rvin_dev *vin)
+>  	case V4L2_FIELD_INTERLACED_BT:
+>  		vnmc =3D VNMC_IM_FULL | VNMC_FOC;
+>  		break;
+> -	case V4L2_FIELD_ALTERNATE:
+>  	case V4L2_FIELD_NONE:
+>  		if (vin->continuous) {
+>  			vnmc =3D VNMC_IM_ODD_EVEN;
+> @@ -757,18 +756,6 @@ static int rvin_get_active_slot(struct rvin_dev *vin,
+> u32 vnms) return 0;
+>  }
+>=20
+> -static enum v4l2_field rvin_get_active_field(struct rvin_dev *vin, u32
+> vnms)
+> -{
+> -	if (vin->format.field =3D=3D V4L2_FIELD_ALTERNATE) {
+> -		/* If FS is set it's a Even field */
+> -		if (vnms & VNMS_FS)
+> -			return V4L2_FIELD_BOTTOM;
+> -		return V4L2_FIELD_TOP;
+> -	}
+> -
+> -	return vin->format.field;
+> -}
+> -
+>  static void rvin_set_slot_addr(struct rvin_dev *vin, int slot, dma_addr_t
+> addr) {
+>  	const struct rvin_video_format *fmt;
+> @@ -941,7 +928,7 @@ static irqreturn_t rvin_irq(int irq, void *data)
+>  		goto done;
+>=20
+>  	/* Capture frame */
+> -	vin->queue_buf[slot]->field =3D rvin_get_active_field(vin, vnms);
+> +	vin->queue_buf[slot]->field =3D vin->format.field;
+>  	vin->queue_buf[slot]->sequence =3D sequence;
+>  	vin->queue_buf[slot]->vb2_buf.timestamp =3D ktime_get_ns();
+>  	vb2_buffer_done(&vin->queue_buf[slot]->vb2_buf, VB2_BUF_STATE_DONE);
+> diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c
+> b/drivers/media/platform/rcar-vin/rcar-v4l2.c index
+> 9cf9ff48ac1e2f4f..37fe1f6c646b0ea3 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
+> +++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+> @@ -102,6 +102,24 @@ static int rvin_get_sd_format(struct rvin_dev *vin,
+> struct v4l2_pix_format *pix) if (ret)
+>  		return ret;
+>=20
+> +	switch (fmt.format.field) {
+> +	case V4L2_FIELD_TOP:
+> +	case V4L2_FIELD_BOTTOM:
+> +	case V4L2_FIELD_NONE:
+> +	case V4L2_FIELD_INTERLACED_TB:
+> +	case V4L2_FIELD_INTERLACED_BT:
+> +	case V4L2_FIELD_INTERLACED:
+> +		break;
+> +	case V4L2_FIELD_ALTERNATE:
+> +		/* Use VIN hardware to combine the two fields */
+> +		fmt.format.field =3D V4L2_FIELD_INTERLACED;
+> +		fmt.format.height *=3D 2;
+> +		break;
+
+I don't think this is right. If V4L2_FIELD_ALTERNATE isn't supported it sho=
+uld=20
+be rejected in the set format handler, or rather this logic should be moved=
+=20
+there. It doesn't belong here, rvin_get_sd_format() should only be called w=
+ith=20
+a validated and supported field.
+
+=46urthermore treating the pix parameter of this function as both input and=
+=20
+output seems very confusing to me. If you want to extend rvin_get_sd_format=
+()=20
+beyond just getting the format from the subdev then please document the=20
+function with kerneldoc, and let's try to make its API clear.
+
+> +	default:
+> +		vin->format.field =3D V4L2_FIELD_NONE;
+> +		break;
+> +	}
+> +
+>  	v4l2_fill_pix_format(pix, &fmt.format);
+>=20
+>  	return 0;
+> @@ -115,33 +133,6 @@ static int rvin_reset_format(struct rvin_dev *vin)
+>  	if (ret)
+>  		return ret;
+>=20
+> -	/*
+> -	 * If the subdevice uses ALTERNATE field mode and G_STD is
+> -	 * implemented use the VIN HW to combine the two fields to
+> -	 * one INTERLACED frame. The ALTERNATE field mode can still
+> -	 * be requested in S_FMT and be respected, this is just the
+> -	 * default which is applied at probing or when S_STD is called.
+> -	 */
+> -	if (vin->format.field =3D=3D V4L2_FIELD_ALTERNATE &&
+> -	    v4l2_subdev_has_op(vin_to_source(vin), video, g_std))
+> -		vin->format.field =3D V4L2_FIELD_INTERLACED;
+> -
+> -	switch (vin->format.field) {
+> -	case V4L2_FIELD_TOP:
+> -	case V4L2_FIELD_BOTTOM:
+> -	case V4L2_FIELD_ALTERNATE:
+> -		vin->format.height /=3D 2;
+> -		break;
+> -	case V4L2_FIELD_NONE:
+> -	case V4L2_FIELD_INTERLACED_TB:
+> -	case V4L2_FIELD_INTERLACED_BT:
+> -	case V4L2_FIELD_INTERLACED:
+> -		break;
+> -	default:
+> -		vin->format.field =3D V4L2_FIELD_NONE;
+> -		break;
+> -	}
+> -
+>  	vin->crop.top =3D vin->crop.left =3D 0;
+>  	vin->crop.width =3D vin->format.width;
+>  	vin->crop.height =3D vin->format.height;
+> @@ -226,9 +217,6 @@ static int __rvin_try_format(struct rvin_dev *vin,
+>  	switch (pix->field) {
+>  	case V4L2_FIELD_TOP:
+>  	case V4L2_FIELD_BOTTOM:
+> -	case V4L2_FIELD_ALTERNATE:
+> -		pix->height /=3D 2;
+> -		break;
+>  	case V4L2_FIELD_NONE:
+>  	case V4L2_FIELD_INTERLACED_TB:
+>  	case V4L2_FIELD_INTERLACED_BT:
+
+=2D-=20
+Regards,
+
+Laurent Pinchart
