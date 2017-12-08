@@ -1,434 +1,1033 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:60073 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751385AbdLAMAK (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 1 Dec 2017 07:00:10 -0500
-Date: Fri, 1 Dec 2017 09:59:54 -0200
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: =?UTF-8?B?zpHOuM6xzr3OrM+DzrnOv8+CIM6fzrnOus6/zr3PjM68zr/PhQ==?=
-        <athoik@gmail.com>
-Cc: Ralph Metzler <rjkm@metzlerbros.de>, linux-media@vger.kernel.org
-Subject: Re: DVB-S2 and S2X API extensions
-Message-ID: <20171201095954.3ed1e44f@vento.lan>
-In-Reply-To: <CANDbA3frfuZA420Xmy=rLK9-pRDv1=Uk+73iFVVCCG0fOjUscg@mail.gmail.com>
-References: <23044.29714.500132.822313@morden.metzler>
-        <20171111082231.57cd5537@vela.lan>
-        <23058.10847.150727.997348@morden.metzler>
-        <20171130162626.18125431@vento.lan>
-        <CANDbA3frfuZA420Xmy=rLK9-pRDv1=Uk+73iFVVCCG0fOjUscg@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Received: from mailout2.samsung.com ([203.254.224.25]:21094 "EHLO
+        mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753377AbdLHJhV (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 8 Dec 2017 04:37:21 -0500
+From: Smitha T Murthy <smitha.t@samsung.com>
+To: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Cc: kyungmin.park@samsung.com, kamil@wypas.org, jtp.park@samsung.com,
+        a.hajda@samsung.com, mchehab@kernel.org, pankaj.dubey@samsung.com,
+        krzk@kernel.org, m.szyprowski@samsung.com, s.nawrocki@samsung.com,
+        Smitha T Murthy <smitha.t@samsung.com>
+Subject: [Patch v6 11/12] [media] s5p-mfc: Add support for HEVC encoder
+Date: Fri, 08 Dec 2017 14:38:24 +0530
+Message-id: <1512724105-1778-12-git-send-email-smitha.t@samsung.com>
+In-reply-to: <1512724105-1778-1-git-send-email-smitha.t@samsung.com>
+References: <1512724105-1778-1-git-send-email-smitha.t@samsung.com>
+        <CGME20171208093704epcas2p2e68f7f354baf84c32f7d0313e9c6af44@epcas2p2.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 30 Nov 2017 23:15:40 +0200
-Αθανάσιος Οικονόμου         <athoik@gmail.com> escreveu:
+Add HEVC encoder support and necessary registers, V4L2 CIDs,
+and hevc encoder parameters
 
-> 2017-11-30 20:26 GMT+02:00 Mauro Carvalho Chehab <mchehab@s-opensource.com>:
-> > Em Mon, 20 Nov 2017 02:05:35 +0100
-> > Ralph Metzler <rjkm@metzlerbros.de> escreveu:
-> >  
-> >> Hi,  
-> >
-> > (C/C Athanasios, as he also rised concerns about S2X).  
-> >>
-> >> Mauro Carvalho Chehab writes:  
-> >>  > Em Thu, 9 Nov 2017 16:28:18 +0100
-> >>  > Ralph Metzler <rjkm@metzlerbros.de> escreveu:
-> >>  >  
-> >>  > > Hi,
-> >>  > >
-> >>  > > I have a few RFCs regarding new needed enums and
-> >>  > > properties for DVB-S2 and DVB-S2X:
-> >>  > >
-> >>  > > - DVB-S2/X physical layer scrambling
-> >>  > >
-> >>  > > I currently use the inofficial DTV_PLS for setting the scrambling
-> >>  > > sequence index (cf. ETSI EN 300 468 table 41) of
-> >>  > > the physical layer scrambling in DVB-S2 and DVB-S2X.
-> >>  > > Some drivers already misuse bits 8-27 of the DTV_STREAM_ID
-> >>  > > for setting this. They also differentiate between gold, root
-> >>  > > and combo codes.
-> >>  > > The gold code is the actual scrambling sequence index.
-> >>  > > The root code is just an intermediate calculation
-> >>  > > accepted by some chips, but derived from the gold code.
-> >>  > > It can be easily mapped one-to-one to the gold code.
-> >>  > > (see https://github.com/DigitalDevices/dddvb/blob/master/apps/pls.c,
-> >>  > > A more optimized version of this could be added to dvb-math.c)
-> >>  > > The combo code does not really exist but is a by-product
-> >>  > > of the buggy usage of a gold to root code conversion in ST chips.
-> >>  > >
-> >>  > > So, I would propose to officially introduce a property
-> >>  > > for the scrambling sequence index (=gold code).
-> >>  > > Should it be called DTV_PLS (which I already used in the dddvb package)
-> >>  > > or rather DTV_SSI?
-> >>  > > I realized PLS can be confused with physical layer signalling which
-> >>  > > uses the acronym PLS in the DVB-S2 specs.  
-> >>  >
-> >>  > Yes, it makes sense to have a DTV property for the PLS gold code.
-> >>  >
-> >>  > I would prefer to use a clearer name, like DTV_PLS_GOLD_CODE,
-> >>  > to make easier to identify what it means.
-> >>  >
-> >>  > At documentation, we should point to EN 302 307 section 5.5.4 and
-> >>  > to EN 300 468 table 41, with a good enough description to make
-> >>  > clear that it is the gold code, and not the root code (or
-> >>  > a chipset-specific "combo" code).  
-> >>
-> >> If we use a long descriptive name, DTV_SCRAMBLING_SEQUENCE_INDEX might
-> >> be better because it is the actual name used for it in the documentation
-> >> and SI fields.  
-> >
-> > I'm OK with that.
-> >  
-> >> And, to make it absolutely clear, the combo code is not just a
-> >> chipset-specific code, it is utter BS!
-> >> Here is why (sorry for the lengthy explanation):
-> >>
-> >> The STV090X/0910 chips have 3 8-bit registers for setting the
-> >> root code called PLROOT0, PLROOT1 and PLROOT2.
-> >> The code has 18 bits. So PLROOT0, PLROOT1 and the lower 2 bits
-> >> (bits 0 and 1) of PLROOT2 are the root code.
-> >> Bits 2 and 3 of PLROOT2 determine a mode with the following
-> >> 3 possible values:
-> >> 0 = the 18 bits are the root code
-> >> 1 = the 18 bits are the gold code
-> >> 2 = if you write the gold code to the 18 bits, they will
-> >>     be converted to the root code and you can then
-> >>     read them back, mode will be changed to 0 after
-> >>     conversion
-> >>
-> >> This mode 2 is what somebody called "combo code".
-> >> But why is it seen as a different code? It should
-> >> behave just identical to writing a gold code!
-> >> Because some Linux drivers, probably also some
-> >> Windows drivers, first write PLROOT2, then PLROOT1 and
-> >> PLROOT0, also in the case of mode 2.
-> >> Writing the 2 in the mode bits actually triggers the
-> >> gold->root conversion and this conversion takes some time!
-> >>
-> >> So, the conversion is triggered by the write to PLROOT2
-> >> even though PLROOT1 and PLROOT0 have not yet been written.
-> >> Depending on many factors like I2C write speed, the
-> >> computer speed, other tasks running, etc. and especially also
-> >> the previous values of PLROOT1 and PLROOT2, you will get
-> >> varying results after the conversion.
-> >> The length of the conversion also depends on the size of
-> >> the gold code.
-> >> For small gold codes the conversion is so fast that
-> >> it is finished before PLROOT1 and PLROOT2 are written.
-> >> The lower 16 bits of the conversion results will actually be overwritten
-> >> again! For larger gold codes only the lower 8 bits, etc.
-> >>
-> >> Think about all the race conditions and wrong initial values in this
-> >> process and everybody please forget about "combo code"!  
-> >
-> > Yeah, it sounds messy ;-)
-> >  
-> >>  > > DVB-S2X also defines 7 preferred scrambling code sequences
-> >>  > > (EN 302 307-2 5.5.4) which should be checked during tuning.
-> >>  > > If the demod does not do this, should the DVB kernel layer or
-> >>  > > application do this?  
-> >>  >
-> >>  > IMHO, it should be up to the kernel to check if the received
-> >>  > gold code is one of those 7 codes from EM 302 307 part 2 spec,
-> >>  > if the delivery system is DVB_S2X (btw, we likely need to add it
-> >>  > to the list of delivery systems). Not sure what would be the
-> >>  > best way to implement it. Perhaps via some ancillary routine
-> >>  > that the demods would be using.
-> >>  >  
-> >>  > > - slices
-> >>  > >
-> >>  > > DVB-S2 and DVB-C2, additionally to ISI/PLP, also can have
-> >>  > > slicing. For DVB-C2 I currently use bits 8-15 of DTV_STREAM_ID as slice id.  
-> >>  >
-> >>  > Better to use a separate property for that. On the documentation
-> >>  > patches I wrote, I made clear that, for DVB-S2, only 8 bits of
-> >>  > DTV_STREAM_ID are valid.
-> >>  >
-> >>  > We need to add DVB-C2 delivery system and update documentation
-> >>  > accordingly. I made an effort to document, per DTV property,
-> >>  > what delivery systems accept them, and what are the valid
-> >>  > values, per standard.
-> >>  >  
-> >>  > > For DVB-S2/X the misuse of bits 8-27 by some drivers for selecting
-> >>  > > the scrambling sequence index code could cause problems.
-> >>  > > Should there be a new property for slice selection?  
-> >>  >
-> >>  > Yes.
-> >>  >  
-> >>  > > It is recommended that slice id and ISI/PLP id are identical but they
-> >>  > > can be different.  
-> >>  >
-> >>  > The new property should reserve a value (0 or (unsigned)-1) to mean "AUTO",
-> >>  > in the sense that slice ID will be identical to ISI/PLP, being the default.
-> >>  >  
-> >>  > > - new DVB-S2X features
-> >>  > >
-> >>  > > DVB-S2X needs some more roll-offs, FECs and modulations. I guess adding those
-> >>  > > should be no problem?  
-> >>  >
-> >>  > Yes, just adding those are OK. We should just document what values are
-> >>  > valid for DVB-S2X at the spec.
-> >>  >
-> >>  > Ok, this is actually already at the specs, but it helps application
-> >>  > developers to ensure that their apps will only send valid values to the
-> >>  > Kernel, if we keep such information at the uAPI documentation.
-> >>  >  
-> >>  > > Do we need FE_CAN_SLICES, FE_CAN_3G_MODULATION, etc?  
-> >>  >
-> >>  > That is a good question. On my opinion, yes, we should add new
-> >>  > capabilities there, but we're out of space at the u32 caps that we
-> >>  > use for capabilities (there are other missing caps there for other
-> >>  > new standards).
-> >>  >
-> >>  > We could start using a DTV property for capabilities, or define
-> >>  > a variant of FE_GET_INFO that would use an u64 value for
-> >>  > the caps field.
-> >>  >  
-> >>  > > Or would a new delivery system type for S2X make sense?  
-> >>  >
-> >>  > IMHO, it makes sense to have a new delivery system type for S2X.
-> >>  > A FE_CAN_3G_MODULATION (and, in the future, CAN_4G, CAN_5G, ...)
-> >>  > could work too, but not sure how this would scale in the future,
-> >>  > as support for older variants could be removed from some devices,
-> >>  > e. g. a given demod could, for instance, support 3G, 4G and 5G
-> >>  > but won't be able to work with 1G or 2G.
-> >>  >
-> >>  > My guess is that multiple delivery systems would scale better.  
-> >>
-> >>
-> >> In the case of DVB-S2X I am not sure anymore if this is really a new
-> >> delivery system. S2X only consists of extensions to S2.
-> >> E.g., some modcods which were optional for DVB-S2 were made
-> >> mandatory for DVB-S2X (so they are rather just a capability like
-> >> multi-stream), other modcods are new in S2X.
-> >> Features like slicing are even just an optional annex to S2 and not
-> >> part of S2X.  
-> >
-> > Yeah, I won't doubt that some day, we may end by having a DVB-S3, but, for
-> > now, it looks more like an extension to DVB-S2. Btw, DVB turbo also somewhat
-> > falls on a similar case: it is just an extension to DVB-S.
-> >
-> > That's by the way why I think that a CAN_GEN3 flag is a bad idea: it is not
-> > clear when we should increment the generation number, and we might end by
-> > having a DVB-S3 associated with CAN_GEN4.
-> >
-> > So, IMHO, the best would be to choose between:
-> >
-> > 1) name it as DVB_S2X;
-> > 2) add one FE_CAN capability for every supported feature.
-> >
-> > I suspect that (2) would be easier for userspace to support, as it can always
-> > discard a channel transponder if the modulation doesn't match a capability
-> > mask.
-> >
-> > The issue here is that we won't have enough space at
-> > enum fe_caps.
-> >
-> > Right now, we only have 2 bits available, between those:
-> >
-> >         FE_HAS_EXTENDED_CAPS            = 0x800000,
-> >         FE_CAN_MULTISTREAM              = 0x4000000,
-> >
-> > Well, I guess FE_HAS_EXTENDED_CAPS were meant to say that the capabilities
-> > should be read elsewhere, but this is not backward-compatible. Anyway,
-> > even if we reuse it, we have just 3 bits left.
-> >
-> > That's for sure not enough to add one capability per modulation
-> > or per FEC type.
-> >  
-> 
-> Exactly one of the problems we are currently having especially with
-> frontends supporting more than one delsys.
-> 
-> We have and S2/S/T2/C capable frontend, and T2 is capable for
-> multistream, so the multistream is enabled on caps.
-> 
-> Now the userspace is now aware if the multistream refers to specific
-> modulation, so in order to be precise you need to make
-> assumptions based on frontend name!
+Signed-off-by: Smitha T Murthy <smitha.t@samsung.com>
+---
+ drivers/media/platform/s5p-mfc/regs-mfc-v10.h   |  28 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc.c        |   1 +
+ drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c |   3 +
+ drivers/media/platform/s5p-mfc/s5p_mfc_common.h |  54 ++-
+ drivers/media/platform/s5p-mfc/s5p_mfc_enc.c    | 534 ++++++++++++++++++++++++
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr.h    |   8 +
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c | 182 ++++++++
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h |   8 +
+ 8 files changed, 816 insertions(+), 2 deletions(-)
 
-I see. Yeah, the information provided by FE_GET_INFO is not
-perfect when multiple delivery systems are supported.
-
-> 
-> > -
-> >
-> > Just as a brainstorming, perhaps we should consider using a
-> > dvb_frontend_info_v2. Something like:
-> >
-> > struct dvb_frontend_info_v2 {
-> >         char       name[128];
-> >
-> >         // Frequencies in Hz for all standards
-> >
-> >         __u64      frequency_min;
-> >         __u64      frequency_max;
-> >         __u64      frequency_stepsize;
-> >         __u64      frequency_tolerance;
-> >
-> >         __u32      symbol_rate_min;
-> >         __u32      symbol_rate_max;
-> >         __u32      symbol_rate_tolerance;
-> >
-> >         __u64      fe_general_flags;            // IS_STUPID, INVERSION_AUTO(?), and all the remaining FOO_AUTO flags
-> >         __u64      supported_standards;         // perhaps a bitmask of supported standards would be interesting here?
-> >         __u64      fe_modulation_flags;         // only modulation types: 8VSB, 16QAM, ...
-> >         __u64      fe_modulation_auto_flags;    // subset of fe_modulation_flags. Indicate what modulations are autodetected
-> >         __u64      fe_fec_flags;                // can FEC 1/2, 3/4, ...
-> >         __u64      fe_guard_interval_flags;
-> >         __u64      fe_transmission_mode_flags;
-> >         // should we need flags also for hierarchy and interleaving mode?
-> > };
-
-This wouldn't solve the multiple delivery systems you pointed above.
-
-It would solve one other problem we have though: frontends capable of
-both satellite and non-satellite delivery systems need two separate
-frontend entries, because frequencies for satellite are specified in
-kHz.
-
-> >
-> > Another alternative would be to have a set of properties that would be
-> > querying for valid values for a given parameter, e. g. userspace would
-> > send a request like:
-> >
-> >         struct dtv_get_info {
-> >                 __u32 delsys;
-> >                 __u32 property;
-> >                 __u64 supported_bitmask;
-> >                 __u64 auto_bitmask;
-> >         } __attribute__ ((packed));
-> >
-> >         struct dtv_property {
-> >                 __u32 cmd;
-> >                 __u32 reserved[3];
-> >                 union {
-> >                         __u32 data;
-> >                         struct dtv_fe_stats st;
-> >                         struct {
-> >                                 __u8 data[32];
-> >                                 __u32 len;
-> >                                 __u32 reserved1[3];
-> >                                 void *reserved2;
-> >                         } buffer;
-> >                         struct dtv_get_info info;
-> >                 }
-> >         } u;
-> >         int result;
-> > } __attribute__ ((packed));
-> >
-> >
-> > Filling it like:
-> >
-> >         cmd = DTV_FE_CAPABILITY
-> >         delsys = SYS_DVBS2
-> >         u.info.property = DTV_MODULATION
-> >
-> > At return, if the property is supported for the delivery system,
-> > it would return with supported_bitmask and auto_bitmask filled
-> > with a bitmask associated with such property.
-
-One issue with this approach is how will we pass the other
-FE_GET_INFO data (name, frequency range, symbol rate range).
-Such parameters are unique per frontend.
-
-> > As multiple properties can be filled at the same time, just one
-> > ioctl() call should be enough to replace FE_GET_INFO.
-> >  
-> 
-> That sounds promising! Having something that can be easily extendable
-> (like DELSYS introduced to cover the need to new delivery systems) is
-> the way to go.
-
-Yes, that makes sense, at least for parameters that are dependent on
-the delivery system.
-
-> 
-> 
-> >>  > > -DVB-S2 base band frame support
-> >>  > >
-> >>  > > There are some older patches which allowed to switch the demod
-> >>  > > to a raw BB frame mode (if it and the bridge support this) and
-> >>  > > have those parsed in the DVB layer.
-> >>  > >
-> >>  > > See
-> >>  > > https://patchwork.linuxtv.org/patch/10402/
-> >>  > > or
-> >>  > > https://linuxtv.org/pipermail/linux-dvb/2007-December/022217.html
-> >>  > >
-> >>  > > Chris Lee seems to have a tree based on those:
-> >>  > > https://bitbucket.org/updatelee/v4l-updatelee
-> >>  > >
-> >>  > >
-> >>  > > Another method to support this is to wrap the BB frames
-> >>  > > into sections and deliver them as a normal transport stream.
-> >>  > > Some demods and/or PCIe bridges support this in hardware.
-> >>  > > This has the advantage that it would even work with SAT>IP.
-> >>  > >
-> >>  > > How should the latter method be supported in the DVB API?
-> >>  > > With a special stream id or separate porperty?
-> >>  > > Switching to this mode could even be done automatically
-> >>  > > in case of non-TS streams.  
-> >>  >
-> >>  > That's a very good question.
-> >>  >
-> >>  > I guess we'll need to add support at the demux API to inform/select
-> >>  > the output format anyway, in order to support, for example, ATSC
-> >>  > version 3, with is based on MMT, instead of MPEG-TS.
-> >>  >
-> >>  > One thing that it is on my todo list for a while (with very low priority)
-> >>  > would be to allow userspace to select between 188 or 204 packet sizes,
-> >>  > as recording full mpeg-TS with 204 size makes easy to reproduce ISDB-T
-> >>  > data on my Dectec RF modulators :-) The dtplay default command line
-> >>  > application doesn't allow specifying layer information (there is a fork
-> >>  > of it that does, though). Yet, as this would require to change the
-> >>  > ISDB-T demod as well to be useful (and this is just meant to
-> >>  > avoid me the need to run the MS application), this is something that I've
-> >>  > been systematically postponing, in favor of things that would be more
-> >>  > useful for the general audience.
-> >>  >
-> >>  > Anyway, IMHO, it is time to work at the demux API to add a way to list
-> >>  > what kind of output types it supports and to let userspace select the
-> >>  > one that it is more adequate for its usecase, if multiple ones are
-> >>  > supported.  
-> >>
-> >>
-> >> For the BB frame wrapping in sections I wrote about above I only need
-> >> a selection switch and no changes to the demux.
-> >> The wrapping is all done in hardware.
-> >>
-> >> But you are right, more flexibility in the demux API could be useful
-> >> for the 204 byte packets you mentioned, other formats which contain
-> >> timestamp headers, MMT, etc.  
-> >
-> >
-> > Yes.
-> >
-> >
-> > Thanks,
-> > Mauro  
-> 
-> Thanks for your great suggestions guys. I would really like to see
-> patches for above improvements.
-> 
-> I have never send before a patch to linux-media, so I think can try
-> sending a proper patch for the new code rate and modulations, if Ralph
-> is not up to it already.
-
-Whatever works best. Most of the rules for patch submission are at linuxtv
-wiki pages.
-
-There are a few other rules that apply for new API submissions:
-
-1) at least one real driver should use it. The rationale is that
-   it helps others to see how the API should be implemented, and
-   to test it;
-
-2) both kernelspace and userspace APIs should be documented under
-   Documentation/media.
-
-Thanks,
-Mauro
+diff --git a/drivers/media/platform/s5p-mfc/regs-mfc-v10.h b/drivers/media/platform/s5p-mfc/regs-mfc-v10.h
+index 6754477..7065b9d 100644
+--- a/drivers/media/platform/s5p-mfc/regs-mfc-v10.h
++++ b/drivers/media/platform/s5p-mfc/regs-mfc-v10.h
+@@ -20,13 +20,35 @@
+ #define S5P_FIMV_MFC_STATE_V10				0x7124
+ #define S5P_FIMV_D_STATIC_BUFFER_ADDR_V10		0xF570
+ #define S5P_FIMV_D_STATIC_BUFFER_SIZE_V10		0xF574
++#define S5P_FIMV_E_NUM_T_LAYER_V10			0xFBAC
++#define S5P_FIMV_E_HIERARCHICAL_QP_LAYER0_V10		0xFBB0
++#define S5P_FIMV_E_HIERARCHICAL_QP_LAYER1_V10		0xFBB4
++#define S5P_FIMV_E_HIERARCHICAL_QP_LAYER2_V10		0xFBB8
++#define S5P_FIMV_E_HIERARCHICAL_QP_LAYER3_V10		0xFBBC
++#define S5P_FIMV_E_HIERARCHICAL_QP_LAYER4_V10		0xFBC0
++#define S5P_FIMV_E_HIERARCHICAL_QP_LAYER5_V10		0xFBC4
++#define S5P_FIMV_E_HIERARCHICAL_QP_LAYER6_V10		0xFBC8
++#define S5P_FIMV_E_HIERARCHICAL_BIT_RATE_LAYER0_V10	0xFD18
++#define S5P_FIMV_E_HIERARCHICAL_BIT_RATE_LAYER1_V10	0xFD1C
++#define S5P_FIMV_E_HIERARCHICAL_BIT_RATE_LAYER2_V10	0xFD20
++#define S5P_FIMV_E_HIERARCHICAL_BIT_RATE_LAYER3_V10	0xFD24
++#define S5P_FIMV_E_HIERARCHICAL_BIT_RATE_LAYER4_V10	0xFD28
++#define S5P_FIMV_E_HIERARCHICAL_BIT_RATE_LAYER5_V10	0xFD2C
++#define S5P_FIMV_E_HIERARCHICAL_BIT_RATE_LAYER6_V10	0xFD30
++#define S5P_FIMV_E_HEVC_OPTIONS_V10			0xFDD4
++#define S5P_FIMV_E_HEVC_REFRESH_PERIOD_V10		0xFDD8
++#define S5P_FIMV_E_HEVC_CHROMA_QP_OFFSET_V10		0xFDDC
++#define S5P_FIMV_E_HEVC_LF_BETA_OFFSET_DIV2_V10		0xFDE0
++#define S5P_FIMV_E_HEVC_LF_TC_OFFSET_DIV2_V10		0xFDE4
++#define S5P_FIMV_E_HEVC_NAL_CONTROL_V10			0xFDE8
+ 
+ /* MFCv10 Context buffer sizes */
+ #define MFC_CTX_BUF_SIZE_V10		(30 * SZ_1K)
+ #define MFC_H264_DEC_CTX_BUF_SIZE_V10	(2 * SZ_1M)
+ #define MFC_OTHER_DEC_CTX_BUF_SIZE_V10	(20 * SZ_1K)
+ #define MFC_H264_ENC_CTX_BUF_SIZE_V10	(100 * SZ_1K)
+-#define MFC_OTHER_ENC_CTX_BUF_SIZE_V10	(15 * SZ_1K)
++#define MFC_HEVC_ENC_CTX_BUF_SIZE_V10	(30 * SZ_1K)
++#define MFC_OTHER_ENC_CTX_BUF_SIZE_V10  (15 * SZ_1K)
+ 
+ /* MFCv10 variant defines */
+ #define MAX_FW_SIZE_V10		(SZ_1M)
+@@ -58,5 +80,9 @@
+ #define ENC_V100_VP8_ME_SIZE(x, y) \
+ 	ENC_V100_BASE_SIZE(x, y)
+ 
++#define ENC_V100_HEVC_ME_SIZE(x, y)	\
++	(((x + 3) * (y + 3) * 32)	\
++	 + ((y * 128) + 1280) * DIV_ROUND_UP(x, 4))
++
+ #endif /*_REGS_MFC_V10_H*/
+ 
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+index 318df39..77d1add 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+@@ -1619,6 +1619,7 @@ static struct s5p_mfc_buf_size_v6 mfc_buf_size_v10 = {
+ 	.h264_dec_ctx   = MFC_H264_DEC_CTX_BUF_SIZE_V10,
+ 	.other_dec_ctx  = MFC_OTHER_DEC_CTX_BUF_SIZE_V10,
+ 	.h264_enc_ctx   = MFC_H264_ENC_CTX_BUF_SIZE_V10,
++	.hevc_enc_ctx   = MFC_HEVC_ENC_CTX_BUF_SIZE_V10,
+ 	.other_enc_ctx  = MFC_OTHER_ENC_CTX_BUF_SIZE_V10,
+ };
+ 
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c b/drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c
+index 102b47e..7521fce 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c
+@@ -122,6 +122,9 @@ static int s5p_mfc_open_inst_cmd_v6(struct s5p_mfc_ctx *ctx)
+ 	case S5P_MFC_CODEC_VP8_ENC:
+ 		codec_type = S5P_FIMV_CODEC_VP8_ENC_V7;
+ 		break;
++	case S5P_MFC_CODEC_HEVC_ENC:
++		codec_type = S5P_FIMV_CODEC_HEVC_ENC;
++		break;
+ 	default:
+ 		codec_type = S5P_FIMV_CODEC_NONE_V6;
+ 	}
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
+index b49f220..81ad00a 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
+@@ -61,7 +61,7 @@
+ #define MFC_ENC_CAP_PLANE_COUNT	1
+ #define MFC_ENC_OUT_PLANE_COUNT	2
+ #define STUFF_BYTE		4
+-#define MFC_MAX_CTRLS		77
++#define MFC_MAX_CTRLS		128
+ 
+ #define S5P_MFC_CODEC_NONE		-1
+ #define S5P_MFC_CODEC_H264_DEC		0
+@@ -80,6 +80,7 @@
+ #define S5P_MFC_CODEC_MPEG4_ENC		22
+ #define S5P_MFC_CODEC_H263_ENC		23
+ #define S5P_MFC_CODEC_VP8_ENC		24
++#define S5P_MFC_CODEC_HEVC_ENC		26
+ 
+ #define S5P_MFC_R2H_CMD_EMPTY			0
+ #define S5P_MFC_R2H_CMD_SYS_INIT_RET		1
+@@ -215,6 +216,7 @@ struct s5p_mfc_buf_size_v6 {
+ 	unsigned int h264_dec_ctx;
+ 	unsigned int other_dec_ctx;
+ 	unsigned int h264_enc_ctx;
++	unsigned int hevc_enc_ctx;
+ 	unsigned int other_enc_ctx;
+ };
+ 
+@@ -429,6 +431,55 @@ struct s5p_mfc_vp8_enc_params {
+ 	u8 profile;
+ };
+ 
++struct s5p_mfc_hevc_enc_params {
++	enum v4l2_mpeg_video_hevc_profile profile;
++	int level;
++	enum v4l2_mpeg_video_h264_level level_v4l2;
++	u8 tier_flag;
++	u32 rc_framerate;
++	u8 rc_min_qp;
++	u8 rc_max_qp;
++	u8 rc_lcu_dark;
++	u8 rc_lcu_smooth;
++	u8 rc_lcu_static;
++	u8 rc_lcu_activity;
++	u8 rc_frame_qp;
++	u8 rc_p_frame_qp;
++	u8 rc_b_frame_qp;
++	u8 max_partition_depth;
++	u8 num_refs_for_p;
++	u8 refreshtype;
++	u16 refreshperiod;
++	s32 lf_beta_offset_div2;
++	s32 lf_tc_offset_div2;
++	u8 loopfilter;
++	u8 loopfilter_disable;
++	u8 loopfilter_across;
++	u8 nal_control_length_filed;
++	u8 nal_control_user_ref;
++	u8 nal_control_store_ref;
++	u8 const_intra_period_enable;
++	u8 lossless_cu_enable;
++	u8 wavefront_enable;
++	u8 enable_ltr;
++	u8 hier_qp_enable;
++	enum v4l2_mpeg_video_hevc_hier_coding_type hier_qp_type;
++	u8 num_hier_layer;
++	u8 hier_qp_layer[7];
++	u32 hier_bit_layer[7];
++	u8 sign_data_hiding;
++	u8 general_pb_enable;
++	u8 temporal_id_enable;
++	u8 strong_intra_smooth;
++	u8 intra_pu_split_disable;
++	u8 tmv_prediction_disable;
++	u8 max_num_merge_mv;
++	u8 eco_mode_enable;
++	u8 encoding_nostartcode_enable;
++	u8 size_of_length_field;
++	u8 prepend_sps_pps_to_idr;
++};
++
+ /**
+  * struct s5p_mfc_enc_params - general encoding parameters
+  */
+@@ -466,6 +517,7 @@ struct s5p_mfc_enc_params {
+ 		struct s5p_mfc_h264_enc_params h264;
+ 		struct s5p_mfc_mpeg4_enc_params mpeg4;
+ 		struct s5p_mfc_vp8_enc_params vp8;
++		struct s5p_mfc_hevc_enc_params hevc;
+ 	} codec;
+ 
+ };
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
+index eb5352a..1abac02 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
+@@ -99,6 +99,13 @@ static struct s5p_mfc_fmt formats[] = {
+ 		.num_planes	= 1,
+ 		.versions	= MFC_V7PLUS_BITS,
+ 	},
++	{
++		.fourcc		= V4L2_PIX_FMT_HEVC,
++		.codec_mode	= S5P_FIMV_CODEC_HEVC_ENC,
++		.type		= MFC_FMT_ENC,
++		.num_planes	= 1,
++		.versions	= MFC_V10_BIT,
++	},
+ };
+ 
+ #define NUM_FORMATS ARRAY_SIZE(formats)
+@@ -693,6 +700,366 @@ static struct mfc_control controls[] = {
+ 		.default_value = 0,
+ 	},
+ 	{
++		.id = V4L2_CID_MPEG_VIDEO_HEVC_I_FRAME_QP,
++		.type = V4L2_CTRL_TYPE_INTEGER,
++		.minimum = 0,
++		.maximum = 51,
++		.step = 1,
++		.default_value = 0,
++	},
++	{
++		.id = V4L2_CID_MPEG_VIDEO_HEVC_P_FRAME_QP,
++		.type = V4L2_CTRL_TYPE_INTEGER,
++		.minimum = 0,
++		.maximum = 51,
++		.step = 1,
++		.default_value = 0,
++	},
++	{
++		.id = V4L2_CID_MPEG_VIDEO_HEVC_B_FRAME_QP,
++		.type = V4L2_CTRL_TYPE_INTEGER,
++		.minimum = 0,
++		.maximum = 51,
++		.step = 1,
++		.default_value = 0,
++	},
++	{
++		.id = V4L2_CID_MPEG_VIDEO_HEVC_MIN_QP,
++		.type = V4L2_CTRL_TYPE_INTEGER,
++		.minimum = 0,
++		.maximum = 51,
++		.step = 1,
++		.default_value = 0,
++	},
++	{
++		.id = V4L2_CID_MPEG_VIDEO_HEVC_MAX_QP,
++		.type = V4L2_CTRL_TYPE_INTEGER,
++		.minimum = 0,
++		.maximum = 51,
++		.step = 1,
++		.default_value = 0,
++	},
++	{
++		.id = V4L2_CID_MPEG_VIDEO_HEVC_PROFILE,
++		.type = V4L2_CTRL_TYPE_MENU,
++		.minimum = V4L2_MPEG_VIDEO_HEVC_PROFILE_MAIN,
++		.maximum = V4L2_MPEG_VIDEO_HEVC_PROFILE_MAIN_STILL_PICTURE,
++		.step = 1,
++		.default_value = V4L2_MPEG_VIDEO_HEVC_PROFILE_MAIN,
++	},
++	{
++		.id = V4L2_CID_MPEG_VIDEO_HEVC_LEVEL,
++		.type = V4L2_CTRL_TYPE_MENU,
++		.minimum = V4L2_MPEG_VIDEO_HEVC_LEVEL_1,
++		.maximum = V4L2_MPEG_VIDEO_HEVC_LEVEL_6_2,
++		.step = 1,
++		.default_value = V4L2_MPEG_VIDEO_HEVC_LEVEL_1,
++	},
++	{
++		.id = V4L2_CID_MPEG_VIDEO_HEVC_TIER_FLAG,
++		.type = V4L2_CTRL_TYPE_MENU,
++		.minimum = V4L2_MPEG_VIDEO_HEVC_TIER_MAIN,
++		.maximum = V4L2_MPEG_VIDEO_HEVC_TIER_HIGH,
++		.step = 1,
++		.default_value = V4L2_MPEG_VIDEO_HEVC_TIER_MAIN,
++	},
++	{
++		.id = V4L2_CID_MPEG_VIDEO_HEVC_FRAME_RATE_RESOLUTION,
++		.type = V4L2_CTRL_TYPE_INTEGER,
++		.minimum = 1,
++		.maximum = (1 << 16) - 1,
++		.step = 1,
++		.default_value = 1,
++	},
++	{
++		.id = V4L2_CID_MPEG_VIDEO_HEVC_MAX_PARTITION_DEPTH,
++		.type = V4L2_CTRL_TYPE_INTEGER,
++		.minimum = 0,
++		.maximum = 1,
++		.step = 1,
++		.default_value = 0,
++	},
++	{
++		.id = V4L2_CID_MPEG_VIDEO_REF_NUMBER_FOR_PFRAMES,
++		.type = V4L2_CTRL_TYPE_INTEGER,
++		.minimum = 1,
++		.maximum = 2,
++		.step = 1,
++		.default_value = 1,
++	},
++	{
++		.id = V4L2_CID_MPEG_VIDEO_HEVC_REFRESH_TYPE,
++		.type = V4L2_CTRL_TYPE_MENU,
++		.minimum = V4L2_MPEG_VIDEO_HEVC_REFRESH_NONE,
++		.maximum = V4L2_MPEG_VIDEO_HEVC_REFRESH_IDR,
++		.step = 1,
++		.default_value = V4L2_MPEG_VIDEO_HEVC_REFRESH_NONE,
++	},
++	{
++		.id = V4L2_CID_MPEG_VIDEO_HEVC_CONST_INTRA_PRED,
++		.type = V4L2_CTRL_TYPE_BOOLEAN,
++		.minimum = 0,
++		.maximum = 1,
++		.step = 1,
++		.default_value = 0,
++	},
++	{
++		.id = V4L2_CID_MPEG_VIDEO_HEVC_LOSSLESS_CU,
++		.type = V4L2_CTRL_TYPE_BOOLEAN,
++		.minimum = 0,
++		.maximum = 1,
++		.step = 1,
++		.default_value = 0,
++	},
++	{
++		.id = V4L2_CID_MPEG_VIDEO_HEVC_WAVEFRONT,
++		.type = V4L2_CTRL_TYPE_BOOLEAN,
++		.minimum = 0,
++		.maximum = 1,
++		.step = 1,
++		.default_value = 0,
++	},
++	{
++		.id = V4L2_CID_MPEG_VIDEO_HEVC_LOOP_FILTER_MODE,
++		.type = V4L2_CTRL_TYPE_MENU,
++		.minimum = V4L2_MPEG_VIDEO_HEVC_LOOP_FILTER_MODE_DISABLED,
++		.maximum = V4L2_MPEG_VIDEO_HEVC_LOOP_FILTER_MODE_DISABLED_AT_SLICE_BOUNDARY,
++		.step = 1,
++		.default_value = V4L2_MPEG_VIDEO_HEVC_LOOP_FILTER_MODE_DISABLED,
++	},
++	{
++		.id = V4L2_CID_MPEG_VIDEO_HEVC_HIER_QP,
++		.type = V4L2_CTRL_TYPE_BOOLEAN,
++		.minimum = 0,
++		.maximum = 1,
++		.step = 1,
++		.default_value = 0,
++	},
++	{
++		.id = V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_TYPE,
++		.type = V4L2_CTRL_TYPE_MENU,
++		.minimum = V4L2_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_B,
++		.maximum = V4L2_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_P,
++		.step = 1,
++		.default_value = V4L2_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_B,
++	},
++	{
++		.id = V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_LAYER,
++		.type = V4L2_CTRL_TYPE_INTEGER,
++		.minimum = 0,
++		.maximum = 6,
++		.step = 1,
++		.default_value = 0,
++	},
++	{
++		.id = V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L0_QP,
++		.type = V4L2_CTRL_TYPE_INTEGER,
++		.minimum = INT_MIN,
++		.maximum = INT_MAX,
++		.step = 1,
++		.default_value = 0,
++	},
++	{
++		.id = V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L1_QP,
++		.type = V4L2_CTRL_TYPE_INTEGER,
++		.minimum = INT_MIN,
++		.maximum = INT_MAX,
++		.step = 1,
++		.default_value = 0,
++	},
++	{
++		.id = V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L2_QP,
++		.type = V4L2_CTRL_TYPE_INTEGER,
++		.minimum = INT_MIN,
++		.maximum = INT_MAX,
++		.step = 1,
++		.default_value = 0,
++	},
++	{
++		.id = V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L3_QP,
++		.type = V4L2_CTRL_TYPE_INTEGER,
++		.minimum = INT_MIN,
++		.maximum = INT_MAX,
++		.step = 1,
++		.default_value = 0,
++	},
++	{
++		.id = V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L4_QP,
++		.type = V4L2_CTRL_TYPE_INTEGER,
++		.minimum = INT_MIN,
++		.maximum = INT_MAX,
++		.step = 1,
++		.default_value = 0,
++	},
++	{
++		.id = V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L5_QP,
++		.type = V4L2_CTRL_TYPE_INTEGER,
++		.minimum = INT_MIN,
++		.maximum = INT_MAX,
++		.step = 1,
++		.default_value = 0,
++	},
++	{
++		.id = V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L6_QP,
++		.type = V4L2_CTRL_TYPE_INTEGER,
++		.minimum = INT_MIN,
++		.maximum = INT_MAX,
++		.step = 1,
++		.default_value = 0,
++	},
++	{
++		.id = V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L0_BR,
++		.type = V4L2_CTRL_TYPE_INTEGER,
++		.minimum = INT_MIN,
++		.maximum = INT_MAX,
++		.step = 1,
++		.default_value = 0,
++	},
++	{
++		.id = V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L1_BR,
++		.type = V4L2_CTRL_TYPE_INTEGER,
++		.minimum = INT_MIN,
++		.maximum = INT_MAX,
++		.step = 1,
++		.default_value = 0,
++	},
++	{
++		.id = V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L2_BR,
++		.type = V4L2_CTRL_TYPE_INTEGER,
++		.minimum = INT_MIN,
++		.maximum = INT_MAX,
++		.step = 1,
++		.default_value = 0,
++	},
++	{
++		.id = V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L3_BR,
++		.type = V4L2_CTRL_TYPE_INTEGER,
++		.minimum = INT_MIN,
++		.maximum = INT_MAX,
++		.step = 1,
++		.default_value = 0,
++	},
++	{
++		.id = V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L4_BR,
++		.type = V4L2_CTRL_TYPE_INTEGER,
++		.minimum = INT_MIN,
++		.maximum = INT_MAX,
++		.step = 1,
++		.default_value = 0,
++	},
++	{
++		.id = V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L5_BR,
++		.type = V4L2_CTRL_TYPE_INTEGER,
++		.minimum = INT_MIN,
++		.maximum = INT_MAX,
++		.step = 1,
++		.default_value = 0,
++	},
++	{
++		.id = V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L6_BR,
++		.type = V4L2_CTRL_TYPE_INTEGER,
++		.minimum = INT_MIN,
++		.maximum = INT_MAX,
++		.step = 1,
++		.default_value = 0,
++	},
++	{
++		.id = V4L2_CID_MPEG_VIDEO_HEVC_GENERAL_PB,
++		.type = V4L2_CTRL_TYPE_BOOLEAN,
++		.minimum = 0,
++		.maximum = 1,
++		.step = 1,
++		.default_value = 0,
++	},
++	{
++		.id = V4L2_CID_MPEG_VIDEO_HEVC_TEMPORAL_ID,
++		.type = V4L2_CTRL_TYPE_BOOLEAN,
++		.minimum = 0,
++		.maximum = 1,
++		.step = 1,
++		.default_value = 0,
++	},
++	{
++		.id = V4L2_CID_MPEG_VIDEO_HEVC_STRONG_SMOOTHING,
++		.type = V4L2_CTRL_TYPE_BOOLEAN,
++		.minimum = 0,
++		.maximum = 1,
++		.step = 1,
++		.default_value = 0,
++	},
++	{
++		.id = V4L2_CID_MPEG_VIDEO_HEVC_INTRA_PU_SPLIT,
++		.type = V4L2_CTRL_TYPE_BOOLEAN,
++		.minimum = 0,
++		.maximum = 1,
++		.step = 1,
++		.default_value = 0,
++	},
++	{
++		.id = V4L2_CID_MPEG_VIDEO_HEVC_TMV_PREDICTION,
++		.type = V4L2_CTRL_TYPE_BOOLEAN,
++		.minimum = 0,
++		.maximum = 1,
++		.step = 1,
++		.default_value = 0,
++	},
++	{
++		.id = V4L2_CID_MPEG_VIDEO_HEVC_MAX_NUM_MERGE_MV_MINUS1,
++		.type = V4L2_CTRL_TYPE_INTEGER,
++		.minimum = 0,
++		.maximum = 4,
++		.step = 1,
++		.default_value = 0,
++	},
++	{
++		.id = V4L2_CID_MPEG_VIDEO_HEVC_WITHOUT_STARTCODE,
++		.type = V4L2_CTRL_TYPE_BOOLEAN,
++		.minimum = 0,
++		.maximum = 1,
++		.step = 1,
++		.default_value = 0,
++	},
++	{
++		.id = V4L2_CID_MPEG_VIDEO_HEVC_REFRESH_PERIOD,
++		.type = V4L2_CTRL_TYPE_INTEGER,
++		.minimum = 0,
++		.maximum = (1 << 16) - 1,
++		.step = 1,
++		.default_value = 0,
++	},
++	{
++		.id = V4L2_CID_MPEG_VIDEO_HEVC_LF_BETA_OFFSET_DIV2,
++		.type = V4L2_CTRL_TYPE_INTEGER,
++		.minimum = -6,
++		.maximum = 6,
++		.step = 1,
++		.default_value = 0,
++	},
++	{
++		.id = V4L2_CID_MPEG_VIDEO_HEVC_LF_TC_OFFSET_DIV2,
++		.type = V4L2_CTRL_TYPE_INTEGER,
++		.minimum = -6,
++		.maximum = 6,
++		.step = 1,
++		.default_value = 0,
++	},
++	{
++		.id = V4L2_CID_MPEG_VIDEO_HEVC_SIZE_OF_LENGTH_FIELD,
++		.type = V4L2_CTRL_TYPE_MENU,
++		.minimum = V4L2_MPEG_VIDEO_HEVC_SIZE_0,
++		.maximum = V4L2_MPEG_VIDEO_HEVC_SIZE_4,
++		.step = 1,
++		.default_value = V4L2_MPEG_VIDEO_HEVC_SIZE_0,
++	},
++	{
++		.id = V4L2_CID_MPEG_VIDEO_PREPEND_SPSPPS_TO_IDR,
++		.type = V4L2_CTRL_TYPE_INTEGER,
++		.minimum = 0,
++		.maximum = 1,
++		.step = 1,
++		.default_value = 0,
++	},
++	{
+ 		.id = V4L2_CID_MIN_BUFFERS_FOR_OUTPUT,
+ 		.type = V4L2_CTRL_TYPE_INTEGER,
+ 		.name = "Minimum number of output bufs",
+@@ -1359,6 +1726,26 @@ static inline int mpeg4_level(enum v4l2_mpeg_video_mpeg4_level lvl)
+ 	return t[lvl];
+ }
+ 
++static inline int hevc_level(enum v4l2_mpeg_video_hevc_level lvl)
++{
++	static unsigned int t[] = {
++		/* V4L2_MPEG_VIDEO_HEVC_LEVEL_1    */ 10,
++		/* V4L2_MPEG_VIDEO_HEVC_LEVEL_2    */ 20,
++		/* V4L2_MPEG_VIDEO_HEVC_LEVEL_2_1  */ 21,
++		/* V4L2_MPEG_VIDEO_HEVC_LEVEL_3    */ 30,
++		/* V4L2_MPEG_VIDEO_HEVC_LEVEL_3_1  */ 31,
++		/* V4L2_MPEG_VIDEO_HEVC_LEVEL_4    */ 40,
++		/* V4L2_MPEG_VIDEO_HEVC_LEVEL_4_1  */ 41,
++		/* V4L2_MPEG_VIDEO_HEVC_LEVEL_5    */ 50,
++		/* V4L2_MPEG_VIDEO_HEVC_LEVEL_5_1  */ 51,
++		/* V4L2_MPEG_VIDEO_HEVC_LEVEL_5_2  */ 52,
++		/* V4L2_MPEG_VIDEO_HEVC_LEVEL_6    */ 60,
++		/* V4L2_MPEG_VIDEO_HEVC_LEVEL_6_1  */ 61,
++		/* V4L2_MPEG_VIDEO_HEVC_LEVEL_6_2  */ 62,
++	};
++	return t[lvl];
++}
++
+ static inline int vui_sar_idc(enum v4l2_mpeg_video_h264_vui_sar_idc sar)
+ {
+ 	static unsigned int t[V4L2_MPEG_VIDEO_H264_VUI_SAR_IDC_EXTENDED + 1] = {
+@@ -1635,6 +2022,153 @@ static int s5p_mfc_enc_s_ctrl(struct v4l2_ctrl *ctrl)
+ 	case V4L2_CID_MPEG_VIDEO_VPX_PROFILE:
+ 		p->codec.vp8.profile = ctrl->val;
+ 		break;
++	case V4L2_CID_MPEG_VIDEO_HEVC_I_FRAME_QP:
++		p->codec.hevc.rc_frame_qp = ctrl->val;
++		break;
++	case V4L2_CID_MPEG_VIDEO_HEVC_P_FRAME_QP:
++		p->codec.hevc.rc_p_frame_qp = ctrl->val;
++		break;
++	case V4L2_CID_MPEG_VIDEO_HEVC_B_FRAME_QP:
++		p->codec.hevc.rc_b_frame_qp = ctrl->val;
++		break;
++	case V4L2_CID_MPEG_VIDEO_HEVC_FRAME_RATE_RESOLUTION:
++		p->codec.hevc.rc_framerate = ctrl->val;
++		break;
++	case V4L2_CID_MPEG_VIDEO_HEVC_MIN_QP:
++		p->codec.hevc.rc_min_qp = ctrl->val;
++		break;
++	case V4L2_CID_MPEG_VIDEO_HEVC_MAX_QP:
++		p->codec.hevc.rc_max_qp = ctrl->val;
++		break;
++	case V4L2_CID_MPEG_VIDEO_HEVC_LEVEL:
++		p->codec.hevc.level_v4l2 = ctrl->val;
++		p->codec.hevc.level = hevc_level(ctrl->val);
++		break;
++	case V4L2_CID_MPEG_VIDEO_HEVC_PROFILE:
++		switch (ctrl->val) {
++		case V4L2_MPEG_VIDEO_HEVC_PROFILE_MAIN:
++			p->codec.hevc.profile =
++				V4L2_MPEG_VIDEO_HEVC_PROFILE_MAIN;
++			break;
++		case V4L2_MPEG_VIDEO_HEVC_PROFILE_MAIN_STILL_PICTURE:
++			p->codec.hevc.profile =
++			V4L2_MPEG_VIDEO_HEVC_PROFILE_MAIN_STILL_PICTURE;
++			break;
++		default:
++			ret = -EINVAL;
++		}
++		break;
++	case V4L2_CID_MPEG_VIDEO_HEVC_TIER_FLAG:
++		p->codec.hevc.tier_flag = ctrl->val;
++		break;
++	case V4L2_CID_MPEG_VIDEO_HEVC_MAX_PARTITION_DEPTH:
++		p->codec.hevc.max_partition_depth = ctrl->val;
++		break;
++	case V4L2_CID_MPEG_VIDEO_REF_NUMBER_FOR_PFRAMES:
++		p->codec.hevc.num_refs_for_p = ctrl->val;
++		break;
++	case V4L2_CID_MPEG_VIDEO_HEVC_REFRESH_TYPE:
++		p->codec.hevc.refreshtype = ctrl->val;
++		break;
++	case V4L2_CID_MPEG_VIDEO_HEVC_CONST_INTRA_PRED:
++		p->codec.hevc.const_intra_period_enable = ctrl->val;
++		break;
++	case V4L2_CID_MPEG_VIDEO_HEVC_LOSSLESS_CU:
++		p->codec.hevc.lossless_cu_enable = ctrl->val;
++		break;
++	case V4L2_CID_MPEG_VIDEO_HEVC_WAVEFRONT:
++		p->codec.hevc.wavefront_enable = ctrl->val;
++		break;
++	case V4L2_CID_MPEG_VIDEO_HEVC_LOOP_FILTER_MODE:
++		p->codec.hevc.loopfilter = ctrl->val;
++		break;
++	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_QP:
++		p->codec.hevc.hier_qp_enable = ctrl->val;
++		break;
++	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_TYPE:
++		p->codec.hevc.hier_qp_type = ctrl->val;
++		break;
++	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_LAYER:
++		p->codec.hevc.num_hier_layer = ctrl->val;
++		break;
++	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L0_QP:
++		p->codec.hevc.hier_qp_layer[0] = ctrl->val;
++		break;
++	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L1_QP:
++		p->codec.hevc.hier_qp_layer[1] = ctrl->val;
++		break;
++	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L2_QP:
++		p->codec.hevc.hier_qp_layer[2] = ctrl->val;
++		break;
++	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L3_QP:
++		p->codec.hevc.hier_qp_layer[3] = ctrl->val;
++		break;
++	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L4_QP:
++		p->codec.hevc.hier_qp_layer[4] = ctrl->val;
++		break;
++	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L5_QP:
++		p->codec.hevc.hier_qp_layer[5] = ctrl->val;
++		break;
++	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L6_QP:
++		p->codec.hevc.hier_qp_layer[6] = ctrl->val;
++		break;
++	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L0_BR:
++		p->codec.hevc.hier_bit_layer[0] = ctrl->val;
++		break;
++	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L1_BR:
++		p->codec.hevc.hier_bit_layer[1] = ctrl->val;
++		break;
++	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L2_BR:
++		p->codec.hevc.hier_bit_layer[2] = ctrl->val;
++		break;
++	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L3_BR:
++		p->codec.hevc.hier_bit_layer[3] = ctrl->val;
++		break;
++	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L4_BR:
++		p->codec.hevc.hier_bit_layer[4] = ctrl->val;
++		break;
++	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L5_BR:
++		p->codec.hevc.hier_bit_layer[5] = ctrl->val;
++		break;
++	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L6_BR:
++		p->codec.hevc.hier_bit_layer[6] = ctrl->val;
++		break;
++	case V4L2_CID_MPEG_VIDEO_HEVC_GENERAL_PB:
++		p->codec.hevc.general_pb_enable = ctrl->val;
++		break;
++	case V4L2_CID_MPEG_VIDEO_HEVC_TEMPORAL_ID:
++		p->codec.hevc.temporal_id_enable = ctrl->val;
++		break;
++	case V4L2_CID_MPEG_VIDEO_HEVC_STRONG_SMOOTHING:
++		p->codec.hevc.strong_intra_smooth = ctrl->val;
++		break;
++	case V4L2_CID_MPEG_VIDEO_HEVC_INTRA_PU_SPLIT:
++		p->codec.hevc.intra_pu_split_disable = ctrl->val;
++		break;
++	case V4L2_CID_MPEG_VIDEO_HEVC_TMV_PREDICTION:
++		p->codec.hevc.tmv_prediction_disable = !ctrl->val;
++		break;
++	case V4L2_CID_MPEG_VIDEO_HEVC_MAX_NUM_MERGE_MV_MINUS1:
++		p->codec.hevc.max_num_merge_mv = ctrl->val;
++		break;
++	case V4L2_CID_MPEG_VIDEO_HEVC_WITHOUT_STARTCODE:
++		p->codec.hevc.encoding_nostartcode_enable = ctrl->val;
++		break;
++	case V4L2_CID_MPEG_VIDEO_HEVC_REFRESH_PERIOD:
++		p->codec.hevc.refreshperiod = ctrl->val;
++		break;
++	case V4L2_CID_MPEG_VIDEO_HEVC_LF_BETA_OFFSET_DIV2:
++		p->codec.hevc.lf_beta_offset_div2 = ctrl->val;
++		break;
++	case V4L2_CID_MPEG_VIDEO_HEVC_LF_TC_OFFSET_DIV2:
++		p->codec.hevc.lf_tc_offset_div2 = ctrl->val;
++		break;
++	case V4L2_CID_MPEG_VIDEO_HEVC_SIZE_OF_LENGTH_FIELD:
++		p->codec.hevc.size_of_length_field = ctrl->val;
++		break;
++	case V4L2_CID_MPEG_VIDEO_PREPEND_SPSPPS_TO_IDR:
++		p->codec.hevc.prepend_sps_pps_to_idr = ctrl->val;
++		break;
+ 	default:
+ 		v4l2_err(&dev->v4l2_dev, "Invalid control, id=%d, val=%d\n",
+ 							ctrl->id, ctrl->val);
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr.h b/drivers/media/platform/s5p-mfc/s5p_mfc_opr.h
+index 57f4560..8c295f0 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr.h
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr.h
+@@ -272,6 +272,14 @@ struct s5p_mfc_regs {
+ 	void __iomem *e_vp8_hierarchical_qp_layer1;/* v7 and v8 */
+ 	void __iomem *e_vp8_hierarchical_qp_layer2;/* v7 and v8 */
+ 	void __iomem *e_min_scratch_buffer_size; /* v10 */
++	void __iomem *e_num_t_layer; /* v10 */
++	void __iomem *e_hier_qp_layer0; /* v10 */
++	void __iomem *e_hier_bit_rate_layer0; /* v10 */
++	void __iomem *e_hevc_options; /* v10 */
++	void __iomem *e_hevc_refresh_period; /* v10 */
++	void __iomem *e_hevc_lf_beta_offset_div2; /* v10 */
++	void __iomem *e_hevc_lf_tc_offset_div2; /* v10 */
++	void __iomem *e_hevc_nal_control; /* v10 */
+ };
+ 
+ struct s5p_mfc_hw_ops {
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
+index f47612c..5f72af8 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
+@@ -299,6 +299,17 @@ static int s5p_mfc_alloc_codec_buffers_v6(struct s5p_mfc_ctx *ctx)
+ 			ctx->chroma_dpb_size + ctx->me_buffer_size));
+ 		ctx->bank2.size = 0;
+ 		break;
++	case S5P_MFC_CODEC_HEVC_ENC:
++		mfc_debug(2, "Use min scratch buffer size\n");
++		ctx->me_buffer_size =
++			ALIGN(ENC_V100_HEVC_ME_SIZE(lcu_width, lcu_height), 16);
++		ctx->scratch_buf_size = ALIGN(ctx->scratch_buf_size, 256);
++		ctx->bank1.size =
++			ctx->scratch_buf_size + ctx->tmv_buffer_size +
++			(ctx->pb_count * (ctx->luma_dpb_size +
++			ctx->chroma_dpb_size + ctx->me_buffer_size));
++		ctx->bank2.size = 0;
++		break;
+ 	default:
+ 		break;
+ 	}
+@@ -348,6 +359,9 @@ static int s5p_mfc_alloc_instance_buffer_v6(struct s5p_mfc_ctx *ctx)
+ 	case S5P_MFC_CODEC_H264_ENC:
+ 		ctx->ctx.size = buf_size->h264_enc_ctx;
+ 		break;
++	case S5P_MFC_CODEC_HEVC_ENC:
++		ctx->ctx.size = buf_size->hevc_enc_ctx;
++		break;
+ 	case S5P_MFC_CODEC_MPEG4_ENC:
+ 	case S5P_MFC_CODEC_H263_ENC:
+ 	case S5P_MFC_CODEC_VP8_ENC:
+@@ -1426,6 +1440,162 @@ static int s5p_mfc_set_enc_params_vp8(struct s5p_mfc_ctx *ctx)
+ 	return 0;
+ }
+ 
++static int s5p_mfc_set_enc_params_hevc(struct s5p_mfc_ctx *ctx)
++{
++	struct s5p_mfc_dev *dev = ctx->dev;
++	const struct s5p_mfc_regs *mfc_regs = dev->mfc_regs;
++	struct s5p_mfc_enc_params *p = &ctx->enc_params;
++	struct s5p_mfc_hevc_enc_params *p_hevc = &p->codec.hevc;
++	unsigned int reg = 0;
++	int i;
++
++	mfc_debug_enter();
++
++	s5p_mfc_set_enc_params(ctx);
++
++	/* pictype : number of B */
++	reg = readl(mfc_regs->e_gop_config);
++	/* num_b_frame - 0 ~ 2 */
++	reg &= ~(0x3 << 16);
++	reg |= (p->num_b_frame << 16);
++	writel(reg, mfc_regs->e_gop_config);
++
++	/* UHD encoding case */
++	if ((ctx->img_width == 3840) && (ctx->img_height == 2160)) {
++		p_hevc->level = 51;
++		p_hevc->tier_flag = 0;
++	/* this tier_flag can be changed */
++	}
++
++	/* tier_flag & level */
++	reg = 0;
++	/* profile */
++	reg |= p_hevc->profile & 0x3;
++	/* level */
++	reg &= ~(0xFF << 8);
++	reg |= (p_hevc->level << 8);
++	/* tier_flag - 0 ~ 1 */
++	reg |= (p_hevc->tier_flag << 16);
++	writel(reg, mfc_regs->e_picture_profile);
++
++	switch (p_hevc->loopfilter) {
++	case V4L2_MPEG_VIDEO_HEVC_LOOP_FILTER_MODE_DISABLED:
++		p_hevc->loopfilter_disable = 1;
++		break;
++	case V4L2_MPEG_VIDEO_HEVC_LOOP_FILTER_MODE_ENABLED:
++		p_hevc->loopfilter_disable = 0;
++		p_hevc->loopfilter_across = 1;
++		break;
++	case V4L2_MPEG_VIDEO_HEVC_LOOP_FILTER_MODE_DISABLED_AT_SLICE_BOUNDARY:
++		p_hevc->loopfilter_disable = 0;
++		p_hevc->loopfilter_across = 0;
++		break;
++	}
++
++	/* max partition depth */
++	reg = 0;
++	reg |= (p_hevc->max_partition_depth & 0x1);
++	reg |= (p_hevc->num_refs_for_p-1) << 2;
++	reg |= (p_hevc->refreshtype & 0x3) << 3;
++	reg |= (p_hevc->const_intra_period_enable & 0x1) << 5;
++	reg |= (p_hevc->lossless_cu_enable & 0x1) << 6;
++	reg |= (p_hevc->wavefront_enable & 0x1) << 7;
++	reg |= (p_hevc->loopfilter_disable & 0x1) << 8;
++	reg |= (p_hevc->loopfilter_across & 0x1) << 9;
++	reg |= (p_hevc->enable_ltr & 0x1) << 10;
++	reg |= (p_hevc->hier_qp_enable & 0x1) << 11;
++	reg |= (p_hevc->general_pb_enable & 0x1) << 13;
++	reg |= (p_hevc->temporal_id_enable & 0x1) << 14;
++	reg |= (p_hevc->strong_intra_smooth & 0x1) << 15;
++	reg |= (p_hevc->intra_pu_split_disable & 0x1) << 16;
++	reg |= (p_hevc->tmv_prediction_disable & 0x1) << 17;
++	reg |= (p_hevc->max_num_merge_mv & 0x7) << 18;
++	reg |= (p_hevc->encoding_nostartcode_enable & 0x1) << 23;
++	reg |= (p_hevc->prepend_sps_pps_to_idr << 26);
++
++	writel(reg, mfc_regs->e_hevc_options);
++	/* refresh period */
++	if (p_hevc->refreshtype) {
++		reg = 0;
++		reg |= (p_hevc->refreshperiod & 0xFFFF);
++		writel(reg, mfc_regs->e_hevc_refresh_period);
++	}
++	/* loop filter setting */
++	if (!(p_hevc->loopfilter_disable & 0x1)) {
++		reg = 0;
++		reg |= (p_hevc->lf_beta_offset_div2);
++		writel(reg, mfc_regs->e_hevc_lf_beta_offset_div2);
++		reg = 0;
++		reg |= (p_hevc->lf_tc_offset_div2);
++		writel(reg, mfc_regs->e_hevc_lf_tc_offset_div2);
++	}
++	/* hier qp enable */
++	if (p_hevc->num_hier_layer) {
++		reg = 0;
++		reg |= (p_hevc->hier_qp_type & 0x1) << 0x3;
++		reg |= p_hevc->num_hier_layer & 0x7;
++		writel(reg, mfc_regs->e_num_t_layer);
++		/* QP value for each layer */
++		if (p_hevc->hier_qp_enable) {
++			for (i = 0; i < 7; i++)
++				writel(p_hevc->hier_qp_layer[i],
++					mfc_regs->e_hier_qp_layer0 + i * 4);
++		}
++		if (p->rc_frame) {
++			for (i = 0; i < 7; i++)
++				writel(p_hevc->hier_bit_layer[i],
++						mfc_regs->e_hier_bit_rate_layer0
++						+ i * 4);
++		}
++	}
++
++	/* rate control config. */
++	reg = readl(mfc_regs->e_rc_config);
++	/* macroblock level rate control */
++	reg &= ~(0x1 << 8);
++	reg |= (p->rc_mb << 8);
++	writel(reg, mfc_regs->e_rc_config);
++	/* frame QP */
++	reg &= ~(0xFF);
++	reg |= p_hevc->rc_frame_qp;
++	writel(reg, mfc_regs->e_rc_config);
++
++	/* frame rate */
++	if (p->rc_frame) {
++		reg = 0;
++		reg &= ~(0xFFFF << 16);
++		reg |= ((p_hevc->rc_framerate) << 16);
++		reg &= ~(0xFFFF);
++		reg |= FRAME_DELTA_DEFAULT;
++		writel(reg, mfc_regs->e_rc_frame_rate);
++	}
++
++	/* max & min value of QP */
++	reg = 0;
++	/* max QP */
++	reg &= ~(0xFF << 8);
++	reg |= (p_hevc->rc_max_qp << 8);
++	/* min QP */
++	reg &= ~(0xFF);
++	reg |= p_hevc->rc_min_qp;
++	writel(reg, mfc_regs->e_rc_qp_bound);
++
++	writel(0x0, mfc_regs->e_fixed_picture_qp);
++	if (!p->rc_frame && !p->rc_mb) {
++		reg = 0;
++		reg &= ~(0xFF << 16);
++		reg |= (p_hevc->rc_b_frame_qp << 16);
++		reg &= ~(0xFF << 8);
++		reg |= (p_hevc->rc_p_frame_qp << 8);
++		reg &= ~(0xFF);
++		reg |= p_hevc->rc_frame_qp;
++		writel(reg, mfc_regs->e_fixed_picture_qp);
++	}
++	mfc_debug_leave();
++
++	return 0;
++}
++
+ /* Initialize decoding */
+ static int s5p_mfc_init_decode_v6(struct s5p_mfc_ctx *ctx)
+ {
+@@ -1545,6 +1715,8 @@ static int s5p_mfc_init_encode_v6(struct s5p_mfc_ctx *ctx)
+ 		s5p_mfc_set_enc_params_h263(ctx);
+ 	else if (ctx->codec_mode == S5P_MFC_CODEC_VP8_ENC)
+ 		s5p_mfc_set_enc_params_vp8(ctx);
++	else if (ctx->codec_mode == S5P_FIMV_CODEC_HEVC_ENC)
++		s5p_mfc_set_enc_params_hevc(ctx);
+ 	else {
+ 		mfc_err("Unknown codec for encoding (%x).\n",
+ 			ctx->codec_mode);
+@@ -2298,6 +2470,16 @@ const struct s5p_mfc_regs *s5p_mfc_init_regs_v6_plus(struct s5p_mfc_dev *dev)
+ 	R(d_static_buffer_addr, S5P_FIMV_D_STATIC_BUFFER_ADDR_V10);
+ 	R(d_static_buffer_size, S5P_FIMV_D_STATIC_BUFFER_SIZE_V10);
+ 
++	/* encoder registers */
++	R(e_num_t_layer, S5P_FIMV_E_NUM_T_LAYER_V10);
++	R(e_hier_qp_layer0, S5P_FIMV_E_HIERARCHICAL_QP_LAYER0_V10);
++	R(e_hier_bit_rate_layer0, S5P_FIMV_E_HIERARCHICAL_BIT_RATE_LAYER0_V10);
++	R(e_hevc_options, S5P_FIMV_E_HEVC_OPTIONS_V10);
++	R(e_hevc_refresh_period, S5P_FIMV_E_HEVC_REFRESH_PERIOD_V10);
++	R(e_hevc_lf_beta_offset_div2, S5P_FIMV_E_HEVC_LF_BETA_OFFSET_DIV2_V10);
++	R(e_hevc_lf_tc_offset_div2, S5P_FIMV_E_HEVC_LF_TC_OFFSET_DIV2_V10);
++	R(e_hevc_nal_control, S5P_FIMV_E_HEVC_NAL_CONTROL_V10);
++
+ done:
+ 	return &mfc_regs;
+ #undef S5P_MFC_REG_ADDR
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h
+index f6cb703..f013b29 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h
+@@ -46,6 +46,14 @@
+ #define ENC_MPEG4_VOP_TIME_RES_MAX	((1 << 16) - 1)
+ #define FRAME_DELTA_H264_H263		1
+ #define TIGHT_CBR_MAX			10
++#define ENC_HEVC_RC_FRAME_RATE_MAX	((1 << 16) - 1)
++#define ENC_HEVC_QP_INDEX_MIN		-12
++#define ENC_HEVC_QP_INDEX_MAX		12
++#define ENC_HEVC_LOOP_FILTER_MIN	-12
++#define ENC_HEVC_LOOP_FILTER_MAX	12
++#define ENC_HEVC_LEVEL_MAX		62
++
++#define FRAME_DELTA_DEFAULT		1
+ 
+ struct s5p_mfc_hw_ops *s5p_mfc_init_hw_ops_v6(void);
+ const struct s5p_mfc_regs *s5p_mfc_init_regs_v6_plus(struct s5p_mfc_dev *dev);
+-- 
+2.7.4
