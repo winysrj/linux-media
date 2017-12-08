@@ -1,208 +1,178 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail3-relais-sop.national.inria.fr ([192.134.164.104]:61245
-        "EHLO mail3-relais-sop.national.inria.fr" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751457AbdL0PUS (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 27 Dec 2017 10:20:18 -0500
-From: Julia Lawall <Julia.Lawall@lip6.fr>
-To: dri-devel@lists.freedesktop.org
-Cc: kernel-janitors@vger.kernel.org, amd-gfx@lists.freedesktop.org,
-        linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        dev@openvswitch.org, netdev@vger.kernel.org, dccp@vger.kernel.org,
-        linux-kernel@vger.kernel.org, cluster-devel@redhat.com,
-        linux-ext4@vger.kernel.org, linux-s390@vger.kernel.org,
-        Alexander Shishkin <alexander.shishkin@linux.intel.com>,
-        Jiri Olsa <jolsa@redhat.com>,
-        Namhyung Kim <namhyung@kernel.org>,
-        esc.storagedev@microsemi.com, linux-scsi@vger.kernel.org
-Subject: [PATCH 00/12] drop unneeded newline
-Date: Wed, 27 Dec 2017 15:51:33 +0100
-Message-Id: <1514386305-7402-1-git-send-email-Julia.Lawall@lip6.fr>
+Received: from mailout2.samsung.com ([203.254.224.25]:21093 "EHLO
+        mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753379AbdLHJhV (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 8 Dec 2017 04:37:21 -0500
+From: Smitha T Murthy <smitha.t@samsung.com>
+To: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Cc: kyungmin.park@samsung.com, kamil@wypas.org, jtp.park@samsung.com,
+        a.hajda@samsung.com, mchehab@kernel.org, pankaj.dubey@samsung.com,
+        krzk@kernel.org, m.szyprowski@samsung.com, s.nawrocki@samsung.com,
+        Smitha T Murthy <smitha.t@samsung.com>
+Subject: [Patch v6 09/12] [media] s5p-mfc: Add VP9 decoder support
+Date: Fri, 08 Dec 2017 14:38:22 +0530
+Message-id: <1512724105-1778-10-git-send-email-smitha.t@samsung.com>
+In-reply-to: <1512724105-1778-1-git-send-email-smitha.t@samsung.com>
+References: <1512724105-1778-1-git-send-email-smitha.t@samsung.com>
+        <CGME20171208093659epcas2p1bef86171c1a76fba22dd93ee202fb2b6@epcas2p1.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Drop newline at the end of a message string when the printing function adds
-a newline.
+Add support for codec definition and corresponding buffer
+requirements for VP9 decoder.
 
-The complete semantic patch that detects this issue is as shown below
-(http://coccinelle.lip6.fr/).  It works in two phases - the first phase
-counts how many uses of a function involve a newline and how many don't,
-and then the second phase removes newlines in the case of calls where a
-newline is used one fourth of the times or less.
-
-This approach is only moderately reliable, and all patches have been
-checked to ensure that the newline is not needed.
-
-This also converts some cases of string concatenation to single strings in
-modified code, as this improves greppability.
-
-// <smpl>
-virtual after_start
-
-@initialize:ocaml@
-@@
-
-let withnl = Hashtbl.create 101
-let withoutnl = Hashtbl.create 101
-
-let ignore =
-  ["strcpy";"strlcpy";"strcat";"strlcat";"strcmp";"strncmp";"strcspn";
-    "strsep";"sprintf";"printf";"strncasecmp";"seq_printf";"strstr";"strspn";
-    "strlen";"strpbrk";"strtok_r";"memcmp";"memcpy"]
-
-let dignore = ["tools";"samples"]
-
-let inc tbl k =
-  let cell =
-    try Hashtbl.find tbl k
-    with Not_found ->
-      let cell = ref 0 in
-      Hashtbl.add tbl k cell;
-      cell in
-  cell := 1 + !cell
-
-let endnl c =
-  let len = String.length c in
-  try
-    String.get c (len-3) = '\\' && String.get c (len-2) = 'n' &&
-    String.get c (len-1) = '"'
-  with _ -> false
-
-let clean_string s extra =
-  let pieces = Str.split (Str.regexp "\" \"") s in
-  let nonempty s =
-    not (s = "") && String.get s 0 = '"' && not (String.get s 1 = '"') in
-  let rec loop = function
-      [] -> []
-    | [x] -> [x]
-    | x::y::rest ->
-	if nonempty x && nonempty y
-	then
-	  let xend = String.get x (String.length x - 2) = ' ' in
-	  let yend = String.get y 1 = ' ' in
-	  match (xend,yend) with
-	    (true,false) | (false,true) -> x :: (loop (y::rest))
-	  | (true,true) ->
-	      x :: (loop (((String.sub y 0 (String.length y - 2))^"\"")::rest))
-	  | (false,false) ->
-	      ((String.sub x 0 (String.length x - 1)) ^ " \"") ::
-	      (loop (y::rest))
-	else x :: (loop (y::rest)) in
-  (String.concat "" (loop pieces))^extra
-
-@r depends on !after_start@
-constant char[] c;
-expression list[n] es;
-identifier f;
-position p;
-@@
-
-f@p(es,c,...)
-
-@script:ocaml@
-f << r.f;
-n << r.n;
-p << r.p;
-c << r.c;
-@@
-
-let pieces = Str.split (Str.regexp "/") (List.hd p).file in
-if not (List.mem f ignore) &&
-  List.for_all (fun x -> not (List.mem x pieces)) dignore
-then
-  (if endnl c
-  then inc withnl (f,n)
-  else inc withoutnl (f,n))
-
-@finalize:ocaml depends on !after_start@
-w1 << merge.withnl;
-w2 << merge.withoutnl;
-@@
-
-let names = ref [] in
-let incn tbl k v =
-  let cell =
-    try Hashtbl.find tbl k
-    with Not_found ->
-      begin
-	let cell = ref 0 in
-	Hashtbl.add tbl k cell;
-	cell
-      end in
-  (if not (List.mem k !names) then names := k :: !names);
-  cell := !v + !cell in
-List.iter (function w -> Hashtbl.iter (incn withnl) w) w1;
-List.iter (function w -> Hashtbl.iter (incn withoutnl) w) w2;
-
-List.iter
-  (function name ->
-    let wth = try !(Hashtbl.find withnl name) with _ -> 0 in
-    let wo = try !(Hashtbl.find withoutnl name) with _ -> 0 in
-    if wth > 0 && wth <= wo / 3 then Hashtbl.remove withnl name
-    else (Printf.eprintf "dropping %s %d %d\n" (fst name) wth wo; Hashtbl.remove withoutnl name; Hashtbl.remove withnl name))
-  !names;
-
-let it = new iteration() in
-it#add_virtual_rule After_start;
-it#register()
-
-@s1 depends on after_start@
-constant char[] c;
-expression list[n] es;
-identifier f;
-position p;
-@@
-
-f(es,c@p,...)
-
-@script:ocaml s2@
-f << s1.f;
-n << s1.n;
-c << s1.c;
-newc;
-@@
-
-try
-  let _ = Hashtbl.find withnl (f,n) in
-  if endnl c
-  then Coccilib.include_match false
-  else newc :=
-    make_expr(clean_string (String.sub c 0 (String.length c - 1)) "\\n\"")
-with Not_found ->
-try
-  let _ = Hashtbl.find withoutnl (f,n) in
-  if endnl c
-  then newc :=
-    make_expr(clean_string (String.sub c 0 (String.length c - 3)) "\"")
-  else Coccilib.include_match false
-with Not_found -> Coccilib.include_match false
-
-@@
-constant char[] s1.c;
-position s1.p;
-expression s2.newc;
-@@
-
-- c@p
-+ newc
-// </smpl>
-
+Signed-off-by: Smitha T Murthy <smitha.t@samsung.com>
+Reviewed-by: Andrzej Hajda <a.hajda@samsung.com>
 ---
+ drivers/media/platform/s5p-mfc/regs-mfc-v10.h   |  6 ++++++
+ drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c |  3 +++
+ drivers/media/platform/s5p-mfc/s5p_mfc_common.h |  1 +
+ drivers/media/platform/s5p-mfc/s5p_mfc_dec.c    |  7 +++++++
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr.h    |  2 ++
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c | 26 +++++++++++++++++++++++++
+ 6 files changed, 45 insertions(+)
 
- arch/arm/mach-davinci/board-da850-evm.c                 |    4 ++--
- drivers/block/DAC960.c                                  |    4 ++--
- drivers/gpu/drm/amd/powerplay/hwmgr/smu7_hwmgr.c        |   12 ++++++++----
- drivers/gpu/drm/amd/powerplay/smumgr/fiji_smumgr.c      |    2 +-
- drivers/gpu/drm/amd/powerplay/smumgr/iceland_smumgr.c   |    2 +-
- drivers/gpu/drm/amd/powerplay/smumgr/polaris10_smumgr.c |    2 +-
- drivers/gpu/drm/amd/powerplay/smumgr/tonga_smumgr.c     |    2 +-
- drivers/media/usb/pvrusb2/pvrusb2-hdw.c                 |    3 ++-
- drivers/s390/block/dasd_diag.c                          |    3 +--
- drivers/scsi/hpsa.c                                     |    2 +-
- fs/dlm/plock.c                                          |    3 +--
- fs/ext2/super.c                                         |    2 +-
- fs/hpfs/dnode.c                                         |    3 ++-
- net/dccp/ackvec.c                                       |    2 +-
- net/openvswitch/conntrack.c                             |    4 ++--
- tools/perf/tests/dso-data.c                             |    9 +++++----
- 16 files changed, 32 insertions(+), 27 deletions(-)
+diff --git a/drivers/media/platform/s5p-mfc/regs-mfc-v10.h b/drivers/media/platform/s5p-mfc/regs-mfc-v10.h
+index 953a073..6754477 100644
+--- a/drivers/media/platform/s5p-mfc/regs-mfc-v10.h
++++ b/drivers/media/platform/s5p-mfc/regs-mfc-v10.h
+@@ -18,6 +18,8 @@
+ /* MFCv10 register definitions*/
+ #define S5P_FIMV_MFC_CLOCK_OFF_V10			0x7120
+ #define S5P_FIMV_MFC_STATE_V10				0x7124
++#define S5P_FIMV_D_STATIC_BUFFER_ADDR_V10		0xF570
++#define S5P_FIMV_D_STATIC_BUFFER_SIZE_V10		0xF574
+ 
+ /* MFCv10 Context buffer sizes */
+ #define MFC_CTX_BUF_SIZE_V10		(30 * SZ_1K)
+@@ -34,8 +36,12 @@
+ 
+ /* MFCv10 codec defines*/
+ #define S5P_FIMV_CODEC_HEVC_DEC		17
++#define S5P_FIMV_CODEC_VP9_DEC		18
+ #define S5P_FIMV_CODEC_HEVC_ENC         26
+ 
++/* Decoder buffer size for MFC v10 */
++#define DEC_VP9_STATIC_BUFFER_SIZE	20480
++
+ /* Encoder buffer size for MFC v10.0 */
+ #define ENC_V100_BASE_SIZE(x, y) \
+ 	(((x + 3) * (y + 3) * 8) \
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c b/drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c
+index 76eca67..102b47e 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c
+@@ -104,6 +104,9 @@ static int s5p_mfc_open_inst_cmd_v6(struct s5p_mfc_ctx *ctx)
+ 	case S5P_MFC_CODEC_HEVC_DEC:
+ 		codec_type = S5P_FIMV_CODEC_HEVC_DEC;
+ 		break;
++	case S5P_MFC_CODEC_VP9_DEC:
++		codec_type = S5P_FIMV_CODEC_VP9_DEC;
++		break;
+ 	case S5P_MFC_CODEC_H264_ENC:
+ 		codec_type = S5P_FIMV_CODEC_H264_ENC_V6;
+ 		break;
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
+index 828e07e..b49f220 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
+@@ -73,6 +73,7 @@
+ #define S5P_MFC_CODEC_VC1RCV_DEC	6
+ #define S5P_MFC_CODEC_VP8_DEC		7
+ #define S5P_MFC_CODEC_HEVC_DEC		17
++#define S5P_MFC_CODEC_VP9_DEC		18
+ 
+ #define S5P_MFC_CODEC_H264_ENC		20
+ #define S5P_MFC_CODEC_H264_MVC_ENC	21
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+index 4749355..5cf4d99 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+@@ -151,6 +151,13 @@ static struct s5p_mfc_fmt formats[] = {
+ 		.num_planes	= 1,
+ 		.versions	= MFC_V10_BIT,
+ 	},
++	{
++		.fourcc		= V4L2_PIX_FMT_VP9,
++		.codec_mode	= S5P_FIMV_CODEC_VP9_DEC,
++		.type		= MFC_FMT_DEC,
++		.num_planes	= 1,
++		.versions	= MFC_V10_BIT,
++	},
+ };
+ 
+ #define NUM_FORMATS ARRAY_SIZE(formats)
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr.h b/drivers/media/platform/s5p-mfc/s5p_mfc_opr.h
+index e7a2d46..57f4560 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr.h
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr.h
+@@ -170,6 +170,8 @@ struct s5p_mfc_regs {
+ 	void __iomem *d_used_dpb_flag_upper;/* v7 and v8 */
+ 	void __iomem *d_used_dpb_flag_lower;/* v7 and v8 */
+ 	void __iomem *d_min_scratch_buffer_size; /* v10 */
++	void __iomem *d_static_buffer_addr; /* v10 */
++	void __iomem *d_static_buffer_size; /* v10 */
+ 
+ 	/* encoder registers */
+ 	void __iomem *e_frame_width;
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
+index 8c47294..f47612c 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
+@@ -226,6 +226,12 @@ static int s5p_mfc_alloc_codec_buffers_v6(struct s5p_mfc_ctx *ctx)
+ 			ctx->scratch_buf_size +
+ 			(ctx->mv_count * ctx->mv_size);
+ 		break;
++	case S5P_MFC_CODEC_VP9_DEC:
++		mfc_debug(2, "Use min scratch buffer size\n");
++		ctx->bank1.size =
++			ctx->scratch_buf_size +
++			DEC_VP9_STATIC_BUFFER_SIZE;
++		break;
+ 	case S5P_MFC_CODEC_H264_ENC:
+ 		if (IS_MFCV10(dev)) {
+ 			mfc_debug(2, "Use min scratch buffer size\n");
+@@ -336,6 +342,7 @@ static int s5p_mfc_alloc_instance_buffer_v6(struct s5p_mfc_ctx *ctx)
+ 	case S5P_MFC_CODEC_VC1_DEC:
+ 	case S5P_MFC_CODEC_MPEG2_DEC:
+ 	case S5P_MFC_CODEC_VP8_DEC:
++	case S5P_MFC_CODEC_VP9_DEC:
+ 		ctx->ctx.size = buf_size->other_dec_ctx;
+ 		break;
+ 	case S5P_MFC_CODEC_H264_ENC:
+@@ -566,6 +573,13 @@ static int s5p_mfc_set_dec_frame_buffer_v6(struct s5p_mfc_ctx *ctx)
+ 			buf_size1 -= frame_size_mv;
+ 		}
+ 	}
++	if (ctx->codec_mode == S5P_FIMV_CODEC_VP9_DEC) {
++		writel(buf_addr1, mfc_regs->d_static_buffer_addr);
++		writel(DEC_VP9_STATIC_BUFFER_SIZE,
++				mfc_regs->d_static_buffer_size);
++		buf_addr1 += DEC_VP9_STATIC_BUFFER_SIZE;
++		buf_size1 -= DEC_VP9_STATIC_BUFFER_SIZE;
++	}
+ 
+ 	mfc_debug(2, "Buf1: %zx, buf_size1: %d (frames %d)\n",
+ 			buf_addr1, buf_size1, ctx->total_dpb_count);
+@@ -2272,6 +2286,18 @@ const struct s5p_mfc_regs *s5p_mfc_init_regs_v6_plus(struct s5p_mfc_dev *dev)
+ 	R(e_h264_options, S5P_FIMV_E_H264_OPTIONS_V8);
+ 	R(e_min_scratch_buffer_size, S5P_FIMV_E_MIN_SCRATCH_BUFFER_SIZE_V8);
+ 
++	if (!IS_MFCV10(dev))
++		goto done;
++
++	/* Initialize registers used in MFC v10 only.
++	 * Also, over-write the registers which have
++	 * a different offset for MFC v10.
++	 */
++
++	/* decoder registers */
++	R(d_static_buffer_addr, S5P_FIMV_D_STATIC_BUFFER_ADDR_V10);
++	R(d_static_buffer_size, S5P_FIMV_D_STATIC_BUFFER_SIZE_V10);
++
+ done:
+ 	return &mfc_regs;
+ #undef S5P_MFC_REG_ADDR
+-- 
+2.7.4
