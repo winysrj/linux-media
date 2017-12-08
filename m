@@ -1,246 +1,265 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f178.google.com ([209.85.128.178]:33709 "EHLO
-        mail-wr0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751002AbdLISss (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sat, 9 Dec 2017 13:48:48 -0500
-Received: by mail-wr0-f178.google.com with SMTP id v22so13725653wrb.0
-        for <linux-media@vger.kernel.org>; Sat, 09 Dec 2017 10:48:47 -0800 (PST)
-From: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Subject: Re: [Patch v6 10/12] [media] v4l2: Add v4l2 control IDs for HEVC
- encoder
-To: Smitha T Murthy <smitha.t@samsung.com>,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Cc: kyungmin.park@samsung.com, kamil@wypas.org, jtp.park@samsung.com,
-        a.hajda@samsung.com, mchehab@kernel.org, pankaj.dubey@samsung.com,
-        krzk@kernel.org, m.szyprowski@samsung.com, s.nawrocki@samsung.com
-References: <1512724105-1778-1-git-send-email-smitha.t@samsung.com>
- <CGME20171208093702epcas2p32a30a9f624e06fb543f7dd757c805077@epcas2p3.samsung.com>
- <1512724105-1778-11-git-send-email-smitha.t@samsung.com>
-Message-ID: <5b96b332-71a9-083a-2242-8bdf5554f010@linaro.org>
-Date: Sat, 9 Dec 2017 20:48:44 +0200
+Received: from smtp-4.sys.kth.se ([130.237.48.193]:44870 "EHLO
+        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752370AbdLHBJD (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 7 Dec 2017 20:09:03 -0500
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH v9 19/28] rcar-vin: use different v4l2 operations in media controller mode
+Date: Fri,  8 Dec 2017 02:08:33 +0100
+Message-Id: <20171208010842.20047-20-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20171208010842.20047-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20171208010842.20047-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-In-Reply-To: <1512724105-1778-11-git-send-email-smitha.t@samsung.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Smitha,
+When the driver runs in media controller mode it should not directly
+control the subdevice instead userspace will be responsible for
+configuring the pipeline. To be able to run in this mode a different set
+of v4l2 operations needs to be used.
 
-Thanks for the patches!
+Add a new set of v4l2 operations to support the running without directly
+interacting with the source subdevice.
 
-On 12/08/2017 11:08 AM, Smitha T Murthy wrote:
-> Add v4l2 controls for HEVC encoder
-> 
-> Signed-off-by: Smitha T Murthy <smitha.t@samsung.com>
-> Reviewed-by: Andrzej Hajda <a.hajda@samsung.com>
-> ---
->  drivers/media/v4l2-core/v4l2-ctrls.c | 118 +++++++++++++++++++++++++++++++++++
->  include/uapi/linux/v4l2-controls.h   |  92 ++++++++++++++++++++++++++-
->  2 files changed, 209 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-> index 4e53a86..3f98318 100644
-> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
-> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-> @@ -480,6 +480,56 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
->  		NULL,
->  	};
->  
-> +	static const char * const hevc_profile[] = {
-> +		"Main",
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/platform/rcar-vin/rcar-dma.c  |   3 +-
+ drivers/media/platform/rcar-vin/rcar-v4l2.c | 155 +++++++++++++++++++++++++++-
+ drivers/media/platform/rcar-vin/rcar-vin.h  |   1 +
+ 3 files changed, 155 insertions(+), 4 deletions(-)
 
-You forgot "Main 10" profile.
-
-> +		"Main Still Picture",
-> +		NULL,
-> +	};
-> +	static const char * const hevc_level[] = {
-> +		"1",
-> +		"2",
-> +		"2.1",
-> +		"3",
-> +		"3.1",
-> +		"4",
-> +		"4.1",
-> +		"5",
-> +		"5.1",
-> +		"5.2",
-> +		"6",
-> +		"6.1",
-> +		"6.2",
-> +		NULL,
-> +	};
-> +	static const char * const hevc_hierarchial_coding_type[] = {
-> +		"B",
-> +		"P",
-> +		NULL,
-> +	};
-> +	static const char * const hevc_refresh_type[] = {
-> +		"None",
-> +		"CRA",
-> +		"IDR",
-> +		NULL,
-> +	};
-> +	static const char * const hevc_size_of_length_field[] = {
-> +		"0",
-> +		"1",
-> +		"2",
-> +		"4",
-> +		NULL,
-> +	};
-> +	static const char * const hevc_tier_flag[] = {
-> +		"Main",
-> +		"High",
-> +		NULL,
-> +	};
-> +	static const char * const hevc_loop_filter_mode[] = {
-> +		"Disabled",
-> +		"Enabled",
-> +		"Disabled at slice boundary",
-> +		"NULL",
-> +	};
->  
->  	switch (id) {
->  	case V4L2_CID_MPEG_AUDIO_SAMPLING_FREQ:
-> @@ -575,6 +625,20 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
->  		return dv_it_content_type;
->  	case V4L2_CID_DETECT_MD_MODE:
->  		return detect_md_mode;
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_PROFILE:
-> +		return hevc_profile;
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_LEVEL:
-> +		return hevc_level;
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_TYPE:
-> +		return hevc_hierarchial_coding_type;
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_REFRESH_TYPE:
-> +		return hevc_refresh_type;
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_SIZE_OF_LENGTH_FIELD:
-> +		return hevc_size_of_length_field;
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_TIER_FLAG:
-
-Could you drop _FLAG suffix? Looking (briefly) into the spec they not
-specify `tier flag` but just `tier`.
-
-> +		return hevc_tier_flag;
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_LOOP_FILTER_MODE:
-> +		return hevc_loop_filter_mode;
->  
->  	default:
->  		return NULL;
-> @@ -776,6 +840,53 @@ const char *v4l2_ctrl_get_name(u32 id)
->  	case V4L2_CID_MPEG_VIDEO_VPX_P_FRAME_QP:		return "VPX P-Frame QP Value";
->  	case V4L2_CID_MPEG_VIDEO_VPX_PROFILE:			return "VPX Profile";
->  
-> +	/* HEVC controls */
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_I_FRAME_QP:		return "HEVC I-Frame QP Value";
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_P_FRAME_QP:		return "HEVC P-Frame QP Value";
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_B_FRAME_QP:		return "HEVC B-Frame QP Value";
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_MIN_QP:			return "HEVC Minimum QP Value";
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_MAX_QP:			return "HEVC Maximum QP Value";
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_PROFILE:			return "HEVC Profile";
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_LEVEL:			return "HEVC Level";
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_TIER_FLAG:		return "HEVC Tier Flag";
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_FRAME_RATE_RESOLUTION:	return "HEVC Frame Rate Resolution";
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_MAX_PARTITION_DEPTH:	return "HEVC Maximum Coding Unit Depth";
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_REFRESH_TYPE:		return "HEVC Refresh Type";
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_CONST_INTRA_PRED:		return "HEVC Constant Intra Prediction";
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_LOSSLESS_CU:		return "HEVC Lossless Encoding";
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_WAVEFRONT:		return "HEVC Wavefront";
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_LOOP_FILTER_MODE:		return "HEVC Loop Filter";
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_QP:			return "HEVC QP Values";
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_TYPE:		return "HEVC Hierarchical Coding Type";
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_LAYER:	return "HEVC Hierarchical Coding Layer";
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L0_QP:	return "HEVC Hierarchical Lay 0 QP";
-
-s/Lay/Layer here and below
-
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L1_QP:	return "HEVC Hierarchical Lay 1 QP";
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L2_QP:	return "HEVC Hierarchical Lay 2 QP";
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L3_QP:	return "HEVC Hierarchical Lay 3 QP";
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L4_QP:	return "HEVC Hierarchical Lay 4 QP";
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L5_QP:	return "HEVC Hierarchical Lay 5 QP";
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L6_QP:	return "HEVC Hierarchical Lay 6 QP";
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L0_BR:	return "HEVC Hierarchical Lay 0 Bit Rate";
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L1_BR:	return "HEVC Hierarchical Lay 1 Bit Rate";
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L2_BR:	return "HEVC Hierarchical Lay 2 Bit Rate";
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L3_BR:	return "HEVC Hierarchical Lay 3 Bit Rate";
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L4_BR:	return "HEVC Hierarchical Lay 4 Bit Rate";
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L5_BR:	return "HEVC Hierarchical Lay 5 Bit Rate";
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L6_BR:	return "HEVC Hierarchical Lay 6 Bit Rate";
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_GENERAL_PB:		return "HEVC General PB";
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_TEMPORAL_ID:		return "HEVC Temporal ID";
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_STRONG_SMOOTHING:		return "HEVC Strong Intra Smoothing";
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_INTRA_PU_SPLIT:		return "HEVC Intra PU Split";
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_TMV_PREDICTION:		return "HEVC TMV Prediction";
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_MAX_NUM_MERGE_MV_MINUS1:	return "HEVC Max Number of Candidate MVs";
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_WITHOUT_STARTCODE:	return "HEVC ENC Without Startcode";
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_REFRESH_PERIOD:		return "HEVC Num of I-Frame b/w 2 IDR";
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_LF_BETA_OFFSET_DIV2:	return "HEVC Loop Filter Beta Offset";
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_LF_TC_OFFSET_DIV2:	return "HEVC Loop Filter TC Offset";
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_SIZE_OF_LENGTH_FIELD:	return "HEVC Size of Length Field";
-> +	case V4L2_CID_MPEG_VIDEO_REF_NUMBER_FOR_PFRAMES:	return "Reference Frames for a P-Frame";
-> +	case V4L2_CID_MPEG_VIDEO_PREPEND_SPSPPS_TO_IDR:		return "Prepend SPS and PPS to IDR";
-> +
->  	/* CAMERA controls */
->  	/* Keep the order of the 'case's the same as in v4l2-controls.h! */
->  	case V4L2_CID_CAMERA_CLASS:		return "Camera Controls";
-> @@ -1069,6 +1180,13 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
->  	case V4L2_CID_TUNE_DEEMPHASIS:
->  	case V4L2_CID_MPEG_VIDEO_VPX_GOLDEN_FRAME_SEL:
->  	case V4L2_CID_DETECT_MD_MODE:
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_PROFILE:
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_LEVEL:
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_TYPE:
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_REFRESH_TYPE:
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_SIZE_OF_LENGTH_FIELD:
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_TIER_FLAG:
-> +	case V4L2_CID_MPEG_VIDEO_HEVC_LOOP_FILTER_MODE:
->  		*type = V4L2_CTRL_TYPE_MENU;
->  		break;
->  	case V4L2_CID_LINK_FREQ:
-> diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
-> index 31bfc68..a4b8489 100644
-> --- a/include/uapi/linux/v4l2-controls.h
-> +++ b/include/uapi/linux/v4l2-controls.h
-> @@ -588,6 +588,97 @@ enum v4l2_vp8_golden_frame_sel {
->  #define V4L2_CID_MPEG_VIDEO_VPX_P_FRAME_QP		(V4L2_CID_MPEG_BASE+510)
->  #define V4L2_CID_MPEG_VIDEO_VPX_PROFILE			(V4L2_CID_MPEG_BASE+511)
->  
-> +/* CIDs for HEVC encoding. Number gaps are for compatibility */
-> +
-> +#define V4L2_CID_MPEG_VIDEO_HEVC_MIN_QP		(V4L2_CID_MPEG_BASE + 512)
-> +#define V4L2_CID_MPEG_VIDEO_HEVC_MAX_QP		(V4L2_CID_MPEG_BASE + 513)
-> +#define V4L2_CID_MPEG_VIDEO_HEVC_I_FRAME_QP	(V4L2_CID_MPEG_BASE + 514)
-> +#define V4L2_CID_MPEG_VIDEO_HEVC_P_FRAME_QP	(V4L2_CID_MPEG_BASE + 515)
-> +#define V4L2_CID_MPEG_VIDEO_HEVC_B_FRAME_QP	(V4L2_CID_MPEG_BASE + 516)
-> +#define V4L2_CID_MPEG_VIDEO_HEVC_HIER_QP	(V4L2_CID_MPEG_BASE + 517)
-> +#define V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_TYPE (V4L2_CID_MPEG_BASE + 518)
-> +enum v4l2_mpeg_video_hevc_hier_coding_type {
-> +	V4L2_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_B	= 0,
-> +	V4L2_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_P	= 1,
-> +};
-> +#define V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_LAYER	(V4L2_CID_MPEG_BASE + 519)
-> +#define V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L0_QP	(V4L2_CID_MPEG_BASE + 520)
-> +#define V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L1_QP	(V4L2_CID_MPEG_BASE + 521)
-> +#define V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L2_QP	(V4L2_CID_MPEG_BASE + 522)
-> +#define V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L3_QP	(V4L2_CID_MPEG_BASE + 523)
-> +#define V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L4_QP	(V4L2_CID_MPEG_BASE + 524)
-> +#define V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L5_QP	(V4L2_CID_MPEG_BASE + 525)
-> +#define V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L6_QP	(V4L2_CID_MPEG_BASE + 526)
-> +#define V4L2_CID_MPEG_VIDEO_HEVC_PROFILE	(V4L2_CID_MPEG_BASE + 527)
-> +enum v4l2_mpeg_video_hevc_profile {
-> +	V4L2_MPEG_VIDEO_HEVC_PROFILE_MAIN = 0,
-
-you forgot V4L2_MPEG_VIDEO_HEVC_PROFILE_MAIN10 profile.
-
-> +	V4L2_MPEG_VIDEO_HEVC_PROFILE_MAIN_STILL_PICTURE = 1,
-> +};
-
-<snip>
-
+diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
+index d2788d8bb9565aaa..6c5df13b30d6dd14 100644
+--- a/drivers/media/platform/rcar-vin/rcar-dma.c
++++ b/drivers/media/platform/rcar-vin/rcar-dma.c
+@@ -628,7 +628,8 @@ static int rvin_setup(struct rvin_dev *vin)
+ 		/* Default to TB */
+ 		vnmc = VNMC_IM_FULL;
+ 		/* Use BT if video standard can be read and is 60 Hz format */
+-		if (!v4l2_subdev_call(vin_to_source(vin), video, g_std, &std)) {
++		if (!vin->info->use_mc &&
++		    !v4l2_subdev_call(vin_to_source(vin), video, g_std, &std)) {
+ 			if (std & V4L2_STD_525_60)
+ 				vnmc = VNMC_IM_FULL | VNMC_FOC;
+ 		}
+diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+index 0ffbf0c16fb7b00e..5fea2856fd61030f 100644
+--- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
++++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+@@ -23,6 +23,9 @@
+ #include "rcar-vin.h"
+ 
+ #define RVIN_DEFAULT_FORMAT	V4L2_PIX_FMT_YUYV
++#define RVIN_DEFAULT_WIDTH	800
++#define RVIN_DEFAULT_HEIGHT	600
++#define RVIN_DEFAULT_COLORSPACE	V4L2_COLORSPACE_SRGB
+ 
+ /* -----------------------------------------------------------------------------
+  * Format Conversions
+@@ -671,6 +674,84 @@ static const struct v4l2_ioctl_ops rvin_ioctl_ops = {
+ 	.vidioc_unsubscribe_event	= v4l2_event_unsubscribe,
+ };
+ 
++/* -----------------------------------------------------------------------------
++ * V4L2 Media Controller
++ */
++
++static int __rvin_mc_try_format(struct rvin_dev *vin,
++				struct v4l2_pix_format *pix)
++{
++	/* Keep current field if no specific one is asked for */
++	if (pix->field == V4L2_FIELD_ANY)
++		pix->field = vin->format.field;
++
++	return rvin_format_align(vin, pix);
++}
++
++static int rvin_mc_try_fmt_vid_cap(struct file *file, void *priv,
++				   struct v4l2_format *f)
++{
++	struct rvin_dev *vin = video_drvdata(file);
++
++	return __rvin_mc_try_format(vin, &f->fmt.pix);
++}
++
++static int rvin_mc_s_fmt_vid_cap(struct file *file, void *priv,
++				 struct v4l2_format *f)
++{
++	struct rvin_dev *vin = video_drvdata(file);
++	int ret;
++
++	if (vb2_is_busy(&vin->queue))
++		return -EBUSY;
++
++	ret = __rvin_mc_try_format(vin, &f->fmt.pix);
++	if (ret)
++		return ret;
++
++	vin->format = f->fmt.pix;
++
++	return 0;
++}
++
++static int rvin_mc_enum_input(struct file *file, void *priv,
++			      struct v4l2_input *i)
++{
++	if (i->index != 0)
++		return -EINVAL;
++
++	i->type = V4L2_INPUT_TYPE_CAMERA;
++	strlcpy(i->name, "Camera", sizeof(i->name));
++
++	return 0;
++}
++
++static const struct v4l2_ioctl_ops rvin_mc_ioctl_ops = {
++	.vidioc_querycap		= rvin_querycap,
++	.vidioc_try_fmt_vid_cap		= rvin_mc_try_fmt_vid_cap,
++	.vidioc_g_fmt_vid_cap		= rvin_g_fmt_vid_cap,
++	.vidioc_s_fmt_vid_cap		= rvin_mc_s_fmt_vid_cap,
++	.vidioc_enum_fmt_vid_cap	= rvin_enum_fmt_vid_cap,
++
++	.vidioc_enum_input		= rvin_mc_enum_input,
++	.vidioc_g_input			= rvin_g_input,
++	.vidioc_s_input			= rvin_s_input,
++
++	.vidioc_reqbufs			= vb2_ioctl_reqbufs,
++	.vidioc_create_bufs		= vb2_ioctl_create_bufs,
++	.vidioc_querybuf		= vb2_ioctl_querybuf,
++	.vidioc_qbuf			= vb2_ioctl_qbuf,
++	.vidioc_dqbuf			= vb2_ioctl_dqbuf,
++	.vidioc_expbuf			= vb2_ioctl_expbuf,
++	.vidioc_prepare_buf		= vb2_ioctl_prepare_buf,
++	.vidioc_streamon		= vb2_ioctl_streamon,
++	.vidioc_streamoff		= vb2_ioctl_streamoff,
++
++	.vidioc_log_status		= v4l2_ctrl_log_status,
++	.vidioc_subscribe_event		= rvin_subscribe_event,
++	.vidioc_unsubscribe_event	= v4l2_event_unsubscribe,
++};
++
+ /* -----------------------------------------------------------------------------
+  * File Operations
+  */
+@@ -814,6 +895,60 @@ static const struct v4l2_file_operations rvin_fops = {
+ 	.read		= vb2_fop_read,
+ };
+ 
++/* -----------------------------------------------------------------------------
++ * Media controller file Operations
++ */
++
++static int rvin_mc_open(struct file *file)
++{
++	struct rvin_dev *vin = video_drvdata(file);
++	int ret;
++
++	mutex_lock(&vin->lock);
++
++	file->private_data = vin;
++
++	ret = v4l2_fh_open(file);
++	if (ret)
++		goto unlock;
++
++	pm_runtime_get_sync(vin->dev);
++	v4l2_pipeline_pm_use(&vin->vdev.entity, 1);
++
++unlock:
++	mutex_unlock(&vin->lock);
++
++	return ret;
++}
++
++static int rvin_mc_release(struct file *file)
++{
++	struct rvin_dev *vin = video_drvdata(file);
++	int ret;
++
++	mutex_lock(&vin->lock);
++
++	/* the release helper will cleanup any on-going streaming */
++	ret = _vb2_fop_release(file, NULL);
++
++	v4l2_pipeline_pm_use(&vin->vdev.entity, 0);
++	pm_runtime_put(vin->dev);
++
++	mutex_unlock(&vin->lock);
++
++	return ret;
++}
++
++static const struct v4l2_file_operations rvin_mc_fops = {
++	.owner		= THIS_MODULE,
++	.unlocked_ioctl	= video_ioctl2,
++	.open		= rvin_mc_open,
++	.release	= rvin_mc_release,
++	.poll		= vb2_fop_poll,
++	.mmap		= vb2_fop_mmap,
++	.read		= vb2_fop_read,
++};
++
+ void rvin_v4l2_unregister(struct rvin_dev *vin)
+ {
+ 	if (!video_is_registered(&vin->vdev))
+@@ -849,19 +984,33 @@ int rvin_v4l2_register(struct rvin_dev *vin)
+ 	vin->v4l2_dev.notify = rvin_notify;
+ 
+ 	/* video node */
+-	vdev->fops = &rvin_fops;
+ 	vdev->v4l2_dev = &vin->v4l2_dev;
+ 	vdev->queue = &vin->queue;
+ 	snprintf(vdev->name, sizeof(vdev->name), "%s %s", KBUILD_MODNAME,
+ 		 dev_name(vin->dev));
+ 	vdev->release = video_device_release_empty;
+-	vdev->ioctl_ops = &rvin_ioctl_ops;
+ 	vdev->lock = &vin->lock;
+ 	vdev->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING |
+ 		V4L2_CAP_READWRITE;
+ 
++	/* Set some form of default format */
+ 	vin->format.pixelformat	= RVIN_DEFAULT_FORMAT;
+-	rvin_reset_format(vin);
++	vin->format.width = RVIN_DEFAULT_WIDTH;
++	vin->format.height = RVIN_DEFAULT_HEIGHT;
++	vin->format.colorspace = RVIN_DEFAULT_COLORSPACE;
++
++	if (vin->info->use_mc) {
++		vdev->fops = &rvin_mc_fops;
++		vdev->ioctl_ops = &rvin_mc_ioctl_ops;
++	} else {
++		vdev->fops = &rvin_fops;
++		vdev->ioctl_ops = &rvin_ioctl_ops;
++		rvin_reset_format(vin);
++	}
++
++	ret = rvin_format_align(vin, &vin->format);
++	if (ret)
++		return ret;
+ 
+ 	ret = video_register_device(&vin->vdev, VFL_TYPE_GRABBER, -1);
+ 	if (ret) {
+diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
+index 0747873c2b9cb74c..fd3cd781be0ab1cf 100644
+--- a/drivers/media/platform/rcar-vin/rcar-vin.h
++++ b/drivers/media/platform/rcar-vin/rcar-vin.h
+@@ -21,6 +21,7 @@
+ #include <media/v4l2-ctrls.h>
+ #include <media/v4l2-dev.h>
+ #include <media/v4l2-device.h>
++#include <media/v4l2-mc.h>
+ #include <media/videobuf2-v4l2.h>
+ 
+ /* Number of HW buffers */
 -- 
-regards,
-Stan
+2.15.0
