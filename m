@@ -1,1395 +1,346 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f195.google.com ([209.85.192.195]:43447 "EHLO
-        mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755198AbdL2Hxc (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 29 Dec 2017 02:53:32 -0500
-From: Shunqian Zheng <zhengsq@rock-chips.com>
-To: linux-rockchip@lists.infradead.org, linux-media@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        mchehab@kernel.org, sakari.ailus@linux.intel.com,
-        hans.verkuil@cisco.com, tfiga@chromium.org, zhengsq@rock-chips.com,
-        laurent.pinchart@ideasonboard.com, zyc@rock-chips.com,
-        eddie.cai.linux@gmail.com, jeffy.chen@rock-chips.com,
-        allon.huang@rock-chips.com, devicetree@vger.kernel.org,
-        heiko@sntech.de, robh+dt@kernel.org, Joao.Pinto@synopsys.com,
-        Luis.Oliveira@synopsys.com, Jose.Abreu@synopsys.com,
-        jacob2.chen@rock-chips.com, Jacob Chen <cc@rock-chips.com>
-Subject: [PATCH v5 05/16] media: rkisp1: add Rockchip ISP1 subdev driver
-Date: Fri, 29 Dec 2017 15:52:47 +0800
-Message-Id: <1514533978-20408-6-git-send-email-zhengsq@rock-chips.com>
-In-Reply-To: <1514533978-20408-1-git-send-email-zhengsq@rock-chips.com>
-References: <1514533978-20408-1-git-send-email-zhengsq@rock-chips.com>
+Received: from smtp-4.sys.kth.se ([130.237.48.193]:44896 "EHLO
+        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752418AbdLHBJE (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 7 Dec 2017 20:09:04 -0500
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH v9 21/28] rcar-vin: add group allocator functions
+Date: Fri,  8 Dec 2017 02:08:35 +0100
+Message-Id: <20171208010842.20047-22-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20171208010842.20047-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20171208010842.20047-1-niklas.soderlund+renesas@ragnatech.se>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Jacob Chen <jacob2.chen@rock-chips.com>
+In media controller mode all VIN instances needs to be part of the same
+media graph. There is also a need to each VIN instance to know and in
+some cases be able to communicate with other VIN instances.
 
-Add the subdev driver for rockchip isp1.
+Add an allocator framework where the first VIN instance to be probed
+creates a shared data structure and creates a media device.
 
-Signed-off-by: Jacob Chen <jacob2.chen@rock-chips.com>
-Signed-off-by: Shunqian Zheng <zhengsq@rock-chips.com>
-Signed-off-by: Yichong Zhong <zyc@rock-chips.com>
-Signed-off-by: Jacob Chen <cc@rock-chips.com>
-Signed-off-by: Eddie Cai <eddie.cai.linux@gmail.com>
-Signed-off-by: Jeffy Chen <jeffy.chen@rock-chips.com>
-Signed-off-by: Allon Huang <allon.huang@rock-chips.com>
-Signed-off-by: Tomasz Figa <tfiga@chromium.org>
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/platform/rockchip/isp1/rkisp1.c | 1205 +++++++++++++++++++++++++
- drivers/media/platform/rockchip/isp1/rkisp1.h |  132 +++
- 2 files changed, 1337 insertions(+)
- create mode 100644 drivers/media/platform/rockchip/isp1/rkisp1.c
- create mode 100644 drivers/media/platform/rockchip/isp1/rkisp1.h
+ drivers/media/platform/rcar-vin/rcar-core.c | 179 +++++++++++++++++++++++++++-
+ drivers/media/platform/rcar-vin/rcar-vin.h  |  38 ++++++
+ 2 files changed, 215 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/platform/rockchip/isp1/rkisp1.c b/drivers/media/platform/rockchip/isp1/rkisp1.c
-new file mode 100644
-index 0000000..2656c5e
---- /dev/null
-+++ b/drivers/media/platform/rockchip/isp1/rkisp1.c
-@@ -0,0 +1,1205 @@
-+/*
-+ * Rockchip isp1 driver
-+ *
-+ * Copyright (C) 2017 Rockchip Electronics Co., Ltd.
-+ *
-+ * This software is available to you under a choice of one of two
-+ * licenses.  You may choose to be licensed under the terms of the GNU
-+ * General Public License (GPL) Version 2, available from the file
-+ * COPYING in the main directory of this source tree, or the
-+ * OpenIB.org BSD license below:
-+ *
-+ *     Redistribution and use in source and binary forms, with or
-+ *     without modification, are permitted provided that the following
-+ *     conditions are met:
-+ *
-+ *      - Redistributions of source code must retain the above
-+ *        copyright notice, this list of conditions and the following
-+ *        disclaimer.
-+ *
-+ *      - Redistributions in binary form must reproduce the above
-+ *        copyright notice, this list of conditions and the following
-+ *        disclaimer in the documentation and/or other materials
-+ *        provided with the distribution.
-+ *
-+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-+ * SOFTWARE.
+diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
+index 45de4079fd835759..a6713fd61dd87a88 100644
+--- a/drivers/media/platform/rcar-vin/rcar-core.c
++++ b/drivers/media/platform/rcar-vin/rcar-core.c
+@@ -20,12 +20,170 @@
+ #include <linux/of_graph.h>
+ #include <linux/platform_device.h>
+ #include <linux/pm_runtime.h>
++#include <linux/slab.h>
+ 
+ #include <media/v4l2-async.h>
+ #include <media/v4l2-fwnode.h>
+ 
+ #include "rcar-vin.h"
+ 
++/* -----------------------------------------------------------------------------
++ * Gen3 CSI2 Group Allocator
 + */
 +
-+#include <linux/iopoll.h>
-+#include <linux/pm_runtime.h>
-+#include <linux/videodev2.h>
-+#include <linux/vmalloc.h>
-+#include <media/v4l2-event.h>
-+
-+#include "common.h"
-+#include "regs.h"
-+
-+#define CIF_ISP_INPUT_W_MAX		4032
-+#define CIF_ISP_INPUT_H_MAX		3024
-+#define CIF_ISP_INPUT_W_MIN		32
-+#define CIF_ISP_INPUT_H_MIN		32
-+#define CIF_ISP_OUTPUT_W_MAX		CIF_ISP_INPUT_W_MAX
-+#define CIF_ISP_OUTPUT_H_MAX		CIF_ISP_INPUT_H_MAX
-+#define CIF_ISP_OUTPUT_W_MIN		CIF_ISP_INPUT_W_MIN
-+#define CIF_ISP_OUTPUT_H_MIN		CIF_ISP_INPUT_H_MIN
-+
-+/*
-+ * NOTE: MIPI controller and input MUX are also configured in this file,
-+ * because ISP Subdev is not only describe ISP submodule(input size,format, output size, format),
-+ * but also a virtual route device.
-+ */
-+
-+/*
-+ * There are many variables named with format/frame in below code,
-+ * please see here for their meaning.
-+ *
-+ * Cropping regions of ISP
-+ *
-+ * +---------------------------------------------------------+
-+ * | Sensor image                                            |
-+ * | +---------------------------------------------------+   |
-+ * | | ISP_ACQ (for black level)                         |   |
-+ * | | in_frm                                            |   |
-+ * | | +--------------------------------------------+    |   |
-+ * | | |    ISP_OUT                                 |    |   |
-+ * | | |    in_crop                                 |    |   |
-+ * | | |    +---------------------------------+     |    |   |
-+ * | | |    |   ISP_IS                        |     |    |   |
-+ * | | |    |   rkisp1_isp_subdev: out_crop   |     |    |   |
-+ * | | |    +---------------------------------+     |    |   |
-+ * | | +--------------------------------------------+    |   |
-+ * | +---------------------------------------------------+   |
-+ * +---------------------------------------------------------+
-+ */
-+
-+static inline struct rkisp1_device *sd_to_isp_dev(struct v4l2_subdev *sd)
++static int rvin_group_read_id(struct rvin_dev *vin, struct device_node *np)
 +{
-+	return container_of(sd->v4l2_dev, struct rkisp1_device, v4l2_dev);
-+}
-+
-+/* Get sensor by enabled media link */
-+static struct v4l2_subdev *get_remote_sensor(struct v4l2_subdev *sd)
-+{
-+	struct media_pad *local;
-+	struct media_entity *sensor_me;
-+
-+	local = &sd->entity.pads[RKISP1_ISP_PAD_SINK];
-+	sensor_me = media_entity_remote_pad(local)->entity;
-+
-+	return media_entity_to_v4l2_subdev(sensor_me);
-+}
-+
-+static struct rkisp1_sensor_info *sd_to_sensor(struct rkisp1_device *dev,
-+					       struct v4l2_subdev *sd)
-+{
-+	int i;
-+
-+	for (i = 0; i < dev->num_sensors; ++i)
-+		if (dev->sensors[i].sd == sd)
-+			return &dev->sensors[i];
-+
-+	return NULL;
-+}
-+
-+/****************  register operations ****************/
-+
-+/*
-+ * Image Stabilization.
-+ * This should only be called when configuring CIF
-+ * or at the frame end interrupt
-+ */
-+static void rkisp1_config_ism(struct rkisp1_device *dev)
-+{
-+	void __iomem *base = dev->base_addr;
-+	struct v4l2_rect *out_crop = &dev->isp_sdev.out_crop;
 +	u32 val;
-+
-+	writel(0, base + CIF_ISP_IS_RECENTER);
-+	writel(0, base + CIF_ISP_IS_MAX_DX);
-+	writel(0, base + CIF_ISP_IS_MAX_DY);
-+	writel(0, base + CIF_ISP_IS_DISPLACE);
-+	writel(out_crop->left, base + CIF_ISP_IS_H_OFFS);
-+	writel(out_crop->top, base + CIF_ISP_IS_V_OFFS);
-+	writel(out_crop->width, base + CIF_ISP_IS_H_SIZE);
-+	writel(out_crop->height, base + CIF_ISP_IS_V_SIZE);
-+
-+	/* IS(Image Stabilization) is always on, working as output crop */
-+	writel(1, base + CIF_ISP_IS_CTRL);
-+	val = readl(base + CIF_ISP_CTRL);
-+	val |= CIF_ISP_CTRL_ISP_CFG_UPD;
-+	writel(val, base + CIF_ISP_CTRL);
-+}
-+
-+/*
-+ * configure isp blocks with input format, size......
-+ */
-+static int rkisp1_config_isp(struct rkisp1_device *dev)
-+{
-+	struct ispsd_in_fmt *in_fmt;
-+	struct ispsd_out_fmt *out_fmt;
-+	struct v4l2_mbus_framefmt *in_frm;
-+	struct v4l2_rect *out_crop, *in_crop;
-+	struct rkisp1_sensor_info *sensor;
-+	void __iomem *base = dev->base_addr;
-+	u32 isp_ctrl = 0;
-+	u32 irq_mask = 0;
-+	u32 signal = 0;
-+	u32 acq_mult = 0;
-+
-+	sensor = dev->active_sensor;
-+	in_frm = &dev->isp_sdev.in_frm;
-+	in_fmt = &dev->isp_sdev.in_fmt;
-+	out_fmt = &dev->isp_sdev.out_fmt;
-+	out_crop = &dev->isp_sdev.out_crop;
-+	in_crop = &dev->isp_sdev.in_crop;
-+
-+	if (in_fmt->fmt_type == FMT_BAYER) {
-+		acq_mult = 1;
-+		if (out_fmt->fmt_type == FMT_BAYER) {
-+			if (sensor->mbus.type == V4L2_MBUS_BT656)
-+				isp_ctrl =
-+					CIF_ISP_CTRL_ISP_MODE_RAW_PICT_ITU656;
-+			else
-+				isp_ctrl =
-+					CIF_ISP_CTRL_ISP_MODE_RAW_PICT;
-+		} else {
-+			writel(CIF_ISP_DEMOSAIC_TH(0xc),
-+			       base + CIF_ISP_DEMOSAIC);
-+
-+			if (sensor->mbus.type == V4L2_MBUS_BT656)
-+				isp_ctrl = CIF_ISP_CTRL_ISP_MODE_BAYER_ITU656;
-+			else
-+				isp_ctrl = CIF_ISP_CTRL_ISP_MODE_BAYER_ITU601;
-+		}
-+	} else if (in_fmt->fmt_type == FMT_YUV) {
-+		acq_mult = 2;
-+		if (sensor->mbus.type == V4L2_MBUS_CSI2) {
-+			isp_ctrl = CIF_ISP_CTRL_ISP_MODE_ITU601;
-+		} else {
-+			if (sensor->mbus.type == V4L2_MBUS_BT656)
-+				isp_ctrl = CIF_ISP_CTRL_ISP_MODE_ITU656;
-+			else
-+				isp_ctrl = CIF_ISP_CTRL_ISP_MODE_ITU601;
-+
-+		}
-+
-+		irq_mask |= CIF_ISP_DATA_LOSS;
-+	}
-+
-+	/* Set up input acquisition properties */
-+	if (sensor->mbus.type == V4L2_MBUS_BT656 ||
-+	    sensor->mbus.type == V4L2_MBUS_PARALLEL) {
-+		if (sensor->mbus.flags &
-+			V4L2_MBUS_PCLK_SAMPLE_RISING)
-+			signal = CIF_ISP_ACQ_PROP_POS_EDGE;
-+	}
-+
-+	if (sensor->mbus.type == V4L2_MBUS_PARALLEL) {
-+		if (sensor->mbus.flags & V4L2_MBUS_VSYNC_ACTIVE_LOW)
-+			signal |= CIF_ISP_ACQ_PROP_VSYNC_LOW;
-+
-+		if (sensor->mbus.flags & V4L2_MBUS_HSYNC_ACTIVE_LOW)
-+			signal |= CIF_ISP_ACQ_PROP_HSYNC_LOW;
-+	}
-+
-+	writel(isp_ctrl, base + CIF_ISP_CTRL);
-+	writel(signal | in_fmt->yuv_seq |
-+	       CIF_ISP_ACQ_PROP_BAYER_PAT(in_fmt->bayer_pat) |
-+	       CIF_ISP_ACQ_PROP_FIELD_SEL_ALL, base + CIF_ISP_ACQ_PROP);
-+	writel(0, base + CIF_ISP_ACQ_NR_FRAMES);
-+
-+	/* Acquisition Size */
-+	writel(0, base + CIF_ISP_ACQ_H_OFFS);
-+	writel(0, base + CIF_ISP_ACQ_V_OFFS);
-+	writel(acq_mult * in_frm->width, base + CIF_ISP_ACQ_H_SIZE);
-+	writel(in_frm->height, base + CIF_ISP_ACQ_V_SIZE);
-+
-+	/* ISP Out Area */
-+	writel(in_crop->left, base + CIF_ISP_OUT_H_OFFS);
-+	writel(in_crop->top, base + CIF_ISP_OUT_V_OFFS);
-+	writel(in_crop->width, base + CIF_ISP_OUT_H_SIZE);
-+	writel(in_crop->height, base + CIF_ISP_OUT_V_SIZE);
-+
-+	/* interrupt mask */
-+	irq_mask |= CIF_ISP_FRAME | CIF_ISP_V_START | CIF_ISP_PIC_SIZE_ERROR |
-+		    CIF_ISP_FRAME_IN;
-+	writel(irq_mask, base + CIF_ISP_IMSC);
-+
-+	if (out_fmt->fmt_type == FMT_BAYER)
-+		rkisp1_params_disable_isp(&dev->params_vdev);
-+	else
-+		rkisp1_params_configure_isp(&dev->params_vdev, in_fmt,
-+				     dev->isp_sdev.quantization);
-+
-+	return 0;
-+}
-+
-+static int rkisp1_config_dvp(struct rkisp1_device *dev)
-+{
-+	struct ispsd_in_fmt *in_fmt = &dev->isp_sdev.in_fmt;
-+	void __iomem *base = dev->base_addr;
-+	u32 val, input_sel;
-+
-+	switch (in_fmt->bus_width) {
-+	case 8:
-+		input_sel = CIF_ISP_ACQ_PROP_IN_SEL_8B_ZERO;
-+		break;
-+	case 10:
-+		input_sel = CIF_ISP_ACQ_PROP_IN_SEL_10B_ZERO;
-+		break;
-+	case 12:
-+		input_sel = CIF_ISP_ACQ_PROP_IN_SEL_12B;
-+		break;
-+	default:
-+		v4l2_err(&dev->v4l2_dev, "Invalid bus width\n");
-+		return -EINVAL;
-+	}
-+
-+	val = readl(base + CIF_ISP_ACQ_PROP);
-+	writel(val | input_sel, base + CIF_ISP_ACQ_PROP);
-+
-+	return 0;
-+}
-+
-+static int rkisp1_config_mipi(struct rkisp1_device *dev)
-+{
-+	u32 mipi_ctrl;
-+	void __iomem *base = dev->base_addr;
-+	struct ispsd_in_fmt *in_fmt = &dev->isp_sdev.in_fmt;
-+	struct rkisp1_sensor_info *sensor = dev->active_sensor;
-+	int lanes;
-+
-+	/*
-+	 * sensor->mbus is set in isp or d-phy notifier_bound function
-+	 */
-+	switch (sensor->mbus.flags & V4L2_MBUS_CSI2_LANES) {
-+	case V4L2_MBUS_CSI2_4_LANE:
-+		lanes = 4;
-+		break;
-+	case V4L2_MBUS_CSI2_3_LANE:
-+		lanes = 3;
-+		break;
-+	case V4L2_MBUS_CSI2_2_LANE:
-+		lanes = 2;
-+		break;
-+	case V4L2_MBUS_CSI2_1_LANE:
-+		lanes = 1;
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	mipi_ctrl = CIF_MIPI_CTRL_NUM_LANES(lanes - 1) |
-+		    CIF_MIPI_CTRL_SHUTDOWNLANES(0xf) |
-+		    CIF_MIPI_CTRL_ERR_SOT_SYNC_HS_SKIP |
-+		    CIF_MIPI_CTRL_CLOCKLANE_ENA;
-+
-+	writel(mipi_ctrl, base + CIF_MIPI_CTRL);
-+
-+	/* Configure Data Type and Virtual Channel */
-+	writel(CIF_MIPI_DATA_SEL_DT(in_fmt->mipi_dt) | CIF_MIPI_DATA_SEL_VC(0),
-+	       base + CIF_MIPI_IMG_DATA_SEL);
-+
-+	/* Clear MIPI interrupts */
-+	writel(~0, base + CIF_MIPI_ICR);
-+	/*
-+	 * Disable CIF_MIPI_ERR_DPHY interrupt here temporary for
-+	 * isp bus may be dead when switch isp.
-+	 */
-+	writel(CIF_MIPI_FRAME_END | CIF_MIPI_ERR_CSI | CIF_MIPI_ERR_DPHY |
-+	       CIF_MIPI_SYNC_FIFO_OVFLW(0x03) | CIF_MIPI_ADD_DATA_OVFLW,
-+	       base + CIF_MIPI_IMSC);
-+
-+	v4l2_dbg(1, rkisp1_debug, &dev->v4l2_dev, "\n  MIPI_CTRL 0x%08x\n"
-+		 "  MIPI_IMG_DATA_SEL 0x%08x\n"
-+		 "  MIPI_STATUS 0x%08x\n"
-+		 "  MIPI_IMSC 0x%08x\n",
-+		 readl(base + CIF_MIPI_CTRL),
-+		 readl(base + CIF_MIPI_IMG_DATA_SEL),
-+		 readl(base + CIF_MIPI_STATUS),
-+		 readl(base + CIF_MIPI_IMSC));
-+
-+	return 0;
-+}
-+
-+/* Configure MUX */
-+static int rkisp1_config_path(struct rkisp1_device *dev)
-+{
-+	int ret = 0;
-+	struct rkisp1_sensor_info *sensor = dev->active_sensor;
-+	u32 dpcl = readl(dev->base_addr + CIF_VI_DPCL);
-+
-+	if (sensor->mbus.type == V4L2_MBUS_BT656 ||
-+	    sensor->mbus.type == V4L2_MBUS_PARALLEL) {
-+		ret = rkisp1_config_dvp(dev);
-+		dpcl |= CIF_VI_DPCL_IF_SEL_PARALLEL;
-+	} else if (sensor->mbus.type == V4L2_MBUS_CSI2) {
-+		ret = rkisp1_config_mipi(dev);
-+		dpcl |= CIF_VI_DPCL_IF_SEL_MIPI;
-+	}
-+
-+	writel(dpcl, dev->base_addr + CIF_VI_DPCL);
-+
-+	return ret;
-+}
-+
-+/* Hareware configure Entry */
-+static int rkisp1_config_cif(struct rkisp1_device *dev)
-+{
-+	int ret = 0;
-+	u32 cif_id;
-+
-+	v4l2_dbg(1, rkisp1_debug, &dev->v4l2_dev,
-+		 "SP state = %d, MP state = %d\n",
-+		 dev->stream[RKISP1_STREAM_SP].state,
-+		 dev->stream[RKISP1_STREAM_MP].state);
-+
-+	cif_id = readl(dev->base_addr + CIF_VI_ID);
-+	v4l2_dbg(1, rkisp1_debug, &dev->v4l2_dev, "CIF_ID 0x%08x\n", cif_id);
-+
-+	ret = rkisp1_config_isp(dev);
-+	if (ret < 0)
-+		return ret;
-+	ret = rkisp1_config_path(dev);
-+	if (ret < 0)
-+		return ret;
-+	rkisp1_config_ism(dev);
-+
-+	return 0;
-+}
-+
-+/* Mess register operations to stop isp */
-+static int rkisp1_isp_stop(struct rkisp1_device *dev)
-+{
-+	void __iomem *base = dev->base_addr;
-+	u32 val;
-+
-+	v4l2_dbg(1, rkisp1_debug, &dev->v4l2_dev,
-+		 "SP state = %d, MP state = %d\n",
-+		 dev->stream[RKISP1_STREAM_SP].state,
-+		 dev->stream[RKISP1_STREAM_MP].state);
-+
-+	/*
-+	 * ISP(mi) stop in mi frame end -> Stop ISP(mipi) ->
-+	 * Stop ISP(isp) ->wait for ISP isp off
-+	 */
-+	/* stop and clear MI, MIPI, and ISP interrupts */
-+	writel(0, base + CIF_MIPI_IMSC);
-+	writel(~0, base + CIF_MIPI_ICR);
-+
-+	writel(0, base + CIF_ISP_IMSC);
-+	writel(~0, base + CIF_ISP_ICR);
-+
-+	writel(0, base + CIF_MI_IMSC);
-+	writel(~0, base + CIF_MI_ICR);
-+	val = readl(base + CIF_MIPI_CTRL);
-+	writel(val & (~CIF_MIPI_CTRL_OUTPUT_ENA), base + CIF_MIPI_CTRL);
-+	/* stop ISP */
-+	val = readl(base + CIF_ISP_CTRL);
-+	val &= ~(CIF_ISP_CTRL_ISP_INFORM_ENABLE | CIF_ISP_CTRL_ISP_ENABLE);
-+	writel(val, base + CIF_ISP_CTRL);
-+
-+	val = readl(base + CIF_ISP_CTRL);
-+	writel(val | CIF_ISP_CTRL_ISP_CFG_UPD, base + CIF_ISP_CTRL);
-+
-+	readx_poll_timeout(readl, base + CIF_ISP_RIS,
-+			   val, val & CIF_ISP_OFF, 20, 100);
-+	v4l2_dbg(1, rkisp1_debug, &dev->v4l2_dev,
-+		"state(MP:%d, SP:%d), MI_CTRL:%x, ISP_CTRL:%x, MIPI_CTRL:%x\n",
-+		 dev->stream[RKISP1_STREAM_SP].state,
-+		 dev->stream[RKISP1_STREAM_MP].state,
-+		 readl(base + CIF_MI_CTRL),
-+		 readl(base + CIF_ISP_CTRL),
-+		 readl(base + CIF_MIPI_CTRL));
-+
-+	writel(CIF_IRCL_MIPI_SW_RST | CIF_IRCL_ISP_SW_RST, base + CIF_IRCL);
-+	writel(0x0, base + CIF_IRCL);
-+
-+	return 0;
-+}
-+
-+/* Mess register operations to start isp */
-+static int rkisp1_isp_start(struct rkisp1_device *dev)
-+{
-+	struct rkisp1_sensor_info *sensor = dev->active_sensor;
-+	void __iomem *base = dev->base_addr;
-+	u32 val;
-+
-+	v4l2_dbg(1, rkisp1_debug, &dev->v4l2_dev,
-+		 "SP state = %d, MP state = %d\n",
-+		 dev->stream[RKISP1_STREAM_SP].state,
-+		 dev->stream[RKISP1_STREAM_MP].state);
-+
-+	/* Activate MIPI */
-+	if (sensor->mbus.type == V4L2_MBUS_CSI2) {
-+		val = readl(base + CIF_MIPI_CTRL);
-+		writel(val | CIF_MIPI_CTRL_OUTPUT_ENA, base + CIF_MIPI_CTRL);
-+	}
-+	/* Activate ISP */
-+	val = readl(base + CIF_ISP_CTRL);
-+	val |= CIF_ISP_CTRL_ISP_CFG_UPD | CIF_ISP_CTRL_ISP_ENABLE |
-+	       CIF_ISP_CTRL_ISP_INFORM_ENABLE;
-+	writel(val, base + CIF_ISP_CTRL);
-+
-+	/* XXX: Is the 1000us too long?
-+	 * CIF spec says to wait for sufficient time after enabling
-+	 * the MIPI interface and before starting the sensor output.
-+	 */
-+	usleep_range(1000, 1200);
-+
-+	v4l2_dbg(1, rkisp1_debug, &dev->v4l2_dev,
-+		 "SP state = %d, MP state = %d MI_CTRL 0x%08x\n"
-+		 "  ISP_CTRL 0x%08x MIPI_CTRL 0x%08x\n",
-+		 dev->stream[RKISP1_STREAM_SP].state,
-+		 dev->stream[RKISP1_STREAM_MP].state,
-+		 readl(base + CIF_MI_CTRL),
-+		 readl(base + CIF_ISP_CTRL),
-+		 readl(base + CIF_MIPI_CTRL));
-+
-+	return 0;
-+}
-+
-+static void rkisp1_config_clk(struct rkisp1_device *dev)
-+{
-+	u32 val = CIF_ICCL_ISP_CLK | CIF_ICCL_CP_CLK | CIF_ICCL_MRSZ_CLK |
-+		CIF_ICCL_SRSZ_CLK | CIF_ICCL_JPEG_CLK | CIF_ICCL_MI_CLK |
-+		CIF_ICCL_IE_CLK | CIF_ICCL_MIPI_CLK | CIF_ICCL_DCROP_CLK;
-+
-+	writel(val, dev->base_addr + CIF_ICCL);
-+}
-+
-+/***************************** isp sub-devs *******************************/
-+
-+static const struct ispsd_in_fmt rkisp1_isp_input_formats[] = {
-+	{
-+		.mbus_code	= MEDIA_BUS_FMT_SBGGR10_1X10,
-+		.fmt_type	= FMT_BAYER,
-+		.mipi_dt	= CIF_CSI2_DT_RAW10,
-+		.bayer_pat	= RAW_BGGR,
-+		.bus_width	= 10,
-+	}, {
-+		.mbus_code	= MEDIA_BUS_FMT_SRGGB10_1X10,
-+		.fmt_type	= FMT_BAYER,
-+		.mipi_dt	= CIF_CSI2_DT_RAW10,
-+		.bayer_pat	= RAW_RGGB,
-+		.bus_width	= 10,
-+	}, {
-+		.mbus_code	= MEDIA_BUS_FMT_SGBRG10_1X10,
-+		.fmt_type	= FMT_BAYER,
-+		.mipi_dt	= CIF_CSI2_DT_RAW10,
-+		.bayer_pat	= RAW_GBRG,
-+		.bus_width	= 10,
-+	}, {
-+		.mbus_code	= MEDIA_BUS_FMT_SGRBG10_1X10,
-+		.fmt_type	= FMT_BAYER,
-+		.mipi_dt	= CIF_CSI2_DT_RAW10,
-+		.bayer_pat	= RAW_GRBG,
-+		.bus_width	= 10,
-+	}, {
-+		.mbus_code	= MEDIA_BUS_FMT_SRGGB12_1X12,
-+		.fmt_type	= FMT_BAYER,
-+		.mipi_dt	= CIF_CSI2_DT_RAW12,
-+		.bayer_pat	= RAW_RGGB,
-+		.bus_width	= 12,
-+	}, {
-+		.mbus_code	= MEDIA_BUS_FMT_SBGGR12_1X12,
-+		.fmt_type	= FMT_BAYER,
-+		.mipi_dt	= CIF_CSI2_DT_RAW12,
-+		.bayer_pat	= RAW_BGGR,
-+		.bus_width	= 12,
-+	}, {
-+		.mbus_code	= MEDIA_BUS_FMT_SGBRG12_1X12,
-+		.fmt_type	= FMT_BAYER,
-+		.mipi_dt	= CIF_CSI2_DT_RAW12,
-+		.bayer_pat	= RAW_GBRG,
-+		.bus_width	= 12,
-+	}, {
-+		.mbus_code	= MEDIA_BUS_FMT_SGRBG12_1X12,
-+		.fmt_type	= FMT_BAYER,
-+		.mipi_dt	= CIF_CSI2_DT_RAW12,
-+		.bayer_pat	= RAW_GRBG,
-+		.bus_width	= 12,
-+	}, {
-+		.mbus_code	= MEDIA_BUS_FMT_SRGGB8_1X8,
-+		.fmt_type	= FMT_BAYER,
-+		.mipi_dt	= CIF_CSI2_DT_RAW8,
-+		.bayer_pat	= RAW_RGGB,
-+		.bus_width	= 8,
-+	}, {
-+		.mbus_code	= MEDIA_BUS_FMT_SBGGR8_1X8,
-+		.fmt_type	= FMT_BAYER,
-+		.mipi_dt	= CIF_CSI2_DT_RAW8,
-+		.bayer_pat	= RAW_BGGR,
-+		.bus_width	= 8,
-+	}, {
-+		.mbus_code	= MEDIA_BUS_FMT_SGBRG8_1X8,
-+		.fmt_type	= FMT_BAYER,
-+		.mipi_dt	= CIF_CSI2_DT_RAW8,
-+		.bayer_pat	= RAW_GBRG,
-+		.bus_width	= 8,
-+	}, {
-+		.mbus_code	= MEDIA_BUS_FMT_SGRBG8_1X8,
-+		.fmt_type	= FMT_BAYER,
-+		.mipi_dt	= CIF_CSI2_DT_RAW8,
-+		.bayer_pat	= RAW_GRBG,
-+		.bus_width	= 8,
-+	}, {
-+		.mbus_code	= MEDIA_BUS_FMT_YUYV8_1X16,
-+		.fmt_type	= FMT_YUV,
-+		.mipi_dt	= CIF_CSI2_DT_YUV422_8b,
-+		.yuv_seq	= CIF_ISP_ACQ_PROP_YCBYCR,
-+		.bus_width	= 16,
-+	}, {
-+		.mbus_code	= MEDIA_BUS_FMT_YVYU8_1X16,
-+		.fmt_type	= FMT_YUV,
-+		.mipi_dt	= CIF_CSI2_DT_YUV422_8b,
-+		.yuv_seq	= CIF_ISP_ACQ_PROP_YCRYCB,
-+		.bus_width	= 16,
-+	}, {
-+		.mbus_code	= MEDIA_BUS_FMT_UYVY8_1X16,
-+		.fmt_type	= FMT_YUV,
-+		.mipi_dt	= CIF_CSI2_DT_YUV422_8b,
-+		.yuv_seq	= CIF_ISP_ACQ_PROP_CBYCRY,
-+		.bus_width	= 16,
-+	}, {
-+		.mbus_code	= MEDIA_BUS_FMT_VYUY8_1X16,
-+		.fmt_type	= FMT_YUV,
-+		.mipi_dt	= CIF_CSI2_DT_YUV422_8b,
-+		.yuv_seq	= CIF_ISP_ACQ_PROP_CRYCBY,
-+		.bus_width	= 16,
-+	},
-+};
-+
-+static const struct ispsd_out_fmt rkisp1_isp_output_formats[] = {
-+	{
-+		.mbus_code	= MEDIA_BUS_FMT_YUYV8_2X8,
-+		.fmt_type	= FMT_YUV,
-+	}, {
-+		.mbus_code	= MEDIA_BUS_FMT_SRGGB12_1X12,
-+		.fmt_type	= FMT_BAYER,
-+	}, {
-+		.mbus_code	= MEDIA_BUS_FMT_SBGGR12_1X12,
-+		.fmt_type	= FMT_BAYER,
-+	}, {
-+		.mbus_code	= MEDIA_BUS_FMT_SGBRG12_1X12,
-+		.fmt_type	= FMT_BAYER,
-+	}, {
-+		.mbus_code	= MEDIA_BUS_FMT_SGRBG12_1X12,
-+		.fmt_type	= FMT_BAYER,
-+	}, {
-+		.mbus_code	= MEDIA_BUS_FMT_SRGGB10_1X10,
-+		.fmt_type	= FMT_BAYER,
-+	}, {
-+		.mbus_code	= MEDIA_BUS_FMT_SBGGR10_1X10,
-+		.fmt_type	= FMT_BAYER,
-+	}, {
-+		.mbus_code	= MEDIA_BUS_FMT_SGBRG10_1X10,
-+		.fmt_type	= FMT_BAYER,
-+	}, {
-+		.mbus_code	= MEDIA_BUS_FMT_SGRBG10_1X10,
-+		.fmt_type	= FMT_BAYER,
-+	}, {
-+		.mbus_code	= MEDIA_BUS_FMT_SRGGB8_1X8,
-+		.fmt_type	= FMT_BAYER,
-+	}, {
-+		.mbus_code	= MEDIA_BUS_FMT_SBGGR8_1X8,
-+		.fmt_type	= FMT_BAYER,
-+	}, {
-+		.mbus_code	= MEDIA_BUS_FMT_SGBRG8_1X8,
-+		.fmt_type	= FMT_BAYER,
-+	}, {
-+		.mbus_code	= MEDIA_BUS_FMT_SGRBG8_1X8,
-+		.fmt_type	= FMT_BAYER,
-+	},
-+};
-+
-+static const struct ispsd_in_fmt *find_in_fmt(u32 mbus_code)
-+{
-+	const struct ispsd_in_fmt *fmt;
-+	int i, array_size = ARRAY_SIZE(rkisp1_isp_input_formats);
-+
-+	for (i = 0; i < array_size; i++) {
-+		fmt = &rkisp1_isp_input_formats[i];
-+		if (fmt->mbus_code == mbus_code)
-+			return fmt;
-+	}
-+
-+	return NULL;
-+}
-+
-+static const struct ispsd_out_fmt *find_out_fmt(u32 mbus_code)
-+{
-+	const struct ispsd_out_fmt *fmt;
-+	int i, array_size = ARRAY_SIZE(rkisp1_isp_output_formats);
-+
-+	for (i = 0; i < array_size; i++) {
-+		fmt = &rkisp1_isp_output_formats[i];
-+		if (fmt->mbus_code == mbus_code)
-+			return fmt;
-+	}
-+
-+	return NULL;
-+}
-+
-+static int rkisp1_isp_sd_enum_mbus_code(struct v4l2_subdev *sd,
-+					struct v4l2_subdev_pad_config *cfg,
-+					struct v4l2_subdev_mbus_code_enum *code)
-+{
-+	int i = code->index;
-+
-+	if (code->pad == RKISP1_ISP_PAD_SINK) {
-+		if (i >= ARRAY_SIZE(rkisp1_isp_input_formats))
-+			return -EINVAL;
-+		code->code = rkisp1_isp_input_formats[i].mbus_code;
-+	} else {
-+		if (i >= ARRAY_SIZE(rkisp1_isp_output_formats))
-+			return -EINVAL;
-+		code->code = rkisp1_isp_output_formats[i].mbus_code;
-+	}
-+
-+	return 0;
-+}
-+
-+#define sd_to_isp_sd(_sd) container_of(_sd, struct rkisp1_isp_subdev, sd)
-+static int rkisp1_isp_sd_get_fmt(struct v4l2_subdev *sd,
-+				 struct v4l2_subdev_pad_config *cfg,
-+				 struct v4l2_subdev_format *fmt)
-+{
-+	struct v4l2_mbus_framefmt *mf = &fmt->format;
-+	struct rkisp1_isp_subdev *isp_sd = sd_to_isp_sd(sd);
-+
-+	if ((fmt->pad != RKISP1_ISP_PAD_SINK) &&
-+	    (fmt->pad != RKISP1_ISP_PAD_SOURCE_PATH))
-+		return -EINVAL;
-+
-+	if (fmt->which == V4L2_SUBDEV_FORMAT_TRY) {
-+		mf = v4l2_subdev_get_try_format(sd, cfg, fmt->pad);
-+		fmt->format = *mf;
-+		return 0;
-+	}
-+
-+	if (fmt->pad == RKISP1_ISP_PAD_SINK) {
-+		*mf = isp_sd->in_frm;
-+	} else if (fmt->pad == RKISP1_ISP_PAD_SOURCE_PATH) {
-+		/* format of source pad */
-+		*mf = isp_sd->in_frm;
-+		/* window size of source pad */
-+		mf->width = isp_sd->out_crop.width;
-+		mf->height = isp_sd->out_crop.height;
-+		mf->quantization = isp_sd->quantization;
-+	}
-+	mf->field = V4L2_FIELD_NONE;
-+
-+	return 0;
-+}
-+
-+static void rkisp1_isp_sd_try_fmt(struct v4l2_subdev *sd,
-+				  unsigned int pad,
-+				  struct v4l2_mbus_framefmt *fmt)
-+{
-+	struct rkisp1_device *isp_dev = sd_to_isp_dev(sd);
-+	struct rkisp1_isp_subdev *isp_sd = &isp_dev->isp_sdev;
-+	const struct ispsd_in_fmt *in_fmt;
-+	const struct ispsd_out_fmt *out_fmt;
-+
-+	switch (pad) {
-+	case RKISP1_ISP_PAD_SINK:
-+		in_fmt = find_in_fmt(fmt->code);
-+		if (in_fmt)
-+			fmt->code = in_fmt->mbus_code;
-+		else
-+			fmt->code = MEDIA_BUS_FMT_SRGGB10_1X10;
-+		fmt->width  = clamp_t(u32, fmt->width, CIF_ISP_INPUT_W_MIN,
-+				      CIF_ISP_INPUT_W_MAX);
-+		fmt->height = clamp_t(u32, fmt->height, CIF_ISP_INPUT_H_MIN,
-+				      CIF_ISP_INPUT_H_MAX);
-+		break;
-+	case RKISP1_ISP_PAD_SOURCE_PATH:
-+		out_fmt = find_out_fmt(fmt->code);
-+		if (out_fmt)
-+			fmt->code = out_fmt->mbus_code;
-+		else
-+			fmt->code = MEDIA_BUS_FMT_YUYV8_2X8;
-+		/* window size is set in s_selection */
-+		fmt->width  = isp_sd->out_crop.width;
-+		fmt->height = isp_sd->out_crop.height;
-+		/* full range by default */
-+		if (!fmt->quantization)
-+			fmt->quantization = V4L2_QUANTIZATION_FULL_RANGE;
-+		break;
-+	}
-+
-+	fmt->field = V4L2_FIELD_NONE;
-+}
-+
-+static int rkisp1_isp_sd_set_fmt(struct v4l2_subdev *sd,
-+				 struct v4l2_subdev_pad_config *cfg,
-+				 struct v4l2_subdev_format *fmt)
-+{
-+	struct rkisp1_device *isp_dev = sd_to_isp_dev(sd);
-+	struct rkisp1_isp_subdev *isp_sd = &isp_dev->isp_sdev;
-+	struct v4l2_mbus_framefmt *mf = &fmt->format;
-+
-+	if ((fmt->pad != RKISP1_ISP_PAD_SINK) &&
-+	    (fmt->pad != RKISP1_ISP_PAD_SOURCE_PATH))
-+		return -EINVAL;
-+
-+	rkisp1_isp_sd_try_fmt(sd, fmt->pad, mf);
-+
-+	if (fmt->which == V4L2_SUBDEV_FORMAT_TRY) {
-+		struct v4l2_mbus_framefmt *try_mf;
-+
-+		mf = v4l2_subdev_get_try_format(sd, cfg, fmt->pad);
-+		*try_mf = *mf;
-+		return 0;
-+	}
-+
-+	if (fmt->pad == RKISP1_ISP_PAD_SINK) {
-+		const struct ispsd_in_fmt *in_fmt;
-+
-+		in_fmt = find_in_fmt(mf->code);
-+		isp_sd->in_fmt = *in_fmt;
-+		isp_sd->in_frm = *mf;
-+	} else if (fmt->pad == RKISP1_ISP_PAD_SOURCE_PATH) {
-+		const struct ispsd_out_fmt *out_fmt;
-+
-+		/* Ignore width/height */
-+		out_fmt = find_out_fmt(mf->code);
-+		isp_sd->out_fmt = *out_fmt;
-+		/*
-+		 * It is quantization for output,
-+		 * isp use bt601 limit-range in internal
-+		 */
-+		isp_sd->quantization = mf->quantization;
-+	}
-+
-+	return 0;
-+}
-+
-+static void rkisp1_isp_sd_try_crop(struct v4l2_subdev *sd,
-+				  struct v4l2_subdev_pad_config *cfg,
-+				  struct v4l2_subdev_selection *sel)
-+{
-+	struct rkisp1_isp_subdev *isp_sd = sd_to_isp_sd(sd);
-+	struct v4l2_mbus_framefmt in_frm = isp_sd->in_frm;
-+	struct v4l2_rect in_crop = isp_sd->in_crop;
-+	struct v4l2_rect *input = &sel->r;
-+
-+	if (sel->which == V4L2_SUBDEV_FORMAT_TRY) {
-+		in_frm = *v4l2_subdev_get_try_format(sd, cfg, RKISP1_ISP_PAD_SINK);
-+		in_crop = *v4l2_subdev_get_try_crop(sd, cfg, RKISP1_ISP_PAD_SINK);
-+	}
-+
-+	input->left = ALIGN(input->left, 2);
-+	input->width = ALIGN(input->width, 2);
-+
-+	if (sel->pad == RKISP1_ISP_PAD_SINK) {
-+		input->left = clamp_t(u32, input->left, 0, in_frm.width);
-+		input->top = clamp_t(u32, input->top, 0, in_frm.height);
-+		input->width = clamp_t(u32, input->width, CIF_ISP_INPUT_W_MIN,
-+				in_frm.width - input->left);
-+		input->height = clamp_t(u32, input->height,
-+				CIF_ISP_INPUT_H_MIN,
-+				in_frm.height - input->top);
-+	} else if (sel->pad == RKISP1_ISP_PAD_SOURCE_PATH) {
-+		input->left = clamp_t(u32, input->left, 0, in_crop.width);
-+		input->top = clamp_t(u32, input->top, 0, in_crop.height);
-+		input->width = clamp_t(u32, input->width, CIF_ISP_OUTPUT_W_MIN,
-+				in_crop.width - input->left);
-+		input->height = clamp_t(u32, input->height, CIF_ISP_OUTPUT_H_MIN,
-+				in_crop.height - input->top);
-+	}
-+}
-+
-+static int rkisp1_isp_sd_get_selection(struct v4l2_subdev *sd,
-+				       struct v4l2_subdev_pad_config *cfg,
-+				       struct v4l2_subdev_selection *sel)
-+{
-+	struct rkisp1_isp_subdev *isp_sd = sd_to_isp_sd(sd);
-+
-+	if (sel->pad != RKISP1_ISP_PAD_SOURCE_PATH &&
-+	    sel->pad != RKISP1_ISP_PAD_SINK)
-+		return -EINVAL;
-+
-+	if (sel->which == V4L2_SUBDEV_FORMAT_TRY) {
-+		struct v4l2_rect *try_sel;
-+
-+		try_sel = v4l2_subdev_get_try_crop(sd, cfg, sel->pad);
-+		sel->r = *try_sel;
-+		return 0;
-+	}
-+
-+	switch (sel->target) {
-+	case V4L2_SEL_TGT_CROP_BOUNDS:
-+		if (sel->pad == RKISP1_ISP_PAD_SINK) {
-+			sel->r.height = isp_sd->in_frm.height;
-+			sel->r.width = isp_sd->in_frm.width;
-+			sel->r.left = 0;
-+			sel->r.top = 0;
-+		} else {
-+			sel->r = isp_sd->in_crop;
-+		}
-+		break;
-+	case V4L2_SEL_TGT_CROP:
-+		if (sel->pad == RKISP1_ISP_PAD_SINK)
-+			sel->r = isp_sd->in_crop;
-+		else
-+			sel->r = isp_sd->out_crop;
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	return 0;
-+}
-+
-+static int rkisp1_isp_sd_set_selection(struct v4l2_subdev *sd,
-+				       struct v4l2_subdev_pad_config *cfg,
-+				       struct v4l2_subdev_selection *sel)
-+{
-+	struct rkisp1_isp_subdev *isp_sd = sd_to_isp_sd(sd);
-+	struct rkisp1_device *dev = sd_to_isp_dev(sd);
-+
-+	if (sel->pad != RKISP1_ISP_PAD_SOURCE_PATH &&
-+	    sel->pad != RKISP1_ISP_PAD_SINK)
-+		return -EINVAL;
-+	if (sel->target != V4L2_SEL_TGT_CROP)
-+		return -EINVAL;
-+
-+	v4l2_dbg(1, rkisp1_debug, &dev->v4l2_dev,
-+		 "%s: pad: %d sel(%d,%d)/%dx%d\n", __func__, sel->pad,
-+		 sel->r.left, sel->r.top, sel->r.width, sel->r.height);
-+	rkisp1_isp_sd_try_crop(sd, cfg, sel);
-+
-+	if (sel->which == V4L2_SUBDEV_FORMAT_TRY) {
-+		struct v4l2_rect *try_sel;
-+
-+		try_sel = v4l2_subdev_get_try_crop(sd, cfg, sel->pad);
-+		*try_sel = sel->r;
-+		return 0;
-+	}
-+
-+	if (sel->pad == RKISP1_ISP_PAD_SINK)
-+		isp_sd->in_crop = sel->r;
-+	else
-+		isp_sd->out_crop = sel->r;
-+
-+	return 0;
-+}
-+
-+static int rkisp1_isp_sd_s_stream(struct v4l2_subdev *sd, int on)
-+{
-+	struct rkisp1_device *isp_dev = sd_to_isp_dev(sd);
-+	struct rkisp1_sensor_info *sensor;
-+	struct v4l2_subdev *sensor_sd;
-+	int ret = 0;
-+
-+	if (!on)
-+		return rkisp1_isp_stop(isp_dev);
-+
-+	sensor_sd = get_remote_sensor(sd);
-+	if (!sensor_sd)
-+		return -ENODEV;
-+
-+	sensor = sd_to_sensor(isp_dev, sensor_sd);
-+	/*
-+	 * Update sensor bus configuration. This is only effective
-+	 * for sensors chained off an external CSI2 PHY.
-+	 */
-+	ret = v4l2_subdev_call(sensor->sd, video, g_mbus_config,
-+			       &sensor->mbus);
-+	if (ret && ret != -ENOIOCTLCMD)
-+		return ret;
-+	isp_dev->active_sensor = sensor;
-+
-+	atomic_set(&isp_dev->isp_sdev.frm_sync_seq, 0);
-+	ret = rkisp1_config_cif(isp_dev);
-+	if (ret < 0)
-+		return ret;
-+
-+	return rkisp1_isp_start(isp_dev);
-+}
-+
-+static int rkisp1_isp_sd_s_power(struct v4l2_subdev *sd, int on)
-+{
-+	struct rkisp1_device *isp_dev = sd_to_isp_dev(sd);
 +	int ret;
 +
-+	v4l2_dbg(1, rkisp1_debug, &isp_dev->v4l2_dev, "s_power: %d\n", on);
-+
-+	if (on) {
-+		ret = pm_runtime_get_sync(isp_dev->dev);
-+		if (ret < 0)
-+			return ret;
-+
-+		rkisp1_config_clk(isp_dev);
-+	} else {
-+		ret = pm_runtime_put(isp_dev->dev);
-+		if (ret < 0)
-+			return ret;
++	ret = of_property_read_u32(np, "renesas,id", &val);
++	if (ret) {
++		vin_err(vin, "%pOF: No renesas,id property found\n", np);
++		return -EINVAL;
 +	}
 +
-+	return 0;
-+}
-+
-+static int rkisp1_subdev_link_validate(struct media_link *link)
-+{
-+	if (link->source->index == RKISP1_ISP_PAD_SINK_PARAMS)
-+		return 0;
-+
-+	return v4l2_subdev_link_validate(link);
-+}
-+
-+static int rkisp1_subdev_fmt_link_validate(struct v4l2_subdev *sd,
-+			     struct media_link *link,
-+			     struct v4l2_subdev_format *source_fmt,
-+			     struct v4l2_subdev_format *sink_fmt)
-+{
-+	if (source_fmt->format.code != sink_fmt->format.code)
++	if (val >= RCAR_VIN_NUM) {
++		vin_err(vin, "%pOF: Invalid renesas,id '%u'\n", np, val);
 +		return -EINVAL;
++	}
 +
-+	/* Crop is available */
-+	if (source_fmt->format.width < sink_fmt->format.width ||
-+		source_fmt->format.height < sink_fmt->format.height)
-+		return -EINVAL;
-+
-+	return 0;
++	return val;
 +}
 +
-+static void
-+riksp1_isp_queue_event_sof(struct rkisp1_isp_subdev *isp)
++static DEFINE_MUTEX(rvin_group_lock);
++static struct rvin_group *rvin_group_data;
++
++static void rvin_group_release(struct kref *kref)
 +{
-+	struct v4l2_event event = {
-+		.type = V4L2_EVENT_FRAME_SYNC,
-+		.u.frame_sync.frame_sequence =
-+			atomic_inc_return(&isp->frm_sync_seq) - 1,
-+	};
-+	v4l2_event_queue(isp->sd.devnode, &event);
++	struct rvin_group *group =
++		container_of(kref, struct rvin_group, refcount);
++
++	mutex_lock(&rvin_group_lock);
++
++	media_device_unregister(&group->mdev);
++	media_device_cleanup(&group->mdev);
++
++	rvin_group_data = NULL;
++
++	mutex_unlock(&rvin_group_lock);
++
++	kfree(group);
 +}
 +
-+static int rkisp1_isp_sd_subs_evt(struct v4l2_subdev *sd, struct v4l2_fh *fh,
-+				  struct v4l2_event_subscription *sub)
++static struct rvin_group *__rvin_group_allocate(struct rvin_dev *vin)
 +{
-+	if (sub->type != V4L2_EVENT_FRAME_SYNC)
-+		return -EINVAL;
++	struct rvin_group *group;
 +
-+	/* Line number. For now only zero accepted. */
-+	if (sub->id != 0)
-+		return -EINVAL;
++	if (rvin_group_data) {
++		group = rvin_group_data;
++		kref_get(&group->refcount);
++		vin_dbg(vin, "%s: get group=%p\n", __func__, group);
++		return group;
++	}
 +
-+	return v4l2_event_subscribe(fh, sub, 0, NULL);
++	group = kzalloc(sizeof(*group), GFP_KERNEL);
++	if (!group)
++		return NULL;
++
++	kref_init(&group->refcount);
++	rvin_group_data = group;
++
++	vin_dbg(vin, "%s: alloc group=%p\n", __func__, group);
++	return group;
 +}
 +
-+static const struct v4l2_subdev_pad_ops rkisp1_isp_sd_pad_ops = {
-+	.enum_mbus_code = rkisp1_isp_sd_enum_mbus_code,
-+	.get_selection = rkisp1_isp_sd_get_selection,
-+	.set_selection = rkisp1_isp_sd_set_selection,
-+	.get_fmt = rkisp1_isp_sd_get_fmt,
-+	.set_fmt = rkisp1_isp_sd_set_fmt,
-+	.link_validate = rkisp1_subdev_fmt_link_validate,
-+};
-+
-+static const struct media_entity_operations rkisp1_isp_sd_media_ops = {
-+	.link_validate = rkisp1_subdev_link_validate,
-+};
-+
-+static const struct v4l2_subdev_video_ops rkisp1_isp_sd_video_ops = {
-+	.s_stream = rkisp1_isp_sd_s_stream,
-+};
-+
-+static const struct v4l2_subdev_core_ops rkisp1_isp_core_ops = {
-+	.subscribe_event = rkisp1_isp_sd_subs_evt,
-+	.unsubscribe_event = v4l2_event_subdev_unsubscribe,
-+	.s_power = rkisp1_isp_sd_s_power,
-+};
-+
-+static struct v4l2_subdev_ops rkisp1_isp_sd_ops = {
-+	.core = &rkisp1_isp_core_ops,
-+	.video = &rkisp1_isp_sd_video_ops,
-+	.pad = &rkisp1_isp_sd_pad_ops,
-+};
-+
-+static void rkisp1_isp_sd_init_default_fmt(struct rkisp1_isp_subdev *isp_sd)
++static int rvin_group_add_vin(struct rvin_dev *vin)
 +{
-+	struct v4l2_mbus_framefmt *in_frm = &isp_sd->in_frm;
-+	struct v4l2_rect *in_crop = &isp_sd->in_crop;
-+	struct v4l2_rect *out_crop = &isp_sd->out_crop;
-+	struct ispsd_in_fmt *in_fmt = &isp_sd->in_fmt;
-+	struct ispsd_out_fmt *out_fmt = &isp_sd->out_fmt;
-+
-+	*in_fmt = rkisp1_isp_input_formats[0];
-+	in_frm->width = RKISP1_DEFAULT_WIDTH;
-+	in_frm->height = RKISP1_DEFAULT_HEIGHT;
-+	in_frm->code = in_fmt->mbus_code;
-+
-+	in_crop->width = in_frm->width;
-+	in_crop->height = in_frm->height;
-+	in_crop->left = 0;
-+	in_crop->top = 0;
-+
-+	/* propagate to source */
-+	*out_crop = *in_crop;
-+	*out_fmt = rkisp1_isp_output_formats[0];
-+}
-+
-+int rkisp1_register_isp_subdev(struct rkisp1_device *isp_dev,
-+			       struct v4l2_device *v4l2_dev)
-+{
-+	struct rkisp1_isp_subdev *isp_sdev = &isp_dev->isp_sdev;
-+	struct v4l2_subdev *sd = &isp_sdev->sd;
 +	int ret;
 +
-+	v4l2_subdev_init(sd, &rkisp1_isp_sd_ops);
-+	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE | V4L2_SUBDEV_FL_HAS_EVENTS;
-+	sd->entity.ops = &rkisp1_isp_sd_media_ops;
-+	snprintf(sd->name, sizeof(sd->name), "rkisp1-isp-subdev");
-+
-+	isp_sdev->pads[RKISP1_ISP_PAD_SINK].flags =
-+		MEDIA_PAD_FL_SINK | MEDIA_PAD_FL_MUST_CONNECT;
-+	isp_sdev->pads[RKISP1_ISP_PAD_SINK_PARAMS].flags = MEDIA_PAD_FL_SINK;
-+	isp_sdev->pads[RKISP1_ISP_PAD_SOURCE_PATH].flags = MEDIA_PAD_FL_SOURCE;
-+	isp_sdev->pads[RKISP1_ISP_PAD_SOURCE_STATS].flags = MEDIA_PAD_FL_SOURCE;
-+	sd->entity.function = MEDIA_ENT_F_V4L2_SUBDEV_UNKNOWN;
-+	ret = media_entity_pads_init(&sd->entity, RKISP1_ISP_PAD_MAX,
-+				     isp_sdev->pads);
++	ret = rvin_group_read_id(vin, vin->dev->of_node);
 +	if (ret < 0)
 +		return ret;
 +
-+	sd->owner = THIS_MODULE;
-+	v4l2_set_subdevdata(sd, isp_dev);
++	mutex_lock(&vin->group->lock);
 +
-+	sd->grp_id = GRP_ID_ISP;
-+	ret = v4l2_device_register_subdev(v4l2_dev, sd);
-+	if (ret < 0) {
-+		v4l2_err(sd, "Failed to register isp subdev\n");
-+		goto err_cleanup_media_entity;
++	if (vin->group->vin[ret]) {
++		mutex_unlock(&vin->group->lock);
++		vin_err(vin, "VIN number %d already occupied\n", ret);
++		return -EINVAL;
 +	}
 +
-+	rkisp1_isp_sd_init_default_fmt(isp_sdev);
++	vin->group->vin[ret] = vin;
++
++	mutex_unlock(&vin->group->lock);
++
++	vin_dbg(vin, "I'm VIN number %d", ret);
 +
 +	return 0;
-+err_cleanup_media_entity:
-+	media_entity_cleanup(&sd->entity);
-+	return ret;
 +}
 +
-+void rkisp1_unregister_isp_subdev(struct rkisp1_device *isp_dev)
++static int rvin_group_allocate(struct rvin_dev *vin)
 +{
-+	struct v4l2_subdev *sd = &isp_dev->isp_sdev.sd;
++	struct rvin_group *group;
++	struct media_device *mdev;
++	int ret;
 +
-+	v4l2_device_unregister_subdev(sd);
-+	media_entity_cleanup(&sd->entity);
-+}
++	mutex_lock(&rvin_group_lock);
 +
-+/****************  Interrupter Handler ****************/
-+
-+void rkisp1_mipi_isr(unsigned int mis, struct rkisp1_device *dev)
-+{
-+	struct v4l2_device *v4l2_dev = &dev->v4l2_dev;
-+	void __iomem *base = dev->base_addr;
-+	u32 val;
-+
-+	writel(~0, base + CIF_MIPI_ICR);
-+
-+	/*
-+	 * Disable DPHY errctrl interrupt, because this dphy
-+	 * erctrl signal is asserted until the next changes
-+	 * of line state. This time is may be too long and cpu
-+	 * is hold in this interrupt.
-+	 */
-+	if (mis & CIF_MIPI_ERR_CTRL(0x0f)) {
-+		val = readl(base + CIF_MIPI_IMSC);
-+		writel(val & ~CIF_MIPI_ERR_CTRL(0x0f), base + CIF_MIPI_IMSC);
-+		dev->isp_sdev.dphy_errctrl_disabled = true;
++	group = __rvin_group_allocate(vin);
++	if (!group) {
++		mutex_unlock(&rvin_group_lock);
++		return -ENOMEM;
 +	}
 +
-+	/*
-+	 * Enable DPHY errctrl interrupt again, if mipi have receive
-+	 * the whole frame without any error.
-+	 */
-+	if (mis == CIF_MIPI_FRAME_END) {
-+		/*
-+		 * Enable DPHY errctrl interrupt again, if mipi have receive
-+		 * the whole frame without any error.
-+		 */
-+		if (dev->isp_sdev.dphy_errctrl_disabled) {
-+			val = readl(base + CIF_MIPI_IMSC);
-+			val |= CIF_MIPI_ERR_CTRL(0x0f);
-+			writel(val, base + CIF_MIPI_IMSC);
-+			dev->isp_sdev.dphy_errctrl_disabled = false;
++	/* Init group data if it is not already initialized */
++	mdev = &group->mdev;
++	if (!mdev->dev) {
++		mutex_init(&group->lock);
++		mdev->dev = vin->dev;
++
++		strlcpy(mdev->driver_name, "Renesas VIN",
++			sizeof(mdev->driver_name));
++		strlcpy(mdev->model, vin->dev->of_node->name,
++			sizeof(mdev->model));
++
++		snprintf(mdev->bus_info, sizeof(mdev->bus_info), "platform:%s",
++			 dev_name(mdev->dev));
++		media_device_init(mdev);
++
++		ret = media_device_register(mdev);
++		if (ret) {
++			vin_err(vin, "Failed to register media device\n");
++			kref_put(&group->refcount, rvin_group_release);
++			mutex_unlock(&rvin_group_lock);
++			return ret;
 +		}
-+	} else {
-+		v4l2_warn(v4l2_dev, "MIPI mis error: 0x%08x\n", mis);
 +	}
++
++	vin->group = group;
++	vin->v4l2_dev.mdev = mdev;
++
++	ret = rvin_group_add_vin(vin);
++	if (ret) {
++		kref_put(&group->refcount, rvin_group_release);
++		mutex_unlock(&rvin_group_lock);
++		return ret;
++	}
++
++	mutex_unlock(&rvin_group_lock);
++
++	return 0;
 +}
 +
-+void rkisp1_isp_isr(unsigned int isp_mis, struct rkisp1_device *dev)
++static void rvin_group_delete(struct rvin_dev *vin)
 +{
-+	void __iomem *base = dev->base_addr;
-+	unsigned int isp_mis_tmp = 0;
-+	unsigned int isp_err = 0;
++	unsigned int i;
 +
-+	/* start edge of v_sync */
-+	if (isp_mis & CIF_ISP_V_START) {
-+		riksp1_isp_queue_event_sof(&dev->isp_sdev);
++	mutex_lock(&vin->group->lock);
++	for (i = 0; i < RCAR_VIN_NUM; i++)
++		if (vin->group->vin[i] == vin)
++			vin->group->vin[i] = NULL;
++	mutex_unlock(&vin->group->lock);
 +
-+		writel(CIF_ISP_V_START, base + CIF_ISP_ICR);
-+		isp_mis_tmp = readl(base + CIF_ISP_MIS);
-+		if (isp_mis_tmp & CIF_ISP_V_START)
-+			v4l2_err(&dev->v4l2_dev, "isp icr v_statr err: 0x%x\n",
-+				 isp_mis_tmp);
-+	}
-+
-+	if ((isp_mis & CIF_ISP_PIC_SIZE_ERROR)) {
-+		/* Clear pic_size_error */
-+		writel(CIF_ISP_PIC_SIZE_ERROR, base + CIF_ISP_ICR);
-+		isp_err = readl(base + CIF_ISP_ERR);
-+		v4l2_err(&dev->v4l2_dev,
-+				"CIF_ISP_PIC_SIZE_ERROR (0x%08x)", isp_err);
-+		writel(isp_err, base + CIF_ISP_ERR_CLR);
-+	} else if ((isp_mis & CIF_ISP_DATA_LOSS)) {
-+		/* Clear data_loss */
-+		writel(CIF_ISP_DATA_LOSS, base + CIF_ISP_ICR);
-+		v4l2_err(&dev->v4l2_dev, "CIF_ISP_DATA_LOSS\n");
-+		writel(CIF_ISP_DATA_LOSS, base + CIF_ISP_ICR);
-+	}
-+
-+	/* sampled input frame is complete */
-+	if (isp_mis & CIF_ISP_FRAME_IN) {
-+		writel(CIF_ISP_FRAME_IN, base + CIF_ISP_ICR);
-+		isp_mis_tmp = readl(base + CIF_ISP_MIS);
-+		if (isp_mis_tmp & CIF_ISP_FRAME_IN)
-+			v4l2_err(&dev->v4l2_dev, "isp icr frame_in err: 0x%x\n",
-+				 isp_mis_tmp);
-+	}
-+
-+	/* frame was completely put out */
-+	if (isp_mis & CIF_ISP_FRAME) {
-+		u32 isp_ris = 0;
-+		/* Clear Frame In (ISP) */
-+		writel(CIF_ISP_FRAME, base + CIF_ISP_ICR);
-+		isp_mis_tmp = readl(base + CIF_ISP_MIS);
-+		if (isp_mis_tmp & CIF_ISP_FRAME)
-+			v4l2_err(&dev->v4l2_dev,
-+				 "isp icr frame end err: 0x%x\n", isp_mis_tmp);
-+
-+		isp_ris = readl(base + CIF_ISP_RIS);
-+		if (isp_ris & (CIF_ISP_AWB_DONE | CIF_ISP_AFM_FIN |
-+				CIF_ISP_EXP_END | CIF_ISP_HIST_MEASURE_RDY))
-+			rkisp1_stats_isr(&dev->stats_vdev, isp_ris);
-+	}
-+
-+	/*
-+	 * Then update changed configs. Some of them involve
-+	 * lot of register writes. Do those only one per frame.
-+	 * Do the updates in the order of the processing flow.
-+	 */
-+	rkisp1_params_isr(&dev->params_vdev, isp_mis);
++	vin_dbg(vin, "%s: group=%p\n", __func__, &vin->group);
++	kref_put(&vin->group->refcount, rvin_group_release);
 +}
-diff --git a/drivers/media/platform/rockchip/isp1/rkisp1.h b/drivers/media/platform/rockchip/isp1/rkisp1.h
-new file mode 100644
-index 0000000..3ea008e
---- /dev/null
-+++ b/drivers/media/platform/rockchip/isp1/rkisp1.h
-@@ -0,0 +1,132 @@
-+/*
-+ * Rockchip isp1 driver
++
+ /* -----------------------------------------------------------------------------
+  * Async notifier
+  */
+@@ -236,12 +394,27 @@ static int rvin_digital_graph_init(struct rvin_dev *vin)
+ 
+ static int rvin_group_init(struct rvin_dev *vin)
+ {
++	int ret;
++
++	ret = rvin_group_allocate(vin);
++	if (ret)
++		return ret;
++
+ 	/* All our sources are CSI-2 */
+ 	vin->mbus_cfg.type = V4L2_MBUS_CSI2;
+ 	vin->mbus_cfg.flags = 0;
+ 
+ 	vin->pad.flags = MEDIA_PAD_FL_SINK;
+-	return media_entity_pads_init(&vin->vdev.entity, 1, &vin->pad);
++	ret = media_entity_pads_init(&vin->vdev.entity, 1, &vin->pad);
++	if (ret)
++		goto error_group;
++
++	return 0;
++
++error_group:
++	rvin_group_delete(vin);
++
++	return ret;
+ }
+ 
+ /* -----------------------------------------------------------------------------
+@@ -361,7 +534,9 @@ static int rcar_vin_remove(struct platform_device *pdev)
+ 	v4l2_async_notifier_unregister(&vin->notifier);
+ 	v4l2_async_notifier_cleanup(&vin->notifier);
+ 
+-	if (!vin->info->use_mc)
++	if (vin->info->use_mc)
++		rvin_group_delete(vin);
++	else
+ 		v4l2_ctrl_handler_free(&vin->ctrl_handler);
+ 
+ 	rvin_dma_unregister(vin);
+diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
+index 07d270a976893cdb..5f736a3500b6e10f 100644
+--- a/drivers/media/platform/rcar-vin/rcar-vin.h
++++ b/drivers/media/platform/rcar-vin/rcar-vin.h
+@@ -17,6 +17,8 @@
+ #ifndef __RCAR_VIN__
+ #define __RCAR_VIN__
+ 
++#include <linux/kref.h>
++
+ #include <media/v4l2-async.h>
+ #include <media/v4l2-ctrls.h>
+ #include <media/v4l2-dev.h>
+@@ -30,6 +32,9 @@
+ /* Address alignment mask for HW buffers */
+ #define HW_BUFFER_MASK 0x7f
+ 
++/* Max number on VIN instances that can be in a system */
++#define RCAR_VIN_NUM 8
++
+ enum chip_id {
+ 	RCAR_H1,
+ 	RCAR_M1,
+@@ -37,6 +42,15 @@ enum chip_id {
+ 	RCAR_GEN3,
+ };
+ 
++enum rvin_csi_id {
++	RVIN_CSI20,
++	RVIN_CSI21,
++	RVIN_CSI40,
++	RVIN_CSI41,
++	RVIN_CSI_MAX,
++	RVIN_NC, /* Not Connected */
++};
++
+ /**
+  * STOPPED  - No operation in progress
+  * RUNNING  - Operation in progress have buffers
+@@ -75,6 +89,8 @@ struct rvin_graph_entity {
+ 	unsigned int sink_pad;
+ };
+ 
++struct rvin_group;
++
+ /**
+  * struct rvin_info - Information about the particular VIN implementation
+  * @chip:		type of VIN chip
+@@ -103,6 +119,7 @@ struct rvin_info {
+  * @notifier:		V4L2 asynchronous subdevs notifier
+  * @digital:		entity in the DT for local digital subdevice
+  *
++ * @group:		Gen3 CSI group
+  * @pad:		pad for media controller
+  *
+  * @lock:		protects @queue
+@@ -134,6 +151,7 @@ struct rvin_dev {
+ 	struct v4l2_async_notifier notifier;
+ 	struct rvin_graph_entity *digital;
+ 
++	struct rvin_group *group;
+ 	struct media_pad pad;
+ 
+ 	struct mutex lock;
+@@ -162,6 +180,26 @@ struct rvin_dev {
+ #define vin_warn(d, fmt, arg...)	dev_warn(d->dev, fmt, ##arg)
+ #define vin_err(d, fmt, arg...)		dev_err(d->dev, fmt, ##arg)
+ 
++/**
++ * struct rvin_group - VIN CSI2 group information
++ * @refcount:		number of VIN instances using the group
 + *
-+ * Copyright (C) 2017 Rockchip Electronics Co., Ltd.
++ * @mdev:		media device which represents the group
 + *
-+ * This software is available to you under a choice of one of two
-+ * licenses.  You may choose to be licensed under the terms of the GNU
-+ * General Public License (GPL) Version 2, available from the file
-+ * COPYING in the main directory of this source tree, or the
-+ * OpenIB.org BSD license below:
-+ *
-+ *     Redistribution and use in source and binary forms, with or
-+ *     without modification, are permitted provided that the following
-+ *     conditions are met:
-+ *
-+ *      - Redistributions of source code must retain the above
-+ *        copyright notice, this list of conditions and the following
-+ *        disclaimer.
-+ *
-+ *      - Redistributions in binary form must reproduce the above
-+ *        copyright notice, this list of conditions and the following
-+ *        disclaimer in the documentation and/or other materials
-+ *        provided with the distribution.
-+ *
-+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-+ * SOFTWARE.
++ * @lock:		protects the vin and csi members
++ * @vin:		VIN instances which are part of the group
++ * @csi:		CSI-2 entities that are part of the group
 + */
++struct rvin_group {
++	struct kref refcount;
 +
-+#ifndef _RKISP1_H
-+#define _RKISP1_H
++	struct media_device mdev;
 +
-+#include <linux/platform_device.h>
-+#include <media/v4l2-fwnode.h>
-+#include "common.h"
-+
-+struct rkisp1_stream;
-+
-+/*
-+ * struct ispsd_in_fmt - ISP intput-pad format
-+ *
-+ * Translate mbus_code to hardware format values
-+ *
-+ * @bus_width: used for parallel
-+ */
-+struct ispsd_in_fmt {
-+	u32 mbus_code;
-+	u8 fmt_type;
-+	u32 mipi_dt;
-+	u32 yuv_seq;
-+	enum rkisp1_fmt_raw_pat_type bayer_pat;
-+	u8 bus_width;
++	struct mutex lock;
++	struct rvin_dev *vin[RCAR_VIN_NUM];
++	struct rvin_graph_entity csi[RVIN_CSI_MAX];
 +};
 +
-+struct ispsd_out_fmt {
-+	u32 mbus_code;
-+	u8 fmt_type;
-+};
-+
-+struct rkisp1_ie_config {
-+	unsigned int effect;
-+};
-+
-+enum rkisp1_isp_pad {
-+	RKISP1_ISP_PAD_SINK,
-+	RKISP1_ISP_PAD_SINK_PARAMS,
-+	RKISP1_ISP_PAD_SOURCE_PATH,
-+	RKISP1_ISP_PAD_SOURCE_STATS,
-+	RKISP1_ISP_PAD_MAX
-+};
-+
-+/*
-+ * struct rkisp1_isp_subdev - ISP sub-device
-+ *
-+ * See Cropping regions of ISP in rkisp1.c for details
-+ * @in_frm: input size, don't have to be equal to sensor size
-+ * @in_fmt: intput format
-+ * @in_crop: crop for sink pad
-+ * @out_fmt: output format
-+ * @out_crop: output size
-+ *
-+ * @dphy_errctrl_disabled: if dphy errctrl is disabled(avoid endless interrupt)
-+ * @frm_sync_seq: frame sequence, to sync frame_id between video devices.
-+ * @quantization: output quantization
-+ */
-+struct rkisp1_isp_subdev {
-+	struct v4l2_subdev sd;
-+	struct media_pad pads[RKISP1_ISP_PAD_MAX];
-+	struct v4l2_ctrl_handler ctrl_handler;
-+	struct v4l2_mbus_framefmt in_frm;
-+	struct ispsd_in_fmt in_fmt;
-+	struct v4l2_rect in_crop;
-+	struct ispsd_out_fmt out_fmt;
-+	struct v4l2_rect out_crop;
-+	bool dphy_errctrl_disabled;
-+	atomic_t frm_sync_seq;
-+	enum v4l2_quantization quantization;
-+};
-+
-+int rkisp1_register_isp_subdev(struct rkisp1_device *isp_dev,
-+			       struct v4l2_device *v4l2_dev);
-+
-+void rkisp1_unregister_isp_subdev(struct rkisp1_device *isp_dev);
-+
-+void rkisp1_mipi_isr(unsigned int mipi_mis, struct rkisp1_device *dev);
-+
-+void rkisp1_isp_isr(unsigned int isp_mis, struct rkisp1_device *dev);
-+
-+static inline
-+struct ispsd_out_fmt *rkisp1_get_ispsd_out_fmt(struct rkisp1_isp_subdev *isp_sdev)
-+{
-+	return &isp_sdev->out_fmt;
-+}
-+
-+static inline
-+struct ispsd_in_fmt *rkisp1_get_ispsd_in_fmt(struct rkisp1_isp_subdev *isp_sdev)
-+{
-+	return &isp_sdev->in_fmt;
-+}
-+
-+static inline
-+struct v4l2_rect *rkisp1_get_isp_sd_win(struct rkisp1_isp_subdev *isp_sdev)
-+{
-+	return &isp_sdev->out_crop;
-+}
-+
-+#endif /* _RKISP1_H */
+ int rvin_dma_register(struct rvin_dev *vin, int irq);
+ void rvin_dma_unregister(struct rvin_dev *vin);
+ 
 -- 
-1.9.1
+2.15.0
