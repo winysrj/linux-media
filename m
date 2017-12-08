@@ -1,407 +1,412 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f68.google.com ([209.85.215.68]:34973 "EHLO
-        mail-lf0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751720AbdLFP5v (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 6 Dec 2017 10:57:51 -0500
-Received: by mail-lf0-f68.google.com with SMTP id j124so4803185lfg.2
-        for <linux-media@vger.kernel.org>; Wed, 06 Dec 2017 07:57:50 -0800 (PST)
-Date: Wed, 6 Dec 2017 16:57:48 +0100
-From: Niklas =?iso-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund@ragnatech.se>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org, jmondi <jacopo@jmondi.org>,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>
-Subject: Re: [RFC 1/1] v4l: async: Use endpoint node, not device node, for
- fwnode match
-Message-ID: <20171206155748.GF31989@bigcity.dyn.berto.se>
-References: <20171204210302.24707-1-sakari.ailus@linux.intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20171204210302.24707-1-sakari.ailus@linux.intel.com>
+Received: from mailout2.samsung.com ([203.254.224.25]:20807 "EHLO
+        mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753221AbdLHJgl (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 8 Dec 2017 04:36:41 -0500
+From: Smitha T Murthy <smitha.t@samsung.com>
+To: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Cc: kyungmin.park@samsung.com, kamil@wypas.org, jtp.park@samsung.com,
+        a.hajda@samsung.com, mchehab@kernel.org, pankaj.dubey@samsung.com,
+        krzk@kernel.org, m.szyprowski@samsung.com, s.nawrocki@samsung.com,
+        Smitha T Murthy <smitha.t@samsung.com>,
+        Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org
+Subject: [Patch v6 02/12] [media] s5p-mfc: Adding initial support for MFC
+ v10.10
+Date: Fri, 08 Dec 2017 14:38:15 +0530
+Message-id: <1512724105-1778-3-git-send-email-smitha.t@samsung.com>
+In-reply-to: <1512724105-1778-1-git-send-email-smitha.t@samsung.com>
+References: <1512724105-1778-1-git-send-email-smitha.t@samsung.com>
+        <CGME20171208093637epcas1p217ea0e337333ebf6918bc0418753d2af@epcas1p2.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-CC Jacopo, Kieran
+Adding the support for MFC v10.10, with new register file and
+necessary hw control, decoder, encoder and structural changes.
 
-Hi Sakari,
+CC: Rob Herring <robh+dt@kernel.org>
+CC: devicetree@vger.kernel.org
+Signed-off-by: Smitha T Murthy <smitha.t@samsung.com>
+Reviewed-by: Andrzej Hajda <a.hajda@samsung.com>
+Acked-by: Rob Herring <robh@kernel.org>
+---
+ .../devicetree/bindings/media/s5p-mfc.txt          |  1 +
+ drivers/media/platform/s5p-mfc/regs-mfc-v10.h      | 36 ++++++++++++++++++++++
+ drivers/media/platform/s5p-mfc/s5p_mfc.c           | 25 +++++++++++++++
+ drivers/media/platform/s5p-mfc/s5p_mfc_common.h    |  9 +++++-
+ drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c      |  4 +++
+ drivers/media/platform/s5p-mfc/s5p_mfc_dec.c       | 32 ++++++++-----------
+ drivers/media/platform/s5p-mfc/s5p_mfc_enc.c       | 16 ++++------
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c    |  9 ++++--
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h    |  2 ++
+ 9 files changed, 101 insertions(+), 33 deletions(-)
+ create mode 100644 drivers/media/platform/s5p-mfc/regs-mfc-v10.h
 
-Thanks for your patch.
-
-On 2017-12-04 23:03:02 +0200, Sakari Ailus wrote:
-> V4L2 async framework can use both device's fwnode and endpoints's fwnode
-> for matching the async sub-device with the sub-device. In order to proceed
-> moving towards endpoint matching assign the endpoint to the async
-> sub-device.
-
-Endpoint matching I think is the way to go forward. It will solve a set 
-of problems that exists today. So I think this a good step in the right 
-direction.
-
-> 
-> As most async sub-device drivers (and the related hardware) only supports
-> a single endpoint, use the first endpoint found. This works for all
-> current drivers --- we only ever supported a single async sub-device per
-> device to begin with.
-
-This assumption is not true, the adv748x exposes multiple subdevice from 
-a single device node in DT and registers them using different endpoints.  
-Now the only user of the adv748x driver I know of is the rcar-csi2 
-driver which is not yet upstream so this can be consider a special case.
-
-Unfortunately this patch do break already existing configurations 
-upstream :-( For example the Koelsch board, from r8a7791-koelsch.dts:
-
-hdmi-in {
-        compatible = "hdmi-connector";
-        type = "a";
-
-        port {
-                hdmi_con_in: endpoint {
-                        remote-endpoint = <&adv7612_in>;
-                };
-        };
-};
-
-hdmi-in@4c {
-        compatible = "adi,adv7612";
-        reg = <0x4c>;
-        interrupt-parent = <&gpio4>;
-        interrupts = <2 IRQ_TYPE_LEVEL_LOW>;
-        default-input = <0>;
-
-        ports {
-                #address-cells = <1>;
-                #size-cells = <0>;
-
-                port@0 {
-                        reg = <0>;
-                        adv7612_in: endpoint {
-                                remote-endpoint = <&hdmi_con_in>;
-                        };
-                };
-
-                port@2 {
-                        reg = <2>;
-                        adv7612_out: endpoint {
-                                remote-endpoint = <&vin0ep2>;
-                        };
-                };
-        };
-};
-
-&vin0 {
-        status = "okay";
-        pinctrl-0 = <&vin0_pins>;
-        pinctrl-names = "default";
-
-        port {
-                #address-cells = <1>;
-                #size-cells = <0>;
-
-                vin0ep2: endpoint {
-                        remote-endpoint = <&adv7612_out>;
-                        bus-width = <24>;
-                        hsync-active = <0>;
-                        vsync-active = <0>;
-                        pclk-sample = <1>;
-                        data-active = <1>;
-                };
-        };
-};
-
-Here the adv7612 driver would register a subdevice using the endpoint 
-'hdmi-in@4c/ports/port@0/endpoint' while the rcar-vin driver which uses 
-the async parsing helpers would register a notifier looking for 
-'hdmi-in@4c/ports/port@2/endpoint'.
-
-Something like Kieran's '[PATCH v5] v4l2-async: Match parent devices' 
-would be needed in addition to this patch. I tried Kieran's patch 
-together with this and it did not solve the problem upstream. I did make 
-a hack on-top of Kieran's patch to add a comparison 'sd_parent == 
-asd_parent' in match_fwnode() which got rcar-gen2 working again, but I'm 
-not sure if that will have other side effects.
-
-> 
-> For async devices that have no endpoints, continue to use the fwnode
-> related to the device. This includes e.g. lens devices.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> ---
-> Hi Niklas,
-> 
-> What do you think of this one? I've tested this on N9, both sensor and
-> flash devices work nicely there. No opportunistic checks for backwards
-> compatibility are needed.
-
-Over all I like it, endpoint matching I think is a good thing! If we can 
-sort out the issue above I be happy to use the new async parsing helpers 
-in rcar-csi2 driver.
-
-> 
-> The changes were surprisingly simple, there are only two drivers that
-> weren't entirely trivial to change (this part is truly weird in exynos4-is
-> and xilinx-vipp). Converting the two to use the common parsing functions
-> would be quite a bit more work and would be very nice to test. The changes
-> in this patch were still relatively simple.
-> 
->  drivers/media/platform/am437x/am437x-vpfe.c    |  2 +-
->  drivers/media/platform/atmel/atmel-isc.c       |  2 +-
->  drivers/media/platform/atmel/atmel-isi.c       |  2 +-
->  drivers/media/platform/davinci/vpif_capture.c  |  2 +-
->  drivers/media/platform/exynos4-is/media-dev.c  | 14 ++++++++++----
->  drivers/media/platform/pxa_camera.c            |  2 +-
->  drivers/media/platform/qcom/camss-8x16/camss.c |  2 +-
->  drivers/media/platform/rcar_drif.c             |  2 +-
->  drivers/media/platform/stm32/stm32-dcmi.c      |  2 +-
->  drivers/media/platform/ti-vpe/cal.c            |  2 +-
->  drivers/media/platform/xilinx/xilinx-vipp.c    | 16 +++++++++++++---
->  drivers/media/v4l2-core/v4l2-async.c           |  8 ++++++--
->  drivers/media/v4l2-core/v4l2-fwnode.c          |  2 +-
->  13 files changed, 39 insertions(+), 19 deletions(-)
-> 
-> diff --git a/drivers/media/platform/am437x/am437x-vpfe.c b/drivers/media/platform/am437x/am437x-vpfe.c
-> index 0997c640191d..892d9e935d25 100644
-> --- a/drivers/media/platform/am437x/am437x-vpfe.c
-> +++ b/drivers/media/platform/am437x/am437x-vpfe.c
-> @@ -2493,7 +2493,7 @@ vpfe_get_pdata(struct platform_device *pdev)
->  		if (flags & V4L2_MBUS_VSYNC_ACTIVE_HIGH)
->  			sdinfo->vpfe_param.vdpol = 1;
->  
-> -		rem = of_graph_get_remote_port_parent(endpoint);
-> +		rem = of_graph_get_remote_endpoint(endpoint);
->  		if (!rem) {
->  			dev_err(&pdev->dev, "Remote device at %pOF not found\n",
->  				endpoint);
-> diff --git a/drivers/media/platform/atmel/atmel-isc.c b/drivers/media/platform/atmel/atmel-isc.c
-> index 13f1c1c797b0..c8bb60eeb629 100644
-> --- a/drivers/media/platform/atmel/atmel-isc.c
-> +++ b/drivers/media/platform/atmel/atmel-isc.c
-> @@ -2044,7 +2044,7 @@ static int isc_parse_dt(struct device *dev, struct isc_device *isc)
->  		if (!epn)
->  			break;
->  
-> -		rem = of_graph_get_remote_port_parent(epn);
-> +		rem = of_graph_get_remote_endpoint(epn);
->  		if (!rem) {
->  			dev_notice(dev, "Remote device at %pOF not found\n",
->  				   epn);
-> diff --git a/drivers/media/platform/atmel/atmel-isi.c b/drivers/media/platform/atmel/atmel-isi.c
-> index e900995143a3..eafdf91a4541 100644
-> --- a/drivers/media/platform/atmel/atmel-isi.c
-> +++ b/drivers/media/platform/atmel/atmel-isi.c
-> @@ -1119,7 +1119,7 @@ static int isi_graph_parse(struct atmel_isi *isi, struct device_node *node)
->  		if (!ep)
->  			return -EINVAL;
->  
-> -		remote = of_graph_get_remote_port_parent(ep);
-> +		remote = of_graph_get_remote_endpoint(ep);
->  		if (!remote) {
->  			of_node_put(ep);
->  			return -EINVAL;
-> diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
-> index fca4dc829f73..7c9c2b2bb710 100644
-> --- a/drivers/media/platform/davinci/vpif_capture.c
-> +++ b/drivers/media/platform/davinci/vpif_capture.c
-> @@ -1572,7 +1572,7 @@ vpif_capture_get_pdata(struct platform_device *pdev)
->  		if (flags & V4L2_MBUS_VSYNC_ACTIVE_HIGH)
->  			chan->vpif_if.vd_pol = 1;
->  
-> -		rem = of_graph_get_remote_port_parent(endpoint);
-> +		rem = of_graph_get_remote_endpoint(endpoint);
->  		if (!rem) {
->  			dev_dbg(&pdev->dev, "Remote device at %pOF not found\n",
->  				endpoint);
-> diff --git a/drivers/media/platform/exynos4-is/media-dev.c b/drivers/media/platform/exynos4-is/media-dev.c
-> index 0ef583cfc424..ab5dfe6d7ac4 100644
-> --- a/drivers/media/platform/exynos4-is/media-dev.c
-> +++ b/drivers/media/platform/exynos4-is/media-dev.c
-> @@ -411,7 +411,7 @@ static int fimc_md_parse_port_node(struct fimc_md *fmd,
->  
->  	pd->mux_id = (endpoint.base.port - 1) & 0x1;
->  
-> -	rem = of_graph_get_remote_port_parent(ep);
-> +	rem = of_graph_get_remote_endpoint(ep);
->  	of_node_put(ep);
->  	if (rem == NULL) {
->  		v4l2_info(&fmd->v4l2_dev, "Remote device at %pOF not found\n",
-> @@ -1363,11 +1363,17 @@ static int subdev_notifier_bound(struct v4l2_async_notifier *notifier,
->  	int i;
->  
->  	/* Find platform data for this sensor subdev */
-> -	for (i = 0; i < ARRAY_SIZE(fmd->sensor); i++)
-> -		if (fmd->sensor[i].asd.match.fwnode.fwnode ==
-> -		    of_fwnode_handle(subdev->dev->of_node))
-> +	for (i = 0; i < ARRAY_SIZE(fmd->sensor); i++) {
-> +		struct fwnode_handle *fwnode =
-> +			fwnode_graph_get_port_parent(
-> +				of_fwnode_handle(subdev->dev->of_node));
-> +
-> +		if (fmd->sensor[i].asd.match.fwnode.fwnode == fwnode)
->  			si = &fmd->sensor[i];
->  
-> +		fwnode_handle_put(fwnode);
-> +	}
-> +
->  	if (si == NULL)
->  		return -EINVAL;
->  
-> diff --git a/drivers/media/platform/pxa_camera.c b/drivers/media/platform/pxa_camera.c
-> index 4e0839829e6e..82aaafd113d4 100644
-> --- a/drivers/media/platform/pxa_camera.c
-> +++ b/drivers/media/platform/pxa_camera.c
-> @@ -2334,7 +2334,7 @@ static int pxa_camera_pdata_from_dt(struct device *dev,
->  		pcdev->platform_flags |= PXA_CAMERA_PCLK_EN;
->  
->  	asd->match_type = V4L2_ASYNC_MATCH_FWNODE;
-> -	remote = of_graph_get_remote_port_parent(np);
-> +	remote = of_graph_get_remote_endpoint(np);
->  	if (remote) {
->  		asd->match.fwnode.fwnode = of_fwnode_handle(remote);
->  		of_node_put(remote);
-> diff --git a/drivers/media/platform/qcom/camss-8x16/camss.c b/drivers/media/platform/qcom/camss-8x16/camss.c
-> index 390a42c17b66..73cac6301756 100644
-> --- a/drivers/media/platform/qcom/camss-8x16/camss.c
-> +++ b/drivers/media/platform/qcom/camss-8x16/camss.c
-> @@ -332,7 +332,7 @@ static int camss_of_parse_ports(struct device *dev,
->  			return ret;
->  		}
->  
-> -		remote = of_graph_get_remote_port_parent(node);
-> +		remote = of_graph_get_remote_endpoint(node);
->  		of_node_put(node);
->  
->  		if (!remote) {
-> diff --git a/drivers/media/platform/rcar_drif.c b/drivers/media/platform/rcar_drif.c
-> index 63c94f4028a7..f6e0a08d72f4 100644
-> --- a/drivers/media/platform/rcar_drif.c
-> +++ b/drivers/media/platform/rcar_drif.c
-> @@ -1228,7 +1228,7 @@ static int rcar_drif_parse_subdevs(struct rcar_drif_sdr *sdr)
->  		return 0;
->  
->  	notifier->subdevs[notifier->num_subdevs] = &sdr->ep.asd;
-> -	fwnode = fwnode_graph_get_remote_port_parent(ep);
-> +	fwnode = fwnode_graph_get_remote_endpoint(ep);
->  	if (!fwnode) {
->  		dev_warn(sdr->dev, "bad remote port parent\n");
->  		fwnode_handle_put(ep);
-> diff --git a/drivers/media/platform/stm32/stm32-dcmi.c b/drivers/media/platform/stm32/stm32-dcmi.c
-> index ac4c450a6c7d..18e0aa8af3b3 100644
-> --- a/drivers/media/platform/stm32/stm32-dcmi.c
-> +++ b/drivers/media/platform/stm32/stm32-dcmi.c
-> @@ -1511,7 +1511,7 @@ static int dcmi_graph_parse(struct stm32_dcmi *dcmi, struct device_node *node)
->  		if (!ep)
->  			return -EINVAL;
->  
-> -		remote = of_graph_get_remote_port_parent(ep);
-> +		remote = of_graph_get_remote_endpoint(ep);
->  		if (!remote) {
->  			of_node_put(ep);
->  			return -EINVAL;
-> diff --git a/drivers/media/platform/ti-vpe/cal.c b/drivers/media/platform/ti-vpe/cal.c
-> index a1748b84deea..f4af6c5a7c6c 100644
-> --- a/drivers/media/platform/ti-vpe/cal.c
-> +++ b/drivers/media/platform/ti-vpe/cal.c
-> @@ -1697,7 +1697,7 @@ static int of_cal_create_instance(struct cal_ctx *ctx, int inst)
->  		goto cleanup_exit;
->  	}
->  
-> -	sensor_node = of_graph_get_remote_port_parent(ep_node);
-> +	sensor_node = of_graph_get_remote_endpoint(ep_node);
->  	if (!sensor_node) {
->  		ctx_dbg(3, ctx, "can't get remote parent\n");
->  		goto cleanup_exit;
-> diff --git a/drivers/media/platform/xilinx/xilinx-vipp.c b/drivers/media/platform/xilinx/xilinx-vipp.c
-> index d881cf09876d..17d4ac0a908d 100644
-> --- a/drivers/media/platform/xilinx/xilinx-vipp.c
-> +++ b/drivers/media/platform/xilinx/xilinx-vipp.c
-> @@ -82,6 +82,8 @@ static int xvip_graph_build_one(struct xvip_composite_device *xdev,
->  	dev_dbg(xdev->dev, "creating links for entity %s\n", local->name);
->  
->  	while (1) {
-> +		struct fwnode_handle *fwnode;
-> +
->  		/* Get the next endpoint and parse its link. */
->  		next = of_graph_get_next_endpoint(entity->node, ep);
->  		if (next == NULL)
-> @@ -121,8 +123,11 @@ static int xvip_graph_build_one(struct xvip_composite_device *xdev,
->  			continue;
->  		}
->  
-> +		fwnode = fwnode_graph_get_port_parent(link.remote_node);
-> +		fwnode_handle_put(fwnode);
-> +
->  		/* Skip DMA engines, they will be processed separately. */
-> -		if (link.remote_node == of_fwnode_handle(xdev->dev->of_node)) {
-> +		if (fwnode == of_fwnode_handle(xdev->dev->of_node)) {
->  			dev_dbg(xdev->dev, "skipping DMA port %pOF:%u\n",
->  				to_of_node(link.local_node),
->  				link.local_port);
-> @@ -367,20 +372,25 @@ static int xvip_graph_parse_one(struct xvip_composite_device *xdev,
->  	dev_dbg(xdev->dev, "parsing node %pOF\n", node);
->  
->  	while (1) {
-> +		struct fwnode_handle *fwnode;
-> +
->  		ep = of_graph_get_next_endpoint(node, ep);
->  		if (ep == NULL)
->  			break;
->  
->  		dev_dbg(xdev->dev, "handling endpoint %pOF\n", ep);
->  
-> -		remote = of_graph_get_remote_port_parent(ep);
-> +		remote = of_graph_get_remote_endpoint(ep);
->  		if (remote == NULL) {
->  			ret = -EINVAL;
->  			break;
->  		}
->  
-> +		fwnode = fwnode_graph_get_port_parent(of_fwnode_handle(remote));
-> +		fwnode_handle_put(fwnode);
-> +
->  		/* Skip entities that we have already processed. */
-> -		if (remote == xdev->dev->of_node ||
-> +		if (fwnode == xdev->dev->of_node ||
->  		    xvip_graph_find_entity(xdev, remote)) {
->  			of_node_put(remote);
->  			continue;
-> diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
-> index e5acfab470a5..f53eff07e8b8 100644
-> --- a/drivers/media/v4l2-core/v4l2-async.c
-> +++ b/drivers/media/v4l2-core/v4l2-async.c
-> @@ -539,8 +539,12 @@ int v4l2_async_register_subdev(struct v4l2_subdev *sd)
->  	 * (struct v4l2_subdev.dev), and async sub-device does not
->  	 * exist independently of the device at any point of time.
->  	 */
-> -	if (!sd->fwnode && sd->dev)
-> -		sd->fwnode = dev_fwnode(sd->dev);
-> +	if (!sd->fwnode && sd->dev) {
-> +		sd->fwnode = fwnode_graph_get_next_endpoint(
-> +			dev_fwnode(sd->dev), NULL);
-> +		if (!sd->fwnode)
-> +			sd->fwnode = dev_fwnode(sd->dev);
-> +	}
->  
->  	mutex_lock(&list_lock);
->  
-> diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
-> index fb72c7ac04d4..9c17a26d544c 100644
-> --- a/drivers/media/v4l2-core/v4l2-fwnode.c
-> +++ b/drivers/media/v4l2-core/v4l2-fwnode.c
-> @@ -360,7 +360,7 @@ static int v4l2_async_notifier_fwnode_parse_endpoint(
->  
->  	asd->match_type = V4L2_ASYNC_MATCH_FWNODE;
->  	asd->match.fwnode.fwnode =
-> -		fwnode_graph_get_remote_port_parent(endpoint);
-> +		fwnode_graph_get_remote_endpoint(endpoint);
->  	if (!asd->match.fwnode.fwnode) {
->  		dev_warn(dev, "bad remote port parent\n");
->  		ret = -EINVAL;
-> -- 
-> 2.11.0
-> 
-
+diff --git a/Documentation/devicetree/bindings/media/s5p-mfc.txt b/Documentation/devicetree/bindings/media/s5p-mfc.txt
+index d3404b5..aa54c81 100644
+--- a/Documentation/devicetree/bindings/media/s5p-mfc.txt
++++ b/Documentation/devicetree/bindings/media/s5p-mfc.txt
+@@ -13,6 +13,7 @@ Required properties:
+ 	(c) "samsung,mfc-v7" for MFC v7 present in Exynos5420 SoC
+ 	(d) "samsung,mfc-v8" for MFC v8 present in Exynos5800 SoC
+ 	(e) "samsung,exynos5433-mfc" for MFC v8 present in Exynos5433 SoC
++	(f) "samsung,mfc-v10" for MFC v10 present in Exynos7880 SoC
+ 
+   - reg : Physical base address of the IP registers and length of memory
+ 	  mapped region.
+diff --git a/drivers/media/platform/s5p-mfc/regs-mfc-v10.h b/drivers/media/platform/s5p-mfc/regs-mfc-v10.h
+new file mode 100644
+index 0000000..1ca09d6
+--- /dev/null
++++ b/drivers/media/platform/s5p-mfc/regs-mfc-v10.h
+@@ -0,0 +1,36 @@
++/*
++ * Register definition file for Samsung MFC V10.x Interface (FIMV) driver
++ *
++ * Copyright (c) 2017 Samsung Electronics Co., Ltd.
++ *     http://www.samsung.com/
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#ifndef _REGS_MFC_V10_H
++#define _REGS_MFC_V10_H
++
++#include <linux/sizes.h>
++#include "regs-mfc-v8.h"
++
++/* MFCv10 register definitions*/
++#define S5P_FIMV_MFC_CLOCK_OFF_V10			0x7120
++#define S5P_FIMV_MFC_STATE_V10				0x7124
++
++/* MFCv10 Context buffer sizes */
++#define MFC_CTX_BUF_SIZE_V10		(30 * SZ_1K)
++#define MFC_H264_DEC_CTX_BUF_SIZE_V10	(2 * SZ_1M)
++#define MFC_OTHER_DEC_CTX_BUF_SIZE_V10	(20 * SZ_1K)
++#define MFC_H264_ENC_CTX_BUF_SIZE_V10	(100 * SZ_1K)
++#define MFC_OTHER_ENC_CTX_BUF_SIZE_V10	(15 * SZ_1K)
++
++/* MFCv10 variant defines */
++#define MAX_FW_SIZE_V10		(SZ_1M)
++#define MAX_CPB_SIZE_V10	(3 * SZ_1M)
++#define MFC_VERSION_V10		0xA0
++#define MFC_NUM_PORTS_V10	1
++
++#endif /*_REGS_MFC_V10_H*/
++
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+index f243356..a41a6a3 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+@@ -1612,6 +1612,28 @@ static struct s5p_mfc_variant mfc_drvdata_v8_5433 = {
+ 	.num_clocks	= 3,
+ };
+ 
++static struct s5p_mfc_buf_size_v6 mfc_buf_size_v10 = {
++	.dev_ctx        = MFC_CTX_BUF_SIZE_V10,
++	.h264_dec_ctx   = MFC_H264_DEC_CTX_BUF_SIZE_V10,
++	.other_dec_ctx  = MFC_OTHER_DEC_CTX_BUF_SIZE_V10,
++	.h264_enc_ctx   = MFC_H264_ENC_CTX_BUF_SIZE_V10,
++	.other_enc_ctx  = MFC_OTHER_ENC_CTX_BUF_SIZE_V10,
++};
++
++static struct s5p_mfc_buf_size buf_size_v10 = {
++	.fw     = MAX_FW_SIZE_V10,
++	.cpb    = MAX_CPB_SIZE_V10,
++	.priv   = &mfc_buf_size_v10,
++};
++
++static struct s5p_mfc_variant mfc_drvdata_v10 = {
++	.version        = MFC_VERSION_V10,
++	.version_bit    = MFC_V10_BIT,
++	.port_num       = MFC_NUM_PORTS_V10,
++	.buf_size       = &buf_size_v10,
++	.fw_name[0]     = "s5p-mfc-v10.fw",
++};
++
+ static const struct of_device_id exynos_mfc_match[] = {
+ 	{
+ 		.compatible = "samsung,mfc-v5",
+@@ -1628,6 +1650,9 @@ static const struct of_device_id exynos_mfc_match[] = {
+ 	}, {
+ 		.compatible = "samsung,exynos5433-mfc",
+ 		.data = &mfc_drvdata_v8_5433,
++	}, {
++		.compatible = "samsung,mfc-v10",
++		.data = &mfc_drvdata_v10,
+ 	},
+ 	{},
+ };
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
+index 5fb2684..eb0cf5e 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
+@@ -23,7 +23,7 @@
+ #include <media/v4l2-ioctl.h>
+ #include <media/videobuf2-v4l2.h>
+ #include "regs-mfc.h"
+-#include "regs-mfc-v8.h"
++#include "regs-mfc-v10.h"
+ 
+ #define S5P_MFC_NAME		"s5p-mfc"
+ 
+@@ -712,11 +712,18 @@ void s5p_mfc_cleanup_queue(struct list_head *lh, struct vb2_queue *vq);
+ #define IS_MFCV6_PLUS(dev)	(dev->variant->version >= 0x60 ? 1 : 0)
+ #define IS_MFCV7_PLUS(dev)	(dev->variant->version >= 0x70 ? 1 : 0)
+ #define IS_MFCV8_PLUS(dev)	(dev->variant->version >= 0x80 ? 1 : 0)
++#define IS_MFCV10(dev)		(dev->variant->version >= 0xA0 ? 1 : 0)
+ 
+ #define MFC_V5_BIT	BIT(0)
+ #define MFC_V6_BIT	BIT(1)
+ #define MFC_V7_BIT	BIT(2)
+ #define MFC_V8_BIT	BIT(3)
++#define MFC_V10_BIT	BIT(5)
+ 
++#define MFC_V5PLUS_BITS		(MFC_V5_BIT | MFC_V6_BIT | MFC_V7_BIT | \
++					MFC_V8_BIT | MFC_V10_BIT)
++#define MFC_V6PLUS_BITS		(MFC_V6_BIT | MFC_V7_BIT | MFC_V8_BIT | \
++					MFC_V10_BIT)
++#define MFC_V7PLUS_BITS		(MFC_V7_BIT | MFC_V8_BIT | MFC_V10_BIT)
+ 
+ #endif /* S5P_MFC_COMMON_H_ */
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c b/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
+index 3769d22..3a3dd6d 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
+@@ -239,6 +239,10 @@ int s5p_mfc_init_hw(struct s5p_mfc_dev *dev)
+ 	}
+ 	else
+ 		mfc_write(dev, 0x3ff, S5P_FIMV_SW_RESET);
++
++	if (IS_MFCV10(dev))
++		mfc_write(dev, 0x0, S5P_FIMV_MFC_CLOCK_OFF_V10);
++
+ 	mfc_debug(2, "Will now wait for completion of firmware transfer\n");
+ 	if (s5p_mfc_wait_for_done_dev(dev, S5P_MFC_R2H_CMD_FW_STATUS_RET)) {
+ 		mfc_err("Failed to load firmware\n");
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+index 42e9351..81de3029 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+@@ -54,7 +54,7 @@ static struct s5p_mfc_fmt formats[] = {
+ 		.codec_mode	= S5P_MFC_CODEC_NONE,
+ 		.type		= MFC_FMT_RAW,
+ 		.num_planes	= 2,
+-		.versions	= MFC_V6_BIT | MFC_V7_BIT | MFC_V8_BIT,
++		.versions	= MFC_V6PLUS_BITS,
+ 	},
+ 	{
+ 		.name		= "4:2:0 2 Planes Y/CrCb",
+@@ -62,7 +62,7 @@ static struct s5p_mfc_fmt formats[] = {
+ 		.codec_mode	= S5P_MFC_CODEC_NONE,
+ 		.type		= MFC_FMT_RAW,
+ 		.num_planes	= 2,
+-		.versions	= MFC_V6_BIT | MFC_V7_BIT | MFC_V8_BIT,
++		.versions	= MFC_V6PLUS_BITS,
+ 	},
+ 	{
+ 		.name		= "H264 Encoded Stream",
+@@ -70,8 +70,7 @@ static struct s5p_mfc_fmt formats[] = {
+ 		.codec_mode	= S5P_MFC_CODEC_H264_DEC,
+ 		.type		= MFC_FMT_DEC,
+ 		.num_planes	= 1,
+-		.versions	= MFC_V5_BIT | MFC_V6_BIT | MFC_V7_BIT |
+-								MFC_V8_BIT,
++		.versions	= MFC_V5PLUS_BITS,
+ 	},
+ 	{
+ 		.name		= "H264/MVC Encoded Stream",
+@@ -79,7 +78,7 @@ static struct s5p_mfc_fmt formats[] = {
+ 		.codec_mode	= S5P_MFC_CODEC_H264_MVC_DEC,
+ 		.type		= MFC_FMT_DEC,
+ 		.num_planes	= 1,
+-		.versions	= MFC_V6_BIT | MFC_V7_BIT | MFC_V8_BIT,
++		.versions	= MFC_V6PLUS_BITS,
+ 	},
+ 	{
+ 		.name		= "H263 Encoded Stream",
+@@ -87,8 +86,7 @@ static struct s5p_mfc_fmt formats[] = {
+ 		.codec_mode	= S5P_MFC_CODEC_H263_DEC,
+ 		.type		= MFC_FMT_DEC,
+ 		.num_planes	= 1,
+-		.versions	= MFC_V5_BIT | MFC_V6_BIT | MFC_V7_BIT |
+-								MFC_V8_BIT,
++		.versions	= MFC_V5PLUS_BITS,
+ 	},
+ 	{
+ 		.name		= "MPEG1 Encoded Stream",
+@@ -96,8 +94,7 @@ static struct s5p_mfc_fmt formats[] = {
+ 		.codec_mode	= S5P_MFC_CODEC_MPEG2_DEC,
+ 		.type		= MFC_FMT_DEC,
+ 		.num_planes	= 1,
+-		.versions	= MFC_V5_BIT | MFC_V6_BIT | MFC_V7_BIT |
+-								MFC_V8_BIT,
++		.versions	= MFC_V5PLUS_BITS,
+ 	},
+ 	{
+ 		.name		= "MPEG2 Encoded Stream",
+@@ -105,8 +102,7 @@ static struct s5p_mfc_fmt formats[] = {
+ 		.codec_mode	= S5P_MFC_CODEC_MPEG2_DEC,
+ 		.type		= MFC_FMT_DEC,
+ 		.num_planes	= 1,
+-		.versions	= MFC_V5_BIT | MFC_V6_BIT | MFC_V7_BIT |
+-								MFC_V8_BIT,
++		.versions	= MFC_V5PLUS_BITS,
+ 	},
+ 	{
+ 		.name		= "MPEG4 Encoded Stream",
+@@ -114,8 +110,7 @@ static struct s5p_mfc_fmt formats[] = {
+ 		.codec_mode	= S5P_MFC_CODEC_MPEG4_DEC,
+ 		.type		= MFC_FMT_DEC,
+ 		.num_planes	= 1,
+-		.versions	= MFC_V5_BIT | MFC_V6_BIT | MFC_V7_BIT |
+-								MFC_V8_BIT,
++		.versions	= MFC_V5PLUS_BITS,
+ 	},
+ 	{
+ 		.name		= "XviD Encoded Stream",
+@@ -123,8 +118,7 @@ static struct s5p_mfc_fmt formats[] = {
+ 		.codec_mode	= S5P_MFC_CODEC_MPEG4_DEC,
+ 		.type		= MFC_FMT_DEC,
+ 		.num_planes	= 1,
+-		.versions	= MFC_V5_BIT | MFC_V6_BIT | MFC_V7_BIT |
+-								MFC_V8_BIT,
++		.versions	= MFC_V5PLUS_BITS,
+ 	},
+ 	{
+ 		.name		= "VC1 Encoded Stream",
+@@ -132,8 +126,7 @@ static struct s5p_mfc_fmt formats[] = {
+ 		.codec_mode	= S5P_MFC_CODEC_VC1_DEC,
+ 		.type		= MFC_FMT_DEC,
+ 		.num_planes	= 1,
+-		.versions	= MFC_V5_BIT | MFC_V6_BIT | MFC_V7_BIT |
+-								MFC_V8_BIT,
++		.versions	= MFC_V5PLUS_BITS,
+ 	},
+ 	{
+ 		.name		= "VC1 RCV Encoded Stream",
+@@ -141,8 +134,7 @@ static struct s5p_mfc_fmt formats[] = {
+ 		.codec_mode	= S5P_MFC_CODEC_VC1RCV_DEC,
+ 		.type		= MFC_FMT_DEC,
+ 		.num_planes	= 1,
+-		.versions	= MFC_V5_BIT | MFC_V6_BIT | MFC_V7_BIT |
+-								MFC_V8_BIT,
++		.versions	= MFC_V5PLUS_BITS,
+ 	},
+ 	{
+ 		.name		= "VP8 Encoded Stream",
+@@ -150,7 +142,7 @@ static struct s5p_mfc_fmt formats[] = {
+ 		.codec_mode	= S5P_MFC_CODEC_VP8_DEC,
+ 		.type		= MFC_FMT_DEC,
+ 		.num_planes	= 1,
+-		.versions	= MFC_V6_BIT | MFC_V7_BIT | MFC_V8_BIT,
++		.versions	= MFC_V6PLUS_BITS,
+ 	},
+ };
+ 
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
+index 2a5fd7c..64b6b6d 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
+@@ -57,8 +57,7 @@ static struct s5p_mfc_fmt formats[] = {
+ 		.codec_mode	= S5P_MFC_CODEC_NONE,
+ 		.type		= MFC_FMT_RAW,
+ 		.num_planes	= 2,
+-		.versions	= MFC_V5_BIT | MFC_V6_BIT | MFC_V7_BIT |
+-								MFC_V8_BIT,
++		.versions	= MFC_V5PLUS_BITS,
+ 	},
+ 	{
+ 		.name		= "4:2:0 2 Planes Y/CrCb",
+@@ -66,7 +65,7 @@ static struct s5p_mfc_fmt formats[] = {
+ 		.codec_mode	= S5P_MFC_CODEC_NONE,
+ 		.type		= MFC_FMT_RAW,
+ 		.num_planes	= 2,
+-		.versions	= MFC_V6_BIT | MFC_V7_BIT | MFC_V8_BIT,
++		.versions	= MFC_V6PLUS_BITS,
+ 	},
+ 	{
+ 		.name		= "H264 Encoded Stream",
+@@ -74,8 +73,7 @@ static struct s5p_mfc_fmt formats[] = {
+ 		.codec_mode	= S5P_MFC_CODEC_H264_ENC,
+ 		.type		= MFC_FMT_ENC,
+ 		.num_planes	= 1,
+-		.versions	= MFC_V5_BIT | MFC_V6_BIT | MFC_V7_BIT |
+-								MFC_V8_BIT,
++		.versions	= MFC_V5PLUS_BITS,
+ 	},
+ 	{
+ 		.name		= "MPEG4 Encoded Stream",
+@@ -83,8 +81,7 @@ static struct s5p_mfc_fmt formats[] = {
+ 		.codec_mode	= S5P_MFC_CODEC_MPEG4_ENC,
+ 		.type		= MFC_FMT_ENC,
+ 		.num_planes	= 1,
+-		.versions	= MFC_V5_BIT | MFC_V6_BIT | MFC_V7_BIT |
+-								MFC_V8_BIT,
++		.versions	= MFC_V5PLUS_BITS,
+ 	},
+ 	{
+ 		.name		= "H263 Encoded Stream",
+@@ -92,8 +89,7 @@ static struct s5p_mfc_fmt formats[] = {
+ 		.codec_mode	= S5P_MFC_CODEC_H263_ENC,
+ 		.type		= MFC_FMT_ENC,
+ 		.num_planes	= 1,
+-		.versions	= MFC_V5_BIT | MFC_V6_BIT | MFC_V7_BIT |
+-								MFC_V8_BIT,
++		.versions	= MFC_V5PLUS_BITS,
+ 	},
+ 	{
+ 		.name		= "VP8 Encoded Stream",
+@@ -101,7 +97,7 @@ static struct s5p_mfc_fmt formats[] = {
+ 		.codec_mode	= S5P_MFC_CODEC_VP8_ENC,
+ 		.type		= MFC_FMT_ENC,
+ 		.num_planes	= 1,
+-		.versions	= MFC_V7_BIT | MFC_V8_BIT,
++		.versions	= MFC_V7PLUS_BITS,
+ 	},
+ };
+ 
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
+index fe14479..2041d81 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
+@@ -356,6 +356,7 @@ static int calc_plane(int width, int height)
+ 
+ static void s5p_mfc_dec_calc_dpb_size_v6(struct s5p_mfc_ctx *ctx)
+ {
++	struct s5p_mfc_dev *dev = ctx->dev;
+ 	ctx->buf_width = ALIGN(ctx->img_width, S5P_FIMV_NV12MT_HALIGN_V6);
+ 	ctx->buf_height = ALIGN(ctx->img_height, S5P_FIMV_NV12MT_VALIGN_V6);
+ 	mfc_debug(2, "SEQ Done: Movie dimensions %dx%d,\n"
+@@ -372,8 +373,12 @@ static void s5p_mfc_dec_calc_dpb_size_v6(struct s5p_mfc_ctx *ctx)
+ 
+ 	if (ctx->codec_mode == S5P_MFC_CODEC_H264_DEC ||
+ 			ctx->codec_mode == S5P_MFC_CODEC_H264_MVC_DEC) {
+-		ctx->mv_size = S5P_MFC_DEC_MV_SIZE_V6(ctx->img_width,
+-				ctx->img_height);
++		if (IS_MFCV10(dev))
++			ctx->mv_size = S5P_MFC_DEC_MV_SIZE_V10(ctx->img_width,
++					ctx->img_height);
++		else
++			ctx->mv_size = S5P_MFC_DEC_MV_SIZE_V6(ctx->img_width,
++					ctx->img_height);
+ 		ctx->mv_size = ALIGN(ctx->mv_size, 16);
+ 	} else {
+ 		ctx->mv_size = 0;
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h
+index 8055848..021b8db 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h
+@@ -24,6 +24,8 @@
+ #define MB_HEIGHT(y_size)		DIV_ROUND_UP(y_size, 16)
+ #define S5P_MFC_DEC_MV_SIZE_V6(x, y)	(MB_WIDTH(x) * \
+ 					(((MB_HEIGHT(y)+1)/2)*2) * 64 + 128)
++#define S5P_MFC_DEC_MV_SIZE_V10(x, y)	(MB_WIDTH(x) * \
++					(((MB_HEIGHT(y)+1)/2)*2) * 64 + 512)
+ 
+ /* Definition */
+ #define ENC_MULTI_SLICE_MB_MAX		((1 << 30) - 1)
 -- 
-Regards,
-Niklas Söderlund
+2.7.4
