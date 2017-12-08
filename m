@@ -1,145 +1,187 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from out20-49.mail.aliyun.com ([115.124.20.49]:52555 "EHLO
-        out20-49.mail.aliyun.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932285AbdLRIuF (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 18 Dec 2017 03:50:05 -0500
-Date: Mon, 18 Dec 2017 16:49:21 +0800
-From: Yong <yong.deng@magewell.com>
-To: wens@csie.org
-Cc: Maxime Ripard <maxime.ripard@free-electrons.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        "David S. Miller" <davem@davemloft.net>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Randy Dunlap <rdunlap@infradead.org>,
-        Benoit Parrot <bparrot@ti.com>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
-        Yannick Fertre <yannick.fertre@st.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Rick Chang <rick.chang@mediatek.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        devicetree <devicetree@vger.kernel.org>,
-        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-        linux-kernel <linux-kernel@vger.kernel.org>,
-        linux-sunxi <linux-sunxi@googlegroups.com>,
-        =?UTF-8?B?T25kxZllag==?= Jirman <megous@megous.com>
-Subject: Re: [linux-sunxi] [PATCH v3 2/3] dt-bindings: media: Add Allwinner
- V3s Camera Sensor Interface (CSI)
-Message-Id: <20171218164921.227b82349c778283f5e5eba8@magewell.com>
-In-Reply-To: <CAGb2v67JhMfba8Ao7WyrYikkxvTxX8WaBRqu3GkrhOCWndresg@mail.gmail.com>
-References: <1510558344-45402-1-git-send-email-yong.deng@magewell.com>
-        <CAGb2v67JhMfba8Ao7WyrYikkxvTxX8WaBRqu3GkrhOCWndresg@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from smtp-4.sys.kth.se ([130.237.48.193]:44910 "EHLO
+        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752462AbdLHBJG (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 7 Dec 2017 20:09:06 -0500
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH v9 25/28] rcar-vin: extend {start,stop}_streaming to work with media controller
+Date: Fri,  8 Dec 2017 02:08:39 +0100
+Message-Id: <20171208010842.20047-26-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20171208010842.20047-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20171208010842.20047-1-niklas.soderlund+renesas@ragnatech.se>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 18 Dec 2017 16:35:51 +0800
-Chen-Yu Tsai <wens@csie.org> wrote:
+The procedure to start or stop streaming using the non-MC single
+subdevice and the MC graph and multiple subdevices are quite different.
+Create a new function to abstract which method is used based on which
+mode the driver is running in and add logic to start the MC graph.
 
-> On Mon, Nov 13, 2017 at 3:32 PM, Yong Deng <yong.deng@magewell.com> wrote:
-> > Add binding documentation for Allwinner V3s CSI.
-> >
-> > Signed-off-by: Yong Deng <yong.deng@magewell.com>
-> > ---
-> >  .../devicetree/bindings/media/sun6i-csi.txt        | 51 ++++++++++++++++++++++
-> >  1 file changed, 51 insertions(+)
-> >  create mode 100644 Documentation/devicetree/bindings/media/sun6i-csi.txt
-> >
-> > diff --git a/Documentation/devicetree/bindings/media/sun6i-csi.txt b/Documentation/devicetree/bindings/media/sun6i-csi.txt
-> > new file mode 100644
-> > index 0000000..f3916a2
-> > --- /dev/null
-> > +++ b/Documentation/devicetree/bindings/media/sun6i-csi.txt
-> > @@ -0,0 +1,51 @@
-> > +Allwinner V3s Camera Sensor Interface
-> > +------------------------------
-> > +
-> > +Required properties:
-> > +  - compatible: value must be "allwinner,sun8i-v3s-csi"
-> > +  - reg: base address and size of the memory-mapped region.
-> > +  - interrupts: interrupt associated to this IP
-> > +  - clocks: phandles to the clocks feeding the CSI
-> > +    * bus: the CSI interface clock
-> > +    * mod: the CSI module clock
-> > +    * ram: the CSI DRAM clock
-> > +  - clock-names: the clock names mentioned above
-> > +  - resets: phandles to the reset line driving the CSI
-> > +
-> > +- ports: A ports node with endpoint definitions as defined in
-> > +  Documentation/devicetree/bindings/media/video-interfaces.txt.
-> > +  Currently, the driver only support the parallel interface. So, a single port
-> > +  node with one endpoint and parallel bus is supported.
-> > +
-> > +Example:
-> > +
-> > +       csi1: csi@01cb4000 {
-> 
-> Drop the leading zero in the address part.
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/platform/rcar-vin/rcar-dma.c | 112 +++++++++++++++++++++++++++--
+ 1 file changed, 105 insertions(+), 7 deletions(-)
 
-OK.
-
-> 
-> > +               compatible = "allwinner,sun8i-v3s-csi";
-> > +               reg = <0x01cb4000 0x1000>;
-> > +               interrupts = <GIC_SPI 84 IRQ_TYPE_LEVEL_HIGH>;
-> > +               clocks = <&ccu CLK_BUS_CSI>,
-> > +                        <&ccu CLK_CSI1_SCLK>,
-> 
-> CSI also has an MCLK. Do you need that one?
-
-MCLK is not needed if the front end is not a sensor (like adv7611).
-I will add it as an option.
-
-> 
-> ChenYu
-> 
-> > +                        <&ccu CLK_DRAM_CSI>;
-> > +               clock-names = "bus", "mod", "ram";
-> > +               resets = <&ccu RST_BUS_CSI>;
-> > +
-> > +               port {
-> > +                       #address-cells = <1>;
-> > +                       #size-cells = <0>;
-> > +
-> > +                       /* Parallel bus endpoint */
-> > +                       csi1_ep: endpoint {
-> > +                               remote-endpoint = <&adv7611_ep>;
-> > +                               bus-width = <16>;
-> > +                               data-shift = <0>;
-> > +
-> > +                               /* If hsync-active/vsync-active are missing,
-> > +                                  embedded BT.656 sync is used */
-> > +                               hsync-active = <0>; /* Active low */
-> > +                               vsync-active = <0>; /* Active low */
-> > +                               data-active = <1>;  /* Active high */
-> > +                               pclk-sample = <1>;  /* Rising */
-> > +                       };
-> > +               };
-> > +       };
-> > +
-> > --
-> > 1.8.3.1
-> >
-> > --
-> > You received this message because you are subscribed to the Google Groups "linux-sunxi" group.
-> > To unsubscribe from this group and stop receiving emails from it, send an email to linux-sunxi+unsubscribe@googlegroups.com.
-> > For more options, visit https://groups.google.com/d/optout.
-> 
-> -- 
-> You received this message because you are subscribed to the Google Groups "linux-sunxi" group.
-> To unsubscribe from this group and stop receiving emails from it, send an email to linux-sunxi+unsubscribe@googlegroups.com.
-> For more options, visit https://groups.google.com/d/optout.
-
-
-Thanks,
-Yong
+diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
+index 6c5df13b30d6dd14..8a6674a891aab357 100644
+--- a/drivers/media/platform/rcar-vin/rcar-dma.c
++++ b/drivers/media/platform/rcar-vin/rcar-dma.c
+@@ -1087,15 +1087,115 @@ static void rvin_buffer_queue(struct vb2_buffer *vb)
+ 	spin_unlock_irqrestore(&vin->qlock, flags);
+ }
+ 
++static int rvin_set_stream(struct rvin_dev *vin, int on)
++{
++	struct v4l2_subdev_format fmt = {
++		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
++	};
++	struct media_pipeline *pipe;
++	struct  v4l2_subdev *sd;
++	struct media_pad *pad;
++	int ret;
++
++	/* No media controller used, simply pass operation to subdevice */
++	if (!vin->info->use_mc) {
++		ret = v4l2_subdev_call(vin->digital->subdev, video, s_stream,
++				       on);
++
++		return ret == -ENOIOCTLCMD ? 0 : ret;
++	}
++
++	pad = media_entity_remote_pad(&vin->pad);
++	if (!pad)
++		return -EPIPE;
++
++	sd = media_entity_to_v4l2_subdev(pad->entity);
++	if (!sd)
++		return -EPIPE;
++
++	if (!on) {
++		media_pipeline_stop(&vin->vdev.entity);
++		return v4l2_subdev_call(sd, video, s_stream, 0);
++	}
++
++	fmt.pad = pad->index;
++	if (v4l2_subdev_call(sd, pad, get_fmt, NULL, &fmt))
++		return -EPIPE;
++
++	switch (fmt.format.code) {
++	case MEDIA_BUS_FMT_YUYV8_1X16:
++	case MEDIA_BUS_FMT_UYVY8_2X8:
++	case MEDIA_BUS_FMT_UYVY10_2X10:
++	case MEDIA_BUS_FMT_RGB888_1X24:
++		vin->code = fmt.format.code;
++		break;
++	default:
++		return -EPIPE;
++	}
++
++	switch (fmt.format.field) {
++	case V4L2_FIELD_TOP:
++	case V4L2_FIELD_BOTTOM:
++	case V4L2_FIELD_NONE:
++	case V4L2_FIELD_INTERLACED_TB:
++	case V4L2_FIELD_INTERLACED_BT:
++	case V4L2_FIELD_INTERLACED:
++	case V4L2_FIELD_SEQ_TB:
++	case V4L2_FIELD_SEQ_BT:
++		/* Supported natively */
++		break;
++	case V4L2_FIELD_ALTERNATE:
++		switch (vin->format.field) {
++		case V4L2_FIELD_TOP:
++		case V4L2_FIELD_BOTTOM:
++		case V4L2_FIELD_NONE:
++			break;
++		case V4L2_FIELD_INTERLACED_TB:
++		case V4L2_FIELD_INTERLACED_BT:
++		case V4L2_FIELD_INTERLACED:
++		case V4L2_FIELD_SEQ_TB:
++		case V4L2_FIELD_SEQ_BT:
++			/* Use VIN hardware to combine the two fields */
++			fmt.format.height *= 2;
++			break;
++		default:
++			return -EPIPE;
++		}
++		break;
++	default:
++		return -EPIPE;
++	}
++
++	if (fmt.format.width != vin->format.width ||
++	    fmt.format.height != vin->format.height)
++		return -EPIPE;
++
++	pipe = sd->entity.pipe ? sd->entity.pipe : &vin->vdev.pipe;
++	if (media_pipeline_start(&vin->vdev.entity, pipe))
++		return -EPIPE;
++
++	ret = v4l2_subdev_call(sd, video, s_stream, 1);
++	if (ret == -ENOIOCTLCMD)
++		ret = 0;
++	if (ret)
++		media_pipeline_stop(&vin->vdev.entity);
++
++	return ret;
++}
++
+ static int rvin_start_streaming(struct vb2_queue *vq, unsigned int count)
+ {
+ 	struct rvin_dev *vin = vb2_get_drv_priv(vq);
+-	struct v4l2_subdev *sd;
+ 	unsigned long flags;
+ 	int ret;
+ 
+-	sd = vin_to_source(vin);
+-	v4l2_subdev_call(sd, video, s_stream, 1);
++	ret = rvin_set_stream(vin, 1);
++	if (ret) {
++		spin_lock_irqsave(&vin->qlock, flags);
++		return_all_buffers(vin, VB2_BUF_STATE_QUEUED);
++		spin_unlock_irqrestore(&vin->qlock, flags);
++		return ret;
++	}
+ 
+ 	spin_lock_irqsave(&vin->qlock, flags);
+ 
+@@ -1104,7 +1204,7 @@ static int rvin_start_streaming(struct vb2_queue *vq, unsigned int count)
+ 	ret = rvin_capture_start(vin);
+ 	if (ret) {
+ 		return_all_buffers(vin, VB2_BUF_STATE_QUEUED);
+-		v4l2_subdev_call(sd, video, s_stream, 0);
++		rvin_set_stream(vin, 0);
+ 	}
+ 
+ 	spin_unlock_irqrestore(&vin->qlock, flags);
+@@ -1115,7 +1215,6 @@ static int rvin_start_streaming(struct vb2_queue *vq, unsigned int count)
+ static void rvin_stop_streaming(struct vb2_queue *vq)
+ {
+ 	struct rvin_dev *vin = vb2_get_drv_priv(vq);
+-	struct v4l2_subdev *sd;
+ 	unsigned long flags;
+ 	int retries = 0;
+ 
+@@ -1154,8 +1253,7 @@ static void rvin_stop_streaming(struct vb2_queue *vq)
+ 
+ 	spin_unlock_irqrestore(&vin->qlock, flags);
+ 
+-	sd = vin_to_source(vin);
+-	v4l2_subdev_call(sd, video, s_stream, 0);
++	rvin_set_stream(vin, 0);
+ 
+ 	/* disable interrupts */
+ 	rvin_disable_interrupts(vin);
+-- 
+2.15.0
