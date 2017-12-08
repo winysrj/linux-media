@@ -1,138 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from szxga05-in.huawei.com ([45.249.212.191]:2766 "EHLO huawei.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1752080AbdLWLLz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 23 Dec 2017 06:11:55 -0500
-From: Yisheng Xie <xieyisheng1@huawei.com>
-To: <linux-kernel@vger.kernel.org>, <gregkh@linuxfoundation.org>
-CC: <ysxie@foxmail.com>, <ulf.hansson@linaro.org>,
-        <linux-mmc@vger.kernel.org>, <boris.brezillon@free-electrons.com>,
-        <richard@nod.at>, <marek.vasut@gmail.com>,
-        <cyrille.pitchen@wedev4u.fr>, <linux-mtd@lists.infradead.org>,
-        <alsa-devel@alsa-project.org>, <wim@iguana.be>,
-        <linux@roeck-us.net>, <linux-watchdog@vger.kernel.org>,
-        <b.zolnierkie@samsung.com>, <linux-fbdev@vger.kernel.org>,
-        <linus.walleij@linaro.org>, <linux-gpio@vger.kernel.org>,
-        <ralf@linux-mips.org>, <linux-mips@linux-mips.org>,
-        <lgirdwood@gmail.com>, <broonie@kernel.org>, <tglx@linutronix.de>,
-        <jason@lakedaemon.net>, <marc.zyngier@arm.com>, <arnd@arndb.de>,
-        <andriy.shevchenko@linux.intel.com>,
-        <industrypack-devel@lists.sourceforge.net>, <wg@grandegger.com>,
-        <mkl@pengutronix.de>, <linux-can@vger.kernel.org>,
-        <mchehab@kernel.org>, <linux-media@vger.kernel.org>,
-        <a.zummo@towertech.it>, <alexandre.belloni@free-electrons.com>,
-        <linux-rtc@vger.kernel.org>, <daniel.vetter@intel.com>,
-        <jani.nikula@linux.intel.com>, <seanpaul@chromium.org>,
-        <airlied@linux.ie>, <dri-devel@lists.freedesktop.org>,
-        <kvalo@codeaurora.org>, <linux-wireless@vger.kernel.org>,
-        <linux-spi@vger.kernel.org>, <tj@kernel.org>,
-        <linux-ide@vger.kernel.org>, <bhelgaas@google.com>,
-        <linux-pci@vger.kernel.org>, <devel@driverdev.osuosl.org>,
-        <dvhart@infradead.org>, <andy@infradead.org>,
-        <platform-driver-x86@vger.kernel.org>,
-        <jakub.kicinski@netronome.com>, <davem@davemloft.net>,
-        <nios2-dev@lists.rocketboards.org>, <netdev@vger.kernel.org>,
-        <vinod.koul@intel.com>, <dan.j.williams@intel.com>,
-        <dmaengine@vger.kernel.org>, <jslaby@suse.com>,
-        Yisheng Xie <xieyisheng1@huawei.com>
-Subject: [PATCH v3 27/27] devres: kill devm_ioremap_nocache
-Date: Sat, 23 Dec 2017 19:02:59 +0800
-Message-ID: <1514026979-33838-1-git-send-email-xieyisheng1@huawei.com>
+Received: from mail-ot0-f175.google.com ([74.125.82.175]:34685 "EHLO
+        mail-ot0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752289AbdLHV26 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 8 Dec 2017 16:28:58 -0500
 MIME-Version: 1.0
-Content-Type: text/plain
+In-Reply-To: <20171208135650.3f385c45@vento.lan>
+References: <20171208135650.3f385c45@vento.lan>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Date: Fri, 8 Dec 2017 13:28:57 -0800
+Message-ID: <CA+55aFwBvXVQavgwDKVV3epFhd4MTaQvDktpDahkPhxweXnMmQ@mail.gmail.com>
+Subject: Re: [GIT PULL for v4.15-rc3] media fixes
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Now, nobody use devm_ioremap_nocache anymore, can it can just be
-removed. After this patch the size of devres.o will be reduced from
-20304 bytes to 18992 bytes.
+On Fri, Dec 8, 2017 at 7:56 AM, Mauro Carvalho Chehab
+<mchehab@osg.samsung.com> wrote:
+>
+> - The largest amount of fixes in this series is with regards to comments
+>   that aren't kernel-doc, but start with "/**". A new check added for
+>   4.15 makes it to produce a *huge* amount of new warnings (I'm compiling
+>   here with W=1). Most of the patches in this series fix those. No code
+>   changes - just comment changes at the source files;
 
-Suggested-by: Greg KH <gregkh@linuxfoundation.org>
-Signed-off-by: Yisheng Xie <xieyisheng1@huawei.com>
----
- Documentation/driver-model/devres.txt   |  1 -
- include/linux/io.h                      |  2 --
- lib/devres.c                            | 29 -----------------------------
- scripts/coccinelle/free/devm_free.cocci |  2 --
- 4 files changed, 34 deletions(-)
+Guys, this was just pure garbage, and obviously noboduy actually
+looked at that shit-for-brains patch.
 
-diff --git a/Documentation/driver-model/devres.txt b/Documentation/driver-model/devres.txt
-index c180045..c3fddb5 100644
---- a/Documentation/driver-model/devres.txt
-+++ b/Documentation/driver-model/devres.txt
-@@ -292,7 +292,6 @@ IOMAP
-   devm_ioport_map()
-   devm_ioport_unmap()
-   devm_ioremap()
--  devm_ioremap_nocache()
-   devm_ioremap_wc()
-   devm_ioremap_resource() : checks resource, requests memory region, ioremaps
-   devm_iounmap()
-diff --git a/include/linux/io.h b/include/linux/io.h
-index 32e30e8..a9c7270 100644
---- a/include/linux/io.h
-+++ b/include/linux/io.h
-@@ -75,8 +75,6 @@ static inline void devm_ioport_unmap(struct device *dev, void __iomem *addr)
- 
- void __iomem *devm_ioremap(struct device *dev, resource_size_t offset,
- 			   resource_size_t size);
--void __iomem *devm_ioremap_nocache(struct device *dev, resource_size_t offset,
--				   resource_size_t size);
- void __iomem *devm_ioremap_wc(struct device *dev, resource_size_t offset,
- 				   resource_size_t size);
- void devm_iounmap(struct device *dev, void __iomem *addr);
-diff --git a/lib/devres.c b/lib/devres.c
-index 5f2aedd..f818fcf 100644
---- a/lib/devres.c
-+++ b/lib/devres.c
-@@ -44,35 +44,6 @@ void __iomem *devm_ioremap(struct device *dev, resource_size_t offset,
- EXPORT_SYMBOL(devm_ioremap);
- 
- /**
-- * devm_ioremap_nocache - Managed ioremap_nocache()
-- * @dev: Generic device to remap IO address for
-- * @offset: Resource address to map
-- * @size: Size of map
-- *
-- * Managed ioremap_nocache().  Map is automatically unmapped on driver
-- * detach.
-- */
--void __iomem *devm_ioremap_nocache(struct device *dev, resource_size_t offset,
--				   resource_size_t size)
--{
--	void __iomem **ptr, *addr;
--
--	ptr = devres_alloc(devm_ioremap_release, sizeof(*ptr), GFP_KERNEL);
--	if (!ptr)
--		return NULL;
--
--	addr = ioremap_nocache(offset, size);
--	if (addr) {
--		*ptr = addr;
--		devres_add(dev, ptr);
--	} else
--		devres_free(ptr);
--
--	return addr;
--}
--EXPORT_SYMBOL(devm_ioremap_nocache);
--
--/**
-  * devm_ioremap_wc - Managed ioremap_wc()
-  * @dev: Generic device to remap IO address for
-  * @offset: Resource address to map
-diff --git a/scripts/coccinelle/free/devm_free.cocci b/scripts/coccinelle/free/devm_free.cocci
-index c990d2c..36b8752 100644
---- a/scripts/coccinelle/free/devm_free.cocci
-+++ b/scripts/coccinelle/free/devm_free.cocci
-@@ -51,8 +51,6 @@ expression x;
- |
-  x = devm_ioremap(...)
- |
-- x = devm_ioremap_nocache(...)
--|
-  x = devm_ioport_map(...)
- )
- 
--- 
-1.8.3.1
+There were several idiotic things like this:
+
+  -/******************************
+  +/*****************************
+
+because part of it was apparently generated with some overly stupid
+search-and-replace. So when replacing "/**" with "/*", it also just
+removed a star from those boxed-in comments.
+
+In the process that thing also made some of those boxes no longer aligned.
+
+Now, box comments are stupid anyway, but they become truly
+mind-bogglingly pointless when they are then edited like this.
+
+I've pulled this, but dammit, show some amount of sense. We shouldn't
+have this kind of pointless noise in the rc series. That pointless
+noise may now be hiding the real changes.
+
+              Linus
