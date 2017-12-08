@@ -1,74 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:47066 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751021AbdLHIRS (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 8 Dec 2017 03:17:18 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Niklas =?ISO-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [PATCH v9 07/28] rcar-vin: change name of video device
-Date: Fri, 08 Dec 2017 10:17:36 +0200
-Message-ID: <2107363.OzArtd56sx@avalon>
-In-Reply-To: <20171208010842.20047-8-niklas.soderlund+renesas@ragnatech.se>
-References: <20171208010842.20047-1-niklas.soderlund+renesas@ragnatech.se> <20171208010842.20047-8-niklas.soderlund+renesas@ragnatech.se>
-MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset="iso-8859-1"
+Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:56965 "EHLO
+        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750937AbdLHEkN (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 7 Dec 2017 23:40:13 -0500
+Message-ID: <aa9a1a562557d20512de575ec95c20f8@smtp-cloud8.xs4all.net>
+Date: Fri, 08 Dec 2017 05:40:11 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Niklas,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-(CC'ing Sakari)
+Results of the daily build of media_tree:
 
-Thank you for the patch.
+date:			Fri Dec  8 05:00:14 CET 2017
+media-tree git hash:	781b045baefdabf7e0bc9f33672ca830d3db9f27
+media_build git hash:	320b9b80ebbf318a67a9479c18a0e4be244c8409
+v4l-utils git hash:	58803000a99c22dceabfb45bec402e746ce966c3
+gcc version:		i686-linux-gcc (GCC) 7.1.0
+sparse version:		v0.5.0-3911-g6f737e1f
+smatch version:		v0.5.0-3911-g6f737e1f
+host hardware:		x86_64
+host os:		4.13.0-164
 
-On Friday, 8 December 2017 03:08:21 EET Niklas S=F6derlund wrote:
-> The rcar-vin driver needs to be part of a media controller to support
-> Gen3. Give each VIN instance a unique name so it can be referenced from
-> userspace.
->=20
-> Signed-off-by: Niklas S=F6derlund <niklas.soderlund+renesas@ragnatech.se>
-> Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-> Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  drivers/media/platform/rcar-vin/rcar-v4l2.c | 3 ++-
->  1 file changed, 2 insertions(+), 1 deletion(-)
->=20
-> diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> b/drivers/media/platform/rcar-vin/rcar-v4l2.c index
-> 59ec6d3d119590aa..19de99133f048960 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> +++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> @@ -876,7 +876,8 @@ int rvin_v4l2_register(struct rvin_dev *vin)
->  	vdev->fops =3D &rvin_fops;
->  	vdev->v4l2_dev =3D &vin->v4l2_dev;
->  	vdev->queue =3D &vin->queue;
-> -	strlcpy(vdev->name, KBUILD_MODNAME, sizeof(vdev->name));
-> +	snprintf(vdev->name, sizeof(vdev->name), "%s %s", KBUILD_MODNAME,
-> +		 dev_name(vin->dev));
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12.67-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.7-i686: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.18.7-i686: ERRORS
+linux-3.19-i686: ERRORS
+linux-4.0.9-i686: ERRORS
+linux-4.1.33-i686: ERRORS
+linux-4.2.8-i686: ERRORS
+linux-4.3.6-i686: ERRORS
+linux-4.4.22-i686: ERRORS
+linux-4.5.7-i686: ERRORS
+linux-4.6.7-i686: ERRORS
+linux-4.7.5-i686: ERRORS
+linux-4.8-i686: ERRORS
+linux-4.9.26-i686: ERRORS
+linux-4.10.14-i686: ERRORS
+linux-4.11-i686: ERRORS
+linux-4.12.1-i686: ERRORS
+linux-4.13-i686: ERRORS
+linux-4.14-i686: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.67-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.7-x86_64: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.7-x86_64: ERRORS
+linux-3.19-x86_64: ERRORS
+linux-4.0.9-x86_64: ERRORS
+linux-4.1.33-x86_64: ERRORS
+linux-4.2.8-x86_64: ERRORS
+linux-4.3.6-x86_64: ERRORS
+linux-4.4.22-x86_64: ERRORS
+linux-4.5.7-x86_64: ERRORS
+linux-4.6.7-x86_64: ERRORS
+linux-4.7.5-x86_64: ERRORS
+linux-4.8-x86_64: ERRORS
+linux-4.9.26-x86_64: ERRORS
+linux-4.10.14-x86_64: ERRORS
+linux-4.11-x86_64: ERRORS
+linux-4.12.1-x86_64: ERRORS
+linux-4.13-x86_64: ERRORS
+linux-4.14-x86_64: ERRORS
+apps: OK
+spec-git: OK
+smatch: OK
 
-Do we need the module name here ? How about calling them "%s output",=20
-dev_name(vin->dev) to emphasize the fact that this is a video node and not =
-a=20
-VIN subdev ? This is what the omap3isp and vsp1 drivers do.
+Detailed results are available here:
 
-We're suffering a bit from the fact that V4L2 has never standardized a nami=
-ng=20
-scheme for the devices. It wouldn't be fair to ask you to fix that as a=20
-prerequisite to get the VIN driver merged, but we clearly have to work on t=
-hat=20
-at some point.
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
 
->  	vdev->release =3D video_device_release_empty;
->  	vdev->ioctl_ops =3D &rvin_ioctl_ops;
->  	vdev->lock =3D &vin->lock;
+Full logs are available here:
 
-=2D-=20
-Regards,
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
 
-Laurent Pinchart
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
