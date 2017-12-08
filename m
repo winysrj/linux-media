@@ -1,99 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:53394 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756263AbdLVJYy (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 22 Dec 2017 04:24:54 -0500
-Date: Fri, 22 Dec 2017 10:24:52 +0100
-From: Pavel Machek <pavel@ucw.cz>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>, robh+dt@kernel.org,
-        devicetree@vger.kernel.org, ivo.g.dimitrov.75@gmail.com,
-        sre@kernel.org, pali.rohar@gmail.com, linux-media@vger.kernel.org,
-        galak@codeaurora.org, mchehab@osg.samsung.com,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] devicetree: Add video bus switch
-Message-ID: <20171222092452.GA16581@amd>
-References: <20161023200355.GA5391@amd>
- <20170203213454.GD12291@valkosipuli.retiisi.org.uk>
- <20170204215610.GA9243@amd>
- <75694885.3PuLWzx4qN@avalon>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="dDRMvlgZJXvWKvBx"
-Content-Disposition: inline
-In-Reply-To: <75694885.3PuLWzx4qN@avalon>
+Received: from mail.anw.at ([195.234.101.228]:53348 "EHLO mail.anw.at"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750998AbdLHVBU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 8 Dec 2017 16:01:20 -0500
+From: "Jasmin J." <jasmin@anw.at>
+To: linux-media@vger.kernel.org
+Cc: hverkuil@xs4all.nl, d.scheller@gmx.net, jasmin@anw.at
+Subject: [PATCH] build: Added missing timer_setup_on_stack
+Date: Fri,  8 Dec 2017 22:00:59 +0100
+Message-Id: <1512766859-7667-1-git-send-email-jasmin@anw.at>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: Jasmin Jessich <jasmin@anw.at>
 
---dDRMvlgZJXvWKvBx
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Jasmin Jessich <jasmin@anw.at>
+---
+ v4l/compat.h                      | 5 +++++
+ v4l/scripts/make_config_compat.pl | 1 +
+ 2 files changed, 6 insertions(+)
 
-Hi!
-
-> > > I don't really object using g_endpoint_config() as a temporary soluti=
-on;
-> > > I'd like to have Laurent's opinion on that though. Another option is =
-to
-> > > wait, but we've already waited a looong time (as in total).
-> >=20
-> > Laurent, do you have some input here? We have simple "2 cameras
-> > connected to one signal processor" situation here. We need some way of
-> > passing endpoint configuration from the sensors through the switch. I
-> > did this:
->=20
-> Could you give me a bit more information about the platform you're target=
-ing:=20
-> how the switch is connected, what kind of switch it is, and what endpoint=
-=20
-> configuration data you need ?
-
-Platform is Nokia N900, Ivaylo already gave pointer to schematics.
-
-Switch is controlled using GPIO, and basically there's CSI
-configuration that would normally be in the device tree, but now we
-have two CSI configurations to select from...
-
-> > 9) Highly reconfigurable hardware - Julien Beraud
-> >=20
-> > - 44 sub-devices connected with an interconnect.
-> > - As long as formats match, any sub-device could be connected to any
-> > - other sub-device through a link.
-> > - The result is 44 * 44 links at worst.
-> > - A switch sub-device proposed as the solution to model the
-> > - interconnect. The sub-devices are connected to the switch
-> > - sub-devices through the hardware links that connect to the
-> > - interconnect.
-> > - The switch would be controlled through new IOCTLs S_ROUTING and
-> > - G_ROUTING.
-> > - Patches available:
-> >  http://git.linuxtv.org/cgit.cgi/pinchartl/media.git/log/?h=3Dxilinx-wip
-> >=20
-> > but the patches are from 2005. So I guess I'll need some guidance here.=
-=2E.
->=20
-> You made me feel very old for a moment. The patches are from 2015 :-)
-
-Sorry about that :-).
-									Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
-
---dDRMvlgZJXvWKvBx
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iEYEARECAAYFAlo8z2QACgkQMOfwapXb+vJsZgCbBTP/TSZqeMt9ztNZwy8vgxeo
-Dv0AoJlt7/yNRop9DRe4vJWCTXucHDJy
-=Ec4d
------END PGP SIGNATURE-----
-
---dDRMvlgZJXvWKvBx--
+diff --git a/v4l/compat.h b/v4l/compat.h
+index 4af407e..89deae1 100644
+--- a/v4l/compat.h
++++ b/v4l/compat.h
+@@ -2270,4 +2270,9 @@ static inline bool fwnode_device_is_available(struct fwnode_handle *fwnode)
+ }
+ #endif
+ 
++#ifdef NEED_TIMER_SETUP_ON_STACK
++#define timer_setup_on_stack(timer, callback, flags)        \
++        setup_timer_on_stack((timer), (callback), (flags))
++#endif
++
+ #endif /*  _COMPAT_H */
+diff --git a/v4l/scripts/make_config_compat.pl b/v4l/scripts/make_config_compat.pl
+index 01382dd..3b073ac 100644
+--- a/v4l/scripts/make_config_compat.pl
++++ b/v4l/scripts/make_config_compat.pl
+@@ -711,6 +711,7 @@ sub check_other_dependencies()
+ 	check_files_for_func("fwnode_reference_args", "NEED_FWNODE_REF_ARGS", "include/linux/fwnode.h");
+ 	check_files_for_func("fwnode_for_each_child_node", "NEED_FWNODE_FOR_EACH_CHILD_NODE", "include/linux/property.h");
+ 	check_files_for_func("fwnode_graph_get_port_parent", "NEED_FWNODE_GRAPH_GET_PORT_PARENT", "include/linux/property.h");
++	check_files_for_func("timer_setup_on_stack", "NEED_TIMER_SETUP_ON_STACK", "include/linux/timer.h");
+ 
+ 	# For tests for uapi-dependent logic
+ 	check_files_for_func_uapi("usb_endpoint_maxp", "NEED_USB_ENDPOINT_MAXP", "usb/ch9.h");
+-- 
+2.7.4
