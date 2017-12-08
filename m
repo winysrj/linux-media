@@ -1,84 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pl0-f65.google.com ([209.85.160.65]:47030 "EHLO
-        mail-pl0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751279AbdLWP5q (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 23 Dec 2017 10:57:46 -0500
-Subject: Re: [PATCH v3 00/27] kill devm_ioremap_nocache
-To: Greg KH <gregkh@linuxfoundation.org>,
-        Yisheng Xie <xieyisheng1@huawei.com>
-Cc: linux-kernel@vger.kernel.org, ysxie@foxmail.com,
-        ulf.hansson@linaro.org, linux-mmc@vger.kernel.org,
-        boris.brezillon@free-electrons.com, richard@nod.at,
-        marek.vasut@gmail.com, cyrille.pitchen@wedev4u.fr,
-        linux-mtd@lists.infradead.org, alsa-devel@alsa-project.org,
-        wim@iguana.be, linux-watchdog@vger.kernel.org,
-        b.zolnierkie@samsung.com, linux-fbdev@vger.kernel.org,
-        linus.walleij@linaro.org, linux-gpio@vger.kernel.org,
-        ralf@linux-mips.org, linux-mips@linux-mips.org,
-        lgirdwood@gmail.com, broonie@kernel.org, tglx@linutronix.de,
-        jason@lakedaemon.net, marc.zyngier@arm.com, arnd@arndb.de,
-        andriy.shevchenko@linux.intel.com,
-        industrypack-devel@lists.sourceforge.net, wg@grandegger.com,
-        mkl@pengutronix.de, linux-can@vger.kernel.org, mchehab@kernel.org,
-        linux-media@vger.kernel.org, a.zummo@towertech.it,
-        alexandre.belloni@free-electrons.com, linux-rtc@vger.kernel.org,
-        daniel.vetter@intel.com, jani.nikula@linux.intel.com,
-        seanpaul@chromium.org, airlied@linux.ie,
-        dri-devel@lists.freedesktop.org, kvalo@codeaurora.org,
-        linux-wireless@vger.kernel.org, linux-spi@vger.kernel.org,
-        tj@kernel.org, linux-ide@vger.kernel.org, bhelgaas@google.com,
-        linux-pci@vger.kernel.org, devel@driverdev.osuosl.org,
-        dvhart@infradead.org, andy@infradead.org,
-        platform-driver-x86@vger.kernel.org, jakub.kicinski@netronome.com,
-        davem@davemloft.net, nios2-dev@lists.rocketboards.org,
-        netdev@vger.kernel.org, vinod.koul@intel.com,
-        dan.j.williams@intel.com, dmaengine@vger.kernel.org,
-        jslaby@suse.com
-References: <1514026525-32538-1-git-send-email-xieyisheng1@huawei.com>
- <20171223134831.GB10103@kroah.com>
-From: Guenter Roeck <linux@roeck-us.net>
-Message-ID: <f7632cf5-2bcc-4d74-b912-3999937a1269@roeck-us.net>
-Date: Sat, 23 Dec 2017 07:57:40 -0800
+Received: from smtp-4.sys.kth.se ([130.237.48.193]:44910 "EHLO
+        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752407AbdLHBJE (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 7 Dec 2017 20:09:04 -0500
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH v9 22/28] rcar-vin: add chsel information to rvin_info
+Date: Fri,  8 Dec 2017 02:08:36 +0100
+Message-Id: <20171208010842.20047-23-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20171208010842.20047-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20171208010842.20047-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-In-Reply-To: <20171223134831.GB10103@kroah.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/23/2017 05:48 AM, Greg KH wrote:
-> On Sat, Dec 23, 2017 at 06:55:25PM +0800, Yisheng Xie wrote:
->> Hi all,
->>
->> When I tried to use devm_ioremap function and review related code, I found
->> devm_ioremap and devm_ioremap_nocache is almost the same with each other,
->> except one use ioremap while the other use ioremap_nocache.
-> 
-> For all arches?  Really?  Look at MIPS, and x86, they have different
-> functions.
-> 
+Each Gen3 SoC has a limited set of predefined routing possibilities for
+which CSI-2 device and virtual channel can be routed to which VIN
+instance. Prepare to store this information in the struct rvin_info.
 
-Both mips and x86 end up mapping the same function, but other arches don't.
-mn10300 is one where ioremap and ioremap_nocache are definitely different.
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/platform/rcar-vin/rcar-vin.h | 25 +++++++++++++++++++++++++
+ 1 file changed, 25 insertions(+)
 
-Guenter
-
->> While ioremap's
->> default function is ioremap_nocache, so devm_ioremap_nocache also have the
->> same function with devm_ioremap, which can just be killed to reduce the size
->> of devres.o(from 20304 bytes to 18992 bytes in my compile environment).
->>
->> I have posted two versions, which use macro instead of function for
->> devm_ioremap_nocache[1] or devm_ioremap[2]. And Greg suggest me to kill
->> devm_ioremap_nocache for no need to keep a macro around for the duplicate
->> thing. So here comes v3 and please help to review.
-> 
-> I don't think this can be done, what am I missing?  These functions are
-> not identical, sorry for missing that before.
-> 
-> thanks,
-> 
-> greg k-h
-> 
+diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
+index 5f736a3500b6e10f..41bf24aa8a1a0aed 100644
+--- a/drivers/media/platform/rcar-vin/rcar-vin.h
++++ b/drivers/media/platform/rcar-vin/rcar-vin.h
+@@ -35,6 +35,9 @@
+ /* Max number on VIN instances that can be in a system */
+ #define RCAR_VIN_NUM 8
+ 
++/* Max number of CHSEL values for any Gen3 SoC */
++#define RCAR_CHSEL_MAX 6
++
+ enum chip_id {
+ 	RCAR_H1,
+ 	RCAR_M1,
+@@ -91,6 +94,22 @@ struct rvin_graph_entity {
+ 
+ struct rvin_group;
+ 
++/** struct rvin_group_chsel - Map a CSI-2 receiver and channel to a CHSEL value
++ * @csi:		VIN internal number for CSI-2 device
++ * @chan:		Output channel of the CSI-2 receiver. Each R-Car CSI-2
++ *			receiver has four output channels facing the VIN
++ *			devices, each channel can carry one CSI-2 Virtual
++ *			Channel (VC) and there are no correlation between
++ *			output channel number and CSI-2 VC. It's up to the
++ *			CSI-2 receiver driver to configure which VC is
++ *			outputted on which channel, the VIN devices only
++ *			cares about output channels.
++ */
++struct rvin_group_chsel {
++	enum rvin_csi_id csi;
++	unsigned int chan;
++};
++
+ /**
+  * struct rvin_info - Information about the particular VIN implementation
+  * @chip:		type of VIN chip
+@@ -98,6 +117,9 @@ struct rvin_group;
+  *
+  * max_width:		max input width the VIN supports
+  * max_height:		max input height the VIN supports
++ *
++ * num_chsels:		number of possible chsel values for this VIN
++ * chsels:		routing table VIN <-> CSI-2 for the chsel values
+  */
+ struct rvin_info {
+ 	enum chip_id chip;
+@@ -105,6 +127,9 @@ struct rvin_info {
+ 
+ 	unsigned int max_width;
+ 	unsigned int max_height;
++
++	unsigned int num_chsels;
++	struct rvin_group_chsel chsels[RCAR_VIN_NUM][RCAR_CHSEL_MAX];
+ };
+ 
+ /**
+-- 
+2.15.0
