@@ -1,112 +1,277 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga07.intel.com ([134.134.136.100]:42956 "EHLO mga07.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753463AbdL1OUD (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 28 Dec 2017 09:20:03 -0500
-Date: Thu, 28 Dec 2017 16:19:56 +0200
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Hans Verkuil <hansverk@cisco.com>,
-        Christophe JAILLET <christophe.jaillet@wanadoo.fr>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Hirokazu Honda <hiroh@chromium.org>,
-        Satendra Singh Thakur <satendra.t@samsung.com>
-Subject: Re: [PATCH v3] media: videobuf2-core: don't go out of the buffer
- range
-Message-ID: <20171228141956.6c2wzjbgf35pr4wn@kekkonen.localdomain>
-References: <794d4bf6395160b2077f55148e3caa58751215a9.1514470603.git.mchehab@s-opensource.com>
+Received: from smtp-4.sys.kth.se ([130.237.48.193]:44844 "EHLO
+        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751904AbdLHBI6 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 7 Dec 2017 20:08:58 -0500
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH v9 04/28] rcar-vin: move subdevice handling to async callbacks
+Date: Fri,  8 Dec 2017 02:08:18 +0100
+Message-Id: <20171208010842.20047-5-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20171208010842.20047-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20171208010842.20047-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <794d4bf6395160b2077f55148e3caa58751215a9.1514470603.git.mchehab@s-opensource.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Dec 28, 2017 at 12:16:47PM -0200, Mauro Carvalho Chehab wrote:
-> Currently, there's no check if an invalid buffer range
-> is passed. However, while testing DVB memory mapped apps,
-> I got this:
-> 
->    videobuf2_core: VB: num_buffers -2143943680, buffer 33, index -2143943647
->    unable to handle kernel paging request at ffff888b773c0890
->    IP: __vb2_queue_alloc+0x134/0x4e0 [videobuf2_core]
->    PGD 4142c7067 P4D 4142c7067 PUD 0
->    Oops: 0002 [#1] SMP
->    Modules linked in: xt_CHECKSUM iptable_mangle ipt_MASQUERADE nf_nat_masquerade_ipv4 iptable_nat nf_nat_ipv4 nf_nat nf_conntrack_ipv4 nf_defrag_ipv4 xt_conntrack nf_conntrack tun bridge stp llc ebtable_filter ebtables ip6table_filter ip6_tables bluetooth rfkill ecdh_generic binfmt_misc rc_dvbsky sp2 ts2020 intel_rapl x86_pkg_temp_thermal dvb_usb_dvbsky intel_powerclamp dvb_usb_v2 coretemp m88ds3103 kvm_intel i2c_mux dvb_core snd_hda_codec_hdmi crct10dif_pclmul crc32_pclmul videobuf2_vmalloc videobuf2_memops snd_hda_intel ghash_clmulni_intel videobuf2_core snd_hda_codec rc_core mei_me intel_cstate snd_hwdep snd_hda_core videodev intel_uncore snd_pcm mei media tpm_tis tpm_tis_core intel_rapl_perf tpm snd_timer lpc_ich snd soundcore kvm irqbypass libcrc32c i915 i2c_algo_bit drm_kms_helper
->    e1000e ptp drm crc32c_intel video pps_core
->    CPU: 3 PID: 1776 Comm: dvbv5-zap Not tainted 4.14.0+ #78
->    Hardware name:                  /NUC5i7RYB, BIOS RYBDWi35.86A.0364.2017.0511.0949 05/11/2017
->    task: ffff88877c73bc80 task.stack: ffffb7c402418000
->    RIP: 0010:__vb2_queue_alloc+0x134/0x4e0 [videobuf2_core]
->    RSP: 0018:ffffb7c40241bc60 EFLAGS: 00010246
->    RAX: 0000000080360421 RBX: 0000000000000021 RCX: 000000000000000a
->    RDX: ffffb7c40241bcf4 RSI: ffff888780362c60 RDI: ffff888796d8e130
->    RBP: ffffb7c40241bcc8 R08: 0000000000000316 R09: 0000000000000004
->    R10: ffff888780362c00 R11: 0000000000000001 R12: 000000000002f000
->    R13: ffff8887758be700 R14: 0000000000021000 R15: 0000000000000001
->    FS:  00007f2849024740(0000) GS:ffff888796d80000(0000) knlGS:0000000000000000
->    CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
->    CR2: ffff888b773c0890 CR3: 000000043beb2005 CR4: 00000000003606e0
->    Call Trace:
->     vb2_core_reqbufs+0x226/0x420 [videobuf2_core]
->     dvb_vb2_reqbufs+0x2d/0xc0 [dvb_core]
->     dvb_dvr_do_ioctl+0x98/0x1d0 [dvb_core]
->     dvb_usercopy+0x53/0x1b0 [dvb_core]
->     ? dvb_demux_ioctl+0x20/0x20 [dvb_core]
->     ? tty_ldisc_deref+0x16/0x20
->     ? tty_write+0x1f9/0x310
->     ? process_echoes+0x70/0x70
->     dvb_dvr_ioctl+0x15/0x20 [dvb_core]
->     do_vfs_ioctl+0xa5/0x600
->     SyS_ioctl+0x79/0x90
->     entry_SYSCALL_64_fastpath+0x1a/0xa5
->    RIP: 0033:0x7f28486f7ea7
->    RSP: 002b:00007ffc13b2db18 EFLAGS: 00000246 ORIG_RAX: 0000000000000010
->    RAX: ffffffffffffffda RBX: 000055b10fc06130 RCX: 00007f28486f7ea7
->    RDX: 00007ffc13b2db48 RSI: 00000000c0086f3c RDI: 0000000000000007
->    RBP: 0000000000000203 R08: 000055b10df1e02c R09: 000000000000002e
->    R10: 0036b42415108357 R11: 0000000000000246 R12: 0000000000000000
->    R13: 00007f2849062f60 R14: 00000000000001f1 R15: 00007ffc13b2da54
->    Code: 74 0a 60 8b 0a 48 83 c0 30 48 83 c2 04 89 48 d0 89 48 d4 48 39 f0 75 eb 41 8b 42 08 83 7d d4 01 41 c7 82 ec 01 00 00 ff ff ff ff <4d> 89 94 c5 88 00 00 00 74 14 83 c3 01 41 39 dc 0f 85 f1 fe ff
->    RIP: __vb2_queue_alloc+0x134/0x4e0 [videobuf2_core] RSP: ffffb7c40241bc60
->    CR2: ffff888b773c0890
-> 
-> So, add a sanity check in order to prevent going past array.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> ---
->  drivers/media/common/videobuf/videobuf2-core.c | 3 +++
->  1 file changed, 3 insertions(+)
-> 
-> diff --git a/drivers/media/common/videobuf/videobuf2-core.c b/drivers/media/common/videobuf/videobuf2-core.c
-> index cb115ba6a1d2..e6ec08882561 100644
-> --- a/drivers/media/common/videobuf/videobuf2-core.c
-> +++ b/drivers/media/common/videobuf/videobuf2-core.c
-> @@ -332,6 +332,9 @@ static int __vb2_queue_alloc(struct vb2_queue *q, enum vb2_memory memory,
->  	struct vb2_buffer *vb;
->  	int ret;
->  
-> +	/* Ensure that q->num_buffers+num_buffers is below VB2_MAX_FRAME */
-> +	num_buffers = min_t(unsigned int, num_buffers, VB2_MAX_FRAME - q->num_buffers);
+In preparation for Gen3 support move the subdevice initialization and
+clean up from rvin_v4l2_{register,unregister}() directly to the async
+callbacks. This simplifies the addition of Gen3 support as the
+rvin_v4l2_register() can be shared for both Gen2 and Gen3 while direct
+subdevice control are only used on Gen2.
 
-Wrap on two lines?
+While moving this code drop a large comment which is copied from the
+framework documentation and fold rvin_mbus_supported() into its only
+caller.
 
-With that,
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/platform/rcar-vin/rcar-core.c | 105 ++++++++++++++++++----------
+ drivers/media/platform/rcar-vin/rcar-v4l2.c |  35 ----------
+ 2 files changed, 67 insertions(+), 73 deletions(-)
 
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-
-Thanks!
-
-> +
->  	for (buffer = 0; buffer < num_buffers; ++buffer) {
->  		/* Allocate videobuf buffer structures */
->  		vb = kzalloc(q->buf_struct_size, GFP_KERNEL);
-> -- 
-> 2.14.3
-> 
-
+diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
+index 6d99542ec74b49a7..6ab51acd676641ec 100644
+--- a/drivers/media/platform/rcar-vin/rcar-core.c
++++ b/drivers/media/platform/rcar-vin/rcar-core.c
+@@ -46,47 +46,11 @@ static int rvin_find_pad(struct v4l2_subdev *sd, int direction)
+ 	return -EINVAL;
+ }
+ 
+-static bool rvin_mbus_supported(struct rvin_graph_entity *entity)
+-{
+-	struct v4l2_subdev *sd = entity->subdev;
+-	struct v4l2_subdev_mbus_code_enum code = {
+-		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
+-	};
+-
+-	code.index = 0;
+-	code.pad = entity->source_pad;
+-	while (!v4l2_subdev_call(sd, pad, enum_mbus_code, NULL, &code)) {
+-		code.index++;
+-		switch (code.code) {
+-		case MEDIA_BUS_FMT_YUYV8_1X16:
+-		case MEDIA_BUS_FMT_UYVY8_2X8:
+-		case MEDIA_BUS_FMT_UYVY10_2X10:
+-		case MEDIA_BUS_FMT_RGB888_1X24:
+-			entity->code = code.code;
+-			return true;
+-		default:
+-			break;
+-		}
+-	}
+-
+-	return false;
+-}
+-
+ static int rvin_digital_notify_complete(struct v4l2_async_notifier *notifier)
+ {
+ 	struct rvin_dev *vin = notifier_to_vin(notifier);
+ 	int ret;
+ 
+-	/* Verify subdevices mbus format */
+-	if (!rvin_mbus_supported(vin->digital)) {
+-		vin_err(vin, "Unsupported media bus format for %s\n",
+-			vin->digital->subdev->name);
+-		return -EINVAL;
+-	}
+-
+-	vin_dbg(vin, "Found media bus format for %s: %d\n",
+-		vin->digital->subdev->name, vin->digital->code);
+-
+ 	ret = v4l2_device_register_subdev_nodes(&vin->v4l2_dev);
+ 	if (ret < 0) {
+ 		vin_err(vin, "Failed to register subdev nodes\n");
+@@ -103,8 +67,16 @@ static void rvin_digital_notify_unbind(struct v4l2_async_notifier *notifier,
+ 	struct rvin_dev *vin = notifier_to_vin(notifier);
+ 
+ 	vin_dbg(vin, "unbind digital subdev %s\n", subdev->name);
++
++	mutex_lock(&vin->lock);
++
+ 	rvin_v4l2_unregister(vin);
++	v4l2_ctrl_handler_free(&vin->ctrl_handler);
++
++	vin->vdev.ctrl_handler = NULL;
+ 	vin->digital->subdev = NULL;
++
++	mutex_unlock(&vin->lock);
+ }
+ 
+ static int rvin_digital_notify_bound(struct v4l2_async_notifier *notifier,
+@@ -112,12 +84,14 @@ static int rvin_digital_notify_bound(struct v4l2_async_notifier *notifier,
+ 				     struct v4l2_async_subdev *asd)
+ {
+ 	struct rvin_dev *vin = notifier_to_vin(notifier);
++	struct v4l2_subdev_mbus_code_enum code = {
++		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
++	};
+ 	int ret;
+ 
+ 	v4l2_set_subdev_hostdata(subdev, vin);
+ 
+ 	/* Find source and sink pad of remote subdevice */
+-
+ 	ret = rvin_find_pad(subdev, MEDIA_PAD_FL_SOURCE);
+ 	if (ret < 0)
+ 		return ret;
+@@ -126,21 +100,74 @@ static int rvin_digital_notify_bound(struct v4l2_async_notifier *notifier,
+ 	ret = rvin_find_pad(subdev, MEDIA_PAD_FL_SINK);
+ 	vin->digital->sink_pad = ret < 0 ? 0 : ret;
+ 
++	/* Find compatible subdevices mbus format */
++	vin->digital->code = 0;
++	code.index = 0;
++	code.pad = vin->digital->source_pad;
++	while (!vin->digital->code &&
++	       !v4l2_subdev_call(subdev, pad, enum_mbus_code, NULL, &code)) {
++		code.index++;
++		switch (code.code) {
++		case MEDIA_BUS_FMT_YUYV8_1X16:
++		case MEDIA_BUS_FMT_UYVY8_2X8:
++		case MEDIA_BUS_FMT_UYVY10_2X10:
++		case MEDIA_BUS_FMT_RGB888_1X24:
++			vin->digital->code = code.code;
++			vin_dbg(vin, "Found media bus format for %s: %d\n",
++				subdev->name, vin->digital->code);
++			break;
++		default:
++			break;
++		}
++	}
++
++	if (!vin->digital->code) {
++		vin_err(vin, "Unsupported media bus format for %s\n",
++			subdev->name);
++		return -EINVAL;
++	}
++
++	/* Read tvnorms */
++	ret = v4l2_subdev_call(subdev, video, g_tvnorms, &vin->vdev.tvnorms);
++	if (ret < 0 && ret != -ENOIOCTLCMD && ret != -ENODEV)
++		return ret;
++
++	mutex_lock(&vin->lock);
++
++	/* Add the controls */
++	ret = v4l2_ctrl_handler_init(&vin->ctrl_handler, 16);
++	if (ret < 0)
++		goto err;
++
++	ret = v4l2_ctrl_add_handler(&vin->ctrl_handler, subdev->ctrl_handler,
++				    NULL);
++	if (ret < 0)
++		goto err_ctrl;
++
++	vin->vdev.ctrl_handler = &vin->ctrl_handler;
++
+ 	vin->digital->subdev = subdev;
+ 
++	mutex_unlock(&vin->lock);
++
+ 	vin_dbg(vin, "bound subdev %s source pad: %u sink pad: %u\n",
+ 		subdev->name, vin->digital->source_pad,
+ 		vin->digital->sink_pad);
+ 
+ 	return 0;
++err_ctrl:
++	v4l2_ctrl_handler_free(&vin->ctrl_handler);
++err:
++	mutex_unlock(&vin->lock);
++	return ret;
+ }
++
+ static const struct v4l2_async_notifier_operations rvin_digital_notify_ops = {
+ 	.bound = rvin_digital_notify_bound,
+ 	.unbind = rvin_digital_notify_unbind,
+ 	.complete = rvin_digital_notify_complete,
+ };
+ 
+-
+ static int rvin_digital_parse_v4l2(struct device *dev,
+ 				   struct v4l2_fwnode_endpoint *vep,
+ 				   struct v4l2_async_subdev *asd)
+@@ -277,6 +304,8 @@ static int rcar_vin_remove(struct platform_device *pdev)
+ 	v4l2_async_notifier_unregister(&vin->notifier);
+ 	v4l2_async_notifier_cleanup(&vin->notifier);
+ 
++	v4l2_ctrl_handler_free(&vin->ctrl_handler);
++
+ 	rvin_dma_unregister(vin);
+ 
+ 	return 0;
+diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+index 32a658214f48fa49..4a0610a6b4503501 100644
+--- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
++++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+@@ -847,9 +847,6 @@ void rvin_v4l2_unregister(struct rvin_dev *vin)
+ 	v4l2_info(&vin->v4l2_dev, "Removing %s\n",
+ 		  video_device_node_name(&vin->vdev));
+ 
+-	/* Checks internaly if handlers have been init or not */
+-	v4l2_ctrl_handler_free(&vin->ctrl_handler);
+-
+ 	/* Checks internaly if vdev have been init or not */
+ 	video_unregister_device(&vin->vdev);
+ }
+@@ -872,41 +869,10 @@ static void rvin_notify(struct v4l2_subdev *sd,
+ int rvin_v4l2_register(struct rvin_dev *vin)
+ {
+ 	struct video_device *vdev = &vin->vdev;
+-	struct v4l2_subdev *sd = vin_to_source(vin);
+ 	int ret;
+ 
+-	v4l2_set_subdev_hostdata(sd, vin);
+-
+ 	vin->v4l2_dev.notify = rvin_notify;
+ 
+-	ret = v4l2_subdev_call(sd, video, g_tvnorms, &vin->vdev.tvnorms);
+-	if (ret < 0 && ret != -ENOIOCTLCMD && ret != -ENODEV)
+-		return ret;
+-
+-	if (vin->vdev.tvnorms == 0) {
+-		/* Disable the STD API if there are no tvnorms defined */
+-		v4l2_disable_ioctl(&vin->vdev, VIDIOC_G_STD);
+-		v4l2_disable_ioctl(&vin->vdev, VIDIOC_S_STD);
+-		v4l2_disable_ioctl(&vin->vdev, VIDIOC_QUERYSTD);
+-		v4l2_disable_ioctl(&vin->vdev, VIDIOC_ENUMSTD);
+-	}
+-
+-	/* Add the controls */
+-	/*
+-	 * Currently the subdev with the largest number of controls (13) is
+-	 * ov6550. So let's pick 16 as a hint for the control handler. Note
+-	 * that this is a hint only: too large and you waste some memory, too
+-	 * small and there is a (very) small performance hit when looking up
+-	 * controls in the internal hash.
+-	 */
+-	ret = v4l2_ctrl_handler_init(&vin->ctrl_handler, 16);
+-	if (ret < 0)
+-		return ret;
+-
+-	ret = v4l2_ctrl_add_handler(&vin->ctrl_handler, sd->ctrl_handler, NULL);
+-	if (ret < 0)
+-		return ret;
+-
+ 	/* video node */
+ 	vdev->fops = &rvin_fops;
+ 	vdev->v4l2_dev = &vin->v4l2_dev;
+@@ -915,7 +881,6 @@ int rvin_v4l2_register(struct rvin_dev *vin)
+ 	vdev->release = video_device_release_empty;
+ 	vdev->ioctl_ops = &rvin_ioctl_ops;
+ 	vdev->lock = &vin->lock;
+-	vdev->ctrl_handler = &vin->ctrl_handler;
+ 	vdev->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING |
+ 		V4L2_CAP_READWRITE;
+ 
 -- 
-Sakari Ailus
-sakari.ailus@linux.intel.com
+2.15.0
