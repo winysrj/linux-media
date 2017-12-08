@@ -1,109 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:35684 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751317AbdL1Q3o (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 28 Dec 2017 11:29:44 -0500
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Hans Verkuil <hansverk@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Christophe JAILLET <christophe.jaillet@wanadoo.fr>,
-        Satendra Singh Thakur <satendra.t@samsung.com>,
-        Gustavo Padovan <gustavo.padovan@collabora.com>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Subject: [PATCH 4/5] media: vb2: add pr_fmt() macro
-Date: Thu, 28 Dec 2017 14:29:37 -0200
-Message-Id: <d758ab588b68118ed8e29ff3aec4bcd3bf48ba0c.1514478428.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1514478428.git.mchehab@s-opensource.com>
-References: <cover.1514478428.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1514478428.git.mchehab@s-opensource.com>
-References: <cover.1514478428.git.mchehab@s-opensource.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:51606 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752259AbdLHTUu (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 8 Dec 2017 14:20:50 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Niklas =?ISO-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund@ragnatech.se>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>
+Subject: Re: [PATCH v9 11/28] rcar-vin: do not allow changing scaling and composing while streaming
+Date: Fri, 08 Dec 2017 21:20:48 +0200
+Message-ID: <1750592.qc2TZyzifv@avalon>
+In-Reply-To: <20171208141423.GQ31989@bigcity.dyn.berto.se>
+References: <20171208010842.20047-1-niklas.soderlund+renesas@ragnatech.se> <14690079.PLADEzS7Fe@avalon> <20171208141423.GQ31989@bigcity.dyn.berto.se>
+MIME-Version: 1.0
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="iso-8859-1"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Simplify the pr_foo() macros by adding a pr_fmt() macro.
+Hi Niklas,
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/common/videobuf/videobuf2-core.c | 30 ++++++++++++++------------
- 1 file changed, 16 insertions(+), 14 deletions(-)
+On Friday, 8 December 2017 16:14:23 EET Niklas S=F6derlund wrote:
+> On 2017-12-08 11:04:26 +0200, Laurent Pinchart wrote:
+> > On Friday, 8 December 2017 03:08:25 EET Niklas S=F6derlund wrote:
+> >> It is possible on Gen2 to change the registers controlling composing a=
+nd
+> >> scaling while the stream is running. It is however not a good idea to =
+do
+> >> so and could result in trouble. There are also no good reasons to allow
+> >> this, remove immediate reflection in hardware registers from
+> >> vidioc_s_selection and only configure scaling and composing when the
+> >> stream starts.
+> >=20
+> > There is a good reason: digital zoom.
+>=20
+> OK, so you would recommend me to drop this patch to keep the current
+> behavior?
 
-diff --git a/drivers/media/common/videobuf/videobuf2-core.c b/drivers/media/common/videobuf/videobuf2-core.c
-index ba04103f2f32..195942bf8fde 100644
---- a/drivers/media/common/videobuf/videobuf2-core.c
-+++ b/drivers/media/common/videobuf/videobuf2-core.c
-@@ -14,6 +14,8 @@
-  * the Free Software Foundation.
-  */
- 
-+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-+
- #include <linux/err.h>
- #include <linux/kernel.h>
- #include <linux/module.h>
-@@ -32,10 +34,10 @@
- static int debug;
- module_param(debug, int, 0644);
- 
--#define dprintk(level, fmt, arg...)					      \
--	do {								      \
--		if (debug >= level)					      \
--			pr_info("vb2-core: %s: " fmt, __func__, ## arg); \
-+#define dprintk(level, fmt, arg...)				\
-+	do {							\
-+		if (debug >= level)				\
-+			pr_info("%s: " fmt, __func__, ## arg);	\
- 	} while (0)
- 
- #ifdef CONFIG_VIDEO_ADV_DEBUG
-@@ -463,12 +465,12 @@ static int __vb2_queue_free(struct vb2_queue *q, unsigned int buffers)
- 				  q->cnt_wait_prepare != q->cnt_wait_finish;
- 
- 		if (unbalanced || debug) {
--			pr_info("vb2: counters for queue %p:%s\n", q,
-+			pr_info("counters for queue %p:%s\n", q,
- 				unbalanced ? " UNBALANCED!" : "");
--			pr_info("vb2:     setup: %u start_streaming: %u stop_streaming: %u\n",
-+			pr_info("     setup: %u start_streaming: %u stop_streaming: %u\n",
- 				q->cnt_queue_setup, q->cnt_start_streaming,
- 				q->cnt_stop_streaming);
--			pr_info("vb2:     wait_prepare: %u wait_finish: %u\n",
-+			pr_info("     wait_prepare: %u wait_finish: %u\n",
- 				q->cnt_wait_prepare, q->cnt_wait_finish);
- 		}
- 		q->cnt_queue_setup = 0;
-@@ -489,23 +491,23 @@ static int __vb2_queue_free(struct vb2_queue *q, unsigned int buffers)
- 				  vb->cnt_buf_init != vb->cnt_buf_cleanup;
- 
- 		if (unbalanced || debug) {
--			pr_info("vb2:   counters for queue %p, buffer %d:%s\n",
-+			pr_info("   counters for queue %p, buffer %d:%s\n",
- 				q, buffer, unbalanced ? " UNBALANCED!" : "");
--			pr_info("vb2:     buf_init: %u buf_cleanup: %u buf_prepare: %u buf_finish: %u\n",
-+			pr_info("     buf_init: %u buf_cleanup: %u buf_prepare: %u buf_finish: %u\n",
- 				vb->cnt_buf_init, vb->cnt_buf_cleanup,
- 				vb->cnt_buf_prepare, vb->cnt_buf_finish);
--			pr_info("vb2:     buf_queue: %u buf_done: %u\n",
-+			pr_info("     buf_queue: %u buf_done: %u\n",
- 				vb->cnt_buf_queue, vb->cnt_buf_done);
--			pr_info("vb2:     alloc: %u put: %u prepare: %u finish: %u mmap: %u\n",
-+			pr_info("     alloc: %u put: %u prepare: %u finish: %u mmap: %u\n",
- 				vb->cnt_mem_alloc, vb->cnt_mem_put,
- 				vb->cnt_mem_prepare, vb->cnt_mem_finish,
- 				vb->cnt_mem_mmap);
--			pr_info("vb2:     get_userptr: %u put_userptr: %u\n",
-+			pr_info("     get_userptr: %u put_userptr: %u\n",
- 				vb->cnt_mem_get_userptr, vb->cnt_mem_put_userptr);
--			pr_info("vb2:     attach_dmabuf: %u detach_dmabuf: %u map_dmabuf: %u unmap_dmabuf: %u\n",
-+			pr_info("     attach_dmabuf: %u detach_dmabuf: %u map_dmabuf: %u unmap_dmabuf: %u\n",
- 				vb->cnt_mem_attach_dmabuf, vb->cnt_mem_detach_dmabuf,
- 				vb->cnt_mem_map_dmabuf, vb->cnt_mem_unmap_dmabuf);
--			pr_info("vb2:     get_dmabuf: %u num_users: %u vaddr: %u cookie: %u\n",
-+			pr_info("     get_dmabuf: %u num_users: %u vaddr: %u cookie: %u\n",
- 				vb->cnt_mem_get_dmabuf,
- 				vb->cnt_mem_num_users,
- 				vb->cnt_mem_vaddr,
--- 
-2.14.3
+Yes, unless you don't care about breaking use cases for Gen2, but in that c=
+ase=20
+I'd recommend dropping Gen2 support altogether :-)
+
+> >> Signed-off-by: Niklas S=F6derlund <niklas.soderlund+renesas@ragnatech.=
+se>
+> >> Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+> >> ---
+> >>=20
+> >>  drivers/media/platform/rcar-vin/rcar-dma.c  | 2 +-
+> >>  drivers/media/platform/rcar-vin/rcar-v4l2.c | 3 ---
+> >>  drivers/media/platform/rcar-vin/rcar-vin.h  | 3 ---
+> >>  3 files changed, 1 insertion(+), 7 deletions(-)
+
+[snip]
+
+=2D-=20
+Regards,
+
+Laurent Pinchart
