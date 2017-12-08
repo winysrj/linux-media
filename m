@@ -1,144 +1,171 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ot0-f193.google.com ([74.125.82.193]:38406 "EHLO
-        mail-ot0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754346AbdLNXcb (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 14 Dec 2017 18:32:31 -0500
-Received: by mail-ot0-f193.google.com with SMTP id p3so6397954oti.5
-        for <linux-media@vger.kernel.org>; Thu, 14 Dec 2017 15:32:30 -0800 (PST)
+Received: from smtp-4.sys.kth.se ([130.237.48.193]:44870 "EHLO
+        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752150AbdLHBI7 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 7 Dec 2017 20:08:59 -0500
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH v9 05/28] rcar-vin: move chip information to own struct
+Date: Fri,  8 Dec 2017 02:08:19 +0100
+Message-Id: <20171208010842.20047-6-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20171208010842.20047-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20171208010842.20047-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-In-Reply-To: <20171214232533.GA26165@roeck-us.net>
-References: <b5c06a8e071d38fc4b4df20b7f9c8fb25d5408fe.1506085151.git.arvind.yadav.cs@gmail.com>
- <20171214232533.GA26165@roeck-us.net>
-From: Andrey Konovalov <andreyknvl@google.com>
-Date: Fri, 15 Dec 2017 00:32:29 +0100
-Message-ID: <CAAeHK+yo8ZyC+zZV5E4nuQfXhCWym7o_+hO7epn=Z95S+TTGzw@mail.gmail.com>
-Subject: Re: [media] hdpvr: Fix an error handling path in hdpvr_probe()
-To: Guenter Roeck <linux@roeck-us.net>
-Cc: Arvind Yadav <arvind.yadav.cs@gmail.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Dmitry Vyukov <dvyukov@google.com>,
-        Kostya Serebryany <kcc@google.com>,
-        syzkaller <syzkaller@googlegroups.com>,
-        linux-media@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Dec 15, 2017 at 12:25 AM, Guenter Roeck <linux@roeck-us.net> wrote:
-> On Fri, Sep 22, 2017 at 06:37:06PM +0530, Arvind Yadav wrote:
->> Here, hdpvr_register_videodev() is responsible for setup and
->> register a video device. Also defining and initializing a worker.
->> hdpvr_register_videodev() is calling by hdpvr_probe at last.
->> So No need to flash any work here.
->> Unregister v4l2, free buffers and memory. If hdpvr_probe() will fail.
->>
->> Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
->> Reported-by: Andrey Konovalov <andreyknvl@google.com>
->> Tested-by: Andrey Konovalov <andreyknvl@google.com>
->
-> It looks like this patch was never applied upstream. It fixes
-> CVE-2017-16644 [1].
->
-> Did it get lost, or is there some reason for not applying it ?
+When Gen3 support is added to the driver more than chip ID will be
+different for the different SoCs. To avoid a lot of if statements in the
+code create a struct chip_info to store this information.
 
-Hi!
+And while we are at it sort the compatible string entries and make use
+of of_device_get_match_data() which will always work as the driver is DT
+only, so there's always a valid match.
 
-I got an email that It was queued to the media tree about a week ago.
-I guess that means that it's going to be applied upstream eventually.
-It took quite a lot of time for some reason though.
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/platform/rcar-vin/rcar-core.c | 54 ++++++++++++++++++++++-------
+ drivers/media/platform/rcar-vin/rcar-v4l2.c |  3 +-
+ drivers/media/platform/rcar-vin/rcar-vin.h  | 12 +++++--
+ 3 files changed, 53 insertions(+), 16 deletions(-)
 
-Thanks!
-
->
-> Thanks,
-> Guenter
->
-> ---
-> [1] https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2017-16644
->
->> ---
->>  drivers/media/usb/hdpvr/hdpvr-core.c | 26 +++++++++++++++-----------
->>  1 file changed, 15 insertions(+), 11 deletions(-)
->>
->> diff --git a/drivers/media/usb/hdpvr/hdpvr-core.c b/drivers/media/usb/hdpvr/hdpvr-core.c
->> index dbe29c6..1e8cbaf 100644
->> --- a/drivers/media/usb/hdpvr/hdpvr-core.c
->> +++ b/drivers/media/usb/hdpvr/hdpvr-core.c
->> @@ -292,7 +292,7 @@ static int hdpvr_probe(struct usb_interface *interface,
->>       /* register v4l2_device early so it can be used for printks */
->>       if (v4l2_device_register(&interface->dev, &dev->v4l2_dev)) {
->>               dev_err(&interface->dev, "v4l2_device_register failed\n");
->> -             goto error;
->> +             goto error_free_dev;
->>       }
->>
->>       mutex_init(&dev->io_mutex);
->> @@ -301,7 +301,7 @@ static int hdpvr_probe(struct usb_interface *interface,
->>       dev->usbc_buf = kmalloc(64, GFP_KERNEL);
->>       if (!dev->usbc_buf) {
->>               v4l2_err(&dev->v4l2_dev, "Out of memory\n");
->> -             goto error;
->> +             goto error_v4l2_unregister;
->>       }
->>
->>       init_waitqueue_head(&dev->wait_buffer);
->> @@ -339,13 +339,13 @@ static int hdpvr_probe(struct usb_interface *interface,
->>       }
->>       if (!dev->bulk_in_endpointAddr) {
->>               v4l2_err(&dev->v4l2_dev, "Could not find bulk-in endpoint\n");
->> -             goto error;
->> +             goto error_put_usb;
->>       }
->>
->>       /* init the device */
->>       if (hdpvr_device_init(dev)) {
->>               v4l2_err(&dev->v4l2_dev, "device init failed\n");
->> -             goto error;
->> +             goto error_put_usb;
->>       }
->>
->>       mutex_lock(&dev->io_mutex);
->> @@ -353,7 +353,7 @@ static int hdpvr_probe(struct usb_interface *interface,
->>               mutex_unlock(&dev->io_mutex);
->>               v4l2_err(&dev->v4l2_dev,
->>                        "allocating transfer buffers failed\n");
->> -             goto error;
->> +             goto error_put_usb;
->>       }
->>       mutex_unlock(&dev->io_mutex);
->>
->> @@ -361,7 +361,7 @@ static int hdpvr_probe(struct usb_interface *interface,
->>       retval = hdpvr_register_i2c_adapter(dev);
->>       if (retval < 0) {
->>               v4l2_err(&dev->v4l2_dev, "i2c adapter register failed\n");
->> -             goto error;
->> +             goto error_free_buffers;
->>       }
->>
->>       client = hdpvr_register_ir_rx_i2c(dev);
->> @@ -394,13 +394,17 @@ static int hdpvr_probe(struct usb_interface *interface,
->>  reg_fail:
->>  #if IS_ENABLED(CONFIG_I2C)
->>       i2c_del_adapter(&dev->i2c_adapter);
->> +error_free_buffers:
->>  #endif
->> +     hdpvr_free_buffers(dev);
->> +error_put_usb:
->> +     usb_put_dev(dev->udev);
->> +     kfree(dev->usbc_buf);
->> +error_v4l2_unregister:
->> +     v4l2_device_unregister(&dev->v4l2_dev);
->> +error_free_dev:
->> +     kfree(dev);
->>  error:
->> -     if (dev) {
->> -             flush_work(&dev->worker);
->> -             /* this frees allocated memory */
->> -             hdpvr_delete(dev);
->> -     }
->>       return retval;
->>  }
->>
+diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
+index 6ab51acd676641ec..73c1700a409bfd35 100644
+--- a/drivers/media/platform/rcar-vin/rcar-core.c
++++ b/drivers/media/platform/rcar-vin/rcar-core.c
+@@ -230,21 +230,53 @@ static int rvin_digital_graph_init(struct rvin_dev *vin)
+  * Platform Device Driver
+  */
+ 
++static const struct rvin_info rcar_info_h1 = {
++	.chip = RCAR_H1,
++};
++
++static const struct rvin_info rcar_info_m1 = {
++	.chip = RCAR_M1,
++};
++
++static const struct rvin_info rcar_info_gen2 = {
++	.chip = RCAR_GEN2,
++};
++
+ static const struct of_device_id rvin_of_id_table[] = {
+-	{ .compatible = "renesas,vin-r8a7794", .data = (void *)RCAR_GEN2 },
+-	{ .compatible = "renesas,vin-r8a7793", .data = (void *)RCAR_GEN2 },
+-	{ .compatible = "renesas,vin-r8a7791", .data = (void *)RCAR_GEN2 },
+-	{ .compatible = "renesas,vin-r8a7790", .data = (void *)RCAR_GEN2 },
+-	{ .compatible = "renesas,vin-r8a7779", .data = (void *)RCAR_H1 },
+-	{ .compatible = "renesas,vin-r8a7778", .data = (void *)RCAR_M1 },
+-	{ .compatible = "renesas,rcar-gen2-vin", .data = (void *)RCAR_GEN2 },
++	{
++		.compatible = "renesas,vin-r8a7778",
++		.data = &rcar_info_m1,
++	},
++	{
++		.compatible = "renesas,vin-r8a7779",
++		.data = &rcar_info_h1,
++	},
++	{
++		.compatible = "renesas,vin-r8a7790",
++		.data = &rcar_info_gen2,
++	},
++	{
++		.compatible = "renesas,vin-r8a7791",
++		.data = &rcar_info_gen2,
++	},
++	{
++		.compatible = "renesas,vin-r8a7793",
++		.data = &rcar_info_gen2,
++	},
++	{
++		.compatible = "renesas,vin-r8a7794",
++		.data = &rcar_info_gen2,
++	},
++	{
++		.compatible = "renesas,rcar-gen2-vin",
++		.data = &rcar_info_gen2,
++	},
+ 	{ },
+ };
+ MODULE_DEVICE_TABLE(of, rvin_of_id_table);
+ 
+ static int rcar_vin_probe(struct platform_device *pdev)
+ {
+-	const struct of_device_id *match;
+ 	struct rvin_dev *vin;
+ 	struct resource *mem;
+ 	int irq, ret;
+@@ -253,12 +285,8 @@ static int rcar_vin_probe(struct platform_device *pdev)
+ 	if (!vin)
+ 		return -ENOMEM;
+ 
+-	match = of_match_device(of_match_ptr(rvin_of_id_table), &pdev->dev);
+-	if (!match)
+-		return -ENODEV;
+-
+ 	vin->dev = &pdev->dev;
+-	vin->chip = (enum chip_id)match->data;
++	vin->info = of_device_get_match_data(&pdev->dev);
+ 
+ 	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+ 	if (mem == NULL)
+diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+index 4a0610a6b4503501..b1caa04921aa23bb 100644
+--- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
++++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+@@ -266,7 +266,8 @@ static int __rvin_try_format(struct rvin_dev *vin,
+ 	pix->sizeimage = max_t(u32, pix->sizeimage,
+ 			       rvin_format_sizeimage(pix));
+ 
+-	if (vin->chip == RCAR_M1 && pix->pixelformat == V4L2_PIX_FMT_XBGR32) {
++	if (vin->info->chip == RCAR_M1 &&
++	    pix->pixelformat == V4L2_PIX_FMT_XBGR32) {
+ 		vin_err(vin, "pixel format XBGR32 not supported on M1\n");
+ 		return -EINVAL;
+ 	}
+diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
+index 85cb7ec53d2b08b5..0d3949c8c08c8f63 100644
+--- a/drivers/media/platform/rcar-vin/rcar-vin.h
++++ b/drivers/media/platform/rcar-vin/rcar-vin.h
+@@ -88,11 +88,19 @@ struct rvin_graph_entity {
+ 	unsigned int sink_pad;
+ };
+ 
++/**
++ * struct rvin_info - Information about the particular VIN implementation
++ * @chip:		type of VIN chip
++ */
++struct rvin_info {
++	enum chip_id chip;
++};
++
+ /**
+  * struct rvin_dev - Renesas VIN device structure
+  * @dev:		(OF) device
+  * @base:		device I/O register space remapped to virtual memory
+- * @chip:		type of VIN chip
++ * @info:		info about VIN instance
+  *
+  * @vdev:		V4L2 video device associated with VIN
+  * @v4l2_dev:		V4L2 device
+@@ -120,7 +128,7 @@ struct rvin_graph_entity {
+ struct rvin_dev {
+ 	struct device *dev;
+ 	void __iomem *base;
+-	enum chip_id chip;
++	const struct rvin_info *info;
+ 
+ 	struct video_device vdev;
+ 	struct v4l2_device v4l2_dev;
+-- 
+2.15.0
