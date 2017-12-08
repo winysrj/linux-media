@@ -1,88 +1,163 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.free-electrons.com ([62.4.15.54]:41588 "EHLO
-        mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756998AbdLRHqb (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 18 Dec 2017 02:46:31 -0500
-Date: Mon, 18 Dec 2017 08:46:19 +0100
-From: Maxime Ripard <maxime.ripard@free-electrons.com>
-To: Philipp Rossak <embed3d@gmail.com>
-Cc: mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
-        wens@csie.org, linux@armlinux.org.uk, sean@mess.org,
-        p.zabel@pengutronix.de, andi.shyti@samsung.com,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-sunxi@googlegroups.com
-Subject: Re: [PATCH 2/5] media: dt: bindings: Update binding documentation
- for sunxi IR controller
-Message-ID: <20171218074619.36urdgt6wnhshadf@flea.lan>
-References: <20171217224547.21481-1-embed3d@gmail.com>
- <20171217224547.21481-3-embed3d@gmail.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:47118 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752717AbdLHIdO (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 8 Dec 2017 03:33:14 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Niklas =?ISO-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>
+Subject: Re: [PATCH v9 09/28] rcar-vin: all Gen2 boards can scale simplify logic
+Date: Fri, 08 Dec 2017 10:33:32 +0200
+Message-ID: <2356040.iMAtxJm5sQ@avalon>
+In-Reply-To: <20171208010842.20047-10-niklas.soderlund+renesas@ragnatech.se>
+References: <20171208010842.20047-1-niklas.soderlund+renesas@ragnatech.se> <20171208010842.20047-10-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="mrtqlcsyttby52cw"
-Content-Disposition: inline
-In-Reply-To: <20171217224547.21481-3-embed3d@gmail.com>
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="iso-8859-1"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Niklas,
 
---mrtqlcsyttby52cw
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Thank you for the patch.
 
-Hi,
-
-On Sun, Dec 17, 2017 at 11:45:44PM +0100, Philipp Rossak wrote:
-> This patch updates documentation for Device-Tree bindings for sunxi IR
-> controller and adds the new optional property for the base clock
-> frequency.
+On Friday, 8 December 2017 03:08:23 EET Niklas S=F6derlund wrote:
+> The logic to preserve the requested format width and height are too
+> complex and come from a premature optimization for Gen3. All Gen2 SoC
+> can scale and the Gen3 implementation will not use these functions at
+> all so simply preserve the width and height when interacting with the
+> subdevice much like the field is preserved simplifies the logic quite a
+> bit.
 >=20
-> Signed-off-by: Philipp Rossak <embed3d@gmail.com>
+> Signed-off-by: Niklas S=F6derlund <niklas.soderlund+renesas@ragnatech.se>
+> Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
 > ---
->  Documentation/devicetree/bindings/media/sunxi-ir.txt | 2 ++
->  1 file changed, 2 insertions(+)
+>  drivers/media/platform/rcar-vin/rcar-dma.c  |  8 --------
+>  drivers/media/platform/rcar-vin/rcar-v4l2.c | 22 ++++++++++------------
+>  drivers/media/platform/rcar-vin/rcar-vin.h  |  2 --
+>  3 files changed, 10 insertions(+), 22 deletions(-)
 >=20
-> diff --git a/Documentation/devicetree/bindings/media/sunxi-ir.txt b/Docum=
-entation/devicetree/bindings/media/sunxi-ir.txt
-> index 91648c569b1e..9f45bab07d6e 100644
-> --- a/Documentation/devicetree/bindings/media/sunxi-ir.txt
-> +++ b/Documentation/devicetree/bindings/media/sunxi-ir.txt
-> @@ -11,6 +11,7 @@ Required properties:
->  Optional properties:
->  - linux,rc-map-name: see rc.txt file in the same directory.
->  - resets : phandle + reset specifier pair
-> +- clock-frequency  : overrides the default base clock frequency (8 MHz)
+> diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c
+> b/drivers/media/platform/rcar-vin/rcar-dma.c index
+> a7cda3922cb74baa..fd14be20a6604d7a 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-dma.c
+> +++ b/drivers/media/platform/rcar-vin/rcar-dma.c
+> @@ -585,14 +585,6 @@ void rvin_crop_scale_comp(struct rvin_dev *vin)
+>  		0, 0);
+>  }
+>=20
+> -void rvin_scale_try(struct rvin_dev *vin, struct v4l2_pix_format *pix,
+> -		    u32 width, u32 height)
+> -{
+> -	/* All VIN channels on Gen2 have scalers */
+> -	pix->width =3D width;
+> -	pix->height =3D height;
+> -}
+> -
+>  /*
+> -------------------------------------------------------------------------=
+=2D-
+> -- * Hardware setup
+>   */
+> diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c
+> b/drivers/media/platform/rcar-vin/rcar-v4l2.c index
+> 19de99133f048960..1c5e7f6d5b963740 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
+> +++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+> @@ -166,6 +166,7 @@ static int __rvin_try_format_source(struct rvin_dev
+> *vin, .which =3D which,
+>  	};
+>  	enum v4l2_field field;
+> +	u32 width, height;
+>  	int ret;
+>=20
+>  	sd =3D vin_to_source(vin);
+> @@ -178,7 +179,10 @@ static int __rvin_try_format_source(struct rvin_dev
+> *vin,
+>=20
+>  	format.pad =3D vin->digital->source_pad;
+>=20
+> +	/* Allow the video device to override field and to scale */
+>  	field =3D pix->field;
+> +	width =3D pix->width;
+> +	height =3D pix->height;
+>=20
+>  	ret =3D v4l2_subdev_call(sd, pad, set_fmt, pad_cfg, &format);
+>  	if (ret < 0 && ret !=3D -ENOIOCTLCMD)
+> @@ -191,6 +195,9 @@ static int __rvin_try_format_source(struct rvin_dev
+> *vin, source->width =3D pix->width;
+>  	source->height =3D pix->height;
+>=20
 
-You're at least missing the unit one needs to use, but something like:
-IR Receiver clock frequency, in Hertz. Defaults to 8MHz if missing.
+I would move the pix->field =3D field line not shown above to here.
 
-Maxime
+Apart from that,
 
---=20
-Maxime Ripard, Free Electrons
-Embedded Linux and Kernel engineering
-http://free-electrons.com
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
---mrtqlcsyttby52cw
-Content-Type: application/pgp-signature; name="signature.asc"
+> +	pix->width =3D width;
+> +	pix->height =3D height;
+> +
+>  	vin_dbg(vin, "Source resolution: %ux%u\n", source->width,
+>  		source->height);
+>=20
+> @@ -204,13 +211,9 @@ static int __rvin_try_format(struct rvin_dev *vin,
+>  			     struct v4l2_pix_format *pix,
+>  			     struct rvin_source_fmt *source)
+>  {
+> -	u32 rwidth, rheight, walign;
+> +	u32 walign;
+>  	int ret;
+>=20
+> -	/* Requested */
+> -	rwidth =3D pix->width;
+> -	rheight =3D pix->height;
+> -
+>  	/* Keep current field if no specific one is asked for */
+>  	if (pix->field =3D=3D V4L2_FIELD_ANY)
+>  		pix->field =3D vin->format.field;
+> @@ -248,10 +251,6 @@ static int __rvin_try_format(struct rvin_dev *vin,
+>  		break;
+>  	}
+>=20
+> -	/* If source can't match format try if VIN can scale */
+> -	if (source->width !=3D rwidth || source->height !=3D rheight)
+> -		rvin_scale_try(vin, pix, rwidth, rheight);
+> -
+>  	/* HW limit width to a multiple of 32 (2^5) for NV16 else 2 (2^1) */
+>  	walign =3D vin->format.pixelformat =3D=3D V4L2_PIX_FMT_NV16 ? 5 : 1;
+>=20
+> @@ -270,9 +269,8 @@ static int __rvin_try_format(struct rvin_dev *vin,
+>  		return -EINVAL;
+>  	}
+>=20
+> -	vin_dbg(vin, "Requested %ux%u Got %ux%u bpl: %d size: %d\n",
+> -		rwidth, rheight, pix->width, pix->height,
+> -		pix->bytesperline, pix->sizeimage);
+> +	vin_dbg(vin, "Format %ux%u bpl: %d size: %d\n",
+> +		pix->width, pix->height, pix->bytesperline, pix->sizeimage);
+>=20
+>  	return 0;
+>  }
+> diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h
+> b/drivers/media/platform/rcar-vin/rcar-vin.h index
+> 646f897f5c05ec4e..36d0f0cc4ce01a6e 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-vin.h
+> +++ b/drivers/media/platform/rcar-vin/rcar-vin.h
+> @@ -176,8 +176,6 @@ void rvin_v4l2_unregister(struct rvin_dev *vin);
+>  const struct rvin_video_format *rvin_format_from_pixel(u32 pixelformat);
+>=20
+>  /* Cropping, composing and scaling */
+> -void rvin_scale_try(struct rvin_dev *vin, struct v4l2_pix_format *pix,
+> -		    u32 width, u32 height);
+>  void rvin_crop_scale_comp(struct rvin_dev *vin);
+>=20
+>  #endif
 
------BEGIN PGP SIGNATURE-----
+=2D-=20
+Regards,
 
-iQIzBAABCAAdFiEE0VqZU19dR2zEVaqr0rTAlCFNr3QFAlo3ckcACgkQ0rTAlCFN
-r3THnA//VbYF7OiAeHx3nPIPBMzGhVLtHeSZa3CmJqkU2CA987+nxiADIjuo0SZ/
-Su+C53tstCWkUzLJs5KQrpNQSP56zoVc5InSjqhH4K4/APdJ/ueQE57xdEAIhk6y
-98KChRx8gp0DzcaoZ1iGKF0y7gjUyasmR/6WAWGH/SfQy/H7cPqSQR2dLLsJZl+Y
-d4szo5EVen0wwWQ1rjSS3fCEXA8702bjOZDBsxjGCemsU0bKg94q+9v+TxtRiDjv
-FUIa2+DHv46Bt/Uqv43vA6SL74cJ//EmIn6xI/T4xEneeA5C49tH9jY6WF21egFJ
-3oRClZ4u2rUZaVx8icha1Ab2ZiQwJ+792AlA3reHoD40ei3zOH2EKjJNxh8uOlqg
-A7sNbF9Sf1dBVxrXK1HM0vZnctT126HTSyS0H2AXSwsimJ8VfnN9xDbswo6gaQEN
-zsRrgPXOj8hKQAVXuG0QggyWvcgYtqfe+NYUqhJ/aatHXPQp0kzAobRIiiUHnYFd
-AbNQj1jUaR/RsSGm4JHasoX7EpZE4Dm+u3gw8sDNgN3ve07zbJM+ldkSHcwl/+cd
-TSNnZJkdwWzf0XMCOBkgSXOE+7toBxQCDz6XkAYyJ5acxvBaPxmKLWu8xVn9Vffw
-7jSGlzNQtzoKCfWkX2Xs550aeRkiIA3GziU59n8/8tTaX5+WVcY=
-=czX2
------END PGP SIGNATURE-----
-
---mrtqlcsyttby52cw--
+Laurent Pinchart
