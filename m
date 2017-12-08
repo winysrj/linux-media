@@ -1,41 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:53101 "EHLO
-        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752786AbdLMOJf (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 13 Dec 2017 09:09:35 -0500
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+Received: from eusmtp01.atmel.com ([212.144.249.243]:38285 "EHLO
+        eusmtp01.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752232AbdLHCBV (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 7 Dec 2017 21:01:21 -0500
+From: Wenyou Yang <wenyou.yang@microchip.com>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
         Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Fabio Estevam <fabio.estevam@nxp.com>,
-        Chris Healy <Chris.Healy@zii.aero>, devicetree@vger.kernel.org,
-        kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH 1/2] media: dt-bindings: coda: Add compatible for CodaHx4 on i.MX51
-Date: Wed, 13 Dec 2017 15:09:17 +0100
-Message-Id: <20171213140918.22500-1-p.zabel@pengutronix.de>
+        Mark Rutland <mark.rutland@arm.com>
+CC: <linux-kernel@vger.kernel.org>,
+        Nicolas Ferre <nicolas.ferre@microchip.com>,
+        <devicetree@vger.kernel.org>, Sakari Ailus <sakari.ailus@iki.fi>,
+        Jonathan Corbet <corbet@lwn.net>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        <linux-arm-kernel@lists.infradead.org>,
+        "Linux Media Mailing List" <linux-media@vger.kernel.org>,
+        Wenyou Yang <wenyou.yang@microchip.com>
+Subject: [PATCH v8 0/2] media: ov7740: Add a V4L2 sensor-level driver
+Date: Fri, 8 Dec 2017 09:55:40 +0800
+Message-ID: <20171208015542.15444-1-wenyou.yang@microchip.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add a compatible for the CodaHx4 VPU used on i.MX51.
+Add a Video4Linux2 sensor-level driver for the OmniVision OV7740
+VGA camera image sensor.
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
- Documentation/devicetree/bindings/media/coda.txt | 1 +
- 1 file changed, 1 insertion(+)
+Changes in v8:
+ - As the registers are written at stream start, remove the written
+   code from the set fmt function.
 
-diff --git a/Documentation/devicetree/bindings/media/coda.txt b/Documentation/devicetree/bindings/media/coda.txt
-index 2865d04e40305..660f5ecf2a23b 100644
---- a/Documentation/devicetree/bindings/media/coda.txt
-+++ b/Documentation/devicetree/bindings/media/coda.txt
-@@ -7,6 +7,7 @@ called VPU (Video Processing Unit).
- Required properties:
- - compatible : should be "fsl,<chip>-src" for i.MX SoCs:
-   (a) "fsl,imx27-vpu" for CodaDx6 present in i.MX27
-+  (a) "fsl,imx51-vpu" for CodaHx4 present in i.MX51
-   (b) "fsl,imx53-vpu" for CODA7541 present in i.MX53
-   (c) "fsl,imx6q-vpu" for CODA960 present in i.MX6q
- - reg: should be register base and length as documented in the
+Changes in v7:
+ - Add Acked-by tag.
+ - Fix the wrong handle of default register configuration.
+ - Add the missed assignment of ov7740->frmsize.
+
+Changes in v6:
+ - Remove unnecessary #include <linux/init>.
+ - Remove unnecessary comments and extra newline.
+ - Add const for some structures.
+ - Add the check of the return value from regmap_write().
+ - Simplify the calling of __v4l2_ctrl_handler_setup().
+ - Add the default format initialization function.
+ - Integrate the set_power() and enable/disable the clock into
+   one function.
+
+Changes in v5:
+ - Squash the driver and MAINTAINERS entry patches to one.
+ - Precede the driver patch with the bindings patch.
+
+Changes in v4:
+ - Assign 'val' a initial value to avoid warning: 'val' may be
+   used uninitialized.
+ - Rename REG_REG15 to avoid warning: "REG_REG15" redefined.
+
+Changes in v3:
+ - Explicitly document the "remote-endpoint" property.
+ - Put the MAINTAINERS change to a separate patch.
+
+Changes in v2:
+ - Split off the bindings into a separate patch.
+ - Add a new entry to the MAINTAINERS file.
+
+Wenyou Yang (2):
+  media: ov7740: Document device tree bindings
+  media: i2c: Add the ov7740 image sensor driver
+
+ .../devicetree/bindings/media/i2c/ov7740.txt       |   47 +
+ MAINTAINERS                                        |    8 +
+ drivers/media/i2c/Kconfig                          |    8 +
+ drivers/media/i2c/Makefile                         |    1 +
+ drivers/media/i2c/ov7740.c                         | 1226 ++++++++++++++++++++
+ 5 files changed, 1290 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/ov7740.txt
+ create mode 100644 drivers/media/i2c/ov7740.c
+
 -- 
-2.11.0
+2.15.0
