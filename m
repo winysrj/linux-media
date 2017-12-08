@@ -1,93 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f66.google.com ([209.85.215.66]:46142 "EHLO
-        mail-lf0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S936193AbdLRWZs (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 18 Dec 2017 17:25:48 -0500
-Received: by mail-lf0-f66.google.com with SMTP id r143so19465504lfe.13
-        for <linux-media@vger.kernel.org>; Mon, 18 Dec 2017 14:25:47 -0800 (PST)
-From: "Niklas =?iso-8859-1?Q?S=F6derlund?=" <niklas.soderlund@ragnatech.se>
-Date: Mon, 18 Dec 2017 23:25:45 +0100
-To: kieran.bingham@ideasonboard.com
-Cc: linux-media@vger.kernel.org,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-renesas-soc@vger.kernel.org,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        Benoit Parrot <bparrot@ti.com>,
-        Maxime Ripard <maxime.ripard@free-electrons.com>
-Subject: Re: [PATCH/RFC v2 13/15] adv748x: csi2: only allow formats on sink
- pads
-Message-ID: <20171218222545.GB32148@bigcity.dyn.berto.se>
-References: <20171214190835.7672-1-niklas.soderlund+renesas@ragnatech.se>
- <20171214190835.7672-14-niklas.soderlund+renesas@ragnatech.se>
- <e365c00d-701d-4586-4013-e4f3ff58d85a@ideasonboard.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:47195 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752413AbdLHJEH (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 8 Dec 2017 04:04:07 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Niklas =?ISO-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>
+Subject: Re: [PATCH v9 11/28] rcar-vin: do not allow changing scaling and composing while streaming
+Date: Fri, 08 Dec 2017 11:04:26 +0200
+Message-ID: <14690079.PLADEzS7Fe@avalon>
+In-Reply-To: <20171208010842.20047-12-niklas.soderlund+renesas@ragnatech.se>
+References: <20171208010842.20047-1-niklas.soderlund+renesas@ragnatech.se> <20171208010842.20047-12-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <e365c00d-701d-4586-4013-e4f3ff58d85a@ideasonboard.com>
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="iso-8859-1"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-HI Kieran,
+Hi Niklas,
 
-Thanks for your comments.
+Thank you for the patch.
 
-On 2017-12-14 23:16:08 +0000, Kieran Bingham wrote:
-> Hi Niklas,
-> 
-> On 14/12/17 19:08, Niklas Söderlund wrote:
-> > The driver is now pad and stream aware, only allow to get/set format on
-> > sink pads.
-> 
-> Ok - I can see the patch is doing this ...
-> 
-> > Also record a different format for each sink pad since it's
-> > no longer true that they are all the same
-> 
-> But I can't see how the patch is doing this ^ ?
-> 
-> What have I missed?
+On Friday, 8 December 2017 03:08:25 EET Niklas S=F6derlund wrote:
+> It is possible on Gen2 to change the registers controlling composing and
+> scaling while the stream is running. It is however not a good idea to do
+> so and could result in trouble. There are also no good reasons to allow
+> this, remove immediate reflection in hardware registers from
+> vidioc_s_selection and only configure scaling and composing when the
+> stream starts.
 
-I have missed moving this commit message to another patch when moving 
-code around :-) Thanks for noticing. Will fix this for next version.
+There is a good reason: digital zoom.
 
-> 
-> --
-> Kieran
-> 
-> > Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-> > ---
-> >  drivers/media/i2c/adv748x/adv748x-csi2.c | 6 ++++++
-> >  1 file changed, 6 insertions(+)
-> > 
-> > diff --git a/drivers/media/i2c/adv748x/adv748x-csi2.c b/drivers/media/i2c/adv748x/adv748x-csi2.c
-> > index 39f993282dd3bb5c..291b35bef49d41fb 100644
-> > --- a/drivers/media/i2c/adv748x/adv748x-csi2.c
-> > +++ b/drivers/media/i2c/adv748x/adv748x-csi2.c
-> > @@ -176,6 +176,9 @@ static int adv748x_csi2_get_format(struct v4l2_subdev *sd,
-> >  	struct adv748x_state *state = tx->state;
-> >  	struct v4l2_mbus_framefmt *mbusformat;
-> >  
-> > +	if (sdformat->pad != ADV748X_CSI2_SINK)
-> > +		return -EINVAL;
-> > +
-> >  	mbusformat = adv748x_csi2_get_pad_format(sd, cfg, sdformat->pad,
-> >  						 sdformat->which);
-> >  	if (!mbusformat)
-> > @@ -199,6 +202,9 @@ static int adv748x_csi2_set_format(struct v4l2_subdev *sd,
-> >  	struct v4l2_mbus_framefmt *mbusformat;
-> >  	int ret = 0;
-> >  
-> > +	if (sdformat->pad != ADV748X_CSI2_SINK)
-> > +		return -EINVAL;
-> > +
-> >  	mbusformat = adv748x_csi2_get_pad_format(sd, cfg, sdformat->pad,
-> >  						 sdformat->which);
-> >  	if (!mbusformat)
-> > 
+> Signed-off-by: Niklas S=F6derlund <niklas.soderlund+renesas@ragnatech.se>
+> Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  drivers/media/platform/rcar-vin/rcar-dma.c  | 2 +-
+>  drivers/media/platform/rcar-vin/rcar-v4l2.c | 3 ---
+>  drivers/media/platform/rcar-vin/rcar-vin.h  | 3 ---
+>  3 files changed, 1 insertion(+), 7 deletions(-)
+>=20
+> diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c
+> b/drivers/media/platform/rcar-vin/rcar-dma.c index
+> fd14be20a6604d7a..7be5080f742825fb 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-dma.c
+> +++ b/drivers/media/platform/rcar-vin/rcar-dma.c
+> @@ -514,7 +514,7 @@ static void rvin_set_coeff(struct rvin_dev *vin,
+> unsigned short xs) rvin_write(vin, p_set->coeff_set[23], VNC8C_REG);
+>  }
+>=20
+> -void rvin_crop_scale_comp(struct rvin_dev *vin)
+> +static void rvin_crop_scale_comp(struct rvin_dev *vin)
+>  {
+>  	u32 xs, ys;
+>=20
+> diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c
+> b/drivers/media/platform/rcar-vin/rcar-v4l2.c index
+> 254fa1c8770275a5..d6298c684ab2d731 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
+> +++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+> @@ -436,9 +436,6 @@ static int rvin_s_selection(struct file *file, void *=
+fh,
+> return -EINVAL;
+>  	}
+>=20
+> -	/* HW supports modifying configuration while running */
+> -	rvin_crop_scale_comp(vin);
+> -
+>  	return 0;
+>  }
+>=20
+> diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h
+> b/drivers/media/platform/rcar-vin/rcar-vin.h index
+> 36d0f0cc4ce01a6e..67541b483ee43c52 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-vin.h
+> +++ b/drivers/media/platform/rcar-vin/rcar-vin.h
+> @@ -175,7 +175,4 @@ void rvin_v4l2_unregister(struct rvin_dev *vin);
+>=20
+>  const struct rvin_video_format *rvin_format_from_pixel(u32 pixelformat);
+>=20
+> -/* Cropping, composing and scaling */
+> -void rvin_crop_scale_comp(struct rvin_dev *vin);
+> -
+>  #endif
 
--- 
+=2D-=20
 Regards,
-Niklas Söderlund
+
+Laurent Pinchart
