@@ -1,1033 +1,394 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:21094 "EHLO
-        mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753377AbdLHJhV (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 8 Dec 2017 04:37:21 -0500
-From: Smitha T Murthy <smitha.t@samsung.com>
-To: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Cc: kyungmin.park@samsung.com, kamil@wypas.org, jtp.park@samsung.com,
-        a.hajda@samsung.com, mchehab@kernel.org, pankaj.dubey@samsung.com,
-        krzk@kernel.org, m.szyprowski@samsung.com, s.nawrocki@samsung.com,
-        Smitha T Murthy <smitha.t@samsung.com>
-Subject: [Patch v6 11/12] [media] s5p-mfc: Add support for HEVC encoder
-Date: Fri, 08 Dec 2017 14:38:24 +0530
-Message-id: <1512724105-1778-12-git-send-email-smitha.t@samsung.com>
-In-reply-to: <1512724105-1778-1-git-send-email-smitha.t@samsung.com>
-References: <1512724105-1778-1-git-send-email-smitha.t@samsung.com>
-        <CGME20171208093704epcas2p2e68f7f354baf84c32f7d0313e9c6af44@epcas2p2.samsung.com>
+Received: from osg.samsung.com ([64.30.133.232]:56201 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1754099AbdLHP45 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 8 Dec 2017 10:56:57 -0500
+Date: Fri, 8 Dec 2017 13:56:50 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Subject: [GIT PULL for v4.15-rc3] media fixes
+Message-ID: <20171208135650.3f385c45@vento.lan>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add HEVC encoder support and necessary registers, V4L2 CIDs,
-and hevc encoder parameters
+Hi Linus,
 
-Signed-off-by: Smitha T Murthy <smitha.t@samsung.com>
----
- drivers/media/platform/s5p-mfc/regs-mfc-v10.h   |  28 +-
- drivers/media/platform/s5p-mfc/s5p_mfc.c        |   1 +
- drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c |   3 +
- drivers/media/platform/s5p-mfc/s5p_mfc_common.h |  54 ++-
- drivers/media/platform/s5p-mfc/s5p_mfc_enc.c    | 534 ++++++++++++++++++++++++
- drivers/media/platform/s5p-mfc/s5p_mfc_opr.h    |   8 +
- drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c | 182 ++++++++
- drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h |   8 +
- 8 files changed, 816 insertions(+), 2 deletions(-)
+Please pull from:
+  git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media tags/media/v4.15-2
 
-diff --git a/drivers/media/platform/s5p-mfc/regs-mfc-v10.h b/drivers/media/platform/s5p-mfc/regs-mfc-v10.h
-index 6754477..7065b9d 100644
---- a/drivers/media/platform/s5p-mfc/regs-mfc-v10.h
-+++ b/drivers/media/platform/s5p-mfc/regs-mfc-v10.h
-@@ -20,13 +20,35 @@
- #define S5P_FIMV_MFC_STATE_V10				0x7124
- #define S5P_FIMV_D_STATIC_BUFFER_ADDR_V10		0xF570
- #define S5P_FIMV_D_STATIC_BUFFER_SIZE_V10		0xF574
-+#define S5P_FIMV_E_NUM_T_LAYER_V10			0xFBAC
-+#define S5P_FIMV_E_HIERARCHICAL_QP_LAYER0_V10		0xFBB0
-+#define S5P_FIMV_E_HIERARCHICAL_QP_LAYER1_V10		0xFBB4
-+#define S5P_FIMV_E_HIERARCHICAL_QP_LAYER2_V10		0xFBB8
-+#define S5P_FIMV_E_HIERARCHICAL_QP_LAYER3_V10		0xFBBC
-+#define S5P_FIMV_E_HIERARCHICAL_QP_LAYER4_V10		0xFBC0
-+#define S5P_FIMV_E_HIERARCHICAL_QP_LAYER5_V10		0xFBC4
-+#define S5P_FIMV_E_HIERARCHICAL_QP_LAYER6_V10		0xFBC8
-+#define S5P_FIMV_E_HIERARCHICAL_BIT_RATE_LAYER0_V10	0xFD18
-+#define S5P_FIMV_E_HIERARCHICAL_BIT_RATE_LAYER1_V10	0xFD1C
-+#define S5P_FIMV_E_HIERARCHICAL_BIT_RATE_LAYER2_V10	0xFD20
-+#define S5P_FIMV_E_HIERARCHICAL_BIT_RATE_LAYER3_V10	0xFD24
-+#define S5P_FIMV_E_HIERARCHICAL_BIT_RATE_LAYER4_V10	0xFD28
-+#define S5P_FIMV_E_HIERARCHICAL_BIT_RATE_LAYER5_V10	0xFD2C
-+#define S5P_FIMV_E_HIERARCHICAL_BIT_RATE_LAYER6_V10	0xFD30
-+#define S5P_FIMV_E_HEVC_OPTIONS_V10			0xFDD4
-+#define S5P_FIMV_E_HEVC_REFRESH_PERIOD_V10		0xFDD8
-+#define S5P_FIMV_E_HEVC_CHROMA_QP_OFFSET_V10		0xFDDC
-+#define S5P_FIMV_E_HEVC_LF_BETA_OFFSET_DIV2_V10		0xFDE0
-+#define S5P_FIMV_E_HEVC_LF_TC_OFFSET_DIV2_V10		0xFDE4
-+#define S5P_FIMV_E_HEVC_NAL_CONTROL_V10			0xFDE8
- 
- /* MFCv10 Context buffer sizes */
- #define MFC_CTX_BUF_SIZE_V10		(30 * SZ_1K)
- #define MFC_H264_DEC_CTX_BUF_SIZE_V10	(2 * SZ_1M)
- #define MFC_OTHER_DEC_CTX_BUF_SIZE_V10	(20 * SZ_1K)
- #define MFC_H264_ENC_CTX_BUF_SIZE_V10	(100 * SZ_1K)
--#define MFC_OTHER_ENC_CTX_BUF_SIZE_V10	(15 * SZ_1K)
-+#define MFC_HEVC_ENC_CTX_BUF_SIZE_V10	(30 * SZ_1K)
-+#define MFC_OTHER_ENC_CTX_BUF_SIZE_V10  (15 * SZ_1K)
- 
- /* MFCv10 variant defines */
- #define MAX_FW_SIZE_V10		(SZ_1M)
-@@ -58,5 +80,9 @@
- #define ENC_V100_VP8_ME_SIZE(x, y) \
- 	ENC_V100_BASE_SIZE(x, y)
- 
-+#define ENC_V100_HEVC_ME_SIZE(x, y)	\
-+	(((x + 3) * (y + 3) * 32)	\
-+	 + ((y * 128) + 1280) * DIV_ROUND_UP(x, 4))
-+
- #endif /*_REGS_MFC_V10_H*/
- 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-index 318df39..77d1add 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-@@ -1619,6 +1619,7 @@ static struct s5p_mfc_buf_size_v6 mfc_buf_size_v10 = {
- 	.h264_dec_ctx   = MFC_H264_DEC_CTX_BUF_SIZE_V10,
- 	.other_dec_ctx  = MFC_OTHER_DEC_CTX_BUF_SIZE_V10,
- 	.h264_enc_ctx   = MFC_H264_ENC_CTX_BUF_SIZE_V10,
-+	.hevc_enc_ctx   = MFC_HEVC_ENC_CTX_BUF_SIZE_V10,
- 	.other_enc_ctx  = MFC_OTHER_ENC_CTX_BUF_SIZE_V10,
- };
- 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c b/drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c
-index 102b47e..7521fce 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c
-@@ -122,6 +122,9 @@ static int s5p_mfc_open_inst_cmd_v6(struct s5p_mfc_ctx *ctx)
- 	case S5P_MFC_CODEC_VP8_ENC:
- 		codec_type = S5P_FIMV_CODEC_VP8_ENC_V7;
- 		break;
-+	case S5P_MFC_CODEC_HEVC_ENC:
-+		codec_type = S5P_FIMV_CODEC_HEVC_ENC;
-+		break;
- 	default:
- 		codec_type = S5P_FIMV_CODEC_NONE_V6;
- 	}
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-index b49f220..81ad00a 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-@@ -61,7 +61,7 @@
- #define MFC_ENC_CAP_PLANE_COUNT	1
- #define MFC_ENC_OUT_PLANE_COUNT	2
- #define STUFF_BYTE		4
--#define MFC_MAX_CTRLS		77
-+#define MFC_MAX_CTRLS		128
- 
- #define S5P_MFC_CODEC_NONE		-1
- #define S5P_MFC_CODEC_H264_DEC		0
-@@ -80,6 +80,7 @@
- #define S5P_MFC_CODEC_MPEG4_ENC		22
- #define S5P_MFC_CODEC_H263_ENC		23
- #define S5P_MFC_CODEC_VP8_ENC		24
-+#define S5P_MFC_CODEC_HEVC_ENC		26
- 
- #define S5P_MFC_R2H_CMD_EMPTY			0
- #define S5P_MFC_R2H_CMD_SYS_INIT_RET		1
-@@ -215,6 +216,7 @@ struct s5p_mfc_buf_size_v6 {
- 	unsigned int h264_dec_ctx;
- 	unsigned int other_dec_ctx;
- 	unsigned int h264_enc_ctx;
-+	unsigned int hevc_enc_ctx;
- 	unsigned int other_enc_ctx;
- };
- 
-@@ -429,6 +431,55 @@ struct s5p_mfc_vp8_enc_params {
- 	u8 profile;
- };
- 
-+struct s5p_mfc_hevc_enc_params {
-+	enum v4l2_mpeg_video_hevc_profile profile;
-+	int level;
-+	enum v4l2_mpeg_video_h264_level level_v4l2;
-+	u8 tier_flag;
-+	u32 rc_framerate;
-+	u8 rc_min_qp;
-+	u8 rc_max_qp;
-+	u8 rc_lcu_dark;
-+	u8 rc_lcu_smooth;
-+	u8 rc_lcu_static;
-+	u8 rc_lcu_activity;
-+	u8 rc_frame_qp;
-+	u8 rc_p_frame_qp;
-+	u8 rc_b_frame_qp;
-+	u8 max_partition_depth;
-+	u8 num_refs_for_p;
-+	u8 refreshtype;
-+	u16 refreshperiod;
-+	s32 lf_beta_offset_div2;
-+	s32 lf_tc_offset_div2;
-+	u8 loopfilter;
-+	u8 loopfilter_disable;
-+	u8 loopfilter_across;
-+	u8 nal_control_length_filed;
-+	u8 nal_control_user_ref;
-+	u8 nal_control_store_ref;
-+	u8 const_intra_period_enable;
-+	u8 lossless_cu_enable;
-+	u8 wavefront_enable;
-+	u8 enable_ltr;
-+	u8 hier_qp_enable;
-+	enum v4l2_mpeg_video_hevc_hier_coding_type hier_qp_type;
-+	u8 num_hier_layer;
-+	u8 hier_qp_layer[7];
-+	u32 hier_bit_layer[7];
-+	u8 sign_data_hiding;
-+	u8 general_pb_enable;
-+	u8 temporal_id_enable;
-+	u8 strong_intra_smooth;
-+	u8 intra_pu_split_disable;
-+	u8 tmv_prediction_disable;
-+	u8 max_num_merge_mv;
-+	u8 eco_mode_enable;
-+	u8 encoding_nostartcode_enable;
-+	u8 size_of_length_field;
-+	u8 prepend_sps_pps_to_idr;
-+};
-+
- /**
-  * struct s5p_mfc_enc_params - general encoding parameters
-  */
-@@ -466,6 +517,7 @@ struct s5p_mfc_enc_params {
- 		struct s5p_mfc_h264_enc_params h264;
- 		struct s5p_mfc_mpeg4_enc_params mpeg4;
- 		struct s5p_mfc_vp8_enc_params vp8;
-+		struct s5p_mfc_hevc_enc_params hevc;
- 	} codec;
- 
- };
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-index eb5352a..1abac02 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-@@ -99,6 +99,13 @@ static struct s5p_mfc_fmt formats[] = {
- 		.num_planes	= 1,
- 		.versions	= MFC_V7PLUS_BITS,
- 	},
-+	{
-+		.fourcc		= V4L2_PIX_FMT_HEVC,
-+		.codec_mode	= S5P_FIMV_CODEC_HEVC_ENC,
-+		.type		= MFC_FMT_ENC,
-+		.num_planes	= 1,
-+		.versions	= MFC_V10_BIT,
-+	},
- };
- 
- #define NUM_FORMATS ARRAY_SIZE(formats)
-@@ -693,6 +700,366 @@ static struct mfc_control controls[] = {
- 		.default_value = 0,
- 	},
- 	{
-+		.id = V4L2_CID_MPEG_VIDEO_HEVC_I_FRAME_QP,
-+		.type = V4L2_CTRL_TYPE_INTEGER,
-+		.minimum = 0,
-+		.maximum = 51,
-+		.step = 1,
-+		.default_value = 0,
-+	},
-+	{
-+		.id = V4L2_CID_MPEG_VIDEO_HEVC_P_FRAME_QP,
-+		.type = V4L2_CTRL_TYPE_INTEGER,
-+		.minimum = 0,
-+		.maximum = 51,
-+		.step = 1,
-+		.default_value = 0,
-+	},
-+	{
-+		.id = V4L2_CID_MPEG_VIDEO_HEVC_B_FRAME_QP,
-+		.type = V4L2_CTRL_TYPE_INTEGER,
-+		.minimum = 0,
-+		.maximum = 51,
-+		.step = 1,
-+		.default_value = 0,
-+	},
-+	{
-+		.id = V4L2_CID_MPEG_VIDEO_HEVC_MIN_QP,
-+		.type = V4L2_CTRL_TYPE_INTEGER,
-+		.minimum = 0,
-+		.maximum = 51,
-+		.step = 1,
-+		.default_value = 0,
-+	},
-+	{
-+		.id = V4L2_CID_MPEG_VIDEO_HEVC_MAX_QP,
-+		.type = V4L2_CTRL_TYPE_INTEGER,
-+		.minimum = 0,
-+		.maximum = 51,
-+		.step = 1,
-+		.default_value = 0,
-+	},
-+	{
-+		.id = V4L2_CID_MPEG_VIDEO_HEVC_PROFILE,
-+		.type = V4L2_CTRL_TYPE_MENU,
-+		.minimum = V4L2_MPEG_VIDEO_HEVC_PROFILE_MAIN,
-+		.maximum = V4L2_MPEG_VIDEO_HEVC_PROFILE_MAIN_STILL_PICTURE,
-+		.step = 1,
-+		.default_value = V4L2_MPEG_VIDEO_HEVC_PROFILE_MAIN,
-+	},
-+	{
-+		.id = V4L2_CID_MPEG_VIDEO_HEVC_LEVEL,
-+		.type = V4L2_CTRL_TYPE_MENU,
-+		.minimum = V4L2_MPEG_VIDEO_HEVC_LEVEL_1,
-+		.maximum = V4L2_MPEG_VIDEO_HEVC_LEVEL_6_2,
-+		.step = 1,
-+		.default_value = V4L2_MPEG_VIDEO_HEVC_LEVEL_1,
-+	},
-+	{
-+		.id = V4L2_CID_MPEG_VIDEO_HEVC_TIER_FLAG,
-+		.type = V4L2_CTRL_TYPE_MENU,
-+		.minimum = V4L2_MPEG_VIDEO_HEVC_TIER_MAIN,
-+		.maximum = V4L2_MPEG_VIDEO_HEVC_TIER_HIGH,
-+		.step = 1,
-+		.default_value = V4L2_MPEG_VIDEO_HEVC_TIER_MAIN,
-+	},
-+	{
-+		.id = V4L2_CID_MPEG_VIDEO_HEVC_FRAME_RATE_RESOLUTION,
-+		.type = V4L2_CTRL_TYPE_INTEGER,
-+		.minimum = 1,
-+		.maximum = (1 << 16) - 1,
-+		.step = 1,
-+		.default_value = 1,
-+	},
-+	{
-+		.id = V4L2_CID_MPEG_VIDEO_HEVC_MAX_PARTITION_DEPTH,
-+		.type = V4L2_CTRL_TYPE_INTEGER,
-+		.minimum = 0,
-+		.maximum = 1,
-+		.step = 1,
-+		.default_value = 0,
-+	},
-+	{
-+		.id = V4L2_CID_MPEG_VIDEO_REF_NUMBER_FOR_PFRAMES,
-+		.type = V4L2_CTRL_TYPE_INTEGER,
-+		.minimum = 1,
-+		.maximum = 2,
-+		.step = 1,
-+		.default_value = 1,
-+	},
-+	{
-+		.id = V4L2_CID_MPEG_VIDEO_HEVC_REFRESH_TYPE,
-+		.type = V4L2_CTRL_TYPE_MENU,
-+		.minimum = V4L2_MPEG_VIDEO_HEVC_REFRESH_NONE,
-+		.maximum = V4L2_MPEG_VIDEO_HEVC_REFRESH_IDR,
-+		.step = 1,
-+		.default_value = V4L2_MPEG_VIDEO_HEVC_REFRESH_NONE,
-+	},
-+	{
-+		.id = V4L2_CID_MPEG_VIDEO_HEVC_CONST_INTRA_PRED,
-+		.type = V4L2_CTRL_TYPE_BOOLEAN,
-+		.minimum = 0,
-+		.maximum = 1,
-+		.step = 1,
-+		.default_value = 0,
-+	},
-+	{
-+		.id = V4L2_CID_MPEG_VIDEO_HEVC_LOSSLESS_CU,
-+		.type = V4L2_CTRL_TYPE_BOOLEAN,
-+		.minimum = 0,
-+		.maximum = 1,
-+		.step = 1,
-+		.default_value = 0,
-+	},
-+	{
-+		.id = V4L2_CID_MPEG_VIDEO_HEVC_WAVEFRONT,
-+		.type = V4L2_CTRL_TYPE_BOOLEAN,
-+		.minimum = 0,
-+		.maximum = 1,
-+		.step = 1,
-+		.default_value = 0,
-+	},
-+	{
-+		.id = V4L2_CID_MPEG_VIDEO_HEVC_LOOP_FILTER_MODE,
-+		.type = V4L2_CTRL_TYPE_MENU,
-+		.minimum = V4L2_MPEG_VIDEO_HEVC_LOOP_FILTER_MODE_DISABLED,
-+		.maximum = V4L2_MPEG_VIDEO_HEVC_LOOP_FILTER_MODE_DISABLED_AT_SLICE_BOUNDARY,
-+		.step = 1,
-+		.default_value = V4L2_MPEG_VIDEO_HEVC_LOOP_FILTER_MODE_DISABLED,
-+	},
-+	{
-+		.id = V4L2_CID_MPEG_VIDEO_HEVC_HIER_QP,
-+		.type = V4L2_CTRL_TYPE_BOOLEAN,
-+		.minimum = 0,
-+		.maximum = 1,
-+		.step = 1,
-+		.default_value = 0,
-+	},
-+	{
-+		.id = V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_TYPE,
-+		.type = V4L2_CTRL_TYPE_MENU,
-+		.minimum = V4L2_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_B,
-+		.maximum = V4L2_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_P,
-+		.step = 1,
-+		.default_value = V4L2_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_B,
-+	},
-+	{
-+		.id = V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_LAYER,
-+		.type = V4L2_CTRL_TYPE_INTEGER,
-+		.minimum = 0,
-+		.maximum = 6,
-+		.step = 1,
-+		.default_value = 0,
-+	},
-+	{
-+		.id = V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L0_QP,
-+		.type = V4L2_CTRL_TYPE_INTEGER,
-+		.minimum = INT_MIN,
-+		.maximum = INT_MAX,
-+		.step = 1,
-+		.default_value = 0,
-+	},
-+	{
-+		.id = V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L1_QP,
-+		.type = V4L2_CTRL_TYPE_INTEGER,
-+		.minimum = INT_MIN,
-+		.maximum = INT_MAX,
-+		.step = 1,
-+		.default_value = 0,
-+	},
-+	{
-+		.id = V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L2_QP,
-+		.type = V4L2_CTRL_TYPE_INTEGER,
-+		.minimum = INT_MIN,
-+		.maximum = INT_MAX,
-+		.step = 1,
-+		.default_value = 0,
-+	},
-+	{
-+		.id = V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L3_QP,
-+		.type = V4L2_CTRL_TYPE_INTEGER,
-+		.minimum = INT_MIN,
-+		.maximum = INT_MAX,
-+		.step = 1,
-+		.default_value = 0,
-+	},
-+	{
-+		.id = V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L4_QP,
-+		.type = V4L2_CTRL_TYPE_INTEGER,
-+		.minimum = INT_MIN,
-+		.maximum = INT_MAX,
-+		.step = 1,
-+		.default_value = 0,
-+	},
-+	{
-+		.id = V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L5_QP,
-+		.type = V4L2_CTRL_TYPE_INTEGER,
-+		.minimum = INT_MIN,
-+		.maximum = INT_MAX,
-+		.step = 1,
-+		.default_value = 0,
-+	},
-+	{
-+		.id = V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L6_QP,
-+		.type = V4L2_CTRL_TYPE_INTEGER,
-+		.minimum = INT_MIN,
-+		.maximum = INT_MAX,
-+		.step = 1,
-+		.default_value = 0,
-+	},
-+	{
-+		.id = V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L0_BR,
-+		.type = V4L2_CTRL_TYPE_INTEGER,
-+		.minimum = INT_MIN,
-+		.maximum = INT_MAX,
-+		.step = 1,
-+		.default_value = 0,
-+	},
-+	{
-+		.id = V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L1_BR,
-+		.type = V4L2_CTRL_TYPE_INTEGER,
-+		.minimum = INT_MIN,
-+		.maximum = INT_MAX,
-+		.step = 1,
-+		.default_value = 0,
-+	},
-+	{
-+		.id = V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L2_BR,
-+		.type = V4L2_CTRL_TYPE_INTEGER,
-+		.minimum = INT_MIN,
-+		.maximum = INT_MAX,
-+		.step = 1,
-+		.default_value = 0,
-+	},
-+	{
-+		.id = V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L3_BR,
-+		.type = V4L2_CTRL_TYPE_INTEGER,
-+		.minimum = INT_MIN,
-+		.maximum = INT_MAX,
-+		.step = 1,
-+		.default_value = 0,
-+	},
-+	{
-+		.id = V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L4_BR,
-+		.type = V4L2_CTRL_TYPE_INTEGER,
-+		.minimum = INT_MIN,
-+		.maximum = INT_MAX,
-+		.step = 1,
-+		.default_value = 0,
-+	},
-+	{
-+		.id = V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L5_BR,
-+		.type = V4L2_CTRL_TYPE_INTEGER,
-+		.minimum = INT_MIN,
-+		.maximum = INT_MAX,
-+		.step = 1,
-+		.default_value = 0,
-+	},
-+	{
-+		.id = V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L6_BR,
-+		.type = V4L2_CTRL_TYPE_INTEGER,
-+		.minimum = INT_MIN,
-+		.maximum = INT_MAX,
-+		.step = 1,
-+		.default_value = 0,
-+	},
-+	{
-+		.id = V4L2_CID_MPEG_VIDEO_HEVC_GENERAL_PB,
-+		.type = V4L2_CTRL_TYPE_BOOLEAN,
-+		.minimum = 0,
-+		.maximum = 1,
-+		.step = 1,
-+		.default_value = 0,
-+	},
-+	{
-+		.id = V4L2_CID_MPEG_VIDEO_HEVC_TEMPORAL_ID,
-+		.type = V4L2_CTRL_TYPE_BOOLEAN,
-+		.minimum = 0,
-+		.maximum = 1,
-+		.step = 1,
-+		.default_value = 0,
-+	},
-+	{
-+		.id = V4L2_CID_MPEG_VIDEO_HEVC_STRONG_SMOOTHING,
-+		.type = V4L2_CTRL_TYPE_BOOLEAN,
-+		.minimum = 0,
-+		.maximum = 1,
-+		.step = 1,
-+		.default_value = 0,
-+	},
-+	{
-+		.id = V4L2_CID_MPEG_VIDEO_HEVC_INTRA_PU_SPLIT,
-+		.type = V4L2_CTRL_TYPE_BOOLEAN,
-+		.minimum = 0,
-+		.maximum = 1,
-+		.step = 1,
-+		.default_value = 0,
-+	},
-+	{
-+		.id = V4L2_CID_MPEG_VIDEO_HEVC_TMV_PREDICTION,
-+		.type = V4L2_CTRL_TYPE_BOOLEAN,
-+		.minimum = 0,
-+		.maximum = 1,
-+		.step = 1,
-+		.default_value = 0,
-+	},
-+	{
-+		.id = V4L2_CID_MPEG_VIDEO_HEVC_MAX_NUM_MERGE_MV_MINUS1,
-+		.type = V4L2_CTRL_TYPE_INTEGER,
-+		.minimum = 0,
-+		.maximum = 4,
-+		.step = 1,
-+		.default_value = 0,
-+	},
-+	{
-+		.id = V4L2_CID_MPEG_VIDEO_HEVC_WITHOUT_STARTCODE,
-+		.type = V4L2_CTRL_TYPE_BOOLEAN,
-+		.minimum = 0,
-+		.maximum = 1,
-+		.step = 1,
-+		.default_value = 0,
-+	},
-+	{
-+		.id = V4L2_CID_MPEG_VIDEO_HEVC_REFRESH_PERIOD,
-+		.type = V4L2_CTRL_TYPE_INTEGER,
-+		.minimum = 0,
-+		.maximum = (1 << 16) - 1,
-+		.step = 1,
-+		.default_value = 0,
-+	},
-+	{
-+		.id = V4L2_CID_MPEG_VIDEO_HEVC_LF_BETA_OFFSET_DIV2,
-+		.type = V4L2_CTRL_TYPE_INTEGER,
-+		.minimum = -6,
-+		.maximum = 6,
-+		.step = 1,
-+		.default_value = 0,
-+	},
-+	{
-+		.id = V4L2_CID_MPEG_VIDEO_HEVC_LF_TC_OFFSET_DIV2,
-+		.type = V4L2_CTRL_TYPE_INTEGER,
-+		.minimum = -6,
-+		.maximum = 6,
-+		.step = 1,
-+		.default_value = 0,
-+	},
-+	{
-+		.id = V4L2_CID_MPEG_VIDEO_HEVC_SIZE_OF_LENGTH_FIELD,
-+		.type = V4L2_CTRL_TYPE_MENU,
-+		.minimum = V4L2_MPEG_VIDEO_HEVC_SIZE_0,
-+		.maximum = V4L2_MPEG_VIDEO_HEVC_SIZE_4,
-+		.step = 1,
-+		.default_value = V4L2_MPEG_VIDEO_HEVC_SIZE_0,
-+	},
-+	{
-+		.id = V4L2_CID_MPEG_VIDEO_PREPEND_SPSPPS_TO_IDR,
-+		.type = V4L2_CTRL_TYPE_INTEGER,
-+		.minimum = 0,
-+		.maximum = 1,
-+		.step = 1,
-+		.default_value = 0,
-+	},
-+	{
- 		.id = V4L2_CID_MIN_BUFFERS_FOR_OUTPUT,
- 		.type = V4L2_CTRL_TYPE_INTEGER,
- 		.name = "Minimum number of output bufs",
-@@ -1359,6 +1726,26 @@ static inline int mpeg4_level(enum v4l2_mpeg_video_mpeg4_level lvl)
- 	return t[lvl];
- }
- 
-+static inline int hevc_level(enum v4l2_mpeg_video_hevc_level lvl)
-+{
-+	static unsigned int t[] = {
-+		/* V4L2_MPEG_VIDEO_HEVC_LEVEL_1    */ 10,
-+		/* V4L2_MPEG_VIDEO_HEVC_LEVEL_2    */ 20,
-+		/* V4L2_MPEG_VIDEO_HEVC_LEVEL_2_1  */ 21,
-+		/* V4L2_MPEG_VIDEO_HEVC_LEVEL_3    */ 30,
-+		/* V4L2_MPEG_VIDEO_HEVC_LEVEL_3_1  */ 31,
-+		/* V4L2_MPEG_VIDEO_HEVC_LEVEL_4    */ 40,
-+		/* V4L2_MPEG_VIDEO_HEVC_LEVEL_4_1  */ 41,
-+		/* V4L2_MPEG_VIDEO_HEVC_LEVEL_5    */ 50,
-+		/* V4L2_MPEG_VIDEO_HEVC_LEVEL_5_1  */ 51,
-+		/* V4L2_MPEG_VIDEO_HEVC_LEVEL_5_2  */ 52,
-+		/* V4L2_MPEG_VIDEO_HEVC_LEVEL_6    */ 60,
-+		/* V4L2_MPEG_VIDEO_HEVC_LEVEL_6_1  */ 61,
-+		/* V4L2_MPEG_VIDEO_HEVC_LEVEL_6_2  */ 62,
-+	};
-+	return t[lvl];
-+}
-+
- static inline int vui_sar_idc(enum v4l2_mpeg_video_h264_vui_sar_idc sar)
- {
- 	static unsigned int t[V4L2_MPEG_VIDEO_H264_VUI_SAR_IDC_EXTENDED + 1] = {
-@@ -1635,6 +2022,153 @@ static int s5p_mfc_enc_s_ctrl(struct v4l2_ctrl *ctrl)
- 	case V4L2_CID_MPEG_VIDEO_VPX_PROFILE:
- 		p->codec.vp8.profile = ctrl->val;
- 		break;
-+	case V4L2_CID_MPEG_VIDEO_HEVC_I_FRAME_QP:
-+		p->codec.hevc.rc_frame_qp = ctrl->val;
-+		break;
-+	case V4L2_CID_MPEG_VIDEO_HEVC_P_FRAME_QP:
-+		p->codec.hevc.rc_p_frame_qp = ctrl->val;
-+		break;
-+	case V4L2_CID_MPEG_VIDEO_HEVC_B_FRAME_QP:
-+		p->codec.hevc.rc_b_frame_qp = ctrl->val;
-+		break;
-+	case V4L2_CID_MPEG_VIDEO_HEVC_FRAME_RATE_RESOLUTION:
-+		p->codec.hevc.rc_framerate = ctrl->val;
-+		break;
-+	case V4L2_CID_MPEG_VIDEO_HEVC_MIN_QP:
-+		p->codec.hevc.rc_min_qp = ctrl->val;
-+		break;
-+	case V4L2_CID_MPEG_VIDEO_HEVC_MAX_QP:
-+		p->codec.hevc.rc_max_qp = ctrl->val;
-+		break;
-+	case V4L2_CID_MPEG_VIDEO_HEVC_LEVEL:
-+		p->codec.hevc.level_v4l2 = ctrl->val;
-+		p->codec.hevc.level = hevc_level(ctrl->val);
-+		break;
-+	case V4L2_CID_MPEG_VIDEO_HEVC_PROFILE:
-+		switch (ctrl->val) {
-+		case V4L2_MPEG_VIDEO_HEVC_PROFILE_MAIN:
-+			p->codec.hevc.profile =
-+				V4L2_MPEG_VIDEO_HEVC_PROFILE_MAIN;
-+			break;
-+		case V4L2_MPEG_VIDEO_HEVC_PROFILE_MAIN_STILL_PICTURE:
-+			p->codec.hevc.profile =
-+			V4L2_MPEG_VIDEO_HEVC_PROFILE_MAIN_STILL_PICTURE;
-+			break;
-+		default:
-+			ret = -EINVAL;
-+		}
-+		break;
-+	case V4L2_CID_MPEG_VIDEO_HEVC_TIER_FLAG:
-+		p->codec.hevc.tier_flag = ctrl->val;
-+		break;
-+	case V4L2_CID_MPEG_VIDEO_HEVC_MAX_PARTITION_DEPTH:
-+		p->codec.hevc.max_partition_depth = ctrl->val;
-+		break;
-+	case V4L2_CID_MPEG_VIDEO_REF_NUMBER_FOR_PFRAMES:
-+		p->codec.hevc.num_refs_for_p = ctrl->val;
-+		break;
-+	case V4L2_CID_MPEG_VIDEO_HEVC_REFRESH_TYPE:
-+		p->codec.hevc.refreshtype = ctrl->val;
-+		break;
-+	case V4L2_CID_MPEG_VIDEO_HEVC_CONST_INTRA_PRED:
-+		p->codec.hevc.const_intra_period_enable = ctrl->val;
-+		break;
-+	case V4L2_CID_MPEG_VIDEO_HEVC_LOSSLESS_CU:
-+		p->codec.hevc.lossless_cu_enable = ctrl->val;
-+		break;
-+	case V4L2_CID_MPEG_VIDEO_HEVC_WAVEFRONT:
-+		p->codec.hevc.wavefront_enable = ctrl->val;
-+		break;
-+	case V4L2_CID_MPEG_VIDEO_HEVC_LOOP_FILTER_MODE:
-+		p->codec.hevc.loopfilter = ctrl->val;
-+		break;
-+	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_QP:
-+		p->codec.hevc.hier_qp_enable = ctrl->val;
-+		break;
-+	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_TYPE:
-+		p->codec.hevc.hier_qp_type = ctrl->val;
-+		break;
-+	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_LAYER:
-+		p->codec.hevc.num_hier_layer = ctrl->val;
-+		break;
-+	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L0_QP:
-+		p->codec.hevc.hier_qp_layer[0] = ctrl->val;
-+		break;
-+	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L1_QP:
-+		p->codec.hevc.hier_qp_layer[1] = ctrl->val;
-+		break;
-+	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L2_QP:
-+		p->codec.hevc.hier_qp_layer[2] = ctrl->val;
-+		break;
-+	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L3_QP:
-+		p->codec.hevc.hier_qp_layer[3] = ctrl->val;
-+		break;
-+	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L4_QP:
-+		p->codec.hevc.hier_qp_layer[4] = ctrl->val;
-+		break;
-+	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L5_QP:
-+		p->codec.hevc.hier_qp_layer[5] = ctrl->val;
-+		break;
-+	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L6_QP:
-+		p->codec.hevc.hier_qp_layer[6] = ctrl->val;
-+		break;
-+	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L0_BR:
-+		p->codec.hevc.hier_bit_layer[0] = ctrl->val;
-+		break;
-+	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L1_BR:
-+		p->codec.hevc.hier_bit_layer[1] = ctrl->val;
-+		break;
-+	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L2_BR:
-+		p->codec.hevc.hier_bit_layer[2] = ctrl->val;
-+		break;
-+	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L3_BR:
-+		p->codec.hevc.hier_bit_layer[3] = ctrl->val;
-+		break;
-+	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L4_BR:
-+		p->codec.hevc.hier_bit_layer[4] = ctrl->val;
-+		break;
-+	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L5_BR:
-+		p->codec.hevc.hier_bit_layer[5] = ctrl->val;
-+		break;
-+	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L6_BR:
-+		p->codec.hevc.hier_bit_layer[6] = ctrl->val;
-+		break;
-+	case V4L2_CID_MPEG_VIDEO_HEVC_GENERAL_PB:
-+		p->codec.hevc.general_pb_enable = ctrl->val;
-+		break;
-+	case V4L2_CID_MPEG_VIDEO_HEVC_TEMPORAL_ID:
-+		p->codec.hevc.temporal_id_enable = ctrl->val;
-+		break;
-+	case V4L2_CID_MPEG_VIDEO_HEVC_STRONG_SMOOTHING:
-+		p->codec.hevc.strong_intra_smooth = ctrl->val;
-+		break;
-+	case V4L2_CID_MPEG_VIDEO_HEVC_INTRA_PU_SPLIT:
-+		p->codec.hevc.intra_pu_split_disable = ctrl->val;
-+		break;
-+	case V4L2_CID_MPEG_VIDEO_HEVC_TMV_PREDICTION:
-+		p->codec.hevc.tmv_prediction_disable = !ctrl->val;
-+		break;
-+	case V4L2_CID_MPEG_VIDEO_HEVC_MAX_NUM_MERGE_MV_MINUS1:
-+		p->codec.hevc.max_num_merge_mv = ctrl->val;
-+		break;
-+	case V4L2_CID_MPEG_VIDEO_HEVC_WITHOUT_STARTCODE:
-+		p->codec.hevc.encoding_nostartcode_enable = ctrl->val;
-+		break;
-+	case V4L2_CID_MPEG_VIDEO_HEVC_REFRESH_PERIOD:
-+		p->codec.hevc.refreshperiod = ctrl->val;
-+		break;
-+	case V4L2_CID_MPEG_VIDEO_HEVC_LF_BETA_OFFSET_DIV2:
-+		p->codec.hevc.lf_beta_offset_div2 = ctrl->val;
-+		break;
-+	case V4L2_CID_MPEG_VIDEO_HEVC_LF_TC_OFFSET_DIV2:
-+		p->codec.hevc.lf_tc_offset_div2 = ctrl->val;
-+		break;
-+	case V4L2_CID_MPEG_VIDEO_HEVC_SIZE_OF_LENGTH_FIELD:
-+		p->codec.hevc.size_of_length_field = ctrl->val;
-+		break;
-+	case V4L2_CID_MPEG_VIDEO_PREPEND_SPSPPS_TO_IDR:
-+		p->codec.hevc.prepend_sps_pps_to_idr = ctrl->val;
-+		break;
- 	default:
- 		v4l2_err(&dev->v4l2_dev, "Invalid control, id=%d, val=%d\n",
- 							ctrl->id, ctrl->val);
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr.h b/drivers/media/platform/s5p-mfc/s5p_mfc_opr.h
-index 57f4560..8c295f0 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr.h
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr.h
-@@ -272,6 +272,14 @@ struct s5p_mfc_regs {
- 	void __iomem *e_vp8_hierarchical_qp_layer1;/* v7 and v8 */
- 	void __iomem *e_vp8_hierarchical_qp_layer2;/* v7 and v8 */
- 	void __iomem *e_min_scratch_buffer_size; /* v10 */
-+	void __iomem *e_num_t_layer; /* v10 */
-+	void __iomem *e_hier_qp_layer0; /* v10 */
-+	void __iomem *e_hier_bit_rate_layer0; /* v10 */
-+	void __iomem *e_hevc_options; /* v10 */
-+	void __iomem *e_hevc_refresh_period; /* v10 */
-+	void __iomem *e_hevc_lf_beta_offset_div2; /* v10 */
-+	void __iomem *e_hevc_lf_tc_offset_div2; /* v10 */
-+	void __iomem *e_hevc_nal_control; /* v10 */
- };
- 
- struct s5p_mfc_hw_ops {
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-index f47612c..5f72af8 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-@@ -299,6 +299,17 @@ static int s5p_mfc_alloc_codec_buffers_v6(struct s5p_mfc_ctx *ctx)
- 			ctx->chroma_dpb_size + ctx->me_buffer_size));
- 		ctx->bank2.size = 0;
- 		break;
-+	case S5P_MFC_CODEC_HEVC_ENC:
-+		mfc_debug(2, "Use min scratch buffer size\n");
-+		ctx->me_buffer_size =
-+			ALIGN(ENC_V100_HEVC_ME_SIZE(lcu_width, lcu_height), 16);
-+		ctx->scratch_buf_size = ALIGN(ctx->scratch_buf_size, 256);
-+		ctx->bank1.size =
-+			ctx->scratch_buf_size + ctx->tmv_buffer_size +
-+			(ctx->pb_count * (ctx->luma_dpb_size +
-+			ctx->chroma_dpb_size + ctx->me_buffer_size));
-+		ctx->bank2.size = 0;
-+		break;
- 	default:
- 		break;
- 	}
-@@ -348,6 +359,9 @@ static int s5p_mfc_alloc_instance_buffer_v6(struct s5p_mfc_ctx *ctx)
- 	case S5P_MFC_CODEC_H264_ENC:
- 		ctx->ctx.size = buf_size->h264_enc_ctx;
- 		break;
-+	case S5P_MFC_CODEC_HEVC_ENC:
-+		ctx->ctx.size = buf_size->hevc_enc_ctx;
-+		break;
- 	case S5P_MFC_CODEC_MPEG4_ENC:
- 	case S5P_MFC_CODEC_H263_ENC:
- 	case S5P_MFC_CODEC_VP8_ENC:
-@@ -1426,6 +1440,162 @@ static int s5p_mfc_set_enc_params_vp8(struct s5p_mfc_ctx *ctx)
- 	return 0;
- }
- 
-+static int s5p_mfc_set_enc_params_hevc(struct s5p_mfc_ctx *ctx)
-+{
-+	struct s5p_mfc_dev *dev = ctx->dev;
-+	const struct s5p_mfc_regs *mfc_regs = dev->mfc_regs;
-+	struct s5p_mfc_enc_params *p = &ctx->enc_params;
-+	struct s5p_mfc_hevc_enc_params *p_hevc = &p->codec.hevc;
-+	unsigned int reg = 0;
-+	int i;
-+
-+	mfc_debug_enter();
-+
-+	s5p_mfc_set_enc_params(ctx);
-+
-+	/* pictype : number of B */
-+	reg = readl(mfc_regs->e_gop_config);
-+	/* num_b_frame - 0 ~ 2 */
-+	reg &= ~(0x3 << 16);
-+	reg |= (p->num_b_frame << 16);
-+	writel(reg, mfc_regs->e_gop_config);
-+
-+	/* UHD encoding case */
-+	if ((ctx->img_width == 3840) && (ctx->img_height == 2160)) {
-+		p_hevc->level = 51;
-+		p_hevc->tier_flag = 0;
-+	/* this tier_flag can be changed */
-+	}
-+
-+	/* tier_flag & level */
-+	reg = 0;
-+	/* profile */
-+	reg |= p_hevc->profile & 0x3;
-+	/* level */
-+	reg &= ~(0xFF << 8);
-+	reg |= (p_hevc->level << 8);
-+	/* tier_flag - 0 ~ 1 */
-+	reg |= (p_hevc->tier_flag << 16);
-+	writel(reg, mfc_regs->e_picture_profile);
-+
-+	switch (p_hevc->loopfilter) {
-+	case V4L2_MPEG_VIDEO_HEVC_LOOP_FILTER_MODE_DISABLED:
-+		p_hevc->loopfilter_disable = 1;
-+		break;
-+	case V4L2_MPEG_VIDEO_HEVC_LOOP_FILTER_MODE_ENABLED:
-+		p_hevc->loopfilter_disable = 0;
-+		p_hevc->loopfilter_across = 1;
-+		break;
-+	case V4L2_MPEG_VIDEO_HEVC_LOOP_FILTER_MODE_DISABLED_AT_SLICE_BOUNDARY:
-+		p_hevc->loopfilter_disable = 0;
-+		p_hevc->loopfilter_across = 0;
-+		break;
-+	}
-+
-+	/* max partition depth */
-+	reg = 0;
-+	reg |= (p_hevc->max_partition_depth & 0x1);
-+	reg |= (p_hevc->num_refs_for_p-1) << 2;
-+	reg |= (p_hevc->refreshtype & 0x3) << 3;
-+	reg |= (p_hevc->const_intra_period_enable & 0x1) << 5;
-+	reg |= (p_hevc->lossless_cu_enable & 0x1) << 6;
-+	reg |= (p_hevc->wavefront_enable & 0x1) << 7;
-+	reg |= (p_hevc->loopfilter_disable & 0x1) << 8;
-+	reg |= (p_hevc->loopfilter_across & 0x1) << 9;
-+	reg |= (p_hevc->enable_ltr & 0x1) << 10;
-+	reg |= (p_hevc->hier_qp_enable & 0x1) << 11;
-+	reg |= (p_hevc->general_pb_enable & 0x1) << 13;
-+	reg |= (p_hevc->temporal_id_enable & 0x1) << 14;
-+	reg |= (p_hevc->strong_intra_smooth & 0x1) << 15;
-+	reg |= (p_hevc->intra_pu_split_disable & 0x1) << 16;
-+	reg |= (p_hevc->tmv_prediction_disable & 0x1) << 17;
-+	reg |= (p_hevc->max_num_merge_mv & 0x7) << 18;
-+	reg |= (p_hevc->encoding_nostartcode_enable & 0x1) << 23;
-+	reg |= (p_hevc->prepend_sps_pps_to_idr << 26);
-+
-+	writel(reg, mfc_regs->e_hevc_options);
-+	/* refresh period */
-+	if (p_hevc->refreshtype) {
-+		reg = 0;
-+		reg |= (p_hevc->refreshperiod & 0xFFFF);
-+		writel(reg, mfc_regs->e_hevc_refresh_period);
-+	}
-+	/* loop filter setting */
-+	if (!(p_hevc->loopfilter_disable & 0x1)) {
-+		reg = 0;
-+		reg |= (p_hevc->lf_beta_offset_div2);
-+		writel(reg, mfc_regs->e_hevc_lf_beta_offset_div2);
-+		reg = 0;
-+		reg |= (p_hevc->lf_tc_offset_div2);
-+		writel(reg, mfc_regs->e_hevc_lf_tc_offset_div2);
-+	}
-+	/* hier qp enable */
-+	if (p_hevc->num_hier_layer) {
-+		reg = 0;
-+		reg |= (p_hevc->hier_qp_type & 0x1) << 0x3;
-+		reg |= p_hevc->num_hier_layer & 0x7;
-+		writel(reg, mfc_regs->e_num_t_layer);
-+		/* QP value for each layer */
-+		if (p_hevc->hier_qp_enable) {
-+			for (i = 0; i < 7; i++)
-+				writel(p_hevc->hier_qp_layer[i],
-+					mfc_regs->e_hier_qp_layer0 + i * 4);
-+		}
-+		if (p->rc_frame) {
-+			for (i = 0; i < 7; i++)
-+				writel(p_hevc->hier_bit_layer[i],
-+						mfc_regs->e_hier_bit_rate_layer0
-+						+ i * 4);
-+		}
-+	}
-+
-+	/* rate control config. */
-+	reg = readl(mfc_regs->e_rc_config);
-+	/* macroblock level rate control */
-+	reg &= ~(0x1 << 8);
-+	reg |= (p->rc_mb << 8);
-+	writel(reg, mfc_regs->e_rc_config);
-+	/* frame QP */
-+	reg &= ~(0xFF);
-+	reg |= p_hevc->rc_frame_qp;
-+	writel(reg, mfc_regs->e_rc_config);
-+
-+	/* frame rate */
-+	if (p->rc_frame) {
-+		reg = 0;
-+		reg &= ~(0xFFFF << 16);
-+		reg |= ((p_hevc->rc_framerate) << 16);
-+		reg &= ~(0xFFFF);
-+		reg |= FRAME_DELTA_DEFAULT;
-+		writel(reg, mfc_regs->e_rc_frame_rate);
-+	}
-+
-+	/* max & min value of QP */
-+	reg = 0;
-+	/* max QP */
-+	reg &= ~(0xFF << 8);
-+	reg |= (p_hevc->rc_max_qp << 8);
-+	/* min QP */
-+	reg &= ~(0xFF);
-+	reg |= p_hevc->rc_min_qp;
-+	writel(reg, mfc_regs->e_rc_qp_bound);
-+
-+	writel(0x0, mfc_regs->e_fixed_picture_qp);
-+	if (!p->rc_frame && !p->rc_mb) {
-+		reg = 0;
-+		reg &= ~(0xFF << 16);
-+		reg |= (p_hevc->rc_b_frame_qp << 16);
-+		reg &= ~(0xFF << 8);
-+		reg |= (p_hevc->rc_p_frame_qp << 8);
-+		reg &= ~(0xFF);
-+		reg |= p_hevc->rc_frame_qp;
-+		writel(reg, mfc_regs->e_fixed_picture_qp);
-+	}
-+	mfc_debug_leave();
-+
-+	return 0;
-+}
-+
- /* Initialize decoding */
- static int s5p_mfc_init_decode_v6(struct s5p_mfc_ctx *ctx)
- {
-@@ -1545,6 +1715,8 @@ static int s5p_mfc_init_encode_v6(struct s5p_mfc_ctx *ctx)
- 		s5p_mfc_set_enc_params_h263(ctx);
- 	else if (ctx->codec_mode == S5P_MFC_CODEC_VP8_ENC)
- 		s5p_mfc_set_enc_params_vp8(ctx);
-+	else if (ctx->codec_mode == S5P_FIMV_CODEC_HEVC_ENC)
-+		s5p_mfc_set_enc_params_hevc(ctx);
- 	else {
- 		mfc_err("Unknown codec for encoding (%x).\n",
- 			ctx->codec_mode);
-@@ -2298,6 +2470,16 @@ const struct s5p_mfc_regs *s5p_mfc_init_regs_v6_plus(struct s5p_mfc_dev *dev)
- 	R(d_static_buffer_addr, S5P_FIMV_D_STATIC_BUFFER_ADDR_V10);
- 	R(d_static_buffer_size, S5P_FIMV_D_STATIC_BUFFER_SIZE_V10);
- 
-+	/* encoder registers */
-+	R(e_num_t_layer, S5P_FIMV_E_NUM_T_LAYER_V10);
-+	R(e_hier_qp_layer0, S5P_FIMV_E_HIERARCHICAL_QP_LAYER0_V10);
-+	R(e_hier_bit_rate_layer0, S5P_FIMV_E_HIERARCHICAL_BIT_RATE_LAYER0_V10);
-+	R(e_hevc_options, S5P_FIMV_E_HEVC_OPTIONS_V10);
-+	R(e_hevc_refresh_period, S5P_FIMV_E_HEVC_REFRESH_PERIOD_V10);
-+	R(e_hevc_lf_beta_offset_div2, S5P_FIMV_E_HEVC_LF_BETA_OFFSET_DIV2_V10);
-+	R(e_hevc_lf_tc_offset_div2, S5P_FIMV_E_HEVC_LF_TC_OFFSET_DIV2_V10);
-+	R(e_hevc_nal_control, S5P_FIMV_E_HEVC_NAL_CONTROL_V10);
-+
- done:
- 	return &mfc_regs;
- #undef S5P_MFC_REG_ADDR
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h
-index f6cb703..f013b29 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h
-@@ -46,6 +46,14 @@
- #define ENC_MPEG4_VOP_TIME_RES_MAX	((1 << 16) - 1)
- #define FRAME_DELTA_H264_H263		1
- #define TIGHT_CBR_MAX			10
-+#define ENC_HEVC_RC_FRAME_RATE_MAX	((1 << 16) - 1)
-+#define ENC_HEVC_QP_INDEX_MIN		-12
-+#define ENC_HEVC_QP_INDEX_MAX		12
-+#define ENC_HEVC_LOOP_FILTER_MIN	-12
-+#define ENC_HEVC_LOOP_FILTER_MAX	12
-+#define ENC_HEVC_LEVEL_MAX		62
-+
-+#define FRAME_DELTA_DEFAULT		1
- 
- struct s5p_mfc_hw_ops *s5p_mfc_init_hw_ops_v6(void);
- const struct s5p_mfc_regs *s5p_mfc_init_regs_v6_plus(struct s5p_mfc_dev *dev);
--- 
-2.7.4
+For a series of fixes for the media subsytem:
+
+- The largest amount of fixes in this series is with regards to comments
+  that aren't kernel-doc, but start with "/**". A new check added for
+  4.15 makes it to produce a *huge* amount of new warnings (I'm compiling
+  here with W=1). Most of the patches in this series fix those. No code
+  changes - just comment changes at the source files;
+- rc: some fixed in order to better handle RC repetition codes;
+- v4l-async: use the v4l2_dev from the root notifier when matching sub-devices;
+- v4l2-fwnode: Check subdev count after checking port
+- ov 13858 and et8ek8: compilation fix with randconfigs;
+- usbtv: a trivial new USB ID addition;
+- dibusb-common: don't do DMA on stack on firmware load;
+- imx274: Fix error handling, add MAINTAINERS entry;
+- sir_ir: detect presence of port.
+
+The following changes since commit 4fbd8d194f06c8a3fd2af1ce560ddb31f7ec8323:
+
+  Linux 4.15-rc1 (2017-11-26 16:01:47 -0800)
+
+are available in the Git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media tags/media/v4.15-2
+
+for you to fetch changes up to 781b045baefdabf7e0bc9f33672ca830d3db9f27:
+
+  media: imx274: Fix error handling, add MAINTAINERS entry (2017-11-30 04:45:12 -0500)
+
+----------------------------------------------------------------
+media fixes for v4.15-rc3
+
+----------------------------------------------------------------
+Arnd Bergmann (1):
+      media: et8ek8: select V4L2_FWNODE
+
+Icenowy Zheng (1):
+      media: usbtv: add a new usbid
+
+Laurent Caumont (1):
+      media: dvb: i2c transfers over usb cannot be done from stack
+
+Mauro Carvalho Chehab (42):
+      Merge tag 'v4.15-rc1' into patchwork
+      media: dvb_ca_en50221: fix lots of documentation warnings
+      media: rc: fix lots of documentation warnings
+      media: siano: get rid of documentation warnings
+      media: img-ir-hw: fix one kernel-doc comment
+      media: drxj and drxk: don't produce kernel-doc warnings
+      media: vpif: don't generate a kernel-doc warning on a constant
+      media: dvb_frontend fix kernel_doc markups
+      media: rc-ir-raw: cleanup kernel-doc markups
+      media: dvb_net: stop abusing /** for comments
+      media: ir-nec-decoder: fix kernel-doc parameters
+      media: imon: don't use kernel-doc "/**" markups
+      media: videobuf2: don't use kernel-doc "/**" markups
+      media: atomisp: stop producing hundreds of kernel-doc warnings
+      media: rc: fix kernel-doc parameter names
+      media: v4l2-core: Fix kernel-doc markups
+      media: davinci: fix kernel-doc warnings
+      media: venc: don't use kernel-doc for undescribed enums
+      media: exynos4-is: fix kernel-doc warnings
+      media: m5mols: fix some kernel-doc markups
+      media: sta2x11: document missing function parameters
+      media: pxa_camera: get rid of kernel_doc warnings
+      media: tw68: fix kernel-doc markups
+      media: ix2505v: get rid of /** comments
+      media: radio-si476x: fix kernel-doc markups
+      media: s5k6a3: document some fields at struct s5k6a3
+      media: s5k6aa: describe some function parameters
+      media: netup_unidvb: fix a bad kernel-doc markup
+      media: tvp514x: fix kernel-doc parameters
+      media: vdec: fix some kernel-doc warnings
+      media: mtk-vpu: add description for wdt fields at struct mtk_vpu
+      media: s3c-camif: add missing description at s3c_camif_find_format()
+      media: radio-wl1273: fix a parameter name at kernel-doc macro
+      media: mt2063: fix some kernel-doc warnings
+      media: soc_camera: fix a kernel-doc markup
+      media: vsp1: add a missing kernel-doc parameter
+      media: rcar_jpu: fix two kernel-doc markups
+      media: lm3560: add a missing kernel-doc parameter
+      media: drivers: remove "/**" from non-kernel-doc comments
+      media: dvb_frontends: fix kernel-doc macros
+      media: docs: add documentation for frontend attach info
+      media: dvb-frontends: complete kernel-doc markups
+
+Niklas Söderlund (1):
+      media: v4l: async: use the v4l2_dev from the root notifier when matching sub-devices
+
+Sakari Ailus (2):
+      media: ov13858: Select V4L2_FWNODE
+      media: imx274: Fix error handling, add MAINTAINERS entry
+
+Sean Young (2):
+      media: rc: sir_ir: detect presence of port
+      media: rc: partial revert of "media: rc: per-protocol repeat period"
+
+Tomasz Figa (1):
+      media: v4l2-fwnode: Check subdev count after checking port
+
+ Documentation/media/dvb-drivers/frontends.rst      |  30 +
+ Documentation/media/dvb-drivers/index.rst          |   1 +
+ MAINTAINERS                                        |   8 +
+ drivers/media/common/siano/smscoreapi.c            |  66 +-
+ drivers/media/dvb-core/dvb_ca_en50221.c            |  68 +-
+ drivers/media/dvb-core/dvb_frontend.c              |  13 +-
+ drivers/media/dvb-core/dvb_net.c                   |  15 +-
+ drivers/media/dvb-frontends/af9013.h               |  24 +-
+ drivers/media/dvb-frontends/ascot2e.h              |   9 +
+ drivers/media/dvb-frontends/cxd2820r.h             |  24 +-
+ drivers/media/dvb-frontends/drx39xyj/bsp_i2c.h     |  12 +-
+ drivers/media/dvb-frontends/drx39xyj/drx_driver.h  | 878 ++++++++++-----------
+ drivers/media/dvb-frontends/drx39xyj/drxj.c        | 248 +++---
+ drivers/media/dvb-frontends/drx39xyj/drxj.h        | 220 +++---
+ drivers/media/dvb-frontends/drxk.h                 |  13 +-
+ drivers/media/dvb-frontends/drxk_hard.c            |  32 +-
+ drivers/media/dvb-frontends/dvb-pll.h              |  13 +-
+ drivers/media/dvb-frontends/helene.h               |  30 +-
+ drivers/media/dvb-frontends/horus3a.h              |   9 +
+ drivers/media/dvb-frontends/ix2505v.c              |   6 +-
+ drivers/media/dvb-frontends/ix2505v.h              |  28 +-
+ drivers/media/dvb-frontends/l64781.c               |   2 +-
+ drivers/media/dvb-frontends/m88ds3103.h            | 155 ++--
+ drivers/media/dvb-frontends/mb86a20s.h             |  17 +-
+ drivers/media/dvb-frontends/mn88472.h              |  16 +-
+ drivers/media/dvb-frontends/rtl2830.h              |   1 -
+ drivers/media/dvb-frontends/rtl2832.h              |   1 -
+ drivers/media/dvb-frontends/rtl2832_sdr.h          |   6 +-
+ drivers/media/dvb-frontends/sp887x.c               |   6 +-
+ drivers/media/dvb-frontends/stb6000.h              |  11 +-
+ drivers/media/dvb-frontends/stv0299.c              |   2 +-
+ drivers/media/dvb-frontends/tda10071.h             |   1 -
+ drivers/media/dvb-frontends/tda826x.h              |  11 +-
+ drivers/media/dvb-frontends/tua6100.c              |   2 +-
+ drivers/media/dvb-frontends/tua6100.h              |   2 +-
+ drivers/media/dvb-frontends/zd1301_demod.h         |  13 +-
+ drivers/media/dvb-frontends/zl10036.c              |   8 +-
+ drivers/media/dvb-frontends/zl10036.h              |  16 +-
+ drivers/media/i2c/Kconfig                          |   1 +
+ drivers/media/i2c/et8ek8/Kconfig                   |   1 +
+ drivers/media/i2c/imx274.c                         |   5 +-
+ drivers/media/i2c/lm3560.c                         |   1 +
+ drivers/media/i2c/m5mols/m5mols_capture.c          |   5 +
+ drivers/media/i2c/m5mols/m5mols_controls.c         |   1 +
+ drivers/media/i2c/m5mols/m5mols_core.c             |  20 +-
+ drivers/media/i2c/ov5647.c                         |   4 +-
+ drivers/media/i2c/s5k6a3.c                         |   3 +
+ drivers/media/i2c/s5k6aa.c                         |   5 +
+ drivers/media/i2c/tvp514x.c                        |  12 +-
+ drivers/media/pci/netup_unidvb/netup_unidvb_core.c |   8 +-
+ drivers/media/pci/solo6x10/solo6x10-enc.c          |   2 +-
+ drivers/media/pci/sta2x11/sta2x11_vip.c            |  11 +
+ drivers/media/pci/tw68/tw68-risc.c                 |  33 +-
+ drivers/media/platform/davinci/vpif.c              |   3 +-
+ drivers/media/platform/davinci/vpif_capture.c      |  27 +-
+ drivers/media/platform/davinci/vpif_display.c      |  16 +-
+ drivers/media/platform/exynos4-is/fimc-capture.c   |   3 +
+ drivers/media/platform/exynos4-is/media-dev.c      |  11 +-
+ drivers/media/platform/exynos4-is/mipi-csis.c      |   2 +-
+ .../media/platform/mtk-vcodec/vdec/vdec_h264_if.c  |   1 +
+ .../media/platform/mtk-vcodec/vdec/vdec_vp8_if.c   |   1 -
+ .../media/platform/mtk-vcodec/venc/venc_h264_if.c  |   4 +-
+ .../media/platform/mtk-vcodec/venc/venc_vp8_if.c   |   2 +-
+ drivers/media/platform/mtk-vpu/mtk_vpu.c           |   3 +-
+ drivers/media/platform/pxa_camera.c                |   9 +-
+ drivers/media/platform/rcar_fdp1.c                 |   2 +-
+ drivers/media/platform/rcar_jpu.c                  |   4 +-
+ drivers/media/platform/s3c-camif/camif-core.c      |   1 +
+ drivers/media/platform/sh_veu.c                    |   2 +-
+ drivers/media/platform/soc_camera/soc_scale_crop.c |  21 +-
+ drivers/media/platform/sti/hva/hva-h264.c          |  18 +-
+ drivers/media/platform/ti-vpe/vpe.c                |   2 +-
+ drivers/media/platform/vim2m.c                     |   2 +-
+ drivers/media/platform/vsp1/vsp1_dl.c              |   1 +
+ drivers/media/radio/radio-si476x.c                 |  18 +-
+ drivers/media/radio/radio-wl1273.c                 |   2 +-
+ drivers/media/rc/img-ir/img-ir-hw.c                |   2 +-
+ drivers/media/rc/imon.c                            |  40 +-
+ drivers/media/rc/ir-jvc-decoder.c                  |   2 +-
+ drivers/media/rc/ir-lirc-codec.c                   |   4 +-
+ drivers/media/rc/ir-nec-decoder.c                  |   3 +-
+ drivers/media/rc/ir-sanyo-decoder.c                |   2 +-
+ drivers/media/rc/ir-sharp-decoder.c                |   2 +-
+ drivers/media/rc/ir-xmp-decoder.c                  |   2 +-
+ drivers/media/rc/rc-ir-raw.c                       |   2 +-
+ drivers/media/rc/rc-main.c                         |  78 +-
+ drivers/media/rc/sir_ir.c                          |  40 +-
+ drivers/media/rc/st_rc.c                           |   6 +-
+ drivers/media/rc/streamzap.c                       |   6 +-
+ drivers/media/tuners/mt2063.c                      |   6 +-
+ drivers/media/usb/dvb-usb/cinergyT2-fe.c           |   2 +-
+ drivers/media/usb/dvb-usb/dib0700_devices.c        |   8 +-
+ drivers/media/usb/dvb-usb/dibusb-common.c          |  16 +-
+ drivers/media/usb/dvb-usb/friio-fe.c               |   2 +-
+ drivers/media/usb/dvb-usb/friio.c                  |   2 +-
+ drivers/media/usb/gspca/ov519.c                    |   2 +-
+ drivers/media/usb/pwc/pwc-dec23.c                  |   7 +-
+ drivers/media/usb/siano/smsusb.c                   |   4 +-
+ drivers/media/usb/ttusb-budget/dvb-ttusb-budget.c  |   6 +-
+ drivers/media/usb/usbtv/usbtv-core.c               |   1 +
+ drivers/media/v4l2-core/tuner-core.c               |   4 +-
+ drivers/media/v4l2-core/v4l2-async.c               |   3 +-
+ drivers/media/v4l2-core/v4l2-dv-timings.c          |  10 +-
+ drivers/media/v4l2-core/v4l2-fwnode.c              |  10 +-
+ drivers/media/v4l2-core/v4l2-mem2mem.c             |   2 +
+ drivers/media/v4l2-core/videobuf-core.c            |   2 +-
+ drivers/media/v4l2-core/videobuf2-core.c           |  56 +-
+ drivers/media/v4l2-core/videobuf2-memops.c         |   2 +-
+ drivers/media/v4l2-core/videobuf2-v4l2.c           |  10 +-
+ .../staging/media/atomisp/include/linux/atomisp.h  |  34 +-
+ .../media/atomisp/pci/atomisp2/atomisp_cmd.c       |   2 +-
+ .../atomisp/pci/atomisp2/atomisp_compat_css20.c    |   2 +-
+ .../atomisp/pci/atomisp2/atomisp_compat_ioctl32.h  |  16 +-
+ .../media/atomisp/pci/atomisp2/atomisp_subdev.h    |   2 +-
+ .../atomisp2/css2400/base/circbuf/src/circbuf.c    |  26 +-
+ .../camera/pipe/interface/ia_css_pipe_binarydesc.h |  34 +-
+ .../camera/pipe/interface/ia_css_pipe_util.h       |   2 +-
+ .../css2400/camera/util/interface/ia_css_util.h    |  18 +-
+ .../css_2401_csi2p_system/host/csi_rx_private.h    |   2 +-
+ .../css_2401_csi2p_system/host/ibuf_ctrl_private.h |   4 +-
+ .../css2400/css_2401_csi2p_system/host/isys_irq.c  |   2 +-
+ .../css_2401_csi2p_system/host/isys_irq_private.h  |   4 +-
+ .../host/isys_stream2mmio_private.h                |   4 +-
+ .../css_2401_csi2p_system/host/pixelgen_private.h  |   2 +-
+ .../css_2401_csi2p_system/isys_dma_global.h        |   4 +-
+ .../css_2401_csi2p_system/pixelgen_global.h        |   2 +-
+ .../css2400/css_2401_csi2p_system/system_global.h  |   8 +-
+ .../atomisp/pci/atomisp2/css2400/css_api_version.h |   2 +-
+ .../css2400/hive_isp_css_common/host/gp_timer.c    |   2 +-
+ .../hive_isp_css_include/host/csi_rx_public.h      |   4 +-
+ .../hive_isp_css_include/host/ibuf_ctrl_public.h   |   4 +-
+ .../css2400/hive_isp_css_include/host/isp_op1w.h   |  98 +--
+ .../css2400/hive_isp_css_include/host/isp_op2w.h   |  78 +-
+ .../host/isys_stream2mmio_public.h                 |   4 +-
+ .../hive_isp_css_include/host/pixelgen_public.h    |   4 +-
+ .../hive_isp_css_include/host/ref_vector_func.h    | 144 ++--
+ .../css2400/hive_isp_css_include/math_support.h    |   2 +-
+ .../css2400/hive_isp_css_include/string_support.h  |   8 +-
+ .../css2400/hive_isp_css_shared/host/tag.c         |   4 +-
+ .../media/atomisp/pci/atomisp2/css2400/ia_css.h    |   2 +-
+ .../media/atomisp/pci/atomisp2/css2400/ia_css_3a.h |  38 +-
+ .../pci/atomisp2/css2400/ia_css_acc_types.h        | 216 ++---
+ .../atomisp/pci/atomisp2/css2400/ia_css_buffer.h   |  32 +-
+ .../atomisp/pci/atomisp2/css2400/ia_css_control.h  |  22 +-
+ .../pci/atomisp2/css2400/ia_css_device_access.h    |   2 +-
+ .../atomisp/pci/atomisp2/css2400/ia_css_dvs.h      |  52 +-
+ .../atomisp/pci/atomisp2/css2400/ia_css_env.h      |  40 +-
+ .../atomisp/pci/atomisp2/css2400/ia_css_err.h      |  18 +-
+ .../pci/atomisp2/css2400/ia_css_event_public.h     |  68 +-
+ .../atomisp/pci/atomisp2/css2400/ia_css_firmware.h |  14 +-
+ .../atomisp/pci/atomisp2/css2400/ia_css_frac.h     |  10 +-
+ .../pci/atomisp2/css2400/ia_css_frame_format.h     |  62 +-
+ .../pci/atomisp2/css2400/ia_css_frame_public.h     | 120 +--
+ .../pci/atomisp2/css2400/ia_css_input_port.h       |  32 +-
+ .../atomisp/pci/atomisp2/css2400/ia_css_irq.h      | 112 +--
+ .../atomisp/pci/atomisp2/css2400/ia_css_metadata.h |  24 +-
+ .../atomisp/pci/atomisp2/css2400/ia_css_mipi.h     |  10 +-
+ .../atomisp/pci/atomisp2/css2400/ia_css_mmu.h      |   4 +-
+ .../atomisp/pci/atomisp2/css2400/ia_css_morph.h    |   6 +-
+ .../pci/atomisp2/css2400/ia_css_pipe_public.h      | 128 +--
+ .../atomisp/pci/atomisp2/css2400/ia_css_prbs.h     |  12 +-
+ .../pci/atomisp2/css2400/ia_css_properties.h       |   6 +-
+ .../atomisp/pci/atomisp2/css2400/ia_css_shading.h  |   6 +-
+ .../atomisp/pci/atomisp2/css2400/ia_css_stream.h   |   4 +-
+ .../pci/atomisp2/css2400/ia_css_stream_format.h    |  90 +--
+ .../pci/atomisp2/css2400/ia_css_stream_public.h    | 148 ++--
+ .../atomisp/pci/atomisp2/css2400/ia_css_timer.h    |  30 +-
+ .../atomisp/pci/atomisp2/css2400/ia_css_tpg.h      |   8 +-
+ .../atomisp/pci/atomisp2/css2400/ia_css_types.h    | 258 +++---
+ .../atomisp/pci/atomisp2/css2400/ia_css_version.h  |   6 +-
+ .../css2400/isp/kernels/aa/aa_2/ia_css_aa2_types.h |   6 +-
+ .../isp/kernels/anr/anr_1.0/ia_css_anr_types.h     |   6 +-
+ .../isp/kernels/anr/anr_2/ia_css_anr2_types.h      |   4 +-
+ .../isp/kernels/anr/anr_2/ia_css_anr_param.h       |   2 +-
+ .../bayer_ls/bayer_ls_1.0/ia_css_bayer_ls_param.h  |   2 +-
+ .../css2400/isp/kernels/bh/bh_2/ia_css_bh_types.h  |   4 +-
+ .../css2400/isp/kernels/bnlm/ia_css_bnlm_types.h   |  36 +-
+ .../isp/kernels/bnr/bnr2_2/ia_css_bnr2_2_types.h   |  34 +-
+ .../isp/kernels/cnr/cnr_2/ia_css_cnr2_types.h      |  20 +-
+ .../conversion_1.0/ia_css_conversion_types.h       |   8 +-
+ .../isp/kernels/crop/crop_1.0/ia_css_crop_param.h  |   2 +-
+ .../isp/kernels/crop/crop_1.0/ia_css_crop_types.h  |   2 +-
+ .../isp/kernels/csc/csc_1.0/ia_css_csc_types.h     |   8 +-
+ .../isp/kernels/ctc/ctc2/ia_css_ctc2_param.h       |  12 +-
+ .../isp/kernels/ctc/ctc2/ia_css_ctc2_types.h       |  10 +-
+ .../isp/kernels/ctc/ctc_1.0/ia_css_ctc_types.h     |  38 +-
+ .../isp/kernels/de/de_1.0/ia_css_de_types.h        |  10 +-
+ .../css2400/isp/kernels/de/de_2/ia_css_de2_types.h |  10 +-
+ .../isp/kernels/dp/dp_1.0/ia_css_dp_types.h        |   8 +-
+ .../css2400/isp/kernels/dpc2/ia_css_dpc2_types.h   |   6 +-
+ .../isp/kernels/dvs/dvs_1.0/ia_css_dvs_param.h     |   2 +-
+ .../isp/kernels/dvs/dvs_1.0/ia_css_dvs_types.h     |   2 +-
+ .../isp/kernels/eed1_8/ia_css_eed1_8_types.h       |  82 +-
+ .../isp/kernels/fc/fc_1.0/ia_css_formats_types.h   |   6 +-
+ .../isp/kernels/fpn/fpn_1.0/ia_css_fpn_types.h     |  14 +-
+ .../isp/kernels/gc/gc_1.0/ia_css_gc_types.h        |  32 +-
+ .../css2400/isp/kernels/gc/gc_2/ia_css_gc2_types.h |  14 +-
+ .../css2400/isp/kernels/hdr/ia_css_hdr_types.h     |  26 +-
+ .../ipu2_io_ls/bayer_io_ls/ia_css_bayer_io.host.c  |   2 +-
+ .../yuv444_io_ls/ia_css_yuv444_io.host.c           |   2 +-
+ .../kernels/macc/macc1_5/ia_css_macc1_5_types.h    |  16 +-
+ .../isp/kernels/macc/macc_1.0/ia_css_macc_types.h  |  12 +-
+ .../css2400/isp/kernels/ob/ob2/ia_css_ob2_types.h  |  12 +-
+ .../isp/kernels/ob/ob_1.0/ia_css_ob_types.h        |  26 +-
+ .../output/output_1.0/ia_css_output_param.h        |   2 +-
+ .../output/output_1.0/ia_css_output_types.h        |   8 +-
+ .../kernels/qplane/qplane_2/ia_css_qplane_types.h  |   2 +-
+ .../isp/kernels/raw/raw_1.0/ia_css_raw_types.h     |   2 +-
+ .../isp/kernels/ref/ref_1.0/ia_css_ref_param.h     |   2 +-
+ .../isp/kernels/ref/ref_1.0/ia_css_ref_types.h     |   2 +-
+ .../isp/kernels/s3a/s3a_1.0/ia_css_s3a_types.h     |  98 +--
+ .../kernels/s3a_stat_ls/ia_css_s3a_stat_ls_param.h |   2 +-
+ .../css2400/isp/kernels/sc/sc_1.0/ia_css_sc.host.h |   4 +-
+ .../isp/kernels/sc/sc_1.0/ia_css_sc_types.h        |  42 +-
+ .../kernels/sdis/common/ia_css_sdis_common_types.h | 104 +--
+ .../isp/kernels/sdis/sdis_1.0/ia_css_sdis_types.h  |  20 +-
+ .../isp/kernels/sdis/sdis_2/ia_css_sdis2_types.h   |  40 +-
+ .../isp/kernels/tdf/tdf_1.0/ia_css_tdf_types.h     |  38 +-
+ .../isp/kernels/tnr/tnr3/ia_css_tnr3_types.h       |  26 +-
+ .../isp/kernels/tnr/tnr_1.0/ia_css_tnr_types.h     |  10 +-
+ .../isp/kernels/vf/vf_1.0/ia_css_vf_param.h        |   4 +-
+ .../isp/kernels/vf/vf_1.0/ia_css_vf_types.h        |   4 +-
+ .../isp/kernels/wb/wb_1.0/ia_css_wb_types.h        |  14 +-
+ .../isp/kernels/xnr/xnr_1.0/ia_css_xnr.host.c      |   2 +-
+ .../isp/kernels/xnr/xnr_1.0/ia_css_xnr_param.h     |   2 +-
+ .../isp/kernels/xnr/xnr_1.0/ia_css_xnr_types.h     |  20 +-
+ .../isp/kernels/xnr/xnr_3.0/ia_css_xnr3_types.h    |  30 +-
+ .../isp/kernels/ynr/ynr_1.0/ia_css_ynr_types.h     |  28 +-
+ .../isp/kernels/ynr/ynr_2/ia_css_ynr2_types.h      |  40 +-
+ .../yuv_ls/yuv_ls_1.0/ia_css_yuv_ls_param.h        |   2 +-
+ .../atomisp/pci/atomisp2/css2400/memory_realloc.c  |   2 +-
+ .../runtime/binary/interface/ia_css_binary.h       |   2 +-
+ .../atomisp2/css2400/runtime/binary/src/binary.c   |   2 +-
+ .../pci/atomisp2/css2400/runtime/bufq/src/bufq.c   |   2 +-
+ .../css2400/runtime/debug/interface/ia_css_debug.h |  30 +-
+ .../css2400/runtime/debug/src/ia_css_debug.c       |  10 +-
+ .../pci/atomisp2/css2400/runtime/event/src/event.c |   4 +-
+ .../atomisp2/css2400/runtime/eventq/src/eventq.c   |   2 +-
+ .../css2400/runtime/frame/interface/ia_css_frame.h |  22 +-
+ .../pci/atomisp2/css2400/runtime/frame/src/frame.c |   2 +-
+ .../pci/atomisp2/css2400/runtime/ifmtr/src/ifmtr.c |   2 +-
+ .../css2400/runtime/inputfifo/src/inputfifo.c      |   2 +-
+ .../isp_param/interface/ia_css_isp_param_types.h   |   6 +-
+ .../css2400/runtime/isp_param/src/isp_param.c      |   2 +-
+ .../css2400/runtime/isys/interface/ia_css_isys.h   |   6 +-
+ .../css2400/runtime/isys/src/csi_rx_rmgr.c         |   2 +-
+ .../css2400/runtime/isys/src/ibuf_ctrl_rmgr.c      |   2 +-
+ .../css2400/runtime/isys/src/isys_dma_rmgr.c       |   2 +-
+ .../atomisp2/css2400/runtime/isys/src/isys_init.c  |   2 +-
+ .../runtime/isys/src/isys_stream2mmio_rmgr.c       |   2 +-
+ .../pci/atomisp2/css2400/runtime/isys/src/rx.c     |   2 +-
+ .../css2400/runtime/isys/src/virtual_isys.c        |   8 +-
+ .../runtime/pipeline/interface/ia_css_pipeline.h   |  28 +-
+ .../css2400/runtime/pipeline/src/pipeline.c        |   8 +-
+ .../css2400/runtime/queue/interface/ia_css_queue.h |  22 +-
+ .../css2400/runtime/queue/src/queue_access.c       |   2 +-
+ .../pci/atomisp2/css2400/runtime/rmgr/src/rmgr.c   |   4 +-
+ .../atomisp2/css2400/runtime/rmgr/src/rmgr_vbuf.c  |  26 +-
+ .../runtime/spctrl/interface/ia_css_spctrl.h       |  20 +-
+ .../runtime/spctrl/interface/ia_css_spctrl_comm.h  |  14 +-
+ .../atomisp2/css2400/runtime/spctrl/src/spctrl.c   |   4 +-
+ .../pci/atomisp2/css2400/runtime/timer/src/timer.c |   2 +-
+ .../media/atomisp/pci/atomisp2/css2400/sh_css.c    |  68 +-
+ .../atomisp/pci/atomisp2/css2400/sh_css_internal.h |  22 +-
+ .../atomisp/pci/atomisp2/css2400/sh_css_legacy.h   |   2 +-
+ .../atomisp/pci/atomisp2/css2400/sh_css_mipi.c     |   4 +-
+ .../atomisp/pci/atomisp2/css2400/sh_css_params.h   |   4 +-
+ .../media/atomisp/pci/atomisp2/css2400/sh_css_sp.c |  18 +-
+ .../atomisp/pci/atomisp2/css2400/sh_css_struct.h   |   2 +-
+ 269 files changed, 3169 insertions(+), 2951 deletions(-)
+ create mode 100644 Documentation/media/dvb-drivers/frontends.rst
