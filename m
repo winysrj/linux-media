@@ -1,581 +1,921 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:53685 "EHLO
+Received: from galahad.ideasonboard.com ([185.26.127.97]:47105 "EHLO
         galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751157AbdLCK5m (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sun, 3 Dec 2017 05:57:42 -0500
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
-Cc: linux-renesas-soc@vger.kernel.org
-Subject: [PATCH 7/9] v4l: vsp1: Add support for the DISCOM entity
-Date: Sun,  3 Dec 2017 12:57:33 +0200
-Message-Id: <20171203105735.10529-8-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <20171203105735.10529-1-laurent.pinchart+renesas@ideasonboard.com>
-References: <20171203105735.10529-1-laurent.pinchart+renesas@ideasonboard.com>
+        with ESMTP id S1752736AbdLHI2O (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 8 Dec 2017 03:28:14 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Niklas =?ISO-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>
+Subject: Re: [PATCH v9 08/28] rcar-vin: move functions regarding scaling
+Date: Fri, 08 Dec 2017 10:28:32 +0200
+Message-ID: <4205444.UPmIWaK9Tz@avalon>
+In-Reply-To: <20171208010842.20047-9-niklas.soderlund+renesas@ragnatech.se>
+References: <20171208010842.20047-1-niklas.soderlund+renesas@ragnatech.se> <20171208010842.20047-9-niklas.soderlund+renesas@ragnatech.se>
+MIME-Version: 1.0
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="iso-8859-1"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The DISCOM calculates a CRC on a configurable window of the frame. It
-interfaces to the VSP through the UIF glue, hence the name used in the
-code.
+Hi Niklas,
 
-The module supports configuration of the CRC window through the crop
-rectangle on the ink pad of the corresponding entity. However, unlike
-the traditional V4L2 subdevice model, the crop rectangle does not
-influence the format on the source pad.
+Thank you for the patch.
 
-Modeling the DISCOM as a sink-only entity would allow adhering to the
-V4L2 subdevice model at the expense of more complex code in the driver,
-as at the hardware level the UIF is handled as a sink+source entity. As
-the DISCOM is only present in R-Car Gen3 VSP-D and VSP-DL instances it
-is not exposed to userspace through V4L2 but controlled through the DU
-driver. We can thus change this model later if needed without fear of
-affecting userspace.
+On Friday, 8 December 2017 03:08:22 EET Niklas S=F6derlund wrote:
+> In preparation of refactoring the scaling code move the code regarding
+> scaling to to the top of the file to avoid the need to add forward
+> declarations. No code is changed in this commit only whole functions
+> moved inside the same file.
+>=20
+> Signed-off-by: Niklas S=F6derlund <niklas.soderlund+renesas@ragnatech.se>
+> Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
----
- drivers/media/platform/vsp1/Makefile      |   2 +-
- drivers/media/platform/vsp1/vsp1.h        |   4 +
- drivers/media/platform/vsp1/vsp1_drv.c    |  20 +++
- drivers/media/platform/vsp1/vsp1_entity.c |   6 +
- drivers/media/platform/vsp1/vsp1_entity.h |   1 +
- drivers/media/platform/vsp1/vsp1_regs.h   |  41 +++++
- drivers/media/platform/vsp1/vsp1_uif.c    | 275 ++++++++++++++++++++++++++++++
- drivers/media/platform/vsp1/vsp1_uif.h    |  36 ++++
- 8 files changed, 384 insertions(+), 1 deletion(-)
- create mode 100644 drivers/media/platform/vsp1/vsp1_uif.c
- create mode 100644 drivers/media/platform/vsp1/vsp1_uif.h
+The patch is awful to review from the e-mail as git has done a very bad job=
+=20
+formatting it. If you have to resend it, use --patience for this patch, it=
+=20
+will help a lot.
 
-diff --git a/drivers/media/platform/vsp1/Makefile b/drivers/media/platform/vsp1/Makefile
-index f5cd6f0491cb..3c73dd0cc898 100644
---- a/drivers/media/platform/vsp1/Makefile
-+++ b/drivers/media/platform/vsp1/Makefile
-@@ -5,6 +5,6 @@ vsp1-y					+= vsp1_rpf.o vsp1_rwpf.o vsp1_wpf.o
- vsp1-y					+= vsp1_clu.o vsp1_hsit.o vsp1_lut.o
- vsp1-y					+= vsp1_bru.o vsp1_sru.o vsp1_uds.o
- vsp1-y					+= vsp1_hgo.o vsp1_hgt.o vsp1_histo.o
--vsp1-y					+= vsp1_lif.o
-+vsp1-y					+= vsp1_lif.o vsp1_uif.o
- 
- obj-$(CONFIG_VIDEO_RENESAS_VSP1)	+= vsp1.o
-diff --git a/drivers/media/platform/vsp1/vsp1.h b/drivers/media/platform/vsp1/vsp1.h
-index 78ef838416b3..6f0b6baf125a 100644
---- a/drivers/media/platform/vsp1/vsp1.h
-+++ b/drivers/media/platform/vsp1/vsp1.h
-@@ -40,10 +40,12 @@ struct vsp1_lut;
- struct vsp1_rwpf;
- struct vsp1_sru;
- struct vsp1_uds;
-+struct vsp1_uif;
- 
- #define VSP1_MAX_LIF		2
- #define VSP1_MAX_RPF		5
- #define VSP1_MAX_UDS		3
-+#define VSP1_MAX_UIF		2
- #define VSP1_MAX_WPF		4
- 
- #define VSP1_HAS_LUT		(1 << 1)
-@@ -64,6 +66,7 @@ struct vsp1_device_info {
- 	unsigned int lif_count;
- 	unsigned int rpf_count;
- 	unsigned int uds_count;
-+	unsigned int uif_count;
- 	unsigned int wpf_count;
- 	unsigned int num_bru_inputs;
- 	bool uapi;
-@@ -90,6 +93,7 @@ struct vsp1_device {
- 	struct vsp1_rwpf *rpf[VSP1_MAX_RPF];
- 	struct vsp1_sru *sru;
- 	struct vsp1_uds *uds[VSP1_MAX_UDS];
-+	struct vsp1_uif *uif[VSP1_MAX_UIF];
- 	struct vsp1_rwpf *wpf[VSP1_MAX_WPF];
- 
- 	struct list_head entities;
-diff --git a/drivers/media/platform/vsp1/vsp1_drv.c b/drivers/media/platform/vsp1/vsp1_drv.c
-index 962e4c304076..b1e360ebb587 100644
---- a/drivers/media/platform/vsp1/vsp1_drv.c
-+++ b/drivers/media/platform/vsp1/vsp1_drv.c
-@@ -39,6 +39,7 @@
- #include "vsp1_rwpf.h"
- #include "vsp1_sru.h"
- #include "vsp1_uds.h"
-+#include "vsp1_uif.h"
- #include "vsp1_video.h"
- 
- /* -----------------------------------------------------------------------------
-@@ -413,6 +414,19 @@ static int vsp1_create_entities(struct vsp1_device *vsp1)
- 		list_add_tail(&uds->entity.list_dev, &vsp1->entities);
- 	}
- 
-+	for (i = 0; i < vsp1->info->uif_count; ++i) {
-+		struct vsp1_uif *uif;
-+
-+		uif = vsp1_uif_create(vsp1, i);
-+		if (IS_ERR(uif)) {
-+			ret = PTR_ERR(uif);
-+			goto done;
-+		}
-+
-+		vsp1->uif[i] = uif;
-+		list_add_tail(&uif->entity.list_dev, &vsp1->entities);
-+	}
-+
- 	for (i = 0; i < vsp1->info->wpf_count; ++i) {
- 		struct vsp1_rwpf *wpf;
- 
-@@ -517,6 +531,9 @@ static int vsp1_device_init(struct vsp1_device *vsp1)
- 	for (i = 0; i < vsp1->info->uds_count; ++i)
- 		vsp1_write(vsp1, VI6_DPR_UDS_ROUTE(i), VI6_DPR_NODE_UNUSED);
- 
-+	for (i = 0; i < vsp1->info->uif_count; ++i)
-+		vsp1_write(vsp1, VI6_DPR_UIF_ROUTE(i), VI6_DPR_NODE_UNUSED);
-+
- 	vsp1_write(vsp1, VI6_DPR_SRU_ROUTE, VI6_DPR_NODE_UNUSED);
- 	vsp1_write(vsp1, VI6_DPR_LUT_ROUTE, VI6_DPR_NODE_UNUSED);
- 	vsp1_write(vsp1, VI6_DPR_CLU_ROUTE, VI6_DPR_NODE_UNUSED);
-@@ -732,6 +749,7 @@ static const struct vsp1_device_info vsp1_device_infos[] = {
- 		.features = VSP1_HAS_BRU | VSP1_HAS_WPF_VFLIP,
- 		.lif_count = 1,
- 		.rpf_count = 5,
-+		.uif_count = 1,
- 		.wpf_count = 2,
- 		.num_bru_inputs = 5,
- 	}, {
-@@ -741,6 +759,7 @@ static const struct vsp1_device_info vsp1_device_infos[] = {
- 		.features = VSP1_HAS_BRS | VSP1_HAS_BRU,
- 		.lif_count = 1,
- 		.rpf_count = 5,
-+		.uif_count = 1,
- 		.wpf_count = 1,
- 		.num_bru_inputs = 5,
- 	}, {
-@@ -750,6 +769,7 @@ static const struct vsp1_device_info vsp1_device_infos[] = {
- 		.features = VSP1_HAS_BRS | VSP1_HAS_BRU,
- 		.lif_count = 2,
- 		.rpf_count = 5,
-+		.uif_count = 2,
- 		.wpf_count = 2,
- 		.num_bru_inputs = 5,
- 	},
-diff --git a/drivers/media/platform/vsp1/vsp1_entity.c b/drivers/media/platform/vsp1/vsp1_entity.c
-index b92d3985ae47..95a5db6d378d 100644
---- a/drivers/media/platform/vsp1/vsp1_entity.c
-+++ b/drivers/media/platform/vsp1/vsp1_entity.c
-@@ -543,6 +543,10 @@ struct media_pad *vsp1_entity_remote_pad(struct media_pad *pad)
- 	{ VSP1_ENTITY_UDS, idx, VI6_DPR_UDS_ROUTE(idx),			\
- 	  { VI6_DPR_NODE_UDS(idx) }, VI6_DPR_NODE_UDS(idx) }
- 
-+#define VSP1_ENTITY_ROUTE_UIF(idx)					\
-+	{ VSP1_ENTITY_UIF, idx, VI6_DPR_UIF_ROUTE(idx),			\
-+	  { VI6_DPR_NODE_UIF(idx) }, VI6_DPR_NODE_UIF(idx) }
-+
- #define VSP1_ENTITY_ROUTE_WPF(idx)					\
- 	{ VSP1_ENTITY_WPF, idx, 0,					\
- 	  { VI6_DPR_NODE_WPF(idx) }, VI6_DPR_NODE_WPF(idx) }
-@@ -571,6 +575,8 @@ static const struct vsp1_route vsp1_routes[] = {
- 	VSP1_ENTITY_ROUTE_UDS(0),
- 	VSP1_ENTITY_ROUTE_UDS(1),
- 	VSP1_ENTITY_ROUTE_UDS(2),
-+	VSP1_ENTITY_ROUTE_UIF(0),	/* Named UIF4 in the documentation */
-+	VSP1_ENTITY_ROUTE_UIF(1),	/* Named UIF5 in the documentation */
- 	VSP1_ENTITY_ROUTE_WPF(0),
- 	VSP1_ENTITY_ROUTE_WPF(1),
- 	VSP1_ENTITY_ROUTE_WPF(2),
-diff --git a/drivers/media/platform/vsp1/vsp1_entity.h b/drivers/media/platform/vsp1/vsp1_entity.h
-index 319e053737fd..b80798eb7696 100644
---- a/drivers/media/platform/vsp1/vsp1_entity.h
-+++ b/drivers/media/platform/vsp1/vsp1_entity.h
-@@ -37,6 +37,7 @@ enum vsp1_entity_type {
- 	VSP1_ENTITY_RPF,
- 	VSP1_ENTITY_SRU,
- 	VSP1_ENTITY_UDS,
-+	VSP1_ENTITY_UIF,
- 	VSP1_ENTITY_WPF,
- };
- 
-diff --git a/drivers/media/platform/vsp1/vsp1_regs.h b/drivers/media/platform/vsp1/vsp1_regs.h
-index 26c4ffad2f46..0e968eb5cb8e 100644
---- a/drivers/media/platform/vsp1/vsp1_regs.h
-+++ b/drivers/media/platform/vsp1/vsp1_regs.h
-@@ -311,6 +311,44 @@
- #define VI6_WPF_WRBCK_CTRL_WBMD		(1 << 0)
- 
- /* -----------------------------------------------------------------------------
-+ * UIF Control Registers
-+ */
-+
-+#define VI6_UIF_OFFSET			0x100
-+
-+#define VI6_UIF_DISCOM_DOCMCR		0x1c00
-+#define VI6_UIF_DISCOM_DOCMCR_CMPRU	(1 << 16)
-+#define VI6_UIF_DISCOM_DOCMCR_CMPR	(1 << 0)
-+
-+#define VI6_UIF_DISCOM_DOCMSTR		0x1c04
-+#define VI6_UIF_DISCOM_DOCMSTR_CMPPRE	(1 << 1)
-+#define VI6_UIF_DISCOM_DOCMSTR_CMPST	(1 << 0)
-+
-+#define VI6_UIF_DISCOM_DOCMCLSTR	0x1c08
-+#define VI6_UIF_DISCOM_DOCMCLSTR_CMPCLPRE	(1 << 1)
-+#define VI6_UIF_DISCOM_DOCMCLSTR_CMPCLST	(1 << 0)
-+
-+#define VI6_UIF_DISCOM_DOCMIENR		0x1c0c
-+#define VI6_UIF_DISCOM_DOCMIENR_CMPPREIEN	(1 << 1)
-+#define VI6_UIF_DISCOM_DOCMIENR_CMPIEN		(1 << 0)
-+
-+#define VI6_UIF_DISCOM_DOCMMDR		0x1c10
-+#define VI6_UIF_DISCOM_DOCMMDR_INTHRH(n)	((n) << 16)
-+
-+#define VI6_UIF_DISCOM_DOCMPMR		0x1c14
-+#define VI6_UIF_DISCOM_DOCMPMR_CMPDFF(n)	((n) << 17)
-+#define VI6_UIF_DISCOM_DOCMPMR_CMPDFA(n)	((n) << 8)
-+#define VI6_UIF_DISCOM_DOCMPMR_CMPDAUF		(1 << 7)
-+#define VI6_UIF_DISCOM_DOCMPMR_SEL(n)		((n) << 0)
-+
-+#define VI6_UIF_DISCOM_DOCMECRCR	0x1c18
-+#define VI6_UIF_DISCOM_DOCMCCRCR	0x1c1c
-+#define VI6_UIF_DISCOM_DOCMSPXR		0x1c20
-+#define VI6_UIF_DISCOM_DOCMSPYR		0x1c24
-+#define VI6_UIF_DISCOM_DOCMSZXR		0x1c28
-+#define VI6_UIF_DISCOM_DOCMSZYR		0x1c2c
-+
-+/* -----------------------------------------------------------------------------
-  * DPR Control Registers
-  */
- 
-@@ -342,7 +380,10 @@
- #define VI6_DPR_SMPPT_PT_MASK		(0x3f << 0)
- #define VI6_DPR_SMPPT_PT_SHIFT		0
- 
-+#define VI6_DPR_UIF_ROUTE(n)		(0x2074 + (n) * 4)
-+
- #define VI6_DPR_NODE_RPF(n)		(n)
-+#define VI6_DPR_NODE_UIF(n)		(12 + (n))
- #define VI6_DPR_NODE_SRU		16
- #define VI6_DPR_NODE_UDS(n)		(17 + (n))
- #define VI6_DPR_NODE_LUT		22
-diff --git a/drivers/media/platform/vsp1/vsp1_uif.c b/drivers/media/platform/vsp1/vsp1_uif.c
-new file mode 100644
-index 000000000000..60c482747d66
---- /dev/null
-+++ b/drivers/media/platform/vsp1/vsp1_uif.c
-@@ -0,0 +1,275 @@
-+/*
-+ * vsp1_uif.c  --  R-Car VSP1 User Logic Interface
-+ *
-+ * Copyright (C) 2017 Laurent Pinchart
-+ *
-+ * Contact: Laurent Pinchart (laurent.pinchart@ideasonboard.com)
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ */
-+
-+#include <linux/device.h>
-+#include <linux/gfp.h>
-+#include <linux/sys_soc.h>
-+
-+#include <media/media-entity.h>
-+#include <media/v4l2-subdev.h>
-+
-+#include "vsp1.h"
-+#include "vsp1_dl.h"
-+#include "vsp1_entity.h"
-+#include "vsp1_uif.h"
-+
-+#define UIF_MIN_SIZE				4U
-+#define UIF_MAX_SIZE				8190U
-+
-+/* -----------------------------------------------------------------------------
-+ * Device Access
-+ */
-+
-+static inline u32 vsp1_uif_read(struct vsp1_uif *uif, u32 reg)
-+{
-+	return vsp1_read(uif->entity.vsp1,
-+			 uif->entity.index * VI6_UIF_OFFSET + reg);
-+}
-+static inline void vsp1_uif_write(struct vsp1_uif *uif, struct vsp1_dl_list *dl,
-+				  u32 reg, u32 data)
-+{
-+	vsp1_dl_list_write(dl, reg + uif->entity.index * VI6_UIF_OFFSET, data);
-+}
-+
-+u32 vsp1_uif_get_crc(struct vsp1_uif *uif)
-+{
-+	return vsp1_uif_read(uif, VI6_UIF_DISCOM_DOCMCCRCR);
-+}
-+
-+/* -----------------------------------------------------------------------------
-+ * V4L2 Subdevice Pad Operations
-+ */
-+
-+static const unsigned int uif_codes[] = {
-+	MEDIA_BUS_FMT_ARGB8888_1X32,
-+	MEDIA_BUS_FMT_AHSV8888_1X32,
-+	MEDIA_BUS_FMT_AYUV8_1X32,
-+};
-+
-+static int uif_enum_mbus_code(struct v4l2_subdev *subdev,
-+			      struct v4l2_subdev_pad_config *cfg,
-+			      struct v4l2_subdev_mbus_code_enum *code)
-+{
-+	return vsp1_subdev_enum_mbus_code(subdev, cfg, code, uif_codes,
-+					  ARRAY_SIZE(uif_codes));
-+}
-+
-+static int uif_enum_frame_size(struct v4l2_subdev *subdev,
-+			       struct v4l2_subdev_pad_config *cfg,
-+			       struct v4l2_subdev_frame_size_enum *fse)
-+{
-+	return vsp1_subdev_enum_frame_size(subdev, cfg, fse, UIF_MIN_SIZE,
-+					   UIF_MIN_SIZE, UIF_MAX_SIZE,
-+					   UIF_MAX_SIZE);
-+}
-+
-+static int uif_set_format(struct v4l2_subdev *subdev,
-+			    struct v4l2_subdev_pad_config *cfg,
-+			    struct v4l2_subdev_format *fmt)
-+{
-+	return vsp1_subdev_set_pad_format(subdev, cfg, fmt, uif_codes,
-+					  ARRAY_SIZE(uif_codes),
-+					  UIF_MIN_SIZE, UIF_MIN_SIZE,
-+					  UIF_MAX_SIZE, UIF_MAX_SIZE);
-+}
-+
-+static int uif_get_selection(struct v4l2_subdev *subdev,
-+			     struct v4l2_subdev_pad_config *cfg,
-+			     struct v4l2_subdev_selection *sel)
-+{
-+	struct vsp1_uif *uif = to_uif(subdev);
-+	struct v4l2_subdev_pad_config *config;
-+	struct v4l2_mbus_framefmt *format;
-+	int ret = 0;
-+
-+	if (sel->pad != UIF_PAD_SINK)
-+		return -EINVAL;
-+
-+	mutex_lock(&uif->entity.lock);
-+
-+	config = vsp1_entity_get_pad_config(&uif->entity, cfg, sel->which);
-+	if (!config) {
-+		ret = -EINVAL;
-+		goto done;
-+	}
-+
-+	switch (sel->target) {
-+	case V4L2_SEL_TGT_CROP_BOUNDS:
-+	case V4L2_SEL_TGT_CROP_DEFAULT:
-+		format = vsp1_entity_get_pad_format(&uif->entity, config,
-+						    UIF_PAD_SINK);
-+		sel->r.left = 0;
-+		sel->r.top = 0;
-+		sel->r.width = format->width;
-+		sel->r.height = format->height;
-+		break;
-+
-+	case V4L2_SEL_TGT_CROP:
-+		sel->r = *vsp1_entity_get_pad_selection(&uif->entity, config,
-+							sel->pad, sel->target);
-+		break;
-+
-+	default:
-+		ret = -EINVAL;
-+		break;
-+	}
-+
-+done:
-+	mutex_unlock(&uif->entity.lock);
-+	return ret;
-+}
-+
-+static int uif_set_selection(struct v4l2_subdev *subdev,
-+			     struct v4l2_subdev_pad_config *cfg,
-+			     struct v4l2_subdev_selection *sel)
-+{
-+	struct vsp1_uif *uif = to_uif(subdev);
-+	struct v4l2_subdev_pad_config *config;
-+	struct v4l2_mbus_framefmt *format;
-+	struct v4l2_rect *selection;
-+	int ret;
-+
-+	if (sel->pad != UIF_PAD_SINK ||
-+	    sel->target != V4L2_SEL_TGT_CROP)
-+		return -EINVAL;
-+
-+	mutex_lock(&uif->entity.lock);
-+
-+	config = vsp1_entity_get_pad_config(&uif->entity, cfg, sel->which);
-+	if (!config) {
-+		ret = -EINVAL;
-+		goto done;
-+	}
-+
-+	/* The crop rectangle must be inside the input frame. */
-+	format = vsp1_entity_get_pad_format(&uif->entity, config, UIF_PAD_SINK);
-+
-+	sel->r.left = clamp_t(unsigned int, sel->r.left, 0, format->width - 1);
-+	sel->r.top = clamp_t(unsigned int, sel->r.top, 0, format->height - 1);
-+	sel->r.width = clamp_t(unsigned int, sel->r.width, UIF_MIN_SIZE,
-+			       format->width - sel->r.left);
-+	sel->r.height = clamp_t(unsigned int, sel->r.height, UIF_MIN_SIZE,
-+				format->height - sel->r.top);
-+
-+	/* Store the crop rectangle. */
-+	selection = vsp1_entity_get_pad_selection(&uif->entity, config,
-+						  sel->pad, V4L2_SEL_TGT_CROP);
-+	*selection = sel->r;
-+
-+done:
-+	mutex_unlock(&uif->entity.lock);
-+	return ret;
-+}
-+
-+/* -----------------------------------------------------------------------------
-+ * V4L2 Subdevice Operations
-+ */
-+
-+static const struct v4l2_subdev_pad_ops uif_pad_ops = {
-+	.init_cfg = vsp1_entity_init_cfg,
-+	.enum_mbus_code = uif_enum_mbus_code,
-+	.enum_frame_size = uif_enum_frame_size,
-+	.get_fmt = vsp1_subdev_get_pad_format,
-+	.set_fmt = uif_set_format,
-+	.get_selection = uif_get_selection,
-+	.set_selection = uif_set_selection,
-+};
-+
-+static const struct v4l2_subdev_ops uif_ops = {
-+	.pad    = &uif_pad_ops,
-+};
-+
-+/* -----------------------------------------------------------------------------
-+ * VSP1 Entity Operations
-+ */
-+
-+static void uif_configure(struct vsp1_entity *entity,
-+			  struct vsp1_pipeline *pipe,
-+			  struct vsp1_dl_list *dl,
-+			  enum vsp1_entity_params params)
-+{
-+	struct vsp1_uif *uif = to_uif(&entity->subdev);
-+	const struct v4l2_rect *crop;
-+	unsigned int left;
-+	unsigned int width;
-+
-+	/*
-+	 * Per-partition configuration isn't needed as the DISCOM is used in
-+	 * display pipelines only.
-+	 */
-+	if (params != VSP1_ENTITY_PARAMS_INIT)
-+		return;
-+
-+	vsp1_uif_write(uif, dl, VI6_UIF_DISCOM_DOCMPMR,
-+		       VI6_UIF_DISCOM_DOCMPMR_SEL(9));
-+
-+	crop = vsp1_entity_get_pad_selection(entity, entity->config,
-+					     UIF_PAD_SINK, V4L2_SEL_TGT_CROP);
-+
-+	/* On M3-W the horizontal coordinates are twice the register value. */
-+	if (uif->m3w_quirk) {
-+		left = crop->left / 2;
-+		width = crop->width / 2;
-+	} else {
-+		left = crop->left;
-+		width = crop->width;
-+	}
-+
-+	vsp1_uif_write(uif, dl, VI6_UIF_DISCOM_DOCMSPXR, left);
-+	vsp1_uif_write(uif, dl, VI6_UIF_DISCOM_DOCMSPYR, crop->top);
-+	vsp1_uif_write(uif, dl, VI6_UIF_DISCOM_DOCMSZXR, width);
-+	vsp1_uif_write(uif, dl, VI6_UIF_DISCOM_DOCMSZYR, crop->height);
-+
-+	vsp1_uif_write(uif, dl, VI6_UIF_DISCOM_DOCMCR,
-+		       VI6_UIF_DISCOM_DOCMCR_CMPR);
-+}
-+
-+static const struct vsp1_entity_operations uif_entity_ops = {
-+	.configure = uif_configure,
-+};
-+
-+/* -----------------------------------------------------------------------------
-+ * Initialization and Cleanup
-+ */
-+
-+static const struct soc_device_attribute vsp1_r8a7796[] = {
-+	{ .soc_id = "r8a7796" },
-+	{ /* sentinel */ }
-+};
-+
-+struct vsp1_uif *vsp1_uif_create(struct vsp1_device *vsp1, unsigned int index)
-+{
-+	struct vsp1_uif *uif;
-+	char name[6];
-+	int ret;
-+
-+	uif = devm_kzalloc(vsp1->dev, sizeof(*uif), GFP_KERNEL);
-+	if (uif == NULL)
-+		return ERR_PTR(-ENOMEM);
-+
-+	if (soc_device_match(vsp1_r8a7796))
-+		uif->m3w_quirk = true;
-+
-+	uif->entity.ops = &uif_entity_ops;
-+	uif->entity.type = VSP1_ENTITY_UIF;
-+	uif->entity.index = index;
-+
-+	/* The datasheet names the two UIF instances UIF4 and UIF5. */
-+	sprintf(name, "uif.%u", index + 4);
-+	ret = vsp1_entity_init(vsp1, &uif->entity, name, 2, &uif_ops,
-+			       MEDIA_ENT_F_PROC_VIDEO_STATISTICS);
-+	if (ret < 0)
-+		return ERR_PTR(ret);
-+
-+	return uif;
-+}
-diff --git a/drivers/media/platform/vsp1/vsp1_uif.h b/drivers/media/platform/vsp1/vsp1_uif.h
-new file mode 100644
-index 000000000000..4621d3cf2585
---- /dev/null
-+++ b/drivers/media/platform/vsp1/vsp1_uif.h
-@@ -0,0 +1,36 @@
-+/*
-+ * vsp1_uif.h  --  R-Car VSP1 User Logic Interface
-+ *
-+ * Copyright (C) 2017 Laurent Pinchart
-+ *
-+ * Contact: Laurent Pinchart (laurent.pinchart@ideasonboard.com)
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ */
-+#ifndef __VSP1_UIF_H__
-+#define __VSP1_UIF_H__
-+
-+#include "vsp1_entity.h"
-+
-+struct vsp1_device;
-+
-+#define UIF_PAD_SINK				0
-+#define UIF_PAD_SOURCE				1
-+
-+struct vsp1_uif {
-+	struct vsp1_entity entity;
-+	bool m3w_quirk;
-+};
-+
-+static inline struct vsp1_uif *to_uif(struct v4l2_subdev *subdev)
-+{
-+	return container_of(subdev, struct vsp1_uif, entity.subdev);
-+}
-+
-+struct vsp1_uif *vsp1_uif_create(struct vsp1_device *vsp1, unsigned int index);
-+u32 vsp1_uif_get_crc(struct vsp1_uif *uif);
-+
-+#endif /* __VSP1_UIF_H__ */
--- 
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+> ---
+>  drivers/media/platform/rcar-vin/rcar-dma.c | 806 ++++++++++++++---------=
+=2D--
+>  1 file changed, 405 insertions(+), 401 deletions(-)
+>=20
+> diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c
+> b/drivers/media/platform/rcar-vin/rcar-dma.c index
+> d701b52d198243b5..a7cda3922cb74baa 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-dma.c
+> +++ b/drivers/media/platform/rcar-vin/rcar-dma.c
+> @@ -138,305 +138,6 @@ static u32 rvin_read(struct rvin_dev *vin, u32 offs=
+et)
+> return ioread32(vin->base + offset);
+>  }
+>=20
+> -static int rvin_setup(struct rvin_dev *vin)
+> -{
+> -	u32 vnmc, dmr, dmr2, interrupts;
+> -	v4l2_std_id std;
+> -	bool progressive =3D false, output_is_yuv =3D false, input_is_yuv =3D f=
+alse;
+> -
+> -	switch (vin->format.field) {
+> -	case V4L2_FIELD_TOP:
+> -		vnmc =3D VNMC_IM_ODD;
+> -		break;
+> -	case V4L2_FIELD_BOTTOM:
+> -		vnmc =3D VNMC_IM_EVEN;
+> -		break;
+> -	case V4L2_FIELD_INTERLACED:
+> -		/* Default to TB */
+> -		vnmc =3D VNMC_IM_FULL;
+> -		/* Use BT if video standard can be read and is 60 Hz format */
+> -		if (!v4l2_subdev_call(vin_to_source(vin), video, g_std, &std)) {
+> -			if (std & V4L2_STD_525_60)
+> -				vnmc =3D VNMC_IM_FULL | VNMC_FOC;
+> -		}
+> -		break;
+> -	case V4L2_FIELD_INTERLACED_TB:
+> -		vnmc =3D VNMC_IM_FULL;
+> -		break;
+> -	case V4L2_FIELD_INTERLACED_BT:
+> -		vnmc =3D VNMC_IM_FULL | VNMC_FOC;
+> -		break;
+> -	case V4L2_FIELD_ALTERNATE:
+> -	case V4L2_FIELD_NONE:
+> -		if (vin->continuous) {
+> -			vnmc =3D VNMC_IM_ODD_EVEN;
+> -			progressive =3D true;
+> -		} else {
+> -			vnmc =3D VNMC_IM_ODD;
+> -		}
+> -		break;
+> -	default:
+> -		vnmc =3D VNMC_IM_ODD;
+> -		break;
+> -	}
+> -
+> -	/*
+> -	 * Input interface
+> -	 */
+> -	switch (vin->digital->code) {
+> -	case MEDIA_BUS_FMT_YUYV8_1X16:
+> -		/* BT.601/BT.1358 16bit YCbCr422 */
+> -		vnmc |=3D VNMC_INF_YUV16;
+> -		input_is_yuv =3D true;
+> -		break;
+> -	case MEDIA_BUS_FMT_UYVY8_2X8:
+> -		/* BT.656 8bit YCbCr422 or BT.601 8bit YCbCr422 */
+> -		vnmc |=3D vin->digital->mbus_cfg.type =3D=3D V4L2_MBUS_BT656 ?
+> -			VNMC_INF_YUV8_BT656 : VNMC_INF_YUV8_BT601;
+> -		input_is_yuv =3D true;
+> -		break;
+> -	case MEDIA_BUS_FMT_RGB888_1X24:
+> -		vnmc |=3D VNMC_INF_RGB888;
+> -		break;
+> -	case MEDIA_BUS_FMT_UYVY10_2X10:
+> -		/* BT.656 10bit YCbCr422 or BT.601 10bit YCbCr422 */
+> -		vnmc |=3D vin->digital->mbus_cfg.type =3D=3D V4L2_MBUS_BT656 ?
+> -			VNMC_INF_YUV10_BT656 : VNMC_INF_YUV10_BT601;
+> -		input_is_yuv =3D true;
+> -		break;
+> -	default:
+> -		break;
+> -	}
+> -
+> -	/* Enable VSYNC Field Toogle mode after one VSYNC input */
+> -	dmr2 =3D VNDMR2_FTEV | VNDMR2_VLV(1);
+> -
+> -	/* Hsync Signal Polarity Select */
+> -	if (!(vin->digital->mbus_cfg.flags & V4L2_MBUS_HSYNC_ACTIVE_LOW))
+> -		dmr2 |=3D VNDMR2_HPS;
+> -
+> -	/* Vsync Signal Polarity Select */
+> -	if (!(vin->digital->mbus_cfg.flags & V4L2_MBUS_VSYNC_ACTIVE_LOW))
+> -		dmr2 |=3D VNDMR2_VPS;
+> -
+> -	/*
+> -	 * Output format
+> -	 */
+> -	switch (vin->format.pixelformat) {
+> -	case V4L2_PIX_FMT_NV16:
+> -		rvin_write(vin,
+> -			   ALIGN(vin->format.width * vin->format.height, 0x80),
+> -			   VNUVAOF_REG);
+> -		dmr =3D VNDMR_DTMD_YCSEP;
+> -		output_is_yuv =3D true;
+> -		break;
+> -	case V4L2_PIX_FMT_YUYV:
+> -		dmr =3D VNDMR_BPSM;
+> -		output_is_yuv =3D true;
+> -		break;
+> -	case V4L2_PIX_FMT_UYVY:
+> -		dmr =3D 0;
+> -		output_is_yuv =3D true;
+> -		break;
+> -	case V4L2_PIX_FMT_XRGB555:
+> -		dmr =3D VNDMR_DTMD_ARGB1555;
+> -		break;
+> -	case V4L2_PIX_FMT_RGB565:
+> -		dmr =3D 0;
+> -		break;
+> -	case V4L2_PIX_FMT_XBGR32:
+> -		/* Note: not supported on M1 */
+> -		dmr =3D VNDMR_EXRGB;
+> -		break;
+> -	default:
+> -		vin_err(vin, "Invalid pixelformat (0x%x)\n",
+> -			vin->format.pixelformat);
+> -		return -EINVAL;
+> -	}
+> -
+> -	/* Always update on field change */
+> -	vnmc |=3D VNMC_VUP;
+> -
+> -	/* If input and output use the same colorspace, use bypass mode */
+> -	if (input_is_yuv =3D=3D output_is_yuv)
+> -		vnmc |=3D VNMC_BPS;
+> -
+> -	/* Progressive or interlaced mode */
+> -	interrupts =3D progressive ? VNIE_FIE : VNIE_EFE;
+> -
+> -	/* Ack interrupts */
+> -	rvin_write(vin, interrupts, VNINTS_REG);
+> -	/* Enable interrupts */
+> -	rvin_write(vin, interrupts, VNIE_REG);
+> -	/* Start capturing */
+> -	rvin_write(vin, dmr, VNDMR_REG);
+> -	rvin_write(vin, dmr2, VNDMR2_REG);
+> -
+> -	/* Enable module */
+> -	rvin_write(vin, vnmc | VNMC_ME, VNMC_REG);
+> -
+> -	return 0;
+> -}
+> -
+> -static void rvin_disable_interrupts(struct rvin_dev *vin)
+> -{
+> -	rvin_write(vin, 0, VNIE_REG);
+> -}
+> -
+> -static u32 rvin_get_interrupt_status(struct rvin_dev *vin)
+> -{
+> -	return rvin_read(vin, VNINTS_REG);
+> -}
+> -
+> -static void rvin_ack_interrupt(struct rvin_dev *vin)
+> -{
+> -	rvin_write(vin, rvin_read(vin, VNINTS_REG), VNINTS_REG);
+> -}
+> -
+> -static bool rvin_capture_active(struct rvin_dev *vin)
+> -{
+> -	return rvin_read(vin, VNMS_REG) & VNMS_CA;
+> -}
+> -
+> -static int rvin_get_active_slot(struct rvin_dev *vin, u32 vnms)
+> -{
+> -	if (vin->continuous)
+> -		return (vnms & VNMS_FBS_MASK) >> VNMS_FBS_SHIFT;
+> -
+> -	return 0;
+> -}
+> -
+> -static enum v4l2_field rvin_get_active_field(struct rvin_dev *vin, u32
+> vnms) -{
+> -	if (vin->format.field =3D=3D V4L2_FIELD_ALTERNATE) {
+> -		/* If FS is set it's a Even field */
+> -		if (vnms & VNMS_FS)
+> -			return V4L2_FIELD_BOTTOM;
+> -		return V4L2_FIELD_TOP;
+> -	}
+> -
+> -	return vin->format.field;
+> -}
+> -
+> -static void rvin_set_slot_addr(struct rvin_dev *vin, int slot, dma_addr_t
+> addr) -{
+> -	const struct rvin_video_format *fmt;
+> -	int offsetx, offsety;
+> -	dma_addr_t offset;
+> -
+> -	fmt =3D rvin_format_from_pixel(vin->format.pixelformat);
+> -
+> -	/*
+> -	 * There is no HW support for composition do the beast we can
+> -	 * by modifying the buffer offset
+> -	 */
+> -	offsetx =3D vin->compose.left * fmt->bpp;
+> -	offsety =3D vin->compose.top * vin->format.bytesperline;
+> -	offset =3D addr + offsetx + offsety;
+> -
+> -	/*
+> -	 * The address needs to be 128 bytes aligned. Driver should never accept
+> -	 * settings that do not satisfy this in the first place...
+> -	 */
+> -	if (WARN_ON((offsetx | offsety | offset) & HW_BUFFER_MASK))
+> -		return;
+> -
+> -	rvin_write(vin, offset, VNMB_REG(slot));
+> -}
+> -
+> -/* Moves a buffer from the queue to the HW slots */
+> -static bool rvin_fill_hw_slot(struct rvin_dev *vin, int slot)
+> -{
+> -	struct rvin_buffer *buf;
+> -	struct vb2_v4l2_buffer *vbuf;
+> -	dma_addr_t phys_addr_top;
+> -
+> -	if (vin->queue_buf[slot] !=3D NULL)
+> -		return true;
+> -
+> -	if (list_empty(&vin->buf_list))
+> -		return false;
+> -
+> -	vin_dbg(vin, "Filling HW slot: %d\n", slot);
+> -
+> -	/* Keep track of buffer we give to HW */
+> -	buf =3D list_entry(vin->buf_list.next, struct rvin_buffer, list);
+> -	vbuf =3D &buf->vb;
+> -	list_del_init(to_buf_list(vbuf));
+> -	vin->queue_buf[slot] =3D vbuf;
+> -
+> -	/* Setup DMA */
+> -	phys_addr_top =3D vb2_dma_contig_plane_dma_addr(&vbuf->vb2_buf, 0);
+> -	rvin_set_slot_addr(vin, slot, phys_addr_top);
+> -
+> -	return true;
+> -}
+> -
+> -static bool rvin_fill_hw(struct rvin_dev *vin)
+> -{
+> -	int slot, limit;
+> -
+> -	limit =3D vin->continuous ? HW_BUFFER_NUM : 1;
+> -
+> -	for (slot =3D 0; slot < limit; slot++)
+> -		if (!rvin_fill_hw_slot(vin, slot))
+> -			return false;
+> -	return true;
+> -}
+> -
+> -static void rvin_capture_on(struct rvin_dev *vin)
+> -{
+> -	vin_dbg(vin, "Capture on in %s mode\n",
+> -		vin->continuous ? "continuous" : "single");
+> -
+> -	if (vin->continuous)
+> -		/* Continuous Frame Capture Mode */
+> -		rvin_write(vin, VNFC_C_FRAME, VNFC_REG);
+> -	else
+> -		/* Single Frame Capture Mode */
+> -		rvin_write(vin, VNFC_S_FRAME, VNFC_REG);
+> -}
+> -
+> -static int rvin_capture_start(struct rvin_dev *vin)
+> -{
+> -	struct rvin_buffer *buf, *node;
+> -	int bufs, ret;
+> -
+> -	/* Count number of free buffers */
+> -	bufs =3D 0;
+> -	list_for_each_entry_safe(buf, node, &vin->buf_list, list)
+> -		bufs++;
+> -
+> -	/* Continuous capture requires more buffers then there are HW slots */
+> -	vin->continuous =3D bufs > HW_BUFFER_NUM;
+> -
+> -	if (!rvin_fill_hw(vin)) {
+> -		vin_err(vin, "HW not ready to start, not enough buffers available\n");
+> -		return -EINVAL;
+> -	}
+> -
+> -	rvin_crop_scale_comp(vin);
+> -
+> -	ret =3D rvin_setup(vin);
+> -	if (ret)
+> -		return ret;
+> -
+> -	rvin_capture_on(vin);
+> -
+> -	vin->state =3D RUNNING;
+> -
+> -	return 0;
+> -}
+> -
+> -static void rvin_capture_stop(struct rvin_dev *vin)
+> -{
+> -	/* Set continuous & single transfer off */
+> -	rvin_write(vin, 0, VNFC_REG);
+> -
+> -	/* Disable module */
+> -	rvin_write(vin, rvin_read(vin, VNMC_REG) & ~VNMC_ME, VNMC_REG);
+> -}
+> -
+>  /*
+> -------------------------------------------------------------------------=
+=2D-
+> -- * Crop and Scaling Gen2
+>   */
+> @@ -757,139 +458,442 @@ static const struct vin_coeff vin_coeff_set[] =3D=
+ {
+>  			  0x0370e83b, 0x0310d439, 0x03a0f83d,
+>  			  0x0370e83c, 0x0300d438, 0x03b0fc3c },
+>  	}
+> -};
+> +};
+> +
+> +static void rvin_set_coeff(struct rvin_dev *vin, unsigned short xs)
+> +{
+> +	int i;
+> +	const struct vin_coeff *p_prev_set =3D NULL;
+> +	const struct vin_coeff *p_set =3D NULL;
+> +
+> +	/* Look for suitable coefficient values */
+> +	for (i =3D 0; i < ARRAY_SIZE(vin_coeff_set); i++) {
+> +		p_prev_set =3D p_set;
+> +		p_set =3D &vin_coeff_set[i];
+> +
+> +		if (xs < p_set->xs_value)
+> +			break;
+> +	}
+> +
+> +	/* Use previous value if its XS value is closer */
+> +	if (p_prev_set && p_set &&
+> +	    xs - p_prev_set->xs_value < p_set->xs_value - xs)
+> +		p_set =3D p_prev_set;
+> +
+> +	/* Set coefficient registers */
+> +	rvin_write(vin, p_set->coeff_set[0], VNC1A_REG);
+> +	rvin_write(vin, p_set->coeff_set[1], VNC1B_REG);
+> +	rvin_write(vin, p_set->coeff_set[2], VNC1C_REG);
+> +
+> +	rvin_write(vin, p_set->coeff_set[3], VNC2A_REG);
+> +	rvin_write(vin, p_set->coeff_set[4], VNC2B_REG);
+> +	rvin_write(vin, p_set->coeff_set[5], VNC2C_REG);
+> +
+> +	rvin_write(vin, p_set->coeff_set[6], VNC3A_REG);
+> +	rvin_write(vin, p_set->coeff_set[7], VNC3B_REG);
+> +	rvin_write(vin, p_set->coeff_set[8], VNC3C_REG);
+> +
+> +	rvin_write(vin, p_set->coeff_set[9], VNC4A_REG);
+> +	rvin_write(vin, p_set->coeff_set[10], VNC4B_REG);
+> +	rvin_write(vin, p_set->coeff_set[11], VNC4C_REG);
+> +
+> +	rvin_write(vin, p_set->coeff_set[12], VNC5A_REG);
+> +	rvin_write(vin, p_set->coeff_set[13], VNC5B_REG);
+> +	rvin_write(vin, p_set->coeff_set[14], VNC5C_REG);
+> +
+> +	rvin_write(vin, p_set->coeff_set[15], VNC6A_REG);
+> +	rvin_write(vin, p_set->coeff_set[16], VNC6B_REG);
+> +	rvin_write(vin, p_set->coeff_set[17], VNC6C_REG);
+> +
+> +	rvin_write(vin, p_set->coeff_set[18], VNC7A_REG);
+> +	rvin_write(vin, p_set->coeff_set[19], VNC7B_REG);
+> +	rvin_write(vin, p_set->coeff_set[20], VNC7C_REG);
+> +
+> +	rvin_write(vin, p_set->coeff_set[21], VNC8A_REG);
+> +	rvin_write(vin, p_set->coeff_set[22], VNC8B_REG);
+> +	rvin_write(vin, p_set->coeff_set[23], VNC8C_REG);
+> +}
+> +
+> +void rvin_crop_scale_comp(struct rvin_dev *vin)
+> +{
+> +	u32 xs, ys;
+> +
+> +	/* Set Start/End Pixel/Line Pre-Clip */
+> +	rvin_write(vin, vin->crop.left, VNSPPRC_REG);
+> +	rvin_write(vin, vin->crop.left + vin->crop.width - 1, VNEPPRC_REG);
+> +	switch (vin->format.field) {
+> +	case V4L2_FIELD_INTERLACED:
+> +	case V4L2_FIELD_INTERLACED_TB:
+> +	case V4L2_FIELD_INTERLACED_BT:
+> +		rvin_write(vin, vin->crop.top / 2, VNSLPRC_REG);
+> +		rvin_write(vin, (vin->crop.top + vin->crop.height) / 2 - 1,
+> +			   VNELPRC_REG);
+> +		break;
+> +	default:
+> +		rvin_write(vin, vin->crop.top, VNSLPRC_REG);
+> +		rvin_write(vin, vin->crop.top + vin->crop.height - 1,
+> +			   VNELPRC_REG);
+> +		break;
+> +	}
+> +
+> +	/* Set scaling coefficient */
+> +	ys =3D 0;
+> +	if (vin->crop.height !=3D vin->compose.height)
+> +		ys =3D (4096 * vin->crop.height) / vin->compose.height;
+> +	rvin_write(vin, ys, VNYS_REG);
+> +
+> +	xs =3D 0;
+> +	if (vin->crop.width !=3D vin->compose.width)
+> +		xs =3D (4096 * vin->crop.width) / vin->compose.width;
+> +
+> +	/* Horizontal upscaling is up to double size */
+> +	if (xs > 0 && xs < 2048)
+> +		xs =3D 2048;
+> +
+> +	rvin_write(vin, xs, VNXS_REG);
+> +
+> +	/* Horizontal upscaling is done out by scaling down from double size */
+> +	if (xs < 4096)
+> +		xs *=3D 2;
+> +
+> +	rvin_set_coeff(vin, xs);
+> +
+> +	/* Set Start/End Pixel/Line Post-Clip */
+> +	rvin_write(vin, 0, VNSPPOC_REG);
+> +	rvin_write(vin, 0, VNSLPOC_REG);
+> +	rvin_write(vin, vin->format.width - 1, VNEPPOC_REG);
+> +	switch (vin->format.field) {
+> +	case V4L2_FIELD_INTERLACED:
+> +	case V4L2_FIELD_INTERLACED_TB:
+> +	case V4L2_FIELD_INTERLACED_BT:
+> +		rvin_write(vin, vin->format.height / 2 - 1, VNELPOC_REG);
+> +		break;
+> +	default:
+> +		rvin_write(vin, vin->format.height - 1, VNELPOC_REG);
+> +		break;
+> +	}
+> +
+> +	if (vin->format.pixelformat =3D=3D V4L2_PIX_FMT_NV16)
+> +		rvin_write(vin, ALIGN(vin->format.width, 0x20), VNIS_REG);
+> +	else
+> +		rvin_write(vin, ALIGN(vin->format.width, 0x10), VNIS_REG);
+> +
+> +	vin_dbg(vin,
+> +		"Pre-Clip: %ux%u@%u:%u YS: %d XS: %d Post-Clip: %ux%u@%u:%u\n",
+> +		vin->crop.width, vin->crop.height, vin->crop.left,
+> +		vin->crop.top, ys, xs, vin->format.width, vin->format.height,
+> +		0, 0);
+> +}
+> +
+> +void rvin_scale_try(struct rvin_dev *vin, struct v4l2_pix_format *pix,
+> +		    u32 width, u32 height)
+> +{
+> +	/* All VIN channels on Gen2 have scalers */
+> +	pix->width =3D width;
+> +	pix->height =3D height;
+> +}
+> +
+> +/*
+> -------------------------------------------------------------------------=
+=2D-
+> -- + * Hardware setup
+> + */
+> +
+> +static int rvin_setup(struct rvin_dev *vin)
+> +{
+> +	u32 vnmc, dmr, dmr2, interrupts;
+> +	v4l2_std_id std;
+> +	bool progressive =3D false, output_is_yuv =3D false, input_is_yuv =3D f=
+alse;
+> +
+> +	switch (vin->format.field) {
+> +	case V4L2_FIELD_TOP:
+> +		vnmc =3D VNMC_IM_ODD;
+> +		break;
+> +	case V4L2_FIELD_BOTTOM:
+> +		vnmc =3D VNMC_IM_EVEN;
+> +		break;
+> +	case V4L2_FIELD_INTERLACED:
+> +		/* Default to TB */
+> +		vnmc =3D VNMC_IM_FULL;
+> +		/* Use BT if video standard can be read and is 60 Hz format */
+> +		if (!v4l2_subdev_call(vin_to_source(vin), video, g_std, &std)) {
+> +			if (std & V4L2_STD_525_60)
+> +				vnmc =3D VNMC_IM_FULL | VNMC_FOC;
+> +		}
+> +		break;
+> +	case V4L2_FIELD_INTERLACED_TB:
+> +		vnmc =3D VNMC_IM_FULL;
+> +		break;
+> +	case V4L2_FIELD_INTERLACED_BT:
+> +		vnmc =3D VNMC_IM_FULL | VNMC_FOC;
+> +		break;
+> +	case V4L2_FIELD_ALTERNATE:
+> +	case V4L2_FIELD_NONE:
+> +		if (vin->continuous) {
+> +			vnmc =3D VNMC_IM_ODD_EVEN;
+> +			progressive =3D true;
+> +		} else {
+> +			vnmc =3D VNMC_IM_ODD;
+> +		}
+> +		break;
+> +	default:
+> +		vnmc =3D VNMC_IM_ODD;
+> +		break;
+> +	}
+> +
+> +	/*
+> +	 * Input interface
+> +	 */
+> +	switch (vin->digital->code) {
+> +	case MEDIA_BUS_FMT_YUYV8_1X16:
+> +		/* BT.601/BT.1358 16bit YCbCr422 */
+> +		vnmc |=3D VNMC_INF_YUV16;
+> +		input_is_yuv =3D true;
+> +		break;
+> +	case MEDIA_BUS_FMT_UYVY8_2X8:
+> +		/* BT.656 8bit YCbCr422 or BT.601 8bit YCbCr422 */
+> +		vnmc |=3D vin->digital->mbus_cfg.type =3D=3D V4L2_MBUS_BT656 ?
+> +			VNMC_INF_YUV8_BT656 : VNMC_INF_YUV8_BT601;
+> +		input_is_yuv =3D true;
+> +		break;
+> +	case MEDIA_BUS_FMT_RGB888_1X24:
+> +		vnmc |=3D VNMC_INF_RGB888;
+> +		break;
+> +	case MEDIA_BUS_FMT_UYVY10_2X10:
+> +		/* BT.656 10bit YCbCr422 or BT.601 10bit YCbCr422 */
+> +		vnmc |=3D vin->digital->mbus_cfg.type =3D=3D V4L2_MBUS_BT656 ?
+> +			VNMC_INF_YUV10_BT656 : VNMC_INF_YUV10_BT601;
+> +		input_is_yuv =3D true;
+> +		break;
+> +	default:
+> +		break;
+> +	}
+> +
+> +	/* Enable VSYNC Field Toogle mode after one VSYNC input */
+> +	dmr2 =3D VNDMR2_FTEV | VNDMR2_VLV(1);
+> +
+> +	/* Hsync Signal Polarity Select */
+> +	if (!(vin->digital->mbus_cfg.flags & V4L2_MBUS_HSYNC_ACTIVE_LOW))
+> +		dmr2 |=3D VNDMR2_HPS;
+> +
+> +	/* Vsync Signal Polarity Select */
+> +	if (!(vin->digital->mbus_cfg.flags & V4L2_MBUS_VSYNC_ACTIVE_LOW))
+> +		dmr2 |=3D VNDMR2_VPS;
+> +
+> +	/*
+> +	 * Output format
+> +	 */
+> +	switch (vin->format.pixelformat) {
+> +	case V4L2_PIX_FMT_NV16:
+> +		rvin_write(vin,
+> +			   ALIGN(vin->format.width * vin->format.height, 0x80),
+> +			   VNUVAOF_REG);
+> +		dmr =3D VNDMR_DTMD_YCSEP;
+> +		output_is_yuv =3D true;
+> +		break;
+> +	case V4L2_PIX_FMT_YUYV:
+> +		dmr =3D VNDMR_BPSM;
+> +		output_is_yuv =3D true;
+> +		break;
+> +	case V4L2_PIX_FMT_UYVY:
+> +		dmr =3D 0;
+> +		output_is_yuv =3D true;
+> +		break;
+> +	case V4L2_PIX_FMT_XRGB555:
+> +		dmr =3D VNDMR_DTMD_ARGB1555;
+> +		break;
+> +	case V4L2_PIX_FMT_RGB565:
+> +		dmr =3D 0;
+> +		break;
+> +	case V4L2_PIX_FMT_XBGR32:
+> +		/* Note: not supported on M1 */
+> +		dmr =3D VNDMR_EXRGB;
+> +		break;
+> +	default:
+> +		vin_err(vin, "Invalid pixelformat (0x%x)\n",
+> +			vin->format.pixelformat);
+> +		return -EINVAL;
+> +	}
+>=20
+> -static void rvin_set_coeff(struct rvin_dev *vin, unsigned short xs)
+> +	/* Always update on field change */
+> +	vnmc |=3D VNMC_VUP;
+> +
+> +	/* If input and output use the same colorspace, use bypass mode */
+> +	if (input_is_yuv =3D=3D output_is_yuv)
+> +		vnmc |=3D VNMC_BPS;
+> +
+> +	/* Progressive or interlaced mode */
+> +	interrupts =3D progressive ? VNIE_FIE : VNIE_EFE;
+> +
+> +	/* Ack interrupts */
+> +	rvin_write(vin, interrupts, VNINTS_REG);
+> +	/* Enable interrupts */
+> +	rvin_write(vin, interrupts, VNIE_REG);
+> +	/* Start capturing */
+> +	rvin_write(vin, dmr, VNDMR_REG);
+> +	rvin_write(vin, dmr2, VNDMR2_REG);
+> +
+> +	/* Enable module */
+> +	rvin_write(vin, vnmc | VNMC_ME, VNMC_REG);
+> +
+> +	return 0;
+> +}
+> +
+> +static void rvin_disable_interrupts(struct rvin_dev *vin)
+>  {
+> -	int i;
+> -	const struct vin_coeff *p_prev_set =3D NULL;
+> -	const struct vin_coeff *p_set =3D NULL;
+> +	rvin_write(vin, 0, VNIE_REG);
+> +}
+>=20
+> -	/* Look for suitable coefficient values */
+> -	for (i =3D 0; i < ARRAY_SIZE(vin_coeff_set); i++) {
+> -		p_prev_set =3D p_set;
+> -		p_set =3D &vin_coeff_set[i];
+> +static u32 rvin_get_interrupt_status(struct rvin_dev *vin)
+> +{
+> +	return rvin_read(vin, VNINTS_REG);
+> +}
+>=20
+> -		if (xs < p_set->xs_value)
+> -			break;
+> +static void rvin_ack_interrupt(struct rvin_dev *vin)
+> +{
+> +	rvin_write(vin, rvin_read(vin, VNINTS_REG), VNINTS_REG);
+> +}
+> +
+> +static bool rvin_capture_active(struct rvin_dev *vin)
+> +{
+> +	return rvin_read(vin, VNMS_REG) & VNMS_CA;
+> +}
+> +
+> +static int rvin_get_active_slot(struct rvin_dev *vin, u32 vnms)
+> +{
+> +	if (vin->continuous)
+> +		return (vnms & VNMS_FBS_MASK) >> VNMS_FBS_SHIFT;
+> +
+> +	return 0;
+> +}
+> +
+> +static enum v4l2_field rvin_get_active_field(struct rvin_dev *vin, u32
+> vnms) +{
+> +	if (vin->format.field =3D=3D V4L2_FIELD_ALTERNATE) {
+> +		/* If FS is set it's a Even field */
+> +		if (vnms & VNMS_FS)
+> +			return V4L2_FIELD_BOTTOM;
+> +		return V4L2_FIELD_TOP;
+>  	}
+>=20
+> -	/* Use previous value if its XS value is closer */
+> -	if (p_prev_set && p_set &&
+> -	    xs - p_prev_set->xs_value < p_set->xs_value - xs)
+> -		p_set =3D p_prev_set;
+> +	return vin->format.field;
+> +}
+>=20
+> -	/* Set coefficient registers */
+> -	rvin_write(vin, p_set->coeff_set[0], VNC1A_REG);
+> -	rvin_write(vin, p_set->coeff_set[1], VNC1B_REG);
+> -	rvin_write(vin, p_set->coeff_set[2], VNC1C_REG);
+> +static void rvin_set_slot_addr(struct rvin_dev *vin, int slot, dma_addr_t
+> addr) +{
+> +	const struct rvin_video_format *fmt;
+> +	int offsetx, offsety;
+> +	dma_addr_t offset;
+>=20
+> -	rvin_write(vin, p_set->coeff_set[3], VNC2A_REG);
+> -	rvin_write(vin, p_set->coeff_set[4], VNC2B_REG);
+> -	rvin_write(vin, p_set->coeff_set[5], VNC2C_REG);
+> +	fmt =3D rvin_format_from_pixel(vin->format.pixelformat);
+>=20
+> -	rvin_write(vin, p_set->coeff_set[6], VNC3A_REG);
+> -	rvin_write(vin, p_set->coeff_set[7], VNC3B_REG);
+> -	rvin_write(vin, p_set->coeff_set[8], VNC3C_REG);
+> +	/*
+> +	 * There is no HW support for composition do the beast we can
+> +	 * by modifying the buffer offset
+> +	 */
+> +	offsetx =3D vin->compose.left * fmt->bpp;
+> +	offsety =3D vin->compose.top * vin->format.bytesperline;
+> +	offset =3D addr + offsetx + offsety;
+>=20
+> -	rvin_write(vin, p_set->coeff_set[9], VNC4A_REG);
+> -	rvin_write(vin, p_set->coeff_set[10], VNC4B_REG);
+> -	rvin_write(vin, p_set->coeff_set[11], VNC4C_REG);
+> +	/*
+> +	 * The address needs to be 128 bytes aligned. Driver should never accept
+> +	 * settings that do not satisfy this in the first place...
+> +	 */
+> +	if (WARN_ON((offsetx | offsety | offset) & HW_BUFFER_MASK))
+> +		return;
+>=20
+> -	rvin_write(vin, p_set->coeff_set[12], VNC5A_REG);
+> -	rvin_write(vin, p_set->coeff_set[13], VNC5B_REG);
+> -	rvin_write(vin, p_set->coeff_set[14], VNC5C_REG);
+> +	rvin_write(vin, offset, VNMB_REG(slot));
+> +}
+>=20
+> -	rvin_write(vin, p_set->coeff_set[15], VNC6A_REG);
+> -	rvin_write(vin, p_set->coeff_set[16], VNC6B_REG);
+> -	rvin_write(vin, p_set->coeff_set[17], VNC6C_REG);
+> +/* Moves a buffer from the queue to the HW slots */
+> +static bool rvin_fill_hw_slot(struct rvin_dev *vin, int slot)
+> +{
+> +	struct rvin_buffer *buf;
+> +	struct vb2_v4l2_buffer *vbuf;
+> +	dma_addr_t phys_addr_top;
+>=20
+> -	rvin_write(vin, p_set->coeff_set[18], VNC7A_REG);
+> -	rvin_write(vin, p_set->coeff_set[19], VNC7B_REG);
+> -	rvin_write(vin, p_set->coeff_set[20], VNC7C_REG);
+> +	if (vin->queue_buf[slot] !=3D NULL)
+> +		return true;
+>=20
+> -	rvin_write(vin, p_set->coeff_set[21], VNC8A_REG);
+> -	rvin_write(vin, p_set->coeff_set[22], VNC8B_REG);
+> -	rvin_write(vin, p_set->coeff_set[23], VNC8C_REG);
+> +	if (list_empty(&vin->buf_list))
+> +		return false;
+> +
+> +	vin_dbg(vin, "Filling HW slot: %d\n", slot);
+> +
+> +	/* Keep track of buffer we give to HW */
+> +	buf =3D list_entry(vin->buf_list.next, struct rvin_buffer, list);
+> +	vbuf =3D &buf->vb;
+> +	list_del_init(to_buf_list(vbuf));
+> +	vin->queue_buf[slot] =3D vbuf;
+> +
+> +	/* Setup DMA */
+> +	phys_addr_top =3D vb2_dma_contig_plane_dma_addr(&vbuf->vb2_buf, 0);
+> +	rvin_set_slot_addr(vin, slot, phys_addr_top);
+> +
+> +	return true;
+>  }
+>=20
+> -void rvin_crop_scale_comp(struct rvin_dev *vin)
+> +static bool rvin_fill_hw(struct rvin_dev *vin)
+>  {
+> -	u32 xs, ys;
+> +	int slot, limit;
+>=20
+> -	/* Set Start/End Pixel/Line Pre-Clip */
+> -	rvin_write(vin, vin->crop.left, VNSPPRC_REG);
+> -	rvin_write(vin, vin->crop.left + vin->crop.width - 1, VNEPPRC_REG);
+> -	switch (vin->format.field) {
+> -	case V4L2_FIELD_INTERLACED:
+> -	case V4L2_FIELD_INTERLACED_TB:
+> -	case V4L2_FIELD_INTERLACED_BT:
+> -		rvin_write(vin, vin->crop.top / 2, VNSLPRC_REG);
+> -		rvin_write(vin, (vin->crop.top + vin->crop.height) / 2 - 1,
+> -			   VNELPRC_REG);
+> -		break;
+> -	default:
+> -		rvin_write(vin, vin->crop.top, VNSLPRC_REG);
+> -		rvin_write(vin, vin->crop.top + vin->crop.height - 1,
+> -			   VNELPRC_REG);
+> -		break;
+> -	}
+> +	limit =3D vin->continuous ? HW_BUFFER_NUM : 1;
+>=20
+> -	/* Set scaling coefficient */
+> -	ys =3D 0;
+> -	if (vin->crop.height !=3D vin->compose.height)
+> -		ys =3D (4096 * vin->crop.height) / vin->compose.height;
+> -	rvin_write(vin, ys, VNYS_REG);
+> +	for (slot =3D 0; slot < limit; slot++)
+> +		if (!rvin_fill_hw_slot(vin, slot))
+> +			return false;
+> +	return true;
+> +}
+>=20
+> -	xs =3D 0;
+> -	if (vin->crop.width !=3D vin->compose.width)
+> -		xs =3D (4096 * vin->crop.width) / vin->compose.width;
+> +static void rvin_capture_on(struct rvin_dev *vin)
+> +{
+> +	vin_dbg(vin, "Capture on in %s mode\n",
+> +		vin->continuous ? "continuous" : "single");
+>=20
+> -	/* Horizontal upscaling is up to double size */
+> -	if (xs > 0 && xs < 2048)
+> -		xs =3D 2048;
+> +	if (vin->continuous)
+> +		/* Continuous Frame Capture Mode */
+> +		rvin_write(vin, VNFC_C_FRAME, VNFC_REG);
+> +	else
+> +		/* Single Frame Capture Mode */
+> +		rvin_write(vin, VNFC_S_FRAME, VNFC_REG);
+> +}
+>=20
+> -	rvin_write(vin, xs, VNXS_REG);
+> +static int rvin_capture_start(struct rvin_dev *vin)
+> +{
+> +	struct rvin_buffer *buf, *node;
+> +	int bufs, ret;
+>=20
+> -	/* Horizontal upscaling is done out by scaling down from double size */
+> -	if (xs < 4096)
+> -		xs *=3D 2;
+> +	/* Count number of free buffers */
+> +	bufs =3D 0;
+> +	list_for_each_entry_safe(buf, node, &vin->buf_list, list)
+> +		bufs++;
+>=20
+> -	rvin_set_coeff(vin, xs);
+> +	/* Continuous capture requires more buffers then there are HW slots */
+> +	vin->continuous =3D bufs > HW_BUFFER_NUM;
+>=20
+> -	/* Set Start/End Pixel/Line Post-Clip */
+> -	rvin_write(vin, 0, VNSPPOC_REG);
+> -	rvin_write(vin, 0, VNSLPOC_REG);
+> -	rvin_write(vin, vin->format.width - 1, VNEPPOC_REG);
+> -	switch (vin->format.field) {
+> -	case V4L2_FIELD_INTERLACED:
+> -	case V4L2_FIELD_INTERLACED_TB:
+> -	case V4L2_FIELD_INTERLACED_BT:
+> -		rvin_write(vin, vin->format.height / 2 - 1, VNELPOC_REG);
+> -		break;
+> -	default:
+> -		rvin_write(vin, vin->format.height - 1, VNELPOC_REG);
+> -		break;
+> +	if (!rvin_fill_hw(vin)) {
+> +		vin_err(vin, "HW not ready to start, not enough buffers available\n");
+> +		return -EINVAL;
+>  	}
+>=20
+> -	if (vin->format.pixelformat =3D=3D V4L2_PIX_FMT_NV16)
+> -		rvin_write(vin, ALIGN(vin->format.width, 0x20), VNIS_REG);
+> -	else
+> -		rvin_write(vin, ALIGN(vin->format.width, 0x10), VNIS_REG);
+> +	rvin_crop_scale_comp(vin);
+>=20
+> -	vin_dbg(vin,
+> -		"Pre-Clip: %ux%u@%u:%u YS: %d XS: %d Post-Clip: %ux%u@%u:%u\n",
+> -		vin->crop.width, vin->crop.height, vin->crop.left,
+> -		vin->crop.top, ys, xs, vin->format.width, vin->format.height,
+> -		0, 0);
+> +	ret =3D rvin_setup(vin);
+> +	if (ret)
+> +		return ret;
+> +
+> +	rvin_capture_on(vin);
+> +
+> +	vin->state =3D RUNNING;
+> +
+> +	return 0;
+>  }
+>=20
+> -void rvin_scale_try(struct rvin_dev *vin, struct v4l2_pix_format *pix,
+> -		    u32 width, u32 height)
+> +static void rvin_capture_stop(struct rvin_dev *vin)
+>  {
+> -	/* All VIN channels on Gen2 have scalers */
+> -	pix->width =3D width;
+> -	pix->height =3D height;
+> +	/* Set continuous & single transfer off */
+> +	rvin_write(vin, 0, VNFC_REG);
+> +
+> +	/* Disable module */
+> +	rvin_write(vin, rvin_read(vin, VNMC_REG) & ~VNMC_ME, VNMC_REG);
+>  }
+>=20
+>  /*
+> -------------------------------------------------------------------------=
+=2D-
+> --
+
+
+=2D-=20
 Regards,
 
 Laurent Pinchart
