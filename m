@@ -1,107 +1,293 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f194.google.com ([209.85.128.194]:44054 "EHLO
-        mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754189AbdLNSXO (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 14 Dec 2017 13:23:14 -0500
-Received: by mail-wr0-f194.google.com with SMTP id l22so5933791wrc.11
-        for <linux-media@vger.kernel.org>; Thu, 14 Dec 2017 10:23:13 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <ECADFF3FD767C149AD96A924E7EA6EAF40AE4BB5@USCULXMSG01.am.sony.com>
-References: <20171013054635.20946-1-Yasunari.Takiguchi@sony.com>
- <20171213173633.57edca85@vento.lan> <02699364973B424C83A42A84B04FDA85431742@JPYOKXMS113.jp.sony.com>
- <20171214085503.289f06f8@vento.lan> <CAOFm3uEYfMH8Zj8uEx-D9yYrTyDMTG_j02619esHu-j0brQKaA@mail.gmail.com>
- <ECADFF3FD767C149AD96A924E7EA6EAF40AE4BB5@USCULXMSG01.am.sony.com>
-From: Philippe Ombredanne <pombredanne@nexb.com>
-Date: Thu, 14 Dec 2017 19:22:31 +0100
-Message-ID: <CAOFm3uEk2yD0hsusOtHRpVW6rMigNUpLyqe4T3DaKqAnP5dQWw@mail.gmail.com>
-Subject: Re: [PATCH v4 00/12] [dt-bindings] [media] Add document file and
- driver for Sony CXD2880 DVB-T2/T tuner + demodulator
-To: "Bird, Timothy" <Tim.Bird@sony.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        "Takiguchi, Yasunari" <Yasunari.Takiguchi@sony.com>,
-        "akpm@linux-foundation.org" <akpm@linux-foundation.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "tbird20d@gmail.com" <tbird20d@gmail.com>,
-        "frowand.list@gmail.com" <frowand.list@gmail.com>,
-        "Yamamoto, Masayuki" <Masayuki.Yamamoto@sony.com>,
-        "Nozawa, Hideki (STWN)" <Hideki.Nozawa@sony.com>,
-        "Yonezawa, Kota" <Kota.Yonezawa@sony.com>,
-        "Matsumoto, Toshihiko" <Toshihiko.Matsumoto@sony.com>,
-        "Watanabe, Satoshi (SSS)" <Satoshi.C.Watanabe@sony.com>
-Content-Type: text/plain; charset="UTF-8"
+Received: from mailout4.samsung.com ([203.254.224.34]:41788 "EHLO
+        mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753291AbdLHJhE (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 8 Dec 2017 04:37:04 -0500
+From: Smitha T Murthy <smitha.t@samsung.com>
+To: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Cc: kyungmin.park@samsung.com, kamil@wypas.org, jtp.park@samsung.com,
+        a.hajda@samsung.com, mchehab@kernel.org, pankaj.dubey@samsung.com,
+        krzk@kernel.org, m.szyprowski@samsung.com, s.nawrocki@samsung.com,
+        Smitha T Murthy <smitha.t@samsung.com>
+Subject: [Patch v6 10/12] [media] v4l2: Add v4l2 control IDs for HEVC
+ encoder
+Date: Fri, 08 Dec 2017 14:38:23 +0530
+Message-id: <1512724105-1778-11-git-send-email-smitha.t@samsung.com>
+In-reply-to: <1512724105-1778-1-git-send-email-smitha.t@samsung.com>
+References: <1512724105-1778-1-git-send-email-smitha.t@samsung.com>
+        <CGME20171208093702epcas2p32a30a9f624e06fb543f7dd757c805077@epcas2p3.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Tim,
+Add v4l2 controls for HEVC encoder
 
-On Thu, Dec 14, 2017 at 6:32 PM, Bird, Timothy <Tim.Bird@sony.com> wrote:
->
->
->> -----Original Message-----
->> From: Philippe on Thursday, December 14, 2017 6:25 AM
->> Dear Mauro,
->>
->> On Thu, Dec 14, 2017 at 11:55 AM, Mauro Carvalho Chehab
->> <mchehab@s-opensource.com> wrote:
->>
->> > SPDX is a new requirement that started late on Kernel 4.14 development
->> > cycle (and whose initial changes were merged directly at Linus tree).
->> > Not all existing files have it yet, as identifying the right license
->> > on existing files is a complex task, but if you do a:
->> >
->> >         $ git grep SPDX $(find . -name Makefile) $(find . -name Kconfig)
->> >
->> > You'll see that lot of such files have it already.
->>
->> FWIW, short of having SPDX tags, identifying the right license on
->> existing files is not a super complex task: if boils down to running
->> many diffs.
->>
->> Take the ~60K files in kernel, and about 6K license and notices
->> reference texts. Then compute a pairwise diff of each of the 60K file
->> against the 6K reference texts. Repeat the pairwise diff a few more
->> times, say 10 times, as multiple licenses may appear in any given
->> kernel file. And keep the diffs that have the fewest
->> difference/highest similarity with the reference texts as the detected
->> license. Done!
->
-> You can't do license detection and assignment in this automated fashion -
-> at least not generally.
->
-> Even a single word of difference between the notice in the source
-> code and the reference license notice or text may have legal implications
-> that are not conveyed by the simplified SPDX tag.  When differences are
-> found, we're going to have to kick the discrepancies to a human for review.
-> This is especially true for files with multiple licenses.
->
-> For a work of original authorship, or a single copyright holder, the author
-> or copyright holder may be able to change the notice or text, or gloss
-> over any difference from the reference text, and make the SPDX  assignment
-> (or even change the license, if they want).  This would apply to something
-> new like this Sony driver.  However, for code that is already in the kernel
-> tree, with likely multiple contributors, the legal situation gets a little
-> more murky.
->
-> I suspect the vast majority of the ~60k files will probably fall neatly into an
-> SPDX category, but I'm guessing a fair number (maybe hundreds) will require
-> some review and discussion.
+Signed-off-by: Smitha T Murthy <smitha.t@samsung.com>
+Reviewed-by: Andrzej Hajda <a.hajda@samsung.com>
+---
+ drivers/media/v4l2-core/v4l2-ctrls.c | 118 +++++++++++++++++++++++++++++++++++
+ include/uapi/linux/v4l2-controls.h   |  92 ++++++++++++++++++++++++++-
+ 2 files changed, 209 insertions(+), 1 deletion(-)
 
-You are completely and 100% right. I was just describing the mechanics
-of the license detection side. The actual process has been and always
-will be scan then review carefully and then discuss. There is no sane
-automated tool that could do it all for sure.
-
-As a funny side note, there are over 80+ licenses in the kernel and
-there is (or rather was before starting adding SPDX tags) 1000+
-different license notices and over 700+ variations of "this file in
-under the GPL"... This starts to diminish a bit with the addition of
-SPDX tags and eventually most or all boilerplate could be removed over
-time with reviews and discussions, IMHO for the better: I will then be
-able to trash my tool and use a good ole grep instead ;)
-
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index 4e53a86..3f98318 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -480,6 +480,56 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
+ 		NULL,
+ 	};
+ 
++	static const char * const hevc_profile[] = {
++		"Main",
++		"Main Still Picture",
++		NULL,
++	};
++	static const char * const hevc_level[] = {
++		"1",
++		"2",
++		"2.1",
++		"3",
++		"3.1",
++		"4",
++		"4.1",
++		"5",
++		"5.1",
++		"5.2",
++		"6",
++		"6.1",
++		"6.2",
++		NULL,
++	};
++	static const char * const hevc_hierarchial_coding_type[] = {
++		"B",
++		"P",
++		NULL,
++	};
++	static const char * const hevc_refresh_type[] = {
++		"None",
++		"CRA",
++		"IDR",
++		NULL,
++	};
++	static const char * const hevc_size_of_length_field[] = {
++		"0",
++		"1",
++		"2",
++		"4",
++		NULL,
++	};
++	static const char * const hevc_tier_flag[] = {
++		"Main",
++		"High",
++		NULL,
++	};
++	static const char * const hevc_loop_filter_mode[] = {
++		"Disabled",
++		"Enabled",
++		"Disabled at slice boundary",
++		"NULL",
++	};
+ 
+ 	switch (id) {
+ 	case V4L2_CID_MPEG_AUDIO_SAMPLING_FREQ:
+@@ -575,6 +625,20 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
+ 		return dv_it_content_type;
+ 	case V4L2_CID_DETECT_MD_MODE:
+ 		return detect_md_mode;
++	case V4L2_CID_MPEG_VIDEO_HEVC_PROFILE:
++		return hevc_profile;
++	case V4L2_CID_MPEG_VIDEO_HEVC_LEVEL:
++		return hevc_level;
++	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_TYPE:
++		return hevc_hierarchial_coding_type;
++	case V4L2_CID_MPEG_VIDEO_HEVC_REFRESH_TYPE:
++		return hevc_refresh_type;
++	case V4L2_CID_MPEG_VIDEO_HEVC_SIZE_OF_LENGTH_FIELD:
++		return hevc_size_of_length_field;
++	case V4L2_CID_MPEG_VIDEO_HEVC_TIER_FLAG:
++		return hevc_tier_flag;
++	case V4L2_CID_MPEG_VIDEO_HEVC_LOOP_FILTER_MODE:
++		return hevc_loop_filter_mode;
+ 
+ 	default:
+ 		return NULL;
+@@ -776,6 +840,53 @@ const char *v4l2_ctrl_get_name(u32 id)
+ 	case V4L2_CID_MPEG_VIDEO_VPX_P_FRAME_QP:		return "VPX P-Frame QP Value";
+ 	case V4L2_CID_MPEG_VIDEO_VPX_PROFILE:			return "VPX Profile";
+ 
++	/* HEVC controls */
++	case V4L2_CID_MPEG_VIDEO_HEVC_I_FRAME_QP:		return "HEVC I-Frame QP Value";
++	case V4L2_CID_MPEG_VIDEO_HEVC_P_FRAME_QP:		return "HEVC P-Frame QP Value";
++	case V4L2_CID_MPEG_VIDEO_HEVC_B_FRAME_QP:		return "HEVC B-Frame QP Value";
++	case V4L2_CID_MPEG_VIDEO_HEVC_MIN_QP:			return "HEVC Minimum QP Value";
++	case V4L2_CID_MPEG_VIDEO_HEVC_MAX_QP:			return "HEVC Maximum QP Value";
++	case V4L2_CID_MPEG_VIDEO_HEVC_PROFILE:			return "HEVC Profile";
++	case V4L2_CID_MPEG_VIDEO_HEVC_LEVEL:			return "HEVC Level";
++	case V4L2_CID_MPEG_VIDEO_HEVC_TIER_FLAG:		return "HEVC Tier Flag";
++	case V4L2_CID_MPEG_VIDEO_HEVC_FRAME_RATE_RESOLUTION:	return "HEVC Frame Rate Resolution";
++	case V4L2_CID_MPEG_VIDEO_HEVC_MAX_PARTITION_DEPTH:	return "HEVC Maximum Coding Unit Depth";
++	case V4L2_CID_MPEG_VIDEO_HEVC_REFRESH_TYPE:		return "HEVC Refresh Type";
++	case V4L2_CID_MPEG_VIDEO_HEVC_CONST_INTRA_PRED:		return "HEVC Constant Intra Prediction";
++	case V4L2_CID_MPEG_VIDEO_HEVC_LOSSLESS_CU:		return "HEVC Lossless Encoding";
++	case V4L2_CID_MPEG_VIDEO_HEVC_WAVEFRONT:		return "HEVC Wavefront";
++	case V4L2_CID_MPEG_VIDEO_HEVC_LOOP_FILTER_MODE:		return "HEVC Loop Filter";
++	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_QP:			return "HEVC QP Values";
++	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_TYPE:		return "HEVC Hierarchical Coding Type";
++	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_LAYER:	return "HEVC Hierarchical Coding Layer";
++	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L0_QP:	return "HEVC Hierarchical Lay 0 QP";
++	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L1_QP:	return "HEVC Hierarchical Lay 1 QP";
++	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L2_QP:	return "HEVC Hierarchical Lay 2 QP";
++	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L3_QP:	return "HEVC Hierarchical Lay 3 QP";
++	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L4_QP:	return "HEVC Hierarchical Lay 4 QP";
++	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L5_QP:	return "HEVC Hierarchical Lay 5 QP";
++	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L6_QP:	return "HEVC Hierarchical Lay 6 QP";
++	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L0_BR:	return "HEVC Hierarchical Lay 0 Bit Rate";
++	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L1_BR:	return "HEVC Hierarchical Lay 1 Bit Rate";
++	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L2_BR:	return "HEVC Hierarchical Lay 2 Bit Rate";
++	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L3_BR:	return "HEVC Hierarchical Lay 3 Bit Rate";
++	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L4_BR:	return "HEVC Hierarchical Lay 4 Bit Rate";
++	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L5_BR:	return "HEVC Hierarchical Lay 5 Bit Rate";
++	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L6_BR:	return "HEVC Hierarchical Lay 6 Bit Rate";
++	case V4L2_CID_MPEG_VIDEO_HEVC_GENERAL_PB:		return "HEVC General PB";
++	case V4L2_CID_MPEG_VIDEO_HEVC_TEMPORAL_ID:		return "HEVC Temporal ID";
++	case V4L2_CID_MPEG_VIDEO_HEVC_STRONG_SMOOTHING:		return "HEVC Strong Intra Smoothing";
++	case V4L2_CID_MPEG_VIDEO_HEVC_INTRA_PU_SPLIT:		return "HEVC Intra PU Split";
++	case V4L2_CID_MPEG_VIDEO_HEVC_TMV_PREDICTION:		return "HEVC TMV Prediction";
++	case V4L2_CID_MPEG_VIDEO_HEVC_MAX_NUM_MERGE_MV_MINUS1:	return "HEVC Max Number of Candidate MVs";
++	case V4L2_CID_MPEG_VIDEO_HEVC_WITHOUT_STARTCODE:	return "HEVC ENC Without Startcode";
++	case V4L2_CID_MPEG_VIDEO_HEVC_REFRESH_PERIOD:		return "HEVC Num of I-Frame b/w 2 IDR";
++	case V4L2_CID_MPEG_VIDEO_HEVC_LF_BETA_OFFSET_DIV2:	return "HEVC Loop Filter Beta Offset";
++	case V4L2_CID_MPEG_VIDEO_HEVC_LF_TC_OFFSET_DIV2:	return "HEVC Loop Filter TC Offset";
++	case V4L2_CID_MPEG_VIDEO_HEVC_SIZE_OF_LENGTH_FIELD:	return "HEVC Size of Length Field";
++	case V4L2_CID_MPEG_VIDEO_REF_NUMBER_FOR_PFRAMES:	return "Reference Frames for a P-Frame";
++	case V4L2_CID_MPEG_VIDEO_PREPEND_SPSPPS_TO_IDR:		return "Prepend SPS and PPS to IDR";
++
+ 	/* CAMERA controls */
+ 	/* Keep the order of the 'case's the same as in v4l2-controls.h! */
+ 	case V4L2_CID_CAMERA_CLASS:		return "Camera Controls";
+@@ -1069,6 +1180,13 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+ 	case V4L2_CID_TUNE_DEEMPHASIS:
+ 	case V4L2_CID_MPEG_VIDEO_VPX_GOLDEN_FRAME_SEL:
+ 	case V4L2_CID_DETECT_MD_MODE:
++	case V4L2_CID_MPEG_VIDEO_HEVC_PROFILE:
++	case V4L2_CID_MPEG_VIDEO_HEVC_LEVEL:
++	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_TYPE:
++	case V4L2_CID_MPEG_VIDEO_HEVC_REFRESH_TYPE:
++	case V4L2_CID_MPEG_VIDEO_HEVC_SIZE_OF_LENGTH_FIELD:
++	case V4L2_CID_MPEG_VIDEO_HEVC_TIER_FLAG:
++	case V4L2_CID_MPEG_VIDEO_HEVC_LOOP_FILTER_MODE:
+ 		*type = V4L2_CTRL_TYPE_MENU;
+ 		break;
+ 	case V4L2_CID_LINK_FREQ:
+diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
+index 31bfc68..a4b8489 100644
+--- a/include/uapi/linux/v4l2-controls.h
++++ b/include/uapi/linux/v4l2-controls.h
+@@ -588,6 +588,97 @@ enum v4l2_vp8_golden_frame_sel {
+ #define V4L2_CID_MPEG_VIDEO_VPX_P_FRAME_QP		(V4L2_CID_MPEG_BASE+510)
+ #define V4L2_CID_MPEG_VIDEO_VPX_PROFILE			(V4L2_CID_MPEG_BASE+511)
+ 
++/* CIDs for HEVC encoding. Number gaps are for compatibility */
++
++#define V4L2_CID_MPEG_VIDEO_HEVC_MIN_QP		(V4L2_CID_MPEG_BASE + 512)
++#define V4L2_CID_MPEG_VIDEO_HEVC_MAX_QP		(V4L2_CID_MPEG_BASE + 513)
++#define V4L2_CID_MPEG_VIDEO_HEVC_I_FRAME_QP	(V4L2_CID_MPEG_BASE + 514)
++#define V4L2_CID_MPEG_VIDEO_HEVC_P_FRAME_QP	(V4L2_CID_MPEG_BASE + 515)
++#define V4L2_CID_MPEG_VIDEO_HEVC_B_FRAME_QP	(V4L2_CID_MPEG_BASE + 516)
++#define V4L2_CID_MPEG_VIDEO_HEVC_HIER_QP	(V4L2_CID_MPEG_BASE + 517)
++#define V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_TYPE (V4L2_CID_MPEG_BASE + 518)
++enum v4l2_mpeg_video_hevc_hier_coding_type {
++	V4L2_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_B	= 0,
++	V4L2_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_P	= 1,
++};
++#define V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_LAYER	(V4L2_CID_MPEG_BASE + 519)
++#define V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L0_QP	(V4L2_CID_MPEG_BASE + 520)
++#define V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L1_QP	(V4L2_CID_MPEG_BASE + 521)
++#define V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L2_QP	(V4L2_CID_MPEG_BASE + 522)
++#define V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L3_QP	(V4L2_CID_MPEG_BASE + 523)
++#define V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L4_QP	(V4L2_CID_MPEG_BASE + 524)
++#define V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L5_QP	(V4L2_CID_MPEG_BASE + 525)
++#define V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L6_QP	(V4L2_CID_MPEG_BASE + 526)
++#define V4L2_CID_MPEG_VIDEO_HEVC_PROFILE	(V4L2_CID_MPEG_BASE + 527)
++enum v4l2_mpeg_video_hevc_profile {
++	V4L2_MPEG_VIDEO_HEVC_PROFILE_MAIN = 0,
++	V4L2_MPEG_VIDEO_HEVC_PROFILE_MAIN_STILL_PICTURE = 1,
++};
++#define V4L2_CID_MPEG_VIDEO_HEVC_LEVEL		(V4L2_CID_MPEG_BASE + 528)
++enum v4l2_mpeg_video_hevc_level {
++	V4L2_MPEG_VIDEO_HEVC_LEVEL_1	= 0,
++	V4L2_MPEG_VIDEO_HEVC_LEVEL_2	= 1,
++	V4L2_MPEG_VIDEO_HEVC_LEVEL_2_1	= 2,
++	V4L2_MPEG_VIDEO_HEVC_LEVEL_3	= 3,
++	V4L2_MPEG_VIDEO_HEVC_LEVEL_3_1	= 4,
++	V4L2_MPEG_VIDEO_HEVC_LEVEL_4	= 5,
++	V4L2_MPEG_VIDEO_HEVC_LEVEL_4_1	= 6,
++	V4L2_MPEG_VIDEO_HEVC_LEVEL_5	= 7,
++	V4L2_MPEG_VIDEO_HEVC_LEVEL_5_1	= 8,
++	V4L2_MPEG_VIDEO_HEVC_LEVEL_5_2	= 9,
++	V4L2_MPEG_VIDEO_HEVC_LEVEL_6	= 10,
++	V4L2_MPEG_VIDEO_HEVC_LEVEL_6_1	= 11,
++	V4L2_MPEG_VIDEO_HEVC_LEVEL_6_2	= 12,
++};
++#define V4L2_CID_MPEG_VIDEO_HEVC_FRAME_RATE_RESOLUTION	(V4L2_CID_MPEG_BASE + 529)
++#define V4L2_CID_MPEG_VIDEO_HEVC_TIER_FLAG		(V4L2_CID_MPEG_BASE + 530)
++enum v4l2_mpeg_video_hevc_tier_flag {
++	V4L2_MPEG_VIDEO_HEVC_TIER_MAIN = 0,
++	V4L2_MPEG_VIDEO_HEVC_TIER_HIGH = 1,
++};
++#define V4L2_CID_MPEG_VIDEO_HEVC_MAX_PARTITION_DEPTH	(V4L2_CID_MPEG_BASE + 531)
++#define V4L2_CID_MPEG_VIDEO_HEVC_LOOP_FILTER_MODE	(V4L2_CID_MPEG_BASE + 532)
++enum v4l2_cid_mpeg_video_hevc_loop_filter_mode {
++	V4L2_MPEG_VIDEO_HEVC_LOOP_FILTER_MODE_DISABLED			 = 0,
++	V4L2_MPEG_VIDEO_HEVC_LOOP_FILTER_MODE_ENABLED			 = 1,
++	V4L2_MPEG_VIDEO_HEVC_LOOP_FILTER_MODE_DISABLED_AT_SLICE_BOUNDARY = 2,
++};
++#define V4L2_CID_MPEG_VIDEO_HEVC_LF_BETA_OFFSET_DIV2	(V4L2_CID_MPEG_BASE + 533)
++#define V4L2_CID_MPEG_VIDEO_HEVC_LF_TC_OFFSET_DIV2	(V4L2_CID_MPEG_BASE + 534)
++#define V4L2_CID_MPEG_VIDEO_HEVC_REFRESH_TYPE		(V4L2_CID_MPEG_BASE + 535)
++enum v4l2_cid_mpeg_video_hevc_refresh_type {
++	V4L2_MPEG_VIDEO_HEVC_REFRESH_NONE		= 0,
++	V4L2_MPEG_VIDEO_HEVC_REFRESH_CRA		= 1,
++	V4L2_MPEG_VIDEO_HEVC_REFRESH_IDR		= 2,
++};
++#define V4L2_CID_MPEG_VIDEO_HEVC_REFRESH_PERIOD		(V4L2_CID_MPEG_BASE + 536)
++#define V4L2_CID_MPEG_VIDEO_HEVC_LOSSLESS_CU		(V4L2_CID_MPEG_BASE + 537)
++#define V4L2_CID_MPEG_VIDEO_HEVC_CONST_INTRA_PRED	(V4L2_CID_MPEG_BASE + 538)
++#define V4L2_CID_MPEG_VIDEO_HEVC_WAVEFRONT		(V4L2_CID_MPEG_BASE + 539)
++#define V4L2_CID_MPEG_VIDEO_HEVC_GENERAL_PB		(V4L2_CID_MPEG_BASE + 540)
++#define V4L2_CID_MPEG_VIDEO_HEVC_TEMPORAL_ID		(V4L2_CID_MPEG_BASE + 541)
++#define V4L2_CID_MPEG_VIDEO_HEVC_STRONG_SMOOTHING	(V4L2_CID_MPEG_BASE + 542)
++#define V4L2_CID_MPEG_VIDEO_HEVC_MAX_NUM_MERGE_MV_MINUS1	(V4L2_CID_MPEG_BASE + 543)
++#define V4L2_CID_MPEG_VIDEO_HEVC_INTRA_PU_SPLIT		(V4L2_CID_MPEG_BASE + 544)
++#define V4L2_CID_MPEG_VIDEO_HEVC_TMV_PREDICTION		(V4L2_CID_MPEG_BASE + 545)
++#define V4L2_CID_MPEG_VIDEO_HEVC_WITHOUT_STARTCODE	(V4L2_CID_MPEG_BASE + 546)
++#define V4L2_CID_MPEG_VIDEO_HEVC_SIZE_OF_LENGTH_FIELD	(V4L2_CID_MPEG_BASE + 547)
++enum v4l2_cid_mpeg_video_hevc_size_of_length_field {
++	V4L2_MPEG_VIDEO_HEVC_SIZE_0		= 0,
++	V4L2_MPEG_VIDEO_HEVC_SIZE_1		= 1,
++	V4L2_MPEG_VIDEO_HEVC_SIZE_2		= 2,
++	V4L2_MPEG_VIDEO_HEVC_SIZE_4		= 3,
++};
++#define V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L0_BR	(V4L2_CID_MPEG_BASE + 548)
++#define V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L1_BR	(V4L2_CID_MPEG_BASE + 549)
++#define V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L2_BR	(V4L2_CID_MPEG_BASE + 550)
++#define V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L3_BR	(V4L2_CID_MPEG_BASE + 551)
++#define V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L4_BR	(V4L2_CID_MPEG_BASE + 552)
++#define V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L5_BR	(V4L2_CID_MPEG_BASE + 553)
++#define V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L6_BR	(V4L2_CID_MPEG_BASE + 554)
++#define V4L2_CID_MPEG_VIDEO_REF_NUMBER_FOR_PFRAMES	(V4L2_CID_MPEG_BASE + 555)
++#define V4L2_CID_MPEG_VIDEO_PREPEND_SPSPPS_TO_IDR	(V4L2_CID_MPEG_BASE + 556)
++
+ /*  MPEG-class control IDs specific to the CX2341x driver as defined by V4L2 */
+ #define V4L2_CID_MPEG_CX2341X_BASE 				(V4L2_CTRL_CLASS_MPEG | 0x1000)
+ #define V4L2_CID_MPEG_CX2341X_VIDEO_SPATIAL_FILTER_MODE 	(V4L2_CID_MPEG_CX2341X_BASE+0)
+@@ -656,7 +747,6 @@ enum v4l2_mpeg_mfc51_video_force_frame_type {
+ #define V4L2_CID_MPEG_MFC51_VIDEO_H264_ADAPTIVE_RC_STATIC		(V4L2_CID_MPEG_MFC51_BASE+53)
+ #define V4L2_CID_MPEG_MFC51_VIDEO_H264_NUM_REF_PIC_FOR_P		(V4L2_CID_MPEG_MFC51_BASE+54)
+ 
+-
+ /*  Camera class control IDs */
+ 
+ #define V4L2_CID_CAMERA_CLASS_BASE 	(V4L2_CTRL_CLASS_CAMERA | 0x900)
 -- 
-Cordially
-Philippe Ombredanne
+2.7.4
