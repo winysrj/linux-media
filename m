@@ -1,64 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:9033 "EHLO mga01.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751308AbdLBEdA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 1 Dec 2017 23:33:00 -0500
-From: Yong Zhi <yong.zhi@intel.com>
-To: linux-media@vger.kernel.org, sakari.ailus@linux.intel.com
-Cc: jian.xu.zheng@intel.com, tfiga@chromium.org,
-        rajmohan.mani@intel.com, tuukka.toivonen@intel.com,
-        hyungwoo.yang@intel.com, chiranjeevi.rapolu@intel.com,
-        jerry.w.hu@intel.com, Yong Zhi <yong.zhi@intel.com>
-Subject: [PATCH v5 01/12] v4l: Add Intel IPU3 meta buffer formats
-Date: Fri,  1 Dec 2017 22:32:11 -0600
-Message-Id: <1512189142-19863-2-git-send-email-yong.zhi@intel.com>
-In-Reply-To: <1512189142-19863-1-git-send-email-yong.zhi@intel.com>
-References: <1512189142-19863-1-git-send-email-yong.zhi@intel.com>
+Received: from smtp-4.sys.kth.se ([130.237.48.193]:44822 "EHLO
+        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751432AbdLHBI5 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 7 Dec 2017 20:08:57 -0500
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH v9 03/28] rcar-vin: unregister video device on driver removal
+Date: Fri,  8 Dec 2017 02:08:17 +0100
+Message-Id: <20171208010842.20047-4-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20171208010842.20047-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20171208010842.20047-1-niklas.soderlund+renesas@ragnatech.se>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add IPU3-specific meta formats for parameter
-processing and 3A, DVS statistics:
+If the video device was registered by the complete() callback it should
+be unregistered when the driver is removed. Protect from printing an
+uninitialized video device node name by adding a check in
+rvin_v4l2_unregister() to identify that the video device is registered.
 
-  V4L2_META_FMT_IPU3_PARAMS
-  V4L2_META_FMT_IPU3_STAT_3A
-  V4L2_META_FMT_IPU3_STAT_DVS
-
-Signed-off-by: Yong Zhi <yong.zhi@intel.com>
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/v4l2-core/v4l2-ioctl.c | 3 +++
- include/uapi/linux/videodev2.h       | 5 +++++
- 2 files changed, 8 insertions(+)
+ drivers/media/platform/rcar-vin/rcar-core.c | 2 ++
+ drivers/media/platform/rcar-vin/rcar-v4l2.c | 3 +++
+ 2 files changed, 5 insertions(+)
 
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index aa4cbddbc064..425720dd9432 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -1256,6 +1256,9 @@ static void v4l_fill_fmtdesc(struct v4l2_fmtdesc *fmt)
- 	case V4L2_TCH_FMT_TU08:		descr = "8-bit unsigned touch data"; break;
- 	case V4L2_META_FMT_VSP1_HGO:	descr = "R-Car VSP1 1-D Histogram"; break;
- 	case V4L2_META_FMT_VSP1_HGT:	descr = "R-Car VSP1 2-D Histogram"; break;
-+	case V4L2_META_FMT_IPU3_PARAMS:	descr = "IPU3 processing parameters"; break;
-+	case V4L2_META_FMT_IPU3_STAT_3A:	descr = "IPU3 3A statistics"; break;
-+	case V4L2_META_FMT_IPU3_STAT_DVS:	descr = "IPU3 DVS statistics"; break;
+diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
+index f7a4c21909da6923..6d99542ec74b49a7 100644
+--- a/drivers/media/platform/rcar-vin/rcar-core.c
++++ b/drivers/media/platform/rcar-vin/rcar-core.c
+@@ -272,6 +272,8 @@ static int rcar_vin_remove(struct platform_device *pdev)
  
- 	default:
- 		/* Compressed formats */
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 76c14cf9436f..51f607b23e80 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -697,6 +697,11 @@ struct v4l2_pix_format {
- #define V4L2_META_FMT_VSP1_HGO    v4l2_fourcc('V', 'S', 'P', 'H') /* R-Car VSP1 1-D Histogram */
- #define V4L2_META_FMT_VSP1_HGT    v4l2_fourcc('V', 'S', 'P', 'T') /* R-Car VSP1 2-D Histogram */
+ 	pm_runtime_disable(&pdev->dev);
  
-+/* Vendor specific - used for IPU3 camera sub-system */
-+#define V4L2_META_FMT_IPU3_PARAMS	v4l2_fourcc('i', 'p', '3', 'p') /* IPU3 params */
-+#define V4L2_META_FMT_IPU3_STAT_3A	v4l2_fourcc('i', 'p', '3', 's') /* IPU3 3A statistics */
-+#define V4L2_META_FMT_IPU3_STAT_DVS	v4l2_fourcc('i', 'p', '3', 'd') /* IPU3 DVS statistics */
++	rvin_v4l2_unregister(vin);
 +
- /* priv field value to indicates that subsequent fields are valid. */
- #define V4L2_PIX_FMT_PRIV_MAGIC		0xfeedcafe
+ 	v4l2_async_notifier_unregister(&vin->notifier);
+ 	v4l2_async_notifier_cleanup(&vin->notifier);
+ 
+diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+index 178aecc94962abe2..32a658214f48fa49 100644
+--- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
++++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+@@ -841,6 +841,9 @@ static const struct v4l2_file_operations rvin_fops = {
+ 
+ void rvin_v4l2_unregister(struct rvin_dev *vin)
+ {
++	if (!video_is_registered(&vin->vdev))
++		return;
++
+ 	v4l2_info(&vin->v4l2_dev, "Removing %s\n",
+ 		  video_device_node_name(&vin->vdev));
  
 -- 
-2.7.4
+2.15.0
