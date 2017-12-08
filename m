@@ -1,86 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:48923 "EHLO gofer.mess.org"
+Received: from osg.samsung.com ([64.30.133.232]:33903 "EHLO osg.samsung.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753481AbdLNRWC (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 14 Dec 2017 12:22:02 -0500
-From: Sean Young <sean@mess.org>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 05/10] media: lirc: when transmitting scancodes, block until transmit is done
-Date: Thu, 14 Dec 2017 17:21:56 +0000
-Message-Id: <5271e5f36cf5951587f7e51c02cc3f4abc5cdb1d.1513271970.git.sean@mess.org>
-In-Reply-To: <4e8c9939b6b116a54e3042d098343bc918268b1d.1513271970.git.sean@mess.org>
-References: <4e8c9939b6b116a54e3042d098343bc918268b1d.1513271970.git.sean@mess.org>
-In-Reply-To: <4e8c9939b6b116a54e3042d098343bc918268b1d.1513271970.git.sean@mess.org>
-References: <4e8c9939b6b116a54e3042d098343bc918268b1d.1513271970.git.sean@mess.org>
+        id S1753727AbdLHOH6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 8 Dec 2017 09:07:58 -0500
+Date: Fri, 8 Dec 2017 12:07:51 -0200
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Stefani Seibold <stefani@seibold.net>,
+        Andrew Morton <akpm@linux-foundation.org>
+Cc: Sean Young <sean@mess.org>, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org,
+        Randy Dunlap <randy.dunlap@oracle.com>
+Subject: Re: [PATCH v3 26/26] kfifo: DECLARE_KIFO_PTR(fifo, u64) does not
+ work on arm 32 bit
+Message-ID: <20171208120751.5c3d3165@vento.lan>
+In-Reply-To: <1512045250.2568.1.camel@seibold.net>
+References: <cover.1507618840.git.sean@mess.org>
+        <1507622382.6064.2.camel@seibold.net>
+        <20171130102946.7168e93c@vento.lan>
+        <1512045250.2568.1.camel@seibold.net>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The semantics for lirc IR transmit with raw IR is that the write call
-should block until the IR is transmitted. Some drivers have no idea
-when this actually is (e.g. mceusb), so there is a wait.
+Em Thu, 30 Nov 2017 13:34:10 +0100
+Stefani Seibold <stefani@seibold.net> escreveu:
 
-This is useful for userspace, as it might want to send a IR button press,
-a gap of a predefined number of milliseconds, and then send a repeat
-message.
+> On Thu, 2017-11-30 at 10:29 -0200, Mauro Carvalho Chehab wrote:
+> > Em Tue, 10 Oct 2017 09:59:42 +0200
+> > Sean Young <sean@mess.org> escreveu:
+> >   
+> > > If you try to store u64 in a kfifo (or a struct with u64 members),
+> > > then the buf member of __STRUCT_KFIFO_PTR will cause 4 bytes
+> > > padding due to alignment (note that struct __kfifo is 20 bytes
+> > > on 32 bit).
+> > > 
+> > > That in turn causes the __is_kfifo_ptr() to fail, which is caught
+> > > by kfifo_alloc(), which now returns EINVAL.
+> > > 
+> > > So, ensure that __is_kfifo_ptr() compares to the right structure.
+> > > 
+> > > Signed-off-by: Sean Young <sean@mess.org>
+> > > Acked-by: Stefani Seibold <stefani@seibold.net>  
+> > 
+> > Hi Stefani/Andrew,
+> > 
+> > As this patch is required for the LIRC rework, would be ok if I would
+> > merge it via the media tree?
+> >   
+> 
+> It is okay by me. But the question remains why this patch wasn't
+> already merged?
+> 
+> Andrew: Any objections against this patch?
 
-It turns out that for transmitting scancodes this feature is even more
-useful, as user space has no idea how long the IR is. So, maintain
-the existing semantics for IR scancode transmit.
 
-Signed-off-by: Sean Young <sean@mess.org>
----
- Documentation/media/uapi/rc/lirc-write.rst |  4 ++--
- drivers/media/rc/lirc_dev.c                | 22 +++++++++++-----------
- 2 files changed, 13 insertions(+), 13 deletions(-)
+I'm assuming that merging via media tree is ok for Andrew. So, I guess
+I'll just go ahead and merge it via my tree.
 
-diff --git a/Documentation/media/uapi/rc/lirc-write.rst b/Documentation/media/uapi/rc/lirc-write.rst
-index dd3d1fe807a6..d4566b0a2015 100644
---- a/Documentation/media/uapi/rc/lirc-write.rst
-+++ b/Documentation/media/uapi/rc/lirc-write.rst
-@@ -60,8 +60,8 @@ When in :ref:`LIRC_MODE_SCANCODE <lirc-mode-scancode>` mode, one
- and the protocol in the :c:type:`rc_proto`: member. All other members must be
- set to 0, else ``EINVAL`` is returned. If there is no protocol encoder
- for the protocol or the scancode is not valid for the specified protocol,
--``EINVAL`` is returned. The write function may not wait until the scancode
--is transmitted.
-+``EINVAL`` is returned. The write function blocks until the scancode
-+is transmitted by the hardware.
- 
- 
- Return Value
-diff --git a/drivers/media/rc/lirc_dev.c b/drivers/media/rc/lirc_dev.c
-index 218658917cf6..6cedb546c3e0 100644
---- a/drivers/media/rc/lirc_dev.c
-+++ b/drivers/media/rc/lirc_dev.c
-@@ -354,18 +354,18 @@ static ssize_t ir_lirc_transmit_ir(struct file *file, const char __user *buf,
- 			duration += txbuf[i];
- 
- 		ret *= sizeof(unsigned int);
-+	}
- 
--		/*
--		 * The lircd gap calculation expects the write function to
--		 * wait for the actual IR signal to be transmitted before
--		 * returning.
--		 */
--		towait = ktime_us_delta(ktime_add_us(start, duration),
--					ktime_get());
--		if (towait > 0) {
--			set_current_state(TASK_INTERRUPTIBLE);
--			schedule_timeout(usecs_to_jiffies(towait));
--		}
-+	/*
-+	 * The lircd gap calculation expects the write function to
-+	 * wait for the actual IR signal to be transmitted before
-+	 * returning.
-+	 */
-+	towait = ktime_us_delta(ktime_add_us(start, duration),
-+				ktime_get());
-+	if (towait > 0) {
-+		set_current_state(TASK_INTERRUPTIBLE);
-+		schedule_timeout(usecs_to_jiffies(towait));
- 	}
- 
- out:
--- 
-2.14.3
+
+Thanks,
+Mauro
