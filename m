@@ -1,189 +1,219 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga07.intel.com ([134.134.136.100]:40515 "EHLO mga07.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751582AbdLBEdc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 1 Dec 2017 23:33:32 -0500
-From: Yong Zhi <yong.zhi@intel.com>
-To: linux-media@vger.kernel.org, sakari.ailus@linux.intel.com
-Cc: jian.xu.zheng@intel.com, tfiga@chromium.org,
-        rajmohan.mani@intel.com, tuukka.toivonen@intel.com,
-        hyungwoo.yang@intel.com, chiranjeevi.rapolu@intel.com,
-        jerry.w.hu@intel.com, Yong Zhi <yong.zhi@intel.com>
-Subject: [PATCH v5 05/12] intel-ipu3: css: Add dma buff pool utility functions
-Date: Fri,  1 Dec 2017 22:32:15 -0600
-Message-Id: <1512189142-19863-6-git-send-email-yong.zhi@intel.com>
-In-Reply-To: <1512189142-19863-1-git-send-email-yong.zhi@intel.com>
-References: <1512189142-19863-1-git-send-email-yong.zhi@intel.com>
+Received: from smtp-4.sys.kth.se ([130.237.48.193]:44794 "EHLO
+        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751288AbdLHBI5 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 7 Dec 2017 20:08:57 -0500
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH v9 00/28] rcar-vin: Add Gen3 with media controller
+Date: Fri,  8 Dec 2017 02:08:14 +0100
+Message-Id: <20171208010842.20047-1-niklas.soderlund+renesas@ragnatech.se>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The pools are used to store previous parameters set by
-user with the parameter queue. Due to pipelining,
-there needs to be multiple sets (up to four)
-of parameters which are queued in a host-to-sp queue.
+Hi,
 
-Signed-off-by: Yong Zhi <yong.zhi@intel.com>
----
- drivers/media/pci/intel/ipu3/ipu3-css-pool.c | 137 +++++++++++++++++++++++++++
- drivers/media/pci/intel/ipu3/ipu3-css-pool.h |   2 +-
- 2 files changed, 138 insertions(+), 1 deletion(-)
- create mode 100644 drivers/media/pci/intel/ipu3/ipu3-css-pool.c
+This series adds Gen3 VIN support to rcar-vin driver for Renesas r8a7795,
+r8a7796 and r8a77970. It is based on the media-tree and depends on some 
+of Fabrizio Castro patches as they touches the order of the compatible 
+strings in the documentation to reduce merge conflicts. The dependencies 
+are:
 
-diff --git a/drivers/media/pci/intel/ipu3/ipu3-css-pool.c b/drivers/media/pci/intel/ipu3/ipu3-css-pool.c
-new file mode 100644
-index 000000000000..2f9cdda803de
---- /dev/null
-+++ b/drivers/media/pci/intel/ipu3/ipu3-css-pool.c
-@@ -0,0 +1,137 @@
-+/*
-+ * Copyright (c) 2017 Intel Corporation.
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License version
-+ * 2 as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ */
-+
-+#include <linux/device.h>
-+
-+#include "ipu3-css-pool.h"
-+#include "ipu3-dmamap.h"
-+
-+int ipu3_css_dma_buffer_resize(struct device *dev, struct ipu3_css_map *map,
-+			       size_t size)
-+{
-+	if (map->size < size && map->vaddr) {
-+		dev_warn(dev, "dma buffer is resized from %zu to %zu",
-+			 map->size, size);
-+
-+		ipu3_dmamap_free(dev, map);
-+		if (!ipu3_dmamap_alloc(dev, map, size))
-+			return -ENOMEM;
-+	}
-+
-+	return 0;
-+}
-+
-+void ipu3_css_pool_cleanup(struct device *dev, struct ipu3_css_pool *pool)
-+{
-+	unsigned int i;
-+
-+	for (i = 0; i < IPU3_CSS_POOL_SIZE; i++)
-+		ipu3_dmamap_free(dev, &pool->entry[i].param);
-+}
-+
-+int ipu3_css_pool_init(struct device *dev, struct ipu3_css_pool *pool,
-+		       size_t size)
-+{
-+	unsigned int i;
-+
-+	for (i = 0; i < IPU3_CSS_POOL_SIZE; i++) {
-+		/*
-+		 * entry[i].framenum is initialized to INT_MIN so that
-+		 * ipu3_css_pool_check() can treat it as usesable slot.
-+		 */
-+		pool->entry[i].framenum = INT_MIN;
-+
-+		if (size == 0) {
-+			pool->entry[i].param.vaddr = NULL;
-+			continue;
-+		}
-+
-+		if (!ipu3_dmamap_alloc(dev, &pool->entry[i].param, size))
-+			goto fail;
-+	}
-+
-+	pool->last = IPU3_CSS_POOL_SIZE;
-+
-+	return 0;
-+
-+fail:
-+	ipu3_css_pool_cleanup(dev, pool);
-+	return -ENOMEM;
-+}
-+
-+/*
-+ * Check that the following call to pool_get succeeds.
-+ * Return negative on error.
-+ */
-+static int ipu3_css_pool_check(struct ipu3_css_pool *pool, long framenum)
-+{
-+	/* Get the oldest entry */
-+	int n = (pool->last + 1) % IPU3_CSS_POOL_SIZE;
-+	long diff = framenum - pool->entry[n].framenum;
-+
-+	/* if framenum wraps around and becomes smaller than entry n */
-+	if (diff < 0)
-+		diff += LONG_MAX;
-+
-+	/*
-+	 * pool->entry[n].framenum stores the frame number where that
-+	 * entry was allocated. If that was allocated more than POOL_SIZE
-+	 * frames back, it is old enough that we know it is no more in
-+	 * use by firmware.
-+	 */
-+	if (diff > IPU3_CSS_POOL_SIZE)
-+		return n;
-+
-+	return -ENOSPC;
-+}
-+
-+/*
-+ * Allocate a new parameter from pool at frame number `framenum'.
-+ * Release the oldest entry in the pool to make space for the new entry.
-+ * Return negative on error.
-+ */
-+int ipu3_css_pool_get(struct ipu3_css_pool *pool, long framenum)
-+{
-+	int n = ipu3_css_pool_check(pool, framenum);
-+
-+	if (n < 0)
-+		return n;
-+
-+	pool->entry[n].framenum = framenum;
-+	pool->last = n;
-+
-+	return n;
-+}
-+
-+/*
-+ * Undo, for all practical purposes, the effect of pool_get().
-+ */
-+void ipu3_css_pool_put(struct ipu3_css_pool *pool)
-+{
-+	pool->entry[pool->last].framenum = INT_MIN;
-+	pool->last = (pool->last + IPU3_CSS_POOL_SIZE - 1) % IPU3_CSS_POOL_SIZE;
-+}
-+
-+const struct ipu3_css_map *
-+ipu3_css_pool_last(struct ipu3_css_pool *pool, unsigned int n)
-+{
-+	static const struct ipu3_css_map null_map = { 0 };
-+	int i = (pool->last + IPU3_CSS_POOL_SIZE - n) % IPU3_CSS_POOL_SIZE;
-+
-+	WARN_ON(n >= IPU3_CSS_POOL_SIZE);
-+
-+	if (pool->entry[i].framenum < 0)
-+		return &null_map;
-+
-+	return &pool->entry[i].param;
-+}
-diff --git a/drivers/media/pci/intel/ipu3/ipu3-css-pool.h b/drivers/media/pci/intel/ipu3/ipu3-css-pool.h
-index b60bcf2ad432..a94760a6de82 100644
---- a/drivers/media/pci/intel/ipu3/ipu3-css-pool.h
-+++ b/drivers/media/pci/intel/ipu3/ipu3-css-pool.h
-@@ -44,7 +44,7 @@ int ipu3_css_dma_buffer_resize(struct device *dev, struct ipu3_css_map *map,
- 			       size_t size);
- void ipu3_css_pool_cleanup(struct device *dev, struct ipu3_css_pool *pool);
- int ipu3_css_pool_init(struct device *dev, struct ipu3_css_pool *pool,
--		       int size);
-+		       size_t size);
- int ipu3_css_pool_get(struct ipu3_css_pool *pool, long framenum);
- void ipu3_css_pool_put(struct ipu3_css_pool *pool);
- const struct ipu3_css_map *ipu3_css_pool_last(struct ipu3_css_pool *pool,
+[PATCH v2 1/4] dt-bindings: media: rcar_vin: Reverse SoC part number list
+[PATCH v2 2/4] dt-bindings: media: rcar_vin: add device tree support for r8a774[35]
+
+The driver is tested on Renesas H3 (r8a7795, ES2.0),
+M3-W (r8a7796) together with the rcar-csi2 driver (posted separately and
+not yet upstream) and the Salvator-X onboard ADV7482. It is also tested 
+on the V3M (r8a77970) on the Eagle board together with its expansion 
+board with a ADV7482.
+
+It is possible to capture both CVBS and HDMI video streams,
+v4l2-compliance passes with no errors and media-ctl can be used to
+change the routing and formats for the different entities in the media
+graph.
+
+Gen2 compatibility is verified on Koelsch and no problems where found,
+video can be captured just like before and v4l2-compliance passes
+without errors or warnings just like before this series.
+
+I have started on a very basic test suite for the VIN driver at:
+
+  https://git.ragnatech.se/vin-tests
+
+And as before the state of the driver and information about how to test
+it can be found on the elinux wiki:
+
+  http://elinux.org/R-Car/Tests:rcar-vin
+
+* Changes since b8
+- Fixed issue in rvin_group_init() where rvin_group_update_links() was 
+  called, but after moving the video device registration to the 
+  complete() callback this is now invalid.
+- Fixed spelling in commit messages.
+- Added review and acks from Hans, Kieran and Rob.
+
+* Changes since v7
+- Dropped '[PATCH v7 02/25] rcar-vin: register the video device at probe time'
+- Add patch which renames four badly name functions. Some of the 
+  renaming was in v7 part of the dropped patch 02/25. Make it a own 
+  patch and rename all badly named functions in one patch.
+- Add patch to replace part of the functionality of the dropped patch v7 
+  02/25. The new patch keeps the subdevice (un)registration calls in the 
+  async callbacks bind() and unbind() but moves the direct subdevice 
+  initialization which only is used on Gen2 from the Gen2 and Gen3 
+  shared rvin_v4l2_register().
+- Add patch to enable Renesas V3M (r8a77970)
+- Patch 'rcar-vin: parse Gen3 OF and setup media graph' have had code 
+  additions since v7 since it now registers the video devices in the 
+  async complete() callback instead of at probe time as an effect of 
+  dropping v7 02/25.
+  - The complete() callback now register all video devices.
+  - The unbind() callback now unregister all video devices.
+  - A new member '*notifier' is added to struct rvin_group which keeps 
+    track of which rcar-vin instance have registered its notifier on the 
+    groups behalf.
+  For the reason above all Reviewed-by tags have been dropped for this 
+  patch.
+- Replaced all kernel messages which used of_node_full_name() as now 
+  only returns the basename and not till full path, thanks Geert.
+
+    printk("%s", of_node_full_name(ep)); -> printk("%pOF", ep);
+
+- Added Reviewed-by tags from Hans, big thanks!
+
+* Changes since v6
+- Rebase ontop of latest media-tree which brings in the use of the
+  fwnode async helpers for Gen2.
+- Updated DT binding documentation, thanks Laurent for very helpful
+  input!
+- Removed help text which where copied in from v4l2_ctrl_handler_init()
+  documentation when moving that code block, this was a residue from the
+  soc_camera conversion and should have been removed at that time.
+- Removed bad check of tvnorms which disables IOCTLs if it's not set,
+  this was a residue from soc_camera conversion and have use in the
+  current driver.
+- Moved all subdevice initialization from complete to bound handler
+  while improving the unbind handler. With this move all operations of
+  the ctrl_handler from the subdevice is handled in either bound or
+  unbind removing races pointed out by Laurent.
+- Renamed rvin_v4l2_probe() -> rvin_v4l2_register() and
+  rvin_v4l2_remove() -> rvin_v4l2_unregister().
+- Fold rvin_mbus_supported() into its only caller.
+- Sort compatible string entries in ascending order.
+- Improved documentation for struct rvin_group_chsel.
+- Clarify comment in rvin_group_csi_pad_to_chan().
+- Make use of of_device_get_match_data() as suggested by Geert.
+- Fixed spelling mistakes.
+- Added review tags from Hans.
+
+* Changes since v5
+- Extract and make use of common format checking for both Gen2 and Gen3.
+- Assign pad at declaration time in rvin_get_sd_format()
+- Always call pm_runtime_{get_sync,put}() and v4l2_pipeline_pm_use()
+  when opening/closing a video device, remove the check of
+  v4l2_fh_is_singular_file().
+- Make rvin_set_chsel() return void instead of int since it always
+  return 0.
+- Simplify the VIN group allocator functions.
+- Make the group notifier callbacks and setup more robust.
+- Moved the video device registration back to probe time.
+- Add H3 ES2.0 support.
+- Fix handling of single field formats (top, bottom, alternate) as this
+  was obviously wrong before but hidden by the Gen2 scaler support.
+- Added review tags from Kieran.
+
+* Changes since v4 (Not posted to ML)
+- Updated to the new fwnode functions.
+- Moved the registration of the video devices to the async notification
+  callback.
+
+* Changes since v3
+- Only add neighboring subdevices to the async notifier. Instead of
+  parsing the whole OF graph depend on incremental async subnotifier to
+  discover the whole pipeline. This is needed to support arbitrarily
+  long graphs and support the new ADV7482 prototype driver which Kieran
+  is working on.
+- Fix warning from lockdep, reported by Kieran.
+- Fix commit messages from feedback from Sergei, thanks.
+- Fix chip info an OF device ids sorting order, thanks Geert.
+- Use subdev->of_node instead of subdev->dev->of_node, thanks Kieran.
+
+* Changes since v2
+- Do not try to control the subdevices in the media graph from the rcar-vin
+  driver. Have user-space configure to format in the pipeline instead.
+- Add link validation before starting the stream.
+- Rework on how the subdevices are and the video node behave by defining
+  specific V4L2 operations for the MC mode of operation, this simplified
+  the driver quit a bit, thanks Laurent!
+- Add a new 'renesas,id' DT property which is needed to to be able to
+  keep the VIN to CSI-2 routing table inside the driver. Previously this
+  information was taken from the CSI-2 DT node which is obviously the
+  wrong way to do things. Thanks Laurent for pointing this out.
+- Fixed a memory leek in the group allocator function.
+- Return -EMLINK instead of -EBUSY if a MC link is not possible given
+  the current routing setup.
+- Add comments to clarify that the 4 channels from the CSI-2 node is not
+  directly related to CSI-2 virtual channels, the CSI-2 node can output
+  any VC on any of its output channels.
+
+* Changes since v1
+- Remove unneeded casts as pointed out by Geert.
+- Fix spelling and DT documentation as pointed out by Geert and Sergei,
+  thanks!
+- Refresh patch 2/32 with an updated version, thanks Sakari for pointing
+  this out.
+- Add Sakaris Ack to patch 1/32.
+- Rebase on top of v4.9-rc1 instead of v4.9-rc3 to ease integration
+  testing together with renesas-drivers tree.
+
+Niklas Söderlund (28):
+  rcar-vin: add Gen3 devicetree bindings documentation
+  rcar-vin: rename poorly named initialize and cleanup functions
+  rcar-vin: unregister video device on driver removal
+  rcar-vin: move subdevice handling to async callbacks
+  rcar-vin: move chip information to own struct
+  rcar-vin: move max width and height information to chip information
+  rcar-vin: change name of video device
+  rcar-vin: move functions regarding scaling
+  rcar-vin: all Gen2 boards can scale simplify logic
+  rcar-vin: do not reset crop and compose when setting format
+  rcar-vin: do not allow changing scaling and composing while streaming
+  rcar-vin: read subdevice format for crop only when needed
+  rcar-vin: fix handling of single field frames (top, bottom and
+    alternate fields)
+  rcar-vin: move media bus configuration to struct rvin_info
+  rcar-vin: enable Gen3 hardware configuration
+  rcar-vin: add function to manipulate Gen3 chsel value
+  rcar-vin: add flag to switch to media controller mode
+  rcar-vin: break out format alignment and checking
+  rcar-vin: use different v4l2 operations in media controller mode
+  rcar-vin: prepare for media controller mode initialization
+  rcar-vin: add group allocator functions
+  rcar-vin: add chsel information to rvin_info
+  rcar-vin: parse Gen3 OF and setup media graph
+  rcar-vin: add link notify for Gen3
+  rcar-vin: extend {start,stop}_streaming to work with media controller
+  rcar-vin: enable support for r8a7795
+  rcar-vin: enable support for r8a7796
+  rcar-vin: enable support for r8a77970
+
+ .../devicetree/bindings/media/rcar_vin.txt         |  118 +-
+ drivers/media/platform/rcar-vin/Kconfig            |    2 +-
+ drivers/media/platform/rcar-vin/rcar-core.c        | 1159 ++++++++++++++++++--
+ drivers/media/platform/rcar-vin/rcar-dma.c         |  990 ++++++++++-------
+ drivers/media/platform/rcar-vin/rcar-v4l2.c        |  445 +++++---
+ drivers/media/platform/rcar-vin/rcar-vin.h         |  131 ++-
+ 6 files changed, 2143 insertions(+), 702 deletions(-)
+
 -- 
-2.7.4
+2.15.0
