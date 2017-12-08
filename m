@@ -1,62 +1,31 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay5-d.mail.gandi.net ([217.70.183.197]:60917 "EHLO
-        relay5-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932071AbdL1OBu (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 28 Dec 2017 09:01:50 -0500
-From: Jacopo Mondi <jacopo+renesas@jmondi.org>
-To: laurent.pinchart@ideasonboard.com, magnus.damm@gmail.com,
-        geert@glider.be, mchehab@kernel.org, hverkuil@xs4all.nl,
-        robh+dt@kernel.org, mark.rutland@arm.com
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-sh@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH v2 4/9] ARM: dts: r7s72100: Add Capture Engine Unit (CEU)
-Date: Thu, 28 Dec 2017 15:01:16 +0100
-Message-Id: <1514469681-15602-5-git-send-email-jacopo+renesas@jmondi.org>
-In-Reply-To: <1514469681-15602-1-git-send-email-jacopo+renesas@jmondi.org>
-References: <1514469681-15602-1-git-send-email-jacopo+renesas@jmondi.org>
+Received: from mail.anw.at ([195.234.101.228]:53538 "EHLO mail.anw.at"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752155AbdLHVGG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 8 Dec 2017 16:06:06 -0500
+Subject: Re: [PATCH] build: Added missing timer_setup_on_stack
+To: linux-media@vger.kernel.org
+Cc: hverkuil@xs4all.nl, d.scheller@gmx.net
+References: <1512766859-7667-1-git-send-email-jasmin@anw.at>
+From: "Jasmin J." <jasmin@anw.at>
+Message-ID: <3343c1fd-d0f0-46b1-fd3f-150f36de6fa4@anw.at>
+Date: Fri, 8 Dec 2017 22:06:02 +0100
+MIME-Version: 1.0
+In-Reply-To: <1512766859-7667-1-git-send-email-jasmin@anw.at>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add Capture Engine Unit (CEU) node to device tree.
+Hello Hans!
 
-Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
----
- arch/arm/boot/dts/r7s72100.dtsi | 15 ++++++++++++---
- 1 file changed, 12 insertions(+), 3 deletions(-)
+With this patch it compiles for Kernel 4.4, but not on 3.13. I will work on
+that soon.
 
-diff --git a/arch/arm/boot/dts/r7s72100.dtsi b/arch/arm/boot/dts/r7s72100.dtsi
-index ab9645a..b09b032 100644
---- a/arch/arm/boot/dts/r7s72100.dtsi
-+++ b/arch/arm/boot/dts/r7s72100.dtsi
-@@ -135,9 +135,9 @@
- 			#clock-cells = <1>;
- 			compatible = "renesas,r7s72100-mstp-clocks", "renesas,cpg-mstp-clocks";
- 			reg = <0xfcfe042c 4>;
--			clocks = <&p0_clk>;
--			clock-indices = <R7S72100_CLK_RTC>;
--			clock-output-names = "rtc";
-+			clocks = <&b_clk>, <&p0_clk>;
-+			clock-indices = <R7S72100_CLK_CEU R7S72100_CLK_RTC>;
-+			clock-output-names = "ceu", "rtc";
- 		};
- 
- 		mstp7_clks: mstp7_clks@fcfe0430 {
-@@ -667,4 +667,13 @@
- 		power-domains = <&cpg_clocks>;
- 		status = "disabled";
- 	};
-+
-+	ceu: ceu@e8210000 {
-+		reg = <0xe8210000 0x209c>;
-+		compatible = "renesas,r7s72100-ceu";
-+		interrupts = <GIC_SPI 332 IRQ_TYPE_LEVEL_HIGH>;
-+		clocks = <&mstp6_clks R7S72100_CLK_CEU>;
-+		power-domains = <&cpg_clocks>;
-+		status = "disabled";
-+	};
- };
--- 
-2.7.4
+I am not sure if this patch keeps pvrusb2 working, but it compiles. I tried
+first a solution by reverting 8da0edf2f90b6c74b69ad420fdd230c9bd2bd1ed. If you
+prefer this, I have it on a branch and can submit it.
+
+BR,
+   Jasmin
