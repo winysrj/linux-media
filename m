@@ -1,184 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:56082 "EHLO osg.samsung.com"
+Received: from smtp3-1.goneo.de ([85.220.129.38]:49351 "EHLO smtp3-1.goneo.de"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1762260AbdLSLS3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 19 Dec 2017 06:18:29 -0500
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        id S1753830AbdLHQLT (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 8 Dec 2017 11:11:19 -0500
+Content-Type: text/plain; charset=us-ascii
+Mime-Version: 1.0 (Mac OS X Mail 10.3 \(3273\))
+Subject: Re: [PATCH v2] kernel-doc: parse DECLARE_KFIFO and
+ DECLARE_KFIFO_PTR()
+From: Markus Heiser <markus.heiser@darmarit.de>
+In-Reply-To: <37a81ae259c9d3a90fbdbe1532f904946139bfdd.1512741889.git.mchehab@s-opensource.com>
+Date: Fri, 8 Dec 2017 17:01:03 +0100
+Cc: Jonathan Corbet <corbet@lwn.net>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
         Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        Evgeni Raikhel <evgeni.raikhel@intel.com>,
-        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Subject: [PATCH v2 2/8] media: v4l2-ioctl.h: convert debug into an enum of bits
-Date: Tue, 19 Dec 2017 09:18:18 -0200
-Message-Id: <333b63fa1857f6819ce64666beba969c22e2f468.1513682135.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1513682135.git.mchehab@s-opensource.com>
-References: <cover.1513682135.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1513682135.git.mchehab@s-opensource.com>
-References: <cover.1513682135.git.mchehab@s-opensource.com>
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>
+Content-Transfer-Encoding: 8BIT
+Message-Id: <B95120B7-C714-4CF5-B531-1CC609FE84EE@darmarit.de>
+References: <37a81ae259c9d3a90fbdbe1532f904946139bfdd.1512741889.git.mchehab@s-opensource.com>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The V4L2_DEV_DEBUG_IOCTL macros actually define a bitmask,
-but without using Kernel's modern standards. Also,
-documentation looks akward.
+FYI: added similar patch to the linuxdoc sphinx-extension
 
-So, convert them into an enum with valid bits, adding
-the correspoinding kernel-doc documentation for it.
+ https://github.com/return42/linuxdoc/commit/726af7a
 
-In order to avoid possible conflicts, rename them from
-V4L2_DEV_DEBUG_foo to V4L2_DEBUG_foo.
+Thanks!
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/v4l2-core/v4l2-dev.c   | 18 +++++++++---------
- drivers/media/v4l2-core/v4l2-ioctl.c |  7 ++++---
- include/media/v4l2-ioctl.h           | 33 +++++++++++++++++++--------------
- 3 files changed, 32 insertions(+), 26 deletions(-)
+-- Markus -- 
 
-diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
-index d5e0e536ef04..ab876ddaa707 100644
---- a/drivers/media/v4l2-core/v4l2-dev.c
-+++ b/drivers/media/v4l2-core/v4l2-dev.c
-@@ -307,8 +307,8 @@ static ssize_t v4l2_read(struct file *filp, char __user *buf,
- 		return -EINVAL;
- 	if (video_is_registered(vdev))
- 		ret = vdev->fops->read(filp, buf, sz, off);
--	if ((vdev->dev_debug & V4L2_DEV_DEBUG_FOP) &&
--	    (vdev->dev_debug & V4L2_DEV_DEBUG_STREAMING))
-+	if ((vdev->dev_debug & BIT(V4L2_DEBUG_FOP)) &&
-+	    (vdev->dev_debug & BIT(V4L2_DEBUG_STREAMING)))
- 		printk(KERN_DEBUG "%s: read: %zd (%d)\n",
- 			video_device_node_name(vdev), sz, ret);
- 	return ret;
-@@ -324,8 +324,8 @@ static ssize_t v4l2_write(struct file *filp, const char __user *buf,
- 		return -EINVAL;
- 	if (video_is_registered(vdev))
- 		ret = vdev->fops->write(filp, buf, sz, off);
--	if ((vdev->dev_debug & V4L2_DEV_DEBUG_FOP) &&
--	    (vdev->dev_debug & V4L2_DEV_DEBUG_STREAMING))
-+	if ((vdev->dev_debug & BIT(V4L2_DEBUG_FOP)) &&
-+	    (vdev->dev_debug & BIT(V4L2_DEBUG_STREAMING)))
- 		printk(KERN_DEBUG "%s: write: %zd (%d)\n",
- 			video_device_node_name(vdev), sz, ret);
- 	return ret;
-@@ -340,7 +340,7 @@ static unsigned int v4l2_poll(struct file *filp, struct poll_table_struct *poll)
- 		return DEFAULT_POLLMASK;
- 	if (video_is_registered(vdev))
- 		res = vdev->fops->poll(filp, poll);
--	if (vdev->dev_debug & V4L2_DEV_DEBUG_POLL)
-+	if (vdev->dev_debug & BIT(V4L2_DEBUG_POLL))
- 		printk(KERN_DEBUG "%s: poll: %08x\n",
- 			video_device_node_name(vdev), res);
- 	return res;
-@@ -381,7 +381,7 @@ static unsigned long v4l2_get_unmapped_area(struct file *filp,
- 	if (!video_is_registered(vdev))
- 		return -ENODEV;
- 	ret = vdev->fops->get_unmapped_area(filp, addr, len, pgoff, flags);
--	if (vdev->dev_debug & V4L2_DEV_DEBUG_FOP)
-+	if (vdev->dev_debug & BIT(V4L2_DEBUG_FOP))
- 		printk(KERN_DEBUG "%s: get_unmapped_area (%d)\n",
- 			video_device_node_name(vdev), ret);
- 	return ret;
-@@ -397,7 +397,7 @@ static int v4l2_mmap(struct file *filp, struct vm_area_struct *vm)
- 		return -ENODEV;
- 	if (video_is_registered(vdev))
- 		ret = vdev->fops->mmap(filp, vm);
--	if (vdev->dev_debug & V4L2_DEV_DEBUG_FOP)
-+	if (vdev->dev_debug & BIT(V4L2_DEBUG_FOP))
- 		printk(KERN_DEBUG "%s: mmap (%d)\n",
- 			video_device_node_name(vdev), ret);
- 	return ret;
-@@ -427,7 +427,7 @@ static int v4l2_open(struct inode *inode, struct file *filp)
- 			ret = -ENODEV;
- 	}
- 
--	if (vdev->dev_debug & V4L2_DEV_DEBUG_FOP)
-+	if (vdev->dev_debug & BIT(V4L2_DEBUG_FOP))
- 		printk(KERN_DEBUG "%s: open (%d)\n",
- 			video_device_node_name(vdev), ret);
- 	/* decrease the refcount in case of an error */
-@@ -444,7 +444,7 @@ static int v4l2_release(struct inode *inode, struct file *filp)
- 
- 	if (vdev->fops->release)
- 		ret = vdev->fops->release(filp);
--	if (vdev->dev_debug & V4L2_DEV_DEBUG_FOP)
-+	if (vdev->dev_debug & BIT(V4L2_DEBUG_FOP))
- 		printk(KERN_DEBUG "%s: release\n",
- 			video_device_node_name(vdev));
- 
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index 79614992ee21..cdd1e9470dbe 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -2760,15 +2760,16 @@ static long __video_do_ioctl(struct file *file,
- 	}
- 
- done:
--	if (dev_debug & (V4L2_DEV_DEBUG_IOCTL | V4L2_DEV_DEBUG_IOCTL_ARG)) {
--		if (!(dev_debug & V4L2_DEV_DEBUG_STREAMING) &&
-+	if (dev_debug & (BIT(V4L2_DEBUG_IOCTL)
-+			 | BIT(V4L2_DEBUG_IOCTL_ARG))) {
-+		if (!(dev_debug & BIT(V4L2_DEBUG_STREAMING)) &&
- 		    (cmd == VIDIOC_QBUF || cmd == VIDIOC_DQBUF))
- 			return ret;
- 
- 		v4l_printk_ioctl(video_device_node_name(vfd), cmd);
- 		if (ret < 0)
- 			pr_cont(": error %ld", ret);
--		if (!(dev_debug & V4L2_DEV_DEBUG_IOCTL_ARG))
-+		if (!(dev_debug & BIT(V4L2_DEBUG_IOCTL_ARG)))
- 			pr_cont("\n");
- 		else if (_IOC_DIR(cmd) == _IOC_NONE)
- 			info->debug(arg, write_only);
-diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
-index a7b3f7c75d62..9f8d04ad4bdd 100644
---- a/include/media/v4l2-ioctl.h
-+++ b/include/media/v4l2-ioctl.h
-@@ -589,20 +589,25 @@ struct v4l2_ioctl_ops {
- };
- 
- 
--/* v4l debugging and diagnostics */
--
--/* Device debug flags to be used with the video device debug attribute */
--
--/* Just log the ioctl name + error code */
--#define V4L2_DEV_DEBUG_IOCTL		0x01
--/* Log the ioctl name arguments + error code */
--#define V4L2_DEV_DEBUG_IOCTL_ARG	0x02
--/* Log the file operations open, release, mmap and get_unmapped_area */
--#define V4L2_DEV_DEBUG_FOP		0x04
--/* Log the read and write file operations and the VIDIOC_(D)QBUF ioctls */
--#define V4L2_DEV_DEBUG_STREAMING	0x08
--/* Log poll() */
--#define V4L2_DEV_DEBUG_POLL		0x10
-+/**
-+ * enum v4l2_debug_bits - Device debug bits to be used with the video
-+ *	device debug attribute
-+ *
-+ * @V4L2_DEBUG_IOCTL:		Just log the ioctl name + error code.
-+ * @V4L2_DEBUG_IOCTL_ARG:	Log the ioctl name arguments + error code.
-+ * @V4L2_DEBUG_FOP:		Log the file operations and open, release,
-+ *				mmap and get_unmapped_area syscalls.
-+ * @V4L2_DEBUG_STREAMING:	Log the read and write syscalls and
-+ *				:c:ref:`VIDIOC_[Q|DQ]BUF <VIDIOC_QBUF>` ioctls.
-+ * @V4L2_DEBUG_POLL:		Log poll syscalls.
-+ */
-+enum v4l2_debug_bits {
-+	V4L2_DEBUG_IOCTL	= 0,
-+	V4L2_DEBUG_IOCTL_ARG	= 1,
-+	V4L2_DEBUG_FOP		= 2,
-+	V4L2_DEBUG_STREAMING	= 3,
-+	V4L2_DEBUG_POLL		= 4,
-+};
- 
- /*  Video standard functions  */
- 
--- 
-2.14.3
+> Am 08.12.2017 um 15:05 schrieb Mauro Carvalho Chehab <mchehab@s-opensource.com>:
+> 
+> On media, we now have an struct declared with:
+> 
+> struct lirc_fh {
+>       struct list_head list;
+>       struct rc_dev *rc;
+>       int                             carrier_low;
+>       bool                            send_timeout_reports;
+>       DECLARE_KFIFO_PTR(rawir, unsigned int);
+>       DECLARE_KFIFO_PTR(scancodes, struct lirc_scancode);
+>       wait_queue_head_t               wait_poll;
+>       u8                              send_mode;
+>       u8                              rec_mode;
+> };
+> 
+> gpiolib.c has a similar declaration with DECLARE_KFIFO().
+> 
+> Currently, those produce the following error:
+> 
+> 	./include/media/rc-core.h:96: warning: No description found for parameter 'int'
+> 	./include/media/rc-core.h:96: warning: No description found for parameter 'lirc_scancode'
+> 	./include/media/rc-core.h:96: warning: Excess struct member 'rawir' description in 'lirc_fh'
+> 	./include/media/rc-core.h:96: warning: Excess struct member 'scancodes' description in 'lirc_fh'
+> 	../drivers/gpio/gpiolib.c:601: warning: No description found for parameter '16'
+> 	../drivers/gpio/gpiolib.c:601: warning: Excess struct member 'events' description in 'lineevent_state'
+> 
+> So, teach kernel-doc how to parse DECLARE_KFIFO() and DECLARE_KFIFO_PTR().
+> 
+> While here, relax at the past DECLARE_foo() macros, accepting a random
+> number of spaces after comma.
+> 
+> The addition of DECLARE_KFIFO() was
+> Suggested-by: Randy Dunlap <rdunlap@infradead.org>
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> ---
+> scripts/kernel-doc | 8 ++++++--
+> 1 file changed, 6 insertions(+), 2 deletions(-)
+> 
+> diff --git a/scripts/kernel-doc b/scripts/kernel-doc
+> index bd29a92b4b48..cfdabdd08631 100755
+> --- a/scripts/kernel-doc
+> +++ b/scripts/kernel-doc
+> @@ -2208,9 +2208,13 @@ sub dump_struct($$) {
+> 	$members =~ s/__aligned\s*\([^;]*\)//gos;
+> 	$members =~ s/\s*CRYPTO_MINALIGN_ATTR//gos;
+> 	# replace DECLARE_BITMAP
+> -	$members =~ s/DECLARE_BITMAP\s*\(([^,)]+), ([^,)]+)\)/unsigned long $1\[BITS_TO_LONGS($2)\]/gos;
+> +	$members =~ s/DECLARE_BITMAP\s*\(([^,)]+),\s*([^,)]+)\)/unsigned long $1\[BITS_TO_LONGS($2)\]/gos;
+> 	# replace DECLARE_HASHTABLE
+> -	$members =~ s/DECLARE_HASHTABLE\s*\(([^,)]+), ([^,)]+)\)/unsigned long $1\[1 << (($2) - 1)\]/gos;
+> +	$members =~ s/DECLARE_HASHTABLE\s*\(([^,)]+),\s*([^,)]+)\)/unsigned long $1\[1 << (($2) - 1)\]/gos;
+> +	# replace DECLARE_KFIFO
+> +	$members =~ s/DECLARE_KFIFO\s*\(([^,)]+),\s*([^,)]+),\s*([^,)]+)\)/$2 \*$1/gos;
+> +	# replace DECLARE_KFIFO_PTR
+> +	$members =~ s/DECLARE_KFIFO_PTR\s*\(([^,)]+),\s*([^,)]+)\)/$2 \*$1/gos;
+> 
+> 	create_parameterlist($members, ';', $file);
+> 	check_sections($file, $declaration_name, $decl_type, $sectcheck, $struct_actual, $nested);
+> -- 
+> 2.14.3
+> 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-doc" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
