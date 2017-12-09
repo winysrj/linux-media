@@ -1,94 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([65.50.211.133]:56368 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752350AbdLHWHw (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 8 Dec 2017 17:07:52 -0500
-Subject: Re: [PATCH v2] kernel-doc: parse DECLARE_KFIFO and
- DECLARE_KFIFO_PTR()
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Jonathan Corbet <corbet@lwn.net>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        linux-doc@vger.kernel.org
-References: <37a81ae259c9d3a90fbdbe1532f904946139bfdd.1512741889.git.mchehab@s-opensource.com>
-From: Randy Dunlap <rdunlap@infradead.org>
-Message-ID: <3b83c0e0-4bd7-a2ad-c667-eb40987f84e2@infradead.org>
-Date: Fri, 8 Dec 2017 14:07:51 -0800
-MIME-Version: 1.0
-In-Reply-To: <37a81ae259c9d3a90fbdbe1532f904946139bfdd.1512741889.git.mchehab@s-opensource.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:48235 "EHLO
+        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751131AbdLIJnS (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 9 Dec 2017 04:43:18 -0500
+Message-ID: <c75cd084155dd6eab1ae677d00ea2fcb@smtp-cloud8.xs4all.net>
+Date: Sat, 09 Dec 2017 10:43:15 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/08/2017 06:05 AM, Mauro Carvalho Chehab wrote:
-> On media, we now have an struct declared with:
-> 
-> struct lirc_fh {
->         struct list_head list;
->         struct rc_dev *rc;
->         int                             carrier_low;
->         bool                            send_timeout_reports;
->         DECLARE_KFIFO_PTR(rawir, unsigned int);
->         DECLARE_KFIFO_PTR(scancodes, struct lirc_scancode);
->         wait_queue_head_t               wait_poll;
->         u8                              send_mode;
->         u8                              rec_mode;
-> };
-> 
-> gpiolib.c has a similar declaration with DECLARE_KFIFO().
-> 
-> Currently, those produce the following error:
-> 
-> 	./include/media/rc-core.h:96: warning: No description found for parameter 'int'
-> 	./include/media/rc-core.h:96: warning: No description found for parameter 'lirc_scancode'
-> 	./include/media/rc-core.h:96: warning: Excess struct member 'rawir' description in 'lirc_fh'
-> 	./include/media/rc-core.h:96: warning: Excess struct member 'scancodes' description in 'lirc_fh'
-> 	../drivers/gpio/gpiolib.c:601: warning: No description found for parameter '16'
-> 	../drivers/gpio/gpiolib.c:601: warning: Excess struct member 'events' description in 'lineevent_state'
-> 
-> So, teach kernel-doc how to parse DECLARE_KFIFO() and DECLARE_KFIFO_PTR().
-> 
-> While here, relax at the past DECLARE_foo() macros, accepting a random
-> number of spaces after comma.
-> 
-> The addition of DECLARE_KFIFO() was
-> Suggested-by: Randy Dunlap <rdunlap@infradead.org>
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Tested-by: Randy Dunlap <rdunlap@infradead.org>
-Acked-by: Randy Dunlap <rdunlap@infradead.org>
+Results of the daily build of media_tree:
 
-Thanks.
+date:			Sat Dec  9 09:43:11 CET 2017
+media-tree git hash:	0393e735649dc41358adb7b603bd57dad1ed3260
+media_build git hash:	b81bc32588e6643d2467524d18367a313d043731
+v4l-utils git hash:	58803000a99c22dceabfb45bec402e746ce966c3
+gcc version:		i686-linux-gcc (GCC) 7.1.0
+sparse version:		v0.5.0-3911-g6f737e1f
+smatch version:		v0.5.0-3911-g6f737e1f
+host hardware:		x86_64
+host os:		4.13.0-164
 
-> ---
->  scripts/kernel-doc | 8 ++++++--
->  1 file changed, 6 insertions(+), 2 deletions(-)
-> 
-> diff --git a/scripts/kernel-doc b/scripts/kernel-doc
-> index bd29a92b4b48..cfdabdd08631 100755
-> --- a/scripts/kernel-doc
-> +++ b/scripts/kernel-doc
-> @@ -2208,9 +2208,13 @@ sub dump_struct($$) {
->  	$members =~ s/__aligned\s*\([^;]*\)//gos;
->  	$members =~ s/\s*CRYPTO_MINALIGN_ATTR//gos;
->  	# replace DECLARE_BITMAP
-> -	$members =~ s/DECLARE_BITMAP\s*\(([^,)]+), ([^,)]+)\)/unsigned long $1\[BITS_TO_LONGS($2)\]/gos;
-> +	$members =~ s/DECLARE_BITMAP\s*\(([^,)]+),\s*([^,)]+)\)/unsigned long $1\[BITS_TO_LONGS($2)\]/gos;
->  	# replace DECLARE_HASHTABLE
-> -	$members =~ s/DECLARE_HASHTABLE\s*\(([^,)]+), ([^,)]+)\)/unsigned long $1\[1 << (($2) - 1)\]/gos;
-> +	$members =~ s/DECLARE_HASHTABLE\s*\(([^,)]+),\s*([^,)]+)\)/unsigned long $1\[1 << (($2) - 1)\]/gos;
-> +	# replace DECLARE_KFIFO
-> +	$members =~ s/DECLARE_KFIFO\s*\(([^,)]+),\s*([^,)]+),\s*([^,)]+)\)/$2 \*$1/gos;
-> +	# replace DECLARE_KFIFO_PTR
-> +	$members =~ s/DECLARE_KFIFO_PTR\s*\(([^,)]+),\s*([^,)]+)\)/$2 \*$1/gos;
->  
->  	create_parameterlist($members, ';', $file);
->  	check_sections($file, $declaration_name, $decl_type, $sectcheck, $struct_actual, $nested);
-> 
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12.67-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.7-i686: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.18.7-i686: ERRORS
+linux-3.19-i686: WARNINGS
+linux-4.0.9-i686: WARNINGS
+linux-4.1.33-i686: WARNINGS
+linux-4.2.8-i686: WARNINGS
+linux-4.3.6-i686: WARNINGS
+linux-4.4.22-i686: WARNINGS
+linux-4.5.7-i686: WARNINGS
+linux-4.6.7-i686: WARNINGS
+linux-4.7.5-i686: WARNINGS
+linux-4.8-i686: OK
+linux-4.9.26-i686: OK
+linux-4.10.14-i686: OK
+linux-4.11-i686: OK
+linux-4.12.1-i686: OK
+linux-4.13-i686: OK
+linux-4.14-i686: OK
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.67-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.7-x86_64: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.7-x86_64: ERRORS
+linux-3.19-x86_64: WARNINGS
+linux-4.0.9-x86_64: WARNINGS
+linux-4.1.33-x86_64: WARNINGS
+linux-4.2.8-x86_64: WARNINGS
+linux-4.3.6-x86_64: WARNINGS
+linux-4.4.22-x86_64: WARNINGS
+linux-4.5.7-x86_64: WARNINGS
+linux-4.6.7-x86_64: WARNINGS
+linux-4.7.5-x86_64: WARNINGS
+linux-4.8-x86_64: WARNINGS
+linux-4.9.26-x86_64: WARNINGS
+linux-4.10.14-x86_64: WARNINGS
+linux-4.11-x86_64: WARNINGS
+linux-4.12.1-x86_64: WARNINGS
+linux-4.13-x86_64: OK
+linux-4.14-x86_64: OK
+apps: OK
+spec-git: OK
+smatch: OK
 
+Detailed results are available here:
 
--- 
-~Randy
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
