@@ -1,41 +1,35 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f42.google.com ([209.85.218.42]:45664 "EHLO
-        mail-oi0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1763180AbdLSObr (ORCPT
+Received: from mail-pg0-f49.google.com ([74.125.83.49]:40375 "EHLO
+        mail-pg0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751240AbdLJG2M (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 19 Dec 2017 09:31:47 -0500
+        Sun, 10 Dec 2017 01:28:12 -0500
+Received: by mail-pg0-f49.google.com with SMTP id k15so8977414pgr.7
+        for <linux-media@vger.kernel.org>; Sat, 09 Dec 2017 22:28:11 -0800 (PST)
+Date: Sun, 10 Dec 2017 17:27:58 +1100
+From: Vincent McIntyre <vincent.mcintyre@gmail.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: "Jasmin J." <jasmin@anw.at>, linux-media@vger.kernel.org,
+        d.scheller@gmx.net
+Subject: Re: [PATCH] build: Added missing timer_setup_on_stack
+Message-ID: <20171210062756.GA27011@ubuntu.windy>
+References: <1512766859-7667-1-git-send-email-jasmin@anw.at>
+ <3343c1fd-d0f0-46b1-fd3f-150f36de6fa4@anw.at>
+ <21ccbddb-eada-fa44-93ea-f0b80e17d409@xs4all.nl>
+ <20171208231606.GA5540@shambles.windy>
+ <d3854754-84be-3bb8-6726-f5f351e7c142@anw.at>
+ <a1d85347-5f6f-4a64-7f0c-1fc6f10e4c39@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <20171219134308.4plzpknvksbzhio7@valkosipuli.retiisi.org.uk>
-References: <20171211013146.2497-1-wenyou.yang@microchip.com>
- <20171211013146.2497-3-wenyou.yang@microchip.com> <20171219092246.3usg5mdyi27ivqlq@valkosipuli.retiisi.org.uk>
- <CAOMZO5BHSJv01SwZ2YNtGZTjMtOuOktET43qriK2fQ+jhE2TDA@mail.gmail.com>
- <20171219130537.2viv4wjcp4i3mdkj@valkosipuli.retiisi.org.uk>
- <CAOMZO5C5NJMffBEv2cdqKqUnTMQEYkqzN1JnJMS21PWtKuabnA@mail.gmail.com> <20171219134308.4plzpknvksbzhio7@valkosipuli.retiisi.org.uk>
-From: Fabio Estevam <festevam@gmail.com>
-Date: Tue, 19 Dec 2017 12:31:46 -0200
-Message-ID: <CAOMZO5DYWA8O5N=CRm2uR3_7qZ4U1M8u8F-oBU8bJfnKXD4DSA@mail.gmail.com>
-Subject: Re: [PATCH v9 2/2] media: i2c: Add the ov7740 image sensor driver
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Philippe Ombredanne <pombredanne@nexb.com>,
-        Wenyou Yang <wenyou.yang@microchip.com>,
-        Mark Rutland <mark.rutland@arm.com>,
-        devicetree@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
-        linux-kernel <linux-kernel@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Rob Herring <robh+dt@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Songjun Wu <songjun.wu@microchip.com>,
-        linux-arm-kernel@lists.infradead.org,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <a1d85347-5f6f-4a64-7f0c-1fc6f10e4c39@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Dec 19, 2017 at 11:43 AM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
+On Sat, Dec 09, 2017 at 09:00:18AM +0100, Hans Verkuil wrote:
+> I misapplied a pr_fmt patch. It's now fixed.
+> 
 
-> Both seem to exist. See e.g. c3a3d1d6b8b363a02234e5564692db3647f183e6 .
-
-This patch fixes .h files to use /* SPDX style comment, which is the
-recommendation.
-
-.c files should use // SPDX style.
+Indeed, the build goes fine now. Thank you both again.
+Cheers
+Vince
