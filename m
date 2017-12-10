@@ -1,90 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([65.50.211.133]:34654 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753130AbdLMTol (ORCPT
+Received: from mail-lf0-f47.google.com ([209.85.215.47]:42248 "EHLO
+        mail-lf0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751860AbdLJS4k (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 13 Dec 2017 14:44:41 -0500
-Date: Wed, 13 Dec 2017 17:44:37 -0200
-From: Mauro Carvalho Chehab <mchehab@kernel.org>
-To: Daniel Scheller <d.scheller.oss@gmail.com>
-Cc: linux-media@vger.kernel.org, mchehab@s-opensource.com
-Subject: Re: [PATCH 2/2] [media] ddbridge: don't break on single/last port
- attach failure
-Message-ID: <20171213174437.6eab2491@vento.lan>
-In-Reply-To: <20171213184052.29866eb2@macbox>
-References: <20171206175915.20669-1-d.scheller.oss@gmail.com>
-        <20171206175915.20669-3-d.scheller.oss@gmail.com>
-        <20171213132602.79a35512@vento.lan>
-        <20171213184052.29866eb2@macbox>
+        Sun, 10 Dec 2017 13:56:40 -0500
+Subject: Re: [PATCH v4 3/5] staging: Introduce NVIDIA Tegra video decoder
+ driver
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+        Thierry Reding <thierry.reding@gmail.com>,
+        Jonathan Hunter <jonathanh@nvidia.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Stephen Warren <swarren@wwwdotorg.org>,
+        Vladimir Zapolskiy <vz@mleia.com>
+Cc: Dan Carpenter <dan.carpenter@oracle.com>,
+        linux-media@vger.kernel.org, linux-tegra@vger.kernel.org,
+        devel@driverdev.osuosl.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org,
+        Maxime Ripard <maxime.ripard@free-electrons.com>,
+        Giulio Benetti <giulio.benetti@micronovasrl.com>
+References: <cover.1508448293.git.digetx@gmail.com>
+ <1a3798f337c0097e67d70226ae3ba665fd9156c2.1508448293.git.digetx@gmail.com>
+ <ad2da9f4-8899-7db3-493f-5aa15297c33c@xs4all.nl>
+ <3ac6a087-def2-014f-673d-1be9d5094635@gmail.com>
+ <93c98569-0282-80d9-78ad-c8ab8fd9db92@xs4all.nl>
+From: Dmitry Osipenko <digetx@gmail.com>
+Message-ID: <f46f397d-28e1-f4e5-55d4-9863214e8f6c@gmail.com>
+Date: Sun, 10 Dec 2017 21:56:35 +0300
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+In-Reply-To: <93c98569-0282-80d9-78ad-c8ab8fd9db92@xs4all.nl>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 13 Dec 2017 18:40:52 +0100
-Daniel Scheller <d.scheller.oss@gmail.com> escreveu:
-
-> On Wed, 13 Dec 2017 13:26:02 -0200
-> Mauro Carvalho Chehab <mchehab@kernel.org> wrote:
+On 05.12.2017 16:03, Hans Verkuil wrote:
+> On 12/05/17 13:17, Dmitry Osipenko wrote:
+>> Hi Hans,
+>>
+>> On 04.12.2017 17:04, Hans Verkuil wrote:
+>>> Hi Dmitry,
+>>>
+>>> As you already mention in the TODO, this should become a v4l2 codec driver.
+>>>
+>>> Good existing examples are the coda, qcom/venus and mtk-vcodec drivers.
+>>>
+>>> One thing that is not clear from this code is if the tegra hardware is a
+>>> stateful or stateless codec, i.e. does it keep track of the decoder state
+>>> in the hardware, or does the application have to keep track of the state and
+>>> provide the state information together with the video data?
+>>>
+>>> I ask because at the moment only stateful codecs are supported. Work is ongoing
+>>> to support stateless codecs, but we don't support that for now.
+>>>
+>>
+>> It is stateless. Is there anything ready to try out? If yes, could you please
+>> give a reference to that work?
 > 
-> > Em Wed,  6 Dec 2017 18:59:15 +0100
-> > Daniel Scheller <d.scheller.oss@gmail.com> escreveu:
-> >   
-> > > From: Daniel Scheller <d.scheller@gmx.net>
-> > > 
-> > > As all error handling improved quite a bit, don't stop attaching
-> > > frontends if one of them failed, since - if other tuner modules are
-> > > connected to the PCIe bridge - other hardware may just work, so
-> > > lets not break on a single port failure, but rather initialise as
-> > > much as possible. Ie. if there are issues with a C2T2-equipped PCIe
-> > > bridge card which has additional DuoFlex modules connected and the
-> > > bridge generally works, the DuoFlex tuners can still work fine.
-> > > Also, this only had an effect anyway if the failed device/port was
-> > > the last one being enumerated.
-> > > 
-> > > Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
-> > > ---
-> > >  drivers/media/pci/ddbridge/ddbridge-core.c | 2 +-
-> > >  1 file changed, 1 insertion(+), 1 deletion(-)
-> > > 
-> > > diff --git a/drivers/media/pci/ddbridge/ddbridge-core.c
-> > > b/drivers/media/pci/ddbridge/ddbridge-core.c index
-> > > 11c5cae92408..b43c40e0bf73 100644 ---
-> > > a/drivers/media/pci/ddbridge/ddbridge-core.c +++
-> > > b/drivers/media/pci/ddbridge/ddbridge-core.c @@ -1962,7 +1962,7 @@
-> > > int ddb_ports_attach(struct ddb *dev) }
-> > >  	for (i = 0; i < dev->port_num; i++) {
-> > >  		port = &dev->port[i];
-> > > -		ret = ddb_port_attach(port);
-> > > +		ddb_port_attach(port);    
-> > 
-> > Nah, ignoring an error doesn't seem right. It should at least print
-> > that attach failed.  
+> I rebased my two year old 'requests2' branch to the latest mainline version and
+> gave it the imaginative name 'requests3':
 > 
-> This is already the case in ddb_port_attach() (if (ret < 0)
-> dev_err(...)).
+> https://git.linuxtv.org/hverkuil/media_tree.git/log/?h=requests3
 > 
-> > Also, if all attaches fail, probably the best
-> > would be to just detach everything and go to the error handling code,
-> > as there's something serious happening.  
+> (Note: only compile tested!)
+
+Thank you very much.
+
+> This is what ChromeOS has been using (actually they use a slightly older version)
+> and the new version that is currently being developed will be similar, so any work
+> you do on top of this will carry over to the final version without too much effort.
 > 
-> Well, will recheck the whole error handling there then when already at
-> it, as single port failures can still leave some half-initialised stuff
-> behind until ddbridge gets unloaded.
-
-If this is the case, then you need to fix also the unbind logic,
-to be sure that nothing gets left. The best is to compile your test
-Kernel with KASAN enabled, in order to see if the remove logic is
-OK.
-
+> At least, that's the intention :-)
 > 
-> Thanks for your review, comments and your proposal!
+> I've CC-ed Maxime and Giulio as well: they are looking into adding support for
+> the stateless allwinner codec based on this code as well. There may well be
+> opportunities for you to work together, esp. on the userspace side. Note that
+> Rockchip has the same issue, they too have a stateless HW codec.
+
+IIUC, we will have to define video decoder parameters in V4L API and then make a
+V4L driver / userspace prototype (ffmpeg for example) that will use the requests
+API for video decoding in order to upstream the requests API. Does it sound good?
+
+>>
+>>> Anyway, I'm OK with merging this in staging. Although I think it should go
+>>> to staging/media since we want to keep track of it.
+>>>
+>>
+>> Awesome, I'll move driver to staging/media in V5. Thanks!
 > 
-> Best regards,
-> Daniel Scheller
-
-
-
-Thanks,
-Mauro
+> Nice, thanks!
