@@ -1,162 +1,28 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:36596 "EHLO osg.samsung.com"
+Received: from mail.anw.at ([195.234.101.228]:54544 "EHLO mail.anw.at"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1762269AbdLSLSf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 19 Dec 2017 06:18:35 -0500
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH v2 7/8] media: v4l2-subdev: document remaining undocumented functions
-Date: Tue, 19 Dec 2017 09:18:23 -0200
-Message-Id: <e392586da3000b447b572239b0f2a6d64c94ef12.1513682135.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1513682135.git.mchehab@s-opensource.com>
-References: <cover.1513682135.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1513682135.git.mchehab@s-opensource.com>
-References: <cover.1513682135.git.mchehab@s-opensource.com>
+        id S1751792AbdLJNu4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 10 Dec 2017 08:50:56 -0500
+Subject: Re: [PATCH] build: Remove patch v3.13_ddbridge_pcimsi
+From: "Jasmin J." <jasmin@anw.at>
+To: linux-media@vger.kernel.org
+Cc: hverkuil@xs4all.nl, d.scheller@gmx.net
+References: <1512778730-12349-1-git-send-email-jasmin@anw.at>
+ <18d8745d-b921-b74b-e562-0ff25a886b67@anw.at>
+Message-ID: <63524f7d-fc4e-a74d-bcca-aa3022ef20be@anw.at>
+Date: Sun, 10 Dec 2017 14:50:47 +0100
+MIME-Version: 1.0
+In-Reply-To: <18d8745d-b921-b74b-e562-0ff25a886b67@anw.at>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There are several undocumented v4l2-subdev functions that are
-part of kAPI. Document them.
+Hi!
 
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- include/media/v4l2-subdev.h | 69 +++++++++++++++++++++++++++++++++++++++++----
- 1 file changed, 64 insertions(+), 5 deletions(-)
+Please ignore this patch!
+The real problem is another, which I will fix soon.
 
-diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-index 443e5e019006..c8c827553042 100644
---- a/include/media/v4l2-subdev.h
-+++ b/include/media/v4l2-subdev.h
-@@ -867,6 +867,13 @@ struct v4l2_subdev {
- 	struct v4l2_subdev_platform_data *pdata;
- };
- 
-+
-+/**
-+ * media_entity_to_v4l2_subdev - Returns a &struct v4l2_subdev from
-+ *     the &struct media_entity embedded in it.
-+ *
-+ * @ent: pointer to &struct media_entity.
-+ */
- #define media_entity_to_v4l2_subdev(ent)				\
- ({									\
- 	typeof(ent) __me_sd_ent = (ent);				\
-@@ -876,14 +883,20 @@ struct v4l2_subdev {
- 		NULL;							\
- })
- 
-+/**
-+ * vdev_to_v4l2_subdev - Returns a &struct v4l2_subdev from
-+ *     the &struct video_device embedded on it.
-+ *
-+ * @vdev: pointer to &struct video_device
-+ */
- #define vdev_to_v4l2_subdev(vdev) \
- 	((struct v4l2_subdev *)video_get_drvdata(vdev))
- 
- /**
-  * struct v4l2_subdev_fh - Used for storing subdev information per file handle
-  *
-- * @vfh: pointer to struct v4l2_fh
-- * @pad: pointer to v4l2_subdev_pad_config
-+ * @vfh: pointer to &struct v4l2_fh
-+ * @pad: pointer to &struct v4l2_subdev_pad_config
-  */
- struct v4l2_subdev_fh {
- 	struct v4l2_fh vfh;
-@@ -892,10 +905,25 @@ struct v4l2_subdev_fh {
- #endif
- };
- 
-+/**
-+ * to_v4l2_subdev_fh - Returns a &struct v4l2_subdev_fh from
-+ *     the &struct v4l2_fh embedded on it.
-+ *
-+ * @fh: pointer to &struct v4l2_fh
-+ */
- #define to_v4l2_subdev_fh(fh)	\
- 	container_of(fh, struct v4l2_subdev_fh, vfh)
- 
- #if defined(CONFIG_VIDEO_V4L2_SUBDEV_API)
-+
-+/**
-+ * v4l2_subdev_get_try_format - ancillary routine to call
-+ * 	&struct v4l2_subdev_pad_config->try_fmt
-+ *
-+ * @sd: pointer to &struct v4l2_subdev
-+ * @cfg: pointer to &struct v4l2_subdev_pad_config array.
-+ * @pad: index of the pad in the @cfg array.
-+ */
- static inline struct v4l2_mbus_framefmt
- *v4l2_subdev_get_try_format(struct v4l2_subdev *sd,
- 			    struct v4l2_subdev_pad_config *cfg,
-@@ -906,6 +934,14 @@ static inline struct v4l2_mbus_framefmt
- 	return &cfg[pad].try_fmt;
- }
- 
-+/**
-+ * v4l2_subdev_get_try_crop - ancillary routine to call
-+ * 	&struct v4l2_subdev_pad_config->try_crop
-+ *
-+ * @sd: pointer to &struct v4l2_subdev
-+ * @cfg: pointer to &struct v4l2_subdev_pad_config array.
-+ * @pad: index of the pad in the @cfg array.
-+ */
- static inline struct v4l2_rect
- *v4l2_subdev_get_try_crop(struct v4l2_subdev *sd,
- 			  struct v4l2_subdev_pad_config *cfg,
-@@ -916,6 +952,14 @@ static inline struct v4l2_rect
- 	return &cfg[pad].try_crop;
- }
- 
-+/**
-+ * v4l2_subdev_get_try_crop - ancillary routine to call
-+ * 	&struct v4l2_subdev_pad_config->try_compose
-+ *
-+ * @sd: pointer to &struct v4l2_subdev
-+ * @cfg: pointer to &struct v4l2_subdev_pad_config array.
-+ * @pad: index of the pad in the @cfg array.
-+ */
- static inline struct v4l2_rect
- *v4l2_subdev_get_try_compose(struct v4l2_subdev *sd,
- 			     struct v4l2_subdev_pad_config *cfg,
-@@ -1032,9 +1076,16 @@ void v4l2_subdev_free_pad_config(struct v4l2_subdev_pad_config *cfg);
- void v4l2_subdev_init(struct v4l2_subdev *sd,
- 		      const struct v4l2_subdev_ops *ops);
- 
--/*
-- * Call an ops of a v4l2_subdev, doing the right checks against
-- * NULL pointers.
-+/**
-+ * v4l2_subdev_call - call an operation of a v4l2_subdev.
-+ *
-+ * @sd: pointer to the &struct v4l2_subdev
-+ * @o: name of the element at &struct v4l2_subdev_ops that contains @f.
-+ *     Each element there groups a set of callbacks functions.
-+ * @f: callback function that will be called if @cond matches.
-+ *     The callback functions are defined in groups, according to
-+ *     each element at &struct v4l2_subdev_ops.
-+ * @args...: arguments for @f.
-  *
-  * Example: err = v4l2_subdev_call(sd, video, s_std, norm);
-  */
-@@ -1050,6 +1101,14 @@ void v4l2_subdev_init(struct v4l2_subdev *sd,
- 		__result;						\
- 	})
- 
-+/**
-+ * v4l2_subdev_has_op - Checks if a subdev defines a certain operation.
-+ *
-+ * @sd: pointer to the &struct v4l2_subdev
-+ * @o: The group of callback functions in &struct v4l2_subdev_ops
-+ * which @f is a part of.
-+ * @f: callback function to be checked for its existence.
-+ */
- #define v4l2_subdev_has_op(sd, o, f) \
- 	((sd)->ops->o && (sd)->ops->o->f)
- 
--- 
-2.14.3
+BR,
+   Jasmin
