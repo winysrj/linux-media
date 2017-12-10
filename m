@@ -1,33 +1,30 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from www.llwyncelyn.cymru ([82.70.14.225]:53144 "EHLO fuzix.org"
+Received: from mail.anw.at ([195.234.101.228]:55390 "EHLO mail.anw.at"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751921AbdLARl7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 1 Dec 2017 12:41:59 -0500
-Date: Fri, 1 Dec 2017 17:41:50 +0000
-From: Alan Cox <gnomes@lxorguk.ukuu.org.uk>
-To: Jeremy Sowden <jeremy@azazel.net>
-Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org
-Subject: Re: [PATCH v2 2/3] media: atomisp: delete zero-valued struct
- members.
-Message-ID: <20171201174150.57f12e5f@alans-desktop>
-In-Reply-To: <20171201171939.3432-3-jeremy@azazel.net>
-References: <20171201150725.cfcp6b4bs2ncqsip@mwanda>
-        <20171201171939.3432-1-jeremy@azazel.net>
-        <20171201171939.3432-3-jeremy@azazel.net>
+        id S1751609AbdLJOTw (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 10 Dec 2017 09:19:52 -0500
+Subject: Re: [PATCH] build: Remove patch v3.13_ddbridge_pcimsi
+From: "Jasmin J." <jasmin@anw.at>
+To: linux-media@vger.kernel.org
+Cc: hverkuil@xs4all.nl, d.scheller@gmx.net
+References: <1512778730-12349-1-git-send-email-jasmin@anw.at>
+ <18d8745d-b921-b74b-e562-0ff25a886b67@anw.at>
+ <63524f7d-fc4e-a74d-bcca-aa3022ef20be@anw.at>
+Message-ID: <405e9938-c4f0-59a7-3511-517a0f4bae30@anw.at>
+Date: Sun, 10 Dec 2017 15:19:47 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+In-Reply-To: <63524f7d-fc4e-a74d-bcca-aa3022ef20be@anw.at>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi!
 
-> --- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/ia_css_pipe_public.h
-> +++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/ia_css_pipe_public.h
-> @@ -152,14 +152,6 @@ struct ia_css_pipe_config {
->  };
->  
+> The real problem is another, which I will fix soon.
+I mixed up some branches, so there is no problem and there is nothing to fix.
+Please delete this patch from Patchwork!
 
-
-Thani you that's a really good cleanup.
-
-Alan
+BR,
+   Jasmin
