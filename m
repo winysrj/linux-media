@@ -1,51 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:38191 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752998AbdLROLT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 18 Dec 2017 09:11:19 -0500
-Date: Mon, 18 Dec 2017 12:11:13 -0200
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Sean Young <sean@mess.org>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>
-Subject: Re: [PATCH v2 02/17] media: v4l2-common: get rid of v4l2_routing
- dead struct
-Message-ID: <20171218121113.4f50b6d7@vento.lan>
-In-Reply-To: <84ee3a09-dec8-286e-94ce-7adf31f766a5@xs4all.nl>
-References: <cover.1506548682.git.mchehab@s-opensource.com>
-        <a47fda6dbbdf84a9bdc607acfc769d00e8cb22f6.1506548682.git.mchehab@s-opensource.com>
-        <84ee3a09-dec8-286e-94ce-7adf31f766a5@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:46617 "EHLO
+        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751345AbdLJEv0 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 9 Dec 2017 23:51:26 -0500
+Message-ID: <dfbda7f1802171b16a3669f5b0b29968@smtp-cloud9.xs4all.net>
+Date: Sun, 10 Dec 2017 05:51:23 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 13 Oct 2017 15:24:34 +0200
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-> > ---
-> >  include/media/v4l2-common.h | 14 +++++---------
-> >  1 file changed, 5 insertions(+), 9 deletions(-)
-> > 
-> > diff --git a/include/media/v4l2-common.h b/include/media/v4l2-common.h
-> > @@ -238,11 +239,6 @@ struct v4l2_priv_tun_config {
-> >  
-> >  #define VIDIOC_INT_RESET            	_IOW ('d', 102, u32)  
+Results of the daily build of media_tree:
 
-> 
-> Regarding this one: I *think* (long time ago) that the main reason for this
-> was to reset a locked up IR blaster. I wonder if this is still needed after
-> Sean's rework of this. Once that's all done and merged this would probably
-> merit another look to see if it can be removed.
+date:			Sun Dec 10 05:00:15 CET 2017
+media-tree git hash:	0393e735649dc41358adb7b603bd57dad1ed3260
+media_build git hash:	b81bc32588e6643d2467524d18367a313d043731
+v4l-utils git hash:	58803000a99c22dceabfb45bec402e746ce966c3
+gcc version:		i686-linux-gcc (GCC) 7.1.0
+sparse version:		v0.5.0-3911-g6f737e1f
+smatch version:		v0.5.0-3911-g6f737e1f
+host hardware:		x86_64
+host os:		4.13.0-164
 
-Sean,
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12.67-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.7-i686: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.18.7-i686: ERRORS
+linux-3.19-i686: WARNINGS
+linux-4.0.9-i686: WARNINGS
+linux-4.1.33-i686: WARNINGS
+linux-4.2.8-i686: WARNINGS
+linux-4.3.6-i686: WARNINGS
+linux-4.4.22-i686: WARNINGS
+linux-4.5.7-i686: WARNINGS
+linux-4.6.7-i686: WARNINGS
+linux-4.7.5-i686: WARNINGS
+linux-4.8-i686: OK
+linux-4.9.26-i686: OK
+linux-4.10.14-i686: OK
+linux-4.11-i686: OK
+linux-4.12.1-i686: OK
+linux-4.13-i686: OK
+linux-4.14-i686: OK
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.67-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.7-x86_64: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.7-x86_64: ERRORS
+linux-3.19-x86_64: WARNINGS
+linux-4.0.9-x86_64: WARNINGS
+linux-4.1.33-x86_64: WARNINGS
+linux-4.2.8-x86_64: WARNINGS
+linux-4.3.6-x86_64: WARNINGS
+linux-4.4.22-x86_64: WARNINGS
+linux-4.5.7-x86_64: WARNINGS
+linux-4.6.7-x86_64: WARNINGS
+linux-4.7.5-x86_64: WARNINGS
+linux-4.8-x86_64: WARNINGS
+linux-4.9.26-x86_64: WARNINGS
+linux-4.10.14-x86_64: WARNINGS
+linux-4.11-x86_64: WARNINGS
+linux-4.12.1-x86_64: WARNINGS
+linux-4.13-x86_64: OK
+linux-4.14-x86_64: OK
+apps: OK
+spec-git: OK
+smatch: OK
 
-Could you please double-check if this is still required on RC?
+Detailed results are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
 
-Thanks,
-Mauro
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
