@@ -1,159 +1,173 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:57323 "EHLO
+Received: from galahad.ideasonboard.com ([185.26.127.97]:37219 "EHLO
         galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754069AbdLNW7q (ORCPT
+        with ESMTP id S1752068AbdLKUQV (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 14 Dec 2017 17:59:46 -0500
-Subject: Re: [PATCH/RFC v2 15/15] adv748x: afe: add routing support
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-To: =?UTF-8?Q?Niklas_S=c3=b6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>,
-        linux-media@vger.kernel.org,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-renesas-soc@vger.kernel.org,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        Benoit Parrot <bparrot@ti.com>,
-        Maxime Ripard <maxime.ripard@free-electrons.com>
-Reply-To: kieran.bingham@ideasonboard.com, kieran.bingham@ideasonboard.com
-References: <20171214190835.7672-1-niklas.soderlund+renesas@ragnatech.se>
- <20171214190835.7672-16-niklas.soderlund+renesas@ragnatech.se>
- <fa2f7765-d2a4-3a7d-b8a4-0659f83aa35b@ideasonboard.com>
-Message-ID: <56d8040e-c976-c75a-5d13-5361b7f192f4@ideasonboard.com>
-Date: Thu, 14 Dec 2017 22:59:41 +0000
+        Mon, 11 Dec 2017 15:16:21 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [PATCH v8] uvcvideo: Add a metadata device node
+Date: Mon, 11 Dec 2017 22:16:23 +0200
+Message-ID: <6758104.TntGDxqkIy@avalon>
+In-Reply-To: <alpine.DEB.2.20.1712061202230.26640@axis700.grange>
+References: <1510156814-28645-1-git-send-email-g.liakhovetski@gmx.de> <3317467.6k60bZc7Ey@avalon> <alpine.DEB.2.20.1712061202230.26640@axis700.grange>
 MIME-Version: 1.0
-In-Reply-To: <fa2f7765-d2a4-3a7d-b8a4-0659f83aa35b@ideasonboard.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-One more ...
+Hi Guennadi,
 
-On 14/12/17 22:56, Kieran Bingham wrote:
-> Hi Niklas,
-> 
-> On 14/12/17 19:08, Niklas Söderlund wrote:
->> The adv748x afe have eight analog sink pads, currently one of them is
-> 
-> s/have/has/
-> 
->> chosen to be the active route based on device tree configuration. Whit
-> 
-> s/Whit/With/
-> 
->> the new routeing API it's possible to control which of the eight sink
+Thank you for the patch.
 
-While routeing is correctly spelt, it is used as routing everywhere else...
+On Wednesday, 6 December 2017 17:15:40 EET Guennadi Liakhovetski wrote:
+> From: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>
+> 
+> Some UVC video cameras contain metadata in their payload headers. This
+> patch extracts that data, adding more clock synchronisation information,
+> on both bulk and isochronous endpoints and makes it available to the user
+> space on a separate video node, using the V4L2_CAP_META_CAPTURE capability
+> and the V4L2_BUF_TYPE_META_CAPTURE buffer queue type. By default, only the
+> V4L2_META_FMT_UVC pixel format is available from those nodes. However,
+> cameras can be added to the device ID table to additionally specify their
+> own metadata format, in which case that format will also become available
+> from the metadata node.
+> 
+> Signed-off-by: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>
+> ---
+> 
+> v8: addressed comments and integrated changes from Laurent, thanks again,
+> e.g.:
+> 
+> - multiple stylistic changes
+> - remove the UVC_DEV_FLAG_METADATA_NODE flag / quirk: nodes are now
+>   created unconditionally
+> - reuse uvc_ioctl_querycap()
+> - reuse code in uvc_register_video()
+> - set an error flag when the metadata buffer overflows
+> 
+>  drivers/media/usb/uvc/Makefile       |   2 +-
+>  drivers/media/usb/uvc/uvc_driver.c   |  15 ++-
+>  drivers/media/usb/uvc/uvc_isight.c   |   2 +-
+>  drivers/media/usb/uvc/uvc_metadata.c | 179 ++++++++++++++++++++++++++++++++
+>  drivers/media/usb/uvc/uvc_queue.c    |  44 +++++++--
+>  drivers/media/usb/uvc/uvc_video.c    | 132 ++++++++++++++++++++++++--
+>  drivers/media/usb/uvc/uvcvideo.h     |  16 +++-
+>  include/uapi/linux/uvcvideo.h        |  26 +++++
+>  8 files changed, 394 insertions(+), 22 deletions(-)
+>  create mode 100644 drivers/media/usb/uvc/uvc_metadata.c
 
-s/routeing/routing/
+[snip]
 
->> pads are routed to the source pad.
-> 
->> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-> 
-> Aha, I had been wondering how we would handle this...
-> 
-> Other than the minor nits, this is otherwise looking good
-> 
-> Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-> 
->> ---
->>  drivers/media/i2c/adv748x/adv748x-afe.c | 66 +++++++++++++++++++++++++++++++++
->>  1 file changed, 66 insertions(+)
->>
->> diff --git a/drivers/media/i2c/adv748x/adv748x-afe.c b/drivers/media/i2c/adv748x/adv748x-afe.c
->> index 5188178588c9067d..5dda85c707f6efd7 100644
->> --- a/drivers/media/i2c/adv748x/adv748x-afe.c
->> +++ b/drivers/media/i2c/adv748x/adv748x-afe.c
->> @@ -43,6 +43,9 @@
->>  #define ADV748X_AFE_STD_PAL_SECAM			0xe
->>  #define ADV748X_AFE_STD_PAL_SECAM_PED			0xf
->>  
->> +#define ADV748X_AFE_ROUTES_MAX ((ADV748X_AFE_SINK_AIN7 - \
->> +				ADV748X_AFE_SINK_AIN0) + 1)
->> +
->>  static int adv748x_afe_read_ro_map(struct adv748x_state *state, u8 reg)
->>  {
->>  	int ret;
->> @@ -386,10 +389,73 @@ static int adv748x_afe_set_format(struct v4l2_subdev *sd,
->>  	return 0;
->>  }
->>  
->> +
-> 
-> No need for that extra line..
-> 
->> +static int adv748x_afe_get_routing(struct v4l2_subdev *sd,
->> +				   struct v4l2_subdev_routing *routing)
->> +{
->> +	struct adv748x_afe *afe = adv748x_sd_to_afe(sd);
->> +	struct v4l2_subdev_route *r = routing->routes;
->> +	unsigned int i;
->> +
->> +	/* There are one possible route from each sink */
-> 
-> 	There is one possible ...
-> 
->> +	if (routing->num_routes < ADV748X_AFE_ROUTES_MAX) {
->> +		routing->num_routes = ADV748X_AFE_ROUTES_MAX;
->> +		return -ENOSPC;
->> +	}
->> +
->> +	routing->num_routes = ADV748X_AFE_ROUTES_MAX;
->> +
->> +	for (i = ADV748X_AFE_SINK_AIN0; i <= ADV748X_AFE_SINK_AIN7; i++) {
->> +		r->sink_pad = i;
->> +		r->sink_stream = 0;
->> +		r->source_pad = ADV748X_AFE_SOURCE;
->> +		r->source_stream = 0;
->> +		r->flags = afe->input == i ? V4L2_SUBDEV_ROUTE_FL_ACTIVE : 0;
->> +		r++;
->> +	}
->> +
->> +	return 0;
->> +}
->> +
->> +static int adv748x_afe_set_routing(struct v4l2_subdev *sd,
->> +				   struct v4l2_subdev_routing *routing)
->> +{
->> +	struct adv748x_afe *afe = adv748x_sd_to_afe(sd);
->> +	struct v4l2_subdev_route *r = routing->routes;
->> +	int input = -1;
->> +	unsigned int i;
->> +
->> +	if (routing->num_routes > ADV748X_AFE_ROUTES_MAX)
->> +		return -ENOSPC;
->> +
->> +	for (i = 0; i < routing->num_routes; i++) {
->> +		if (r->sink_pad > ADV748X_AFE_SINK_AIN7 ||
->> +		    r->sink_stream != 0 ||
->> +		    r->source_pad != ADV748X_AFE_SOURCE ||
->> +		    r->source_stream != 0)
->> +			return -EINVAL;
->> +
->> +		if (r->flags & V4L2_SUBDEV_ROUTE_FL_ACTIVE) {
->> +			if (input != -1)
->> +				return -EMLINK;
->> +
->> +			input = r->sink_pad;
->> +		}
->> +		r++;
->> +	}
->> +
->> +	if (input != -1)
->> +		afe->input = input;> +
->> +	return 0;
->> +}
->> +
->>  static const struct v4l2_subdev_pad_ops adv748x_afe_pad_ops = {
->>  	.enum_mbus_code = adv748x_afe_enum_mbus_code,
->>  	.set_fmt = adv748x_afe_set_format,
->>  	.get_fmt = adv748x_afe_get_format,
->> +	.get_routing = adv748x_afe_get_routing,
->> +	.set_routing = adv748x_afe_set_routing,
->>  };
->>  
->>  /* -----------------------------------------------------------------------------
->>
+> diff --git a/drivers/media/usb/uvc/uvc_video.c
+> b/drivers/media/usb/uvc/uvc_video.c index 13f459e..2fc0bf2 100644
+> --- a/drivers/media/usb/uvc/uvc_video.c
+> +++ b/drivers/media/usb/uvc/uvc_video.c
+
+[snip]
+
+> +static void uvc_video_decode_meta(struct uvc_streaming *stream,
+> +				  struct uvc_buffer *meta_buf,
+> +				  const u8 *mem, unsigned int length)
+> +{
+> +	struct uvc_meta_buf *meta;
+> +	size_t len_std = 2;
+> +	bool has_pts, has_scr;
+> +	unsigned long flags;
+> +	ktime_t time;
+> +	const u8 *scr;
+> +
+> +	if (!meta_buf || length == 2)
+> +		return;
+> +
+> +	if (meta_buf->length - meta_buf->bytesused <
+> +	    length + sizeof(meta->ns) + sizeof(meta->sof)) {
+> +		meta_buf->error = 1;
+> +		return;
+> +	}
+> +
+> +	has_pts = mem[1] & UVC_STREAM_PTS;
+> +	has_scr = mem[1] & UVC_STREAM_SCR;
+> +
+> +	if (has_pts) {
+> +		len_std += 4;
+> +		scr = mem + 6;
+> +	} else {
+> +		scr = mem + 2;
+> +	}
+> +
+> +	if (has_scr)
+> +		len_std += 6;
+> +
+> +	if (stream->meta.format == V4L2_META_FMT_UVC)
+> +		length = len_std;
+> +
+> +	if (length == len_std && (!has_scr ||
+> +				  !memcmp(scr, stream->clock.last_scr, 6)))
+> +		return;
+> +
+> +	meta = (struct uvc_meta_buf *)((u8 *)meta_buf->mem + meta_buf->bytesused);
+> +	local_irq_save(flags);
+> +	time = uvc_video_get_time();
+> +	meta->sof = usb_get_current_frame_number(stream->dev->udev);
+
+You need a put_unaligned here too. If you're fine with the patch below there's 
+no need to resubmit, and
+
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+Would you mind sending me your test tool patch ?
+
+diff --git a/drivers/media/usb/uvc/uvc_video.c b/drivers/media/usb/uvc/
+uvc_video.c
+index 2fc0bf2221db..02e4997a32bb 100644
+--- a/drivers/media/usb/uvc/uvc_video.c
++++ b/drivers/media/usb/uvc/uvc_video.c
+@@ -1142,6 +1142,7 @@ static void uvc_video_decode_meta(struct uvc_streaming 
+*stream,
+ 	size_t len_std = 2;
+ 	bool has_pts, has_scr;
+ 	unsigned long flags;
++	unsigned int sof;
+ 	ktime_t time;
+ 	const u8 *scr;
+ 
+@@ -1177,9 +1178,10 @@ static void uvc_video_decode_meta(struct uvc_streaming 
+*stream,
+ 	meta = (struct uvc_meta_buf *)((u8 *)meta_buf->mem + meta_buf->bytesused);
+ 	local_irq_save(flags);
+ 	time = uvc_video_get_time();
+-	meta->sof = usb_get_current_frame_number(stream->dev->udev);
++	sof = usb_get_current_frame_number(stream->dev->udev);
+ 	local_irq_restore(flags);
+ 	__put_unaligned_cpu64(ktime_to_ns(time), &meta->ns);
++	__put_unaligned_cpu16(sof, &meta->sof);
+ 
+ 	if (has_scr)
+ 		memcpy(stream->clock.last_scr, scr, 6);
+
+> +	local_irq_restore(flags);
+> +	__put_unaligned_cpu64(ktime_to_ns(time), &meta->ns);
+> +
+> +	if (has_scr)
+> +		memcpy(stream->clock.last_scr, scr, 6);
+> +
+> +	memcpy(&meta->length, mem, length);
+> +	meta_buf->bytesused += length + sizeof(meta->ns) + sizeof(meta->sof);
+> +
+> +	uvc_trace(UVC_TRACE_FRAME,
+> +		  "%s(): t-sys %lluns, SOF %u, len %u, flags 0x%x, PTS %u, STC %u frame
+> SOF %u\n", +		  __func__, time, meta->sof, meta->length, meta->flags,
+> +		  has_pts ? *(u32 *)meta->buf : 0,
+> +		  has_scr ? *(u32 *)scr : 0,
+> +		  has_scr ? *(u32 *)(scr + 4) & 0x7ff : 0);
+> +}
+
+[snip]
+
+-- 
+Regards,
+
+Laurent Pinchart
