@@ -1,163 +1,149 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-4.sys.kth.se ([130.237.48.193]:44926 "EHLO
-        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751288AbdLHBJD (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 7 Dec 2017 20:09:03 -0500
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH v9 18/28] rcar-vin: break out format alignment and checking
-Date: Fri,  8 Dec 2017 02:08:32 +0100
-Message-Id: <20171208010842.20047-19-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20171208010842.20047-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20171208010842.20047-1-niklas.soderlund+renesas@ragnatech.se>
+Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:52497 "EHLO
+        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752263AbdLKIj1 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 11 Dec 2017 03:39:27 -0500
+Subject: Re: cron job: media_tree daily build: WARNINGS
+To: linux-media@vger.kernel.org, "Jasmin J." <jasmin@anw.at>
+References: <0ab16f79ba34d5d5049af752d8248aab@smtp-cloud7.xs4all.net>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <2a42ad6e-6b66-5afa-64b2-02c9df441104@xs4all.nl>
+Date: Mon, 11 Dec 2017 09:39:25 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <0ab16f79ba34d5d5049af752d8248aab@smtp-cloud7.xs4all.net>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Part of the format alignment and checking can be shared with the Gen3
-format handling. Break that part out to its own function. While doing
-this clean up the checking and add more checks.
+Nice! It's working again!
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/platform/rcar-vin/rcar-v4l2.c | 98 +++++++++++++++--------------
- 1 file changed, 51 insertions(+), 47 deletions(-)
+Jasmin, thank you for your help, much appreciated!
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-index 56c5183f55922e1d..0ffbf0c16fb7b00e 100644
---- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-+++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-@@ -86,6 +86,56 @@ static u32 rvin_format_sizeimage(struct v4l2_pix_format *pix)
- 	return pix->bytesperline * pix->height;
- }
- 
-+static int rvin_format_align(struct rvin_dev *vin, struct v4l2_pix_format *pix)
-+{
-+	u32 walign;
-+
-+	/* If requested format is not supported fallback to the default */
-+	if (!rvin_format_from_pixel(pix->pixelformat)) {
-+		vin_dbg(vin, "Format 0x%x not found, using default 0x%x\n",
-+			pix->pixelformat, RVIN_DEFAULT_FORMAT);
-+		pix->pixelformat = RVIN_DEFAULT_FORMAT;
-+	}
-+
-+	switch (pix->field) {
-+	case V4L2_FIELD_TOP:
-+	case V4L2_FIELD_BOTTOM:
-+	case V4L2_FIELD_NONE:
-+	case V4L2_FIELD_INTERLACED_TB:
-+	case V4L2_FIELD_INTERLACED_BT:
-+	case V4L2_FIELD_INTERLACED:
-+		break;
-+	default:
-+		pix->field = V4L2_FIELD_NONE;
-+		break;
-+	}
-+
-+	/* Check that colorspace is reasonable, if not keep current */
-+	if (!pix->colorspace || pix->colorspace >= 0xff)
-+		pix->colorspace = vin->format.colorspace;
-+
-+	/* HW limit width to a multiple of 32 (2^5) for NV16 else 2 (2^1) */
-+	walign = vin->format.pixelformat == V4L2_PIX_FMT_NV16 ? 5 : 1;
-+
-+	/* Limit to VIN capabilities */
-+	v4l_bound_align_image(&pix->width, 2, vin->info->max_width, walign,
-+			      &pix->height, 4, vin->info->max_height, 2, 0);
-+
-+	pix->bytesperline = rvin_format_bytesperline(pix);
-+	pix->sizeimage = rvin_format_sizeimage(pix);
-+
-+	if (vin->info->chip == RCAR_M1 &&
-+	    pix->pixelformat == V4L2_PIX_FMT_XBGR32) {
-+		vin_err(vin, "pixel format XBGR32 not supported on M1\n");
-+		return -EINVAL;
-+	}
-+
-+	vin_dbg(vin, "Format %ux%u bpl: %d size: %d\n",
-+		pix->width, pix->height, pix->bytesperline, pix->sizeimage);
-+
-+	return 0;
-+}
-+
- /* -----------------------------------------------------------------------------
-  * V4L2
-  */
-@@ -191,64 +241,18 @@ static int __rvin_try_format_source(struct rvin_dev *vin,
- static int __rvin_try_format(struct rvin_dev *vin,
- 			     u32 which, struct v4l2_pix_format *pix)
- {
--	u32 walign;
- 	int ret;
- 
- 	/* Keep current field if no specific one is asked for */
- 	if (pix->field == V4L2_FIELD_ANY)
- 		pix->field = vin->format.field;
- 
--	/* If requested format is not supported fallback to the default */
--	if (!rvin_format_from_pixel(pix->pixelformat)) {
--		vin_dbg(vin, "Format 0x%x not found, using default 0x%x\n",
--			pix->pixelformat, RVIN_DEFAULT_FORMAT);
--		pix->pixelformat = RVIN_DEFAULT_FORMAT;
--	}
--
--	/* Always recalculate */
--	pix->bytesperline = 0;
--	pix->sizeimage = 0;
--
- 	/* Limit to source capabilities */
- 	ret = __rvin_try_format_source(vin, which, pix);
- 	if (ret)
- 		return ret;
- 
--	switch (pix->field) {
--	case V4L2_FIELD_TOP:
--	case V4L2_FIELD_BOTTOM:
--	case V4L2_FIELD_NONE:
--	case V4L2_FIELD_INTERLACED_TB:
--	case V4L2_FIELD_INTERLACED_BT:
--	case V4L2_FIELD_INTERLACED:
--		break;
--	default:
--		pix->field = V4L2_FIELD_NONE;
--		break;
--	}
--
--	/* HW limit width to a multiple of 32 (2^5) for NV16 else 2 (2^1) */
--	walign = vin->format.pixelformat == V4L2_PIX_FMT_NV16 ? 5 : 1;
--
--	/* Limit to VIN capabilities */
--	v4l_bound_align_image(&pix->width, 2, vin->info->max_width, walign,
--			      &pix->height, 4, vin->info->max_height, 2, 0);
--
--	pix->bytesperline = max_t(u32, pix->bytesperline,
--				  rvin_format_bytesperline(pix));
--	pix->sizeimage = max_t(u32, pix->sizeimage,
--			       rvin_format_sizeimage(pix));
--
--	if (vin->info->chip == RCAR_M1 &&
--	    pix->pixelformat == V4L2_PIX_FMT_XBGR32) {
--		vin_err(vin, "pixel format XBGR32 not supported on M1\n");
--		return -EINVAL;
--	}
--
--	vin_dbg(vin, "Format %ux%u bpl: %d size: %d\n",
--		pix->width, pix->height, pix->bytesperline, pix->sizeimage);
--
--	return 0;
-+	return rvin_format_align(vin, pix);
- }
- 
- static int rvin_querycap(struct file *file, void *priv,
--- 
-2.15.0
+Regards,
+
+	Hans
+
+On 11/12/17 06:03, Hans Verkuil wrote:
+> This message is generated daily by a cron job that builds media_tree for
+> the kernels and architectures in the list below.
+> 
+> Results of the daily build of media_tree:
+> 
+> date:			Mon Dec 11 05:00:15 CET 2017
+> media-tree git hash:	0393e735649dc41358adb7b603bd57dad1ed3260
+> media_build git hash:	f5a5e5e470d834f9843fee7a7c2ce3e4be610ca7
+> v4l-utils git hash:	58803000a99c22dceabfb45bec402e746ce966c3
+> gcc version:		i686-linux-gcc (GCC) 7.1.0
+> sparse version:		v0.5.0-3911-g6f737e1f
+> smatch version:		v0.5.0-3911-g6f737e1f
+> host hardware:		x86_64
+> host os:		4.13.0-164
+> 
+> linux-git-arm-at91: OK
+> linux-git-arm-davinci: OK
+> linux-git-arm-multi: OK
+> linux-git-arm-pxa: OK
+> linux-git-arm-stm32: OK
+> linux-git-blackfin-bf561: OK
+> linux-git-i686: OK
+> linux-git-m32r: OK
+> linux-git-mips: OK
+> linux-git-powerpc64: OK
+> linux-git-sh: OK
+> linux-git-x86_64: OK
+> linux-2.6.36.4-i686: WARNINGS
+> linux-2.6.37.6-i686: WARNINGS
+> linux-2.6.38.8-i686: WARNINGS
+> linux-2.6.39.4-i686: WARNINGS
+> linux-3.0.60-i686: WARNINGS
+> linux-3.1.10-i686: WARNINGS
+> linux-3.2.37-i686: WARNINGS
+> linux-3.3.8-i686: WARNINGS
+> linux-3.4.27-i686: WARNINGS
+> linux-3.5.7-i686: WARNINGS
+> linux-3.6.11-i686: WARNINGS
+> linux-3.7.4-i686: WARNINGS
+> linux-3.8-i686: WARNINGS
+> linux-3.9.2-i686: WARNINGS
+> linux-3.10.1-i686: WARNINGS
+> linux-3.11.1-i686: WARNINGS
+> linux-3.12.67-i686: WARNINGS
+> linux-3.13.11-i686: WARNINGS
+> linux-3.14.9-i686: WARNINGS
+> linux-3.15.2-i686: WARNINGS
+> linux-3.16.7-i686: WARNINGS
+> linux-3.17.8-i686: WARNINGS
+> linux-3.18.7-i686: WARNINGS
+> linux-3.19-i686: WARNINGS
+> linux-4.0.9-i686: WARNINGS
+> linux-4.1.33-i686: WARNINGS
+> linux-4.2.8-i686: WARNINGS
+> linux-4.3.6-i686: WARNINGS
+> linux-4.4.22-i686: WARNINGS
+> linux-4.5.7-i686: WARNINGS
+> linux-4.6.7-i686: WARNINGS
+> linux-4.7.5-i686: WARNINGS
+> linux-4.8-i686: OK
+> linux-4.9.26-i686: OK
+> linux-4.10.14-i686: OK
+> linux-4.11-i686: OK
+> linux-4.12.1-i686: OK
+> linux-4.13-i686: OK
+> linux-4.14-i686: OK
+> linux-2.6.36.4-x86_64: WARNINGS
+> linux-2.6.37.6-x86_64: WARNINGS
+> linux-2.6.38.8-x86_64: WARNINGS
+> linux-2.6.39.4-x86_64: WARNINGS
+> linux-3.0.60-x86_64: WARNINGS
+> linux-3.1.10-x86_64: WARNINGS
+> linux-3.2.37-x86_64: WARNINGS
+> linux-3.3.8-x86_64: WARNINGS
+> linux-3.4.27-x86_64: WARNINGS
+> linux-3.5.7-x86_64: WARNINGS
+> linux-3.6.11-x86_64: WARNINGS
+> linux-3.7.4-x86_64: WARNINGS
+> linux-3.8-x86_64: WARNINGS
+> linux-3.9.2-x86_64: WARNINGS
+> linux-3.10.1-x86_64: WARNINGS
+> linux-3.11.1-x86_64: WARNINGS
+> linux-3.12.67-x86_64: WARNINGS
+> linux-3.13.11-x86_64: WARNINGS
+> linux-3.14.9-x86_64: WARNINGS
+> linux-3.15.2-x86_64: WARNINGS
+> linux-3.16.7-x86_64: WARNINGS
+> linux-3.17.8-x86_64: WARNINGS
+> linux-3.18.7-x86_64: WARNINGS
+> linux-3.19-x86_64: WARNINGS
+> linux-4.0.9-x86_64: WARNINGS
+> linux-4.1.33-x86_64: WARNINGS
+> linux-4.2.8-x86_64: WARNINGS
+> linux-4.3.6-x86_64: WARNINGS
+> linux-4.4.22-x86_64: WARNINGS
+> linux-4.5.7-x86_64: WARNINGS
+> linux-4.6.7-x86_64: WARNINGS
+> linux-4.7.5-x86_64: WARNINGS
+> linux-4.8-x86_64: WARNINGS
+> linux-4.9.26-x86_64: WARNINGS
+> linux-4.10.14-x86_64: WARNINGS
+> linux-4.11-x86_64: WARNINGS
+> linux-4.12.1-x86_64: WARNINGS
+> linux-4.13-x86_64: OK
+> linux-4.14-x86_64: OK
+> apps: OK
+> spec-git: OK
+> smatch: OK
+> 
+> Detailed results are available here:
+> 
+> http://www.xs4all.nl/~hverkuil/logs/Monday.log
+> 
+> Full logs are available here:
+> 
+> http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+> 
+> The Media Infrastructure API from this daily build is here:
+> 
+> http://www.xs4all.nl/~hverkuil/spec/index.html
+> 
