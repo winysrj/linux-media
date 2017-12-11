@@ -1,151 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:44978 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1759067AbdLRMad (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 18 Dec 2017 07:30:33 -0500
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Tom Saeger <tom.saeger@oracle.com>
-Subject: [PATCH v4 03/18] docs: kernel-doc.rst: improve function documentation section
-Date: Mon, 18 Dec 2017 10:30:04 -0200
-Message-Id: <14b56bdd877409489a5c960300c113c014a755d6.1513599193.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1513599193.git.mchehab@s-opensource.com>
-References: <cover.1513599193.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1513599193.git.mchehab@s-opensource.com>
-References: <cover.1513599193.git.mchehab@s-opensource.com>
+Received: from mail-pg0-f65.google.com ([74.125.83.65]:40937 "EHLO
+        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751622AbdLKRYE (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 11 Dec 2017 12:24:04 -0500
+Date: Mon, 11 Dec 2017 22:53:57 +0530
+From: Aishwarya Pant <aishpant@gmail.com>
+To: Alan Cox <alan@linux.intel.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        linux-kernel@vger.kernel.org
+Cc: julia.lawall@lip6.fr
+Subject: [PATCH] staging: atomisp2: replace DEVICE_ATTR with DEVICE_ATTR_RO
+Message-ID: <20171211172357.GA20994@mordor.localdomain>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Move its contents to happen earlier and improve the description
-of return values, adding a subsection to it. Most of the contents
-there came from kernel-doc-nano-HOWTO.txt.
+This is a clean-up patch which replaces DEVICE_ATTR() macro with file
+permission specific DEVICE_ATTR_RO() macro for compaction and
+readability.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Done using coccinelle:
+
+@r@
+identifier attr, show_fn;
+declarer name DEVICE_ATTR;
+@@
+
+DEVICE_ATTR(attr, \(S_IRUGO\|0444\), show_fn, NULL);
+
+@script: python p@
+attr_show;
+attr << r.attr;
+@@
+
+// standardise the show fn name to {attr}_show
+coccinelle.attr_show = attr + "_show"
+
+@@
+identifier r.attr, r.show_fn;
+declarer name DEVICE_ATTR_RO;
+@@
+
+// change the attr declaration
+- DEVICE_ATTR(attr, \(S_IRUGO\|0444\), show_fn, NULL);
++ DEVICE_ATTR_RO(attr);
+
+@rr@
+identifier r.show_fn, p.attr_show;
+@@
+
+// rename the show function
+- show_fn
++ attr_show
+	(...) {
+	...
+  }
+
+@depends on rr@
+identifier r.show_fn, p.attr_show;
+@@
+
+// rename fn usages
+- show_fun
++ attr_show
+
+Signed-off-by: Aishwarya Pant <aishpant@gmail.com>
 ---
- Documentation/doc-guide/kernel-doc.rst | 100 ++++++++++++++++++++-------------
- 1 file changed, 61 insertions(+), 39 deletions(-)
+ drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/Documentation/doc-guide/kernel-doc.rst b/Documentation/doc-guide/kernel-doc.rst
-index 7cf58c3489de..3aac228fc346 100644
---- a/Documentation/doc-guide/kernel-doc.rst
-+++ b/Documentation/doc-guide/kernel-doc.rst
-@@ -197,6 +197,67 @@ Example::
-       int d;
-   };
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm.c b/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm.c
+index a1c81c12718c..4338b8a1309f 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm.c
++++ b/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm.c
+@@ -158,10 +158,10 @@ static ssize_t dynamic_pool_show(struct device *dev,
+ 	return ret;
+ };
  
-+Function documentation
-+----------------------
-+
-+The general format of a function and function-like macro kernel-doc comment is::
-+
-+  /**
-+   * function_name() - Brief description of function.
-+   * @arg1: Describe the first argument.
-+   * @arg2: Describe the second argument.
-+   *        One can provide multiple line descriptions
-+   *        for arguments.
-+   *
-+   * A longer description, with more discussion of the function function_name()
-+   * that might be useful to those using or modifying it. Begins with an
-+   * empty comment line, and may include additional embedded empty
-+   * comment lines.
-+   *
-+   * The longer description may have multiple paragraphs.
-+   *
-+   * Return: Describe the return value of foobar.
-+   *
-+   * The return value description can also have multiple paragraphs, and should
-+   * be placed at the end of the comment block.
-+   */
-+
-+The brief description following the function name may span multiple lines, and
-+ends with an argument description, a blank comment line, or the end of the
-+comment block.
-+
-+Return values
-+~~~~~~~~~~~~~
-+
-+The return value, if any, should be described in a dedicated section
-+named ``Return``.
-+
-+.. note::
-+
-+  #) The multi-line descriptive text you provide does *not* recognize
-+     line breaks, so if you try to format some text nicely, as in::
-+
-+	* Return:
-+	* 0 - OK
-+	* -EINVAL - invalid argument
-+	* -ENOMEM - out of memory
-+
-+     this will all run together and produce::
-+
-+	Return: 0 - OK -EINVAL - invalid argument -ENOMEM - out of memory
-+
-+     So, in order to produce the desired line breaks, you need to use a
-+     ReST list, e. g.::
-+
-+      * Return:
-+      * * 0		- OK to runtime suspend the device
-+      * * -EBUSY	- Device should not be runtime suspended
-+
-+  #) If the descriptive text you provide has lines that begin with
-+     some phrase followed by a colon, each of those phrases will be taken
-+     as a new section heading, with probably won't produce the desired
-+     effect.
-+
+-static DEVICE_ATTR(active_bo, 0444, active_bo_show, NULL);
+-static DEVICE_ATTR(free_bo, 0444, free_bo_show, NULL);
+-static DEVICE_ATTR(reserved_pool, 0444, reserved_pool_show, NULL);
+-static DEVICE_ATTR(dynamic_pool, 0444, dynamic_pool_show, NULL);
++static DEVICE_ATTR_RO(active_bo);
++static DEVICE_ATTR_RO(free_bo);
++static DEVICE_ATTR_RO(reserved_pool);
++static DEVICE_ATTR_RO(dynamic_pool);
  
- Highlights and cross-references
- -------------------------------
-@@ -269,45 +330,6 @@ cross-references.
- 
- For further details, please refer to the `Sphinx C Domain`_ documentation.
- 
--Function documentation
------------------------
--
--The general format of a function and function-like macro kernel-doc comment is::
--
--  /**
--   * function_name() - Brief description of function.
--   * @arg1: Describe the first argument.
--   * @arg2: Describe the second argument.
--   *        One can provide multiple line descriptions
--   *        for arguments.
--   *
--   * A longer description, with more discussion of the function function_name()
--   * that might be useful to those using or modifying it. Begins with an
--   * empty comment line, and may include additional embedded empty
--   * comment lines.
--   *
--   * The longer description may have multiple paragraphs.
--   *
--   * Return: Describe the return value of foobar.
--   *
--   * The return value description can also have multiple paragraphs, and should
--   * be placed at the end of the comment block.
--   */
--
--The brief description following the function name may span multiple lines, and
--ends with an ``@argument:`` description, a blank comment line, or the end of the
--comment block.
--
--The kernel-doc function comments describe each parameter to the function, in
--order, with the ``@argument:`` descriptions. The ``@argument:`` descriptions
--must begin on the very next line following the opening brief function
--description line, with no intervening blank comment lines. The ``@argument:``
--descriptions may span multiple lines. The continuation lines may contain
--indentation. If a function parameter is ``...`` (varargs), it should be listed
--in kernel-doc notation as: ``@...:``.
--
--The return value, if any, should be described in a dedicated section at the end
--of the comment starting with "Return:".
- 
- Structure, union, and enumeration documentation
- -----------------------------------------------
+ static struct attribute *sysfs_attrs_ctrl[] = {
+ 	&dev_attr_active_bo.attr,
 -- 
-2.14.3
+2.15.1
