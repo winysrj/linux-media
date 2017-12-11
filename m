@@ -1,125 +1,26 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:59271 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755498AbdLTRyC (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 20 Dec 2017 12:54:02 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>, robh+dt@kernel.org,
-        devicetree@vger.kernel.org, ivo.g.dimitrov.75@gmail.com,
-        sre@kernel.org, pali.rohar@gmail.com, linux-media@vger.kernel.org,
-        galak@codeaurora.org, mchehab@osg.samsung.com,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] devicetree: Add video bus switch
-Date: Wed, 20 Dec 2017 19:54:12 +0200
-Message-ID: <75694885.3PuLWzx4qN@avalon>
-In-Reply-To: <20170204215610.GA9243@amd>
-References: <20161023200355.GA5391@amd> <20170203213454.GD12291@valkosipuli.retiisi.org.uk> <20170204215610.GA9243@amd>
+Received: from mail.anw.at ([195.234.101.228]:47587 "EHLO mail.anw.at"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752439AbdLKVdm (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 11 Dec 2017 16:33:42 -0500
+Subject: Re: [PATCH 0/2] Add timers to en50221 protocol driver
+From: "Jasmin J." <jasmin@anw.at>
+To: linux-media@vger.kernel.org
+Cc: mchehab@s-opensource.com, rjkm@metzlerbros.de, d.scheller@gmx.net
+References: <1505611642-6552-1-git-send-email-jasmin@anw.at>
+ <0df13347-ef72-d023-0171-8ed6eee365c6@anw.at>
+Message-ID: <18e86309-bf82-4e77-55c6-fa2143274cd3@anw.at>
+Date: Mon, 11 Dec 2017 22:33:35 +0100
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <0df13347-ef72-d023-0171-8ed6eee365c6@anw.at>
+Content-Type: text/plain; charset=utf-8
+Content-Language: de-AT
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Pavel,
+Ping 2!
 
-On Saturday, 4 February 2017 23:56:10 EET Pavel Machek wrote:
-> Hi!
+On 10/15/2017 03:59 PM, Jasmin J. wrote:
+> Ping!
 > 
-> >>>> +Required properties
-> >>>> +===================
-> >>>> +
-> >>>> +compatible	: must contain "video-bus-switch"
-> >>> 
-> >>> How generic is this? Should we have e.g. nokia,video-bus-switch? And
-> >>> if so, change the file name accordingly.
-> >> 
-> >> Generic for "single GPIO controls the switch", AFAICT. But that should
-> >> be common enough...
-> > 
-> > Um, yes. Then... how about: video-bus-switch-gpio? No Nokia prefix.
-> 
-> Ok, done. I also fixed the english a bit.
-> 
-> >>>> +reg		: The interface:
-> >>>> +		  0 - port for image signal processor
-> >>>> +		  1 - port for first camera sensor
-> >>>> +		  2 - port for second camera sensor
-> >>> 
-> >>> I'd say this must be pretty much specific to the one in N900. You
-> >>> could have more ports. Or you could say that ports beyond 0 are
-> >>> camera sensors. I guess this is good enough for now though, it can be
-> >>> changed later on with the source if a need arises.
-> >> 
-> >> Well, I'd say that selecting between two sensors is going to be the
-> >> common case. If someone needs more than two, it will no longer be
-> >> simple GPIO, so we'll have some fixing to do.
-> > 
-> > It could be two GPIOs --- that's how the GPIO I2C mux works.
-> > 
-> > But I'd be surprised if someone ever uses something like that
-> > again. ;-)
-> 
-> I'd say.. lets handle that when we see hardware like that.
-> 
-> >>> Btw. was it still considered a problem that the endpoint properties
-> >>> for the sensors can be different? With the g_routing() pad op which is
-> >>> to be added, the ISP driver (should actually go to a framework
-> >>> somewhere) could parse the graph and find the proper endpoint there.
-> >> 
-> >> I don't know about g_routing. I added g_endpoint_config method that
-> >> passes the configuration, and that seems to work for me.
-> >> 
-> >> I don't see g_routing in next-20170201 . Is there place to look?
-> > 
-> > I think there was a patch by Laurent to LMML quite some time ago. I
-> > suppose that set will be repicked soonish.
-> > 
-> > I don't really object using g_endpoint_config() as a temporary solution;
-> > I'd like to have Laurent's opinion on that though. Another option is to
-> > wait, but we've already waited a looong time (as in total).
-> 
-> Laurent, do you have some input here? We have simple "2 cameras
-> connected to one signal processor" situation here. We need some way of
-> passing endpoint configuration from the sensors through the switch. I
-> did this:
-
-Could you give me a bit more information about the platform you're targeting: 
-how the switch is connected, what kind of switch it is, and what endpoint 
-configuration data you need ?
-
-> >> @@ -415,6 +416,8 @@ struct v4l2_subdev_video_ops {
-> >>                          const struct v4l2_mbus_config *cfg);
-> >>     int (*s_rx_buffer)(struct v4l2_subdev *sd, void *buf,
-> >>                        unsigned int *size);
-> >> +   int (*g_endpoint_config)(struct v4l2_subdev *sd,
-> >> +                       struct v4l2_of_endpoint *cfg);
-> 
-> Google of g_routing tells me:
-> 
-> 9) Highly reconfigurable hardware - Julien Beraud
-> 
-> - 44 sub-devices connected with an interconnect.
-> - As long as formats match, any sub-device could be connected to any
-> - other sub-device through a link.
-> - The result is 44 * 44 links at worst.
-> - A switch sub-device proposed as the solution to model the
-> - interconnect. The sub-devices are connected to the switch
-> - sub-devices through the hardware links that connect to the
-> - interconnect.
-> - The switch would be controlled through new IOCTLs S_ROUTING and
-> - G_ROUTING.
-> - Patches available:
->  http://git.linuxtv.org/cgit.cgi/pinchartl/media.git/log/?h=xilinx-wip
-> 
-> but the patches are from 2005. So I guess I'll need some guidance here...
-
-You made me feel very old for a moment. The patches are from 2015 :-)
-
-> > I'll reply to the other patch containing the code.
-
--- 
-Regards,
-
-Laurent Pinchart
