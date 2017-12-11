@@ -1,47 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from szxga05-in.huawei.com ([45.249.212.191]:2757 "EHLO huawei.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1756729AbdLWBwd (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 22 Dec 2017 20:52:33 -0500
-From: Wei Yongjun <weiyongjun1@huawei.com>
-To: Songjun Wu <songjun.wu@microchip.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Nicolas Ferre <nicolas.ferre@microchip.com>,
-        "Alexandre Belloni" <alexandre.belloni@free-electrons.com>,
-        Wenyou Yang <wenyou.yang@microchip.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-CC: Wei Yongjun <weiyongjun1@huawei.com>,
-        <linux-media@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>
-Subject: [PATCH -next] media: atmel-isc: Make local symbol fmt_configs_list static
-Date: Sat, 23 Dec 2017 01:57:04 +0000
-Message-ID: <1513994224-86350-1-git-send-email-weiyongjun1@huawei.com>
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Received: from galahad.ideasonboard.com ([185.26.127.97]:57423 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751512AbdLKOtX (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 11 Dec 2017 09:49:23 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Jacopo Mondi <jacopo+renesas@jmondi.org>
+Cc: magnus.damm@gmail.com, geert@glider.be, mchehab@kernel.org,
+        hverkuil@xs4all.nl, linux-renesas-soc@vger.kernel.org,
+        linux-media@vger.kernel.org, linux-sh@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v1 07/10] v4l: i2c: Copy ov772x soc_camera sensor driver
+Date: Mon, 11 Dec 2017 16:49:24 +0200
+Message-ID: <3757887.b3TU9SkMDe@avalon>
+In-Reply-To: <1510743363-25798-8-git-send-email-jacopo+renesas@jmondi.org>
+References: <1510743363-25798-1-git-send-email-jacopo+renesas@jmondi.org> <1510743363-25798-8-git-send-email-jacopo+renesas@jmondi.org>
 MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fixes the following sparse warning:
+Hi Jacopo,
 
-drivers/media/platform/atmel/atmel-isc.c:338:19: warning:
- symbol 'fmt_configs_list' was not declared. Should it be static?
+Thank you for the patch.
 
-Signed-off-by: Wei Yongjun <weiyongjun1@huawei.com>
----
- drivers/media/platform/atmel/atmel-isc.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+On Wednesday, 15 November 2017 12:56:00 EET Jacopo Mondi wrote:
+> Copy the soc_camera based driver in v4l2 sensor driver directory.
+> This commit just copies the original file without modifying it.
 
-diff --git a/drivers/media/platform/atmel/atmel-isc.c b/drivers/media/platform/atmel/atmel-isc.c
-index 0c26356..2dd72fc 100644
---- a/drivers/media/platform/atmel/atmel-isc.c
-+++ b/drivers/media/platform/atmel/atmel-isc.c
-@@ -335,7 +335,7 @@ struct isc_device {
- 	},
- };
- 
--struct fmt_config fmt_configs_list[] = {
-+static struct fmt_config fmt_configs_list[] = {
- 	{
- 		.fourcc		= V4L2_PIX_FMT_SBGGR8,
- 		.pfe_cfg0_bps	= ISC_PFE_CFG0_BPS_EIGHT,
+You might want to explain why you're not patching the Kconfig and Makefile 
+here, that is because you will first convert the driver away from soc-camera 
+in the next commit.
+
+Apart from that,
+
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+> ---
+>  drivers/media/i2c/ov772x.c | 1124 +++++++++++++++++++++++++++++++++++++++++
+>  1 file changed, 1124 insertions(+)
+>  create mode 100644 drivers/media/i2c/ov772x.c
+
+-- 
+Regards,
+
+Laurent Pinchart
