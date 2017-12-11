@@ -1,106 +1,154 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:57513 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S933958AbdLSLLx (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 19 Dec 2017 06:11:53 -0500
-Date: Tue, 19 Dec 2017 09:11:38 -0200
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Lars-Peter Clausen <lars@metafoo.de>,
-        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-        Mats Randgaard <matrandg@cisco.com>,
-        Niklas =?UTF-8?B?U8O2ZGVybHVuZA==?=
-        <niklas.soderlund@ragnatech.se>,
-        Bhumika Goyal <bhumirks@gmail.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Julia Lawall <Julia.Lawall@lip6.fr>,
-        Fabio Estevam <fabio.estevam@nxp.com>,
-        Janusz Krzysztofik <jmkrzyszt@gmail.com>,
-        Markus Elfring <elfring@users.sourceforge.net>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        "Gustavo A. R. Silva" <garsilva@embeddedor.com>,
-        Petr Cvek <petr.cvek@tul.cz>,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Sebastian Reichel <sre@kernel.org>,
-        Tomasz Figa <tfiga@chromium.org>,
-        linux-renesas-soc@vger.kernel.org
-Subject: Re: [PATCH 5/8] media: v4l2-mediabus: convert flags to enums and
- document them
-Message-ID: <20171219091138.51dc1e0d@vento.lan>
-In-Reply-To: <1513675815.7538.4.camel@pengutronix.de>
-References: <cover.1513625884.git.mchehab@s-opensource.com>
-        <9adfe443125040ddef985c698a18a2404e5a638d.1513625884.git.mchehab@s-opensource.com>
-        <1513675815.7538.4.camel@pengutronix.de>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Received: from mail-qt0-f194.google.com ([209.85.216.194]:38134 "EHLO
+        mail-qt0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752576AbdLKS2G (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 11 Dec 2017 13:28:06 -0500
+From: Gustavo Padovan <gustavo@padovan.org>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        Pawel Osciak <pawel@osciak.com>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Brian Starkey <brian.starkey@arm.com>,
+        Thierry Escande <thierry.escande@collabora.com>,
+        linux-kernel@vger.kernel.org,
+        Gustavo Padovan <gustavo.padovan@collabora.com>
+Subject: [PATCH v6 3/6] [media] vb2: add explicit fence user API
+Date: Mon, 11 Dec 2017 16:27:38 -0200
+Message-Id: <20171211182741.29712-4-gustavo@padovan.org>
+In-Reply-To: <20171211182741.29712-1-gustavo@padovan.org>
+References: <20171211182741.29712-1-gustavo@padovan.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 19 Dec 2017 10:30:15 +0100
-Philipp Zabel <p.zabel@pengutronix.de> escreveu:
+From: Gustavo Padovan <gustavo.padovan@collabora.com>
 
-> Hi Mauro,
-> 
-> On Mon, 2017-12-18 at 17:53 -0200, Mauro Carvalho Chehab wrote:
-> > There is a mess with media bus flags: there are two sets of
-> > flags, one used by parallel and ITU-R BT.656 outputs,
-> > and another one for CSI2.
-> > 
-> > Depending on the type, the same bit has different meanings.
-> > 
-> > That's very confusing, and counter-intuitive. So, split them
-> > into two sets of flags, inside an enum.
-> > 
-> > This way, it becomes clearer that there are two separate sets
-> > of flags. It also makes easier if CSI1, CSP, CSI3, etc. would
-> > need a different set of flags.
-> > 
-> > As a side effect, enums can be documented via kernel-docs,
-> > so there will be an improvement at flags documentation.
-> > 
-> > Unfortunately, soc_camera and pxa_camera do a mess with
-> > the flags, using either one set of flags without proper
-> > checks about the type. That could be fixed, but, as both drivers
-> > are obsolete and in the process of cleanings, I opted to just
-> > keep the behavior, using an unsigned int inside those two
-> > drivers.
-> > 
-> > Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-> > Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>  
-> 
-> If I am not mistaken this is missing a conversion of
-> drivers/staging/media/imx/imx-media-csi.c:
-> 
-> --------8<--------
-> diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
-> index eb7be5093a9d5..b1daac3a537d9 100644
-> --- a/drivers/staging/media/imx/imx-media-csi.c
-> +++ b/drivers/staging/media/imx/imx-media-csi.c
-> @@ -636,9 +636,10 @@ static int csi_setup(struct csi_priv *priv)
->  
->  	/* compose mbus_config from the upstream endpoint */
->  	mbus_cfg.type = priv->upstream_ep.bus_type;
-> -	mbus_cfg.flags = (priv->upstream_ep.bus_type == V4L2_MBUS_CSI2) ?
-> -		priv->upstream_ep.bus.mipi_csi2.flags :
-> -		priv->upstream_ep.bus.parallel.flags;
-> +	if (priv->upstream_ep.bus_type == V4L2_MBUS_CSI2)
-> +		mbus_cfg.csi2_flags = priv->upstream_ep.bus.mipi_csi2.flags;
-> +	else
-> +		mbus_cfg.pb_flags = priv->upstream_ep.bus.parallel.flags;
->  
->  	/*
->  	 * we need to pass input frame to CSI interface, but
+Turn the reserved2 field into fence_fd that we will use to send
+an in-fence to the kernel and return an out-fence from the kernel to
+userspace.
 
+Two new flags were added, V4L2_BUF_FLAG_IN_FENCE, that should be used
+when sending a fence to the kernel to be waited on, and
+V4L2_BUF_FLAG_OUT_FENCE, to ask the kernel to give back an out-fence.
 
-Oh, thanks for noticing! I really hate having drivers that don't
-build with COMPILE_TEST, as that makes a lot harder to check if
-something broke.
+v4:
+	- make it a union with reserved2 and fence_fd (Hans Verkuil)
 
+v3:
+	- make the out_fence refer to the current buffer (Hans Verkuil)
 
-Thanks,
-Mauro
+v2: add documentation
+
+Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
+---
+ Documentation/media/uapi/v4l/buffer.rst       | 15 +++++++++++++++
+ drivers/media/usb/cpia2/cpia2_v4l.c           |  2 +-
+ drivers/media/v4l2-core/v4l2-compat-ioctl32.c |  4 ++--
+ drivers/media/v4l2-core/videobuf2-v4l2.c      |  2 +-
+ include/uapi/linux/videodev2.h                |  7 ++++++-
+ 5 files changed, 25 insertions(+), 5 deletions(-)
+
+diff --git a/Documentation/media/uapi/v4l/buffer.rst b/Documentation/media/uapi/v4l/buffer.rst
+index ae6ee73f151c..eeefbd2547e7 100644
+--- a/Documentation/media/uapi/v4l/buffer.rst
++++ b/Documentation/media/uapi/v4l/buffer.rst
+@@ -648,6 +648,21 @@ Buffer Flags
+       - Start Of Exposure. The buffer timestamp has been taken when the
+ 	exposure of the frame has begun. This is only valid for the
+ 	``V4L2_BUF_TYPE_VIDEO_CAPTURE`` buffer type.
++    * .. _`V4L2-BUF-FLAG-IN-FENCE`:
++
++      - ``V4L2_BUF_FLAG_IN_FENCE``
++      - 0x00200000
++      - Ask V4L2 to wait on fence passed in ``fence_fd`` field. The buffer
++	won't be queued to the driver until the fence signals.
++
++    * .. _`V4L2-BUF-FLAG-OUT-FENCE`:
++
++      - ``V4L2_BUF_FLAG_OUT_FENCE``
++      - 0x00400000
++      - Request a fence to be attached to the buffer. The ``fence_fd``
++	field on
++	:ref:`VIDIOC_QBUF` is used as a return argument to send the out-fence
++	fd to userspace.
+ 
+ 
+ 
+diff --git a/drivers/media/usb/cpia2/cpia2_v4l.c b/drivers/media/usb/cpia2/cpia2_v4l.c
+index a1c59f19cf2d..7d7459fa2077 100644
+--- a/drivers/media/usb/cpia2/cpia2_v4l.c
++++ b/drivers/media/usb/cpia2/cpia2_v4l.c
+@@ -948,7 +948,7 @@ static int cpia2_dqbuf(struct file *file, void *fh, struct v4l2_buffer *buf)
+ 	buf->sequence = cam->buffers[buf->index].seq;
+ 	buf->m.offset = cam->buffers[buf->index].data - cam->frame_buffer;
+ 	buf->length = cam->frame_size;
+-	buf->reserved2 = 0;
++	buf->fence_fd = -1;
+ 	buf->reserved = 0;
+ 	memset(&buf->timecode, 0, sizeof(buf->timecode));
+ 
+diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+index 821f2aa299ae..3a31d318df2a 100644
+--- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
++++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+@@ -370,7 +370,7 @@ struct v4l2_buffer32 {
+ 		__s32		fd;
+ 	} m;
+ 	__u32			length;
+-	__u32			reserved2;
++	__s32			fence_fd;
+ 	__u32			reserved;
+ };
+ 
+@@ -533,7 +533,7 @@ static int put_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
+ 		put_user(kp->timestamp.tv_usec, &up->timestamp.tv_usec) ||
+ 		copy_to_user(&up->timecode, &kp->timecode, sizeof(struct v4l2_timecode)) ||
+ 		put_user(kp->sequence, &up->sequence) ||
+-		put_user(kp->reserved2, &up->reserved2) ||
++		put_user(kp->fence_fd, &up->fence_fd) ||
+ 		put_user(kp->reserved, &up->reserved) ||
+ 		put_user(kp->length, &up->length))
+ 			return -EFAULT;
+diff --git a/drivers/media/v4l2-core/videobuf2-v4l2.c b/drivers/media/v4l2-core/videobuf2-v4l2.c
+index 4075314a6989..4a5244ee2c58 100644
+--- a/drivers/media/v4l2-core/videobuf2-v4l2.c
++++ b/drivers/media/v4l2-core/videobuf2-v4l2.c
+@@ -203,7 +203,7 @@ static void __fill_v4l2_buffer(struct vb2_buffer *vb, void *pb)
+ 	b->timestamp = ns_to_timeval(vb->timestamp);
+ 	b->timecode = vbuf->timecode;
+ 	b->sequence = vbuf->sequence;
+-	b->reserved2 = 0;
++	b->fence_fd = -1;
+ 	b->reserved = 0;
+ 
+ 	if (q->is_multiplanar) {
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index a8ea632c14f0..17e163b5036d 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -926,7 +926,10 @@ struct v4l2_buffer {
+ 		__s32		fd;
+ 	} m;
+ 	__u32			length;
+-	__u32			reserved2;
++	union {
++		__s32		fence_fd;
++		__u32		reserved2;
++	};
+ 	__u32			reserved;
+ };
+ 
+@@ -963,6 +966,8 @@ struct v4l2_buffer {
+ #define V4L2_BUF_FLAG_TSTAMP_SRC_SOE		0x00010000
+ /* mem2mem encoder/decoder */
+ #define V4L2_BUF_FLAG_LAST			0x00100000
++#define V4L2_BUF_FLAG_IN_FENCE			0x00200000
++#define V4L2_BUF_FLAG_OUT_FENCE			0x00400000
+ 
+ /**
+  * struct v4l2_exportbuffer - export of video buffer as DMABUF file descriptor
+-- 
+2.13.6
