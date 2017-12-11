@@ -1,111 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:40428 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751864AbdL0Vb2 (ORCPT
+Received: from bombadil.infradead.org ([65.50.211.133]:34669 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752253AbdLKPpI (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 27 Dec 2017 16:31:28 -0500
-Date: Wed, 27 Dec 2017 23:31:24 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH v2 6/8] media: v4l2-subdev: get rid of
- __V4L2_SUBDEV_MK_GET_TRY() macro
-Message-ID: <20171227213124.gn6vzyyrkxmq3ziq@valkosipuli.retiisi.org.uk>
-References: <cover.1513682135.git.mchehab@s-opensource.com>
- <e1a835c0f4c43a61bdee2950e1752051c92ca73d.1513682135.git.mchehab@s-opensource.com>
+        Mon, 11 Dec 2017 10:45:08 -0500
+Date: Mon, 11 Dec 2017 13:45:01 -0200
+From: Mauro Carvalho Chehab <mchehab@kernel.org>
+To: "Maciej S. Szmigiero" <mail@maciej.szmigiero.name>
+Cc: Michael Krufky <mkrufky@linuxtv.org>,
+        Andy Walls <awalls@md.metrocast.net>,
+        linux-kernel <linux-kernel@vger.kernel.org>,
+        linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [PATCH v2 5/6] [media] cxusb: implement Medion MD95700 digital
+ / analog coexistence
+Message-ID: <20171211134501.4a7270ec@vento.lan>
+In-Reply-To: <f80a8f9e-f142-086e-9160-aea829eac9dc@maciej.szmigiero.name>
+References: <f80a8f9e-f142-086e-9160-aea829eac9dc@maciej.szmigiero.name>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <e1a835c0f4c43a61bdee2950e1752051c92ca73d.1513682135.git.mchehab@s-opensource.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Em Tue, 10 Oct 2017 23:36:55 +0200
+"Maciej S. Szmigiero" <mail@maciej.szmigiero.name> escreveu:
 
-Thanks for the patch. Please see my comments below.
-
-On Tue, Dec 19, 2017 at 09:18:22AM -0200, Mauro Carvalho Chehab wrote:
-> The __V4L2_SUBDEV_MK_GET_TRY() macro is used to define
-> 3 functions that have the same arguments. The code of those
-> functions is simple enough to just declare them, de-obfuscating
-> the code.
+> This patch prepares cxusb driver for supporting the analog part of
+> Medion 95700 (previously only the digital - DVB - mode was supported).
 > 
-> While here, replace BUG_ON() by WARN_ON() as there's no reason
-> why to panic the Kernel if this fails.
+> Specifically, it adds support for:
+> * switching the device between analog and digital modes of operation,
+> * enforcing that only one mode is active at the same time due to hardware
+> limitations.
 > 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> ---
->  include/media/v4l2-subdev.h | 40 ++++++++++++++++++++++++++++------------
->  1 file changed, 28 insertions(+), 12 deletions(-)
+> Actual implementation of the analog mode will be provided by the next
+> commit.
 > 
-> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-> index 71b8ff4b2e0e..443e5e019006 100644
-> --- a/include/media/v4l2-subdev.h
-> +++ b/include/media/v4l2-subdev.h
-> @@ -896,19 +896,35 @@ struct v4l2_subdev_fh {
->  	container_of(fh, struct v4l2_subdev_fh, vfh)
->  
->  #if defined(CONFIG_VIDEO_V4L2_SUBDEV_API)
-> -#define __V4L2_SUBDEV_MK_GET_TRY(rtype, fun_name, field_name)		\
-> -	static inline struct rtype *					\
-> -	fun_name(struct v4l2_subdev *sd,				\
-> -		 struct v4l2_subdev_pad_config *cfg,			\
-> -		 unsigned int pad)					\
-> -	{								\
-> -		BUG_ON(pad >= sd->entity.num_pads);			\
-> -		return &cfg[pad].field_name;				\
-> -	}
-> +static inline struct v4l2_mbus_framefmt
-> +*v4l2_subdev_get_try_format(struct v4l2_subdev *sd,
-> +			    struct v4l2_subdev_pad_config *cfg,
-> +			    unsigned int pad)
-> +{
-> +	if (WARN_ON(pad >= sd->entity.num_pads))
-> +		pad = 0;
-> +	return &cfg[pad].try_fmt;
+> Signed-off-by: Maciej S. Szmigiero <mail@maciej.szmigiero.name>
 
-After I suggested this I came to think what happens if there are no pads?
+This patch doesn't apply:
 
-How about adding, before the first check:
-
-if (WARN_ON(!sd->entity.num_pads))
-	return NULL;
-
-Instead of copying the code, you could still use a macro while having the
-function declaration itself separate from the macro. Up to you.
-
-> +}
->  
-> -__V4L2_SUBDEV_MK_GET_TRY(v4l2_mbus_framefmt, v4l2_subdev_get_try_format, try_fmt)
-> -__V4L2_SUBDEV_MK_GET_TRY(v4l2_rect, v4l2_subdev_get_try_crop, try_crop)
-> -__V4L2_SUBDEV_MK_GET_TRY(v4l2_rect, v4l2_subdev_get_try_compose, try_compose)
-> +static inline struct v4l2_rect
-> +*v4l2_subdev_get_try_crop(struct v4l2_subdev *sd,
-> +			  struct v4l2_subdev_pad_config *cfg,
-> +			  unsigned int pad)
-> +{
-> +	if (WARN_ON(pad >= sd->entity.num_pads))
-> +		pad = 0;
-> +	return &cfg[pad].try_crop;
-> +}
-> +
-> +static inline struct v4l2_rect
-> +*v4l2_subdev_get_try_compose(struct v4l2_subdev *sd,
-> +			     struct v4l2_subdev_pad_config *cfg,
-> +			     unsigned int pad)
-> +{
-> +	if (WARN_ON(pad >= sd->entity.num_pads))
-> +		pad = 0;
-> +	return &cfg[pad].try_compose;
-> +}
->  #endif
->  
->  extern const struct v4l2_file_operations v4l2_subdev_fops;
-> -- 
-> 2.14.3
-> 
-
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+Hunk #2 FAILED at 25.
+Hunk #3 FAILED at 47.
+Hunk #4 succeeded at 90 (offset 1 line).
+Hunk #5 succeeded at 102 (offset 1 line).
+Hunk #6 succeeded at 262 (offset 1 line).
+Hunk #7 succeeded at 270 (offset 1 line).
+Hunk #8 succeeded at 389 (offset 2 lines).
+Hunk #9 succeeded at 683 (offset 2 lines).
+Hunk #10 succeeded at 799 (offset 2 lines).
+Hunk #11 succeeded at 1533 (offset 2 lines).
+Hunk #12 succeeded at 1644 (offset 2 lines).
+Hunk #13 succeeded at 1770 (offset 2 lines).
+Hunk #14 succeeded at 1783 (offset 2 lines).
+Hunk #15 succeeded at 1803 (offset 2 lines).
+Hunk #16 succeeded at 1879 (offset 2 lines).
+Hunk #17 succeeded at 2649 (offset 2 lines).
+2 out of 17 hunks FAILED
+checking file drivers/media/usb/dvb-usb/cxusb.h
+Hunk #1 succeeded at 2 (offset 1 line).
+Hunk #2 succeeded at 37 (offset 1 line).
+Hunk #3 succeeded at 49 (offset 1 line).
+checking file drivers/media/usb/dvb-usb/dvb-usb-dvb.c
+Hunk #1 succeeded at 15 (offset 1 line).
+Hunk #2 succeeded at 25 (offset 1 line).
+Hunk #3 succeeded at 43 (offset 1 line).
+Hunk #4 succeeded at 64 (offset 1 line).
+Hunk #5 succeeded at 90 (offset 1 line).
+checking file drivers/media/usb/dvb-usb/dvb-usb-init.c
+checking file drivers/media/usb/dvb-usb/dvb-usb.h
+Hunk #1 succeeded at 143 (offset 1 line).
+Hunk #2 succeeded at 235 (offset 1 line).
+Hunk #3 succeeded at 281 (offset 1 line).
+ drivers/media/usb/dvb-usb/cxusb.c        |  450 +++++++++++++++++++++++++++----
+ drivers/media/usb/dvb-usb/cxusb.h        |   48 +++
+ drivers/media/usb/dvb-usb/dvb-usb-dvb.c  |   20 +
+ drivers/media/usb/dvb-usb/dvb-usb-init.c |   13 
+ drivers/media/usb/dvb-usb/dvb-usb.h      |    8 
+ 5 files changed, 486 insertions(+), 53 deletions(-)
