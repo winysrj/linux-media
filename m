@@ -1,118 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from plaes.org ([188.166.43.21]:44684 "EHLO plaes.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755901AbdLVKI0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 22 Dec 2017 05:08:26 -0500
-Date: Fri, 22 Dec 2017 10:00:08 +0000
-From: Priit Laes <plaes@plaes.org>
-To: Yong Deng <yong.deng@magewell.com>
-Cc: Maxime Ripard <maxime.ripard@free-electrons.com>,
+Received: from galahad.ideasonboard.com ([185.26.127.97]:41410 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752380AbdLKVnO (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 11 Dec 2017 16:43:14 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Flavio Ceolin <flavio.ceolin@intel.com>
+Cc: linux-kernel@vger.kernel.org,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Chen-Yu Tsai <wens@csie.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Randy Dunlap <rdunlap@infradead.org>,
         Hans Verkuil <hans.verkuil@cisco.com>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Yannick Fertre <yannick.fertre@st.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
+        Petr Cvek <petr.cvek@tul.cz>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Niklas =?ISO-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>,
+        Julia Lawall <Julia.Lawall@lip6.fr>,
         Arnd Bergmann <arnd@arndb.de>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Rick Chang <rick.chang@mediatek.com>,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-sunxi@googlegroups.com
-Subject: Re: [linux-sunxi] [PATCH v4 1/2] dt-bindings: media: Add Allwinner
- V3s Camera Sensor Interface (CSI)
-Message-ID: <20171222100008.nmmzwhtmputizn7d@plaes.org>
-References: <1513935689-35415-1-git-send-email-yong.deng@magewell.com>
+        "open list:MEDIA INPUT INFRASTRUCTURE (V4L/DVB)"
+        <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] media: pxa_camera: disable and unprepare the clock source on error
+Date: Mon, 11 Dec 2017 23:43:15 +0200
+Message-ID: <4016874.2vIpU9bQLW@avalon>
+In-Reply-To: <878te9561h.fsf@faceolin-mobl2.amr.corp.intel.com>
+References: <20171206163852.8532-1-flavio.ceolin@intel.com> <1880720.cnKARQTyeT@avalon> <878te9561h.fsf@faceolin-mobl2.amr.corp.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1513935689-35415-1-git-send-email-yong.deng@magewell.com>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Dec 22, 2017 at 05:41:29PM +0800, Yong Deng wrote:
-> Add binding documentation for Allwinner V3s CSI.
-> 
-> Signed-off-by: Yong Deng <yong.deng@magewell.com>
-> ---
->  .../devicetree/bindings/media/sun6i-csi.txt        | 51 ++++++++++++++++++++++
->  1 file changed, 51 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/media/sun6i-csi.txt
-> 
-> diff --git a/Documentation/devicetree/bindings/media/sun6i-csi.txt b/Documentation/devicetree/bindings/media/sun6i-csi.txt
-> new file mode 100644
-> index 0000000..b5bfe3f
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/media/sun6i-csi.txt
-> @@ -0,0 +1,51 @@
-> +Allwinner V3s Camera Sensor Interface
-> +------------------------------
+Hi Flavio,
 
-Not sure whether syntax for these files is proper reStructuredText/Markdown,
-but the underline-ish style expects the title and underline having same length.
-
-> +
-> +Required properties:
-> +  - compatible: value must be "allwinner,sun8i-v3s-csi"
-> +  - reg: base address and size of the memory-mapped region.
-> +  - interrupts: interrupt associated to this IP
-> +  - clocks: phandles to the clocks feeding the CSI
-> +    * bus: the CSI interface clock
-> +    * mod: the CSI module clock
-> +    * ram: the CSI DRAM clock
-> +  - clock-names: the clock names mentioned above
-> +  - resets: phandles to the reset line driving the CSI
-> +
-> +- ports: A ports node with endpoint definitions as defined in
-> +  Documentation/devicetree/bindings/media/video-interfaces.txt.
-> +  Currently, the driver only support the parallel interface. So, a single port
-^^ supports
-> +  node with one endpoint and parallel bus is supported.
-> +
-> +Example:
-> +
-> +	csi1: csi@1cb4000 {
-> +		compatible = "allwinner,sun8i-v3s-csi";
-> +		reg = <0x01cb4000 0x1000>;
-> +		interrupts = <GIC_SPI 84 IRQ_TYPE_LEVEL_HIGH>;
-> +		clocks = <&ccu CLK_BUS_CSI>,
-> +			 <&ccu CLK_CSI1_SCLK>,
-> +			 <&ccu CLK_DRAM_CSI>;
-> +		clock-names = "bus", "mod", "ram";
-> +		resets = <&ccu RST_BUS_CSI>;
-> +
-> +		port {
-> +			#address-cells = <1>;
-> +			#size-cells = <0>;
-> +
-> +			/* Parallel bus endpoint */
-> +			csi1_ep: endpoint {
-> +				remote-endpoint = <&adv7611_ep>;
-> +				bus-width = <16>;
-> +				data-shift = <0>;
-> +
-> +				/* If hsync-active/vsync-active are missing,
-> +				   embedded BT.656 sync is used */
-> +				hsync-active = <0>; /* Active low */
-> +				vsync-active = <0>; /* Active low */
-> +				data-active = <1>;  /* Active high */
-> +				pclk-sample = <1>;  /* Rising */
-> +			};
-> +		};
-> +	};
-> +
-> -- 
-> 1.8.3.1
+On Monday, 11 December 2017 23:05:46 EET Flavio Ceolin wrote:
+> > On Wednesday, 6 December 2017 18:38:50 EET Flavio Ceolin wrote:
+> >> pxa_camera_probe() was not calling pxa_camera_deactivate(),
+> >> responsible to call clk_disable_unprepare(), on the failure path. This
+> >> was leading to unbalancing source clock.
+> >> 
+> >> Found by Linux Driver Verification project (linuxtesting.org).
+> > 
+> > Any chance I could sign you up for more work on this driver ? :-)
 > 
-> -- 
-> You received this message because you are subscribed to the Google Groups "linux-sunxi" group.
-> To unsubscribe from this group and stop receiving emails from it, send an email to linux-sunxi+unsubscribe@googlegroups.com.
-> For more options, visit https://groups.google.com/d/optout.
+> Definetely, this would be great :)
+
+Actually it looks like the work I thought was needed has already been 
+performed. The pxa-camera driver used to make use of the soc-camera framework, 
+which we are trying to remove, and occurrences of soc_camera in the code gave 
+me the wrong idea that the driver was still based on that framework. It seems 
+this isn't the case. Thank you for making me happy :-)
+
+> >> Signed-off-by: Flavio Ceolin <flavio.ceolin@intel.com>
+> > 
+> > Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > 
+> > I expect Hans Verkuil to pick up the patch.
+> > 
+> >> ---
+> >> 
+> >>  drivers/media/platform/pxa_camera.c | 4 +++-
+> >>  1 file changed, 3 insertions(+), 1 deletion(-)
+> >> 
+> >> diff --git a/drivers/media/platform/pxa_camera.c
+> >> b/drivers/media/platform/pxa_camera.c index 9d3f0cb..7877037 100644
+> >> --- a/drivers/media/platform/pxa_camera.c
+> >> +++ b/drivers/media/platform/pxa_camera.c
+> >> @@ -2489,7 +2489,7 @@ static int pxa_camera_probe(struct platform_device
+> >> *pdev)
+> >> 	dev_set_drvdata(&pdev->dev, pcdev);
+> >>  	err = v4l2_device_register(&pdev->dev, &pcdev->v4l2_dev);
+> >>  	if (err)
+> >> -		goto exit_free_dma;
+> >> +		goto exit_deactivate;
+> >> 
+> >>  	pcdev->asds[0] = &pcdev->asd;
+> >>  	pcdev->notifier.subdevs = pcdev->asds;
+> >> @@ -2525,6 +2525,8 @@ static int pxa_camera_probe(struct platform_device
+> >> *pdev)
+> >> 	v4l2_clk_unregister(pcdev->mclk_clk);
+> >>  exit_free_v4l2dev:
+> >>  	v4l2_device_unregister(&pcdev->v4l2_dev);
+> >> +exit_deactivate:
+> >> +	pxa_camera_deactivate(pcdev);
+> >>  exit_free_dma:
+> >>  	dma_release_channel(pcdev->dma_chans[2]);
+> >>  exit_free_dma_u:
+
+-- 
+Regards,
+
+Laurent Pinchart
