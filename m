@@ -1,134 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:57867 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753674AbdLIEgd (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 8 Dec 2017 23:36:33 -0500
-Message-ID: <0d83d5f760741122d727cdcbef0adc7e@smtp-cloud7.xs4all.net>
-Date: Sat, 09 Dec 2017 05:36:31 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+Received: from osg.samsung.com ([64.30.133.232]:47233 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752628AbdLKQhf (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 11 Dec 2017 11:37:35 -0500
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Ron Economos <w6rz@comcast.net>,
+        "David S. Miller" <davem@davemloft.net>,
+        Johannes Berg <johannes.berg@intel.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Arnd Bergmann <arnd@arndb.de>
+Subject: [PATCH 3/3] media: dvb-core: allow users to enable DVB net ULE debug
+Date: Mon, 11 Dec 2017 11:37:26 -0500
+Message-Id: <8359d14bcceb7516aeabfcaa518c134078132751.1513010227.git.mchehab@s-opensource.com>
+In-Reply-To: <3749c9084b647a3ca80e78a9f5a3bd83ecb1e4cb.1513010227.git.mchehab@s-opensource.com>
+References: <3749c9084b647a3ca80e78a9f5a3bd83ecb1e4cb.1513010227.git.mchehab@s-opensource.com>
+In-Reply-To: <3749c9084b647a3ca80e78a9f5a3bd83ecb1e4cb.1513010227.git.mchehab@s-opensource.com>
+References: <3749c9084b647a3ca80e78a9f5a3bd83ecb1e4cb.1513010227.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+This debug option is there for a long time, but it is only
+enabled by editing the source code. Due to that, a breakage
+inside its code was only noticed years after a change at
+the ULE handling logic.
 
-Results of the daily build of media_tree:
+Make it a Kconfig parameter, as it makes easier for
+advanced users to enable, and allow test if the compilation
+won't be broken in the future.
 
-date:			Sat Dec  9 05:00:18 CET 2017
-media-tree git hash:	0393e735649dc41358adb7b603bd57dad1ed3260
-media_build git hash:	1912033e6ea2b4f00a5c1977b0b6b1f1c28bb20c
-v4l-utils git hash:	58803000a99c22dceabfb45bec402e746ce966c3
-gcc version:		i686-linux-gcc (GCC) 7.1.0
-sparse version:		v0.5.0-3911-g6f737e1f
-smatch version:		v0.5.0-3911-g6f737e1f
-host hardware:		x86_64
-host os:		4.13.0-164
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/dvb-core/Kconfig   | 13 +++++++++++++
+ drivers/media/dvb-core/dvb_net.c | 14 +++++---------
+ 2 files changed, 18 insertions(+), 9 deletions(-)
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: ERRORS
-linux-3.10.1-i686: ERRORS
-linux-3.11.1-i686: ERRORS
-linux-3.12.67-i686: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: ERRORS
-linux-3.15.2-i686: ERRORS
-linux-3.16.7-i686: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.18.7-i686: ERRORS
-linux-3.19-i686: ERRORS
-linux-4.0.9-i686: ERRORS
-linux-4.1.33-i686: ERRORS
-linux-4.2.8-i686: ERRORS
-linux-4.3.6-i686: ERRORS
-linux-4.4.22-i686: ERRORS
-linux-4.5.7-i686: ERRORS
-linux-4.6.7-i686: ERRORS
-linux-4.7.5-i686: ERRORS
-linux-4.8-i686: ERRORS
-linux-4.9.26-i686: ERRORS
-linux-4.10.14-i686: ERRORS
-linux-4.11-i686: ERRORS
-linux-4.12.1-i686: ERRORS
-linux-4.13-i686: ERRORS
-linux-4.14-i686: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: ERRORS
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.67-x86_64: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-x86_64: ERRORS
-linux-3.15.2-x86_64: ERRORS
-linux-3.16.7-x86_64: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.7-x86_64: ERRORS
-linux-3.19-x86_64: ERRORS
-linux-4.0.9-x86_64: ERRORS
-linux-4.1.33-x86_64: ERRORS
-linux-4.2.8-x86_64: ERRORS
-linux-4.3.6-x86_64: ERRORS
-linux-4.4.22-x86_64: ERRORS
-linux-4.5.7-x86_64: ERRORS
-linux-4.6.7-x86_64: ERRORS
-linux-4.7.5-x86_64: ERRORS
-linux-4.8-x86_64: ERRORS
-linux-4.9.26-x86_64: ERRORS
-linux-4.10.14-x86_64: ERRORS
-linux-4.11-x86_64: ERRORS
-linux-4.12.1-x86_64: ERRORS
-linux-4.13-x86_64: ERRORS
-linux-4.14-x86_64: ERRORS
-apps: OK
-spec-git: OK
-smatch: OK
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+diff --git a/drivers/media/dvb-core/Kconfig b/drivers/media/dvb-core/Kconfig
+index eeef94a0c84e..f004aea352e0 100644
+--- a/drivers/media/dvb-core/Kconfig
++++ b/drivers/media/dvb-core/Kconfig
+@@ -40,3 +40,16 @@ config DVB_DEMUX_SECTION_LOSS_LOG
+ 	  be very verbose.
+ 
+ 	  If you are unsure about this, say N here.
++
++config DVB_ULE_DEBUG
++	bool "Enable DVB net ULE packet debug messages"
++	depends on DVB_CORE
++	default n
++	help
++	  Enable extra log messages meant to detect problems while
++	  handling DVB network ULE packet loss inside the Kernel.
++
++	  Should not be enabled on normal cases, as logs can
++	  be very verbose.
++
++	  If you are unsure about this, say N here.
+diff --git a/drivers/media/dvb-core/dvb_net.c b/drivers/media/dvb-core/dvb_net.c
+index bf0bea5c21c1..d8adc968cbf2 100644
+--- a/drivers/media/dvb-core/dvb_net.c
++++ b/drivers/media/dvb-core/dvb_net.c
+@@ -38,7 +38,7 @@
+  *                       Competence Center for Advanced Satellite Communications.
+  *                     Bugfixes and robustness improvements.
+  *                     Filtering on dest MAC addresses, if present (D-Bit = 0)
+- *                     ULE_DEBUG compile-time option.
++ *                     DVB_ULE_DEBUG compile-time option.
+  * Apr 2006: cp v3:    Bugfixes and compliency with RFC 4326 (ULE) by
+  *                       Christian Praehauser <cpraehaus@cosy.sbg.ac.at>,
+  *                       Paris Lodron University of Salzburg.
+@@ -78,12 +78,9 @@ static inline __u32 iov_crc32( __u32 c, struct kvec *iov, unsigned int cnt )
+ 
+ #define DVB_NET_MULTICAST_MAX 10
+ 
+-#undef ULE_DEBUG
+-
+-#ifdef ULE_DEBUG
+-
++#ifdef DVB_ULE_DEBUG
+ /*
+- * The code inside ULE_DEBUG keeps a history of the
++ * The code inside DVB_ULE_DEBUG keeps a history of the
+  * last 100 TS cells processed.
+  */
+ static unsigned char ule_hist[100*TS_SZ] = { 0 };
+@@ -93,7 +90,6 @@ static void hexdump(const unsigned char *buf, unsigned short len)
+ {
+ 	print_hex_dump_debug("", DUMP_PREFIX_OFFSET, 16, 1, buf, len, true);
+ }
+-
+ #endif
+ 
+ struct dvb_net_priv {
+@@ -331,7 +327,7 @@ static int dvb_net_ule_new_ts_cell(struct dvb_net_ule_handle *h)
+ {
+ 	/* We are about to process a new TS cell. */
+ 
+-#ifdef ULE_DEBUG
++#ifdef DVB_ULE_DEBUG
+ 	if (ule_where >= &ule_hist[100*TS_SZ])
+ 		ule_where = ule_hist;
+ 	memcpy(ule_where, h->ts, TS_SZ);
+@@ -669,7 +665,7 @@ static void dvb_net_ule_check_crc(struct dvb_net_ule_handle *h, struct kvec iov[
+ 			h->ts_remain > 2 ?
+ 				*(unsigned short *)h->from_where : 0);
+ 
+-	#ifdef ULE_DEBUG
++	#ifdef DVB_ULE_DEBUG
+ 		hexdump(iov[0].iov_base, iov[0].iov_len);
+ 		hexdump(iov[1].iov_base, iov[1].iov_len);
+ 		hexdump(iov[2].iov_base, iov[2].iov_len);
+-- 
+2.14.3
