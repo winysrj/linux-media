@@ -1,163 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:41755 "EHLO
-        mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753357AbdLHJhA (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 8 Dec 2017 04:37:00 -0500
-From: Smitha T Murthy <smitha.t@samsung.com>
-To: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Cc: kyungmin.park@samsung.com, kamil@wypas.org, jtp.park@samsung.com,
-        a.hajda@samsung.com, mchehab@kernel.org, pankaj.dubey@samsung.com,
-        krzk@kernel.org, m.szyprowski@samsung.com, s.nawrocki@samsung.com,
-        Smitha T Murthy <smitha.t@samsung.com>
-Subject: [Patch v6 08/12] [media] s5p-mfc: Add support for HEVC decoder
-Date: Fri, 08 Dec 2017 14:38:21 +0530
-Message-id: <1512724105-1778-9-git-send-email-smitha.t@samsung.com>
-In-reply-to: <1512724105-1778-1-git-send-email-smitha.t@samsung.com>
-References: <1512724105-1778-1-git-send-email-smitha.t@samsung.com>
-        <CGME20171208093657epcas2p34af2c4e947714f5ef1ce8376640227d4@epcas2p3.samsung.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:57298 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752247AbdLKO01 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 11 Dec 2017 09:26:27 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>, magnus.damm@gmail.com,
+        geert@glider.be, mchehab@kernel.org, hverkuil@xs4all.nl,
+        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-sh@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v1 02/10] include: media: Add Renesas CEU driver interface
+Date: Mon, 11 Dec 2017 16:26:27 +0200
+Message-ID: <1534914.aSna2J79oD@avalon>
+In-Reply-To: <20171115123633.zvkokelhwwyro42y@valkosipuli.retiisi.org.uk>
+References: <1510743363-25798-1-git-send-email-jacopo+renesas@jmondi.org> <1510743363-25798-3-git-send-email-jacopo+renesas@jmondi.org> <20171115123633.zvkokelhwwyro42y@valkosipuli.retiisi.org.uk>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add support for codec definition and corresponding buffer
-requirements for HEVC decoder.
+Hi Sakari,
 
-Signed-off-by: Smitha T Murthy <smitha.t@samsung.com>
-Reviewed-by: Andrzej Hajda <a.hajda@samsung.com>
----
- drivers/media/platform/s5p-mfc/regs-mfc-v10.h   |  1 +
- drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c |  3 +++
- drivers/media/platform/s5p-mfc/s5p_mfc_common.h |  1 +
- drivers/media/platform/s5p-mfc/s5p_mfc_dec.c    |  7 +++++++
- drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c | 17 +++++++++++++++--
- drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h |  3 +++
- 6 files changed, 30 insertions(+), 2 deletions(-)
+On Wednesday, 15 November 2017 14:36:33 EET Sakari Ailus wrote:
+> On Wed, Nov 15, 2017 at 11:55:55AM +0100, Jacopo Mondi wrote:
+> > Add renesas-ceu header file.
+> > 
+> > Do not remove the existing sh_mobile_ceu.h one as long as the original
+> > driver does not go away.
+> 
+> Hmm. This isn't really not about not removing a file but adding a new one.
+> Do you really need it outside the driver's own directory?
 
-diff --git a/drivers/media/platform/s5p-mfc/regs-mfc-v10.h b/drivers/media/platform/s5p-mfc/regs-mfc-v10.h
-index 3f0dab3..953a073 100644
---- a/drivers/media/platform/s5p-mfc/regs-mfc-v10.h
-+++ b/drivers/media/platform/s5p-mfc/regs-mfc-v10.h
-@@ -33,6 +33,7 @@
- #define MFC_NUM_PORTS_V10	1
- 
- /* MFCv10 codec defines*/
-+#define S5P_FIMV_CODEC_HEVC_DEC		17
- #define S5P_FIMV_CODEC_HEVC_ENC         26
- 
- /* Encoder buffer size for MFC v10.0 */
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c b/drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c
-index b1b1491..76eca67 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c
-@@ -101,6 +101,9 @@ static int s5p_mfc_open_inst_cmd_v6(struct s5p_mfc_ctx *ctx)
- 	case S5P_MFC_CODEC_VP8_DEC:
- 		codec_type = S5P_FIMV_CODEC_VP8_DEC_V6;
- 		break;
-+	case S5P_MFC_CODEC_HEVC_DEC:
-+		codec_type = S5P_FIMV_CODEC_HEVC_DEC;
-+		break;
- 	case S5P_MFC_CODEC_H264_ENC:
- 		codec_type = S5P_FIMV_CODEC_H264_ENC_V6;
- 		break;
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-index e65e1c3..828e07e 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-@@ -72,6 +72,7 @@
- #define S5P_MFC_CODEC_H263_DEC		5
- #define S5P_MFC_CODEC_VC1RCV_DEC	6
- #define S5P_MFC_CODEC_VP8_DEC		7
-+#define S5P_MFC_CODEC_HEVC_DEC		17
- 
- #define S5P_MFC_CODEC_H264_ENC		20
- #define S5P_MFC_CODEC_H264_MVC_ENC	21
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-index 81de3029..4749355 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-@@ -144,6 +144,13 @@ static struct s5p_mfc_fmt formats[] = {
- 		.num_planes	= 1,
- 		.versions	= MFC_V6PLUS_BITS,
- 	},
-+	{
-+		.fourcc		= V4L2_PIX_FMT_HEVC,
-+		.codec_mode	= S5P_FIMV_CODEC_HEVC_DEC,
-+		.type		= MFC_FMT_DEC,
-+		.num_planes	= 1,
-+		.versions	= MFC_V10_BIT,
-+	},
- };
- 
- #define NUM_FORMATS ARRAY_SIZE(formats)
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-index 55ccccb..8c47294 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-@@ -220,6 +220,12 @@ static int s5p_mfc_alloc_codec_buffers_v6(struct s5p_mfc_ctx *ctx)
- 				S5P_FIMV_SCRATCH_BUFFER_ALIGN_V6);
- 		ctx->bank1.size = ctx->scratch_buf_size;
- 		break;
-+	case S5P_MFC_CODEC_HEVC_DEC:
-+		mfc_debug(2, "Use min scratch buffer size\n");
-+		ctx->bank1.size =
-+			ctx->scratch_buf_size +
-+			(ctx->mv_count * ctx->mv_size);
-+		break;
- 	case S5P_MFC_CODEC_H264_ENC:
- 		if (IS_MFCV10(dev)) {
- 			mfc_debug(2, "Use min scratch buffer size\n");
-@@ -321,6 +327,7 @@ static int s5p_mfc_alloc_instance_buffer_v6(struct s5p_mfc_ctx *ctx)
- 	switch (ctx->codec_mode) {
- 	case S5P_MFC_CODEC_H264_DEC:
- 	case S5P_MFC_CODEC_H264_MVC_DEC:
-+	case S5P_MFC_CODEC_HEVC_DEC:
- 		ctx->ctx.size = buf_size->h264_dec_ctx;
- 		break;
- 	case S5P_MFC_CODEC_MPEG4_DEC:
-@@ -434,6 +441,10 @@ static void s5p_mfc_dec_calc_dpb_size_v6(struct s5p_mfc_ctx *ctx)
- 			ctx->mv_size = S5P_MFC_DEC_MV_SIZE_V6(ctx->img_width,
- 					ctx->img_height);
- 		}
-+	} else if (ctx->codec_mode == S5P_MFC_CODEC_HEVC_DEC) {
-+		ctx->mv_size = s5p_mfc_dec_hevc_mv_size(ctx->img_width,
-+				ctx->img_height);
-+		ctx->mv_size = ALIGN(ctx->mv_size, 32);
- 	} else {
- 		ctx->mv_size = 0;
- 	}
-@@ -515,7 +526,8 @@ static int s5p_mfc_set_dec_frame_buffer_v6(struct s5p_mfc_ctx *ctx)
- 	buf_size1 -= ctx->scratch_buf_size;
- 
- 	if (ctx->codec_mode == S5P_FIMV_CODEC_H264_DEC ||
--			ctx->codec_mode == S5P_FIMV_CODEC_H264_MVC_DEC){
-+			ctx->codec_mode == S5P_FIMV_CODEC_H264_MVC_DEC ||
-+			ctx->codec_mode == S5P_FIMV_CODEC_HEVC_DEC) {
- 		writel(ctx->mv_size, mfc_regs->d_mv_buffer_size);
- 		writel(ctx->mv_count, mfc_regs->d_num_mv);
- 	}
-@@ -538,7 +550,8 @@ static int s5p_mfc_set_dec_frame_buffer_v6(struct s5p_mfc_ctx *ctx)
- 				mfc_regs->d_second_plane_dpb + i * 4);
- 	}
- 	if (ctx->codec_mode == S5P_MFC_CODEC_H264_DEC ||
--			ctx->codec_mode == S5P_MFC_CODEC_H264_MVC_DEC) {
-+			ctx->codec_mode == S5P_MFC_CODEC_H264_MVC_DEC ||
-+			ctx->codec_mode == S5P_MFC_CODEC_HEVC_DEC) {
- 		for (i = 0; i < ctx->mv_count; i++) {
- 			/* To test alignment */
- 			align_gap = buf_addr1;
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h
-index b18f5b7..f6cb703 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h
-@@ -29,6 +29,9 @@
- #define S5P_MFC_LCU_WIDTH(x_size)	DIV_ROUND_UP(x_size, 32)
- #define S5P_MFC_LCU_HEIGHT(y_size)	DIV_ROUND_UP(y_size, 32)
- 
-+#define s5p_mfc_dec_hevc_mv_size(x, y) \
-+	(DIV_ROUND_UP(x, 64) * DIV_ROUND_UP(y, 64) * 256 + 512)
-+
- /* Definition */
- #define ENC_MULTI_SLICE_MB_MAX		((1 << 30) - 1)
- #define ENC_MULTI_SLICE_BIT_MIN		2800
+The file defines platform data structures that are needed for arch/sh/.
+
+> > Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+> > ---
+> > 
+> >  include/media/drv-intf/renesas-ceu.h | 23 +++++++++++++++++++++++
+> >  1 file changed, 23 insertions(+)
+> >  create mode 100644 include/media/drv-intf/renesas-ceu.h
+> > 
+> > diff --git a/include/media/drv-intf/renesas-ceu.h
+> > b/include/media/drv-intf/renesas-ceu.h new file mode 100644
+> > index 0000000..f2da78c
+> > --- /dev/null
+> > +++ b/include/media/drv-intf/renesas-ceu.h
+> > @@ -0,0 +1,23 @@
+> > +// SPDX-License-Identifier: GPL-2.0+
+> > +#ifndef __ASM_RENESAS_CEU_H__
+> > +#define __ASM_RENESAS_CEU_H__
+> > +
+> > +#include <media/v4l2-mediabus.h>
+
+I don't think you need this.
+
+> > +#define CEU_FLAG_PRIMARY_SENS	BIT(0)
+> > +#define CEU_MAX_SENS		2
+
+I assume SENS stands for sensor. As other sources than sensors can be 
+supported (video decoders for instance), I would name this CEU_MAX_SUBDEVS, 
+CEU_MAX_INPUTS or something similar.
+
+> > +
+> > +struct ceu_async_subdev {
+> > +	unsigned long flags;
+> > +	unsigned char bus_width;
+> > +	unsigned char bus_shift;
+> > +	unsigned int i2c_adapter_id;
+> > +	unsigned int i2c_address;
+> > +};
+> > +
+> > +struct ceu_info {
+> > +	unsigned int num_subdevs;
+> > +	struct ceu_async_subdev subdevs[CEU_MAX_SENS];
+> > +};
+> > +
+> > +#endif /* __ASM_RENESAS_CEU_H__ */
+> > --
+> > 2.7.4
+
+
 -- 
-2.7.4
+Regards,
+
+Laurent Pinchart
