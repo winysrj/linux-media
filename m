@@ -1,43 +1,27 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail3-relais-sop.national.inria.fr ([192.134.164.104]:45852
-        "EHLO mail3-relais-sop.national.inria.fr" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752200AbdL0PUU (ORCPT
+Received: from mfdf022.ocn.ad.jp ([153.128.50.80]:37239 "EHLO
+        mfdf022.ocn.ad.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752761AbdLKOIS (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 27 Dec 2017 10:20:20 -0500
-From: Julia Lawall <Julia.Lawall@lip6.fr>
-To: Mike Isely <isely@pobox.com>
-Cc: kernel-janitors@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH 09/12] [media] pvrusb2: drop unneeded newline
-Date: Wed, 27 Dec 2017 15:51:42 +0100
-Message-Id: <1514386305-7402-10-git-send-email-Julia.Lawall@lip6.fr>
-In-Reply-To: <1514386305-7402-1-git-send-email-Julia.Lawall@lip6.fr>
-References: <1514386305-7402-1-git-send-email-Julia.Lawall@lip6.fr>
+        Mon, 11 Dec 2017 09:08:18 -0500
+Received: from mogw0705.ocn.ad.jp (mogw0705.ocn.ad.jp [153.149.232.6])
+        by mfdf022.ocn.ad.jp (Postfix) with ESMTP id 957F520A665
+        for <linux-media@vger.kernel.org>; Mon, 11 Dec 2017 22:54:19 +0900 (JST)
+Date: Mon, 11 Dec 2017 22:54:12 +0900 (JST)
+From: Samuel Amar <"samuelamar."@fine.ocn.ne.jp>
+Reply-To: lucynnani@hotmail.com
+Message-ID: <507674777.114859291.1513000452116.JavaMail.root@fine.ocn.ne.jp>
+Subject: Urgent Message.
+MIME-Version: 1.0
+Content-Type: text/plain; charset=ISO-2022-JP
+Content-Transfer-Encoding: 7bit
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-pvr2_trace prints a newline at the end of the message string, so the
-message string does not need to include a newline explicitly.  Done
-using Coccinelle.
+Dear Friend,
 
-Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
+How are you with your family? I hope fine. I'm happy to inform you about my success in getting those funds transferred under the cooperation of a new partner from India, Presently I’m in India, meanwhile I didn't forget your past efforts to assist me in transferring those funds despite that it failed us some how. Now contact my secretary in Benin Republic West Africa through her e-mail id (lucynnani@hotmail.fr)  ask her to send you the ATM CARD worth’s sum of ($250,000.00 US Dollars) which I kept for your compensation for all the past efforts and attempts to assist me in this transaction. so feel free and get in touch with my secretary Ms. Lucy Nnani she will send the ATM CARD to you.
 
----
- drivers/media/usb/pvrusb2/pvrusb2-hdw.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/media/usb/pvrusb2/pvrusb2-hdw.c b/drivers/media/usb/pvrusb2/pvrusb2-hdw.c
-index 09bd6c6..e035316 100644
---- a/drivers/media/usb/pvrusb2/pvrusb2-hdw.c
-+++ b/drivers/media/usb/pvrusb2/pvrusb2-hdw.c
-@@ -2351,7 +2351,8 @@ struct pvr2_hdw *pvr2_hdw_create(struct usb_interface *intf,
- 
- 	if (hdw_desc == NULL) {
- 		pvr2_trace(PVR2_TRACE_INIT, "pvr2_hdw_create: No device description pointer, unable to continue.");
--		pvr2_trace(PVR2_TRACE_INIT, "If you have a new device type, please contact Mike Isely <isely@pobox.com> to get it included in the driver\n");
-+		pvr2_trace(PVR2_TRACE_INIT,
-+			   "If you have a new device type, please contact Mike Isely <isely@pobox.com> to get it included in the driver");
- 		goto fail;
- 	}
- 
+Regards,
+Samuel Amar.
