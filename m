@@ -1,267 +1,164 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f65.google.com ([209.85.215.65]:38002 "EHLO
-        mail-lf0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755747AbdLTVJN (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 20 Dec 2017 16:09:13 -0500
-Received: by mail-lf0-f65.google.com with SMTP id w196so7634560lff.5
-        for <linux-media@vger.kernel.org>; Wed, 20 Dec 2017 13:09:12 -0800 (PST)
-From: "Niklas =?iso-8859-1?Q?S=F6derlund?=" <niklas.soderlund@ragnatech.se>
-Date: Wed, 20 Dec 2017 22:09:09 +0100
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>
-Subject: Re: [PATCH v9 15/28] rcar-vin: enable Gen3 hardware configuration
-Message-ID: <20171220210909.GF32148@bigcity.dyn.berto.se>
-References: <20171208010842.20047-1-niklas.soderlund+renesas@ragnatech.se>
- <20171208010842.20047-16-niklas.soderlund+renesas@ragnatech.se>
- <5504263.YnyVsq6zZe@avalon>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <5504263.YnyVsq6zZe@avalon>
+Received: from osg.samsung.com ([64.30.133.232]:56486 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752894AbdLKQhf (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 11 Dec 2017 11:37:35 -0500
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Ron Economos <w6rz@comcast.net>,
+        Johannes Berg <johannes.berg@intel.com>,
+        "David S. Miller" <davem@davemloft.net>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Arnd Bergmann <arnd@arndb.de>
+Subject: [PATCH 1/3] media: dvb_net: ensure that dvb_net_ule_handle is fully initialized
+Date: Mon, 11 Dec 2017 11:37:24 -0500
+Message-Id: <3749c9084b647a3ca80e78a9f5a3bd83ecb1e4cb.1513010227.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+changeset efb9ab67255f ("[media] dvb_net: prepare to split a very
+complex function") changed the ULE handling logic, simplifying it.
+However, it forgot to keep the initialization for .priv and to
+zero .ule_hist fields.
 
-Thanks for your comments.
+The lack of .priv cause crashes if dvb_net_ule() is called, as
+the function assuems that .priv field to be initialized.
 
-On 2017-12-08 11:47:13 +0200, Laurent Pinchart wrote:
-> Hi Niklas,
-> 
-> Thank you for the patch.
-> 
-> On Friday, 8 December 2017 03:08:29 EET Niklas Söderlund wrote:
-> > Add the register needed to work with Gen3 hardware. This patch adds
-> > the logic for how to work with the Gen3 hardware. More work is required
-> > to enable the subdevice structure needed to configure capturing.
-> > 
-> > Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-> > Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
-> > ---
-> >  drivers/media/platform/rcar-vin/rcar-dma.c | 94 ++++++++++++++++++---------
-> >  drivers/media/platform/rcar-vin/rcar-vin.h |  1 +
-> >  2 files changed, 64 insertions(+), 31 deletions(-)
-> > 
-> > diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c
-> > b/drivers/media/platform/rcar-vin/rcar-dma.c index
-> > d7660f485a2df9e4..ace95d5b543a17e3 100644
-> > --- a/drivers/media/platform/rcar-vin/rcar-dma.c
-> > +++ b/drivers/media/platform/rcar-vin/rcar-dma.c
-> > @@ -33,21 +33,23 @@
-> >  #define VNELPRC_REG	0x10	/* Video n End Line Pre-Clip Register */
-> >  #define VNSPPRC_REG	0x14	/* Video n Start Pixel Pre-Clip Register */
-> >  #define VNEPPRC_REG	0x18	/* Video n End Pixel Pre-Clip Register */
-> > -#define VNSLPOC_REG	0x1C	/* Video n Start Line Post-Clip Register */
-> > -#define VNELPOC_REG	0x20	/* Video n End Line Post-Clip Register */
-> > -#define VNSPPOC_REG	0x24	/* Video n Start Pixel Post-Clip Register */
-> > -#define VNEPPOC_REG	0x28	/* Video n End Pixel Post-Clip Register */
-> >  #define VNIS_REG	0x2C	/* Video n Image Stride Register */
-> >  #define VNMB_REG(m)	(0x30 + ((m) << 2)) /* Video n Memory Base m Register
-> > */ #define VNIE_REG	0x40	/* Video n Interrupt Enable Register */
-> >  #define VNINTS_REG	0x44	/* Video n Interrupt Status Register */
-> >  #define VNSI_REG	0x48	/* Video n Scanline Interrupt Register */
-> >  #define VNMTC_REG	0x4C	/* Video n Memory Transfer Control Register */
-> > -#define VNYS_REG	0x50	/* Video n Y Scale Register */
-> > -#define VNXS_REG	0x54	/* Video n X Scale Register */
-> >  #define VNDMR_REG	0x58	/* Video n Data Mode Register */
-> >  #define VNDMR2_REG	0x5C	/* Video n Data Mode Register 2 */
-> >  #define VNUVAOF_REG	0x60	/* Video n UV Address Offset Register */
-> > +
-> > +/* Register offsets specific for Gen2 */
-> > +#define VNSLPOC_REG	0x1C	/* Video n Start Line Post-Clip Register */
-> > +#define VNELPOC_REG	0x20	/* Video n End Line Post-Clip Register */
-> > +#define VNSPPOC_REG	0x24	/* Video n Start Pixel Post-Clip Register */
-> > +#define VNEPPOC_REG	0x28	/* Video n End Pixel Post-Clip Register */
-> > +#define VNYS_REG	0x50	/* Video n Y Scale Register */
-> > +#define VNXS_REG	0x54	/* Video n X Scale Register */
-> >  #define VNC1A_REG	0x80	/* Video n Coefficient Set C1A Register */
-> >  #define VNC1B_REG	0x84	/* Video n Coefficient Set C1B Register */
-> >  #define VNC1C_REG	0x88	/* Video n Coefficient Set C1C Register */
-> > @@ -73,9 +75,13 @@
-> >  #define VNC8B_REG	0xF4	/* Video n Coefficient Set C8B Register */
-> >  #define VNC8C_REG	0xF8	/* Video n Coefficient Set C8C Register */
-> > 
-> > +/* Register offsets specific for Gen3 */
-> > +#define VNCSI_IFMD_REG		0x20 /* Video n CSI2 Interface Mode Register */
-> > 
-> >  /* Register bit fields for R-Car VIN */
-> >  /* Video n Main Control Register bits */
-> > +#define VNMC_DPINE		(1 << 27) /* Gen3 specific */
-> > +#define VNMC_SCLE		(1 << 26) /* Gen3 specific */
-> >  #define VNMC_FOC		(1 << 21)
-> >  #define VNMC_YCAL		(1 << 19)
-> >  #define VNMC_INF_YUV8_BT656	(0 << 16)
-> > @@ -119,6 +125,13 @@
-> >  #define VNDMR2_FTEV		(1 << 17)
-> >  #define VNDMR2_VLV(n)		((n & 0xf) << 12)
-> > 
-> > +/* Video n CSI2 Interface Mode Register (Gen3) */
-> > +#define VNCSI_IFMD_DES2		(1 << 27)
-> > +#define VNCSI_IFMD_DES1		(1 << 26)
-> > +#define VNCSI_IFMD_DES0		(1 << 25)
-> > +#define VNCSI_IFMD_CSI_CHSEL(n) ((n & 0xf) << 0)
-> 
-> *Always* enclose macro arguments in parentheses otherwise they are subject to 
-> side effects.
-> 
-> #define VNCSI_IFMD_CSI_CHSEL(n) (((n) & 0xf) << 0)
+With regards to .ule_hist, the current logic is broken and don't
+even compile if ULE_DEBUG. Fix it by making the debug vars static
+again, and be sure to pass iov parameter to dvb_net_ule_check_crc().
 
-Thanks for spotting this.
+Fixes: efb9ab67255f ("[media] dvb_net: prepare to split a very complex function")
 
-> 
-> > +#define VNCSI_IFMD_CSI_CHSEL_MASK 0xf
-> > +
-> >  struct rvin_buffer {
-> >  	struct vb2_v4l2_buffer vb;
-> >  	struct list_head list;
-> > @@ -514,28 +527,10 @@ static void rvin_set_coeff(struct rvin_dev *vin,
-> > unsigned short xs) rvin_write(vin, p_set->coeff_set[23], VNC8C_REG);
-> >  }
-> > 
-> > -static void rvin_crop_scale_comp(struct rvin_dev *vin)
-> > +static void rvin_crop_scale_comp_gen2(struct rvin_dev *vin)
-> >  {
-> >  	u32 xs, ys;
-> > 
-> > -	/* Set Start/End Pixel/Line Pre-Clip */
-> > -	rvin_write(vin, vin->crop.left, VNSPPRC_REG);
-> > -	rvin_write(vin, vin->crop.left + vin->crop.width - 1, VNEPPRC_REG);
-> > -	switch (vin->format.field) {
-> > -	case V4L2_FIELD_INTERLACED:
-> > -	case V4L2_FIELD_INTERLACED_TB:
-> > -	case V4L2_FIELD_INTERLACED_BT:
-> > -		rvin_write(vin, vin->crop.top / 2, VNSLPRC_REG);
-> > -		rvin_write(vin, (vin->crop.top + vin->crop.height) / 2 - 1,
-> > -			   VNELPRC_REG);
-> > -		break;
-> > -	default:
-> > -		rvin_write(vin, vin->crop.top, VNSLPRC_REG);
-> > -		rvin_write(vin, vin->crop.top + vin->crop.height - 1,
-> > -			   VNELPRC_REG);
-> > -		break;
-> > -	}
-> > -
-> >  	/* Set scaling coefficient */
-> >  	ys = 0;
-> >  	if (vin->crop.height != vin->compose.height)
-> > @@ -573,11 +568,6 @@ static void rvin_crop_scale_comp(struct rvin_dev *vin)
-> >  		break;
-> >  	}
-> > 
-> > -	if (vin->format.pixelformat == V4L2_PIX_FMT_NV16)
-> > -		rvin_write(vin, ALIGN(vin->format.width, 0x20), VNIS_REG);
-> > -	else
-> > -		rvin_write(vin, ALIGN(vin->format.width, 0x10), VNIS_REG);
-> > -
-> >  	vin_dbg(vin,
-> >  		"Pre-Clip: %ux%u@%u:%u YS: %d XS: %d Post-Clip: %ux%u@%u:%u\n",
-> >  		vin->crop.width, vin->crop.height, vin->crop.left,
-> 
-> Would it make sense to keep the debug message in the common function, or ill 
-> cropping and composing be handled through subdevs for Gen3 ?
+Suggested-by: Ron Economos <w6rz@comcast.net>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/dvb-core/dvb_net.c | 57 +++++++++++++++++++---------------------
+ 1 file changed, 27 insertions(+), 30 deletions(-)
 
-Yes, my current idea is to model the scaler as a subdevice. As I'm sure 
-you are aware not all VIN instances have a scaler. And those who do 
-share it with one other VIN instance, so both of them can't use the 
-scaler at the same time (see register VnMC.SCLE).
-
-Modeling it as a separate subdevice and using media links ensure only 
-one VIN is using it at a time therefor I think is the best solution.
-
-> 
-> With these two issues addressed,
-> 
-> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> 
-> > @@ -585,6 +575,37 @@ static void rvin_crop_scale_comp(struct rvin_dev *vin)
-> >  		0, 0);
-> >  }
-> > 
-> > +static void rvin_crop_scale_comp(struct rvin_dev *vin)
-> > +{
-> > +	/* Set Start/End Pixel/Line Pre-Clip */
-> > +	rvin_write(vin, vin->crop.left, VNSPPRC_REG);
-> > +	rvin_write(vin, vin->crop.left + vin->crop.width - 1, VNEPPRC_REG);
-> > +
-> > +	switch (vin->format.field) {
-> > +	case V4L2_FIELD_INTERLACED:
-> > +	case V4L2_FIELD_INTERLACED_TB:
-> > +	case V4L2_FIELD_INTERLACED_BT:
-> > +		rvin_write(vin, vin->crop.top / 2, VNSLPRC_REG);
-> > +		rvin_write(vin, (vin->crop.top + vin->crop.height) / 2 - 1,
-> > +			   VNELPRC_REG);
-> > +		break;
-> > +	default:
-> > +		rvin_write(vin, vin->crop.top, VNSLPRC_REG);
-> > +		rvin_write(vin, vin->crop.top + vin->crop.height - 1,
-> > +			   VNELPRC_REG);
-> > +		break;
-> > +	}
-> > +
-> > +	/* TODO: Add support for the UDS scaler. */
-> > +	if (vin->info->chip != RCAR_GEN3)
-> > +		rvin_crop_scale_comp_gen2(vin);
-> > +
-> > +	if (vin->format.pixelformat == V4L2_PIX_FMT_NV16)
-> > +		rvin_write(vin, ALIGN(vin->format.width, 0x20), VNIS_REG);
-> > +	else
-> > +		rvin_write(vin, ALIGN(vin->format.width, 0x10), VNIS_REG);
-> > +}
-> > +
-> >  /* ------------------------------------------------------------------------
-> >   * Hardware setup
-> >   */
-> > @@ -659,7 +680,10 @@ static int rvin_setup(struct rvin_dev *vin)
-> >  	}
-> > 
-> >  	/* Enable VSYNC Field Toogle mode after one VSYNC input */
-> > -	dmr2 = VNDMR2_FTEV | VNDMR2_VLV(1);
-> > +	if (vin->info->chip == RCAR_GEN3)
-> > +		dmr2 = VNDMR2_FTEV;
-> > +	else
-> > +		dmr2 = VNDMR2_FTEV | VNDMR2_VLV(1);
-> > 
-> >  	/* Hsync Signal Polarity Select */
-> >  	if (!(vin->mbus_cfg.flags & V4L2_MBUS_HSYNC_ACTIVE_LOW))
-> > @@ -711,6 +735,14 @@ static int rvin_setup(struct rvin_dev *vin)
-> >  	if (input_is_yuv == output_is_yuv)
-> >  		vnmc |= VNMC_BPS;
-> > 
-> > +	if (vin->info->chip == RCAR_GEN3) {
-> > +		/* Select between CSI-2 and Digital input */
-> > +		if (vin->mbus_cfg.type == V4L2_MBUS_CSI2)
-> > +			vnmc &= ~VNMC_DPINE;
-> > +		else
-> > +			vnmc |= VNMC_DPINE;
-> > +	}
-> > +
-> >  	/* Progressive or interlaced mode */
-> >  	interrupts = progressive ? VNIE_FIE : VNIE_EFE;
-> > 
-> > diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h
-> > b/drivers/media/platform/rcar-vin/rcar-vin.h index
-> > 118f45b656920d39..a440effe4b86af31 100644
-> > --- a/drivers/media/platform/rcar-vin/rcar-vin.h
-> > +++ b/drivers/media/platform/rcar-vin/rcar-vin.h
-> > @@ -33,6 +33,7 @@ enum chip_id {
-> >  	RCAR_H1,
-> >  	RCAR_M1,
-> >  	RCAR_GEN2,
-> > +	RCAR_GEN3,
-> >  };
-> > 
-> >  /**
-> 
-> -- 
-> Regards,
-> 
-> Laurent Pinchart
-> 
-
+diff --git a/drivers/media/dvb-core/dvb_net.c b/drivers/media/dvb-core/dvb_net.c
+index c018e3c06d5d..bff5cd908df6 100644
+--- a/drivers/media/dvb-core/dvb_net.c
++++ b/drivers/media/dvb-core/dvb_net.c
+@@ -82,6 +82,13 @@ static inline __u32 iov_crc32( __u32 c, struct kvec *iov, unsigned int cnt )
+ 
+ #ifdef ULE_DEBUG
+ 
++/*
++ * The code inside ULE_DEBUG keeps a history of the
++ * last 100 TS cells processed.
++ */
++static unsigned char ule_hist[100*TS_SZ] = { 0 };
++static unsigned char *ule_where = ule_hist, ule_dump;
++
+ static void hexdump(const unsigned char *buf, unsigned short len)
+ {
+ 	print_hex_dump_debug("", DUMP_PREFIX_OFFSET, 16, 1, buf, len, true);
+@@ -320,14 +327,6 @@ struct dvb_net_ule_handle {
+ 	const u8 *ts, *ts_end, *from_where;
+ 	u8 ts_remain, how_much, new_ts;
+ 	bool error;
+-#ifdef ULE_DEBUG
+-	/*
+-	 * The code inside ULE_DEBUG keeps a history of the
+-	 * last 100 TS cells processed.
+-	 */
+-	static unsigned char ule_hist[100*TS_SZ];
+-	static unsigned char *ule_where = ule_hist, ule_dump;
+-#endif
+ };
+ 
+ static int dvb_net_ule_new_ts_cell(struct dvb_net_ule_handle *h)
+@@ -335,14 +334,14 @@ static int dvb_net_ule_new_ts_cell(struct dvb_net_ule_handle *h)
+ 	/* We are about to process a new TS cell. */
+ 
+ #ifdef ULE_DEBUG
+-	if (h->ule_where >= &h->ule_hist[100*TS_SZ])
+-		h->ule_where = h->ule_hist;
+-	memcpy(h->ule_where, h->ts, TS_SZ);
+-	if (h->ule_dump) {
+-		hexdump(h->ule_where, TS_SZ);
+-		h->ule_dump = 0;
++	if (ule_where >= &ule_hist[100*TS_SZ])
++		ule_where = ule_hist;
++	memcpy(ule_where, h->ts, TS_SZ);
++	if (ule_dump) {
++		hexdump(ule_where, TS_SZ);
++		ule_dump = 0;
+ 	}
+-	h->ule_where += TS_SZ;
++	ule_where += TS_SZ;
+ #endif
+ 
+ 	/*
+@@ -659,7 +658,7 @@ static int dvb_net_ule_should_drop(struct dvb_net_ule_handle *h)
+ }
+ 
+ 
+-static void dvb_net_ule_check_crc(struct dvb_net_ule_handle *h,
++static void dvb_net_ule_check_crc(struct dvb_net_ule_handle *h, struct kvec iov[3],
+ 				  u32 ule_crc, u32 expected_crc)
+ {
+ 	u8 dest_addr[ETH_ALEN];
+@@ -677,17 +676,17 @@ static void dvb_net_ule_check_crc(struct dvb_net_ule_handle *h,
+ 		hexdump(iov[1].iov_base, iov[1].iov_len);
+ 		hexdump(iov[2].iov_base, iov[2].iov_len);
+ 
+-		if (h->ule_where == h->ule_hist) {
+-			hexdump(&h->ule_hist[98*TS_SZ], TS_SZ);
+-			hexdump(&h->ule_hist[99*TS_SZ], TS_SZ);
+-		} else if (h->ule_where == &h->ule_hist[TS_SZ]) {
+-			hexdump(&h->ule_hist[99*TS_SZ], TS_SZ);
+-			hexdump(h->ule_hist, TS_SZ);
++		if (ule_where == ule_hist) {
++			hexdump(&ule_hist[98*TS_SZ], TS_SZ);
++			hexdump(&ule_hist[99*TS_SZ], TS_SZ);
++		} else if (ule_where == &ule_hist[TS_SZ]) {
++			hexdump(&ule_hist[99*TS_SZ], TS_SZ);
++			hexdump(ule_hist, TS_SZ);
+ 		} else {
+-			hexdump(h->ule_where - TS_SZ - TS_SZ, TS_SZ);
+-			hexdump(h->ule_where - TS_SZ, TS_SZ);
++			hexdump(ule_where - TS_SZ - TS_SZ, TS_SZ);
++			hexdump(ule_where - TS_SZ, TS_SZ);
+ 		}
+-		h->ule_dump = 1;
++		ule_dump = 1;
+ 	#endif
+ 
+ 		h->dev->stats.rx_errors++;
+@@ -779,6 +778,8 @@ static void dvb_net_ule(struct net_device *dev, const u8 *buf, size_t buf_len)
+ 	int ret;
+ 	struct dvb_net_ule_handle h = {
+ 		.dev = dev,
++		.priv = netdev_priv(dev),
++		.ethh = NULL,
+ 		.buf = buf,
+ 		.buf_len = buf_len,
+ 		.skipped = 0L,
+@@ -788,11 +789,7 @@ static void dvb_net_ule(struct net_device *dev, const u8 *buf, size_t buf_len)
+ 		.ts_remain = 0,
+ 		.how_much = 0,
+ 		.new_ts = 1,
+-		.ethh = NULL,
+ 		.error = false,
+-#ifdef ULE_DEBUG
+-		.ule_where = ule_hist,
+-#endif
+ 	};
+ 
+ 	/*
+@@ -860,7 +857,7 @@ static void dvb_net_ule(struct net_device *dev, const u8 *buf, size_t buf_len)
+ 				       *(tail - 2) << 8 |
+ 				       *(tail - 1);
+ 
+-			dvb_net_ule_check_crc(&h, ule_crc, expected_crc);
++			dvb_net_ule_check_crc(&h, iov, ule_crc, expected_crc);
+ 
+ 			/* Prepare for next SNDU. */
+ 			reset_ule(h.priv);
 -- 
-Regards,
-Niklas Söderlund
+2.14.3
