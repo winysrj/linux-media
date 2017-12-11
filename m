@@ -1,129 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([91.232.154.25]:55872 "EHLO mail.kapsi.fi"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1756090AbdLOTGh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 15 Dec 2017 14:06:37 -0500
-Subject: Re: [PATCH] [media] tda18212: fix use-after-free in tda18212_remove()
-To: Daniel Scheller <d.scheller.oss@gmail.com>
-Cc: linux-media@vger.kernel.org, mchehab@kernel.org,
-        mchehab@s-opensource.com, zzam@gentoo.org
-References: <20171215164337.3236-1-d.scheller.oss@gmail.com>
- <3c5e3614-ee61-f69a-283f-2c1b16aa2cbc@iki.fi>
- <20171215190008.1dde2633@macbox>
- <9d4e4ccd-9d96-b2eb-6b49-7f50dc08e109@iki.fi>
- <20171215194044.12dc4469@macbox>
-From: Antti Palosaari <crope@iki.fi>
-Message-ID: <bafe7ab3-d9ba-58ae-049f-3386ff58a6a1@iki.fi>
-Date: Fri, 15 Dec 2017 21:06:32 +0200
-MIME-Version: 1.0
-In-Reply-To: <20171215194044.12dc4469@macbox>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Received: from mail-qt0-f193.google.com ([209.85.216.193]:35507 "EHLO
+        mail-qt0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752574AbdLKS2D (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 11 Dec 2017 13:28:03 -0500
+From: Gustavo Padovan <gustavo@padovan.org>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        Pawel Osciak <pawel@osciak.com>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Brian Starkey <brian.starkey@arm.com>,
+        Thierry Escande <thierry.escande@collabora.com>,
+        linux-kernel@vger.kernel.org,
+        Gustavo Padovan <gustavo.padovan@collabora.com>
+Subject: [PATCH v6 2/6] [media] v4l: add 'unordered' flag to format description ioctl
+Date: Mon, 11 Dec 2017 16:27:37 -0200
+Message-Id: <20171211182741.29712-3-gustavo@padovan.org>
+In-Reply-To: <20171211182741.29712-1-gustavo@padovan.org>
+References: <20171211182741.29712-1-gustavo@padovan.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: Gustavo Padovan <gustavo.padovan@collabora.com>
 
+For explicit synchronization it important for userspace to know if the
+format being used by the driver can deliver the buffers back to userspace
+in the same order they were queued with QBUF.
 
-On 12/15/2017 08:40 PM, Daniel Scheller wrote:
-> On Fri, 15 Dec 2017 20:12:18 +0200
-> Antti Palosaari <crope@iki.fi> wrote:
-> 
->> On 12/15/2017 08:00 PM, Daniel Scheller wrote:
->>> Hi,
->>>
->>> On Fri, 15 Dec 2017 19:30:18 +0200
->>> Antti Palosaari <crope@iki.fi> wrote:
->>>
->>> Thanks for your reply.
->>>    
->>>> Hello
->>>> I think shared frontend structure, which is owned by demod driver,
->>>> should be there and valid on time tuner driver is removed. And thus
->>>> should not happen. Did you make driver unload on different order
->>>> eg. not just reverse order than driver load?
->>>>
->>>> IMHO these should go always
->>>>
->>>> on load:
->>>> 1) load demod driver (which makes shared frontend structure where
->>>> also some tuner driver data lives)
->>>> 2) load tuner driver
->>>> 3) register frontend
->>>>
->>>> on unload
->>>> 1) unregister frontend
->>>> 2) remove tuner driver
->>>> 3) remove demod driver (frees shared data)
->>>
->>> In ddbridge, we do (like in usb/em28xx and platform/sti/c8sectpfe,
->>> both also use some demod+tda18212 combo):
->>>
->>> dvb_unregister_frontend();
->>> dvb_frontend_detach();
->>> module_put(tda18212client->...owner);
->>> i2c_unregister_device(tda18212client);
->>>
->>> fe_detach() clears out the frontend references and frees/invalidates
->>> the allocated resources. tuner_ops obviously isn't there then
->>> anymore.
->>
->> yeah, but that's even ideally wrong. frontend design currently relies
->> to shared data which is owned by demod driver and thus it should be
->> last thing to be removed. Sure change like you did prevents issue,
->> but logically it is still wrong and may not work on some other case.
->>
->>>
->>> The two mentioned drivers will very likely yield the same (or
->>> similar) KASAN report. em28xx was even changed lately to do the
->>> teardown the way ddbridge does in 910b0797fa9e8 ([1], cc'ing
->>> Matthias here).
->>>
->>> With that commit in mind I'm a bit unsure on what is correct or not.
->>> OTOH, as dvb_frontend_detach() cleans up everything, IMHO there's no
->>> need for the tuner driver to try to clean up further.
->>>
->>> Please advise.
->>>
->>> [1]
->>> https://git.linuxtv.org/media_tree.git/commit/?id=910b0797fa9e8.
->>
->> em28xx does it currently just correct.
->> 1) unregister frontend
-> 
-> Note that this is a call to em28xx_unregister_dvb(), which in turn does
-> dvb_unregister_frontend() and then dvb_frontend_detach() (at this
-> stage, fe resources are gone).
-> 
->> 2) remove I2C SEC
->> 3) remove I2C tuner
->> 4) remove I2C demod (frees shared frontend data)
-> 
-> Yes, but ie. EM2874_BOARD_KWORLD_UB435Q_V3 is a combination of a
-> "legacy" demod frontend - lgdt3305 actually - plus the tda18212
-> i2cclient (just like in ddb with stv0367+tda18212 or
-> cxd2841er+tda18212), I'm sure this will yield the same report.
-> 
-> Maybe another approach: Implement the tuner_ops.release callback, and
-> then move the memset+NULL assignment right there (instead of just
-> removing it), but this likely will cause issues when the i2c client is
-> removed before detach if we don't keep track of this ie somewhere in
-> tda18212_dev (new state var - if _remove is called, check if the tuner
-> was released, and if not, call release (memset/set NULL), then
-> free). Still with the two other drivers in mind though. If they're
-> wrong aswell, I'll rather fix up ddbridge of course.
+Ordered streams fits nicely in a pipeline with DRM for example, where
+ordered buffer are expected.
 
-Whole memset thing could be removed from tda18212, there is something 
-likely wrong if those are needed. But it is another issue.
+Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
+---
+ Documentation/media/uapi/v4l/vidioc-enum-fmt.rst | 3 +++
+ include/uapi/linux/videodev2.h                   | 1 +
+ 2 files changed, 4 insertions(+)
 
-Your main issue is somehow to get order of demod/tuner destroy correct. 
-I don't even like idea whole shared frontend data is owned by the demod 
-driver instance, but currently it is there and due to that this should 
-be released lastly. General design goal is also do things like register 
-things in order and unregister just reverse-order.
-
-regards
-Antti
-
+diff --git a/Documentation/media/uapi/v4l/vidioc-enum-fmt.rst b/Documentation/media/uapi/v4l/vidioc-enum-fmt.rst
+index 019c513df217..368115f44fc0 100644
+--- a/Documentation/media/uapi/v4l/vidioc-enum-fmt.rst
++++ b/Documentation/media/uapi/v4l/vidioc-enum-fmt.rst
+@@ -116,6 +116,9 @@ one until ``EINVAL`` is returned.
+       - This format is not native to the device but emulated through
+ 	software (usually libv4l2), where possible try to use a native
+ 	format instead for better performance.
++    * - ``V4L2_FMT_FLAG_UNORDERED``
++      - 0x0004
++      - This is a format that doesn't guarantee timely order of frames.
+ 
+ 
+ Return Value
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 1c095b5a99c5..a8ea632c14f0 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -709,6 +709,7 @@ struct v4l2_fmtdesc {
+ 
+ #define V4L2_FMT_FLAG_COMPRESSED 0x0001
+ #define V4L2_FMT_FLAG_EMULATED   0x0002
++#define V4L2_FMT_FLAG_UNORDERED  0x0004
+ 
+ 	/* Frame Size and frame rate enumeration */
+ /*
 -- 
-http://palosaari.fi/
+2.13.6
