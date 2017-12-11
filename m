@@ -1,260 +1,370 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.anw.at ([195.234.101.228]:36249 "EHLO mail.anw.at"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753409AbdLUMW7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 21 Dec 2017 07:22:59 -0500
-From: "Jasmin J." <jasmin@anw.at>
+Received: from mail-qt0-f194.google.com ([209.85.216.194]:42921 "EHLO
+        mail-qt0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752574AbdLKS2O (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 11 Dec 2017 13:28:14 -0500
+From: Gustavo Padovan <gustavo@padovan.org>
 To: linux-media@vger.kernel.org
-Cc: mchehab@s-opensource.com, rjkm@metzlerbros.de, d.scheller@gmx.net,
-        jasmin@anw.at
-Subject: [PATCH V2 2/3] media: dvb-core: Added timers for dvb_ca_en50221_write_data
-Date: Thu, 21 Dec 2017 13:22:38 +0000
-Message-Id: <1513862559-19725-3-git-send-email-jasmin@anw.at>
-In-Reply-To: <1513862559-19725-1-git-send-email-jasmin@anw.at>
-References: <1513862559-19725-1-git-send-email-jasmin@anw.at>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        Pawel Osciak <pawel@osciak.com>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Brian Starkey <brian.starkey@arm.com>,
+        Thierry Escande <thierry.escande@collabora.com>,
+        linux-kernel@vger.kernel.org,
+        Gustavo Padovan <gustavo.padovan@collabora.com>
+Subject: [PATCH v6 5/6] [media] vb2: add out-fence support to QBUF
+Date: Mon, 11 Dec 2017 16:27:40 -0200
+Message-Id: <20171211182741.29712-6-gustavo@padovan.org>
+In-Reply-To: <20171211182741.29712-1-gustavo@padovan.org>
+References: <20171211182741.29712-1-gustavo@padovan.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Jasmin Jessich <jasmin@anw.at>
+From: Gustavo Padovan <gustavo.padovan@collabora.com>
 
-Some (older) CAMs are really slow in accepting data. The CI interface
-specification doesn't define a handshake for accepted data. Thus, the
-en50221 protocol driver can't control if a data byte has been correctly
-written to the CAM.
+If V4L2_BUF_FLAG_OUT_FENCE flag is present on the QBUF call we create
+an out_fence and send its fd to userspace on the fence_fd field as a
+return arg for the QBUF call.
 
-The current implementation writes the length and the data quick after
-each other. Thus, the slow CAMs may generate a WR error, which leads to
-the known error logging
-   "CAM tried to send a buffer larger than the ecount size".
+The fence is signaled on buffer_done(), when the job on the buffer is
+finished.
 
-To solve this issue the en50221 protocol driver needs to wait some CAM
-depending time between the different bytes to be written. Because the
-time is CAM dependent, an individual value per CAM needs to be set. For
-that SysFS is used in favor of ioctl's to allow the control of the timer
-values independent from any user space application.
+v7:
+	- merge patch that add the infrastructure to out-fences into
+	this one (Alex Courbot)
+	- Do not install the fd if there is no fence. (Alex Courbot)
+	- do not report error on requeueing, just WARN_ON_ONCE() (Hans)
 
-This patch adds the timers and the SysFS nodes to set/get the timeout
-values and the timer waiting between the different steps of the CAM write
-access. A timer value of 0 (default) means "no timeout".
+v6
+	- get rid of the V4L2_EVENT_OUT_FENCE event. We always keep the
+	ordering in vb2 for queueing in the driver, so the event is not
+	necessary anymore and the out_fence_fd is sent back to userspace
+	on QBUF call return arg
+	- do not allow requeueing with out-fences, instead mark the buffer
+	with an error and wake up to userspace.
+	- send the out_fence_fd back to userspace on the fence_fd field
 
-Signed-off-by: Jasmin Jessich <jasmin@anw.at>
-Acked-by: Ralph Metzler <rjkm@metzlerbros.de>
+v5:
+	- delay fd_install to DQ_EVENT (Hans)
+	- if queue is fully ordered send OUT_FENCE event right away
+	(Brian)
+	- rename 'q->ordered' to 'q->ordered_in_driver'
+	- merge change to implement OUT_FENCE event here
+
+v4:
+	- return the out_fence_fd in the BUF_QUEUED event(Hans)
+
+v3:	- add WARN_ON_ONCE(q->ordered) on requeueing (Hans)
+	- set the OUT_FENCE flag if there is a fence pending (Hans)
+	- call fd_install() after vb2_core_qbuf() (Hans)
+	- clean up fence if vb2_core_qbuf() fails (Hans)
+	- add list to store sync_file and fence for the next queued buffer
+
+v2: check if the queue is ordered.
+
+Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
 ---
- drivers/media/dvb-core/dvb_ca_en50221.c | 132 +++++++++++++++++++++++++++++++-
- 1 file changed, 131 insertions(+), 1 deletion(-)
+ drivers/media/v4l2-core/videobuf2-core.c | 99 +++++++++++++++++++++++++++++---
+ drivers/media/v4l2-core/videobuf2-v4l2.c | 29 +++++++++-
+ include/media/videobuf2-core.h           | 22 +++++++
+ 3 files changed, 139 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/media/dvb-core/dvb_ca_en50221.c b/drivers/media/dvb-core/dvb_ca_en50221.c
-index a3b2754..9b45d6b 100644
---- a/drivers/media/dvb-core/dvb_ca_en50221.c
-+++ b/drivers/media/dvb-core/dvb_ca_en50221.c
-@@ -86,6 +86,13 @@ MODULE_PARM_DESC(cam_debug, "enable verbose debug messages");
- #define DVB_CA_SLOTSTATE_WAITFR         6
- #define DVB_CA_SLOTSTATE_LINKINIT       7
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index 520aa3c7d9f0..cbe115f00736 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -23,6 +23,7 @@
+ #include <linux/sched.h>
+ #include <linux/freezer.h>
+ #include <linux/kthread.h>
++#include <linux/sync_file.h>
  
-+enum dvb_ca_timers {
-+	DVB_CA_TIM_WR_HIGH  /* wait after writing length high */
-+,	DVB_CA_TIM_WR_LOW   /* wait after writing length low */
-+,	DVB_CA_TIM_WR_DATA  /* wait between data bytes */
-+,	DVB_CA_TIM_MAX
-+};
-+
- /* Information on a CA slot */
- struct dvb_ca_slot {
- 	/* current state of the CAM */
-@@ -119,6 +126,11 @@ struct dvb_ca_slot {
- 	unsigned long timeout;
- };
+ #include <media/videobuf2-core.h>
+ #include <media/v4l2-mc.h>
+@@ -351,6 +352,7 @@ static int __vb2_queue_alloc(struct vb2_queue *q, enum vb2_memory memory,
+ 			vb->planes[plane].length = plane_sizes[plane];
+ 			vb->planes[plane].min_length = plane_sizes[plane];
+ 		}
++		vb->out_fence_fd = -1;
+ 		q->bufs[vb->index] = vb;
  
-+struct dvb_ca_timer {
-+	unsigned long min;
-+	unsigned long max;
-+};
+ 		/* Allocate video buffer memory for the MMAP type */
+@@ -931,10 +933,20 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
+ 	case VB2_BUF_STATE_QUEUED:
+ 		break;
+ 	case VB2_BUF_STATE_REQUEUEING:
++		/* Requeuing with explicit synchronization, spit warning */
++		WARN_ON_ONCE(vb->out_fence);
 +
- /* Private CA-interface information */
- struct dvb_ca_private {
- 	struct kref refcount;
-@@ -161,6 +173,14 @@ struct dvb_ca_private {
- 
- 	/* mutex serializing ioctls */
- 	struct mutex ioctl_mutex;
+ 		if (q->start_streaming_called)
+ 			__enqueue_in_driver(vb);
+-		return;
++		break;
+ 	default:
++		if (state == VB2_BUF_STATE_ERROR)
++			dma_fence_set_error(vb->out_fence, -EFAULT);
++		dma_fence_signal(vb->out_fence);
++		dma_fence_put(vb->out_fence);
++		vb->out_fence = NULL;
++		vb->out_fence_fd = -1;
 +
-+	struct dvb_ca_timer timers[DVB_CA_TIM_MAX];
-+};
-+
-+static const char dvb_ca_tim_names[DVB_CA_TIM_MAX][15] = {
-+	"tim_wr_high"
-+,	"tim_wr_low"
-+,	"tim_wr_data"
- };
- 
- static void dvb_ca_private_free(struct dvb_ca_private *ca)
-@@ -223,6 +243,14 @@ static char *findstr(char *haystack, int hlen, char *needle, int nlen)
- 	return NULL;
+ 		/* Inform any processes that may be waiting for buffers */
+ 		wake_up(&q->done_wq);
+ 		break;
+@@ -1330,6 +1342,65 @@ int vb2_core_prepare_buf(struct vb2_queue *q, unsigned int index, void *pb)
  }
+ EXPORT_SYMBOL_GPL(vb2_core_prepare_buf);
  
-+static void dvb_ca_sleep(struct dvb_ca_private *ca, enum dvb_ca_timers tim)
++static inline const char *vb2_fence_get_driver_name(struct dma_fence *fence)
 +{
-+	unsigned long min = ca->timers[tim].min;
-+
-+	if (min)
-+		usleep_range(min, ca->timers[tim].max);
++	return "vb2_fence";
 +}
 +
- /* ************************************************************************** */
- /* EN50221 physical interface functions */
- 
-@@ -869,10 +897,13 @@ static int dvb_ca_en50221_write_data(struct dvb_ca_private *ca, int slot,
- 					    bytes_write >> 8);
- 	if (status)
- 		goto exit;
-+	dvb_ca_sleep(ca, DVB_CA_TIM_WR_HIGH);
-+
- 	status = ca->pub->write_cam_control(ca->pub, slot, CTRLIF_SIZE_LOW,
- 					    bytes_write & 0xff);
- 	if (status)
- 		goto exit;
-+	dvb_ca_sleep(ca, DVB_CA_TIM_WR_LOW);
- 
- 	/* send the buffer */
- 	for (i = 0; i < bytes_write; i++) {
-@@ -880,6 +911,7 @@ static int dvb_ca_en50221_write_data(struct dvb_ca_private *ca, int slot,
- 						    buf[i]);
- 		if (status)
- 			goto exit;
-+		dvb_ca_sleep(ca, DVB_CA_TIM_WR_DATA);
- 	}
- 
- 	/* check for write error (WE should now be 0) */
-@@ -1834,6 +1866,97 @@ static const struct dvb_device dvbdev_ca = {
- };
- 
- /* ************************************************************************** */
-+/* EN50221 device attributes (SysFS) */
-+
-+static int dvb_ca_tim_idx(struct dvb_ca_private *ca, const char *name)
++static inline const char *vb2_fence_get_timeline_name(struct dma_fence *fence)
 +{
-+	int tim_idx;
-+
-+	for (tim_idx = 0; tim_idx < DVB_CA_TIM_MAX; tim_idx++) {
-+		if (!strcmp(dvb_ca_tim_names[tim_idx], name))
-+			return tim_idx;
-+	}
-+	return -1;
++	return "vb2_fence_timeline";
 +}
 +
-+static ssize_t dvb_ca_tim_show(struct device *device,
-+			       struct device_attribute *attr, char *buf)
++static inline bool vb2_fence_enable_signaling(struct dma_fence *fence)
 +{
-+	struct dvb_device *dvbdev = dev_get_drvdata(device);
-+	struct dvb_ca_private *ca = dvbdev->priv;
-+	int tim_idx = dvb_ca_tim_idx(ca, attr->attr.name);
-+
-+	if (tim_idx < 0)
-+		return -ENXIO;
-+
-+	return sprintf(buf, "%ld\n", ca->timers[tim_idx].min);
++	return true;
 +}
 +
-+static ssize_t dvb_ca_tim_store(struct device *device,
-+				struct device_attribute *attr,
-+				const char *buf, size_t count)
-+{
-+	struct dvb_device *dvbdev = dev_get_drvdata(device);
-+	struct dvb_ca_private *ca = dvbdev->priv;
-+	int tim_idx = dvb_ca_tim_idx(ca, attr->attr.name);
-+	unsigned long min, max;
-+
-+	if (tim_idx < 0)
-+		return -ENXIO;
-+
-+	if (sscanf(buf, "%lu\n", &min) != 1)
-+		return -EINVAL;
-+
-+	/* value is in us; 100ms is a good maximum */
-+	if (min > (100 * USEC_PER_MSEC))
-+		return -EINVAL;
-+
-+	/* +10% (rounded up) */
-+	max = (min * 11 + 5) / 10;
-+	ca->timers[tim_idx].min = min;
-+	ca->timers[tim_idx].max = max;
-+
-+	return count;
-+}
-+
-+/* attribute definition with string pointer (see include/linux/sysfs.h) */
-+#define DVB_CA_ATTR(_name, _mode, _show, _store) {	\
-+	.attr = {.name = _name, .mode = _mode },	\
-+	.show	= _show,				\
-+	.store	= _store,				\
-+}
-+
-+#define DVB_CA_ATTR_TIM(_tim_idx)					\
-+	DVB_CA_ATTR(dvb_ca_tim_names[_tim_idx], 0664, dvb_ca_tim_show,	\
-+		    dvb_ca_tim_store)
-+
-+static const struct device_attribute dvb_ca_attrs[DVB_CA_TIM_MAX] = {
-+	DVB_CA_ATTR_TIM(DVB_CA_TIM_WR_HIGH)
-+,	DVB_CA_ATTR_TIM(DVB_CA_TIM_WR_LOW)
-+,	DVB_CA_ATTR_TIM(DVB_CA_TIM_WR_DATA)
++static const struct dma_fence_ops vb2_fence_ops = {
++	.get_driver_name = vb2_fence_get_driver_name,
++	.get_timeline_name = vb2_fence_get_timeline_name,
++	.enable_signaling = vb2_fence_enable_signaling,
++	.wait = dma_fence_default_wait,
 +};
 +
-+static int dvb_ca_device_attrs_add(struct dvb_ca_private *ca)
++int vb2_setup_out_fence(struct vb2_queue *q, unsigned int index)
 +{
-+	int i;
++	struct vb2_buffer *vb;
++	u64 context;
 +
-+	for (i = 0; i < ARRAY_SIZE(dvb_ca_attrs); i++)
-+		if (device_create_file(ca->dvbdev->dev, &dvb_ca_attrs[i]))
-+			goto fail;
++	vb = q->bufs[index];
++
++	vb->out_fence_fd = get_unused_fd_flags(O_CLOEXEC);
++
++	if (call_qop(q, is_unordered, q))
++		context = dma_fence_context_alloc(1);
++	else
++		context = q->out_fence_context;
++
++	vb->out_fence = kzalloc(sizeof(*vb->out_fence), GFP_KERNEL);
++	if (!vb->out_fence)
++		return -ENOMEM;
++
++	dma_fence_init(vb->out_fence, &vb2_fence_ops, &q->out_fence_lock,
++		       context, 1);
++	if (!vb->out_fence) {
++		put_unused_fd(vb->out_fence_fd);
++		return -ENOMEM;
++	}
++
++	vb->sync_file = sync_file_create(vb->out_fence);
++	if (!vb->sync_file) {
++		put_unused_fd(vb->out_fence_fd);
++		dma_fence_put(vb->out_fence);
++		vb->out_fence = NULL;
++		return -ENOMEM;
++	}
++
 +	return 0;
-+fail:
-+	return -1;
 +}
++EXPORT_SYMBOL_GPL(vb2_setup_out_fence);
 +
-+static void ddb_device_attrs_del(struct dvb_ca_private *ca)
-+{
-+	int i;
-+
-+	for (i = 0; i < ARRAY_SIZE(dvb_ca_attrs); i++)
-+		device_remove_file(ca->dvbdev->dev, &dvb_ca_attrs[i]);
-+}
-+
-+/* ************************************************************************** */
- /* Initialisation/shutdown functions */
- 
- /**
-@@ -1903,6 +2026,10 @@ int dvb_ca_en50221_init(struct dvb_adapter *dvb_adapter,
- 		ret = -EINTR;
- 		goto unregister_device;
+ /*
+  * vb2_start_streaming() - Attempt to start streaming.
+  * @q:		videobuf2 queue
+@@ -1469,18 +1540,16 @@ int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb,
+ 	if (vb->in_fence) {
+ 		ret = dma_fence_add_callback(vb->in_fence, &vb->fence_cb,
+ 					     vb2_qbuf_fence_cb);
+-		if (ret == -EINVAL) {
++		/* is the fence signaled? */
++		if (ret == -ENOENT) {
++			dma_fence_put(vb->in_fence);
++			vb->in_fence = NULL;
++		} else if (ret) {
+ 			spin_unlock_irqrestore(&vb->fence_cb_lock, flags);
+ 			goto err;
+-		} else if (!ret) {
+-			goto fill;
+ 		}
+-
+-		dma_fence_put(vb->in_fence);
+-		vb->in_fence = NULL;
  	}
-+
-+	if (dvb_ca_device_attrs_add(ca))
-+		goto unregister_device;
-+
- 	mb();
  
- 	/* create a kthread for monitoring this CA device */
-@@ -1912,10 +2039,12 @@ int dvb_ca_en50221_init(struct dvb_adapter *dvb_adapter,
- 		ret = PTR_ERR(ca->thread);
- 		pr_err("dvb_ca_init: failed to start kernel_thread (%d)\n",
- 		       ret);
--		goto unregister_device;
-+		goto delete_attrs;
- 	}
+-fill:
+ 	/*
+ 	 * If already streaming and there is no fence to wait on
+ 	 * give the buffer to driver for processing.
+@@ -1515,6 +1584,11 @@ int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb,
+ 	if (pb)
+ 		call_void_bufop(q, fill_user_buffer, vb, pb);
+ 
++	if (vb->out_fence) {
++		fd_install(vb->out_fence_fd, vb->sync_file->file);
++		vb->sync_file = NULL;
++	}
++
+ 	dprintk(2, "qbuf of buffer %d succeeded\n", vb->index);
  	return 0;
  
-+delete_attrs:
-+	ddb_device_attrs_del(ca);
- unregister_device:
- 	dvb_unregister_device(ca->dvbdev);
- free_slot_info:
-@@ -1946,6 +2075,7 @@ void dvb_ca_en50221_release(struct dvb_ca_en50221 *pubca)
- 	for (i = 0; i < ca->slot_count; i++)
- 		dvb_ca_en50221_slot_shutdown(ca, i);
+@@ -1780,6 +1854,12 @@ static void __vb2_queue_cancel(struct vb2_queue *q)
+ 	}
  
-+	ddb_device_attrs_del(ca);
- 	dvb_remove_device(ca->dvbdev);
- 	dvb_ca_private_put(ca);
- 	pubca->private = NULL;
+ 	/*
++	 * Renew out-fence context.
++	 */
++	if (!call_qop(q, is_unordered, q))
++		q->out_fence_context = dma_fence_context_alloc(1);
++
++	/*
+ 	 * Remove all buffers from videobuf's list...
+ 	 */
+ 	INIT_LIST_HEAD(&q->queued_list);
+@@ -2111,6 +2191,9 @@ int vb2_core_queue_init(struct vb2_queue *q)
+ 	spin_lock_init(&q->done_lock);
+ 	mutex_init(&q->mmap_lock);
+ 	init_waitqueue_head(&q->done_wq);
++	if (!call_qop(q, is_unordered, q))
++		q->out_fence_context = dma_fence_context_alloc(1);
++	spin_lock_init(&q->out_fence_lock);
+ 
+ 	if (q->buf_struct_size == 0)
+ 		q->buf_struct_size = sizeof(struct vb2_buffer);
+diff --git a/drivers/media/v4l2-core/videobuf2-v4l2.c b/drivers/media/v4l2-core/videobuf2-v4l2.c
+index fa1df42d7250..20b902cfe11a 100644
+--- a/drivers/media/v4l2-core/videobuf2-v4l2.c
++++ b/drivers/media/v4l2-core/videobuf2-v4l2.c
+@@ -179,12 +179,16 @@ static int vb2_queue_or_prepare_buf(struct vb2_queue *q, struct v4l2_buffer *b,
+ 		return -EINVAL;
+ 	}
+ 
+-	if ((b->fence_fd != 0 && b->fence_fd != -1) &&
+-	    !(b->flags & V4L2_BUF_FLAG_IN_FENCE)) {
++	if (b->fence_fd > 0 && !(b->flags & V4L2_BUF_FLAG_IN_FENCE)) {
+ 		dprintk(1, "%s: fence_fd set without IN_FENCE flag\n", opname);
+ 		return -EINVAL;
+ 	}
+ 
++	if (b->fence_fd == -1 && (b->flags & V4L2_BUF_FLAG_IN_FENCE)) {
++		dprintk(1, "%s: IN_FENCE flag set but no fence_fd\n", opname);
++		return -EINVAL;
++	}
++
+ 	return __verify_planes_array(q->bufs[b->index], b);
+ }
+ 
+@@ -212,7 +216,13 @@ static void __fill_v4l2_buffer(struct vb2_buffer *vb, void *pb)
+ 	b->sequence = vbuf->sequence;
+ 	b->reserved = 0;
+ 
+-	b->fence_fd = -1;
++	if (vb->out_fence) {
++		b->flags |= V4L2_BUF_FLAG_OUT_FENCE;
++		b->fence_fd = vb->out_fence_fd;
++	} else {
++		b->fence_fd = -1;
++	}
++
+ 	if (vb->in_fence)
+ 		b->flags |= V4L2_BUF_FLAG_IN_FENCE;
+ 	else
+@@ -489,6 +499,10 @@ int vb2_querybuf(struct vb2_queue *q, struct v4l2_buffer *b)
+ 	ret = __verify_planes_array(vb, b);
+ 	if (!ret)
+ 		vb2_core_querybuf(q, b->index, b);
++
++	/* Do not return the out-fence fd on querybuf */
++	if (vb->out_fence)
++		b->fence_fd = -1;
+ 	return ret;
+ }
+ EXPORT_SYMBOL(vb2_querybuf);
+@@ -593,6 +607,15 @@ int vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
+ 		}
+ 	}
+ 
++	if (b->flags & V4L2_BUF_FLAG_OUT_FENCE) {
++		ret = vb2_setup_out_fence(q, b->index);
++		if (ret) {
++			dprintk(1, "failed to set up out-fence\n");
++			dma_fence_put(fence);
++			return ret;
++		}
++	}
++
+ 	return vb2_core_qbuf(q, b->index, b, fence);
+ }
+ EXPORT_SYMBOL_GPL(vb2_qbuf);
+diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+index 3c7683630b89..66291c631cd6 100644
+--- a/include/media/videobuf2-core.h
++++ b/include/media/videobuf2-core.h
+@@ -259,6 +259,10 @@ struct vb2_buffer {
+ 	 *			using the buffer (queueing to the driver)
+ 	 * fence_cb:		fence callback information
+ 	 * fence_cb_lock:	protect callback signal/remove
++	 * out_fence_fd:	the out_fence_fd to be shared with userspace.
++	 * out_fence:		the out-fence associated with the buffer once
++	 *			it is queued to the driver.
++	 * sync_file:		the sync file to wrap the out fence
+ 	 */
+ 	enum vb2_buffer_state	state;
+ 
+@@ -269,6 +273,10 @@ struct vb2_buffer {
+ 	struct dma_fence_cb	fence_cb;
+ 	spinlock_t              fence_cb_lock;
+ 
++	int			out_fence_fd;
++	struct dma_fence	*out_fence;
++	struct sync_file	*sync_file;
++
+ #ifdef CONFIG_VIDEO_ADV_DEBUG
+ 	/*
+ 	 * Counters for how often these buffer-related ops are
+@@ -512,6 +520,7 @@ struct vb2_buf_ops {
+  * @last_buffer_dequeued: used in poll() and DQBUF to immediately return if the
+  *		last decoded buffer was already dequeued. Set for capture queues
+  *		when a buffer with the V4L2_BUF_FLAG_LAST is dequeued.
++ * @out_fence_context: the fence context for the out fences
+  * @fileio:	file io emulator internal data, used only if emulator is active
+  * @threadio:	thread io internal data, used only if thread is active
+  */
+@@ -565,6 +574,9 @@ struct vb2_queue {
+ 	unsigned int			copy_timestamp:1;
+ 	unsigned int			last_buffer_dequeued:1;
+ 
++	u64				out_fence_context;
++	spinlock_t			out_fence_lock;
++
+ 	struct vb2_fileio_data		*fileio;
+ 	struct vb2_threadio_data	*threadio;
+ 
+@@ -735,6 +747,16 @@ int vb2_core_create_bufs(struct vb2_queue *q, enum vb2_memory memory,
+ int vb2_core_prepare_buf(struct vb2_queue *q, unsigned int index, void *pb);
+ 
+ /**
++ * vb2_setup_out_fence() - setup new out-fence
++ * @q:		The vb2_queue where to setup it
++ * @index:	index of the buffer
++ *
++ * Setup the file descriptor, the fence and the sync_file for the next
++ * buffer to be queued and add everything to the tail of the q->out_fence_list.
++ */
++int vb2_setup_out_fence(struct vb2_queue *q, unsigned int index);
++
++/**
+  * vb2_core_qbuf() - Queue a buffer from userspace
+  *
+  * @q:		videobuf2 queue
 -- 
-2.7.4
+2.13.6
