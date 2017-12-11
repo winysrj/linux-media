@@ -1,149 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:52497 "EHLO
-        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752263AbdLKIj1 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 11 Dec 2017 03:39:27 -0500
-Subject: Re: cron job: media_tree daily build: WARNINGS
-To: linux-media@vger.kernel.org, "Jasmin J." <jasmin@anw.at>
-References: <0ab16f79ba34d5d5049af752d8248aab@smtp-cloud7.xs4all.net>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <2a42ad6e-6b66-5afa-64b2-02c9df441104@xs4all.nl>
-Date: Mon, 11 Dec 2017 09:39:25 +0100
+Received: from mga17.intel.com ([192.55.52.151]:58127 "EHLO mga17.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751234AbdLKVF7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 11 Dec 2017 16:05:59 -0500
+From: Flavio Ceolin <flavio.ceolin@intel.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-kernel@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Petr Cvek <petr.cvek@tul.cz>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Niklas =?utf-8?Q?S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>,
+        Julia Lawall <Julia.Lawall@lip6.fr>,
+        Arnd Bergmann <arnd@arndb.de>,
+        "open list\:MEDIA INPUT INFRASTRUCTURE \(V4L\/DVB\)"
+        <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] media: pxa_camera: disable and unprepare the clock source on error
+In-Reply-To: <1880720.cnKARQTyeT@avalon>
+References: <20171206163852.8532-1-flavio.ceolin@intel.com> <1880720.cnKARQTyeT@avalon>
+Date: Mon, 11 Dec 2017 13:05:46 -0800
+Message-ID: <878te9561h.fsf@faceolin-mobl2.amr.corp.intel.com>
 MIME-Version: 1.0
-In-Reply-To: <0ab16f79ba34d5d5049af752d8248aab@smtp-cloud7.xs4all.net>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Nice! It's working again!
+Hi Laurent,
 
-Jasmin, thank you for your help, much appreciated!
+> Hi Flavio,
+>
+> Thank you for the patch.
+>
+> On Wednesday, 6 December 2017 18:38:50 EET Flavio Ceolin wrote:
+>> pxa_camera_probe() was not calling pxa_camera_deactivate(),
+>> responsible to call clk_disable_unprepare(), on the failure path. This
+>> was leading to unbalancing source clock.
+>> 
+>> Found by Linux Driver Verification project (linuxtesting.org).
+>
+> Any chance I could sign you up for more work on this driver ? :-)
+
+Definetely, this would be great :)
+
+>
+>> Signed-off-by: Flavio Ceolin <flavio.ceolin@intel.com>
+>
+> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+>
+> I expect Hans Verkuil to pick up the patch.
+>
+>> ---
+>>  drivers/media/platform/pxa_camera.c | 4 +++-
+>>  1 file changed, 3 insertions(+), 1 deletion(-)
+>> 
+>> diff --git a/drivers/media/platform/pxa_camera.c
+>> b/drivers/media/platform/pxa_camera.c index 9d3f0cb..7877037 100644
+>> --- a/drivers/media/platform/pxa_camera.c
+>> +++ b/drivers/media/platform/pxa_camera.c
+>> @@ -2489,7 +2489,7 @@ static int pxa_camera_probe(struct platform_device
+>> *pdev) dev_set_drvdata(&pdev->dev, pcdev);
+>>  	err = v4l2_device_register(&pdev->dev, &pcdev->v4l2_dev);
+>>  	if (err)
+>> -		goto exit_free_dma;
+>> +		goto exit_deactivate;
+>> 
+>>  	pcdev->asds[0] = &pcdev->asd;
+>>  	pcdev->notifier.subdevs = pcdev->asds;
+>> @@ -2525,6 +2525,8 @@ static int pxa_camera_probe(struct platform_device
+>> *pdev) v4l2_clk_unregister(pcdev->mclk_clk);
+>>  exit_free_v4l2dev:
+>>  	v4l2_device_unregister(&pcdev->v4l2_dev);
+>> +exit_deactivate:
+>> +	pxa_camera_deactivate(pcdev);
+>>  exit_free_dma:
+>>  	dma_release_channel(pcdev->dma_chans[2]);
+>>  exit_free_dma_u:
+>
+> -- 
+> Regards,
+>
+> Laurent Pinchart
 
 Regards,
-
-	Hans
-
-On 11/12/17 06:03, Hans Verkuil wrote:
-> This message is generated daily by a cron job that builds media_tree for
-> the kernels and architectures in the list below.
-> 
-> Results of the daily build of media_tree:
-> 
-> date:			Mon Dec 11 05:00:15 CET 2017
-> media-tree git hash:	0393e735649dc41358adb7b603bd57dad1ed3260
-> media_build git hash:	f5a5e5e470d834f9843fee7a7c2ce3e4be610ca7
-> v4l-utils git hash:	58803000a99c22dceabfb45bec402e746ce966c3
-> gcc version:		i686-linux-gcc (GCC) 7.1.0
-> sparse version:		v0.5.0-3911-g6f737e1f
-> smatch version:		v0.5.0-3911-g6f737e1f
-> host hardware:		x86_64
-> host os:		4.13.0-164
-> 
-> linux-git-arm-at91: OK
-> linux-git-arm-davinci: OK
-> linux-git-arm-multi: OK
-> linux-git-arm-pxa: OK
-> linux-git-arm-stm32: OK
-> linux-git-blackfin-bf561: OK
-> linux-git-i686: OK
-> linux-git-m32r: OK
-> linux-git-mips: OK
-> linux-git-powerpc64: OK
-> linux-git-sh: OK
-> linux-git-x86_64: OK
-> linux-2.6.36.4-i686: WARNINGS
-> linux-2.6.37.6-i686: WARNINGS
-> linux-2.6.38.8-i686: WARNINGS
-> linux-2.6.39.4-i686: WARNINGS
-> linux-3.0.60-i686: WARNINGS
-> linux-3.1.10-i686: WARNINGS
-> linux-3.2.37-i686: WARNINGS
-> linux-3.3.8-i686: WARNINGS
-> linux-3.4.27-i686: WARNINGS
-> linux-3.5.7-i686: WARNINGS
-> linux-3.6.11-i686: WARNINGS
-> linux-3.7.4-i686: WARNINGS
-> linux-3.8-i686: WARNINGS
-> linux-3.9.2-i686: WARNINGS
-> linux-3.10.1-i686: WARNINGS
-> linux-3.11.1-i686: WARNINGS
-> linux-3.12.67-i686: WARNINGS
-> linux-3.13.11-i686: WARNINGS
-> linux-3.14.9-i686: WARNINGS
-> linux-3.15.2-i686: WARNINGS
-> linux-3.16.7-i686: WARNINGS
-> linux-3.17.8-i686: WARNINGS
-> linux-3.18.7-i686: WARNINGS
-> linux-3.19-i686: WARNINGS
-> linux-4.0.9-i686: WARNINGS
-> linux-4.1.33-i686: WARNINGS
-> linux-4.2.8-i686: WARNINGS
-> linux-4.3.6-i686: WARNINGS
-> linux-4.4.22-i686: WARNINGS
-> linux-4.5.7-i686: WARNINGS
-> linux-4.6.7-i686: WARNINGS
-> linux-4.7.5-i686: WARNINGS
-> linux-4.8-i686: OK
-> linux-4.9.26-i686: OK
-> linux-4.10.14-i686: OK
-> linux-4.11-i686: OK
-> linux-4.12.1-i686: OK
-> linux-4.13-i686: OK
-> linux-4.14-i686: OK
-> linux-2.6.36.4-x86_64: WARNINGS
-> linux-2.6.37.6-x86_64: WARNINGS
-> linux-2.6.38.8-x86_64: WARNINGS
-> linux-2.6.39.4-x86_64: WARNINGS
-> linux-3.0.60-x86_64: WARNINGS
-> linux-3.1.10-x86_64: WARNINGS
-> linux-3.2.37-x86_64: WARNINGS
-> linux-3.3.8-x86_64: WARNINGS
-> linux-3.4.27-x86_64: WARNINGS
-> linux-3.5.7-x86_64: WARNINGS
-> linux-3.6.11-x86_64: WARNINGS
-> linux-3.7.4-x86_64: WARNINGS
-> linux-3.8-x86_64: WARNINGS
-> linux-3.9.2-x86_64: WARNINGS
-> linux-3.10.1-x86_64: WARNINGS
-> linux-3.11.1-x86_64: WARNINGS
-> linux-3.12.67-x86_64: WARNINGS
-> linux-3.13.11-x86_64: WARNINGS
-> linux-3.14.9-x86_64: WARNINGS
-> linux-3.15.2-x86_64: WARNINGS
-> linux-3.16.7-x86_64: WARNINGS
-> linux-3.17.8-x86_64: WARNINGS
-> linux-3.18.7-x86_64: WARNINGS
-> linux-3.19-x86_64: WARNINGS
-> linux-4.0.9-x86_64: WARNINGS
-> linux-4.1.33-x86_64: WARNINGS
-> linux-4.2.8-x86_64: WARNINGS
-> linux-4.3.6-x86_64: WARNINGS
-> linux-4.4.22-x86_64: WARNINGS
-> linux-4.5.7-x86_64: WARNINGS
-> linux-4.6.7-x86_64: WARNINGS
-> linux-4.7.5-x86_64: WARNINGS
-> linux-4.8-x86_64: WARNINGS
-> linux-4.9.26-x86_64: WARNINGS
-> linux-4.10.14-x86_64: WARNINGS
-> linux-4.11-x86_64: WARNINGS
-> linux-4.12.1-x86_64: WARNINGS
-> linux-4.13-x86_64: OK
-> linux-4.14-x86_64: OK
-> apps: OK
-> spec-git: OK
-> smatch: OK
-> 
-> Detailed results are available here:
-> 
-> http://www.xs4all.nl/~hverkuil/logs/Monday.log
-> 
-> Full logs are available here:
-> 
-> http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
-> 
-> The Media Infrastructure API from this daily build is here:
-> 
-> http://www.xs4all.nl/~hverkuil/spec/index.html
-> 
+Flavio Ceolin
