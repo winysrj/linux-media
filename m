@@ -1,50 +1,173 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:47139 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1759308AbdLRMai (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 18 Dec 2017 07:30:38 -0500
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Evgeniy Polyakov <zbr@ioremap.net>
-Subject: [PATCH v4 18/18] w1_netlink.h: add support for nested structs
-Date: Mon, 18 Dec 2017 10:30:19 -0200
-Message-Id: <b591384d6329894c87b0136beea70520050020b6.1513599193.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1513599193.git.mchehab@s-opensource.com>
-References: <cover.1513599193.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1513599193.git.mchehab@s-opensource.com>
-References: <cover.1513599193.git.mchehab@s-opensource.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:39233 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750929AbdLKU6i (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 11 Dec 2017 15:58:38 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: kieran.bingham@ideasonboard.com
+Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org
+Subject: Re: [PATCH v2 13/14] drm: rcar-du: Restrict DPLL duty cycle workaround to H3 ES1.x
+Date: Mon, 11 Dec 2017 22:58:40 +0200
+Message-ID: <2653318.Q8RMW46eQ1@avalon>
+In-Reply-To: <8f72d427-4a7c-29ee-2492-d3a99449dfb8@ideasonboard.com>
+References: <20170626181226.29575-1-laurent.pinchart+renesas@ideasonboard.com> <20170626181226.29575-14-laurent.pinchart+renesas@ideasonboard.com> <8f72d427-4a7c-29ee-2492-d3a99449dfb8@ideasonboard.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Now that kernel-doc can hanle nested structs/unions, describe
-such fields at w1_netlink_message_types.
+Hi Kieran,
 
-Acked-by: Evgeniy Polyakov <zbr@ioremap.net>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/w1/w1_netlink.h | 6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+I found this e-mail already written and sitting in my outbox, so even if it's 
+quite outdated I decided to still send it.
 
-diff --git a/drivers/w1/w1_netlink.h b/drivers/w1/w1_netlink.h
-index a36661cd1f05..f876772c0fb4 100644
---- a/drivers/w1/w1_netlink.h
-+++ b/drivers/w1/w1_netlink.h
-@@ -59,7 +59,11 @@ enum w1_netlink_message_types {
-  * @type: one of enum w1_netlink_message_types
-  * @status: kernel feedback for success 0 or errno failure value
-  * @len: length of data following w1_netlink_msg
-- * @id: union holding master bus id (msg.id) and slave device id (id[8]).
-+ * @id: union holding bus master id (msg.id) and slave device id (id[8]).
-+ * @id.id: Slave ID (8 bytes)
-+ * @id.mst: bus master identification
-+ * @id.mst.id: bus master ID
-+ * @id.mst.res: bus master reserved
-  * @data: start address of any following data
-  *
-  * The base message structure for w1 messages over netlink.
+On Tuesday 01 Aug 2017 15:06:20 Kieran Bingham wrote:
+> On 26/06/17 19:12, Laurent Pinchart wrote:
+> > The H3 ES1.x exhibits dot clock duty cycle stability issues. We can work
+> > around them by configuring the DPLL to twice the desired frequency,
+> > coupled with a /2 post-divider. This isn't needed on other SoCs and
+> > breaks HDMI output on M3-W for a currently unknown reason, so restrict
+> > the workaround to H3 ES1.x.
+> > 
+> > From an implementation point of view, move work around handling outside
+> > of the rcar_du_dpll_divider() function by requesting a x2 DPLL output
+> > frequency explicitly. The existing post-divider calculation mechanism
+> > will then take care of dividing the clock by two automatically.
+> > 
+> > While at it, print a more useful debugging message to ease debugging
+> > clock rate issues.
+> > 
+> > Signed-off-by: Laurent Pinchart
+> > <laurent.pinchart+renesas@ideasonboard.com>
+> > ---
+> > 
+> >  drivers/gpu/drm/rcar-du/rcar_du_crtc.c | 37 ++++++++++++++++++++---------
+> >  1 file changed, 27 insertions(+), 10 deletions(-)
+> > 
+> > diff --git a/drivers/gpu/drm/rcar-du/rcar_du_crtc.c
+> > b/drivers/gpu/drm/rcar-du/rcar_du_crtc.c index 8f942ebdd0c6..6c29981377c0
+> > 100644
+> > --- a/drivers/gpu/drm/rcar-du/rcar_du_crtc.c
+> > +++ b/drivers/gpu/drm/rcar-du/rcar_du_crtc.c
+> > @@ -13,6 +13,7 @@
+> > 
+> >  #include <linux/clk.h>
+> >  #include <linux/mutex.h>
+> > +#include <linux/sys_soc.h>
+> > 
+> >  #include <drm/drmP.h>
+> >  #include <drm/drm_atomic.h>
+> > @@ -129,10 +130,8 @@ static void rcar_du_dpll_divider(struct rcar_du_crtc
+> > *rcrtc,
+> >  			for (fdpll = 1; fdpll < 32; fdpll++) {
+> >  				unsigned long output;
+> > 
+> > -				/* 1/2 (FRQSEL=1) for duty rate 50% */
+> >  				output = input * (n + 1) / (m + 1)
+> > -				       / (fdpll + 1) / 2;
+> > -
+> > +				       / (fdpll + 1);
+> 
+> I'm finding this hard to interpret vs the commit-message.
+> 
+> Here we remove the /2 (which affects all targets... is this a problem?)
+
+The purpose of the rcar_du_dpll_divider() function is to compute the DPLL 
+settings for a target output frequency. However, at the moment, it computes 
+settings that will generate twice the output frequency, assuming that the 
+caller will configure an additional /2 post-divider.
+
+I found that confusing, so I've modified this function to generate the target 
+output frequency. The caller is modified below to request twice the desired 
+display clock frequency when adding the post-divider.
+
+Note that DPLLs are available on Gen3 only, so this affects H3 and M3-W only.
+
+> >  				if (output >= 400000000)
+> >  					continue;
+
+[snip]
+
+> > @@ -185,7 +189,20 @@ static void rcar_du_crtc_set_display_timing(struct
+> > rcar_du_crtc *rcrtc)> 
+> >  		extclk = clk_get_rate(rcrtc->extclock);
+> >  		if (rcdu->info->dpll_ch & (1 << rcrtc->index)) {
+> > 
+> > -			rcar_du_dpll_divider(rcrtc, &dpll, extclk,
+> > mode_clock);
+> > +			unsigned long target = mode_clock;
+> > +
+> > +			/*
+> > +			 * The H3 ES1.x exhibits dot clock duty cycle
+> > stability
+> > +			 * issues. We can work around them by configuring the
+> > +			 * DPLL to twice the desired frequency, coupled with a
+> > +			 * /2 post-divider. This isn't needed on other SoCs
+> > and
+> 
+> But here we discuss 'coupling' it with a /2 post - divider.
+> 
+> My inference here then is that by setting a target that is 'twice' the value
+> - code later will provide the /2 post-divide?
+
+Correct. On H3 ES1.x the behaviour of the code is unchanged, while on H3 ES2.0 
+and M3-W we now configure the DPLL without the post-divider.
+
+> > +			 * breaks HDMI output on M3-W for a currently unknown
+> > +			 * reason, so restrict the workaround to H3 ES1.x.
+> > +			 */
+> > +			if (soc_device_match(rcar_du_r8a7795_es1))
+> > +				target *= 2;
+> > +
+> > +			rcar_du_dpll_divider(rcrtc, &dpll, extclk, target);
+> >  			extclk = dpll.output;
+> >  		}
+> > 
+> > @@ -197,8 +214,6 @@ static void rcar_du_crtc_set_display_timing(struct
+> > rcar_du_crtc *rcrtc)
+> >  		if (abs((long)extrate - (long)mode_clock) <
+> >  		    abs((long)rate - (long)mode_clock)) {
+> > -			dev_dbg(rcrtc->group->dev->dev,
+> > -				"crtc%u: using external clock\n",
+> > rcrtc->index);
+> > 
+> >  			if (rcdu->info->dpll_ch & (1 << rcrtc->index)) {
+> >  				u32 dpllcr = DPLLCR_CODE | DPLLCR_CLKE
+> > @@ -215,12 +230,14 @@ static void rcar_du_crtc_set_display_timing(struct
+> > rcar_du_crtc *rcrtc)
+> >  				rcar_du_group_write(rcrtc->group, DPLLCR,
+> >  						    dpllcr);
+> > -
+> > -				escr = ESCR_DCLKSEL_DCLKIN | 1;
+> > -			} else {
+> > -				escr = ESCR_DCLKSEL_DCLKIN | extdiv;
+> >  			}
+> > +
+> > +			escr = ESCR_DCLKSEL_DCLKIN | extdiv;
+> 
+> Therefore - is this the post-divider?
+
+Correct again. There's no need for any SoC-specific processing here, as extdiv 
+is simply computed as DPLL output frequency / pixel clock frequency.
+
+> If my inferences are correct - then OK:
+> 
+> Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+> 
+> >  		}
+> > +
+> > +		dev_dbg(rcrtc->group->dev->dev,
+> > +			"mode clock %lu extrate %lu rate %lu ESCR 0x%08x\n",
+> > +			mode_clock, extrate, rate, escr);
+> >  	}
+> >  	
+> >  	rcar_du_group_write(rcrtc->group, rcrtc->index % 2 ? ESCR2 : ESCR,
+
 -- 
-2.14.3
+Regards,
+
+Laurent Pinchart
