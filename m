@@ -1,59 +1,149 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f67.google.com ([74.125.83.67]:34819 "EHLO
-        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933474AbdLRMQJ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 18 Dec 2017 07:16:09 -0500
-From: Jacob Chen <jacob-chen@iotwrt.com>
-To: linux-rockchip@lists.infradead.org
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        mchehab@kernel.org, linux-media@vger.kernel.org,
-        sakari.ailus@linux.intel.com, hans.verkuil@cisco.com,
-        tfiga@chromium.org, zhengsq@rock-chips.com,
-        laurent.pinchart@ideasonboard.com, zyc@rock-chips.com,
-        eddie.cai.linux@gmail.com, jeffy.chen@rock-chips.com,
-        allon.huang@rock-chips.com, devicetree@vger.kernel.org,
-        heiko@sntech.de, robh+dt@kernel.org, Joao.Pinto@synopsys.com,
-        Luis.Oliveira@synopsys.com, Jose.Abreu@synopsys.com,
-        Jacob Chen <jacob2.chen@rock-chips.com>
-Subject: [PATCH v4 15/16] arm64: dts: rockchip: add rx0 mipi-phy for rk3399
-Date: Mon, 18 Dec 2017 20:14:44 +0800
-Message-Id: <20171218121445.6086-12-jacob-chen@iotwrt.com>
-In-Reply-To: <20171218121445.6086-1-jacob-chen@iotwrt.com>
-References: <20171218121445.6086-1-jacob-chen@iotwrt.com>
+Received: from osg.samsung.com ([64.30.133.232]:40432 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750707AbdLKSLG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 11 Dec 2017 13:11:06 -0500
+Date: Mon, 11 Dec 2017 16:10:58 -0200
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Niklas =?UTF-8?B?U8O2ZGVybHVuZA==?=
+        <niklas.soderlund+renesas@ragnatech.se>,
+        Sebastian Reichel <sre@kernel.org>
+Subject: Re: [PATCH v2 08/26] media: v4l2-async: shut up an unitialized
+ symbol warning
+Message-ID: <20171211161058.6cdedb7a@vento.lan>
+In-Reply-To: <1844403.anYkCZaVIn@avalon>
+References: <c4389ab1c02bb08c1a55012fdb859c8b10bdc47e.1509569763.git.mchehab@s-opensource.com>
+        <e510e9651f4c8672ab7f64df4a55863b4b9cb787.1509569763.git.mchehab@s-opensource.com>
+        <1844403.anYkCZaVIn@avalon>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Shunqian Zheng <zhengsq@rock-chips.com>
+Em Thu, 02 Nov 2017 04:51:40 +0200
+Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
 
-It's a Designware MIPI D-PHY, used for ISP0 in rk3399.
+> Hi Mauro,
+> 
+> Thank you for the patch.
+> 
+> On Wednesday, 1 November 2017 23:05:45 EET Mauro Carvalho Chehab wrote:
+> > Smatch reports this warning:
+> > 	drivers/media/v4l2-core/v4l2-async.c:597 v4l2_async_register_subdev()
+> > error: uninitialized symbol 'ret'.
+> > 
+> > However, there's nothing wrong there. So, just shut up the
+> > warning.  
+> 
+> Nothing wrong, really ? ret does seem to be used uninitialized when the 
+> function returns at the very last line.
 
-Signed-off-by: Shunqian Zheng <zhengsq@rock-chips.com>
-Signed-off-by: Jacob Chen <jacob2.chen@rock-chips.com>
+There's nothing wrong. If you follow the logic, you'll see that
+the line:
+
+	return ret;
+
+is called only at "err_unbind" label, with is called only on
+two places:
+
+                ret = v4l2_async_match_notify(notifier, v4l2_dev, sd, asd);
+                if (ret)
+                        goto err_unbind;
+
+                ret = v4l2_async_notifier_try_complete(notifier);
+                if (ret)
+                        goto err_unbind;
+
+There, ret is defined.
+
+Yeah, the logic there is confusing.
+
+Thanks,
+Mauro
+
+media: v4l2-async: shut up an unitialized symbol warning
+
+Smatch reports this warning:
+	drivers/media/v4l2-core/v4l2-async.c:597 v4l2_async_register_subdev() error: uninitialized symbol 'ret'.
+
+However, there's nothing wrong there. Yet, the logic is more
+complex than it should. So, rework it to make clearer about
+what happens when ret != 0.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- arch/arm64/boot/dts/rockchip/rk3399.dtsi | 10 ++++++++++
- 1 file changed, 10 insertions(+)
+ drivers/media/v4l2-core/v4l2-async.c |   38 +++++++++++++++--------------------
+ 1 file changed, 17 insertions(+), 21 deletions(-)
 
-diff --git a/arch/arm64/boot/dts/rockchip/rk3399.dtsi b/arch/arm64/boot/dts/rockchip/rk3399.dtsi
-index 66a912fab5dd..8ef321f03010 100644
---- a/arch/arm64/boot/dts/rockchip/rk3399.dtsi
-+++ b/arch/arm64/boot/dts/rockchip/rk3399.dtsi
-@@ -1292,6 +1292,16 @@
- 			status = "disabled";
- 		};
+--- patchwork.orig/drivers/media/v4l2-core/v4l2-async.c
++++ patchwork/drivers/media/v4l2-core/v4l2-async.c
+@@ -532,7 +532,7 @@ int v4l2_async_register_subdev(struct v4
+ {
+ 	struct v4l2_async_notifier *subdev_notifier;
+ 	struct v4l2_async_notifier *notifier;
+-	int ret;
++	int ret = 0;
  
-+		mipi_dphy_rx0: mipi-dphy-rx0 {
-+			compatible = "rockchip,rk3399-mipi-dphy";
-+			clocks = <&cru SCLK_MIPIDPHY_REF>,
-+				<&cru SCLK_DPHY_RX0_CFG>,
-+				<&cru PCLK_VIO_GRF>;
-+			clock-names = "dphy-ref", "dphy-cfg", "grf";
-+			power-domains = <&power RK3399_PD_VIO>;
-+			status = "disabled";
-+		};
+ 	/*
+ 	 * No reference taken. The reference is held by the device
+@@ -560,11 +560,11 @@ int v4l2_async_register_subdev(struct v4
+ 
+ 		ret = v4l2_async_match_notify(notifier, v4l2_dev, sd, asd);
+ 		if (ret)
+-			goto err_unbind;
++			break;
+ 
+ 		ret = v4l2_async_notifier_try_complete(notifier);
+ 		if (ret)
+-			goto err_unbind;
++			break;
+ 
+ 		goto out_unlock;
+ 	}
+@@ -572,26 +572,22 @@ int v4l2_async_register_subdev(struct v4
+ 	/* None matched, wait for hot-plugging */
+ 	list_add(&sd->async_list, &subdev_list);
+ 
+-out_unlock:
+-	mutex_unlock(&list_lock);
+-
+-	return 0;
+-
+-err_unbind:
+-	/*
+-	 * Complete failed. Unbind the sub-devices bound through registering
+-	 * this async sub-device.
+-	 */
+-	subdev_notifier = v4l2_async_find_subdev_notifier(sd);
+-	if (subdev_notifier)
+-		v4l2_async_notifier_unbind_all_subdevs(subdev_notifier);
+-
+-	if (sd->asd)
+-		v4l2_async_notifier_call_unbind(notifier, sd, sd->asd);
+-	v4l2_async_cleanup(sd);
++	if (ret) {
++		/*
++		 * Complete failed. Unbind the sub-devices bound through registering
++		 * this async sub-device.
++		 */
++		subdev_notifier = v4l2_async_find_subdev_notifier(sd);
++		if (subdev_notifier)
++			v4l2_async_notifier_unbind_all_subdevs(subdev_notifier);
 +
- 		u2phy0: usb2-phy@e450 {
- 			compatible = "rockchip,rk3399-usb2phy";
- 			reg = <0xe450 0x10>;
--- 
-2.15.1
++		if (sd->asd)
++			v4l2_async_notifier_call_unbind(notifier, sd, sd->asd);
++		v4l2_async_cleanup(sd);
++	}
+ 
++out_unlock:
+ 	mutex_unlock(&list_lock);
+-
+ 	return ret;
+ }
+ EXPORT_SYMBOL(v4l2_async_register_subdev);
