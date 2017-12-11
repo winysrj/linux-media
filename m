@@ -1,140 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:65330 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753343AbdL1MZg (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 28 Dec 2017 07:25:36 -0500
-Date: Thu, 28 Dec 2017 10:25:29 -0200
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Hans Verkuil <hansverk@cisco.com>,
-        Christophe JAILLET <christophe.jaillet@wanadoo.fr>,
-        Hirokazu Honda <hiroh@chromium.org>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Satendra Singh Thakur <satendra.t@samsung.com>
-Subject: Re: [PATCH] videobuf2-core: don't go out of the buffer range
-Message-ID: <20171228102529.5c96e863@vento.lan>
-In-Reply-To: <20171228121956.4zec6bzragjvofha@kekkonen.localdomain>
-References: <9d7d743966f05181299fbf18cec9243e62bdfd25.1514462548.git.mchehab@s-opensource.com>
-        <20171228121956.4zec6bzragjvofha@kekkonen.localdomain>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from us01smtprelay-2.synopsys.com ([198.182.60.111]:49351 "EHLO
+        smtprelay.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751999AbdLKRmF (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 11 Dec 2017 12:42:05 -0500
+From: Jose Abreu <Jose.Abreu@synopsys.com>
+To: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Jose Abreu <Jose.Abreu@synopsys.com>,
+        Joao Pinto <Joao.Pinto@synopsys.com>
+Subject: [PATCH v10 2/4] MAINTAINERS: Add entry for Synopsys DesignWare HDMI drivers
+Date: Mon, 11 Dec 2017 17:41:19 +0000
+Message-Id: <8d468c10f1a66986b087a664e619dac339bad247.1513013948.git.joabreu@synopsys.com>
+In-Reply-To: <cover.1513013948.git.joabreu@synopsys.com>
+References: <cover.1513013948.git.joabreu@synopsys.com>
+In-Reply-To: <cover.1513013948.git.joabreu@synopsys.com>
+References: <cover.1513013948.git.joabreu@synopsys.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 28 Dec 2017 14:19:56 +0200
-Sakari Ailus <sakari.ailus@linux.intel.com> escreveu:
+Add an entry for Synopsys DesignWare HDMI Receivers drivers
+and phys.
 
-> Hi Mauro,
-> 
-> Thanks for the patch.
-> 
-> On Thu, Dec 28, 2017 at 10:02:33AM -0200, Mauro Carvalho Chehab wrote:
-> > Currently, there's no check if an invalid buffer range
-> > is passed. However, while testing DVB memory mapped apps,
-> > I got this:
-> > 
-> >    videobuf2_core: VB: num_buffers -2143943680, buffer 33, index -2143943647
-> >    unable to handle kernel paging request at ffff888b773c0890
-> >    IP: __vb2_queue_alloc+0x134/0x4e0 [videobuf2_core]
-> >    PGD 4142c7067 P4D 4142c7067 PUD 0
-> >    Oops: 0002 [#1] SMP
-> >    Modules linked in: xt_CHECKSUM iptable_mangle ipt_MASQUERADE nf_nat_masquerade_ipv4 iptable_nat nf_nat_ipv4 nf_nat nf_conntrack_ipv4 nf_defrag_ipv4 xt_conntrack nf_conntrack tun bridge stp llc ebtable_filter ebtables ip6table_filter ip6_tables bluetooth rfkill ecdh_generic binfmt_misc rc_dvbsky sp2 ts2020 intel_rapl x86_pkg_temp_thermal dvb_usb_dvbsky intel_powerclamp dvb_usb_v2 coretemp m88ds3103 kvm_intel i2c_mux dvb_core snd_hda_codec_hdmi crct10dif_pclmul crc32_pclmul videobuf2_vmalloc videobuf2_memops snd_hda_intel ghash_clmulni_intel videobuf2_core snd_hda_codec rc_core mei_me intel_cstate snd_hwdep snd_hda_core videodev intel_uncore snd_pcm mei media tpm_tis tpm_tis_core intel_rapl_perf tpm snd_timer lpc_ich snd soundcore kvm irqbypass libcrc32c i915 i2c_algo_bit drm_kms_helper
-> >    e1000e ptp drm crc32c_intel video pps_core
-> >    CPU: 3 PID: 1776 Comm: dvbv5-zap Not tainted 4.14.0+ #78
-> >    Hardware name:                  /NUC5i7RYB, BIOS RYBDWi35.86A.0364.2017.0511.0949 05/11/2017
-> >    task: ffff88877c73bc80 task.stack: ffffb7c402418000
-> >    RIP: 0010:__vb2_queue_alloc+0x134/0x4e0 [videobuf2_core]
-> >    RSP: 0018:ffffb7c40241bc60 EFLAGS: 00010246
-> >    RAX: 0000000080360421 RBX: 0000000000000021 RCX: 000000000000000a
-> >    RDX: ffffb7c40241bcf4 RSI: ffff888780362c60 RDI: ffff888796d8e130
-> >    RBP: ffffb7c40241bcc8 R08: 0000000000000316 R09: 0000000000000004
-> >    R10: ffff888780362c00 R11: 0000000000000001 R12: 000000000002f000
-> >    R13: ffff8887758be700 R14: 0000000000021000 R15: 0000000000000001
-> >    FS:  00007f2849024740(0000) GS:ffff888796d80000(0000) knlGS:0000000000000000
-> >    CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-> >    CR2: ffff888b773c0890 CR3: 000000043beb2005 CR4: 00000000003606e0
-> >    Call Trace:
-> >     vb2_core_reqbufs+0x226/0x420 [videobuf2_core]
-> >     dvb_vb2_reqbufs+0x2d/0xc0 [dvb_core]
-> >     dvb_dvr_do_ioctl+0x98/0x1d0 [dvb_core]
-> >     dvb_usercopy+0x53/0x1b0 [dvb_core]
-> >     ? dvb_demux_ioctl+0x20/0x20 [dvb_core]
-> >     ? tty_ldisc_deref+0x16/0x20
-> >     ? tty_write+0x1f9/0x310
-> >     ? process_echoes+0x70/0x70
-> >     dvb_dvr_ioctl+0x15/0x20 [dvb_core]
-> >     do_vfs_ioctl+0xa5/0x600
-> >     SyS_ioctl+0x79/0x90
-> >     entry_SYSCALL_64_fastpath+0x1a/0xa5
-> >    RIP: 0033:0x7f28486f7ea7
-> >    RSP: 002b:00007ffc13b2db18 EFLAGS: 00000246 ORIG_RAX: 0000000000000010
-> >    RAX: ffffffffffffffda RBX: 000055b10fc06130 RCX: 00007f28486f7ea7
-> >    RDX: 00007ffc13b2db48 RSI: 00000000c0086f3c RDI: 0000000000000007
-> >    RBP: 0000000000000203 R08: 000055b10df1e02c R09: 000000000000002e
-> >    R10: 0036b42415108357 R11: 0000000000000246 R12: 0000000000000000
-> >    R13: 00007f2849062f60 R14: 00000000000001f1 R15: 00007ffc13b2da54
-> >    Code: 74 0a 60 8b 0a 48 83 c0 30 48 83 c2 04 89 48 d0 89 48 d4 48 39 f0 75 eb 41 8b 42 08 83 7d d4 01 41 c7 82 ec 01 00 00 ff ff ff ff <4d> 89 94 c5 88 00 00 00 74 14 83 c3 01 41 39 dc 0f 85 f1 fe ff
-> >    RIP: __vb2_queue_alloc+0x134/0x4e0 [videobuf2_core] RSP: ffffb7c40241bc60
-> >    CR2: ffff888b773c0890
-> > 
-> > So, add a sanity check in order to prevent going past array.
-> > 
-> > Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> > ---
-> >  drivers/media/common/videobuf/videobuf2-core.c | 4 ++++
-> >  1 file changed, 4 insertions(+)
-> > 
-> > diff --git a/drivers/media/common/videobuf/videobuf2-core.c b/drivers/media/common/videobuf/videobuf2-core.c
-> > index cb115ba6a1d2..9107ffc4d808 100644
-> > --- a/drivers/media/common/videobuf/videobuf2-core.c
-> > +++ b/drivers/media/common/videobuf/videobuf2-core.c
-> > @@ -332,6 +332,10 @@ static int __vb2_queue_alloc(struct vb2_queue *q, enum vb2_memory memory,
-> >  	struct vb2_buffer *vb;
-> >  	int ret;
-> >  
-> > +	/* Sanity check to avoid going past q->bufs size */
-> > +	if (q->num_buffers < 0 || q->num_buffers + num_buffers > VB2_MAX_FRAME)  
-> 
-> These checks already exists in vb2_core_reqbufs as well as in
-> vb2_core_create_bufs. The queue_setup callback can change it though, so the
-> check appears to be worth it.
-> 
-> I'm just trying to figure out whether it's only DVB that's affected.
+Signed-off-by: Jose Abreu <joabreu@synopsys.com>
+Cc: Joao Pinto <jpinto@synopsys.com>
+---
+ MAINTAINERS | 7 +++++++
+ 1 file changed, 7 insertions(+)
 
-I suspect so. At dvb-vb2, it just calls the VB2 core, without validating
-the buffers.
-
-Without this patch, it is accepting q->num_buffers + num_buffers to be
-greater than VB2_MAX_FRAME.
-
-In any case, as this causes a buffer overflow, it is worth having
-the check there, where q->bufs[q->num_buffers + index] is
-used for the first time.
-
-I still think I'll add an additional check at dvb-vb2, but, as we
-could have other clients in the future, it seems worth that the core
-itself to double-check.
-
-> 
-> q->num_buffers is unsigned, so no need to check for < 0.
-
-Ah, true. Will resend without this extra check.
-
-> 
-> > +		return 0;
-> > +
-> >  	for (buffer = 0; buffer < num_buffers; ++buffer) {
-> >  		/* Allocate videobuf buffer structures */
-> >  		vb = kzalloc(q->buf_struct_size, GFP_KERNEL);
-> > -- 
-> > 2.14.3
-> >   
-> 
-
-
-
-Thanks,
-Mauro
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 7a52a66..a1675bc 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -13108,6 +13108,13 @@ L:	netdev@vger.kernel.org
+ S:	Supported
+ F:	drivers/net/ethernet/synopsys/
+ 
++SYNOPSYS DESIGNWARE HDMI RECEIVERS AND PHY DRIVERS
++M:	Jose Abreu <joabreu@synopsys.com>
++L:	linux-media@vger.kernel.org
++S:	Maintained
++F:	drivers/media/platform/dwc/*
++F:	include/media/dwc/*
++
+ SYNOPSYS DESIGNWARE I2C DRIVER
+ M:	Jarkko Nikula <jarkko.nikula@linux.intel.com>
+ R:	Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+-- 
+1.9.1
