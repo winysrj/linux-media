@@ -1,234 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:39452 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754317AbdLTNep (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 20 Dec 2017 08:34:45 -0500
-Date: Wed, 20 Dec 2017 11:34:36 -0200
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
-        Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
-        linux-doc@vger.kernel.org
-Subject: Re: [PATCH 2/8] media: v4l2-ioctl.h: convert debug into an enum of
- bits
-Message-ID: <20171220113436.6f1f40eb@vento.lan>
-In-Reply-To: <2495011.azrSBV26NO@avalon>
-References: <cover.1513625884.git.mchehab@s-opensource.com>
-        <1829332.DyU8Vvd1sp@avalon>
-        <20171219133446.3b42ad19@vento.lan>
-        <2495011.azrSBV26NO@avalon>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:45444 "EHLO
+        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751123AbdLLEu5 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 11 Dec 2017 23:50:57 -0500
+Message-ID: <61c8f2be65cd440e2bc9d59fbbedb184@smtp-cloud8.xs4all.net>
+Date: Tue, 12 Dec 2017 05:50:54 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 20 Dec 2017 12:47:23 +0200
-Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-> Hi Mauro,
-> 
-> On Tuesday, 19 December 2017 17:34:46 EET Mauro Carvalho Chehab wrote:
-> > Em Tue, 19 Dec 2017 16:05:46 +0200 Laurent Pinchart escreveu:  
-> > > On Tuesday, 19 December 2017 16:02:02 EET Laurent Pinchart wrote:  
-> > >> On Tuesday, 19 December 2017 13:39:27 EET Sakari Ailus wrote:  
-> > >>> On Mon, Dec 18, 2017 at 05:53:56PM -0200, Mauro Carvalho Chehab wrote:  
-> > >>>> The V4L2_DEV_DEBUG_IOCTL macros actually define a bitmask,
-> > >>>> but without using Kernel's modern standards. Also,
-> > >>>> documentation looks akward.
-> > >>>> 
-> > >>>> So, convert them into an enum with valid bits, adding
-> > >>>> the correspoinding kernel-doc documentation for it.  
-> > >>> 
-> > >>> The pattern of using bits for flags is a well established one and I
-> > >>> wouldn't deviate from that by requiring the use of the BIT() macro.
-> > >>> There are no benefits that I can see from here but the approach brings
-> > >>> additional risks: misuse of the flags and mimicing the same risky
-> > >>> pattern.
-> > >>> 
-> > >>> I'd also like to echo Laurent's concern that code is being changed in
-> > >>> odd ways and not for itself, but due to deficiencies in documentation
-> > >>> tools.
-> > >>> 
-> > >>> I believe the tooling has to be improved to address this properly.
-> > >>> That only needs to done once, compared to changing all flag
-> > >>> definitions to enums.  
-> > >> 
-> > >> That's my main concern too. We really must not sacrifice code
-> > >> readability or writing ease in order to work around limitations of the
-> > >> documentation system. For this reason I'm strongly opposed to patches 2
-> > >> and 5 in this series.  
-> > > 
-> > > And I forgot to mention patch 8/8. Let's drop those three and improve the
-> > > documentation system instead.  
-> > 
-> > Are you volunteering yourself to write the kernel-doc patches? :-)  
-> 
-> I thought you were the expert in this field, given the number of documentation 
-> patches that you have merged in the kernel ? :-)
+Results of the daily build of media_tree:
 
-c/c linux-doc, as this kind of discussion should be happening there.
+date:			Tue Dec 12 05:00:16 CET 2017
+media-tree git hash:	72c27a68a2a3f650f0dc7891ee98f02283fc11af
+media_build git hash:	f5a5e5e470d834f9843fee7a7c2ce3e4be610ca7
+v4l-utils git hash:	58803000a99c22dceabfb45bec402e746ce966c3
+gcc version:		i686-linux-gcc (GCC) 7.1.0
+sparse version:		v0.5.0-3911-g6f737e1f
+smatch version:		v0.5.0-3911-g6f737e1f
+host hardware:		x86_64
+host os:		4.13.0-164
 
-Let me recap your proposal here, for the others from linux-doc to
-understand this reply:
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12.67-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.7-i686: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.18.7-i686: ERRORS
+linux-3.19-i686: ERRORS
+linux-4.0.9-i686: ERRORS
+linux-4.1.33-i686: ERRORS
+linux-4.2.8-i686: ERRORS
+linux-4.3.6-i686: ERRORS
+linux-4.4.22-i686: ERRORS
+linux-4.5.7-i686: ERRORS
+linux-4.6.7-i686: ERRORS
+linux-4.7.5-i686: ERRORS
+linux-4.8-i686: ERRORS
+linux-4.9.26-i686: ERRORS
+linux-4.10.14-i686: ERRORS
+linux-4.11-i686: ERRORS
+linux-4.12.1-i686: ERRORS
+linux-4.13-i686: ERRORS
+linux-4.14-i686: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.67-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.7-x86_64: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.7-x86_64: ERRORS
+linux-3.19-x86_64: ERRORS
+linux-4.0.9-x86_64: ERRORS
+linux-4.1.33-x86_64: ERRORS
+linux-4.2.8-x86_64: ERRORS
+linux-4.3.6-x86_64: ERRORS
+linux-4.4.22-x86_64: ERRORS
+linux-4.5.7-x86_64: ERRORS
+linux-4.6.7-x86_64: ERRORS
+linux-4.7.5-x86_64: ERRORS
+linux-4.8-x86_64: ERRORS
+linux-4.9.26-x86_64: ERRORS
+linux-4.10.14-x86_64: ERRORS
+linux-4.11-x86_64: ERRORS
+linux-4.12.1-x86_64: ERRORS
+linux-4.13-x86_64: ERRORS
+linux-4.14-x86_64: ERRORS
+apps: OK
+spec-git: OK
+smatch: OK
 
-Em Mon, 18 Dec 2017 17:32:11 +0200
-Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
+Detailed results are available here:
 
-> Hi Mauro,
-> 
-> On Monday, 18 December 2017 17:13:26 EET Mauro Carvalho Chehab wrote:
-> > Em Fri, 13 Oct 2017 15:38:11 +0300 Laurent Pinchart escreveu:  
-> > > On Thursday, 28 September 2017 00:46:51 EEST Mauro Carvalho Chehab wrote:  
-> > >> Currently, there's no way to document #define foo <value>
-> > >> with kernel-doc. So, convert it to an enum, and document.  
-> > > 
-> > > The documentation seems fine to me (except for one comment below).
-> > > However, converting macros to an enum just to work around a defect of the
-> > > documentation system doesn't seem like a good idea to me. I'd rather find
-> > > a way to document macros.  
-> > 
-> > I agree that this limitation should be fixed.
-> > 
-> > Yet, in this specific case where we have an "array" of defines, all
-> > associated to the same field (even being a bitmask), and assuming that
-> > we would add a way for kernel-doc to parse this kind of defines
-> > (not sure how easy/doable would be), then, in order to respect the
-> > way kernel-doc markup is, the documentation for those macros would be:
-> > 
-> > 
-> > /**
-> >  * define: Just log the ioctl name + error code
-> >  */
-> > #define V4L2_DEV_DEBUG_IOCTL		0x01
-> > /**
-> >  * define: Log the ioctl name arguments + error code
-> >  */
-> > #define V4L2_DEV_DEBUG_IOCTL_ARG	0x02
-> > /**
-> >  * define: Log the file operations open, release, mmap and get_unmapped_area
-> > */
-> > #define V4L2_DEV_DEBUG_FOP		0x04
-> > /**
-> >  * define: Log the read and write file operations and the VIDIOC_(D)QBUF
-> > ioctls */
-> > #define V4L2_DEV_DEBUG_STREAMING	0x08
-> > 
-> > IMHO, this is a way easier to read/understand by humans, and a way more
-> > coincise:
-> > 
-> > /**
-> >  * enum v4l2_debug_flags - Device debug flags to be used with the video
-> >  *	device debug attribute
-> >  *
-> >  * @V4L2_DEV_DEBUG_IOCTL:	Just log the ioctl name + error code.
-> >  * @V4L2_DEV_DEBUG_IOCTL_ARG:	Log the ioctl name arguments + error code.
-> >  * @V4L2_DEV_DEBUG_FOP:		Log the file operations and open, release,
-> >  *				mmap and get_unmapped_area syscalls.
-> >  * @V4L2_DEV_DEBUG_STREAMING:	Log the read and write syscalls and
-> >  *				:c:ref:`VIDIOC_[Q|DQ]BUFF <VIDIOC_QBUF>` ioctls.
-> >  */
-> > 
-> > It also underlines the aspect that those names are grouped altogether.
-> > 
-> > So, IMHO, the main reason to place them inside an enum and document
-> > as such is that it looks a way better for humans to read.  
-> 
-> As we're talking about extending kerneldoc to document macros, we're free to 
-> decide on a format that would make it easy and clear. Based on your above 
-> example, we could write it
-> 
-> /**
->  * define v4l2_debug_flags - Device debug flags to be used with the video
->  *	device debug attribute
->  *
->  * @V4L2_DEV_DEBUG_IOCTL:	Just log the ioctl name + error code.
->  * @V4L2_DEV_DEBUG_IOCTL_ARG:	Log the ioctl name arguments + error code.
->  * @V4L2_DEV_DEBUG_FOP:		Log the file operations and open, release,
->  *				mmap and get_unmapped_area syscalls.
->  * @V4L2_DEV_DEBUG_STREAMING:	Log the read and write syscalls and
->  *				:c:ref:`VIDIOC_[Q|DQ]BUFF <VIDIOC_QBUF>` ioctls.
->  */
-> 
-> That would be simple, clear, and wouldn't require a code change to workaround 
-> a limitation of the documentation system.
-> 
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
 
-I could volunteer myself to write a patch that would just parse a single
-define when I have some time for that, and after finishing to document
-other things that don't depend on it.
+Full logs are available here:
 
-However, I won't volunteer to add a patch that would artificially
-group #defines on a single kernel-doc markup, because:
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
 
-1) I don't believe that this is the right solution. When several
-   name macros should be grouped altogether, C provides an specific
-   syntax for it: enum;
-2) the patch will likely be very complex;
-3) the define "grouping" logic would be based on hints.
+The Media Infrastructure API from this daily build is here:
 
-Let me explain (3) a little better. Right now, kernel-doc common
-logic removes any comments and blank lines when processing a single
-markup, like struct, enum, function, etc. It should very likely need
-to do the same for #defines.
-
-Using your proposed, syntax, please assume the following fictional
-(but based on real code) example:
-
-	/**
-	 * define v4l2_debug_flags - Device debug flags to be used with the video
-	 *	device debug attribute
-	 *
-	 * @V4L2_DEV_DEBUG_IOCTL:	Just log the ioctl name + error code.
-	 * @V4L2_DEV_DEBUG_IOCTL_ARG:	Log the ioctl name arguments + error code.
-	 * @V4L2_DEV_DEBUG_FOP:		Log the file operations and open, release,
-	 *				mmap and get_unmapped_area syscalls.
-	 * @V4L2_DEV_DEBUG_STREAMING:	Log the read and write syscalls and
-	 *				:c:ref:`VIDIOC_[Q|DQ]BUFF <VIDIOC_QBUF>` ioctls.
-	 */
-
-	/* ioctl debug macros */
-	#define V4L2_DEV_DEBUG_IOCTL         0x01
-	#define V4L2_DEV_DEBUG_IOCTL_ARG     0x02
-
-	/* streaming debug macros */
-	#define V4L2_DEV_DEBUG_FOP           0x04
-	#define V4L2_DEV_DEBUG_STREAMING     0x08
-
-	#define CEC_NUM_CORE_EVENTS 2
-	#define CEC_NUM_EVENTS CEC_EVENT_PIN_CEC_HIGH
-
-The V4L_DEV_DEBUG_* macros will be properly documented using your
-notation.
-
-However, how the kernel-doc logic will know when to stop grouping defines?
-
-It should be reminded that, if later someone adds a new V4L_DEV_DEBUG_FOO
-(either after V4L2_DEV_DEBUG_STREAMING or before it), we want a warning to
-be generated, because something that belongs to this define "group"
-was added without documentation.
-
-It might be parsing by name, but that would break if someone ever adds a
-macro like: V4L2_NODEV_DEBUG, it won't work (we do have some
-"namespaces" like that). It would also fail if someone adds an unrelated
-macro that would start with V4L2_DEV_DEBUG_.
-
-Now, assume that, sometime in the future, we decide to also document
-CEC_NUM_CORE_EVENTS, because it is now part of a kAPI, but we don't
-want to document CEC_NUM_EVENTS, with is just an ancillary macro 
-to be used internally.  The "group" define syntax won't fit.
-
-In summary, trying to artificially group #defines for documentation is
-a very dirty hack. We should really use enums on all kAPI cases where
-we have different symbols that should be grouped altogether.
-
-Regards,
-Mauro
+http://www.xs4all.nl/~hverkuil/spec/index.html
