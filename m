@@ -1,163 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:38031 "EHLO osg.samsung.com"
+Received: from osg.samsung.com ([64.30.133.232]:61686 "EHLO osg.samsung.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753182AbdLANrS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 1 Dec 2017 08:47:18 -0500
+        id S1752007AbdLLLD5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 12 Dec 2017 06:03:57 -0500
+Date: Tue, 12 Dec 2017 09:03:50 -0200
 From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        lkml@vger.kernel.org, Sean Young <sean@mess.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Andi Shyti <andi.shyti@samsung.com>
-Subject: [PATCH v2 7/7] media: siano: add SPDX markups
-Date: Fri,  1 Dec 2017 11:47:13 -0200
-Message-Id: <4124abdb1e9ec40014aa8c9bcfb10687dcee72c8.1512135871.git.mchehab@s-opensource.com>
-In-Reply-To: <87092e1fd6509e7272bd7b95865cdc4b793c714e.1512135871.git.mchehab@s-opensource.com>
-References: <87092e1fd6509e7272bd7b95865cdc4b793c714e.1512135871.git.mchehab@s-opensource.com>
-In-Reply-To: <87092e1fd6509e7272bd7b95865cdc4b793c714e.1512135871.git.mchehab@s-opensource.com>
-References: <87092e1fd6509e7272bd7b95865cdc4b793c714e.1512135871.git.mchehab@s-opensource.com>
+To: Alan <alan@linux.intel.com>
+Cc: vincent.hervieux@gmail.com, sakari.ailus@linux.intel.com,
+        linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/3] atomisp: Fix up the open v load race
+Message-ID: <20171212090350.0b57dbbb@vento.lan>
+In-Reply-To: <151001137594.77201.4306351721772580664.stgit@alans-desktop>
+References: <151001137594.77201.4306351721772580664.stgit@alans-desktop>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As we're now using SPDX identifiers, add the proper SPDX,
-better identifying the licenses whith apply to the source code.
+Em Mon, 06 Nov 2017 23:36:36 +0000
+Alan <alan@linux.intel.com> escreveu:
 
-As we're now using the short license, it doesn't make sense to
-keep the original license text.
+> This isn't the ideal final solution but it stops the main problem for now
+> where an open (often from udev) races the device initialization and we try
+> and load the firmware twice at the same time. This needless to say doesn't
+> usually end well.
 
-Also, fix MODULE_LICENSE to properly identify GPL v2
-at the Siano's common driver. Some codes there are licensed
-on GPL v2 or latter, while others are GPL v2 only. So,
-in order to reflect the common license that applies to
-everything, the module itself should be GPLv2 only.
+What we do on most drivers is that video_register_device() is called
+only after all hardware init.
 
-While here, use the Kernel's coding style for the comments
-with copyright info.
+That's usually enough to avoid race conditions with udev, although
+a mutex is also common in order to avoid some other race conditions
+between open/close - with can happen with multiple opens.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/common/siano/smsdvb-debugfs.c | 21 +++-------------
- drivers/media/common/siano/smsir.c          | 35 ++++++++-------------------
- drivers/media/common/siano/smsir.h          | 37 ++++++++++-------------------
- 3 files changed, 25 insertions(+), 68 deletions(-)
+> 
+> Signed-off-by: Alan Cox <alan@linux.intel.com>
+> ---
+>  .../media/atomisp/pci/atomisp2/atomisp_fops.c      |   12 ++++++++++++
+>  .../media/atomisp/pci/atomisp2/atomisp_internal.h  |    5 +++++
+>  .../media/atomisp/pci/atomisp2/atomisp_v4l2.c      |    6 ++++++
+>  3 files changed, 23 insertions(+)
+> 
+> diff --git a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_fops.c b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_fops.c
+> index dd7596d8763d..b82c53cee32c 100644
+> --- a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_fops.c
+> +++ b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_fops.c
+> @@ -771,6 +771,18 @@ static int atomisp_open(struct file *file)
+>  
+>  	dev_dbg(isp->dev, "open device %s\n", vdev->name);
+>  
+> +	/* Ensure that if we are still loading we block. Once the loading
+> +	   is over we can proceed. We can't blindly hold the lock until
+> +	   that occurs as if the load fails we'll deadlock the unload */
+> +	rt_mutex_lock(&isp->loading);
+> +	/* Revisit this with a better check once the code structure is
+> +	   cleaned up a bit more FIXME */
+> +	if (!isp->ready) {
+> +		rt_mutex_unlock(&isp->loading);
+> +		return -ENXIO;
+> +	}
+> +	rt_mutex_unlock(&isp->loading);
+> +
+>  	rt_mutex_lock(&isp->mutex);
+>  
+>  	acc_node = !strncmp(vdev->name, "ATOMISP ISP ACC",
+> diff --git a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_internal.h b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_internal.h
+> index 52a6f8002048..808d79c840d4 100644
+> --- a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_internal.h
+> +++ b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_internal.h
+> @@ -252,6 +252,11 @@ struct atomisp_device {
+>  	/* Purpose of mutex is to protect and serialize use of isp data
+>  	 * structures and css API calls. */
+>  	struct rt_mutex mutex;
+> +	/* This mutex ensures that we don't allow an open to succeed while
+> +	 * the initialization process is incomplete */
+> +	struct rt_mutex loading;
+> +	/* Set once the ISP is ready to allow opens */
+> +	bool ready;
+>  	/*
+>  	 * Serialise streamoff: mutex is dropped during streamoff to
+>  	 * cancel the watchdog queue. MUST be acquired BEFORE
+> diff --git a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_v4l2.c b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_v4l2.c
+> index 3c260f8b52e2..350e298bc3a6 100644
+> --- a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_v4l2.c
+> +++ b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_v4l2.c
+> @@ -1220,6 +1220,7 @@ static int atomisp_pci_probe(struct pci_dev *dev,
+>  	isp->saved_regs.ispmmadr = start;
+>  
+>  	rt_mutex_init(&isp->mutex);
+> +	rt_mutex_init(&isp->loading);
+>  	mutex_init(&isp->streamoff_mutex);
+>  	spin_lock_init(&isp->lock);
+>  
+> @@ -1393,6 +1394,8 @@ static int atomisp_pci_probe(struct pci_dev *dev,
+>  				      csi_afe_trim);
+>  	}
+>  
+> +	rt_mutex_lock(&isp->loading);
+> +
+>  	err = atomisp_initialize_modules(isp);
+>  	if (err < 0) {
+>  		dev_err(&dev->dev, "atomisp_initialize_modules (%d)\n", err);
+> @@ -1450,6 +1453,8 @@ static int atomisp_pci_probe(struct pci_dev *dev,
+>  	release_firmware(isp->firmware);
+>  	isp->firmware = NULL;
+>  	isp->css_env.isp_css_fw.data = NULL;
+> +	isp->ready = true;
+> +	rt_mutex_unlock(&isp->loading);
+>  
+>  	atomisp_drvfs_init(&atomisp_pci_driver, isp);
+>  
+> @@ -1468,6 +1473,7 @@ static int atomisp_pci_probe(struct pci_dev *dev,
+>  register_entities_fail:
+>  	atomisp_uninitialize_modules(isp);
+>  initialize_modules_fail:
+> +	rt_mutex_unlock(&isp->loading);
+>  	pm_qos_remove_request(&isp->pm_qos);
+>  	atomisp_msi_irq_uninit(isp, dev);
+>  enable_msi_fail:
+> 
 
-diff --git a/drivers/media/common/siano/smsdvb-debugfs.c b/drivers/media/common/siano/smsdvb-debugfs.c
-index 1a8677ade391..e06aec0ed18e 100644
---- a/drivers/media/common/siano/smsdvb-debugfs.c
-+++ b/drivers/media/common/siano/smsdvb-debugfs.c
-@@ -1,21 +1,6 @@
--/***********************************************************************
-- *
-- * Copyright(c) 2013 Mauro Carvalho Chehab
-- *
-- * This program is free software: you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License as published by
-- * the Free Software Foundation, either version 2 of the License, or
-- * (at your option) any later version.
--
-- *  This program is distributed in the hope that it will be useful,
-- * but WITHOUT ANY WARRANTY; without even the implied warranty of
-- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-- * GNU General Public License for more details.
-- *
-- * You should have received a copy of the GNU General Public License
-- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
-- *
-- ***********************************************************************/
-+// SPDX-License-Identifier: GPL-2.0+
-+//
-+// Copyright(c) 2013 Mauro Carvalho Chehab
- 
- #include "smscoreapi.h"
- 
-diff --git a/drivers/media/common/siano/smsir.c b/drivers/media/common/siano/smsir.c
-index e77bb0c95e69..56db0a944421 100644
---- a/drivers/media/common/siano/smsir.c
-+++ b/drivers/media/common/siano/smsir.c
-@@ -1,28 +1,13 @@
--/****************************************************************
--
-- Siano Mobile Silicon, Inc.
-- MDTV receiver kernel modules.
-- Copyright (C) 2006-2009, Uri Shkolnik
--
-- Copyright (c) 2010 - Mauro Carvalho Chehab
--	- Ported the driver to use rc-core
--	- IR raw event decoding is now done at rc-core
--	- Code almost re-written
--
-- This program is free software: you can redistribute it and/or modify
-- it under the terms of the GNU General Public License as published by
-- the Free Software Foundation, either version 2 of the License, or
-- (at your option) any later version.
--
-- This program is distributed in the hope that it will be useful,
-- but WITHOUT ANY WARRANTY; without even the implied warranty of
-- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-- GNU General Public License for more details.
--
-- You should have received a copy of the GNU General Public License
-- along with this program.  If not, see <http://www.gnu.org/licenses/>.
--
-- ****************************************************************/
-+// SPDX-License-Identifier: GPL-2.0+
-+//
-+// Siano Mobile Silicon, Inc.
-+// MDTV receiver kernel modules.
-+// Copyright (C) 2006-2009, Uri Shkolnik
-+//
-+// Copyright (c) 2010 - Mauro Carvalho Chehab
-+//	- Ported the driver to use rc-core
-+//	- IR raw event decoding is now done at rc-core
-+//	- Code almost re-written
- 
- 
- #include "smscoreapi.h"
-diff --git a/drivers/media/common/siano/smsir.h b/drivers/media/common/siano/smsir.h
-index d9abd96ef48b..b2c54c256e86 100644
---- a/drivers/media/common/siano/smsir.h
-+++ b/drivers/media/common/siano/smsir.h
-@@ -1,28 +1,15 @@
--/****************************************************************
--
--Siano Mobile Silicon, Inc.
--MDTV receiver kernel modules.
--Copyright (C) 2006-2009, Uri Shkolnik
--
-- Copyright (c) 2010 - Mauro Carvalho Chehab
--	- Ported the driver to use rc-core
--	- IR raw event decoding is now done at rc-core
--	- Code almost re-written
--
--This program is free software: you can redistribute it and/or modify
--it under the terms of the GNU General Public License as published by
--the Free Software Foundation, either version 2 of the License, or
--(at your option) any later version.
--
-- This program is distributed in the hope that it will be useful,
--but WITHOUT ANY WARRANTY; without even the implied warranty of
--MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
--GNU General Public License for more details.
--
--You should have received a copy of the GNU General Public License
--along with this program.  If not, see <http://www.gnu.org/licenses/>.
--
--****************************************************************/
-+/*
-+ * SPDX-License-Identifier: GPL-2.0+
-+ *
-+ * Siano Mobile Silicon, Inc.
-+ * MDTV receiver kernel modules.
-+ * Copyright (C) 2006-2009, Uri Shkolnik
-+ *
-+ * Copyright (c) 2010 - Mauro Carvalho Chehab
-+ *	- Ported the driver to use rc-core
-+ *	- IR raw event decoding is now done at rc-core
-+ *	- Code almost re-written
-+ */
- 
- #ifndef __SMS_IR_H__
- #define __SMS_IR_H__
--- 
-2.14.3
+
+
+Thanks,
+Mauro
