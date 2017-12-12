@@ -1,53 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f195.google.com ([209.85.128.195]:44409 "EHLO
-        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1760060AbdLSIH7 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 19 Dec 2017 03:07:59 -0500
-From: Philipp Rossak <embed3d@gmail.com>
-To: mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
-        maxime.ripard@free-electrons.com, wens@csie.org,
-        linux@armlinux.org.uk, sean@mess.org, p.zabel@pengutronix.de,
-        andi.shyti@samsung.com
-Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-sunxi@googlegroups.com
-Subject: [PATCH v3 5/6] arm: dts: sun8i: a83t: bananapi-m3: Enable IR controller
-Date: Tue, 19 Dec 2017 09:07:46 +0100
-Message-Id: <20171219080747.4507-6-embed3d@gmail.com>
-In-Reply-To: <20171219080747.4507-1-embed3d@gmail.com>
-References: <20171219080747.4507-1-embed3d@gmail.com>
+Received: from gloria.sntech.de ([95.129.55.99]:53972 "EHLO gloria.sntech.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752077AbdLLKvP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 12 Dec 2017 05:51:15 -0500
+From: Heiko Stuebner <heiko@sntech.de>
+To: linux-rockchip@lists.infradead.org
+Cc: Leo Wen <leo.wen@rock-chips.com>, mchehab@kernel.org,
+        robh+dt@kernel.org, mark.rutland@arm.com, davem@davemloft.net,
+        gregkh@linuxfoundation.org, rdunlap@infradead.org,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        eddie.cai@rock-chips.com, linux-media@vger.kernel.org
+Subject: Re: [PATCH 2/2] dt-bindings: Document the Rockchip RK1608 bindings
+Date: Tue, 12 Dec 2017 11:50:41 +0100
+Message-ID: <1720708.Qj5c0Lsxha@phil>
+In-Reply-To: <1513060095-29588-3-git-send-email-leo.wen@rock-chips.com>
+References: <1513060095-29588-1-git-send-email-leo.wen@rock-chips.com> <1513060095-29588-3-git-send-email-leo.wen@rock-chips.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The Bananapi M3 has an onboard IR receiver.
-This enables the onboard IR receiver subnode.
-Unlike the other IR receivers this one needs a base clock frequency
-of 3000000 Hz (3 MHz), to be able to work.
+Hi Leo,
 
-Signed-off-by: Philipp Rossak <embed3d@gmail.com>
-Acked-by: Chen-Yu Tsai <wens@csie.org>
----
- arch/arm/boot/dts/sun8i-a83t-bananapi-m3.dts | 7 +++++++
- 1 file changed, 7 insertions(+)
+Am Dienstag, 12. Dezember 2017, 14:28:15 CET schrieb Leo Wen:
+> +Optional properties:
+> +
+> +- spi-max-frequency	: Maximum SPI clocking speed of the device;
+> +			        (for RK1608)
+> +- spi-min-frequency	: Minimum SPI clocking speed of the device;
+> +			        (for RK1608)
 
-diff --git a/arch/arm/boot/dts/sun8i-a83t-bananapi-m3.dts b/arch/arm/boot/dts/sun8i-a83t-bananapi-m3.dts
-index 6550bf0e594b..ffc6445fd281 100644
---- a/arch/arm/boot/dts/sun8i-a83t-bananapi-m3.dts
-+++ b/arch/arm/boot/dts/sun8i-a83t-bananapi-m3.dts
-@@ -82,6 +82,13 @@
- 	};
- };
- 
-+&cir {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&cir_pins>;
-+	clock-frequency = <3000000>;
-+	status = "okay";
-+};
-+
- &ehci0 {
- 	/* Terminus Tech FE 1.1s 4-port USB 2.0 hub here */
- 	status = "okay";
--- 
-2.11.0
+There is no general spi-min-frequency property specified and I also guess
+systems would try to use a frequency close to maximum anyway, so I don't
+really see the use of specifying a minimum frequency.
+
+
+> +&pinctrl {
+> +	rk1608_irq_gpios {
+> +		rk1608_irq_gpios: rk1608_irq_gpios {
+> +			rockchip,pins = <6 2 RK_FUNC_GPIO &pcfg_pull_none>;
+> +			rockchip,pull = <1>;
+> +		};
+> +	};
+
+There is no need to specify the soc-specific pinctrl settings in a general
+devicetree example and you're using properties from your vendor-tree
+like the rockchip,pull one ... that are not used in the mainline kernel.
+
+So I'd suggest dropping the whole &pinctrl from the example.
+
+
+Heiko
