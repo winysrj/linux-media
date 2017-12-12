@@ -1,92 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f68.google.com ([74.125.83.68]:35272 "EHLO
-        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1763128AbdLSNyy (ORCPT
+Received: from mail-lf0-f67.google.com ([209.85.215.67]:32833 "EHLO
+        mail-lf0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751628AbdLLA0p (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 19 Dec 2017 08:54:54 -0500
-From: Jia-Ju Bai <baijiaju1990@gmail.com>
-To: fabien.dessenne@st.com, mchehab@kernel.org,
-        benjamin.gaignard@st.com, hverkuil@xs4all.nl
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Jia-Ju Bai <baijiaju1990@gmail.com>
-Subject: [PATCH V3 1/2] bdisp: Fix a possible sleep-in-atomic bug in bdisp_hw_reset
-Date: Tue, 19 Dec 2017 21:57:29 +0800
-Message-Id: <1513691849-6378-1-git-send-email-baijiaju1990@gmail.com>
+        Mon, 11 Dec 2017 19:26:45 -0500
+From: Dmitry Osipenko <digetx@gmail.com>
+To: Thierry Reding <thierry.reding@gmail.com>,
+        Jonathan Hunter <jonathanh@nvidia.com>,
+        Stephen Warren <swarren@wwwdotorg.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Vladimir Zapolskiy <vz@mleia.com>
+Cc: Rob Herring <robh+dt@kernel.org>,
+        Dan Carpenter <dan.carpenter@oracle.com>,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        devicetree@vger.kernel.org, linux-tegra@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: [PATCH v5 4/4] ARM: dts: tegra20: Add video decoder node
+Date: Tue, 12 Dec 2017 03:26:10 +0300
+Message-Id: <e80456489c7802e768883ded842e7818158168c4.1513038011.git.digetx@gmail.com>
+In-Reply-To: <cover.1513038011.git.digetx@gmail.com>
+References: <cover.1513038011.git.digetx@gmail.com>
+In-Reply-To: <cover.1513038011.git.digetx@gmail.com>
+References: <cover.1513038011.git.digetx@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The driver may sleep under a spinlock.
-The function call path is:
-bdisp_device_run (acquire the spinlock)
-  bdisp_hw_reset
-    msleep --> may sleep
+Add Video Decoder Engine device node.
 
-To fix it, readl_poll_timeout_atomic is used to replace msleep.
-
-This bug is found by my static analysis tool(DSAC) and
-checked by my code review.
-
-Signed-off-by: Jia-Ju Bai <baijiaju1990@gmail.com>
+Signed-off-by: Dmitry Osipenko <digetx@gmail.com>
 ---
- drivers/media/platform/sti/bdisp/bdisp-hw.c |   23 ++++++++++++-----------
- 1 file changed, 12 insertions(+), 11 deletions(-)
+ arch/arm/boot/dts/tegra20.dtsi | 27 +++++++++++++++++++++++++++
+ 1 file changed, 27 insertions(+)
 
-diff --git a/drivers/media/platform/sti/bdisp/bdisp-hw.c b/drivers/media/platform/sti/bdisp/bdisp-hw.c
-index b7892f3..b63d9c9 100644
---- a/drivers/media/platform/sti/bdisp/bdisp-hw.c
-+++ b/drivers/media/platform/sti/bdisp/bdisp-hw.c
-@@ -4,7 +4,7 @@
-  * License terms:  GNU General Public License (GPL), version 2
-  */
+diff --git a/arch/arm/boot/dts/tegra20.dtsi b/arch/arm/boot/dts/tegra20.dtsi
+index 36909df653c3..864a95872b8d 100644
+--- a/arch/arm/boot/dts/tegra20.dtsi
++++ b/arch/arm/boot/dts/tegra20.dtsi
+@@ -16,6 +16,11 @@
+ 		#address-cells = <1>;
+ 		#size-cells = <1>;
+ 		ranges = <0 0x40000000 0x40000>;
++
++		vde_pool: vde {
++			reg = <0x400 0x3fc00>;
++			pool;
++		};
+ 	};
  
--#include <linux/delay.h>
-+#include <linux/iopoll.h>
+ 	host1x@50000000 {
+@@ -258,6 +263,28 @@
+ 		*/
+ 	};
  
- #include "bdisp.h"
- #include "bdisp-filter.h"
-@@ -15,7 +15,7 @@
- 
- /* Reset & boot poll config */
- #define POLL_RST_MAX            50
--#define POLL_RST_DELAY_MS       20
-+#define POLL_RST_DELAY_US       20000
- 
- enum bdisp_target_plan {
- 	BDISP_RGB,
-@@ -366,7 +366,7 @@ struct bdisp_filter_addr {
-  */
- int bdisp_hw_reset(struct bdisp_dev *bdisp)
- {
--	unsigned int i;
-+	u32 tmp;
- 
- 	dev_dbg(bdisp->dev, "%s\n", __func__);
- 
-@@ -378,16 +378,17 @@ int bdisp_hw_reset(struct bdisp_dev *bdisp)
- 	       bdisp->regs + BLT_CTL);
- 	writel(0, bdisp->regs + BLT_CTL);
- 
--	/* Wait for reset done */
--	for (i = 0; i < POLL_RST_MAX; i++) {
--		if (readl(bdisp->regs + BLT_STA1) & BLT_STA1_IDLE)
--			break;
--		msleep(POLL_RST_DELAY_MS);
--	}
--	if (i == POLL_RST_MAX)
-+	/* Wait for reset done.
-+	 * Despite the large timeout, most of the time the reset happens without
-+	 * needing any delays */
-+	if (readl_poll_timeout_atomic(bdisp->regs + BLT_STA1, tmp,
-+		(tmp & BLT_STA1_IDLE), POLL_RST_DELAY_US,
-+			POLL_RST_DELAY_US * POLL_RST_MAX)) {
- 		dev_err(bdisp->dev, "Reset timeout\n");
-+		return -EAGAIN;
-+	}
- 
--	return (i == POLL_RST_MAX) ? -EAGAIN : 0;
-+	return 0;
- }
- 
- /**
++	vde@6001a000 {
++		compatible = "nvidia,tegra20-vde";
++		reg = <0x6001a000 0x1000   /* Syntax Engine */
++		       0x6001b000 0x1000   /* Video Bitstream Engine */
++		       0x6001c000  0x100   /* Macroblock Engine */
++		       0x6001c200  0x100   /* Post-processing Engine */
++		       0x6001c400  0x100   /* Motion Compensation Engine */
++		       0x6001c600  0x100   /* Transform Engine */
++		       0x6001c800  0x100   /* Pixel prediction block */
++		       0x6001ca00  0x100   /* Video DMA */
++		       0x6001d800  0x300>; /* Video frame controls */
++		reg-names = "sxe", "bsev", "mbe", "ppe", "mce",
++			    "tfe", "ppb", "vdma", "frameid";
++		iram = <&vde_pool>; /* IRAM region */
++		interrupts = <GIC_SPI  9 IRQ_TYPE_LEVEL_HIGH>, /* Sync token interrupt */
++			     <GIC_SPI 10 IRQ_TYPE_LEVEL_HIGH>, /* BSE-V interrupt */
++			     <GIC_SPI 12 IRQ_TYPE_LEVEL_HIGH>; /* SXE interrupt */
++		interrupt-names = "sync-token", "bsev", "sxe";
++		clocks = <&tegra_car TEGRA20_CLK_VDE>;
++		resets = <&tegra_car 61>;
++	};
++
+ 	apbmisc@70000800 {
+ 		compatible = "nvidia,tegra20-apbmisc";
+ 		reg = <0x70000800 0x64   /* Chip revision */
 -- 
-1.7.9.5
+2.15.1
