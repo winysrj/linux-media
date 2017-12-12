@@ -1,236 +1,196 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:57293 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1756091AbdLVPs4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 22 Dec 2017 10:48:56 -0500
-Date: Fri, 22 Dec 2017 13:48:49 -0200
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Satendra Singh Thakur <satendra.t@samsung.com>,
-        Inki Dae <inki.dae@samsung.com>,
-        Seung-Woo Kim <sw0312.kim@samsung.com>,
-        Junghak Sung <jh1009.sung@samsung.com>
-Subject: Re: [PATCH 05/11] media: dvb_vb2: fix a warning about streamoff
- logic
-Message-ID: <20171222134849.6238eef8@vento.lan>
-In-Reply-To: <1bb5247a5eb355693098ed715170b7523fc20530.1513872637.git.mchehab@s-opensource.com>
-References: <cover.1513872637.git.mchehab@s-opensource.com>
-        <1bb5247a5eb355693098ed715170b7523fc20530.1513872637.git.mchehab@s-opensource.com>
+Received: from regular1.263xmail.com ([211.150.99.137]:60001 "EHLO
+        regular1.263xmail.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752352AbdLLG3n (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 12 Dec 2017 01:29:43 -0500
+From: Leo Wen <leo.wen@rock-chips.com>
+To: mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
+        davem@davemloft.net, gregkh@linuxfoundation.org,
+        rdunlap@infradead.org
+Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-rockchip@lists.infradead.org,
+        eddie.cai@rock-chips.com, Leo Wen <leo.wen@rock-chips.com>
+Subject: [PATCH 2/2] dt-bindings: Document the Rockchip RK1608 bindings
+Date: Tue, 12 Dec 2017 14:28:15 +0800
+Message-Id: <1513060095-29588-3-git-send-email-leo.wen@rock-chips.com>
+In-Reply-To: <1513060095-29588-1-git-send-email-leo.wen@rock-chips.com>
+References: <1513060095-29588-1-git-send-email-leo.wen@rock-chips.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 21 Dec 2017 14:18:04 -0200
-Mauro Carvalho Chehab <mchehab@s-opensource.com> escreveu:
+Add DT bindings documentation for Rockchip RK1608.
 
-> The streamoff logic is causing those warnings:
-> 
->  WARNING: CPU: 3 PID: 3382 at drivers/media/v4l2-core/videobuf2-core.c:1652 __vb2_queue_cancel+0x177/0x250 [videobuf2_core]
->  Modules linked in: bnep fuse xt_CHECKSUM iptable_mangle tun ebtable_filter ebtables ip6table_filter ip6_tables xt_physdev br_netfilter bluetooth bridge rfkill ecdh_generic stp llc nf_log_ipv4 nf_log_common xt_LOG xt_conntrack ipt_MASQUERADE nf_nat_masquerade_ipv4 iptable_nat nf_conntrack_ipv4 nf_defrag_ipv4 nf_nat_ipv4 nf_nat nf_conntrack libcrc32c sunrpc vfat fat snd_hda_codec_hdmi rc_dib0700_nec i915 rc_pinnacle_pctv_hd em28xx_rc a8293 ts2020 m88ds3103 i2c_mux em28xx_dvb dib8000 dvb_usb_dib0700 dib0070 dib7000m dib0090 dvb_usb dvb_core uvcvideo snd_usb_audio videobuf2_v4l2 dib3000mc videobuf2_vmalloc videobuf2_memops dibx000_common videobuf2_core rc_core snd_usbmidi_lib snd_rawmidi em28xx tveeprom v4l2_common videodev media intel_rapl x86_pkg_temp_thermal intel_powerclamp coretemp snd_hda_intel
->  kvm_intel snd_hda_codec kvm snd_hwdep snd_hda_core snd_seq irqbypass crct10dif_pclmul crc32_pclmul i2c_algo_bit ghash_clmulni_intel snd_seq_device drm_kms_helper snd_pcm intel_cstate intel_uncore snd_timer tpm_tis drm mei_wdt iTCO_wdt iTCO_vendor_support tpm_tis_core snd intel_rapl_perf mei_me mei tpm i2c_i801 soundcore lpc_ich video binfmt_misc hid_logitech_hidpp hid_logitech_dj e1000e crc32c_intel ptp pps_core analog gameport joydev
->  CPU: 3 PID: 3382 Comm: lt-dvbv5-zap Not tainted 4.14.0+ #3
->  Hardware name:                  /D53427RKE, BIOS RKPPT10H.86A.0048.2017.0506.1545 05/06/2017
->  task: ffff94b93bbe1e40 task.stack: ffffb7a98320c000
->  RIP: 0010:__vb2_queue_cancel+0x177/0x250 [videobuf2_core]
->  RSP: 0018:ffffb7a98320fd40 EFLAGS: 00010202
->  RAX: 0000000000000001 RBX: ffff94b92ff72428 RCX: 0000000000000000
->  RDX: 0000000000000001 RSI: 0000000000000001 RDI: ffff94b92ff72428
->  RBP: ffffb7a98320fd68 R08: ffff94b92ff725d8 R09: ffffb7a98320fcc8
->  R10: ffff94b978003d98 R11: ffff94b92ff72428 R12: ffff94b92ff72428
->  R13: 0000000000000282 R14: ffff94b92059ae20 R15: dead000000000100
->  FS:  0000000000000000(0000) GS:ffff94b99e380000(0000) knlGS:0000000000000000
->  CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
->  CR2: 0000555953007d70 CR3: 000000012be09004 CR4: 00000000001606e0
->  Call Trace:
->   vb2_core_streamoff+0x28/0x90 [videobuf2_core]
->   dvb_vb2_stream_off+0xd1/0x150 [dvb_core]
->   dvb_dvr_release+0x114/0x120 [dvb_core]
->   __fput+0xdf/0x1e0
->   ____fput+0xe/0x10
->   task_work_run+0x94/0xc0
->   do_exit+0x2dc/0xba0
->   do_group_exit+0x47/0xb0
->   SyS_exit_group+0x14/0x20
->   entry_SYSCALL_64_fastpath+0x1a/0xa5
->  RIP: 0033:0x7f775e931ed8
->  RSP: 002b:00007fff07019d68 EFLAGS: 00000246 ORIG_RAX: 00000000000000e7
->  RAX: ffffffffffffffda RBX: 0000000001d02690 RCX: 00007f775e931ed8
->  RDX: 0000000000000001 RSI: 000000000000003c RDI: 0000000000000001
->  RBP: 00007fff0701a500 R08: 00000000000000e7 R09: ffffffffffffff70
->  R10: 00007f775e854dd8 R11: 0000000000000246 R12: 0000000000000000
->  R13: 00000000035fa000 R14: 000000000000000a R15: 000000000000000a
->  Code: 00 00 04 74 1c 44 89 e8 49 83 c5 01 41 39 84 24 88 01 00 00 77 8a 5b 41 5c 41 5d 41 5e 41 5f 5d c3 48 89 df e8 bb fd ff ff eb da <0f> ff 41 8b b4 24 88 01 00 00 85 f6 74 34 bb 01 00 00 00 eb 10
-> 
-> There are actually two issues here:
-> 
-> 1) list_del() should be called when changing the buffer state;
-> 
-> 2) The logic with marks the buffers as done is at the wrong place.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Leo Wen <leo.wen@rock-chips.com>
+---
+ Documentation/devicetree/bindings/media/rk1608.txt | 143 +++++++++++++++++++++
+ MAINTAINERS                                        |   1 +
+ 2 files changed, 144 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/rk1608.txt
 
-I ended by sending a wrong version. The one I sent causes a list
-corruption, as it deletes a queued value without marking the buffer
-as done:
-
-	[  627.233534] list_del corruption, ffffa0aa01182e20->next is LIST_POISON1 (dead000000000100)
-
-
-Regards,
-Mauro
-
-
-
-[PATCH] media: dvb_vb2: fix a warning about streamoff logic
-
-The streamoff logic is causing those warnings:
-
- WARNING: CPU: 3 PID: 3382 at drivers/media/v4l2-core/videobuf2-core.c:1652 __vb2_queue_cancel+0x177/0x250 [videobuf2_core]
- Modules linked in: bnep fuse xt_CHECKSUM iptable_mangle tun ebtable_filter ebtables ip6table_filter ip6_tables xt_physdev br_netfilter bluetooth bridge rfkill ecdh_generic stp llc nf_log_ipv4 nf_log_common xt_LOG xt_conntrack ipt_MASQUERADE nf_nat_masquerade_ipv4 iptable_nat nf_conntrack_ipv4 nf_defrag_ipv4 nf_nat_ipv4 nf_nat nf_conntrack libcrc32c sunrpc vfat fat snd_hda_codec_hdmi rc_dib0700_nec i915 rc_pinnacle_pctv_hd em28xx_rc a8293 ts2020 m88ds3103 i2c_mux em28xx_dvb dib8000 dvb_usb_dib0700 dib0070 dib7000m dib0090 dvb_usb dvb_core uvcvideo snd_usb_audio videobuf2_v4l2 dib3000mc videobuf2_vmalloc videobuf2_memops dibx000_common videobuf2_core rc_core snd_usbmidi_lib snd_rawmidi em28xx tveeprom v4l2_common videodev media intel_rapl x86_pkg_temp_thermal intel_powerclamp coretemp snd_hda_intel
- kvm_intel snd_hda_codec kvm snd_hwdep snd_hda_core snd_seq irqbypass crct10dif_pclmul crc32_pclmul i2c_algo_bit ghash_clmulni_intel snd_seq_device drm_kms_helper snd_pcm intel_cstate intel_uncore snd_timer tpm_tis drm mei_wdt iTCO_wdt iTCO_vendor_support tpm_tis_core snd intel_rapl_perf mei_me mei tpm i2c_i801 soundcore lpc_ich video binfmt_misc hid_logitech_hidpp hid_logitech_dj e1000e crc32c_intel ptp pps_core analog gameport joydev
- CPU: 3 PID: 3382 Comm: lt-dvbv5-zap Not tainted 4.14.0+ #3
- Hardware name:                  /D53427RKE, BIOS RKPPT10H.86A.0048.2017.0506.1545 05/06/2017
- task: ffff94b93bbe1e40 task.stack: ffffb7a98320c000
- RIP: 0010:__vb2_queue_cancel+0x177/0x250 [videobuf2_core]
- RSP: 0018:ffffb7a98320fd40 EFLAGS: 00010202
- RAX: 0000000000000001 RBX: ffff94b92ff72428 RCX: 0000000000000000
- RDX: 0000000000000001 RSI: 0000000000000001 RDI: ffff94b92ff72428
- RBP: ffffb7a98320fd68 R08: ffff94b92ff725d8 R09: ffffb7a98320fcc8
- R10: ffff94b978003d98 R11: ffff94b92ff72428 R12: ffff94b92ff72428
- R13: 0000000000000282 R14: ffff94b92059ae20 R15: dead000000000100
- FS:  0000000000000000(0000) GS:ffff94b99e380000(0000) knlGS:0000000000000000
- CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
- CR2: 0000555953007d70 CR3: 000000012be09004 CR4: 00000000001606e0
- Call Trace:
-  vb2_core_streamoff+0x28/0x90 [videobuf2_core]
-  dvb_vb2_stream_off+0xd1/0x150 [dvb_core]
-  dvb_dvr_release+0x114/0x120 [dvb_core]
-  __fput+0xdf/0x1e0
-  ____fput+0xe/0x10
-  task_work_run+0x94/0xc0
-  do_exit+0x2dc/0xba0
-  do_group_exit+0x47/0xb0
-  SyS_exit_group+0x14/0x20
-  entry_SYSCALL_64_fastpath+0x1a/0xa5
- RIP: 0033:0x7f775e931ed8
- RSP: 002b:00007fff07019d68 EFLAGS: 00000246 ORIG_RAX: 00000000000000e7
- RAX: ffffffffffffffda RBX: 0000000001d02690 RCX: 00007f775e931ed8
- RDX: 0000000000000001 RSI: 000000000000003c RDI: 0000000000000001
- RBP: 00007fff0701a500 R08: 00000000000000e7 R09: ffffffffffffff70
- R10: 00007f775e854dd8 R11: 0000000000000246 R12: 0000000000000000
- R13: 00000000035fa000 R14: 000000000000000a R15: 000000000000000a
- Code: 00 00 04 74 1c 44 89 e8 49 83 c5 01 41 39 84 24 88 01 00 00 77 8a 5b 41 5c 41 5d 41 5e 41 5f 5d c3 48 89 df e8 bb fd ff ff eb da <0f> ff 41 8b b4 24 88 01 00 00 85 f6 74 34 bb 01 00 00 00 eb 10
-
-There are actually two issues here:
-
-1) list_del() should be called when changing the buffer state;
-
-2) The logic with marks the buffers as done is at the wrong place.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-
-diff --git a/drivers/media/dvb-core/dvb_vb2.c b/drivers/media/dvb-core/dvb_vb2.c
-index 01424e67b42e..0588c5520419 100644
---- a/drivers/media/dvb-core/dvb_vb2.c
-+++ b/drivers/media/dvb-core/dvb_vb2.c
-@@ -90,8 +90,19 @@ static int _start_streaming(struct vb2_queue *vq, unsigned int count)
- static void _stop_streaming(struct vb2_queue *vq)
- {
- 	struct dvb_vb2_ctx *ctx = vb2_get_drv_priv(vq);
-+	struct dvb_buffer *buf;
-+	unsigned long flags = 0;
- 
- 	dprintk(3, "[%s]\n", ctx->name);
+diff --git a/Documentation/devicetree/bindings/media/rk1608.txt b/Documentation/devicetree/bindings/media/rk1608.txt
+new file mode 100644
+index 0000000..bda5cdb
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/rk1608.txt
+@@ -0,0 +1,143 @@
++Rockchip RK1608 as a PreISP to link on Soc
++------------------------------------------
 +
-+	spin_lock_irqsave(&ctx->slock, flags);
-+	while (!list_empty(&ctx->dvb_q)) {
-+		buf = list_entry(ctx->dvb_q.next,
-+				 struct dvb_buffer, list);
-+		vb2_buffer_done(&buf->vb, VB2_BUF_STATE_ERROR);
-+		list_del(&buf->list);
-+	}
-+	spin_unlock_irqrestore(&ctx->slock, flags);
- }
++Required properties:
++
++- compatible      : "rockchip,rk1608";
++- reg             : SPI slave address of the rk1608;
++- clocks          : Must contain an entry for each entry in clock-names;
++- clock-names	  : Must contain "mclk" for the device's master clock;
++- reset-gpio      : GPIO connected to reset pin;
++- irq-gpio        : GPIO connected to irq pin;
++- sleepst-gpio    : GPIO connected to sleepst pin;
++- wakeup-gpio     : GPIO connected to wakeup pin;
++- powerdown-gpio  : GPIO connected to powerdown pin;
++- pinctrl-names   : Should contain only one value - "default";
++- pinctrl-0       : Pin control group to be used for this controller;
++
++Optional properties:
++
++- spi-max-frequency	: Maximum SPI clocking speed of the device;
++			        (for RK1608)
++- spi-min-frequency	: Minimum SPI clocking speed of the device;
++			        (for RK1608)
++
++The device node should contain one 'port' child node with one child 'endpoint'
++node, according to the bindings defined in Documentation/devicetree/bindings/
++media/video-interfaces.txt. The following are properties specific to those
++nodes.
++
++endpoint node
++-------------
++
++- data-lanes : (optional) specifies MIPI CSI-2 data lanes as covered in
++	       video-interfaces.txt. If present it should be <1> - the device
++	       supports only one data lane without re-mapping.
++
++Note1: Since no data is generated in RK1608，so this is meaningful that you need
++a extra sensor (such as a camera) mounted on RK1608. You need to use endpoint@x
++to match these sensors.
++
++Note2:You must set the current value of the spi pins to be 8mA, if they are not.
++
++Example:
++
++&spi0 {
++	status = "okay";
++
++	spi_rk1608@00 {
++		compatible =  "rockchip,rk1608";
++		reg = <0>;
++		status = "okay";
++		spi-max-frequency = <24000000>;
++		spi-min-frequency = <12000000>;
++		clocks = <&cru SCLK_SPI0>;
++		clock-names = "mclk";
++
++		reset-gpio = <&gpio6 0 GPIO_ACTIVE_HIGH>;
++		irq-gpio = <&gpio6 2 GPIO_ACTIVE_HIGH>;
++		sleepst-gpio = <&gpio6 1 GPIO_ACTIVE_HIGH>;
++		wakeup-gpio = <&gpio6 4 GPIO_ACTIVE_HIGH>;
++		powerdown-gpio = <&gpio8 0 GPIO_ACTIVE_HIGH>;
++
++		pinctrl-names = "default";
++		pinctrl-0 = <&rk1608_irq_gpios &rk1608_wake_gpios
++			     &rk1608_sleep_gpios>;
++
++		port {
++			isp_mipi_out: endpoint {
++				remote-endpoint = <&isp_mipi_in>;
++				data-lanes = <1>;
++			};
++			/*Example: we have two cameras*/
++			sensor_in0: endpoint@0 {
++				remote-endpoint = <&xxx0>;
++			};
++
++			sensor_in1: endpoint@1 {
++				remote-endpoint = <&xxx1>;
++			};
++		};
++	};
++};
++
++&mipi_phy_rx0 {
++	bus-width = <2>;
++	status = "okay";
++
++	port {
++		isp_mipi_in: endpoint {
++			remote-endpoint = <&isp_mipi_out>;
++				data-lanes = <1>;
++				link-frequencies =
++					/bits/ 64 <1000000000>;
++		};
++	};
++};
++
++&pinctrl {
++	rk1608_irq_gpios {
++		rk1608_irq_gpios: rk1608_irq_gpios {
++			rockchip,pins = <6 2 RK_FUNC_GPIO &pcfg_pull_none>;
++			rockchip,pull = <1>;
++		};
++	};
++
++	rk1608_wake_gpios {
++		rk1608_wake_gpios: rk1608_wake_gpios {
++			rockchip,pins = <6 4 RK_FUNC_GPIO &pcfg_pull_none>;
++			rockchip,pull = <1>;
++		};
++	};
++
++	rk1608_sleep_gpios {
++		rk1608_sleep_gpios: rk1608_sleep_gpios {
++			rockchip,pins = <6 1 RK_FUNC_GPIO &pcfg_pull_none>;
++			rockchip,pull = <1>;
++			rockchip,drive = <0>;
++		};
++	};
++
++	pcfg_pull_none_8ma: pcfg-pull-none-8ma {
++		bias-disable;
++		drive-strength = <8>;
++	};
++
++	spi0 {
++		spi0_clk: spi0-clk {
++			rockchip,pins = <5 12 RK_FUNC_1 &pcfg_pull_none_8ma>;
++		};
++		spi0_cs0: spi0-cs0 {
++			rockchip,pins = <5 13 RK_FUNC_1 &pcfg_pull_none_8ma>;
++		};
++		spi0_tx: spi0-tx {
++			rockchip,pins = <5 14 RK_FUNC_1 &pcfg_pull_none_8ma>;
++		};
++		spi0_rx: spi0-rx {
++			rockchip,pins = <5 15 RK_FUNC_1 &pcfg_pull_none_8ma>;
++		};
++		spi0_cs1: spi0-cs1 {
++			rockchip,pins = <5 16 RK_FUNC_1 &pcfg_pull_none_8ma>;
++		};
++	};
++};
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 48235d8..196a9ff 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -133,6 +133,7 @@ M:	Leo Wen <leo.wen@rock-chips.com>
+ S:	Maintained
+ F:	drivers/media/platform/spi/rk1608.c
+ F:	drivers/media/platform/spi/rk1608.h
++F:	Documentation/devicetree/bindings/media/rk1608.txt
  
- static void _dmxdev_lock(struct vb2_queue *vq)
-@@ -225,21 +236,8 @@ int dvb_vb2_stream_off(struct dvb_vb2_ctx *ctx)
- {
- 	struct vb2_queue *q = (struct vb2_queue *)&ctx->vb_q;
- 	int ret;
--	unsigned long flags = 0;
- 
- 	ctx->state &= ~DVB_VB2_STATE_STREAMON;
--	spin_lock_irqsave(&ctx->slock, flags);
--	while (!list_empty(&ctx->dvb_q)) {
--		struct dvb_buffer       *buf;
--
--		buf = list_entry(ctx->dvb_q.next,
--				 struct dvb_buffer, list);
--		list_del(&buf->list);
--		spin_unlock_irqrestore(&ctx->slock, flags);
--		vb2_buffer_done(&buf->vb, VB2_BUF_STATE_ERROR);
--		spin_lock_irqsave(&ctx->slock, flags);
--	}
--	spin_unlock_irqrestore(&ctx->slock, flags);
- 	ret = vb2_core_streamoff(q, q->type);
- 	if (ret) {
- 		ctx->state = DVB_VB2_STATE_NONE;
-@@ -273,11 +271,10 @@ int dvb_vb2_fill_buffer(struct dvb_vb2_ctx *ctx,
- 		 */
- 		return 0;
- 	}
-+	spin_lock_irqsave(&ctx->slock, flags);
- 	while (todo) {
- 		if (!ctx->buf) {
--			spin_lock_irqsave(&ctx->slock, flags);
- 			if (list_empty(&ctx->dvb_q)) {
--				spin_unlock_irqrestore(&ctx->slock, flags);
- 				dprintk(3, "[%s] Buffer overflow!!!\n",
- 					ctx->name);
- 				break;
-@@ -285,14 +282,13 @@ int dvb_vb2_fill_buffer(struct dvb_vb2_ctx *ctx,
- 
- 			ctx->buf = list_entry(ctx->dvb_q.next,
- 					      struct dvb_buffer, list);
--			list_del(&ctx->buf->list);
--			spin_unlock_irqrestore(&ctx->slock, flags);
- 			ctx->remain = vb2_plane_size(&ctx->buf->vb, 0);
- 			ctx->offset = 0;
- 		}
- 
- 		if (!dvb_vb2_is_streaming(ctx)) {
- 			vb2_buffer_done(&ctx->buf->vb, VB2_BUF_STATE_ERROR);
-+			list_del(&ctx->buf->list);
- 			ctx->buf = NULL;
- 			break;
- 		}
-@@ -309,6 +305,7 @@ int dvb_vb2_fill_buffer(struct dvb_vb2_ctx *ctx,
- 
- 		if (ctx->remain == 0) {
- 			vb2_buffer_done(&ctx->buf->vb, VB2_BUF_STATE_DONE);
-+			list_del(&ctx->buf->list);
- 			ctx->buf = NULL;
- 		}
- 	}
-@@ -316,8 +313,10 @@ int dvb_vb2_fill_buffer(struct dvb_vb2_ctx *ctx,
- 	if (ctx->nonblocking && ctx->buf) {
- 		vb2_set_plane_payload(&ctx->buf->vb, 0, ll);
- 		vb2_buffer_done(&ctx->buf->vb, VB2_BUF_STATE_DONE);
-+		list_del(&ctx->buf->list);
- 		ctx->buf = NULL;
- 	}
-+	spin_unlock_irqrestore(&ctx->slock, flags);
- 
- 	if (todo)
- 		dprintk(1, "[%s] %d bytes are dropped.\n", ctx->name, todo);
-
-
-
-
-Thanks,
-Mauro
+ 3C59X NETWORK DRIVER
+ M:	Steffen Klassert <klassert@mathematik.tu-chemnitz.de>
+-- 
+2.7.4
