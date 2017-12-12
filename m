@@ -1,102 +1,355 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.15.4]:49663 "EHLO mout.web.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751494AbdLCAAY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 2 Dec 2017 19:00:24 -0500
-Subject: Re: [GIT PULL] SAA716x DVB driver
-To: Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Jemma Denson <jdenson@gmail.com>
-Cc: =?UTF-8?Q?Tycho_L=c3=bcrsen?= <tycholursen@gmail.com>,
+Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:49219 "EHLO
+        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751803AbdLLPrz (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 12 Dec 2017 10:47:55 -0500
+Subject: Re: [PATCH v10 4/4] [media] platform: Add Synopsys DesignWare HDMI RX
+ Controller Driver
+To: Jose Abreu <Jose.Abreu@synopsys.com>, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+References: <cover.1513013948.git.joabreu@synopsys.com>
+ <5f9eedfd6f91ed73ef0bb6d3977588d01478909f.1513013948.git.joabreu@synopsys.com>
+Cc: Joao Pinto <Joao.Pinto@synopsys.com>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org
-References: <50e5ba3c-4e32-f2e4-7844-150eefdf71b5@web.de>
- <d693cf1b-de3d-5994-5ef0-eeb0e37065a3@web.de>
- <20170827073040.6e96d79a@vento.lan>
- <e9d87f55-18fc-e57b-f9aa-a41c7f983b34@web.de>
- <20170909181123.392cfbb0@vento.lan>
- <a44b8eb0-cdd5-aa28-ad30-68db0126b6f6@web.de>
- <20170916125042.78c4abad@recife.lan>
- <fab215f8-29f3-1857-6f33-c45e78bb5e3c@web.de>
- <7c17c0a1-1c98-1272-8430-4a194b658872@gmail.com>
- <20171127092408.20de0fe0@vento.lan>
- <e2076533-5c33-f3be-b438-a1616f743a92@gmail.com>
- <20171202174922.34a6f9b9@vento.lan>
-From: Soeren Moch <smoch@web.de>
-Message-ID: <ce4f25e6-7d75-2391-d685-35b50a0639bb@web.de>
-Date: Sun, 3 Dec 2017 00:59:20 +0100
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sylwester Nawrocki <snawrocki@kernel.org>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Philippe Ombredanne <pombredanne@nexb.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <108e2c3c-243f-cd67-2df7-57541b28ca39@xs4all.nl>
+Date: Tue, 12 Dec 2017 16:47:51 +0100
 MIME-Version: 1.0
-In-Reply-To: <20171202174922.34a6f9b9@vento.lan>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
-Content-Language: en-GB
+In-Reply-To: <5f9eedfd6f91ed73ef0bb6d3977588d01478909f.1513013948.git.joabreu@synopsys.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02.12.2017 20:49, Mauro Carvalho Chehab wrote:
-> Em Sat, 2 Dec 2017 18:51:16 +0000
-> Jemma Denson <jdenson@gmail.com> escreveu:
->
->> Hi Mauro,
->>
->> On 27/11/17 11:24, Mauro Carvalho Chehab wrote:
->>> Em Fri, 24 Nov 2017 17:28:37 +0100
->>> Tycho Lürsen <tycholursen@gmail.com> escreveu:
->>>  
->>>> Hi Mauro,
->>>>
->>>> afaik the last communication about submission of this driver was about
->>>> two months ago.
->>>>
->>>> This driver is important to me, because I own several TurboSight cards
->>>> that are saa716x based. I want to submit a patch that supports my cards.
->>>> Of course I can only do so when you accept this driver in the first place.
->>>>
->>>> Any chance you and Sören agree about how to proceed about this driver
->>>> anytime soon?  
->>> If we can reach an agreement about what should be done for the driver
->>> to be promoted from staging some day, I'll merge it. Otherwise,
->>> it can be kept maintained out of tree. This driver has been maintained
->>> OOT for a very long time, and it seems that people were happy with
->>> that, as only at the second half of this year someone is requesting
->>> to merge it.
->>>
->>> So, while I agree that the best is to merge it upstream and
->>> address the issues that made it OOT for a long time, we shouldn't
->>> rush it with the risk of doing more harm than good.
->>>
->>> Thanks,
->>> Mauro  
->> Would I be correct in thinking the main blocker to this is the *_ff features
->> used by the S2-6400 card? There's plenty of other cards using this chipset
->> that don't need that part.
->>
->> Would a solution for now to be a driver with the ff components stripped out,
->> and then the ff API work can be done later when / if there's any interest?
-> Works for me. In such case (and provided that the driver without *_ff are
-> in good shape), we could merge it under drivers/media (instead of merging
-> it on staging).
-All the entries in the TODO file are not specific for saa716x_ff.
->> I guess a problem would be finding a maintainer, I'm happy to put together
->> a stripped down driver just supporting the TBS card I use (I already have
->> one I use with dkms), but I'm not sure I have the time or knowledge of this
->> chipset to be a maintainer.
-There is chipset specific stuff to fix, especially irq handling.
-> As we're talking more about touching at uAPI, probably it doesn't require
-> chipsed knowledge. Only time and interest on doing it.
->
-> Please sync with Soeren. Perhaps if you both could help on it, it would
-> make the task easier.
-As I already wrote to different people off-list: I'm happy to support
-more cards with the saa7160 bridge and maintain these in this driver. As
-hobbyist programmer this of course makes no sense to me, if the hardware
-I own (S2-6400) is not supported.
+Hi Jose,
+
+Some more comments:
+
+On 11/12/17 18:41, Jose Abreu wrote:
+> This is an initial submission for the Synopsys DesignWare HDMI RX
+> Controller Driver. This driver interacts with a phy driver so that
+> a communication between them is created and a video pipeline is
+> configured.
+> 
+> The controller + phy pipeline can then be integrated into a fully
+> featured system that can be able to receive video up to 4k@60Hz
+> with deep color 48bit RGB, depending on the platform. Although,
+> this initial version does not yet handle deep color modes.
+> 
+> This driver was implemented as a standard V4L2 subdevice and its
+> main features are:
+> 	- Internal state machine that reconfigures phy until the
+> 	video is not stable
+> 	- JTAG communication with phy
+> 	- Inter-module communication with phy driver
+> 	- Debug write/read ioctls
+> 
+> Some notes:
+> 	- RX sense controller (cable connection/disconnection) must
+> 	be handled by the platform wrapper as this is not integrated
+> 	into the controller RTL
+> 	- The same goes for EDID ROM's
+> 	- ZCAL calibration is needed only in FPGA platforms, in ASIC
+> 	this is not needed
+> 	- The state machine is not an ideal solution as it creates a
+> 	kthread but it is needed because some sources might not be
+> 	very stable at sending the video (i.e. we must react
+> 	accordingly).
+> 
+> Signed-off-by: Jose Abreu <joabreu@synopsys.com>
+> Cc: Joao Pinto <jpinto@synopsys.com>
+> Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+> Cc: Hans Verkuil <hans.verkuil@cisco.com>
+> Cc: Sylwester Nawrocki <snawrocki@kernel.org>
+> Cc: Sakari Ailus <sakari.ailus@iki.fi>
+> Cc: Philippe Ombredanne <pombredanne@nexb.com>
+> ---
+> Changes from v9:
+> 	- Use SPDX License ID (Philippe)
+> 	- Use LOW_DRIVE CEC error (Hans)
+> 	- Fill bt->il_* fields (Hans)
+> 	- Fix format->field to NONE (Hans)
+> 	- Drop a left-over comment (Hans)
+> 	- Use CEC_CAP_DEFAULTS (Hans)
+> Changes from v8:
+> 	- Incorporate Sakari's work on ASYNC subdevs
+> Changes from v6:
+> 	- edid-phandle now also looks for parent node (Sylwester)
+> 	- Fix kbuild build warnings
+> Changes from v5:
+> 	- Removed HDCP 1.4 support (Hans)
+> 	- Removed some CEC debug messages (Hans)
+> 	- Add s_dv_timings callback (Hans)
+> 	- Add V4L2_CID_DV_RX_POWER_PRESENT ctrl (Hans)
+> Changes from v4:
+> 	- Add flag V4L2_SUBDEV_FL_HAS_DEVNODE (Sylwester)
+> 	- Remove some comments and change some messages to dev_dbg (Sylwester)
+> 	- Use v4l2_async_subnotifier_register() (Sylwester)
+> Changes from v3:
+> 	- Use v4l2 async API (Sylwester)
+> 	- Do not block waiting for phy
+> 	- Do not use busy waiting delays (Sylwester)
+> 	- Simplify dw_hdmi_power_on (Sylwester)
+> 	- Use clock API (Sylwester)
+> 	- Use compatible string (Sylwester)
+> 	- Minor fixes (Sylwester)
+> Changes from v2:
+> 	- Address review comments from Hans regarding CEC
+> 	- Use CEC notifier
+> 	- Enable SCDC
+> Changes from v1:
+> 	- Add support for CEC
+> 	- Correct typo errors
+> 	- Correctly detect interlaced video modes
+> 	- Correct VIC parsing
+> Changes from RFC:
+> 	- Add support for HDCP 1.4
+> 	- Fixup HDMI_VIC not being parsed (Hans)
+> 	- Send source change signal when powering off (Hans)
+> 	- Add a "wait stable delay"
+> 	- Detect interlaced video modes (Hans)
+> 	- Restrain g/s_register from reading/writing to HDCP regs (Hans)
+> ---
+>  drivers/media/platform/dwc/Kconfig      |   15 +
+>  drivers/media/platform/dwc/Makefile     |    1 +
+>  drivers/media/platform/dwc/dw-hdmi-rx.c | 1840 +++++++++++++++++++++++++++++++
+>  drivers/media/platform/dwc/dw-hdmi-rx.h |  419 +++++++
+>  include/media/dwc/dw-hdmi-rx-pdata.h    |   48 +
+>  5 files changed, 2323 insertions(+)
+>  create mode 100644 drivers/media/platform/dwc/dw-hdmi-rx.c
+>  create mode 100644 drivers/media/platform/dwc/dw-hdmi-rx.h
+>  create mode 100644 include/media/dwc/dw-hdmi-rx-pdata.h
+> 
+> diff --git a/drivers/media/platform/dwc/Kconfig b/drivers/media/platform/dwc/Kconfig
+> index 361d38d..3ddccde 100644
+> --- a/drivers/media/platform/dwc/Kconfig
+> +++ b/drivers/media/platform/dwc/Kconfig
+> @@ -6,3 +6,18 @@ config VIDEO_DWC_HDMI_PHY_E405
+>  
+>  	  To compile this driver as a module, choose M here. The module
+>  	  will be called dw-hdmi-phy-e405.
+> +
+> +config VIDEO_DWC_HDMI_RX
+> +	tristate "Synopsys Designware HDMI Receiver driver"
+> +	depends on VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
+> +	help
+> +	  Support for Synopsys Designware HDMI RX controller.
+> +
+> +	  To compile this driver as a module, choose M here. The module
+> +	  will be called dw-hdmi-rx.
+> +
+> +config VIDEO_DWC_HDMI_RX_CEC
+> +	bool
+> +	depends on VIDEO_DWC_HDMI_RX
+> +	select CEC_CORE
+> +	select CEC_NOTIFIER
+> diff --git a/drivers/media/platform/dwc/Makefile b/drivers/media/platform/dwc/Makefile
+> index fc3b62c..cd04ca9 100644
+> --- a/drivers/media/platform/dwc/Makefile
+> +++ b/drivers/media/platform/dwc/Makefile
+> @@ -1 +1,2 @@
+>  obj-$(CONFIG_VIDEO_DWC_HDMI_PHY_E405) += dw-hdmi-phy-e405.o
+> +obj-$(CONFIG_VIDEO_DWC_HDMI_RX) += dw-hdmi-rx.o
+> diff --git a/drivers/media/platform/dwc/dw-hdmi-rx.c b/drivers/media/platform/dwc/dw-hdmi-rx.c
+> new file mode 100644
+> index 0000000..437351e
+> --- /dev/null
+> +++ b/drivers/media/platform/dwc/dw-hdmi-rx.c
+
+<snip>
+
+> +static int dw_hdmi_s_routing(struct v4l2_subdev *sd, u32 input, u32 output,
+> +		u32 config)
+> +{
+> +	struct dw_hdmi_dev *dw_dev = to_dw_dev(sd);
+> +
+> +	if (!has_signal(dw_dev, input))
+> +		return -EINVAL;
+
+Why would this be a reason to reject this? There may be no signal now, but a signal
+might appear later.
+
+> +
+> +	dw_dev->selected_input = input;
+> +	if (input == dw_dev->configured_input)
+> +		return 0;
+> +
+> +	dw_hdmi_power_off(dw_dev);
+> +	return dw_hdmi_power_on(dw_dev, input);
+> +}
+> +
+> +static int dw_hdmi_g_input_status(struct v4l2_subdev *sd, u32 *status)
+> +{
+> +	struct dw_hdmi_dev *dw_dev = to_dw_dev(sd);
+> +
+> +	*status = 0;
+> +	if (!has_signal(dw_dev, dw_dev->selected_input))
+> +		*status |= V4L2_IN_ST_NO_POWER;
+> +	if (is_off(dw_dev))
+> +		*status |= V4L2_IN_ST_NO_SIGNAL;
+> +
+> +	dev_dbg(dw_dev->dev, "%s: status=0x%x\n", __func__, *status);
+> +	return 0;
+> +}
+> +
+> +static int dw_hdmi_g_parm(struct v4l2_subdev *sd, struct v4l2_streamparm *parm)
+> +{
+> +	struct dw_hdmi_dev *dw_dev = to_dw_dev(sd);
+> +
+> +	dev_dbg(dw_dev->dev, "%s\n", __func__);
+> +
+> +	/* TODO: Use helper to compute timeperframe */
+> +	parm->parm.capture.timeperframe.numerator = 1;
+> +	parm->parm.capture.timeperframe.denominator = 60;
+> +	return 0;
+> +}
+> +
+> +static int dw_hdmi_s_dv_timings(struct v4l2_subdev *sd,
+> +		struct v4l2_dv_timings *timings)
+> +{
+> +	struct dw_hdmi_dev *dw_dev = to_dw_dev(sd);
+> +
+> +	dev_dbg(dw_dev->dev, "%s\n", __func__);
+> +	if (!v4l2_valid_dv_timings(timings, &dw_hdmi_timings_cap, NULL, NULL))
+> +		return -EINVAL;
+> +	if (v4l2_match_dv_timings(timings, &dw_dev->timings, 0, false))
+> +		return 0;
+> +
+> +	dw_dev->timings = *timings;
+> +	return 0;
+> +}
+> +
+> +static int dw_hdmi_g_dv_timings(struct v4l2_subdev *sd,
+> +		struct v4l2_dv_timings *timings)
+> +{
+> +	struct dw_hdmi_dev *dw_dev = to_dw_dev(sd);
+> +
+> +	dev_dbg(dw_dev->dev, "%s\n", __func__);
+> +
+> +	*timings = dw_dev->timings;
+> +	return 0;
+> +}
+> +
+> +static int dw_hdmi_query_dv_timings(struct v4l2_subdev *sd,
+> +		struct v4l2_dv_timings *timings)
+> +{
+> +	struct dw_hdmi_dev *dw_dev = to_dw_dev(sd);
+> +	struct v4l2_bt_timings *bt = &timings->bt;
+> +	bool is_hdmi_vic;
+> +	u32 htot, hofs;
+> +	u32 vtot;
+> +	u8 vic;
+> +
+> +	dev_dbg(dw_dev->dev, "%s\n", __func__);
+> +
+> +	memset(timings, 0, sizeof(*timings));
+> +
+> +	timings->type = V4L2_DV_BT_656_1120;
+> +	bt->width = hdmi_readl(dw_dev, HDMI_MD_HACT_PX);
+> +	bt->height = hdmi_readl(dw_dev, HDMI_MD_VAL);
+> +	bt->interlaced = hdmi_readl(dw_dev, HDMI_MD_STS) & HDMI_MD_STS_ILACE ?
+> +		V4L2_DV_INTERLACED : V4L2_DV_PROGRESSIVE;
+> +
+> +	if (hdmi_readl(dw_dev, HDMI_ISTS) & HDMI_ISTS_VS_POL_ADJ)
+> +		bt->polarities |= V4L2_DV_VSYNC_POS_POL;
+> +	if (hdmi_readl(dw_dev, HDMI_ISTS) & HDMI_ISTS_HS_POL_ADJ)
+> +		bt->polarities |= V4L2_DV_HSYNC_POS_POL;
+> +
+> +	bt->pixelclock = dw_hdmi_get_pixelclk(dw_dev);
+> +
+> +	/* HTOT = HACT + HFRONT + HSYNC + HBACK */
+> +	htot = hdmi_mask_readl(dw_dev, HDMI_MD_HT1,
+> +			HDMI_MD_HT1_HTOT_PIX_OFFSET,
+> +			HDMI_MD_HT1_HTOT_PIX_MASK);
+> +	/* HOFS = HSYNC + HBACK */
+> +	hofs = hdmi_mask_readl(dw_dev, HDMI_MD_HT1,
+> +			HDMI_MD_HT1_HOFS_PIX_OFFSET,
+> +			HDMI_MD_HT1_HOFS_PIX_MASK);
+> +
+> +	bt->hfrontporch = htot - hofs - bt->width;
+> +	bt->hsync = hdmi_mask_readl(dw_dev, HDMI_MD_HT0,
+> +			HDMI_MD_HT0_HS_CLK_OFFSET,
+> +			HDMI_MD_HT0_HS_CLK_MASK);
+> +	bt->hbackporch = hofs - bt->hsync;
+> +
+> +	/* VTOT = VACT + VFRONT + VSYNC + VBACK */
+> +	vtot = hdmi_readl(dw_dev, HDMI_MD_VTL);
+> +
+> +	hdmi_mask_writel(dw_dev, 0x1, HDMI_MD_VCTRL,
+> +			HDMI_MD_VCTRL_V_OFFS_LIN_MODE_OFFSET,
+> +			HDMI_MD_VCTRL_V_OFFS_LIN_MODE_MASK);
+> +	msleep(50); /* Wait for 1 field */
+
+How do you know this waits for 1 field? Or is this: "Wait for at least 1 field"?
+I don't know exactly how the IP does this, but it looks fishy to me. If it is
+correct, then it could use a few comments about what is going on here as it is
+not obvious.
+
+And what happens if the framerate is even slower? You know the pixelclock and
+total width+height, so you can calculate the framerate from that.
+
+> +	bt->vsync = hdmi_readl(dw_dev, HDMI_MD_VOL);
+> +
+> +	hdmi_mask_writel(dw_dev, 0x0, HDMI_MD_VCTRL,
+> +			HDMI_MD_VCTRL_V_OFFS_LIN_MODE_OFFSET,
+> +			HDMI_MD_VCTRL_V_OFFS_LIN_MODE_MASK);
+> +	msleep(50); /* Wait for 1 field */
+> +	bt->vbackporch = hdmi_readl(dw_dev, HDMI_MD_VOL);
+> +	bt->vfrontporch = vtot - bt->height - bt->vsync - bt->vbackporch;
+> +
+> +	if (bt->interlaced == V4L2_DV_INTERLACED) {
+> +		hdmi_mask_writel(dw_dev, 0x1, HDMI_MD_VCTRL,
+> +				HDMI_MD_VCTRL_V_MODE_OFFSET,
+> +				HDMI_MD_VCTRL_V_MODE_MASK);
+> +		msleep(100); /* Wait for 2 fields */
+> +
+> +		vtot = hdmi_readl(dw_dev, HDMI_MD_VTL);
+> +		hdmi_mask_writel(dw_dev, 0x1, HDMI_MD_VCTRL,
+> +				HDMI_MD_VCTRL_V_OFFS_LIN_MODE_OFFSET,
+> +				HDMI_MD_VCTRL_V_OFFS_LIN_MODE_MASK);
+> +		msleep(50); /* Wait for 1 field */
+> +		bt->il_vsync = hdmi_readl(dw_dev, HDMI_MD_VOL);
+> +
+> +		hdmi_mask_writel(dw_dev, 0x0, HDMI_MD_VCTRL,
+> +				HDMI_MD_VCTRL_V_OFFS_LIN_MODE_OFFSET,
+> +				HDMI_MD_VCTRL_V_OFFS_LIN_MODE_MASK);
+> +		msleep(50);
+> +		bt->il_vbackporch = hdmi_readl(dw_dev, HDMI_MD_VOL);
+> +		bt->il_vfrontporch = vtot - bt->height - bt->il_vsync -
+> +			bt->il_vbackporch;
+> +
+> +		hdmi_mask_writel(dw_dev, 0x0, HDMI_MD_VCTRL,
+> +				HDMI_MD_VCTRL_V_MODE_OFFSET,
+> +				HDMI_MD_VCTRL_V_MODE_MASK);
+
+Same here, I'm not sure this is correct. What is the output of
+'v4l2-ctl --query-dv-timings' when you feed it a standard interlaced format?
+
+> +	}
+> +
+> +	bt->standards = V4L2_DV_BT_STD_CEA861;
+> +
+> +	vic = dw_hdmi_get_curr_vic(dw_dev, &is_hdmi_vic);
+> +	if (vic) {
+> +		if (is_hdmi_vic) {
+> +			bt->flags |= V4L2_DV_FL_HAS_HDMI_VIC;
+> +			bt->hdmi_vic = vic;
+> +			bt->cea861_vic = 0;
+> +		} else {
+> +			bt->flags |= V4L2_DV_FL_HAS_CEA861_VIC;
+> +			bt->hdmi_vic = 0;
+> +			bt->cea861_vic = vic;
+> +		}
+> +	}
+> +
+> +	return 0;
+> +}
 
 Regards,
-Soeren
->> Unfortunately my workplace is phasing out
->> these cards otherwise I'd try and get them to sponsor me rather than do it
->> on my own time!
-> Yeah, getting sponsored to do it would make things easier.
->
-> Thanks,
-> Mauro
+
+	Hans
