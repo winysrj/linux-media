@@ -1,47 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:44446 "EHLO
-        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752466AbdLFR7T (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 6 Dec 2017 12:59:19 -0500
-Received: by mail-wm0-f66.google.com with SMTP id t8so8730690wmc.3
-        for <linux-media@vger.kernel.org>; Wed, 06 Dec 2017 09:59:18 -0800 (PST)
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: linux-media@vger.kernel.org, mchehab@kernel.org,
-        mchehab@s-opensource.com
-Subject: [PATCH 0/2] ddbridge: error handling improvements
-Date: Wed,  6 Dec 2017 18:59:13 +0100
-Message-Id: <20171206175915.20669-1-d.scheller.oss@gmail.com>
+Received: from resqmta-po-01v.sys.comcast.net ([96.114.154.160]:36640 "EHLO
+        resqmta-po-01v.sys.comcast.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752102AbdLLBAJ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 11 Dec 2017 20:00:09 -0500
+From: Ron Economos <w6rz@comcast.net>
+To: linux-media@vger.kernel.org
+Subject: [PATCH RESEND] media: dvb-frontends: Add delay to Si2168 restart.
+Date: Mon, 11 Dec 2017 16:51:53 -0800
+Message-Id: <1513039913-8117-1-git-send-email-w6rz@comcast.net>
+In-Reply-To: <20171211144229.3002f15f@vento.lan>
+References: <20171211144229.3002f15f@vento.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Daniel Scheller <d.scheller@gmx.net>
+On faster CPUs a delay is required after the resume command and the restart command. Without the delay, the restart command often returns -EREMOTEIO and the Si2168 does not restart.
 
-Two commits which will improve the error handling when attaching of
-(tuner) frontends fail, which complements the recent fixes in the
-DVB core (esp. dvb_frontend.c), making sure that on failure there
-won't be any frontend drivers left with a usecount > 0 and thus can
-be unloaded without -f on rmmod.
+Note that this patch fixes the same issue as https://patchwork.linuxtv.org/patch/44304/, but I believe my udelay() fix addresses the actual problem.
 
-Also, don't miserably fail and stop hard when a single frontend failed
-to attach as other frontends connected to the current (or even other)
-bridge(s) can still work perfectly fine, so rather initialise as much
-as possible. (If a single PCI device fails to init, the kernel doesn't
-stop probing everything else on the bus)
+Signed-off-by: Ron Economos <w6rz@comcast.net>
 
-This goes ontop of the ddbridge-0.9.32 bump (see [1]) which should
-have been merged for kernel 4.15rc1 originally, but unfortunately
-wasn't. No idea (didn't test) if this applies without the 0.9.32
-changes (and please don't try to find out to avoid any merge errors/
-conflicts - thanks.).
+---
+ drivers/media/dvb-frontends/si2168.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-[1] http://www.spinics.net/lists/linux-media/msg123707.html
-
-Daniel Scheller (2):
-  [media] ddbridge: improve error handling logic on fe attach failures
-  [media] ddbridge: don't break on single/last port attach failure
-
- drivers/media/pci/ddbridge/ddbridge-core.c | 51 ++++++++++++++----------------
- 1 file changed, 23 insertions(+), 28 deletions(-)
-
+diff --git a/drivers/media/dvb-frontends/si2168.c b/drivers/media/dvb-frontends/si2168.c
+index 41d9c51..539399d 100644
+--- a/drivers/media/dvb-frontends/si2168.c
++++ b/drivers/media/dvb-frontends/si2168.c
+@@ -14,6 +14,8 @@
+  *    GNU General Public License for more details.
+  */
+ 
++#include <linux/delay.h>
++
+ #include "si2168_priv.h"
+ 
+ static const struct dvb_frontend_ops si2168_ops;
+@@ -435,6 +437,7 @@ static int si2168_init(struct dvb_frontend *fe)
+ 		if (ret)
+ 			goto err;
+ 
++		udelay(100);
+ 		memcpy(cmd.args, "\x85", 1);
+ 		cmd.wlen = 1;
+ 		cmd.rlen = 1;
 -- 
-2.13.6
+2.7.4
