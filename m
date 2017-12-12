@@ -1,90 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:41269 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932954AbdLRP0S (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 18 Dec 2017 10:26:18 -0500
-Date: Mon, 18 Dec 2017 13:26:11 -0200
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>
-Subject: Re: [PATCH v3 00/17] kernel-doc: add supported to document nested
- structs/
-Message-ID: <20171218132611.2898a42b@vento.lan>
-In-Reply-To: <cover.1507116877.git.mchehab@s-opensource.com>
-References: <cover.1507116877.git.mchehab@s-opensource.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail-lf0-f68.google.com ([209.85.215.68]:42141 "EHLO
+        mail-lf0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751347AbdLLA0l (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 11 Dec 2017 19:26:41 -0500
+From: Dmitry Osipenko <digetx@gmail.com>
+To: Thierry Reding <thierry.reding@gmail.com>,
+        Jonathan Hunter <jonathanh@nvidia.com>,
+        Stephen Warren <swarren@wwwdotorg.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Vladimir Zapolskiy <vz@mleia.com>
+Cc: Rob Herring <robh+dt@kernel.org>,
+        Dan Carpenter <dan.carpenter@oracle.com>,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        devicetree@vger.kernel.org, linux-tegra@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: [PATCH v5 1/4] media: dt: bindings: Add binding for NVIDIA Tegra Video Decoder Engine
+Date: Tue, 12 Dec 2017 03:26:07 +0300
+Message-Id: <155182bb32443b69e457adbd642c12da81b0a241.1513038011.git.digetx@gmail.com>
+In-Reply-To: <cover.1513038011.git.digetx@gmail.com>
+References: <cover.1513038011.git.digetx@gmail.com>
+In-Reply-To: <cover.1513038011.git.digetx@gmail.com>
+References: <cover.1513038011.git.digetx@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed,  4 Oct 2017 08:48:38 -0300
-Mauro Carvalho Chehab <mchehab@s-opensource.com> escreveu:
+Add binding documentation for the Video Decoder Engine which is found
+on NVIDIA Tegra20/30/114/124/132 SoC's.
 
-> Right now, it is not possible to document nested struct and nested unions.
-> kernel-doc simply ignore them.
-> 
-> Add support to document them.
-> 
-> Patches 1 to 6 improve kernel-doc documentation to reflect what
-> kernel-doc currently supports and import some stuff from the
-> old kernel-doc-nano-HOWTO.txt.
-> 
-> Patch 7 gets rid of the old documentation (kernel-doc-nano-HOWTO.txt).
-> 
-> 
-> Patch 8 gets rid of the now unused output formats for kernel-doc: since 
-> we got rid of all DocBook stuff, we should not need them anymore. The
-> reason for dropping it (despite cleaning up), is that it doesn't make 
-> sense to invest time on adding new features for formats that aren't
-> used anymore.
-> 
-> Patch 9 improves argument handling, printing script usage if an
-> invalid argument is passed and accepting both -cmd and --cmd
-> forms.
-> 
-> Patch 10 changes the default output format to ReST, as this is a way
-> more used than man output nowadays.
-> 
-> Patch 11 solves an issue after ReST conversion, where tabs were not
-> properly handled on kernel-doc tags.
-> 
-> Patch 12 adds support for parsing kernel-doc nested structures and 
-> unions.
-> 
-> Patch 13 does a cleanup, removing $nexted parameter at the
-> routines that handle structs.
-> 
-> Patch 14 Improves warning output by printing the identifier where
-> the warning occurred.
-> 
-> Patch 15 complements patch 12, by adding support for function
-> definitions inside nested structures. It is needed by some media
-> docs with use such kind of things.
-> 
-> Patch 16 improves nested struct handling even further, allowing it
-> to handle cases where a nested named struct/enum with multiple
-> identifiers added (e. g. struct { ... } foo, bar;).
-> 
-> Patch 17 adds documentation for nested union/struct inside w1_netlink.
-> 
-> The entire patch series are at my development tree, at:
->     https://git.linuxtv.org/mchehab/experimental.git/log/?h=nested-fix-v4b
+Signed-off-by: Dmitry Osipenko <digetx@gmail.com>
+Acked-by: Rob Herring <robh@kernel.org>
+---
+ .../devicetree/bindings/media/nvidia,tegra-vde.txt | 55 ++++++++++++++++++++++
+ 1 file changed, 55 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/nvidia,tegra-vde.txt
 
-I'm applying all patches from this series that either didn't have
-any comments of whose editorial comments I fully embraced.
-
-The patches that weren't applied from this series are:
-	0008-media-v4l2-device.h-document-ancillary-macros.patch
-	0010-media-v4l2-ioctl.h-convert-debug-macros-into-enum-an.patch
-	0014-media-v4l2-async-simplify-v4l2_async_subdev-structur.patch
-	0015-media-v4l2-async-better-describe-match-union-at-asyn.patch
-
-I'll send later a patch series with those - probably together with
-other documentation patches from the other two series I sent - that
-need further reviews.
-
-Thanks,
-Mauro
+diff --git a/Documentation/devicetree/bindings/media/nvidia,tegra-vde.txt b/Documentation/devicetree/bindings/media/nvidia,tegra-vde.txt
+new file mode 100644
+index 000000000000..470237ed6fe5
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/nvidia,tegra-vde.txt
+@@ -0,0 +1,55 @@
++NVIDIA Tegra Video Decoder Engine
++
++Required properties:
++- compatible : Must contain one of the following values:
++   - "nvidia,tegra20-vde"
++   - "nvidia,tegra30-vde"
++   - "nvidia,tegra114-vde"
++   - "nvidia,tegra124-vde"
++   - "nvidia,tegra132-vde"
++- reg : Must contain an entry for each entry in reg-names.
++- reg-names : Must include the following entries:
++  - sxe
++  - bsev
++  - mbe
++  - ppe
++  - mce
++  - tfe
++  - ppb
++  - vdma
++  - frameid
++- iram : Must contain phandle to the mmio-sram device node that represents
++         IRAM region used by VDE.
++- interrupts : Must contain an entry for each entry in interrupt-names.
++- interrupt-names : Must include the following entries:
++  - sync-token
++  - bsev
++  - sxe
++- clocks : Must include the following entries:
++  - vde
++- resets : Must include the following entries:
++  - vde
++
++Example:
++
++video-codec@6001a000 {
++	compatible = "nvidia,tegra20-vde";
++	reg = <0x6001a000 0x1000 /* Syntax Engine */
++	       0x6001b000 0x1000 /* Video Bitstream Engine */
++	       0x6001c000  0x100 /* Macroblock Engine */
++	       0x6001c200  0x100 /* Post-processing Engine */
++	       0x6001c400  0x100 /* Motion Compensation Engine */
++	       0x6001c600  0x100 /* Transform Engine */
++	       0x6001c800  0x100 /* Pixel prediction block */
++	       0x6001ca00  0x100 /* Video DMA */
++	       0x6001d800  0x300 /* Video frame controls */>;
++	reg-names = "sxe", "bsev", "mbe", "ppe", "mce",
++		    "tfe", "ppb", "vdma", "frameid";
++	iram = <&vde_pool>; /* IRAM region */
++	interrupts = <GIC_SPI  9 IRQ_TYPE_LEVEL_HIGH>, /* Sync token interrupt */
++		     <GIC_SPI 10 IRQ_TYPE_LEVEL_HIGH>, /* BSE-V interrupt */
++		     <GIC_SPI 12 IRQ_TYPE_LEVEL_HIGH>; /* SXE interrupt */
++	interrupt-names = "sync-token", "bsev", "sxe";
++	clocks = <&tegra_car TEGRA20_CLK_VDE>;
++	resets = <&tegra_car 61>;
++};
+-- 
+2.15.1
