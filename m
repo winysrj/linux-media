@@ -1,633 +1,219 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:14184 "EHLO mga14.intel.com"
+Received: from mout.gmx.net ([212.227.15.19]:52654 "EHLO mout.gmx.net"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755861AbdLUAtB (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 20 Dec 2017 19:49:01 -0500
-Message-ID: <1513817327.2592.3.camel@intel.com>
-Subject: Re: [-next PATCH 3/4] treewide: Use DEVICE_ATTR_RO
-From: Zhang Rui <rui.zhang@intel.com>
-To: Joe Perches <joe@perches.com>, Daniel Mack <daniel@zonque.org>,
-        Haojian Zhuang <haojian.zhuang@gmail.com>,
-        Robert Jarzmik <robert.jarzmik@free.fr>,
-        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
-        Len Brown <lenb@kernel.org>, Corey Minyard <minyard@acm.org>,
-        Jani Nikula <jani.nikula@linux.intel.com>,
-        Joonas Lahtinen <joonas.lahtinen@linux.intel.com>,
-        Rodrigo Vivi <rodrigo.vivi@intel.com>,
-        Keith Busch <keith.busch@intel.com>, Jens Axboe <axboe@fb.com>,
-        Christoph Hellwig <hch@lst.de>,
-        Sagi Grimberg <sagi@grimberg.me>,
-        Sebastian Ott <sebott@linux.vnet.ibm.com>,
-        Peter Oberparleiter <oberpar@linux.vnet.ibm.com>,
-        Harald Freudenberger <freude@de.ibm.com>,
-        Don Brace <don.brace@microsemi.com>,
-        "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>,
-        "Martin K. Petersen" <martin.petersen@oracle.com>,
-        James Smart <james.smart@broadcom.com>,
-        Dick Kennedy <dick.kennedy@broadcom.com>,
-        Eduardo Valentin <edubezval@gmail.com>,
-        Liam Girdwood <lgirdwood@gmail.com>,
-        Mark Brown <broonie@kernel.org>
-Cc: Russell King <linux@armlinux.org.uk>,
-        Yoshinori Sato <ysato@users.sourceforge.jp>,
-        Rich Felker <dalias@libc.org>, Arnd Bergmann <arnd@arndb.de>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        David Airlie <airlied@linux.ie>,
-        Martin Schwidefsky <schwidefsky@de.ibm.com>,
-        Heiko Carstens <heiko.carstens@de.ibm.com>,
-        Alan Cox <alan@linux.intel.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Jaroslav Kysela <perex@perex.cz>,
-        Takashi Iwai <tiwai@suse.com>,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-sh@vger.kernel.org, linux-acpi@vger.kernel.org,
-        openipmi-developer@lists.sourceforge.net,
-        intel-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org,
-        linux-nvme@lists.infradead.org, linux-s390@vger.kernel.org,
-        esc.storagedev@microsemi.com, linux-scsi@vger.kernel.org,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        linux-pm@vger.kernel.org, alsa-devel@alsa-project.org
-Date: Thu, 21 Dec 2017 08:48:47 +0800
-In-Reply-To: <2e64e7d278fa9e4e255221fb84717884a7bfb69c.1513706701.git.joe@perches.com>
-References: <cover.1513706701.git.joe@perches.com>
-         <2e64e7d278fa9e4e255221fb84717884a7bfb69c.1513706701.git.joe@perches.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+        id S1750749AbdLLIap (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 12 Dec 2017 03:30:45 -0500
+Date: Tue, 12 Dec 2017 09:30:39 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [PATCH v8] uvcvideo: Add a metadata device node
+In-Reply-To: <6880941.qHIMnLEYKN@avalon>
+Message-ID: <alpine.DEB.2.20.1712120922250.26789@axis700.grange>
+References: <1510156814-28645-1-git-send-email-g.liakhovetski@gmx.de> <4126225.WNi1TyRUA5@avalon> <alpine.DEB.2.20.1712112243150.25473@axis700.grange> <6880941.qHIMnLEYKN@avalon>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 2017-12-19 at 10:15 -0800, Joe Perches wrote:
-> Convert DEVICE_ATTR uses to DEVICE_ATTR_RO where possible.
-> 
-> Done with perl script:
-> 
-> $ git grep -w --name-only DEVICE_ATTR | \
->   xargs perl -i -e 'local $/; while (<>) {
-> s/\bDEVICE_ATTR\s*\(\s*(\w+)\s*,\s*\(?(?:\s*S_IRUGO\s*|\s*0444\s*)\)?
-> \s*,\s*\1_show\s*,\s*NULL\s*\)/DEVICE_ATTR_RO(\1)/g; print;}'
-> 
-> Signed-off-by: Joe Perches <joe@perches.com>
-> ---
->  arch/arm/mach-pxa/sharpsl_pm.c                       |  4 ++--
->  arch/sh/drivers/push-switch.c                        |  2 +-
->  arch/tile/kernel/sysfs.c                             | 10 +++++-----
->  drivers/acpi/device_sysfs.c                          |  6 +++---
->  drivers/char/ipmi/ipmi_msghandler.c                  | 17 ++++++++
-> ---------
->  drivers/gpu/drm/i915/i915_sysfs.c                    |  6 +++---
->  drivers/nvme/host/core.c                             | 10 +++++-----
->  drivers/s390/cio/css.c                               |  8 ++++----
->  drivers/s390/cio/device.c                            |  8 ++++----
->  drivers/s390/crypto/ap_card.c                        |  2 +-
->  drivers/scsi/hpsa.c                                  | 10 +++++-----
->  drivers/scsi/lpfc/lpfc_attr.c                        | 18 ++++++++
-> ----------
->  drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm.c |  8 ++++----
->  drivers/thermal/thermal_sysfs.c                      |  6 +++---
+Hi Laurent,
 
-For the thermal part,
-ACK-by: Zhang Rui <rui.zhang@intel.com>
+On Mon, 11 Dec 2017, Laurent Pinchart wrote:
 
-thanks,
-rui
->  sound/soc/soc-core.c                                 |  2 +-
->  sound/soc/soc-dapm.c                                 |  2 +-
->  16 files changed, 58 insertions(+), 61 deletions(-)
+> Hi Guennadi,
 > 
-> diff --git a/arch/arm/mach-pxa/sharpsl_pm.c b/arch/arm/mach-
-> pxa/sharpsl_pm.c
-> index 398ba9ba2632..ef9fd9b759cb 100644
-> --- a/arch/arm/mach-pxa/sharpsl_pm.c
-> +++ b/arch/arm/mach-pxa/sharpsl_pm.c
-> @@ -802,8 +802,8 @@ static ssize_t battery_voltage_show(struct device
-> *dev, struct device_attribute
->  	return sprintf(buf, "%d\n",
-> sharpsl_pm.battstat.mainbat_voltage);
->  }
->  
-> -static DEVICE_ATTR(battery_percentage, 0444,
-> battery_percentage_show, NULL);
-> -static DEVICE_ATTR(battery_voltage, 0444, battery_voltage_show,
-> NULL);
-> +static DEVICE_ATTR_RO(battery_percentage);
-> +static DEVICE_ATTR_RO(battery_voltage);
->  
->  extern void (*apm_get_power_status)(struct apm_power_info *);
->  
-> diff --git a/arch/sh/drivers/push-switch.c b/arch/sh/drivers/push-
-> switch.c
-> index a17181160233..762bc5619910 100644
-> --- a/arch/sh/drivers/push-switch.c
-> +++ b/arch/sh/drivers/push-switch.c
-> @@ -24,7 +24,7 @@ static ssize_t switch_show(struct device *dev,
->  	struct push_switch_platform_info *psw_info = dev-
-> >platform_data;
->  	return sprintf(buf, "%s\n", psw_info->name);
->  }
-> -static DEVICE_ATTR(switch, S_IRUGO, switch_show, NULL);
-> +static DEVICE_ATTR_RO(switch);
->  
->  static void switch_timer(struct timer_list *t)
->  {
-> diff --git a/arch/tile/kernel/sysfs.c b/arch/tile/kernel/sysfs.c
-> index af5024f0fb5a..b09456a3d77a 100644
-> --- a/arch/tile/kernel/sysfs.c
-> +++ b/arch/tile/kernel/sysfs.c
-> @@ -38,7 +38,7 @@ static ssize_t chip_width_show(struct device *dev,
->  {
->  	return sprintf(page, "%u\n", smp_width);
->  }
-> -static DEVICE_ATTR(chip_width, 0444, chip_width_show, NULL);
-> +static DEVICE_ATTR_RO(chip_width);
->  
->  static ssize_t chip_height_show(struct device *dev,
->  				struct device_attribute *attr,
-> @@ -46,7 +46,7 @@ static ssize_t chip_height_show(struct device *dev,
->  {
->  	return sprintf(page, "%u\n", smp_height);
->  }
-> -static DEVICE_ATTR(chip_height, 0444, chip_height_show, NULL);
-> +static DEVICE_ATTR_RO(chip_height);
->  
->  static ssize_t chip_serial_show(struct device *dev,
->  				struct device_attribute *attr,
-> @@ -54,7 +54,7 @@ static ssize_t chip_serial_show(struct device *dev,
->  {
->  	return get_hv_confstr(page, HV_CONFSTR_CHIP_SERIAL_NUM);
->  }
-> -static DEVICE_ATTR(chip_serial, 0444, chip_serial_show, NULL);
-> +static DEVICE_ATTR_RO(chip_serial);
->  
->  static ssize_t chip_revision_show(struct device *dev,
->  				  struct device_attribute *attr,
-> @@ -62,7 +62,7 @@ static ssize_t chip_revision_show(struct device
-> *dev,
->  {
->  	return get_hv_confstr(page, HV_CONFSTR_CHIP_REV);
->  }
-> -static DEVICE_ATTR(chip_revision, 0444, chip_revision_show, NULL);
-> +static DEVICE_ATTR_RO(chip_revision);
->  
->  
->  static ssize_t type_show(struct device *dev,
-> @@ -71,7 +71,7 @@ static ssize_t type_show(struct device *dev,
->  {
->  	return sprintf(page, "tilera\n");
->  }
-> -static DEVICE_ATTR(type, 0444, type_show, NULL);
-> +static DEVICE_ATTR_RO(type);
->  
->  #define HV_CONF_ATTR(name, conf)					
-> \
->  	static ssize_t name ## _show(struct device *dev,		
-> \
-> diff --git a/drivers/acpi/device_sysfs.c
-> b/drivers/acpi/device_sysfs.c
-> index a041689e5701..545e91420cde 100644
-> --- a/drivers/acpi/device_sysfs.c
-> +++ b/drivers/acpi/device_sysfs.c
-> @@ -357,7 +357,7 @@ static ssize_t real_power_state_show(struct
-> device *dev,
->  	return sprintf(buf, "%s\n", acpi_power_state_string(state));
->  }
->  
-> -static DEVICE_ATTR(real_power_state, 0444, real_power_state_show,
-> NULL);
-> +static DEVICE_ATTR_RO(real_power_state);
->  
->  static ssize_t power_state_show(struct device *dev,
->  				struct device_attribute *attr, char
-> *buf)
-> @@ -367,7 +367,7 @@ static ssize_t power_state_show(struct device
-> *dev,
->  	return sprintf(buf, "%s\n", acpi_power_state_string(adev-
-> >power.state));
->  }
->  
-> -static DEVICE_ATTR(power_state, 0444, power_state_show, NULL);
-> +static DEVICE_ATTR_RO(power_state);
->  
->  static ssize_t
->  acpi_eject_store(struct device *d, struct device_attribute *attr,
-> @@ -462,7 +462,7 @@ static ssize_t description_show(struct device
-> *dev,
->  
->  	return result;
->  }
-> -static DEVICE_ATTR(description, 0444, description_show, NULL);
-> +static DEVICE_ATTR_RO(description);
->  
->  static ssize_t
->  acpi_device_sun_show(struct device *dev, struct device_attribute
-> *attr,
-> diff --git a/drivers/char/ipmi/ipmi_msghandler.c
-> b/drivers/char/ipmi/ipmi_msghandler.c
-> index f45732a2cb3e..7f51acd74e10 100644
-> --- a/drivers/char/ipmi/ipmi_msghandler.c
-> +++ b/drivers/char/ipmi/ipmi_msghandler.c
-> @@ -2588,7 +2588,7 @@ static ssize_t device_id_show(struct device
-> *dev,
->  
->  	return snprintf(buf, 10, "%u\n", id.device_id);
->  }
-> -static DEVICE_ATTR(device_id, S_IRUGO, device_id_show, NULL);
-> +static DEVICE_ATTR_RO(device_id);
->  
->  static ssize_t provides_device_sdrs_show(struct device *dev,
->  					 struct device_attribute
-> *attr,
-> @@ -2604,8 +2604,7 @@ static ssize_t provides_device_sdrs_show(struct
-> device *dev,
->  
->  	return snprintf(buf, 10, "%u\n", (id.device_revision & 0x80)
-> >> 7);
->  }
-> -static DEVICE_ATTR(provides_device_sdrs, S_IRUGO,
-> provides_device_sdrs_show,
-> -		   NULL);
-> +static DEVICE_ATTR_RO(provides_device_sdrs);
->  
->  static ssize_t revision_show(struct device *dev, struct
-> device_attribute *attr,
->  			     char *buf)
-> @@ -2620,7 +2619,7 @@ static ssize_t revision_show(struct device
-> *dev, struct device_attribute *attr,
->  
->  	return snprintf(buf, 20, "%u\n", id.device_revision & 0x0F);
->  }
-> -static DEVICE_ATTR(revision, S_IRUGO, revision_show, NULL);
-> +static DEVICE_ATTR_RO(revision);
->  
->  static ssize_t firmware_revision_show(struct device *dev,
->  				      struct device_attribute *attr,
-> @@ -2637,7 +2636,7 @@ static ssize_t firmware_revision_show(struct
-> device *dev,
->  	return snprintf(buf, 20, "%u.%x\n", id.firmware_revision_1,
->  			id.firmware_revision_2);
->  }
-> -static DEVICE_ATTR(firmware_revision, S_IRUGO,
-> firmware_revision_show, NULL);
-> +static DEVICE_ATTR_RO(firmware_revision);
->  
->  static ssize_t ipmi_version_show(struct device *dev,
->  				 struct device_attribute *attr,
-> @@ -2655,7 +2654,7 @@ static ssize_t ipmi_version_show(struct device
-> *dev,
->  			ipmi_version_major(&id),
->  			ipmi_version_minor(&id));
->  }
-> -static DEVICE_ATTR(ipmi_version, S_IRUGO, ipmi_version_show, NULL);
-> +static DEVICE_ATTR_RO(ipmi_version);
->  
->  static ssize_t add_dev_support_show(struct device *dev,
->  				    struct device_attribute *attr,
-> @@ -2688,7 +2687,7 @@ static ssize_t manufacturer_id_show(struct
-> device *dev,
->  
->  	return snprintf(buf, 20, "0x%6.6x\n", id.manufacturer_id);
->  }
-> -static DEVICE_ATTR(manufacturer_id, S_IRUGO, manufacturer_id_show,
-> NULL);
-> +static DEVICE_ATTR_RO(manufacturer_id);
->  
->  static ssize_t product_id_show(struct device *dev,
->  			       struct device_attribute *attr,
-> @@ -2704,7 +2703,7 @@ static ssize_t product_id_show(struct device
-> *dev,
->  
->  	return snprintf(buf, 10, "0x%4.4x\n", id.product_id);
->  }
-> -static DEVICE_ATTR(product_id, S_IRUGO, product_id_show, NULL);
-> +static DEVICE_ATTR_RO(product_id);
->  
->  static ssize_t aux_firmware_rev_show(struct device *dev,
->  				     struct device_attribute *attr,
-> @@ -2742,7 +2741,7 @@ static ssize_t guid_show(struct device *dev,
-> struct device_attribute *attr,
->  
->  	return snprintf(buf, 38, "%pUl\n", guid.b);
->  }
-> -static DEVICE_ATTR(guid, S_IRUGO, guid_show, NULL);
-> +static DEVICE_ATTR_RO(guid);
->  
->  static struct attribute *bmc_dev_attrs[] = {
->  	&dev_attr_device_id.attr,
-> diff --git a/drivers/gpu/drm/i915/i915_sysfs.c
-> b/drivers/gpu/drm/i915/i915_sysfs.c
-> index 1d0ab8ff5915..b33d2158c234 100644
-> --- a/drivers/gpu/drm/i915/i915_sysfs.c
-> +++ b/drivers/gpu/drm/i915/i915_sysfs.c
-> @@ -445,13 +445,13 @@ static ssize_t gt_min_freq_mhz_store(struct
-> device *kdev,
->  	return ret ?: count;
->  }
->  
-> -static DEVICE_ATTR(gt_act_freq_mhz, S_IRUGO, gt_act_freq_mhz_show,
-> NULL);
-> -static DEVICE_ATTR(gt_cur_freq_mhz, S_IRUGO, gt_cur_freq_mhz_show,
-> NULL);
-> +static DEVICE_ATTR_RO(gt_act_freq_mhz);
-> +static DEVICE_ATTR_RO(gt_cur_freq_mhz);
->  static DEVICE_ATTR_RW(gt_boost_freq_mhz);
->  static DEVICE_ATTR_RW(gt_max_freq_mhz);
->  static DEVICE_ATTR_RW(gt_min_freq_mhz);
->  
-> -static DEVICE_ATTR(vlv_rpe_freq_mhz, S_IRUGO, vlv_rpe_freq_mhz_show,
-> NULL);
-> +static DEVICE_ATTR_RO(vlv_rpe_freq_mhz);
->  
->  static ssize_t gt_rp_mhz_show(struct device *kdev, struct
-> device_attribute *attr, char *buf);
->  static DEVICE_ATTR(gt_RP0_freq_mhz, S_IRUGO, gt_rp_mhz_show, NULL);
-> diff --git a/drivers/nvme/host/core.c b/drivers/nvme/host/core.c
-> index 63691e251f8c..8f9fa6f1dfb4 100644
-> --- a/drivers/nvme/host/core.c
-> +++ b/drivers/nvme/host/core.c
-> @@ -2516,14 +2516,14 @@ static ssize_t wwid_show(struct device *dev,
-> struct device_attribute *attr,
->  		serial_len, subsys->serial, model_len, subsys-
-> >model,
->  		head->ns_id);
->  }
-> -static DEVICE_ATTR(wwid, S_IRUGO, wwid_show, NULL);
-> +static DEVICE_ATTR_RO(wwid);
->  
->  static ssize_t nguid_show(struct device *dev, struct
-> device_attribute *attr,
->  		char *buf)
->  {
->  	return sprintf(buf, "%pU\n", dev_to_ns_head(dev)-
-> >ids.nguid);
->  }
-> -static DEVICE_ATTR(nguid, S_IRUGO, nguid_show, NULL);
-> +static DEVICE_ATTR_RO(nguid);
->  
->  static ssize_t uuid_show(struct device *dev, struct device_attribute
-> *attr,
->  		char *buf)
-> @@ -2540,21 +2540,21 @@ static ssize_t uuid_show(struct device *dev,
-> struct device_attribute *attr,
->  	}
->  	return sprintf(buf, "%pU\n", &ids->uuid);
->  }
-> -static DEVICE_ATTR(uuid, S_IRUGO, uuid_show, NULL);
-> +static DEVICE_ATTR_RO(uuid);
->  
->  static ssize_t eui_show(struct device *dev, struct device_attribute
-> *attr,
->  		char *buf)
->  {
->  	return sprintf(buf, "%8ph\n", dev_to_ns_head(dev)-
-> >ids.eui64);
->  }
-> -static DEVICE_ATTR(eui, S_IRUGO, eui_show, NULL);
-> +static DEVICE_ATTR_RO(eui);
->  
->  static ssize_t nsid_show(struct device *dev, struct device_attribute
-> *attr,
->  		char *buf)
->  {
->  	return sprintf(buf, "%d\n", dev_to_ns_head(dev)->ns_id);
->  }
-> -static DEVICE_ATTR(nsid, S_IRUGO, nsid_show, NULL);
-> +static DEVICE_ATTR_RO(nsid);
->  
->  static struct attribute *nvme_ns_id_attrs[] = {
->  	&dev_attr_wwid.attr,
-> diff --git a/drivers/s390/cio/css.c b/drivers/s390/cio/css.c
-> index 0f11dce6e224..9263a0fb3858 100644
-> --- a/drivers/s390/cio/css.c
-> +++ b/drivers/s390/cio/css.c
-> @@ -268,7 +268,7 @@ static ssize_t type_show(struct device *dev,
-> struct device_attribute *attr,
->  	return sprintf(buf, "%01x\n", sch->st);
->  }
->  
-> -static DEVICE_ATTR(type, 0444, type_show, NULL);
-> +static DEVICE_ATTR_RO(type);
->  
->  static ssize_t modalias_show(struct device *dev, struct
-> device_attribute *attr,
->  			     char *buf)
-> @@ -278,7 +278,7 @@ static ssize_t modalias_show(struct device *dev,
-> struct device_attribute *attr,
->  	return sprintf(buf, "css:t%01X\n", sch->st);
->  }
->  
-> -static DEVICE_ATTR(modalias, 0444, modalias_show, NULL);
-> +static DEVICE_ATTR_RO(modalias);
->  
->  static struct attribute *subch_attrs[] = {
->  	&dev_attr_type.attr,
-> @@ -315,7 +315,7 @@ static ssize_t chpids_show(struct device *dev,
->  	ret += sprintf(buf + ret, "\n");
->  	return ret;
->  }
-> -static DEVICE_ATTR(chpids, 0444, chpids_show, NULL);
-> +static DEVICE_ATTR_RO(chpids);
->  
->  static ssize_t pimpampom_show(struct device *dev,
->  			      struct device_attribute *attr,
-> @@ -327,7 +327,7 @@ static ssize_t pimpampom_show(struct device *dev,
->  	return sprintf(buf, "%02x %02x %02x\n",
->  		       pmcw->pim, pmcw->pam, pmcw->pom);
->  }
-> -static DEVICE_ATTR(pimpampom, 0444, pimpampom_show, NULL);
-> +static DEVICE_ATTR_RO(pimpampom);
->  
->  static struct attribute *io_subchannel_type_attrs[] = {
->  	&dev_attr_chpids.attr,
-> diff --git a/drivers/s390/cio/device.c b/drivers/s390/cio/device.c
-> index 6eefb67b31f3..f50ea035aa9b 100644
-> --- a/drivers/s390/cio/device.c
-> +++ b/drivers/s390/cio/device.c
-> @@ -597,13 +597,13 @@ static ssize_t vpm_show(struct device *dev,
-> struct device_attribute *attr,
->  	return sprintf(buf, "%02x\n", sch->vpm);
->  }
->  
-> -static DEVICE_ATTR(devtype, 0444, devtype_show, NULL);
-> -static DEVICE_ATTR(cutype, 0444, cutype_show, NULL);
-> -static DEVICE_ATTR(modalias, 0444, modalias_show, NULL);
-> +static DEVICE_ATTR_RO(devtype);
-> +static DEVICE_ATTR_RO(cutype);
-> +static DEVICE_ATTR_RO(modalias);
->  static DEVICE_ATTR_RW(online);
->  static DEVICE_ATTR(availability, 0444, available_show, NULL);
->  static DEVICE_ATTR(logging, 0200, NULL, initiate_logging);
-> -static DEVICE_ATTR(vpm, 0444, vpm_show, NULL);
-> +static DEVICE_ATTR_RO(vpm);
->  
->  static struct attribute *io_subchannel_attrs[] = {
->  	&dev_attr_logging.attr,
-> diff --git a/drivers/s390/crypto/ap_card.c
-> b/drivers/s390/crypto/ap_card.c
-> index 97a8cf578116..2c726df210f6 100644
-> --- a/drivers/s390/crypto/ap_card.c
-> +++ b/drivers/s390/crypto/ap_card.c
-> @@ -57,7 +57,7 @@ static ssize_t ap_functions_show(struct device
-> *dev,
->  	return snprintf(buf, PAGE_SIZE, "0x%08X\n", ac->functions);
->  }
->  
-> -static DEVICE_ATTR(ap_functions, 0444, ap_functions_show, NULL);
-> +static DEVICE_ATTR_RO(ap_functions);
->  
->  static ssize_t ap_req_count_show(struct device *dev,
->  				 struct device_attribute *attr,
-> diff --git a/drivers/scsi/hpsa.c b/drivers/scsi/hpsa.c
-> index b0aa5dc1d54c..d62377b68ef4 100644
-> --- a/drivers/scsi/hpsa.c
-> +++ b/drivers/scsi/hpsa.c
-> @@ -901,14 +901,14 @@ static ssize_t host_show_legacy_board(struct
-> device *dev,
->  	return snprintf(buf, 20, "%d\n", h->legacy_board ? 1 : 0);
->  }
->  
-> -static DEVICE_ATTR(raid_level, S_IRUGO, raid_level_show, NULL);
-> -static DEVICE_ATTR(lunid, S_IRUGO, lunid_show, NULL);
-> -static DEVICE_ATTR(unique_id, S_IRUGO, unique_id_show, NULL);
-> +static DEVICE_ATTR_RO(raid_level);
-> +static DEVICE_ATTR_RO(lunid);
-> +static DEVICE_ATTR_RO(unique_id);
->  static DEVICE_ATTR(rescan, S_IWUSR, NULL, host_store_rescan);
-> -static DEVICE_ATTR(sas_address, S_IRUGO, sas_address_show, NULL);
-> +static DEVICE_ATTR_RO(sas_address);
->  static DEVICE_ATTR(hp_ssd_smart_path_enabled, S_IRUGO,
->  			host_show_hp_ssd_smart_path_enabled, NULL);
-> -static DEVICE_ATTR(path_info, S_IRUGO, path_info_show, NULL);
-> +static DEVICE_ATTR_RO(path_info);
->  static DEVICE_ATTR(hp_ssd_smart_path_status,
-> S_IWUSR|S_IRUGO|S_IROTH,
->  		host_show_hp_ssd_smart_path_status,
->  		host_store_hp_ssd_smart_path_status);
-> diff --git a/drivers/scsi/lpfc/lpfc_attr.c
-> b/drivers/scsi/lpfc/lpfc_attr.c
-> index 95f7ba3c3f1a..517ff203cfde 100644
-> --- a/drivers/scsi/lpfc/lpfc_attr.c
-> +++ b/drivers/scsi/lpfc/lpfc_attr.c
-> @@ -2294,8 +2294,8 @@ static DEVICE_ATTR(num_discovered_ports,
-> S_IRUGO,
->  		   lpfc_num_discovered_ports_show, NULL);
->  static DEVICE_ATTR(menlo_mgmt_mode, S_IRUGO, lpfc_mlomgmt_show,
-> NULL);
->  static DEVICE_ATTR(nport_evt_cnt, S_IRUGO, lpfc_nport_evt_cnt_show,
-> NULL);
-> -static DEVICE_ATTR(lpfc_drvr_version, S_IRUGO,
-> lpfc_drvr_version_show, NULL);
-> -static DEVICE_ATTR(lpfc_enable_fip, S_IRUGO, lpfc_enable_fip_show,
-> NULL);
-> +static DEVICE_ATTR_RO(lpfc_drvr_version);
-> +static DEVICE_ATTR_RO(lpfc_enable_fip);
->  static DEVICE_ATTR(board_mode, S_IRUGO | S_IWUSR,
->  		   lpfc_board_mode_show, lpfc_board_mode_store);
->  static DEVICE_ATTR(issue_reset, S_IWUSR, NULL, lpfc_issue_reset);
-> @@ -2306,12 +2306,11 @@ static DEVICE_ATTR(used_rpi, S_IRUGO,
-> lpfc_used_rpi_show, NULL);
->  static DEVICE_ATTR(max_xri, S_IRUGO, lpfc_max_xri_show, NULL);
->  static DEVICE_ATTR(used_xri, S_IRUGO, lpfc_used_xri_show, NULL);
->  static DEVICE_ATTR(npiv_info, S_IRUGO, lpfc_npiv_info_show, NULL);
-> -static DEVICE_ATTR(lpfc_temp_sensor, S_IRUGO, lpfc_temp_sensor_show,
-> NULL);
-> -static DEVICE_ATTR(lpfc_fips_level, S_IRUGO, lpfc_fips_level_show,
-> NULL);
-> -static DEVICE_ATTR(lpfc_fips_rev, S_IRUGO, lpfc_fips_rev_show,
-> NULL);
-> -static DEVICE_ATTR(lpfc_dss, S_IRUGO, lpfc_dss_show, NULL);
-> -static DEVICE_ATTR(lpfc_sriov_hw_max_virtfn, S_IRUGO,
-> -		   lpfc_sriov_hw_max_virtfn_show, NULL);
-> +static DEVICE_ATTR_RO(lpfc_temp_sensor);
-> +static DEVICE_ATTR_RO(lpfc_fips_level);
-> +static DEVICE_ATTR_RO(lpfc_fips_rev);
-> +static DEVICE_ATTR_RO(lpfc_dss);
-> +static DEVICE_ATTR_RO(lpfc_sriov_hw_max_virtfn);
->  static DEVICE_ATTR(protocol, S_IRUGO, lpfc_sli4_protocol_show,
-> NULL);
->  static DEVICE_ATTR(lpfc_xlane_supported, S_IRUGO,
-> lpfc_oas_supported_show,
->  		   NULL);
-> @@ -3719,8 +3718,7 @@ lpfc_static_vport_show(struct device *dev,
-> struct device_attribute *attr,
->  /*
->   * Sysfs attribute to control the statistical data collection.
->   */
-> -static DEVICE_ATTR(lpfc_static_vport, S_IRUGO,
-> -		   lpfc_static_vport_show, NULL);
-> +static DEVICE_ATTR_RO(lpfc_static_vport);
->  
->  /**
->   * lpfc_stat_data_ctrl_store - write call back for
-> lpfc_stat_data_ctrl sysfs file
-> diff --git a/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm.c
-> b/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm.c
-> index a1c81c12718c..4338b8a1309f 100644
-> --- a/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm.c
-> +++ b/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm.c
-> @@ -158,10 +158,10 @@ static ssize_t dynamic_pool_show(struct device
-> *dev,
->  	return ret;
->  };
->  
-> -static DEVICE_ATTR(active_bo, 0444, active_bo_show, NULL);
-> -static DEVICE_ATTR(free_bo, 0444, free_bo_show, NULL);
-> -static DEVICE_ATTR(reserved_pool, 0444, reserved_pool_show, NULL);
-> -static DEVICE_ATTR(dynamic_pool, 0444, dynamic_pool_show, NULL);
-> +static DEVICE_ATTR_RO(active_bo);
-> +static DEVICE_ATTR_RO(free_bo);
-> +static DEVICE_ATTR_RO(reserved_pool);
-> +static DEVICE_ATTR_RO(dynamic_pool);
->  
->  static struct attribute *sysfs_attrs_ctrl[] = {
->  	&dev_attr_active_bo.attr,
-> diff --git a/drivers/thermal/thermal_sysfs.c
-> b/drivers/thermal/thermal_sysfs.c
-> index c008af7fb480..2bc964392924 100644
-> --- a/drivers/thermal/thermal_sysfs.c
-> +++ b/drivers/thermal/thermal_sysfs.c
-> @@ -396,10 +396,10 @@ create_s32_tzp_attr(offset);
->   * All the attributes created for tzp (create_s32_tzp_attr) also are
-> always
->   * present on the sysfs interface.
->   */
-> -static DEVICE_ATTR(type, 0444, type_show, NULL);
-> -static DEVICE_ATTR(temp, 0444, temp_show, NULL);
-> +static DEVICE_ATTR_RO(type);
-> +static DEVICE_ATTR_RO(temp);
->  static DEVICE_ATTR_RW(policy);
-> -static DEVICE_ATTR(available_policies, S_IRUGO,
-> available_policies_show, NULL);
-> +static DEVICE_ATTR_RO(available_policies);
->  static DEVICE_ATTR_RW(sustainable_power);
->  
->  /* These thermal zone device attributes are created based on
-> conditions */
-> diff --git a/sound/soc/soc-core.c b/sound/soc/soc-core.c
-> index 2d392f2d7ffe..9a380e55f4af 100644
-> --- a/sound/soc/soc-core.c
-> +++ b/sound/soc/soc-core.c
-> @@ -173,7 +173,7 @@ static ssize_t codec_reg_show(struct device *dev,
->  	return soc_codec_reg_show(rtd->codec, buf, PAGE_SIZE, 0);
->  }
->  
-> -static DEVICE_ATTR(codec_reg, 0444, codec_reg_show, NULL);
-> +static DEVICE_ATTR_RO(codec_reg);
->  
->  static ssize_t pmdown_time_show(struct device *dev,
->  				struct device_attribute *attr, char
-> *buf)
-> diff --git a/sound/soc/soc-dapm.c b/sound/soc/soc-dapm.c
-> index a10b21cfc31e..d1977ced895f 100644
-> --- a/sound/soc/soc-dapm.c
-> +++ b/sound/soc/soc-dapm.c
-> @@ -2364,7 +2364,7 @@ static ssize_t dapm_widget_show(struct device
-> *dev,
->  	return count;
->  }
->  
-> -static DEVICE_ATTR(dapm_widget, 0444, dapm_widget_show, NULL);
-> +static DEVICE_ATTR_RO(dapm_widget);
->  
->  struct attribute *soc_dapm_dev_attrs[] = {
->  	&dev_attr_dapm_widget.attr,
+> On Monday, 11 December 2017 23:44:09 EET Guennadi Liakhovetski wrote:
+> > On Mon, 11 Dec 2017, Laurent Pinchart wrote:
+> > > On Monday, 11 December 2017 22:16:23 EET Laurent Pinchart wrote:
+> > >> On Wednesday, 6 December 2017 17:15:40 EET Guennadi Liakhovetski wrote:
+> > >>> From: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>
+> > >>> 
+> > >>> Some UVC video cameras contain metadata in their payload headers. This
+> > >>> patch extracts that data, adding more clock synchronisation
+> > >>> information, on both bulk and isochronous endpoints and makes it
+> > >>> available to the user space on a separate video node, using the
+> > >>> V4L2_CAP_META_CAPTURE capability and the V4L2_BUF_TYPE_META_CAPTURE
+> > >>> buffer queue type. By default, only the V4L2_META_FMT_UVC pixel format
+> > >>> is available from those nodes. However, cameras can be added to the
+> > >>> device ID table to additionally specify their own metadata format, in
+> > >>> which case that format will also become available from the metadata
+> > >>> node.
+> > >>> 
+> > >>> Signed-off-by: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>
+> > >>> ---
+> > >>> 
+> > >>> v8: addressed comments and integrated changes from Laurent, thanks
+> > >>> again, e.g.:
+> > >>> 
+> > >>> - multiple stylistic changes
+> > >>> - remove the UVC_DEV_FLAG_METADATA_NODE flag / quirk: nodes are now
+> > >>>   created unconditionally
+> > >>> - reuse uvc_ioctl_querycap()
+> > >>> - reuse code in uvc_register_video()
+> > >>> - set an error flag when the metadata buffer overflows
+> > >>> 
+> > >>>  drivers/media/usb/uvc/Makefile       |   2 +-
+> > >>>  drivers/media/usb/uvc/uvc_driver.c   |  15 ++-
+> > >>>  drivers/media/usb/uvc/uvc_isight.c   |   2 +-
+> > >>>  drivers/media/usb/uvc/uvc_metadata.c | 179 ++++++++++++++++++++++++++++
+> > >>>  drivers/media/usb/uvc/uvc_queue.c    |  44 +++++++--
+> > >>>  drivers/media/usb/uvc/uvc_video.c    | 132 ++++++++++++++++++++++++--
+> > >>>  drivers/media/usb/uvc/uvcvideo.h     |  16 +++-
+> > >>>  include/uapi/linux/uvcvideo.h        |  26 +++++
+> > >>>  8 files changed, 394 insertions(+), 22 deletions(-)
+> > >>>  create mode 100644 drivers/media/usb/uvc/uvc_metadata.c
+> > >> 
+> > >> [snip]
+> > >> 
+> > >> > diff --git a/drivers/media/usb/uvc/uvc_video.c
+> > >> > b/drivers/media/usb/uvc/uvc_video.c index 13f459e..2fc0bf2 100644
+> > >> > --- a/drivers/media/usb/uvc/uvc_video.c
+> > >> > +++ b/drivers/media/usb/uvc/uvc_video.c
+> > >> 
+> > >> [snip]
+> > >> 
+> > >>> +static void uvc_video_decode_meta(struct uvc_streaming *stream,
+> > >>> +				  struct uvc_buffer *meta_buf,
+> > >>> +				  const u8 *mem, unsigned int length)
+> > >>> +{
+> > >>> +	struct uvc_meta_buf *meta;
+> > >>> +	size_t len_std = 2;
+> > >>> +	bool has_pts, has_scr;
+> > >>> +	unsigned long flags;
+> > >>> +	ktime_t time;
+> > >>> +	const u8 *scr;
+> > >>> +
+> > >>> +	if (!meta_buf || length == 2)
+> > >>> +		return;
+> > >>> +
+> > >>> +	if (meta_buf->length - meta_buf->bytesused <
+> > >>> +	    length + sizeof(meta->ns) + sizeof(meta->sof)) {
+> > >>> +		meta_buf->error = 1;
+> > >>> +		return;
+> > >>> +	}
+> > >>> +
+> > >>> +	has_pts = mem[1] & UVC_STREAM_PTS;
+> > >>> +	has_scr = mem[1] & UVC_STREAM_SCR;
+> > >>> +
+> > >>> +	if (has_pts) {
+> > >>> +		len_std += 4;
+> > >>> +		scr = mem + 6;
+> > >>> +	} else {
+> > >>> +		scr = mem + 2;
+> > >>> +	}
+> > >>> +
+> > >>> +	if (has_scr)
+> > >>> +		len_std += 6;
+> > >>> +
+> > >>> +	if (stream->meta.format == V4L2_META_FMT_UVC)
+> > >>> +		length = len_std;
+> > >>> +
+> > >>> +	if (length == len_std && (!has_scr ||
+> > >>> +				  !memcmp(scr, stream->clock.last_scr, 6)))
+> > >>> +		return;
+> > >>> +
+> > >>> +	meta = (struct uvc_meta_buf *)((u8 *)meta_buf->mem +
+> > >>> meta_buf->bytesused); +	local_irq_save(flags);
+> > >>> +	time = uvc_video_get_time();
+> > >>> +	meta->sof = usb_get_current_frame_number(stream->dev->udev);
+> > >> 
+> > >> You need a put_unaligned here too. If you're fine with the patch below
+> > >> there's no need to resubmit, and
+> > > 
+> > > One more thing, __put_unaligned_cpu16() and __put_unaligned_cpu64() don't
+> > > compile on x86_64 with v4.12 (using media_build.git). I propose replacing
+> > > them with put_unaligned() which compiles and should do the right thing.
+> > Sure, thanks for catching! Shall I fix and resubmit?
+> 
+> If you're fine with
+> 
+> 	git://linuxtv.org/pinchartl/media.git uvc/next
+
+I was a bit concerned about just using "int" for unaligned writing of a 
+16-bit value, but looking at definitions, after a couple of macros 
+put_unaligned() currently resolves to one inline functions, which should 
+make that safe. However, at least theoretically, an arch could decide to 
+implement put_unaligned() as a macro, which might turn out to be unsafe 
+for this... Not sure how concerned should we be about such a possibility 
+:-) If you think, that's fine, then I'm ok with using the version from 
+that your branch.
+
+Thanks
+Guennadi
+
+> 
+> there's no need to resubmit.
+> 
+> By the way, could you please review "uvcvideo: Factor out video device 
+> registration to a function" and "uvcvideo: Report V4L2 device caps through the 
+> video_device structure" ?
+> 
+> I will send a pull request after testing the code and getting those two 
+> patches reviewed.
+> 
+> > >> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > >> 
+> > >> Would you mind sending me your test tool patch ?
+> > 
+> > Will send it offline.
+> > 
+> > Thanks
+> > Guennadi
+> > 
+> > >> diff --git a/drivers/media/usb/uvc/uvc_video.c b/drivers/media/usb/uvc/
+> > >> uvc_video.c
+> > >> index 2fc0bf2221db..02e4997a32bb 100644
+> > >> --- a/drivers/media/usb/uvc/uvc_video.c
+> > >> +++ b/drivers/media/usb/uvc/uvc_video.c
+> > >> @@ -1142,6 +1142,7 @@ static void uvc_video_decode_meta(struct
+> > >> uvc_streaming *stream,
+> > >>  	size_t len_std = 2;
+> > >>  	bool has_pts, has_scr;
+> > >>  	unsigned long flags;
+> > >> +	unsigned int sof;
+> > >>  	ktime_t time;
+> > >>  	const u8 *scr;
+> > >> 
+> > >> @@ -1177,9 +1178,10 @@ static void uvc_video_decode_meta(struct
+> > >> uvc_streaming *stream,
+> > >>  	meta = (struct uvc_meta_buf *)((u8 *)meta_buf->mem +
+> > >>  	meta_buf->bytesused);
+> > >> 
+> > >>  local_irq_save(flags);
+> > >>  	time = uvc_video_get_time();
+> > >> -	meta->sof = usb_get_current_frame_number(stream->dev->udev);
+> > >> +	sof = usb_get_current_frame_number(stream->dev->udev);
+> > >>  	local_irq_restore(flags);
+> > >>  	__put_unaligned_cpu64(ktime_to_ns(time), &meta->ns);
+> > >> +	__put_unaligned_cpu16(sof, &meta->sof);
+> > >> 
+> > >>  	if (has_scr)
+> > >>  		memcpy(stream->clock.last_scr, scr, 6);
+> > >>
+> > >>> +	local_irq_restore(flags);
+> > >>> +	__put_unaligned_cpu64(ktime_to_ns(time), &meta->ns);
+> > >>> +
+> > >>> +	if (has_scr)
+> > >>> +		memcpy(stream->clock.last_scr, scr, 6);
+> > >>> +
+> > >>> +	memcpy(&meta->length, mem, length);
+> > >>> +	meta_buf->bytesused += length + sizeof(meta->ns) +
+> > >>> sizeof(meta->sof);
+> > >>> +
+> > >>> +	uvc_trace(UVC_TRACE_FRAME,
+> > >>> +		  "%s(): t-sys %lluns, SOF %u, len %u, flags 0x%x, PTS %u, STC %u
+> > >>> frame
+> > >>> SOF %u\n", +		  __func__, time, meta->sof, meta->length, meta-
+> >flags,
+> > >>> +		  has_pts ? *(u32 *)meta->buf : 0,
+> > >>> +		  has_scr ? *(u32 *)scr : 0,
+> > >>> +		  has_scr ? *(u32 *)(scr + 4) & 0x7ff : 0);
+> > >>> +}
+> > >> 
+> > >> [snip]
+> 
+> -- 
+> Regards,
+> 
+> Laurent Pinchart
+> 
