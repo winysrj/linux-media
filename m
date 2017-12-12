@@ -1,412 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:20807 "EHLO
-        mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753221AbdLHJgl (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 8 Dec 2017 04:36:41 -0500
-From: Smitha T Murthy <smitha.t@samsung.com>
-To: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Cc: kyungmin.park@samsung.com, kamil@wypas.org, jtp.park@samsung.com,
-        a.hajda@samsung.com, mchehab@kernel.org, pankaj.dubey@samsung.com,
-        krzk@kernel.org, m.szyprowski@samsung.com, s.nawrocki@samsung.com,
-        Smitha T Murthy <smitha.t@samsung.com>,
-        Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org
-Subject: [Patch v6 02/12] [media] s5p-mfc: Adding initial support for MFC
- v10.10
-Date: Fri, 08 Dec 2017 14:38:15 +0530
-Message-id: <1512724105-1778-3-git-send-email-smitha.t@samsung.com>
-In-reply-to: <1512724105-1778-1-git-send-email-smitha.t@samsung.com>
-References: <1512724105-1778-1-git-send-email-smitha.t@samsung.com>
-        <CGME20171208093637epcas1p217ea0e337333ebf6918bc0418753d2af@epcas1p2.samsung.com>
+Received: from smtprelay0005.hostedemail.com ([216.40.44.5]:33729 "EHLO
+        smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751999AbdLLQCv (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 12 Dec 2017 11:02:51 -0500
+Message-ID: <1513094567.3036.54.camel@perches.com>
+Subject: Re: [PATCH] tuners: tda8290: reduce stack usage with kasan
+From: Joe Perches <joe@perches.com>
+To: Arnd Bergmann <arnd@arndb.de>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Michael Ira Krufky <mkrufky@linuxtv.org>,
+        linux-media <linux-media@vger.kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>
+Date: Tue, 12 Dec 2017 08:02:47 -0800
+In-Reply-To: <CAK8P3a2=FG-cO5G0S5xssrEcX-rmem2xS-SDsaLOGfYmcHWGBQ@mail.gmail.com>
+References: <20171211120612.3775893-1-arnd@arndb.de>
+         <1513020868.3036.0.camel@perches.com>
+         <CAOcJUbyARps1CeRFvLau3w-rBvn2QLbsY2PHGymbpUyuFCJ2HA@mail.gmail.com>
+         <CAK8P3a01sOsWSw4t-x6rv+9pzbfhZtEMc6iwV54Xq-48h6CN=Q@mail.gmail.com>
+         <1513078952.3036.36.camel@perches.com> <20171212104530.46ac4ffe@vento.lan>
+         <CAK8P3a2=FG-cO5G0S5xssrEcX-rmem2xS-SDsaLOGfYmcHWGBQ@mail.gmail.com>
+Content-Type: text/plain; charset="ISO-8859-1"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Adding the support for MFC v10.10, with new register file and
-necessary hw control, decoder, encoder and structural changes.
+On Tue, 2017-12-12 at 15:21 +0100, Arnd Bergmann wrote:
+> On Tue, Dec 12, 2017 at 1:45 PM, Mauro Carvalho Chehab
+> <mchehab@kernel.org> wrote:
+> > Em Tue, 12 Dec 2017 03:42:32 -0800
+> > Joe Perches <joe@perches.com> escreveu:
+> > 
+> > > > I actually thought about marking them 'const' here before sending
+> > > > (without noticing the changelog text) and then ran into what must
+> > > > have led me to drop the 'const' originally: tuner_i2c_xfer_send()
+> > > > takes a non-const pointer. This can be fixed but it requires
+> > > > an ugly cast:
+> > > 
+> > > Casting away const is always a horrible hack.
+> > > 
+> > > Until it could be changed, my preference would
+> > > be to update the changelog and perhaps add to
+> > > the changelog the reason why it can not be const
+> > > as detailed below.
+> > > 
+> > > ie: xfer_send and xfer_xend_recv both take a
+> > >     non-const unsigned char *
+> 
+> Ok.
+> 
+> > Perhaps, on a separate changeset, we could change I2C routines to
+> > accept const unsigned char pointers. This is unrelated to tda8290
+> > KASAN fixes. So, it should go via I2C tree, and, once accepted
+> > there, we can change V4L2 drivers (and other drivers) accordingly.
+> 
+> I don't see how that would work unfortunately. i2c_msg contains
+> a pointer to the data, and that is used for both input and output,
+> including arrays like
+> 
+>         struct i2c_msg msgs[] = {
+>                 {
+>                         .addr = dvo->slave_addr,
+>                         .flags = 0,
+>                         .len = 1,
+>                         .buf = &addr,
+>                 },
+>                 {
+>                         .addr = dvo->slave_addr,
+>                         .flags = I2C_M_RD,
+>                         .len = 1,
+>                         .buf = val,
+>                 }
+>         };
+> 
+> that have one constant output pointer and one non-constant
+> input pointer. We could add an anonymous union for 'buf'
+> to make that two separate pointers, but that's barely any
+> better than the cast, and it would break the named initializers
+> in the example above, at least on older compilers. Adding
+> a second pointer to i2c_msg would add a bit of bloat and
+> also require tree-wide changes or ugly hacks.
 
-CC: Rob Herring <robh+dt@kernel.org>
-CC: devicetree@vger.kernel.org
-Signed-off-by: Smitha T Murthy <smitha.t@samsung.com>
-Reviewed-by: Andrzej Hajda <a.hajda@samsung.com>
-Acked-by: Rob Herring <robh@kernel.org>
----
- .../devicetree/bindings/media/s5p-mfc.txt          |  1 +
- drivers/media/platform/s5p-mfc/regs-mfc-v10.h      | 36 ++++++++++++++++++++++
- drivers/media/platform/s5p-mfc/s5p_mfc.c           | 25 +++++++++++++++
- drivers/media/platform/s5p-mfc/s5p_mfc_common.h    |  9 +++++-
- drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c      |  4 +++
- drivers/media/platform/s5p-mfc/s5p_mfc_dec.c       | 32 ++++++++-----------
- drivers/media/platform/s5p-mfc/s5p_mfc_enc.c       | 16 ++++------
- drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c    |  9 ++++--
- drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h    |  2 ++
- 9 files changed, 101 insertions(+), 33 deletions(-)
- create mode 100644 drivers/media/platform/s5p-mfc/regs-mfc-v10.h
+Perhaps add something like
 
-diff --git a/Documentation/devicetree/bindings/media/s5p-mfc.txt b/Documentation/devicetree/bindings/media/s5p-mfc.txt
-index d3404b5..aa54c81 100644
---- a/Documentation/devicetree/bindings/media/s5p-mfc.txt
-+++ b/Documentation/devicetree/bindings/media/s5p-mfc.txt
-@@ -13,6 +13,7 @@ Required properties:
- 	(c) "samsung,mfc-v7" for MFC v7 present in Exynos5420 SoC
- 	(d) "samsung,mfc-v8" for MFC v8 present in Exynos5800 SoC
- 	(e) "samsung,exynos5433-mfc" for MFC v8 present in Exynos5433 SoC
-+	(f) "samsung,mfc-v10" for MFC v10 present in Exynos7880 SoC
- 
-   - reg : Physical base address of the IP registers and length of memory
- 	  mapped region.
-diff --git a/drivers/media/platform/s5p-mfc/regs-mfc-v10.h b/drivers/media/platform/s5p-mfc/regs-mfc-v10.h
-new file mode 100644
-index 0000000..1ca09d6
---- /dev/null
-+++ b/drivers/media/platform/s5p-mfc/regs-mfc-v10.h
-@@ -0,0 +1,36 @@
-+/*
-+ * Register definition file for Samsung MFC V10.x Interface (FIMV) driver
-+ *
-+ * Copyright (c) 2017 Samsung Electronics Co., Ltd.
-+ *     http://www.samsung.com/
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#ifndef _REGS_MFC_V10_H
-+#define _REGS_MFC_V10_H
-+
-+#include <linux/sizes.h>
-+#include "regs-mfc-v8.h"
-+
-+/* MFCv10 register definitions*/
-+#define S5P_FIMV_MFC_CLOCK_OFF_V10			0x7120
-+#define S5P_FIMV_MFC_STATE_V10				0x7124
-+
-+/* MFCv10 Context buffer sizes */
-+#define MFC_CTX_BUF_SIZE_V10		(30 * SZ_1K)
-+#define MFC_H264_DEC_CTX_BUF_SIZE_V10	(2 * SZ_1M)
-+#define MFC_OTHER_DEC_CTX_BUF_SIZE_V10	(20 * SZ_1K)
-+#define MFC_H264_ENC_CTX_BUF_SIZE_V10	(100 * SZ_1K)
-+#define MFC_OTHER_ENC_CTX_BUF_SIZE_V10	(15 * SZ_1K)
-+
-+/* MFCv10 variant defines */
-+#define MAX_FW_SIZE_V10		(SZ_1M)
-+#define MAX_CPB_SIZE_V10	(3 * SZ_1M)
-+#define MFC_VERSION_V10		0xA0
-+#define MFC_NUM_PORTS_V10	1
-+
-+#endif /*_REGS_MFC_V10_H*/
-+
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-index f243356..a41a6a3 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-@@ -1612,6 +1612,28 @@ static struct s5p_mfc_variant mfc_drvdata_v8_5433 = {
- 	.num_clocks	= 3,
- };
- 
-+static struct s5p_mfc_buf_size_v6 mfc_buf_size_v10 = {
-+	.dev_ctx        = MFC_CTX_BUF_SIZE_V10,
-+	.h264_dec_ctx   = MFC_H264_DEC_CTX_BUF_SIZE_V10,
-+	.other_dec_ctx  = MFC_OTHER_DEC_CTX_BUF_SIZE_V10,
-+	.h264_enc_ctx   = MFC_H264_ENC_CTX_BUF_SIZE_V10,
-+	.other_enc_ctx  = MFC_OTHER_ENC_CTX_BUF_SIZE_V10,
-+};
-+
-+static struct s5p_mfc_buf_size buf_size_v10 = {
-+	.fw     = MAX_FW_SIZE_V10,
-+	.cpb    = MAX_CPB_SIZE_V10,
-+	.priv   = &mfc_buf_size_v10,
-+};
-+
-+static struct s5p_mfc_variant mfc_drvdata_v10 = {
-+	.version        = MFC_VERSION_V10,
-+	.version_bit    = MFC_V10_BIT,
-+	.port_num       = MFC_NUM_PORTS_V10,
-+	.buf_size       = &buf_size_v10,
-+	.fw_name[0]     = "s5p-mfc-v10.fw",
-+};
-+
- static const struct of_device_id exynos_mfc_match[] = {
- 	{
- 		.compatible = "samsung,mfc-v5",
-@@ -1628,6 +1650,9 @@ static const struct of_device_id exynos_mfc_match[] = {
- 	}, {
- 		.compatible = "samsung,exynos5433-mfc",
- 		.data = &mfc_drvdata_v8_5433,
-+	}, {
-+		.compatible = "samsung,mfc-v10",
-+		.data = &mfc_drvdata_v10,
- 	},
- 	{},
- };
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-index 5fb2684..eb0cf5e 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-@@ -23,7 +23,7 @@
- #include <media/v4l2-ioctl.h>
- #include <media/videobuf2-v4l2.h>
- #include "regs-mfc.h"
--#include "regs-mfc-v8.h"
-+#include "regs-mfc-v10.h"
- 
- #define S5P_MFC_NAME		"s5p-mfc"
- 
-@@ -712,11 +712,18 @@ void s5p_mfc_cleanup_queue(struct list_head *lh, struct vb2_queue *vq);
- #define IS_MFCV6_PLUS(dev)	(dev->variant->version >= 0x60 ? 1 : 0)
- #define IS_MFCV7_PLUS(dev)	(dev->variant->version >= 0x70 ? 1 : 0)
- #define IS_MFCV8_PLUS(dev)	(dev->variant->version >= 0x80 ? 1 : 0)
-+#define IS_MFCV10(dev)		(dev->variant->version >= 0xA0 ? 1 : 0)
- 
- #define MFC_V5_BIT	BIT(0)
- #define MFC_V6_BIT	BIT(1)
- #define MFC_V7_BIT	BIT(2)
- #define MFC_V8_BIT	BIT(3)
-+#define MFC_V10_BIT	BIT(5)
- 
-+#define MFC_V5PLUS_BITS		(MFC_V5_BIT | MFC_V6_BIT | MFC_V7_BIT | \
-+					MFC_V8_BIT | MFC_V10_BIT)
-+#define MFC_V6PLUS_BITS		(MFC_V6_BIT | MFC_V7_BIT | MFC_V8_BIT | \
-+					MFC_V10_BIT)
-+#define MFC_V7PLUS_BITS		(MFC_V7_BIT | MFC_V8_BIT | MFC_V10_BIT)
- 
- #endif /* S5P_MFC_COMMON_H_ */
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c b/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
-index 3769d22..3a3dd6d 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
-@@ -239,6 +239,10 @@ int s5p_mfc_init_hw(struct s5p_mfc_dev *dev)
- 	}
- 	else
- 		mfc_write(dev, 0x3ff, S5P_FIMV_SW_RESET);
-+
-+	if (IS_MFCV10(dev))
-+		mfc_write(dev, 0x0, S5P_FIMV_MFC_CLOCK_OFF_V10);
-+
- 	mfc_debug(2, "Will now wait for completion of firmware transfer\n");
- 	if (s5p_mfc_wait_for_done_dev(dev, S5P_MFC_R2H_CMD_FW_STATUS_RET)) {
- 		mfc_err("Failed to load firmware\n");
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-index 42e9351..81de3029 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-@@ -54,7 +54,7 @@ static struct s5p_mfc_fmt formats[] = {
- 		.codec_mode	= S5P_MFC_CODEC_NONE,
- 		.type		= MFC_FMT_RAW,
- 		.num_planes	= 2,
--		.versions	= MFC_V6_BIT | MFC_V7_BIT | MFC_V8_BIT,
-+		.versions	= MFC_V6PLUS_BITS,
- 	},
- 	{
- 		.name		= "4:2:0 2 Planes Y/CrCb",
-@@ -62,7 +62,7 @@ static struct s5p_mfc_fmt formats[] = {
- 		.codec_mode	= S5P_MFC_CODEC_NONE,
- 		.type		= MFC_FMT_RAW,
- 		.num_planes	= 2,
--		.versions	= MFC_V6_BIT | MFC_V7_BIT | MFC_V8_BIT,
-+		.versions	= MFC_V6PLUS_BITS,
- 	},
- 	{
- 		.name		= "H264 Encoded Stream",
-@@ -70,8 +70,7 @@ static struct s5p_mfc_fmt formats[] = {
- 		.codec_mode	= S5P_MFC_CODEC_H264_DEC,
- 		.type		= MFC_FMT_DEC,
- 		.num_planes	= 1,
--		.versions	= MFC_V5_BIT | MFC_V6_BIT | MFC_V7_BIT |
--								MFC_V8_BIT,
-+		.versions	= MFC_V5PLUS_BITS,
- 	},
- 	{
- 		.name		= "H264/MVC Encoded Stream",
-@@ -79,7 +78,7 @@ static struct s5p_mfc_fmt formats[] = {
- 		.codec_mode	= S5P_MFC_CODEC_H264_MVC_DEC,
- 		.type		= MFC_FMT_DEC,
- 		.num_planes	= 1,
--		.versions	= MFC_V6_BIT | MFC_V7_BIT | MFC_V8_BIT,
-+		.versions	= MFC_V6PLUS_BITS,
- 	},
- 	{
- 		.name		= "H263 Encoded Stream",
-@@ -87,8 +86,7 @@ static struct s5p_mfc_fmt formats[] = {
- 		.codec_mode	= S5P_MFC_CODEC_H263_DEC,
- 		.type		= MFC_FMT_DEC,
- 		.num_planes	= 1,
--		.versions	= MFC_V5_BIT | MFC_V6_BIT | MFC_V7_BIT |
--								MFC_V8_BIT,
-+		.versions	= MFC_V5PLUS_BITS,
- 	},
- 	{
- 		.name		= "MPEG1 Encoded Stream",
-@@ -96,8 +94,7 @@ static struct s5p_mfc_fmt formats[] = {
- 		.codec_mode	= S5P_MFC_CODEC_MPEG2_DEC,
- 		.type		= MFC_FMT_DEC,
- 		.num_planes	= 1,
--		.versions	= MFC_V5_BIT | MFC_V6_BIT | MFC_V7_BIT |
--								MFC_V8_BIT,
-+		.versions	= MFC_V5PLUS_BITS,
- 	},
- 	{
- 		.name		= "MPEG2 Encoded Stream",
-@@ -105,8 +102,7 @@ static struct s5p_mfc_fmt formats[] = {
- 		.codec_mode	= S5P_MFC_CODEC_MPEG2_DEC,
- 		.type		= MFC_FMT_DEC,
- 		.num_planes	= 1,
--		.versions	= MFC_V5_BIT | MFC_V6_BIT | MFC_V7_BIT |
--								MFC_V8_BIT,
-+		.versions	= MFC_V5PLUS_BITS,
- 	},
- 	{
- 		.name		= "MPEG4 Encoded Stream",
-@@ -114,8 +110,7 @@ static struct s5p_mfc_fmt formats[] = {
- 		.codec_mode	= S5P_MFC_CODEC_MPEG4_DEC,
- 		.type		= MFC_FMT_DEC,
- 		.num_planes	= 1,
--		.versions	= MFC_V5_BIT | MFC_V6_BIT | MFC_V7_BIT |
--								MFC_V8_BIT,
-+		.versions	= MFC_V5PLUS_BITS,
- 	},
- 	{
- 		.name		= "XviD Encoded Stream",
-@@ -123,8 +118,7 @@ static struct s5p_mfc_fmt formats[] = {
- 		.codec_mode	= S5P_MFC_CODEC_MPEG4_DEC,
- 		.type		= MFC_FMT_DEC,
- 		.num_planes	= 1,
--		.versions	= MFC_V5_BIT | MFC_V6_BIT | MFC_V7_BIT |
--								MFC_V8_BIT,
-+		.versions	= MFC_V5PLUS_BITS,
- 	},
- 	{
- 		.name		= "VC1 Encoded Stream",
-@@ -132,8 +126,7 @@ static struct s5p_mfc_fmt formats[] = {
- 		.codec_mode	= S5P_MFC_CODEC_VC1_DEC,
- 		.type		= MFC_FMT_DEC,
- 		.num_planes	= 1,
--		.versions	= MFC_V5_BIT | MFC_V6_BIT | MFC_V7_BIT |
--								MFC_V8_BIT,
-+		.versions	= MFC_V5PLUS_BITS,
- 	},
- 	{
- 		.name		= "VC1 RCV Encoded Stream",
-@@ -141,8 +134,7 @@ static struct s5p_mfc_fmt formats[] = {
- 		.codec_mode	= S5P_MFC_CODEC_VC1RCV_DEC,
- 		.type		= MFC_FMT_DEC,
- 		.num_planes	= 1,
--		.versions	= MFC_V5_BIT | MFC_V6_BIT | MFC_V7_BIT |
--								MFC_V8_BIT,
-+		.versions	= MFC_V5PLUS_BITS,
- 	},
- 	{
- 		.name		= "VP8 Encoded Stream",
-@@ -150,7 +142,7 @@ static struct s5p_mfc_fmt formats[] = {
- 		.codec_mode	= S5P_MFC_CODEC_VP8_DEC,
- 		.type		= MFC_FMT_DEC,
- 		.num_planes	= 1,
--		.versions	= MFC_V6_BIT | MFC_V7_BIT | MFC_V8_BIT,
-+		.versions	= MFC_V6PLUS_BITS,
- 	},
- };
- 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-index 2a5fd7c..64b6b6d 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-@@ -57,8 +57,7 @@ static struct s5p_mfc_fmt formats[] = {
- 		.codec_mode	= S5P_MFC_CODEC_NONE,
- 		.type		= MFC_FMT_RAW,
- 		.num_planes	= 2,
--		.versions	= MFC_V5_BIT | MFC_V6_BIT | MFC_V7_BIT |
--								MFC_V8_BIT,
-+		.versions	= MFC_V5PLUS_BITS,
- 	},
- 	{
- 		.name		= "4:2:0 2 Planes Y/CrCb",
-@@ -66,7 +65,7 @@ static struct s5p_mfc_fmt formats[] = {
- 		.codec_mode	= S5P_MFC_CODEC_NONE,
- 		.type		= MFC_FMT_RAW,
- 		.num_planes	= 2,
--		.versions	= MFC_V6_BIT | MFC_V7_BIT | MFC_V8_BIT,
-+		.versions	= MFC_V6PLUS_BITS,
- 	},
- 	{
- 		.name		= "H264 Encoded Stream",
-@@ -74,8 +73,7 @@ static struct s5p_mfc_fmt formats[] = {
- 		.codec_mode	= S5P_MFC_CODEC_H264_ENC,
- 		.type		= MFC_FMT_ENC,
- 		.num_planes	= 1,
--		.versions	= MFC_V5_BIT | MFC_V6_BIT | MFC_V7_BIT |
--								MFC_V8_BIT,
-+		.versions	= MFC_V5PLUS_BITS,
- 	},
- 	{
- 		.name		= "MPEG4 Encoded Stream",
-@@ -83,8 +81,7 @@ static struct s5p_mfc_fmt formats[] = {
- 		.codec_mode	= S5P_MFC_CODEC_MPEG4_ENC,
- 		.type		= MFC_FMT_ENC,
- 		.num_planes	= 1,
--		.versions	= MFC_V5_BIT | MFC_V6_BIT | MFC_V7_BIT |
--								MFC_V8_BIT,
-+		.versions	= MFC_V5PLUS_BITS,
- 	},
- 	{
- 		.name		= "H263 Encoded Stream",
-@@ -92,8 +89,7 @@ static struct s5p_mfc_fmt formats[] = {
- 		.codec_mode	= S5P_MFC_CODEC_H263_ENC,
- 		.type		= MFC_FMT_ENC,
- 		.num_planes	= 1,
--		.versions	= MFC_V5_BIT | MFC_V6_BIT | MFC_V7_BIT |
--								MFC_V8_BIT,
-+		.versions	= MFC_V5PLUS_BITS,
- 	},
- 	{
- 		.name		= "VP8 Encoded Stream",
-@@ -101,7 +97,7 @@ static struct s5p_mfc_fmt formats[] = {
- 		.codec_mode	= S5P_MFC_CODEC_VP8_ENC,
- 		.type		= MFC_FMT_ENC,
- 		.num_planes	= 1,
--		.versions	= MFC_V7_BIT | MFC_V8_BIT,
-+		.versions	= MFC_V7PLUS_BITS,
- 	},
- };
- 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-index fe14479..2041d81 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-@@ -356,6 +356,7 @@ static int calc_plane(int width, int height)
- 
- static void s5p_mfc_dec_calc_dpb_size_v6(struct s5p_mfc_ctx *ctx)
- {
-+	struct s5p_mfc_dev *dev = ctx->dev;
- 	ctx->buf_width = ALIGN(ctx->img_width, S5P_FIMV_NV12MT_HALIGN_V6);
- 	ctx->buf_height = ALIGN(ctx->img_height, S5P_FIMV_NV12MT_VALIGN_V6);
- 	mfc_debug(2, "SEQ Done: Movie dimensions %dx%d,\n"
-@@ -372,8 +373,12 @@ static void s5p_mfc_dec_calc_dpb_size_v6(struct s5p_mfc_ctx *ctx)
- 
- 	if (ctx->codec_mode == S5P_MFC_CODEC_H264_DEC ||
- 			ctx->codec_mode == S5P_MFC_CODEC_H264_MVC_DEC) {
--		ctx->mv_size = S5P_MFC_DEC_MV_SIZE_V6(ctx->img_width,
--				ctx->img_height);
-+		if (IS_MFCV10(dev))
-+			ctx->mv_size = S5P_MFC_DEC_MV_SIZE_V10(ctx->img_width,
-+					ctx->img_height);
-+		else
-+			ctx->mv_size = S5P_MFC_DEC_MV_SIZE_V6(ctx->img_width,
-+					ctx->img_height);
- 		ctx->mv_size = ALIGN(ctx->mv_size, 16);
- 	} else {
- 		ctx->mv_size = 0;
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h
-index 8055848..021b8db 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h
-@@ -24,6 +24,8 @@
- #define MB_HEIGHT(y_size)		DIV_ROUND_UP(y_size, 16)
- #define S5P_MFC_DEC_MV_SIZE_V6(x, y)	(MB_WIDTH(x) * \
- 					(((MB_HEIGHT(y)+1)/2)*2) * 64 + 128)
-+#define S5P_MFC_DEC_MV_SIZE_V10(x, y)	(MB_WIDTH(x) * \
-+					(((MB_HEIGHT(y)+1)/2)*2) * 64 + 512)
- 
- /* Definition */
- #define ENC_MULTI_SLICE_MB_MAX		((1 << 30) - 1)
--- 
-2.7.4
+struct i2c_msg_set {
+	__u16 addr;		/* slave address			*/
+	__u16 flags;
+	__u16 len;		/* msg length				*/
+	const __u8 *buf;	/* pointer to read-only msg data	*/
+};
+
+struct i2c_msg_get {
+	__u16 addr;		/* slave address			*/
+	__u16 flags;
+	__u16 len;		/* msg length				*/
+	__u8 *buf;		/* pointer to writeable msg data	*/
+};
+
+to the uapi include and use that where appropriate
+but where a write then read is done via a single
+i2c_msg array, it's not really feasible either.
+
+Probably better to avoid any churn and just mark
+all these as static rather than static const.
