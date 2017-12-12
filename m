@@ -1,131 +1,383 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from vps-vb.mhejs.net ([37.28.154.113]:44282 "EHLO vps-vb.mhejs.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752207AbdLVXRL (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 22 Dec 2017 18:17:11 -0500
-Subject: Re: [PATCH v4 6/6] [media] cxusb: add analog mode support for Medion
- MD95700
-To: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-        Michael Krufky <mkrufky@linuxtv.org>,
-        Andy Walls <awalls@md.metrocast.net>,
-        linux-kernel <linux-kernel@vger.kernel.org>,
-        linux-media@vger.kernel.org,
+Received: from us01smtprelay-2.synopsys.com ([198.182.47.9]:51854 "EHLO
+        smtprelay.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751577AbdLLQCS (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 12 Dec 2017 11:02:18 -0500
+Subject: Re: [PATCH v10 4/4] [media] platform: Add Synopsys DesignWare HDMI RX
+ Controller Driver
+To: Hans Verkuil <hverkuil@xs4all.nl>, <linux-media@vger.kernel.org>,
+        <linux-kernel@vger.kernel.org>
+References: <cover.1513013948.git.joabreu@synopsys.com>
+ <5f9eedfd6f91ed73ef0bb6d3977588d01478909f.1513013948.git.joabreu@synopsys.com>
+ <108e2c3c-243f-cd67-2df7-57541b28ca39@xs4all.nl>
+CC: Joao Pinto <Joao.Pinto@synopsys.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        "Sylwester Nawrocki" <snawrocki@kernel.org>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
         Philippe Ombredanne <pombredanne@nexb.com>
-References: <cover.1513536096.git.mail@maciej.szmigiero.name>
- <8b06f30b-bd92-6454-c810-c2774fd8818b@maciej.szmigiero.name>
- <20171219105329.3d6b2fb4@vento.lan>
-From: "Maciej S. Szmigiero" <mail@maciej.szmigiero.name>
-Message-ID: <4edb4d39-81af-1bdc-bcc2-e3d68bc68374@maciej.szmigiero.name>
-Date: Sat, 23 Dec 2017 00:17:07 +0100
+From: Jose Abreu <Jose.Abreu@synopsys.com>
+Message-ID: <635e7d70-0edb-7506-c268-9ebbae1eb39e@synopsys.com>
+Date: Tue, 12 Dec 2017 16:02:04 +0000
 MIME-Version: 1.0
-In-Reply-To: <20171219105329.3d6b2fb4@vento.lan>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
+In-Reply-To: <108e2c3c-243f-cd67-2df7-57541b28ca39@xs4all.nl>
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 19.12.2017 13:53, Mauro Carvalho Chehab wrote:
-> Em Sun, 17 Dec 2017 19:47:25 +0100
-> "Maciej S. Szmigiero" <mail@maciej.szmigiero.name> escreveu:
-> 
->> This patch adds support for analog part of Medion 95700 in the cxusb
->> driver.
+Hi Hans,
+
+On 12-12-2017 15:47, Hans Verkuil wrote:
+> Hi Jose,
+>
+> Some more comments:
+
+Thanks for the review!
+
+>
+> On 11/12/17 18:41, Jose Abreu wrote:
+>> This is an initial submission for the Synopsys DesignWare HDMI RX
+>> Controller Driver. This driver interacts with a phy driver so that
+>> a communication between them is created and a video pipeline is
+>> configured.
 >>
->> What works:
->> * Video capture at various sizes with sequential fields,
->> * Input switching (TV Tuner, Composite, S-Video),
->> * TV and radio tuning,
->> * Video standard switching and auto detection,
->> * Radio mode switching (stereo / mono),
->> * Unplugging while capturing,
->> * DVB / analog coexistence,
->> * Raw BT.656 stream support.
+>> The controller + phy pipeline can then be integrated into a fully
+>> featured system that can be able to receive video up to 4k@60Hz
+>> with deep color 48bit RGB, depending on the platform. Although,
+>> this initial version does not yet handle deep color modes.
 >>
->> What does not work yet:
->> * Audio,
->> * VBI,
->> * Picture controls.
-> 
-> Patches 1 to 5 look OK to me (although checkpatch do a few complains).
-> 
-> This one, however, require some adjustments.
-> 
-> I'd like to also have Hans eyes on it, as he's doing a lot more V4L2
-> new driver reviews than me nowadays.
-> 
-(..)
->> +static int cxusb_medion_try_s_fmt_vid_cap(struct file *file,
->> +					  struct v4l2_format *f,
->> +					  bool isset)
+>> This driver was implemented as a standard V4L2 subdevice and its
+>> main features are:
+>> 	- Internal state machine that reconfigures phy until the
+>> 	video is not stable
+>> 	- JTAG communication with phy
+>> 	- Inter-module communication with phy driver
+>> 	- Debug write/read ioctls
+>>
+>> Some notes:
+>> 	- RX sense controller (cable connection/disconnection) must
+>> 	be handled by the platform wrapper as this is not integrated
+>> 	into the controller RTL
+>> 	- The same goes for EDID ROM's
+>> 	- ZCAL calibration is needed only in FPGA platforms, in ASIC
+>> 	this is not needed
+>> 	- The state machine is not an ideal solution as it creates a
+>> 	kthread but it is needed because some sources might not be
+>> 	very stable at sending the video (i.e. we must react
+>> 	accordingly).
+>>
+>> Signed-off-by: Jose Abreu <joabreu@synopsys.com>
+>> Cc: Joao Pinto <jpinto@synopsys.com>
+>> Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+>> Cc: Hans Verkuil <hans.verkuil@cisco.com>
+>> Cc: Sylwester Nawrocki <snawrocki@kernel.org>
+>> Cc: Sakari Ailus <sakari.ailus@iki.fi>
+>> Cc: Philippe Ombredanne <pombredanne@nexb.com>
+>> ---
+>> Changes from v9:
+>> 	- Use SPDX License ID (Philippe)
+>> 	- Use LOW_DRIVE CEC error (Hans)
+>> 	- Fill bt->il_* fields (Hans)
+>> 	- Fix format->field to NONE (Hans)
+>> 	- Drop a left-over comment (Hans)
+>> 	- Use CEC_CAP_DEFAULTS (Hans)
+>> Changes from v8:
+>> 	- Incorporate Sakari's work on ASYNC subdevs
+>> Changes from v6:
+>> 	- edid-phandle now also looks for parent node (Sylwester)
+>> 	- Fix kbuild build warnings
+>> Changes from v5:
+>> 	- Removed HDCP 1.4 support (Hans)
+>> 	- Removed some CEC debug messages (Hans)
+>> 	- Add s_dv_timings callback (Hans)
+>> 	- Add V4L2_CID_DV_RX_POWER_PRESENT ctrl (Hans)
+>> Changes from v4:
+>> 	- Add flag V4L2_SUBDEV_FL_HAS_DEVNODE (Sylwester)
+>> 	- Remove some comments and change some messages to dev_dbg (Sylwester)
+>> 	- Use v4l2_async_subnotifier_register() (Sylwester)
+>> Changes from v3:
+>> 	- Use v4l2 async API (Sylwester)
+>> 	- Do not block waiting for phy
+>> 	- Do not use busy waiting delays (Sylwester)
+>> 	- Simplify dw_hdmi_power_on (Sylwester)
+>> 	- Use clock API (Sylwester)
+>> 	- Use compatible string (Sylwester)
+>> 	- Minor fixes (Sylwester)
+>> Changes from v2:
+>> 	- Address review comments from Hans regarding CEC
+>> 	- Use CEC notifier
+>> 	- Enable SCDC
+>> Changes from v1:
+>> 	- Add support for CEC
+>> 	- Correct typo errors
+>> 	- Correctly detect interlaced video modes
+>> 	- Correct VIC parsing
+>> Changes from RFC:
+>> 	- Add support for HDCP 1.4
+>> 	- Fixup HDMI_VIC not being parsed (Hans)
+>> 	- Send source change signal when powering off (Hans)
+>> 	- Add a "wait stable delay"
+>> 	- Detect interlaced video modes (Hans)
+>> 	- Restrain g/s_register from reading/writing to HDCP regs (Hans)
+>> ---
+>>  drivers/media/platform/dwc/Kconfig      |   15 +
+>>  drivers/media/platform/dwc/Makefile     |    1 +
+>>  drivers/media/platform/dwc/dw-hdmi-rx.c | 1840 +++++++++++++++++++++++++++++++
+>>  drivers/media/platform/dwc/dw-hdmi-rx.h |  419 +++++++
+>>  include/media/dwc/dw-hdmi-rx-pdata.h    |   48 +
+>>  5 files changed, 2323 insertions(+)
+>>  create mode 100644 drivers/media/platform/dwc/dw-hdmi-rx.c
+>>  create mode 100644 drivers/media/platform/dwc/dw-hdmi-rx.h
+>>  create mode 100644 include/media/dwc/dw-hdmi-rx-pdata.h
+>>
+>> diff --git a/drivers/media/platform/dwc/Kconfig b/drivers/media/platform/dwc/Kconfig
+>> index 361d38d..3ddccde 100644
+>> --- a/drivers/media/platform/dwc/Kconfig
+>> +++ b/drivers/media/platform/dwc/Kconfig
+>> @@ -6,3 +6,18 @@ config VIDEO_DWC_HDMI_PHY_E405
+>>  
+>>  	  To compile this driver as a module, choose M here. The module
+>>  	  will be called dw-hdmi-phy-e405.
+>> +
+>> +config VIDEO_DWC_HDMI_RX
+>> +	tristate "Synopsys Designware HDMI Receiver driver"
+>> +	depends on VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
+>> +	help
+>> +	  Support for Synopsys Designware HDMI RX controller.
+>> +
+>> +	  To compile this driver as a module, choose M here. The module
+>> +	  will be called dw-hdmi-rx.
+>> +
+>> +config VIDEO_DWC_HDMI_RX_CEC
+>> +	bool
+>> +	depends on VIDEO_DWC_HDMI_RX
+>> +	select CEC_CORE
+>> +	select CEC_NOTIFIER
+>> diff --git a/drivers/media/platform/dwc/Makefile b/drivers/media/platform/dwc/Makefile
+>> index fc3b62c..cd04ca9 100644
+>> --- a/drivers/media/platform/dwc/Makefile
+>> +++ b/drivers/media/platform/dwc/Makefile
+>> @@ -1 +1,2 @@
+>>  obj-$(CONFIG_VIDEO_DWC_HDMI_PHY_E405) += dw-hdmi-phy-e405.o
+>> +obj-$(CONFIG_VIDEO_DWC_HDMI_RX) += dw-hdmi-rx.o
+>> diff --git a/drivers/media/platform/dwc/dw-hdmi-rx.c b/drivers/media/platform/dwc/dw-hdmi-rx.c
+>> new file mode 100644
+>> index 0000000..437351e
+>> --- /dev/null
+>> +++ b/drivers/media/platform/dwc/dw-hdmi-rx.c
+> <snip>
+>
+>> +static int dw_hdmi_s_routing(struct v4l2_subdev *sd, u32 input, u32 output,
+>> +		u32 config)
 >> +{
->> +	struct dvb_usb_device *dvbdev = video_drvdata(file);
->> +	struct cxusb_medion_dev *cxdev = dvbdev->priv;
->> +	struct v4l2_subdev_format subfmt;
->> +	int ret;
+>> +	struct dw_hdmi_dev *dw_dev = to_dw_dev(sd);
 >> +
->> +	if (isset && (cxusb_medion_stream_busy(cxdev) ||
->> +		      vb2_is_busy(&cxdev->videoqueue)))
->> +		return -EBUSY;
+>> +	if (!has_signal(dw_dev, input))
+>> +		return -EINVAL;
+> Why would this be a reason to reject this? There may be no signal now, but a signal
+> might appear later.
+
+I would expect s_routing to only be called if there is an input
+connected, otherwise we are just wasting resources by trying to
+equalize an input that is not present ... I can remove the "if"
+as there are other safe guards for this though (for example g_fmt
+will return an error) ...
+
+>
 >> +
->> +	memset(&subfmt, 0, sizeof(subfmt));
->> +	subfmt.which = isset ? V4L2_SUBDEV_FORMAT_ACTIVE :
->> +		V4L2_SUBDEV_FORMAT_TRY;
->> +	subfmt.format.width = f->fmt.pix.width & ~1;
->> +	subfmt.format.height = f->fmt.pix.height & ~1;
->> +	subfmt.format.code = MEDIA_BUS_FMT_FIXED;
->> +	subfmt.format.field = V4L2_FIELD_SEQ_TB;
->> +	subfmt.format.colorspace = V4L2_COLORSPACE_SMPTE170M;
+>> +	dw_dev->selected_input = input;
+>> +	if (input == dw_dev->configured_input)
+>> +		return 0;
 >> +
->> +	ret = v4l2_subdev_call(cxdev->cx25840, pad, set_fmt, NULL, &subfmt);
->> +	if (ret != 0) {
->> +		if (ret != -ERANGE)
->> +			return ret;
+>> +	dw_hdmi_power_off(dw_dev);
+>> +	return dw_hdmi_power_on(dw_dev, input);
+>> +}
 >> +
->> +		/* try some common formats */
->> +		subfmt.format.width = 720;
->> +		subfmt.format.height = 576;
->> +		ret = v4l2_subdev_call(cxdev->cx25840, pad, set_fmt, NULL,
->> +				       &subfmt);
->> +		if (ret != 0) {
->> +			if (ret != -ERANGE)
->> +				return ret;
+>> +static int dw_hdmi_g_input_status(struct v4l2_subdev *sd, u32 *status)
+>> +{
+>> +	struct dw_hdmi_dev *dw_dev = to_dw_dev(sd);
 >> +
->> +			subfmt.format.width = 640;
->> +			subfmt.format.height = 480;
->> +			ret = v4l2_subdev_call(cxdev->cx25840, pad, set_fmt,
->> +					       NULL, &subfmt);
->> +			if (ret != 0)
->> +				return ret;
+>> +	*status = 0;
+>> +	if (!has_signal(dw_dev, dw_dev->selected_input))
+>> +		*status |= V4L2_IN_ST_NO_POWER;
+>> +	if (is_off(dw_dev))
+>> +		*status |= V4L2_IN_ST_NO_SIGNAL;
+>> +
+>> +	dev_dbg(dw_dev->dev, "%s: status=0x%x\n", __func__, *status);
+>> +	return 0;
+>> +}
+>> +
+>> +static int dw_hdmi_g_parm(struct v4l2_subdev *sd, struct v4l2_streamparm *parm)
+>> +{
+>> +	struct dw_hdmi_dev *dw_dev = to_dw_dev(sd);
+>> +
+>> +	dev_dbg(dw_dev->dev, "%s\n", __func__);
+>> +
+>> +	/* TODO: Use helper to compute timeperframe */
+>> +	parm->parm.capture.timeperframe.numerator = 1;
+>> +	parm->parm.capture.timeperframe.denominator = 60;
+>> +	return 0;
+>> +}
+>> +
+>> +static int dw_hdmi_s_dv_timings(struct v4l2_subdev *sd,
+>> +		struct v4l2_dv_timings *timings)
+>> +{
+>> +	struct dw_hdmi_dev *dw_dev = to_dw_dev(sd);
+>> +
+>> +	dev_dbg(dw_dev->dev, "%s\n", __func__);
+>> +	if (!v4l2_valid_dv_timings(timings, &dw_hdmi_timings_cap, NULL, NULL))
+>> +		return -EINVAL;
+>> +	if (v4l2_match_dv_timings(timings, &dw_dev->timings, 0, false))
+>> +		return 0;
+>> +
+>> +	dw_dev->timings = *timings;
+>> +	return 0;
+>> +}
+>> +
+>> +static int dw_hdmi_g_dv_timings(struct v4l2_subdev *sd,
+>> +		struct v4l2_dv_timings *timings)
+>> +{
+>> +	struct dw_hdmi_dev *dw_dev = to_dw_dev(sd);
+>> +
+>> +	dev_dbg(dw_dev->dev, "%s\n", __func__);
+>> +
+>> +	*timings = dw_dev->timings;
+>> +	return 0;
+>> +}
+>> +
+>> +static int dw_hdmi_query_dv_timings(struct v4l2_subdev *sd,
+>> +		struct v4l2_dv_timings *timings)
+>> +{
+>> +	struct dw_hdmi_dev *dw_dev = to_dw_dev(sd);
+>> +	struct v4l2_bt_timings *bt = &timings->bt;
+>> +	bool is_hdmi_vic;
+>> +	u32 htot, hofs;
+>> +	u32 vtot;
+>> +	u8 vic;
+>> +
+>> +	dev_dbg(dw_dev->dev, "%s\n", __func__);
+>> +
+>> +	memset(timings, 0, sizeof(*timings));
+>> +
+>> +	timings->type = V4L2_DV_BT_656_1120;
+>> +	bt->width = hdmi_readl(dw_dev, HDMI_MD_HACT_PX);
+>> +	bt->height = hdmi_readl(dw_dev, HDMI_MD_VAL);
+>> +	bt->interlaced = hdmi_readl(dw_dev, HDMI_MD_STS) & HDMI_MD_STS_ILACE ?
+>> +		V4L2_DV_INTERLACED : V4L2_DV_PROGRESSIVE;
+>> +
+>> +	if (hdmi_readl(dw_dev, HDMI_ISTS) & HDMI_ISTS_VS_POL_ADJ)
+>> +		bt->polarities |= V4L2_DV_VSYNC_POS_POL;
+>> +	if (hdmi_readl(dw_dev, HDMI_ISTS) & HDMI_ISTS_HS_POL_ADJ)
+>> +		bt->polarities |= V4L2_DV_HSYNC_POS_POL;
+>> +
+>> +	bt->pixelclock = dw_hdmi_get_pixelclk(dw_dev);
+>> +
+>> +	/* HTOT = HACT + HFRONT + HSYNC + HBACK */
+>> +	htot = hdmi_mask_readl(dw_dev, HDMI_MD_HT1,
+>> +			HDMI_MD_HT1_HTOT_PIX_OFFSET,
+>> +			HDMI_MD_HT1_HTOT_PIX_MASK);
+>> +	/* HOFS = HSYNC + HBACK */
+>> +	hofs = hdmi_mask_readl(dw_dev, HDMI_MD_HT1,
+>> +			HDMI_MD_HT1_HOFS_PIX_OFFSET,
+>> +			HDMI_MD_HT1_HOFS_PIX_MASK);
+>> +
+>> +	bt->hfrontporch = htot - hofs - bt->width;
+>> +	bt->hsync = hdmi_mask_readl(dw_dev, HDMI_MD_HT0,
+>> +			HDMI_MD_HT0_HS_CLK_OFFSET,
+>> +			HDMI_MD_HT0_HS_CLK_MASK);
+>> +	bt->hbackporch = hofs - bt->hsync;
+>> +
+>> +	/* VTOT = VACT + VFRONT + VSYNC + VBACK */
+>> +	vtot = hdmi_readl(dw_dev, HDMI_MD_VTL);
+>> +
+>> +	hdmi_mask_writel(dw_dev, 0x1, HDMI_MD_VCTRL,
+>> +			HDMI_MD_VCTRL_V_OFFS_LIN_MODE_OFFSET,
+>> +			HDMI_MD_VCTRL_V_OFFS_LIN_MODE_MASK);
+>> +	msleep(50); /* Wait for 1 field */
+> How do you know this waits for 1 field? Or is this: "Wait for at least 1 field"?
+
+Its wait at least for 1 field. This is over-generous because its
+assuming the frame rate is 20fps (which in HDMI does not happen).
+
+> I don't know exactly how the IP does this, but it looks fishy to me. If it is
+> correct, then it could use a few comments about what is going on here as it is
+> not obvious.
+
+The IP updates the values at each field but I need to change this
+register to populate all values in the bt struct.
+
+>
+> And what happens if the framerate is even slower? You know the pixelclock and
+> total width+height, so you can calculate the framerate from that.
+
+Hmm, but then I have to consider pixelclk error, msleep error, ...
+
+>
+>> +	bt->vsync = hdmi_readl(dw_dev, HDMI_MD_VOL);
+>> +
+>> +	hdmi_mask_writel(dw_dev, 0x0, HDMI_MD_VCTRL,
+>> +			HDMI_MD_VCTRL_V_OFFS_LIN_MODE_OFFSET,
+>> +			HDMI_MD_VCTRL_V_OFFS_LIN_MODE_MASK);
+>> +	msleep(50); /* Wait for 1 field */
+>> +	bt->vbackporch = hdmi_readl(dw_dev, HDMI_MD_VOL);
+>> +	bt->vfrontporch = vtot - bt->height - bt->vsync - bt->vbackporch;
+>> +
+>> +	if (bt->interlaced == V4L2_DV_INTERLACED) {
+>> +		hdmi_mask_writel(dw_dev, 0x1, HDMI_MD_VCTRL,
+>> +				HDMI_MD_VCTRL_V_MODE_OFFSET,
+>> +				HDMI_MD_VCTRL_V_MODE_MASK);
+>> +		msleep(100); /* Wait for 2 fields */
+>> +
+>> +		vtot = hdmi_readl(dw_dev, HDMI_MD_VTL);
+>> +		hdmi_mask_writel(dw_dev, 0x1, HDMI_MD_VCTRL,
+>> +				HDMI_MD_VCTRL_V_OFFS_LIN_MODE_OFFSET,
+>> +				HDMI_MD_VCTRL_V_OFFS_LIN_MODE_MASK);
+>> +		msleep(50); /* Wait for 1 field */
+>> +		bt->il_vsync = hdmi_readl(dw_dev, HDMI_MD_VOL);
+>> +
+>> +		hdmi_mask_writel(dw_dev, 0x0, HDMI_MD_VCTRL,
+>> +				HDMI_MD_VCTRL_V_OFFS_LIN_MODE_OFFSET,
+>> +				HDMI_MD_VCTRL_V_OFFS_LIN_MODE_MASK);
+>> +		msleep(50);
+>> +		bt->il_vbackporch = hdmi_readl(dw_dev, HDMI_MD_VOL);
+>> +		bt->il_vfrontporch = vtot - bt->height - bt->il_vsync -
+>> +			bt->il_vbackporch;
+>> +
+>> +		hdmi_mask_writel(dw_dev, 0x0, HDMI_MD_VCTRL,
+>> +				HDMI_MD_VCTRL_V_MODE_OFFSET,
+>> +				HDMI_MD_VCTRL_V_MODE_MASK);
+> Same here, I'm not sure this is correct. What is the output of
+> 'v4l2-ctl --query-dv-timings' when you feed it a standard interlaced format?
+
+I used v4l2-ctl --log-status with interlaced format and
+everything seemed correct ...
+
+Thanks and Best Regards,
+Jose Miguel Abreu
+
+>
+>> +	}
+>> +
+>> +	bt->standards = V4L2_DV_BT_STD_CEA861;
+>> +
+>> +	vic = dw_hdmi_get_curr_vic(dw_dev, &is_hdmi_vic);
+>> +	if (vic) {
+>> +		if (is_hdmi_vic) {
+>> +			bt->flags |= V4L2_DV_FL_HAS_HDMI_VIC;
+>> +			bt->hdmi_vic = vic;
+>> +			bt->cea861_vic = 0;
+>> +		} else {
+>> +			bt->flags |= V4L2_DV_FL_HAS_CEA861_VIC;
+>> +			bt->hdmi_vic = 0;
+>> +			bt->cea861_vic = vic;
 >> +		}
 >> +	}
-> 
-> That looks weird... Why are you trying two different formats here,
-> instead of just using the width/height that userspace passes?
-> 
-V4L2 docs say that VIDIOC_{S,TRY}_FMT ioctls "should not return an error
-code unless the type field is invalid", that is, they should not return
-an error for invalid or unsupported image widths or heights.
-They should instead return something sensible for these image parameters.
-
-However, cx25840 driver set_fmt callback simply returns -ERANGE if it
-does not like the provided width or height.
-In this case the code above simply tries first the bigger PAL capture
-resolution then the smaller NTSC one.
-Which one will be accepted by the cx25840 depends on the currently set
-broadcast standard and parameters of the last signal that was received,
-at least one of these resolutions seem to work even without any
-signal being received since the chip was powered up.
-
-This way the API guarantees should be kept by the driver.
-
-(All other your comments were implemented in a respin).
-
-> 
-> Thanks,
-> Mauro
-> 
-
-Thanks,
-Maciej
+>> +
+>> +	return 0;
+>> +}
+> Regards,
+>
+> 	Hans
+>
