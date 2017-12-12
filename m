@@ -1,57 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from esa4.microchip.iphmx.com ([68.232.154.123]:10471 "EHLO
-        esa4.microchip.iphmx.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750806AbdLZBjs (ORCPT
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:38915 "EHLO
+        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752410AbdLLRtF (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 25 Dec 2017 20:39:48 -0500
-Subject: Re: [PATCH -next] media: atmel-isc: Make local symbol
- fmt_configs_list static
-To: Wei Yongjun <weiyongjun1@huawei.com>,
-        Songjun Wu <songjun.wu@microchip.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Nicolas Ferre <nicolas.ferre@microchip.com>,
-        Alexandre Belloni <alexandre.belloni@free-electrons.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-CC: <linux-media@vger.kernel.org>,
-        <linux-arm-kernel@lists.infradead.org>
-References: <1513994224-86350-1-git-send-email-weiyongjun1@huawei.com>
-From: "Yang, Wenyou" <Wenyou.Yang@Microchip.com>
-Message-ID: <fa1db8ce-c93a-cb0c-a5e0-a8886879090e@Microchip.com>
-Date: Tue, 26 Dec 2017 09:39:42 +0800
-MIME-Version: 1.0
-In-Reply-To: <1513994224-86350-1-git-send-email-weiyongjun1@huawei.com>
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-Content-Language: en-US
+        Tue, 12 Dec 2017 12:49:05 -0500
+Received: by mail-wm0-f65.google.com with SMTP id i11so301803wmf.4
+        for <linux-media@vger.kernel.org>; Tue, 12 Dec 2017 09:49:04 -0800 (PST)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: linux-media@vger.kernel.org, hverkuil@xs4all.nl
+Cc: jasmin@anw.at
+Subject: [PATCH] [build] fixup v3.13_ddbridge_pcimsi.patch
+Date: Tue, 12 Dec 2017 18:49:01 +0100
+Message-Id: <20171212174901.14781-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: Jasmin Jessich <jasmin@anw.at>
 
+Required after the ddbridge 0.9.32 bump in media_tree.
 
-On 2017/12/23 9:57, Wei Yongjun wrote:
-> Fixes the following sparse warning:
->
-> drivers/media/platform/atmel/atmel-isc.c:338:19: warning:
->   symbol 'fmt_configs_list' was not declared. Should it be static?
->
-> Signed-off-by: Wei Yongjun <weiyongjun1@huawei.com>
-> ---
-Acked-by: Wenyou Yang <wenyou.yang@microchip.com>
+Signed-off-by: Jasmin Jessich <jasmin@anw.at>
+Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+---
+Fixes at least the patch issue with kernel <=3.13. Jasmin originally
+prepared the updated patch when the ddbridge-0.9.32 bump was done, so
+sending it in behalf of her (with CONFIG_VIDEO_PVRUSB2 disabled this
+makes the patch phase work again with older kernels).
 
->   drivers/media/platform/atmel/atmel-isc.c | 2 +-
->   1 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/drivers/media/platform/atmel/atmel-isc.c b/drivers/media/platform/atmel/atmel-isc.c
-> index 0c26356..2dd72fc 100644
-> --- a/drivers/media/platform/atmel/atmel-isc.c
-> +++ b/drivers/media/platform/atmel/atmel-isc.c
-> @@ -335,7 +335,7 @@ struct isc_device {
->   	},
->   };
->   
-> -struct fmt_config fmt_configs_list[] = {
-> +static struct fmt_config fmt_configs_list[] = {
->   	{
->   		.fourcc		= V4L2_PIX_FMT_SBGGR8,
->   		.pfe_cfg0_bps	= ISC_PFE_CFG0_BPS_EIGHT,
->
+Hans, this is probably for you. I don't have a fix for the PVRUSB2
+usb_urb_ep_type_check() issue at hands though.
+
+ backports/v3.13_ddbridge_pcimsi.patch | 11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
+
+diff --git a/backports/v3.13_ddbridge_pcimsi.patch b/backports/v3.13_ddbridge_pcimsi.patch
+index 5f602a7..f410251 100644
+--- a/backports/v3.13_ddbridge_pcimsi.patch
++++ b/backports/v3.13_ddbridge_pcimsi.patch
+@@ -2,7 +2,7 @@ diff --git a/drivers/media/pci/ddbridge/ddbridge-main.c b/drivers/media/pci/ddbr
+ index 9ab4736..50c3b4f 100644
+ --- a/drivers/media/pci/ddbridge/ddbridge-main.c
+ +++ b/drivers/media/pci/ddbridge/ddbridge-main.c
+-@@ -129,13 +129,18 @@ static void ddb_irq_msi(struct ddb *dev, int nr)
++@@ -129,14 +129,18 @@ static void ddb_irq_msi(struct ddb *dev, int nr)
+  	int stat;
+  
+  	if (msi && pci_msi_enabled()) {
+@@ -10,17 +10,18 @@ index 9ab4736..50c3b4f 100644
+ -		if (stat >= 1) {
+ -			dev->msi = stat;
+ -			dev_info(dev->dev, "using %d MSI interrupt(s)\n",
+--				dev->msi);
+--		} else
++-				 dev->msi);
++-		} else {
++-			dev_info(dev->dev, "MSI not available.\n");
+ +		stat = pci_enable_msi_block(dev->pdev, nr);
+ +		if (stat == 0) {
+ +			dev->msi = nr;
+ +		} else if (stat == 1) {
+ +			stat = pci_enable_msi(dev->pdev);
+ +			dev->msi = 1;
+-+		}
++ 		}
+ +		if (stat < 0)
+- 			dev_info(dev->dev, "MSI not available.\n");
+++			dev_info(dev->dev, "MSI not available.\n");
+ +		else
+ +			dev_info(dev->dev, "using %d MSI interrupts\n",
+ +				 dev->msi);
+-- 
+2.13.6
