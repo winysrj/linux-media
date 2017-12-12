@@ -1,105 +1,146 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:49576 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1758752AbdLRPcC (ORCPT
+Received: from mail-wr0-f196.google.com ([209.85.128.196]:35337 "EHLO
+        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751625AbdLLSrC (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 18 Dec 2017 10:32:02 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>
-Subject: Re: [PATCH v2 08/17] media: v4l2-ioctl.h: convert debug macros into enum and document
-Date: Mon, 18 Dec 2017 17:32:11 +0200
-Message-ID: <2353823.dVyOV93MJo@avalon>
-In-Reply-To: <20171218131326.20f8241c@vento.lan>
-References: <cover.1506548682.git.mchehab@s-opensource.com> <75398545.O2kI4imJ1e@avalon> <20171218131326.20f8241c@vento.lan>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+        Tue, 12 Dec 2017 13:47:02 -0500
+Received: by mail-wr0-f196.google.com with SMTP id g53so22180189wra.2
+        for <linux-media@vger.kernel.org>; Tue, 12 Dec 2017 10:47:01 -0800 (PST)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: linux-media@vger.kernel.org, mchehab@kernel.org,
+        mchehab@s-opensource.com
+Cc: jasmin@anw.at
+Subject: [PATCH 1/3] [media] staging/cxd2099: fix remaining checkpatch-strict issues
+Date: Tue, 12 Dec 2017 19:46:55 +0100
+Message-Id: <20171212184657.19730-2-d.scheller.oss@gmail.com>
+In-Reply-To: <20171212184657.19730-1-d.scheller.oss@gmail.com>
+References: <20171212184657.19730-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+From: Daniel Scheller <d.scheller@gmx.net>
 
-On Monday, 18 December 2017 17:13:26 EET Mauro Carvalho Chehab wrote:
-> Em Fri, 13 Oct 2017 15:38:11 +0300 Laurent Pinchart escreveu:
-> > On Thursday, 28 September 2017 00:46:51 EEST Mauro Carvalho Chehab wrote:
-> >> Currently, there's no way to document #define foo <value>
-> >> with kernel-doc. So, convert it to an enum, and document.
-> > 
-> > The documentation seems fine to me (except for one comment below).
-> > However, converting macros to an enum just to work around a defect of the
-> > documentation system doesn't seem like a good idea to me. I'd rather find
-> > a way to document macros.
-> 
-> I agree that this limitation should be fixed.
-> 
-> Yet, in this specific case where we have an "array" of defines, all
-> associated to the same field (even being a bitmask), and assuming that
-> we would add a way for kernel-doc to parse this kind of defines
-> (not sure how easy/doable would be), then, in order to respect the
-> way kernel-doc markup is, the documentation for those macros would be:
-> 
-> 
-> /**
->  * define: Just log the ioctl name + error code
->  */
-> #define V4L2_DEV_DEBUG_IOCTL		0x01
-> /**
->  * define: Log the ioctl name arguments + error code
->  */
-> #define V4L2_DEV_DEBUG_IOCTL_ARG	0x02
-> /**
->  * define: Log the file operations open, release, mmap and get_unmapped_area
-> */
-> #define V4L2_DEV_DEBUG_FOP		0x04
-> /**
->  * define: Log the read and write file operations and the VIDIOC_(D)QBUF
-> ioctls */
-> #define V4L2_DEV_DEBUG_STREAMING	0x08
-> 
-> IMHO, this is a way easier to read/understand by humans, and a way more
-> coincise:
-> 
-> /**
->  * enum v4l2_debug_flags - Device debug flags to be used with the video
->  *	device debug attribute
->  *
->  * @V4L2_DEV_DEBUG_IOCTL:	Just log the ioctl name + error code.
->  * @V4L2_DEV_DEBUG_IOCTL_ARG:	Log the ioctl name arguments + error code.
->  * @V4L2_DEV_DEBUG_FOP:		Log the file operations and open, release,
->  *				mmap and get_unmapped_area syscalls.
->  * @V4L2_DEV_DEBUG_STREAMING:	Log the read and write syscalls and
->  *				:c:ref:`VIDIOC_[Q|DQ]BUFF <VIDIOC_QBUF>` ioctls.
->  */
-> 
-> It also underlines the aspect that those names are grouped altogether.
-> 
-> So, IMHO, the main reason to place them inside an enum and document
-> as such is that it looks a way better for humans to read.
+Fix up all remaining cosmetic issues as reported by checkpatch.pl.
 
-As we're talking about extending kerneldoc to document macros, we're free to 
-decide on a format that would make it easy and clear. Based on your above 
-example, we could write it
+Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+Signed-off-by: Jasmin Jessich <jasmin@anw.at>
+---
+ drivers/staging/media/cxd2099/cxd2099.c | 19 +++++--------------
+ drivers/staging/media/cxd2099/cxd2099.h | 14 +++-----------
+ 2 files changed, 8 insertions(+), 25 deletions(-)
 
-/**
- * define v4l2_debug_flags - Device debug flags to be used with the video
- *	device debug attribute
- *
- * @V4L2_DEV_DEBUG_IOCTL:	Just log the ioctl name + error code.
- * @V4L2_DEV_DEBUG_IOCTL_ARG:	Log the ioctl name arguments + error code.
- * @V4L2_DEV_DEBUG_FOP:		Log the file operations and open, release,
- *				mmap and get_unmapped_area syscalls.
- * @V4L2_DEV_DEBUG_STREAMING:	Log the read and write syscalls and
- *				:c:ref:`VIDIOC_[Q|DQ]BUFF <VIDIOC_QBUF>` ioctls.
- */
-
-That would be simple, clear, and wouldn't require a code change to workaround 
-a limitation of the documentation system.
-
+diff --git a/drivers/staging/media/cxd2099/cxd2099.c b/drivers/staging/media/cxd2099/cxd2099.c
+index 3e30f4864e2b..21b1c6fcf9bf 100644
+--- a/drivers/staging/media/cxd2099/cxd2099.c
++++ b/drivers/staging/media/cxd2099/cxd2099.c
+@@ -3,23 +3,14 @@
+  *
+  * Copyright (C) 2010-2013 Digital Devices GmbH
+  *
+- *
+  * This program is free software; you can redistribute it and/or
+  * modify it under the terms of the GNU General Public License
+  * version 2 only, as published by the Free Software Foundation.
+  *
+- *
+  * This program is distributed in the hope that it will be useful,
+  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  * GNU General Public License for more details.
+- *
+- *
+- * You should have received a copy of the GNU General Public License
+- * along with this program; if not, write to the Free Software
+- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+- * 02110-1301, USA
+- * Or, point your browser to http://www.gnu.org/copyleft/gpl.html
+  */
+ 
+ #include <linux/slab.h>
+@@ -59,7 +50,7 @@ struct cxd {
+ 	int    amem_read;
+ 
+ 	int    cammode;
+-	struct mutex lock;
++	struct mutex lock; /* device access lock */
+ 
+ 	u8     rbuf[1028];
+ 	u8     wbuf[1028];
+@@ -101,7 +92,7 @@ static int i2c_read_reg(struct i2c_adapter *adapter, u8 adr,
+ 				   .buf = val, .len = 1} };
+ 
+ 	if (i2c_transfer(adapter, msgs, 2) != 2) {
+-		dev_err(&adapter->dev, "error in i2c_read_reg\n");
++		dev_err(&adapter->dev, "error in %s()\n", __func__);
+ 		return -1;
+ 	}
+ 	return 0;
+@@ -116,7 +107,7 @@ static int i2c_read(struct i2c_adapter *adapter, u8 adr,
+ 				   .buf = data, .len = n} };
+ 
+ 	if (i2c_transfer(adapter, msgs, 2) != 2) {
+-		dev_err(&adapter->dev, "error in i2c_read\n");
++		dev_err(&adapter->dev, "error in %s()\n", __func__);
+ 		return -1;
+ 	}
+ 	return 0;
+@@ -134,7 +125,7 @@ static int read_block(struct cxd *ci, u8 adr, u8 *data, u16 n)
+ 		while (n) {
+ 			int len = n;
+ 
+-			if (ci->cfg.max_i2c && (len > ci->cfg.max_i2c))
++			if (ci->cfg.max_i2c && len > ci->cfg.max_i2c)
+ 				len = ci->cfg.max_i2c;
+ 			status = i2c_read(ci->i2c, ci->cfg.adr, 1, data, len);
+ 			if (status)
+@@ -591,7 +582,7 @@ static int campoll(struct cxd *ci)
+ 			}
+ 		}
+ 		if ((istat & 8) &&
+-		    (ci->slot_stat == DVB_CA_EN50221_POLL_CAM_PRESENT)) {
++		    ci->slot_stat == DVB_CA_EN50221_POLL_CAM_PRESENT) {
+ 			ci->ready = 1;
+ 			ci->slot_stat |= DVB_CA_EN50221_POLL_CAM_READY;
+ 		}
+diff --git a/drivers/staging/media/cxd2099/cxd2099.h b/drivers/staging/media/cxd2099/cxd2099.h
+index f4b29b1d6eb8..aba803268e94 100644
+--- a/drivers/staging/media/cxd2099/cxd2099.h
++++ b/drivers/staging/media/cxd2099/cxd2099.h
+@@ -3,23 +3,14 @@
+  *
+  * Copyright (C) 2010-2011 Digital Devices GmbH
+  *
+- *
+  * This program is free software; you can redistribute it and/or
+  * modify it under the terms of the GNU General Public License
+  * version 2 only, as published by the Free Software Foundation.
+  *
+- *
+  * This program is distributed in the hope that it will be useful,
+  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  * GNU General Public License for more details.
+- *
+- *
+- * You should have received a copy of the GNU General Public License
+- * along with this program; if not, write to the Free Software
+- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+- * 02110-1301, USA
+- * Or, point your browser to http://www.gnu.org/copyleft/gpl.html
+  */
+ 
+ #ifndef _CXD2099_H_
+@@ -42,8 +33,9 @@ struct dvb_ca_en50221 *cxd2099_attach(struct cxd2099_cfg *cfg,
+ 				      void *priv, struct i2c_adapter *i2c);
+ #else
+ 
+-static inline struct dvb_ca_en50221 *cxd2099_attach(struct cxd2099_cfg *cfg,
+-					void *priv, struct i2c_adapter *i2c)
++static inline struct
++dvb_ca_en50221 *cxd2099_attach(struct cxd2099_cfg *cfg, void *priv,
++			       struct i2c_adapter *i2c)
+ {
+ 	dev_warn(&i2c->dev, "%s: driver disabled by Kconfig\n", __func__);
+ 	return NULL;
 -- 
-Regards,
-
-Laurent Pinchart
+2.13.6
