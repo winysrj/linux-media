@@ -1,61 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:15764 "EHLO mga11.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751268AbdLILuf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 9 Dec 2017 06:50:35 -0500
-Date: Sat, 9 Dec 2017 19:49:35 +0800
-From: kbuild test robot <fengguang.wu@intel.com>
-To: Sean Young <sean@mess.org>
-Cc: kbuild-all@01.org, Mauro Carvalho Chehab <m.chehab@samsung.com>,
-        linux-media@vger.kernel.org
-Subject: [media-next:master 3023/3029] htmldocs: include/media/rc-core.h:96:
- warning: Excess struct member 'rawir' description in 'lirc_fh'
-Message-ID: <201712091930.snTDSgDX%fengguang.wu@intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Received: from mail-lf0-f65.google.com ([209.85.215.65]:44931 "EHLO
+        mail-lf0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752243AbdLLA0o (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 11 Dec 2017 19:26:44 -0500
+From: Dmitry Osipenko <digetx@gmail.com>
+To: Thierry Reding <thierry.reding@gmail.com>,
+        Jonathan Hunter <jonathanh@nvidia.com>,
+        Stephen Warren <swarren@wwwdotorg.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Vladimir Zapolskiy <vz@mleia.com>
+Cc: Rob Herring <robh+dt@kernel.org>,
+        Dan Carpenter <dan.carpenter@oracle.com>,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        devicetree@vger.kernel.org, linux-tegra@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: [PATCH v5 3/4] ARM: dts: tegra20: Add device tree node to describe IRAM
+Date: Tue, 12 Dec 2017 03:26:09 +0300
+Message-Id: <92563f9030ab413ff8f6d5a6b6a5680124ec4d98.1513038011.git.digetx@gmail.com>
+In-Reply-To: <cover.1513038011.git.digetx@gmail.com>
+References: <cover.1513038011.git.digetx@gmail.com>
+In-Reply-To: <cover.1513038011.git.digetx@gmail.com>
+References: <cover.1513038011.git.digetx@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-tree:   git://linuxtv.org/mchehab/media-next.git master
-head:   ba815f198ca28764d3702d4401af91acf78d74c1
-commit: 77bf465a4ffd7596f0367db74c571bb670ffdfb7 [3023/3029] media: lirc: allow lirc device to be opened more than once
-reproduce: make htmldocs
+From: Vladimir Zapolskiy <vz@mleia.com>
 
-All warnings (new ones prefixed by >>):
+All Tegra20 SoCs contain 256KiB IRAM, which is used to store
+resume code and by a video decoder engine.
 
-
-vim +96 include/media/rc-core.h
-
-    70	
-    71	/**
-    72	 * struct lirc_fh - represents an open lirc file
-    73	 * @list: list of open file handles
-    74	 * @rc: rcdev for this lirc chardev
-    75	 * @carrier_low: when setting the carrier range, first the low end must be
-    76	 *	set with an ioctl and then the high end with another ioctl
-    77	 * @send_timeout_reports: report timeouts in lirc raw IR.
-    78	 * @rawir: queue for incoming raw IR
-    79	 * @scancodes: queue for incoming decoded scancodes
-    80	 * @wait_poll: poll struct for lirc device
-    81	 * @send_mode: lirc mode for sending, either LIRC_MODE_SCANCODE or
-    82	 *	LIRC_MODE_PULSE
-    83	 * @rec_mode: lirc mode for receiving, either LIRC_MODE_SCANCODE or
-    84	 *	LIRC_MODE_MODE2
-    85	 */
-    86	struct lirc_fh {
-    87		struct list_head list;
-    88		struct rc_dev *rc;
-    89		int				carrier_low;
-    90		bool				send_timeout_reports;
-    91		DECLARE_KFIFO_PTR(rawir, unsigned int);
-    92		DECLARE_KFIFO_PTR(scancodes, struct lirc_scancode);
-    93		wait_queue_head_t		wait_poll;
-    94		u8				send_mode;
-    95		u8				rec_mode;
-  > 96	};
-    97	
-
+Signed-off-by: Vladimir Zapolskiy <vz@mleia.com>
+Signed-off-by: Dmitry Osipenko <digetx@gmail.com>
 ---
-0-DAY kernel test infrastructure                Open Source Technology Center
-https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
+ arch/arm/boot/dts/tegra20.dtsi | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/arch/arm/boot/dts/tegra20.dtsi b/arch/arm/boot/dts/tegra20.dtsi
+index 914f59166a99..36909df653c3 100644
+--- a/arch/arm/boot/dts/tegra20.dtsi
++++ b/arch/arm/boot/dts/tegra20.dtsi
+@@ -10,6 +10,14 @@
+ 	compatible = "nvidia,tegra20";
+ 	interrupt-parent = <&lic>;
+ 
++	iram@40000000 {
++		compatible = "mmio-sram";
++		reg = <0x40000000 0x40000>;
++		#address-cells = <1>;
++		#size-cells = <1>;
++		ranges = <0 0x40000000 0x40000>;
++	};
++
+ 	host1x@50000000 {
+ 		compatible = "nvidia,tegra20-host1x", "simple-bus";
+ 		reg = <0x50000000 0x00024000>;
+-- 
+2.15.1
