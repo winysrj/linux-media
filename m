@@ -1,134 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:55294 "EHLO
-        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752243AbdLNEqN (ORCPT
+Received: from mail-oi0-f65.google.com ([209.85.218.65]:41652 "EHLO
+        mail-oi0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752576AbdLLKY2 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 13 Dec 2017 23:46:13 -0500
-Message-ID: <8575132cf9e6d0cd8226c296d0eb403c@smtp-cloud7.xs4all.net>
-Date: Thu, 14 Dec 2017 05:46:10 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+        Tue, 12 Dec 2017 05:24:28 -0500
+MIME-Version: 1.0
+In-Reply-To: <CAOcJUbyARps1CeRFvLau3w-rBvn2QLbsY2PHGymbpUyuFCJ2HA@mail.gmail.com>
+References: <20171211120612.3775893-1-arnd@arndb.de> <1513020868.3036.0.camel@perches.com>
+ <CAOcJUbyARps1CeRFvLau3w-rBvn2QLbsY2PHGymbpUyuFCJ2HA@mail.gmail.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Date: Tue, 12 Dec 2017 11:24:26 +0100
+Message-ID: <CAK8P3a01sOsWSw4t-x6rv+9pzbfhZtEMc6iwV54Xq-48h6CN=Q@mail.gmail.com>
+Subject: Re: [PATCH] tuners: tda8290: reduce stack usage with kasan
+To: Michael Ira Krufky <mkrufky@linuxtv.org>
+Cc: Joe Perches <joe@perches.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media <linux-media@vger.kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On Mon, Dec 11, 2017 at 10:17 PM, Michael Ira Krufky
+<mkrufky@linuxtv.org> wrote:
+> On Mon, Dec 11, 2017 at 2:34 PM, Joe Perches <joe@perches.com> wrote:
+>> On Mon, 2017-12-11 at 13:06 +0100, Arnd Bergmann wrote:
+>>> With CONFIG_KASAN enabled, we get a relatively large stack frame in one function
+>>>
+>>> drivers/media/tuners/tda8290.c: In function 'tda8290_set_params':
+>>> drivers/media/tuners/tda8290.c:310:1: warning: the frame size of 1520 bytes is larger than 1024 bytes [-Wframe-larger-than=]
+>>>
+>>> With CONFIG_KASAN_EXTRA this goes up to
+>>>
+>>> drivers/media/tuners/tda8290.c: In function 'tda8290_set_params':
+>>> drivers/media/tuners/tda8290.c:310:1: error: the frame size of 3200 bytes is larger than 3072 bytes [-Werror=frame-larger-than=]
+>>>
+>>> We can significantly reduce this by marking local arrays as 'static const', and
+>>> this should result in better compiled code for everyone.
+>> []
+>>> diff --git a/drivers/media/tuners/tda8290.c b/drivers/media/tuners/tda8290.c
+>> []
+>>> @@ -63,8 +63,8 @@ static int tda8290_i2c_bridge(struct dvb_frontend *fe, int close)
+>>>  {
+>>>       struct tda8290_priv *priv = fe->analog_demod_priv;
+>>>
+>>> -     unsigned char  enable[2] = { 0x21, 0xC0 };
+>>> -     unsigned char disable[2] = { 0x21, 0x00 };
+>>> +     static unsigned char  enable[2] = { 0x21, 0xC0 };
+>>> +     static unsigned char disable[2] = { 0x21, 0x00 };
+>>
+>> Doesn't match commit message.
+>>
+>> static const or just static?
+>>
+>>> @@ -84,9 +84,9 @@ static int tda8295_i2c_bridge(struct dvb_frontend *fe, int close)
+>>>  {
+>>>       struct tda8290_priv *priv = fe->analog_demod_priv;
+>>>
+>>> -     unsigned char  enable[2] = { 0x45, 0xc1 };
+>>> -     unsigned char disable[2] = { 0x46, 0x00 };
+>>> -     unsigned char buf[3] = { 0x45, 0x01, 0x00 };
+>>> +     static unsigned char  enable[2] = { 0x45, 0xc1 };
+>>> +     static unsigned char disable[2] = { 0x46, 0x00 };
+>>
+>> etc.
+>>
+>>
+>
+>
+> Joe is correct - they can be CONSTified. My bad -- a lot of the code I
+> wrote many years ago has this problem -- I wasn't so stack-conscious
+> back then.
+>
+> The bytes in `enable` / `disable` don't get changed, but they may be
+> copied to another byte array that does get changed.  If would be best
+> to make these `static const`
 
-Results of the daily build of media_tree:
+Right. This was an older patch of mine that I picked up again
+after running into a warning that I had been ignoring for a while,
+and I didn't double-check the message.
 
-date:			Thu Dec 14 05:00:15 CET 2017
-media-tree git hash:	b32a2b42f76cdfd06b4b58a1ddf987ba329ae34e
-media_build git hash:	f5a5e5e470d834f9843fee7a7c2ce3e4be610ca7
-v4l-utils git hash:	06177db29466bebcceb43d6aaffd859bfd35e42a
-gcc version:		i686-linux-gcc (GCC) 7.1.0
-sparse version:		v0.5.0-3911-g6f737e1f
-smatch version:		v0.5.0-3911-g6f737e1f
-host hardware:		x86_64
-host os:		4.13.0-164
+I actually thought about marking them 'const' here before sending
+(without noticing the changelog text) and then ran into what must
+have led me to drop the 'const' originally: tuner_i2c_xfer_send()
+takes a non-const pointer. This can be fixed but it requires
+an ugly cast:
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: ERRORS
-linux-3.10.1-i686: ERRORS
-linux-3.11.1-i686: ERRORS
-linux-3.12.67-i686: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: ERRORS
-linux-3.15.2-i686: ERRORS
-linux-3.16.7-i686: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.18.7-i686: ERRORS
-linux-3.19-i686: ERRORS
-linux-4.0.9-i686: ERRORS
-linux-4.1.33-i686: ERRORS
-linux-4.2.8-i686: ERRORS
-linux-4.3.6-i686: ERRORS
-linux-4.4.22-i686: ERRORS
-linux-4.5.7-i686: ERRORS
-linux-4.6.7-i686: ERRORS
-linux-4.7.5-i686: ERRORS
-linux-4.8-i686: ERRORS
-linux-4.9.26-i686: ERRORS
-linux-4.10.14-i686: ERRORS
-linux-4.11-i686: ERRORS
-linux-4.12.1-i686: ERRORS
-linux-4.13-i686: ERRORS
-linux-4.14-i686: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: ERRORS
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.67-x86_64: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-x86_64: ERRORS
-linux-3.15.2-x86_64: ERRORS
-linux-3.16.7-x86_64: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.7-x86_64: ERRORS
-linux-3.19-x86_64: ERRORS
-linux-4.0.9-x86_64: ERRORS
-linux-4.1.33-x86_64: ERRORS
-linux-4.2.8-x86_64: ERRORS
-linux-4.3.6-x86_64: ERRORS
-linux-4.4.22-x86_64: ERRORS
-linux-4.5.7-x86_64: ERRORS
-linux-4.6.7-x86_64: ERRORS
-linux-4.7.5-x86_64: ERRORS
-linux-4.8-x86_64: ERRORS
-linux-4.9.26-x86_64: ERRORS
-linux-4.10.14-x86_64: ERRORS
-linux-4.11-x86_64: ERRORS
-linux-4.12.1-x86_64: ERRORS
-linux-4.13-x86_64: ERRORS
-linux-4.14-x86_64: ERRORS
-apps: OK
-spec-git: OK
-smatch: OK
+diff --git a/drivers/media/tuners/tuner-i2c.h b/drivers/media/tuners/tuner-i2c.h
+index bda67a5a76f2..809466eec780 100644
+--- a/drivers/media/tuners/tuner-i2c.h
++++ b/drivers/media/tuners/tuner-i2c.h
+@@ -34,10 +34,10 @@ struct tuner_i2c_props {
+ };
 
-Detailed results are available here:
+ static inline int tuner_i2c_xfer_send(struct tuner_i2c_props *props,
+-                                     unsigned char *buf, int len)
++                                     const unsigned char *buf, int len)
+ {
+        struct i2c_msg msg = { .addr = props->addr, .flags = 0,
+-                              .buf = buf, .len = len };
++                              .buf = (unsigned char *)buf, .len = len };
+        int ret = i2c_transfer(props->adap, &msg, 1);
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+        return (ret == 1) ? len : ret;
+@@ -54,11 +54,11 @@ static inline int tuner_i2c_xfer_recv(struct
+tuner_i2c_props *props,
+ }
 
-Full logs are available here:
+ static inline int tuner_i2c_xfer_send_recv(struct tuner_i2c_props *props,
+-                                          unsigned char *obuf, int olen,
++                                          const unsigned char *obuf, int olen,
+                                           unsigned char *ibuf, int ilen)
+ {
+        struct i2c_msg msg[2] = { { .addr = props->addr, .flags = 0,
+-                                   .buf = obuf, .len = olen },
++                                   .buf = (unsigned char *)obuf, .len = olen },
+                                  { .addr = props->addr, .flags = I2C_M_RD,
+                                    .buf = ibuf, .len = ilen } };
+        int ret = i2c_transfer(props->adap, msg, 2);
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+Should I submit it as a two-patch series with that added in, or update
+the changelog to not mention 'const' instead?
 
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+       Arnd
