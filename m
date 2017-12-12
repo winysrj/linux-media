@@ -1,46 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f195.google.com ([209.85.192.195]:37616 "EHLO
-        mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753745AbdLLNpK (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:47128 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752270AbdLLOtI (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 12 Dec 2017 08:45:10 -0500
-From: Jia-Ju Bai <baijiaju1990@gmail.com>
-To: fabien.dessenne@st.com, mchehab@kernel.org
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Jia-Ju Bai <baijiaju1990@gmail.com>
-Subject: [PATCH 1/2] bdisp: Fix a possible sleep-in-atomic bug in bdisp_hw_reset
-Date: Tue, 12 Dec 2017 21:47:25 +0800
-Message-Id: <1513086445-29265-1-git-send-email-baijiaju1990@gmail.com>
+        Tue, 12 Dec 2017 09:49:08 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        Niklas =?ISO-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH/RFC 1/2] v4l: v4l2-dev: Add infrastructure to protect device unplug race
+Date: Tue, 12 Dec 2017 16:49:10 +0200
+Message-ID: <6414276.bWOzFEfRW5@avalon>
+In-Reply-To: <8942419d-fc0e-7a82-cc35-a7960cd22800@xs4all.nl>
+References: <20171116003349.19235-1-laurent.pinchart+renesas@ideasonboard.com> <20171116003349.19235-2-laurent.pinchart+renesas@ideasonboard.com> <8942419d-fc0e-7a82-cc35-a7960cd22800@xs4all.nl>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The driver may sleep under a spinlock.
-The function call path is:
-bdisp_device_run (acquire the spinlock)
-  bdisp_hw_reset
-    msleep --> may sleep
+Hi Hans,
 
-To fix it, msleep is replaced with mdelay.
+On Friday, 17 November 2017 13:09:20 EET Hans Verkuil wrote:
+> On 16/11/17 01:33, Laurent Pinchart wrote:
+> > Device unplug being asynchronous, it naturally races with operations
+> > performed by userspace through ioctls or other file operations on video
+> > device nodes.
+> > 
+> > This leads to potential access to freed memory or to other resources
+> > during device access if unplug occurs during device access. To solve
+> > this, we need to wait until all device access completes when unplugging
+> > the device, and block all further access when the device is being
+> > unplugged.
+> > 
+> > Three new functions are introduced. The video_device_enter() and
+> > video_device_exit() functions must be used to mark entry and exit from
+> > all code sections where the device can be accessed. The
+> > video_device_unplug() function is then used in the unplug handler to
+> > mark the device as being unplugged and wait for all access to complete.
+> > 
+> > As an example mark the ioctl handler as a device access section. Other
+> > file operations need to be protected too, and blocking ioctls (such as
+> > VIDIOC_DQBUF) need to be handled as well.
+> 
+> As long as the queue field in struct video_device is filled in properly
+> this shouldn't be a problem.
+> 
+> This looks pretty good, simple and straightforward.
 
-This bug is found by my static analysis tool(DSAC) and checked by my code review.
+Thank you.
 
-Signed-off-by: Jia-Ju Bai <baijiaju1990@gmail.com>
----
- drivers/media/platform/sti/bdisp/bdisp-hw.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+> Do we need something similar for media_device? Other devices?
 
-diff --git a/drivers/media/platform/sti/bdisp/bdisp-hw.c b/drivers/media/platform/sti/bdisp/bdisp-hw.c
-index b7892f3..4b62ceb 100644
---- a/drivers/media/platform/sti/bdisp/bdisp-hw.c
-+++ b/drivers/media/platform/sti/bdisp/bdisp-hw.c
-@@ -382,7 +382,7 @@ int bdisp_hw_reset(struct bdisp_dev *bdisp)
- 	for (i = 0; i < POLL_RST_MAX; i++) {
- 		if (readl(bdisp->regs + BLT_STA1) & BLT_STA1_IDLE)
- 			break;
--		msleep(POLL_RST_DELAY_MS);
-+		mdelay(POLL_RST_DELAY_MS);
- 	}
- 	if (i == POLL_RST_MAX)
- 		dev_err(bdisp->dev, "Reset timeout\n");
+I believe so, which is why I'm wondering whether this shouldn't somehow go to 
+the device core (and in the cdev core). Not all devices will need such an 
+infrastructure as some subsystems already protect against device access after 
+unbind (USB is one of them if I'm not mistaken), but it certainly shouldn't 
+hurt.
+
+DRM is also considering a similar implementation, but based on srcu to lower 
+the performance penalty. I feel that's going a bit overboard but I have no 
+numbers yet to confirm or infirm the suspicion.
+
+> > Signed-off-by: Laurent Pinchart
+> > <laurent.pinchart+renesas@ideasonboard.com>
+> > ---
+> > 
+> >  drivers/media/v4l2-core/v4l2-dev.c | 57 +++++++++++++++++++++++++++++++++
+> >  include/media/v4l2-dev.h           | 47 +++++++++++++++++++++++++++++++
+> >  2 files changed, 104 insertions(+)
+
+[snip]
+
 -- 
-1.7.9.5
+Regards,
+
+Laurent Pinchart
