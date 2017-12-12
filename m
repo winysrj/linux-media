@@ -1,53 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f196.google.com ([209.85.128.196]:33681 "EHLO
-        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752882AbdLROL5 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 18 Dec 2017 09:11:57 -0500
-From: Philipp Rossak <embed3d@gmail.com>
-To: mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
-        maxime.ripard@free-electrons.com, wens@csie.org,
-        linux@armlinux.org.uk, sean@mess.org, p.zabel@pengutronix.de,
-        andi.shyti@samsung.com
-Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-sunxi@googlegroups.com
-Subject: [PATCH v2 4/6] arm: dts: sun8i: a83t: Add support for the cir interface
-Date: Mon, 18 Dec 2017 15:11:44 +0100
-Message-Id: <20171218141146.23746-5-embed3d@gmail.com>
-In-Reply-To: <20171218141146.23746-1-embed3d@gmail.com>
-References: <20171218141146.23746-1-embed3d@gmail.com>
+Received: from osg.samsung.com ([64.30.133.232]:59761 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753710AbdLLMvo (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 12 Dec 2017 07:51:44 -0500
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Geert Uytterhoeven <geert@linux-m68k.org>,
+        Arnd Bergmann <arnd@arndb.de>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Shuah Khan <shuah@kernel.org>,
+        Colin Ian King <colin.king@canonical.com>,
+        Satendra Singh Thakur <satendra.t@samsung.com>
+Subject: [PATCH] media: dvb_frontend: fix return error code
+Date: Tue, 12 Dec 2017 07:51:31 -0500
+Message-Id: <330dada5957e3ca0c8811b14c45e3ac42c694651.1513083074.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The cir interface is like on the H3 located at 0x01f02000 and is exactly
-the same. This patch adds support for the ir interface on the A83T.
+The correct error code when a function is not defined is
+-ENOTSUPP. It was typoed wrong as -EOPNOTSUPP, with,
+unfortunately, exists, but it is not used by the DVB core.
 
-Signed-off-by: Philipp Rossak <embed3d@gmail.com>
+Thanks-to: Geert Uytterhoeven <geert@linux-m68k.org>
+Thanks-to: Arnd Bergmann <arnd@arndb.de>
+
+To make me revisit this code.
+
+Fixes: a9cb97c3e628 ("media: dvb_frontend: be sure to init dvb_frontend_handle_ioctl() return code")
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- arch/arm/boot/dts/sun8i-a83t.dtsi | 10 ++++++++++
- 1 file changed, 10 insertions(+)
+ drivers/media/dvb-core/dvb_frontend.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/arch/arm/boot/dts/sun8i-a83t.dtsi b/arch/arm/boot/dts/sun8i-a83t.dtsi
-index feffca8a9a24..089c270a7f3c 100644
---- a/arch/arm/boot/dts/sun8i-a83t.dtsi
-+++ b/arch/arm/boot/dts/sun8i-a83t.dtsi
-@@ -605,6 +605,16 @@
- 			#reset-cells = <1>;
- 		};
+diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
+index 46f977177faf..4eedaa5922eb 100644
+--- a/drivers/media/dvb-core/dvb_frontend.c
++++ b/drivers/media/dvb-core/dvb_frontend.c
+@@ -2110,7 +2110,7 @@ static int dvb_frontend_handle_ioctl(struct file *file,
+ 	struct dvb_frontend *fe = dvbdev->priv;
+ 	struct dvb_frontend_private *fepriv = fe->frontend_priv;
+ 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+-	int i, err = -EOPNOTSUPP;
++	int i, err = -ENOTSUPP;
  
-+		cir: cir@01f02000 {
-+			compatible = "allwinner,sun5i-a13-ir";
-+			clocks = <&r_ccu CLK_APB0_IR>, <&r_ccu CLK_IR>;
-+			clock-names = "apb", "ir";
-+			resets = <&r_ccu RST_APB0_IR>;
-+			interrupts = <GIC_SPI 37 IRQ_TYPE_LEVEL_HIGH>;
-+			reg = <0x01f02000 0x400>;
-+			status = "disabled";
-+		};
-+
- 		r_pio: pinctrl@1f02c00 {
- 			compatible = "allwinner,sun8i-a83t-r-pinctrl";
- 			reg = <0x01f02c00 0x400>;
+ 	dev_dbg(fe->dvb->device, "%s:\n", __func__);
+ 
 -- 
-2.11.0
+2.14.3
