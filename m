@@ -1,46 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:5970 "EHLO mga11.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751208AbdLFQiA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 6 Dec 2017 11:38:00 -0500
-From: Flavio Ceolin <flavio.ceolin@intel.com>
-To: linux-kernel@vger.kernel.org
-Cc: Flavio Ceolin <flavio.ceolin@intel.com>,
-        Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
-        Jacek Anaszewski <jacek.anaszewski@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-arm-kernel@lists.infradead.org (open list:ARM/SAMSUNG S5P SERIES
-        JPEG CODEC SUPPORT),
-        linux-media@vger.kernel.org (open list:ARM/SAMSUNG S5P SERIES JPEG
-        CODEC SUPPORT)
-Subject: [PATCH] media: s5p-jpeg: Fix off-by-one problem
-Date: Wed,  6 Dec 2017 08:37:45 -0800
-Message-Id: <20171206163746.8456-1-flavio.ceolin@intel.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:45912 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1750747AbdLRGYB (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 18 Dec 2017 01:24:01 -0500
+Subject: Re: [PATCH v9 2/2] media: i2c: Add the ov7740 image sensor driver
+To: Wenyou Yang <wenyou.yang@microchip.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>
+Cc: linux-kernel@vger.kernel.org,
+        Nicolas Ferre <nicolas.ferre@microchip.com>,
+        devicetree@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        linux-arm-kernel@lists.infradead.org,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Songjun Wu <songjun.wu@microchip.com>
+References: <20171211013146.2497-1-wenyou.yang@microchip.com>
+ <20171211013146.2497-3-wenyou.yang@microchip.com>
+From: Sakari Ailus <sakari.ailus@iki.fi>
+Message-ID: <1641aa67-b05e-47e2-600c-70b77571b450@iki.fi>
+Date: Wed, 13 Dec 2017 22:06:29 +0200
+MIME-Version: 1.0
+In-Reply-To: <20171211013146.2497-3-wenyou.yang@microchip.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-s5p_jpeg_runtime_resume() does not call clk_disable_unprepare() for
-jpeg->clocks[0] when one of the clk_prepare_enable() fails.
+Hi Wenyou,
 
-Found by Linux Driver Verification project (linuxtesting.org).
+Wenyou Yang wrote:
+...
+> +static int ov7740_start_streaming(struct ov7740 *ov7740)
+> +{
+> +	int ret;
+> +
+> +	if (ov7740->fmt) {
+> +		ret = regmap_multi_reg_write(ov7740->regmap,
+> +					     ov7740->fmt->regs,
+> +					     ov7740->fmt->reg_num);
+> +		if (ret)
+> +			return ret;
+> +	}
+> +
+> +	if (ov7740->frmsize) {
+> +		ret = regmap_multi_reg_write(ov7740->regmap,
+> +					     ov7740->frmsize->regs,
+> +					     ov7740->frmsize->reg_num);
+> +		if (ret)
+> +			return ret;
+> +	}
+> +
+> +	return __v4l2_ctrl_handler_setup(ov7740->subdev.ctrl_handler);
 
-Signed-off-by: Flavio Ceolin <flavio.ceolin@intel.com>
----
- drivers/media/platform/s5p-jpeg/jpeg-core.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+I believe you're still setting the controls after starting streaming.
 
-diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-index faac816..79b63da 100644
---- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
-+++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
-@@ -3086,7 +3086,7 @@ static int s5p_jpeg_runtime_resume(struct device *dev)
- 	for (i = 0; i < jpeg->variant->num_clocks; i++) {
- 		ret = clk_prepare_enable(jpeg->clocks[i]);
- 		if (ret) {
--			while (--i > 0)
-+			while (--i >= 0)
- 				clk_disable_unprepare(jpeg->clocks[i]);
- 			return ret;
- 		}
 -- 
-2.9.5
+Sakari Ailus
+sakari.ailus@iki.fi
