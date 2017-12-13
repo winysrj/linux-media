@@ -1,47 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f195.google.com ([209.85.192.195]:37642 "EHLO
-        mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753105AbdLLNp0 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 12 Dec 2017 08:45:26 -0500
-From: Jia-Ju Bai <baijiaju1990@gmail.com>
-To: fabien.dessenne@st.com, mchehab@kernel.org
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Jia-Ju Bai <baijiaju1990@gmail.com>
-Subject: [PATCH 2/2] bdisp: Fix a possible sleep-in-atomic bug in bdisp_hw_save_request
-Date: Tue, 12 Dec 2017 21:47:38 +0800
-Message-Id: <1513086458-29304-1-git-send-email-baijiaju1990@gmail.com>
+Received: from osg.samsung.com ([64.30.133.232]:33242 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753345AbdLMTgn (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 13 Dec 2017 14:36:43 -0500
+Date: Wed, 13 Dec 2017 17:36:33 -0200
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: <Yasunari.Takiguchi@sony.com>
+Cc: <akpm@linux-foundation.org>, <linux-kernel@vger.kernel.org>,
+        <devicetree@vger.kernel.org>, <linux-media@vger.kernel.org>,
+        <tbird20d@gmail.com>, <frowand.list@gmail.com>,
+        <Masayuki.Yamamoto@sony.com>, <Hideki.Nozawa@sony.com>,
+        <Kota.Yonezawa@sony.com>, <Toshihiko.Matsumoto@sony.com>,
+        <Satoshi.C.Watanabe@sony.com>, "Bird, Timothy" <Tim.Bird@sony.com>
+Subject: Re: [PATCH v4 00/12] [dt-bindings] [media] Add document file and
+ driver for Sony CXD2880 DVB-T2/T tuner + demodulator
+Message-ID: <20171213173633.57edca85@vento.lan>
+In-Reply-To: <20171013054635.20946-1-Yasunari.Takiguchi@sony.com>
+References: <20171013054635.20946-1-Yasunari.Takiguchi@sony.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The driver may sleep under a spinlock.
-The function call path is:
-bdisp_device_run (acquire the spinlock)
-  bdisp_hw_update
-    bdisp_hw_save_request
-      devm_kzalloc(GFP_KERNEL) --> may sleep
+Em Fri, 13 Oct 2017 14:46:35 +0900
+<Yasunari.Takiguchi@sony.com> escreveu:
 
-To fix it, GFP_KERNEL is replaced with GFP_ATOMIC.
+> From: Yasunari Takiguchi <Yasunari.Takiguchi@sony.com>
+> 
+> Hi,
+> 
+> This is the patch series (version 4) of Sony CXD2880 DVB-T2/T tuner + 
+> demodulator driver.The driver supports DVB-API and interfaces through 
+> SPI.
+> 
+> We have tested the driver on Raspberry Pi 3 and got picture and sound 
+> from a media player.
+> 
+> The change history of this patch series is as below.
 
-This bug is found by my static analysis tool(DSAC) and checked by my code review.
+Finally had time to review this patch series. Sorry for taking so long.
+4Q is usually very busy.
 
-Signed-off-by: Jia-Ju Bai <baijiaju1990@gmail.com>
----
- drivers/media/platform/sti/bdisp/bdisp-hw.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+I answered each patch with comments. There ones I didn't comment
+(patches 1, 4 and 8-12) is because I didn't see anything wrong,
+except for the notes I did on other patches, mainly:
+	- they lack SPDX license text;
+	- the error codes need to review.
 
-diff --git a/drivers/media/platform/sti/bdisp/bdisp-hw.c b/drivers/media/platform/sti/bdisp/bdisp-hw.c
-index 4b62ceb..7b45b43 100644
---- a/drivers/media/platform/sti/bdisp/bdisp-hw.c
-+++ b/drivers/media/platform/sti/bdisp/bdisp-hw.c
-@@ -1064,7 +1064,7 @@ static void bdisp_hw_save_request(struct bdisp_ctx *ctx)
- 		if (!copy_node[i]) {
- 			copy_node[i] = devm_kzalloc(ctx->bdisp_dev->dev,
- 						    sizeof(*copy_node[i]),
--						    GFP_KERNEL);
-+						    GFP_ATOMIC);
- 			if (!copy_node[i])
- 				return;
- 		}
--- 
-1.7.9.5
+Additionally, on patches 8-11, I found weird to not found any
+64 bits division, but I noticed some code there that it seemed
+to actually be doing such division using some algorithm to make
+them work on 32 bits machine. If so, please replace them by
+do_div64(), as it makes clearer about what's been doing, and it
+provides better performance when compiled on 64 bit Kernels (as
+they become just a DIV asm operation).
+
+Regards,
+Mauro
+
+Thanks,
+Mauro
