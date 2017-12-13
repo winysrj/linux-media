@@ -1,1179 +1,275 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from us01smtprelay-2.synopsys.com ([198.182.60.111]:55290 "EHLO
-        smtprelay.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750936AbdLGJsU (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 7 Dec 2017 04:48:20 -0500
-From: Jose Abreu <Jose.Abreu@synopsys.com>
-To: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Jose Abreu <Jose.Abreu@synopsys.com>,
-        Joao Pinto <Joao.Pinto@synopsys.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sylwester Nawrocki <snawrocki@kernel.org>
-Subject: [PATCH v9 3/4] [media] platform: Add Synopsys DesignWare HDMI RX PHY e405 Driver
-Date: Thu,  7 Dec 2017 09:47:45 +0000
-Message-Id: <147569f0fb7c0a586c323af6e10dfa3c19c6475c.1512582979.git.joabreu@synopsys.com>
-In-Reply-To: <cover.1512582979.git.joabreu@synopsys.com>
-References: <cover.1512582979.git.joabreu@synopsys.com>
-In-Reply-To: <cover.1512582979.git.joabreu@synopsys.com>
-References: <cover.1512582979.git.joabreu@synopsys.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from mail-qt0-f173.google.com ([209.85.216.173]:46223 "EHLO
+        mail-qt0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753215AbdLMWEc (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 13 Dec 2017 17:04:32 -0500
+Received: by mail-qt0-f173.google.com with SMTP id r39so5610295qtr.13
+        for <linux-media@vger.kernel.org>; Wed, 13 Dec 2017 14:04:32 -0800 (PST)
+Message-ID: <1513202668.26958.36.camel@ndufresne.ca>
+Subject: Re: Kernel Oopses from v4l_enum_fmt
+From: Nicolas Dufresne <nicolas@ndufresne.ca>
+To: Oleksandr Ostrenko <oleksandr.ostrenko@tu-dresden.de>,
+        linux-media@vger.kernel.org
+Date: Wed, 13 Dec 2017 17:04:28 -0500
+In-Reply-To: <56d711bd-3b48-a1ad-03c6-e49585a6c268@tu-dresden.de>
+References: <56d711bd-3b48-a1ad-03c6-e49585a6c268@tu-dresden.de>
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+        boundary="=-dwnJ9tjkLeF7ss3SqQKy"
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This adds support for the Synopsys DesignWare HDMI RX PHY e405. This
-phy receives and decodes HDMI video that is delivered to a controller.
 
-Main features included in this driver are:
-	- Equalizer algorithm that chooses the phy best settings
-	according to the detected HDMI cable characteristics.
-	- Support for scrambling
-	- Support for HDMI 2.0 modes up to 6G (HDMI 4k@60Hz).
+--=-dwnJ9tjkLeF7ss3SqQKy
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-The driver was implemented as a standalone V4L2 subdevice and the
-phy interface with the controller was implemented using V4L2 ioctls. I
-do not know if this is the best option but it is not possible to use the
-existing API functions directly as we need specific functions that will
-be called by the controller at specific configuration stages.
+Le mercredi 13 d=C3=A9cembre 2017 =C3=A0 22:33 +0100, Oleksandr Ostrenko a
+=C3=A9crit :
+> Dear all,
+>=20
+> There is an issue in v4l_enum_fmt leading to kernel panic under
+> certain=20
+> circumstance. It happens while I try to capture video from my TV
+> tuner.
+>=20
+> When I connect this USB TV tuner (WinTV HVR-1900) it gets recognized=20
+> just fine. However, whenever I try to capture a video from the
+> device,=20
+> it hangs the terminal and I end up with a lot of "Unknown
+> pixelformat=20
+> 0x00000000" errors from v4l_enum_fmt in dmesg that eventually lead
+> to=20
+> kernel panic on a machine with Linux Mint. On another machine with=20
+> openSUSE it does not hang but just keeps producing the error message=20
+> below until I stop the video acquisition. I have already tried
+> several=20
+> kernel versions (4.4, 4.8, 4.14) and two different distributions
+> (Mint,=20
+> openSUSE) but to no avail.
+>=20
+> Can somebody give me a hint on debugging this issue?
+> Below are sample outputs of lsusb and dmesg.
+>=20
+> Thanks,
+> Oleksandr
+>=20
+> lsusb
+>=20
+> Bus 001 Device 002: ID 8087:8001 Intel Corp.
+> Bus 001 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+> Bus 003 Device 001: ID 1d6b:0003 Linux Foundation 3.0 root hub
+> Bus 002 Device 002: ID 8087:0a2a Intel Corp.
+> Bus 002 Device 005: ID 2040:7300 Hauppauge
+> Bus 002 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+>=20
+> Relevant dmesg
+>=20
+> [  515.920080] usb 2-3: new high-speed USB device number 4 using
+> xhci_hcd
+> [  516.072041] usb 2-3: New USB device found, idVendor=3D2040,
+> idProduct=3D7300
+> [  516.072045] usb 2-3: New USB device strings: Mfr=3D1, Product=3D2,=20
+> SerialNumber=3D3
+> [  516.072047] usb 2-3: Product: WinTV
+> [  516.072049] usb 2-3: Manufacturer: Hauppauge
+> [  516.072051] usb 2-3: SerialNumber: 7300-00-F04BADA0
+> [  516.072474] pvrusb2: Hardware description: WinTV HVR-1900 Model
+> 73xxx
+> [  517.089290] pvrusb2: Device microcontroller firmware (re)loaded;
+> it=20
+> should now reset and reconnect.
+> [  517.121228] usb 2-3: USB disconnect, device number 4
+> [  517.121436] pvrusb2: Device being rendered inoperable
+> [  518.908091] usb 2-3: new high-speed USB device number 5 using
+> xhci_hcd
+> [  519.065592] usb 2-3: New USB device found, idVendor=3D2040,
+> idProduct=3D7300
+> [  519.065597] usb 2-3: New USB device strings: Mfr=3D1, Product=3D2,=20
+> SerialNumber=3D3
+> [  519.065600] usb 2-3: Product: WinTV
+> [  519.065602] usb 2-3: Manufacturer: Hauppauge
+> [  519.065605] usb 2-3: SerialNumber: 7300-00-F04BADA0
+> [  519.066862] pvrusb2: Hardware description: WinTV HVR-1900 Model
+> 73xxx
+> [  519.098815] pvrusb2: Binding ir_rx_z8f0811_haup to i2c address
+> 0x71.
+> [  519.098872] pvrusb2: Binding ir_tx_z8f0811_haup to i2c address
+> 0x70.
+> [  519.131651] cx25840 6-0044: cx25843-24 found @ 0x88 (pvrusb2_a)
+> [  519.133234] lirc_dev: IR Remote Control driver registered, major
+> 241
+> [  519.134192] lirc_zilog: module is from the staging directory, the=20
+> quality is unknown, you have been warned.
+> [  519.134194] lirc_zilog: module is from the staging directory, the=20
+> quality is unknown, you have been warned.
+> [  519.134564] Zilog/Hauppauge IR driver initializing
+> [  519.135628] probing IR Rx on pvrusb2_a (i2c-6)
+> [  519.135674] probe of IR Rx on pvrusb2_a (i2c-6) done. Waiting on
+> IR Tx.
+> [  519.135678] i2c i2c-6: probe of IR Rx on pvrusb2_a (i2c-6) done
+> [  519.135706] probing IR Tx on pvrusb2_a (i2c-6)
+> [  519.135728] i2c i2c-6: Direct firmware load for haup-ir-
+> blaster.bin=20
+> failed with error -2
+> [  519.135730] i2c i2c-6: firmware haup-ir-blaster.bin not available
+> (-2)
+> [  519.135799] i2c i2c-6: lirc_dev: driver lirc_zilog registered at=20
+> minor =3D 0
+> [  519.135800] i2c i2c-6: IR unit on pvrusb2_a (i2c-6) registered as=20
+> lirc0 and ready
+> [  519.135802] i2c i2c-6: probe of IR Tx on pvrusb2_a (i2c-6) done
+> [  519.135826] initialization complete
+> [  519.140759] pvrusb2: Attached sub-driver cx25840
+> [  519.147644] tuner: 6-0042: Tuner -1 found with type(s) Radio TV.
+> [  519.147667] pvrusb2: Attached sub-driver tuner
+> [  521.029446] cx25840 6-0044: loaded v4l-cx25840.fw firmware (14264
+> bytes)
+> [  521.124582] tveeprom: Hauppauge model 73219, rev D1E9, serial#
+> 4031491488
+> [  521.124586] tveeprom: MAC address is 00:0d:fe:4b:ad:a0
+> [  521.124588] tveeprom: tuner model is Philips 18271_8295 (idx 149,=20
+> type 54)
+> [  521.124591] tveeprom: TV standards PAL(B/G) PAL(I) SECAM(L/L')=20
+> PAL(D/D1/K) ATSC/DVB Digital (eeprom 0xf4)
+> [  521.124593] tveeprom: audio processor is CX25843 (idx 37)
+> [  521.124594] tveeprom: decoder processor is CX25843 (idx 30)
+> [  521.124596] tveeprom: has radio, has IR receiver, has IR
+> transmitter
+> [  521.124606] pvrusb2: Supported video standard(s) reported
+> available=20
+> in hardware: PAL-B/B1/D/D1/G/H/I/K;SECAM-B/D/G/H/K/K
+> [  521.124617] pvrusb2: Device initialization completed successfully.
+> [  521.124811] pvrusb2: registered device video0 [mpeg]
+> [  521.124819] dvbdev: DVB: registering new adapter (pvrusb2-dvb)
+> [  523.039178] cx25840 6-0044: loaded v4l-cx25840.fw firmware (14264
+> bytes)
+> [  523.160593] tda829x 6-0042: setting tuner address to 60
+> [  523.217717] tda18271 6-0060: creating new instance
+> [  523.260592] tda18271: TDA18271HD/C1 detected @ 6-0060
+> [  523.768592] tda829x 6-0042: type set to tda8295+18271
+> [  533.360586] cx25840 6-0044: 0x0000 is not a valid video input!
+> [  533.416296] usb 2-3: DVB: registering adapter 0 frontend 0 (NXP=20
+> TDA10048HN DVB-T)...
+> [  533.417571] tda829x 6-0042: type set to tda8295
+> [  533.455567] tda18271 6-0060: attaching existing instance
+> [  591.458582] cx25840 6-0044: loaded v4l-cx25840.fw firmware (14264
+> bytes)
+> [  595.551320] Unknown pixelformat 0x00000000
+> [  595.551344] ------------[ cut here ]------------
+> [  595.551363] WARNING: CPU: 2 PID: 5820 at=20
 
-There is also a bidirectional communication between controller and phy:
-The phy must provide functions that the controller will call (i.e.
-configuration functions) and the controller must provide read/write
-callbacks, as well as other specific functions.
+This is not a kernel panic, but a warning. In recent code it's this
+one:
 
-Signed-off-by: Jose Abreu <joabreu@synopsys.com>
-Cc: Joao Pinto <jpinto@synopsys.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Sylwester Nawrocki <snawrocki@kernel.org>
----
-Changes from v4:
-	- Use usleep_range (Sylwester)
-	- Remove some comments (Sylwester)
-	- Parse phy version from of_device_id (Sylwester)
-	- Use "cfg" instead of "cfg-clk" (Sylwester, Rob)
-	- Change some messages to dev_dbg (Sylwester)
-Changes from v3:
-	- Use v4l2 async API (Sylwester)
-	- Use clock API (Sylwester)
-	- Add compatible string (Sylwester)
-Changes from RFC:
-	- Remove a bunch of functions that can be collapsed into
-	a single config() function
-	- Add comments for the callbacks and structures (Hans)
----
- drivers/media/platform/Kconfig                |   2 +
- drivers/media/platform/Makefile               |   2 +
- drivers/media/platform/dwc/Kconfig            |   8 +
- drivers/media/platform/dwc/Makefile           |   1 +
- drivers/media/platform/dwc/dw-hdmi-phy-e405.c | 844 ++++++++++++++++++++++++++
- drivers/media/platform/dwc/dw-hdmi-phy-e405.h |  63 ++
- include/media/dwc/dw-hdmi-phy-pdata.h         | 128 ++++
- 7 files changed, 1048 insertions(+)
- create mode 100644 drivers/media/platform/dwc/Kconfig
- create mode 100644 drivers/media/platform/dwc/Makefile
- create mode 100644 drivers/media/platform/dwc/dw-hdmi-phy-e405.c
- create mode 100644 drivers/media/platform/dwc/dw-hdmi-phy-e405.h
- create mode 100644 include/media/dwc/dw-hdmi-phy-pdata.h
+https://elixir.free-electrons.com/linux/latest/source/drivers/media/v4l2-co=
+re/v4l2-ioctl.c#L1288
 
-diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
-index fd0c998..0187cbd 100644
---- a/drivers/media/platform/Kconfig
-+++ b/drivers/media/platform/Kconfig
-@@ -33,6 +33,8 @@ source "drivers/media/platform/omap/Kconfig"
- 
- source "drivers/media/platform/blackfin/Kconfig"
- 
-+source "drivers/media/platform/dwc/Kconfig"
-+
- config VIDEO_SH_VOU
- 	tristate "SuperH VOU video output driver"
- 	depends on MEDIA_CAMERA_SUPPORT
-diff --git a/drivers/media/platform/Makefile b/drivers/media/platform/Makefile
-index 003b0bb..2e879c6 100644
---- a/drivers/media/platform/Makefile
-+++ b/drivers/media/platform/Makefile
-@@ -97,3 +97,5 @@ obj-$(CONFIG_VIDEO_QCOM_CAMSS)		+= qcom/camss-8x16/
- obj-$(CONFIG_VIDEO_QCOM_VENUS)		+= qcom/venus/
- 
- obj-y					+= meson/
-+
-+obj-y					+= dwc/
-diff --git a/drivers/media/platform/dwc/Kconfig b/drivers/media/platform/dwc/Kconfig
-new file mode 100644
-index 0000000..361d38d
---- /dev/null
-+++ b/drivers/media/platform/dwc/Kconfig
-@@ -0,0 +1,8 @@
-+config VIDEO_DWC_HDMI_PHY_E405
-+	tristate "Synopsys Designware HDMI RX PHY e405 driver"
-+	depends on VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
-+	help
-+	  Support for Synopsys Designware HDMI RX PHY. Version is e405.
-+
-+	  To compile this driver as a module, choose M here. The module
-+	  will be called dw-hdmi-phy-e405.
-diff --git a/drivers/media/platform/dwc/Makefile b/drivers/media/platform/dwc/Makefile
-new file mode 100644
-index 0000000..fc3b62c
---- /dev/null
-+++ b/drivers/media/platform/dwc/Makefile
-@@ -0,0 +1 @@
-+obj-$(CONFIG_VIDEO_DWC_HDMI_PHY_E405) += dw-hdmi-phy-e405.o
-diff --git a/drivers/media/platform/dwc/dw-hdmi-phy-e405.c b/drivers/media/platform/dwc/dw-hdmi-phy-e405.c
-new file mode 100644
-index 0000000..26d70ca
---- /dev/null
-+++ b/drivers/media/platform/dwc/dw-hdmi-phy-e405.c
-@@ -0,0 +1,844 @@
-+/*
-+ * Synopsys Designware HDMI PHY E405 driver
-+ *
-+ * This Synopsys dw-phy-e405 software and associated documentation
-+ * (hereinafter the "Software") is an unsupported proprietary work of
-+ * Synopsys, Inc. unless otherwise expressly agreed to in writing between
-+ * Synopsys and you. The Software IS NOT an item of Licensed Software or a
-+ * Licensed Product under any End User Software License Agreement or
-+ * Agreement for Licensed Products with Synopsys or any supplement thereto.
-+ * Synopsys is a registered trademark of Synopsys, Inc. Other names included
-+ * in the SOFTWARE may be the trademarks of their respective owners.
-+ *
-+ * The contents of this file are dual-licensed; you may select either version 2
-+ * of the GNU General Public License (“GPL”) or the MIT license (“MIT”).
-+ *
-+ * Copyright (c) 2017 Synopsys, Inc. and/or its affiliates.
-+ *
-+ * THIS SOFTWARE IS PROVIDED "AS IS"  WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-+ * IMPLIED, INCLUDING, BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-+ * FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
-+ * OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT, OR OTHERWISE
-+ * ARISING FROM, OUT OF, OR IN CONNECTION WITH THE SOFTWARE THE USE OR
-+ * OTHER DEALINGS IN THE SOFTWARE.
-+ */
-+
-+#include <linux/clk.h>
-+#include <linux/delay.h>
-+#include <linux/module.h>
-+#include <linux/of_device.h>
-+#include <linux/platform_device.h>
-+#include <linux/types.h>
-+#include <media/v4l2-async.h>
-+#include <media/v4l2-subdev.h>
-+#include <media/dwc/dw-hdmi-phy-pdata.h>
-+#include "dw-hdmi-phy-e405.h"
-+
-+MODULE_AUTHOR("Jose Abreu <joabreu@synopsys.com>");
-+MODULE_DESCRIPTION("Designware HDMI PHY e405 driver");
-+MODULE_LICENSE("Dual MIT/GPL");
-+
-+#define PHY_EQ_WAIT_TIME_START			3
-+#define PHY_EQ_SLEEP_TIME_CDR			30
-+#define PHY_EQ_SLEEP_TIME_ACQ			1
-+#define PHY_EQ_BOUNDSPREAD			20
-+#define PHY_EQ_MIN_ACQ_STABLE			3
-+#define PHY_EQ_ACC_LIMIT			360
-+#define PHY_EQ_ACC_MIN_LIMIT			0
-+#define PHY_EQ_MAX_SETTING			13
-+#define PHY_EQ_SHORT_CABLE_SETTING		4
-+#define PHY_EQ_ERROR_CABLE_SETTING		4
-+#define PHY_EQ_MIN_SLOPE			50
-+#define PHY_EQ_AVG_ACQ				5
-+#define PHY_EQ_MINMAX_NTRIES			3
-+#define PHY_EQ_EQUALIZED_COUNTER_VAL		512
-+#define PHY_EQ_EQUALIZED_COUNTER_VAL_HDMI20	512
-+#define PHY_EQ_MINMAX_MAXDIFF			4
-+#define PHY_EQ_MINMAX_MAXDIFF_HDMI20		2
-+#define PHY_EQ_FATBIT_MASK			0x0000
-+#define PHY_EQ_FATBIT_MASK_4K			0x0c03
-+#define PHY_EQ_FATBIT_MASK_HDMI20		0x0e03
-+
-+struct dw_phy_eq_ch {
-+	u16 best_long_setting;
-+	u8 valid_long_setting;
-+	u16 best_short_setting;
-+	u8 valid_short_setting;
-+	u16 best_setting;
-+	u16 acc;
-+	u16 acq;
-+	u16 last_acq;
-+	u16 upper_bound_acq;
-+	u16 lower_bound_acq;
-+	u16 out_bound_acq;
-+	u16 read_acq;
-+};
-+
-+static const struct dw_phy_mpll_config {
-+	u16 addr;
-+	u16 val;
-+} dw_phy_e405_mpll_cfg[] = {
-+	{ 0x27, 0x1B94 },
-+	{ 0x28, 0x16D2 },
-+	{ 0x29, 0x12D9 },
-+	{ 0x2A, 0x3249 },
-+	{ 0x2B, 0x3653 },
-+	{ 0x2C, 0x3436 },
-+	{ 0x2D, 0x124D },
-+	{ 0x2E, 0x0001 },
-+	{ 0xCE, 0x0505 },
-+	{ 0xCF, 0x0505 },
-+	{ 0xD0, 0x0000 },
-+	{ 0x00, 0x0000 },
-+};
-+
-+struct dw_phy_dev {
-+	struct device *dev;
-+	struct dw_phy_pdata *config;
-+	unsigned int version;
-+	struct clk *clk;
-+	u16 cfg_clk;
-+	bool phy_enabled;
-+	struct v4l2_subdev sd;
-+	u16 mpll_status;
-+	unsigned char color_depth;
-+	bool hdmi2;
-+	bool scrambling;
-+	struct mutex lock;
-+};
-+
-+static inline struct dw_phy_dev *to_dw_dev(struct v4l2_subdev *sd)
-+{
-+	return container_of(sd, struct dw_phy_dev, sd);
-+}
-+
-+static void phy_write(struct dw_phy_dev *dw_dev, u16 val, u16 addr)
-+{
-+	void *arg = dw_dev->config->funcs_arg;
-+
-+	dw_dev->config->funcs->write(arg, val, addr);
-+}
-+
-+static u16 phy_read(struct dw_phy_dev *dw_dev, u16 addr)
-+{
-+	void *arg = dw_dev->config->funcs_arg;
-+
-+	return dw_dev->config->funcs->read(arg, addr);
-+}
-+
-+static void phy_reset(struct dw_phy_dev *dw_dev, int enable)
-+{
-+	void *arg = dw_dev->config->funcs_arg;
-+
-+	dw_dev->config->funcs->reset(arg, enable);
-+}
-+
-+static void phy_pddq(struct dw_phy_dev *dw_dev, int enable)
-+{
-+	void *arg = dw_dev->config->funcs_arg;
-+
-+	dw_dev->config->funcs->pddq(arg, enable);
-+}
-+
-+static void phy_svsmode(struct dw_phy_dev *dw_dev, int enable)
-+{
-+	void *arg = dw_dev->config->funcs_arg;
-+
-+	dw_dev->config->funcs->svsmode(arg, enable);
-+}
-+
-+static void phy_zcal_reset(struct dw_phy_dev *dw_dev)
-+{
-+	void *arg = dw_dev->config->funcs_arg;
-+
-+	dw_dev->config->funcs->zcal_reset(arg);
-+}
-+
-+static bool phy_zcal_done(struct dw_phy_dev *dw_dev)
-+{
-+	void *arg = dw_dev->config->funcs_arg;
-+
-+	return dw_dev->config->funcs->zcal_done(arg);
-+}
-+
-+static bool phy_tmds_valid(struct dw_phy_dev *dw_dev)
-+{
-+	void *arg = dw_dev->config->funcs_arg;
-+
-+	return dw_dev->config->funcs->tmds_valid(arg);
-+}
-+
-+static int dw_phy_eq_test(struct dw_phy_dev *dw_dev,
-+		u16 *fat_bit_mask, int *min_max_length)
-+{
-+	u16 main_fsm_status, val;
-+	int i;
-+
-+	for (i = 0; i < PHY_EQ_WAIT_TIME_START; i++) {
-+		main_fsm_status = phy_read(dw_dev, PHY_MAINFSM_STATUS1);
-+		if (main_fsm_status & 0x100)
-+			break;
-+		mdelay(PHY_EQ_SLEEP_TIME_CDR);
-+	}
-+
-+	if (i == PHY_EQ_WAIT_TIME_START) {
-+		dev_dbg(dw_dev->dev, "phy start conditions not achieved\n");
-+		return -ETIMEDOUT;
-+	}
-+
-+	if (main_fsm_status & 0x400) {
-+		dev_dbg(dw_dev->dev, "invalid pll rate\n");
-+		return -EINVAL;
-+	}
-+
-+	val = (phy_read(dw_dev, PHY_CDR_CTRL_CNT) & 0x300) >> 8;
-+	if (val == 0x1) {
-+		/* HDMI 2.0 */
-+		*fat_bit_mask = PHY_EQ_FATBIT_MASK_HDMI20;
-+		*min_max_length = PHY_EQ_MINMAX_MAXDIFF_HDMI20;
-+		dev_dbg(dw_dev->dev, "[EQUALIZER] using HDMI 2.0 values\n");
-+	} else if (!(main_fsm_status & 0x600)) {
-+		/* HDMI 1.4 (pll rate = 0) */
-+		*fat_bit_mask = PHY_EQ_FATBIT_MASK_4K;
-+		*min_max_length = PHY_EQ_MINMAX_MAXDIFF;
-+		dev_dbg(dw_dev->dev, "[EQUALIZER] using HDMI 1.4@4k values\n");
-+	} else {
-+		/* HDMI 1.4 */
-+		*fat_bit_mask = PHY_EQ_FATBIT_MASK;
-+		*min_max_length = PHY_EQ_MINMAX_MAXDIFF;
-+		dev_dbg(dw_dev->dev, "[EQUALIZER] using HDMI 1.4 values\n");
-+	}
-+
-+	return 0;
-+}
-+
-+static void dw_phy_eq_default(struct dw_phy_dev *dw_dev)
-+{
-+	phy_write(dw_dev, 0x08A8, PHY_CH0_EQ_CTRL1);
-+	phy_write(dw_dev, 0x0020, PHY_CH0_EQ_CTRL2);
-+	phy_write(dw_dev, 0x08A8, PHY_CH1_EQ_CTRL1);
-+	phy_write(dw_dev, 0x0020, PHY_CH1_EQ_CTRL2);
-+	phy_write(dw_dev, 0x08A8, PHY_CH2_EQ_CTRL1);
-+	phy_write(dw_dev, 0x0020, PHY_CH2_EQ_CTRL2);
-+}
-+
-+static void dw_phy_eq_single(struct dw_phy_dev *dw_dev)
-+{
-+	phy_write(dw_dev, 0x0211, PHY_CH0_EQ_CTRL1);
-+	phy_write(dw_dev, 0x0211, PHY_CH1_EQ_CTRL1);
-+	phy_write(dw_dev, 0x0211, PHY_CH2_EQ_CTRL1);
-+}
-+
-+static void dw_phy_eq_equal_setting(struct dw_phy_dev *dw_dev,
-+		u16 lock_vector)
-+{
-+	phy_write(dw_dev, lock_vector, PHY_CH0_EQ_CTRL4);
-+	phy_write(dw_dev, 0x0024, PHY_CH0_EQ_CTRL2);
-+	phy_write(dw_dev, 0x0026, PHY_CH0_EQ_CTRL2);
-+	phy_read(dw_dev, PHY_CH0_EQ_STATUS2);
-+	phy_write(dw_dev, lock_vector, PHY_CH1_EQ_CTRL4);
-+	phy_write(dw_dev, 0x0024, PHY_CH1_EQ_CTRL2);
-+	phy_write(dw_dev, 0x0026, PHY_CH1_EQ_CTRL2);
-+	phy_read(dw_dev, PHY_CH1_EQ_STATUS2);
-+	phy_write(dw_dev, lock_vector, PHY_CH2_EQ_CTRL4);
-+	phy_write(dw_dev, 0x0024, PHY_CH2_EQ_CTRL2);
-+	phy_write(dw_dev, 0x0026, PHY_CH2_EQ_CTRL2);
-+	phy_read(dw_dev, PHY_CH2_EQ_STATUS2);
-+}
-+
-+static void dw_phy_eq_equal_setting_ch0(struct dw_phy_dev *dw_dev,
-+		u16 lock_vector)
-+{
-+	phy_write(dw_dev, lock_vector, PHY_CH0_EQ_CTRL4);
-+	phy_write(dw_dev, 0x0024, PHY_CH0_EQ_CTRL2);
-+	phy_write(dw_dev, 0x0026, PHY_CH0_EQ_CTRL2);
-+	phy_read(dw_dev, PHY_CH0_EQ_STATUS2);
-+}
-+
-+static void dw_phy_eq_equal_setting_ch1(struct dw_phy_dev *dw_dev,
-+		u16 lock_vector)
-+{
-+	phy_write(dw_dev, lock_vector, PHY_CH1_EQ_CTRL4);
-+	phy_write(dw_dev, 0x0024, PHY_CH1_EQ_CTRL2);
-+	phy_write(dw_dev, 0x0026, PHY_CH1_EQ_CTRL2);
-+	phy_read(dw_dev, PHY_CH1_EQ_STATUS2);
-+}
-+
-+static void dw_phy_eq_equal_setting_ch2(struct dw_phy_dev *dw_dev,
-+		u16 lock_vector)
-+{
-+	phy_write(dw_dev, lock_vector, PHY_CH2_EQ_CTRL4);
-+	phy_write(dw_dev, 0x0024, PHY_CH2_EQ_CTRL2);
-+	phy_write(dw_dev, 0x0026, PHY_CH2_EQ_CTRL2);
-+	phy_read(dw_dev, PHY_CH2_EQ_STATUS2);
-+}
-+
-+static void dw_phy_eq_auto_calib(struct dw_phy_dev *dw_dev)
-+{
-+	phy_write(dw_dev, 0x1809, PHY_MAINFSM_CTRL);
-+	phy_write(dw_dev, 0x1819, PHY_MAINFSM_CTRL);
-+	phy_write(dw_dev, 0x1809, PHY_MAINFSM_CTRL);
-+}
-+
-+static void dw_phy_eq_init_vars(struct dw_phy_eq_ch *ch)
-+{
-+	ch->acc = 0;
-+	ch->acq = 0;
-+	ch->last_acq = 0;
-+	ch->valid_long_setting = 0;
-+	ch->valid_short_setting = 0;
-+	ch->best_setting = PHY_EQ_SHORT_CABLE_SETTING;
-+}
-+
-+static bool dw_phy_eq_acquire_early_cnt(struct dw_phy_dev *dw_dev,
-+		u16 setting, u16 acq, struct dw_phy_eq_ch *ch0,
-+		struct dw_phy_eq_ch *ch1, struct dw_phy_eq_ch *ch2)
-+{
-+	u16 lock_vector = 0x1;
-+	int i;
-+
-+	lock_vector <<= setting;
-+	ch0->out_bound_acq = 0;
-+	ch1->out_bound_acq = 0;
-+	ch2->out_bound_acq = 0;
-+	ch0->acq = 0;
-+	ch1->acq = 0;
-+	ch2->acq = 0;
-+
-+	dw_phy_eq_equal_setting(dw_dev, lock_vector);
-+	dw_phy_eq_auto_calib(dw_dev);
-+
-+	mdelay(PHY_EQ_SLEEP_TIME_CDR);
-+	if (!phy_tmds_valid(dw_dev))
-+		dev_dbg(dw_dev->dev, "TMDS is NOT valid\n");
-+
-+	ch0->read_acq = phy_read(dw_dev, PHY_CH0_EQ_STATUS3);
-+	ch1->read_acq = phy_read(dw_dev, PHY_CH1_EQ_STATUS3);
-+	ch2->read_acq = phy_read(dw_dev, PHY_CH2_EQ_STATUS3);
-+
-+	ch0->acq += ch0->read_acq;
-+	ch1->acq += ch1->read_acq;
-+	ch2->acq += ch2->read_acq;
-+
-+	ch0->upper_bound_acq = ch0->read_acq + PHY_EQ_BOUNDSPREAD;
-+	ch0->lower_bound_acq = ch0->read_acq - PHY_EQ_BOUNDSPREAD;
-+	ch1->upper_bound_acq = ch1->read_acq + PHY_EQ_BOUNDSPREAD;
-+	ch1->lower_bound_acq = ch1->read_acq - PHY_EQ_BOUNDSPREAD;
-+	ch2->upper_bound_acq = ch2->read_acq + PHY_EQ_BOUNDSPREAD;
-+	ch2->lower_bound_acq = ch2->read_acq - PHY_EQ_BOUNDSPREAD;
-+
-+	for (i = 1; i < acq; i++) {
-+		dw_phy_eq_auto_calib(dw_dev);
-+		mdelay(PHY_EQ_SLEEP_TIME_ACQ);
-+
-+		if ((ch0->read_acq > ch0->upper_bound_acq) ||
-+				(ch0->read_acq < ch0->lower_bound_acq))
-+			ch0->out_bound_acq++;
-+		if ((ch1->read_acq > ch1->upper_bound_acq) ||
-+				(ch1->read_acq < ch1->lower_bound_acq))
-+			ch1->out_bound_acq++;
-+		if ((ch2->read_acq > ch2->upper_bound_acq) ||
-+				(ch2->read_acq < ch1->lower_bound_acq))
-+			ch2->out_bound_acq++;
-+
-+		if (i == PHY_EQ_MIN_ACQ_STABLE) {
-+			if ((ch0->out_bound_acq == 0) &&
-+					(ch1->out_bound_acq == 0) &&
-+					(ch2->out_bound_acq == 0)) {
-+				acq = 3;
-+				break;
-+			}
-+		}
-+
-+		ch0->read_acq = phy_read(dw_dev, PHY_CH0_EQ_STATUS3);
-+		ch1->read_acq = phy_read(dw_dev, PHY_CH1_EQ_STATUS3);
-+		ch2->read_acq = phy_read(dw_dev, PHY_CH2_EQ_STATUS3);
-+
-+		ch0->acq += ch0->read_acq;
-+		ch1->acq += ch1->read_acq;
-+		ch2->acq += ch2->read_acq;
-+	}
-+
-+	ch0->acq = ch0->acq / acq;
-+	ch1->acq = ch1->acq / acq;
-+	ch2->acq = ch2->acq / acq;
-+
-+	return true;
-+}
-+
-+static int dw_phy_eq_test_type(u16 setting, bool tmds_valid,
-+		struct dw_phy_eq_ch *ch)
-+{
-+	u16 step_slope = 0;
-+
-+	if ((ch->acq < ch->last_acq) && tmds_valid) {
-+		/* Long cable equalization */
-+		ch->acc += ch->last_acq - ch->acq;
-+		if ((ch->valid_long_setting == 0) && (ch->acq < 512) &&
-+				(ch->acc > 0)) {
-+			ch->best_long_setting = setting;
-+			ch->valid_long_setting = 1;
-+		}
-+		step_slope = ch->last_acq - ch->acq;
-+	}
-+
-+	if (tmds_valid && (ch->valid_short_setting == 0)) {
-+		/* Short cable equalization */
-+		if ((setting < PHY_EQ_SHORT_CABLE_SETTING) &&
-+				(ch->acq < PHY_EQ_EQUALIZED_COUNTER_VAL)) {
-+			ch->best_short_setting= setting;
-+			ch->valid_short_setting = 1;
-+		}
-+
-+		if (setting == PHY_EQ_SHORT_CABLE_SETTING) {
-+			ch->best_short_setting = PHY_EQ_SHORT_CABLE_SETTING;
-+			ch->valid_short_setting = 1;
-+		}
-+	}
-+
-+	if (ch->valid_long_setting && (ch->acc > PHY_EQ_ACC_LIMIT)) {
-+		ch->best_setting = ch->best_long_setting;
-+		return 1;
-+	}
-+
-+	if ((setting == PHY_EQ_MAX_SETTING) && (ch->acc < PHY_EQ_ACC_LIMIT) &&
-+			ch->valid_short_setting) {
-+		ch->best_setting = ch->best_short_setting;
-+		return 2;
-+	}
-+
-+	if ((setting == PHY_EQ_MAX_SETTING) && tmds_valid &&
-+			(ch->acc > PHY_EQ_ACC_LIMIT) &&
-+			(step_slope > PHY_EQ_MIN_SLOPE)) {
-+		ch->best_setting = PHY_EQ_MAX_SETTING;
-+		return 3;
-+	}
-+
-+	if (setting == PHY_EQ_MAX_SETTING) {
-+		ch->best_setting = PHY_EQ_ERROR_CABLE_SETTING;
-+		return 255;
-+	}
-+
-+	return 0;
-+}
-+
-+static bool dw_phy_eq_setting_finder(struct dw_phy_dev *dw_dev, u16 acq,
-+		struct dw_phy_eq_ch *ch0, struct dw_phy_eq_ch *ch1,
-+		struct dw_phy_eq_ch *ch2)
-+{
-+	u16 act = 0;
-+	int ret_ch0 = 0, ret_ch1 = 0, ret_ch2 = 0;
-+	bool tmds_valid = false;
-+
-+	dw_phy_eq_init_vars(ch0);
-+	dw_phy_eq_init_vars(ch1);
-+	dw_phy_eq_init_vars(ch2);
-+
-+	tmds_valid = dw_phy_eq_acquire_early_cnt(dw_dev, act, acq,
-+			ch0, ch1, ch2);
-+
-+	while ((ret_ch0 == 0) || (ret_ch1 == 0) || (ret_ch2 == 0)) {
-+		act++;
-+
-+		ch0->last_acq = ch0->acq;
-+		ch1->last_acq = ch1->acq;
-+		ch2->last_acq = ch2->acq;
-+
-+		tmds_valid = dw_phy_eq_acquire_early_cnt(dw_dev, act, acq,
-+				ch0, ch1, ch2);
-+
-+		if (!ret_ch0)
-+			ret_ch0 = dw_phy_eq_test_type(act, tmds_valid, ch0);
-+		if (!ret_ch1)
-+			ret_ch1 = dw_phy_eq_test_type(act, tmds_valid, ch1);
-+		if (!ret_ch2)
-+			ret_ch2 = dw_phy_eq_test_type(act, tmds_valid, ch2);
-+	}
-+
-+	if ((ret_ch0 == 255) || (ret_ch1 == 255) || (ret_ch2 == 255))
-+		return false;
-+	return true;
-+}
-+
-+static bool dw_phy_eq_maxvsmin(u16 ch0_setting, u16 ch1_setting,
-+		u16 ch2_setting, u16 min_max_length)
-+{
-+	u16 min = ch0_setting, max = ch0_setting;
-+
-+	if (ch1_setting > max)
-+		max = ch1_setting;
-+	if (ch2_setting > max)
-+		max = ch2_setting;
-+	if (ch1_setting < min)
-+		min = ch1_setting;
-+	if (ch2_setting < min)
-+		min = ch2_setting;
-+
-+	if ((max - min) > min_max_length)
-+		return false;
-+	return true;
-+}
-+
-+static int dw_phy_eq_init(struct dw_phy_dev *dw_dev, u16 acq, bool force)
-+{
-+	struct dw_phy_eq_ch ch0, ch1, ch2;
-+	u16 fat_bit_mask, lock_vector = 0x1;
-+	int min_max_length, i, ret = 0;
-+	u16 mpll_status;
-+
-+	if (dw_dev->version < 401)
-+		return ret;
-+	if (!dw_dev->phy_enabled)
-+		return -EINVAL;
-+
-+	mpll_status = phy_read(dw_dev, PHY_CLK_MPLL_STATUS);
-+	if (mpll_status == dw_dev->mpll_status && !force)
-+		return ret;
-+	dw_dev->mpll_status = mpll_status;
-+
-+	phy_write(dw_dev, 0x00, PHY_MAINFSM_OVR2);
-+	phy_write(dw_dev, 0x00, PHY_CH0_EQ_CTRL3);
-+	phy_write(dw_dev, 0x00, PHY_CH1_EQ_CTRL3);
-+	phy_write(dw_dev, 0x00, PHY_CH2_EQ_CTRL3);
-+
-+	ret = dw_phy_eq_test(dw_dev, &fat_bit_mask, &min_max_length);
-+	if (ret) {
-+		if (ret == -EINVAL) /* Means equalizer is not needed */
-+			ret = 0;
-+
-+		/* Do not change values if we don't have clock */
-+		if (ret != -ETIMEDOUT) {
-+			dw_phy_eq_default(dw_dev);
-+			phy_pddq(dw_dev, 1);
-+			phy_pddq(dw_dev, 0);
-+		}
-+	} else {
-+		dw_phy_eq_single(dw_dev);
-+		dw_phy_eq_equal_setting(dw_dev, 0x0001);
-+		phy_write(dw_dev, fat_bit_mask, PHY_CH0_EQ_CTRL6);
-+		phy_write(dw_dev, fat_bit_mask, PHY_CH1_EQ_CTRL6);
-+		phy_write(dw_dev, fat_bit_mask, PHY_CH2_EQ_CTRL6);
-+
-+		for (i = 0; i < PHY_EQ_MINMAX_NTRIES; i++) {
-+			if (dw_phy_eq_setting_finder(dw_dev, acq,
-+						&ch0, &ch1, &ch2)) {
-+				if (dw_phy_eq_maxvsmin(ch0.best_setting,
-+							ch1.best_setting,
-+							ch2.best_setting,
-+							min_max_length))
-+					break;
-+			}
-+
-+			ch0.best_setting = PHY_EQ_ERROR_CABLE_SETTING;
-+			ch1.best_setting = PHY_EQ_ERROR_CABLE_SETTING;
-+			ch2.best_setting = PHY_EQ_ERROR_CABLE_SETTING;
-+		}
-+
-+		dev_dbg(dw_dev->dev, "equalizer settings: "
-+				"ch0=0x%x, ch1=0x%x, ch1=0x%x\n",
-+				ch0.best_setting, ch1.best_setting,
-+				ch2.best_setting);
-+
-+		if (i == PHY_EQ_MINMAX_NTRIES)
-+			ret = -EINVAL;
-+
-+		lock_vector = 0x1;
-+		lock_vector <<= ch0.best_setting;
-+		dw_phy_eq_equal_setting_ch0(dw_dev, lock_vector);
-+
-+		lock_vector = 0x1;
-+		lock_vector <<= ch1.best_setting;
-+		dw_phy_eq_equal_setting_ch1(dw_dev, lock_vector);
-+
-+		lock_vector = 0x1;
-+		lock_vector <<= ch2.best_setting;
-+		dw_phy_eq_equal_setting_ch2(dw_dev, lock_vector);
-+
-+		phy_pddq(dw_dev, 1);
-+		phy_pddq(dw_dev, 0);
-+	}
-+
-+	return ret;
-+}
-+
-+static int dw_phy_config(struct dw_phy_dev *dw_dev, unsigned char color_depth,
-+		bool hdmi2, bool scrambling)
-+{
-+	const struct dw_phy_mpll_config *mpll_cfg = dw_phy_e405_mpll_cfg;
-+	struct device *dev = dw_dev->dev;
-+	int timeout = 100;
-+	u16 val, res_idx;
-+	bool zcal_done;
-+
-+	dev_dbg(dev, "%s: color_depth=%d, hdmi2=%d, scrambling=%d, cfg_clk=%d\n",
-+			__func__, color_depth, hdmi2, scrambling, dw_dev->cfg_clk);
-+
-+	switch (color_depth) {
-+	case 8:
-+		res_idx = 0x0;
-+		break;
-+	case 10:
-+		res_idx = 0x1;
-+		break;
-+	case 12:
-+		res_idx = 0x2;
-+		break;
-+	case 16:
-+		res_idx = 0x3;
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	phy_reset(dw_dev, 1);
-+	phy_pddq(dw_dev, 1);
-+	phy_svsmode(dw_dev, 1);
-+
-+	phy_zcal_reset(dw_dev);
-+	do {
-+		usleep_range(1000, 1100);
-+		zcal_done = phy_zcal_done(dw_dev);
-+	} while (!zcal_done && timeout--);
-+
-+	if (!zcal_done) {
-+		dev_err(dw_dev->dev, "Zcal calibration failed\n");
-+		return -ETIMEDOUT;
-+	}
-+
-+	phy_reset(dw_dev, 0);
-+
-+	/* CMU */
-+	val = (0x08 << 10) | (0x01 << 9);
-+	val |= (dw_dev->cfg_clk * 4) & GENMASK(8, 0);
-+	phy_write(dw_dev, val, PHY_CMU_CONFIG);
-+
-+	/* Color Depth and enable fast switching */
-+	val = phy_read(dw_dev, PHY_SYSTEM_CONFIG);
-+	val = (val & ~0x60) | (res_idx << 5) | BIT(11);
-+	phy_write(dw_dev, val, PHY_SYSTEM_CONFIG);
-+
-+	/* MPLL */
-+	for (; mpll_cfg->addr != 0x0; mpll_cfg++)
-+		phy_write(dw_dev, mpll_cfg->val, mpll_cfg->addr);
-+
-+	/* Operation for data rates between 3.4Gbps and 6Gbps */
-+	val = phy_read(dw_dev, PHY_CDR_CTRL_CNT);
-+	if (hdmi2)
-+		val |= BIT(8);
-+	else
-+		val &= ~BIT(8);
-+	phy_write(dw_dev, val, PHY_CDR_CTRL_CNT);
-+
-+	/* Scrambling */
-+	val = phy_read(dw_dev, PHY_OVL_PROT_CTRL);
-+	if (scrambling)
-+		val |= GENMASK(7,6);
-+	else
-+		val &= ~GENMASK(7,6);
-+	phy_write(dw_dev, val, PHY_OVL_PROT_CTRL);
-+
-+	/* Enable phy */
-+	phy_pddq(dw_dev, 0);
-+
-+	dw_dev->color_depth = color_depth;
-+	dw_dev->hdmi2 = hdmi2;
-+	dw_dev->scrambling = scrambling;
-+	return 0;
-+}
-+
-+static int dw_phy_enable(struct dw_phy_dev *dw_dev, unsigned char color_depth,
-+		bool hdmi2, bool scrambling)
-+{
-+	int ret;
-+
-+	if (dw_dev->phy_enabled &&
-+	    dw_dev->color_depth == color_depth &&
-+	    dw_dev->hdmi2 == hdmi2 &&
-+	    dw_dev->scrambling == scrambling)
-+		return 0;
-+
-+	ret = dw_phy_config(dw_dev, color_depth, hdmi2, scrambling);
-+	if (ret)
-+		return ret;
-+
-+	phy_reset(dw_dev, 0);
-+	phy_pddq(dw_dev, 0);
-+	dw_dev->phy_enabled = true;
-+	return 0;
-+}
-+
-+static void dw_phy_disable(struct dw_phy_dev *dw_dev)
-+{
-+	if (!dw_dev->phy_enabled)
-+		return;
-+
-+	phy_reset(dw_dev, 1);
-+	phy_pddq(dw_dev, 1);
-+	phy_svsmode(dw_dev, 0);
-+	dw_dev->mpll_status = 0xFFFF;
-+	dw_dev->phy_enabled = false;
-+}
-+
-+static long dw_phy_ioctl(struct v4l2_subdev *sd, unsigned int cmd, void *arg)
-+{
-+	struct dw_phy_dev *dw_dev = to_dw_dev(sd);
-+	struct dw_phy_config_command *ccmd;
-+	struct dw_phy_eq_command *ecmd;
-+	int ret = 0;
-+
-+	dev_dbg(dw_dev->dev, "%s: cmd=%d\n", __func__, cmd);
-+
-+	mutex_lock(&dw_dev->lock);
-+	switch (cmd) {
-+	case DW_PHY_IOCTL_EQ_INIT:
-+		ecmd = (struct dw_phy_eq_command *)arg; 
-+		ecmd->result = dw_phy_eq_init(dw_dev, ecmd->nacq, ecmd->force);
-+		break;
-+	case DW_PHY_IOCTL_CONFIG:
-+		ccmd = (struct dw_phy_config_command *)arg;
-+		ccmd->result = dw_phy_enable(dw_dev, ccmd->color_depth,
-+				ccmd->hdmi2, ccmd->scrambling);
-+		break;
-+	default:
-+		ret = -ENOIOCTLCMD;
-+		break;
-+	}
-+	mutex_unlock(&dw_dev->lock);
-+
-+	return ret;
-+}
-+
-+static int dw_phy_s_power(struct v4l2_subdev *sd, int on)
-+{
-+	struct dw_phy_dev *dw_dev = to_dw_dev(sd);
-+
-+	dev_dbg(dw_dev->dev, "%s: on=%d\n", __func__, on);
-+
-+	mutex_lock(&dw_dev->lock);
-+	if (!on)
-+		dw_phy_disable(dw_dev);
-+	mutex_unlock(&dw_dev->lock);
-+	return 0;
-+}
-+
-+static const struct v4l2_subdev_core_ops dw_phy_core_ops = {
-+	.ioctl = dw_phy_ioctl,
-+	.s_power = dw_phy_s_power,
-+};
-+
-+static const struct v4l2_subdev_ops dw_phy_sd_ops = {
-+	.core = &dw_phy_core_ops,
-+};
-+
-+struct dw_hdmi_phy_data {
-+	const char *name;
-+	unsigned int version;
-+};
-+
-+static const struct dw_hdmi_phy_data dw_phy_e405_data = {
-+	.name = "e405",
-+	.version = 405,
-+};
-+
-+static int dw_phy_probe(struct platform_device *pdev)
-+{
-+	struct dw_phy_pdata *pdata = pdev->dev.platform_data;
-+	const struct dw_hdmi_phy_data *of_data;
-+	struct device *dev = &pdev->dev;
-+	struct dw_phy_dev *dw_dev;
-+	struct v4l2_subdev *sd;
-+	int ret;
-+
-+	dev_dbg(dev, "probe start\n");
-+
-+	dw_dev = devm_kzalloc(dev, sizeof(*dw_dev), GFP_KERNEL);
-+	if (!dw_dev)
-+		return -ENOMEM;
-+
-+	if (!pdata) {
-+		dev_err(dev, "no platform data suplied\n");
-+		return -EINVAL;
-+	}
-+
-+	of_data = of_device_get_match_data(dev);
-+	if (!of_data) {
-+		dev_err(dev, "no valid phy configuration available\n");
-+		return -EINVAL;
-+	}
-+
-+	dw_dev->dev = dev;
-+	dw_dev->config = pdata;
-+	dw_dev->version = of_data->version;
-+	mutex_init(&dw_dev->lock);
-+
-+	dw_dev->clk = devm_clk_get(dev, "cfg");
-+	if (IS_ERR(dw_dev->clk)) {
-+		dev_err(dev, "failed to get cfg clock\n");
-+		return PTR_ERR(dw_dev->clk);
-+	}
-+
-+	ret = clk_prepare_enable(dw_dev->clk);
-+	if (ret) {
-+		dev_err(dev, "failed to enable cfg clock\n");
-+		return ret;
-+	}
-+
-+	dw_dev->cfg_clk = clk_get_rate(dw_dev->clk) / 1000000U;
-+	if (!dw_dev->cfg_clk) {
-+		dev_err(dev, "invalid cfg clock frequency\n");
-+		ret = -EINVAL;
-+		goto err_clk;
-+	}
-+
-+	/* V4L2 initialization */
-+	sd = &dw_dev->sd;
-+	v4l2_subdev_init(sd, &dw_phy_sd_ops);
-+	strlcpy(sd->name, dev_name(dev), sizeof(sd->name));
-+	sd->dev = dev;
-+
-+	/* Force phy disabling */
-+	dw_dev->phy_enabled = true;
-+	dw_phy_disable(dw_dev);
-+
-+	ret = v4l2_async_register_subdev(sd);
-+	if (ret) {
-+		dev_err(dev, "failed to register subdev\n");
-+		goto err_clk;
-+	}
-+
-+	dev_set_drvdata(dev, sd);
-+	dev_dbg(dev, "driver probed (name=%s, cfg clock=%d)\n",
-+			of_data->name, dw_dev->cfg_clk);
-+	return 0;
-+
-+err_clk:
-+	clk_disable_unprepare(dw_dev->clk);
-+	return ret;
-+}
-+
-+static int dw_phy_remove(struct platform_device *pdev)
-+{
-+	struct v4l2_subdev *sd = dev_get_drvdata(&pdev->dev);
-+	struct dw_phy_dev *dw_dev = to_dw_dev(sd);
-+
-+	v4l2_async_unregister_subdev(sd);
-+	clk_disable_unprepare(dw_dev->clk);
-+	return 0;
-+}
-+
-+static const struct of_device_id dw_hdmi_phy_e405_id[] = {
-+	{ .compatible = "snps,dw-hdmi-phy-e405", .data = &dw_phy_e405_data, },
-+	{ },
-+};
-+MODULE_DEVICE_TABLE(of, dw_hdmi_phy_e405_id);
-+
-+static struct platform_driver dw_phy_e405_driver = {
-+	.probe = dw_phy_probe,
-+	.remove = dw_phy_remove,
-+	.driver = {
-+		.name = DW_PHY_E405_DRVNAME,
-+		.of_match_table = dw_hdmi_phy_e405_id,
-+	}
-+};
-+module_platform_driver(dw_phy_e405_driver);
-diff --git a/drivers/media/platform/dwc/dw-hdmi-phy-e405.h b/drivers/media/platform/dwc/dw-hdmi-phy-e405.h
-new file mode 100644
-index 0000000..3e6c8da
---- /dev/null
-+++ b/drivers/media/platform/dwc/dw-hdmi-phy-e405.h
-@@ -0,0 +1,63 @@
-+/*
-+ * Synopsys Designware HDMI PHY E405 driver
-+ *
-+ * This Synopsys dw-phy-e405 software and associated documentation
-+ * (hereinafter the "Software") is an unsupported proprietary work of
-+ * Synopsys, Inc. unless otherwise expressly agreed to in writing between
-+ * Synopsys and you. The Software IS NOT an item of Licensed Software or a
-+ * Licensed Product under any End User Software License Agreement or
-+ * Agreement for Licensed Products with Synopsys or any supplement thereto.
-+ * Synopsys is a registered trademark of Synopsys, Inc. Other names included
-+ * in the SOFTWARE may be the trademarks of their respective owners.
-+ *
-+ * The contents of this file are dual-licensed; you may select either version 2
-+ * of the GNU General Public License (“GPL”) or the MIT license (“MIT”).
-+ *
-+ * Copyright (c) 2017 Synopsys, Inc. and/or its affiliates.
-+ *
-+ * THIS SOFTWARE IS PROVIDED "AS IS"  WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-+ * IMPLIED, INCLUDING, BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-+ * FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
-+ * OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT, OR OTHERWISE
-+ * ARISING FROM, OUT OF, OR IN CONNECTION WITH THE SOFTWARE THE USE OR
-+ * OTHER DEALINGS IN THE SOFTWARE.
-+ */
-+
-+#ifndef __DW_HDMI_PHY_E405_H__
-+#define __DW_HDMI_PHY_E405_H__
-+
-+#define PHY_CMU_CONFIG				0x02
-+#define PHY_SYSTEM_CONFIG			0x03
-+#define PHY_MAINFSM_CTRL			0x05
-+#define PHY_MAINFSM_OVR2			0x08
-+#define PHY_MAINFSM_STATUS1			0x09
-+#define PHY_OVL_PROT_CTRL			0x0D
-+#define PHY_CDR_CTRL_CNT			0x0E
-+#define PHY_CLK_MPLL_STATUS			0x2F
-+#define PHY_CH0_EQ_CTRL1			0x32
-+#define PHY_CH0_EQ_CTRL2			0x33
-+#define PHY_CH0_EQ_STATUS			0x34
-+#define PHY_CH0_EQ_CTRL3			0x3E
-+#define PHY_CH0_EQ_CTRL4			0x3F
-+#define PHY_CH0_EQ_STATUS2			0x40
-+#define PHY_CH0_EQ_STATUS3			0x42
-+#define PHY_CH0_EQ_CTRL6			0x43
-+#define PHY_CH1_EQ_CTRL1			0x52
-+#define PHY_CH1_EQ_CTRL2			0x53
-+#define PHY_CH1_EQ_STATUS			0x54
-+#define PHY_CH1_EQ_CTRL3			0x5E
-+#define PHY_CH1_EQ_CTRL4			0x5F
-+#define PHY_CH1_EQ_STATUS2			0x60
-+#define PHY_CH1_EQ_STATUS3			0x62
-+#define PHY_CH1_EQ_CTRL6			0x63
-+#define PHY_CH2_EQ_CTRL1			0x72
-+#define PHY_CH2_EQ_CTRL2			0x73
-+#define PHY_CH2_EQ_STATUS			0x74
-+#define PHY_CH2_EQ_CTRL3			0x7E
-+#define PHY_CH2_EQ_CTRL4			0x7F
-+#define PHY_CH2_EQ_STATUS2			0x80
-+#define PHY_CH2_EQ_STATUS3			0x82
-+#define PHY_CH2_EQ_CTRL6			0x83
-+
-+#endif /* __DW_HDMI_PHY_E405_H__ */
-diff --git a/include/media/dwc/dw-hdmi-phy-pdata.h b/include/media/dwc/dw-hdmi-phy-pdata.h
-new file mode 100644
-index 0000000..e533eec
---- /dev/null
-+++ b/include/media/dwc/dw-hdmi-phy-pdata.h
-@@ -0,0 +1,128 @@
-+/*
-+ * Synopsys Designware HDMI PHY platform data
-+ *
-+ * This Synopsys dw-hdmi-phy software and associated documentation
-+ * (hereinafter the "Software") is an unsupported proprietary work of
-+ * Synopsys, Inc. unless otherwise expressly agreed to in writing between
-+ * Synopsys and you. The Software IS NOT an item of Licensed Software or a
-+ * Licensed Product under any End User Software License Agreement or
-+ * Agreement for Licensed Products with Synopsys or any supplement thereto.
-+ * Synopsys is a registered trademark of Synopsys, Inc. Other names included
-+ * in the SOFTWARE may be the trademarks of their respective owners.
-+ *
-+ * The contents of this file are dual-licensed; you may select either version 2
-+ * of the GNU General Public License (“GPL”) or the MIT license (“MIT”).
-+ *
-+ * Copyright (c) 2017 Synopsys, Inc. and/or its affiliates.
-+ *
-+ * THIS SOFTWARE IS PROVIDED "AS IS"  WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-+ * IMPLIED, INCLUDING, BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-+ * FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
-+ * OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT, OR OTHERWISE
-+ * ARISING FROM, OUT OF, OR IN CONNECTION WITH THE SOFTWARE THE USE OR
-+ * OTHER DEALINGS IN THE SOFTWARE.
-+ */
-+
-+#ifndef __DW_HDMI_PHY_PDATA_H__
-+#define __DW_HDMI_PHY_PDATA_H__
-+
-+#define DW_PHY_E405_DRVNAME	"dw-hdmi-phy-e405"
-+
-+#define DW_PHY_IOCTL_EQ_INIT		_IOW('R',1,int)
-+#define DW_PHY_IOCTL_CONFIG		_IOW('R',2,int)
-+
-+/**
-+ * struct dw_phy_eq_command - Command arguments for HDMI PHY equalizer
-+ * 	algorithm.
-+ *
-+ * @nacq: Number of acquisitions to get.
-+ *
-+ * @force: Force equalizer algorithm even if the MPLL status didn't change
-+ * from previous run.
-+ *
-+ * @result: Result from the equalizer algorithm. Shall be zero if equalizer
-+ * ran with success or didn't run because the video mode does not need
-+ * equalizer (for low clock values).
-+ */
-+struct dw_phy_eq_command {
-+	u16 nacq;
-+	bool force;
-+	int result;
-+};
-+
-+/**
-+ * struct dw_phy_config_command - Command arguments for HDMI PHY configuration
-+ * function.
-+ *
-+ * @color_depth: Color depth of the video mode being received.
-+ *
-+ * @hdmi2: Must be set to true if the video mode being received has a data
-+ * rate above 3.4Gbps (generally HDMI 2.0 video modes, like 4k@60Hz).
-+ *
-+ * @scrambling: Must be set to true if scrambling is currently enabled.
-+ * Scrambling is enabled by source when SCDC scrambling_en field is set to 1.
-+ *
-+ * @result: Result from the configuration function. Shall be zero if phy was
-+ * configured with success.
-+ */
-+struct dw_phy_config_command {
-+	unsigned char color_depth;
-+	bool hdmi2;
-+	bool scrambling;
-+	int result;
-+};
-+
-+/**
-+ * struct dw_phy_funcs - Set of callbacks used to communicate between phy
-+ * 	and hdmi controller. Controller must correctly fill these callbacks
-+ * 	before probbing the phy driver.
-+ *
-+ * @write: write callback. Write value 'val' into address 'addr' of phy.
-+ *
-+ * @read: read callback. Read address 'addr' and return the value.
-+ *
-+ * @reset: reset callback. Activate phy reset. Active high.
-+ *
-+ * @pddq: pddq callback. Activate phy configuration mode. Active high.
-+ *
-+ * @svsmode: svsmode callback. Activate phy retention mode. Active low.
-+ *
-+ * @zcal_reset: zcal reset callback. Restart the impedance calibration
-+ * procedure. Active high. This is only used in prototyping and not in real
-+ * ASIC. Callback shall be empty (but non NULL) in ASIC cases.
-+ *
-+ * @zcal_done: zcal done callback. Return the current status of impedance
-+ * calibration procedure. This is only used in prototyping and not in real
-+ * ASIC. Shall return always true in ASIC cases.
-+ *
-+ * @tmds_valid: TMDS valid callback. Return the current status of TMDS signal
-+ * that comes from phy and feeds controller. This is read from a controller
-+ * register.
-+ */
-+struct dw_phy_funcs {
-+	void (*write) (void *arg, u16 val, u16 addr);
-+	u16 (*read) (void *arg, u16 addr);
-+	void (*reset) (void *arg, int enable);
-+	void (*pddq) (void *arg, int enable);
-+	void (*svsmode) (void *arg, int enable);
-+	void (*zcal_reset) (void *arg);
-+	bool (*zcal_done) (void *arg);
-+	bool (*tmds_valid) (void *arg);
-+};
-+
-+/**
-+ * struct dw_phy_pdata - Platform data definition for Synopsys HDMI PHY.
-+ *
-+ * @funcs: set of callbacks that must be correctly filled and supplied to phy.
-+ * See @dw_phy_funcs.
-+ *
-+ * @funcs_arg: parameter that is supplied to callbacks along with the function
-+ * parameters.
-+ */
-+struct dw_phy_pdata {
-+	const struct dw_phy_funcs *funcs;
-+	void *funcs_arg;
-+};
-+
-+#endif /* __DW_HDMI_PHY_PDATA_H__ */
--- 
-1.9.1
+Though, it is usually a driver issue. More information will be needed.
+
+
+> ../drivers/media/v4l2-core/v4l2-ioctl.c:1288
+> v4l_enum_fmt+0xcf6/0x13a0=20
+> [videodev]
+> [  595.551365] Modules linked in: tda10048 tda18271 tda8290 tuner=20
+> lirc_zilog(C) lirc_dev rc_core cx25840 pvrusb2 tveeprom cx2341x
+> dvb_core=20
+> v4l2_common videodev nf_log_ipv6 xt_comment nf_log_ipv4
+> nf_log_common=20
+> xt_LOG xt_limit af_packet iscsi_ibft iscsi_boot_sysfs ip6t_REJECT=20
+> nf_reject_ipv6 nf_conntrack_ipv6 nf_defrag_ipv6 ipt_REJECT=20
+> nf_reject_ipv4 xt_pkttype xt_tcpudp iptable_filter ip6table_mangle=20
+> nf_conntrack_netbios_ns nf_conntrack_broadcast nf_conntrack_ipv4=20
+> nf_defrag_ipv4 ip_tables xt_conntrack nf_conntrack ip6table_filter=20
+> ip6_tables x_tables snd_hda_codec_hdmi snd_hda_codec_realtek=20
+> snd_hda_codec_generic arc4 intel_rapl xfs x86_pkg_temp_thermal=20
+> intel_powerclamp coretemp kvm_intel kvm libcrc32c irqbypass=20
+> crct10dif_pclmul crc32_pclmul ghash_clmulni_intel pcbc raid1 iwlmvm=20
+> intel_spi_platform intel_spi
+> [  595.551436]  spi_nor mtd iTCO_wdt mac80211 iTCO_vendor_support=20
+> snd_hda_intel snd_hda_codec snd_soc_rt5640 snd_hda_core snd_hwdep=20
+> snd_soc_rl6231 snd_soc_core md_mod snd_compress btusb
+> snd_pcm_dmaengine=20
+> iwlwifi btrtl btbcm snd_pcm btintel bluetooth aesni_intel
+> ecdh_generic=20
+> snd_timer battery cfg80211 aes_x86_64 snd pcspkr crypto_simd
+> glue_helper=20
+> rfkill cryptd i915 e1000e i2c_i801 lpc_ich ptp pps_core thermal
+> mei_me=20
+> drm_kms_helper fan mei drm fb_sys_fops syscopyarea sysfillrect
+> sysimgblt=20
+> i2c_algo_bit shpchp elan_i2c soundcore tpm_tis video tpm_tis_core=20
+> snd_soc_sst_acpi tpm snd_soc_sst_match gpio_lynxpoint dw_dmac=20
+> spi_pxa2xx_platform acpi_pad acpi_als kfifo_buf button industrialio=20
+> btrfs xor zstd_decompress zstd_compress xxhash raid6_pq crc32c_intel=20
+> nvme xhci_pci ehci_pci ehci_hcd xhci_hcd nvme_core usbcore
+> [  595.551523]  sdhci_acpi sdhci mmc_core i2c_hid sg
+> [  595.551533] CPU: 2 PID: 5820 Comm: motv Tainted: G         C=20
+> 4.14.2-3.gb5596a5-default #1
+> [  595.551535] Hardware name:                  /NUC5i5RYB, BIOS=20
+> RYBDWi35.86A.0367.2017.0929.1059 09/29/2017
+> [  595.551538] task: ffff979f823f8140 task.stack: ffffbde8826e4000
+> [  595.551550] RIP: 0010:v4l_enum_fmt+0xcf6/0x13a0 [videodev]
+> [  595.551552] RSP: 0018:ffffbde8826e7ca8 EFLAGS: 00010296
+> [  595.551556] RAX: 000000000000001e RBX: ffffbde8826e7d98 RCX:=20
+> 0000000000000000
+> [  595.551558] RDX: ffff979f96d16440 RSI: ffff979f96d0e2d8 RDI:=20
+> ffff979f96d0e2d8
+> [  595.551560] RBP: 0000000000000000 R08: 0000000000000001 R09:=20
+> 0000000000000322
+> [  595.551562] R10: ffff979f8507ab00 R11: 0000000000000000 R12:=20
+> ffff979f85a5a300
+> [  595.551564] R13: ffffffffc12a1cc0 R14: ffff979f8507ab00 R15:=20
+> ffff979f85a5a300
+> [  595.551567] FS:  00007ff613fb9780(0000) GS:ffff979f96d00000(0000)=20
+> knlGS:0000000000000000
+> [  595.551569] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+> [  595.551571] CR2: 00007ff60a198290 CR3: 000000041b3e6004 CR4:=20
+> 00000000003606e0
+> [  595.551574] Call Trace:
+> [  595.551590]  __video_do_ioctl+0x310/0x320 [videodev]
+> [  595.551602]  ? video_usercopy+0x1ec/0x600 [videodev]
+> [  595.551612]  video_usercopy+0x174/0x600 [videodev]
+> [  595.551623]  ? v4l_enum_fmt+0x13a0/0x13a0 [videodev]
+> [  595.551632]  ? v4l_enum_fmt+0x13a0/0x13a0 [videodev]
+> [  595.551647]  pvr2_v4l2_ioctl+0x83/0x100 [pvrusb2]
+> [  595.551658]  v4l2_ioctl+0xa9/0xd0 [videodev]
+> [  595.551665]  do_vfs_ioctl+0x8d/0x5d0
+> [  595.551670]  ? __fput+0x15b/0x1d0
+> [  595.551676]  ? mntput_no_expire+0x11/0x1a0
+> [  595.551680]  SyS_ioctl+0x74/0x80
+> [  595.551686]  entry_SYSCALL_64_fastpath+0x1e/0xa9
+> [  595.551690] RIP: 0033:0x7ff610862659
+> [  595.551691] RSP: 002b:00007ffe84b2a078 EFLAGS: 00000246 ORIG_RAX:=20
+> 0000000000000010
+> [  595.551695] RAX: ffffffffffffffda RBX: 000000000192ee20 RCX:=20
+> 00007ff610862659
+> [  595.551697] RDX: 00007ffe84b2a110 RSI: 00000000c0405602 RDI:=20
+> 0000000000000004
+> [  595.551699] RBP: 00007ffe84b29f80 R08: 0000000000000000 R09:=20
+> 0000000000000004
+> [  595.551701] R10: 00007ff60c6c9620 R11: 0000000000000246 R12:=20
+> 000000000192ee20
+> [  595.551703] R13: 0000000000000049 R14: 00007ff613fec000 R15:=20
+> 0000000000000000
+> [  595.551706] Code: 3d 4f 35 31 31 0f 84 bf 05 00 00 3d 4d 54 32 31
+> 48=20
+> c7 c6 59 17 22 c1 0f 84 e5 f5 ff ff 89 c6 48 c7 c7 77 23 22 c1 e8 15
+> c2=20
+> ec c1 <0f> ff 80 7b 0c 00 0f 85 73 f3 ff ff 8b 43 2c 48 c7 c1 1e 17
+> 22
+> [  595.551775] ---[ end trace d1089f1c30e702b9 ]---
+--=-dwnJ9tjkLeF7ss3SqQKy
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+
+iF0EABECAB0WIQSScpfJiL+hb5vvd45xUwItrAaoHAUCWjGj7AAKCRBxUwItrAao
+HCNaAKDAC9j6FllTT9d6QIXfW+AGo1QvpQCghbzsEHJdhNofuBz3JuU8hZ6huYg=
+=wYw1
+-----END PGP SIGNATURE-----
+
+--=-dwnJ9tjkLeF7ss3SqQKy--
