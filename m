@@ -1,88 +1,162 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:43956 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751035AbdLSNv6 (ORCPT
+Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:42222 "EHLO
+        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753862AbdLMUtv (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 19 Dec 2017 08:51:58 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: jacopo mondi <jacopo@jmondi.org>,
-        Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        magnus.damm@gmail.com, geert@glider.be, mchehab@kernel.org,
-        hverkuil@xs4all.nl, linux-renesas-soc@vger.kernel.org,
-        linux-media@vger.kernel.org, linux-sh@vger.kernel.org,
+        Wed, 13 Dec 2017 15:49:51 -0500
+Subject: Re: [PATCH v10 4/4] [media] platform: Add Synopsys DesignWare HDMI RX
+ Controller Driver
+To: Jose Abreu <Jose.Abreu@synopsys.com>, linux-media@vger.kernel.org,
         linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v1 03/10] v4l: platform: Add Renesas CEU driver
-Date: Tue, 19 Dec 2017 15:52:08 +0200
-Message-ID: <6915240.yOBMs0BCUv@avalon>
-In-Reply-To: <20171219132854.rw5mgjylz2uxoewz@valkosipuli.retiisi.org.uk>
-References: <1510743363-25798-1-git-send-email-jacopo+renesas@jmondi.org> <1605194.apxP3rZ1bD@avalon> <20171219132854.rw5mgjylz2uxoewz@valkosipuli.retiisi.org.uk>
+References: <cover.1513013948.git.joabreu@synopsys.com>
+ <5f9eedfd6f91ed73ef0bb6d3977588d01478909f.1513013948.git.joabreu@synopsys.com>
+ <108e2c3c-243f-cd67-2df7-57541b28ca39@xs4all.nl>
+ <635e7d70-0edb-7506-c268-9ebbae1eb39e@synopsys.com>
+ <ca5b3cf7-c7d0-36d4-08ac-32a7a00afd7d@xs4all.nl>
+ <f5341c4b-43e2-12f6-9c9f-2385d47bb2fd@synopsys.com>
+Cc: Joao Pinto <Joao.Pinto@synopsys.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sylwester Nawrocki <snawrocki@kernel.org>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Philippe Ombredanne <pombredanne@nexb.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <86a5787d-6ed6-7674-35f9-c77341b4c36b@xs4all.nl>
+Date: Wed, 13 Dec 2017 21:49:47 +0100
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <f5341c4b-43e2-12f6-9c9f-2385d47bb2fd@synopsys.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
-
-On Tuesday, 19 December 2017 15:28:55 EET Sakari Ailus wrote:
-> On Tue, Dec 19, 2017 at 03:07:41PM +0200, Laurent Pinchart wrote:
-> > On Tuesday, 19 December 2017 13:57:42 EET jacopo mondi wrote:
-
-[snip]
-
-> >> Ok, actually parse_dt() and parse_platform_data() behaves differently.
-> >> The former returns error if no subdevices are connected to CEU, the
-> >> latter returns 0. That's wrong.
-> >> 
-> >> I wonder what's the correct behavior here. Other mainline drivers I
-> >> looked into (pxa_camera and atmel-isc) behaves differently from each
-> >> other, so I guess this is up to each platform to decide.
-> > 
-> > No, what it means is that we've failed to standardize it, not that it
-> > shouldn't be standardized :-)
-> > 
-> >> Also, the CEU can accept one single input (and I made it clear
-> >> in DT bindings documentation saying it accepts a single endpoint,
-> >> while I'm parsing all the available ones in driver, I will fix this)
-> >> but as it happens on Migo-R, there could be HW hacks to share the input
-> >> lines between multiple subdevices. Should I accept it from dts as well?
-> >> 
-> >> So:
-> >> 1) Should we fail to probe if no subdevices are connected?
-> > 
-> > While the CEU itself would be fully functional without a subdev, in
-> > practice it would be of no use. I would thus fail probing.
-> > 
-> >> 2) Should we accept more than 1 subdevice from dts as it happens right
-> >> now for platform data?
-> > 
-> > We need to support multiple connected devices, as some of the boards
-> > require that. What I'm not sure about is whether the multiplexer on the
-> > Migo-R board should be modeled as a subdevice. We could in theory connect
-> > multiple sensors to the CEU input signals without any multiplexer as long
-> > as all but one are in reset with their outputs in a high impedance state.
-> > As that wouldn' require a multiplexer we would need to support multiple
-> > endpoints in the CEU port. We could then support Migo-R the same way,
-> > making the multiplexer transparent.
-> > 
-> > Sakari, what would you do here ?
+On 13/12/17 15:00, Jose Abreu wrote:
+> Hi Hans,
 > 
-> We do have:
+> On 13-12-2017 10:00, Hans Verkuil wrote:
+>> On 12/12/17 17:02, Jose Abreu wrote:
+>>>
+>>>>> +static int dw_hdmi_s_routing(struct v4l2_subdev *sd, u32 input, u32 output,
+>>>>> +		u32 config)
+>>>>> +{
+>>>>> +	struct dw_hdmi_dev *dw_dev = to_dw_dev(sd);
+>>>>> +
+>>>>> +	if (!has_signal(dw_dev, input))
+>>>>> +		return -EINVAL;
+>>>> Why would this be a reason to reject this? There may be no signal now, but a signal
+>>>> might appear later.
+>>> I would expect s_routing to only be called if there is an input
+>>> connected, otherwise we are just wasting resources by trying to
+>>> equalize an input that is not present ... I can remove the "if"
+>>> as there are other safe guards for this though (for example g_fmt
+>>> will return an error) ...
+>> No, s_routing is typically called as a result of a VIDIOC_S_INPUT
+>> call, and that can come whether or not there is a signal on an
+>> input. In fact, initially the first input is always selected anyway,
+>> whether or not there is a signal.
+>>
+>> g_fmt will just return the current configured format, this is unrelated
+>> to whether or not there is a signal.
+>>
+>> The only times the driver checks whether or not there is a signal (and
+>> what that is) are:
+>>
+>> 1) g_input_status
+>> 2) query_dv_timings
+>> 3) when the irq detects a signal change and sends V4L2_EVENT_SOURCE_CHANGE
 > 
-> drivers/media/platform/video-mux.c
+> Ok, I will remove the checks then.
 > 
-> What is not addressed right now are the CSI-2 bus parameters, if the mux is
-> just a passive switch. This could be done using the frame descriptors.
+>>
+>>>>> +	msleep(50); /* Wait for 1 field */
+>>>> How do you know this waits for 1 field? Or is this: "Wait for at least 1 field"?
+>>> Its wait at least for 1 field. This is over-generous because its
+>>> assuming the frame rate is 20fps (which in HDMI does not happen).
+>> With custom timings it can happen (i.e. a 15 fps stream). Admittedly, it's not
+>> common, but people sometimes use it.
+>>
+>>>> I don't know exactly how the IP does this, but it looks fishy to me. If it is
+>>>> correct, then it could use a few comments about what is going on here as it is
+>>>> not obvious.
+>>> The IP updates the values at each field but I need to change this
+>>> register to populate all values in the bt struct.
+>> How do you know which field (top or bottom) you've captured? How do you know you
+>> didn't miss e.g. the bottom field and instead end up with two top field measurements?
+>>
+>> The top and bottom field are almost, but not quite the same. Typically the vertical
+>> backporch of the fields differs by 1 where the second field's backporch is larger by 1 line.
+>>
+>>>> And what happens if the framerate is even slower? You know the pixelclock and
+>>>> total width+height, so you can calculate the framerate from that.
+>>> Hmm, but then I have to consider pixelclk error, msleep error, ...
+>> But you have that now as well.
+>>
+>> An alternative is to measure a single field and deduce the backporch values from that.
+>>
+>> At least for all the common HDMI interlaced formats il_vbackporch is an even value and
+>> vbackporch is il_vbackporch - 1.
+>>
+>> So if you get an even backporch, then you found il_vbackporch, and if it is odd, then
+>> you found vbackporch.
+>>
+>>>>> +	bt->vsync = hdmi_readl(dw_dev, HDMI_MD_VOL);
+>>>>> +
+>>>>> +	hdmi_mask_writel(dw_dev, 0x0, HDMI_MD_VCTRL,
+>>>>> +			HDMI_MD_VCTRL_V_OFFS_LIN_MODE_OFFSET,
+>>>>> +			HDMI_MD_VCTRL_V_OFFS_LIN_MODE_MASK);
+>>>>> +	msleep(50); /* Wait for 1 field */
+>>>>> +	bt->vbackporch = hdmi_readl(dw_dev, HDMI_MD_VOL);
+>>>>> +	bt->vfrontporch = vtot - bt->height - bt->vsync - bt->vbackporch;
+>>>>> +
+>>>>> +	if (bt->interlaced == V4L2_DV_INTERLACED) {
+>>>>> +		hdmi_mask_writel(dw_dev, 0x1, HDMI_MD_VCTRL,
+>>>>> +				HDMI_MD_VCTRL_V_MODE_OFFSET,
+>>>>> +				HDMI_MD_VCTRL_V_MODE_MASK);
+>>>>> +		msleep(100); /* Wait for 2 fields */
+>>>>> +
+>>>>> +		vtot = hdmi_readl(dw_dev, HDMI_MD_VTL);
+>>>>> +		hdmi_mask_writel(dw_dev, 0x1, HDMI_MD_VCTRL,
+>>>>> +				HDMI_MD_VCTRL_V_OFFS_LIN_MODE_OFFSET,
+>>>>> +				HDMI_MD_VCTRL_V_OFFS_LIN_MODE_MASK);
+>>>>> +		msleep(50); /* Wait for 1 field */
+>>>>> +		bt->il_vsync = hdmi_readl(dw_dev, HDMI_MD_VOL);
+>>>>> +
+>>>>> +		hdmi_mask_writel(dw_dev, 0x0, HDMI_MD_VCTRL,
+>>>>> +				HDMI_MD_VCTRL_V_OFFS_LIN_MODE_OFFSET,
+>>>>> +				HDMI_MD_VCTRL_V_OFFS_LIN_MODE_MASK);
+>>>>> +		msleep(50);
+>>>>> +		bt->il_vbackporch = hdmi_readl(dw_dev, HDMI_MD_VOL);
+>>>>> +		bt->il_vfrontporch = vtot - bt->height - bt->il_vsync -
+>>>>> +			bt->il_vbackporch;
+>>>>> +
+>>>>> +		hdmi_mask_writel(dw_dev, 0x0, HDMI_MD_VCTRL,
+>>>>> +				HDMI_MD_VCTRL_V_MODE_OFFSET,
+>>>>> +				HDMI_MD_VCTRL_V_MODE_MASK);
+>>>> Same here, I'm not sure this is correct. What is the output of
+>>>> 'v4l2-ctl --query-dv-timings' when you feed it a standard interlaced format?
+>>> I used v4l2-ctl --log-status with interlaced format and
+>>> everything seemed correct ...
+>> Can you show a few examples? Is vbackport odd? And is il_vbackporch equal to vbackporch + 1?
+>>
+>> Interlaced is tricky :-)
+> 
+> Indeed. I compared the values with the spec and they are not
+> correct. Even hsync is wrong. I already corrected in the code the
+> hsync but regarding interlace I'm not seeing an easy way to do
+> this without using interrupts in each vsync because the register
+> I was toggling does not behave as I expected (I misunderstood the
+> databook). Maybe we should not detect interlaced modes for now?
+> Or not fill the il_ fields?
 
-We're talking about a parallel bus here so that shouldn't be a problem.
+As I mentioned above you as long as you get a good backporch value you
+can deduce from whether it is an odd or even number to which field it
+belongs and fill in the other values. So I think you only need to read
+these values for one field.
 
-Our issue is that the same GPIO controls both the switch and the power down 
-signal of one of the sensors. The hardware has been designed to be as 
-transparent as possible, but that creates issues as Linux doesn't support 
-share GPIOs.
+Filling in good values here (at least as far as is possible since not all
+hardware can give it) will help debugging issues, even if you otherwise do
+not support interlaced.
 
--- 
 Regards,
 
-Laurent Pinchart
+	Hans
