@@ -1,125 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f65.google.com ([209.85.218.65]:41652 "EHLO
-        mail-oi0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752576AbdLLKY2 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 12 Dec 2017 05:24:28 -0500
+Received: from osg.samsung.com ([64.30.133.232]:47154 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752861AbdLMNZW (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 13 Dec 2017 08:25:22 -0500
+Date: Wed, 13 Dec 2017 11:25:14 -0200
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Maksym Veremeyenko <verem@m1stereo.tv>
+Cc: linux-media@vger.kernel.org,
+        =?UTF-8?B?UmFmYcOrbCBDYXJyw6k=?= <funman@videolan.org>
+Subject: Re: [PATCH/RFC] not use a DiSEqC switch
+Message-ID: <20171213112514.0bc33c8d@vento.lan>
+In-Reply-To: <20171127172607.76b62e11@vento.lan>
+References: <b5573a09-f841-d126-df19-0ecc76d15511@m1stereo.tv>
+        <20171127172607.76b62e11@vento.lan>
 MIME-Version: 1.0
-In-Reply-To: <CAOcJUbyARps1CeRFvLau3w-rBvn2QLbsY2PHGymbpUyuFCJ2HA@mail.gmail.com>
-References: <20171211120612.3775893-1-arnd@arndb.de> <1513020868.3036.0.camel@perches.com>
- <CAOcJUbyARps1CeRFvLau3w-rBvn2QLbsY2PHGymbpUyuFCJ2HA@mail.gmail.com>
-From: Arnd Bergmann <arnd@arndb.de>
-Date: Tue, 12 Dec 2017 11:24:26 +0100
-Message-ID: <CAK8P3a01sOsWSw4t-x6rv+9pzbfhZtEMc6iwV54Xq-48h6CN=Q@mail.gmail.com>
-Subject: Re: [PATCH] tuners: tda8290: reduce stack usage with kasan
-To: Michael Ira Krufky <mkrufky@linuxtv.org>
-Cc: Joe Perches <joe@perches.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media <linux-media@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Dec 11, 2017 at 10:17 PM, Michael Ira Krufky
-<mkrufky@linuxtv.org> wrote:
-> On Mon, Dec 11, 2017 at 2:34 PM, Joe Perches <joe@perches.com> wrote:
->> On Mon, 2017-12-11 at 13:06 +0100, Arnd Bergmann wrote:
->>> With CONFIG_KASAN enabled, we get a relatively large stack frame in one function
->>>
->>> drivers/media/tuners/tda8290.c: In function 'tda8290_set_params':
->>> drivers/media/tuners/tda8290.c:310:1: warning: the frame size of 1520 bytes is larger than 1024 bytes [-Wframe-larger-than=]
->>>
->>> With CONFIG_KASAN_EXTRA this goes up to
->>>
->>> drivers/media/tuners/tda8290.c: In function 'tda8290_set_params':
->>> drivers/media/tuners/tda8290.c:310:1: error: the frame size of 3200 bytes is larger than 3072 bytes [-Werror=frame-larger-than=]
->>>
->>> We can significantly reduce this by marking local arrays as 'static const', and
->>> this should result in better compiled code for everyone.
->> []
->>> diff --git a/drivers/media/tuners/tda8290.c b/drivers/media/tuners/tda8290.c
->> []
->>> @@ -63,8 +63,8 @@ static int tda8290_i2c_bridge(struct dvb_frontend *fe, int close)
->>>  {
->>>       struct tda8290_priv *priv = fe->analog_demod_priv;
->>>
->>> -     unsigned char  enable[2] = { 0x21, 0xC0 };
->>> -     unsigned char disable[2] = { 0x21, 0x00 };
->>> +     static unsigned char  enable[2] = { 0x21, 0xC0 };
->>> +     static unsigned char disable[2] = { 0x21, 0x00 };
->>
->> Doesn't match commit message.
->>
->> static const or just static?
->>
->>> @@ -84,9 +84,9 @@ static int tda8295_i2c_bridge(struct dvb_frontend *fe, int close)
->>>  {
->>>       struct tda8290_priv *priv = fe->analog_demod_priv;
->>>
->>> -     unsigned char  enable[2] = { 0x45, 0xc1 };
->>> -     unsigned char disable[2] = { 0x46, 0x00 };
->>> -     unsigned char buf[3] = { 0x45, 0x01, 0x00 };
->>> +     static unsigned char  enable[2] = { 0x45, 0xc1 };
->>> +     static unsigned char disable[2] = { 0x46, 0x00 };
->>
->> etc.
->>
->>
->
->
-> Joe is correct - they can be CONSTified. My bad -- a lot of the code I
-> wrote many years ago has this problem -- I wasn't so stack-conscious
-> back then.
->
-> The bytes in `enable` / `disable` don't get changed, but they may be
-> copied to another byte array that does get changed.  If would be best
-> to make these `static const`
+Em Mon, 27 Nov 2017 17:26:07 -0200
+Mauro Carvalho Chehab <mchehab@s-opensource.com> escreveu:
 
-Right. This was an older patch of mine that I picked up again
-after running into a warning that I had been ignoring for a while,
-and I didn't double-check the message.
+> Em Fri, 24 Nov 2017 10:52:04 +0200
+> Maksym Veremeyenko <verem@m1stereo.tv> escreveu:
+> 
+> > Hi,
+> > 
+> > there is a code in function *dvbsat_diseqc_set_input*:
+> > 
+> > [...]
+> > 	/* Negative numbers means to not use a DiSEqC switch */
+> > 	if (parms->p.sat_number < 0)
+> > 		return 0;
+> > [...]
+> > 
+> > if it mean /there is no DiSEqC switch/ then LNB's *polarity* and *band* 
+> > settings still should be applied - attached patch fixes that behavior.
+> > 
+> > if it mean /current DVB is a slave/ i.e. it is connected to LOOP OUT of 
+> > another DVB, so no need to configure anything, then statement above is 
+> > correct and no patches from this email should be applied.  
+> 
+> No, it actually means that there's no DiSEqC at all; the LNBf
+> is a bandstacking one, where different polarities use different
+> LO, like on those LNBf:
+> 
+> 	{
+> 		.desc = {
+> 			.name = N_("Big Dish - Multipoint LNBf"),
+> 			.alias = "C-MULT",
+> 		},
+> 		.freqrange = {
+> 			{ 3700, 4200, 5150, 0, POLARIZATION_R },
+> 			{ 3700, 4200, 5750, 0, POLARIZATION_L }
+> 		},
+> 	}, {
+> 
+> 		.desc = {
+> 			.name = N_("BrasilSat Amazonas 1/2 - 2 Oscilators"),
+> 			.alias = "AMAZONAS",
+> 		},
+> 		.freqrange = {
+> 			{ 11037, 11360, 9670, 0, POLARIZATION_V },
+> 			{ 11780, 12150, 10000, 0, POLARIZATION_H },
+> 			{ 10950, 11280, 10000, 0, POLARIZATION_H },
+> 		},
+> 	},
+> 
+> 
+> The case where the LNBf accepts DiSEqC commands, but there's no
+> switch will work just fine, as the switch control data will be
+> silently ignored.
+> 
+> Ok, removing them could reduce a little bit the tuning time, at
+> the expense of making harder for the user, as he would need to
+> select between 4 different DiSEqC situations:
+> 
+> 	- no DiSEqC at all;
+> 	- DiSEqC LNbf, no DiSEqC switch;
+> 	- DiSEqC LNbf, DiSEqC switch with 2 ports (miniDiSEqC);
+> 	- DiSEqC LNbf, DiSEqC switch with 4 ports.
+> 
+> The way the code is, if DiSEqC is selected, it will send both
+> mini-DiSEqC (if satellite number < 2) and DiSEqC commands, so, 
+> all 3 DiSEqC cases will be covered by just one configuration.
 
-I actually thought about marking them 'const' here before sending
-(without noticing the changelog text) and then ran into what must
-have led me to drop the 'const' originally: tuner_i2c_xfer_send()
-takes a non-const pointer. This can be fixed but it requires
-an ugly cast:
+After revising this and doing some tests with the help of
+Rafaël, it actually mades sense to apply something like that,
+but adding an extra check for SCR/Unicable case.
 
-diff --git a/drivers/media/tuners/tuner-i2c.h b/drivers/media/tuners/tuner-i2c.h
-index bda67a5a76f2..809466eec780 100644
---- a/drivers/media/tuners/tuner-i2c.h
-+++ b/drivers/media/tuners/tuner-i2c.h
-@@ -34,10 +34,10 @@ struct tuner_i2c_props {
- };
+Just added the patches today. Sorry for the noise.
 
- static inline int tuner_i2c_xfer_send(struct tuner_i2c_props *props,
--                                     unsigned char *buf, int len)
-+                                     const unsigned char *buf, int len)
- {
-        struct i2c_msg msg = { .addr = props->addr, .flags = 0,
--                              .buf = buf, .len = len };
-+                              .buf = (unsigned char *)buf, .len = len };
-        int ret = i2c_transfer(props->adap, &msg, 1);
-
-        return (ret == 1) ? len : ret;
-@@ -54,11 +54,11 @@ static inline int tuner_i2c_xfer_recv(struct
-tuner_i2c_props *props,
- }
-
- static inline int tuner_i2c_xfer_send_recv(struct tuner_i2c_props *props,
--                                          unsigned char *obuf, int olen,
-+                                          const unsigned char *obuf, int olen,
-                                           unsigned char *ibuf, int ilen)
- {
-        struct i2c_msg msg[2] = { { .addr = props->addr, .flags = 0,
--                                   .buf = obuf, .len = olen },
-+                                   .buf = (unsigned char *)obuf, .len = olen },
-                                  { .addr = props->addr, .flags = I2C_M_RD,
-                                    .buf = ibuf, .len = ilen } };
-        int ret = i2c_transfer(props->adap, msg, 2);
-
-Should I submit it as a two-patch series with that added in, or update
-the changelog to not mention 'const' instead?
-
-       Arnd
+Thanks,
+Mauro
