@@ -1,235 +1,260 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:20869 "EHLO
-        mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753334AbdLHJgs (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 8 Dec 2017 04:36:48 -0500
-From: Smitha T Murthy <smitha.t@samsung.com>
-To: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Cc: kyungmin.park@samsung.com, kamil@wypas.org, jtp.park@samsung.com,
-        a.hajda@samsung.com, mchehab@kernel.org, pankaj.dubey@samsung.com,
-        krzk@kernel.org, m.szyprowski@samsung.com, s.nawrocki@samsung.com,
-        Smitha T Murthy <smitha.t@samsung.com>
-Subject: [Patch v6 04/12] [media] s5p-mfc: Support MFCv10.10 buffer
- requirements
-Date: Fri, 08 Dec 2017 14:38:17 +0530
-Message-id: <1512724105-1778-5-git-send-email-smitha.t@samsung.com>
-In-reply-to: <1512724105-1778-1-git-send-email-smitha.t@samsung.com>
-References: <1512724105-1778-1-git-send-email-smitha.t@samsung.com>
-        <CGME20171208093646epcas2p1d74208ae2d6ffa74f0d441ca909fec86@epcas2p1.samsung.com>
+Received: from mail-wr0-f173.google.com ([209.85.128.173]:42838 "EHLO
+        mail-wr0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751422AbdLMXgB (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 13 Dec 2017 18:36:01 -0500
+Received: by mail-wr0-f173.google.com with SMTP id s66so3610931wrc.9
+        for <linux-media@vger.kernel.org>; Wed, 13 Dec 2017 15:36:00 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <CAJ+vNU0NKZizung9+1zsd1RZBrDbBgk+A8mVJ76bQysjCUoaKw@mail.gmail.com>
+References: <1511990397-27647-1-git-send-email-tharvey@gateworks.com>
+ <1511990397-27647-4-git-send-email-tharvey@gateworks.com> <1a1be5d7-caed-6cba-c97a-dbb70e119fa3@xs4all.nl>
+ <CAJ+vNU0NKZizung9+1zsd1RZBrDbBgk+A8mVJ76bQysjCUoaKw@mail.gmail.com>
+From: Tim Harvey <tharvey@gateworks.com>
+Date: Wed, 13 Dec 2017 15:35:58 -0800
+Message-ID: <CAJ+vNU1L5MkP0DuiwjKXY75id3Brzq+9M9DfcZOXbvzVgaUdXQ@mail.gmail.com>
+Subject: Re: [PATCH v4 3/5] media: i2c: Add TDA1997x HDMI receiver driver
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media <linux-media@vger.kernel.org>,
+        alsa-devel@alsa-project.org,
+        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        Shawn Guo <shawnguo@kernel.org>,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Hans Verkuil <hansverk@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Aligning the luma_dpb_size, chroma_dpb_size, mv_size and me_buffer_size
-for MFCv10.10.
+On Mon, Dec 4, 2017 at 9:30 AM, Tim Harvey <tharvey@gateworks.com> wrote:
+> On Mon, Dec 4, 2017 at 4:50 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>> Hi Tim,
+>>
+>> Found a few more small issues. After that's fixed and you have the Ack for the
+>> bindings this can be merged I think.
+>
+> Hans,
+>
+> Thanks. Can you weigh in on the bindings? Rob was hoping for some
+> discussion on making some generic bus format types for video and I'm
+> not familiar with the other video encoders/decoders enough to know if
+> there is enough commonality.
+>
+>>
+>> On 11/29/2017 10:19 PM, Tim Harvey wrote:
+> <snip>
+>>> +
+>>> +/* parse an infoframe and do some sanity checks on it */
+>>> +static unsigned int
+>>> +tda1997x_parse_infoframe(struct tda1997x_state *state, u16 addr)
+>>> +{
+>>> +     struct v4l2_subdev *sd = &state->sd;
+>>> +     union hdmi_infoframe frame;
+>>> +     u8 buffer[40];
+>>> +     u8 reg;
+>>> +     int len, err;
+>>> +
+>>> +     /* read data */
+>>> +     len = io_readn(sd, addr, sizeof(buffer), buffer);
+>>> +     err = hdmi_infoframe_unpack(&frame, buffer);
+>>> +     if (err) {
+>>> +             v4l_err(state->client,
+>>> +                     "failed parsing %d byte infoframe: 0x%04x/0x%02x\n",
+>>> +                     len, addr, buffer[0]);
+>>> +             return err;
+>>> +     }
+>>> +     hdmi_infoframe_log(KERN_INFO, &state->client->dev, &frame);
+>>> +     switch (frame.any.type) {
+>>> +     /* Audio InfoFrame: see HDMI spec 8.2.2 */
+>>> +     case HDMI_INFOFRAME_TYPE_AUDIO:
+>>> +             /* sample rate */
+>>> +             switch (frame.audio.sample_frequency) {
+>>> +             case HDMI_AUDIO_SAMPLE_FREQUENCY_32000:
+>>> +                     state->audio_samplerate = 32000;
+>>> +                     break;
+>>> +             case HDMI_AUDIO_SAMPLE_FREQUENCY_44100:
+>>> +                     state->audio_samplerate = 44100;
+>>> +                     break;
+>>> +             case HDMI_AUDIO_SAMPLE_FREQUENCY_48000:
+>>> +                     state->audio_samplerate = 48000;
+>>> +                     break;
+>>> +             case HDMI_AUDIO_SAMPLE_FREQUENCY_88200:
+>>> +                     state->audio_samplerate = 88200;
+>>> +                     break;
+>>> +             case HDMI_AUDIO_SAMPLE_FREQUENCY_96000:
+>>> +                     state->audio_samplerate = 96000;
+>>> +                     break;
+>>> +             case HDMI_AUDIO_SAMPLE_FREQUENCY_176400:
+>>> +                     state->audio_samplerate = 176400;
+>>> +                     break;
+>>> +             case HDMI_AUDIO_SAMPLE_FREQUENCY_192000:
+>>> +                     state->audio_samplerate = 192000;
+>>> +                     break;
+>>> +             default:
+>>> +             case HDMI_AUDIO_SAMPLE_FREQUENCY_STREAM:
+>>> +                     break;
+>>> +             }
+>>> +
+>>> +             /* sample size */
+>>> +             switch (frame.audio.sample_size) {
+>>> +             case HDMI_AUDIO_SAMPLE_SIZE_16:
+>>> +                     state->audio_samplesize = 16;
+>>> +                     break;
+>>> +             case HDMI_AUDIO_SAMPLE_SIZE_20:
+>>> +                     state->audio_samplesize = 20;
+>>> +                     break;
+>>> +             case HDMI_AUDIO_SAMPLE_SIZE_24:
+>>> +                     state->audio_samplesize = 24;
+>>> +                     break;
+>>> +             case HDMI_AUDIO_SAMPLE_SIZE_STREAM:
+>>> +             default:
+>>> +                     break;
+>>> +             }
+>>> +
+>>> +             /* Channel Count */
+>>> +             state->audio_channels = frame.audio.channels;
+>>> +             if (frame.audio.channel_allocation &&
+>>> +                 frame.audio.channel_allocation != state->audio_ch_alloc) {
+>>> +                     /* use the channel assignment from the infoframe */
+>>> +                     state->audio_ch_alloc = frame.audio.channel_allocation;
+>>> +                     tda1997x_configure_audout(sd, state->audio_ch_alloc);
+>>> +                     /* reset the audio FIFO */
+>>> +                     tda1997x_hdmi_info_reset(sd, RESET_AUDIO, false);
+>>> +             }
+>>> +             break;
+>>> +
+>>> +     /* Auxiliary Video information (AVI) InfoFrame: see HDMI spec 8.2.1 */
+>>> +     case HDMI_INFOFRAME_TYPE_AVI:
+>>> +             state->colorspace = frame.avi.colorspace;
+>>> +             state->colorimetry = frame.avi.colorimetry;
+>>> +             state->content = frame.avi.content_type;
+>>> +             /* Quantization Range */
+>>> +             switch (state->rgb_quantization_range) {
+>>> +             case V4L2_DV_RGB_RANGE_AUTO:
+>>> +                     state->range = frame.avi.quantization_range;
+>>> +                     break;
+>>> +             case V4L2_DV_RGB_RANGE_LIMITED:
+>>> +                     state->range = HDMI_QUANTIZATION_RANGE_LIMITED;
+>>> +                     break;
+>>> +             case V4L2_DV_RGB_RANGE_FULL:
+>>> +                     state->range = HDMI_QUANTIZATION_RANGE_FULL;
+>>> +                     break;
+>>> +             }
+>>> +             if (state->range == HDMI_QUANTIZATION_RANGE_DEFAULT) {
+>>> +                     if (frame.avi.video_code <= 1)
+>>> +                             state->range = HDMI_QUANTIZATION_RANGE_FULL;
+>>> +                     else
+>>> +                             state->range = HDMI_QUANTIZATION_RANGE_LIMITED;
+>>> +             }
+>>> +             /*
+>>> +              * If colorimetry not specified, conversion depends on res type:
+>>> +              *  - SDTV: ITU601 for SD (480/576/240/288 line resolution)
+>>> +              *  - HDTV: ITU709 for HD (720/1080 line resolution)
+>>> +              *  -   PC: sRGB
+>>> +              * see HDMI specification section 6.7
+>>> +              */
+>>> +             if ((state->colorspace == HDMI_COLORSPACE_YUV422 ||
+>>> +                  state->colorspace == HDMI_COLORSPACE_YUV444) &&
+>>> +                 (state->colorimetry == HDMI_COLORIMETRY_EXTENDED ||
+>>> +                  state->colorimetry == HDMI_COLORIMETRY_NONE)) {
+>>> +                     if (is_sd(state->timings.bt.height))
+>>> +                             state->colorimetry = HDMI_COLORIMETRY_ITU_601;
+>>> +                     else if (is_hd(state->timings.bt.height))
+>>> +                             state->colorimetry = HDMI_COLORIMETRY_ITU_709;
+>>> +                     else
+>>> +                             state->colorimetry = HDMI_COLORIMETRY_NONE;
+>>> +             }
+>>> +             v4l_dbg(1, debug, state->client,
+>>> +                     "colorspace=%d colorimetry=%d range=%d content=%d\n",
+>>> +                     state->colorspace, state->colorimetry, state->range,
+>>> +                     state->content);
+>>> +
+>>> +             /* configure upsampler: 0=bypass 1=repeatchroma 2=interpolate */
+>>> +             reg = io_read(sd, REG_PIX_REPEAT);
+>>> +             reg &= ~PIX_REPEAT_MASK_UP_SEL;
+>>> +             if (state->colorspace == HDMI_COLORSPACE_YUV422)
+>>> +                     reg |= (PIX_REPEAT_CHROMA << PIX_REPEAT_SHIFT);
+>>> +             io_write(sd, REG_PIX_REPEAT, reg);
+>>> +
+>>> +             /* ConfigurePixelRepeater: repeat n-times each pixel */
+>>> +             reg = io_read(sd, REG_PIX_REPEAT);
+>>> +             reg &= ~PIX_REPEAT_MASK_REP;
+>>> +             reg |= frame.avi.pixel_repeat;
+>>> +             io_write(sd, REG_PIX_REPEAT, reg);
+>>> +
+>>> +             /* configure the receiver with the new colorspace */
+>>> +             tda1997x_configure_csc(sd);
+>>> +             break;
+>>> +     default:
+>>> +             break;
+>>> +     }
+>>> +     return 0;
+>>> +}
+>>> +
+> <snip>
+>>> +
+>>> +static int tda1997x_fill_format(struct tda1997x_state *state,
+>>> +                             struct v4l2_mbus_framefmt *format)
+>>> +{
+>>> +     const struct v4l2_bt_timings *bt;
+>>> +
+>>> +     v4l_dbg(1, debug, state->client, "%s\n", __func__);
+>>> +
+>>> +     if (!state->detected_timings)
+>>> +             return -EINVAL;
+>>> +     bt = &state->detected_timings->bt;
+>>> +     memset(format, 0, sizeof(*format));
+>>> +
+>>> +     format->width = bt->width;
+>>> +     format->height = bt->height;
+>>> +     format->field = V4L2_FIELD_NONE;
+>>> +     format->colorspace = V4L2_COLORSPACE_SRGB;
+>>> +     if (bt->flags & V4L2_DV_FL_IS_CE_VIDEO)
+>>> +             format->colorspace = (bt->height <= 576) ?
+>>> +                     V4L2_COLORSPACE_SMPTE170M : V4L2_COLORSPACE_REC709;
+>>
+>> Close. What is missing is a check of the AVI InfoFrame: if it has an explicit
+>> colorimetry then use that. E.g. check for HDMI_COLORIMETRY_ITU_601 or ITU_709
+>> and set the colorspace accordingly. Otherwise fall back to what you have here.
+>>
+>
+> This function currently matches adv7604/adv7842 where they don't look
+> at colorimetry (but I do see a TODO in adv748x_hdmi_fill_format to
+> look at this) so I don't have an example and may not understand.
+>
+> Do you mean:
+>
+>        format->colorspace = V4L2_COLORSPACE_SRGB;
+>        if (bt->flags & V4L2_DV_FL_IS_CE_VIDEO) {
+>                 if ((state->colorimetry == HDMI_COLORIMETRY_ITU_601) ||
+>                     (state->colorimetry == HDMI_COLORIMETRY_ITU_709))
+>                         format->colorspace = state->colorspace;
+>                 else
+>                         format->colorspace = is_sd(bt->height) ?
+>                                 V4L2_COLORSPACE_SMPTE170M :
+> V4L2_COLORSPACE_REC709;
+>         }
+>
+> Also during more testing I've found that I'm not capturing interlaced
+> properly and know I at least need:
+>
+> -        format->field = V4L2_FIELD_NONE;
+> +        format->field = (bt->interlaced) ?
+> +                V4L2_FIELD_ALTERNATE : V4L2_FIELD_NONE;
+>
+> I'm still not quite capturing interlaced yet but I think its an issue
+> of setting up the media pipeline improperly.
+>
 
-Signed-off-by: Smitha T Murthy <smitha.t@samsung.com>
-Reviewed-by: Andrzej Hajda <a.hajda@samsung.com>
-Acked-by: Kamil Debski <kamil@wypas.org>
----
- drivers/media/platform/s5p-mfc/regs-mfc-v10.h   | 19 +++++
- drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c | 93 +++++++++++++++++++------
- drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h |  2 +
- 3 files changed, 94 insertions(+), 20 deletions(-)
+Hans,
 
-diff --git a/drivers/media/platform/s5p-mfc/regs-mfc-v10.h b/drivers/media/platform/s5p-mfc/regs-mfc-v10.h
-index 1ca09d6..3f0dab3 100644
---- a/drivers/media/platform/s5p-mfc/regs-mfc-v10.h
-+++ b/drivers/media/platform/s5p-mfc/regs-mfc-v10.h
-@@ -32,5 +32,24 @@
- #define MFC_VERSION_V10		0xA0
- #define MFC_NUM_PORTS_V10	1
- 
-+/* MFCv10 codec defines*/
-+#define S5P_FIMV_CODEC_HEVC_ENC         26
-+
-+/* Encoder buffer size for MFC v10.0 */
-+#define ENC_V100_BASE_SIZE(x, y) \
-+	(((x + 3) * (y + 3) * 8) \
-+	+  ((y * 64) + 1280) * DIV_ROUND_UP(x, 8))
-+
-+#define ENC_V100_H264_ME_SIZE(x, y) \
-+	(ENC_V100_BASE_SIZE(x, y) \
-+	+ (DIV_ROUND_UP(x * y, 64) * 32))
-+
-+#define ENC_V100_MPEG4_ME_SIZE(x, y) \
-+	(ENC_V100_BASE_SIZE(x, y) \
-+	+ (DIV_ROUND_UP(x * y, 128) * 16))
-+
-+#define ENC_V100_VP8_ME_SIZE(x, y) \
-+	ENC_V100_BASE_SIZE(x, y)
-+
- #endif /*_REGS_MFC_V10_H*/
- 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-index 7f17857..55ccccb 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-@@ -64,6 +64,7 @@ static int s5p_mfc_alloc_codec_buffers_v6(struct s5p_mfc_ctx *ctx)
- {
- 	struct s5p_mfc_dev *dev = ctx->dev;
- 	unsigned int mb_width, mb_height;
-+	unsigned int lcu_width = 0, lcu_height = 0;
- 	int ret;
- 
- 	mb_width = MB_WIDTH(ctx->img_width);
-@@ -74,7 +75,9 @@ static int s5p_mfc_alloc_codec_buffers_v6(struct s5p_mfc_ctx *ctx)
- 			  ctx->luma_size, ctx->chroma_size, ctx->mv_size);
- 		mfc_debug(2, "Totals bufs: %d\n", ctx->total_dpb_count);
- 	} else if (ctx->type == MFCINST_ENCODER) {
--		if (IS_MFCV8_PLUS(dev))
-+		if (IS_MFCV10(dev)) {
-+			ctx->tmv_buffer_size = 0;
-+		} else if (IS_MFCV8_PLUS(dev))
- 			ctx->tmv_buffer_size = S5P_FIMV_NUM_TMV_BUFFERS_V6 *
- 			ALIGN(S5P_FIMV_TMV_BUFFER_SIZE_V8(mb_width, mb_height),
- 			S5P_FIMV_TMV_BUFFER_ALIGN_V6);
-@@ -82,13 +85,36 @@ static int s5p_mfc_alloc_codec_buffers_v6(struct s5p_mfc_ctx *ctx)
- 			ctx->tmv_buffer_size = S5P_FIMV_NUM_TMV_BUFFERS_V6 *
- 			ALIGN(S5P_FIMV_TMV_BUFFER_SIZE_V6(mb_width, mb_height),
- 			S5P_FIMV_TMV_BUFFER_ALIGN_V6);
--
--		ctx->luma_dpb_size = ALIGN((mb_width * mb_height) *
--				S5P_FIMV_LUMA_MB_TO_PIXEL_V6,
--				S5P_FIMV_LUMA_DPB_BUFFER_ALIGN_V6);
--		ctx->chroma_dpb_size = ALIGN((mb_width * mb_height) *
--				S5P_FIMV_CHROMA_MB_TO_PIXEL_V6,
--				S5P_FIMV_CHROMA_DPB_BUFFER_ALIGN_V6);
-+		if (IS_MFCV10(dev)) {
-+			lcu_width = S5P_MFC_LCU_WIDTH(ctx->img_width);
-+			lcu_height = S5P_MFC_LCU_HEIGHT(ctx->img_height);
-+			if (ctx->codec_mode != S5P_FIMV_CODEC_HEVC_ENC) {
-+				ctx->luma_dpb_size =
-+					ALIGN((mb_width * 16), 64)
-+					* ALIGN((mb_height * 16), 32)
-+						+ 64;
-+				ctx->chroma_dpb_size =
-+					ALIGN((mb_width * 16), 64)
-+							* (mb_height * 8)
-+							+ 64;
-+			} else {
-+				ctx->luma_dpb_size =
-+					ALIGN((lcu_width * 32), 64)
-+					* ALIGN((lcu_height * 32), 32)
-+						+ 64;
-+				ctx->chroma_dpb_size =
-+					ALIGN((lcu_width * 32), 64)
-+							* (lcu_height * 16)
-+							+ 64;
-+			}
-+		} else {
-+			ctx->luma_dpb_size = ALIGN((mb_width * mb_height) *
-+					S5P_FIMV_LUMA_MB_TO_PIXEL_V6,
-+					S5P_FIMV_LUMA_DPB_BUFFER_ALIGN_V6);
-+			ctx->chroma_dpb_size = ALIGN((mb_width * mb_height) *
-+					S5P_FIMV_CHROMA_MB_TO_PIXEL_V6,
-+					S5P_FIMV_CHROMA_DPB_BUFFER_ALIGN_V6);
-+		}
- 		if (IS_MFCV8_PLUS(dev))
- 			ctx->me_buffer_size = ALIGN(S5P_FIMV_ME_BUFFER_SIZE_V8(
- 						ctx->img_width, ctx->img_height,
-@@ -197,6 +223,8 @@ static int s5p_mfc_alloc_codec_buffers_v6(struct s5p_mfc_ctx *ctx)
- 	case S5P_MFC_CODEC_H264_ENC:
- 		if (IS_MFCV10(dev)) {
- 			mfc_debug(2, "Use min scratch buffer size\n");
-+			ctx->me_buffer_size =
-+			ALIGN(ENC_V100_H264_ME_SIZE(mb_width, mb_height), 16);
- 		} else if (IS_MFCV8_PLUS(dev))
- 			ctx->scratch_buf_size =
- 				S5P_FIMV_SCRATCH_BUF_SIZE_H264_ENC_V8(
-@@ -219,6 +247,9 @@ static int s5p_mfc_alloc_codec_buffers_v6(struct s5p_mfc_ctx *ctx)
- 	case S5P_MFC_CODEC_H263_ENC:
- 		if (IS_MFCV10(dev)) {
- 			mfc_debug(2, "Use min scratch buffer size\n");
-+			ctx->me_buffer_size =
-+				ALIGN(ENC_V100_MPEG4_ME_SIZE(mb_width,
-+							mb_height), 16);
- 		} else
- 			ctx->scratch_buf_size =
- 				S5P_FIMV_SCRATCH_BUF_SIZE_MPEG4_ENC_V6(
-@@ -235,6 +266,9 @@ static int s5p_mfc_alloc_codec_buffers_v6(struct s5p_mfc_ctx *ctx)
- 	case S5P_MFC_CODEC_VP8_ENC:
- 		if (IS_MFCV10(dev)) {
- 			mfc_debug(2, "Use min scratch buffer size\n");
-+			ctx->me_buffer_size =
-+				ALIGN(ENC_V100_VP8_ME_SIZE(mb_width, mb_height),
-+						16);
- 		} else if (IS_MFCV8_PLUS(dev))
- 			ctx->scratch_buf_size =
- 				S5P_FIMV_SCRATCH_BUF_SIZE_VP8_ENC_V8(
-@@ -393,13 +427,13 @@ static void s5p_mfc_dec_calc_dpb_size_v6(struct s5p_mfc_ctx *ctx)
- 
- 	if (ctx->codec_mode == S5P_MFC_CODEC_H264_DEC ||
- 			ctx->codec_mode == S5P_MFC_CODEC_H264_MVC_DEC) {
--		if (IS_MFCV10(dev))
-+		if (IS_MFCV10(dev)) {
- 			ctx->mv_size = S5P_MFC_DEC_MV_SIZE_V10(ctx->img_width,
- 					ctx->img_height);
--		else
-+		} else {
- 			ctx->mv_size = S5P_MFC_DEC_MV_SIZE_V6(ctx->img_width,
- 					ctx->img_height);
--		ctx->mv_size = ALIGN(ctx->mv_size, 16);
-+		}
- 	} else {
- 		ctx->mv_size = 0;
- 	}
-@@ -596,15 +630,34 @@ static int s5p_mfc_set_enc_ref_buffer_v6(struct s5p_mfc_ctx *ctx)
- 
- 	mfc_debug(2, "Buf1: %p (%d)\n", (void *)buf_addr1, buf_size1);
- 
--	for (i = 0; i < ctx->pb_count; i++) {
--		writel(buf_addr1, mfc_regs->e_luma_dpb + (4 * i));
--		buf_addr1 += ctx->luma_dpb_size;
--		writel(buf_addr1, mfc_regs->e_chroma_dpb + (4 * i));
--		buf_addr1 += ctx->chroma_dpb_size;
--		writel(buf_addr1, mfc_regs->e_me_buffer + (4 * i));
--		buf_addr1 += ctx->me_buffer_size;
--		buf_size1 -= (ctx->luma_dpb_size + ctx->chroma_dpb_size +
--			ctx->me_buffer_size);
-+	if (IS_MFCV10(dev)) {
-+		/* start address of per buffer is aligned */
-+		for (i = 0; i < ctx->pb_count; i++) {
-+			writel(buf_addr1, mfc_regs->e_luma_dpb + (4 * i));
-+			buf_addr1 += ctx->luma_dpb_size;
-+			buf_size1 -= ctx->luma_dpb_size;
-+		}
-+		for (i = 0; i < ctx->pb_count; i++) {
-+			writel(buf_addr1, mfc_regs->e_chroma_dpb + (4 * i));
-+			buf_addr1 += ctx->chroma_dpb_size;
-+			buf_size1 -= ctx->chroma_dpb_size;
-+		}
-+		for (i = 0; i < ctx->pb_count; i++) {
-+			writel(buf_addr1, mfc_regs->e_me_buffer + (4 * i));
-+			buf_addr1 += ctx->me_buffer_size;
-+			buf_size1 -= ctx->me_buffer_size;
-+		}
-+	} else {
-+		for (i = 0; i < ctx->pb_count; i++) {
-+			writel(buf_addr1, mfc_regs->e_luma_dpb + (4 * i));
-+			buf_addr1 += ctx->luma_dpb_size;
-+			writel(buf_addr1, mfc_regs->e_chroma_dpb + (4 * i));
-+			buf_addr1 += ctx->chroma_dpb_size;
-+			writel(buf_addr1, mfc_regs->e_me_buffer + (4 * i));
-+			buf_addr1 += ctx->me_buffer_size;
-+			buf_size1 -= (ctx->luma_dpb_size + ctx->chroma_dpb_size
-+					+ ctx->me_buffer_size);
-+		}
- 	}
- 
- 	writel(buf_addr1, mfc_regs->e_scratch_buffer_addr);
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h
-index 021b8db..b18f5b7 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h
-@@ -26,6 +26,8 @@
- 					(((MB_HEIGHT(y)+1)/2)*2) * 64 + 128)
- #define S5P_MFC_DEC_MV_SIZE_V10(x, y)	(MB_WIDTH(x) * \
- 					(((MB_HEIGHT(y)+1)/2)*2) * 64 + 512)
-+#define S5P_MFC_LCU_WIDTH(x_size)	DIV_ROUND_UP(x_size, 32)
-+#define S5P_MFC_LCU_HEIGHT(y_size)	DIV_ROUND_UP(y_size, 32)
- 
- /* Definition */
- #define ENC_MULTI_SLICE_MB_MAX		((1 << 30) - 1)
--- 
-2.7.4
+Did you see this question above? I'm not quite understanding what you
+want me to do for filling in colorspace and don't see any examples in
+the existing drivers that appear to look at colorimetry for this.
+
+Regards,
+
+Tim
