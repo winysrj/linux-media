@@ -1,653 +1,233 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:45490 "EHLO mga03.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751090AbdLMPlw (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 13 Dec 2017 10:41:52 -0500
-Date: Wed, 13 Dec 2017 15:42:26 +0800
-From: kbuild test robot <fengguang.wu@intel.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: linux-media@vger.kernel.org
-Subject: [ragnatech:media-tree] BUILD SUCCESS
- 330dada5957e3ca0c8811b14c45e3ac42c694651
-Message-ID: <5a30d9e2.+GKtEjnwUHBBWsRE%fengguang.wu@intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Received: from relay2-d.mail.gandi.net ([217.70.183.194]:52433 "EHLO
+        relay2-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753620AbdLMS0i (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 13 Dec 2017 13:26:38 -0500
+From: Jacopo Mondi <jacopo+renesas@jmondi.org>
+To: sakari.ailus@linux.intel.com
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        niklas.soderlund@ragnatech.se, kieran.bingham@ideasonboard.com,
+        laurent.pinchart@ideasonboard.com, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org
+Subject: [PATCH 4/5] v4l2: async: Postpone subdev_notifier registration
+Date: Wed, 13 Dec 2017 19:26:19 +0100
+Message-Id: <1513189580-32202-5-git-send-email-jacopo+renesas@jmondi.org>
+In-Reply-To: <1513189580-32202-1-git-send-email-jacopo+renesas@jmondi.org>
+References: <1513189580-32202-1-git-send-email-jacopo+renesas@jmondi.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-tree/branch: git://git.ragnatech.se/linux  media-tree
-branch HEAD: 330dada5957e3ca0c8811b14c45e3ac42c694651  media: dvb_frontend: fix return error code
+Currently, subdevice notifiers are tested against all available
+subdevices as soon as they get registered. It often happens anyway
+that the subdevice they are connected to is not yet initialized, as
+it usually gets registered later in drivers' code. This makes debug
+of v4l2_async particularly painful, as identifying a notifier with
+an unitialized subdevice is tricky as they don't have a valid
+'struct device *' or 'struct fwnode_handle *' to be identified with.
 
-elapsed time: 72m
+In order to make sure that the notifier's subdevices is initialized
+when the notifier is tesed against available subdevices post-pone the
+actual notifier registration at subdevice registration time.
 
-configs tested: 622
+It is worth noting that post-poning registration of a subdevice notifier
+does not impact on the completion of the notifiers chain, as even if a
+subdev notifier completes as soon as it gets registered, the complete()
+call chain cannot be upscaled as long as the subdevice the notifiers
+belongs to is not registered.
 
-The following configs have been built successfully.
-More configs may be tested in the coming days.
+Also, it is now safe to access a notifier 'struct device *' as we're now
+sure it is properly initialized when the notifier is actually
+registered.
 
-parisc                        c3000_defconfig
-parisc                         b180_defconfig
-parisc                              defconfig
-alpha                               defconfig
-parisc                            allnoconfig
-s390                           gcov_defconfig
-tile                              allnoconfig
-um                           x86_64_defconfig
-arm                         cm_x2xx_defconfig
-arm                            mmp2_defconfig
-powerpc                     rainier_defconfig
-arm                          pcm027_defconfig
-cris                    etrax-100lx_defconfig
-powerpc                     sbc834x_defconfig
-blackfin            BF561-EZKIT-SMP_defconfig
-m32r                    mappi2.opsp_defconfig
-m68k                       m5275evb_defconfig
-x86_64                 randconfig-a0-12131849
-x86_64                 randconfig-a0-12132016
-x86_64                 randconfig-a0-12132140
-arm64                               defconfig
-powerpc                 canyonlands_defconfig
-powerpc                 mpc8315_rdb_defconfig
-arm                         orion5x_defconfig
-powerpc                      acadia_defconfig
-sh                        sh7785lcr_defconfig
-blackfin                    DNP5370_defconfig
-powerpc                     mpc5200_defconfig
-sh                           se7206_defconfig
-arm                          collie_defconfig
-arm                        magician_defconfig
-sh                          polaris_defconfig
-blackfin              BF561-ACVILON_defconfig
-mips                         db1xxx_defconfig
-powerpc                      bamboo_defconfig
-ia64                            sim_defconfig
-m68k                        mvme147_defconfig
-powerpc                      mgcoge_defconfig
-powerpc                    sam440ep_defconfig
-sh                ecovec24-romimage_defconfig
-arm                             ezx_defconfig
-mips                          ath25_defconfig
-sh                         apsh4a3a_defconfig
-arm                         lpc32xx_defconfig
-arm                       netwinder_defconfig
-powerpc                          g5_defconfig
-i386                   randconfig-c0-12131617
-i386                   randconfig-c0-12131618
-i386                   randconfig-c0-12131619
-i386                   randconfig-c0-12131620
-i386                   randconfig-c0-12131622
-i386                   randconfig-c0-12131623
-i386                   randconfig-c0-12131624
-i386                   randconfig-c0-12131625
-i386                   randconfig-c0-12131626
-i386                   randconfig-c0-12131627
-i386                   randconfig-c0-12131629
-i386                   randconfig-c0-12131630
-i386                   randconfig-c0-12131631
-i386                   randconfig-c0-12131632
-i386                   randconfig-c0-12131633
-i386                   randconfig-c0-12131634
-i386                   randconfig-c0-12131635
-i386                   randconfig-c0-12131636
-i386                   randconfig-c0-12131637
-i386                   randconfig-c0-12131638
-i386                   randconfig-c0-12131639
-i386                   randconfig-c0-12131640
-i386                   randconfig-c0-12131641
-i386                   randconfig-c0-12131642
-i386                   randconfig-c0-12131643
-i386                   randconfig-c0-12131644
-i386                   randconfig-c0-12131645
-i386                   randconfig-c0-12131646
-i386                   randconfig-c0-12131647
-i386                   randconfig-c0-12131648
-i386                   randconfig-c0-12131649
-i386                   randconfig-c0-12131650
-i386                   randconfig-c0-12131651
-i386                   randconfig-c0-12131652
-i386                   randconfig-c0-12131653
-i386                   randconfig-c0-12131654
-i386                   randconfig-c0-12131953
-i386                   randconfig-c0-12132008
-i386                   randconfig-c0-12132125
-i386                 randconfig-x010-12131225
-i386                 randconfig-x011-12131225
-i386                 randconfig-x012-12131225
-i386                 randconfig-x013-12131225
-i386                 randconfig-x014-12131225
-i386                 randconfig-x015-12131225
-i386                 randconfig-x016-12131225
-i386                 randconfig-x017-12131225
-i386                 randconfig-x018-12131225
-i386                 randconfig-x019-12131225
-x86_64                                    lkp
-x86_64                                   rhel
-x86_64                               rhel-7.2
-microblaze                      mmu_defconfig
-microblaze                    nommu_defconfig
-i386                     randconfig-n0-201750
-ia64                             alldefconfig
-ia64                              allnoconfig
-ia64                                defconfig
-powerpc                           allnoconfig
-powerpc                             defconfig
-powerpc                       ppc64_defconfig
-s390                        default_defconfig
-i386                   randconfig-i0-12130859
-i386                   randconfig-i1-12130859
-arm                               allnoconfig
-arm                         at91_dt_defconfig
-arm                           efm32_defconfig
-arm                          exynos_defconfig
-arm                        multi_v5_defconfig
-arm                        multi_v7_defconfig
-arm                        shmobile_defconfig
-arm                           sunxi_defconfig
-arm64                             allnoconfig
-x86_64                 randconfig-v0-12131844
-i386                             allmodconfig
-arm                              allmodconfig
-arm                                      arm5
-arm                                     arm67
-arm                       imx_v6_v7_defconfig
-arm                          ixp4xx_defconfig
-arm                        mvebu_v7_defconfig
-arm                       omap2plus_defconfig
-arm                                    sa1100
-arm                                   samsung
-arm                                        sh
-arm                           tegra_defconfig
-arm64                            alldefconfig
-arm64                            allmodconfig
-x86_64                                  kexec
-i386                   randconfig-a0-12130924
-i386                   randconfig-a1-12130924
-x86_64                 randconfig-s0-12131621
-x86_64                 randconfig-s1-12131621
-x86_64                 randconfig-s2-12131621
-x86_64                 randconfig-s0-12131646
-x86_64                 randconfig-s1-12131646
-x86_64                 randconfig-s2-12131646
-frv                                 defconfig
-mn10300                     asb2364_defconfig
-openrisc                    or1ksim_defconfig
-tile                         tilegx_defconfig
-um                             i386_defconfig
-x86_64                             acpi-redef
-x86_64                           allyesdebian
-x86_64                                nfsroot
-arm                         axm55xx_defconfig
-frv                              alldefconfig
-ia64                      gensparse_defconfig
-mips                                defconfig
-arm                       imx_v4_v5_defconfig
-arm                       multi_v4t_defconfig
-sh                        edosk7705_defconfig
-sh                           se7712_defconfig
-sh                     sh7710voipgw_defconfig
-x86_64                 randconfig-s3-12132009
-x86_64                 randconfig-s4-12132009
-x86_64                 randconfig-s5-12132009
-x86_64                 randconfig-s3-12132012
-x86_64                 randconfig-s4-12132012
-x86_64                 randconfig-s5-12132012
-x86_64                 randconfig-s3-12132017
-x86_64                 randconfig-s4-12132017
-x86_64                 randconfig-s5-12132017
-x86_64                 randconfig-s3-12132019
-x86_64                 randconfig-s4-12132019
-x86_64                 randconfig-s5-12132019
-x86_64                 randconfig-s3-12132020
-x86_64                 randconfig-s4-12132020
-x86_64                 randconfig-s5-12132020
-x86_64                 randconfig-s3-12132022
-x86_64                 randconfig-s4-12132022
-x86_64                 randconfig-s5-12132022
-x86_64                 randconfig-s3-12132023
-x86_64                 randconfig-s4-12132023
-x86_64                 randconfig-s5-12132023
-x86_64                 randconfig-s3-12132024
-x86_64                 randconfig-s4-12132024
-x86_64                 randconfig-s5-12132024
-x86_64                 randconfig-s3-12132026
-x86_64                 randconfig-s4-12132026
-x86_64                 randconfig-s5-12132026
-x86_64                 randconfig-s3-12132027
-x86_64                 randconfig-s4-12132027
-x86_64                 randconfig-s5-12132027
-x86_64                 randconfig-s3-12132028
-x86_64                 randconfig-s4-12132028
-x86_64                 randconfig-s5-12132028
-x86_64                 randconfig-s3-12132030
-x86_64                 randconfig-s4-12132030
-x86_64                 randconfig-s5-12132030
-arm                          ks8695_defconfig
-cris                          dev88_defconfig
-parisc                generic-32bit_defconfig
-score                      spct6600_defconfig
-i386                             alldefconfig
-arm                      tct_hammer_defconfig
-powerpc                      virtex_defconfig
-sh                         ecovec24_defconfig
-mips                        omega2p_defconfig
-parisc                           alldefconfig
-powerpc                     ep8248e_defconfig
-xtensa                            allnoconfig
-x86_64                 randconfig-i0-12131716
-i386                   randconfig-b0-12131620
-i386                   randconfig-b0-12131646
-i386                   randconfig-b0-12131911
-i386                   randconfig-b0-12131948
-i386                   randconfig-b0-12132204
-powerpc                       ep405_defconfig
-powerpc                      ep88xc_defconfig
-powerpc                      katmai_defconfig
-xtensa                  audio_kc705_defconfig
-mips                         bigsur_defconfig
-mips                       rbtx49xx_defconfig
-powerpc                     tqm8555_defconfig
-mips                             allyesconfig
-parisc                      default_defconfig
-powerpc                   bluestone_defconfig
-powerpc                 mpc836x_mds_defconfig
-x86_64                 randconfig-b0-12131555
-x86_64                 randconfig-b0-12131621
-x86_64                 randconfig-b0-12131646
-x86_64                 randconfig-b0-12132002
-x86_64                 randconfig-b0-12132105
-x86_64                 randconfig-u0-12131647
-x86_64                 randconfig-u0-12130904
-c6x                        evmc6678_defconfig
-h8300                    h8300h-sim_defconfig
-m32r                       m32104ut_defconfig
-m32r                     mappi3.smp_defconfig
-m32r                         opsput_defconfig
-m32r                           usrv_defconfig
-nios2                         10m50_defconfig
-xtensa                       common_defconfig
-xtensa                          iss_defconfig
-mips                        bcm63xx_defconfig
-powerpc                 mpc836x_rdk_defconfig
-powerpc                  storcenter_defconfig
-xtensa                    smp_lx200_defconfig
-x86_64                randconfig-ne0-12131555
-x86_64                randconfig-ne0-12131621
-x86_64                randconfig-ne0-12131646
-x86_64                randconfig-ne0-12131917
-x86_64                randconfig-ne0-12132035
-x86_64                randconfig-ne0-12132135
-x86_64                randconfig-ne0-12132238
-arm                          ep93xx_defconfig
-arm                         shannon_defconfig
-m32r                                defconfig
-sh                             sh03_defconfig
-frv                              allmodconfig
-openrisc                            defconfig
-sparc64                             defconfig
-alpha                            allmodconfig
-arm                      pxa255-idp_defconfig
-mips                          ath79_defconfig
-mips                      maltasmvp_defconfig
-blackfin                BF548-EZKIT_defconfig
-m32r                   m32700ut.smp_defconfig
-sh                   sh7770_generic_defconfig
-arm                       mainstone_defconfig
-arm                          prima2_defconfig
-mips                      bmips_stb_defconfig
-xtensa                           allyesconfig
-i386                   randconfig-h0-12131748
-i386                   randconfig-h1-12131748
-i386                   randconfig-h0-12131750
-i386                   randconfig-h1-12131750
-i386                   randconfig-h0-12131751
-i386                   randconfig-h1-12131751
-i386                   randconfig-h0-12131753
-i386                   randconfig-h1-12131753
-i386                   randconfig-h0-12131759
-i386                   randconfig-h1-12131759
-i386                   randconfig-h0-12131800
-i386                   randconfig-h1-12131800
-i386                   randconfig-h0-12131805
-i386                   randconfig-h1-12131805
-i386                   randconfig-h0-12131814
-i386                   randconfig-h1-12131814
-i386                   randconfig-h0-12131823
-i386                   randconfig-h1-12131823
-i386                   randconfig-h0-12131824
-i386                   randconfig-h1-12131824
-i386                   randconfig-h0-12131830
-i386                   randconfig-h1-12131830
-i386                   randconfig-h0-12131833
-i386                   randconfig-h1-12131833
-i386                   randconfig-h0-12131839
-i386                   randconfig-h1-12131839
-i386                   randconfig-h0-12131842
-i386                   randconfig-h1-12131842
-i386                   randconfig-h0-12131845
-i386                   randconfig-h1-12131845
-i386                   randconfig-h0-12131850
-i386                   randconfig-h1-12131850
-i386                   randconfig-h0-12131851
-i386                   randconfig-h1-12131851
-i386                   randconfig-h0-12131853
-i386                   randconfig-h1-12131853
-i386                   randconfig-h0-12131854
-i386                   randconfig-h1-12131854
-i386                   randconfig-h0-12131855
-i386                   randconfig-h1-12131855
-i386                   randconfig-h0-12131857
-i386                   randconfig-h1-12131857
-i386                   randconfig-h0-12131858
-i386                   randconfig-h1-12131858
-i386                   randconfig-h0-12131900
-i386                   randconfig-h1-12131900
-i386                   randconfig-h0-12131901
-i386                   randconfig-h1-12131901
-i386                   randconfig-h0-12131903
-i386                   randconfig-h1-12131903
-i386                   randconfig-h0-12131904
-i386                   randconfig-h1-12131904
-i386                   randconfig-h0-12131905
-i386                   randconfig-h1-12131905
-i386                   randconfig-h0-12131906
-i386                   randconfig-h1-12131906
-i386                   randconfig-h0-12131907
-i386                   randconfig-h1-12131907
-i386                   randconfig-h0-12131909
-i386                   randconfig-h1-12131909
-i386                   randconfig-h0-12131910
-i386                   randconfig-h1-12131910
-i386                   randconfig-h0-12131912
-i386                   randconfig-h1-12131912
-i386                   randconfig-h0-12131913
-i386                   randconfig-h1-12131913
-i386                   randconfig-h0-12131914
-i386                   randconfig-h1-12131914
-i386                   randconfig-h0-12131915
-i386                   randconfig-h1-12131915
-i386                   randconfig-h0-12131917
-i386                   randconfig-h1-12131917
-i386                   randconfig-h0-12131918
-i386                   randconfig-h1-12131918
-i386                   randconfig-h0-12131919
-i386                   randconfig-h1-12131919
-i386                   randconfig-h0-12131921
-i386                   randconfig-h1-12131921
-i386                   randconfig-h0-12131922
-i386                   randconfig-h1-12131922
-i386                   randconfig-h0-12131923
-i386                   randconfig-h1-12131923
-i386                   randconfig-h0-12131927
-i386                   randconfig-h1-12131927
-i386                   randconfig-h0-12131929
-i386                   randconfig-h1-12131929
-i386                   randconfig-h0-12131930
-i386                   randconfig-h1-12131930
-i386                   randconfig-h0-12131932
-i386                   randconfig-h1-12131932
-i386                   randconfig-h0-12131933
-i386                   randconfig-h1-12131933
-i386                   randconfig-h0-12131934
-i386                   randconfig-h1-12131934
-i386                   randconfig-h0-12131935
-i386                   randconfig-h1-12131935
-i386                   randconfig-h0-12131937
-i386                   randconfig-h1-12131937
-i386                   randconfig-h0-12131938
-i386                   randconfig-h1-12131938
-i386                   randconfig-h0-12131939
-i386                   randconfig-h1-12131939
-i386                   randconfig-h0-12131941
-i386                   randconfig-h1-12131941
-i386                   randconfig-h0-12131942
-i386                   randconfig-h1-12131942
-i386                   randconfig-h0-12131944
-i386                   randconfig-h1-12131944
-i386                   randconfig-h0-12131946
-i386                   randconfig-h1-12131946
-i386                   randconfig-h0-12131948
-i386                   randconfig-h1-12131948
-i386                   randconfig-h0-12131952
-i386                   randconfig-h1-12131952
-i386                   randconfig-h0-12131954
-i386                   randconfig-h1-12131954
-i386                   randconfig-h0-12131956
-i386                   randconfig-h1-12131956
-i386                   randconfig-h0-12131958
-i386                   randconfig-h1-12131958
-i386                   randconfig-h0-12132000
-i386                   randconfig-h1-12132000
-i386                   randconfig-h0-12132002
-i386                   randconfig-h1-12132002
-i386                   randconfig-h0-12132004
-i386                   randconfig-h1-12132004
-i386                   randconfig-h0-12132006
-i386                   randconfig-h1-12132006
-i386                   randconfig-h0-12132007
-i386                   randconfig-h1-12132007
-i386                   randconfig-h0-12132008
-i386                   randconfig-h1-12132008
-i386                   randconfig-h0-12132010
-i386                   randconfig-h1-12132010
-i386                   randconfig-h0-12132012
-i386                   randconfig-h1-12132012
-i386                   randconfig-h0-12132016
-i386                   randconfig-h1-12132016
-i386                   randconfig-h0-12132017
-i386                   randconfig-h1-12132017
-i386                   randconfig-h0-12132019
-i386                   randconfig-h1-12132019
-i386                   randconfig-h0-12132020
-i386                   randconfig-h1-12132020
-i386                   randconfig-h0-12132022
-i386                   randconfig-h1-12132022
-i386                   randconfig-h0-12132023
-i386                   randconfig-h1-12132023
-i386                   randconfig-h0-12132024
-i386                   randconfig-h1-12132024
-i386                   randconfig-h0-12132025
-i386                   randconfig-h1-12132025
-i386                   randconfig-h0-12132027
-i386                   randconfig-h1-12132027
-i386                   randconfig-h0-12132028
-i386                   randconfig-h1-12132028
-i386                   randconfig-h0-12132029
-i386                   randconfig-h1-12132029
-i386                   randconfig-h0-12132030
-i386                   randconfig-h1-12132030
-i386                   randconfig-h0-12132031
-i386                   randconfig-h1-12132031
-i386                   randconfig-h0-12132033
-i386                   randconfig-h1-12132033
-i386                   randconfig-h0-12132035
-i386                   randconfig-h1-12132035
-sh                           se7343_defconfig
-sh                        sh7763rdp_defconfig
-arm                           stm32_defconfig
-powerpc                        fsp2_defconfig
-i386                 randconfig-x070-07260351
-i386                 randconfig-x071-07260351
-i386                 randconfig-x072-07260351
-i386                 randconfig-x073-07260351
-i386                 randconfig-x074-07260351
-i386                 randconfig-x075-07260351
-i386                 randconfig-x076-07260351
-i386                 randconfig-x077-07260351
-i386                 randconfig-x078-07260351
-i386                 randconfig-x079-07260351
-x86_64                 randconfig-n0-12131557
-x86_64                 randconfig-n0-12131622
-x86_64                 randconfig-n0-12131648
-x86_64                 randconfig-n0-07260351
-arm                         hackkit_defconfig
-arm                           omap1_defconfig
-powerpc                 mpc832x_rdb_defconfig
-arm                             pxa_defconfig
-powerpc64                           defconfig
-sh                             espt_defconfig
-m68k                       m5475evb_defconfig
-m68k                          multi_defconfig
-m68k                           sun3_defconfig
-sh                                allnoconfig
-sh                          rsk7269_defconfig
-sh                  sh7785lcr_32bit_defconfig
-sh                            titan_defconfig
-i386                  randconfig-sb0-12131625
-i386                  randconfig-sb0-12131638
-i386                  randconfig-sb0-12131651
-i386                  randconfig-sb0-12131652
-i386                  randconfig-sb0-12131653
-i386                  randconfig-sb0-12131654
-i386                  randconfig-sb0-12131655
-i386                  randconfig-sb0-12131656
-i386                  randconfig-sb0-12131657
-i386                  randconfig-sb0-12131658
-i386                  randconfig-sb0-12131659
-i386                  randconfig-sb0-12131700
-i386                  randconfig-sb0-12131701
-i386                  randconfig-sb0-12131702
-i386                  randconfig-sb0-12131703
-i386                  randconfig-sb0-12131704
-i386                  randconfig-sb0-12131705
-i386                  randconfig-sb0-12131706
-i386                  randconfig-sb0-12131707
-i386                  randconfig-sb0-12131708
-i386                  randconfig-sb0-12132132
-sparc                               defconfig
-sparc64                           allnoconfig
-x86_64                randconfig-ws0-12131557
-x86_64                randconfig-ws0-12131622
-x86_64                randconfig-ws0-12131648
-i386                 randconfig-x070-12131742
-i386                 randconfig-x071-12131742
-i386                 randconfig-x072-12131742
-i386                 randconfig-x073-12131742
-i386                 randconfig-x074-12131742
-i386                 randconfig-x075-12131742
-i386                 randconfig-x076-12131742
-i386                 randconfig-x077-12131742
-i386                 randconfig-x078-12131742
-i386                 randconfig-x079-12131742
-i386                              allnoconfig
-i386                                defconfig
-powerpc                mpc7448_hpc2_defconfig
-m32r                    m32700ut.up_defconfig
-mips                        nlm_xlp_defconfig
-sh                                  defconfig
-arm                        cerfcube_defconfig
-mips                       bmips_be_defconfig
-powerpc                   motionpro_defconfig
-powerpc                     virtex5_defconfig
-arm                          moxart_defconfig
-arm                         s5pv210_defconfig
-openrisc                          allnoconfig
-x86_64               randconfig-x000-12131954
-x86_64               randconfig-x001-12131954
-x86_64               randconfig-x002-12131954
-x86_64               randconfig-x003-12131954
-x86_64               randconfig-x004-12131954
-x86_64               randconfig-x005-12131954
-x86_64               randconfig-x006-12131954
-x86_64               randconfig-x007-12131954
-x86_64               randconfig-x008-12131954
-x86_64               randconfig-x009-12131954
-x86_64                 randconfig-r0-12131745
-x86_64                 randconfig-r0-12131746
-x86_64                 randconfig-r0-12131748
-x86_64                 randconfig-r0-12131750
-x86_64                 randconfig-r0-12131758
-x86_64                 randconfig-r0-12131800
-x86_64                 randconfig-r0-12131804
-x86_64                 randconfig-r0-12131814
-x86_64                 randconfig-r0-12131824
-x86_64                 randconfig-r0-12131825
-x86_64                 randconfig-r0-12131832
-x86_64                 randconfig-r0-12131835
-x86_64                 randconfig-r0-12131841
-x86_64                 randconfig-r0-12131845
-x86_64                 randconfig-r0-12131850
-x86_64                 randconfig-r0-12131852
-x86_64                 randconfig-r0-12131853
-x86_64                 randconfig-r0-12131854
-x86_64                 randconfig-r0-12131855
-x86_64                 randconfig-r0-12131856
-x86_64                 randconfig-r0-12131857
-x86_64                 randconfig-r0-12131858
-x86_64                 randconfig-r0-12131900
-x86_64                 randconfig-r0-12131901
-x86_64                 randconfig-r0-12131902
-x86_64                 randconfig-r0-12131905
-x86_64                 randconfig-r0-12131907
-x86_64                 randconfig-r0-12131910
-x86_64                 randconfig-r0-12131911
-x86_64                 randconfig-r0-12131913
-x86_64                 randconfig-r0-12131915
-x86_64                 randconfig-r0-12131917
-x86_64                 randconfig-r0-12131919
-x86_64                 randconfig-r0-12131920
-x86_64                 randconfig-r0-12131921
-x86_64                 randconfig-r0-12131922
-x86_64                 randconfig-r0-12131923
-x86_64                 randconfig-r0-12131925
-x86_64                 randconfig-r0-12131928
-x86_64                 randconfig-r0-12131929
-x86_64                 randconfig-r0-12131930
-x86_64                 randconfig-r0-12131931
-x86_64                 randconfig-r0-12131933
-x86_64                 randconfig-r0-12131934
-x86_64                 randconfig-r0-12131935
-x86_64                 randconfig-r0-12131936
-x86_64                 randconfig-r0-12131938
-x86_64                 randconfig-r0-12131941
-x86_64                 randconfig-r0-12131943
-x86_64                 randconfig-r0-12131945
-x86_64                 randconfig-r0-12131946
-x86_64                 randconfig-r0-12131949
-x86_64                 randconfig-r0-12131952
-x86_64                 randconfig-r0-12131954
-x86_64                 randconfig-r0-12131956
-x86_64                 randconfig-r0-12131958
-x86_64                 randconfig-r0-12132000
-x86_64                 randconfig-r0-12132001
-x86_64                 randconfig-r0-12132004
-x86_64                 randconfig-r0-12132006
-x86_64                 randconfig-r0-12132009
-x86_64                 randconfig-r0-12132012
-x86_64                 randconfig-r0-12132016
-x86_64                 randconfig-r0-12132018
-x86_64                 randconfig-r0-12132020
-x86_64                 randconfig-r0-12132023
-x86_64                 randconfig-r0-12132024
-x86_64                 randconfig-r0-12132025
-x86_64                 randconfig-r0-12132026
-x86_64                 randconfig-r0-12132027
-x86_64                 randconfig-r0-12132028
-sh                           se7705_defconfig
-powerpc                 mpc834x_itx_defconfig
-s390                              allnoconfig
-i386                 randconfig-x000-12131628
-i386                 randconfig-x001-12131628
-i386                 randconfig-x002-12131628
-i386                 randconfig-x003-12131628
-i386                 randconfig-x004-12131628
-i386                 randconfig-x005-12131628
-i386                 randconfig-x006-12131628
-i386                 randconfig-x007-12131628
-i386                 randconfig-x008-12131628
-i386                 randconfig-x009-12131628
-mips                           32r2_defconfig
-mips                         64r6el_defconfig
-mips                              allnoconfig
-mips                      fuloong2e_defconfig
-mips                                   jz4740
-mips                      malta_kvm_defconfig
-mips                                     txx9
-i386                   randconfig-x0-12131621
-i386                   randconfig-x0-12131646
-i386                   randconfig-x0-12131858
-i386                   randconfig-x0-12131926
-i386                   randconfig-x0-12132110
+Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+---
+ drivers/media/v4l2-core/v4l2-async.c | 65 +++++++++++++++++++++++-------------
+ include/media/v4l2-async.h           |  2 ++
+ 2 files changed, 43 insertions(+), 24 deletions(-)
 
-Thanks,
-Fengguang
+diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+index 0a1bf1d..c13a781 100644
+--- a/drivers/media/v4l2-core/v4l2-async.c
++++ b/drivers/media/v4l2-core/v4l2-async.c
+@@ -25,6 +25,13 @@
+ #include <media/v4l2-fwnode.h>
+ #include <media/v4l2-subdev.h>
+
++static struct device *v4l2_async_notifier_dev(
++					struct v4l2_async_notifier *notifier)
++{
++	return notifier->v4l2_dev ? notifier->v4l2_dev->dev :
++				    notifier->sd->dev;
++}
++
+ static int v4l2_async_notifier_call_bound(struct v4l2_async_notifier *n,
+ 					  struct v4l2_subdev *subdev,
+ 					  struct v4l2_async_subdev *asd)
+@@ -124,19 +131,6 @@ static struct v4l2_async_subdev *v4l2_async_find_match(
+ 	return NULL;
+ }
+
+-/* Find the sub-device notifier registered by a sub-device driver. */
+-static struct v4l2_async_notifier *v4l2_async_find_subdev_notifier(
+-	struct v4l2_subdev *sd)
+-{
+-	struct v4l2_async_notifier *n;
+-
+-	list_for_each_entry(n, &notifier_list, list)
+-		if (n->sd == sd)
+-			return n;
+-
+-	return NULL;
+-}
+-
+ /* Get v4l2_device related to the notifier if one can be found. */
+ static struct v4l2_device *v4l2_async_notifier_find_v4l2_dev(
+ 	struct v4l2_async_notifier *notifier)
+@@ -160,7 +154,7 @@ static bool v4l2_async_notifier_can_complete(
+
+ 	list_for_each_entry(sd, &notifier->done, async_list) {
+ 		struct v4l2_async_notifier *subdev_notifier =
+-			v4l2_async_find_subdev_notifier(sd);
++							sd->subdev_notifier;
+
+ 		if (subdev_notifier &&
+ 		    !v4l2_async_notifier_can_complete(subdev_notifier))
+@@ -228,7 +222,7 @@ static int v4l2_async_match_notify(struct v4l2_async_notifier *notifier,
+ 	/*
+ 	 * See if the sub-device has a notifier. If not, return here.
+ 	 */
+-	subdev_notifier = v4l2_async_find_subdev_notifier(sd);
++	subdev_notifier = sd->subdev_notifier;
+ 	if (!subdev_notifier || subdev_notifier->parent)
+ 		return 0;
+
+@@ -294,7 +288,7 @@ static void v4l2_async_notifier_unbind_all_subdevs(
+
+ 	list_for_each_entry_safe(sd, tmp, &notifier->done, async_list) {
+ 		struct v4l2_async_notifier *subdev_notifier =
+-			v4l2_async_find_subdev_notifier(sd);
++							sd->subdev_notifier;
+
+ 		if (subdev_notifier)
+ 			v4l2_async_notifier_unbind_all_subdevs(subdev_notifier);
+@@ -371,8 +365,7 @@ static bool v4l2_async_notifier_fwnode_has_async_subdev(
+
+ static int __v4l2_async_notifier_register(struct v4l2_async_notifier *notifier)
+ {
+-	struct device *dev =
+-		notifier->v4l2_dev ? notifier->v4l2_dev->dev : NULL;
++	struct device *dev = v4l2_async_notifier_dev(notifier);
+ 	struct v4l2_async_subdev *asd;
+ 	int ret;
+ 	int i;
+@@ -383,6 +376,8 @@ static int __v4l2_async_notifier_register(struct v4l2_async_notifier *notifier)
+ 	INIT_LIST_HEAD(&notifier->waiting);
+ 	INIT_LIST_HEAD(&notifier->done);
+
++	notifier->owner = dev_fwnode(dev);
++
+ 	mutex_lock(&list_lock);
+
+ 	for (i = 0; i < notifier->num_subdevs; i++) {
+@@ -421,6 +416,7 @@ static int __v4l2_async_notifier_register(struct v4l2_async_notifier *notifier)
+
+ 	/* Keep also completed notifiers on the list */
+ 	list_add(&notifier->list, &notifier_list);
++	notifier->registered = true;
+
+ 	mutex_unlock(&list_lock);
+
+@@ -447,7 +443,7 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
+ 		return -EINVAL;
+
+ 	notifier->v4l2_dev = v4l2_dev;
+-	notifier->owner = dev_fwnode(v4l2_dev->dev);
++	notifier->registered = false;
+
+ 	ret = __v4l2_async_notifier_register(notifier);
+ 	if (ret)
+@@ -466,7 +462,11 @@ int v4l2_async_subdev_notifier_register(struct v4l2_subdev *sd,
+ 		return -EINVAL;
+
+ 	notifier->sd = sd;
+-	notifier->owner = dev_fwnode(sd->dev);
++	sd->subdev_notifier = notifier;
++	notifier->registered = false;
++
++	if (!sd->dev || !sd->fwnode)
++		return 0;
+
+ 	ret = __v4l2_async_notifier_register(notifier);
+ 	if (ret)
+@@ -482,12 +482,15 @@ static void __v4l2_async_notifier_unregister(
+ 	if (!notifier || (!notifier->v4l2_dev && !notifier->sd))
+ 		return;
+
+-	v4l2_async_notifier_unbind_all_subdevs(notifier);
++	if (notifier->registered) {
++		v4l2_async_notifier_unbind_all_subdevs(notifier);
++		list_del(&notifier->list);
++	}
+
+ 	notifier->sd = NULL;
+ 	notifier->v4l2_dev = NULL;
+-
+-	list_del(&notifier->list);
++	notifier->owner = NULL;
++	notifier->registered = false;
+ }
+
+ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
+@@ -548,6 +551,20 @@ int v4l2_async_register_subdev(struct v4l2_subdev *sd)
+ 			sd->fwnode = dev_fwnode(sd->dev);
+ 	}
+
++	/*
++	 * If the subdevice has an unregisterd notifier, it's now time
++	 * to register it.
++	 */
++	subdev_notifier = sd->subdev_notifier;
++	if (subdev_notifier && !subdev_notifier->registered) {
++		ret = __v4l2_async_notifier_register(subdev_notifier);
++		if (ret) {
++			sd->fwnode = NULL;
++			subdev_notifier->owner = NULL;
++			return ret;
++		}
++	}
++
+ 	mutex_lock(&list_lock);
+
+ 	INIT_LIST_HEAD(&sd->async_list);
+@@ -589,7 +606,7 @@ int v4l2_async_register_subdev(struct v4l2_subdev *sd)
+ 	 * Complete failed. Unbind the sub-devices bound through registering
+ 	 * this async sub-device.
+ 	 */
+-	subdev_notifier = v4l2_async_find_subdev_notifier(sd);
++	subdev_notifier = sd->subdev_notifier;
+ 	if (subdev_notifier)
+ 		v4l2_async_notifier_unbind_all_subdevs(subdev_notifier);
+
+diff --git a/include/media/v4l2-async.h b/include/media/v4l2-async.h
+index a15c01d..6ab04ad 100644
+--- a/include/media/v4l2-async.h
++++ b/include/media/v4l2-async.h
+@@ -110,6 +110,7 @@ struct v4l2_async_notifier_operations {
+  * @waiting:	list of struct v4l2_async_subdev, waiting for their drivers
+  * @done:	list of struct v4l2_subdev, already probed
+  * @list:	member in a global list of notifiers
++ * @registered: notifier registered complete flag
+  */
+ struct v4l2_async_notifier {
+ 	const struct v4l2_async_notifier_operations *ops;
+@@ -123,6 +124,7 @@ struct v4l2_async_notifier {
+ 	struct list_head waiting;
+ 	struct list_head done;
+ 	struct list_head list;
++	bool registered;
+ };
+
+ /**
+--
+2.7.4
