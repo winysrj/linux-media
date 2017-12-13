@@ -1,301 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay2-d.mail.gandi.net ([217.70.183.194]:49700 "EHLO
-        relay2-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933617AbdLRMZS (ORCPT
+Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:57218 "EHLO
+        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751499AbdLMErE (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 18 Dec 2017 07:25:18 -0500
-Date: Mon, 18 Dec 2017 13:25:12 +0100
-From: jacopo mondi <jacopo@jmondi.org>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>, magnus.damm@gmail.com,
-        geert@glider.be, mchehab@kernel.org, hverkuil@xs4all.nl,
-        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-sh@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v1 03/10] v4l: platform: Add Renesas CEU driver
-Message-ID: <20171218122512.GG20926@w540>
-References: <1510743363-25798-1-git-send-email-jacopo+renesas@jmondi.org>
- <1510743363-25798-4-git-send-email-jacopo+renesas@jmondi.org>
- <2710170.YbEgzp5Yxe@avalon>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <2710170.YbEgzp5Yxe@avalon>
+        Tue, 12 Dec 2017 23:47:04 -0500
+Message-ID: <1617709d677afed87786af88c1a337ff@smtp-cloud9.xs4all.net>
+Date: Wed, 13 Dec 2017 05:47:01 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
-    thanks for review comments...
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-On Mon, Dec 11, 2017 at 06:15:23PM +0200, Laurent Pinchart wrote:
-> Hi Jacopo,
->
-> Thank you for the patch.
->
-[snip]
+Results of the daily build of media_tree:
 
-> > +
-> > +/**
-> > + * ceu_buffer - Link vb2 buffer to the list of available buffers
->
-> If you use kerneldoc comments please make them compile. You need to document
-> the structure fields and function arguments.
->
+date:			Wed Dec 13 05:00:18 CET 2017
+media-tree git hash:	330dada5957e3ca0c8811b14c45e3ac42c694651
+media_build git hash:	f5a5e5e470d834f9843fee7a7c2ce3e4be610ca7
+v4l-utils git hash:	655a8e3e412fd30b5ec201b73ec2b923c76e34bb
+gcc version:		i686-linux-gcc (GCC) 7.1.0
+sparse version:		v0.5.0-3911-g6f737e1f
+smatch version:		v0.5.0-3911-g6f737e1f
+host hardware:		x86_64
+host os:		4.13.0-164
 
-Ok, no kernel doc for internal structures then and no kernel doc for
-ugly comments you pointed out below
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12.67-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.7-i686: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.18.7-i686: ERRORS
+linux-3.19-i686: ERRORS
+linux-4.0.9-i686: ERRORS
+linux-4.1.33-i686: ERRORS
+linux-4.2.8-i686: ERRORS
+linux-4.3.6-i686: ERRORS
+linux-4.4.22-i686: ERRORS
+linux-4.5.7-i686: ERRORS
+linux-4.6.7-i686: ERRORS
+linux-4.7.5-i686: ERRORS
+linux-4.8-i686: ERRORS
+linux-4.9.26-i686: ERRORS
+linux-4.10.14-i686: ERRORS
+linux-4.11-i686: ERRORS
+linux-4.12.1-i686: ERRORS
+linux-4.13-i686: ERRORS
+linux-4.14-i686: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.67-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.7-x86_64: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.7-x86_64: ERRORS
+linux-3.19-x86_64: ERRORS
+linux-4.0.9-x86_64: ERRORS
+linux-4.1.33-x86_64: ERRORS
+linux-4.2.8-x86_64: ERRORS
+linux-4.3.6-x86_64: ERRORS
+linux-4.4.22-x86_64: ERRORS
+linux-4.5.7-x86_64: ERRORS
+linux-4.6.7-x86_64: ERRORS
+linux-4.7.5-x86_64: ERRORS
+linux-4.8-x86_64: ERRORS
+linux-4.9.26-x86_64: ERRORS
+linux-4.10.14-x86_64: ERRORS
+linux-4.11-x86_64: ERRORS
+linux-4.12.1-x86_64: ERRORS
+linux-4.13-x86_64: ERRORS
+linux-4.14-x86_64: ERRORS
+apps: OK
+spec-git: OK
+smatch: OK
 
-[snip]
+Detailed results are available here:
 
-> > +/**
-> > + * ceu_soft_reset() - Software reset the CEU interface
-> > + */
-> > +static int ceu_soft_reset(struct ceu_device *ceudev)
-> > +{
-> > +	unsigned int reset_done;
-> > +	unsigned int i;
-> > +
-> > +	ceu_write(ceudev, CEU_CAPSR, CEU_CAPSR_CPKIL);
-> > +
-> > +	reset_done = 0;
-> > +	for (i = 0; i < 1000 && !reset_done; i++) {
-> > +		udelay(1);
-> > +		if (!(ceu_read(ceudev, CEU_CSTSR) & CEU_CSTRST_CPTON))
-> > +			reset_done++;
-> > +	}
->
-> How many iterations does this typically require ? Wouldn't a sleep be better
-> than a delay ? As far as I can tell the ceu_soft_reset() function is only
-> called with interrupts disabled (in interrupt context) from ceu_capture() in
-> an error path, and that code should be reworked to make it possible to sleep
-> if a reset takes too long.
->
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
 
-The HW manual does not provide any indication about absolute timings.
-I can empirically try and see, but that would just be a hint.
+Full logs are available here:
 
-Also, the reset function is called in many places (runtime_pm
-suspend/resume) s_stream(0) and in error path of ceu_capture().
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
 
-In ceu_capture() we reset the interface if the previous frame was bad,
-and we do that before re-enabling the capture interrupt (so interrupts
-are not -disabled-, just the one we care about is not enabled yet..)
+The Media Infrastructure API from this daily build is here:
 
-But that's not big deal, as if we fail there, we are about to abort
-capture anyhow and so if we miss some spurious capture interrupt it's
-ok...
-
-
-> > +	if (!reset_done) {
-> > +		v4l2_err(&ceudev->v4l2_dev, "soft reset time out\n");
->
-> How about dev_err() instead ?
-
-Is dev_err/dev_dbg preferred over v4l2_err/v4l2_dbg? Is this because
-of dynamic debug?
-
-> > +
-> > +/**
-> > + * ceu_capture() - Trigger start of a capture sequence
-> > + *
-> > + * Return value doesn't reflect the success/failure to queue the new
-> > buffer,
-> > + * but rather the status of the previous capture.
-> > + */
-> > +static int ceu_capture(struct ceu_device *ceudev)
-> > +{
-> > +	struct v4l2_pix_format_mplane *pix = &ceudev->v4l2_pix;
-> > +	dma_addr_t phys_addr_top;
-> > +	u32 status;
-> > +
-> > +	/* Clean interrupt status and re-enable interrupts */
-> > +	status = ceu_read(ceudev, CEU_CETCR);
-> > +	ceu_write(ceudev, CEU_CEIER,
-> > +		  ceu_read(ceudev, CEU_CEIER) & ~CEU_CEIER_MASK);
-> > +	ceu_write(ceudev, CEU_CETCR, ~status & CEU_CETCR_MAGIC);
-> > +	ceu_write(ceudev, CEU_CEIER, CEU_CEIER_MASK);
->
-> I wonder why there's a need to disable and reenable interrupts here.
-
-The original driver clearly said "The hardware is -very- picky about
-this sequence" and I got scared and nerver touched this. Also, I very
-much dislike the CEU_CETRC_MAGIC mask, but again the old driver said
-"Acknoledge magical interrupt sources" and I was afraid to change it
-(I can rename it though, to something lioke CEU_CETCR_ALL_INT because
-that's what it is, a mask with all available interrupt source
-enabled).
-
-> > +
-> > +static irqreturn_t ceu_irq(int irq, void *data)
-> > +{
-> > +	struct ceu_device *ceudev = data;
-> > +	struct vb2_v4l2_buffer *vbuf;
-> > +	struct ceu_buffer *buf;
-> > +	int ret;
-> > +
-> > +	spin_lock(&ceudev->lock);
-> > +	vbuf = ceudev->active;
-> > +	if (!vbuf)
-> > +		/* Stale interrupt from a released buffer */
-> > +		goto out;
->
-> Shouldn't you at least clear the interrupt source (done at the beginning of
-> the ceu_capture() function) in this case ? I'd move the handling of the
-> interrupt status from ceu_capture() to here and pass the status to the capture
-> function. Or even handle the status here completely, as status handling isn't
-> needed when ceu_capture() is called from ceu_start_streaming().
-
-I'll try to move interrupt management here, and use flags to tell to
-ceu_capture() what happened
-
->
-> > +	/* Prepare a new 'active' buffer and trigger a new capture */
-> > +	buf = vb2_to_ceu(vbuf);
-> > +	vbuf->vb2_buf.timestamp = ktime_get_ns();
-> > +
-> > +	if (!list_empty(&ceudev->capture)) {
-> > +		buf = list_first_entry(&ceudev->capture, struct ceu_buffer,
-> > +				       queue);
-> > +		list_del(&buf->queue);
-> > +		ceudev->active = &buf->vb;
-> > +	} else {
-> > +		ceudev->active = NULL;
-> > +	}
-> > +
-> > +	/*
-> > +	 * If the new capture started successfully, mark the previous buffer
-> > +	 * as "DONE".
-> > +	 */
-> > +	ret = ceu_capture(ceudev);
-> > +	if (!ret) {
-> > +		vbuf->field = ceudev->field;
-> > +		vbuf->sequence = ceudev->sequence++;
->
-> Shouldn't you set the sequence number even when an error occurs ? You should
-> also complete all buffers with VB2_BUF_STATE_ERROR in that case, as
-> ceu_capture() won't start a new capture, otherwise userspace will hang
-> forever.
-
-I'll return all buffers in case of failure..
-
->
-> > +	}
-> > +
-> > +	vb2_buffer_done(&vbuf->vb2_buf,
-> > +			ret < 0 ? VB2_BUF_STATE_ERROR : VB2_BUF_STATE_DONE);
-> > +
-> > +out:
-> > +	spin_unlock(&ceudev->lock);
-> > +
-> > +	return IRQ_HANDLED;
->
-> You shouldn't return IRQ_HANDLED if the IRQ status reported no interrupt.
->
-
-Is there a case where we enter the irq handler with no interrupt?
-
-> > + * ceu_calc_plane_sizes() - Fill 'struct v4l2_plane_pix_format' per plane
-> > + *			    information according to the currently configured
-> > + *			    pixel format.
-> > + */
-> > +static int ceu_calc_plane_sizes(struct ceu_device *ceudev,
-> > +				const struct ceu_fmt *ceu_fmt,
-> > +				struct v4l2_pix_format_mplane *pix)
-> > +{
-> > +	struct v4l2_plane_pix_format *plane_fmt = &pix->plane_fmt[0];
-> > +
-> > +	switch (pix->pixelformat) {
-> > +	case V4L2_PIX_FMT_YUYV:
-> > +		pix->num_planes			= 1;
-> > +		plane_fmt[0].bytesperline	= pix->width * ceu_fmt->bpp / 8;
->
-> Doesn't the driver support configurable stride ?
->
-> > +		plane_fmt[0].sizeimage		= pix->height *
-> > +						  plane_fmt[0].bytesperline;
->
-> Padding at the end of the image should be allowed if requested by userspace.
->
-
-Isn't stride dependent on the image format only?
-Where do I find informations about userspace requested padding?
-
-> > +
-> > +	for (i = 0; i < pix->num_planes; i++) {
-> > +		if (vb2_plane_size(vb, i) < pix->plane_fmt[i].sizeimage) {
-> > +			v4l2_err(&ceudev->v4l2_dev,
-> > +				 "Buffer #%d too small (%lu < %u)\n",
-> > +				 vb->index, vb2_plane_size(vb, i),
-> > +				 pix->plane_fmt[i].sizeimage);
->
-> I wouldn't print an error message, otherwise userspace will have yet another
-> way to flood the kernel log.
-
-dev_dbg for dynamic_debug or drop completely?
-Here and below where you pointed out the same
-
-> > +/**
-> > + * ceu_test_mbus_param() - test bus parameters against sensor provided
-> > ones.
-> > + *
-> > + * @return: < 0 for errors
-> > + *	    0 if g_mbus_config is not supported,
-> > + *	    > 0  for bus configuration flags supported by (ceu AND sensor)
-> > + */
-> > +static int ceu_test_mbus_param(struct ceu_device *ceudev)
-> > +{
-> > +	struct v4l2_subdev *sd = ceudev->sd->v4l2_sd;
-> > +	unsigned long common_flags = CEU_BUS_FLAGS;
-> > +	struct v4l2_mbus_config cfg = {
-> > +		.type = V4L2_MBUS_PARALLEL,
-> > +	};
-> > +	int ret;
-> > +
-> > +	ret = v4l2_subdev_call(sd, video, g_mbus_config, &cfg);
-> > +	if (ret < 0 && ret != -ENOIOCTLCMD)
-> > +		return ret;
-> > +	else if (ret == -ENOIOCTLCMD)
-> > +		return 0;
-> > +
-> > +	common_flags = ceu_mbus_config_compatible(&cfg, common_flags);
-> > +	if (!common_flags)
-> > +		return -EINVAL;
-> > +
-> > +	return common_flags;
->
-> This is a legacy of soc_camera that tried to negotiate bus parameters with the
-> source subdevice. We have later established that this isn't a good idea, as
-> there could be components on the board that affect those settings (for
-> instance inverters on the synchronization signals). This is why with DT we
-> specify the bus configuration in endpoints on both sides. You should thus
-> always use the bus configuration provided through DT or platform data and
-> ignore the one reported by the subdev.
->
-
-Yes, I found that when trying to implement g/s_mbus_config for ov7670
-sensor. I will remove all of this and use flags returned by
-"v4l2_fwnode_endpoint_parse()"
-> [snip]
->
-> > +static int ceu_probe(struct platform_device *pdev)
-> > +{
-> > +	struct device *dev = &pdev->dev;
-> > +	struct ceu_device *ceudev;
-> > +	struct resource *res;
-> > +	void __iomem *base;
-> > +	unsigned int irq;
-> > +	int num_sd;
-> > +	int ret;
-> > +
-> > +	ceudev = kzalloc(sizeof(*ceudev), GFP_KERNEL);
->
-> The memory is freed in ceu_vdev_release() as expected, but that will only work
-> if the video device is registered. If the subdevs are never bound, the ceudev
-> memory will be leaked if you unbind the CEU device from its driver. In my
-> opinion this calls for registering the video device at probe time (although
-> Hans disagrees).
-
-Can I do something here to prevent this?
-
-
-Thanks
-   j
+http://www.xs4all.nl/~hverkuil/spec/index.html
