@@ -1,57 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:40732 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751630AbdLDWai (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 4 Dec 2017 17:30:38 -0500
-Received: from avalon.localnet (dfj612ybrt5fhg77mgycy-3.rev.dnainternet.fi [IPv6:2001:14ba:21f5:5b00:2e86:4862:ef6a:2804])
-        by galahad.ideasonboard.com (Postfix) with ESMTPSA id 77DB120064
-        for <linux-media@vger.kernel.org>; Mon,  4 Dec 2017 23:28:52 +0100 (CET)
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Subject: [GIT PULL FOR v4.16] uvcvideo
-Date: Tue, 05 Dec 2017 00:30:52 +0200
-Message-ID: <1730000.MBkvG3CCLr@avalon>
+Received: from guitar.tcltek.co.il ([192.115.133.116]:57840 "EHLO
+        mx.tkos.co.il" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753051AbdLMOV4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 13 Dec 2017 09:21:56 -0500
+Date: Wed, 13 Dec 2017 16:21:52 +0200
+From: Baruch Siach <baruch@tkos.co.il>
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: linux-media@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Fabio Estevam <fabio.estevam@nxp.com>,
+        Chris Healy <Chris.Healy@zii.aero>, devicetree@vger.kernel.org,
+        kernel@pengutronix.de
+Subject: Re: [PATCH 1/2] media: dt-bindings: coda: Add compatible for CodaHx4
+ on i.MX51
+Message-ID: <20171213142152.7vcludcs7ohjeaqb@sapphire.tkos.co.il>
+References: <20171213140918.22500-1-p.zabel@pengutronix.de>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20171213140918.22500-1-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Hi Philipp,
 
-The following changes since commit 781b045baefdabf7e0bc9f33672ca830d3db9f27:
+On Wed, Dec 13, 2017 at 03:09:17PM +0100, Philipp Zabel wrote:
+> Add a compatible for the CodaHx4 VPU used on i.MX51.
+> 
+> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+> ---
+>  Documentation/devicetree/bindings/media/coda.txt | 1 +
+>  1 file changed, 1 insertion(+)
+> 
+> diff --git a/Documentation/devicetree/bindings/media/coda.txt b/Documentation/devicetree/bindings/media/coda.txt
+> index 2865d04e40305..660f5ecf2a23b 100644
+> --- a/Documentation/devicetree/bindings/media/coda.txt
+> +++ b/Documentation/devicetree/bindings/media/coda.txt
+> @@ -7,6 +7,7 @@ called VPU (Video Processing Unit).
+>  Required properties:
+>  - compatible : should be "fsl,<chip>-src" for i.MX SoCs:
+>    (a) "fsl,imx27-vpu" for CodaDx6 present in i.MX27
+> +  (a) "fsl,imx51-vpu" for CodaHx4 present in i.MX51
 
-  media: imx274: Fix error handling, add MAINTAINERS entry (2017-11-30 
-04:45:12 -0500)
+Renumbering the strings might be useful.
 
-are available in the git repository at:
+>    (b) "fsl,imx53-vpu" for CODA7541 present in i.MX53
+>    (c) "fsl,imx6q-vpu" for CODA960 present in i.MX6q
+>  - reg: should be register base and length as documented in the
 
-  git://linuxtv.org/pinchartl/media.git uvc/next
-
-for you to fetch changes up to ed0c7e626c71120d844b06ce06c561670e0feb32:
-
-  uvcvideo: Stream error events carry no data (2017-12-05 00:28:50 +0200)
-
-----------------------------------------------------------------
-Baoyou Xie (1):
-      uvcvideo: Mark buffer error where overflow
-
-Jaejoong Kim (1):
-      uvcvideo: Remove duplicate & operation
-
-Laurent Pinchart (1):
-      uvcvideo: Stream error events carry no data
-
-Nicolas Dufresne (1):
-      uvcvideo: Add D3DFMT_L8 support
-
- drivers/media/usb/uvc/uvc_driver.c | 5 +++++
- drivers/media/usb/uvc/uvc_status.c | 5 +++--
- drivers/media/usb/uvc/uvc_video.c  | 5 +++--
- drivers/media/usb/uvc/uvcvideo.h   | 5 +++++
- 4 files changed, 16 insertions(+), 4 deletions(-)
+baruch
 
 -- 
-Regards,
-
-Laurent Pinchart
+     http://baruch.siach.name/blog/                  ~. .~   Tk Open Systems
+=}------------------------------------------------ooO--U--Ooo------------{=
+   - baruch@tkos.co.il - tel: +972.2.679.5364, http://www.tkos.co.il -
