@@ -1,85 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx07-00178001.pphosted.com ([62.209.51.94]:48243 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750892AbdLSQSg (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 19 Dec 2017 11:18:36 -0500
-From: Fabien DESSENNE <fabien.dessenne@st.com>
-To: Jia-Ju Bai <baijiaju1990@gmail.com>,
-        "mchehab@kernel.org" <mchehab@kernel.org>,
-        Benjamin GAIGNARD <benjamin.gaignard@st.com>,
-        "hverkuil@xs4all.nl" <hverkuil@xs4all.nl>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH V3 1/2] bdisp: Fix a possible sleep-in-atomic bug in
- bdisp_hw_reset
-Date: Tue, 19 Dec 2017 16:18:30 +0000
-Message-ID: <cb34305e-ae6c-cc70-578d-3afbb676edd9@st.com>
-References: <1513691849-6378-1-git-send-email-baijiaju1990@gmail.com>
-In-Reply-To: <1513691849-6378-1-git-send-email-baijiaju1990@gmail.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-ID: <BA270002238D0D4C9E3EDD333272DD28@st.com>
-Content-Transfer-Encoding: base64
-MIME-Version: 1.0
+Received: from mout.gmx.net ([212.227.17.22]:54537 "EHLO mout.gmx.net"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753576AbdLMPe4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 13 Dec 2017 10:34:56 -0500
+Received: from axis700.grange ([84.44.207.202]) by mail.gmx.com (mrgmx102
+ [212.227.17.168]) with ESMTPSA (Nemesis) id 0MQMBU-1ebCpn1EoW-00ToIf for
+ <linux-media@vger.kernel.org>; Wed, 13 Dec 2017 16:34:55 +0100
+Received: from 200r.grange (200r.grange [192.168.1.16])
+        by axis700.grange (Postfix) with ESMTP id 33855619BF
+        for <linux-media@vger.kernel.org>; Wed, 13 Dec 2017 16:34:54 +0100 (CET)
+From: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>
+To: linux-media@vger.kernel.org
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH 0/2 v6] uvcvideo: asynchronous controls
+Date: Wed, 13 Dec 2017 16:34:51 +0100
+Message-Id: <1513179293-17324-1-git-send-email-guennadi.liakhovetski@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-SGksDQoNCg0KSXQncyBhbG1vc3QgZ29vZCENCg0KWW91IGhhdmUgdG8gZml4IHRoZXNlIGNoZWNr
-cGF0Y2ggV2FybmluZy9DaGVjazoNCg0KV0FSTklORzogQmxvY2sgY29tbWVudHMgdXNlIGEgdHJh
-aWxpbmcgKi8gb24gYSBzZXBhcmF0ZSBsaW5lDQojMzY6IEZJTEU6IGRyaXZlcnMvbWVkaWEvcGxh
-dGZvcm0vc3RpL2JkaXNwL2JkaXNwLWh3LmM6MzgzOg0KK8KgwqDCoCDCoCogbmVlZGluZyBhbnkg
-ZGVsYXlzICovDQoNCkNIRUNLOiBBbGlnbm1lbnQgc2hvdWxkIG1hdGNoIG9wZW4gcGFyZW50aGVz
-aXMNCiMzODogRklMRTogZHJpdmVycy9tZWRpYS9wbGF0Zm9ybS9zdGkvYmRpc3AvYmRpc3AtaHcu
-YzozODU6DQorwqDCoMKgIGlmIChyZWFkbF9wb2xsX3RpbWVvdXRfYXRvbWljKGJkaXNwLT5yZWdz
-ICsgQkxUX1NUQTEsIHRtcCwNCivCoMKgwqAgwqDCoMKgICh0bXAgJiBCTFRfU1RBMV9JRExFKSwg
-UE9MTF9SU1RfREVMQVlfTVMsDQoNCg0KIEZyb20ga2VybmVsIGRvY3VtZW50YXRpb24gaW4gdGhl
-ICJQb3N0aW5nIHBhdGNoZXMiIGNoYXB0ZXI6DQoNCiJZb3Ugc2hvdWxkIGFsd2F5cyBydW4gcGF0
-Y2hlcyB0aHJvdWdoIHNjcmlwdHMvY2hlY2twYXRjaC5wbCBhbmQgYWRkcmVzcyANCnRoZSBjb21w
-bGFpbnRzIGl0IGNvbWVzIHVwIHdpdGguIg0KDQpBbmQsIHBsZWFzZSB1c2UgdGhlIC0tc3RyaWN0
-IG9wdGlvbg0KDQpUaGFua3MgZm9yIHlvdXIgdW5kZXJzdGFuZGluZy4NCg0KQlINCg0KRmFiaWVu
-DQoNCk9uIDE5LzEyLzE3IDE0OjU3LCBKaWEtSnUgQmFpIHdyb3RlOg0KPiBUaGUgZHJpdmVyIG1h
-eSBzbGVlcCB1bmRlciBhIHNwaW5sb2NrLg0KPiBUaGUgZnVuY3Rpb24gY2FsbCBwYXRoIGlzOg0K
-PiBiZGlzcF9kZXZpY2VfcnVuIChhY3F1aXJlIHRoZSBzcGlubG9jaykNCj4gICAgYmRpc3BfaHdf
-cmVzZXQNCj4gICAgICBtc2xlZXAgLS0+IG1heSBzbGVlcA0KPg0KPiBUbyBmaXggaXQsIHJlYWRs
-X3BvbGxfdGltZW91dF9hdG9taWMgaXMgdXNlZCB0byByZXBsYWNlIG1zbGVlcC4NCj4NCj4gVGhp
-cyBidWcgaXMgZm91bmQgYnkgbXkgc3RhdGljIGFuYWx5c2lzIHRvb2woRFNBQykgYW5kDQo+IGNo
-ZWNrZWQgYnkgbXkgY29kZSByZXZpZXcuDQo+DQo+IFNpZ25lZC1vZmYtYnk6IEppYS1KdSBCYWkg
-PGJhaWppYWp1MTk5MEBnbWFpbC5jb20+DQo+IC0tLQ0KPiAgIGRyaXZlcnMvbWVkaWEvcGxhdGZv
-cm0vc3RpL2JkaXNwL2JkaXNwLWh3LmMgfCAgIDIzICsrKysrKysrKysrKy0tLS0tLS0tLS0tDQo+
-ICAgMSBmaWxlIGNoYW5nZWQsIDEyIGluc2VydGlvbnMoKyksIDExIGRlbGV0aW9ucygtKQ0KPg0K
-PiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9tZWRpYS9wbGF0Zm9ybS9zdGkvYmRpc3AvYmRpc3AtaHcu
-YyBiL2RyaXZlcnMvbWVkaWEvcGxhdGZvcm0vc3RpL2JkaXNwL2JkaXNwLWh3LmMNCj4gaW5kZXgg
-Yjc4OTJmMy4uYjYzZDljOSAxMDA2NDQNCj4gLS0tIGEvZHJpdmVycy9tZWRpYS9wbGF0Zm9ybS9z
-dGkvYmRpc3AvYmRpc3AtaHcuYw0KPiArKysgYi9kcml2ZXJzL21lZGlhL3BsYXRmb3JtL3N0aS9i
-ZGlzcC9iZGlzcC1ody5jDQo+IEBAIC00LDcgKzQsNyBAQA0KPiAgICAqIExpY2Vuc2UgdGVybXM6
-ICBHTlUgR2VuZXJhbCBQdWJsaWMgTGljZW5zZSAoR1BMKSwgdmVyc2lvbiAyDQo+ICAgICovDQo+
-ICAgDQo+IC0jaW5jbHVkZSA8bGludXgvZGVsYXkuaD4NCj4gKyNpbmNsdWRlIDxsaW51eC9pb3Bv
-bGwuaD4NCj4gICANCj4gICAjaW5jbHVkZSAiYmRpc3AuaCINCj4gICAjaW5jbHVkZSAiYmRpc3At
-ZmlsdGVyLmgiDQo+IEBAIC0xNSw3ICsxNSw3IEBADQo+ICAgDQo+ICAgLyogUmVzZXQgJiBib290
-IHBvbGwgY29uZmlnICovDQo+ICAgI2RlZmluZSBQT0xMX1JTVF9NQVggICAgICAgICAgICA1MA0K
-PiAtI2RlZmluZSBQT0xMX1JTVF9ERUxBWV9NUyAgICAgICAyMA0KPiArI2RlZmluZSBQT0xMX1JT
-VF9ERUxBWV9VUyAgICAgICAyMDAwMA0KPiAgIA0KPiAgIGVudW0gYmRpc3BfdGFyZ2V0X3BsYW4g
-ew0KPiAgIAlCRElTUF9SR0IsDQo+IEBAIC0zNjYsNyArMzY2LDcgQEAgc3RydWN0IGJkaXNwX2Zp
-bHRlcl9hZGRyIHsNCj4gICAgKi8NCj4gICBpbnQgYmRpc3BfaHdfcmVzZXQoc3RydWN0IGJkaXNw
-X2RldiAqYmRpc3ApDQo+ICAgew0KPiAtCXVuc2lnbmVkIGludCBpOw0KPiArCXUzMiB0bXA7DQo+
-ICAgDQo+ICAgCWRldl9kYmcoYmRpc3AtPmRldiwgIiVzXG4iLCBfX2Z1bmNfXyk7DQo+ICAgDQo+
-IEBAIC0zNzgsMTYgKzM3OCwxNyBAQCBpbnQgYmRpc3BfaHdfcmVzZXQoc3RydWN0IGJkaXNwX2Rl
-diAqYmRpc3ApDQo+ICAgCSAgICAgICBiZGlzcC0+cmVncyArIEJMVF9DVEwpOw0KPiAgIAl3cml0
-ZWwoMCwgYmRpc3AtPnJlZ3MgKyBCTFRfQ1RMKTsNCj4gICANCj4gLQkvKiBXYWl0IGZvciByZXNl
-dCBkb25lICovDQo+IC0JZm9yIChpID0gMDsgaSA8IFBPTExfUlNUX01BWDsgaSsrKSB7DQo+IC0J
-CWlmIChyZWFkbChiZGlzcC0+cmVncyArIEJMVF9TVEExKSAmIEJMVF9TVEExX0lETEUpDQo+IC0J
-CQlicmVhazsNCj4gLQkJbXNsZWVwKFBPTExfUlNUX0RFTEFZX01TKTsNCj4gLQl9DQo+IC0JaWYg
-KGkgPT0gUE9MTF9SU1RfTUFYKQ0KPiArCS8qIFdhaXQgZm9yIHJlc2V0IGRvbmUuDQo+ICsJICog
-RGVzcGl0ZSB0aGUgbGFyZ2UgdGltZW91dCwgbW9zdCBvZiB0aGUgdGltZSB0aGUgcmVzZXQgaGFw
-cGVucyB3aXRob3V0DQo+ICsJICogbmVlZGluZyBhbnkgZGVsYXlzICovDQoNCnNoYWxsIGJlDQoN
-CisJICogbmVlZGluZyBhbnkgZGVsYXlzDQoNCisJICovDQoNCj4gKwlpZiAocmVhZGxfcG9sbF90
-aW1lb3V0X2F0b21pYyhiZGlzcC0+cmVncyArIEJMVF9TVEExLCB0bXAsDQo+ICsJCSh0bXAgJiBC
-TFRfU1RBMV9JRExFKSwgUE9MTF9SU1RfREVMQVlfVVMsDQo+ICsJCQlQT0xMX1JTVF9ERUxBWV9V
-UyAqIFBPTExfUlNUX01BWCkpIHsNCg0Kc2hhbGwgYmU6DQoNCisJaWYgKHJlYWRsX3BvbGxfdGlt
-ZW91dF9hdG9taWMoYmRpc3AtPnJlZ3MgKyBCTFRfU1RBMSwgdG1wLA0KKwkJCQkgICAgICB0bXAg
-JiBCTFRfU1RBMV9JRExFLCBQT0xMX1JTVF9ERUxBWV9VUywNCisJCQkJICAgICAgUE9MTF9SU1Rf
-REVMQVlfVVMgKiBQT0xMX1JTVF9NQVgpKSB7DQoNCj4gICAJCWRldl9lcnIoYmRpc3AtPmRldiwg
-IlJlc2V0IHRpbWVvdXRcbiIpOw0KPiArCQlyZXR1cm4gLUVBR0FJTjsNCj4gKwl9DQo+ICAgDQo+
-IC0JcmV0dXJuIChpID09IFBPTExfUlNUX01BWCkgPyAtRUFHQUlOIDogMDsNCj4gKwlyZXR1cm4g
-MDsNCj4gICB9DQo+ICAgDQo+ICAgLyoqDQo=
+This is an update of the two patches, adding asynchronous control
+support to the uvcvideo driver. If a control is sent, while the camera
+is still processing an earlier control, it will generate a protocol
+STALL condition on the control pipe.
+
+Thanks
+Guennadi
+
+Guennadi Liakhovetski (2):
+  uvcvideo: send a control event when a Control Change interrupt arrives
+  uvcvideo: handle control pipe protocol STALLs
+
+ drivers/media/usb/uvc/uvc_ctrl.c   | 166 +++++++++++++++++++++++++++++++++----
+ drivers/media/usb/uvc/uvc_status.c | 111 ++++++++++++++++++++++---
+ drivers/media/usb/uvc/uvc_v4l2.c   |   4 +-
+ drivers/media/usb/uvc/uvc_video.c  |  59 +++++++++++--
+ drivers/media/usb/uvc/uvcvideo.h   |  15 +++-
+ include/uapi/linux/uvcvideo.h      |   2 +
+ 6 files changed, 322 insertions(+), 35 deletions(-)
+
+-- 
+1.9.3
