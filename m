@@ -1,61 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:49981 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1762318AbdLSLnm (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 19 Dec 2017 06:43:42 -0500
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:42256 "EHLO
+        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752998AbdLMNDc (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 13 Dec 2017 08:03:32 -0500
+Received: by mail-wm0-f68.google.com with SMTP id b199so4923570wme.1
+        for <linux-media@vger.kernel.org>; Wed, 13 Dec 2017 05:03:31 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <1510743363-25798-8-git-send-email-jacopo+renesas@jmondi.org>
+References: <1510743363-25798-1-git-send-email-jacopo+renesas@jmondi.org> <1510743363-25798-8-git-send-email-jacopo+renesas@jmondi.org>
+From: Philippe Ombredanne <pombredanne@nexb.com>
+Date: Wed, 13 Dec 2017 14:02:50 +0100
+Message-ID: <CAOFm3uHvU6W8FDsO8zH7+akJfALedQvbXwtfLsUQ-RRt7iWv5g@mail.gmail.com>
+Subject: Re: [PATCH v1 07/10] v4l: i2c: Copy ov772x soc_camera sensor driver
+To: Jacopo Mondi <jacopo+renesas@jmondi.org>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        magnus.damm@gmail.com, geert@glider.be,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        linux-renesas-soc@vger.kernel.org,
         Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Kyungmin Park <kyungmin.park@samsung.com>,
-        Andrzej Hajda <a.hajda@samsung.com>
-Subject: [PATCH] media: s5c73m3-core: fix logic on a timeout condition
-Date: Tue, 19 Dec 2017 06:43:37 -0500
-Message-Id: <fca33cac3228e9424663705f35f4376b9763f643.1513683814.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+        linux-sh@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As warned by smatch:
-	drivers/media/i2c/s5c73m3/s5c73m3-core.c:268 s5c73m3_check_status() error: uninitialized symbol 'status'.
+Jacopo,
 
-if s5c73m3_check_status() is called too late, time_is_after_jiffies(end)
-will return 0, causing the while to abort before reading status.
+On Wed, Nov 15, 2017 at 11:56 AM, Jacopo Mondi
+<jacopo+renesas@jmondi.org> wrote:
+> Copy the soc_camera based driver in v4l2 sensor driver directory.
+> This commit just copies the original file without modifying it.
+>
+> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
 
-The current code will do the wrong thing here, as it will still
-check if status != value. The right fix here is to change
-the logic to ensure that it will always read the status.
+<snip>
 
-Suggested-by: Andrzej Hajda <a.hajda@samsung.com>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/i2c/s5c73m3/s5c73m3-core.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+> --- /dev/null
+> +++ b/drivers/media/i2c/ov772x.c
+> @@ -0,0 +1,1124 @@
+> +/*
+> + * ov772x Camera Driver
+> + *
+> + * Copyright (C) 2008 Renesas Solutions Corp.
+> + * Kuninori Morimoto <morimoto.kuninori@renesas.com>
+> + *
+> + * Based on ov7670 and soc_camera_platform driver,
+> + *
+> + * Copyright 2006-7 Jonathan Corbet <corbet@lwn.net>
+> + * Copyright (C) 2008 Magnus Damm
+> + * Copyright (C) 2008, Guennadi Liakhovetski <kernel@pengutronix.de>
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + */
 
-diff --git a/drivers/media/i2c/s5c73m3/s5c73m3-core.c b/drivers/media/i2c/s5c73m3/s5c73m3-core.c
-index cdc4f2392ef9..ce196b60f917 100644
---- a/drivers/media/i2c/s5c73m3/s5c73m3-core.c
-+++ b/drivers/media/i2c/s5c73m3/s5c73m3-core.c
-@@ -248,17 +248,17 @@ static int s5c73m3_check_status(struct s5c73m3 *state, unsigned int value)
- {
- 	unsigned long start = jiffies;
- 	unsigned long end = start + msecs_to_jiffies(2000);
--	int ret = 0;
-+	int ret;
- 	u16 status;
- 	int count = 0;
- 
--	while (time_is_after_jiffies(end)) {
-+	do {
- 		ret = s5c73m3_read(state, REG_STATUS, &status);
- 		if (ret < 0 || status == value)
- 			break;
- 		usleep_range(500, 1000);
- 		++count;
--	}
-+	} while (time_is_after_jiffies(end));
- 
- 	if (count > 0)
- 		v4l2_dbg(1, s5c73m3_dbg, &state->sensor_sd,
+You may want to use the new SPDX ids as documented in Thomas doc
+patches instead of the loner legalese?
 -- 
-2.14.3
+Cordially
+Philippe Ombredanne
