@@ -1,101 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f68.google.com ([209.85.215.68]:40781 "EHLO
-        mail-lf0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S935534AbdLRXI7 (ORCPT
+Received: from mail-lf0-f65.google.com ([209.85.215.65]:45493 "EHLO
+        mail-lf0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753107AbdLMNHl (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 18 Dec 2017 18:08:59 -0500
-Received: by mail-lf0-f68.google.com with SMTP id g74so9653362lfk.7
-        for <linux-media@vger.kernel.org>; Mon, 18 Dec 2017 15:08:58 -0800 (PST)
-From: "Niklas =?iso-8859-1?Q?S=F6derlund?=" <niklas.soderlund@ragnatech.se>
-Date: Tue, 19 Dec 2017 00:08:56 +0100
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
-        Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        Benoit Parrot <bparrot@ti.com>,
-        Maxime Ripard <maxime.ripard@free-electrons.com>
-Subject: Re: [PATCH/RFC v2 02/15] rcar-vin: use pad as the starting point for
- a pipeline
-Message-ID: <20171218230856.GF32148@bigcity.dyn.berto.se>
-References: <20171214190835.7672-1-niklas.soderlund+renesas@ragnatech.se>
- <20171214190835.7672-3-niklas.soderlund+renesas@ragnatech.se>
- <20171215115402.uvvjkn3ltnxweqy6@paasikivi.fi.intel.com>
+        Wed, 13 Dec 2017 08:07:41 -0500
+Received: by mail-lf0-f65.google.com with SMTP id f13so2537255lff.12
+        for <linux-media@vger.kernel.org>; Wed, 13 Dec 2017 05:07:40 -0800 (PST)
+Subject: Re: [PATCH] dvb-sat: do the best to tune if DiSEqC is disabled
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        linux-media@vger.kernel.org
+References: <20171213125818.11589-1-mchehab@s-opensource.com>
+From: =?UTF-8?B?UmFmYcOrbCBDYXJyw6k=?= <rafael.carre@gmail.com>
+Message-ID: <c9d98f88-aadd-5274-6cee-7baccb113f45@gmail.com>
+Date: Wed, 13 Dec 2017 14:07:34 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
+In-Reply-To: <20171213125818.11589-1-mchehab@s-opensource.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <20171215115402.uvvjkn3ltnxweqy6@paasikivi.fi.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hej Sakari,
-
-Tack för dina kommentarer.
-
-On 2017-12-15 13:54:02 +0200, Sakari Ailus wrote:
-> On Thu, Dec 14, 2017 at 08:08:22PM +0100, Niklas Söderlund wrote:
-> > The pipeline will be moved from the entity to the pads; reflect this in
-> > the media pipeline function API.
+On 13/12/2017 13:58, Mauro Carvalho Chehab wrote:
+> If sat_number is not filled (e.g. it is -1), the dvb-sat
+> disables DiSEqC. However, currently, it also breaks support
+> for non-bandstacking LNBf.
 > 
-> I'll merge this to "media: entity: Use pad as the starting point for a
-> pipeline" if you're fine with that.
-
-I'm fine with that, the issue is that the rcar-vin Gen3 driver is not 
-yet upstream :-( If it makes it upstream before the work in your vc 
-branch feel free to squash this in. Until then I fear I need to keep 
-carry this in this series.
-
+> Change the logic to fix it. There is a drawback on this
+> approach, though: usually, on bandstacking arrangements,
+> only one device needs to feed power to the LNBf. The
+> others don't need to send power. With the previous code,
+> no power would be sent at all, if sat_number == -1.
 > 
-> I haven't compiled everything for some time, and newly added drivers may be
-> lacking these changes. I'll re-check that soonish.
+> Now, it will always power the LNBf when using it.
 > 
-> > 
-> > Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-> > ---
-> >  drivers/media/platform/rcar-vin/rcar-dma.c | 8 ++++----
-> >  1 file changed, 4 insertions(+), 4 deletions(-)
-> > 
-> > diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
-> > index 03a914361a33125c..cf30e5fceb1d493a 100644
-> > --- a/drivers/media/platform/rcar-vin/rcar-dma.c
-> > +++ b/drivers/media/platform/rcar-vin/rcar-dma.c
-> > @@ -1179,7 +1179,7 @@ static int rvin_set_stream(struct rvin_dev *vin, int on)
-> >  		return -EPIPE;
-> >  
-> >  	if (!on) {
-> > -		media_pipeline_stop(&vin->vdev.entity);
-> > +		media_pipeline_stop(vin->vdev.entity.pads);
-> >  		return v4l2_subdev_call(sd, video, s_stream, 0);
-> >  	}
-> >  
-> > @@ -1235,15 +1235,15 @@ static int rvin_set_stream(struct rvin_dev *vin, int on)
-> >  	    fmt.format.height != vin->format.height)
-> >  		return -EPIPE;
-> >  
-> > -	pipe = sd->entity.pipe ? sd->entity.pipe : &vin->vdev.pipe;
-> > -	if (media_pipeline_start(&vin->vdev.entity, pipe))
-> > +	pipe = sd->entity.pads->pipe ? sd->entity.pads->pipe : &vin->vdev.pipe;
-> > +	if (media_pipeline_start(vin->vdev.entity.pads, pipe))
-> >  		return -EPIPE;
-> >  
-> >  	ret = v4l2_subdev_call(sd, video, s_stream, 1);
-> >  	if (ret == -ENOIOCTLCMD)
-> >  		ret = 0;
-> >  	if (ret)
-> > -		media_pipeline_stop(&vin->vdev.entity);
-> > +		media_pipeline_stop(vin->vdev.entity.pads);
-> >  
-> >  	return ret;
-> >  }
-> > -- 
-> > 2.15.1
-> > 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> ---
+>  lib/libdvbv5/dvb-sat.c | 48 ++++++++++++++++++++++++------------------------
+>  1 file changed, 24 insertions(+), 24 deletions(-)
 > 
-> -- 
-> Sakari Ailus
-> sakari.ailus@linux.intel.com
+> diff --git a/lib/libdvbv5/dvb-sat.c b/lib/libdvbv5/dvb-sat.c
+> index b012318c4195..8c04f66f973b 100644
+> --- a/lib/libdvbv5/dvb-sat.c
+> +++ b/lib/libdvbv5/dvb-sat.c
+> @@ -523,11 +523,8 @@ static int dvbsat_diseqc_set_input(struct dvb_v5_fe_parms_priv *parms,
+>  	struct diseqc_cmd cmd;
+>  	const struct dvb_sat_lnb_priv *lnb = (void *)parms->p.lnb;
+>  
+> -	/* Negative numbers means to not use a DiSEqC switch */
+> -	if (parms->p.sat_number < 0) {
+> -		/* If not bandstack, warn if DiSEqC is disabled */
+> -		if (!lnb->freqrange[0].pol)
+> -			dvb_logwarn(_("DiSEqC disabled. Probably won't tune."));
+> +	if (sat_number < 0 && t) {
+> +		dvb_logwarn(_("DiSEqC disabled. Can't tune using SCR/Unicable."));
+>  		return 0;
+>  	}
+>  
+> @@ -546,7 +543,7 @@ static int dvbsat_diseqc_set_input(struct dvb_v5_fe_parms_priv *parms,
+>  			vol_high = 1;
+>  	} else {
+>  		/* Adjust voltage/tone accordingly */
+> -		if (parms->p.sat_number < 2) {
+> +		if (sat_number < 2) {
+>  			vol_high = pol_v ? 0 : 1;
+>  			tone_on = high_band;
+>  		}
+> @@ -560,28 +557,31 @@ static int dvbsat_diseqc_set_input(struct dvb_v5_fe_parms_priv *parms,
+>  	if (rc)
+>  		return rc;
+>  
+> -	usleep(15 * 1000);
+> -
+> -	if (!t)
+> -		rc = dvbsat_diseqc_write_to_port_group(parms, &cmd, high_band,
+> -							pol_v, sat_number);
+> -	else
+> -		rc = dvbsat_scr_odu_channel_change(parms, &cmd, high_band,
+> -							pol_v, sat_number, t);
+> +	if (sat_number >= 0) {
+> +		/* DiSEqC is enabled. Send DiSEqC commands */
+> +		usleep(15 * 1000);
+>  
+> -	if (rc) {
+> -		dvb_logerr(_("sending diseq failed"));
+> -		return rc;
+> -	}
+> -	usleep((15 + parms->p.diseqc_wait) * 1000);
+> +		if (!t)
+> +			rc = dvbsat_diseqc_write_to_port_group(parms, &cmd, high_band,
+> +								pol_v, sat_number);
+> +		else
+> +			rc = dvbsat_scr_odu_channel_change(parms, &cmd, high_band,
+> +								pol_v, sat_number, t);
+>  
+> -	/* miniDiSEqC/Toneburst commands are defined only for up to 2 sattelites */
+> -	if (parms->p.sat_number < 2) {
+> -		rc = dvb_fe_diseqc_burst(&parms->p, parms->p.sat_number);
+> -		if (rc)
+> +		if (rc) {
+> +			dvb_logerr(_("sending diseq failed"));
+>  			return rc;
+> +		}
+> +		usleep((15 + parms->p.diseqc_wait) * 1000);
+> +
+> +		/* miniDiSEqC/Toneburst commands are defined only for up to 2 sattelites */
+> +		if (parms->p.sat_number < 2) {
+> +			rc = dvb_fe_diseqc_burst(&parms->p, parms->p.sat_number);
+> +			if (rc)
+> +				return rc;
+> +		}
+> +		usleep(15 * 1000);
+>  	}
+> -	usleep(15 * 1000);
+>  
+>  	rc = dvb_fe_sec_tone(&parms->p, tone_on ? SEC_TONE_ON : SEC_TONE_OFF);
+>  
+>
 
--- 
-Regards,
-Niklas Söderlund
+
+
+Tested-by:  RafaÃ«l CarrÃ© <funman@videolan.org>
