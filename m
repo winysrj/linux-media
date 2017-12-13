@@ -1,223 +1,232 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:41182 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752162AbdLEAlL (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 4 Dec 2017 19:41:11 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>, y2038@lists.linaro.org,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [PATCH 5/8] [media] omap3isp: support 64-bit version of omap3isp_stat_data
-Date: Tue, 05 Dec 2017 02:41:24 +0200
-Message-ID: <1517434.pRS3rpdWG0@avalon>
-In-Reply-To: <20171127132027.1734806-5-arnd@arndb.de>
-References: <20171127132027.1734806-1-arnd@arndb.de> <20171127132027.1734806-5-arnd@arndb.de>
+Received: from osg.samsung.com ([64.30.133.232]:59724 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751326AbdLMTNc (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 13 Dec 2017 14:13:32 -0500
+Date: Wed, 13 Dec 2017 17:13:19 -0200
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: <Yasunari.Takiguchi@sony.com>
+Cc: <linux-kernel@vger.kernel.org>, <devicetree@vger.kernel.org>,
+        <linux-media@vger.kernel.org>, <tbird20d@gmail.com>,
+        <frowand.list@gmail.com>,
+        Masayuki Yamamoto <Masayuki.Yamamoto@sony.com>,
+        Hideki Nozawa <Hideki.Nozawa@sony.com>,
+        "Kota Yonezawa" <Kota.Yonezawa@sony.com>,
+        Toshihiko Matsumoto <Toshihiko.Matsumoto@sony.com>,
+        Satoshi Watanabe <Satoshi.C.Watanabe@sony.com>
+Subject: Re: [PATCH v4 06/12] [media] cxd2880: Add integration layer for the
+ driver
+Message-ID: <20171213171319.675b39a6@vento.lan>
+In-Reply-To: <20171013060834.21526-1-Yasunari.Takiguchi@sony.com>
+References: <20171013054635.20946-1-Yasunari.Takiguchi@sony.com>
+        <20171013060834.21526-1-Yasunari.Takiguchi@sony.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Arnd,
+Em Fri, 13 Oct 2017 15:08:34 +0900
+<Yasunari.Takiguchi@sony.com> escreveu:
 
-Thank you for the patch.
-
-I'll try to review this without too much delay. In the meantime, I'm CC'ing 
-Sakari Ailus who might be faster than me :-)
-
-On Monday, 27 November 2017 15:19:57 EET Arnd Bergmann wrote:
-> C libraries with 64-bit time_t use an incompatible format for
-> struct omap3isp_stat_data. This changes the kernel code to
-> support either version, by moving over the normal handling
-> to the 64-bit variant, and adding compatiblity code to handle
-> the old binary format with the existing ioctl command code.
+> From: Yasunari Takiguchi <Yasunari.Takiguchi@sony.com>
 > 
-> Fortunately, the command code includes the size of the structure,
-> so the difference gets handled automatically. In the process of
-> eliminating the references to 'struct timeval' from the kernel,
-> I also change the way the timestamp is generated internally,
-> basically by open-coding the v4l2_get_timestamp() call.
+> These functions monitor the driver and watch for task completion.
+> This is part of the Sony CXD2880 DVB-T2/T tuner + demodulator driver.
+
+If I understand well, the goal here is to have thread that would
+be waking up from time to time, right? Just use the infrastructure
+that the Kernel has for it, like a kthread, or timer_setup() & friends.
+
+Take a look at include/linux/timer.h, and just use what's already
+defined.
+
+
 > 
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> Signed-off-by: Yasunari Takiguchi <Yasunari.Takiguchi@sony.com>
+> Signed-off-by: Masayuki Yamamoto <Masayuki.Yamamoto@sony.com>
+> Signed-off-by: Hideki Nozawa <Hideki.Nozawa@sony.com>
+> Signed-off-by: Kota Yonezawa <Kota.Yonezawa@sony.com>
+> Signed-off-by: Toshihiko Matsumoto <Toshihiko.Matsumoto@sony.com>
+> Signed-off-by: Satoshi Watanabe <Satoshi.C.Watanabe@sony.com>
 > ---
->  drivers/media/platform/omap3isp/isph3a_aewb.c |  2 ++
->  drivers/media/platform/omap3isp/isph3a_af.c   |  2 ++
->  drivers/media/platform/omap3isp/isphist.c     |  2 ++
->  drivers/media/platform/omap3isp/ispstat.c     | 21 +++++++++++++++++++--
->  drivers/media/platform/omap3isp/ispstat.h     |  4 +++-
->  include/uapi/linux/omap3isp.h                 | 22 ++++++++++++++++++++++
->  6 files changed, 50 insertions(+), 3 deletions(-)
 > 
-> diff --git a/drivers/media/platform/omap3isp/isph3a_aewb.c
-> b/drivers/media/platform/omap3isp/isph3a_aewb.c index
-> d44626f20ac6..3c82dea4d375 100644
-> --- a/drivers/media/platform/omap3isp/isph3a_aewb.c
-> +++ b/drivers/media/platform/omap3isp/isph3a_aewb.c
-> @@ -250,6 +250,8 @@ static long h3a_aewb_ioctl(struct v4l2_subdev *sd,
-> unsigned int cmd, void *arg) return omap3isp_stat_config(stat, arg);
->  	case VIDIOC_OMAP3ISP_STAT_REQ:
->  		return omap3isp_stat_request_statistics(stat, arg);
-> +	case VIDIOC_OMAP3ISP_STAT_REQ_TIME32:
-> +		return omap3isp_stat_request_statistics_time32(stat, arg);
->  	case VIDIOC_OMAP3ISP_STAT_EN: {
->  		unsigned long *en = arg;
->  		return omap3isp_stat_enable(stat, !!*en);
-> diff --git a/drivers/media/platform/omap3isp/isph3a_af.c
-> b/drivers/media/platform/omap3isp/isph3a_af.c index
-> 99bd6cc21d86..4da25c84f0c6 100644
-> --- a/drivers/media/platform/omap3isp/isph3a_af.c
-> +++ b/drivers/media/platform/omap3isp/isph3a_af.c
-> @@ -314,6 +314,8 @@ static long h3a_af_ioctl(struct v4l2_subdev *sd,
-> unsigned int cmd, void *arg) return omap3isp_stat_config(stat, arg);
->  	case VIDIOC_OMAP3ISP_STAT_REQ:
->  		return omap3isp_stat_request_statistics(stat, arg);
-> +	case VIDIOC_OMAP3ISP_STAT_REQ_TIME32:
-> +		return omap3isp_stat_request_statistics_time32(stat, arg);
->  	case VIDIOC_OMAP3ISP_STAT_EN: {
->  		int *en = arg;
->  		return omap3isp_stat_enable(stat, !!*en);
-> diff --git a/drivers/media/platform/omap3isp/isphist.c
-> b/drivers/media/platform/omap3isp/isphist.c index
-> a4ed5d140d48..d4be3d0e06f9 100644
-> --- a/drivers/media/platform/omap3isp/isphist.c
-> +++ b/drivers/media/platform/omap3isp/isphist.c
-> @@ -435,6 +435,8 @@ static long hist_ioctl(struct v4l2_subdev *sd, unsigned
-> int cmd, void *arg) return omap3isp_stat_config(stat, arg);
->  	case VIDIOC_OMAP3ISP_STAT_REQ:
->  		return omap3isp_stat_request_statistics(stat, arg);
-> +	case VIDIOC_OMAP3ISP_STAT_REQ_TIME32:
-> +		return omap3isp_stat_request_statistics_time32(stat, arg);
->  	case VIDIOC_OMAP3ISP_STAT_EN: {
->  		int *en = arg;
->  		return omap3isp_stat_enable(stat, !!*en);
-> diff --git a/drivers/media/platform/omap3isp/ispstat.c
-> b/drivers/media/platform/omap3isp/ispstat.c index
-> 47cbc7e3d825..5967dfd0a9f7 100644
-> --- a/drivers/media/platform/omap3isp/ispstat.c
-> +++ b/drivers/media/platform/omap3isp/ispstat.c
-> @@ -18,6 +18,7 @@
->  #include <linux/dma-mapping.h>
->  #include <linux/slab.h>
->  #include <linux/uaccess.h>
-> +#include <linux/timekeeping.h>
+> [Change list]
+> Changes in V4   
+>    drivers/media/dvb-frontends/cxd2880/cxd2880_integ.c
+>       -removed unnecessary initialization at variable declaration
 > 
->  #include "isp.h"
+> Changes in V3
+>    drivers/media/dvb-frontends/cxd2880/cxd2880_integ.c
+>       -changed cxd2880_atomic_read to atomic_read
+>       -changed cxd2880_atomic_set to atomic_set
+>       -modified return code
+>       -modified coding style of if() 
+>    drivers/media/dvb-frontends/cxd2880/cxd2880_integ.h
+>       -modified return code
 > 
-> @@ -237,7 +238,7 @@ static int isp_stat_buf_queue(struct ispstat *stat)
->  	if (!stat->active_buf)
->  		return STAT_NO_BUF;
+>  .../media/dvb-frontends/cxd2880/cxd2880_integ.c    | 98 ++++++++++++++++++++++
+>  .../media/dvb-frontends/cxd2880/cxd2880_integ.h    | 44 ++++++++++
+>  2 files changed, 142 insertions(+)
+>  create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_integ.c
+>  create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_integ.h
 > 
-> -	v4l2_get_timestamp(&stat->active_buf->ts);
-> +	ktime_get_ts64(&stat->active_buf->ts);
-> 
->  	stat->active_buf->buf_size = stat->buf_size;
->  	if (isp_stat_buf_check_magic(stat, stat->active_buf)) {
-> @@ -500,7 +501,8 @@ int omap3isp_stat_request_statistics(struct ispstat
-> *stat, return PTR_ERR(buf);
->  	}
-> 
-> -	data->ts = buf->ts;
-> +	data->ts.tv_sec = buf->ts.tv_sec;
-> +	data->ts.tv_usec = buf->ts.tv_nsec / NSEC_PER_USEC;
->  	data->config_counter = buf->config_counter;
->  	data->frame_number = buf->frame_number;
->  	data->buf_size = buf->buf_size;
-> @@ -512,6 +514,21 @@ int omap3isp_stat_request_statistics(struct ispstat
-> *stat, return 0;
->  }
-> 
-> +int omap3isp_stat_request_statistics_time32(struct ispstat *stat,
-> +					struct omap3isp_stat_data_time32 *data)
+> diff --git a/drivers/media/dvb-frontends/cxd2880/cxd2880_integ.c b/drivers/media/dvb-frontends/cxd2880/cxd2880_integ.c
+> new file mode 100644
+> index 000000000000..7264fc355d6b
+> --- /dev/null
+> +++ b/drivers/media/dvb-frontends/cxd2880/cxd2880_integ.c
+> @@ -0,0 +1,98 @@
+> +/*
+> + * cxd2880_integ.c
+> + * Sony CXD2880 DVB-T2/T tuner + demodulator driver
+> + * integration layer common functions
+> + *
+> + * Copyright (C) 2016, 2017 Sony Semiconductor Solutions Corporation
+> + *
+> + * This program is free software; you can redistribute it and/or modify it
+> + * under the terms of the GNU General Public License as published by the
+> + * Free Software Foundation; version 2 of the License.
+> + *
+> + * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESS OR IMPLIED
+> + * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+> + * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN
+> + * NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
+> + * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+> + * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
+> + * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+> + * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+> + * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+> + * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+> + *
+> + * You should have received a copy of the GNU General Public License along
+> + * with this program; if not, see <http://www.gnu.org/licenses/>.
+> + */
+> +
+> +#include "cxd2880_tnrdmd.h"
+> +#include "cxd2880_tnrdmd_mon.h"
+> +#include "cxd2880_integ.h"
+> +
+> +int cxd2880_integ_init(struct cxd2880_tnrdmd *tnr_dmd)
 > +{
-> +	struct omap3isp_stat_data data64;
 > +	int ret;
+> +	struct cxd2880_stopwatch timer;
+> +	unsigned int elapsed_time = 0;
+> +	u8 cpu_task_completed = 0;
 > +
-> +	ret = omap3isp_stat_request_statistics(stat, &data64);
+> +	if (!tnr_dmd)
+> +		return -EINVAL;
 > +
-> +	data->ts.tv_sec = data64.ts.tv_sec;
-> +	data->ts.tv_usec = data64.ts.tv_usec;
-> +	memcpy(&data->buf, &data64.buf, sizeof(*data) - sizeof(data->ts));
+> +	ret = cxd2880_tnrdmd_init1(tnr_dmd);
+> +	if (ret)
+> +		return ret;
 > +
-> +	return ret;
+> +	ret = cxd2880_stopwatch_start(&timer);
+> +	if (ret)
+> +		return ret;
+> +
+> +	while (1) {
+> +		ret = cxd2880_stopwatch_elapsed(&timer, &elapsed_time);
+> +		if (ret)
+> +			return ret;
+> +
+> +		ret =
+> +		    cxd2880_tnrdmd_check_internal_cpu_status(tnr_dmd,
+> +						     &cpu_task_completed);
+> +		if (ret)
+> +			return ret;
+> +
+> +		if (cpu_task_completed)
+> +			break;
+> +
+> +		if (elapsed_time > CXD2880_TNRDMD_WAIT_INIT_TIMEOUT)
+> +			return -ETIME;
+> +		ret =
+> +		    cxd2880_stopwatch_sleep(&timer,
+> +					    CXD2880_TNRDMD_WAIT_INIT_INTVL);
+> +		if (ret)
+> +			return ret;
+> +	}
+> +
+> +	ret = cxd2880_tnrdmd_init2(tnr_dmd);
+> +	if (ret)
+> +		return ret;
+> +
+> +	return 0;
 > +}
 > +
->  /*
->   * omap3isp_stat_config - Receives new statistic engine configuration.
->   * @new_conf: Pointer to config structure.
-> diff --git a/drivers/media/platform/omap3isp/ispstat.h
-> b/drivers/media/platform/omap3isp/ispstat.h index
-> 6d9b0244f320..923b38cfc682 100644
-> --- a/drivers/media/platform/omap3isp/ispstat.h
-> +++ b/drivers/media/platform/omap3isp/ispstat.h
-> @@ -39,7 +39,7 @@ struct ispstat_buffer {
->  	struct sg_table sgt;
->  	void *virt_addr;
->  	dma_addr_t dma_addr;
-> -	struct timeval ts;
-> +	struct timespec64 ts;
->  	u32 buf_size;
->  	u32 frame_number;
->  	u16 config_counter;
-> @@ -130,6 +130,8 @@ struct ispstat_generic_config {
->  int omap3isp_stat_config(struct ispstat *stat, void *new_conf);
->  int omap3isp_stat_request_statistics(struct ispstat *stat,
->  				     struct omap3isp_stat_data *data);
-> +int omap3isp_stat_request_statistics_time32(struct ispstat *stat,
-> +				     struct omap3isp_stat_data_time32 *data);
->  int omap3isp_stat_init(struct ispstat *stat, const char *name,
->  		       const struct v4l2_subdev_ops *sd_ops);
->  void omap3isp_stat_cleanup(struct ispstat *stat);
-> diff --git a/include/uapi/linux/omap3isp.h b/include/uapi/linux/omap3isp.h
-> index 1a920145db04..87b55755f4ff 100644
-> --- a/include/uapi/linux/omap3isp.h
-> +++ b/include/uapi/linux/omap3isp.h
-> @@ -55,6 +55,8 @@
->  	_IOWR('V', BASE_VIDIOC_PRIVATE + 5, struct omap3isp_h3a_af_config)
->  #define VIDIOC_OMAP3ISP_STAT_REQ \
->  	_IOWR('V', BASE_VIDIOC_PRIVATE + 6, struct omap3isp_stat_data)
-> +#define VIDIOC_OMAP3ISP_STAT_REQ_TIME32 \
-> +	_IOWR('V', BASE_VIDIOC_PRIVATE + 6, struct omap3isp_stat_data_time32)
->  #define VIDIOC_OMAP3ISP_STAT_EN \
->  	_IOWR('V', BASE_VIDIOC_PRIVATE + 7, unsigned long)
-> 
-> @@ -165,7 +167,14 @@ struct omap3isp_h3a_aewb_config {
->   * @config_counter: Number of the configuration associated with the data.
->   */
->  struct omap3isp_stat_data {
-> +#ifdef __KERNEL__
-> +	struct {
-> +		__s64	tv_sec;
-> +		__s64	tv_usec;
-> +	} ts;
-> +#else
->  	struct timeval ts;
+> +int cxd2880_integ_cancel(struct cxd2880_tnrdmd *tnr_dmd)
+> +{
+> +	if (!tnr_dmd)
+> +		return -EINVAL;
+> +
+> +	atomic_set(&tnr_dmd->cancel, 1);
+> +
+> +	return 0;
+> +}
+> +
+> +int cxd2880_integ_check_cancellation(struct cxd2880_tnrdmd *tnr_dmd)
+> +{
+> +	if (!tnr_dmd)
+> +		return -EINVAL;
+> +
+> +	if (atomic_read(&tnr_dmd->cancel) != 0)
+> +		return -ECANCELED;
+> +
+> +	return 0;
+> +}
+> diff --git a/drivers/media/dvb-frontends/cxd2880/cxd2880_integ.h b/drivers/media/dvb-frontends/cxd2880/cxd2880_integ.h
+> new file mode 100644
+> index 000000000000..2b4fe5c3743b
+> --- /dev/null
+> +++ b/drivers/media/dvb-frontends/cxd2880/cxd2880_integ.h
+> @@ -0,0 +1,44 @@
+> +/*
+> + * cxd2880_integ.h
+> + * Sony CXD2880 DVB-T2/T tuner + demodulator driver
+> + * integration layer common interface
+> + *
+> + * Copyright (C) 2016, 2017 Sony Semiconductor Solutions Corporation
+> + *
+> + * This program is free software; you can redistribute it and/or modify it
+> + * under the terms of the GNU General Public License as published by the
+> + * Free Software Foundation; version 2 of the License.
+> + *
+> + * THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESS OR IMPLIED
+> + * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+> + * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN
+> + * NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
+> + * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+> + * NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
+> + * USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+> + * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+> + * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+> + * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+> + *
+> + * You should have received a copy of the GNU General Public License along
+> + * with this program; if not, see <http://www.gnu.org/licenses/>.
+> + */
+> +
+> +#ifndef CXD2880_INTEG_H
+> +#define CXD2880_INTEG_H
+> +
+> +#include "cxd2880_tnrdmd.h"
+> +
+> +#define CXD2880_TNRDMD_WAIT_INIT_TIMEOUT	500
+> +#define CXD2880_TNRDMD_WAIT_INIT_INTVL	10
+> +
+> +#define CXD2880_TNRDMD_WAIT_AGC_STABLE		100
+> +
+> +int cxd2880_integ_init(struct cxd2880_tnrdmd *tnr_dmd);
+> +
+> +int cxd2880_integ_cancel(struct cxd2880_tnrdmd *tnr_dmd);
+> +
+> +int cxd2880_integ_check_cancellation(struct cxd2880_tnrdmd
+> +				     *tnr_dmd);
+> +
 > +#endif
->  	void __user *buf;
->  	__u32 buf_size;
->  	__u16 frame_number;
-> @@ -173,6 +182,19 @@ struct omap3isp_stat_data {
->  	__u16 config_counter;
->  };
-> 
-> +#ifdef __KERNEL__
-> +struct omap3isp_stat_data_time32 {
-> +	struct {
-> +		__s32	tv_sec;
-> +		__s32	tv_usec;
-> +	} ts;
-> +	__u32 buf;
-> +	__u32 buf_size;
-> +	__u16 frame_number;
-> +	__u16 cur_frame;
-> +	__u16 config_counter;
-> +};
-> +#endif
-> 
->  /* Histogram related structs */
 
 
--- 
-Regards,
 
-Laurent Pinchart
+Thanks,
+Mauro
