@@ -1,71 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-3.sys.kth.se ([130.237.48.192]:34026 "EHLO
-        smtp-3.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753870AbdLNTJR (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 14 Dec 2017 14:09:17 -0500
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: linux-media@vger.kernel.org,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-renesas-soc@vger.kernel.org,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
-        Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        Benoit Parrot <bparrot@ti.com>,
-        Maxime Ripard <maxime.ripard@free-electrons.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH/RFC v2 02/15] rcar-vin: use pad as the starting point for a pipeline
-Date: Thu, 14 Dec 2017 20:08:22 +0100
-Message-Id: <20171214190835.7672-3-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20171214190835.7672-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20171214190835.7672-1-niklas.soderlund+renesas@ragnatech.se>
+Received: from osg.samsung.com ([64.30.133.232]:34220 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752634AbdLMMMe (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 13 Dec 2017 07:12:34 -0500
+Date: Wed, 13 Dec 2017 10:12:28 -0200
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: dgopstein@nyu.edu
+Cc: linux-media@vger.kernel.org, baruch@tkos.co.il
+Subject: Re: [PATCH v2] media: ABS macro parameter parenthesization
+Message-ID: <20171213101228.56b9ba62@vento.lan>
+In-Reply-To: <1510930544-2177-1-git-send-email-dgopstein@nyu.edu>
+References: <1510930544-2177-1-git-send-email-dgopstein@nyu.edu>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The pipeline will be moved from the entity to the pads; reflect this in
-the media pipeline function API.
+Em Fri, 17 Nov 2017 09:55:44 -0500
+dgopstein@nyu.edu escreveu:
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
----
- drivers/media/platform/rcar-vin/rcar-dma.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+> From: Dan Gopstein <dgopstein@nyu.edu>
+> 
+> Two definitions of the ABS (absolute value) macro fail to parenthesize
+> their parameter properly. This can lead to a bad expansion for
+> low-precedence expression arguments. Add parens to protect against
+> troublesome arguments.
+> 
+> For example: ABS(1-2) currently expands to ((1-2) < 0 ? (-1-2) : (1-2))
+> which evaluates to -3. But the correct expansion would be
+> ((1-2) < 0 ? -(1-2) : (1-2)) which evaluates to 1.
+> 
+> Signed-off-by: Dan Gopstein <dgopstein@nyu.edu>
+> ---
+> v1->v2:
+> * unmangled the patch
+> * added example to commit text
+> 
+>  drivers/media/dvb-frontends/dibx000_common.h | 2 +-
+>  drivers/media/dvb-frontends/mb86a16.c        | 2 +-
+>  2 files changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/media/dvb-frontends/dibx000_common.h b/drivers/media/dvb-frontends/dibx000_common.h
+> index 8784af9..ae60f5d 100644
+> --- a/drivers/media/dvb-frontends/dibx000_common.h
+> +++ b/drivers/media/dvb-frontends/dibx000_common.h
+> @@ -223,7 +223,7 @@ struct dvb_frontend_parametersContext {
+>  
+>  #define FE_CALLBACK_TIME_NEVER 0xffffffff
+>  
+> -#define ABS(x) ((x < 0) ? (-x) : (x))
+> +#define ABS(x) (((x) < 0) ? -(x) : (x))
+>  
+>  #define DATA_BUS_ACCESS_MODE_8BIT                 0x01
+>  #define DATA_BUS_ACCESS_MODE_16BIT                0x02
+> diff --git a/drivers/media/dvb-frontends/mb86a16.c b/drivers/media/dvb-frontends/mb86a16.c
+> index dfe322e..2d921c7 100644
+> --- a/drivers/media/dvb-frontends/mb86a16.c
+> +++ b/drivers/media/dvb-frontends/mb86a16.c
+> @@ -31,7 +31,7 @@
+>  static unsigned int verbose = 5;
+>  module_param(verbose, int, 0644);
+>  
+> -#define ABS(x)		((x) < 0 ? (-x) : (x))
+> +#define ABS(x)		((x) < 0 ? -(x) : (x))
+>  
+>  struct mb86a16_state {
+>  	struct i2c_adapter		*i2c_adap;
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
-index 03a914361a33125c..cf30e5fceb1d493a 100644
---- a/drivers/media/platform/rcar-vin/rcar-dma.c
-+++ b/drivers/media/platform/rcar-vin/rcar-dma.c
-@@ -1179,7 +1179,7 @@ static int rvin_set_stream(struct rvin_dev *vin, int on)
- 		return -EPIPE;
- 
- 	if (!on) {
--		media_pipeline_stop(&vin->vdev.entity);
-+		media_pipeline_stop(vin->vdev.entity.pads);
- 		return v4l2_subdev_call(sd, video, s_stream, 0);
- 	}
- 
-@@ -1235,15 +1235,15 @@ static int rvin_set_stream(struct rvin_dev *vin, int on)
- 	    fmt.format.height != vin->format.height)
- 		return -EPIPE;
- 
--	pipe = sd->entity.pipe ? sd->entity.pipe : &vin->vdev.pipe;
--	if (media_pipeline_start(&vin->vdev.entity, pipe))
-+	pipe = sd->entity.pads->pipe ? sd->entity.pads->pipe : &vin->vdev.pipe;
-+	if (media_pipeline_start(vin->vdev.entity.pads, pipe))
- 		return -EPIPE;
- 
- 	ret = v4l2_subdev_call(sd, video, s_stream, 1);
- 	if (ret == -ENOIOCTLCMD)
- 		ret = 0;
- 	if (ret)
--		media_pipeline_stop(&vin->vdev.entity);
-+		media_pipeline_stop(vin->vdev.entity.pads);
- 
- 	return ret;
- }
--- 
-2.15.1
+Actually, the Kernel has already a macro for that, called abs().
+
+So, the better would be to just remove those macros,
+replacing ABS(foo) by abs(foo).
+
+Thanks,
+Mauro
