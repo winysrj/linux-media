@@ -1,93 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:55610 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S933567AbdLRQtB (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 18 Dec 2017 11:49:01 -0500
-Date: Mon, 18 Dec 2017 14:48:52 -0200
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Andrey Utkin <andrey_utkin@fastmail.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Mike Isely <isely@pobox.com>,
-        Bhumika Goyal <bhumirks@gmail.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Devin Heitmueller <dheitmueller@kernellabs.com>,
-        Hans Liljestrand <ishkamiel@gmail.com>,
-        Kees Cook <keescook@chromium.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Elena Reshetova <elena.reshetova@intel.com>,
-        Geliang Tang <geliangtang@gmail.com>,
-        Julia Lawall <Julia.Lawall@lip6.fr>,
-        Christophe JAILLET <christophe.jaillet@wanadoo.fr>,
-        Santosh Kumar Singh <kumar.san1093@gmail.com>,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-Subject: Re: [PATCH 05/24] media: v4l2-dev: convert VFL_TYPE_* into an enum
-Message-ID: <20171218144852.6ed9b816@vento.lan>
-In-Reply-To: <20171010204704.GE6361@starlite>
-References: <cover.1507544011.git.mchehab@s-opensource.com>
-        <ddbc94767e3aebb52d4f8bf96611136dda2e2c12.1507544011.git.mchehab@s-opensource.com>
-        <20171010204704.GE6361@starlite>
+Received: from mail-wr0-f175.google.com ([209.85.128.175]:46513 "EHLO
+        mail-wr0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751121AbdLMKF2 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 13 Dec 2017 05:05:28 -0500
+Received: by mail-wr0-f175.google.com with SMTP id x49so1555074wrb.13
+        for <linux-media@vger.kernel.org>; Wed, 13 Dec 2017 02:05:28 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <ca5b3cf7-c7d0-36d4-08ac-32a7a00afd7d@xs4all.nl>
+References: <cover.1513013948.git.joabreu@synopsys.com> <5f9eedfd6f91ed73ef0bb6d3977588d01478909f.1513013948.git.joabreu@synopsys.com>
+ <108e2c3c-243f-cd67-2df7-57541b28ca39@xs4all.nl> <635e7d70-0edb-7506-c268-9ebbae1eb39e@synopsys.com>
+ <ca5b3cf7-c7d0-36d4-08ac-32a7a00afd7d@xs4all.nl>
+From: Philippe Ombredanne <pombredanne@nexb.com>
+Date: Wed, 13 Dec 2017 11:04:46 +0100
+Message-ID: <CAOFm3uEeKGMgpnv0kNxazPHog-t2TcJQpLvGN+LjR4RAbo2J9Q@mail.gmail.com>
+Subject: Re: [PATCH v10 4/4] [media] platform: Add Synopsys DesignWare HDMI RX
+ Controller Driver
+To: Jose Abreu <Jose.Abreu@synopsys.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>,
+        Joao Pinto <Joao.Pinto@synopsys.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sylwester Nawrocki <snawrocki@kernel.org>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 10 Oct 2017 21:47:04 +0100
-Andrey Utkin <andrey_utkin@fastmail.com> escreveu:
+Jose,
 
-> On Mon, Oct 09, 2017 at 07:19:11AM -0300, Mauro Carvalho Chehab wrote:
-> > Using enums makes easier to document, as it can use kernel-doc
-> > markups. It also allows cross-referencing, with increases the
-> > kAPI readability.
-> >   
-> 
-> 
-> All changes look legit.
-> 
-> But I'd expect cx88_querycap() return type change and such to be in
-> separate commit.
+On 12/12/17 17:02, Jose Abreu wrote:
+<snip>
 
-It should be together, as the switch() now would generate a warning,
-because some enum values aren't listed. On such case, it has to
-return an error.
+>>> Signed-off-by: Jose Abreu <joabreu@synopsys.com>
+>>> Cc: Joao Pinto <jpinto@synopsys.com>
+>>> Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+>>> Cc: Hans Verkuil <hans.verkuil@cisco.com>
+>>> Cc: Sylwester Nawrocki <snawrocki@kernel.org>
+>>> Cc: Sakari Ailus <sakari.ailus@iki.fi>
+>>> Cc: Philippe Ombredanne <pombredanne@nexb.com>
+>>> ---
+>>> Changes from v9:
+>>>     - Use SPDX License ID (Philippe)
 
-I added an explanation at the commit message.
+For the use of SPDX tags, thanks!
 
-> 
-> > diff --git a/drivers/media/pci/cx88/cx88-blackbird.c b/drivers/media/pci/cx88/cx88-blackbird.c
-> > index e3101f04941c..0e0952e60795 100644
-> > --- a/drivers/media/pci/cx88/cx88-blackbird.c
-> > +++ b/drivers/media/pci/cx88/cx88-blackbird.c
-> > @@ -805,8 +805,7 @@ static int vidioc_querycap(struct file *file, void  *priv,
-> >  
-> >  	strcpy(cap->driver, "cx88_blackbird");
-> >  	sprintf(cap->bus_info, "PCI:%s", pci_name(dev->pci));
-> > -	cx88_querycap(file, core, cap);
-> > -	return 0;
-> > +	return cx88_querycap(file, core, cap);
-> >  }
-> >  
-> >  static int vidioc_enum_fmt_vid_cap(struct file *file, void  *priv,
-> > diff --git a/drivers/media/pci/cx88/cx88-video.c b/drivers/media/pci/cx88/cx88-video.c
-> > index 7d25ecd4404b..9be682cdb644 100644
-> > --- a/drivers/media/pci/cx88/cx88-video.c
-> > +++ b/drivers/media/pci/cx88/cx88-video.c
-> > @@ -806,8 +806,8 @@ static int vidioc_s_fmt_vid_cap(struct file *file, void *priv,
-> >  	return 0;
-> >  }
-> >  
-> > -void cx88_querycap(struct file *file, struct cx88_core *core,
-> > -		   struct v4l2_capability *cap)
-> > +int cx88_querycap(struct file *file, struct cx88_core *core,
-> > +		  struct v4l2_capability *cap)
-> >  {
-> >  	struct video_device *vdev = video_devdata(file);
-> >    
-
-
-
-Thanks,
-Mauro
+Acked-by: Philippe Ombredanne <pombredanne@nexB.com>
