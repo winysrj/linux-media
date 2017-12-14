@@ -1,71 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([65.50.211.133]:60503 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752948AbdLMP0G (ORCPT
+Received: from smtp-3.sys.kth.se ([130.237.48.192]:34026 "EHLO
+        smtp-3.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753870AbdLNTJR (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 13 Dec 2017 10:26:06 -0500
-Date: Wed, 13 Dec 2017 13:26:02 -0200
-From: Mauro Carvalho Chehab <mchehab@kernel.org>
-To: Daniel Scheller <d.scheller.oss@gmail.com>
-Cc: linux-media@vger.kernel.org, mchehab@s-opensource.com
-Subject: Re: [PATCH 2/2] [media] ddbridge: don't break on single/last port
- attach failure
-Message-ID: <20171213132602.79a35512@vento.lan>
-In-Reply-To: <20171206175915.20669-3-d.scheller.oss@gmail.com>
-References: <20171206175915.20669-1-d.scheller.oss@gmail.com>
-        <20171206175915.20669-3-d.scheller.oss@gmail.com>
+        Thu, 14 Dec 2017 14:09:17 -0500
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: linux-media@vger.kernel.org,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-renesas-soc@vger.kernel.org,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        Benoit Parrot <bparrot@ti.com>,
+        Maxime Ripard <maxime.ripard@free-electrons.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH/RFC v2 02/15] rcar-vin: use pad as the starting point for a pipeline
+Date: Thu, 14 Dec 2017 20:08:22 +0100
+Message-Id: <20171214190835.7672-3-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20171214190835.7672-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20171214190835.7672-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed,  6 Dec 2017 18:59:15 +0100
-Daniel Scheller <d.scheller.oss@gmail.com> escreveu:
+The pipeline will be moved from the entity to the pads; reflect this in
+the media pipeline function API.
 
-> From: Daniel Scheller <d.scheller@gmx.net>
-> 
-> As all error handling improved quite a bit, don't stop attaching frontends
-> if one of them failed, since - if other tuner modules are connected to
-> the PCIe bridge - other hardware may just work, so lets not break on a
-> single port failure, but rather initialise as much as possible. Ie. if
-> there are issues with a C2T2-equipped PCIe bridge card which has
-> additional DuoFlex modules connected and the bridge generally works,
-> the DuoFlex tuners can still work fine. Also, this only had an effect
-> anyway if the failed device/port was the last one being enumerated.
-> 
-> Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
-> ---
->  drivers/media/pci/ddbridge/ddbridge-core.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/pci/ddbridge/ddbridge-core.c b/drivers/media/pci/ddbridge/ddbridge-core.c
-> index 11c5cae92408..b43c40e0bf73 100644
-> --- a/drivers/media/pci/ddbridge/ddbridge-core.c
-> +++ b/drivers/media/pci/ddbridge/ddbridge-core.c
-> @@ -1962,7 +1962,7 @@ int ddb_ports_attach(struct ddb *dev)
->  	}
->  	for (i = 0; i < dev->port_num; i++) {
->  		port = &dev->port[i];
-> -		ret = ddb_port_attach(port);
-> +		ddb_port_attach(port);
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+---
+ drivers/media/platform/rcar-vin/rcar-dma.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-Nah, ignoring an error doesn't seem right. It should at least print
-that attach failed. Also, if all attaches fail, probably the best
-would be to just detach everything and go to the error handling code,
-as there's something serious happening.
-
-Something like:
-
-  	for (i = 0; i < dev->port_num; i++) {
-  		port = &dev->port[i];
-		ret = ddb_port_attach(port);
-		if (ret) {
-			dev_warn(port->dev->dev, "attach failed\n");
-			err_ports++;
-	}
-	if (err_ports == dev->port_num)
-		return -ENODEV;
-
-Thanks,
-Mauro
+diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
+index 03a914361a33125c..cf30e5fceb1d493a 100644
+--- a/drivers/media/platform/rcar-vin/rcar-dma.c
++++ b/drivers/media/platform/rcar-vin/rcar-dma.c
+@@ -1179,7 +1179,7 @@ static int rvin_set_stream(struct rvin_dev *vin, int on)
+ 		return -EPIPE;
+ 
+ 	if (!on) {
+-		media_pipeline_stop(&vin->vdev.entity);
++		media_pipeline_stop(vin->vdev.entity.pads);
+ 		return v4l2_subdev_call(sd, video, s_stream, 0);
+ 	}
+ 
+@@ -1235,15 +1235,15 @@ static int rvin_set_stream(struct rvin_dev *vin, int on)
+ 	    fmt.format.height != vin->format.height)
+ 		return -EPIPE;
+ 
+-	pipe = sd->entity.pipe ? sd->entity.pipe : &vin->vdev.pipe;
+-	if (media_pipeline_start(&vin->vdev.entity, pipe))
++	pipe = sd->entity.pads->pipe ? sd->entity.pads->pipe : &vin->vdev.pipe;
++	if (media_pipeline_start(vin->vdev.entity.pads, pipe))
+ 		return -EPIPE;
+ 
+ 	ret = v4l2_subdev_call(sd, video, s_stream, 1);
+ 	if (ret == -ENOIOCTLCMD)
+ 		ret = 0;
+ 	if (ret)
+-		media_pipeline_stop(&vin->vdev.entity);
++		media_pipeline_stop(vin->vdev.entity.pads);
+ 
+ 	return ret;
+ }
+-- 
+2.15.1
