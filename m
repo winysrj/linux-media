@@ -1,38 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga04.intel.com ([192.55.52.120]:21905 "EHLO mga04.intel.com"
+Received: from gofer.mess.org ([88.97.38.141]:50837 "EHLO gofer.mess.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754228AbdL1S00 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 28 Dec 2017 13:26:26 -0500
-Date: Thu, 28 Dec 2017 20:26:20 +0200
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Hans Verkuil <hansverk@cisco.com>,
-        Christophe JAILLET <christophe.jaillet@wanadoo.fr>,
-        Satendra Singh Thakur <satendra.t@samsung.com>,
-        Gustavo Padovan <gustavo.padovan@collabora.com>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Subject: Re: [PATCH 4/5] media: vb2: add pr_fmt() macro
-Message-ID: <20171228182620.ybyizepwwdwqw6os@kekkonen.localdomain>
-References: <cover.1514478428.git.mchehab@s-opensource.com>
- <d758ab588b68118ed8e29ff3aec4bcd3bf48ba0c.1514478428.git.mchehab@s-opensource.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <d758ab588b68118ed8e29ff3aec4bcd3bf48ba0c.1514478428.git.mchehab@s-opensource.com>
+        id S1753376AbdLNRWB (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 14 Dec 2017 12:22:01 -0500
+From: Sean Young <sean@mess.org>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 01/10] media: imon:  auto-config ffdc 26 device
+Date: Thu, 14 Dec 2017 17:21:52 +0000
+Message-Id: <4e8c9939b6b116a54e3042d098343bc918268b1d.1513271970.git.sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Dec 28, 2017 at 02:29:37PM -0200, Mauro Carvalho Chehab wrote:
-> Simplify the pr_foo() macros by adding a pr_fmt() macro.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Another device with the 0xffdc device id, this one with 0x26 in the
+config byte. Its an iMON Inside + iMON IR. It does respond to rc-6,
+but seems to produce random garbage rather than a scancode.
 
-On 4th and 5th:
+Signed-off-by: Sean Young <sean@mess.org>
+---
+ drivers/media/rc/imon.c | 5 +++++
+ 1 file changed, 5 insertions(+)
 
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-
+diff --git a/drivers/media/rc/imon.c b/drivers/media/rc/imon.c
+index 2c26d917fe0f..6c873a3c4720 100644
+--- a/drivers/media/rc/imon.c
++++ b/drivers/media/rc/imon.c
+@@ -1975,6 +1975,11 @@ static void imon_get_ffdc_type(struct imon_context *ictx)
+ 		detected_display_type = IMON_DISPLAY_TYPE_LCD;
+ 		allowed_protos = RC_PROTO_BIT_RC6_MCE;
+ 		break;
++	/* no display, iMON IR */
++	case 0x26:
++		dev_info(ictx->dev, "0xffdc iMON Inside, iMON IR");
++		ictx->display_supported = false;
++		break;
+ 	default:
+ 		dev_info(ictx->dev, "Unknown 0xffdc device, defaulting to VFD and iMON IR");
+ 		detected_display_type = IMON_DISPLAY_TYPE_VFD;
 -- 
-Sakari Ailus
-sakari.ailus@linux.intel.com
+2.14.3
