@@ -1,54 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gloria.sntech.de ([95.129.55.99]:53972 "EHLO gloria.sntech.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752077AbdLLKvP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 12 Dec 2017 05:51:15 -0500
-From: Heiko Stuebner <heiko@sntech.de>
-To: linux-rockchip@lists.infradead.org
-Cc: Leo Wen <leo.wen@rock-chips.com>, mchehab@kernel.org,
-        robh+dt@kernel.org, mark.rutland@arm.com, davem@davemloft.net,
-        gregkh@linuxfoundation.org, rdunlap@infradead.org,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        eddie.cai@rock-chips.com, linux-media@vger.kernel.org
-Subject: Re: [PATCH 2/2] dt-bindings: Document the Rockchip RK1608 bindings
-Date: Tue, 12 Dec 2017 11:50:41 +0100
-Message-ID: <1720708.Qj5c0Lsxha@phil>
-In-Reply-To: <1513060095-29588-3-git-send-email-leo.wen@rock-chips.com>
-References: <1513060095-29588-1-git-send-email-leo.wen@rock-chips.com> <1513060095-29588-3-git-send-email-leo.wen@rock-chips.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:47387 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753677AbdLNS2T (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 14 Dec 2017 13:28:19 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Dhaval Shah <dhaval23031987@gmail.com>, hyun.kwon@xilinx.com,
+        michal.simek@xilinx.com, linux-media@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] media: v4l: xilinx: Use SPDX-License-Identifier
+Date: Thu, 14 Dec 2017 20:28:25 +0200
+Message-ID: <7339763.I7jApfYMM6@avalon>
+In-Reply-To: <20171214150527.00dca6cc@vento.lan>
+References: <20171208123537.18718-1-dhaval23031987@gmail.com> <20171214150527.00dca6cc@vento.lan>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7Bit
 Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Leo,
+Hi Mauro,
 
-Am Dienstag, 12. Dezember 2017, 14:28:15 CET schrieb Leo Wen:
-> +Optional properties:
-> +
-> +- spi-max-frequency	: Maximum SPI clocking speed of the device;
-> +			        (for RK1608)
-> +- spi-min-frequency	: Minimum SPI clocking speed of the device;
-> +			        (for RK1608)
+On Thursday, 14 December 2017 19:05:27 EET Mauro Carvalho Chehab wrote:
+> Em Fri,  8 Dec 2017 18:05:37 +0530 Dhaval Shah escreveu:
+> > SPDX-License-Identifier is used for the Xilinx Video IP and
+> > related drivers.
+> > 
+> > Signed-off-by: Dhaval Shah <dhaval23031987@gmail.com>
+> 
+> Hi Dhaval,
+> 
+> You're not listed as one of the Xilinx driver maintainers. I'm afraid that,
+> without their explicit acks, sent to the ML, I can't accept a patch
+> touching at the driver's license tags.
 
-There is no general spi-min-frequency property specified and I also guess
-systems would try to use a frequency close to maximum anyway, so I don't
-really see the use of specifying a minimum frequency.
+The patch doesn't change the license, I don't see why it would cause any 
+issue. Greg isn't listed as the maintainer or copyright holder of any of the 
+10k+ files to which he added an SPDX license header in the last kernel 
+release.
 
+-- 
+Regards,
 
-> +&pinctrl {
-> +	rk1608_irq_gpios {
-> +		rk1608_irq_gpios: rk1608_irq_gpios {
-> +			rockchip,pins = <6 2 RK_FUNC_GPIO &pcfg_pull_none>;
-> +			rockchip,pull = <1>;
-> +		};
-> +	};
-
-There is no need to specify the soc-specific pinctrl settings in a general
-devicetree example and you're using properties from your vendor-tree
-like the rockchip,pull one ... that are not used in the mainline kernel.
-
-So I'd suggest dropping the whole &pinctrl from the example.
-
-
-Heiko
+Laurent Pinchart
