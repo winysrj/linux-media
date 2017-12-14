@@ -1,83 +1,150 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f67.google.com ([209.85.215.67]:32833 "EHLO
-        mail-lf0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751628AbdLLA0p (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:57306 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754069AbdLNW4j (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 11 Dec 2017 19:26:45 -0500
-From: Dmitry Osipenko <digetx@gmail.com>
-To: Thierry Reding <thierry.reding@gmail.com>,
-        Jonathan Hunter <jonathanh@nvidia.com>,
-        Stephen Warren <swarren@wwwdotorg.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Vladimir Zapolskiy <vz@mleia.com>
-Cc: Rob Herring <robh+dt@kernel.org>,
-        Dan Carpenter <dan.carpenter@oracle.com>,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        devicetree@vger.kernel.org, linux-tegra@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH v5 4/4] ARM: dts: tegra20: Add video decoder node
-Date: Tue, 12 Dec 2017 03:26:10 +0300
-Message-Id: <e80456489c7802e768883ded842e7818158168c4.1513038011.git.digetx@gmail.com>
-In-Reply-To: <cover.1513038011.git.digetx@gmail.com>
-References: <cover.1513038011.git.digetx@gmail.com>
-In-Reply-To: <cover.1513038011.git.digetx@gmail.com>
-References: <cover.1513038011.git.digetx@gmail.com>
+        Thu, 14 Dec 2017 17:56:39 -0500
+Reply-To: kieran.bingham@ideasonboard.com
+Subject: Re: [PATCH/RFC v2 15/15] adv748x: afe: add routing support
+To: =?UTF-8?Q?Niklas_S=c3=b6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>,
+        linux-media@vger.kernel.org,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-renesas-soc@vger.kernel.org,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        Benoit Parrot <bparrot@ti.com>,
+        Maxime Ripard <maxime.ripard@free-electrons.com>
+References: <20171214190835.7672-1-niklas.soderlund+renesas@ragnatech.se>
+ <20171214190835.7672-16-niklas.soderlund+renesas@ragnatech.se>
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Message-ID: <fa2f7765-d2a4-3a7d-b8a4-0659f83aa35b@ideasonboard.com>
+Date: Thu, 14 Dec 2017 22:56:34 +0000
+MIME-Version: 1.0
+In-Reply-To: <20171214190835.7672-16-niklas.soderlund+renesas@ragnatech.se>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add Video Decoder Engine device node.
+Hi Niklas,
 
-Signed-off-by: Dmitry Osipenko <digetx@gmail.com>
----
- arch/arm/boot/dts/tegra20.dtsi | 27 +++++++++++++++++++++++++++
- 1 file changed, 27 insertions(+)
+On 14/12/17 19:08, Niklas Söderlund wrote:
+> The adv748x afe have eight analog sink pads, currently one of them is
 
-diff --git a/arch/arm/boot/dts/tegra20.dtsi b/arch/arm/boot/dts/tegra20.dtsi
-index 36909df653c3..864a95872b8d 100644
---- a/arch/arm/boot/dts/tegra20.dtsi
-+++ b/arch/arm/boot/dts/tegra20.dtsi
-@@ -16,6 +16,11 @@
- 		#address-cells = <1>;
- 		#size-cells = <1>;
- 		ranges = <0 0x40000000 0x40000>;
-+
-+		vde_pool: vde {
-+			reg = <0x400 0x3fc00>;
-+			pool;
-+		};
- 	};
- 
- 	host1x@50000000 {
-@@ -258,6 +263,28 @@
- 		*/
- 	};
- 
-+	vde@6001a000 {
-+		compatible = "nvidia,tegra20-vde";
-+		reg = <0x6001a000 0x1000   /* Syntax Engine */
-+		       0x6001b000 0x1000   /* Video Bitstream Engine */
-+		       0x6001c000  0x100   /* Macroblock Engine */
-+		       0x6001c200  0x100   /* Post-processing Engine */
-+		       0x6001c400  0x100   /* Motion Compensation Engine */
-+		       0x6001c600  0x100   /* Transform Engine */
-+		       0x6001c800  0x100   /* Pixel prediction block */
-+		       0x6001ca00  0x100   /* Video DMA */
-+		       0x6001d800  0x300>; /* Video frame controls */
-+		reg-names = "sxe", "bsev", "mbe", "ppe", "mce",
-+			    "tfe", "ppb", "vdma", "frameid";
-+		iram = <&vde_pool>; /* IRAM region */
-+		interrupts = <GIC_SPI  9 IRQ_TYPE_LEVEL_HIGH>, /* Sync token interrupt */
-+			     <GIC_SPI 10 IRQ_TYPE_LEVEL_HIGH>, /* BSE-V interrupt */
-+			     <GIC_SPI 12 IRQ_TYPE_LEVEL_HIGH>; /* SXE interrupt */
-+		interrupt-names = "sync-token", "bsev", "sxe";
-+		clocks = <&tegra_car TEGRA20_CLK_VDE>;
-+		resets = <&tegra_car 61>;
-+	};
-+
- 	apbmisc@70000800 {
- 		compatible = "nvidia,tegra20-apbmisc";
- 		reg = <0x70000800 0x64   /* Chip revision */
--- 
-2.15.1
+s/have/has/
+
+> chosen to be the active route based on device tree configuration. Whit
+
+s/Whit/With/
+
+> the new routeing API it's possible to control which of the eight sink
+> pads are routed to the source pad.
+
+> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+
+Aha, I had been wondering how we would handle this...
+
+Other than the minor nits, this is otherwise looking good
+
+Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+
+> ---
+>  drivers/media/i2c/adv748x/adv748x-afe.c | 66 +++++++++++++++++++++++++++++++++
+>  1 file changed, 66 insertions(+)
+> 
+> diff --git a/drivers/media/i2c/adv748x/adv748x-afe.c b/drivers/media/i2c/adv748x/adv748x-afe.c
+> index 5188178588c9067d..5dda85c707f6efd7 100644
+> --- a/drivers/media/i2c/adv748x/adv748x-afe.c
+> +++ b/drivers/media/i2c/adv748x/adv748x-afe.c
+> @@ -43,6 +43,9 @@
+>  #define ADV748X_AFE_STD_PAL_SECAM			0xe
+>  #define ADV748X_AFE_STD_PAL_SECAM_PED			0xf
+>  
+> +#define ADV748X_AFE_ROUTES_MAX ((ADV748X_AFE_SINK_AIN7 - \
+> +				ADV748X_AFE_SINK_AIN0) + 1)
+> +
+>  static int adv748x_afe_read_ro_map(struct adv748x_state *state, u8 reg)
+>  {
+>  	int ret;
+> @@ -386,10 +389,73 @@ static int adv748x_afe_set_format(struct v4l2_subdev *sd,
+>  	return 0;
+>  }
+>  
+> +
+
+No need for that extra line..
+
+> +static int adv748x_afe_get_routing(struct v4l2_subdev *sd,
+> +				   struct v4l2_subdev_routing *routing)
+> +{
+> +	struct adv748x_afe *afe = adv748x_sd_to_afe(sd);
+> +	struct v4l2_subdev_route *r = routing->routes;
+> +	unsigned int i;
+> +
+> +	/* There are one possible route from each sink */
+
+	There is one possible ...
+
+> +	if (routing->num_routes < ADV748X_AFE_ROUTES_MAX) {
+> +		routing->num_routes = ADV748X_AFE_ROUTES_MAX;
+> +		return -ENOSPC;
+> +	}
+> +
+> +	routing->num_routes = ADV748X_AFE_ROUTES_MAX;
+> +
+> +	for (i = ADV748X_AFE_SINK_AIN0; i <= ADV748X_AFE_SINK_AIN7; i++) {
+> +		r->sink_pad = i;
+> +		r->sink_stream = 0;
+> +		r->source_pad = ADV748X_AFE_SOURCE;
+> +		r->source_stream = 0;
+> +		r->flags = afe->input == i ? V4L2_SUBDEV_ROUTE_FL_ACTIVE : 0;
+> +		r++;
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +static int adv748x_afe_set_routing(struct v4l2_subdev *sd,
+> +				   struct v4l2_subdev_routing *routing)
+> +{
+> +	struct adv748x_afe *afe = adv748x_sd_to_afe(sd);
+> +	struct v4l2_subdev_route *r = routing->routes;
+> +	int input = -1;
+> +	unsigned int i;
+> +
+> +	if (routing->num_routes > ADV748X_AFE_ROUTES_MAX)
+> +		return -ENOSPC;
+> +
+> +	for (i = 0; i < routing->num_routes; i++) {
+> +		if (r->sink_pad > ADV748X_AFE_SINK_AIN7 ||
+> +		    r->sink_stream != 0 ||
+> +		    r->source_pad != ADV748X_AFE_SOURCE ||
+> +		    r->source_stream != 0)
+> +			return -EINVAL;
+> +
+> +		if (r->flags & V4L2_SUBDEV_ROUTE_FL_ACTIVE) {
+> +			if (input != -1)
+> +				return -EMLINK;
+> +
+> +			input = r->sink_pad;
+> +		}
+> +		r++;
+> +	}
+> +
+> +	if (input != -1)
+> +		afe->input = input;> +
+> +	return 0;
+> +}
+> +
+>  static const struct v4l2_subdev_pad_ops adv748x_afe_pad_ops = {
+>  	.enum_mbus_code = adv748x_afe_enum_mbus_code,
+>  	.set_fmt = adv748x_afe_set_format,
+>  	.get_fmt = adv748x_afe_get_format,
+> +	.get_routing = adv748x_afe_get_routing,
+> +	.set_routing = adv748x_afe_set_routing,
+>  };
+>  
+>  /* -----------------------------------------------------------------------------
+> 
