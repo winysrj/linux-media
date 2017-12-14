@@ -1,130 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-4.sys.kth.se ([130.237.48.193]:44896 "EHLO
-        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752479AbdLHBJH (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 7 Dec 2017 20:09:07 -0500
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH v9 27/28] rcar-vin: enable support for r8a7796
-Date: Fri,  8 Dec 2017 02:08:41 +0100
-Message-Id: <20171208010842.20047-28-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20171208010842.20047-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20171208010842.20047-1-niklas.soderlund+renesas@ragnatech.se>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:57351 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754125AbdLNXMo (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 14 Dec 2017 18:12:44 -0500
+Reply-To: kieran.bingham@ideasonboard.com
+Subject: Re: [PATCH/RFC v2 12/15] adv748x: csi2: switch to pad and stream
+ aware s_stream
+To: =?UTF-8?Q?Niklas_S=c3=b6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>,
+        linux-media@vger.kernel.org,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-renesas-soc@vger.kernel.org,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        Benoit Parrot <bparrot@ti.com>,
+        Maxime Ripard <maxime.ripard@free-electrons.com>
+References: <20171214190835.7672-1-niklas.soderlund+renesas@ragnatech.se>
+ <20171214190835.7672-13-niklas.soderlund+renesas@ragnatech.se>
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Message-ID: <bf2f7b88-e3d0-b318-5b49-3dae9ad096ba@ideasonboard.com>
+Date: Thu, 14 Dec 2017 23:12:39 +0000
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+In-Reply-To: <20171214190835.7672-13-niklas.soderlund+renesas@ragnatech.se>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add the SoC specific information for Renesas r8a7796.
+Hi Niklas,
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Rob Herring <robh@kernel.org>
----
- .../devicetree/bindings/media/rcar_vin.txt         |  1 +
- drivers/media/platform/rcar-vin/rcar-core.c        | 64 ++++++++++++++++++++++
- 2 files changed, 65 insertions(+)
+On 14/12/17 19:08, Niklas Söderlund wrote:
+> Switch the driver to implement the pad and stream aware s_stream
+> operation. This is needed to enable to support to start and stop
+> individual streams on a multiplexed pad
 
-diff --git a/Documentation/devicetree/bindings/media/rcar_vin.txt b/Documentation/devicetree/bindings/media/rcar_vin.txt
-index 5a95d9668d2c7dfd..314743532bbb4523 100644
---- a/Documentation/devicetree/bindings/media/rcar_vin.txt
-+++ b/Documentation/devicetree/bindings/media/rcar_vin.txt
-@@ -20,6 +20,7 @@ on Gen3 to a CSI-2 receiver.
-    - "renesas,vin-r8a7793" for the R8A7793 device
-    - "renesas,vin-r8a7794" for the R8A7794 device
-    - "renesas,vin-r8a7795" for the R8A7795 device
-+   - "renesas,vin-r8a7796" for the R8A7796 device
-    - "renesas,rcar-gen2-vin" for a generic R-Car Gen2 or RZ/G1 compatible
-      device.
-    - "renesas,rcar-gen3-vin" for a generic R-Car Gen3 compatible device.
-diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
-index 66a8144fbba437d3..ed7fbb58ad6846c1 100644
---- a/drivers/media/platform/rcar-vin/rcar-core.c
-+++ b/drivers/media/platform/rcar-vin/rcar-core.c
-@@ -1085,6 +1085,66 @@ static const struct rvin_info rcar_info_r8a7795es1 = {
- 	},
- };
- 
-+static const struct rvin_info rcar_info_r8a7796 = {
-+	.chip = RCAR_GEN3,
-+	.use_mc = true,
-+	.max_width = 4096,
-+	.max_height = 4096,
-+
-+	.num_chsels = 5,
-+	.chsels = {
-+		{
-+			{ .csi = RVIN_CSI40, .chan = 0 },
-+			{ .csi = RVIN_CSI20, .chan = 0 },
-+			{ .csi = RVIN_NC, .chan = 0 },
-+			{ .csi = RVIN_CSI40, .chan = 0 },
-+			{ .csi = RVIN_CSI20, .chan = 0 },
-+		}, {
-+			{ .csi = RVIN_CSI20, .chan = 0 },
-+			{ .csi = RVIN_NC, .chan = 0 },
-+			{ .csi = RVIN_CSI40, .chan = 0 },
-+			{ .csi = RVIN_CSI40, .chan = 1 },
-+			{ .csi = RVIN_CSI20, .chan = 1 },
-+		}, {
-+			{ .csi = RVIN_NC, .chan = 0 },
-+			{ .csi = RVIN_CSI40, .chan = 0 },
-+			{ .csi = RVIN_CSI20, .chan = 0 },
-+			{ .csi = RVIN_CSI40, .chan = 2 },
-+			{ .csi = RVIN_CSI20, .chan = 2 },
-+		}, {
-+			{ .csi = RVIN_CSI40, .chan = 1 },
-+			{ .csi = RVIN_CSI20, .chan = 1 },
-+			{ .csi = RVIN_NC, .chan = 1 },
-+			{ .csi = RVIN_CSI40, .chan = 3 },
-+			{ .csi = RVIN_CSI20, .chan = 3 },
-+		}, {
-+			{ .csi = RVIN_CSI40, .chan = 0 },
-+			{ .csi = RVIN_CSI20, .chan = 0 },
-+			{ .csi = RVIN_NC, .chan = 0 },
-+			{ .csi = RVIN_CSI40, .chan = 0 },
-+			{ .csi = RVIN_CSI20, .chan = 0 },
-+		}, {
-+			{ .csi = RVIN_CSI20, .chan = 0 },
-+			{ .csi = RVIN_NC, .chan = 0 },
-+			{ .csi = RVIN_CSI40, .chan = 0 },
-+			{ .csi = RVIN_CSI40, .chan = 1 },
-+			{ .csi = RVIN_CSI20, .chan = 1 },
-+		}, {
-+			{ .csi = RVIN_NC, .chan = 0 },
-+			{ .csi = RVIN_CSI40, .chan = 0 },
-+			{ .csi = RVIN_CSI20, .chan = 0 },
-+			{ .csi = RVIN_CSI40, .chan = 2 },
-+			{ .csi = RVIN_CSI20, .chan = 2 },
-+		}, {
-+			{ .csi = RVIN_CSI40, .chan = 1 },
-+			{ .csi = RVIN_CSI20, .chan = 1 },
-+			{ .csi = RVIN_NC, .chan = 1 },
-+			{ .csi = RVIN_CSI40, .chan = 3 },
-+			{ .csi = RVIN_CSI20, .chan = 3 },
-+		},
-+	},
-+};
-+
- static const struct of_device_id rvin_of_id_table[] = {
- 	{
- 		.compatible = "renesas,vin-r8a7778",
-@@ -1118,6 +1178,10 @@ static const struct of_device_id rvin_of_id_table[] = {
- 		.compatible = "renesas,vin-r8a7795",
- 		.data = &rcar_info_r8a7795,
- 	},
-+	{
-+		.compatible = "renesas,vin-r8a7796",
-+		.data = &rcar_info_r8a7796,
-+	},
- 	{ },
- };
- MODULE_DEVICE_TABLE(of, rvin_of_id_table);
--- 
-2.15.0
+"This is needed to enable support for starting and stopping individual streams
+on a multiplexed pad."
+
+> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+
+Otherwise,
+
+Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+
+> ---
+>  drivers/media/i2c/adv748x/adv748x-csi2.c | 16 ++++++++++------
+>  1 file changed, 10 insertions(+), 6 deletions(-)
+> 
+> diff --git a/drivers/media/i2c/adv748x/adv748x-csi2.c b/drivers/media/i2c/adv748x/adv748x-csi2.c
+> index a43b251d0bc67a43..39f993282dd3bb5c 100644
+> --- a/drivers/media/i2c/adv748x/adv748x-csi2.c
+> +++ b/drivers/media/i2c/adv748x/adv748x-csi2.c
+> @@ -128,22 +128,26 @@ static const struct v4l2_subdev_internal_ops adv748x_csi2_internal_ops = {
+>   * v4l2_subdev_video_ops
+>   */
+>  
+> -static int adv748x_csi2_s_stream(struct v4l2_subdev *sd, int enable)
+> +static int adv748x_csi2_s_stream(struct v4l2_subdev *sd, unsigned int pad,
+> +				 unsigned int stream, int enable)
+>  {
+>  	struct adv748x_csi2 *tx = adv748x_sd_to_csi2(sd);
+> +	struct adv748x_state *state = tx->state;
+>  	struct v4l2_subdev *src;
+>  
+> +	if (pad != ADV748X_CSI2_SOURCE || stream != 0)
+> +		return -EINVAL;
+> +
+>  	src = adv748x_get_remote_sd(&tx->pads[ADV748X_CSI2_SINK]);
+>  	if (!src)
+>  		return -EPIPE;
+>  
+> +	adv_dbg(state, "%s: pad: %u stream: %u enable: %d\n", sd->name,
+> +		pad, stream, enable);
+> +
+>  	return v4l2_subdev_call(src, video, s_stream, enable);
+>  }
+>  
+> -static const struct v4l2_subdev_video_ops adv748x_csi2_video_ops = {
+> -	.s_stream = adv748x_csi2_s_stream,
+> -};
+> -
+>  /* -----------------------------------------------------------------------------
+>   * v4l2_subdev_pad_ops
+>   *
+> @@ -256,6 +260,7 @@ static const struct v4l2_subdev_pad_ops adv748x_csi2_pad_ops = {
+>  	.get_fmt = adv748x_csi2_get_format,
+>  	.set_fmt = adv748x_csi2_set_format,
+>  	.get_frame_desc = adv748x_csi2_get_frame_desc,
+> +	.s_stream = adv748x_csi2_s_stream,
+>  };
+>  
+>  /* -----------------------------------------------------------------------------
+> @@ -263,7 +268,6 @@ static const struct v4l2_subdev_pad_ops adv748x_csi2_pad_ops = {
+>   */
+>  
+>  static const struct v4l2_subdev_ops adv748x_csi2_ops = {
+> -	.video = &adv748x_csi2_video_ops,
+>  	.pad = &adv748x_csi2_pad_ops,
+>  };
+>  
+> 
