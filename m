@@ -1,74 +1,163 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from kadath.azazel.net ([81.187.231.250]:36094 "EHLO
-        kadath.azazel.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751157AbdLAPbF (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 1 Dec 2017 10:31:05 -0500
-Date: Fri, 1 Dec 2017 15:31:00 +0000
-From: Jeremy Sowden <jeremy@azazel.net>
-To: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org
-Subject: Re: [PATCH 1/3] media: atomisp: convert default struct values to use
- compound-literals with designated initializers.
-Message-ID: <20171201153100.ox4wib36snezydm4@azazel.net>
-References: <20171129083835.tam3avqz5vishwqw@azazel.net>
- <20171130214014.31412-1-jeremy@azazel.net>
- <20171130214014.31412-2-jeremy@azazel.net>
- <20171201150725.cfcp6b4bs2ncqsip@mwanda>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="o6f3rgpp2px3mhxo"
-Content-Disposition: inline
-In-Reply-To: <20171201150725.cfcp6b4bs2ncqsip@mwanda>
+Received: from gofer.mess.org ([88.97.38.141]:50645 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753447AbdLNRWD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 14 Dec 2017 12:22:03 -0500
+From: Sean Young <sean@mess.org>
+To: linux-media@vger.kernel.org,
+        Dan Carpenter <dan.carpenter@oracle.com>
+Subject: [PATCH 07/10] media: lirc: do not pass ERR_PTR to kfree
+Date: Thu, 14 Dec 2017 17:22:01 +0000
+Message-Id: <520044a764d3b795fb10e0b381cc7a48f729cfbb.1513271970.git.sean@mess.org>
+In-Reply-To: <4e8c9939b6b116a54e3042d098343bc918268b1d.1513271970.git.sean@mess.org>
+References: <4e8c9939b6b116a54e3042d098343bc918268b1d.1513271970.git.sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+If memdup_user() fails, txbuf will be an error pointer and passed
+to kfree.
 
---o6f3rgpp2px3mhxo
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
+Signed-off-by: Sean Young <sean@mess.org>
+---
+ drivers/media/rc/lirc_dev.c | 35 ++++++++++++++++++-----------------
+ 1 file changed, 18 insertions(+), 17 deletions(-)
 
-On 2017-12-01, at 18:07:25 +0300, Dan Carpenter wrote:
-> I can't apply this (to today's linux-next) but does this really work:
->
-> > +(struct ia_css_3a_grid_info) { \
-> > +	.ae_enable		= 0, \
-> > +	.ae_grd_info		= (struct ae_public_config_grid_config) { \
-> > +					width = 0, \
-> > +					height = 0, \
-> > +					b_width = 0, \
-> > +					b_height = 0, \
-> > +					x_start = 0, \
-> > +					y_start = 0, \
-> > +					x_end = 0, \
-> > +					y_end = 0 \
->
-> I'm pretty sure those lines should start with a period.
->
-> - 					width = 0, \
-> +					.width = 0, \
-
-Indeed they should.  A second version is in the pipeline.
-
-J.
-
---o6f3rgpp2px3mhxo
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCAAdFiEEVbDTMOAK4SXP2yyD0czNNmRE1J0FAlohdawACgkQ0czNNmRE
-1J00yw/9EiGin52SfZPWrsk8jOGn2CcguTK+j6m4R6QfAbA+B1UbKrN4bfVeZLjE
-Nd4eqOhnsJXxz8SrzbMhNqnzNR7xJvcb2JbzrSxWhPJKF/TXtGsT01w1TYUSgqur
-KHa8xkTtm041HgoHE+/ncdX+V2PEwKOtoObGG90f26MmjYvrpCl/3iBNPiryrIf6
-DRvT7+6D45TCYfI2UnWnDiyEzzre8MAwWzWugZLTnLWdLYBnR8uEJXwCkIKilwdK
-Rma6wyBjDra+cfRa9z+XBAyU4h3VrCHAKak90eRIpRBjJu/sIlkArFUy0HjDQ57D
-Op20IcWMPT4zAPJDoSkb7EQz4SFwreHuYhnZU5JdlNZmrPPh95NvvNWf5OfC7kuO
-pHRurvJHjwvtFRs+rUyYRwBUHTHkRw53O12ncZUi1irqE9I7hfZrCe74+sPsRWTM
-nJJXZ0bYBMxCKG9WRnoW3A0RSmOOWQlX4GwhDCISNqvHLqFoIaMRTbA0Lntu/VRo
-8uKtm8lSJ4OecW0FyGdXirgGEC1HAemCLN5p/D+4AnOscRPVGw/cdd15xmDZu/fC
-r1Bimryi2dUx5j4PNuCif7xpZrrmZigSSNws0ZJmJEEk6w1Ta12fRP5qzkhCpjiG
-4s1Q/y8LJ4CEvjq/vYTvL5NQsj7tzvr3JjUS5OlG1n1YMrBkoFA=
-=7j04
------END PGP SIGNATURE-----
-
---o6f3rgpp2px3mhxo--
+diff --git a/drivers/media/rc/lirc_dev.c b/drivers/media/rc/lirc_dev.c
+index 6cedb546c3e0..8618aba152c6 100644
+--- a/drivers/media/rc/lirc_dev.c
++++ b/drivers/media/rc/lirc_dev.c
+@@ -231,7 +231,7 @@ static ssize_t ir_lirc_transmit_ir(struct file *file, const char __user *buf,
+ {
+ 	struct lirc_fh *fh = file->private_data;
+ 	struct rc_dev *dev = fh->rc;
+-	unsigned int *txbuf = NULL;
++	unsigned int *txbuf;
+ 	struct ir_raw_event *raw = NULL;
+ 	ssize_t ret;
+ 	size_t count;
+@@ -246,14 +246,14 @@ static ssize_t ir_lirc_transmit_ir(struct file *file, const char __user *buf,
+ 
+ 	if (!dev->registered) {
+ 		ret = -ENODEV;
+-		goto out;
++		goto out_unlock;
+ 	}
+ 
+ 	start = ktime_get();
+ 
+ 	if (!dev->tx_ir) {
+ 		ret = -EINVAL;
+-		goto out;
++		goto out_unlock;
+ 	}
+ 
+ 	if (fh->send_mode == LIRC_MODE_SCANCODE) {
+@@ -261,17 +261,17 @@ static ssize_t ir_lirc_transmit_ir(struct file *file, const char __user *buf,
+ 
+ 		if (n != sizeof(scan)) {
+ 			ret = -EINVAL;
+-			goto out;
++			goto out_unlock;
+ 		}
+ 
+ 		if (copy_from_user(&scan, buf, sizeof(scan))) {
+ 			ret = -EFAULT;
+-			goto out;
++			goto out_unlock;
+ 		}
+ 
+ 		if (scan.flags || scan.keycode || scan.timestamp) {
+ 			ret = -EINVAL;
+-			goto out;
++			goto out_unlock;
+ 		}
+ 
+ 		/*
+@@ -283,26 +283,26 @@ static ssize_t ir_lirc_transmit_ir(struct file *file, const char __user *buf,
+ 		if (scan.scancode > U32_MAX ||
+ 		    !rc_validate_scancode(scan.rc_proto, scan.scancode)) {
+ 			ret = -EINVAL;
+-			goto out;
++			goto out_unlock;
+ 		}
+ 
+ 		raw = kmalloc_array(LIRCBUF_SIZE, sizeof(*raw), GFP_KERNEL);
+ 		if (!raw) {
+ 			ret = -ENOMEM;
+-			goto out;
++			goto out_unlock;
+ 		}
+ 
+ 		ret = ir_raw_encode_scancode(scan.rc_proto, scan.scancode,
+ 					     raw, LIRCBUF_SIZE);
+ 		if (ret < 0)
+-			goto out;
++			goto out_kfree;
+ 
+ 		count = ret;
+ 
+ 		txbuf = kmalloc_array(count, sizeof(unsigned int), GFP_KERNEL);
+ 		if (!txbuf) {
+ 			ret = -ENOMEM;
+-			goto out;
++			goto out_kfree;
+ 		}
+ 
+ 		for (i = 0; i < count; i++)
+@@ -318,26 +318,26 @@ static ssize_t ir_lirc_transmit_ir(struct file *file, const char __user *buf,
+ 	} else {
+ 		if (n < sizeof(unsigned int) || n % sizeof(unsigned int)) {
+ 			ret = -EINVAL;
+-			goto out;
++			goto out_unlock;
+ 		}
+ 
+ 		count = n / sizeof(unsigned int);
+ 		if (count > LIRCBUF_SIZE || count % 2 == 0) {
+ 			ret = -EINVAL;
+-			goto out;
++			goto out_unlock;
+ 		}
+ 
+ 		txbuf = memdup_user(buf, n);
+ 		if (IS_ERR(txbuf)) {
+ 			ret = PTR_ERR(txbuf);
+-			goto out;
++			goto out_unlock;
+ 		}
+ 	}
+ 
+ 	for (i = 0; i < count; i++) {
+ 		if (txbuf[i] > IR_MAX_DURATION / 1000 - duration || !txbuf[i]) {
+ 			ret = -EINVAL;
+-			goto out;
++			goto out_kfree;
+ 		}
+ 
+ 		duration += txbuf[i];
+@@ -345,7 +345,7 @@ static ssize_t ir_lirc_transmit_ir(struct file *file, const char __user *buf,
+ 
+ 	ret = dev->tx_ir(dev, txbuf, count);
+ 	if (ret < 0)
+-		goto out;
++		goto out_kfree;
+ 
+ 	if (fh->send_mode == LIRC_MODE_SCANCODE) {
+ 		ret = n;
+@@ -368,10 +368,11 @@ static ssize_t ir_lirc_transmit_ir(struct file *file, const char __user *buf,
+ 		schedule_timeout(usecs_to_jiffies(towait));
+ 	}
+ 
+-out:
+-	mutex_unlock(&dev->lock);
++out_kfree:
+ 	kfree(txbuf);
+ 	kfree(raw);
++out_unlock:
++	mutex_unlock(&dev->lock);
+ 	return ret;
+ }
+ 
+-- 
+2.14.3
