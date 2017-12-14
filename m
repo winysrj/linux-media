@@ -1,57 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:64294 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751655AbdLUQSW (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 21 Dec 2017 11:18:22 -0500
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Seung-Woo Kim <sw0312.kim@samsung.com>,
-        Geunyoung Kim <nenggun.kim@samsung.com>,
-        Satendra Singh Thakur <satendra.t@samsung.com>,
-        Inki Dae <inki.dae@samsung.com>,
-        Junghak Sung <jh1009.sung@samsung.com>
-Subject: [PATCH 11/11] media: dvb_vb2: add SPDX headers
-Date: Thu, 21 Dec 2017 14:18:10 -0200
-Message-Id: <2252209414e0d59b71973984ea5da4eb2440d8d0.1513872637.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1513872637.git.mchehab@s-opensource.com>
-References: <cover.1513872637.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1513872637.git.mchehab@s-opensource.com>
-References: <cover.1513872637.git.mchehab@s-opensource.com>
+Received: from smtp-3.sys.kth.se ([130.237.48.192]:34324 "EHLO
+        smtp-3.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754346AbdLNTJY (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 14 Dec 2017 14:09:24 -0500
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: linux-media@vger.kernel.org,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-renesas-soc@vger.kernel.org,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        Benoit Parrot <bparrot@ti.com>,
+        Maxime Ripard <maxime.ripard@free-electrons.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH/RFC v2 14/15] adv748x: csi2: add get_routing support
+Date: Thu, 14 Dec 2017 20:08:34 +0100
+Message-Id: <20171214190835.7672-15-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20171214190835.7672-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20171214190835.7672-1-niklas.soderlund+renesas@ragnatech.se>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This code is released under GPL. Add the corresponding SPDX
-headers.
+To support multiplexed streams the internal routing between the
+adv748x sink pad and its source pad needs to be described.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 ---
- drivers/media/dvb-core/dvb_vb2.c | 1 +
- drivers/media/dvb-core/dvb_vb2.h | 2 ++
- 2 files changed, 3 insertions(+)
+ drivers/media/i2c/adv748x/adv748x-csi2.c | 22 ++++++++++++++++++++++
+ 1 file changed, 22 insertions(+)
 
-diff --git a/drivers/media/dvb-core/dvb_vb2.c b/drivers/media/dvb-core/dvb_vb2.c
-index 7b1663f64e84..10d8f627af3a 100644
---- a/drivers/media/dvb-core/dvb_vb2.c
-+++ b/drivers/media/dvb-core/dvb_vb2.c
-@@ -1,3 +1,4 @@
-+// SPDX-License-Identifier: GPL
- /*
-  * dvb-vb2.c - dvb-vb2
-  *
-diff --git a/drivers/media/dvb-core/dvb_vb2.h b/drivers/media/dvb-core/dvb_vb2.h
-index d68653926d91..a5164effee16 100644
---- a/drivers/media/dvb-core/dvb_vb2.h
-+++ b/drivers/media/dvb-core/dvb_vb2.h
-@@ -1,4 +1,6 @@
- /*
-+ * SPDX-License-Identifier: GPL
-+ *
-  * dvb-vb2.h - DVB driver helper framework for streaming I/O
-  *
-  * Copyright (C) 2015 Samsung Electronics
+diff --git a/drivers/media/i2c/adv748x/adv748x-csi2.c b/drivers/media/i2c/adv748x/adv748x-csi2.c
+index 291b35bef49d41fb..dbefb53f5b8c414d 100644
+--- a/drivers/media/i2c/adv748x/adv748x-csi2.c
++++ b/drivers/media/i2c/adv748x/adv748x-csi2.c
+@@ -262,10 +262,32 @@ static int adv748x_csi2_get_frame_desc(struct v4l2_subdev *sd, unsigned int pad,
+ 	return 0;
+ }
+ 
++static int adv748x_csi2_get_routing(struct v4l2_subdev *subdev,
++				    struct v4l2_subdev_routing *routing)
++{
++	struct v4l2_subdev_route *r = routing->routes;
++
++	if (routing->num_routes < 1) {
++		routing->num_routes = 1;
++		return -ENOSPC;
++	}
++
++	routing->num_routes = 1;
++
++	r->sink_pad = ADV748X_CSI2_SINK;
++	r->sink_stream = 0;
++	r->source_pad = ADV748X_CSI2_SOURCE;
++	r->source_stream = 0;
++	r->flags = V4L2_SUBDEV_ROUTE_FL_ACTIVE | V4L2_SUBDEV_ROUTE_FL_IMMUTABLE;
++
++	return 0;
++}
++
+ static const struct v4l2_subdev_pad_ops adv748x_csi2_pad_ops = {
+ 	.get_fmt = adv748x_csi2_get_format,
+ 	.set_fmt = adv748x_csi2_set_format,
+ 	.get_frame_desc = adv748x_csi2_get_frame_desc,
++	.get_routing = adv748x_csi2_get_routing,
+ 	.s_stream = adv748x_csi2_s_stream,
+ };
+ 
 -- 
-2.14.3
+2.15.1
