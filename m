@@ -1,155 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from szxga05-in.huawei.com ([45.249.212.191]:2776 "EHLO huawei.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1750984AbdLYBJy (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 24 Dec 2017 20:09:54 -0500
-Subject: Re: [PATCH v3 00/27] kill devm_ioremap_nocache
-To: christophe leroy <christophe.leroy@c-s.fr>,
-        Guenter Roeck <linux@roeck-us.net>,
-        Greg KH <gregkh@linuxfoundation.org>
-References: <1514026525-32538-1-git-send-email-xieyisheng1@huawei.com>
- <20171223134831.GB10103@kroah.com>
- <f7632cf5-2bcc-4d74-b912-3999937a1269@roeck-us.net>
- <c28ac0bc-8bd2-3dce-3167-8c0f80ec601e@c-s.fr>
-CC: <linux-kernel@vger.kernel.org>, <ysxie@foxmail.com>,
-        <ulf.hansson@linaro.org>, <linux-mmc@vger.kernel.org>,
-        <boris.brezillon@free-electrons.com>, <richard@nod.at>,
-        <marek.vasut@gmail.com>, <cyrille.pitchen@wedev4u.fr>,
-        <linux-mtd@lists.infradead.org>, <alsa-devel@alsa-project.org>,
-        <wim@iguana.be>, <linux-watchdog@vger.kernel.org>,
-        <b.zolnierkie@samsung.com>, <linux-fbdev@vger.kernel.org>,
-        <linus.walleij@linaro.org>, <linux-gpio@vger.kernel.org>,
-        <ralf@linux-mips.org>, <linux-mips@linux-mips.org>,
-        <lgirdwood@gmail.com>, <broonie@kernel.org>, <tglx@linutronix.de>,
-        <jason@lakedaemon.net>, <marc.zyngier@arm.com>, <arnd@arndb.de>,
-        <andriy.shevchenko@linux.intel.com>,
-        <industrypack-devel@lists.sourceforge.net>, <wg@grandegger.com>,
-        <mkl@pengutronix.de>, <linux-can@vger.kernel.org>,
-        <mchehab@kernel.org>, <linux-media@vger.kernel.org>,
-        <a.zummo@towertech.it>, <alexandre.belloni@free-electrons.com>,
-        <linux-rtc@vger.kernel.org>, <daniel.vetter@intel.com>,
-        <jani.nikula@linux.intel.com>, <seanpaul@chromium.org>,
-        <airlied@linux.ie>, <dri-devel@lists.freedesktop.org>,
-        <kvalo@codeaurora.org>, <linux-wireless@vger.kernel.org>,
-        <linux-spi@vger.kernel.org>, <tj@kernel.org>,
-        <linux-ide@vger.kernel.org>, <bhelgaas@google.com>,
-        <linux-pci@vger.kernel.org>, <devel@driverdev.osuosl.org>,
-        <dvhart@infradead.org>, <andy@infradead.org>,
-        <platform-driver-x86@vger.kernel.org>,
-        <jakub.kicinski@netronome.com>, <davem@davemloft.net>,
-        <nios2-dev@lists.rocketboards.org>, <netdev@vger.kernel.org>,
-        <vinod.koul@intel.com>, <dan.j.williams@intel.com>,
-        <dmaengine@vger.kernel.org>, <jslaby@suse.com>
-From: Yisheng Xie <xieyisheng1@huawei.com>
-Message-ID: <6c0ade63-f4d3-d44d-c622-b091eb2ba902@huawei.com>
-Date: Mon, 25 Dec 2017 09:09:10 +0800
-MIME-Version: 1.0
-In-Reply-To: <c28ac0bc-8bd2-3dce-3167-8c0f80ec601e@c-s.fr>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Received: from smtprelay0229.hostedemail.com ([216.40.44.229]:52648 "EHLO
+        smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1753650AbdLNR0b (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 14 Dec 2017 12:26:31 -0500
+Message-ID: <1513272387.27409.69.camel@perches.com>
+Subject: Re: [PATCH] media: v4l: xilinx: Use SPDX-License-Identifier
+From: Joe Perches <joe@perches.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Dhaval Shah <dhaval23031987@gmail.com>
+Cc: hyun.kwon@xilinx.com, laurent.pinchart@ideasonboard.com,
+        michal.simek@xilinx.com, linux-media@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Date: Thu, 14 Dec 2017 09:26:27 -0800
+In-Reply-To: <20171214150527.00dca6cc@vento.lan>
+References: <20171208123537.18718-1-dhaval23031987@gmail.com>
+         <20171214150527.00dca6cc@vento.lan>
+Content-Type: text/plain; charset="ISO-8859-1"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-hi Christophe and Greg,
+On Thu, 2017-12-14 at 15:05 -0200, Mauro Carvalho Chehab wrote:
+> Em Fri,  8 Dec 2017 18:05:37 +0530
+> Dhaval Shah <dhaval23031987@gmail.com> escreveu:
+> 
+> > SPDX-License-Identifier is used for the Xilinx Video IP and
+> > related drivers.
+> > 
+> > Signed-off-by: Dhaval Shah <dhaval23031987@gmail.com>
+> 
+> Hi Dhaval,
+> 
+> You're not listed as one of the Xilinx driver maintainers. I'm afraid that,
+> without their explicit acks, sent to the ML, I can't accept a patch
+> touching at the driver's license tags.
 
-On 2017/12/24 16:55, christophe leroy wrote:
-> 
-> 
-> Le 23/12/2017 à 16:57, Guenter Roeck a écrit :
->> On 12/23/2017 05:48 AM, Greg KH wrote:
->>> On Sat, Dec 23, 2017 at 06:55:25PM +0800, Yisheng Xie wrote:
->>>> Hi all,
->>>>
->>>> When I tried to use devm_ioremap function and review related code, I found
->>>> devm_ioremap and devm_ioremap_nocache is almost the same with each other,
->>>> except one use ioremap while the other use ioremap_nocache.
->>>
->>> For all arches?  Really?  Look at MIPS, and x86, they have different
->>> functions.
->>>
->>
->> Both mips and x86 end up mapping the same function, but other arches don't.
->> mn10300 is one where ioremap and ioremap_nocache are definitely different.
-> 
-> alpha: identical
-> arc: identical
-> arm: identical
-> arm64: identical
-> cris: different        <==
-> frv: identical
-> hexagone: identical
-> ia64: different        <==
-> m32r: identical
-> m68k: identical
-> metag: identical
-> microblaze: identical
-> mips: identical
-> mn10300: different     <==
-> nios: identical
-> openrisc: different    <==
-> parisc: identical
-> riscv: identical
-> s390: identical
-> sh: identical
-> sparc: identical
-> tile: identical
-> um: rely on asm/generic
-> unicore32: identical
-> x86: identical
-> asm/generic (no mmu): identical
-
-Wow, that's correct, sorry for I have just checked the main archs, I means
-x86,arm, arm64, mips.
-
-However, I stall have no idea about why these 4 archs want different ioremap
-function with others. Drivers seems cannot aware this? If driver call ioremap
-want he really want for there 4 archs, cache or nocache?
-
-> 
-> So 4 among all arches seems to have ioremap() and ioremap_nocache() being different.
-> 
-> Could we have a define set by the 4 arches on which ioremap() and ioremap_nocache() are different, something like HAVE_DIFFERENT_IOREMAP_NOCACHE ?
-
-Then, what the HAVE_DIFFERENT_IOREMAP_NOCACHE is uesed for ?
-
-Thanks
-Yisheng
-> 
-> Christophe
-> 
->>
->> Guenter
->>
->>>> While ioremap's
->>>> default function is ioremap_nocache, so devm_ioremap_nocache also have the
->>>> same function with devm_ioremap, which can just be killed to reduce the size
->>>> of devres.o(from 20304 bytes to 18992 bytes in my compile environment).
->>>>
->>>> I have posted two versions, which use macro instead of function for
->>>> devm_ioremap_nocache[1] or devm_ioremap[2]. And Greg suggest me to kill
->>>> devm_ioremap_nocache for no need to keep a macro around for the duplicate
->>>> thing. So here comes v3 and please help to review.
->>>
->>> I don't think this can be done, what am I missing?  These functions are
->>> not identical, sorry for missing that before.
-
-Never mind, I should checked all the arches, sorry about that.
-
->>>
->>> thanks,
->>>
->>> greg k-h
->>>
->>
->> -- 
->> To unsubscribe from this list: send the line "unsubscribe linux-watchdog" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> ---
-> L'absence de virus dans ce courrier électronique a été vérifiée par le logiciel antivirus Avast.
-> https://www.avast.com/antivirus
-> 
-> 
-> .
-> 
+And even a maintainer may not have the sole right
+to modify a license.
