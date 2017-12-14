@@ -1,85 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:60095 "EHLO
-        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751558AbdLDNlQ (ORCPT
+Received: from mail-pf0-f194.google.com ([209.85.192.194]:44247 "EHLO
+        mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753307AbdLNRJR (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 4 Dec 2017 08:41:16 -0500
-Subject: Re: [PATCH] v4l: rcar-vin: Implement V4L2 video node release handler
-To: =?UTF-8?Q?Niklas_S=c3=b6derlund?= <niklas.soderlund@ragnatech.se>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
-References: <20171115224907.392-1-laurent.pinchart+renesas@ideasonboard.com>
- <20171115233433.GL12677@bigcity.dyn.berto.se> <2234965.HDk880jUUl@avalon>
- <1fa05d50-b45e-126c-4401-7bfb00b99170@xs4all.nl>
- <20171204133410.GA31989@bigcity.dyn.berto.se>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <9ffec829-542c-b8ea-fa14-6808d453977f@xs4all.nl>
-Date: Mon, 4 Dec 2017 14:41:11 +0100
+        Thu, 14 Dec 2017 12:09:17 -0500
+Received: by mail-pf0-f194.google.com with SMTP id m26so4034598pfj.11
+        for <linux-media@vger.kernel.org>; Thu, 14 Dec 2017 09:09:17 -0800 (PST)
+Subject: Re: [GIT PULL FOR v4.16] media: imx: Add better OF graph support
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <4fa72331-0b80-1df6-ed58-d907e585bd50@xs4all.nl>
+ <20171208143801.14319617@vento.lan>
+ <ae03ac33-198d-a641-d021-33b2a9238a70@gmail.com>
+ <bfd31c3b-bf80-b658-02e6-3af2abbb37a2@xs4all.nl>
+From: Steve Longerbeam <slongerbeam@gmail.com>
+Message-ID: <afe9be18-a281-a9d3-70af-0f4026bc5eba@gmail.com>
+Date: Thu, 14 Dec 2017 09:09:12 -0800
 MIME-Version: 1.0
-In-Reply-To: <20171204133410.GA31989@bigcity.dyn.berto.se>
-Content-Type: text/plain; charset=utf-8
+In-Reply-To: <bfd31c3b-bf80-b658-02e6-3af2abbb37a2@xs4all.nl>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Content-Language: en-US
-Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/04/2017 02:34 PM, Niklas Söderlund wrote:
-> Hi Hans,
-> 
-> On 2017-12-04 10:05:35 +0100, Hans Verkuil wrote:
->> Hi Niklas,
+
+
+On 12/14/2017 04:13 AM, Hans Verkuil wrote:
+> On 08/12/17 23:48, Steve Longerbeam wrote:
 >>
->> On 11/16/2017 01:27 AM, Laurent Pinchart wrote:
->>> Hi Niklas,
+>> On 12/08/2017 08:38 AM, Mauro Carvalho Chehab wrote:
+>>> Em Fri, 8 Dec 2017 11:56:58 +0100
+>>> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 >>>
->>> On Thursday, 16 November 2017 01:34:33 EET Niklas Söderlund wrote:
->>>> On 2017-11-16 00:49:07 +0200, Laurent Pinchart wrote:
->>>>> The rvin_dev data structure contains driver private data for an instance
->>>>> of the VIN. It is allocated dynamically at probe time, and must be freed
->>>>> once all users are gone.
->>>>>
->>>>> The structure is currently allocated with devm_kzalloc(), which results
->>>>> in memory being freed when the device is unbound. If a userspace
->>>>> application is currently performing an ioctl call, or just keeps the
->>>>> device node open and closes it later, this will lead to accessing freed
->>>>> memory.
->>>>>
->>>>> Fix the problem by implementing a V4L2 release handler for the video
->>>>> node associated with the VIN instance (called when the last user of the
->>>>> video node releases it), and freeing memory explicitly from the release
->>>>> handler.
->>>>>
->>>>> Signed-off-by: Laurent Pinchart
->>>>> <laurent.pinchart+renesas@ideasonboard.com>
+>>>> Note: the new v4l2-async work makes it possible to simplify this. That
+>>>> will be done in follow-up patches. It's easier to do that if this is in
+>>>> first.
 >>>>
->>>> Acked-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+>>>> Regards,
 >>>>
->>>> This patch is based on-top of the VIN Gen3 enablement series not yet
->>>> upstream. This is OK for me, just wanted to check that this was the
->>>> intention as to minimize conflicts between the two.
->>>
->>> Yes, that's my intention. The patch should be included, or possibly squashed 
->>> in, your development branch.
->>>
->>
->> Has this patch been added in your v8 series? If not, can you add it when you
->> post a v9?
-> 
-> This patch needs more work, with the video device now registered at 
-> complete() time and unregistered at unbind() time. Applying this would 
-> free the rcar-vin private data structure at unbind() which probably not 
-> what we want.
-> 
-> I think this issue should be addressed but maybe together with a 
-> patch-set targeting the generic problem with video device lifetimes in 
-> v4l2 framework? For now I would be happy to focus on getting Gen3 
-> support picked-up and observe what Laurent's work on lifetime issues 
-> brings and adept the rcar-vin driver to take advantage of that once it's 
-> ready.
+>>>>      Hans
+>>>>
+>>>> The following changes since commit 781b045baefdabf7e0bc9f33672ca830d3db9f27:
+>>>>
+>>>>     media: imx274: Fix error handling, add MAINTAINERS entry (2017-11-30 04:45:12 -0500)
+>>>>
+>>>> are available in the git repository at:
+>>>>
+>>>>     git://linuxtv.org/hverkuil/media_tree.git imx
+>>>>
+>>>> for you to fetch changes up to 82737cbb02f269b8eb608c7bd906a79072f6adad:
+>>>>
+>>>>     media: staging/imx: update TODO (2017-12-04 14:05:19 +0100)
+>>>>
+>>>> ----------------------------------------------------------------
+>>>> Steve Longerbeam (9):
+>>>>         media: staging/imx: get CSI bus type from nearest upstream entity
+>>> There are some non-trivial conflicts on this patch.
+>>> Care to rebase it?
+>> Attached is fixed-up version.
+> That still doesn't apply against the latest media_tree master.
 
-OK. I marked the patch as "Obsoleted" so it doesn't stick around in my patch list.
+Yeah, more merge conflicts from latest commits. I will just post a new
+series.
 
-Regards,
-
-	Hans
+Steve
