@@ -1,169 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from out3-smtp.messagingengine.com ([66.111.4.27]:32879 "EHLO
-        out3-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751292AbdLOHHZ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 15 Dec 2017 02:07:25 -0500
-Subject: Re: [PATCH] uvcvideo: Apply flags from device to actual properties
-To: kieran.bingham@ideasonboard.com,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org
-References: <ca483e75-4519-2bc3-eb11-db647fc60860@edgarthier.net>
- <1516233.pKQSzG3xyp@avalon>
- <e6c92808-82e7-05bc-28b4-370ca51aa2de@edgarthier.net>
- <bf6ced8e-6fbb-5054-bbf6-1186d52459b9@ideasonboard.com>
- <443c86f9-0973-cf52-c0c3-be662a8fee74@ideasonboard.com>
- <ae5ca43a-1ccd-b1fd-c699-f9f1d4f96dc3@edgarthier.net>
- <8b32b0f3-e442-6761-ef1c-34ac535080d0@ideasonboard.com>
- <7342af02-0158-a99e-caf1-6c394842296b@edgarthier.net>
- <430ebf60-395c-08ff-5500-dedcda91e3b1@ideasonboard.com>
- <7807bf0a-a0a1-65ad-1a10-3a3234e566e9@edgarthier.net>
- <2b5cdc56-1de5-8aac-65d6-9713eaf65cdc@ideasonboard.com>
-From: Edgar Thier <info@edgarthier.net>
-Message-ID: <d6ba3f05-4745-17e9-328b-034c9d251f96@edgarthier.net>
-Date: Fri, 15 Dec 2017 08:07:21 +0100
+Received: from osg.samsung.com ([64.30.133.232]:45218 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751719AbdLNLsQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 14 Dec 2017 06:48:16 -0500
+Date: Thu, 14 Dec 2017 09:48:05 -0200
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Daniel Scheller <d.scheller.oss@gmail.com>
+Cc: Ralph Metzler <rjkm@metzlerbros.de>, linux-media@vger.kernel.org,
+        mchehab@kernel.org, jasmin@anw.at
+Subject: Re: [PATCH] [media] ddbridge: add IOCTLs
+Message-ID: <20171214094805.594a847f@vento.lan>
+In-Reply-To: <20170822172116.3e039209@audiostation.wuest.de>
+References: <20170820110855.7127-1-d.scheller.oss@gmail.com>
+        <20170820085356.0aa87e66@vento.lan>
+        <20170820141126.17b24bf1@audiostation.wuest.de>
+        <22940.14881.588623.414208@morden.metzler>
+        <20170822172116.3e039209@audiostation.wuest.de>
 MIME-Version: 1.0
-In-Reply-To: <2b5cdc56-1de5-8aac-65d6-9713eaf65cdc@ideasonboard.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Em Tue, 22 Aug 2017 17:21:16 +0200
+Daniel Scheller <d.scheller.oss@gmail.com> escreveu:
 
-Another month, another mail. Are there still issues keeping this from being merged?
+> Am Tue, 22 Aug 2017 16:05:21 +0200
+> schrieb Ralph Metzler <rjkm@metzlerbros.de>:
+> 
+> > Daniel Scheller writes:  
+> >  > Am Sun, 20 Aug 2017 08:53:56 -0300
+> >  > schrieb Mauro Carvalho Chehab <mchehab@s-opensource.com>:
+> >  >     
+> >  > > Em Sun, 20 Aug 2017 13:08:55 +0200
+> >  > > Daniel Scheller <d.scheller.oss@gmail.com> escreveu:
+> >  > >     
+> >  > > > From: Daniel Scheller <d.scheller@gmx.net>
+> >  > > > 
+> >  > > > This patch adds back the IOCTL API/functionality which is
+> >  > > > present in the upstream dddvb driver package. In comparison,
+> >  > > > the IOCTL handler has been factored to a separate object (and
+> >  > > > with that, some functionality from -core has been moved there
+> >  > > > aswell), the IOCTLs are defined in an include in the uAPI, and
+> >  > > > ioctl-number.txt is updated to document that there are IOCTLs
+> >  > > > present in this driver.
+> >  > > > 
+> >  > > > Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+> >  > > > ---
+> >  > > > This patch depends on the ddbridge-0.9.29 bump, see [1]. The
+> >  > > > functionality was part of the driver before.
+> >  > > > 
+> >  > > > [1] http://www.spinics.net/lists/linux-media/msg119911.html
+> >  > > > 
+> >  > > >  Documentation/ioctl/ioctl-number.txt        |   1 +
+> >  > > >  MAINTAINERS                                 |   1 +
+> >  > > >  drivers/media/pci/ddbridge/Makefile         |   2 +-
+> >  > > >  drivers/media/pci/ddbridge/ddbridge-core.c  | 111 +--------
+> >  > > >  drivers/media/pci/ddbridge/ddbridge-ioctl.c | 334
+> >  > > > ++++++++++++++++++++++++++++
+> >  > > > drivers/media/pci/ddbridge/ddbridge-ioctl.h |  32 +++
+> >  > > > include/uapi/linux/ddbridge-ioctl.h         | 110 +++++++++ 7
+> >  > > > files changed, 481 insertions(+), 110 deletions(-) create mode
+> >  > > > 100644 drivers/media/pci/ddbridge/ddbridge-ioctl.c create mode
+> >  > > > 100644 drivers/media/pci/ddbridge/ddbridge-ioctl.h create mode
+> >  > > > 100644 include/uapi/linux/ddbridge-ioctl.h
+> >  > > > 
+> >  > > > diff --git a/Documentation/ioctl/ioctl-number.txt
+> >  > > > b/Documentation/ioctl/ioctl-number.txt index
+> >  > > > 3e3fdae5f3ed..d78d1cd092d2 100644 ---
+> >  > > > a/Documentation/ioctl/ioctl-number.txt +++
+> >  > > > b/Documentation/ioctl/ioctl-number.txt @@ -215,6 +215,7 @@ Code
+> >  > > > Seq#(hex)	Include File		Comments 'c'
+> >  > > > A0-AF   arch/x86/include/asm/msr.h	conflict! 'd'
+> >  > > > 00-FF	linux/char/drm/drm.h	conflict! 'd'
+> >  > > > 02-40	pcmcia/ds.h		conflict! +'d'
+> >  > > > 00-0B	linux/ddbridge-ioctl.h	conflict!      
+> >  > > 
+> >  > > That's where the problem with this patch starts: we don't add
+> >  > > conflicts here :-)
+> >  > > 
+> >  > > We need more discussions with regards to the features added by
+> >  > > this patchset.    
+> >  > 
+> >  > Understood. The "good" thing is that this isn't a requirement to
+> >  > drive any tuner boards (at the moment), however we shouldn't lose
+> >  > track on this. Since this is the only complaint for now:
+> >  > 
+> >  > - We need to clear with Ralph if changing the MAGIC to something
+> >  >   different is an option. In the end, if we change the userspace
+> >  > apps to include the uAPI header from mainline if available (else
+> >  > fallback to what ie. dddvb carries), I don't see an issue with
+> >  > this. But if userspace apps keep on using private stuff, this will
+> >  > break ofc.
+> >  > - Other option: Fork dddvb and change userspace apps accordingly,
+> >  > and keep them in sync with upstream. Since we already have to care
+> >  > about the kernel part, this option is rather suboptimal.
+> >  > 
+> >  > Ralph, Ping :-)    
+> > 
+> > Changing to something different from 'd' should be fine.
+> > Is there anything still free?  
+> 
+> We could use 0xDD (for *D*igital *D*evices :-) ), subrange 0xc0-0xff or
+> so, that isn't declared "in use" in ioctl-number.txt (0xDD/0x00-0x3f
+> is used by some ZFCP driver). Other options would be ie. 0xD0-0xDA,
+> 0xDC, 0xDE-0xE4. There are also other single values and value-ranges
+> free, all according to ioctl-number.txt ofcourse.
 
-Regards,
+0xDD seems to work. We need a series whose first a patch just touches
+ioctl-number.txt, that should be c/c to linux-doc ML and lkml.
 
-Edgar
+Please double-check first if the s390's zfcp driver doesn't use higher
+values. It is probably wise to c/c s390 maintainer on it.
 
-On 11/15/2017 12:54 PM, Kieran Bingham wrote:
-> Hi Edgar,
-> 
-> Thanks for addressing my concerns in this updated patch.
-> 
-> On 12/10/17 08:54, Edgar Thier wrote:
->>
->> Use flags the device exposes for UVC controls.
->> This allows the device to define which property flags are set.
->>
->> Since some cameras offer auto-adjustments for properties (e.g. auto-gain),
->> the values of other properties (e.g. gain) can change in the camera.
->> Examining the flags ensures that the driver is aware of such properties.
->>
->> Signed-off-by: Edgar Thier <info@edgarthier.net>
-> 
-> Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-> 
->> ---
->>  drivers/media/usb/uvc/uvc_ctrl.c | 64 ++++++++++++++++++++++++++++++----------
->>  1 file changed, 49 insertions(+), 15 deletions(-)
->>
->> diff --git a/drivers/media/usb/uvc/uvc_ctrl.c b/drivers/media/usb/uvc/uvc_ctrl.c
->> index 20397aba..8f902a41 100644
->> --- a/drivers/media/usb/uvc/uvc_ctrl.c
->> +++ b/drivers/media/usb/uvc/uvc_ctrl.c
->> @@ -1629,6 +1629,40 @@ static void uvc_ctrl_fixup_xu_info(struct uvc_device *dev,
->>  	}
->>  }
->>
->> +/*
->> + * Retrieve flags for a given control
->> + */
->> +static int uvc_ctrl_get_flags(struct uvc_device *dev, const struct uvc_control *ctrl,
->> +	const struct uvc_control_info *info)
->> +{
->> +	u8 *data;
->> +	int ret = 0;
->> +	int flags = 0;
->> +
->> +	data = kmalloc(2, GFP_KERNEL);
->> +	if (data == NULL)
->> +		return -ENOMEM;
->> +
->> +	ret = uvc_query_ctrl(dev, UVC_GET_INFO, ctrl->entity->id, dev->intfnum,
->> +						 info->selector, data, 1);
->> +	if (ret < 0) {
->> +		uvc_trace(UVC_TRACE_CONTROL,
->> +				  "GET_INFO failed on control %pUl/%u (%d).\n",
->> +				  info->entity, info->selector, ret);
->> +	} else {
->> +		flags = UVC_CTRL_FLAG_GET_MIN | UVC_CTRL_FLAG_GET_MAX
->> +			| UVC_CTRL_FLAG_GET_RES | UVC_CTRL_FLAG_GET_DEF
->> +			| (data[0] & UVC_CONTROL_CAP_GET ?
->> +			   UVC_CTRL_FLAG_GET_CUR : 0)
->> +			| (data[0] & UVC_CONTROL_CAP_SET ?
->> +			   UVC_CTRL_FLAG_SET_CUR : 0)
->> +			| (data[0] & UVC_CONTROL_CAP_AUTOUPDATE ?
->> +			   UVC_CTRL_FLAG_AUTO_UPDATE : 0);
->> +	}
->> +	kfree(data);
->> +	return flags;
->> +}
->> +
->>  /*
->>   * Query control information (size and flags) for XU controls.
->>   */
->> @@ -1636,6 +1670,7 @@ static int uvc_ctrl_fill_xu_info(struct uvc_device *dev,
->>  	const struct uvc_control *ctrl, struct uvc_control_info *info)
->>  {
->>  	u8 *data;
->> +	int flags;
->>  	int ret;
->>
->>  	data = kmalloc(2, GFP_KERNEL);
->> @@ -1659,24 +1694,15 @@ static int uvc_ctrl_fill_xu_info(struct uvc_device *dev,
->>
->>  	info->size = le16_to_cpup((__le16 *)data);
->>
->> -	/* Query the control information (GET_INFO) */
->> -	ret = uvc_query_ctrl(dev, UVC_GET_INFO, ctrl->entity->id, dev->intfnum,
->> -			     info->selector, data, 1);
->> -	if (ret < 0) {
->> +	flags = uvc_ctrl_get_flags(dev, ctrl, info);
->> +
->> +	if (flags < 0) {
->>  		uvc_trace(UVC_TRACE_CONTROL,
->> -			  "GET_INFO failed on control %pUl/%u (%d).\n",
->> -			  info->entity, info->selector, ret);
->> +			  "Failed to retrieve flags (%d).\n", ret);
->> + 		ret = flags;
->>  		goto done;
->>  	}
->> -
->> -	info->flags = UVC_CTRL_FLAG_GET_MIN | UVC_CTRL_FLAG_GET_MAX
->> -		    | UVC_CTRL_FLAG_GET_RES | UVC_CTRL_FLAG_GET_DEF
->> -		    | (data[0] & UVC_CONTROL_CAP_GET ?
->> -		       UVC_CTRL_FLAG_GET_CUR : 0)
->> -		    | (data[0] & UVC_CONTROL_CAP_SET ?
->> -		       UVC_CTRL_FLAG_SET_CUR : 0)
->> -		    | (data[0] & UVC_CONTROL_CAP_AUTOUPDATE ?
->> -		       UVC_CTRL_FLAG_AUTO_UPDATE : 0);
->> +	info->flags = flags;
->>
->>  	uvc_ctrl_fixup_xu_info(dev, ctrl, info);
->>
->> @@ -1890,6 +1916,7 @@ static int uvc_ctrl_add_info(struct uvc_device *dev, struct uvc_control *ctrl,
->>  	const struct uvc_control_info *info)
->>  {
->>  	int ret = 0;
->> +	int flags = 0;
->>
->>  	ctrl->info = *info;
->>  	INIT_LIST_HEAD(&ctrl->info.mappings);
->> @@ -1902,6 +1929,13 @@ static int uvc_ctrl_add_info(struct uvc_device *dev, struct uvc_control *ctrl,
->>  		goto done;
->>  	}
->>
->> +	flags = uvc_ctrl_get_flags(dev, ctrl, info);
->> +	if (flags < 0)
->> +		uvc_trace(UVC_TRACE_CONTROL,
->> +			  "Failed to retrieve flags (%d).\n", ret);
->> +	else
->> +		ctrl->info.flags = flags;
->> +
->>  	ctrl->initialized = 1;
->>
->>  	uvc_trace(UVC_TRACE_CONTROL, "Added control %pUl/%u to device %s "
->>
+> Still yet not sure if this is everything that needs changing to be
+> accepted though.
+
+I'll review when you resubmit the patches. Please be verbose while
+documenting the patch(es) in this series, clearly explaining why
+such ioctls are needed.
+
+The best would be to add a documentation for ddbridge, explaining
+those new ioctls, under Documentation/media/dvb-drivers.
+
+I prefer if you place such documentation patch before the code, as
+it makes easier to review the ioctls.
+
+Thanks,
+Mauro
