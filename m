@@ -1,87 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from kadath.azazel.net ([81.187.231.250]:55998 "EHLO
-        kadath.azazel.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750914AbdLCKy3 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sun, 3 Dec 2017 05:54:29 -0500
-Date: Sun, 3 Dec 2017 10:54:23 +0000
-From: Jeremy Sowden <jeremy@azazel.net>
-To: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: devel@driverdev.osuosl.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH v2 1/3] media: atomisp: convert default struct values to
- use compound-literals with designated initializers.
-Message-ID: <20171203105423.GE32301@azazel.net>
-References: <20171201150725.cfcp6b4bs2ncqsip@mwanda>
- <20171201171939.3432-1-jeremy@azazel.net>
- <20171201171939.3432-2-jeremy@azazel.net>
- <20171202102009.pdly5urlxkt4rdcx@mwanda>
- <20171202103506.4ffadm3qkxtv3rge@azazel.net>
- <20171202204147.GB32301@azazel.net>
- <20171203053921.tvvvttx63zi2p725@mwanda>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
-        protocol="application/pgp-signature"; boundary="hwvH6HDNit2nSK4j"
-Content-Disposition: inline
-In-Reply-To: <20171203053921.tvvvttx63zi2p725@mwanda>
+Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:55294 "EHLO
+        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752243AbdLNEqN (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 13 Dec 2017 23:46:13 -0500
+Message-ID: <8575132cf9e6d0cd8226c296d0eb403c@smtp-cloud7.xs4all.net>
+Date: Thu, 14 Dec 2017 05:46:10 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
---hwvH6HDNit2nSK4j
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Results of the daily build of media_tree:
 
-On 2017-12-03, at 08:39:21 +0300, Dan Carpenter wrote:
-> On Sat, Dec 02, 2017 at 08:41:48PM +0000, Jeremy Sowden wrote:
-> > On 2017-12-02, at 10:35:06 +0000, Jeremy Sowden wrote:
-> > > On 2017-12-02, at 13:20:09 +0300, Dan Carpenter wrote:
-> > > > On Fri, Dec 01, 2017 at 05:19:37PM +0000, Jeremy Sowden wrote:
-> > > > > -#define DEFAULT_PIPE_INFO \
-> > > > > -{ \
-> > > > > -	{IA_CSS_BINARY_DEFAULT_FRAME_INFO},	/* output_info */ \
-> > > > > -	{IA_CSS_BINARY_DEFAULT_FRAME_INFO},	/* vf_output_info */ \
-> > > > > -	IA_CSS_BINARY_DEFAULT_FRAME_INFO,	/* raw_output_info */ \
-> > > > > -	{ 0, 0},				/* output system in res */ \
-> > > > > -	DEFAULT_SHADING_INFO,			/* shading_info */ \
-> > > > > -	DEFAULT_GRID_INFO,			/* grid_info */ \
-> > > > > -	0					/* num_invalid_frames */ \
-> > > > > -}
-> > > > > +#define DEFAULT_PIPE_INFO ( \
-> > > >
-> > > > Why does this have a ( now?  That can't compile can it??
-> > >
-> > > It does.
-> >
-> > That was a bit terse: the macros expand to compound-literals, so
-> > putting parens around them is no different from:
-> >
-> >   #define THREE (3)
->
-> Yeah.  Thanks.  I figured it out despite the terseness...  I try
-> review as fast as I can, so it means you get the stream of
-> conciousness output that often has mistakes.  Sorry about that.
+date:			Thu Dec 14 05:00:15 CET 2017
+media-tree git hash:	b32a2b42f76cdfd06b4b58a1ddf987ba329ae34e
+media_build git hash:	f5a5e5e470d834f9843fee7a7c2ce3e4be610ca7
+v4l-utils git hash:	06177db29466bebcceb43d6aaffd859bfd35e42a
+gcc version:		i686-linux-gcc (GCC) 7.1.0
+sparse version:		v0.5.0-3911-g6f737e1f
+smatch version:		v0.5.0-3911-g6f737e1f
+host hardware:		x86_64
+host os:		4.13.0-164
 
-No worries.  The feedback has been very helpful.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12.67-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.7-i686: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.18.7-i686: ERRORS
+linux-3.19-i686: ERRORS
+linux-4.0.9-i686: ERRORS
+linux-4.1.33-i686: ERRORS
+linux-4.2.8-i686: ERRORS
+linux-4.3.6-i686: ERRORS
+linux-4.4.22-i686: ERRORS
+linux-4.5.7-i686: ERRORS
+linux-4.6.7-i686: ERRORS
+linux-4.7.5-i686: ERRORS
+linux-4.8-i686: ERRORS
+linux-4.9.26-i686: ERRORS
+linux-4.10.14-i686: ERRORS
+linux-4.11-i686: ERRORS
+linux-4.12.1-i686: ERRORS
+linux-4.13-i686: ERRORS
+linux-4.14-i686: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.67-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.7-x86_64: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.7-x86_64: ERRORS
+linux-3.19-x86_64: ERRORS
+linux-4.0.9-x86_64: ERRORS
+linux-4.1.33-x86_64: ERRORS
+linux-4.2.8-x86_64: ERRORS
+linux-4.3.6-x86_64: ERRORS
+linux-4.4.22-x86_64: ERRORS
+linux-4.5.7-x86_64: ERRORS
+linux-4.6.7-x86_64: ERRORS
+linux-4.7.5-x86_64: ERRORS
+linux-4.8-x86_64: ERRORS
+linux-4.9.26-x86_64: ERRORS
+linux-4.10.14-x86_64: ERRORS
+linux-4.11-x86_64: ERRORS
+linux-4.12.1-x86_64: ERRORS
+linux-4.13-x86_64: ERRORS
+linux-4.14-x86_64: ERRORS
+apps: OK
+spec-git: OK
+smatch: OK
 
-J.
+Detailed results are available here:
 
---hwvH6HDNit2nSK4j
-Content-Type: application/pgp-signature; name="signature.asc"
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
 
------BEGIN PGP SIGNATURE-----
+Full logs are available here:
 
-iQIzBAABCgAdFiEEVbDTMOAK4SXP2yyD0czNNmRE1J0FAloj19cACgkQ0czNNmRE
-1J2QqQ/8DqlHy+7UgJp5efppCmiu0jaqoFwK7Gf1q5zMDWNNlScnS6vxVa73v+9V
-B7zdj84h/rAQ0hSyUCWIux+9iI7dWS+7D5Q7VbnFGWT8oobVliaDruNAKCGKSQnq
-XenSfh9fEbScyQCLLiu5LuYBXEaaJ6QJM6RYSA3c5HIqquxbOBrFJFnQFrCGeEmC
-3lrERvfNHLf4xD8s0ltXoYYCTesfql30h2XzzlTdqdUsu6pkSrFXwsvjfUxgKtsT
-sNKWNQDC48cRUdB5I06pZojo5LL76LAkp2DwzR9HUFjIJUF9XAGT/75/pya/wqxc
-2yCIST7dAfWVQhfn2acLtWqRQ8qLHG4ganVEhHoODAXp1HgT311YiQgZ5ujApkKu
-FpnA2fXlMUiWYkUdv2SMZltzuClVLFSdeADVnJuL7PTwo5V+LN1/84mFmD7zcWlF
-WjKVigOSz0f0gyaD2YS/6r5nXOtF0/kGJjMCgWVDvc7gnH3w4Y3aSlGfBLgpjZHV
-vPfzyZCvCdYxXRxd0sLUv8g7GwvVtb5EOLcsYMJaN3yzeJpyhcNLOiIifZTX4Mqh
-fUSd3QwIm7U5WZwr4VorVyjBZ8eXeTsZJZ2LiC4Cm7m+AnUYPB+I/ReVash34m22
-dXmbWkYqaiCOOPA2M+3jmIUjTq8eQJ44MPceeeqOwd8kDgG+bWI=
-=1646
------END PGP SIGNATURE-----
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
 
---hwvH6HDNit2nSK4j--
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
