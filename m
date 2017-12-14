@@ -1,74 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:37146 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1762316AbdLSLsG (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:48292 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753743AbdLNShs (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 19 Dec 2017 06:48:06 -0500
-Date: Tue, 19 Dec 2017 13:48:03 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Yong Deng <yong.deng@magewell.com>
-Cc: maxime.ripard@free-electrons.com,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Chen-Yu Tsai <wens@csie.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Yannick Fertre <yannick.fertre@st.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Benoit Parrot <bparrot@ti.com>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Jean-Christophe Trotin <jean-christophe.trotin@st.com>,
-        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
-        Minghsiu Tsai <minghsiu.tsai@mediatek.com>,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Robert Jarzmik <robert.jarzmik@free.fr>,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-sunxi@googlegroups.com
-Subject: Re: [PATCH v2 3/3] media: MAINTAINERS: add entries for Allwinner V3s
- CSI
-Message-ID: <20171219114802.gi7db7xhm3eh4udt@valkosipuli.retiisi.org.uk>
-References: <1501131697-1359-1-git-send-email-yong.deng@magewell.com>
- <1501131697-1359-4-git-send-email-yong.deng@magewell.com>
+        Thu, 14 Dec 2017 13:37:48 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Joe Perches <joe@perches.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Dhaval Shah <dhaval23031987@gmail.com>, hyun.kwon@xilinx.com,
+        michal.simek@xilinx.com, linux-media@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] media: v4l: xilinx: Use SPDX-License-Identifier
+Date: Thu, 14 Dec 2017 20:37:54 +0200
+Message-ID: <16301043.Lbu0ahMgBI@avalon>
+In-Reply-To: <1513276340.27409.77.camel@perches.com>
+References: <20171208123537.18718-1-dhaval23031987@gmail.com> <7339763.I7jApfYMM6@avalon> <1513276340.27409.77.camel@perches.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1501131697-1359-4-git-send-email-yong.deng@magewell.com>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jul 27, 2017 at 01:01:37PM +0800, Yong Deng wrote:
-> Signed-off-by: Yong Deng <yong.deng@magewell.com>
-> ---
->  MAINTAINERS | 8 ++++++++
->  1 file changed, 8 insertions(+)
-> 
-> diff --git a/MAINTAINERS b/MAINTAINERS
-> index 9826a91..b91fa27 100644
-> --- a/MAINTAINERS
-> +++ b/MAINTAINERS
-> @@ -3686,6 +3686,14 @@ M:	Jaya Kumar <jayakumar.alsa@gmail.com>
->  S:	Maintained
->  F:	sound/pci/cs5535audio/
->  
-> +CSI DRIVERS FOR ALLWINNER V3s
-> +M:	Yong Deng <yong.deng@magewell.com>
-> +L:	linux-media@vger.kernel.org
-> +T:	git git://linuxtv.org/media_tree.git
-> +S:	Maintained
-> +F:	drivers/media/platform/sun6i-csi/
-> +F:	Documentation/devicetree/bindings/media/sun6i-csi.txt
-> +
->  CW1200 WLAN driver
->  M:	Solomon Peachy <pizza@shaftnet.org>
->  S:	Maintained
+Hi Joe,
 
-Please squash to the driver patch. Thanks.
+On Thursday, 14 December 2017 20:32:20 EET Joe Perches wrote:
+> On Thu, 2017-12-14 at 20:28 +0200, Laurent Pinchart wrote:
+> > On Thursday, 14 December 2017 19:05:27 EET Mauro Carvalho Chehab wrote:
+> >> Em Fri,  8 Dec 2017 18:05:37 +0530 Dhaval Shah escreveu:
+> >>> SPDX-License-Identifier is used for the Xilinx Video IP and
+> >>> related drivers.
+> >>> 
+> >>> Signed-off-by: Dhaval Shah <dhaval23031987@gmail.com>
+> >> 
+> >> Hi Dhaval,
+> >> 
+> >> You're not listed as one of the Xilinx driver maintainers. I'm afraid
+> >> that, without their explicit acks, sent to the ML, I can't accept a patch
+> >> touching at the driver's license tags.
+> > 
+> > The patch doesn't change the license, I don't see why it would cause any
+> > issue. Greg isn't listed as the maintainer or copyright holder of any of
+> > the 10k+ files to which he added an SPDX license header in the last
+> > kernel release.
+> 
+> Adding a comment line that describes an implicit or
+> explicit license is different than removing the license
+> text itself.
+
+The SPDX license header is meant to be equivalent to the license text. The 
+only reason why the large SPDX patch didn't touch the whole kernel in one go 
+was that it was easier to split in in multiple chunks. This is no different 
+than not including the full GPL license in every header file but only pointing 
+to it through its name and reference, as every kernel source file does.
 
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+Regards,
+
+Laurent Pinchart
