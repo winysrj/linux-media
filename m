@@ -1,134 +1,1049 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:57303 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751463AbdLFPvI (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 6 Dec 2017 10:51:08 -0500
-Subject: Re: [PATCH v5] v4l2-async: Match parent devices
-To: jacopo mondi <jacopo@jmondi.org>
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        niklas.soderlund@ragnatech.se,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-References: <1512572319-20179-1-git-send-email-kbingham@kernel.org>
- <20171206153301.GA3479@w540>
-Reply-To: kieran.bingham@ideasonboard.com
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Message-ID: <4b1f4c4b-7be2-72bb-0142-31a037684693@ideasonboard.com>
-Date: Wed, 6 Dec 2017 15:51:04 +0000
+Received: from bombadil.infradead.org ([65.50.211.133]:43523 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753274AbdLNRKp (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 14 Dec 2017 12:10:45 -0500
+Date: Thu, 14 Dec 2017 15:10:40 -0200
+From: Mauro Carvalho Chehab <mchehab@kernel.org>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Kevin Cheng <kcheng@gmail.com>, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org, Antti Palosaari <crope@iki.fi>
+Subject: Re: [PATCH] em28xx: split up em28xx_dvb_init to reduce stack size
+Message-ID: <20171214151040.3143ac33@vento.lan>
+In-Reply-To: <20171211120518.3746850-1-arnd@arndb.de>
+References: <20171211120518.3746850-1-arnd@arndb.de>
 MIME-Version: 1.0
-In-Reply-To: <20171206153301.GA3479@w540>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jacopo,
+Em Mon, 11 Dec 2017 13:05:02 +0100
+Arnd Bergmann <arnd@arndb.de> escreveu:
 
-On 06/12/17 15:33, jacopo mondi wrote:
-> Hi Kieran,
+> With CONFIG_KASAN, the init function uses a large amount of kernel stack:
 > 
-> On Wed, Dec 06, 2017 at 02:58:39PM +0000, Kieran Bingham wrote:
->> From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
->>
->> Devices supporting multiple endpoints on a single device node must set
->> their subdevice fwnode to the endpoint to allow distinct comparisons.
->>
->> Adapt the match_fwnode call to compare against the provided fwnodes
->> first, but to also perform a cross reference comparison against the
->> parent fwnodes of each other.
->>
->> This allows notifiers to pass the endpoint for comparison and still
->> support existing subdevices which store their default parent device
->> node.
->>
->> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
->> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> drivers/media/usb/em28xx/em28xx-dvb.c: In function 'em28xx_dvb_init.part.4':
+> drivers/media/usb/em28xx/em28xx-dvb.c:2061:1: error: the frame size of 3232 bytes is larger than 2048 bytes [-Werror=frame-larger-than=]
 > 
-> please append:
+> Using gcc-7 with -fsanitize-address-use-after-scope makes this even worse:
 > 
-> Reported-by: Jacopo Mondi <jacopo.mondi+renesas@jmondi.org>
-
-Ahh yes of course!
-
-
-
-> Thanks
->    j
+> drivers/media/usb/em28xx/em28xx-dvb.c: In function 'em28xx_dvb_init':
+> drivers/media/usb/em28xx/em28xx-dvb.c:2069:1: error: the frame size of 4280 bytes is larger than 3072 bytes [-Werror=frame-larger-than=]
 > 
->>
->> ---
->>
->> Hi Sakari,
->>
->> Since you signed-off on this patch - it has had to be reworked due to the
->> changes on the of_node_full_name() functionality.
->>
->> I believe it is correct now to *just* do the pointer matching, as that matches
->> the current implementation, and converting to device_nodes will be just as
->> equal as the fwnodes, as they are simply containers.
->>
->> Let me know if you are happy to maintain your SOB on this patch - and if we need
->> to work towards getting this integrated upstream, especially in light of your new
->> endpoint matching work.
->>
->> --
->> Regards
->>
->> Kieran
->>
->>
->> v2:
->>  - Added documentation comments
->>  - simplified the OF match by adding match_fwnode_of()
->>
->> v3:
->>  - Fix comments
->>  - Fix sd_parent, and asd_parent usage
->>
->> v4:
->>  - Clean up and simplify match_fwnode and comparisons
->>
->> v5:
->>  - Updated for v4.15-rc1:
->>    of_node no longer specifies a full path, and only returns the
->>    basename with of_node_full_name(), thus this ends up matching
->>    "endpoint" for all endpoints. Fall back to pointer matching,
->>    whilst maintaining the parent comparisons.
->> ---
->>  drivers/media/v4l2-core/v4l2-async.c | 17 ++++++++++++++++-
->>  1 file changed, 16 insertions(+), 1 deletion(-)
->>
->> diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
->> index fcadad305336..780bda70d8b3 100644
->> --- a/drivers/media/v4l2-core/v4l2-async.c
->> +++ b/drivers/media/v4l2-core/v4l2-async.c
->> @@ -71,9 +71,24 @@ static bool match_devname(struct v4l2_subdev *sd,
->>  	return !strcmp(asd->match.device_name.name, dev_name(sd->dev));
->>  }
->>
->> +/*
->> + * As a measure to support drivers which have not been converted to use
->> + * endpoint matching, we also find the parent devices for cross-matching.
->> + *
->> + * This also allows continued support for matching subdevices which will not
->> + * have an endpoint themselves.
->> + */
->>  static bool match_fwnode(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
->>  {
->> -	return sd->fwnode == asd->match.fwnode.fwnode;
->> +	struct fwnode_handle *asd_fwnode = asd->match.fwnode.fwnode;
->> +	struct fwnode_handle *sd_parent, *asd_parent;
->> +
->> +	sd_parent = fwnode_graph_get_port_parent(sd->fwnode);
->> +	asd_parent = fwnode_graph_get_port_parent(asd_fwnode);
->> +
->> +	return sd->fwnode == asd_fwnode ||
->> +	       sd->fwnode == asd_parent ||
->> +	       sd_parent == asd_fwnode;
->>  }
->>
->>  static bool match_custom(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
->> --
->> 2.7.4
->>
+> By splitting out each part of the switch/case statement that has its own local
+> variables into a separate function, no single one of them uses more than 500 bytes,
+> and with a noinline_for_stack annotation we can ensure that they are not merged
+> back together.
+
+The right fix here is really to find a way to simplify the new method
+of binding I2C devices by using some ancillary routines.
+
+I'll keep this patch on my queue for now, but my plan is to try to solve
+this issue instead of applying it, maybe on the next weeks (as the
+volume of patches reduce due to end of year vacations and Seasons).
+
+> 
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> ---
+>  drivers/media/usb/em28xx/em28xx-dvb.c | 947 ++++++++++++++++++----------------
+>  1 file changed, 508 insertions(+), 439 deletions(-)
+> 
+> diff --git a/drivers/media/usb/em28xx/em28xx-dvb.c b/drivers/media/usb/em28xx/em28xx-dvb.c
+> index 9950a740e04e..6665885dbaa7 100644
+> --- a/drivers/media/usb/em28xx/em28xx-dvb.c
+> +++ b/drivers/media/usb/em28xx/em28xx-dvb.c
+> @@ -934,7 +934,7 @@ static struct lgdt3306a_config hauppauge_01595_lgdt3306a_config = {
+>  
+>  /* ------------------------------------------------------------------ */
+>  
+> -static int em28xx_attach_xc3028(u8 addr, struct em28xx *dev)
+> +static noinline_for_stack int em28xx_attach_xc3028(u8 addr, struct em28xx *dev)
+>  {
+>  	struct dvb_frontend *fe;
+>  	struct xc2028_config cfg;
+> @@ -1126,6 +1126,492 @@ static void em28xx_unregister_dvb(struct em28xx_dvb *dvb)
+>  	dvb_unregister_adapter(&dvb->adapter);
+>  }
+>  
+> +static noinline_for_stack int em28174_dvb_init_pctv_460e(struct em28xx *dev)
+> +{
+> +	struct em28xx_dvb *dvb = dev->dvb;
+> +	struct i2c_client *client;
+> +	struct i2c_board_info board_info;
+> +	struct tda10071_platform_data tda10071_pdata = {};
+> +	struct a8293_platform_data a8293_pdata = {};
+> +	int result;
+> +
+> +	/* attach demod + tuner combo */
+> +	tda10071_pdata.clk = 40444000, /* 40.444 MHz */
+> +	tda10071_pdata.i2c_wr_max = 64,
+> +	tda10071_pdata.ts_mode = TDA10071_TS_SERIAL,
+> +	tda10071_pdata.pll_multiplier = 20,
+> +	tda10071_pdata.tuner_i2c_addr = 0x14,
+> +	memset(&board_info, 0, sizeof(board_info));
+> +	strlcpy(board_info.type, "tda10071_cx24118", I2C_NAME_SIZE);
+> +	board_info.addr = 0x55;
+> +	board_info.platform_data = &tda10071_pdata;
+> +	request_module("tda10071");
+> +	client = i2c_new_device(&dev->i2c_adap[dev->def_i2c_bus], &board_info);
+> +	if (client == NULL || client->dev.driver == NULL) {
+> +		result = -ENODEV;
+> +		goto out_free;
+> +	}
+> +	if (!try_module_get(client->dev.driver->owner)) {
+> +		i2c_unregister_device(client);
+> +		result = -ENODEV;
+> +		goto out_free;
+> +	}
+> +	dvb->fe[0] = tda10071_pdata.get_dvb_frontend(client);
+> +	dvb->i2c_client_demod = client;
+> +
+> +	/* attach SEC */
+> +	a8293_pdata.dvb_frontend = dvb->fe[0];
+> +	memset(&board_info, 0, sizeof(board_info));
+> +	strlcpy(board_info.type, "a8293", I2C_NAME_SIZE);
+> +	board_info.addr = 0x08;
+> +	board_info.platform_data = &a8293_pdata;
+> +	request_module("a8293");
+> +	client = i2c_new_device(&dev->i2c_adap[dev->def_i2c_bus], &board_info);
+> +	if (client == NULL || client->dev.driver == NULL) {
+> +		module_put(dvb->i2c_client_demod->dev.driver->owner);
+> +		i2c_unregister_device(dvb->i2c_client_demod);
+> +		result = -ENODEV;
+> +		goto out_free;
+> +	}
+> +	if (!try_module_get(client->dev.driver->owner)) {
+> +		i2c_unregister_device(client);
+> +		module_put(dvb->i2c_client_demod->dev.driver->owner);
+> +		i2c_unregister_device(dvb->i2c_client_demod);
+> +		result = -ENODEV;
+> +		goto out_free;
+> +	}
+> +	dvb->i2c_client_sec = client;
+> +	result = 0;
+> +out_free:
+> +	return result;
+> +}
+> +
+> +static noinline_for_stack int em28178_dvb_init_pctv_461e(struct em28xx *dev)
+> +{
+> +	struct em28xx_dvb *dvb = dev->dvb;
+> +	struct i2c_client *client;
+> +	struct i2c_adapter *i2c_adapter;
+> +	struct i2c_board_info board_info;
+> +	struct m88ds3103_platform_data m88ds3103_pdata = {};
+> +	struct ts2020_config ts2020_config = {};
+> +	struct a8293_platform_data a8293_pdata = {};
+> +	int result;
+> +
+> +	/* attach demod */
+> +	m88ds3103_pdata.clk = 27000000;
+> +	m88ds3103_pdata.i2c_wr_max = 33;
+> +	m88ds3103_pdata.ts_mode = M88DS3103_TS_PARALLEL;
+> +	m88ds3103_pdata.ts_clk = 16000;
+> +	m88ds3103_pdata.ts_clk_pol = 1;
+> +	m88ds3103_pdata.agc = 0x99;
+> +	memset(&board_info, 0, sizeof(board_info));
+> +	strlcpy(board_info.type, "m88ds3103", I2C_NAME_SIZE);
+> +	board_info.addr = 0x68;
+> +	board_info.platform_data = &m88ds3103_pdata;
+> +	request_module("m88ds3103");
+> +	client = i2c_new_device(&dev->i2c_adap[dev->def_i2c_bus], &board_info);
+> +	if (client == NULL || client->dev.driver == NULL) {
+> +		result = -ENODEV;
+> +		goto out_free;
+> +	}
+> +	if (!try_module_get(client->dev.driver->owner)) {
+> +		i2c_unregister_device(client);
+> +		result = -ENODEV;
+> +		goto out_free;
+> +	}
+> +	dvb->fe[0] = m88ds3103_pdata.get_dvb_frontend(client);
+> +	i2c_adapter = m88ds3103_pdata.get_i2c_adapter(client);
+> +	dvb->i2c_client_demod = client;
+> +
+> +	/* attach tuner */
+> +	ts2020_config.fe = dvb->fe[0];
+> +	memset(&board_info, 0, sizeof(board_info));
+> +	strlcpy(board_info.type, "ts2022", I2C_NAME_SIZE);
+> +	board_info.addr = 0x60;
+> +	board_info.platform_data = &ts2020_config;
+> +	request_module("ts2020");
+> +	client = i2c_new_device(i2c_adapter, &board_info);
+> +	if (client == NULL || client->dev.driver == NULL) {
+> +		module_put(dvb->i2c_client_demod->dev.driver->owner);
+> +		i2c_unregister_device(dvb->i2c_client_demod);
+> +		result = -ENODEV;
+> +		goto out_free;
+> +	}
+> +	if (!try_module_get(client->dev.driver->owner)) {
+> +		i2c_unregister_device(client);
+> +		module_put(dvb->i2c_client_demod->dev.driver->owner);
+> +		i2c_unregister_device(dvb->i2c_client_demod);
+> +		result = -ENODEV;
+> +		goto out_free;
+> +	}
+> +	dvb->i2c_client_tuner = client;
+> +	/* delegate signal strength measurement to tuner */
+> +	dvb->fe[0]->ops.read_signal_strength =
+> +			dvb->fe[0]->ops.tuner_ops.get_rf_strength;
+> +
+> +	/* attach SEC */
+> +	a8293_pdata.dvb_frontend = dvb->fe[0];
+> +	memset(&board_info, 0, sizeof(board_info));
+> +	strlcpy(board_info.type, "a8293", I2C_NAME_SIZE);
+> +	board_info.addr = 0x08;
+> +	board_info.platform_data = &a8293_pdata;
+> +	request_module("a8293");
+> +	client = i2c_new_device(&dev->i2c_adap[dev->def_i2c_bus], &board_info);
+> +	if (client == NULL || client->dev.driver == NULL) {
+> +		module_put(dvb->i2c_client_tuner->dev.driver->owner);
+> +		i2c_unregister_device(dvb->i2c_client_tuner);
+> +		module_put(dvb->i2c_client_demod->dev.driver->owner);
+> +		i2c_unregister_device(dvb->i2c_client_demod);
+> +		result = -ENODEV;
+> +		goto out_free;
+> +	}
+> +	if (!try_module_get(client->dev.driver->owner)) {
+> +		i2c_unregister_device(client);
+> +		module_put(dvb->i2c_client_tuner->dev.driver->owner);
+> +		i2c_unregister_device(dvb->i2c_client_tuner);
+> +		module_put(dvb->i2c_client_demod->dev.driver->owner);
+> +		i2c_unregister_device(dvb->i2c_client_demod);
+> +		result = -ENODEV;
+> +		goto out_free;
+> +	}
+> +	dvb->i2c_client_sec = client;
+> +	result = 0;
+> +out_free:
+> +	return result;
+> +}
+> +
+> +static noinline_for_stack int em28178_dvb_init_pctv_292e(struct em28xx *dev)
+> +{
+> +	struct em28xx_dvb *dvb = dev->dvb;
+> +	struct i2c_adapter *adapter;
+> +	struct i2c_client *client;
+> +	struct i2c_board_info info;
+> +	struct si2168_config si2168_config;
+> +	struct si2157_config si2157_config;
+> +	int result;
+> +
+> +	/* attach demod */
+> +	memset(&si2168_config, 0, sizeof(si2168_config));
+> +	si2168_config.i2c_adapter = &adapter;
+> +	si2168_config.fe = &dvb->fe[0];
+> +	si2168_config.ts_mode = SI2168_TS_PARALLEL;
+> +	memset(&info, 0, sizeof(struct i2c_board_info));
+> +	strlcpy(info.type, "si2168", I2C_NAME_SIZE);
+> +	info.addr = 0x64;
+> +	info.platform_data = &si2168_config;
+> +	request_module(info.type);
+> +	client = i2c_new_device(&dev->i2c_adap[dev->def_i2c_bus], &info);
+> +	if (client == NULL || client->dev.driver == NULL) {
+> +		result = -ENODEV;
+> +		goto out_free;
+> +	}
+> +
+> +	if (!try_module_get(client->dev.driver->owner)) {
+> +		i2c_unregister_device(client);
+> +		result = -ENODEV;
+> +		goto out_free;
+> +	}
+> +
+> +	dvb->i2c_client_demod = client;
+> +
+> +	/* attach tuner */
+> +	memset(&si2157_config, 0, sizeof(si2157_config));
+> +	si2157_config.fe = dvb->fe[0];
+> +	si2157_config.if_port = 1;
+> +#ifdef CONFIG_MEDIA_CONTROLLER_DVB
+> +	si2157_config.mdev = dev->media_dev;
+> +#endif
+> +	memset(&info, 0, sizeof(struct i2c_board_info));
+> +	strlcpy(info.type, "si2157", I2C_NAME_SIZE);
+> +	info.addr = 0x60;
+> +	info.platform_data = &si2157_config;
+> +	request_module(info.type);
+> +	client = i2c_new_device(adapter, &info);
+> +	if (client == NULL || client->dev.driver == NULL) {
+> +		module_put(dvb->i2c_client_demod->dev.driver->owner);
+> +		i2c_unregister_device(dvb->i2c_client_demod);
+> +		result = -ENODEV;
+> +		goto out_free;
+> +	}
+> +
+> +	if (!try_module_get(client->dev.driver->owner)) {
+> +		i2c_unregister_device(client);
+> +		module_put(dvb->i2c_client_demod->dev.driver->owner);
+> +		i2c_unregister_device(dvb->i2c_client_demod);
+> +		result = -ENODEV;
+> +		goto out_free;
+> +	}
+> +
+> +	dvb->i2c_client_tuner = client;
+> +	dvb->fe[0]->ops.set_lna = em28xx_pctv_292e_set_lna;
+> +	result = 0;
+> +out_free:
+> +	return result;
+> +}
+> +
+> +static noinline_for_stack int em28178_dvb_init_terratec_t2_stick_hd(struct em28xx *dev)
+> +{
+> +	struct em28xx_dvb *dvb = dev->dvb;
+> +	struct i2c_adapter *adapter;
+> +	struct i2c_client *client;
+> +	struct i2c_board_info info;
+> +	struct si2168_config si2168_config;
+> +	struct si2157_config si2157_config;
+> +	int result;
+> +
+> +	/* attach demod */
+> +	memset(&si2168_config, 0, sizeof(si2168_config));
+> +	si2168_config.i2c_adapter = &adapter;
+> +	si2168_config.fe = &dvb->fe[0];
+> +	si2168_config.ts_mode = SI2168_TS_PARALLEL;
+> +	memset(&info, 0, sizeof(struct i2c_board_info));
+> +	strlcpy(info.type, "si2168", I2C_NAME_SIZE);
+> +	info.addr = 0x64;
+> +	info.platform_data = &si2168_config;
+> +	request_module(info.type);
+> +	client = i2c_new_device(&dev->i2c_adap[dev->def_i2c_bus], &info);
+> +	if (client == NULL || client->dev.driver == NULL) {
+> +		result = -ENODEV;
+> +		goto out_free;
+> +	}
+> +
+> +	if (!try_module_get(client->dev.driver->owner)) {
+> +		i2c_unregister_device(client);
+> +		result = -ENODEV;
+> +		goto out_free;
+> +	}
+> +
+> +	dvb->i2c_client_demod = client;
+> +
+> +	/* attach tuner */
+> +	memset(&si2157_config, 0, sizeof(si2157_config));
+> +	si2157_config.fe = dvb->fe[0];
+> +	si2157_config.if_port = 0;
+> +#ifdef CONFIG_MEDIA_CONTROLLER_DVB
+> +	si2157_config.mdev = dev->media_dev;
+> +#endif
+> +	memset(&info, 0, sizeof(struct i2c_board_info));
+> +	strlcpy(info.type, "si2146", I2C_NAME_SIZE);
+> +	info.addr = 0x60;
+> +	info.platform_data = &si2157_config;
+> +	request_module("si2157");
+> +	client = i2c_new_device(adapter, &info);
+> +	if (client == NULL || client->dev.driver == NULL) {
+> +		module_put(dvb->i2c_client_demod->dev.driver->owner);
+> +		i2c_unregister_device(dvb->i2c_client_demod);
+> +		result = -ENODEV;
+> +		goto out_free;
+> +	}
+> +
+> +	if (!try_module_get(client->dev.driver->owner)) {
+> +		i2c_unregister_device(client);
+> +		module_put(dvb->i2c_client_demod->dev.driver->owner);
+> +		i2c_unregister_device(dvb->i2c_client_demod);
+> +		result = -ENODEV;
+> +		goto out_free;
+> +	}
+> +
+> +	dvb->i2c_client_tuner = client;
+> +	result = 0;
+> +out_free:
+> +	return result;
+> +}
+> +
+> +static noinline_for_stack int em28178_dvb_init_plex_px_bcud(struct em28xx *dev)
+> +{
+> +	struct em28xx_dvb *dvb = dev->dvb;
+> +	struct i2c_client *client;
+> +	struct i2c_board_info info;
+> +	struct tc90522_config tc90522_config;
+> +	struct qm1d1c0042_config qm1d1c0042_config;
+> +	int result;
+> +
+> +	/* attach demod */
+> +	memset(&tc90522_config, 0, sizeof(tc90522_config));
+> +	memset(&info, 0, sizeof(struct i2c_board_info));
+> +	strlcpy(info.type, "tc90522sat", I2C_NAME_SIZE);
+> +	info.addr = 0x15;
+> +	info.platform_data = &tc90522_config;
+> +	request_module("tc90522");
+> +	client = i2c_new_device(&dev->i2c_adap[dev->def_i2c_bus], &info);
+> +	if (client == NULL || client->dev.driver == NULL) {
+> +		result = -ENODEV;
+> +		goto out_free;
+> +	}
+> +	dvb->i2c_client_demod = client;
+> +	if (!try_module_get(client->dev.driver->owner)) {
+> +		i2c_unregister_device(client);
+> +		result = -ENODEV;
+> +		goto out_free;
+> +	}
+> +
+> +	/* attach tuner */
+> +	memset(&qm1d1c0042_config, 0,
+> +	       sizeof(qm1d1c0042_config));
+> +	qm1d1c0042_config.fe = tc90522_config.fe;
+> +	qm1d1c0042_config.lpf = 1;
+> +	memset(&info, 0, sizeof(struct i2c_board_info));
+> +	strlcpy(info.type, "qm1d1c0042", I2C_NAME_SIZE);
+> +	info.addr = 0x61;
+> +	info.platform_data = &qm1d1c0042_config;
+> +	request_module(info.type);
+> +	client = i2c_new_device(tc90522_config.tuner_i2c,
+> +				&info);
+> +	if (client == NULL || client->dev.driver == NULL) {
+> +		module_put(dvb->i2c_client_demod->dev.driver->owner);
+> +		i2c_unregister_device(dvb->i2c_client_demod);
+> +		result = -ENODEV;
+> +		goto out_free;
+> +	}
+> +	dvb->i2c_client_tuner = client;
+> +	if (!try_module_get(client->dev.driver->owner)) {
+> +		i2c_unregister_device(client);
+> +		module_put(dvb->i2c_client_demod->dev.driver->owner);
+> +		i2c_unregister_device(dvb->i2c_client_demod);
+> +		result = -ENODEV;
+> +		goto out_free;
+> +	}
+> +	dvb->fe[0] = tc90522_config.fe;
+> +	px_bcud_init(dev);
+> +	result = 0;
+> +out_free:
+> +	return result;
+> +}
+> +
+> +static noinline_for_stack int em28174_dvb_init_hauppauge_wintv_dualhd_dvb(struct em28xx *dev)
+> +{
+> +	struct em28xx_dvb *dvb = dev->dvb;
+> +	struct i2c_adapter *adapter;
+> +	struct i2c_client *client;
+> +	struct i2c_board_info info;
+> +	struct si2168_config si2168_config;
+> +	struct si2157_config si2157_config;
+> +	int result;
+> +
+> +	/* attach demod */
+> +	memset(&si2168_config, 0, sizeof(si2168_config));
+> +	si2168_config.i2c_adapter = &adapter;
+> +	si2168_config.fe = &dvb->fe[0];
+> +	si2168_config.ts_mode = SI2168_TS_SERIAL;
+> +	memset(&info, 0, sizeof(struct i2c_board_info));
+> +	strlcpy(info.type, "si2168", I2C_NAME_SIZE);
+> +	info.addr = 0x64;
+> +	info.platform_data = &si2168_config;
+> +	request_module(info.type);
+> +	client = i2c_new_device(&dev->i2c_adap[dev->def_i2c_bus], &info);
+> +	if (client == NULL || client->dev.driver == NULL) {
+> +		result = -ENODEV;
+> +		goto out_free;
+> +	}
+> +
+> +	if (!try_module_get(client->dev.driver->owner)) {
+> +		i2c_unregister_device(client);
+> +		result = -ENODEV;
+> +		goto out_free;
+> +	}
+> +
+> +	dvb->i2c_client_demod = client;
+> +
+> +	/* attach tuner */
+> +	memset(&si2157_config, 0, sizeof(si2157_config));
+> +	si2157_config.fe = dvb->fe[0];
+> +	si2157_config.if_port = 1;
+> +#ifdef CONFIG_MEDIA_CONTROLLER_DVB
+> +	si2157_config.mdev = dev->media_dev;
+> +#endif
+> +	memset(&info, 0, sizeof(struct i2c_board_info));
+> +	strlcpy(info.type, "si2157", I2C_NAME_SIZE);
+> +	info.addr = 0x60;
+> +	info.platform_data = &si2157_config;
+> +	request_module(info.type);
+> +	client = i2c_new_device(adapter, &info);
+> +	if (client == NULL || client->dev.driver == NULL) {
+> +		module_put(dvb->i2c_client_demod->dev.driver->owner);
+> +		i2c_unregister_device(dvb->i2c_client_demod);
+> +		result = -ENODEV;
+> +		goto out_free;
+> +	}
+> +
+> +	if (!try_module_get(client->dev.driver->owner)) {
+> +		i2c_unregister_device(client);
+> +		module_put(dvb->i2c_client_demod->dev.driver->owner);
+> +		i2c_unregister_device(dvb->i2c_client_demod);
+> +		result = -ENODEV;
+> +		goto out_free;
+> +	}
+> +
+> +	dvb->i2c_client_tuner = client;
+> +	result = 0;
+> +out_free:
+> +	return result;
+> +}
+> +
+> +static int em28174_dvb_init_hauppauge_wintv_dualhd_01595(struct em28xx *dev)
+> +{
+> +	struct em28xx_dvb *dvb = dev->dvb;
+> +	struct i2c_adapter *adapter;
+> +	struct i2c_client *client;
+> +	struct i2c_board_info info = {};
+> +	struct lgdt3306a_config lgdt3306a_config;
+> +	struct si2157_config si2157_config = {};
+> +	int result;
+> +
+> +	/* attach demod */
+> +	lgdt3306a_config = hauppauge_01595_lgdt3306a_config;
+> +	lgdt3306a_config.fe = &dvb->fe[0];
+> +	lgdt3306a_config.i2c_adapter = &adapter;
+> +	strlcpy(info.type, "lgdt3306a", sizeof(info.type));
+> +	info.addr = 0x59;
+> +	info.platform_data = &lgdt3306a_config;
+> +	request_module(info.type);
+> +	client = i2c_new_device(&dev->i2c_adap[dev->def_i2c_bus],
+> +			&info);
+> +	if (client == NULL || client->dev.driver == NULL) {
+> +		result = -ENODEV;
+> +		goto out_free;
+> +	}
+> +
+> +	if (!try_module_get(client->dev.driver->owner)) {
+> +		i2c_unregister_device(client);
+> +		result = -ENODEV;
+> +		goto out_free;
+> +	}
+> +
+> +	dvb->i2c_client_demod = client;
+> +
+> +	/* attach tuner */
+> +	si2157_config.fe = dvb->fe[0];
+> +	si2157_config.if_port = 1;
+> +	si2157_config.inversion = 1;
+> +#ifdef CONFIG_MEDIA_CONTROLLER_DVB
+> +	si2157_config.mdev = dev->media_dev;
+> +#endif
+> +	memset(&info, 0, sizeof(struct i2c_board_info));
+> +	strlcpy(info.type, "si2157", sizeof(info.type));
+> +	info.addr = 0x60;
+> +	info.platform_data = &si2157_config;
+> +	request_module(info.type);
+> +
+> +	client = i2c_new_device(adapter, &info);
+> +	if (client == NULL || client->dev.driver == NULL) {
+> +		module_put(dvb->i2c_client_demod->dev.driver->owner);
+> +		i2c_unregister_device(dvb->i2c_client_demod);
+> +		result = -ENODEV;
+> +		goto out_free;
+> +	}
+> +	if (!try_module_get(client->dev.driver->owner)) {
+> +		i2c_unregister_device(client);
+> +		module_put(dvb->i2c_client_demod->dev.driver->owner);
+> +		i2c_unregister_device(dvb->i2c_client_demod);
+> +		result = -ENODEV;
+> +		goto out_free;
+> +	}
+> +
+> +	dvb->i2c_client_tuner = client;
+> +	result = 0;
+> +out_free:
+> +	return result;
+> +}
+>  static int em28xx_dvb_init(struct em28xx *dev)
+>  {
+>  	int result = 0;
+> @@ -1427,60 +1913,11 @@ static int em28xx_dvb_init(struct em28xx *dev)
+>  				   &dev->i2c_adap[dev->def_i2c_bus],
+>  				   &c3tech_duo_tda18271_config);
+>  		break;
+> -	case EM28174_BOARD_PCTV_460E: {
+> -		struct i2c_client *client;
+> -		struct i2c_board_info board_info;
+> -		struct tda10071_platform_data tda10071_pdata = {};
+> -		struct a8293_platform_data a8293_pdata = {};
+> -
+> -		/* attach demod + tuner combo */
+> -		tda10071_pdata.clk = 40444000, /* 40.444 MHz */
+> -		tda10071_pdata.i2c_wr_max = 64,
+> -		tda10071_pdata.ts_mode = TDA10071_TS_SERIAL,
+> -		tda10071_pdata.pll_multiplier = 20,
+> -		tda10071_pdata.tuner_i2c_addr = 0x14,
+> -		memset(&board_info, 0, sizeof(board_info));
+> -		strlcpy(board_info.type, "tda10071_cx24118", I2C_NAME_SIZE);
+> -		board_info.addr = 0x55;
+> -		board_info.platform_data = &tda10071_pdata;
+> -		request_module("tda10071");
+> -		client = i2c_new_device(&dev->i2c_adap[dev->def_i2c_bus], &board_info);
+> -		if (client == NULL || client->dev.driver == NULL) {
+> -			result = -ENODEV;
+> -			goto out_free;
+> -		}
+> -		if (!try_module_get(client->dev.driver->owner)) {
+> -			i2c_unregister_device(client);
+> -			result = -ENODEV;
+> -			goto out_free;
+> -		}
+> -		dvb->fe[0] = tda10071_pdata.get_dvb_frontend(client);
+> -		dvb->i2c_client_demod = client;
+> -
+> -		/* attach SEC */
+> -		a8293_pdata.dvb_frontend = dvb->fe[0];
+> -		memset(&board_info, 0, sizeof(board_info));
+> -		strlcpy(board_info.type, "a8293", I2C_NAME_SIZE);
+> -		board_info.addr = 0x08;
+> -		board_info.platform_data = &a8293_pdata;
+> -		request_module("a8293");
+> -		client = i2c_new_device(&dev->i2c_adap[dev->def_i2c_bus], &board_info);
+> -		if (client == NULL || client->dev.driver == NULL) {
+> -			module_put(dvb->i2c_client_demod->dev.driver->owner);
+> -			i2c_unregister_device(dvb->i2c_client_demod);
+> -			result = -ENODEV;
+> +	case EM28174_BOARD_PCTV_460E:
+> +		result = em28174_dvb_init_pctv_460e(dev);
+> +		if (result)
+>  			goto out_free;
+> -		}
+> -		if (!try_module_get(client->dev.driver->owner)) {
+> -			i2c_unregister_device(client);
+> -			module_put(dvb->i2c_client_demod->dev.driver->owner);
+> -			i2c_unregister_device(dvb->i2c_client_demod);
+> -			result = -ENODEV;
+> -			goto out_free;
+> -		}
+> -		dvb->i2c_client_sec = client;
+>  		break;
+> -	}
+>  	case EM2874_BOARD_DELOCK_61959:
+>  	case EM2874_BOARD_MAXMEDIA_UB425_TC:
+>  		/* attach demodulator */
+> @@ -1627,403 +2064,35 @@ static int em28xx_dvb_init(struct em28xx *dev)
+>  			}
+>  		}
+>  		break;
+> -	case EM28178_BOARD_PCTV_461E: {
+> -		struct i2c_client *client;
+> -		struct i2c_adapter *i2c_adapter;
+> -		struct i2c_board_info board_info;
+> -		struct m88ds3103_platform_data m88ds3103_pdata = {};
+> -		struct ts2020_config ts2020_config = {};
+> -		struct a8293_platform_data a8293_pdata = {};
+> -
+> -		/* attach demod */
+> -		m88ds3103_pdata.clk = 27000000;
+> -		m88ds3103_pdata.i2c_wr_max = 33;
+> -		m88ds3103_pdata.ts_mode = M88DS3103_TS_PARALLEL;
+> -		m88ds3103_pdata.ts_clk = 16000;
+> -		m88ds3103_pdata.ts_clk_pol = 1;
+> -		m88ds3103_pdata.agc = 0x99;
+> -		memset(&board_info, 0, sizeof(board_info));
+> -		strlcpy(board_info.type, "m88ds3103", I2C_NAME_SIZE);
+> -		board_info.addr = 0x68;
+> -		board_info.platform_data = &m88ds3103_pdata;
+> -		request_module("m88ds3103");
+> -		client = i2c_new_device(&dev->i2c_adap[dev->def_i2c_bus], &board_info);
+> -		if (client == NULL || client->dev.driver == NULL) {
+> -			result = -ENODEV;
+> +	case EM28178_BOARD_PCTV_461E: 
+> +		result = em28178_dvb_init_pctv_461e(dev);
+> +		if (result)
+>  			goto out_free;
+> -		}
+> -		if (!try_module_get(client->dev.driver->owner)) {
+> -			i2c_unregister_device(client);
+> -			result = -ENODEV;
+> -			goto out_free;
+> -		}
+> -		dvb->fe[0] = m88ds3103_pdata.get_dvb_frontend(client);
+> -		i2c_adapter = m88ds3103_pdata.get_i2c_adapter(client);
+> -		dvb->i2c_client_demod = client;
+> -
+> -		/* attach tuner */
+> -		ts2020_config.fe = dvb->fe[0];
+> -		memset(&board_info, 0, sizeof(board_info));
+> -		strlcpy(board_info.type, "ts2022", I2C_NAME_SIZE);
+> -		board_info.addr = 0x60;
+> -		board_info.platform_data = &ts2020_config;
+> -		request_module("ts2020");
+> -		client = i2c_new_device(i2c_adapter, &board_info);
+> -		if (client == NULL || client->dev.driver == NULL) {
+> -			module_put(dvb->i2c_client_demod->dev.driver->owner);
+> -			i2c_unregister_device(dvb->i2c_client_demod);
+> -			result = -ENODEV;
+> -			goto out_free;
+> -		}
+> -		if (!try_module_get(client->dev.driver->owner)) {
+> -			i2c_unregister_device(client);
+> -			module_put(dvb->i2c_client_demod->dev.driver->owner);
+> -			i2c_unregister_device(dvb->i2c_client_demod);
+> -			result = -ENODEV;
+> -			goto out_free;
+> -		}
+> -		dvb->i2c_client_tuner = client;
+> -		/* delegate signal strength measurement to tuner */
+> -		dvb->fe[0]->ops.read_signal_strength =
+> -				dvb->fe[0]->ops.tuner_ops.get_rf_strength;
+> -
+> -		/* attach SEC */
+> -		a8293_pdata.dvb_frontend = dvb->fe[0];
+> -		memset(&board_info, 0, sizeof(board_info));
+> -		strlcpy(board_info.type, "a8293", I2C_NAME_SIZE);
+> -		board_info.addr = 0x08;
+> -		board_info.platform_data = &a8293_pdata;
+> -		request_module("a8293");
+> -		client = i2c_new_device(&dev->i2c_adap[dev->def_i2c_bus], &board_info);
+> -		if (client == NULL || client->dev.driver == NULL) {
+> -			module_put(dvb->i2c_client_tuner->dev.driver->owner);
+> -			i2c_unregister_device(dvb->i2c_client_tuner);
+> -			module_put(dvb->i2c_client_demod->dev.driver->owner);
+> -			i2c_unregister_device(dvb->i2c_client_demod);
+> -			result = -ENODEV;
+> -			goto out_free;
+> -		}
+> -		if (!try_module_get(client->dev.driver->owner)) {
+> -			i2c_unregister_device(client);
+> -			module_put(dvb->i2c_client_tuner->dev.driver->owner);
+> -			i2c_unregister_device(dvb->i2c_client_tuner);
+> -			module_put(dvb->i2c_client_demod->dev.driver->owner);
+> -			i2c_unregister_device(dvb->i2c_client_demod);
+> -			result = -ENODEV;
+> -			goto out_free;
+> -		}
+> -		dvb->i2c_client_sec = client;
+>  		break;
+> -	}
+>  	case EM28178_BOARD_PCTV_292E:
+> -		{
+> -			struct i2c_adapter *adapter;
+> -			struct i2c_client *client;
+> -			struct i2c_board_info info;
+> -			struct si2168_config si2168_config;
+> -			struct si2157_config si2157_config;
+> -
+> -			/* attach demod */
+> -			memset(&si2168_config, 0, sizeof(si2168_config));
+> -			si2168_config.i2c_adapter = &adapter;
+> -			si2168_config.fe = &dvb->fe[0];
+> -			si2168_config.ts_mode = SI2168_TS_PARALLEL;
+> -			memset(&info, 0, sizeof(struct i2c_board_info));
+> -			strlcpy(info.type, "si2168", I2C_NAME_SIZE);
+> -			info.addr = 0x64;
+> -			info.platform_data = &si2168_config;
+> -			request_module(info.type);
+> -			client = i2c_new_device(&dev->i2c_adap[dev->def_i2c_bus], &info);
+> -			if (client == NULL || client->dev.driver == NULL) {
+> -				result = -ENODEV;
+> -				goto out_free;
+> -			}
+> -
+> -			if (!try_module_get(client->dev.driver->owner)) {
+> -				i2c_unregister_device(client);
+> -				result = -ENODEV;
+> -				goto out_free;
+> -			}
+> -
+> -			dvb->i2c_client_demod = client;
+> -
+> -			/* attach tuner */
+> -			memset(&si2157_config, 0, sizeof(si2157_config));
+> -			si2157_config.fe = dvb->fe[0];
+> -			si2157_config.if_port = 1;
+> -#ifdef CONFIG_MEDIA_CONTROLLER_DVB
+> -			si2157_config.mdev = dev->media_dev;
+> -#endif
+> -			memset(&info, 0, sizeof(struct i2c_board_info));
+> -			strlcpy(info.type, "si2157", I2C_NAME_SIZE);
+> -			info.addr = 0x60;
+> -			info.platform_data = &si2157_config;
+> -			request_module(info.type);
+> -			client = i2c_new_device(adapter, &info);
+> -			if (client == NULL || client->dev.driver == NULL) {
+> -				module_put(dvb->i2c_client_demod->dev.driver->owner);
+> -				i2c_unregister_device(dvb->i2c_client_demod);
+> -				result = -ENODEV;
+> -				goto out_free;
+> -			}
+> -
+> -			if (!try_module_get(client->dev.driver->owner)) {
+> -				i2c_unregister_device(client);
+> -				module_put(dvb->i2c_client_demod->dev.driver->owner);
+> -				i2c_unregister_device(dvb->i2c_client_demod);
+> -				result = -ENODEV;
+> -				goto out_free;
+> -			}
+> -
+> -			dvb->i2c_client_tuner = client;
+> -			dvb->fe[0]->ops.set_lna = em28xx_pctv_292e_set_lna;
+> -		}
+> +		result = em28178_dvb_init_pctv_292e(dev);
+> +		if (result)
+> +			goto out_free;
+>  		break;
+>  	case EM28178_BOARD_TERRATEC_T2_STICK_HD:
+> -		{
+> -			struct i2c_adapter *adapter;
+> -			struct i2c_client *client;
+> -			struct i2c_board_info info;
+> -			struct si2168_config si2168_config;
+> -			struct si2157_config si2157_config;
+> -
+> -			/* attach demod */
+> -			memset(&si2168_config, 0, sizeof(si2168_config));
+> -			si2168_config.i2c_adapter = &adapter;
+> -			si2168_config.fe = &dvb->fe[0];
+> -			si2168_config.ts_mode = SI2168_TS_PARALLEL;
+> -			memset(&info, 0, sizeof(struct i2c_board_info));
+> -			strlcpy(info.type, "si2168", I2C_NAME_SIZE);
+> -			info.addr = 0x64;
+> -			info.platform_data = &si2168_config;
+> -			request_module(info.type);
+> -			client = i2c_new_device(&dev->i2c_adap[dev->def_i2c_bus], &info);
+> -			if (client == NULL || client->dev.driver == NULL) {
+> -				result = -ENODEV;
+> -				goto out_free;
+> -			}
+> -
+> -			if (!try_module_get(client->dev.driver->owner)) {
+> -				i2c_unregister_device(client);
+> -				result = -ENODEV;
+> -				goto out_free;
+> -			}
+> -
+> -			dvb->i2c_client_demod = client;
+> -
+> -			/* attach tuner */
+> -			memset(&si2157_config, 0, sizeof(si2157_config));
+> -			si2157_config.fe = dvb->fe[0];
+> -			si2157_config.if_port = 0;
+> -#ifdef CONFIG_MEDIA_CONTROLLER_DVB
+> -			si2157_config.mdev = dev->media_dev;
+> -#endif
+> -			memset(&info, 0, sizeof(struct i2c_board_info));
+> -			strlcpy(info.type, "si2146", I2C_NAME_SIZE);
+> -			info.addr = 0x60;
+> -			info.platform_data = &si2157_config;
+> -			request_module("si2157");
+> -			client = i2c_new_device(adapter, &info);
+> -			if (client == NULL || client->dev.driver == NULL) {
+> -				module_put(dvb->i2c_client_demod->dev.driver->owner);
+> -				i2c_unregister_device(dvb->i2c_client_demod);
+> -				result = -ENODEV;
+> -				goto out_free;
+> -			}
+> -
+> -			if (!try_module_get(client->dev.driver->owner)) {
+> -				i2c_unregister_device(client);
+> -				module_put(dvb->i2c_client_demod->dev.driver->owner);
+> -				i2c_unregister_device(dvb->i2c_client_demod);
+> -				result = -ENODEV;
+> -				goto out_free;
+> -			}
+> -
+> -			dvb->i2c_client_tuner = client;
+> -		}
+> +		result = em28178_dvb_init_terratec_t2_stick_hd(dev);
+> +		if (result)
+> +			goto out_free;
+>  		break;
+> -
+>  	case EM28178_BOARD_PLEX_PX_BCUD:
+> -		{
+> -			struct i2c_client *client;
+> -			struct i2c_board_info info;
+> -			struct tc90522_config tc90522_config;
+> -			struct qm1d1c0042_config qm1d1c0042_config;
+> -
+> -			/* attach demod */
+> -			memset(&tc90522_config, 0, sizeof(tc90522_config));
+> -			memset(&info, 0, sizeof(struct i2c_board_info));
+> -			strlcpy(info.type, "tc90522sat", I2C_NAME_SIZE);
+> -			info.addr = 0x15;
+> -			info.platform_data = &tc90522_config;
+> -			request_module("tc90522");
+> -			client = i2c_new_device(&dev->i2c_adap[dev->def_i2c_bus], &info);
+> -			if (client == NULL || client->dev.driver == NULL) {
+> -				result = -ENODEV;
+> -				goto out_free;
+> -			}
+> -			dvb->i2c_client_demod = client;
+> -			if (!try_module_get(client->dev.driver->owner)) {
+> -				i2c_unregister_device(client);
+> -				result = -ENODEV;
+> -				goto out_free;
+> -			}
+> -
+> -			/* attach tuner */
+> -			memset(&qm1d1c0042_config, 0,
+> -			       sizeof(qm1d1c0042_config));
+> -			qm1d1c0042_config.fe = tc90522_config.fe;
+> -			qm1d1c0042_config.lpf = 1;
+> -			memset(&info, 0, sizeof(struct i2c_board_info));
+> -			strlcpy(info.type, "qm1d1c0042", I2C_NAME_SIZE);
+> -			info.addr = 0x61;
+> -			info.platform_data = &qm1d1c0042_config;
+> -			request_module(info.type);
+> -			client = i2c_new_device(tc90522_config.tuner_i2c,
+> -						&info);
+> -			if (client == NULL || client->dev.driver == NULL) {
+> -				module_put(dvb->i2c_client_demod->dev.driver->owner);
+> -				i2c_unregister_device(dvb->i2c_client_demod);
+> -				result = -ENODEV;
+> -				goto out_free;
+> -			}
+> -			dvb->i2c_client_tuner = client;
+> -			if (!try_module_get(client->dev.driver->owner)) {
+> -				i2c_unregister_device(client);
+> -				module_put(dvb->i2c_client_demod->dev.driver->owner);
+> -				i2c_unregister_device(dvb->i2c_client_demod);
+> -				result = -ENODEV;
+> -				goto out_free;
+> -			}
+> -			dvb->fe[0] = tc90522_config.fe;
+> -			px_bcud_init(dev);
+> -		}
+> +		result = em28178_dvb_init_plex_px_bcud(dev);
+> +		if (result)
+> +			goto out_free;
+>  		break;
+>  	case EM28174_BOARD_HAUPPAUGE_WINTV_DUALHD_DVB:
+> -		{
+> -			struct i2c_adapter *adapter;
+> -			struct i2c_client *client;
+> -			struct i2c_board_info info;
+> -			struct si2168_config si2168_config;
+> -			struct si2157_config si2157_config;
+> -
+> -			/* attach demod */
+> -			memset(&si2168_config, 0, sizeof(si2168_config));
+> -			si2168_config.i2c_adapter = &adapter;
+> -			si2168_config.fe = &dvb->fe[0];
+> -			si2168_config.ts_mode = SI2168_TS_SERIAL;
+> -			memset(&info, 0, sizeof(struct i2c_board_info));
+> -			strlcpy(info.type, "si2168", I2C_NAME_SIZE);
+> -			info.addr = 0x64;
+> -			info.platform_data = &si2168_config;
+> -			request_module(info.type);
+> -			client = i2c_new_device(&dev->i2c_adap[dev->def_i2c_bus], &info);
+> -			if (client == NULL || client->dev.driver == NULL) {
+> -				result = -ENODEV;
+> -				goto out_free;
+> -			}
+> -
+> -			if (!try_module_get(client->dev.driver->owner)) {
+> -				i2c_unregister_device(client);
+> -				result = -ENODEV;
+> -				goto out_free;
+> -			}
+> -
+> -			dvb->i2c_client_demod = client;
+> -
+> -			/* attach tuner */
+> -			memset(&si2157_config, 0, sizeof(si2157_config));
+> -			si2157_config.fe = dvb->fe[0];
+> -			si2157_config.if_port = 1;
+> -#ifdef CONFIG_MEDIA_CONTROLLER_DVB
+> -			si2157_config.mdev = dev->media_dev;
+> -#endif
+> -			memset(&info, 0, sizeof(struct i2c_board_info));
+> -			strlcpy(info.type, "si2157", I2C_NAME_SIZE);
+> -			info.addr = 0x60;
+> -			info.platform_data = &si2157_config;
+> -			request_module(info.type);
+> -			client = i2c_new_device(adapter, &info);
+> -			if (client == NULL || client->dev.driver == NULL) {
+> -				module_put(dvb->i2c_client_demod->dev.driver->owner);
+> -				i2c_unregister_device(dvb->i2c_client_demod);
+> -				result = -ENODEV;
+> -				goto out_free;
+> -			}
+> -
+> -			if (!try_module_get(client->dev.driver->owner)) {
+> -				i2c_unregister_device(client);
+> -				module_put(dvb->i2c_client_demod->dev.driver->owner);
+> -				i2c_unregister_device(dvb->i2c_client_demod);
+> -				result = -ENODEV;
+> -				goto out_free;
+> -			}
+> -
+> -			dvb->i2c_client_tuner = client;
+> -
+> -		}
+> +		result = em28174_dvb_init_hauppauge_wintv_dualhd_dvb(dev);
+> +		if (result)
+> +			goto out_free;
+>  		break;
+>  	case EM28174_BOARD_HAUPPAUGE_WINTV_DUALHD_01595:
+> -		{
+> -			struct i2c_adapter *adapter;
+> -			struct i2c_client *client;
+> -			struct i2c_board_info info = {};
+> -			struct lgdt3306a_config lgdt3306a_config;
+> -			struct si2157_config si2157_config = {};
+> -
+> -			/* attach demod */
+> -			lgdt3306a_config = hauppauge_01595_lgdt3306a_config;
+> -			lgdt3306a_config.fe = &dvb->fe[0];
+> -			lgdt3306a_config.i2c_adapter = &adapter;
+> -			strlcpy(info.type, "lgdt3306a", sizeof(info.type));
+> -			info.addr = 0x59;
+> -			info.platform_data = &lgdt3306a_config;
+> -			request_module(info.type);
+> -			client = i2c_new_device(&dev->i2c_adap[dev->def_i2c_bus],
+> -					&info);
+> -			if (client == NULL || client->dev.driver == NULL) {
+> -				result = -ENODEV;
+> -				goto out_free;
+> -			}
+> -
+> -			if (!try_module_get(client->dev.driver->owner)) {
+> -				i2c_unregister_device(client);
+> -				result = -ENODEV;
+> -				goto out_free;
+> -			}
+> -
+> -			dvb->i2c_client_demod = client;
+> -
+> -			/* attach tuner */
+> -			si2157_config.fe = dvb->fe[0];
+> -			si2157_config.if_port = 1;
+> -			si2157_config.inversion = 1;
+> -#ifdef CONFIG_MEDIA_CONTROLLER_DVB
+> -			si2157_config.mdev = dev->media_dev;
+> -#endif
+> -			memset(&info, 0, sizeof(struct i2c_board_info));
+> -			strlcpy(info.type, "si2157", sizeof(info.type));
+> -			info.addr = 0x60;
+> -			info.platform_data = &si2157_config;
+> -			request_module(info.type);
+> -
+> -			client = i2c_new_device(adapter, &info);
+> -			if (client == NULL || client->dev.driver == NULL) {
+> -				module_put(dvb->i2c_client_demod->dev.driver->owner);
+> -				i2c_unregister_device(dvb->i2c_client_demod);
+> -				result = -ENODEV;
+> -				goto out_free;
+> -			}
+> -			if (!try_module_get(client->dev.driver->owner)) {
+> -				i2c_unregister_device(client);
+> -				module_put(dvb->i2c_client_demod->dev.driver->owner);
+> -				i2c_unregister_device(dvb->i2c_client_demod);
+> -				result = -ENODEV;
+> -				goto out_free;
+> -			}
+> -
+> -			dvb->i2c_client_tuner = client;
+> -		}
+> +		result = em28174_dvb_init_hauppauge_wintv_dualhd_01595(dev);
+> +		if (result)
+> +			goto out_free;
+>  		break;
+>  	default:
+>  		dev_err(&dev->intf->dev,
+
+
+
+Thanks,
+Mauro
