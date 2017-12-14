@@ -1,73 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:37402 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1762519AbdLSMAX (ORCPT
+Received: from smtp-3.sys.kth.se ([130.237.48.192]:34050 "EHLO
+        smtp-3.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754272AbdLNTJR (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 19 Dec 2017 07:00:23 -0500
-Date: Tue, 19 Dec 2017 14:00:21 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Kristian Beilke <beilke@posteo.de>
-Cc: linux-media@vger.kernel.org, alan@linux.intel.com,
-        andriy.shevchenko@linux.intel.com
-Subject: Re: [BUG] atomisp_ov2680 not initializing correctly
-Message-ID: <20171219120020.w7byb7bv3hhzn2jb@valkosipuli.retiisi.org.uk>
-References: <42dfd60f-2534-b9cd-eeab-3110d58ef7c0@posteo.de>
+        Thu, 14 Dec 2017 14:09:17 -0500
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: linux-media@vger.kernel.org,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-renesas-soc@vger.kernel.org,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        Benoit Parrot <bparrot@ti.com>,
+        Maxime Ripard <maxime.ripard@free-electrons.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH/RFC v2 03/15] rcar-vin: use the pad and stream aware s_stream
+Date: Thu, 14 Dec 2017 20:08:23 +0100
+Message-Id: <20171214190835.7672-4-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20171214190835.7672-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20171214190835.7672-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <42dfd60f-2534-b9cd-eeab-3110d58ef7c0@posteo.de>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Cc Alan and Andy.
+To work with multiplexed streams the pad and stream aware s_stream
+operation needs to be used.
 
-On Sat, Dec 16, 2017 at 04:50:04PM +0100, Kristian Beilke wrote:
-> Dear all,
-> 
-> I am trying to get the cameras in a Lenovo IdeaPad Miix 320 (Atom
-> x5-Z8350 BayTrail) to work. The front camera is an ov2680. With kernel
-> 4.14.4 and 4.15rc3 I see the following dmesg output:
-> 
-> 
-> [   21.469907] ov2680: module is from the staging directory, the quality
->  is unknown, you have been warned.
-> [   21.492774] ov2680 i2c-OVTI2680:00: gmin: initializing atomisp module
-> subdev data.PMIC ID 1
-> [   21.492891] acpi OVTI2680:00: Failed to find gmin variable
-> OVTI2680:00_CamClk
-> [   21.492974] acpi OVTI2680:00: Failed to find gmin variable
-> OVTI2680:00_ClkSrc
-> [   21.493090] acpi OVTI2680:00: Failed to find gmin variable
-> OVTI2680:00_CsiPort
-> [   21.493209] acpi OVTI2680:00: Failed to find gmin variable
-> OVTI2680:00_CsiLanes
-> [   21.493511] ov2680 i2c-OVTI2680:00: i2c-OVTI2680:00 supply V1P8SX not
-> found, using dummy regulator
-> [   21.493550] ov2680 i2c-OVTI2680:00: i2c-OVTI2680:00 supply V2P8SX not
-> found, using dummy regulator
-> [   21.493569] ov2680 i2c-OVTI2680:00: i2c-OVTI2680:00 supply V1P2A not
-> found, using dummy regulator
-> [   21.493585] ov2680 i2c-OVTI2680:00: i2c-OVTI2680:00 supply VPROG4B
-> not found, using dummy regulator
-> [   21.568134] ov2680 i2c-OVTI2680:00: camera pdata: port: 0 lanes: 1
-> order: 00000002
-> [   21.568257] ov2680 i2c-OVTI2680:00: read from offset 0x300a error -121
-> [   21.568265] ov2680 i2c-OVTI2680:00: sensor_id_high = 0xffff
-> [   21.568269] ov2680 i2c-OVTI2680:00: ov2680_detect err s_config.
-> [   21.568291] ov2680 i2c-OVTI2680:00: sensor power-gating failed
-> 
-> Afterwards I do not get a camera device.
-> 
-> Am I missing some firmware or dependency? Can I somehow help to improve
-> the driver?
-> 
-> Regards
-> 
-> Kristian
-> 
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+---
+ drivers/media/platform/rcar-vin/rcar-dma.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-
-
+diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
+index cf30e5fceb1d493a..8435491535060eae 100644
+--- a/drivers/media/platform/rcar-vin/rcar-dma.c
++++ b/drivers/media/platform/rcar-vin/rcar-dma.c
+@@ -1180,7 +1180,7 @@ static int rvin_set_stream(struct rvin_dev *vin, int on)
+ 
+ 	if (!on) {
+ 		media_pipeline_stop(vin->vdev.entity.pads);
+-		return v4l2_subdev_call(sd, video, s_stream, 0);
++		return v4l2_subdev_call(sd, pad, s_stream, pad->index, 0, 0);
+ 	}
+ 
+ 	fmt.pad = pad->index;
+@@ -1239,12 +1239,14 @@ static int rvin_set_stream(struct rvin_dev *vin, int on)
+ 	if (media_pipeline_start(vin->vdev.entity.pads, pipe))
+ 		return -EPIPE;
+ 
+-	ret = v4l2_subdev_call(sd, video, s_stream, 1);
++	ret = v4l2_subdev_call(sd, pad, s_stream, pad->index, 0, 1);
+ 	if (ret == -ENOIOCTLCMD)
+ 		ret = 0;
+ 	if (ret)
+ 		media_pipeline_stop(vin->vdev.entity.pads);
+ 
++	vin_dbg(vin, "pad: %u stream: 0 enable: %d\n", pad->index, on);
++
+ 	return ret;
+ }
+ 
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+2.15.1
