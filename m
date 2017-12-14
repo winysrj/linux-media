@@ -1,143 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([65.50.211.133]:54324 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753275AbdLNQtX (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:53397 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752433AbdLNUoL (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 14 Dec 2017 11:49:23 -0500
-Date: Thu, 14 Dec 2017 14:49:11 -0200
-From: Mauro Carvalho Chehab <mchehab@kernel.org>
-To: Daniel Mack <daniel@zonque.org>
-Cc: Todor Tomov <todor.tomov@linaro.org>,
-        "laurent.pinchart" <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-        linux-arm-msm@vger.kernel.org
-Subject: Re: camss: camera controls missing on vfe interfaces
-Message-ID: <20171214144911.5f36ccd3@vento.lan>
-In-Reply-To: <b2ee60be-508f-bc16-5632-1bd0e694b6cc@zonque.org>
-References: <79ac06f5-0c68-14d9-673c-7781881f81b8@zonque.org>
-        <bc991d7c-e204-334a-1135-d10757405e08@zonque.org>
-        <9ac5306d-c048-5d04-4ea9-2d5d08165350@linaro.org>
-        <b2ee60be-508f-bc16-5632-1bd0e694b6cc@zonque.org>
+        Thu, 14 Dec 2017 15:44:11 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Greg KH <gregkh@linuxfoundation.org>
+Cc: Joe Perches <joe@perches.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Dhaval Shah <dhaval23031987@gmail.com>, hyun.kwon@xilinx.com,
+        michal.simek@xilinx.com, linux-media@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] media: v4l: xilinx: Use SPDX-License-Identifier
+Date: Thu, 14 Dec 2017 22:44:16 +0200
+Message-ID: <3484237.SQf3uXUed3@avalon>
+In-Reply-To: <20171214200851.GA27849@kroah.com>
+References: <20171208123537.18718-1-dhaval23031987@gmail.com> <2967655.MWOA0IsQOS@avalon> <20171214200851.GA27849@kroah.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 20 Nov 2017 11:59:59 +0100
-Daniel Mack <daniel@zonque.org> escreveu:
+Hi Greg,
 
-> Hi Todor,
->=20
-> Thanks for following up!
->=20
-> On Monday, November 20, 2017 09:32 AM, Todor Tomov wrote:
-> > On 15.11.2017 21:31, Daniel Mack wrote: =20
-> >> Todor et all,
-> >>
-> >> Any hint on how to tackle this?
-> >>
-> >> I can contribute patches, but I'd like to understand what the idea is.
-> >>
-> >>
-> >> Thanks,
-> >> Daniel
-> >>
-> >>
-> >> On Thursday, October 26, 2017 06:11 PM, Daniel Mack wrote: =20
-> >>> Hi Todor,
-> >>>
-> >>> When using the camss driver trough one of its /dev/videoX device node=
-s,
-> >>> applications are currently unable to see the video controls the camera
-> >>> sensor exposes.
-> >>>
-> >>> Same goes for other ioctls such as VIDIOC_ENUM_FMT, so the only valid
-> >>> resolution setting for applications to use is the one that was
-> >>> previously set through the media controller layer. Applications usual=
-ly
-> >>> query the available formats and then pick one using the standard V4L2
-> >>> APIs, and many can't easily be forced to use a specific one.
-> >>>
-> >>> If I'm getting this right, could you explain what's the rationale her=
-e?
-> >>> Is that simply a missing feature or was that approach chosen on purpo=
-se?
-> >>> =20
-> >=20
-> > It is not a missing feature, it is more of a missing userspace implemen=
-tation.
-> > When working with a media oriented device driver, the userspace has to
-> > config the media pipeline too and if controls are exposed by the subdev=
- nodes,
-> > the userspace has to configure them on the subdev nodes.
-> >=20
-> > As there weren't a lot of media oriented drivers there is no generic
-> > implementation/support for this in the userspace (at least I'm not awar=
-e of
-> > any). There have been discussions about adding such functionality in li=
-bv4l
-> > so that applications which do not support media configuration can still
-> > use these drivers. I'm not sure if decision for this was taken or not or
-> > is it just that there was noone to actually do the work. Probably Laure=
-nt,
-> > Mauro or Hans know more about what were the plans for this. =20
->=20
-> Hmm, that's not good.
->=20
-> Considering the use-case in our application, the pipeline is set up once
-> and considered more or less static, and then applications such as the
-> Chrome browsers make use of the high-level VFE interface. If there are
-> no controls exposed on that interface, they are not available to the
-> application. Patching all userspace applications is an uphill battle
-> that can't be won I'm afraid.
->=20
-> Is there any good reason not to expose the sensor controls on the VFE? I
-> guess it would be easy to do, right?
+On Thursday, 14 December 2017 22:08:51 EET Greg KH wrote:
+> On Thu, Dec 14, 2017 at 09:05:27PM +0200, Laurent Pinchart wrote:
+> > On Thursday, 14 December 2017 20:54:39 EET Joe Perches wrote:
+> >> On Thu, 2017-12-14 at 20:37 +0200, Laurent Pinchart wrote:
+> >>> On Thursday, 14 December 2017 20:32:20 EET Joe Perches wrote:
+> >>>> On Thu, 2017-12-14 at 20:28 +0200, Laurent Pinchart wrote:
+> >>>>> On Thursday, 14 December 2017 19:05:27 EET Mauro Carvalho Chehab 
+wrote:
+> >>>>>> Em Fri,  8 Dec 2017 18:05:37 +0530 Dhaval Shah escreveu:
+> >>>>>>> SPDX-License-Identifier is used for the Xilinx Video IP and
+> >>>>>>> related drivers.
+> >>>>>>> 
+> >>>>>>> Signed-off-by: Dhaval Shah <dhaval23031987@gmail.com>
+> >>>>>> 
+> >>>>>> Hi Dhaval,
+> >>>>>> 
+> >>>>>> You're not listed as one of the Xilinx driver maintainers. I'm
+> >>>>>> afraid that, without their explicit acks, sent to the ML, I can't
+> >>>>>> accept a patch touching at the driver's license tags.
+> >>>>> 
+> >>>>> The patch doesn't change the license, I don't see why it would cause
+> >>>>> any issue. Greg isn't listed as the maintainer or copyright holder
+> >>>>> of any of the 10k+ files to which he added an SPDX license header in
+> >>>>> the last kernel release.
+> >>>> 
+> >>>> Adding a comment line that describes an implicit or
+> >>>> explicit license is different than removing the license
+> >>>> text itself.
+> >>> 
+> >>> The SPDX license header is meant to be equivalent to the license text.
+> >> 
+> >> I understand that.
+> >> At a minimum, removing BSD license text is undesirable
+> >> 
+> >> as that license states:
+> >>  *    * Redistributions of source code must retain the above copyright
+> >>  *      notice, this list of conditions and the following disclaimer.
+> >> 
+> >> etc...
+> > 
+> > But this patch only removes the following text:
+> > 
+> > - * This program is free software; you can redistribute it and/or modify
+> > - * it under the terms of the GNU General Public License version 2 as
+> > - * published by the Free Software Foundation.
+> > 
+> > and replaces it by the corresponding SPDX header.
+> > 
+> >>> The only reason why the large SPDX patch didn't touch the whole kernel
+> >>> in one go was that it was easier to split in in multiple chunks.
+> >> 
+> >> Not really, it was scripted.
+> > 
+> > But still manually reviewed as far as I know.
+> > 
+> >>> This is no different than not including the full GPL license in every
+> >>> header file but only pointing to it through its name and reference, as
+> >>> every kernel source file does.
+> >> 
+> >> Not every kernel source file had a license text
+> >> or a reference to another license file.
+> > 
+> > Correct, but the files touched by this patch do.
+> > 
+> > This issue is in no way specific to linux-media and should be decided upon
+> > at the top level, not on a per-subsystem basis. Greg, could you comment
+> > on this ?
+> 
+> Comment on what exactly?  I don't understand the problem here, care to
+> summarize it?
 
-Sorry for a late answer. I'm usually very busy on 4Q, but this year, it
-was atypical.
+In a nutshell (if I understand it correctly), Dhaval Shah submitted https://
+patchwork.kernel.org/patch/10102451/ which replaces
 
-A little historic is needed in order to answer this question.
-Up to very recently, V4L2 drivers that are media-controller centric,=20
-e. g. whose sub-devices are controlled directly by subdev devnodes,
-were used only on specialized hardware, with special V4L2 applications
-designed for them. In other words, it was designed to be used by generic
-applications (although we always wanted a solution for it), and this
-was never a real problem so far.
++// SPDX-License-Identifier: GPL-2.0
+[...]
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
 
-However, with the advent of cheap SoC hardware with complex media
-processors on it, the scenario changed recently, and we need some
-discussions upstream about the best way to solve it.
+in all .c and .h files of the Xilinx V4L2 driver (drivers/media/platform/
+xilinx). I have reviewed the patch and acked it. Mauro then rejected it, 
+stating that he can't accept a change to license text without an explicit ack 
+from the official driver's maintainers. My position is that such a change 
+doesn't change the license and thus doesn't need to track all copyright 
+holders, and can be merged without an explicit ack from the respective 
+maintainers.
 
-The original idea, back when the media controller was introduced,
-were to add support at libv4l. But this never happened, and it turns
-to be a way more complex than originally foreseen.
+On a side note, Joe pointed out that some files contains BSD license text 
+similar to
 
-As you're pointing, on such scenarios, one alternative is to expose subdev
-controls also to the /dev/video devnode that is controlling the pipeline
-streaming. However, depending on the pipeline, this may not be possible,
-as the same control could be implemented on more than on block inside
-the pipeline. When such case happens, the proper solution is to pinpoint
-what sub-device will handle the control via the subdev API.
+ *    * Redistributions of source code must retain the above copyright
+ *      notice, this list of conditions and the following disclaimer.
 
-However, on several scenarios (like, for instance, a RPi3 with
-a single camera sensor), the pipeline is simple enough to either
-avoid such conflicts, or to have an obvious subdevice that would
-be handling such control.
+If we follow the text of the license strictly it can be argued that such text 
+can't be replaced by an SPDX license identifier without breaching the license.
 
-=46rom my PoV, on cases like RPi3, the best is to just implement control
-propagation inside the pipelines. However, other media core developers
-think otherwise.
+-- 
+Regards,
 
-If you can provide us a broader view about what are the issues that
-you're facing, what's your use case scenario and what are the pipelines,
-this could be valuable for us to improve our discussions about the
-best way to solve it.
-
-Please notice, however, that this is not the best time for taking
-such discussions, as several core developers will be taking
-vacations those days.
-
-Thanks,
-Mauro
+Laurent Pinchart
