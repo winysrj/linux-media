@@ -1,178 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f193.google.com ([209.85.192.193]:40460 "EHLO
-        mail-pf0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752364AbdLAMbr (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 1 Dec 2017 07:31:47 -0500
-Received: by mail-pf0-f193.google.com with SMTP id v26so4592013pfl.7
-        for <linux-media@vger.kernel.org>; Fri, 01 Dec 2017 04:31:46 -0800 (PST)
-From: Jaedon Shin <jaedon.shin@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Shuah Khan <shuah@kernel.org>,
-        Colin Ian King <colin.king@canonical.com>,
-        Satendra Singh Thakur <satendra.t@samsung.com>,
-        linux-media@vger.kernel.org, Jaedon Shin <jaedon.shin@gmail.com>
-Subject: [PATCH 3/3] media: dvb_frontend: Add commands implementation for compat ioct
-Date: Fri,  1 Dec 2017 21:31:30 +0900
-Message-Id: <20171201123130.23128-4-jaedon.shin@gmail.com>
-In-Reply-To: <20171201123130.23128-1-jaedon.shin@gmail.com>
-References: <20171201123130.23128-1-jaedon.shin@gmail.com>
+Received: from smtp-3.sys.kth.se ([130.237.48.192]:34408 "EHLO
+        smtp-3.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754277AbdLNTJZ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 14 Dec 2017 14:09:25 -0500
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: linux-media@vger.kernel.org,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-renesas-soc@vger.kernel.org,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        Benoit Parrot <bparrot@ti.com>,
+        Maxime Ripard <maxime.ripard@free-electrons.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH/RFC v2 09/15] adv748x: csi2: add module param for virtual channel
+Date: Thu, 14 Dec 2017 20:08:29 +0100
+Message-Id: <20171214190835.7672-10-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20171214190835.7672-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20171214190835.7672-1-niklas.soderlund+renesas@ragnatech.se>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The dtv_properties structure and the dtv_property structure are
-different sizes in 32-bit and 64-bit system. This patch provides
-FE_SET_PROPERTY and FE_GET_PROPERTY ioctl commands implementation for
-32-bit user space applications.
+The hardware can output on any of the 4 (0-3) Virtual Channels of the
+CSI-2 bus. Add a module parameter each for TXA and TXB to allow the user
+to specify which channel should be used.
 
-Signed-off-by: Jaedon Shin <jaedon.shin@gmail.com>
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 ---
- drivers/media/dvb-core/dvb_frontend.c | 131 ++++++++++++++++++++++++++++++++++
- 1 file changed, 131 insertions(+)
+ drivers/media/i2c/adv748x/adv748x-core.c | 10 ++++++++++
+ drivers/media/i2c/adv748x/adv748x-csi2.c |  2 +-
+ drivers/media/i2c/adv748x/adv748x.h      |  1 +
+ 3 files changed, 12 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
-index 1ae23403a0ab..f3751a573dfe 100644
---- a/drivers/media/dvb-core/dvb_frontend.c
-+++ b/drivers/media/dvb-core/dvb_frontend.c
-@@ -1976,9 +1976,140 @@ static long dvb_frontend_ioctl(struct file *file, unsigned int cmd,
- }
+diff --git a/drivers/media/i2c/adv748x/adv748x-core.c b/drivers/media/i2c/adv748x/adv748x-core.c
+index fd92c9e4b519d2c5..3cad52532ead2e34 100644
+--- a/drivers/media/i2c/adv748x/adv748x-core.c
++++ b/drivers/media/i2c/adv748x/adv748x-core.c
+@@ -31,6 +31,9 @@
  
- #ifdef CONFIG_COMPAT
-+struct compat_dtv_property {
-+	__u32 cmd;
-+	__u32 reserved[3];
-+	union {
-+		__u32 data;
-+		struct dtv_fe_stats st;
-+		struct {
-+			__u8 data[32];
-+			__u32 len;
-+			__u32 reserved1[3];
-+			compat_uptr_t reserved2;
-+		} buffer;
-+	} u;
-+	int result;
-+} __attribute__ ((packed));
+ #include "adv748x.h"
+ 
++static unsigned int txavc;
++static unsigned int txbvc;
 +
-+struct compat_dtv_properties {
-+	__u32 num;
-+	compat_uptr_t props;
-+};
+ /* -----------------------------------------------------------------------------
+  * Register manipulation
+  */
+@@ -747,6 +750,7 @@ static int adv748x_probe(struct i2c_client *client,
+ 	}
+ 
+ 	/* Initialise TXA */
++	state->txa.vc = txavc;
+ 	ret = adv748x_csi2_init(state, &state->txa);
+ 	if (ret) {
+ 		adv_err(state, "Failed to probe TXA");
+@@ -754,6 +758,7 @@ static int adv748x_probe(struct i2c_client *client,
+ 	}
+ 
+ 	/* Initialise TXB */
++	state->txb.vc = txbvc;
+ 	ret = adv748x_csi2_init(state, &state->txb);
+ 	if (ret) {
+ 		adv_err(state, "Failed to probe TXB");
+@@ -824,6 +829,11 @@ static struct i2c_driver adv748x_driver = {
+ 
+ module_i2c_driver(adv748x_driver);
+ 
++module_param(txavc, uint, 0644);
++MODULE_PARM_DESC(txavc, "Virtual Channel for TXA");
++module_param(txbvc, uint, 0644);
++MODULE_PARM_DESC(txbvc, "Virtual Channel for TXB");
 +
-+#define COMPAT_FE_SET_PROPERTY	   _IOW('o', 82, struct compat_dtv_properties)
-+#define COMPAT_FE_GET_PROPERTY	   _IOR('o', 83, struct compat_dtv_properties)
-+
-+static int dvb_frontend_handle_compat_ioctl(struct file *file, unsigned int cmd,
-+					    unsigned long arg)
-+{
-+	struct dvb_device *dvbdev = file->private_data;
-+	struct dvb_frontend *fe = dvbdev->priv;
-+	struct dvb_frontend_private *fepriv = fe->frontend_priv;
-+	int i, err = 0;
-+
-+	if (cmd == COMPAT_FE_SET_PROPERTY) {
-+		struct compat_dtv_properties prop, *tvps = NULL;
-+		struct compat_dtv_property *tvp = NULL;
-+
-+		if (copy_from_user(&prop, compat_ptr(arg), sizeof(prop)))
-+			return -EFAULT;
-+
-+		tvps = &prop;
-+
-+		/*
-+		 * Put an arbitrary limit on the number of messages that can
-+		 * be sent at once
-+		 */
-+		if (!tvps->num || (tvps->num > DTV_IOCTL_MAX_MSGS))
-+			return -EINVAL;
-+
-+		tvp = memdup_user(compat_ptr(tvps->props), tvps->num * sizeof(*tvp));
-+		if (IS_ERR(tvp))
-+			return PTR_ERR(tvp);
-+
-+		for (i = 0; i < tvps->num; i++) {
-+			err = dtv_property_process_set(fe, file,
-+							(tvp + i)->cmd,
-+							(tvp + i)->u.data);
-+			if (err < 0) {
-+				kfree(tvp);
-+				return err;
-+			}
-+		}
-+		kfree(tvp);
-+	} else if (cmd == COMPAT_FE_GET_PROPERTY) {
-+		struct compat_dtv_properties prop, *tvps = NULL;
-+		struct compat_dtv_property *tvp = NULL;
-+		struct dtv_frontend_properties getp = fe->dtv_property_cache;
-+
-+		if (copy_from_user(&prop, compat_ptr(arg), sizeof(prop)))
-+			return -EFAULT;
-+
-+		tvps = &prop;
-+
-+		/*
-+		 * Put an arbitrary limit on the number of messages that can
-+		 * be sent at once
-+		 */
-+		if (!tvps->num || (tvps->num > DTV_IOCTL_MAX_MSGS))
-+			return -EINVAL;
-+
-+		tvp = memdup_user(compat_ptr(tvps->props), tvps->num * sizeof(*tvp));
-+		if (IS_ERR(tvp))
-+			return PTR_ERR(tvp);
-+
-+		/*
-+		 * Let's use our own copy of property cache, in order to
-+		 * avoid mangling with DTV zigzag logic, as drivers might
-+		 * return crap, if they don't check if the data is available
-+		 * before updating the properties cache.
-+		 */
-+		if (fepriv->state != FESTATE_IDLE) {
-+			err = dtv_get_frontend(fe, &getp, NULL);
-+			if (err < 0) {
-+				kfree(tvp);
-+				return err;
-+			}
-+		}
-+		for (i = 0; i < tvps->num; i++) {
-+			err = dtv_property_process_get(
-+			    fe, &getp, (struct dtv_property *)tvp + i, file);
-+			if (err < 0) {
-+				kfree(tvp);
-+				return err;
-+			}
-+		}
-+
-+		if (copy_to_user((void __user *)compat_ptr(tvps->props), tvp,
-+				 tvps->num * sizeof(struct compat_dtv_property))) {
-+			kfree(tvp);
-+			return -EFAULT;
-+		}
-+		kfree(tvp);
-+	}
-+
-+	return err;
-+}
-+
- static long dvb_frontend_compat_ioctl(struct file *file, unsigned int cmd,
- 				      unsigned long arg)
- {
-+	struct dvb_device *dvbdev = file->private_data;
-+	struct dvb_frontend *fe = dvbdev->priv;
-+	struct dvb_frontend_private *fepriv = fe->frontend_priv;
-+	int err;
-+
-+	if (cmd == COMPAT_FE_SET_PROPERTY || cmd == COMPAT_FE_GET_PROPERTY) {
-+		if (down_interruptible(&fepriv->sem))
-+			return -ERESTARTSYS;
-+
-+		err = dvb_frontend_handle_compat_ioctl(file, cmd, arg);
-+
-+		up(&fepriv->sem);
-+		return err;
-+	}
-+
- 	return dvb_frontend_ioctl(file, cmd, (unsigned long)compat_ptr(arg));
- }
- #endif
+ MODULE_AUTHOR("Kieran Bingham <kieran.bingham@ideasonboard.com>");
+ MODULE_DESCRIPTION("ADV748X video decoder");
+ MODULE_LICENSE("GPL v2");
+diff --git a/drivers/media/i2c/adv748x/adv748x-csi2.c b/drivers/media/i2c/adv748x/adv748x-csi2.c
+index 820b44ed56a8679f..2a5dff8c571013bf 100644
+--- a/drivers/media/i2c/adv748x/adv748x-csi2.c
++++ b/drivers/media/i2c/adv748x/adv748x-csi2.c
+@@ -281,7 +281,7 @@ int adv748x_csi2_init(struct adv748x_state *state, struct adv748x_csi2 *tx)
+ 	}
+ 
+ 	/* Initialise the virtual channel */
+-	adv748x_csi2_set_virtual_channel(tx, 0);
++	adv748x_csi2_set_virtual_channel(tx, tx->vc);
+ 
+ 	adv748x_subdev_init(&tx->sd, state, &adv748x_csi2_ops,
+ 			    MEDIA_ENT_F_UNKNOWN,
+diff --git a/drivers/media/i2c/adv748x/adv748x.h b/drivers/media/i2c/adv748x/adv748x.h
+index 6789e2f3bc8c2b49..f6e40ee3924e8f12 100644
+--- a/drivers/media/i2c/adv748x/adv748x.h
++++ b/drivers/media/i2c/adv748x/adv748x.h
+@@ -92,6 +92,7 @@ enum adv748x_csi2_pads {
+ 
+ struct adv748x_csi2 {
+ 	struct adv748x_state *state;
++	unsigned int vc;
+ 	struct v4l2_mbus_framefmt format;
+ 	unsigned int page;
+ 
 -- 
-2.15.0
+2.15.1
