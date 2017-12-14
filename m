@@ -1,133 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([65.50.211.133]:52138 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751510AbdLPJTN (ORCPT
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:49547 "EHLO
+        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751480AbdLNO1A (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 16 Dec 2017 04:19:13 -0500
-Date: Sat, 16 Dec 2017 07:18:55 -0200
-From: Mauro Carvalho Chehab <mchehab@kernel.org>
-To: Philipp Rossak <embed3d@gmail.com>
-Cc: robh+dt@kernel.org, mark.rutland@arm.com,
-        maxime.ripard@free-electrons.com, wens@csie.org,
-        linux@armlinux.org.uk, sean@mess.org, p.zabel@pengutronix.de,
-        andi.shyti@samsung.com, linux-media@vger.kernel.org,
-        devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-kernel@vger.kernel.org, linux-sunxi@googlegroups.com
-Subject: Re: [RFC 1/5] [media] rc: update sunxi-ir driver to get base
- frequency from devicetree
-Message-ID: <20171216071855.0ef43f7b@recife.lan>
-In-Reply-To: <20171216024914.7550-2-embed3d@gmail.com>
-References: <20171216024914.7550-1-embed3d@gmail.com>
-        <20171216024914.7550-2-embed3d@gmail.com>
+        Thu, 14 Dec 2017 09:27:00 -0500
+Subject: Re: [PATCH v4 3/5] media: i2c: Add TDA1997x HDMI receiver driver
+To: Tim Harvey <tharvey@gateworks.com>
+References: <1511990397-27647-1-git-send-email-tharvey@gateworks.com>
+ <1511990397-27647-4-git-send-email-tharvey@gateworks.com>
+ <1a1be5d7-caed-6cba-c97a-dbb70e119fa3@xs4all.nl>
+ <CAJ+vNU0NKZizung9+1zsd1RZBrDbBgk+A8mVJ76bQysjCUoaKw@mail.gmail.com>
+ <CAJ+vNU1L5MkP0DuiwjKXY75id3Brzq+9M9DfcZOXbvzVgaUdXQ@mail.gmail.com>
+Cc: linux-media <linux-media@vger.kernel.org>,
+        alsa-devel@alsa-project.org,
+        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        Shawn Guo <shawnguo@kernel.org>,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Hans Verkuil <hansverk@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <bce9c2cb-060a-afc2-4ce5-1e2c90c241a5@xs4all.nl>
+Date: Thu, 14 Dec 2017 15:26:57 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+In-Reply-To: <CAJ+vNU1L5MkP0DuiwjKXY75id3Brzq+9M9DfcZOXbvzVgaUdXQ@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sat, 16 Dec 2017 03:49:10 +0100
-Philipp Rossak <embed3d@gmail.com> escreveu:
-
-Hi Phillip,
-
-This is not a full review of this patchset. I just want to point you
-that you should keep supporting existing DT files.
-
-> This patch updates the sunxi-ir driver to set the ir base clock from
-> devicetree.
+On 14/12/17 00:35, Tim Harvey wrote:
+>>> Close. What is missing is a check of the AVI InfoFrame: if it has an explicit
+>>> colorimetry then use that. E.g. check for HDMI_COLORIMETRY_ITU_601 or ITU_709
+>>> and set the colorspace accordingly. Otherwise fall back to what you have here.
+>>>
+>>
+>> This function currently matches adv7604/adv7842 where they don't look
+>> at colorimetry (but I do see a TODO in adv748x_hdmi_fill_format to
+>> look at this) so I don't have an example and may not understand.
+>>
+>> Do you mean:
+>>
+>>        format->colorspace = V4L2_COLORSPACE_SRGB;
+>>        if (bt->flags & V4L2_DV_FL_IS_CE_VIDEO) {
+>>                 if ((state->colorimetry == HDMI_COLORIMETRY_ITU_601) ||
+>>                     (state->colorimetry == HDMI_COLORIMETRY_ITU_709))
+>>                         format->colorspace = state->colorspace;
+>>                 else
+>>                         format->colorspace = is_sd(bt->height) ?
+>>                                 V4L2_COLORSPACE_SMPTE170M :
+>> V4L2_COLORSPACE_REC709;
+>>         }
+>>
+>> Also during more testing I've found that I'm not capturing interlaced
+>> properly and know I at least need:
+>>
+>> -        format->field = V4L2_FIELD_NONE;
+>> +        format->field = (bt->interlaced) ?
+>> +                V4L2_FIELD_ALTERNATE : V4L2_FIELD_NONE;
+>>
+>> I'm still not quite capturing interlaced yet but I think its an issue
+>> of setting up the media pipeline improperly.
+>>
 > 
-> This is neccessary since there are different ir recievers on the
-> market, that operate with different frequencys. So this value needs to
-> be set depending on the attached receiver.
-
-Please don't break backward compatibility with old DT files. In this
-specific case, it seems simple enough to be backward-compatible.
-
+> Hans,
 > 
-> Signed-off-by: Philipp Rossak <embed3d@gmail.com>
-> ---
->  drivers/media/rc/sunxi-cir.c | 20 +++++++++++---------
->  1 file changed, 11 insertions(+), 9 deletions(-)
-> 
-> diff --git a/drivers/media/rc/sunxi-cir.c b/drivers/media/rc/sunxi-cir.c
-> index 97f367b446c4..55b53d6463e9 100644
-> --- a/drivers/media/rc/sunxi-cir.c
-> +++ b/drivers/media/rc/sunxi-cir.c
-> @@ -72,12 +72,6 @@
->  /* CIR_REG register idle threshold */
->  #define REG_CIR_ITHR(val)    (((val) << 8) & (GENMASK(15, 8)))
->  
-> -/* Required frequency for IR0 or IR1 clock in CIR mode */
-> -#define SUNXI_IR_BASE_CLK     8000000
-> -/* Frequency after IR internal divider  */
-> -#define SUNXI_IR_CLK          (SUNXI_IR_BASE_CLK / 64)
+> Did you see this question above? I'm not quite understanding what you
+> want me to do for filling in colorspace and don't see any examples in
+> the existing drivers that appear to look at colorimetry for this.
 
-Keep those to definitions...
+Yeah, I missed that question. I started answering that yesterday, but then
+I realized that it would be better if I would make a helper function for
+v4l2-dv-timings. The rules are complex so coding that in a single place
+that everyone can use is the smart thing to do.
 
-> -/* Sample period in ns */
-> -#define SUNXI_IR_SAMPLE       (1000000000ul / SUNXI_IR_CLK)
->  /* Noise threshold in samples  */
->  #define SUNXI_IR_RXNOISE      1
->  /* Idle Threshold in samples */
-> @@ -122,7 +116,7 @@ static irqreturn_t sunxi_ir_irq(int irqno, void *dev_id)
->  			/* for each bit in fifo */
->  			dt = readb(ir->base + SUNXI_IR_RXFIFO_REG);
->  			rawir.pulse = (dt & 0x80) != 0;
-> -			rawir.duration = ((dt & 0x7f) + 1) * SUNXI_IR_SAMPLE;
-> +			rawir.duration = ((dt & 0x7f) + 1) * ir->rc->rx_resolution;
->  			ir_raw_event_store_with_filter(ir->rc, &rawir);
->  		}
->  	}
-> @@ -148,6 +142,7 @@ static int sunxi_ir_probe(struct platform_device *pdev)
->  	struct device_node *dn = dev->of_node;
->  	struct resource *res;
->  	struct sunxi_ir *ir;
-> +	u32 b_clk_freq;
->  
->  	ir = devm_kzalloc(dev, sizeof(struct sunxi_ir), GFP_KERNEL);
->  	if (!ir)
-> @@ -172,6 +167,12 @@ static int sunxi_ir_probe(struct platform_device *pdev)
->  		return PTR_ERR(ir->clk);
->  	}
->  
-> +	/* Required frequency for IR0 or IR1 clock in CIR mode */
-> +	if (of_property_read_u32(dn, "base-clk-frequency", &b_clk_freq)) {
-> +		dev_err(dev, "failed to get ir base clock frequency.\n");
-> +		return -ENODATA;
-> +	}
-> +
-
-And here, instead of returning an error, if the property can't be read, 
-it means it is an older DT file. Just default to SUNXI_IR_BASE_CLK. 
-This will make it backward-compatible with old DT files that don't have
-such property.
+I hope to finish it tomorrow (too many interruptions today).
 
 Regards,
-Mauro
 
-
->  	/* Reset (optional) */
->  	ir->rst = devm_reset_control_get_optional_exclusive(dev, NULL);
->  	if (IS_ERR(ir->rst))
-> @@ -180,7 +181,7 @@ static int sunxi_ir_probe(struct platform_device *pdev)
->  	if (ret)
->  		return ret;
->  
-> -	ret = clk_set_rate(ir->clk, SUNXI_IR_BASE_CLK);
-> +	ret = clk_set_rate(ir->clk, b_clk_freq);
->  	if (ret) {
->  		dev_err(dev, "set ir base clock failed!\n");
->  		goto exit_reset_assert;
-> @@ -225,7 +226,8 @@ static int sunxi_ir_probe(struct platform_device *pdev)
->  	ir->rc->map_name = ir->map_name ?: RC_MAP_EMPTY;
->  	ir->rc->dev.parent = dev;
->  	ir->rc->allowed_protocols = RC_PROTO_BIT_ALL_IR_DECODER;
-> -	ir->rc->rx_resolution = SUNXI_IR_SAMPLE;
-> +	/* Frequency after IR internal divider with sample period in ns */
-> +	ir->rc->rx_resolution = (1000000000ul / (b_clk_freq / 64));
->  	ir->rc->timeout = MS_TO_NS(SUNXI_IR_TIMEOUT);
->  	ir->rc->driver_name = SUNXI_IR_DEV;
->  
-
-Thanks,
-Mauro
+	Hans
