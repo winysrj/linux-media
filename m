@@ -1,134 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:45444 "EHLO
-        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751123AbdLLEu5 (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:34982 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751548AbdLNMMN (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 11 Dec 2017 23:50:57 -0500
-Message-ID: <61c8f2be65cd440e2bc9d59fbbedb184@smtp-cloud8.xs4all.net>
-Date: Tue, 12 Dec 2017 05:50:54 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+        Thu, 14 Dec 2017 07:12:13 -0500
+Date: Thu, 14 Dec 2017 14:12:10 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Niklas =?iso-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>,
+        Sebastian Reichel <sre@kernel.org>
+Subject: Re: [PATCH v2 08/26] media: v4l2-async: shut up an unitialized
+ symbol warning
+Message-ID: <20171214121209.of2xvhzyezp2r46g@valkosipuli.retiisi.org.uk>
+References: <c4389ab1c02bb08c1a55012fdb859c8b10bdc47e.1509569763.git.mchehab@s-opensource.com>
+ <1844403.anYkCZaVIn@avalon>
+ <20171211161058.6cdedb7a@vento.lan>
+ <2408989.XGnSUWAzJY@avalon>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <2408989.XGnSUWAzJY@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi folks,
 
-Results of the daily build of media_tree:
+On Tue, Dec 12, 2017 at 12:13:59AM +0200, Laurent Pinchart wrote:
+> Hi Mauro,
+> 
+> On Monday, 11 December 2017 20:10:58 EET Mauro Carvalho Chehab wrote:
+> > Em Thu, 02 Nov 2017 04:51:40 +0200 Laurent Pinchart escreveu:
+> > > On Wednesday, 1 November 2017 23:05:45 EET Mauro Carvalho Chehab wrote:
+> > >> Smatch reports this warning:
+> > >> 	drivers/media/v4l2-core/v4l2-async.c:597 v4l2_async_register_subdev()
+> > >> 
+> > >> error: uninitialized symbol 'ret'.
+> > >> 
+> > >> However, there's nothing wrong there. So, just shut up the
+> > >> warning.
+> > > 
+> > > Nothing wrong, really ? ret does seem to be used uninitialized when the
+> > > function returns at the very last line.
+> > 
+> > There's nothing wrong. If you follow the logic, you'll see that
+> > the line:
+> > 
+> > 	return ret;
+> > 
+> > is called only at "err_unbind" label, with is called only on
+> > two places:
+> > 
+> >                 ret = v4l2_async_match_notify(notifier, v4l2_dev, sd, asd);
+> >                 if (ret)
+> >                         goto err_unbind;
+> > 
+> >                 ret = v4l2_async_notifier_try_complete(notifier);
+> >                 if (ret)
+> >                         goto err_unbind;
+> > 
+> > There, ret is defined.
+> > 
+> > Yeah, the logic there is confusing.
+> 
+> I had missed the return 0 just before the error label. Sorry for the noise.
 
-date:			Tue Dec 12 05:00:16 CET 2017
-media-tree git hash:	72c27a68a2a3f650f0dc7891ee98f02283fc11af
-media_build git hash:	f5a5e5e470d834f9843fee7a7c2ce3e4be610ca7
-v4l-utils git hash:	58803000a99c22dceabfb45bec402e746ce966c3
-gcc version:		i686-linux-gcc (GCC) 7.1.0
-sparse version:		v0.5.0-3911-g6f737e1f
-smatch version:		v0.5.0-3911-g6f737e1f
-host hardware:		x86_64
-host os:		4.13.0-164
+I believe the matter has been addressed by this patch:
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: ERRORS
-linux-3.10.1-i686: ERRORS
-linux-3.11.1-i686: ERRORS
-linux-3.12.67-i686: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: ERRORS
-linux-3.15.2-i686: ERRORS
-linux-3.16.7-i686: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.18.7-i686: ERRORS
-linux-3.19-i686: ERRORS
-linux-4.0.9-i686: ERRORS
-linux-4.1.33-i686: ERRORS
-linux-4.2.8-i686: ERRORS
-linux-4.3.6-i686: ERRORS
-linux-4.4.22-i686: ERRORS
-linux-4.5.7-i686: ERRORS
-linux-4.6.7-i686: ERRORS
-linux-4.7.5-i686: ERRORS
-linux-4.8-i686: ERRORS
-linux-4.9.26-i686: ERRORS
-linux-4.10.14-i686: ERRORS
-linux-4.11-i686: ERRORS
-linux-4.12.1-i686: ERRORS
-linux-4.13-i686: ERRORS
-linux-4.14-i686: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: ERRORS
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.67-x86_64: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-x86_64: ERRORS
-linux-3.15.2-x86_64: ERRORS
-linux-3.16.7-x86_64: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.7-x86_64: ERRORS
-linux-3.19-x86_64: ERRORS
-linux-4.0.9-x86_64: ERRORS
-linux-4.1.33-x86_64: ERRORS
-linux-4.2.8-x86_64: ERRORS
-linux-4.3.6-x86_64: ERRORS
-linux-4.4.22-x86_64: ERRORS
-linux-4.5.7-x86_64: ERRORS
-linux-4.6.7-x86_64: ERRORS
-linux-4.7.5-x86_64: ERRORS
-linux-4.8-x86_64: ERRORS
-linux-4.9.26-x86_64: ERRORS
-linux-4.10.14-x86_64: ERRORS
-linux-4.11-x86_64: ERRORS
-linux-4.12.1-x86_64: ERRORS
-linux-4.13-x86_64: ERRORS
-linux-4.14-x86_64: ERRORS
-apps: OK
-spec-git: OK
-smatch: OK
+commit 580db6ca62c168733c6fd338cd2f0ebf39135283
+Author: Colin Ian King <colin.king@canonical.com>
+Date:   Fri Nov 3 02:58:27 2017 -0400
 
-Detailed results are available here:
+    media: v4l: async: fix return of unitialized variable ret
+    
+    A shadow declaration of variable ret is being assigned a return error
+    status and this value is being lost when the error exit goto's jump
+    out of the local scope. This leads to an uninitalized error return value
+    in the outer scope being returned. Fix this by removing the inner scoped
+    declaration of variable ret.
+    
+    Detected by CoverityScan, CID#1460380 ("Uninitialized scalar variable")
+    
+    Fixes: fb45f436b818 ("media: v4l: async: Fix notifier complete callback error handling")
+    
+    Signed-off-by: Colin Ian King <colin.king@canonical.com>
+    Reviewed-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+    Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+    Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
