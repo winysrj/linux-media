@@ -1,134 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:43552 "EHLO
-        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750770AbdLQFIW (ORCPT
+Received: from smtprelay0073.hostedemail.com ([216.40.44.73]:53624 "EHLO
+        smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1753680AbdLNScY (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 17 Dec 2017 00:08:22 -0500
-Message-ID: <3810df6026e84462244334c3cc7a74a7@smtp-cloud9.xs4all.net>
-Date: Sun, 17 Dec 2017 06:08:19 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+        Thu, 14 Dec 2017 13:32:24 -0500
+Message-ID: <1513276340.27409.77.camel@perches.com>
+Subject: Re: [PATCH] media: v4l: xilinx: Use SPDX-License-Identifier
+From: Joe Perches <joe@perches.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Dhaval Shah <dhaval23031987@gmail.com>, hyun.kwon@xilinx.com,
+        michal.simek@xilinx.com, linux-media@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Date: Thu, 14 Dec 2017 10:32:20 -0800
+In-Reply-To: <7339763.I7jApfYMM6@avalon>
+References: <20171208123537.18718-1-dhaval23031987@gmail.com>
+         <20171214150527.00dca6cc@vento.lan> <7339763.I7jApfYMM6@avalon>
+Content-Type: text/plain; charset="ISO-8859-1"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On Thu, 2017-12-14 at 20:28 +0200, Laurent Pinchart wrote:
+> Hi Mauro,
+> 
+> On Thursday, 14 December 2017 19:05:27 EET Mauro Carvalho Chehab wrote:
+> > Em Fri,  8 Dec 2017 18:05:37 +0530 Dhaval Shah escreveu:
+> > > SPDX-License-Identifier is used for the Xilinx Video IP and
+> > > related drivers.
+> > > 
+> > > Signed-off-by: Dhaval Shah <dhaval23031987@gmail.com>
+> > 
+> > Hi Dhaval,
+> > 
+> > You're not listed as one of the Xilinx driver maintainers. I'm afraid that,
+> > without their explicit acks, sent to the ML, I can't accept a patch
+> > touching at the driver's license tags.
+> 
+> The patch doesn't change the license, I don't see why it would cause any 
+> issue. Greg isn't listed as the maintainer or copyright holder of any of the 
+> 10k+ files to which he added an SPDX license header in the last kernel 
+> release.
 
-Results of the daily build of media_tree:
-
-date:			Sun Dec 17 05:00:15 CET 2017
-media-tree git hash:	45267fed3e55845c5b4b279162b273040ae4f587
-media_build git hash:	7199b00cdae29c6f914a89ad996fcb9a133e9deb
-v4l-utils git hash:	b638ef8b15813494e82148dccd9c0411daa214d9
-gcc version:		i686-linux-gcc (GCC) 7.1.0
-sparse version:		v0.5.0-3911-g6f737e1f
-smatch version:		v0.5.0-3911-g6f737e1f
-host hardware:		x86_64
-host os:		4.13.0-164
-
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: WARNINGS
-linux-3.12.67-i686: WARNINGS
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: ERRORS
-linux-3.15.2-i686: ERRORS
-linux-3.16.7-i686: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.18.7-i686: ERRORS
-linux-3.19-i686: ERRORS
-linux-4.0.9-i686: ERRORS
-linux-4.1.33-i686: ERRORS
-linux-4.2.8-i686: ERRORS
-linux-4.3.6-i686: WARNINGS
-linux-4.4.22-i686: OK
-linux-4.5.7-i686: WARNINGS
-linux-4.6.7-i686: OK
-linux-4.7.5-i686: OK
-linux-4.8-i686: OK
-linux-4.9.26-i686: OK
-linux-4.10.14-i686: OK
-linux-4.11-i686: OK
-linux-4.12.1-i686: OK
-linux-4.13-i686: OK
-linux-4.14-i686: OK
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: WARNINGS
-linux-3.12.67-x86_64: WARNINGS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-x86_64: ERRORS
-linux-3.15.2-x86_64: ERRORS
-linux-3.16.7-x86_64: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.7-x86_64: ERRORS
-linux-3.19-x86_64: ERRORS
-linux-4.0.9-x86_64: ERRORS
-linux-4.1.33-x86_64: ERRORS
-linux-4.2.8-x86_64: ERRORS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.22-x86_64: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-x86_64: WARNINGS
-linux-4.9.26-x86_64: WARNINGS
-linux-4.10.14-x86_64: WARNINGS
-linux-4.11-x86_64: WARNINGS
-linux-4.12.1-x86_64: WARNINGS
-linux-4.13-x86_64: OK
-linux-4.14-x86_64: OK
-apps: OK
-spec-git: OK
-smatch: OK
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+Adding a comment line that describes an implicit or
+explicit license is different than removing the license
+text itself.
