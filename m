@@ -1,38 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.anw.at ([195.234.101.228]:47387 "EHLO mail.anw.at"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751213AbdLHR4Z (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 8 Dec 2017 12:56:25 -0500
-From: "Jasmin J." <jasmin@anw.at>
-To: linux-media@vger.kernel.org
-Cc: hverkuil@xs4all.nl, d.scheller@gmx.net, jasmin@anw.at
-Subject: [PATCH] build: Fixed pr_fmt.patch
-Date: Fri,  8 Dec 2017 18:56:16 +0100
-Message-Id: <1512755776-6561-1-git-send-email-jasmin@anw.at>
+Received: from mail-pf0-f196.google.com ([209.85.192.196]:38167 "EHLO
+        mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754233AbdLNXZf (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 14 Dec 2017 18:25:35 -0500
+Date: Thu, 14 Dec 2017 15:25:33 -0800
+From: Guenter Roeck <linux@roeck-us.net>
+To: Arvind Yadav <arvind.yadav.cs@gmail.com>
+Cc: andreyknvl@google.com, hverkuil@xs4all.nl, mchehab@kernel.org,
+        laurent.pinchart@ideasonboard.com, dvyukov@google.com,
+        kcc@google.com, syzkaller@googlegroups.com,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [media] hdpvr: Fix an error handling path in hdpvr_probe()
+Message-ID: <20171214232533.GA26165@roeck-us.net>
+References: <b5c06a8e071d38fc4b4df20b7f9c8fb25d5408fe.1506085151.git.arvind.yadav.cs@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <b5c06a8e071d38fc4b4df20b7f9c8fb25d5408fe.1506085151.git.arvind.yadav.cs@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Jasmin Jessich <jasmin@anw.at>
+On Fri, Sep 22, 2017 at 06:37:06PM +0530, Arvind Yadav wrote:
+> Here, hdpvr_register_videodev() is responsible for setup and
+> register a video device. Also defining and initializing a worker.
+> hdpvr_register_videodev() is calling by hdpvr_probe at last.
+> So No need to flash any work here.
+> Unregister v4l2, free buffers and memory. If hdpvr_probe() will fail.
+> 
+> Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
+> Reported-by: Andrey Konovalov <andreyknvl@google.com>
+> Tested-by: Andrey Konovalov <andreyknvl@google.com>
 
-Signed-off-by: Jasmin Jessich <jasmin@anw.at>
+It looks like this patch was never applied upstream. It fixes
+CVE-2017-16644 [1].
+
+Did it get lost, or is there some reason for not applying it ?
+
+Thanks,
+Guenter
+
 ---
- backports/pr_fmt.patch | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+[1] https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2017-16644
 
-diff --git a/backports/pr_fmt.patch b/backports/pr_fmt.patch
-index 53f0273..d36e071 100644
---- a/backports/pr_fmt.patch
-+++ b/backports/pr_fmt.patch
-@@ -34,9 +34,9 @@ index 75897f95e4b4..6d5c3ea28e1c 100644
- +++ b/drivers/media/common/saa7146/saa7146_i2c.c
- @@ -1,3 +1,4 @@
- +#undef pr_fmt
-+ // SPDX-License-Identifier: GPL-2.0
-  #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-  
-- #include <media/drv-intf/saa7146_vv.h>
- diff --git a/drivers/media/common/saa7146/saa7146_video.c b/drivers/media/common/saa7146/saa7146_video.c
- index b3b29d4f36ed..9f679334437e 100644
- --- a/drivers/media/common/saa7146/saa7146_video.c
--- 
-2.7.4
+> ---
+>  drivers/media/usb/hdpvr/hdpvr-core.c | 26 +++++++++++++++-----------
+>  1 file changed, 15 insertions(+), 11 deletions(-)
+> 
+> diff --git a/drivers/media/usb/hdpvr/hdpvr-core.c b/drivers/media/usb/hdpvr/hdpvr-core.c
+> index dbe29c6..1e8cbaf 100644
+> --- a/drivers/media/usb/hdpvr/hdpvr-core.c
+> +++ b/drivers/media/usb/hdpvr/hdpvr-core.c
+> @@ -292,7 +292,7 @@ static int hdpvr_probe(struct usb_interface *interface,
+>  	/* register v4l2_device early so it can be used for printks */
+>  	if (v4l2_device_register(&interface->dev, &dev->v4l2_dev)) {
+>  		dev_err(&interface->dev, "v4l2_device_register failed\n");
+> -		goto error;
+> +		goto error_free_dev;
+>  	}
+>  
+>  	mutex_init(&dev->io_mutex);
+> @@ -301,7 +301,7 @@ static int hdpvr_probe(struct usb_interface *interface,
+>  	dev->usbc_buf = kmalloc(64, GFP_KERNEL);
+>  	if (!dev->usbc_buf) {
+>  		v4l2_err(&dev->v4l2_dev, "Out of memory\n");
+> -		goto error;
+> +		goto error_v4l2_unregister;
+>  	}
+>  
+>  	init_waitqueue_head(&dev->wait_buffer);
+> @@ -339,13 +339,13 @@ static int hdpvr_probe(struct usb_interface *interface,
+>  	}
+>  	if (!dev->bulk_in_endpointAddr) {
+>  		v4l2_err(&dev->v4l2_dev, "Could not find bulk-in endpoint\n");
+> -		goto error;
+> +		goto error_put_usb;
+>  	}
+>  
+>  	/* init the device */
+>  	if (hdpvr_device_init(dev)) {
+>  		v4l2_err(&dev->v4l2_dev, "device init failed\n");
+> -		goto error;
+> +		goto error_put_usb;
+>  	}
+>  
+>  	mutex_lock(&dev->io_mutex);
+> @@ -353,7 +353,7 @@ static int hdpvr_probe(struct usb_interface *interface,
+>  		mutex_unlock(&dev->io_mutex);
+>  		v4l2_err(&dev->v4l2_dev,
+>  			 "allocating transfer buffers failed\n");
+> -		goto error;
+> +		goto error_put_usb;
+>  	}
+>  	mutex_unlock(&dev->io_mutex);
+>  
+> @@ -361,7 +361,7 @@ static int hdpvr_probe(struct usb_interface *interface,
+>  	retval = hdpvr_register_i2c_adapter(dev);
+>  	if (retval < 0) {
+>  		v4l2_err(&dev->v4l2_dev, "i2c adapter register failed\n");
+> -		goto error;
+> +		goto error_free_buffers;
+>  	}
+>  
+>  	client = hdpvr_register_ir_rx_i2c(dev);
+> @@ -394,13 +394,17 @@ static int hdpvr_probe(struct usb_interface *interface,
+>  reg_fail:
+>  #if IS_ENABLED(CONFIG_I2C)
+>  	i2c_del_adapter(&dev->i2c_adapter);
+> +error_free_buffers:
+>  #endif
+> +	hdpvr_free_buffers(dev);
+> +error_put_usb:
+> +	usb_put_dev(dev->udev);
+> +	kfree(dev->usbc_buf);
+> +error_v4l2_unregister:
+> +	v4l2_device_unregister(&dev->v4l2_dev);
+> +error_free_dev:
+> +	kfree(dev);
+>  error:
+> -	if (dev) {
+> -		flush_work(&dev->worker);
+> -		/* this frees allocated memory */
+> -		hdpvr_delete(dev);
+> -	}
+>  	return retval;
+>  }
+>  
