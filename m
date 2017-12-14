@@ -1,61 +1,159 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:51606 "EHLO
+Received: from galahad.ideasonboard.com ([185.26.127.97]:57323 "EHLO
         galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752259AbdLHTUu (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 8 Dec 2017 14:20:50 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Niklas =?ISO-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund@ragnatech.se>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>
-Subject: Re: [PATCH v9 11/28] rcar-vin: do not allow changing scaling and composing while streaming
-Date: Fri, 08 Dec 2017 21:20:48 +0200
-Message-ID: <1750592.qc2TZyzifv@avalon>
-In-Reply-To: <20171208141423.GQ31989@bigcity.dyn.berto.se>
-References: <20171208010842.20047-1-niklas.soderlund+renesas@ragnatech.se> <14690079.PLADEzS7Fe@avalon> <20171208141423.GQ31989@bigcity.dyn.berto.se>
+        with ESMTP id S1754069AbdLNW7q (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 14 Dec 2017 17:59:46 -0500
+Subject: Re: [PATCH/RFC v2 15/15] adv748x: afe: add routing support
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+To: =?UTF-8?Q?Niklas_S=c3=b6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>,
+        linux-media@vger.kernel.org,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-renesas-soc@vger.kernel.org,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        Benoit Parrot <bparrot@ti.com>,
+        Maxime Ripard <maxime.ripard@free-electrons.com>
+Reply-To: kieran.bingham@ideasonboard.com, kieran.bingham@ideasonboard.com
+References: <20171214190835.7672-1-niklas.soderlund+renesas@ragnatech.se>
+ <20171214190835.7672-16-niklas.soderlund+renesas@ragnatech.se>
+ <fa2f7765-d2a4-3a7d-b8a4-0659f83aa35b@ideasonboard.com>
+Message-ID: <56d8040e-c976-c75a-5d13-5361b7f192f4@ideasonboard.com>
+Date: Thu, 14 Dec 2017 22:59:41 +0000
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset="iso-8859-1"
+In-Reply-To: <fa2f7765-d2a4-3a7d-b8a4-0659f83aa35b@ideasonboard.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Niklas,
+One more ...
 
-On Friday, 8 December 2017 16:14:23 EET Niklas S=F6derlund wrote:
-> On 2017-12-08 11:04:26 +0200, Laurent Pinchart wrote:
-> > On Friday, 8 December 2017 03:08:25 EET Niklas S=F6derlund wrote:
-> >> It is possible on Gen2 to change the registers controlling composing a=
-nd
-> >> scaling while the stream is running. It is however not a good idea to =
-do
-> >> so and could result in trouble. There are also no good reasons to allow
-> >> this, remove immediate reflection in hardware registers from
-> >> vidioc_s_selection and only configure scaling and composing when the
-> >> stream starts.
-> >=20
-> > There is a good reason: digital zoom.
->=20
-> OK, so you would recommend me to drop this patch to keep the current
-> behavior?
+On 14/12/17 22:56, Kieran Bingham wrote:
+> Hi Niklas,
+> 
+> On 14/12/17 19:08, Niklas Söderlund wrote:
+>> The adv748x afe have eight analog sink pads, currently one of them is
+> 
+> s/have/has/
+> 
+>> chosen to be the active route based on device tree configuration. Whit
+> 
+> s/Whit/With/
+> 
+>> the new routeing API it's possible to control which of the eight sink
 
-Yes, unless you don't care about breaking use cases for Gen2, but in that c=
-ase=20
-I'd recommend dropping Gen2 support altogether :-)
+While routeing is correctly spelt, it is used as routing everywhere else...
 
-> >> Signed-off-by: Niklas S=F6derlund <niklas.soderlund+renesas@ragnatech.=
-se>
-> >> Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
-> >> ---
-> >>=20
-> >>  drivers/media/platform/rcar-vin/rcar-dma.c  | 2 +-
-> >>  drivers/media/platform/rcar-vin/rcar-v4l2.c | 3 ---
-> >>  drivers/media/platform/rcar-vin/rcar-vin.h  | 3 ---
-> >>  3 files changed, 1 insertion(+), 7 deletions(-)
+s/routeing/routing/
 
-[snip]
-
-=2D-=20
-Regards,
-
-Laurent Pinchart
+>> pads are routed to the source pad.
+> 
+>> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+> 
+> Aha, I had been wondering how we would handle this...
+> 
+> Other than the minor nits, this is otherwise looking good
+> 
+> Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+> 
+>> ---
+>>  drivers/media/i2c/adv748x/adv748x-afe.c | 66 +++++++++++++++++++++++++++++++++
+>>  1 file changed, 66 insertions(+)
+>>
+>> diff --git a/drivers/media/i2c/adv748x/adv748x-afe.c b/drivers/media/i2c/adv748x/adv748x-afe.c
+>> index 5188178588c9067d..5dda85c707f6efd7 100644
+>> --- a/drivers/media/i2c/adv748x/adv748x-afe.c
+>> +++ b/drivers/media/i2c/adv748x/adv748x-afe.c
+>> @@ -43,6 +43,9 @@
+>>  #define ADV748X_AFE_STD_PAL_SECAM			0xe
+>>  #define ADV748X_AFE_STD_PAL_SECAM_PED			0xf
+>>  
+>> +#define ADV748X_AFE_ROUTES_MAX ((ADV748X_AFE_SINK_AIN7 - \
+>> +				ADV748X_AFE_SINK_AIN0) + 1)
+>> +
+>>  static int adv748x_afe_read_ro_map(struct adv748x_state *state, u8 reg)
+>>  {
+>>  	int ret;
+>> @@ -386,10 +389,73 @@ static int adv748x_afe_set_format(struct v4l2_subdev *sd,
+>>  	return 0;
+>>  }
+>>  
+>> +
+> 
+> No need for that extra line..
+> 
+>> +static int adv748x_afe_get_routing(struct v4l2_subdev *sd,
+>> +				   struct v4l2_subdev_routing *routing)
+>> +{
+>> +	struct adv748x_afe *afe = adv748x_sd_to_afe(sd);
+>> +	struct v4l2_subdev_route *r = routing->routes;
+>> +	unsigned int i;
+>> +
+>> +	/* There are one possible route from each sink */
+> 
+> 	There is one possible ...
+> 
+>> +	if (routing->num_routes < ADV748X_AFE_ROUTES_MAX) {
+>> +		routing->num_routes = ADV748X_AFE_ROUTES_MAX;
+>> +		return -ENOSPC;
+>> +	}
+>> +
+>> +	routing->num_routes = ADV748X_AFE_ROUTES_MAX;
+>> +
+>> +	for (i = ADV748X_AFE_SINK_AIN0; i <= ADV748X_AFE_SINK_AIN7; i++) {
+>> +		r->sink_pad = i;
+>> +		r->sink_stream = 0;
+>> +		r->source_pad = ADV748X_AFE_SOURCE;
+>> +		r->source_stream = 0;
+>> +		r->flags = afe->input == i ? V4L2_SUBDEV_ROUTE_FL_ACTIVE : 0;
+>> +		r++;
+>> +	}
+>> +
+>> +	return 0;
+>> +}
+>> +
+>> +static int adv748x_afe_set_routing(struct v4l2_subdev *sd,
+>> +				   struct v4l2_subdev_routing *routing)
+>> +{
+>> +	struct adv748x_afe *afe = adv748x_sd_to_afe(sd);
+>> +	struct v4l2_subdev_route *r = routing->routes;
+>> +	int input = -1;
+>> +	unsigned int i;
+>> +
+>> +	if (routing->num_routes > ADV748X_AFE_ROUTES_MAX)
+>> +		return -ENOSPC;
+>> +
+>> +	for (i = 0; i < routing->num_routes; i++) {
+>> +		if (r->sink_pad > ADV748X_AFE_SINK_AIN7 ||
+>> +		    r->sink_stream != 0 ||
+>> +		    r->source_pad != ADV748X_AFE_SOURCE ||
+>> +		    r->source_stream != 0)
+>> +			return -EINVAL;
+>> +
+>> +		if (r->flags & V4L2_SUBDEV_ROUTE_FL_ACTIVE) {
+>> +			if (input != -1)
+>> +				return -EMLINK;
+>> +
+>> +			input = r->sink_pad;
+>> +		}
+>> +		r++;
+>> +	}
+>> +
+>> +	if (input != -1)
+>> +		afe->input = input;> +
+>> +	return 0;
+>> +}
+>> +
+>>  static const struct v4l2_subdev_pad_ops adv748x_afe_pad_ops = {
+>>  	.enum_mbus_code = adv748x_afe_enum_mbus_code,
+>>  	.set_fmt = adv748x_afe_set_format,
+>>  	.get_fmt = adv748x_afe_get_format,
+>> +	.get_routing = adv748x_afe_get_routing,
+>> +	.set_routing = adv748x_afe_set_routing,
+>>  };
+>>  
+>>  /* -----------------------------------------------------------------------------
+>>
