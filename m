@@ -1,120 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx07-00178001.pphosted.com ([62.209.51.94]:43370 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752041AbdLKOrJ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 11 Dec 2017 09:47:09 -0500
-From: Hugues FRUCHET <hugues.fruchet@st.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-CC: Steve Longerbeam <slongerbeam@gmail.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "Benjamin Gaignard" <benjamin.gaignard@linaro.org>
-Subject: Re: [PATCH v3 3/5] media: dt-bindings: ov5640: add support of DVP
- parallel interface
-Date: Mon, 11 Dec 2017 14:46:52 +0000
-Message-ID: <8e47931b-b2d2-fbd4-b987-cf3bda5623c0@st.com>
-References: <1512650453-24476-1-git-send-email-hugues.fruchet@st.com>
- <1512650453-24476-4-git-send-email-hugues.fruchet@st.com>
- <20171207135911.urs6sg2sd35jcnqq@valkosipuli.retiisi.org.uk>
-In-Reply-To: <20171207135911.urs6sg2sd35jcnqq@valkosipuli.retiisi.org.uk>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-ID: <15AA031F420F0B49AE2F9C78E6BC0B3B@st.com>
-Content-Transfer-Encoding: base64
-MIME-Version: 1.0
+Received: from gofer.mess.org ([88.97.38.141]:38571 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753505AbdLNRWC (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 14 Dec 2017 12:22:02 -0500
+From: Sean Young <sean@mess.org>
+To: linux-media@vger.kernel.org
+Cc: Andi Shyti <andi.shyti@samsung.com>
+Subject: [PATCH 10/10] media: ir-spi: add SPDX identifier
+Date: Thu, 14 Dec 2017 17:21:59 +0000
+Message-Id: <f15d723b0fe58c70bd35f1d793172acfbc7211b7.1513271970.git.sean@mess.org>
+In-Reply-To: <4e8c9939b6b116a54e3042d098343bc918268b1d.1513271970.git.sean@mess.org>
+References: <4e8c9939b6b116a54e3042d098343bc918268b1d.1513271970.git.sean@mess.org>
+In-Reply-To: <4e8c9939b6b116a54e3042d098343bc918268b1d.1513271970.git.sean@mess.org>
+References: <4e8c9939b6b116a54e3042d098343bc918268b1d.1513271970.git.sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-SGkgU2FrYXJpLA0KDQpPbiAxMi8wNy8yMDE3IDAyOjU5IFBNLCBTYWthcmkgQWlsdXMgd3JvdGU6
-DQo+IEhpIEh1Z3VlcywNCj4gDQo+IE9uIFRodSwgRGVjIDA3LCAyMDE3IGF0IDAxOjQwOjUxUE0g
-KzAxMDAsIEh1Z3VlcyBGcnVjaGV0IHdyb3RlOg0KPj4gQWRkIGJpbmRpbmdzIGZvciBPVjU2NDAg
-RFZQIHBhcmFsbGVsIGludGVyZmFjZSBzdXBwb3J0Lg0KPj4NCj4+IFNpZ25lZC1vZmYtYnk6IEh1
-Z3VlcyBGcnVjaGV0IDxodWd1ZXMuZnJ1Y2hldEBzdC5jb20+DQo+PiAtLS0NCj4+ICAgLi4uL2Rl
-dmljZXRyZWUvYmluZGluZ3MvbWVkaWEvaTJjL292NTY0MC50eHQgICAgICAgfCAyNyArKysrKysr
-KysrKysrKysrKysrKy0tDQo+PiAgIDEgZmlsZSBjaGFuZ2VkLCAyNSBpbnNlcnRpb25zKCspLCAy
-IGRlbGV0aW9ucygtKQ0KPj4NCj4+IGRpZmYgLS1naXQgYS9Eb2N1bWVudGF0aW9uL2RldmljZXRy
-ZWUvYmluZGluZ3MvbWVkaWEvaTJjL292NTY0MC50eHQgYi9Eb2N1bWVudGF0aW9uL2RldmljZXRy
-ZWUvYmluZGluZ3MvbWVkaWEvaTJjL292NTY0MC50eHQNCj4+IGluZGV4IDU0MGIzNmMuLjA0ZTJh
-OTEgMTAwNjQ0DQo+PiAtLS0gYS9Eb2N1bWVudGF0aW9uL2RldmljZXRyZWUvYmluZGluZ3MvbWVk
-aWEvaTJjL292NTY0MC50eHQNCj4+ICsrKyBiL0RvY3VtZW50YXRpb24vZGV2aWNldHJlZS9iaW5k
-aW5ncy9tZWRpYS9pMmMvb3Y1NjQwLnR4dA0KPj4gQEAgLTEsNCArMSw0IEBADQo+PiAtKiBPbW5p
-dmlzaW9uIE9WNTY0MCBNSVBJIENTSS0yIHNlbnNvcg0KPj4gKyogT21uaXZpc2lvbiBPVjU2NDAg
-TUlQSSBDU0ktMiAvIHBhcmFsbGVsIHNlbnNvcg0KPj4gICANCj4+ICAgUmVxdWlyZWQgUHJvcGVy
-dGllczoNCj4+ICAgLSBjb21wYXRpYmxlOiBzaG91bGQgYmUgIm92dGksb3Y1NjQwIg0KPj4gQEAg
-LTE4LDcgKzE4LDExIEBAIFRoZSBkZXZpY2Ugbm9kZSBtdXN0IGNvbnRhaW4gb25lICdwb3J0JyBj
-aGlsZCBub2RlIGZvciBpdHMgZGlnaXRhbCBvdXRwdXQNCj4+ICAgdmlkZW8gcG9ydCwgaW4gYWNj
-b3JkYW5jZSB3aXRoIHRoZSB2aWRlbyBpbnRlcmZhY2UgYmluZGluZ3MgZGVmaW5lZCBpbg0KPj4g
-ICBEb2N1bWVudGF0aW9uL2RldmljZXRyZWUvYmluZGluZ3MvbWVkaWEvdmlkZW8taW50ZXJmYWNl
-cy50eHQuDQo+PiAgIA0KPj4gLUV4YW1wbGU6DQo+PiArUGFyYWxsZWwgb3IgQ1NJIG1vZGUgaXMg
-c2VsZWN0ZWQgYWNjb3JkaW5nIHRvIG9wdGlvbmFsIGVuZHBvaW50IHByb3BlcnRpZXMuDQo+PiAr
-V2l0aG91dCBwcm9wZXJ0aWVzIChvciBidXMgcHJvcGVydGllcyksIHBhcmFsbGVsIG1vZGUgaXMg
-c2VsZWN0ZWQuDQo+PiArU3BlY2lmeWluZyBhbnkgQ1NJIHByb3BlcnRpZXMgc3VjaCBhcyBsYW5l
-cyB3aWxsIGVuYWJsZSBDU0kgbW9kZS4NCj4gDQo+IFRoZXNlIGJpbmRpbmdzIG5ldmVyIGRvY3Vt
-ZW50ZWQgd2hhdCB3aGljaCBlbmRwb2ludCBwcm9wZXJ0aWVzIHdlcmUgbmVlZGVkLg0KDQpPayBJ
-IHdpbGwgYWRkIGEgc2VjdGlvbiByZWxhdGVkIHRvIGVuZHBvaW50IHByb3BlcnRpZXMgZm9yIGJv
-dGggQ1NJIGFuZCANCnBhcmFsbGVsLg0KDQo+IA0KPiBCZXlvbmQgdGhhdCwgdGhlIHNlbnNvciBz
-dXBwb3J0cyB0d28gQ1NJLTIgbGFuZXMuIFlvdSBzaG91bGQgZXhwbGljaXRseQ0KPiBzcGVjaWZ5
-IHRoYXQsIGluIG90aGVyIHdvcmRzLCB5b3UnbGwgbmVlZCAiZGF0YS1sYW5lcyIgcHJvcGVydHku
-IENvdWxkIHlvdQ0KPiBhZGQgdGhhdD8NCk9rIEkgd2lsbCBhZGQgaXQgdG8gcmVxdWlyZWQgZW5k
-cG9pbnQgcHJvcGVydHkgaW4gY2FzZSBvZiBDU0kgbW9kZS4NCkkgd2lsbCBjaGFuZ2UgY29tbWl0
-IGhlYWRlciB0byByZWZsZWN0IGNoYW5nZXMgb24gcGFyYWxsZWwgYnV0IGFsc28gQ1NJIA0KZG9j
-dW1lbnRhdGlvbi4NCg0KPiANCj4gTG9uZyB0aW1lIGFnbyB3aGVuIHRoZSB2aWRlby1pbnRlcmZh
-Y2VzLnR4dCBhbmQgdGhlIFY0TDIgT0YgZnJhbWV3b3JrIHdlcmUNCj4gd3JpdHRlbiwgdGhlIGJ1
-cyB0eXBlIHNlbGVjdGlvbiB3YXMgbWFkZSBpbXBsaWNpdCBhbmQgb25seSBsYXRlciBvbg0KPiBl
-eHBsaWNpdC4gVGhpcyBpcyBzdGlsbCByZWZsZWN0ZWQgaW4gaG93IHRoZSBidXMgdHlwZSBnZXRz
-IHNldCBiZXR3ZWVuDQo+IENTSS0yIEQtUEhZLCBwYXJhbGxlbCBhbmQgQnQuNjU2Lg0KPiANCkkn
-bSBhIGxpdHRsZSBiaXQgY29uZnVzZWQsIG11c3QgSSBleHBsaWNpdGx5IGFkZCBhcyByZXF1aXJl
-ZCBwcm9wZXJ0eSANCiJidXMtdHlwZT0wIiAoYXV0b2RldGVjdCkgZm9yIGJvdGggY2FzZXMgPyBP
-ciBtdXN0IEkgcmVxdWlyZSANCiJidXMtdHlwZT0xIiBmb3IgQ1NJIGFuZCAiYnVzLXR5cGU9MyIg
-Zm9yIHBhcmFsbGVsID8NCg0KDQpUYWxraW5nIGJpbmRpbmdzLCBJIGZlZWwgdGhhdCBpdCBjb3Vs
-ZCBiZSBvZiBncmVhdCBoZWxwIHRvIGRvY3VtZW50IGFsc28NCnRoZSBwb2xhcml0eSBvZiBjb250
-cm9sIHNpZ25hbHMgKGhzeW5jL3ZzeW5jL3BjbGspLCB0aGV5IGFyZSBjdXJyZW50bHkgDQpzZXQg
-Ynkgb3Y1NjQwIGluaXQgc2VxdWVuY2UgYW5kIG5vdCBjb25maWd1cmFibGUuDQpNb3Jlb3Zlciwg
-c2hvdWxkIHNvbWUgY2hlY2tzIGJlIGFkZGVkIGluIHByb2JlIHNlcXVlbmNlIHRvIHZlcmlmeSB0
-aGF0DQp0aGUgZGVmaW5lZCBjb250cm9sIHNpZ25hbHMgcG9sYXJpdHkgYXJlIGFsaWduZWQgd2l0
-aCBkZWZhdWx0IG9uZXMgZnJvbQ0KaW5pdCBzZXF1ZW5jZSA/DQoNCg0KSGVyZSBpcyBhIHByb3Bv
-c2FsOg0KDQoiDQpUaGUgZGV2aWNlIG5vZGUgbXVzdCBjb250YWluIG9uZSAncG9ydCcgY2hpbGQg
-bm9kZSBmb3IgaXRzIGRpZ2l0YWwgDQpvdXRwdXQgdmlkZW8gcG9ydCB3aXRoIGEgc2luZ2xlICdl
-bmRwb2ludCcgc3Vibm9kZSwgaW4gYWNjb3JkYW5jZQ0Kd2l0aCB0aGUgdmlkZW8gaW50ZXJmYWNl
-IGJpbmRpbmdzIGRlZmluZWQgaW4NCkRvY3VtZW50YXRpb24vZGV2aWNldHJlZS9iaW5kaW5ncy9t
-ZWRpYS92aWRlby1pbnRlcmZhY2VzLnR4dC4NCg0KT1Y1NjQwIGNhbiBiZSBjb25uZWN0ZWQgdG8g
-YSBNSVBJIENTSSBidXMgb3IgYSBwYXJhbGxlbCBidXMgZW5kcG9pbnQ6DQoNCkVuZHBvaW50IG5v
-ZGUgcmVxdWlyZWQgcHJvcGVydGllcyBmb3IgQ1NJIGNvbm5lY3Rpb24gYXJlOg0KLSByZW1vdGUt
-ZW5kcG9pbnQ6IGEgcGhhbmRsZSB0byB0aGUgYnVzIHJlY2VpdmVyJ3MgZW5kcG9pbnQgbm9kZS4N
-Ci0gYnVzLXR5cGU6IHNob3VsZCBiZSBzZXQgdG8gPDE+IChNSVBJIENTSS0yIEMtUEhZKQ0KLSBj
-bG9jay1sYW5lczogc2hvdWxkIGJlIHNldCB0byA8MD4gKGNsb2NrIGxhbmUgb24gaGFyZHdhcmUg
-bGFuZSAwKQ0KLSBkYXRhLWxhbmVzOiBzaG91bGQgYmUgc2V0IHRvIDwxIDI+ICh0d28gQ1NJLTIg
-bGFuZXMgc3VwcG9ydGVkKQ0KDQpFbmRwb2ludCBub2RlIHJlcXVpcmVkIHByb3BlcnRpZXMgZm9y
-IHBhcmFsbGVsIGNvbm5lY3Rpb24gYXJlOg0KLSByZW1vdGUtZW5kcG9pbnQ6IGEgcGhhbmRsZSB0
-byB0aGUgYnVzIHJlY2VpdmVyJ3MgZW5kcG9pbnQgbm9kZS4NCi0gYnVzLXR5cGU6IHNob3VsZCBi
-ZSBzZXQgdG8gPDM+IChwYXJhbGxlbCBDQ1AyKQ0KLSBidXMtd2lkdGg6IHNob3VsZCBiZSBzZXQg
-dG8gPDg+IGZvciA4IGJpdHMgcGFyYWxsZWwgYnVzDQogICAgICAgICAgICAgIG9yIDwxMD4gZm9y
-IDEwIGJpdHMgcGFyYWxsZWwgYnVzDQotIGRhdGEtc2hpZnQ6IHNob3VsZCBiZSBzZXQgdG8gPDI+
-IGZvciA4IGJpdHMgcGFyYWxsZWwgYnVzDQogICAgICAgICAgICAgICAobGluZXMgOToyIGFyZSB1
-c2VkKSBvciA8MD4gZm9yIDEwIGJpdHMgcGFyYWxsZWwgYnVzDQotIGhzeW5jLWFjdGl2ZTogc2hv
-dWxkIGJlIHNldCB0byA8MD4gKEhvcml6b250YWwgc3luY2hyb25pemF0aW9uDQogICAgICAgICAg
-ICAgICAgIHBvbGFyaXR5IGlzIGFjdGl2ZSBsb3cpLg0KLSB2c3luYy1hY3RpdmU6IHNob3VsZCBi
-ZSBzZXQgdG8gPDE+IChhY3RpdmUgaGlnaCkgKEhvcml6b250YWwNCiAgICAgICAgICAgICAgICAg
-c3luY2hyb25pemF0aW9uIHBvbGFyaXR5IGlzIGFjdGl2ZSBsb3cpLg0KLSBwY2xrLXNhbXBsZTog
-IHNob3VsZCBiZSBzZXQgdG8gPDE+IChkYXRhIGFyZSBzYW1wbGVkIG9uIHRoZSByaXNpbmcNCiAg
-ICAgICAgICAgICAgICAgZWRnZSBvZiB0aGUgcGl4ZWwgY2xvY2sgc2lnbmFsKS4NCg0KDQo+PiAr
-DQo+PiArRXhhbXBsZXM6DQo+PiAgIA0KPj4gICAmaTJjMSB7DQo+PiAgIAlvdjU2NDA6IGNhbWVy
-YUAzYyB7DQo+PiBAQCAtMzUsNiArMzksNyBAQCBFeGFtcGxlOg0KPj4gICAJCXJlc2V0LWdwaW9z
-ID0gPCZncGlvMSAyMCBHUElPX0FDVElWRV9MT1c+Ow0KPj4gICANCj4+ICAgCQlwb3J0IHsNCj4+
-ICsJCQkvKiBNSVBJIENTSS0yIGJ1cyBlbmRwb2ludCAqLw0KPj4gICAJCQlvdjU2NDBfdG9fbWlw
-aV9jc2kyOiBlbmRwb2ludCB7DQo+PiAgIAkJCQlyZW1vdGUtZW5kcG9pbnQgPSA8Jm1pcGlfY3Np
-Ml9mcm9tX292NTY0MD47DQo+PiAgIAkJCQljbG9jay1sYW5lcyA9IDwwPjsNCj4+IEBAIC00Mywz
-ICs0OCwyMSBAQCBFeGFtcGxlOg0KPj4gICAJCX07DQo+PiAgIAl9Ow0KPj4gICB9Ow0KPj4gKw0K
-Pj4gKyZpMmMxIHsNCj4+ICsJb3Y1NjQwOiBjYW1lcmFAM2Mgew0KPj4gKwkJY29tcGF0aWJsZSA9
-ICJvdnRpLG92NTY0MCI7DQo+PiArCQlwaW5jdHJsLW5hbWVzID0gImRlZmF1bHQiOw0KPj4gKwkJ
-cGluY3RybC0wID0gPCZwaW5jdHJsX292NTY0MD47DQo+PiArCQlyZWcgPSA8MHgzYz47DQo+PiAr
-CQljbG9ja3MgPSA8JmNsa19leHRfY2FtZXJhPjsNCj4+ICsJCWNsb2NrLW5hbWVzID0gInhjbGsi
-Ow0KPj4gKw0KPj4gKwkJcG9ydCB7DQo+PiArCQkJLyogUGFyYWxsZWwgYnVzIGVuZHBvaW50ICov
-DQo+PiArCQkJb3Y1NjQwX3RvX3BhcmFsbGVsOiBlbmRwb2ludCB7DQo+PiArCQkJCXJlbW90ZS1l
-bmRwb2ludCA9IDwmcGFyYWxsZWxfZnJvbV9vdjU2NDA+Ow0KPj4gKwkJCX07DQo+PiArCQl9Ow0K
-Pj4gKwl9Ow0KPj4gK307DQo+PiAtLSANCj4+IDEuOS4xDQo+Pg0KPiANCg0KQmVzdCByZWdhcmRz
-LA0KSHVndWVzLg==
+From: Andi Shyti <andi.shyti@samsung.com>
+
+Replace the original license statement with the SPDX identifier.
+
+Update also the copyright owner adding myself as co-owner of the
+copyright.
+
+Signed-off-by: Andi Shyti <andi.shyti@samsung.com>
+Signed-off-by: Sean Young <sean@mess.org>
+---
+ drivers/media/rc/ir-spi.c | 15 +++++----------
+ 1 file changed, 5 insertions(+), 10 deletions(-)
+
+diff --git a/drivers/media/rc/ir-spi.c b/drivers/media/rc/ir-spi.c
+index 29ed0638cb74..a32a84ae2d0b 100644
+--- a/drivers/media/rc/ir-spi.c
++++ b/drivers/media/rc/ir-spi.c
+@@ -1,13 +1,8 @@
+-/*
+- * Copyright (c) 2016 Samsung Electronics Co., Ltd.
+- * Author: Andi Shyti <andi.shyti@samsung.com>
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- *
+- * SPI driven IR LED device driver
+- */
++// SPDX-License-Identifier: GPL-2.0
++// SPI driven IR LED device driver
++//
++// Copyright (c) 2016 Samsung Electronics Co., Ltd.
++// Copyright (c) Andi Shyti <andi.shyti@samsung.com>
+ 
+ #include <linux/delay.h>
+ #include <linux/fs.h>
+-- 
+2.14.3
