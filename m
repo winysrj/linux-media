@@ -1,49 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f67.google.com ([74.125.82.67]:45844 "EHLO
-        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751812AbdLQPlB (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:50517 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753703AbdLNTFW (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 17 Dec 2017 10:41:01 -0500
-Received: by mail-wm0-f67.google.com with SMTP id 9so25050479wme.4
-        for <linux-media@vger.kernel.org>; Sun, 17 Dec 2017 07:41:01 -0800 (PST)
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: linux-media@vger.kernel.org, mchehab@kernel.org,
-        mchehab@s-opensource.com
-Subject: [PATCH 7/8] [media] ddbridge: detach first input if the second one failed to init
-Date: Sun, 17 Dec 2017 16:40:48 +0100
-Message-Id: <20171217154049.1125-8-d.scheller.oss@gmail.com>
-In-Reply-To: <20171217154049.1125-1-d.scheller.oss@gmail.com>
-References: <20171217154049.1125-1-d.scheller.oss@gmail.com>
+        Thu, 14 Dec 2017 14:05:22 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Joe Perches <joe@perches.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Dhaval Shah <dhaval23031987@gmail.com>, hyun.kwon@xilinx.com,
+        michal.simek@xilinx.com, linux-media@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        gregkh@linuxfoundation.org
+Subject: Re: [PATCH] media: v4l: xilinx: Use SPDX-License-Identifier
+Date: Thu, 14 Dec 2017 21:05:27 +0200
+Message-ID: <2967655.MWOA0IsQOS@avalon>
+In-Reply-To: <1513277679.27409.83.camel@perches.com>
+References: <20171208123537.18718-1-dhaval23031987@gmail.com> <16301043.Lbu0ahMgBI@avalon> <1513277679.27409.83.camel@perches.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="iso-8859-1"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Daniel Scheller <d.scheller@gmx.net>
-
-In ddb_ports_attach(), if the second input of a dual tuner failed to
-initialise, the first one can be detached (and resources be freed) as
-this will be counted as the whole port having failed to initialise,
-thus the first one won't be used anyway.
-
-Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
----
- drivers/media/pci/ddbridge/ddbridge-core.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/media/pci/ddbridge/ddbridge-core.c b/drivers/media/pci/ddbridge/ddbridge-core.c
-index 548b7047ca09..940371067346 100644
---- a/drivers/media/pci/ddbridge/ddbridge-core.c
-+++ b/drivers/media/pci/ddbridge/ddbridge-core.c
-@@ -1935,8 +1935,10 @@ static int ddb_port_attach(struct ddb_port *port)
- 		if (ret < 0)
- 			break;
- 		ret = dvb_input_attach(port->input[1]);
--		if (ret < 0)
-+		if (ret < 0) {
-+			dvb_input_detach(port->input[0]);
- 			break;
-+		}
- 		port->input[0]->redi = port->input[0];
- 		port->input[1]->redi = port->input[1];
- 		break;
--- 
-2.13.6
+SGkgSm9lLAoKKENDJ2luZyBHcmVnIGFuZCBhZGRpbmcgY29udGV4dCBmb3IgZWFzaWVyIHVuZGVy
+c3RhbmRpbmcpCgpPbiBUaHVyc2RheSwgMTQgRGVjZW1iZXIgMjAxNyAyMDo1NDozOSBFRVQgSm9l
+IFBlcmNoZXMgd3JvdGU6Cj4gT24gVGh1LCAyMDE3LTEyLTE0IGF0IDIwOjM3ICswMjAwLCBMYXVy
+ZW50IFBpbmNoYXJ0IHdyb3RlOgo+ID4gT24gVGh1cnNkYXksIDE0IERlY2VtYmVyIDIwMTcgMjA6
+MzI6MjAgRUVUIEpvZSBQZXJjaGVzIHdyb3RlOgo+ID4+IE9uIFRodSwgMjAxNy0xMi0xNCBhdCAy
+MDoyOCArMDIwMCwgTGF1cmVudCBQaW5jaGFydCB3cm90ZToKPiA+Pj4gT24gVGh1cnNkYXksIDE0
+IERlY2VtYmVyIDIwMTcgMTk6MDU6MjcgRUVUIE1hdXJvIENhcnZhbGhvIENoZWhhYiB3cm90ZToK
+PiA+Pj4+IEVtIEZyaSwgIDggRGVjIDIwMTcgMTg6MDU6MzcgKzA1MzAgRGhhdmFsIFNoYWggZXNj
+cmV2ZXU6Cj4gPj4+Pj4gU1BEWC1MaWNlbnNlLUlkZW50aWZpZXIgaXMgdXNlZCBmb3IgdGhlIFhp
+bGlueCBWaWRlbyBJUCBhbmQKPiA+Pj4+PiByZWxhdGVkIGRyaXZlcnMuCj4gPj4+Pj4gCj4gPj4+
+Pj4gU2lnbmVkLW9mZi1ieTogRGhhdmFsIFNoYWggPGRoYXZhbDIzMDMxOTg3QGdtYWlsLmNvbT4K
+PiA+Pj4+IAo+ID4+Pj4gSGkgRGhhdmFsLAo+ID4+Pj4gCj4gPj4+PiBZb3UncmUgbm90IGxpc3Rl
+ZCBhcyBvbmUgb2YgdGhlIFhpbGlueCBkcml2ZXIgbWFpbnRhaW5lcnMuIEknbSBhZnJhaWQKPiA+
+Pj4+IHRoYXQsIHdpdGhvdXQgdGhlaXIgZXhwbGljaXQgYWNrcywgc2VudCB0byB0aGUgTUwsIEkg
+Y2FuJ3QgYWNjZXB0IGEKPiA+Pj4+IHBhdGNoIHRvdWNoaW5nIGF0IHRoZSBkcml2ZXIncyBsaWNl
+bnNlIHRhZ3MuCj4gPj4+IAo+ID4+PiBUaGUgcGF0Y2ggZG9lc24ndCBjaGFuZ2UgdGhlIGxpY2Vu
+c2UsIEkgZG9uJ3Qgc2VlIHdoeSBpdCB3b3VsZCBjYXVzZQo+ID4+PiBhbnkgaXNzdWUuIEdyZWcg
+aXNuJ3QgbGlzdGVkIGFzIHRoZSBtYWludGFpbmVyIG9yIGNvcHlyaWdodCBob2xkZXIgb2YKPiA+
+Pj4gYW55IG9mIHRoZSAxMGsrIGZpbGVzIHRvIHdoaWNoIGhlIGFkZGVkIGFuIFNQRFggbGljZW5z
+ZSBoZWFkZXIgaW4gdGhlCj4gPj4+IGxhc3Qga2VybmVsIHJlbGVhc2UuAAAACj4gPj4gCj4gPj4g
+QWRkaW5nIGEgY29tbWVudCBsaW5lIHRoYXQgZGVzY3JpYmVzIGFuIGltcGxpY2l0IG9yCj4gPj4g
+ZXhwbGljaXQgbGljZW5zZSBpcyBkaWZmZXJlbnQgdGhhbiByZW1vdmluZyB0aGUgbGljZW5zZQo+
+ID4+IHRleHQgaXRzZWxmLgo+ID4gCj4gPiBUaGUgU1BEWCBsaWNlbnNlIGhlYWRlciBpcyBtZWFu
+dCB0byBiZSBlcXVpdmFsZW50IHRvIHRoZSBsaWNlbnNlIHRleHQuCj4gCj4gSSB1bmRlcnN0YW5k
+IHRoYXQuCj4gQXQgYSBtaW5pbXVtLCByZW1vdmluZyBCU0QgbGljZW5zZSB0ZXh0IGlzIHVuZGVz
+aXJhYmxlCj4gYXMgdGhhdCBsaWNlbnNlIHN0YXRlczoKPiAKPiAgKiAgICAqIFJlZGlzdHJpYnV0
+aW9ucyBvZiBzb3VyY2UgY29kZSBtdXN0IHJldGFpbiB0aGUgYWJvdmUgY29weXJpZ2h0Cj4gICog
+ICAgICBub3RpY2UsIHRoaXMgbGlzdCBvZiBjb25kaXRpb25zIGFuZCB0aGUgZm9sbG93aW5nIGRp
+c2NsYWltZXIuCj4gZXRjLi4uCgpCdXQgdGhpcyBwYXRjaCBvbmx5IHJlbW92ZXMgdGhlIGZvbGxv
+d2luZyB0ZXh0OgoKLSAqIFRoaXMgcHJvZ3JhbSBpcyBmcmVlIHNvZnR3YXJlOyB5b3UgY2FuIHJl
+ZGlzdHJpYnV0ZSBpdCBhbmQvb3IgbW9kaWZ5Ci0gKiBpdCB1bmRlciB0aGUgdGVybXMgb2YgdGhl
+IEdOVSBHZW5lcmFsIFB1YmxpYyBMaWNlbnNlIHZlcnNpb24gMiBhcwotICogcHVibGlzaGVkIGJ5
+IHRoZSBGcmVlIFNvZnR3YXJlIEZvdW5kYXRpb24uCgphbmQgcmVwbGFjZXMgaXQgYnkgdGhlIGNv
+cnJlc3BvbmRpbmcgU1BEWCBoZWFkZXIuCgo+ID4gVGhlIG9ubHkgcmVhc29uIHdoeSB0aGUgbGFy
+Z2UgU1BEWCBwYXRjaCBkaWRuJ3QgdG91Y2ggdGhlIHdob2xlIGtlcm5lbCBpbgo+ID4gb25lIGdv
+IHdhcyB0aGF0IGl0IHdhcyBlYXNpZXIgdG8gc3BsaXQgaW4gaW4gbXVsdGlwbGUgY2h1bmtzLgo+
+IAo+IE5vdCByZWFsbHksIGl0IHdhcyBzY3JpcHRlZC4KCkJ1dCBzdGlsbCBtYW51YWxseSByZXZp
+ZXdlZCBhcyBmYXIgYXMgSSBrbm93LgoKPiA+IFRoaXMgaXMgbm8gZGlmZmVyZW50IHRoYW4gbm90
+IGluY2x1ZGluZyB0aGUgZnVsbCBHUEwgbGljZW5zZSBpbiBldmVyeQo+ID4gaGVhZGVyIGZpbGUg
+YnV0IG9ubHkgcG9pbnRpbmcgdG8gaXQgdGhyb3VnaCBpdHMgbmFtZSBhbmQgcmVmZXJlbmNlLCBh
+cwo+ID4gZXZlcnkga2VybmVsIHNvdXJjZSBmaWxlIGRvZXMuCj4gCj4gTm90IGV2ZXJ5IGtlcm5l
+bCBzb3VyY2UgZmlsZSBoYWQgYSBsaWNlbnNlIHRleHQKPiBvciBhIHJlZmVyZW5jZSB0byBhbm90
+aGVyIGxpY2Vuc2UgZmlsZS4KCkNvcnJlY3QsIGJ1dCB0aGUgZmlsZXMgdG91Y2hlZCBieSB0aGlz
+IHBhdGNoIGRvLgoKVGhpcyBpc3N1ZSBpcyBpbiBubyB3YXkgc3BlY2lmaWMgdG8gbGludXgtbWVk
+aWEgYW5kIHNob3VsZCBiZSBkZWNpZGVkIHVwb24gYXQgCnRoZSB0b3AgbGV2ZWwsIG5vdCBvbiBh
+IHBlci1zdWJzeXN0ZW0gYmFzaXMuIEdyZWcsIGNvdWxkIHlvdSBjb21tZW50IG9uIHRoaXMgPwoK
+LS0gClJlZ2FyZHMsCgpMYXVyZW50IFBpbmNoYXJ0Cg==
