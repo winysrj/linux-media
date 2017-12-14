@@ -1,85 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:57412 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752529AbdLFQgH (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 6 Dec 2017 11:36:07 -0500
-Subject: Re: [RFC 1/1] v4l: async: Use endpoint node, not device node, for
- fwnode match
-To: =?UTF-8?Q?Niklas_S=c3=b6derlund?= <niklas.soderlund@ragnatech.se>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org, jmondi <jacopo@jmondi.org>
-References: <20171204210302.24707-1-sakari.ailus@linux.intel.com>
- <20171206155748.GF31989@bigcity.dyn.berto.se>
-From: Kieran Bingham <kieran.bingham@ideasonboard.com>
-Message-ID: <6bfbf573-da70-1c4b-7b2e-081ca3791525@ideasonboard.com>
-Date: Wed, 6 Dec 2017 16:36:02 +0000
-MIME-Version: 1.0
-In-Reply-To: <20171206155748.GF31989@bigcity.dyn.berto.se>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 8bit
+Received: from smtprelay0009.hostedemail.com ([216.40.44.9]:49139 "EHLO
+        smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1753742AbdLNSyn (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 14 Dec 2017 13:54:43 -0500
+Message-ID: <1513277679.27409.83.camel@perches.com>
+Subject: Re: [PATCH] media: v4l: xilinx: Use SPDX-License-Identifier
+From: Joe Perches <joe@perches.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Dhaval Shah <dhaval23031987@gmail.com>, hyun.kwon@xilinx.com,
+        michal.simek@xilinx.com, linux-media@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Date: Thu, 14 Dec 2017 10:54:39 -0800
+In-Reply-To: <16301043.Lbu0ahMgBI@avalon>
+References: <20171208123537.18718-1-dhaval23031987@gmail.com>
+         <7339763.I7jApfYMM6@avalon> <1513276340.27409.77.camel@perches.com>
+         <16301043.Lbu0ahMgBI@avalon>
+Content-Type: text/plain; charset="ISO-8859-1"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Niklas,
+On Thu, 2017-12-14 at 20:37 +0200, Laurent Pinchart wrote:
+> Hi Joe,
 
-On 06/12/17 15:57, Niklas Söderlund wrote:
-> CC Jacopo, Kieran
+Hi Laurent.
+
+> On Thursday, 14 December 2017 20:32:20 EET Joe Perches wrote:
+> > Adding a comment line that describes an implicit or
+> > explicit license is different than removing the license
+> > text itself.
 > 
-> Hi Sakari,
-> 
-> Thanks for your patch.
-> 
-> On 2017-12-04 23:03:02 +0200, Sakari Ailus wrote:
->> V4L2 async framework can use both device's fwnode and endpoints's fwnode
->> for matching the async sub-device with the sub-device. In order to proceed
->> moving towards endpoint matching assign the endpoint to the async
->> sub-device.
-> 
-> Endpoint matching I think is the way to go forward. It will solve a set 
-> of problems that exists today. So I think this a good step in the right 
-> direction.
-> 
->>
->> As most async sub-device drivers (and the related hardware) only supports
->> a single endpoint, use the first endpoint found. This works for all
->> current drivers --- we only ever supported a single async sub-device per
->> device to begin with.
-> 
-> This assumption is not true, the adv748x exposes multiple subdevice from 
-> a single device node in DT and registers them using different endpoints.  
-> Now the only user of the adv748x driver I know of is the rcar-csi2 
-> driver which is not yet upstream so this can be consider a special case.
+> The SPDX license header is meant to be equivalent to the license text.
 
-Quite - but the match parent patch still hasn't got upstream yet either - so
-it's still not supported.
+I understand that.
+At a minimum, removing BSD license text is undesirable
+as that license states:
 
-I'd love to know if there are other devices with an ADV748x out there though!
+ *    * Redistributions of source code must retain the above copyright
+ *      notice, this list of conditions and the following disclaimer.
+etc...
 
-<snip>
+> The only reason why the large SPDX patch didn't touch the whole kernel in one go 
+> was that it was easier to split in in multiple chunks.
 
+Not really, it was scripted.
 
-> Here the adv7612 driver would register a subdevice using the endpoint 
-> 'hdmi-in@4c/ports/port@0/endpoint' while the rcar-vin driver which uses 
-> the async parsing helpers would register a notifier looking for 
-> 'hdmi-in@4c/ports/port@2/endpoint'.
-> 
-> Something like Kieran's '[PATCH v5] v4l2-async: Match parent devices' 
-> would be needed in addition to this patch. I tried Kieran's patch 
-> together with this and it did not solve the problem upstream. I did make 
-> a hack on-top of Kieran's patch to add a comparison 'sd_parent == 
-> asd_parent' in match_fwnode() which got rcar-gen2 working again, but I'm 
-> not sure if that will have other side effects.
+> This is no different 
+> than not including the full GPL license in every header file but only pointing 
+> to it through its name and reference, as every kernel source file does.
 
-Matching parent == parent will have the side effect that all devices with
-multiple endpoints, will discover all endpoints successfully match on both
-device comparisons.
-
-Thus, this in effect will completely undo all endpoint matching efforts.
-
-
-<snip>
-
-Regards
-
-Kieran
+Not every kernel source file had a license text
+or a reference to another license file.
