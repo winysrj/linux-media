@@ -1,74 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:41992 "EHLO
-        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752307AbdLNOZz (ORCPT
+Received: from smtp-3.sys.kth.se ([130.237.48.192]:33994 "EHLO
+        smtp-3.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754271AbdLNTJQ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 14 Dec 2017 09:25:55 -0500
-Received: by mail-wm0-f68.google.com with SMTP id b199so11754809wme.1
-        for <linux-media@vger.kernel.org>; Thu, 14 Dec 2017 06:25:55 -0800 (PST)
+        Thu, 14 Dec 2017 14:09:16 -0500
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: linux-media@vger.kernel.org,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-renesas-soc@vger.kernel.org,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        Benoit Parrot <bparrot@ti.com>,
+        Maxime Ripard <maxime.ripard@free-electrons.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH/RFC v2 01/15] v4l2-subdev.h: add pad and stream aware s_stream
+Date: Thu, 14 Dec 2017 20:08:21 +0100
+Message-Id: <20171214190835.7672-2-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20171214190835.7672-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20171214190835.7672-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-In-Reply-To: <20171214085503.289f06f8@vento.lan>
-References: <20171013054635.20946-1-Yasunari.Takiguchi@sony.com>
- <20171213173633.57edca85@vento.lan> <02699364973B424C83A42A84B04FDA85431742@JPYOKXMS113.jp.sony.com>
- <20171214085503.289f06f8@vento.lan>
-From: Philippe Ombredanne <pombredanne@nexb.com>
-Date: Thu, 14 Dec 2017 15:25:13 +0100
-Message-ID: <CAOFm3uEYfMH8Zj8uEx-D9yYrTyDMTG_j02619esHu-j0brQKaA@mail.gmail.com>
-Subject: Re: [PATCH v4 00/12] [dt-bindings] [media] Add document file and
- driver for Sony CXD2880 DVB-T2/T tuner + demodulator
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: "Takiguchi, Yasunari" <Yasunari.Takiguchi@sony.com>,
-        "akpm@linux-foundation.org" <akpm@linux-foundation.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "tbird20d@gmail.com" <tbird20d@gmail.com>,
-        "frowand.list@gmail.com" <frowand.list@gmail.com>,
-        "Yamamoto, Masayuki" <Masayuki.Yamamoto@sony.com>,
-        "Nozawa, Hideki (STWN)" <Hideki.Nozawa@sony.com>,
-        "Yonezawa, Kota" <Kota.Yonezawa@sony.com>,
-        "Matsumoto, Toshihiko" <Toshihiko.Matsumoto@sony.com>,
-        "Watanabe, Satoshi (SSS)" <Satoshi.C.Watanabe@sony.com>,
-        "Bird, Timothy" <Tim.Bird@sony.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dear Mauro,
+To be able to start and stop individual streams of a multiplexed pad the
+s_stream operation needs to be both pad and stream aware. Add a new
+operation to pad ops to facilitate this.
 
-On Thu, Dec 14, 2017 at 11:55 AM, Mauro Carvalho Chehab
-<mchehab@s-opensource.com> wrote:
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+---
+ include/media/v4l2-subdev.h | 5 +++++
+ 1 file changed, 5 insertions(+)
 
-> SPDX is a new requirement that started late on Kernel 4.14 development
-> cycle (and whose initial changes were merged directly at Linus tree).
-> Not all existing files have it yet, as identifying the right license
-> on existing files is a complex task, but if you do a:
->
->         $ git grep SPDX $(find . -name Makefile) $(find . -name Kconfig)
->
-> You'll see that lot of such files have it already.
-
-FWIW, short of having SPDX tags, identifying the right license on
-existing files is not a super complex task: if boils down to running
-many diffs.
-
-Take the ~60K files in kernel, and about 6K license and notices
-reference texts. Then compute a pairwise diff of each of the 60K file
-against the 6K reference texts. Repeat the pairwise diff a few more
-times, say 10 times, as multiple licenses may appear in any given
-kernel file. And keep the diffs that have the fewest
-difference/highest similarity with the reference texts as the detected
-license. Done!
-
-The only complex thing is that if you have a fast diff that runs at
-0.1 millisec end-to-end per diff, you still have 3.6B diffs to do and
-this would take about 250 days on one thread. Even with a beefy 250
-core CPU, that would still be a day (and quite few kilo watts) . So
-the whole trick is to avoid doing a diffs if not really needed. This
-is what I do in my scancode-toolkit (that I used/use to help Greg and
-Thomas with kernel license scans). Net effect is that on a laptop on 8
-threads it takes ~20 minutes to scan a whole kernel using this
-diff-based approach and obtain a fairly accurate license detection.
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index a30a94fad8dbacde..7288209338a48fda 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -669,6 +669,9 @@ struct v4l2_subdev_pad_config {
+  *
+  * @set_frame_desc: set the low level media bus frame parameters, @fd array
+  *                  may be adjusted by the subdev driver to device capabilities.
++ *
++ * @s_stream: used to notify the driver that a stream will start or has
++ *	stopped.
+  */
+ struct v4l2_subdev_pad_ops {
+ 	int (*init_cfg)(struct v4l2_subdev *sd,
+@@ -713,6 +716,8 @@ struct v4l2_subdev_pad_ops {
+ 			   struct v4l2_subdev_routing *route);
+ 	int (*set_routing)(struct v4l2_subdev *sd,
+ 			   struct v4l2_subdev_routing *route);
++	int (*s_stream)(struct v4l2_subdev *sd, unsigned int pad,
++			unsigned int stream, int enable);
+ };
+ 
+ /**
 -- 
-Cordially
-Philippe Ombredanne
+2.15.1
