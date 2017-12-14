@@ -1,124 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay2-d.mail.gandi.net ([217.70.183.194]:56273 "EHLO
-        relay2-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751453AbdLFPdM (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 6 Dec 2017 10:33:12 -0500
-Date: Wed, 6 Dec 2017 16:33:01 +0100
-From: jacopo mondi <jacopo@jmondi.org>
-To: Kieran Bingham <kbingham@kernel.org>
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        niklas.soderlund@ragnatech.se,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
+Received: from smtp-3.sys.kth.se ([130.237.48.192]:34130 "EHLO
+        smtp-3.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754277AbdLNTJS (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 14 Dec 2017 14:09:18 -0500
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: linux-media@vger.kernel.org,
         Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: Re: [PATCH v5] v4l2-async: Match parent devices
-Message-ID: <20171206153301.GA3479@w540>
-References: <1512572319-20179-1-git-send-email-kbingham@kernel.org>
+Cc: linux-renesas-soc@vger.kernel.org,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        Benoit Parrot <bparrot@ti.com>,
+        Maxime Ripard <maxime.ripard@free-electrons.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH/RFC v2 04/15] rcar-csi2: switch to pad and stream aware s_stream
+Date: Thu, 14 Dec 2017 20:08:24 +0100
+Message-Id: <20171214190835.7672-5-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20171214190835.7672-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20171214190835.7672-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <1512572319-20179-1-git-send-email-kbingham@kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Kieran,
+Switch the driver to implement the pad and stream aware s_stream
+operation. This is needed to enable to support to start and stop
+individual streams on a multiplexed pad.
 
-On Wed, Dec 06, 2017 at 02:58:39PM +0000, Kieran Bingham wrote:
-> From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
->
-> Devices supporting multiple endpoints on a single device node must set
-> their subdevice fwnode to the endpoint to allow distinct comparisons.
->
-> Adapt the match_fwnode call to compare against the provided fwnodes
-> first, but to also perform a cross reference comparison against the
-> parent fwnodes of each other.
->
-> This allows notifiers to pass the endpoint for comparison and still
-> support existing subdevices which store their default parent device
-> node.
->
-> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+---
+ drivers/media/platform/rcar-vin/rcar-csi2.c | 13 +++++++------
+ 1 file changed, 7 insertions(+), 6 deletions(-)
 
-please append:
-
-Reported-by: Jacopo Mondi <jacopo.mondi+renesas@jmondi.org>
-
-Thanks
-   j
-
->
-> ---
->
-> Hi Sakari,
->
-> Since you signed-off on this patch - it has had to be reworked due to the
-> changes on the of_node_full_name() functionality.
->
-> I believe it is correct now to *just* do the pointer matching, as that matches
-> the current implementation, and converting to device_nodes will be just as
-> equal as the fwnodes, as they are simply containers.
->
-> Let me know if you are happy to maintain your SOB on this patch - and if we need
-> to work towards getting this integrated upstream, especially in light of your new
-> endpoint matching work.
->
-> --
-> Regards
->
-> Kieran
->
->
-> v2:
->  - Added documentation comments
->  - simplified the OF match by adding match_fwnode_of()
->
-> v3:
->  - Fix comments
->  - Fix sd_parent, and asd_parent usage
->
-> v4:
->  - Clean up and simplify match_fwnode and comparisons
->
-> v5:
->  - Updated for v4.15-rc1:
->    of_node no longer specifies a full path, and only returns the
->    basename with of_node_full_name(), thus this ends up matching
->    "endpoint" for all endpoints. Fall back to pointer matching,
->    whilst maintaining the parent comparisons.
-> ---
->  drivers/media/v4l2-core/v4l2-async.c | 17 ++++++++++++++++-
->  1 file changed, 16 insertions(+), 1 deletion(-)
->
-> diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
-> index fcadad305336..780bda70d8b3 100644
-> --- a/drivers/media/v4l2-core/v4l2-async.c
-> +++ b/drivers/media/v4l2-core/v4l2-async.c
-> @@ -71,9 +71,24 @@ static bool match_devname(struct v4l2_subdev *sd,
->  	return !strcmp(asd->match.device_name.name, dev_name(sd->dev));
->  }
->
-> +/*
-> + * As a measure to support drivers which have not been converted to use
-> + * endpoint matching, we also find the parent devices for cross-matching.
-> + *
-> + * This also allows continued support for matching subdevices which will not
-> + * have an endpoint themselves.
-> + */
->  static bool match_fwnode(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
->  {
-> -	return sd->fwnode == asd->match.fwnode.fwnode;
-> +	struct fwnode_handle *asd_fwnode = asd->match.fwnode.fwnode;
-> +	struct fwnode_handle *sd_parent, *asd_parent;
-> +
-> +	sd_parent = fwnode_graph_get_port_parent(sd->fwnode);
-> +	asd_parent = fwnode_graph_get_port_parent(asd_fwnode);
-> +
-> +	return sd->fwnode == asd_fwnode ||
-> +	       sd->fwnode == asd_parent ||
-> +	       sd_parent == asd_fwnode;
->  }
->
->  static bool match_custom(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
-> --
-> 2.7.4
->
+diff --git a/drivers/media/platform/rcar-vin/rcar-csi2.c b/drivers/media/platform/rcar-vin/rcar-csi2.c
+index d8751add48fc1322..8ce0bfeef1113f9c 100644
+--- a/drivers/media/platform/rcar-vin/rcar-csi2.c
++++ b/drivers/media/platform/rcar-vin/rcar-csi2.c
+@@ -625,12 +625,17 @@ static int rcar_csi2_sd_info(struct rcar_csi2 *priv, struct v4l2_subdev **sd)
+ 	return 0;
+ }
+ 
+-static int rcar_csi2_s_stream(struct v4l2_subdev *sd, int enable)
++static int rcar_csi2_s_stream(struct v4l2_subdev *sd, unsigned int pad,
++			      unsigned int stream, int enable)
+ {
+ 	struct rcar_csi2 *priv = sd_to_csi2(sd);
+ 	struct v4l2_subdev *nextsd;
+ 	int ret;
+ 
++	/* Only one stream on each source pad */
++	if (stream != 0)
++		return -EINVAL;
++
+ 	mutex_lock(&priv->lock);
+ 
+ 	ret = rcar_csi2_sd_info(priv, &nextsd);
+@@ -699,17 +704,13 @@ static int rcar_csi2_get_pad_format(struct v4l2_subdev *sd,
+ 	return 0;
+ }
+ 
+-static const struct v4l2_subdev_video_ops rcar_csi2_video_ops = {
+-	.s_stream = rcar_csi2_s_stream,
+-};
+-
+ static const struct v4l2_subdev_pad_ops rcar_csi2_pad_ops = {
+ 	.set_fmt = rcar_csi2_set_pad_format,
+ 	.get_fmt = rcar_csi2_get_pad_format,
++	.s_stream = rcar_csi2_s_stream,
+ };
+ 
+ static const struct v4l2_subdev_ops rcar_csi2_subdev_ops = {
+-	.video	= &rcar_csi2_video_ops,
+ 	.pad	= &rcar_csi2_pad_ops,
+ };
+ 
+-- 
+2.15.1
