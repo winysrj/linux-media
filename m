@@ -1,57 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f196.google.com ([209.85.192.196]:46440 "EHLO
-        mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753433AbdLTQd4 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 20 Dec 2017 11:33:56 -0500
-Received: by mail-pf0-f196.google.com with SMTP id c204so12760975pfc.13
-        for <linux-media@vger.kernel.org>; Wed, 20 Dec 2017 08:33:55 -0800 (PST)
-From: Akinobu Mita <akinobu.mita@gmail.com>
+Received: from gofer.mess.org ([88.97.38.141]:32913 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753490AbdLNRWC (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 14 Dec 2017 12:22:02 -0500
+From: Sean Young <sean@mess.org>
 To: linux-media@vger.kernel.org
-Cc: Akinobu Mita <akinobu.mita@gmail.com>,
-        Rob Herring <robh@kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: [PATCH 3/4] meida: mt9m111: document missing required clocks property
-Date: Thu, 21 Dec 2017 01:33:33 +0900
-Message-Id: <1513787614-12008-4-git-send-email-akinobu.mita@gmail.com>
-In-Reply-To: <1513787614-12008-1-git-send-email-akinobu.mita@gmail.com>
-References: <1513787614-12008-1-git-send-email-akinobu.mita@gmail.com>
+Subject: [PATCH 08/10] media: lirc: no need to recalculate duration
+Date: Thu, 14 Dec 2017 17:21:58 +0000
+Message-Id: <38923c5f39c5421201b431c4e0ff754dcfacc70f.1513271970.git.sean@mess.org>
+In-Reply-To: <4e8c9939b6b116a54e3042d098343bc918268b1d.1513271970.git.sean@mess.org>
+References: <4e8c9939b6b116a54e3042d098343bc918268b1d.1513271970.git.sean@mess.org>
+In-Reply-To: <4e8c9939b6b116a54e3042d098343bc918268b1d.1513271970.git.sean@mess.org>
+References: <4e8c9939b6b116a54e3042d098343bc918268b1d.1513271970.git.sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The mt9m111 driver requires clocks property for the master clock to the
-sensor, but there is no description for that.  This adds it.
+This is code existed for when drivers would send less than the whole
+buffer; no driver does this any more, so this is redundant. Drivers
+should return -EINVAL if they cannot send the entire buffer.
 
-Cc: Rob Herring <robh@kernel.org>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Signed-off-by: Sean Young <sean@mess.org>
 ---
- Documentation/devicetree/bindings/media/i2c/mt9m111.txt | 4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/media/rc/lirc_dev.c | 10 +---------
+ 1 file changed, 1 insertion(+), 9 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/media/i2c/mt9m111.txt b/Documentation/devicetree/bindings/media/i2c/mt9m111.txt
-index ed5a334..ffb57d1 100644
---- a/Documentation/devicetree/bindings/media/i2c/mt9m111.txt
-+++ b/Documentation/devicetree/bindings/media/i2c/mt9m111.txt
-@@ -6,6 +6,8 @@ interface.
+diff --git a/drivers/media/rc/lirc_dev.c b/drivers/media/rc/lirc_dev.c
+index 8618aba152c6..1fc1fd665bce 100644
+--- a/drivers/media/rc/lirc_dev.c
++++ b/drivers/media/rc/lirc_dev.c
+@@ -347,15 +347,6 @@ static ssize_t ir_lirc_transmit_ir(struct file *file, const char __user *buf,
+ 	if (ret < 0)
+ 		goto out_kfree;
  
- Required Properties:
- - compatible: value should be "micron,mt9m111"
-+- clocks: reference to the master clock.
-+- clock-names: should be "mclk".
+-	if (fh->send_mode == LIRC_MODE_SCANCODE) {
+-		ret = n;
+-	} else {
+-		for (duration = i = 0; i < ret; i++)
+-			duration += txbuf[i];
+-
+-		ret *= sizeof(unsigned int);
+-	}
+-
+ 	/*
+ 	 * The lircd gap calculation expects the write function to
+ 	 * wait for the actual IR signal to be transmitted before
+@@ -368,6 +359,7 @@ static ssize_t ir_lirc_transmit_ir(struct file *file, const char __user *buf,
+ 		schedule_timeout(usecs_to_jiffies(towait));
+ 	}
  
- For further reading on port node refer to
- Documentation/devicetree/bindings/media/video-interfaces.txt.
-@@ -16,6 +18,8 @@ Example:
- 		mt9m111@5d {
- 			compatible = "micron,mt9m111";
- 			reg = <0x5d>;
-+			clocks = <&mclk>;
-+			clock-names = "mclk";
- 
- 			remote = <&pxa_camera>;
- 			port {
++	ret = n;
+ out_kfree:
+ 	kfree(txbuf);
+ 	kfree(raw);
 -- 
-2.7.4
+2.14.3
