@@ -1,158 +1,255 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:51795 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751350AbdLQQti (ORCPT
+Received: from smtp-3.sys.kth.se ([130.237.48.192]:34232 "EHLO
+        smtp-3.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753870AbdLNTJV (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 17 Dec 2017 11:49:38 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Jacopo Mondi <jacopo+renesas@jmondi.org>
-Cc: sakari.ailus@linux.intel.com, niklas.soderlund@ragnatech.se,
-        kieran.bingham@ideasonboard.com, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org
-Subject: Re: [PATCH 2/5] device property: Add fwnode_get_name() operation
-Date: Sun, 17 Dec 2017 18:49:36 +0200
-Message-ID: <2169295.J7lojCvxnY@avalon>
-In-Reply-To: <1513189580-32202-3-git-send-email-jacopo+renesas@jmondi.org>
-References: <1513189580-32202-1-git-send-email-jacopo+renesas@jmondi.org> <1513189580-32202-3-git-send-email-jacopo+renesas@jmondi.org>
+        Thu, 14 Dec 2017 14:09:21 -0500
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: linux-media@vger.kernel.org,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-renesas-soc@vger.kernel.org,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        Benoit Parrot <bparrot@ti.com>,
+        Maxime Ripard <maxime.ripard@free-electrons.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH/RFC v2 07/15] rcar-csi2: use frame description information to configure CSI-2 bus
+Date: Thu, 14 Dec 2017 20:08:27 +0100
+Message-Id: <20171214190835.7672-8-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20171214190835.7672-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20171214190835.7672-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jacopo,
+The driver now have access to frame descriptor information, use it. Only
+enable the virtual channels which are described in the frame descriptor
+and calculate the link based on all enabled streams.
 
-Thank you for the patch.
+With multiplexed stream support it's now possible to have different
+formats on the different source pads. Make source formats independent
+off each other and disallowing a format on the multiplexed sink.
 
-On Wednesday, 13 December 2017 20:26:17 EET Jacopo Mondi wrote:
-> Add operation to retrieve the device name from a fwnode handle.
-> 
-> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
-> ---
->  drivers/acpi/property.c  |  6 ++++++
->  drivers/base/property.c  | 12 ++++++++++++
->  drivers/of/property.c    |  6 ++++++
->  include/linux/fwnode.h   |  2 ++
->  include/linux/property.h |  1 +
->  5 files changed, 27 insertions(+)
-> 
-> diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
-> index e26ea20..1e3971c 100644
-> --- a/drivers/acpi/property.c
-> +++ b/drivers/acpi/property.c
-> @@ -1186,6 +1186,11 @@ acpi_fwnode_property_read_string_array(const struct
-> fwnode_handle *fwnode, val, nval);
->  }
-> 
-> +static const char *acpi_fwnode_get_name(const struct fwnode_handle *fwnode)
-> +{
-> +	return acpi_dev_name(to_acpi_device_node(fwnode));
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+---
+ drivers/media/platform/rcar-vin/rcar-csi2.c | 112 ++++++++++++++--------------
+ 1 file changed, 58 insertions(+), 54 deletions(-)
 
-You're returning a name here, but it's not the ACPI fwnode name, it's the name 
-of the corresponding device. This isn't consistent with the OF implementation. 
-As Sakari pointed out, it also won't work for non-device ACPI nodes.
-
-> +}
-> +
->  static struct fwnode_handle *
->  acpi_fwnode_get_named_child_node(const struct fwnode_handle *fwnode,
->  				 const char *childname)
-> @@ -1281,6 +1286,7 @@ static int acpi_fwnode_graph_parse_endpoint(const
-> struct fwnode_handle *fwnode, acpi_fwnode_property_read_string_array,		\
->  		.get_parent = acpi_node_get_parent,			\
->  		.get_next_child_node = acpi_get_next_subnode,		\
-> +		.get_name = acpi_fwnode_get_name,			\
->  		.get_named_child_node = acpi_fwnode_get_named_child_node, \
->  		.get_reference_args = acpi_fwnode_get_reference_args,	\
->  		.graph_get_next_endpoint =				\
-> diff --git a/drivers/base/property.c b/drivers/base/property.c
-> index 851b1b6..a87b4a9 100644
-> --- a/drivers/base/property.c
-> +++ b/drivers/base/property.c
-> @@ -950,6 +950,18 @@ int device_add_properties(struct device *dev,
->  EXPORT_SYMBOL_GPL(device_add_properties);
-> 
->  /**
-> + * fwnode_get_name - Return the fwnode_handle name
-> + * @fwnode: Firmware node to get name from
-> + *
-> + * Returns a pointer to the firmware node name
-
-Could you please document the life time constraints of the return pointer ?
-
-> + */
-> +const char *fwnode_get_name(const struct fwnode_handle *fwnode)
-> +{
-> +	return fwnode_call_ptr_op(fwnode, get_name);
-> +}
-> +EXPORT_SYMBOL(fwnode_get_name);
-> +
-> +/**
->   * fwnode_get_next_parent - Iterate to the node's parent
->   * @fwnode: Firmware whose parent is retrieved
->   *
-> diff --git a/drivers/of/property.c b/drivers/of/property.c
-> index 8ad33a4..6c195a8 100644
-> --- a/drivers/of/property.c
-> +++ b/drivers/of/property.c
-> @@ -875,6 +875,11 @@ of_fwnode_property_read_string_array(const struct
-> fwnode_handle *fwnode, of_property_count_strings(node, propname);
->  }
-> 
-> +static const char *of_fwnode_get_name(const struct fwnode_handle *fwnode)
-> +{
-> +	return of_node_full_name(to_of_node(fwnode));
-
-If you're returning the full name shouldn't the operation be called 
-*get_full_name() ?
-
-> +}
-> +
->  static struct fwnode_handle *
->  of_fwnode_get_parent(const struct fwnode_handle *fwnode)
->  {
-> @@ -988,6 +993,7 @@ const struct fwnode_operations of_fwnode_ops = {
->  	.property_present = of_fwnode_property_present,
->  	.property_read_int_array = of_fwnode_property_read_int_array,
->  	.property_read_string_array = of_fwnode_property_read_string_array,
-> +	.get_name = of_fwnode_get_name,
->  	.get_parent = of_fwnode_get_parent,
->  	.get_next_child_node = of_fwnode_get_next_child_node,
->  	.get_named_child_node = of_fwnode_get_named_child_node,
-> diff --git a/include/linux/fwnode.h b/include/linux/fwnode.h
-> index 411a84c..5d3a8c6 100644
-> --- a/include/linux/fwnode.h
-> +++ b/include/linux/fwnode.h
-> @@ -57,6 +57,7 @@ struct fwnode_reference_args {
->   *				 otherwise.
->   * @property_read_string_array: Read an array of string properties. Return
-> zero *				on success, a negative error code otherwise.
-> + * @get_name: Return the fwnode name.
->   * @get_parent: Return the parent of an fwnode.
->   * @get_next_child_node: Return the next child node in an iteration.
->   * @get_named_child_node: Return a child node with a given name.
-> @@ -81,6 +82,7 @@ struct fwnode_operations {
->  	(*property_read_string_array)(const struct fwnode_handle *fwnode_handle,
->  				      const char *propname, const char **val,
->  				      size_t nval);
-> +	const char *(*get_name)(const struct fwnode_handle *fwnode);
->  	struct fwnode_handle *(*get_parent)(const struct fwnode_handle *fwnode);
->  	struct fwnode_handle *
->  	(*get_next_child_node)(const struct fwnode_handle *fwnode,
-> diff --git a/include/linux/property.h b/include/linux/property.h
-> index f6189a3..0fc464f 100644
-> --- a/include/linux/property.h
-> +++ b/include/linux/property.h
-> @@ -78,6 +78,7 @@ int fwnode_property_get_reference_args(const struct
-> fwnode_handle *fwnode, unsigned int nargs, unsigned int index,
->  				       struct fwnode_reference_args *args);
-> 
-> +const char *fwnode_get_name(const struct fwnode_handle *fwnode);
->  struct fwnode_handle *fwnode_get_parent(const struct fwnode_handle
-> *fwnode);
->  struct fwnode_handle *fwnode_get_next_parent(struct fwnode_handle *fwnode);
-
+diff --git a/drivers/media/platform/rcar-vin/rcar-csi2.c b/drivers/media/platform/rcar-vin/rcar-csi2.c
+index 6b607b2e31e26063..2dd7d03d622d5510 100644
+--- a/drivers/media/platform/rcar-vin/rcar-csi2.c
++++ b/drivers/media/platform/rcar-vin/rcar-csi2.c
+@@ -296,24 +296,22 @@ static const struct phtw_testdin_data testdin_data_v3m_e3[] = {
+ #define CSI0CLKFREQRANGE(n)		((n & 0x3f) << 16)
+ 
+ struct rcar_csi2_format {
+-	unsigned int code;
+ 	unsigned int datatype;
+ 	unsigned int bpp;
+ };
+ 
+ static const struct rcar_csi2_format rcar_csi2_formats[] = {
+-	{ .code = MEDIA_BUS_FMT_RGB888_1X24,	.datatype = 0x24, .bpp = 24 },
+-	{ .code = MEDIA_BUS_FMT_UYVY8_1X16,	.datatype = 0x1e, .bpp = 16 },
+-	{ .code = MEDIA_BUS_FMT_UYVY8_2X8,	.datatype = 0x1e, .bpp = 16 },
+-	{ .code = MEDIA_BUS_FMT_YUYV10_2X10,	.datatype = 0x1e, .bpp = 16 },
++	{ .datatype = 0x1e, .bpp = 16 },
++	{ .datatype = 0x24, .bpp = 24 },
+ };
+ 
+-static const struct rcar_csi2_format *rcar_csi2_code_to_fmt(unsigned int code)
++static const struct rcar_csi2_format
++*rcar_csi2_datatype_to_fmt(unsigned int datatype)
+ {
+ 	unsigned int i;
+ 
+ 	for (i = 0; i < ARRAY_SIZE(rcar_csi2_formats); i++)
+-		if (rcar_csi2_formats[i].code == code)
++		if (rcar_csi2_formats[i].datatype == datatype)
+ 			return rcar_csi2_formats + i;
+ 
+ 	return NULL;
+@@ -355,7 +353,7 @@ struct rcar_csi2 {
+ 	struct v4l2_async_notifier notifier;
+ 	struct v4l2_async_subdev remote;
+ 
+-	struct v4l2_mbus_framefmt mf;
++	struct v4l2_mbus_framefmt mf[4];
+ 
+ 	struct mutex lock;
+ 	int stream_count[4];
+@@ -411,25 +409,14 @@ static int rcar_csi2_wait_phy_start(struct rcar_csi2 *priv)
+ 	return -ETIMEDOUT;
+ }
+ 
+-static int rcar_csi2_calc_mbps(struct rcar_csi2 *priv, unsigned int bpp)
++static int rcar_csi2_calc_mbps(struct rcar_csi2 *priv,
++			       struct v4l2_subdev *source,
++			       struct v4l2_mbus_frame_desc *fd)
+ {
+-	struct media_pad *pad, *source_pad;
+-	struct v4l2_subdev *source = NULL;
+ 	struct v4l2_ctrl *ctrl;
++	unsigned int i, bpp = 0;
+ 	u64 mbps;
+ 
+-	/* Get remote subdevice */
+-	pad = &priv->subdev.entity.pads[RCAR_CSI2_SINK];
+-	source_pad = media_entity_remote_pad(pad);
+-	if (!source_pad) {
+-		dev_err(priv->dev, "Could not find remote source pad\n");
+-		return -ENODEV;
+-	}
+-	source = media_entity_to_v4l2_subdev(source_pad->entity);
+-
+-	dev_dbg(priv->dev, "Using source %s pad: %u\n", source->name,
+-		source_pad->index);
+-
+ 	/* Read the pixel rate control from remote */
+ 	ctrl = v4l2_ctrl_find(source->ctrl_handler, V4L2_CID_PIXEL_RATE);
+ 	if (!ctrl) {
+@@ -438,6 +425,21 @@ static int rcar_csi2_calc_mbps(struct rcar_csi2 *priv, unsigned int bpp)
+ 		return -EINVAL;
+ 	}
+ 
++	/* Calculate total bpp */
++	for (i = 0; i < fd->num_entries; i++) {
++		const struct rcar_csi2_format *format;
++
++		format = rcar_csi2_datatype_to_fmt(
++					fd->entry[i].bus.csi2.data_type);
++		if (!format) {
++			dev_err(priv->dev, "Unknown data type: %d\n",
++				fd->entry[i].bus.csi2.data_type);
++			return -EINVAL;
++		}
++
++		bpp += format->bpp;
++	}
++
+ 	/* Calculate the phypll */
+ 	mbps = v4l2_ctrl_g_ctrl_int64(ctrl) * bpp;
+ 	do_div(mbps, priv->lanes * 1000000);
+@@ -489,39 +491,33 @@ static int rcar_csi2_set_phtw(struct rcar_csi2 *priv, unsigned int mbps)
+ 	return 0;
+ }
+ 
+-static int rcar_csi2_start(struct rcar_csi2 *priv)
++static int rcar_csi2_start(struct rcar_csi2 *priv, struct v4l2_subdev *source,
++			   struct v4l2_mbus_frame_desc *fd)
+ {
+-	const struct rcar_csi2_format *format;
+-	u32 phycnt, tmp;
+-	u32 vcdt = 0, vcdt2 = 0;
++	u32 phycnt, vcdt = 0, vcdt2 = 0;
+ 	unsigned int i;
+ 	int mbps, ret;
+ 
+-	dev_dbg(priv->dev, "Input size (%ux%u%c)\n",
+-		priv->mf.width, priv->mf.height,
+-		priv->mf.field == V4L2_FIELD_NONE ? 'p' : 'i');
+-
+-	/* Code is validated in set_ftm */
+-	format = rcar_csi2_code_to_fmt(priv->mf.code);
++	for (i = 0; i < fd->num_entries; i++) {
++		struct v4l2_mbus_frame_desc_entry *entry = &fd->entry[i];
++		u32 tmp;
+ 
+-	/*
+-	 * Enable all Virtual Channels
+-	 *
+-	 * NOTE: It's not possible to get individual datatype for each
+-	 *       source virtual channel. Once this is possible in V4L2
+-	 *       it should be used here.
+-	 */
+-	for (i = 0; i < 4; i++) {
+-		tmp = VCDT_SEL_VC(i) | VCDT_VCDTN_EN | VCDT_SEL_DTN_ON |
+-			VCDT_SEL_DT(format->datatype);
++		tmp = VCDT_SEL_VC(entry->bus.csi2.channel) | VCDT_VCDTN_EN |
++			VCDT_SEL_DTN_ON |
++			VCDT_SEL_DT(entry->bus.csi2.data_type);
+ 
+ 		/* Store in correct reg and offset */
+-		if (i < 2)
+-			vcdt |= tmp << ((i % 2) * 16);
++		if (entry->bus.csi2.channel < 2)
++			vcdt |= tmp << ((entry->bus.csi2.channel % 2) * 16);
+ 		else
+-			vcdt2 |= tmp << ((i % 2) * 16);
++			vcdt2 |= tmp << ((entry->bus.csi2.channel % 2) * 16);
++
++		dev_dbg(priv->dev, "VC%d datatype: 0x%x\n",
++			entry->bus.csi2.channel, entry->bus.csi2.data_type);
+ 	}
+ 
++	dev_dbg(priv->dev, "VCDT: 0x%08x VCDT2: 0x%08x\n", vcdt, vcdt2);
++
+ 	switch (priv->lanes) {
+ 	case 1:
+ 		phycnt = PHYCNT_ENABLECLK | PHYCNT_ENABLE_0;
+@@ -537,7 +533,7 @@ static int rcar_csi2_start(struct rcar_csi2 *priv)
+ 		return -EINVAL;
+ 	}
+ 
+-	mbps = rcar_csi2_calc_mbps(priv, format->bpp);
++	mbps = rcar_csi2_calc_mbps(priv, source, fd);
+ 	if (mbps < 0)
+ 		return mbps;
+ 
+@@ -686,7 +682,7 @@ static int rcar_csi2_s_stream(struct v4l2_subdev *sd, unsigned int pad,
+ 	if (enable && count == 0) {
+ 		pm_runtime_get_sync(priv->dev);
+ 
+-		ret = rcar_csi2_start(priv);
++		ret = rcar_csi2_start(priv, nextsd, &fd);
+ 		if (ret) {
+ 			pm_runtime_put(priv->dev);
+ 			goto out;
+@@ -720,14 +716,16 @@ static int rcar_csi2_set_pad_format(struct v4l2_subdev *sd,
+ {
+ 	struct rcar_csi2 *priv = sd_to_csi2(sd);
+ 	struct v4l2_mbus_framefmt *framefmt;
++	int vc;
+ 
+-	if (!rcar_csi2_code_to_fmt(format->format.code))
+-		return -EINVAL;
++	vc = rcar_csi2_pad_to_vc(format->pad);
++	if (vc < 0)
++		return vc;
+ 
+ 	if (format->which == V4L2_SUBDEV_FORMAT_ACTIVE) {
+-		priv->mf = format->format;
++		priv->mf[vc] = format->format;
+ 	} else {
+-		framefmt = v4l2_subdev_get_try_format(sd, cfg, 0);
++		framefmt = v4l2_subdev_get_try_format(sd, cfg, format->pad);
+ 		*framefmt = format->format;
+ 	}
+ 
+@@ -739,11 +737,17 @@ static int rcar_csi2_get_pad_format(struct v4l2_subdev *sd,
+ 				    struct v4l2_subdev_format *format)
+ {
+ 	struct rcar_csi2 *priv = sd_to_csi2(sd);
++	int vc;
++
++	vc = rcar_csi2_pad_to_vc(format->pad);
++	if (vc < 0)
++		return vc;
+ 
+ 	if (format->which == V4L2_SUBDEV_FORMAT_ACTIVE)
+-		format->format = priv->mf;
++		format->format = priv->mf[vc];
+ 	else
+-		format->format = *v4l2_subdev_get_try_format(sd, cfg, 0);
++		format->format = *v4l2_subdev_get_try_format(sd, cfg,
++							     format->pad);
+ 
+ 	return 0;
+ }
 -- 
-Regards,
-
-Laurent Pinchart
+2.15.1
