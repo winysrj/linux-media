@@ -1,62 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f65.google.com ([209.85.218.65]:43266 "EHLO
-        mail-oi0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751400AbdLKQ1K (ORCPT
+Received: from mail-pg0-f65.google.com ([74.125.83.65]:46922 "EHLO
+        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754526AbdLOBFa (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 11 Dec 2017 11:27:10 -0500
-MIME-Version: 1.0
-In-Reply-To: <1513008559.2747.0.camel@wdc.com>
-References: <20171211113048.3514863-1-arnd@arndb.de> <1513008559.2747.0.camel@wdc.com>
-From: Arnd Bergmann <arnd@arndb.de>
-Date: Mon, 11 Dec 2017 17:27:08 +0100
-Message-ID: <CAK8P3a0Dtit+=a+PaY_6KuKmopxYEP9dLMY5RMtOTuKa6GfY_A@mail.gmail.com>
-Subject: Re: [PATCH 1/2] usb: gadget: restore tristate-choice for legacy gadgets
-To: Bart Van Assche <Bart.VanAssche@wdc.com>
-Cc: "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>,
-        "balbi@kernel.org" <balbi@kernel.org>,
-        "romain.izard.pro@gmail.com" <romain.izard.pro@gmail.com>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "mchehab@kernel.org" <mchehab@kernel.org>,
-        "ruslan.bilovol@gmail.com" <ruslan.bilovol@gmail.com>,
-        "hare@suse.com" <hare@suse.com>,
-        "cascardo@cascardo.eti.br" <cascardo@cascardo.eti.br>
-Content-Type: text/plain; charset="UTF-8"
+        Thu, 14 Dec 2017 20:05:30 -0500
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: Philipp Zabel <p.zabel@pengutronix.de>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        linux-kernel@vger.kernel.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH v2 0/9] media: imx: Add better OF graph support
+Date: Thu, 14 Dec 2017 17:04:38 -0800
+Message-Id: <1513299887-16804-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Dec 11, 2017 at 5:09 PM, Bart Van Assche <Bart.VanAssche@wdc.com> wrote:
-> On Mon, 2017-12-11 at 12:30 +0100, Arnd Bergmann wrote:
->> One patch that was meant as a cleanup apparently did more than it intended,
->> allowing all combinations of legacy gadget drivers to be built into the
->> kernel, and leaving an empty 'choice' statement behind:
->>
->> drivers/usb/gadget/Kconfig:487:warning: choice default symbol 'USB_ETH' is not contained in the choice
->>
->> The description of commit 7a9618a22aad ("usb: gadget: allow to enable legacy
->> drivers without USB_ETH") was a bit cryptic, as it did not change the
->> behavior of USB_ETH other than allowing it to be built into the kernel
->> alongside other legacy gadgets, which is not a valid configuration.
->>
->> As Felipe explained in the description for commit bc49d1d17dcf ("usb:
->> gadget: don't couple configfs to legacy gadgets"), the configfs based
->> gadgets can be freely configured as loadable modules or built-in
->> drivers, but the legacy gadgets can only be modules if there is more
->> than one of them, so we require the 'choice' statement here.
->>
->> This leaves the added USB_GADGET_LEGACY menuconfig symbol in place,
->> but then restores the 'choice' below it, so we can enforce the
->> single-legacy-gadget rule as before.
->
-> Hello Arnd,
->
-> A discussion is ongoing about whether or not commit 7a9618a22aad should be reverted.
-> Please drop this patch until a conclusion has been reached.
+This is a set of patches that improve support for more complex OF
+graphs. Currently the imx-media driver only supports a single device
+with a single port connected directly to either the CSI muxes or the
+MIPI CSI-2 receiver input ports. There can't be a multi-port device in
+between. This patch set removes those limitations.
 
-Ok. I'll use a revert of 7a9618a22aad in my local test tree then.
-Reverting that is probably good, I thought about suggesting that
-instead, but couldn't tell whether you had a bigger plan behind that
-commit.
+For an example taken from automotive, a camera sensor or decoder could
+be literally a remote device accessible over a FPD-III link, via TI
+DS90Ux9xx deserializer/serializer pairs. This patch set would support
+such OF graphs.
 
-      Arnd
+There are still some assumptions and restrictions, regarding the equivalence
+of device-tree ports, port parents, and endpoints to media pads, entities,
+and links that have been enumerated in the TODO file.
+
+This patch set supersedes the following patch submitted earlier:
+
+"[PATCH v2] media: staging/imx: do not return error in link_notify for unknown sources"
+
+Tested by: Steve Longerbeam <steve_longerbeam@mentor.com>
+on SabreLite with the OV5640
+
+Tested-by: Philipp Zabel <p.zabel@pengutronix.de>
+on Nitrogen6X with the TC358743.
+
+Tested-by: Russell King <rmk+kernel@armlinux.org.uk>
+with the IMX219
+
+History:
+v2:
+- this version is to resolve merge conflicts only, no functional
+  changes since v1.
+
+
+Steve Longerbeam (9):
+  media: staging/imx: get CSI bus type from nearest upstream entity
+  media: staging/imx: remove static media link arrays
+  media: staging/imx: of: allow for recursing downstream
+  media: staging/imx: remove devname string from imx_media_subdev
+  media: staging/imx: pass fwnode handle to find/add async subdev
+  media: staging/imx: remove static subdev arrays
+  media: staging/imx: convert static vdev lists to list_head
+  media: staging/imx: reorder function prototypes
+  media: staging/imx: update TODO
+
+ drivers/staging/media/imx/TODO                    |  63 +++-
+ drivers/staging/media/imx/imx-ic-prp.c            |   4 +-
+ drivers/staging/media/imx/imx-media-capture.c     |   2 +
+ drivers/staging/media/imx/imx-media-csi.c         | 187 +++++-----
+ drivers/staging/media/imx/imx-media-dev.c         | 401 +++++++++-------------
+ drivers/staging/media/imx/imx-media-internal-sd.c | 253 +++++++-------
+ drivers/staging/media/imx/imx-media-of.c          | 278 ++++++++-------
+ drivers/staging/media/imx/imx-media-utils.c       | 122 +++----
+ drivers/staging/media/imx/imx-media.h             | 187 ++++------
+ 9 files changed, 721 insertions(+), 776 deletions(-)
+
+-- 
+2.7.4
