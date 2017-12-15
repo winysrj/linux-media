@@ -1,144 +1,1004 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:52487 "EHLO mga02.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753455AbdLFAqy (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 5 Dec 2017 19:46:54 -0500
-From: "Mani, Rajmohan" <rajmohan.mani@intel.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>, Tomasz Figa <tfiga@google.com>
-CC: "Zhi, Yong" <yong.zhi@intel.com>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>,
-        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
-        "Toivonen, Tuukka" <tuukka.toivonen@intel.com>,
-        "Hu, Jerry W" <jerry.w.hu@intel.com>,
-        "arnd@arndb.de" <arnd@arndb.de>, "hch@lst.de" <hch@lst.de>,
-        "robin.murphy@arm.com" <robin.murphy@arm.com>,
-        "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>
-Subject: RE: [PATCH v4 00/12] Intel IPU3 ImgU patchset
-Date: Wed, 6 Dec 2017 00:46:52 +0000
-Message-ID: <6F87890CF0F5204F892DEA1EF0D77A5972FD90FD@FMSMSX114.amr.corp.intel.com>
-References: <1508298408-25822-1-git-send-email-yong.zhi@intel.com>
- <6F87890CF0F5204F892DEA1EF0D77A5972FD4195@FMSMSX114.amr.corp.intel.com>
- <ae6dbc33-d4e8-83c4-1d3d-e05bccc2113b@xs4all.nl>
- <6F87890CF0F5204F892DEA1EF0D77A5972FD8ACC@FMSMSX114.amr.corp.intel.com>
- <CAAFQd5AnoWyayibP2o+sXKh_2WsdT_E4Q1kxosy8ySP+D3Cf2w@mail.gmail.com>
- <440d2f56-82b1-d6de-68e8-4ac00e8449c6@xs4all.nl>
-In-Reply-To: <440d2f56-82b1-d6de-68e8-4ac00e8449c6@xs4all.nl>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-MIME-Version: 1.0
+Received: from mail-pf0-f196.google.com ([209.85.192.196]:39564 "EHLO
+        mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754615AbdLOBFe (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 14 Dec 2017 20:05:34 -0500
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: Philipp Zabel <p.zabel@pengutronix.de>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        linux-kernel@vger.kernel.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH v2 2/9] media: staging/imx: remove static media link arrays
+Date: Thu, 14 Dec 2017 17:04:40 -0800
+Message-Id: <1513299887-16804-3-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1513299887-16804-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1513299887-16804-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-SGkgVG9tYXN6LCBIYW5zLA0KDQo+IFN1YmplY3Q6IFJlOiBbUEFUQ0ggdjQgMDAvMTJdIEludGVs
-IElQVTMgSW1nVSBwYXRjaHNldA0KPiANCj4gT24gMTIvMDUvMjAxNyAwNDoyMiBBTSwgVG9tYXN6
-IEZpZ2Egd3JvdGU6DQo+ID4gSGkgUmFqLA0KPiA+DQo+ID4gT24gVHVlLCBEZWMgNSwgMjAxNyBh
-dCA5OjEzIEFNLCBNYW5pLCBSYWptb2hhbg0KPiA8cmFqbW9oYW4ubWFuaUBpbnRlbC5jb20+IHdy
-b3RlOg0KPiA+PiBIaSBIYW5zLA0KPiA+Pg0KPiA+PiBUaGFua3MgZm9yIHlvdXIgcGF0aWVuY2Ug
-YW5kIHNoYXJpbmcgeW91ciB0aG91Z2h0cyBvbiB0aGlzLg0KPiA+Pg0KPiA+Pj4gU3ViamVjdDog
-UmU6IFtQQVRDSCB2NCAwMC8xMl0gSW50ZWwgSVBVMyBJbWdVIHBhdGNoc2V0DQo+ID4+Pg0KPiA+
-Pj4gSGkgUmFqbW9oYW4sDQo+ID4+Pg0KPiA+Pj4gT24gMTEvMTcvMjAxNyAwMzo1OCBBTSwgTWFu
-aSwgUmFqbW9oYW4gd3JvdGU6DQo+ID4+Pj4gSGkgU2FrYXJpIGFuZCBhbGwsDQo+ID4+Pj4NCj4g
-Pj4+Pj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gPj4+Pj4gRnJvbTogWmhpLCBZb25n
-DQo+ID4+Pj4+IFNlbnQ6IFR1ZXNkYXksIE9jdG9iZXIgMTcsIDIwMTcgODo0NyBQTQ0KPiA+Pj4+
-PiBUbzogbGludXgtbWVkaWFAdmdlci5rZXJuZWwub3JnOyBzYWthcmkuYWlsdXNAbGludXguaW50
-ZWwuY29tDQo+ID4+Pj4+IENjOiBaaGVuZywgSmlhbiBYdSA8amlhbi54dS56aGVuZ0BpbnRlbC5j
-b20+OyBNYW5pLCBSYWptb2hhbg0KPiA+Pj4+PiA8cmFqbW9oYW4ubWFuaUBpbnRlbC5jb20+OyBU
-b2l2b25lbiwgVHV1a2thDQo+ID4+Pj4+IDx0dXVra2EudG9pdm9uZW5AaW50ZWwuY29tPjsgSHUs
-IEplcnJ5IFcgPGplcnJ5LncuaHVAaW50ZWwuY29tPjsNCj4gPj4+Pj4gYXJuZEBhcm5kYi5kZTsg
-aGNoQGxzdC5kZTsgcm9iaW4ubXVycGh5QGFybS5jb207DQo+ID4+Pj4+IGlvbW11QGxpc3RzLmxp
-bnV4LSBmb3VuZGF0aW9uLm9yZzsgWmhpLCBZb25nIDx5b25nLnpoaUBpbnRlbC5jb20+DQo+ID4+
-Pj4+IFN1YmplY3Q6IFtQQVRDSCB2NCAwMC8xMl0gSW50ZWwgSVBVMyBJbWdVIHBhdGNoc2V0DQo+
-ID4+Pj4+DQo+ID4+Pj4+IFRoaXMgcGF0Y2hzZXQgYWRkcyBzdXBwb3J0IGZvciB0aGUgSW50ZWwg
-SVBVMyAoSW1hZ2UgUHJvY2Vzc2luZw0KPiA+Pj4+PiBVbml0KSBJbWdVIHdoaWNoIGlzIGVzc2Vu
-dGlhbGx5IGEgbW9kZXJuIG1lbW9yeS10by1tZW1vcnkgSVNQLiBJdA0KPiA+Pj4+PiBpbXBsZW1l
-bnRzIHJhdyBCYXllciB0byBZVVYgaW1hZ2UgZm9ybWF0IGNvbnZlcnNpb24gYXMgd2VsbCBhcyBh
-DQo+ID4+Pj4+IGxhcmdlIG51bWJlciBvZiBvdGhlciBwaXhlbCBwcm9jZXNzaW5nIGFsZ29yaXRo
-bXMgZm9yIGltcHJvdmluZw0KPiA+Pj4+PiB0aGUgaW1hZ2UNCj4gPj4+IHF1YWxpdHkuDQo+ID4+
-Pj4+DQo+ID4+Pj4+IE1ldGEgZGF0YSBmb3JtYXRzIGFyZSBkZWZpbmVkIGZvciBpbWFnZSBzdGF0
-aXN0aWNzICgzQSwgaS5lLg0KPiA+Pj4+PiBhdXRvbWF0aWMgd2hpdGUgYmFsYW5jZSwgZXhwb3N1
-cmUgYW5kIGZvY3VzLCBoaXN0b2dyYW0gYW5kIGxvY2FsDQo+ID4+Pj4+IGFyZWEgY29udHJhc3QN
-Cj4gPj4+Pj4gZW5oYW5jZW1lbnQpIGFzIHdlbGwgYXMgZm9yIHRoZSBwaXhlbCBwcm9jZXNzaW5n
-IGFsZ29yaXRobSBwYXJhbWV0ZXJzLg0KPiA+Pj4+PiBUaGUgZG9jdW1lbnRhdGlvbiBmb3IgdGhl
-c2UgZm9ybWF0cyBpcyBjdXJyZW50bHkgbm90IGluY2x1ZGVkIGluDQo+ID4+Pj4+IHRoZSBwYXRj
-aHNldCBidXQgd2lsbCBiZSBhZGRlZCBpbiBhIGZ1dHVyZSB2ZXJzaW9uIG9mIHRoaXMgc2V0Lg0K
-PiA+Pj4+Pg0KPiA+Pj4+DQo+ID4+Pj4gSGVyZSBpcyBhbiB1cGRhdGUgb24gdGhlIElQVTMgZG9j
-dW1lbnRhdGlvbiB0aGF0IHdlIGFyZSBjdXJyZW50bHkNCj4gPj4+PiB3b3JraW5nDQo+ID4+PiBv
-bi4NCj4gPj4+Pg0KPiA+Pj4+IEltYWdlIHByb2Nlc3NpbmcgaW4gSVBVMyByZWxpZXMgb24gdGhl
-IGZvbGxvd2luZy4NCj4gPj4+Pg0KPiA+Pj4+IDEpIEhXIGNvbmZpZ3VyYXRpb24gdG8gZW5hYmxl
-IElTUCBhbmQNCj4gPj4+PiAyKSBzZXR0aW5nIGN1c3RvbWVyIHNwZWNpZmljIDNBIFR1bmluZyAv
-IEFsZ29yaXRobSBQYXJhbWV0ZXJzIHRvDQo+ID4+Pj4gYWNoaWV2ZQ0KPiA+Pj4gZGVzaXJlZCBp
-bWFnZSBxdWFsaXR5Lg0KPiA+Pj4+DQo+ID4+Pj4gV2UgaW50ZW5kIHRvIHByb3ZpZGUgZG9jdW1l
-bnRhdGlvbiBvbiBJbWdVIGRyaXZlciBwcm9ncmFtbWluZw0KPiA+Pj4+IGludGVyZmFjZQ0KPiA+
-Pj4gdG8gaGVscCB1c2VycyBvZiB0aGlzIGRyaXZlciB0byBjb25maWd1cmUgYW5kIGVuYWJsZSBJ
-U1AgSFcgdG8gbWVldA0KPiA+Pj4gdGhlaXIgbmVlZHMuICBUaGlzIGRvY3VtZW50YXRpb24gd2ls
-bCBpbmNsdWRlIGRldGFpbHMgb24gY29tcGxldGUNCj4gPj4+IFY0TDIgS2VybmVsIGRyaXZlciBp
-bnRlcmZhY2UgYW5kIElPLUNvbnRyb2wgcGFyYW1ldGVycywgZXhjZXB0IGZvcg0KPiA+Pj4gdGhl
-IElTUCBpbnRlcm5hbCBhbGdvcml0aG0gYW5kIGl0cyBwYXJhbWV0ZXJzICh3aGljaCBpcyBJbnRl
-bCBwcm9wcmlldGFyeSBJUCkuDQo+ID4+Pj4NCj4gPj4+PiBXZSB3aWxsIGFsc28gcHJvdmlkZSBh
-biB1c2VyIHNwYWNlIGxpYnJhcnkgaW4gYmluYXJ5IGZvcm0gdG8gaGVscA0KPiA+Pj4+IHVzZXJz
-IG9mIHRoaXMNCj4gPj4+IGRyaXZlciwgdG8gY29udmVydCB0aGUgcHVibGljIDNBIHR1bmluZyBw
-YXJhbWV0ZXJzIHRvIElQVTMgYWxnb3JpdGhtDQo+ID4+PiBwYXJhbWV0ZXJzLiBUaGlzIHRvb2wg
-d2lsbCBiZSByZWxlYXNlZCB1bmRlciBOREEgdG8gdGhlIHVzZXJzIG9mIHRoaXMNCj4gZHJpdmVy
-Lg0KPiA+Pj4NCj4gPj4+IFNvIEkgZGlzY3Vzc2VkIHRoaXMgc2l0dWF0aW9uIHdpdGggU2FrYXJp
-IGluIFByYWd1ZSBkdXJpbmcgdGhlIEVMQ0UuDQo+ID4+PiBJIGFtIG5vdCBoYXBweSB3aXRoIGFk
-ZGluZyBhIGRyaXZlciB0byB0aGUga2VybmVsIHRoYXQgbmVlZHMgYW4gTkRBDQo+ID4+PiB0byBi
-ZSB1c2FibGUuIEkgY2FuJ3QgYWdyZWUgdG8gdGhhdC4gSXQncyBlZmZlY3RpdmVseSB0aGUgc2Ft
-ZSBhcw0KPiA+Pj4gZmlybXdhcmUgdGhhdCdzIG9ubHkgYXZhaWxhYmxlIHVuZGVyIGFuIE5EQSBh
-bmQgd2Ugd291bGRuJ3QgYWNjZXB0IHN1Y2gNCj4gZHJpdmVycyBlaXRoZXIuDQo+ID4+Pg0KPiA+
-Pg0KPiA+PiBBY2sNCj4gPj4NCj4gPj4+IFRoZXJlIGFyZSBhIGZldyBvcHRpb25zOg0KPiA+Pj4N
-Cj4gPj4+IDEpIERvY3VtZW50IHRoZSBJU1AgcGFyYW1ldGVycyBhbmQgdGhhdCBmb3JtYXQgdGhl
-eSBhcmUgc3RvcmVkIGluDQo+ID4+PiBhbGxvd2luZyBmb3INCj4gPj4+ICAgIG9wZW4gc291cmNl
-IGltcGxlbWVudGF0aW9ucy4gV2hpbGUgdGhpcyBpcyB0aGUgaWRlYWwsIEkgc3VzcGVjdCB0aGF0
-IHRoaXMNCj4gaXMNCj4gPj4+ICAgIGEgbm8tZ28gZm9yIEludGVsLg0KPiA+Pj4NCj4gPj4NCj4g
-Pj4gQWNrDQo+ID4+DQo+ID4+PiAyKSBUaGUgZHJpdmVyIGNhbiBiZSB1c2VkIHdpdGhvdXQgdXNp
-bmcgdGhlc2UgSVNQIHBhcmFtZXRlcnMgYW5kIHN0aWxsDQo+IGFjaGlldmUNCj4gPj4+ICAgICdP
-SycgcXVhbGl0eS4gSS5lLiwgaXQncyB1c2FibGUgZm9yIGJhc2ljIHdlYmNhbSB1c2FnZSB1bmRl
-ciBub3JtYWwgbGlnaHRpbmcNCj4gPj4+ICAgIGNvbmRpdGlvbnMuIEknbSBub3Qgc3VyZSBpZiB0
-aGlzIGlzIHBvc3NpYmxlIGF0IGFsbCwgdGhvdWdoLg0KPiA+Pj4NCj4gPj4NCj4gPj4gVGhpcyBp
-cyBzb21ldGhpbmcgdGhhdCB3ZSBoYXZlIHRyaWVkIGFuZCBhcmUgYWJsZSB0byBkbyBpbWFnZSBj
-YXB0dXJlDQo+ID4+IHdpdGggdGhlIGRlZmF1bHQgSVNQIHBhcmFtZXRlcnMgdXNpbmcgb3Y1Njcw
-IHNlbnNvci4NCg0KDQo+ID4+IEFkZGl0aW9uYWxseSB3ZSBoYWQgdG8gc2V0IG9wdGltYWwgdmFs
-dWVzIGZvciB0aGUgb3Y1NjcwIHNlbnNvcidzDQo+ID4+IGV4cG9zdXJlIGFuZCBnYWluIHNldHRp
-bmdzLg0KDQpCeSB0aGUgYWJvdmUsIEkgbWVhbnQgdG8gc2F5IHRoYXQgb3B0aW1hbCB2YWx1ZXMg
-b2YgZXhwb3N1cmUgYW5kIGdhaW4NCnNldHRpbmdzIHdlcmUgc2V0IGluIC8gdGhyb3VnaCB0aGUg
-b3Y1NjcwIHNlbnNvciBkcml2ZXIuDQoNCj4gPg0KPiA+IERvZXMgaXQgbWVhbiBoYXJkY29kaW5n
-IHNvbWUgb3Y1NjcwLXNwZWNpZmljIHNldHRpbmdzIGluIHRoZSBJU1ANCj4gPiBkcml2ZXI/IElm
-IG5vdCwgSSBndWVzcyBpdCBtaWdodCBiZSBnb29kIGVub3VnaD8NCj4gDQoNCk5vLiBUaGVyZSBp
-cyBubyBoYXJkY29kaW5nIG9mIGFueSBzZW5zb3Igc3BlY2lmaWMgc2V0dGluZ3MgaW4gdGhlIElT
-UCBkcml2ZXIuDQoNCkNhbWVyYSBIQUwgLyB1c2VyIHNwYWNlIGFwcGxpY2F0aW9ucyBhcmUgc3Rp
-bGwgZXhwZWN0ZWQgdG8gdHVuZSBzZW5zb3INClNwZWNpZmljIHNldHRpbmdzIChBdXRvIGZvY3Vz
-IGFuZCBBdXRvIGV4cG9zdXJlKSBmb3IgM0EgYW5kIHBhcmFtZXRlcnMuDQpPbmx5IEF1dG8gd2hp
-dGUgYmFsYW5jZSBpcyBhZGp1c3RlZCBieSBkZWZhdWx0IElTUCBwYXJhbWV0ZXJzLCB3aXRoIHdo
-aWNoDQp0aGlzIGltYWdlIHdhcyBjYXB0dXJlZC4NCg0KPiBJdCBkb2Vzbid0IGxvb2sgdG9vIGJh
-ZCwgYnV0IGl0J3MgaGFyZCB0byB0ZWxsIGZyb20ganVzdCBhIHNpbmdsZSBmcmFtZS4gSSB0aGlu
-ayB5b3UNCj4gY2FuIHdvcmsgd2l0aCBTYWthcmkgb24gdGhpcywgaWYgaGUgYWxzbyB0aGlua3Mg
-aXQncyBnb29kIGVub3VnaCwgdGhlbiBJIGFtDQo+IGhhcHB5IHdpdGggdGhhdC4NCj4gDQoNCkFj
-aw0KDQo+ID4NCj4gPj4NCj4gPj4gUGxlYXNlIHNlZSBpZiB0aGUgZm9sbG93aW5nIGltYWdlIGxv
-b2tzIHRvIG1lZXQgdGhlICdPSycgcXVhbGl0eS4NCj4gPj4NCj4gPj4gZ2l0IGNsb25lIGh0dHBz
-Oi8vZ2l0aHViLmNvbS9SYWptb2hhbk1hbmkvaXB1My1taXNjLmdpdA0KPiA+PiBpcHUzLW1pc2Mv
-b3Y1NjcwLmpwZyBpcyB0aGUgaW1hZ2UgZmlsZS4NCj4gPj4NCj4gPj4+IDMpIE1ha2UgdGhlIGxp
-YnJhcnkgYXZhaWxhYmxlIHdpdGhvdXQgcmVxdWlyaW5nIGFuIE5EQS4NCj4gPj4+DQo+ID4+DQo+
-ID4+IFdlIGFyZSBhbHNvIGFjdGl2ZWx5IGV4cGxvcmluZyB0aGlzIG9wdGlvbiB0byBzZWUgaWYg
-dGhpcyBjYW4gYmUgZG9uZS4NCj4gPj4NCj4gPj4+IDQpIFByb3ZpZGUgYSBub24tTkRBIGxpYnJh
-cnkgKGlkZWFsbHkgb3BlbiBzb3VyY2UpIHRoYXQgYWNoaWV2ZXMgYXQNCj4gbWluaW11bQ0KPiA+
-Pj4gICAgdGhlIHF1YWxpdHkgYXMgZGVzY3JpYmVkIGluIDI6IGkuZS4gdXNhYmxlIGZvciBiYXNp
-YyB3ZWJjYW0uDQo+ID4+Pg0KPiA+Pg0KPiA+PiBJIHNlZSB0aGlzIGlzIHRoZSBzYW1lIGFzIG9w
-dGlvbiAzKSArIG9wZW4gc291cmNpbmcgdGhlIGxpYnJhcnkuDQo+ID4+IE9wZW4gc291cmNpbmcg
-dGhlIGxpYnJhcnkgZG9lcyBub3QgbG9vayB0byBiZSBhbiBvcHRpb24uDQo+ID4+IEkgd2lsbCBy
-ZWNvbmZpcm0gdGhpcy4NCj4gPg0KPiA+IEluIG15IHVuZGVyc3RhbmRpbmcsIHRoYXQgY291bGQg
-YmUgcXVpdGUgZGlmZmVyZW50IGZyb20gb3B0aW9uIDMpLiBUaGUNCj4gPiBvcGVuIHNvdXJjZSBs
-aWJyYXJ5IHdvdWxkIG5vdCBoYXZlIHRvIGltcGxlbWVudCBhbGwgb2YgdGhlDQo+ID4gY2FwYWJp
-bGl0aWVzLCBqdXN0IGVub3VnaCB0byBnZXQgdGhlICJPSyIgcXVhbGl0eSBhbmQgdGhlIGltcGxl
-bWVudGVkDQo+ID4gcGFydCBjb3VsZCB1c2Ugc29tZSBzaW1wbGVyIGFsZ29yaXRobXMgbm90IGNv
-dmVyZWQgYnkgSVAuDQo+IA0KPiBUaGF0J3MgY29ycmVjdC4NCj4gDQoNClRoYW5rcyBmb3IgdGhl
-IGNsYXJpZmljYXRpb25zIGhlcmUuDQpXZSB3aWxsIGFsc28gYmUgbG9va2luZyBpbnRvIHRoaXMg
-b3B0aW9uLg0KDQo+IFRoaXMgYWxzbyBzb2x2ZXMgbXkgY29uY2VybnMgYWJvdXQgbG9uZy10ZXJt
-IG1haW50ZW5hbmNlIG9mIGNsb3NlZCBzb3VyY2UNCj4gbGlicmFyaWVzIHdoaWNoIGluIG15IGV4
-cGVyaWVuY2UgdGVuZCB0byBzdWZmZXIgZnJvbSBiaXQtcm90IGFmdGVyIHRoZSB2ZW5kb3Igbm8N
-Cj4gbG9uZ2VyIHNlbGxzIHRoZSBoYXJkd2FyZSBpdCB3YXMgd3JpdHRlbiBmb3IuIEFuIG9wZW4g
-c291cmNlIGltcGxlbWVudGF0aW9uLA0KPiBhbGJlaXQgbm90IGFzIHBvd2VyZnVsIGFzIHRoZSBO
-REEgdmVyc2lvbiwgY2FuIGJlIGFkZGVkIHRvIGUuZy4gdGhlIHY0bC11dGlscw0KPiByZXBvIChv
-ciBhdCBsZWFzdCBhdCBhIHJlcG8gb24gbGludXh0di5vcmcpIGFuZCBtYWludGFpbmVkIG11Y2gg
-bG9uZ2VyIGFuZA0KPiBpbmRlcGVuZGVudCBvZiB0aGUgdmVuZG9yLg0KPiANCg0KQWNrDQo=
+Remove the static list of media links that were formed at probe time.
+These links can instead be created after all registered async subdevices
+have been bound in imx_media_probe_complete().
+
+The media links between subdevices that exist in the device tree, can
+be created post-async completion by using v4l2_fwnode_parse_link() for
+each endpoint node of that subdevice. Note this approach assumes
+device-tree ports are equivalent to media pads (pad index equals
+port id), and that device-tree endpoints are equivalent to media
+links between pads.
+
+Because links are no longer parsed by imx_media_of_parse(), its sole
+function is now only to add subdevices that it encounters by walking
+the OF graph to the async list, so the function has been renamed
+imx_media_add_of_subdevs().
+
+Similarly, the media links between the IPU-internal subdevice pads (the
+CSI source pads, and all pads between the vdic, ic-prp, ic-prpenc, and
+ic-prpvf subdevices), can be created post-async completion by looping
+through the subdevice's media pads and using the const internal_subdev
+table.
+
+Because links are no longer parsed by imx_media_add_internal_subdevs(),
+this function no longer needs an array of CSI subdevs to form links
+from.
+
+In summary, the following functions, which were used to form a list
+of media links at probe time, are removed:
+
+imx_media_add_pad_link()
+add_internal_links()
+of_add_pad_link()
+
+replaced by these functions, called at probe time, which only populate
+the async subdev list:
+
+imx_media_add_of_subdevs()
+imx_media_add_internal_subdevs()
+
+and these functions, called at async completion, which create the
+media links:
+
+imx_media_create_of_links()
+imx_media_create_csi_of_links()
+imx_media_create_internal_links()
+
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+---
+ drivers/staging/media/imx/imx-media-dev.c         | 130 +++----------
+ drivers/staging/media/imx/imx-media-internal-sd.c | 219 +++++++++++++---------
+ drivers/staging/media/imx/imx-media-of.c          | 189 ++++++++++++-------
+ drivers/staging/media/imx/imx-media.h             |  39 +---
+ 4 files changed, 281 insertions(+), 296 deletions(-)
+
+diff --git a/drivers/staging/media/imx/imx-media-dev.c b/drivers/staging/media/imx/imx-media-dev.c
+index c483b1d..09d2deb 100644
+--- a/drivers/staging/media/imx/imx-media-dev.c
++++ b/drivers/staging/media/imx/imx-media-dev.c
+@@ -11,6 +11,7 @@
+ #include <linux/delay.h>
+ #include <linux/fs.h>
+ #include <linux/module.h>
++#include <linux/of_graph.h>
+ #include <linux/of_platform.h>
+ #include <linux/pinctrl/consumer.h>
+ #include <linux/platform_device.h>
+@@ -128,50 +129,6 @@ imx_media_add_async_subdev(struct imx_media_dev *imxmd,
+ }
+ 
+ /*
+- * Adds an imx-media link to a subdev pad's link list. This is called
+- * during driver load when forming the links between subdevs.
+- *
+- * @pad: the local pad
+- * @remote_node: the device node of the remote subdev
+- * @remote_devname: the device name of the remote subdev
+- * @local_pad: local pad index
+- * @remote_pad: remote pad index
+- */
+-int imx_media_add_pad_link(struct imx_media_dev *imxmd,
+-			   struct imx_media_pad *pad,
+-			   struct device_node *remote_node,
+-			   const char *remote_devname,
+-			   int local_pad, int remote_pad)
+-{
+-	struct imx_media_link *link;
+-	int link_idx, ret = 0;
+-
+-	mutex_lock(&imxmd->mutex);
+-
+-	link_idx = pad->num_links;
+-	if (link_idx >= IMX_MEDIA_MAX_LINKS) {
+-		dev_err(imxmd->md.dev, "%s: too many links!\n", __func__);
+-		ret = -ENOSPC;
+-		goto out;
+-	}
+-
+-	link = &pad->link[link_idx];
+-
+-	link->remote_sd_node = remote_node;
+-	if (remote_devname)
+-		strncpy(link->remote_devname, remote_devname,
+-			sizeof(link->remote_devname));
+-
+-	link->local_pad = local_pad;
+-	link->remote_pad = remote_pad;
+-
+-	pad->num_links++;
+-out:
+-	mutex_unlock(&imxmd->mutex);
+-	return ret;
+-}
+-
+-/*
+  * get IPU from this CSI and add it to the list of IPUs
+  * the media driver will control.
+  */
+@@ -240,76 +197,38 @@ static int imx_media_subdev_bound(struct v4l2_async_notifier *notifier,
+ }
+ 
+ /*
+- * Create a single source->sink media link given a subdev and a single
+- * link from one of its source pads. Called after all subdevs have
+- * registered.
+- */
+-static int imx_media_create_link(struct imx_media_dev *imxmd,
+-				 struct imx_media_subdev *src,
+-				 struct imx_media_link *link)
+-{
+-	struct imx_media_subdev *sink;
+-	u16 source_pad, sink_pad;
+-	int ret;
+-
+-	sink = imx_media_find_async_subdev(imxmd, link->remote_sd_node,
+-					   link->remote_devname);
+-	if (!sink) {
+-		v4l2_warn(&imxmd->v4l2_dev, "%s: no sink for %s:%d\n",
+-			  __func__, src->sd->name, link->local_pad);
+-		return 0;
+-	}
+-
+-	source_pad = link->local_pad;
+-	sink_pad = link->remote_pad;
+-
+-	v4l2_info(&imxmd->v4l2_dev, "%s: %s:%d -> %s:%d\n", __func__,
+-		  src->sd->name, source_pad, sink->sd->name, sink_pad);
+-
+-	ret = media_create_pad_link(&src->sd->entity, source_pad,
+-				    &sink->sd->entity, sink_pad, 0);
+-	if (ret)
+-		v4l2_err(&imxmd->v4l2_dev,
+-			 "create_pad_link failed: %d\n", ret);
+-
+-	return ret;
+-}
+-
+-/*
+- * create the media links from all imx-media pads and their links.
++ * create the media links from all pads and their links.
+  * Called after all subdevs have registered.
+  */
+ static int imx_media_create_links(struct imx_media_dev *imxmd)
+ {
+ 	struct imx_media_subdev *imxsd;
+-	struct imx_media_link *link;
+-	struct imx_media_pad *pad;
+-	int num_pads, i, j, k;
+-	int ret = 0;
++	struct v4l2_subdev *sd;
++	int i, ret;
+ 
+ 	for (i = 0; i < imxmd->num_subdevs; i++) {
+ 		imxsd = &imxmd->subdev[i];
+-		num_pads = imxsd->num_sink_pads + imxsd->num_src_pads;
+-
+-		for (j = 0; j < num_pads; j++) {
+-			pad = &imxsd->pad[j];
+-
+-			/* only create the source->sink links */
+-			if (!(pad->pad.flags & MEDIA_PAD_FL_SOURCE))
+-				continue;
+-
+-			for (k = 0; k < pad->num_links; k++) {
+-				link = &pad->link[k];
++		sd = imxsd->sd;
+ 
+-				ret = imx_media_create_link(imxmd, imxsd, link);
+-				if (ret)
+-					goto out;
+-			}
++		if (((sd->grp_id & IMX_MEDIA_GRP_ID_CSI) || imxsd->pdev)) {
++			/* this is an internal subdev or a CSI */
++			ret = imx_media_create_internal_links(imxmd, imxsd);
++			if (ret)
++				return ret;
++			/*
++			 * the CSIs straddle between the external and the IPU
++			 * internal entities, so create the external links
++			 * to the CSI sink pads.
++			 */
++			if (sd->grp_id & IMX_MEDIA_GRP_ID_CSI)
++				imx_media_create_csi_of_links(imxmd, imxsd);
++		} else {
++			/* this is an external fwnode subdev */
++			imx_media_create_of_links(imxmd, imxsd);
+ 		}
+ 	}
+ 
+-out:
+-	return ret;
++	return 0;
+ }
+ 
+ /*
+@@ -550,7 +469,6 @@ static int imx_media_probe(struct platform_device *pdev)
+ {
+ 	struct device *dev = &pdev->dev;
+ 	struct device_node *node = dev->of_node;
+-	struct imx_media_subdev *csi[4] = {0};
+ 	struct imx_media_dev *imxmd;
+ 	int ret;
+ 
+@@ -581,14 +499,14 @@ static int imx_media_probe(struct platform_device *pdev)
+ 
+ 	dev_set_drvdata(imxmd->v4l2_dev.dev, imxmd);
+ 
+-	ret = imx_media_of_parse(imxmd, &csi, node);
++	ret = imx_media_add_of_subdevs(imxmd, node);
+ 	if (ret) {
+ 		v4l2_err(&imxmd->v4l2_dev,
+-			 "imx_media_of_parse failed with %d\n", ret);
++			 "add_of_subdevs failed with %d\n", ret);
+ 		goto unreg_dev;
+ 	}
+ 
+-	ret = imx_media_add_internal_subdevs(imxmd, csi);
++	ret = imx_media_add_internal_subdevs(imxmd);
+ 	if (ret) {
+ 		v4l2_err(&imxmd->v4l2_dev,
+ 			 "add_internal_subdevs failed with %d\n", ret);
+diff --git a/drivers/staging/media/imx/imx-media-internal-sd.c b/drivers/staging/media/imx/imx-media-internal-sd.c
+index cdfbf40..3e60df5 100644
+--- a/drivers/staging/media/imx/imx-media-internal-sd.c
++++ b/drivers/staging/media/imx/imx-media-internal-sd.c
+@@ -60,14 +60,19 @@ static const struct internal_subdev_id {
+ 	},
+ };
+ 
++struct internal_subdev;
++
+ struct internal_link {
+-	const struct internal_subdev_id *remote_id;
++	const struct internal_subdev *remote;
++	int local_pad;
+ 	int remote_pad;
+ };
+ 
++/* max links per internal-sd pad */
++#define MAX_INTERNAL_LINKS  8
++
+ struct internal_pad {
+-	bool devnode; /* does this pad link to a device node */
+-	struct internal_link link[IMX_MEDIA_MAX_LINKS];
++	struct internal_link link[MAX_INTERNAL_LINKS];
+ };
+ 
+ static const struct internal_subdev {
+@@ -75,7 +80,7 @@ static const struct internal_subdev {
+ 	struct internal_pad pad[IMX_MEDIA_MAX_PADS];
+ 	int num_sink_pads;
+ 	int num_src_pads;
+-} internal_subdev[num_isd] = {
++} int_subdev[num_isd] = {
+ 	[isd_csi0] = {
+ 		.id = &isd_id[isd_csi0],
+ 		.num_sink_pads = CSI_NUM_SINK_PADS,
+@@ -83,17 +88,16 @@ static const struct internal_subdev {
+ 		.pad[CSI_SRC_PAD_DIRECT] = {
+ 			.link = {
+ 				{
+-					.remote_id = &isd_id[isd_ic_prp],
++					.local_pad = CSI_SRC_PAD_DIRECT,
++					.remote = &int_subdev[isd_ic_prp],
+ 					.remote_pad = PRP_SINK_PAD,
+ 				}, {
+-					.remote_id =  &isd_id[isd_vdic],
++					.local_pad = CSI_SRC_PAD_DIRECT,
++					.remote = &int_subdev[isd_vdic],
+ 					.remote_pad = VDIC_SINK_PAD_DIRECT,
+ 				},
+ 			},
+ 		},
+-		.pad[CSI_SRC_PAD_IDMAC] = {
+-			.devnode = true,
+-		},
+ 	},
+ 
+ 	[isd_csi1] = {
+@@ -103,30 +107,27 @@ static const struct internal_subdev {
+ 		.pad[CSI_SRC_PAD_DIRECT] = {
+ 			.link = {
+ 				{
+-					.remote_id = &isd_id[isd_ic_prp],
++					.local_pad = CSI_SRC_PAD_DIRECT,
++					.remote = &int_subdev[isd_ic_prp],
+ 					.remote_pad = PRP_SINK_PAD,
+ 				}, {
+-					.remote_id =  &isd_id[isd_vdic],
++					.local_pad = CSI_SRC_PAD_DIRECT,
++					.remote = &int_subdev[isd_vdic],
+ 					.remote_pad = VDIC_SINK_PAD_DIRECT,
+ 				},
+ 			},
+ 		},
+-		.pad[CSI_SRC_PAD_IDMAC] = {
+-			.devnode = true,
+-		},
+ 	},
+ 
+ 	[isd_vdic] = {
+ 		.id = &isd_id[isd_vdic],
+ 		.num_sink_pads = VDIC_NUM_SINK_PADS,
+ 		.num_src_pads = VDIC_NUM_SRC_PADS,
+-		.pad[VDIC_SINK_PAD_IDMAC] = {
+-			.devnode = true,
+-		},
+ 		.pad[VDIC_SRC_PAD_DIRECT] = {
+ 			.link = {
+ 				{
+-					.remote_id =  &isd_id[isd_ic_prp],
++					.local_pad = VDIC_SRC_PAD_DIRECT,
++					.remote = &int_subdev[isd_ic_prp],
+ 					.remote_pad = PRP_SINK_PAD,
+ 				},
+ 			},
+@@ -140,7 +141,8 @@ static const struct internal_subdev {
+ 		.pad[PRP_SRC_PAD_PRPENC] = {
+ 			.link = {
+ 				{
+-					.remote_id = &isd_id[isd_ic_prpenc],
++					.local_pad = PRP_SRC_PAD_PRPENC,
++					.remote = &int_subdev[isd_ic_prpenc],
+ 					.remote_pad = 0,
+ 				},
+ 			},
+@@ -148,7 +150,8 @@ static const struct internal_subdev {
+ 		.pad[PRP_SRC_PAD_PRPVF] = {
+ 			.link = {
+ 				{
+-					.remote_id = &isd_id[isd_ic_prpvf],
++					.local_pad = PRP_SRC_PAD_PRPVF,
++					.remote = &int_subdev[isd_ic_prpvf],
+ 					.remote_pad = 0,
+ 				},
+ 			},
+@@ -159,68 +162,114 @@ static const struct internal_subdev {
+ 		.id = &isd_id[isd_ic_prpenc],
+ 		.num_sink_pads = PRPENCVF_NUM_SINK_PADS,
+ 		.num_src_pads = PRPENCVF_NUM_SRC_PADS,
+-		.pad[PRPENCVF_SRC_PAD] = {
+-			.devnode = true,
+-		},
+ 	},
+ 
+ 	[isd_ic_prpvf] = {
+ 		.id = &isd_id[isd_ic_prpvf],
+ 		.num_sink_pads = PRPENCVF_NUM_SINK_PADS,
+ 		.num_src_pads = PRPENCVF_NUM_SRC_PADS,
+-		.pad[PRPENCVF_SRC_PAD] = {
+-			.devnode = true,
+-		},
+ 	},
+ };
+ 
+-/* form a device name given a group id and ipu id */
+-static inline void isd_id_to_devname(char *devname, int sz,
+-				     const struct internal_subdev_id *id,
+-				     int ipu_id)
++/* form a device name given an internal subdev and ipu id */
++static inline void isd_to_devname(char *devname, int sz,
++				  const struct internal_subdev *isd,
++				  int ipu_id)
+ {
+-	int pdev_id = ipu_id * num_isd + id->index;
++	int pdev_id = ipu_id * num_isd + isd->id->index;
+ 
+-	snprintf(devname, sz, "%s.%d", id->name, pdev_id);
++	snprintf(devname, sz, "%s.%d", isd->id->name, pdev_id);
+ }
+ 
+-/* adds the links from given internal subdev */
+-static int add_internal_links(struct imx_media_dev *imxmd,
+-			      const struct internal_subdev *isd,
+-			      struct imx_media_subdev *imxsd,
+-			      int ipu_id)
++static const struct internal_subdev *find_intsd_by_grp_id(u32 grp_id)
+ {
+-	int i, num_pads, ret;
++	enum isd_enum i;
++
++	for (i = 0; i < num_isd; i++) {
++		const struct internal_subdev *isd = &int_subdev[i];
+ 
+-	num_pads = isd->num_sink_pads + isd->num_src_pads;
++		if (isd->id->grp_id == grp_id)
++			return isd;
++	}
+ 
+-	for (i = 0; i < num_pads; i++) {
+-		const struct internal_pad *intpad = &isd->pad[i];
+-		struct imx_media_pad *pad = &imxsd->pad[i];
+-		int j;
++	return NULL;
++}
+ 
+-		/* init the pad flags for this internal subdev */
+-		pad->pad.flags = (i < isd->num_sink_pads) ?
+-			MEDIA_PAD_FL_SINK : MEDIA_PAD_FL_SOURCE;
+-		/* export devnode pad flag to the subdevs */
+-		pad->devnode = intpad->devnode;
++static struct imx_media_subdev *find_sink(struct imx_media_dev *imxmd,
++					  struct imx_media_subdev *src,
++					  const struct internal_link *link)
++{
++	char sink_devname[32];
++	int ipu_id;
++
++	/*
++	 * retrieve IPU id from subdev name, note: can't get this from
++	 * struct imx_media_internal_sd_platformdata because if src is
++	 * a CSI, it has different struct ipu_client_platformdata which
++	 * does not contain IPU id.
++	 */
++	if (sscanf(src->sd->name, "ipu%d", &ipu_id) != 1)
++		return NULL;
++
++	isd_to_devname(sink_devname, sizeof(sink_devname),
++		       link->remote, ipu_id - 1);
++
++	return imx_media_find_async_subdev(imxmd, NULL, sink_devname);
++}
+ 
+-		for (j = 0; ; j++) {
+-			const struct internal_link *link;
+-			char remote_devname[32];
++static int create_ipu_internal_link(struct imx_media_dev *imxmd,
++				    struct imx_media_subdev *src,
++				    const struct internal_link *link)
++{
++	struct imx_media_subdev *sink;
++	int ret;
++
++	sink = find_sink(imxmd, src, link);
++	if (!sink)
++		return -ENODEV;
+ 
++	v4l2_info(&imxmd->v4l2_dev, "%s:%d -> %s:%d\n",
++		  src->sd->name, link->local_pad,
++		  sink->sd->name, link->remote_pad);
++
++	ret = media_create_pad_link(&src->sd->entity, link->local_pad,
++				    &sink->sd->entity, link->remote_pad, 0);
++	if (ret)
++		v4l2_err(&imxmd->v4l2_dev,
++			 "create_pad_link failed: %d\n", ret);
++
++	return ret;
++}
++
++int imx_media_create_internal_links(struct imx_media_dev *imxmd,
++				    struct imx_media_subdev *imxsd)
++{
++	struct v4l2_subdev *sd = imxsd->sd;
++	const struct internal_subdev *intsd;
++	const struct internal_pad *intpad;
++	const struct internal_link *link;
++	struct media_pad *pad;
++	int i, j, ret;
++
++	intsd = find_intsd_by_grp_id(imxsd->sd->grp_id);
++	if (!intsd)
++		return -ENODEV;
++
++	/* create the source->sink links */
++	for (i = 0; i < sd->entity.num_pads; i++) {
++		intpad = &intsd->pad[i];
++		pad = &sd->entity.pads[i];
++
++		if (!(pad->flags & MEDIA_PAD_FL_SOURCE))
++			continue;
++
++		for (j = 0; ; j++) {
+ 			link = &intpad->link[j];
+ 
+-			if (!link->remote_id)
++			if (!link->remote)
+ 				break;
+ 
+-			isd_id_to_devname(remote_devname,
+-					  sizeof(remote_devname),
+-					  link->remote_id, ipu_id);
+-
+-			ret = imx_media_add_pad_link(imxmd, pad,
+-						     NULL, remote_devname,
+-						     i, link->remote_pad);
++			ret = create_ipu_internal_link(imxmd, imxsd, link);
+ 			if (ret)
+ 				return ret;
+ 		}
+@@ -230,10 +279,9 @@ static int add_internal_links(struct imx_media_dev *imxmd,
+ }
+ 
+ /* register an internal subdev as a platform device */
+-static struct imx_media_subdev *
+-add_internal_subdev(struct imx_media_dev *imxmd,
+-		    const struct internal_subdev *isd,
+-		    int ipu_id)
++static int add_internal_subdev(struct imx_media_dev *imxmd,
++			       const struct internal_subdev *isd,
++			       int ipu_id)
+ {
+ 	struct imx_media_internal_sd_platformdata pdata;
+ 	struct platform_device_info pdevinfo = {0};
+@@ -258,73 +306,58 @@ add_internal_subdev(struct imx_media_dev *imxmd,
+ 
+ 	pdev = platform_device_register_full(&pdevinfo);
+ 	if (IS_ERR(pdev))
+-		return ERR_CAST(pdev);
++		return PTR_ERR(pdev);
+ 
+ 	imxsd = imx_media_add_async_subdev(imxmd, NULL, pdev);
+ 	if (IS_ERR(imxsd))
+-		return imxsd;
++		return PTR_ERR(imxsd);
+ 
+ 	imxsd->num_sink_pads = isd->num_sink_pads;
+ 	imxsd->num_src_pads = isd->num_src_pads;
+ 
+-	return imxsd;
++	return 0;
+ }
+ 
+ /* adds the internal subdevs in one ipu */
+-static int add_ipu_internal_subdevs(struct imx_media_dev *imxmd,
+-				    struct imx_media_subdev *csi0,
+-				    struct imx_media_subdev *csi1,
+-				    int ipu_id)
++static int add_ipu_internal_subdevs(struct imx_media_dev *imxmd, int ipu_id)
+ {
+ 	enum isd_enum i;
+-	int ret;
+ 
+ 	for (i = 0; i < num_isd; i++) {
+-		const struct internal_subdev *isd = &internal_subdev[i];
+-		struct imx_media_subdev *imxsd;
++		const struct internal_subdev *isd = &int_subdev[i];
++		int ret;
+ 
+ 		/*
+ 		 * the CSIs are represented in the device-tree, so those
+-		 * devices are added already, and are added to the async
+-		 * subdev list by of_parse_subdev(), so we are given those
+-		 * subdevs as csi0 and csi1.
++		 * devices are already added to the async subdev list by
++		 * of_parse_subdev().
+ 		 */
+ 		switch (isd->id->grp_id) {
+ 		case IMX_MEDIA_GRP_ID_CSI0:
+-			imxsd = csi0;
+-			break;
+ 		case IMX_MEDIA_GRP_ID_CSI1:
+-			imxsd = csi1;
++			ret = 0;
+ 			break;
+ 		default:
+-			imxsd = add_internal_subdev(imxmd, isd, ipu_id);
++			ret = add_internal_subdev(imxmd, isd, ipu_id);
+ 			break;
+ 		}
+ 
+-		if (IS_ERR(imxsd))
+-			return PTR_ERR(imxsd);
+-
+-		/* add the links from this subdev */
+-		if (imxsd) {
+-			ret = add_internal_links(imxmd, isd, imxsd, ipu_id);
+-			if (ret)
+-				return ret;
+-		}
++		if (ret)
++			return ret;
+ 	}
+ 
+ 	return 0;
+ }
+ 
+-int imx_media_add_internal_subdevs(struct imx_media_dev *imxmd,
+-				   struct imx_media_subdev *csi[4])
++int imx_media_add_internal_subdevs(struct imx_media_dev *imxmd)
+ {
+ 	int ret;
+ 
+-	ret = add_ipu_internal_subdevs(imxmd, csi[0], csi[1], 0);
++	ret = add_ipu_internal_subdevs(imxmd, 0);
+ 	if (ret)
+ 		goto remove;
+ 
+-	ret = add_ipu_internal_subdevs(imxmd, csi[2], csi[3], 1);
++	ret = add_ipu_internal_subdevs(imxmd, 1);
+ 	if (ret)
+ 		goto remove;
+ 
+diff --git a/drivers/staging/media/imx/imx-media-of.c b/drivers/staging/media/imx/imx-media-of.c
+index 883ad85..d35c99e 100644
+--- a/drivers/staging/media/imx/imx-media-of.c
++++ b/drivers/staging/media/imx/imx-media-of.c
+@@ -20,20 +20,6 @@
+ #include <video/imx-ipu-v3.h>
+ #include "imx-media.h"
+ 
+-static int of_add_pad_link(struct imx_media_dev *imxmd,
+-			   struct imx_media_pad *pad,
+-			   struct device_node *local_sd_node,
+-			   struct device_node *remote_sd_node,
+-			   int local_pad, int remote_pad)
+-{
+-	dev_dbg(imxmd->md.dev, "%s: adding %s:%d -> %s:%d\n", __func__,
+-		local_sd_node->name, local_pad,
+-		remote_sd_node->name, remote_pad);
+-
+-	return imx_media_add_pad_link(imxmd, pad, remote_sd_node, NULL,
+-				      local_pad, remote_pad);
+-}
+-
+ static int of_get_port_count(const struct device_node *np)
+ {
+ 	struct device_node *ports, *child;
+@@ -53,12 +39,10 @@ static int of_get_port_count(const struct device_node *np)
+ }
+ 
+ /*
+- * find the remote device node and remote port id (remote pad #)
+- * given local endpoint node
++ * find the remote device node given local endpoint node
+  */
+-static void of_get_remote_pad(struct device_node *epnode,
+-			      struct device_node **remote_node,
+-			      int *remote_pad)
++static void of_get_remote(struct device_node *epnode,
++			  struct device_node **remote_node)
+ {
+ 	struct device_node *rp, *rpp;
+ 	struct device_node *remote;
+@@ -69,12 +53,9 @@ static void of_get_remote_pad(struct device_node *epnode,
+ 	if (of_device_is_compatible(rpp, "fsl,imx6q-ipu")) {
+ 		/* the remote is one of the CSI ports */
+ 		remote = rp;
+-		*remote_pad = 0;
+ 		of_node_put(rpp);
+ 	} else {
+ 		remote = rpp;
+-		if (of_property_read_u32(rp, "reg", remote_pad))
+-			*remote_pad = 0;
+ 		of_node_put(rp);
+ 	}
+ 
+@@ -88,7 +69,7 @@ static void of_get_remote_pad(struct device_node *epnode,
+ 
+ static int
+ of_parse_subdev(struct imx_media_dev *imxmd, struct device_node *sd_np,
+-		bool is_csi_port, struct imx_media_subdev **subdev)
++		bool is_csi_port)
+ {
+ 	struct imx_media_subdev *imxsd;
+ 	int i, num_pads, ret;
+@@ -96,7 +77,6 @@ of_parse_subdev(struct imx_media_dev *imxmd, struct device_node *sd_np,
+ 	if (!of_device_is_available(sd_np)) {
+ 		dev_dbg(imxmd->md.dev, "%s: %s not enabled\n", __func__,
+ 			sd_np->name);
+-		*subdev = NULL;
+ 		/* unavailable is not an error */
+ 		return 0;
+ 	}
+@@ -107,14 +87,12 @@ of_parse_subdev(struct imx_media_dev *imxmd, struct device_node *sd_np,
+ 	if (ret) {
+ 		if (ret == -EEXIST) {
+ 			/* already added, everything is fine */
+-			*subdev = NULL;
+ 			return 0;
+ 		}
+ 
+ 		/* other error, can't continue */
+ 		return ret;
+ 	}
+-	*subdev = imxsd;
+ 
+ 	if (is_csi_port) {
+ 		/*
+@@ -160,14 +138,6 @@ of_parse_subdev(struct imx_media_dev *imxmd, struct device_node *sd_np,
+ 
+ 	for (i = 0; i < num_pads; i++) {
+ 		struct device_node *epnode = NULL, *port, *remote_np;
+-		struct imx_media_subdev *remote_imxsd;
+-		struct imx_media_pad *pad;
+-		int remote_pad;
+-
+-		/* init this pad */
+-		pad = &imxsd->pad[i];
+-		pad->pad.flags = (i < imxsd->num_sink_pads) ?
+-			MEDIA_PAD_FL_SINK : MEDIA_PAD_FL_SOURCE;
+ 
+ 		if (is_csi_port)
+ 			port = (i < imxsd->num_sink_pads) ? sd_np : NULL;
+@@ -177,19 +147,13 @@ of_parse_subdev(struct imx_media_dev *imxmd, struct device_node *sd_np,
+ 			continue;
+ 
+ 		for_each_child_of_node(port, epnode) {
+-			of_get_remote_pad(epnode, &remote_np, &remote_pad);
++			of_get_remote(epnode, &remote_np);
+ 			if (!remote_np)
+ 				continue;
+ 
+-			ret = of_add_pad_link(imxmd, pad, sd_np, remote_np,
+-					      i, remote_pad);
+-			if (ret)
+-				break;
+-
+ 			if (i < imxsd->num_sink_pads) {
+ 				/* follow sink endpoints upstream */
+-				ret = of_parse_subdev(imxmd, remote_np,
+-						      false, &remote_imxsd);
++				ret = of_parse_subdev(imxmd, remote_np, false);
+ 				if (ret)
+ 					break;
+ 			}
+@@ -209,13 +173,10 @@ of_parse_subdev(struct imx_media_dev *imxmd, struct device_node *sd_np,
+ 	return ret;
+ }
+ 
+-int imx_media_of_parse(struct imx_media_dev *imxmd,
+-		       struct imx_media_subdev *(*csi)[4],
+-		       struct device_node *np)
++int imx_media_add_of_subdevs(struct imx_media_dev *imxmd,
++			     struct device_node *np)
+ {
+-	struct imx_media_subdev *lcsi;
+ 	struct device_node *csi_np;
+-	u32 ipu_id, csi_id;
+ 	int i, ret;
+ 
+ 	for (i = 0; ; i++) {
+@@ -223,33 +184,125 @@ int imx_media_of_parse(struct imx_media_dev *imxmd,
+ 		if (!csi_np)
+ 			break;
+ 
+-		ret = of_parse_subdev(imxmd, csi_np, true, &lcsi);
++		ret = of_parse_subdev(imxmd, csi_np, true);
++		of_node_put(csi_np);
+ 		if (ret)
+-			goto err_put;
++			return ret;
++	}
+ 
+-		ret = of_property_read_u32(csi_np, "reg", &csi_id);
+-		if (ret) {
+-			dev_err(imxmd->md.dev,
+-				"%s: csi port missing reg property!\n",
+-				__func__);
+-			goto err_put;
+-		}
++	return 0;
++}
+ 
+-		ipu_id = of_alias_get_id(csi_np->parent, "ipu");
+-		of_node_put(csi_np);
++/*
++ * Create a single media link to/from imxsd using a fwnode link.
++ *
++ * NOTE: this function assumes an OF port node is equivalent to
++ * a media pad (port id equal to media pad index), and that an
++ * OF endpoint node is equivalent to a media link.
++ */
++static int create_of_link(struct imx_media_dev *imxmd,
++			  struct imx_media_subdev *imxsd,
++			  struct v4l2_fwnode_link *link)
++{
++	struct v4l2_subdev *sd = imxsd->sd;
++	struct imx_media_subdev *remote;
++	struct v4l2_subdev *src, *sink;
++	int src_pad, sink_pad;
+ 
+-		if (ipu_id > 1 || csi_id > 1) {
+-			dev_err(imxmd->md.dev,
+-				"%s: invalid ipu/csi id (%u/%u)\n",
+-				__func__, ipu_id, csi_id);
+-			return -EINVAL;
+-		}
++	if (link->local_port >= sd->entity.num_pads)
++		return -EINVAL;
++
++	remote = imx_media_find_async_subdev(imxmd,
++					     to_of_node(link->remote_node),
++					     NULL);
++	if (!remote)
++		return 0;
+ 
+-		(*csi)[ipu_id * 2 + csi_id] = lcsi;
++	if (sd->entity.pads[link->local_port].flags & MEDIA_PAD_FL_SINK) {
++		src = remote->sd;
++		src_pad = link->remote_port;
++		sink = sd;
++		sink_pad = link->local_port;
++	} else {
++		src = sd;
++		src_pad = link->local_port;
++		sink = remote->sd;
++		sink_pad = link->remote_port;
++	}
++
++	/* make sure link doesn't already exist before creating */
++	if (media_entity_find_link(&src->entity.pads[src_pad],
++				   &sink->entity.pads[sink_pad]))
++		return 0;
++
++	v4l2_info(sd->v4l2_dev, "%s:%d -> %s:%d\n",
++		  src->name, src_pad, sink->name, sink_pad);
++
++	return media_create_pad_link(&src->entity, src_pad,
++				     &sink->entity, sink_pad, 0);
++}
++
++/*
++ * Create media links to/from imxsd using its device-tree endpoints.
++ */
++int imx_media_create_of_links(struct imx_media_dev *imxmd,
++			      struct imx_media_subdev *imxsd)
++{
++	struct v4l2_subdev *sd = imxsd->sd;
++	struct v4l2_fwnode_link link;
++	struct device_node *ep;
++	int ret;
++
++	for_each_endpoint_of_node(sd->dev->of_node, ep) {
++		ret = v4l2_fwnode_parse_link(of_fwnode_handle(ep), &link);
++		if (ret)
++			continue;
++
++		ret = create_of_link(imxmd, imxsd, &link);
++		v4l2_fwnode_put_link(&link);
++		if (ret)
++			return ret;
++	}
++
++	return 0;
++}
++
++/*
++ * Create media links to the given CSI subdevice's sink pads,
++ * using its device-tree endpoints.
++ */
++int imx_media_create_csi_of_links(struct imx_media_dev *imxmd,
++				  struct imx_media_subdev *csi)
++{
++	struct device_node *csi_np = csi->sd->dev->of_node;
++	struct fwnode_handle *fwnode, *csi_ep;
++	struct v4l2_fwnode_link link;
++	struct device_node *ep;
++	int ret;
++
++	link.local_node = of_fwnode_handle(csi_np);
++	link.local_port = CSI_SINK_PAD;
++
++	for_each_child_of_node(csi_np, ep) {
++		csi_ep = of_fwnode_handle(ep);
++
++		fwnode = fwnode_graph_get_remote_endpoint(csi_ep);
++		if (!fwnode)
++			continue;
++
++		fwnode = fwnode_get_parent(fwnode);
++		fwnode_property_read_u32(fwnode, "reg", &link.remote_port);
++		fwnode = fwnode_get_next_parent(fwnode);
++		if (is_of_node(fwnode) &&
++		    of_node_cmp(to_of_node(fwnode)->name, "ports") == 0)
++			fwnode = fwnode_get_next_parent(fwnode);
++		link.remote_node = fwnode;
++
++		ret = create_of_link(imxmd, csi, &link);
++		fwnode_handle_put(link.remote_node);
++		if (ret)
++			return ret;
+ 	}
+ 
+ 	return 0;
+-err_put:
+-	of_node_put(csi_np);
+-	return ret;
+ }
+diff --git a/drivers/staging/media/imx/imx-media.h b/drivers/staging/media/imx/imx-media.h
+index 2cc19da..c05deb4 100644
+--- a/drivers/staging/media/imx/imx-media.h
++++ b/drivers/staging/media/imx/imx-media.h
+@@ -35,8 +35,6 @@
+ #define IMX_MEDIA_MAX_SUBDEVS       32
+ /* max pads per subdev */
+ #define IMX_MEDIA_MAX_PADS          16
+-/* max links per pad */
+-#define IMX_MEDIA_MAX_LINKS          8
+ 
+ /*
+  * Pad definitions for the subdevs with multiple source or
+@@ -119,19 +117,7 @@ static inline struct imx_media_buffer *to_imx_media_vb(struct vb2_buffer *vb)
+ 	return container_of(vbuf, struct imx_media_buffer, vbuf);
+ }
+ 
+-struct imx_media_link {
+-	struct device_node *remote_sd_node;
+-	char               remote_devname[32];
+-	int                local_pad;
+-	int                remote_pad;
+-};
+-
+ struct imx_media_pad {
+-	struct media_pad  pad;
+-	struct imx_media_link link[IMX_MEDIA_MAX_LINKS];
+-	bool devnode; /* does this pad link to a device node */
+-	int num_links;
+-
+ 	/*
+ 	 * list of video devices that can be reached from this pad,
+ 	 * list is only valid for source pads.
+@@ -154,7 +140,7 @@ struct imx_media_subdev {
+ 	int num_sink_pads;
+ 	int num_src_pads;
+ 
+-	/* the platform device if this is an internal subdev */
++	/* the platform device if this is an IPU-internal subdev */
+ 	struct platform_device *pdev;
+ 	/* the devname is needed for async devname match */
+ 	char devname[32];
+@@ -225,17 +211,13 @@ struct imx_media_subdev *
+ imx_media_add_async_subdev(struct imx_media_dev *imxmd,
+ 			   struct device_node *np,
+ 			   struct platform_device *pdev);
+-int imx_media_add_pad_link(struct imx_media_dev *imxmd,
+-			   struct imx_media_pad *pad,
+-			   struct device_node *remote_node,
+-			   const char *remote_devname,
+-			   int local_pad, int remote_pad);
+ 
+ void imx_media_grp_id_to_sd_name(char *sd_name, int sz,
+ 				 u32 grp_id, int ipu_id);
+ 
+-int imx_media_add_internal_subdevs(struct imx_media_dev *imxmd,
+-				   struct imx_media_subdev *csi[4]);
++int imx_media_add_internal_subdevs(struct imx_media_dev *imxmd);
++int imx_media_create_internal_links(struct imx_media_dev *imxmd,
++				    struct imx_media_subdev *imxsd);
+ void imx_media_remove_internal_subdevs(struct imx_media_dev *imxmd);
+ 
+ struct imx_media_subdev *
+@@ -284,13 +266,12 @@ struct imx_media_fim *imx_media_fim_init(struct v4l2_subdev *sd);
+ void imx_media_fim_free(struct imx_media_fim *fim);
+ 
+ /* imx-media-of.c */
+-struct imx_media_subdev *
+-imx_media_of_find_subdev(struct imx_media_dev *imxmd,
+-			 struct device_node *np,
+-			 const char *name);
+-int imx_media_of_parse(struct imx_media_dev *dev,
+-		       struct imx_media_subdev *(*csi)[4],
+-		       struct device_node *np);
++int imx_media_add_of_subdevs(struct imx_media_dev *dev,
++			     struct device_node *np);
++int imx_media_create_of_links(struct imx_media_dev *imxmd,
++			      struct imx_media_subdev *imxsd);
++int imx_media_create_csi_of_links(struct imx_media_dev *imxmd,
++				  struct imx_media_subdev *csi);
+ 
+ /* imx-media-capture.c */
+ struct imx_media_video_dev *
+-- 
+2.7.4
