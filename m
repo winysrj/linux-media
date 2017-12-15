@@ -1,110 +1,159 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:40690 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752584AbdLMM60 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 13 Dec 2017 07:58:26 -0500
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: [PATCH] dvb-sat: do the best to tune if DiSEqC is disabled
-Date: Wed, 13 Dec 2017 10:58:18 -0200
-Message-Id: <20171213125818.11589-1-mchehab@s-opensource.com>
+Received: from mail-pg0-f65.google.com ([74.125.83.65]:33388 "EHLO
+        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754168AbdLOH5J (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 15 Dec 2017 02:57:09 -0500
+Received: by mail-pg0-f65.google.com with SMTP id g7so5300564pgs.0
+        for <linux-media@vger.kernel.org>; Thu, 14 Dec 2017 23:57:08 -0800 (PST)
+From: Alexandre Courbot <acourbot@chromium.org>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Pawel Osciak <posciak@chromium.org>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Tomasz Figa <tfiga@chromium.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Gustavo Padovan <gustavo.padovan@collabora.com>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Alexandre Courbot <acourbot@chromium.org>
+Subject: [RFC PATCH 7/9] media: v4l2-mem2mem: add request support
+Date: Fri, 15 Dec 2017 16:56:23 +0900
+Message-Id: <20171215075625.27028-8-acourbot@chromium.org>
+In-Reply-To: <20171215075625.27028-1-acourbot@chromium.org>
+References: <20171215075625.27028-1-acourbot@chromium.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If sat_number is not filled (e.g. it is -1), the dvb-sat
-disables DiSEqC. However, currently, it also breaks support
-for non-bandstacking LNBf.
+Support request API in the mem2mem framework. Drivers that specify ops
+for the queue and entities can support requests seamlessly.
 
-Change the logic to fix it. There is a drawback on this
-approach, though: usually, on bandstacking arrangements,
-only one device needs to feed power to the LNBf. The
-others don't need to send power. With the previous code,
-no power would be sent at all, if sat_number == -1.
-
-Now, it will always power the LNBf when using it.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Alexandre Courbot <acourbot@chromium.org>
 ---
- lib/libdvbv5/dvb-sat.c | 48 ++++++++++++++++++++++++------------------------
- 1 file changed, 24 insertions(+), 24 deletions(-)
+ drivers/media/v4l2-core/v4l2-mem2mem.c | 34 ++++++++++++++++++++++++++++++++++
+ include/media/v4l2-mem2mem.h           | 19 +++++++++++++++++++
+ 2 files changed, 53 insertions(+)
 
-diff --git a/lib/libdvbv5/dvb-sat.c b/lib/libdvbv5/dvb-sat.c
-index b012318c4195..8c04f66f973b 100644
---- a/lib/libdvbv5/dvb-sat.c
-+++ b/lib/libdvbv5/dvb-sat.c
-@@ -523,11 +523,8 @@ static int dvbsat_diseqc_set_input(struct dvb_v5_fe_parms_priv *parms,
- 	struct diseqc_cmd cmd;
- 	const struct dvb_sat_lnb_priv *lnb = (void *)parms->p.lnb;
+diff --git a/drivers/media/v4l2-core/v4l2-mem2mem.c b/drivers/media/v4l2-core/v4l2-mem2mem.c
+index f62e68aa04c4..eb52bee8e06a 100644
+--- a/drivers/media/v4l2-core/v4l2-mem2mem.c
++++ b/drivers/media/v4l2-core/v4l2-mem2mem.c
+@@ -22,6 +22,7 @@
+ #include <media/v4l2-dev.h>
+ #include <media/v4l2-fh.h>
+ #include <media/v4l2-event.h>
++#include <media/media-request.h>
  
--	/* Negative numbers means to not use a DiSEqC switch */
--	if (parms->p.sat_number < 0) {
--		/* If not bandstack, warn if DiSEqC is disabled */
--		if (!lnb->freqrange[0].pol)
--			dvb_logwarn(_("DiSEqC disabled. Probably won't tune."));
-+	if (sat_number < 0 && t) {
-+		dvb_logwarn(_("DiSEqC disabled. Can't tune using SCR/Unicable."));
- 		return 0;
- 	}
+ MODULE_DESCRIPTION("Mem to mem device framework for videobuf");
+ MODULE_AUTHOR("Pawel Osciak, <pawel@osciak.com>");
+@@ -219,6 +220,15 @@ void v4l2_m2m_try_schedule(struct v4l2_m2m_ctx *m2m_ctx)
+ 	m2m_dev = m2m_ctx->m2m_dev;
+ 	dprintk("Trying to schedule a job for m2m_ctx: %p\n", m2m_ctx);
  
-@@ -546,7 +543,7 @@ static int dvbsat_diseqc_set_input(struct dvb_v5_fe_parms_priv *parms,
- 			vol_high = 1;
- 	} else {
- 		/* Adjust voltage/tone accordingly */
--		if (parms->p.sat_number < 2) {
-+		if (sat_number < 2) {
- 			vol_high = pol_v ? 0 : 1;
- 			tone_on = high_band;
- 		}
-@@ -560,28 +557,31 @@ static int dvbsat_diseqc_set_input(struct dvb_v5_fe_parms_priv *parms,
- 	if (rc)
- 		return rc;
- 
--	usleep(15 * 1000);
--
--	if (!t)
--		rc = dvbsat_diseqc_write_to_port_group(parms, &cmd, high_band,
--							pol_v, sat_number);
--	else
--		rc = dvbsat_scr_odu_channel_change(parms, &cmd, high_band,
--							pol_v, sat_number, t);
-+	if (sat_number >= 0) {
-+		/* DiSEqC is enabled. Send DiSEqC commands */
-+		usleep(15 * 1000);
- 
--	if (rc) {
--		dvb_logerr(_("sending diseq failed"));
--		return rc;
--	}
--	usleep((15 + parms->p.diseqc_wait) * 1000);
-+		if (!t)
-+			rc = dvbsat_diseqc_write_to_port_group(parms, &cmd, high_band,
-+								pol_v, sat_number);
-+		else
-+			rc = dvbsat_scr_odu_channel_change(parms, &cmd, high_band,
-+								pol_v, sat_number, t);
- 
--	/* miniDiSEqC/Toneburst commands are defined only for up to 2 sattelites */
--	if (parms->p.sat_number < 2) {
--		rc = dvb_fe_diseqc_burst(&parms->p, parms->p.sat_number);
--		if (rc)
-+		if (rc) {
-+			dvb_logerr(_("sending diseq failed"));
- 			return rc;
-+		}
-+		usleep((15 + parms->p.diseqc_wait) * 1000);
++#ifdef CONFIG_MEDIA_CONTROLLER
++	/* request is completed if all queues are done with it */
++	if (m2m_ctx->req_queue && m2m_ctx->req_queue->active_request &&
++	    m2m_ctx->cap_q_ctx.q.cur_req == NULL &&
++	    m2m_ctx->out_q_ctx.q.cur_req == NULL)
++		media_request_entity_complete(m2m_ctx->req_queue,
++					      m2m_ctx->entity);
++#endif
 +
-+		/* miniDiSEqC/Toneburst commands are defined only for up to 2 sattelites */
-+		if (parms->p.sat_number < 2) {
-+			rc = dvb_fe_diseqc_burst(&parms->p, parms->p.sat_number);
-+			if (rc)
-+				return rc;
-+		}
-+		usleep(15 * 1000);
- 	}
--	usleep(15 * 1000);
+ 	if (!m2m_ctx->out_q_ctx.q.streaming
+ 	    || !m2m_ctx->cap_q_ctx.q.streaming) {
+ 		dprintk("Streaming needs to be on for both queues\n");
+@@ -665,6 +675,15 @@ struct v4l2_m2m_ctx *v4l2_m2m_ctx_init(struct v4l2_m2m_dev *m2m_dev,
+ }
+ EXPORT_SYMBOL_GPL(v4l2_m2m_ctx_init);
  
- 	rc = dvb_fe_sec_tone(&parms->p, tone_on ? SEC_TONE_ON : SEC_TONE_OFF);
++void v4l2_mem_ctx_request_init(struct v4l2_m2m_ctx *ctx,
++			       struct media_request_queue *req_queue,
++			       struct media_entity *entity)
++{
++	ctx->entity = entity;
++	ctx->req_queue = req_queue;
++}
++EXPORT_SYMBOL_GPL(v4l2_mem_ctx_request_init);
++
+ void v4l2_m2m_ctx_release(struct v4l2_m2m_ctx *m2m_ctx)
+ {
+ 	/* wait until the current context is dequeued from job_queue */
+@@ -810,3 +829,18 @@ unsigned int v4l2_m2m_fop_poll(struct file *file, poll_table *wait)
+ }
+ EXPORT_SYMBOL_GPL(v4l2_m2m_fop_poll);
+ 
++int v4l2_m2m_process_request(struct media_request *req,
++			     struct media_request_entity_data *data)
++{
++#ifdef CONFIG_MEDIA_CONTROLLER
++	struct v4l2_fh *fh = data->fh;
++	struct v4l2_m2m_ctx *ctx = fh->m2m_ctx;
++
++	vb2_queue_start_request(&ctx->cap_q_ctx.q, req);
++	vb2_queue_start_request(&ctx->out_q_ctx.q, req);
++
++	v4l2_m2m_try_schedule(ctx);
++#endif
++	return 0;
++}
++EXPORT_SYMBOL_GPL(v4l2_m2m_process_request);
+diff --git a/include/media/v4l2-mem2mem.h b/include/media/v4l2-mem2mem.h
+index e157d5c9b224..1c9925c3d4ce 100644
+--- a/include/media/v4l2-mem2mem.h
++++ b/include/media/v4l2-mem2mem.h
+@@ -19,6 +19,10 @@
+ 
+ #include <media/videobuf2-v4l2.h>
+ 
++struct media_entity;
++struct media_request;
++struct media_request_entity_data;
++
+ /**
+  * struct v4l2_m2m_ops - mem-to-mem device driver callbacks
+  * @device_run:	required. Begin the actual job (transaction) inside this
+@@ -83,6 +87,7 @@ struct v4l2_m2m_queue_ctx {
+  *
+  * @q_lock: struct &mutex lock
+  * @m2m_dev: opaque pointer to the internal data to handle M2M context
++ * @state: Pointer to state handler for channel support
+  * @cap_q_ctx: Capture (output to memory) queue context
+  * @out_q_ctx: Output (input from memory) queue context
+  * @queue: List of memory to memory contexts
+@@ -100,6 +105,8 @@ struct v4l2_m2m_ctx {
+ 
+ 	/* internal use only */
+ 	struct v4l2_m2m_dev		*m2m_dev;
++	struct media_request_queue	*req_queue;
++	struct media_entity		*entity;
+ 
+ 	struct v4l2_m2m_queue_ctx	cap_q_ctx;
+ 
+@@ -351,6 +358,16 @@ struct v4l2_m2m_ctx *v4l2_m2m_ctx_init(struct v4l2_m2m_dev *m2m_dev,
+ 		void *drv_priv,
+ 		int (*queue_init)(void *priv, struct vb2_queue *src_vq, struct vb2_queue *dst_vq));
+ 
++/**
++ * v4l2_mem_ctx_request_init() - enable a context to be used with requests
++ *
++ * @ctx: context to potentially use within a channel
++ * @req_queue: request queue that will be used with this context
++ */
++void v4l2_mem_ctx_request_init(struct v4l2_m2m_ctx *ctx,
++			       struct media_request_queue *req_queue,
++			       struct media_entity *entity);
++
+ static inline void v4l2_m2m_set_src_buffered(struct v4l2_m2m_ctx *m2m_ctx,
+ 					     bool buffered)
+ {
+@@ -602,6 +619,8 @@ int v4l2_m2m_ioctl_streamoff(struct file *file, void *fh,
+ 				enum v4l2_buf_type type);
+ int v4l2_m2m_fop_mmap(struct file *file, struct vm_area_struct *vma);
+ unsigned int v4l2_m2m_fop_poll(struct file *file, poll_table *wait);
++int v4l2_m2m_process_request(struct media_request *req,
++			     struct media_request_entity_data *data);
+ 
+ #endif /* _MEDIA_V4L2_MEM2MEM_H */
  
 -- 
-2.14.3
+2.15.1.504.g5279b80103-goog
