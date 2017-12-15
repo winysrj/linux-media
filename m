@@ -1,46 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:63028 "EHLO
-        mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1757408AbdLUCQp (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 20 Dec 2017 21:16:45 -0500
-Date: Thu, 21 Dec 2017 11:16:39 +0900
-From: Andi Shyti <andi.shyti@samsung.com>
-To: Philipp Rossak <embed3d@gmail.com>
-Cc: mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
-        maxime.ripard@free-electrons.com, wens@csie.org,
-        linux@armlinux.org.uk, sean@mess.org, p.zabel@pengutronix.de,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-sunxi@googlegroups.com
-Subject: Re: [PATCH v3 1/6] media: rc: update sunxi-ir driver to get base
- clock frequency from devicetree
-Message-id: <20171221021639.GG25647@gangnam.samsung>
-MIME-version: 1.0
-Content-type: text/plain; charset="us-ascii"
-Content-disposition: inline
-In-reply-to: <20171219080747.4507-2-embed3d@gmail.com>
-References: <20171219080747.4507-1-embed3d@gmail.com>
-        <CGME20171219080753epcas5p15f4f2921a98e18db022afe8b3f2b445d@epcas5p1.samsung.com>
-        <20171219080747.4507-2-embed3d@gmail.com>
+Received: from mail.kapsi.fi ([91.232.154.25]:40775 "EHLO mail.kapsi.fi"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1755554AbdLOSMZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 15 Dec 2017 13:12:25 -0500
+Subject: Re: [PATCH] [media] tda18212: fix use-after-free in tda18212_remove()
+To: Daniel Scheller <d.scheller.oss@gmail.com>
+Cc: linux-media@vger.kernel.org, mchehab@kernel.org,
+        mchehab@s-opensource.com, zzam@gentoo.org
+References: <20171215164337.3236-1-d.scheller.oss@gmail.com>
+ <3c5e3614-ee61-f69a-283f-2c1b16aa2cbc@iki.fi>
+ <20171215190008.1dde2633@macbox>
+From: Antti Palosaari <crope@iki.fi>
+Message-ID: <9d4e4ccd-9d96-b2eb-6b49-7f50dc08e109@iki.fi>
+Date: Fri, 15 Dec 2017 20:12:18 +0200
+MIME-Version: 1.0
+In-Reply-To: <20171215190008.1dde2633@macbox>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Philipp,
 
-On Tue, Dec 19, 2017 at 09:07:42AM +0100, Philipp Rossak wrote:
-> This patch updates the sunxi-ir driver to set the base clock frequency from
-> devicetree.
+
+On 12/15/2017 08:00 PM, Daniel Scheller wrote:
+> Hi,
 > 
-> This is necessary since there are different ir receivers on the
-> market, that operate with different frequencies. So this value could be
-> set if the attached ir receiver needs a different base clock frequency,
-> than the default 8 MHz.
+> On Fri, 15 Dec 2017 19:30:18 +0200
+> Antti Palosaari <crope@iki.fi> wrote:
 > 
-> Signed-off-by: Philipp Rossak <embed3d@gmail.com>
+> Thanks for your reply.
+> 
+>> Hello
+>> I think shared frontend structure, which is owned by demod driver,
+>> should be there and valid on time tuner driver is removed. And thus
+>> should not happen. Did you make driver unload on different order eg.
+>> not just reverse order than driver load?
+>>
+>> IMHO these should go always
+>>
+>> on load:
+>> 1) load demod driver (which makes shared frontend structure where
+>> also some tuner driver data lives)
+>> 2) load tuner driver
+>> 3) register frontend
+>>
+>> on unload
+>> 1) unregister frontend
+>> 2) remove tuner driver
+>> 3) remove demod driver (frees shared data)
+> 
+> In ddbridge, we do (like in usb/em28xx and platform/sti/c8sectpfe, both
+> also use some demod+tda18212 combo):
+> 
+> dvb_unregister_frontend();
+> dvb_frontend_detach();
+> module_put(tda18212client->...owner);
+> i2c_unregister_device(tda18212client);
+> 
+> fe_detach() clears out the frontend references and frees/invalidates
+> the allocated resources. tuner_ops obviously isn't there then anymore.
 
-feel free to add
+yeah, but that's even ideally wrong. frontend design currently relies to 
+shared data which is owned by demod driver and thus it should be last 
+thing to be removed. Sure change like you did prevents issue, but 
+logically it is still wrong and may not work on some other case.
 
-Reviewed-by: Andi Shyti <andi.shyti@samsung.com>
+> 
+> The two mentioned drivers will very likely yield the same (or
+> similar) KASAN report. em28xx was even changed lately to do the teardown
+> the way ddbridge does in 910b0797fa9e8 ([1], cc'ing Matthias
+> here).
+> 
+> With that commit in mind I'm a bit unsure on what is correct or not.
+> OTOH, as dvb_frontend_detach() cleans up everything, IMHO there's no
+> need for the tuner driver to try to clean up further.
+> 
+> Please advise.
+> 
+> [1] https://git.linuxtv.org/media_tree.git/commit/?id=910b0797fa9e8.
 
-Andi
+em28xx does it currently just correct.
+1) unregister frontend
+2) remove I2C SEC
+3) remove I2C tuner
+4) remove I2C demod (frees shared frontend data)
+
+regards
+Antti
+
+-- 
+http://palosaari.fi/
