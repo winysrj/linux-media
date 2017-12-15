@@ -1,288 +1,171 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:44254 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751729AbdLNMDX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 14 Dec 2017 07:03:23 -0500
-Date: Thu, 14 Dec 2017 10:03:16 -0200
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: "Jasmin J." <jasmin@anw.at>
-Cc: linux-media@vger.kernel.org, rjkm@metzlerbros.de,
-        d.scheller@gmx.net
-Subject: Re: [PATCH 2/2] Added timers for dvb_ca_en50221_write_data
-Message-ID: <20171214100316.2549ec2e@vento.lan>
-In-Reply-To: <1505611642-6552-3-git-send-email-jasmin@anw.at>
-References: <1505611642-6552-1-git-send-email-jasmin@anw.at>
-        <1505611642-6552-3-git-send-email-jasmin@anw.at>
+Received: from mail-lf0-f68.google.com ([209.85.215.68]:44425 "EHLO
+        mail-lf0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751045AbdLOFZ3 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 15 Dec 2017 00:25:29 -0500
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <7952229.SXlKMv2tvC@avalon>
+References: <20171208123537.18718-1-dhaval23031987@gmail.com>
+ <20171214205706.GA1856@kroah.com> <20171214194536.2269667d@recife.lan> <7952229.SXlKMv2tvC@avalon>
+From: Dhaval Shah <dhaval23031987@gmail.com>
+Date: Fri, 15 Dec 2017 10:55:26 +0530
+Message-ID: <CAOymtfJKzs=1xUeJOYqvxhb-o9r=aTUOLOM4-DMUj8xXdD2PUw@mail.gmail.com>
+Subject: Re: [PATCH] media: v4l: xilinx: Use SPDX-License-Identifier
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Greg KH <gregkh@linuxfoundation.org>,
+        Joe Perches <joe@perches.com>, hyun.kwon@xilinx.com,
+        michal.simek@xilinx.com, linux-media@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sun, 17 Sep 2017 03:27:22 +0200
-"Jasmin J." <jasmin@anw.at> escreveu:
+Hi Laurent/Mauro/Greg,
 
-> From: Jasmin Jessich <jasmin@anw.at>
-> 
-> Some (older) CAMs are really slow in accepting data. The CI interface
-> specification doesn't define a handshake for accepted data. Thus, the
-> en50221 protocol driver can't control if a data byte has been correctly
-> written to the CAM.
-> 
-> The current implementation writes the length and the data quick after
-> each other. Thus, the slow CAMs may generate a WR error, which leads to
-> the known error logging
->    "CAM tried to send a buffer larger than the ecount size".
-> 
-> To solve this issue the en50221 protocol driver needs to wait some CAM
-> depending time between the different bytes to be written. Because the
-> time is CAM dependent, an individual value per CAM needs to be set. For
-> that SysFS is used in favor of ioctl's to allow the control of the timer
-> values independent from any user space application.
-> 
-> This patch adds the timers and the SysFS nodes to set/get the timeout
-> values and the timer waiting between the different steps of the CAM write
-> access. A timer value of 0 (default) means "no timeout".
-
-The patch series looks OK. However, I'm not seeing any documentation
-patches explaining the new sysfs interface. I would be expecting an
-update at linux DVB uAPI. Also, for all sysfs stuff, you need to add
-it to Documentation/ABI/ using the format explained at its README.
-
-Once you add it, I'll gladly apply it. Please add Ralph's ack on the
-existing patches on your next submission.
-
-Just a minor nitpick: on all patches, please prepend with "media: "
-and the name of the part of the media subsystem that you're patching.
-
-In this case, a good subject would be:
-
-	media: dvb-core: add timers for dvb_ca_en50221_write_data
-
-Regards,
-Mauro
-
-> 
-> Signed-off-by: Jasmin Jessich <jasmin@anw.at>
-> ---
->  drivers/media/dvb-core/dvb_ca_en50221.c | 132 +++++++++++++++++++++++++++++++-
->  1 file changed, 131 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/dvb-core/dvb_ca_en50221.c b/drivers/media/dvb-core/dvb_ca_en50221.c
-> index 95b3723..50c4e45 100644
-> --- a/drivers/media/dvb-core/dvb_ca_en50221.c
-> +++ b/drivers/media/dvb-core/dvb_ca_en50221.c
-> @@ -86,6 +86,13 @@ MODULE_PARM_DESC(cam_debug, "enable verbose debug messages");
->  #define DVB_CA_SLOTSTATE_WAITFR         6
->  #define DVB_CA_SLOTSTATE_LINKINIT       7
->  
-> +enum dvb_ca_timers {
-> +	DVB_CA_TIM_WR_HIGH  /* wait after writing length high */
-> +,	DVB_CA_TIM_WR_LOW   /* wait after writing length low */
-> +,	DVB_CA_TIM_WR_DATA  /* wait between data bytes */
-> +,	DVB_CA_TIM_MAX
-> +};
-> +
->  /* Information on a CA slot */
->  struct dvb_ca_slot {
->  	/* current state of the CAM */
-> @@ -119,6 +126,11 @@ struct dvb_ca_slot {
->  	unsigned long timeout;
->  };
->  
-> +struct dvb_ca_timer {
-> +	unsigned long min;
-> +	unsigned long max;
-> +};
-> +
->  /* Private CA-interface information */
->  struct dvb_ca_private {
->  	struct kref refcount;
-> @@ -161,6 +173,14 @@ struct dvb_ca_private {
->  
->  	/* mutex serializing ioctls */
->  	struct mutex ioctl_mutex;
-> +
-> +	struct dvb_ca_timer timers[DVB_CA_TIM_MAX];
-> +};
-> +
-> +static const char dvb_ca_tim_names[DVB_CA_TIM_MAX][15] = {
-> +	"tim_wr_high"
-> +,	"tim_wr_low"
-> +,	"tim_wr_data"
->  };
->  
->  static void dvb_ca_private_free(struct dvb_ca_private *ca)
-> @@ -223,6 +243,14 @@ static char *findstr(char *haystack, int hlen, char *needle, int nlen)
->  	return NULL;
->  }
->  
-> +static void dvb_ca_sleep(struct dvb_ca_private *ca, enum dvb_ca_timers tim)
-> +{
-> +	unsigned long min = ca->timers[tim].min;
-> +
-> +	if (min)
-> +		usleep_range(min, ca->timers[tim].max);
-> +}
-> +
->  /* ************************************************************************** */
->  /* EN50221 physical interface functions */
->  
-> @@ -868,10 +896,13 @@ static int dvb_ca_en50221_write_data(struct dvb_ca_private *ca, int slot,
->  					    bytes_write >> 8);
->  	if (status)
->  		goto exit;
-> +	dvb_ca_sleep(ca, DVB_CA_TIM_WR_HIGH);
-> +
->  	status = ca->pub->write_cam_control(ca->pub, slot, CTRLIF_SIZE_LOW,
->  					    bytes_write & 0xff);
->  	if (status)
->  		goto exit;
-> +	dvb_ca_sleep(ca, DVB_CA_TIM_WR_LOW);
->  
->  	/* send the buffer */
->  	for (i = 0; i < bytes_write; i++) {
-> @@ -879,6 +910,7 @@ static int dvb_ca_en50221_write_data(struct dvb_ca_private *ca, int slot,
->  						    buf[i]);
->  		if (status)
->  			goto exit;
-> +		dvb_ca_sleep(ca, DVB_CA_TIM_WR_DATA);
->  	}
->  
->  	/* check for write error (WE should now be 0) */
-> @@ -1832,6 +1864,97 @@ static const struct dvb_device dvbdev_ca = {
->  };
->  
->  /* ************************************************************************** */
-> +/* EN50221 device attributes (SysFS) */
-> +
-> +static int dvb_ca_tim_idx(struct dvb_ca_private *ca, const char *name)
-> +{
-> +	int tim_idx;
-> +
-> +	for (tim_idx = 0; tim_idx < DVB_CA_TIM_MAX; tim_idx++) {
-> +		if (!strcmp(dvb_ca_tim_names[tim_idx], name))
-> +			return tim_idx;
-> +	}
-> +	return -1;
-> +}
-> +
-> +static ssize_t dvb_ca_tim_show(struct device *device,
-> +			       struct device_attribute *attr, char *buf)
-> +{
-> +	struct dvb_device *dvbdev = dev_get_drvdata(device);
-> +	struct dvb_ca_private *ca = dvbdev->priv;
-> +	int tim_idx = dvb_ca_tim_idx(ca, attr->attr.name);
-> +
-> +	if (tim_idx < 0)
-> +		return -ENXIO;
-> +
-> +	return sprintf(buf, "%ld\n", ca->timers[tim_idx].min);
-> +}
-> +
-> +static ssize_t dvb_ca_tim_store(struct device *device,
-> +				struct device_attribute *attr,
-> +				const char *buf, size_t count)
-> +{
-> +	struct dvb_device *dvbdev = dev_get_drvdata(device);
-> +	struct dvb_ca_private *ca = dvbdev->priv;
-> +	int tim_idx = dvb_ca_tim_idx(ca, attr->attr.name);
-> +	unsigned long min, max;
-> +
-> +	if (tim_idx < 0)
-> +		return -ENXIO;
-> +
-> +	if (sscanf(buf, "%lu\n", &min) != 1)
-> +		return -EINVAL;
-> +
-> +	/* value is in us; 100ms is a good maximum */
-> +	if (min > (100 * USEC_PER_MSEC))
-> +		return -EINVAL;
-> +
-> +	/* +10% (rounded up) */
-> +	max = (min * 11 + 5) / 10;
-> +	ca->timers[tim_idx].min = min;
-> +	ca->timers[tim_idx].max = max;
-> +
-> +	return count;
-> +}
-> +
-> +/* attribute definition with string pointer (see include/linux/sysfs.h) */
-> +#define DVB_CA_ATTR(_name, _mode, _show, _store) {	\
-> +	.attr = {.name = _name, .mode = _mode },	\
-> +	.show	= _show,				\
-> +	.store	= _store,				\
-> +}
-> +
-> +#define DVB_CA_ATTR_TIM(_tim_idx)					\
-> +	DVB_CA_ATTR(dvb_ca_tim_names[_tim_idx], 0664, dvb_ca_tim_show,	\
-> +		    dvb_ca_tim_store)
-> +
-> +static const struct device_attribute dvb_ca_attrs[DVB_CA_TIM_MAX] = {
-> +	DVB_CA_ATTR_TIM(DVB_CA_TIM_WR_HIGH)
-> +,	DVB_CA_ATTR_TIM(DVB_CA_TIM_WR_LOW)
-> +,	DVB_CA_ATTR_TIM(DVB_CA_TIM_WR_DATA)
-> +};
-> +
-> +static int dvb_ca_device_attrs_add(struct dvb_ca_private *ca)
-> +{
-> +	int i;
-> +
-> +	for (i = 0; i < ARRAY_SIZE(dvb_ca_attrs); i++)
-> +		if (device_create_file(ca->dvbdev->dev, &dvb_ca_attrs[i]))
-> +			goto fail;
-> +	return 0;
-> +fail:
-> +	return -1;
-> +}
-> +
-> +static void ddb_device_attrs_del(struct dvb_ca_private *ca)
-> +{
-> +	int i;
-> +
-> +	for (i = 0; i < ARRAY_SIZE(dvb_ca_attrs); i++)
-> +		device_remove_file(ca->dvbdev->dev, &dvb_ca_attrs[i]);
-> +}
-> +
-> +/* ************************************************************************** */
->  /* Initialisation/shutdown functions */
->  
->  /**
-> @@ -1901,6 +2024,10 @@ int dvb_ca_en50221_init(struct dvb_adapter *dvb_adapter,
->  		ret = -EINTR;
->  		goto unregister_device;
->  	}
-> +
-> +	if (dvb_ca_device_attrs_add(ca))
-> +		goto unregister_device;
-> +
->  	mb();
->  
->  	/* create a kthread for monitoring this CA device */
-> @@ -1910,10 +2037,12 @@ int dvb_ca_en50221_init(struct dvb_adapter *dvb_adapter,
->  		ret = PTR_ERR(ca->thread);
->  		pr_err("dvb_ca_init: failed to start kernel_thread (%d)\n",
->  		       ret);
-> -		goto unregister_device;
-> +		goto delete_attrs;
->  	}
->  	return 0;
->  
-> +delete_attrs:
-> +	ddb_device_attrs_del(ca);
->  unregister_device:
->  	dvb_unregister_device(ca->dvbdev);
->  free_slot_info:
-> @@ -1945,6 +2074,7 @@ void dvb_ca_en50221_release(struct dvb_ca_en50221 *pubca)
->  	for (i = 0; i < ca->slot_count; i++)
->  		dvb_ca_en50221_slot_shutdown(ca, i);
->  
-> +	ddb_device_attrs_del(ca);
->  	dvb_remove_device(ca->dvbdev);
->  	dvb_ca_private_put(ca);
->  	pubca->private = NULL;
-
-
-
-Thanks,
-Mauro
+On Fri, Dec 15, 2017 at 3:32 AM, Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
+> Hi Mauro,
+>
+> On Thursday, 14 December 2017 23:50:03 EET Mauro Carvalho Chehab wrote:
+>> Em Thu, 14 Dec 2017 21:57:06 +0100 Greg KH escreveu:
+>> > On Thu, Dec 14, 2017 at 10:44:16PM +0200, Laurent Pinchart wrote:
+>> >> On Thursday, 14 December 2017 22:08:51 EET Greg KH wrote:
+>> >>> On Thu, Dec 14, 2017 at 09:05:27PM +0200, Laurent Pinchart wrote:
+>> >>>> On Thursday, 14 December 2017 20:54:39 EET Joe Perches wrote:
+>> >>>>> On Thu, 2017-12-14 at 20:37 +0200, Laurent Pinchart wrote:
+>> >>>>>> On Thursday, 14 December 2017 20:32:20 EET Joe Perches wrote:
+>> >>>>>>> On Thu, 2017-12-14 at 20:28 +0200, Laurent Pinchart wrote:
+>> >>>>>>>> On Thursday, 14 December 2017 19:05:27 EET Mauro Carvalho Chehab
+>> >>>>>>>> wrote:
+>> >>>>>>>>> Em Fri,  8 Dec 2017 18:05:37 +0530 Dhaval Shah escreveu:
+>> >>>>>>>>>> SPDX-License-Identifier is used for the Xilinx Video IP and
+>> >>>>>>>>>> related drivers.
+>> >>>>>>>>>>
+>> >>>>>>>>>> Signed-off-by: Dhaval Shah <dhaval23031987@gmail.com>
+>> >>>>>>>>>
+>> >>>>>>>>> Hi Dhaval,
+>> >>>>>>>>>
+>> >>>>>>>>> You're not listed as one of the Xilinx driver maintainers. I'm
+>> >>>>>>>>> afraid that, without their explicit acks, sent to the ML, I
+>> >>>>>>>>> can't accept a patch touching at the driver's license tags.
+>> >>>>>>>>
+>> >>>>>>>> The patch doesn't change the license, I don't see why it would
+>> >>>>>>>> cause any issue. Greg isn't listed as the maintainer or copyright
+>> >>>>>>>> holder of any of the 10k+ files to which he added an SPDX license
+>> >>>>>>>> header in the last kernel release.
+>> >>>>>>>
+>> >>>>>>> Adding a comment line that describes an implicit or
+>> >>>>>>> explicit license is different than removing the license
+>> >>>>>>> text itself.
+>> >>>>>>
+>> >>>>>> The SPDX license header is meant to be equivalent to the license
+>> >>>>>> text.
+>> >>>>>
+>> >>>>> I understand that.
+>> >>>>> At a minimum, removing BSD license text is undesirable
+>> >>>>>
+>> >>>>> as that license states:
+>> >>>>>  *    * Redistributions of source code must retain the above copyright
+>> >>>>>  *      notice, this list of conditions and the following disclaimer.
+>> >>>>>
+>> >>>>> etc...
+>> >>>>
+>> >>>> But this patch only removes the following text:
+>> >>>>
+>> >>>> - * This program is free software; you can redistribute it and/or
+>> >>>> modify
+>> >>>> - * it under the terms of the GNU General Public License version 2 as
+>> >>>> - * published by the Free Software Foundation.
+>> >>>>
+>> >>>> and replaces it by the corresponding SPDX header.
+>> >>>>
+>> >>>>>> The only reason why the large SPDX patch didn't touch the whole
+>> >>>>>> kernel in one go was that it was easier to split in in multiple
+>> >>>>>> chunks.
+>> >>>>>
+>> >>>>> Not really, it was scripted.
+>> >>>>
+>> >>>> But still manually reviewed as far as I know.
+>> >>>>
+>> >>>>>> This is no different than not including the full GPL license in
+>> >>>>>> every header file but only pointing to it through its name and
+>> >>>>>> reference, as every kernel source file does.
+>> >>>>>
+>> >>>>> Not every kernel source file had a license text
+>> >>>>> or a reference to another license file.
+>> >>>>
+>> >>>> Correct, but the files touched by this patch do.
+>> >>>>
+>> >>>> This issue is in no way specific to linux-media and should be
+>> >>>> decided upon at the top level, not on a per-subsystem basis. Greg,
+>> >>>> could you comment on this ?
+>> >>>
+>> >>> Comment on what exactly?  I don't understand the problem here, care to
+>> >>> summarize it?
+>> >>
+>> >> In a nutshell (if I understand it correctly), Dhaval Shah submitted
+>> >> https:// patchwork.kernel.org/patch/10102451/ which replaces
+>> >>
+>> >> +// SPDX-License-Identifier: GPL-2.0
+>> >> [...]
+>> >> - *
+>> >> - * This program is free software; you can redistribute it and/or modify
+>> >> - * it under the terms of the GNU General Public License version 2 as
+>> >> - * published by the Free Software Foundation.
+>> >>
+>> >> in all .c and .h files of the Xilinx V4L2 driver
+>> >> (drivers/media/platform/
+>> >> xilinx). I have reviewed the patch and acked it. Mauro then rejected it,
+>> >> stating that he can't accept a change to license text without an
+>> >> explicit ack from the official driver's maintainers. My position is
+>> >> that such a change doesn't change the license and thus doesn't need to
+>> >> track all copyright holders, and can be merged without an explicit ack
+>> >> from the respective maintainers.
+>> >
+>> > Yes, I agree with you, no license is being changed here, and no
+>> > copyright is either.
+>> >
+>> > BUT, I know that most major companies are reviewing this process right
+>> > now.  We have gotten approval from almost all of the major kernel
+>> > developer companies to do this, which is great, and supports this work
+>> > as being acceptable.
+>> >
+>> > So it's nice to ask Xilinx if they object to this happening, which I
+>> > guess Mauro is trying to say here (in not so many words...)  To at least
+>> > give them the heads-up that this is what is going to be going on
+>> > throughout the kernel tree soon, and if they object, it would be good to
+>> > speak up as to why (and if they do, I can put their lawyers in contact
+>> > with some lawyers to explain it all to them.)
+>>
+>> Yes, that's basically what I'm saying.
+>>
+>> I don't feel comfortable on signing a patch changing the license text
+>> without giving the copyright owners an opportunity and enough time
+>> to review it and approve, or otherwise comment about such changes.
+>
+> If I understand you and Greg correctly, you would like to get a general
+> approval from Xilinx for SPDX-related changes, but that would be a blanket
+> approval that would cover this and all subsequent similar patches. Is that
+> correct ? That is reasonable for me.
+>
+> In that case, could the fact that commit
+>
+> commit 5fd54ace4721fc5ce2bb5aef6318fcf17f421460
+> Author: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+> Date:   Fri Nov 3 11:28:30 2017 +0100
+>
+>     USB: add SPDX identifiers to all remaining files in drivers/usb/
+>
+> add SPDX headers to several Xilinx-authored source files constitute such a
+> blanket approval ?
+>
+I have to do anything here or Once, we get approval from the Michal
+Simek(michal.simek@xilinx.com) and Hyun.kwon@xilinx.com ACK this patch
+then it will go into mainline?
+> --
+> Regards,
+>
+> Laurent Pinchart
+>
