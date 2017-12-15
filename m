@@ -1,285 +1,164 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f49.google.com ([74.125.82.49]:41048 "EHLO
-        mail-wm0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751754AbdLDRab (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 4 Dec 2017 12:30:31 -0500
-Received: by mail-wm0-f49.google.com with SMTP id g75so7316059wme.0
-        for <linux-media@vger.kernel.org>; Mon, 04 Dec 2017 09:30:30 -0800 (PST)
+Received: from mga14.intel.com ([192.55.52.115]:41253 "EHLO mga14.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1755322AbdLOOff (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 15 Dec 2017 09:35:35 -0500
+Date: Fri, 15 Dec 2017 16:35:01 +0200
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: Jacopo Mondi <jacopo+renesas@jmondi.org>
+Cc: niklas.soderlund@ragnatech.se, kieran.bingham@ideasonboard.com,
+        laurent.pinchart@ideasonboard.com, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org, linux-acpi@vger.kernel.org,
+        mika.westerberg@intel.com
+Subject: Re: [PATCH 2/5] device property: Add fwnode_get_name() operation
+Message-ID: <20171215143501.fg3svt4jkx5p6nyk@paasikivi.fi.intel.com>
+References: <1513189580-32202-1-git-send-email-jacopo+renesas@jmondi.org>
+ <1513189580-32202-3-git-send-email-jacopo+renesas@jmondi.org>
 MIME-Version: 1.0
-In-Reply-To: <1a1be5d7-caed-6cba-c97a-dbb70e119fa3@xs4all.nl>
-References: <1511990397-27647-1-git-send-email-tharvey@gateworks.com>
- <1511990397-27647-4-git-send-email-tharvey@gateworks.com> <1a1be5d7-caed-6cba-c97a-dbb70e119fa3@xs4all.nl>
-From: Tim Harvey <tharvey@gateworks.com>
-Date: Mon, 4 Dec 2017 09:30:26 -0800
-Message-ID: <CAJ+vNU0NKZizung9+1zsd1RZBrDbBgk+A8mVJ76bQysjCUoaKw@mail.gmail.com>
-Subject: Re: [PATCH v4 3/5] media: i2c: Add TDA1997x HDMI receiver driver
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media <linux-media@vger.kernel.org>,
-        alsa-devel@alsa-project.org,
-        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        Shawn Guo <shawnguo@kernel.org>,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Hans Verkuil <hansverk@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1513189580-32202-3-git-send-email-jacopo+renesas@jmondi.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Dec 4, 2017 at 4:50 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> Hi Tim,
->
-> Found a few more small issues. After that's fixed and you have the Ack for the
-> bindings this can be merged I think.
+Hi Jacopo,
 
-Hans,
+Thanks for the patch.
 
-Thanks. Can you weigh in on the bindings? Rob was hoping for some
-discussion on making some generic bus format types for video and I'm
-not familiar with the other video encoders/decoders enough to know if
-there is enough commonality.
+Could you cc the next version to linux-acpi@vger.kernel.org, please? Cc
+Mika, too.
 
->
-> On 11/29/2017 10:19 PM, Tim Harvey wrote:
-<snip>
->> +
->> +/* parse an infoframe and do some sanity checks on it */
->> +static unsigned int
->> +tda1997x_parse_infoframe(struct tda1997x_state *state, u16 addr)
->> +{
->> +     struct v4l2_subdev *sd = &state->sd;
->> +     union hdmi_infoframe frame;
->> +     u8 buffer[40];
->> +     u8 reg;
->> +     int len, err;
->> +
->> +     /* read data */
->> +     len = io_readn(sd, addr, sizeof(buffer), buffer);
->> +     err = hdmi_infoframe_unpack(&frame, buffer);
->> +     if (err) {
->> +             v4l_err(state->client,
->> +                     "failed parsing %d byte infoframe: 0x%04x/0x%02x\n",
->> +                     len, addr, buffer[0]);
->> +             return err;
->> +     }
->> +     hdmi_infoframe_log(KERN_INFO, &state->client->dev, &frame);
->> +     switch (frame.any.type) {
->> +     /* Audio InfoFrame: see HDMI spec 8.2.2 */
->> +     case HDMI_INFOFRAME_TYPE_AUDIO:
->> +             /* sample rate */
->> +             switch (frame.audio.sample_frequency) {
->> +             case HDMI_AUDIO_SAMPLE_FREQUENCY_32000:
->> +                     state->audio_samplerate = 32000;
->> +                     break;
->> +             case HDMI_AUDIO_SAMPLE_FREQUENCY_44100:
->> +                     state->audio_samplerate = 44100;
->> +                     break;
->> +             case HDMI_AUDIO_SAMPLE_FREQUENCY_48000:
->> +                     state->audio_samplerate = 48000;
->> +                     break;
->> +             case HDMI_AUDIO_SAMPLE_FREQUENCY_88200:
->> +                     state->audio_samplerate = 88200;
->> +                     break;
->> +             case HDMI_AUDIO_SAMPLE_FREQUENCY_96000:
->> +                     state->audio_samplerate = 96000;
->> +                     break;
->> +             case HDMI_AUDIO_SAMPLE_FREQUENCY_176400:
->> +                     state->audio_samplerate = 176400;
->> +                     break;
->> +             case HDMI_AUDIO_SAMPLE_FREQUENCY_192000:
->> +                     state->audio_samplerate = 192000;
->> +                     break;
->> +             default:
->> +             case HDMI_AUDIO_SAMPLE_FREQUENCY_STREAM:
->> +                     break;
->> +             }
->> +
->> +             /* sample size */
->> +             switch (frame.audio.sample_size) {
->> +             case HDMI_AUDIO_SAMPLE_SIZE_16:
->> +                     state->audio_samplesize = 16;
->> +                     break;
->> +             case HDMI_AUDIO_SAMPLE_SIZE_20:
->> +                     state->audio_samplesize = 20;
->> +                     break;
->> +             case HDMI_AUDIO_SAMPLE_SIZE_24:
->> +                     state->audio_samplesize = 24;
->> +                     break;
->> +             case HDMI_AUDIO_SAMPLE_SIZE_STREAM:
->> +             default:
->> +                     break;
->> +             }
->> +
->> +             /* Channel Count */
->> +             state->audio_channels = frame.audio.channels;
->> +             if (frame.audio.channel_allocation &&
->> +                 frame.audio.channel_allocation != state->audio_ch_alloc) {
->> +                     /* use the channel assignment from the infoframe */
->> +                     state->audio_ch_alloc = frame.audio.channel_allocation;
->> +                     tda1997x_configure_audout(sd, state->audio_ch_alloc);
->> +                     /* reset the audio FIFO */
->> +                     tda1997x_hdmi_info_reset(sd, RESET_AUDIO, false);
->> +             }
->> +             break;
->> +
->> +     /* Auxiliary Video information (AVI) InfoFrame: see HDMI spec 8.2.1 */
->> +     case HDMI_INFOFRAME_TYPE_AVI:
->> +             state->colorspace = frame.avi.colorspace;
->> +             state->colorimetry = frame.avi.colorimetry;
->> +             state->content = frame.avi.content_type;
->> +             /* Quantization Range */
->> +             switch (state->rgb_quantization_range) {
->> +             case V4L2_DV_RGB_RANGE_AUTO:
->> +                     state->range = frame.avi.quantization_range;
->> +                     break;
->> +             case V4L2_DV_RGB_RANGE_LIMITED:
->> +                     state->range = HDMI_QUANTIZATION_RANGE_LIMITED;
->> +                     break;
->> +             case V4L2_DV_RGB_RANGE_FULL:
->> +                     state->range = HDMI_QUANTIZATION_RANGE_FULL;
->> +                     break;
->> +             }
->> +             if (state->range == HDMI_QUANTIZATION_RANGE_DEFAULT) {
->> +                     if (frame.avi.video_code <= 1)
->> +                             state->range = HDMI_QUANTIZATION_RANGE_FULL;
->> +                     else
->> +                             state->range = HDMI_QUANTIZATION_RANGE_LIMITED;
->> +             }
->> +             /*
->> +              * If colorimetry not specified, conversion depends on res type:
->> +              *  - SDTV: ITU601 for SD (480/576/240/288 line resolution)
->> +              *  - HDTV: ITU709 for HD (720/1080 line resolution)
->> +              *  -   PC: sRGB
->> +              * see HDMI specification section 6.7
->> +              */
->> +             if ((state->colorspace == HDMI_COLORSPACE_YUV422 ||
->> +                  state->colorspace == HDMI_COLORSPACE_YUV444) &&
->> +                 (state->colorimetry == HDMI_COLORIMETRY_EXTENDED ||
->> +                  state->colorimetry == HDMI_COLORIMETRY_NONE)) {
->> +                     if (is_sd(state->timings.bt.height))
->> +                             state->colorimetry = HDMI_COLORIMETRY_ITU_601;
->> +                     else if (is_hd(state->timings.bt.height))
->> +                             state->colorimetry = HDMI_COLORIMETRY_ITU_709;
->> +                     else
->> +                             state->colorimetry = HDMI_COLORIMETRY_NONE;
->> +             }
->> +             v4l_dbg(1, debug, state->client,
->> +                     "colorspace=%d colorimetry=%d range=%d content=%d\n",
->> +                     state->colorspace, state->colorimetry, state->range,
->> +                     state->content);
->> +
->> +             /* configure upsampler: 0=bypass 1=repeatchroma 2=interpolate */
->> +             reg = io_read(sd, REG_PIX_REPEAT);
->> +             reg &= ~PIX_REPEAT_MASK_UP_SEL;
->> +             if (state->colorspace == HDMI_COLORSPACE_YUV422)
->> +                     reg |= (PIX_REPEAT_CHROMA << PIX_REPEAT_SHIFT);
->> +             io_write(sd, REG_PIX_REPEAT, reg);
->> +
->> +             /* ConfigurePixelRepeater: repeat n-times each pixel */
->> +             reg = io_read(sd, REG_PIX_REPEAT);
->> +             reg &= ~PIX_REPEAT_MASK_REP;
->> +             reg |= frame.avi.pixel_repeat;
->> +             io_write(sd, REG_PIX_REPEAT, reg);
->> +
->> +             /* configure the receiver with the new colorspace */
->> +             tda1997x_configure_csc(sd);
->> +             break;
->> +     default:
->> +             break;
->> +     }
->> +     return 0;
->> +}
->> +
-<snip>
->> +
->> +static int tda1997x_fill_format(struct tda1997x_state *state,
->> +                             struct v4l2_mbus_framefmt *format)
->> +{
->> +     const struct v4l2_bt_timings *bt;
->> +
->> +     v4l_dbg(1, debug, state->client, "%s\n", __func__);
->> +
->> +     if (!state->detected_timings)
->> +             return -EINVAL;
->> +     bt = &state->detected_timings->bt;
->> +     memset(format, 0, sizeof(*format));
->> +
->> +     format->width = bt->width;
->> +     format->height = bt->height;
->> +     format->field = V4L2_FIELD_NONE;
->> +     format->colorspace = V4L2_COLORSPACE_SRGB;
->> +     if (bt->flags & V4L2_DV_FL_IS_CE_VIDEO)
->> +             format->colorspace = (bt->height <= 576) ?
->> +                     V4L2_COLORSPACE_SMPTE170M : V4L2_COLORSPACE_REC709;
->
-> Close. What is missing is a check of the AVI InfoFrame: if it has an explicit
-> colorimetry then use that. E.g. check for HDMI_COLORIMETRY_ITU_601 or ITU_709
-> and set the colorspace accordingly. Otherwise fall back to what you have here.
->
+On Wed, Dec 13, 2017 at 07:26:17PM +0100, Jacopo Mondi wrote:
+> Add operation to retrieve the device name from a fwnode handle.
+> 
+> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+> ---
+>  drivers/acpi/property.c  |  6 ++++++
+>  drivers/base/property.c  | 12 ++++++++++++
+>  drivers/of/property.c    |  6 ++++++
+>  include/linux/fwnode.h   |  2 ++
+>  include/linux/property.h |  1 +
+>  5 files changed, 27 insertions(+)
+> 
+> diff --git a/drivers/acpi/property.c b/drivers/acpi/property.c
+> index e26ea20..1e3971c 100644
+> --- a/drivers/acpi/property.c
+> +++ b/drivers/acpi/property.c
+> @@ -1186,6 +1186,11 @@ acpi_fwnode_property_read_string_array(const struct fwnode_handle *fwnode,
+>  				   val, nval);
+>  }
+>  
+> +static const char *acpi_fwnode_get_name(const struct fwnode_handle *fwnode)
+> +{
+> +	return acpi_dev_name(to_acpi_device_node(fwnode));
 
-This function currently matches adv7604/adv7842 where they don't look
-at colorimetry (but I do see a TODO in adv748x_hdmi_fill_format to
-look at this) so I don't have an example and may not understand.
+This works for device nodes but will fail miserably for non-device ACPI
+nodes.
 
-Do you mean:
+The ACPI nodes don't currently have a name such as the DT nodes do, it
+would certainly help debugging if they did.
 
-       format->colorspace = V4L2_COLORSPACE_SRGB;
-       if (bt->flags & V4L2_DV_FL_IS_CE_VIDEO) {
-                if ((state->colorimetry == HDMI_COLORIMETRY_ITU_601) ||
-                    (state->colorimetry == HDMI_COLORIMETRY_ITU_709))
-                        format->colorspace = state->colorspace;
-                else
-                        format->colorspace = is_sd(bt->height) ?
-                                V4L2_COLORSPACE_SMPTE170M :
-V4L2_COLORSPACE_REC709;
-        }
+What you'll at least need to do is to check to_acpi_device_node() does not
+return NULL.
 
-Also during more testing I've found that I'm not capturing interlaced
-properly and know I at least need:
+acpi_dev_name() should be made const as well if the function is still used
+in v2.
 
--        format->field = V4L2_FIELD_NONE;
-+        format->field = (bt->interlaced) ?
-+                V4L2_FIELD_ALTERNATE : V4L2_FIELD_NONE;
+> +}
+> +
+>  static struct fwnode_handle *
+>  acpi_fwnode_get_named_child_node(const struct fwnode_handle *fwnode,
+>  				 const char *childname)
+> @@ -1281,6 +1286,7 @@ static int acpi_fwnode_graph_parse_endpoint(const struct fwnode_handle *fwnode,
+>  			acpi_fwnode_property_read_string_array,		\
+>  		.get_parent = acpi_node_get_parent,			\
+>  		.get_next_child_node = acpi_get_next_subnode,		\
+> +		.get_name = acpi_fwnode_get_name,			\
+>  		.get_named_child_node = acpi_fwnode_get_named_child_node, \
+>  		.get_reference_args = acpi_fwnode_get_reference_args,	\
+>  		.graph_get_next_endpoint =				\
+> diff --git a/drivers/base/property.c b/drivers/base/property.c
+> index 851b1b6..a87b4a9 100644
+> --- a/drivers/base/property.c
+> +++ b/drivers/base/property.c
+> @@ -950,6 +950,18 @@ int device_add_properties(struct device *dev,
+>  EXPORT_SYMBOL_GPL(device_add_properties);
+>  
+>  /**
+> + * fwnode_get_name - Return the fwnode_handle name
+> + * @fwnode: Firmware node to get name from
+> + *
+> + * Returns a pointer to the firmware node name
+> + */
+> +const char *fwnode_get_name(const struct fwnode_handle *fwnode)
+> +{
+> +	return fwnode_call_ptr_op(fwnode, get_name);
+> +}
+> +EXPORT_SYMBOL(fwnode_get_name);
+> +
+> +/**
+>   * fwnode_get_next_parent - Iterate to the node's parent
+>   * @fwnode: Firmware whose parent is retrieved
+>   *
+> diff --git a/drivers/of/property.c b/drivers/of/property.c
+> index 8ad33a4..6c195a8 100644
+> --- a/drivers/of/property.c
+> +++ b/drivers/of/property.c
+> @@ -875,6 +875,11 @@ of_fwnode_property_read_string_array(const struct fwnode_handle *fwnode,
+>  		of_property_count_strings(node, propname);
+>  }
+>  
+> +static const char *of_fwnode_get_name(const struct fwnode_handle *fwnode)
+> +{
+> +	return of_node_full_name(to_of_node(fwnode));
+> +}
+> +
+>  static struct fwnode_handle *
+>  of_fwnode_get_parent(const struct fwnode_handle *fwnode)
+>  {
+> @@ -988,6 +993,7 @@ const struct fwnode_operations of_fwnode_ops = {
+>  	.property_present = of_fwnode_property_present,
+>  	.property_read_int_array = of_fwnode_property_read_int_array,
+>  	.property_read_string_array = of_fwnode_property_read_string_array,
+> +	.get_name = of_fwnode_get_name,
+>  	.get_parent = of_fwnode_get_parent,
+>  	.get_next_child_node = of_fwnode_get_next_child_node,
+>  	.get_named_child_node = of_fwnode_get_named_child_node,
+> diff --git a/include/linux/fwnode.h b/include/linux/fwnode.h
+> index 411a84c..5d3a8c6 100644
+> --- a/include/linux/fwnode.h
+> +++ b/include/linux/fwnode.h
+> @@ -57,6 +57,7 @@ struct fwnode_reference_args {
+>   *				 otherwise.
+>   * @property_read_string_array: Read an array of string properties. Return zero
+>   *				on success, a negative error code otherwise.
+> + * @get_name: Return the fwnode name.
+>   * @get_parent: Return the parent of an fwnode.
+>   * @get_next_child_node: Return the next child node in an iteration.
+>   * @get_named_child_node: Return a child node with a given name.
+> @@ -81,6 +82,7 @@ struct fwnode_operations {
+>  	(*property_read_string_array)(const struct fwnode_handle *fwnode_handle,
+>  				      const char *propname, const char **val,
+>  				      size_t nval);
+> +	const char *(*get_name)(const struct fwnode_handle *fwnode);
+>  	struct fwnode_handle *(*get_parent)(const struct fwnode_handle *fwnode);
+>  	struct fwnode_handle *
+>  	(*get_next_child_node)(const struct fwnode_handle *fwnode,
+> diff --git a/include/linux/property.h b/include/linux/property.h
+> index f6189a3..0fc464f 100644
+> --- a/include/linux/property.h
+> +++ b/include/linux/property.h
+> @@ -78,6 +78,7 @@ int fwnode_property_get_reference_args(const struct fwnode_handle *fwnode,
+>  				       unsigned int nargs, unsigned int index,
+>  				       struct fwnode_reference_args *args);
+>  
+> +const char *fwnode_get_name(const struct fwnode_handle *fwnode);
+>  struct fwnode_handle *fwnode_get_parent(const struct fwnode_handle *fwnode);
+>  struct fwnode_handle *fwnode_get_next_parent(
+>  	struct fwnode_handle *fwnode);
 
-I'm still not quite capturing interlaced yet but I think its an issue
-of setting up the media pipeline improperly.
+-- 
+Kind regards,
 
-> Make a note that we ignore HDMI_COLORIMETRY_EXTENDED as we don't properly
-> support that anyway. For the record: I know that the colorimetry field in the
-> AVI InfoFrame can change dynamically, so this is just a snapshot in time. We
-> don't have good support for dynamic colorimetry changes. Or to be precise: we
-> never got around to implement it.
->
->> +
->> +     return 0;
->> +}
->> +
-<snip>
->> +
->> +static int tda1997x_s_ctrl(struct v4l2_ctrl *ctrl)
->> +{
->> +     struct v4l2_subdev *sd = to_sd(ctrl);
->> +     struct tda1997x_state *state = to_state(sd);
->> +
->> +     switch (ctrl->id) {
->> +     /* allow overriding the default RGB quantization range */
->> +     case V4L2_CID_DV_RX_RGB_RANGE:
->> +             state->range = ctrl->val;
->
-> This should be assigned to state->rgb_quantization_range!
-
-oops... thanks!
-
->
->> +             tda1997x_configure_csc(sd);
->> +             return 0;
->> +     }
->> +
->> +     return -EINVAL;
->> +};
->> +
-
-Thanks,
-
-Tim
+Sakari Ailus
+sakari.ailus@linux.intel.com
