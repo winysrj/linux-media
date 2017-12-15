@@ -1,258 +1,169 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:31717 "EHLO
-        mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751123AbdLLDFM (ORCPT
+Received: from out3-smtp.messagingengine.com ([66.111.4.27]:32879 "EHLO
+        out3-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751292AbdLOHHZ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 11 Dec 2017 22:05:12 -0500
-Received: from epcas5p1.samsung.com (unknown [182.195.41.39])
-        by mailout4.samsung.com (KnoxPortal) with ESMTP id 20171212030510epoutp048433fed40bdf6306165c7597c10bc082~-bQ71dppJ3053130531epoutp04Q
-        for <linux-media@vger.kernel.org>; Tue, 12 Dec 2017 03:05:10 +0000 (GMT)
-Subject: Re: [Patch v6 10/12] [media] v4l2: Add v4l2 control IDs for HEVC
- encoder
-From: Smitha T Murthy <smitha.t@samsung.com>
-To: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Cc: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org, kyungmin.park@samsung.com,
-        kamil@wypas.org, jtp.park@samsung.com, a.hajda@samsung.com,
-        mchehab@kernel.org, pankaj.dubey@samsung.com, krzk@kernel.org,
-        m.szyprowski@samsung.com, s.nawrocki@samsung.com
-In-Reply-To: <5b96b332-71a9-083a-2242-8bdf5554f010@linaro.org>
-Date: Tue, 12 Dec 2017 08:04:46 +0530
-Message-ID: <1513046086.22129.2.camel@smitha-fedora>
-Mime-Version: 1.0
+        Fri, 15 Dec 2017 02:07:25 -0500
+Subject: Re: [PATCH] uvcvideo: Apply flags from device to actual properties
+To: kieran.bingham@ideasonboard.com,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org
+References: <ca483e75-4519-2bc3-eb11-db647fc60860@edgarthier.net>
+ <1516233.pKQSzG3xyp@avalon>
+ <e6c92808-82e7-05bc-28b4-370ca51aa2de@edgarthier.net>
+ <bf6ced8e-6fbb-5054-bbf6-1186d52459b9@ideasonboard.com>
+ <443c86f9-0973-cf52-c0c3-be662a8fee74@ideasonboard.com>
+ <ae5ca43a-1ccd-b1fd-c699-f9f1d4f96dc3@edgarthier.net>
+ <8b32b0f3-e442-6761-ef1c-34ac535080d0@ideasonboard.com>
+ <7342af02-0158-a99e-caf1-6c394842296b@edgarthier.net>
+ <430ebf60-395c-08ff-5500-dedcda91e3b1@ideasonboard.com>
+ <7807bf0a-a0a1-65ad-1a10-3a3234e566e9@edgarthier.net>
+ <2b5cdc56-1de5-8aac-65d6-9713eaf65cdc@ideasonboard.com>
+From: Edgar Thier <info@edgarthier.net>
+Message-ID: <d6ba3f05-4745-17e9-328b-034c9d251f96@edgarthier.net>
+Date: Fri, 15 Dec 2017 08:07:21 +0100
+MIME-Version: 1.0
+In-Reply-To: <2b5cdc56-1de5-8aac-65d6-9713eaf65cdc@ideasonboard.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
 Content-Transfer-Encoding: 7bit
-Content-Type: text/plain; charset="utf-8"
-References: <1512724105-1778-1-git-send-email-smitha.t@samsung.com>
-        <CGME20171208093702epcas2p32a30a9f624e06fb543f7dd757c805077@epcas2p3.samsung.com>
-        <1512724105-1778-11-git-send-email-smitha.t@samsung.com>
-        <5b96b332-71a9-083a-2242-8bdf5554f010@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 2017-12-09 at 20:48 +0200, Stanimir Varbanov wrote:
-> Hi Smitha,
-> 
-> Thanks for the patches!
-> 
-> On 12/08/2017 11:08 AM, Smitha T Murthy wrote:
-> > Add v4l2 controls for HEVC encoder
-> > 
-> > Signed-off-by: Smitha T Murthy <smitha.t@samsung.com>
-> > Reviewed-by: Andrzej Hajda <a.hajda@samsung.com>
-> > ---
-> >  drivers/media/v4l2-core/v4l2-ctrls.c | 118 +++++++++++++++++++++++++++++++++++
-> >  include/uapi/linux/v4l2-controls.h   |  92 ++++++++++++++++++++++++++-
-> >  2 files changed, 209 insertions(+), 1 deletion(-)
-> > 
-> > diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-> > index 4e53a86..3f98318 100644
-> > --- a/drivers/media/v4l2-core/v4l2-ctrls.c
-> > +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-> > @@ -480,6 +480,56 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
-> >  		NULL,
-> >  	};
-> >  
-> > +	static const char * const hevc_profile[] = {
-> > +		"Main",
-> 
-> You forgot "Main 10" profile.
-> 
-Sorry I forgot to update it, I will fix it in the next version.
+Hi,
 
-> > +		"Main Still Picture",
-> > +		NULL,
-> > +	};
-> > +	static const char * const hevc_level[] = {
-> > +		"1",
-> > +		"2",
-> > +		"2.1",
-> > +		"3",
-> > +		"3.1",
-> > +		"4",
-> > +		"4.1",
-> > +		"5",
-> > +		"5.1",
-> > +		"5.2",
-> > +		"6",
-> > +		"6.1",
-> > +		"6.2",
-> > +		NULL,
-> > +	};
-> > +	static const char * const hevc_hierarchial_coding_type[] = {
-> > +		"B",
-> > +		"P",
-> > +		NULL,
-> > +	};
-> > +	static const char * const hevc_refresh_type[] = {
-> > +		"None",
-> > +		"CRA",
-> > +		"IDR",
-> > +		NULL,
-> > +	};
-> > +	static const char * const hevc_size_of_length_field[] = {
-> > +		"0",
-> > +		"1",
-> > +		"2",
-> > +		"4",
-> > +		NULL,
-> > +	};
-> > +	static const char * const hevc_tier_flag[] = {
-> > +		"Main",
-> > +		"High",
-> > +		NULL,
-> > +	};
-> > +	static const char * const hevc_loop_filter_mode[] = {
-> > +		"Disabled",
-> > +		"Enabled",
-> > +		"Disabled at slice boundary",
-> > +		"NULL",
-> > +	};
-> >  
-> >  	switch (id) {
-> >  	case V4L2_CID_MPEG_AUDIO_SAMPLING_FREQ:
-> > @@ -575,6 +625,20 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
-> >  		return dv_it_content_type;
-> >  	case V4L2_CID_DETECT_MD_MODE:
-> >  		return detect_md_mode;
-> > +	case V4L2_CID_MPEG_VIDEO_HEVC_PROFILE:
-> > +		return hevc_profile;
-> > +	case V4L2_CID_MPEG_VIDEO_HEVC_LEVEL:
-> > +		return hevc_level;
-> > +	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_TYPE:
-> > +		return hevc_hierarchial_coding_type;
-> > +	case V4L2_CID_MPEG_VIDEO_HEVC_REFRESH_TYPE:
-> > +		return hevc_refresh_type;
-> > +	case V4L2_CID_MPEG_VIDEO_HEVC_SIZE_OF_LENGTH_FIELD:
-> > +		return hevc_size_of_length_field;
-> > +	case V4L2_CID_MPEG_VIDEO_HEVC_TIER_FLAG:
-> 
-> Could you drop _FLAG suffix? Looking (briefly) into the spec they not
-> specify `tier flag` but just `tier`.
-> 
-Yes I will remove it.
-
-> > +		return hevc_tier_flag;
-> > +	case V4L2_CID_MPEG_VIDEO_HEVC_LOOP_FILTER_MODE:
-> > +		return hevc_loop_filter_mode;
-> >  
-> >  	default:
-> >  		return NULL;
-> > @@ -776,6 +840,53 @@ const char *v4l2_ctrl_get_name(u32 id)
-> >  	case V4L2_CID_MPEG_VIDEO_VPX_P_FRAME_QP:		return "VPX P-Frame QP Value";
-> >  	case V4L2_CID_MPEG_VIDEO_VPX_PROFILE:			return "VPX Profile";
-> >  
-> > +	/* HEVC controls */
-> > +	case V4L2_CID_MPEG_VIDEO_HEVC_I_FRAME_QP:		return "HEVC I-Frame QP Value";
-> > +	case V4L2_CID_MPEG_VIDEO_HEVC_P_FRAME_QP:		return "HEVC P-Frame QP Value";
-> > +	case V4L2_CID_MPEG_VIDEO_HEVC_B_FRAME_QP:		return "HEVC B-Frame QP Value";
-> > +	case V4L2_CID_MPEG_VIDEO_HEVC_MIN_QP:			return "HEVC Minimum QP Value";
-> > +	case V4L2_CID_MPEG_VIDEO_HEVC_MAX_QP:			return "HEVC Maximum QP Value";
-> > +	case V4L2_CID_MPEG_VIDEO_HEVC_PROFILE:			return "HEVC Profile";
-> > +	case V4L2_CID_MPEG_VIDEO_HEVC_LEVEL:			return "HEVC Level";
-> > +	case V4L2_CID_MPEG_VIDEO_HEVC_TIER_FLAG:		return "HEVC Tier Flag";
-> > +	case V4L2_CID_MPEG_VIDEO_HEVC_FRAME_RATE_RESOLUTION:	return "HEVC Frame Rate Resolution";
-> > +	case V4L2_CID_MPEG_VIDEO_HEVC_MAX_PARTITION_DEPTH:	return "HEVC Maximum Coding Unit Depth";
-> > +	case V4L2_CID_MPEG_VIDEO_HEVC_REFRESH_TYPE:		return "HEVC Refresh Type";
-> > +	case V4L2_CID_MPEG_VIDEO_HEVC_CONST_INTRA_PRED:		return "HEVC Constant Intra Prediction";
-> > +	case V4L2_CID_MPEG_VIDEO_HEVC_LOSSLESS_CU:		return "HEVC Lossless Encoding";
-> > +	case V4L2_CID_MPEG_VIDEO_HEVC_WAVEFRONT:		return "HEVC Wavefront";
-> > +	case V4L2_CID_MPEG_VIDEO_HEVC_LOOP_FILTER_MODE:		return "HEVC Loop Filter";
-> > +	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_QP:			return "HEVC QP Values";
-> > +	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_TYPE:		return "HEVC Hierarchical Coding Type";
-> > +	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_LAYER:	return "HEVC Hierarchical Coding Layer";
-> > +	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L0_QP:	return "HEVC Hierarchical Lay 0 QP";
-> 
-> s/Lay/Layer here and below
-> 
-Ok I will change it.
-
-> > +	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L1_QP:	return "HEVC Hierarchical Lay 1 QP";
-> > +	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L2_QP:	return "HEVC Hierarchical Lay 2 QP";
-> > +	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L3_QP:	return "HEVC Hierarchical Lay 3 QP";
-> > +	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L4_QP:	return "HEVC Hierarchical Lay 4 QP";
-> > +	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L5_QP:	return "HEVC Hierarchical Lay 5 QP";
-> > +	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L6_QP:	return "HEVC Hierarchical Lay 6 QP";
-> > +	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L0_BR:	return "HEVC Hierarchical Lay 0 Bit Rate";
-> > +	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L1_BR:	return "HEVC Hierarchical Lay 1 Bit Rate";
-> > +	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L2_BR:	return "HEVC Hierarchical Lay 2 Bit Rate";
-> > +	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L3_BR:	return "HEVC Hierarchical Lay 3 Bit Rate";
-> > +	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L4_BR:	return "HEVC Hierarchical Lay 4 Bit Rate";
-> > +	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L5_BR:	return "HEVC Hierarchical Lay 5 Bit Rate";
-> > +	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L6_BR:	return "HEVC Hierarchical Lay 6 Bit Rate";
-> > +	case V4L2_CID_MPEG_VIDEO_HEVC_GENERAL_PB:		return "HEVC General PB";
-> > +	case V4L2_CID_MPEG_VIDEO_HEVC_TEMPORAL_ID:		return "HEVC Temporal ID";
-> > +	case V4L2_CID_MPEG_VIDEO_HEVC_STRONG_SMOOTHING:		return "HEVC Strong Intra Smoothing";
-> > +	case V4L2_CID_MPEG_VIDEO_HEVC_INTRA_PU_SPLIT:		return "HEVC Intra PU Split";
-> > +	case V4L2_CID_MPEG_VIDEO_HEVC_TMV_PREDICTION:		return "HEVC TMV Prediction";
-> > +	case V4L2_CID_MPEG_VIDEO_HEVC_MAX_NUM_MERGE_MV_MINUS1:	return "HEVC Max Number of Candidate MVs";
-> > +	case V4L2_CID_MPEG_VIDEO_HEVC_WITHOUT_STARTCODE:	return "HEVC ENC Without Startcode";
-> > +	case V4L2_CID_MPEG_VIDEO_HEVC_REFRESH_PERIOD:		return "HEVC Num of I-Frame b/w 2 IDR";
-> > +	case V4L2_CID_MPEG_VIDEO_HEVC_LF_BETA_OFFSET_DIV2:	return "HEVC Loop Filter Beta Offset";
-> > +	case V4L2_CID_MPEG_VIDEO_HEVC_LF_TC_OFFSET_DIV2:	return "HEVC Loop Filter TC Offset";
-> > +	case V4L2_CID_MPEG_VIDEO_HEVC_SIZE_OF_LENGTH_FIELD:	return "HEVC Size of Length Field";
-> > +	case V4L2_CID_MPEG_VIDEO_REF_NUMBER_FOR_PFRAMES:	return "Reference Frames for a P-Frame";
-> > +	case V4L2_CID_MPEG_VIDEO_PREPEND_SPSPPS_TO_IDR:		return "Prepend SPS and PPS to IDR";
-> > +
-> >  	/* CAMERA controls */
-> >  	/* Keep the order of the 'case's the same as in v4l2-controls.h! */
-> >  	case V4L2_CID_CAMERA_CLASS:		return "Camera Controls";
-> > @@ -1069,6 +1180,13 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
-> >  	case V4L2_CID_TUNE_DEEMPHASIS:
-> >  	case V4L2_CID_MPEG_VIDEO_VPX_GOLDEN_FRAME_SEL:
-> >  	case V4L2_CID_DETECT_MD_MODE:
-> > +	case V4L2_CID_MPEG_VIDEO_HEVC_PROFILE:
-> > +	case V4L2_CID_MPEG_VIDEO_HEVC_LEVEL:
-> > +	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_TYPE:
-> > +	case V4L2_CID_MPEG_VIDEO_HEVC_REFRESH_TYPE:
-> > +	case V4L2_CID_MPEG_VIDEO_HEVC_SIZE_OF_LENGTH_FIELD:
-> > +	case V4L2_CID_MPEG_VIDEO_HEVC_TIER_FLAG:
-> > +	case V4L2_CID_MPEG_VIDEO_HEVC_LOOP_FILTER_MODE:
-> >  		*type = V4L2_CTRL_TYPE_MENU;
-> >  		break;
-> >  	case V4L2_CID_LINK_FREQ:
-> > diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
-> > index 31bfc68..a4b8489 100644
-> > --- a/include/uapi/linux/v4l2-controls.h
-> > +++ b/include/uapi/linux/v4l2-controls.h
-> > @@ -588,6 +588,97 @@ enum v4l2_vp8_golden_frame_sel {
-> >  #define V4L2_CID_MPEG_VIDEO_VPX_P_FRAME_QP		(V4L2_CID_MPEG_BASE+510)
-> >  #define V4L2_CID_MPEG_VIDEO_VPX_PROFILE			(V4L2_CID_MPEG_BASE+511)
-> >  
-> > +/* CIDs for HEVC encoding. Number gaps are for compatibility */
-> > +
-> > +#define V4L2_CID_MPEG_VIDEO_HEVC_MIN_QP		(V4L2_CID_MPEG_BASE + 512)
-> > +#define V4L2_CID_MPEG_VIDEO_HEVC_MAX_QP		(V4L2_CID_MPEG_BASE + 513)
-> > +#define V4L2_CID_MPEG_VIDEO_HEVC_I_FRAME_QP	(V4L2_CID_MPEG_BASE + 514)
-> > +#define V4L2_CID_MPEG_VIDEO_HEVC_P_FRAME_QP	(V4L2_CID_MPEG_BASE + 515)
-> > +#define V4L2_CID_MPEG_VIDEO_HEVC_B_FRAME_QP	(V4L2_CID_MPEG_BASE + 516)
-> > +#define V4L2_CID_MPEG_VIDEO_HEVC_HIER_QP	(V4L2_CID_MPEG_BASE + 517)
-> > +#define V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_TYPE (V4L2_CID_MPEG_BASE + 518)
-> > +enum v4l2_mpeg_video_hevc_hier_coding_type {
-> > +	V4L2_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_B	= 0,
-> > +	V4L2_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_P	= 1,
-> > +};
-> > +#define V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_LAYER	(V4L2_CID_MPEG_BASE + 519)
-> > +#define V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L0_QP	(V4L2_CID_MPEG_BASE + 520)
-> > +#define V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L1_QP	(V4L2_CID_MPEG_BASE + 521)
-> > +#define V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L2_QP	(V4L2_CID_MPEG_BASE + 522)
-> > +#define V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L3_QP	(V4L2_CID_MPEG_BASE + 523)
-> > +#define V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L4_QP	(V4L2_CID_MPEG_BASE + 524)
-> > +#define V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L5_QP	(V4L2_CID_MPEG_BASE + 525)
-> > +#define V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L6_QP	(V4L2_CID_MPEG_BASE + 526)
-> > +#define V4L2_CID_MPEG_VIDEO_HEVC_PROFILE	(V4L2_CID_MPEG_BASE + 527)
-> > +enum v4l2_mpeg_video_hevc_profile {
-> > +	V4L2_MPEG_VIDEO_HEVC_PROFILE_MAIN = 0,
-> 
-> you forgot V4L2_MPEG_VIDEO_HEVC_PROFILE_MAIN10 profile.
-> 
-Sorry I will correct it in the next patch series.
-
-> > +	V4L2_MPEG_VIDEO_HEVC_PROFILE_MAIN_STILL_PICTURE = 1,
-> > +};
-> 
-> <snip>
-> 
-Thank you for the review.
+Another month, another mail. Are there still issues keeping this from being merged?
 
 Regards,
-Smitha
+
+Edgar
+
+On 11/15/2017 12:54 PM, Kieran Bingham wrote:
+> Hi Edgar,
+> 
+> Thanks for addressing my concerns in this updated patch.
+> 
+> On 12/10/17 08:54, Edgar Thier wrote:
+>>
+>> Use flags the device exposes for UVC controls.
+>> This allows the device to define which property flags are set.
+>>
+>> Since some cameras offer auto-adjustments for properties (e.g. auto-gain),
+>> the values of other properties (e.g. gain) can change in the camera.
+>> Examining the flags ensures that the driver is aware of such properties.
+>>
+>> Signed-off-by: Edgar Thier <info@edgarthier.net>
+> 
+> Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+> 
+>> ---
+>>  drivers/media/usb/uvc/uvc_ctrl.c | 64 ++++++++++++++++++++++++++++++----------
+>>  1 file changed, 49 insertions(+), 15 deletions(-)
+>>
+>> diff --git a/drivers/media/usb/uvc/uvc_ctrl.c b/drivers/media/usb/uvc/uvc_ctrl.c
+>> index 20397aba..8f902a41 100644
+>> --- a/drivers/media/usb/uvc/uvc_ctrl.c
+>> +++ b/drivers/media/usb/uvc/uvc_ctrl.c
+>> @@ -1629,6 +1629,40 @@ static void uvc_ctrl_fixup_xu_info(struct uvc_device *dev,
+>>  	}
+>>  }
+>>
+>> +/*
+>> + * Retrieve flags for a given control
+>> + */
+>> +static int uvc_ctrl_get_flags(struct uvc_device *dev, const struct uvc_control *ctrl,
+>> +	const struct uvc_control_info *info)
+>> +{
+>> +	u8 *data;
+>> +	int ret = 0;
+>> +	int flags = 0;
+>> +
+>> +	data = kmalloc(2, GFP_KERNEL);
+>> +	if (data == NULL)
+>> +		return -ENOMEM;
+>> +
+>> +	ret = uvc_query_ctrl(dev, UVC_GET_INFO, ctrl->entity->id, dev->intfnum,
+>> +						 info->selector, data, 1);
+>> +	if (ret < 0) {
+>> +		uvc_trace(UVC_TRACE_CONTROL,
+>> +				  "GET_INFO failed on control %pUl/%u (%d).\n",
+>> +				  info->entity, info->selector, ret);
+>> +	} else {
+>> +		flags = UVC_CTRL_FLAG_GET_MIN | UVC_CTRL_FLAG_GET_MAX
+>> +			| UVC_CTRL_FLAG_GET_RES | UVC_CTRL_FLAG_GET_DEF
+>> +			| (data[0] & UVC_CONTROL_CAP_GET ?
+>> +			   UVC_CTRL_FLAG_GET_CUR : 0)
+>> +			| (data[0] & UVC_CONTROL_CAP_SET ?
+>> +			   UVC_CTRL_FLAG_SET_CUR : 0)
+>> +			| (data[0] & UVC_CONTROL_CAP_AUTOUPDATE ?
+>> +			   UVC_CTRL_FLAG_AUTO_UPDATE : 0);
+>> +	}
+>> +	kfree(data);
+>> +	return flags;
+>> +}
+>> +
+>>  /*
+>>   * Query control information (size and flags) for XU controls.
+>>   */
+>> @@ -1636,6 +1670,7 @@ static int uvc_ctrl_fill_xu_info(struct uvc_device *dev,
+>>  	const struct uvc_control *ctrl, struct uvc_control_info *info)
+>>  {
+>>  	u8 *data;
+>> +	int flags;
+>>  	int ret;
+>>
+>>  	data = kmalloc(2, GFP_KERNEL);
+>> @@ -1659,24 +1694,15 @@ static int uvc_ctrl_fill_xu_info(struct uvc_device *dev,
+>>
+>>  	info->size = le16_to_cpup((__le16 *)data);
+>>
+>> -	/* Query the control information (GET_INFO) */
+>> -	ret = uvc_query_ctrl(dev, UVC_GET_INFO, ctrl->entity->id, dev->intfnum,
+>> -			     info->selector, data, 1);
+>> -	if (ret < 0) {
+>> +	flags = uvc_ctrl_get_flags(dev, ctrl, info);
+>> +
+>> +	if (flags < 0) {
+>>  		uvc_trace(UVC_TRACE_CONTROL,
+>> -			  "GET_INFO failed on control %pUl/%u (%d).\n",
+>> -			  info->entity, info->selector, ret);
+>> +			  "Failed to retrieve flags (%d).\n", ret);
+>> + 		ret = flags;
+>>  		goto done;
+>>  	}
+>> -
+>> -	info->flags = UVC_CTRL_FLAG_GET_MIN | UVC_CTRL_FLAG_GET_MAX
+>> -		    | UVC_CTRL_FLAG_GET_RES | UVC_CTRL_FLAG_GET_DEF
+>> -		    | (data[0] & UVC_CONTROL_CAP_GET ?
+>> -		       UVC_CTRL_FLAG_GET_CUR : 0)
+>> -		    | (data[0] & UVC_CONTROL_CAP_SET ?
+>> -		       UVC_CTRL_FLAG_SET_CUR : 0)
+>> -		    | (data[0] & UVC_CONTROL_CAP_AUTOUPDATE ?
+>> -		       UVC_CTRL_FLAG_AUTO_UPDATE : 0);
+>> +	info->flags = flags;
+>>
+>>  	uvc_ctrl_fixup_xu_info(dev, ctrl, info);
+>>
+>> @@ -1890,6 +1916,7 @@ static int uvc_ctrl_add_info(struct uvc_device *dev, struct uvc_control *ctrl,
+>>  	const struct uvc_control_info *info)
+>>  {
+>>  	int ret = 0;
+>> +	int flags = 0;
+>>
+>>  	ctrl->info = *info;
+>>  	INIT_LIST_HEAD(&ctrl->info.mappings);
+>> @@ -1902,6 +1929,13 @@ static int uvc_ctrl_add_info(struct uvc_device *dev, struct uvc_control *ctrl,
+>>  		goto done;
+>>  	}
+>>
+>> +	flags = uvc_ctrl_get_flags(dev, ctrl, info);
+>> +	if (flags < 0)
+>> +		uvc_trace(UVC_TRACE_CONTROL,
+>> +			  "Failed to retrieve flags (%d).\n", ret);
+>> +	else
+>> +		ctrl->info.flags = flags;
+>> +
+>>  	ctrl->initialized = 1;
+>>
+>>  	uvc_trace(UVC_TRACE_CONTROL, "Added control %pUl/%u to device %s "
+>>
