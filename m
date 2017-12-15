@@ -1,256 +1,245 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:44988 "EHLO
-        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753249AbdLFAdL (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 5 Dec 2017 19:33:11 -0500
-Received: by mail-wm0-f66.google.com with SMTP id t8so4410442wmc.3
-        for <linux-media@vger.kernel.org>; Tue, 05 Dec 2017 16:33:10 -0800 (PST)
-From: Javier Martinez Canillas <javierm@redhat.com>
-To: linux-kernel@vger.kernel.org
-Cc: Javier Martinez Canillas <javierm@redhat.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        "Gustavo A. R. Silva" <garsilva@embeddedor.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        linux-media@vger.kernel.org
-Subject: [RESEND PATCH] partial revert of "[media] tvp5150: add HW input connectors support"
-Date: Wed,  6 Dec 2017 01:33:05 +0100
-Message-Id: <20171206003305.22895-1-javierm@redhat.com>
+Received: from smtprelay2.synopsys.com ([198.182.60.111]:49073 "EHLO
+        smtprelay.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753279AbdLOLRY (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 15 Dec 2017 06:17:24 -0500
+Subject: Re: [PATCH] v4l2-dv-timings: add v4l2_hdmi_colorimetry()
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <7651d5f8-5e9c-4bd0-c67e-4e07f8f3295f@xs4all.nl>
+CC: Tim Harvey <tharvey@gateworks.com>
+From: Jose Abreu <Jose.Abreu@synopsys.com>
+Message-ID: <656a5e1b-b81d-d4f9-3383-d441a6b4276b@synopsys.com>
+Date: Fri, 15 Dec 2017 11:17:14 +0000
+MIME-Version: 1.0
+In-Reply-To: <7651d5f8-5e9c-4bd0-c67e-4e07f8f3295f@xs4all.nl>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Commit f7b4b54e6364 ("[media] tvp5150: add HW input connectors support")
-added input signals support for the tvp5150, but the approach was found
-to be incorrect so the corresponding DT binding commit 82c2ffeb217a
-("[media] tvp5150: document input connectors DT bindings") was reverted.
+Hi Hans,
 
-This left the driver with an undocumented (and wrong) DT parsing logic,
-so lets get rid of this code as well until the input connectors support
-is implemented properly.
+On 15-12-2017 09:48, Hans Verkuil wrote:
+> Add the v4l2_hdmi_colorimetry() function so we have a single function
+> that determines the colorspace, YCbCr encoding, quantization range and
+> transfer function from the InfoFrame data.
 
-It's a partial revert due other patches added on top of mentioned commit
-not allowing the commit to be reverted cleanly anymore. But all the code
-related to the DT parsing logic and input entities creation are removed.
+You could also make AVI infoframe optional and return RGB in that
+case.
 
-Suggested-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Signed-off-by: Javier Martinez Canillas <javierm@redhat.com>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Anyway, I took a quick look at the spec and everything seems ok.
 
----
+Reviewed-by: Jose Abreu <joabreu@synopsys.com>
 
-This patch was posted about a year ago but was never merged:
+Best Regards,
+Jose Miguel Abreu
 
-https://patchwork.kernel.org/patch/9472623/
-
-Best regards,
-Javier
-
- drivers/media/i2c/tvp5150.c | 142 --------------------------------------------
- 1 file changed, 142 deletions(-)
-
-diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
-index 7b79a7498751..a7c2c0c09a8d 100644
---- a/drivers/media/i2c/tvp5150.c
-+++ b/drivers/media/i2c/tvp5150.c
-@@ -43,8 +43,6 @@ struct tvp5150 {
- 	struct v4l2_subdev sd;
- #ifdef CONFIG_MEDIA_CONTROLLER
- 	struct media_pad pads[DEMOD_NUM_PADS];
--	struct media_entity input_ent[TVP5150_INPUT_NUM];
--	struct media_pad input_pad[TVP5150_INPUT_NUM];
- #endif
- 	struct v4l2_ctrl_handler hdl;
- 	struct v4l2_rect rect;
-@@ -1015,40 +1013,6 @@ static int tvp5150_enum_frame_size(struct v4l2_subdev *sd,
- 	return 0;
- }
- 
--/****************************************************************************
--			Media entity ops
-- ****************************************************************************/
--
--#ifdef CONFIG_MEDIA_CONTROLLER
--static int tvp5150_link_setup(struct media_entity *entity,
--			      const struct media_pad *local,
--			      const struct media_pad *remote, u32 flags)
--{
--	struct v4l2_subdev *sd = media_entity_to_v4l2_subdev(entity);
--	struct tvp5150 *decoder = to_tvp5150(sd);
--	int i;
--
--	for (i = 0; i < TVP5150_INPUT_NUM; i++) {
--		if (remote->entity == &decoder->input_ent[i])
--			break;
--	}
--
--	/* Do nothing for entities that are not input connectors */
--	if (i == TVP5150_INPUT_NUM)
--		return 0;
--
--	decoder->input = i;
--
--	tvp5150_selmux(sd);
--
--	return 0;
--}
--
--static const struct media_entity_operations tvp5150_sd_media_ops = {
--	.link_setup = tvp5150_link_setup,
--};
--#endif
--
- /****************************************************************************
- 			I2C Command
-  ****************************************************************************/
-@@ -1186,42 +1150,6 @@ static int tvp5150_g_tuner(struct v4l2_subdev *sd, struct v4l2_tuner *vt)
- 	return 0;
- }
- 
--static int tvp5150_registered(struct v4l2_subdev *sd)
--{
--#ifdef CONFIG_MEDIA_CONTROLLER
--	struct tvp5150 *decoder = to_tvp5150(sd);
--	int ret = 0;
--	int i;
--
--	for (i = 0; i < TVP5150_INPUT_NUM; i++) {
--		struct media_entity *input = &decoder->input_ent[i];
--		struct media_pad *pad = &decoder->input_pad[i];
--
--		if (!input->name)
--			continue;
--
--		decoder->input_pad[i].flags = MEDIA_PAD_FL_SOURCE;
--
--		ret = media_entity_pads_init(input, 1, pad);
--		if (ret < 0)
--			return ret;
--
--		ret = media_device_register_entity(sd->v4l2_dev->mdev, input);
--		if (ret < 0)
--			return ret;
--
--		ret = media_create_pad_link(input, 0, &sd->entity,
--					    DEMOD_PAD_IF_INPUT, 0);
--		if (ret < 0) {
--			media_device_unregister_entity(input);
--			return ret;
--		}
--	}
--#endif
--
--	return 0;
--}
--
- /* ----------------------------------------------------------------------- */
- 
- static const struct v4l2_ctrl_ops tvp5150_ctrl_ops = {
-@@ -1272,11 +1200,6 @@ static const struct v4l2_subdev_ops tvp5150_ops = {
- 	.pad = &tvp5150_pad_ops,
- };
- 
--static const struct v4l2_subdev_internal_ops tvp5150_internal_ops = {
--	.registered = tvp5150_registered,
--};
--
--
- /****************************************************************************
- 			I2C Client & Driver
-  ****************************************************************************/
-@@ -1358,12 +1281,6 @@ static int tvp5150_parse_dt(struct tvp5150 *decoder, struct device_node *np)
- {
- 	struct v4l2_fwnode_endpoint bus_cfg;
- 	struct device_node *ep;
--#ifdef CONFIG_MEDIA_CONTROLLER
--	struct device_node *connectors, *child;
--	struct media_entity *input;
--	const char *name;
--	u32 input_type;
--#endif
- 	unsigned int flags;
- 	int ret = 0;
- 
-@@ -1387,63 +1304,6 @@ static int tvp5150_parse_dt(struct tvp5150 *decoder, struct device_node *np)
- 
- 	decoder->mbus_type = bus_cfg.bus_type;
- 
--#ifdef CONFIG_MEDIA_CONTROLLER
--	connectors = of_get_child_by_name(np, "connectors");
--
--	if (!connectors)
--		goto err;
--
--	for_each_available_child_of_node(connectors, child) {
--		ret = of_property_read_u32(child, "input", &input_type);
--		if (ret) {
--			dev_err(decoder->sd.dev,
--				 "missing type property in node %s\n",
--				 child->name);
--			goto err_connector;
--		}
--
--		if (input_type >= TVP5150_INPUT_NUM) {
--			ret = -EINVAL;
--			goto err_connector;
--		}
--
--		input = &decoder->input_ent[input_type];
--
--		/* Each input connector can only be defined once */
--		if (input->name) {
--			dev_err(decoder->sd.dev,
--				 "input %s with same type already exists\n",
--				 input->name);
--			ret = -EINVAL;
--			goto err_connector;
--		}
--
--		switch (input_type) {
--		case TVP5150_COMPOSITE0:
--		case TVP5150_COMPOSITE1:
--			input->function = MEDIA_ENT_F_CONN_COMPOSITE;
--			break;
--		case TVP5150_SVIDEO:
--			input->function = MEDIA_ENT_F_CONN_SVIDEO;
--			break;
--		}
--
--		input->flags = MEDIA_ENT_FL_CONNECTOR;
--
--		ret = of_property_read_string(child, "label", &name);
--		if (ret < 0) {
--			dev_err(decoder->sd.dev,
--				 "missing label property in node %s\n",
--				 child->name);
--			goto err_connector;
--		}
--
--		input->name = name;
--	}
--
--err_connector:
--	of_node_put(connectors);
--#endif
- err:
- 	of_node_put(ep);
- 	return ret;
-@@ -1489,7 +1349,6 @@ static int tvp5150_probe(struct i2c_client *c,
- 	}
- 
- 	v4l2_i2c_subdev_init(sd, c, &tvp5150_ops);
--	sd->internal_ops = &tvp5150_internal_ops;
- 	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
- 
- #if defined(CONFIG_MEDIA_CONTROLLER)
-@@ -1503,7 +1362,6 @@ static int tvp5150_probe(struct i2c_client *c,
- 	if (res < 0)
- 		return res;
- 
--	sd->entity.ops = &tvp5150_sd_media_ops;
- #endif
- 
- 	res = tvp5150_detect_version(core);
--- 
-2.14.3
+>
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+> Tim, you can add this patch to your driver patch series and just call it.
+> Note that this colorspace information is what the HDMI gives you, if you
+> need to convert this than you will need to update this information accordingly
+> (e.g. lim to full range, 601 to 709 conversions, etc.) before giving it to
+> userspace.
+>
+> Jose, I'm not sure if you need it in your driver, but this is probably useful
+> regardless.
+>
+> Regards,
+>
+> 	Hans
+> ---
+>  drivers/media/v4l2-core/v4l2-dv-timings.c | 141 ++++++++++++++++++++++++++++++
+>  include/media/v4l2-dv-timings.h           |  21 +++++
+>  2 files changed, 162 insertions(+)
+>
+> diff --git a/drivers/media/v4l2-core/v4l2-dv-timings.c b/drivers/media/v4l2-core/v4l2-dv-timings.c
+> index 930f9c53a64e..0182d3d3f807 100644
+> --- a/drivers/media/v4l2-core/v4l2-dv-timings.c
+> +++ b/drivers/media/v4l2-core/v4l2-dv-timings.c
+> @@ -27,6 +27,7 @@
+>  #include <linux/v4l2-dv-timings.h>
+>  #include <media/v4l2-dv-timings.h>
+>  #include <linux/math64.h>
+> +#include <linux/hdmi.h>
+>
+>  MODULE_AUTHOR("Hans Verkuil");
+>  MODULE_DESCRIPTION("V4L2 DV Timings Helper Functions");
+> @@ -814,3 +815,143 @@ struct v4l2_fract v4l2_calc_aspect_ratio(u8 hor_landscape, u8 vert_portrait)
+>  	return aspect;
+>  }
+>  EXPORT_SYMBOL_GPL(v4l2_calc_aspect_ratio);
+> +
+> +/** v4l2_hdmi_rx_colorimetry - determine HDMI colorimetry information
+> + *	based on various InfoFrames.
+> + * @avi - the AVI InfoFrame
+> + * @hdmi - the HDMI Vendor InfoFrame, may be NULL
+> + * @height - the frame height
+> + *
+> + * Determines the HDMI colorimetry information, i.e. how the HDMI
+> + * pixel color data should be interpreted.
+> + *
+> + * Note that some of the newer features (DCI-P3, HDR) are not yet
+> + * implemented: the hdmi.h header needs to be updated to the HDMI 2.0
+> + * and CTA-861-G standards.
+> + */
+> +struct v4l2_hdmi_colorimetry
+> +v4l2_hdmi_rx_colorimetry(const struct hdmi_avi_infoframe *avi,
+> +			 const struct hdmi_vendor_infoframe *hdmi,
+> +			 unsigned int height)
+> +{
+> +	struct v4l2_hdmi_colorimetry c = {
+> +		V4L2_COLORSPACE_SRGB,
+> +		V4L2_YCBCR_ENC_DEFAULT,
+> +		V4L2_QUANTIZATION_FULL_RANGE,
+> +		V4L2_XFER_FUNC_SRGB
+> +	};
+> +	bool is_ce = avi->video_code || (hdmi && hdmi->vic);
+> +	bool is_sdtv = height <= 576;
+> +	bool default_is_lim_range_rgb = avi->video_code > 1;
+> +
+> +	switch (avi->colorspace) {
+> +	case HDMI_COLORSPACE_RGB:
+> +		/* RGB pixel encoding */
+> +		switch (avi->colorimetry) {
+> +		case HDMI_COLORIMETRY_EXTENDED:
+> +			switch (avi->extended_colorimetry) {
+> +			case HDMI_EXTENDED_COLORIMETRY_ADOBE_RGB:
+> +				c.colorspace = V4L2_COLORSPACE_ADOBERGB;
+> +				c.xfer_func = V4L2_XFER_FUNC_ADOBERGB;
+> +				break;
+> +			case HDMI_EXTENDED_COLORIMETRY_BT2020:
+> +				c.colorspace = V4L2_COLORSPACE_BT2020;
+> +				c.xfer_func = V4L2_XFER_FUNC_709;
+> +				break;
+> +			default:
+> +				break;
+> +			}
+> +			break;
+> +		default:
+> +			break;
+> +		}
+> +		switch (avi->quantization_range) {
+> +		case HDMI_QUANTIZATION_RANGE_LIMITED:
+> +			c.quantization = V4L2_QUANTIZATION_LIM_RANGE;
+> +			break;
+> +		case HDMI_QUANTIZATION_RANGE_FULL:
+> +			break;
+> +		default:
+> +			if (default_is_lim_range_rgb)
+> +				c.quantization = V4L2_QUANTIZATION_LIM_RANGE;
+> +			break;
+> +		}
+> +		break;
+> +
+> +	default:
+> +		/* YCbCr pixel encoding */
+> +		c.quantization = V4L2_QUANTIZATION_LIM_RANGE;
+> +		switch (avi->colorimetry) {
+> +		case HDMI_COLORIMETRY_NONE:
+> +			if (!is_ce)
+> +				break;
+> +			if (is_sdtv) {
+> +				c.colorspace = V4L2_COLORSPACE_SMPTE170M;
+> +				c.ycbcr_enc = V4L2_YCBCR_ENC_601;
+> +			} else {
+> +				c.colorspace = V4L2_COLORSPACE_REC709;
+> +				c.ycbcr_enc = V4L2_YCBCR_ENC_709;
+> +			}
+> +			c.xfer_func = V4L2_XFER_FUNC_709;
+> +			break;
+> +		case HDMI_COLORIMETRY_ITU_601:
+> +			c.colorspace = V4L2_COLORSPACE_SMPTE170M;
+> +			c.ycbcr_enc = V4L2_YCBCR_ENC_601;
+> +			c.xfer_func = V4L2_XFER_FUNC_709;
+> +			break;
+> +		case HDMI_COLORIMETRY_ITU_709:
+> +			c.colorspace = V4L2_COLORSPACE_REC709;
+> +			c.ycbcr_enc = V4L2_YCBCR_ENC_709;
+> +			c.xfer_func = V4L2_XFER_FUNC_709;
+> +			break;
+> +		case HDMI_COLORIMETRY_EXTENDED:
+> +			switch (avi->extended_colorimetry) {
+> +			case HDMI_EXTENDED_COLORIMETRY_XV_YCC_601:
+> +				c.colorspace = V4L2_COLORSPACE_REC709;
+> +				c.ycbcr_enc = V4L2_YCBCR_ENC_XV709;
+> +				c.xfer_func = V4L2_XFER_FUNC_709;
+> +				break;
+> +			case HDMI_EXTENDED_COLORIMETRY_XV_YCC_709:
+> +				c.colorspace = V4L2_COLORSPACE_REC709;
+> +				c.ycbcr_enc = V4L2_YCBCR_ENC_XV601;
+> +				c.xfer_func = V4L2_XFER_FUNC_709;
+> +				break;
+> +			case HDMI_EXTENDED_COLORIMETRY_S_YCC_601:
+> +				c.colorspace = V4L2_COLORSPACE_SRGB;
+> +				c.ycbcr_enc = V4L2_YCBCR_ENC_601;
+> +				c.xfer_func = V4L2_XFER_FUNC_SRGB;
+> +				break;
+> +			case HDMI_EXTENDED_COLORIMETRY_ADOBE_YCC_601:
+> +				c.colorspace = V4L2_COLORSPACE_ADOBERGB;
+> +				c.ycbcr_enc = V4L2_YCBCR_ENC_601;
+> +				c.xfer_func = V4L2_XFER_FUNC_ADOBERGB;
+> +				break;
+> +			case HDMI_EXTENDED_COLORIMETRY_BT2020:
+> +				c.colorspace = V4L2_COLORSPACE_BT2020;
+> +				c.ycbcr_enc = V4L2_YCBCR_ENC_BT2020;
+> +				c.xfer_func = V4L2_XFER_FUNC_709;
+> +				break;
+> +			case HDMI_EXTENDED_COLORIMETRY_BT2020_CONST_LUM:
+> +				c.colorspace = V4L2_COLORSPACE_BT2020;
+> +				c.ycbcr_enc = V4L2_YCBCR_ENC_BT2020_CONST_LUM;
+> +				c.xfer_func = V4L2_XFER_FUNC_709;
+> +				break;
+> +			default: /* fall back to ITU_709 */
+> +				c.colorspace = V4L2_COLORSPACE_REC709;
+> +				c.ycbcr_enc = V4L2_YCBCR_ENC_709;
+> +				c.xfer_func = V4L2_XFER_FUNC_709;
+> +				break;
+> +			}
+> +			break;
+> +		default:
+> +			break;
+> +		}
+> +		/*
+> +		 * YCC Quantization Range signaling is more-or-less broken,
+> +		 * let's just ignore this.
+> +		 */
+> +		break;
+> +	}
+> +	return c;
+> +}
+> +EXPORT_SYMBOL_GPL(v4l2_hdmi_rx_colorimetry);
+> diff --git a/include/media/v4l2-dv-timings.h b/include/media/v4l2-dv-timings.h
+> index 61a18893e004..835aef7f9ad4 100644
+> --- a/include/media/v4l2-dv-timings.h
+> +++ b/include/media/v4l2-dv-timings.h
+> @@ -223,5 +223,26 @@ static inline  bool can_reduce_fps(struct v4l2_bt_timings *bt)
+>  	return false;
+>  }
+>
+> +/**
+> + * struct v4l2_hdmi_rx_colorimetry - describes the HDMI colorimetry information
+> + * @colorspace:		enum v4l2_colorspace, the colorspace
+> + * @ycbcr_enc:		enum v4l2_ycbcr_encoding, Y'CbCr encoding
+> + * @quantization:	enum v4l2_quantization, colorspace quantization
+> + * @xfer_func:		enum v4l2_xfer_func, colorspace transfer function
+> + */
+> +struct v4l2_hdmi_colorimetry {
+> +	enum v4l2_colorspace colorspace;
+> +	enum v4l2_ycbcr_encoding ycbcr_enc;
+> +	enum v4l2_quantization quantization;
+> +	enum v4l2_xfer_func xfer_func;
+> +};
+> +
+> +struct hdmi_avi_infoframe;
+> +struct hdmi_vendor_infoframe;
+> +
+> +struct v4l2_hdmi_colorimetry
+> +v4l2_hdmi_rx_colorimetry(const struct hdmi_avi_infoframe *avi,
+> +			 const struct hdmi_vendor_infoframe *hdmi,
+> +			 unsigned int height);
+>
+>  #endif
