@@ -1,59 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:48292 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753743AbdLNShs (ORCPT
+Received: from mailout3.samsung.com ([203.254.224.33]:25544 "EHLO
+        mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932413AbdLOQsZ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 14 Dec 2017 13:37:48 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Joe Perches <joe@perches.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Dhaval Shah <dhaval23031987@gmail.com>, hyun.kwon@xilinx.com,
-        michal.simek@xilinx.com, linux-media@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] media: v4l: xilinx: Use SPDX-License-Identifier
-Date: Thu, 14 Dec 2017 20:37:54 +0200
-Message-ID: <16301043.Lbu0ahMgBI@avalon>
-In-Reply-To: <1513276340.27409.77.camel@perches.com>
-References: <20171208123537.18718-1-dhaval23031987@gmail.com> <7339763.I7jApfYMM6@avalon> <1513276340.27409.77.camel@perches.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+        Fri, 15 Dec 2017 11:48:25 -0500
+To: linux-media@vger.kernel.org
+Cc: linux-samsung-soc@vger.kernel.org,
+        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [GIT PULL] Samsung SoC related updates
+Message-id: <5e06c3d6-a3f2-c146-9176-9fc26f5edaa5@samsung.com>
+Date: Fri, 15 Dec 2017 17:48:19 +0100
+MIME-version: 1.0
+Content-type: text/plain; charset="utf-8"
+Content-language: en-GB
+Content-transfer-encoding: 7bit
+References: <CGME20171215164822epcas1p48be80ad37f83734d9a4f28aabff6a78d@epcas1p4.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Joe,
+Hi Mauro,
 
-On Thursday, 14 December 2017 20:32:20 EET Joe Perches wrote:
-> On Thu, 2017-12-14 at 20:28 +0200, Laurent Pinchart wrote:
-> > On Thursday, 14 December 2017 19:05:27 EET Mauro Carvalho Chehab wrote:
-> >> Em Fri,  8 Dec 2017 18:05:37 +0530 Dhaval Shah escreveu:
-> >>> SPDX-License-Identifier is used for the Xilinx Video IP and
-> >>> related drivers.
-> >>> 
-> >>> Signed-off-by: Dhaval Shah <dhaval23031987@gmail.com>
-> >> 
-> >> Hi Dhaval,
-> >> 
-> >> You're not listed as one of the Xilinx driver maintainers. I'm afraid
-> >> that, without their explicit acks, sent to the ML, I can't accept a patch
-> >> touching at the driver's license tags.
-> > 
-> > The patch doesn't change the license, I don't see why it would cause any
-> > issue. Greg isn't listed as the maintainer or copyright holder of any of
-> > the 10k+ files to which he added an SPDX license header in the last
-> > kernel release.
-> 
-> Adding a comment line that describes an implicit or
-> explicit license is different than removing the license
-> text itself.
+The following changes since commit 0ca4e3130402caea8731a7b54afde56a6edb17c9:
 
-The SPDX license header is meant to be equivalent to the license text. The 
-only reason why the large SPDX patch didn't touch the whole kernel in one go 
-was that it was easier to split in in multiple chunks. This is no different 
-than not including the full GPL license in every header file but only pointing 
-to it through its name and reference, as every kernel source file does.
+  media: pxa_camera: rename the soc_camera_ prefix to pxa_camera_ (2017-12-14 12:40:01 -0500)
+
+are available in the git repository at:
+
+  git://linuxtv.org/snawrocki/samsung.git for-v4.16/media/next
+
+for you to fetch changes up to 8d10c3a3fa56badd9d8691b59a88e7f00fdeaa7b:
+
+  s5p-jpeg: Fix off-by-one problem (2017-12-15 17:33:50 +0100)
+
+----------------------------------------------------------------
+Arnd Bergmann (1):
+      exynos4-is: properly initialize frame format
+
+Flavio Ceolin (1):
+      s5p-jpeg: Fix off-by-one problem
+
+Marek Szyprowski (3):
+      exynos-gsc: Drop obsolete capabilities
+      exynos4-is: Drop obsolete capabilities
+      exynos4-is: Remove dependency on obsolete SoC support
+
+Shuah Khan (2):
+      s5p-mfc: Remove firmware buf null check in s5p_mfc_load_firmware()
+      s5p-mfc: Fix lock contention - request_firmware() once
+
+Simon Shields (1):
+      exynos4-is: Check pipe is valid before calling subdev
+
+Sylwester Nawrocki (1):
+      s5p-mfc: Fix encoder menu controls initialization
+
+ drivers/media/platform/exynos-gsc/gsc-m2m.c     |  4 +---
+ drivers/media/platform/exynos4-is/Kconfig       |  2 +-
+ drivers/media/platform/exynos4-is/fimc-core.c   |  2 +-
+ drivers/media/platform/exynos4-is/fimc-isp.c    | 14 +++++++-------
+ drivers/media/platform/exynos4-is/fimc-lite.c   |  2 +-
+ drivers/media/platform/exynos4-is/fimc-m2m.c    | 10 +---------
+ drivers/media/platform/s5p-jpeg/jpeg-core.c     |  2 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc.c        |  6 ++++++
+ drivers/media/platform/s5p-mfc/s5p_mfc_common.h |  3 +++
+ drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c   | 10 +++++-----
+ drivers/media/platform/s5p-mfc/s5p_mfc_enc.c    |  2 +-
+ include/media/drv-intf/exynos-fimc.h            |  3 ++-
+ 12 files changed, 30 insertions(+), 30 deletions(-)
 
 -- 
 Regards,
-
-Laurent Pinchart
+Sylwester
