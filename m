@@ -1,255 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-3.sys.kth.se ([130.237.48.192]:34232 "EHLO
-        smtp-3.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753870AbdLNTJV (ORCPT
+Received: from esa6.microchip.iphmx.com ([216.71.154.253]:52982 "EHLO
+        esa6.microchip.iphmx.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755268AbdLON0U (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 14 Dec 2017 14:09:21 -0500
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: linux-media@vger.kernel.org,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-renesas-soc@vger.kernel.org,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
-        Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        Benoit Parrot <bparrot@ti.com>,
-        Maxime Ripard <maxime.ripard@free-electrons.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH/RFC v2 07/15] rcar-csi2: use frame description information to configure CSI-2 bus
-Date: Thu, 14 Dec 2017 20:08:27 +0100
-Message-Id: <20171214190835.7672-8-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20171214190835.7672-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20171214190835.7672-1-niklas.soderlund+renesas@ragnatech.se>
+        Fri, 15 Dec 2017 08:26:20 -0500
+From: <Wenyou.Yang@microchip.com>
+To: <Wenyou.Yang@microchip.com>, <mchehab@s-opensource.com>,
+        <robh+dt@kernel.org>, <mark.rutland@arm.com>
+CC: <linux-kernel@vger.kernel.org>, <Nicolas.Ferre@microchip.com>,
+        <devicetree@vger.kernel.org>, <sakari.ailus@iki.fi>,
+        <corbet@lwn.net>, <hverkuil@xs4all.nl>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-media@vger.kernel.org>
+Subject: RE: [PATCH v9 0/2] media: ov7740: Add a V4L2 sensor-level driver
+Date: Fri, 15 Dec 2017 13:26:18 +0000
+Message-ID: <F9F4555C4E01D7469D37975B62D0EFBB8D2D46@CHN-SV-EXMX07.mchp-main.com>
+References: <20171211013146.2497-1-wenyou.yang@microchip.com>
+In-Reply-To: <20171211013146.2497-1-wenyou.yang@microchip.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="gb2312"
+Content-Transfer-Encoding: base64
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The driver now have access to frame descriptor information, use it. Only
-enable the virtual channels which are described in the frame descriptor
-and calculate the link based on all enabled streams.
-
-With multiplexed stream support it's now possible to have different
-formats on the different source pads. Make source formats independent
-off each other and disallowing a format on the multiplexed sink.
-
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
----
- drivers/media/platform/rcar-vin/rcar-csi2.c | 112 ++++++++++++++--------------
- 1 file changed, 58 insertions(+), 54 deletions(-)
-
-diff --git a/drivers/media/platform/rcar-vin/rcar-csi2.c b/drivers/media/platform/rcar-vin/rcar-csi2.c
-index 6b607b2e31e26063..2dd7d03d622d5510 100644
---- a/drivers/media/platform/rcar-vin/rcar-csi2.c
-+++ b/drivers/media/platform/rcar-vin/rcar-csi2.c
-@@ -296,24 +296,22 @@ static const struct phtw_testdin_data testdin_data_v3m_e3[] = {
- #define CSI0CLKFREQRANGE(n)		((n & 0x3f) << 16)
- 
- struct rcar_csi2_format {
--	unsigned int code;
- 	unsigned int datatype;
- 	unsigned int bpp;
- };
- 
- static const struct rcar_csi2_format rcar_csi2_formats[] = {
--	{ .code = MEDIA_BUS_FMT_RGB888_1X24,	.datatype = 0x24, .bpp = 24 },
--	{ .code = MEDIA_BUS_FMT_UYVY8_1X16,	.datatype = 0x1e, .bpp = 16 },
--	{ .code = MEDIA_BUS_FMT_UYVY8_2X8,	.datatype = 0x1e, .bpp = 16 },
--	{ .code = MEDIA_BUS_FMT_YUYV10_2X10,	.datatype = 0x1e, .bpp = 16 },
-+	{ .datatype = 0x1e, .bpp = 16 },
-+	{ .datatype = 0x24, .bpp = 24 },
- };
- 
--static const struct rcar_csi2_format *rcar_csi2_code_to_fmt(unsigned int code)
-+static const struct rcar_csi2_format
-+*rcar_csi2_datatype_to_fmt(unsigned int datatype)
- {
- 	unsigned int i;
- 
- 	for (i = 0; i < ARRAY_SIZE(rcar_csi2_formats); i++)
--		if (rcar_csi2_formats[i].code == code)
-+		if (rcar_csi2_formats[i].datatype == datatype)
- 			return rcar_csi2_formats + i;
- 
- 	return NULL;
-@@ -355,7 +353,7 @@ struct rcar_csi2 {
- 	struct v4l2_async_notifier notifier;
- 	struct v4l2_async_subdev remote;
- 
--	struct v4l2_mbus_framefmt mf;
-+	struct v4l2_mbus_framefmt mf[4];
- 
- 	struct mutex lock;
- 	int stream_count[4];
-@@ -411,25 +409,14 @@ static int rcar_csi2_wait_phy_start(struct rcar_csi2 *priv)
- 	return -ETIMEDOUT;
- }
- 
--static int rcar_csi2_calc_mbps(struct rcar_csi2 *priv, unsigned int bpp)
-+static int rcar_csi2_calc_mbps(struct rcar_csi2 *priv,
-+			       struct v4l2_subdev *source,
-+			       struct v4l2_mbus_frame_desc *fd)
- {
--	struct media_pad *pad, *source_pad;
--	struct v4l2_subdev *source = NULL;
- 	struct v4l2_ctrl *ctrl;
-+	unsigned int i, bpp = 0;
- 	u64 mbps;
- 
--	/* Get remote subdevice */
--	pad = &priv->subdev.entity.pads[RCAR_CSI2_SINK];
--	source_pad = media_entity_remote_pad(pad);
--	if (!source_pad) {
--		dev_err(priv->dev, "Could not find remote source pad\n");
--		return -ENODEV;
--	}
--	source = media_entity_to_v4l2_subdev(source_pad->entity);
--
--	dev_dbg(priv->dev, "Using source %s pad: %u\n", source->name,
--		source_pad->index);
--
- 	/* Read the pixel rate control from remote */
- 	ctrl = v4l2_ctrl_find(source->ctrl_handler, V4L2_CID_PIXEL_RATE);
- 	if (!ctrl) {
-@@ -438,6 +425,21 @@ static int rcar_csi2_calc_mbps(struct rcar_csi2 *priv, unsigned int bpp)
- 		return -EINVAL;
- 	}
- 
-+	/* Calculate total bpp */
-+	for (i = 0; i < fd->num_entries; i++) {
-+		const struct rcar_csi2_format *format;
-+
-+		format = rcar_csi2_datatype_to_fmt(
-+					fd->entry[i].bus.csi2.data_type);
-+		if (!format) {
-+			dev_err(priv->dev, "Unknown data type: %d\n",
-+				fd->entry[i].bus.csi2.data_type);
-+			return -EINVAL;
-+		}
-+
-+		bpp += format->bpp;
-+	}
-+
- 	/* Calculate the phypll */
- 	mbps = v4l2_ctrl_g_ctrl_int64(ctrl) * bpp;
- 	do_div(mbps, priv->lanes * 1000000);
-@@ -489,39 +491,33 @@ static int rcar_csi2_set_phtw(struct rcar_csi2 *priv, unsigned int mbps)
- 	return 0;
- }
- 
--static int rcar_csi2_start(struct rcar_csi2 *priv)
-+static int rcar_csi2_start(struct rcar_csi2 *priv, struct v4l2_subdev *source,
-+			   struct v4l2_mbus_frame_desc *fd)
- {
--	const struct rcar_csi2_format *format;
--	u32 phycnt, tmp;
--	u32 vcdt = 0, vcdt2 = 0;
-+	u32 phycnt, vcdt = 0, vcdt2 = 0;
- 	unsigned int i;
- 	int mbps, ret;
- 
--	dev_dbg(priv->dev, "Input size (%ux%u%c)\n",
--		priv->mf.width, priv->mf.height,
--		priv->mf.field == V4L2_FIELD_NONE ? 'p' : 'i');
--
--	/* Code is validated in set_ftm */
--	format = rcar_csi2_code_to_fmt(priv->mf.code);
-+	for (i = 0; i < fd->num_entries; i++) {
-+		struct v4l2_mbus_frame_desc_entry *entry = &fd->entry[i];
-+		u32 tmp;
- 
--	/*
--	 * Enable all Virtual Channels
--	 *
--	 * NOTE: It's not possible to get individual datatype for each
--	 *       source virtual channel. Once this is possible in V4L2
--	 *       it should be used here.
--	 */
--	for (i = 0; i < 4; i++) {
--		tmp = VCDT_SEL_VC(i) | VCDT_VCDTN_EN | VCDT_SEL_DTN_ON |
--			VCDT_SEL_DT(format->datatype);
-+		tmp = VCDT_SEL_VC(entry->bus.csi2.channel) | VCDT_VCDTN_EN |
-+			VCDT_SEL_DTN_ON |
-+			VCDT_SEL_DT(entry->bus.csi2.data_type);
- 
- 		/* Store in correct reg and offset */
--		if (i < 2)
--			vcdt |= tmp << ((i % 2) * 16);
-+		if (entry->bus.csi2.channel < 2)
-+			vcdt |= tmp << ((entry->bus.csi2.channel % 2) * 16);
- 		else
--			vcdt2 |= tmp << ((i % 2) * 16);
-+			vcdt2 |= tmp << ((entry->bus.csi2.channel % 2) * 16);
-+
-+		dev_dbg(priv->dev, "VC%d datatype: 0x%x\n",
-+			entry->bus.csi2.channel, entry->bus.csi2.data_type);
- 	}
- 
-+	dev_dbg(priv->dev, "VCDT: 0x%08x VCDT2: 0x%08x\n", vcdt, vcdt2);
-+
- 	switch (priv->lanes) {
- 	case 1:
- 		phycnt = PHYCNT_ENABLECLK | PHYCNT_ENABLE_0;
-@@ -537,7 +533,7 @@ static int rcar_csi2_start(struct rcar_csi2 *priv)
- 		return -EINVAL;
- 	}
- 
--	mbps = rcar_csi2_calc_mbps(priv, format->bpp);
-+	mbps = rcar_csi2_calc_mbps(priv, source, fd);
- 	if (mbps < 0)
- 		return mbps;
- 
-@@ -686,7 +682,7 @@ static int rcar_csi2_s_stream(struct v4l2_subdev *sd, unsigned int pad,
- 	if (enable && count == 0) {
- 		pm_runtime_get_sync(priv->dev);
- 
--		ret = rcar_csi2_start(priv);
-+		ret = rcar_csi2_start(priv, nextsd, &fd);
- 		if (ret) {
- 			pm_runtime_put(priv->dev);
- 			goto out;
-@@ -720,14 +716,16 @@ static int rcar_csi2_set_pad_format(struct v4l2_subdev *sd,
- {
- 	struct rcar_csi2 *priv = sd_to_csi2(sd);
- 	struct v4l2_mbus_framefmt *framefmt;
-+	int vc;
- 
--	if (!rcar_csi2_code_to_fmt(format->format.code))
--		return -EINVAL;
-+	vc = rcar_csi2_pad_to_vc(format->pad);
-+	if (vc < 0)
-+		return vc;
- 
- 	if (format->which == V4L2_SUBDEV_FORMAT_ACTIVE) {
--		priv->mf = format->format;
-+		priv->mf[vc] = format->format;
- 	} else {
--		framefmt = v4l2_subdev_get_try_format(sd, cfg, 0);
-+		framefmt = v4l2_subdev_get_try_format(sd, cfg, format->pad);
- 		*framefmt = format->format;
- 	}
- 
-@@ -739,11 +737,17 @@ static int rcar_csi2_get_pad_format(struct v4l2_subdev *sd,
- 				    struct v4l2_subdev_format *format)
- {
- 	struct rcar_csi2 *priv = sd_to_csi2(sd);
-+	int vc;
-+
-+	vc = rcar_csi2_pad_to_vc(format->pad);
-+	if (vc < 0)
-+		return vc;
- 
- 	if (format->which == V4L2_SUBDEV_FORMAT_ACTIVE)
--		format->format = priv->mf;
-+		format->format = priv->mf[vc];
- 	else
--		format->format = *v4l2_subdev_get_try_format(sd, cfg, 0);
-+		format->format = *v4l2_subdev_get_try_format(sd, cfg,
-+							     format->pad);
- 
- 	return 0;
- }
--- 
-2.15.1
+SGkgU2FrYXJpLA0KDQpEbyB5b3UgaGF2ZSBzb21lIGNvbW1lbnRzIG9uIHRoaXMgdmVyc2lvbj8N
+Cg0KDQpCZXN0IFJlZ2FyZHMsDQpXZW55b3UgWWFuZw0KDQo+IC0tLS0tT3JpZ2luYWwgTWVzc2Fn
+ZS0tLS0tDQo+IEZyb206IGxpbnV4LW1lZGlhLW93bmVyQHZnZXIua2VybmVsLm9yZyBbbWFpbHRv
+OmxpbnV4LW1lZGlhLQ0KPiBvd25lckB2Z2VyLmtlcm5lbC5vcmddIE9uIEJlaGFsZiBPZiBXZW55
+b3UgWWFuZw0KPiBTZW50OiAyMDE3xOoxMtTCMTHI1SA5OjMyDQo+IFRvOiBNYXVybyBDYXJ2YWxo
+byBDaGVoYWIgPG1jaGVoYWJAcy1vcGVuc291cmNlLmNvbT47IFJvYiBIZXJyaW5nDQo+IDxyb2Jo
+K2R0QGtlcm5lbC5vcmc+OyBNYXJrIFJ1dGxhbmQgPG1hcmsucnV0bGFuZEBhcm0uY29tPg0KPiBD
+YzogbGludXgta2VybmVsQHZnZXIua2VybmVsLm9yZzsgTmljb2xhcyBGZXJyZSAtIE00MzIzOA0K
+PiA8Tmljb2xhcy5GZXJyZUBtaWNyb2NoaXAuY29tPjsgZGV2aWNldHJlZUB2Z2VyLmtlcm5lbC5v
+cmc7IFNha2FyaSBBaWx1cw0KPiA8c2FrYXJpLmFpbHVzQGlraS5maT47IEpvbmF0aGFuIENvcmJl
+dCA8Y29yYmV0QGx3bi5uZXQ+OyBIYW5zIFZlcmt1aWwNCj4gPGh2ZXJrdWlsQHhzNGFsbC5ubD47
+IGxpbnV4LWFybS1rZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9yZzsgTGludXggTWVkaWEgTWFpbGlu
+ZyBMaXN0DQo+IDxsaW51eC1tZWRpYUB2Z2VyLmtlcm5lbC5vcmc+OyBXZW55b3UgWWFuZyAtIEE0
+MTUzNQ0KPiA8V2VueW91LllhbmdAbWljcm9jaGlwLmNvbT4NCj4gU3ViamVjdDogW1BBVENIIHY5
+IDAvMl0gbWVkaWE6IG92Nzc0MDogQWRkIGEgVjRMMiBzZW5zb3ItbGV2ZWwgZHJpdmVyDQo+IA0K
+PiBBZGQgYSBWaWRlbzRMaW51eDIgc2Vuc29yLWxldmVsIGRyaXZlciBmb3IgdGhlIE9tbmlWaXNp
+b24gT1Y3NzQwIFZHQSBjYW1lcmENCj4gaW1hZ2Ugc2Vuc29yLg0KPiANCj4gQ2hhbmdlcyBpbiB2
+OToNCj4gIC0gVXNlIHRoZSBuZXcgU1BEWCBpZHMuDQo+IA0KPiBDaGFuZ2VzIGluIHY4Og0KPiAg
+LSBBcyB0aGUgcmVnaXN0ZXJzIGFyZSB3cml0dGVuIGF0IHN0cmVhbSBzdGFydCwgcmVtb3ZlIHRo
+ZSB3cml0dGVuDQo+ICAgIGNvZGUgZnJvbSB0aGUgc2V0IGZtdCBmdW5jdGlvbi4NCj4gDQo+IENo
+YW5nZXMgaW4gdjc6DQo+ICAtIEFkZCBBY2tlZC1ieSB0YWcuDQo+ICAtIEZpeCB0aGUgd3Jvbmcg
+aGFuZGxlIG9mIGRlZmF1bHQgcmVnaXN0ZXIgY29uZmlndXJhdGlvbi4NCj4gIC0gQWRkIHRoZSBt
+aXNzZWQgYXNzaWdubWVudCBvZiBvdjc3NDAtPmZybXNpemUuDQo+IA0KPiBDaGFuZ2VzIGluIHY2
+Og0KPiAgLSBSZW1vdmUgdW5uZWNlc3NhcnkgI2luY2x1ZGUgPGxpbnV4L2luaXQ+Lg0KPiAgLSBS
+ZW1vdmUgdW5uZWNlc3NhcnkgY29tbWVudHMgYW5kIGV4dHJhIG5ld2xpbmUuDQo+ICAtIEFkZCBj
+b25zdCBmb3Igc29tZSBzdHJ1Y3R1cmVzLg0KPiAgLSBBZGQgdGhlIGNoZWNrIG9mIHRoZSByZXR1
+cm4gdmFsdWUgZnJvbSByZWdtYXBfd3JpdGUoKS4NCj4gIC0gU2ltcGxpZnkgdGhlIGNhbGxpbmcg
+b2YgX192NGwyX2N0cmxfaGFuZGxlcl9zZXR1cCgpLg0KPiAgLSBBZGQgdGhlIGRlZmF1bHQgZm9y
+bWF0IGluaXRpYWxpemF0aW9uIGZ1bmN0aW9uLg0KPiAgLSBJbnRlZ3JhdGUgdGhlIHNldF9wb3dl
+cigpIGFuZCBlbmFibGUvZGlzYWJsZSB0aGUgY2xvY2sgaW50bw0KPiAgICBvbmUgZnVuY3Rpb24u
+DQo+IA0KPiBDaGFuZ2VzIGluIHY1Og0KPiAgLSBTcXVhc2ggdGhlIGRyaXZlciBhbmQgTUFJTlRB
+SU5FUlMgZW50cnkgcGF0Y2hlcyB0byBvbmUuDQo+ICAtIFByZWNlZGUgdGhlIGRyaXZlciBwYXRj
+aCB3aXRoIHRoZSBiaW5kaW5ncyBwYXRjaC4NCj4gDQo+IENoYW5nZXMgaW4gdjQ6DQo+ICAtIEFz
+c2lnbiAndmFsJyBhIGluaXRpYWwgdmFsdWUgdG8gYXZvaWQgd2FybmluZzogJ3ZhbCcgbWF5IGJl
+DQo+ICAgIHVzZWQgdW5pbml0aWFsaXplZC4NCj4gIC0gUmVuYW1lIFJFR19SRUcxNSB0byBhdm9p
+ZCB3YXJuaW5nOiAiUkVHX1JFRzE1IiByZWRlZmluZWQuDQo+IA0KPiBDaGFuZ2VzIGluIHYzOg0K
+PiAgLSBFeHBsaWNpdGx5IGRvY3VtZW50IHRoZSAicmVtb3RlLWVuZHBvaW50IiBwcm9wZXJ0eS4N
+Cj4gIC0gUHV0IHRoZSBNQUlOVEFJTkVSUyBjaGFuZ2UgdG8gYSBzZXBhcmF0ZSBwYXRjaC4NCj4g
+DQo+IENoYW5nZXMgaW4gdjI6DQo+ICAtIFNwbGl0IG9mZiB0aGUgYmluZGluZ3MgaW50byBhIHNl
+cGFyYXRlIHBhdGNoLg0KPiAgLSBBZGQgYSBuZXcgZW50cnkgdG8gdGhlIE1BSU5UQUlORVJTIGZp
+bGUuDQo+IA0KPiBXZW55b3UgWWFuZyAoMik6DQo+ICAgbWVkaWE6IG92Nzc0MDogRG9jdW1lbnQg
+ZGV2aWNlIHRyZWUgYmluZGluZ3MNCj4gICBtZWRpYTogaTJjOiBBZGQgdGhlIG92Nzc0MCBpbWFn
+ZSBzZW5zb3IgZHJpdmVyDQo+IA0KPiAgLi4uL2RldmljZXRyZWUvYmluZGluZ3MvbWVkaWEvaTJj
+L292Nzc0MC50eHQgICAgICAgfCAgIDQ3ICsNCj4gIE1BSU5UQUlORVJTICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgIHwgICAgOCArDQo+ICBkcml2ZXJzL21lZGlhL2kyYy9L
+Y29uZmlnICAgICAgICAgICAgICAgICAgICAgICAgICB8ICAgIDggKw0KPiAgZHJpdmVycy9tZWRp
+YS9pMmMvTWFrZWZpbGUgICAgICAgICAgICAgICAgICAgICAgICAgfCAgICAxICsNCj4gIGRyaXZl
+cnMvbWVkaWEvaTJjL292Nzc0MC5jICAgICAgICAgICAgICAgICAgICAgICAgIHwgMTIxNiArKysr
+KysrKysrKysrKysrKysrKw0KPiAgNSBmaWxlcyBjaGFuZ2VkLCAxMjgwIGluc2VydGlvbnMoKykN
+Cj4gIGNyZWF0ZSBtb2RlIDEwMDY0NCBEb2N1bWVudGF0aW9uL2RldmljZXRyZWUvYmluZGluZ3Mv
+bWVkaWEvaTJjL292Nzc0MC50eHQNCj4gIGNyZWF0ZSBtb2RlIDEwMDY0NCBkcml2ZXJzL21lZGlh
+L2kyYy9vdjc3NDAuYw0KPiANCj4gLS0NCj4gMi4xNS4wDQoNCg==
