@@ -1,49 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:54786 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750841AbdL2NiC (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 29 Dec 2017 08:38:02 -0500
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Inki Dae <inki.dae@samsung.com>,
-        Junghak Sung <jh1009.sung@samsung.com>,
-        Geunyoung Kim <nenggun.kim@samsung.com>,
-        Seung-Woo Kim <sw0312.kim@samsung.com>,
-        Satendra Singh Thakur <satendra.t@samsung.com>
-Subject: [PATCH 1/4] media: dvb_vb2: use strlcpy instead of strncpy
-Date: Fri, 29 Dec 2017 08:37:53 -0500
-Message-Id: <e73f9f68799400b6cb4087115e279d290437990f.1514554610.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1514554610.git.mchehab@s-opensource.com>
-References: <cover.1514554610.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1514554610.git.mchehab@s-opensource.com>
-References: <cover.1514554610.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:56448 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1755970AbdLOWmf (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 15 Dec 2017 17:42:35 -0500
+Date: Sat, 16 Dec 2017 00:42:31 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: rajmohan.mani@intel.com, yong.zhi@intel.com
+Subject: [GIT PULL for 4.16 v2] Intel IPU3 CIO2 CSI-2 receiver driver
+Message-ID: <20171215224231.lrti6eou2jkcu4vu@valkosipuli.retiisi.org.uk>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of using strncpy(), use strlcpy(), in order to
-ensure that a \0 char will be added at the end of the
-string.
+Hi Mauro,
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/dvb-core/dvb_vb2.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Here's the Intel IPU3 CIO2 CSI-2 receiver driver, with the accompanying
+format definitions.
 
-diff --git a/drivers/media/dvb-core/dvb_vb2.c b/drivers/media/dvb-core/dvb_vb2.c
-index 61c6ca4e87d5..889abf9becd8 100644
---- a/drivers/media/dvb-core/dvb_vb2.c
-+++ b/drivers/media/dvb-core/dvb_vb2.c
-@@ -194,7 +194,7 @@ int dvb_vb2_init(struct dvb_vb2_ctx *ctx, const char *name, int nonblocking)
- 	spin_lock_init(&ctx->slock);
- 	INIT_LIST_HEAD(&ctx->dvb_q);
- 
--	strncpy(ctx->name, name, DVB_VB2_NAME_MAX);
-+	strlcpy(ctx->name, name, DVB_VB2_NAME_MAX);
- 	ctx->nonblocking = nonblocking;
- 	ctx->state = DVB_VB2_STATE_INIT;
- 
+Since the previous pull request dealing with this, I've squashed Yong's
+patch to the patch introducing the driver, addressing two issues:
+
+	- unused "phys" variable and
+
+	- memory allocated on stack based on a function argument.
+
+<URL:https://patchwork.linuxtv.org/patch/45991/>
+
+Please pull.
+
+
+The following changes since commit b32a2b42f76cdfd06b4b58a1ddf987ba329ae34e:
+
+  media: ddbridge: improve error handling logic on fe attach failures (2017-12-13 10:19:41 -0500)
+
+are available in the git repository at:
+
+  ssh://linuxtv.org/git/sailus/media_tree.git ipu3
+
+for you to fetch changes up to 012b03bf357ecb0807c790e8f0b3bcff7e079ae2:
+
+  intel-ipu3: cio2: add new MIPI-CSI2 driver (2017-12-15 17:56:04 +0200)
+
+----------------------------------------------------------------
+Yong Zhi (3):
+      videodev2.h, v4l2-ioctl: add IPU3 raw10 color format
+      doc-rst: add IPU3 raw10 bayer pixel format definitions
+      intel-ipu3: cio2: add new MIPI-CSI2 driver
+
+ Documentation/media/uapi/v4l/pixfmt-rgb.rst        |    1 +
+ .../media/uapi/v4l/pixfmt-srggb10-ipu3.rst         |  335 ++++
+ MAINTAINERS                                        |    8 +
+ drivers/media/pci/Kconfig                          |    2 +
+ drivers/media/pci/Makefile                         |    3 +-
+ drivers/media/pci/intel/Makefile                   |    5 +
+ drivers/media/pci/intel/ipu3/Kconfig               |   19 +
+ drivers/media/pci/intel/ipu3/Makefile              |    1 +
+ drivers/media/pci/intel/ipu3/ipu3-cio2.c           | 2048 ++++++++++++++++++++
+ drivers/media/pci/intel/ipu3/ipu3-cio2.h           |  449 +++++
+ drivers/media/v4l2-core/v4l2-ioctl.c               |    4 +
+ include/uapi/linux/videodev2.h                     |    6 +
+ 12 files changed, 2880 insertions(+), 1 deletion(-)
+ create mode 100644 Documentation/media/uapi/v4l/pixfmt-srggb10-ipu3.rst
+ create mode 100644 drivers/media/pci/intel/Makefile
+ create mode 100644 drivers/media/pci/intel/ipu3/Kconfig
+ create mode 100644 drivers/media/pci/intel/ipu3/Makefile
+ create mode 100644 drivers/media/pci/intel/ipu3/ipu3-cio2.c
+ create mode 100644 drivers/media/pci/intel/ipu3/ipu3-cio2.h
+
 -- 
-2.14.3
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
