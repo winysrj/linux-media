@@ -1,99 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f68.google.com ([74.125.83.68]:34943 "EHLO
-        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753433AbdLTQd5 (ORCPT
+Received: from out20-49.mail.aliyun.com ([115.124.20.49]:38594 "EHLO
+        out20-49.mail.aliyun.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751315AbdLOLCI (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 20 Dec 2017 11:33:57 -0500
-Received: by mail-pg0-f68.google.com with SMTP id q20so12128293pgv.2
-        for <linux-media@vger.kernel.org>; Wed, 20 Dec 2017 08:33:57 -0800 (PST)
-From: Akinobu Mita <akinobu.mita@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: Akinobu Mita <akinobu.mita@gmail.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: [PATCH 4/4] meida: mt9m111: add V4L2_CID_TEST_PATTERN control
-Date: Thu, 21 Dec 2017 01:33:34 +0900
-Message-Id: <1513787614-12008-5-git-send-email-akinobu.mita@gmail.com>
-In-Reply-To: <1513787614-12008-1-git-send-email-akinobu.mita@gmail.com>
-References: <1513787614-12008-1-git-send-email-akinobu.mita@gmail.com>
+        Fri, 15 Dec 2017 06:02:08 -0500
+Date: Fri, 15 Dec 2017 19:01:40 +0800
+From: Yong <yong.deng@magewell.com>
+To: Maxime Ripard <maxime.ripard@free-electrons.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Chen-Yu Tsai <wens@csie.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Yannick Fertre <yannick.fertre@st.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Benoit Parrot <bparrot@ti.com>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Jean-Christophe Trotin <jean-christophe.trotin@st.com>,
+        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
+        Minghsiu Tsai <minghsiu.tsai@mediatek.com>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Robert Jarzmik <robert.jarzmik@free.fr>,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-sunxi@googlegroups.com
+Subject: Re: [PATCH v2 1/3] media: V3s: Add support for Allwinner CSI.
+Message-Id: <20171215190140.d4df71b202b9803baa6a1e10@magewell.com>
+In-Reply-To: <20171215105047.ist7epuida2uao74@flea.lan>
+References: <1501131697-1359-1-git-send-email-yong.deng@magewell.com>
+        <1501131697-1359-2-git-send-email-yong.deng@magewell.com>
+        <20171121154827.5a35xa6zlqrrvkxx@flea.lan>
+        <20171122093306.d30fe641f269d62daa1f66b4@magewell.com>
+        <20171122094526.nqxfy2e5jzxw7nl4@flea.lan>
+        <20171123091444.4bed66dffeb36ecea8dfa706@magewell.com>
+        <20171125160233.skefdpkjy4peh7et@flea.lan>
+        <20171204174511.a5be3b521e9a7c7004d32d0d@magewell.com>
+        <20171215105047.ist7epuida2uao74@flea.lan>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The mt9m111 has the test pattern generator features.  This makes use of
-it through V4L2_CID_TEST_PATTERN control.
+Hi Maxime,
 
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
----
- drivers/media/i2c/mt9m111.c | 27 +++++++++++++++++++++++++++
- 1 file changed, 27 insertions(+)
+On Fri, 15 Dec 2017 11:50:47 +0100
+Maxime Ripard <maxime.ripard@free-electrons.com> wrote:
 
-diff --git a/drivers/media/i2c/mt9m111.c b/drivers/media/i2c/mt9m111.c
-index e1d5032..d74f254 100644
---- a/drivers/media/i2c/mt9m111.c
-+++ b/drivers/media/i2c/mt9m111.c
-@@ -92,6 +92,7 @@
-  */
- #define MT9M111_OPER_MODE_CTRL		0x106
- #define MT9M111_OUTPUT_FORMAT_CTRL	0x108
-+#define MT9M111_TPG_CTRL		0x148
- #define MT9M111_REDUCER_XZOOM_B		0x1a0
- #define MT9M111_REDUCER_XSIZE_B		0x1a1
- #define MT9M111_REDUCER_YZOOM_B		0x1a3
-@@ -124,6 +125,7 @@
- #define MT9M111_OUTFMT_AVG_CHROMA	(1 << 2)
- #define MT9M111_OUTFMT_SWAP_YCbCr_C_Y_RGB_EVEN	(1 << 1)
- #define MT9M111_OUTFMT_SWAP_YCbCr_Cb_Cr_RGB_R_B	(1 << 0)
-+#define MT9M111_TPG_SEL_MASK		GENMASK(2, 0)
- 
- /*
-  * Camera control register addresses (0x200..0x2ff not implemented)
-@@ -706,6 +708,25 @@ static int mt9m111_set_autowhitebalance(struct mt9m111 *mt9m111, int on)
- 	return reg_clear(OPER_MODE_CTRL, MT9M111_OPMODE_AUTOWHITEBAL_EN);
- }
- 
-+static const char * const mt9m111_test_pattern_menu[] = {
-+	"Disabled",
-+	"Vertical monochrome gradient",
-+	"Flat color type 1",
-+	"Flat color type 2",
-+	"Flat color type 3",
-+	"Flat color type 4",
-+	"Flat color type 5",
-+	"Color bar",
-+};
-+
-+static int mt9m111_set_test_pattern(struct mt9m111 *mt9m111, int val)
-+{
-+	struct i2c_client *client = v4l2_get_subdevdata(&mt9m111->subdev);
-+
-+	return mt9m111_reg_mask(client, MT9M111_TPG_CTRL, val,
-+				MT9M111_TPG_SEL_MASK);
-+}
-+
- static int mt9m111_s_ctrl(struct v4l2_ctrl *ctrl)
- {
- 	struct mt9m111 *mt9m111 = container_of(ctrl->handler,
-@@ -724,6 +745,8 @@ static int mt9m111_s_ctrl(struct v4l2_ctrl *ctrl)
- 		return mt9m111_set_autoexposure(mt9m111, ctrl->val);
- 	case V4L2_CID_AUTO_WHITE_BALANCE:
- 		return mt9m111_set_autowhitebalance(mt9m111, ctrl->val);
-+	case V4L2_CID_TEST_PATTERN:
-+		return mt9m111_set_test_pattern(mt9m111, ctrl->val);
- 	}
- 
- 	return -EINVAL;
-@@ -968,6 +991,10 @@ static int mt9m111_probe(struct i2c_client *client,
- 	v4l2_ctrl_new_std_menu(&mt9m111->hdl,
- 			&mt9m111_ctrl_ops, V4L2_CID_EXPOSURE_AUTO, 1, 0,
- 			V4L2_EXPOSURE_AUTO);
-+	v4l2_ctrl_new_std_menu_items(&mt9m111->hdl,
-+			&mt9m111_ctrl_ops, V4L2_CID_TEST_PATTERN,
-+			ARRAY_SIZE(mt9m111_test_pattern_menu) - 1, 0, 0,
-+			mt9m111_test_pattern_menu);
- 	mt9m111->subdev.ctrl_handler = &mt9m111->hdl;
- 	if (mt9m111->hdl.error) {
- 		ret = mt9m111->hdl.error;
--- 
-2.7.4
+> Hi Yong,
+> 
+> On Mon, Dec 04, 2017 at 05:45:11PM +0800, Yong wrote:
+> > I just noticed that you are using the second iteration?
+> > Have you received my third iteration?
+> 
+> Sorry for the late reply, and for not coming back to you yet about
+> that test. No, this is still in your v2. I've definitely received your
+> v3, I just didn't have time to update to it yet.
+> 
+> But don't worry, my mail was mostly to know if you had tested that
+> setup on your side to try to nail down the issue on my end, not really
+> a review or comment that would prevent your patch from going in.
+
+I mean,
+The v2 exactly has a bug which may cause the CSI writing frame to 
+a wrong memory address.
+
+BTW, should I send a new version. I have made some improve sine v3.
+
+> 
+> Maxime
+> 
+> -- 
+> Maxime Ripard, Free Electrons
+> Embedded Linux and Kernel engineering
+> http://free-electrons.com
+
+
+Thanks,
+Yong
