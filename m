@@ -1,291 +1,231 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from kadath.azazel.net ([81.187.231.250]:47348 "EHLO
-        kadath.azazel.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751308AbdLAVpw (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 1 Dec 2017 16:45:52 -0500
-Received: from ulthar.dreamlands ([192.168.96.2])
-        by kadath.azazel.net with esmtp (Exim 4.89)
-        (envelope-from <jeremy@azazel.net>)
-        id 1eKt83-0006Bv-1k
-        for linux-media@vger.kernel.org; Fri, 01 Dec 2017 21:45:51 +0000
-From: Jeremy Sowden <jeremy@azazel.net>
-To: linux-media@vger.kernel.org
-Subject: [PATCH v3 3/3] media: atomisp: delete empty default struct values.
-Date: Fri,  1 Dec 2017 21:45:50 +0000
-Message-Id: <20171201214550.7369-4-jeremy@azazel.net>
-In-Reply-To: <20171201214550.7369-1-jeremy@azazel.net>
-References: <20171201150725.cfcp6b4bs2ncqsip@mwanda>
- <20171201214550.7369-1-jeremy@azazel.net>
+Received: from mail-pf0-f194.google.com ([209.85.192.194]:46518 "EHLO
+        mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753744AbdLOH4z (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 15 Dec 2017 02:56:55 -0500
+Received: by mail-pf0-f194.google.com with SMTP id c204so5604441pfc.13
+        for <linux-media@vger.kernel.org>; Thu, 14 Dec 2017 23:56:54 -0800 (PST)
+From: Alexandre Courbot <acourbot@chromium.org>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Pawel Osciak <posciak@chromium.org>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Tomasz Figa <tfiga@chromium.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Gustavo Padovan <gustavo.padovan@collabora.com>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Alexandre Courbot <acourbot@chromium.org>
+Subject: [RFC PATCH 2/9] media: request: add generic queue
+Date: Fri, 15 Dec 2017 16:56:18 +0900
+Message-Id: <20171215075625.27028-3-acourbot@chromium.org>
+In-Reply-To: <20171215075625.27028-1-acourbot@chromium.org>
+References: <20171215075625.27028-1-acourbot@chromium.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Removing zero-valued struct-members left a number of the default
-struct-values empty.  These values have now been removed.
+Add a generic request queue that supports most use-case and should be
+usable as-is by drivers without special hardware features.
 
-Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
+The generic queue stores the requests into a FIFO list and executes them
+sequentially.
+
+Signed-off-by: Alexandre Courbot <acourbot@chromium.org>
 ---
- .../atomisp/pci/atomisp2/css2400/ia_css_pipe.h     |  1 -
- .../atomisp/pci/atomisp2/css2400/ia_css_types.h    |  1 -
- .../isp/kernels/s3a/s3a_1.0/ia_css_s3a_types.h     |  6 ---
- .../kernels/sdis/common/ia_css_sdis_common_types.h | 46 ++++------------------
- .../isp/kernels/sdis/sdis_1.0/ia_css_sdis.host.c   |  2 +-
- .../runtime/binary/interface/ia_css_binary.h       |  9 -----
- .../isp_param/interface/ia_css_isp_param_types.h   | 15 -------
- .../media/atomisp/pci/atomisp2/css2400/sh_css.c    |  9 ++---
- .../atomisp/pci/atomisp2/css2400/sh_css_legacy.h   |  5 ---
- .../atomisp/pci/atomisp2/css2400/sh_css_metrics.h  | 12 ------
- 10 files changed, 12 insertions(+), 94 deletions(-)
+ drivers/media/Makefile                      |   2 +-
+ drivers/media/media-request-queue-generic.c | 150 ++++++++++++++++++++++++++++
+ include/media/media-request.h               |   8 ++
+ 3 files changed, 159 insertions(+), 1 deletion(-)
+ create mode 100644 drivers/media/media-request-queue-generic.c
 
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/ia_css_pipe.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/ia_css_pipe.h
-index a68eac6de36a..3f3c85c2f360 100644
---- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/ia_css_pipe.h
-+++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/ia_css_pipe.h
-@@ -167,7 +167,6 @@ struct ia_css_pipe {
- #define IA_CSS_DEFAULT_PIPE ( \
- 	(struct ia_css_pipe) { \
- 		.config			= DEFAULT_PIPE_CONFIG, \
--		.extra_config		= DEFAULT_PIPE_EXTRA_CONFIG, \
- 		.info			= DEFAULT_PIPE_INFO, \
- 		.mode			= IA_CSS_PIPE_ID_ACC, /* (pipe_id) */ \
- 		.pipeline		= DEFAULT_PIPELINE, \
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/ia_css_types.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/ia_css_types.h
-index e9ab800ae128..914049b56bc7 100644
---- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/ia_css_types.h
-+++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/ia_css_types.h
-@@ -408,7 +408,6 @@ struct ia_css_grid_info {
- /* defaults for ia_css_grid_info structs */
- #define DEFAULT_GRID_INFO ( \
- 	(struct ia_css_grid_info) { \
--		.s3a_grid	= DEFAULT_3A_GRID_INFO, \
- 		.dvs_grid	= DEFAULT_DVS_GRID_INFO, \
- 		.vamem_type	= IA_CSS_VAMEM_TYPE_1 \
- 	} \
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/s3a/s3a_1.0/ia_css_s3a_types.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/s3a/s3a_1.0/ia_css_s3a_types.h
-index 4b8bdc973d4b..63e70669f085 100644
---- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/s3a/s3a_1.0/ia_css_s3a_types.h
-+++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/s3a/s3a_1.0/ia_css_s3a_types.h
-@@ -98,12 +98,6 @@ struct ia_css_3a_grid_info {
- };
+diff --git a/drivers/media/Makefile b/drivers/media/Makefile
+index 985d35ec6b29..90117fff1339 100644
+--- a/drivers/media/Makefile
++++ b/drivers/media/Makefile
+@@ -4,7 +4,7 @@
+ #
  
+ media-objs	:= media-device.o media-devnode.o media-entity.o \
+-		   media-request.o
++		   media-request.o media-request-queue-generic.o
  
--#define DEFAULT_3A_GRID_INFO ( \
--	(struct ia_css_3a_grid_info) { \
--	} \
--)
--
--
- /* This struct should be split into 3, for AE, AWB and AF.
-  * However, that will require driver/ 3A lib modifications.
-  */
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/sdis/common/ia_css_sdis_common_types.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/sdis/common/ia_css_sdis_common_types.h
-index b9adc2af7603..f74941d49e8b 100644
---- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/sdis/common/ia_css_sdis_common_types.h
-+++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/sdis/common/ia_css_sdis_common_types.h
-@@ -41,12 +41,6 @@ struct ia_css_sdis_info {
- 	uint32_t deci_factor_log2;
- };
- 
--#define IA_CSS_DEFAULT_SDIS_INFO ( \
--	(struct ia_css_sdis_info) { \
--	} \
--)
--
--
- /* DVS statistics grid
-  *
-  *  ISP block: SDVS1 (DIS/DVS Support for DIS/DVS ver.1 (2-axes))
-@@ -201,41 +195,15 @@ struct ia_css_dvs_stat_grid_info {
- 
- /* DVS statistics generated by accelerator default grid info
-  */
--#define DEFAULT_DVS_STAT_PUBLIC_DVS_GLOBAL_CFG ( \
--	(struct dvs_stat_public_dvs_global_cfg) { \
--	} \
--)
--
--#define DEFAULT_DVS_STAT_PUBLIC_DVS_GRD_CFG ( \
--	(struct dvs_stat_public_dvs_grd_cfg) { \
--	} \
--)
--
--#define DEFAULT_DVS_STAT_PUBLIC_DVS_LEVEL_FE_ROI_CFG(X_START) ( \
--	(struct dvs_stat_public_dvs_level_fe_roi_cfg) { \
--		.x_start = X_START, \
--	} \
--)
--
--#define DEFAULT_DVS_STAT_GRID_INFO ( \
--	(struct ia_css_dvs_stat_grid_info) { \
--		.dvs_gbl_cfg = DEFAULT_DVS_STAT_PUBLIC_DVS_GLOBAL_CFG, \
--		.grd_cfg = { \
--			DEFAULT_DVS_STAT_PUBLIC_DVS_GRD_CFG, \
--			DEFAULT_DVS_STAT_PUBLIC_DVS_GRD_CFG, \
--			DEFAULT_DVS_STAT_PUBLIC_DVS_GRD_CFG \
--		}, \
--		.fe_roi_cfg = { \
--			DEFAULT_DVS_STAT_PUBLIC_DVS_LEVEL_FE_ROI_CFG(0), \
--			DEFAULT_DVS_STAT_PUBLIC_DVS_LEVEL_FE_ROI_CFG(4), \
--			DEFAULT_DVS_STAT_PUBLIC_DVS_LEVEL_FE_ROI_CFG(0), \
--		} \
--	} \
--)
--
- #define DEFAULT_DVS_GRID_INFO ( \
- 	(union ia_css_dvs_grid_u) { \
--		.dvs_stat_grid_info = DEFAULT_DVS_STAT_GRID_INFO, \
-+		.dvs_stat_grid_info = (struct ia_css_dvs_stat_grid_info) { \
-+			.fe_roi_cfg = { \
-+				[1] = (struct dvs_stat_public_dvs_level_fe_roi_cfg) { \
-+					.x_start = 4 \
-+				} \
-+			} \
-+		} \
- 	} \
- )
- 
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/sdis/sdis_1.0/ia_css_sdis.host.c b/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/sdis/sdis_1.0/ia_css_sdis.host.c
-index e45a3c3fcf4a..0fdd696bf654 100644
---- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/sdis/sdis_1.0/ia_css_sdis.host.c
-+++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/sdis/sdis_1.0/ia_css_sdis.host.c
-@@ -169,7 +169,7 @@ ia_css_sdis_init_info(
- 	unsigned enabled)
- {
- 	if (!enabled) {
--		*dis = IA_CSS_DEFAULT_SDIS_INFO;
-+		*dis = (struct ia_css_sdis_info) { };
- 		return;
- 	}
- 
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/runtime/binary/interface/ia_css_binary.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/runtime/binary/interface/ia_css_binary.h
-index 23bc33b66018..dbbdc404faa7 100644
---- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/runtime/binary/interface/ia_css_binary.h
-+++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/runtime/binary/interface/ia_css_binary.h
-@@ -93,11 +93,6 @@ struct ia_css_cas_binary_descr {
- 	bool *is_output_stage;
- };
- 
--#define IA_CSS_DEFAULT_CAS_BINARY_DESCR ( \
--	(struct ia_css_cas_binary_descr) { \
--	} \
--)
--
- struct ia_css_binary_descr {
- 	int mode;
- 	bool online;
-@@ -172,10 +167,6 @@ struct ia_css_binary {
- 		.internal_frame_info	= IA_CSS_BINARY_DEFAULT_FRAME_INFO, \
- 		.out_frame_info		= {IA_CSS_BINARY_DEFAULT_FRAME_INFO}, \
- 		.vf_frame_info		= IA_CSS_BINARY_DEFAULT_FRAME_INFO, \
--		.dis			= IA_CSS_DEFAULT_SDIS_INFO, \
--		.metrics		= DEFAULT_BINARY_METRICS, \
--		.mem_params		= IA_CSS_DEFAULT_ISP_MEM_PARAMS, \
--		.css_params		= IA_CSS_DEFAULT_ISP_CSS_PARAMS, \
- 	} \
- )
- 
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/runtime/isp_param/interface/ia_css_isp_param_types.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/runtime/isp_param/interface/ia_css_isp_param_types.h
-index e49afa2102ae..2de9f8eda2da 100644
---- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/runtime/isp_param/interface/ia_css_isp_param_types.h
-+++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/runtime/isp_param/interface/ia_css_isp_param_types.h
-@@ -94,19 +94,4 @@ union ia_css_all_memory_offsets {
- 	} array[IA_CSS_NUM_PARAM_CLASSES];
- };
- 
--#define IA_CSS_DEFAULT_ISP_MEM_PARAMS ( \
--	(struct ia_css_isp_param_host_segments) { \
--	} \
--)
--
--#define IA_CSS_DEFAULT_ISP_CSS_PARAMS ( \
--	(struct ia_css_isp_param_css_segments) { \
--	} \
--)
--
--#define IA_CSS_DEFAULT_ISP_ISP_PARAMS ( \
--	(struct ia_css_isp_param_isp_segments) { \
--	} \
--)
--
- #endif /* _IA_CSS_ISP_PARAM_TYPES_H_ */
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css.c b/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css.c
-index 20d7fc1f2e4b..2b1763ccd436 100644
---- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css.c
-+++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css.c
-@@ -5580,8 +5580,7 @@ static enum ia_css_err load_video_binaries(struct ia_css_pipe *pipe)
- 	/* we build up the pipeline starting at the end */
- 	/* YUV post-processing if needed */
- 	if (need_scaler) {
--		struct ia_css_cas_binary_descr cas_scaler_descr
--			= IA_CSS_DEFAULT_CAS_BINARY_DESCR;
-+		struct ia_css_cas_binary_descr cas_scaler_descr = { };
- 
- 		/* NV12 is the common format that is supported by both */
- 		/* yuv_scaler and the video_xx_isp2_min binaries. */
-@@ -6236,8 +6235,8 @@ static enum ia_css_err load_primary_binaries(
- 						pipe_out_info->res);
- 
- 	if (need_extra_yuv_scaler) {
--		struct ia_css_cas_binary_descr cas_scaler_descr
--			= IA_CSS_DEFAULT_CAS_BINARY_DESCR;
-+		struct ia_css_cas_binary_descr cas_scaler_descr = { };
+ #
+ # I2C drivers should come before other drivers, otherwise they'll fail
+diff --git a/drivers/media/media-request-queue-generic.c b/drivers/media/media-request-queue-generic.c
+new file mode 100644
+index 000000000000..780414b6d46a
+--- /dev/null
++++ b/drivers/media/media-request-queue-generic.c
+@@ -0,0 +1,150 @@
++/*
++ * Generic request queue implementation.
++ *
++ * Copyright (C) 2017, The Chromium OS Authors.  All rights reserved.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
 +
- 		err = ia_css_pipe_create_cas_scaler_desc_single_output(
- 			&capt_pp_out_info,
- 			pipe_out_info,
-@@ -7224,7 +7223,7 @@ load_yuvpp_binaries(struct ia_css_pipe *pipe)
- 	struct ia_css_frame_info *vf_pp_in_info[IA_CSS_PIPE_MAX_OUTPUT_STAGE];
- 	struct ia_css_yuvpp_settings *mycs;
- 	struct ia_css_binary *next_binary;
--	struct ia_css_cas_binary_descr cas_scaler_descr = IA_CSS_DEFAULT_CAS_BINARY_DESCR;
-+	struct ia_css_cas_binary_descr cas_scaler_descr = { };
- 	unsigned int i, j;
- 	bool need_isp_copy_binary = false;
++#include <linux/slab.h>
++
++#include <media/media-request.h>
++#include <media/media-entity.h>
++
++/**
++ * struct media_request_generic - request enabled for the generic queue
++ *
++ * @base:	base request member
++ * @queue:	entry in media_request_queue_generic::queued_requests
++ */
++struct media_request_generic {
++	struct media_request base;
++	struct list_head queue;
++};
++#define to_generic_request(r) \
++	container_of(r, struct media_request_generic, base)
++
++/**
++ * struct media_request_queue_generic - generic request queue implementation
++ *
++ * Implements a simple request queue, where the next queued request is executed
++ * as soon as the previous one completes.
++ *
++ * @base:		base request queue member
++ * @mutex:		protects the queue
++ * @queued_requests:	list of requests to be sequentially executed
++ */
++struct media_request_queue_generic {
++	struct media_request_queue base;
++
++	struct list_head queued_requests;
++};
++#define to_generic_queue(q) \
++	container_of(q, struct media_request_queue_generic, base)
++
++static struct media_request *
++media_request_generic_alloc(struct media_request_queue *queue)
++{
++	struct media_request_generic *req;
++
++	req = kzalloc(sizeof(*req), GFP_KERNEL);
++	if (!req)
++		return ERR_PTR(-ENOMEM);
++
++	return &req->base;
++}
++
++static void media_request_generic_free(struct media_request_queue *queue,
++				       struct media_request *_req)
++{
++	struct media_request_generic *req = to_generic_request(_req);
++
++	kfree(req);
++}
++
++static void schedule_next_req(struct media_request_queue_generic *queue)
++{
++	struct media_request_generic *req;
++	struct media_request_entity_data *data;
++
++	req = list_first_entry_or_null(&queue->queued_requests, typeof(*req),
++				       queue);
++	if (!req)
++		return;
++
++	list_del(&req->queue);
++	queue->base.active_request = &req->base;
++
++	list_for_each_entry(data, &req->base.data, list) {
++		int ret;
++
++		ret = data->entity->req_ops->apply_data(data);
++	}
++
++	list_for_each_entry(data, &req->base.data, list) {
++		data->entity->ops->process_request(&req->base, data);
++	}
++}
++
++static void media_request_generic_complete(struct media_request_queue *_queue)
++{
++	struct media_request_queue_generic *queue = to_generic_queue(_queue);
++
++	queue->base.active_request = NULL;
++	schedule_next_req(queue);
++}
++
++static int media_request_generic_queue(struct media_request_queue *_queue,
++			   struct media_request *_req)
++{
++	struct media_request_queue_generic *queue = to_generic_queue(_queue);
++	struct media_request_generic *req = to_generic_request(_req);
++
++	list_add_tail(&req->queue, &queue->queued_requests);
++
++	if (!queue->base.active_request)
++		schedule_next_req(queue);
++
++	return 0;
++}
++
++static void
++media_request_generic_queue_release(struct media_request_queue *_queue)
++{
++	struct media_request_queue_generic *queue = to_generic_queue(_queue);
++
++	media_request_queue_release(&queue->base);
++	kfree(queue);
++}
++
++static const struct media_request_queue_ops request_queue_generic_ops = {
++	.release = media_request_generic_queue_release,
++	.req_alloc = media_request_generic_alloc,
++	.req_free = media_request_generic_free,
++	.req_queue = media_request_generic_queue,
++	.req_complete = media_request_generic_complete,
++};
++
++struct media_request_queue *
++media_request_queue_generic_alloc(struct media_device *mdev)
++{
++	struct media_request_queue_generic *ret;
++
++	ret = kzalloc(sizeof(*ret), GFP_KERNEL);
++	if (!ret)
++		return ERR_PTR(-ENOMEM);
++
++	media_request_queue_init(&ret->base, mdev, &request_queue_generic_ops);
++
++	INIT_LIST_HEAD(&ret->queued_requests);
++
++	return &ret->base;
++}
++EXPORT_SYMBOL(media_request_queue_generic_alloc);
+diff --git a/include/media/media-request.h b/include/media/media-request.h
+index ead7fd8898c4..583a1116f735 100644
+--- a/include/media/media-request.h
++++ b/include/media/media-request.h
+@@ -196,6 +196,14 @@ void media_request_queue_init(struct media_request_queue *queue,
+  */
+ void media_request_queue_release(struct media_request_queue *queue);
  
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_legacy.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_legacy.h
-index 77fc32a03c72..4fd25ba2cd0d 100644
---- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_legacy.h
-+++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_legacy.h
-@@ -52,11 +52,6 @@ struct ia_css_pipe_extra_config {
- 	bool disable_vf_pp;
- };
- 
--#define DEFAULT_PIPE_EXTRA_CONFIG ( \
--	(struct ia_css_pipe_extra_config) { \
--	} \
--)
--
- enum ia_css_err
- ia_css_pipe_create_extra(const struct ia_css_pipe_config *config,
- 			 const struct ia_css_pipe_extra_config *extra_config,
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_metrics.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_metrics.h
-index aa3badd7e9da..2ef9238d95ad 100644
---- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_metrics.h
-+++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_metrics.h
-@@ -24,11 +24,6 @@ struct sh_css_pc_histogram {
- 	unsigned *msink;
- };
- 
--#define DEFAULT_PC_HISTOGRAM ( \
--	(struct sh_css_pc_histogram) { \
--	} \
--)
--
- struct sh_css_binary_metrics {
- 	unsigned mode;
- 	unsigned id;
-@@ -37,13 +32,6 @@ struct sh_css_binary_metrics {
- 	struct sh_css_binary_metrics *next;
- };
- 
--#define DEFAULT_BINARY_METRICS ( \
--	(struct sh_css_binary_metrics) { \
--		.isp_histogram	= DEFAULT_PC_HISTOGRAM, \
--		.sp_histogram	= DEFAULT_PC_HISTOGRAM, \
--	} \
--)
--
- struct ia_css_frame_metrics {
- 	unsigned num_frames;
- };
++/**
++ * media_request_queue_generic_alloc() - return an instance of the generic queue
++ *
++ * @mdev:	media device managing this queue
++ */
++struct media_request_queue *
++media_request_queue_generic_alloc(struct media_device *mdev);
++
+ /**
+  * struct media_request_entity_data - per-entity request data
+  *
 -- 
-2.15.0
+2.15.1.504.g5279b80103-goog
