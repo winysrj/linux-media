@@ -1,70 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pl0-f67.google.com ([209.85.160.67]:46739 "EHLO
-        mail-pl0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751208AbdLAS7A (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 1 Dec 2017 13:59:00 -0500
-Received: by mail-pl0-f67.google.com with SMTP id i6so6763356plt.13
-        for <linux-media@vger.kernel.org>; Fri, 01 Dec 2017 10:59:00 -0800 (PST)
-Subject: Re: [PATCH v2] media: imx: Remove incorrect check for queue state in
- start/stop_streaming
-To: Ian Jamison <ian.dev@arkver.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: Philipp Zabel <p.zabel@pengutronix.de>
-References: <ac504a93b483b40a8b2f9087af8c6d25672c7d6c.1512154062.git.ian.dev@arkver.com>
-From: Steve Longerbeam <slongerbeam@gmail.com>
-Message-ID: <07fd2bff-03b4-dfbe-86e1-ddd7f5d98cf2@gmail.com>
-Date: Fri, 1 Dec 2017 10:58:57 -0800
-MIME-Version: 1.0
-In-Reply-To: <ac504a93b483b40a8b2f9087af8c6d25672c7d6c.1512154062.git.ian.dev@arkver.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Content-Language: en-US
+Received: from mail-pf0-f196.google.com ([209.85.192.196]:33200 "EHLO
+        mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753123AbdLOH4t (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 15 Dec 2017 02:56:49 -0500
+Received: by mail-pf0-f196.google.com with SMTP id y89so5633092pfk.0
+        for <linux-media@vger.kernel.org>; Thu, 14 Dec 2017 23:56:49 -0800 (PST)
+From: Alexandre Courbot <acourbot@chromium.org>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Pawel Osciak <posciak@chromium.org>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Tomasz Figa <tfiga@chromium.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Gustavo Padovan <gustavo.padovan@collabora.com>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Alexandre Courbot <acourbot@chromium.org>
+Subject: [RFC PATCH 0/9] media: base request API support
+Date: Fri, 15 Dec 2017 16:56:16 +0900
+Message-Id: <20171215075625.27028-1-acourbot@chromium.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Here is a new attempt at the request API, following the UAPI we agreed on in
+Prague. Hopefully this can be used as the basis to move forward.
 
+This series only introduces the very basics of how requests work: allocate a
+request, queue buffers to it, queue the request itself, wait for it to complete,
+reuse it. It does *not* yet use Hans' work with controls setting. I have
+preferred to submit it this way for now as it allows us to concentrate on the
+basic request/buffer flow, which was harder to get properly than I initially
+thought. I still have a gut feeling that it can be improved, with less back-and-
+forth into drivers.
 
-On 12/01/2017 10:53 AM, Ian Jamison wrote:
-> It is possible to call STREAMON without the minimum number of
-> buffers queued. In this case the vb2_queue state will be set to
-> streaming but the start_streaming vb2_op will not be called.
-> Later when enough buffers are queued, start_streaming will
-> be called but vb2_is_streaming will already return true.
->
-> Also removed the queue state check in stop_streaming since it's
-> not valid there either.
+Plugging in controls support should not be too hard a task (basically just apply
+the saved controls when the request starts), and I am looking at it now.
 
-Reviewed-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+The resulting vim2m driver can be successfully used with requests, and my tests
+so far have been successful.
 
-> Signed-off-by: Ian Jamison <ian.dev@arkver.com>
-> ---
-> Since v1:
->      Remove check in capture_stop_streaming as recommended by Hans.
->
->   drivers/staging/media/imx/imx-media-capture.c | 6 ------
->   1 file changed, 6 deletions(-)
->
-> diff --git a/drivers/staging/media/imx/imx-media-capture.c b/drivers/staging/media/imx/imx-media-capture.c
-> index ea145bafb880..7b6763802db8 100644
-> --- a/drivers/staging/media/imx/imx-media-capture.c
-> +++ b/drivers/staging/media/imx/imx-media-capture.c
-> @@ -449,9 +449,6 @@ static int capture_start_streaming(struct vb2_queue *vq, unsigned int count)
->   	unsigned long flags;
->   	int ret;
->   
-> -	if (vb2_is_streaming(vq))
-> -		return 0;
-> -
->   	ret = imx_media_pipeline_set_stream(priv->md, &priv->src_sd->entity,
->   					    true);
->   	if (ret) {
-> @@ -480,9 +477,6 @@ static void capture_stop_streaming(struct vb2_queue *vq)
->   	unsigned long flags;
->   	int ret;
->   
-> -	if (!vb2_is_streaming(vq))
-> -		return;
-> -
->   	spin_lock_irqsave(&priv->q_lock, flags);
->   	priv->stop = true;
->   	spin_unlock_irqrestore(&priv->q_lock, flags);
+There are still some rougher edges:
+
+* locking is currently quite coarse-grained
+* too many #ifdef CONFIG_MEDIA_CONTROLLER in the code, as the request API
+  depends on it - I plan to craft the headers so that it becomes unnecessary.
+  As it is, some of the code will probably not even compile if
+  CONFIG_MEDIA_CONTROLLER is not set
+
+But all in all I think the request flow should be clear and easy to review, and
+the possibility of custom queue and entity support implementations should give
+us the flexibility we need to support more specific use-cases (I expect the
+generic implementations to be sufficient most of the time though).
+
+A very simple test program exercising this API is available here (don't forget
+to adapt the /dev/media0 hardcoding):
+https://gist.github.com/Gnurou/dbc3776ed97ea7d4ce6041ea15eb0438
+
+Looking forward to your feedback and comments!
+
+Alexandre Courbot (8):
+  media: add request API core and UAPI
+  media: request: add generic queue
+  media: request: add generic entity ops
+  media: vb2: add support for requests
+  media: vb2: add support for requests in QBUF ioctl
+  media: v4l2-mem2mem: add request support
+  media: vim2m: add media device
+  media: vim2m: add request support
+
+Hans Verkuil (1):
+  videodev2.h: Add request field to v4l2_buffer
+
+ drivers/media/Makefile                        |   4 +-
+ drivers/media/media-device.c                  |   6 +
+ drivers/media/media-request-entity-generic.c  |  56 ++++
+ drivers/media/media-request-queue-generic.c   | 150 ++++++++++
+ drivers/media/media-request.c                 | 390 ++++++++++++++++++++++++++
+ drivers/media/platform/vim2m.c                |  46 +++
+ drivers/media/usb/cpia2/cpia2_v4l.c           |   2 +-
+ drivers/media/v4l2-core/v4l2-compat-ioctl32.c |   7 +-
+ drivers/media/v4l2-core/v4l2-ioctl.c          |  99 ++++++-
+ drivers/media/v4l2-core/v4l2-mem2mem.c        |  34 +++
+ drivers/media/v4l2-core/videobuf2-core.c      |  59 +++-
+ drivers/media/v4l2-core/videobuf2-v4l2.c      |  32 ++-
+ include/media/media-device.h                  |   3 +
+ include/media/media-entity.h                  |   6 +
+ include/media/media-request.h                 | 282 +++++++++++++++++++
+ include/media/v4l2-mem2mem.h                  |  19 ++
+ include/media/videobuf2-core.h                |  25 +-
+ include/media/videobuf2-v4l2.h                |   2 +
+ include/uapi/linux/media.h                    |  11 +
+ include/uapi/linux/videodev2.h                |   3 +-
+ 20 files changed, 1216 insertions(+), 20 deletions(-)
+ create mode 100644 drivers/media/media-request-entity-generic.c
+ create mode 100644 drivers/media/media-request-queue-generic.c
+ create mode 100644 drivers/media/media-request.c
+ create mode 100644 include/media/media-request.h
+
+-- 
+2.15.1.504.g5279b80103-goog
