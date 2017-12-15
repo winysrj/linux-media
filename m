@@ -1,61 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-it0-f67.google.com ([209.85.214.67]:40424 "EHLO
-        mail-it0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752009AbdLJRda (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sun, 10 Dec 2017 12:33:30 -0500
+Received: from mail.kapsi.fi ([91.232.154.25]:55872 "EHLO mail.kapsi.fi"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1756090AbdLOTGh (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 15 Dec 2017 14:06:37 -0500
+Subject: Re: [PATCH] [media] tda18212: fix use-after-free in tda18212_remove()
+To: Daniel Scheller <d.scheller.oss@gmail.com>
+Cc: linux-media@vger.kernel.org, mchehab@kernel.org,
+        mchehab@s-opensource.com, zzam@gentoo.org
+References: <20171215164337.3236-1-d.scheller.oss@gmail.com>
+ <3c5e3614-ee61-f69a-283f-2c1b16aa2cbc@iki.fi>
+ <20171215190008.1dde2633@macbox>
+ <9d4e4ccd-9d96-b2eb-6b49-7f50dc08e109@iki.fi>
+ <20171215194044.12dc4469@macbox>
+From: Antti Palosaari <crope@iki.fi>
+Message-ID: <bafe7ab3-d9ba-58ae-049f-3386ff58a6a1@iki.fi>
+Date: Fri, 15 Dec 2017 21:06:32 +0200
 MIME-Version: 1.0
-In-Reply-To: <20171207133522.yqgb532ftcgvw62d@valkosipuli.retiisi.org.uk>
-References: <1512579122-5215-1-git-send-email-pravin.shedge4linux@gmail.com> <20171207133522.yqgb532ftcgvw62d@valkosipuli.retiisi.org.uk>
-From: Pravin Shedge <pravin.shedge4linux@gmail.com>
-Date: Sun, 10 Dec 2017 23:03:29 +0530
-Message-ID: <CALSsfOC-mEzDbXZyO2iE-zedp8Fpb6DipWEbLogWcFKhHRG=aA@mail.gmail.com>
-Subject: Re: [PATCH 09/45] drivers: media: remove duplicate includes
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+In-Reply-To: <20171215194044.12dc4469@macbox>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Dec 7, 2017 at 7:05 PM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
-> Hi Pravin,
->
-> On Wed, Dec 06, 2017 at 10:22:02PM +0530, Pravin Shedge wrote:
->> These duplicate includes have been found with scripts/checkincludes.pl but
->> they have been removed manually to avoid removing false positives.
+
+
+On 12/15/2017 08:40 PM, Daniel Scheller wrote:
+> On Fri, 15 Dec 2017 20:12:18 +0200
+> Antti Palosaari <crope@iki.fi> wrote:
+> 
+>> On 12/15/2017 08:00 PM, Daniel Scheller wrote:
+>>> Hi,
+>>>
+>>> On Fri, 15 Dec 2017 19:30:18 +0200
+>>> Antti Palosaari <crope@iki.fi> wrote:
+>>>
+>>> Thanks for your reply.
+>>>    
+>>>> Hello
+>>>> I think shared frontend structure, which is owned by demod driver,
+>>>> should be there and valid on time tuner driver is removed. And thus
+>>>> should not happen. Did you make driver unload on different order
+>>>> eg. not just reverse order than driver load?
+>>>>
+>>>> IMHO these should go always
+>>>>
+>>>> on load:
+>>>> 1) load demod driver (which makes shared frontend structure where
+>>>> also some tuner driver data lives)
+>>>> 2) load tuner driver
+>>>> 3) register frontend
+>>>>
+>>>> on unload
+>>>> 1) unregister frontend
+>>>> 2) remove tuner driver
+>>>> 3) remove demod driver (frees shared data)
+>>>
+>>> In ddbridge, we do (like in usb/em28xx and platform/sti/c8sectpfe,
+>>> both also use some demod+tda18212 combo):
+>>>
+>>> dvb_unregister_frontend();
+>>> dvb_frontend_detach();
+>>> module_put(tda18212client->...owner);
+>>> i2c_unregister_device(tda18212client);
+>>>
+>>> fe_detach() clears out the frontend references and frees/invalidates
+>>> the allocated resources. tuner_ops obviously isn't there then
+>>> anymore.
 >>
->> Signed-off-by: Pravin Shedge <pravin.shedge4linux@gmail.com>
->
-> While at it, how about ordering the headers alphabetically as well? Having
-> such a large number of headers there unordered may well be the reason why
-> they're included more than once...
->
-> --
-> Sakari Ailus
-> e-mail: sakari.ailus@iki.fi
+>> yeah, but that's even ideally wrong. frontend design currently relies
+>> to shared data which is owned by demod driver and thus it should be
+>> last thing to be removed. Sure change like you did prevents issue,
+>> but logically it is still wrong and may not work on some other case.
+>>
+>>>
+>>> The two mentioned drivers will very likely yield the same (or
+>>> similar) KASAN report. em28xx was even changed lately to do the
+>>> teardown the way ddbridge does in 910b0797fa9e8 ([1], cc'ing
+>>> Matthias here).
+>>>
+>>> With that commit in mind I'm a bit unsure on what is correct or not.
+>>> OTOH, as dvb_frontend_detach() cleans up everything, IMHO there's no
+>>> need for the tuner driver to try to clean up further.
+>>>
+>>> Please advise.
+>>>
+>>> [1]
+>>> https://git.linuxtv.org/media_tree.git/commit/?id=910b0797fa9e8.
+>>
+>> em28xx does it currently just correct.
+>> 1) unregister frontend
+> 
+> Note that this is a call to em28xx_unregister_dvb(), which in turn does
+> dvb_unregister_frontend() and then dvb_frontend_detach() (at this
+> stage, fe resources are gone).
+> 
+>> 2) remove I2C SEC
+>> 3) remove I2C tuner
+>> 4) remove I2C demod (frees shared frontend data)
+> 
+> Yes, but ie. EM2874_BOARD_KWORLD_UB435Q_V3 is a combination of a
+> "legacy" demod frontend - lgdt3305 actually - plus the tda18212
+> i2cclient (just like in ddb with stv0367+tda18212 or
+> cxd2841er+tda18212), I'm sure this will yield the same report.
+> 
+> Maybe another approach: Implement the tuner_ops.release callback, and
+> then move the memset+NULL assignment right there (instead of just
+> removing it), but this likely will cause issues when the i2c client is
+> removed before detach if we don't keep track of this ie somewhere in
+> tda18212_dev (new state var - if _remove is called, check if the tuner
+> was released, and if not, call release (memset/set NULL), then
+> free). Still with the two other drivers in mind though. If they're
+> wrong aswell, I'll rather fix up ddbridge of course.
 
+Whole memset thing could be removed from tda18212, there is something 
+likely wrong if those are needed. But it is another issue.
 
-Hi Sakari,
+Your main issue is somehow to get order of demod/tuner destroy correct. 
+I don't even like idea whole shared frontend data is owned by the demod 
+driver instance, but currently it is there and due to that this should 
+be released lastly. General design goal is also do things like register 
+things in order and unregister just reverse-order.
 
-Sorry for the late reply.
+regards
+Antti
 
-Ordering the header files alphabetically helps to avoid problems such
-as inclusion of duplicate header files.
-My personal preference is to go from local to global, each subsection
-in alphabetical order.
-Ideally, all header files should be self-contained, and inclusion
-order should not matter.
-Simple reordering the headers should not break build.
-
-Reordering header files aways helpful for big projects like Linux-Kernel.
-But this requires changes tree wide and modifies lots of files.
-Such change requires huge audience to be participated in discussion &
-take a final call.
-
-With this patch I just handled inclusion of header file multiple times
-to avoid code duplication after preprocessing.
-
-Thanks & Regards,
-   PraviN
+-- 
+http://palosaari.fi/
