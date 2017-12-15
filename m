@@ -1,153 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:47475 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753129AbdLHKZA (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 8 Dec 2017 05:25:00 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Niklas =?ISO-8859-1?Q?S=F6derlund?=
+Received: from mga05.intel.com ([192.55.52.43]:43909 "EHLO mga05.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1755153AbdLOLxU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 15 Dec 2017 06:53:20 -0500
+Date: Fri, 15 Dec 2017 13:51:46 +0200
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: Niklas =?iso-8859-1?Q?S=F6derlund?=
         <niklas.soderlund+renesas@ragnatech.se>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>
-Subject: Re: [PATCH v9 27/28] rcar-vin: enable support for r8a7796
-Date: Fri, 08 Dec 2017 12:25:18 +0200
-Message-ID: <3711108.iWgUgp5RvI@avalon>
-In-Reply-To: <20171208010842.20047-28-niklas.soderlund+renesas@ragnatech.se>
-References: <20171208010842.20047-1-niklas.soderlund+renesas@ragnatech.se> <20171208010842.20047-28-niklas.soderlund+renesas@ragnatech.se>
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        Benoit Parrot <bparrot@ti.com>,
+        Maxime Ripard <maxime.ripard@free-electrons.com>
+Subject: Re: [PATCH/RFC v2 01/15] v4l2-subdev.h: add pad and stream aware
+ s_stream
+Message-ID: <20171215115146.rme5bv2qbebft2ba@paasikivi.fi.intel.com>
+References: <20171214190835.7672-1-niklas.soderlund+renesas@ragnatech.se>
+ <20171214190835.7672-2-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset="iso-8859-1"
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20171214190835.7672-2-niklas.soderlund+renesas@ragnatech.se>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Niklas,
+Hejssan Niklas,
 
-Thank you for the patch.
+Tack för uppdaterade lappor!
 
-On Friday, 8 December 2017 03:08:41 EET Niklas S=F6derlund wrote:
-> Add the SoC specific information for Renesas r8a7796.
->=20
-> Signed-off-by: Niklas S=F6derlund <niklas.soderlund+renesas@ragnatech.se>
-> Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
-> Acked-by: Rob Herring <robh@kernel.org>
+On Thu, Dec 14, 2017 at 08:08:21PM +0100, Niklas Söderlund wrote:
+> To be able to start and stop individual streams of a multiplexed pad the
+> s_stream operation needs to be both pad and stream aware. Add a new
+> operation to pad ops to facilitate this.
+> 
+> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 > ---
->  .../devicetree/bindings/media/rcar_vin.txt         |  1 +
->  drivers/media/platform/rcar-vin/rcar-core.c        | 64 ++++++++++++++++=
-+++
->  2 files changed, 65 insertions(+)
->=20
-> diff --git a/Documentation/devicetree/bindings/media/rcar_vin.txt
-> b/Documentation/devicetree/bindings/media/rcar_vin.txt index
-> 5a95d9668d2c7dfd..314743532bbb4523 100644
-> --- a/Documentation/devicetree/bindings/media/rcar_vin.txt
-> +++ b/Documentation/devicetree/bindings/media/rcar_vin.txt
-> @@ -20,6 +20,7 @@ on Gen3 to a CSI-2 receiver.
->     - "renesas,vin-r8a7793" for the R8A7793 device
->     - "renesas,vin-r8a7794" for the R8A7794 device
->     - "renesas,vin-r8a7795" for the R8A7795 device
-> +   - "renesas,vin-r8a7796" for the R8A7796 device
+>  include/media/v4l2-subdev.h | 5 +++++
+>  1 file changed, 5 insertions(+)
+> 
+> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+> index a30a94fad8dbacde..7288209338a48fda 100644
+> --- a/include/media/v4l2-subdev.h
+> +++ b/include/media/v4l2-subdev.h
+> @@ -669,6 +669,9 @@ struct v4l2_subdev_pad_config {
+>   *
+>   * @set_frame_desc: set the low level media bus frame parameters, @fd array
+>   *                  may be adjusted by the subdev driver to device capabilities.
+> + *
+> + * @s_stream: used to notify the driver that a stream will start or has
+> + *	stopped.
 
-I would move this to patch 01/28, it would nicely separate code changes fro=
-m=20
-DT bindings changes.
+This is actually the callback which is used to control the stream state.
+The above suggests that it's a notification of something that has happened
+(or about to happen). How about:
 
-Apart from that, and the fact that I'll trust that the routing table is=20
-correct,
+Enable or disable streaming on a sub-device pad.
 
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+>   */
+>  struct v4l2_subdev_pad_ops {
+>  	int (*init_cfg)(struct v4l2_subdev *sd,
+> @@ -713,6 +716,8 @@ struct v4l2_subdev_pad_ops {
+>  			   struct v4l2_subdev_routing *route);
+>  	int (*set_routing)(struct v4l2_subdev *sd,
+>  			   struct v4l2_subdev_routing *route);
+> +	int (*s_stream)(struct v4l2_subdev *sd, unsigned int pad,
+> +			unsigned int stream, int enable);
 
-All this applies to patch 28/28 as well.
+How about bool for enable?
 
->     - "renesas,rcar-gen2-vin" for a generic R-Car Gen2 or RZ/G1 compatible
->       device.
->     - "renesas,rcar-gen3-vin" for a generic R-Car Gen3 compatible device.
-> diff --git a/drivers/media/platform/rcar-vin/rcar-core.c
-> b/drivers/media/platform/rcar-vin/rcar-core.c index
-> 66a8144fbba437d3..ed7fbb58ad6846c1 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-core.c
-> +++ b/drivers/media/platform/rcar-vin/rcar-core.c
-> @@ -1085,6 +1085,66 @@ static const struct rvin_info rcar_info_r8a7795es1=
- =3D
-> { },
 >  };
->=20
-> +static const struct rvin_info rcar_info_r8a7796 =3D {
-> +	.chip =3D RCAR_GEN3,
-> +	.use_mc =3D true,
-> +	.max_width =3D 4096,
-> +	.max_height =3D 4096,
-> +
-> +	.num_chsels =3D 5,
-> +	.chsels =3D {
-> +		{
-> +			{ .csi =3D RVIN_CSI40, .chan =3D 0 },
-> +			{ .csi =3D RVIN_CSI20, .chan =3D 0 },
-> +			{ .csi =3D RVIN_NC, .chan =3D 0 },
-> +			{ .csi =3D RVIN_CSI40, .chan =3D 0 },
-> +			{ .csi =3D RVIN_CSI20, .chan =3D 0 },
-> +		}, {
-> +			{ .csi =3D RVIN_CSI20, .chan =3D 0 },
-> +			{ .csi =3D RVIN_NC, .chan =3D 0 },
-> +			{ .csi =3D RVIN_CSI40, .chan =3D 0 },
-> +			{ .csi =3D RVIN_CSI40, .chan =3D 1 },
-> +			{ .csi =3D RVIN_CSI20, .chan =3D 1 },
-> +		}, {
-> +			{ .csi =3D RVIN_NC, .chan =3D 0 },
-> +			{ .csi =3D RVIN_CSI40, .chan =3D 0 },
-> +			{ .csi =3D RVIN_CSI20, .chan =3D 0 },
-> +			{ .csi =3D RVIN_CSI40, .chan =3D 2 },
-> +			{ .csi =3D RVIN_CSI20, .chan =3D 2 },
-> +		}, {
-> +			{ .csi =3D RVIN_CSI40, .chan =3D 1 },
-> +			{ .csi =3D RVIN_CSI20, .chan =3D 1 },
-> +			{ .csi =3D RVIN_NC, .chan =3D 1 },
-> +			{ .csi =3D RVIN_CSI40, .chan =3D 3 },
-> +			{ .csi =3D RVIN_CSI20, .chan =3D 3 },
-> +		}, {
-> +			{ .csi =3D RVIN_CSI40, .chan =3D 0 },
-> +			{ .csi =3D RVIN_CSI20, .chan =3D 0 },
-> +			{ .csi =3D RVIN_NC, .chan =3D 0 },
-> +			{ .csi =3D RVIN_CSI40, .chan =3D 0 },
-> +			{ .csi =3D RVIN_CSI20, .chan =3D 0 },
-> +		}, {
-> +			{ .csi =3D RVIN_CSI20, .chan =3D 0 },
-> +			{ .csi =3D RVIN_NC, .chan =3D 0 },
-> +			{ .csi =3D RVIN_CSI40, .chan =3D 0 },
-> +			{ .csi =3D RVIN_CSI40, .chan =3D 1 },
-> +			{ .csi =3D RVIN_CSI20, .chan =3D 1 },
-> +		}, {
-> +			{ .csi =3D RVIN_NC, .chan =3D 0 },
-> +			{ .csi =3D RVIN_CSI40, .chan =3D 0 },
-> +			{ .csi =3D RVIN_CSI20, .chan =3D 0 },
-> +			{ .csi =3D RVIN_CSI40, .chan =3D 2 },
-> +			{ .csi =3D RVIN_CSI20, .chan =3D 2 },
-> +		}, {
-> +			{ .csi =3D RVIN_CSI40, .chan =3D 1 },
-> +			{ .csi =3D RVIN_CSI20, .chan =3D 1 },
-> +			{ .csi =3D RVIN_NC, .chan =3D 1 },
-> +			{ .csi =3D RVIN_CSI40, .chan =3D 3 },
-> +			{ .csi =3D RVIN_CSI20, .chan =3D 3 },
-> +		},
-> +	},
-> +};
-> +
->  static const struct of_device_id rvin_of_id_table[] =3D {
->  	{
->  		.compatible =3D "renesas,vin-r8a7778",
-> @@ -1118,6 +1178,10 @@ static const struct of_device_id rvin_of_id_table[=
-] =3D
-> { .compatible =3D "renesas,vin-r8a7795",
->  		.data =3D &rcar_info_r8a7795,
->  	},
-> +	{
-> +		.compatible =3D "renesas,vin-r8a7796",
-> +		.data =3D &rcar_info_r8a7796,
-> +	},
->  	{ },
->  };
->  MODULE_DEVICE_TABLE(of, rvin_of_id_table);
+>  
+>  /**
 
-=2D-=20
-Regards,
-
-Laurent Pinchart
+-- 
+Sakari Ailus
+sakari.ailus@linux.intel.com
