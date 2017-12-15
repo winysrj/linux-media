@@ -1,92 +1,178 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:52269 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750869AbdL2QaY (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 29 Dec 2017 11:30:24 -0500
-Date: Fri, 29 Dec 2017 17:30:22 +0100
-From: Pavel Machek <pavel@ucw.cz>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>, pali.rohar@gmail.com,
-        sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>,
-        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-        linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org,
-        aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com,
-        patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com,
-        clayton@craftyguy.net, martijn@brixit.nl,
-        Filip =?utf-8?Q?Matijevi=C4=87?= <filip.matijevic.pz@gmail.com>,
-        laurent.pinchart@ideasonboard.com, linux-media@vger.kernel.org
-Subject: Re: v4.15: camera problems on n900
-Message-ID: <20171229163022.GA31142@amd>
-References: <20171227210543.GA19719@amd>
- <20171227211718.favif66afztygfje@kekkonen.localdomain>
- <20171228202453.GA20142@amd>
- <20171229093855.hz44vpssb5mufzop@valkosipuli.retiisi.org.uk>
+Received: from mga05.intel.com ([192.55.52.43]:48306 "EHLO mga05.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1755268AbdLONVK (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 15 Dec 2017 08:21:10 -0500
+Date: Fri, 15 Dec 2017 15:19:36 +0200
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: Niklas =?iso-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        Benoit Parrot <bparrot@ti.com>,
+        Maxime Ripard <maxime.ripard@free-electrons.com>
+Subject: Re: [PATCH/RFC v2 06/15] rcar-csi2: use frame description
+ information when propagating .s_stream()
+Message-ID: <20171215131936.2gs3inus5dpkd6cl@paasikivi.fi.intel.com>
+References: <20171214190835.7672-1-niklas.soderlund+renesas@ragnatech.se>
+ <20171214190835.7672-7-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="LQksG6bCIzRHxTLp"
+Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
-In-Reply-To: <20171229093855.hz44vpssb5mufzop@valkosipuli.retiisi.org.uk>
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20171214190835.7672-7-niklas.soderlund+renesas@ragnatech.se>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Niklas,
 
---LQksG6bCIzRHxTLp
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Thu, Dec 14, 2017 at 08:08:26PM +0100, Niklas Söderlund wrote:
+> Use the frame description from the remote subdevice of the rcar-csi2's
+> sink pad to get the remote pad and stream pad needed to propagate the
+> .s_stream() operation.
+> 
+> The CSI-2 virtual channel which should be acted upon can be determined
+> by looking at which of the rcar-csi2 source pad the .s_stream() was
+> called on. This is because the rcar-csi2 acts as a demultiplexer for the
+> CSI-2 link on the one sink pad and outputs each virtual channel on a
+> distinct and known source pad.
+> 
+> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+> ---
+>  drivers/media/platform/rcar-vin/rcar-csi2.c | 58 ++++++++++++++++++++---------
+>  1 file changed, 41 insertions(+), 17 deletions(-)
+> 
+> diff --git a/drivers/media/platform/rcar-vin/rcar-csi2.c b/drivers/media/platform/rcar-vin/rcar-csi2.c
+> index e0f56cc3d25179a9..6b607b2e31e26063 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-csi2.c
+> +++ b/drivers/media/platform/rcar-vin/rcar-csi2.c
+> @@ -614,20 +614,31 @@ static void rcar_csi2_stop(struct rcar_csi2 *priv)
+>  	rcar_csi2_reset(priv);
+>  }
+>  
+> -static int rcar_csi2_sd_info(struct rcar_csi2 *priv, struct v4l2_subdev **sd)
+> +static int rcar_csi2_get_source_info(struct rcar_csi2 *priv,
+> +				     struct v4l2_subdev **subdev,
 
-On Fri 2017-12-29 11:38:55, Sakari Ailus wrote:
-> On Thu, Dec 28, 2017 at 09:24:53PM +0100, Pavel Machek wrote:
-> > On Wed 2017-12-27 23:17:19, Sakari Ailus wrote:
-> > > On Wed, Dec 27, 2017 at 10:05:43PM +0100, Pavel Machek wrote:
-> > > > Hi!
-> > > >=20
-> > > > In v4.14, back camera on N900 works. On v4.15-rc1.. it works for few
-> > > > seconds, but then I get repeated oopses.
-> > > >=20
-> > > > On v4.15-rc0.5 (commit ed30b147e1f6e396e70a52dbb6c7d66befedd786),
-> > > > camera does not start.	 =20
-> > > >=20
-> > > > Any ideas what might be wrong there?
-> > >=20
-> > > What kind of oopses do you get?
-> >=20
-> > Hmm. bisect pointed to commit that can't be responsible.... Ideas
-> > welcome.
->=20
-> Hi Pavel,
->=20
-> I tested N9 and capture appears to be working from the CSI-2 receiver
-> (media tree master, i.e. v4.15-rc3 now).
->=20
-> Which pipeline did you use?
+I wonder if using struct media_pad for this would be cleaner.
 
-I'm using the "main" sensor (5MPx) and am using capture (not preview)
-pipeline.
+> +				     unsigned int *pad,
+> +				     struct v4l2_mbus_frame_desc *fd)
+>  {
+> -	struct media_pad *pad;
+> +	struct media_pad *remote_pad;
+>  
+> -	pad = media_entity_remote_pad(&priv->pads[RCAR_CSI2_SINK]);
+> -	if (!pad) {
+> -		dev_err(priv->dev, "Could not find remote pad\n");
+> +	/* Get source subdevice and pad */
+> +	remote_pad = media_entity_remote_pad(&priv->pads[RCAR_CSI2_SINK]);
+> +	if (!remote_pad) {
+> +		dev_err(priv->dev, "Could not find remote source pad\n");
+>  		return -ENODEV;
+>  	}
+> +	*subdev = media_entity_to_v4l2_subdev(remote_pad->entity);
+> +	*pad = remote_pad->index;
+>  
+> -	*sd = media_entity_to_v4l2_subdev(pad->entity);
+> -	if (!*sd) {
+> -		dev_err(priv->dev, "Could not find remote subdevice\n");
+> -		return -ENODEV;
+> +	/* Get frame descriptor */
+> +	if (v4l2_subdev_call(*subdev, pad, get_frame_desc, *pad, fd)) {
+> +		dev_err(priv->dev, "Could not read frame desc\n");
+> +		return -EINVAL;
+> +	}
+> +
+> +	if (fd->type != V4L2_MBUS_FRAME_DESC_TYPE_CSI2) {
+> +		dev_err(priv->dev, "Frame desc do not describe CSI-2 link");
+> +		return -EINVAL;
 
-I tested linux-next in the meantime, and that one seems to
-work. (Which is strange, I believe it oopsed before. Perhaps something
-random?) With linux-next working, it should not be hardto figure out
-what is going on.
+I think this should also work with drivers that do not support frame
+descriptors.
 
-Thanks,
-									Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
+Alternatively support could be added for all drivers. In practice this
+would mean having a few bus specific implementations of get_frame_desc op
+that would dig the information from the frame format.
 
---LQksG6bCIzRHxTLp
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Perhaps the former option would make sense here, for now.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+>  	}
+>  
+>  	return 0;
+> @@ -637,9 +648,10 @@ static int rcar_csi2_s_stream(struct v4l2_subdev *sd, unsigned int pad,
+>  			      unsigned int stream, int enable)
+>  {
+>  	struct rcar_csi2 *priv = sd_to_csi2(sd);
+> +	struct v4l2_mbus_frame_desc fd;
+>  	struct v4l2_subdev *nextsd;
+> -	unsigned int i, count = 0;
+> -	int ret, vc;
+> +	unsigned int i, rpad, count = 0;
+> +	int ret, vc, rstream = -1;
+>  
+>  	/* Only allow stream control on source pads and valid vc */
+>  	vc = rcar_csi2_pad_to_vc(pad);
+> @@ -650,11 +662,23 @@ static int rcar_csi2_s_stream(struct v4l2_subdev *sd, unsigned int pad,
+>  	if (stream != 0)
+>  		return -EINVAL;
+>  
+> -	mutex_lock(&priv->lock);
+> -
+> -	ret = rcar_csi2_sd_info(priv, &nextsd);
+> +	/* Get information about multiplexed link */
+> +	ret = rcar_csi2_get_source_info(priv, &nextsd, &rpad, &fd);
+>  	if (ret)
+> -		goto out;
+> +		return ret;
+> +
+> +	/* Get stream on multiplexed link */
+> +	for (i = 0; i < fd.num_entries; i++)
+> +		if (fd.entry[i].bus.csi2.channel == vc)
+> +			rstream = fd.entry[i].stream;
 
-iEYEARECAAYFAlpGbZ4ACgkQMOfwapXb+vJtbQCfeJPqx2iNWEXM2acaAkkhCNkU
-cAwAnRTtpQNFlCUiyRdxxF1Dh7QfAepn
-=Nt9b
------END PGP SIGNATURE-----
+Virtual channel does not equate to the stream. You'll need the data type,
+too.
 
---LQksG6bCIzRHxTLp--
+You should actually obtain this from the configured routes instead.
+
+How does this work btw. if you have several streams on the same virtual
+channel that only have different data types?
+
+> +
+> +	if (rstream < 0) {
+> +		dev_err(priv->dev, "Could not find stream for vc %u\n", vc);
+> +		return -EINVAL;
+> +	}
+> +
+> +	/* Start or stop the requested stream */
+> +	mutex_lock(&priv->lock);
+>  
+>  	for (i = 0; i < 4; i++)
+>  		count += priv->stream_count[i];
+> @@ -673,14 +697,14 @@ static int rcar_csi2_s_stream(struct v4l2_subdev *sd, unsigned int pad,
+>  	}
+>  
+>  	if (enable && priv->stream_count[vc] == 0) {
+> -		ret = v4l2_subdev_call(nextsd, video, s_stream, 1);
+> +		ret = v4l2_subdev_call(nextsd, pad, s_stream, rpad, rstream, 1);
+>  		if (ret) {
+>  			rcar_csi2_stop(priv);
+>  			pm_runtime_put(priv->dev);
+>  			goto out;
+>  		}
+>  	} else if (!enable && priv->stream_count[vc] == 1) {
+> -		ret = v4l2_subdev_call(nextsd, video, s_stream, 0);
+> +		ret = v4l2_subdev_call(nextsd, pad, s_stream, rpad, rstream, 0);
+>  	}
+>  
+>  	priv->stream_count[vc] += enable ? 1 : -1;
+> -- 
+> 2.15.1
+> 
+
+-- 
+Sakari Ailus
+sakari.ailus@linux.intel.com
