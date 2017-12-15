@@ -1,134 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:48235 "EHLO
-        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751131AbdLIJnS (ORCPT
+Received: from relay3-d.mail.gandi.net ([217.70.183.195]:39401 "EHLO
+        relay3-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1756208AbdLOOhf (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 9 Dec 2017 04:43:18 -0500
-Message-ID: <c75cd084155dd6eab1ae677d00ea2fcb@smtp-cloud8.xs4all.net>
-Date: Sat, 09 Dec 2017 10:43:15 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+        Fri, 15 Dec 2017 09:37:35 -0500
+Date: Fri, 15 Dec 2017 15:37:28 +0100
+From: jacopo mondi <jacopo@jmondi.org>
+To: kieran.bingham@ideasonboard.com
+Cc: Niklas =?utf-8?Q?S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>,
+        linux-media@vger.kernel.org,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-renesas-soc@vger.kernel.org,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        Benoit Parrot <bparrot@ti.com>,
+        Maxime Ripard <maxime.ripard@free-electrons.com>
+Subject: Re: [PATCH/RFC v2 10/15] adv748x: csi2: add translation from
+ pixelcode to CSI-2 datatype
+Message-ID: <20171215143728.GD3375@w540>
+References: <20171214190835.7672-1-niklas.soderlund+renesas@ragnatech.se>
+ <20171214190835.7672-11-niklas.soderlund+renesas@ragnatech.se>
+ <a41181ea-30a2-7b0d-d836-f4e5c8eba4f6@ideasonboard.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <a41181ea-30a2-7b0d-d836-f4e5c8eba4f6@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Kieran,
 
-Results of the daily build of media_tree:
+On Thu, Dec 14, 2017 at 10:25:36PM +0000, Kieran Bingham wrote:
+> Hi Niklas,
+>
+> On 14/12/17 19:08, Niklas Söderlund wrote:
+> > This will be needed to fill out the frame descriptor information
+> > correctly.
+> >
+> > Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+> > ---
+> >  drivers/media/i2c/adv748x/adv748x-csi2.c | 22 ++++++++++++++++++++++
+> >  1 file changed, 22 insertions(+)
+> >
+> > diff --git a/drivers/media/i2c/adv748x/adv748x-csi2.c b/drivers/media/i2c/adv748x/adv748x-csi2.c
+> > index 2a5dff8c571013bf..a2a6d93077204731 100644
+> > --- a/drivers/media/i2c/adv748x/adv748x-csi2.c
+> > +++ b/drivers/media/i2c/adv748x/adv748x-csi2.c
+> > @@ -18,6 +18,28 @@
+> >
+> >  #include "adv748x.h"
+> >
+> > +struct adv748x_csi2_format {
+> > +	unsigned int code;
+> > +	unsigned int datatype;
+> > +};
+> > +
+> > +static const struct adv748x_csi2_format adv748x_csi2_formats[] = {
+> > +	{ .code = MEDIA_BUS_FMT_RGB888_1X24,    .datatype = 0x24, },
+> > +	{ .code = MEDIA_BUS_FMT_UYVY8_1X16,     .datatype = 0x1e, },
+> > +	{ .code = MEDIA_BUS_FMT_UYVY8_2X8,      .datatype = 0x1e, },
+> > +	{ .code = MEDIA_BUS_FMT_YUYV10_2X10,    .datatype = 0x1e, },
 
-date:			Sat Dec  9 09:43:11 CET 2017
-media-tree git hash:	0393e735649dc41358adb7b603bd57dad1ed3260
-media_build git hash:	b81bc32588e6643d2467524d18367a313d043731
-v4l-utils git hash:	58803000a99c22dceabfb45bec402e746ce966c3
-gcc version:		i686-linux-gcc (GCC) 7.1.0
-sparse version:		v0.5.0-3911-g6f737e1f
-smatch version:		v0.5.0-3911-g6f737e1f
-host hardware:		x86_64
-host os:		4.13.0-164
+YUV 422 10 bit is associated to data type 0x1d in CSI-2 specifications
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: ERRORS
-linux-3.10.1-i686: ERRORS
-linux-3.11.1-i686: ERRORS
-linux-3.12.67-i686: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: ERRORS
-linux-3.15.2-i686: ERRORS
-linux-3.16.7-i686: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.18.7-i686: ERRORS
-linux-3.19-i686: WARNINGS
-linux-4.0.9-i686: WARNINGS
-linux-4.1.33-i686: WARNINGS
-linux-4.2.8-i686: WARNINGS
-linux-4.3.6-i686: WARNINGS
-linux-4.4.22-i686: WARNINGS
-linux-4.5.7-i686: WARNINGS
-linux-4.6.7-i686: WARNINGS
-linux-4.7.5-i686: WARNINGS
-linux-4.8-i686: OK
-linux-4.9.26-i686: OK
-linux-4.10.14-i686: OK
-linux-4.11-i686: OK
-linux-4.12.1-i686: OK
-linux-4.13-i686: OK
-linux-4.14-i686: OK
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: ERRORS
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.67-x86_64: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-x86_64: ERRORS
-linux-3.15.2-x86_64: ERRORS
-linux-3.16.7-x86_64: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.7-x86_64: ERRORS
-linux-3.19-x86_64: WARNINGS
-linux-4.0.9-x86_64: WARNINGS
-linux-4.1.33-x86_64: WARNINGS
-linux-4.2.8-x86_64: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.22-x86_64: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-x86_64: WARNINGS
-linux-4.9.26-x86_64: WARNINGS
-linux-4.10.14-x86_64: WARNINGS
-linux-4.11-x86_64: WARNINGS
-linux-4.12.1-x86_64: WARNINGS
-linux-4.13-x86_64: OK
-linux-4.14-x86_64: OK
-apps: OK
-spec-git: OK
-smatch: OK
+> > +};
+>
+> Is the datatype mapping specific to the ADV748x here?
+> or are these generic/common CSI2 mappings?
+>
+> What do those datatype magic numbers represent?
 
-Detailed results are available here:
+They are fixed mappings defined by CSI-2 specifications and they
+should probably be generic to all drivers imho
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+>
+> --
+> Kieran
+>
+> > +
+> > +static unsigned int adv748x_csi2_code_to_datatype(unsigned int code)
+> > +{
+> > +	unsigned int i;
+> > +
+> > +	for (i = 0; i < ARRAY_SIZE(adv748x_csi2_formats); i++)
+> > +		if (adv748x_csi2_formats[i].code == code)
+> > +			return adv748x_csi2_formats[i].datatype;
+> > +	return 0;
+> > +}
+> > +
+> >  static bool is_txa(struct adv748x_csi2 *tx)
+> >  {
+> >  	return tx == &tx->state->txa;
+> >
