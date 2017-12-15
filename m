@@ -1,141 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtprelay0146.hostedemail.com ([216.40.44.146]:45302 "EHLO
-        smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751729AbdLLLmg (ORCPT
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:52001 "EHLO
+        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1756551AbdLOO7I (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 12 Dec 2017 06:42:36 -0500
-Message-ID: <1513078952.3036.36.camel@perches.com>
-Subject: Re: [PATCH] tuners: tda8290: reduce stack usage with kasan
-From: Joe Perches <joe@perches.com>
-To: Arnd Bergmann <arnd@arndb.de>,
-        Michael Ira Krufky <mkrufky@linuxtv.org>
+        Fri, 15 Dec 2017 09:59:08 -0500
+Message-ID: <1513349945.7518.10.camel@pengutronix.de>
+Subject: Re: [PATCH 2/2] media: coda: Add i.MX51 (CodaHx4) support
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
 Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media <linux-media@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>
-Date: Tue, 12 Dec 2017 03:42:32 -0800
-In-Reply-To: <CAK8P3a01sOsWSw4t-x6rv+9pzbfhZtEMc6iwV54Xq-48h6CN=Q@mail.gmail.com>
-References: <20171211120612.3775893-1-arnd@arndb.de>
-         <1513020868.3036.0.camel@perches.com>
-         <CAOcJUbyARps1CeRFvLau3w-rBvn2QLbsY2PHGymbpUyuFCJ2HA@mail.gmail.com>
-         <CAK8P3a01sOsWSw4t-x6rv+9pzbfhZtEMc6iwV54Xq-48h6CN=Q@mail.gmail.com>
-Content-Type: text/plain; charset="ISO-8859-1"
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Fabio Estevam <fabio.estevam@nxp.com>,
+        Chris Healy <Chris.Healy@zii.aero>, devicetree@vger.kernel.org,
+        kernel@pengutronix.de
+Date: Fri, 15 Dec 2017 15:59:05 +0100
+In-Reply-To: <e26f7f6a-afa6-c55c-d94e-095df27c19ae@xs4all.nl>
+References: <20171213140918.22500-1-p.zabel@pengutronix.de>
+         <20171213140918.22500-2-p.zabel@pengutronix.de>
+         <e26f7f6a-afa6-c55c-d94e-095df27c19ae@xs4all.nl>
+Content-Type: text/plain; charset="UTF-8"
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 2017-12-12 at 11:24 +0100, Arnd Bergmann wrote:
-> On Mon, Dec 11, 2017 at 10:17 PM, Michael Ira Krufky
-> <mkrufky@linuxtv.org> wrote:
-> > On Mon, Dec 11, 2017 at 2:34 PM, Joe Perches <joe@perches.com> wrote:
-> > > On Mon, 2017-12-11 at 13:06 +0100, Arnd Bergmann wrote:
-> > > > With CONFIG_KASAN enabled, we get a relatively large stack frame in one function
-> > > > 
-> > > > drivers/media/tuners/tda8290.c: In function 'tda8290_set_params':
-> > > > drivers/media/tuners/tda8290.c:310:1: warning: the frame size of 1520 bytes is larger than 1024 bytes [-Wframe-larger-than=]
-> > > > 
-> > > > With CONFIG_KASAN_EXTRA this goes up to
-> > > > 
-> > > > drivers/media/tuners/tda8290.c: In function 'tda8290_set_params':
-> > > > drivers/media/tuners/tda8290.c:310:1: error: the frame size of 3200 bytes is larger than 3072 bytes [-Werror=frame-larger-than=]
-> > > > 
-> > > > We can significantly reduce this by marking local arrays as 'static const', and
-> > > > this should result in better compiled code for everyone.
-> > > 
-> > > []
-> > > > diff --git a/drivers/media/tuners/tda8290.c b/drivers/media/tuners/tda8290.c
-> > > 
-> > > []
-> > > > @@ -63,8 +63,8 @@ static int tda8290_i2c_bridge(struct dvb_frontend *fe, int close)
-> > > >  {
-> > > >       struct tda8290_priv *priv = fe->analog_demod_priv;
-> > > > 
-> > > > -     unsigned char  enable[2] = { 0x21, 0xC0 };
-> > > > -     unsigned char disable[2] = { 0x21, 0x00 };
-> > > > +     static unsigned char  enable[2] = { 0x21, 0xC0 };
-> > > > +     static unsigned char disable[2] = { 0x21, 0x00 };
-> > > 
-> > > Doesn't match commit message.
-> > > 
-> > > static const or just static?
-> > > 
-> > > > @@ -84,9 +84,9 @@ static int tda8295_i2c_bridge(struct dvb_frontend *fe, int close)
-> > > >  {
-> > > >       struct tda8290_priv *priv = fe->analog_demod_priv;
-> > > > 
-> > > > -     unsigned char  enable[2] = { 0x45, 0xc1 };
-> > > > -     unsigned char disable[2] = { 0x46, 0x00 };
-> > > > -     unsigned char buf[3] = { 0x45, 0x01, 0x00 };
-> > > > +     static unsigned char  enable[2] = { 0x45, 0xc1 };
-> > > > +     static unsigned char disable[2] = { 0x46, 0x00 };
-> > > 
-> > > etc.
-> > > 
-> > > 
+Hi Hans,
+
+On Fri, 2017-12-15 at 15:22 +0100, Hans Verkuil wrote:
+> Hi Philipp,
+> 
+> On 13/12/17 15:09, Philipp Zabel wrote:
+> > Add support for the CodaHx4 VPU used on i.MX51.
 > > 
+> > Decoding h.264, MPEG-4, and MPEG-2 video works, as well as encoding
+> > h.264. MPEG-4 encoding is not enabled, it currently produces visual
+> > artifacts.
 > > 
-> > Joe is correct - they can be CONSTified. My bad -- a lot of the code I
-> > wrote many years ago has this problem -- I wasn't so stack-conscious
-> > back then.
+> > Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+> > ---
+> >  drivers/media/platform/coda/coda-bit.c    | 45 ++++++++++++++++++++++---------
+> >  drivers/media/platform/coda/coda-common.c | 44 +++++++++++++++++++++++++++---
+> >  drivers/media/platform/coda/coda.h        |  1 +
+> >  3 files changed, 74 insertions(+), 16 deletions(-)
 > > 
-> > The bytes in `enable` / `disable` don't get changed, but they may be
-> > copied to another byte array that does get changed.  If would be best
-> > to make these `static const`
 > 
-> Right. This was an older patch of mine that I picked up again
-> after running into a warning that I had been ignoring for a while,
-> and I didn't double-check the message.
+> <snip>
 > 
-> I actually thought about marking them 'const' here before sending
-> (without noticing the changelog text) and then ran into what must
-> have led me to drop the 'const' originally: tuner_i2c_xfer_send()
-> takes a non-const pointer. This can be fixed but it requires
-> an ugly cast:
+> > +	[CODA_IMX51] = {
+> > +		.firmware     = {
+> > +			"vpu_fw_imx51.bin",
+> > +			"vpu/vpu_fw_imx51.bin",
+> > +			"v4l-codahx4-imx51.bin"
+> > +		},
+> > +		.product      = CODA_HX4,
+> > +		.codecs       = codahx4_codecs,
+> > +		.num_codecs   = ARRAY_SIZE(codahx4_codecs),
+> > +		.vdevs        = codahx4_video_devices,
+> > +		.num_vdevs    = ARRAY_SIZE(codahx4_video_devices),
+> > +		.workbuf_size = 128 * 1024,
+> > +		.tempbuf_size = 304 * 1024,
+> > +		.iram_size    = 0x14000,
+> > +	},
+> 
+> What's the status of the firmware? Is it going to be available in some firmware
+> repository? I remember when testing other imx devices that it was a bit tricky
+> to get hold of the firmware. And googling v4l-codahx4-imx51.bin doesn't find
+> anything other than this patch.
 
-Casting away const is always a horrible hack.
+As far as I am aware, so far all efforts to get these firmware binaries
+relicensed in a way that makes them redistributable in linux-firmware
+have not succeeded.
 
-Until it could be changed, my preference would
-be to update the changelog and perhaps add to
-the changelog the reason why it can not be const
-as detailed below.
+They are distributed by NXP directly in the firmware-imx package.
+The http://git.yoctoproject.org/cgit/cgit.cgi/meta-fsl-arm/ repository
+contains links to the latest version:
 
-ie: xfer_send and xfer_xend_recv both take a
-    non-const unsigned char *
+  wget http://www.nxp.com/lgfiles/NMG/MAD/YOCTO/firmware-imx-5.4.bin
+  dd if=firmware-imx-5.4.bin bs=34087 skip=1 | tar xj
+  cat firmware-imx-5.4/COPYING
 
-> diff --git a/drivers/media/tuners/tuner-i2c.h b/drivers/media/tuners/tuner-i2c.h
-> index bda67a5a76f2..809466eec780 100644
-> --- a/drivers/media/tuners/tuner-i2c.h
-> +++ b/drivers/media/tuners/tuner-i2c.h
-> @@ -34,10 +34,10 @@ struct tuner_i2c_props {
->  };
-> 
->  static inline int tuner_i2c_xfer_send(struct tuner_i2c_props *props,
-> -                                     unsigned char *buf, int len)
-> +                                     const unsigned char *buf, int len)
->  {
->         struct i2c_msg msg = { .addr = props->addr, .flags = 0,
-> -                              .buf = buf, .len = len };
-> +                              .buf = (unsigned char *)buf, .len = len };
->         int ret = i2c_transfer(props->adap, &msg, 1);
-> 
->         return (ret == 1) ? len : ret;
-> @@ -54,11 +54,11 @@ static inline int tuner_i2c_xfer_recv(struct
-> tuner_i2c_props *props,
->  }
-> 
->  static inline int tuner_i2c_xfer_send_recv(struct tuner_i2c_props *props,
-> -                                          unsigned char *obuf, int olen,
-> +                                          const unsigned char *obuf, int olen,
->                                            unsigned char *ibuf, int ilen)
->  {
->         struct i2c_msg msg[2] = { { .addr = props->addr, .flags = 0,
-> -                                   .buf = obuf, .len = olen },
-> +                                   .buf = (unsigned char *)obuf, .len = olen },
->                                   { .addr = props->addr, .flags = I2C_M_RD,
->                                     .buf = ibuf, .len = ilen } };
->         int ret = i2c_transfer(props->adap, msg, 2);
-> 
-> Should I submit it as a two-patch series with that added in, or update
-> the changelog to not mention 'const' instead?
-> 
->        Arnd
+regards
+Philipp
