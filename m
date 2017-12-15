@@ -1,160 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:26951 "EHLO
-        mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753067AbdLHJgg (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 8 Dec 2017 04:36:36 -0500
-From: Smitha T Murthy <smitha.t@samsung.com>
-To: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Cc: kyungmin.park@samsung.com, kamil@wypas.org, jtp.park@samsung.com,
-        a.hajda@samsung.com, mchehab@kernel.org, pankaj.dubey@samsung.com,
-        krzk@kernel.org, m.szyprowski@samsung.com, s.nawrocki@samsung.com,
-        Smitha T Murthy <smitha.t@samsung.com>
-Subject: [Patch v6 01/12] [media] s5p-mfc: Rename IS_MFCV8 macro
-Date: Fri, 08 Dec 2017 14:38:14 +0530
-Message-id: <1512724105-1778-2-git-send-email-smitha.t@samsung.com>
-In-reply-to: <1512724105-1778-1-git-send-email-smitha.t@samsung.com>
-References: <1512724105-1778-1-git-send-email-smitha.t@samsung.com>
-        <CGME20171208093633epcas2p380d7da45ca6b86a66edb3e0fc3f09940@epcas2p3.samsung.com>
+Received: from mail-pf0-f195.google.com ([209.85.192.195]:39581 "EHLO
+        mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754617AbdLOBFp (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 14 Dec 2017 20:05:45 -0500
+From: Steve Longerbeam <slongerbeam@gmail.com>
+To: Philipp Zabel <p.zabel@pengutronix.de>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        linux-kernel@vger.kernel.org,
+        Steve Longerbeam <steve_longerbeam@mentor.com>
+Subject: [PATCH v2 8/9] media: staging/imx: reorder function prototypes
+Date: Thu, 14 Dec 2017 17:04:46 -0800
+Message-Id: <1513299887-16804-9-git-send-email-steve_longerbeam@mentor.com>
+In-Reply-To: <1513299887-16804-1-git-send-email-steve_longerbeam@mentor.com>
+References: <1513299887-16804-1-git-send-email-steve_longerbeam@mentor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch renames macro IS_MFCV8 to IS_MFCV8_PLUS so that the MFCv8
-code can be resued for MFCv10.10 support. Since the MFCv8 specific code
-holds good for MFC v10.10 also.
+Re-order some of the function prototypes in imx-media.h to
+group them correctly by source file. No functional changes.
 
-Signed-off-by: Smitha T Murthy <smitha.t@samsung.com>
-Acked-by: Andrzej Hajda <a.hajda@samsung.com>
+Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
 ---
- drivers/media/platform/s5p-mfc/s5p_mfc_common.h |  2 +-
- drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c   |  2 +-
- drivers/media/platform/s5p-mfc/s5p_mfc_dec.c    |  2 +-
- drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c | 18 +++++++++---------
- 4 files changed, 12 insertions(+), 12 deletions(-)
+ drivers/staging/media/imx/imx-media.h | 21 ++++++++++++---------
+ 1 file changed, 12 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-index 4220914..5fb2684 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-@@ -711,7 +711,7 @@ void s5p_mfc_cleanup_queue(struct list_head *lh, struct vb2_queue *vq);
- #define IS_TWOPORT(dev)		(dev->variant->port_num == 2 ? 1 : 0)
- #define IS_MFCV6_PLUS(dev)	(dev->variant->version >= 0x60 ? 1 : 0)
- #define IS_MFCV7_PLUS(dev)	(dev->variant->version >= 0x70 ? 1 : 0)
--#define IS_MFCV8(dev)		(dev->variant->version >= 0x80 ? 1 : 0)
-+#define IS_MFCV8_PLUS(dev)	(dev->variant->version >= 0x80 ? 1 : 0)
+diff --git a/drivers/staging/media/imx/imx-media.h b/drivers/staging/media/imx/imx-media.h
+index ebb24b1..2fd6dfd 100644
+--- a/drivers/staging/media/imx/imx-media.h
++++ b/drivers/staging/media/imx/imx-media.h
+@@ -157,6 +157,7 @@ enum codespace_sel {
+ 	CS_SEL_ANY,
+ };
  
- #define MFC_V5_BIT	BIT(0)
- #define MFC_V6_BIT	BIT(1)
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c b/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
-index 69ef9c2..3769d22 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
-@@ -399,7 +399,7 @@ int s5p_mfc_wakeup(struct s5p_mfc_dev *dev)
- 	s5p_mfc_clear_cmds(dev);
- 	s5p_mfc_clean_dev_int_flags(dev);
- 	/* 3. Send MFC wakeup command and wait for completion*/
--	if (IS_MFCV8(dev))
-+	if (IS_MFCV8_PLUS(dev))
- 		ret = s5p_mfc_v8_wait_wakeup(dev);
- 	else
- 		ret = s5p_mfc_wait_wakeup(dev);
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-index 8937b0a..42e9351 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-@@ -1177,7 +1177,7 @@ void s5p_mfc_dec_init(struct s5p_mfc_ctx *ctx)
- 	struct v4l2_format f;
- 	f.fmt.pix_mp.pixelformat = V4L2_PIX_FMT_H264;
- 	ctx->src_fmt = find_format(&f, MFC_FMT_DEC);
--	if (IS_MFCV8(ctx->dev))
-+	if (IS_MFCV8_PLUS(ctx->dev))
- 		f.fmt.pix_mp.pixelformat = V4L2_PIX_FMT_NV12M;
- 	else if (IS_MFCV6_PLUS(ctx->dev))
- 		f.fmt.pix_mp.pixelformat = V4L2_PIX_FMT_NV12MT_16X16;
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-index 88dbb9c..fe14479 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-@@ -74,7 +74,7 @@ static int s5p_mfc_alloc_codec_buffers_v6(struct s5p_mfc_ctx *ctx)
- 			  ctx->luma_size, ctx->chroma_size, ctx->mv_size);
- 		mfc_debug(2, "Totals bufs: %d\n", ctx->total_dpb_count);
- 	} else if (ctx->type == MFCINST_ENCODER) {
--		if (IS_MFCV8(dev))
-+		if (IS_MFCV8_PLUS(dev))
- 			ctx->tmv_buffer_size = S5P_FIMV_NUM_TMV_BUFFERS_V6 *
- 			ALIGN(S5P_FIMV_TMV_BUFFER_SIZE_V8(mb_width, mb_height),
- 			S5P_FIMV_TMV_BUFFER_ALIGN_V6);
-@@ -89,7 +89,7 @@ static int s5p_mfc_alloc_codec_buffers_v6(struct s5p_mfc_ctx *ctx)
- 		ctx->chroma_dpb_size = ALIGN((mb_width * mb_height) *
- 				S5P_FIMV_CHROMA_MB_TO_PIXEL_V6,
- 				S5P_FIMV_CHROMA_DPB_BUFFER_ALIGN_V6);
--		if (IS_MFCV8(dev))
-+		if (IS_MFCV8_PLUS(dev))
- 			ctx->me_buffer_size = ALIGN(S5P_FIMV_ME_BUFFER_SIZE_V8(
- 						ctx->img_width, ctx->img_height,
- 						mb_width, mb_height),
-@@ -110,7 +110,7 @@ static int s5p_mfc_alloc_codec_buffers_v6(struct s5p_mfc_ctx *ctx)
- 	switch (ctx->codec_mode) {
- 	case S5P_MFC_CODEC_H264_DEC:
- 	case S5P_MFC_CODEC_H264_MVC_DEC:
--		if (IS_MFCV8(dev))
-+		if (IS_MFCV8_PLUS(dev))
- 			ctx->scratch_buf_size =
- 				S5P_FIMV_SCRATCH_BUF_SIZE_H264_DEC_V8(
- 					mb_width,
-@@ -167,7 +167,7 @@ static int s5p_mfc_alloc_codec_buffers_v6(struct s5p_mfc_ctx *ctx)
- 		ctx->bank1.size = ctx->scratch_buf_size;
- 		break;
- 	case S5P_MFC_CODEC_VP8_DEC:
--		if (IS_MFCV8(dev))
-+		if (IS_MFCV8_PLUS(dev))
- 			ctx->scratch_buf_size =
- 				S5P_FIMV_SCRATCH_BUF_SIZE_VP8_DEC_V8(
- 						mb_width,
-@@ -182,7 +182,7 @@ static int s5p_mfc_alloc_codec_buffers_v6(struct s5p_mfc_ctx *ctx)
- 		ctx->bank1.size = ctx->scratch_buf_size;
- 		break;
- 	case S5P_MFC_CODEC_H264_ENC:
--		if (IS_MFCV8(dev))
-+		if (IS_MFCV8_PLUS(dev))
- 			ctx->scratch_buf_size =
- 				S5P_FIMV_SCRATCH_BUF_SIZE_H264_ENC_V8(
- 					mb_width,
-@@ -215,7 +215,7 @@ static int s5p_mfc_alloc_codec_buffers_v6(struct s5p_mfc_ctx *ctx)
- 		ctx->bank2.size = 0;
- 		break;
- 	case S5P_MFC_CODEC_VP8_ENC:
--		if (IS_MFCV8(dev))
-+		if (IS_MFCV8_PLUS(dev))
- 			ctx->scratch_buf_size =
- 				S5P_FIMV_SCRATCH_BUF_SIZE_VP8_ENC_V8(
- 					mb_width,
-@@ -364,7 +364,7 @@ static void s5p_mfc_dec_calc_dpb_size_v6(struct s5p_mfc_ctx *ctx)
++/* imx-media-utils.c */
+ const struct imx_media_pixfmt *
+ imx_media_find_format(u32 fourcc, enum codespace_sel cs_sel, bool allow_bayer);
+ int imx_media_enum_format(u32 *fourcc, u32 index, enum codespace_sel cs_sel);
+@@ -181,17 +182,8 @@ int imx_media_mbus_fmt_to_ipu_image(struct ipu_image *image,
+ 				    struct v4l2_mbus_framefmt *mbus);
+ int imx_media_ipu_image_to_mbus_fmt(struct v4l2_mbus_framefmt *mbus,
+ 				    struct ipu_image *image);
+-int imx_media_add_async_subdev(struct imx_media_dev *imxmd,
+-			       struct fwnode_handle *fwnode,
+-			       struct platform_device *pdev);
+ void imx_media_grp_id_to_sd_name(char *sd_name, int sz,
+ 				 u32 grp_id, int ipu_id);
+-
+-int imx_media_add_internal_subdevs(struct imx_media_dev *imxmd);
+-int imx_media_create_internal_links(struct imx_media_dev *imxmd,
+-				    struct v4l2_subdev *sd);
+-void imx_media_remove_internal_subdevs(struct imx_media_dev *imxmd);
+-
+ struct v4l2_subdev *
+ imx_media_find_subdev_by_fwnode(struct imx_media_dev *imxmd,
+ 				struct fwnode_handle *fwnode);
+@@ -227,6 +219,11 @@ int imx_media_pipeline_set_stream(struct imx_media_dev *imxmd,
+ 				  struct media_entity *entity,
+ 				  bool on);
  
- 	ctx->luma_size = calc_plane(ctx->img_width, ctx->img_height);
- 	ctx->chroma_size = calc_plane(ctx->img_width, (ctx->img_height >> 1));
--	if (IS_MFCV8(ctx->dev)) {
-+	if (IS_MFCV8_PLUS(ctx->dev)) {
- 		/* MFCv8 needs additional 64 bytes for luma,chroma dpb*/
- 		ctx->luma_size += S5P_FIMV_D_ALIGN_PLANE_SIZE_V8;
- 		ctx->chroma_size += S5P_FIMV_D_ALIGN_PLANE_SIZE_V8;
-@@ -445,7 +445,7 @@ static int s5p_mfc_set_dec_frame_buffer_v6(struct s5p_mfc_ctx *ctx)
- 	writel(buf_addr1, mfc_regs->d_scratch_buffer_addr);
- 	writel(ctx->scratch_buf_size, mfc_regs->d_scratch_buffer_size);
++/* imx-media-dev.c */
++int imx_media_add_async_subdev(struct imx_media_dev *imxmd,
++			       struct fwnode_handle *fwnode,
++			       struct platform_device *pdev);
++
+ /* imx-media-fim.c */
+ struct imx_media_fim;
+ void imx_media_fim_eof_monitor(struct imx_media_fim *fim, ktime_t timestamp);
+@@ -237,6 +234,12 @@ int imx_media_fim_add_controls(struct imx_media_fim *fim);
+ struct imx_media_fim *imx_media_fim_init(struct v4l2_subdev *sd);
+ void imx_media_fim_free(struct imx_media_fim *fim);
  
--	if (IS_MFCV8(dev)) {
-+	if (IS_MFCV8_PLUS(dev)) {
- 		writel(ctx->img_width,
- 			mfc_regs->d_first_plane_dpb_stride_size);
- 		writel(ctx->img_width,
-@@ -2109,7 +2109,7 @@ const struct s5p_mfc_regs *s5p_mfc_init_regs_v6_plus(struct s5p_mfc_dev *dev)
- 			S5P_FIMV_E_ENCODED_SOURCE_SECOND_ADDR_V7);
- 	R(e_vp8_options, S5P_FIMV_E_VP8_OPTIONS_V7);
- 
--	if (!IS_MFCV8(dev))
-+	if (!IS_MFCV8_PLUS(dev))
- 		goto done;
- 
- 	/* Initialize registers used in MFC v8 only.
++/* imx-media-internal-sd.c */
++int imx_media_add_internal_subdevs(struct imx_media_dev *imxmd);
++int imx_media_create_internal_links(struct imx_media_dev *imxmd,
++				    struct v4l2_subdev *sd);
++void imx_media_remove_internal_subdevs(struct imx_media_dev *imxmd);
++
+ /* imx-media-of.c */
+ int imx_media_add_of_subdevs(struct imx_media_dev *dev,
+ 			     struct device_node *np);
 -- 
 2.7.4
