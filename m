@@ -1,100 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pl0-f66.google.com ([209.85.160.66]:40367 "EHLO
-        mail-pl0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752464AbdLFLUr (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 6 Dec 2017 06:20:47 -0500
-From: Jacob Chen <jacob-chen@iotwrt.com>
-To: linux-rockchip@lists.infradead.org
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        mchehab@kernel.org, linux-media@vger.kernel.org,
-        sakari.ailus@linux.intel.com, hans.verkuil@cisco.com,
-        tfiga@chromium.org, zhengsq@rock-chips.com,
-        laurent.pinchart@ideasonboard.com, zyc@rock-chips.com,
-        eddie.cai.linux@gmail.com, jeffy.chen@rock-chips.com,
-        allon.huang@rock-chips.com, devicetree@vger.kernel.org,
-        heiko@sntech.de, robh+dt@kernel.org, Joao.Pinto@synopsys.com,
-        Luis.Oliveira@synopsys.com, Jose.Abreu@synopsys.com,
-        Jacob Chen <jacob2.chen@rock-chips.com>
-Subject: [PATCH v3 06/12] dt-bindings: Document the Rockchip ISP1 bindings
-Date: Wed,  6 Dec 2017 19:19:33 +0800
-Message-Id: <20171206111939.1153-7-jacob-chen@iotwrt.com>
-In-Reply-To: <20171206111939.1153-1-jacob-chen@iotwrt.com>
-References: <20171206111939.1153-1-jacob-chen@iotwrt.com>
+Received: from mga18.intel.com ([134.134.136.126]:18253 "EHLO mga18.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1755364AbdLOLyG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 15 Dec 2017 06:54:06 -0500
+Date: Fri, 15 Dec 2017 13:54:02 +0200
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: Niklas =?iso-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        Benoit Parrot <bparrot@ti.com>,
+        Maxime Ripard <maxime.ripard@free-electrons.com>
+Subject: Re: [PATCH/RFC v2 02/15] rcar-vin: use pad as the starting point for
+ a pipeline
+Message-ID: <20171215115402.uvvjkn3ltnxweqy6@paasikivi.fi.intel.com>
+References: <20171214190835.7672-1-niklas.soderlund+renesas@ragnatech.se>
+ <20171214190835.7672-3-niklas.soderlund+renesas@ragnatech.se>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20171214190835.7672-3-niklas.soderlund+renesas@ragnatech.se>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Jacob Chen <jacob2.chen@rock-chips.com>
+On Thu, Dec 14, 2017 at 08:08:22PM +0100, Niklas Söderlund wrote:
+> The pipeline will be moved from the entity to the pads; reflect this in
+> the media pipeline function API.
 
-Add DT bindings documentation for Rockchip ISP1
+I'll merge this to "media: entity: Use pad as the starting point for a
+pipeline" if you're fine with that.
 
-Signed-off-by: Jacob Chen <jacob2.chen@rock-chips.com>
----
- .../devicetree/bindings/media/rockchip-isp1.txt    | 57 ++++++++++++++++++++++
- 1 file changed, 57 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/rockchip-isp1.txt
+I haven't compiled everything for some time, and newly added drivers may be
+lacking these changes. I'll re-check that soonish.
 
-diff --git a/Documentation/devicetree/bindings/media/rockchip-isp1.txt b/Documentation/devicetree/bindings/media/rockchip-isp1.txt
-new file mode 100644
-index 000000000000..0971ed94ed69
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/rockchip-isp1.txt
-@@ -0,0 +1,57 @@
-+Rockchip SoC Image Signal Processing unit v1
-+----------------------------------------------
-+
-+Rockchip ISP1 is the Camera interface for the Rockchip series of SoCs
-+which contains image processing, scaling, and compression funcitons.
-+
-+Required properties:
-+  - compatible: value should be one of the following
-+      "rockchip,rk3288-cif-isp";
-+      "rockchip,rk3399-cif-isp";
-+  - reg : offset and length of the register set for the device.
-+  - interrupts: should contain ISP interrupt.
-+  - clocks: phandle to the required clocks.
-+  - clock-names: required clock name.
-+  - iommus: required a iommu node.
-+
-+The device node should contain one 'port' child node with child 'endpoint'
-+nodes, according to the bindings defined in Documentation/devicetree/bindings/
-+media/video-interfaces.txt.
-+
-+For sensor with a parallel video bus, it could be linked directly to the isp.
-+For sensor with a MIPI CSI-2 video bus, it should be linked through the
-+MIPI-DPHY, which is defined in rockchip-mipi-dphy.txt.
-+
-+Device node example
-+-------------------
-+
-+	isp0: isp0@ff910000 {
-+		compatible = "rockchip,rk3399-cif-isp";
-+		reg = <0x0 0xff910000 0x0 0x4000>;
-+		interrupts = <GIC_SPI 43 IRQ_TYPE_LEVEL_HIGH 0>;
-+		clocks = <&cru SCLK_ISP0>,
-+			 <&cru ACLK_ISP0>, <&cru ACLK_ISP0_WRAPPER>,
-+			 <&cru HCLK_ISP0>, <&cru HCLK_ISP0_WRAPPER>;
-+		clock-names = "clk_isp",
-+			      "aclk_isp", "aclk_isp_wrap",
-+			      "hclk_isp", "hclk_isp_wrap";
-+		power-domains = <&power RK3399_PD_ISP0>;
-+		iommus = <&isp0_mmu>;
-+	
-+		port {
-+			#address-cells = <1>;
-+			#size-cells = <0>;
-+
-+			/* mipi */
-+			isp0_mipi_in: endpoint@0 {
-+				reg = <0>;
-+				remote-endpoint = <&dphy_rx0_out>;
-+			};
-+
-+			/* parallel */
-+			isp0_parallel_in: endpoint@1 {
-+				reg = <1>;
-+				remote-endpoint = <&ov5640_out>;
-+			};
-+		};
-+	};
+> 
+> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+> ---
+>  drivers/media/platform/rcar-vin/rcar-dma.c | 8 ++++----
+>  1 file changed, 4 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
+> index 03a914361a33125c..cf30e5fceb1d493a 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-dma.c
+> +++ b/drivers/media/platform/rcar-vin/rcar-dma.c
+> @@ -1179,7 +1179,7 @@ static int rvin_set_stream(struct rvin_dev *vin, int on)
+>  		return -EPIPE;
+>  
+>  	if (!on) {
+> -		media_pipeline_stop(&vin->vdev.entity);
+> +		media_pipeline_stop(vin->vdev.entity.pads);
+>  		return v4l2_subdev_call(sd, video, s_stream, 0);
+>  	}
+>  
+> @@ -1235,15 +1235,15 @@ static int rvin_set_stream(struct rvin_dev *vin, int on)
+>  	    fmt.format.height != vin->format.height)
+>  		return -EPIPE;
+>  
+> -	pipe = sd->entity.pipe ? sd->entity.pipe : &vin->vdev.pipe;
+> -	if (media_pipeline_start(&vin->vdev.entity, pipe))
+> +	pipe = sd->entity.pads->pipe ? sd->entity.pads->pipe : &vin->vdev.pipe;
+> +	if (media_pipeline_start(vin->vdev.entity.pads, pipe))
+>  		return -EPIPE;
+>  
+>  	ret = v4l2_subdev_call(sd, video, s_stream, 1);
+>  	if (ret == -ENOIOCTLCMD)
+>  		ret = 0;
+>  	if (ret)
+> -		media_pipeline_stop(&vin->vdev.entity);
+> +		media_pipeline_stop(vin->vdev.entity.pads);
+>  
+>  	return ret;
+>  }
+> -- 
+> 2.15.1
+> 
+
 -- 
-2.15.0
+Sakari Ailus
+sakari.ailus@linux.intel.com
