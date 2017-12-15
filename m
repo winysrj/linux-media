@@ -1,81 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([65.50.211.133]:48852 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751799AbdLSMKv (ORCPT
+Received: from mail.free-electrons.com ([62.4.15.54]:47562 "EHLO
+        mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1756630AbdLOWOc (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 19 Dec 2017 07:10:51 -0500
-Date: Tue, 19 Dec 2017 10:10:46 -0200
-From: Mauro Carvalho Chehab <mchehab@kernel.org>
-To: Ralph Metzler <rjkm@metzlerbros.de>
-Cc: linux-media@vger.kernel.org,
-        Athanasios Oikonomou <athoik@gmail.com>,
-        Manu Abraham <abraham.manu@gmail.com>
-Subject: Re: [PATCH 0/2] Support Physical Layer Scrambling
-Message-ID: <20171219101046.243ce297@vento.lan>
-In-Reply-To: <23094.30253.636599.33684@morden.metzler>
-References: <cover.1513426880.git.athoik@gmail.com>
-        <23094.30253.636599.33684@morden.metzler>
+        Fri, 15 Dec 2017 17:14:32 -0500
+Date: Fri, 15 Dec 2017 23:14:30 +0100
+From: Maxime Ripard <maxime.ripard@free-electrons.com>
+To: Yong <yong.deng@magewell.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Chen-Yu Tsai <wens@csie.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Yannick Fertre <yannick.fertre@st.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Benoit Parrot <bparrot@ti.com>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Jean-Christophe Trotin <jean-christophe.trotin@st.com>,
+        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
+        Minghsiu Tsai <minghsiu.tsai@mediatek.com>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Robert Jarzmik <robert.jarzmik@free.fr>,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-sunxi@googlegroups.com
+Subject: Re: [PATCH v2 1/3] media: V3s: Add support for Allwinner CSI.
+Message-ID: <20171215221430.di72fzaszgnvuzmp@flea.lan>
+References: <1501131697-1359-1-git-send-email-yong.deng@magewell.com>
+ <1501131697-1359-2-git-send-email-yong.deng@magewell.com>
+ <20171121154827.5a35xa6zlqrrvkxx@flea.lan>
+ <20171122093306.d30fe641f269d62daa1f66b4@magewell.com>
+ <20171122094526.nqxfy2e5jzxw7nl4@flea.lan>
+ <20171123091444.4bed66dffeb36ecea8dfa706@magewell.com>
+ <20171125160233.skefdpkjy4peh7et@flea.lan>
+ <20171204174511.a5be3b521e9a7c7004d32d0d@magewell.com>
+ <20171215105047.ist7epuida2uao74@flea.lan>
+ <20171215190140.d4df71b202b9803baa6a1e10@magewell.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: 8BIT
+In-Reply-To: <20171215190140.d4df71b202b9803baa6a1e10@magewell.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sun, 17 Dec 2017 14:50:37 +0100
-Ralph Metzler <rjkm@metzlerbros.de> escreveu:
+Hi,
 
-> Athanasios Oikonomou writes:
->  > A new property DTV_SCRAMBLING_SEQUENCE_INDEX introduced to control
->  > the gold sequence that several demods support.
->  > 
->  > Also the DVB API was increased in order userspace to be aware of the
->  > changes.
->  > 
->  > The stv090x driver was changed to make use of the new property.
->  > 
->  > Those commits based on discussion previously made on the mailling list.
->  > https://www.mail-archive.com/linux-media@vger.kernel.org/msg122600.html
->  > 
->  > I would like to thanks Ralph Metzler (rjkm@metzlerbros.de) for the
->  > great help and ideas he provide me in order create those patches.
->  > 
->  > Athanasios Oikonomou (2):
->  >   media: dvb_frontend: add physical layer scrambling support
->  >   media: stv090x: add physical layer scrambling support
->  > 
->  >  .../media/uapi/dvb/fe_property_parameters.rst          | 18 ++++++++++++++++++
->  >  .../uapi/dvb/frontend-property-satellite-systems.rst   |  2 ++
->  >  drivers/media/dvb-core/dvb_frontend.c                  | 12 ++++++++++++
->  >  drivers/media/dvb-core/dvb_frontend.h                  |  5 +++++
->  >  drivers/media/dvb-frontends/stv090x.c                  | 16 ++++++++++++++++
->  >  include/uapi/linux/dvb/frontend.h                      |  5 ++++-
->  >  include/uapi/linux/dvb/version.h                       |  2 +-
->  >  7 files changed, 58 insertions(+), 2 deletions(-)
->  > 
->  > -- 
->  > 2.1.4  
+On Fri, Dec 15, 2017 at 07:01:40PM +0800, Yong wrote:
+> Hi Maxime,
 > 
-> Acked-by: Ralph Metzler <rjkm@metzlerbros.de>
-
-I'm applying both patches.
-
-> We had some thoughts about having a:
+> On Fri, 15 Dec 2017 11:50:47 +0100
+> Maxime Ripard <maxime.ripard@free-electrons.com> wrote:
 > 
-> #define NO_SCRAMBLING_CODE     (~0U)
+> > Hi Yong,
+> > 
+> > On Mon, Dec 04, 2017 at 05:45:11PM +0800, Yong wrote:
+> > > I just noticed that you are using the second iteration?
+> > > Have you received my third iteration?
+> > 
+> > Sorry for the late reply, and for not coming back to you yet about
+> > that test. No, this is still in your v2. I've definitely received your
+> > v3, I just didn't have time to update to it yet.
+> > 
+> > But don't worry, my mail was mostly to know if you had tested that
+> > setup on your side to try to nail down the issue on my end, not really
+> > a review or comment that would prevent your patch from going in.
 > 
-> But DVB-S2 is always scrambling (with default index 0) and other delivery systems can ignore this
-> property. Or do you think it is needed?
-> 
-> 
-> One could add a define for AUTO or AUTO_S2X for the standard 7 indices to be tested
-> in DVB-S2X. But either dvb_frontend.c or the demod driver would have to support this in software.
-> I don't think there is a demod which supports this in hardware yet?
+> I mean,
+> The v2 exactly has a bug which may cause the CSI writing frame to 
+> a wrong memory address.
 
-I think that, once we have a hardware capable of auto-detecting the gold
-sequence, then a NO_SCRAMBLING_CODE (or AUTO_GOLD_SEQUENCE) could make
-sense.
+Ah, sorry I misunderstood you then. I'll definitely test your v3..
 
-For now, I don't think any demod currently supports it.
+> BTW, should I send a new version. I have made some improve sine v3.
 
-Thanks,
-Mauro
+.. or your v4 :)
+
+Yes, please send a new version.
+
+Maxime
+
+-- 
+Maxime Ripard, Free Electrons
+Embedded Linux and Kernel engineering
+http://free-electrons.com
