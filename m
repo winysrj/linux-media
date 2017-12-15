@@ -1,143 +1,133 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:51986 "EHLO
-        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752336AbdLKI5c (ORCPT
+Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:36098 "EHLO
+        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1755567AbdLONe6 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 11 Dec 2017 03:57:32 -0500
-Subject: Re: [PATCHv5 0/3] drm/i915: add DisplayPort CEC-Tunneling-over-AUX
- support
-To: linux-media@vger.kernel.org
-References: <20171120114211.21825-1-hverkuil@xs4all.nl>
- <3f7a93ba-8a7d-c2bf-151a-b5b59a3c6fbd@xs4all.nl>
-Cc: Daniel Vetter <daniel.vetter@ffwll.ch>,
-        Carlos Santa <carlos.santa@intel.com>,
-        dri-devel@lists.freedesktop.org,
-        =?UTF-8?B?VmlsbGUgU3lyasOkbMOk?= <ville.syrjala@linux.intel.com>
+        Fri, 15 Dec 2017 08:34:58 -0500
+Subject: Re: [PATCH v10 1/4] dt-bindings: media: Document Synopsys DesignWare
+ HDMI RX
+To: Jose Abreu <Jose.Abreu@synopsys.com>, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+References: <cover.1513013948.git.joabreu@synopsys.com>
+ <befe90fc55bfa4d1dc599270bc0372cf8691247a.1513013948.git.joabreu@synopsys.com>
+Cc: Joao Pinto <Joao.Pinto@synopsys.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sylwester Nawrocki <snawrocki@kernel.org>,
+        devicetree@vger.kernel.org
 From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <fd864450-0b0c-c867-c108-f51e788adec0@xs4all.nl>
-Date: Mon, 11 Dec 2017 09:57:26 +0100
+Message-ID: <a3aac12a-e519-f9de-1c6d-b8fae393895d@xs4all.nl>
+Date: Fri, 15 Dec 2017 14:34:55 +0100
 MIME-Version: 1.0
-In-Reply-To: <3f7a93ba-8a7d-c2bf-151a-b5b59a3c6fbd@xs4all.nl>
-Content-Type: text/plain; charset=utf-8
+In-Reply-To: <befe90fc55bfa4d1dc599270bc0372cf8691247a.1513013948.git.joabreu@synopsys.com>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Ping again. Added a CC to Ville whom I inexplicably forgot to add when
-I sent the v5 patch series.
+On 11/12/17 18:41, Jose Abreu wrote:
+> Document the bindings for the Synopsys DesignWare HDMI RX.
+> 
+> Signed-off-by: Jose Abreu <joabreu@synopsys.com>
+> Acked-by: Rob Herring <robh@kernel.org> (v8)
+> Cc: Joao Pinto <jpinto@synopsys.com>
+> Cc: Rob Herring <robh+dt@kernel.org>
+> Cc: Mark Rutland <mark.rutland@arm.com>
+> Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+> Cc: Hans Verkuil <hans.verkuil@cisco.com>
+> Cc: Sylwester Nawrocki <snawrocki@kernel.org>
+> Cc: devicetree@vger.kernel.org
+
+Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
 
 Regards,
 
 	Hans
 
-On 01/12/17 08:23, Hans Verkuil wrote:
-> Ping!
+> ---
+> Changes from v7:
+> 	- Remove SoC specific bindings (Rob)
+> Changes from v6:
+> 	- Document which properties are required/optional (Sylwester)
+> 	- Drop compatible string for SoC (Sylwester)
+> 	- Reword edid-phandle property (Sylwester)
+> 	- Typo fixes (Sylwester)
+> Changes from v4:
+> 	- Use "cfg" instead of "cfg-clk" (Rob)
+> 	- Change node names (Rob)
+> Changes from v3:
+> 	- Document the new DT bindings suggested by Sylwester
+> Changes from v2:
+> 	- Document edid-phandle property
+> ---
+>  .../devicetree/bindings/media/snps,dw-hdmi-rx.txt  | 58 ++++++++++++++++++++++
+>  1 file changed, 58 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/snps,dw-hdmi-rx.txt
 > 
-> I really like to get this in for 4.16 so I can move forward with hooking
-> this up for nouveau/amd.
-> 
-> Regards,
-> 
-> 	Hans
-> 
-> On 11/20/2017 12:42 PM, Hans Verkuil wrote:
->> This patch series adds support for the DisplayPort CEC-Tunneling-over-AUX
->> feature. This patch series is based on the 4.14 mainline release but applies
->> as well to drm-next.
->>
->> This patch series has been tested with my NUC7i5BNK, a Samsung USB-C to 
->> HDMI adapter and a Club 3D DisplayPort MST Hub + modified UpTab DP-to-HDMI
->> adapter (where the CEC pin is wired up).
->>
->> Please note this comment at the start of drm_dp_cec.c:
->>
->> ----------------------------------------------------------------------
->> Unfortunately it turns out that we have a chicken-and-egg situation
->> here. Quite a few active (mini-)DP-to-HDMI or USB-C-to-HDMI adapters
->> have a converter chip that supports CEC-Tunneling-over-AUX (usually the
->> Parade PS176 or MegaChips MCDP2900), but they do not wire up the CEC pin,
->> thus making CEC useless.
->>
->> Sadly there is no way for this driver to know this. What happens is
->> that a /dev/cecX device is created that is isolated and unable to see
->> any of the other CEC devices. Quite literally the CEC wire is cut
->> (or in this case, never connected in the first place).
->>
->> I suspect that the reason so few adapters support this is that this
->> tunneling protocol was never supported by any OS. So there was no
->> easy way of testing it, and no incentive to correctly wire up the
->> CEC pin.
->>
->> Hopefully by creating this driver it will be easier for vendors to
->> finally fix their adapters and test the CEC functionality.
->>
->> I keep a list of known working adapters here:
->>
->> https://hverkuil.home.xs4all.nl/cec-status.txt
->>
->> Please mail me (hverkuil@xs4all.nl) if you find an adapter that works
->> and is not yet listed there.
->>
->> Note that the current implementation does not support CEC over an MST hub.
->> As far as I can see there is no mechanism defined in the DisplayPort
->> standard to transport CEC interrupts over an MST device. It might be
->> possible to do this through polling, but I have not been able to get that
->> to work.
->> ----------------------------------------------------------------------
->>
->> I really hope that this work will provide an incentive for vendors to
->> finally connect the CEC pin. It's a shame that there are so few adapters
->> that work (I found only two USB-C to HDMI adapters that work, and no
->> (mini-)DP to HDMI adapters at all).
->>
->> Hopefully if this gets merged there will be an incentive for vendors
->> to make adapters where this actually works. It is a very nice feature
->> for HTPC boxes.
->>
->> The main reason why this v5 is delayed by 2 months is due to the fact
->> that I needed some dedicated time to investigate what happens when an
->> MST hub is in use. It turns out that this is not working. There is no
->> mechanism defined in the DisplayPort standard to transport the CEC
->> interrupt back up the MST chain. I was actually able to send a CEC
->> message but the interrupt that tells when the transmit finished is
->> unavailable.
->>
->> I attempted to implement this via polling, but I got weird errors
->> and was not able to read the DP_DEVICE_SERVICE_IRQ_VECTOR_ESI1
->> register. I decided to give up on this for now and just disable CEC
->> for DP-to-HDMI adapters after an MST hub. I plan to revisit this
->> later since it would be neat to make this work as well. Although it
->> might not be possible at all.
->>
->> If anyone is interested, work-in-progress for this is here:
->>
->> https://git.linuxtv.org/hverkuil/media_tree.git/log/?h=dp-cec-mst
->>
->> Note that I removed the Tested-by tag from Carlos Santa due to the
->> almost complete rework of the third patch. Carlos, can you test this again?
->>
->> Regards,
->>
->>         Hans
->>
->> Changes since v4:
->>
->> - Updated comment at the start of drm_dp_cec.c
->> - Add edid pointer to drm_dp_cec_configure_adapter
->> - Reworked the last patch (adding CEC to i915) based on Ville's comments
->>   and my MST testing:
->> 	- register/unregister CEC in intel_dp_connector_register/unregister
->> 	- add comment and check if connector is registered in long_pulse
->> 	- unregister CEC if an MST 'connector' is detected.
->>
->> _______________________________________________
->> dri-devel mailing list
->> dri-devel@lists.freedesktop.org
->> https://lists.freedesktop.org/mailman/listinfo/dri-devel
->>
-> 
-> _______________________________________________
-> dri-devel mailing list
-> dri-devel@lists.freedesktop.org
-> https://lists.freedesktop.org/mailman/listinfo/dri-devel
+> diff --git a/Documentation/devicetree/bindings/media/snps,dw-hdmi-rx.txt b/Documentation/devicetree/bindings/media/snps,dw-hdmi-rx.txt
+> new file mode 100644
+> index 0000000..1dc09c6
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/media/snps,dw-hdmi-rx.txt
+> @@ -0,0 +1,58 @@
+> +Synopsys DesignWare HDMI RX Decoder
+> +===================================
+> +
+> +This document defines device tree properties for the Synopsys DesignWare HDMI
+> +RX Decoder (DWC HDMI RX).
+> +
+> +The properties bellow belong to the Synopsys DesignWare HDMI RX Decoder node.
+> +
+> +Required properties:
+> +
+> +- compatible: Shall be "snps,dw-hdmi-rx".
+> +- reg: Memory mapped base address and length of the DWC HDMI RX registers.
+> +- interrupts: Reference to the DWC HDMI RX interrupt and the HDMI 5V sense
+> +interrupt.
+> +- clocks: Reference to the config clock.
+> +- clock-names: Shall be "cfg".
+> +- #address-cells: Shall be 1.
+> +- #size-cells: Shall be 0.
+> +
+> +Optional properties:
+> +
+> +- edid-phandle: Reference to the EDID handler block; if this property is not
+> +specified it is assumed that EDID is handled by device described by parent
+> +node of the HDMI RX node. You should not specify this property if your HDMI RX
+> +controller does not have CEC.
+> +
+> +You also have to create a subnode for the PHY device. PHY node properties are
+> +as follows.
+> +
+> +Required properties:
+> +
+> +- compatible: Shall be "snps,dw-hdmi-phy-e405".
+> +- reg: Shall be the JTAG address of the PHY.
+> +- clocks: Reference to the config clock.
+> +- clock-names: Shall be "cfg".
+> +
+> +Example:
+> +
+> +hdmi_rx: hdmi-rx@0 {
+> +	compatible = "snps,dw-hdmi-rx";
+> +	reg = <0x0 0x10000>;
+> +	interrupts = <1 2>;
+> +	edid-phandle = <&dw_hdmi_edid>;
+> +
+> +	clocks = <&dw_hdmi_refclk>;
+> +	clock-names = "cfg";
+> +
+> +	#address-cells = <1>;
+> +	#size-cells = <0>;
+> +
+> +	hdmi-phy@fc {
+> +		compatible = "snps,dw-hdmi-phy-e405";
+> +		reg = <0xfc>;
+> +
+> +		clocks = <&dw_hdmi_refclk>;
+> +		clock-names = "cfg";
+> +	};
+> +};
 > 
