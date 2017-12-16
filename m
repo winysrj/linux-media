@@ -1,38 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:36626 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1752719AbdLNOFr (ORCPT
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:33092 "EHLO
+        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1756628AbdLPCtU (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 14 Dec 2017 09:05:47 -0500
-Date: Thu, 14 Dec 2017 16:05:45 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mike Isely <isely@pobox.com>,
-        Oleksandr Ostrenko <oleksandr.ostrenko@tu-dresden.de>
-Subject: Re: [PATCH] pvrusb2: correctly return V4L2_PIX_FMT_MPEG in enum_fmt
-Message-ID: <20171214140545.3eibioqmjhqfk2yt@valkosipuli.retiisi.org.uk>
-References: <3c98b33d-c92d-6fd1-ac69-215fa70de1b7@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <3c98b33d-c92d-6fd1-ac69-215fa70de1b7@xs4all.nl>
+        Fri, 15 Dec 2017 21:49:20 -0500
+From: Philipp Rossak <embed3d@gmail.com>
+To: mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
+        maxime.ripard@free-electrons.com, wens@csie.org,
+        linux@armlinux.org.uk, sean@mess.org, p.zabel@pengutronix.de,
+        andi.shyti@samsung.com
+Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-sunxi@googlegroups.com
+Subject: [RFC 1/5] [media] rc: update sunxi-ir driver to get base frequency from devicetree
+Date: Sat, 16 Dec 2017 03:49:10 +0100
+Message-Id: <20171216024914.7550-2-embed3d@gmail.com>
+In-Reply-To: <20171216024914.7550-1-embed3d@gmail.com>
+References: <20171216024914.7550-1-embed3d@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Dec 14, 2017 at 12:44:42AM +0100, Hans Verkuil wrote:
-> The pvrusb2 code appears to have a some old workaround code for xawtv that causes a
-> WARN() due to an unrecognized pixelformat 0 in v4l2_ioctl.c.
-> 
-> Since all other MPEG drivers fill this in correctly, it is a safe assumption that
-> this particular problem no longer exists.
-> 
-> While I'm at it, clean up the code a bit.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+This patch updates the sunxi-ir driver to set the ir base clock from
+devicetree.
 
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+This is neccessary since there are different ir recievers on the
+market, that operate with different frequencys. So this value needs to
+be set depending on the attached receiver.
 
+Signed-off-by: Philipp Rossak <embed3d@gmail.com>
+---
+ drivers/media/rc/sunxi-cir.c | 20 +++++++++++---------
+ 1 file changed, 11 insertions(+), 9 deletions(-)
+
+diff --git a/drivers/media/rc/sunxi-cir.c b/drivers/media/rc/sunxi-cir.c
+index 97f367b446c4..55b53d6463e9 100644
+--- a/drivers/media/rc/sunxi-cir.c
++++ b/drivers/media/rc/sunxi-cir.c
+@@ -72,12 +72,6 @@
+ /* CIR_REG register idle threshold */
+ #define REG_CIR_ITHR(val)    (((val) << 8) & (GENMASK(15, 8)))
+ 
+-/* Required frequency for IR0 or IR1 clock in CIR mode */
+-#define SUNXI_IR_BASE_CLK     8000000
+-/* Frequency after IR internal divider  */
+-#define SUNXI_IR_CLK          (SUNXI_IR_BASE_CLK / 64)
+-/* Sample period in ns */
+-#define SUNXI_IR_SAMPLE       (1000000000ul / SUNXI_IR_CLK)
+ /* Noise threshold in samples  */
+ #define SUNXI_IR_RXNOISE      1
+ /* Idle Threshold in samples */
+@@ -122,7 +116,7 @@ static irqreturn_t sunxi_ir_irq(int irqno, void *dev_id)
+ 			/* for each bit in fifo */
+ 			dt = readb(ir->base + SUNXI_IR_RXFIFO_REG);
+ 			rawir.pulse = (dt & 0x80) != 0;
+-			rawir.duration = ((dt & 0x7f) + 1) * SUNXI_IR_SAMPLE;
++			rawir.duration = ((dt & 0x7f) + 1) * ir->rc->rx_resolution;
+ 			ir_raw_event_store_with_filter(ir->rc, &rawir);
+ 		}
+ 	}
+@@ -148,6 +142,7 @@ static int sunxi_ir_probe(struct platform_device *pdev)
+ 	struct device_node *dn = dev->of_node;
+ 	struct resource *res;
+ 	struct sunxi_ir *ir;
++	u32 b_clk_freq;
+ 
+ 	ir = devm_kzalloc(dev, sizeof(struct sunxi_ir), GFP_KERNEL);
+ 	if (!ir)
+@@ -172,6 +167,12 @@ static int sunxi_ir_probe(struct platform_device *pdev)
+ 		return PTR_ERR(ir->clk);
+ 	}
+ 
++	/* Required frequency for IR0 or IR1 clock in CIR mode */
++	if (of_property_read_u32(dn, "base-clk-frequency", &b_clk_freq)) {
++		dev_err(dev, "failed to get ir base clock frequency.\n");
++		return -ENODATA;
++	}
++
+ 	/* Reset (optional) */
+ 	ir->rst = devm_reset_control_get_optional_exclusive(dev, NULL);
+ 	if (IS_ERR(ir->rst))
+@@ -180,7 +181,7 @@ static int sunxi_ir_probe(struct platform_device *pdev)
+ 	if (ret)
+ 		return ret;
+ 
+-	ret = clk_set_rate(ir->clk, SUNXI_IR_BASE_CLK);
++	ret = clk_set_rate(ir->clk, b_clk_freq);
+ 	if (ret) {
+ 		dev_err(dev, "set ir base clock failed!\n");
+ 		goto exit_reset_assert;
+@@ -225,7 +226,8 @@ static int sunxi_ir_probe(struct platform_device *pdev)
+ 	ir->rc->map_name = ir->map_name ?: RC_MAP_EMPTY;
+ 	ir->rc->dev.parent = dev;
+ 	ir->rc->allowed_protocols = RC_PROTO_BIT_ALL_IR_DECODER;
+-	ir->rc->rx_resolution = SUNXI_IR_SAMPLE;
++	/* Frequency after IR internal divider with sample period in ns */
++	ir->rc->rx_resolution = (1000000000ul / (b_clk_freq / 64));
+ 	ir->rc->timeout = MS_TO_NS(SUNXI_IR_TIMEOUT);
+ 	ir->rc->driver_name = SUNXI_IR_DEV;
+ 
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+2.11.0
