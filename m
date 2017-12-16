@@ -1,49 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:57423 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751512AbdLKOtX (ORCPT
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:37117 "EHLO
+        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1756744AbdLPCtW (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 11 Dec 2017 09:49:23 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Jacopo Mondi <jacopo+renesas@jmondi.org>
-Cc: magnus.damm@gmail.com, geert@glider.be, mchehab@kernel.org,
-        hverkuil@xs4all.nl, linux-renesas-soc@vger.kernel.org,
-        linux-media@vger.kernel.org, linux-sh@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v1 07/10] v4l: i2c: Copy ov772x soc_camera sensor driver
-Date: Mon, 11 Dec 2017 16:49:24 +0200
-Message-ID: <3757887.b3TU9SkMDe@avalon>
-In-Reply-To: <1510743363-25798-8-git-send-email-jacopo+renesas@jmondi.org>
-References: <1510743363-25798-1-git-send-email-jacopo+renesas@jmondi.org> <1510743363-25798-8-git-send-email-jacopo+renesas@jmondi.org>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+        Fri, 15 Dec 2017 21:49:22 -0500
+From: Philipp Rossak <embed3d@gmail.com>
+To: mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
+        maxime.ripard@free-electrons.com, wens@csie.org,
+        linux@armlinux.org.uk, sean@mess.org, p.zabel@pengutronix.de,
+        andi.shyti@samsung.com
+Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-sunxi@googlegroups.com
+Subject: [RFC 3/5] ARM: dts: sun8i: a83t: Add the ir pin for the A83T
+Date: Sat, 16 Dec 2017 03:49:12 +0100
+Message-Id: <20171216024914.7550-4-embed3d@gmail.com>
+In-Reply-To: <20171216024914.7550-1-embed3d@gmail.com>
+References: <20171216024914.7550-1-embed3d@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jacopo,
+The CIR Pin of the A83T is located at PL12
 
-Thank you for the patch.
+Signed-off-by: Philipp Rossak <embed3d@gmail.com>
+---
+ arch/arm/boot/dts/sun8i-a83t.dtsi | 5 +++++
+ 1 file changed, 5 insertions(+)
 
-On Wednesday, 15 November 2017 12:56:00 EET Jacopo Mondi wrote:
-> Copy the soc_camera based driver in v4l2 sensor driver directory.
-> This commit just copies the original file without modifying it.
-
-You might want to explain why you're not patching the Kconfig and Makefile 
-here, that is because you will first convert the driver away from soc-camera 
-in the next commit.
-
-Apart from that,
-
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
-> ---
->  drivers/media/i2c/ov772x.c | 1124 +++++++++++++++++++++++++++++++++++++++++
->  1 file changed, 1124 insertions(+)
->  create mode 100644 drivers/media/i2c/ov772x.c
-
+diff --git a/arch/arm/boot/dts/sun8i-a83t.dtsi b/arch/arm/boot/dts/sun8i-a83t.dtsi
+index 19acae1b4089..5edb645b506f 100644
+--- a/arch/arm/boot/dts/sun8i-a83t.dtsi
++++ b/arch/arm/boot/dts/sun8i-a83t.dtsi
+@@ -488,6 +488,11 @@
+ 				drive-strength = <20>;
+ 				bias-pull-up;
+ 			};
++
++			ir_pins_a: ir@0 {
++				pins = "PL12";
++				function = "s_cir_rx";
++			};
+ 		};
+ 
+ 		r_rsb: rsb@1f03400 {
 -- 
-Regards,
-
-Laurent Pinchart
+2.11.0
