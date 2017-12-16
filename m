@@ -1,54 +1,150 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:37377 "EHLO
-        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751015AbdLIImP (ORCPT
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:43848 "EHLO
+        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1757074AbdLPRaq (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 9 Dec 2017 03:42:15 -0500
-Subject: Re: What to do with input_enable_softrepeat in av7110_ir.c
-To: "Jasmin J." <jasmin@anw.at>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <8b989e65-a514-ad29-0210-23a7973bbafd@anw.at>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <03964141-14cd-c24f-74ea-296553936409@xs4all.nl>
-Date: Sat, 9 Dec 2017 09:42:10 +0100
+        Sat, 16 Dec 2017 12:30:46 -0500
+Subject: Re: [RFC 1/5] [media] rc: update sunxi-ir driver to get base
+ frequency from devicetree
+To: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: robh+dt@kernel.org, mark.rutland@arm.com,
+        maxime.ripard@free-electrons.com, wens@csie.org,
+        linux@armlinux.org.uk, sean@mess.org, p.zabel@pengutronix.de,
+        andi.shyti@samsung.com, linux-media@vger.kernel.org,
+        devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-kernel@vger.kernel.org, linux-sunxi@googlegroups.com
+References: <20171216024914.7550-1-embed3d@gmail.com>
+ <20171216024914.7550-2-embed3d@gmail.com>
+ <20171216071855.0ef43f7b@recife.lan>
+From: Philipp Rossak <embed3d@gmail.com>
+Message-ID: <342789cb-9b49-f1d2-e5f1-2d7e17f774b0@gmail.com>
+Date: Sat, 16 Dec 2017 18:30:41 +0100
 MIME-Version: 1.0
-In-Reply-To: <8b989e65-a514-ad29-0210-23a7973bbafd@anw.at>
-Content-Type: text/plain; charset=utf-8
+In-Reply-To: <20171216071855.0ef43f7b@recife.lan>
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/09/2017 01:12 AM, Jasmin J. wrote:
-> Hello Hans!
-> 
-> I try to fix the compilation for Kernel 3.13 (the kernel I use on my VDR).
-> 
-> In commit 5aeaa3e668de0782d1502f3d5751e2266a251d7c the timer handling in
-> the driver has been changed and now it uses "input_enable_softrepeat". This
-> function has been added with Kernel 4.4.
-> 
-> I tried to define "input_enable_softrepeat" in "v4l/compat.h", but it requires
-> "input_repeat_key", which is a static function in "input.c".
-> 
-> I see this solutions:
-> 1) Revert commit 5aeaa3e668de0782d1502f3d5751e2266a251d7c with a new patch for
->    Kernels older than 4.4.
-> 2) Disable the  CONFIG_DVB_AV7110_IR, but this driver is available since
->    2008. So there might be a lot of people unhappy.
-> 3) Hans looks into this and has another clever idea how to solve that.
-> 
-> I prefer 1) for a quick solution.
-> 
-> BR,
->    Jasmin
-> 
+Hey Mauro,
 
-I tried 2, that didn't work, then picked 1 and now it compiles.
+Thanks for your fast feedback!
 
-Pushed all my changes. At least it now compiles from 4.1 onwards. Haven't tested
-older builds.
+I will rework the driver like you suggested it.
+
+Does somebody have any concerns about the Devicetree property 
+(base-clk-frequency = < frequency >;)?
+
 
 Regards,
+Philipp
 
-	Hans
+On 16.12.2017 10:18, Mauro Carvalho Chehab wrote:
+> Em Sat, 16 Dec 2017 03:49:10 +0100
+> Philipp Rossak <embed3d@gmail.com> escreveu:
+> 
+> Hi Phillip,
+> 
+> This is not a full review of this patchset. I just want to point you
+> that you should keep supporting existing DT files.
+> 
+>> This patch updates the sunxi-ir driver to set the ir base clock from
+>> devicetree.
+>>
+>> This is neccessary since there are different ir recievers on the
+>> market, that operate with different frequencys. So this value needs to
+>> be set depending on the attached receiver.
+> 
+> Please don't break backward compatibility with old DT files. In this
+> specific case, it seems simple enough to be backward-compatible.
+> 
+>>
+>> Signed-off-by: Philipp Rossak <embed3d@gmail.com>
+>> ---
+>>   drivers/media/rc/sunxi-cir.c | 20 +++++++++++---------
+>>   1 file changed, 11 insertions(+), 9 deletions(-)
+>>
+>> diff --git a/drivers/media/rc/sunxi-cir.c b/drivers/media/rc/sunxi-cir.c
+>> index 97f367b446c4..55b53d6463e9 100644
+>> --- a/drivers/media/rc/sunxi-cir.c
+>> +++ b/drivers/media/rc/sunxi-cir.c
+>> @@ -72,12 +72,6 @@
+>>   /* CIR_REG register idle threshold */
+>>   #define REG_CIR_ITHR(val)    (((val) << 8) & (GENMASK(15, 8)))
+>>   
+>> -/* Required frequency for IR0 or IR1 clock in CIR mode */
+>> -#define SUNXI_IR_BASE_CLK     8000000
+>> -/* Frequency after IR internal divider  */
+>> -#define SUNXI_IR_CLK          (SUNXI_IR_BASE_CLK / 64)
+> 
+> Keep those to definitions...
+> 
+>> -/* Sample period in ns */
+>> -#define SUNXI_IR_SAMPLE       (1000000000ul / SUNXI_IR_CLK)
+>>   /* Noise threshold in samples  */
+>>   #define SUNXI_IR_RXNOISE      1
+>>   /* Idle Threshold in samples */
+>> @@ -122,7 +116,7 @@ static irqreturn_t sunxi_ir_irq(int irqno, void *dev_id)
+>>   			/* for each bit in fifo */
+>>   			dt = readb(ir->base + SUNXI_IR_RXFIFO_REG);
+>>   			rawir.pulse = (dt & 0x80) != 0;
+>> -			rawir.duration = ((dt & 0x7f) + 1) * SUNXI_IR_SAMPLE;
+>> +			rawir.duration = ((dt & 0x7f) + 1) * ir->rc->rx_resolution;
+>>   			ir_raw_event_store_with_filter(ir->rc, &rawir);
+>>   		}
+>>   	}
+>> @@ -148,6 +142,7 @@ static int sunxi_ir_probe(struct platform_device *pdev)
+>>   	struct device_node *dn = dev->of_node;
+>>   	struct resource *res;
+>>   	struct sunxi_ir *ir;
+>> +	u32 b_clk_freq;
+>>   
+>>   	ir = devm_kzalloc(dev, sizeof(struct sunxi_ir), GFP_KERNEL);
+>>   	if (!ir)
+>> @@ -172,6 +167,12 @@ static int sunxi_ir_probe(struct platform_device *pdev)
+>>   		return PTR_ERR(ir->clk);
+>>   	}
+>>   
+>> +	/* Required frequency for IR0 or IR1 clock in CIR mode */
+>> +	if (of_property_read_u32(dn, "base-clk-frequency", &b_clk_freq)) {
+>> +		dev_err(dev, "failed to get ir base clock frequency.\n");
+>> +		return -ENODATA;
+>> +	}
+>> +
+> 
+> And here, instead of returning an error, if the property can't be read,
+> it means it is an older DT file. Just default to SUNXI_IR_BASE_CLK.
+> This will make it backward-compatible with old DT files that don't have
+> such property.
+> 
+> Regards,
+> Mauro
+> 
+> 
+>>   	/* Reset (optional) */
+>>   	ir->rst = devm_reset_control_get_optional_exclusive(dev, NULL);
+>>   	if (IS_ERR(ir->rst))
+>> @@ -180,7 +181,7 @@ static int sunxi_ir_probe(struct platform_device *pdev)
+>>   	if (ret)
+>>   		return ret;
+>>   
+>> -	ret = clk_set_rate(ir->clk, SUNXI_IR_BASE_CLK);
+>> +	ret = clk_set_rate(ir->clk, b_clk_freq);
+>>   	if (ret) {
+>>   		dev_err(dev, "set ir base clock failed!\n");
+>>   		goto exit_reset_assert;
+>> @@ -225,7 +226,8 @@ static int sunxi_ir_probe(struct platform_device *pdev)
+>>   	ir->rc->map_name = ir->map_name ?: RC_MAP_EMPTY;
+>>   	ir->rc->dev.parent = dev;
+>>   	ir->rc->allowed_protocols = RC_PROTO_BIT_ALL_IR_DECODER;
+>> -	ir->rc->rx_resolution = SUNXI_IR_SAMPLE;
+>> +	/* Frequency after IR internal divider with sample period in ns */
+>> +	ir->rc->rx_resolution = (1000000000ul / (b_clk_freq / 64));
+>>   	ir->rc->timeout = MS_TO_NS(SUNXI_IR_TIMEOUT);
+>>   	ir->rc->driver_name = SUNXI_IR_DEV;
+>>   
+> 
+> Thanks,
+> Mauro
+> 
