@@ -1,184 +1,255 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f68.google.com ([209.85.215.68]:42042 "EHLO
-        mail-lf0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755147AbdLTQRc (ORCPT
+Received: from mail-pf0-f195.google.com ([209.85.192.195]:36834 "EHLO
+        mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1757143AbdLPSBO (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 20 Dec 2017 11:17:32 -0500
-Received: by mail-lf0-f68.google.com with SMTP id e30so7785738lfb.9
-        for <linux-media@vger.kernel.org>; Wed, 20 Dec 2017 08:17:31 -0800 (PST)
-From: "Niklas =?iso-8859-1?Q?S=F6derlund?=" <niklas.soderlund@ragnatech.se>
-Date: Wed, 20 Dec 2017 17:17:28 +0100
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>
-Subject: Re: [PATCH v9 09/28] rcar-vin: all Gen2 boards can scale simplify
- logic
-Message-ID: <20171220161728.GC32148@bigcity.dyn.berto.se>
-References: <20171208010842.20047-1-niklas.soderlund+renesas@ragnatech.se>
- <20171208010842.20047-10-niklas.soderlund+renesas@ragnatech.se>
- <2356040.iMAtxJm5sQ@avalon>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <2356040.iMAtxJm5sQ@avalon>
+        Sat, 16 Dec 2017 13:01:14 -0500
+Received: by mail-pf0-f195.google.com with SMTP id p84so8017963pfd.3
+        for <linux-media@vger.kernel.org>; Sat, 16 Dec 2017 10:01:13 -0800 (PST)
+From: Tim Harvey <tharvey@gateworks.com>
+To: linux-media@vger.kernel.org, alsa-devel@alsa-project.org
+Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        shawnguo@kernel.org, Steve Longerbeam <slongerbeam@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Hans Verkuil <hansverk@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Subject: [PATCH v5 5/6] ARM: dts: imx: Add TDA19971 HDMI Receiver to GW54xx
+Date: Sat, 16 Dec 2017 10:00:29 -0800
+Message-Id: <1513447230-30948-6-git-send-email-tharvey@gateworks.com>
+In-Reply-To: <1513447230-30948-1-git-send-email-tharvey@gateworks.com>
+References: <1513447230-30948-1-git-send-email-tharvey@gateworks.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+The GW54xx has a front-panel microHDMI connector routed to a TDA19971
+which is connected the the IPU CSI when using IMX6Q.
 
-Thanks for your comment.
+Signed-off-by: Tim Harvey <tharvey@gateworks.com>
+---
+v5:
+ - remove leading 0 from unit address
+ - add newline between property list and child node
 
-On 2017-12-08 10:33:32 +0200, Laurent Pinchart wrote:
-> Hi Niklas,
-> 
-> Thank you for the patch.
-> 
-> On Friday, 8 December 2017 03:08:23 EET Niklas Söderlund wrote:
-> > The logic to preserve the requested format width and height are too
-> > complex and come from a premature optimization for Gen3. All Gen2 SoC
-> > can scale and the Gen3 implementation will not use these functions at
-> > all so simply preserve the width and height when interacting with the
-> > subdevice much like the field is preserved simplifies the logic quite a
-> > bit.
-> > 
-> > Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-> > Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
-> > ---
-> >  drivers/media/platform/rcar-vin/rcar-dma.c  |  8 --------
-> >  drivers/media/platform/rcar-vin/rcar-v4l2.c | 22 ++++++++++------------
-> >  drivers/media/platform/rcar-vin/rcar-vin.h  |  2 --
-> >  3 files changed, 10 insertions(+), 22 deletions(-)
-> > 
-> > diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c
-> > b/drivers/media/platform/rcar-vin/rcar-dma.c index
-> > a7cda3922cb74baa..fd14be20a6604d7a 100644
-> > --- a/drivers/media/platform/rcar-vin/rcar-dma.c
-> > +++ b/drivers/media/platform/rcar-vin/rcar-dma.c
-> > @@ -585,14 +585,6 @@ void rvin_crop_scale_comp(struct rvin_dev *vin)
-> >  		0, 0);
-> >  }
-> > 
-> > -void rvin_scale_try(struct rvin_dev *vin, struct v4l2_pix_format *pix,
-> > -		    u32 width, u32 height)
-> > -{
-> > -	/* All VIN channels on Gen2 have scalers */
-> > -	pix->width = width;
-> > -	pix->height = height;
-> > -}
-> > -
-> >  /*
-> > ---------------------------------------------------------------------------
-> > -- * Hardware setup
-> >   */
-> > diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> > b/drivers/media/platform/rcar-vin/rcar-v4l2.c index
-> > 19de99133f048960..1c5e7f6d5b963740 100644
-> > --- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> > +++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> > @@ -166,6 +166,7 @@ static int __rvin_try_format_source(struct rvin_dev
-> > *vin, .which = which,
-> >  	};
-> >  	enum v4l2_field field;
-> > +	u32 width, height;
-> >  	int ret;
-> > 
-> >  	sd = vin_to_source(vin);
-> > @@ -178,7 +179,10 @@ static int __rvin_try_format_source(struct rvin_dev
-> > *vin,
-> > 
-> >  	format.pad = vin->digital->source_pad;
-> > 
-> > +	/* Allow the video device to override field and to scale */
-> >  	field = pix->field;
-> > +	width = pix->width;
-> > +	height = pix->height;
-> > 
-> >  	ret = v4l2_subdev_call(sd, pad, set_fmt, pad_cfg, &format);
-> >  	if (ret < 0 && ret != -ENOIOCTLCMD)
-> > @@ -191,6 +195,9 @@ static int __rvin_try_format_source(struct rvin_dev
-> > *vin, source->width = pix->width;
-> >  	source->height = pix->height;
-> > 
-> 
-> I would move the pix->field = field line not shown above to here.
+v4: no changes
+v3: no changes
 
-Agree, thanks I will do so.
+v2:
+ - add HDMI audio input support
+---
+ arch/arm/boot/dts/imx6q-gw54xx.dts    | 105 ++++++++++++++++++++++++++++++++++
+ arch/arm/boot/dts/imx6qdl-gw54xx.dtsi |  29 +++++++++-
+ 2 files changed, 131 insertions(+), 3 deletions(-)
 
-> 
-> Apart from that,
-> 
-> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-Thanks.
-
-> 
-> > +	pix->width = width;
-> > +	pix->height = height;
-> > +
-> >  	vin_dbg(vin, "Source resolution: %ux%u\n", source->width,
-> >  		source->height);
-> > 
-> > @@ -204,13 +211,9 @@ static int __rvin_try_format(struct rvin_dev *vin,
-> >  			     struct v4l2_pix_format *pix,
-> >  			     struct rvin_source_fmt *source)
-> >  {
-> > -	u32 rwidth, rheight, walign;
-> > +	u32 walign;
-> >  	int ret;
-> > 
-> > -	/* Requested */
-> > -	rwidth = pix->width;
-> > -	rheight = pix->height;
-> > -
-> >  	/* Keep current field if no specific one is asked for */
-> >  	if (pix->field == V4L2_FIELD_ANY)
-> >  		pix->field = vin->format.field;
-> > @@ -248,10 +251,6 @@ static int __rvin_try_format(struct rvin_dev *vin,
-> >  		break;
-> >  	}
-> > 
-> > -	/* If source can't match format try if VIN can scale */
-> > -	if (source->width != rwidth || source->height != rheight)
-> > -		rvin_scale_try(vin, pix, rwidth, rheight);
-> > -
-> >  	/* HW limit width to a multiple of 32 (2^5) for NV16 else 2 (2^1) */
-> >  	walign = vin->format.pixelformat == V4L2_PIX_FMT_NV16 ? 5 : 1;
-> > 
-> > @@ -270,9 +269,8 @@ static int __rvin_try_format(struct rvin_dev *vin,
-> >  		return -EINVAL;
-> >  	}
-> > 
-> > -	vin_dbg(vin, "Requested %ux%u Got %ux%u bpl: %d size: %d\n",
-> > -		rwidth, rheight, pix->width, pix->height,
-> > -		pix->bytesperline, pix->sizeimage);
-> > +	vin_dbg(vin, "Format %ux%u bpl: %d size: %d\n",
-> > +		pix->width, pix->height, pix->bytesperline, pix->sizeimage);
-> > 
-> >  	return 0;
-> >  }
-> > diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h
-> > b/drivers/media/platform/rcar-vin/rcar-vin.h index
-> > 646f897f5c05ec4e..36d0f0cc4ce01a6e 100644
-> > --- a/drivers/media/platform/rcar-vin/rcar-vin.h
-> > +++ b/drivers/media/platform/rcar-vin/rcar-vin.h
-> > @@ -176,8 +176,6 @@ void rvin_v4l2_unregister(struct rvin_dev *vin);
-> >  const struct rvin_video_format *rvin_format_from_pixel(u32 pixelformat);
-> > 
-> >  /* Cropping, composing and scaling */
-> > -void rvin_scale_try(struct rvin_dev *vin, struct v4l2_pix_format *pix,
-> > -		    u32 width, u32 height);
-> >  void rvin_crop_scale_comp(struct rvin_dev *vin);
-> > 
-> >  #endif
-> 
-> -- 
-> Regards,
-> 
-> Laurent Pinchart
-> 
-
+diff --git a/arch/arm/boot/dts/imx6q-gw54xx.dts b/arch/arm/boot/dts/imx6q-gw54xx.dts
+index 56e5b50..0477120 100644
+--- a/arch/arm/boot/dts/imx6q-gw54xx.dts
++++ b/arch/arm/boot/dts/imx6q-gw54xx.dts
+@@ -12,10 +12,30 @@
+ /dts-v1/;
+ #include "imx6q.dtsi"
+ #include "imx6qdl-gw54xx.dtsi"
++#include <dt-bindings/media/tda1997x.h>
+ 
+ / {
+ 	model = "Gateworks Ventana i.MX6 Dual/Quad GW54XX";
+ 	compatible = "gw,imx6q-gw54xx", "gw,ventana", "fsl,imx6q";
++
++	sound-digital {
++		compatible = "simple-audio-card";
++		simple-audio-card,name = "tda1997x-audio";
++
++		simple-audio-card,dai-link@0 {
++			format = "i2s";
++
++			cpu {
++				sound-dai = <&ssi2>;
++			};
++
++			codec {
++				bitclock-master;
++				frame-master;
++				sound-dai = <&tda1997x>;
++			};
++		};
++	};
+ };
+ 
+ &i2c3 {
+@@ -35,6 +55,61 @@
+ 			};
+ 		};
+ 	};
++
++	tda1997x: codec@48 {
++		compatible = "nxp,tda19971";
++		pinctrl-names = "default";
++		pinctrl-0 = <&pinctrl_tda1997x>;
++		reg = <0x48>;
++		interrupt-parent = <&gpio1>;
++		interrupts = <7 IRQ_TYPE_LEVEL_LOW>;
++		DOVDD-supply = <&reg_3p3v>;
++		AVDD-supply = <&sw4_reg>;
++		DVDD-supply = <&sw4_reg>;
++		#sound-dai-cells = <0>;
++		nxp,audout-format = "i2s";
++		nxp,audout-layout = <0>;
++		nxp,audout-width = <16>;
++		nxp,audout-mclk-fs = <128>;
++		/*
++		 * The 8bpp YUV422 semi-planar mode outputs CbCr[11:4]
++		 * and Y[11:4] across 16bits in the same cycle
++		 * which we map to VP[15:08]<->CSI_DATA[19:12]
++		 */
++		nxp,vidout-portcfg =
++			/*G_Y_11_8<->VP[15:12]<->CSI_DATA[19:16]*/
++			< TDA1997X_VP24_V15_12 TDA1997X_G_Y_11_8 >,
++			/*G_Y_7_4<->VP[11:08]<->CSI_DATA[15:12]*/
++			< TDA1997X_VP24_V11_08 TDA1997X_G_Y_7_4 >,
++			/*R_CR_CBCR_11_8<->VP[07:04]<->CSI_DATA[11:08]*/
++			< TDA1997X_VP24_V07_04 TDA1997X_R_CR_CBCR_11_8 >,
++			/*R_CR_CBCR_7_4<->VP[03:00]<->CSI_DATA[07:04]*/
++			< TDA1997X_VP24_V03_00 TDA1997X_R_CR_CBCR_7_4 >;
++
++		port {
++			tda1997x_to_ipu1_csi0_mux: endpoint {
++				remote-endpoint = <&ipu1_csi0_mux_from_parallel_sensor>;
++				bus-width = <16>;
++				hsync-active = <1>;
++				vsync-active = <1>;
++				data-active = <1>;
++			};
++		};
++	};
++};
++
++&ipu1_csi0_from_ipu1_csi0_mux {
++	bus-width = <16>;
++};
++
++&ipu1_csi0_mux_from_parallel_sensor {
++	remote-endpoint = <&tda1997x_to_ipu1_csi0_mux>;
++	bus-width = <16>;
++};
++
++&ipu1_csi0 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&pinctrl_ipu1_csi0>;
+ };
+ 
+ &ipu2_csi1_from_ipu2_csi1_mux {
+@@ -63,6 +138,30 @@
+ 		>;
+ 	};
+ 
++	pinctrl_ipu1_csi0: ipu1_csi0grp {
++		fsl,pins = <
++			MX6QDL_PAD_CSI0_DAT4__IPU1_CSI0_DATA04		0x1b0b0
++			MX6QDL_PAD_CSI0_DAT5__IPU1_CSI0_DATA05		0x1b0b0
++			MX6QDL_PAD_CSI0_DAT6__IPU1_CSI0_DATA06		0x1b0b0
++			MX6QDL_PAD_CSI0_DAT7__IPU1_CSI0_DATA07		0x1b0b0
++			MX6QDL_PAD_CSI0_DAT8__IPU1_CSI0_DATA08		0x1b0b0
++			MX6QDL_PAD_CSI0_DAT9__IPU1_CSI0_DATA09		0x1b0b0
++			MX6QDL_PAD_CSI0_DAT10__IPU1_CSI0_DATA10		0x1b0b0
++			MX6QDL_PAD_CSI0_DAT11__IPU1_CSI0_DATA11		0x1b0b0
++			MX6QDL_PAD_CSI0_DAT12__IPU1_CSI0_DATA12		0x1b0b0
++			MX6QDL_PAD_CSI0_DAT13__IPU1_CSI0_DATA13		0x1b0b0
++			MX6QDL_PAD_CSI0_DAT14__IPU1_CSI0_DATA14		0x1b0b0
++			MX6QDL_PAD_CSI0_DAT15__IPU1_CSI0_DATA15		0x1b0b0
++			MX6QDL_PAD_CSI0_DAT16__IPU1_CSI0_DATA16		0x1b0b0
++			MX6QDL_PAD_CSI0_DAT17__IPU1_CSI0_DATA17		0x1b0b0
++			MX6QDL_PAD_CSI0_DAT18__IPU1_CSI0_DATA18		0x1b0b0
++			MX6QDL_PAD_CSI0_DAT19__IPU1_CSI0_DATA19		0x1b0b0
++			MX6QDL_PAD_CSI0_MCLK__IPU1_CSI0_HSYNC		0x1b0b0
++			MX6QDL_PAD_CSI0_PIXCLK__IPU1_CSI0_PIXCLK	0x1b0b0
++			MX6QDL_PAD_CSI0_VSYNC__IPU1_CSI0_VSYNC		0x1b0b0
++		>;
++	};
++
+ 	pinctrl_ipu2_csi1: ipu2_csi1grp {
+ 		fsl,pins = <
+ 			MX6QDL_PAD_EIM_EB2__IPU2_CSI1_DATA19    0x1b0b0
+@@ -78,4 +177,10 @@
+ 			MX6QDL_PAD_EIM_A16__IPU2_CSI1_PIXCLK    0x1b0b0
+ 		>;
+ 	};
++
++	pinctrl_tda1997x: tda1997xgrp {
++		fsl,pins = <
++			MX6QDL_PAD_GPIO_7__GPIO1_IO07	0x1b0b0
++		>;
++	};
+ };
+diff --git a/arch/arm/boot/dts/imx6qdl-gw54xx.dtsi b/arch/arm/boot/dts/imx6qdl-gw54xx.dtsi
+index eab75f3..f9e1fb9 100644
+--- a/arch/arm/boot/dts/imx6qdl-gw54xx.dtsi
++++ b/arch/arm/boot/dts/imx6qdl-gw54xx.dtsi
+@@ -10,6 +10,7 @@
+  */
+ 
+ #include <dt-bindings/gpio/gpio.h>
++#include <dt-bindings/sound/fsl-imx-audmux.h>
+ 
+ / {
+ 	/* these are used by bootloader for disabling nodes */
+@@ -114,12 +115,12 @@
+ 		};
+ 	};
+ 
+-	sound {
++	sound-analog {
+ 		compatible = "fsl,imx6q-ventana-sgtl5000",
+ 			     "fsl,imx-audio-sgtl5000";
+ 		model = "sgtl5000-audio";
+ 		ssi-controller = <&ssi1>;
+-		audio-codec = <&codec>;
++		audio-codec = <&sgtl5000>;
+ 		audio-routing =
+ 			"MIC_IN", "Mic Jack",
+ 			"Mic Jack", "Mic Bias",
+@@ -133,6 +134,25 @@
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&pinctrl_audmux>; /* AUD4<->sgtl5000 */
+ 	status = "okay";
++
++	ssi2 {
++		fsl,audmux-port = <1>;
++		fsl,port-config = <
++			(IMX_AUDMUX_V2_PTCR_TFSDIR |
++			IMX_AUDMUX_V2_PTCR_TFSEL(4+8) | /* RXFS */
++			IMX_AUDMUX_V2_PTCR_TCLKDIR |
++			IMX_AUDMUX_V2_PTCR_TCSEL(4+8) | /* RXC */
++			IMX_AUDMUX_V2_PTCR_SYN)
++			IMX_AUDMUX_V2_PDCR_RXDSEL(4)
++		>;
++	};
++
++	aud5 {
++		fsl,audmux-port = <4>;
++		fsl,port-config = <
++			IMX_AUDMUX_V2_PTCR_SYN
++			IMX_AUDMUX_V2_PDCR_RXDSEL(1)>;
++	};
+ };
+ 
+ &can1 {
+@@ -331,7 +351,7 @@
+ 	pinctrl-0 = <&pinctrl_i2c3>;
+ 	status = "okay";
+ 
+-	codec: sgtl5000@a {
++	sgtl5000: codec@a {
+ 		compatible = "fsl,sgtl5000";
+ 		reg = <0x0a>;
+ 		clocks = <&clks IMX6QDL_CLK_CKO>;
+@@ -475,6 +495,9 @@
+ 			MX6QDL_PAD_SD2_DAT2__AUD4_TXD		0x110b0
+ 			MX6QDL_PAD_SD2_DAT1__AUD4_TXFS		0x130b0
+ 			MX6QDL_PAD_GPIO_0__CCM_CLKO1		0x130b0 /* AUD4_MCK */
++			MX6QDL_PAD_EIM_D25__AUD5_RXC            0x130b0
++			MX6QDL_PAD_DISP0_DAT19__AUD5_RXD        0x130b0
++			MX6QDL_PAD_EIM_D24__AUD5_RXFS           0x130b0
+ 		>;
+ 	};
+ 
 -- 
-Regards,
-Niklas Söderlund
+2.7.4
