@@ -1,84 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:52001 "EHLO
-        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1756551AbdLOO7I (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 15 Dec 2017 09:59:08 -0500
-Message-ID: <1513349945.7518.10.camel@pengutronix.de>
-Subject: Re: [PATCH 2/2] media: coda: Add i.MX51 (CodaHx4) support
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Fabio Estevam <fabio.estevam@nxp.com>,
-        Chris Healy <Chris.Healy@zii.aero>, devicetree@vger.kernel.org,
-        kernel@pengutronix.de
-Date: Fri, 15 Dec 2017 15:59:05 +0100
-In-Reply-To: <e26f7f6a-afa6-c55c-d94e-095df27c19ae@xs4all.nl>
-References: <20171213140918.22500-1-p.zabel@pengutronix.de>
-         <20171213140918.22500-2-p.zabel@pengutronix.de>
-         <e26f7f6a-afa6-c55c-d94e-095df27c19ae@xs4all.nl>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
+Received: from vps-vb.mhejs.net ([37.28.154.113]:54878 "EHLO vps-vb.mhejs.net"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1757306AbdLQSqS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 17 Dec 2017 13:46:18 -0500
+From: "Maciej S. Szmigiero" <mail@maciej.szmigiero.name>
+Subject: [PATCH v4 0/6] [media] Add analog mode support for Medion MD95700
+To: Michael Krufky <mkrufky@linuxtv.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Andy Walls <awalls@md.metrocast.net>,
+        linux-kernel <linux-kernel@vger.kernel.org>,
+        linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+        Philippe Ombredanne <pombredanne@nexb.com>
+Message-ID: <1583cfd7-a4ea-66d3-25e1-d924b2ed1f5f@maciej.szmigiero.name>
+Date: Sun, 17 Dec 2017 19:46:15 +0100
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-2
+Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+This series adds support for analog part of Medion 95700 in the cxusb
+driver.
 
-On Fri, 2017-12-15 at 15:22 +0100, Hans Verkuil wrote:
-> Hi Philipp,
-> 
-> On 13/12/17 15:09, Philipp Zabel wrote:
-> > Add support for the CodaHx4 VPU used on i.MX51.
-> > 
-> > Decoding h.264, MPEG-4, and MPEG-2 video works, as well as encoding
-> > h.264. MPEG-4 encoding is not enabled, it currently produces visual
-> > artifacts.
-> > 
-> > Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-> > ---
-> >  drivers/media/platform/coda/coda-bit.c    | 45 ++++++++++++++++++++++---------
-> >  drivers/media/platform/coda/coda-common.c | 44 +++++++++++++++++++++++++++---
-> >  drivers/media/platform/coda/coda.h        |  1 +
-> >  3 files changed, 74 insertions(+), 16 deletions(-)
-> > 
-> 
-> <snip>
-> 
-> > +	[CODA_IMX51] = {
-> > +		.firmware     = {
-> > +			"vpu_fw_imx51.bin",
-> > +			"vpu/vpu_fw_imx51.bin",
-> > +			"v4l-codahx4-imx51.bin"
-> > +		},
-> > +		.product      = CODA_HX4,
-> > +		.codecs       = codahx4_codecs,
-> > +		.num_codecs   = ARRAY_SIZE(codahx4_codecs),
-> > +		.vdevs        = codahx4_video_devices,
-> > +		.num_vdevs    = ARRAY_SIZE(codahx4_video_devices),
-> > +		.workbuf_size = 128 * 1024,
-> > +		.tempbuf_size = 304 * 1024,
-> > +		.iram_size    = 0x14000,
-> > +	},
-> 
-> What's the status of the firmware? Is it going to be available in some firmware
-> repository? I remember when testing other imx devices that it was a bit tricky
-> to get hold of the firmware. And googling v4l-codahx4-imx51.bin doesn't find
-> anything other than this patch.
+What works:
+* Video capture at various sizes with sequential fields,
+* Input switching (TV Tuner, Composite, S-Video),
+* TV and radio tuning,
+* Video standard switching and auto detection,
+* Radio mode switching (stereo / mono),
+* Unplugging while capturing,
+* DVB / analog coexistence,
+* Raw BT.656 stream support.
 
-As far as I am aware, so far all efforts to get these firmware binaries
-relicensed in a way that makes them redistributable in linux-firmware
-have not succeeded.
+What does not work yet:
+* Audio,
+* VBI,
+* Picture controls.
 
-They are distributed by NXP directly in the firmware-imx package.
-The http://git.yoctoproject.org/cgit/cgit.cgi/meta-fsl-arm/ repository
-contains links to the latest version:
+This series (as a one patch) was submitted for inclusion few years ago,
+then waited few months in a patch queue.
+Unfortunately, by the time it was supposed to be merged there
+were enough changes in media that it was no longer mergable.
 
-  wget http://www.nxp.com/lgfiles/NMG/MAD/YOCTO/firmware-imx-5.4.bin
-  dd if=firmware-imx-5.4.bin bs=34087 skip=1 | tar xj
-  cat firmware-imx-5.4/COPYING
+I thought at that time that I will be able to rebase and retest it soon
+but unfortunately up till now I was never able to find enough time to do
+so.
+Also, with the passing of time the implementation diverged more and
+more from the current kernel code, necessitating even more reworking.
 
-regards
-Philipp
+That last iteration can be found here:
+https://patchwork.linuxtv.org/patch/8048/
+
+Since that version there had been the following changes:
+* Adaptation to changes in V4L2 / DVB core,
+
+* Radio device was added, with a possibility to tune to a FM radio
+station and switch between stereo and mono modes (tested by taping
+audio signal directly at tuner output pin),
+
+* DVB / analog coexistence was improved - resolved a few cases where
+DVB core would switch off power or reset the tuner when the device
+was still being used but in the analog mode,
+
+* Fixed issues reported by v4l2-compliance,
+
+* Switching to raw BT.656 mode is now done by a custom streaming
+parameter set via VIDIOC_S_PARM ioctl instead of using a
+V4L2_BUF_TYPE_PRIVATE buffer (which was removed from V4L2),
+
+* General small code cleanups (like using BIT() or ARRAY_SIZE() macros
+instead of open coding them, code formatting improvements, etc.).
+
+Changes from v1:
+* Only support configuration of cx25840 pins that the cxusb driver is
+actually using so there is no need for an ugly CX25840_PIN() macro,
+
+* Split cxusb changes into two patches: first one implementing
+digital / analog coexistence in this driver, second one adding the
+actual implementation of the analog mode,
+
+* Fix a warning reported by kbuild test robot.
+
+Changes from v2:
+* Split out ivtv cx25840 platform data zero-initialization to a separate
+commit,
+
+* Add kernel-doc description of struct cx25840_state,
+
+* Make sure that all variables used in CX25840_VCONFIG_OPTION() and
+CX25840_VCONFIG_SET_BIT() macros are their explicit parameters,
+
+* Split out some code from cxusb_medion_copy_field() and
+cxusb_medion_v_complete_work() functions to separate ones to increase
+their readability,
+
+* Generate masks using GENMASK() and BIT() macros in cx25840.h and
+cxusb.h.
+
+Changes from v3:
+Add SPDX tag to a newly added "cxusb-analog.c" file.
+
+Maciej S. Szmigiero (6):
+  ivtv: zero-initialize cx25840 platform data
+  cx25840: add kernel-doc description of struct cx25840_state
+  cx25840: add pin to pad mapping and output format configuration
+  tuner-simple: allow setting mono radio mode
+  [media] cxusb: implement Medion MD95700 digital / analog coexistence
+  [media] cxusb: add analog mode support for Medion MD95700
+
+ drivers/media/i2c/cx25840/cx25840-core.c |  396 +++++-
+ drivers/media/i2c/cx25840/cx25840-core.h |   46 +-
+ drivers/media/i2c/cx25840/cx25840-vbi.c  |    3 +
+ drivers/media/pci/ivtv/ivtv-i2c.c        |    1 +
+ drivers/media/tuners/tuner-simple.c      |    5 +-
+ drivers/media/usb/dvb-usb/Kconfig        |    8 +-
+ drivers/media/usb/dvb-usb/Makefile       |    2 +-
+ drivers/media/usb/dvb-usb/cxusb-analog.c | 1923 ++++++++++++++++++++++++++++++
+ drivers/media/usb/dvb-usb/cxusb.c        |  455 ++++++-
+ drivers/media/usb/dvb-usb/cxusb.h        |  136 +++
+ drivers/media/usb/dvb-usb/dvb-usb-dvb.c  |   20 +-
+ drivers/media/usb/dvb-usb/dvb-usb-init.c |   13 +
+ drivers/media/usb/dvb-usb/dvb-usb.h      |    8 +
+ include/media/drv-intf/cx25840.h         |   74 +-
+ 14 files changed, 3024 insertions(+), 66 deletions(-)
+ create mode 100644 drivers/media/usb/dvb-usb/cxusb-analog.c
