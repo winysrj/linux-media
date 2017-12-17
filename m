@@ -1,93 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:45787 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752905AbdL1NJX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 28 Dec 2017 08:09:23 -0500
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Hans Verkuil <hansverk@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Christophe JAILLET <christophe.jaillet@wanadoo.fr>,
-        Gustavo Padovan <gustavo.padovan@collabora.com>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Subject: [PATCH 1/2] media: videobuf2-core: don't go out of the buffer range
-Date: Thu, 28 Dec 2017 11:09:16 -0200
-Message-Id: <60dd6554070454d7f76c9d6d65f4ec8fc370b994.1514466421.git.mchehab@s-opensource.com>
+Received: from mail-wr0-f196.google.com ([209.85.128.196]:40511 "EHLO
+        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1757142AbdLQPlC (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 17 Dec 2017 10:41:02 -0500
+Received: by mail-wr0-f196.google.com with SMTP id q9so11927047wre.7
+        for <linux-media@vger.kernel.org>; Sun, 17 Dec 2017 07:41:01 -0800 (PST)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: linux-media@vger.kernel.org, mchehab@kernel.org,
+        mchehab@s-opensource.com
+Subject: [PATCH 8/8] [media] ddbridge: improve ddb_ports_attach() failure handling
+Date: Sun, 17 Dec 2017 16:40:49 +0100
+Message-Id: <20171217154049.1125-9-d.scheller.oss@gmail.com>
+In-Reply-To: <20171217154049.1125-1-d.scheller.oss@gmail.com>
+References: <20171217154049.1125-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Currently, there's no check if an invalid buffer range
-is passed. However, while testing DVB memory mapped apps,
-I got this:
+From: Daniel Scheller <d.scheller@gmx.net>
 
-   videobuf2_core: VB: num_buffers -2143943680, buffer 33, index -2143943647
-   unable to handle kernel paging request at ffff888b773c0890
-   IP: __vb2_queue_alloc+0x134/0x4e0 [videobuf2_core]
-   PGD 4142c7067 P4D 4142c7067 PUD 0
-   Oops: 0002 [#1] SMP
-   Modules linked in: xt_CHECKSUM iptable_mangle ipt_MASQUERADE nf_nat_masquerade_ipv4 iptable_nat nf_nat_ipv4 nf_nat nf_conntrack_ipv4 nf_defrag_ipv4 xt_conntrack nf_conntrack tun bridge stp llc ebtable_filter ebtables ip6table_filter ip6_tables bluetooth rfkill ecdh_generic binfmt_misc rc_dvbsky sp2 ts2020 intel_rapl x86_pkg_temp_thermal dvb_usb_dvbsky intel_powerclamp dvb_usb_v2 coretemp m88ds3103 kvm_intel i2c_mux dvb_core snd_hda_codec_hdmi crct10dif_pclmul crc32_pclmul videobuf2_vmalloc videobuf2_memops snd_hda_intel ghash_clmulni_intel videobuf2_core snd_hda_codec rc_core mei_me intel_cstate snd_hwdep snd_hda_core videodev intel_uncore snd_pcm mei media tpm_tis tpm_tis_core intel_rapl_perf tpm snd_timer lpc_ich snd soundcore kvm irqbypass libcrc32c i915 i2c_algo_bit drm_kms_helper
-   e1000e ptp drm crc32c_intel video pps_core
-   CPU: 3 PID: 1776 Comm: dvbv5-zap Not tainted 4.14.0+ #78
-   Hardware name:                  /NUC5i7RYB, BIOS RYBDWi35.86A.0364.2017.0511.0949 05/11/2017
-   task: ffff88877c73bc80 task.stack: ffffb7c402418000
-   RIP: 0010:__vb2_queue_alloc+0x134/0x4e0 [videobuf2_core]
-   RSP: 0018:ffffb7c40241bc60 EFLAGS: 00010246
-   RAX: 0000000080360421 RBX: 0000000000000021 RCX: 000000000000000a
-   RDX: ffffb7c40241bcf4 RSI: ffff888780362c60 RDI: ffff888796d8e130
-   RBP: ffffb7c40241bcc8 R08: 0000000000000316 R09: 0000000000000004
-   R10: ffff888780362c00 R11: 0000000000000001 R12: 000000000002f000
-   R13: ffff8887758be700 R14: 0000000000021000 R15: 0000000000000001
-   FS:  00007f2849024740(0000) GS:ffff888796d80000(0000) knlGS:0000000000000000
-   CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-   CR2: ffff888b773c0890 CR3: 000000043beb2005 CR4: 00000000003606e0
-   Call Trace:
-    vb2_core_reqbufs+0x226/0x420 [videobuf2_core]
-    dvb_vb2_reqbufs+0x2d/0xc0 [dvb_core]
-    dvb_dvr_do_ioctl+0x98/0x1d0 [dvb_core]
-    dvb_usercopy+0x53/0x1b0 [dvb_core]
-    ? dvb_demux_ioctl+0x20/0x20 [dvb_core]
-    ? tty_ldisc_deref+0x16/0x20
-    ? tty_write+0x1f9/0x310
-    ? process_echoes+0x70/0x70
-    dvb_dvr_ioctl+0x15/0x20 [dvb_core]
-    do_vfs_ioctl+0xa5/0x600
-    SyS_ioctl+0x79/0x90
-    entry_SYSCALL_64_fastpath+0x1a/0xa5
-   RIP: 0033:0x7f28486f7ea7
-   RSP: 002b:00007ffc13b2db18 EFLAGS: 00000246 ORIG_RAX: 0000000000000010
-   RAX: ffffffffffffffda RBX: 000055b10fc06130 RCX: 00007f28486f7ea7
-   RDX: 00007ffc13b2db48 RSI: 00000000c0086f3c RDI: 0000000000000007
-   RBP: 0000000000000203 R08: 000055b10df1e02c R09: 000000000000002e
-   R10: 0036b42415108357 R11: 0000000000000246 R12: 0000000000000000
-   R13: 00007f2849062f60 R14: 00000000000001f1 R15: 00007ffc13b2da54
-   Code: 74 0a 60 8b 0a 48 83 c0 30 48 83 c2 04 89 48 d0 89 48 d4 48 39 f0 75 eb 41 8b 42 08 83 7d d4 01 41 c7 82 ec 01 00 00 ff ff ff ff <4d> 89 94 c5 88 00 00 00 74 14 83 c3 01 41 39 dc 0f 85 f1 fe ff
-   RIP: __vb2_queue_alloc+0x134/0x4e0 [videobuf2_core] RSP: ffffb7c40241bc60
-   CR2: ffff888b773c0890
+As all error handling improved quite a bit, don't stop attaching frontends
+if one of them failed, since - if other tuner modules are connected to
+the PCIe bridge - other hardware may just work, so don't break on a single
+port failure, but rather initialise as much as possible. Ie. if there are
+issues with a C2T2-equipped PCIe bridge card which has additional DuoFlex
+modules connected and the bridge generally works, the DuoFlex tuners can
+still work fine.
 
-So, add a sanity check in order to prevent going past array.
+If all ports failed to initialise where connected hardware was detected on
+at first, return -ENODEV though to cause this PCI device to fail and free
+all allocated resources. In any case, leave a kernel log warning (or
+error, even) if things went wrong.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
 ---
- drivers/media/common/videobuf/videobuf2-core.c | 5 +++++
- 1 file changed, 5 insertions(+)
+ drivers/media/pci/ddbridge/ddbridge-core.c | 26 +++++++++++++++++++++++---
+ 1 file changed, 23 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/common/videobuf/videobuf2-core.c b/drivers/media/common/videobuf/videobuf2-core.c
-index cb115ba6a1d2..d54f1c6b6ecb 100644
---- a/drivers/media/common/videobuf/videobuf2-core.c
-+++ b/drivers/media/common/videobuf/videobuf2-core.c
-@@ -332,6 +332,11 @@ static int __vb2_queue_alloc(struct vb2_queue *q, enum vb2_memory memory,
- 	struct vb2_buffer *vb;
- 	int ret;
+diff --git a/drivers/media/pci/ddbridge/ddbridge-core.c b/drivers/media/pci/ddbridge/ddbridge-core.c
+index 940371067346..c7d923e0e21a 100644
+--- a/drivers/media/pci/ddbridge/ddbridge-core.c
++++ b/drivers/media/pci/ddbridge/ddbridge-core.c
+@@ -1964,7 +1964,7 @@ static int ddb_port_attach(struct ddb_port *port)
  
-+	/* Ensure that q->num_buffers+num_buffers is below VB2_MAX_FRAME */
-+	if (q->num_buffers > VB2_MAX_FRAME)
-+		return 0;
-+	num_buffers = min_t(unsigned int, num_buffers, VB2_MAX_FRAME - q->num_buffers);
+ int ddb_ports_attach(struct ddb *dev)
+ {
+-	int i, ret = 0;
++	int i, numports, err_ports = 0, ret = 0;
+ 	struct ddb_port *port;
+ 
+ 	if (dev->port_num) {
+@@ -1974,11 +1974,31 @@ int ddb_ports_attach(struct ddb *dev)
+ 			return ret;
+ 		}
+ 	}
 +
- 	for (buffer = 0; buffer < num_buffers; ++buffer) {
- 		/* Allocate videobuf buffer structures */
- 		vb = kzalloc(q->buf_struct_size, GFP_KERNEL);
++	numports = dev->port_num;
++
+ 	for (i = 0; i < dev->port_num; i++) {
+ 		port = &dev->port[i];
+-		ret = ddb_port_attach(port);
++		if (port->class != DDB_PORT_NONE) {
++			ret = ddb_port_attach(port);
++			if (ret)
++				err_ports++;
++		} else {
++			numports--;
++		}
+ 	}
+-	return ret;
++
++	if (err_ports) {
++		if (err_ports == numports) {
++			dev_err(dev->dev, "All connected ports failed to initialise!\n");
++			return -ENODEV;
++		}
++
++		dev_warn(dev->dev, "%d of %d connected ports failed to initialise!\n",
++			 err_ports, numports);
++	}
++
++	return 0;
+ }
+ 
+ void ddb_ports_detach(struct ddb *dev)
 -- 
-2.14.3
+2.13.6
