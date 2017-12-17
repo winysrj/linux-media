@@ -1,63 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:42256 "EHLO
-        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752998AbdLMNDc (ORCPT
+Received: from mail-wr0-f195.google.com ([209.85.128.195]:45200 "EHLO
+        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752517AbdLQPk5 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 13 Dec 2017 08:03:32 -0500
-Received: by mail-wm0-f68.google.com with SMTP id b199so4923570wme.1
-        for <linux-media@vger.kernel.org>; Wed, 13 Dec 2017 05:03:31 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <1510743363-25798-8-git-send-email-jacopo+renesas@jmondi.org>
-References: <1510743363-25798-1-git-send-email-jacopo+renesas@jmondi.org> <1510743363-25798-8-git-send-email-jacopo+renesas@jmondi.org>
-From: Philippe Ombredanne <pombredanne@nexb.com>
-Date: Wed, 13 Dec 2017 14:02:50 +0100
-Message-ID: <CAOFm3uHvU6W8FDsO8zH7+akJfALedQvbXwtfLsUQ-RRt7iWv5g@mail.gmail.com>
-Subject: Re: [PATCH v1 07/10] v4l: i2c: Copy ov772x soc_camera sensor driver
-To: Jacopo Mondi <jacopo+renesas@jmondi.org>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        magnus.damm@gmail.com, geert@glider.be,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        linux-renesas-soc@vger.kernel.org,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        linux-sh@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+        Sun, 17 Dec 2017 10:40:57 -0500
+Received: by mail-wr0-f195.google.com with SMTP id h1so11890557wre.12
+        for <linux-media@vger.kernel.org>; Sun, 17 Dec 2017 07:40:57 -0800 (PST)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: linux-media@vger.kernel.org, mchehab@kernel.org,
+        mchehab@s-opensource.com
+Cc: Ralph Metzler <rjkm@metzlerbros.de>
+Subject: [PATCH 3/8] [media] ddbridge: deduplicate calls to dvb_ca_en50221_init()
+Date: Sun, 17 Dec 2017 16:40:44 +0100
+Message-Id: <20171217154049.1125-4-d.scheller.oss@gmail.com>
+In-Reply-To: <20171217154049.1125-1-d.scheller.oss@gmail.com>
+References: <20171217154049.1125-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Jacopo,
+From: Daniel Scheller <d.scheller@gmx.net>
 
-On Wed, Nov 15, 2017 at 11:56 AM, Jacopo Mondi
-<jacopo+renesas@jmondi.org> wrote:
-> Copy the soc_camera based driver in v4l2 sensor driver directory.
-> This commit just copies the original file without modifying it.
->
-> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+All CI types do dvb_ca_en50221_init() with the same arguments. Move this
+call after the switch-case to remove the repetition in every case block.
 
-<snip>
+Cc: Ralph Metzler <rjkm@metzlerbros.de>
+Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+---
+ drivers/media/pci/ddbridge/ddbridge-ci.c | 6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-> --- /dev/null
-> +++ b/drivers/media/i2c/ov772x.c
-> @@ -0,0 +1,1124 @@
-> +/*
-> + * ov772x Camera Driver
-> + *
-> + * Copyright (C) 2008 Renesas Solutions Corp.
-> + * Kuninori Morimoto <morimoto.kuninori@renesas.com>
-> + *
-> + * Based on ov7670 and soc_camera_platform driver,
-> + *
-> + * Copyright 2006-7 Jonathan Corbet <corbet@lwn.net>
-> + * Copyright (C) 2008 Magnus Damm
-> + * Copyright (C) 2008, Guennadi Liakhovetski <kernel@pengutronix.de>
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + */
-
-You may want to use the new SPDX ids as documented in Thomas doc
-patches instead of the loner legalese?
+diff --git a/drivers/media/pci/ddbridge/ddbridge-ci.c b/drivers/media/pci/ddbridge/ddbridge-ci.c
+index a4fd747763a0..8dfbc3bbd86d 100644
+--- a/drivers/media/pci/ddbridge/ddbridge-ci.c
++++ b/drivers/media/pci/ddbridge/ddbridge-ci.c
+@@ -327,8 +327,6 @@ int ddb_ci_attach(struct ddb_port *port, u32 bitrate)
+ 		port->en = cxd2099_attach(&cxd_cfg, port, &port->i2c->adap);
+ 		if (!port->en)
+ 			return -ENODEV;
+-		dvb_ca_en50221_init(port->dvb[0].adap,
+-				    port->en, 0, 1);
+ 		break;
+ 
+ 	case DDB_CI_EXTERNAL_XO2:
+@@ -336,15 +334,15 @@ int ddb_ci_attach(struct ddb_port *port, u32 bitrate)
+ 		ci_xo2_attach(port);
+ 		if (!port->en)
+ 			return -ENODEV;
+-		dvb_ca_en50221_init(port->dvb[0].adap, port->en, 0, 1);
+ 		break;
+ 
+ 	case DDB_CI_INTERNAL:
+ 		ci_attach(port);
+ 		if (!port->en)
+ 			return -ENODEV;
+-		dvb_ca_en50221_init(port->dvb[0].adap, port->en, 0, 1);
+ 		break;
+ 	}
++
++	dvb_ca_en50221_init(port->dvb[0].adap, port->en, 0, 1);
+ 	return 0;
+ }
 -- 
-Cordially
-Philippe Ombredanne
+2.13.6
