@@ -1,57 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:59205 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932348AbdLOQzH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 15 Dec 2017 11:55:07 -0500
-Date: Fri, 15 Dec 2017 16:55:06 +0000
-From: Sean Young <sean@mess.org>
-To: linux-media@vger.kernel.org
-Subject: [GIT PULL FOR v4.16] RC fixes
-Message-ID: <20171215165506.aruixz775skkvpxa@gofer.mess.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Received: from galahad.ideasonboard.com ([185.26.127.97]:50494 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1756929AbdLQARW (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 16 Dec 2017 19:17:22 -0500
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+To: dri-devel@lists.freedesktop.org
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        Alexandru Gheorghe <Alexandru_Gheorghe@mentor.com>,
+        Russell King <linux@armlinux.org.uk>,
+        Ben Skeggs <bskeggs@redhat.com>,
+        Sinclair Yeh <syeh@vmware.com>,
+        Thomas Hellstrom <thellstrom@vmware.com>,
+        Jani Nikula <jani.nikula@linux.intel.com>,
+        Joonas Lahtinen <joonas.lahtinen@linux.intel.com>,
+        Rodrigo Vivi <rodrigo.vivi@intel.com>
+Subject: [PATCH/RFC 3/4] v4l: vsp1: Add support for colorkey alpha blending
+Date: Sun, 17 Dec 2017 02:17:23 +0200
+Message-Id: <20171217001724.1348-4-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <20171217001724.1348-1-laurent.pinchart+renesas@ideasonboard.com>
+References: <20171217001724.1348-1-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+From: Alexandru Gheorghe <Alexandru_Gheorghe@mentor.com>
 
-Some regressions and improvements since the lirc scancodes changes. 
+The VSP2 found in R-Car Gen3 SoCs supports changing the alpha value of
+source pixels that match a color key. Add support for this feature for
+display pipelines through the API exposed to the DU driver.
 
-Thanks,
+The colorkey key value is expressed as a XYZ 888 value, where the X, Y
+and Z components are either RGB or YCbCr depending on the plane format.
+When the plane is configured with an RGB formats all three components
+are matched by the hardware, while with an YCbCr format only the
+luminance component is matched the chroma components will be ignored.
 
-Sean
+Signed-off-by: Alexandru Gheorghe <Alexandru_Gheorghe@mentor.com>
+[Group all color key parameters in a structure]
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+---
+ drivers/media/platform/vsp1/vsp1_drm.c  |  3 +++
+ drivers/media/platform/vsp1/vsp1_rpf.c  | 10 ++++++++--
+ drivers/media/platform/vsp1/vsp1_rwpf.h |  5 +++++
+ include/media/vsp1.h                    |  5 +++++
+ 4 files changed, 21 insertions(+), 2 deletions(-)
 
-The following changes since commit 0ca4e3130402caea8731a7b54afde56a6edb17c9:
+diff --git a/drivers/media/platform/vsp1/vsp1_drm.c b/drivers/media/platform/vsp1/vsp1_drm.c
+index 7ce69f23f50a..68af99e5cfa3 100644
+--- a/drivers/media/platform/vsp1/vsp1_drm.c
++++ b/drivers/media/platform/vsp1/vsp1_drm.c
+@@ -378,6 +378,9 @@ int vsp1_du_atomic_update(struct device *dev, unsigned int pipe_index,
+ 	rpf->format.plane_fmt[0].bytesperline = cfg->pitch;
+ 	rpf->format.plane_fmt[1].bytesperline = cfg->pitch;
+ 	rpf->alpha = cfg->alpha;
++	rpf->colorkey.enabled = cfg->colorkey.enabled;
++	rpf->colorkey.key = cfg->colorkey.key;
++	rpf->colorkey.alpha = cfg->colorkey.alpha;
+ 
+ 	rpf->mem.addr[0] = cfg->mem[0];
+ 	rpf->mem.addr[1] = cfg->mem[1];
+diff --git a/drivers/media/platform/vsp1/vsp1_rpf.c b/drivers/media/platform/vsp1/vsp1_rpf.c
+index fe0633da5a5f..8c532f22013b 100644
+--- a/drivers/media/platform/vsp1/vsp1_rpf.c
++++ b/drivers/media/platform/vsp1/vsp1_rpf.c
+@@ -243,8 +243,14 @@ static void rpf_configure(struct vsp1_entity *entity,
+ 	}
+ 
+ 	vsp1_rpf_write(rpf, dl, VI6_RPF_MSK_CTRL, 0);
+-	vsp1_rpf_write(rpf, dl, VI6_RPF_CKEY_CTRL, 0);
+-
++	if (rpf->colorkey.enabled) {
++		vsp1_rpf_write(rpf, dl, VI6_RPF_CKEY_SET0,
++			       (rpf->colorkey.alpha << 24) | rpf->colorkey.key);
++		vsp1_rpf_write(rpf, dl, VI6_RPF_CKEY_CTRL,
++			       VI6_RPF_CKEY_CTRL_SAPE0);
++	} else {
++		vsp1_rpf_write(rpf, dl, VI6_RPF_CKEY_CTRL, 0);
++	}
+ }
+ 
+ static void rpf_partition(struct vsp1_entity *entity,
+diff --git a/drivers/media/platform/vsp1/vsp1_rwpf.h b/drivers/media/platform/vsp1/vsp1_rwpf.h
+index 58215a7ab631..78119bb681f9 100644
+--- a/drivers/media/platform/vsp1/vsp1_rwpf.h
++++ b/drivers/media/platform/vsp1/vsp1_rwpf.h
+@@ -50,6 +50,11 @@ struct vsp1_rwpf {
+ 	unsigned int bru_input;
+ 
+ 	unsigned int alpha;
++	struct {
++		bool enabled;
++		u32 key;
++		u32 alpha;
++	} colorkey;
+ 
+ 	u32 mult_alpha;
+ 	u32 outfmt;
+diff --git a/include/media/vsp1.h b/include/media/vsp1.h
+index 68a8abe4fac5..cc6a411e2312 100644
+--- a/include/media/vsp1.h
++++ b/include/media/vsp1.h
+@@ -49,6 +49,11 @@ struct vsp1_du_atomic_config {
+ 	struct v4l2_rect dst;
+ 	unsigned int alpha;
+ 	unsigned int zpos;
++	struct {
++		bool enabled;
++		u32 key;
++		u32 alpha;
++	} colorkey;
+ };
+ 
+ void vsp1_du_atomic_begin(struct device *dev, unsigned int pipe_index);
+-- 
+Regards,
 
-  media: pxa_camera: rename the soc_camera_ prefix to pxa_camera_ (2017-12-14 12:40:01 -0500)
-
-are available in the Git repository at:
-
-  git://linuxtv.org/syoung/media_tree.git for-v4.16b
-
-for you to fetch changes up to 4cb896c68d5296e2af834033a34575f61fc5228f:
-
-  media: ir-spi: add SPDX identifier (2017-12-15 16:42:11 +0000)
-
-----------------------------------------------------------------
-Andi Shyti (1):
-      media: ir-spi: add SPDX identifier
-
-Sean Young (8):
-      media: imon: auto-config ffdc 26 device
-      media: imon: remove unused function tv2int
-      media: rc: bang in ir_do_keyup
-      media: lirc: when transmitting scancodes, block until transmit is done
-      media: rc: iguanair: simplify tx loop
-      media: lirc: do not pass ERR_PTR to kfree
-      media: lirc: no need to recalculate duration
-      media: lirc: release lock before sleep
-
- Documentation/media/uapi/rc/lirc-write.rst |  4 +-
- drivers/media/rc/iguanair.c                | 19 ++++-----
- drivers/media/rc/imon.c                    | 28 +++----------
- drivers/media/rc/ir-spi.c                  | 15 +++----
- drivers/media/rc/lirc_dev.c                | 67 ++++++++++++++----------------
- drivers/media/rc/rc-main.c                 |  2 +-
- 6 files changed, 53 insertions(+), 82 deletions(-)
+Laurent Pinchart
