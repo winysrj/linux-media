@@ -1,69 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([65.50.211.133]:33182 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752016AbdLNOt3 (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:51806 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751350AbdLQQww (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 14 Dec 2017 09:49:29 -0500
-Date: Thu, 14 Dec 2017 12:48:41 -0200
-From: Mauro Carvalho Chehab <mchehab@kernel.org>
-To: Nigel Kettlewell <nigel.kettlewell@googlemail.com>
-Cc: crope@iki.fi, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] Fix for hanging si2168 in PCTV 292e, making the code
- match
-Message-ID: <20171214124841.7943b325@vento.lan>
-In-Reply-To: <59C10A00.2070000@googlemail.com>
-References: <59C10A00.2070000@googlemail.com>
+        Sun, 17 Dec 2017 11:52:52 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        niklas.soderlund@ragnatech.se, kieran.bingham@ideasonboard.com,
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+Subject: Re: [PATCH 3/5] include: v4l2_async: Add 'owner' field to notifier
+Date: Sun, 17 Dec 2017 18:53:00 +0200
+Message-ID: <2892432.nXKeGORp37@avalon>
+In-Reply-To: <20171215143816.lmnpcfdbt7l7yeox@paasikivi.fi.intel.com>
+References: <1513189580-32202-1-git-send-email-jacopo+renesas@jmondi.org> <1513189580-32202-4-git-send-email-jacopo+renesas@jmondi.org> <20171215143816.lmnpcfdbt7l7yeox@paasikivi.fi.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 19 Sep 2017 13:13:52 +0100
-Nigel Kettlewell <nigel.kettlewell@googlemail.com> escreveu:
+Hello,
 
-> [re-sending as plain text]
+On Friday, 15 December 2017 16:38:16 EET Sakari Ailus wrote:
+> Hi Jacopo,
 > 
-> Fix for hanging si2168 in PCTV 292e USB, making the code match the comment.
+> On Wed, Dec 13, 2017 at 07:26:18PM +0100, Jacopo Mondi wrote:
+> > Notifiers can be registered as root notifiers (identified by a 'struct
+> > v4l2_device *') or subdevice notifiers (identified by a 'struct
+> > v4l2_subdev *'). In order to identify a notifier no matter if it is root
+> > or not, add a 'struct fwnode_handle *owner' field, whose name can be
+> > printed out for debug purposes.
+> > 
+> > Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
 > 
-> Using firmware v4.0.11 the 292e would work once and then hang on 
-> subsequent attempts to view DVB channels, until physically unplugged and 
-> plugged back in.
-> 
-> With this patch, the warm state is reset for v4.0.11 and it appears to 
-> work both on the first attempt and on subsequent attempts.
-> 
-> (Patch basis Linux 4.11.9 f82a53b87594f460f2dd9983eeb851a5840e8df8)
+> You'll have struct device either through the v4l2_device or v4l2_subdev. Do
+> you need an additional field for this?
 
-Patch is missing a Signed-off-by. See:
-	https://elinux.org/Developer_Certificate_Of_Origin).
+I agree with this comment. If there's a reason to add a new field, its life 
+time constraints should be documented. The fwnodes are refcounted and you're 
+not increasing the refcount here, you should explain why you don't need to.
 
+-- 
+Regards,
 
-> 
-> ---
->   drivers/media/dvb-frontends/si2168.c | 2 +-
->   1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/dvb-frontends/si2168.c 
-> b/drivers/media/dvb-frontends/si2168.c
-> index 680ba06..523acd1 100644
-> --- a/drivers/media/dvb-frontends/si2168.c
-> +++ b/drivers/media/dvb-frontends/si2168.c
-> @@ -582,7 +582,7 @@ static int si2168_sleep(struct dvb_frontend *fe)
->          dev->active = false;
-> 
->          /* Firmware B 4.0-11 or later loses warm state during sleep */
-> -       if (dev->version > ('B' << 24 | 4 << 16 | 0 << 8 | 11 << 0))
-> +       if (dev->version >= ('B' << 24 | 4 << 16 | 0 << 8 | 11 << 0))
->                  dev->warm = false;
-> 
->          memcpy(cmd.args, "\x13", 1);
-> --
-> 2.9.4
-> 
-
-
-
-Thanks,
-Mauro
+Laurent Pinchart
