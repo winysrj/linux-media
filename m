@@ -1,49 +1,146 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx08-00178001.pphosted.com ([91.207.212.93]:51225 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S932136AbdLOOxd (ORCPT
+Received: from relay2-d.mail.gandi.net ([217.70.183.194]:42194 "EHLO
+        relay2-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752245AbdLQQnA (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 15 Dec 2017 09:53:33 -0500
-From: Fabien DESSENNE <fabien.dessenne@st.com>
-To: Jia-Ju Bai <baijiaju1990@gmail.com>,
-        "mchehab@kernel.org" <mchehab@kernel.org>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "Benjamin GAIGNARD" <benjamin.gaignard@st.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH 2/2] bdisp: Fix a possible sleep-in-atomic bug in
- bdisp_hw_save_request
-Date: Fri, 15 Dec 2017 14:53:27 +0000
-Message-ID: <489e7b01-a484-1c13-554f-fc32cdbf9bc7@st.com>
-References: <1513086458-29304-1-git-send-email-baijiaju1990@gmail.com>
-In-Reply-To: <1513086458-29304-1-git-send-email-baijiaju1990@gmail.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-ID: <D84E545C6AACCF4DAF9DCE4103EE5652@st.com>
-Content-Transfer-Encoding: base64
+        Sun, 17 Dec 2017 11:43:00 -0500
+Date: Sun, 17 Dec 2017 17:42:54 +0100
+From: jacopo mondi <jacopo@jmondi.org>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        niklas.soderlund@ragnatech.se, kieran.bingham@ideasonboard.com,
+        laurent.pinchart@ideasonboard.com, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org
+Subject: Re: [PATCH 5/5] v4l2: async: Add debug output to v4l2-async module
+Message-ID: <20171217164254.GF20926@w540>
+References: <1513189580-32202-1-git-send-email-jacopo+renesas@jmondi.org>
+ <1513189580-32202-6-git-send-email-jacopo+renesas@jmondi.org>
+ <20171215161704.lnsaut4d2nxliaca@paasikivi.fi.intel.com>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20171215161704.lnsaut4d2nxliaca@paasikivi.fi.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-SGkNCg0KDQpUaGFuayB5b3UgZm9yIHRoZSBwYXRjaC4NCg0KDQpPbiAxMi8xMi8xNyAxNDo0Nywg
-SmlhLUp1IEJhaSB3cm90ZToNCj4gVGhlIGRyaXZlciBtYXkgc2xlZXAgdW5kZXIgYSBzcGlubG9j
-ay4NCj4gVGhlIGZ1bmN0aW9uIGNhbGwgcGF0aCBpczoNCj4gYmRpc3BfZGV2aWNlX3J1biAoYWNx
-dWlyZSB0aGUgc3BpbmxvY2spDQo+ICAgIGJkaXNwX2h3X3VwZGF0ZQ0KPiAgICAgIGJkaXNwX2h3
-X3NhdmVfcmVxdWVzdA0KPiAgICAgICAgZGV2bV9remFsbG9jKEdGUF9LRVJORUwpIC0tPiBtYXkg
-c2xlZXANCj4NCj4gVG8gZml4IGl0LCBHRlBfS0VSTkVMIGlzIHJlcGxhY2VkIHdpdGggR0ZQX0FU
-T01JQy4NCj4NCj4gVGhpcyBidWcgaXMgZm91bmQgYnkgbXkgc3RhdGljIGFuYWx5c2lzIHRvb2wo
-RFNBQykgYW5kIGNoZWNrZWQgYnkgbXkgY29kZSByZXZpZXcuDQo+DQo+IFNpZ25lZC1vZmYtYnk6
-IEppYS1KdSBCYWkgPGJhaWppYWp1MTk5MEBnbWFpbC5jb20+DQpSZXZpZXdlZC1ieTogRmFiaWVu
-IERlc3Nlbm5lIDxmYWJpZW4uZGVzc2VubmVAc3QuY29tPg0KPiAtLS0NCj4gICBkcml2ZXJzL21l
-ZGlhL3BsYXRmb3JtL3N0aS9iZGlzcC9iZGlzcC1ody5jIHwgICAgMiArLQ0KPiAgIDEgZmlsZSBj
-aGFuZ2VkLCAxIGluc2VydGlvbigrKSwgMSBkZWxldGlvbigtKQ0KPg0KPiBkaWZmIC0tZ2l0IGEv
-ZHJpdmVycy9tZWRpYS9wbGF0Zm9ybS9zdGkvYmRpc3AvYmRpc3AtaHcuYyBiL2RyaXZlcnMvbWVk
-aWEvcGxhdGZvcm0vc3RpL2JkaXNwL2JkaXNwLWh3LmMNCj4gaW5kZXggNGI2MmNlYi4uN2I0NWI0
-MyAxMDA2NDQNCj4gLS0tIGEvZHJpdmVycy9tZWRpYS9wbGF0Zm9ybS9zdGkvYmRpc3AvYmRpc3At
-aHcuYw0KPiArKysgYi9kcml2ZXJzL21lZGlhL3BsYXRmb3JtL3N0aS9iZGlzcC9iZGlzcC1ody5j
-DQo+IEBAIC0xMDY0LDcgKzEwNjQsNyBAQCBzdGF0aWMgdm9pZCBiZGlzcF9od19zYXZlX3JlcXVl
-c3Qoc3RydWN0IGJkaXNwX2N0eCAqY3R4KQ0KPiAgIAkJaWYgKCFjb3B5X25vZGVbaV0pIHsNCj4g
-ICAJCQljb3B5X25vZGVbaV0gPSBkZXZtX2t6YWxsb2MoY3R4LT5iZGlzcF9kZXYtPmRldiwNCj4g
-ICAJCQkJCQkgICAgc2l6ZW9mKCpjb3B5X25vZGVbaV0pLA0KPiAtCQkJCQkJICAgIEdGUF9LRVJO
-RUwpOw0KPiArCQkJCQkJICAgIEdGUF9BVE9NSUMpOw0KPiAgIAkJCWlmICghY29weV9ub2RlW2ld
-KQ0KPiAgIAkJCQlyZXR1cm47DQo+ICAgCQl9DQo=
+Hi Sakari,
+
+On Fri, Dec 15, 2017 at 06:17:04PM +0200, Sakari Ailus wrote:
+> Hi Jacopo,
+>
+> On Wed, Dec 13, 2017 at 07:26:20PM +0100, Jacopo Mondi wrote:
+> > The v4l2-async module operations are quite complex to follow, due to the
+> > asynchronous nature of subdevices and notifiers registration and
+> > matching procedures. In order to help with debugging of failed or
+> > erroneous matching between a subdevice and the notifier collected
+> > async_subdevice it gets matched against, introduce a few dev_dbg() calls
+> > in v4l2_async core operations.
+> >
+> > Protect the debug operations with a Kconfig defined symbol, to make sure
+> > when debugging is disabled, no additional code or data is added to the
+> > module.
+> >
+> > Notifiers are identified by the name of the subdevice or v4l2_dev they are
+> > registered by, while subdevice matching which now happens on endpoints,
+> > need a longer description built walking the fwnode graph backwards
+> > collecting parent nodes names (otherwise we would have had printouts
+> > like: "Matching "endpoint" with "endpoint"" which are not that useful).
+> >
+> > Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+> >
+> > ---
+> > For fwnodes backed by OF, I may have used the "%pOF" format modifier to
+> > get the full node name instead of parsing the fwnode graph by myself with
+> > "v4l2_async_fwnode_full_name()". Unfortunately I'm not aware of anything
+> > like "%pOF" for ACPI backed fwnodes. Also, walking the fwnode graph by
+> > myself allows me to reduce the depth, to reduce the debug messages output
+> > length which is anyway long enough to result disturbing on a 80columns
+> > terminal window.
+>
+> ACPI doesn't have such at the moment. I think printing the full path would
+> still be better. There isn't that much more to print after all.
+
+So you suggest to just use the full node name for OF. What about ACPI?
+
+>From your other reply I got that I can print the single node name for
+"device ACPI nodes" but not for "non-device ACPI nodes". Should I build
+the full device name in drivers/acpi/properties.c for ACPI devices
+like I'm doing here for fwnodes?
+
+>
+> > ---
+> >
+> >  drivers/media/v4l2-core/Kconfig      |  8 ++++
+> >  drivers/media/v4l2-core/v4l2-async.c | 81 ++++++++++++++++++++++++++++++++++++
+> >  2 files changed, 89 insertions(+)
+> >
+> > diff --git a/drivers/media/v4l2-core/Kconfig b/drivers/media/v4l2-core/Kconfig
+> > index a35c336..8331736 100644
+> > --- a/drivers/media/v4l2-core/Kconfig
+> > +++ b/drivers/media/v4l2-core/Kconfig
+> > @@ -17,6 +17,14 @@ config VIDEO_ADV_DEBUG
+> >  	  V4L devices.
+> >  	  In doubt, say N.
+> >
+> > +config VIDEO_V4L2_ASYNC_DEBUG
+> > +	bool "Enable debug functionalities for V4L2 async module"
+> > +	depends on VIDEO_V4L2
+>
+> I'm not sure I'd add a Kconfig option. This is adding a fairly simple
+> function only to the kernel.
+
+So I will use a symbol defined in the module to enable/disable debug
+(maybe the "DEBUG" symbol itself?)
+
+>
+> > +	default n
+> > +	---help---
+> > +	  Say Y here to enable debug output in V4L2 async module.
+> > +	  In doubt, say N.
+> > +
+> >  config VIDEO_FIXED_MINOR_RANGES
+> >  	bool "Enable old-style fixed minor ranges on drivers/video devices"
+> >  	default n
+> > diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+> > index c13a781..307e1a5 100644
+> > --- a/drivers/media/v4l2-core/v4l2-async.c
+> > +++ b/drivers/media/v4l2-core/v4l2-async.c
+> > @@ -8,6 +8,10 @@
+> >   * published by the Free Software Foundation.
+> >   */
+> >
+> > +#if defined(CONFIG_VIDEO_V4L2_ASYNC_DEBUG)
+> > +#define DEBUG
+>
+> Do you need this?
+
+No dev_dbg() otherwise, isn't it?
+
+>
+> > +#endif
+> > +
+> >  #include <linux/device.h>
+> >  #include <linux/err.h>
+> >  #include <linux/i2c.h>
+> > @@ -25,6 +29,52 @@
+> >  #include <media/v4l2-fwnode.h>
+> >  #include <media/v4l2-subdev.h>
+> >
+> > +#if defined(CONFIG_VIDEO_V4L2_ASYNC_DEBUG)
+> > +#define V4L2_ASYNC_FWNODE_NAME_LEN	512
+> > +
+> > +static void __v4l2_async_fwnode_full_name(char *name,
+> > +					  unsigned int len,
+> > +					  unsigned int max_depth,
+> > +					  struct fwnode_handle *fwnode)
+> > +{
+> > +	unsigned int buf_len = len < V4L2_ASYNC_FWNODE_NAME_LEN ?
+> > +			       len : V4L2_ASYNC_FWNODE_NAME_LEN;
+> > +	char __tmp[V4L2_ASYNC_FWNODE_NAME_LEN];
+>
+> That's a bit too much to allocate from the stack I think.
+
+For an full name do you think 128 is enough? 256 maybe?
+
+Thanks
+  j
