@@ -1,140 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pegase1.c-s.fr ([93.17.236.30]:44230 "EHLO pegase1.c-s.fr"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750860AbdLXIzZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 24 Dec 2017 03:55:25 -0500
-Subject: Re: [PATCH v3 00/27] kill devm_ioremap_nocache
-To: Guenter Roeck <linux@roeck-us.net>,
-        Greg KH <gregkh@linuxfoundation.org>,
-        Yisheng Xie <xieyisheng1@huawei.com>
-Cc: linux-kernel@vger.kernel.org, ysxie@foxmail.com,
-        ulf.hansson@linaro.org, linux-mmc@vger.kernel.org,
-        boris.brezillon@free-electrons.com, richard@nod.at,
-        marek.vasut@gmail.com, cyrille.pitchen@wedev4u.fr,
-        linux-mtd@lists.infradead.org, alsa-devel@alsa-project.org,
-        wim@iguana.be, linux-watchdog@vger.kernel.org,
-        b.zolnierkie@samsung.com, linux-fbdev@vger.kernel.org,
-        linus.walleij@linaro.org, linux-gpio@vger.kernel.org,
-        ralf@linux-mips.org, linux-mips@linux-mips.org,
-        lgirdwood@gmail.com, broonie@kernel.org, tglx@linutronix.de,
-        jason@lakedaemon.net, marc.zyngier@arm.com, arnd@arndb.de,
-        andriy.shevchenko@linux.intel.com,
-        industrypack-devel@lists.sourceforge.net, wg@grandegger.com,
-        mkl@pengutronix.de, linux-can@vger.kernel.org, mchehab@kernel.org,
-        linux-media@vger.kernel.org, a.zummo@towertech.it,
-        alexandre.belloni@free-electrons.com, linux-rtc@vger.kernel.org,
-        daniel.vetter@intel.com, jani.nikula@linux.intel.com,
-        seanpaul@chromium.org, airlied@linux.ie,
-        dri-devel@lists.freedesktop.org, kvalo@codeaurora.org,
-        linux-wireless@vger.kernel.org, linux-spi@vger.kernel.org,
-        tj@kernel.org, linux-ide@vger.kernel.org, bhelgaas@google.com,
-        linux-pci@vger.kernel.org, devel@driverdev.osuosl.org,
-        dvhart@infradead.org, andy@infradead.org,
-        platform-driver-x86@vger.kernel.org, jakub.kicinski@netronome.com,
-        davem@davemloft.net, nios2-dev@lists.rocketboards.org,
-        netdev@vger.kernel.org, vinod.koul@intel.com,
-        dan.j.williams@intel.com, dmaengine@vger.kernel.org,
-        jslaby@suse.com
-References: <1514026525-32538-1-git-send-email-xieyisheng1@huawei.com>
- <20171223134831.GB10103@kroah.com>
- <f7632cf5-2bcc-4d74-b912-3999937a1269@roeck-us.net>
-From: christophe leroy <christophe.leroy@c-s.fr>
-Message-ID: <c28ac0bc-8bd2-3dce-3167-8c0f80ec601e@c-s.fr>
-Date: Sun, 24 Dec 2017 09:55:18 +0100
+Received: from mo4-p00-ob.smtp.rzone.de ([81.169.146.161]:8862 "EHLO
+        mo4-p00-ob.smtp.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752118AbdLQNuo (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 17 Dec 2017 08:50:44 -0500
+From: Ralph Metzler <rjkm@metzlerbros.de>
 MIME-Version: 1.0
-In-Reply-To: <f7632cf5-2bcc-4d74-b912-3999937a1269@roeck-us.net>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: fr
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Message-ID: <23094.30253.636599.33684@morden.metzler>
+Date: Sun, 17 Dec 2017 14:50:37 +0100
+To: linux-media@vger.kernel.org
+Cc: Athanasios Oikonomou <athoik@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Ralph Metzler <rjkm@metzlerbros.de>,
+        Manu Abraham <abraham.manu@gmail.com>
+Subject: [PATCH 0/2] Support Physical Layer Scrambling
+In-Reply-To: <cover.1513426880.git.athoik@gmail.com>
+References: <cover.1513426880.git.athoik@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
+Athanasios Oikonomou writes:
+ > A new property DTV_SCRAMBLING_SEQUENCE_INDEX introduced to control
+ > the gold sequence that several demods support.
+ > 
+ > Also the DVB API was increased in order userspace to be aware of the
+ > changes.
+ > 
+ > The stv090x driver was changed to make use of the new property.
+ > 
+ > Those commits based on discussion previously made on the mailling list.
+ > https://www.mail-archive.com/linux-media@vger.kernel.org/msg122600.html
+ > 
+ > I would like to thanks Ralph Metzler (rjkm@metzlerbros.de) for the
+ > great help and ideas he provide me in order create those patches.
+ > 
+ > Athanasios Oikonomou (2):
+ >   media: dvb_frontend: add physical layer scrambling support
+ >   media: stv090x: add physical layer scrambling support
+ > 
+ >  .../media/uapi/dvb/fe_property_parameters.rst          | 18 ++++++++++++++++++
+ >  .../uapi/dvb/frontend-property-satellite-systems.rst   |  2 ++
+ >  drivers/media/dvb-core/dvb_frontend.c                  | 12 ++++++++++++
+ >  drivers/media/dvb-core/dvb_frontend.h                  |  5 +++++
+ >  drivers/media/dvb-frontends/stv090x.c                  | 16 ++++++++++++++++
+ >  include/uapi/linux/dvb/frontend.h                      |  5 ++++-
+ >  include/uapi/linux/dvb/version.h                       |  2 +-
+ >  7 files changed, 58 insertions(+), 2 deletions(-)
+ > 
+ > -- 
+ > 2.1.4
 
-Le 23/12/2017 à 16:57, Guenter Roeck a écrit :
-> On 12/23/2017 05:48 AM, Greg KH wrote:
->> On Sat, Dec 23, 2017 at 06:55:25PM +0800, Yisheng Xie wrote:
->>> Hi all,
->>>
->>> When I tried to use devm_ioremap function and review related code, I 
->>> found
->>> devm_ioremap and devm_ioremap_nocache is almost the same with each 
->>> other,
->>> except one use ioremap while the other use ioremap_nocache.
->>
->> For all arches?  Really?  Look at MIPS, and x86, they have different
->> functions.
->>
-> 
-> Both mips and x86 end up mapping the same function, but other arches don't.
-> mn10300 is one where ioremap and ioremap_nocache are definitely different.
+Acked-by: Ralph Metzler <rjkm@metzlerbros.de>
 
-alpha: identical
-arc: identical
-arm: identical
-arm64: identical
-cris: different        <==
-frv: identical
-hexagone: identical
-ia64: different        <==
-m32r: identical
-m68k: identical
-metag: identical
-microblaze: identical
-mips: identical
-mn10300: different     <==
-nios: identical
-openrisc: different    <==
-parisc: identical
-riscv: identical
-s390: identical
-sh: identical
-sparc: identical
-tile: identical
-um: rely on asm/generic
-unicore32: identical
-x86: identical
-asm/generic (no mmu): identical
 
-So 4 among all arches seems to have ioremap() and ioremap_nocache() 
-being different.
+We had some thoughts about having a:
 
-Could we have a define set by the 4 arches on which ioremap() and 
-ioremap_nocache() are different, something like 
-HAVE_DIFFERENT_IOREMAP_NOCACHE ?
+#define NO_SCRAMBLING_CODE     (~0U)
 
-Christophe
+But DVB-S2 is always scrambling (with default index 0) and other delivery systems can ignore this
+property. Or do you think it is needed?
 
-> 
-> Guenter
-> 
->>> While ioremap's
->>> default function is ioremap_nocache, so devm_ioremap_nocache also 
->>> have the
->>> same function with devm_ioremap, which can just be killed to reduce 
->>> the size
->>> of devres.o(from 20304 bytes to 18992 bytes in my compile environment).
->>>
->>> I have posted two versions, which use macro instead of function for
->>> devm_ioremap_nocache[1] or devm_ioremap[2]. And Greg suggest me to kill
->>> devm_ioremap_nocache for no need to keep a macro around for the 
->>> duplicate
->>> thing. So here comes v3 and please help to review.
->>
->> I don't think this can be done, what am I missing?  These functions are
->> not identical, sorry for missing that before.
->>
->> thanks,
->>
->> greg k-h
->>
-> 
-> -- 
-> To unsubscribe from this list: send the line "unsubscribe 
-> linux-watchdog" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
----
-L'absence de virus dans ce courrier électronique a été vérifiée par le logiciel antivirus Avast.
-https://www.avast.com/antivirus
+One could add a define for AUTO or AUTO_S2X for the standard 7 indices to be tested
+in DVB-S2X. But either dvb_frontend.c or the demod driver would have to support this in software.
+I don't think there is a demod which supports this in hardware yet?
+
+
+Regards,
+Ralph
