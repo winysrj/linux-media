@@ -1,106 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:34208 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751680AbdLFO6n (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 6 Dec 2017 09:58:43 -0500
-From: Kieran Bingham <kbingham@kernel.org>
-To: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
-Cc: jacopo@jmondi.org, niklas.soderlund@ragnatech.se,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: [PATCH v5] v4l2-async: Match parent devices
-Date: Wed,  6 Dec 2017 14:58:39 +0000
-Message-Id: <1512572319-20179-1-git-send-email-kbingham@kernel.org>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:51841 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1757336AbdLQRGp (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 17 Dec 2017 12:06:45 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        niklas.soderlund@ragnatech.se, kieran.bingham@ideasonboard.com,
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+Subject: Re: [PATCH 5/5] v4l2: async: Add debug output to v4l2-async module
+Date: Sun, 17 Dec 2017 19:06:53 +0200
+Message-ID: <1992887.AuUDQKKNvA@avalon>
+In-Reply-To: <20171215161704.lnsaut4d2nxliaca@paasikivi.fi.intel.com>
+References: <1513189580-32202-1-git-send-email-jacopo+renesas@jmondi.org> <1513189580-32202-6-git-send-email-jacopo+renesas@jmondi.org> <20171215161704.lnsaut4d2nxliaca@paasikivi.fi.intel.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Hello,
 
-Devices supporting multiple endpoints on a single device node must set
-their subdevice fwnode to the endpoint to allow distinct comparisons.
+On Friday, 15 December 2017 18:17:04 EET Sakari Ailus wrote:
+> On Wed, Dec 13, 2017 at 07:26:20PM +0100, Jacopo Mondi wrote:
+> > The v4l2-async module operations are quite complex to follow, due to the
+> > asynchronous nature of subdevices and notifiers registration and
+> > matching procedures. In order to help with debugging of failed or
+> > erroneous matching between a subdevice and the notifier collected
+> > async_subdevice it gets matched against, introduce a few dev_dbg() calls
+> > in v4l2_async core operations.
+> > 
+> > Protect the debug operations with a Kconfig defined symbol, to make sure
+> > when debugging is disabled, no additional code or data is added to the
+> > module.
+> > 
+> > Notifiers are identified by the name of the subdevice or v4l2_dev they are
+> > registered by, while subdevice matching which now happens on endpoints,
+> > need a longer description built walking the fwnode graph backwards
+> > collecting parent nodes names (otherwise we would have had printouts
+> > like: "Matching "endpoint" with "endpoint"" which are not that useful).
+> > 
+> > Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+> > 
+> > ---
+> > For fwnodes backed by OF, I may have used the "%pOF" format modifier to
+> > get the full node name instead of parsing the fwnode graph by myself with
+> > "v4l2_async_fwnode_full_name()". Unfortunately I'm not aware of anything
+> > like "%pOF" for ACPI backed fwnodes. Also, walking the fwnode graph by
+> > myself allows me to reduce the depth, to reduce the debug messages output
+> > length which is anyway long enough to result disturbing on a 80columns
+> > terminal window.
+> 
+> ACPI doesn't have such at the moment. I think printing the full path would
+> still be better. There isn't that much more to print after all.
+> 
+> > ---
+> > 
+> >  drivers/media/v4l2-core/Kconfig      |  8 ++++
+> >  drivers/media/v4l2-core/v4l2-async.c | 81 +++++++++++++++++++++++++++++++
+> >  2 files changed, 89 insertions(+)
+> > 
+> > diff --git a/drivers/media/v4l2-core/Kconfig
+> > b/drivers/media/v4l2-core/Kconfig index a35c336..8331736 100644
+> > --- a/drivers/media/v4l2-core/Kconfig
+> > +++ b/drivers/media/v4l2-core/Kconfig
+> > @@ -17,6 +17,14 @@ config VIDEO_ADV_DEBUG
+> >  	  V4L devices.
+> >  	  In doubt, say N.
+> > 
+> > +config VIDEO_V4L2_ASYNC_DEBUG
+> > +	bool "Enable debug functionalities for V4L2 async module"
+> > +	depends on VIDEO_V4L2
+> 
+> I'm not sure I'd add a Kconfig option. This is adding a fairly simple
+> function only to the kernel.
+> 
+> > +	default n
+> > +	---help---
+> > +	  Say Y here to enable debug output in V4L2 async module.
+> > +	  In doubt, say N.
+> > +
+> >  config VIDEO_FIXED_MINOR_RANGES
+> >  	bool "Enable old-style fixed minor ranges on drivers/video devices"
+> >  	default n
+> > diff --git a/drivers/media/v4l2-core/v4l2-async.c
+> > b/drivers/media/v4l2-core/v4l2-async.c index c13a781..307e1a5 100644
+> > --- a/drivers/media/v4l2-core/v4l2-async.c
+> > +++ b/drivers/media/v4l2-core/v4l2-async.c
+> > @@ -8,6 +8,10 @@
+> >   * published by the Free Software Foundation.
+> >   */
+> > 
+> > +#if defined(CONFIG_VIDEO_V4L2_ASYNC_DEBUG)
+> > +#define DEBUG
+> 
+> Do you need this?
 
-Adapt the match_fwnode call to compare against the provided fwnodes
-first, but to also perform a cross reference comparison against the
-parent fwnodes of each other.
+No this isn't needed. Debugging can be enabled through dynamic debug without 
+requiring the Kconfig option. A Kconfig option might be useful to avoid 
+compiling the debug code in kernels that have dynamic debug enabled, but those 
+are large already and the amount of debug code here is limited, so I don't 
+think it's worth it.
 
-This allows notifiers to pass the endpoint for comparison and still
-support existing subdevices which store their default parent device
-node.
+> > +#endif
+> > +
+> > 
+> >  #include <linux/device.h>
+> >  #include <linux/err.h>
+> >  #include <linux/i2c.h>
 
-Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+[snip]
 
----
-
-Hi Sakari,
-
-Since you signed-off on this patch - it has had to be reworked due to the
-changes on the of_node_full_name() functionality.
-
-I believe it is correct now to *just* do the pointer matching, as that matches
-the current implementation, and converting to device_nodes will be just as
-equal as the fwnodes, as they are simply containers.
-
-Let me know if you are happy to maintain your SOB on this patch - and if we need
-to work towards getting this integrated upstream, especially in light of your new
-endpoint matching work.
-
---
-Regards
-
-Kieran
-
-
-v2:
- - Added documentation comments
- - simplified the OF match by adding match_fwnode_of()
-
-v3:
- - Fix comments
- - Fix sd_parent, and asd_parent usage
-
-v4:
- - Clean up and simplify match_fwnode and comparisons
-
-v5:
- - Updated for v4.15-rc1:
-   of_node no longer specifies a full path, and only returns the
-   basename with of_node_full_name(), thus this ends up matching
-   "endpoint" for all endpoints. Fall back to pointer matching,
-   whilst maintaining the parent comparisons.
----
- drivers/media/v4l2-core/v4l2-async.c | 17 ++++++++++++++++-
- 1 file changed, 16 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
-index fcadad305336..780bda70d8b3 100644
---- a/drivers/media/v4l2-core/v4l2-async.c
-+++ b/drivers/media/v4l2-core/v4l2-async.c
-@@ -71,9 +71,24 @@ static bool match_devname(struct v4l2_subdev *sd,
- 	return !strcmp(asd->match.device_name.name, dev_name(sd->dev));
- }
- 
-+/*
-+ * As a measure to support drivers which have not been converted to use
-+ * endpoint matching, we also find the parent devices for cross-matching.
-+ *
-+ * This also allows continued support for matching subdevices which will not
-+ * have an endpoint themselves.
-+ */
- static bool match_fwnode(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
- {
--	return sd->fwnode == asd->match.fwnode.fwnode;
-+	struct fwnode_handle *asd_fwnode = asd->match.fwnode.fwnode;
-+	struct fwnode_handle *sd_parent, *asd_parent;
-+
-+	sd_parent = fwnode_graph_get_port_parent(sd->fwnode);
-+	asd_parent = fwnode_graph_get_port_parent(asd_fwnode);
-+
-+	return sd->fwnode == asd_fwnode ||
-+	       sd->fwnode == asd_parent ||
-+	       sd_parent == asd_fwnode;
- }
- 
- static bool match_custom(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
 -- 
-2.7.4
+Regards,
+
+Laurent Pinchart
