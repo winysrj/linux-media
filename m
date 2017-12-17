@@ -1,108 +1,274 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:40058 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752789AbdLUQS0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 21 Dec 2017 11:18:26 -0500
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Pawel Osciak <pawel@osciak.com>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Kyungmin Park <kyungmin.park@samsung.com>
-Subject: [PATCH 03/11] media: vb2-core: add pr_fmt() macro
-Date: Thu, 21 Dec 2017 14:18:02 -0200
-Message-Id: <5aedbe745bec541a5aa5cee617904a214a2a3caf.1513872637.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1513872637.git.mchehab@s-opensource.com>
-References: <cover.1513872637.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1513872637.git.mchehab@s-opensource.com>
-References: <cover.1513872637.git.mchehab@s-opensource.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:44076 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752118AbdLQNKp (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 17 Dec 2017 08:10:45 -0500
+Subject: Re: [PATCH 4/5] v4l2: async: Postpone subdev_notifier registration
+To: Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        sakari.ailus@linux.intel.com
+Cc: niklas.soderlund@ragnatech.se, laurent.pinchart@ideasonboard.com,
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+References: <1513189580-32202-1-git-send-email-jacopo+renesas@jmondi.org>
+ <1513189580-32202-5-git-send-email-jacopo+renesas@jmondi.org>
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Reply-To: kieran.bingham@ideasonboard.com
+Message-ID: <fad564c9-c421-3fd2-1e99-652d2b54985e@ideasonboard.com>
+Date: Sun, 17 Dec 2017 13:10:41 +0000
+MIME-Version: 1.0
+In-Reply-To: <1513189580-32202-5-git-send-email-jacopo+renesas@jmondi.org>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Simplify the pr_foo() macros by adding a pr_fmt() macro.
+Hi Jacopo,
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/v4l2-core/videobuf2-core.c | 30 ++++++++++++++++--------------
- 1 file changed, 16 insertions(+), 14 deletions(-)
+Thank you for the patch,
 
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index 21017b478a34..319ab8bf220f 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -14,6 +14,8 @@
-  * the Free Software Foundation.
-  */
- 
-+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-+
- #include <linux/err.h>
- #include <linux/kernel.h>
- #include <linux/module.h>
-@@ -32,10 +34,10 @@
- static int debug;
- module_param(debug, int, 0644);
- 
--#define dprintk(level, fmt, arg...)					      \
--	do {								      \
--		if (debug >= level)					      \
--			pr_info("vb2-core: %s: " fmt, __func__, ## arg); \
-+#define dprintk(level, fmt, arg...)				\
-+	do {							\
-+		if (debug >= level)				\
-+			pr_info("%s: " fmt, __func__, ## arg);	\
- 	} while (0)
- 
- #ifdef CONFIG_VIDEO_ADV_DEBUG
-@@ -460,12 +462,12 @@ static int __vb2_queue_free(struct vb2_queue *q, unsigned int buffers)
- 				  q->cnt_wait_prepare != q->cnt_wait_finish;
- 
- 		if (unbalanced || debug) {
--			pr_info("vb2: counters for queue %p:%s\n", q,
-+			pr_info("counters for queue %p:%s\n", q,
- 				unbalanced ? " UNBALANCED!" : "");
--			pr_info("vb2:     setup: %u start_streaming: %u stop_streaming: %u\n",
-+			pr_info("     setup: %u start_streaming: %u stop_streaming: %u\n",
- 				q->cnt_queue_setup, q->cnt_start_streaming,
- 				q->cnt_stop_streaming);
--			pr_info("vb2:     wait_prepare: %u wait_finish: %u\n",
-+			pr_info("     wait_prepare: %u wait_finish: %u\n",
- 				q->cnt_wait_prepare, q->cnt_wait_finish);
- 		}
- 		q->cnt_queue_setup = 0;
-@@ -486,23 +488,23 @@ static int __vb2_queue_free(struct vb2_queue *q, unsigned int buffers)
- 				  vb->cnt_buf_init != vb->cnt_buf_cleanup;
- 
- 		if (unbalanced || debug) {
--			pr_info("vb2:   counters for queue %p, buffer %d:%s\n",
-+			pr_info("   counters for queue %p, buffer %d:%s\n",
- 				q, buffer, unbalanced ? " UNBALANCED!" : "");
--			pr_info("vb2:     buf_init: %u buf_cleanup: %u buf_prepare: %u buf_finish: %u\n",
-+			pr_info("     buf_init: %u buf_cleanup: %u buf_prepare: %u buf_finish: %u\n",
- 				vb->cnt_buf_init, vb->cnt_buf_cleanup,
- 				vb->cnt_buf_prepare, vb->cnt_buf_finish);
--			pr_info("vb2:     buf_queue: %u buf_done: %u\n",
-+			pr_info("     buf_queue: %u buf_done: %u\n",
- 				vb->cnt_buf_queue, vb->cnt_buf_done);
--			pr_info("vb2:     alloc: %u put: %u prepare: %u finish: %u mmap: %u\n",
-+			pr_info("     alloc: %u put: %u prepare: %u finish: %u mmap: %u\n",
- 				vb->cnt_mem_alloc, vb->cnt_mem_put,
- 				vb->cnt_mem_prepare, vb->cnt_mem_finish,
- 				vb->cnt_mem_mmap);
--			pr_info("vb2:     get_userptr: %u put_userptr: %u\n",
-+			pr_info("     get_userptr: %u put_userptr: %u\n",
- 				vb->cnt_mem_get_userptr, vb->cnt_mem_put_userptr);
--			pr_info("vb2:     attach_dmabuf: %u detach_dmabuf: %u map_dmabuf: %u unmap_dmabuf: %u\n",
-+			pr_info("     attach_dmabuf: %u detach_dmabuf: %u map_dmabuf: %u unmap_dmabuf: %u\n",
- 				vb->cnt_mem_attach_dmabuf, vb->cnt_mem_detach_dmabuf,
- 				vb->cnt_mem_map_dmabuf, vb->cnt_mem_unmap_dmabuf);
--			pr_info("vb2:     get_dmabuf: %u num_users: %u vaddr: %u cookie: %u\n",
-+			pr_info("     get_dmabuf: %u num_users: %u vaddr: %u cookie: %u\n",
- 				vb->cnt_mem_get_dmabuf,
- 				vb->cnt_mem_num_users,
- 				vb->cnt_mem_vaddr,
--- 
-2.14.3
+This seems like a good thing to do at a glance here, but I'll leave contextual
+judgement like that to Sakari.
+
+A few minor grammatical nits here and a question on locking.
+
+On 13/12/17 18:26, Jacopo Mondi wrote:
+> Currently, subdevice notifiers are tested against all available
+> subdevices as soon as they get registered. It often happens anyway
+> that the subdevice they are connected to is not yet initialized, as
+> it usually gets registered later in drivers' code. This makes debug
+> of v4l2_async particularly painful, as identifying a notifier with
+> an unitialized subdevice is tricky as they don't have a valid
+
+uninitialized
+
+> 'struct device *' or 'struct fwnode_handle *' to be identified with.
+> 
+> In order to make sure that the notifier's subdevices is initialized
+> when the notifier is tesed against available subdevices post-pone the
+> actual notifier registration at subdevice registration time.
+> 
+> It is worth noting that post-poning registration of a subdevice notifier
+
+postponing is not hyphenated.
+
+> does not impact on the completion of the notifiers chain, as even if a
+> subdev notifier completes as soon as it gets registered, the complete()
+> call chain cannot be upscaled as long as the subdevice the notifiers
+
+Upscaled? Is this the right word here ? perhaps 'processed'?
+
+"the complete() call chain cannot be process before the subdevice to which the
+notifiers belong has been registered"
+
+> belongs to is not registered.
+> 
+> Also, it is now safe to access a notifier 'struct device *' as we're now
+> sure it is properly initialized when the notifier is actually
+> registered.
+> 
+> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+> ---
+>  drivers/media/v4l2-core/v4l2-async.c | 65 +++++++++++++++++++++++-------------
+>  include/media/v4l2-async.h           |  2 ++
+>  2 files changed, 43 insertions(+), 24 deletions(-)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+> index 0a1bf1d..c13a781 100644
+> --- a/drivers/media/v4l2-core/v4l2-async.c
+> +++ b/drivers/media/v4l2-core/v4l2-async.c
+> @@ -25,6 +25,13 @@
+>  #include <media/v4l2-fwnode.h>
+>  #include <media/v4l2-subdev.h>
+> 
+> +static struct device *v4l2_async_notifier_dev(
+> +					struct v4l2_async_notifier *notifier)
+> +{
+> +	return notifier->v4l2_dev ? notifier->v4l2_dev->dev :
+> +				    notifier->sd->dev;
+> +}
+> +
+>  static int v4l2_async_notifier_call_bound(struct v4l2_async_notifier *n,
+>  					  struct v4l2_subdev *subdev,
+>  					  struct v4l2_async_subdev *asd)
+> @@ -124,19 +131,6 @@ static struct v4l2_async_subdev *v4l2_async_find_match(
+>  	return NULL;
+>  }
+> 
+> -/* Find the sub-device notifier registered by a sub-device driver. */
+> -static struct v4l2_async_notifier *v4l2_async_find_subdev_notifier(
+> -	struct v4l2_subdev *sd)
+> -{
+> -	struct v4l2_async_notifier *n;
+> -
+> -	list_for_each_entry(n, &notifier_list, list)
+> -		if (n->sd == sd)
+> -			return n;
+> -
+> -	return NULL;
+> -}
+> -
+>  /* Get v4l2_device related to the notifier if one can be found. */
+>  static struct v4l2_device *v4l2_async_notifier_find_v4l2_dev(
+>  	struct v4l2_async_notifier *notifier)
+> @@ -160,7 +154,7 @@ static bool v4l2_async_notifier_can_complete(
+> 
+>  	list_for_each_entry(sd, &notifier->done, async_list) {
+>  		struct v4l2_async_notifier *subdev_notifier =
+> -			v4l2_async_find_subdev_notifier(sd);
+> +							sd->subdev_notifier;
+> 
+>  		if (subdev_notifier &&
+>  		    !v4l2_async_notifier_can_complete(subdev_notifier))
+> @@ -228,7 +222,7 @@ static int v4l2_async_match_notify(struct v4l2_async_notifier *notifier,
+>  	/*
+>  	 * See if the sub-device has a notifier. If not, return here.
+>  	 */
+> -	subdev_notifier = v4l2_async_find_subdev_notifier(sd);
+> +	subdev_notifier = sd->subdev_notifier;
+>  	if (!subdev_notifier || subdev_notifier->parent)
+>  		return 0;
+> 
+> @@ -294,7 +288,7 @@ static void v4l2_async_notifier_unbind_all_subdevs(
+> 
+>  	list_for_each_entry_safe(sd, tmp, &notifier->done, async_list) {
+>  		struct v4l2_async_notifier *subdev_notifier =
+> -			v4l2_async_find_subdev_notifier(sd);
+> +							sd->subdev_notifier;
+> 
+>  		if (subdev_notifier)
+>  			v4l2_async_notifier_unbind_all_subdevs(subdev_notifier);
+> @@ -371,8 +365,7 @@ static bool v4l2_async_notifier_fwnode_has_async_subdev(
+> 
+>  static int __v4l2_async_notifier_register(struct v4l2_async_notifier *notifier)
+>  {
+> -	struct device *dev =
+> -		notifier->v4l2_dev ? notifier->v4l2_dev->dev : NULL;
+> +	struct device *dev = v4l2_async_notifier_dev(notifier);
+>  	struct v4l2_async_subdev *asd;
+>  	int ret;
+>  	int i;
+> @@ -383,6 +376,8 @@ static int __v4l2_async_notifier_register(struct v4l2_async_notifier *notifier)
+>  	INIT_LIST_HEAD(&notifier->waiting);
+>  	INIT_LIST_HEAD(&notifier->done);
+> 
+> +	notifier->owner = dev_fwnode(dev);
+> +
+>  	mutex_lock(&list_lock);
+> 
+>  	for (i = 0; i < notifier->num_subdevs; i++) {
+> @@ -421,6 +416,7 @@ static int __v4l2_async_notifier_register(struct v4l2_async_notifier *notifier)
+> 
+>  	/* Keep also completed notifiers on the list */
+>  	list_add(&notifier->list, &notifier_list);
+> +	notifier->registered = true;
+> 
+>  	mutex_unlock(&list_lock);
+> 
+> @@ -447,7 +443,7 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
+>  		return -EINVAL;
+> 
+>  	notifier->v4l2_dev = v4l2_dev;
+> -	notifier->owner = dev_fwnode(v4l2_dev->dev);
+> +	notifier->registered = false;
+> 
+>  	ret = __v4l2_async_notifier_register(notifier);
+>  	if (ret)
+> @@ -466,7 +462,11 @@ int v4l2_async_subdev_notifier_register(struct v4l2_subdev *sd,
+>  		return -EINVAL;
+> 
+>  	notifier->sd = sd;
+> -	notifier->owner = dev_fwnode(sd->dev);
+> +	sd->subdev_notifier = notifier;
+> +	notifier->registered = false;
+> +
+> +	if (!sd->dev || !sd->fwnode)
+> +		return 0;
+> 
+>  	ret = __v4l2_async_notifier_register(notifier);
+>  	if (ret)
+> @@ -482,12 +482,15 @@ static void __v4l2_async_notifier_unregister(
+>  	if (!notifier || (!notifier->v4l2_dev && !notifier->sd))
+>  		return;
+> 
+> -	v4l2_async_notifier_unbind_all_subdevs(notifier);
+> +	if (notifier->registered) {
+> +		v4l2_async_notifier_unbind_all_subdevs(notifier);
+> +		list_del(&notifier->list);
+> +	}
+> 
+>  	notifier->sd = NULL;
+>  	notifier->v4l2_dev = NULL;
+> -
+> -	list_del(&notifier->list);
+> +	notifier->owner = NULL;
+> +	notifier->registered = false;
+
+Do we need any locking of the notifier object now that it uses a flag and an
+'asynchronous' registration ?
+
+It might be OK ... but I haven't processed through the whole usage yet.
+
+>  }
+> 
+>  void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
+> @@ -548,6 +551,20 @@ int v4l2_async_register_subdev(struct v4l2_subdev *sd)
+>  			sd->fwnode = dev_fwnode(sd->dev);
+>  	}
+> 
+> +	/*
+> +	 * If the subdevice has an unregisterd notifier, it's now time
+
+unregistered
+
+--
+Regards
+
+Kieran
+
+> +	 * to register it.> +	 */
+> +	subdev_notifier = sd->subdev_notifier;
+> +	if (subdev_notifier && !subdev_notifier->registered) {
+> +		ret = __v4l2_async_notifier_register(subdev_notifier);
+> +		if (ret) {
+> +			sd->fwnode = NULL;
+> +			subdev_notifier->owner = NULL;
+> +			return ret;
+> +		}
+> +	}
+> +
+>  	mutex_lock(&list_lock);
+> 
+>  	INIT_LIST_HEAD(&sd->async_list);
+> @@ -589,7 +606,7 @@ int v4l2_async_register_subdev(struct v4l2_subdev *sd)
+>  	 * Complete failed. Unbind the sub-devices bound through registering
+>  	 * this async sub-device.
+>  	 */
+> -	subdev_notifier = v4l2_async_find_subdev_notifier(sd);
+> +	subdev_notifier = sd->subdev_notifier;
+>  	if (subdev_notifier)
+>  		v4l2_async_notifier_unbind_all_subdevs(subdev_notifier);
+> 
+> diff --git a/include/media/v4l2-async.h b/include/media/v4l2-async.h
+> index a15c01d..6ab04ad 100644
+> --- a/include/media/v4l2-async.h
+> +++ b/include/media/v4l2-async.h
+> @@ -110,6 +110,7 @@ struct v4l2_async_notifier_operations {
+>   * @waiting:	list of struct v4l2_async_subdev, waiting for their drivers
+>   * @done:	list of struct v4l2_subdev, already probed
+>   * @list:	member in a global list of notifiers
+> + * @registered: notifier registered complete flag
+>   */
+>  struct v4l2_async_notifier {
+>  	const struct v4l2_async_notifier_operations *ops;
+> @@ -123,6 +124,7 @@ struct v4l2_async_notifier {
+>  	struct list_head waiting;
+>  	struct list_head done;
+>  	struct list_head list;
+> +	bool registered;
+>  };
+> 
+>  /**
+> --
+> 2.7.4
+> 
