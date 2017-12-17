@@ -1,75 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eusmtp01.atmel.com ([212.144.249.243]:52545 "EHLO
-        eusmtp01.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754158AbdLFCak (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 5 Dec 2017 21:30:40 -0500
-From: Wenyou Yang <wenyou.yang@microchip.com>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>
-CC: <linux-kernel@vger.kernel.org>,
-        Nicolas Ferre <nicolas.ferre@microchip.com>,
-        <devicetree@vger.kernel.org>, Sakari Ailus <sakari.ailus@iki.fi>,
-        Jonathan Corbet <corbet@lwn.net>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        <linux-arm-kernel@lists.infradead.org>,
-        "Linux Media Mailing List" <linux-media@vger.kernel.org>,
-        Wenyou Yang <wenyou.yang@microchip.com>
-Subject: [PATCH v7 0/2] media: ov7740: Add a V4L2 sensor-level driver
-Date: Wed, 6 Dec 2017 10:23:41 +0800
-Message-ID: <20171206022343.31104-1-wenyou.yang@microchip.com>
+Received: from vps-vb.mhejs.net ([37.28.154.113]:53612 "EHLO vps-vb.mhejs.net"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1757420AbdLQRed (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 17 Dec 2017 12:34:33 -0500
+From: "Maciej S. Szmigiero" <mail@maciej.szmigiero.name>
+Subject: [PATCH v3 0/6] [media] Add analog mode support for Medion MD95700
+To: Michael Krufky <mkrufky@linuxtv.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Andy Walls <awalls@md.metrocast.net>,
+        linux-kernel <linux-kernel@vger.kernel.org>,
+        linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <f2106752-d4be-8689-081d-fa6ea904cd16@maciej.szmigiero.name>
+Date: Sun, 17 Dec 2017 18:34:30 +0100
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=iso-8859-2
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add a Video4Linux2 sensor-level driver for the OmniVision OV7740
-VGA camera image sensor.
+This series adds support for analog part of Medion 95700 in the cxusb
+driver.
 
-Changes in v7:
- - Add Acked-by tag.
- - Fix the wrong handle of default register configuration.
- - Add the missed assignment of ov7740->frmsize.
+What works:
+* Video capture at various sizes with sequential fields,
+* Input switching (TV Tuner, Composite, S-Video),
+* TV and radio tuning,
+* Video standard switching and auto detection,
+* Radio mode switching (stereo / mono),
+* Unplugging while capturing,
+* DVB / analog coexistence,
+* Raw BT.656 stream support.
 
-Changes in v6:
- - Remove unnecessary #include <linux/init>.
- - Remove unnecessary comments and extra newline.
- - Add const for some structures.
- - Add the check of the return value from regmap_write().
- - Simplify the calling of __v4l2_ctrl_handler_setup().
- - Add the default format initialization function.
- - Integrate the set_power() and enable/disable the clock into
-   one function.
+What does not work yet:
+* Audio,
+* VBI,
+* Picture controls.
 
-Changes in v5:
- - Squash the driver and MAINTAINERS entry patches to one.
- - Precede the driver patch with the bindings patch.
+This series (as a one patch) was submitted for inclusion few years ago,
+then waited few months in a patch queue.
+Unfortunately, by the time it was supposed to be merged there
+were enough changes in media that it was no longer mergable.
 
-Changes in v4:
- - Assign 'val' a initial value to avoid warning: 'val' may be
-   used uninitialized.
- - Rename REG_REG15 to avoid warning: "REG_REG15" redefined.
+I thought at that time that I will be able to rebase and retest it soon
+but unfortunately up till now I was never able to find enough time to do
+so.
+Also, with the passing of time the implementation diverged more and
+more from the current kernel code, necessitating even more reworking.
 
-Changes in v3:
- - Explicitly document the "remote-endpoint" property.
- - Put the MAINTAINERS change to a separate patch.
+That last iteration can be found here:
+https://patchwork.linuxtv.org/patch/8048/
 
-Changes in v2:
- - Split off the bindings into a separate patch.
- - Add a new entry to the MAINTAINERS file.
+Since that version there had been the following changes:
+* Adaptation to changes in V4L2 / DVB core,
 
-Wenyou Yang (2):
-  media: ov7740: Document device tree bindings
-  media: i2c: Add the ov7740 image sensor driver
+* Radio device was added, with a possibility to tune to a FM radio
+station and switch between stereo and mono modes (tested by taping
+audio signal directly at tuner output pin),
 
- .../devicetree/bindings/media/i2c/ov7740.txt       |   47 +
- MAINTAINERS                                        |    8 +
- drivers/media/i2c/Kconfig                          |    8 +
- drivers/media/i2c/Makefile                         |    1 +
- drivers/media/i2c/ov7740.c                         | 1234 ++++++++++++++++++++
- 5 files changed, 1298 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/i2c/ov7740.txt
- create mode 100644 drivers/media/i2c/ov7740.c
+* DVB / analog coexistence was improved - resolved a few cases where
+DVB core would switch off power or reset the tuner when the device
+was still being used but in the analog mode,
 
--- 
-2.15.0
+* Fixed issues reported by v4l2-compliance,
+
+* Switching to raw BT.656 mode is now done by a custom streaming
+parameter set via VIDIOC_S_PARM ioctl instead of using a
+V4L2_BUF_TYPE_PRIVATE buffer (which was removed from V4L2),
+
+* General small code cleanups (like using BIT() or ARRAY_SIZE() macros
+instead of open coding them, code formatting improvements, etc.).
+
+Changes from v1:
+* Only support configuration of cx25840 pins that the cxusb driver is
+actually using so there is no need for an ugly CX25840_PIN() macro,
+
+* Split cxusb changes into two patches: first one implementing
+digital / analog coexistence in this driver, second one adding the
+actual implementation of the analog mode,
+
+* Fix a warning reported by kbuild test robot.
+
+Changes from v2:
+* Split out ivtv cx25840 platform data zero-initialization to a separate
+commit,
+
+* Add kernel-doc description of struct cx25840_state,
+
+* Make sure that all variables used in CX25840_VCONFIG_OPTION() and
+CX25840_VCONFIG_SET_BIT() macros are their explicit parameters,
+
+* Split out some code from cxusb_medion_copy_field() and
+cxusb_medion_v_complete_work() functions to separate ones to increase
+their readability,
+
+* Generate masks using GENMASK() and BIT() macros in cx25840.h and
+cxusb.h.
+
+Maciej S. Szmigiero (6):
+  ivtv: zero-initialize cx25840 platform data
+  cx25840: add kernel-doc description of struct cx25840_state
+  cx25840: add pin to pad mapping and output format configuration
+  tuner-simple: allow setting mono radio mode
+  [media] cxusb: implement Medion MD95700 digital / analog coexistence
+  [media] cxusb: add analog mode support for Medion MD95700
+
+ drivers/media/i2c/cx25840/cx25840-core.c |  396 +++++-
+ drivers/media/i2c/cx25840/cx25840-core.h |   46 +-
+ drivers/media/i2c/cx25840/cx25840-vbi.c  |    3 +
+ drivers/media/pci/ivtv/ivtv-i2c.c        |    1 +
+ drivers/media/tuners/tuner-simple.c      |    5 +-
+ drivers/media/usb/dvb-usb/Kconfig        |    8 +-
+ drivers/media/usb/dvb-usb/Makefile       |    2 +-
+ drivers/media/usb/dvb-usb/cxusb-analog.c | 1927 ++++++++++++++++++++++++++++++
+ drivers/media/usb/dvb-usb/cxusb.c        |  455 ++++++-
+ drivers/media/usb/dvb-usb/cxusb.h        |  136 +++
+ drivers/media/usb/dvb-usb/dvb-usb-dvb.c  |   20 +-
+ drivers/media/usb/dvb-usb/dvb-usb-init.c |   13 +
+ drivers/media/usb/dvb-usb/dvb-usb.h      |    8 +
+ include/media/drv-intf/cx25840.h         |   74 +-
+ 14 files changed, 3028 insertions(+), 66 deletions(-)
+ create mode 100644 drivers/media/usb/dvb-usb/cxusb-analog.c
