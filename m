@@ -1,68 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtprelay2.synopsys.com ([198.182.60.111]:49156 "EHLO
-        smtprelay.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753279AbdLOLXL (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:43442 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1752345AbdLQXeA (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 15 Dec 2017 06:23:11 -0500
-Subject: Re: [PATCH v10 4/4] [media] platform: Add Synopsys DesignWare HDMI RX
- Controller Driver
-To: Hans Verkuil <hverkuil@xs4all.nl>, <linux-media@vger.kernel.org>,
-        <linux-kernel@vger.kernel.org>
-References: <cover.1513013948.git.joabreu@synopsys.com>
- <5f9eedfd6f91ed73ef0bb6d3977588d01478909f.1513013948.git.joabreu@synopsys.com>
- <108e2c3c-243f-cd67-2df7-57541b28ca39@xs4all.nl>
- <635e7d70-0edb-7506-c268-9ebbae1eb39e@synopsys.com>
- <ca5b3cf7-c7d0-36d4-08ac-32a7a00afd7d@xs4all.nl>
- <f5341c4b-43e2-12f6-9c9f-2385d47bb2fd@synopsys.com>
- <86a5787d-6ed6-7674-35f9-c77341b4c36b@xs4all.nl>
-CC: Joao Pinto <Joao.Pinto@synopsys.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        "Sylwester Nawrocki" <snawrocki@kernel.org>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Philippe Ombredanne <pombredanne@nexb.com>
-From: Jose Abreu <Jose.Abreu@synopsys.com>
-Message-ID: <3c15b537-33b3-f786-369e-5d82ab9eeb9c@synopsys.com>
-Date: Fri, 15 Dec 2017 11:23:04 +0000
+        Sun, 17 Dec 2017 18:34:00 -0500
+Date: Mon, 18 Dec 2017 01:33:56 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        sakari.ailus@linux.intel.com, niklas.soderlund@ragnatech.se,
+        kieran.bingham@ideasonboard.com, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org
+Subject: Re: [PATCH 4/5] v4l2: async: Postpone subdev_notifier registration
+Message-ID: <20171217233356.gjo33dku5wbyh77o@valkosipuli.retiisi.org.uk>
+References: <1513189580-32202-1-git-send-email-jacopo+renesas@jmondi.org>
+ <1513189580-32202-5-git-send-email-jacopo+renesas@jmondi.org>
+ <1903051.6PYr83kQ6W@avalon>
 MIME-Version: 1.0
-In-Reply-To: <86a5787d-6ed6-7674-35f9-c77341b4c36b@xs4all.nl>
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1903051.6PYr83kQ6W@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Hi Laurent,
 
-On 13-12-2017 20:49, Hans Verkuil wrote:
-> On 13/12/17 15:00, Jose Abreu wrote:
->>
->> Indeed. I compared the values with the spec and they are not
->> correct. Even hsync is wrong. I already corrected in the code the
->> hsync but regarding interlace I'm not seeing an easy way to do
->> this without using interrupts in each vsync because the register
->> I was toggling does not behave as I expected (I misunderstood the
->> databook). Maybe we should not detect interlaced modes for now?
->> Or not fill the il_ fields?
-> As I mentioned above you as long as you get a good backporch value you
-> can deduce from whether it is an odd or even number to which field it
-> belongs and fill in the other values. So I think you only need to read
-> these values for one field.
->
-> Filling in good values here (at least as far as is possible since not all
-> hardware can give it) will help debugging issues, even if you otherwise do
-> not support interlaced.
+On Sun, Dec 17, 2017 at 07:03:17PM +0200, Laurent Pinchart wrote:
+> Hi Jacopo,
+> 
+> Thank you for the patch.
+> 
+> On Wednesday, 13 December 2017 20:26:19 EET Jacopo Mondi wrote:
+> > Currently, subdevice notifiers are tested against all available
+> > subdevices as soon as they get registered. It often happens anyway
+> > that the subdevice they are connected to is not yet initialized, as
+> > it usually gets registered later in drivers' code. This makes debug
+> > of v4l2_async particularly painful, as identifying a notifier with
+> > an unitialized subdevice is tricky as they don't have a valid
+> > 'struct device *' or 'struct fwnode_handle *' to be identified with.
+> > 
+> > In order to make sure that the notifier's subdevices is initialized
+> > when the notifier is tesed against available subdevices post-pone the
+> > actual notifier registration at subdevice registration time.
+> 
+> Aren't you piling yet another hack on top of an already dirty framework ? How 
+> about fixing the root cause of the issue and ensuring that subdevs are 
+> properly initialized when the notifier is registered ?
 
-Ok, I will fill the fields.
+The problem domain is quite complex --- there are multiple drivers working
+with multiple objects each here, and things can happen in a different order
+--- which needs to be supported but is sometimes missed in design.
 
-Until the end of January I will be quite busy in another project
-so if you could review the remaining patches of this series I
-would appreciate very much ... This way when I have the time I
-can code all the changes and send them at once.
+In this case the problem is that the sub-device is only registered after
+the related notifier is. If you did that the other way around, the V4L2
+async framework could well find that everything is done and proceed to call
+the complete callback, just before the async sub-device notifier is
+registered.
 
-Thanks and Best Regards,
-Jose Miguel Abreu
+Perhaps this is, once again, a sign that we should really ditch the
+complete callback. I'd hope we could find consensus on that. It's a lot of
+trouble to support this and I feel it's an entirely arfiticial construct
+that does not really solve a problem it's intended to.
 
->
+> 
+> > It is worth noting that post-poning registration of a subdevice notifier
+> > does not impact on the completion of the notifiers chain, as even if a
+> > subdev notifier completes as soon as it gets registered, the complete()
+> > call chain cannot be upscaled as long as the subdevice the notifiers
+> > belongs to is not registered.
+> > 
+> > Also, it is now safe to access a notifier 'struct device *' as we're now
+> > sure it is properly initialized when the notifier is actually
+> > registered.
+> > 
+> > Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+> > ---
+> >  drivers/media/v4l2-core/v4l2-async.c | 65 +++++++++++++++++++++-----------
+> >  include/media/v4l2-async.h           |  2 ++
+> >  2 files changed, 43 insertions(+), 24 deletions(-)
+> > 
+> > diff --git a/drivers/media/v4l2-core/v4l2-async.c
+> > b/drivers/media/v4l2-core/v4l2-async.c index 0a1bf1d..c13a781 100644
+> > --- a/drivers/media/v4l2-core/v4l2-async.c
+> > +++ b/drivers/media/v4l2-core/v4l2-async.c
+> 
+> [snip]
+> 
+> > @@ -548,6 +551,20 @@ int v4l2_async_register_subdev(struct v4l2_subdev *sd)
+> >  			sd->fwnode = dev_fwnode(sd->dev);
+> >  	}
+> > 
+> > +	/*
+> > +	 * If the subdevice has an unregisterd notifier, it's now time
+> > +	 * to register it.
+> > +	 */
+> > +	subdev_notifier = sd->subdev_notifier;
+> > +	if (subdev_notifier && !subdev_notifier->registered) {
+> > +		ret = __v4l2_async_notifier_register(subdev_notifier);
+> > +		if (ret) {
+> > +			sd->fwnode = NULL;
+> > +			subdev_notifier->owner = NULL;
+> > +			return ret;
+> > +		}
+> > +	}
+> 
+> This is the part I like the least in this patch set. The 
+> v4l2_subdev::subdev_notifier field should really disappear, there's no reason 
+> to limit subdevs to a single notifier. Implicit registration of notifiers is a 
+> dirty hack in my opinion.
+> 
+> >  	mutex_lock(&list_lock);
+> > 
+> >  	INIT_LIST_HEAD(&sd->async_list);
+> 
+> [snip]
+> 
+> -- 
 > Regards,
->
-> 	Hans
+> 
+> Laurent Pinchart
+> 
+
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
