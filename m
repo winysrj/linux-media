@@ -1,57 +1,170 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([65.50.211.133]:46169 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753409AbdLNRfx (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 14 Dec 2017 12:35:53 -0500
-Date: Thu, 14 Dec 2017 15:35:43 -0200
-From: Mauro Carvalho Chehab <mchehab@kernel.org>
-To: Joe Perches <joe@perches.com>
-Cc: Dhaval Shah <dhaval23031987@gmail.com>, hyun.kwon@xilinx.com,
-        laurent.pinchart@ideasonboard.com, michal.simek@xilinx.com,
-        linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] media: v4l: xilinx: Use SPDX-License-Identifier
-Message-ID: <20171214153543.598ca985@vento.lan>
-In-Reply-To: <1513272387.27409.69.camel@perches.com>
-References: <20171208123537.18718-1-dhaval23031987@gmail.com>
-        <20171214150527.00dca6cc@vento.lan>
-        <1513272387.27409.69.camel@perches.com>
+Received: from mga02.intel.com ([134.134.136.20]:4206 "EHLO mga02.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752345AbdLQXiU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 17 Dec 2017 18:38:20 -0500
+Date: Mon, 18 Dec 2017 01:38:15 +0200
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: jacopo mondi <jacopo@jmondi.org>
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        niklas.soderlund@ragnatech.se, kieran.bingham@ideasonboard.com,
+        laurent.pinchart@ideasonboard.com, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org
+Subject: Re: [PATCH 5/5] v4l2: async: Add debug output to v4l2-async module
+Message-ID: <20171217233815.33gz5zis3gn3z3qz@kekkonen.localdomain>
+References: <1513189580-32202-1-git-send-email-jacopo+renesas@jmondi.org>
+ <1513189580-32202-6-git-send-email-jacopo+renesas@jmondi.org>
+ <20171215161704.lnsaut4d2nxliaca@paasikivi.fi.intel.com>
+ <20171217164254.GF20926@w540>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20171217164254.GF20926@w540>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 14 Dec 2017 09:26:27 -0800
-Joe Perches <joe@perches.com> escreveu:
+Hi Jacopo,
 
-> On Thu, 2017-12-14 at 15:05 -0200, Mauro Carvalho Chehab wrote:
-> > Em Fri,  8 Dec 2017 18:05:37 +0530
-> > Dhaval Shah <dhaval23031987@gmail.com> escreveu:
-> >   
-> > > SPDX-License-Identifier is used for the Xilinx Video IP and
-> > > related drivers.
-> > > 
-> > > Signed-off-by: Dhaval Shah <dhaval23031987@gmail.com>  
-> > 
-> > Hi Dhaval,
-> > 
-> > You're not listed as one of the Xilinx driver maintainers. I'm afraid that,
-> > without their explicit acks, sent to the ML, I can't accept a patch
-> > touching at the driver's license tags.  
+On Sun, Dec 17, 2017 at 05:42:54PM +0100, jacopo mondi wrote:
+> Hi Sakari,
 > 
-> And even a maintainer may not have the sole right
-> to modify a license.
+> On Fri, Dec 15, 2017 at 06:17:04PM +0200, Sakari Ailus wrote:
+> > Hi Jacopo,
+> >
+> > On Wed, Dec 13, 2017 at 07:26:20PM +0100, Jacopo Mondi wrote:
+> > > The v4l2-async module operations are quite complex to follow, due to the
+> > > asynchronous nature of subdevices and notifiers registration and
+> > > matching procedures. In order to help with debugging of failed or
+> > > erroneous matching between a subdevice and the notifier collected
+> > > async_subdevice it gets matched against, introduce a few dev_dbg() calls
+> > > in v4l2_async core operations.
+> > >
+> > > Protect the debug operations with a Kconfig defined symbol, to make sure
+> > > when debugging is disabled, no additional code or data is added to the
+> > > module.
+> > >
+> > > Notifiers are identified by the name of the subdevice or v4l2_dev they are
+> > > registered by, while subdevice matching which now happens on endpoints,
+> > > need a longer description built walking the fwnode graph backwards
+> > > collecting parent nodes names (otherwise we would have had printouts
+> > > like: "Matching "endpoint" with "endpoint"" which are not that useful).
+> > >
+> > > Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+> > >
+> > > ---
+> > > For fwnodes backed by OF, I may have used the "%pOF" format modifier to
+> > > get the full node name instead of parsing the fwnode graph by myself with
+> > > "v4l2_async_fwnode_full_name()". Unfortunately I'm not aware of anything
+> > > like "%pOF" for ACPI backed fwnodes. Also, walking the fwnode graph by
+> > > myself allows me to reduce the depth, to reduce the debug messages output
+> > > length which is anyway long enough to result disturbing on a 80columns
+> > > terminal window.
+> >
+> > ACPI doesn't have such at the moment. I think printing the full path would
+> > still be better. There isn't that much more to print after all.
+> 
+> So you suggest to just use the full node name for OF. What about ACPI?
+> 
+> From your other reply I got that I can print the single node name for
+> "device ACPI nodes" but not for "non-device ACPI nodes". Should I build
+> the full device name in drivers/acpi/properties.c for ACPI devices
+> like I'm doing here for fwnodes?
 
-Very true. I was actually expecting a patch like that either authored
-or explicitly sanctioned by either one of those developers:
+What I think would be nice was that ACPI would receive similar way to print
+node names (as well as other information) as OF has, through printk.
 
-Hyun Kwon <hyun.kwon@xilinx.com> (supporter:XILINX VIDEO IP CORES)
-Michal Simek <michal.simek@xilinx.com> (supporter:ARM/ZYNQ ARCHITECTURE)
+I don't demand that to get the patchset in though, I'm fine if this is
+limited to OF right now. It's debug info, after all that I've at least
+personally been fine without.
 
-As they own an @xilinx.com, we could assume that an email from
-their corporate accounts to be official.
+> 
+> >
+> > > ---
+> > >
+> > >  drivers/media/v4l2-core/Kconfig      |  8 ++++
+> > >  drivers/media/v4l2-core/v4l2-async.c | 81 ++++++++++++++++++++++++++++++++++++
+> > >  2 files changed, 89 insertions(+)
+> > >
+> > > diff --git a/drivers/media/v4l2-core/Kconfig b/drivers/media/v4l2-core/Kconfig
+> > > index a35c336..8331736 100644
+> > > --- a/drivers/media/v4l2-core/Kconfig
+> > > +++ b/drivers/media/v4l2-core/Kconfig
+> > > @@ -17,6 +17,14 @@ config VIDEO_ADV_DEBUG
+> > >  	  V4L devices.
+> > >  	  In doubt, say N.
+> > >
+> > > +config VIDEO_V4L2_ASYNC_DEBUG
+> > > +	bool "Enable debug functionalities for V4L2 async module"
+> > > +	depends on VIDEO_V4L2
+> >
+> > I'm not sure I'd add a Kconfig option. This is adding a fairly simple
+> > function only to the kernel.
+> 
+> So I will use a symbol defined in the module to enable/disable debug
+> (maybe the "DEBUG" symbol itself?)
 
-Thanks,
-Mauro
+Dynamic debug can be enabled via the user space interface or the kernel
+command line, I think that should be enough.
+
+> 
+> >
+> > > +	default n
+> > > +	---help---
+> > > +	  Say Y here to enable debug output in V4L2 async module.
+> > > +	  In doubt, say N.
+> > > +
+> > >  config VIDEO_FIXED_MINOR_RANGES
+> > >  	bool "Enable old-style fixed minor ranges on drivers/video devices"
+> > >  	default n
+> > > diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+> > > index c13a781..307e1a5 100644
+> > > --- a/drivers/media/v4l2-core/v4l2-async.c
+> > > +++ b/drivers/media/v4l2-core/v4l2-async.c
+> > > @@ -8,6 +8,10 @@
+> > >   * published by the Free Software Foundation.
+> > >   */
+> > >
+> > > +#if defined(CONFIG_VIDEO_V4L2_ASYNC_DEBUG)
+> > > +#define DEBUG
+> >
+> > Do you need this?
+> 
+> No dev_dbg() otherwise, isn't it?
+
+Yes. With dynamic debug.
+
+> 
+> >
+> > > +#endif
+> > > +
+> > >  #include <linux/device.h>
+> > >  #include <linux/err.h>
+> > >  #include <linux/i2c.h>
+> > > @@ -25,6 +29,52 @@
+> > >  #include <media/v4l2-fwnode.h>
+> > >  #include <media/v4l2-subdev.h>
+> > >
+> > > +#if defined(CONFIG_VIDEO_V4L2_ASYNC_DEBUG)
+> > > +#define V4L2_ASYNC_FWNODE_NAME_LEN	512
+> > > +
+> > > +static void __v4l2_async_fwnode_full_name(char *name,
+> > > +					  unsigned int len,
+> > > +					  unsigned int max_depth,
+> > > +					  struct fwnode_handle *fwnode)
+> > > +{
+> > > +	unsigned int buf_len = len < V4L2_ASYNC_FWNODE_NAME_LEN ?
+> > > +			       len : V4L2_ASYNC_FWNODE_NAME_LEN;
+> > > +	char __tmp[V4L2_ASYNC_FWNODE_NAME_LEN];
+> >
+> > That's a bit too much to allocate from the stack I think.
+> 
+> For an full name do you think 128 is enough? 256 maybe?
+
+I think it'd be nicer if you could print the information without using a
+buffer.
+
+-- 
+Kind regards,
+
+Sakari Ailus
+sakari.ailus@linux.intel.com
