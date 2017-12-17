@@ -1,99 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f171.google.com ([209.85.128.171]:45453 "EHLO
-        mail-wr0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751856AbdLCK5W (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sun, 3 Dec 2017 05:57:22 -0500
-Received: by mail-wr0-f171.google.com with SMTP id h1so14244902wre.12
-        for <linux-media@vger.kernel.org>; Sun, 03 Dec 2017 02:57:21 -0800 (PST)
-Subject: Re: [GIT PULL] SAA716x DVB driver
-To: Soeren Moch <smoch@web.de>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: =?UTF-8?Q?Tycho_L=c3=bcrsen?= <tycholursen@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org
-References: <50e5ba3c-4e32-f2e4-7844-150eefdf71b5@web.de>
- <d693cf1b-de3d-5994-5ef0-eeb0e37065a3@web.de>
- <20170827073040.6e96d79a@vento.lan>
- <e9d87f55-18fc-e57b-f9aa-a41c7f983b34@web.de>
- <20170909181123.392cfbb0@vento.lan>
- <a44b8eb0-cdd5-aa28-ad30-68db0126b6f6@web.de>
- <20170916125042.78c4abad@recife.lan>
- <fab215f8-29f3-1857-6f33-c45e78bb5e3c@web.de>
- <7c17c0a1-1c98-1272-8430-4a194b658872@gmail.com>
- <20171127092408.20de0fe0@vento.lan>
- <e2076533-5c33-f3be-b438-a1616f743a92@gmail.com>
- <20171202174922.34a6f9b9@vento.lan>
- <ce4f25e6-7d75-2391-d685-35b50a0639bb@web.de>
-From: Jemma Denson <jdenson@gmail.com>
-Message-ID: <335e279e-d498-135f-8077-770c77cf353b@gmail.com>
-Date: Sun, 3 Dec 2017 10:57:19 +0000
-MIME-Version: 1.0
-In-Reply-To: <ce4f25e6-7d75-2391-d685-35b50a0639bb@web.de>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
-Content-Language: en-GB
+Received: from mail-wm0-f51.google.com ([74.125.82.51]:39490 "EHLO
+        mail-wm0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751926AbdLQPky (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 17 Dec 2017 10:40:54 -0500
+Received: by mail-wm0-f51.google.com with SMTP id i11so25181864wmf.4
+        for <linux-media@vger.kernel.org>; Sun, 17 Dec 2017 07:40:53 -0800 (PST)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: linux-media@vger.kernel.org, mchehab@kernel.org,
+        mchehab@s-opensource.com
+Subject: [PATCH 0/8] ddbridge improvements and cleanups
+Date: Sun, 17 Dec 2017 16:40:41 +0100
+Message-Id: <20171217154049.1125-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/12/17 23:59, Soeren Moch wrote:
-> On 02.12.2017 20:49, Mauro Carvalho Chehab wrote:
->> Em Sat, 2 Dec 2017 18:51:16 +0000
->> Jemma Denson <jdenson@gmail.com> escreveu:
->>> Would I be correct in thinking the main blocker to this is the *_ff features
->>> used by the S2-6400 card? There's plenty of other cards using this chipset
->>> that don't need that part.
->>>
->>> Would a solution for now to be a driver with the ff components stripped out,
->>> and then the ff API work can be done later when / if there's any interest?
->> Works for me. In such case (and provided that the driver without *_ff are
->> in good shape), we could merge it under drivers/media (instead of merging
->> it on staging).
-> All the entries in the TODO file are not specific for saa716x_ff.
+From: Daniel Scheller <d.scheller@gmx.net>
 
-Ah, it's been a few months since I looked at that. I think some of the
-things listed I had already identified as problems - checkpatch especially,
-and the irq code probably needs a bit more auto-detection.
-I'm not sure I've seen how the other issues manifest themselves so I
-might need some explanation of that (off list if you prefer)
+This series improves on a few things in ddbridge:
 
->>> I guess a problem would be finding a maintainer, I'm happy to put together
->>> a stripped down driver just supporting the TBS card I use (I already have
->>> one I use with dkms), but I'm not sure I have the time or knowledge of this
->>> chipset to be a maintainer.
-> There is chipset specific stuff to fix, especially irq handling.
+* Fix up a KASAN report which pops up with all TDA18212-equipped hardware
+  by changing the order of all frontend driver teardown. This was
+  originally thought to be a problem of the tda18212 driver, see
+  https://patchwork.linuxtv.org/patch/45992/ (though other drivers with
+  that problem may remain).
+* Fix up CI resources cleanup handling, and further cosmetics and code
+  move, all CI related
+* Frontend cleanup improvements when handling errors (ie. when on one
+  port the device initialisation fails). Whenever a tuner module fails
+  now, everything should be cleaned up properly (and early) now, while
+  all other (working) tuners are being usable. Proper errors are printed
+  to the kernel log about this.
 
-Is this the module parameter kludges or something else?
+Mauro, I'm pretty sure you like this overall approach better, compared
+to https://patchwork.linuxtv.org/patch/45810/ :-) In fact, I picked up
+your idea of counting ports and act accordingly. Partial hardware setup
+now starts up all working parts properly, while releasing resources
+early when the nonworking parts are handled. If no ports could be started
+at all, the driver instance will fail gracefully and report this to
+upper layers.
 
->> As we're talking more about touching at uAPI, probably it doesn't require
->> chipsed knowledge. Only time and interest on doing it.
->>
->> Please sync with Soeren. Perhaps if you both could help on it, it would
->> make the task easier.
-> As I already wrote to different people off-list: I'm happy to support
-> more cards with the saa7160 bridge and maintain these in this driver. As
-> hobbyist programmer this of course makes no sense to me, if the hardware
-> I own (S2-6400) is not supported.
->
+I verified this by simply removing tda18212.ko with this DD setup:
 
-Hence my comment about finding a maintainer - I had assumed if the
-immediate result didn't support your card you probably wouldn't be willing
-to do that.
+* CineCTv6 bridge card (stv0367+tda18212 soldered on it, handled as
+  port 0), one DuoFlex C2T2 connected to port 1 (cxd2841er+tda18212)
+* Octopus CI Duo, one DuoFlex C2T2I (cxd2841er+tda18212) connected to
+  port 1, one SingleCI module (cxd2099) connected to port 2
 
-What I'm trying to do here is get *something* merged, and then once
-that work is done any interested parties can add to it. Or at the very
-least if some patches are left OOT the constant workload required to
-keep that up to date should be reduced significantly because they'll be
-far less to look after.
+Upon modprobe ddbridge, the CTv6 will completely fail due to the tuner
+driver not initialising (it's not there, actually). The OctoCIDUO
+will fail on the C2T2I Flex, but starts up the CI hardware, registers
+it's en50221 device nodes and things work fine with it. Unload cleans
+up everything, no leaked usecounts, no KASAN complaints. Putting back
+tda18212.ko, modprobe ddbridge - registers everything. Unload cleans
+up everything properly aswell.
 
-One of the problems though is choosing which fork to use. I *think* there
-are 2 - the one you've got which is the original powARman branch and the
-one I would be using is the CrazyCat / Luis /  TBS line. There are going 
-to be
-some differences but hopefully that's all frontend support based and one cut
-down to a single frontend would end up a good base to add the rest back
-in.
+Not entirely sure, but patch 1 might be something for stable (ie. 4.14).
 
-I'm looking at maybe finding time over christmas break.
+Daniel Scheller (8):
+  [media] ddbridge: unregister I2C tuner client before detaching fe's
+  [media] ddbridge: fix resources cleanup for CI hardware
+  [media] ddbridge: deduplicate calls to dvb_ca_en50221_init()
+  [media] ddbridge: move CI detach code to ddbridge-ci.c
+  [media] ddbridge: completely tear down input resources on failure
+  [media] ddbridge: fix deinit order in case of failure in ddb_init()
+  [media] ddbridge: detach first input if the second one failed to init
+  [media] ddbridge: improve ddb_ports_attach() failure handling
 
+ drivers/media/pci/ddbridge/ddbridge-ci.c   |  17 +++--
+ drivers/media/pci/ddbridge/ddbridge-ci.h   |   1 +
+ drivers/media/pci/ddbridge/ddbridge-core.c | 108 ++++++++++++++++++-----------
+ 3 files changed, 81 insertions(+), 45 deletions(-)
 
-Jemma
+-- 
+2.13.6
