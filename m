@@ -1,39 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga05.intel.com ([192.55.52.43]:52448 "EHLO mga05.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751072AbdLSSyt (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 19 Dec 2017 13:54:49 -0500
-From: Jani Nikula <jani.nikula@linux.intel.com>
-To: Joe Perches <joe@perches.com>,
-        linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org,
-        openipmi-developer@lists.sourceforge.net,
-        intel-gfx@lists.freedesktop.org, linuxppc-dev@lists.ozlabs.org,
-        netdev@vger.kernel.org, linux-nvme@lists.infradead.org,
-        platform-driver-x86@vger.kernel.org, linux-s390@vger.kernel.org,
-        esc.storagedev@microsemi.com, linux-scsi@vger.kernel.org,
-        linux-pm@vger.kernel.org, linux-serial@vger.kernel.org,
-        linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org,
-        alsa-devel@alsa-project.org, linux-omap@vger.kernel.org
-Cc: devel@driverdev.osuosl.org, linux-fbdev@vger.kernel.org,
-        linux-sh@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        linux-input@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: [-next PATCH 0/4] sysfs and DEVICE_ATTR_<foo>
-In-Reply-To: <cover.1513706701.git.joe@perches.com>
-References: <cover.1513706701.git.joe@perches.com>
-Date: Tue, 19 Dec 2017 20:54:32 +0200
-Message-ID: <87vah2o8ev.fsf@intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from mail-wr0-f196.google.com ([209.85.128.196]:44632 "EHLO
+        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751812AbdLQPk6 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 17 Dec 2017 10:40:58 -0500
+Received: by mail-wr0-f196.google.com with SMTP id w95so1033018wrc.11
+        for <linux-media@vger.kernel.org>; Sun, 17 Dec 2017 07:40:58 -0800 (PST)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: linux-media@vger.kernel.org, mchehab@kernel.org,
+        mchehab@s-opensource.com
+Cc: Ralph Metzler <rjkm@metzlerbros.de>
+Subject: [PATCH 4/8] [media] ddbridge: move CI detach code to ddbridge-ci.c
+Date: Sun, 17 Dec 2017 16:40:45 +0100
+Message-Id: <20171217154049.1125-5-d.scheller.oss@gmail.com>
+In-Reply-To: <20171217154049.1125-1-d.scheller.oss@gmail.com>
+References: <20171217154049.1125-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 19 Dec 2017, Joe Perches <joe@perches.com> wrote:
->  drivers/gpu/drm/i915/i915_sysfs.c                  | 12 ++--
+From: Daniel Scheller <d.scheller@gmx.net>
 
-For i915,
+Move the CI teardown code to ddbridge-ci.c where everything else related
+to CI hardware lives.
 
-Acked-by: Jani Nikula <jani.nikula@intel.com>
+Cc: Ralph Metzler <rjkm@metzlerbros.de>
+Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+---
+ drivers/media/pci/ddbridge/ddbridge-ci.c   | 11 +++++++++++
+ drivers/media/pci/ddbridge/ddbridge-ci.h   |  1 +
+ drivers/media/pci/ddbridge/ddbridge-core.c |  8 +-------
+ 3 files changed, 13 insertions(+), 7 deletions(-)
 
-
+diff --git a/drivers/media/pci/ddbridge/ddbridge-ci.c b/drivers/media/pci/ddbridge/ddbridge-ci.c
+index 8dfbc3bbd86d..5828111487b0 100644
+--- a/drivers/media/pci/ddbridge/ddbridge-ci.c
++++ b/drivers/media/pci/ddbridge/ddbridge-ci.c
+@@ -346,3 +346,14 @@ int ddb_ci_attach(struct ddb_port *port, u32 bitrate)
+ 	dvb_ca_en50221_init(port->dvb[0].adap, port->en, 0, 1);
+ 	return 0;
+ }
++
++void ddb_ci_detach(struct ddb_port *port)
++{
++	if (port->dvb[0].dev)
++		dvb_unregister_device(port->dvb[0].dev);
++	if (port->en) {
++		dvb_ca_en50221_release(port->en);
++		kfree(port->en->data);
++		port->en = NULL;
++	}
++}
+diff --git a/drivers/media/pci/ddbridge/ddbridge-ci.h b/drivers/media/pci/ddbridge/ddbridge-ci.h
+index 3a5d7ffab7b7..35a39182dd83 100644
+--- a/drivers/media/pci/ddbridge/ddbridge-ci.h
++++ b/drivers/media/pci/ddbridge/ddbridge-ci.h
+@@ -26,5 +26,6 @@
+ /******************************************************************************/
+ 
+ int ddb_ci_attach(struct ddb_port *port, u32 bitrate);
++void ddb_ci_detach(struct ddb_port *port);
+ 
+ #endif /* __DDBRIDGE_CI_H__ */
+diff --git a/drivers/media/pci/ddbridge/ddbridge-core.c b/drivers/media/pci/ddbridge/ddbridge-core.c
+index a81125d492ff..c2f028152388 100644
+--- a/drivers/media/pci/ddbridge/ddbridge-core.c
++++ b/drivers/media/pci/ddbridge/ddbridge-core.c
+@@ -1986,13 +1986,7 @@ void ddb_ports_detach(struct ddb *dev)
+ 			break;
+ 		case DDB_PORT_CI:
+ 		case DDB_PORT_LOOP:
+-			if (port->dvb[0].dev)
+-				dvb_unregister_device(port->dvb[0].dev);
+-			if (port->en) {
+-				dvb_ca_en50221_release(port->en);
+-				kfree(port->en->data);
+-				port->en = NULL;
+-			}
++			ddb_ci_detach(port);
+ 			break;
+ 		}
+ 	}
 -- 
-Jani Nikula, Intel Open Source Technology Center
+2.13.6
