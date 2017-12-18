@@ -1,66 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:43988 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753218AbdLOKL3 (ORCPT
+Received: from mail-pl0-f66.google.com ([209.85.160.66]:41644 "EHLO
+        mail-pl0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933474AbdLRMPv (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 15 Dec 2017 05:11:29 -0500
-Subject: Re: [PATCH 1/9] v4l: vsp1: Fix display stalls when requesting too
- many inputs
-To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
-Cc: linux-renesas-soc@vger.kernel.org
-References: <20171203105735.10529-1-laurent.pinchart+renesas@ideasonboard.com>
- <20171203105735.10529-2-laurent.pinchart+renesas@ideasonboard.com>
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Reply-To: kieran.bingham@ideasonboard.com
-Message-ID: <d8d9d2d7-eee7-3951-3e75-2c3e7b175f63@ideasonboard.com>
-Date: Fri, 15 Dec 2017 10:11:25 +0000
-MIME-Version: 1.0
-In-Reply-To: <20171203105735.10529-2-laurent.pinchart+renesas@ideasonboard.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 7bit
+        Mon, 18 Dec 2017 07:15:51 -0500
+From: Jacob Chen <jacob-chen@iotwrt.com>
+To: linux-rockchip@lists.infradead.org
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        mchehab@kernel.org, linux-media@vger.kernel.org,
+        sakari.ailus@linux.intel.com, hans.verkuil@cisco.com,
+        tfiga@chromium.org, zhengsq@rock-chips.com,
+        laurent.pinchart@ideasonboard.com, zyc@rock-chips.com,
+        eddie.cai.linux@gmail.com, jeffy.chen@rock-chips.com,
+        allon.huang@rock-chips.com, devicetree@vger.kernel.org,
+        heiko@sntech.de, robh+dt@kernel.org, Joao.Pinto@synopsys.com,
+        Luis.Oliveira@synopsys.com, Jose.Abreu@synopsys.com,
+        Jacob Chen <jacob2.chen@rock-chips.com>
+Subject: [PATCH v4 12/16] ARM: dts: rockchip: add isp node for rk3288
+Date: Mon, 18 Dec 2017 20:14:41 +0800
+Message-Id: <20171218121445.6086-9-jacob-chen@iotwrt.com>
+In-Reply-To: <20171218121445.6086-1-jacob-chen@iotwrt.com>
+References: <20171218121445.6086-1-jacob-chen@iotwrt.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+From: Jacob Chen <jacob2.chen@rock-chips.com>
 
-As this is a prevents hardware hangs, and is a distinct patch on it's own - I
-feel it should be on an accelerated path to integration, and should be merged
-separately from the rest of the CRC feature series.
+rk3288 have a Embedded 13M ISP
 
-On 03/12/17 10:57, Laurent Pinchart wrote:
-> Make sure we don't accept more inputs than the hardware can handle. This
-> is a temporary fix to avoid display stall, we need to instead allocate
-> the BRU or BRS to display pipelines dynamically based on the number of
-> planes they each use.
-> 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Signed-off-by: Jacob Chen <jacob2.chen@rock-chips.com>
+---
+ arch/arm/boot/dts/rk3288.dtsi | 17 +++++++++++++++++
+ 1 file changed, 17 insertions(+)
 
-Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-
-> ---
->  drivers/media/platform/vsp1/vsp1_drm.c | 9 +++++++++
->  1 file changed, 9 insertions(+)
-> 
-> diff --git a/drivers/media/platform/vsp1/vsp1_drm.c b/drivers/media/platform/vsp1/vsp1_drm.c
-> index 7ce69f23f50a..ac85942162c1 100644
-> --- a/drivers/media/platform/vsp1/vsp1_drm.c
-> +++ b/drivers/media/platform/vsp1/vsp1_drm.c
-> @@ -530,6 +530,15 @@ void vsp1_du_atomic_flush(struct device *dev, unsigned int pipe_index)
->  		struct vsp1_rwpf *rpf = vsp1->rpf[i];
->  		unsigned int j;
->  
-> +		/*
-> +		 * Make sure we don't accept more inputs than the hardware can
-> +		 * handle. This is a temporary fix to avoid display stall, we
-> +		 * need to instead allocate the BRU or BRS to display pipelines
-> +		 * dynamically based on the number of planes they each use.
-> +		 */
-> +		if (pipe->num_inputs >= pipe->bru->source_pad)
-> +			pipe->inputs[i] = NULL;
-> +
->  		if (!pipe->inputs[i])
->  			continue;
->  
-> 
+diff --git a/arch/arm/boot/dts/rk3288.dtsi b/arch/arm/boot/dts/rk3288.dtsi
+index f3e7f98c2724..ed0b17d1b116 100644
+--- a/arch/arm/boot/dts/rk3288.dtsi
++++ b/arch/arm/boot/dts/rk3288.dtsi
+@@ -962,6 +962,23 @@
+ 		status = "disabled";
+ 	};
+ 
++	isp: isp@ff910000 {
++		compatible = "rockchip,rk3288-cif-isp";
++		reg = <0x0 0xff910000 0x0 0x4000>;
++		interrupts = <GIC_SPI 14 IRQ_TYPE_LEVEL_HIGH>;
++		clocks = <&cru SCLK_ISP>, <&cru ACLK_ISP>,
++			 <&cru HCLK_ISP>, <&cru PCLK_ISP_IN>,
++			 <&cru SCLK_ISP_JPE>;
++		clock-names = "clk_isp", "aclk_isp",
++			      "hclk_isp", "pclk_isp_in",
++			      "sclk_isp_jpe";
++		assigned-clocks = <&cru SCLK_ISP>, <&cru SCLK_ISP_JPE>;
++		assigned-clock-rates = <400000000>, <400000000>;
++		power-domains = <&power RK3288_PD_VIO>;
++		iommus = <&isp_mmu>;
++		status = "disabled";
++	};
++
+ 	isp_mmu: iommu@ff914000 {
+ 		compatible = "rockchip,iommu";
+ 		reg = <0x0 0xff914000 0x0 0x100>, <0x0 0xff915000 0x0 0x100>;
+-- 
+2.15.1
