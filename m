@@ -1,82 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:36059 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S965441AbdLRRU3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 18 Dec 2017 12:20:29 -0500
-Date: Mon, 18 Dec 2017 15:20:05 -0200
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Pawel Osciak <pawel@osciak.com>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Kyungmin Park <kyungmin.park@samsung.com>
-Subject: Re: [PATCH 19/24] media: vb2-core: Improve kernel-doc markups
-Message-ID: <20171218152005.6241e72a@vento.lan>
-In-Reply-To: <20171010133234.ax3ra6qfvj6cemui@valkosipuli.retiisi.org.uk>
-References: <cover.1507544011.git.mchehab@s-opensource.com>
-        <acc10ada9169725a9136f9c039fe68cb0f355131.1507544011.git.mchehab@s-opensource.com>
-        <20171010133234.ax3ra6qfvj6cemui@valkosipuli.retiisi.org.uk>
+Received: from ipmail06.adl6.internode.on.net ([150.101.137.145]:45019 "EHLO
+        ipmail06.adl6.internode.on.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S933147AbdLRWPu (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 18 Dec 2017 17:15:50 -0500
+Date: Tue, 19 Dec 2017 09:10:41 +1100
+From: Dave Chinner <david@fromorbit.com>
+To: Joe Perches <joe@perches.com>
+Cc: Jiri Kosina <trivial@kernel.org>,
+        Linus Torvalds <torvalds@linux-foundation.org>,
+        linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
+        amd-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org,
+        linux-media@vger.kernel.org, MPT-FusionLinux.pdl@broadcom.com,
+        linux-scsi@vger.kernel.org, netdev@vger.kernel.org,
+        linux-wireless@vger.kernel.org,
+        acpi4asus-user@lists.sourceforge.net,
+        platform-driver-x86@vger.kernel.org, linux-rtc@vger.kernel.org,
+        linux-fsdevel@vger.kernel.org, ocfs2-devel@oss.oracle.com,
+        linux-xfs@vger.kernel.org, linux-audit@redhat.com,
+        alsa-devel@alsa-project.org,
+        linuxppc-dev <linuxppc-dev@lists.ozlabs.org>
+Subject: Re: [trivial PATCH] treewide: Align function definition open/close
+ braces
+Message-ID: <20171218221040.GG4094@dastard>
+References: <1513556924.31581.51.camel@perches.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1513556924.31581.51.camel@perches.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 10 Oct 2017 16:32:34 +0300
-Sakari Ailus <sakari.ailus@iki.fi> escreveu:
-
-> Hi Mauro,
+On Sun, Dec 17, 2017 at 04:28:44PM -0800, Joe Perches wrote:
+> Some functions definitions have either the initial open brace and/or
+> the closing brace outside of column 1.
 > 
-> On Mon, Oct 09, 2017 at 07:19:25AM -0300, Mauro Carvalho Chehab wrote:
-> > There are several issues on the current markups:
-> > - lack of cross-references;
-> > - wrong cross-references;
-> > - lack of a period of the end of several phrases;
-> > - Some descriptions can be enhanced.
-> > 
-> > Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> > ---
-> >  include/media/videobuf2-core.h | 376 ++++++++++++++++++++++-------------------
-> >  1 file changed, 204 insertions(+), 172 deletions(-)
-> > 
-> > diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-> > index 0308d8439049..e145f1475ffe 100644
-> > --- a/include/media/videobuf2-core.h
-> > +++ b/include/media/videobuf2-core.h  
+> Move those braces to column 1.
 > 
-> ...
+> This allows various function analyzers like gnu complexity to work
+> properly for these modified functions.
 > 
-> >  /**
-> >   * vb2_core_queue_init() - initialize a videobuf2 queue
-> > - * @q:		videobuf2 queue; this structure should be allocated in driver
-> > + * @q:		pointer to &struct vb2_queue with videobuf2 queue.
-> > + *		This structure should be allocated in driver
-> >   *
-> >   * The &vb2_queue structure should be allocated by the driver. The driver is
-> >   * responsible of clearing it's content and setting initial values for some
-> >   * required entries before calling this function.
-> > - * q->ops, q->mem_ops, q->type and q->io_modes are mandatory. Please refer
-> > - * to the struct vb2_queue description in include/media/videobuf2-core.h
-> > - * for more information.
-> > + *
-> > + * .. note::
-> > + *
-> > + *    The following fields at @q should be set before calling this function:  
+> Miscellanea:
 > 
-> should -> shall
+> o Remove extra trailing ; and blank line from xfs_agf_verify
 > 
-> I bet there's a lot of that in the documentation elsewhere, including this
-> patch.
+> Signed-off-by: Joe Perches <joe@perches.com>
+> ---
+....
 
-Yes, there are, and not only on this file (where it uses should
-everywhere).
+XFS bits look fine.
 
-I prefer to do such change globally.
+Acked-by: Dave Chinner <dchinner@redhat.com>
 
-For now, I'll apply this patch as-is.
-
-Thanks,
-Mauro
+-- 
+Dave Chinner
+david@fromorbit.com
