@@ -1,133 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:36098 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1755567AbdLONe6 (ORCPT
+Received: from smtp.csie.ntu.edu.tw ([140.112.30.61]:36112 "EHLO
+        smtp.csie.ntu.edu.tw" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1757709AbdLRIgU (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 15 Dec 2017 08:34:58 -0500
-Subject: Re: [PATCH v10 1/4] dt-bindings: media: Document Synopsys DesignWare
- HDMI RX
-To: Jose Abreu <Jose.Abreu@synopsys.com>, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-References: <cover.1513013948.git.joabreu@synopsys.com>
- <befe90fc55bfa4d1dc599270bc0372cf8691247a.1513013948.git.joabreu@synopsys.com>
-Cc: Joao Pinto <Joao.Pinto@synopsys.com>,
+        Mon, 18 Dec 2017 03:36:20 -0500
+MIME-Version: 1.0
+In-Reply-To: <1510558344-45402-1-git-send-email-yong.deng@magewell.com>
+References: <1510558344-45402-1-git-send-email-yong.deng@magewell.com>
+From: Chen-Yu Tsai <wens@csie.org>
+Date: Mon, 18 Dec 2017 16:35:51 +0800
+Message-ID: <CAGb2v67JhMfba8Ao7WyrYikkxvTxX8WaBRqu3GkrhOCWndresg@mail.gmail.com>
+Subject: Re: [linux-sunxi] [PATCH v3 2/3] dt-bindings: media: Add Allwinner
+ V3s Camera Sensor Interface (CSI)
+To: Yong Deng <yong.deng@magewell.com>
+Cc: Maxime Ripard <maxime.ripard@free-electrons.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
         Rob Herring <robh+dt@kernel.org>,
         Mark Rutland <mark.rutland@arm.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Chen-Yu Tsai <wens@csie.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
         Hans Verkuil <hans.verkuil@cisco.com>,
-        Sylwester Nawrocki <snawrocki@kernel.org>,
-        devicetree@vger.kernel.org
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <a3aac12a-e519-f9de-1c6d-b8fae393895d@xs4all.nl>
-Date: Fri, 15 Dec 2017 14:34:55 +0100
-MIME-Version: 1.0
-In-Reply-To: <befe90fc55bfa4d1dc599270bc0372cf8691247a.1513013948.git.joabreu@synopsys.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+        Randy Dunlap <rdunlap@infradead.org>,
+        Benoit Parrot <bparrot@ti.com>,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
+        Yannick Fertre <yannick.fertre@st.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Rick Chang <rick.chang@mediatek.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        devicetree <devicetree@vger.kernel.org>,
+        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
+        linux-kernel <linux-kernel@vger.kernel.org>,
+        linux-sunxi <linux-sunxi@googlegroups.com>,
+        =?UTF-8?Q?Ond=C5=99ej_Jirman?= <megous@megous.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/12/17 18:41, Jose Abreu wrote:
-> Document the bindings for the Synopsys DesignWare HDMI RX.
-> 
-> Signed-off-by: Jose Abreu <joabreu@synopsys.com>
-> Acked-by: Rob Herring <robh@kernel.org> (v8)
-> Cc: Joao Pinto <jpinto@synopsys.com>
-> Cc: Rob Herring <robh+dt@kernel.org>
-> Cc: Mark Rutland <mark.rutland@arm.com>
-> Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
-> Cc: Hans Verkuil <hans.verkuil@cisco.com>
-> Cc: Sylwester Nawrocki <snawrocki@kernel.org>
-> Cc: devicetree@vger.kernel.org
-
-Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
-
-Regards,
-
-	Hans
-
+On Mon, Nov 13, 2017 at 3:32 PM, Yong Deng <yong.deng@magewell.com> wrote:
+> Add binding documentation for Allwinner V3s CSI.
+>
+> Signed-off-by: Yong Deng <yong.deng@magewell.com>
 > ---
-> Changes from v7:
-> 	- Remove SoC specific bindings (Rob)
-> Changes from v6:
-> 	- Document which properties are required/optional (Sylwester)
-> 	- Drop compatible string for SoC (Sylwester)
-> 	- Reword edid-phandle property (Sylwester)
-> 	- Typo fixes (Sylwester)
-> Changes from v4:
-> 	- Use "cfg" instead of "cfg-clk" (Rob)
-> 	- Change node names (Rob)
-> Changes from v3:
-> 	- Document the new DT bindings suggested by Sylwester
-> Changes from v2:
-> 	- Document edid-phandle property
-> ---
->  .../devicetree/bindings/media/snps,dw-hdmi-rx.txt  | 58 ++++++++++++++++++++++
->  1 file changed, 58 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/media/snps,dw-hdmi-rx.txt
-> 
-> diff --git a/Documentation/devicetree/bindings/media/snps,dw-hdmi-rx.txt b/Documentation/devicetree/bindings/media/snps,dw-hdmi-rx.txt
+>  .../devicetree/bindings/media/sun6i-csi.txt        | 51 ++++++++++++++++++++++
+>  1 file changed, 51 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/sun6i-csi.txt
+>
+> diff --git a/Documentation/devicetree/bindings/media/sun6i-csi.txt b/Documentation/devicetree/bindings/media/sun6i-csi.txt
 > new file mode 100644
-> index 0000000..1dc09c6
+> index 0000000..f3916a2
 > --- /dev/null
-> +++ b/Documentation/devicetree/bindings/media/snps,dw-hdmi-rx.txt
-> @@ -0,0 +1,58 @@
-> +Synopsys DesignWare HDMI RX Decoder
-> +===================================
-> +
-> +This document defines device tree properties for the Synopsys DesignWare HDMI
-> +RX Decoder (DWC HDMI RX).
-> +
-> +The properties bellow belong to the Synopsys DesignWare HDMI RX Decoder node.
+> +++ b/Documentation/devicetree/bindings/media/sun6i-csi.txt
+> @@ -0,0 +1,51 @@
+> +Allwinner V3s Camera Sensor Interface
+> +------------------------------
 > +
 > +Required properties:
+> +  - compatible: value must be "allwinner,sun8i-v3s-csi"
+> +  - reg: base address and size of the memory-mapped region.
+> +  - interrupts: interrupt associated to this IP
+> +  - clocks: phandles to the clocks feeding the CSI
+> +    * bus: the CSI interface clock
+> +    * mod: the CSI module clock
+> +    * ram: the CSI DRAM clock
+> +  - clock-names: the clock names mentioned above
+> +  - resets: phandles to the reset line driving the CSI
 > +
-> +- compatible: Shall be "snps,dw-hdmi-rx".
-> +- reg: Memory mapped base address and length of the DWC HDMI RX registers.
-> +- interrupts: Reference to the DWC HDMI RX interrupt and the HDMI 5V sense
-> +interrupt.
-> +- clocks: Reference to the config clock.
-> +- clock-names: Shall be "cfg".
-> +- #address-cells: Shall be 1.
-> +- #size-cells: Shall be 0.
-> +
-> +Optional properties:
-> +
-> +- edid-phandle: Reference to the EDID handler block; if this property is not
-> +specified it is assumed that EDID is handled by device described by parent
-> +node of the HDMI RX node. You should not specify this property if your HDMI RX
-> +controller does not have CEC.
-> +
-> +You also have to create a subnode for the PHY device. PHY node properties are
-> +as follows.
-> +
-> +Required properties:
-> +
-> +- compatible: Shall be "snps,dw-hdmi-phy-e405".
-> +- reg: Shall be the JTAG address of the PHY.
-> +- clocks: Reference to the config clock.
-> +- clock-names: Shall be "cfg".
+> +- ports: A ports node with endpoint definitions as defined in
+> +  Documentation/devicetree/bindings/media/video-interfaces.txt.
+> +  Currently, the driver only support the parallel interface. So, a single port
+> +  node with one endpoint and parallel bus is supported.
 > +
 > +Example:
 > +
-> +hdmi_rx: hdmi-rx@0 {
-> +	compatible = "snps,dw-hdmi-rx";
-> +	reg = <0x0 0x10000>;
-> +	interrupts = <1 2>;
-> +	edid-phandle = <&dw_hdmi_edid>;
+> +       csi1: csi@01cb4000 {
+
+Drop the leading zero in the address part.
+
+> +               compatible = "allwinner,sun8i-v3s-csi";
+> +               reg = <0x01cb4000 0x1000>;
+> +               interrupts = <GIC_SPI 84 IRQ_TYPE_LEVEL_HIGH>;
+> +               clocks = <&ccu CLK_BUS_CSI>,
+> +                        <&ccu CLK_CSI1_SCLK>,
+
+CSI also has an MCLK. Do you need that one?
+
+ChenYu
+
+> +                        <&ccu CLK_DRAM_CSI>;
+> +               clock-names = "bus", "mod", "ram";
+> +               resets = <&ccu RST_BUS_CSI>;
 > +
-> +	clocks = <&dw_hdmi_refclk>;
-> +	clock-names = "cfg";
+> +               port {
+> +                       #address-cells = <1>;
+> +                       #size-cells = <0>;
 > +
-> +	#address-cells = <1>;
-> +	#size-cells = <0>;
+> +                       /* Parallel bus endpoint */
+> +                       csi1_ep: endpoint {
+> +                               remote-endpoint = <&adv7611_ep>;
+> +                               bus-width = <16>;
+> +                               data-shift = <0>;
 > +
-> +	hdmi-phy@fc {
-> +		compatible = "snps,dw-hdmi-phy-e405";
-> +		reg = <0xfc>;
+> +                               /* If hsync-active/vsync-active are missing,
+> +                                  embedded BT.656 sync is used */
+> +                               hsync-active = <0>; /* Active low */
+> +                               vsync-active = <0>; /* Active low */
+> +                               data-active = <1>;  /* Active high */
+> +                               pclk-sample = <1>;  /* Rising */
+> +                       };
+> +               };
+> +       };
 > +
-> +		clocks = <&dw_hdmi_refclk>;
-> +		clock-names = "cfg";
-> +	};
-> +};
-> 
+> --
+> 1.8.3.1
+>
+> --
+> You received this message because you are subscribed to the Google Groups "linux-sunxi" group.
+> To unsubscribe from this group and stop receiving emails from it, send an email to linux-sunxi+unsubscribe@googlegroups.com.
+> For more options, visit https://groups.google.com/d/optout.
