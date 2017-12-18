@@ -1,61 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:55321 "EHLO gofer.mess.org"
+Received: from osg.samsung.com ([64.30.133.232]:41269 "EHLO osg.samsung.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753450AbdLNRWB (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 14 Dec 2017 12:22:01 -0500
-From: Sean Young <sean@mess.org>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 03/10] media: imon: remove unused function tv2int
-Date: Thu, 14 Dec 2017 17:21:54 +0000
-Message-Id: <555f1d8413f9e8b71878b7ec3fea01f7f8914217.1513271970.git.sean@mess.org>
-In-Reply-To: <4e8c9939b6b116a54e3042d098343bc918268b1d.1513271970.git.sean@mess.org>
-References: <4e8c9939b6b116a54e3042d098343bc918268b1d.1513271970.git.sean@mess.org>
-In-Reply-To: <4e8c9939b6b116a54e3042d098343bc918268b1d.1513271970.git.sean@mess.org>
-References: <4e8c9939b6b116a54e3042d098343bc918268b1d.1513271970.git.sean@mess.org>
+        id S932954AbdLRP0S (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 18 Dec 2017 10:26:18 -0500
+Date: Mon, 18 Dec 2017 13:26:11 -0200
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+        linux-kernel@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>
+Subject: Re: [PATCH v3 00/17] kernel-doc: add supported to document nested
+ structs/
+Message-ID: <20171218132611.2898a42b@vento.lan>
+In-Reply-To: <cover.1507116877.git.mchehab@s-opensource.com>
+References: <cover.1507116877.git.mchehab@s-opensource.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Since commit 9c7fd60e951d ("media: rc: Replace timeval with ktime_t in
-imon.c"), the function tv2int() is no longer used. Remove it.
+Em Wed,  4 Oct 2017 08:48:38 -0300
+Mauro Carvalho Chehab <mchehab@s-opensource.com> escreveu:
 
-Signed-off-by: Sean Young <sean@mess.org>
----
- drivers/media/rc/imon.c | 23 -----------------------
- 1 file changed, 23 deletions(-)
+> Right now, it is not possible to document nested struct and nested unions.
+> kernel-doc simply ignore them.
+> 
+> Add support to document them.
+> 
+> Patches 1 to 6 improve kernel-doc documentation to reflect what
+> kernel-doc currently supports and import some stuff from the
+> old kernel-doc-nano-HOWTO.txt.
+> 
+> Patch 7 gets rid of the old documentation (kernel-doc-nano-HOWTO.txt).
+> 
+> 
+> Patch 8 gets rid of the now unused output formats for kernel-doc: since 
+> we got rid of all DocBook stuff, we should not need them anymore. The
+> reason for dropping it (despite cleaning up), is that it doesn't make 
+> sense to invest time on adding new features for formats that aren't
+> used anymore.
+> 
+> Patch 9 improves argument handling, printing script usage if an
+> invalid argument is passed and accepting both -cmd and --cmd
+> forms.
+> 
+> Patch 10 changes the default output format to ReST, as this is a way
+> more used than man output nowadays.
+> 
+> Patch 11 solves an issue after ReST conversion, where tabs were not
+> properly handled on kernel-doc tags.
+> 
+> Patch 12 adds support for parsing kernel-doc nested structures and 
+> unions.
+> 
+> Patch 13 does a cleanup, removing $nexted parameter at the
+> routines that handle structs.
+> 
+> Patch 14 Improves warning output by printing the identifier where
+> the warning occurred.
+> 
+> Patch 15 complements patch 12, by adding support for function
+> definitions inside nested structures. It is needed by some media
+> docs with use such kind of things.
+> 
+> Patch 16 improves nested struct handling even further, allowing it
+> to handle cases where a nested named struct/enum with multiple
+> identifiers added (e. g. struct { ... } foo, bar;).
+> 
+> Patch 17 adds documentation for nested union/struct inside w1_netlink.
+> 
+> The entire patch series are at my development tree, at:
+>     https://git.linuxtv.org/mchehab/experimental.git/log/?h=nested-fix-v4b
 
-diff --git a/drivers/media/rc/imon.c b/drivers/media/rc/imon.c
-index 6c873a3c4720..950d068ba806 100644
---- a/drivers/media/rc/imon.c
-+++ b/drivers/media/rc/imon.c
-@@ -1168,29 +1168,6 @@ static int imon_ir_change_protocol(struct rc_dev *rc, u64 *rc_proto)
- 	return retval;
- }
- 
--static inline int tv2int(const struct timeval *a, const struct timeval *b)
--{
--	int usecs = 0;
--	int sec   = 0;
--
--	if (b->tv_usec > a->tv_usec) {
--		usecs = 1000000;
--		sec--;
--	}
--
--	usecs += a->tv_usec - b->tv_usec;
--
--	sec += a->tv_sec - b->tv_sec;
--	sec *= 1000;
--	usecs /= 1000;
--	sec += usecs;
--
--	if (sec < 0)
--		sec = 1000;
--
--	return sec;
--}
--
- /*
-  * The directional pad behaves a bit differently, depending on whether this is
-  * one of the older ffdc devices or a newer device. Newer devices appear to
--- 
-2.14.3
+I'm applying all patches from this series that either didn't have
+any comments of whose editorial comments I fully embraced.
+
+The patches that weren't applied from this series are:
+	0008-media-v4l2-device.h-document-ancillary-macros.patch
+	0010-media-v4l2-ioctl.h-convert-debug-macros-into-enum-an.patch
+	0014-media-v4l2-async-simplify-v4l2_async_subdev-structur.patch
+	0015-media-v4l2-async-better-describe-match-union-at-asyn.patch
+
+I'll send later a patch series with those - probably together with
+other documentation patches from the other two series I sent - that
+need further reviews.
+
+Thanks,
+Mauro
