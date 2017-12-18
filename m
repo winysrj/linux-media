@@ -1,273 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from kadath.azazel.net ([81.187.231.250]:33624 "EHLO
-        kadath.azazel.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752368AbdLBWME (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sat, 2 Dec 2017 17:12:04 -0500
-From: Jeremy Sowden <jeremy@azazel.net>
-To: linux-media@vger.kernel.org, devel@driverdev.osuosl.org
-Subject: [PATCH v4 3/3] media: atomisp: delete empty default struct values.
-Date: Sat,  2 Dec 2017 22:12:01 +0000
-Message-Id: <20171202221201.6063-4-jeremy@azazel.net>
-In-Reply-To: <20171202221201.6063-1-jeremy@azazel.net>
-References: <20171202213443.GC32301@azazel.net>
- <20171202221201.6063-1-jeremy@azazel.net>
+Received: from mail.free-electrons.com ([62.4.15.54]:44511 "EHLO
+        mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1758195AbdLRJYt (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 18 Dec 2017 04:24:49 -0500
+Date: Mon, 18 Dec 2017 10:24:37 +0100
+From: Maxime Ripard <maxime.ripard@free-electrons.com>
+To: Yong <yong.deng@magewell.com>
+Cc: wens@csie.org, Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        "David S. Miller" <davem@davemloft.net>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Randy Dunlap <rdunlap@infradead.org>,
+        Benoit Parrot <bparrot@ti.com>,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
+        Yannick Fertre <yannick.fertre@st.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Rick Chang <rick.chang@mediatek.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        devicetree <devicetree@vger.kernel.org>,
+        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
+        linux-kernel <linux-kernel@vger.kernel.org>,
+        linux-sunxi <linux-sunxi@googlegroups.com>,
+        =?utf-8?Q?Ond=C5=99ej?= Jirman <megous@megous.com>
+Subject: Re: [linux-sunxi] [PATCH v3 2/3] dt-bindings: media: Add Allwinner
+ V3s Camera Sensor Interface (CSI)
+Message-ID: <20171218092437.ksczam5h7hirmpcv@flea.lan>
+References: <1510558344-45402-1-git-send-email-yong.deng@magewell.com>
+ <CAGb2v67JhMfba8Ao7WyrYikkxvTxX8WaBRqu3GkrhOCWndresg@mail.gmail.com>
+ <20171218164921.227b82349c778283f5e5eba8@magewell.com>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="ttyz7lvubhfzshpr"
+Content-Disposition: inline
+In-Reply-To: <20171218164921.227b82349c778283f5e5eba8@magewell.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Removing zero-valued struct-members left a number of the default
-struct-values empty.  These values have now been removed.
 
-Signed-off-by: Jeremy Sowden <jeremy@azazel.net>
----
- .../atomisp/pci/atomisp2/css2400/ia_css_pipe.h     |  1 -
- .../atomisp/pci/atomisp2/css2400/ia_css_types.h    |  1 -
- .../isp/kernels/s3a/s3a_1.0/ia_css_s3a_types.h     |  5 ---
- .../kernels/sdis/common/ia_css_sdis_common_types.h | 41 ++++------------------
- .../isp/kernels/sdis/sdis_1.0/ia_css_sdis.host.c   |  2 +-
- .../runtime/binary/interface/ia_css_binary.h       |  8 -----
- .../isp_param/interface/ia_css_isp_param_types.h   | 12 -------
- .../media/atomisp/pci/atomisp2/css2400/sh_css.c    |  9 +++--
- .../atomisp/pci/atomisp2/css2400/sh_css_legacy.h   |  4 ---
- .../atomisp/pci/atomisp2/css2400/sh_css_metrics.h  | 10 ------
- 10 files changed, 12 insertions(+), 81 deletions(-)
+--ttyz7lvubhfzshpr
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/ia_css_pipe.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/ia_css_pipe.h
-index 522238ec8899..f6870fa7a18c 100644
---- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/ia_css_pipe.h
-+++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/ia_css_pipe.h
-@@ -163,7 +163,6 @@ struct ia_css_pipe {
- #define IA_CSS_DEFAULT_PIPE \
- (struct ia_css_pipe) { \
- 	.config			= DEFAULT_PIPE_CONFIG, \
--	.extra_config		= DEFAULT_PIPE_EXTRA_CONFIG, \
- 	.info			= DEFAULT_PIPE_INFO, \
- 	.mode			= IA_CSS_PIPE_ID_ACC, /* (pipe_id) */ \
- 	.pipeline		= DEFAULT_PIPELINE, \
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/ia_css_types.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/ia_css_types.h
-index a0ddf989fadf..259ab3f074ba 100644
---- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/ia_css_types.h
-+++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/ia_css_types.h
-@@ -407,7 +407,6 @@ struct ia_css_grid_info {
- /* defaults for ia_css_grid_info structs */
- #define DEFAULT_GRID_INFO \
- (struct ia_css_grid_info) { \
--	.s3a_grid	= DEFAULT_3A_GRID_INFO, \
- 	.dvs_grid	= DEFAULT_DVS_GRID_INFO, \
- 	.vamem_type	= IA_CSS_VAMEM_TYPE_1 \
- }
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/s3a/s3a_1.0/ia_css_s3a_types.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/s3a/s3a_1.0/ia_css_s3a_types.h
-index 988a0e272225..63e70669f085 100644
---- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/s3a/s3a_1.0/ia_css_s3a_types.h
-+++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/s3a/s3a_1.0/ia_css_s3a_types.h
-@@ -98,11 +98,6 @@ struct ia_css_3a_grid_info {
- };
- 
- 
--#define DEFAULT_3A_GRID_INFO \
--(struct ia_css_3a_grid_info) { \
--}
--
--
- /* This struct should be split into 3, for AE, AWB and AF.
-  * However, that will require driver/ 3A lib modifications.
-  */
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/sdis/common/ia_css_sdis_common_types.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/sdis/common/ia_css_sdis_common_types.h
-index e867dadd8a83..381e5730d405 100644
---- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/sdis/common/ia_css_sdis_common_types.h
-+++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/sdis/common/ia_css_sdis_common_types.h
-@@ -41,11 +41,6 @@ struct ia_css_sdis_info {
- 	uint32_t deci_factor_log2;
- };
- 
--#define IA_CSS_DEFAULT_SDIS_INFO \
--(struct ia_css_sdis_info) { \
--}
--
--
- /* DVS statistics grid
-  *
-  *  ISP block: SDVS1 (DIS/DVS Support for DIS/DVS ver.1 (2-axes))
-@@ -200,37 +195,15 @@ struct ia_css_dvs_stat_grid_info {
- 
- /* DVS statistics generated by accelerator default grid info
-  */
--#define DEFAULT_DVS_STAT_PUBLIC_DVS_GLOBAL_CFG \
--(struct dvs_stat_public_dvs_global_cfg) { \
--}
--
--#define DEFAULT_DVS_STAT_PUBLIC_DVS_GRD_CFG \
--(struct dvs_stat_public_dvs_grd_cfg) { \
--}
--
--#define DEFAULT_DVS_STAT_PUBLIC_DVS_LEVEL_FE_ROI_CFG(X_START) \
--(struct dvs_stat_public_dvs_level_fe_roi_cfg) { \
--	.x_start = X_START, \
--}
--
--#define DEFAULT_DVS_STAT_GRID_INFO \
--(struct ia_css_dvs_stat_grid_info) { \
--	.dvs_gbl_cfg = DEFAULT_DVS_STAT_PUBLIC_DVS_GLOBAL_CFG, \
--	.grd_cfg = { \
--		DEFAULT_DVS_STAT_PUBLIC_DVS_GRD_CFG, \
--		DEFAULT_DVS_STAT_PUBLIC_DVS_GRD_CFG, \
--		DEFAULT_DVS_STAT_PUBLIC_DVS_GRD_CFG \
--	}, \
--	.fe_roi_cfg = { \
--		DEFAULT_DVS_STAT_PUBLIC_DVS_LEVEL_FE_ROI_CFG(0), \
--		DEFAULT_DVS_STAT_PUBLIC_DVS_LEVEL_FE_ROI_CFG(4), \
--		DEFAULT_DVS_STAT_PUBLIC_DVS_LEVEL_FE_ROI_CFG(0), \
--	} \
--}
--
- #define DEFAULT_DVS_GRID_INFO \
- (union ia_css_dvs_grid_u) { \
--	.dvs_stat_grid_info = DEFAULT_DVS_STAT_GRID_INFO, \
-+	.dvs_stat_grid_info = (struct ia_css_dvs_stat_grid_info) { \
-+		.fe_roi_cfg = { \
-+			[1] = (struct dvs_stat_public_dvs_level_fe_roi_cfg) { \
-+				.x_start = 4 \
-+			} \
-+		} \
-+	} \
- }
- 
- /* Union that holds all types of DVS statistics grid info in
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/sdis/sdis_1.0/ia_css_sdis.host.c b/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/sdis/sdis_1.0/ia_css_sdis.host.c
-index e45a3c3fcf4a..0fdd696bf654 100644
---- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/sdis/sdis_1.0/ia_css_sdis.host.c
-+++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/sdis/sdis_1.0/ia_css_sdis.host.c
-@@ -169,7 +169,7 @@ ia_css_sdis_init_info(
- 	unsigned enabled)
- {
- 	if (!enabled) {
--		*dis = IA_CSS_DEFAULT_SDIS_INFO;
-+		*dis = (struct ia_css_sdis_info) { };
- 		return;
- 	}
- 
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/runtime/binary/interface/ia_css_binary.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/runtime/binary/interface/ia_css_binary.h
-index c4abddf28670..732e49a241eb 100644
---- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/runtime/binary/interface/ia_css_binary.h
-+++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/runtime/binary/interface/ia_css_binary.h
-@@ -93,10 +93,6 @@ struct ia_css_cas_binary_descr {
- 	bool *is_output_stage;
- };
- 
--#define IA_CSS_DEFAULT_CAS_BINARY_DESCR \
--(struct ia_css_cas_binary_descr) { \
--}
--
- struct ia_css_binary_descr {
- 	int mode;
- 	bool online;
-@@ -171,10 +167,6 @@ struct ia_css_binary {
- 	.internal_frame_info	= IA_CSS_BINARY_DEFAULT_FRAME_INFO, \
- 	.out_frame_info		= {IA_CSS_BINARY_DEFAULT_FRAME_INFO}, \
- 	.vf_frame_info		= IA_CSS_BINARY_DEFAULT_FRAME_INFO, \
--	.dis			= IA_CSS_DEFAULT_SDIS_INFO, \
--	.metrics		= DEFAULT_BINARY_METRICS, \
--	.mem_params		= IA_CSS_DEFAULT_ISP_MEM_PARAMS, \
--	.css_params		= IA_CSS_DEFAULT_ISP_CSS_PARAMS, \
- }
- 
- enum ia_css_err
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/runtime/isp_param/interface/ia_css_isp_param_types.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/runtime/isp_param/interface/ia_css_isp_param_types.h
-index f9b65eb764d8..2de9f8eda2da 100644
---- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/runtime/isp_param/interface/ia_css_isp_param_types.h
-+++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/runtime/isp_param/interface/ia_css_isp_param_types.h
-@@ -94,16 +94,4 @@ union ia_css_all_memory_offsets {
- 	} array[IA_CSS_NUM_PARAM_CLASSES];
- };
- 
--#define IA_CSS_DEFAULT_ISP_MEM_PARAMS \
--(struct ia_css_isp_param_host_segments) { \
--}
--
--#define IA_CSS_DEFAULT_ISP_CSS_PARAMS \
--(struct ia_css_isp_param_css_segments) { \
--}
--
--#define IA_CSS_DEFAULT_ISP_ISP_PARAMS \
--(struct ia_css_isp_param_isp_segments) { \
--}
--
- #endif /* _IA_CSS_ISP_PARAM_TYPES_H_ */
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css.c b/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css.c
-index 20d7fc1f2e4b..2b1763ccd436 100644
---- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css.c
-+++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css.c
-@@ -5580,8 +5580,7 @@ static enum ia_css_err load_video_binaries(struct ia_css_pipe *pipe)
- 	/* we build up the pipeline starting at the end */
- 	/* YUV post-processing if needed */
- 	if (need_scaler) {
--		struct ia_css_cas_binary_descr cas_scaler_descr
--			= IA_CSS_DEFAULT_CAS_BINARY_DESCR;
-+		struct ia_css_cas_binary_descr cas_scaler_descr = { };
- 
- 		/* NV12 is the common format that is supported by both */
- 		/* yuv_scaler and the video_xx_isp2_min binaries. */
-@@ -6236,8 +6235,8 @@ static enum ia_css_err load_primary_binaries(
- 						pipe_out_info->res);
- 
- 	if (need_extra_yuv_scaler) {
--		struct ia_css_cas_binary_descr cas_scaler_descr
--			= IA_CSS_DEFAULT_CAS_BINARY_DESCR;
-+		struct ia_css_cas_binary_descr cas_scaler_descr = { };
-+
- 		err = ia_css_pipe_create_cas_scaler_desc_single_output(
- 			&capt_pp_out_info,
- 			pipe_out_info,
-@@ -7224,7 +7223,7 @@ load_yuvpp_binaries(struct ia_css_pipe *pipe)
- 	struct ia_css_frame_info *vf_pp_in_info[IA_CSS_PIPE_MAX_OUTPUT_STAGE];
- 	struct ia_css_yuvpp_settings *mycs;
- 	struct ia_css_binary *next_binary;
--	struct ia_css_cas_binary_descr cas_scaler_descr = IA_CSS_DEFAULT_CAS_BINARY_DESCR;
-+	struct ia_css_cas_binary_descr cas_scaler_descr = { };
- 	unsigned int i, j;
- 	bool need_isp_copy_binary = false;
- 
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_legacy.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_legacy.h
-index 6c78a15485f6..4fd25ba2cd0d 100644
---- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_legacy.h
-+++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_legacy.h
-@@ -52,10 +52,6 @@ struct ia_css_pipe_extra_config {
- 	bool disable_vf_pp;
- };
- 
--#define DEFAULT_PIPE_EXTRA_CONFIG \
--(struct ia_css_pipe_extra_config) { \
--}
--
- enum ia_css_err
- ia_css_pipe_create_extra(const struct ia_css_pipe_config *config,
- 			 const struct ia_css_pipe_extra_config *extra_config,
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_metrics.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_metrics.h
-index 3387e8bafbe7..2ef9238d95ad 100644
---- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_metrics.h
-+++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_metrics.h
-@@ -24,10 +24,6 @@ struct sh_css_pc_histogram {
- 	unsigned *msink;
- };
- 
--#define DEFAULT_PC_HISTOGRAM \
--(struct sh_css_pc_histogram) { \
--}
--
- struct sh_css_binary_metrics {
- 	unsigned mode;
- 	unsigned id;
-@@ -36,12 +32,6 @@ struct sh_css_binary_metrics {
- 	struct sh_css_binary_metrics *next;
- };
- 
--#define DEFAULT_BINARY_METRICS \
--(struct sh_css_binary_metrics) { \
--	.isp_histogram	= DEFAULT_PC_HISTOGRAM, \
--	.sp_histogram	= DEFAULT_PC_HISTOGRAM, \
--}
--
- struct ia_css_frame_metrics {
- 	unsigned num_frames;
- };
--- 
-2.15.0
+Hi,
+
+On Mon, Dec 18, 2017 at 04:49:21PM +0800, Yong wrote:
+> > > +               compatible =3D "allwinner,sun8i-v3s-csi";
+> > > +               reg =3D <0x01cb4000 0x1000>;
+> > > +               interrupts =3D <GIC_SPI 84 IRQ_TYPE_LEVEL_HIGH>;
+> > > +               clocks =3D <&ccu CLK_BUS_CSI>,
+> > > +                        <&ccu CLK_CSI1_SCLK>,
+> >=20
+> > CSI also has an MCLK. Do you need that one?
+>=20
+> MCLK is not needed if the front end is not a sensor (like adv7611).
+> I will add it as an option.
+
+I guess this should always be needed then. And the driver will make
+the decision to enable it or not.
+
+Maxime
+
+--=20
+Maxime Ripard, Free Electrons
+Embedded Linux and Kernel engineering
+http://free-electrons.com
+
+--ttyz7lvubhfzshpr
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCAAdFiEE0VqZU19dR2zEVaqr0rTAlCFNr3QFAlo3iVIACgkQ0rTAlCFN
+r3SxjQ//YcyVgwGuhYuFsoAlon6vOBQHpas5+2ahvwcZcwVy+G4pY/jNIu7HwT2r
+jd8BViZaI3fS7M6BzZDsflnFHBdXD6qGjhOfmDAvPRq3wDReDX15xvxn2C1gStql
+mob+nBCRD1P1FMluyEjJhh8V4R+9DihpxEAp/DkCL4sVnY71uglBrjzKssshO3lE
+WLC9K1Vk2mjMoK8M3rJ6twVpa8oQHTlGzxdzFDJsFxLXa9gTN+qMpivvihWBcahx
+CEqCZGM764sKvTrwvEzAcD5bs39JrdpiflXo1WbjMYOyitdSn6T4d41EeBwc8E60
+rrZa+2l84jE1qIyZoznGM2YVAi3qwHqZXGbSDmAp8ZNiTHHjvza8CiKfeV075TWi
+a37OM0nlksK0kMMdJK/6VvDHGjif6pUy1og7Ti8pxBoFWyml53djJVjZAAP7IpGL
+85g0mRaoyo9pVtv+adgpOL1mavv29VX+4aVk54f+xNMDeaTNjSug4aW2yauA0Vix
+XJZLmbS2GYQebVbtem/Om4ZW07+H8xZKCMmWAgIBDAerBbExcSKc1Yq6BtIsr7ZV
+HrDHKQVKeDFHJqVi2vATnaTdX61lP/eE/t1KM16MRAPxfp7EawJsMSYtouOzm6XW
+WAhH1gHpnjvsLlsYN7XH5jQD/SQynM6qa5w7tNf2ixA2stJoppM=
+=24S6
+-----END PGP SIGNATURE-----
+
+--ttyz7lvubhfzshpr--
