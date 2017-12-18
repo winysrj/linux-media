@@ -1,101 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:44876 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755218AbdLUVgB (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 21 Dec 2017 16:36:01 -0500
-Date: Thu, 21 Dec 2017 19:35:42 -0200
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Jonathan Corbet <corbet@lwn.net>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>
-Subject: Re: [PATCH v4 00/18] kernel-doc: add supported to document nested
- structs
-Message-ID: <20171221193542.5bfd4bfc@vento.lan>
-In-Reply-To: <20171221140843.5e4bcffd@lwn.net>
-References: <cover.1513599193.git.mchehab@s-opensource.com>
-        <20171221140843.5e4bcffd@lwn.net>
+Received: from smtp.csie.ntu.edu.tw ([140.112.30.61]:34786 "EHLO
+        smtp.csie.ntu.edu.tw" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1757738AbdLRDat (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 17 Dec 2017 22:30:49 -0500
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <20171217224547.21481-6-embed3d@gmail.com>
+References: <20171217224547.21481-1-embed3d@gmail.com> <20171217224547.21481-6-embed3d@gmail.com>
+From: Chen-Yu Tsai <wens@csie.org>
+Date: Mon, 18 Dec 2017 11:30:23 +0800
+Message-ID: <CAGb2v67js9XCLUYd+zJBTp-cPG0s3YsWR-=KDfdCR23NkUQheg@mail.gmail.com>
+Subject: Re: [PATCH 5/5] arm: dts: sun8i: a83t: bananapi-m3: Enable IR controller
+To: Philipp Rossak <embed3d@gmail.com>
+Cc: mchehab@kernel.org, Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Maxime Ripard <maxime.ripard@free-electrons.com>,
+        Chen-Yu Tsai <wens@csie.org>,
+        Russell King <linux@armlinux.org.uk>, sean@mess.org,
+        Philipp Zabel <p.zabel@pengutronix.de>, andi.shyti@samsung.com,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        devicetree <devicetree@vger.kernel.org>,
+        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
+        linux-kernel <linux-kernel@vger.kernel.org>,
+        linux-sunxi <linux-sunxi@googlegroups.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 21 Dec 2017 14:08:43 -0700
-Jonathan Corbet <corbet@lwn.net> escreveu:
+On Mon, Dec 18, 2017 at 6:45 AM, Philipp Rossak <embed3d@gmail.com> wrote:
+> The Bananapi M3 has an onboard IR receiver.
+> This enables the onboard IR receiver subnode.
+> Other than the other IR receivers this one needs a base clock frequency
 
-> On Mon, 18 Dec 2017 10:30:01 -0200
-> Mauro Carvalho Chehab <mchehab@s-opensource.com> wrote:
-> 
-> > This is a rebased version of my patch series that add support for
-> > nested structs on kernel-doc. With this version, it won't produce anymore
-> > hundreds of identical warnings, as patch 17 removes the warning
-> > duplication.
-> > 
-> > Excluding warnings about duplicated Note: section at hash.h, before
-> > this series, it reports 166 kernel-doc warnings. After this patch series,
-> > it reports 123 kernel-doc warnings, being 51 from DVB. I have already a patch
-> > series that will cleanup those new DVB warnings due to nested structs.
-> > 
-> > So, the net result is that the number of warnings is reduced with
-> > this version.  
-> 
-> This seems like a great set of improvements overall, and I love getting
-> rid of all that old kernel-doc code. 
+Unlike the other...
 
-> I will note that it makes a full
-> htmldocs build take 20-30 seconds longer, which is not entirely
-> welcome, but so be it. Someday, I guess, $SOMEBODY should see if there's
-> some low-hanging optimization fruit there.
+> of 3000000 Hz (3 MHz), to be able to work.
+>
+> Signed-off-by: Philipp Rossak <embed3d@gmail.com>
+> ---
+>  arch/arm/boot/dts/sun8i-a83t-bananapi-m3.dts | 7 +++++++
+>  1 file changed, 7 insertions(+)
+>
+> diff --git a/arch/arm/boot/dts/sun8i-a83t-bananapi-m3.dts b/arch/arm/boot/dts/sun8i-a83t-bananapi-m3.dts
+> index 6550bf0e594b..2bf25ca64133 100644
+> --- a/arch/arm/boot/dts/sun8i-a83t-bananapi-m3.dts
+> +++ b/arch/arm/boot/dts/sun8i-a83t-bananapi-m3.dts
+> @@ -100,6 +100,13 @@
+>         status = "okay";
+>  };
+>
+> +&ir {
 
-Yeah. Well, I used a recursive algorithm, with can be painfull if there
-are mang things to parse.
+See my other reply about the name.
 
-Anyway, I didn't notice it, because there was a major performance regression
-that happened recently that it is affecting all my sphinx builds: trying to
-compile stuff in parallel with SPHINXOPTS=-j5 is crashing with:
+Otherwise,
 
-# Loaded extensions:
-#   kfigure (1.0.0) from /devel/v4l/patchwork/Documentation/sphinx/kfigure.py
-#   kernel_include (1.0) from /devel/v4l/patchwork/Documentation/sphinx/kernel_include.py
-#   rstFlatTable (1.0) from /devel/v4l/patchwork/Documentation/sphinx/rstFlatTable.py
-#   cdomain (1.0) from /devel/v4l/patchwork/Documentation/sphinx/cdomain.py
-#   kerneldoc (1.0) from /devel/v4l/patchwork/Documentation/sphinx/kerneldoc.py
-#   alabaster (0.7.10) from /devel/v4l/docs/sphinx_1.4/lib/python2.7/site-packages/alabaster/__init__.pyc
-#   sphinx.ext.imgmath (1.4.9) from /devel/v4l/docs/sphinx_1.4/lib/python2.7/site-packages/sphinx/ext/imgmath.pyc
-Traceback (most recent call last):
-  File "/devel/v4l/docs/sphinx_1.4/lib/python2.7/site-packages/sphinx/cmdline.py", line 244, in main
-    app.build(opts.force_all, filenames)
-  File "/devel/v4l/docs/sphinx_1.4/lib/python2.7/site-packages/sphinx/application.py", line 297, in build
-    self.builder.build_update()
-  File "/devel/v4l/docs/sphinx_1.4/lib/python2.7/site-packages/sphinx/builders/__init__.py", line 251, in build_update
-    'out of date' % len(to_build))
-  File "/devel/v4l/docs/sphinx_1.4/lib/python2.7/site-packages/sphinx/builders/__init__.py", line 265, in build
-    self.doctreedir, self.app))
-  File "/devel/v4l/docs/sphinx_1.4/lib/python2.7/site-packages/sphinx/environment.py", line 567, in update
-    self._read_parallel(docnames, app, nproc=app.parallel)
-  File "/devel/v4l/docs/sphinx_1.4/lib/python2.7/site-packages/sphinx/environment.py", line 625, in _read_parallel
-    tasks.join()
-  File "/devel/v4l/docs/sphinx_1.4/lib/python2.7/site-packages/sphinx/util/parallel.py", line 92, in join
-    self._join_one()
-  File "/devel/v4l/docs/sphinx_1.4/lib/python2.7/site-packages/sphinx/util/parallel.py", line 97, in _join_one
-    exc, result = pipe.recv()
-EOFError
+Acked-by: Chen-Yu Tsai <wens@csie.org>
 
-I had to change my build scripts to remove parallel build, with increased
-*a lot* the building time. So, right now, I just go out to take a coffee
-or two when building documentation, as, without -j (even without this
-patch series), is really slow.
-
-If someone wants to look into it, the breakage happened by the time
-I upgraded to Fedora 27 and Kernel 4.14 was released. Yet, I'm using
-pip for Sphinx.
-
-So, I dunno what's the culprit. I didn't have time yet to investigate.
-
-> Applied, thanks.
-
-Thank you!
-
-Regards,
-Mauro
+> +       pinctrl-names = "default";
+> +       pinctrl-0 = <&ir_pins_a>;
+> +       clock-frequency = <3000000>;
+> +       status = "okay";
+> +};
+> +
+>  &mdio {
+>         rgmii_phy: ethernet-phy@1 {
+>                 compatible = "ethernet-phy-ieee802.3-c22";
+> --
+> 2.11.0
+>
