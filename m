@@ -1,82 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-3.sys.kth.se ([130.237.48.192]:34130 "EHLO
-        smtp-3.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754277AbdLNTJS (ORCPT
+Received: from mail-pf0-f195.google.com ([209.85.192.195]:33550 "EHLO
+        mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933474AbdLRMP5 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 14 Dec 2017 14:09:18 -0500
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: linux-media@vger.kernel.org,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-renesas-soc@vger.kernel.org,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
-        Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        Benoit Parrot <bparrot@ti.com>,
-        Maxime Ripard <maxime.ripard@free-electrons.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH/RFC v2 04/15] rcar-csi2: switch to pad and stream aware s_stream
-Date: Thu, 14 Dec 2017 20:08:24 +0100
-Message-Id: <20171214190835.7672-5-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20171214190835.7672-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20171214190835.7672-1-niklas.soderlund+renesas@ragnatech.se>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+        Mon, 18 Dec 2017 07:15:57 -0500
+From: Jacob Chen <jacob-chen@iotwrt.com>
+To: linux-rockchip@lists.infradead.org
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        mchehab@kernel.org, linux-media@vger.kernel.org,
+        sakari.ailus@linux.intel.com, hans.verkuil@cisco.com,
+        tfiga@chromium.org, zhengsq@rock-chips.com,
+        laurent.pinchart@ideasonboard.com, zyc@rock-chips.com,
+        eddie.cai.linux@gmail.com, jeffy.chen@rock-chips.com,
+        allon.huang@rock-chips.com, devicetree@vger.kernel.org,
+        heiko@sntech.de, robh+dt@kernel.org, Joao.Pinto@synopsys.com,
+        Luis.Oliveira@synopsys.com, Jose.Abreu@synopsys.com,
+        Jacob Chen <jacob2.chen@rock-chips.com>
+Subject: [PATCH v4 13/16] ARM: dts: rockchip: add rx0 mipi-phy for rk3288
+Date: Mon, 18 Dec 2017 20:14:42 +0800
+Message-Id: <20171218121445.6086-10-jacob-chen@iotwrt.com>
+In-Reply-To: <20171218121445.6086-1-jacob-chen@iotwrt.com>
+References: <20171218121445.6086-1-jacob-chen@iotwrt.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Switch the driver to implement the pad and stream aware s_stream
-operation. This is needed to enable to support to start and stop
-individual streams on a multiplexed pad.
+From: Jacob Chen <jacob2.chen@rock-chips.com>
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+It's a Designware MIPI D-PHY, used by ISP in rk3288.
+
+Signed-off-by: Jacob Chen <jacob2.chen@rock-chips.com>
 ---
- drivers/media/platform/rcar-vin/rcar-csi2.c | 13 +++++++------
- 1 file changed, 7 insertions(+), 6 deletions(-)
+ arch/arm/boot/dts/rk3288.dtsi | 7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-csi2.c b/drivers/media/platform/rcar-vin/rcar-csi2.c
-index d8751add48fc1322..8ce0bfeef1113f9c 100644
---- a/drivers/media/platform/rcar-vin/rcar-csi2.c
-+++ b/drivers/media/platform/rcar-vin/rcar-csi2.c
-@@ -625,12 +625,17 @@ static int rcar_csi2_sd_info(struct rcar_csi2 *priv, struct v4l2_subdev **sd)
- 	return 0;
- }
+diff --git a/arch/arm/boot/dts/rk3288.dtsi b/arch/arm/boot/dts/rk3288.dtsi
+index ed0b17d1b116..aa9ad3a6e0a5 100644
+--- a/arch/arm/boot/dts/rk3288.dtsi
++++ b/arch/arm/boot/dts/rk3288.dtsi
+@@ -864,6 +864,13 @@
+ 			status = "disabled";
+ 		};
  
--static int rcar_csi2_s_stream(struct v4l2_subdev *sd, int enable)
-+static int rcar_csi2_s_stream(struct v4l2_subdev *sd, unsigned int pad,
-+			      unsigned int stream, int enable)
- {
- 	struct rcar_csi2 *priv = sd_to_csi2(sd);
- 	struct v4l2_subdev *nextsd;
- 	int ret;
- 
-+	/* Only one stream on each source pad */
-+	if (stream != 0)
-+		return -EINVAL;
++		mipi_phy_rx0: mipi-phy-rx0 {
++			compatible = "rockchip,rk3288-mipi-dphy";
++			clocks = <&cru SCLK_MIPIDSI_24M>, <&cru PCLK_MIPI_CSI>;
++			clock-names = "dphy-ref", "pclk";
++			status = "disabled";
++		};
 +
- 	mutex_lock(&priv->lock);
- 
- 	ret = rcar_csi2_sd_info(priv, &nextsd);
-@@ -699,17 +704,13 @@ static int rcar_csi2_get_pad_format(struct v4l2_subdev *sd,
- 	return 0;
- }
- 
--static const struct v4l2_subdev_video_ops rcar_csi2_video_ops = {
--	.s_stream = rcar_csi2_s_stream,
--};
--
- static const struct v4l2_subdev_pad_ops rcar_csi2_pad_ops = {
- 	.set_fmt = rcar_csi2_set_pad_format,
- 	.get_fmt = rcar_csi2_get_pad_format,
-+	.s_stream = rcar_csi2_s_stream,
- };
- 
- static const struct v4l2_subdev_ops rcar_csi2_subdev_ops = {
--	.video	= &rcar_csi2_video_ops,
- 	.pad	= &rcar_csi2_pad_ops,
- };
- 
+ 		io_domains: io-domains {
+ 			compatible = "rockchip,rk3288-io-voltage-domain";
+ 			status = "disabled";
 -- 
 2.15.1
