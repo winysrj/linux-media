@@ -1,418 +1,389 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from userp2130.oracle.com ([156.151.31.86]:55222 "EHLO
-        userp2130.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934736AbdLRWOQ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 18 Dec 2017 17:14:16 -0500
-Date: Mon, 18 Dec 2017 14:08:43 -0800
-From: "Darrick J. Wong" <darrick.wong@oracle.com>
-To: Joe Perches <joe@perches.com>
-Cc: Jiri Kosina <trivial@kernel.org>,
-        Linus Torvalds <torvalds@linux-foundation.org>,
-        linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
-        amd-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org,
-        linux-media@vger.kernel.org, MPT-FusionLinux.pdl@broadcom.com,
-        linux-scsi@vger.kernel.org, netdev@vger.kernel.org,
-        linux-wireless@vger.kernel.org,
-        acpi4asus-user@lists.sourceforge.net,
-        platform-driver-x86@vger.kernel.org, linux-rtc@vger.kernel.org,
-        linux-fsdevel@vger.kernel.org, ocfs2-devel@oss.oracle.com,
-        linux-xfs@vger.kernel.org, linux-audit@redhat.com,
-        alsa-devel@alsa-project.org,
-        linuxppc-dev <linuxppc-dev@lists.ozlabs.org>
-Subject: Re: [trivial PATCH] treewide: Align function definition open/close
- braces
-Message-ID: <20171218220843.GA11969@magnolia>
-References: <1513556924.31581.51.camel@perches.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1513556924.31581.51.camel@perches.com>
+Received: from osg.samsung.com ([64.30.133.232]:43922 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1759126AbdLRMaq (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 18 Dec 2017 07:30:46 -0500
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>
+Subject: [PATCH v4 07/18] docs: get rid of kernel-doc-nano-HOWTO.txt
+Date: Mon, 18 Dec 2017 10:30:08 -0200
+Message-Id: <30fc87ffb38550b21b4aad05c78b3682026f5e38.1513599193.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1513599193.git.mchehab@s-opensource.com>
+References: <cover.1513599193.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1513599193.git.mchehab@s-opensource.com>
+References: <cover.1513599193.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Dec 17, 2017 at 04:28:44PM -0800, Joe Perches wrote:
-> Some functions definitions have either the initial open brace and/or
-> the closing brace outside of column 1.
-> 
-> Move those braces to column 1.
-> 
-> This allows various function analyzers like gnu complexity to work
-> properly for these modified functions.
-> 
-> Miscellanea:
-> 
-> o Remove extra trailing ; and blank line from xfs_agf_verify
-> 
-> Signed-off-by: Joe Perches <joe@perches.com>
-> ---
-> git diff -w shows no difference other than the above 'Miscellanea'
-> 
-> (this is against -next, but it applies against Linus' tree
->  with a couple offsets)
-> 
->  arch/x86/include/asm/atomic64_32.h                   |  2 +-
->  drivers/acpi/custom_method.c                         |  2 +-
->  drivers/acpi/fan.c                                   |  2 +-
->  drivers/gpu/drm/amd/display/dc/core/dc.c             |  2 +-
->  drivers/media/i2c/msp3400-kthreads.c                 |  2 +-
->  drivers/message/fusion/mptsas.c                      |  2 +-
->  drivers/net/ethernet/qlogic/netxen/netxen_nic_init.c |  2 +-
->  drivers/net/wireless/ath/ath9k/xmit.c                |  2 +-
->  drivers/platform/x86/eeepc-laptop.c                  |  2 +-
->  drivers/rtc/rtc-ab-b5ze-s3.c                         |  2 +-
->  drivers/scsi/dpt_i2o.c                               |  2 +-
->  drivers/scsi/sym53c8xx_2/sym_glue.c                  |  2 +-
->  fs/locks.c                                           |  2 +-
->  fs/ocfs2/stack_user.c                                |  2 +-
->  fs/xfs/libxfs/xfs_alloc.c                            |  5 ++---
->  fs/xfs/xfs_export.c                                  |  2 +-
->  kernel/audit.c                                       |  6 +++---
->  kernel/trace/trace_printk.c                          |  4 ++--
->  lib/raid6/sse2.c                                     | 14 +++++++-------
->  sound/soc/fsl/fsl_dma.c                              |  2 +-
->  20 files changed, 30 insertions(+), 31 deletions(-)
-> 
-> diff --git a/arch/x86/include/asm/atomic64_32.h b/arch/x86/include/asm/atomic64_32.h
-> index 97c46b8169b7..d4d4883080fa 100644
-> --- a/arch/x86/include/asm/atomic64_32.h
-> +++ b/arch/x86/include/asm/atomic64_32.h
-> @@ -122,7 +122,7 @@ static inline long long atomic64_read(const atomic64_t *v)
->  	long long r;
->  	alternative_atomic64(read, "=&A" (r), "c" (v) : "memory");
->  	return r;
-> - }
-> +}
->  
->  /**
->   * atomic64_add_return - add and return
-> diff --git a/drivers/acpi/custom_method.c b/drivers/acpi/custom_method.c
-> index c68e72414a67..e967c1173ba3 100644
-> --- a/drivers/acpi/custom_method.c
-> +++ b/drivers/acpi/custom_method.c
-> @@ -94,7 +94,7 @@ static void __exit acpi_custom_method_exit(void)
->  {
->  	if (cm_dentry)
->  		debugfs_remove(cm_dentry);
-> - }
-> +}
->  
->  module_init(acpi_custom_method_init);
->  module_exit(acpi_custom_method_exit);
-> diff --git a/drivers/acpi/fan.c b/drivers/acpi/fan.c
-> index 6cf4988206f2..3563103590c6 100644
-> --- a/drivers/acpi/fan.c
-> +++ b/drivers/acpi/fan.c
-> @@ -219,7 +219,7 @@ fan_set_cur_state(struct thermal_cooling_device *cdev, unsigned long state)
->  		return fan_set_state_acpi4(device, state);
->  	else
->  		return fan_set_state(device, state);
-> - }
-> +}
->  
->  static const struct thermal_cooling_device_ops fan_cooling_ops = {
->  	.get_max_state = fan_get_max_state,
-> diff --git a/drivers/gpu/drm/amd/display/dc/core/dc.c b/drivers/gpu/drm/amd/display/dc/core/dc.c
-> index d1488d5ee028..1e0d1e7c5324 100644
-> --- a/drivers/gpu/drm/amd/display/dc/core/dc.c
-> +++ b/drivers/gpu/drm/amd/display/dc/core/dc.c
-> @@ -461,7 +461,7 @@ static void disable_dangling_plane(struct dc *dc, struct dc_state *context)
->   ******************************************************************************/
->  
->  struct dc *dc_create(const struct dc_init_data *init_params)
-> - {
-> +{
->  	struct dc *dc = kzalloc(sizeof(*dc), GFP_KERNEL);
->  	unsigned int full_pipe_count;
->  
-> diff --git a/drivers/media/i2c/msp3400-kthreads.c b/drivers/media/i2c/msp3400-kthreads.c
-> index 4dd01e9f553b..dc6cb8d475b3 100644
-> --- a/drivers/media/i2c/msp3400-kthreads.c
-> +++ b/drivers/media/i2c/msp3400-kthreads.c
-> @@ -885,7 +885,7 @@ static int msp34xxg_modus(struct i2c_client *client)
->  }
->  
->  static void msp34xxg_set_source(struct i2c_client *client, u16 reg, int in)
-> - {
-> +{
->  	struct msp_state *state = to_state(i2c_get_clientdata(client));
->  	int source, matrix;
->  
-> diff --git a/drivers/message/fusion/mptsas.c b/drivers/message/fusion/mptsas.c
-> index 345f6035599e..69a62d23514b 100644
-> --- a/drivers/message/fusion/mptsas.c
-> +++ b/drivers/message/fusion/mptsas.c
-> @@ -2968,7 +2968,7 @@ mptsas_exp_repmanufacture_info(MPT_ADAPTER *ioc,
->  	mutex_unlock(&ioc->sas_mgmt.mutex);
->  out:
->  	return ret;
-> - }
-> +}
->  
->  static void
->  mptsas_parse_device_info(struct sas_identify *identify,
-> diff --git a/drivers/net/ethernet/qlogic/netxen/netxen_nic_init.c b/drivers/net/ethernet/qlogic/netxen/netxen_nic_init.c
-> index 3dd973475125..0ea141ece19e 100644
-> --- a/drivers/net/ethernet/qlogic/netxen/netxen_nic_init.c
-> +++ b/drivers/net/ethernet/qlogic/netxen/netxen_nic_init.c
-> @@ -603,7 +603,7 @@ static struct uni_table_desc *nx_get_table_desc(const u8 *unirom, int section)
->  
->  static int
->  netxen_nic_validate_header(struct netxen_adapter *adapter)
-> - {
-> +{
->  	const u8 *unirom = adapter->fw->data;
->  	struct uni_table_desc *directory = (struct uni_table_desc *) &unirom[0];
->  	u32 fw_file_size = adapter->fw->size;
-> diff --git a/drivers/net/wireless/ath/ath9k/xmit.c b/drivers/net/wireless/ath/ath9k/xmit.c
-> index bd438062a6db..baedc7186b10 100644
-> --- a/drivers/net/wireless/ath/ath9k/xmit.c
-> +++ b/drivers/net/wireless/ath/ath9k/xmit.c
-> @@ -196,7 +196,7 @@ ath_tid_pull(struct ath_atx_tid *tid)
->  	}
->  
->  	return skb;
-> - }
-> +}
->  
->  static struct sk_buff *ath_tid_dequeue(struct ath_atx_tid *tid)
->  {
-> diff --git a/drivers/platform/x86/eeepc-laptop.c b/drivers/platform/x86/eeepc-laptop.c
-> index 5a681962899c..4c38904a8a32 100644
-> --- a/drivers/platform/x86/eeepc-laptop.c
-> +++ b/drivers/platform/x86/eeepc-laptop.c
-> @@ -492,7 +492,7 @@ static void eeepc_platform_exit(struct eeepc_laptop *eeepc)
->   * potentially bad time, such as a timer interrupt.
->   */
->  static void tpd_led_update(struct work_struct *work)
-> - {
-> +{
->  	struct eeepc_laptop *eeepc;
->  
->  	eeepc = container_of(work, struct eeepc_laptop, tpd_led_work);
-> diff --git a/drivers/rtc/rtc-ab-b5ze-s3.c b/drivers/rtc/rtc-ab-b5ze-s3.c
-> index a319bf1e49de..ef5c16dfabfa 100644
-> --- a/drivers/rtc/rtc-ab-b5ze-s3.c
-> +++ b/drivers/rtc/rtc-ab-b5ze-s3.c
-> @@ -648,7 +648,7 @@ static int abb5zes3_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alarm)
->  			ret);
->  
->  	return ret;
-> - }
-> +}
->  
->  /* Enable or disable battery low irq generation */
->  static inline int _abb5zes3_rtc_battery_low_irq_enable(struct regmap *regmap,
-> diff --git a/drivers/scsi/dpt_i2o.c b/drivers/scsi/dpt_i2o.c
-> index fd172b0890d3..a00d822e3142 100644
-> --- a/drivers/scsi/dpt_i2o.c
-> +++ b/drivers/scsi/dpt_i2o.c
-> @@ -3524,7 +3524,7 @@ static int adpt_i2o_systab_send(adpt_hba* pHba)
->  #endif
->  
->  	return ret;	
-> - }
-> +}
->  
->  
->  /*============================================================================
-> diff --git a/drivers/scsi/sym53c8xx_2/sym_glue.c b/drivers/scsi/sym53c8xx_2/sym_glue.c
-> index 791a2182de53..7320d5fe4cbc 100644
-> --- a/drivers/scsi/sym53c8xx_2/sym_glue.c
-> +++ b/drivers/scsi/sym53c8xx_2/sym_glue.c
-> @@ -1393,7 +1393,7 @@ static struct Scsi_Host *sym_attach(struct scsi_host_template *tpnt, int unit,
->  		scsi_host_put(shost);
->  
->  	return NULL;
-> - }
-> +}
->  
->  
->  /*
-> diff --git a/fs/locks.c b/fs/locks.c
-> index 21b4dfa289ee..d2399d001afe 100644
-> --- a/fs/locks.c
-> +++ b/fs/locks.c
-> @@ -559,7 +559,7 @@ static const struct lock_manager_operations lease_manager_ops = {
->   * Initialize a lease, use the default lock manager operations
->   */
->  static int lease_init(struct file *filp, long type, struct file_lock *fl)
-> - {
-> +{
->  	if (assign_type(fl, type) != 0)
->  		return -EINVAL;
->  
-> diff --git a/fs/ocfs2/stack_user.c b/fs/ocfs2/stack_user.c
-> index dae9eb7c441e..d2fb97b173da 100644
-> --- a/fs/ocfs2/stack_user.c
-> +++ b/fs/ocfs2/stack_user.c
-> @@ -398,7 +398,7 @@ static int ocfs2_control_do_setnode_msg(struct file *file,
->  
->  static int ocfs2_control_do_setversion_msg(struct file *file,
->  					   struct ocfs2_control_message_setv *msg)
-> - {
-> +{
->  	long major, minor;
->  	char *ptr = NULL;
->  	struct ocfs2_control_private *p = file->private_data;
-> diff --git a/fs/xfs/libxfs/xfs_alloc.c b/fs/xfs/libxfs/xfs_alloc.c
-> index 0da80019a917..217108f765d5 100644
-> --- a/fs/xfs/libxfs/xfs_alloc.c
-> +++ b/fs/xfs/libxfs/xfs_alloc.c
-> @@ -2401,7 +2401,7 @@ static bool
->  xfs_agf_verify(
->  	struct xfs_mount *mp,
->  	struct xfs_buf	*bp)
-> - {
-> +{
->  	struct xfs_agf	*agf = XFS_BUF_TO_AGF(bp);
->  
->  	if (xfs_sb_version_hascrc(&mp->m_sb)) {
-> @@ -2449,8 +2449,7 @@ xfs_agf_verify(
->  	     be32_to_cpu(agf->agf_refcount_level) > XFS_BTREE_MAXLEVELS))
->  		return false;
->  
-> -	return true;;
-> -
-> +	return true;
->  }
->  
->  static void
-> diff --git a/fs/xfs/xfs_export.c b/fs/xfs/xfs_export.c
-> index fe1bfee35898..7d5c355d78b5 100644
-> --- a/fs/xfs/xfs_export.c
-> +++ b/fs/xfs/xfs_export.c
-> @@ -122,7 +122,7 @@ xfs_nfs_get_inode(
->  	struct super_block	*sb,
->  	u64			ino,
->  	u32			generation)
-> - {
-> +{
->   	xfs_mount_t		*mp = XFS_M(sb);
->  	xfs_inode_t		*ip;
->  	int			error;
+Everything there is already described at
+Documentation/doc-guide/kernel-doc.rst. So, there's no reason why
+to keep it anymore.
 
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ Documentation/00-INDEX                  |   2 -
+ Documentation/kernel-doc-nano-HOWTO.txt | 322 --------------------------------
+ scripts/kernel-doc                      |   2 +-
+ 3 files changed, 1 insertion(+), 325 deletions(-)
+ delete mode 100644 Documentation/kernel-doc-nano-HOWTO.txt
 
-The xfs bits look ok,
-Reviewed-by: Darrick J. Wong <darrick.wong@oracle.com>
-
---D
-
-> diff --git a/kernel/audit.c b/kernel/audit.c
-> index 227db99b0f19..d97e8f0f73ca 100644
-> --- a/kernel/audit.c
-> +++ b/kernel/audit.c
-> @@ -443,15 +443,15 @@ static int audit_set_failure(u32 state)
->   * Drop any references inside the auditd connection tracking struct and free
->   * the memory.
->   */
-> - static void auditd_conn_free(struct rcu_head *rcu)
-> - {
-> +static void auditd_conn_free(struct rcu_head *rcu)
-> +{
->  	struct auditd_connection *ac;
->  
->  	ac = container_of(rcu, struct auditd_connection, rcu);
->  	put_pid(ac->pid);
->  	put_net(ac->net);
->  	kfree(ac);
-> - }
-> +}
->  
->  /**
->   * auditd_set - Set/Reset the auditd connection state
-> diff --git a/kernel/trace/trace_printk.c b/kernel/trace/trace_printk.c
-> index ad1d6164e946..50f44b7b2b32 100644
-> --- a/kernel/trace/trace_printk.c
-> +++ b/kernel/trace/trace_printk.c
-> @@ -196,7 +196,7 @@ struct notifier_block module_trace_bprintk_format_nb = {
->  };
->  
->  int __trace_bprintk(unsigned long ip, const char *fmt, ...)
-> - {
-> +{
->  	int ret;
->  	va_list ap;
->  
-> @@ -214,7 +214,7 @@ int __trace_bprintk(unsigned long ip, const char *fmt, ...)
->  EXPORT_SYMBOL_GPL(__trace_bprintk);
->  
->  int __ftrace_vbprintk(unsigned long ip, const char *fmt, va_list ap)
-> - {
-> +{
->  	if (unlikely(!fmt))
->  		return 0;
->  
-> diff --git a/lib/raid6/sse2.c b/lib/raid6/sse2.c
-> index 1d2276b007ee..8191e1d0d2fb 100644
-> --- a/lib/raid6/sse2.c
-> +++ b/lib/raid6/sse2.c
-> @@ -91,7 +91,7 @@ static void raid6_sse21_gen_syndrome(int disks, size_t bytes, void **ptrs)
->  
->  static void raid6_sse21_xor_syndrome(int disks, int start, int stop,
->  				     size_t bytes, void **ptrs)
-> - {
-> +{
->  	u8 **dptr = (u8 **)ptrs;
->  	u8 *p, *q;
->  	int d, z, z0;
-> @@ -200,9 +200,9 @@ static void raid6_sse22_gen_syndrome(int disks, size_t bytes, void **ptrs)
->  	kernel_fpu_end();
->  }
->  
-> - static void raid6_sse22_xor_syndrome(int disks, int start, int stop,
-> +static void raid6_sse22_xor_syndrome(int disks, int start, int stop,
->  				     size_t bytes, void **ptrs)
-> - {
-> +{
->  	u8 **dptr = (u8 **)ptrs;
->  	u8 *p, *q;
->  	int d, z, z0;
-> @@ -265,7 +265,7 @@ static void raid6_sse22_gen_syndrome(int disks, size_t bytes, void **ptrs)
->  
->  	asm volatile("sfence" : : : "memory");
->  	kernel_fpu_end();
-> - }
-> +}
->  
->  const struct raid6_calls raid6_sse2x2 = {
->  	raid6_sse22_gen_syndrome,
-> @@ -366,9 +366,9 @@ static void raid6_sse24_gen_syndrome(int disks, size_t bytes, void **ptrs)
->  	kernel_fpu_end();
->  }
->  
-> - static void raid6_sse24_xor_syndrome(int disks, int start, int stop,
-> +static void raid6_sse24_xor_syndrome(int disks, int start, int stop,
->  				     size_t bytes, void **ptrs)
-> - {
-> +{
->  	u8 **dptr = (u8 **)ptrs;
->  	u8 *p, *q;
->  	int d, z, z0;
-> @@ -471,7 +471,7 @@ static void raid6_sse24_gen_syndrome(int disks, size_t bytes, void **ptrs)
->  	}
->  	asm volatile("sfence" : : : "memory");
->  	kernel_fpu_end();
-> - }
-> +}
->  
->  
->  const struct raid6_calls raid6_sse2x4 = {
-> diff --git a/sound/soc/fsl/fsl_dma.c b/sound/soc/fsl/fsl_dma.c
-> index 0c11f434a374..ec619f51d336 100644
-> --- a/sound/soc/fsl/fsl_dma.c
-> +++ b/sound/soc/fsl/fsl_dma.c
-> @@ -879,7 +879,7 @@ static const struct snd_pcm_ops fsl_dma_ops = {
->  };
->  
->  static int fsl_soc_dma_probe(struct platform_device *pdev)
-> - {
-> +{
->  	struct dma_object *dma;
->  	struct device_node *np = pdev->dev.of_node;
->  	struct device_node *ssi_np;
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-xfs" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/Documentation/00-INDEX b/Documentation/00-INDEX
+index 3bec49c33bbb..aca4f00ec69b 100644
+--- a/Documentation/00-INDEX
++++ b/Documentation/00-INDEX
+@@ -228,8 +228,6 @@ isdn/
+ 	- directory with info on the Linux ISDN support, and supported cards.
+ kbuild/
+ 	- directory with info about the kernel build process.
+-kernel-doc-nano-HOWTO.txt
+-	- outdated info about kernel-doc documentation.
+ kdump/
+ 	- directory with mini HowTo on getting the crash dump code to work.
+ doc-guide/
+diff --git a/Documentation/kernel-doc-nano-HOWTO.txt b/Documentation/kernel-doc-nano-HOWTO.txt
+deleted file mode 100644
+index c23e2c5ab80d..000000000000
+--- a/Documentation/kernel-doc-nano-HOWTO.txt
++++ /dev/null
+@@ -1,322 +0,0 @@
+-NOTE: this document is outdated and will eventually be removed.  See
+-Documentation/doc-guide/ for current information.
+-
+-kernel-doc nano-HOWTO
+-=====================
+-
+-How to format kernel-doc comments
+----------------------------------
+-
+-In order to provide embedded, 'C' friendly, easy to maintain,
+-but consistent and extractable documentation of the functions and
+-data structures in the Linux kernel, the Linux kernel has adopted
+-a consistent style for documenting functions and their parameters,
+-and structures and their members.
+-
+-The format for this documentation is called the kernel-doc format.
+-It is documented in this Documentation/kernel-doc-nano-HOWTO.txt file.
+-
+-This style embeds the documentation within the source files, using
+-a few simple conventions.  The scripts/kernel-doc perl script, the
+-Documentation/sphinx/kerneldoc.py Sphinx extension and other tools understand
+-these conventions, and are used to extract this embedded documentation
+-into various documents.
+-
+-In order to provide good documentation of kernel functions and data
+-structures, please use the following conventions to format your
+-kernel-doc comments in Linux kernel source.
+-
+-We definitely need kernel-doc formatted documentation for functions
+-that are exported to loadable modules using EXPORT_SYMBOL.
+-
+-We also look to provide kernel-doc formatted documentation for
+-functions externally visible to other kernel files (not marked
+-"static").
+-
+-We also recommend providing kernel-doc formatted documentation
+-for private (file "static") routines, for consistency of kernel
+-source code layout.  But this is lower priority and at the
+-discretion of the MAINTAINER of that kernel source file.
+-
+-Data structures visible in kernel include files should also be
+-documented using kernel-doc formatted comments.
+-
+-The opening comment mark "/**" is reserved for kernel-doc comments.
+-Only comments so marked will be considered by the kernel-doc scripts,
+-and any comment so marked must be in kernel-doc format.  Do not use
+-"/**" to be begin a comment block unless the comment block contains
+-kernel-doc formatted comments.  The closing comment marker for
+-kernel-doc comments can be either "*/" or "**/", but "*/" is
+-preferred in the Linux kernel tree.
+-
+-Kernel-doc comments should be placed just before the function
+-or data structure being described.
+-
+-Example kernel-doc function comment:
+-
+-/**
+- * foobar() - short function description of foobar
+- * @arg1:	Describe the first argument to foobar.
+- * @arg2:	Describe the second argument to foobar.
+- *		One can provide multiple line descriptions
+- *		for arguments.
+- *
+- * A longer description, with more discussion of the function foobar()
+- * that might be useful to those using or modifying it.  Begins with
+- * empty comment line, and may include additional embedded empty
+- * comment lines.
+- *
+- * The longer description can have multiple paragraphs.
+- *
+- * Return: Describe the return value of foobar.
+- */
+-
+-The short description following the subject can span multiple lines
+-and ends with an @argument description, an empty line or the end of
+-the comment block.
+-
+-The @argument descriptions must begin on the very next line following
+-this opening short function description line, with no intervening
+-empty comment lines.
+-
+-If a function parameter is "..." (varargs), it should be listed in
+-kernel-doc notation as:
+- * @...: description
+-
+-The return value, if any, should be described in a dedicated section
+-named "Return".
+-
+-Example kernel-doc data structure comment.
+-
+-/**
+- * struct blah - the basic blah structure
+- * @mem1:	describe the first member of struct blah
+- * @mem2:	describe the second member of struct blah,
+- *		perhaps with more lines and words.
+- *
+- * Longer description of this structure.
+- */
+-
+-The kernel-doc function comments describe each parameter to the
+-function, in order, with the @name lines.
+-
+-The kernel-doc data structure comments describe each structure member
+-in the data structure, with the @name lines.
+-
+-The longer description formatting is "reflowed", losing your line
+-breaks.  So presenting carefully formatted lists within these
+-descriptions won't work so well; derived documentation will lose
+-the formatting.
+-
+-See the section below "How to add extractable documentation to your
+-source files" for more details and notes on how to format kernel-doc
+-comments.
+-
+-Components of the kernel-doc system
+------------------------------------
+-
+-Many places in the source tree have extractable documentation in the
+-form of block comments above functions.  The components of this system
+-are:
+-
+-- scripts/kernel-doc
+-
+-  This is a perl script that hunts for the block comments and can mark
+-  them up directly into DocBook, ReST, man, text, and HTML. (No, not
+-  texinfo.)
+-
+-- scripts/docproc.c
+-
+-  This is a program for converting SGML template files into SGML
+-  files. When a file is referenced it is searched for symbols
+-  exported (EXPORT_SYMBOL), to be able to distinguish between internal
+-  and external functions.
+-  It invokes kernel-doc, giving it the list of functions that
+-  are to be documented.
+-  Additionally it is used to scan the SGML template files to locate
+-  all the files referenced herein. This is used to generate dependency
+-  information as used by make.
+-
+-- Makefile
+-
+-  The targets 'xmldocs', 'latexdocs', 'pdfdocs', 'epubdocs'and 'htmldocs'
+-  are used to build XML DocBook files, LaTeX files, PDF files,
+-  ePub files and html files in Documentation/.
+-
+-How to extract the documentation
+---------------------------------
+-
+-If you just want to read the ready-made books on the various
+-subsystems, just type 'make epubdocs', or 'make pdfdocs', or 'make htmldocs',
+-depending on your preference.  If you would rather read a different format,
+-you can type 'make xmldocs' and then use DocBook tools to convert
+-Documentation/output/*.xml to a format of your choice (for example,
+-'db2html ...' if 'make htmldocs' was not defined).
+-
+-If you want to see man pages instead, you can do this:
+-
+-$ cd linux
+-$ scripts/kernel-doc -man $(find -name '*.c') | split-man.pl /tmp/man
+-$ scripts/kernel-doc -man $(find -name '*.h') | split-man.pl /tmp/man
+-
+-Here is split-man.pl:
+-
+--->
+-#!/usr/bin/perl
+-
+-if ($#ARGV < 0) {
+-   die "where do I put the results?\n";
+-}
+-
+-mkdir $ARGV[0],0777;
+-$state = 0;
+-while (<STDIN>) {
+-    if (/^\.TH \"[^\"]*\" 9 \"([^\"]*)\"/) {
+-	if ($state == 1) { close OUT }
+-	$state = 1;
+-	$fn = "$ARGV[0]/$1.9";
+-	print STDERR "Creating $fn\n";
+-	open OUT, ">$fn" or die "can't open $fn: $!\n";
+-	print OUT $_;
+-    } elsif ($state != 0) {
+-	print OUT $_;
+-    }
+-}
+-
+-close OUT;
+-<--
+-
+-If you just want to view the documentation for one function in one
+-file, you can do this:
+-
+-$ scripts/kernel-doc -man -function fn file | nroff -man | less
+-
+-or this:
+-
+-$ scripts/kernel-doc -text -function fn file
+-
+-
+-How to add extractable documentation to your source files
+----------------------------------------------------------
+-
+-The format of the block comment is like this:
+-
+-/**
+- * function_name(:)? (- short description)?
+-(* @parameterx(space)*: (description of parameter x)?)*
+-(* a blank line)?
+- * (Description:)? (Description of function)?
+- * (section header: (section description)? )*
+-(*)?*/
+-
+-All "description" text can span multiple lines, although the
+-function_name & its short description are traditionally on a single line.
+-Description text may also contain blank lines (i.e., lines that contain
+-only a "*").
+-
+-"section header:" names must be unique per function (or struct,
+-union, typedef, enum).
+-
+-Use the section header "Return" for sections describing the return value
+-of a function.
+-
+-Avoid putting a spurious blank line after the function name, or else the
+-description will be repeated!
+-
+-All descriptive text is further processed, scanning for the following special
+-patterns, which are highlighted appropriately.
+-
+-'funcname()' - function
+-'$ENVVAR' - environment variable
+-'&struct_name' - name of a structure (up to two words including 'struct')
+-'@parameter' - name of a parameter
+-'%CONST' - name of a constant.
+-
+-NOTE 1:  The multi-line descriptive text you provide does *not* recognize
+-line breaks, so if you try to format some text nicely, as in:
+-
+-  Return:
+-    0 - cool
+-    1 - invalid arg
+-    2 - out of memory
+-
+-this will all run together and produce:
+-
+-  Return: 0 - cool 1 - invalid arg 2 - out of memory
+-
+-NOTE 2:  If the descriptive text you provide has lines that begin with
+-some phrase followed by a colon, each of those phrases will be taken as
+-a new section heading, which means you should similarly try to avoid text
+-like:
+-
+-  Return:
+-    0: cool
+-    1: invalid arg
+-    2: out of memory
+-
+-every line of which would start a new section.  Again, probably not
+-what you were after.
+-
+-Take a look around the source tree for examples.
+-
+-
+-kernel-doc for structs, unions, enums, and typedefs
+----------------------------------------------------
+-
+-Beside functions you can also write documentation for structs, unions,
+-enums and typedefs. Instead of the function name you must write the name
+-of the declaration;  the struct/union/enum/typedef must always precede
+-the name. Nesting of declarations is not supported.
+-Use the argument mechanism to document members or constants.
+-
+-Inside a struct description, you can use the "private:" and "public:"
+-comment tags.  Structure fields that are inside a "private:" area
+-are not listed in the generated output documentation.  The "private:"
+-and "public:" tags must begin immediately following a "/*" comment
+-marker.  They may optionally include comments between the ":" and the
+-ending "*/" marker.
+-
+-Example:
+-
+-/**
+- * struct my_struct - short description
+- * @a: first member
+- * @b: second member
+- *
+- * Longer description
+- */
+-struct my_struct {
+-    int a;
+-    int b;
+-/* private: internal use only */
+-    int c;
+-};
+-
+-
+-Including documentation blocks in source files
+-----------------------------------------------
+-
+-To facilitate having source code and comments close together, you can
+-include kernel-doc documentation blocks that are free-form comments
+-instead of being kernel-doc for functions, structures, unions,
+-enums, or typedefs.  This could be used for something like a
+-theory of operation for a driver or library code, for example.
+-
+-This is done by using a DOC: section keyword with a section title.  E.g.:
+-
+-/**
+- * DOC: Theory of Operation
+- *
+- * The whizbang foobar is a dilly of a gizmo.  It can do whatever you
+- * want it to do, at any time.  It reads your mind.  Here's how it works.
+- *
+- * foo bar splat
+- *
+- * The only drawback to this gizmo is that is can sometimes damage
+- * hardware, software, or its subject(s).
+- */
+-
+-DOC: sections are used in ReST files.
+-
+-Tim.
+-*/ <twaugh@redhat.com>
+diff --git a/scripts/kernel-doc b/scripts/kernel-doc
+index 675c525ec5b9..bed74e9bc141 100755
+--- a/scripts/kernel-doc
++++ b/scripts/kernel-doc
+@@ -48,7 +48,7 @@ Read C language source or header FILEs, extract embedded documentation comments,
+ and print formatted documentation to standard output.
+ 
+ The documentation comments are identified by "/**" opening comment mark. See
+-Documentation/kernel-doc-nano-HOWTO.txt for the documentation comment syntax.
++Documentation/doc-guide/kernel-doc.rst for the documentation comment syntax.
+ 
+ Output format selection (mutually exclusive):
+   -docbook		Output DocBook format.
+-- 
+2.14.3
