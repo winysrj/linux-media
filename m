@@ -1,58 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.hosts.co.uk ([85.233.160.19]:29028 "EHLO smtp.hosts.co.uk"
+Received: from osg.samsung.com ([64.30.133.232]:50485 "EHLO osg.samsung.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751308AbdLASxx (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 1 Dec 2017 13:53:53 -0500
-From: Ian Jamison <ian.dev@arkver.com>
-To: Steve Longerbeam <slongerbeam@gmail.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH v2] media: imx: Remove incorrect check for queue state in start/stop_streaming
-Date: Fri,  1 Dec 2017 18:53:50 +0000
-Message-Id: <ac504a93b483b40a8b2f9087af8c6d25672c7d6c.1512154062.git.ian.dev@arkver.com>
+        id S1758985AbdLRMa0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 18 Dec 2017 07:30:26 -0500
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Tom Saeger <tom.saeger@oracle.com>
+Subject: [PATCH v4 05/18] docs: kernel-doc.rst: improve typedef documentation
+Date: Mon, 18 Dec 2017 10:30:06 -0200
+Message-Id: <a3c12399c5aa0976eced627ae5337a5ba8973d90.1513599193.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1513599193.git.mchehab@s-opensource.com>
+References: <cover.1513599193.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1513599193.git.mchehab@s-opensource.com>
+References: <cover.1513599193.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-It is possible to call STREAMON without the minimum number of
-buffers queued. In this case the vb2_queue state will be set to
-streaming but the start_streaming vb2_op will not be called.
-Later when enough buffers are queued, start_streaming will
-be called but vb2_is_streaming will already return true.
+Add documentation about typedefs for function prototypes and
+move it to happen earlier.
 
-Also removed the queue state check in stop_streaming since it's
-not valid there either.
-
-Signed-off-by: Ian Jamison <ian.dev@arkver.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
-Since v1:
-    Remove check in capture_stop_streaming as recommended by Hans.
+ Documentation/doc-guide/kernel-doc.rst | 32 ++++++++++++++++++++++----------
+ 1 file changed, 22 insertions(+), 10 deletions(-)
 
- drivers/staging/media/imx/imx-media-capture.c | 6 ------
- 1 file changed, 6 deletions(-)
-
-diff --git a/drivers/staging/media/imx/imx-media-capture.c b/drivers/staging/media/imx/imx-media-capture.c
-index ea145bafb880..7b6763802db8 100644
---- a/drivers/staging/media/imx/imx-media-capture.c
-+++ b/drivers/staging/media/imx/imx-media-capture.c
-@@ -449,9 +449,6 @@ static int capture_start_streaming(struct vb2_queue *vq, unsigned int count)
- 	unsigned long flags;
- 	int ret;
+diff --git a/Documentation/doc-guide/kernel-doc.rst b/Documentation/doc-guide/kernel-doc.rst
+index e3e82f8f4de5..b178857866f8 100644
+--- a/Documentation/doc-guide/kernel-doc.rst
++++ b/Documentation/doc-guide/kernel-doc.rst
+@@ -282,6 +282,28 @@ The kernel-doc data structure comments describe each member of the structure,
+ in order, with the member descriptions.
  
--	if (vb2_is_streaming(vq))
--		return 0;
--
- 	ret = imx_media_pipeline_set_stream(priv->md, &priv->src_sd->entity,
- 					    true);
- 	if (ret) {
-@@ -480,9 +477,6 @@ static void capture_stop_streaming(struct vb2_queue *vq)
- 	unsigned long flags;
- 	int ret;
  
--	if (!vb2_is_streaming(vq))
--		return;
++Typedef documentation
++---------------------
++
++The general format of a typedef kernel-doc comment is::
++
++  /**
++   * typedef type_name - Brief description.
++   *
++   * Description of the type.
++   */
++
++Typedefs with function prototypes can also be documented::
++
++  /**
++   * typedef type_name - Brief description.
++   * @arg1: description of arg1
++   * @arg2: description of arg2
++   *
++   * Description of the type.
++   */
++   typedef void (*type_name)(struct v4l2_ctrl *arg1, void *arg2);
++
+ 
+ Highlights and cross-references
+ -------------------------------
+@@ -384,16 +406,6 @@ on a line of their own, like all other kernel-doc comments::
+         int foobar;
+   }
+ 
+-Typedef documentation
+----------------------
 -
- 	spin_lock_irqsave(&priv->q_lock, flags);
- 	priv->stop = true;
- 	spin_unlock_irqrestore(&priv->q_lock, flags);
+-The general format of a typedef kernel-doc comment is::
+-
+-  /**
+-   * typedef type_name - Brief description.
+-   *
+-   * Description of the type.
+-   */
+ 
+ Overview documentation comments
+ -------------------------------
 -- 
-2.15.0
+2.14.3
