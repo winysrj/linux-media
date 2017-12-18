@@ -1,49 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:53685 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752166AbdLCK5l (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sun, 3 Dec 2017 05:57:41 -0500
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org
-Cc: linux-renesas-soc@vger.kernel.org
-Subject: [PATCH 5/9] v4l: vsp1: Document the vsp1_du_atomic_config structure
-Date: Sun,  3 Dec 2017 12:57:31 +0200
-Message-Id: <20171203105735.10529-6-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <20171203105735.10529-1-laurent.pinchart+renesas@ideasonboard.com>
-References: <20171203105735.10529-1-laurent.pinchart+renesas@ideasonboard.com>
+Received: from mail-oi0-f66.google.com ([209.85.218.66]:44107 "EHLO
+        mail-oi0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1758985AbdLRTzF (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 18 Dec 2017 14:55:05 -0500
+MIME-Version: 1.0
+In-Reply-To: <20171128113352.5jm3ur3bszey3y4l@rohdewald.de>
+References: <20171128113352.5jm3ur3bszey3y4l@rohdewald.de>
+From: Arnd Bergmann <arnd@arndb.de>
+Date: Mon, 18 Dec 2017 20:55:03 +0100
+Message-ID: <CAK8P3a1-xGO652LnkxEMun58dHXVQsdpLDVBnVZTPD7eywZfGg@mail.gmail.com>
+Subject: Re: [PATCH] media: dvb_usb_pctv452e: module refcount changes were unbalanced
+To: Wolfgang Rohdewald <wolfgang@rohdewald.de>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The structure is used in the API that the VSP1 driver exposes to the DU
-driver. Documenting it is thus important.
+On Tue, Nov 28, 2017 at 12:33 PM, Wolfgang Rohdewald
+<wolfgang@rohdewald.de> wrote:
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
----
- include/media/vsp1.h | 10 ++++++++++
- 1 file changed, 10 insertions(+)
+> @@ -913,6 +913,14 @@ static int pctv452e_frontend_attach(struct dvb_usb_adapter *a)
+>                                                 &a->dev->i2c_adap);
+>         if (!a->fe_adap[0].fe)
+>                 return -ENODEV;
+> +
+> +       /*
+> +        * dvb_frontend will call dvb_detach for both stb0899_detach
+> +        * and stb0899_release but we only do dvb_attach(stb0899_attach).
+> +        * Increment the module refcount instead.
+> +        */
+> +       symbol_get(stb0899_attach);
+> +
+>         if ((dvb_attach(lnbp22_attach, a->fe_adap[0].fe,
+>                                         &a->dev->i2c_adap)) == NULL)
+>                 err("Cannot attach lnbp22\n");
 
-diff --git a/include/media/vsp1.h b/include/media/vsp1.h
-index 68a8abe4fac5..7850f96fb708 100644
---- a/include/media/vsp1.h
-+++ b/include/media/vsp1.h
-@@ -41,6 +41,16 @@ struct vsp1_du_lif_config {
- int vsp1_du_setup_lif(struct device *dev, unsigned int pipe_index,
- 		      const struct vsp1_du_lif_config *cfg);
- 
-+/**
-+ * struct vsp1_du_atomic_config - VSP atomic configuration parameters
-+ * @pixelformat: plan pixel format (V4L2 4CC)
-+ * @pitch: line pitch in bytes, for all planes
-+ * @mem: DMA memory address for each plane of the frame buffer
-+ * @src: source rectangle in the frame buffer (integer coordinates)
-+ * @dst: destination rectangle on the display (integer coordinates)
-+ * @alpha: alpha value (0: fully transparent, 255: fully opaque)
-+ * @zpos: Z position of the plane (from 0 to number of planes minus 1)
-+ */
- struct vsp1_du_atomic_config {
- 	u32 pixelformat;
- 	unsigned int pitch;
--- 
-Regards,
+This caused a build error in today's linux-next:
 
-Laurent Pinchart
+In file included from drivers/media/usb/dvb-usb/pctv452e.c:20:0:
+drivers/media/usb/dvb-usb/pctv452e.c: In function 'pctv452e_frontend_attach':
+drivers/media/dvb-frontends/stb0899_drv.h:151:36: error: weak
+declaration of 'stb0899_attach' being applied to a already existing,
+static definition
+ static inline struct dvb_frontend *stb0899_attach(struct
+stb0899_config *config,
+
+I don't really understand where the 'weak' declaration came from, but this seems
+to be related to resolving a symbol for a function that was declared
+'static inline'.
+
+The random configuration that caused this included:
+
+CONFIG_DVB_USB_PCTV452E=y
+# CONFIG_DVB_STB0899 is not set
+# CONFIG_MODULES is not set
+
+       Arnd
