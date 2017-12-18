@@ -1,65 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f54.google.com ([74.125.83.54]:46887 "EHLO
-        mail-pg0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752078AbdLHBGF (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 7 Dec 2017 20:06:05 -0500
-Subject: Re: [PATCH 0/9] media: imx: Add better OF graph support
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        linux-kernel@vger.kernel.org,
-        Russell King <rmk+kernel@armlinux.org.uk>,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-References: <1509223009-6392-1-git-send-email-steve_longerbeam@mentor.com>
- <c20882c4-8a61-c2b1-6664-171f9bfbcaa6@xs4all.nl>
- <8feaf7ed-17f1-18bb-fa1f-2532fda8f829@gmail.com>
-Message-ID: <c1a67ce0-301a-3028-58f0-293235b88f97@gmail.com>
-Date: Thu, 7 Dec 2017 17:05:56 -0800
-MIME-Version: 1.0
-In-Reply-To: <8feaf7ed-17f1-18bb-fa1f-2532fda8f829@gmail.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Content-Language: en-US
+Received: from mail-wr0-f196.google.com ([209.85.128.196]:33681 "EHLO
+        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752882AbdLROL5 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 18 Dec 2017 09:11:57 -0500
+From: Philipp Rossak <embed3d@gmail.com>
+To: mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
+        maxime.ripard@free-electrons.com, wens@csie.org,
+        linux@armlinux.org.uk, sean@mess.org, p.zabel@pengutronix.de,
+        andi.shyti@samsung.com
+Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-sunxi@googlegroups.com
+Subject: [PATCH v2 4/6] arm: dts: sun8i: a83t: Add support for the cir interface
+Date: Mon, 18 Dec 2017 15:11:44 +0100
+Message-Id: <20171218141146.23746-5-embed3d@gmail.com>
+In-Reply-To: <20171218141146.23746-1-embed3d@gmail.com>
+References: <20171218141146.23746-1-embed3d@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+The cir interface is like on the H3 located at 0x01f02000 and is exactly
+the same. This patch adds support for the ir interface on the A83T.
 
+Signed-off-by: Philipp Rossak <embed3d@gmail.com>
+---
+ arch/arm/boot/dts/sun8i-a83t.dtsi | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-On 12/07/2017 03:23 PM, Steve Longerbeam wrote:
-> Hi Hans,
->
->
-> On 12/04/2017 05:44 AM, Hans Verkuil wrote:
->
-> <snip>
->>
->> Of course, any such simplification can also be done after this series 
->> has
->> been applied, but I don't know what your thoughts are on this.
->
-> I do prefer the sub-notifier approach to discovering fwnodes, so yes I 
-> would
-> like to switch to this.
->
-> Since it is a distinct change (using sub-notifiers instead of 
-> recursive graph
-> walk), I would prefer to get this series applied first, and then 
-> switch to
-> sub-notifiers as distinct patches afterwards.
->
-> Let me submit a v2 of this series first however. There are some minor 
-> changes I
-> would like to make so that the up-coming sub-notifier patches are 
-> cleaner.
->
-
-Hans,
-
-Never mind, the sub-notifier patches should be fairly clean. I won't 
-submit a
-v2 of this series unless it is requested by reviewers.
-
-Steve
+diff --git a/arch/arm/boot/dts/sun8i-a83t.dtsi b/arch/arm/boot/dts/sun8i-a83t.dtsi
+index feffca8a9a24..089c270a7f3c 100644
+--- a/arch/arm/boot/dts/sun8i-a83t.dtsi
++++ b/arch/arm/boot/dts/sun8i-a83t.dtsi
+@@ -605,6 +605,16 @@
+ 			#reset-cells = <1>;
+ 		};
+ 
++		cir: cir@01f02000 {
++			compatible = "allwinner,sun5i-a13-ir";
++			clocks = <&r_ccu CLK_APB0_IR>, <&r_ccu CLK_IR>;
++			clock-names = "apb", "ir";
++			resets = <&r_ccu RST_APB0_IR>;
++			interrupts = <GIC_SPI 37 IRQ_TYPE_LEVEL_HIGH>;
++			reg = <0x01f02000 0x400>;
++			status = "disabled";
++		};
++
+ 		r_pio: pinctrl@1f02c00 {
+ 			compatible = "allwinner,sun8i-a83t-r-pinctrl";
+ 			reg = <0x01f02c00 0x400>;
+-- 
+2.11.0
