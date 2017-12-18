@@ -1,2271 +1,460 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:53766 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1752911AbdLELJD (ORCPT
+Received: from mail.free-electrons.com ([62.4.15.54]:37357 "EHLO
+        mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S936193AbdLRW1H (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 5 Dec 2017 06:09:03 -0500
-Date: Tue, 5 Dec 2017 13:09:00 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Yong Zhi <yong.zhi@intel.com>
-Cc: linux-media@vger.kernel.org, jian.xu.zheng@intel.com,
-        tfiga@chromium.org, rajmohan.mani@intel.com,
-        tuukka.toivonen@intel.com, hyungwoo.yang@intel.com,
-        chiranjeevi.rapolu@intel.com, jerry.w.hu@intel.com
-Subject: Re: [PATCH v5 02/12] intel-ipu3: Add user space ABI definitions
-Message-ID: <20171205110900.uxs2esjyhhkzylsy@valkosipuli.retiisi.org.uk>
-References: <1512189142-19863-1-git-send-email-yong.zhi@intel.com>
- <1512189142-19863-3-git-send-email-yong.zhi@intel.com>
+        Mon, 18 Dec 2017 17:27:07 -0500
+Date: Mon, 18 Dec 2017 23:27:05 +0100
+From: Alexandre Belloni <alexandre.belloni@free-electrons.com>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        "Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
+        Songjun Wu <songjun.wu@microchip.com>,
+        Nicolas Ferre <nicolas.ferre@microchip.com>,
+        Ludovic Desroches <ludovic.desroches@microchip.com>,
+        Kyungmin Park <kyungmin.park@samsung.com>,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        Kukjin Kim <kgene@kernel.org>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Todor Tomov <todor.tomov@linaro.org>,
+        Niklas =?iso-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund@ragnatech.se>,
+        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
+        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+        Maxime Coquelin <mcoquelin.stm32@gmail.com>,
+        Alexandre Torgue <alexandre.torgue@st.com>,
+        Benoit Parrot <bparrot@ti.com>,
+        Hyun Kwon <hyun.kwon@xilinx.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Michal Simek <michal.simek@xilinx.com>,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Petr Cvek <petr.cvek@tul.cz>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Pravin Shedge <pravin.shedge4linux@gmail.com>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Sebastian Reichel <sre@kernel.org>,
+        "Gustavo A. R. Silva" <garsilva@embeddedor.com>,
+        Tomasz Figa <tfiga@chromium.org>,
+        linux-arm-kernel@lists.infradead.org,
+        linux-samsung-soc@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org, devel@driverdev.osuosl.org
+Subject: Re: [PATCH 3/8] media: v4l2-async: simplify v4l2_async_subdev
+ structure
+Message-ID: <20171218222705.GK15162@piout.net>
+References: <cover.1513625884.git.mchehab@s-opensource.com>
+ <014b64d13c8b9d516afc3319a9de1a97b2a845de.1513625884.git.mchehab@s-opensource.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <1512189142-19863-3-git-send-email-yong.zhi@intel.com>
+In-Reply-To: <014b64d13c8b9d516afc3319a9de1a97b2a845de.1513625884.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Yong,
-
-Thanks for the update.
-
-I went through the header again, some comments below.
-
-On Fri, Dec 01, 2017 at 10:32:12PM -0600, Yong Zhi wrote:
-> The UAPI header defines the structures and macros
-> to be used by user space.
+On 18/12/2017 at 17:53:57 -0200, Mauro Carvalho Chehab wrote:
+> The V4L2_ASYNC_MATCH_FWNODE match criteria requires just one
+> struct to be filled (struct fwnode_handle). The V4L2_ASYNC_MATCH_DEVNAME
+> match criteria requires just a device name.
 > 
-> Signed-off-by: Rajmohan Mani <rajmohan.mani@intel.com>
-> Signed-off-by: Yong Zhi <yong.zhi@intel.com>
+> So, it doesn't make sense to enclose those into structs,
+> as the criteria can go directly into the union.
+> 
+> That makes easier to document it, as we don't need to document
+> weird senseless structs.
+> 
+> At drivers, this makes even clearer about the match criteria.
+> 
+
+For atmel:
+Acked-by: Alexandre Belloni <alexandre.belloni@free-electrons.com>
+
+> Acked-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 > ---
->  include/uapi/linux/intel-ipu3.h | 2196 +++++++++++++++++++++++++++++++++++++++
->  1 file changed, 2196 insertions(+)
->  create mode 100644 include/uapi/linux/intel-ipu3.h
+>  drivers/media/platform/am437x/am437x-vpfe.c    |  6 +++---
+>  drivers/media/platform/atmel/atmel-isc.c       |  2 +-
+>  drivers/media/platform/atmel/atmel-isi.c       |  2 +-
+>  drivers/media/platform/davinci/vpif_capture.c  |  4 ++--
+>  drivers/media/platform/exynos4-is/media-dev.c  |  4 ++--
+>  drivers/media/platform/pxa_camera.c            |  2 +-
+>  drivers/media/platform/qcom/camss-8x16/camss.c |  2 +-
+>  drivers/media/platform/rcar-vin/rcar-core.c    |  2 +-
+>  drivers/media/platform/rcar_drif.c             |  4 ++--
+>  drivers/media/platform/soc_camera/soc_camera.c |  2 +-
+>  drivers/media/platform/stm32/stm32-dcmi.c      |  2 +-
+>  drivers/media/platform/ti-vpe/cal.c            |  2 +-
+>  drivers/media/platform/xilinx/xilinx-vipp.c    |  2 +-
+>  drivers/media/v4l2-core/v4l2-async.c           | 16 ++++++++--------
+>  drivers/media/v4l2-core/v4l2-fwnode.c          | 10 +++++-----
+>  drivers/staging/media/imx/imx-media-dev.c      |  4 ++--
+>  include/media/v4l2-async.h                     |  8 ++------
+>  17 files changed, 35 insertions(+), 39 deletions(-)
 > 
-> diff --git a/include/uapi/linux/intel-ipu3.h b/include/uapi/linux/intel-ipu3.h
-> new file mode 100644
-> index 000000000000..0911bb360dac
-> --- /dev/null
-> +++ b/include/uapi/linux/intel-ipu3.h
-> @@ -0,0 +1,2196 @@
-> +/*
-> + * Copyright (c) 2017 Intel Corporation.
-> + *
-> + * This program is free software; you can redistribute it and/or
-> + * modify it under the terms of the GNU General Public License version
-> + * 2 as published by the Free Software Foundation.
-> + *
-> + * This program is distributed in the hope that it will be useful,
-> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> + * GNU General Public License for more details.
-> + */
-> +
-> +#ifndef __IPU3_UAPI_H
-> +#define __IPU3_UAPI_H
-> +
-> +#include <linux/types.h>
-> +
-> +#define IPU3_UAPI_ISP_VEC_ELEMS				64
-> +
-> +#define IMGU_ABI_PAD	__aligned(IPU3_UAPI_ISP_WORD_BYTES)
-> +#define IPU3_ALIGN	__attribute__((aligned(IPU3_UAPI_ISP_WORD_BYTES)))
-> +
-> +#define IPU3_UAPI_ISP_WORD_BYTES			32
-> +#define IPU3_UAPI_MAX_STRIPES				2
-
-Do you need this? Isn't striping handled entirely in the driver?
-
-> +
-> +/******************* ipu3_uapi_stats_3a *******************/
-> +
-> +#define IPU3_UAPI_MAX_BUBBLE_SIZE			10
-> +
-> +#define IPU3_UAPI_AE_COLORS				4
-> +#define IPU3_UAPI_AE_BINS				256
-> +
-> +#define IPU3_UAPI_AWB_MD_ITEM_SIZE			8
-> +#define IPU3_UAPI_AWB_MAX_SETS				60
-> +#define IPU3_UAPI_AWB_SET_SIZE				0x500
-> +#define IPU3_UAPI_AWB_SPARE_FOR_BUBBLES \
-> +		(IPU3_UAPI_MAX_BUBBLE_SIZE * IPU3_UAPI_MAX_STRIPES * \
-> +		 IPU3_UAPI_AWB_MD_ITEM_SIZE)
-> +#define IPU3_UAPI_AWB_MAX_BUFFER_SIZE \
-> +		(IPU3_UAPI_AWB_MAX_SETS * \
-> +		 (IPU3_UAPI_AWB_SET_SIZE + IPU3_UAPI_AWB_SPARE_FOR_BUBBLES))
-> +
-> +#define IPU3_UAPI_AF_MAX_SETS				24
-> +#define IPU3_UAPI_AF_MD_ITEM_SIZE			4
-> +#define IPU3_UAPI_AF_SPARE_FOR_BUBBLES \
-> +		(IPU3_UAPI_MAX_BUBBLE_SIZE * IPU3_UAPI_MAX_STRIPES * \
-> +		 IPU3_UAPI_AF_MD_ITEM_SIZE)
-> +#define IPU3_UAPI_AF_Y_TABLE_SET_SIZE			0x80
-> +#define IPU3_UAPI_AF_Y_TABLE_MAX_SIZE \
-> +	(IPU3_UAPI_AF_MAX_SETS * \
-> +	 (IPU3_UAPI_AF_Y_TABLE_SET_SIZE + IPU3_UAPI_AF_SPARE_FOR_BUBBLES) * \
-> +	 IPU3_UAPI_MAX_STRIPES)
-> +
-> +#define IPU3_UAPI_AWB_FR_MAX_SETS			24
-> +#define IPU3_UAPI_AWB_FR_MD_ITEM_SIZE			8
-> +#define IPU3_UAPI_AWB_FR_BAYER_TBL_SIZE			0x100
-> +#define IPU3_UAPI_AWB_FR_SPARE_FOR_BUBBLES \
-> +		(IPU3_UAPI_MAX_BUBBLE_SIZE * IPU3_UAPI_MAX_STRIPES * \
-> +		IPU3_UAPI_AWB_FR_MD_ITEM_SIZE)
-> +#define IPU3_UAPI_AWB_FR_BAYER_TABLE_MAX_SIZE \
-> +	(IPU3_UAPI_AWB_FR_MAX_SETS * \
-> +	(IPU3_UAPI_AWB_FR_BAYER_TBL_SIZE + \
-> +	 IPU3_UAPI_AWB_FR_SPARE_FOR_BUBBLES) * \
-> +	IPU3_UAPI_MAX_STRIPES)
-> +
-> +struct ipu3_uapi_grid_config {
-> +	__u8 width;				/* 6 or 7 (rgbs_grd_cfg) bits */
-> +	__u8 height;
-> +	__u16 block_width_log2:3;
-> +	__u16 block_height_log2:3;
-> +	__u16 height_per_slice:8;			/* default value 1 */
-> +	__u16 x_start;					/* 12 bits */
-> +	__u16 y_start;
-> +#define IPU3_UAPI_GRID_START_MASK			((1 << 12) - 1)
-> +#define IPU3_UAPI_GRID_Y_START_EN			(1 << 15)
-> +	__u16 x_end;					/* 12 bits */
-> +	__u16 y_end;
-> +} __packed;
-> +
-> +struct ipu3_uapi_awb_meta_data {
-> +	__u8 meta_data_buffer[IPU3_UAPI_AWB_MAX_BUFFER_SIZE];
-> +} __packed;
-> +
-> +struct ipu3_uapi_awb_raw_buffer {
-> +	struct ipu3_uapi_awb_meta_data meta_data;
-> +} __packed;
-> +
-> +struct IPU3_ALIGN ipu3_uapi_awb_config_s {
-> +	__u16 rgbs_thr_gr;
-> +	__u16 rgbs_thr_r;
-> +	__u16 rgbs_thr_gb;
-> +	__u16 rgbs_thr_b;
-> +/* controls generation of meta_data (like FF enable/disable) */
-> +#define IPU3_UAPI_AWB_RGBS_THR_B_EN		(1 << 14)
-> +#define IPU3_UAPI_AWB_RGBS_THR_B_INCL_SAT	(1 << 15)
-> +
-> +	struct ipu3_uapi_grid_config grid;
-> +} __packed;
-> +
-> +struct ipu3_uapi_ae_raw_buffer {
-> +	__u32 vals[IPU3_UAPI_AE_BINS * IPU3_UAPI_AE_COLORS];
-> +} __packed;
-> +
-> +struct ipu3_uapi_ae_raw_buffer_aligned {
-> +	struct ipu3_uapi_ae_raw_buffer buff IPU3_ALIGN;
-> +} __packed;
-> +
-> +struct ipu3_uapi_ae_grid_config {
-> +	__u8 width;
-> +	__u8 height;
-> +	__u8 block_width_log2:4;
-> +	__u8 block_height_log2:4;
-> +	__u8 __reserved0:5;
-> +	__u8 ae_en:1;
-> +	__u8 rst_hist_array:1;
-> +	__u8 done_rst_hist_array:1;
-> +	__u16 x_start;			/* 12 bits */
-> +	__u16 y_start;
-> +	__u16 x_end;
-> +	__u16 y_end;
-> +} __packed;
-> +
-> +struct ipu3_uapi_af_filter_config {
-> +	struct {
-> +		__u8 a1;
-> +		__u8 a2;
-> +		__u8 a3;
-> +		__u8 a4;
-> +	} y1_coeff_0;
-> +	struct {
-> +		__u8 a5;
-> +		__u8 a6;
-> +		__u8 a7;
-> +		__u8 a8;
-> +	} y1_coeff_1;
-> +	struct {
-> +		__u8 a9;
-> +		__u8 a10;
-> +		__u8 a11;
-> +		__u8 a12;
-> +	} y1_coeff_2;
-> +
-> +	__u32 y1_sign_vec;
-> +
-> +	struct {
-> +		__u8 a1;
-> +		__u8 a2;
-> +		__u8 a3;
-> +		__u8 a4;
-> +	} y2_coeff_0;
-> +	struct {
-> +		__u8 a5;
-> +		__u8 a6;
-> +		__u8 a7;
-> +		__u8 a8;
-> +	} y2_coeff_1;
-> +	struct {
-> +		__u8 a9;
-> +		__u8 a10;
-> +		__u8 a11;
-> +		__u8 a12;
-> +	} y2_coeff_2;
-> +
-> +	__u32 y2_sign_vec;
-> +
-> +	struct {
-> +		__u8 y_gen_rate_gr;	/* 6 bits */
-> +		__u8 y_gen_rate_r;
-> +		__u8 y_gen_rate_b;
-> +		__u8 y_gen_rate_gb;
-> +	} y_calc;
-> +
-> +	struct {
-> +		__u32 __reserved0:8;
-> +		__u32 y1_nf:4;
-> +		__u32 __reserved1:4;
-> +		__u32 y2_nf:4;
-> +		__u32 __reserved2:12;
-> +	} nf;
-> +} __packed;
-> +
-> +struct ipu3_uapi_af_meta_data {
-> +	__u8 y_table[IPU3_UAPI_AF_Y_TABLE_MAX_SIZE] IPU3_ALIGN;
-> +} __packed;
-> +
-> +struct ipu3_uapi_af_raw_buffer {
-> +	struct ipu3_uapi_af_meta_data meta_data IPU3_ALIGN;
-> +} __packed;
-> +
-> +struct ipu3_uapi_af_frame_size {
-> +	__u16 width;
-> +	__u16 height;
-> +} __packed;
-> +
-> +struct ipu3_uapi_af_config_s {
-> +	struct ipu3_uapi_af_filter_config filter_config IPU3_ALIGN;
-> +	struct ipu3_uapi_af_frame_size frame_size;
-> +	struct ipu3_uapi_grid_config grid_cfg IPU3_ALIGN;
-> +} __packed;
-> +
-> +struct ipu3_uapi_awb_fr_meta_data {
-> +	__u8 bayer_table[IPU3_UAPI_AWB_FR_BAYER_TABLE_MAX_SIZE] IPU3_ALIGN;
-> +} __packed;
-> +
-> +struct ipu3_uapi_awb_fr_raw_buffer {
-> +	struct ipu3_uapi_awb_fr_meta_data meta_data;
-> +} __packed;
-> +
-> +struct IPU3_ALIGN ipu3_uapi_awb_fr_config_s {
-> +	struct ipu3_uapi_grid_config grid_cfg;
-> +	__u8 bayer_coeff[6];
-> +	__u16 __reserved1;
-> +	__u32 bayer_sign;		/* 11 bits */
-> +	__u8 bayer_nf;			/* 4 bits */
-> +	__u8 __reserved2[3];
-> +} __packed;
-> +
-> +struct ipu3_uapi_4a_config {
-> +	struct ipu3_uapi_awb_config_s awb_config IPU3_ALIGN;
-> +	struct ipu3_uapi_ae_grid_config ae_grd_config;
-> +	__u8 padding[20];
-> +	struct ipu3_uapi_af_config_s af_config;
-> +	struct ipu3_uapi_awb_fr_config_s awb_fr_config;
-> +} __packed;
-> +
-> +struct ipu3_uapi_bubble_info {
-> +	__u32 num_of_stripes IPU3_ALIGN;
-> +	__u8 padding[28];
-> +	__u32 num_sets;
-> +	__u8 padding1[28];
-> +	__u32 size_of_set;
-> +	__u8 padding2[28];
-> +	__u32 bubble_size;
-> +	__u8 padding3[28];
-> +} __packed;
-> +
-> +struct ipu3_uapi_stats_3a_bubble_info_per_stripe {
-> +	struct ipu3_uapi_bubble_info awb[IPU3_UAPI_MAX_STRIPES];
-> +	struct ipu3_uapi_bubble_info af[IPU3_UAPI_MAX_STRIPES];
-> +	struct ipu3_uapi_bubble_info awb_fr[IPU3_UAPI_MAX_STRIPES];
-> +} __packed;
-> +
-> +struct ipu3_uapi_ff_status {
-> +	__u32 awb_en IPU3_ALIGN;
-> +	__u8 padding[28];
-> +	__u32 ae_en;
-> +	__u8 padding1[28];
-> +	__u32 af_en;
-> +	__u8 padding2[28];
-> +	__u32 awb_fr_en;
-> +	__u8 padding3[28];
-> +} __packed;
-> +
-> +struct ipu3_uapi_stats_3a {
-> +	struct ipu3_uapi_awb_raw_buffer awb_raw_buffer IPU3_ALIGN;
-> +	struct ipu3_uapi_ae_raw_buffer_aligned
-> +			ae_raw_buffer[IPU3_UAPI_MAX_STRIPES];
-> +	struct ipu3_uapi_af_raw_buffer af_raw_buffer;
-> +	struct ipu3_uapi_awb_fr_raw_buffer awb_fr_raw_buffer;
-> +	struct ipu3_uapi_4a_config stats_4a_config;
-> +	__u32 ae_join_buffers;
-> +	__u8 padding[28];
-> +	struct ipu3_uapi_stats_3a_bubble_info_per_stripe
-> +			stats_3a_bubble_per_stripe;
-> +	struct ipu3_uapi_ff_status stats_3a_status;
-> +} __packed;
-> +
-> +/******************* ipu3_uapi_stats_dvs *******************/
-> +
-> +#define IPU3_UAPI_DVS_STAT_LEVELS			3
-> +#define IPU3_UAPI_DVS_STAT_L0_MV_VEC_PER_SET		12
-> +#define IPU3_UAPI_DVS_STAT_L1_MV_VEC_PER_SET		11
-> +#define IPU3_UAPI_DVS_STAT_L2_MV_VEC_PER_SET		9
-> +#define IPU3_UAPI_DVS_STAT_STRIPE_ALIGN_GAP		IPU3_UAPI_MAX_STRIPES
-> +#define IPU3_UAPI_DVS_STAT_MAX_VERTICAL_FEATURES		16
-> +
-> +struct ipu3_uapi_dvs_stat_mv {
-> +	__u16 vec_fe_x_pos;		/* 12 bits */
-> +	__u16 vec_fe_y_pos;
-> +	__u16 vec_fm_x_pos;		/* 12 bits */
-> +	__u16 vec_fm_y_pos;
-> +	__u32 harris_grade;		/* 28 bits */
-> +	__u16 match_grade;		/* 15 bits */
-> +	__u16 level;			/* 3 bits */
-> +} __packed;
-> +
-> +struct ipu3_uapi_dvs_stat_mv_single_set_l0 {
-> +	struct ipu3_uapi_dvs_stat_mv
-> +		mv_entry[IPU3_UAPI_DVS_STAT_L0_MV_VEC_PER_SET +
-> +		IPU3_UAPI_DVS_STAT_STRIPE_ALIGN_GAP] IPU3_ALIGN;
-> +} __packed;
-> +
-> +struct ipu3_uapi_dvs_stat_mv_single_set_l1 {
-> +	struct ipu3_uapi_dvs_stat_mv
-> +		mv_entry[IPU3_UAPI_DVS_STAT_L1_MV_VEC_PER_SET +
-> +		IPU3_UAPI_DVS_STAT_STRIPE_ALIGN_GAP] IPU3_ALIGN;
-> +	__u8 padding[16];
-> +} __packed;
-> +
-> +struct ipu3_uapi_dvs_stat_mv_single_set_l2 {
-> +	struct ipu3_uapi_dvs_stat_mv
-> +		mv_entry[IPU3_UAPI_DVS_STAT_L2_MV_VEC_PER_SET +
-> +		IPU3_UAPI_DVS_STAT_STRIPE_ALIGN_GAP] IPU3_ALIGN;
-> +	__u8 padding[16];
-> +} __packed;
-> +
-> +struct ipu3_uapi_dvs_stat_motion_vec {
-> +	struct ipu3_uapi_dvs_stat_mv_single_set_l0
-> +		dvs_mv_output_l0[IPU3_UAPI_DVS_STAT_MAX_VERTICAL_FEATURES]
-> +		IPU3_ALIGN;
-> +	struct ipu3_uapi_dvs_stat_mv_single_set_l1
-> +		dvs_mv_output_l1[IPU3_UAPI_DVS_STAT_MAX_VERTICAL_FEATURES];
-> +	struct ipu3_uapi_dvs_stat_mv_single_set_l2
-> +		dvs_mv_output_l2[IPU3_UAPI_DVS_STAT_MAX_VERTICAL_FEATURES];
-> +} __packed;
-> +
-> +struct ipu3_uapi_dvs_stat_stripe_data {
-> +	__u8 grid_width[IPU3_UAPI_MAX_STRIPES][IPU3_UAPI_DVS_STAT_LEVELS];
-> +	__u16 stripe_offset;
-> +} __packed;
-> +
-> +struct ipu3_uapi_dvs_stat_gbl_config {
-> +	__u8 kappa;					/* 4 bits */
-> +	__u8 match_shift:4;
-> +	__u8 ybin_mode:1;
-> +	__u16 __reserved1;
-> +} __packed;
-> +
-> +struct ipu3_uapi_dvs_stat_grd_config {
-> +	__u8 grid_width;				/* 5 bits */
-> +	__u8 grid_height;
-> +	__u8 block_width;				/* 8 bits */
-> +	__u8 block_height;
-> +	__u16 x_start;					/* 12 bits */
-> +	__u16 y_start;
-> +	__u16 enable;
-> +	__u16 x_end;					/* 12 bits */
-> +	__u16 y_end;
-> +} __packed;
-> +
-> +struct ipu3_uapi_dvs_stat_fe_roi_cfg {
-> +	__u8 x_start;
-> +	__u8 y_start;
-> +	__u8 x_end;
-> +	__u8 y_end;
-> +} __packed;
-> +
-> +struct ipu3_uapi_dvs_stat_cfg {
-> +	struct ipu3_uapi_dvs_stat_gbl_config gbl_cfg;
-> +	struct ipu3_uapi_dvs_stat_grd_config
-> +					grd_config[IPU3_UAPI_DVS_STAT_LEVELS];
-> +	struct ipu3_uapi_dvs_stat_fe_roi_cfg
-> +					fe_roi_cfg[IPU3_UAPI_DVS_STAT_LEVELS];
-> +	__u8 __reserved[IPU3_UAPI_ISP_WORD_BYTES -
-> +		 (sizeof(struct ipu3_uapi_dvs_stat_gbl_config) +
-> +		  (sizeof(struct ipu3_uapi_dvs_stat_grd_config) +
-> +		   sizeof(struct ipu3_uapi_dvs_stat_fe_roi_cfg)) *
-> +		  IPU3_UAPI_DVS_STAT_LEVELS) % IPU3_UAPI_ISP_WORD_BYTES];
-> +} __packed;
-> +
-> +struct ipu3_uapi_stats_dvs {
-> +	struct ipu3_uapi_dvs_stat_motion_vec motion_vec IPU3_ALIGN;
-> +	struct ipu3_uapi_dvs_stat_cfg cfg IPU3_ALIGN;
-> +	struct ipu3_uapi_dvs_stat_stripe_data stripe_data IPU3_ALIGN;
-> +} __packed;
-> +
-> +/******************* ipu3_uapi_stats_lace *******************/
-> +
-> +#define IPU3_UAPI_LACE_STAT_REGS_PER_SET		320
-> +#define IPU3_UAPI_LACE_STAT_MAX_OPERATIONS		41
-> +
-> +struct ipu3_uapi_lace_stat_stats_regs {
-> +	__u8 bin[4];					/* the bins 0-3 */
-> +} __packed;
-> +
-> +struct ipu3_uapi_lace_stat_hist_single_set {
-> +	struct ipu3_uapi_lace_stat_stats_regs
-> +		lace_hist_set[IPU3_UAPI_LACE_STAT_REGS_PER_SET] IPU3_ALIGN;
-> +} __packed;
-> +
-> +struct ipu3_uapi_lace_stat_hist_vec {
-> +	struct ipu3_uapi_lace_stat_hist_single_set
-> +	       lace_hist_output[IPU3_UAPI_LACE_STAT_MAX_OPERATIONS] IPU3_ALIGN;
-> +} __packed;
-> +
-> +struct ipu3_uapi_lace_stat_gbl_cfg {
-> +	__u32 lh_mode:3;
-> +	__u32 __reserved:3;
-> +	__u32 y_ds_mode:2;
-> +	__u32 uv_ds_mode_unsupported:1;
-> +	__u32 uv_input_unsupported:1;
-> +	__u32 __reserved1:10;
-> +	__u32 rst_loc_hist:1;
-> +	__u32 done_rst_loc_hist:1;
-> +	__u32 __reserved2:10;
-> +} __packed;
-> +
-> +struct ipu3_uapi_lace_stat_y_grd_hor_cfg {
-> +	__u32 grid_width:6;
-> +	__u32 __reserved:10;
-> +	__u32 block_width:4;
-> +	__u32 __reserved1:12;
-> +} __packed;
-> +
-> +struct ipu3_uapi_lace_stat_y_grd_hor_roi {
-> +	__u32 x_start:12;
-> +	__u32 __reserved:4;
-> +	__u32 x_end:12;
-> +	__u32 __reserved1:4;
-> +} __packed;
-> +
-> +struct ipu3_uapi_lace_stat_uv_grd_hor_cfg {
-> +	__u32 not_supported;
-> +} __packed;
-> +
-> +struct ipu3_uapi_lace_stat_uv_grd_hor_roi {
-> +	__u32 not_supported;
-> +} __packed;
-> +
-> +struct ipu3_uapi_lace_stat_grd_vrt_cfg {
-> +	__u32 __reserved:8;
-> +	__u32 grid_h:6;
-> +	__u32 __reserved1:6;
-> +	__u32 block_h:4;
-> +	__u32 grid_h_per_slice:7;
-> +	__u32 __reserved2:1;
-> +} __packed;
-> +
-> +struct ipu3_uapi_lace_stat_grd_vrt_roi {
-> +	__u32 y_start:12;
-> +	__u32 __reserved:4;
-> +	__u32 y_end:12;
-> +	__u32 __reserved1:4;
-> +} __packed;
-> +
-> +struct ipu3_uapi_lace_stat_cfg {
-> +	struct ipu3_uapi_lace_stat_gbl_cfg lace_stat_gbl_cfg;
-> +	struct ipu3_uapi_lace_stat_y_grd_hor_cfg lace_stat_y_grd_hor_cfg;
-> +	struct ipu3_uapi_lace_stat_y_grd_hor_roi lace_stat_y_grd_hor_roi;
-> +	struct ipu3_uapi_lace_stat_uv_grd_hor_cfg lace_stat_uv_grd_hor_cfg;
-> +	struct ipu3_uapi_lace_stat_uv_grd_hor_roi lace_stat_uv_grd_hor_roi;
-> +	struct ipu3_uapi_lace_stat_grd_vrt_cfg lace_stat_grd_vrt_cfg;
-> +	struct ipu3_uapi_lace_stat_grd_vrt_roi lace_stat_grd_vrt_roi;
-> +} __packed;
-> +
-> +struct ipu3_uapi_stats_lace {
-> +	struct ipu3_uapi_lace_stat_hist_vec lace_hist_vec IPU3_ALIGN;
-> +	struct ipu3_uapi_lace_stat_cfg lace_stat_cfg;
-> +	__u8 padding[4];
-> +} __packed;
-> +
-> +/******************* ipu3_uapi_acc_param *******************/
-> +
-> +#define IPU3_UAPI_BNR_LUT_SIZE				32
-> +
-> +/* number of elements in gamma correction LUT */
-> +#define IPU3_UAPI_GAMMA_CORR_LUT_ENTRIES		256
-> +
-> +#define IPU3_UAPI_SHD_MAX_OPERATIONS \
-> +		(IPU3_UAPI_SHD_MAX_PROCESS_LINES + IPU3_UAPI_SHD_MAX_TRANSFERS)
-> +#define IPU3_UAPI_SHD_MAX_PROCESS_LINES			31
-> +#define IPU3_UAPI_SHD_MAX_TRANSFERS			31
-> +#define IPU3_UAPI_SHD_MAX_CELLS_PER_SET			146
-> +/* largest grid is 73x56 */
-> +#define IPU3_UAPI_SHD_MAX_CFG_SETS			28
-> +
-> +#define IPU3_UAPI_DVS_STAT_L0_MD_ENTRIES		84
-> +#define IPU3_UAPI_DVS_STAT_PARTS_IN_MD_ENTRY		10
-> +#define IPU3_UAPI_DVS_STAT_L1_MD_ENTRIES		66
-> +#define IPU3_UAPI_DVS_STAT_L2_MD_ENTRIES		45
-> +#define IPU3_UAPI_DVS_STAT_MAX_OPERATIONS		100
-> +#define IPU3_UAPI_DVS_STAT_MAX_PROCESS_LINES		52
-> +#define IPU3_UAPI_DVS_STAT_MAX_TRANSFERS		52
-> +
-> +#define IPU3_UAPI_YUVP2_YTM_LUT_ENTRIES			256
-> +#define IPU3_UAPI_YUVP2_TCC_MACC_TABLE_ELEMENTS		16
-> +#define IPU3_UAPI_YUVP2_TCC_INV_Y_LUT_ELEMENTS		14
-> +#define IPU3_UAPI_YUVP2_TCC_GAIN_PCWL_LUT_ELEMENTS	258
-> +#define IPU3_UAPI_YUVP2_TCC_R_SQR_LUT_ELEMENTS		24
-> +
-> +#define IPU3_UAPI_DPC_COMMANDS_PER_TRANSFER		2
-> +#define IPU3_UAPI_DPC_MAX_SUPPORTED_HEIGHT		3840
-> +#define IPU3_UAPI_DPC_STRIPE_SIZE			50
-> +#define IPU3_UAPI_DPC_MAX_OPERATIONS \
-> +	(IPU3_UAPI_DPC_COMMANDS_PER_TRANSFER * IPU3_UAPI_DPC_MAX_CFG_SETS)
-> +#define IPU3_UAPI_DPC_MAX_PROCESS_LINES		IPU3_UAPI_DPC_MAX_CFG_SETS
-> +#define IPU3_UAPI_DPC_MAX_TRANSFERS		IPU3_UAPI_DPC_MAX_CFG_SETS
-> +#define IPU3_UAPI_DPC_MAX_DP_FIRST_LINES_PAIR		70
-> +#define IPU3_UAPI_DPC_MAX_DP_PER_SET			192
-> +#define IPU3_UAPI_DPC_MAX_CFG_SETS \
-> +	((IPU3_UAPI_DPC_MAX_SUPPORTED_HEIGHT + IPU3_UAPI_DPC_STRIPE_SIZE - 1) \
-> +	/ IPU3_UAPI_DPC_STRIPE_SIZE)
-> +
-> +#define IPU3_UAPI_BDS_SAMPLE_PATTERN_ARRAY_SIZE		8
-> +#define IPU3_UAPI_BDS_PHASE_COEFFS_ARRAY_SIZE		32
-> +
-> +#define IPU3_UAPI_ANR_LUT_SIZE				26
-> +#define IPU3_UAPI_ANR_PYRAMID_SIZE			22
-> +
-> +#define IPU3_UAPI_AWB_FR_MAX_TRANSFERS			30
-> +#define IPU3_UAPI_AWB_FR_MAX_PROCESS_LINES		30
-> +#define IPU3_UAPI_AWB_FR_MAX_OPERATIONS \
-> +	(IPU3_UAPI_AWB_FR_MAX_TRANSFERS + IPU3_UAPI_AWB_FR_MAX_PROCESS_LINES)
-> +
-> +#define IPU3_UAPI_AE_WEIGHTS				96
-> +
-> +#define IPU3_UAPI_AF_MAX_TRANSFERS			30
-> +#define IPU3_UAPI_AF_MAX_PROCESS_LINES			30
-> +#define IPU3_UAPI_AF_MAX_OPERATIONS \
-> +		(IPU3_UAPI_AF_MAX_TRANSFERS + IPU3_UAPI_AF_MAX_PROCESS_LINES)
-> +
-> +#define IPU3_UAPI_AWB_MAX_PROCESS_LINES			68
-> +#define IPU3_UAPI_AWB_MAX_TRANSFERS			68
-> +#define IPU3_UAPI_AWB_MAX_OPERATIONS \
-> +		(IPU3_UAPI_AWB_MAX_PROCESS_LINES + IPU3_UAPI_AWB_MAX_TRANSFERS)
-> +
-> +#define IPU3_UAPI_OSYS_PIN_VF				0
-> +#define IPU3_UAPI_OSYS_PIN_OUT				1
-> +#define IPU3_UAPI_OSYS_PINS				2
-> +
-> +typedef __u32 imgu_addr_t;
-> +
-> +struct ipu3_uapi_stripe_input_frame_resolution {
-> +	__u16 width;
-> +	__u16 height;
-> +	__u32 bayer_order;		/* enum ipu3_uapi_bayer_order */
-> +	__u32 raw_bit_depth;
-> +} __packed;
-> +
-> +struct ipu3_uapi_acc_operation {
-> +	/*
-> +	 * zero means on init,
-> +	 * others mean upon receiving an ack signal from the BC acc.
-> +	 */
-> +	__u8 op_indicator;
-> +	__u8 op_type;
-> +} __packed;
-> +
-> +struct ipu3_uapi_acc_process_lines_cmd_data {
-> +	__u16 lines;
-> +	__u8 cfg_set;
-> +	__u8 __reserved;		/* Align to 4 bytes */
-> +} __packed;
-> +
-> +struct ipu3_uapi_stripes {
-> +	/* offset from start of frame - measured in pixels */
-> +	__u16 offset;
-> +	/* stripe width - measured in pixels */
-> +	__u16 width;
-> +	/* stripe width - measured in pixels */
-> +	__u16 height;
-> +} __packed;
-> +
-> +struct ipu3_uapi_stripe_data {
-> +	/*
-> +	 * number of stripes for current processing source
-> +	 * - VLIW binary parameter we currently support 1 or 2 stripes
-> +	 */
-> +	__u16 num_of_stripes;
-> +
-> +	__u8 padding[2];
-> +
-> +	/*
-> +	 * the following data is derived from resolution-related
-> +	 * pipe config and from num_of_stripes
-> +	 */
-> +
-> +	/*
-> +	 *'input-stripes' - before input cropping
-> +	 * used by input feeder
-> +	 */
-> +	struct ipu3_uapi_stripe_input_frame_resolution input_frame;
-> +
-> +	/*'effective-stripes' - after input cropping used dpc, bds */
-> +	struct ipu3_uapi_stripes effective_stripes[IPU3_UAPI_MAX_STRIPES];
-> +
-> +	/* 'down-scaled-stripes' - after down-scaling ONLY. used by BDS */
-> +	struct ipu3_uapi_stripes down_scaled_stripes[IPU3_UAPI_MAX_STRIPES];
-> +
-> +	/*
-> +	 *'bds-out-stripes' - after bayer down-scaling and padding.
-> +	 * used by all algos starting with norm up to the ref-frame for GDC
-> +	 * (currently up to the output kernel)
-> +	 */
-> +	struct ipu3_uapi_stripes bds_out_stripes[IPU3_UAPI_MAX_STRIPES];
-> +
-> +	/* 'bds-out-stripes (no overlap)' - used for ref kernel */
-> +	struct ipu3_uapi_stripes
-> +			bds_out_stripes_no_overlap[IPU3_UAPI_MAX_STRIPES];
-> +
-> +	/*
-> +	 * input resolution for output system (equal to bds_out - envelope)
-> +	 * output-system input frame width as configured by user
-> +	 */
-> +	__u16 output_system_in_frame_width;
-> +	/* output-system input frame height as configured by user */
-> +	__u16 output_system_in_frame_height;
-> +
-> +	/*
-> +	 * 'output-stripes' - accounts for stiching on the output (no overlap)
-> +	 * used by the output kernel
-> +	 */
-> +	struct ipu3_uapi_stripes output_stripes[IPU3_UAPI_MAX_STRIPES];
-> +
-> +	/*
-> +	 * 'block-stripes' - accounts for stiching by the output system
-> +	 * (1 or more blocks overlap)
-> +	 * used by DVS, TNR and the output system kernel
-> +	 */
-> +	struct ipu3_uapi_stripes block_stripes[IPU3_UAPI_MAX_STRIPES];
-> +
-> +	__u16 effective_frame_width;	/* Needed for vertical cropping */
-> +	__u16 bds_frame_width;
-> +	__u16 out_frame_width;	/* Output frame width as configured by user */
-> +	__u16 out_frame_height;	/* Output frame height as configured by user */
-> +
-> +	/* GDC in buffer (A.K.A delay frame,ref buffer) info */
-> +	__u16 gdc_in_buffer_width;	/* GDC in buffer width  */
-> +	__u16 gdc_in_buffer_height;	/* GDC in buffer height */
-> +	/* GDC in buffer first valid pixel x offset */
-> +	__u16 gdc_in_buffer_offset_x;
-> +	/* GDC in buffer first valid pixel y offset */
-> +	__u16 gdc_in_buffer_offset_y;
-> +
-> +	/* Display frame width as configured by user */
-> +	__u16 display_frame_width;
-> +	/* Display frame height as configured by user */
-> +	__u16 display_frame_height;
-> +	__u16 bds_aligned_frame_width;
-> +	/* Number of vectors to left-crop when writing stripes (not stripe 0) */
-> +	__u16 half_overlap_vectors;
-> +	/* Decimate ISP and fixed func resolutions after BDS (ir_extraction) */
-> +	__u16 ir_ext_decimation;
-> +	__u8 padding1[2];
-> +} __packed;
-> +
-> +struct ipu3_uapi_input_feeder_data {
-> +	__u32 row_stride;				/* row stride */
-> +	__u32 start_row_address;			/* start row address */
-> +	__u32 start_pixel;				/* start pixel */
-> +} __packed;
-> +
-> +struct ipu3_uapi_input_feeder_data_aligned {
-> +	struct ipu3_uapi_input_feeder_data data IPU3_ALIGN;
-> +} __packed;
-> +
-> +struct ipu3_uapi_input_feeder_data_per_stripe {
-> +	struct ipu3_uapi_input_feeder_data_aligned
-> +		input_feeder_data[IPU3_UAPI_MAX_STRIPES];
-> +} __packed;
-> +
-> +struct ipu3_uapi_input_feeder_config {
-> +	struct ipu3_uapi_input_feeder_data data;
-> +	struct ipu3_uapi_input_feeder_data_per_stripe data_per_stripe
-> +		IPU3_ALIGN;
-> +} __packed;
-> +
-> +struct ipu3_uapi_bnr_static_config_wb_gains_config {
-> +	__u16 gr;
-> +	__u16 r;
-> +	__u16 b;
-> +	__u16 gb;
-> +} __packed;
-> +
-> +struct ipu3_uapi_bnr_static_config_wb_gains_thr_config {
-> +	__u8 gr;
-> +	__u8 r;
-> +	__u8 b;
-> +	__u8 gb;
-> +} __packed;
-> +
-> +struct ipu3_uapi_bnr_static_config_thr_coeffs_config {
-> +	__u32 cf:13;
-> +	__u32 __reserved0:3;
-> +	__u32 cg:5;
-> +	__u32 ci:5;
-> +	__u32 __reserved1:1;
-> +	__u32 r_nf:5;
-> +} __packed;
-> +
-> +struct ipu3_uapi_bnr_static_config_thr_ctrl_shd_config {
-> +	__u8 gr;
-> +	__u8 r;
-> +	__u8 b;
-> +	__u8 gb;
-> +} __packed;
-> +
-> +struct ipu3_uapi_bnr_static_config_opt_center_config {
-> +	__s32 x_reset:13;
-> +	__u32 __reserved0:3;
-> +	__s32 y_reset:13;
-> +	__u32 __reserved2:3;
-> +} __packed;
-> +
-> +struct ipu3_uapi_bnr_static_config_lut_config {
-> +	__u8 values[IPU3_UAPI_BNR_LUT_SIZE];
-> +} __packed;
-> +
-> +struct ipu3_uapi_bnr_static_config_bp_ctrl_config {
-> +	__u32 bp_thr_gain:5;
-> +	__u32 __reserved0:2;
-> +	__u32 defect_mode:1;
-> +	__u32 bp_gain:6;
-> +	__u32 __reserved1:18;
-> +	__u32 w0_coeff:4;
-> +	__u32 __reserved2:4;
-> +	__u32 w1_coeff:4;
-> +	__u32 __reserved3:20;
-> +} __packed;
-> +
-> +struct ipu3_uapi_bnr_static_config_dn_detect_ctrl_config {
-> +	__u32 alpha:4;
-> +	__u32 beta:4;
-> +	__u32 gamma:4;
-> +	__u32 __reserved0:4;
-> +	__u32 max_inf:4;
-> +	__u32 __reserved1:7;
-> +	/* aka 'green disparity enable' */
-> +	__u32 gd_enable:1;
-> +	__u32 bpc_enable:1;
-> +	__u32 bnr_enable:1;
-> +	__u32 ff_enable:1;
-> +	__u32 __reserved2:1;
-> +} __packed;
-> +
-> +struct ipu3_uapi_bnr_static_config_opt_center_sqr_config {
-> +	__u32 x_sqr_reset;
-> +	__u32 y_sqr_reset;
-> +} __packed;
-> +
-> +struct ipu3_uapi_bnr_static_config {
-> +	struct ipu3_uapi_bnr_static_config_wb_gains_config wb_gains;
-> +	struct ipu3_uapi_bnr_static_config_wb_gains_thr_config wb_gains_thr;
-> +	struct ipu3_uapi_bnr_static_config_thr_coeffs_config thr_coeffs;
-> +	struct ipu3_uapi_bnr_static_config_thr_ctrl_shd_config thr_ctrl_shd;
-> +	struct ipu3_uapi_bnr_static_config_opt_center_config opt_center;
-> +	struct ipu3_uapi_bnr_static_config_lut_config lut;
-> +	struct ipu3_uapi_bnr_static_config_bp_ctrl_config bp_ctrl;
-> +	struct ipu3_uapi_bnr_static_config_dn_detect_ctrl_config dn_detect_ctrl;
-> +	__u32 column_size;				/* 0x44 */
-> +	struct ipu3_uapi_bnr_static_config_opt_center_sqr_config opt_center_sqr;
-> +} __packed;
-> +
-> +struct ipu3_uapi_bnr_static_config_green_disparity {
-> +	__u32 gd_red:6;
-> +	__u32 __reserved0:2;
-> +	__u32 gd_green:6;
-> +	__u32 __reserved1:2;
-> +	__u32 gd_blue:6;
-> +	__u32 __reserved2:10;
-> +	__u32 gd_black:14;
-> +	__u32 __reserved3:2;
-> +	__u32 gd_shading:7;
-> +	__u32 __reserved4:1;
-> +	__u32 gd_support:2;
-> +	__u32 __reserved5:1;
-> +	__u32 gd_clip:1;			/* central weights variables */
-> +	__u32 gd_central_weight:4;
-> +} __packed;
-> +
-> +struct ipu3_uapi_dm_config {
-> +	/* DWORD0 */
-> +	__u32 dm_en:1;
-> +	__u32 ch_ar_en:1;
-> +	__u32 fcc_en:1;
-> +	__u32 __reserved0:13;
-> +	__u32 frame_width:16;
-> +
-> +	/* DWORD1 */
-> +	__u32 gamma_sc:5;
-> +	__u32 __reserved1:3;
-> +	__u32 lc_ctrl:5;
-> +	__u32 __reserved2:3;
-> +	__u32 cr_param1:5;
-> +	__u32 __reserved3:3;
-> +	__u32 cr_param2:5;
-> +	__u32 __reserved4:3;
-> +
-> +	/* DWORD2 */
-> +	__u32 coring_param:5;
-> +	__u32 __reserved5:27;
-> +} __packed;
-> +
-> +struct ipu3_uapi_ccm_mat_config {
-> +	__s16 coeff_m11;
-> +	__s16 coeff_m12;
-> +	__s16 coeff_m13;
-> +	__s16 coeff_o_r;
-> +	__s16 coeff_m21;
-> +	__s16 coeff_m22;
-> +	__s16 coeff_m23;
-> +	__s16 coeff_o_g;
-> +	__s16 coeff_m31;
-> +	__s16 coeff_m32;
-> +	__s16 coeff_m33;
-> +	__s16 coeff_o_b;
-> +} __packed;
-> +
-> +struct ipu3_uapi_gamma_corr_ctrl {
-> +	__u32 enable:1;
-> +	__u32 __reserved:31;
-> +} __packed;
-> +
-> +struct ipu3_uapi_gamma_corr_lut {
-> +	__u16 lut[IPU3_UAPI_GAMMA_CORR_LUT_ENTRIES];
-> +} __packed;
-> +
-> +struct ipu3_uapi_gamma_config {
-> +	struct ipu3_uapi_gamma_corr_ctrl gc_ctrl IPU3_ALIGN;
-> +	struct ipu3_uapi_gamma_corr_lut gc_lut IPU3_ALIGN;
-> +} __packed;
-> +
-> +struct ipu3_uapi_csc_mat_config {
-> +	__s16 coeff_c11;
-> +	__s16 coeff_c12;
-> +	__s16 coeff_c13;
-> +	__s16 coeff_b1;
-> +	__s16 coeff_c21;
-> +	__s16 coeff_c22;
-> +	__s16 coeff_c23;
-> +	__s16 coeff_b2;
-> +	__s16 coeff_c31;
-> +	__s16 coeff_c32;
-> +	__s16 coeff_c33;
-> +	__s16 coeff_b3;
-> +} __packed;
-> +
-> +struct ipu3_uapi_cds_params {
-> +	__u32 ds_c00:2;
-> +	__u32 ds_c01:2;
-> +	__u32 ds_c02:2;
-> +	__u32 ds_c03:2;
-> +	__u32 ds_c10:2;
-> +	__u32 ds_c11:2;
-> +	__u32 ds_c12:2;
-> +	__u32 ds_c13:2;
-> +	__u32 ds_nf:5;
-> +	__u32 __reserved0:3;
-> +	__u32 csc_en:1;
-> +	__u32 uv_bin_output:1;
-> +	__u32 __reserved1:6;
-> +} __packed;
-> +
-> +struct ipu3_uapi_shd_grid_config {
-> +	/* reg 0 */
-> +	__u8 width;
-> +	__u8 height;
-> +	__u8 block_width_log2:3;
-> +	__u8 __reserved0:1;
-> +	__u8 block_height_log2:3;
-> +	__u8 __reserved1:1;
-> +	__u8 grid_height_per_slice;
-> +	/* reg 1 */
-> +	__s16 x_start;			/* 13 bits */
-> +	__s16 y_start;
-> +} __packed;
-> +
-> +struct ipu3_uapi_shd_general_config {
-> +	__u32 init_set_vrt_offst_ul:8;
-> +	__u32 shd_enable:1;
-> +	/* aka 'gf' */
-> +	__u32 gain_factor:2;
-> +	__u32 __reserved:21;
-> +} __packed;
-> +
-> +struct ipu3_uapi_shd_black_level_config {
-> +	__s16 bl_r;			/* 12 bits */
-> +	__s16 bl_gr;
-> +#define IPU3_UAPI_SHD_BLGR_NF_SHIFT	13	/* Normalization shift aka nf */
-> +#define IPU3_UAPI_SHD_BLGR_NF_MASK	0x7
-> +	__s16 bl_gb;			/* 12 bits */
-> +	__s16 bl_b;
-> +} __packed;
-> +
-> +struct ipu3_uapi_shd_config_static {
-> +	/* B0: Fixed order: one transfer to GAC */
-> +	struct ipu3_uapi_shd_grid_config grid;
-> +	struct ipu3_uapi_shd_general_config general;
-> +	struct ipu3_uapi_shd_black_level_config black_level;
-> +} __packed;
-> +
-> +struct ipu3_uapi_shd_transfer_luts_set_data {
-> +	__u8 set_number;
-> +	__u8 padding[3];
-> +	imgu_addr_t rg_lut_ddr_addr;
-> +	imgu_addr_t bg_lut_ddr_addr;
-
-Aren't these set by the driver?
-
-> +	__u32 align_dummy;
-> +} __packed;
-> +
-> +struct ipu3_uapi_shd_intra_frame_operations_data {
-> +	struct ipu3_uapi_acc_operation
-> +		operation_list[IPU3_UAPI_SHD_MAX_OPERATIONS] IPU3_ALIGN;
-> +	struct ipu3_uapi_acc_process_lines_cmd_data
-> +		process_lines_data[IPU3_UAPI_SHD_MAX_PROCESS_LINES] IPU3_ALIGN;
-> +	struct ipu3_uapi_shd_transfer_luts_set_data
-> +		transfer_data[IPU3_UAPI_SHD_MAX_TRANSFERS] IPU3_ALIGN;
-> +} __packed;
-> +
-> +struct ipu3_uapi_shd_lut {
-> +	struct {
-> +		struct {
-> +			__u16 r;
-> +			__u16 gr;
-> +		} r_and_gr[IPU3_UAPI_SHD_MAX_CELLS_PER_SET];
-> +		__u8 __reserved1[24];
-> +		struct {
-> +			__u16 gb;
-> +			__u16 b;
-> +		} gb_and_b[IPU3_UAPI_SHD_MAX_CELLS_PER_SET];
-> +		__u8 __reserved2[24];
-> +	} sets[IPU3_UAPI_SHD_MAX_CFG_SETS];
-> +} __packed;
-> +
-> +struct ipu3_uapi_shd_config {
-> +	struct ipu3_uapi_shd_config_static shd IPU3_ALIGN;
-> +	struct ipu3_uapi_shd_intra_frame_operations_data shd_ops IPU3_ALIGN;
-> +	struct ipu3_uapi_shd_lut shd_lut IPU3_ALIGN;
-> +} __packed;
-> +
-> +struct ipu3_uapi_dvs_stat_stripe_cfg {
-> +	struct ipu3_uapi_dvs_stat_cfg stripe_cfg[IPU3_UAPI_MAX_STRIPES];
-> +} __packed;
-> +
-> +struct ipu3_uapi_dvs_stat_transfer_op_data {
-> +	__u8 set_number;
-> +} __packed;
-> +
-> +struct ipu3_uapi_dvs_stat_intra_frame_operations_data {
-> +	struct ipu3_uapi_acc_operation
-> +		ops[IPU3_UAPI_DVS_STAT_MAX_OPERATIONS] IPU3_ALIGN;
-> +	struct ipu3_uapi_acc_process_lines_cmd_data
-> +		process_lines_data[IPU3_UAPI_DVS_STAT_MAX_PROCESS_LINES]
-> +		IPU3_ALIGN;
-> +	struct ipu3_uapi_dvs_stat_transfer_op_data
-> +		transfer_data[IPU3_UAPI_DVS_STAT_MAX_TRANSFERS] IPU3_ALIGN;
-> +} __packed;
-> +
-> +struct ipu3_uapi_dvs_stat_meta_data_align_p {
-> +	imgu_addr_t p_meta_data IPU3_ALIGN;
-
-Same here, set by the driver.
-
-> +} __packed;
-> +
-> +struct ipu3_uapi_dvs_stat_config {
-> +	struct ipu3_uapi_dvs_stat_cfg cfg IPU3_ALIGN;
-> +	struct ipu3_uapi_dvs_stat_stripe_cfg stripe;
-> +	struct ipu3_uapi_dvs_stat_intra_frame_operations_data operations_data;
-> +	struct ipu3_uapi_dvs_stat_meta_data_align_p
-> +		meta_data[IPU3_UAPI_MAX_STRIPES];
-> +} __packed;
-> +
-> +struct ipu3_uapi_lace_stat_operation {
-> +	__u8 op_indicator;
-> +	__u8 padding;
-> +	__u16 lines;
-> +} __packed;
-> +
-> +struct ipu3_uapi_lace_stat_intra_frame_op_data {
-> +	struct ipu3_uapi_lace_stat_operation
-> +		ops[IPU3_UAPI_LACE_STAT_MAX_OPERATIONS] IPU3_ALIGN;
-> +} __packed;
-> +
-> +struct ipu3_uapi_lace_stat_config {
-> +	struct ipu3_uapi_lace_stat_cfg lace_stat_cfg IPU3_ALIGN;
-> +	struct ipu3_uapi_lace_stat_intra_frame_op_data operations_data
-> +		IPU3_ALIGN;
-> +} __packed;
-> +
-> +struct ipu3_uapi_iefd_cux2 {
-> +	__u32 x0:9;
-> +	__u32 x1:9;
-> +	__u32 a01:9;
-> +	__u32 b01:5;				/* NOTE: hardcoded to zero */
-> +} __packed;
-> +
-> +struct ipu3_uapi_iefd_cux6_ed {
-> +	__u32 x0:9;
-> +	__u32 x1:9;
-> +	__u32 x2:9;
-> +	__u32 __reserved0:5;
-> +
-> +	__u32 x3:9;
-> +	__u32 x4:9;
-> +	__u32 x5:9;
-> +	__u32 __reserved1:5;
-> +
-> +	__u32 a01:9;
-> +	__u32 a12:9;
-> +	__u32 a23:9;
-> +	__u32 __reserved2:5;
-> +
-> +	__u32 a34:9;
-> +	__u32 a45:9;
-> +	__u32 __reserved3:14;
-> +
-> +	__u32 b01:9;
-> +	__u32 b12:9;
-> +	__u32 b23:9;
-> +	__u32 __reserved4:5;
-> +
-> +	__u32 b34:9;
-> +	__u32 b45:9;
-> +	__u32 __reserved5:14;
-> +} __packed;
-> +
-> +struct ipu3_uapi_iefd_cux2_1 {
-> +	__u32 x0:9;
-> +	__u32 x1:9;
-> +	__u32 a01:9;
-> +	__u32 __reserved1:5;
-> +
-> +	__u32 b01:8;
-> +	__u32 __reserved2:24;
-> +} __packed;
-> +
-> +struct ipu3_uapi_iefd_cux4 {
-> +	__u32 x0:9;
-> +	__u32 x1:9;
-> +	__u32 x2:9;
-> +	__u32 __reserved0:5;
-> +
-> +	__u32 x3:9;
-> +	__u32 a01:9;
-> +	__u32 a12:9;
-> +	__u32 __reserved1:5;
-> +
-> +	__u32 a23:9;
-> +	__u32 b01:8;
-> +	__u32 b12:8;
-> +	__u32 __reserved2:7;
-> +
-> +	__u32 b23:8;
-> +	__u32 __reserved3:24;
-> +} __packed;
-> +
-> +struct ipu3_uapi_iefd_cux6_rad {
-> +	__u32 x0:8;
-> +	__u32 x1:8;
-> +	__u32 x2:8;
-> +	__u32 x3:8;
-> +
-> +	__u32 x4:8;
-> +	__u32 x5:8;
-> +	__u32 __reserved1:16;
-> +
-> +	__u32 a01:16;
-> +	__u32 a12:16;
-> +
-> +	__u32 a23:16;
-> +	__u32 a34:16;
-> +
-> +	__u32 a45:16;
-> +	__u32 __reserved2:16;
-> +
-> +	__u32 b01:10;
-> +	__u32 b12:10;
-> +	__u32 b23:10;
-> +	__u32 __reserved4:2;
-> +
-> +	__u32 b34:10;
-> +	__u32 b45:10;
-> +	__u32 __reserved5:12;
-> +} __packed;
-> +
-> +struct ipu3_uapi_yuvp1_iefd_cfg_units {
-> +	struct ipu3_uapi_iefd_cux2 cu_1;
-> +	struct ipu3_uapi_iefd_cux6_ed cu_ed;
-> +	struct ipu3_uapi_iefd_cux2 cu_3;
-> +	struct ipu3_uapi_iefd_cux2_1 cu_5;
-> +	struct ipu3_uapi_iefd_cux4 cu_6;
-> +	struct ipu3_uapi_iefd_cux2 cu_7;
-> +	struct ipu3_uapi_iefd_cux4 cu_unsharp;
-> +	struct ipu3_uapi_iefd_cux6_rad cu_radial;
-> +	struct ipu3_uapi_iefd_cux2 cu_vssnlm;
-> +} __packed;
-> +
-> +struct ipu3_uapi_yuvp1_iefd_config_s {
-> +	__u32 horver_diag_coeff:7;	/* Gradiant compensation */
-> +	__u32 __reserved0:1;
-> +	__u32 clamp_stitch:6;		/* Slope to stitch edge */
-> +	__u32 __reserved1:2;
-> +	__u32 direct_metric_update:5;	/* Update coeff for direction metric */
-> +	__u32 __reserved2:3;
-> +	__u32 ed_horver_diag_coeff:7;
-> +	__u32 __reserved3:1;
-> +} __packed;
-> +
-> +struct ipu3_uapi_yuvp1_iefd_control {
-> +	__u32 iefd_en:1;		/* Enable IEFD */
-> +	__u32 denoise_en:1;		/* Enable denoise */
-> +	__u32 direct_smooth_en:1;	/* Enable directional smooth */
-> +	__u32 rad_en:1;			/* Enable radial update */
-> +	__u32 vssnlm_en:1;		/* Enable VSSNLM output filter */
-> +	__u32 __reserved:27;
-> +} __packed;
-> +
-> +struct ipu3_uapi_sharp_cfg {
-> +	__u32 nega_lmt_txt:13;
-> +	__u32 __reserved0:19;
-> +	__u32 posi_lmt_txt:13;
-> +	__u32 __reserved1:19;
-> +	__u32 nega_lmt_dir:13;
-> +	__u32 __reserved2:19;
-> +	__u32 posi_lmt_dir:13;
-> +	__u32 __reserved3:19;
-> +} __packed;
-> +
-> +struct ipu3_uapi_far_w {
-> +	__u32 dir_shrp:7;
-> +	__u32 __reserved0:1;
-> +	__u32 dir_dns:7;
-> +	__u32 __reserved1:1;
-> +	__u32 ndir_dns_powr:7;
-> +	__u32 __reserved2:9;
-> +} __packed;
-> +
-> +struct ipu3_uapi_unsharp_cfg {
-> +	__u32 unsharp_weight:7;
-> +	__u32 __reserved0:1;
-> +	__u32 unsharp_amount:9;
-> +	__u32 __reserved1:15;
-> +} __packed;
-> +
-> +struct ipu3_uapi_yuvp1_iefd_shrp_cfg {
-> +	struct ipu3_uapi_sharp_cfg cfg;
-> +	struct ipu3_uapi_far_w far_w;
-> +	struct ipu3_uapi_unsharp_cfg unshrp_cfg;
-> +} __packed;
-> +
-> +struct ipu3_uapi_unsharp_coef0 {
-> +	__u32 c00:9;			/* Coeff11 */
-> +	__u32 c01:9;			/* Coeff12 */
-> +	__u32 c02:9;			/* Coeff13 */
-> +	__u32 __reserved:5;
-> +} __packed;
-> +
-> +struct ipu3_uapi_unsharp_coef1 {
-> +	__u32 c11:9;			/* Coeff22 */
-> +	__u32 c12:9;			/* Coeff23 */
-> +	__u32 c22:9;			/* Coeff33 */
-> +	__u32 __reserved:5;
-> +} __packed;
-> +
-> +struct ipu3_uapi_yuvp1_iefd_unshrp_cfg {
-> +	struct ipu3_uapi_unsharp_coef0 unsharp_coef0;
-> +	struct ipu3_uapi_unsharp_coef1 unsharp_coef1;
-> +} __packed;
-> +
-> +struct ipu3_uapi_radial_reset_xy {
-> +	__s32 x:13;
-> +	__u32 __reserved0:3;
-> +	__s32 y:13;
-> +	__u32 __reserved1:3;
-> +} __packed;
-> +
-> +struct ipu3_uapi_radial_reset_x2 {
-> +	__u32 x2:24;
-> +	__u32 __reserved:8;
-> +} __packed;
-> +
-> +struct ipu3_uapi_radial_reset_y2 {
-> +	__u32 y2:24;
-> +	__u32 __reserved:8;
-> +} __packed;
-> +
-> +struct ipu3_uapi_radial_cfg {
-> +	__u32 rad_nf:4;
-> +	__u32 __reserved0:4;
-> +	__u32 rad_inv_r2:7;
-> +	__u32 __reserved1:17;
-> +} __packed;
-> +
-> +struct ipu3_uapi_rad_far_w {
-> +	__u32 rad_dir_far_sharp_w:8;
-> +	__u32 rad_dir_far_dns_w:8;
-> +	__u32 rad_ndir_far_dns_power:8;
-> +	__u32 __reserved:8;
-> +} __packed;
-> +
-> +struct ipu3_uapi_cu_cfg0 {
-> +	__u32 cu6_pow:7;
-> +	__u32 __reserved0:1;
-> +	__u32 cu_unsharp_pow:7;
-> +	__u32 __reserved1:1;
-> +	__u32 rad_cu6_pow:7;
-> +	__u32 __reserved2:1;
-> +	__u32 rad_cu_unsharp_pow:6;
-> +	__u32 __reserved3:2;
-> +} __packed;
-> +
-> +struct ipu3_uapi_cu_cfg1 {
-> +	__u32 rad_cu6_x1:9;
-> +	__u32 __reserved0:1;
-> +	__u32 rad_cu_unsharp_x1:9;
-> +	__u32 __reserved1:13;
-> +} __packed;
-> +
-> +struct ipu3_uapi_yuvp1_iefd_rad_cfg {
-> +	struct ipu3_uapi_radial_reset_xy reset_xy;
-> +	struct ipu3_uapi_radial_reset_x2 reset_x2;
-> +	struct ipu3_uapi_radial_reset_y2 reset_y2;
-> +	struct ipu3_uapi_radial_cfg cfg;
-> +	struct ipu3_uapi_rad_far_w rad_far_w;
-> +	struct ipu3_uapi_cu_cfg0 cu_cfg0;
-> +	struct ipu3_uapi_cu_cfg1 cu_cfg1;
-> +} __packed;
-> +
-> +struct ipu3_uapi_vss_lut_x {
-> +	__u32 vs_x0:8;
-> +	__u32 vs_x1:8;
-> +	__u32 vs_x2:8;
-> +	__u32 __reserved2:8;
-> +} __packed;
-> +
-> +struct ipu3_uapi_vss_lut_y {
-> +	__u32 vs_y1:4;
-> +	__u32 __reserved0:4;
-> +	__u32 vs_y2:4;
-> +	__u32 __reserved1:4;
-> +	__u32 vs_y3:4;
-> +	__u32 __reserved2:12;
-> +} __packed;
-> +
-> +struct ipu3_uapi_yuvp1_iefd_vssnlm_cfg {
-> +	struct ipu3_uapi_vss_lut_x vss_lut_x;
-> +	struct ipu3_uapi_vss_lut_y vss_lut_y;
-> +} __packed;
-> +
-> +struct ipu3_uapi_yuvp1_iefd_config {
-> +	struct ipu3_uapi_yuvp1_iefd_cfg_units units;
-> +	struct ipu3_uapi_yuvp1_iefd_config_s config;
-> +	struct ipu3_uapi_yuvp1_iefd_control control;
-> +	struct ipu3_uapi_yuvp1_iefd_shrp_cfg sharp;
-> +	struct ipu3_uapi_yuvp1_iefd_unshrp_cfg unsharp;
-> +	struct ipu3_uapi_yuvp1_iefd_rad_cfg rad;
-> +	struct ipu3_uapi_yuvp1_iefd_vssnlm_cfg vsslnm;
-> +} __packed;
-> +
-> +struct ipu3_uapi_yuvp1_yds_config {
-> +	__u32 c00:2;
-> +	__u32 c01:2;
-> +	__u32 c02:2;
-> +	__u32 c03:2;
-> +	__u32 c10:2;
-> +	__u32 c11:2;
-> +	__u32 c12:2;
-> +	__u32 c13:2;
-> +	__u32 norm_factor:5;
-> +	__u32 __reserved0:4;
-> +	__u32 bin_output:1;
-> +	__u32 __reserved1:6;
-> +} __packed;
-> +
-> +struct ipu3_uapi_yuvp1_chnr_enable_config {
-> +	__u32 enable:1;
-> +	__u32 yuv_mode:1;
-> +	__u32 __reserved0:14;
-> +	__u32 col_size:12;
-> +	__u32 __reserved1:4;
-> +} __packed;
-> +
-> +struct ipu3_uapi_yuvp1_chnr_coring_config {
-> +	__u32 u:13;
-> +	__u32 __reserved0:3;
-> +	__u32 v:13;
-> +	__u32 __reserved1:3;
-> +} __packed;
-> +
-> +struct ipu3_uapi_yuvp1_chnr_sense_gain_config {
-> +	__u32 vy:8;
-> +	__u32 vu:8;
-> +	__u32 vv:8;
-> +	__u32 __reserved0:8;
-> +
-> +	__u32 hy:8;
-> +	__u32 hu:8;
-> +	__u32 hv:8;
-> +	__u32 __reserved1:8;
-> +} __packed;
-> +
-> +struct ipu3_uapi_yuvp1_chnr_iir_fir_config {
-> +	__u32 fir_0h:6;
-> +	__u32 __reserved0:2;
-> +	__u32 fir_1h:6;
-> +	__u32 __reserved1:2;
-> +	__u32 fir_2h:6;
-> +	__u32 dalpha_clip_val:9;
-> +	__u32 __reserved2:1;
-> +} __packed;
-> +
-> +struct ipu3_uapi_yuvp1_chnr_config {
-> +	struct ipu3_uapi_yuvp1_chnr_enable_config enable;
-> +	struct ipu3_uapi_yuvp1_chnr_coring_config coring;
-> +	struct ipu3_uapi_yuvp1_chnr_sense_gain_config sense_gain;
-> +	struct ipu3_uapi_yuvp1_chnr_iir_fir_config iir_fir;
-> +} __packed;
-> +
-> +struct ipu3_uapi_yuvp1_y_ee_nr_lpf_config {
-> +	__u32 a_diag:5;
-> +	__u32 __reserved0:3;
-> +	__u32 a_periph:5;
-> +	__u32 __reserved1:3;
-> +	__u32 a_cent:5;
-> +	__u32 __reserved2:9;
-> +	__u32 enable:1;
-> +} __packed;
-> +
-> +struct ipu3_uapi_yuvp1_y_ee_nr_sense_config {
-> +	__u32 edge_sense_0:13;
-> +	__u32 __reserved0:3;
-> +	__u32 delta_edge_sense:13;
-> +	__u32 __reserved1:3;
-> +	__u32 corner_sense_0:13;
-> +	__u32 __reserved2:3;
-> +	__u32 delta_corner_sense:13;
-> +	__u32 __reserved3:3;
-> +} __packed;
-> +
-> +struct ipu3_uapi_yuvp1_y_ee_nr_gain_config {
-> +	__u32 gain_pos_0:5;
-> +	__u32 __reserved0:3;
-> +	__u32 delta_gain_posi:5;
-> +	__u32 __reserved1:3;
-> +	__u32 gain_neg_0:5;
-> +	__u32 __reserved2:3;
-> +	__u32 delta_gain_neg:5;
-> +	__u32 __reserved3:3;
-> +} __packed;
-> +
-> +struct ipu3_uapi_yuvp1_y_ee_nr_clip_config {
-> +	__u32 clip_pos_0:5;
-> +	__u32 __reserved0:3;
-> +	__u32 delta_clip_posi:5;
-> +	__u32 __reserved1:3;
-> +	__u32 clip_neg_0:5;
-> +	__u32 __reserved2:3;
-> +	__u32 delta_clip_neg:5;
-> +	__u32 __reserved3:3;
-> +} __packed;
-> +
-> +struct ipu3_uapi_yuvp1_y_ee_nr_frng_config {
-> +	__u32 gain_exp:4;
-> +	__u32 __reserved0:28;
-> +	__u32 min_edge:13;
-> +	__u32 __reserved1:3;
-> +	__u32 lin_seg_param:4;
-> +	__u32 __reserved2:4;
-> +	__u32 t1:1;
-> +	__u32 t2:1;
-> +	__u32 __reserved3:6;
-> +} __packed;
-> +
-> +struct ipu3_uapi_yuvp1_y_ee_nr_diag_config {
-> +	__u32 diag_disc_g:4;
-> +	__u32 __reserved0:4;
-> +	__u32 hvw_hor:4;
-> +	__u32 dw_hor:4;
-> +	__u32 hvw_diag:4;
-> +	__u32 dw_diag:4;
-> +	__u32 __reserved1:8;
-> +} __packed;
-> +
-> +struct ipu3_uapi_yuvp1_y_ee_nr_fc_coring_config {
-> +	__u32 pos_0:13;
-> +	__u32 __reserved0:3;
-> +	__u32 pos_delta:13;
-> +	__u32 __reserved1:3;
-> +	__u32 neg_0:13;
-> +	__u32 __reserved2:3;
-> +	__u32 neg_delta:13;
-> +	__u32 __reserved3:3;
-> +} __packed;
-> +
-> +struct ipu3_uapi_yuvp1_y_ee_nr_config {
-> +	struct ipu3_uapi_yuvp1_y_ee_nr_lpf_config lpf;
-> +	struct ipu3_uapi_yuvp1_y_ee_nr_sense_config sense;
-> +	struct ipu3_uapi_yuvp1_y_ee_nr_gain_config gain;
-> +	struct ipu3_uapi_yuvp1_y_ee_nr_clip_config clip;
-> +	struct ipu3_uapi_yuvp1_y_ee_nr_frng_config frng;
-> +	struct ipu3_uapi_yuvp1_y_ee_nr_diag_config diag;
-> +	struct ipu3_uapi_yuvp1_y_ee_nr_fc_coring_config fc_coring;
-> +} __packed;
-> +
-> +struct ipu3_uapi_yuvp2_y_tm_lut_static_config {
-> +	__u16 entries[IPU3_UAPI_YUVP2_YTM_LUT_ENTRIES]; /* 13 significand bits*/
-> +	__u32 enable;
-> +} __packed;
-> +
-> +struct ipu3_uapi_yuvp2_tcc_gen_control_static_config {
-> +	__u32 en:1;
-> +	__u32 blend_shift:3;
-> +	__u32 gain_according_to_y_only:1;
-> +	__u32 __reserved0:11;
-> +	__s32 gamma:5;
-> +	__u32 __reserved1:3;
-> +	__s32 delta:5;
-> +	__u32 __reserved2:3;
-> +} __packed;
-> +
-> +struct ipu3_uapi_yuvp2_tcc_macc_elem_static_config {
-> +	__s32 a:12;
-> +	__u32 __reserved0:4;
-> +	__s32 b:12;
-> +	__u32 __reserved1:4;
-> +	__s32 c:12;
-> +	__u32 __reserved2:4;
-> +	__s32 d:12;
-> +	__u32 __reserved3:4;
-> +} __packed;
-> +
-> +struct ipu3_uapi_yuvp2_tcc_macc_table_static_config {
-> +	struct ipu3_uapi_yuvp2_tcc_macc_elem_static_config
-> +		entries[IPU3_UAPI_YUVP2_TCC_MACC_TABLE_ELEMENTS];
-> +} __packed;
-> +
-> +struct ipu3_uapi_yuvp2_tcc_inv_y_lut_static_config {
-> +	__u16 entries[IPU3_UAPI_YUVP2_TCC_INV_Y_LUT_ELEMENTS];	/* 10 bits */
-> +} __packed;
-> +
-> +struct ipu3_uapi_yuvp2_tcc_gain_pcwl_lut_static_config {
-> +	__u16 entries[IPU3_UAPI_YUVP2_TCC_GAIN_PCWL_LUT_ELEMENTS];/* 12 bits */
-> +} __packed;
-> +
-> +struct ipu3_uapi_yuvp2_tcc_r_sqr_lut_static_config {
-> +	__s16 entries[IPU3_UAPI_YUVP2_TCC_R_SQR_LUT_ELEMENTS];	/* 11 bits */
-> +} __packed;
-> +
-> +struct ipu3_uapi_yuvp2_tcc_static_config {
-> +	struct ipu3_uapi_yuvp2_tcc_gen_control_static_config gen_control;
-> +	struct ipu3_uapi_yuvp2_tcc_macc_table_static_config macc_table;
-> +	struct ipu3_uapi_yuvp2_tcc_inv_y_lut_static_config inv_y_lut;
-> +	struct ipu3_uapi_yuvp2_tcc_gain_pcwl_lut_static_config gain_pcwl;
-> +	struct ipu3_uapi_yuvp2_tcc_r_sqr_lut_static_config r_sqr_lut;
-> +} __packed;
-> +
-> +struct ipu3_uapi_dpc_num_of_dp {
-> +	__u8 dp_gr;
-> +	__u8 dp_bg;
-> +	__u16 __reserved;
-> +} __packed;
-> +
-> +struct ipu3_uapi_dpc_params {
-> +	__u16 enable;
-> +	__u16 grad_threshold;		/* 13 bits */
-> +	struct ipu3_uapi_dpc_num_of_dp set[2];
-> +	struct ipu3_uapi_dpc_num_of_dp first_line_pair;
-> +} __packed;
-> +
-> +struct ipu3_uapi_dpc_transfer_luts_set_data {
-> +	__u8 set_number;
-> +	__u8 num_of_dp_gr;
-> +	__u8 num_of_dp_bg;
-> +	__u8 align_dummy;
-> +
-> +} __packed;
-> +
-> +struct ipu3_uapi_dpc_intra_frame_operations_data {
-> +	struct ipu3_uapi_acc_operation
-> +		operation_list[IPU3_UAPI_DPC_MAX_OPERATIONS] IPU3_ALIGN;
-> +	struct ipu3_uapi_acc_process_lines_cmd_data
-> +		process_lines_data[IPU3_UAPI_DPC_MAX_PROCESS_LINES] IPU3_ALIGN;
-> +	struct ipu3_uapi_dpc_transfer_luts_set_data
-> +		transfer_data[IPU3_UAPI_DPC_MAX_TRANSFERS] IPU3_ALIGN;
-> +} __packed;
-> +
-> +struct ipu3_uapi_dpc_1st_pair_of_lines_lut_elem {
-> +	__u32 column:13;
-> +	__u32 nghbr_sts:5;
-> +	__u32 p0:14;
-> +	__u32 p1:14;
-> +	__u32 __reserved0:2;
-> +	__u32 p2:14;
-> +	__u32 nghbr_order:1;
-> +	__u32 __reserved1:1;
-> +} __packed;
-> +
-> +struct ipu3_uapi_dpc_1st_pair_of_lines_lut {
-> +	struct ipu3_uapi_dpc_1st_pair_of_lines_lut_elem
-> +		entries[IPU3_UAPI_DPC_MAX_DP_FIRST_LINES_PAIR];
-> +
-> +} __packed;
-> +
-> +struct ipu3_uapi_dpc_lut_elem {
-> +	__u32 nghbr_sts:5;
-> +	__u32 skip:1;
-> +	__u32 nghbr_order:1;
-> +	__u32 column:13;
-> +	__u32 row_pair_delta:4;
-> +	__u32 __reserved0:8;
-> +} __packed;
-> +
-> +struct ipu3_uapi_dpc_lut_set {
-> +	struct ipu3_uapi_dpc_lut_elem
-> +		elems[IPU3_UAPI_DPC_MAX_DP_PER_SET] IPU3_ALIGN;
-> +} __packed;
-> +
-> +struct ipu3_uapi_dpc_lut {
-> +	struct ipu3_uapi_dpc_lut_set sets[IPU3_UAPI_DPC_MAX_CFG_SETS];
-> +} __packed;
-> +
-> +struct ipu3_uapi_dpc_stripe_config {
-> +	struct ipu3_uapi_dpc_params params IPU3_ALIGN;
-> +	struct ipu3_uapi_dpc_intra_frame_operations_data ops IPU3_ALIGN;
-> +	struct ipu3_uapi_dpc_1st_pair_of_lines_lut first_lines_lut_gr
-> +		IPU3_ALIGN;
-> +	struct ipu3_uapi_dpc_1st_pair_of_lines_lut first_lines_lut_bg
-> +		IPU3_ALIGN;
-> +	struct ipu3_uapi_dpc_lut lut_bg IPU3_ALIGN;
-> +	struct ipu3_uapi_dpc_lut lut_gr IPU3_ALIGN;
-> +} __packed;
-> +
-> +struct ipu3_uapi_dpc_config_per_stripe {
-> +	struct ipu3_uapi_dpc_stripe_config
-> +		dpc_config[IPU3_UAPI_MAX_STRIPES] IPU3_ALIGN;
-> +} __packed;
-> +
-> +struct ipu3_uapi_dpc_config {
-> +	struct ipu3_uapi_dpc_config_per_stripe config_per_stripe IPU3_ALIGN;
-> +} __packed;
-> +
-> +struct ipu3_uapi_bds_hor_ctrl0 {
-> +	__u32 sample_patrn_length:9;
-> +	__u32 __reserved0:3;
-> +	__u32 hor_ds_en:1;
-> +	__u32 min_clip_val:1;
-> +	__u32 max_clip_val:2;
-> +	__u32 out_frame_width:13;
-> +	__u32 __reserved1:3;
-> +} __packed;
-> +
-> +struct ipu3_uapi_bds_ptrn_arr {
-> +	__u32 elems[IPU3_UAPI_BDS_SAMPLE_PATTERN_ARRAY_SIZE];
-> +} __packed;
-> +
-> +struct ipu3_uapi_bds_phase_entry {
-> +	__s8 coeff_min2;
-> +	__s8 coeff_min1;
-> +	__s8 coeff_0;
-> +	__s8 nf;
-> +	__s8 coeff_pls1;
-> +	__s8 coeff_pls2;
-> +	__s8 coeff_pls3;
-> +	__u8 __reserved;
-> +} __packed;
-> +
-> +struct ipu3_uapi_bds_phase_arr {
-> +	struct ipu3_uapi_bds_phase_entry
-> +		even[IPU3_UAPI_BDS_PHASE_COEFFS_ARRAY_SIZE];
-> +	struct ipu3_uapi_bds_phase_entry
-> +		odd[IPU3_UAPI_BDS_PHASE_COEFFS_ARRAY_SIZE];
-> +} __packed;
-> +
-> +struct ipu3_uapi_bds_hor_ctrl1 {
-> +	__u32 hor_crop_start:13;
-> +	__u32 __reserved0:3;
-> +	__u32 hor_crop_end:13;
-> +	__u32 __reserved1:1;
-> +	__u32 hor_crop_en:1;
-> +	__u32 __reserved2:1;
-> +} __packed;
-> +
-> +struct ipu3_uapi_bds_hor_ctrl2 {
-> +	__u32 input_frame_height:13;
-> +	__u32 __reserved0:19;
-> +} __packed;
-> +
-> +struct ipu3_uapi_bds_hor {
-> +	struct ipu3_uapi_bds_hor_ctrl0 hor_ctrl0;
-> +	struct ipu3_uapi_bds_ptrn_arr hor_ptrn_arr;
-> +	struct ipu3_uapi_bds_phase_arr hor_phase_arr;
-> +	struct ipu3_uapi_bds_hor_ctrl1 hor_ctrl1;
-> +	struct ipu3_uapi_bds_hor_ctrl2 hor_ctrl2;
-> +} __packed;
-> +
-> +struct ipu3_uapi_bds_ver_ctrl0 {
-> +	__u32 sample_patrn_length:9;
-> +	__u32 __reserved0:3;
-> +	__u32 ver_ds_en:1;
-> +	__u32 min_clip_val:1;
-> +	__u32 max_clip_val:2;
-> +	__u32 __reserved1:16;
-> +} __packed;
-> +
-> +struct ipu3_uapi_bds_ver_ctrl1 {
-> +	__u32 out_frame_width:13;
-> +	__u32 __reserved0:3;
-> +	__u32 out_frame_height:13;
-> +	__u32 __reserved1:3;
-> +} __packed;
-> +
-> +struct ipu3_uapi_bds_ver {
-> +	struct ipu3_uapi_bds_ver_ctrl0 ver_ctrl0;
-> +	struct ipu3_uapi_bds_ptrn_arr ver_ptrn_arr;
-> +	struct ipu3_uapi_bds_phase_arr ver_phase_arr;
-> +	struct ipu3_uapi_bds_ver_ctrl1 ver_ctrl1;
-> +
-> +} __packed;
-> +
-> +struct ipu3_uapi_bds_per_stripe_data {
-> +	struct ipu3_uapi_bds_hor_ctrl0 hor_ctrl0;
-> +	struct ipu3_uapi_bds_ver_ctrl1 ver_ctrl1;
-> +	struct ipu3_uapi_bds_hor_ctrl1 crop;
-> +} __packed;
-> +
-> +struct ipu3_uapi_ipu3_uapi_bds_per_stripe_data_aligned {
-> +	struct ipu3_uapi_bds_per_stripe_data data IPU3_ALIGN;
-> +} __packed;
-> +
-> +struct ipu3_uapi_bds_per_stripe {
-> +	struct ipu3_uapi_ipu3_uapi_bds_per_stripe_data_aligned
-> +		aligned_data[IPU3_UAPI_MAX_STRIPES];
-> +} __packed;
-> +
-> +struct ipu3_uapi_bds_config {
-> +	struct ipu3_uapi_bds_hor hor IPU3_ALIGN;
-> +	struct ipu3_uapi_bds_ver ver IPU3_ALIGN;
-> +	struct ipu3_uapi_bds_per_stripe per_stripe IPU3_ALIGN;
-> +	__u32 enabled;
-> +} __packed;
-> +
-> +struct ipu3_uapi_anr_search_config {
-> +	__u32 enable;
-> +	__u16 frame_width;
-> +	__u16 frame_height;
-> +} __packed;
-> +
-> +struct ipu3_uapi_anr_alpha {
-> +	__u16 gr;					/* 9 bits */
-> +	__u16 r;
-> +	__u16 b;
-> +	__u16 gb;
-> +	__u16 dc_gr;
-> +	__u16 dc_r;
-> +	__u16 dc_b;
-> +	__u16 dc_gb;
-> +} __packed;
-> +
-> +struct ipu3_uapi_anr_beta {
-> +	__u16 beta_gr;					/* 11 bits */
-> +	__u16 beta_r;
-> +	__u16 beta_b;
-> +	__u16 beta_gb;
-> +} __packed;
-> +
-> +struct ipu3_uapi_anr_plain_color {
-> +	__u16 reg_w_gr[16];				/* 12 bits */
-> +	__u16 reg_w_r[16];
-> +	__u16 reg_w_b[16];
-> +	__u16 reg_w_gb[16];
-> +} __packed;
-> +
-> +struct ipu3_uapi_anr_transform_config {
-> +	__u32 enable:1;			/* 0 or 1, disabled or enabled */
-> +	__u32 adaptive_treshhold_en:1;	/* On IPU3, always enabled */
-> +
-> +	__u32 __reserved1:30;
-> +	__u8 __reserved2[40+4];
-> +
-> +	struct ipu3_uapi_anr_alpha alpha[3];
-> +	struct ipu3_uapi_anr_beta beta[3];
-> +	struct ipu3_uapi_anr_plain_color color[3];
-> +
-> +	__u16 sqrt_lut[IPU3_UAPI_ANR_LUT_SIZE];	/* 11 bits per element */
-> +
-> +	__s16 xreset:13;
-> +#define IPU3_UAPI_ANR_MAX_XRESET		((1 << 12) - 1)
-> +	__u16 __reserved3:3;
-> +	__s16 yreset:13;
-> +	__u16 __reserved4:3;
-> +
-> +	__u32 x_sqr_reset:24;
-> +	__u32 r_normfactor:5;
-> +	__u32 __reserved5:3;
-> +
-> +	__u32 y_sqr_reset:24;
-> +	__u32 gain_scale:8;
-> +} __packed;
-> +
-> +struct ipu3_uapi_anr_stitch_pyramid {
-> +	__u32 entry0:6;
-> +	__u32 entry1:6;
-> +	__u32 entry2:6;
-> +	__u32 __reserved:14;
-> +} __packed;
-> +
-> +struct ipu3_uapi_anr_stitch_config {
-> +	__u32 anr_stitch_en;
-> +	__u16 frame_width;
-> +	__u16 frame_height;
-> +	__u8 __reserved[40];
-> +	struct ipu3_uapi_anr_stitch_pyramid pyramid[IPU3_UAPI_ANR_PYRAMID_SIZE];
-> +} __packed;
-> +
-> +struct ipu3_uapi_anr_tile2strm_config {
-> +	__u32 enable;
-> +	__u16 frame_width;
-> +	__u16 frame_height;
-> +} __packed;
-> +
-> +struct ipu3_uapi_anr_config {
-> +	struct ipu3_uapi_anr_search_config search IPU3_ALIGN;
-> +	struct ipu3_uapi_anr_transform_config transform IPU3_ALIGN;
-> +	struct ipu3_uapi_anr_stitch_config stitch IPU3_ALIGN;
-> +	struct ipu3_uapi_anr_tile2strm_config tile2strm IPU3_ALIGN;
-> +} __packed;
-> +
-> +struct ipu3_uapi_awb_fr_intra_frame_operations_data {
-> +	struct ipu3_uapi_acc_operation ops[IPU3_UAPI_AWB_FR_MAX_OPERATIONS]
-> +								IPU3_ALIGN;
-> +	struct ipu3_uapi_acc_process_lines_cmd_data
-> +	      process_lines_data[IPU3_UAPI_AWB_FR_MAX_PROCESS_LINES] IPU3_ALIGN;
-> +} __packed;
-> +
-> +struct ipu3_uapi_awb_fr_config {
-> +	struct ipu3_uapi_awb_fr_config_s config;
-> +	struct ipu3_uapi_awb_fr_intra_frame_operations_data operations_data;
-> +	struct ipu3_uapi_awb_fr_config_s stripes[IPU3_UAPI_MAX_STRIPES];
-> +} __packed;
-> +
-> +struct ipu3_uapi_ae_weight_elem {
-> +	__u32 cell0:4;
-> +	__u32 cell1:4;
-> +	__u32 cell2:4;
-> +	__u32 cell3:4;
-> +	__u32 cell4:4;
-> +	__u32 cell5:4;
-> +	__u32 cell6:4;
-> +	__u32 cell7:4;
-> +} __packed;
-> +
-> +struct ipu3_uapi_ae_ccm {
-> +	__u16 gain_gr;			/* 11 bits */
-> +	__u16 gain_r;
-> +	__u16 gain_b;
-> +	__u16 gain_gb;
-> +	__s16 mat[16];
-> +} __packed;
-> +
-> +struct ipu3_uapi_ae_config {
-> +	struct ipu3_uapi_ae_grid_config grid_cfg IPU3_ALIGN;
-> +	struct ipu3_uapi_ae_weight_elem weights[IPU3_UAPI_AE_WEIGHTS]
-> +								IPU3_ALIGN;
-> +	struct ipu3_uapi_ae_ccm ae_ccm IPU3_ALIGN;
-> +	struct {
-> +		struct ipu3_uapi_ae_grid_config grid IPU3_ALIGN;
-> +	} stripes[IPU3_UAPI_MAX_STRIPES];
-> +} __packed;
-> +
-> +struct ipu3_uapi_af_intra_frame_operations_data {
-> +	struct ipu3_uapi_acc_operation ops[IPU3_UAPI_AF_MAX_OPERATIONS]
-> +		IPU3_ALIGN;
-> +	struct ipu3_uapi_acc_process_lines_cmd_data
-> +		process_lines_data[IPU3_UAPI_AF_MAX_PROCESS_LINES] IPU3_ALIGN;
-> +} __packed;
-> +
-> +struct ipu3_uapi_af_stripe_config {
-> +	struct ipu3_uapi_af_frame_size frame_size IPU3_ALIGN;
-> +	struct ipu3_uapi_grid_config grid_cfg IPU3_ALIGN;
-> +} __packed;
-> +
-> +struct ipu3_uapi_af_config {
-> +	struct ipu3_uapi_af_config_s config;
-> +	struct ipu3_uapi_af_intra_frame_operations_data operations_data;
-> +	struct ipu3_uapi_af_stripe_config stripes[IPU3_UAPI_MAX_STRIPES];
-> +} __packed;
-> +
-> +struct ipu3_uapi_acc_transfer_op_data {
-> +	__u8 set_number;
-> +} __packed;
-> +
-> +struct IPU3_ALIGN ipu3_uapi_awb_intra_frame_operations_data {
-> +	struct ipu3_uapi_acc_operation ops[IPU3_UAPI_AWB_MAX_OPERATIONS]
-> +		IPU3_ALIGN;
-> +	struct ipu3_uapi_acc_process_lines_cmd_data
-> +		process_lines_data[IPU3_UAPI_AWB_MAX_PROCESS_LINES] IPU3_ALIGN;
-> +	struct ipu3_uapi_acc_transfer_op_data
-> +		transfer_data[IPU3_UAPI_AWB_MAX_TRANSFERS] IPU3_ALIGN;
-> +} __packed;
-> +
-> +struct ipu3_uapi_awb_config {
-> +	struct ipu3_uapi_awb_config_s config IPU3_ALIGN;
-> +	struct ipu3_uapi_awb_intra_frame_operations_data operations_data;
-> +	struct ipu3_uapi_awb_config_s stripes[IPU3_UAPI_MAX_STRIPES];
-> +} __packed;
-> +
-> +struct ipu3_uapi_osys_formatter_params {
-> +	__u32 format;
-> +	__u32 flip;
-> +	__u32 mirror;
-> +	__u32 tiling;
-> +	__u32 reduce_range;
-> +	__u32 alpha_blending;	/* FIXME: To figure out the unknown register */
-> +	__u32 release_inp_addr;
-> +	__u32 release_inp_en;
-> +	__u32 process_out_buf_addr;
-> +	__u32 image_width_vecs;
-> +	__u32 image_height_lines;
-> +	__u32 inp_buff_y_st_addr;
-> +	__u32 inp_buff_y_line_stride;
-> +	__u32 inp_buff_y_buffer_stride;
-> +	__u32 int_buff_u_st_addr;
-> +	__u32 int_buff_v_st_addr;
-> +	__u32 inp_buff_uv_line_stride;
-> +	__u32 inp_buff_uv_buffer_stride;
-> +	__u32 out_buff_level;
-> +	__u32 out_buff_nr_y_lines;
-> +	__u32 out_buff_u_st_offset;
-> +	__u32 out_buff_v_st_offset;
-> +	__u32 out_buff_y_line_stride;
-> +	__u32 out_buff_uv_line_stride;
-> +	__u32 hist_buff_st_addr;
-> +	__u32 hist_buff_line_stride;
-> +	__u32 hist_buff_nr_lines;
-
-Is there something in the above struct that is not configured by the driver?
-
-> +} __packed;
-> +
-> +struct ipu3_uapi_osys_formatter {
-> +	struct ipu3_uapi_osys_formatter_params param IPU3_ALIGN;
-> +} __packed;
-> +
-> +struct ipu3_uapi_osys_scaler_params {
-> +	__u32 inp_buf_y_st_addr;
-> +	__u32 inp_buf_y_line_stride;
-> +	__u32 inp_buf_y_buffer_stride;
-> +	__u32 inp_buf_u_st_addr;
-> +	__u32 inp_buf_v_st_addr;
-> +	__u32 inp_buf_uv_line_stride;
-> +	__u32 inp_buf_uv_buffer_stride;
-> +	__u32 inp_buf_chunk_width;
-> +	__u32 inp_buf_nr_buffers;
-> +	/* Output buffers */
-> +	__u32 out_buf_y_st_addr;
-> +	__u32 out_buf_y_line_stride;
-> +	__u32 out_buf_y_buffer_stride;
-> +	__u32 out_buf_u_st_addr;
-> +	__u32 out_buf_v_st_addr;
-> +	__u32 out_buf_uv_line_stride;
-> +	__u32 out_buf_uv_buffer_stride;
-> +	__u32 out_buf_nr_buffers;
-> +	/* Intermediate buffers */
-> +	__u32 int_buf_y_st_addr;
-> +	__u32 int_buf_y_line_stride;
-> +	__u32 int_buf_u_st_addr;
-> +	__u32 int_buf_v_st_addr;
-> +	__u32 int_buf_uv_line_stride;
-> +	__u32 int_buf_height;
-> +	__u32 int_buf_chunk_width;
-> +	__u32 int_buf_chunk_height;
-> +	/* Context buffers */
-> +	__u32 ctx_buf_hor_y_st_addr;
-> +	__u32 ctx_buf_hor_u_st_addr;
-> +	__u32 ctx_buf_hor_v_st_addr;
-> +	__u32 ctx_buf_ver_y_st_addr;
-> +	__u32 ctx_buf_ver_u_st_addr;
-> +	__u32 ctx_buf_ver_v_st_addr;
-> +	/* Addresses for release-input and process-output tokens */
-> +	__u32 release_inp_buf_addr;
-> +	__u32 release_inp_buf_en;
-> +	__u32 release_out_buf_en;
-> +	__u32 process_out_buf_addr;
-> +	/* Settings dimensions, padding, cropping */
-> +	__u32 input_image_y_width;
-> +	__u32 input_image_y_height;
-> +	__u32 input_image_y_start_column;
-> +	__u32 input_image_uv_start_column;
-> +	__u32 input_image_y_left_pad;
-> +	__u32 input_image_uv_left_pad;
-> +	__u32 input_image_y_right_pad;
-> +	__u32 input_image_uv_right_pad;
-> +	__u32 input_image_y_top_pad;
-> +	__u32 input_image_uv_top_pad;
-> +	__u32 input_image_y_bottom_pad;
-> +	__u32 input_image_uv_bottom_pad;
-> +	__u32 processing_mode;
-> +#define IPU3_UAPI_OSYS_PROCMODE_BYPASS		0
-> +#define IPU3_UAPI_OSYS_PROCMODE_UPSCALE		1
-> +#define IPU3_UAPI_OSYS_PROCMODE_DOWNSCALE	2
-> +	__u32 scaling_ratio;
-> +	__u32 y_left_phase_init;
-> +	__u32 uv_left_phase_init;
-> +	__u32 y_top_phase_init;
-> +	__u32 uv_top_phase_init;
-> +	__u32 coeffs_exp_shift;
-> +	__u32 out_y_left_crop;
-> +	__u32 out_uv_left_crop;
-> +	__u32 out_y_top_crop;
-> +	__u32 out_uv_top_crop;
-> +} __packed;
-
-Same here, shouldn't these be set by the driver?
-
-> +
-> +struct ipu3_uapi_osys_scaler {
-> +	struct ipu3_uapi_osys_scaler_params param IPU3_ALIGN;
-> +} __packed;
-> +
-> +struct ipu3_uapi_osys_frame_params {
-> +	/* Output pins */
-> +	__u32 enable;
-> +	__u32 format;			/* enum ipu3_uapi_osys_format */
-> +	__u32 flip;
-> +	__u32 mirror;
-> +	__u32 tiling;			/* enum ipu3_uapi_osys_tiling */
-> +	__u32 width;
-> +	__u32 height;
-> +	__u32 stride;
-> +	__u32 scaled;
-> +} __packed;
-
-These as well?
-
-> +
-> +struct ipu3_uapi_osys_frame {
-> +	struct ipu3_uapi_osys_frame_params param IPU3_ALIGN;
-> +} __packed;
-> +
-> +struct ipu3_uapi_osys_stripe {
-> +	/* Input resolution */
-> +	__u32 input_width;
-> +	__u32 input_height;
-> +	/* Output Stripe */
-> +	__u32 output_width[IPU3_UAPI_OSYS_PINS];
-> +	__u32 output_height[IPU3_UAPI_OSYS_PINS];
-> +	__u32 output_offset[IPU3_UAPI_OSYS_PINS];
-> +	__u32 buf_stride[IPU3_UAPI_OSYS_PINS];
-> +	/* Scaler params */
-> +	__u32 block_width;
-> +	__u32 block_height;
-> +	/* Output Crop factor */
-> +	__u32 crop_top[IPU3_UAPI_OSYS_PINS];
-> +	__u32 crop_left[IPU3_UAPI_OSYS_PINS];
-> +} __packed;
-
-And these.
-
-> +
-> +struct ipu3_uapi_osys_config {
-> +	struct ipu3_uapi_osys_formatter
-> +		formatter[IPU3_UAPI_MAX_STRIPES][IPU3_UAPI_OSYS_PINS];
-> +	struct ipu3_uapi_osys_scaler scaler[IPU3_UAPI_MAX_STRIPES];
-> +	struct ipu3_uapi_osys_frame frame[IPU3_UAPI_OSYS_PINS];
-> +	struct ipu3_uapi_osys_stripe stripe[IPU3_UAPI_MAX_STRIPES];
-> +	/* 32 packed coefficients for luma and chroma */
-> +	__s8 scaler_coeffs_chroma[128];
-> +	__s8 scaler_coeffs_luma[128];
-> +} __packed;
-> +
-> +struct ipu3_uapi_acc_param {
-> +	struct ipu3_uapi_stripe_data stripe;
-> +	__u8 padding[8];
-> +	struct ipu3_uapi_input_feeder_config input_feeder;
-> +	struct ipu3_uapi_bnr_static_config bnr;
-> +	struct ipu3_uapi_bnr_static_config_green_disparity green_disparity
-> +		IPU3_ALIGN;
-> +	struct ipu3_uapi_dm_config dm IPU3_ALIGN;
-> +	struct ipu3_uapi_ccm_mat_config ccm IPU3_ALIGN;
-> +	struct ipu3_uapi_gamma_config gamma IPU3_ALIGN;
-> +	struct ipu3_uapi_csc_mat_config csc IPU3_ALIGN;
-> +	struct ipu3_uapi_cds_params cds IPU3_ALIGN;
-> +	struct ipu3_uapi_shd_config shd IPU3_ALIGN;
-> +	struct ipu3_uapi_dvs_stat_config dvs_stat;
-> +	struct ipu3_uapi_lace_stat_config lace_stat;
-> +	struct ipu3_uapi_yuvp1_iefd_config iefd IPU3_ALIGN;
-> +	struct ipu3_uapi_yuvp1_yds_config yds_c0 IPU3_ALIGN;
-> +	struct ipu3_uapi_yuvp1_chnr_config chnr_c0 IPU3_ALIGN;
-> +	struct ipu3_uapi_yuvp1_y_ee_nr_config y_ee_nr IPU3_ALIGN;
-> +	struct ipu3_uapi_yuvp1_yds_config yds IPU3_ALIGN;
-> +	struct ipu3_uapi_yuvp1_chnr_config chnr IPU3_ALIGN;
-> +	struct ipu3_uapi_yuvp2_y_tm_lut_static_config ytm IPU3_ALIGN;
-> +	struct ipu3_uapi_yuvp1_yds_config yds2 IPU3_ALIGN;
-> +	struct ipu3_uapi_yuvp2_tcc_static_config tcc IPU3_ALIGN;
-> +	struct ipu3_uapi_dpc_config dpc IPU3_ALIGN;
-> +	struct ipu3_uapi_bds_config bds;
-> +	struct ipu3_uapi_anr_config anr;
-> +	struct ipu3_uapi_awb_fr_config awb_fr;
-> +	struct ipu3_uapi_ae_config ae;
-> +	struct ipu3_uapi_af_config af;
-> +	struct ipu3_uapi_awb_config awb;
-> +	struct ipu3_uapi_osys_config osys;
-> +} __packed;
-> +
-> +/* Linearization parameters */
-> +
-> +#define IPU3_UAPI_LIN_LUT_SIZE			64
-> +
-> +struct ipu3_uapi_isp_lin_vmem_params {
-> +	__s16 lin_lutlow_gr[IPU3_UAPI_LIN_LUT_SIZE];
-> +	__s16 lin_lutlow_r[IPU3_UAPI_LIN_LUT_SIZE];
-> +	__s16 lin_lutlow_b[IPU3_UAPI_LIN_LUT_SIZE];
-> +	__s16 lin_lutlow_gb[IPU3_UAPI_LIN_LUT_SIZE];
-> +	__s16 lin_lutdif_gr[IPU3_UAPI_LIN_LUT_SIZE];
-> +	__s16 lin_lutdif_r[IPU3_UAPI_LIN_LUT_SIZE];
-> +	__s16 lin_lutdif_b[IPU3_UAPI_LIN_LUT_SIZE];
-> +	__s16 lin_lutdif_gb[IPU3_UAPI_LIN_LUT_SIZE];
-> +} __packed;
-> +
-> +/* TNR3 VMEM parameters */
-> +
-> +#define IPU3_UAPI_ISP_TNR3_VMEM_LEN	9
-> +
-> +struct ipu3_uapi_isp_tnr3_vmem_params {
-> +	__u16 slope[IPU3_UAPI_ISP_TNR3_VMEM_LEN];
-> +	__u16 __reserved1[IPU3_UAPI_ISP_VEC_ELEMS
-> +						- IPU3_UAPI_ISP_TNR3_VMEM_LEN];
-> +	__u16 sigma[IPU3_UAPI_ISP_TNR3_VMEM_LEN];
-> +	__u16 __reserved2[IPU3_UAPI_ISP_VEC_ELEMS
-> +						- IPU3_UAPI_ISP_TNR3_VMEM_LEN];
-> +} __packed;
-> +
-> +/* XNR3 VMEM parameters */
-> +
-> +struct ipu3_uapi_isp_xnr3_vmem_params {
-> +	__u16 x[IPU3_UAPI_ISP_VEC_ELEMS];
-> +	__u16 a[IPU3_UAPI_ISP_VEC_ELEMS];
-> +	__u16 b[IPU3_UAPI_ISP_VEC_ELEMS];
-> +	__u16 c[IPU3_UAPI_ISP_VEC_ELEMS];
-> +} __packed;
-> +
-> +/* TNR3 DMEM parameters */
-> +
-> +struct ipu3_uapi_isp_tnr3_params {
-> +	__u32 knee_y1;
-> +	__u32 knee_y2;
-> +	__u32 maxfb_y;
-> +	__u32 maxfb_u;
-> +	__u32 maxfb_v;
-> +	__u32 round_adj_y;
-> +	__u32 round_adj_u;
-> +	__u32 round_adj_v;
-> +	__u32 ref_buf_select;
-> +} __packed;
-> +
-> +/* XNR3 DMEM parameters */
-> +
-> +struct ipu3_uapi_xnr3_alpha_params {
-> +	__u32 y0;
-> +	__u32 u0;
-> +	__u32 v0;
-> +	__u32 ydiff;
-> +	__u32 udiff;
-> +	__u32 vdiff;
-> +} __packed;
-> +
-> +struct ipu3_uapi_xnr3_coring_params {
-> +	__u32 u0;
-> +	__u32 v0;
-> +	__u32 udiff;
-> +	__u32 vdiff;
-> +} __packed;
-> +
-> +struct ipu3_uapi_xnr3_blending_params {
-> +	__u32 strength;
-> +} __packed;
-> +
-> +struct ipu3_uapi_isp_xnr3_params {
-> +	struct ipu3_uapi_xnr3_alpha_params alpha;
-> +	struct ipu3_uapi_xnr3_coring_params coring;
-> +	struct ipu3_uapi_xnr3_blending_params blending;
-> +} __packed;
-> +
-> +/* RGBIR DMEM parameters */
-> +
-> +#define IPU3_UAPI_RGBIR_LUT_WIDTH	17
-> +#define IPU3_UAPI_RGBIR_LUT_HEIGHT	10
-> +#define IPU3_UAPI_RGBIR_LUT_SIZE	(IPU3_UAPI_RGBIR_LUT_WIDTH * \
-> +					 IPU3_UAPI_RGBIR_LUT_HEIGHT)
-> +
-> +struct ipu3_uapi_isp_rgbir_params {
-> +	__u16 ob;					/* optical black level*/
-> +	__u16 ir_height;				/* lut table height */
-> +	__u16 ir_width;					/* lut table width */
-> +	__u16 ir_weights_r[IPU3_UAPI_RGBIR_LUT_SIZE];	/* lut values for red */
-> +	__u16 ir_weights_g[IPU3_UAPI_RGBIR_LUT_SIZE];	/* lut for green */
-> +	__u16 ir_weights_b[IPU3_UAPI_RGBIR_LUT_SIZE];	/* lut for blue */
-> +	__u16 ir_gain;					/* digital gain */
-> +} __packed;
-> +
-> +/***** Morphing table entry *****/
-> +
-> +#define IPU3_UAPI_GDC_FRAC_BITS		8
-> +
-> +struct ipu3_uapi_gdc_warp_param {
-> +	__u32 origin_x;
-> +	__u32 origin_y;
-> +	__u32 in_addr_offset;
-> +	__u32 in_block_width;
-> +	__u32 in_block_height;
-> +	__u32 p0_x;
-> +	__u32 p0_y;
-> +	__u32 p1_x;
-> +	__u32 p1_y;
-> +	__u32 p2_x;
-> +	__u32 p2_y;
-> +	__u32 p3_x;
-> +	__u32 p3_y;
-> +	__u32 in_block_width_a;
-> +	__u32 in_block_width_b;
-> +	__u32 padding;			/* struct size multiple of DDR word */
-> +} __packed;
-> +
-> +/***** Obgrid (optical black level compensation) table entry *****/
-> +
-> +struct ipu3_uapi_obgrid_param {
-> +	__u16 gr;
-> +	__u16 r;
-> +	__u16 b;
-> +	__u16 gb;
-> +} __packed;
-> +
-> +/******************* V4L2_PIX_FMT_IPU3_PARAMS *******************/
-> +
-> +/*
-> + * The video queue "parameters" is of format V4L2_PIX_FMT_IPU3_PARAMS.
-> + * It is a multiplanar output queue with three planes and type
-> + * V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE. User may also configure the
-> + * video queue as V4L2_BUF_TYPE_VIDEO_OUTPUT with a single plane, in which
-> + * case GDC and Obgrid tables can not be set.
-> + *
-> + * Plane 0: Defined below in struct ipu3_params, size 288064 bytes.
-> + *          This contains a lot of parameters and flags selecting which
-> + *          parameters to apply. Its size and resolution (1x1) are fixed.
-> + *
-> + * Plane 1: Contains geometric distortion correction grid coordinates.
-> + *          Each entry in the grid is defined in
-> + *          struct ipu3_uapi_gdc_warp_param.
-> + *          The plane size is the grid entry size times the number of entries,
-> + *          which depends on the main output image resolution and block size.
-> + *
-> + * Plane 2: Contains Obgrid grid. Each entry in the grid is 8 bytes.
-> + *          The plane size depends on user parameters (internally, on chosen
-> + *          firmware binary which depends on user parameters).
-> + */
-> +
-> +struct ipu3_uapi_flags {
-> +	/* Flags which of the settings below are to be applied */
-> +	__u32 gdc:1;		/* Whether to apply GDC and */
-> +	__u32 obgrid:1;		/* Obgrid planes */
-> +	__u32 __reserved1:30;
-> +
-> +	__u32 __acc_stripe:1;	/* Whether to apply these fields from */
-> +	__u32 __acc_input_feeder:1;	/* acc_param. Fields beginning with */
-> +	__u32 acc_bnr:1;		/* two underscores are reserved and */
-> +	__u32 acc_green_disparity:1;/* must not be enabled */
-> +	__u32 acc_dm:1;
-> +	__u32 acc_ccm:1;
-> +	__u32 acc_gamma:1;
-> +	__u32 acc_csc:1;
-> +	__u32 acc_cds:1;
-> +	__u32 acc_shd:1;
-> +	__u32 acc_dvs_stat:1;
-> +	__u32 acc_lace_stat:1;
-> +	__u32 acc_iefd:1;
-> +	__u32 acc_yds_c0:1;
-> +	__u32 acc_chnr_c0:1;
-> +	__u32 acc_y_ee_nr:1;
-> +	__u32 acc_yds:1;
-> +	__u32 acc_chnr:1;
-> +	__u32 acc_ytm:1;
-> +	__u32 acc_yds2:1;
-> +	__u32 acc_tcc:1;
-> +	__u32 acc_dpc:1;
-> +	__u32 acc_bds:1;
-> +	__u32 acc_anr:1;
-> +	__u32 acc_awb_fr:1;
-> +	__u32 acc_ae:1;
-> +	__u32 acc_af:1;
-> +	__u32 acc_awb:1;
-> +	__u32 __acc_osys:1;
-> +	__u32 __reserved2:3;
-> +
-> +	__u32 lin_vmem_params:1;	/* Whether to apply these structs */
-> +	__u32 tnr3_vmem_params:1;
-> +	__u32 xnr3_vmem_params:1;
-> +	__u32 tnr3_dmem_params:1;
-> +	__u32 xnr3_dmem_params:1;
-> +	__u32 __rgbir_dmem_params:1;
-> +	__u32 obgrid_param:1;
-> +	__u32 __reserved3:25;
-> +} __packed;
-> +
-> +struct ipu3_uapi_params {
-> +	__u32 padding1;
-> +	__u32 padding2;
-> +
-> +	struct ipu3_uapi_flags use;
-> +	/* Must be zero */
-> +	__u8 __reserved4[32 - sizeof(struct ipu3_uapi_flags)
-> +				- sizeof(__u32) * 2];
-> +
-> +	/* Acceleration cluster parameters */
-> +	struct ipu3_uapi_acc_param acc_param;
-> +
-> +	/* VMEM parameters */
-> +	struct ipu3_uapi_isp_lin_vmem_params lin_vmem_params;
-> +	struct ipu3_uapi_isp_tnr3_vmem_params tnr3_vmem_params;
-> +	struct ipu3_uapi_isp_xnr3_vmem_params xnr3_vmem_params;
-> +
-> +	/* DMEM parameters */
-> +	struct ipu3_uapi_isp_tnr3_params tnr3_dmem_params;
-> +	struct ipu3_uapi_isp_xnr3_params xnr3_dmem_params;
-> +	struct ipu3_uapi_isp_rgbir_params rgbir_dmem_params;
-> +
-> +	struct ipu3_uapi_obgrid_param obgrid_param;
-> +	__u8 padding[4];
-> +} __packed;
-> +
-> +#endif
+> diff --git a/drivers/media/platform/am437x/am437x-vpfe.c b/drivers/media/platform/am437x/am437x-vpfe.c
+> index 0997c640191d..601ae6487617 100644
+> --- a/drivers/media/platform/am437x/am437x-vpfe.c
+> +++ b/drivers/media/platform/am437x/am437x-vpfe.c
+> @@ -2304,8 +2304,8 @@ vpfe_async_bound(struct v4l2_async_notifier *notifier,
+>  	vpfe_dbg(1, vpfe, "vpfe_async_bound\n");
+>  
+>  	for (i = 0; i < ARRAY_SIZE(vpfe->cfg->asd); i++) {
+> -		if (vpfe->cfg->asd[i]->match.fwnode.fwnode ==
+> -		    asd[i].match.fwnode.fwnode) {
+> +		if (vpfe->cfg->asd[i]->match.fwnode ==
+> +		    asd[i].match.fwnode) {
+>  			sdinfo = &vpfe->cfg->sub_devs[i];
+>  			vpfe->sd[i] = subdev;
+>  			vpfe->sd[i]->grp_id = sdinfo->grp_id;
+> @@ -2510,7 +2510,7 @@ vpfe_get_pdata(struct platform_device *pdev)
+>  		}
+>  
+>  		pdata->asd[i]->match_type = V4L2_ASYNC_MATCH_FWNODE;
+> -		pdata->asd[i]->match.fwnode.fwnode = of_fwnode_handle(rem);
+> +		pdata->asd[i]->match.fwnode = of_fwnode_handle(rem);
+>  		of_node_put(rem);
+>  	}
+>  
+> diff --git a/drivers/media/platform/atmel/atmel-isc.c b/drivers/media/platform/atmel/atmel-isc.c
+> index 0c2635647f69..34676409ca08 100644
+> --- a/drivers/media/platform/atmel/atmel-isc.c
+> +++ b/drivers/media/platform/atmel/atmel-isc.c
+> @@ -2088,7 +2088,7 @@ static int isc_parse_dt(struct device *dev, struct isc_device *isc)
+>  			subdev_entity->pfe_cfg0 |= ISC_PFE_CFG0_PPOL_LOW;
+>  
+>  		subdev_entity->asd->match_type = V4L2_ASYNC_MATCH_FWNODE;
+> -		subdev_entity->asd->match.fwnode.fwnode =
+> +		subdev_entity->asd->match.fwnode =
+>  			of_fwnode_handle(rem);
+>  		list_add_tail(&subdev_entity->list, &isc->subdev_entities);
+>  	}
+> diff --git a/drivers/media/platform/atmel/atmel-isi.c b/drivers/media/platform/atmel/atmel-isi.c
+> index e900995143a3..9958918e2449 100644
+> --- a/drivers/media/platform/atmel/atmel-isi.c
+> +++ b/drivers/media/platform/atmel/atmel-isi.c
+> @@ -1128,7 +1128,7 @@ static int isi_graph_parse(struct atmel_isi *isi, struct device_node *node)
+>  		/* Remote node to connect */
+>  		isi->entity.node = remote;
+>  		isi->entity.asd.match_type = V4L2_ASYNC_MATCH_FWNODE;
+> -		isi->entity.asd.match.fwnode.fwnode = of_fwnode_handle(remote);
+> +		isi->entity.asd.match.fwnode = of_fwnode_handle(remote);
+>  		return 0;
+>  	}
+>  }
+> diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
+> index e45916f69def..e1c273c8b9a6 100644
+> --- a/drivers/media/platform/davinci/vpif_capture.c
+> +++ b/drivers/media/platform/davinci/vpif_capture.c
+> @@ -1390,7 +1390,7 @@ static int vpif_async_bound(struct v4l2_async_notifier *notifier,
+>  
+>  	for (i = 0; i < vpif_obj.config->asd_sizes[0]; i++) {
+>  		struct v4l2_async_subdev *_asd = vpif_obj.config->asd[i];
+> -		const struct fwnode_handle *fwnode = _asd->match.fwnode.fwnode;
+> +		const struct fwnode_handle *fwnode = _asd->match.fwnode;
+>  
+>  		if (fwnode == subdev->fwnode) {
+>  			vpif_obj.sd[i] = subdev;
+> @@ -1595,7 +1595,7 @@ vpif_capture_get_pdata(struct platform_device *pdev)
+>  		}
+>  
+>  		pdata->asd[i]->match_type = V4L2_ASYNC_MATCH_FWNODE;
+> -		pdata->asd[i]->match.fwnode.fwnode = of_fwnode_handle(rem);
+> +		pdata->asd[i]->match.fwnode = of_fwnode_handle(rem);
+>  		of_node_put(rem);
+>  	}
+>  
+> diff --git a/drivers/media/platform/exynos4-is/media-dev.c b/drivers/media/platform/exynos4-is/media-dev.c
+> index 0ef583cfc424..78b48a1fa26c 100644
+> --- a/drivers/media/platform/exynos4-is/media-dev.c
+> +++ b/drivers/media/platform/exynos4-is/media-dev.c
+> @@ -456,7 +456,7 @@ static int fimc_md_parse_port_node(struct fimc_md *fmd,
+>  	}
+>  
+>  	fmd->sensor[index].asd.match_type = V4L2_ASYNC_MATCH_FWNODE;
+> -	fmd->sensor[index].asd.match.fwnode.fwnode = of_fwnode_handle(rem);
+> +	fmd->sensor[index].asd.match.fwnode = of_fwnode_handle(rem);
+>  	fmd->async_subdevs[index] = &fmd->sensor[index].asd;
+>  
+>  	fmd->num_sensors++;
+> @@ -1364,7 +1364,7 @@ static int subdev_notifier_bound(struct v4l2_async_notifier *notifier,
+>  
+>  	/* Find platform data for this sensor subdev */
+>  	for (i = 0; i < ARRAY_SIZE(fmd->sensor); i++)
+> -		if (fmd->sensor[i].asd.match.fwnode.fwnode ==
+> +		if (fmd->sensor[i].asd.match.fwnode ==
+>  		    of_fwnode_handle(subdev->dev->of_node))
+>  			si = &fmd->sensor[i];
+>  
+> diff --git a/drivers/media/platform/pxa_camera.c b/drivers/media/platform/pxa_camera.c
+> index 305cf1cac210..f028084f0775 100644
+> --- a/drivers/media/platform/pxa_camera.c
+> +++ b/drivers/media/platform/pxa_camera.c
+> @@ -2335,7 +2335,7 @@ static int pxa_camera_pdata_from_dt(struct device *dev,
+>  	asd->match_type = V4L2_ASYNC_MATCH_FWNODE;
+>  	remote = of_graph_get_remote_port(np);
+>  	if (remote) {
+> -		asd->match.fwnode.fwnode = of_fwnode_handle(remote);
+> +		asd->match.fwnode = of_fwnode_handle(remote);
+>  		of_node_put(remote);
+>  	} else {
+>  		dev_notice(dev, "no remote for %pOF\n", np);
+> diff --git a/drivers/media/platform/qcom/camss-8x16/camss.c b/drivers/media/platform/qcom/camss-8x16/camss.c
+> index 390a42c17b66..05f06c98aa64 100644
+> --- a/drivers/media/platform/qcom/camss-8x16/camss.c
+> +++ b/drivers/media/platform/qcom/camss-8x16/camss.c
+> @@ -341,7 +341,7 @@ static int camss_of_parse_ports(struct device *dev,
+>  		}
+>  
+>  		csd->asd.match_type = V4L2_ASYNC_MATCH_FWNODE;
+> -		csd->asd.match.fwnode.fwnode = of_fwnode_handle(remote);
+> +		csd->asd.match.fwnode = of_fwnode_handle(remote);
+>  	}
+>  
+>  	return notifier->num_subdevs;
+> diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
+> index 108d776f3265..f1fc7978d6d1 100644
+> --- a/drivers/media/platform/rcar-vin/rcar-core.c
+> +++ b/drivers/media/platform/rcar-vin/rcar-core.c
+> @@ -187,7 +187,7 @@ static int rvin_digital_graph_init(struct rvin_dev *vin)
+>  		return -ENODEV;
+>  
+>  	vin_dbg(vin, "Found digital subdevice %pOF\n",
+> -		to_of_node(vin->digital->asd.match.fwnode.fwnode));
+> +		to_of_node(vin->digital->asd.match.fwnode));
+>  
+>  	vin->notifier.ops = &rvin_digital_notify_ops;
+>  	ret = v4l2_async_notifier_register(&vin->v4l2_dev, &vin->notifier);
+> diff --git a/drivers/media/platform/rcar_drif.c b/drivers/media/platform/rcar_drif.c
+> index 63c94f4028a7..b2e080ef5391 100644
+> --- a/drivers/media/platform/rcar_drif.c
+> +++ b/drivers/media/platform/rcar_drif.c
+> @@ -1107,7 +1107,7 @@ static int rcar_drif_notify_bound(struct v4l2_async_notifier *notifier,
+>  	struct rcar_drif_sdr *sdr =
+>  		container_of(notifier, struct rcar_drif_sdr, notifier);
+>  
+> -	if (sdr->ep.asd.match.fwnode.fwnode !=
+> +	if (sdr->ep.asd.match.fwnode !=
+>  	    of_fwnode_handle(subdev->dev->of_node)) {
+>  		rdrif_err(sdr, "subdev %s cannot bind\n", subdev->name);
+>  		return -EINVAL;
+> @@ -1235,7 +1235,7 @@ static int rcar_drif_parse_subdevs(struct rcar_drif_sdr *sdr)
+>  		return -EINVAL;
+>  	}
+>  
+> -	sdr->ep.asd.match.fwnode.fwnode = fwnode;
+> +	sdr->ep.asd.match.fwnode = fwnode;
+>  	sdr->ep.asd.match_type = V4L2_ASYNC_MATCH_FWNODE;
+>  	notifier->num_subdevs++;
+>  
+> diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
+> index 916ff68b73d4..d13e2c5fb06f 100644
+> --- a/drivers/media/platform/soc_camera/soc_camera.c
+> +++ b/drivers/media/platform/soc_camera/soc_camera.c
+> @@ -1517,7 +1517,7 @@ static int soc_of_bind(struct soc_camera_host *ici,
+>  	if (!info)
+>  		return -ENOMEM;
+>  
+> -	info->sasd.asd.match.fwnode.fwnode = of_fwnode_handle(remote);
+> +	info->sasd.asd.match.fwnode = of_fwnode_handle(remote);
+>  	info->sasd.asd.match_type = V4L2_ASYNC_MATCH_FWNODE;
+>  	info->subdev = &info->sasd.asd;
+>  
+> diff --git a/drivers/media/platform/stm32/stm32-dcmi.c b/drivers/media/platform/stm32/stm32-dcmi.c
+> index ac4c450a6c7d..9460b3080dca 100644
+> --- a/drivers/media/platform/stm32/stm32-dcmi.c
+> +++ b/drivers/media/platform/stm32/stm32-dcmi.c
+> @@ -1520,7 +1520,7 @@ static int dcmi_graph_parse(struct stm32_dcmi *dcmi, struct device_node *node)
+>  		/* Remote node to connect */
+>  		dcmi->entity.node = remote;
+>  		dcmi->entity.asd.match_type = V4L2_ASYNC_MATCH_FWNODE;
+> -		dcmi->entity.asd.match.fwnode.fwnode = of_fwnode_handle(remote);
+> +		dcmi->entity.asd.match.fwnode = of_fwnode_handle(remote);
+>  		return 0;
+>  	}
+>  }
+> diff --git a/drivers/media/platform/ti-vpe/cal.c b/drivers/media/platform/ti-vpe/cal.c
+> index 719ed1d79957..d1febe5baa6d 100644
+> --- a/drivers/media/platform/ti-vpe/cal.c
+> +++ b/drivers/media/platform/ti-vpe/cal.c
+> @@ -1702,7 +1702,7 @@ static int of_cal_create_instance(struct cal_ctx *ctx, int inst)
+>  		goto cleanup_exit;
+>  	}
+>  	asd->match_type = V4L2_ASYNC_MATCH_FWNODE;
+> -	asd->match.fwnode.fwnode = of_fwnode_handle(sensor_node);
+> +	asd->match.fwnode = of_fwnode_handle(sensor_node);
+>  
+>  	remote_ep = of_graph_get_remote_endpoint(ep_node);
+>  	if (!remote_ep) {
+> diff --git a/drivers/media/platform/xilinx/xilinx-vipp.c b/drivers/media/platform/xilinx/xilinx-vipp.c
+> index f4c3e48ed2c0..6bb28cd49dae 100644
+> --- a/drivers/media/platform/xilinx/xilinx-vipp.c
+> +++ b/drivers/media/platform/xilinx/xilinx-vipp.c
+> @@ -387,7 +387,7 @@ static int xvip_graph_parse_one(struct xvip_composite_device *xdev,
+>  
+>  		entity->node = remote;
+>  		entity->asd.match_type = V4L2_ASYNC_MATCH_FWNODE;
+> -		entity->asd.match.fwnode.fwnode = of_fwnode_handle(remote);
+> +		entity->asd.match.fwnode = of_fwnode_handle(remote);
+>  		list_add_tail(&entity->list, &xdev->entities);
+>  		xdev->num_subdevs++;
+>  	}
+> diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+> index e5acfab470a5..2b08d03b251d 100644
+> --- a/drivers/media/v4l2-core/v4l2-async.c
+> +++ b/drivers/media/v4l2-core/v4l2-async.c
+> @@ -68,12 +68,12 @@ static bool match_i2c(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
+>  static bool match_devname(struct v4l2_subdev *sd,
+>  			  struct v4l2_async_subdev *asd)
+>  {
+> -	return !strcmp(asd->match.device_name.name, dev_name(sd->dev));
+> +	return !strcmp(asd->match.device_name, dev_name(sd->dev));
+>  }
+>  
+>  static bool match_fwnode(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
+>  {
+> -	return sd->fwnode == asd->match.fwnode.fwnode;
+> +	return sd->fwnode == asd->match.fwnode;
+>  }
+>  
+>  static bool match_custom(struct v4l2_subdev *sd, struct v4l2_async_subdev *asd)
+> @@ -319,7 +319,7 @@ static bool __v4l2_async_notifier_fwnode_has_async_subdev(
+>  		if (asd->match_type != V4L2_ASYNC_MATCH_FWNODE)
+>  			continue;
+>  
+> -		if (asd->match.fwnode.fwnode == fwnode)
+> +		if (asd->match.fwnode == fwnode)
+>  			return true;
+>  	}
+>  
+> @@ -330,7 +330,7 @@ static bool __v4l2_async_notifier_fwnode_has_async_subdev(
+>  		if (sd->asd->match_type != V4L2_ASYNC_MATCH_FWNODE)
+>  			continue;
+>  
+> -		if (sd->asd->match.fwnode.fwnode == fwnode)
+> +		if (sd->asd->match.fwnode == fwnode)
+>  			return true;
+>  	}
+>  
+> @@ -355,8 +355,8 @@ static bool v4l2_async_notifier_fwnode_has_async_subdev(
+>  		struct v4l2_async_subdev *other_asd = notifier->subdevs[j];
+>  
+>  		if (other_asd->match_type == V4L2_ASYNC_MATCH_FWNODE &&
+> -		    asd->match.fwnode.fwnode ==
+> -		    other_asd->match.fwnode.fwnode)
+> +		    asd->match.fwnode ==
+> +		    other_asd->match.fwnode)
+>  			return true;
+>  	}
+>  
+> @@ -395,7 +395,7 @@ static int __v4l2_async_notifier_register(struct v4l2_async_notifier *notifier)
+>  			break;
+>  		case V4L2_ASYNC_MATCH_FWNODE:
+>  			if (v4l2_async_notifier_fwnode_has_async_subdev(
+> -				    notifier, asd->match.fwnode.fwnode, i)) {
+> +				    notifier, asd->match.fwnode, i)) {
+>  				dev_err(dev,
+>  					"fwnode has already been registered or in notifier's subdev list\n");
+>  				ret = -EEXIST;
+> @@ -510,7 +510,7 @@ void v4l2_async_notifier_cleanup(struct v4l2_async_notifier *notifier)
+>  
+>  		switch (asd->match_type) {
+>  		case V4L2_ASYNC_MATCH_FWNODE:
+> -			fwnode_handle_put(asd->match.fwnode.fwnode);
+> +			fwnode_handle_put(asd->match.fwnode);
+>  			break;
+>  		default:
+>  			WARN_ON_ONCE(true);
+> diff --git a/drivers/media/v4l2-core/v4l2-fwnode.c b/drivers/media/v4l2-core/v4l2-fwnode.c
+> index fb72c7ac04d4..d630640642ee 100644
+> --- a/drivers/media/v4l2-core/v4l2-fwnode.c
+> +++ b/drivers/media/v4l2-core/v4l2-fwnode.c
+> @@ -359,9 +359,9 @@ static int v4l2_async_notifier_fwnode_parse_endpoint(
+>  		return -ENOMEM;
+>  
+>  	asd->match_type = V4L2_ASYNC_MATCH_FWNODE;
+> -	asd->match.fwnode.fwnode =
+> +	asd->match.fwnode =
+>  		fwnode_graph_get_remote_port_parent(endpoint);
+> -	if (!asd->match.fwnode.fwnode) {
+> +	if (!asd->match.fwnode) {
+>  		dev_warn(dev, "bad remote port parent\n");
+>  		ret = -EINVAL;
+>  		goto out_err;
+> @@ -393,7 +393,7 @@ static int v4l2_async_notifier_fwnode_parse_endpoint(
+>  	return 0;
+>  
+>  out_err:
+> -	fwnode_handle_put(asd->match.fwnode.fwnode);
+> +	fwnode_handle_put(asd->match.fwnode);
+>  	kfree(asd);
+>  
+>  	return ret == -ENOTCONN ? 0 : ret;
+> @@ -566,7 +566,7 @@ static int v4l2_fwnode_reference_parse(
+>  		}
+>  
+>  		notifier->subdevs[notifier->num_subdevs] = asd;
+> -		asd->match.fwnode.fwnode = args.fwnode;
+> +		asd->match.fwnode = args.fwnode;
+>  		asd->match_type = V4L2_ASYNC_MATCH_FWNODE;
+>  		notifier->num_subdevs++;
+>  	}
+> @@ -853,7 +853,7 @@ static int v4l2_fwnode_reference_parse_int_props(
+>  		}
+>  
+>  		notifier->subdevs[notifier->num_subdevs] = asd;
+> -		asd->match.fwnode.fwnode = fwnode;
+> +		asd->match.fwnode = fwnode;
+>  		asd->match_type = V4L2_ASYNC_MATCH_FWNODE;
+>  		notifier->num_subdevs++;
+>  	}
+> diff --git a/drivers/staging/media/imx/imx-media-dev.c b/drivers/staging/media/imx/imx-media-dev.c
+> index 2800700482d6..f7ed5f506fa9 100644
+> --- a/drivers/staging/media/imx/imx-media-dev.c
+> +++ b/drivers/staging/media/imx/imx-media-dev.c
+> @@ -48,7 +48,7 @@ find_async_subdev(struct imx_media_dev *imxmd,
+>  		asd = &imxasd->asd;
+>  		switch (asd->match_type) {
+>  		case V4L2_ASYNC_MATCH_FWNODE:
+> -			if (fwnode && asd->match.fwnode.fwnode == fwnode)
+> +			if (fwnode && asd->match.fwnode == fwnode)
+>  				return asd;
+>  			break;
+>  		case V4L2_ASYNC_MATCH_DEVNAME:
+> @@ -104,7 +104,7 @@ int imx_media_add_async_subdev(struct imx_media_dev *imxmd,
+>  
+>  	if (fwnode) {
+>  		asd->match_type = V4L2_ASYNC_MATCH_FWNODE;
+> -		asd->match.fwnode.fwnode = fwnode;
+> +		asd->match.fwnode = fwnode;
+>  	} else {
+>  		asd->match_type = V4L2_ASYNC_MATCH_DEVNAME;
+>  		asd->match.device_name.name = devname;
+> diff --git a/include/media/v4l2-async.h b/include/media/v4l2-async.h
+> index 6152434cbe82..a010af5134b2 100644
+> --- a/include/media/v4l2-async.h
+> +++ b/include/media/v4l2-async.h
+> @@ -58,12 +58,8 @@ enum v4l2_async_match_type {
+>  struct v4l2_async_subdev {
+>  	enum v4l2_async_match_type match_type;
+>  	union {
+> -		struct {
+> -			struct fwnode_handle *fwnode;
+> -		} fwnode;
+> -		struct {
+> -			const char *name;
+> -		} device_name;
+> +		struct fwnode_handle *fwnode;
+> +		const char *device_name;
+>  		struct {
+>  			int adapter_id;
+>  			unsigned short address;
 > -- 
-> 2.7.4
+> 2.14.3
 > 
 
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+Alexandre Belloni, Free Electrons
+Embedded Linux and Kernel engineering
+http://free-electrons.com
