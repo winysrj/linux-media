@@ -1,40 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pl0-f68.google.com ([209.85.160.68]:42725 "EHLO
-        mail-pl0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751598AbdLBGaA (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sat, 2 Dec 2017 01:30:00 -0500
-Received: by mail-pl0-f68.google.com with SMTP id bd8so7508844plb.9
-        for <linux-media@vger.kernel.org>; Fri, 01 Dec 2017 22:30:00 -0800 (PST)
-From: Daniel Axtens <dja@axtens.net>
-To: g.liakhovetski@gmx.de, mchehab@kernel.org,
-        linux-media@vger.kernel.org
-Cc: trivial@kernel.org, Daniel Axtens <dja@axtens.net>
-Subject: [PATCH] [media] soc_camera: add MODULE_LICENSE to soc_scale_crop.c
-Date: Sat,  2 Dec 2017 17:29:46 +1100
-Message-Id: <20171202062946.19527-1-dja@axtens.net>
+Received: from [203.156.198.64] ([203.156.198.64]:38590 "EHLO mail.sunz.wang"
+        rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org with ESMTP
+        id S934965AbdLRXn0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 18 Dec 2017 18:43:26 -0500
+Received: from yzabcddef (unknown [123.65.71.249])
+        by mail.sunz.wang (Postfix) with ESMTPA id D002943815
+        for <linux-media@vger.kernel.org>; Tue, 19 Dec 2017 07:43:23 +0800 (CST)
+Date: Tue, 19 Dec 2017 07:43:26 +0800
+From: "Arthur Cheung" <arthur_010@vip.163.com>
+Reply-To: arthur_010@vip.163.com
+To: "linux-media" <linux-media@vger.kernel.org>
+Subject: RK3229 4K Ultra HD Android TV Box
+Message-ID: <201712190743261969000@cLhvma.wang>
+MIME-Version: 1.0
+Content-Type: text/plain;
+        charset="UNICODE-1-1"
+Content-Transfer-Encoding: base64
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This fixes the following warning on an allmodconfig build:
-WARNING: modpost: missing MODULE_LICENSE() in drivers/media/platform/soc_camera/soc_scale_crop.o
-
-Use license "GPL" to match the GPLv2+ license from the header at
-the top of the file.
-
-Signed-off-by: Daniel Axtens <dja@axtens.net>
----
- drivers/media/platform/soc_camera/soc_scale_crop.c | 2 ++
- 1 file changed, 2 insertions(+)
-
-diff --git a/drivers/media/platform/soc_camera/soc_scale_crop.c b/drivers/media/platform/soc_camera/soc_scale_crop.c
-index 270ec613c27c..095753951888 100644
---- a/drivers/media/platform/soc_camera/soc_scale_crop.c
-+++ b/drivers/media/platform/soc_camera/soc_scale_crop.c
-@@ -420,3 +420,5 @@ void soc_camera_calc_client_output(struct soc_camera_device *icd,
- 	mf->height = soc_camera_shift_scale(rect->height, shift, scale_v);
- }
- EXPORT_SYMBOL(soc_camera_calc_client_output);
-+
-+MODULE_LICENSE("GPL");
--- 
-2.11.0
+PGh0bWw+DQogIDxoZWFkPg0KICAgIDx0aXRsZT48L3RpdGxlPg0KICAgIDxtZXRhIGNvbnRlbnQ9
+InRleHQvaHRtbDsgY2hhcnNldD1VVEYtOCIgaHR0cC1lcXVpdj0iQ29udGVudC1UeXBlIiAvPg0K
+ICAgIDxzdHlsZT48L3N0eWxlPg0KICA8L2hlYWQ+DQogIDxib2R5IGJnY29sb3I9IiNmZmZmZmYi
+Pg0KICAgIDxkaXY+SGksIDwvZGl2Pg0KICAgIDxkaXY+Jm5ic3A7PC9kaXY+DQogICAgPGRpdj5I
+b3cgYXJlIHlvdT88L2Rpdj4NCiAgICA8ZGl2PiZuYnNwOzwvZGl2Pg0KICAgIDxkaXY+V2UgYXJl
+IHByb2Zlc3Npb25hbCBTdXBwbGllciBmb3IgQW5kcm9pZCBUViBCb3gsZnJvbSB3aGljaCB5b3Ug
+Y2FuIHdhdGNoIHdoYXRldmVyIG9uIHRoZSBpbnRlcm5ldC48L2Rpdj4NCiAgICA8ZGl2PiZuYnNw
+OzwvZGl2Pg0KICAgIDxkaXY+TW9kZWwgTm8uOiBNWFEgUHJvKFJLMzIyOSk6IDRLIFVsdHJhIEhE
+IEFuZHJvaWQgVFYgQm94PGJyIC8+Um9ja2NoaXAgUkszMjI5LFF1YWQgQ29yZSwgMS4yR0h6LCBB
+bmRyb2lkIDYuMCBNYXNobWFsbG93ICwgUkFNIDFHQiBERFIzLFN0b3JhZ2UgOEdCIEtPREkgMTYu
+MSw0S3gyS0A2MGZwcyxIRENQIDIuMiwxMDBNIExhbiwyLjRHSHogV2lGaS48L2Rpdj4NCiAgICA8
+ZGl2PiZuYnNwOzwvZGl2Pg0KICAgIDxkaXY+PGltZyBib3JkZXI9IjAiIGhzcGFjZT0iMCIgYWx0
+PSIiIHNyYz0iRDpcUHJvZHVjdFxSSzMyMjkgNEsgVWx0cmEgSEQgQW5kcm9pZCBUViBCb3hcTVhR
+IFByby0uanBnIiBhbGlnbj0iYmFzZWxpbmUiIC8+PC9kaXY+DQogICAgPGRpdj4mbmJzcDs8L2Rp
+dj4NCiAgICA8ZGl2PkJlc3QgUmVnYXJkcyw8YnIgLz4mIzE2MDs8YnIgLz5BcnRodXIgQ2hldW5n
+PGJyIC8+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PGJyIC8+RGlrb24gRWxlY3Ryb25pY3MgTGltaXRl
+ZDxiciAvPkFkZHJlc3M6IFJvb20gODA0LCBVbml0IDEsIEJ1aWxkaW5nIDIsIEJhblNoYW5ZdWFu
+LExvbmdTaGFuTGl1THUsIFdlc3Q8YnIgLz5EaXN0cmljdCwgRGFZYVdhbiwgSHVpWmhvdSxHdWFu
+Z0RvbmcgUHJvdmluY2UsQ2hpbmEuPGJyIC8+VGVsOiA4Ni0oMCk3NTItNTU4MzE2MjxiciAvPjxh
+IGhyZWY9Imh0dHA6Ly93d3cuZGlrb25lbGVjLmNvbSI+SHR0cDovL3d3dy5kaWtvbmVsZWMuY29t
+PC9hPjxiciAvPkVtYWlsOiA8YSBocmVmPSJtYWlsdG86YXJ0aHVyQGRpa29uZWxlYy5jb20iPmFy
+dGh1ckBkaWtvbmVsZWMuY29tPC9hPjxiciAvPlNreXBlOiBhcnRodXJjaGV1PGJyIC8+UVE6IDQx
+NjYzMTkwNCA8L2Rpdj4NCiAgICA8ZGl2PiZuYnNwOzwvZGl2Pg0KICAgIDxkaXY+Jm5ic3A7PC9k
+aXY+DQogIDwvYm9keT4NCjwvaHRtbD4=
