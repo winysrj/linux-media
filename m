@@ -1,74 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:47456 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753003AbdLEJYe (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 5 Dec 2017 04:24:34 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/2] uvcvideo: Factor out video device registration to a function
-Date: Tue, 05 Dec 2017 11:24:48 +0200
-Message-ID: <2198509.Q7DjPqLdEd@avalon>
-In-Reply-To: <alpine.DEB.2.20.1712051008040.22421@axis700.grange>
-References: <20171204232333.30084-1-laurent.pinchart@ideasonboard.com> <20171204232333.30084-2-laurent.pinchart@ideasonboard.com> <alpine.DEB.2.20.1712051008040.22421@axis700.grange>
+Received: from mail.free-electrons.com ([62.4.15.54]:37135 "EHLO
+        mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933147AbdLRWPX (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 18 Dec 2017 17:15:23 -0500
+Date: Mon, 18 Dec 2017 23:15:11 +0100
+From: Alexandre Belloni <alexandre.belloni@free-electrons.com>
+To: Joe Perches <joe@perches.com>
+Cc: Jiri Kosina <trivial@kernel.org>,
+        Linus Torvalds <torvalds@linux-foundation.org>,
+        linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
+        amd-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org,
+        linux-media@vger.kernel.org, MPT-FusionLinux.pdl@broadcom.com,
+        linux-scsi@vger.kernel.org, netdev@vger.kernel.org,
+        linux-wireless@vger.kernel.org,
+        acpi4asus-user@lists.sourceforge.net,
+        platform-driver-x86@vger.kernel.org, linux-rtc@vger.kernel.org,
+        linux-fsdevel@vger.kernel.org, ocfs2-devel@oss.oracle.com,
+        linux-xfs@vger.kernel.org, linux-audit@redhat.com,
+        alsa-devel@alsa-project.org,
+        linuxppc-dev <linuxppc-dev@lists.ozlabs.org>
+Subject: Re: [trivial PATCH] treewide: Align function definition open/close
+ braces
+Message-ID: <20171218221511.GH15162@piout.net>
+References: <1513556924.31581.51.camel@perches.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1513556924.31581.51.camel@perches.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
-
-On Tuesday, 5 December 2017 11:14:18 EET Guennadi Liakhovetski wrote:
-> On Tue, 5 Dec 2017, Laurent Pinchart wrote:
-> > The function will then be used to register the video device for metadata
-> > capture.
-> > 
-> > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > ---
-> > 
-> >  drivers/media/usb/uvc/uvc_driver.c | 66 ++++++++++++++++++++-------------
-> >  drivers/media/usb/uvc/uvcvideo.h   |  8 +++++
-> >  2 files changed, 49 insertions(+), 25 deletions(-)
-> > 
-> > diff --git a/drivers/media/usb/uvc/uvc_driver.c
-> > b/drivers/media/usb/uvc/uvc_driver.c index f77e31fcfc57..b832929d3382
-> > 100644
-> > --- a/drivers/media/usb/uvc/uvc_driver.c
-> > +++ b/drivers/media/usb/uvc/uvc_driver.c
-> > @@ -24,6 +24,7 @@
-> >  #include <asm/unaligned.h>
-> >  
-> >  #include <media/v4l2-common.h>
-> > +#include <media/v4l2-ioctl.h>
-> > 
-> >  #include "uvcvideo.h"
-> > @@ -1895,52 +1896,63 @@ static void uvc_unregister_video(struct uvc_device
-> > *dev)
+On 17/12/2017 at 16:28:44 -0800, Joe Perches wrote:
+> Some functions definitions have either the initial open brace and/or
+> the closing brace outside of column 1.
 > 
-> [snip]
+> Move those braces to column 1.
 > 
-> >  	vdev->release = uvc_release;
-> >  	vdev->prio = &stream->chain->prio;
-> > 
-> > -	if (stream->type == V4L2_BUF_TYPE_VIDEO_OUTPUT)
-> > +	if (type == V4L2_BUF_TYPE_VIDEO_OUTPUT)
-> >  		vdev->vfl_dir = VFL_DIR_TX;
+> This allows various function analyzers like gnu complexity to work
+> properly for these modified functions.
 > 
-> Why isn't .vfl_dir set for other stream types? Are you jusut relying on
-> VFL_DIR_RX == 0? I'd use a switch (type) here which then would be extended
-> in your next patch with .device_caps fields.
+> Miscellanea:
+> 
+> o Remove extra trailing ; and blank line from xfs_agf_verify
+> 
+> Signed-off-by: Joe Perches <joe@perches.com>
 
-Yes, and I agree it's not right. How about
+For RTC:
 
-	if (type == V4L2_BUF_TYPE_VIDEO_OUTPUT)
- 		vdev->vfl_dir = VFL_DIR_TX;
-	else
- 		vdev->vfl_dir = VFL_DIR_RX;
+Acked-by: Alexandre Belloni <alexandre.belloni@free-electrons.com>
 
-Then it won't need to be touched when adding metadata support.
 
 -- 
-Regards,
-
-Laurent Pinchart
+Alexandre Belloni, Free Electrons
+Embedded Linux and Kernel engineering
+http://free-electrons.com
