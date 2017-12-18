@@ -1,140 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.15.19]:52777 "EHLO mout.gmx.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751550AbdLEIGI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 5 Dec 2017 03:06:08 -0500
-Date: Tue, 5 Dec 2017 09:06:02 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH 3/3 v7] uvcvideo: add a metadata device node
-In-Reply-To: <1780731.RZdITBElWU@avalon>
-Message-ID: <alpine.DEB.2.20.1712050904340.22421@axis700.grange>
-References: <1510156814-28645-1-git-send-email-g.liakhovetski@gmx.de> <1510156814-28645-4-git-send-email-g.liakhovetski@gmx.de> <2006709.83fRcNtr9s@avalon> <1780731.RZdITBElWU@avalon>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from mail-pg0-f66.google.com ([74.125.83.66]:39090 "EHLO
+        mail-pg0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752793AbdLRMEo (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 18 Dec 2017 07:04:44 -0500
+From: Jacob Chen <jacob-chen@iotwrt.com>
+To: linux-rockchip@lists.infradead.org
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        mchehab@kernel.org, linux-media@vger.kernel.org,
+        sakari.ailus@linux.intel.com, hans.verkuil@cisco.com,
+        tfiga@chromium.org, zhengsq@rock-chips.com,
+        laurent.pinchart@ideasonboard.com, zyc@rock-chips.com,
+        eddie.cai.linux@gmail.com, jeffy.chen@rock-chips.com,
+        allon.huang@rock-chips.com, devicetree@vger.kernel.org,
+        heiko@sntech.de, robh+dt@kernel.org, Joao.Pinto@synopsys.com,
+        Luis.Oliveira@synopsys.com, Jose.Abreu@synopsys.com,
+        Jacob Chen <jacob2.chen@rock-chips.com>,
+        Jacob Chen <jacob-chen@rock-chips.com>
+Subject: [PATCH v4 02/16] media: doc: add document for rkisp1 meta buffer format
+Date: Mon, 18 Dec 2017 20:03:06 +0800
+Message-Id: <20171218120320.3850-3-jacob-chen@iotwrt.com>
+In-Reply-To: <20171218120320.3850-1-jacob-chen@iotwrt.com>
+References: <20171218120320.3850-1-jacob-chen@iotwrt.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+From: Jacob Chen <jacob2.chen@rock-chips.com>
 
-On Tue, 5 Dec 2017, Laurent Pinchart wrote:
+This commit add docuemnt for rkisp1 meta buffer format
 
-> Hi Guennadi,
-> 
-> On Tuesday, 5 December 2017 02:24:30 EET Laurent Pinchart wrote:
-> > On Wednesday, 8 November 2017 18:00:14 EET Guennadi Liakhovetski wrote:
-> 
-> [snip]
-> 
-> > > +static void uvc_video_decode_meta(struct uvc_streaming *stream,
-> > > +			struct uvc_buffer *buf, struct uvc_buffer *meta_buf,
-> > > +			u8 *mem, unsigned int length)
-> > 
-> > The buf parameter is unused, you can remove it. mem isn't modified, I would
-> > make it const.
-> > 
-> > > +{
-> > > +	struct uvc_meta_buf *meta;
-> > > +	size_t len_std = 2;
-> > > +	bool has_pts, has_scr;
-> > > +	unsigned long flags;
-> > > +	struct timespec ts;
-> > > +	u8 *scr;
-> > 
-> > And scr should be const too.
-> > 
-> > > +
-> > > +	if (!meta_buf || length == 2 ||
-> > > +	    meta_buf->length - meta_buf->bytesused <
-> > > +	    length + sizeof(meta->ns) + sizeof(meta->sof))
-> > > +		return;
-> > 
-> > If the metadata buffer overflows should we also set the error bit like we do
-> > for video buffers ? I have mixed feelings about this, I'd appreciate your
-> > input.
-> > 
-> > > +	has_pts = mem[1] & UVC_STREAM_PTS;
-> > > +	has_scr = mem[1] & UVC_STREAM_SCR;
-> > > +
-> > > +	if (has_pts) {
-> > > +		len_std += 4;
-> > > +		scr = mem + 6;
-> > > +	} else {
-> > > +		scr = mem + 2;
-> > > +	}
-> > > +
-> > > +	if (has_scr)
-> > > +		len_std += 6;
-> > > +
-> > > +	if (stream->cur_meta_format == V4L2_META_FMT_UVC)
-> > > +		length = len_std;
-> > > +
-> > > +	if (length == len_std && (!has_scr ||
-> > > +				  !memcmp(scr, stream->clock.last_scr, 6)))
-> > > +		return;
-> > > +
-> > > +	meta = (struct uvc_meta_buf *)((u8 *)meta_buf->mem +
-> > > meta_buf->bytesused); +	local_irq_save(flags);
-> > > +	uvc_video_get_ts(&ts);
-> > 
-> > FYI, Arnd has posted https://patchwork.kernel.org/patch/10076887/. If the
-> > patch gets merged first I can help with the rebasing.
-> 
-> I've reviewed and merged Arnd patches in my tree, and...
-> 
-> > > +	meta->sof = usb_get_current_frame_number(stream->dev->udev);
-> > > +	local_irq_restore(flags);
-> > > +	meta->ns = timespec_to_ns(&ts);
-> > 
-> > The meta pointer can be unaligned as the structure is packed and its size
-> > isn't a multiple of the size of the largest field (and it can contain an
-> > unspecified amount of vendor data anyway). You thus can't access it directly
-> > on all architectures, you will need to use the put_unaligned macro. As I
-> > haven't checked whether all architectures can handle unaligned accesses
-> > without generating a trap, I would store the USB frame number in a local
-> > variable and use the put_unaligned macro output of the IRQ disabled section
-> > (feel free to show me that I'm unnecessarily cautious :-)).
-> > 
-> > > +	if (has_scr)
-> > > +		memcpy(stream->clock.last_scr, scr, 6);
-> > > +
-> > > +	memcpy(&meta->length, mem, length);
-> > > +	meta_buf->bytesused += length + sizeof(meta->ns) + sizeof(meta->sof);
-> > > +
-> > > +	uvc_trace(UVC_TRACE_FRAME,
-> > > +		  "%s(): t-sys %lu.%09lus, SOF %u, len %u, flags 0x%x, PTS %u, STC 
-> %u
-> > > frame SOF %u\n",
-> > > +		  __func__, ts.tv_sec, ts.tv_nsec, meta->sof,
-> > > +		  meta->length, meta->flags, has_pts ? *(u32 *)meta->buf : 0,
-> > > +		  has_scr ? *(u32 *)scr : 0,
-> > > +		  has_scr ? *(u32 *)(scr + 4) & 0x7ff : 0);
-> > > +}
-> 
-> [snip]
-> 
-> > For your convenience I've rebased your patch series on top of the two
-> > patches I mentioned and added another patch on top that contains fixes for
-> > all the small issues mentioned above. The result is available at
+Signed-off-by: Jacob Chen <jacob-chen@rock-chips.com>
+---
+ Documentation/media/uapi/v4l/meta-formats.rst          |  2 ++
+ .../media/uapi/v4l/pixfmt-meta-rkisp1-params.rst       | 17 +++++++++++++++++
+ .../media/uapi/v4l/pixfmt-meta-rkisp1-stat.rst         | 18 ++++++++++++++++++
+ 3 files changed, 37 insertions(+)
+ create mode 100644 Documentation/media/uapi/v4l/pixfmt-meta-rkisp1-params.rst
+ create mode 100644 Documentation/media/uapi/v4l/pixfmt-meta-rkisp1-stat.rst
 
-In your rebased version you've also dropped the hunk for 
-drivers/media/v4l2-core/v4l2-ioctl.c adding a description for the new 
-V4L2_META_FMT_UVC format - is that on purpose?
-
-Thanks
-Guennadi
-
-> > 
-> > 	git://linuxtv.org/pinchartl/media.git uvc/metadata
-> > 
-> > There are just a handful of issues or questions I haven't addressed, if we
-> > handle them I think we'll be good to go.
-> 
-> ... updated the above branch with a rebased version of the series.
-> 
-> -- 
-> Regards,
-> 
-> Laurent Pinchart
-> 
+diff --git a/Documentation/media/uapi/v4l/meta-formats.rst b/Documentation/media/uapi/v4l/meta-formats.rst
+index 01e24e3df571..1b8281423aa2 100644
+--- a/Documentation/media/uapi/v4l/meta-formats.rst
++++ b/Documentation/media/uapi/v4l/meta-formats.rst
+@@ -14,3 +14,5 @@ These formats are used for the :ref:`metadata` interface only.
+ 
+     pixfmt-meta-vsp1-hgo
+     pixfmt-meta-vsp1-hgt
++    pixfmt-meta-rkisp1-params
++    pixfmt-meta-rkisp1-stat
+diff --git a/Documentation/media/uapi/v4l/pixfmt-meta-rkisp1-params.rst b/Documentation/media/uapi/v4l/pixfmt-meta-rkisp1-params.rst
+new file mode 100644
+index 000000000000..ed344d463b52
+--- /dev/null
++++ b/Documentation/media/uapi/v4l/pixfmt-meta-rkisp1-params.rst
+@@ -0,0 +1,17 @@
++.. -*- coding: utf-8; mode: rst -*-
++
++.. _v4l2-meta-fmt-rkisp1-params:
++
++*******************************
++V4L2_META_FMT_RK_ISP1_PARAMS
++*******************************
++
++Rockchip ISP1 Parameters Data
++
++Description
++===========
++
++This format describes input parameters for the Rockchip ISP1.
++
++The data use c-struct :c:type:`rkisp1_isp_params_cfg`, which is defined in
++the ``linux/rkisp1-config.h`` header file, See it for details.
+diff --git a/Documentation/media/uapi/v4l/pixfmt-meta-rkisp1-stat.rst b/Documentation/media/uapi/v4l/pixfmt-meta-rkisp1-stat.rst
+new file mode 100644
+index 000000000000..5ecc4031295f
+--- /dev/null
++++ b/Documentation/media/uapi/v4l/pixfmt-meta-rkisp1-stat.rst
+@@ -0,0 +1,18 @@
++.. -*- coding: utf-8; mode: rst -*-
++
++.. _v4l2-meta-fmt-rkisp1-stat:
++
++*******************************
++V4L2_META_FMT_RK_ISP1_STAT_3A
++*******************************
++
++Rockchip ISP1 Statistics Data
++
++Description
++===========
++
++This format describes image color statistics information generated by the Rockchip
++ISP1.
++
++The data use c-struct :c:type:`rkisp1_stat_buffer`, which is defined in
++the ``linux/cifisp_stat.h`` header file, See it for details.
+-- 
+2.15.1
