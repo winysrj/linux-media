@@ -1,168 +1,157 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx07-00178001.pphosted.com ([62.209.51.94]:59126 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753090AbdLGMlh (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 7 Dec 2017 07:41:37 -0500
-From: Hugues Fruchet <hugues.fruchet@st.com>
-To: Steve Longerbeam <slongerbeam@gmail.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        "Mauro Carvalho Chehab" <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>
-CC: <linux-media@vger.kernel.org>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Subject: [PATCH v3 2/5] media: ov5640: check chip id
-Date: Thu, 7 Dec 2017 13:40:50 +0100
-Message-ID: <1512650453-24476-3-git-send-email-hugues.fruchet@st.com>
-In-Reply-To: <1512650453-24476-1-git-send-email-hugues.fruchet@st.com>
-References: <1512650453-24476-1-git-send-email-hugues.fruchet@st.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from osg.samsung.com ([64.30.133.232]:51399 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1759310AbdLRMai (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 18 Dec 2017 07:30:38 -0500
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>
+Subject: [PATCH v4 14/18] scripts: kernel-doc: print the declaration name on warnings
+Date: Mon, 18 Dec 2017 10:30:15 -0200
+Message-Id: <a5b340fc5ceca59bbcf9f8034fec3322754a2737.1513599193.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1513599193.git.mchehab@s-opensource.com>
+References: <cover.1513599193.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1513599193.git.mchehab@s-opensource.com>
+References: <cover.1513599193.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Verify that chip identifier is correct when probing.
+The logic at create_parameterlist()'s ancillary push_parameter()
+function has already a way to output the declaration name, with
+would help to discover what declaration is missing.
 
-Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
+However, currently, the logic is utterly broken, as it uses
+the var $type with a wrong meaning. With the current code,
+it will never print anything. I suspect that originally
+it was using the second argument of output_declaration().
+
+I opted to not rely on a globally defined $declaration_name,
+but, instead, to pass it explicitly as a parameter.
+
+While here, I removed a unaligned check for !$anon_struct_union.
+This is not needed, as, if $anon_struct_union is not zero,
+$parameterdescs{$param} will be defined.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/media/i2c/ov5640.c | 95 ++++++++++++++++++++++++++++++++++++++--------
- 1 file changed, 79 insertions(+), 16 deletions(-)
+ scripts/kernel-doc | 38 ++++++++++++++++----------------------
+ 1 file changed, 16 insertions(+), 22 deletions(-)
 
-diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
-index 61071f5..9f031f3 100644
---- a/drivers/media/i2c/ov5640.c
-+++ b/drivers/media/i2c/ov5640.c
-@@ -1547,24 +1547,58 @@ static void ov5640_reset(struct ov5640_dev *sensor)
- 	usleep_range(5000, 10000);
+diff --git a/scripts/kernel-doc b/scripts/kernel-doc
+index fadb832733d9..c97b89f47795 100755
+--- a/scripts/kernel-doc
++++ b/scripts/kernel-doc
+@@ -1063,7 +1063,7 @@ sub dump_struct($$) {
+ 	# Ignore other nested elements, like enums
+ 	$members =~ s/({[^\{\}]*})//g;
+ 
+-	create_parameterlist($members, ';', $file);
++	create_parameterlist($members, ';', $file, $declaration_name);
+ 	check_sections($file, $declaration_name, $decl_type, $sectcheck, $struct_actual);
+ 
+ 	# Adjust declaration for better display
+@@ -1172,7 +1172,7 @@ sub dump_typedef($$) {
+ 	$declaration_name = $2;
+ 	my $args = $3;
+ 
+-	create_parameterlist($args, ',', $file);
++	create_parameterlist($args, ',', $file, $declaration_name);
+ 
+ 	output_declaration($declaration_name,
+ 			   'function',
+@@ -1221,10 +1221,11 @@ sub save_struct_actual($) {
+     $struct_actual = $struct_actual . $actual . " ";
  }
  
--static int ov5640_set_power(struct ov5640_dev *sensor, bool on)
-+static int ov5640_set_power_on(struct ov5640_dev *sensor)
- {
--	int ret = 0;
-+	struct i2c_client *client = sensor->i2c_client;
-+	int ret;
+-sub create_parameterlist($$$) {
++sub create_parameterlist($$$$) {
+     my $args = shift;
+     my $splitter = shift;
+     my $file = shift;
++    my $declaration_name = shift;
+     my $type;
+     my $param;
  
--	if (on) {
--		clk_prepare_enable(sensor->xclk);
-+	ret = clk_prepare_enable(sensor->xclk);
-+	if (ret) {
-+		dev_err(&client->dev, "%s: failed to enable clock\n",
-+			__func__);
-+		return ret;
-+	}
+@@ -1254,7 +1255,7 @@ sub create_parameterlist($$$) {
+ 	    $type = $arg;
+ 	    $type =~ s/([^\(]+\(\*?)\s*$param/$1/;
+ 	    save_struct_actual($param);
+-	    push_parameter($param, $type, $file);
++	    push_parameter($param, $type, $file, $declaration_name);
+ 	} elsif ($arg) {
+ 	    $arg =~ s/\s*:\s*/:/g;
+ 	    $arg =~ s/\s*\[/\[/g;
+@@ -1279,27 +1280,28 @@ sub create_parameterlist($$$) {
+ 	    foreach $param (@args) {
+ 		if ($param =~ m/^(\*+)\s*(.*)/) {
+ 		    save_struct_actual($2);
+-		    push_parameter($2, "$type $1", $file);
++		    push_parameter($2, "$type $1", $file, $declaration_name);
+ 		}
+ 		elsif ($param =~ m/(.*?):(\d+)/) {
+ 		    if ($type ne "") { # skip unnamed bit-fields
+ 			save_struct_actual($1);
+-			push_parameter($1, "$type:$2", $file)
++			push_parameter($1, "$type:$2", $file, $declaration_name)
+ 		    }
+ 		}
+ 		else {
+ 		    save_struct_actual($param);
+-		    push_parameter($param, $type, $file);
++		    push_parameter($param, $type, $file, $declaration_name);
+ 		}
+ 	    }
+ 	}
+     }
+ }
  
--		ret = regulator_bulk_enable(OV5640_NUM_SUPPLIES,
--					    sensor->supplies);
--		if (ret)
--			goto xclk_off;
-+	ret = regulator_bulk_enable(OV5640_NUM_SUPPLIES,
-+				    sensor->supplies);
-+	if (ret) {
-+		dev_err(&client->dev, "%s: failed to enable regulators\n",
-+			__func__);
-+		goto xclk_off;
-+	}
-+
-+	ov5640_reset(sensor);
-+	ov5640_power(sensor, true);
-+
-+	ret = ov5640_init_slave_id(sensor);
-+	if (ret)
-+		goto power_off;
-+
-+	return 0;
-+
-+power_off:
-+	ov5640_power(sensor, false);
-+	regulator_bulk_disable(OV5640_NUM_SUPPLIES, sensor->supplies);
-+xclk_off:
-+	clk_disable_unprepare(sensor->xclk);
-+	return ret;
-+}
-+
-+static void ov5640_set_power_off(struct ov5640_dev *sensor)
-+{
-+	ov5640_power(sensor, false);
-+	regulator_bulk_disable(OV5640_NUM_SUPPLIES, sensor->supplies);
-+	clk_disable_unprepare(sensor->xclk);
-+}
+-sub push_parameter($$$) {
++sub push_parameter($$$$) {
+ 	my $param = shift;
+ 	my $type = shift;
+ 	my $file = shift;
++	my $declaration_name = shift;
  
--		ov5640_reset(sensor);
--		ov5640_power(sensor, true);
-+static int ov5640_set_power(struct ov5640_dev *sensor, bool on)
-+{
-+	int ret = 0;
+ 	if (($anon_struct_union == 1) && ($type eq "") &&
+ 	    ($param eq "}")) {
+@@ -1336,21 +1338,13 @@ sub push_parameter($$$) {
+ 	# warn if parameter has no description
+ 	# (but ignore ones starting with # as these are not parameters
+ 	# but inline preprocessor statements);
+-	# also ignore unnamed structs/unions;
+-	if (!$anon_struct_union) {
++	# Note: It will also ignore void params and unnamed structs/unions
+ 	if (!defined $parameterdescs{$param} && $param !~ /^#/) {
++		$parameterdescs{$param} = $undescribed;
  
--		ret = ov5640_init_slave_id(sensor);
-+	if (on) {
-+		ret = ov5640_set_power_on(sensor);
- 		if (ret)
--			goto power_off;
-+			return ret;
- 
- 		ret = ov5640_restore_mode(sensor);
- 		if (ret)
-@@ -1586,10 +1620,7 @@ static int ov5640_set_power(struct ov5640_dev *sensor, bool on)
+-	    $parameterdescs{$param} = $undescribed;
+-
+-	    if (($type eq 'function') || ($type eq 'enum')) {
+-		print STDERR "${file}:$.: warning: Function parameter ".
+-		    "or member '$param' not " .
+-		    "described in '$declaration_name'\n";
+-	    }
+-	    print STDERR "${file}:$.: warning:" .
+-			 " No description found for parameter '$param'\n";
+-	    ++$warnings;
+-	}
++		print STDERR
++		      "${file}:$.: warning: Function parameter or member '$param' not described in '$declaration_name'\n";
++		++$warnings;
  	}
  
- power_off:
--	ov5640_power(sensor, false);
--	regulator_bulk_disable(OV5640_NUM_SUPPLIES, sensor->supplies);
--xclk_off:
--	clk_disable_unprepare(sensor->xclk);
-+	ov5640_set_power_off(sensor);
- 	return ret;
- }
+ 	$param = xml_escape($param);
+@@ -1507,7 +1501,7 @@ sub dump_function($$) {
+ 	$declaration_name = $2;
+ 	my $args = $3;
  
-@@ -2202,6 +2233,34 @@ static int ov5640_get_regulators(struct ov5640_dev *sensor)
- 				       sensor->supplies);
- }
- 
-+static int ov5640_check_chip_id(struct ov5640_dev *sensor)
-+{
-+	struct i2c_client *client = sensor->i2c_client;
-+	int ret = 0;
-+	u16 chip_id;
-+
-+	ret = ov5640_set_power_on(sensor);
-+	if (ret)
-+		return ret;
-+
-+	ret = ov5640_read_reg16(sensor, OV5640_REG_CHIP_ID, &chip_id);
-+	if (ret) {
-+		dev_err(&client->dev, "%s: failed to read chip identifier\n",
-+			__func__);
-+		goto power_off;
-+	}
-+
-+	if (chip_id != 0x5640) {
-+		dev_err(&client->dev, "%s: wrong chip identifier, expected 0x5640, got 0x%x\n",
-+			__func__, chip_id);
-+		ret = -ENXIO;
-+	}
-+
-+power_off:
-+	ov5640_set_power_off(sensor);
-+	return ret;
-+}
-+
- static int ov5640_probe(struct i2c_client *client,
- 			const struct i2c_device_id *id)
- {
-@@ -2284,6 +2343,10 @@ static int ov5640_probe(struct i2c_client *client,
- 
- 	mutex_init(&sensor->lock);
- 
-+	ret = ov5640_check_chip_id(sensor);
-+	if (ret)
-+		goto entity_cleanup;
-+
- 	ret = ov5640_init_controls(sensor);
- 	if (ret)
- 		goto entity_cleanup;
+-	create_parameterlist($args, ',', $file);
++	create_parameterlist($args, ',', $file, $declaration_name);
+     } else {
+ 	print STDERR "${file}:$.: warning: cannot understand function prototype: '$prototype'\n";
+ 	return;
 -- 
-1.9.1
+2.14.3
