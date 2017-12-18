@@ -1,47 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:57152 "EHLO
-        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752546AbdLHVML (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 8 Dec 2017 16:12:11 -0500
-Subject: Re: [PATCH] build: Added missing timer_setup_on_stack
-To: "Jasmin J." <jasmin@anw.at>, linux-media@vger.kernel.org
-Cc: d.scheller@gmx.net
-References: <1512766859-7667-1-git-send-email-jasmin@anw.at>
- <3343c1fd-d0f0-46b1-fd3f-150f36de6fa4@anw.at>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <21ccbddb-eada-fa44-93ea-f0b80e17d409@xs4all.nl>
-Date: Fri, 8 Dec 2017 22:12:05 +0100
-MIME-Version: 1.0
-In-Reply-To: <3343c1fd-d0f0-46b1-fd3f-150f36de6fa4@anw.at>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Received: from osg.samsung.com ([64.30.133.232]:60475 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1759027AbdLRMac (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 18 Dec 2017 07:30:32 -0500
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>
+Subject: [PATCH v4 11/18] scripts: kernel-doc: replace tabs by spaces
+Date: Mon, 18 Dec 2017 10:30:12 -0200
+Message-Id: <da839904b0429a17d6f3b9080791fa7e73e1d95a.1513599193.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1513599193.git.mchehab@s-opensource.com>
+References: <cover.1513599193.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1513599193.git.mchehab@s-opensource.com>
+References: <cover.1513599193.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/08/2017 10:06 PM, Jasmin J. wrote:
-> Hello Hans!
-> 
-> With this patch it compiles for Kernel 4.4, but not on 3.13. I will work on
-> that soon.
-> 
-> I am not sure if this patch keeps pvrusb2 working, but it compiles. I tried
-> first a solution by reverting 8da0edf2f90b6c74b69ad420fdd230c9bd2bd1ed. If you
-> prefer this, I have it on a branch and can submit it.
-> 
-> BR,
->    Jasmin
-> 
+Sphinx has a hard time dealing with tabs, causing it to
+misinterpret paragraph continuation.
 
-I've applied all your patches. Thank you very much for working on this.
+As we're now mainly focused on supporting ReST output,
+replace tabs by spaces, in order to avoid troubles when
+the output is parsed by Sphinx.
 
-Let's see what the result of the nightly build will be.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ scripts/kernel-doc | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-In general reverting kernel patches to make a driver compile is something of a
-last resort. It tends to be painful to maintain in the long run, at least, that's
-been my experience.
-
-Regards,
-
-	Hans
+diff --git a/scripts/kernel-doc b/scripts/kernel-doc
+index e417d93575b9..05aadac0612a 100755
+--- a/scripts/kernel-doc
++++ b/scripts/kernel-doc
+@@ -1579,7 +1579,7 @@ sub tracepoint_munge($) {
+ sub syscall_munge() {
+ 	my $void = 0;
+ 
+-	$prototype =~ s@[\r\n\t]+@ @gos; # strip newlines/CR's/tabs
++	$prototype =~ s@[\r\n]+@ @gos; # strip newlines/CR's
+ ##	if ($prototype =~ m/SYSCALL_DEFINE0\s*\(\s*(a-zA-Z0-9_)*\s*\)/) {
+ 	if ($prototype =~ m/SYSCALL_DEFINE0/) {
+ 		$void = 1;
+@@ -1778,6 +1778,8 @@ sub process_file($) {
+ 	while (s/\\\s*$//) {
+ 	    $_ .= <IN>;
+ 	}
++	# Replace tabs by spaces
++        while ($_ =~ s/\t+/' ' x (length($&) * 8 - length($`) % 8)/e) {};
+ 	if ($state == STATE_NORMAL) {
+ 	    if (/$doc_start/o) {
+ 		$state = STATE_NAME;	# next line is always the function name
+@@ -1877,8 +1879,7 @@ sub process_file($) {
+ 		$in_purpose = 0;
+ 		$contents = $newcontents;
+                 $new_start_line = $.;
+-		while ((substr($contents, 0, 1) eq " ") ||
+-		       substr($contents, 0, 1) eq "\t") {
++		while (substr($contents, 0, 1) eq " ") {
+ 		    $contents = substr($contents, 1);
+ 		}
+ 		if ($contents ne "") {
+@@ -1947,8 +1948,7 @@ sub process_file($) {
+ 		$contents = $2;
+                 $new_start_line = $.;
+ 		if ($contents ne "") {
+-		    while ((substr($contents, 0, 1) eq " ") ||
+-		           substr($contents, 0, 1) eq "\t") {
++		    while (substr($contents, 0, 1) eq " ") {
+ 			$contents = substr($contents, 1);
+ 		    }
+ 		    $contents .= "\n";
+-- 
+2.14.3
