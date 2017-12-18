@@ -1,128 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f196.google.com ([209.85.192.196]:38167 "EHLO
-        mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754233AbdLNXZf (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 14 Dec 2017 18:25:35 -0500
-Date: Thu, 14 Dec 2017 15:25:33 -0800
-From: Guenter Roeck <linux@roeck-us.net>
-To: Arvind Yadav <arvind.yadav.cs@gmail.com>
-Cc: andreyknvl@google.com, hverkuil@xs4all.nl, mchehab@kernel.org,
-        laurent.pinchart@ideasonboard.com, dvyukov@google.com,
-        kcc@google.com, syzkaller@googlegroups.com,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [media] hdpvr: Fix an error handling path in hdpvr_probe()
-Message-ID: <20171214232533.GA26165@roeck-us.net>
-References: <b5c06a8e071d38fc4b4df20b7f9c8fb25d5408fe.1506085151.git.arvind.yadav.cs@gmail.com>
+Received: from osg.samsung.com ([64.30.133.232]:45738 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932756AbdLRTKR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 18 Dec 2017 14:10:17 -0500
+Date: Mon, 18 Dec 2017 17:10:10 -0200
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>
+Subject: Re: [PATCH v2 14/17] media: v4l2-async: better describe match union
+ at async match struct
+Message-ID: <20171218171010.30603571@vento.lan>
+In-Reply-To: <3225637.LUfJIgpqCe@avalon>
+References: <cover.1506548682.git.mchehab@s-opensource.com>
+        <d7534d804eedd7bd6bc46b65a810679bda81b3cc.1506548682.git.mchehab@s-opensource.com>
+        <3225637.LUfJIgpqCe@avalon>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <b5c06a8e071d38fc4b4df20b7f9c8fb25d5408fe.1506085151.git.arvind.yadav.cs@gmail.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Sep 22, 2017 at 06:37:06PM +0530, Arvind Yadav wrote:
-> Here, hdpvr_register_videodev() is responsible for setup and
-> register a video device. Also defining and initializing a worker.
-> hdpvr_register_videodev() is calling by hdpvr_probe at last.
-> So No need to flash any work here.
-> Unregister v4l2, free buffers and memory. If hdpvr_probe() will fail.
+Em Fri, 13 Oct 2017 15:49:25 +0300
+Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
+
+> Hi Mauro,
 > 
-> Signed-off-by: Arvind Yadav <arvind.yadav.cs@gmail.com>
-> Reported-by: Andrey Konovalov <andreyknvl@google.com>
-> Tested-by: Andrey Konovalov <andreyknvl@google.com>
+> Thank you for the patch.
+> 
+> On Thursday, 28 September 2017 00:46:57 EEST Mauro Carvalho Chehab wrote:
+> > Now that kernel-doc handles nested unions, better document the
+> > match union at struct v4l2_async_subdev.
+> > 
+> > Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> > ---
+> >  include/media/v4l2-async.h | 35 ++++++++++++++++++++++++++++++++---
+> >  1 file changed, 32 insertions(+), 3 deletions(-)
+> > 
+> > diff --git a/include/media/v4l2-async.h b/include/media/v4l2-async.h
+> > index e66a3521596f..62c2d572ec23 100644
+> > --- a/include/media/v4l2-async.h
+> > +++ b/include/media/v4l2-async.h
+> > @@ -46,10 +46,39 @@ enum v4l2_async_match_type {
+> >  /**
+> >   * struct v4l2_async_subdev - sub-device descriptor, as known to a bridge
+> >   *
+> > - * @match_type:	type of match that will be used
+> > - * @match:	union of per-bus type matching data sets
+> > + * @match_type:
+> > + *	type of match that will be used
+> > + * @match:
+> > + *	union of per-bus type matching data sets  
+> 
+> The lines don't exceed the 80 columnes limit, you can keep them as-is.
 
-It looks like this patch was never applied upstream. It fixes
-CVE-2017-16644 [1].
+OK.
 
-Did it get lost, or is there some reason for not applying it ?
+> 
+> > + * @match.fwnode:
+> > + *		pointer to &struct fwnode_handle to be matched.
+> > + *		Used if @match_type is %V4L2_ASYNC_MATCH_FWNODE.
+> > + * @match.device_name:
+> > + *		string containing the device name to be matched.
+> > + *		Used if @match_type is %V4L2_ASYNC_MATCH_DEVNAME.
+> > + * @match.i2c:
+> > + *		embedded struct with I2C parameters to be matched.
+> > + * 		Both @match.i2c.adapter_id and @match.i2c.address
+> > + *		should be matched.
+> > + *		Used if @match_type is %V4L2_ASYNC_MATCH_I2C.  
+> 
+> Do you really need to document this ? Isn't it enough to document 
+> @match.i2c.adapter_id and @match.i2c.address ?
+
+No. If we don't document a non-anonymous struct, kernel-doc will complain
+that a field description is missed. Same applies to the custom field
+below.
+
+There's a way to get rid of it: converting it to an anonymous
+struct, but I guess that will make the usage of the match rule
+harder to understand.
+
+> 
+> > + * @match.i2c.adapter_id:
+> > + *		I2C adapter ID to be matched.
+> > + *		Used if @match_type is %V4L2_ASYNC_MATCH_I2C.
+> > + * @match.i2c.address:
+> > + *		I2C address to be matched.
+> > + *		Used if @match_type is %V4L2_ASYNC_MATCH_I2C.
+> > + * @match.custom:
+> > + *		Driver-specific match criteria.
+> > + *		Used if @match_type is %V4L2_ASYNC_MATCH_CUSTOM.  
+> 
+> Same here.
+> 
+> > + * @match.custom.match:
+> > + *		Driver-specific match function to be used if
+> > + *		%V4L2_ASYNC_MATCH_CUSTOM.
+> > + * @match.custom.priv:
+> > + *		Driver-specific private struct with match parameters
+> > + *		to be used if %V4L2_ASYNC_MATCH_CUSTOM.
+> >   * @list:	used to link struct v4l2_async_subdev objects, waiting to be
+> > - *		probed, to a notifier->waiting list
+> > + *		probed, to a notifier->waiting list.
+> > + *		Not to be used by drivers.
+> >   */
+> >  struct v4l2_async_subdev {
+> >  	enum v4l2_async_match_type match_type;  
+> 
 
 Thanks,
-Guenter
-
----
-[1] https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2017-16644
-
-> ---
->  drivers/media/usb/hdpvr/hdpvr-core.c | 26 +++++++++++++++-----------
->  1 file changed, 15 insertions(+), 11 deletions(-)
-> 
-> diff --git a/drivers/media/usb/hdpvr/hdpvr-core.c b/drivers/media/usb/hdpvr/hdpvr-core.c
-> index dbe29c6..1e8cbaf 100644
-> --- a/drivers/media/usb/hdpvr/hdpvr-core.c
-> +++ b/drivers/media/usb/hdpvr/hdpvr-core.c
-> @@ -292,7 +292,7 @@ static int hdpvr_probe(struct usb_interface *interface,
->  	/* register v4l2_device early so it can be used for printks */
->  	if (v4l2_device_register(&interface->dev, &dev->v4l2_dev)) {
->  		dev_err(&interface->dev, "v4l2_device_register failed\n");
-> -		goto error;
-> +		goto error_free_dev;
->  	}
->  
->  	mutex_init(&dev->io_mutex);
-> @@ -301,7 +301,7 @@ static int hdpvr_probe(struct usb_interface *interface,
->  	dev->usbc_buf = kmalloc(64, GFP_KERNEL);
->  	if (!dev->usbc_buf) {
->  		v4l2_err(&dev->v4l2_dev, "Out of memory\n");
-> -		goto error;
-> +		goto error_v4l2_unregister;
->  	}
->  
->  	init_waitqueue_head(&dev->wait_buffer);
-> @@ -339,13 +339,13 @@ static int hdpvr_probe(struct usb_interface *interface,
->  	}
->  	if (!dev->bulk_in_endpointAddr) {
->  		v4l2_err(&dev->v4l2_dev, "Could not find bulk-in endpoint\n");
-> -		goto error;
-> +		goto error_put_usb;
->  	}
->  
->  	/* init the device */
->  	if (hdpvr_device_init(dev)) {
->  		v4l2_err(&dev->v4l2_dev, "device init failed\n");
-> -		goto error;
-> +		goto error_put_usb;
->  	}
->  
->  	mutex_lock(&dev->io_mutex);
-> @@ -353,7 +353,7 @@ static int hdpvr_probe(struct usb_interface *interface,
->  		mutex_unlock(&dev->io_mutex);
->  		v4l2_err(&dev->v4l2_dev,
->  			 "allocating transfer buffers failed\n");
-> -		goto error;
-> +		goto error_put_usb;
->  	}
->  	mutex_unlock(&dev->io_mutex);
->  
-> @@ -361,7 +361,7 @@ static int hdpvr_probe(struct usb_interface *interface,
->  	retval = hdpvr_register_i2c_adapter(dev);
->  	if (retval < 0) {
->  		v4l2_err(&dev->v4l2_dev, "i2c adapter register failed\n");
-> -		goto error;
-> +		goto error_free_buffers;
->  	}
->  
->  	client = hdpvr_register_ir_rx_i2c(dev);
-> @@ -394,13 +394,17 @@ static int hdpvr_probe(struct usb_interface *interface,
->  reg_fail:
->  #if IS_ENABLED(CONFIG_I2C)
->  	i2c_del_adapter(&dev->i2c_adapter);
-> +error_free_buffers:
->  #endif
-> +	hdpvr_free_buffers(dev);
-> +error_put_usb:
-> +	usb_put_dev(dev->udev);
-> +	kfree(dev->usbc_buf);
-> +error_v4l2_unregister:
-> +	v4l2_device_unregister(&dev->v4l2_dev);
-> +error_free_dev:
-> +	kfree(dev);
->  error:
-> -	if (dev) {
-> -		flush_work(&dev->worker);
-> -		/* this frees allocated memory */
-> -		hdpvr_delete(dev);
-> -	}
->  	return retval;
->  }
->  
+Mauro
