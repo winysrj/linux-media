@@ -1,149 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:35550 "EHLO mga14.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750857AbdLGHj5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 7 Dec 2017 02:39:57 -0500
-Date: Thu, 7 Dec 2017 09:39:51 +0200
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: Niklas =?iso-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund@ragnatech.se>
-Cc: linux-media@vger.kernel.org, jmondi <jacopo@jmondi.org>,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>
-Subject: Re: [RFC 1/1] v4l: async: Use endpoint node, not device node, for
- fwnode match
-Message-ID: <20171207073950.22wkpqy5l335ylo5@kekkonen.localdomain>
-References: <20171204210302.24707-1-sakari.ailus@linux.intel.com>
- <20171206155748.GF31989@bigcity.dyn.berto.se>
+Received: from mail-qk0-f194.google.com ([209.85.220.194]:36012 "EHLO
+        mail-qk0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933207AbdLRMbO (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 18 Dec 2017 07:31:14 -0500
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20171206155748.GF31989@bigcity.dyn.berto.se>
+In-Reply-To: <1513556924.31581.51.camel@perches.com>
+References: <1513556924.31581.51.camel@perches.com>
+From: Andy Shevchenko <andy.shevchenko@gmail.com>
+Date: Mon, 18 Dec 2017 14:31:12 +0200
+Message-ID: <CAHp75Vfw=AQHkiC7WhUkuytxG_reO8rmEfpA7z-2yAekFQ4AYQ@mail.gmail.com>
+Subject: Re: [trivial PATCH] treewide: Align function definition open/close braces
+To: Joe Perches <joe@perches.com>
+Cc: Jiri Kosina <trivial@kernel.org>,
+        Linus Torvalds <torvalds@linux-foundation.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
+        amd-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        MPT-FusionLinux.pdl@broadcom.com,
+        linux-scsi <linux-scsi@vger.kernel.org>,
+        netdev <netdev@vger.kernel.org>,
+        "open list:TI WILINK WIRELES..." <linux-wireless@vger.kernel.org>,
+        acpi4asus-user <acpi4asus-user@lists.sourceforge.net>,
+        Platform Driver <platform-driver-x86@vger.kernel.org>,
+        linux-rtc@vger.kernel.org,
+        Linux FS Devel <linux-fsdevel@vger.kernel.org>,
+        ocfs2-devel@oss.oracle.com, linux-xfs@vger.kernel.org,
+        linux-audit@redhat.com,
+        ALSA Development Mailing List <alsa-devel@alsa-project.org>,
+        linuxppc-dev <linuxppc-dev@lists.ozlabs.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hej Niklas,
+On Mon, Dec 18, 2017 at 2:28 AM, Joe Perches <joe@perches.com> wrote:
+> Some functions definitions have either the initial open brace and/or
+> the closing brace outside of column 1.
+>
+> Move those braces to column 1.
+>
+> This allows various function analyzers like gnu complexity to work
+> properly for these modified functions.
+>
+> Miscellanea:
+>
+> o Remove extra trailing ; and blank line from xfs_agf_verify
+>
+> Signed-off-by: Joe Perches <joe@perches.com>
 
-Tack för dina kommentarer!
+>  drivers/platform/x86/eeepc-laptop.c                  |  2 +-
 
-On Wed, Dec 06, 2017 at 04:57:48PM +0100, Niklas Söderlund wrote:
-> CC Jacopo, Kieran
-> 
-> Hi Sakari,
-> 
-> Thanks for your patch.
-> 
-> On 2017-12-04 23:03:02 +0200, Sakari Ailus wrote:
-> > V4L2 async framework can use both device's fwnode and endpoints's fwnode
-> > for matching the async sub-device with the sub-device. In order to proceed
-> > moving towards endpoint matching assign the endpoint to the async
-> > sub-device.
-> 
-> Endpoint matching I think is the way to go forward. It will solve a set 
-> of problems that exists today. So I think this a good step in the right 
-> direction.
-> 
-> > 
-> > As most async sub-device drivers (and the related hardware) only supports
-> > a single endpoint, use the first endpoint found. This works for all
-> > current drivers --- we only ever supported a single async sub-device per
-> > device to begin with.
-> 
-> This assumption is not true, the adv748x exposes multiple subdevice from 
-> a single device node in DT and registers them using different endpoints.  
-> Now the only user of the adv748x driver I know of is the rcar-csi2 
-> driver which is not yet upstream so this can be consider a special case.
+> diff --git a/drivers/platform/x86/eeepc-laptop.c b/drivers/platform/x86/eeepc-laptop.c
+> index 5a681962899c..4c38904a8a32 100644
+> --- a/drivers/platform/x86/eeepc-laptop.c
+> +++ b/drivers/platform/x86/eeepc-laptop.c
+> @@ -492,7 +492,7 @@ static void eeepc_platform_exit(struct eeepc_laptop *eeepc)
+>   * potentially bad time, such as a timer interrupt.
+>   */
+>  static void tpd_led_update(struct work_struct *work)
+> - {
+> +{
+>         struct eeepc_laptop *eeepc;
+>
+>         eeepc = container_of(work, struct eeepc_laptop, tpd_led_work);
+> diff --git a/drivers/rtc/rtc-ab-b5ze-s3.c b/drivers/rtc/rtc-ab-b5ze-s3.c
+> index a319bf1e49de..ef5c16dfabfa 100644
 
-Right, the adv748x is an exception to this but I could argue it should
-never have been merged in its current state: it does not work with other
-bridge / ISP drivers.
+Acked-by: Andy Shevchenko <andy.shevchenko@gmail.com>
 
-> 
-> Unfortunately this patch do break already existing configurations 
-> upstream :-( For example the Koelsch board, from r8a7791-koelsch.dts:
-> 
-> hdmi-in {
->         compatible = "hdmi-connector";
->         type = "a";
-> 
->         port {
->                 hdmi_con_in: endpoint {
->                         remote-endpoint = <&adv7612_in>;
->                 };
->         };
-> };
-> 
-> hdmi-in@4c {
->         compatible = "adi,adv7612";
->         reg = <0x4c>;
->         interrupt-parent = <&gpio4>;
->         interrupts = <2 IRQ_TYPE_LEVEL_LOW>;
->         default-input = <0>;
-> 
->         ports {
->                 #address-cells = <1>;
->                 #size-cells = <0>;
-> 
->                 port@0 {
->                         reg = <0>;
->                         adv7612_in: endpoint {
->                                 remote-endpoint = <&hdmi_con_in>;
->                         };
->                 };
-> 
->                 port@2 {
->                         reg = <2>;
->                         adv7612_out: endpoint {
->                                 remote-endpoint = <&vin0ep2>;
->                         };
->                 };
->         };
-> };
-> 
-> &vin0 {
->         status = "okay";
->         pinctrl-0 = <&vin0_pins>;
->         pinctrl-names = "default";
-> 
->         port {
->                 #address-cells = <1>;
->                 #size-cells = <0>;
-> 
->                 vin0ep2: endpoint {
->                         remote-endpoint = <&adv7612_out>;
->                         bus-width = <24>;
->                         hsync-active = <0>;
->                         vsync-active = <0>;
->                         pclk-sample = <1>;
->                         data-active = <1>;
->                 };
->         };
-> };
-> 
-> Here the adv7612 driver would register a subdevice using the endpoint 
-> 'hdmi-in@4c/ports/port@0/endpoint' while the rcar-vin driver which uses 
+for PDx86 changes.
 
-The adv7612 needs to register both of these endpoints. I wonder if there
-are repercussions by doing that. 
-
-> the async parsing helpers would register a notifier looking for 
-> 'hdmi-in@4c/ports/port@2/endpoint'.
-> 
-> Something like Kieran's '[PATCH v5] v4l2-async: Match parent devices' 
-> would be needed in addition to this patch. I tried Kieran's patch 
-> together with this and it did not solve the problem upstream. I did make 
-
-The more I've been working on this problem, the less I think
-opportunistically matching devices or endpoints is a good idea. Lens
-devices will always use device nodes and flash devices use LED nodes found
-under device nodes.
-
-It's getting messy with opportunistic matching. And as this patch shows,
-it's not that hard to convert all drivers either, so why not to do just
-that?
 
 -- 
-Hälsningar,
-
-Sakari Ailus
-sakari.ailus@linux.intel.com
+With Best Regards,
+Andy Shevchenko
