@@ -1,84 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:33787 "EHLO
-        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751211AbdLZXiE (ORCPT
+Received: from mail.free-electrons.com ([62.4.15.54]:41588 "EHLO
+        mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1756998AbdLRHqb (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 26 Dec 2017 18:38:04 -0500
-Received: by mail-wm0-f65.google.com with SMTP id g130so37554717wme.0
-        for <linux-media@vger.kernel.org>; Tue, 26 Dec 2017 15:38:03 -0800 (PST)
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: linux-media@vger.kernel.org, mchehab@kernel.org,
-        mchehab@s-opensource.com
-Cc: Ralph Metzler <rjkm@metzlerbros.de>
-Subject: [PATCH 1/4] [media] dvb-frontends/stv0910: deduplicate writes in enable_puncture_rate()
-Date: Wed, 27 Dec 2017 00:37:56 +0100
-Message-Id: <20171226233759.16116-2-d.scheller.oss@gmail.com>
-In-Reply-To: <20171226233759.16116-1-d.scheller.oss@gmail.com>
-References: <20171226233759.16116-1-d.scheller.oss@gmail.com>
+        Mon, 18 Dec 2017 02:46:31 -0500
+Date: Mon, 18 Dec 2017 08:46:19 +0100
+From: Maxime Ripard <maxime.ripard@free-electrons.com>
+To: Philipp Rossak <embed3d@gmail.com>
+Cc: mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
+        wens@csie.org, linux@armlinux.org.uk, sean@mess.org,
+        p.zabel@pengutronix.de, andi.shyti@samsung.com,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-sunxi@googlegroups.com
+Subject: Re: [PATCH 2/5] media: dt: bindings: Update binding documentation
+ for sunxi IR controller
+Message-ID: <20171218074619.36urdgt6wnhshadf@flea.lan>
+References: <20171217224547.21481-1-embed3d@gmail.com>
+ <20171217224547.21481-3-embed3d@gmail.com>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="mrtqlcsyttby52cw"
+Content-Disposition: inline
+In-Reply-To: <20171217224547.21481-3-embed3d@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Daniel Scheller <d.scheller@gmx.net>
 
-For all code rates, the same write is performed, only with a differing
-value. Clean this up by putting that value into a variable instead and
-perform the write at the end with that value.
+--mrtqlcsyttby52cw
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Picked up from the dddvb upstream.
+Hi,
 
-Cc: Ralph Metzler <rjkm@metzlerbros.de>
-Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
----
- drivers/media/dvb-frontends/stv0910.c | 28 ++++++++++++++++------------
- 1 file changed, 16 insertions(+), 12 deletions(-)
+On Sun, Dec 17, 2017 at 11:45:44PM +0100, Philipp Rossak wrote:
+> This patch updates documentation for Device-Tree bindings for sunxi IR
+> controller and adds the new optional property for the base clock
+> frequency.
+>=20
+> Signed-off-by: Philipp Rossak <embed3d@gmail.com>
+> ---
+>  Documentation/devicetree/bindings/media/sunxi-ir.txt | 2 ++
+>  1 file changed, 2 insertions(+)
+>=20
+> diff --git a/Documentation/devicetree/bindings/media/sunxi-ir.txt b/Docum=
+entation/devicetree/bindings/media/sunxi-ir.txt
+> index 91648c569b1e..9f45bab07d6e 100644
+> --- a/Documentation/devicetree/bindings/media/sunxi-ir.txt
+> +++ b/Documentation/devicetree/bindings/media/sunxi-ir.txt
+> @@ -11,6 +11,7 @@ Required properties:
+>  Optional properties:
+>  - linux,rc-map-name: see rc.txt file in the same directory.
+>  - resets : phandle + reset specifier pair
+> +- clock-frequency  : overrides the default base clock frequency (8 MHz)
 
-diff --git a/drivers/media/dvb-frontends/stv0910.c b/drivers/media/dvb-frontends/stv0910.c
-index a8c99f41478b..a6c473f3647f 100644
---- a/drivers/media/dvb-frontends/stv0910.c
-+++ b/drivers/media/dvb-frontends/stv0910.c
-@@ -908,27 +908,31 @@ static int init_search_param(struct stv *state)
- 
- static int enable_puncture_rate(struct stv *state, enum fe_code_rate rate)
- {
-+	u8 val;
-+
- 	switch (rate) {
- 	case FEC_1_2:
--		return write_reg(state,
--				 RSTV0910_P2_PRVIT + state->regoff, 0x01);
-+		val = 0x01;
-+		break;
- 	case FEC_2_3:
--		return write_reg(state,
--				 RSTV0910_P2_PRVIT + state->regoff, 0x02);
-+		val = 0x02;
-+		break;
- 	case FEC_3_4:
--		return write_reg(state,
--				 RSTV0910_P2_PRVIT + state->regoff, 0x04);
-+		val = 0x04;
-+		break;
- 	case FEC_5_6:
--		return write_reg(state,
--				 RSTV0910_P2_PRVIT + state->regoff, 0x08);
-+		val = 0x08;
-+		break;
- 	case FEC_7_8:
--		return write_reg(state,
--				 RSTV0910_P2_PRVIT + state->regoff, 0x20);
-+		val = 0x20;
-+		break;
- 	case FEC_NONE:
- 	default:
--		return write_reg(state,
--				 RSTV0910_P2_PRVIT + state->regoff, 0x2f);
-+		val = 0x2f;
-+		break;
- 	}
-+
-+	return write_reg(state, RSTV0910_P2_PRVIT + state->regoff, val);
- }
- 
- static int set_vth_default(struct stv *state)
--- 
-2.13.6
+You're at least missing the unit one needs to use, but something like:
+IR Receiver clock frequency, in Hertz. Defaults to 8MHz if missing.
+
+Maxime
+
+--=20
+Maxime Ripard, Free Electrons
+Embedded Linux and Kernel engineering
+http://free-electrons.com
+
+--mrtqlcsyttby52cw
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCAAdFiEE0VqZU19dR2zEVaqr0rTAlCFNr3QFAlo3ckcACgkQ0rTAlCFN
+r3THnA//VbYF7OiAeHx3nPIPBMzGhVLtHeSZa3CmJqkU2CA987+nxiADIjuo0SZ/
+Su+C53tstCWkUzLJs5KQrpNQSP56zoVc5InSjqhH4K4/APdJ/ueQE57xdEAIhk6y
+98KChRx8gp0DzcaoZ1iGKF0y7gjUyasmR/6WAWGH/SfQy/H7cPqSQR2dLLsJZl+Y
+d4szo5EVen0wwWQ1rjSS3fCEXA8702bjOZDBsxjGCemsU0bKg94q+9v+TxtRiDjv
+FUIa2+DHv46Bt/Uqv43vA6SL74cJ//EmIn6xI/T4xEneeA5C49tH9jY6WF21egFJ
+3oRClZ4u2rUZaVx8icha1Ab2ZiQwJ+792AlA3reHoD40ei3zOH2EKjJNxh8uOlqg
+A7sNbF9Sf1dBVxrXK1HM0vZnctT126HTSyS0H2AXSwsimJ8VfnN9xDbswo6gaQEN
+zsRrgPXOj8hKQAVXuG0QggyWvcgYtqfe+NYUqhJ/aatHXPQp0kzAobRIiiUHnYFd
+AbNQj1jUaR/RsSGm4JHasoX7EpZE4Dm+u3gw8sDNgN3ve07zbJM+ldkSHcwl/+cd
+TSNnZJkdwWzf0XMCOBkgSXOE+7toBxQCDz6XkAYyJ5acxvBaPxmKLWu8xVn9Vffw
+7jSGlzNQtzoKCfWkX2Xs550aeRkiIA3GziU59n8/8tTaX5+WVcY=
+=czX2
+-----END PGP SIGNATURE-----
+
+--mrtqlcsyttby52cw--
