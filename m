@@ -1,132 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.17.21]:50782 "EHLO mout.gmx.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751933AbdLMJv1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 13 Dec 2017 04:51:27 -0500
-Date: Wed, 13 Dec 2017 10:51:20 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH v8] uvcvideo: Add a metadata device node
-In-Reply-To: <1776907.6M9RIR1GJL@avalon>
-Message-ID: <alpine.DEB.2.20.1712131049140.29930@axis700.grange>
-References: <1510156814-28645-1-git-send-email-g.liakhovetski@gmx.de> <6880941.qHIMnLEYKN@avalon> <alpine.DEB.2.20.1712120922250.26789@axis700.grange> <1776907.6M9RIR1GJL@avalon>
+Received: from mail-lf0-f66.google.com ([209.85.215.66]:46142 "EHLO
+        mail-lf0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S936193AbdLRWZs (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 18 Dec 2017 17:25:48 -0500
+Received: by mail-lf0-f66.google.com with SMTP id r143so19465504lfe.13
+        for <linux-media@vger.kernel.org>; Mon, 18 Dec 2017 14:25:47 -0800 (PST)
+From: "Niklas =?iso-8859-1?Q?S=F6derlund?=" <niklas.soderlund@ragnatech.se>
+Date: Mon, 18 Dec 2017 23:25:45 +0100
+To: kieran.bingham@ideasonboard.com
+Cc: linux-media@vger.kernel.org,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-renesas-soc@vger.kernel.org,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        Benoit Parrot <bparrot@ti.com>,
+        Maxime Ripard <maxime.ripard@free-electrons.com>
+Subject: Re: [PATCH/RFC v2 13/15] adv748x: csi2: only allow formats on sink
+ pads
+Message-ID: <20171218222545.GB32148@bigcity.dyn.berto.se>
+References: <20171214190835.7672-1-niklas.soderlund+renesas@ragnatech.se>
+ <20171214190835.7672-14-niklas.soderlund+renesas@ragnatech.se>
+ <e365c00d-701d-4586-4013-e4f3ff58d85a@ideasonboard.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <e365c00d-701d-4586-4013-e4f3ff58d85a@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+HI Kieran,
 
-On Wed, 13 Dec 2017, Laurent Pinchart wrote:
+Thanks for your comments.
 
-> Hi Guennadi,
+On 2017-12-14 23:16:08 +0000, Kieran Bingham wrote:
+> Hi Niklas,
 > 
-> On Tuesday, 12 December 2017 10:30:39 EET Guennadi Liakhovetski wrote:
-> > On Mon, 11 Dec 2017, Laurent Pinchart wrote:
-> > > On Monday, 11 December 2017 23:44:09 EET Guennadi Liakhovetski wrote:
-> > >> On Mon, 11 Dec 2017, Laurent Pinchart wrote:
-> > >>> On Monday, 11 December 2017 22:16:23 EET Laurent Pinchart wrote:
-> > >>>> On Wednesday, 6 December 2017 17:15:40 EET Guennadi Liakhovetski wrote:
-> > >>>>> From: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>
-> > >>>>> 
-> > >>>>> Some UVC video cameras contain metadata in their payload headers.
-> > >>>>> This patch extracts that data, adding more clock synchronisation
-> > >>>>> information, on both bulk and isochronous endpoints and makes it
-> > >>>>> available to the user space on a separate video node, using the
-> > >>>>> V4L2_CAP_META_CAPTURE capability and the V4L2_BUF_TYPE_META_CAPTURE
-> > >>>>> buffer queue type. By default, only the V4L2_META_FMT_UVC pixel
-> > >>>>> format is available from those nodes. However, cameras can be added to
-> > >>>>> the device ID table to additionally specify their own metadata format,
-> > >>>>> in which case that format will also become available from the metadata
-> > >>>>> node.
-> > >>>>> 
-> > >>>>> Signed-off-by: Guennadi Liakhovetski
-> > >>>>> <guennadi.liakhovetski@intel.com>
-> > >>>>> ---
-> > >>>>> 
-> > >>>>> v8: addressed comments and integrated changes from Laurent, thanks
-> > >>>>> again, e.g.:
-> > >>>>> 
-> > >>>>> - multiple stylistic changes
-> > >>>>> - remove the UVC_DEV_FLAG_METADATA_NODE flag / quirk: nodes are now
-> > >>>>>   created unconditionally
-> > >>>>> - reuse uvc_ioctl_querycap()
-> > >>>>> - reuse code in uvc_register_video()
-> > >>>>> - set an error flag when the metadata buffer overflows
-> > >>>>> 
-> > >>>>>  drivers/media/usb/uvc/Makefile       |   2 +-
-> > >>>>>  drivers/media/usb/uvc/uvc_driver.c   |  15 ++-
-> > >>>>>  drivers/media/usb/uvc/uvc_isight.c   |   2 +-
-> > >>>>>  drivers/media/usb/uvc/uvc_metadata.c | 179+++++++++++++++++++++++++++
-> > >>>>>  drivers/media/usb/uvc/uvc_queue.c    |  44 +++++++--
-> > >>>>>  drivers/media/usb/uvc/uvc_video.c    | 132 +++++++++++++++++++++++--
-> > >>>>>  drivers/media/usb/uvc/uvcvideo.h     |  16 +++-
-> > >>>>>  include/uapi/linux/uvcvideo.h        |  26 +++++
-> > >>>>>  8 files changed, 394 insertions(+), 22 deletions(-)
-> > >>>>>  create mode 100644 drivers/media/usb/uvc/uvc_metadata.c
-> > >>>> 
-> > >>>> [snip]
-> > >>>> 
-> > >>>>> diff --git a/drivers/media/usb/uvc/uvc_video.c
-> > >>>>> b/drivers/media/usb/uvc/uvc_video.c index 13f459e..2fc0bf2 100644
-> > >>>>> --- a/drivers/media/usb/uvc/uvc_video.c
-> > >>>>> +++ b/drivers/media/usb/uvc/uvc_video.c
-> > >>>> 
-> > >>>> [snip]
-> > >>>> 
-> > >>>>> +static void uvc_video_decode_meta(struct uvc_streaming *stream,
-> > >>>>> +				  struct uvc_buffer *meta_buf,
-> > >>>>> +				  const u8 *mem, unsigned int length)
-> > >>>>> +{
-> > >>>>> +	struct uvc_meta_buf *meta;
-> > >>>>> +	size_t len_std = 2;
-> > >>>>> +	bool has_pts, has_scr;
-> > >>>>> +	unsigned long flags;
-> > >>>>> +	ktime_t time;
-> > >>>>> +	const u8 *scr;
+> On 14/12/17 19:08, Niklas Söderlund wrote:
+> > The driver is now pad and stream aware, only allow to get/set format on
+> > sink pads.
 > 
-> [snip]
+> Ok - I can see the patch is doing this ...
 > 
-> > >>>>> +	meta = (struct uvc_meta_buf *)((u8 *)meta_buf->mem +
-> > >>>>> meta_buf->bytesused);
-> > >>>>> +	local_irq_save(flags);
-> > >>>>> +	time = uvc_video_get_time();
-> > >>>>> +	meta->sof = usb_get_current_frame_number(stream->dev->udev);
-> > >>>> 
-> > >>>> You need a put_unaligned here too. If you're fine with the patch
-> > >>>> below there's no need to resubmit, and
-> > >>> 
-> > >>> One more thing, __put_unaligned_cpu16() and __put_unaligned_cpu64()
-> > >>> don't compile on x86_64 with v4.12 (using media_build.git). I propose
-> > >>> replacing them with put_unaligned() which compiles and should do the
-> > >>> right thing.
-> > >> 
-> > >> Sure, thanks for catching! Shall I fix and resubmit?
-> > > 
-> > > If you're fine with
-> > > 
-> > > 	git://linuxtv.org/pinchartl/media.git uvc/next
+> > Also record a different format for each sink pad since it's
+> > no longer true that they are all the same
+> 
+> But I can't see how the patch is doing this ^ ?
+> 
+> What have I missed?
+
+I have missed moving this commit message to another patch when moving 
+code around :-) Thanks for noticing. Will fix this for next version.
+
+> 
+> --
+> Kieran
+> 
+> > Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+> > ---
+> >  drivers/media/i2c/adv748x/adv748x-csi2.c | 6 ++++++
+> >  1 file changed, 6 insertions(+)
 > > 
-> > I was a bit concerned about just using "int" for unaligned writing of a
-> > 16-bit value, but looking at definitions, after a couple of macros
-> > put_unaligned() currently resolves to one inline functions, which should
-> > make that safe. However, at least theoretically, an arch could decide to
-> > implement put_unaligned() as a macro, which might turn out to be unsafe
-> > for this... Not sure how concerned should we be about such a possibility
-> > :-) If you think, that's fine, then I'm ok with using the version from
-> > that your branch.
-> 
-> Why do you think that would be unsafe ? The return type of 
-> usb_get_current_frame_number() is int, so introducing an intermediate int 
-> variable should at least not make things worse. If put_unaligned() is 
-> implemented solely using macros I would still expect them to operate on the 
-> type of the destination operand, and cast the source value appropriately.
+> > diff --git a/drivers/media/i2c/adv748x/adv748x-csi2.c b/drivers/media/i2c/adv748x/adv748x-csi2.c
+> > index 39f993282dd3bb5c..291b35bef49d41fb 100644
+> > --- a/drivers/media/i2c/adv748x/adv748x-csi2.c
+> > +++ b/drivers/media/i2c/adv748x/adv748x-csi2.c
+> > @@ -176,6 +176,9 @@ static int adv748x_csi2_get_format(struct v4l2_subdev *sd,
+> >  	struct adv748x_state *state = tx->state;
+> >  	struct v4l2_mbus_framefmt *mbusformat;
+> >  
+> > +	if (sdformat->pad != ADV748X_CSI2_SINK)
+> > +		return -EINVAL;
+> > +
+> >  	mbusformat = adv748x_csi2_get_pad_format(sd, cfg, sdformat->pad,
+> >  						 sdformat->which);
+> >  	if (!mbusformat)
+> > @@ -199,6 +202,9 @@ static int adv748x_csi2_set_format(struct v4l2_subdev *sd,
+> >  	struct v4l2_mbus_framefmt *mbusformat;
+> >  	int ret = 0;
+> >  
+> > +	if (sdformat->pad != ADV748X_CSI2_SINK)
+> > +		return -EINVAL;
+> > +
+> >  	mbusformat = adv748x_csi2_get_pad_format(sd, cfg, sdformat->pad,
+> >  						 sdformat->which);
+> >  	if (!mbusformat)
+> > 
 
-Well, you *can* implement that badly - check the destination type, which 
-in this case is 16 bit, and use the address of the first argument to get 
-16 bits from there... But yes, I agree, that would be a bug, so, maybe 
-it's ok to rely on those implementations being bug-free.
-
-Thanks
-Guennadi
+-- 
+Regards,
+Niklas Söderlund
