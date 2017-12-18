@@ -1,54 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Michael Tretter <m.tretter@pengutronix.de>,
-        kernel@pengutronix.de, Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH] [media] coda: fix capture TRY_FMT for YUYV with non-MB-aligned widths
-Date: Thu,  7 Dec 2017 12:11:11 +0100
-Message-Id: <20171207111111.6110-1-p.zabel@pengutronix.de>
+Received: from osg.samsung.com ([64.30.133.232]:47136 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1758950AbdLRPNc (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 18 Dec 2017 10:13:32 -0500
+Date: Mon, 18 Dec 2017 13:13:26 -0200
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>
+Subject: Re: [PATCH v2 08/17] media: v4l2-ioctl.h: convert debug macros into
+ enum and document
+Message-ID: <20171218131326.20f8241c@vento.lan>
+In-Reply-To: <75398545.O2kI4imJ1e@avalon>
+References: <cover.1506548682.git.mchehab@s-opensource.com>
+        <2f79939abf6bfba034fcf46e0d92624df2ea5308.1506548682.git.mchehab@s-opensource.com>
+        <75398545.O2kI4imJ1e@avalon>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Since bytesperline always fulfills VDOA width requirements, detile the
-whole buffer instead of limiting to visible width. This stops TRY_FMT
-from returning -EINVAL for YUYV capture buffers that are not a multiple
-of 16 wide.
+Em Fri, 13 Oct 2017 15:38:11 +0300
+Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
 
-An alternative would be to always round up width to stride, as we report
-the valid image rectange via G_SELECTION (V4L2_SEL_TGT_COMPOSE_DEFAULT),
-but that would require all applications to handle the compose default
-rectangle properly.
+> Hi Mauro,
+> 
+> Thank you for the patch.
+> 
+> On Thursday, 28 September 2017 00:46:51 EEST Mauro Carvalho Chehab wrote:
+> > Currently, there's no way to document #define foo <value>
+> > with kernel-doc. So, convert it to an enum, and document.  
+> 
+> The documentation seems fine to me (except for one comment below). However, 
+> converting macros to an enum just to work around a defect of the documentation 
+> system doesn't seem like a good idea to me. I'd rather find a way to document 
+> macros.
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
- drivers/media/platform/coda/coda-common.c | 7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+I agree that this limitation should be fixed.
 
-diff --git a/drivers/media/platform/coda/coda-common.c b/drivers/media/platform/coda/coda-common.c
-index 46a628a548d9f..e8a7554a61d24 100644
---- a/drivers/media/platform/coda/coda-common.c
-+++ b/drivers/media/platform/coda/coda-common.c
-@@ -486,8 +486,8 @@ static int coda_try_fmt_vdoa(struct coda_ctx *ctx, struct v4l2_format *f,
- 		return 0;
- 	}
- 
--	err = vdoa_context_configure(NULL, f->fmt.pix.width, f->fmt.pix.height,
--				     f->fmt.pix.pixelformat);
-+	err = vdoa_context_configure(NULL, round_up(f->fmt.pix.width, 16),
-+				     f->fmt.pix.height, f->fmt.pix.pixelformat);
- 	if (err) {
- 		*use_vdoa = false;
- 		return 0;
-@@ -730,7 +730,8 @@ static int coda_s_fmt(struct coda_ctx *ctx, struct v4l2_format *f,
- 	if (ctx->tiled_map_type == GDI_TILED_FRAME_MB_RASTER_MAP &&
- 	    !coda_try_fmt_vdoa(ctx, f, &ctx->use_vdoa) &&
- 	    ctx->use_vdoa)
--		vdoa_context_configure(ctx->vdoa, f->fmt.pix.width,
-+		vdoa_context_configure(ctx->vdoa,
-+				       round_up(f->fmt.pix.width, 16),
- 				       f->fmt.pix.height,
- 				       f->fmt.pix.pixelformat);
- 	else
--- 
-2.11.0
+Yet, in this specific case where we have an "array" of defines, all
+associated to the same field (even being a bitmask), and assuming that
+we would add a way for kernel-doc to parse this kind of defines 
+(not sure how easy/doable would be), then, in order to respect the
+way kernel-doc markup is, the documentation for those macros would be:
+
+
+/**
+ * define: Just log the ioctl name + error code 
+ */
+#define V4L2_DEV_DEBUG_IOCTL		0x01
+/**
+ * define: Log the ioctl name arguments + error code 
+ */
+#define V4L2_DEV_DEBUG_IOCTL_ARG	0x02
+/**
+ * define: Log the file operations open, release, mmap and get_unmapped_area 
+ */
+#define V4L2_DEV_DEBUG_FOP		0x04
+/**
+ * define: Log the read and write file operations and the VIDIOC_(D)QBUF ioctls 
+ */
+#define V4L2_DEV_DEBUG_STREAMING	0x08
+
+IMHO, this is a way easier to read/understand by humans, and a way more
+coincise:
+
+/**
+ * enum v4l2_debug_flags - Device debug flags to be used with the video
+ *	device debug attribute
+ *
+ * @V4L2_DEV_DEBUG_IOCTL:	Just log the ioctl name + error code.
+ * @V4L2_DEV_DEBUG_IOCTL_ARG:	Log the ioctl name arguments + error code.
+ * @V4L2_DEV_DEBUG_FOP:		Log the file operations and open, release,
+ *				mmap and get_unmapped_area syscalls.
+ * @V4L2_DEV_DEBUG_STREAMING:	Log the read and write syscalls and
+ *				:c:ref:`VIDIOC_[Q|DQ]BUFF <VIDIOC_QBUF>` ioctls.
+ */
+
+It also underlines the aspect that those names are grouped altogether.
+
+So, IMHO, the main reason to place them inside an enum and document
+as such is that it looks a way better for humans to read.
+
+Thanks,
+Mauro
