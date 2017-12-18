@@ -1,35 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ot0-f193.google.com ([74.125.82.193]:45506 "EHLO
-        mail-ot0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755899AbdLOXIc (ORCPT
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:37779 "EHLO
+        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1758373AbdLROLy (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 15 Dec 2017 18:08:32 -0500
-Date: Fri, 15 Dec 2017 17:08:31 -0600
-From: Rob Herring <robh@kernel.org>
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: linux-media@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Fabio Estevam <fabio.estevam@nxp.com>,
-        Chris Healy <Chris.Healy@zii.aero>, devicetree@vger.kernel.org,
-        kernel@pengutronix.de
-Subject: Re: [PATCH 1/2] media: dt-bindings: coda: Add compatible for CodaHx4
- on i.MX51
-Message-ID: <20171215230831.gbu54ckvmn3k2cde@rob-hp-laptop>
-References: <20171213140918.22500-1-p.zabel@pengutronix.de>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20171213140918.22500-1-p.zabel@pengutronix.de>
+        Mon, 18 Dec 2017 09:11:54 -0500
+From: Philipp Rossak <embed3d@gmail.com>
+To: mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
+        maxime.ripard@free-electrons.com, wens@csie.org,
+        linux@armlinux.org.uk, sean@mess.org, p.zabel@pengutronix.de,
+        andi.shyti@samsung.com
+Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-sunxi@googlegroups.com
+Subject: [PATCH v2 2/6] media: dt: bindings: Update binding documentation for sunxi IR controller
+Date: Mon, 18 Dec 2017 15:11:42 +0100
+Message-Id: <20171218141146.23746-3-embed3d@gmail.com>
+In-Reply-To: <20171218141146.23746-1-embed3d@gmail.com>
+References: <20171218141146.23746-1-embed3d@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Dec 13, 2017 at 03:09:17PM +0100, Philipp Zabel wrote:
-> Add a compatible for the CodaHx4 VPU used on i.MX51.
-> 
-> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-> ---
->  Documentation/devicetree/bindings/media/coda.txt | 1 +
->  1 file changed, 1 insertion(+)
+This patch updates documentation for Device-Tree bindings for sunxi IR
+controller and adds the new optional property for the base clock
+frequency.
 
-Reviewed-by: Rob Herring <robh@kernel.org>
+Signed-off-by: Philipp Rossak <embed3d@gmail.com>
+---
+ Documentation/devicetree/bindings/media/sunxi-ir.txt | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/Documentation/devicetree/bindings/media/sunxi-ir.txt b/Documentation/devicetree/bindings/media/sunxi-ir.txt
+index 91648c569b1e..3d7f18780fae 100644
+--- a/Documentation/devicetree/bindings/media/sunxi-ir.txt
++++ b/Documentation/devicetree/bindings/media/sunxi-ir.txt
+@@ -11,6 +11,8 @@ Required properties:
+ Optional properties:
+ - linux,rc-map-name: see rc.txt file in the same directory.
+ - resets : phandle + reset specifier pair
++- clock-frequency  : IR Receiver clock frequency, in Herz. Defaults to 8 MHz
++		     if missing.
+ 
+ Example:
+ 
+@@ -18,6 +20,7 @@ ir0: ir@1c21800 {
+ 	compatible = "allwinner,sun4i-a10-ir";
+ 	clocks = <&apb0_gates 6>, <&ir0_clk>;
+ 	clock-names = "apb", "ir";
++	clock-frequency = <3000000>;
+ 	resets = <&apb0_rst 1>;
+ 	interrupts = <0 5 1>;
+ 	reg = <0x01C21800 0x40>;
+-- 
+2.11.0
