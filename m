@@ -1,52 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.grimmerink.nl ([84.245.15.195]:60455 "EHLO
-        mx1.grimmerink.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752124AbdLALqR (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 1 Dec 2017 06:46:17 -0500
-Received: from [192.168.1.13] (mx1.grimmerink.nl [84.245.15.195])
-        (using TLSv1 with cipher DHE-RSA-AES128-SHA (128/128 bits))
-        (No client certificate requested)
-        by mx1.grimmerink.nl (Postfix) with ESMTPSA id 4775B6A12F
-        for <linux-media@vger.kernel.org>; Fri,  1 Dec 2017 12:38:15 +0100 (CET)
+Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:34431 "EHLO
+        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S932280AbdLREyO (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 17 Dec 2017 23:54:14 -0500
+Message-ID: <4ea1a50b2ecc3352dc69031172c4d45b@smtp-cloud8.xs4all.net>
+Date: Mon, 18 Dec 2017 05:54:11 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-From: pieterg <pieterg@gmx.com>
-Subject: multiple frontends on a single dvb adapter
-Message-ID: <2a083a5e-a3dd-6225-4201-a4d62333fcfa@gmx.com>
-Date: Fri, 1 Dec 2017 12:38:14 +0100
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-The recent removal of DMX_SET_SOURCE
+Results of the daily build of media_tree:
 
-https://github.com/torvalds/linux/commit/13adefbe9e566c6db91579e4ce17f1e5193d6f2c
+date:			Mon Dec 18 05:00:17 CET 2017
+media-tree git hash:	45267fed3e55845c5b4b279162b273040ae4f587
+media_build git hash:	7199b00cdae29c6f914a89ad996fcb9a133e9deb
+v4l-utils git hash:	14521966d76e0dfa9230dbb90d53faddae195e00
+gcc version:		i686-linux-gcc (GCC) 7.1.0
+sparse version:		v0.5.0-3911-g6f737e1f
+smatch version:		v0.5.0-3911-g6f737e1f
+host hardware:		x86_64
+host os:		4.13.0-164
 
-and earlier removal of the set_source callback
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: WARNINGS
+linux-3.11.1-i686: WARNINGS
+linux-3.12.67-i686: WARNINGS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.7-i686: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.18.7-i686: ERRORS
+linux-3.19-i686: ERRORS
+linux-4.0.9-i686: ERRORS
+linux-4.1.33-i686: ERRORS
+linux-4.2.8-i686: ERRORS
+linux-4.3.6-i686: WARNINGS
+linux-4.4.22-i686: OK
+linux-4.5.7-i686: WARNINGS
+linux-4.6.7-i686: OK
+linux-4.7.5-i686: OK
+linux-4.8-i686: OK
+linux-4.9.26-i686: OK
+linux-4.10.14-i686: OK
+linux-4.11-i686: OK
+linux-4.12.1-i686: OK
+linux-4.13-i686: OK
+linux-4.14-i686: OK
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-x86_64: WARNINGS
+linux-3.12.67-x86_64: WARNINGS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.7-x86_64: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.7-x86_64: ERRORS
+linux-3.19-x86_64: ERRORS
+linux-4.0.9-x86_64: ERRORS
+linux-4.1.33-x86_64: ERRORS
+linux-4.2.8-x86_64: ERRORS
+linux-4.3.6-x86_64: WARNINGS
+linux-4.4.22-x86_64: WARNINGS
+linux-4.5.7-x86_64: WARNINGS
+linux-4.6.7-x86_64: WARNINGS
+linux-4.7.5-x86_64: WARNINGS
+linux-4.8-x86_64: WARNINGS
+linux-4.9.26-x86_64: WARNINGS
+linux-4.10.14-x86_64: WARNINGS
+linux-4.11-x86_64: WARNINGS
+linux-4.12.1-x86_64: WARNINGS
+linux-4.13-x86_64: OK
+linux-4.14-x86_64: OK
+apps: OK
+spec-git: OK
+smatch: OK
 
-https://github.com/torvalds/linux/commit/1e92bbe08ad9fc0d5ec05174c176a9bc54921733
+Detailed results are available here:
 
-leads to the question how the situation of having multiple frontends on
-a single dvb adapter should be handled nowadays.
-Suppose the routing is flexible, any demux could be sourced by any frontend.
-In the past, this has been achieved by using the set_source callback,
-allowing userspace to configure the routing by using the DMX_SET_SOURCE
-ioctl.
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
 
-The connect_frontend / disconnect_frontend callbacks are currently only
-called for the memory frontend, so it seems no longer possible to select
-hardware frontends.
-How do you guys see this, what does the standard dictate in this case?
-Should we assume a 1:1 mapping between frontendN:demuxN and forbid
-dynamic routing? Or am I overlooking something?
+Full logs are available here:
 
-In my opinion, supporting dynamic routing would be an advantage.
-Especially when the number of (hardware) demuxes is smaller than the
-number of (hardware) frontends.
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
 
-Regards,
-Pieter
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
