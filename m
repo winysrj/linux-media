@@ -1,106 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from Galois.linutronix.de ([146.0.238.70]:33118 "EHLO
-        Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754503AbdL1RVv (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 28 Dec 2017 12:21:51 -0500
-Date: Thu, 28 Dec 2017 18:21:46 +0100 (CET)
-From: Thomas Gleixner <tglx@linutronix.de>
-To: "Shevchenko, Andriy" <andriy.shevchenko@intel.com>
-cc: "alan@linux.intel.com" <alan@linux.intel.com>,
-        "Ailus, Sakari" <sakari.ailus@intel.com>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: IRQ behaivour has been changed from v4.14 to v4.15-rc1
-In-Reply-To: <1514481444.7000.451.camel@intel.com>
-Message-ID: <alpine.DEB.2.20.1712281820040.1899@nanos>
-References: <1514481444.7000.451.camel@intel.com>
+Received: from osg.samsung.com ([64.30.133.232]:45149 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S934493AbdLRT1N (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 18 Dec 2017 14:27:13 -0500
+Date: Mon, 18 Dec 2017 17:27:04 -0200
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>
+Subject: Re: [PATCH 15/24] media: v4l2-subdev: get rid of
+ __V4L2_SUBDEV_MK_GET_TRY() macro
+Message-ID: <20171218172704.57d250d0@vento.lan>
+In-Reply-To: <20171009202355.ckhaf5xcba5z4tvh@valkosipuli.retiisi.org.uk>
+References: <cover.1507544011.git.mchehab@s-opensource.com>
+        <63937cedcefd1c56b211ec115b717510c470bd1a.1507544011.git.mchehab@s-opensource.com>
+        <20171009202355.ckhaf5xcba5z4tvh@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 28 Dec 2017, Shevchenko, Andriy wrote:
+Em Mon, 9 Oct 2017 23:23:56 +0300
+Sakari Ailus <sakari.ailus@iki.fi> escreveu:
 
-> Hi!
+> Hi Mauro,
 > 
-> Experimenting with AtomISP (yes, code is ugly and MSI handling rather
-> hackish, though...).
+> On Mon, Oct 09, 2017 at 07:19:21AM -0300, Mauro Carvalho Chehab wrote:
+> > The __V4L2_SUBDEV_MK_GET_TRY() macro is used to define
+> > 3 functions that have the same arguments. The code of those
+> > functions is simple enough to just declare them, de-obfuscating
+> > the code.
+> > 
+> > While here, replace BUG_ON() by WARN_ON() as there's no reason
+> > why to panic the Kernel if this fails.
 > 
-> So, with v4.14 base:
-> 
-> [   33.639224] atomisp-isp2 0000:00:03.0: Start stream on pad 1 for asd0
-> [   33.652355] atomisp-isp2 0000:00:03.0: irq:0x20
-> [   33.662456] atomisp-isp2 0000:00:03.0: irq:0x20
-> [   33.698064] atomisp-isp2 0000:00:03.0: stream[0] started.
-> 
-> Ctrl+C
-> 
-> [   48.185643] atomisp-isp2 0000:00:03.0: <atomisp_dqbuf: -512
-> [   48.204641] atomisp-isp2 0000:00:03.0: release device ATOMISP ISP
-> CAPTURE output
-> ...
-> 
-> and machine still alive.
-> 
-> 
-> With v4.15-rc1 base (basically your branch + some my hack patches) the
-> IR
-> Q behaviour changed, i.e. I have got:
-> 
-> 
-> [   85.167061] spurious APIC interrupt through vector ff on CPU#0,
-> should never happen.
-> [   85.199886] atomisp-isp2 0000:00:03.0: stream[0] started.
-> 
-> and Ctrl+C does NOT work. Machine just hangs.
-> 
-> It might be related to this:
-> https://lkml.org/lkml/2017/12/22/697
+> BUG_ON() might actually be a better idea as this will lead to memory
+> corruption. I presume it's not been hit often.
 
-I don't think so.
+Well, let's then change the code to:
 
-Does the patch below cure it?
+        if (WARN_ON(pad >= sd->entity.num_pads)) 
+                return -EINVAL;
+
+This way, it won't try to use an invalid value. As those are default
+handlers for ioctls, userspace should be able to handle it.
+
+> 
+> That said, I, too, favour WARN_ON() in this case. In case pad exceeds the
+> number of pads, then zero could be used, for instance. The only real
+> problem comes if there were no pads to begin with. The callers of these
+> functions also don't expect to receive NULL. Another option would be to
+> define a static, dummy variable for the purpose that would be at least safe
+> to access. Or we could just use the dummy entry whenever the pad isn't
+> valid.
+> 
+> This will make the functions more complex and I might just keep the
+> original macro. Even grep works on it nowadays.
+> 
+> > 
+> > Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> > ---
+> >  include/media/v4l2-subdev.h | 37 +++++++++++++++++++++++++------------
+> >  1 file changed, 25 insertions(+), 12 deletions(-)
+> > 
+> > diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+> > index 1f34045f07ce..35c4476c56ee 100644
+> > --- a/include/media/v4l2-subdev.h
+> > +++ b/include/media/v4l2-subdev.h
+> > @@ -897,19 +897,32 @@ struct v4l2_subdev_fh {
+> >  	container_of(fh, struct v4l2_subdev_fh, vfh)
+> >  
+> >  #if defined(CONFIG_VIDEO_V4L2_SUBDEV_API)
+> > -#define __V4L2_SUBDEV_MK_GET_TRY(rtype, fun_name, field_name)		\
+> > -	static inline struct rtype *					\
+> > -	fun_name(struct v4l2_subdev *sd,				\
+> > -		 struct v4l2_subdev_pad_config *cfg,			\
+> > -		 unsigned int pad)					\
+> > -	{								\
+> > -		BUG_ON(pad >= sd->entity.num_pads);			\
+> > -		return &cfg[pad].field_name;				\
+> > -	}
+> > +static inline struct v4l2_mbus_framefmt
+> > +*v4l2_subdev_get_try_format(struct v4l2_subdev *sd,
+> > +			    struct v4l2_subdev_pad_config *cfg,
+> > +			    unsigned int pad)
+> > +{
+> > +	WARN_ON(pad >= sd->entity.num_pads);
+> > +	return &cfg[pad].try_fmt;
+> > +}
+> >  
+> > -__V4L2_SUBDEV_MK_GET_TRY(v4l2_mbus_framefmt, v4l2_subdev_get_try_format, try_fmt)
+> > -__V4L2_SUBDEV_MK_GET_TRY(v4l2_rect, v4l2_subdev_get_try_crop, try_crop)
+> > -__V4L2_SUBDEV_MK_GET_TRY(v4l2_rect, v4l2_subdev_get_try_compose, try_compose)
+> > +static inline struct v4l2_rect
+> > +*v4l2_subdev_get_try_crop(struct v4l2_subdev *sd,
+> > +			  struct v4l2_subdev_pad_config *cfg,
+> > +			  unsigned int pad)
+> > +{
+> > +	WARN_ON(pad >= sd->entity.num_pads);
+> > +	return &cfg[pad].try_crop;
+> > +}
+> > +
+> > +static inline struct v4l2_rect
+> > +*v4l2_subdev_get_try_compose(struct v4l2_subdev *sd,
+> > +			     struct v4l2_subdev_pad_config *cfg,
+> > +			     unsigned int pad)
+> > +{
+> > +	WARN_ON(pad >= sd->entity.num_pads);
+> > +	return &cfg[pad].try_compose;
+> > +}
+> >  #endif
+> >  
+> >  extern const struct v4l2_file_operations v4l2_subdev_fops;
+> 
+
+
 
 Thanks,
-
-	tglx
-8<-----------------
- arch/x86/kernel/apic/apic_flat_64.c   |    2 +-
- arch/x86/kernel/apic/probe_32.c       |    2 +-
- arch/x86/kernel/apic/x2apic_cluster.c |    2 +-
- 3 files changed, 3 insertions(+), 3 deletions(-)
-
---- a/arch/x86/kernel/apic/apic_flat_64.c
-+++ b/arch/x86/kernel/apic/apic_flat_64.c
-@@ -151,7 +151,7 @@ static struct apic apic_flat __ro_after_
- 	.apic_id_valid			= default_apic_id_valid,
- 	.apic_id_registered		= flat_apic_id_registered,
- 
--	.irq_delivery_mode		= dest_LowestPrio,
-+	.irq_delivery_mode		= dest_Fixed,
- 	.irq_dest_mode			= 1, /* logical */
- 
- 	.disable_esr			= 0,
---- a/arch/x86/kernel/apic/probe_32.c
-+++ b/arch/x86/kernel/apic/probe_32.c
-@@ -105,7 +105,7 @@ static struct apic apic_default __ro_aft
- 	.apic_id_valid			= default_apic_id_valid,
- 	.apic_id_registered		= default_apic_id_registered,
- 
--	.irq_delivery_mode		= dest_LowestPrio,
-+	.irq_delivery_mode		= dest_Fixed,
- 	/* logical delivery broadcast to all CPUs: */
- 	.irq_dest_mode			= 1,
- 
---- a/arch/x86/kernel/apic/x2apic_cluster.c
-+++ b/arch/x86/kernel/apic/x2apic_cluster.c
-@@ -184,7 +184,7 @@ static struct apic apic_x2apic_cluster _
- 	.apic_id_valid			= x2apic_apic_id_valid,
- 	.apic_id_registered		= x2apic_apic_id_registered,
- 
--	.irq_delivery_mode		= dest_LowestPrio,
-+	.irq_delivery_mode		= dest_Fixed,
- 	.irq_dest_mode			= 1, /* logical */
- 
- 	.disable_esr			= 0,
+Mauro
