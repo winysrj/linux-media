@@ -1,334 +1,418 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:29936 "EHLO mga14.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750895AbdL3TF3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 30 Dec 2017 14:05:29 -0500
-Date: Sun, 31 Dec 2017 03:04:37 +0800
-From: kbuild test robot <lkp@intel.com>
-To: Jacopo Mondi <jacopo+renesas@jmondi.org>
-Cc: kbuild-all@01.org, laurent.pinchart@ideasonboard.com,
-        magnus.damm@gmail.com, geert@glider.be, mchehab@kernel.org,
-        hverkuil@xs4all.nl, robh+dt@kernel.org, mark.rutland@arm.com,
-        Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-sh@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v2 5/9] arch: sh: migor: Use new renesas-ceu camera driver
-Message-ID: <201712310222.63vseOBF%fengguang.wu@intel.com>
-References: <1514469681-15602-6-git-send-email-jacopo+renesas@jmondi.org>
+Received: from userp2130.oracle.com ([156.151.31.86]:55222 "EHLO
+        userp2130.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S934736AbdLRWOQ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 18 Dec 2017 17:14:16 -0500
+Date: Mon, 18 Dec 2017 14:08:43 -0800
+From: "Darrick J. Wong" <darrick.wong@oracle.com>
+To: Joe Perches <joe@perches.com>
+Cc: Jiri Kosina <trivial@kernel.org>,
+        Linus Torvalds <torvalds@linux-foundation.org>,
+        linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org,
+        amd-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org,
+        linux-media@vger.kernel.org, MPT-FusionLinux.pdl@broadcom.com,
+        linux-scsi@vger.kernel.org, netdev@vger.kernel.org,
+        linux-wireless@vger.kernel.org,
+        acpi4asus-user@lists.sourceforge.net,
+        platform-driver-x86@vger.kernel.org, linux-rtc@vger.kernel.org,
+        linux-fsdevel@vger.kernel.org, ocfs2-devel@oss.oracle.com,
+        linux-xfs@vger.kernel.org, linux-audit@redhat.com,
+        alsa-devel@alsa-project.org,
+        linuxppc-dev <linuxppc-dev@lists.ozlabs.org>
+Subject: Re: [trivial PATCH] treewide: Align function definition open/close
+ braces
+Message-ID: <20171218220843.GA11969@magnolia>
+References: <1513556924.31581.51.camel@perches.com>
 MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="envbJBWh7q8WU6mo"
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <1514469681-15602-6-git-send-email-jacopo+renesas@jmondi.org>
+In-Reply-To: <1513556924.31581.51.camel@perches.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Sun, Dec 17, 2017 at 04:28:44PM -0800, Joe Perches wrote:
+> Some functions definitions have either the initial open brace and/or
+> the closing brace outside of column 1.
+> 
+> Move those braces to column 1.
+> 
+> This allows various function analyzers like gnu complexity to work
+> properly for these modified functions.
+> 
+> Miscellanea:
+> 
+> o Remove extra trailing ; and blank line from xfs_agf_verify
+> 
+> Signed-off-by: Joe Perches <joe@perches.com>
+> ---
+> git diff -w shows no difference other than the above 'Miscellanea'
+> 
+> (this is against -next, but it applies against Linus' tree
+>  with a couple offsets)
+> 
+>  arch/x86/include/asm/atomic64_32.h                   |  2 +-
+>  drivers/acpi/custom_method.c                         |  2 +-
+>  drivers/acpi/fan.c                                   |  2 +-
+>  drivers/gpu/drm/amd/display/dc/core/dc.c             |  2 +-
+>  drivers/media/i2c/msp3400-kthreads.c                 |  2 +-
+>  drivers/message/fusion/mptsas.c                      |  2 +-
+>  drivers/net/ethernet/qlogic/netxen/netxen_nic_init.c |  2 +-
+>  drivers/net/wireless/ath/ath9k/xmit.c                |  2 +-
+>  drivers/platform/x86/eeepc-laptop.c                  |  2 +-
+>  drivers/rtc/rtc-ab-b5ze-s3.c                         |  2 +-
+>  drivers/scsi/dpt_i2o.c                               |  2 +-
+>  drivers/scsi/sym53c8xx_2/sym_glue.c                  |  2 +-
+>  fs/locks.c                                           |  2 +-
+>  fs/ocfs2/stack_user.c                                |  2 +-
+>  fs/xfs/libxfs/xfs_alloc.c                            |  5 ++---
+>  fs/xfs/xfs_export.c                                  |  2 +-
+>  kernel/audit.c                                       |  6 +++---
+>  kernel/trace/trace_printk.c                          |  4 ++--
+>  lib/raid6/sse2.c                                     | 14 +++++++-------
+>  sound/soc/fsl/fsl_dma.c                              |  2 +-
+>  20 files changed, 30 insertions(+), 31 deletions(-)
+> 
+> diff --git a/arch/x86/include/asm/atomic64_32.h b/arch/x86/include/asm/atomic64_32.h
+> index 97c46b8169b7..d4d4883080fa 100644
+> --- a/arch/x86/include/asm/atomic64_32.h
+> +++ b/arch/x86/include/asm/atomic64_32.h
+> @@ -122,7 +122,7 @@ static inline long long atomic64_read(const atomic64_t *v)
+>  	long long r;
+>  	alternative_atomic64(read, "=&A" (r), "c" (v) : "memory");
+>  	return r;
+> - }
+> +}
+>  
+>  /**
+>   * atomic64_add_return - add and return
+> diff --git a/drivers/acpi/custom_method.c b/drivers/acpi/custom_method.c
+> index c68e72414a67..e967c1173ba3 100644
+> --- a/drivers/acpi/custom_method.c
+> +++ b/drivers/acpi/custom_method.c
+> @@ -94,7 +94,7 @@ static void __exit acpi_custom_method_exit(void)
+>  {
+>  	if (cm_dentry)
+>  		debugfs_remove(cm_dentry);
+> - }
+> +}
+>  
+>  module_init(acpi_custom_method_init);
+>  module_exit(acpi_custom_method_exit);
+> diff --git a/drivers/acpi/fan.c b/drivers/acpi/fan.c
+> index 6cf4988206f2..3563103590c6 100644
+> --- a/drivers/acpi/fan.c
+> +++ b/drivers/acpi/fan.c
+> @@ -219,7 +219,7 @@ fan_set_cur_state(struct thermal_cooling_device *cdev, unsigned long state)
+>  		return fan_set_state_acpi4(device, state);
+>  	else
+>  		return fan_set_state(device, state);
+> - }
+> +}
+>  
+>  static const struct thermal_cooling_device_ops fan_cooling_ops = {
+>  	.get_max_state = fan_get_max_state,
+> diff --git a/drivers/gpu/drm/amd/display/dc/core/dc.c b/drivers/gpu/drm/amd/display/dc/core/dc.c
+> index d1488d5ee028..1e0d1e7c5324 100644
+> --- a/drivers/gpu/drm/amd/display/dc/core/dc.c
+> +++ b/drivers/gpu/drm/amd/display/dc/core/dc.c
+> @@ -461,7 +461,7 @@ static void disable_dangling_plane(struct dc *dc, struct dc_state *context)
+>   ******************************************************************************/
+>  
+>  struct dc *dc_create(const struct dc_init_data *init_params)
+> - {
+> +{
+>  	struct dc *dc = kzalloc(sizeof(*dc), GFP_KERNEL);
+>  	unsigned int full_pipe_count;
+>  
+> diff --git a/drivers/media/i2c/msp3400-kthreads.c b/drivers/media/i2c/msp3400-kthreads.c
+> index 4dd01e9f553b..dc6cb8d475b3 100644
+> --- a/drivers/media/i2c/msp3400-kthreads.c
+> +++ b/drivers/media/i2c/msp3400-kthreads.c
+> @@ -885,7 +885,7 @@ static int msp34xxg_modus(struct i2c_client *client)
+>  }
+>  
+>  static void msp34xxg_set_source(struct i2c_client *client, u16 reg, int in)
+> - {
+> +{
+>  	struct msp_state *state = to_state(i2c_get_clientdata(client));
+>  	int source, matrix;
+>  
+> diff --git a/drivers/message/fusion/mptsas.c b/drivers/message/fusion/mptsas.c
+> index 345f6035599e..69a62d23514b 100644
+> --- a/drivers/message/fusion/mptsas.c
+> +++ b/drivers/message/fusion/mptsas.c
+> @@ -2968,7 +2968,7 @@ mptsas_exp_repmanufacture_info(MPT_ADAPTER *ioc,
+>  	mutex_unlock(&ioc->sas_mgmt.mutex);
+>  out:
+>  	return ret;
+> - }
+> +}
+>  
+>  static void
+>  mptsas_parse_device_info(struct sas_identify *identify,
+> diff --git a/drivers/net/ethernet/qlogic/netxen/netxen_nic_init.c b/drivers/net/ethernet/qlogic/netxen/netxen_nic_init.c
+> index 3dd973475125..0ea141ece19e 100644
+> --- a/drivers/net/ethernet/qlogic/netxen/netxen_nic_init.c
+> +++ b/drivers/net/ethernet/qlogic/netxen/netxen_nic_init.c
+> @@ -603,7 +603,7 @@ static struct uni_table_desc *nx_get_table_desc(const u8 *unirom, int section)
+>  
+>  static int
+>  netxen_nic_validate_header(struct netxen_adapter *adapter)
+> - {
+> +{
+>  	const u8 *unirom = adapter->fw->data;
+>  	struct uni_table_desc *directory = (struct uni_table_desc *) &unirom[0];
+>  	u32 fw_file_size = adapter->fw->size;
+> diff --git a/drivers/net/wireless/ath/ath9k/xmit.c b/drivers/net/wireless/ath/ath9k/xmit.c
+> index bd438062a6db..baedc7186b10 100644
+> --- a/drivers/net/wireless/ath/ath9k/xmit.c
+> +++ b/drivers/net/wireless/ath/ath9k/xmit.c
+> @@ -196,7 +196,7 @@ ath_tid_pull(struct ath_atx_tid *tid)
+>  	}
+>  
+>  	return skb;
+> - }
+> +}
+>  
+>  static struct sk_buff *ath_tid_dequeue(struct ath_atx_tid *tid)
+>  {
+> diff --git a/drivers/platform/x86/eeepc-laptop.c b/drivers/platform/x86/eeepc-laptop.c
+> index 5a681962899c..4c38904a8a32 100644
+> --- a/drivers/platform/x86/eeepc-laptop.c
+> +++ b/drivers/platform/x86/eeepc-laptop.c
+> @@ -492,7 +492,7 @@ static void eeepc_platform_exit(struct eeepc_laptop *eeepc)
+>   * potentially bad time, such as a timer interrupt.
+>   */
+>  static void tpd_led_update(struct work_struct *work)
+> - {
+> +{
+>  	struct eeepc_laptop *eeepc;
+>  
+>  	eeepc = container_of(work, struct eeepc_laptop, tpd_led_work);
+> diff --git a/drivers/rtc/rtc-ab-b5ze-s3.c b/drivers/rtc/rtc-ab-b5ze-s3.c
+> index a319bf1e49de..ef5c16dfabfa 100644
+> --- a/drivers/rtc/rtc-ab-b5ze-s3.c
+> +++ b/drivers/rtc/rtc-ab-b5ze-s3.c
+> @@ -648,7 +648,7 @@ static int abb5zes3_rtc_set_alarm(struct device *dev, struct rtc_wkalrm *alarm)
+>  			ret);
+>  
+>  	return ret;
+> - }
+> +}
+>  
+>  /* Enable or disable battery low irq generation */
+>  static inline int _abb5zes3_rtc_battery_low_irq_enable(struct regmap *regmap,
+> diff --git a/drivers/scsi/dpt_i2o.c b/drivers/scsi/dpt_i2o.c
+> index fd172b0890d3..a00d822e3142 100644
+> --- a/drivers/scsi/dpt_i2o.c
+> +++ b/drivers/scsi/dpt_i2o.c
+> @@ -3524,7 +3524,7 @@ static int adpt_i2o_systab_send(adpt_hba* pHba)
+>  #endif
+>  
+>  	return ret;	
+> - }
+> +}
+>  
+>  
+>  /*============================================================================
+> diff --git a/drivers/scsi/sym53c8xx_2/sym_glue.c b/drivers/scsi/sym53c8xx_2/sym_glue.c
+> index 791a2182de53..7320d5fe4cbc 100644
+> --- a/drivers/scsi/sym53c8xx_2/sym_glue.c
+> +++ b/drivers/scsi/sym53c8xx_2/sym_glue.c
+> @@ -1393,7 +1393,7 @@ static struct Scsi_Host *sym_attach(struct scsi_host_template *tpnt, int unit,
+>  		scsi_host_put(shost);
+>  
+>  	return NULL;
+> - }
+> +}
+>  
+>  
+>  /*
+> diff --git a/fs/locks.c b/fs/locks.c
+> index 21b4dfa289ee..d2399d001afe 100644
+> --- a/fs/locks.c
+> +++ b/fs/locks.c
+> @@ -559,7 +559,7 @@ static const struct lock_manager_operations lease_manager_ops = {
+>   * Initialize a lease, use the default lock manager operations
+>   */
+>  static int lease_init(struct file *filp, long type, struct file_lock *fl)
+> - {
+> +{
+>  	if (assign_type(fl, type) != 0)
+>  		return -EINVAL;
+>  
+> diff --git a/fs/ocfs2/stack_user.c b/fs/ocfs2/stack_user.c
+> index dae9eb7c441e..d2fb97b173da 100644
+> --- a/fs/ocfs2/stack_user.c
+> +++ b/fs/ocfs2/stack_user.c
+> @@ -398,7 +398,7 @@ static int ocfs2_control_do_setnode_msg(struct file *file,
+>  
+>  static int ocfs2_control_do_setversion_msg(struct file *file,
+>  					   struct ocfs2_control_message_setv *msg)
+> - {
+> +{
+>  	long major, minor;
+>  	char *ptr = NULL;
+>  	struct ocfs2_control_private *p = file->private_data;
+> diff --git a/fs/xfs/libxfs/xfs_alloc.c b/fs/xfs/libxfs/xfs_alloc.c
+> index 0da80019a917..217108f765d5 100644
+> --- a/fs/xfs/libxfs/xfs_alloc.c
+> +++ b/fs/xfs/libxfs/xfs_alloc.c
+> @@ -2401,7 +2401,7 @@ static bool
+>  xfs_agf_verify(
+>  	struct xfs_mount *mp,
+>  	struct xfs_buf	*bp)
+> - {
+> +{
+>  	struct xfs_agf	*agf = XFS_BUF_TO_AGF(bp);
+>  
+>  	if (xfs_sb_version_hascrc(&mp->m_sb)) {
+> @@ -2449,8 +2449,7 @@ xfs_agf_verify(
+>  	     be32_to_cpu(agf->agf_refcount_level) > XFS_BTREE_MAXLEVELS))
+>  		return false;
+>  
+> -	return true;;
+> -
+> +	return true;
+>  }
+>  
+>  static void
+> diff --git a/fs/xfs/xfs_export.c b/fs/xfs/xfs_export.c
+> index fe1bfee35898..7d5c355d78b5 100644
+> --- a/fs/xfs/xfs_export.c
+> +++ b/fs/xfs/xfs_export.c
+> @@ -122,7 +122,7 @@ xfs_nfs_get_inode(
+>  	struct super_block	*sb,
+>  	u64			ino,
+>  	u32			generation)
+> - {
+> +{
+>   	xfs_mount_t		*mp = XFS_M(sb);
+>  	xfs_inode_t		*ip;
+>  	int			error;
 
---envbJBWh7q8WU6mo
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
 
-Hi Jacopo,
+The xfs bits look ok,
+Reviewed-by: Darrick J. Wong <darrick.wong@oracle.com>
 
-Thank you for the patch! Yet something to improve:
+--D
 
-[auto build test ERROR on linuxtv-media/master]
-[also build test ERROR on v4.15-rc5 next-20171222]
-[if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
-
-url:    https://github.com/0day-ci/linux/commits/Jacopo-Mondi/Renesas-Capture-Engine-Unit-CEU-V4L2-driver/20171230-212202
-base:   git://linuxtv.org/media_tree.git master
-config: sh-migor_defconfig (attached as .config)
-compiler: sh4-linux-gnu-gcc (Debian 7.2.0-11) 7.2.0
-reproduce:
-        wget https://raw.githubusercontent.com/intel/lkp-tests/master/sbin/make.cross -O ~/bin/make.cross
-        chmod +x ~/bin/make.cross
-        # save the attached .config to linux build tree
-        make.cross ARCH=sh 
-
-Note: the linux-review/Jacopo-Mondi/Renesas-Capture-Engine-Unit-CEU-V4L2-driver/20171230-212202 HEAD 71df4d9132d9f8a1821abcec32c12adba1892c50 builds fine.
-      It only hurts bisectibility.
-
-All errors (new ones prefixed by >>):
-
->> arch/sh/boards/mach-migor/setup.c:403:3: error: 'struct ov772x_camera_info' has no member named 'xclk_rate'
-     .xclk_rate = 10000000,
-      ^~~~~~~~~
-
-vim +403 arch/sh/boards/mach-migor/setup.c
-
-   401	
-   402	static struct ov772x_camera_info ov7725_info = {
- > 403		.xclk_rate	= 10000000,
-   404	};
-   405	
-
----
-0-DAY kernel test infrastructure                Open Source Technology Center
-https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
-
---envbJBWh7q8WU6mo
-Content-Type: application/gzip
-Content-Disposition: attachment; filename=".config.gz"
-Content-Transfer-Encoding: base64
-
-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
-
---envbJBWh7q8WU6mo--
+> diff --git a/kernel/audit.c b/kernel/audit.c
+> index 227db99b0f19..d97e8f0f73ca 100644
+> --- a/kernel/audit.c
+> +++ b/kernel/audit.c
+> @@ -443,15 +443,15 @@ static int audit_set_failure(u32 state)
+>   * Drop any references inside the auditd connection tracking struct and free
+>   * the memory.
+>   */
+> - static void auditd_conn_free(struct rcu_head *rcu)
+> - {
+> +static void auditd_conn_free(struct rcu_head *rcu)
+> +{
+>  	struct auditd_connection *ac;
+>  
+>  	ac = container_of(rcu, struct auditd_connection, rcu);
+>  	put_pid(ac->pid);
+>  	put_net(ac->net);
+>  	kfree(ac);
+> - }
+> +}
+>  
+>  /**
+>   * auditd_set - Set/Reset the auditd connection state
+> diff --git a/kernel/trace/trace_printk.c b/kernel/trace/trace_printk.c
+> index ad1d6164e946..50f44b7b2b32 100644
+> --- a/kernel/trace/trace_printk.c
+> +++ b/kernel/trace/trace_printk.c
+> @@ -196,7 +196,7 @@ struct notifier_block module_trace_bprintk_format_nb = {
+>  };
+>  
+>  int __trace_bprintk(unsigned long ip, const char *fmt, ...)
+> - {
+> +{
+>  	int ret;
+>  	va_list ap;
+>  
+> @@ -214,7 +214,7 @@ int __trace_bprintk(unsigned long ip, const char *fmt, ...)
+>  EXPORT_SYMBOL_GPL(__trace_bprintk);
+>  
+>  int __ftrace_vbprintk(unsigned long ip, const char *fmt, va_list ap)
+> - {
+> +{
+>  	if (unlikely(!fmt))
+>  		return 0;
+>  
+> diff --git a/lib/raid6/sse2.c b/lib/raid6/sse2.c
+> index 1d2276b007ee..8191e1d0d2fb 100644
+> --- a/lib/raid6/sse2.c
+> +++ b/lib/raid6/sse2.c
+> @@ -91,7 +91,7 @@ static void raid6_sse21_gen_syndrome(int disks, size_t bytes, void **ptrs)
+>  
+>  static void raid6_sse21_xor_syndrome(int disks, int start, int stop,
+>  				     size_t bytes, void **ptrs)
+> - {
+> +{
+>  	u8 **dptr = (u8 **)ptrs;
+>  	u8 *p, *q;
+>  	int d, z, z0;
+> @@ -200,9 +200,9 @@ static void raid6_sse22_gen_syndrome(int disks, size_t bytes, void **ptrs)
+>  	kernel_fpu_end();
+>  }
+>  
+> - static void raid6_sse22_xor_syndrome(int disks, int start, int stop,
+> +static void raid6_sse22_xor_syndrome(int disks, int start, int stop,
+>  				     size_t bytes, void **ptrs)
+> - {
+> +{
+>  	u8 **dptr = (u8 **)ptrs;
+>  	u8 *p, *q;
+>  	int d, z, z0;
+> @@ -265,7 +265,7 @@ static void raid6_sse22_gen_syndrome(int disks, size_t bytes, void **ptrs)
+>  
+>  	asm volatile("sfence" : : : "memory");
+>  	kernel_fpu_end();
+> - }
+> +}
+>  
+>  const struct raid6_calls raid6_sse2x2 = {
+>  	raid6_sse22_gen_syndrome,
+> @@ -366,9 +366,9 @@ static void raid6_sse24_gen_syndrome(int disks, size_t bytes, void **ptrs)
+>  	kernel_fpu_end();
+>  }
+>  
+> - static void raid6_sse24_xor_syndrome(int disks, int start, int stop,
+> +static void raid6_sse24_xor_syndrome(int disks, int start, int stop,
+>  				     size_t bytes, void **ptrs)
+> - {
+> +{
+>  	u8 **dptr = (u8 **)ptrs;
+>  	u8 *p, *q;
+>  	int d, z, z0;
+> @@ -471,7 +471,7 @@ static void raid6_sse24_gen_syndrome(int disks, size_t bytes, void **ptrs)
+>  	}
+>  	asm volatile("sfence" : : : "memory");
+>  	kernel_fpu_end();
+> - }
+> +}
+>  
+>  
+>  const struct raid6_calls raid6_sse2x4 = {
+> diff --git a/sound/soc/fsl/fsl_dma.c b/sound/soc/fsl/fsl_dma.c
+> index 0c11f434a374..ec619f51d336 100644
+> --- a/sound/soc/fsl/fsl_dma.c
+> +++ b/sound/soc/fsl/fsl_dma.c
+> @@ -879,7 +879,7 @@ static const struct snd_pcm_ops fsl_dma_ops = {
+>  };
+>  
+>  static int fsl_soc_dma_probe(struct platform_device *pdev)
+> - {
+> +{
+>  	struct dma_object *dma;
+>  	struct device_node *np = pdev->dev.of_node;
+>  	struct device_node *ssi_np;
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-xfs" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
