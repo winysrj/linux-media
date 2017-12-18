@@ -1,65 +1,162 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:44107 "EHLO osg.samsung.com"
+Received: from osg.samsung.com ([64.30.133.232]:35389 "EHLO osg.samsung.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752041AbdLKQme (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 11 Dec 2017 11:42:34 -0500
-Date: Mon, 11 Dec 2017 14:42:29 -0200
+        id S1758821AbdLRTyM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 18 Dec 2017 14:54:12 -0500
 From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Ron Economos <w6rz@comcast.net>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH]media: dvb-frontends: Add delay to Si2168 restart
-Message-ID: <20171211144229.3002f15f@vento.lan>
-In-Reply-To: <7b146d05-ae00-bf35-c780-cd5ed54d1f86@comcast.net>
-References: <7b146d05-ae00-bf35-c780-cd5ed54d1f86@comcast.net>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 7/8] media: v4l2-subdev: document remaining undocumented functions
+Date: Mon, 18 Dec 2017 17:54:01 -0200
+Message-Id: <ecbf720686b6469848498934710779ca626aed9c.1513625884.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1513625884.git.mchehab@s-opensource.com>
+References: <cover.1513625884.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1513625884.git.mchehab@s-opensource.com>
+References: <cover.1513625884.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 10 Oct 2017 18:13:30 -0700
-Ron Economos <w6rz@comcast.net> escreveu:
+There are several undocumented v4l2-subdev functions that are
+part of kAPI. Document them.
 
-> On faster CPUs a delay is required after the POWER_UP/RESUME command and 
-> the DD_RESTART command. Without the delay, the DD_RESTART command often 
-> returns -EREMOTEIO and the Si2168 does not restart.
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ include/media/v4l2-subdev.h | 69 +++++++++++++++++++++++++++++++++++++++++----
+ 1 file changed, 64 insertions(+), 5 deletions(-)
 
-You forgot to add your signed-off-by after the patch description.
-
-That's required for all patches that will be applied. See:
-	https://linuxtv.org/wiki/index.php/Development:_Submitting_Patches#Sign_your_work
-	
-
-> 
-> diff --git a/drivers/media/dvb-frontends/si2168.c 
-> b/drivers/media/dvb-frontends/si2168.c
-> index 172fc36..f2a3c8f 100644
-> --- a/drivers/media/dvb-frontends/si2168.c
-> +++ b/drivers/media/dvb-frontends/si2168.c
-> @@ -15,6 +15,7 @@
->    */
-> 
->   #include "si2168_priv.h"
-> +#include <linux/delay.h>
-> 
->   static const struct dvb_frontend_ops si2168_ops;
-> 
-> @@ -435,6 +436,7 @@ static int si2168_init(struct dvb_frontend *fe)
->                  if (ret)
->                          goto err;
-> 
-> +               udelay(100);
-
-Your emailer is mangling your patches, replacing tabs by spaces and
-breaking long lines. Please either use git send-email or use some
-other email software, like claws-mail, pine or exim.
-
->                  memcpy(cmd.args, "\x85", 1);
->                  cmd.wlen = 1;
->                  cmd.rlen = 1;
-> 
-
-
-
-Thanks,
-Mauro
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index 1c280cf7dd41..2562e8854022 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -867,6 +867,13 @@ struct v4l2_subdev {
+ 	struct v4l2_subdev_platform_data *pdata;
+ };
+ 
++
++/**
++ * media_entity_to_v4l2_subdev - Returns a &struct v4l2_subdev from
++ *     the &struct media_entity embedded in it.
++ *
++ * @ent: pointer to &struct media_entity.
++ */
+ #define media_entity_to_v4l2_subdev(ent)				\
+ ({									\
+ 	typeof(ent) __me_sd_ent = (ent);				\
+@@ -876,14 +883,20 @@ struct v4l2_subdev {
+ 		NULL;							\
+ })
+ 
++/**
++ * vdev_to_v4l2_subdev - Returns a &struct v4l2_subdev from
++ *     the &struct video_device embedded on it.
++ *
++ * @vdev: pointer to &struct video_device
++ */
+ #define vdev_to_v4l2_subdev(vdev) \
+ 	((struct v4l2_subdev *)video_get_drvdata(vdev))
+ 
+ /**
+  * struct v4l2_subdev_fh - Used for storing subdev information per file handle
+  *
+- * @vfh: pointer to struct v4l2_fh
+- * @pad: pointer to v4l2_subdev_pad_config
++ * @vfh: pointer to &struct v4l2_fh
++ * @pad: pointer to &struct v4l2_subdev_pad_config
+  */
+ struct v4l2_subdev_fh {
+ 	struct v4l2_fh vfh;
+@@ -892,10 +905,25 @@ struct v4l2_subdev_fh {
+ #endif
+ };
+ 
++/**
++ * to_v4l2_subdev_fh - Returns a &struct v4l2_subdev_fh from
++ *     the &struct v4l2_fh embedded on it.
++ *
++ * @fh: pointer to &struct v4l2_fh
++ */
+ #define to_v4l2_subdev_fh(fh)	\
+ 	container_of(fh, struct v4l2_subdev_fh, vfh)
+ 
+ #if defined(CONFIG_VIDEO_V4L2_SUBDEV_API)
++
++/**
++ * v4l2_subdev_get_try_format - ancillary routine to call
++ * 	&struct v4l2_subdev_pad_config->try_fmt
++ *
++ * @sd: pointer to &struct v4l2_subdev
++ * @cfg: pointer to &struct v4l2_subdev_pad_config array.
++ * @pad: index of the pad in the @cfg array.
++ */
+ static inline struct v4l2_mbus_framefmt
+ *v4l2_subdev_get_try_format(struct v4l2_subdev *sd,
+ 			    struct v4l2_subdev_pad_config *cfg,
+@@ -906,6 +934,14 @@ static inline struct v4l2_mbus_framefmt
+ 	return &cfg[pad].try_fmt;
+ }
+ 
++/**
++ * v4l2_subdev_get_try_crop - ancillary routine to call
++ * 	&struct v4l2_subdev_pad_config->try_crop
++ *
++ * @sd: pointer to &struct v4l2_subdev
++ * @cfg: pointer to &struct v4l2_subdev_pad_config array.
++ * @pad: index of the pad in the @cfg array.
++ */
+ static inline struct v4l2_rect
+ *v4l2_subdev_get_try_crop(struct v4l2_subdev *sd,
+ 			  struct v4l2_subdev_pad_config *cfg,
+@@ -916,6 +952,14 @@ static inline struct v4l2_rect
+ 	return &cfg[pad].try_crop;
+ }
+ 
++/**
++ * v4l2_subdev_get_try_crop - ancillary routine to call
++ * 	&struct v4l2_subdev_pad_config->try_compose
++ *
++ * @sd: pointer to &struct v4l2_subdev
++ * @cfg: pointer to &struct v4l2_subdev_pad_config array.
++ * @pad: index of the pad in the @cfg array.
++ */
+ static inline struct v4l2_rect
+ *v4l2_subdev_get_try_compose(struct v4l2_subdev *sd,
+ 			     struct v4l2_subdev_pad_config *cfg,
+@@ -1032,9 +1076,16 @@ void v4l2_subdev_free_pad_config(struct v4l2_subdev_pad_config *cfg);
+ void v4l2_subdev_init(struct v4l2_subdev *sd,
+ 		      const struct v4l2_subdev_ops *ops);
+ 
+-/*
+- * Call an ops of a v4l2_subdev, doing the right checks against
+- * NULL pointers.
++/**
++ * v4l2_subdev_call - call an operation of a v4l2_subdev.
++ *
++ * @sd: pointer to the &struct v4l2_subdev
++ * @o: name of the element at &struct v4l2_subdev_ops that contains @f.
++ *     Each element there groups a set of callbacks functions.
++ * @f: callback function that will be called if @cond matches.
++ *     The callback functions are defined in groups, according to
++ *     each element at &struct v4l2_subdev_ops.
++ * @args...: arguments for @f.
+  *
+  * Example: err = v4l2_subdev_call(sd, video, s_std, norm);
+  */
+@@ -1050,6 +1101,14 @@ void v4l2_subdev_init(struct v4l2_subdev *sd,
+ 		__result;						\
+ 	})
+ 
++/**
++ * v4l2_subdev_has_op - Checks if a subdev defines a certain operation.
++ *
++ * @sd: pointer to the &struct v4l2_subdev
++ * @o: The group of callback functions in &struct v4l2_subdev_ops
++ * which @f is a part of.
++ * @f: callback function to be checked for its existence.
++ */
+ #define v4l2_subdev_has_op(sd, o, f) \
+ 	((sd)->ops->o && (sd)->ops->o->f)
+ 
+-- 
+2.14.3
