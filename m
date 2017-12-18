@@ -1,130 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:37386 "EHLO osg.samsung.com"
+Received: from osg.samsung.com ([64.30.133.232]:45484 "EHLO osg.samsung.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S965738AbdLRWVn (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 18 Dec 2017 17:21:43 -0500
-Date: Mon, 18 Dec 2017 20:21:36 -0200
+        id S1759027AbdLRMag (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 18 Dec 2017 07:30:36 -0500
 From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>,
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
         Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>
-Subject: Re: [PATCH v2 08/17] media: v4l2-ioctl.h: convert debug macros into
- enum and document
-Message-ID: <20171218202136.6f285124@vento.lan>
-In-Reply-To: <2353823.dVyOV93MJo@avalon>
-References: <cover.1506548682.git.mchehab@s-opensource.com>
- <75398545.O2kI4imJ1e@avalon>
- <20171218131326.20f8241c@vento.lan>
- <2353823.dVyOV93MJo@avalon>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Tom Saeger <tom.saeger@oracle.com>
+Subject: [PATCH v4 01/18] docs: kernel-doc.rst: better describe kernel-doc arguments
+Date: Mon, 18 Dec 2017 10:30:02 -0200
+Message-Id: <016aaf0abc1b0e89e1765a6a2d761a7c17d41330.1513599193.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1513599193.git.mchehab@s-opensource.com>
+References: <cover.1513599193.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1513599193.git.mchehab@s-opensource.com>
+References: <cover.1513599193.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 18 Dec 2017 17:32:11 +0200
-Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
+Add a new section to describe kernel-doc arguments,
+adding examples about how identation should happen, as failing
+to do that causes Sphinx to do the wrong thing.
 
-> Hi Mauro,
-> 
-> On Monday, 18 December 2017 17:13:26 EET Mauro Carvalho Chehab wrote:
-> > Em Fri, 13 Oct 2017 15:38:11 +0300 Laurent Pinchart escreveu:  
-> > > On Thursday, 28 September 2017 00:46:51 EEST Mauro Carvalho Chehab wrote:  
-> > >> Currently, there's no way to document #define foo <value>
-> > >> with kernel-doc. So, convert it to an enum, and document.  
-> > > 
-> > > The documentation seems fine to me (except for one comment below).
-> > > However, converting macros to an enum just to work around a defect of the
-> > > documentation system doesn't seem like a good idea to me. I'd rather find
-> > > a way to document macros.  
-> > 
-> > I agree that this limitation should be fixed.
-> > 
-> > Yet, in this specific case where we have an "array" of defines, all
-> > associated to the same field (even being a bitmask), and assuming that
-> > we would add a way for kernel-doc to parse this kind of defines
-> > (not sure how easy/doable would be), then, in order to respect the
-> > way kernel-doc markup is, the documentation for those macros would be:
-> > 
-> > 
-> > /**
-> >  * define: Just log the ioctl name + error code
-> >  */
-> > #define V4L2_DEV_DEBUG_IOCTL		0x01
-> > /**
-> >  * define: Log the ioctl name arguments + error code
-> >  */
-> > #define V4L2_DEV_DEBUG_IOCTL_ARG	0x02
-> > /**
-> >  * define: Log the file operations open, release, mmap and get_unmapped_area
-> > */
-> > #define V4L2_DEV_DEBUG_FOP		0x04
-> > /**
-> >  * define: Log the read and write file operations and the VIDIOC_(D)QBUF
-> > ioctls */
-> > #define V4L2_DEV_DEBUG_STREAMING	0x08
-> > 
-> > IMHO, this is a way easier to read/understand by humans, and a way more
-> > coincise:
-> > 
-> > /**
-> >  * enum v4l2_debug_flags - Device debug flags to be used with the video
-> >  *	device debug attribute
-> >  *
-> >  * @V4L2_DEV_DEBUG_IOCTL:	Just log the ioctl name + error code.
-> >  * @V4L2_DEV_DEBUG_IOCTL_ARG:	Log the ioctl name arguments + error code.
-> >  * @V4L2_DEV_DEBUG_FOP:		Log the file operations and open, release,
-> >  *				mmap and get_unmapped_area syscalls.
-> >  * @V4L2_DEV_DEBUG_STREAMING:	Log the read and write syscalls and
-> >  *				:c:ref:`VIDIOC_[Q|DQ]BUFF <VIDIOC_QBUF>` ioctls.
-> >  */
-> > 
-> > It also underlines the aspect that those names are grouped altogether.
-> > 
-> > So, IMHO, the main reason to place them inside an enum and document
-> > as such is that it looks a way better for humans to read.  
-> 
-> As we're talking about extending kerneldoc to document macros, we're free to 
-> decide on a format that would make it easy and clear. Based on your above 
-> example, we could write it
-> 
-> /**
->  * define v4l2_debug_flags - Device debug flags to be used with the video
->  *	device debug attribute
->  *
->  * @V4L2_DEV_DEBUG_IOCTL:	Just log the ioctl name + error code.
->  * @V4L2_DEV_DEBUG_IOCTL_ARG:	Log the ioctl name arguments + error code.
->  * @V4L2_DEV_DEBUG_FOP:		Log the file operations and open, release,
->  *				mmap and get_unmapped_area syscalls.
->  * @V4L2_DEV_DEBUG_STREAMING:	Log the read and write syscalls and
->  *				:c:ref:`VIDIOC_[Q|DQ]BUFF <VIDIOC_QBUF>` ioctls.
->  */
-> 
-> That would be simple, clear, and wouldn't require a code change to workaround 
-> a limitation of the documentation system.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ Documentation/doc-guide/kernel-doc.rst | 44 +++++++++++++++++++++++++++++++---
+ 1 file changed, 41 insertions(+), 3 deletions(-)
 
-That works for me but that would be against the way other things are
-parsed by kernel-doc.
-
-Besides that, I suspect that a patchset adding support for it at
-kernel-doc will be painful, as it currently assumes that a
-	 /**
-	  * ...
-	  */
-
-markup refers just to the first non-blank line just below it. So, such
-patch will likely need to add a hack in order to support it, but I may
-be wrong.
-
-I guess we'll end by needing support for #define foo bar type of defines
-some day. 
-
-Anyway, I suspect that, for those debug macros, the best is to change
-it to an enum of bits. I sent a proposal with such approach:
-
-	https://patchwork.linuxtv.org/patch/46092/
-
-Thanks,
-Mauro
+diff --git a/Documentation/doc-guide/kernel-doc.rst b/Documentation/doc-guide/kernel-doc.rst
+index 0268335414ce..f1c03c16f03b 100644
+--- a/Documentation/doc-guide/kernel-doc.rst
++++ b/Documentation/doc-guide/kernel-doc.rst
+@@ -112,16 +112,17 @@ Example kernel-doc function comment::
+ 
+   /**
+    * foobar() - Brief description of foobar.
+-   * @arg: Description of argument of foobar.
++   * @argument1: Description of parameter argument1 of foobar.
++   * @argument2: Description of parameter argument2 of foobar.
+    *
+    * Longer description of foobar.
+    *
+    * Return: Description of return value of foobar.
+    */
+-  int foobar(int arg)
++  int foobar(int argument1, char *argument2)
+ 
+ The format is similar for documentation for structures, enums, paragraphs,
+-etc. See the sections below for details.
++etc. See the sections below for specific details of each type.
+ 
+ The kernel-doc structure is extracted from the comments, and proper `Sphinx C
+ Domain`_ function and type descriptions with anchors are generated for them. The
+@@ -130,6 +131,43 @@ cross-references. See below for details.
+ 
+ .. _Sphinx C Domain: http://www.sphinx-doc.org/en/stable/domains.html
+ 
++
++Parameters and member arguments
++-------------------------------
++
++The kernel-doc function comments describe each parameter to the function and
++function typedefs or each member of struct/union, in order, with the
++``@argument:`` descriptions. For each non-private member argument, one
++``@argument`` definition is needed.
++
++The ``@argument:`` descriptions begin on the very next line following
++the opening brief function description line, with no intervening blank
++comment lines.
++
++The ``@argument:`` descriptions may span multiple lines.
++
++.. note::
++
++   If the ``@argument`` description has multiple lines, the continuation
++   of the description should be starting exactly at the same column as
++   the previous line, e. g.::
++
++      * @argument: some long description
++      *       that continues on next lines
++
++   or::
++
++      * @argument:
++      *		some long description
++      *		that continues on next lines
++
++If a function or typedef parameter argument is ``...`` (e. g. a variable
++number of arguments), its description should be listed in kernel-doc
++notation as::
++
++      * @...: description
++
++
+ Highlights and cross-references
+ -------------------------------
+ 
+-- 
+2.14.3
