@@ -1,99 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f66.google.com ([74.125.83.66]:39090 "EHLO
-        mail-pg0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752793AbdLRMEo (ORCPT
+Received: from mail.free-electrons.com ([62.4.15.54]:53781 "EHLO
+        mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752901AbdLROWn (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 18 Dec 2017 07:04:44 -0500
-From: Jacob Chen <jacob-chen@iotwrt.com>
-To: linux-rockchip@lists.infradead.org
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        mchehab@kernel.org, linux-media@vger.kernel.org,
-        sakari.ailus@linux.intel.com, hans.verkuil@cisco.com,
-        tfiga@chromium.org, zhengsq@rock-chips.com,
-        laurent.pinchart@ideasonboard.com, zyc@rock-chips.com,
-        eddie.cai.linux@gmail.com, jeffy.chen@rock-chips.com,
-        allon.huang@rock-chips.com, devicetree@vger.kernel.org,
-        heiko@sntech.de, robh+dt@kernel.org, Joao.Pinto@synopsys.com,
-        Luis.Oliveira@synopsys.com, Jose.Abreu@synopsys.com,
-        Jacob Chen <jacob2.chen@rock-chips.com>,
-        Jacob Chen <jacob-chen@rock-chips.com>
-Subject: [PATCH v4 02/16] media: doc: add document for rkisp1 meta buffer format
-Date: Mon, 18 Dec 2017 20:03:06 +0800
-Message-Id: <20171218120320.3850-3-jacob-chen@iotwrt.com>
-In-Reply-To: <20171218120320.3850-1-jacob-chen@iotwrt.com>
-References: <20171218120320.3850-1-jacob-chen@iotwrt.com>
+        Mon, 18 Dec 2017 09:22:43 -0500
+Date: Mon, 18 Dec 2017 15:22:41 +0100
+From: Maxime Ripard <maxime.ripard@free-electrons.com>
+To: Philipp Rossak <embed3d@gmail.com>
+Cc: mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
+        wens@csie.org, linux@armlinux.org.uk, sean@mess.org,
+        p.zabel@pengutronix.de, andi.shyti@samsung.com,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-sunxi@googlegroups.com
+Subject: Re: [PATCH v2 2/6] media: dt: bindings: Update binding documentation
+ for sunxi IR controller
+Message-ID: <20171218142241.6hhuyr74pxtvpoyp@flea.lan>
+References: <20171218141146.23746-1-embed3d@gmail.com>
+ <20171218141146.23746-3-embed3d@gmail.com>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="l27nkbgfnc4drjpy"
+Content-Disposition: inline
+In-Reply-To: <20171218141146.23746-3-embed3d@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Jacob Chen <jacob2.chen@rock-chips.com>
 
-This commit add docuemnt for rkisp1 meta buffer format
+--l27nkbgfnc4drjpy
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Jacob Chen <jacob-chen@rock-chips.com>
----
- Documentation/media/uapi/v4l/meta-formats.rst          |  2 ++
- .../media/uapi/v4l/pixfmt-meta-rkisp1-params.rst       | 17 +++++++++++++++++
- .../media/uapi/v4l/pixfmt-meta-rkisp1-stat.rst         | 18 ++++++++++++++++++
- 3 files changed, 37 insertions(+)
- create mode 100644 Documentation/media/uapi/v4l/pixfmt-meta-rkisp1-params.rst
- create mode 100644 Documentation/media/uapi/v4l/pixfmt-meta-rkisp1-stat.rst
+On Mon, Dec 18, 2017 at 03:11:42PM +0100, Philipp Rossak wrote:
+> This patch updates documentation for Device-Tree bindings for sunxi IR
+> controller and adds the new optional property for the base clock
+> frequency.
+>=20
+> Signed-off-by: Philipp Rossak <embed3d@gmail.com>
+> ---
+>  Documentation/devicetree/bindings/media/sunxi-ir.txt | 3 +++
+>  1 file changed, 3 insertions(+)
+>=20
+> diff --git a/Documentation/devicetree/bindings/media/sunxi-ir.txt b/Docum=
+entation/devicetree/bindings/media/sunxi-ir.txt
+> index 91648c569b1e..3d7f18780fae 100644
+> --- a/Documentation/devicetree/bindings/media/sunxi-ir.txt
+> +++ b/Documentation/devicetree/bindings/media/sunxi-ir.txt
+> @@ -11,6 +11,8 @@ Required properties:
+>  Optional properties:
+>  - linux,rc-map-name: see rc.txt file in the same directory.
+>  - resets : phandle + reset specifier pair
+> +- clock-frequency  : IR Receiver clock frequency, in Herz. Defaults to 8=
+ MHz
+                                                        ^ Hertz
 
-diff --git a/Documentation/media/uapi/v4l/meta-formats.rst b/Documentation/media/uapi/v4l/meta-formats.rst
-index 01e24e3df571..1b8281423aa2 100644
---- a/Documentation/media/uapi/v4l/meta-formats.rst
-+++ b/Documentation/media/uapi/v4l/meta-formats.rst
-@@ -14,3 +14,5 @@ These formats are used for the :ref:`metadata` interface only.
- 
-     pixfmt-meta-vsp1-hgo
-     pixfmt-meta-vsp1-hgt
-+    pixfmt-meta-rkisp1-params
-+    pixfmt-meta-rkisp1-stat
-diff --git a/Documentation/media/uapi/v4l/pixfmt-meta-rkisp1-params.rst b/Documentation/media/uapi/v4l/pixfmt-meta-rkisp1-params.rst
-new file mode 100644
-index 000000000000..ed344d463b52
---- /dev/null
-+++ b/Documentation/media/uapi/v4l/pixfmt-meta-rkisp1-params.rst
-@@ -0,0 +1,17 @@
-+.. -*- coding: utf-8; mode: rst -*-
-+
-+.. _v4l2-meta-fmt-rkisp1-params:
-+
-+*******************************
-+V4L2_META_FMT_RK_ISP1_PARAMS
-+*******************************
-+
-+Rockchip ISP1 Parameters Data
-+
-+Description
-+===========
-+
-+This format describes input parameters for the Rockchip ISP1.
-+
-+The data use c-struct :c:type:`rkisp1_isp_params_cfg`, which is defined in
-+the ``linux/rkisp1-config.h`` header file, See it for details.
-diff --git a/Documentation/media/uapi/v4l/pixfmt-meta-rkisp1-stat.rst b/Documentation/media/uapi/v4l/pixfmt-meta-rkisp1-stat.rst
-new file mode 100644
-index 000000000000..5ecc4031295f
---- /dev/null
-+++ b/Documentation/media/uapi/v4l/pixfmt-meta-rkisp1-stat.rst
-@@ -0,0 +1,18 @@
-+.. -*- coding: utf-8; mode: rst -*-
-+
-+.. _v4l2-meta-fmt-rkisp1-stat:
-+
-+*******************************
-+V4L2_META_FMT_RK_ISP1_STAT_3A
-+*******************************
-+
-+Rockchip ISP1 Statistics Data
-+
-+Description
-+===========
-+
-+This format describes image color statistics information generated by the Rockchip
-+ISP1.
-+
-+The data use c-struct :c:type:`rkisp1_stat_buffer`, which is defined in
-+the ``linux/cifisp_stat.h`` header file, See it for details.
--- 
-2.15.1
+Maxime
+
+--=20
+Maxime Ripard, Free Electrons
+Embedded Linux and Kernel engineering
+http://free-electrons.com
+
+--l27nkbgfnc4drjpy
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCAAdFiEE0VqZU19dR2zEVaqr0rTAlCFNr3QFAlo3zzAACgkQ0rTAlCFN
+r3Twwg/+Oa+JIKmBtj5Ue6oj2o6JXFx7NcuuC/DFhReZhGfc+RDHK47/AmEjG251
+cHuZgxf+1C/yeh8+/bL4Or7hXF69SfjgIbuRhLnMkePm7/Ri6kLYkreQiOibAz8v
+wkqNmKpx7MPojJyUKa1wXA5VYq6kpv7KJuGk3fqC1t0NyH3fHExKTmdwX9YQLrxL
+r6lK0EtFTlLrA62T7b8xGKv4NuGOGczApa2AOlyeStkhv5x6clRFQAwqC1h3D2Rb
+C/0GBhEcaNJx9oIHWhyQhpQh4qrYzihFrFP1pVtMsL/ekD10nlWKWeTaojE6n5yB
+wo3fgjspTu7rYN+eJtM8742uaF1mYPvtwO2BAV1ivPvonVmmUy/XmjDcZKV8qQyU
+XjrcY1u9i98dRxQv38xYoQea7qtK9TWtxotROiYa/TYSl2InnyRbnp+DZofpxiGv
+W/s5wgSM9Y+IP78YkFP3K/nWp1f9Q63b19x3X3Dxsxg+g3GeVB94QibTVOCxg0Qt
+Oioj8OBxcTOENCFNJsoDI233js8lcNrl/Z+qHjZit7DYE5wiVVrr12y2o69y9ZMe
+3gJQdO24BPQqjtkh8oFyE/YOpMOPofohN7y0VDmHg+FCSZvg5eLZwBTbN2VUvbsD
+AaNR4aq6whLKIXENcQPwNGUvUXT0AkQuy5BykLjfjiuHsIVuK+s=
+=U66p
+-----END PGP SIGNATURE-----
+
+--l27nkbgfnc4drjpy--
