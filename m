@@ -1,61 +1,209 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:29021 "EHLO
-        mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750915AbdLLJrP (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 12 Dec 2017 04:47:15 -0500
-Subject: Re: [Patch v6 10/12] [media] v4l2: Add v4l2 control IDs for HEVC
- encoder
-To: Smitha T Murthy <smitha.t@samsung.com>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Cc: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org, kyungmin.park@samsung.com,
-        kamil@wypas.org, jtp.park@samsung.com, a.hajda@samsung.com,
-        mchehab@kernel.org, pankaj.dubey@samsung.com, krzk@kernel.org,
-        m.szyprowski@samsung.com
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Message-id: <10a80dd4-737d-2c96-1679-3b04cfc45a5d@samsung.com>
-Date: Tue, 12 Dec 2017 10:46:46 +0100
-MIME-version: 1.0
-In-reply-to: <1513046086.22129.2.camel@smitha-fedora>
-Content-type: text/plain; charset="utf-8"
-Content-language: en-GB
-Content-transfer-encoding: 7bit
-References: <1512724105-1778-1-git-send-email-smitha.t@samsung.com>
-        <CGME20171208093702epcas2p32a30a9f624e06fb543f7dd757c805077@epcas2p3.samsung.com>
-        <1512724105-1778-11-git-send-email-smitha.t@samsung.com>
-        <5b96b332-71a9-083a-2242-8bdf5554f010@linaro.org>
-        <1513046086.22129.2.camel@smitha-fedora>
+Received: from mail-sn1nam02on0057.outbound.protection.outlook.com ([104.47.36.57]:1505
+        "EHLO NAM02-SN1-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S932558AbdLRI5I (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 18 Dec 2017 03:57:08 -0500
+Subject: Re: [PATCH] media: v4l: xilinx: Use SPDX-License-Identifier
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Michal Simek <michal.simek@xilinx.com>
+CC: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Dhaval Shah <dhaval23031987@gmail.com>,
+        Greg KH <gregkh@linuxfoundation.org>,
+        Joe Perches <joe@perches.com>, <hyun.kwon@xilinx.com>,
+        <linux-media@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-kernel@vger.kernel.org>
+References: <20171208123537.18718-1-dhaval23031987@gmail.com>
+ <20171215072734.6180613b@vento.lan>
+ <9614a2cb-66bf-6689-e6ac-abd24a71bb04@xilinx.com>
+ <10027244.ph2cysS4nt@avalon>
+From: Michal Simek <michal.simek@xilinx.com>
+Message-ID: <6b6e3f9e-cdd2-9bfa-2c2d-3d2d6eb9f7bd@xilinx.com>
+Date: Mon, 18 Dec 2017 09:56:55 +0100
+MIME-Version: 1.0
+In-Reply-To: <10027244.ph2cysS4nt@avalon>
+Content-Type: text/plain; charset="utf-8"
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/12/2017 03:34 AM, Smitha T Murthy wrote:
->> s/Lay/Layer here and below
+Hi Laurent,
+
+On 18.12.2017 09:32, Laurent Pinchart wrote:
+> Hi Michal,
+> 
+> On Monday, 18 December 2017 09:32:12 EET Michal Simek wrote:
+>> On 15.12.2017 10:27, Mauro Carvalho Chehab wrote:
+>>> Em Fri, 15 Dec 2017 10:55:26 +0530 Dhaval Shah escreveu:
+>>>> On Fri, Dec 15, 2017 at 3:32 AM, Laurent Pinchart wrote:
+>>>>> On Thursday, 14 December 2017 23:50:03 EET Mauro Carvalho Chehab wrote:
+>>>>>> Em Thu, 14 Dec 2017 21:57:06 +0100 Greg KH escreveu:
+>>>>>>> On Thu, Dec 14, 2017 at 10:44:16PM +0200, Laurent Pinchart wrote:
+>>>>>>>> On Thursday, 14 December 2017 22:08:51 EET Greg KH wrote:
+>>>>>>>>> On Thu, Dec 14, 2017 at 09:05:27PM +0200, Laurent Pinchart wrote:
+>>>>>>>>>> On Thursday, 14 December 2017 20:54:39 EET Joe Perches wrote:
+>>>>>>>>>>> On Thu, 2017-12-14 at 20:37 +0200, Laurent Pinchart wrote:
+>>>>>>>>>>>> On Thursday, 14 December 2017 20:32:20 EET Joe Perches wrote:
+>>>>>>>>>>>>> On Thu, 2017-12-14 at 20:28 +0200, Laurent Pinchart wrote:
+>>>>>>>>>>>>>> On Thursday, 14 December 2017 19:05:27 EET Mauro Carvalho
+>>>>>>>>>>>>>> Chehab wrote:
+>>>>>>>>>>>>>>> Em Fri,  8 Dec 2017 18:05:37 +0530 Dhaval Shah escreveu:
+>>>>>>>>>>>>>>>> SPDX-License-Identifier is used for the Xilinx Video IP and
+>>>>>>>>>>>>>>>> related drivers.
+>>>>>>>>>>>>>>>>
+>>>>>>>>>>>>>>>> Signed-off-by: Dhaval Shah <dhaval23031987@gmail.com>
+>>>>>>>>>>>>>>>
+>>>>>>>>>>>>>>> Hi Dhaval,
+>>>>>>>>>>>>>>>
+>>>>>>>>>>>>>>> You're not listed as one of the Xilinx driver maintainers. I'm
+>>>>>>>>>>>>>>> afraid that, without their explicit acks, sent to the ML, I
+>>>>>>>>>>>>>>> can't accept a patch touching at the driver's license tags.
+>>>>>>>>>>>>>>
+>>>>>>>>>>>>>> The patch doesn't change the license, I don't see why it would
+>>>>>>>>>>>>>> cause any issue. Greg isn't listed as the maintainer or
+>>>>>>>>>>>>>> copyright holder of any of the 10k+ files to which he added an
+>>>>>>>>>>>>>> SPDX license header in the last kernel release.
+>>>>>>>>>>>>>
+>>>>>>>>>>>>> Adding a comment line that describes an implicit or
+>>>>>>>>>>>>> explicit license is different than removing the license
+>>>>>>>>>>>>> text itself.
+>>>>>>>>>>>>
+>>>>>>>>>>>> The SPDX license header is meant to be equivalent to the license
+>>>>>>>>>>>> text.
+>>>>>>>>>>>
+>>>>>>>>>>> I understand that.
+>>>>>>>>>>> At a minimum, removing BSD license text is undesirable
+>>>>>>>>>>>
+>>>>>>>>>>> as that license states:
+>>>>>>>>>>>  *    * Redistributions of source code must retain the above
+>>>>>>>>>>>  copyright
+>>>>>>>>>>>  *      notice, this list of conditions and the following
+>>>>>>>>>>>  disclaimer.
+>>>>>>>>>>>
+>>>>>>>>>>> etc...
+>>>>>>>>>>
+>>>>>>>>>> But this patch only removes the following text:
+>>>>>>>>>>
+>>>>>>>>>> - * This program is free software; you can redistribute it and/or
+>>>>>>>>>> modify
+>>>>>>>>>> - * it under the terms of the GNU General Public License version 2
+>>>>>>>>>> as
+>>>>>>>>>> - * published by the Free Software Foundation.
+>>>>>>>>>>
+>>>>>>>>>> and replaces it by the corresponding SPDX header.
+>>>>>>>>>>
+>>>>>>>>>>>> The only reason why the large SPDX patch didn't touch the whole
+>>>>>>>>>>>> kernel in one go was that it was easier to split in in multiple
+>>>>>>>>>>>> chunks.
+>>>>>>>>>>>
+>>>>>>>>>>> Not really, it was scripted.
+>>>>>>>>>>
+>>>>>>>>>> But still manually reviewed as far as I know.
+>>>>>>>>>>
+>>>>>>>>>>>> This is no different than not including the full GPL license in
+>>>>>>>>>>>> every header file but only pointing to it through its name and
+>>>>>>>>>>>> reference, as every kernel source file does.
+>>>>>>>>>>>
+>>>>>>>>>>> Not every kernel source file had a license text
+>>>>>>>>>>> or a reference to another license file.
+>>>>>>>>>>
+>>>>>>>>>> Correct, but the files touched by this patch do.
+>>>>>>>>>>
+>>>>>>>>>> This issue is in no way specific to linux-media and should be
+>>>>>>>>>> decided upon at the top level, not on a per-subsystem basis. Greg,
+>>>>>>>>>> could you comment on this ?
+>>>>>>>>>
+>>>>>>>>> Comment on what exactly?  I don't understand the problem here, care
+>>>>>>>>> to summarize it?
+>>>>>>>>
+>>>>>>>> In a nutshell (if I understand it correctly), Dhaval Shah submitted
+>>>>>>>> https:// patchwork.kernel.org/patch/10102451/ which replaces
+>>>>>>>>
+>>>>>>>> +// SPDX-License-Identifier: GPL-2.0
+>>>>>>>> [...]
+>>>>>>>> - *
+>>>>>>>> - * This program is free software; you can redistribute it and/or
+>>>>>>>> modify
+>>>>>>>> - * it under the terms of the GNU General Public License version 2 as
+>>>>>>>> - * published by the Free Software Foundation.
+>>>>>>>>
+>>>>>>>> in all .c and .h files of the Xilinx V4L2 driver
+>>>>>>>> (drivers/media/platform/
+>>>>>>>> xilinx). I have reviewed the patch and acked it. Mauro then rejected
+>>>>>>>> it, stating that he can't accept a change to license text without an
+>>>>>>>> explicit ack from the official driver's maintainers. My position is
+>>>>>>>> that such a change doesn't change the license and thus doesn't need
+>>>>>>>> to track all copyright holders, and can be merged without an explicit
+>>>>>>>> ack from the respective maintainers.
+>>>>>>>
+>>>>>>> Yes, I agree with you, no license is being changed here, and no
+>>>>>>> copyright is either.
+>>>>>>>
+>>>>>>> BUT, I know that most major companies are reviewing this process right
+>>>>>>> now.  We have gotten approval from almost all of the major kernel
+>>>>>>> developer companies to do this, which is great, and supports this work
+>>>>>>> as being acceptable.
+>>>>>>>
+>>>>>>> So it's nice to ask Xilinx if they object to this happening, which I
+>>>>>>> guess Mauro is trying to say here (in not so many words...)  To at
+>>>>>>> least give them the heads-up that this is what is going to be going on
+>>>>>>> throughout the kernel tree soon, and if they object, it would be good
+>>>>>>> to speak up as to why (and if they do, I can put their lawyers in
+>>>>>>> contact with some lawyers to explain it all to them.)
+>>>>>>
+>>>>>> Yes, that's basically what I'm saying.
+>>>>>>
+>>>>>> I don't feel comfortable on signing a patch changing the license text
+>>>>>> without giving the copyright owners an opportunity and enough time
+>>>>>> to review it and approve, or otherwise comment about such changes.
+>>>>>
+>>>>> If I understand you and Greg correctly, you would like to get a general
+>>>>> approval from Xilinx for SPDX-related changes, but that would be a
+>>>>> blanket approval that would cover this and all subsequent similar
+>>>>> patches. Is that correct ? That is reasonable for me.
+>>>>>
+>>>>> In that case, could the fact that commit
+>>>>>
+>>>>> commit 5fd54ace4721fc5ce2bb5aef6318fcf17f421460
+>>>>> Author: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+>>>>> Date:   Fri Nov 3 11:28:30 2017 +0100
+>>>>>
+>>>>>     USB: add SPDX identifiers to all remaining files in drivers/usb/
+>>>>>
+>>>>> add SPDX headers to several Xilinx-authored source files constitute such
+>>>>> a blanket approval ?
+>>>>
+>>>> I have to do anything here or Once, we get approval from the Michal
+>>>> Simek(michal.simek@xilinx.com) and Hyun.kwon@xilinx.com ACK this patch
+>>>> then it will go into mainline?
+>>>
+>>> I would wait for their feedback.
 >>
-> Ok I will change it.
+>> Please do not apply this patch till I get approval from legal. I have
+>> already discussed things about SPDX some weeks ago.
+> 
+> Could you ask them to approve this kind of change globally for all Xilinx 
+> sources files (or reject it globally if they want to do so) ? I don't want to 
+> go through the same hassle for every single driver.
+> 
+> On a side note, SPDX headers have been added to several Xilinx-owned files 
+> already, you can use that information in your internal discussions if it 
+> helps.
 
-While it's fine to make such change for controls up to V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L6_QP...
+As was said in this thread. One thing is if you simply add that one line
+or if you add and remove. We are waiting for response from Legal to know
+their opinion.
 
->>> +	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L1_QP:	return "HEVC Hierarchical Lay 1 QP";
->>> +	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L2_QP:	return "HEVC Hierarchical Lay 2 QP";
->>> +	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L3_QP:	return "HEVC Hierarchical Lay 3 QP";
->>> +	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L4_QP:	return "HEVC Hierarchical Lay 4 QP";
->>> +	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L5_QP:	return "HEVC Hierarchical Lay 5 QP";
->>> +	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L6_QP:	return "HEVC Hierarchical Lay 6 QP";
+Anyway Xilinx is using SPDX license header in U-Boot project for years
+already. This change started there in 2013 and I have never heard about
+any problem connected to this.
 
-...for the controls below we may need to replace "Lay" with "L." 
-to make sure the length of the string don't exceed 31 characters 
-(32 with terminating NULL). The names below seem to be 1 character 
-too long and will be truncated when running VIDIOC_QUERY_CTRL ioctl.
+>From my point of view it is good that this process finally started.
+I have touched it in past here
+https://lkml.org/lkml/2014/2/21/21
+and I hope that there won't be any problem with this but let's see.
 
->>> +	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L0_BR:	return "HEVC Hierarchical Lay 0 Bit Rate";
->>> +	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L1_BR:	return "HEVC Hierarchical Lay 1 Bit Rate";
->>> +	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L2_BR:	return "HEVC Hierarchical Lay 2 Bit Rate";
->>> +	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L3_BR:	return "HEVC Hierarchical Lay 3 Bit Rate";
->>> +	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L4_BR:	return "HEVC Hierarchical Lay 4 Bit Rate";
->>> +	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L5_BR:	return "HEVC Hierarchical Lay 5 Bit Rate";
->>> +	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L6_BR:	return "HEVC Hierarchical Lay 6 Bit Rate";
-
---
-Regards,
-Sylwester
+Thanks,
+Michal
