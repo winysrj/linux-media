@@ -1,215 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f65.google.com ([74.125.83.65]:42280 "EHLO
-        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752209AbdLHMfw (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 8 Dec 2017 07:35:52 -0500
-From: Dhaval Shah <dhaval23031987@gmail.com>
-To: hyun.kwon@xilinx.com, laurent.pinchart@ideasonboard.com,
-        mchehab@kernel.org, michal.simek@xilinx.com
-Cc: linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-kernel@vger.kernel.org,
-        Dhaval Shah <dhaval23031987@gmail.com>
-Subject: [PATCH] media: v4l: xilinx: Use SPDX-License-Identifier
-Date: Fri,  8 Dec 2017 18:05:37 +0530
-Message-Id: <20171208123537.18718-1-dhaval23031987@gmail.com>
+Received: from osg.samsung.com ([64.30.133.232]:47139 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1759308AbdLRMai (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 18 Dec 2017 07:30:38 -0500
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Evgeniy Polyakov <zbr@ioremap.net>
+Subject: [PATCH v4 18/18] w1_netlink.h: add support for nested structs
+Date: Mon, 18 Dec 2017 10:30:19 -0200
+Message-Id: <b591384d6329894c87b0136beea70520050020b6.1513599193.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1513599193.git.mchehab@s-opensource.com>
+References: <cover.1513599193.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1513599193.git.mchehab@s-opensource.com>
+References: <cover.1513599193.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-SPDX-License-Identifier is used for the Xilinx Video IP and
-related drivers.
+Now that kernel-doc can hanle nested structs/unions, describe
+such fields at w1_netlink_message_types.
 
-Signed-off-by: Dhaval Shah <dhaval23031987@gmail.com>
+Acked-by: Evgeniy Polyakov <zbr@ioremap.net>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/media/platform/xilinx/xilinx-dma.c  | 5 +----
- drivers/media/platform/xilinx/xilinx-dma.h  | 5 +----
- drivers/media/platform/xilinx/xilinx-tpg.c  | 5 +----
- drivers/media/platform/xilinx/xilinx-vip.c  | 5 +----
- drivers/media/platform/xilinx/xilinx-vip.h  | 5 +----
- drivers/media/platform/xilinx/xilinx-vipp.c | 5 +----
- drivers/media/platform/xilinx/xilinx-vipp.h | 5 +----
- drivers/media/platform/xilinx/xilinx-vtc.c  | 5 +----
- drivers/media/platform/xilinx/xilinx-vtc.h  | 5 +----
- 9 files changed, 9 insertions(+), 36 deletions(-)
+ drivers/w1/w1_netlink.h | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/platform/xilinx/xilinx-dma.c b/drivers/media/platform/xilinx/xilinx-dma.c
-index 522cdfdd3345..2e5daf7dba1a 100644
---- a/drivers/media/platform/xilinx/xilinx-dma.c
-+++ b/drivers/media/platform/xilinx/xilinx-dma.c
-@@ -1,3 +1,4 @@
-+// SPDX-License-Identifier: GPL-2.0
- /*
-  * Xilinx Video DMA
+diff --git a/drivers/w1/w1_netlink.h b/drivers/w1/w1_netlink.h
+index a36661cd1f05..f876772c0fb4 100644
+--- a/drivers/w1/w1_netlink.h
++++ b/drivers/w1/w1_netlink.h
+@@ -59,7 +59,11 @@ enum w1_netlink_message_types {
+  * @type: one of enum w1_netlink_message_types
+  * @status: kernel feedback for success 0 or errno failure value
+  * @len: length of data following w1_netlink_msg
+- * @id: union holding master bus id (msg.id) and slave device id (id[8]).
++ * @id: union holding bus master id (msg.id) and slave device id (id[8]).
++ * @id.id: Slave ID (8 bytes)
++ * @id.mst: bus master identification
++ * @id.mst.id: bus master ID
++ * @id.mst.res: bus master reserved
+  * @data: start address of any following data
   *
-@@ -6,10 +7,6 @@
-  *
-  * Contacts: Hyun Kwon <hyun.kwon@xilinx.com>
-  *           Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License version 2 as
-- * published by the Free Software Foundation.
-  */
- 
- #include <linux/dma/xilinx_dma.h>
-diff --git a/drivers/media/platform/xilinx/xilinx-dma.h b/drivers/media/platform/xilinx/xilinx-dma.h
-index e95d136c153a..5aec4d17eb21 100644
---- a/drivers/media/platform/xilinx/xilinx-dma.h
-+++ b/drivers/media/platform/xilinx/xilinx-dma.h
-@@ -1,3 +1,4 @@
-+// SPDX-License-Identifier: GPL-2.0
- /*
-  * Xilinx Video DMA
-  *
-@@ -6,10 +7,6 @@
-  *
-  * Contacts: Hyun Kwon <hyun.kwon@xilinx.com>
-  *           Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License version 2 as
-- * published by the Free Software Foundation.
-  */
- 
- #ifndef __XILINX_VIP_DMA_H__
-diff --git a/drivers/media/platform/xilinx/xilinx-tpg.c b/drivers/media/platform/xilinx/xilinx-tpg.c
-index 9c49d1d10bee..20a68a65602b 100644
---- a/drivers/media/platform/xilinx/xilinx-tpg.c
-+++ b/drivers/media/platform/xilinx/xilinx-tpg.c
-@@ -1,3 +1,4 @@
-+// SPDX-License-Identifier: GPL-2.0
- /*
-  * Xilinx Test Pattern Generator
-  *
-@@ -6,10 +7,6 @@
-  *
-  * Contacts: Hyun Kwon <hyun.kwon@xilinx.com>
-  *           Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License version 2 as
-- * published by the Free Software Foundation.
-  */
- 
- #include <linux/device.h>
-diff --git a/drivers/media/platform/xilinx/xilinx-vip.c b/drivers/media/platform/xilinx/xilinx-vip.c
-index 311259129504..5f7efa9f093e 100644
---- a/drivers/media/platform/xilinx/xilinx-vip.c
-+++ b/drivers/media/platform/xilinx/xilinx-vip.c
-@@ -1,3 +1,4 @@
-+// SPDX-License-Identifier: GPL-2.0
- /*
-  * Xilinx Video IP Core
-  *
-@@ -6,10 +7,6 @@
-  *
-  * Contacts: Hyun Kwon <hyun.kwon@xilinx.com>
-  *           Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License version 2 as
-- * published by the Free Software Foundation.
-  */
- 
- #include <linux/clk.h>
-diff --git a/drivers/media/platform/xilinx/xilinx-vip.h b/drivers/media/platform/xilinx/xilinx-vip.h
-index 42fee2026815..ba939dd52818 100644
---- a/drivers/media/platform/xilinx/xilinx-vip.h
-+++ b/drivers/media/platform/xilinx/xilinx-vip.h
-@@ -1,3 +1,4 @@
-+// SPDX-License-Identifier: GPL-2.0
- /*
-  * Xilinx Video IP Core
-  *
-@@ -6,10 +7,6 @@
-  *
-  * Contacts: Hyun Kwon <hyun.kwon@xilinx.com>
-  *           Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License version 2 as
-- * published by the Free Software Foundation.
-  */
- 
- #ifndef __XILINX_VIP_H__
-diff --git a/drivers/media/platform/xilinx/xilinx-vipp.c b/drivers/media/platform/xilinx/xilinx-vipp.c
-index d881cf09876d..cb9ab2c15952 100644
---- a/drivers/media/platform/xilinx/xilinx-vipp.c
-+++ b/drivers/media/platform/xilinx/xilinx-vipp.c
-@@ -1,3 +1,4 @@
-+// SPDX-License-Identifier: GPL-2.0
- /*
-  * Xilinx Video IP Composite Device
-  *
-@@ -6,10 +7,6 @@
-  *
-  * Contacts: Hyun Kwon <hyun.kwon@xilinx.com>
-  *           Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License version 2 as
-- * published by the Free Software Foundation.
-  */
- 
- #include <linux/list.h>
-diff --git a/drivers/media/platform/xilinx/xilinx-vipp.h b/drivers/media/platform/xilinx/xilinx-vipp.h
-index faf6b6e80b3b..39daa030679e 100644
---- a/drivers/media/platform/xilinx/xilinx-vipp.h
-+++ b/drivers/media/platform/xilinx/xilinx-vipp.h
-@@ -1,3 +1,4 @@
-+// SPDX-License-Identifier: GPL-2.0
- /*
-  * Xilinx Video IP Composite Device
-  *
-@@ -6,10 +7,6 @@
-  *
-  * Contacts: Hyun Kwon <hyun.kwon@xilinx.com>
-  *           Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License version 2 as
-- * published by the Free Software Foundation.
-  */
- 
- #ifndef __XILINX_VIPP_H__
-diff --git a/drivers/media/platform/xilinx/xilinx-vtc.c b/drivers/media/platform/xilinx/xilinx-vtc.c
-index 01c750edcac5..0ae0208d7529 100644
---- a/drivers/media/platform/xilinx/xilinx-vtc.c
-+++ b/drivers/media/platform/xilinx/xilinx-vtc.c
-@@ -1,3 +1,4 @@
-+// SPDX-License-Identifier: GPL-2.0
- /*
-  * Xilinx Video Timing Controller
-  *
-@@ -6,10 +7,6 @@
-  *
-  * Contacts: Hyun Kwon <hyun.kwon@xilinx.com>
-  *           Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License version 2 as
-- * published by the Free Software Foundation.
-  */
- 
- #include <linux/clk.h>
-diff --git a/drivers/media/platform/xilinx/xilinx-vtc.h b/drivers/media/platform/xilinx/xilinx-vtc.h
-index e1bb2cfcf428..90cf44245283 100644
---- a/drivers/media/platform/xilinx/xilinx-vtc.h
-+++ b/drivers/media/platform/xilinx/xilinx-vtc.h
-@@ -1,3 +1,4 @@
-+// SPDX-License-Identifier: GPL-2.0
- /*
-  * Xilinx Video Timing Controller
-  *
-@@ -6,10 +7,6 @@
-  *
-  * Contacts: Hyun Kwon <hyun.kwon@xilinx.com>
-  *           Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License version 2 as
-- * published by the Free Software Foundation.
-  */
- 
- #ifndef __XILINX_VTC_H__
+  * The base message structure for w1 messages over netlink.
 -- 
-2.11.0
+2.14.3
