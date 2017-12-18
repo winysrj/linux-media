@@ -1,77 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtprelay2.synopsys.com ([198.182.60.111]:55280 "EHLO
-        smtprelay.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750967AbdLGJsN (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 7 Dec 2017 04:48:13 -0500
-From: Jose Abreu <Jose.Abreu@synopsys.com>
-To: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Jose Abreu <Jose.Abreu@synopsys.com>,
-        Joao Pinto <Joao.Pinto@synopsys.com>,
+Received: from mail-it0-f66.google.com ([209.85.214.66]:45228 "EHLO
+        mail-it0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S936376AbdLRRc3 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 18 Dec 2017 12:32:29 -0500
+Received: by mail-it0-f66.google.com with SMTP id z6so29140065iti.4
+        for <linux-media@vger.kernel.org>; Mon, 18 Dec 2017 09:32:29 -0800 (PST)
+From: Nick Desaulniers <ndesaulniers@google.com>
+Cc: Nick Desaulniers <ndesaulniers@google.com>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sylwester Nawrocki <snawrocki@kernel.org>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>
-Subject: [PATCH v9 0/4] Synopsys DesignWare HDMI Video Capture Controller + PHY
-Date: Thu,  7 Dec 2017 09:47:42 +0000
-Message-Id: <cover.1512582979.git.joabreu@synopsys.com>
+        Andrew Morton <akpm@linux-foundation.org>,
+        Colin Ian King <colin.king@canonical.com>,
+        Masahiro Yamada <yamada.masahiro@socionext.com>,
+        Daniel Scheller <d.scheller@gmx.net>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Arushi Singhal <arushisinghal19971997@gmail.com>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] [media] dvb-frontends: remove extraneous parens
+Date: Mon, 18 Dec 2017 09:31:52 -0800
+Message-Id: <20171218173156.166041-1-ndesaulniers@google.com>
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The Synopsys DesignWare HDMI RX controller is an HDMI receiver controller that
-is responsible to process digital data that comes from a phy. The final result
-is a stream of RAW video data that can then be connected to a video DMA, for
-example, and transfered into RAM so that it can be displayed.
+Fixes 2 warnings from Clang about extra parentheses in a conditional,
+that might have been meant as assignment.
 
-The controller + phy available in this series natively support all HDMI 1.4 and
-HDMI 2.0 modes, including deep color. Although, the driver is quite in its
-initial stage and unfortunatelly only non deep color modes are supported. Also,
-audio is not yet supported in the driver (the controller has several audio
-output interfaces).
+Signed-off-by: Nick Desaulniers <ndesaulniers@google.com>
+---
+ drivers/media/dvb-frontends/drx39xyj/drxj.c | 2 +-
+ drivers/media/dvb-frontends/drxk_hard.c     | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-Version 9 implements the work developed by Sakari Ailus regarding subdevices
-pipelines registration.
-
-This series was tested in a FPGA platform using an embedded platform called
-ARC AXS101.
-
-Jose Abreu (4):
-  dt-bindings: media: Document Synopsys DesignWare HDMI RX
-  MAINTAINERS: Add entry for Synopsys DesignWare HDMI drivers
-  [media] platform: Add Synopsys DesignWare HDMI RX PHY e405 Driver
-  [media] platform: Add Synopsys DesignWare HDMI RX Controller Driver
-
-Cc: Joao Pinto <jpinto@synopsys.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Sylwester Nawrocki <snawrocki@kernel.org>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Rob Herring <robh+dt@kernel.org>
-Cc: Mark Rutland <mark.rutland@arm.com>
-
- .../devicetree/bindings/media/snps,dw-hdmi-rx.txt  |   58 +
- MAINTAINERS                                        |    7 +
- drivers/media/platform/Kconfig                     |    2 +
- drivers/media/platform/Makefile                    |    2 +
- drivers/media/platform/dwc/Kconfig                 |   23 +
- drivers/media/platform/dwc/Makefile                |    2 +
- drivers/media/platform/dwc/dw-hdmi-phy-e405.c      |  844 +++++++++
- drivers/media/platform/dwc/dw-hdmi-phy-e405.h      |   63 +
- drivers/media/platform/dwc/dw-hdmi-rx.c            | 1834 ++++++++++++++++++++
- drivers/media/platform/dwc/dw-hdmi-rx.h            |  441 +++++
- include/media/dwc/dw-hdmi-phy-pdata.h              |  128 ++
- include/media/dwc/dw-hdmi-rx-pdata.h               |   70 +
- 12 files changed, 3474 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/snps,dw-hdmi-rx.txt
- create mode 100644 drivers/media/platform/dwc/Kconfig
- create mode 100644 drivers/media/platform/dwc/Makefile
- create mode 100644 drivers/media/platform/dwc/dw-hdmi-phy-e405.c
- create mode 100644 drivers/media/platform/dwc/dw-hdmi-phy-e405.h
- create mode 100644 drivers/media/platform/dwc/dw-hdmi-rx.c
- create mode 100644 drivers/media/platform/dwc/dw-hdmi-rx.h
- create mode 100644 include/media/dwc/dw-hdmi-phy-pdata.h
- create mode 100644 include/media/dwc/dw-hdmi-rx-pdata.h
-
+diff --git a/drivers/media/dvb-frontends/drx39xyj/drxj.c b/drivers/media/dvb-frontends/drx39xyj/drxj.c
+index 8cbd8cc21059..cf00a34ef0fc 100644
+--- a/drivers/media/dvb-frontends/drx39xyj/drxj.c
++++ b/drivers/media/dvb-frontends/drx39xyj/drxj.c
+@@ -11074,7 +11074,7 @@ ctrl_power_mode(struct drx_demod_instance *demod, enum drx_power_mode *mode)
+ 		}
+ 	}
+ 
+-	if ((*mode == DRX_POWER_UP)) {
++	if (*mode == DRX_POWER_UP) {
+ 		/* Restore analog & pin configuration */
+ 
+ 		/* Initialize default AFE configuration for VSB */
+diff --git a/drivers/media/dvb-frontends/drxk_hard.c b/drivers/media/dvb-frontends/drxk_hard.c
+index f59ac2e91c59..19cc84c69b3b 100644
+--- a/drivers/media/dvb-frontends/drxk_hard.c
++++ b/drivers/media/dvb-frontends/drxk_hard.c
+@@ -6062,7 +6062,7 @@ static int init_drxk(struct drxk_state *state)
+ 	u16 driver_version;
+ 
+ 	dprintk(1, "\n");
+-	if ((state->m_drxk_state == DRXK_UNINITIALIZED)) {
++	if (state->m_drxk_state == DRXK_UNINITIALIZED) {
+ 		drxk_i2c_lock(state);
+ 		status = power_up_device(state);
+ 		if (status < 0)
 -- 
-1.9.1
+2.15.1.504.g5279b80103-goog
