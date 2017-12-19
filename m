@@ -1,193 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtpproxy19.qq.com ([184.105.206.84]:43200 "EHLO
-        smtpproxy19.qq.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933355AbdLRMCi (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:34414 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S966545AbdLSI1V (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 18 Dec 2017 07:02:38 -0500
-MIME-Version: 1.0
-In-Reply-To: <2576683.vP2aWnt5jG@avalon>
-References: <20171206111939.1153-1-jacob-chen@iotwrt.com> <20171206111939.1153-8-jacob-chen@iotwrt.com>
- <2576683.vP2aWnt5jG@avalon>
-From: Jacob Chen <jacob-chen@iotwrt.com>
-Date: Mon, 18 Dec 2017 20:02:30 +0800
-Message-ID: <CAFLEztQ+SbCsEDdqZNp9SCPZaushegHc7=P9mTe2tsBZNKiX-A@mail.gmail.com>
-Subject: Re: [PATCH v3 07/12] dt-bindings: Document the Rockchip MIPI RX D-PHY bindings
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: "open list:ARM/Rockchip SoC..." <linux-rockchip@lists.infradead.org>,
-        linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
+        Tue, 19 Dec 2017 03:27:21 -0500
+Date: Tue, 19 Dec 2017 10:27:17 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        "Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
+        Songjun Wu <songjun.wu@microchip.com>,
+        Nicolas Ferre <nicolas.ferre@microchip.com>,
+        Alexandre Belloni <alexandre.belloni@free-electrons.com>,
+        Ludovic Desroches <ludovic.desroches@microchip.com>,
+        Kyungmin Park <kyungmin.park@samsung.com>,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        Kukjin Kim <kgene@kernel.org>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Todor Tomov <todor.tomov@linaro.org>,
+        Niklas =?iso-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund@ragnatech.se>,
+        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
+        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+        Maxime Coquelin <mcoquelin.stm32@gmail.com>,
+        Alexandre Torgue <alexandre.torgue@st.com>,
+        Benoit Parrot <bparrot@ti.com>,
+        Hyun Kwon <hyun.kwon@xilinx.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Michal Simek <michal.simek@xilinx.com>,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Petr Cvek <petr.cvek@tul.cz>,
+        Pravin Shedge <pravin.shedge4linux@gmail.com>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Sebastian Reichel <sre@kernel.org>,
+        "Gustavo A. R. Silva" <garsilva@embeddedor.com>,
         Tomasz Figa <tfiga@chromium.org>,
-        Shunqian Zheng <zhengsq@rock-chips.com>,
-        =?UTF-8?B?6ZKf5Lul5bSH?= <zyc@rock-chips.com>,
-        Eddie Cai <eddie.cai.linux@gmail.com>,
-        Jeffy Chen <jeffy.chen@rock-chips.com>,
-        Allon Huang <allon.huang@rock-chips.com>,
-        devicetree@vger.kernel.org, Heiko Stuebner <heiko@sntech.de>,
-        robh+dt@kernel.org, Joao Pinto <Joao.Pinto@synopsys.com>,
-        Luis Oliveira <Luis.Oliveira@synopsys.com>,
-        Jose Abreu <Jose.Abreu@synopsys.com>
-Content-Type: text/plain; charset="UTF-8"
+        linux-arm-kernel@lists.infradead.org,
+        linux-samsung-soc@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org, devel@driverdev.osuosl.org
+Subject: Re: [PATCH 3/8] media: v4l2-async: simplify v4l2_async_subdev
+ structure
+Message-ID: <20171219082717.3cs62f2lqaj4ib27@valkosipuli.retiisi.org.uk>
+References: <cover.1513625884.git.mchehab@s-opensource.com>
+ <014b64d13c8b9d516afc3319a9de1a97b2a845de.1513625884.git.mchehab@s-opensource.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <014b64d13c8b9d516afc3319a9de1a97b2a845de.1513625884.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+On Mon, Dec 18, 2017 at 05:53:57PM -0200, Mauro Carvalho Chehab wrote:
+> The V4L2_ASYNC_MATCH_FWNODE match criteria requires just one
+> struct to be filled (struct fwnode_handle). The V4L2_ASYNC_MATCH_DEVNAME
+> match criteria requires just a device name.
+> 
+> So, it doesn't make sense to enclose those into structs,
+> as the criteria can go directly into the union.
+> 
+> That makes easier to document it, as we don't need to document
+> weird senseless structs.
+> 
+> At drivers, this makes even clearer about the match criteria.
+> 
+> Acked-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 
-2017-12-12 0:45 GMT+08:00 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
-> Hello Jacob,
->
-> Thank you for the patch.
->
-> On Wednesday, 6 December 2017 13:19:34 EET Jacob Chen wrote:
->> From: Jacob Chen <jacob2.chen@rock-chips.com>
->>
->> Add DT bindings documentation for Rockchip MIPI D-PHY RX
->>
->> Signed-off-by: Jacob Chen <jacob2.chen@rock-chips.com>
->> ---
->>  .../bindings/media/rockchip-mipi-dphy.txt          | 71 +++++++++++++++++++
->>  1 file changed, 71 insertions(+)
->>  create mode 100644
->> Documentation/devicetree/bindings/media/rockchip-mipi-dphy.txt
->>
->> diff --git a/Documentation/devicetree/bindings/media/rockchip-mipi-dphy.txt
->> b/Documentation/devicetree/bindings/media/rockchip-mipi-dphy.txt new file
->> mode 100644
->> index 000000000000..cef9450db051
->> --- /dev/null
->> +++ b/Documentation/devicetree/bindings/media/rockchip-mipi-dphy.txt
->> @@ -0,0 +1,71 @@
->> +Rockchip SoC MIPI RX D-PHY
->> +-------------------------------------------------------------
->> +
->> +Required properties:
->> +
->> +- compatible: value should be one of the following
->> +    "rockchip,rk3288-mipi-dphy";
->> +    "rockchip,rk3399-mipi-dphy";
->> +- rockchip,grf: GRF regs.
->> +- bus-width : maximum number of data lanes supported (SoC specific);
->
-> Bus width isn't a standard property, should this be rockchip,data-lanes or
-> rockchip,#data-lanes ?
+I'm not sure this is needed but it doesn't break anything either.
 
-I forgot to remove it, it's no unnecessary now.
+Feel free to add:
 
->
->> +- clocks : list of clock specifiers, corresponding to entries in
->> +                 clock-names property;
->> +- clock-names: required clock name.
->> +
->> +The device node should contain two 'port' child node, according to the
->
-> s/child node/child nodes/
->
->> bindings
->> +defined in Documentation/devicetree/bindings/media/video-interfaces.txt.
->> +The first port should be connected to sensor nodes, and the second port
->> should be
->> +connected to isp node. The following are properties specific to those
->> nodes.
->> +
->> +endpoint node
->> +-------------
->> +
->> +- data-lanes : (required) an array specifying active physical MIPI-CSI2
->> +             data input lanes and their mapping to logical lanes; the
->> +             array's content is unused, only its length is meaningful;
->
-> I assume this means that the D-PHY can't reroute lanes. I would mention that
-> explicitly, and require that the data-lanes values start at one at are
-> consecutive instead of ignoring them.
->
->> +Device node example
->> +-------------------
->> +
->> +    mipi_dphy_rx0: mipi-dphy-rx0 {
->> +        compatible = "rockchip,rk3399-mipi-dphy";
->> +        clocks = <&cru SCLK_MIPIDPHY_REF>,
->> +            <&cru SCLK_DPHY_RX0_CFG>,
->> +            <&cru PCLK_VIO_GRF>;
->> +        clock-names = "dphy-ref", "dphy-cfg", "grf";
->> +        power-domains = <&power RK3399_PD_VIO>;
->> +        bus-width = <4>;
->> +
->> +        ports {
->> +            #address-cells = <1>;
->> +            #size-cells = <0>;
->> +
->> +            port@0 {
->> +                reg = <0>;
->> +                #address-cells = <1>;
->> +                #size-cells = <0>;
->> +
->> +                mipi_in_wcam: endpoint@0 {
->> +                    reg = <0>;
->> +                    remote-endpoint = <&wcam_out>;
->> +                    data-lanes = <1 2>;
->> +                };
->> +                mipi_in_ucam: endpoint@1 {
->> +                    reg = <1>;
->> +                    remote-endpoint = <&ucam_out>;
->> +                    data-lanes = <1>;
->> +                };
->
-> What do those two camera correspond to ? Can they be active at the same time,
-> or do they use the same data lanes ? If they use the same data lanes, how does
-> this work, is there a multiplexer on the board ?
->
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-They can not be active at the same time, and there is no multiplexer.
-If they use the same mipi phy, then only one sensor is allowed to be actived.
-
-See "MIPI Details" chapter
-http://opensource.rock-chips.com/wiki_Rockchip-isp1
-
-Let me enumerates soime hardware connections that is common in
-rockchip tablet desgin.
-
-rk3288:
--
-  ISP0 --> mipi TX1/RX1 --> front sensor
-           --> mipi RX0 --> rear sensor
-
--
-  ISP0 --> parallel --> front sensor
-           --> mipi RX0 --> rear sensor
-
-rk3399
--
-  mipi TX1/RX1 , mipi TX0 --> dual-mipi screen
-  ISP0 --> mipi RX0 --> front sensor
-                                --> rear sensor
--
-  ISP1 --> mipi TX1/RX1 --> front sensor
-  ISP0 --> mipi RX0 --> rear sensor
-
-
-Only the last connection allow two sensor work at same time.
-
-
->> +            };
->> +
->> +            port@1 {
->> +                reg = <1>;
->> +                #address-cells = <1>;
->> +                #size-cells = <0>;
->> +
->> +                dphy_rx0_out: endpoint@0 {
->> +                    reg = <0>;
->> +                    remote-endpoint = <&isp0_mipi_in>;
->> +                };
->> +            };
->> +        };
->> +    };
->> \ No newline at end of file
->
-> --
-> Regards,
->
-> Laurent Pinchart
->
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
