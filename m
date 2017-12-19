@@ -1,69 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f193.google.com ([209.85.216.193]:35507 "EHLO
-        mail-qt0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752574AbdLKS2D (ORCPT
+Received: from mailout1.samsung.com ([203.254.224.24]:44358 "EHLO
+        mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932888AbdLSDlg (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 11 Dec 2017 13:28:03 -0500
-From: Gustavo Padovan <gustavo@padovan.org>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        Pawel Osciak <pawel@osciak.com>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Brian Starkey <brian.starkey@arm.com>,
-        Thierry Escande <thierry.escande@collabora.com>,
-        linux-kernel@vger.kernel.org,
-        Gustavo Padovan <gustavo.padovan@collabora.com>
-Subject: [PATCH v6 2/6] [media] v4l: add 'unordered' flag to format description ioctl
-Date: Mon, 11 Dec 2017 16:27:37 -0200
-Message-Id: <20171211182741.29712-3-gustavo@padovan.org>
-In-Reply-To: <20171211182741.29712-1-gustavo@padovan.org>
-References: <20171211182741.29712-1-gustavo@padovan.org>
+        Mon, 18 Dec 2017 22:41:36 -0500
+Received: from epcas5p1.samsung.com (unknown [182.195.41.39])
+        by mailout1.samsung.com (KnoxPortal) with ESMTP id 20171219034134epoutp01c36e0ff836b527973b90e2e5b919454e~BlRtVSHYG2864228642epoutp014
+        for <linux-media@vger.kernel.org>; Tue, 19 Dec 2017 03:41:34 +0000 (GMT)
+From: Satendra Singh Thakur <satendra.t@samsung.com>
+To: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
+Cc: pawel@osciak.com, m.szyprowski@samsung.com,
+        kyungmin.park@samsung.com, mchehab@kernel.org,
+        satendra.t@samsung.com, madhur.verma@samsung.com,
+        hemanshu.s@samsung.com, sst2005@gmail.com
+Subject: [PATCH] [VB2-CORE] Fixed bug about unnecessary calls to queue
+ cancel and free
+Date: Tue, 19 Dec 2017 09:11:04 +0530
+Message-Id: <1513654864-27272-1-git-send-email-satendra.t@samsung.com>
+Content-Type: text/plain; charset="utf-8"
+References: <CGME20171219034133epcas5p27ff462d877ce8bf3a54b87061f3d832b@epcas5p2.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Gustavo Padovan <gustavo.padovan@collabora.com>
+-When the func vb2_core_reqbufs is called first time after
+ vb2_core_queue_init, the condition q->memory != memory
+ always gets satisfied since q->memory = 0 in
+ vb2_core_queue_init.
+-After the condition is true,
+ unnecessary calls to __vb2_queue_cancel and
+ __vb2_queue_free are done
+-In such case, *count is non-zero, q->num_buffers is zero
+ and q->memory is 0 which is not equal to  memory field
+ *count=N, q->num_buffers=0, q->memory != memory
 
-For explicit synchronization it important for userspace to know if the
-format being used by the driver can deliver the buffers back to userspace
-in the same order they were queued with QBUF.
-
-Ordered streams fits nicely in a pipeline with DRM for example, where
-ordered buffer are expected.
-
-Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
+Signed-off-by: Satendra Singh Thakur <satendra.t@samsung.com>
 ---
- Documentation/media/uapi/v4l/vidioc-enum-fmt.rst | 3 +++
- include/uapi/linux/videodev2.h                   | 1 +
- 2 files changed, 4 insertions(+)
+ drivers/media/v4l2-core/videobuf2-core.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/Documentation/media/uapi/v4l/vidioc-enum-fmt.rst b/Documentation/media/uapi/v4l/vidioc-enum-fmt.rst
-index 019c513df217..368115f44fc0 100644
---- a/Documentation/media/uapi/v4l/vidioc-enum-fmt.rst
-+++ b/Documentation/media/uapi/v4l/vidioc-enum-fmt.rst
-@@ -116,6 +116,9 @@ one until ``EINVAL`` is returned.
-       - This format is not native to the device but emulated through
- 	software (usually libv4l2), where possible try to use a native
- 	format instead for better performance.
-+    * - ``V4L2_FMT_FLAG_UNORDERED``
-+      - 0x0004
-+      - This is a format that doesn't guarantee timely order of frames.
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index a8589d9..b1140d5 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -662,7 +662,8 @@ int vb2_core_reqbufs(struct vb2_queue *q, enum vb2_memory memory,
+ 		return -EBUSY;
+ 	}
  
- 
- Return Value
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 1c095b5a99c5..a8ea632c14f0 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -709,6 +709,7 @@ struct v4l2_fmtdesc {
- 
- #define V4L2_FMT_FLAG_COMPRESSED 0x0001
- #define V4L2_FMT_FLAG_EMULATED   0x0002
-+#define V4L2_FMT_FLAG_UNORDERED  0x0004
- 
- 	/* Frame Size and frame rate enumeration */
- /*
+-	if (*count == 0 || q->num_buffers != 0 || q->memory != memory) {
++	if (*count == 0 || q->num_buffers != 0 ||
++		(q->memory && q->memory != memory)) {
+ 		/*
+ 		 * We already have buffers allocated, so first check if they
+ 		 * are not in use and can be freed.
 -- 
-2.13.6
+2.7.4
