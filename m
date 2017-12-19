@@ -1,77 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f194.google.com ([209.85.220.194]:36012 "EHLO
-        mail-qk0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933207AbdLRMbO (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:40102 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751198AbdLSPnR (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 18 Dec 2017 07:31:14 -0500
+        Tue, 19 Dec 2017 10:43:17 -0500
+Date: Tue, 19 Dec 2017 17:43:13 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Sebastian Reichel <sre@kernel.org>, mchehab@s-opensource.com,
+        laurent.pinchart@ideasonboard.com, ivo.g.dimitrov.75@gmail.com,
+        pali.rohar@gmail.com, linux-media@vger.kernel.org,
+        galak@codeaurora.org, mchehab@osg.samsung.com,
+        linux-kernel@vger.kernel.org, niklas.soderlund@ragnatech.se
+Subject: Re: [PATCH] media: add operation to get configuration of "the other
+ side" of the link
+Message-ID: <20171219154313.6dn3fauij7iw7rev@valkosipuli.retiisi.org.uk>
+References: <20161224152031.GA8420@amd>
+ <20170203123508.GA10286@amd>
+ <20170203130740.GB12291@valkosipuli.retiisi.org.uk>
+ <20170203210610.GA18379@amd>
+ <20170203213454.GD12291@valkosipuli.retiisi.org.uk>
+ <20170204215610.GA9243@amd>
+ <20170204223350.GF12291@valkosipuli.retiisi.org.uk>
+ <20170205211219.GA27072@amd>
+ <20170205234011.nyttcpurodvoztor@earth>
+ <20170206093748.GA17017@amd>
 MIME-Version: 1.0
-In-Reply-To: <1513556924.31581.51.camel@perches.com>
-References: <1513556924.31581.51.camel@perches.com>
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Date: Mon, 18 Dec 2017 14:31:12 +0200
-Message-ID: <CAHp75Vfw=AQHkiC7WhUkuytxG_reO8rmEfpA7z-2yAekFQ4AYQ@mail.gmail.com>
-Subject: Re: [trivial PATCH] treewide: Align function definition open/close braces
-To: Joe Perches <joe@perches.com>
-Cc: Jiri Kosina <trivial@kernel.org>,
-        Linus Torvalds <torvalds@linux-foundation.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>,
-        amd-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        MPT-FusionLinux.pdl@broadcom.com,
-        linux-scsi <linux-scsi@vger.kernel.org>,
-        netdev <netdev@vger.kernel.org>,
-        "open list:TI WILINK WIRELES..." <linux-wireless@vger.kernel.org>,
-        acpi4asus-user <acpi4asus-user@lists.sourceforge.net>,
-        Platform Driver <platform-driver-x86@vger.kernel.org>,
-        linux-rtc@vger.kernel.org,
-        Linux FS Devel <linux-fsdevel@vger.kernel.org>,
-        ocfs2-devel@oss.oracle.com, linux-xfs@vger.kernel.org,
-        linux-audit@redhat.com,
-        ALSA Development Mailing List <alsa-devel@alsa-project.org>,
-        linuxppc-dev <linuxppc-dev@lists.ozlabs.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20170206093748.GA17017@amd>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Dec 18, 2017 at 2:28 AM, Joe Perches <joe@perches.com> wrote:
-> Some functions definitions have either the initial open brace and/or
-> the closing brace outside of column 1.
->
-> Move those braces to column 1.
->
-> This allows various function analyzers like gnu complexity to work
-> properly for these modified functions.
->
-> Miscellanea:
->
-> o Remove extra trailing ; and blank line from xfs_agf_verify
->
-> Signed-off-by: Joe Perches <joe@perches.com>
+Hi Pavel,
 
->  drivers/platform/x86/eeepc-laptop.c                  |  2 +-
-
-> diff --git a/drivers/platform/x86/eeepc-laptop.c b/drivers/platform/x86/eeepc-laptop.c
-> index 5a681962899c..4c38904a8a32 100644
-> --- a/drivers/platform/x86/eeepc-laptop.c
-> +++ b/drivers/platform/x86/eeepc-laptop.c
-> @@ -492,7 +492,7 @@ static void eeepc_platform_exit(struct eeepc_laptop *eeepc)
->   * potentially bad time, such as a timer interrupt.
+On Mon, Feb 06, 2017 at 10:37:48AM +0100, Pavel Machek wrote:
+> 
+> Normally, link configuration can be determined at probe time... but
+> Nokia N900 has two cameras, and can switch between them at runtime, so
+> that mechanism is not suitable here.
+> 
+> Add a hook that tells us link configuration.
+> 
+> Signed-off-by: Pavel Machek <pavel@ucw.cz>
+> 
+> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+> index cf778c5..74148b9 100644
+> --- a/include/media/v4l2-subdev.h
+> +++ b/include/media/v4l2-subdev.h
+> @@ -25,6 +25,7 @@
+>  #include <media/v4l2-dev.h>
+>  #include <media/v4l2-fh.h>
+>  #include <media/v4l2-mediabus.h>
+> +#include <media/v4l2-of.h>
+>  
+>  /* generic v4l2_device notify callback notification values */
+>  #define V4L2_SUBDEV_IR_RX_NOTIFY		_IOW('v', 0, u32)
+> @@ -383,6 +384,8 @@ struct v4l2_mbus_frame_desc {
+>   * @s_rx_buffer: set a host allocated memory buffer for the subdev. The subdev
+>   *	can adjust @size to a lower value and must not write more data to the
+>   *	buffer starting at @data than the original value of @size.
+> + *
+> + * @g_endpoint_config: get link configuration required by this device.
 >   */
->  static void tpd_led_update(struct work_struct *work)
-> - {
-> +{
->         struct eeepc_laptop *eeepc;
->
->         eeepc = container_of(work, struct eeepc_laptop, tpd_led_work);
-> diff --git a/drivers/rtc/rtc-ab-b5ze-s3.c b/drivers/rtc/rtc-ab-b5ze-s3.c
-> index a319bf1e49de..ef5c16dfabfa 100644
+>  struct v4l2_subdev_video_ops {
+>  	int (*s_routing)(struct v4l2_subdev *sd, u32 input, u32 output, u32 config);
+> @@ -415,6 +418,8 @@ struct v4l2_subdev_video_ops {
+>  			     const struct v4l2_mbus_config *cfg);
+>  	int (*s_rx_buffer)(struct v4l2_subdev *sd, void *buf,
+>  			   unsigned int *size);
+> +	int (*g_endpoint_config)(struct v4l2_subdev *sd,
+> +			    struct v4l2_of_endpoint *cfg);
+>  };
+>  
+>  /**
+> 
+> 
+> 
+> 
 
-Acked-by: Andy Shevchenko <andy.shevchenko@gmail.com>
+I think Laurent has a board that has a similar issue.
 
-for PDx86 changes.
+I'd like to address such issues in conjunction with the CSI-2 virtual
+channel and data type support, with the patches in the vc branch here:
 
+<URL:https://git.linuxtv.org/sailus/media_tree.git/log/?h=vc>
+
+V4L2 OF (or fwnode) endpoint alone doesn't contain all the related
+information, and it'd be nice if the solution was indeed independent of OF
+(or fwnode).
+
+Niklas has been working on more driver support for this so we're getting
+closer to having these merged.
 
 -- 
-With Best Regards,
-Andy Shevchenko
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
