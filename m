@@ -1,50 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f175.google.com ([209.85.128.175]:46513 "EHLO
-        mail-wr0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751121AbdLMKF2 (ORCPT
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:49517 "EHLO
+        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751462AbdLSLSB (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 13 Dec 2017 05:05:28 -0500
-Received: by mail-wr0-f175.google.com with SMTP id x49so1555074wrb.13
-        for <linux-media@vger.kernel.org>; Wed, 13 Dec 2017 02:05:28 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <ca5b3cf7-c7d0-36d4-08ac-32a7a00afd7d@xs4all.nl>
-References: <cover.1513013948.git.joabreu@synopsys.com> <5f9eedfd6f91ed73ef0bb6d3977588d01478909f.1513013948.git.joabreu@synopsys.com>
- <108e2c3c-243f-cd67-2df7-57541b28ca39@xs4all.nl> <635e7d70-0edb-7506-c268-9ebbae1eb39e@synopsys.com>
- <ca5b3cf7-c7d0-36d4-08ac-32a7a00afd7d@xs4all.nl>
-From: Philippe Ombredanne <pombredanne@nexb.com>
-Date: Wed, 13 Dec 2017 11:04:46 +0100
-Message-ID: <CAOFm3uEeKGMgpnv0kNxazPHog-t2TcJQpLvGN+LjR4RAbo2J9Q@mail.gmail.com>
-Subject: Re: [PATCH v10 4/4] [media] platform: Add Synopsys DesignWare HDMI RX
- Controller Driver
-To: Jose Abreu <Jose.Abreu@synopsys.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>,
-        Joao Pinto <Joao.Pinto@synopsys.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sylwester Nawrocki <snawrocki@kernel.org>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Hans Verkuil <hverkuil@xs4all.nl>
+        Tue, 19 Dec 2017 06:18:01 -0500
+Message-ID: <1513682278.7538.6.camel@pengutronix.de>
+Subject: Re: iMX6q/coda encoder failures with ffmpeg/gstreamer m2m encoders
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Neil Armstrong <narmstrong@baylibre.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Date: Tue, 19 Dec 2017 12:17:58 +0100
+In-Reply-To: <8bfe88cc-28ec-fa07-5da3-614745ac125f@baylibre.com>
+References: <8bfe88cc-28ec-fa07-5da3-614745ac125f@baylibre.com>
 Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Jose,
+Hi Neil,
 
-On 12/12/17 17:02, Jose Abreu wrote:
-<snip>
+On Tue, 2017-11-21 at 10:50 +0100, Neil Armstrong wrote:
+> Hi,
+> 
+> I'm trying to make the coda960 h.264 encoder work on an i.MX6q SoC with Linux 4.14 and the 3.1.1 firmware.
+> 
+> # dmesg | grep coda
+> [    4.846574] coda 2040000.vpu: Direct firmware load for vpu_fw_imx6q.bin failed with error -2
+> [    4.901351] coda 2040000.vpu: Using fallback firmware vpu/vpu_fw_imx6q.bin
+> [    4.916039] coda 2040000.vpu: Firmware code revision: 46072
+> [    4.921641] coda 2040000.vpu: Initialized CODA960.
+> [    4.926589] coda 2040000.vpu: Firmware version: 3.1.1
+> [    4.932223] coda 2040000.vpu: codec registered as /dev/video[8-9]
+> 
+> Using gstreamer-plugins-good and the m2m v4l2 encoder, I have :
+> 
+> # gst-launch-1.0 videotestsrc num-buffers=1000 pattern=snow ! video/x-raw, framerate=30/1, width=1280, height=720 ! v4l2h264enc ! h264parse ! mp4mux ! filesink location=/dev/null
+> Setting pipeline to PAUSED ...
+> Pipeline is PREROLLING ...
+> Redistribute latency...
+> [ 1569.473717] coda 2040000.vpu: coda_s_fmt queue busy
+> ERROR: from element /GstPipeline:pipeline0/v4l2h264enc:v4l2h264enc0: Device '/dev/video8' is busy
+> Additional debug info:
+> ../../../gst-plugins-good-1.12.3/sys/v4l2/gstv4l2object.c(3609): gst_v4l2_object_set_format_full (): /GstPipeline:pipeline0/v4l2h264enc:v4l2h264enc0:
+> Call to S_FMT failed for YU12 @ 1280x720: Device or resource busy
+> ERROR: pipeline doesn't want to preroll.
+> Setting pipeline to NULL ...
+> Freeing pipeline ...
 
->>> Signed-off-by: Jose Abreu <joabreu@synopsys.com>
->>> Cc: Joao Pinto <jpinto@synopsys.com>
->>> Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
->>> Cc: Hans Verkuil <hans.verkuil@cisco.com>
->>> Cc: Sylwester Nawrocki <snawrocki@kernel.org>
->>> Cc: Sakari Ailus <sakari.ailus@iki.fi>
->>> Cc: Philippe Ombredanne <pombredanne@nexb.com>
->>> ---
->>> Changes from v9:
->>>     - Use SPDX License ID (Philippe)
+The coda driver does not allow S_FMT anymore, as soon as the buffers are
+allocated with REQBUFS:
 
-For the use of SPDX tags, thanks!
+https://bugzilla.gnome.org/show_bug.cgi?id=791338
 
-Acked-by: Philippe Ombredanne <pombredanne@nexB.com>
+regards
+Philipp
