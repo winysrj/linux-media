@@ -1,106 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eusmtp01.atmel.com ([212.144.249.242]:23434 "EHLO
-        eusmtp01.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752258AbdLKBhj (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:37028 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751578AbdLSLja (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 10 Dec 2017 20:37:39 -0500
-From: Wenyou Yang <wenyou.yang@microchip.com>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>
-CC: <linux-kernel@vger.kernel.org>,
-        Nicolas Ferre <nicolas.ferre@microchip.com>,
-        <devicetree@vger.kernel.org>, Sakari Ailus <sakari.ailus@iki.fi>,
-        Jonathan Corbet <corbet@lwn.net>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        <linux-arm-kernel@lists.infradead.org>,
-        "Linux Media Mailing List" <linux-media@vger.kernel.org>,
-        Wenyou Yang <wenyou.yang@microchip.com>
-Subject: [PATCH v9 1/2] media: ov7740: Document device tree bindings
-Date: Mon, 11 Dec 2017 09:31:45 +0800
-Message-ID: <20171211013146.2497-2-wenyou.yang@microchip.com>
-In-Reply-To: <20171211013146.2497-1-wenyou.yang@microchip.com>
-References: <20171211013146.2497-1-wenyou.yang@microchip.com>
+        Tue, 19 Dec 2017 06:39:30 -0500
+Date: Tue, 19 Dec 2017 13:39:27 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Tomasz Figa <tfiga@chromium.org>,
+        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
+        Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Subject: Re: [PATCH 2/8] media: v4l2-ioctl.h: convert debug into an enum of
+ bits
+Message-ID: <20171219113927.i2srypzhigkijetf@valkosipuli.retiisi.org.uk>
+References: <cover.1513625884.git.mchehab@s-opensource.com>
+ <333b63fa1857f6819ce64666beba969c22e2f468.1513625884.git.mchehab@s-opensource.com>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <333b63fa1857f6819ce64666beba969c22e2f468.1513625884.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add the device tree binding documentation for the ov7740 sensor driver.
+Hi Mauro,
 
-Signed-off-by: Wenyou Yang <wenyou.yang@microchip.com>
-Acked-by: Rob Herring <robh@kernel.org>
----
+On Mon, Dec 18, 2017 at 05:53:56PM -0200, Mauro Carvalho Chehab wrote:
+> The V4L2_DEV_DEBUG_IOCTL macros actually define a bitmask,
+> but without using Kernel's modern standards. Also,
+> documentation looks akward.
+> 
+> So, convert them into an enum with valid bits, adding
+> the correspoinding kernel-doc documentation for it.
 
-Changes in v9: None
-Changes in v8: None
-Changes in v7:
- - Add Acked-by tag.
+The pattern of using bits for flags is a well established one and I
+wouldn't deviate from that by requiring the use of the BIT() macro. There
+are no benefits that I can see from here but the approach brings additional
+risks: misuse of the flags and mimicing the same risky pattern.
 
-Changes in v6: None
-Changes in v5: None
-Changes in v4: None
-Changes in v3:
- - Explicitly document the "remote-endpoint" property.
+I'd also like to echo Laurent's concern that code is being changed in odd
+ways and not for itself, but due to deficiencies in documentation tools.
 
-Changes in v2: None
+I believe the tooling has to be improved to address this properly. That
+only needs to done once, compared to changing all flag definitions to
+enums.
 
- .../devicetree/bindings/media/i2c/ov7740.txt       | 47 ++++++++++++++++++++++
- 1 file changed, 47 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/i2c/ov7740.txt
+Another point I want to make is that the uAPI definitions cannot be
+changed: enums are thus an option in kAPI only. Improved KernelDoc tools
+would thus also allow improving uAPI macro documentation --- which is more
+important anyway.
 
-diff --git a/Documentation/devicetree/bindings/media/i2c/ov7740.txt b/Documentation/devicetree/bindings/media/i2c/ov7740.txt
-new file mode 100644
-index 000000000000..af781c3a5f0e
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/i2c/ov7740.txt
-@@ -0,0 +1,47 @@
-+* Omnivision OV7740 CMOS image sensor
-+
-+The Omnivision OV7740 image sensor supports multiple output image
-+size, such as VGA, and QVGA, CIF and any size smaller. It also
-+supports the RAW RGB and YUV output formats.
-+
-+The common video interfaces bindings (see video-interfaces.txt) should
-+be used to specify link to the image data receiver. The OV7740 device
-+node should contain one 'port' child node with an 'endpoint' subnode.
-+
-+Required Properties:
-+- compatible:	"ovti,ov7740".
-+- reg:		I2C slave address of the sensor.
-+- clocks:	Reference to the xvclk input clock.
-+- clock-names:	"xvclk".
-+
-+Optional Properties:
-+- reset-gpios: Rreference to the GPIO connected to the reset_b pin,
-+  if any. Active low with pull-ip resistor.
-+- powerdown-gpios: Reference to the GPIO connected to the pwdn pin,
-+  if any. Active high with pull-down resistor.
-+
-+Endpoint node mandatory properties:
-+- remote-endpoint: A phandle to the bus receiver's endpoint node.
-+
-+Example:
-+
-+	i2c1: i2c@fc028000 {
-+		ov7740: camera@21 {
-+			compatible = "ovti,ov7740";
-+			reg = <0x21>;
-+			pinctrl-names = "default";
-+			pinctrl-0 = <&pinctrl_sensor_power &pinctrl_sensor_reset>;
-+			clocks = <&isc>;
-+			clock-names = "xvclk";
-+			assigned-clocks = <&isc>;
-+			assigned-clock-rates = <24000000>;
-+			reset-gpios = <&pioA 43 GPIO_ACTIVE_LOW>;
-+			powerdown-gpios = <&pioA 44 GPIO_ACTIVE_HIGH>;
-+
-+			port {
-+				ov7740_0: endpoint {
-+					remote-endpoint = <&isc_0>;
-+				};
-+			};
-+		};
-+	};
 -- 
-2.15.0
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
