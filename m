@@ -1,156 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtprelay.synopsys.com ([198.182.60.111]:60872 "EHLO
-        smtprelay.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753146AbdLMOAS (ORCPT
+Received: from mx07-00178001.pphosted.com ([62.209.51.94]:48243 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750892AbdLSQSg (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 13 Dec 2017 09:00:18 -0500
-Subject: Re: [PATCH v10 4/4] [media] platform: Add Synopsys DesignWare HDMI RX
- Controller Driver
-To: Hans Verkuil <hverkuil@xs4all.nl>, <linux-media@vger.kernel.org>,
-        <linux-kernel@vger.kernel.org>
-References: <cover.1513013948.git.joabreu@synopsys.com>
- <5f9eedfd6f91ed73ef0bb6d3977588d01478909f.1513013948.git.joabreu@synopsys.com>
- <108e2c3c-243f-cd67-2df7-57541b28ca39@xs4all.nl>
- <635e7d70-0edb-7506-c268-9ebbae1eb39e@synopsys.com>
- <ca5b3cf7-c7d0-36d4-08ac-32a7a00afd7d@xs4all.nl>
-CC: Joao Pinto <Joao.Pinto@synopsys.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        "Sylwester Nawrocki" <snawrocki@kernel.org>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Philippe Ombredanne <pombredanne@nexb.com>
-From: Jose Abreu <Jose.Abreu@synopsys.com>
-Message-ID: <f5341c4b-43e2-12f6-9c9f-2385d47bb2fd@synopsys.com>
-Date: Wed, 13 Dec 2017 14:00:08 +0000
+        Tue, 19 Dec 2017 11:18:36 -0500
+From: Fabien DESSENNE <fabien.dessenne@st.com>
+To: Jia-Ju Bai <baijiaju1990@gmail.com>,
+        "mchehab@kernel.org" <mchehab@kernel.org>,
+        Benjamin GAIGNARD <benjamin.gaignard@st.com>,
+        "hverkuil@xs4all.nl" <hverkuil@xs4all.nl>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH V3 1/2] bdisp: Fix a possible sleep-in-atomic bug in
+ bdisp_hw_reset
+Date: Tue, 19 Dec 2017 16:18:30 +0000
+Message-ID: <cb34305e-ae6c-cc70-578d-3afbb676edd9@st.com>
+References: <1513691849-6378-1-git-send-email-baijiaju1990@gmail.com>
+In-Reply-To: <1513691849-6378-1-git-send-email-baijiaju1990@gmail.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="utf-8"
+Content-ID: <BA270002238D0D4C9E3EDD333272DD28@st.com>
+Content-Transfer-Encoding: base64
 MIME-Version: 1.0
-In-Reply-To: <ca5b3cf7-c7d0-36d4-08ac-32a7a00afd7d@xs4all.nl>
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
-
-On 13-12-2017 10:00, Hans Verkuil wrote:
-> On 12/12/17 17:02, Jose Abreu wrote:
->>
->>>> +static int dw_hdmi_s_routing(struct v4l2_subdev *sd, u32 input, u32 output,
->>>> +		u32 config)
->>>> +{
->>>> +	struct dw_hdmi_dev *dw_dev = to_dw_dev(sd);
->>>> +
->>>> +	if (!has_signal(dw_dev, input))
->>>> +		return -EINVAL;
->>> Why would this be a reason to reject this? There may be no signal now, but a signal
->>> might appear later.
->> I would expect s_routing to only be called if there is an input
->> connected, otherwise we are just wasting resources by trying to
->> equalize an input that is not present ... I can remove the "if"
->> as there are other safe guards for this though (for example g_fmt
->> will return an error) ...
-> No, s_routing is typically called as a result of a VIDIOC_S_INPUT
-> call, and that can come whether or not there is a signal on an
-> input. In fact, initially the first input is always selected anyway,
-> whether or not there is a signal.
->
-> g_fmt will just return the current configured format, this is unrelated
-> to whether or not there is a signal.
->
-> The only times the driver checks whether or not there is a signal (and
-> what that is) are:
->
-> 1) g_input_status
-> 2) query_dv_timings
-> 3) when the irq detects a signal change and sends V4L2_EVENT_SOURCE_CHANGE
-
-Ok, I will remove the checks then.
-
->
->>>> +	msleep(50); /* Wait for 1 field */
->>> How do you know this waits for 1 field? Or is this: "Wait for at least 1 field"?
->> Its wait at least for 1 field. This is over-generous because its
->> assuming the frame rate is 20fps (which in HDMI does not happen).
-> With custom timings it can happen (i.e. a 15 fps stream). Admittedly, it's not
-> common, but people sometimes use it.
->
->>> I don't know exactly how the IP does this, but it looks fishy to me. If it is
->>> correct, then it could use a few comments about what is going on here as it is
->>> not obvious.
->> The IP updates the values at each field but I need to change this
->> register to populate all values in the bt struct.
-> How do you know which field (top or bottom) you've captured? How do you know you
-> didn't miss e.g. the bottom field and instead end up with two top field measurements?
->
-> The top and bottom field are almost, but not quite the same. Typically the vertical
-> backporch of the fields differs by 1 where the second field's backporch is larger by 1 line.
->
->>> And what happens if the framerate is even slower? You know the pixelclock and
->>> total width+height, so you can calculate the framerate from that.
->> Hmm, but then I have to consider pixelclk error, msleep error, ...
-> But you have that now as well.
->
-> An alternative is to measure a single field and deduce the backporch values from that.
->
-> At least for all the common HDMI interlaced formats il_vbackporch is an even value and
-> vbackporch is il_vbackporch - 1.
->
-> So if you get an even backporch, then you found il_vbackporch, and if it is odd, then
-> you found vbackporch.
->
->>>> +	bt->vsync = hdmi_readl(dw_dev, HDMI_MD_VOL);
->>>> +
->>>> +	hdmi_mask_writel(dw_dev, 0x0, HDMI_MD_VCTRL,
->>>> +			HDMI_MD_VCTRL_V_OFFS_LIN_MODE_OFFSET,
->>>> +			HDMI_MD_VCTRL_V_OFFS_LIN_MODE_MASK);
->>>> +	msleep(50); /* Wait for 1 field */
->>>> +	bt->vbackporch = hdmi_readl(dw_dev, HDMI_MD_VOL);
->>>> +	bt->vfrontporch = vtot - bt->height - bt->vsync - bt->vbackporch;
->>>> +
->>>> +	if (bt->interlaced == V4L2_DV_INTERLACED) {
->>>> +		hdmi_mask_writel(dw_dev, 0x1, HDMI_MD_VCTRL,
->>>> +				HDMI_MD_VCTRL_V_MODE_OFFSET,
->>>> +				HDMI_MD_VCTRL_V_MODE_MASK);
->>>> +		msleep(100); /* Wait for 2 fields */
->>>> +
->>>> +		vtot = hdmi_readl(dw_dev, HDMI_MD_VTL);
->>>> +		hdmi_mask_writel(dw_dev, 0x1, HDMI_MD_VCTRL,
->>>> +				HDMI_MD_VCTRL_V_OFFS_LIN_MODE_OFFSET,
->>>> +				HDMI_MD_VCTRL_V_OFFS_LIN_MODE_MASK);
->>>> +		msleep(50); /* Wait for 1 field */
->>>> +		bt->il_vsync = hdmi_readl(dw_dev, HDMI_MD_VOL);
->>>> +
->>>> +		hdmi_mask_writel(dw_dev, 0x0, HDMI_MD_VCTRL,
->>>> +				HDMI_MD_VCTRL_V_OFFS_LIN_MODE_OFFSET,
->>>> +				HDMI_MD_VCTRL_V_OFFS_LIN_MODE_MASK);
->>>> +		msleep(50);
->>>> +		bt->il_vbackporch = hdmi_readl(dw_dev, HDMI_MD_VOL);
->>>> +		bt->il_vfrontporch = vtot - bt->height - bt->il_vsync -
->>>> +			bt->il_vbackporch;
->>>> +
->>>> +		hdmi_mask_writel(dw_dev, 0x0, HDMI_MD_VCTRL,
->>>> +				HDMI_MD_VCTRL_V_MODE_OFFSET,
->>>> +				HDMI_MD_VCTRL_V_MODE_MASK);
->>> Same here, I'm not sure this is correct. What is the output of
->>> 'v4l2-ctl --query-dv-timings' when you feed it a standard interlaced format?
->> I used v4l2-ctl --log-status with interlaced format and
->> everything seemed correct ...
-> Can you show a few examples? Is vbackport odd? And is il_vbackporch equal to vbackporch + 1?
->
-> Interlaced is tricky :-)
-
-Indeed. I compared the values with the spec and they are not
-correct. Even hsync is wrong. I already corrected in the code the
-hsync but regarding interlace I'm not seeing an easy way to do
-this without using interrupts in each vsync because the register
-I was toggling does not behave as I expected (I misunderstood the
-databook). Maybe we should not detect interlaced modes for now?
-Or not fill the il_ fields?
-
-Best Regards,
-Jose Miguel Abreu
-
->
-> Regards,
->
-> 	Hans
->
+SGksDQoNCg0KSXQncyBhbG1vc3QgZ29vZCENCg0KWW91IGhhdmUgdG8gZml4IHRoZXNlIGNoZWNr
+cGF0Y2ggV2FybmluZy9DaGVjazoNCg0KV0FSTklORzogQmxvY2sgY29tbWVudHMgdXNlIGEgdHJh
+aWxpbmcgKi8gb24gYSBzZXBhcmF0ZSBsaW5lDQojMzY6IEZJTEU6IGRyaXZlcnMvbWVkaWEvcGxh
+dGZvcm0vc3RpL2JkaXNwL2JkaXNwLWh3LmM6MzgzOg0KK8KgwqDCoCDCoCogbmVlZGluZyBhbnkg
+ZGVsYXlzICovDQoNCkNIRUNLOiBBbGlnbm1lbnQgc2hvdWxkIG1hdGNoIG9wZW4gcGFyZW50aGVz
+aXMNCiMzODogRklMRTogZHJpdmVycy9tZWRpYS9wbGF0Zm9ybS9zdGkvYmRpc3AvYmRpc3AtaHcu
+YzozODU6DQorwqDCoMKgIGlmIChyZWFkbF9wb2xsX3RpbWVvdXRfYXRvbWljKGJkaXNwLT5yZWdz
+ICsgQkxUX1NUQTEsIHRtcCwNCivCoMKgwqAgwqDCoMKgICh0bXAgJiBCTFRfU1RBMV9JRExFKSwg
+UE9MTF9SU1RfREVMQVlfTVMsDQoNCg0KIEZyb20ga2VybmVsIGRvY3VtZW50YXRpb24gaW4gdGhl
+ICJQb3N0aW5nIHBhdGNoZXMiIGNoYXB0ZXI6DQoNCiJZb3Ugc2hvdWxkIGFsd2F5cyBydW4gcGF0
+Y2hlcyB0aHJvdWdoIHNjcmlwdHMvY2hlY2twYXRjaC5wbCBhbmQgYWRkcmVzcyANCnRoZSBjb21w
+bGFpbnRzIGl0IGNvbWVzIHVwIHdpdGguIg0KDQpBbmQsIHBsZWFzZSB1c2UgdGhlIC0tc3RyaWN0
+IG9wdGlvbg0KDQpUaGFua3MgZm9yIHlvdXIgdW5kZXJzdGFuZGluZy4NCg0KQlINCg0KRmFiaWVu
+DQoNCk9uIDE5LzEyLzE3IDE0OjU3LCBKaWEtSnUgQmFpIHdyb3RlOg0KPiBUaGUgZHJpdmVyIG1h
+eSBzbGVlcCB1bmRlciBhIHNwaW5sb2NrLg0KPiBUaGUgZnVuY3Rpb24gY2FsbCBwYXRoIGlzOg0K
+PiBiZGlzcF9kZXZpY2VfcnVuIChhY3F1aXJlIHRoZSBzcGlubG9jaykNCj4gICAgYmRpc3BfaHdf
+cmVzZXQNCj4gICAgICBtc2xlZXAgLS0+IG1heSBzbGVlcA0KPg0KPiBUbyBmaXggaXQsIHJlYWRs
+X3BvbGxfdGltZW91dF9hdG9taWMgaXMgdXNlZCB0byByZXBsYWNlIG1zbGVlcC4NCj4NCj4gVGhp
+cyBidWcgaXMgZm91bmQgYnkgbXkgc3RhdGljIGFuYWx5c2lzIHRvb2woRFNBQykgYW5kDQo+IGNo
+ZWNrZWQgYnkgbXkgY29kZSByZXZpZXcuDQo+DQo+IFNpZ25lZC1vZmYtYnk6IEppYS1KdSBCYWkg
+PGJhaWppYWp1MTk5MEBnbWFpbC5jb20+DQo+IC0tLQ0KPiAgIGRyaXZlcnMvbWVkaWEvcGxhdGZv
+cm0vc3RpL2JkaXNwL2JkaXNwLWh3LmMgfCAgIDIzICsrKysrKysrKysrKy0tLS0tLS0tLS0tDQo+
+ICAgMSBmaWxlIGNoYW5nZWQsIDEyIGluc2VydGlvbnMoKyksIDExIGRlbGV0aW9ucygtKQ0KPg0K
+PiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9tZWRpYS9wbGF0Zm9ybS9zdGkvYmRpc3AvYmRpc3AtaHcu
+YyBiL2RyaXZlcnMvbWVkaWEvcGxhdGZvcm0vc3RpL2JkaXNwL2JkaXNwLWh3LmMNCj4gaW5kZXgg
+Yjc4OTJmMy4uYjYzZDljOSAxMDA2NDQNCj4gLS0tIGEvZHJpdmVycy9tZWRpYS9wbGF0Zm9ybS9z
+dGkvYmRpc3AvYmRpc3AtaHcuYw0KPiArKysgYi9kcml2ZXJzL21lZGlhL3BsYXRmb3JtL3N0aS9i
+ZGlzcC9iZGlzcC1ody5jDQo+IEBAIC00LDcgKzQsNyBAQA0KPiAgICAqIExpY2Vuc2UgdGVybXM6
+ICBHTlUgR2VuZXJhbCBQdWJsaWMgTGljZW5zZSAoR1BMKSwgdmVyc2lvbiAyDQo+ICAgICovDQo+
+ICAgDQo+IC0jaW5jbHVkZSA8bGludXgvZGVsYXkuaD4NCj4gKyNpbmNsdWRlIDxsaW51eC9pb3Bv
+bGwuaD4NCj4gICANCj4gICAjaW5jbHVkZSAiYmRpc3AuaCINCj4gICAjaW5jbHVkZSAiYmRpc3At
+ZmlsdGVyLmgiDQo+IEBAIC0xNSw3ICsxNSw3IEBADQo+ICAgDQo+ICAgLyogUmVzZXQgJiBib290
+IHBvbGwgY29uZmlnICovDQo+ICAgI2RlZmluZSBQT0xMX1JTVF9NQVggICAgICAgICAgICA1MA0K
+PiAtI2RlZmluZSBQT0xMX1JTVF9ERUxBWV9NUyAgICAgICAyMA0KPiArI2RlZmluZSBQT0xMX1JT
+VF9ERUxBWV9VUyAgICAgICAyMDAwMA0KPiAgIA0KPiAgIGVudW0gYmRpc3BfdGFyZ2V0X3BsYW4g
+ew0KPiAgIAlCRElTUF9SR0IsDQo+IEBAIC0zNjYsNyArMzY2LDcgQEAgc3RydWN0IGJkaXNwX2Zp
+bHRlcl9hZGRyIHsNCj4gICAgKi8NCj4gICBpbnQgYmRpc3BfaHdfcmVzZXQoc3RydWN0IGJkaXNw
+X2RldiAqYmRpc3ApDQo+ICAgew0KPiAtCXVuc2lnbmVkIGludCBpOw0KPiArCXUzMiB0bXA7DQo+
+ICAgDQo+ICAgCWRldl9kYmcoYmRpc3AtPmRldiwgIiVzXG4iLCBfX2Z1bmNfXyk7DQo+ICAgDQo+
+IEBAIC0zNzgsMTYgKzM3OCwxNyBAQCBpbnQgYmRpc3BfaHdfcmVzZXQoc3RydWN0IGJkaXNwX2Rl
+diAqYmRpc3ApDQo+ICAgCSAgICAgICBiZGlzcC0+cmVncyArIEJMVF9DVEwpOw0KPiAgIAl3cml0
+ZWwoMCwgYmRpc3AtPnJlZ3MgKyBCTFRfQ1RMKTsNCj4gICANCj4gLQkvKiBXYWl0IGZvciByZXNl
+dCBkb25lICovDQo+IC0JZm9yIChpID0gMDsgaSA8IFBPTExfUlNUX01BWDsgaSsrKSB7DQo+IC0J
+CWlmIChyZWFkbChiZGlzcC0+cmVncyArIEJMVF9TVEExKSAmIEJMVF9TVEExX0lETEUpDQo+IC0J
+CQlicmVhazsNCj4gLQkJbXNsZWVwKFBPTExfUlNUX0RFTEFZX01TKTsNCj4gLQl9DQo+IC0JaWYg
+KGkgPT0gUE9MTF9SU1RfTUFYKQ0KPiArCS8qIFdhaXQgZm9yIHJlc2V0IGRvbmUuDQo+ICsJICog
+RGVzcGl0ZSB0aGUgbGFyZ2UgdGltZW91dCwgbW9zdCBvZiB0aGUgdGltZSB0aGUgcmVzZXQgaGFw
+cGVucyB3aXRob3V0DQo+ICsJICogbmVlZGluZyBhbnkgZGVsYXlzICovDQoNCnNoYWxsIGJlDQoN
+CisJICogbmVlZGluZyBhbnkgZGVsYXlzDQoNCisJICovDQoNCj4gKwlpZiAocmVhZGxfcG9sbF90
+aW1lb3V0X2F0b21pYyhiZGlzcC0+cmVncyArIEJMVF9TVEExLCB0bXAsDQo+ICsJCSh0bXAgJiBC
+TFRfU1RBMV9JRExFKSwgUE9MTF9SU1RfREVMQVlfVVMsDQo+ICsJCQlQT0xMX1JTVF9ERUxBWV9V
+UyAqIFBPTExfUlNUX01BWCkpIHsNCg0Kc2hhbGwgYmU6DQoNCisJaWYgKHJlYWRsX3BvbGxfdGlt
+ZW91dF9hdG9taWMoYmRpc3AtPnJlZ3MgKyBCTFRfU1RBMSwgdG1wLA0KKwkJCQkgICAgICB0bXAg
+JiBCTFRfU1RBMV9JRExFLCBQT0xMX1JTVF9ERUxBWV9VUywNCisJCQkJICAgICAgUE9MTF9SU1Rf
+REVMQVlfVVMgKiBQT0xMX1JTVF9NQVgpKSB7DQoNCj4gICAJCWRldl9lcnIoYmRpc3AtPmRldiwg
+IlJlc2V0IHRpbWVvdXRcbiIpOw0KPiArCQlyZXR1cm4gLUVBR0FJTjsNCj4gKwl9DQo+ICAgDQo+
+IC0JcmV0dXJuIChpID09IFBPTExfUlNUX01BWCkgPyAtRUFHQUlOIDogMDsNCj4gKwlyZXR1cm4g
+MDsNCj4gICB9DQo+ICAgDQo+ICAgLyoqDQo=
