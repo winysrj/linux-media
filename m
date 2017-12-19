@@ -1,86 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f195.google.com ([209.85.192.195]:39581 "EHLO
-        mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754617AbdLOBFp (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 14 Dec 2017 20:05:45 -0500
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: Philipp Zabel <p.zabel@pengutronix.de>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        linux-kernel@vger.kernel.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH v2 8/9] media: staging/imx: reorder function prototypes
-Date: Thu, 14 Dec 2017 17:04:46 -0800
-Message-Id: <1513299887-16804-9-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1513299887-16804-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1513299887-16804-1-git-send-email-steve_longerbeam@mentor.com>
+Received: from osg.samsung.com ([64.30.133.232]:49981 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1762318AbdLSLnm (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 19 Dec 2017 06:43:42 -0500
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Kyungmin Park <kyungmin.park@samsung.com>,
+        Andrzej Hajda <a.hajda@samsung.com>
+Subject: [PATCH] media: s5c73m3-core: fix logic on a timeout condition
+Date: Tue, 19 Dec 2017 06:43:37 -0500
+Message-Id: <fca33cac3228e9424663705f35f4376b9763f643.1513683814.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Re-order some of the function prototypes in imx-media.h to
-group them correctly by source file. No functional changes.
+As warned by smatch:
+	drivers/media/i2c/s5c73m3/s5c73m3-core.c:268 s5c73m3_check_status() error: uninitialized symbol 'status'.
 
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+if s5c73m3_check_status() is called too late, time_is_after_jiffies(end)
+will return 0, causing the while to abort before reading status.
+
+The current code will do the wrong thing here, as it will still
+check if status != value. The right fix here is to change
+the logic to ensure that it will always read the status.
+
+Suggested-by: Andrzej Hajda <a.hajda@samsung.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
- drivers/staging/media/imx/imx-media.h | 21 ++++++++++++---------
- 1 file changed, 12 insertions(+), 9 deletions(-)
+ drivers/media/i2c/s5c73m3/s5c73m3-core.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/staging/media/imx/imx-media.h b/drivers/staging/media/imx/imx-media.h
-index ebb24b1..2fd6dfd 100644
---- a/drivers/staging/media/imx/imx-media.h
-+++ b/drivers/staging/media/imx/imx-media.h
-@@ -157,6 +157,7 @@ enum codespace_sel {
- 	CS_SEL_ANY,
- };
+diff --git a/drivers/media/i2c/s5c73m3/s5c73m3-core.c b/drivers/media/i2c/s5c73m3/s5c73m3-core.c
+index cdc4f2392ef9..ce196b60f917 100644
+--- a/drivers/media/i2c/s5c73m3/s5c73m3-core.c
++++ b/drivers/media/i2c/s5c73m3/s5c73m3-core.c
+@@ -248,17 +248,17 @@ static int s5c73m3_check_status(struct s5c73m3 *state, unsigned int value)
+ {
+ 	unsigned long start = jiffies;
+ 	unsigned long end = start + msecs_to_jiffies(2000);
+-	int ret = 0;
++	int ret;
+ 	u16 status;
+ 	int count = 0;
  
-+/* imx-media-utils.c */
- const struct imx_media_pixfmt *
- imx_media_find_format(u32 fourcc, enum codespace_sel cs_sel, bool allow_bayer);
- int imx_media_enum_format(u32 *fourcc, u32 index, enum codespace_sel cs_sel);
-@@ -181,17 +182,8 @@ int imx_media_mbus_fmt_to_ipu_image(struct ipu_image *image,
- 				    struct v4l2_mbus_framefmt *mbus);
- int imx_media_ipu_image_to_mbus_fmt(struct v4l2_mbus_framefmt *mbus,
- 				    struct ipu_image *image);
--int imx_media_add_async_subdev(struct imx_media_dev *imxmd,
--			       struct fwnode_handle *fwnode,
--			       struct platform_device *pdev);
- void imx_media_grp_id_to_sd_name(char *sd_name, int sz,
- 				 u32 grp_id, int ipu_id);
--
--int imx_media_add_internal_subdevs(struct imx_media_dev *imxmd);
--int imx_media_create_internal_links(struct imx_media_dev *imxmd,
--				    struct v4l2_subdev *sd);
--void imx_media_remove_internal_subdevs(struct imx_media_dev *imxmd);
--
- struct v4l2_subdev *
- imx_media_find_subdev_by_fwnode(struct imx_media_dev *imxmd,
- 				struct fwnode_handle *fwnode);
-@@ -227,6 +219,11 @@ int imx_media_pipeline_set_stream(struct imx_media_dev *imxmd,
- 				  struct media_entity *entity,
- 				  bool on);
+-	while (time_is_after_jiffies(end)) {
++	do {
+ 		ret = s5c73m3_read(state, REG_STATUS, &status);
+ 		if (ret < 0 || status == value)
+ 			break;
+ 		usleep_range(500, 1000);
+ 		++count;
+-	}
++	} while (time_is_after_jiffies(end));
  
-+/* imx-media-dev.c */
-+int imx_media_add_async_subdev(struct imx_media_dev *imxmd,
-+			       struct fwnode_handle *fwnode,
-+			       struct platform_device *pdev);
-+
- /* imx-media-fim.c */
- struct imx_media_fim;
- void imx_media_fim_eof_monitor(struct imx_media_fim *fim, ktime_t timestamp);
-@@ -237,6 +234,12 @@ int imx_media_fim_add_controls(struct imx_media_fim *fim);
- struct imx_media_fim *imx_media_fim_init(struct v4l2_subdev *sd);
- void imx_media_fim_free(struct imx_media_fim *fim);
- 
-+/* imx-media-internal-sd.c */
-+int imx_media_add_internal_subdevs(struct imx_media_dev *imxmd);
-+int imx_media_create_internal_links(struct imx_media_dev *imxmd,
-+				    struct v4l2_subdev *sd);
-+void imx_media_remove_internal_subdevs(struct imx_media_dev *imxmd);
-+
- /* imx-media-of.c */
- int imx_media_add_of_subdevs(struct imx_media_dev *dev,
- 			     struct device_node *np);
+ 	if (count > 0)
+ 		v4l2_dbg(1, s5c73m3_dbg, &state->sensor_sd,
 -- 
-2.7.4
+2.14.3
