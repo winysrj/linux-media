@@ -1,118 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:51841 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1757336AbdLQRGp (ORCPT
+Received: from bombadil.infradead.org ([65.50.211.133]:49818 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1760132AbdLSJk3 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 17 Dec 2017 12:06:45 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        niklas.soderlund@ragnatech.se, kieran.bingham@ideasonboard.com,
-        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
-Subject: Re: [PATCH 5/5] v4l2: async: Add debug output to v4l2-async module
-Date: Sun, 17 Dec 2017 19:06:53 +0200
-Message-ID: <1992887.AuUDQKKNvA@avalon>
-In-Reply-To: <20171215161704.lnsaut4d2nxliaca@paasikivi.fi.intel.com>
-References: <1513189580-32202-1-git-send-email-jacopo+renesas@jmondi.org> <1513189580-32202-6-git-send-email-jacopo+renesas@jmondi.org> <20171215161704.lnsaut4d2nxliaca@paasikivi.fi.intel.com>
+        Tue, 19 Dec 2017 04:40:29 -0500
+Date: Tue, 19 Dec 2017 07:40:23 -0200
+From: Mauro Carvalho Chehab <mchehab@kernel.org>
+To: Fabien DESSENNE <fabien.dessenne@st.com>
+Cc: Jia-Ju Bai <baijiaju1990@gmail.com>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "Benjamin GAIGNARD" <benjamin.gaignard@st.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [PATCH 1/2] bdisp: Fix a possible sleep-in-atomic bug in
+ bdisp_hw_reset
+Message-ID: <20171219074023.5141e39e@recife.lan>
+In-Reply-To: <9998c82a-fe50-49c1-3e0f-0719bd6abde4@st.com>
+References: <1513086445-29265-1-git-send-email-baijiaju1990@gmail.com>
+        <0370257c-ce0c-792f-6c85-50ebc18975f9@st.com>
+        <abd7b14d-cda6-ab67-3c5b-7cbd0dbaa336@gmail.com>
+        <20171216121427.6307c584@recife.lan>
+        <9998c82a-fe50-49c1-3e0f-0719bd6abde4@st.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Em Tue, 19 Dec 2017 09:01:41 +0000
+Fabien DESSENNE <fabien.dessenne@st.com> escreveu:
 
-On Friday, 15 December 2017 18:17:04 EET Sakari Ailus wrote:
-> On Wed, Dec 13, 2017 at 07:26:20PM +0100, Jacopo Mondi wrote:
-> > The v4l2-async module operations are quite complex to follow, due to the
-> > asynchronous nature of subdevices and notifiers registration and
-> > matching procedures. In order to help with debugging of failed or
-> > erroneous matching between a subdevice and the notifier collected
-> > async_subdevice it gets matched against, introduce a few dev_dbg() calls
-> > in v4l2_async core operations.
-> > 
-> > Protect the debug operations with a Kconfig defined symbol, to make sure
-> > when debugging is disabled, no additional code or data is added to the
-> > module.
-> > 
-> > Notifiers are identified by the name of the subdevice or v4l2_dev they are
-> > registered by, while subdevice matching which now happens on endpoints,
-> > need a longer description built walking the fwnode graph backwards
-> > collecting parent nodes names (otherwise we would have had printouts
-> > like: "Matching "endpoint" with "endpoint"" which are not that useful).
-> > 
-> > Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
-> > 
-> > ---
-> > For fwnodes backed by OF, I may have used the "%pOF" format modifier to
-> > get the full node name instead of parsing the fwnode graph by myself with
-> > "v4l2_async_fwnode_full_name()". Unfortunately I'm not aware of anything
-> > like "%pOF" for ACPI backed fwnodes. Also, walking the fwnode graph by
-> > myself allows me to reduce the depth, to reduce the debug messages output
-> > length which is anyway long enough to result disturbing on a 80columns
-> > terminal window.
+> On 16/12/17 15:14, Mauro Carvalho Chehab wrote:
+> > Em Sat, 16 Dec 2017 19:53:55 +0800
+> > Jia-Ju Bai <baijiaju1990@gmail.com> escreveu:
+> >  
+> >> Hi,
+> >>
+> >> On 2017/12/15 22:51, Fabien DESSENNE wrote:  
+> >>> Hi
+> >>>
+> >>> On 12/12/17 14:47, Jia-Ju Bai wrote:  
+> >>>> The driver may sleep under a spinlock.
+> >>>> The function call path is:
+> >>>> bdisp_device_run (acquire the spinlock)
+> >>>>      bdisp_hw_reset
+> >>>>        msleep --> may sleep
+> >>>>
+> >>>> To fix it, msleep is replaced with mdelay.  
+> >>> May I suggest you to use readl_poll_timeout_atomic (instead of the whole
+> >>> "for" block): this fixes the problem and simplifies the code?  
+> >> Okay, I have submitted a patch according to your advice.
+> >> You can have a look :)  
+> > This can still be usind mdelay() to wait for a long time.
+> >
+> > It doesn't seem wise to do that, as it could cause system
+> > contention. Couldn't this be reworked in a way to avoid
+> > having the spin locked while sleeping?
+> >
+> > Once we had a similar issue on Siano, and it was solved by this
+> >
+> > commit 3cdadc50bbe8f04c1231c8af614cafd7ddd622bf
+> > Author: Richard Zidlicky <rz@linux-m68k.org>
+> > Date:   Tue Aug 24 09:52:36 2010 -0300
+> >
+> >      V4L/DVB: dvb: fix smscore_getbuffer() logic
+> >      
+> >      Drivers shouldn't sleep while holding a spinlock. A previous workaround
+> >      were to release the spinlock before callinc schedule().
+> >      
+> >      This patch uses a different approach: it just waits for the
+> >      siano hardware to answer.
+> >      
+> >      Signed-off-by: Richard Zidlicky <rz@linux-m68k.org>
+> >      Cc: stable@kernel.org
+> >      Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+> >
+> > The code as changed to use wait_event() at the kthread that was
+> > waiting for data to arrive. Only when the data is ready, the
+> > code with the spin lock is called.
+> >
+> > It made the driver a way more stable, and didn't add any penalties
+> > of needing to do long delays on a non-interruptible code.
+> >
+> > Thanks,
+> > Mauro  
+> I have checked what was done there but I cannot see a simple way to do 
+> the same in bdisp where the context is a bit different (the lock is 
+> taken out in the central device_run, not locally in hw_reset) without 
+> taking the risk to have unexpected side effects
 > 
-> ACPI doesn't have such at the moment. I think printing the full path would
-> still be better. There isn't that much more to print after all.
+> Moreover, the bdisp_hw_reset() function called from bdisp_device_run is 
+> not expected to last for a long time. The "one second" delay we are 
+> talking about is a very large timeout protection. From my past 
+> observations, the reset is applied instantly and we even never reach the 
+> msleep() call (not saying it never happens).
 > 
-> > ---
-> > 
-> >  drivers/media/v4l2-core/Kconfig      |  8 ++++
-> >  drivers/media/v4l2-core/v4l2-async.c | 81 +++++++++++++++++++++++++++++++
-> >  2 files changed, 89 insertions(+)
-> > 
-> > diff --git a/drivers/media/v4l2-core/Kconfig
-> > b/drivers/media/v4l2-core/Kconfig index a35c336..8331736 100644
-> > --- a/drivers/media/v4l2-core/Kconfig
-> > +++ b/drivers/media/v4l2-core/Kconfig
-> > @@ -17,6 +17,14 @@ config VIDEO_ADV_DEBUG
-> >  	  V4L devices.
-> >  	  In doubt, say N.
-> > 
-> > +config VIDEO_V4L2_ASYNC_DEBUG
-> > +	bool "Enable debug functionalities for V4L2 async module"
-> > +	depends on VIDEO_V4L2
-> 
-> I'm not sure I'd add a Kconfig option. This is adding a fairly simple
-> function only to the kernel.
-> 
-> > +	default n
-> > +	---help---
-> > +	  Say Y here to enable debug output in V4L2 async module.
-> > +	  In doubt, say N.
-> > +
-> >  config VIDEO_FIXED_MINOR_RANGES
-> >  	bool "Enable old-style fixed minor ranges on drivers/video devices"
-> >  	default n
-> > diff --git a/drivers/media/v4l2-core/v4l2-async.c
-> > b/drivers/media/v4l2-core/v4l2-async.c index c13a781..307e1a5 100644
-> > --- a/drivers/media/v4l2-core/v4l2-async.c
-> > +++ b/drivers/media/v4l2-core/v4l2-async.c
-> > @@ -8,6 +8,10 @@
-> >   * published by the Free Software Foundation.
-> >   */
-> > 
-> > +#if defined(CONFIG_VIDEO_V4L2_ASYNC_DEBUG)
-> > +#define DEBUG
-> 
-> Do you need this?
+> For those two reasons, using readl_poll_timeout_atomic() seems to be the 
+> best option.
 
-No this isn't needed. Debugging can be enabled through dynamic debug without 
-requiring the Kconfig option. A Kconfig option might be useful to avoid 
-compiling the debug code in kernels that have dynamic debug enabled, but those 
-are large already and the amount of debug code here is limited, so I don't 
-think it's worth it.
+OK. The best is then to document it at the source code, for others
+to be aware, while reviewing the code, that, despite the large timeout, 
+most of the time the reset happens without needing any delays.
 
-> > +#endif
-> > +
-> > 
-> >  #include <linux/device.h>
-> >  #include <linux/err.h>
-> >  #include <linux/i2c.h>
-
-[snip]
-
--- 
-Regards,
-
-Laurent Pinchart
+Thanks,
+Mauro
