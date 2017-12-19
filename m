@@ -1,52 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:45921 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751713AbdLSRRC (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 19 Dec 2017 12:17:02 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
-        Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Subject: Re: [PATCH 2/8] media: v4l2-ioctl.h: convert debug into an enum of bits
-Date: Tue, 19 Dec 2017 19:17:12 +0200
-Message-ID: <2448808.QM7caob540@avalon>
-In-Reply-To: <20171219133758.6cf22460@vento.lan>
-References: <cover.1513625884.git.mchehab@s-opensource.com> <20171219141235.mgiyoeeiyfn2z4zh@paasikivi.fi.intel.com> <20171219133758.6cf22460@vento.lan>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mga07.intel.com ([134.134.136.100]:7274 "EHLO mga07.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753127AbdLSVIS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 19 Dec 2017 16:08:18 -0500
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: Alan Cox <alan@linux.intel.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        devel@driverdev.osuosl.org, Kristian Beilke <beilke@posteo.de>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v1 01/10] staging: atomisp: Don't leak GPIO resources if clk_get() failed
+Date: Tue, 19 Dec 2017 22:59:48 +0200
+Message-Id: <20171219205957.10933-1-andriy.shevchenko@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+In case devm_clk_get() call fails the previously requested GPIOs are
+left requested.
 
-On Tuesday, 19 December 2017 17:37:58 EET Mauro Carvalho Chehab wrote:
-> Em Tue, 19 Dec 2017 16:12:35 +0200 Sakari Ailus escreveu:
-> > On Tue, Dec 19, 2017 at 04:02:02PM +0200, Laurent Pinchart wrote:
-> >> And furthermore using enum types in the uAPI is a bad idea as the enum
-> >> size is architecture-dependent. That's why we use integer types in
-> >> structures used as ioctl arguments.
-> > 
-> > I guess we have an argeement on that, enums are a no-go for uAPI, for
-> > reasons not related to the topic at hand.
-> 
-> Huh? We're not talking about uAPI. This is kAPI. Using enums there is OK.
+Fix this by moving GPIO request code after devm_clk_get() call.
 
-Sure, there's no disagreement about that. The point was that, as both uAPI and 
-kAPI should be documented, and we can't use enums for uAPI, we need a way to 
-document non-enum types, which we could then use to document the kAPI the same 
-way.
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+---
+ .../staging/media/atomisp/platform/intel-mid/atomisp_gmin_platform.c  | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
+diff --git a/drivers/staging/media/atomisp/platform/intel-mid/atomisp_gmin_platform.c b/drivers/staging/media/atomisp/platform/intel-mid/atomisp_gmin_platform.c
+index bf9f34b7ad72..a5d0dd88a8bc 100644
+--- a/drivers/staging/media/atomisp/platform/intel-mid/atomisp_gmin_platform.c
++++ b/drivers/staging/media/atomisp/platform/intel-mid/atomisp_gmin_platform.c
+@@ -322,8 +322,6 @@ static struct gmin_subdev *gmin_subdev_add(struct v4l2_subdev *subdev)
+ 							VLV2_CLK_PLL_19P2MHZ);
+ 	gmin_subdevs[i].csi_port = gmin_get_var_int(dev, "CsiPort", 0);
+ 	gmin_subdevs[i].csi_lanes = gmin_get_var_int(dev, "CsiLanes", 1);
+-	gmin_subdevs[i].gpio0 = gpiod_get_index(dev, NULL, 0, GPIOD_OUT_LOW);
+-	gmin_subdevs[i].gpio1 = gpiod_get_index(dev, NULL, 1, GPIOD_OUT_LOW);
+ 
+ 	/* get PMC clock with clock framework */
+ 	snprintf(gmin_pmc_clk_name,
+@@ -356,9 +354,11 @@ static struct gmin_subdev *gmin_subdev_add(struct v4l2_subdev *subdev)
+ 	if (!ret)
+ 		clk_disable_unprepare(gmin_subdevs[i].pmc_clk);
+ 
++	gmin_subdevs[i].gpio0 = gpiod_get_index(dev, NULL, 0, GPIOD_OUT_LOW);
+ 	if (IS_ERR(gmin_subdevs[i].gpio0))
+ 		gmin_subdevs[i].gpio0 = NULL;
+ 
++	gmin_subdevs[i].gpio1 = gpiod_get_index(dev, NULL, 1, GPIOD_OUT_LOW);
+ 	if (IS_ERR(gmin_subdevs[i].gpio1))
+ 		gmin_subdevs[i].gpio1 = NULL;
+ 
 -- 
-Regards,
-
-Laurent Pinchart
+2.15.1
