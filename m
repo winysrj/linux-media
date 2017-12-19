@@ -1,47 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f195.google.com ([209.85.128.195]:44925 "EHLO
-        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1758560AbdLROLz (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:43996 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S935389AbdLSOBw (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 18 Dec 2017 09:11:55 -0500
-From: Philipp Rossak <embed3d@gmail.com>
-To: mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
-        maxime.ripard@free-electrons.com, wens@csie.org,
-        linux@armlinux.org.uk, sean@mess.org, p.zabel@pengutronix.de,
-        andi.shyti@samsung.com
-Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-sunxi@googlegroups.com
-Subject: [PATCH v2 3/6] arm: dts: sun8i: a83t: Add the cir pin for the A83T
-Date: Mon, 18 Dec 2017 15:11:43 +0100
-Message-Id: <20171218141146.23746-4-embed3d@gmail.com>
-In-Reply-To: <20171218141146.23746-1-embed3d@gmail.com>
-References: <20171218141146.23746-1-embed3d@gmail.com>
+        Tue, 19 Dec 2017 09:01:52 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Tomasz Figa <tfiga@chromium.org>,
+        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
+        Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Subject: Re: [PATCH 2/8] media: v4l2-ioctl.h: convert debug into an enum of bits
+Date: Tue, 19 Dec 2017 16:02:02 +0200
+Message-ID: <1615432.c1z8s9p1mm@avalon>
+In-Reply-To: <20171219113927.i2srypzhigkijetf@valkosipuli.retiisi.org.uk>
+References: <cover.1513625884.git.mchehab@s-opensource.com> <333b63fa1857f6819ce64666beba969c22e2f468.1513625884.git.mchehab@s-opensource.com> <20171219113927.i2srypzhigkijetf@valkosipuli.retiisi.org.uk>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The CIR Pin of the A83T is located at PL12.
+On Tuesday, 19 December 2017 13:39:27 EET Sakari Ailus wrote:
+> Hi Mauro,
+> 
+> On Mon, Dec 18, 2017 at 05:53:56PM -0200, Mauro Carvalho Chehab wrote:
+> > The V4L2_DEV_DEBUG_IOCTL macros actually define a bitmask,
+> > but without using Kernel's modern standards. Also,
+> > documentation looks akward.
+> > 
+> > So, convert them into an enum with valid bits, adding
+> > the correspoinding kernel-doc documentation for it.
+> 
+> The pattern of using bits for flags is a well established one and I
+> wouldn't deviate from that by requiring the use of the BIT() macro. There
+> are no benefits that I can see from here but the approach brings additional
+> risks: misuse of the flags and mimicing the same risky pattern.
+> 
+> I'd also like to echo Laurent's concern that code is being changed in odd
+> ways and not for itself, but due to deficiencies in documentation tools.
+> 
+> I believe the tooling has to be improved to address this properly. That
+> only needs to done once, compared to changing all flag definitions to
+> enums.
 
-Signed-off-by: Philipp Rossak <embed3d@gmail.com>
----
- arch/arm/boot/dts/sun8i-a83t.dtsi | 5 +++++
- 1 file changed, 5 insertions(+)
+That's my main concern too. We really must not sacrifice code readability or 
+writing ease in order to work around limitations of the documentation system. 
+For this reason I'm strongly opposed to patches 2 and 5 in this series.
 
-diff --git a/arch/arm/boot/dts/sun8i-a83t.dtsi b/arch/arm/boot/dts/sun8i-a83t.dtsi
-index de5119a2a91c..feffca8a9a24 100644
---- a/arch/arm/boot/dts/sun8i-a83t.dtsi
-+++ b/arch/arm/boot/dts/sun8i-a83t.dtsi
-@@ -623,6 +623,11 @@
- 				drive-strength = <20>;
- 				bias-pull-up;
- 			};
-+
-+			cir_pins: cir-pins@0 {
-+				pins = "PL12";
-+				function = "s_cir_rx";
-+			};
- 		};
- 
- 		r_rsb: rsb@1f03400 {
+> Another point I want to make is that the uAPI definitions cannot be
+> changed: enums are thus an option in kAPI only.
+
+And furthermore using enum types in the uAPI is a bad idea as the enum size is 
+architecture-dependent. That's why we use integer types in structures used as 
+ioctl arguments.
+
+> Improved KernelDoc tools would thus also allow improving uAPI macro
+> documentation --- which is more important anyway.
+
 -- 
-2.11.0
+Regards,
+
+Laurent Pinchart
