@@ -1,197 +1,544 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx08-00178001.pphosted.com ([91.207.212.93]:37389 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1753348AbdLGMll (ORCPT
+Received: from smtprelay0235.hostedemail.com ([216.40.44.235]:34614 "EHLO
+        smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1752244AbdLSSPo (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 7 Dec 2017 07:41:41 -0500
-From: Hugues Fruchet <hugues.fruchet@st.com>
-To: Steve Longerbeam <slongerbeam@gmail.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        "Mauro Carvalho Chehab" <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>
-CC: <linux-media@vger.kernel.org>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Subject: [PATCH v3 4/5] media: ov5640: add support of DVP parallel interface
-Date: Thu, 7 Dec 2017 13:40:52 +0100
-Message-ID: <1512650453-24476-5-git-send-email-hugues.fruchet@st.com>
-In-Reply-To: <1512650453-24476-1-git-send-email-hugues.fruchet@st.com>
-References: <1512650453-24476-1-git-send-email-hugues.fruchet@st.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+        Tue, 19 Dec 2017 13:15:44 -0500
+From: Joe Perches <joe@perches.com>
+To: Daniel Mack <daniel@zonque.org>,
+        Haojian Zhuang <haojian.zhuang@gmail.com>,
+        Robert Jarzmik <robert.jarzmik@free.fr>,
+        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Len Brown <lenb@kernel.org>, Corey Minyard <minyard@acm.org>,
+        Jani Nikula <jani.nikula@linux.intel.com>,
+        Joonas Lahtinen <joonas.lahtinen@linux.intel.com>,
+        Rodrigo Vivi <rodrigo.vivi@intel.com>,
+        Keith Busch <keith.busch@intel.com>, Jens Axboe <axboe@fb.com>,
+        Christoph Hellwig <hch@lst.de>,
+        Sagi Grimberg <sagi@grimberg.me>,
+        Sebastian Ott <sebott@linux.vnet.ibm.com>,
+        Peter Oberparleiter <oberpar@linux.vnet.ibm.com>,
+        Harald Freudenberger <freude@de.ibm.com>,
+        Don Brace <don.brace@microsemi.com>,
+        "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>,
+        "Martin K. Petersen" <martin.petersen@oracle.com>,
+        James Smart <james.smart@broadcom.com>,
+        Dick Kennedy <dick.kennedy@broadcom.com>,
+        Zhang Rui <rui.zhang@intel.com>,
+        Eduardo Valentin <edubezval@gmail.com>,
+        Liam Girdwood <lgirdwood@gmail.com>,
+        Mark Brown <broonie@kernel.org>
+Cc: Russell King <linux@armlinux.org.uk>,
+        Yoshinori Sato <ysato@users.sourceforge.jp>,
+        Rich Felker <dalias@libc.org>, Arnd Bergmann <arnd@arndb.de>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        David Airlie <airlied@linux.ie>,
+        Martin Schwidefsky <schwidefsky@de.ibm.com>,
+        Heiko Carstens <heiko.carstens@de.ibm.com>,
+        Alan Cox <alan@linux.intel.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Jaroslav Kysela <perex@perex.cz>,
+        Takashi Iwai <tiwai@suse.com>,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-sh@vger.kernel.org, linux-acpi@vger.kernel.org,
+        openipmi-developer@lists.sourceforge.net,
+        intel-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org,
+        linux-nvme@lists.infradead.org, linux-s390@vger.kernel.org,
+        esc.storagedev@microsemi.com, linux-scsi@vger.kernel.org,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        linux-pm@vger.kernel.org, alsa-devel@alsa-project.org
+Subject: [-next PATCH 3/4] treewide: Use DEVICE_ATTR_RO
+Date: Tue, 19 Dec 2017 10:15:08 -0800
+Message-Id: <2e64e7d278fa9e4e255221fb84717884a7bfb69c.1513706701.git.joe@perches.com>
+In-Reply-To: <cover.1513706701.git.joe@perches.com>
+References: <cover.1513706701.git.joe@perches.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add support of DVP parallel mode in addition of
-existing MIPI CSI mode. The choice between two modes
-and configuration is made through device tree.
+Convert DEVICE_ATTR uses to DEVICE_ATTR_RO where possible.
 
-Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
+Done with perl script:
+
+$ git grep -w --name-only DEVICE_ATTR | \
+  xargs perl -i -e 'local $/; while (<>) { s/\bDEVICE_ATTR\s*\(\s*(\w+)\s*,\s*\(?(?:\s*S_IRUGO\s*|\s*0444\s*)\)?\s*,\s*\1_show\s*,\s*NULL\s*\)/DEVICE_ATTR_RO(\1)/g; print;}'
+
+Signed-off-by: Joe Perches <joe@perches.com>
 ---
- drivers/media/i2c/ov5640.c | 114 ++++++++++++++++++++++++++++++++++++++-------
- 1 file changed, 96 insertions(+), 18 deletions(-)
+ arch/arm/mach-pxa/sharpsl_pm.c                       |  4 ++--
+ arch/sh/drivers/push-switch.c                        |  2 +-
+ arch/tile/kernel/sysfs.c                             | 10 +++++-----
+ drivers/acpi/device_sysfs.c                          |  6 +++---
+ drivers/char/ipmi/ipmi_msghandler.c                  | 17 ++++++++---------
+ drivers/gpu/drm/i915/i915_sysfs.c                    |  6 +++---
+ drivers/nvme/host/core.c                             | 10 +++++-----
+ drivers/s390/cio/css.c                               |  8 ++++----
+ drivers/s390/cio/device.c                            |  8 ++++----
+ drivers/s390/crypto/ap_card.c                        |  2 +-
+ drivers/scsi/hpsa.c                                  | 10 +++++-----
+ drivers/scsi/lpfc/lpfc_attr.c                        | 18 ++++++++----------
+ drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm.c |  8 ++++----
+ drivers/thermal/thermal_sysfs.c                      |  6 +++---
+ sound/soc/soc-core.c                                 |  2 +-
+ sound/soc/soc-dapm.c                                 |  2 +-
+ 16 files changed, 58 insertions(+), 61 deletions(-)
 
-diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
-index 9f031f3..c791a67 100644
---- a/drivers/media/i2c/ov5640.c
-+++ b/drivers/media/i2c/ov5640.c
-@@ -34,13 +34,19 @@
- 
- #define OV5640_DEFAULT_SLAVE_ID 0x3c
- 
-+#define OV5640_REG_SYS_CTRL0		0x3008
- #define OV5640_REG_CHIP_ID		0x300a
-+#define OV5640_REG_IO_MIPI_CTRL00	0x300e
-+#define OV5640_REG_PAD_OUTPUT_ENABLE01	0x3017
-+#define OV5640_REG_PAD_OUTPUT_ENABLE02	0x3018
- #define OV5640_REG_PAD_OUTPUT00		0x3019
-+#define OV5640_REG_SYSTEM_CONTROL1	0x302e
- #define OV5640_REG_SC_PLL_CTRL0		0x3034
- #define OV5640_REG_SC_PLL_CTRL1		0x3035
- #define OV5640_REG_SC_PLL_CTRL2		0x3036
- #define OV5640_REG_SC_PLL_CTRL3		0x3037
- #define OV5640_REG_SLAVE_ID		0x3100
-+#define OV5640_REG_SCCB_SYS_CTRL1	0x3103
- #define OV5640_REG_SYS_ROOT_DIVIDER	0x3108
- #define OV5640_REG_AWB_R_GAIN		0x3400
- #define OV5640_REG_AWB_G_GAIN		0x3402
-@@ -982,7 +988,78 @@ static int ov5640_get_gain(struct ov5640_dev *sensor)
- 	return gain & 0x3ff;
+diff --git a/arch/arm/mach-pxa/sharpsl_pm.c b/arch/arm/mach-pxa/sharpsl_pm.c
+index 398ba9ba2632..ef9fd9b759cb 100644
+--- a/arch/arm/mach-pxa/sharpsl_pm.c
++++ b/arch/arm/mach-pxa/sharpsl_pm.c
+@@ -802,8 +802,8 @@ static ssize_t battery_voltage_show(struct device *dev, struct device_attribute
+ 	return sprintf(buf, "%d\n", sharpsl_pm.battstat.mainbat_voltage);
  }
  
--static int ov5640_set_stream(struct ov5640_dev *sensor, bool on)
-+static int ov5640_set_stream_dvp(struct ov5640_dev *sensor, bool on)
-+{
-+	int ret;
-+
-+	/*
-+	 * Note about parallel port configuration.
-+	 *
-+	 * When configured in parallel mode, the OV5640 will
-+	 * output 10 bits data on DVP data lines [9:0].
-+	 * If only 8 bits data are wanted, the 8 bits data lines
-+	 * of the camera interface must be physically connected
-+	 * on the DVP data lines [9:2].
-+	 *
-+	 * The init sequence initializes control lines as defined below:
-+	 * - VSYNC:	active high
-+	 * - HREF:	active low
-+	 * - PCLK:	active high
-+	 */
-+
-+	if (on) {
-+		/*
-+		 * reset MIPI PCLK/SERCLK divider
-+		 *
-+		 * SC PLL CONTRL1 0
-+		 * - [3..0]:	MIPI PCLK/SERCLK divider
-+		 */
-+		ret = ov5640_mod_reg(sensor, OV5640_REG_SC_PLL_CTRL1, 0x0f, 0);
-+		if (ret)
-+			return ret;
-+	}
-+
-+	/*
-+	 * powerdown MIPI TX/RX PHY & disable MIPI
-+	 *
-+	 * MIPI CONTROL 00
-+	 * 4:	 PWDN PHY TX
-+	 * 3:	 PWDN PHY RX
-+	 * 2:	 MIPI enable
-+	 */
-+	ret = ov5640_write_reg(sensor,
-+			       OV5640_REG_IO_MIPI_CTRL00, on ? 0x18 : 0);
-+	if (ret)
-+		return ret;
-+
-+	/*
-+	 * enable VSYNC/HREF/PCLK DVP control lines
-+	 * & D[9:6] DVP data lines
-+	 *
-+	 * PAD OUTPUT ENABLE 01
-+	 * - 6:		VSYNC output enable
-+	 * - 5:		HREF output enable
-+	 * - 4:		PCLK output enable
-+	 * - [3:0]:	D[9:6] output enable
-+	 */
-+	ret = ov5640_write_reg(sensor,
-+			       OV5640_REG_PAD_OUTPUT_ENABLE01,
-+			       on ? 0x7f : 0);
-+	if (ret)
-+		return ret;
-+
-+	/*
-+	 * enable D[5:0] DVP data lines
-+	 *
-+	 * PAD OUTPUT ENABLE 02
-+	 * - [7:2]:	D[5:0] output enable
-+	 */
-+	return ov5640_write_reg(sensor,
-+				OV5640_REG_PAD_OUTPUT_ENABLE02,
-+				on ? 0xfc : 0);
-+}
-+
-+static int ov5640_set_stream_mipi(struct ov5640_dev *sensor, bool on)
+-static DEVICE_ATTR(battery_percentage, 0444, battery_percentage_show, NULL);
+-static DEVICE_ATTR(battery_voltage, 0444, battery_voltage_show, NULL);
++static DEVICE_ATTR_RO(battery_percentage);
++static DEVICE_ATTR_RO(battery_voltage);
+ 
+ extern void (*apm_get_power_status)(struct apm_power_info *);
+ 
+diff --git a/arch/sh/drivers/push-switch.c b/arch/sh/drivers/push-switch.c
+index a17181160233..762bc5619910 100644
+--- a/arch/sh/drivers/push-switch.c
++++ b/arch/sh/drivers/push-switch.c
+@@ -24,7 +24,7 @@ static ssize_t switch_show(struct device *dev,
+ 	struct push_switch_platform_info *psw_info = dev->platform_data;
+ 	return sprintf(buf, "%s\n", psw_info->name);
+ }
+-static DEVICE_ATTR(switch, S_IRUGO, switch_show, NULL);
++static DEVICE_ATTR_RO(switch);
+ 
+ static void switch_timer(struct timer_list *t)
  {
- 	int ret;
+diff --git a/arch/tile/kernel/sysfs.c b/arch/tile/kernel/sysfs.c
+index af5024f0fb5a..b09456a3d77a 100644
+--- a/arch/tile/kernel/sysfs.c
++++ b/arch/tile/kernel/sysfs.c
+@@ -38,7 +38,7 @@ static ssize_t chip_width_show(struct device *dev,
+ {
+ 	return sprintf(page, "%u\n", smp_width);
+ }
+-static DEVICE_ATTR(chip_width, 0444, chip_width_show, NULL);
++static DEVICE_ATTR_RO(chip_width);
  
-@@ -1604,17 +1681,19 @@ static int ov5640_set_power(struct ov5640_dev *sensor, bool on)
- 		if (ret)
- 			goto power_off;
+ static ssize_t chip_height_show(struct device *dev,
+ 				struct device_attribute *attr,
+@@ -46,7 +46,7 @@ static ssize_t chip_height_show(struct device *dev,
+ {
+ 	return sprintf(page, "%u\n", smp_height);
+ }
+-static DEVICE_ATTR(chip_height, 0444, chip_height_show, NULL);
++static DEVICE_ATTR_RO(chip_height);
  
--		/*
--		 * start streaming briefly followed by stream off in
--		 * order to coax the clock lane into LP-11 state.
--		 */
--		ret = ov5640_set_stream(sensor, true);
--		if (ret)
--			goto power_off;
--		usleep_range(1000, 2000);
--		ret = ov5640_set_stream(sensor, false);
--		if (ret)
--			goto power_off;
-+		if (sensor->ep.bus_type == V4L2_MBUS_CSI2) {
-+			/*
-+			 * start streaming briefly followed by stream off in
-+			 * order to coax the clock lane into LP-11 state.
-+			 */
-+			ret = ov5640_set_stream_mipi(sensor, true);
-+			if (ret)
-+				goto power_off;
-+			usleep_range(1000, 2000);
-+			ret = ov5640_set_stream_mipi(sensor, false);
-+			if (ret)
-+				goto power_off;
-+		}
+ static ssize_t chip_serial_show(struct device *dev,
+ 				struct device_attribute *attr,
+@@ -54,7 +54,7 @@ static ssize_t chip_serial_show(struct device *dev,
+ {
+ 	return get_hv_confstr(page, HV_CONFSTR_CHIP_SERIAL_NUM);
+ }
+-static DEVICE_ATTR(chip_serial, 0444, chip_serial_show, NULL);
++static DEVICE_ATTR_RO(chip_serial);
  
- 		return 0;
+ static ssize_t chip_revision_show(struct device *dev,
+ 				  struct device_attribute *attr,
+@@ -62,7 +62,7 @@ static ssize_t chip_revision_show(struct device *dev,
+ {
+ 	return get_hv_confstr(page, HV_CONFSTR_CHIP_REV);
+ }
+-static DEVICE_ATTR(chip_revision, 0444, chip_revision_show, NULL);
++static DEVICE_ATTR_RO(chip_revision);
+ 
+ 
+ static ssize_t type_show(struct device *dev,
+@@ -71,7 +71,7 @@ static ssize_t type_show(struct device *dev,
+ {
+ 	return sprintf(page, "tilera\n");
+ }
+-static DEVICE_ATTR(type, 0444, type_show, NULL);
++static DEVICE_ATTR_RO(type);
+ 
+ #define HV_CONF_ATTR(name, conf)					\
+ 	static ssize_t name ## _show(struct device *dev,		\
+diff --git a/drivers/acpi/device_sysfs.c b/drivers/acpi/device_sysfs.c
+index a041689e5701..545e91420cde 100644
+--- a/drivers/acpi/device_sysfs.c
++++ b/drivers/acpi/device_sysfs.c
+@@ -357,7 +357,7 @@ static ssize_t real_power_state_show(struct device *dev,
+ 	return sprintf(buf, "%s\n", acpi_power_state_string(state));
+ }
+ 
+-static DEVICE_ATTR(real_power_state, 0444, real_power_state_show, NULL);
++static DEVICE_ATTR_RO(real_power_state);
+ 
+ static ssize_t power_state_show(struct device *dev,
+ 				struct device_attribute *attr, char *buf)
+@@ -367,7 +367,7 @@ static ssize_t power_state_show(struct device *dev,
+ 	return sprintf(buf, "%s\n", acpi_power_state_string(adev->power.state));
+ }
+ 
+-static DEVICE_ATTR(power_state, 0444, power_state_show, NULL);
++static DEVICE_ATTR_RO(power_state);
+ 
+ static ssize_t
+ acpi_eject_store(struct device *d, struct device_attribute *attr,
+@@ -462,7 +462,7 @@ static ssize_t description_show(struct device *dev,
+ 
+ 	return result;
+ }
+-static DEVICE_ATTR(description, 0444, description_show, NULL);
++static DEVICE_ATTR_RO(description);
+ 
+ static ssize_t
+ acpi_device_sun_show(struct device *dev, struct device_attribute *attr,
+diff --git a/drivers/char/ipmi/ipmi_msghandler.c b/drivers/char/ipmi/ipmi_msghandler.c
+index f45732a2cb3e..7f51acd74e10 100644
+--- a/drivers/char/ipmi/ipmi_msghandler.c
++++ b/drivers/char/ipmi/ipmi_msghandler.c
+@@ -2588,7 +2588,7 @@ static ssize_t device_id_show(struct device *dev,
+ 
+ 	return snprintf(buf, 10, "%u\n", id.device_id);
+ }
+-static DEVICE_ATTR(device_id, S_IRUGO, device_id_show, NULL);
++static DEVICE_ATTR_RO(device_id);
+ 
+ static ssize_t provides_device_sdrs_show(struct device *dev,
+ 					 struct device_attribute *attr,
+@@ -2604,8 +2604,7 @@ static ssize_t provides_device_sdrs_show(struct device *dev,
+ 
+ 	return snprintf(buf, 10, "%u\n", (id.device_revision & 0x80) >> 7);
+ }
+-static DEVICE_ATTR(provides_device_sdrs, S_IRUGO, provides_device_sdrs_show,
+-		   NULL);
++static DEVICE_ATTR_RO(provides_device_sdrs);
+ 
+ static ssize_t revision_show(struct device *dev, struct device_attribute *attr,
+ 			     char *buf)
+@@ -2620,7 +2619,7 @@ static ssize_t revision_show(struct device *dev, struct device_attribute *attr,
+ 
+ 	return snprintf(buf, 20, "%u\n", id.device_revision & 0x0F);
+ }
+-static DEVICE_ATTR(revision, S_IRUGO, revision_show, NULL);
++static DEVICE_ATTR_RO(revision);
+ 
+ static ssize_t firmware_revision_show(struct device *dev,
+ 				      struct device_attribute *attr,
+@@ -2637,7 +2636,7 @@ static ssize_t firmware_revision_show(struct device *dev,
+ 	return snprintf(buf, 20, "%u.%x\n", id.firmware_revision_1,
+ 			id.firmware_revision_2);
+ }
+-static DEVICE_ATTR(firmware_revision, S_IRUGO, firmware_revision_show, NULL);
++static DEVICE_ATTR_RO(firmware_revision);
+ 
+ static ssize_t ipmi_version_show(struct device *dev,
+ 				 struct device_attribute *attr,
+@@ -2655,7 +2654,7 @@ static ssize_t ipmi_version_show(struct device *dev,
+ 			ipmi_version_major(&id),
+ 			ipmi_version_minor(&id));
+ }
+-static DEVICE_ATTR(ipmi_version, S_IRUGO, ipmi_version_show, NULL);
++static DEVICE_ATTR_RO(ipmi_version);
+ 
+ static ssize_t add_dev_support_show(struct device *dev,
+ 				    struct device_attribute *attr,
+@@ -2688,7 +2687,7 @@ static ssize_t manufacturer_id_show(struct device *dev,
+ 
+ 	return snprintf(buf, 20, "0x%6.6x\n", id.manufacturer_id);
+ }
+-static DEVICE_ATTR(manufacturer_id, S_IRUGO, manufacturer_id_show, NULL);
++static DEVICE_ATTR_RO(manufacturer_id);
+ 
+ static ssize_t product_id_show(struct device *dev,
+ 			       struct device_attribute *attr,
+@@ -2704,7 +2703,7 @@ static ssize_t product_id_show(struct device *dev,
+ 
+ 	return snprintf(buf, 10, "0x%4.4x\n", id.product_id);
+ }
+-static DEVICE_ATTR(product_id, S_IRUGO, product_id_show, NULL);
++static DEVICE_ATTR_RO(product_id);
+ 
+ static ssize_t aux_firmware_rev_show(struct device *dev,
+ 				     struct device_attribute *attr,
+@@ -2742,7 +2741,7 @@ static ssize_t guid_show(struct device *dev, struct device_attribute *attr,
+ 
+ 	return snprintf(buf, 38, "%pUl\n", guid.b);
+ }
+-static DEVICE_ATTR(guid, S_IRUGO, guid_show, NULL);
++static DEVICE_ATTR_RO(guid);
+ 
+ static struct attribute *bmc_dev_attrs[] = {
+ 	&dev_attr_device_id.attr,
+diff --git a/drivers/gpu/drm/i915/i915_sysfs.c b/drivers/gpu/drm/i915/i915_sysfs.c
+index 1d0ab8ff5915..b33d2158c234 100644
+--- a/drivers/gpu/drm/i915/i915_sysfs.c
++++ b/drivers/gpu/drm/i915/i915_sysfs.c
+@@ -445,13 +445,13 @@ static ssize_t gt_min_freq_mhz_store(struct device *kdev,
+ 	return ret ?: count;
+ }
+ 
+-static DEVICE_ATTR(gt_act_freq_mhz, S_IRUGO, gt_act_freq_mhz_show, NULL);
+-static DEVICE_ATTR(gt_cur_freq_mhz, S_IRUGO, gt_cur_freq_mhz_show, NULL);
++static DEVICE_ATTR_RO(gt_act_freq_mhz);
++static DEVICE_ATTR_RO(gt_cur_freq_mhz);
+ static DEVICE_ATTR_RW(gt_boost_freq_mhz);
+ static DEVICE_ATTR_RW(gt_max_freq_mhz);
+ static DEVICE_ATTR_RW(gt_min_freq_mhz);
+ 
+-static DEVICE_ATTR(vlv_rpe_freq_mhz, S_IRUGO, vlv_rpe_freq_mhz_show, NULL);
++static DEVICE_ATTR_RO(vlv_rpe_freq_mhz);
+ 
+ static ssize_t gt_rp_mhz_show(struct device *kdev, struct device_attribute *attr, char *buf);
+ static DEVICE_ATTR(gt_RP0_freq_mhz, S_IRUGO, gt_rp_mhz_show, NULL);
+diff --git a/drivers/nvme/host/core.c b/drivers/nvme/host/core.c
+index 63691e251f8c..8f9fa6f1dfb4 100644
+--- a/drivers/nvme/host/core.c
++++ b/drivers/nvme/host/core.c
+@@ -2516,14 +2516,14 @@ static ssize_t wwid_show(struct device *dev, struct device_attribute *attr,
+ 		serial_len, subsys->serial, model_len, subsys->model,
+ 		head->ns_id);
+ }
+-static DEVICE_ATTR(wwid, S_IRUGO, wwid_show, NULL);
++static DEVICE_ATTR_RO(wwid);
+ 
+ static ssize_t nguid_show(struct device *dev, struct device_attribute *attr,
+ 		char *buf)
+ {
+ 	return sprintf(buf, "%pU\n", dev_to_ns_head(dev)->ids.nguid);
+ }
+-static DEVICE_ATTR(nguid, S_IRUGO, nguid_show, NULL);
++static DEVICE_ATTR_RO(nguid);
+ 
+ static ssize_t uuid_show(struct device *dev, struct device_attribute *attr,
+ 		char *buf)
+@@ -2540,21 +2540,21 @@ static ssize_t uuid_show(struct device *dev, struct device_attribute *attr,
  	}
-@@ -2188,7 +2267,11 @@ static int ov5640_s_stream(struct v4l2_subdev *sd, int enable)
- 				goto out;
- 		}
+ 	return sprintf(buf, "%pU\n", &ids->uuid);
+ }
+-static DEVICE_ATTR(uuid, S_IRUGO, uuid_show, NULL);
++static DEVICE_ATTR_RO(uuid);
  
--		ret = ov5640_set_stream(sensor, enable);
-+		if (sensor->ep.bus_type == V4L2_MBUS_CSI2)
-+			ret = ov5640_set_stream_mipi(sensor, enable);
-+		else
-+			ret = ov5640_set_stream_dvp(sensor, enable);
-+
- 		if (!ret)
- 			sensor->streaming = enable;
- 	}
-@@ -2301,11 +2384,6 @@ static int ov5640_probe(struct i2c_client *client,
- 		return ret;
- 	}
+ static ssize_t eui_show(struct device *dev, struct device_attribute *attr,
+ 		char *buf)
+ {
+ 	return sprintf(buf, "%8ph\n", dev_to_ns_head(dev)->ids.eui64);
+ }
+-static DEVICE_ATTR(eui, S_IRUGO, eui_show, NULL);
++static DEVICE_ATTR_RO(eui);
  
--	if (sensor->ep.bus_type != V4L2_MBUS_CSI2) {
--		dev_err(dev, "invalid bus type, must be MIPI CSI2\n");
--		return -EINVAL;
--	}
--
- 	/* get system clock (xclk) */
- 	sensor->xclk = devm_clk_get(dev, "xclk");
- 	if (IS_ERR(sensor->xclk)) {
+ static ssize_t nsid_show(struct device *dev, struct device_attribute *attr,
+ 		char *buf)
+ {
+ 	return sprintf(buf, "%d\n", dev_to_ns_head(dev)->ns_id);
+ }
+-static DEVICE_ATTR(nsid, S_IRUGO, nsid_show, NULL);
++static DEVICE_ATTR_RO(nsid);
+ 
+ static struct attribute *nvme_ns_id_attrs[] = {
+ 	&dev_attr_wwid.attr,
+diff --git a/drivers/s390/cio/css.c b/drivers/s390/cio/css.c
+index 0f11dce6e224..9263a0fb3858 100644
+--- a/drivers/s390/cio/css.c
++++ b/drivers/s390/cio/css.c
+@@ -268,7 +268,7 @@ static ssize_t type_show(struct device *dev, struct device_attribute *attr,
+ 	return sprintf(buf, "%01x\n", sch->st);
+ }
+ 
+-static DEVICE_ATTR(type, 0444, type_show, NULL);
++static DEVICE_ATTR_RO(type);
+ 
+ static ssize_t modalias_show(struct device *dev, struct device_attribute *attr,
+ 			     char *buf)
+@@ -278,7 +278,7 @@ static ssize_t modalias_show(struct device *dev, struct device_attribute *attr,
+ 	return sprintf(buf, "css:t%01X\n", sch->st);
+ }
+ 
+-static DEVICE_ATTR(modalias, 0444, modalias_show, NULL);
++static DEVICE_ATTR_RO(modalias);
+ 
+ static struct attribute *subch_attrs[] = {
+ 	&dev_attr_type.attr,
+@@ -315,7 +315,7 @@ static ssize_t chpids_show(struct device *dev,
+ 	ret += sprintf(buf + ret, "\n");
+ 	return ret;
+ }
+-static DEVICE_ATTR(chpids, 0444, chpids_show, NULL);
++static DEVICE_ATTR_RO(chpids);
+ 
+ static ssize_t pimpampom_show(struct device *dev,
+ 			      struct device_attribute *attr,
+@@ -327,7 +327,7 @@ static ssize_t pimpampom_show(struct device *dev,
+ 	return sprintf(buf, "%02x %02x %02x\n",
+ 		       pmcw->pim, pmcw->pam, pmcw->pom);
+ }
+-static DEVICE_ATTR(pimpampom, 0444, pimpampom_show, NULL);
++static DEVICE_ATTR_RO(pimpampom);
+ 
+ static struct attribute *io_subchannel_type_attrs[] = {
+ 	&dev_attr_chpids.attr,
+diff --git a/drivers/s390/cio/device.c b/drivers/s390/cio/device.c
+index 6eefb67b31f3..f50ea035aa9b 100644
+--- a/drivers/s390/cio/device.c
++++ b/drivers/s390/cio/device.c
+@@ -597,13 +597,13 @@ static ssize_t vpm_show(struct device *dev, struct device_attribute *attr,
+ 	return sprintf(buf, "%02x\n", sch->vpm);
+ }
+ 
+-static DEVICE_ATTR(devtype, 0444, devtype_show, NULL);
+-static DEVICE_ATTR(cutype, 0444, cutype_show, NULL);
+-static DEVICE_ATTR(modalias, 0444, modalias_show, NULL);
++static DEVICE_ATTR_RO(devtype);
++static DEVICE_ATTR_RO(cutype);
++static DEVICE_ATTR_RO(modalias);
+ static DEVICE_ATTR_RW(online);
+ static DEVICE_ATTR(availability, 0444, available_show, NULL);
+ static DEVICE_ATTR(logging, 0200, NULL, initiate_logging);
+-static DEVICE_ATTR(vpm, 0444, vpm_show, NULL);
++static DEVICE_ATTR_RO(vpm);
+ 
+ static struct attribute *io_subchannel_attrs[] = {
+ 	&dev_attr_logging.attr,
+diff --git a/drivers/s390/crypto/ap_card.c b/drivers/s390/crypto/ap_card.c
+index 97a8cf578116..2c726df210f6 100644
+--- a/drivers/s390/crypto/ap_card.c
++++ b/drivers/s390/crypto/ap_card.c
+@@ -57,7 +57,7 @@ static ssize_t ap_functions_show(struct device *dev,
+ 	return snprintf(buf, PAGE_SIZE, "0x%08X\n", ac->functions);
+ }
+ 
+-static DEVICE_ATTR(ap_functions, 0444, ap_functions_show, NULL);
++static DEVICE_ATTR_RO(ap_functions);
+ 
+ static ssize_t ap_req_count_show(struct device *dev,
+ 				 struct device_attribute *attr,
+diff --git a/drivers/scsi/hpsa.c b/drivers/scsi/hpsa.c
+index b0aa5dc1d54c..d62377b68ef4 100644
+--- a/drivers/scsi/hpsa.c
++++ b/drivers/scsi/hpsa.c
+@@ -901,14 +901,14 @@ static ssize_t host_show_legacy_board(struct device *dev,
+ 	return snprintf(buf, 20, "%d\n", h->legacy_board ? 1 : 0);
+ }
+ 
+-static DEVICE_ATTR(raid_level, S_IRUGO, raid_level_show, NULL);
+-static DEVICE_ATTR(lunid, S_IRUGO, lunid_show, NULL);
+-static DEVICE_ATTR(unique_id, S_IRUGO, unique_id_show, NULL);
++static DEVICE_ATTR_RO(raid_level);
++static DEVICE_ATTR_RO(lunid);
++static DEVICE_ATTR_RO(unique_id);
+ static DEVICE_ATTR(rescan, S_IWUSR, NULL, host_store_rescan);
+-static DEVICE_ATTR(sas_address, S_IRUGO, sas_address_show, NULL);
++static DEVICE_ATTR_RO(sas_address);
+ static DEVICE_ATTR(hp_ssd_smart_path_enabled, S_IRUGO,
+ 			host_show_hp_ssd_smart_path_enabled, NULL);
+-static DEVICE_ATTR(path_info, S_IRUGO, path_info_show, NULL);
++static DEVICE_ATTR_RO(path_info);
+ static DEVICE_ATTR(hp_ssd_smart_path_status, S_IWUSR|S_IRUGO|S_IROTH,
+ 		host_show_hp_ssd_smart_path_status,
+ 		host_store_hp_ssd_smart_path_status);
+diff --git a/drivers/scsi/lpfc/lpfc_attr.c b/drivers/scsi/lpfc/lpfc_attr.c
+index 95f7ba3c3f1a..517ff203cfde 100644
+--- a/drivers/scsi/lpfc/lpfc_attr.c
++++ b/drivers/scsi/lpfc/lpfc_attr.c
+@@ -2294,8 +2294,8 @@ static DEVICE_ATTR(num_discovered_ports, S_IRUGO,
+ 		   lpfc_num_discovered_ports_show, NULL);
+ static DEVICE_ATTR(menlo_mgmt_mode, S_IRUGO, lpfc_mlomgmt_show, NULL);
+ static DEVICE_ATTR(nport_evt_cnt, S_IRUGO, lpfc_nport_evt_cnt_show, NULL);
+-static DEVICE_ATTR(lpfc_drvr_version, S_IRUGO, lpfc_drvr_version_show, NULL);
+-static DEVICE_ATTR(lpfc_enable_fip, S_IRUGO, lpfc_enable_fip_show, NULL);
++static DEVICE_ATTR_RO(lpfc_drvr_version);
++static DEVICE_ATTR_RO(lpfc_enable_fip);
+ static DEVICE_ATTR(board_mode, S_IRUGO | S_IWUSR,
+ 		   lpfc_board_mode_show, lpfc_board_mode_store);
+ static DEVICE_ATTR(issue_reset, S_IWUSR, NULL, lpfc_issue_reset);
+@@ -2306,12 +2306,11 @@ static DEVICE_ATTR(used_rpi, S_IRUGO, lpfc_used_rpi_show, NULL);
+ static DEVICE_ATTR(max_xri, S_IRUGO, lpfc_max_xri_show, NULL);
+ static DEVICE_ATTR(used_xri, S_IRUGO, lpfc_used_xri_show, NULL);
+ static DEVICE_ATTR(npiv_info, S_IRUGO, lpfc_npiv_info_show, NULL);
+-static DEVICE_ATTR(lpfc_temp_sensor, S_IRUGO, lpfc_temp_sensor_show, NULL);
+-static DEVICE_ATTR(lpfc_fips_level, S_IRUGO, lpfc_fips_level_show, NULL);
+-static DEVICE_ATTR(lpfc_fips_rev, S_IRUGO, lpfc_fips_rev_show, NULL);
+-static DEVICE_ATTR(lpfc_dss, S_IRUGO, lpfc_dss_show, NULL);
+-static DEVICE_ATTR(lpfc_sriov_hw_max_virtfn, S_IRUGO,
+-		   lpfc_sriov_hw_max_virtfn_show, NULL);
++static DEVICE_ATTR_RO(lpfc_temp_sensor);
++static DEVICE_ATTR_RO(lpfc_fips_level);
++static DEVICE_ATTR_RO(lpfc_fips_rev);
++static DEVICE_ATTR_RO(lpfc_dss);
++static DEVICE_ATTR_RO(lpfc_sriov_hw_max_virtfn);
+ static DEVICE_ATTR(protocol, S_IRUGO, lpfc_sli4_protocol_show, NULL);
+ static DEVICE_ATTR(lpfc_xlane_supported, S_IRUGO, lpfc_oas_supported_show,
+ 		   NULL);
+@@ -3719,8 +3718,7 @@ lpfc_static_vport_show(struct device *dev, struct device_attribute *attr,
+ /*
+  * Sysfs attribute to control the statistical data collection.
+  */
+-static DEVICE_ATTR(lpfc_static_vport, S_IRUGO,
+-		   lpfc_static_vport_show, NULL);
++static DEVICE_ATTR_RO(lpfc_static_vport);
+ 
+ /**
+  * lpfc_stat_data_ctrl_store - write call back for lpfc_stat_data_ctrl sysfs file
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm.c b/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm.c
+index a1c81c12718c..4338b8a1309f 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm.c
++++ b/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm.c
+@@ -158,10 +158,10 @@ static ssize_t dynamic_pool_show(struct device *dev,
+ 	return ret;
+ };
+ 
+-static DEVICE_ATTR(active_bo, 0444, active_bo_show, NULL);
+-static DEVICE_ATTR(free_bo, 0444, free_bo_show, NULL);
+-static DEVICE_ATTR(reserved_pool, 0444, reserved_pool_show, NULL);
+-static DEVICE_ATTR(dynamic_pool, 0444, dynamic_pool_show, NULL);
++static DEVICE_ATTR_RO(active_bo);
++static DEVICE_ATTR_RO(free_bo);
++static DEVICE_ATTR_RO(reserved_pool);
++static DEVICE_ATTR_RO(dynamic_pool);
+ 
+ static struct attribute *sysfs_attrs_ctrl[] = {
+ 	&dev_attr_active_bo.attr,
+diff --git a/drivers/thermal/thermal_sysfs.c b/drivers/thermal/thermal_sysfs.c
+index c008af7fb480..2bc964392924 100644
+--- a/drivers/thermal/thermal_sysfs.c
++++ b/drivers/thermal/thermal_sysfs.c
+@@ -396,10 +396,10 @@ create_s32_tzp_attr(offset);
+  * All the attributes created for tzp (create_s32_tzp_attr) also are always
+  * present on the sysfs interface.
+  */
+-static DEVICE_ATTR(type, 0444, type_show, NULL);
+-static DEVICE_ATTR(temp, 0444, temp_show, NULL);
++static DEVICE_ATTR_RO(type);
++static DEVICE_ATTR_RO(temp);
+ static DEVICE_ATTR_RW(policy);
+-static DEVICE_ATTR(available_policies, S_IRUGO, available_policies_show, NULL);
++static DEVICE_ATTR_RO(available_policies);
+ static DEVICE_ATTR_RW(sustainable_power);
+ 
+ /* These thermal zone device attributes are created based on conditions */
+diff --git a/sound/soc/soc-core.c b/sound/soc/soc-core.c
+index 2d392f2d7ffe..9a380e55f4af 100644
+--- a/sound/soc/soc-core.c
++++ b/sound/soc/soc-core.c
+@@ -173,7 +173,7 @@ static ssize_t codec_reg_show(struct device *dev,
+ 	return soc_codec_reg_show(rtd->codec, buf, PAGE_SIZE, 0);
+ }
+ 
+-static DEVICE_ATTR(codec_reg, 0444, codec_reg_show, NULL);
++static DEVICE_ATTR_RO(codec_reg);
+ 
+ static ssize_t pmdown_time_show(struct device *dev,
+ 				struct device_attribute *attr, char *buf)
+diff --git a/sound/soc/soc-dapm.c b/sound/soc/soc-dapm.c
+index a10b21cfc31e..d1977ced895f 100644
+--- a/sound/soc/soc-dapm.c
++++ b/sound/soc/soc-dapm.c
+@@ -2364,7 +2364,7 @@ static ssize_t dapm_widget_show(struct device *dev,
+ 	return count;
+ }
+ 
+-static DEVICE_ATTR(dapm_widget, 0444, dapm_widget_show, NULL);
++static DEVICE_ATTR_RO(dapm_widget);
+ 
+ struct attribute *soc_dapm_dev_attrs[] = {
+ 	&dev_attr_dapm_widget.attr,
 -- 
-1.9.1
+2.15.0
