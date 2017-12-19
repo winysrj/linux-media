@@ -1,60 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:36406 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751011AbdLNNt4 (ORCPT
+Received: from mail-pl0-f66.google.com ([209.85.160.66]:37332 "EHLO
+        mail-pl0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750808AbdLSSot (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 14 Dec 2017 08:49:56 -0500
-Date: Thu, 14 Dec 2017 15:49:54 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: linux-media@vger.kernel.org, Pawel Osciak <pawel@osciak.com>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Kyungmin Park <kyungmin.park@samsung.com>,
-        kernel@pengutronix.de
-Subject: Re: [PATCH] [media] vb2: clear V4L2_BUF_FLAG_LAST when filling
- vb2_buffer
-Message-ID: <20171214134953.qfgyokewahmdyfzr@valkosipuli.retiisi.org.uk>
-References: <20171208140128.19740-1-p.zabel@pengutronix.de>
+        Tue, 19 Dec 2017 13:44:49 -0500
+Received: by mail-pl0-f66.google.com with SMTP id s3so7493764plp.4
+        for <linux-media@vger.kernel.org>; Tue, 19 Dec 2017 10:44:48 -0800 (PST)
+Subject: Re: [PATCH] media: imx: allow to build with COMPILE_TEST
+To: Philipp Zabel <p.zabel@pengutronix.de>, linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>, kernel@pengutronix.de
+References: <20171219114232.11604-1-p.zabel@pengutronix.de>
+From: Steve Longerbeam <slongerbeam@gmail.com>
+Message-ID: <00f0eff8-955f-334f-6129-0ec5d19c3fa1@gmail.com>
+Date: Tue, 19 Dec 2017 10:44:46 -0800
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20171208140128.19740-1-p.zabel@pengutronix.de>
+In-Reply-To: <20171219114232.11604-1-p.zabel@pengutronix.de>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Philipp,
 
-On Fri, Dec 08, 2017 at 03:01:28PM +0100, Philipp Zabel wrote:
-> V4L2_BUF_FLAG_LAST is a signal from the driver to userspace for buffers
-> on the capture queue. When userspace queues back a capture buffer with
-> the flag set, we should clear it.
-> 
-> Otherwise, if userspace restarts streaming after EOS, without
-> reallocating the buffers, mem2mem devices will erroneously signal EOS
-> prematurely, as soon as the already flagged buffer is dequeued.
-> 
+
+On 12/19/2017 03:42 AM, Philipp Zabel wrote:
+> Allow building this driver for other platforms under COMPILE_TEST.
+>
+> Suggested-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 > Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+
+Acked-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+
 > ---
->  drivers/media/v4l2-core/videobuf2-v4l2.c | 2 ++
->  1 file changed, 2 insertions(+)
-> 
-> diff --git a/drivers/media/v4l2-core/videobuf2-v4l2.c b/drivers/media/v4l2-core/videobuf2-v4l2.c
-> index 4075314a69893..fac3cd6f901d5 100644
-> --- a/drivers/media/v4l2-core/videobuf2-v4l2.c
-> +++ b/drivers/media/v4l2-core/videobuf2-v4l2.c
-> @@ -434,6 +434,8 @@ static int __fill_vb2_buffer(struct vb2_buffer *vb,
->  	} else {
->  		/* Zero any output buffer flags as this is a capture buffer */
->  		vbuf->flags &= ~V4L2_BUFFER_OUT_FLAGS;
-> +		/* Zero last flag, this is a signal from driver to userspace */
-> +		vbuf->flags &= ~V4L2_BUF_FLAG_LAST;
-
-Thanks for the patch.
-
-How about:
-
-	vbuf->flags &= ~(V4L2_BUFFER_OUT_FLAGS | V4L2_BUF_FLAG_LAST);
-
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+>   drivers/staging/media/imx/Kconfig | 3 ++-
+>   1 file changed, 2 insertions(+), 1 deletion(-)
+>
+> diff --git a/drivers/staging/media/imx/Kconfig b/drivers/staging/media/imx/Kconfig
+> index 2be921cd0d55a..59b380cc6d223 100644
+> --- a/drivers/staging/media/imx/Kconfig
+> +++ b/drivers/staging/media/imx/Kconfig
+> @@ -1,6 +1,7 @@
+>   config VIDEO_IMX_MEDIA
+>   	tristate "i.MX5/6 V4L2 media core driver"
+> -	depends on MEDIA_CONTROLLER && VIDEO_V4L2 && ARCH_MXC && IMX_IPUV3_CORE
+> +	depends on ARCH_MXC || COMPILE_TEST
+> +	depends on MEDIA_CONTROLLER && VIDEO_V4L2 && IMX_IPUV3_CORE
+>   	depends on VIDEO_V4L2_SUBDEV_API
+>   	select VIDEOBUF2_DMA_CONTIG
+>   	select V4L2_FWNODE
