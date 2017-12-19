@@ -1,40 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:50837 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753376AbdLNRWB (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 14 Dec 2017 12:22:01 -0500
-From: Sean Young <sean@mess.org>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 01/10] media: imon:  auto-config ffdc 26 device
-Date: Thu, 14 Dec 2017 17:21:52 +0000
-Message-Id: <4e8c9939b6b116a54e3042d098343bc918268b1d.1513271970.git.sean@mess.org>
+Received: from mail-oi0-f65.google.com ([209.85.218.65]:41387 "EHLO
+        mail-oi0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1762825AbdLSMup (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 19 Dec 2017 07:50:45 -0500
+MIME-Version: 1.0
+In-Reply-To: <20171219092246.3usg5mdyi27ivqlq@valkosipuli.retiisi.org.uk>
+References: <20171211013146.2497-1-wenyou.yang@microchip.com>
+ <20171211013146.2497-3-wenyou.yang@microchip.com> <20171219092246.3usg5mdyi27ivqlq@valkosipuli.retiisi.org.uk>
+From: Fabio Estevam <festevam@gmail.com>
+Date: Tue, 19 Dec 2017 10:50:44 -0200
+Message-ID: <CAOMZO5BHSJv01SwZ2YNtGZTjMtOuOktET43qriK2fQ+jhE2TDA@mail.gmail.com>
+Subject: Re: [PATCH v9 2/2] media: i2c: Add the ov7740 image sensor driver
+To: Sakari Ailus <sakari.ailus@iki.fi>,
+        Philippe Ombredanne <pombredanne@nexb.com>
+Cc: Wenyou Yang <wenyou.yang@microchip.com>,
+        Mark Rutland <mark.rutland@arm.com>,
+        devicetree@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
+        linux-kernel <linux-kernel@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Songjun Wu <songjun.wu@microchip.com>,
+        linux-arm-kernel@lists.infradead.org,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Another device with the 0xffdc device id, this one with 0x26 in the
-config byte. Its an iMON Inside + iMON IR. It does respond to rc-6,
-but seems to produce random garbage rather than a scancode.
+Hi Sakari,
 
-Signed-off-by: Sean Young <sean@mess.org>
----
- drivers/media/rc/imon.c | 5 +++++
- 1 file changed, 5 insertions(+)
+On Tue, Dec 19, 2017 at 7:22 AM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
+> On Mon, Dec 11, 2017 at 09:31:46AM +0800, Wenyou Yang wrote:
+>> The ov7740 (color) image sensor is a high performance VGA CMOS
+>> image snesor, which supports for output formats: RAW RGB and YUV
+>> and image sizes: VGA, and QVGA, CIF and any size smaller.
+>>
+>> Signed-off-by: Songjun Wu <songjun.wu@microchip.com>
+>> Signed-off-by: Wenyou Yang <wenyou.yang@microchip.com>
+>
+> Applied with this diff:
+>
+> diff --git a/drivers/media/i2c/ov7740.c b/drivers/media/i2c/ov7740.c
+> index 0308ba437bbb..041a77039d70 100644
+> --- a/drivers/media/i2c/ov7740.c
+> +++ b/drivers/media/i2c/ov7740.c
+> @@ -1,5 +1,7 @@
+> -// SPDX-License-Identifier: GPL-2.0
+> -// Copyright (c) 2017 Microchip Corporation.
+> +/*
+> + * SPDX-License-Identifier: GPL-2.0
+> + * Copyright (c) 2017 Microchip Corporation.
+> + */
 
-diff --git a/drivers/media/rc/imon.c b/drivers/media/rc/imon.c
-index 2c26d917fe0f..6c873a3c4720 100644
---- a/drivers/media/rc/imon.c
-+++ b/drivers/media/rc/imon.c
-@@ -1975,6 +1975,11 @@ static void imon_get_ffdc_type(struct imon_context *ictx)
- 		detected_display_type = IMON_DISPLAY_TYPE_LCD;
- 		allowed_protos = RC_PROTO_BIT_RC6_MCE;
- 		break;
-+	/* no display, iMON IR */
-+	case 0x26:
-+		dev_info(ictx->dev, "0xffdc iMON Inside, iMON IR");
-+		ictx->display_supported = false;
-+		break;
- 	default:
- 		dev_info(ictx->dev, "Unknown 0xffdc device, defaulting to VFD and iMON IR");
- 		detected_display_type = IMON_DISPLAY_TYPE_VFD;
--- 
-2.14.3
+The original version is the recommended format for the SPDX identifier.
