@@ -1,87 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:37276 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752042AbdLENDp (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 5 Dec 2017 08:03:45 -0500
-Subject: Re: [PATCH v4 3/5] staging: Introduce NVIDIA Tegra video decoder
- driver
-To: Dmitry Osipenko <digetx@gmail.com>,
-        Thierry Reding <thierry.reding@gmail.com>,
-        Jonathan Hunter <jonathanh@nvidia.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Stephen Warren <swarren@wwwdotorg.org>,
-        Vladimir Zapolskiy <vz@mleia.com>
-Cc: Dan Carpenter <dan.carpenter@oracle.com>,
-        linux-media@vger.kernel.org, linux-tegra@vger.kernel.org,
-        devel@driverdev.osuosl.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org,
-        Maxime Ripard <maxime.ripard@free-electrons.com>,
-        Giulio Benetti <giulio.benetti@micronovasrl.com>
-References: <cover.1508448293.git.digetx@gmail.com>
- <1a3798f337c0097e67d70226ae3ba665fd9156c2.1508448293.git.digetx@gmail.com>
- <ad2da9f4-8899-7db3-493f-5aa15297c33c@xs4all.nl>
- <3ac6a087-def2-014f-673d-1be9d5094635@gmail.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <93c98569-0282-80d9-78ad-c8ab8fd9db92@xs4all.nl>
-Date: Tue, 5 Dec 2017 14:03:37 +0100
+Received: from osg.samsung.com ([64.30.133.232]:63636 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751026AbdLSPiG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 19 Dec 2017 10:38:06 -0500
+Date: Tue, 19 Dec 2017 13:37:58 -0200
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Tomasz Figa <tfiga@chromium.org>,
+        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
+        Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Subject: Re: [PATCH 2/8] media: v4l2-ioctl.h: convert debug into an enum of
+ bits
+Message-ID: <20171219133758.6cf22460@vento.lan>
+In-Reply-To: <20171219141235.mgiyoeeiyfn2z4zh@paasikivi.fi.intel.com>
+References: <cover.1513625884.git.mchehab@s-opensource.com>
+        <333b63fa1857f6819ce64666beba969c22e2f468.1513625884.git.mchehab@s-opensource.com>
+        <20171219113927.i2srypzhigkijetf@valkosipuli.retiisi.org.uk>
+        <1615432.c1z8s9p1mm@avalon>
+        <20171219141235.mgiyoeeiyfn2z4zh@paasikivi.fi.intel.com>
 MIME-Version: 1.0
-In-Reply-To: <3ac6a087-def2-014f-673d-1be9d5094635@gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/05/17 13:17, Dmitry Osipenko wrote:
-> Hi Hans,
+Em Tue, 19 Dec 2017 16:12:35 +0200
+Sakari Ailus <sakari.ailus@linux.intel.com> escreveu:
+
+> Hi Laurent,
 > 
-> On 04.12.2017 17:04, Hans Verkuil wrote:
->> Hi Dmitry,
->>
->> As you already mention in the TODO, this should become a v4l2 codec driver.
->>
->> Good existing examples are the coda, qcom/venus and mtk-vcodec drivers.
->>
->> One thing that is not clear from this code is if the tegra hardware is a
->> stateful or stateless codec, i.e. does it keep track of the decoder state
->> in the hardware, or does the application have to keep track of the state and
->> provide the state information together with the video data?
->>
->> I ask because at the moment only stateful codecs are supported. Work is ongoing
->> to support stateless codecs, but we don't support that for now.
->>
+> On Tue, Dec 19, 2017 at 04:02:02PM +0200, Laurent Pinchart wrote:
+> > And furthermore using enum types in the uAPI is a bad idea as the enum size is 
+> > architecture-dependent. That's why we use integer types in structures used as 
+> > ioctl arguments.  
 > 
-> It is stateless. Is there anything ready to try out? If yes, could you please
-> give a reference to that work?
+> I guess we have an argeement on that, enums are a no-go for uAPI, for
+> reasons not related to the topic at hand.
 
-I rebased my two year old 'requests2' branch to the latest mainline version and
-gave it the imaginative name 'requests3':
+Huh? We're not talking about uAPI. This is kAPI. Using enums there is OK.
 
-https://git.linuxtv.org/hverkuil/media_tree.git/log/?h=requests3
-
-(Note: only compile tested!)
-
-This is what ChromeOS has been using (actually they use a slightly older version)
-and the new version that is currently being developed will be similar, so any work
-you do on top of this will carry over to the final version without too much effort.
-
-At least, that's the intention :-)
-
-I've CC-ed Maxime and Giulio as well: they are looking into adding support for
-the stateless allwinner codec based on this code as well. There may well be
-opportunities for you to work together, esp. on the userspace side. Note that
-Rockchip has the same issue, they too have a stateless HW codec.
-
-> 
->> Anyway, I'm OK with merging this in staging. Although I think it should go
->> to staging/media since we want to keep track of it.
->>
-> 
-> Awesome, I'll move driver to staging/media in V5. Thanks!
-
-Nice, thanks!
-
-	Hans
+Thanks,
+Mauro
