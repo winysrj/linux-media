@@ -1,74 +1,162 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:55954 "EHLO
-        mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751730AbdLMI4q (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 13 Dec 2017 03:56:46 -0500
-Received: from epcas5p1.samsung.com (unknown [182.195.41.39])
-        by mailout2.samsung.com (KnoxPortal) with ESMTP id 20171213085644epoutp02409432c654d4e94c6514ee9bb3360de7~-ztLfp7zy2631026310epoutp02p
-        for <linux-media@vger.kernel.org>; Wed, 13 Dec 2017 08:56:44 +0000 (GMT)
-Subject: Re: [Patch v6 10/12] [media] v4l2: Add v4l2 control IDs for HEVC
- encoder
-From: Smitha T Murthy <smitha.t@samsung.com>
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org, kyungmin.park@samsung.com,
-        kamil@wypas.org, jtp.park@samsung.com, a.hajda@samsung.com,
-        mchehab@kernel.org, pankaj.dubey@samsung.com, krzk@kernel.org,
-        m.szyprowski@samsung.com
-In-Reply-To: <10a80dd4-737d-2c96-1679-3b04cfc45a5d@samsung.com>
-Date: Wed, 13 Dec 2017 14:00:01 +0530
-Message-ID: <1513153801.22129.5.camel@smitha-fedora>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Type: text/plain; charset="utf-8"
-References: <1512724105-1778-1-git-send-email-smitha.t@samsung.com>
-        <CGME20171208093702epcas2p32a30a9f624e06fb543f7dd757c805077@epcas2p3.samsung.com>
-        <1512724105-1778-11-git-send-email-smitha.t@samsung.com>
-        <5b96b332-71a9-083a-2242-8bdf5554f010@linaro.org>
-        <1513046086.22129.2.camel@smitha-fedora>
-        <10a80dd4-737d-2c96-1679-3b04cfc45a5d@samsung.com>
+Received: from osg.samsung.com ([64.30.133.232]:36596 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1762269AbdLSLSf (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 19 Dec 2017 06:18:35 -0500
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH v2 7/8] media: v4l2-subdev: document remaining undocumented functions
+Date: Tue, 19 Dec 2017 09:18:23 -0200
+Message-Id: <e392586da3000b447b572239b0f2a6d64c94ef12.1513682135.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1513682135.git.mchehab@s-opensource.com>
+References: <cover.1513682135.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1513682135.git.mchehab@s-opensource.com>
+References: <cover.1513682135.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 2017-12-12 at 10:46 +0100, Sylwester Nawrocki wrote:
-> On 12/12/2017 03:34 AM, Smitha T Murthy wrote:
-> >> s/Lay/Layer here and below
-> >>
-> > Ok I will change it.
-> 
-> While it's fine to make such change for controls up to V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L6_QP...
-> 
-> >>> +	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L1_QP:	return "HEVC Hierarchical Lay 1 QP";
-> >>> +	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L2_QP:	return "HEVC Hierarchical Lay 2 QP";
-> >>> +	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L3_QP:	return "HEVC Hierarchical Lay 3 QP";
-> >>> +	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L4_QP:	return "HEVC Hierarchical Lay 4 QP";
-> >>> +	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L5_QP:	return "HEVC Hierarchical Lay 5 QP";
-> >>> +	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L6_QP:	return "HEVC Hierarchical Lay 6 QP";
-> 
-> ...for the controls below we may need to replace "Lay" with "L." 
-> to make sure the length of the string don't exceed 31 characters 
-> (32 with terminating NULL). The names below seem to be 1 character 
-> too long and will be truncated when running VIDIOC_QUERY_CTRL ioctl.
-> 
-Yes true, also to keep the uniformity I will change for all
-V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L1_QP and
-V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L0_BR "Lay" with "L".
+There are several undocumented v4l2-subdev functions that are
+part of kAPI. Document them.
 
-> >>> +	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L0_BR:	return "HEVC Hierarchical Lay 0 Bit Rate";
-> >>> +	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L1_BR:	return "HEVC Hierarchical Lay 1 Bit Rate";
-> >>> +	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L2_BR:	return "HEVC Hierarchical Lay 2 Bit Rate";
-> >>> +	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L3_BR:	return "HEVC Hierarchical Lay 3 Bit Rate";
-> >>> +	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L4_BR:	return "HEVC Hierarchical Lay 4 Bit Rate";
-> >>> +	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L5_BR:	return "HEVC Hierarchical Lay 5 Bit Rate";
-> >>> +	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L6_BR:	return "HEVC Hierarchical Lay 6 Bit Rate";
-> 
-> --
-> Regards,
-> Sylwester
-> 
-Thank you for the review.
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ include/media/v4l2-subdev.h | 69 +++++++++++++++++++++++++++++++++++++++++----
+ 1 file changed, 64 insertions(+), 5 deletions(-)
 
-Regards,
-Smitha
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index 443e5e019006..c8c827553042 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -867,6 +867,13 @@ struct v4l2_subdev {
+ 	struct v4l2_subdev_platform_data *pdata;
+ };
+ 
++
++/**
++ * media_entity_to_v4l2_subdev - Returns a &struct v4l2_subdev from
++ *     the &struct media_entity embedded in it.
++ *
++ * @ent: pointer to &struct media_entity.
++ */
+ #define media_entity_to_v4l2_subdev(ent)				\
+ ({									\
+ 	typeof(ent) __me_sd_ent = (ent);				\
+@@ -876,14 +883,20 @@ struct v4l2_subdev {
+ 		NULL;							\
+ })
+ 
++/**
++ * vdev_to_v4l2_subdev - Returns a &struct v4l2_subdev from
++ *     the &struct video_device embedded on it.
++ *
++ * @vdev: pointer to &struct video_device
++ */
+ #define vdev_to_v4l2_subdev(vdev) \
+ 	((struct v4l2_subdev *)video_get_drvdata(vdev))
+ 
+ /**
+  * struct v4l2_subdev_fh - Used for storing subdev information per file handle
+  *
+- * @vfh: pointer to struct v4l2_fh
+- * @pad: pointer to v4l2_subdev_pad_config
++ * @vfh: pointer to &struct v4l2_fh
++ * @pad: pointer to &struct v4l2_subdev_pad_config
+  */
+ struct v4l2_subdev_fh {
+ 	struct v4l2_fh vfh;
+@@ -892,10 +905,25 @@ struct v4l2_subdev_fh {
+ #endif
+ };
+ 
++/**
++ * to_v4l2_subdev_fh - Returns a &struct v4l2_subdev_fh from
++ *     the &struct v4l2_fh embedded on it.
++ *
++ * @fh: pointer to &struct v4l2_fh
++ */
+ #define to_v4l2_subdev_fh(fh)	\
+ 	container_of(fh, struct v4l2_subdev_fh, vfh)
+ 
+ #if defined(CONFIG_VIDEO_V4L2_SUBDEV_API)
++
++/**
++ * v4l2_subdev_get_try_format - ancillary routine to call
++ * 	&struct v4l2_subdev_pad_config->try_fmt
++ *
++ * @sd: pointer to &struct v4l2_subdev
++ * @cfg: pointer to &struct v4l2_subdev_pad_config array.
++ * @pad: index of the pad in the @cfg array.
++ */
+ static inline struct v4l2_mbus_framefmt
+ *v4l2_subdev_get_try_format(struct v4l2_subdev *sd,
+ 			    struct v4l2_subdev_pad_config *cfg,
+@@ -906,6 +934,14 @@ static inline struct v4l2_mbus_framefmt
+ 	return &cfg[pad].try_fmt;
+ }
+ 
++/**
++ * v4l2_subdev_get_try_crop - ancillary routine to call
++ * 	&struct v4l2_subdev_pad_config->try_crop
++ *
++ * @sd: pointer to &struct v4l2_subdev
++ * @cfg: pointer to &struct v4l2_subdev_pad_config array.
++ * @pad: index of the pad in the @cfg array.
++ */
+ static inline struct v4l2_rect
+ *v4l2_subdev_get_try_crop(struct v4l2_subdev *sd,
+ 			  struct v4l2_subdev_pad_config *cfg,
+@@ -916,6 +952,14 @@ static inline struct v4l2_rect
+ 	return &cfg[pad].try_crop;
+ }
+ 
++/**
++ * v4l2_subdev_get_try_crop - ancillary routine to call
++ * 	&struct v4l2_subdev_pad_config->try_compose
++ *
++ * @sd: pointer to &struct v4l2_subdev
++ * @cfg: pointer to &struct v4l2_subdev_pad_config array.
++ * @pad: index of the pad in the @cfg array.
++ */
+ static inline struct v4l2_rect
+ *v4l2_subdev_get_try_compose(struct v4l2_subdev *sd,
+ 			     struct v4l2_subdev_pad_config *cfg,
+@@ -1032,9 +1076,16 @@ void v4l2_subdev_free_pad_config(struct v4l2_subdev_pad_config *cfg);
+ void v4l2_subdev_init(struct v4l2_subdev *sd,
+ 		      const struct v4l2_subdev_ops *ops);
+ 
+-/*
+- * Call an ops of a v4l2_subdev, doing the right checks against
+- * NULL pointers.
++/**
++ * v4l2_subdev_call - call an operation of a v4l2_subdev.
++ *
++ * @sd: pointer to the &struct v4l2_subdev
++ * @o: name of the element at &struct v4l2_subdev_ops that contains @f.
++ *     Each element there groups a set of callbacks functions.
++ * @f: callback function that will be called if @cond matches.
++ *     The callback functions are defined in groups, according to
++ *     each element at &struct v4l2_subdev_ops.
++ * @args...: arguments for @f.
+  *
+  * Example: err = v4l2_subdev_call(sd, video, s_std, norm);
+  */
+@@ -1050,6 +1101,14 @@ void v4l2_subdev_init(struct v4l2_subdev *sd,
+ 		__result;						\
+ 	})
+ 
++/**
++ * v4l2_subdev_has_op - Checks if a subdev defines a certain operation.
++ *
++ * @sd: pointer to the &struct v4l2_subdev
++ * @o: The group of callback functions in &struct v4l2_subdev_ops
++ * which @f is a part of.
++ * @f: callback function to be checked for its existence.
++ */
+ #define v4l2_subdev_has_op(sd, o, f) \
+ 	((sd)->ops->o && (sd)->ops->o->f)
+ 
+-- 
+2.14.3
