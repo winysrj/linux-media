@@ -1,64 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-3.sys.kth.se ([130.237.48.192]:34232 "EHLO
-        smtp-3.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754270AbdLNTJX (ORCPT
+Received: from mail-wr0-f196.google.com ([209.85.128.196]:38729 "EHLO
+        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933409AbdLSJL5 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 14 Dec 2017 14:09:23 -0500
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: linux-media@vger.kernel.org,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-renesas-soc@vger.kernel.org,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
-        Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        Benoit Parrot <bparrot@ti.com>,
-        Maxime Ripard <maxime.ripard@free-electrons.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH/RFC v2 13/15] adv748x: csi2: only allow formats on sink pads
-Date: Thu, 14 Dec 2017 20:08:33 +0100
-Message-Id: <20171214190835.7672-14-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20171214190835.7672-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20171214190835.7672-1-niklas.soderlund+renesas@ragnatech.se>
+        Tue, 19 Dec 2017 04:11:57 -0500
+Received: by mail-wr0-f196.google.com with SMTP id o2so18120453wro.5
+        for <linux-media@vger.kernel.org>; Tue, 19 Dec 2017 01:11:56 -0800 (PST)
+From: =?UTF-8?q?Rafa=C3=ABl=20Carr=C3=A9?= <funman@videolan.org>
+To: linux-media@vger.kernel.org
+Cc: kierank@obe.tv,
+        =?UTF-8?q?Rafa=C3=ABl=20Carr=C3=A9?= <funman@videolan.org>
+Subject: [PATCH] Statically linking libdvbv5 must include -ludev
+Date: Tue, 19 Dec 2017 10:11:50 +0100
+Message-Id: <20171219091150.12761-1-funman@videolan.org>
+In-Reply-To: <CAK+ULv4S5BasNqQsfDAybyDyakXfq0PqKAUezuwaf7HNQZU3Lg@mail.gmail.com>
+References: <CAK+ULv4S5BasNqQsfDAybyDyakXfq0PqKAUezuwaf7HNQZU3Lg@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The driver is now pad and stream aware, only allow to get/set format on
-sink pads. Also record a different format for each sink pad since it's
-no longer true that they are all the same
-
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Signed-off-by: Rafaël Carré <funman@videolan.org>
 ---
- drivers/media/i2c/adv748x/adv748x-csi2.c | 6 ++++++
- 1 file changed, 6 insertions(+)
+ lib/libdvbv5/libdvbv5.pc.in | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/media/i2c/adv748x/adv748x-csi2.c b/drivers/media/i2c/adv748x/adv748x-csi2.c
-index 39f993282dd3bb5c..291b35bef49d41fb 100644
---- a/drivers/media/i2c/adv748x/adv748x-csi2.c
-+++ b/drivers/media/i2c/adv748x/adv748x-csi2.c
-@@ -176,6 +176,9 @@ static int adv748x_csi2_get_format(struct v4l2_subdev *sd,
- 	struct adv748x_state *state = tx->state;
- 	struct v4l2_mbus_framefmt *mbusformat;
- 
-+	if (sdformat->pad != ADV748X_CSI2_SINK)
-+		return -EINVAL;
-+
- 	mbusformat = adv748x_csi2_get_pad_format(sd, cfg, sdformat->pad,
- 						 sdformat->which);
- 	if (!mbusformat)
-@@ -199,6 +202,9 @@ static int adv748x_csi2_set_format(struct v4l2_subdev *sd,
- 	struct v4l2_mbus_framefmt *mbusformat;
- 	int ret = 0;
- 
-+	if (sdformat->pad != ADV748X_CSI2_SINK)
-+		return -EINVAL;
-+
- 	mbusformat = adv748x_csi2_get_pad_format(sd, cfg, sdformat->pad,
- 						 sdformat->which);
- 	if (!mbusformat)
+diff --git a/lib/libdvbv5/libdvbv5.pc.in b/lib/libdvbv5/libdvbv5.pc.in
+index 7e3c4f5c..6b5f292d 100644
+--- a/lib/libdvbv5/libdvbv5.pc.in
++++ b/lib/libdvbv5/libdvbv5.pc.in
+@@ -6,5 +6,6 @@ libdir=@libdir@
+ Name: libdvbv5
+ Description: DVBv5 utility library
+ Version: @PACKAGE_VERSION@
++Requires.private: libudev
+ Libs: -L${libdir} -ldvbv5
+ Cflags: -I${includedir}
 -- 
-2.15.1
+2.14.1
