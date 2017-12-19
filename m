@@ -1,164 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga06.intel.com ([134.134.136.31]:61844 "EHLO mga06.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:26272 "EHLO mga02.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751839AbdLNMmI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 14 Dec 2017 07:42:08 -0500
-Date: Thu, 14 Dec 2017 14:42:05 +0200
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        Niklas =?iso-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH/RFC 1/2] v4l: v4l2-dev: Add infrastructure to protect
- device unplug race
-Message-ID: <20171214124205.g6zftaqqcm3jvpyu@paasikivi.fi.intel.com>
-References: <20171116003349.19235-1-laurent.pinchart+renesas@ideasonboard.com>
- <20171116003349.19235-2-laurent.pinchart+renesas@ideasonboard.com>
- <20171116123236.kqvpoglodhs45x6l@valkosipuli.retiisi.org.uk>
- <2047593.6mOerD5o8g@avalon>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <2047593.6mOerD5o8g@avalon>
+        id S1752605AbdLSVBE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 19 Dec 2017 16:01:04 -0500
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: Alan Cox <alan@linux.intel.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        devel@driverdev.osuosl.org, Kristian Beilke <beilke@posteo.de>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v1 08/10] staging: atomisp: Unexport local function
+Date: Tue, 19 Dec 2017 22:59:55 +0200
+Message-Id: <20171219205957.10933-8-andriy.shevchenko@linux.intel.com>
+In-Reply-To: <20171219205957.10933-1-andriy.shevchenko@linux.intel.com>
+References: <20171219205957.10933-1-andriy.shevchenko@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+There is no need to export function which is only used once in
+the same module where it's defined.
 
-On Tue, Dec 12, 2017 at 04:42:23PM +0200, Laurent Pinchart wrote:
-...
-> > > diff --git a/drivers/media/v4l2-core/v4l2-dev.c
-> > > b/drivers/media/v4l2-core/v4l2-dev.c index c647ba648805..c73c6d49e7cf
-> > > 100644
-> > > --- a/drivers/media/v4l2-core/v4l2-dev.c
-> > > +++ b/drivers/media/v4l2-core/v4l2-dev.c
-> > > @@ -156,6 +156,52 @@ void video_device_release_empty(struct video_device
-> > > *vdev)> 
-> > >  }
-> > >  EXPORT_SYMBOL(video_device_release_empty);
-> > > 
-> > > +int video_device_enter(struct video_device *vdev)
-> > > +{
-> > > +	bool unplugged;
-> > > +
-> > > +	spin_lock(&vdev->unplug_lock);
-> > > +	unplugged = vdev->unplugged;
-> > > +	if (!unplugged)
-> > > +		vdev->access_refcount++;
-> > > +	spin_unlock(&vdev->unplug_lock);
-> > > +
-> > > +	return unplugged ? -ENODEV : 0;
-> > > +}
-> > > +EXPORT_SYMBOL_GPL(video_device_enter);
-> > > +
-> > > +void video_device_exit(struct video_device *vdev)
-> > > +{
-> > > +	bool wake_up;
-> > > +
-> > > +	spin_lock(&vdev->unplug_lock);
-> > > +	WARN_ON(--vdev->access_refcount < 0);
-> > > +	wake_up = vdev->access_refcount == 0;
-> > > +	spin_unlock(&vdev->unplug_lock);
-> > > +
-> > > +	if (wake_up)
-> > > +		wake_up(&vdev->unplug_wait);
-> > > +}
-> > > +EXPORT_SYMBOL_GPL(video_device_exit);
-> > 
-> > Is there a need to export the two, i.e. wouldn't you only call them from
-> > the framework, or the same module?
-> 
-> There could be a need to call these functions from entry points that are not 
-> controlled by the V4L2 core, such as sysfs or debugfs. We could keep the 
-> functions internal for now and only export them when the need arises, but if 
-> we want to document how drivers need to handle race conditions between device 
-> access and device unbind, we need to have them exported.
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+---
+ drivers/staging/media/atomisp/include/linux/atomisp_gmin_platform.h  | 1 -
+ .../staging/media/atomisp/platform/intel-mid/atomisp_gmin_platform.c | 5 ++---
+ 2 files changed, 2 insertions(+), 4 deletions(-)
 
-Ack.
-
-> 
-> > > +
-> > > +void video_device_unplug(struct video_device *vdev)
-> > > +{
-> > > +	bool unplug_blocked;
-> > > +
-> > > +	spin_lock(&vdev->unplug_lock);
-> > > +	unplug_blocked = vdev->access_refcount > 0;
-> > > +	vdev->unplugged = true;
-> > 
-> > Shouldn't this be set to false in video_register_device()?
-> 
-> Yes it should. I currently rely on the fact that the memory is zeroed when 
-> allocated, but I shouldn't. I'll fix that.
-> 
-> > > +	spin_unlock(&vdev->unplug_lock);
-> > > +
-> > > +	if (!unplug_blocked)
-> > > +		return;
-> > 
-> > Not necessary, wait_event_timeout() handles this already.
-> 
-> I'll fix this as well.
-> 
-> > > +
-> > > +	if (!wait_event_timeout(vdev->unplug_wait, !vdev->access_refcount,
-> > > +				msecs_to_jiffies(150000)))
-> > > +		WARN(1, "Timeout waiting for device access to complete\n");
-> > 
-> > Why a timeout? Does this get somehow less problematic over time? :-)
-> 
-> Not quite :-) This should never happen, but driver and/or core bugs could 
-> cause a timeout. In that case I think proceeding after a timeout is a better 
-> option than deadlocking forever.
-
-This also depends on the frame rate; you could have a very low frame rate
-configured on a sensor and the device could be actually in middle of a DMA
-operation while the timeout is hit.
-
-I'm not sure if there's a number that can be said to be safe here.
-
-Wouldn't it be better to kill the user space process using the device
-instead? Naturally the wait will have to be interruptible.
-
-...
-
-> > > @@ -221,6 +228,12 @@ struct video_device
-> > > 
-> > >  	u32 device_caps;
-> > > 
-> > > +	/* unplug handling */
-> > > +	bool unplugged;
-> > > +	int access_refcount;
-> > 
-> > Could you use refcount_t instead, to avoid integer overflow issues?
-> 
-> I'd love to, but refcount_t has no provision for refcounts that start at 0.
-> 
-> void refcount_inc(refcount_t *r)
-> {
->         WARN_ONCE(!refcount_inc_not_zero(r), "refcount_t: increment on 0; use-
-> after-free.\n");
-> }
-> EXPORT_SYMBOL(refcount_inc);
-
-Ah. I wonder if you could simply initialise in probe and decrement it again
-in remove?
-
-You could use refcount_inc_not_zero directly, too.
-
-> 
-> > > +	spinlock_t unplug_lock;
-> > > +	wait_queue_head_t unplug_wait;
-> > > +
-> > >  	/* sysfs */
-> > >  	struct device dev;
-> > >  	struct cdev *cdev;
-
+diff --git a/drivers/staging/media/atomisp/include/linux/atomisp_gmin_platform.h b/drivers/staging/media/atomisp/include/linux/atomisp_gmin_platform.h
+index 7e3ca12dd4e9..c52c56a17e17 100644
+--- a/drivers/staging/media/atomisp/include/linux/atomisp_gmin_platform.h
++++ b/drivers/staging/media/atomisp/include/linux/atomisp_gmin_platform.h
+@@ -23,7 +23,6 @@ int atomisp_register_i2c_module(struct v4l2_subdev *subdev,
+ struct v4l2_subdev *atomisp_gmin_find_subdev(struct i2c_adapter *adapter,
+ 					     struct i2c_board_info *board_info);
+ int atomisp_gmin_remove_subdev(struct v4l2_subdev *sd);
+-int gmin_get_config_var(struct device *dev, const char *var, char *out, size_t *out_len);
+ int gmin_get_var_int(struct device *dev, const char *var, int def);
+ int camera_sensor_csi(struct v4l2_subdev *sd, u32 port,
+                       u32 lanes, u32 format, u32 bayer_order, int flag);
+diff --git a/drivers/staging/media/atomisp/platform/intel-mid/atomisp_gmin_platform.c b/drivers/staging/media/atomisp/platform/intel-mid/atomisp_gmin_platform.c
+index 8dcec0e780a1..0f859bb714bf 100644
+--- a/drivers/staging/media/atomisp/platform/intel-mid/atomisp_gmin_platform.c
++++ b/drivers/staging/media/atomisp/platform/intel-mid/atomisp_gmin_platform.c
+@@ -608,8 +608,8 @@ EXPORT_SYMBOL_GPL(atomisp_gmin_register_vcm_control);
+  * argument should be a device with an ACPI companion, as all
+  * configuration is based on firmware ID.
+  */
+-int gmin_get_config_var(struct device *dev, const char *var, char *out,
+-			size_t *out_len)
++static int gmin_get_config_var(struct device *dev, const char *var,
++			       char *out, size_t *out_len)
+ {
+ 	char var8[CFG_VAR_NAME_MAX];
+ 	efi_char16_t var16[CFG_VAR_NAME_MAX];
+@@ -691,7 +691,6 @@ int gmin_get_config_var(struct device *dev, const char *var, char *out,
+ 
+ 	return ret;
+ }
+-EXPORT_SYMBOL_GPL(gmin_get_config_var);
+ 
+ int gmin_get_var_int(struct device *dev, const char *var, int def)
+ {
 -- 
-Kind regards,
-
-Sakari Ailus
-sakari.ailus@linux.intel.com
+2.15.1
