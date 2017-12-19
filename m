@@ -1,126 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:61686 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752007AbdLLLD5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 12 Dec 2017 06:03:57 -0500
-Date: Tue, 12 Dec 2017 09:03:50 -0200
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Alan <alan@linux.intel.com>
-Cc: vincent.hervieux@gmail.com, sakari.ailus@linux.intel.com,
-        linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/3] atomisp: Fix up the open v load race
-Message-ID: <20171212090350.0b57dbbb@vento.lan>
-In-Reply-To: <151001137594.77201.4306351721772580664.stgit@alans-desktop>
-References: <151001137594.77201.4306351721772580664.stgit@alans-desktop>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:39286 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1763488AbdLSOdb (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 19 Dec 2017 09:33:31 -0500
+Received: from valkosipuli.localdomain (valkosipuli.retiisi.org.uk [IPv6:2001:1bc8:1a6:d3d5::80:2])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by hillosipuli.retiisi.org.uk (Postfix) with ESMTPS id 6F852600D8
+        for <linux-media@vger.kernel.org>; Tue, 19 Dec 2017 16:33:30 +0200 (EET)
+Received: from sakke by valkosipuli.localdomain with local (Exim 4.89)
+        (envelope-from <sakari.ailus@retiisi.org.uk>)
+        id 1eRIxW-0001i3-1T
+        for linux-media@vger.kernel.org; Tue, 19 Dec 2017 16:33:30 +0200
+Date: Tue, 19 Dec 2017 16:33:29 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Subject: [GIT PULL for 4.16] An ordinary pile of atomisp cleanups and fixes
+Message-ID: <20171219143329.bael34cmnjhl7rmc@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 06 Nov 2017 23:36:36 +0000
-Alan <alan@linux.intel.com> escreveu:
+Hi Mauro,
 
-> This isn't the ideal final solution but it stops the main problem for now
-> where an open (often from udev) races the device initialization and we try
-> and load the firmware twice at the same time. This needless to say doesn't
-> usually end well.
+Here's the regular pile of atomisp cleanups and some fixes, too.
 
-What we do on most drivers is that video_register_device() is called
-only after all hardware init.
-
-That's usually enough to avoid race conditions with udev, although
-a mutex is also common in order to avoid some other race conditions
-between open/close - with can happen with multiple opens.
-
-> 
-> Signed-off-by: Alan Cox <alan@linux.intel.com>
-> ---
->  .../media/atomisp/pci/atomisp2/atomisp_fops.c      |   12 ++++++++++++
->  .../media/atomisp/pci/atomisp2/atomisp_internal.h  |    5 +++++
->  .../media/atomisp/pci/atomisp2/atomisp_v4l2.c      |    6 ++++++
->  3 files changed, 23 insertions(+)
-> 
-> diff --git a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_fops.c b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_fops.c
-> index dd7596d8763d..b82c53cee32c 100644
-> --- a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_fops.c
-> +++ b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_fops.c
-> @@ -771,6 +771,18 @@ static int atomisp_open(struct file *file)
->  
->  	dev_dbg(isp->dev, "open device %s\n", vdev->name);
->  
-> +	/* Ensure that if we are still loading we block. Once the loading
-> +	   is over we can proceed. We can't blindly hold the lock until
-> +	   that occurs as if the load fails we'll deadlock the unload */
-> +	rt_mutex_lock(&isp->loading);
-> +	/* Revisit this with a better check once the code structure is
-> +	   cleaned up a bit more FIXME */
-> +	if (!isp->ready) {
-> +		rt_mutex_unlock(&isp->loading);
-> +		return -ENXIO;
-> +	}
-> +	rt_mutex_unlock(&isp->loading);
-> +
->  	rt_mutex_lock(&isp->mutex);
->  
->  	acc_node = !strncmp(vdev->name, "ATOMISP ISP ACC",
-> diff --git a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_internal.h b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_internal.h
-> index 52a6f8002048..808d79c840d4 100644
-> --- a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_internal.h
-> +++ b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_internal.h
-> @@ -252,6 +252,11 @@ struct atomisp_device {
->  	/* Purpose of mutex is to protect and serialize use of isp data
->  	 * structures and css API calls. */
->  	struct rt_mutex mutex;
-> +	/* This mutex ensures that we don't allow an open to succeed while
-> +	 * the initialization process is incomplete */
-> +	struct rt_mutex loading;
-> +	/* Set once the ISP is ready to allow opens */
-> +	bool ready;
->  	/*
->  	 * Serialise streamoff: mutex is dropped during streamoff to
->  	 * cancel the watchdog queue. MUST be acquired BEFORE
-> diff --git a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_v4l2.c b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_v4l2.c
-> index 3c260f8b52e2..350e298bc3a6 100644
-> --- a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_v4l2.c
-> +++ b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_v4l2.c
-> @@ -1220,6 +1220,7 @@ static int atomisp_pci_probe(struct pci_dev *dev,
->  	isp->saved_regs.ispmmadr = start;
->  
->  	rt_mutex_init(&isp->mutex);
-> +	rt_mutex_init(&isp->loading);
->  	mutex_init(&isp->streamoff_mutex);
->  	spin_lock_init(&isp->lock);
->  
-> @@ -1393,6 +1394,8 @@ static int atomisp_pci_probe(struct pci_dev *dev,
->  				      csi_afe_trim);
->  	}
->  
-> +	rt_mutex_lock(&isp->loading);
-> +
->  	err = atomisp_initialize_modules(isp);
->  	if (err < 0) {
->  		dev_err(&dev->dev, "atomisp_initialize_modules (%d)\n", err);
-> @@ -1450,6 +1453,8 @@ static int atomisp_pci_probe(struct pci_dev *dev,
->  	release_firmware(isp->firmware);
->  	isp->firmware = NULL;
->  	isp->css_env.isp_css_fw.data = NULL;
-> +	isp->ready = true;
-> +	rt_mutex_unlock(&isp->loading);
->  
->  	atomisp_drvfs_init(&atomisp_pci_driver, isp);
->  
-> @@ -1468,6 +1473,7 @@ static int atomisp_pci_probe(struct pci_dev *dev,
->  register_entities_fail:
->  	atomisp_uninitialize_modules(isp);
->  initialize_modules_fail:
-> +	rt_mutex_unlock(&isp->loading);
->  	pm_qos_remove_request(&isp->pm_qos);
->  	atomisp_msi_irq_uninit(isp, dev);
->  enable_msi_fail:
-> 
+Please pull.
 
 
+The following changes since commit 8ea636dcecfa7b05d60309a50beabc5317a845bf:
 
-Thanks,
-Mauro
+  media: ir-spi: add SPDX identifier (2017-12-18 15:22:50 -0500)
+
+are available in the git repository at:
+
+  ssh://linuxtv.org/git/sailus/media_tree.git atomisp
+
+for you to fetch changes up to 6a0ed1a9cf6a0679772688aaf1bfec2ccd22fd47:
+
+  staging: atomisp2: replace DEVICE_ATTR with DEVICE_ATTR_RO (2017-12-19 14:15:12 +0200)
+
+----------------------------------------------------------------
+Aishwarya Pant (1):
+      staging: atomisp2: replace DEVICE_ATTR with DEVICE_ATTR_RO
+
+Arnd Bergmann (1):
+      staging: atomisp: convert timestamps to ktime_t
+
+Jeremy Sowden (2):
+      media: staging: atomisp: fix for sparse "using plain integer as NULL pointer" warnings.
+      media: staging: atomisp: fixes for "symbol was not declared. Should it be static?" sparse warnings.
+
+Riccardo Schirone (4):
+      staging: add missing blank line after declarations in atomisp-ov5693
+      staging: improve comments usage in atomisp-ov5693
+      staging: improves comparisons readability in atomisp-ov5693
+      staging: fix indentation in atomisp-ov5693
+
+Sergiy Redko (1):
+      Staging: media: atomisp: made function static
+
+Sinan Kaya (1):
+      atomisp: deprecate pci_get_bus_and_slot()
+
+ drivers/staging/media/atomisp/i2c/ov2680.h         |  1 -
+ .../media/atomisp/i2c/ov5693/atomisp-ov5693.c      | 82 ++++++++++++++--------
+ drivers/staging/media/atomisp/i2c/ov5693/ov5693.h  |  2 +-
+ .../media/atomisp/pci/atomisp2/atomisp_v4l2.c      |  2 +-
+ .../isp/kernels/eed1_8/ia_css_eed1_8.host.c        | 24 +++----
+ .../css2400/runtime/debug/src/ia_css_debug.c       |  1 +
+ .../isp_param/interface/ia_css_isp_param_types.h   |  2 +-
+ .../staging/media/atomisp/pci/atomisp2/hmm/hmm.c   |  8 +--
+ 8 files changed, 72 insertions(+), 50 deletions(-)
+
+-- 
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
