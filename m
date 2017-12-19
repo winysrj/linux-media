@@ -1,233 +1,213 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay2-d.mail.gandi.net ([217.70.183.194]:52433 "EHLO
-        relay2-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753620AbdLMS0i (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:38380 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S966188AbdLSNHc (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 13 Dec 2017 13:26:38 -0500
-From: Jacopo Mondi <jacopo+renesas@jmondi.org>
-To: sakari.ailus@linux.intel.com
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        niklas.soderlund@ragnatech.se, kieran.bingham@ideasonboard.com,
-        laurent.pinchart@ideasonboard.com, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org
-Subject: [PATCH 4/5] v4l2: async: Postpone subdev_notifier registration
-Date: Wed, 13 Dec 2017 19:26:19 +0100
-Message-Id: <1513189580-32202-5-git-send-email-jacopo+renesas@jmondi.org>
-In-Reply-To: <1513189580-32202-1-git-send-email-jacopo+renesas@jmondi.org>
-References: <1513189580-32202-1-git-send-email-jacopo+renesas@jmondi.org>
+        Tue, 19 Dec 2017 08:07:32 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: jacopo mondi <jacopo@jmondi.org>
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>, magnus.damm@gmail.com,
+        geert@glider.be, mchehab@kernel.org, hverkuil@xs4all.nl,
+        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-sh@vger.kernel.org, linux-kernel@vger.kernel.org,
+        sakari.ailus@iki.fi
+Subject: Re: [PATCH v1 03/10] v4l: platform: Add Renesas CEU driver
+Date: Tue, 19 Dec 2017 15:07:41 +0200
+Message-ID: <1605194.apxP3rZ1bD@avalon>
+In-Reply-To: <20171219115742.GB27115@w540>
+References: <1510743363-25798-1-git-send-email-jacopo+renesas@jmondi.org> <2710170.YbEgzp5Yxe@avalon> <20171219115742.GB27115@w540>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Currently, subdevice notifiers are tested against all available
-subdevices as soon as they get registered. It often happens anyway
-that the subdevice they are connected to is not yet initialized, as
-it usually gets registered later in drivers' code. This makes debug
-of v4l2_async particularly painful, as identifying a notifier with
-an unitialized subdevice is tricky as they don't have a valid
-'struct device *' or 'struct fwnode_handle *' to be identified with.
+Hi Jacopo,
 
-In order to make sure that the notifier's subdevices is initialized
-when the notifier is tesed against available subdevices post-pone the
-actual notifier registration at subdevice registration time.
+(CC'ing Sakari)
 
-It is worth noting that post-poning registration of a subdevice notifier
-does not impact on the completion of the notifiers chain, as even if a
-subdev notifier completes as soon as it gets registered, the complete()
-call chain cannot be upscaled as long as the subdevice the notifiers
-belongs to is not registered.
+On Tuesday, 19 December 2017 13:57:42 EET jacopo mondi wrote:
+> On Mon, Dec 11, 2017 at 06:15:23PM +0200, Laurent Pinchart wrote:
+> > Hi Jacopo,
+> > 
+> > Thank you for the patch.
+> > 
+> > [snip]
+> > 
+> >> +static int ceu_sensor_bound(struct v4l2_async_notifier *notifier,
+> >> +			    struct v4l2_subdev *v4l2_sd,
+> >> +			    struct v4l2_async_subdev *asd)
+> >> +{
+> >> +	struct v4l2_device *v4l2_dev = notifier->v4l2_dev;
+> >> +	struct ceu_device *ceudev = v4l2_to_ceu(v4l2_dev);
+> >> +	struct ceu_subdev *ceu_sd = to_ceu_subdev(asd);
+> >> +
+> >> +	if (video_is_registered(&ceudev->vdev)) {
+> >> +		v4l2_err(&ceudev->v4l2_dev,
+> >> +			 "Video device registered before this sub-device.\n");
+> >> +		return -EBUSY;
+> > 
+> > Can this happen ?
+> > 
+> >> +	}
+> >> +
+> >> +	/* Assign subdevices in the order they appear */
+> >> +	ceu_sd->v4l2_sd = v4l2_sd;
+> >> +	ceudev->num_sd++;
+> >> +
+> >> +	return 0;
+> >> +}
+> >> +
+> > > +static int ceu_sensor_complete(struct v4l2_async_notifier *notifier)
+> > > +{
+> > > +	struct v4l2_device *v4l2_dev = notifier->v4l2_dev;
+> > > +	struct ceu_device *ceudev = v4l2_to_ceu(v4l2_dev);
+> > > +	struct video_device *vdev = &ceudev->vdev;
+> > > +	struct vb2_queue *q = &ceudev->vb2_vq;
+> > > +	struct v4l2_subdev *v4l2_sd;
+> > > +	int ret;
+> > > +
+> > > +	/* Initialize vb2 queue */
+> > > +	q->type			= V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
+> > > +	q->io_modes		= VB2_MMAP | VB2_USERPTR;
+> > 
+> > No dmabuf ?
+> > 
+> > > +	q->drv_priv		= ceudev;
+> > > +	q->ops			= &ceu_videobuf_ops;
+> > > +	q->mem_ops		= &vb2_dma_contig_memops;
+> > > +	q->buf_struct_size	= sizeof(struct ceu_buffer);
+> > > +	q->timestamp_flags	= V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+> > > +	q->lock			= &ceudev->mlock;
+> > > +	q->dev			= ceudev->v4l2_dev.dev;
+> > 
+> > [snip]
+> > 
+> > > +static int ceu_probe(struct platform_device *pdev)
+> > > +{
+> > > +	struct device *dev = &pdev->dev;
+> > > +	struct ceu_device *ceudev;
+> > > +	struct resource *res;
+> > > +	void __iomem *base;
+> > > +	unsigned int irq;
+> > > +	int num_sd;
+> > > +	int ret;
+> > > +
+> > > +	ceudev = kzalloc(sizeof(*ceudev), GFP_KERNEL);
+> > 
+> > The memory is freed in ceu_vdev_release() as expected, but that will only
+> > work if the video device is registered. If the subdevs are never bound,
+> > the ceudev memory will be leaked if you unbind the CEU device from its
+> > driver. In my opinion this calls for registering the video device at
+> > probe time (although Hans disagrees).
+> > 
+> > > +	if (!ceudev)
+> > > +		return -ENOMEM;
+> > > +
+> > > +	platform_set_drvdata(pdev, ceudev);
+> > > +	dev_set_drvdata(dev, ceudev);
+> > 
+> > You don't need the second line, platform_set_drvdata() is a wrapper around
+> > dev_set_drvdata().
+> > 
+> > > +	ceudev->dev = dev;
+> > > +
+> > > +	INIT_LIST_HEAD(&ceudev->capture);
+> > > +	spin_lock_init(&ceudev->lock);
+> > > +	mutex_init(&ceudev->mlock);
+> > > +
+> > > +	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+> > > +	if (IS_ERR(res))
+> > > +		return PTR_ERR(res);
+> > 
+> > No need for error handling here, devm_ioremap_resource() will check the
+> > res
+> > pointer.
+> > 
+> > > +	base = devm_ioremap_resource(dev, res);
+> > 
+> > You can assign ceudev->base directly and remove the base local variable.
+> > 
+> > > +	if (IS_ERR(base))
+> > > +		return PTR_ERR(base);
+> > > +	ceudev->base = base;
+> > > +
+> > > +	ret = platform_get_irq(pdev, 0);
+> > > +	if (ret < 0) {
+> > > +		dev_err(dev, "failed to get irq: %d\n", ret);
+> > > +		return ret;
+> > > +	}
+> > > +	irq = ret;
+> > > +
+> > > +	ret = devm_request_irq(dev, irq, ceu_irq,
+> > > +			       0, dev_name(dev), ceudev);
+> > > +	if (ret) {
+> > > +		dev_err(&pdev->dev, "Unable to register CEU interrupt.\n");
+> > > +		return ret;
+> > > +	}
+> > > +
+> > > +	pm_suspend_ignore_children(dev, true);
+> > > +	pm_runtime_enable(dev);
+> > > +
+> > > +	ret = v4l2_device_register(dev, &ceudev->v4l2_dev);
+> > > +	if (ret)
+> > > +		goto error_pm_disable;
+> > > +
+> > > +	if (IS_ENABLED(CONFIG_OF) && dev->of_node) {
+> > > +		num_sd = ceu_parse_dt(ceudev);
+> > > +	} else if (dev->platform_data) {
+> > > +		num_sd = ceu_parse_platform_data(ceudev, dev->platform_data);
+> > > +	} else {
+> > > +		dev_err(dev, "CEU platform data not set and no OF support\n");
+> > > +		ret = -EINVAL;
+> > > +		goto error_v4l2_unregister;
+> > > +	}
+> > > +
+> > > +	if (num_sd < 0) {
+> > > +		ret = num_sd;
+> > > +		goto error_v4l2_unregister;
+> > > +	} else if (num_sd == 0)
+> > > +		return 0;
+> > 
+> > You need braces around the second statement too.
+> 
+> Ok, actually parse_dt() and parse_platform_data() behaves differently.
+> The former returns error if no subdevices are connected to CEU, the
+> latter returns 0. That's wrong.
+> 
+> I wonder what's the correct behavior here. Other mainline drivers I
+> looked into (pxa_camera and atmel-isc) behaves differently from each
+> other, so I guess this is up to each platform to decide.
 
-Also, it is now safe to access a notifier 'struct device *' as we're now
-sure it is properly initialized when the notifier is actually
-registered.
+No, what it means is that we've failed to standardize it, not that it 
+shouldn't be standardized :-)
 
-Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
----
- drivers/media/v4l2-core/v4l2-async.c | 65 +++++++++++++++++++++++-------------
- include/media/v4l2-async.h           |  2 ++
- 2 files changed, 43 insertions(+), 24 deletions(-)
+> Also, the CEU can accept one single input (and I made it clear
+> in DT bindings documentation saying it accepts a single endpoint,
+> while I'm parsing all the available ones in driver, I will fix this)
+> but as it happens on Migo-R, there could be HW hacks to share the input
+> lines between multiple subdevices. Should I accept it from dts as well?
+> 
+> So:
+> 1) Should we fail to probe if no subdevices are connected?
 
-diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
-index 0a1bf1d..c13a781 100644
---- a/drivers/media/v4l2-core/v4l2-async.c
-+++ b/drivers/media/v4l2-core/v4l2-async.c
-@@ -25,6 +25,13 @@
- #include <media/v4l2-fwnode.h>
- #include <media/v4l2-subdev.h>
+While the CEU itself would be fully functional without a subdev, in practice 
+it would be of no use. I would thus fail probing.
 
-+static struct device *v4l2_async_notifier_dev(
-+					struct v4l2_async_notifier *notifier)
-+{
-+	return notifier->v4l2_dev ? notifier->v4l2_dev->dev :
-+				    notifier->sd->dev;
-+}
-+
- static int v4l2_async_notifier_call_bound(struct v4l2_async_notifier *n,
- 					  struct v4l2_subdev *subdev,
- 					  struct v4l2_async_subdev *asd)
-@@ -124,19 +131,6 @@ static struct v4l2_async_subdev *v4l2_async_find_match(
- 	return NULL;
- }
+> 2) Should we accept more than 1 subdevice from dts as it happens right
+> now for platform data?
 
--/* Find the sub-device notifier registered by a sub-device driver. */
--static struct v4l2_async_notifier *v4l2_async_find_subdev_notifier(
--	struct v4l2_subdev *sd)
--{
--	struct v4l2_async_notifier *n;
--
--	list_for_each_entry(n, &notifier_list, list)
--		if (n->sd == sd)
--			return n;
--
--	return NULL;
--}
--
- /* Get v4l2_device related to the notifier if one can be found. */
- static struct v4l2_device *v4l2_async_notifier_find_v4l2_dev(
- 	struct v4l2_async_notifier *notifier)
-@@ -160,7 +154,7 @@ static bool v4l2_async_notifier_can_complete(
+We need to support multiple connected devices, as some of the boards require 
+that. What I'm not sure about is whether the multiplexer on the Migo-R board 
+should be modeled as a subdevice. We could in theory connect multiple sensors 
+to the CEU input signals without any multiplexer as long as all but one are in 
+reset with their outputs in a high impedance state. As that wouldn' require a 
+multiplexer we would need to support multiple endpoints in the CEU port. We 
+could then support Migo-R the same way, making the multiplexer transparent.
 
- 	list_for_each_entry(sd, &notifier->done, async_list) {
- 		struct v4l2_async_notifier *subdev_notifier =
--			v4l2_async_find_subdev_notifier(sd);
-+							sd->subdev_notifier;
+Sakari, what would you do here ?
 
- 		if (subdev_notifier &&
- 		    !v4l2_async_notifier_can_complete(subdev_notifier))
-@@ -228,7 +222,7 @@ static int v4l2_async_match_notify(struct v4l2_async_notifier *notifier,
- 	/*
- 	 * See if the sub-device has a notifier. If not, return here.
- 	 */
--	subdev_notifier = v4l2_async_find_subdev_notifier(sd);
-+	subdev_notifier = sd->subdev_notifier;
- 	if (!subdev_notifier || subdev_notifier->parent)
- 		return 0;
+-- 
+Regards,
 
-@@ -294,7 +288,7 @@ static void v4l2_async_notifier_unbind_all_subdevs(
-
- 	list_for_each_entry_safe(sd, tmp, &notifier->done, async_list) {
- 		struct v4l2_async_notifier *subdev_notifier =
--			v4l2_async_find_subdev_notifier(sd);
-+							sd->subdev_notifier;
-
- 		if (subdev_notifier)
- 			v4l2_async_notifier_unbind_all_subdevs(subdev_notifier);
-@@ -371,8 +365,7 @@ static bool v4l2_async_notifier_fwnode_has_async_subdev(
-
- static int __v4l2_async_notifier_register(struct v4l2_async_notifier *notifier)
- {
--	struct device *dev =
--		notifier->v4l2_dev ? notifier->v4l2_dev->dev : NULL;
-+	struct device *dev = v4l2_async_notifier_dev(notifier);
- 	struct v4l2_async_subdev *asd;
- 	int ret;
- 	int i;
-@@ -383,6 +376,8 @@ static int __v4l2_async_notifier_register(struct v4l2_async_notifier *notifier)
- 	INIT_LIST_HEAD(&notifier->waiting);
- 	INIT_LIST_HEAD(&notifier->done);
-
-+	notifier->owner = dev_fwnode(dev);
-+
- 	mutex_lock(&list_lock);
-
- 	for (i = 0; i < notifier->num_subdevs; i++) {
-@@ -421,6 +416,7 @@ static int __v4l2_async_notifier_register(struct v4l2_async_notifier *notifier)
-
- 	/* Keep also completed notifiers on the list */
- 	list_add(&notifier->list, &notifier_list);
-+	notifier->registered = true;
-
- 	mutex_unlock(&list_lock);
-
-@@ -447,7 +443,7 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
- 		return -EINVAL;
-
- 	notifier->v4l2_dev = v4l2_dev;
--	notifier->owner = dev_fwnode(v4l2_dev->dev);
-+	notifier->registered = false;
-
- 	ret = __v4l2_async_notifier_register(notifier);
- 	if (ret)
-@@ -466,7 +462,11 @@ int v4l2_async_subdev_notifier_register(struct v4l2_subdev *sd,
- 		return -EINVAL;
-
- 	notifier->sd = sd;
--	notifier->owner = dev_fwnode(sd->dev);
-+	sd->subdev_notifier = notifier;
-+	notifier->registered = false;
-+
-+	if (!sd->dev || !sd->fwnode)
-+		return 0;
-
- 	ret = __v4l2_async_notifier_register(notifier);
- 	if (ret)
-@@ -482,12 +482,15 @@ static void __v4l2_async_notifier_unregister(
- 	if (!notifier || (!notifier->v4l2_dev && !notifier->sd))
- 		return;
-
--	v4l2_async_notifier_unbind_all_subdevs(notifier);
-+	if (notifier->registered) {
-+		v4l2_async_notifier_unbind_all_subdevs(notifier);
-+		list_del(&notifier->list);
-+	}
-
- 	notifier->sd = NULL;
- 	notifier->v4l2_dev = NULL;
--
--	list_del(&notifier->list);
-+	notifier->owner = NULL;
-+	notifier->registered = false;
- }
-
- void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
-@@ -548,6 +551,20 @@ int v4l2_async_register_subdev(struct v4l2_subdev *sd)
- 			sd->fwnode = dev_fwnode(sd->dev);
- 	}
-
-+	/*
-+	 * If the subdevice has an unregisterd notifier, it's now time
-+	 * to register it.
-+	 */
-+	subdev_notifier = sd->subdev_notifier;
-+	if (subdev_notifier && !subdev_notifier->registered) {
-+		ret = __v4l2_async_notifier_register(subdev_notifier);
-+		if (ret) {
-+			sd->fwnode = NULL;
-+			subdev_notifier->owner = NULL;
-+			return ret;
-+		}
-+	}
-+
- 	mutex_lock(&list_lock);
-
- 	INIT_LIST_HEAD(&sd->async_list);
-@@ -589,7 +606,7 @@ int v4l2_async_register_subdev(struct v4l2_subdev *sd)
- 	 * Complete failed. Unbind the sub-devices bound through registering
- 	 * this async sub-device.
- 	 */
--	subdev_notifier = v4l2_async_find_subdev_notifier(sd);
-+	subdev_notifier = sd->subdev_notifier;
- 	if (subdev_notifier)
- 		v4l2_async_notifier_unbind_all_subdevs(subdev_notifier);
-
-diff --git a/include/media/v4l2-async.h b/include/media/v4l2-async.h
-index a15c01d..6ab04ad 100644
---- a/include/media/v4l2-async.h
-+++ b/include/media/v4l2-async.h
-@@ -110,6 +110,7 @@ struct v4l2_async_notifier_operations {
-  * @waiting:	list of struct v4l2_async_subdev, waiting for their drivers
-  * @done:	list of struct v4l2_subdev, already probed
-  * @list:	member in a global list of notifiers
-+ * @registered: notifier registered complete flag
-  */
- struct v4l2_async_notifier {
- 	const struct v4l2_async_notifier_operations *ops;
-@@ -123,6 +124,7 @@ struct v4l2_async_notifier {
- 	struct list_head waiting;
- 	struct list_head done;
- 	struct list_head list;
-+	bool registered;
- };
-
- /**
---
-2.7.4
+Laurent Pinchart
