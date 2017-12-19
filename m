@@ -1,410 +1,1042 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga07.intel.com ([134.134.136.100]:15284 "EHLO mga07.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751105AbdLUJ6D (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 21 Dec 2017 04:58:03 -0500
-Date: Thu, 21 Dec 2017 17:57:13 +0800
-From: kbuild test robot <lkp@intel.com>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: kbuild-all@01.org,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>
-Subject: Re: [PATCH v4 16/18] scripts: kernel-doc: improve nested logic to
- handle multiple identifiers
-Message-ID: <201712211735.ud5sZWiR%fengguang.wu@intel.com>
-References: <b89b7c5400afd8c03d88ccccd2b5edd3625a1997.1513599193.git.mchehab@s-opensource.com>
-MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="6c2NcOVqGQ03X4Wi"
-Content-Disposition: inline
-In-Reply-To: <b89b7c5400afd8c03d88ccccd2b5edd3625a1997.1513599193.git.mchehab@s-opensource.com>
+Received: from mailout4.samsung.com ([203.254.224.34]:41111 "EHLO
+        mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S934073AbdLSDgP (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 18 Dec 2017 22:36:15 -0500
+Received: from epcas5p3.samsung.com (unknown [182.195.41.41])
+        by mailout4.samsung.com (KnoxPortal) with ESMTP id 20171219033613epoutp0495f37fc0e9ff0b0dfcede55c0387f0dd~BlNCqyZq01710017100epoutp04U
+        for <linux-media@vger.kernel.org>; Tue, 19 Dec 2017 03:36:13 +0000 (GMT)
+From: Satendra Singh Thakur <satendra.t@samsung.com>
+To: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
+Cc: mchehab@kernel.org, pombredanne@nexb.com,
+        gregkh@linuxfoundation.org, tglx@linutronix.de,
+        satendra.t@samsung.com, madhur.verma@samsung.com,
+        hemanshu.s@samsung.com, sst2005@gmail.com,
+        kstewart@linuxfoundation.org, hans.verkuil@cisco.com,
+        sakari.ailus@linux.intel.com, keescook@chromium.org,
+        Junghak Sung <jh1009.sung@samsung.com>,
+        Geunyoung Kim <nenggun.kim@samsung.com>
+Subject: [PATCH v1] media: videobuf2: Add new uAPI for DVB streaming I/O
+Date: Tue, 19 Dec 2017 09:05:53 +0530
+Message-Id: <1513654553-27097-1-git-send-email-satendra.t@samsung.com>
+Content-Type: text/plain; charset="utf-8"
+References: <CGME20171219033612epcas5p41cb7d88255e0677d00c7e79572d27bc7@epcas5p4.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+-Ported below mentioned patch to latest kernel:
+ commit ace52288edf0 ("Merge tag 'for-linus-20171218' of
+ git://git.infradead.org/linux-mtd")
 
---6c2NcOVqGQ03X4Wi
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+-Fixed few bugs in the patch, enhanced it and added polling
+--dvb_vb2.c:dvb_vb2_fill_buffer=>
+----Set the size of the outgoing buffer after while loop using
+ vb2_set_plane_payload
+----Added NULL check for source buffer as per normal convention of
+ demux driver, this is called twice, first time with valid buffer
+ second time with NULL pointer, if its not handled, it will result in
+ crash
+---Restricted spinlock for only list_* operations
 
-Hi Mauro,
+--dvb_vb2.c:dvb_vb2_init=>
+----Restricted q->io_modes to only VB2_MMAP as its the only
+ supported mode
 
-I love your patch! Perhaps something to improve:
+--dvb_vb2.c:dvb_vb2_release=>Replaced the && in if condiion with &,
+ because it was always getting satisfied.
 
-[auto build test WARNING on lwn/docs-next]
-[also build test WARNING on v4.15-rc4 next-20171221]
-[cannot apply to linus/master]
-[if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
+--dvb_vb2.c:dvb_vb2_stream_off=>Added list_del code for enqueud buffers
+ upon stream off
 
-url:    https://github.com/0day-ci/linux/commits/Mauro-Carvalho-Chehab/kernel-doc-add-supported-to-document-nested-structs/20171221-055609
-base:   git://git.lwn.net/linux-2.6 docs-next
-reproduce: make htmldocs
+-Added polling functionality
+--dvb_vb2.c:dvb_vb2_poll=>added this function
+--dmxdev.c:dvb_demux_poll, dvb_dvr_poll=>Called dvb_vb2_poll from
+ these functions
 
-All warnings (new ones prefixed by >>):
+-Ported this patch and latest videobuf2 to lower kernel versions and
+ tested auto scan
 
-   WARNING: convert(1) not found, for SVG to PDF conversion install ImageMagick (https://www.imagemagick.org)
-   include/crypto/hash.h:89: warning: duplicate section name 'Note'
-   include/crypto/hash.h:95: warning: duplicate section name 'Note'
-   include/crypto/hash.h:102: warning: duplicate section name 'Note'
-   include/crypto/hash.h:89: warning: duplicate section name 'Note'
-   include/crypto/hash.h:95: warning: duplicate section name 'Note'
-   include/crypto/hash.h:102: warning: duplicate section name 'Note'
-   include/crypto/hash.h:89: warning: duplicate section name 'Note'
-   include/crypto/hash.h:95: warning: duplicate section name 'Note'
-   include/crypto/hash.h:102: warning: duplicate section name 'Note'
-   include/crypto/hash.h:89: warning: duplicate section name 'Note'
-   include/crypto/hash.h:95: warning: duplicate section name 'Note'
-   include/crypto/hash.h:102: warning: duplicate section name 'Note'
-   include/crypto/hash.h:89: warning: duplicate section name 'Note'
-   include/crypto/hash.h:95: warning: duplicate section name 'Note'
-   include/crypto/hash.h:102: warning: duplicate section name 'Note'
-   include/crypto/hash.h:89: warning: duplicate section name 'Note'
-   include/crypto/hash.h:95: warning: duplicate section name 'Note'
-   include/crypto/hash.h:102: warning: duplicate section name 'Note'
-   include/crypto/hash.h:89: warning: duplicate section name 'Note'
-   include/crypto/hash.h:95: warning: duplicate section name 'Note'
-   include/crypto/hash.h:102: warning: duplicate section name 'Note'
-   include/crypto/hash.h:89: warning: duplicate section name 'Note'
-   include/crypto/hash.h:95: warning: duplicate section name 'Note'
-   include/crypto/hash.h:102: warning: duplicate section name 'Note'
-   include/linux/crypto.h:469: warning: Function parameter or member 'cra_u.ablkcipher' not described in 'crypto_alg'
-   include/linux/crypto.h:469: warning: Function parameter or member 'cra_u.blkcipher' not described in 'crypto_alg'
-   include/linux/crypto.h:469: warning: Function parameter or member 'cra_u.cipher' not described in 'crypto_alg'
-   include/linux/crypto.h:469: warning: Function parameter or member 'cra_u.compress' not described in 'crypto_alg'
-   include/linux/crypto.h:469: warning: Function parameter or member 'cra_u.ablkcipher' not described in 'crypto_alg'
-   include/linux/crypto.h:469: warning: Function parameter or member 'cra_u.blkcipher' not described in 'crypto_alg'
-   include/linux/crypto.h:469: warning: Function parameter or member 'cra_u.cipher' not described in 'crypto_alg'
-   include/linux/crypto.h:469: warning: Function parameter or member 'cra_u.compress' not described in 'crypto_alg'
-   include/linux/crypto.h:469: warning: Function parameter or member 'cra_u.ablkcipher' not described in 'crypto_alg'
-   include/linux/crypto.h:469: warning: Function parameter or member 'cra_u.blkcipher' not described in 'crypto_alg'
-   include/linux/crypto.h:469: warning: Function parameter or member 'cra_u.cipher' not described in 'crypto_alg'
-   include/linux/crypto.h:469: warning: Function parameter or member 'cra_u.compress' not described in 'crypto_alg'
-   include/linux/crypto.h:469: warning: Function parameter or member 'cra_u.ablkcipher' not described in 'crypto_alg'
-   include/linux/crypto.h:469: warning: Function parameter or member 'cra_u.blkcipher' not described in 'crypto_alg'
-   include/linux/crypto.h:469: warning: Function parameter or member 'cra_u.cipher' not described in 'crypto_alg'
-   include/linux/crypto.h:469: warning: Function parameter or member 'cra_u.compress' not described in 'crypto_alg'
-   include/linux/crypto.h:469: warning: Function parameter or member 'cra_u.ablkcipher' not described in 'crypto_alg'
-   include/linux/crypto.h:469: warning: Function parameter or member 'cra_u.blkcipher' not described in 'crypto_alg'
-   include/linux/crypto.h:469: warning: Function parameter or member 'cra_u.cipher' not described in 'crypto_alg'
-   include/linux/crypto.h:469: warning: Function parameter or member 'cra_u.compress' not described in 'crypto_alg'
-   include/linux/crypto.h:469: warning: Function parameter or member 'cra_u.ablkcipher' not described in 'crypto_alg'
-   include/linux/crypto.h:469: warning: Function parameter or member 'cra_u.blkcipher' not described in 'crypto_alg'
-   include/linux/crypto.h:469: warning: Function parameter or member 'cra_u.cipher' not described in 'crypto_alg'
-   include/linux/crypto.h:469: warning: Function parameter or member 'cra_u.compress' not described in 'crypto_alg'
-   include/linux/crypto.h:469: warning: Function parameter or member 'cra_u.ablkcipher' not described in 'crypto_alg'
-   include/linux/crypto.h:469: warning: Function parameter or member 'cra_u.blkcipher' not described in 'crypto_alg'
-   include/linux/crypto.h:469: warning: Function parameter or member 'cra_u.cipher' not described in 'crypto_alg'
-   include/linux/crypto.h:469: warning: Function parameter or member 'cra_u.compress' not described in 'crypto_alg'
-   include/linux/crypto.h:469: warning: Function parameter or member 'cra_u.ablkcipher' not described in 'crypto_alg'
-   include/linux/crypto.h:469: warning: Function parameter or member 'cra_u.blkcipher' not described in 'crypto_alg'
-   include/linux/crypto.h:469: warning: Function parameter or member 'cra_u.cipher' not described in 'crypto_alg'
-   include/linux/crypto.h:469: warning: Function parameter or member 'cra_u.compress' not described in 'crypto_alg'
-   include/linux/crypto.h:469: warning: Function parameter or member 'cra_u.ablkcipher' not described in 'crypto_alg'
-   include/linux/crypto.h:469: warning: Function parameter or member 'cra_u.blkcipher' not described in 'crypto_alg'
-   include/linux/crypto.h:469: warning: Function parameter or member 'cra_u.cipher' not described in 'crypto_alg'
-   include/linux/crypto.h:469: warning: Function parameter or member 'cra_u.compress' not described in 'crypto_alg'
-   include/linux/crypto.h:469: warning: Function parameter or member 'cra_u.ablkcipher' not described in 'crypto_alg'
-   include/linux/crypto.h:469: warning: Function parameter or member 'cra_u.blkcipher' not described in 'crypto_alg'
-   include/linux/crypto.h:469: warning: Function parameter or member 'cra_u.cipher' not described in 'crypto_alg'
-   include/linux/crypto.h:469: warning: Function parameter or member 'cra_u.compress' not described in 'crypto_alg'
-   include/net/cfg80211.h:2056: warning: Function parameter or member 'param.band_pref' not described in 'cfg80211_bss_selection'
-   include/net/cfg80211.h:2056: warning: Function parameter or member 'param.adjust' not described in 'cfg80211_bss_selection'
-   include/net/cfg80211.h:3278: warning: Excess enum value 'WIPHY_FLAG_SUPPORTS_SCHED_SCAN' description in 'wiphy_flags'
-   include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.ibss' not described in 'wireless_dev'
-   include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.connect' not described in 'wireless_dev'
-   include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.keys' not described in 'wireless_dev'
-   include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.ie' not described in 'wireless_dev'
-   include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.ie_len' not described in 'wireless_dev'
->> include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.bssid' not described in 'wireless_dev'
-   include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.prev_bssid' not described in 'wireless_dev'
-   include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.ssid' not described in 'wireless_dev'
->> include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.default_key' not described in 'wireless_dev'
-   include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.default_mgmt_key' not described in 'wireless_dev'
-   include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.prev_bssid_valid' not described in 'wireless_dev'
-   include/net/cfg80211.h:2056: warning: Function parameter or member 'param.band_pref' not described in 'cfg80211_bss_selection'
-   include/net/cfg80211.h:2056: warning: Function parameter or member 'param.adjust' not described in 'cfg80211_bss_selection'
-   include/net/cfg80211.h:3278: warning: Excess enum value 'WIPHY_FLAG_SUPPORTS_SCHED_SCAN' description in 'wiphy_flags'
-   include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.ibss' not described in 'wireless_dev'
-   include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.connect' not described in 'wireless_dev'
-   include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.keys' not described in 'wireless_dev'
-   include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.ie' not described in 'wireless_dev'
-   include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.ie_len' not described in 'wireless_dev'
->> include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.bssid' not described in 'wireless_dev'
-   include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.prev_bssid' not described in 'wireless_dev'
-   include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.ssid' not described in 'wireless_dev'
->> include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.default_key' not described in 'wireless_dev'
-   include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.default_mgmt_key' not described in 'wireless_dev'
-   include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.prev_bssid_valid' not described in 'wireless_dev'
-   include/net/cfg80211.h:2056: warning: Function parameter or member 'param.band_pref' not described in 'cfg80211_bss_selection'
-   include/net/cfg80211.h:2056: warning: Function parameter or member 'param.adjust' not described in 'cfg80211_bss_selection'
-   include/net/cfg80211.h:3278: warning: Excess enum value 'WIPHY_FLAG_SUPPORTS_SCHED_SCAN' description in 'wiphy_flags'
-   include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.ibss' not described in 'wireless_dev'
-   include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.connect' not described in 'wireless_dev'
-   include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.keys' not described in 'wireless_dev'
-   include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.ie' not described in 'wireless_dev'
-   include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.ie_len' not described in 'wireless_dev'
->> include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.bssid' not described in 'wireless_dev'
-   include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.prev_bssid' not described in 'wireless_dev'
-   include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.ssid' not described in 'wireless_dev'
->> include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.default_key' not described in 'wireless_dev'
-   include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.default_mgmt_key' not described in 'wireless_dev'
-   include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.prev_bssid_valid' not described in 'wireless_dev'
-   include/net/cfg80211.h:2056: warning: Function parameter or member 'param.band_pref' not described in 'cfg80211_bss_selection'
-   include/net/cfg80211.h:2056: warning: Function parameter or member 'param.adjust' not described in 'cfg80211_bss_selection'
-   include/net/cfg80211.h:3278: warning: Excess enum value 'WIPHY_FLAG_SUPPORTS_SCHED_SCAN' description in 'wiphy_flags'
-   include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.ibss' not described in 'wireless_dev'
-   include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.connect' not described in 'wireless_dev'
-   include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.keys' not described in 'wireless_dev'
-   include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.ie' not described in 'wireless_dev'
-   include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.ie_len' not described in 'wireless_dev'
->> include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.bssid' not described in 'wireless_dev'
-   include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.prev_bssid' not described in 'wireless_dev'
-   include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.ssid' not described in 'wireless_dev'
->> include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.default_key' not described in 'wireless_dev'
-   include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.default_mgmt_key' not described in 'wireless_dev'
-   include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.prev_bssid_valid' not described in 'wireless_dev'
-   include/net/cfg80211.h:2056: warning: Function parameter or member 'param.band_pref' not described in 'cfg80211_bss_selection'
-   include/net/cfg80211.h:2056: warning: Function parameter or member 'param.adjust' not described in 'cfg80211_bss_selection'
-   include/net/cfg80211.h:3278: warning: Excess enum value 'WIPHY_FLAG_SUPPORTS_SCHED_SCAN' description in 'wiphy_flags'
-   include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.ibss' not described in 'wireless_dev'
-   include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.connect' not described in 'wireless_dev'
-   include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.keys' not described in 'wireless_dev'
-   include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.ie' not described in 'wireless_dev'
-   include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.ie_len' not described in 'wireless_dev'
->> include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.bssid' not described in 'wireless_dev'
-   include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.prev_bssid' not described in 'wireless_dev'
-   include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.ssid' not described in 'wireless_dev'
->> include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.default_key' not described in 'wireless_dev'
-   include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.default_mgmt_key' not described in 'wireless_dev'
-   include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.prev_bssid_valid' not described in 'wireless_dev'
-   include/net/cfg80211.h:2056: warning: Function parameter or member 'param.band_pref' not described in 'cfg80211_bss_selection'
-   include/net/cfg80211.h:2056: warning: Function parameter or member 'param.adjust' not described in 'cfg80211_bss_selection'
-   include/net/cfg80211.h:3278: warning: Excess enum value 'WIPHY_FLAG_SUPPORTS_SCHED_SCAN' description in 'wiphy_flags'
-   include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.ibss' not described in 'wireless_dev'
-   include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.connect' not described in 'wireless_dev'
-   include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.keys' not described in 'wireless_dev'
-   include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.ie' not described in 'wireless_dev'
-   include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.ie_len' not described in 'wireless_dev'
->> include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.bssid' not described in 'wireless_dev'
-   include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.prev_bssid' not described in 'wireless_dev'
-   include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.ssid' not described in 'wireless_dev'
->> include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.default_key' not described in 'wireless_dev'
-   include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.default_mgmt_key' not described in 'wireless_dev'
-   include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.prev_bssid_valid' not described in 'wireless_dev'
-   include/net/cfg80211.h:2056: warning: Function parameter or member 'param.band_pref' not described in 'cfg80211_bss_selection'
-   include/net/cfg80211.h:2056: warning: Function parameter or member 'param.adjust' not described in 'cfg80211_bss_selection'
-   include/net/cfg80211.h:3278: warning: Excess enum value 'WIPHY_FLAG_SUPPORTS_SCHED_SCAN' description in 'wiphy_flags'
-   include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.ibss' not described in 'wireless_dev'
-   include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.connect' not described in 'wireless_dev'
-   include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.keys' not described in 'wireless_dev'
-   include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.ie' not described in 'wireless_dev'
-   include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.ie_len' not described in 'wireless_dev'
->> include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.bssid' not described in 'wireless_dev'
-   include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.prev_bssid' not described in 'wireless_dev'
-   include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.ssid' not described in 'wireless_dev'
->> include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.default_key' not described in 'wireless_dev'
-   include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.default_mgmt_key' not described in 'wireless_dev'
-   include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.prev_bssid_valid' not described in 'wireless_dev'
-   include/net/cfg80211.h:2056: warning: Function parameter or member 'param.band_pref' not described in 'cfg80211_bss_selection'
-   include/net/cfg80211.h:2056: warning: Function parameter or member 'param.adjust' not described in 'cfg80211_bss_selection'
-   include/net/cfg80211.h:3278: warning: Excess enum value 'WIPHY_FLAG_SUPPORTS_SCHED_SCAN' description in 'wiphy_flags'
-   include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.ibss' not described in 'wireless_dev'
-   include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.connect' not described in 'wireless_dev'
-   include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.keys' not described in 'wireless_dev'
-   include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.ie' not described in 'wireless_dev'
-   include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.ie_len' not described in 'wireless_dev'
->> include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.bssid' not described in 'wireless_dev'
-   include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.prev_bssid' not described in 'wireless_dev'
-   include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.ssid' not described in 'wireless_dev'
->> include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.default_key' not described in 'wireless_dev'
-   include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.default_mgmt_key' not described in 'wireless_dev'
-   include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.prev_bssid_valid' not described in 'wireless_dev'
-   include/net/cfg80211.h:2056: warning: Function parameter or member 'param.band_pref' not described in 'cfg80211_bss_selection'
-   include/net/cfg80211.h:2056: warning: Function parameter or member 'param.adjust' not described in 'cfg80211_bss_selection'
-   include/net/cfg80211.h:3278: warning: Excess enum value 'WIPHY_FLAG_SUPPORTS_SCHED_SCAN' description in 'wiphy_flags'
-   include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.ibss' not described in 'wireless_dev'
-   include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.connect' not described in 'wireless_dev'
-   include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.keys' not described in 'wireless_dev'
-   include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.ie' not described in 'wireless_dev'
-   include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.ie_len' not described in 'wireless_dev'
->> include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.bssid' not described in 'wireless_dev'
-   include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.prev_bssid' not described in 'wireless_dev'
-   include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.ssid' not described in 'wireless_dev'
->> include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.default_key' not described in 'wireless_dev'
-   include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.default_mgmt_key' not described in 'wireless_dev'
-   include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.prev_bssid_valid' not described in 'wireless_dev'
-   include/net/cfg80211.h:2056: warning: Function parameter or member 'param.band_pref' not described in 'cfg80211_bss_selection'
-   include/net/cfg80211.h:2056: warning: Function parameter or member 'param.adjust' not described in 'cfg80211_bss_selection'
-   include/net/cfg80211.h:3278: warning: Excess enum value 'WIPHY_FLAG_SUPPORTS_SCHED_SCAN' description in 'wiphy_flags'
-   include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.ibss' not described in 'wireless_dev'
-   include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.connect' not described in 'wireless_dev'
-   include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.keys' not described in 'wireless_dev'
-   include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.ie' not described in 'wireless_dev'
-   include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.ie_len' not described in 'wireless_dev'
->> include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.bssid' not described in 'wireless_dev'
-   include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.prev_bssid' not described in 'wireless_dev'
-   include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.ssid' not described in 'wireless_dev'
->> include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.default_key' not described in 'wireless_dev'
-   include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.default_mgmt_key' not described in 'wireless_dev'
-   include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.prev_bssid_valid' not described in 'wireless_dev'
-   include/net/cfg80211.h:2056: warning: Function parameter or member 'param.band_pref' not described in 'cfg80211_bss_selection'
-   include/net/cfg80211.h:2056: warning: Function parameter or member 'param.adjust' not described in 'cfg80211_bss_selection'
-   include/net/cfg80211.h:3278: warning: Excess enum value 'WIPHY_FLAG_SUPPORTS_SCHED_SCAN' description in 'wiphy_flags'
-   include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.ibss' not described in 'wireless_dev'
-   include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.connect' not described in 'wireless_dev'
-   include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.keys' not described in 'wireless_dev'
-   include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.ie' not described in 'wireless_dev'
-   include/net/cfg80211.h:4115: warning: Function parameter or member 'wext.ie_len' not described in 'wireless_dev'
+-Original patch=>
+--https://patchwork.linuxtv.org/patch/31613/
 
-vim +4115 include/net/cfg80211.h
-
-4a4b8169 Andrew Zaborowski 2017-02-10  4113  
-4a4b8169 Andrew Zaborowski 2017-02-10  4114  	struct cfg80211_cqm_config *cqm_config;
-d3236553 Johannes Berg     2009-04-20 @4115  };
-d3236553 Johannes Berg     2009-04-20  4116  
-
-:::::: The code at line 4115 was first introduced by commit
-:::::: d323655372590c533c275b1d798f9d1221efb5c6 cfg80211: clean up includes
-
-:::::: TO: Johannes Berg <johannes@sipsolutions.net>
-:::::: CC: John W. Linville <linville@tuxdriver.com>
-
+Signed-off-by: Junghak Sung <jh1009.sung@samsung.com>
+Signed-off-by: Geunyoung Kim <nenggun.kim@samsung.com>
+Acked-by: Seung-Woo Kim <sw0312.kim@samsung.com>
+Acked-by: Inki Dae <inki.dae@samsung.com>
+Signed-off-by: Satendra Singh Thakur <satendra.t@samsung.com>
 ---
-0-DAY kernel test infrastructure                Open Source Technology Center
-https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
+ drivers/media/dvb-core/Makefile  |   2 +-
+ drivers/media/dvb-core/dmxdev.c  | 194 +++++++++++++++---
+ drivers/media/dvb-core/dmxdev.h  |   4 +
+ drivers/media/dvb-core/dvb_vb2.c | 422 +++++++++++++++++++++++++++++++++++++++
+ drivers/media/dvb-core/dvb_vb2.h |  72 +++++++
+ include/uapi/linux/dvb/dmx.h     |  66 +++++-
+ 6 files changed, 731 insertions(+), 29 deletions(-)
+ create mode 100644 drivers/media/dvb-core/dvb_vb2.c
+ create mode 100644 drivers/media/dvb-core/dvb_vb2.h
 
---6c2NcOVqGQ03X4Wi
-Content-Type: application/gzip
-Content-Disposition: attachment; filename=".config.gz"
-Content-Transfer-Encoding: base64
-
-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
-
---6c2NcOVqGQ03X4Wi--
+diff --git a/drivers/media/dvb-core/Makefile b/drivers/media/dvb-core/Makefile
+index 47e2e39..bbc65df 100644
+--- a/drivers/media/dvb-core/Makefile
++++ b/drivers/media/dvb-core/Makefile
+@@ -7,6 +7,6 @@ dvb-net-$(CONFIG_DVB_NET) := dvb_net.o
+ 
+ dvb-core-objs := dvbdev.o dmxdev.o dvb_demux.o		 	\
+ 		 dvb_ca_en50221.o dvb_frontend.o 		\
+-		 $(dvb-net-y) dvb_ringbuffer.o dvb_math.o
++		 $(dvb-net-y) dvb_ringbuffer.o dvb_vb2.o dvb_math.o
+ 
+ obj-$(CONFIG_DVB_CORE) += dvb-core.o
+diff --git a/drivers/media/dvb-core/dmxdev.c b/drivers/media/dvb-core/dmxdev.c
+index 3ddd44e..7701cb0 100644
+--- a/drivers/media/dvb-core/dmxdev.c
++++ b/drivers/media/dvb-core/dmxdev.c
+@@ -28,6 +28,7 @@
+ #include <linux/wait.h>
+ #include <linux/uaccess.h>
+ #include "dmxdev.h"
++#include "dvb_vb2.h"
+ 
+ static int debug;
+ 
+@@ -138,14 +139,8 @@ static int dvb_dvr_open(struct inode *inode, struct file *file)
+ 		return -ENODEV;
+ 	}
+ 
+-	if ((file->f_flags & O_ACCMODE) == O_RDWR) {
+-		if (!(dmxdev->capabilities & DMXDEV_CAP_DUPLEX)) {
+-			mutex_unlock(&dmxdev->mutex);
+-			return -EOPNOTSUPP;
+-		}
+-	}
+-
+-	if ((file->f_flags & O_ACCMODE) == O_RDONLY) {
++	if (((file->f_flags & O_ACCMODE) == O_RDONLY)
++			|| ((file->f_flags & O_ACCMODE) == O_RDWR)) {
+ 		void *mem;
+ 
+ 		if (!dvbdev->readers) {
+@@ -158,6 +153,8 @@ static int dvb_dvr_open(struct inode *inode, struct file *file)
+ 			return -ENOMEM;
+ 		}
+ 		dvb_ringbuffer_init(&dmxdev->dvr_buffer, mem, DVR_BUFFER_SIZE);
++		dvb_vb2_init(&dmxdev->dvr_vb2_ctx, "dvr",
++				file->f_flags & O_NONBLOCK);
+ 		dvbdev->readers--;
+ 	}
+ 
+@@ -195,7 +192,11 @@ static int dvb_dvr_release(struct inode *inode, struct file *file)
+ 		dmxdev->demux->connect_frontend(dmxdev->demux,
+ 						dmxdev->dvr_orig_fe);
+ 	}
+-	if ((file->f_flags & O_ACCMODE) == O_RDONLY) {
++	if (((file->f_flags & O_ACCMODE) == O_RDONLY)
++			|| ((file->f_flags & O_ACCMODE) == O_RDWR)) {
++		if (dvb_vb2_is_streaming(&dmxdev->dvr_vb2_ctx))
++			dvb_vb2_stream_off(&dmxdev->dvr_vb2_ctx);
++		dvb_vb2_release(&dmxdev->dvr_vb2_ctx);
+ 		dvbdev->readers++;
+ 		if (dmxdev->dvr_buffer.data) {
+ 			void *mem = dmxdev->dvr_buffer.data;
+@@ -358,8 +359,8 @@ static int dvb_dmxdev_section_callback(const u8 *buffer1, size_t buffer1_len,
+ {
+ 	struct dmxdev_filter *dmxdevfilter = filter->priv;
+ 	int ret;
+-
+-	if (dmxdevfilter->buffer.error) {
++	if (!dvb_vb2_is_streaming(&dmxdevfilter->vb2_ctx)
++		&& dmxdevfilter->buffer.error) {
+ 		wake_up(&dmxdevfilter->buffer.queue);
+ 		return 0;
+ 	}
+@@ -370,11 +371,19 @@ static int dvb_dmxdev_section_callback(const u8 *buffer1, size_t buffer1_len,
+ 	}
+ 	del_timer(&dmxdevfilter->timer);
+ 	dprintk("section callback %*ph\n", 6, buffer1);
+-	ret = dvb_dmxdev_buffer_write(&dmxdevfilter->buffer, buffer1,
+-				      buffer1_len);
+-	if (ret == buffer1_len) {
+-		ret = dvb_dmxdev_buffer_write(&dmxdevfilter->buffer, buffer2,
+-					      buffer2_len);
++	if (dvb_vb2_is_streaming(&dmxdevfilter->vb2_ctx)) {
++		ret = dvb_vb2_fill_buffer(&dmxdevfilter->vb2_ctx,
++				buffer1, buffer1_len);
++		if (ret == buffer1_len)
++			ret = dvb_vb2_fill_buffer(&dmxdevfilter->vb2_ctx,
++					buffer2, buffer2_len);
++	} else {
++		ret = dvb_dmxdev_buffer_write(&dmxdevfilter->buffer,
++				buffer1, buffer1_len);
++		if (ret == buffer1_len) {
++			ret = dvb_dmxdev_buffer_write(&dmxdevfilter->buffer,
++					buffer2, buffer2_len);
++		}
+ 	}
+ 	if (ret < 0)
+ 		dmxdevfilter->buffer.error = ret;
+@@ -391,6 +400,7 @@ static int dvb_dmxdev_ts_callback(const u8 *buffer1, size_t buffer1_len,
+ {
+ 	struct dmxdev_filter *dmxdevfilter = feed->priv;
+ 	struct dvb_ringbuffer *buffer;
++	struct dvb_vb2_ctx *ctx;
+ 	int ret;
+ 
+ 	spin_lock(&dmxdevfilter->dev->lock);
+@@ -400,18 +410,29 @@ static int dvb_dmxdev_ts_callback(const u8 *buffer1, size_t buffer1_len,
+ 	}
+ 
+ 	if (dmxdevfilter->params.pes.output == DMX_OUT_TAP
+-	    || dmxdevfilter->params.pes.output == DMX_OUT_TSDEMUX_TAP)
++	    || dmxdevfilter->params.pes.output == DMX_OUT_TSDEMUX_TAP) {
+ 		buffer = &dmxdevfilter->buffer;
+-	else
++		ctx = &dmxdevfilter->vb2_ctx;
++	} else {
+ 		buffer = &dmxdevfilter->dev->dvr_buffer;
+-	if (buffer->error) {
+-		spin_unlock(&dmxdevfilter->dev->lock);
+-		wake_up(&buffer->queue);
+-		return 0;
++		ctx = &dmxdevfilter->dev->dvr_vb2_ctx;
++	}
++
++	if (dvb_vb2_is_streaming(ctx)) {
++		ret = dvb_vb2_fill_buffer(ctx, buffer1, buffer1_len);
++		if (ret == buffer1_len)
++			ret = dvb_vb2_fill_buffer(ctx, buffer2, buffer2_len);
++	} else {
++		if (buffer->error) {
++			spin_unlock(&dmxdevfilter->dev->lock);
++			wake_up(&buffer->queue);
++			return 0;
++		}
++		ret = dvb_dmxdev_buffer_write(buffer, buffer1, buffer1_len);
++		if (ret == buffer1_len)
++			ret = dvb_dmxdev_buffer_write(buffer,
++					buffer2, buffer2_len);
+ 	}
+-	ret = dvb_dmxdev_buffer_write(buffer, buffer1, buffer1_len);
+-	if (ret == buffer1_len)
+-		ret = dvb_dmxdev_buffer_write(buffer, buffer2, buffer2_len);
+ 	if (ret < 0)
+ 		buffer->error = ret;
+ 	spin_unlock(&dmxdevfilter->dev->lock);
+@@ -750,6 +771,8 @@ static int dvb_demux_open(struct inode *inode, struct file *file)
+ 	file->private_data = dmxdevfilter;
+ 
+ 	dvb_ringbuffer_init(&dmxdevfilter->buffer, NULL, 8192);
++	dvb_vb2_init(&dmxdevfilter->vb2_ctx, "demux_filter",
++			file->f_flags & O_NONBLOCK);
+ 	dmxdevfilter->type = DMXDEV_TYPE_NONE;
+ 	dvb_dmxdev_filter_state_set(dmxdevfilter, DMXDEV_STATE_ALLOCATED);
+ 	timer_setup(&dmxdevfilter->timer, dvb_dmxdev_filter_timeout, 0);
+@@ -765,6 +788,10 @@ static int dvb_dmxdev_filter_free(struct dmxdev *dmxdev,
+ {
+ 	mutex_lock(&dmxdev->mutex);
+ 	mutex_lock(&dmxdevfilter->mutex);
++	if (dvb_vb2_is_streaming(&dmxdevfilter->vb2_ctx))
++		dvb_vb2_stream_off(&dmxdevfilter->vb2_ctx);
++	dvb_vb2_release(&dmxdevfilter->vb2_ctx);
++
+ 
+ 	dvb_dmxdev_filter_stop(dmxdevfilter);
+ 	dvb_dmxdev_filter_reset(dmxdevfilter);
+@@ -1052,6 +1079,53 @@ static int dvb_demux_do_ioctl(struct file *file,
+ 		mutex_unlock(&dmxdevfilter->mutex);
+ 		break;
+ 
++	case DMX_REQBUFS:
++		if (mutex_lock_interruptible(&dmxdevfilter->mutex)) {
++			mutex_unlock(&dmxdev->mutex);
++			return -ERESTARTSYS;
++		}
++		ret = dvb_vb2_reqbufs(&dmxdevfilter->vb2_ctx, parg);
++		mutex_unlock(&dmxdevfilter->mutex);
++		break;
++
++	case DMX_QUERYBUF:
++		if (mutex_lock_interruptible(&dmxdevfilter->mutex)) {
++			mutex_unlock(&dmxdev->mutex);
++			return -ERESTARTSYS;
++		}
++		ret = dvb_vb2_querybuf(&dmxdevfilter->vb2_ctx, parg);
++		mutex_unlock(&dmxdevfilter->mutex);
++		break;
++
++	case DMX_EXPBUF:
++		if (mutex_lock_interruptible(&dmxdevfilter->mutex)) {
++			mutex_unlock(&dmxdev->mutex);
++			return -ERESTARTSYS;
++		}
++		ret = dvb_vb2_expbuf(&dmxdevfilter->vb2_ctx, parg);
++		mutex_unlock(&dmxdevfilter->mutex);
++		break;
++
++	case DMX_QBUF:
++		if (mutex_lock_interruptible(&dmxdevfilter->mutex)) {
++			mutex_unlock(&dmxdev->mutex);
++			return -ERESTARTSYS;
++		}
++		ret = dvb_vb2_qbuf(&dmxdevfilter->vb2_ctx, parg);
++		if (ret == 0 && !dvb_vb2_is_streaming(&dmxdevfilter->vb2_ctx))
++			ret = dvb_vb2_stream_on(&dmxdevfilter->vb2_ctx);
++		mutex_unlock(&dmxdevfilter->mutex);
++		break;
++
++	case DMX_DQBUF:
++		if (mutex_lock_interruptible(&dmxdevfilter->mutex)) {
++			mutex_unlock(&dmxdev->mutex);
++			return -ERESTARTSYS;
++		}
++		ret = dvb_vb2_dqbuf(&dmxdevfilter->vb2_ctx, parg);
++		mutex_unlock(&dmxdevfilter->mutex);
++		break;
++
+ 	default:
+ 		ret = -EINVAL;
+ 		break;
+@@ -1073,6 +1147,8 @@ static unsigned int dvb_demux_poll(struct file *file, poll_table *wait)
+ 
+ 	if ((!dmxdevfilter) || dmxdevfilter->dev->exit)
+ 		return POLLERR;
++	if (dvb_vb2_is_streaming(&dmxdevfilter->vb2_ctx))
++		return dvb_vb2_poll(&dmxdevfilter->vb2_ctx, file, wait);
+ 
+ 	poll_wait(file, &dmxdevfilter->buffer.queue, wait);
+ 
+@@ -1090,11 +1166,31 @@ static unsigned int dvb_demux_poll(struct file *file, poll_table *wait)
+ 	return mask;
+ }
+ 
+-static int dvb_demux_release(struct inode *inode, struct file *file)
++static int dvb_demux_mmap(struct file *file, struct vm_area_struct *vma)
+ {
+ 	struct dmxdev_filter *dmxdevfilter = file->private_data;
+ 	struct dmxdev *dmxdev = dmxdevfilter->dev;
++	int ret;
++
++	if (mutex_lock_interruptible(&dmxdev->mutex))
++		return -ERESTARTSYS;
++
++	if (mutex_lock_interruptible(&dmxdevfilter->mutex)) {
++		mutex_unlock(&dmxdev->mutex);
++		return -ERESTARTSYS;
++	}
++	ret = dvb_vb2_mmap(&dmxdevfilter->vb2_ctx, vma);
+ 
++	mutex_unlock(&dmxdevfilter->mutex);
++	mutex_unlock(&dmxdev->mutex);
++
++	return ret;
++}
++
++static int dvb_demux_release(struct inode *inode, struct file *file)
++{
++	struct dmxdev_filter *dmxdevfilter = file->private_data;
++	struct dmxdev *dmxdev = dmxdevfilter->dev;
+ 	int ret;
+ 
+ 	ret = dvb_dmxdev_filter_free(dmxdev, dmxdevfilter);
+@@ -1118,6 +1214,7 @@ static const struct file_operations dvb_demux_fops = {
+ 	.release = dvb_demux_release,
+ 	.poll = dvb_demux_poll,
+ 	.llseek = default_llseek,
++	.mmap = dvb_demux_mmap,
+ };
+ 
+ static const struct dvb_device dvbdev_demux = {
+@@ -1146,6 +1243,28 @@ static int dvb_dvr_do_ioctl(struct file *file,
+ 		ret = dvb_dvr_set_buffer_size(dmxdev, arg);
+ 		break;
+ 
++	case DMX_REQBUFS:
++		ret = dvb_vb2_reqbufs(&dmxdev->dvr_vb2_ctx, parg);
++		break;
++
++	case DMX_QUERYBUF:
++		ret = dvb_vb2_querybuf(&dmxdev->dvr_vb2_ctx, parg);
++		break;
++
++	case DMX_EXPBUF:
++		ret = dvb_vb2_expbuf(&dmxdev->dvr_vb2_ctx, parg);
++		break;
++
++	case DMX_QBUF:
++		ret = dvb_vb2_qbuf(&dmxdev->dvr_vb2_ctx, parg);
++		if (ret == 0 && !dvb_vb2_is_streaming(&dmxdev->dvr_vb2_ctx))
++			ret = dvb_vb2_stream_on(&dmxdev->dvr_vb2_ctx);
++		break;
++
++	case DMX_DQBUF:
++		ret = dvb_vb2_dqbuf(&dmxdev->dvr_vb2_ctx, parg);
++		break;
++
+ 	default:
+ 		ret = -EINVAL;
+ 		break;
+@@ -1170,10 +1289,13 @@ static unsigned int dvb_dvr_poll(struct file *file, poll_table *wait)
+ 
+ 	if (dmxdev->exit)
+ 		return POLLERR;
++	if (dvb_vb2_is_streaming(&dmxdev->dvr_vb2_ctx))
++		return dvb_vb2_poll(&dmxdev->dvr_vb2_ctx, file, wait);
+ 
+ 	poll_wait(file, &dmxdev->dvr_buffer.queue, wait);
+ 
+-	if ((file->f_flags & O_ACCMODE) == O_RDONLY) {
++	if (((file->f_flags & O_ACCMODE) == O_RDONLY)
++			|| ((file->f_flags & O_ACCMODE) == O_RDWR)) {
+ 		if (dmxdev->dvr_buffer.error)
+ 			mask |= (POLLIN | POLLRDNORM | POLLPRI | POLLERR);
+ 
+@@ -1185,6 +1307,23 @@ static unsigned int dvb_dvr_poll(struct file *file, poll_table *wait)
+ 	return mask;
+ }
+ 
++static int dvb_dvr_mmap(struct file *file, struct vm_area_struct *vma)
++{
++	struct dvb_device *dvbdev = file->private_data;
++	struct dmxdev *dmxdev = dvbdev->priv;
++	int ret;
++
++	if (dmxdev->exit)
++		return -ENODEV;
++
++	if (mutex_lock_interruptible(&dmxdev->mutex))
++		return -ERESTARTSYS;
++
++	ret = dvb_vb2_mmap(&dmxdev->dvr_vb2_ctx, vma);
++	mutex_unlock(&dmxdev->mutex);
++	return ret;
++}
++
+ static const struct file_operations dvb_dvr_fops = {
+ 	.owner = THIS_MODULE,
+ 	.read = dvb_dvr_read,
+@@ -1194,6 +1333,7 @@ static const struct file_operations dvb_dvr_fops = {
+ 	.release = dvb_dvr_release,
+ 	.poll = dvb_dvr_poll,
+ 	.llseek = default_llseek,
++	.mmap = dvb_dvr_mmap,
+ };
+ 
+ static const struct dvb_device dvbdev_dvr = {
+diff --git a/drivers/media/dvb-core/dmxdev.h b/drivers/media/dvb-core/dmxdev.h
+index 5e795f5..addd651 100644
+--- a/drivers/media/dvb-core/dmxdev.h
++++ b/drivers/media/dvb-core/dmxdev.h
+@@ -35,6 +35,7 @@
+ #include "dvbdev.h"
+ #include "demux.h"
+ #include "dvb_ringbuffer.h"
++#include "dvb_vb2.h"
+ 
+ /**
+  * enum dmxdev_type - type of demux filter type.
+@@ -135,6 +136,7 @@ struct dmxdev_filter {
+ 	enum dmxdev_state state;
+ 	struct dmxdev *dev;
+ 	struct dvb_ringbuffer buffer;
++	struct dvb_vb2_ctx vb2_ctx;
+ 
+ 	struct mutex mutex;
+ 
+@@ -178,6 +180,8 @@ struct dmxdev {
+ 	struct dvb_ringbuffer dvr_buffer;
+ #define DVR_BUFFER_SIZE (10*188*1024)
+ 
++	struct dvb_vb2_ctx dvr_vb2_ctx;
++
+ 	struct mutex mutex;
+ 	spinlock_t lock;
+ };
+diff --git a/drivers/media/dvb-core/dvb_vb2.c b/drivers/media/dvb-core/dvb_vb2.c
+new file mode 100644
+index 0000000..9ff6f54
+--- /dev/null
++++ b/drivers/media/dvb-core/dvb_vb2.c
+@@ -0,0 +1,422 @@
++/*
++ * dvb-vb2.c - dvb-vb2
++ *
++ * Copyright (C) 2015 Samsung Electronics
++ *
++ * Author: jh1009.sung@samsung.com
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation.
++ */
++
++#include <linux/err.h>
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/mm.h>
++
++#include "dvbdev.h"
++#include "dvb_vb2.h"
++
++static int vb2_debug;
++module_param(vb2_debug, int, 0644);
++
++#define dprintk(level, fmt, arg...)					      \
++	do {								      \
++		if (vb2_debug >= level)					      \
++			pr_info("vb2: %s: " fmt, __func__, ## arg); \
++	} while (0)
++
++static int _queue_setup(struct vb2_queue *vq,
++				unsigned int *nbuffers, unsigned int *nplanes,
++				unsigned int sizes[], struct device *alloc_devs[])
++{
++	struct dvb_vb2_ctx *ctx = vb2_get_drv_priv(vq);
++
++	*nbuffers = ctx->buf_cnt;
++	*nplanes = 1;
++	sizes[0] = ctx->buf_siz;
++
++	/*
++	 * videobuf2-vmalloc allocator is context-less so no need to set
++	 * alloc_ctxs array.
++	 */
++
++	dprintk(3, "[%s] count=%d, size=%d\n", ctx->name,
++			*nbuffers, sizes[0]);
++
++	return 0;
++}
++
++static int _buffer_prepare(struct vb2_buffer *vb)
++{
++	struct dvb_vb2_ctx *ctx = vb2_get_drv_priv(vb->vb2_queue);
++	unsigned long size = ctx->buf_siz;
++
++	if (vb2_plane_size(vb, 0) < size) {
++		dprintk(1, "[%s] data will not fit into plane (%lu < %lu)\n",
++				ctx->name, vb2_plane_size(vb, 0), size);
++		return -EINVAL;
++	}
++
++	vb2_set_plane_payload(vb, 0, size);
++	dprintk(3, "[%s]\n", ctx->name);
++
++	return 0;
++}
++
++static void _buffer_queue(struct vb2_buffer *vb)
++{
++	struct dvb_vb2_ctx *ctx = vb2_get_drv_priv(vb->vb2_queue);
++	struct dvb_buffer *buf = container_of(vb, struct dvb_buffer, vb);
++	unsigned long flags = 0;
++
++	spin_lock_irqsave(&ctx->slock, flags);
++	list_add_tail(&buf->list, &ctx->dvb_q);
++	spin_unlock_irqrestore(&ctx->slock, flags);
++
++	dprintk(3, "[%s]\n", ctx->name);
++}
++
++static int _start_streaming(struct vb2_queue *vq, unsigned int count)
++{
++	struct dvb_vb2_ctx *ctx = vb2_get_drv_priv(vq);
++
++	dprintk(3, "[%s] count=%d\n", ctx->name, count);
++	return 0;
++}
++
++static void _stop_streaming(struct vb2_queue *vq)
++{
++	struct dvb_vb2_ctx *ctx = vb2_get_drv_priv(vq);
++
++	dprintk(3, "[%s]\n", ctx->name);
++}
++
++static void _dmxdev_lock(struct vb2_queue *vq)
++{
++	struct dvb_vb2_ctx *ctx = vb2_get_drv_priv(vq);
++
++	mutex_lock(&ctx->mutex);
++	dprintk(3, "[%s]\n", ctx->name);
++}
++
++static void _dmxdev_unlock(struct vb2_queue *vq)
++{
++	struct dvb_vb2_ctx *ctx = vb2_get_drv_priv(vq);
++
++	if (mutex_is_locked(&ctx->mutex))
++		mutex_unlock(&ctx->mutex);
++	dprintk(3, "[%s]\n", ctx->name);
++}
++
++static const struct vb2_ops dvb_vb2_qops = {
++	.queue_setup		= _queue_setup,
++	.buf_prepare		= _buffer_prepare,
++	.buf_queue		= _buffer_queue,
++	.start_streaming	= _start_streaming,
++	.stop_streaming		= _stop_streaming,
++	.wait_prepare		= _dmxdev_unlock,
++	.wait_finish		= _dmxdev_lock,
++};
++
++static void _fill_dmx_buffer(struct vb2_buffer *vb, void *pb)
++{
++	struct dvb_vb2_ctx *ctx = vb2_get_drv_priv(vb->vb2_queue);
++	struct dmx_buffer *b = pb;
++
++	b->index = vb->index;
++	b->length = vb->planes[0].length;
++	b->bytesused = vb->planes[0].bytesused;
++	b->offset = vb->planes[0].m.offset;
++	memset(b->reserved, 0, sizeof(b->reserved));
++	dprintk(3, "[%s]\n", ctx->name);
++}
++
++static int _fill_vb2_buffer(struct vb2_buffer *vb,
++		const void *pb, struct vb2_plane *planes)
++{
++	struct dvb_vb2_ctx *ctx = vb2_get_drv_priv(vb->vb2_queue);
++
++	planes[0].bytesused = 0;
++	dprintk(3, "[%s]\n", ctx->name);
++
++	return 0;
++}
++
++static const struct vb2_buf_ops dvb_vb2_buf_ops = {
++	.fill_user_buffer	= _fill_dmx_buffer,
++	.fill_vb2_buffer	= _fill_vb2_buffer,
++};
++
++/*
++ * Videobuf operations
++ */
++int dvb_vb2_init(struct dvb_vb2_ctx *ctx, const char *name, int nonblocking)
++{
++	struct vb2_queue *q = &ctx->vb_q;
++	int ret;
++
++	memset(ctx, 0, sizeof(struct dvb_vb2_ctx));
++	q->type = DVB_BUF_TYPE_CAPTURE;
++	/**capture type*/
++	q->is_output = 0;
++	/**only mmap is supported currently*/
++	q->io_modes = VB2_MMAP;
++	q->drv_priv = ctx;
++	q->buf_struct_size = sizeof(struct dvb_buffer);
++	q->min_buffers_needed = 1;
++	q->ops = &dvb_vb2_qops;
++	q->mem_ops = &vb2_vmalloc_memops;
++	q->buf_ops = &dvb_vb2_buf_ops;
++	q->num_buffers = 0;
++	ret = vb2_core_queue_init(q);
++	if (ret) {
++		ctx->state = DVB_VB2_STATE_NONE;
++		dprintk(1, "[%s] errno=%d\n", ctx->name, ret);
++		return ret;
++	}
++
++	mutex_init(&ctx->mutex);
++	spin_lock_init(&ctx->slock);
++	INIT_LIST_HEAD(&ctx->dvb_q);
++
++	strncpy(ctx->name, name, DVB_VB2_NAME_MAX);
++	ctx->nonblocking = nonblocking;
++	ctx->state = DVB_VB2_STATE_INIT;
++
++	dprintk(3, "[%s]\n", ctx->name);
++
++	return 0;
++}
++
++int dvb_vb2_release(struct dvb_vb2_ctx *ctx)
++{
++	struct vb2_queue *q = (struct vb2_queue *)&ctx->vb_q;
++
++	if (ctx->state & DVB_VB2_STATE_INIT)
++		vb2_core_queue_release(q);
++
++	ctx->state = DVB_VB2_STATE_NONE;
++	dprintk(3, "[%s]\n", ctx->name);
++
++	return 0;
++}
++
++int dvb_vb2_stream_on(struct dvb_vb2_ctx *ctx)
++{
++	struct vb2_queue *q = &ctx->vb_q;
++	int ret;
++
++	ret = vb2_core_streamon(q, q->type);
++	if (ret) {
++		ctx->state = DVB_VB2_STATE_NONE;
++		dprintk(1, "[%s] errno=%d\n", ctx->name, ret);
++		return ret;
++	}
++	ctx->state |= DVB_VB2_STATE_STREAMON;
++	dprintk(3, "[%s]\n", ctx->name);
++
++	return 0;
++}
++
++int dvb_vb2_stream_off(struct dvb_vb2_ctx *ctx)
++{
++	struct vb2_queue *q = (struct vb2_queue *)&ctx->vb_q;
++	int ret;
++	unsigned long flags = 0;
++
++	ctx->state &= ~DVB_VB2_STATE_STREAMON;
++	spin_lock_irqsave(&ctx->slock, flags);
++	while (!list_empty(&ctx->dvb_q)) {
++		struct dvb_buffer       *buf;
++		buf = list_entry(ctx->dvb_q.next,
++					struct dvb_buffer, list);
++		list_del(&buf->list);
++		spin_unlock_irqrestore(&ctx->slock, flags);
++		vb2_buffer_done(&buf->vb, VB2_BUF_STATE_ERROR);
++		spin_lock_irqsave(&ctx->slock, flags);
++	}
++	spin_unlock_irqrestore(&ctx->slock, flags);
++	ret = vb2_core_streamoff(q, q->type);
++	if (ret) {
++		ctx->state = DVB_VB2_STATE_NONE;
++		dprintk(1, "[%s] errno=%d\n", ctx->name, ret);
++		return ret;
++	}
++	dprintk(3, "[%s]\n", ctx->name);
++
++	return 0;
++}
++
++int dvb_vb2_is_streaming(struct dvb_vb2_ctx *ctx)
++{
++	return (ctx->state & DVB_VB2_STATE_STREAMON);
++}
++
++int dvb_vb2_fill_buffer(struct dvb_vb2_ctx *ctx,
++		const unsigned char *src, int len)
++{
++	unsigned long flags = 0;
++	void *vbuf = NULL;
++	int todo = len;
++	unsigned char *psrc = (unsigned char *)src;
++	int ll = 0;
++	dprintk(3, "[%s] %d bytes are rcvd\n", ctx->name, len);
++	if (!src) {
++		dprintk(3, "[%s]:NULL pointer src\n", ctx->name);
++		/**normal case: This func is called twice from demux driver
++		 * once with valid src pointer, second time with NULL pointer
++		 */
++		return 0;
++	}
++	while (todo) {
++		if (!ctx->buf) {
++			spin_lock_irqsave(&ctx->slock, flags);
++			if (list_empty(&ctx->dvb_q)) {
++				spin_unlock_irqrestore(&ctx->slock, flags);
++				dprintk(3, "[%s] Buffer overflow!!!\n",
++						ctx->name);
++				break;
++			}
++
++			ctx->buf = list_entry(ctx->dvb_q.next,
++					struct dvb_buffer, list);
++			list_del(&ctx->buf->list);
++			spin_unlock_irqrestore(&ctx->slock, flags);
++			ctx->remain = vb2_plane_size(&ctx->buf->vb, 0);
++			ctx->offset = 0;
++		}
++
++		if (!dvb_vb2_is_streaming(ctx)) {
++			vb2_buffer_done(&ctx->buf->vb, VB2_BUF_STATE_ERROR);
++			ctx->buf = NULL;
++			break;
++		}
++
++		/* Fill buffer */
++		ll = min(todo, ctx->remain);
++		vbuf = vb2_plane_vaddr(&ctx->buf->vb, 0);
++		memcpy(vbuf+ctx->offset, psrc, ll);
++		todo -= ll;
++		psrc += ll;
++
++		ctx->remain -= ll;
++		ctx->offset += ll;
++
++		if (ctx->remain == 0) {
++			vb2_buffer_done(&ctx->buf->vb, VB2_BUF_STATE_DONE);
++			ctx->buf = NULL;
++		}
++	}
++
++	if (ctx->nonblocking && ctx->buf) {
++		vb2_set_plane_payload(&ctx->buf->vb, 0, ll);
++		vb2_buffer_done(&ctx->buf->vb, VB2_BUF_STATE_DONE);
++		ctx->buf = NULL;
++	}
++
++	if (todo)
++		dprintk(1, "[%s] %d bytes are dropped.\n", ctx->name, todo);
++	else
++		dprintk(3, "[%s]\n", ctx->name);
++
++	dprintk(3, "[%s] %d bytes are copied\n", ctx->name, len - todo);
++	return (len - todo);
++}
++
++int dvb_vb2_reqbufs(struct dvb_vb2_ctx *ctx, struct dmx_requestbuffers *req)
++{
++	int ret;
++
++	ctx->buf_siz = req->size;
++	ctx->buf_cnt = req->count;
++	ret = vb2_core_reqbufs(&ctx->vb_q, VB2_MEMORY_MMAP, &req->count);
++	if (ret) {
++		ctx->state = DVB_VB2_STATE_NONE;
++		dprintk(1, "[%s] count=%d size=%d errno=%d\n", ctx->name,
++			ctx->buf_cnt, ctx->buf_siz, ret);
++		return ret;
++	}
++	ctx->state |= DVB_VB2_STATE_REQBUFS;
++	dprintk(3, "[%s] count=%d size=%d\n", ctx->name,
++			ctx->buf_cnt, ctx->buf_siz);
++
++	return 0;
++}
++
++int dvb_vb2_querybuf(struct dvb_vb2_ctx *ctx, struct dmx_buffer *b)
++{
++	vb2_core_querybuf(&ctx->vb_q, b->index, b);
++	dprintk(3, "[%s] index=%d\n", ctx->name, b->index);
++	return 0;
++}
++
++int dvb_vb2_expbuf(struct dvb_vb2_ctx *ctx, struct dmx_exportbuffer *exp)
++{
++	struct vb2_queue *q = &ctx->vb_q;
++	int ret;
++
++	ret = vb2_core_expbuf(&ctx->vb_q, &exp->fd, q->type, exp->index,
++				0, exp->flags);
++	if (ret) {
++		dprintk(1, "[%s] index=%d errno=%d\n", ctx->name,
++				exp->index, ret);
++		return ret;
++	}
++	dprintk(3, "[%s] index=%d fd=%d\n", ctx->name, exp->index, exp->fd);
++
++	return 0;
++}
++
++int dvb_vb2_qbuf(struct dvb_vb2_ctx *ctx, struct dmx_buffer *b)
++{
++	int ret;
++
++	ret = vb2_core_qbuf(&ctx->vb_q, b->index, b);
++	if (ret) {
++		dprintk(1, "[%s] index=%d errno=%d\n", ctx->name,
++				b->index, ret);
++		return ret;
++	}
++	dprintk(5, "[%s] index=%d\n", ctx->name, b->index);
++
++	return 0;
++}
++
++int dvb_vb2_dqbuf(struct dvb_vb2_ctx *ctx, struct dmx_buffer *b)
++{
++	int ret;
++
++	ret = vb2_core_dqbuf(&ctx->vb_q, &b->index, b, ctx->nonblocking);
++	if (ret) {
++		dprintk(1, "[%s] errno=%d\n", ctx->name, ret);
++		return ret;
++	}
++	dprintk(5, "[%s] index=%d\n", ctx->name, b->index);
++
++	return 0;
++}
++
++int dvb_vb2_mmap(struct dvb_vb2_ctx *ctx, struct vm_area_struct *vma)
++{
++	int ret;
++
++	ret = vb2_mmap(&ctx->vb_q, vma);
++	if (ret) {
++		dprintk(1, "[%s] errno=%d\n", ctx->name, ret);
++		return ret;
++	}
++	dprintk(3, "[%s] ret=%d\n", ctx->name, ret);
++
++	return 0;
++
++}
++
++unsigned int dvb_vb2_poll(struct dvb_vb2_ctx *ctx, struct file *file,
++				poll_table *wait)
++{
++	dprintk(3, "[%s]\n", ctx->name);
++	return vb2_core_poll(&ctx->vb_q, file, wait);
++}
++
+diff --git a/drivers/media/dvb-core/dvb_vb2.h b/drivers/media/dvb-core/dvb_vb2.h
+new file mode 100644
+index 0000000..372a877
+--- /dev/null
++++ b/drivers/media/dvb-core/dvb_vb2.h
+@@ -0,0 +1,72 @@
++/*
++ * dvb-vb2.h - DVB driver helper framework for streaming I/O
++ *
++ * Copyright (C) 2015 Samsung Electronics
++ *
++ * Author: jh1009.sung@samsung.com
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation.
++ */
++
++#ifndef _DVB_VB2_H
++#define _DVB_VB2_H
++
++#include <linux/mutex.h>
++#include <linux/poll.h>
++#include <linux/dvb/dmx.h>
++#include <media/videobuf2-core.h>
++#include <media/videobuf2-dma-contig.h>
++#include <media/videobuf2-vmalloc.h>
++
++enum dvb_buf_type {
++	DVB_BUF_TYPE_CAPTURE        = 1,
++	DVB_BUF_TYPE_OUTPUT         = 2,
++};
++
++#define DVB_VB2_STATE_NONE (0x0)
++#define DVB_VB2_STATE_INIT (0x1)
++#define DVB_VB2_STATE_REQBUFS (0x2)
++#define DVB_VB2_STATE_STREAMON (0x4)
++
++#define DVB_VB2_NAME_MAX (20)
++
++struct dvb_buffer {
++	struct vb2_buffer	vb;
++	struct list_head	list;
++};
++
++struct dvb_vb2_ctx {
++	struct vb2_queue	vb_q;
++	struct mutex		mutex;
++	spinlock_t		slock;
++	struct list_head	dvb_q;
++	struct dvb_buffer	*buf;
++	int	offset;
++	int	remain;
++	int	state;
++	int	buf_siz;
++	int	buf_cnt;
++	int	nonblocking;
++	char	name[DVB_VB2_NAME_MAX+1];
++};
++
++int dvb_vb2_init(struct dvb_vb2_ctx *ctx, const char *name, int non_blocking);
++int dvb_vb2_release(struct dvb_vb2_ctx *ctx);
++int dvb_vb2_stream_on(struct dvb_vb2_ctx *ctx);
++int dvb_vb2_stream_off(struct dvb_vb2_ctx *ctx);
++int dvb_vb2_is_streaming(struct dvb_vb2_ctx *ctx);
++int dvb_vb2_fill_buffer(struct dvb_vb2_ctx *ctx,
++			const unsigned char *src, int len);
++
++int dvb_vb2_reqbufs(struct dvb_vb2_ctx *ctx, struct dmx_requestbuffers *req);
++int dvb_vb2_querybuf(struct dvb_vb2_ctx *ctx, struct dmx_buffer *b);
++int dvb_vb2_expbuf(struct dvb_vb2_ctx *ctx, struct dmx_exportbuffer *exp);
++int dvb_vb2_qbuf(struct dvb_vb2_ctx *ctx, struct dmx_buffer *b);
++int dvb_vb2_dqbuf(struct dvb_vb2_ctx *ctx, struct dmx_buffer *b);
++int dvb_vb2_mmap(struct dvb_vb2_ctx *ctx, struct vm_area_struct *vma);
++unsigned int dvb_vb2_poll(struct dvb_vb2_ctx *ctx, struct file *file,
++				poll_table *wait);
++
++#endif /* _DVB_VB2_H */
+diff --git a/include/uapi/linux/dvb/dmx.h b/include/uapi/linux/dvb/dmx.h
+index c10f132..e212aa1 100644
+--- a/include/uapi/linux/dvb/dmx.h
++++ b/include/uapi/linux/dvb/dmx.h
+@@ -211,6 +211,64 @@ struct dmx_stc {
+ 	__u64 stc;
+ };
+ 
++/**
++ * struct dmx_buffer - dmx buffer info
++ *
++ * @index:	id number of the buffer
++ * @bytesused:	number of bytes occupied by data in the buffer (payload);
++ * @offset:	for buffers with memory == DMX_MEMORY_MMAP;
++ *		offset from the start of the device memory for this plane,
++ *		(or a "cookie" that should be passed to mmap() as offset)
++ * @length:	size in bytes of the buffer
++ *
++ * Contains data exchanged by application and driver using one of the streaming
++ * I/O methods.
++ */
++struct dmx_buffer {
++	__u32			index;
++	__u32			bytesused;
++	__u32			offset;
++	__u32			length;
++	__u32			reserved[4];
++};
++
++/**
++ * struct dmx_requestbuffers - request dmx buffer information
++ *
++ * @count:	number of requested buffers,
++ * @size:	size in bytes of the requested buffer
++ *
++ * Contains data used for requesting a dmx buffer.
++ * All reserved fields must be set to zero.
++ */
++struct dmx_requestbuffers {
++	__u32			count;
++	__u32			size;
++	__u32			reserved[2];
++};
++
++/**
++ * struct dmx_exportbuffer - export of dmx buffer as DMABUF file descriptor
++ *
++ * @index:	id number of the buffer
++ * @flags:	flags for newly created file, currently only O_CLOEXEC is
++ *		supported, refer to manual of open syscall for more details
++ * @fd:		file descriptor associated with DMABUF (set by driver)
++ *
++ * Contains data used for exporting a dmx buffer as DMABUF file descriptor.
++ * The buffer is identified by a 'cookie' returned by DMX_QUERYBUF
++ * (identical to the cookie used to mmap() the buffer to userspace). All
++ * reserved fields must be set to zero. The field reserved0 is expected to
++ * become a structure 'type' allowing an alternative layout of the structure
++ * content. Therefore this field should not be used for any other extensions.
++ */
++struct dmx_exportbuffer {
++	__u32		index;
++	__u32		flags;
++	__s32		fd;
++	__u32		reserved[5];
++};
++
+ #define DMX_START                _IO('o', 41)
+ #define DMX_STOP                 _IO('o', 42)
+ #define DMX_SET_FILTER           _IOW('o', 43, struct dmx_sct_filter_params)
+@@ -231,4 +289,10 @@ typedef struct dmx_filter dmx_filter_t;
+ 
+ #endif
+ 
+-#endif /* _UAPI_DVBDMX_H_ */
++#define DMX_REQBUFS              _IOWR('o', 60, struct dmx_requestbuffers)
++#define DMX_QUERYBUF             _IOWR('o', 61, struct dmx_buffer)
++#define DMX_EXPBUF               _IOWR('o', 62, struct dmx_exportbuffer)
++#define DMX_QBUF                 _IOWR('o', 63, struct dmx_buffer)
++#define DMX_DQBUF                _IOWR('o', 64, struct dmx_buffer)
++
++#endif /* _DVBDMX_H_ */
+-- 
+2.7.4
