@@ -1,60 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f182.google.com ([209.85.128.182]:42318 "EHLO
-        mail-wr0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1757274AbdLQSYv (ORCPT
+Received: from mx07-00178001.pphosted.com ([62.209.51.94]:32922 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S966895AbdLSJBr (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 17 Dec 2017 13:24:51 -0500
-Received: by mail-wr0-f182.google.com with SMTP id s66so12129423wrc.9
-        for <linux-media@vger.kernel.org>; Sun, 17 Dec 2017 10:24:50 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <de9db343-f2f2-d705-344b-d4cd53029c87@maciej.szmigiero.name>
-References: <cover.1513530138.git.mail@maciej.szmigiero.name> <de9db343-f2f2-d705-344b-d4cd53029c87@maciej.szmigiero.name>
-From: Philippe Ombredanne <pombredanne@nexb.com>
-Date: Sun, 17 Dec 2017 19:24:09 +0100
-Message-ID: <CAOFm3uGgwR-XR8Np9Pw43Tm44C6mp0-pi9iNRR-csX7T3e4D2A@mail.gmail.com>
-Subject: Re: [PATCH v3 6/6] [media] cxusb: add analog mode support for Medion MD95700
-To: "Maciej S. Szmigiero" <mail@maciej.szmigiero.name>
-Cc: Michael Krufky <mkrufky@linuxtv.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Andy Walls <awalls@md.metrocast.net>,
-        linux-kernel <linux-kernel@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Tue, 19 Dec 2017 04:01:47 -0500
+From: Fabien DESSENNE <fabien.dessenne@st.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Jia-Ju Bai <baijiaju1990@gmail.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "Benjamin GAIGNARD" <benjamin.gaignard@st.com>,
         Hans Verkuil <hverkuil@xs4all.nl>
-Content-Type: text/plain; charset="UTF-8"
+Subject: Re: [PATCH 1/2] bdisp: Fix a possible sleep-in-atomic bug in
+ bdisp_hw_reset
+Date: Tue, 19 Dec 2017 09:01:41 +0000
+Message-ID: <9998c82a-fe50-49c1-3e0f-0719bd6abde4@st.com>
+References: <1513086445-29265-1-git-send-email-baijiaju1990@gmail.com>
+ <0370257c-ce0c-792f-6c85-50ebc18975f9@st.com>
+ <abd7b14d-cda6-ab67-3c5b-7cbd0dbaa336@gmail.com>
+ <20171216121427.6307c584@recife.lan>
+In-Reply-To: <20171216121427.6307c584@recife.lan>
+Content-Language: en-US
+Content-Type: text/plain; charset="utf-8"
+Content-ID: <D6C3813357E38E4DA820765088CB51CE@st.com>
+Content-Transfer-Encoding: base64
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Maciej,
-
-On Sun, Dec 17, 2017 at 6:37 PM, Maciej S. Szmigiero
-<mail@maciej.szmigiero.name> wrote:
-> This patch adds support for analog part of Medion 95700 in the cxusb
-> driver.
-<snip>
-
-> --- /dev/null
-> +++ b/drivers/media/usb/dvb-usb/cxusb-analog.c
-> @@ -0,0 +1,1927 @@
-> +/* DVB USB compliant linux driver for Conexant USB reference design -
-> + * (analog part).
-> + *
-> + * Copyright (C) 2011, 2017 Maciej S. Szmigiero (mail@maciej.szmigiero.name)
-> + *
-> + * TODO:
-> + *  * audio support,
-> + *  * finish radio support (requires audio of course),
-> + *  * VBI support,
-> + *  * controls support
-> + *
-> + * This program is free software; you can redistribute it and/or
-> + * modify it under the terms of the GNU General Public License
-> + * as published by the Free Software Foundation; either version 2
-> + * of the License, or (at your option) any later version.
-> + */
-
-Would you mind using the new SPDX tags here. See Thomas patches [1]. Thanks!
-
-[1] https://lkml.org/lkml/2017/12/4/934
--- 
-Cordially
-Philippe Ombredanne
+DQoNCk9uIDE2LzEyLzE3IDE1OjE0LCBNYXVybyBDYXJ2YWxobyBDaGVoYWIgd3JvdGU6DQo+IEVt
+IFNhdCwgMTYgRGVjIDIwMTcgMTk6NTM6NTUgKzA4MDANCj4gSmlhLUp1IEJhaSA8YmFpamlhanUx
+OTkwQGdtYWlsLmNvbT4gZXNjcmV2ZXU6DQo+DQo+PiBIaSwNCj4+DQo+PiBPbiAyMDE3LzEyLzE1
+IDIyOjUxLCBGYWJpZW4gREVTU0VOTkUgd3JvdGU6DQo+Pj4gSGkNCj4+Pg0KPj4+IE9uIDEyLzEy
+LzE3IDE0OjQ3LCBKaWEtSnUgQmFpIHdyb3RlOg0KPj4+PiBUaGUgZHJpdmVyIG1heSBzbGVlcCB1
+bmRlciBhIHNwaW5sb2NrLg0KPj4+PiBUaGUgZnVuY3Rpb24gY2FsbCBwYXRoIGlzOg0KPj4+PiBi
+ZGlzcF9kZXZpY2VfcnVuIChhY3F1aXJlIHRoZSBzcGlubG9jaykNCj4+Pj4gICAgICBiZGlzcF9o
+d19yZXNldA0KPj4+PiAgICAgICAgbXNsZWVwIC0tPiBtYXkgc2xlZXANCj4+Pj4NCj4+Pj4gVG8g
+Zml4IGl0LCBtc2xlZXAgaXMgcmVwbGFjZWQgd2l0aCBtZGVsYXkuDQo+Pj4gTWF5IEkgc3VnZ2Vz
+dCB5b3UgdG8gdXNlIHJlYWRsX3BvbGxfdGltZW91dF9hdG9taWMgKGluc3RlYWQgb2YgdGhlIHdo
+b2xlDQo+Pj4gImZvciIgYmxvY2spOiB0aGlzIGZpeGVzIHRoZSBwcm9ibGVtIGFuZCBzaW1wbGlm
+aWVzIHRoZSBjb2RlPw0KPj4gT2theSwgSSBoYXZlIHN1Ym1pdHRlZCBhIHBhdGNoIGFjY29yZGlu
+ZyB0byB5b3VyIGFkdmljZS4NCj4+IFlvdSBjYW4gaGF2ZSBhIGxvb2sgOikNCj4gVGhpcyBjYW4g
+c3RpbGwgYmUgdXNpbmQgbWRlbGF5KCkgdG8gd2FpdCBmb3IgYSBsb25nIHRpbWUuDQo+DQo+IEl0
+IGRvZXNuJ3Qgc2VlbSB3aXNlIHRvIGRvIHRoYXQsIGFzIGl0IGNvdWxkIGNhdXNlIHN5c3RlbQ0K
+PiBjb250ZW50aW9uLiBDb3VsZG4ndCB0aGlzIGJlIHJld29ya2VkIGluIGEgd2F5IHRvIGF2b2lk
+DQo+IGhhdmluZyB0aGUgc3BpbiBsb2NrZWQgd2hpbGUgc2xlZXBpbmc/DQo+DQo+IE9uY2Ugd2Ug
+aGFkIGEgc2ltaWxhciBpc3N1ZSBvbiBTaWFubywgYW5kIGl0IHdhcyBzb2x2ZWQgYnkgdGhpcw0K
+Pg0KPiBjb21taXQgM2NkYWRjNTBiYmU4ZjA0YzEyMzFjOGFmNjE0Y2FmZDdkZGQ2MjJiZg0KPiBB
+dXRob3I6IFJpY2hhcmQgWmlkbGlja3kgPHJ6QGxpbnV4LW02OGsub3JnPg0KPiBEYXRlOiAgIFR1
+ZSBBdWcgMjQgMDk6NTI6MzYgMjAxMCAtMDMwMA0KPg0KPiAgICAgIFY0TC9EVkI6IGR2YjogZml4
+IHNtc2NvcmVfZ2V0YnVmZmVyKCkgbG9naWMNCj4gICAgICANCj4gICAgICBEcml2ZXJzIHNob3Vs
+ZG4ndCBzbGVlcCB3aGlsZSBob2xkaW5nIGEgc3BpbmxvY2suIEEgcHJldmlvdXMgd29ya2Fyb3Vu
+ZA0KPiAgICAgIHdlcmUgdG8gcmVsZWFzZSB0aGUgc3BpbmxvY2sgYmVmb3JlIGNhbGxpbmMgc2No
+ZWR1bGUoKS4NCj4gICAgICANCj4gICAgICBUaGlzIHBhdGNoIHVzZXMgYSBkaWZmZXJlbnQgYXBw
+cm9hY2g6IGl0IGp1c3Qgd2FpdHMgZm9yIHRoZQ0KPiAgICAgIHNpYW5vIGhhcmR3YXJlIHRvIGFu
+c3dlci4NCj4gICAgICANCj4gICAgICBTaWduZWQtb2ZmLWJ5OiBSaWNoYXJkIFppZGxpY2t5IDxy
+ekBsaW51eC1tNjhrLm9yZz4NCj4gICAgICBDYzogc3RhYmxlQGtlcm5lbC5vcmcNCj4gICAgICBT
+aWduZWQtb2ZmLWJ5OiBNYXVybyBDYXJ2YWxobyBDaGVoYWIgPG1jaGVoYWJAcmVkaGF0LmNvbT4N
+Cj4NCj4gVGhlIGNvZGUgYXMgY2hhbmdlZCB0byB1c2Ugd2FpdF9ldmVudCgpIGF0IHRoZSBrdGhy
+ZWFkIHRoYXQgd2FzDQo+IHdhaXRpbmcgZm9yIGRhdGEgdG8gYXJyaXZlLiBPbmx5IHdoZW4gdGhl
+IGRhdGEgaXMgcmVhZHksIHRoZQ0KPiBjb2RlIHdpdGggdGhlIHNwaW4gbG9jayBpcyBjYWxsZWQu
+DQo+DQo+IEl0IG1hZGUgdGhlIGRyaXZlciBhIHdheSBtb3JlIHN0YWJsZSwgYW5kIGRpZG4ndCBh
+ZGQgYW55IHBlbmFsdGllcw0KPiBvZiBuZWVkaW5nIHRvIGRvIGxvbmcgZGVsYXlzIG9uIGEgbm9u
+LWludGVycnVwdGlibGUgY29kZS4NCj4NCj4gVGhhbmtzLA0KPiBNYXVybw0KSSBoYXZlIGNoZWNr
+ZWQgd2hhdCB3YXMgZG9uZSB0aGVyZSBidXQgSSBjYW5ub3Qgc2VlIGEgc2ltcGxlIHdheSB0byBk
+byANCnRoZSBzYW1lIGluIGJkaXNwIHdoZXJlIHRoZSBjb250ZXh0IGlzIGEgYml0IGRpZmZlcmVu
+dCAodGhlIGxvY2sgaXMgDQp0YWtlbiBvdXQgaW4gdGhlIGNlbnRyYWwgZGV2aWNlX3J1biwgbm90
+IGxvY2FsbHkgaW4gaHdfcmVzZXQpIHdpdGhvdXQgDQp0YWtpbmcgdGhlIHJpc2sgdG8gaGF2ZSB1
+bmV4cGVjdGVkIHNpZGUgZWZmZWN0cw0KDQpNb3Jlb3ZlciwgdGhlIGJkaXNwX2h3X3Jlc2V0KCkg
+ZnVuY3Rpb24gY2FsbGVkIGZyb20gYmRpc3BfZGV2aWNlX3J1biBpcyANCm5vdCBleHBlY3RlZCB0
+byBsYXN0IGZvciBhIGxvbmcgdGltZS4gVGhlICJvbmUgc2Vjb25kIiBkZWxheSB3ZSBhcmUgDQp0
+YWxraW5nIGFib3V0IGlzIGEgdmVyeSBsYXJnZSB0aW1lb3V0IHByb3RlY3Rpb24uIEZyb20gbXkg
+cGFzdCANCm9ic2VydmF0aW9ucywgdGhlIHJlc2V0IGlzIGFwcGxpZWQgaW5zdGFudGx5IGFuZCB3
+ZSBldmVuIG5ldmVyIHJlYWNoIHRoZSANCm1zbGVlcCgpIGNhbGwgKG5vdCBzYXlpbmcgaXQgbmV2
+ZXIgaGFwcGVucykuDQoNCkZvciB0aG9zZSB0d28gcmVhc29ucywgdXNpbmcgcmVhZGxfcG9sbF90
+aW1lb3V0X2F0b21pYygpIHNlZW1zIHRvIGJlIHRoZSANCmJlc3Qgb3B0aW9uLg0KQlINCg0KRmFi
+aWVuDQoNCg0K
