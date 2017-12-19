@@ -1,60 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga05.intel.com ([192.55.52.43]:31170 "EHLO mga05.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751711AbdLFQjU (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 6 Dec 2017 11:39:20 -0500
-From: Flavio Ceolin <flavio.ceolin@intel.com>
-To: linux-kernel@vger.kernel.org
-Cc: Flavio Ceolin <flavio.ceolin@intel.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Petr Cvek <petr.cvek@tul.cz>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Julia Lawall <Julia.Lawall@lip6.fr>,
-        Arnd Bergmann <arnd@arndb.de>,
-        linux-media@vger.kernel.org (open list:MEDIA INPUT INFRASTRUCTURE
-        (V4L/DVB))
-Subject: [PATCH] media: pxa_camera: disable and unprepare the clock source on error
-Date: Wed,  6 Dec 2017 08:38:50 -0800
-Message-Id: <20171206163852.8532-1-flavio.ceolin@intel.com>
+Received: from mail.free-electrons.com ([62.4.15.54]:46476 "EHLO
+        mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933574AbdLSIwO (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 19 Dec 2017 03:52:14 -0500
+Date: Tue, 19 Dec 2017 09:52:02 +0100
+From: Maxime Ripard <maxime.ripard@free-electrons.com>
+To: Philipp Rossak <embed3d@gmail.com>
+Cc: mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
+        wens@csie.org, linux@armlinux.org.uk, sean@mess.org,
+        p.zabel@pengutronix.de, andi.shyti@samsung.com,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-sunxi@googlegroups.com
+Subject: Re: [PATCH v3 2/6] media: dt: bindings: Update binding documentation
+ for sunxi IR controller
+Message-ID: <20171219085202.zfpdwep5pozvxlg2@flea.lan>
+References: <20171219080747.4507-1-embed3d@gmail.com>
+ <20171219080747.4507-3-embed3d@gmail.com>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="xy6rumuxjmhuaguq"
+Content-Disposition: inline
+In-Reply-To: <20171219080747.4507-3-embed3d@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-pxa_camera_probe() was not calling pxa_camera_deactivate(),
-responsible to call clk_disable_unprepare(), on the failure path. This
-was leading to unbalancing source clock.
 
-Found by Linux Driver Verification project (linuxtesting.org).
+--xy6rumuxjmhuaguq
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Flavio Ceolin <flavio.ceolin@intel.com>
----
- drivers/media/platform/pxa_camera.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+On Tue, Dec 19, 2017 at 09:07:43AM +0100, Philipp Rossak wrote:
+> This patch updates documentation for Device-Tree bindings for sunxi IR
+> controller and adds the new optional property for the base clock
+> frequency.
+>=20
+> Signed-off-by: Philipp Rossak <embed3d@gmail.com>
 
-diff --git a/drivers/media/platform/pxa_camera.c b/drivers/media/platform/pxa_camera.c
-index 9d3f0cb..7877037 100644
---- a/drivers/media/platform/pxa_camera.c
-+++ b/drivers/media/platform/pxa_camera.c
-@@ -2489,7 +2489,7 @@ static int pxa_camera_probe(struct platform_device *pdev)
- 	dev_set_drvdata(&pdev->dev, pcdev);
- 	err = v4l2_device_register(&pdev->dev, &pcdev->v4l2_dev);
- 	if (err)
--		goto exit_free_dma;
-+		goto exit_deactivate;
- 
- 	pcdev->asds[0] = &pcdev->asd;
- 	pcdev->notifier.subdevs = pcdev->asds;
-@@ -2525,6 +2525,8 @@ static int pxa_camera_probe(struct platform_device *pdev)
- 	v4l2_clk_unregister(pcdev->mclk_clk);
- exit_free_v4l2dev:
- 	v4l2_device_unregister(&pcdev->v4l2_dev);
-+exit_deactivate:
-+	pxa_camera_deactivate(pcdev);
- exit_free_dma:
- 	dma_release_channel(pcdev->dma_chans[2]);
- exit_free_dma_u:
--- 
-2.9.5
+Acked-by: Maxime Ripard <maxime.ripard@free-electrons.com>
+Maxime
+
+--=20
+Maxime Ripard, Free Electrons
+Embedded Linux and Kernel engineering
+http://free-electrons.com
+
+--xy6rumuxjmhuaguq
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCAAdFiEE0VqZU19dR2zEVaqr0rTAlCFNr3QFAlo40zEACgkQ0rTAlCFN
+r3SuhA//XXBtRBuPBcuA3eUF0yMPR0RVykA33wVenZVM2BipmdIF1s0dvt14iFcQ
++u9HEA0/PcJwm7zfFYHmtUOl1M37JvkEDCCCAMvQmzRLPZxvGbHyzym0GCn2d1u2
+QOG8cVXg4tCJopxMtoSnp073nxLnSpqnfKIHE83aN9rSS3yiN1CStQl8E7FzXW4K
+ZLql1BIA0ROYcIER0VoWuMHbomljLsjeqiEZD4SWfWo1+tSO0df2RsFkynp2g/w/
+qbPsizz6HKUbbgtjLUNRVm10gyRKhp+c8/1Q7WBGyw+OdJSK3YZHyD5UqllFONyF
+0vRE/SEgjx/3zgZhjwDXFeUDQQXeCvoFKYqVk4/o9Mq6+cV+eBPQxbA/zDFFZbqR
+3WpeuE1OonpqOaWCkZlYUH4M96gPfcU9Eb2A433KJCgKTr8bbrAKJFUXj0ecn8vl
+Z3YbJmhZWdbtV1iuo1xQ10sq+mQ2QsiwhBeQkWWU0vb5yCVEbMXsFVfAs3iPRxRB
+nErDDZRguVSFJIcsWhUqggd/tE0Z5f9ekhkZjPEESQw3PP0EAUERZ9SRBpqB292Q
+Ve/waPHjabS89xaQZ7sC0MNWz+pKQWcoK4vEoG9w59dq/tuChyRLjSJfVwkGv4yk
+fQF0mQ4S7IVt60uGjlTLe0tNxijnupGEw7IyB2mo+l7h1GmLKcU=
+=hPUj
+-----END PGP SIGNATURE-----
+
+--xy6rumuxjmhuaguq--
