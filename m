@@ -1,72 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:40743 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753892AbdLSPey (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 19 Dec 2017 10:34:54 -0500
-Date: Tue, 19 Dec 2017 13:34:46 -0200
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
-        Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Subject: Re: [PATCH 2/8] media: v4l2-ioctl.h: convert debug into an enum of
- bits
-Message-ID: <20171219133446.3b42ad19@vento.lan>
-In-Reply-To: <1829332.DyU8Vvd1sp@avalon>
-References: <cover.1513625884.git.mchehab@s-opensource.com>
-        <20171219113927.i2srypzhigkijetf@valkosipuli.retiisi.org.uk>
-        <1615432.c1z8s9p1mm@avalon>
-        <1829332.DyU8Vvd1sp@avalon>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail-wr0-f196.google.com ([209.85.128.196]:39595 "EHLO
+        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1758420AbdLSIH5 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 19 Dec 2017 03:07:57 -0500
+From: Philipp Rossak <embed3d@gmail.com>
+To: mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
+        maxime.ripard@free-electrons.com, wens@csie.org,
+        linux@armlinux.org.uk, sean@mess.org, p.zabel@pengutronix.de,
+        andi.shyti@samsung.com
+Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-sunxi@googlegroups.com
+Subject: [PATCH v3 4/6] arm: dts: sun8i: a83t: Add support for the cir interface
+Date: Tue, 19 Dec 2017 09:07:45 +0100
+Message-Id: <20171219080747.4507-5-embed3d@gmail.com>
+In-Reply-To: <20171219080747.4507-1-embed3d@gmail.com>
+References: <20171219080747.4507-1-embed3d@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 19 Dec 2017 16:05:46 +0200
-Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
+The cir interface is like on the H3 located at 0x01f02000 and is exactly
+the same. This patch adds support for the ir interface on the A83T.
 
-> On Tuesday, 19 December 2017 16:02:02 EET Laurent Pinchart wrote:
-> > On Tuesday, 19 December 2017 13:39:27 EET Sakari Ailus wrote:  
-> > > Hi Mauro,
-> > > 
-> > > On Mon, Dec 18, 2017 at 05:53:56PM -0200, Mauro Carvalho Chehab wrote:  
-> > > > The V4L2_DEV_DEBUG_IOCTL macros actually define a bitmask,
-> > > > but without using Kernel's modern standards. Also,
-> > > > documentation looks akward.
-> > > > 
-> > > > So, convert them into an enum with valid bits, adding
-> > > > the correspoinding kernel-doc documentation for it.  
-> > > 
-> > > The pattern of using bits for flags is a well established one and I
-> > > wouldn't deviate from that by requiring the use of the BIT() macro. There
-> > > are no benefits that I can see from here but the approach brings
-> > > additional
-> > > risks: misuse of the flags and mimicing the same risky pattern.
-> > > 
-> > > I'd also like to echo Laurent's concern that code is being changed in odd
-> > > ways and not for itself, but due to deficiencies in documentation tools.
-> > > 
-> > > I believe the tooling has to be improved to address this properly. That
-> > > only needs to done once, compared to changing all flag definitions to
-> > > enums.  
-> > 
-> > That's my main concern too. We really must not sacrifice code readability or
-> > writing ease in order to work around limitations of the documentation
-> > system. For this reason I'm strongly opposed to patches 2 and 5 in this
-> > series.  
-> 
-> And I forgot to mention patch 8/8. Let's drop those three and improve the 
-> documentation system instead.
+Signed-off-by: Philipp Rossak <embed3d@gmail.com>
+---
+ arch/arm/boot/dts/sun8i-a83t.dtsi | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-Are you volunteering yourself to write the kernel-doc patches? :-)
-
-Thanks,
-Mauro
+diff --git a/arch/arm/boot/dts/sun8i-a83t.dtsi b/arch/arm/boot/dts/sun8i-a83t.dtsi
+index 06e96db7c41a..ddc0d592107f 100644
+--- a/arch/arm/boot/dts/sun8i-a83t.dtsi
++++ b/arch/arm/boot/dts/sun8i-a83t.dtsi
+@@ -605,6 +605,16 @@
+ 			#reset-cells = <1>;
+ 		};
+ 
++		cir: cir@01f02000 {
++			compatible = "allwinner,sun5i-a13-ir";
++			clocks = <&r_ccu CLK_APB0_IR>, <&r_ccu CLK_IR>;
++			clock-names = "apb", "ir";
++			resets = <&r_ccu RST_APB0_IR>;
++			interrupts = <GIC_SPI 37 IRQ_TYPE_LEVEL_HIGH>;
++			reg = <0x01f02000 0x400>;
++			status = "disabled";
++		};
++
+ 		r_pio: pinctrl@1f02c00 {
+ 			compatible = "allwinner,sun8i-a83t-r-pinctrl";
+ 			reg = <0x01f02c00 0x400>;
+-- 
+2.11.0
