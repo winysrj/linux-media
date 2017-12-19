@@ -1,107 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:56559 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1759094AbdLRMae (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 18 Dec 2017 07:30:34 -0500
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Tom Saeger <tom.saeger@oracle.com>
-Subject: [PATCH v4 02/18] docs: kernel-doc.rst: improve private members description
-Date: Mon, 18 Dec 2017 10:30:03 -0200
-Message-Id: <04637e3e33c9ff378993609c4730a407e73d4db5.1513599193.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1513599193.git.mchehab@s-opensource.com>
-References: <cover.1513599193.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1513599193.git.mchehab@s-opensource.com>
-References: <cover.1513599193.git.mchehab@s-opensource.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:40502 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1750881AbdLSQEV (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 19 Dec 2017 11:04:21 -0500
+Date: Tue, 19 Dec 2017 18:04:17 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Fabio Estevam <festevam@gmail.com>
+Cc: Philippe Ombredanne <pombredanne@nexb.com>,
+        Wenyou Yang <wenyou.yang@microchip.com>,
+        Mark Rutland <mark.rutland@arm.com>,
+        devicetree@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
+        linux-kernel <linux-kernel@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Songjun Wu <songjun.wu@microchip.com>,
+        linux-arm-kernel@lists.infradead.org,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH v9 2/2] media: i2c: Add the ov7740 image sensor driver
+Message-ID: <20171219160417.jagp3zni5cpyiyay@valkosipuli.retiisi.org.uk>
+References: <20171211013146.2497-1-wenyou.yang@microchip.com>
+ <20171211013146.2497-3-wenyou.yang@microchip.com>
+ <20171219092246.3usg5mdyi27ivqlq@valkosipuli.retiisi.org.uk>
+ <CAOMZO5BHSJv01SwZ2YNtGZTjMtOuOktET43qriK2fQ+jhE2TDA@mail.gmail.com>
+ <20171219130537.2viv4wjcp4i3mdkj@valkosipuli.retiisi.org.uk>
+ <CAOMZO5C5NJMffBEv2cdqKqUnTMQEYkqzN1JnJMS21PWtKuabnA@mail.gmail.com>
+ <20171219134308.4plzpknvksbzhio7@valkosipuli.retiisi.org.uk>
+ <CAOMZO5DYWA8O5N=CRm2uR3_7qZ4U1M8u8F-oBU8bJfnKXD4DSA@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAOMZO5DYWA8O5N=CRm2uR3_7qZ4U1M8u8F-oBU8bJfnKXD4DSA@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The private members section can now be moved to be together
-with the arguments section. Move it there and add an example
-about the usage of public:
+On Tue, Dec 19, 2017 at 12:31:46PM -0200, Fabio Estevam wrote:
+> On Tue, Dec 19, 2017 at 11:43 AM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
+> 
+> > Both seem to exist. See e.g. c3a3d1d6b8b363a02234e5564692db3647f183e6 .
+> 
+> This patch fixes .h files to use /* SPDX style comment, which is the
+> recommendation.
+> 
+> .c files should use // SPDX style.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- Documentation/doc-guide/kernel-doc.rst | 56 ++++++++++++++++++----------------
- 1 file changed, 30 insertions(+), 26 deletions(-)
+Agreed. I reverted the changes.
 
-diff --git a/Documentation/doc-guide/kernel-doc.rst b/Documentation/doc-guide/kernel-doc.rst
-index f1c03c16f03b..7cf58c3489de 100644
---- a/Documentation/doc-guide/kernel-doc.rst
-+++ b/Documentation/doc-guide/kernel-doc.rst
-@@ -167,6 +167,36 @@ notation as::
- 
-       * @...: description
- 
-+Private members
-+~~~~~~~~~~~~~~~
-+
-+Inside a struct or union description, you can use the ``private:`` and
-+``public:`` comment tags. Structure fields that are inside a ``private:``
-+area are not listed in the generated output documentation.
-+
-+The ``private:`` and ``public:`` tags must begin immediately following a
-+``/*`` comment marker.  They may optionally include comments between the
-+``:`` and the ending ``*/`` marker.
-+
-+Example::
-+
-+  /**
-+   * struct my_struct - short description
-+   * @a: first member
-+   * @b: second member
-+   * @d: fourth member
-+   *
-+   * Longer description
-+   */
-+  struct my_struct {
-+      int a;
-+      int b;
-+  /* private: internal use only */
-+      int c;
-+  /* public: the next one is public */
-+      int d;
-+  };
-+
- 
- Highlights and cross-references
- -------------------------------
-@@ -332,32 +362,6 @@ on a line of their own, like all other kernel-doc comments::
-         int foobar;
-   }
- 
--Private members
--~~~~~~~~~~~~~~~
--
--Inside a struct description, you can use the "private:" and "public:" comment
--tags. Structure fields that are inside a "private:" area are not listed in the
--generated output documentation.  The "private:" and "public:" tags must begin
--immediately following a ``/*`` comment marker.  They may optionally include
--comments between the ``:`` and the ending ``*/`` marker.
--
--Example::
--
--  /**
--   * struct my_struct - short description
--   * @a: first member
--   * @b: second member
--   *
--   * Longer description
--   */
--  struct my_struct {
--      int a;
--      int b;
--  /* private: internal use only */
--      int c;
--  };
--
--
- Typedef documentation
- ---------------------
- 
+Thanks.
+
 -- 
-2.14.3
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
