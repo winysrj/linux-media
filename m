@@ -1,134 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:54156 "EHLO
-        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1756538AbdLUE6s (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 20 Dec 2017 23:58:48 -0500
-Message-ID: <9123caf73cea1546f8ba3918f7e56d77@smtp-cloud7.xs4all.net>
-Date: Thu, 21 Dec 2017 05:58:46 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+Received: from mga02.intel.com ([134.134.136.20]:24570 "EHLO mga02.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751171AbdLSUhE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 19 Dec 2017 15:37:04 -0500
+Message-ID: <1513715821.7000.228.camel@linux.intel.com>
+Subject: Re: [BUG] atomisp_ov2680 not initializing correctly
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>,
+        Kristian Beilke <beilke@posteo.de>
+Cc: linux-media@vger.kernel.org, alan@linux.intel.com
+Date: Tue, 19 Dec 2017 22:37:01 +0200
+In-Reply-To: <20171219120020.w7byb7bv3hhzn2jb@valkosipuli.retiisi.org.uk>
+References: <42dfd60f-2534-b9cd-eeab-3110d58ef7c0@posteo.de>
+         <20171219120020.w7byb7bv3hhzn2jb@valkosipuli.retiisi.org.uk>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On Tue, 2017-12-19 at 14:00 +0200, Sakari Ailus wrote:
+> Cc Alan and Andy.
+> 
+> On Sat, Dec 16, 2017 at 04:50:04PM +0100, Kristian Beilke wrote:
+> > Dear all,
+> > 
+> > I am trying to get the cameras in a Lenovo IdeaPad Miix 320 (Atom
+> > x5-Z8350 BayTrail) to work. The front camera is an ov2680. With
+> > kernel
+> > 4.14.4 and 4.15rc3 I see the following dmesg output:
 
-Results of the daily build of media_tree:
+It seems I forgot to send the rest of the patches I did while ago
+against AtomISP code.
 
-date:			Thu Dec 21 05:00:16 CET 2017
-media-tree git hash:	ae49432810c5cca2143afc1445edad6582c9f270
-media_build git hash:	fd6010ac1bcdf54a3a2b2752088def1b21b5e457
-v4l-utils git hash:	6049ea8bd64f9d78ef87ef0c2b3dc9b5de1ca4a1
-gcc version:		i686-linux-gcc (GCC) 7.1.0
-sparse version:		v0.5.0-3911-g6f737e1f
-smatch version:		v0.5.0-3911-g6f737e1f
-host hardware:		x86_64
-host os:		4.13.0-164
+It includes switch to normal DMI matching instead of the crap we have
+there right now.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: ERRORS
-linux-3.10.1-i686: ERRORS
-linux-3.11.1-i686: ERRORS
-linux-3.12.67-i686: ERRORS
-linux-3.13.11-i686: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.16.7-i686: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.18.7-i686: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-4.0.9-i686: WARNINGS
-linux-4.1.33-i686: WARNINGS
-linux-4.2.8-i686: ERRORS
-linux-4.3.6-i686: WARNINGS
-linux-4.4.22-i686: OK
-linux-4.5.7-i686: WARNINGS
-linux-4.6.7-i686: OK
-linux-4.7.5-i686: OK
-linux-4.8-i686: OK
-linux-4.9.26-i686: OK
-linux-4.10.14-i686: OK
-linux-4.11-i686: OK
-linux-4.12.1-i686: OK
-linux-4.13-i686: OK
-linux-4.14-i686: OK
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: ERRORS
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.67-x86_64: ERRORS
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16.7-x86_64: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.7-x86_64: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0.9-x86_64: WARNINGS
-linux-4.1.33-x86_64: WARNINGS
-linux-4.2.8-x86_64: ERRORS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.22-x86_64: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-x86_64: WARNINGS
-linux-4.9.26-x86_64: WARNINGS
-linux-4.10.14-x86_64: WARNINGS
-linux-4.11-x86_64: WARNINGS
-linux-4.12.1-x86_64: WARNINGS
-linux-4.13-x86_64: OK
-linux-4.14-x86_64: OK
-apps: OK
-spec-git: OK
-smatch: OK
+WRT to the messages below it seems we have no platform data for that
+device. It needs to be added.
 
-Detailed results are available here:
+In any case, I have no firmware to test BayTrail hardware I have (MRD7).
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+The driver claims it needs:
 
-Full logs are available here:
+Firmware file: shisp_2400b0_v21.bin
+Version string: irci_stable_candrpv_0415_20150521_0458
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+What I have is:
 
-The Media Infrastructure API from this daily build is here:
+Version string: irci_stable_candrpv_0415_20150423_1753
+SHA1: 548d26a9b5daedbeb59a46ea1da69757d92cd4d6  shisp_2400b0_v21.bin
 
-http://www.xs4all.nl/~hverkuil/spec/index.html
+> > [   21.469907] ov2680: module is from the staging directory, the
+> > quality
+> >  is unknown, you have been warned.
+> > [   21.492774] ov2680 i2c-OVTI2680:00: gmin: initializing atomisp
+> > module
+> > subdev data.PMIC ID 1
+> > [   21.492891] acpi OVTI2680:00: Failed to find gmin variable
+> > OVTI2680:00_CamClk
+> > [   21.492974] acpi OVTI2680:00: Failed to find gmin variable
+> > OVTI2680:00_ClkSrc
+> > [   21.493090] acpi OVTI2680:00: Failed to find gmin variable
+> > OVTI2680:00_CsiPort
+> > [   21.493209] acpi OVTI2680:00: Failed to find gmin variable
+> > OVTI2680:00_CsiLanes
+> > [   21.493511] ov2680 i2c-OVTI2680:00: i2c-OVTI2680:00 supply V1P8SX
+> > not
+> > found, using dummy regulator
+> > [   21.493550] ov2680 i2c-OVTI2680:00: i2c-OVTI2680:00 supply V2P8SX
+> > not
+> > found, using dummy regulator
+> > [   21.493569] ov2680 i2c-OVTI2680:00: i2c-OVTI2680:00 supply V1P2A
+> > not
+> > found, using dummy regulator
+> > [   21.493585] ov2680 i2c-OVTI2680:00: i2c-OVTI2680:00 supply
+> > VPROG4B
+> > not found, using dummy regulator
+> > [   21.568134] ov2680 i2c-OVTI2680:00: camera pdata: port: 0 lanes:
+> > 1
+> > order: 00000002
+> > [   21.568257] ov2680 i2c-OVTI2680:00: read from offset 0x300a error
+> > -121
+> > [   21.568265] ov2680 i2c-OVTI2680:00: sensor_id_high = 0xffff
+> > [   21.568269] ov2680 i2c-OVTI2680:00: ov2680_detect err s_config.
+> > [   21.568291] ov2680 i2c-OVTI2680:00: sensor power-gating failed
+> > 
+> > Afterwards I do not get a camera device.
+> > 
+> > Am I missing some firmware or dependency?
+
+See above.
+
+> >  Can I somehow help to improve
+> > the driver?
+
+Yes, definitely, but first of all we need to find at least one device
+and corresponding firmware where it actually works.
+
+For me it doesn't generate any interrupt (after huge hacking to make
+that firmware loaded and settings / platform data applied).
+
+-- 
+Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Intel Finland Oy
