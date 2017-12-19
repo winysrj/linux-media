@@ -1,127 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from vps-vb.mhejs.net ([37.28.154.113]:54878 "EHLO vps-vb.mhejs.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1757306AbdLQSqS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 17 Dec 2017 13:46:18 -0500
-From: "Maciej S. Szmigiero" <mail@maciej.szmigiero.name>
-Subject: [PATCH v4 0/6] [media] Add analog mode support for Medion MD95700
-To: Michael Krufky <mkrufky@linuxtv.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Andy Walls <awalls@md.metrocast.net>,
-        linux-kernel <linux-kernel@vger.kernel.org>,
-        linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
-        Philippe Ombredanne <pombredanne@nexb.com>
-Message-ID: <1583cfd7-a4ea-66d3-25e1-d924b2ed1f5f@maciej.szmigiero.name>
-Date: Sun, 17 Dec 2017 19:46:15 +0100
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:35212 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S933409AbdLSJLn (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 19 Dec 2017 04:11:43 -0500
+Date: Tue, 19 Dec 2017 11:11:39 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Wenyou.Yang@microchip.com
+Cc: mchehab@s-opensource.com, robh+dt@kernel.org, mark.rutland@arm.com,
+        linux-kernel@vger.kernel.org, Nicolas.Ferre@microchip.com,
+        devicetree@vger.kernel.org, corbet@lwn.net, hverkuil@xs4all.nl,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH v9 2/2] media: i2c: Add the ov7740 image sensor driver
+Message-ID: <20171219091139.n2wmsj6ydcjntnf3@valkosipuli.retiisi.org.uk>
+References: <20171211013146.2497-1-wenyou.yang@microchip.com>
+ <20171211013146.2497-3-wenyou.yang@microchip.com>
+ <1641aa67-b05e-47e2-600c-70b77571b450@iki.fi>
+ <F9F4555C4E01D7469D37975B62D0EFBB8DDA56@CHN-SV-EXMX07.mchp-main.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-2
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <F9F4555C4E01D7469D37975B62D0EFBB8DDA56@CHN-SV-EXMX07.mchp-main.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This series adds support for analog part of Medion 95700 in the cxusb
-driver.
+Hi Wenyou,
 
-What works:
-* Video capture at various sizes with sequential fields,
-* Input switching (TV Tuner, Composite, S-Video),
-* TV and radio tuning,
-* Video standard switching and auto detection,
-* Radio mode switching (stereo / mono),
-* Unplugging while capturing,
-* DVB / analog coexistence,
-* Raw BT.656 stream support.
+On Tue, Dec 19, 2017 at 02:11:28AM +0000, Wenyou.Yang@microchip.com wrote:
+> Hi Sakari,
+> 
+> > -----Original Message-----
+> > From: Sakari Ailus [mailto:sakari.ailus@iki.fi]
+> > Sent: 2017年12月14日 4:06
+> > To: Wenyou Yang - A41535 <Wenyou.Yang@microchip.com>; Mauro Carvalho
+> > Chehab <mchehab@s-opensource.com>; Rob Herring <robh+dt@kernel.org>;
+> > Mark Rutland <mark.rutland@arm.com>
+> > Cc: linux-kernel@vger.kernel.org; Nicolas Ferre - M43238
+> > <Nicolas.Ferre@microchip.com>; devicetree@vger.kernel.org; Jonathan Corbet
+> > <corbet@lwn.net>; Hans Verkuil <hverkuil@xs4all.nl>; linux-arm-
+> > kernel@lists.infradead.org; Linux Media Mailing List <linux-
+> > media@vger.kernel.org>; Songjun Wu <songjun.wu@microchip.com>
+> > Subject: Re: [PATCH v9 2/2] media: i2c: Add the ov7740 image sensor driver
+> > 
+> > Hi Wenyou,
+> > 
+> > Wenyou Yang wrote:
+> > ...
+> > > +static int ov7740_start_streaming(struct ov7740 *ov7740) {
+> > > +	int ret;
+> > > +
+> > > +	if (ov7740->fmt) {
+> > > +		ret = regmap_multi_reg_write(ov7740->regmap,
+> > > +					     ov7740->fmt->regs,
+> > > +					     ov7740->fmt->reg_num);
+> > > +		if (ret)
+> > > +			return ret;
+> > > +	}
+> > > +
+> > > +	if (ov7740->frmsize) {
+> > > +		ret = regmap_multi_reg_write(ov7740->regmap,
+> > > +					     ov7740->frmsize->regs,
+> > > +					     ov7740->frmsize->reg_num);
+> > > +		if (ret)
+> > > +			return ret;
+> > > +	}
+> > > +
+> > > +	return __v4l2_ctrl_handler_setup(ov7740->subdev.ctrl_handler);
+> > 
+> > I believe you're still setting the controls after starting streaming.
+> 
+> Yes, it sees it does so.
+> 
+> The OV7740 sensor generates the stream pixel data at the constant frame
+> rate, no such start or stop control.
 
-What does not work yet:
-* Audio,
-* VBI,
-* Picture controls.
+That'd be odd but I guess hardware sometimes is. I'll apply the patches.
 
-This series (as a one patch) was submitted for inclusion few years ago,
-then waited few months in a patch queue.
-Unfortunately, by the time it was supposed to be merged there
-were enough changes in media that it was no longer mergable.
+Thanks!
 
-I thought at that time that I will be able to rebase and retest it soon
-but unfortunately up till now I was never able to find enough time to do
-so.
-Also, with the passing of time the implementation diverged more and
-more from the current kernel code, necessitating even more reworking.
-
-That last iteration can be found here:
-https://patchwork.linuxtv.org/patch/8048/
-
-Since that version there had been the following changes:
-* Adaptation to changes in V4L2 / DVB core,
-
-* Radio device was added, with a possibility to tune to a FM radio
-station and switch between stereo and mono modes (tested by taping
-audio signal directly at tuner output pin),
-
-* DVB / analog coexistence was improved - resolved a few cases where
-DVB core would switch off power or reset the tuner when the device
-was still being used but in the analog mode,
-
-* Fixed issues reported by v4l2-compliance,
-
-* Switching to raw BT.656 mode is now done by a custom streaming
-parameter set via VIDIOC_S_PARM ioctl instead of using a
-V4L2_BUF_TYPE_PRIVATE buffer (which was removed from V4L2),
-
-* General small code cleanups (like using BIT() or ARRAY_SIZE() macros
-instead of open coding them, code formatting improvements, etc.).
-
-Changes from v1:
-* Only support configuration of cx25840 pins that the cxusb driver is
-actually using so there is no need for an ugly CX25840_PIN() macro,
-
-* Split cxusb changes into two patches: first one implementing
-digital / analog coexistence in this driver, second one adding the
-actual implementation of the analog mode,
-
-* Fix a warning reported by kbuild test robot.
-
-Changes from v2:
-* Split out ivtv cx25840 platform data zero-initialization to a separate
-commit,
-
-* Add kernel-doc description of struct cx25840_state,
-
-* Make sure that all variables used in CX25840_VCONFIG_OPTION() and
-CX25840_VCONFIG_SET_BIT() macros are their explicit parameters,
-
-* Split out some code from cxusb_medion_copy_field() and
-cxusb_medion_v_complete_work() functions to separate ones to increase
-their readability,
-
-* Generate masks using GENMASK() and BIT() macros in cx25840.h and
-cxusb.h.
-
-Changes from v3:
-Add SPDX tag to a newly added "cxusb-analog.c" file.
-
-Maciej S. Szmigiero (6):
-  ivtv: zero-initialize cx25840 platform data
-  cx25840: add kernel-doc description of struct cx25840_state
-  cx25840: add pin to pad mapping and output format configuration
-  tuner-simple: allow setting mono radio mode
-  [media] cxusb: implement Medion MD95700 digital / analog coexistence
-  [media] cxusb: add analog mode support for Medion MD95700
-
- drivers/media/i2c/cx25840/cx25840-core.c |  396 +++++-
- drivers/media/i2c/cx25840/cx25840-core.h |   46 +-
- drivers/media/i2c/cx25840/cx25840-vbi.c  |    3 +
- drivers/media/pci/ivtv/ivtv-i2c.c        |    1 +
- drivers/media/tuners/tuner-simple.c      |    5 +-
- drivers/media/usb/dvb-usb/Kconfig        |    8 +-
- drivers/media/usb/dvb-usb/Makefile       |    2 +-
- drivers/media/usb/dvb-usb/cxusb-analog.c | 1923 ++++++++++++++++++++++++++++++
- drivers/media/usb/dvb-usb/cxusb.c        |  455 ++++++-
- drivers/media/usb/dvb-usb/cxusb.h        |  136 +++
- drivers/media/usb/dvb-usb/dvb-usb-dvb.c  |   20 +-
- drivers/media/usb/dvb-usb/dvb-usb-init.c |   13 +
- drivers/media/usb/dvb-usb/dvb-usb.h      |    8 +
- include/media/drv-intf/cx25840.h         |   74 +-
- 14 files changed, 3024 insertions(+), 66 deletions(-)
- create mode 100644 drivers/media/usb/dvb-usb/cxusb-analog.c
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
