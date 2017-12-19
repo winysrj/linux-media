@@ -1,89 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:46006 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753601AbdLHOUP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 8 Dec 2017 09:20:15 -0500
-Date: Fri, 8 Dec 2017 12:20:01 -0200
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        leonl@leopardimaging.com
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/1] imx274: Fix error handling, add MAINTAINERS entry
-Message-ID: <20171208122001.36c95432@vento.lan>
-In-Reply-To: <20171101094327.7702-1-sakari.ailus@linux.intel.com>
-References: <20171101094327.7702-1-sakari.ailus@linux.intel.com>
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:39782 "EHLO
+        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S934057AbdLSHtq (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 19 Dec 2017 02:49:46 -0500
+Received: by mail-wm0-f67.google.com with SMTP id i11so1774891wmf.4
+        for <linux-media@vger.kernel.org>; Mon, 18 Dec 2017 23:49:46 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <1513654553-27097-1-git-send-email-satendra.t@samsung.com>
+References: <CGME20171219033612epcas5p41cb7d88255e0677d00c7e79572d27bc7@epcas5p4.samsung.com>
+ <1513654553-27097-1-git-send-email-satendra.t@samsung.com>
+From: Philippe Ombredanne <pombredanne@nexb.com>
+Date: Tue, 19 Dec 2017 08:49:05 +0100
+Message-ID: <CAOFm3uHvVH4YDKkXtaBmRSotsB0SCzhjWz+8K9xA+BOa0xVRiA@mail.gmail.com>
+Subject: Re: [PATCH v1] media: videobuf2: Add new uAPI for DVB streaming I/O
+To: Satendra Singh Thakur <satendra.t@samsung.com>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Thomas Gleixner <tglx@linutronix.de>, madhur.verma@samsung.com,
+        hemanshu.s@samsung.com, sst2005@gmail.com,
+        Kate Stewart <kstewart@linuxfoundation.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Kees Cook <keescook@chromium.org>,
+        Junghak Sung <jh1009.sung@samsung.com>,
+        Geunyoung Kim <nenggun.kim@samsung.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed,  1 Nov 2017 11:43:27 +0200
-Sakari Ailus <sakari.ailus@linux.intel.com> escreveu:
+Dear Satendra,
 
-> Add the missing MAINTAINERS entry for imx274, fix error handling in driver
-> probe and unregister the correct control handler in driver remove.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> ---
-> The earlier version of the imx274 patchset got merged, this is the diff
-> between what was merged and what was intended.
-> 
->  MAINTAINERS                | 8 ++++++++
->  drivers/media/i2c/imx274.c | 5 ++---
->  2 files changed, 10 insertions(+), 3 deletions(-)
-> 
-> diff --git a/MAINTAINERS b/MAINTAINERS
-> index adbf69306e9e..a50dc70ae30b 100644
-> --- a/MAINTAINERS
-> +++ b/MAINTAINERS
-> @@ -12494,6 +12494,14 @@ S:	Maintained
->  F:	drivers/ssb/
->  F:	include/linux/ssb/
->  
-> +SONY IMX274 SENSOR DRIVER
-> +M:	Leon Luo <leonl@leopardimaging.com>
-> +L:	linux-media@vger.kernel.org
-> +T:	git git://linuxtv.org/media_tree.git
-> +S:	Maintained
-> +F:	drivers/media/i2c/imx274.c
-> +F:	Documentation/devicetree/bindings/media/i2c/imx274.txt
-> +
+On Tue, Dec 19, 2017 at 4:35 AM, Satendra Singh Thakur
+<satendra.t@samsung.com> wrote:
 
-We need Leon's signed-off-by for this change.
+<snip>
 
->  SONY MEMORYSTICK CARD SUPPORT
->  M:	Alex Dubov <oakad@yahoo.com>
->  W:	http://tifmxx.berlios.de/
-> diff --git a/drivers/media/i2c/imx274.c b/drivers/media/i2c/imx274.c
-> index ab6a5f31da74..737dbf59a0d2 100644
-> --- a/drivers/media/i2c/imx274.c
-> +++ b/drivers/media/i2c/imx274.c
+> --- /dev/null
+> +++ b/drivers/media/dvb-core/dvb_vb2.c
+> @@ -0,0 +1,422 @@
+> +/*
+> + * dvb-vb2.c - dvb-vb2
+> + *
+> + * Copyright (C) 2015 Samsung Electronics
+> + *
+> + * Author: jh1009.sung@samsung.com
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License as published by
+> + * the Free Software Foundation.
+> + */
 
-While it is OK (and actually preferred) to have MAINTAINERS together
-with new drivers, please don't mix driver fixes with MAINTAINERS addition.
+Would you mind using the new SPDX tags documented in Thomas patch set
+[1] rather than this fine but longer legalese?
 
-> @@ -1770,8 +1770,7 @@ static int imx274_probe(struct i2c_client *client,
->  	return 0;
->  
->  err_ctrls:
-> -	v4l2_async_unregister_subdev(sd);
-> -	v4l2_ctrl_handler_free(sd->ctrl_handler);
-> +	v4l2_ctrl_handler_free(&imx274->ctrls.handler);
->  err_me:
->  	media_entity_cleanup(&sd->entity);
->  err_regmap:
-> @@ -1788,7 +1787,7 @@ static int imx274_remove(struct i2c_client *client)
->  	imx274_write_table(imx274, mode_table[IMX274_MODE_STOP_STREAM]);
->  
->  	v4l2_async_unregister_subdev(sd);
-> -	v4l2_ctrl_handler_free(sd->ctrl_handler);
-> +	v4l2_ctrl_handler_free(&imx274->ctrls.handler);
->  	media_entity_cleanup(&sd->entity);
->  	mutex_destroy(&imx274->lock);
->  	return 0;
+And if you could spread the word to others in your team this would be very nice.
+See also this fine article posted by Mauro on the Samsung Open Source
+Group Blog [2]
+Thank you!
 
-
-
-Thanks,
-Mauro
+[1] https://lkml.org/lkml/2017/12/4/934
+[2] https://blogs.s-osg.org/linux-kernel-license-practices-revisited-spdx/
+-- 
+Cordially
+Philippe Ombredanne
