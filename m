@@ -1,98 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f66.google.com ([209.85.215.66]:36795 "EHLO
-        mail-lf0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S935337AbdLRXGj (ORCPT
+Received: from relmlor3.renesas.com ([210.160.252.173]:21374 "EHLO
+        relmlie2.idc.renesas.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1761795AbdLSKU1 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 18 Dec 2017 18:06:39 -0500
-Received: by mail-lf0-f66.google.com with SMTP id f20so19597310lfe.3
-        for <linux-media@vger.kernel.org>; Mon, 18 Dec 2017 15:06:39 -0800 (PST)
-From: "Niklas =?iso-8859-1?Q?S=F6derlund?=" <niklas.soderlund@ragnatech.se>
-Date: Tue, 19 Dec 2017 00:06:37 +0100
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
-        Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        Benoit Parrot <bparrot@ti.com>,
-        Maxime Ripard <maxime.ripard@free-electrons.com>
-Subject: Re: [PATCH/RFC v2 01/15] v4l2-subdev.h: add pad and stream aware
- s_stream
-Message-ID: <20171218230637.GE32148@bigcity.dyn.berto.se>
-References: <20171214190835.7672-1-niklas.soderlund+renesas@ragnatech.se>
- <20171214190835.7672-2-niklas.soderlund+renesas@ragnatech.se>
- <20171215115146.rme5bv2qbebft2ba@paasikivi.fi.intel.com>
+        Tue, 19 Dec 2017 05:20:27 -0500
+From: Fabrizio Castro <fabrizio.castro@bp.renesas.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>
+CC: =?iso-8859-1?Q?Niklas_S=F6derlund?= <niklas.soderlund@ragnatech.se>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "linux-renesas-soc@vger.kernel.org"
+        <linux-renesas-soc@vger.kernel.org>,
+        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+        Simon Horman <horms+renesas@verge.net.au>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        Chris Paterson <Chris.Paterson2@renesas.com>,
+        Biju Das <biju.das@bp.renesas.com>,
+        Fabrizio Castro <fabrizio.castro@bp.renesas.com>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Rob Herring <robh+dt@kernel.org>
+Subject: RE: [PATCH v2 2/4] dt-bindings: media: rcar_vin: add device tree
+ support for r8a774[35]
+Date: Tue, 19 Dec 2017 10:20:22 +0000
+Message-ID: <TY1PR06MB0895A119ADABE34B06885F39C00F0@TY1PR06MB0895.apcprd06.prod.outlook.com>
+References: <1510856571-30281-1-git-send-email-fabrizio.castro@bp.renesas.com>
+ <1510856571-30281-3-git-send-email-fabrizio.castro@bp.renesas.com>
+In-Reply-To: <1510856571-30281-3-git-send-email-fabrizio.castro@bp.renesas.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20171215115146.rme5bv2qbebft2ba@paasikivi.fi.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hej Sakari,
+Hello Mauro,
 
-Tack för dina kommentarer.
+does this patch look ok to you?
 
-On 2017-12-15 13:51:46 +0200, Sakari Ailus wrote:
-> Hejssan Niklas,
-> 
-> Tack för uppdaterade lappor!
-> 
-> On Thu, Dec 14, 2017 at 08:08:21PM +0100, Niklas Söderlund wrote:
-> > To be able to start and stop individual streams of a multiplexed pad the
-> > s_stream operation needs to be both pad and stream aware. Add a new
-> > operation to pad ops to facilitate this.
-> > 
-> > Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-> > ---
-> >  include/media/v4l2-subdev.h | 5 +++++
-> >  1 file changed, 5 insertions(+)
-> > 
-> > diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-> > index a30a94fad8dbacde..7288209338a48fda 100644
-> > --- a/include/media/v4l2-subdev.h
-> > +++ b/include/media/v4l2-subdev.h
-> > @@ -669,6 +669,9 @@ struct v4l2_subdev_pad_config {
-> >   *
-> >   * @set_frame_desc: set the low level media bus frame parameters, @fd array
-> >   *                  may be adjusted by the subdev driver to device capabilities.
-> > + *
-> > + * @s_stream: used to notify the driver that a stream will start or has
-> > + *	stopped.
-> 
-> This is actually the callback which is used to control the stream state.
-> The above suggests that it's a notification of something that has happened
-> (or about to happen). How about:
-> 
-> Enable or disable streaming on a sub-device pad.
+Thanks,
+Fab
 
-Better, will use it in next version.
+> Subject: [PATCH v2 2/4] dt-bindings: media: rcar_vin: add device tree sup=
+port for r8a774[35]
+>
+> Add compatible strings for r8a7743 and r8a7745. No driver change
+> is needed as "renesas,rcar-gen2-vin" will activate the right code.
+> However, it is good practice to document compatible strings for the
+> specific SoC as this allows SoC specific changes to the driver if
+> needed, in addition to document SoC support and therefore allow
+> checkpatch.pl to validate compatible string values.
+>
+> Signed-off-by: Fabrizio Castro <fabrizio.castro@bp.renesas.com>
+> Reviewed-by: Biju Das <biju.das@bp.renesas.com>
+> ---
+> v1->v2:
+> * Fixed double "change" in changelog
+>
+>  Documentation/devicetree/bindings/media/rcar_vin.txt | 5 ++++-
+>  1 file changed, 4 insertions(+), 1 deletion(-)
+>
+> diff --git a/Documentation/devicetree/bindings/media/rcar_vin.txt b/Docum=
+entation/devicetree/bindings/media/rcar_vin.txt
+> index 98931f5..ff9697e 100644
+> --- a/Documentation/devicetree/bindings/media/rcar_vin.txt
+> +++ b/Documentation/devicetree/bindings/media/rcar_vin.txt
+> @@ -6,6 +6,8 @@ family of devices. The current blocks are always slaves a=
+nd suppot one input
+>  channel which can be either RGB, YUYV or BT656.
+>
+>   - compatible: Must be one or more of the following
+> +   - "renesas,vin-r8a7743" for the R8A7743 device
+> +   - "renesas,vin-r8a7745" for the R8A7745 device
+>     - "renesas,vin-r8a7778" for the R8A7778 device
+>     - "renesas,vin-r8a7779" for the R8A7779 device
+>     - "renesas,vin-r8a7790" for the R8A7790 device
+> @@ -14,7 +16,8 @@ channel which can be either RGB, YUYV or BT656.
+>     - "renesas,vin-r8a7793" for the R8A7793 device
+>     - "renesas,vin-r8a7794" for the R8A7794 device
+>     - "renesas,vin-r8a7795" for the R8A7795 device
+> -   - "renesas,rcar-gen2-vin" for a generic R-Car Gen2 compatible device.
+> +   - "renesas,rcar-gen2-vin" for a generic R-Car Gen2 or RZ/G1 compatibl=
+e
+> +     device.
+>     - "renesas,rcar-gen3-vin" for a generic R-Car Gen3 compatible device.
+>
+>     When compatible with the generic version nodes must list the
+> --
+> 2.7.4
 
-> 
-> >   */
-> >  struct v4l2_subdev_pad_ops {
-> >  	int (*init_cfg)(struct v4l2_subdev *sd,
-> > @@ -713,6 +716,8 @@ struct v4l2_subdev_pad_ops {
-> >  			   struct v4l2_subdev_routing *route);
-> >  	int (*set_routing)(struct v4l2_subdev *sd,
-> >  			   struct v4l2_subdev_routing *route);
-> > +	int (*s_stream)(struct v4l2_subdev *sd, unsigned int pad,
-> > +			unsigned int stream, int enable);
-> 
-> How about bool for enable?
 
-I tried to use what the current s_stream uses, but I be happy to make 
-enable a bool in the next version.
 
-> 
-> >  };
-> >  
-> >  /**
-> 
-> -- 
-> Sakari Ailus
-> sakari.ailus@linux.intel.com
+[https://www2.renesas.eu/media/email/unicef_2017.jpg]
 
--- 
-Regards,
-Niklas Söderlund
+This Christmas, instead of sending out cards, Renesas Electronics Europe ha=
+ve decided to support Unicef with a donation. For further details click her=
+e<https://www.unicef.org/> to find out about the valuable work they do, hel=
+ping children all over the world.
+We would like to take this opportunity to wish you a Merry Christmas and a =
+prosperous New Year.
+
+
+
+Renesas Electronics Europe Ltd, Dukes Meadow, Millboard Road, Bourne End, B=
+uckinghamshire, SL8 5FH, UK. Registered in England & Wales under Registered=
+ No. 04586709.
