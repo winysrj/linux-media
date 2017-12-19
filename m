@@ -1,392 +1,166 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:35771 "EHLO osg.samsung.com"
+Received: from osg.samsung.com ([64.30.133.232]:39924 "EHLO osg.samsung.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1758821AbdLRTyJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 18 Dec 2017 14:54:09 -0500
+        id S1750844AbdLSTUc (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 19 Dec 2017 14:20:32 -0500
+Date: Tue, 19 Dec 2017 17:20:24 -0200
 From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 1/8] media: v4l2-device.h: document helper macros
-Date: Mon, 18 Dec 2017 17:53:55 -0200
-Message-Id: <faa031fe451c2eb4a80f4314079bd841e4ae8e01.1513625884.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1513625884.git.mchehab@s-opensource.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Tomasz Figa <tfiga@chromium.org>,
+        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
+        Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
+        linux-doc@vger.kernel.org
+Subject: Re: [PATCH 2/8] media: v4l2-ioctl.h: convert debug into an enum of
+ bits
+Message-ID: <20171219172024.695148f2@vento.lan>
+In-Reply-To: <2448808.QM7caob540@avalon>
 References: <cover.1513625884.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1513625884.git.mchehab@s-opensource.com>
-References: <cover.1513625884.git.mchehab@s-opensource.com>
+        <20171219141235.mgiyoeeiyfn2z4zh@paasikivi.fi.intel.com>
+        <20171219133758.6cf22460@vento.lan>
+        <2448808.QM7caob540@avalon>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There are several macros that aren't documented using kernel-docs
-markups.
+Em Tue, 19 Dec 2017 19:17:12 +0200
+Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
 
-Document them.
+> Hi Mauro,
+> 
+> On Tuesday, 19 December 2017 17:37:58 EET Mauro Carvalho Chehab wrote:
+> > Em Tue, 19 Dec 2017 16:12:35 +0200 Sakari Ailus escreveu:  
+> > > On Tue, Dec 19, 2017 at 04:02:02PM +0200, Laurent Pinchart wrote:  
+> > >> And furthermore using enum types in the uAPI is a bad idea as the enum
+> > >> size is architecture-dependent. That's why we use integer types in
+> > >> structures used as ioctl arguments.  
+> > > 
+> > > I guess we have an argeement on that, enums are a no-go for uAPI, for
+> > > reasons not related to the topic at hand.  
+> > 
+> > Huh? We're not talking about uAPI. This is kAPI. Using enums there is OK.  
+> 
+> Sure, there's no disagreement about that. 
 
-While here, add cross-references to structs on this file.
+> The point was that, as both uAPI and  kAPI should be documented,
 
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- include/media/v4l2-device.h | 246 +++++++++++++++++++++++++++++++++++++-------
- 1 file changed, 211 insertions(+), 35 deletions(-)
+No disagreement here...
 
-diff --git a/include/media/v4l2-device.h b/include/media/v4l2-device.h
-index 8ffa94009d1a..448616b392f3 100644
---- a/include/media/v4l2-device.h
-+++ b/include/media/v4l2-device.h
-@@ -38,7 +38,7 @@ struct v4l2_ctrl_handler;
-  * @lock: lock this struct; can be used by the driver as well
-  *	if this struct is embedded into a larger struct.
-  * @name: unique device name, by default the driver name + bus ID
-- * @notify: notify callback called by some sub-devices.
-+ * @notify: notify operation called by some sub-devices.
-  * @ctrl_handler: The control handler. May be %NULL.
-  * @prio: Device's priority state
-  * @ref: Keep track of the references to this struct.
-@@ -56,7 +56,6 @@ struct v4l2_ctrl_handler;
-  *    #) @dev->driver_data points to this struct.
-  *    #) @dev might be %NULL if there is no parent device
-  */
--
- struct v4l2_device {
- 	struct device *dev;
- #if defined(CONFIG_MEDIA_CONTROLLER)
-@@ -166,7 +165,7 @@ void v4l2_device_unregister(struct v4l2_device *v4l2_dev);
-  * v4l2_device_register_subdev - Registers a subdev with a v4l2 device.
-  *
-  * @v4l2_dev: pointer to struct &v4l2_device
-- * @sd: pointer to struct &v4l2_subdev
-+ * @sd: pointer to &struct v4l2_subdev
-  *
-  * While registered, the subdev module is marked as in-use.
-  *
-@@ -179,7 +178,7 @@ int __must_check v4l2_device_register_subdev(struct v4l2_device *v4l2_dev,
- /**
-  * v4l2_device_unregister_subdev - Unregisters a subdev with a v4l2 device.
-  *
-- * @sd: pointer to struct &v4l2_subdev
-+ * @sd: pointer to &struct v4l2_subdev
-  *
-  * .. note ::
-  *
-@@ -201,7 +200,7 @@ v4l2_device_register_subdev_nodes(struct v4l2_device *v4l2_dev);
- /**
-  * v4l2_subdev_notify - Sends a notification to v4l2_device.
-  *
-- * @sd: pointer to struct &v4l2_subdev
-+ * @sd: pointer to &struct v4l2_subdev
-  * @notification: type of notification. Please notice that the notification
-  *	type is driver-specific.
-  * @arg: arguments for the notification. Those are specific to each
-@@ -214,13 +213,43 @@ static inline void v4l2_subdev_notify(struct v4l2_subdev *sd,
- 		sd->v4l2_dev->notify(sd, notification, arg);
- }
- 
--/* Iterate over all subdevs. */
-+/* Helper macros to iterate over all subdevs. */
-+
+> and we can't use enums for uAPI, 
+
+Err... we actually do use enums on uAPI... videodev2.h is full of it.
+What we can't do is to use enums on ioctls. So, all such enums are
+replaced by u32 at the ioctl calls.
+
+Ok, this is not elegant (and it happened for historic reasons - we're
+now avoiding it at all costs), but that's the way it is.
+
+The fact is - for uAPI - we have enums and defines, and both are
+documented.
+
+> we need a way to document non-enum types,
+
+We have already a way to document all uAPI data structures, including
+enums and defines.
+
+> which we could then use to document the kAPI the same way.
+
+Let's not mix subjects. This patch series is all about kAPI.
+
+Specifically, we're talking about this change:
+
+-/* Just log the ioctl name + error code */
+-#define V4L2_DEV_DEBUG_IOCTL		0x01
+-/* Log the ioctl name arguments + error code */
+-#define V4L2_DEV_DEBUG_IOCTL_ARG	0x02
+-/* Log the file operations open, release, mmap and get_unmapped_area */
+-#define V4L2_DEV_DEBUG_FOP		0x04
+-/* Log the read and write file operations and the VIDIOC_(D)QBUF ioctls */
+-#define V4L2_DEV_DEBUG_STREAMING	0x08
 +/**
-+ * v4l2_device_for_each_subdev - Helper macro that interates over all
-+ *	sub-devices of a given &v4l2_device.
++ * enum v4l2_debug_bits - Device debug bits to be used with the video
++ *	device debug attribute
 + *
-+ * @sd: pointer that will be filled by the macro with all
-+ *	&struct v4l2_subdev pointer used as an iterator by the loop.
-+ * @v4l2_dev: &struct v4l2_device owning the sub-devices to iterate over.
-+ *
-+ * This macro iterates over all sub-devices owned by the @v4l2_dev device.
-+ * It acts as a for loop iterator and executes the next statement with
-+ * the @sd variable pointing to each sub-device in turn.
++ * @V4L2_DEBUG_IOCTL:		Just log the ioctl name + error code.
++ * @V4L2_DEBUG_IOCTL_ARG:	Log the ioctl name arguments + error code.
++ * @V4L2_DEBUG_FOP:		Log the file operations and open, release,
++ *				mmap and get_unmapped_area syscalls.
++ * @V4L2_DEBUG_STREAMING:	Log the read and write syscalls and
++ *				:c:ref:`VIDIOC_[Q|DQ]BUF <VIDIOC_QBUF>` ioctls.
++ * @V4L2_DEBUG_POLL:		Log poll syscalls.
 + */
- #define v4l2_device_for_each_subdev(sd, v4l2_dev)			\
- 	list_for_each_entry(sd, &(v4l2_dev)->subdevs, list)
- 
--/* Call the specified callback for all subdevs matching the condition.
--   Ignore any errors. Note that you cannot add or delete a subdev
--   while walking the subdevs list. */
-+/**
-+ * __v4l2_device_call_subdevs_p - Calls the specified operation for
-+ *	all subdevs matching the condition.
-+ *
-+ * @v4l2_dev: &struct v4l2_device owning the sub-devices to iterate over.
-+ * @sd: pointer that will be filled by the macro with all
-+ *	&struct v4l2_subdev pointer used as an iterator by the loop.
-+ * @cond: condition to be match
-+ * @o: name of the element at &struct v4l2_subdev_ops that contains @f.
-+ *     Each element there groups a set of operations functions.
-+ * @f: operation function that will be called if @cond matches.
-+ * 	The operation functions are defined in groups, according to
-+ *	each element at &struct v4l2_subdev_ops.
-+ * @args...: arguments for @f.
-+ *
-+ * Ignore any errors.
-+ *
-+ * Note: subdevs cannot be added or deleted while walking
-+ * the subdevs list.
-+ */
- #define __v4l2_device_call_subdevs_p(v4l2_dev, sd, cond, o, f, args...)	\
- 	do {								\
- 		list_for_each_entry((sd), &(v4l2_dev)->subdevs, list)	\
-@@ -228,6 +257,24 @@ static inline void v4l2_subdev_notify(struct v4l2_subdev *sd,
- 				(sd)->ops->o->f((sd) , ##args);		\
- 	} while (0)
- 
-+/**
-+ * __v4l2_device_call_subdevs - Calls the specified operation for
-+ *	all subdevs matching the condition.
-+ *
-+ * @v4l2_dev: &struct v4l2_device owning the sub-devices to iterate over.
-+ * @cond: condition to be match
-+ * @o: name of the element at &struct v4l2_subdev_ops that contains @f.
-+ *     Each element there groups a set of operations functions.
-+ * @f: operation function that will be called if @cond matches.
-+ * 	The operation functions are defined in groups, according to
-+ *	each element at &struct v4l2_subdev_ops.
-+ * @args...: arguments for @f.
-+ *
-+ * Ignore any errors.
-+ *
-+ * Note: subdevs cannot be added or deleted while walking
-+ * the subdevs list.
-+ */
- #define __v4l2_device_call_subdevs(v4l2_dev, cond, o, f, args...)	\
- 	do {								\
- 		struct v4l2_subdev *__sd;				\
-@@ -236,10 +283,30 @@ static inline void v4l2_subdev_notify(struct v4l2_subdev *sd,
- 						f , ##args);		\
- 	} while (0)
- 
--/* Call the specified callback for all subdevs matching the condition.
--   If the callback returns an error other than 0 or -ENOIOCTLCMD, then
--   return with that error code. Note that you cannot add or delete a
--   subdev while walking the subdevs list. */
-+/**
-+ * __v4l2_device_call_subdevs_until_err_p - Calls the specified operation for
-+ *	all subdevs matching the condition.
-+ *
-+ * @v4l2_dev: &struct v4l2_device owning the sub-devices to iterate over.
-+ * @sd: pointer that will be filled by the macro with all
-+ *	&struct v4l2_subdev sub-devices associated with @v4l2_dev.
-+ * @cond: condition to be match
-+ * @o: name of the element at &struct v4l2_subdev_ops that contains @f.
-+ *     Each element there groups a set of operations functions.
-+ * @f: operation function that will be called if @cond matches.
-+ * 	The operation functions are defined in groups, according to
-+ *	each element at &struct v4l2_subdev_ops.
-+ * @args...: arguments for @f.
-+ *
-+ * Return:
-+ *
-+ * If the operation returns an error other than 0 or ``-ENOIOCTLCMD``
-+ * for any subdevice, then abort and return with that error code, zero
-+ * otherwise.
-+ *
-+ * Note: subdevs cannot be added or deleted while walking
-+ * the subdevs list.
-+ */
- #define __v4l2_device_call_subdevs_until_err_p(v4l2_dev, sd, cond, o, f, args...) \
- ({									\
- 	long __err = 0;							\
-@@ -253,6 +320,28 @@ static inline void v4l2_subdev_notify(struct v4l2_subdev *sd,
- 	(__err == -ENOIOCTLCMD) ? 0 : __err;				\
- })
- 
-+/**
-+ * __v4l2_device_call_subdevs_until_err - Calls the specified operation for
-+ *	all subdevs matching the condition.
-+ *
-+ * @v4l2_dev: &struct v4l2_device owning the sub-devices to iterate over.
-+ * @cond: condition to be match
-+ * @o: name of the element at &struct v4l2_subdev_ops that contains @f.
-+ *     Each element there groups a set of operations functions.
-+ * @f: operation function that will be called if @cond matches.
-+ * 	The operation functions are defined in groups, according to
-+ *	each element at &struct v4l2_subdev_ops.
-+ * @args...: arguments for @f.
-+ *
-+ * Return:
-+ *
-+ * If the operation returns an error other than 0 or ``-ENOIOCTLCMD``
-+ * for any subdevice, then abort and return with that error code,
-+ * zero otherwise.
-+ *
-+ * Note: subdevs cannot be added or deleted while walking
-+ * the subdevs list.
-+ */
- #define __v4l2_device_call_subdevs_until_err(v4l2_dev, cond, o, f, args...) \
- ({									\
- 	struct v4l2_subdev *__sd;					\
-@@ -260,9 +349,26 @@ static inline void v4l2_subdev_notify(struct v4l2_subdev *sd,
- 						f , ##args);		\
- })
- 
--/* Call the specified callback for all subdevs matching grp_id (if 0, then
--   match them all). Ignore any errors. Note that you cannot add or delete
--   a subdev while walking the subdevs list. */
-+/**
-+ * v4l2_device_call_all - Calls the specified operation for
-+ *	all subdevs matching the &v4l2_subdev.grp_id, as assigned
-+ *	by the bridge driver.
-+ *
-+ * @v4l2_dev: &struct v4l2_device owning the sub-devices to iterate over.
-+ * @grpid: &struct v4l2_subdev->grp_id group ID to match.
-+ * 	   Use 0 to match them all.
-+ * @o: name of the element at &struct v4l2_subdev_ops that contains @f.
-+ *     Each element there groups a set of operations functions.
-+ * @f: operation function that will be called if @cond matches.
-+ * 	The operation functions are defined in groups, according to
-+ *	each element at &struct v4l2_subdev_ops.
-+ * @args...: arguments for @f.
-+ *
-+ * Ignore any errors.
-+ *
-+ * Note: subdevs cannot be added or deleted while walking
-+ * the subdevs list.
-+ */
- #define v4l2_device_call_all(v4l2_dev, grpid, o, f, args...)		\
- 	do {								\
- 		struct v4l2_subdev *__sd;				\
-@@ -272,10 +378,30 @@ static inline void v4l2_subdev_notify(struct v4l2_subdev *sd,
- 			##args);					\
- 	} while (0)
- 
--/* Call the specified callback for all subdevs matching grp_id (if 0, then
--   match them all). If the callback returns an error other than 0 or
--   -ENOIOCTLCMD, then return with that error code. Note that you cannot
--   add or delete a subdev while walking the subdevs list. */
-+/**
-+ * v4l2_device_call_until_err - Calls the specified operation for
-+ *	all subdevs matching the &v4l2_subdev.grp_id, as assigned
-+ *	by the bridge driver, until an error occurs.
-+ *
-+ * @v4l2_dev: &struct v4l2_device owning the sub-devices to iterate over.
-+ * @grpid: &struct v4l2_subdev->grp_id group ID to match.
-+ * 	   Use 0 to match them all.
-+ * @o: name of the element at &struct v4l2_subdev_ops that contains @f.
-+ *     Each element there groups a set of operations functions.
-+ * @f: operation function that will be called if @cond matches.
-+ * 	The operation functions are defined in groups, according to
-+ *	each element at &struct v4l2_subdev_ops.
-+ * @args...: arguments for @f.
-+ *
-+ * Return:
-+ *
-+ * If the operation returns an error other than 0 or ``-ENOIOCTLCMD``
-+ * for any subdevice, then abort and return with that error code,
-+ * zero otherwise.
-+ *
-+ * Note: subdevs cannot be added or deleted while walking
-+ * the subdevs list.
-+ */
- #define v4l2_device_call_until_err(v4l2_dev, grpid, o, f, args...)	\
- ({									\
- 	struct v4l2_subdev *__sd;					\
-@@ -284,10 +410,24 @@ static inline void v4l2_subdev_notify(struct v4l2_subdev *sd,
- 			##args);					\
- })
- 
--/*
-- * Call the specified callback for all subdevs where grp_id & grpmsk != 0
-- * (if grpmsk == `0, then match them all). Ignore any errors. Note that you
-- * cannot add or delete a subdev while walking the subdevs list.
-+/**
-+ * v4l2_device_mask_call_all - Calls the specified operation for
-+ *	all subdevices where a group ID matches a specified bitmask.
-+ *
-+ * @v4l2_dev: &struct v4l2_device owning the sub-devices to iterate over.
-+ * @grpmsk: bitmask to be checked against &struct v4l2_subdev->grp_id
-+ *	    group ID to be matched. Use 0 to match them all.
-+ * @o: name of the element at &struct v4l2_subdev_ops that contains @f.
-+ *     Each element there groups a set of operations functions.
-+ * @f: operation function that will be called if @cond matches.
-+ * 	The operation functions are defined in groups, according to
-+ *	each element at &struct v4l2_subdev_ops.
-+ * @args...: arguments for @f.
-+ *
-+ * Ignore any errors.
-+ *
-+ * Note: subdevs cannot be added or deleted while walking
-+ * the subdevs list.
-  */
- #define v4l2_device_mask_call_all(v4l2_dev, grpmsk, o, f, args...)	\
- 	do {								\
-@@ -298,11 +438,28 @@ static inline void v4l2_subdev_notify(struct v4l2_subdev *sd,
- 			##args);					\
- 	} while (0)
- 
--/*
-- * Call the specified callback for all subdevs where grp_id & grpmsk != 0
-- * (if grpmsk == 0, then match them all). If the callback returns an error
-- * other than 0 or %-ENOIOCTLCMD, then return with that error code. Note that
-- * you cannot add or delete a subdev while walking the subdevs list.
-+/**
-+ * v4l2_device_mask_call_until_err - Calls the specified operation for
-+ *	all subdevices where a group ID matches a specified bitmask.
-+ *
-+ * @v4l2_dev: &struct v4l2_device owning the sub-devices to iterate over.
-+ * @grpmsk: bitmask to be checked against &struct v4l2_subdev->grp_id
-+ *	    group ID to be matched. Use 0 to match them all.
-+ * @o: name of the element at &struct v4l2_subdev_ops that contains @f.
-+ *     Each element there groups a set of operations functions.
-+ * @f: operation function that will be called if @cond matches.
-+ * 	The operation functions are defined in groups, according to
-+ *	each element at &struct v4l2_subdev_ops.
-+ * @args...: arguments for @f.
-+ *
-+ * Return:
-+ *
-+ * If the operation returns an error other than 0 or ``-ENOIOCTLCMD``
-+ * for any subdevice, then abort and return with that error code,
-+ * zero otherwise.
-+ *
-+ * Note: subdevs cannot be added or deleted while walking
-+ * the subdevs list.
-  */
- #define v4l2_device_mask_call_until_err(v4l2_dev, grpmsk, o, f, args...) \
- ({									\
-@@ -312,9 +469,19 @@ static inline void v4l2_subdev_notify(struct v4l2_subdev *sd,
- 			##args);					\
- })
- 
--/*
-- * Does any subdev with matching grpid (or all if grpid == 0) has the given
-- * op?
-+
-+/**
-+ * v4l2_device_has_op - checks if any subdev with matching grpid has a
-+ * 	given ops.
-+ *
-+ * @v4l2_dev: &struct v4l2_device owning the sub-devices to iterate over.
-+ * @grpid: &struct v4l2_subdev->grp_id group ID to match.
-+ * 	   Use 0 to match them all.
-+ * @o: name of the element at &struct v4l2_subdev_ops that contains @f.
-+ *     Each element there groups a set of operations functions.
-+ * @f: operation function that will be called if @cond matches.
-+ * 	The operation functions are defined in groups, according to
-+ *	each element at &struct v4l2_subdev_ops.
-  */
- #define v4l2_device_has_op(v4l2_dev, grpid, o, f)			\
- ({									\
-@@ -331,9 +498,18 @@ static inline void v4l2_subdev_notify(struct v4l2_subdev *sd,
- 	__result;							\
- })
- 
--/*
-- * Does any subdev with matching grpmsk (or all if grpmsk == 0) has the given
-- * op?
-+/**
-+ * v4l2_device_mask_has_op - checks if any subdev with matching group
-+ *	mask has a given ops.
-+ *
-+ * @v4l2_dev: &struct v4l2_device owning the sub-devices to iterate over.
-+ * @grpmsk: bitmask to be checked against &struct v4l2_subdev->grp_id
-+ *	    group ID to be matched. Use 0 to match them all.
-+ * @o: name of the element at &struct v4l2_subdev_ops that contains @f.
-+ *     Each element there groups a set of operations functions.
-+ * @f: operation function that will be called if @cond matches.
-+ * 	The operation functions are defined in groups, according to
-+ *	each element at &struct v4l2_subdev_ops.
-  */
- #define v4l2_device_mask_has_op(v4l2_dev, grpmsk, o, f)			\
- ({									\
--- 
-2.14.3
++enum v4l2_debug_bits {
++	V4L2_DEBUG_IOCTL	= 0,
++	V4L2_DEBUG_IOCTL_ARG	= 1,
++	V4L2_DEBUG_FOP		= 2,
++	V4L2_DEBUG_STREAMING	= 3,
++	V4L2_DEBUG_POLL		= 4,
++};
+
+I agree with the principle of having a way to document #defines and
+static data that belongs to kAPI and drivers. So, from my side, if
+someone pops up and propose a way to document #defines to linux-doc,
+manages to get such proposal accepted and submit patches implementing it, 
+I'm fine.
+
+There are things like:
+
+include/media/cec.h:#define CEC_NUM_CORE_EVENTS 2
+include/media/cec.h:#define CEC_MAX_MSG_RX_QUEUE_SZ             (18 * 3)
+include/media/cec.h:#define CEC_MAX_MSG_TX_QUEUE_SZ             (18 * 1)
+include/media/rc-core.h:#define IR_DEFAULT_TIMEOUT      MS_TO_NS(125)
+include/media/rc-core.h:#define IR_MAX_DURATION         500000000       /* 500 ms */
+include/media/v4l2-clk.h:#define V4L2_CLK_NAME_SIZE 64
+...
+
+that currently can't be documented, and do belong to "#define" namespace,
+as those are true macros that create an alias for a magic number.
+
+Those should *never* be converted to enums. The fact that they can't right
+now be documented shouldn't be used as an excuse to conver to enums: they're
+just magic numbers that can be used on a countless number of random places
+that may or may not be related.
+
+However, I do believe that, grouping namespace for values with the
+same meaning do belong to enums. After all, those values are bound
+together for life, as they're meant to be used at the same places.
+A define is a very poor and lazy way to define, and sometimes induce
+to mistakes, as, from time to time, I see values on defines that belongs
+to an specific field being used on some other one.
+
+>From documentation PoV, they also play nicer when grouped together,
+as a common comment that applies to all such values are grouped
+together.
+
+In the specific case of this patch, all those V4L2_DEV_DEBUG_* bits
+(or V4L2_DEV_DEBUG_* values - before this patchset) are meant to be
+used only when enabling or disabling V4L2 core debug messages.
+
+Grouping them into the same "enum" namespace makes all sense.
+They should have grouped together since the beginning. That's all
+my fault, as, when I added this logic[1], I just took the lazy way.
+
+[1] Back on 2006, where there were just 2 debug values
+
+	commit 401998fa96fe18b057af3f906527196522dd2d9d
+	Author: Mauro Carvalho Chehab <mchehab@infradead.org>
+	Date:   Sun Jun 4 10:06:18 2006 -0300
+
+	    V4L/DVB (4065): Several improvements at videodev.c
+    
+	    Videodev now is capable of better handling V4L2 api, by
+	    processing V4L2 ioctls and using callbacks to the driver.
+	    The drivers should be migrated to the newer way and the older
+	    one will be obsoleted soon.
+
+
+Thanks,
+Mauro
