@@ -1,124 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:42642 "EHLO mga02.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750705AbdLZFfR (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 26 Dec 2017 00:35:17 -0500
-Date: Tue, 26 Dec 2017 13:34:40 +0800
-From: kbuild test robot <lkp@intel.com>
-To: Shunqian Zheng <zhengsq@rock-chips.com>
-Cc: kbuild-all@01.org, mchehab@kernel.org, robh+dt@kernel.org,
-        mark.rutland@arm.com, linux-media@vger.kernel.org,
-        devicetree@vger.kernel.org, ddl@rock-chips.com, tfiga@chromium.org,
-        Shunqian Zheng <zhengsq@rock-chips.com>
-Subject: Re: [PATCH 1/4] media: ov5695: add support for OV5695 sensor
-Message-ID: <201712261322.41FrM4CI%fengguang.wu@intel.com>
-References: <1514211086-13440-1-git-send-email-zhengsq@rock-chips.com>
+Received: from mail-wm0-f45.google.com ([74.125.82.45]:37238 "EHLO
+        mail-wm0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S935074AbdLSMjD (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 19 Dec 2017 07:39:03 -0500
+Received: by mail-wm0-f45.google.com with SMTP id f140so3410318wmd.2
+        for <linux-media@vger.kernel.org>; Tue, 19 Dec 2017 04:39:02 -0800 (PST)
+Subject: Re: iMX6q/coda encoder failures with ffmpeg/gstreamer m2m encoders
+To: Philipp Zabel <p.zabel@pengutronix.de>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <8bfe88cc-28ec-fa07-5da3-614745ac125f@baylibre.com>
+ <1513682278.7538.6.camel@pengutronix.de>
+From: Neil Armstrong <narmstrong@baylibre.com>
+Message-ID: <d2fc4aac-209c-c4c5-d487-e6e06013d1b5@baylibre.com>
+Date: Tue, 19 Dec 2017 13:38:59 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1514211086-13440-1-git-send-email-zhengsq@rock-chips.com>
+In-Reply-To: <1513682278.7538.6.camel@pengutronix.de>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Shunqian,
+On 19/12/2017 12:17, Philipp Zabel wrote:
+> Hi Neil,
+> 
+> On Tue, 2017-11-21 at 10:50 +0100, Neil Armstrong wrote:
+>> Hi,
+>>
+>> I'm trying to make the coda960 h.264 encoder work on an i.MX6q SoC with Linux 4.14 and the 3.1.1 firmware.
+>>
+>> # dmesg | grep coda
+>> [    4.846574] coda 2040000.vpu: Direct firmware load for vpu_fw_imx6q.bin failed with error -2
+>> [    4.901351] coda 2040000.vpu: Using fallback firmware vpu/vpu_fw_imx6q.bin
+>> [    4.916039] coda 2040000.vpu: Firmware code revision: 46072
+>> [    4.921641] coda 2040000.vpu: Initialized CODA960.
+>> [    4.926589] coda 2040000.vpu: Firmware version: 3.1.1
+>> [    4.932223] coda 2040000.vpu: codec registered as /dev/video[8-9]
+>>
+>> Using gstreamer-plugins-good and the m2m v4l2 encoder, I have :
+>>
+>> # gst-launch-1.0 videotestsrc num-buffers=1000 pattern=snow ! video/x-raw, framerate=30/1, width=1280, height=720 ! v4l2h264enc ! h264parse ! mp4mux ! filesink location=/dev/null
+>> Setting pipeline to PAUSED ...
+>> Pipeline is PREROLLING ...
+>> Redistribute latency...
+>> [ 1569.473717] coda 2040000.vpu: coda_s_fmt queue busy
+>> ERROR: from element /GstPipeline:pipeline0/v4l2h264enc:v4l2h264enc0: Device '/dev/video8' is busy
+>> Additional debug info:
+>> ../../../gst-plugins-good-1.12.3/sys/v4l2/gstv4l2object.c(3609): gst_v4l2_object_set_format_full (): /GstPipeline:pipeline0/v4l2h264enc:v4l2h264enc0:
+>> Call to S_FMT failed for YU12 @ 1280x720: Device or resource busy
+>> ERROR: pipeline doesn't want to preroll.
+>> Setting pipeline to NULL ...
+>> Freeing pipeline ...
+> 
+> The coda driver does not allow S_FMT anymore, as soon as the buffers are
+> allocated with REQBUFS:
+> 
+> https://bugzilla.gnome.org/show_bug.cgi?id=791338
+> 
+> regards
+> Philipp
+> 
 
-Thank you for the patch! Perhaps something to improve:
+Thanks Philipp,
 
-[auto build test WARNING on linuxtv-media/master]
-[also build test WARNING on v4.15-rc5 next-20171222]
-[if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
+It solves the gstreamer encoding.
 
-url:    https://github.com/0day-ci/linux/commits/Shunqian-Zheng/media-ov5695-add-support-for-OV5695-sensor/20171226-110821
-base:   git://linuxtv.org/media_tree.git master
-reproduce:
-        # apt-get install sparse
-        make ARCH=x86_64 allmodconfig
-        make C=1 CF=-D__CHECK_ENDIAN__
-
-
-sparse warnings: (new ones prefixed by >>)
-
-
-vim +713 drivers/media/i2c/ov5695.c
-
-   697	
-   698	/* Write registers up to 4 at a time */
-   699	static int ov5695_write_reg(struct i2c_client *client, u16 reg,
-   700				    unsigned int len, u32 val)
-   701	{
-   702		int buf_i;
-   703		int val_i;
-   704		u8 buf[6];
-   705		u8 *val_p;
-   706	
-   707		if (len > 4)
-   708			return -EINVAL;
-   709	
-   710		buf[0] = reg >> 8;
-   711		buf[1] = reg & 0xff;
-   712	
- > 713		val = cpu_to_be32(val);
-   714		val_p = (u8 *)&val;
-   715		buf_i = 2;
-   716		val_i = 4 - len;
-   717	
-   718		while (val_i < 4)
-   719			buf[buf_i++] = val_p[val_i++];
-   720	
-   721		if (i2c_master_send(client, buf, len + 2) != len + 2)
-   722			return -EIO;
-   723	
-   724		return 0;
-   725	}
-   726	
-   727	static int ov5695_write_array(struct i2c_client *client,
-   728				      const struct regval *regs)
-   729	{
-   730		int i, ret = 0;
-   731	
-   732		for (i = 0; ret == 0 && regs[i].addr != REG_NULL; i++)
-   733			ret = ov5695_write_reg(client, regs[i].addr,
-   734					       OV5695_REG_VALUE_08BIT, regs[i].val);
-   735	
-   736		return ret;
-   737	}
-   738	
-   739	/* Read registers up to 4 at a time */
-   740	static int ov5695_read_reg(struct i2c_client *client, u16 reg, unsigned int len,
-   741				   u32 *val)
-   742	{
-   743		struct i2c_msg msgs[2];
-   744		u8 *data_be_p;
-   745		u32 data_be = 0;
- > 746		u16 reg_addr_be = cpu_to_be16(reg);
-   747		int ret;
-   748	
-   749		if (len > 4)
-   750			return -EINVAL;
-   751	
-   752		data_be_p = (u8 *)&data_be;
-   753		/* Write register address */
-   754		msgs[0].addr = client->addr;
-   755		msgs[0].flags = 0;
-   756		msgs[0].len = 2;
-   757		msgs[0].buf = (u8 *)&reg_addr_be;
-   758	
-   759		/* Read data from register */
-   760		msgs[1].addr = client->addr;
-   761		msgs[1].flags = I2C_M_RD;
-   762		msgs[1].len = len;
-   763		msgs[1].buf = &data_be_p[4 - len];
-   764	
-   765		ret = i2c_transfer(client->adapter, msgs, ARRAY_SIZE(msgs));
-   766		if (ret != ARRAY_SIZE(msgs))
-   767			return -EIO;
-   768	
- > 769		*val = be32_to_cpu(data_be);
-   770	
-   771		return 0;
-   772	}
-   773	
-
----
-0-DAY kernel test infrastructure                Open Source Technology Center
-https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
+Neil
