@@ -1,73 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:38915 "EHLO
-        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752410AbdLLRtF (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 12 Dec 2017 12:49:05 -0500
-Received: by mail-wm0-f65.google.com with SMTP id i11so301803wmf.4
-        for <linux-media@vger.kernel.org>; Tue, 12 Dec 2017 09:49:04 -0800 (PST)
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: linux-media@vger.kernel.org, hverkuil@xs4all.nl
-Cc: jasmin@anw.at
-Subject: [PATCH] [build] fixup v3.13_ddbridge_pcimsi.patch
-Date: Tue, 12 Dec 2017 18:49:01 +0100
-Message-Id: <20171212174901.14781-1-d.scheller.oss@gmail.com>
+Received: from mga03.intel.com ([134.134.136.65]:50408 "EHLO mga03.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752377AbdLSVAB (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 19 Dec 2017 16:00:01 -0500
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: Alan Cox <alan@linux.intel.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        devel@driverdev.osuosl.org, Kristian Beilke <beilke@posteo.de>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v1 02/10] staging: atomisp: Remove duplicate NULL-check
+Date: Tue, 19 Dec 2017 22:59:49 +0200
+Message-Id: <20171219205957.10933-2-andriy.shevchenko@linux.intel.com>
+In-Reply-To: <20171219205957.10933-1-andriy.shevchenko@linux.intel.com>
+References: <20171219205957.10933-1-andriy.shevchenko@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Jasmin Jessich <jasmin@anw.at>
+GPIO framework checks for NULL pointer when gpiod_set_value() is called.
 
-Required after the ddbridge 0.9.32 bump in media_tree.
-
-Signed-off-by: Jasmin Jessich <jasmin@anw.at>
-Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 ---
-Fixes at least the patch issue with kernel <=3.13. Jasmin originally
-prepared the updated patch when the ddbridge-0.9.32 bump was done, so
-sending it in behalf of her (with CONFIG_VIDEO_PVRUSB2 disabled this
-makes the patch phase work again with older kernels).
+ .../staging/media/atomisp/platform/intel-mid/atomisp_gmin_platform.c  | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-Hans, this is probably for you. I don't have a fix for the PVRUSB2
-usb_urb_ep_type_check() issue at hands though.
-
- backports/v3.13_ddbridge_pcimsi.patch | 11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
-
-diff --git a/backports/v3.13_ddbridge_pcimsi.patch b/backports/v3.13_ddbridge_pcimsi.patch
-index 5f602a7..f410251 100644
---- a/backports/v3.13_ddbridge_pcimsi.patch
-+++ b/backports/v3.13_ddbridge_pcimsi.patch
-@@ -2,7 +2,7 @@ diff --git a/drivers/media/pci/ddbridge/ddbridge-main.c b/drivers/media/pci/ddbr
- index 9ab4736..50c3b4f 100644
- --- a/drivers/media/pci/ddbridge/ddbridge-main.c
- +++ b/drivers/media/pci/ddbridge/ddbridge-main.c
--@@ -129,13 +129,18 @@ static void ddb_irq_msi(struct ddb *dev, int nr)
-+@@ -129,14 +129,18 @@ static void ddb_irq_msi(struct ddb *dev, int nr)
-  	int stat;
-  
-  	if (msi && pci_msi_enabled()) {
-@@ -10,17 +10,18 @@ index 9ab4736..50c3b4f 100644
- -		if (stat >= 1) {
- -			dev->msi = stat;
- -			dev_info(dev->dev, "using %d MSI interrupt(s)\n",
---				dev->msi);
---		} else
-+-				 dev->msi);
-+-		} else {
-+-			dev_info(dev->dev, "MSI not available.\n");
- +		stat = pci_enable_msi_block(dev->pdev, nr);
- +		if (stat == 0) {
- +			dev->msi = nr;
- +		} else if (stat == 1) {
- +			stat = pci_enable_msi(dev->pdev);
- +			dev->msi = 1;
--+		}
-+ 		}
- +		if (stat < 0)
-- 			dev_info(dev->dev, "MSI not available.\n");
-++			dev_info(dev->dev, "MSI not available.\n");
- +		else
- +			dev_info(dev->dev, "using %d MSI interrupts\n",
- +				 dev->msi);
+diff --git a/drivers/staging/media/atomisp/platform/intel-mid/atomisp_gmin_platform.c b/drivers/staging/media/atomisp/platform/intel-mid/atomisp_gmin_platform.c
+index a5d0dd88a8bc..8fb5147531a5 100644
+--- a/drivers/staging/media/atomisp/platform/intel-mid/atomisp_gmin_platform.c
++++ b/drivers/staging/media/atomisp/platform/intel-mid/atomisp_gmin_platform.c
+@@ -394,7 +394,7 @@ static int gmin_gpio0_ctrl(struct v4l2_subdev *subdev, int on)
+ {
+ 	struct gmin_subdev *gs = find_gmin_subdev(subdev);
+ 
+-	if (gs && gs->gpio0) {
++	if (gs) {
+ 		gpiod_set_value(gs->gpio0, on);
+ 		return 0;
+ 	}
+@@ -405,7 +405,7 @@ static int gmin_gpio1_ctrl(struct v4l2_subdev *subdev, int on)
+ {
+ 	struct gmin_subdev *gs = find_gmin_subdev(subdev);
+ 
+-	if (gs && gs->gpio1) {
++	if (gs) {
+ 		gpiod_set_value(gs->gpio1, on);
+ 		return 0;
+ 	}
 -- 
-2.13.6
+2.15.1
