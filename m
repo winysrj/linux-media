@@ -1,97 +1,205 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.free-electrons.com ([62.4.15.54]:44511 "EHLO
-        mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1758195AbdLRJYt (ORCPT
+Received: from mail-wr0-f176.google.com ([209.85.128.176]:45591 "EHLO
+        mail-wr0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S938821AbdLSJMq (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 18 Dec 2017 04:24:49 -0500
-Date: Mon, 18 Dec 2017 10:24:37 +0100
-From: Maxime Ripard <maxime.ripard@free-electrons.com>
-To: Yong <yong.deng@magewell.com>
-Cc: wens@csie.org, Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        "David S. Miller" <davem@davemloft.net>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Randy Dunlap <rdunlap@infradead.org>,
-        Benoit Parrot <bparrot@ti.com>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
-        Yannick Fertre <yannick.fertre@st.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Rick Chang <rick.chang@mediatek.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        devicetree <devicetree@vger.kernel.org>,
-        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-        linux-kernel <linux-kernel@vger.kernel.org>,
-        linux-sunxi <linux-sunxi@googlegroups.com>,
-        =?utf-8?Q?Ond=C5=99ej?= Jirman <megous@megous.com>
-Subject: Re: [linux-sunxi] [PATCH v3 2/3] dt-bindings: media: Add Allwinner
- V3s Camera Sensor Interface (CSI)
-Message-ID: <20171218092437.ksczam5h7hirmpcv@flea.lan>
-References: <1510558344-45402-1-git-send-email-yong.deng@magewell.com>
- <CAGb2v67JhMfba8Ao7WyrYikkxvTxX8WaBRqu3GkrhOCWndresg@mail.gmail.com>
- <20171218164921.227b82349c778283f5e5eba8@magewell.com>
+        Tue, 19 Dec 2017 04:12:46 -0500
+Received: by mail-wr0-f176.google.com with SMTP id h1so18102566wre.12
+        for <linux-media@vger.kernel.org>; Tue, 19 Dec 2017 01:12:45 -0800 (PST)
+Date: Tue, 19 Dec 2017 10:12:43 +0100
+From: Niklas =?iso-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund@ragnatech.se>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: linux-media@vger.kernel.org, jmondi <jacopo@jmondi.org>,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>
+Subject: Re: [RFC 1/1] v4l: async: Use endpoint node, not device node, for
+ fwnode match
+Message-ID: <20171219091243.GY32148@bigcity.dyn.berto.se>
+References: <20171204210302.24707-1-sakari.ailus@linux.intel.com>
+ <20171206155748.GF31989@bigcity.dyn.berto.se>
+ <20171207073950.22wkpqy5l335ylo5@kekkonen.localdomain>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="ttyz7lvubhfzshpr"
+Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
-In-Reply-To: <20171218164921.227b82349c778283f5e5eba8@magewell.com>
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20171207073950.22wkpqy5l335ylo5@kekkonen.localdomain>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hej Sakari,
 
---ttyz7lvubhfzshpr
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Ledsen för sent svar.
 
-Hi,
+On 2017-12-07 09:39:51 +0200, Sakari Ailus wrote:
+> Hej Niklas,
+> 
+> Tack för dina kommentarer!
+> 
+> On Wed, Dec 06, 2017 at 04:57:48PM +0100, Niklas Söderlund wrote:
+> > CC Jacopo, Kieran
+> > 
+> > Hi Sakari,
+> > 
+> > Thanks for your patch.
+> > 
+> > On 2017-12-04 23:03:02 +0200, Sakari Ailus wrote:
+> > > V4L2 async framework can use both device's fwnode and endpoints's fwnode
+> > > for matching the async sub-device with the sub-device. In order to proceed
+> > > moving towards endpoint matching assign the endpoint to the async
+> > > sub-device.
+> > 
+> > Endpoint matching I think is the way to go forward. It will solve a set 
+> > of problems that exists today. So I think this a good step in the right 
+> > direction.
+> > 
+> > > 
+> > > As most async sub-device drivers (and the related hardware) only supports
+> > > a single endpoint, use the first endpoint found. This works for all
+> > > current drivers --- we only ever supported a single async sub-device per
+> > > device to begin with.
+> > 
+> > This assumption is not true, the adv748x exposes multiple subdevice from 
+> > a single device node in DT and registers them using different endpoints.  
+> > Now the only user of the adv748x driver I know of is the rcar-csi2 
+> > driver which is not yet upstream so this can be consider a special case.
+> 
+> Right, the adv748x is an exception to this but I could argue it should
+> never have been merged in its current state: it does not work with other
+> bridge / ISP drivers.
 
-On Mon, Dec 18, 2017 at 04:49:21PM +0800, Yong wrote:
-> > > +               compatible =3D "allwinner,sun8i-v3s-csi";
-> > > +               reg =3D <0x01cb4000 0x1000>;
-> > > +               interrupts =3D <GIC_SPI 84 IRQ_TYPE_LEVEL_HIGH>;
-> > > +               clocks =3D <&ccu CLK_BUS_CSI>,
-> > > +                        <&ccu CLK_CSI1_SCLK>,
-> >=20
-> > CSI also has an MCLK. Do you need that one?
->=20
-> MCLK is not needed if the front end is not a sensor (like adv7611).
-> I will add it as an option.
+Agreed, the issue of endpoint matching should have been solved before.  
+As the adv748x driver poses yet another dimension of this issue, 
+multiple endpoints decribed in DT which should be matched to different 
+subdevices registerd from the same driver.
 
-I guess this should always be needed then. And the driver will make
-the decision to enable it or not.
+I think this is a use-case we should consider when looking at this, what 
+do you think?
 
-Maxime
+> 
+> > 
+> > Unfortunately this patch do break already existing configurations 
+> > upstream :-( For example the Koelsch board, from r8a7791-koelsch.dts:
+> > 
+> > hdmi-in {
+> >         compatible = "hdmi-connector";
+> >         type = "a";
+> > 
+> >         port {
+> >                 hdmi_con_in: endpoint {
+> >                         remote-endpoint = <&adv7612_in>;
+> >                 };
+> >         };
+> > };
+> > 
+> > hdmi-in@4c {
+> >         compatible = "adi,adv7612";
+> >         reg = <0x4c>;
+> >         interrupt-parent = <&gpio4>;
+> >         interrupts = <2 IRQ_TYPE_LEVEL_LOW>;
+> >         default-input = <0>;
+> > 
+> >         ports {
+> >                 #address-cells = <1>;
+> >                 #size-cells = <0>;
+> > 
+> >                 port@0 {
+> >                         reg = <0>;
+> >                         adv7612_in: endpoint {
+> >                                 remote-endpoint = <&hdmi_con_in>;
+> >                         };
+> >                 };
+> > 
+> >                 port@2 {
+> >                         reg = <2>;
+> >                         adv7612_out: endpoint {
+> >                                 remote-endpoint = <&vin0ep2>;
+> >                         };
+> >                 };
+> >         };
+> > };
+> > 
+> > &vin0 {
+> >         status = "okay";
+> >         pinctrl-0 = <&vin0_pins>;
+> >         pinctrl-names = "default";
+> > 
+> >         port {
+> >                 #address-cells = <1>;
+> >                 #size-cells = <0>;
+> > 
+> >                 vin0ep2: endpoint {
+> >                         remote-endpoint = <&adv7612_out>;
+> >                         bus-width = <24>;
+> >                         hsync-active = <0>;
+> >                         vsync-active = <0>;
+> >                         pclk-sample = <1>;
+> >                         data-active = <1>;
+> >                 };
+> >         };
+> > };
+> > 
+> > Here the adv7612 driver would register a subdevice using the endpoint 
+> > 'hdmi-in@4c/ports/port@0/endpoint' while the rcar-vin driver which uses 
+> 
+> The adv7612 needs to register both of these endpoints. I wonder if there
+> are repercussions by doing that. 
 
---=20
-Maxime Ripard, Free Electrons
-Embedded Linux and Kernel engineering
-http://free-electrons.com
+I fear so too.
 
---ttyz7lvubhfzshpr
-Content-Type: application/pgp-signature; name="signature.asc"
+I don't think there is any support in the framwrk today to register the 
+same subdevice twice using different fwnodes for matching, is there? If 
+not this is something which we need to add.
 
------BEGIN PGP SIGNATURE-----
+We also need to make sure from a framwrok point of view that its 
+possible for sub-devices that registers itself using two different 
+endpoints could be bound to two different notifiers from two different 
+remote drivers, right? I'm not sure what the state in the the framework 
+is for this, do you know?
 
-iQIzBAABCAAdFiEE0VqZU19dR2zEVaqr0rTAlCFNr3QFAlo3iVIACgkQ0rTAlCFN
-r3SxjQ//YcyVgwGuhYuFsoAlon6vOBQHpas5+2ahvwcZcwVy+G4pY/jNIu7HwT2r
-jd8BViZaI3fS7M6BzZDsflnFHBdXD6qGjhOfmDAvPRq3wDReDX15xvxn2C1gStql
-mob+nBCRD1P1FMluyEjJhh8V4R+9DihpxEAp/DkCL4sVnY71uglBrjzKssshO3lE
-WLC9K1Vk2mjMoK8M3rJ6twVpa8oQHTlGzxdzFDJsFxLXa9gTN+qMpivvihWBcahx
-CEqCZGM764sKvTrwvEzAcD5bs39JrdpiflXo1WbjMYOyitdSn6T4d41EeBwc8E60
-rrZa+2l84jE1qIyZoznGM2YVAi3qwHqZXGbSDmAp8ZNiTHHjvza8CiKfeV075TWi
-a37OM0nlksK0kMMdJK/6VvDHGjif6pUy1og7Ti8pxBoFWyml53djJVjZAAP7IpGL
-85g0mRaoyo9pVtv+adgpOL1mavv29VX+4aVk54f+xNMDeaTNjSug4aW2yauA0Vix
-XJZLmbS2GYQebVbtem/Om4ZW07+H8xZKCMmWAgIBDAerBbExcSKc1Yq6BtIsr7ZV
-HrDHKQVKeDFHJqVi2vATnaTdX61lP/eE/t1KM16MRAPxfp7EawJsMSYtouOzm6XW
-WAhH1gHpnjvsLlsYN7XH5jQD/SQynM6qa5w7tNf2ixA2stJoppM=
-=24S6
------END PGP SIGNATURE-----
+Is there anything else we need to check in the framwork before trying to 
+make this change? Maybe we can add a helper much like the notifer 
+helpers you posted but for sub-device drivers, which would be called 
+from v4l2_async_register_subdev() to parse and register all endpoints 
+with the async framework together with the device fwnode. Then the 
+subdevice would work with notifiers who register both endpoints (using 
+your helpers and this patch) and lens/flash devices as they are a 
+special case you describe bellow. What do you think of such a solution?
 
---ttyz7lvubhfzshpr--
+> 
+> > the async parsing helpers would register a notifier looking for 
+> > 'hdmi-in@4c/ports/port@2/endpoint'.
+> > 
+> > Something like Kieran's '[PATCH v5] v4l2-async: Match parent devices' 
+> > would be needed in addition to this patch. I tried Kieran's patch 
+> > together with this and it did not solve the problem upstream. I did make 
+> 
+> The more I've been working on this problem, the less I think
+> opportunistically matching devices or endpoints is a good idea. Lens
+> devices will always use device nodes and flash devices use LED nodes found
+> under device nodes.
+
+Then we need someway to inform the sub-notifer parsing helpers if it 
+should register using endpoints or device nodes. When the framework 
+parse for lens/flash devices it would register them with the notifier 
+using device nodes, but if the helper is called directly from a driver 
+it would register them using endpoint nodes. Will this cover all the 
+scenarios?
+
+> 
+> It's getting messy with opportunistic matching. And as this patch shows,
+> it's not that hard to convert all drivers either, so why not to do just
+> that?
+
+Yes, I think we all come to the agreement that opportunistic matching is 
+not the way to go here :-)
+
+> 
+> -- 
+> Hälsningar,
+> 
+> Sakari Ailus
+> sakari.ailus@linux.intel.com
+
+-- 
+Regards,
+Niklas Söderlund
