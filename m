@@ -1,167 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:36787 "EHLO osg.samsung.com"
+Received: from mga09.intel.com ([134.134.136.24]:1443 "EHLO mga09.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752884AbdLUSwW (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 21 Dec 2017 13:52:22 -0500
-Date: Thu, 21 Dec 2017 16:52:15 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Gustavo Padovan <gustavo@padovan.org>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        Pawel Osciak <pawel@osciak.com>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Brian Starkey <brian.starkey@arm.com>,
-        Thierry Escande <thierry.escande@collabora.com>,
-        linux-kernel@vger.kernel.org,
-        Gustavo Padovan <gustavo.padovan@collabora.com>
-Subject: Re: [PATCH v6 3/6] [media] vb2: add explicit fence user API
-Message-ID: <20171221165215.46dc86a5@vento.lan>
-In-Reply-To: <20171211182741.29712-4-gustavo@padovan.org>
-References: <20171211182741.29712-1-gustavo@padovan.org>
-        <20171211182741.29712-4-gustavo@padovan.org>
+        id S1751084AbdLSOMk (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 19 Dec 2017 09:12:40 -0500
+Date: Tue, 19 Dec 2017 16:12:35 +0200
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Tomasz Figa <tfiga@chromium.org>,
+        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
+        Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Subject: Re: [PATCH 2/8] media: v4l2-ioctl.h: convert debug into an enum of
+ bits
+Message-ID: <20171219141235.mgiyoeeiyfn2z4zh@paasikivi.fi.intel.com>
+References: <cover.1513625884.git.mchehab@s-opensource.com>
+ <333b63fa1857f6819ce64666beba969c22e2f468.1513625884.git.mchehab@s-opensource.com>
+ <20171219113927.i2srypzhigkijetf@valkosipuli.retiisi.org.uk>
+ <1615432.c1z8s9p1mm@avalon>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1615432.c1z8s9p1mm@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 11 Dec 2017 16:27:38 -0200
-Gustavo Padovan <gustavo@padovan.org> escreveu:
+Hi Laurent,
 
-> From: Gustavo Padovan <gustavo.padovan@collabora.com>
-> 
-> Turn the reserved2 field into fence_fd that we will use to send
-> an in-fence to the kernel and return an out-fence from the kernel to
-> userspace.
-> 
-> Two new flags were added, V4L2_BUF_FLAG_IN_FENCE, that should be used
-> when sending a fence to the kernel to be waited on, and
-> V4L2_BUF_FLAG_OUT_FENCE, to ask the kernel to give back an out-fence.
-> 
-> v4:
-> 	- make it a union with reserved2 and fence_fd (Hans Verkuil)
-> 
-> v3:
-> 	- make the out_fence refer to the current buffer (Hans Verkuil)
-> 
-> v2: add documentation
-> 
-> Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
-> ---
->  Documentation/media/uapi/v4l/buffer.rst       | 15 +++++++++++++++
->  drivers/media/usb/cpia2/cpia2_v4l.c           |  2 +-
->  drivers/media/v4l2-core/v4l2-compat-ioctl32.c |  4 ++--
->  drivers/media/v4l2-core/videobuf2-v4l2.c      |  2 +-
->  include/uapi/linux/videodev2.h                |  7 ++++++-
->  5 files changed, 25 insertions(+), 5 deletions(-)
-> 
-> diff --git a/Documentation/media/uapi/v4l/buffer.rst b/Documentation/media/uapi/v4l/buffer.rst
-> index ae6ee73f151c..eeefbd2547e7 100644
-> --- a/Documentation/media/uapi/v4l/buffer.rst
-> +++ b/Documentation/media/uapi/v4l/buffer.rst
-> @@ -648,6 +648,21 @@ Buffer Flags
->        - Start Of Exposure. The buffer timestamp has been taken when the
->  	exposure of the frame has begun. This is only valid for the
->  	``V4L2_BUF_TYPE_VIDEO_CAPTURE`` buffer type.
-> +    * .. _`V4L2-BUF-FLAG-IN-FENCE`:
-> +
-> +      - ``V4L2_BUF_FLAG_IN_FENCE``
-> +      - 0x00200000
-> +      - Ask V4L2 to wait on fence passed in ``fence_fd`` field. The buffer
-> +	won't be queued to the driver until the fence signals.
-> +
-> +    * .. _`V4L2-BUF-FLAG-OUT-FENCE`:
-> +
-> +      - ``V4L2_BUF_FLAG_OUT_FENCE``
-> +      - 0x00400000
-> +      - Request a fence to be attached to the buffer. The ``fence_fd``
-> +	field on
-> +	:ref:`VIDIOC_QBUF` is used as a return argument to send the out-fence
-> +	fd to userspace.
->  
->  
->  
-> diff --git a/drivers/media/usb/cpia2/cpia2_v4l.c b/drivers/media/usb/cpia2/cpia2_v4l.c
-> index a1c59f19cf2d..7d7459fa2077 100644
-> --- a/drivers/media/usb/cpia2/cpia2_v4l.c
-> +++ b/drivers/media/usb/cpia2/cpia2_v4l.c
-> @@ -948,7 +948,7 @@ static int cpia2_dqbuf(struct file *file, void *fh, struct v4l2_buffer *buf)
->  	buf->sequence = cam->buffers[buf->index].seq;
->  	buf->m.offset = cam->buffers[buf->index].data - cam->frame_buffer;
->  	buf->length = cam->frame_size;
-> -	buf->reserved2 = 0;
-> +	buf->fence_fd = -1;
->  	buf->reserved = 0;
->  	memset(&buf->timecode, 0, sizeof(buf->timecode));
->  
-> diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-> index 821f2aa299ae..3a31d318df2a 100644
-> --- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-> +++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-> @@ -370,7 +370,7 @@ struct v4l2_buffer32 {
->  		__s32		fd;
->  	} m;
->  	__u32			length;
-> -	__u32			reserved2;
-> +	__s32			fence_fd;
->  	__u32			reserved;
->  };
->  
-> @@ -533,7 +533,7 @@ static int put_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
->  		put_user(kp->timestamp.tv_usec, &up->timestamp.tv_usec) ||
->  		copy_to_user(&up->timecode, &kp->timecode, sizeof(struct v4l2_timecode)) ||
->  		put_user(kp->sequence, &up->sequence) ||
-> -		put_user(kp->reserved2, &up->reserved2) ||
-> +		put_user(kp->fence_fd, &up->fence_fd) ||
->  		put_user(kp->reserved, &up->reserved) ||
->  		put_user(kp->length, &up->length))
->  			return -EFAULT;
-> diff --git a/drivers/media/v4l2-core/videobuf2-v4l2.c b/drivers/media/v4l2-core/videobuf2-v4l2.c
-> index 4075314a6989..4a5244ee2c58 100644
-> --- a/drivers/media/v4l2-core/videobuf2-v4l2.c
-> +++ b/drivers/media/v4l2-core/videobuf2-v4l2.c
-> @@ -203,7 +203,7 @@ static void __fill_v4l2_buffer(struct vb2_buffer *vb, void *pb)
->  	b->timestamp = ns_to_timeval(vb->timestamp);
->  	b->timecode = vbuf->timecode;
->  	b->sequence = vbuf->sequence;
-> -	b->reserved2 = 0;
-> +	b->fence_fd = -1;
+On Tue, Dec 19, 2017 at 04:02:02PM +0200, Laurent Pinchart wrote:
+> And furthermore using enum types in the uAPI is a bad idea as the enum size is 
+> architecture-dependent. That's why we use integer types in structures used as 
+> ioctl arguments.
 
-The patch itself looks ok. I'm just in doubt here, but it is probably
-ok to change its default to -1.
-
-
->  	b->reserved = 0;
->  
->  	if (q->is_multiplanar) {
-> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-> index a8ea632c14f0..17e163b5036d 100644
-> --- a/include/uapi/linux/videodev2.h
-> +++ b/include/uapi/linux/videodev2.h
-> @@ -926,7 +926,10 @@ struct v4l2_buffer {
->  		__s32		fd;
->  	} m;
->  	__u32			length;
-> -	__u32			reserved2;
-> +	union {
-> +		__s32		fence_fd;
-> +		__u32		reserved2;
-> +	};
->  	__u32			reserved;
->  };
->  
-> @@ -963,6 +966,8 @@ struct v4l2_buffer {
->  #define V4L2_BUF_FLAG_TSTAMP_SRC_SOE		0x00010000
->  /* mem2mem encoder/decoder */
->  #define V4L2_BUF_FLAG_LAST			0x00100000
-> +#define V4L2_BUF_FLAG_IN_FENCE			0x00200000
-> +#define V4L2_BUF_FLAG_OUT_FENCE			0x00400000
->  
->  /**
->   * struct v4l2_exportbuffer - export of video buffer as DMABUF file descriptor
-
+I guess we have an argeement on that, enums are a no-go for uAPI, for
+reasons not related to the topic at hand.
 
 -- 
-Thanks,
-Mauro
+Sakari Ailus
+sakari.ailus@linux.intel.com
