@@ -1,96 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:24675 "EHLO mga09.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751554AbdLKXgH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 11 Dec 2017 18:36:07 -0500
-From: Flavio Ceolin <flavio.ceolin@intel.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-kernel@vger.kernel.org,
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:37146 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1762316AbdLSLsG (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 19 Dec 2017 06:48:06 -0500
+Date: Tue, 19 Dec 2017 13:48:03 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Yong Deng <yong.deng@magewell.com>
+Cc: maxime.ripard@free-electrons.com,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Petr Cvek <petr.cvek@tul.cz>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Niklas =?utf-8?Q?S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>,
-        Julia Lawall <Julia.Lawall@lip6.fr>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Chen-Yu Tsai <wens@csie.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
         Arnd Bergmann <arnd@arndb.de>,
-        "open list\:MEDIA INPUT INFRASTRUCTURE \(V4L\/DVB\)"
-        <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] media: pxa_camera: disable and unprepare the clock source on error
-In-Reply-To: <4016874.2vIpU9bQLW@avalon>
-References: <20171206163852.8532-1-flavio.ceolin@intel.com> <1880720.cnKARQTyeT@avalon> <878te9561h.fsf@faceolin-mobl2.amr.corp.intel.com> <4016874.2vIpU9bQLW@avalon>
-Date: Mon, 11 Dec 2017 15:36:00 -0800
-Message-ID: <87374g6dnj.fsf@faceolin-mobl2.amr.corp.intel.com>
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Yannick Fertre <yannick.fertre@st.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Benoit Parrot <bparrot@ti.com>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Jean-Christophe Trotin <jean-christophe.trotin@st.com>,
+        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
+        Minghsiu Tsai <minghsiu.tsai@mediatek.com>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Robert Jarzmik <robert.jarzmik@free.fr>,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-sunxi@googlegroups.com
+Subject: Re: [PATCH v2 3/3] media: MAINTAINERS: add entries for Allwinner V3s
+ CSI
+Message-ID: <20171219114802.gi7db7xhm3eh4udt@valkosipuli.retiisi.org.uk>
+References: <1501131697-1359-1-git-send-email-yong.deng@magewell.com>
+ <1501131697-1359-4-git-send-email-yong.deng@magewell.com>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1501131697-1359-4-git-send-email-yong.deng@magewell.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Laurent Pinchart <laurent.pinchart@ideasonboard.com> writes:
+On Thu, Jul 27, 2017 at 01:01:37PM +0800, Yong Deng wrote:
+> Signed-off-by: Yong Deng <yong.deng@magewell.com>
+> ---
+>  MAINTAINERS | 8 ++++++++
+>  1 file changed, 8 insertions(+)
+> 
+> diff --git a/MAINTAINERS b/MAINTAINERS
+> index 9826a91..b91fa27 100644
+> --- a/MAINTAINERS
+> +++ b/MAINTAINERS
+> @@ -3686,6 +3686,14 @@ M:	Jaya Kumar <jayakumar.alsa@gmail.com>
+>  S:	Maintained
+>  F:	sound/pci/cs5535audio/
+>  
+> +CSI DRIVERS FOR ALLWINNER V3s
+> +M:	Yong Deng <yong.deng@magewell.com>
+> +L:	linux-media@vger.kernel.org
+> +T:	git git://linuxtv.org/media_tree.git
+> +S:	Maintained
+> +F:	drivers/media/platform/sun6i-csi/
+> +F:	Documentation/devicetree/bindings/media/sun6i-csi.txt
+> +
+>  CW1200 WLAN driver
+>  M:	Solomon Peachy <pizza@shaftnet.org>
+>  S:	Maintained
 
-> Hi Flavio,
->
-> On Monday, 11 December 2017 23:05:46 EET Flavio Ceolin wrote:
->> > On Wednesday, 6 December 2017 18:38:50 EET Flavio Ceolin wrote:
->> >> pxa_camera_probe() was not calling pxa_camera_deactivate(),
->> >> responsible to call clk_disable_unprepare(), on the failure path. This
->> >> was leading to unbalancing source clock.
->> >> 
->> >> Found by Linux Driver Verification project (linuxtesting.org).
->> > 
->> > Any chance I could sign you up for more work on this driver ? :-)
->> 
->> Definetely, this would be great :)
->
-> Actually it looks like the work I thought was needed has already been 
-> performed. The pxa-camera driver used to make use of the soc-camera framework, 
-> which we are trying to remove, and occurrences of soc_camera in the code gave 
-> me the wrong idea that the driver was still based on that framework. It seems 
-> this isn't the case. Thank you for making me happy :-)
+Please squash to the driver patch. Thanks.
 
-I'm glad to hear it :)
-
->
->> >> Signed-off-by: Flavio Ceolin <flavio.ceolin@intel.com>
->> > 
->> > Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
->> > 
->> > I expect Hans Verkuil to pick up the patch.
->> > 
->> >> ---
->> >> 
->> >>  drivers/media/platform/pxa_camera.c | 4 +++-
->> >>  1 file changed, 3 insertions(+), 1 deletion(-)
->> >> 
->> >> diff --git a/drivers/media/platform/pxa_camera.c
->> >> b/drivers/media/platform/pxa_camera.c index 9d3f0cb..7877037 100644
->> >> --- a/drivers/media/platform/pxa_camera.c
->> >> +++ b/drivers/media/platform/pxa_camera.c
->> >> @@ -2489,7 +2489,7 @@ static int pxa_camera_probe(struct platform_device
->> >> *pdev)
->> >> 	dev_set_drvdata(&pdev->dev, pcdev);
->> >>  	err = v4l2_device_register(&pdev->dev, &pcdev->v4l2_dev);
->> >>  	if (err)
->> >> -		goto exit_free_dma;
->> >> +		goto exit_deactivate;
->> >> 
->> >>  	pcdev->asds[0] = &pcdev->asd;
->> >>  	pcdev->notifier.subdevs = pcdev->asds;
->> >> @@ -2525,6 +2525,8 @@ static int pxa_camera_probe(struct platform_device
->> >> *pdev)
->> >> 	v4l2_clk_unregister(pcdev->mclk_clk);
->> >>  exit_free_v4l2dev:
->> >>  	v4l2_device_unregister(&pcdev->v4l2_dev);
->> >> +exit_deactivate:
->> >> +	pxa_camera_deactivate(pcdev);
->> >>  exit_free_dma:
->> >>  	dma_release_channel(pcdev->dma_chans[2]);
->> >>  exit_free_dma_u:
->
-> -- 
-> Regards,
->
-> Laurent Pinchart
-
-Regards,
-Flavio Ceolin
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
