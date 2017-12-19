@@ -1,114 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-3.sys.kth.se ([130.237.48.192]:34266 "EHLO
-        smtp-3.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754309AbdLNTJV (ORCPT
+Received: from mail-wr0-f194.google.com ([209.85.128.194]:44414 "EHLO
+        mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1760113AbdLSIIA (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 14 Dec 2017 14:09:21 -0500
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: linux-media@vger.kernel.org,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-renesas-soc@vger.kernel.org,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
-        Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        Benoit Parrot <bparrot@ti.com>,
-        Maxime Ripard <maxime.ripard@free-electrons.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH/RFC v2 08/15] rcar-csi2: add get_routing support
-Date: Thu, 14 Dec 2017 20:08:28 +0100
-Message-Id: <20171214190835.7672-9-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20171214190835.7672-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20171214190835.7672-1-niklas.soderlund+renesas@ragnatech.se>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+        Tue, 19 Dec 2017 03:08:00 -0500
+From: Philipp Rossak <embed3d@gmail.com>
+To: mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
+        maxime.ripard@free-electrons.com, wens@csie.org,
+        linux@armlinux.org.uk, sean@mess.org, p.zabel@pengutronix.de,
+        andi.shyti@samsung.com
+Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-sunxi@googlegroups.com
+Subject: [PATCH v3 6/6] arm: dts: sun8i: h3-h8: ir register size should be the whole memory block
+Date: Tue, 19 Dec 2017 09:07:47 +0100
+Message-Id: <20171219080747.4507-7-embed3d@gmail.com>
+In-Reply-To: <20171219080747.4507-1-embed3d@gmail.com>
+References: <20171219080747.4507-1-embed3d@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-To support multiplexed streams the internal routing between the
-rcar-csi2 sink pad and its source pads needs to be described.
+The size of the register should be the size of the whole memory block,
+not just the registers, that are needed.
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Signed-off-by: Philipp Rossak <embed3d@gmail.com>
 ---
- drivers/media/platform/rcar-vin/rcar-csi2.c | 54 +++++++++++++++++++++++++++++
- 1 file changed, 54 insertions(+)
+ arch/arm/boot/dts/sunxi-h3-h5.dtsi | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-csi2.c b/drivers/media/platform/rcar-vin/rcar-csi2.c
-index 2dd7d03d622d5510..fd1133e72482fc19 100644
---- a/drivers/media/platform/rcar-vin/rcar-csi2.c
-+++ b/drivers/media/platform/rcar-vin/rcar-csi2.c
-@@ -334,6 +334,14 @@ static int rcar_csi2_pad_to_vc(unsigned int pad)
- 	return pad - RCAR_CSI2_SOURCE_VC0;
- }
- 
-+static int rcar_csi2_vc_to_pad(unsigned int vc)
-+{
-+	if (vc > 3)
-+		return -EINVAL;
-+
-+	return vc + RCAR_CSI2_SOURCE_VC0;
-+}
-+
- struct rcar_csi2_info {
- 	const struct phypll_hsfreqrange *hsfreqrange;
- 	const struct phtw_testdin_data *testdin_data;
-@@ -752,9 +760,55 @@ static int rcar_csi2_get_pad_format(struct v4l2_subdev *sd,
- 	return 0;
- }
- 
-+static int rcar_csi2_get_routing(struct v4l2_subdev *sd,
-+				 struct v4l2_subdev_routing *routing)
-+{
-+	struct rcar_csi2 *priv = sd_to_csi2(sd);
-+	struct v4l2_mbus_frame_desc fd;
-+	struct v4l2_subdev_route *r = routing->routes;
-+	struct v4l2_subdev *rsubdev;
-+	unsigned int i, rpad;
-+	int ret;
-+
-+	/* Get information about multiplexed link */
-+	ret = rcar_csi2_get_source_info(priv, &rsubdev, &rpad, &fd);
-+	if (ret)
-+		return ret;
-+
-+	if (routing->num_routes < fd.num_entries) {
-+		routing->num_routes = fd.num_entries;
-+		return -ENOSPC;
-+	}
-+
-+	routing->num_routes = fd.num_entries;
-+
-+	for (i = 0; i < fd.num_entries; i++) {
-+		struct v4l2_mbus_frame_desc_entry *entry = &fd.entry[i];
-+		int source_pad;
-+
-+		source_pad = rcar_csi2_vc_to_pad(entry->bus.csi2.channel);
-+		if (source_pad < 0) {
-+			dev_err(priv->dev, "Virtual Channel out of range: %u\n",
-+				entry->bus.csi2.channel);
-+			return -ENOSPC;
-+		}
-+
-+		r->sink_pad = RCAR_CSI2_SINK;
-+		r->sink_stream = entry->stream;
-+		r->source_pad = source_pad;
-+		r->source_stream = 0;
-+		r->flags = V4L2_SUBDEV_ROUTE_FL_ACTIVE |
-+			V4L2_SUBDEV_ROUTE_FL_IMMUTABLE;
-+		r++;
-+	}
-+
-+	return 0;
-+}
-+
- static const struct v4l2_subdev_pad_ops rcar_csi2_pad_ops = {
- 	.set_fmt = rcar_csi2_set_pad_format,
- 	.get_fmt = rcar_csi2_get_pad_format,
-+	.get_routing = rcar_csi2_get_routing,
- 	.s_stream = rcar_csi2_s_stream,
- };
+diff --git a/arch/arm/boot/dts/sunxi-h3-h5.dtsi b/arch/arm/boot/dts/sunxi-h3-h5.dtsi
+index 8d40c00d64bb..a9caeda4a574 100644
+--- a/arch/arm/boot/dts/sunxi-h3-h5.dtsi
++++ b/arch/arm/boot/dts/sunxi-h3-h5.dtsi
+@@ -674,7 +674,7 @@
+ 			clock-names = "apb", "ir";
+ 			resets = <&r_ccu RST_APB0_IR>;
+ 			interrupts = <GIC_SPI 37 IRQ_TYPE_LEVEL_HIGH>;
+-			reg = <0x01f02000 0x40>;
++			reg = <0x01f02000 0x400>;
+ 			status = "disabled";
+ 		};
  
 -- 
-2.15.1
+2.11.0
