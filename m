@@ -1,70 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eusmtp01.atmel.com ([212.144.249.242]:25383 "EHLO
-        eusmtp01.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752904AbdLDHEY (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 4 Dec 2017 02:04:24 -0500
-From: Wenyou Yang <wenyou.yang@microchip.com>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>
-CC: <linux-kernel@vger.kernel.org>,
-        Nicolas Ferre <nicolas.ferre@microchip.com>,
-        <devicetree@vger.kernel.org>, Sakari Ailus <sakari.ailus@iki.fi>,
-        Jonathan Corbet <corbet@lwn.net>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        <linux-arm-kernel@lists.infradead.org>,
-        "Linux Media Mailing List" <linux-media@vger.kernel.org>,
-        Wenyou Yang <wenyou.yang@microchip.com>
-Subject: [PATCH v6 0/2] media: ov7740: Add a V4L2 sensor-level driver
-Date: Mon, 4 Dec 2017 14:58:56 +0800
-Message-ID: <20171204065858.3138-1-wenyou.yang@microchip.com>
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:36167 "EHLO
+        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752936AbdLSRBO (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 19 Dec 2017 12:01:14 -0500
+Received: by mail-wm0-f66.google.com with SMTP id b76so5045413wmg.1
+        for <linux-media@vger.kernel.org>; Tue, 19 Dec 2017 09:01:14 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain
+In-Reply-To: <3ae0ee4d-e754-1e97-33ed-d1fedf442dfb@xs4all.nl>
+References: <1513447230-30948-1-git-send-email-tharvey@gateworks.com>
+ <1513447230-30948-5-git-send-email-tharvey@gateworks.com> <3ae0ee4d-e754-1e97-33ed-d1fedf442dfb@xs4all.nl>
+From: Tim Harvey <tharvey@gateworks.com>
+Date: Tue, 19 Dec 2017 09:01:12 -0800
+Message-ID: <CAJ+vNU34fBjBos4g9vxv7UkcJOm1YJux7NM2=iUKBjOrxZeMBA@mail.gmail.com>
+Subject: Re: [PATCH v5 4/6] media: i2c: Add TDA1997x HDMI receiver driver
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media <linux-media@vger.kernel.org>,
+        alsa-devel@alsa-project.org,
+        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        Shawn Guo <shawnguo@kernel.org>,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Hans Verkuil <hansverk@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add a Video4Linux2 sensor-level driver for the OmniVision OV7740
-VGA camera image sensor.
+On Tue, Dec 19, 2017 at 3:12 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> On 16/12/17 19:00, Tim Harvey wrote:
+>> +
+>> +static int tda1997x_fill_format(struct tda1997x_state *state,
+>> +                             struct v4l2_mbus_framefmt *format)
+>> +{
+>> +     const struct v4l2_bt_timings *bt;
+>> +     struct v4l2_hdmi_colorimetry c;
+>> +
+>> +     v4l_dbg(1, debug, state->client, "%s\n", __func__);
+>> +
+>> +     if (!state->detected_timings)
+>> +             return -EINVAL;
+>> +     bt = &state->detected_timings->bt;
+>> +     memset(format, 0, sizeof(*format));
+>> +     c = v4l2_hdmi_rx_colorimetry(&state->avi_infoframe, NULL, bt->height);
+>> +     format->width = bt->width;
+>> +     format->height = bt->height;
+>> +     format->field = (bt->interlaced) ?
+>> +             V4L2_FIELD_ALTERNATE : V4L2_FIELD_NONE;
+>> +     format->colorspace = c.colorspace;
+>> +     format->ycbcr_enc = c.ycbcr_enc;
+>> +     format->quantization = c.quantization;
+>> +     format->xfer_func = c.xfer_func;
+>
+> This is wrong. v4l2_hdmi_rx_colorimetry returns what arrives on the HDMI link,
+> that's not the same as is output towards the SoC. You need to take limited/full
+> range conversions and 601/709 conversions into account since that's what ends
+> up in memory.
+>
+> Also note: you are still parsing the colorimetry information from avi_infoframe
+> in the infoframe parse function. There is no need to do that, just call
+> v4l2_hdmi_rx_colorimetry and let that function parse and interpret all this.
+>
+> Otherwise we still have two places that try to interpret that information.
 
-Changes in v6:
- - Remove unnecessary #include <linux/init>.
- - Remove unnecessary comments and extra newline.
- - Add const for some structures.
- - Add the check of the return value from regmap_write().
- - Simplify the calling of __v4l2_ctrl_handler_setup().
- - Add the default format initialization function.
- - Integrate the set_power() and enable/disable the clock into
-   one function.
+Hans,
 
-Changes in v5:
- - Squash the driver and MAINTAINERS entry patches to one.
- - Precede the driver patch with the bindings patch.
+Ok so v4l2_hdmi_rx_colorimetry() handles parsing the source avi
+infoframe and deals with enforcing the detailed rules and returns
+'v4l2' enums:
 
-Changes in v4:
- - Assign 'val' a initial value to avoid warning: 'val' may be
-   used uninitialized.
- - Rename REG_REG15 to avoid warning: "REG_REG15" redefined.
+tda1997x_parse_infoframe(...)
+...
+        case HDMI_INFOFRAME_TYPE_AVI:
+                state->avi_infoframe = frame.avi; /* hold on to avi
+infoframe for later use in logging etc */
+                /* parse avi infoframe colorimetry data for v4l2
+colorspace/ycbcr_encoding/quantization/xfer_func */
+                state->hdmi_colorimetry = v4l2_hdmi_rx_colorimetry(&frame.avi,
+                                                NULL,
+                                                state->timings.bt.height);
 
-Changes in v3:
- - Explicitly document the "remote-endpoint" property.
- - Put the MAINTAINERS change to a separate patch.
+Also here I still need to override the quant range passed from the
+source avi infoframe per the user control (if not auto) and set per
+vic if default:
 
-Changes in v2:
- - Split off the bindings into a separate patch.
- - Add a new entry to the MAINTAINERS file.
+                /* Quantization Range */
+                switch (state->rgb_quantization_range) {
+                case V4L2_DV_RGB_RANGE_AUTO:
+                        state->range = frame.avi.quantization_range;
+                        break;
+                case V4L2_DV_RGB_RANGE_LIMITED:
+                        state->range = HDMI_QUANTIZATION_RANGE_LIMITED;
+                        break;
+                case V4L2_DV_RGB_RANGE_FULL:
+                        state->range = HDMI_QUANTIZATION_RANGE_FULL;
+                        break;
+                }
+                if (state->range == HDMI_QUANTIZATION_RANGE_DEFAULT) {
+                        if (frame.avi.video_code <= 1)
+                                state->range = HDMI_QUANTIZATION_RANGE_FULL;
+                        else
+                                state->range = HDMI_QUANTIZATION_RANGE_LIMITED;
+                }
 
-Wenyou Yang (2):
-  media: ov7740: Document device tree bindings
-  media: i2c: Add the ov7740 image sensor driver
 
- .../devicetree/bindings/media/i2c/ov7740.txt       |   47 +
- MAINTAINERS                                        |    8 +
- drivers/media/i2c/Kconfig                          |    8 +
- drivers/media/i2c/Makefile                         |    1 +
- drivers/media/i2c/ov7740.c                         | 1226 ++++++++++++++++++++
- 5 files changed, 1290 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/i2c/ov7740.txt
- create mode 100644 drivers/media/i2c/ov7740.c
+Then tda1997x_fill_format() then needs to fill in details of what's on
+the bus so I should be filling in only width/height/field/colorspace
+and use colorspace based on my csc conversion chosen output
+(V4L2_COLORSPACE_SRGB|V4L2_COLORSPACE_SMPTE170M|V4L2_COLORSPACE_REC709)
+and I don't need to set ycbcr_enc/quantization/xfer_func.
 
--- 
-2.15.0
+does this sound right?
+
+Thanks,
+
+Tim
