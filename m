@@ -1,219 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pl0-f66.google.com ([209.85.160.66]:43528 "EHLO
-        mail-pl0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754332AbdL1UKe (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 28 Dec 2017 15:10:34 -0500
-Received: by mail-pl0-f66.google.com with SMTP id z5so21695087plo.10
-        for <linux-media@vger.kernel.org>; Thu, 28 Dec 2017 12:10:34 -0800 (PST)
-From: Tim Harvey <tharvey@gateworks.com>
-To: linux-media@vger.kernel.org, alsa-devel@alsa-project.org
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        shawnguo@kernel.org, Steve Longerbeam <slongerbeam@gmail.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Hans Verkuil <hansverk@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: [PATCH v6 6/6] ARM: dts: imx: Add TDA19971 HDMI Receiver to GW551x
-Date: Thu, 28 Dec 2017 12:09:49 -0800
-Message-Id: <1514491789-8697-7-git-send-email-tharvey@gateworks.com>
-In-Reply-To: <1514491789-8697-1-git-send-email-tharvey@gateworks.com>
-References: <1514491789-8697-1-git-send-email-tharvey@gateworks.com>
+Received: from mga01.intel.com ([192.55.52.88]:24235 "EHLO mga01.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752377AbdLSVAE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 19 Dec 2017 16:00:04 -0500
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: Alan Cox <alan@linux.intel.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        devel@driverdev.osuosl.org, Kristian Beilke <beilke@posteo.de>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v1 06/10] staging: atomisp: Switch to use struct device_driver directly
+Date: Tue, 19 Dec 2017 22:59:53 +0200
+Message-Id: <20171219205957.10933-6-andriy.shevchenko@linux.intel.com>
+In-Reply-To: <20171219205957.10933-1-andriy.shevchenko@linux.intel.com>
+References: <20171219205957.10933-1-andriy.shevchenko@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Cc: Shawn Guo <shawnguo@kernel.org>
-Signed-off-by: Tim Harvey <tharvey@gateworks.com>
----
-v6: no changes
-v5:
- - add missing audmux config
----
- arch/arm/boot/dts/imx6qdl-gw551x.dtsi | 138 ++++++++++++++++++++++++++++++++++
- 1 file changed, 138 insertions(+)
+In a preparation of split PCI glue driver from core part, convert
+the driver to use more generic struct device_driver.
 
-diff --git a/arch/arm/boot/dts/imx6qdl-gw551x.dtsi b/arch/arm/boot/dts/imx6qdl-gw551x.dtsi
-index 30d4662..749548a 100644
---- a/arch/arm/boot/dts/imx6qdl-gw551x.dtsi
-+++ b/arch/arm/boot/dts/imx6qdl-gw551x.dtsi
-@@ -46,6 +46,8 @@
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+---
+ .../staging/media/atomisp/pci/atomisp2/atomisp_drvfs.c  | 17 ++++++++---------
+ .../staging/media/atomisp/pci/atomisp2/atomisp_drvfs.h  |  5 ++---
+ .../staging/media/atomisp/pci/atomisp2/atomisp_v4l2.c   |  4 +---
+ 3 files changed, 11 insertions(+), 15 deletions(-)
+
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_drvfs.c b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_drvfs.c
+index 7129b88456cb..ceedb82b6beb 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_drvfs.c
++++ b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_drvfs.c
+@@ -15,9 +15,9 @@
+  *
   */
  
- #include <dt-bindings/gpio/gpio.h>
-+#include <dt-bindings/media/tda1997x.h>
-+#include <dt-bindings/sound/fsl-imx-audmux.h>
++#include <linux/device.h>
+ #include <linux/err.h>
+ #include <linux/kernel.h>
+-#include <linux/pci.h>
  
- / {
- 	/* these are used by bootloader for disabling nodes */
-@@ -98,6 +100,50 @@
- 		regulator-min-microvolt = <5000000>;
- 		regulator-max-microvolt = <5000000>;
- 	};
-+
-+	sound-digital {
-+		compatible = "simple-audio-card";
-+		simple-audio-card,name = "tda1997x-audio";
-+
-+		simple-audio-card,dai-link@0 {
-+			format = "i2s";
-+
-+			cpu {
-+				sound-dai = <&ssi2>;
-+			};
-+
-+			codec {
-+				bitclock-master;
-+				frame-master;
-+				sound-dai = <&tda1997x>;
-+			};
-+		};
-+	};
-+};
-+
-+&audmux {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&pinctrl_audmux>; /* AUD5<->tda1997x */
-+	status = "okay";
-+
-+	ssi1 {
-+		fsl,audmux-port = <0>;
-+		fsl,port-config = <
-+			(IMX_AUDMUX_V2_PTCR_TFSDIR |
-+			IMX_AUDMUX_V2_PTCR_TFSEL(4+8) | /* RXFS */
-+			IMX_AUDMUX_V2_PTCR_TCLKDIR |
-+			IMX_AUDMUX_V2_PTCR_TCSEL(4+8) | /* RXC */
-+			IMX_AUDMUX_V2_PTCR_SYN)
-+			IMX_AUDMUX_V2_PDCR_RXDSEL(4)
-+		>;
-+	};
-+
-+	aud5 {
-+		fsl,audmux-port = <4>;
-+		fsl,port-config = <
-+			IMX_AUDMUX_V2_PTCR_SYN
-+			IMX_AUDMUX_V2_PDCR_RXDSEL(0)>;
-+	};
+ #include "atomisp_compat.h"
+ #include "atomisp_internal.h"
+@@ -33,7 +33,7 @@
+  *        bit 2: memory statistic
+ */
+ struct _iunit_debug {
+-	struct pci_driver	*drv;
++	struct device_driver	*drv;
+ 	struct atomisp_device	*isp;
+ 	unsigned int		dbglvl;
+ 	unsigned int		dbgfun;
+@@ -164,26 +164,25 @@ static const struct driver_attribute iunit_drvfs_attrs[] = {
+ 	__ATTR(dbgopt, 0644, iunit_dbgopt_show, iunit_dbgopt_store),
  };
  
- &can1 {
-@@ -263,6 +309,60 @@
- 		#gpio-cells = <2>;
- 	};
+-static int iunit_drvfs_create_files(struct pci_driver *drv)
++static int iunit_drvfs_create_files(struct device_driver *drv)
+ {
+ 	int i, ret = 0;
  
-+	tda1997x: tda1997x@48 {
-+		compatible = "nxp,tda19971";
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&pinctrl_tda1997x>;
-+		reg = <0x48>;
-+		interrupt-parent = <&gpio1>;
-+		interrupts = <7 IRQ_TYPE_LEVEL_LOW>;
-+		DOVDD-supply = <&reg_3p3>;
-+		AVDD-supply = <&reg_1p8b>;
-+		DVDD-supply = <&reg_1p8a>;
-+		#sound-dai-cells = <0>;
-+		nxp,audout-format = "i2s";
-+		nxp,audout-layout = <0>;
-+		nxp,audout-width = <16>;
-+		nxp,audout-mclk-fs = <128>;
-+		/*
-+		 * The 8bpp YUV422 semi-planar mode outputs CbCr[11:4]
-+		 * and Y[11:4] across 16bits in the same cycle
-+		 * which we map to VP[15:08]<->CSI_DATA[19:12]
-+		 */
-+		nxp,vidout-portcfg =
-+			/*G_Y_11_8<->VP[15:12]<->CSI_DATA[19:16]*/
-+			< TDA1997X_VP24_V15_12 TDA1997X_G_Y_11_8 >,
-+			/*G_Y_7_4<->VP[11:08]<->CSI_DATA[15:12]*/
-+			< TDA1997X_VP24_V11_08 TDA1997X_G_Y_7_4 >,
-+			/*R_CR_CBCR_11_8<->VP[07:04]<->CSI_DATA[11:08]*/
-+			< TDA1997X_VP24_V07_04 TDA1997X_R_CR_CBCR_11_8 >,
-+			/*R_CR_CBCR_7_4<->VP[03:00]<->CSI_DATA[07:04]*/
-+			< TDA1997X_VP24_V03_00 TDA1997X_R_CR_CBCR_7_4 >;
-+
-+		port {
-+			tda1997x_to_ipu1_csi0_mux: endpoint {
-+				remote-endpoint = <&ipu1_csi0_mux_from_parallel_sensor>;
-+				bus-width = <16>;
-+				hsync-active = <1>;
-+				vsync-active = <1>;
-+				data-active = <1>;
-+			};
-+		};
-+	};
-+};
-+
-+&ipu1_csi0_from_ipu1_csi0_mux {
-+	bus-width = <16>;
-+};
-+
-+&ipu1_csi0_mux_from_parallel_sensor {
-+	remote-endpoint = <&tda1997x_to_ipu1_csi0_mux>;
-+	bus-width = <16>;
-+};
-+
-+&ipu1_csi0 {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&pinctrl_ipu1_csi0>;
- };
+ 	for (i = 0; i < ARRAY_SIZE(iunit_drvfs_attrs); i++)
+-		ret |= driver_create_file(&(drv->driver),
+-					&iunit_drvfs_attrs[i]);
++		ret |= driver_create_file(drv, &iunit_drvfs_attrs[i]);
  
- &pcie {
-@@ -320,6 +420,14 @@
- };
+ 	return ret;
+ }
  
- &iomuxc {
-+	pinctrl_audmux: audmuxgrp {
-+		fsl,pins = <
-+			MX6QDL_PAD_DISP0_DAT19__AUD5_RXD	0x130b0
-+			MX6QDL_PAD_DISP0_DAT14__AUD5_RXC	0x130b0
-+			MX6QDL_PAD_DISP0_DAT13__AUD5_RXFS	0x130b0
-+		>;
-+	};
-+
- 	pinctrl_flexcan1: flexcan1grp {
- 		fsl,pins = <
- 			MX6QDL_PAD_KEY_ROW2__FLEXCAN1_RX	0x1b0b1
-@@ -375,6 +483,30 @@
- 		>;
- 	};
+-static void iunit_drvfs_remove_files(struct pci_driver *drv)
++static void iunit_drvfs_remove_files(struct device_driver *drv)
+ {
+ 	int i;
  
-+	pinctrl_ipu1_csi0: ipu1_csi0grp {
-+		fsl,pins = <
-+			MX6QDL_PAD_CSI0_DAT4__IPU1_CSI0_DATA04		0x1b0b0
-+			MX6QDL_PAD_CSI0_DAT5__IPU1_CSI0_DATA05		0x1b0b0
-+			MX6QDL_PAD_CSI0_DAT6__IPU1_CSI0_DATA06		0x1b0b0
-+			MX6QDL_PAD_CSI0_DAT7__IPU1_CSI0_DATA07		0x1b0b0
-+			MX6QDL_PAD_CSI0_DAT8__IPU1_CSI0_DATA08		0x1b0b0
-+			MX6QDL_PAD_CSI0_DAT9__IPU1_CSI0_DATA09		0x1b0b0
-+			MX6QDL_PAD_CSI0_DAT10__IPU1_CSI0_DATA10		0x1b0b0
-+			MX6QDL_PAD_CSI0_DAT11__IPU1_CSI0_DATA11		0x1b0b0
-+			MX6QDL_PAD_CSI0_DAT12__IPU1_CSI0_DATA12		0x1b0b0
-+			MX6QDL_PAD_CSI0_DAT13__IPU1_CSI0_DATA13		0x1b0b0
-+			MX6QDL_PAD_CSI0_DAT14__IPU1_CSI0_DATA14		0x1b0b0
-+			MX6QDL_PAD_CSI0_DAT15__IPU1_CSI0_DATA15		0x1b0b0
-+			MX6QDL_PAD_CSI0_DAT16__IPU1_CSI0_DATA16		0x1b0b0
-+			MX6QDL_PAD_CSI0_DAT17__IPU1_CSI0_DATA17		0x1b0b0
-+			MX6QDL_PAD_CSI0_DAT18__IPU1_CSI0_DATA18		0x1b0b0
-+			MX6QDL_PAD_CSI0_DAT19__IPU1_CSI0_DATA19		0x1b0b0
-+			MX6QDL_PAD_CSI0_MCLK__IPU1_CSI0_HSYNC		0x1b0b0
-+			MX6QDL_PAD_CSI0_PIXCLK__IPU1_CSI0_PIXCLK	0x1b0b0
-+			MX6QDL_PAD_CSI0_VSYNC__IPU1_CSI0_VSYNC		0x1b0b0
-+		>;
-+	};
-+
- 	pinctrl_pcie: pciegrp {
- 		fsl,pins = <
- 			MX6QDL_PAD_GPIO_0__GPIO1_IO00		0x1b0b0 /* PCIE RST */
-@@ -399,6 +531,12 @@
- 		>;
- 	};
+ 	for (i = 0; i < ARRAY_SIZE(iunit_drvfs_attrs); i++)
+-		driver_remove_file(&(drv->driver), &iunit_drvfs_attrs[i]);
++		driver_remove_file(drv, &iunit_drvfs_attrs[i]);
+ }
  
-+	pinctrl_tda1997x: tda1997xgrp {
-+		fsl,pins = <
-+			MX6QDL_PAD_GPIO_7__GPIO1_IO07		0x1b0b0
-+		>;
-+	};
-+
- 	pinctrl_uart2: uart2grp {
- 		fsl,pins = <
- 			MX6QDL_PAD_SD4_DAT7__UART2_TX_DATA	0x1b0b1
+-int atomisp_drvfs_init(struct pci_driver *drv, struct atomisp_device *isp)
++int atomisp_drvfs_init(struct device_driver *drv, struct atomisp_device *isp)
+ {
+ 	int ret;
+ 
+@@ -193,7 +192,7 @@ int atomisp_drvfs_init(struct pci_driver *drv, struct atomisp_device *isp)
+ 	ret = iunit_drvfs_create_files(iunit_debug.drv);
+ 	if (ret) {
+ 		dev_err(atomisp_dev, "drvfs_create_files error: %d\n", ret);
+-		iunit_drvfs_remove_files(drv);
++		iunit_drvfs_remove_files(iunit_debug.drv);
+ 	}
+ 
+ 	return ret;
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_drvfs.h b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_drvfs.h
+index b91bfef21639..7c99240d107a 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_drvfs.h
++++ b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_drvfs.h
+@@ -18,8 +18,7 @@
+ #ifndef	__ATOMISP_DRVFS_H__
+ #define	__ATOMISP_DRVFS_H__
+ 
+-extern int atomisp_drvfs_init(struct pci_driver *drv, struct atomisp_device
+-				*isp);
+-extern void atomisp_drvfs_exit(void);
++int atomisp_drvfs_init(struct device_driver *drv, struct atomisp_device *isp);
++void atomisp_drvfs_exit(void);
+ 
+ #endif /* __ATOMISP_DRVFS_H__ */
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_v4l2.c b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_v4l2.c
+index 3c260f8b52e2..7a9efc6847ca 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_v4l2.c
++++ b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_v4l2.c
+@@ -1152,8 +1152,6 @@ static int init_atomisp_wdts(struct atomisp_device *isp)
+ 	return err;
+ }
+ 
+-static struct pci_driver atomisp_pci_driver;
+-
+ #define ATOM_ISP_PCI_BAR	0
+ 
+ static int atomisp_pci_probe(struct pci_dev *dev,
+@@ -1451,7 +1449,7 @@ static int atomisp_pci_probe(struct pci_dev *dev,
+ 	isp->firmware = NULL;
+ 	isp->css_env.isp_css_fw.data = NULL;
+ 
+-	atomisp_drvfs_init(&atomisp_pci_driver, isp);
++	atomisp_drvfs_init(&dev->driver->driver, isp);
+ 
+ 	return 0;
+ 
 -- 
-2.7.4
+2.15.1
