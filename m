@@ -1,104 +1,203 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f169.google.com ([209.85.128.169]:43438 "EHLO
-        mail-wr0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752908AbdLMU0l (ORCPT
+Received: from mail-wr0-f194.google.com ([209.85.128.194]:39614 "EHLO
+        mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1758351AbdLSIRr (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 13 Dec 2017 15:26:41 -0500
-Received: by mail-wr0-f169.google.com with SMTP id z34so3239720wrz.10
-        for <linux-media@vger.kernel.org>; Wed, 13 Dec 2017 12:26:40 -0800 (PST)
-Date: Wed, 13 Dec 2017 21:26:37 +0100
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: linux-media@vger.kernel.org, mchehab@s-opensource.com
-Subject: Re: [PATCH 2/2] [media] ddbridge: don't break on single/last port
- attach failure
-Message-ID: <20171213212637.14eb84a6@macbox>
-In-Reply-To: <20171213174437.6eab2491@vento.lan>
-References: <20171206175915.20669-1-d.scheller.oss@gmail.com>
-        <20171206175915.20669-3-d.scheller.oss@gmail.com>
-        <20171213132602.79a35512@vento.lan>
-        <20171213184052.29866eb2@macbox>
-        <20171213174437.6eab2491@vento.lan>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+        Tue, 19 Dec 2017 03:17:47 -0500
+Received: by mail-wr0-f194.google.com with SMTP id a41so17741702wra.6
+        for <linux-media@vger.kernel.org>; Tue, 19 Dec 2017 00:17:46 -0800 (PST)
+From: Philipp Zabel <philipp.zabel@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+        Philipp Zabel <philipp.zabel@gmail.com>
+Subject: [PATCH] media: uvcvideo: support multiple frame descriptors with the same dimensions
+Date: Tue, 19 Dec 2017 09:17:35 +0100
+Message-Id: <20171219081735.4384-1-philipp.zabel@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 13 Dec 2017 17:44:37 -0200
-Mauro Carvalho Chehab <mchehab@kernel.org> wrote:
+The Microsoft HoloLens Sensors device has two separate frame descriptors
+with the same dimensions, each with a single different frame interval:
 
-> Em Wed, 13 Dec 2017 18:40:52 +0100
-> Daniel Scheller <d.scheller.oss@gmail.com> escreveu:
-> 
-> > On Wed, 13 Dec 2017 13:26:02 -0200
-> > Mauro Carvalho Chehab <mchehab@kernel.org> wrote:
-> >   
-> > > Em Wed,  6 Dec 2017 18:59:15 +0100
-> > > Daniel Scheller <d.scheller.oss@gmail.com> escreveu:
-> > >     
-> > > > From: Daniel Scheller <d.scheller@gmx.net>
-> > > > 
-> > > > As all error handling improved quite a bit, don't stop attaching
-> > > > frontends if one of them failed, since - if other tuner modules
-> > > > are connected to the PCIe bridge - other hardware may just
-> > > > work, so lets not break on a single port failure, but rather
-> > > > initialise as much as possible. Ie. if there are issues with a
-> > > > C2T2-equipped PCIe bridge card which has additional DuoFlex
-> > > > modules connected and the bridge generally works, the DuoFlex
-> > > > tuners can still work fine. Also, this only had an effect
-> > > > anyway if the failed device/port was the last one being
-> > > > enumerated.
-> > > > 
-> > > > Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
-> > > > ---
-> > > >  drivers/media/pci/ddbridge/ddbridge-core.c | 2 +-
-> > > >  1 file changed, 1 insertion(+), 1 deletion(-)
-> > > > 
-> > > > diff --git a/drivers/media/pci/ddbridge/ddbridge-core.c
-> > > > b/drivers/media/pci/ddbridge/ddbridge-core.c index
-> > > > 11c5cae92408..b43c40e0bf73 100644 ---
-> > > > a/drivers/media/pci/ddbridge/ddbridge-core.c +++
-> > > > b/drivers/media/pci/ddbridge/ddbridge-core.c @@ -1962,7 +1962,7
-> > > > @@ int ddb_ports_attach(struct ddb *dev) }
-> > > >  	for (i = 0; i < dev->port_num; i++) {
-> > > >  		port = &dev->port[i];
-> > > > -		ret = ddb_port_attach(port);
-> > > > +		ddb_port_attach(port);      
-> > > 
-> > > Nah, ignoring an error doesn't seem right. It should at least
-> > > print that attach failed.    
-> > 
-> > This is already the case in ddb_port_attach() (if (ret < 0)
-> > dev_err(...)).
-> >   
-> > > Also, if all attaches fail, probably the best
-> > > would be to just detach everything and go to the error handling
-> > > code, as there's something serious happening.    
-> > 
-> > Well, will recheck the whole error handling there then when already
-> > at it, as single port failures can still leave some
-> > half-initialised stuff behind until ddbridge gets unloaded.  
-> 
-> If this is the case, then you need to fix also the unbind logic,
-> to be sure that nothing gets left. The best is to compile your test
-> Kernel with KASAN enabled, in order to see if the remove logic is
-> OK.
+      VideoStreaming Interface Descriptor:
+        bLength                            30
+        bDescriptorType                    36
+        bDescriptorSubtype                  5 (FRAME_UNCOMPRESSED)
+        bFrameIndex                         1
+        bmCapabilities                   0x00
+          Still image unsupported
+        wWidth                           1280
+        wHeight                           481
+        dwMinBitRate                147763200
+        dwMaxBitRate                147763200
+        dwMaxVideoFrameBufferSize      615680
+        dwDefaultFrameInterval         333333
+        bFrameIntervalType                  1
+        dwFrameInterval( 0)            333333
+      VideoStreaming Interface Descriptor:
+        bLength                            30
+        bDescriptorType                    36
+        bDescriptorSubtype                  5 (FRAME_UNCOMPRESSED)
+        bFrameIndex                         2
+        bmCapabilities                   0x00
+          Still image unsupported
+        wWidth                           1280
+        wHeight                           481
+        dwMinBitRate                443289600
+        dwMaxBitRate                443289600
+        dwMaxVideoFrameBufferSize      615680
+        dwDefaultFrameInterval         111111
+        bFrameIntervalType                  1
+        dwFrameInterval( 0)            111111
 
-There's nothing wrong regarding memory corruption when this happens,
-the state machine in the driver keeps track of this, knows how far a
-port got, tears down exactly these resources, and doesn't blindly free
-things (use-after-free etc). On unload, everything is correctly removed
-from memory, the unbind/teardown logic works fine regarding this. The
-only real issue which also other drivers suffered from was improper
-un-refcounting but all this was completely fixed with the latest
-changes in core:dvb_frontend.c (frontend_free and related friends).
+Skip duplicate dimensions in enum_framesizes, let enum_frameintervals list
+the intervals from both frame descriptors. Change set_streamparm to switch
+to the correct frame index when changing the interval. This enables 90 fps
+capture on a Lenovo Explorer Windows Mixed Reality headset.
 
-But that KASAN thing is a good hint for some other issue I'm having
-with another driver for which I've no idea yet how to track that down,
-thanks for that (yet some things to learn and discover).
+Signed-off-by: Philipp Zabel <philipp.zabel@gmail.com>
+---
+ drivers/media/usb/uvc/uvc_v4l2.c | 66 ++++++++++++++++++++++++++++++----------
+ 1 file changed, 50 insertions(+), 16 deletions(-)
 
-Best regards,
-Daniel Scheller
+diff --git a/drivers/media/usb/uvc/uvc_v4l2.c b/drivers/media/usb/uvc/uvc_v4l2.c
+index 3e7e283a44a8..7d5bf8d56a99 100644
+--- a/drivers/media/usb/uvc/uvc_v4l2.c
++++ b/drivers/media/usb/uvc/uvc_v4l2.c
+@@ -373,8 +373,11 @@ static int uvc_v4l2_set_streamparm(struct uvc_streaming *stream,
+ {
+ 	struct uvc_streaming_control probe;
+ 	struct v4l2_fract timeperframe;
+-	uint32_t interval;
++	struct uvc_format *format;
++	struct uvc_frame *frame;
++	__u32 interval, tmp, d, maxd;
+ 	int ret;
++	int i;
+ 
+ 	if (parm->type != stream->type)
+ 		return -EINVAL;
+@@ -396,9 +399,31 @@ static int uvc_v4l2_set_streamparm(struct uvc_streaming *stream,
+ 		return -EBUSY;
+ 	}
+ 
++	format = stream->cur_format;
++	frame = stream->cur_frame;
+ 	probe = stream->ctrl;
+-	probe.dwFrameInterval =
+-		uvc_try_frame_interval(stream->cur_frame, interval);
++	probe.dwFrameInterval = uvc_try_frame_interval(frame, interval);
++	maxd = abs((__s32)probe.dwFrameInterval - interval);
++
++	/* Try frames with matching size to find the best frame interval. */
++	for (i = 0; i < format->nframes; i++) {
++		if (&format->frame[i] == stream->cur_frame)
++			continue;
++
++		if (format->frame[i].wWidth != stream->cur_frame->wWidth ||
++		    format->frame[i].wHeight != stream->cur_frame->wHeight)
++			continue;
++
++		tmp = uvc_try_frame_interval(&format->frame[i], interval);
++		d = abs((__s32)tmp - interval);
++		if (d >= maxd)
++			continue;
++
++		frame = &format->frame[i];
++		probe.bFrameIndex = frame->bFrameIndex;
++		probe.dwFrameInterval = tmp;
++		maxd = d;
++	}
+ 
+ 	/* Probe the device with the new settings. */
+ 	ret = uvc_probe_video(stream, &probe);
+@@ -408,6 +433,7 @@ static int uvc_v4l2_set_streamparm(struct uvc_streaming *stream,
+ 	}
+ 
+ 	stream->ctrl = probe;
++	stream->cur_frame = frame;
+ 	mutex_unlock(&stream->mutex);
+ 
+ 	/* Return the actual frame period. */
+@@ -1150,7 +1176,7 @@ static int uvc_ioctl_enum_framesizes(struct file *file, void *fh,
+ 	struct uvc_streaming *stream = handle->stream;
+ 	struct uvc_format *format = NULL;
+ 	struct uvc_frame *frame;
+-	int i;
++	int i, index;
+ 
+ 	/* Look for the given pixel format */
+ 	for (i = 0; i < stream->nformats; i++) {
+@@ -1162,10 +1188,20 @@ static int uvc_ioctl_enum_framesizes(struct file *file, void *fh,
+ 	if (format == NULL)
+ 		return -EINVAL;
+ 
+-	if (fsize->index >= format->nframes)
++	/* Skip duplicate frame sizes */
++	for (i = 0, index = 0; i < format->nframes; i++) {
++		if (i && frame->wWidth == format->frame[i].wWidth &&
++		    frame->wHeight == format->frame[i].wHeight)
++			continue;
++		frame = &format->frame[i];
++		if (index == fsize->index)
++			break;
++		index++;
++	}
++
++	if (i == format->nframes)
+ 		return -EINVAL;
+ 
+-	frame = &format->frame[fsize->index];
+ 	fsize->type = V4L2_FRMSIZE_TYPE_DISCRETE;
+ 	fsize->discrete.width = frame->wWidth;
+ 	fsize->discrete.height = frame->wHeight;
+@@ -1179,7 +1215,7 @@ static int uvc_ioctl_enum_frameintervals(struct file *file, void *fh,
+ 	struct uvc_streaming *stream = handle->stream;
+ 	struct uvc_format *format = NULL;
+ 	struct uvc_frame *frame = NULL;
+-	int i;
++	int i, index, nintervals;
+ 
+ 	/* Look for the given pixel format and frame size */
+ 	for (i = 0; i < stream->nformats; i++) {
+@@ -1191,30 +1227,28 @@ static int uvc_ioctl_enum_frameintervals(struct file *file, void *fh,
+ 	if (format == NULL)
+ 		return -EINVAL;
+ 
++	index = fival->index;
+ 	for (i = 0; i < format->nframes; i++) {
+ 		if (format->frame[i].wWidth == fival->width &&
+ 		    format->frame[i].wHeight == fival->height) {
+ 			frame = &format->frame[i];
+-			break;
++			nintervals = frame->bFrameIntervalType ?: 1;
++			if (index < nintervals)
++				break;
++			index -= nintervals;
+ 		}
+ 	}
+-	if (frame == NULL)
++	if (i == format->nframes)
+ 		return -EINVAL;
+ 
+ 	if (frame->bFrameIntervalType) {
+-		if (fival->index >= frame->bFrameIntervalType)
+-			return -EINVAL;
+-
+ 		fival->type = V4L2_FRMIVAL_TYPE_DISCRETE;
+ 		fival->discrete.numerator =
+-			frame->dwFrameInterval[fival->index];
++			frame->dwFrameInterval[index];
+ 		fival->discrete.denominator = 10000000;
+ 		uvc_simplify_fraction(&fival->discrete.numerator,
+ 			&fival->discrete.denominator, 8, 333);
+ 	} else {
+-		if (fival->index)
+-			return -EINVAL;
+-
+ 		fival->type = V4L2_FRMIVAL_TYPE_STEPWISE;
+ 		fival->stepwise.min.numerator = frame->dwFrameInterval[0];
+ 		fival->stepwise.min.denominator = 10000000;
 -- 
-https://github.com/herrnst
+2.15.1
