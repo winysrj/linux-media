@@ -1,137 +1,151 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.15.18]:54525 "EHLO mout.gmx.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753141AbdLMPe4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 13 Dec 2017 10:34:56 -0500
-Received: from axis700.grange ([84.44.207.202]) by mail.gmx.com (mrgmx002
- [212.227.17.190]) with ESMTPSA (Nemesis) id 0LztD9-1f38nN3zbX-0155Mp for
- <linux-media@vger.kernel.org>; Wed, 13 Dec 2017 16:34:55 +0100
-Received: from 200r.grange (200r.grange [192.168.1.16])
-        by axis700.grange (Postfix) with ESMTP id F39F161807
-        for <linux-media@vger.kernel.org>; Wed, 13 Dec 2017 16:34:53 +0100 (CET)
-From: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>
-To: linux-media@vger.kernel.org
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH 2/2 v6] uvcvideo: handle control pipe protocol STALLs
-Date: Wed, 13 Dec 2017 16:34:53 +0100
-Message-Id: <1513179293-17324-3-git-send-email-guennadi.liakhovetski@intel.com>
-In-Reply-To: <1513179293-17324-1-git-send-email-guennadi.liakhovetski@intel.com>
-References: <1513179293-17324-1-git-send-email-guennadi.liakhovetski@intel.com>
+Received: from mail-by2nam03on0128.outbound.protection.outlook.com ([104.47.42.128]:47552
+        "EHLO NAM03-BY2-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1753762AbdLTAyx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 19 Dec 2017 19:54:53 -0500
+From: "Takiguchi, Yasunari" <Yasunari.Takiguchi@sony.com>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+CC: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "tbird20d@gmail.com" <tbird20d@gmail.com>,
+        "frowand.list@gmail.com" <frowand.list@gmail.com>,
+        "Yamamoto, Masayuki" <Masayuki.Yamamoto@sony.com>,
+        "Nozawa, Hideki (STWN)" <Hideki.Nozawa@sony.com>,
+        "Yonezawa, Kota" <Kota.Yonezawa@sony.com>,
+        "Matsumoto, Toshihiko" <Toshihiko.Matsumoto@sony.com>,
+        "Watanabe, Satoshi (SSS)" <Satoshi.C.Watanabe@sony.com>,
+        "Takiguchi, Yasunari" <Yasunari.Takiguchi@sony.com>
+Subject: RE: [PATCH v4 02/12] [media] cxd2880-spi: Add support for CXD2880
+ SPI interface
+Date: Wed, 20 Dec 2017 00:54:48 +0000
+Message-ID: <02699364973B424C83A42A84B04FDA85440B8B@JPYOKXMS113.jp.sony.com>
+References: <20171013054635.20946-1-Yasunari.Takiguchi@sony.com>
+        <20171013055928.21132-1-Yasunari.Takiguchi@sony.com>
+ <20171213155422.03621b5e@vento.lan>
+In-Reply-To: <20171213155422.03621b5e@vento.lan>
+Content-Language: ja-JP
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When a command ends up in a STALL on the control pipe, use the Request
-Error Code control to provide a more precise error information to the
-user.
+Hi, Mauro.
 
-Signed-off-by: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>
----
- drivers/media/usb/uvc/uvc_video.c | 59 +++++++++++++++++++++++++++++++++++----
- 1 file changed, 53 insertions(+), 6 deletions(-)
+> > +
+> > +#define pr_fmt(fmt) KBUILD_MODNAME ": %s: " fmt, __func__
+> 
+> It would be better to use dev_foo() debug macros instead of
+> pr_foo() ones.
 
-diff --git a/drivers/media/usb/uvc/uvc_video.c b/drivers/media/usb/uvc/uvc_video.c
-index 2fc0bf2..cfcc4861 100644
---- a/drivers/media/usb/uvc/uvc_video.c
-+++ b/drivers/media/usb/uvc/uvc_video.c
-@@ -34,15 +34,59 @@ static int __uvc_query_ctrl(struct uvc_device *dev, __u8 query, __u8 unit,
- 			__u8 intfnum, __u8 cs, void *data, __u16 size,
- 			int timeout)
- {
--	__u8 type = USB_TYPE_CLASS | USB_RECIP_INTERFACE;
-+	__u8 type = USB_TYPE_CLASS | USB_RECIP_INTERFACE, tmp, error;
- 	unsigned int pipe;
-+	int ret;
- 
- 	pipe = (query & 0x80) ? usb_rcvctrlpipe(dev->udev, 0)
- 			      : usb_sndctrlpipe(dev->udev, 0);
- 	type |= (query & 0x80) ? USB_DIR_IN : USB_DIR_OUT;
- 
--	return usb_control_msg(dev->udev, pipe, query, type, cs << 8,
-+	ret = usb_control_msg(dev->udev, pipe, query, type, cs << 8,
- 			unit << 8 | intfnum, data, size, timeout);
-+
-+	if (ret != -EPIPE)
-+		return ret;
-+
-+	tmp = *(u8 *)data;
-+
-+	pipe = usb_rcvctrlpipe(dev->udev, 0);
-+	type = USB_TYPE_CLASS | USB_RECIP_INTERFACE | USB_DIR_IN;
-+	ret = usb_control_msg(dev->udev, pipe, UVC_GET_CUR, type,
-+			      UVC_VC_REQUEST_ERROR_CODE_CONTROL << 8,
-+			      unit << 8 | intfnum, data, 1, timeout);
-+	error = *(u8 *)data;
-+	*(u8 *)data = tmp;
-+
-+	if (ret < 0)
-+		return ret;
-+
-+	if (!ret)
-+		return -EINVAL;
-+
-+	uvc_trace(UVC_TRACE_CONTROL, "Control error %u\n", error);
-+
-+	switch (error) {
-+	case 0:
-+		/* Cannot happen - we received a STALL */
-+		return -EPIPE;
-+	case 1: /* Not ready */
-+		return -EAGAIN;
-+	case 2: /* Wrong state */
-+		return -EILSEQ;
-+	case 3: /* Power */
-+		return -EREMOTE;
-+	case 4: /* Out of range */
-+		return -ERANGE;
-+	case 5: /* Invalid unit */
-+	case 6: /* Invalid control */
-+	case 7: /* Invalid Request */
-+	case 8: /* Invalid value within range */
-+	default: /* reserved or unknown */
-+		break;
-+	}
-+
-+	return -EINVAL;
- }
- 
- static const char *uvc_query_name(__u8 query)
-@@ -80,7 +124,7 @@ int uvc_query_ctrl(struct uvc_device *dev, __u8 query, __u8 unit,
- 		uvc_printk(KERN_ERR, "Failed to query (%s) UVC control %u on "
- 			"unit %u: %d (exp. %u).\n", uvc_query_name(query), cs,
- 			unit, ret, size);
--		return -EIO;
-+		return ret < 0 ? ret : -EIO;
- 	}
- 
- 	return 0;
-@@ -203,13 +247,15 @@ static int uvc_get_video_ctrl(struct uvc_streaming *stream,
- 		uvc_warn_once(stream->dev, UVC_WARN_PROBE_DEF, "UVC non "
- 			"compliance - GET_DEF(PROBE) not supported. "
- 			"Enabling workaround.\n");
--		ret = -EIO;
-+		if (ret >= 0)
-+			ret = -EIO;
- 		goto out;
- 	} else if (ret != size) {
- 		uvc_printk(KERN_ERR, "Failed to query (%u) UVC %s control : "
- 			"%d (exp. %u).\n", query, probe ? "probe" : "commit",
- 			ret, size);
--		ret = -EIO;
-+		if (ret >= 0)
-+			ret = -EIO;
- 		goto out;
- 	}
- 
-@@ -290,7 +336,8 @@ static int uvc_set_video_ctrl(struct uvc_streaming *stream,
- 		uvc_printk(KERN_ERR, "Failed to set UVC %s control : "
- 			"%d (exp. %u).\n", probe ? "probe" : "commit",
- 			ret, size);
--		ret = -EIO;
-+		if (ret >= 0)
-+			ret = -EIO;
- 	}
- 
- 	kfree(data);
--- 
-1.9.3
+I got comment for this previous version patch as below
+--------------------------------------------------------------------------------------
+The best would be to se dev_err() & friends for printing messages, 
+as they print the device's name as filled at struct device.
+If you don't use, please add a define that will print the name at the logs, like:
+
+  #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+
+either at the begining of the driver or at some header file.
+
+Btw, I'm noticing that you're also using dev_err() on other places of the code. 
+Please standardize. OK, on a few places, you may still need to use pr_err(), 
+if you need to print a message before initializing struct device, but I suspect that you can init
+--------------------------------------------------------------------------------------
+
+You pointed out here before. Because dev_foo () and pr_foo () were mixed.
+We standardize with pr_foo() because the logs is outputted before getting the device structure.
+Is it better to use dev_foo() where we can use it?
+
+
+> > +static int cxd2880_stop_feed(struct dvb_demux_feed *feed) {
+> > +	int i = 0;
+> > +	int ret;
+> > +	struct dvb_demux *demux = NULL;
+> > +	struct cxd2880_dvb_spi *dvb_spi = NULL;
+> > +
+> > +	if (!feed) {
+> > +		pr_err("invalid arg\n");
+> > +		return -EINVAL;
+> > +	}
+> > +
+> > +	demux = feed->demux;
+> > +	if (!demux) {
+> > +		pr_err("feed->demux is NULL\n");
+> > +		return -EINVAL;
+> > +	}
+> > +	dvb_spi = demux->priv;
+> > +
+> > +	if (!dvb_spi->feed_count) {
+> > +		pr_err("no feed is started\n");
+> > +		return -EINVAL;
+> > +	}
+> > +
+> > +	if (feed->pid == 0x2000) {
+> > +		/*
+> > +		 * Special PID case.
+> > +		 * Number of 0x2000 feed request was stored
+> > +		 * in dvb_spi->all_pid_feed_count.
+> > +		 */
+> > +		if (dvb_spi->all_pid_feed_count <= 0) {
+> > +			pr_err("PID %d not found.\n", feed->pid);
+> > +			return -EINVAL;
+> > +		}
+> > +		dvb_spi->all_pid_feed_count--;
+> > +	} else {
+> > +		struct cxd2880_pid_filter_config cfgtmp;
+> > +
+> > +		cfgtmp = dvb_spi->filter_config;
+> > +
+> > +		for (i = 0; i < CXD2880_MAX_FILTER_SIZE; i++) {
+> > +			if (feed->pid == cfgtmp.pid_config[i].pid &&
+> > +			    cfgtmp.pid_config[i].is_enable != 0) {
+> > +				cfgtmp.pid_config[i].is_enable = 0;
+> > +				cfgtmp.pid_config[i].pid = 0;
+> > +				pr_debug("removed PID %d from #%d\n",
+> > +					 feed->pid, i);
+> > +				break;
+> > +			}
+> > +		}
+> > +		dvb_spi->filter_config = cfgtmp;
+> > +
+> > +		if (i == CXD2880_MAX_FILTER_SIZE) {
+> > +			pr_err("PID %d not found\n", feed->pid);
+> > +			return -EINVAL;
+> > +		}
+> > +	}
+> > +
+> > +	ret = cxd2880_update_pid_filter(dvb_spi,
+> > +					&dvb_spi->filter_config,
+> > +					dvb_spi->all_pid_feed_count >
+> 0);
+> > +	dvb_spi->feed_count--;
+> > +
+> > +	if (dvb_spi->feed_count == 0) {
+> > +		int ret_stop = 0;
+> > +
+> > +		ret_stop =
+> kthread_stop(dvb_spi->cxd2880_ts_read_thread);
+> > +		if (ret_stop) {
+> > +			pr_err("'kthread_stop failed. (%d)\n",
+> ret_stop);
+> > +			ret = ret_stop;
+> > +		}
+> > +		kfree(dvb_spi->ts_buf);
+> > +		dvb_spi->ts_buf = NULL;
+> > +	}
+> > +
+> > +	pr_debug("stop feed ok.(count %d)\n", dvb_spi->feed_count);
+> > +
+> > +	return ret;
+> > +}
+> 
+> I have the feeling that I've seen the code above before at the dvb core.
+> Any reason why don't use the already-existing code at dvb_demux.c &
+> friends?
+
+The CXD2880 HW PID filter is used to decrease the amount of TS data transferred via limited bit rate SPI interface.
+
+Thanks,
+Takiguchi
