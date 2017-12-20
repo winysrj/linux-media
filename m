@@ -1,32 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.mpa.santafe.gov.ar ([200.12.192.65]:51142 "EHLO
-        mail.mpa.santafe.gov.ar" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1757274AbdLQUOe (ORCPT
+Received: from mail-pl0-f65.google.com ([209.85.160.65]:33639 "EHLO
+        mail-pl0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1756136AbdLTSQ1 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 17 Dec 2017 15:14:34 -0500
-Content-Type: text/plain; charset="iso-8859-1"
+        Wed, 20 Dec 2017 13:16:27 -0500
+Date: Wed, 20 Dec 2017 12:16:24 -0600
+From: Rob Herring <robh@kernel.org>
+To: Jacob Chen <jacob-chen@iotwrt.com>
+Cc: linux-rockchip@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, mchehab@kernel.org,
+        linux-media@vger.kernel.org, sakari.ailus@linux.intel.com,
+        hans.verkuil@cisco.com, tfiga@chromium.org, zhengsq@rock-chips.com,
+        laurent.pinchart@ideasonboard.com, zyc@rock-chips.com,
+        eddie.cai.linux@gmail.com, jeffy.chen@rock-chips.com,
+        allon.huang@rock-chips.com, devicetree@vger.kernel.org,
+        heiko@sntech.de, Joao.Pinto@synopsys.com,
+        Luis.Oliveira@synopsys.com, Jose.Abreu@synopsys.com,
+        Jacob Chen <jacob2.chen@rock-chips.com>
+Subject: Re: [PATCH v4 11/16] dt-bindings: Document the Rockchip MIPI RX
+ D-PHY bindings
+Message-ID: <20171220181624.ygxasm726tcts5sx@rob-hp-laptop>
+References: <20171218121445.6086-1-jacob-chen@iotwrt.com>
+ <20171218121445.6086-8-jacob-chen@iotwrt.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-Content-Description: Mail message body
-Subject: Re: Support For Charity
-To: Recipients <hfissore@mpa.santafe.gov.ar>
-From: "M. M. Fridman" <hfissore@mpa.santafe.gov.ar>
-Date: Sun, 17 Dec 2017 19:30:55 +0800
-Reply-To: mikh.fridman@gmail.com
-Message-Id: <20171217113116.456F4267BDF@mail.mpa.santafe.gov.ar>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20171218121445.6086-8-jacob-chen@iotwrt.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I Mikhail Fridman. has selected you specially as one of my beneficiaries
-for my Charitable Donation, Just as I have declared on May 23, 2016 to give
-my fortune as charity.
+On Mon, Dec 18, 2017 at 08:14:40PM +0800, Jacob Chen wrote:
+> From: Jacob Chen <jacob2.chen@rock-chips.com>
+> 
+> Add DT bindings documentation for Rockchip MIPI D-PHY RX
+> 
+> Signed-off-by: Jacob Chen <jacob2.chen@rock-chips.com>
+> ---
+>  .../bindings/media/rockchip-mipi-dphy.txt          | 88 ++++++++++++++++++++++
+>  1 file changed, 88 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/rockchip-mipi-dphy.txt
 
-Check the link below for confirmation:
-
-http://www.ibtimes.co.uk/russias-second-wealthiest-man-mikhail-fridman-plan=
-s-leaving-14-2bn-fortune-charity-1561604
-
-Reply as soon as possible with further directives.
-
-Best Regards,
-Mikhail Fridman.
+Reviewed-by: Rob Herring <robh@kernel.org>
