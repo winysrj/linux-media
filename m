@@ -1,30 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.anw.at ([195.234.101.228]:55390 "EHLO mail.anw.at"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751609AbdLJOTw (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 10 Dec 2017 09:19:52 -0500
-Subject: Re: [PATCH] build: Remove patch v3.13_ddbridge_pcimsi
-From: "Jasmin J." <jasmin@anw.at>
-To: linux-media@vger.kernel.org
-Cc: hverkuil@xs4all.nl, d.scheller@gmx.net
-References: <1512778730-12349-1-git-send-email-jasmin@anw.at>
- <18d8745d-b921-b74b-e562-0ff25a886b67@anw.at>
- <63524f7d-fc4e-a74d-bcca-aa3022ef20be@anw.at>
-Message-ID: <405e9938-c4f0-59a7-3511-517a0f4bae30@anw.at>
-Date: Sun, 10 Dec 2017 15:19:47 +0100
+Received: from mail-pg0-f66.google.com ([74.125.83.66]:39663 "EHLO
+        mail-pg0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755743AbdLTSo3 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 20 Dec 2017 13:44:29 -0500
+Date: Wed, 20 Dec 2017 12:44:26 -0600
+From: Rob Herring <robh@kernel.org>
+To: Philipp Rossak <embed3d@gmail.com>
+Cc: mchehab@kernel.org, mark.rutland@arm.com,
+        maxime.ripard@free-electrons.com, wens@csie.org,
+        linux@armlinux.org.uk, sean@mess.org, p.zabel@pengutronix.de,
+        andi.shyti@samsung.com, linux-media@vger.kernel.org,
+        devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-kernel@vger.kernel.org, linux-sunxi@googlegroups.com
+Subject: Re: [PATCH v3 2/6] media: dt: bindings: Update binding documentation
+ for sunxi IR controller
+Message-ID: <20171220184426.ongfriuioq6weljh@rob-hp-laptop>
+References: <20171219080747.4507-1-embed3d@gmail.com>
+ <20171219080747.4507-3-embed3d@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <63524f7d-fc4e-a74d-bcca-aa3022ef20be@anw.at>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20171219080747.4507-3-embed3d@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi!
+On Tue, Dec 19, 2017 at 09:07:43AM +0100, Philipp Rossak wrote:
+> This patch updates documentation for Device-Tree bindings for sunxi IR
+> controller and adds the new optional property for the base clock
+> frequency.
+> 
+> Signed-off-by: Philipp Rossak <embed3d@gmail.com>
+> ---
+>  Documentation/devicetree/bindings/media/sunxi-ir.txt | 3 +++
+>  1 file changed, 3 insertions(+)
 
-> The real problem is another, which I will fix soon.
-I mixed up some branches, so there is no problem and there is nothing to fix.
-Please delete this patch from Patchwork!
-
-BR,
-   Jasmin
+Reviewed-by: Rob Herring <robh@kernel.org>
