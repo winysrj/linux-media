@@ -1,68 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:43600 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751433AbdLKWN5 (ORCPT
+Received: from mail-wr0-f195.google.com ([209.85.128.195]:44713 "EHLO
+        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751672AbdLTQ3w (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 11 Dec 2017 17:13:57 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Niklas =?ISO-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>,
-        Sebastian Reichel <sre@kernel.org>
-Subject: Re: [PATCH v2 08/26] media: v4l2-async: shut up an unitialized symbol warning
-Date: Tue, 12 Dec 2017 00:13:59 +0200
-Message-ID: <2408989.XGnSUWAzJY@avalon>
-In-Reply-To: <20171211161058.6cdedb7a@vento.lan>
-References: <c4389ab1c02bb08c1a55012fdb859c8b10bdc47e.1509569763.git.mchehab@s-opensource.com> <1844403.anYkCZaVIn@avalon> <20171211161058.6cdedb7a@vento.lan>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+        Wed, 20 Dec 2017 11:29:52 -0500
+Received: by mail-wr0-f195.google.com with SMTP id l41so10596724wre.11
+        for <linux-media@vger.kernel.org>; Wed, 20 Dec 2017 08:29:52 -0800 (PST)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: linux-media@vger.kernel.org, mchehab@kernel.org,
+        mchehab@s-opensource.com
+Cc: Ralph Metzler <rjkm@metzlerbros.de>
+Subject: [PATCH] [media] dvb-frontend/mxl5xx: add support for physical layer scrambling
+Date: Wed, 20 Dec 2017 17:29:48 +0100
+Message-Id: <20171220162948.815-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+From: Daniel Scheller <d.scheller@gmx.net>
 
-On Monday, 11 December 2017 20:10:58 EET Mauro Carvalho Chehab wrote:
-> Em Thu, 02 Nov 2017 04:51:40 +0200 Laurent Pinchart escreveu:
-> > On Wednesday, 1 November 2017 23:05:45 EET Mauro Carvalho Chehab wrote:
-> >> Smatch reports this warning:
-> >> 	drivers/media/v4l2-core/v4l2-async.c:597 v4l2_async_register_subdev()
-> >> 
-> >> error: uninitialized symbol 'ret'.
-> >> 
-> >> However, there's nothing wrong there. So, just shut up the
-> >> warning.
-> > 
-> > Nothing wrong, really ? ret does seem to be used uninitialized when the
-> > function returns at the very last line.
-> 
-> There's nothing wrong. If you follow the logic, you'll see that
-> the line:
-> 
-> 	return ret;
-> 
-> is called only at "err_unbind" label, with is called only on
-> two places:
-> 
->                 ret = v4l2_async_match_notify(notifier, v4l2_dev, sd, asd);
->                 if (ret)
->                         goto err_unbind;
-> 
->                 ret = v4l2_async_notifier_try_complete(notifier);
->                 if (ret)
->                         goto err_unbind;
-> 
-> There, ret is defined.
-> 
-> Yeah, the logic there is confusing.
+The MaxLinear MxL5xx has support for physical layer scrambling, which was
+recently added to the DVB core via the new scrambling_sequence_index
+property. Add required bits to the mxl5xx driver.
 
-I had missed the return 0 just before the error label. Sorry for the noise.
+Picked up from dddvb master, commit 5c032058b9ba ("add support for PLS")
+by Ralph Metzler <rjkm@metzlerbros.de>, adapted to the different naming
+of the pls property (pls vs. scrambling_sequence_index).
 
+Cc: Ralph Metzler <rjkm@metzlerbros.de>
+Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+---
+NB, I'm also prepping up another set of patches that enable the stv0910
+driver to handle the recently added PLS support.
+
+ drivers/media/dvb-frontends/mxl5xx.c | 34 +++++++++++++++++++++++++++++++++-
+ 1 file changed, 33 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/media/dvb-frontends/mxl5xx.c b/drivers/media/dvb-frontends/mxl5xx.c
+index 1ebc3830579f..05f27f51fd03 100644
+--- a/drivers/media/dvb-frontends/mxl5xx.c
++++ b/drivers/media/dvb-frontends/mxl5xx.c
+@@ -380,6 +380,38 @@ static int get_algo(struct dvb_frontend *fe)
+ 	return DVBFE_ALGO_HW;
+ }
+ 
++static u32 gold2root(u32 gold)
++{
++	u32 x, g, tmp = gold;
++
++	if (tmp >= 0x3ffff)
++		tmp = 0;
++	for (g = 0, x = 1; g < tmp; g++)
++		x = (((x ^ (x >> 7)) & 1) << 17) | (x >> 1);
++	return x;
++}
++
++static int cfg_scrambler(struct mxl *state, u32 gold)
++{
++	u32 root;
++	u8 buf[26] = {
++		MXL_HYDRA_PLID_CMD_WRITE, 24,
++		0, MXL_HYDRA_DEMOD_SCRAMBLE_CODE_CMD, 0, 0,
++		state->demod, 0, 0, 0,
++		0, 0, 0, 0, 0, 0, 0, 0,
++		0, 0, 0, 0, 1, 0, 0, 0,
++	};
++
++	root = gold2root(gold);
++
++	buf[25] = (root >> 24) & 0xff;
++	buf[24] = (root >> 16) & 0xff;
++	buf[23] = (root >> 8) & 0xff;
++	buf[22] = root & 0xff;
++
++	return send_command(state, sizeof(buf), buf);
++}
++
+ static int cfg_demod_abort_tune(struct mxl *state)
+ {
+ 	struct MXL_HYDRA_DEMOD_ABORT_TUNE_T abort_tune_cmd;
+@@ -437,7 +469,7 @@ static int set_parameters(struct dvb_frontend *fe)
+ 		demod_chan_cfg.roll_off = MXL_HYDRA_ROLLOFF_AUTO;
+ 		demod_chan_cfg.modulation_scheme = MXL_HYDRA_MOD_AUTO;
+ 		demod_chan_cfg.pilots = MXL_HYDRA_PILOTS_AUTO;
+-		/* cfg_scrambler(state); */
++		cfg_scrambler(state, p->scrambling_sequence_index);
+ 		break;
+ 	default:
+ 		return -EINVAL;
 -- 
-Regards,
-
-Laurent Pinchart
+2.13.6
