@@ -1,61 +1,142 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f66.google.com ([209.85.218.66]:44107 "EHLO
-        mail-oi0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1758985AbdLRTzF (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 18 Dec 2017 14:55:05 -0500
-MIME-Version: 1.0
-In-Reply-To: <20171128113352.5jm3ur3bszey3y4l@rohdewald.de>
-References: <20171128113352.5jm3ur3bszey3y4l@rohdewald.de>
-From: Arnd Bergmann <arnd@arndb.de>
-Date: Mon, 18 Dec 2017 20:55:03 +0100
-Message-ID: <CAK8P3a1-xGO652LnkxEMun58dHXVQsdpLDVBnVZTPD7eywZfGg@mail.gmail.com>
-Subject: Re: [PATCH] media: dvb_usb_pctv452e: module refcount changes were unbalanced
-To: Wolfgang Rohdewald <wolfgang@rohdewald.de>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Received: from osg.samsung.com ([64.30.133.232]:58819 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1754111AbdLTL1C (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 20 Dec 2017 06:27:02 -0500
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Subject: [PATCH] Intelsat34-55.5W: update definitions from Vivo streaming
+Date: Wed, 20 Dec 2017 09:26:52 -0200
+Message-Id: <ef3c857a54279732639f0a71e6e64595e5ae3195.1513769154.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Nov 28, 2017 at 12:33 PM, Wolfgang Rohdewald
-<wolfgang@rohdewald.de> wrote:
+There were some frequency changes on this Satellite.
+Update them.
 
-> @@ -913,6 +913,14 @@ static int pctv452e_frontend_attach(struct dvb_usb_adapter *a)
->                                                 &a->dev->i2c_adap);
->         if (!a->fe_adap[0].fe)
->                 return -ENODEV;
-> +
-> +       /*
-> +        * dvb_frontend will call dvb_detach for both stb0899_detach
-> +        * and stb0899_release but we only do dvb_attach(stb0899_attach).
-> +        * Increment the module refcount instead.
-> +        */
-> +       symbol_get(stb0899_attach);
-> +
->         if ((dvb_attach(lnbp22_attach, a->fe_adap[0].fe,
->                                         &a->dev->i2c_adap)) == NULL)
->                 err("Cannot attach lnbp22\n");
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ dvb-s/Intelsat34-55.5W | 58 ++++++--------------------------------------------
+ 1 file changed, 7 insertions(+), 51 deletions(-)
 
-This caused a build error in today's linux-next:
-
-In file included from drivers/media/usb/dvb-usb/pctv452e.c:20:0:
-drivers/media/usb/dvb-usb/pctv452e.c: In function 'pctv452e_frontend_attach':
-drivers/media/dvb-frontends/stb0899_drv.h:151:36: error: weak
-declaration of 'stb0899_attach' being applied to a already existing,
-static definition
- static inline struct dvb_frontend *stb0899_attach(struct
-stb0899_config *config,
-
-I don't really understand where the 'weak' declaration came from, but this seems
-to be related to resolving a symbol for a function that was declared
-'static inline'.
-
-The random configuration that caused this included:
-
-CONFIG_DVB_USB_PCTV452E=y
-# CONFIG_DVB_STB0899 is not set
-# CONFIG_MODULES is not set
-
-       Arnd
+diff --git a/dvb-s/Intelsat34-55.5W b/dvb-s/Intelsat34-55.5W
+index 3b96fc894c99..28d57fbbf73e 100644
+--- a/dvb-s/Intelsat34-55.5W
++++ b/dvb-s/Intelsat34-55.5W
+@@ -2,28 +2,6 @@
+ 
+ # TV channels
+ 
+-[CHANNEL]
+-	DELIVERY_SYSTEM = DVBS2
+-	FREQUENCY = 11825000
+-	POLARIZATION = HORIZONTAL
+-	SYMBOL_RATE = 45000000
+-	INNER_FEC = AUTO
+-	ROLLOFF = AUTO
+-	MODULATION = QAM/AUTO
+-	STREAM_ID = 0
+-	INVERSION = AUTO
+-
+-[CHANNEL]
+-	DELIVERY_SYSTEM = DVBS2
+-	FREQUENCY = 11825000
+-	POLARIZATION = VERTICAL
+-	SYMBOL_RATE = 45000000
+-	INNER_FEC = AUTO
+-	ROLLOFF = AUTO
+-	MODULATION = QAM/AUTO
+-	STREAM_ID = 0
+-	INVERSION = AUTO
+-
+ [CHANNEL]
+ 	DELIVERY_SYSTEM = DVBS2
+ 	FREQUENCY = 11890000
+@@ -31,18 +9,7 @@
+ 	SYMBOL_RATE = 30000000
+ 	INNER_FEC = AUTO
+ 	ROLLOFF = AUTO
+-	MODULATION = QAM/AUTO
+-	STREAM_ID = 0
+-	INVERSION = AUTO
+-
+-[CHANNEL]
+-	DELIVERY_SYSTEM = DVBS2
+-	FREQUENCY = 11905000
+-	POLARIZATION = VERTICAL
+-	SYMBOL_RATE = 45000000
+-	INNER_FEC = AUTO
+-	ROLLOFF = AUTO
+-	MODULATION = QAM/AUTO
++	MODULATION = PSK/8
+ 	STREAM_ID = 0
+ 	INVERSION = AUTO
+ 
+@@ -53,7 +20,7 @@
+ 	SYMBOL_RATE = 30000000
+ 	INNER_FEC = AUTO
+ 	ROLLOFF = AUTO
+-	MODULATION = QAM/AUTO
++	MODULATION = PSK/8
+ 	STREAM_ID = 0
+ 	INVERSION = AUTO
+ 
+@@ -64,7 +31,7 @@
+ 	SYMBOL_RATE = 30000000
+ 	INNER_FEC = AUTO
+ 	ROLLOFF = AUTO
+-	MODULATION = QAM/AUTO
++	MODULATION = PSK/8
+ 	STREAM_ID = 0
+ 	INVERSION = AUTO
+ 
+@@ -75,7 +42,7 @@
+ 	SYMBOL_RATE = 30000000
+ 	INNER_FEC = AUTO
+ 	ROLLOFF = AUTO
+-	MODULATION = QAM/AUTO
++	MODULATION = PSK/8
+ 	STREAM_ID = 0
+ 	INVERSION = AUTO
+ 
+@@ -86,7 +53,7 @@
+ 	SYMBOL_RATE = 30000000
+ 	INNER_FEC = AUTO
+ 	ROLLOFF = AUTO
+-	MODULATION = QAM/AUTO
++	MODULATION = PSK/8
+ 	STREAM_ID = 0
+ 	INVERSION = AUTO
+ 
+@@ -97,7 +64,7 @@
+ 	SYMBOL_RATE = 30000000
+ 	INNER_FEC = AUTO
+ 	ROLLOFF = AUTO
+-	MODULATION = QAM/AUTO
++	MODULATION = PSK/8
+ 	STREAM_ID = 0
+ 	INVERSION = AUTO
+ 
+@@ -108,18 +75,7 @@
+ 	SYMBOL_RATE = 30000000
+ 	INNER_FEC = AUTO
+ 	ROLLOFF = AUTO
+-	MODULATION = QAM/AUTO
+-	STREAM_ID = 0
+-	INVERSION = AUTO
+-
+-[CHANNEL]
+-	DELIVERY_SYSTEM = DVBS2
+-	FREQUENCY = 12170000
+-	POLARIZATION = HORIZONTAL
+-	SYMBOL_RATE = 30000000
+-	INNER_FEC = AUTO
+-	ROLLOFF = AUTO
+-	MODULATION = QAM/AUTO
++	MODULATION = PSK/8
+ 	STREAM_ID = 0
+ 	INVERSION = AUTO
+ 
+-- 
+2.14.3
