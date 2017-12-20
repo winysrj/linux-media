@@ -1,56 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:38571 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753505AbdLNRWC (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 14 Dec 2017 12:22:02 -0500
-From: Sean Young <sean@mess.org>
-To: linux-media@vger.kernel.org
-Cc: Andi Shyti <andi.shyti@samsung.com>
-Subject: [PATCH 10/10] media: ir-spi: add SPDX identifier
-Date: Thu, 14 Dec 2017 17:21:59 +0000
-Message-Id: <f15d723b0fe58c70bd35f1d793172acfbc7211b7.1513271970.git.sean@mess.org>
-In-Reply-To: <4e8c9939b6b116a54e3042d098343bc918268b1d.1513271970.git.sean@mess.org>
-References: <4e8c9939b6b116a54e3042d098343bc918268b1d.1513271970.git.sean@mess.org>
-In-Reply-To: <4e8c9939b6b116a54e3042d098343bc918268b1d.1513271970.git.sean@mess.org>
-References: <4e8c9939b6b116a54e3042d098343bc918268b1d.1513271970.git.sean@mess.org>
+Received: from aserp2130.oracle.com ([141.146.126.79]:35438 "EHLO
+        aserp2130.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754117AbdLTIh6 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 20 Dec 2017 03:37:58 -0500
+Date: Wed, 20 Dec 2017 08:38:29 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        kernel-janitors@vger.kernel.org
+Cc: Alan Cox <alan@linux.intel.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        devel@driverdev.osuosl.org, Kristian Beilke <beilke@posteo.de>
+Subject: Re: [PATCH v1 05/10] staging: atomisp: Remove non-ACPI leftovers
+Message-ID: <20171220053828.5wphhl6oc2sl3su5@mwanda>
+References: <20171219205957.10933-1-andriy.shevchenko@linux.intel.com>
+ <20171219205957.10933-5-andriy.shevchenko@linux.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20171219205957.10933-5-andriy.shevchenko@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Andi Shyti <andi.shyti@samsung.com>
+On Tue, Dec 19, 2017 at 10:59:52PM +0200, Andy Shevchenko wrote:
+> @@ -914,9 +904,7 @@ static int lm3554_probe(struct i2c_client *client)
+>  		dev_err(&client->dev, "gpio request/direction_output fail");
+>  		goto fail2;
+>  	}
+> -	if (ACPI_HANDLE(&client->dev))
+> -		err = atomisp_register_i2c_module(&flash->sd, NULL, LED_FLASH);
+> -	return 0;
+> +	return atomisp_register_i2c_module(&flash->sd, NULL, LED_FLASH);
+>  fail2:
+>  	media_entity_cleanup(&flash->sd.entity);
+>  	v4l2_ctrl_handler_free(&flash->ctrl_handler);
 
-Replace the original license statement with the SPDX identifier.
+Actually every place where we directly return a function call is wrong
+and needs error handling added.  I've been meaning to write a Smatch
+check for this because it's a common anti-pattern we don't check the
+last function call for errors.
 
-Update also the copyright owner adding myself as co-owner of the
-copyright.
+Someone could probably do the same in Coccinelle if they want.
 
-Signed-off-by: Andi Shyti <andi.shyti@samsung.com>
-Signed-off-by: Sean Young <sean@mess.org>
----
- drivers/media/rc/ir-spi.c | 15 +++++----------
- 1 file changed, 5 insertions(+), 10 deletions(-)
-
-diff --git a/drivers/media/rc/ir-spi.c b/drivers/media/rc/ir-spi.c
-index 29ed0638cb74..a32a84ae2d0b 100644
---- a/drivers/media/rc/ir-spi.c
-+++ b/drivers/media/rc/ir-spi.c
-@@ -1,13 +1,8 @@
--/*
-- * Copyright (c) 2016 Samsung Electronics Co., Ltd.
-- * Author: Andi Shyti <andi.shyti@samsung.com>
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License version 2 as
-- * published by the Free Software Foundation.
-- *
-- * SPI driven IR LED device driver
-- */
-+// SPDX-License-Identifier: GPL-2.0
-+// SPI driven IR LED device driver
-+//
-+// Copyright (c) 2016 Samsung Electronics Co., Ltd.
-+// Copyright (c) Andi Shyti <andi.shyti@samsung.com>
- 
- #include <linux/delay.h>
- #include <linux/fs.h>
--- 
-2.14.3
+regards,
+dan carpenter
