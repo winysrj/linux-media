@@ -1,92 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:47195 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752413AbdLHJEH (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 8 Dec 2017 04:04:07 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Niklas =?ISO-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>
-Subject: Re: [PATCH v9 11/28] rcar-vin: do not allow changing scaling and composing while streaming
-Date: Fri, 08 Dec 2017 11:04:26 +0200
-Message-ID: <14690079.PLADEzS7Fe@avalon>
-In-Reply-To: <20171208010842.20047-12-niklas.soderlund+renesas@ragnatech.se>
-References: <20171208010842.20047-1-niklas.soderlund+renesas@ragnatech.se> <20171208010842.20047-12-niklas.soderlund+renesas@ragnatech.se>
+Received: from mail-qt0-f195.google.com ([209.85.216.195]:45610 "EHLO
+        mail-qt0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754153AbdLTKYh (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 20 Dec 2017 05:24:37 -0500
+Received: by mail-qt0-f195.google.com with SMTP id g10so27608982qtj.12
+        for <linux-media@vger.kernel.org>; Wed, 20 Dec 2017 02:24:37 -0800 (PST)
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset="iso-8859-1"
+In-Reply-To: <20171220045416.qbge74ntj4s4zlcm@mwanda>
+References: <20171219205957.10933-1-andriy.shevchenko@linux.intel.com>
+ <20171219205957.10933-5-andriy.shevchenko@linux.intel.com> <20171220045416.qbge74ntj4s4zlcm@mwanda>
+From: Andy Shevchenko <andy.shevchenko@gmail.com>
+Date: Wed, 20 Dec 2017 12:24:36 +0200
+Message-ID: <CAHp75VcoYnvwrdVQnMmtPfuiRg0AFOSa5WwfhTk3HP0ww7x5VA@mail.gmail.com>
+Subject: Re: [PATCH v1 05/10] staging: atomisp: Remove non-ACPI leftovers
+To: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Alan Cox <alan@linux.intel.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        devel@driverdev.osuosl.org, Kristian Beilke <beilke@posteo.de>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Niklas,
+On Wed, Dec 20, 2017 at 6:54 AM, Dan Carpenter <dan.carpenter@oracle.com> wrote:
+> On Tue, Dec 19, 2017 at 10:59:52PM +0200, Andy Shevchenko wrote:
+>> @@ -1147,10 +1145,8 @@ static int gc2235_probe(struct i2c_client *client)
+>>       if (ret)
+>>               gc2235_remove(client);
+>
+> This error handling is probably wrong...
+>
 
-Thank you for the patch.
+Thanks for pointing to this, but I'm not going to fix this by the
+following reasons:
+1. I admit the driver's code is ugly
+2. It's staging code
+3. My patch does not touch those lines
+4. My purpose is to get it working first.
 
-On Friday, 8 December 2017 03:08:25 EET Niklas S=F6derlund wrote:
-> It is possible on Gen2 to change the registers controlling composing and
-> scaling while the stream is running. It is however not a good idea to do
-> so and could result in trouble. There are also no good reasons to allow
-> this, remove immediate reflection in hardware registers from
-> vidioc_s_selection and only configure scaling and composing when the
-> stream starts.
+Feel free to send a followup with a good clean up which I agree with.
 
-There is a good reason: digital zoom.
+>>
+>> -     if (ACPI_HANDLE(&client->dev))
+>> -             ret = atomisp_register_i2c_module(&dev->sd, gcpdev, RAW_CAMERA);
+>> +     return atomisp_register_i2c_module(&dev->sd, gcpdev, RAW_CAMERA);
+>
+> In the end this should look something like:
+>
+>         ret = atomisp_register_i2c_module(&dev->sd, gcpdev, RAW_CAMERA);
+>         if (ret)
+>                 goto err_free_something;
+>
+>         return 0;
+>
+>>
+>> -     return ret;
+>>  out_free:
+>>       v4l2_device_unregister_subdev(&dev->sd);
+>>       kfree(dev);
+>
+> regards,
+> dan carpenter
+>
 
-> Signed-off-by: Niklas S=F6derlund <niklas.soderlund+renesas@ragnatech.se>
-> Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  drivers/media/platform/rcar-vin/rcar-dma.c  | 2 +-
->  drivers/media/platform/rcar-vin/rcar-v4l2.c | 3 ---
->  drivers/media/platform/rcar-vin/rcar-vin.h  | 3 ---
->  3 files changed, 1 insertion(+), 7 deletions(-)
->=20
-> diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c
-> b/drivers/media/platform/rcar-vin/rcar-dma.c index
-> fd14be20a6604d7a..7be5080f742825fb 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-dma.c
-> +++ b/drivers/media/platform/rcar-vin/rcar-dma.c
-> @@ -514,7 +514,7 @@ static void rvin_set_coeff(struct rvin_dev *vin,
-> unsigned short xs) rvin_write(vin, p_set->coeff_set[23], VNC8C_REG);
->  }
->=20
-> -void rvin_crop_scale_comp(struct rvin_dev *vin)
-> +static void rvin_crop_scale_comp(struct rvin_dev *vin)
->  {
->  	u32 xs, ys;
->=20
-> diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> b/drivers/media/platform/rcar-vin/rcar-v4l2.c index
-> 254fa1c8770275a5..d6298c684ab2d731 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> +++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> @@ -436,9 +436,6 @@ static int rvin_s_selection(struct file *file, void *=
-fh,
-> return -EINVAL;
->  	}
->=20
-> -	/* HW supports modifying configuration while running */
-> -	rvin_crop_scale_comp(vin);
-> -
->  	return 0;
->  }
->=20
-> diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h
-> b/drivers/media/platform/rcar-vin/rcar-vin.h index
-> 36d0f0cc4ce01a6e..67541b483ee43c52 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-vin.h
-> +++ b/drivers/media/platform/rcar-vin/rcar-vin.h
-> @@ -175,7 +175,4 @@ void rvin_v4l2_unregister(struct rvin_dev *vin);
->=20
->  const struct rvin_video_format *rvin_format_from_pixel(u32 pixelformat);
->=20
-> -/* Cropping, composing and scaling */
-> -void rvin_crop_scale_comp(struct rvin_dev *vin);
-> -
->  #endif
 
-=2D-=20
-Regards,
 
-Laurent Pinchart
+-- 
+With Best Regards,
+Andy Shevchenko
