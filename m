@@ -1,45 +1,168 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:1443 "EHLO mga09.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751084AbdLSOMk (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 19 Dec 2017 09:12:40 -0500
-Date: Tue, 19 Dec 2017 16:12:35 +0200
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
-        Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Subject: Re: [PATCH 2/8] media: v4l2-ioctl.h: convert debug into an enum of
- bits
-Message-ID: <20171219141235.mgiyoeeiyfn2z4zh@paasikivi.fi.intel.com>
-References: <cover.1513625884.git.mchehab@s-opensource.com>
- <333b63fa1857f6819ce64666beba969c22e2f468.1513625884.git.mchehab@s-opensource.com>
- <20171219113927.i2srypzhigkijetf@valkosipuli.retiisi.org.uk>
- <1615432.c1z8s9p1mm@avalon>
+Received: from mx08-00178001.pphosted.com ([91.207.212.93]:16596 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1754290AbdLTJvo (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 20 Dec 2017 04:51:44 -0500
+From: Hugues Fruchet <hugues.fruchet@st.com>
+To: Steve Longerbeam <slongerbeam@gmail.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        "Mauro Carvalho Chehab" <mchehab@kernel.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>
+CC: <linux-media@vger.kernel.org>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Subject: [PATCH v4 2/5] media: ov5640: check chip id
+Date: Wed, 20 Dec 2017 10:51:11 +0100
+Message-ID: <1513763474-1174-3-git-send-email-hugues.fruchet@st.com>
+In-Reply-To: <1513763474-1174-1-git-send-email-hugues.fruchet@st.com>
+References: <1513763474-1174-1-git-send-email-hugues.fruchet@st.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1615432.c1z8s9p1mm@avalon>
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Verify that chip identifier is correct when probing.
 
-On Tue, Dec 19, 2017 at 04:02:02PM +0200, Laurent Pinchart wrote:
-> And furthermore using enum types in the uAPI is a bad idea as the enum size is 
-> architecture-dependent. That's why we use integer types in structures used as 
-> ioctl arguments.
+Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
+---
+ drivers/media/i2c/ov5640.c | 95 ++++++++++++++++++++++++++++++++++++++--------
+ 1 file changed, 79 insertions(+), 16 deletions(-)
 
-I guess we have an argeement on that, enums are a no-go for uAPI, for
-reasons not related to the topic at hand.
-
+diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
+index 61071f5..9f031f3 100644
+--- a/drivers/media/i2c/ov5640.c
++++ b/drivers/media/i2c/ov5640.c
+@@ -1547,24 +1547,58 @@ static void ov5640_reset(struct ov5640_dev *sensor)
+ 	usleep_range(5000, 10000);
+ }
+ 
+-static int ov5640_set_power(struct ov5640_dev *sensor, bool on)
++static int ov5640_set_power_on(struct ov5640_dev *sensor)
+ {
+-	int ret = 0;
++	struct i2c_client *client = sensor->i2c_client;
++	int ret;
+ 
+-	if (on) {
+-		clk_prepare_enable(sensor->xclk);
++	ret = clk_prepare_enable(sensor->xclk);
++	if (ret) {
++		dev_err(&client->dev, "%s: failed to enable clock\n",
++			__func__);
++		return ret;
++	}
+ 
+-		ret = regulator_bulk_enable(OV5640_NUM_SUPPLIES,
+-					    sensor->supplies);
+-		if (ret)
+-			goto xclk_off;
++	ret = regulator_bulk_enable(OV5640_NUM_SUPPLIES,
++				    sensor->supplies);
++	if (ret) {
++		dev_err(&client->dev, "%s: failed to enable regulators\n",
++			__func__);
++		goto xclk_off;
++	}
++
++	ov5640_reset(sensor);
++	ov5640_power(sensor, true);
++
++	ret = ov5640_init_slave_id(sensor);
++	if (ret)
++		goto power_off;
++
++	return 0;
++
++power_off:
++	ov5640_power(sensor, false);
++	regulator_bulk_disable(OV5640_NUM_SUPPLIES, sensor->supplies);
++xclk_off:
++	clk_disable_unprepare(sensor->xclk);
++	return ret;
++}
++
++static void ov5640_set_power_off(struct ov5640_dev *sensor)
++{
++	ov5640_power(sensor, false);
++	regulator_bulk_disable(OV5640_NUM_SUPPLIES, sensor->supplies);
++	clk_disable_unprepare(sensor->xclk);
++}
+ 
+-		ov5640_reset(sensor);
+-		ov5640_power(sensor, true);
++static int ov5640_set_power(struct ov5640_dev *sensor, bool on)
++{
++	int ret = 0;
+ 
+-		ret = ov5640_init_slave_id(sensor);
++	if (on) {
++		ret = ov5640_set_power_on(sensor);
+ 		if (ret)
+-			goto power_off;
++			return ret;
+ 
+ 		ret = ov5640_restore_mode(sensor);
+ 		if (ret)
+@@ -1586,10 +1620,7 @@ static int ov5640_set_power(struct ov5640_dev *sensor, bool on)
+ 	}
+ 
+ power_off:
+-	ov5640_power(sensor, false);
+-	regulator_bulk_disable(OV5640_NUM_SUPPLIES, sensor->supplies);
+-xclk_off:
+-	clk_disable_unprepare(sensor->xclk);
++	ov5640_set_power_off(sensor);
+ 	return ret;
+ }
+ 
+@@ -2202,6 +2233,34 @@ static int ov5640_get_regulators(struct ov5640_dev *sensor)
+ 				       sensor->supplies);
+ }
+ 
++static int ov5640_check_chip_id(struct ov5640_dev *sensor)
++{
++	struct i2c_client *client = sensor->i2c_client;
++	int ret = 0;
++	u16 chip_id;
++
++	ret = ov5640_set_power_on(sensor);
++	if (ret)
++		return ret;
++
++	ret = ov5640_read_reg16(sensor, OV5640_REG_CHIP_ID, &chip_id);
++	if (ret) {
++		dev_err(&client->dev, "%s: failed to read chip identifier\n",
++			__func__);
++		goto power_off;
++	}
++
++	if (chip_id != 0x5640) {
++		dev_err(&client->dev, "%s: wrong chip identifier, expected 0x5640, got 0x%x\n",
++			__func__, chip_id);
++		ret = -ENXIO;
++	}
++
++power_off:
++	ov5640_set_power_off(sensor);
++	return ret;
++}
++
+ static int ov5640_probe(struct i2c_client *client,
+ 			const struct i2c_device_id *id)
+ {
+@@ -2284,6 +2343,10 @@ static int ov5640_probe(struct i2c_client *client,
+ 
+ 	mutex_init(&sensor->lock);
+ 
++	ret = ov5640_check_chip_id(sensor);
++	if (ret)
++		goto entity_cleanup;
++
+ 	ret = ov5640_init_controls(sensor);
+ 	if (ret)
+ 		goto entity_cleanup;
 -- 
-Sakari Ailus
-sakari.ailus@linux.intel.com
+1.9.1
