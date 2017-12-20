@@ -1,107 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f67.google.com ([74.125.82.67]:42144 "EHLO
-        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753159AbdLROLw (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:59271 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755498AbdLTRyC (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 18 Dec 2017 09:11:52 -0500
-From: Philipp Rossak <embed3d@gmail.com>
-To: mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
-        maxime.ripard@free-electrons.com, wens@csie.org,
-        linux@armlinux.org.uk, sean@mess.org, p.zabel@pengutronix.de,
-        andi.shyti@samsung.com
-Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-sunxi@googlegroups.com
-Subject: [PATCH v2 1/6] media: rc: update sunxi-ir driver to get base clock frequency from devicetree
-Date: Mon, 18 Dec 2017 15:11:41 +0100
-Message-Id: <20171218141146.23746-2-embed3d@gmail.com>
-In-Reply-To: <20171218141146.23746-1-embed3d@gmail.com>
-References: <20171218141146.23746-1-embed3d@gmail.com>
+        Wed, 20 Dec 2017 12:54:02 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>, robh+dt@kernel.org,
+        devicetree@vger.kernel.org, ivo.g.dimitrov.75@gmail.com,
+        sre@kernel.org, pali.rohar@gmail.com, linux-media@vger.kernel.org,
+        galak@codeaurora.org, mchehab@osg.samsung.com,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] devicetree: Add video bus switch
+Date: Wed, 20 Dec 2017 19:54:12 +0200
+Message-ID: <75694885.3PuLWzx4qN@avalon>
+In-Reply-To: <20170204215610.GA9243@amd>
+References: <20161023200355.GA5391@amd> <20170203213454.GD12291@valkosipuli.retiisi.org.uk> <20170204215610.GA9243@amd>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch updates the sunxi-ir driver to set the base clock frequency from
-devicetree.
+Hi Pavel,
 
-This is necessary since there are different ir receivers on the
-market, that operate with different frequencies. So this value could be
-set if the attached ir receiver needs a different base clock frequency,
-than the default 8 MHz.
+On Saturday, 4 February 2017 23:56:10 EET Pavel Machek wrote:
+> Hi!
+> 
+> >>>> +Required properties
+> >>>> +===================
+> >>>> +
+> >>>> +compatible	: must contain "video-bus-switch"
+> >>> 
+> >>> How generic is this? Should we have e.g. nokia,video-bus-switch? And
+> >>> if so, change the file name accordingly.
+> >> 
+> >> Generic for "single GPIO controls the switch", AFAICT. But that should
+> >> be common enough...
+> > 
+> > Um, yes. Then... how about: video-bus-switch-gpio? No Nokia prefix.
+> 
+> Ok, done. I also fixed the english a bit.
+> 
+> >>>> +reg		: The interface:
+> >>>> +		  0 - port for image signal processor
+> >>>> +		  1 - port for first camera sensor
+> >>>> +		  2 - port for second camera sensor
+> >>> 
+> >>> I'd say this must be pretty much specific to the one in N900. You
+> >>> could have more ports. Or you could say that ports beyond 0 are
+> >>> camera sensors. I guess this is good enough for now though, it can be
+> >>> changed later on with the source if a need arises.
+> >> 
+> >> Well, I'd say that selecting between two sensors is going to be the
+> >> common case. If someone needs more than two, it will no longer be
+> >> simple GPIO, so we'll have some fixing to do.
+> > 
+> > It could be two GPIOs --- that's how the GPIO I2C mux works.
+> > 
+> > But I'd be surprised if someone ever uses something like that
+> > again. ;-)
+> 
+> I'd say.. lets handle that when we see hardware like that.
+> 
+> >>> Btw. was it still considered a problem that the endpoint properties
+> >>> for the sensors can be different? With the g_routing() pad op which is
+> >>> to be added, the ISP driver (should actually go to a framework
+> >>> somewhere) could parse the graph and find the proper endpoint there.
+> >> 
+> >> I don't know about g_routing. I added g_endpoint_config method that
+> >> passes the configuration, and that seems to work for me.
+> >> 
+> >> I don't see g_routing in next-20170201 . Is there place to look?
+> > 
+> > I think there was a patch by Laurent to LMML quite some time ago. I
+> > suppose that set will be repicked soonish.
+> > 
+> > I don't really object using g_endpoint_config() as a temporary solution;
+> > I'd like to have Laurent's opinion on that though. Another option is to
+> > wait, but we've already waited a looong time (as in total).
+> 
+> Laurent, do you have some input here? We have simple "2 cameras
+> connected to one signal processor" situation here. We need some way of
+> passing endpoint configuration from the sensors through the switch. I
+> did this:
 
-Signed-off-by: Philipp Rossak <embed3d@gmail.com>
----
- drivers/media/rc/sunxi-cir.c | 19 +++++++++++--------
- 1 file changed, 11 insertions(+), 8 deletions(-)
+Could you give me a bit more information about the platform you're targeting: 
+how the switch is connected, what kind of switch it is, and what endpoint 
+configuration data you need ?
 
-diff --git a/drivers/media/rc/sunxi-cir.c b/drivers/media/rc/sunxi-cir.c
-index 97f367b446c4..f500cea228a9 100644
---- a/drivers/media/rc/sunxi-cir.c
-+++ b/drivers/media/rc/sunxi-cir.c
-@@ -72,12 +72,8 @@
- /* CIR_REG register idle threshold */
- #define REG_CIR_ITHR(val)    (((val) << 8) & (GENMASK(15, 8)))
- 
--/* Required frequency for IR0 or IR1 clock in CIR mode */
-+/* Required frequency for IR0 or IR1 clock in CIR mode (default) */
- #define SUNXI_IR_BASE_CLK     8000000
--/* Frequency after IR internal divider  */
--#define SUNXI_IR_CLK          (SUNXI_IR_BASE_CLK / 64)
--/* Sample period in ns */
--#define SUNXI_IR_SAMPLE       (1000000000ul / SUNXI_IR_CLK)
- /* Noise threshold in samples  */
- #define SUNXI_IR_RXNOISE      1
- /* Idle Threshold in samples */
-@@ -122,7 +118,8 @@ static irqreturn_t sunxi_ir_irq(int irqno, void *dev_id)
- 			/* for each bit in fifo */
- 			dt = readb(ir->base + SUNXI_IR_RXFIFO_REG);
- 			rawir.pulse = (dt & 0x80) != 0;
--			rawir.duration = ((dt & 0x7f) + 1) * SUNXI_IR_SAMPLE;
-+			rawir.duration = ((dt & 0x7f) + 1) *
-+					 ir->rc->rx_resolution;
- 			ir_raw_event_store_with_filter(ir->rc, &rawir);
- 		}
- 	}
-@@ -148,6 +145,7 @@ static int sunxi_ir_probe(struct platform_device *pdev)
- 	struct device_node *dn = dev->of_node;
- 	struct resource *res;
- 	struct sunxi_ir *ir;
-+	u32 b_clk_freq = SUNXI_IR_BASE_CLK;
- 
- 	ir = devm_kzalloc(dev, sizeof(struct sunxi_ir), GFP_KERNEL);
- 	if (!ir)
-@@ -172,6 +170,9 @@ static int sunxi_ir_probe(struct platform_device *pdev)
- 		return PTR_ERR(ir->clk);
- 	}
- 
-+	/* Base clock frequency (optional) */
-+	of_property_read_u32(dn, "clock-frequency", &b_clk_freq);
-+
- 	/* Reset (optional) */
- 	ir->rst = devm_reset_control_get_optional_exclusive(dev, NULL);
- 	if (IS_ERR(ir->rst))
-@@ -180,11 +181,12 @@ static int sunxi_ir_probe(struct platform_device *pdev)
- 	if (ret)
- 		return ret;
- 
--	ret = clk_set_rate(ir->clk, SUNXI_IR_BASE_CLK);
-+	ret = clk_set_rate(ir->clk, b_clk_freq);
- 	if (ret) {
- 		dev_err(dev, "set ir base clock failed!\n");
- 		goto exit_reset_assert;
- 	}
-+	dev_dbg(dev, "set base clock frequency to %d Hz.\n", b_clk_freq);
- 
- 	if (clk_prepare_enable(ir->apb_clk)) {
- 		dev_err(dev, "try to enable apb_ir_clk failed\n");
-@@ -225,7 +227,8 @@ static int sunxi_ir_probe(struct platform_device *pdev)
- 	ir->rc->map_name = ir->map_name ?: RC_MAP_EMPTY;
- 	ir->rc->dev.parent = dev;
- 	ir->rc->allowed_protocols = RC_PROTO_BIT_ALL_IR_DECODER;
--	ir->rc->rx_resolution = SUNXI_IR_SAMPLE;
-+	/* Frequency after IR internal divider with sample period in ns */
-+	ir->rc->rx_resolution = (1000000000ul / (b_clk_freq / 64));
- 	ir->rc->timeout = MS_TO_NS(SUNXI_IR_TIMEOUT);
- 	ir->rc->driver_name = SUNXI_IR_DEV;
- 
+> >> @@ -415,6 +416,8 @@ struct v4l2_subdev_video_ops {
+> >>                          const struct v4l2_mbus_config *cfg);
+> >>     int (*s_rx_buffer)(struct v4l2_subdev *sd, void *buf,
+> >>                        unsigned int *size);
+> >> +   int (*g_endpoint_config)(struct v4l2_subdev *sd,
+> >> +                       struct v4l2_of_endpoint *cfg);
+> 
+> Google of g_routing tells me:
+> 
+> 9) Highly reconfigurable hardware - Julien Beraud
+> 
+> - 44 sub-devices connected with an interconnect.
+> - As long as formats match, any sub-device could be connected to any
+> - other sub-device through a link.
+> - The result is 44 * 44 links at worst.
+> - A switch sub-device proposed as the solution to model the
+> - interconnect. The sub-devices are connected to the switch
+> - sub-devices through the hardware links that connect to the
+> - interconnect.
+> - The switch would be controlled through new IOCTLs S_ROUTING and
+> - G_ROUTING.
+> - Patches available:
+>  http://git.linuxtv.org/cgit.cgi/pinchartl/media.git/log/?h=xilinx-wip
+> 
+> but the patches are from 2005. So I guess I'll need some guidance here...
+
+You made me feel very old for a moment. The patches are from 2015 :-)
+
+> > I'll reply to the other patch containing the code.
+
 -- 
-2.11.0
+Regards,
+
+Laurent Pinchart
