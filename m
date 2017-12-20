@@ -1,110 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx08-00178001.pphosted.com ([91.207.212.93]:11126 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1754569AbdLTJvm (ORCPT
+Received: from mail-pf0-f193.google.com ([209.85.192.193]:38871 "EHLO
+        mail-pf0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753433AbdLTQdx (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 20 Dec 2017 04:51:42 -0500
-From: Hugues Fruchet <hugues.fruchet@st.com>
-To: Steve Longerbeam <slongerbeam@gmail.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        "Mauro Carvalho Chehab" <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>
-CC: <linux-media@vger.kernel.org>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Subject: [PATCH v4 3/5] media: dt-bindings: ov5640: refine CSI-2 and add parallel interface
-Date: Wed, 20 Dec 2017 10:51:12 +0100
-Message-ID: <1513763474-1174-4-git-send-email-hugues.fruchet@st.com>
-In-Reply-To: <1513763474-1174-1-git-send-email-hugues.fruchet@st.com>
-References: <1513763474-1174-1-git-send-email-hugues.fruchet@st.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+        Wed, 20 Dec 2017 11:33:53 -0500
+Received: by mail-pf0-f193.google.com with SMTP id u25so12768960pfg.5
+        for <linux-media@vger.kernel.org>; Wed, 20 Dec 2017 08:33:53 -0800 (PST)
+From: Akinobu Mita <akinobu.mita@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Akinobu Mita <akinobu.mita@gmail.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Subject: [PATCH 2/4] meida: mt9m111: add media controller support
+Date: Thu, 21 Dec 2017 01:33:32 +0900
+Message-Id: <1513787614-12008-3-git-send-email-akinobu.mita@gmail.com>
+In-Reply-To: <1513787614-12008-1-git-send-email-akinobu.mita@gmail.com>
+References: <1513787614-12008-1-git-send-email-akinobu.mita@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Refine CSI-2 endpoint documentation and add bindings
-for DVP parallel interface support.
+Create a source pad and set the media controller type to the sensor.
 
-Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
 ---
- .../devicetree/bindings/media/i2c/ov5640.txt       | 48 +++++++++++++++++++++-
- 1 file changed, 46 insertions(+), 2 deletions(-)
+ drivers/media/i2c/mt9m111.c | 22 ++++++++++++++++++++--
+ 1 file changed, 20 insertions(+), 2 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/media/i2c/ov5640.txt b/Documentation/devicetree/bindings/media/i2c/ov5640.txt
-index 540b36c..e26a846 100644
---- a/Documentation/devicetree/bindings/media/i2c/ov5640.txt
-+++ b/Documentation/devicetree/bindings/media/i2c/ov5640.txt
-@@ -1,4 +1,4 @@
--* Omnivision OV5640 MIPI CSI-2 sensor
-+* Omnivision OV5640 MIPI CSI-2 / parallel sensor
- 
- Required Properties:
- - compatible: should be "ovti,ov5640"
-@@ -18,7 +18,27 @@ The device node must contain one 'port' child node for its digital output
- video port, in accordance with the video interface bindings defined in
- Documentation/devicetree/bindings/media/video-interfaces.txt.
- 
--Example:
-+OV5640 can be connected to a MIPI CSI-2 bus or a parallel bus endpoint.
-+
-+Endpoint node required properties for CSI-2 connection are:
-+- remote-endpoint: a phandle to the bus receiver's endpoint node.
-+- clock-lanes: should be set to <0> (clock lane on hardware lane 0)
-+- data-lanes: should be set to <1> or <1 2> (one or two CSI-2 lanes supported)
-+
-+Endpoint node required properties for parallel connection are:
-+- remote-endpoint: a phandle to the bus receiver's endpoint node.
-+- bus-width: shall be set to <8> for 8 bits parallel bus
-+	     or <10> for 10 bits parallel bus
-+- data-shift: shall be set to <2> for 8 bits parallel bus
-+	      (lines 9:2 are used) or <0> for 10 bits parallel bus
-+
-+Endpoint node optional properties for parallel connection are:
-+- hsync-active: active state of the HSYNC signal, 0/1 for LOW/HIGH respectively.
-+- vsync-active: active state of the VSYNC signal, 0/1 for LOW/HIGH respectively.
-+- pclk-sample: sample data on rising (1) or falling (0) edge of the pixel clock
-+	       signal.
-+
-+Examples:
- 
- &i2c1 {
- 	ov5640: camera@3c {
-@@ -35,6 +55,7 @@ Example:
- 		reset-gpios = <&gpio1 20 GPIO_ACTIVE_LOW>;
- 
- 		port {
-+			/* MIPI CSI-2 bus endpoint */
- 			ov5640_to_mipi_csi2: endpoint {
- 				remote-endpoint = <&mipi_csi2_from_ov5640>;
- 				clock-lanes = <0>;
-@@ -43,3 +64,26 @@ Example:
- 		};
- 	};
+diff --git a/drivers/media/i2c/mt9m111.c b/drivers/media/i2c/mt9m111.c
+index 4fa10df..e1d5032 100644
+--- a/drivers/media/i2c/mt9m111.c
++++ b/drivers/media/i2c/mt9m111.c
+@@ -215,6 +215,9 @@ struct mt9m111 {
+ 	int power_count;
+ 	const struct mt9m111_datafmt *fmt;
+ 	int lastpage;	/* PageMap cache value */
++#ifdef CONFIG_MEDIA_CONTROLLER
++	struct media_pad pad;
++#endif
  };
+ 
+ /* Find a data format by a pixel code */
+@@ -971,6 +974,14 @@ static int mt9m111_probe(struct i2c_client *client,
+ 		goto out_clkput;
+ 	}
+ 
++#ifdef CONFIG_MEDIA_CONTROLLER
++	mt9m111->pad.flags = MEDIA_PAD_FL_SOURCE;
++	mt9m111->subdev.entity.function = MEDIA_ENT_F_CAM_SENSOR;
++	ret = media_entity_pads_init(&mt9m111->subdev.entity, 1, &mt9m111->pad);
++	if (ret < 0)
++		goto out_hdlfree;
++#endif
 +
-+&i2c1 {
-+	ov5640: camera@3c {
-+		compatible = "ovti,ov5640";
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&pinctrl_ov5640>;
-+		reg = <0x3c>;
-+		clocks = <&clk_ext_camera>;
-+		clock-names = "xclk";
-+
-+		port {
-+			/* Parallel bus endpoint */
-+			ov5640_to_parallel: endpoint {
-+				remote-endpoint = <&parallel_from_ov5640>;
-+				bus-width = <8>;
-+				data-shift = <2>; /* lines 9:2 are used */
-+				hsync-active = <0>;
-+				vsync-active = <0>;
-+				pclk-sample = <1>;
-+			};
-+		};
-+	};
-+};
+ 	/* Second stage probe - when a capture adapter is there */
+ 	mt9m111->rect.left	= MT9M111_MIN_DARK_COLS;
+ 	mt9m111->rect.top	= MT9M111_MIN_DARK_ROWS;
+@@ -982,16 +993,20 @@ static int mt9m111_probe(struct i2c_client *client,
+ 
+ 	ret = mt9m111_video_probe(client);
+ 	if (ret < 0)
+-		goto out_hdlfree;
++		goto out_entityclean;
+ 
+ 	mt9m111->subdev.dev = &client->dev;
+ 	ret = v4l2_async_register_subdev(&mt9m111->subdev);
+ 	if (ret < 0)
+-		goto out_hdlfree;
++		goto out_entityclean;
+ 
+ 	return 0;
+ 
++out_entityclean:
++#ifdef CONFIG_MEDIA_CONTROLLER
++	media_entity_cleanup(&mt9m111->subdev.entity);
+ out_hdlfree:
++#endif
+ 	v4l2_ctrl_handler_free(&mt9m111->hdl);
+ out_clkput:
+ 	v4l2_clk_put(mt9m111->clk);
+@@ -1004,6 +1019,9 @@ static int mt9m111_remove(struct i2c_client *client)
+ 	struct mt9m111 *mt9m111 = to_mt9m111(client);
+ 
+ 	v4l2_async_unregister_subdev(&mt9m111->subdev);
++#ifdef CONFIG_MEDIA_CONTROLLER
++	media_entity_cleanup(&mt9m111->subdev.entity);
++#endif
+ 	v4l2_clk_put(mt9m111->clk);
+ 	v4l2_ctrl_handler_free(&mt9m111->hdl);
+ 
 -- 
-1.9.1
+2.7.4
