@@ -1,102 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f68.google.com ([209.85.215.68]:42141 "EHLO
-        mail-lf0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751347AbdLLA0l (ORCPT
+Received: from mail-lf0-f54.google.com ([209.85.215.54]:41987 "EHLO
+        mail-lf0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755397AbdLTQ1B (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 11 Dec 2017 19:26:41 -0500
-From: Dmitry Osipenko <digetx@gmail.com>
-To: Thierry Reding <thierry.reding@gmail.com>,
-        Jonathan Hunter <jonathanh@nvidia.com>,
-        Stephen Warren <swarren@wwwdotorg.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Vladimir Zapolskiy <vz@mleia.com>
-Cc: Rob Herring <robh+dt@kernel.org>,
-        Dan Carpenter <dan.carpenter@oracle.com>,
-        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        devicetree@vger.kernel.org, linux-tegra@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH v5 1/4] media: dt: bindings: Add binding for NVIDIA Tegra Video Decoder Engine
-Date: Tue, 12 Dec 2017 03:26:07 +0300
-Message-Id: <155182bb32443b69e457adbd642c12da81b0a241.1513038011.git.digetx@gmail.com>
-In-Reply-To: <cover.1513038011.git.digetx@gmail.com>
-References: <cover.1513038011.git.digetx@gmail.com>
-In-Reply-To: <cover.1513038011.git.digetx@gmail.com>
-References: <cover.1513038011.git.digetx@gmail.com>
+        Wed, 20 Dec 2017 11:27:01 -0500
+Received: by mail-lf0-f54.google.com with SMTP id e30so7820801lfb.9
+        for <linux-media@vger.kernel.org>; Wed, 20 Dec 2017 08:27:01 -0800 (PST)
+Date: Wed, 20 Dec 2017 17:26:58 +0100
+From: Niklas =?iso-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>
+Subject: Re: [PATCH v9 11/28] rcar-vin: do not allow changing scaling and
+ composing while streaming
+Message-ID: <20171220162658.GD32148@bigcity.dyn.berto.se>
+References: <20171208010842.20047-1-niklas.soderlund+renesas@ragnatech.se>
+ <14690079.PLADEzS7Fe@avalon>
+ <20171208141423.GQ31989@bigcity.dyn.berto.se>
+ <1750592.qc2TZyzifv@avalon>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <1750592.qc2TZyzifv@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add binding documentation for the Video Decoder Engine which is found
-on NVIDIA Tegra20/30/114/124/132 SoC's.
+Hi Laurent,
 
-Signed-off-by: Dmitry Osipenko <digetx@gmail.com>
-Acked-by: Rob Herring <robh@kernel.org>
----
- .../devicetree/bindings/media/nvidia,tegra-vde.txt | 55 ++++++++++++++++++++++
- 1 file changed, 55 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/nvidia,tegra-vde.txt
+On 2017-12-08 21:20:48 +0200, Laurent Pinchart wrote:
+> Hi Niklas,
+> 
+> On Friday, 8 December 2017 16:14:23 EET Niklas Söderlund wrote:
+> > On 2017-12-08 11:04:26 +0200, Laurent Pinchart wrote:
+> > > On Friday, 8 December 2017 03:08:25 EET Niklas Söderlund wrote:
+> > >> It is possible on Gen2 to change the registers controlling composing and
+> > >> scaling while the stream is running. It is however not a good idea to do
+> > >> so and could result in trouble. There are also no good reasons to allow
+> > >> this, remove immediate reflection in hardware registers from
+> > >> vidioc_s_selection and only configure scaling and composing when the
+> > >> stream starts.
+> > > 
+> > > There is a good reason: digital zoom.
+> > 
+> > OK, so you would recommend me to drop this patch to keep the current
+> > behavior?
+> 
+> Yes, unless you don't care about breaking use cases for Gen2, but in that case 
+> I'd recommend dropping Gen2 support altogether :-)
 
-diff --git a/Documentation/devicetree/bindings/media/nvidia,tegra-vde.txt b/Documentation/devicetree/bindings/media/nvidia,tegra-vde.txt
-new file mode 100644
-index 000000000000..470237ed6fe5
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/nvidia,tegra-vde.txt
-@@ -0,0 +1,55 @@
-+NVIDIA Tegra Video Decoder Engine
-+
-+Required properties:
-+- compatible : Must contain one of the following values:
-+   - "nvidia,tegra20-vde"
-+   - "nvidia,tegra30-vde"
-+   - "nvidia,tegra114-vde"
-+   - "nvidia,tegra124-vde"
-+   - "nvidia,tegra132-vde"
-+- reg : Must contain an entry for each entry in reg-names.
-+- reg-names : Must include the following entries:
-+  - sxe
-+  - bsev
-+  - mbe
-+  - ppe
-+  - mce
-+  - tfe
-+  - ppb
-+  - vdma
-+  - frameid
-+- iram : Must contain phandle to the mmio-sram device node that represents
-+         IRAM region used by VDE.
-+- interrupts : Must contain an entry for each entry in interrupt-names.
-+- interrupt-names : Must include the following entries:
-+  - sync-token
-+  - bsev
-+  - sxe
-+- clocks : Must include the following entries:
-+  - vde
-+- resets : Must include the following entries:
-+  - vde
-+
-+Example:
-+
-+video-codec@6001a000 {
-+	compatible = "nvidia,tegra20-vde";
-+	reg = <0x6001a000 0x1000 /* Syntax Engine */
-+	       0x6001b000 0x1000 /* Video Bitstream Engine */
-+	       0x6001c000  0x100 /* Macroblock Engine */
-+	       0x6001c200  0x100 /* Post-processing Engine */
-+	       0x6001c400  0x100 /* Motion Compensation Engine */
-+	       0x6001c600  0x100 /* Transform Engine */
-+	       0x6001c800  0x100 /* Pixel prediction block */
-+	       0x6001ca00  0x100 /* Video DMA */
-+	       0x6001d800  0x300 /* Video frame controls */>;
-+	reg-names = "sxe", "bsev", "mbe", "ppe", "mce",
-+		    "tfe", "ppb", "vdma", "frameid";
-+	iram = <&vde_pool>; /* IRAM region */
-+	interrupts = <GIC_SPI  9 IRQ_TYPE_LEVEL_HIGH>, /* Sync token interrupt */
-+		     <GIC_SPI 10 IRQ_TYPE_LEVEL_HIGH>, /* BSE-V interrupt */
-+		     <GIC_SPI 12 IRQ_TYPE_LEVEL_HIGH>; /* SXE interrupt */
-+	interrupt-names = "sync-token", "bsev", "sxe";
-+	clocks = <&tegra_car TEGRA20_CLK_VDE>;
-+	resets = <&tegra_car 61>;
-+};
+Well I don't want to do that so I will drop this patch for the next 
+version. Thanks for clarifying the use-case for this.
+
+> 
+> > >> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+> > >> Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+> > >> ---
+> > >> 
+> > >>  drivers/media/platform/rcar-vin/rcar-dma.c  | 2 +-
+> > >>  drivers/media/platform/rcar-vin/rcar-v4l2.c | 3 ---
+> > >>  drivers/media/platform/rcar-vin/rcar-vin.h  | 3 ---
+> > >>  3 files changed, 1 insertion(+), 7 deletions(-)
+> 
+> [snip]
+> 
+> -- 
+> Regards,
+> 
+> Laurent Pinchart
+> 
+
 -- 
-2.15.1
+Regards,
+Niklas Söderlund
