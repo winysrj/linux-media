@@ -1,322 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pl0-f65.google.com ([209.85.160.65]:35391 "EHLO
-        mail-pl0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1757166AbdLPSBJ (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:60054 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755292AbdLTSGD (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 16 Dec 2017 13:01:09 -0500
-Received: by mail-pl0-f65.google.com with SMTP id b96so2341473pli.2
-        for <linux-media@vger.kernel.org>; Sat, 16 Dec 2017 10:01:09 -0800 (PST)
-From: Tim Harvey <tharvey@gateworks.com>
-To: linux-media@vger.kernel.org, alsa-devel@alsa-project.org
-Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
-        shawnguo@kernel.org, Steve Longerbeam <slongerbeam@gmail.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Hans Verkuil <hansverk@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Rob Herring <robh@kernel.org>
-Subject: [PATCH v5 3/6] media: dt-bindings: Add bindings for TDA1997X
-Date: Sat, 16 Dec 2017 10:00:27 -0800
-Message-Id: <1513447230-30948-4-git-send-email-tharvey@gateworks.com>
-In-Reply-To: <1513447230-30948-1-git-send-email-tharvey@gateworks.com>
-References: <1513447230-30948-1-git-send-email-tharvey@gateworks.com>
+        Wed, 20 Dec 2017 13:06:03 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Niklas =?ISO-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund@ragnatech.se>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        kieran.bingham@ideasonboard.com, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org
+Subject: Re: [PATCH] v4l: rcar-csi2: Don't bail out from probe on no ep
+Date: Wed, 20 Dec 2017 20:06:13 +0200
+Message-ID: <4936185.ZshrHvUZzS@avalon>
+In-Reply-To: <20171215142310.GA1281@bigcity.dyn.berto.se>
+References: <1512506508-17418-1-git-send-email-jacopo+renesas@jmondi.org> <d022e2a8-2343-42ef-4075-d81375a490e6@xs4all.nl> <20171215142310.GA1281@bigcity.dyn.berto.se>
+MIME-Version: 1.0
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="iso-8859-1"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Cc: Rob Herring <robh@kernel.org>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Signed-off-by: Tim Harvey <tharvey@gateworks.com>
----
-v5:
- - added Sakari's ack
+Hi Niklas,
 
-v4:
- - move include/dt-bindings/media/tda1997x.h to bindings patch
- - clarify port node details
+On Friday, 15 December 2017 16:23:10 EET Niklas S=F6derlund wrote:
+> On 2017-12-15 15:06:44 +0100, Hans Verkuil wrote:
+> > Niklas,
+> >=20
+> > Did you look at this? If I should take it, can you Ack it? If you are
+> > going to squash or add it to our of your own patch series, then let me
+> > know and I can remove it from my todo queue.
+>=20
+> I did look at it and talked to Jacobo about it. I think I have a better
+> solution to his problem which I hope to try out in the near future. If
+> my workaround turns out to not solve his problem I will squash this in
+> when I resend the rcar-csi2 patch-set so in any case I think you can
+> drop it from your todo queue.
+>=20
+> The reason I'm a bit reluctant to ack this straight away is that I think
+> it's kind of good that rcar-csi2 fails to probe if it finds no endpoints
+> to work with, there is little use for the driver instance then. The
+> problem Jacobo is trying to fix is related to how the rcar-vin Gen3
+> group parses DT and I made a small mistake there which was discovered by
+> Jacobo. And since the original fault is in the rcar-vin driver I think
+> the issue should be fixed in that driver.
 
-v3:
- - fix typo
+How do you plan to handle the case where only one CSI-2 receiver has a=20
+connected input ?
 
-v2:
- - add vendor prefix and remove _ from vidout-portcfg
- - remove _ from labels
- - remove max-pixel-rate property
- - describe and provide example for single output port
- - update to new audio port bindings
----
- .../devicetree/bindings/media/i2c/tda1997x.txt     | 179 +++++++++++++++++++++
- include/dt-bindings/media/tda1997x.h               |  78 +++++++++
- 2 files changed, 257 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/i2c/tda1997x.txt
- create mode 100644 include/dt-bindings/media/tda1997x.h
+> > On 05/12/17 21:41, Jacopo Mondi wrote:
+> >> When rcar-csi interface is not connected to any endpoint, it fails and
+> >> bails out from probe before registering its own video subdevice.
+> >> This prevents rcar-vin registered notifier from completing and no
+> >> subdevice is ever registered, also for other properly connected csi
+> >> interfaces.
+> >>=20
+> >> Fix this not returning an error when no endpoint is connected to a csi
+> >> interface and let the driver complete its probe function and register
+> >> its own video subdevice.
+> >>=20
+> >> ---
+> >> Niklas,
+> >>=20
+> >>    please squash this patch in your next rcar-csi2 series (if you like
+> >>    it ;)
+> >>=20
+> >> As we have discussed this is particularly useful for gmsl setup, where
+> >> adv748x is connected to CSI20 and max9286 to CSI40/CSI41. If we disable
+> >> adv748x from DTS we need CSI20 probe to complete anyhow otherwise no
+> >> subdevice gets registered for the two deserializers.
+> >>=20
+> >> Please note we cannot disable CSI20 entirely otherwise VIN's graph
+> >> parsing breaks.
+> >>=20
+> >> Thanks
+> >>=20
+> >>    j
+> >>=20
+> >> ---
+> >>=20
+> >>  drivers/media/platform/rcar-vin/rcar-csi2.c | 4 ++--
+> >>  1 file changed, 2 insertions(+), 2 deletions(-)
+> >>=20
+> >> diff --git a/drivers/media/platform/rcar-vin/rcar-csi2.c
+> >> b/drivers/media/platform/rcar-vin/rcar-csi2.c index 2793efb..90c4062
+> >> 100644
+> >> --- a/drivers/media/platform/rcar-vin/rcar-csi2.c
+> >> +++ b/drivers/media/platform/rcar-vin/rcar-csi2.c
+> >> @@ -928,8 +928,8 @@ static int rcar_csi2_parse_dt(struct rcar_csi2
+> >> *priv)
+> >>=20
+> >>  	ep =3D of_graph_get_endpoint_by_regs(priv->dev->of_node, 0, 0);
+> >>  	if (!ep) {
+> >> -		dev_err(priv->dev, "Not connected to subdevice\n");
+> >> -		return -EINVAL;
+> >> +		dev_dbg(priv->dev, "Not connected to subdevice\n");
+> >> +		return 0;
+> >>  	}
+> >>  =09
+> >>  	ret =3D v4l2_fwnode_endpoint_parse(of_fwnode_handle(ep), &v4l2_ep);
 
-diff --git a/Documentation/devicetree/bindings/media/i2c/tda1997x.txt b/Documentation/devicetree/bindings/media/i2c/tda1997x.txt
-new file mode 100644
-index 0000000..9ab53c3
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/i2c/tda1997x.txt
-@@ -0,0 +1,179 @@
-+Device-Tree bindings for the NXP TDA1997x HDMI receiver
-+
-+The TDA19971/73 are HDMI video receivers.
-+
-+The TDA19971 Video port output pins can be used as follows:
-+ - RGB 8bit per color (24 bits total): R[11:4] B[11:4] G[11:4]
-+ - YUV444 8bit per color (24 bits total): Y[11:4] Cr[11:4] Cb[11:4]
-+ - YUV422 semi-planar 8bit per component (16 bits total): Y[11:4] CbCr[11:4]
-+ - YUV422 semi-planar 10bit per component (20 bits total): Y[11:2] CbCr[11:2]
-+ - YUV422 semi-planar 12bit per component (24 bits total): - Y[11:0] CbCr[11:0]
-+ - YUV422 BT656 8bit per component (8 bits total): YCbCr[11:4] (2-cycles)
-+ - YUV422 BT656 10bit per component (10 bits total): YCbCr[11:2] (2-cycles)
-+ - YUV422 BT656 12bit per component (12 bits total): YCbCr[11:0] (2-cycles)
-+
-+The TDA19973 Video port output pins can be used as follows:
-+ - RGB 12bit per color (36 bits total): R[11:0] B[11:0] G[11:0]
-+ - YUV444 12bit per color (36 bits total): Y[11:0] Cb[11:0] Cr[11:0]
-+ - YUV422 semi-planar 12bit per component (24 bits total): Y[11:0] CbCr[11:0]
-+ - YUV422 BT656 12bit per component (12 bits total): YCbCr[11:0] (2-cycles)
-+
-+The Video port output pins are mapped via 4-bit 'pin groups' allowing
-+for a variety of connection possibilities including swapping pin order within
-+pin groups. The video_portcfg device-tree property consists of register mapping
-+pairs which map a chip-specific VP output register to a 4-bit pin group. If
-+the pin group needs to be bit-swapped you can use the *_S pin-group defines.
-+
-+Required Properties:
-+ - compatible          :
-+  - "nxp,tda19971" for the TDA19971
-+  - "nxp,tda19973" for the TDA19973
-+ - reg                 : I2C slave address
-+ - interrupts          : The interrupt number
-+ - DOVDD-supply        : Digital I/O supply
-+ - DVDD-supply         : Digital Core supply
-+ - AVDD-supply         : Analog supply
-+ - nxp,vidout-portcfg  : array of pairs mapping VP output pins to pin groups.
-+
-+Optional Properties:
-+ - nxp,audout-format   : DAI bus format: "i2s" or "spdif".
-+ - nxp,audout-width    : width of audio output data bus (1-4).
-+ - nxp,audout-layout   : data layout (0=AP0 used, 1=AP0/AP1/AP2/AP3 used).
-+ - nxp,audout-mclk-fs  : Multiplication factor between stream rate and codec
-+                         mclk.
-+
-+The port node shall contain one endpoint child node for its digital
-+output video port, in accordance with the video interface bindings defined in
-+Documentation/devicetree/bindings/media/video-interfaces.txt.
-+
-+Optional Endpoint Properties:
-+  The following three properties are defined in video-interfaces.txt and
-+  are valid for the output parallel bus endpoint:
-+  - hsync-active: Horizontal synchronization polarity. Defaults to active high.
-+  - vsync-active: Vertical synchronization polarity. Defaults to active high.
-+  - data-active: Data polarity. Defaults to active high.
-+
-+Examples:
-+ - VP[15:0] connected to IMX6 CSI_DATA[19:4] for 16bit YUV422
-+   16bit I2S layout0 with a 128*fs clock (A_WS, AP0, A_CLK pins)
-+	hdmi-receiver@48 {
-+		compatible = "nxp,tda19971";
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&pinctrl_tda1997x>;
-+		reg = <0x48>;
-+		interrupt-parent = <&gpio1>;
-+		interrupts = <7 IRQ_TYPE_LEVEL_LOW>;
-+		DOVDD-supply = <&reg_3p3v>;
-+		AVDD-supply = <&reg_1p8v>;
-+		DVDD-supply = <&reg_1p8v>;
-+		/* audio */
-+		#sound-dai-cells = <0>;
-+		nxp,audout-format = "i2s";
-+		nxp,audout-layout = <0>;
-+		nxp,audout-width = <16>;
-+		nxp,audout-mclk-fs = <128>;
-+		/*
-+		 * The 8bpp YUV422 semi-planar mode outputs CbCr[11:4]
-+		 * and Y[11:4] across 16bits in the same pixclk cycle.
-+		 */
-+		nxp,vidout-portcfg =
-+			/* Y[11:8]<->VP[15:12]<->CSI_DATA[19:16] */
-+			< TDA1997X_VP24_V15_12 TDA1997X_G_Y_11_8 >,
-+			/* Y[7:4]<->VP[11:08]<->CSI_DATA[15:12] */
-+			< TDA1997X_VP24_V11_08 TDA1997X_G_Y_7_4 >,
-+			/* CbCc[11:8]<->VP[07:04]<->CSI_DATA[11:8] */
-+			< TDA1997X_VP24_V07_04 TDA1997X_R_CR_CBCR_11_8 >,
-+			/* CbCr[7:4]<->VP[03:00]<->CSI_DATA[7:4] */
-+			< TDA1997X_VP24_V03_00 TDA1997X_R_CR_CBCR_7_4 >;
-+
-+		port {
-+			tda1997x_to_ipu1_csi0_mux: endpoint {
-+				remote-endpoint = <&ipu1_csi0_mux_from_parallel_sensor>;
-+				bus-width = <16>;
-+				hsync-active = <1>;
-+				vsync-active = <1>;
-+				data-active = <1>;
-+			};
-+		};
-+	};
-+ - VP[15:8] connected to IMX6 CSI_DATA[19:12] for 8bit BT656
-+   16bit I2S layout0 with a 128*fs clock (A_WS, AP0, A_CLK pins)
-+	hdmi-receiver@48 {
-+		compatible = "nxp,tda19971";
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&pinctrl_tda1997x>;
-+		reg = <0x48>;
-+		interrupt-parent = <&gpio1>;
-+		interrupts = <7 IRQ_TYPE_LEVEL_LOW>;
-+		DOVDD-supply = <&reg_3p3v>;
-+		AVDD-supply = <&reg_1p8v>;
-+		DVDD-supply = <&reg_1p8v>;
-+		/* audio */
-+		#sound-dai-cells = <0>;
-+		nxp,audout-format = "i2s";
-+		nxp,audout-layout = <0>;
-+		nxp,audout-width = <16>;
-+		nxp,audout-mclk-fs = <128>;
-+		/*
-+		 * The 8bpp YUV422 semi-planar mode outputs CbCr[11:4]
-+		 * and Y[11:4] across 16bits in the same pixclk cycle.
-+		 */
-+		nxp,vidout-portcfg =
-+			/* Y[11:8]<->VP[15:12]<->CSI_DATA[19:16] */
-+			< TDA1997X_VP24_V15_12 TDA1997X_G_Y_11_8 >,
-+			/* Y[7:4]<->VP[11:08]<->CSI_DATA[15:12] */
-+			< TDA1997X_VP24_V11_08 TDA1997X_G_Y_7_4 >,
-+			/* CbCc[11:8]<->VP[07:04]<->CSI_DATA[11:8] */
-+			< TDA1997X_VP24_V07_04 TDA1997X_R_CR_CBCR_11_8 >,
-+			/* CbCr[7:4]<->VP[03:00]<->CSI_DATA[7:4] */
-+			< TDA1997X_VP24_V03_00 TDA1997X_R_CR_CBCR_7_4 >;
-+
-+		port {
-+			tda1997x_to_ipu1_csi0_mux: endpoint {
-+				remote-endpoint = <&ipu1_csi0_mux_from_parallel_sensor>;
-+				bus-width = <16>;
-+				hsync-active = <1>;
-+				vsync-active = <1>;
-+				data-active = <1>;
-+			};
-+		};
-+	};
-+ - VP[15:8] connected to IMX6 CSI_DATA[19:12] for 8bit BT656
-+   16bit I2S layout0 with a 128*fs clock (A_WS, AP0, A_CLK pins)
-+	hdmi-receiver@48 {
-+		compatible = "nxp,tda19971";
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&pinctrl_tda1997x>;
-+		reg = <0x48>;
-+		interrupt-parent = <&gpio1>;
-+		interrupts = <7 IRQ_TYPE_LEVEL_LOW>;
-+		DOVDD-supply = <&reg_3p3v>;
-+		AVDD-supply = <&reg_1p8v>;
-+		DVDD-supply = <&reg_1p8v>;
-+		/* audio */
-+		#sound-dai-cells = <0>;
-+		nxp,audout-format = "i2s";
-+		nxp,audout-layout = <0>;
-+		nxp,audout-width = <16>;
-+		nxp,audout-mclk-fs = <128>;
-+		/*
-+		 * The 8bpp BT656 mode outputs YCbCr[11:4] across 8bits over
-+		 * 2 pixclk cycles.
-+		 */
-+		nxp,vidout-portcfg =
-+			/* YCbCr[11:8]<->VP[15:12]<->CSI_DATA[19:16] */
-+			< TDA1997X_VP24_V15_12 TDA1997X_R_CR_CBCR_11_8 >,
-+			/* YCbCr[7:4]<->VP[11:08]<->CSI_DATA[15:12] */
-+			< TDA1997X_VP24_V11_08 TDA1997X_R_CR_CBCR_7_4 >,
-+
-+		port {
-+			tda1997x_to_ipu1_csi0_mux: endpoint {
-+				remote-endpoint = <&ipu1_csi0_mux_from_parallel_sensor>;
-+				bus-width = <16>;
-+				hsync-active = <1>;
-+				vsync-active = <1>;
-+				data-active = <1>;
-+			};
-+		};
-+	};
-+
-diff --git a/include/dt-bindings/media/tda1997x.h b/include/dt-bindings/media/tda1997x.h
-new file mode 100644
-index 0000000..f4cdf87
---- /dev/null
-+++ b/include/dt-bindings/media/tda1997x.h
-@@ -0,0 +1,78 @@
-+/*
-+ * Copyright (C) 2017 Gateworks Corporation
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ */
-+#ifndef _DT_BINDINGS_MEDIA_TDA1997X_H
-+#define _DT_BINDINGS_MEDIA_TDA1997X_H
-+
-+/* TDA19973 36bit Video Port control registers */
-+#define TDA1997X_VP36_35_32	0
-+#define TDA1997X_VP36_31_28	1
-+#define TDA1997X_VP36_27_24	2
-+#define TDA1997X_VP36_23_20	3
-+#define TDA1997X_VP36_19_16	4
-+#define TDA1997X_VP36_15_12	5
-+#define TDA1997X_VP36_11_08	6
-+#define TDA1997X_VP36_07_04	7
-+#define TDA1997X_VP36_03_00	8
-+
-+/* TDA19971 24bit Video Port control registers */
-+#define TDA1997X_VP24_V23_20	0
-+#define TDA1997X_VP24_V19_16	1
-+#define TDA1997X_VP24_V15_12	3
-+#define TDA1997X_VP24_V11_08	4
-+#define TDA1997X_VP24_V07_04	6
-+#define TDA1997X_VP24_V03_00	7
-+
-+/* Pin groups */
-+#define TDA1997X_VP_OUT_EN        0x80	/* enable output group */
-+#define TDA1997X_VP_HIZ           0x40	/* hi-Z output group when not used */
-+#define TDA1997X_VP_SWP           0x10	/* pin-swap output group */
-+#define TDA1997X_R_CR_CBCR_3_0    (0 | TDA1997X_VP_OUT_EN | TDA1997X_VP_HIZ)
-+#define TDA1997X_R_CR_CBCR_7_4    (1 | TDA1997X_VP_OUT_EN | TDA1997X_VP_HIZ)
-+#define TDA1997X_R_CR_CBCR_11_8   (2 | TDA1997X_VP_OUT_EN | TDA1997X_VP_HIZ)
-+#define TDA1997X_B_CB_3_0         (3 | TDA1997X_VP_OUT_EN | TDA1997X_VP_HIZ)
-+#define TDA1997X_B_CB_7_4         (4 | TDA1997X_VP_OUT_EN | TDA1997X_VP_HIZ)
-+#define TDA1997X_B_CB_11_8        (5 | TDA1997X_VP_OUT_EN | TDA1997X_VP_HIZ)
-+#define TDA1997X_G_Y_3_0          (6 | TDA1997X_VP_OUT_EN | TDA1997X_VP_HIZ)
-+#define TDA1997X_G_Y_7_4          (7 | TDA1997X_VP_OUT_EN | TDA1997X_VP_HIZ)
-+#define TDA1997X_G_Y_11_8         (8 | TDA1997X_VP_OUT_EN | TDA1997X_VP_HIZ)
-+/* pinswapped groups */
-+#define TDA1997X_R_CR_CBCR_3_0_S  (TDA1997X_R_CR_CBCR_3_0 | TDA1997X_VP_SWAP)
-+#define TDA1997X_R_CR_CBCR_7_4_S  (TDA1997X_R_CR_CBCR_7_4 | TDA1997X_VP_SWAP)
-+#define TDA1997X_R_CR_CBCR_11_8_S (TDA1997X_R_CR_CBCR_11_8 | TDA1997X_VP_SWAP)
-+#define TDA1997X_B_CB_3_0_S       (TDA1997X_B_CB_3_0 | TDA1997X_VP_SWAP)
-+#define TDA1997X_B_CB_7_4_S       (TDA1997X_B_CB_7_4 | TDA1997X_VP_SWAP)
-+#define TDA1997X_B_CB_11_8_S      (TDA1997X_B_CB_11_8 | TDA1997X_VP_SWAP)
-+#define TDA1997X_G_Y_3_0_S        (TDA1997X_G_Y_3_0 | TDA1997X_VP_SWAP)
-+#define TDA1997X_G_Y_7_4_S        (TDA1997X_G_Y_7_4 | TDA1997X_VP_SWAP)
-+#define TDA1997X_G_Y_11_8_S       (TDA1997X_G_Y_11_8 | TDA1997X_VP_SWAP)
-+
-+/* Audio bus DAI format */
-+#define TDA1997X_I2S16			1 /* I2S 16bit */
-+#define TDA1997X_I2S32			2 /* I2S 32bit */
-+#define TDA1997X_SPDIF			3 /* SPDIF */
-+#define TDA1997X_OBA			4 /* One Bit Audio */
-+#define TDA1997X_DST			5 /* Direct Stream Transfer */
-+#define TDA1997X_I2S16_HBR		6 /* HBR straight in I2S 16bit mode */
-+#define TDA1997X_I2S16_HBR_DEMUX	7 /* HBR demux in I2S 16bit mode */
-+#define TDA1997X_I2S32_HBR_DEMUX	8 /* HBR demux in I2S 32bit mode */
-+#define TDA1997X_SPDIF_HBR_DEMUX	9 /* HBR demux in SPDIF mode */
-+
-+/* Audio bus channel layout */
-+#define TDA1997X_LAYOUT0	0	/* 2-channel */
-+#define TDA1997X_LAYOUT1	1	/* 8-channel */
-+
-+/* Audio bus clock */
-+#define TDA1997X_ACLK_16FS	0
-+#define TDA1997X_ACLK_32FS	1
-+#define TDA1997X_ACLK_64FS	2
-+#define TDA1997X_ACLK_128FS	3
-+#define TDA1997X_ACLK_256FS	4
-+#define TDA1997X_ACLK_512FS	5
-+
-+#endif /* _DT_BINDINGS_MEDIA_TDA1997X_H */
--- 
-2.7.4
+=2D-=20
+Regards,
+
+Laurent Pinchart
