@@ -1,134 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:60945 "EHLO
-        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752766AbdLVEy2 (ORCPT
+Received: from mx08-00178001.pphosted.com ([91.207.212.93]:11126 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1754569AbdLTJvm (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 21 Dec 2017 23:54:28 -0500
-Message-ID: <a562e09fd46a7f1b0e3325615316591a@smtp-cloud8.xs4all.net>
-Date: Fri, 22 Dec 2017 05:54:25 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+        Wed, 20 Dec 2017 04:51:42 -0500
+From: Hugues Fruchet <hugues.fruchet@st.com>
+To: Steve Longerbeam <slongerbeam@gmail.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        "Mauro Carvalho Chehab" <mchehab@kernel.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>
+CC: <linux-media@vger.kernel.org>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Subject: [PATCH v4 3/5] media: dt-bindings: ov5640: refine CSI-2 and add parallel interface
+Date: Wed, 20 Dec 2017 10:51:12 +0100
+Message-ID: <1513763474-1174-4-git-send-email-hugues.fruchet@st.com>
+In-Reply-To: <1513763474-1174-1-git-send-email-hugues.fruchet@st.com>
+References: <1513763474-1174-1-git-send-email-hugues.fruchet@st.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Refine CSI-2 endpoint documentation and add bindings
+for DVP parallel interface support.
 
-Results of the daily build of media_tree:
+Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
+---
+ .../devicetree/bindings/media/i2c/ov5640.txt       | 48 +++++++++++++++++++++-
+ 1 file changed, 46 insertions(+), 2 deletions(-)
 
-date:			Fri Dec 22 05:00:15 CET 2017
-media-tree git hash:	ae49432810c5cca2143afc1445edad6582c9f270
-media_build git hash:	fd6010ac1bcdf54a3a2b2752088def1b21b5e457
-v4l-utils git hash:	6049ea8bd64f9d78ef87ef0c2b3dc9b5de1ca4a1
-gcc version:		i686-linux-gcc (GCC) 7.1.0
-sparse version:		v0.5.0-3911-g6f737e1f
-smatch version:		v0.5.0-3911-g6f737e1f
-host hardware:		x86_64
-host os:		4.13.0-164
-
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: ERRORS
-linux-3.10.1-i686: ERRORS
-linux-3.11.1-i686: ERRORS
-linux-3.12.67-i686: ERRORS
-linux-3.13.11-i686: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.16.7-i686: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.18.7-i686: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-4.0.9-i686: WARNINGS
-linux-4.1.33-i686: WARNINGS
-linux-4.2.8-i686: ERRORS
-linux-4.3.6-i686: WARNINGS
-linux-4.4.22-i686: OK
-linux-4.5.7-i686: WARNINGS
-linux-4.6.7-i686: OK
-linux-4.7.5-i686: OK
-linux-4.8-i686: OK
-linux-4.9.26-i686: OK
-linux-4.10.14-i686: OK
-linux-4.11-i686: OK
-linux-4.12.1-i686: OK
-linux-4.13-i686: OK
-linux-4.14-i686: OK
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: ERRORS
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.67-x86_64: ERRORS
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16.7-x86_64: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.7-x86_64: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0.9-x86_64: WARNINGS
-linux-4.1.33-x86_64: WARNINGS
-linux-4.2.8-x86_64: ERRORS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.22-x86_64: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-x86_64: WARNINGS
-linux-4.9.26-x86_64: WARNINGS
-linux-4.10.14-x86_64: WARNINGS
-linux-4.11-x86_64: WARNINGS
-linux-4.12.1-x86_64: WARNINGS
-linux-4.13-x86_64: OK
-linux-4.14-x86_64: OK
-apps: OK
-spec-git: OK
-smatch: OK
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+diff --git a/Documentation/devicetree/bindings/media/i2c/ov5640.txt b/Documentation/devicetree/bindings/media/i2c/ov5640.txt
+index 540b36c..e26a846 100644
+--- a/Documentation/devicetree/bindings/media/i2c/ov5640.txt
++++ b/Documentation/devicetree/bindings/media/i2c/ov5640.txt
+@@ -1,4 +1,4 @@
+-* Omnivision OV5640 MIPI CSI-2 sensor
++* Omnivision OV5640 MIPI CSI-2 / parallel sensor
+ 
+ Required Properties:
+ - compatible: should be "ovti,ov5640"
+@@ -18,7 +18,27 @@ The device node must contain one 'port' child node for its digital output
+ video port, in accordance with the video interface bindings defined in
+ Documentation/devicetree/bindings/media/video-interfaces.txt.
+ 
+-Example:
++OV5640 can be connected to a MIPI CSI-2 bus or a parallel bus endpoint.
++
++Endpoint node required properties for CSI-2 connection are:
++- remote-endpoint: a phandle to the bus receiver's endpoint node.
++- clock-lanes: should be set to <0> (clock lane on hardware lane 0)
++- data-lanes: should be set to <1> or <1 2> (one or two CSI-2 lanes supported)
++
++Endpoint node required properties for parallel connection are:
++- remote-endpoint: a phandle to the bus receiver's endpoint node.
++- bus-width: shall be set to <8> for 8 bits parallel bus
++	     or <10> for 10 bits parallel bus
++- data-shift: shall be set to <2> for 8 bits parallel bus
++	      (lines 9:2 are used) or <0> for 10 bits parallel bus
++
++Endpoint node optional properties for parallel connection are:
++- hsync-active: active state of the HSYNC signal, 0/1 for LOW/HIGH respectively.
++- vsync-active: active state of the VSYNC signal, 0/1 for LOW/HIGH respectively.
++- pclk-sample: sample data on rising (1) or falling (0) edge of the pixel clock
++	       signal.
++
++Examples:
+ 
+ &i2c1 {
+ 	ov5640: camera@3c {
+@@ -35,6 +55,7 @@ Example:
+ 		reset-gpios = <&gpio1 20 GPIO_ACTIVE_LOW>;
+ 
+ 		port {
++			/* MIPI CSI-2 bus endpoint */
+ 			ov5640_to_mipi_csi2: endpoint {
+ 				remote-endpoint = <&mipi_csi2_from_ov5640>;
+ 				clock-lanes = <0>;
+@@ -43,3 +64,26 @@ Example:
+ 		};
+ 	};
+ };
++
++&i2c1 {
++	ov5640: camera@3c {
++		compatible = "ovti,ov5640";
++		pinctrl-names = "default";
++		pinctrl-0 = <&pinctrl_ov5640>;
++		reg = <0x3c>;
++		clocks = <&clk_ext_camera>;
++		clock-names = "xclk";
++
++		port {
++			/* Parallel bus endpoint */
++			ov5640_to_parallel: endpoint {
++				remote-endpoint = <&parallel_from_ov5640>;
++				bus-width = <8>;
++				data-shift = <2>; /* lines 9:2 are used */
++				hsync-active = <0>;
++				vsync-active = <0>;
++				pclk-sample = <1>;
++			};
++		};
++	};
++};
+-- 
+1.9.1
