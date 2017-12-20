@@ -1,36 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:59282 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1753388AbdLGNfZ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 7 Dec 2017 08:35:25 -0500
-Date: Thu, 7 Dec 2017 15:35:22 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Pravin Shedge <pravin.shedge4linux@gmail.com>
-Cc: linux-media@vger.kernel.org, mchehab@kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH 09/45] drivers: media: remove duplicate includes
-Message-ID: <20171207133522.yqgb532ftcgvw62d@valkosipuli.retiisi.org.uk>
-References: <1512579122-5215-1-git-send-email-pravin.shedge4linux@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1512579122-5215-1-git-send-email-pravin.shedge4linux@gmail.com>
+Received: from mail.anw.at ([195.234.101.228]:54637 "EHLO mail.anw.at"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1754723AbdLTItr (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 20 Dec 2017 03:49:47 -0500
+From: "Jasmin J." <jasmin@anw.at>
+To: linux-media@vger.kernel.org
+Cc: hverkuil@xs4all.nl, d.scheller@gmx.net, jasmin@anw.at
+Subject: [PATCH] build: Disabled MEDIA_TUNER_TDA18250 for Kernels older than 4.3
+Date: Wed, 20 Dec 2017 09:49:30 +0000
+Message-Id: <1513763370-24556-1-git-send-email-jasmin@anw.at>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Pravin,
+From: Jasmin Jessich <jasmin@anw.at>
 
-On Wed, Dec 06, 2017 at 10:22:02PM +0530, Pravin Shedge wrote:
-> These duplicate includes have been found with scripts/checkincludes.pl but
-> they have been removed manually to avoid removing false positives.
-> 
-> Signed-off-by: Pravin Shedge <pravin.shedge4linux@gmail.com>
+Due to recent changes the TDA18250 driver requires now regmap_write_bits,
+which is available since Kernel 4.3 only.
 
-While at it, how about ordering the headers alphabetically as well? Having
-such a large number of headers there unordered may well be the reason why
-they're included more than once...
+Signed-off-by: Jasmin Jessich <jasmin@anw.at>
+---
+ v4l/versions.txt | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
+diff --git a/v4l/versions.txt b/v4l/versions.txt
+index 072e7d6..6885a05 100644
+--- a/v4l/versions.txt
++++ b/v4l/versions.txt
+@@ -35,6 +35,8 @@ VIDEO_SOLO6X10
+ [4.2.0]
+ # needs led_trigger_remove
+ V4L2_FLASH_LED_CLASS
++# needs regmap_write_bits
++MEDIA_TUNER_TDA18250
+ 
+ [4.0.0]
+ # needs of_property_read_u64_array
+@@ -86,8 +88,6 @@ VIDEO_COBALT
+ [3.13.0]
+ # needs gpio/consumer.h
+ RADIO_SI4713
+-# needs regmap_reg_range
+-MEDIA_TUNER_TDA18250
+ 
+ [3.12.0]
+ # BIN_ATTR_RW was changed
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+2.7.4
