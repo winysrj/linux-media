@@ -1,102 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([65.50.211.133]:38464 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752014AbdLBTta (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sat, 2 Dec 2017 14:49:30 -0500
-Date: Sat, 2 Dec 2017 17:49:22 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Jemma Denson <jdenson@gmail.com>
-Cc: Tycho =?UTF-8?B?TMO8cnNlbg==?= <tycholursen@gmail.com>,
-        Soeren Moch <smoch@web.de>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org
-Subject: Re: [GIT PULL] SAA716x DVB driver
-Message-ID: <20171202174922.34a6f9b9@vento.lan>
-In-Reply-To: <e2076533-5c33-f3be-b438-a1616f743a92@gmail.com>
-References: <50e5ba3c-4e32-f2e4-7844-150eefdf71b5@web.de>
-        <d693cf1b-de3d-5994-5ef0-eeb0e37065a3@web.de>
-        <20170827073040.6e96d79a@vento.lan>
-        <e9d87f55-18fc-e57b-f9aa-a41c7f983b34@web.de>
-        <20170909181123.392cfbb0@vento.lan>
-        <a44b8eb0-cdd5-aa28-ad30-68db0126b6f6@web.de>
-        <20170916125042.78c4abad@recife.lan>
-        <fab215f8-29f3-1857-6f33-c45e78bb5e3c@web.de>
-        <7c17c0a1-1c98-1272-8430-4a194b658872@gmail.com>
-        <20171127092408.20de0fe0@vento.lan>
-        <e2076533-5c33-f3be-b438-a1616f743a92@gmail.com>
+Received: from mail-it0-f50.google.com ([209.85.214.50]:37391 "EHLO
+        mail-it0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753269AbdLTJ1u (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 20 Dec 2017 04:27:50 -0500
+Received: by mail-it0-f50.google.com with SMTP id d137so6097701itc.2
+        for <linux-media@vger.kernel.org>; Wed, 20 Dec 2017 01:27:50 -0800 (PST)
+Received: from mail-it0-f52.google.com (mail-it0-f52.google.com. [209.85.214.52])
+        by smtp.gmail.com with ESMTPSA id 202sm2501994ioz.51.2017.12.20.01.27.49
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Wed, 20 Dec 2017 01:27:49 -0800 (PST)
+Received: by mail-it0-f52.google.com with SMTP id f143so6118267itb.0
+        for <linux-media@vger.kernel.org>; Wed, 20 Dec 2017 01:27:49 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+In-Reply-To: <1513371884.3541.8.camel@ndufresne.ca>
+References: <20171215075625.27028-1-acourbot@chromium.org> <1513371884.3541.8.camel@ndufresne.ca>
+From: Alexandre Courbot <acourbot@chromium.org>
+Date: Wed, 20 Dec 2017 18:27:28 +0900
+Message-ID: <CAPBb6MUubHGnQ+rR+b8qtbhN4PPu3zBDBpckb1-nobCUAXv-4w@mail.gmail.com>
+Subject: Re: [RFC PATCH 0/9] media: base request API support
+To: Nicolas Dufresne <nicolas@ndufresne.ca>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Pawel Osciak <posciak@chromium.org>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Tomasz Figa <tfiga@chromium.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Gustavo Padovan <gustavo.padovan@collabora.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sat, 2 Dec 2017 18:51:16 +0000
-Jemma Denson <jdenson@gmail.com> escreveu:
+On Sat, Dec 16, 2017 at 6:04 AM, Nicolas Dufresne <nicolas@ndufresne.ca> wr=
+ote:
+> Le vendredi 15 d=C3=A9cembre 2017 =C3=A0 16:56 +0900, Alexandre Courbot a=
+ =C3=A9crit :
+>> Here is a new attempt at the request API, following the UAPI we agreed o=
+n in
+>> Prague. Hopefully this can be used as the basis to move forward.
+>>
+>> This series only introduces the very basics of how requests work: alloca=
+te a
+>> request, queue buffers to it, queue the request itself, wait for it to c=
+omplete,
+>> reuse it. It does *not* yet use Hans' work with controls setting. I have
+>> preferred to submit it this way for now as it allows us to concentrate o=
+n the
+>> basic request/buffer flow, which was harder to get properly than I initi=
+ally
+>> thought. I still have a gut feeling that it can be improved, with less b=
+ack-and-
+>> forth into drivers.
+>>
+>> Plugging in controls support should not be too hard a task (basically ju=
+st apply
+>> the saved controls when the request starts), and I am looking at it now.
+>>
+>> The resulting vim2m driver can be successfully used with requests, and m=
+y tests
+>> so far have been successful.
+>>
+>> There are still some rougher edges:
+>>
+>> * locking is currently quite coarse-grained
+>> * too many #ifdef CONFIG_MEDIA_CONTROLLER in the code, as the request AP=
+I
+>>   depends on it - I plan to craft the headers so that it becomes unneces=
+sary.
+>>   As it is, some of the code will probably not even compile if
+>>   CONFIG_MEDIA_CONTROLLER is not set
+>
+> Would it be possible to explain why this relation between request and
+> the media controller ? Why couldn't request be created from video
+> devices ?
 
-> Hi Mauro,
->=20
-> On 27/11/17 11:24, Mauro Carvalho Chehab wrote:
-> > Em Fri, 24 Nov 2017 17:28:37 +0100
-> > Tycho L=C3=BCrsen <tycholursen@gmail.com> escreveu:
-> > =20
-> >> Hi Mauro,
-> >>
-> >> afaik the last communication about submission of this driver was about
-> >> two months ago.
-> >>
-> >> This driver is important to me, because I own several TurboSight cards
-> >> that are saa716x based. I want to submit a patch that supports my card=
-s.
-> >> Of course I can only do so when you accept this driver in the first pl=
-ace.
-> >>
-> >> Any chance you and S=C3=B6ren agree about how to proceed about this dr=
-iver
-> >> anytime soon? =20
-> > If we can reach an agreement about what should be done for the driver
-> > to be promoted from staging some day, I'll merge it. Otherwise,
-> > it can be kept maintained out of tree. This driver has been maintained
-> > OOT for a very long time, and it seems that people were happy with
-> > that, as only at the second half of this year someone is requesting
-> > to merge it.
-> >
-> > So, while I agree that the best is to merge it upstream and
-> > address the issues that made it OOT for a long time, we shouldn't
-> > rush it with the risk of doing more harm than good.
-> >
-> > Thanks,
-> > Mauro =20
->=20
-> Would I be correct in thinking the main blocker to this is the *_ff featu=
-res
-> used by the S2-6400 card? There's plenty of other cards using this chipset
-> that don't need that part.
->=20
-> Would a solution for now to be a driver with the ff components stripped o=
-ut,
-> and then the ff API work can be done later when / if there's any interest?
+Laurent replied on IRC, but for the record this is because the media
+node can act as an orchestrator to the devices it manages. Some
+devices may have particular needs in that respect, and we want to be
+able to hook somewhere and control that.
 
-Works for me. In such case (and provided that the driver without *_ff are
-in good shape), we could merge it under drivers/media (instead of merging
-it on staging).
-
-> I guess a problem would be finding a maintainer, I'm happy to put together
-> a stripped down driver just supporting the TBS card I use (I already have
-> one I use with dkms), but I'm not sure I have the time or knowledge of th=
-is
-> chipset to be a maintainer.
-
-As we're talking more about touching at uAPI, probably it doesn't require
-chipsed knowledge. Only time and interest on doing it.
-
-Please sync with Soeren. Perhaps if you both could help on it, it would
-make the task easier.
-
-> Unfortunately my workplace is phasing out
-> these cards otherwise I'd try and get them to sponsor me rather than do it
-> on my own time!
-
-Yeah, getting sponsored to do it would make things easier.
-
-Thanks,
-Mauro
+Another reason is that in the future the media framework will probably
+take more importance, to the point where you could control the whole
+chain of devices through it instead of having to open every node
+individually. This is a different topic though, and we only touched
+the surface of it during the latest mini-summit.
