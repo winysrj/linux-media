@@ -1,87 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:40972 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755117AbdLUSvf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 21 Dec 2017 13:51:35 -0500
-Date: Thu, 21 Dec 2017 16:51:28 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Gustavo Padovan <gustavo@padovan.org>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        Pawel Osciak <pawel@osciak.com>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Brian Starkey <brian.starkey@arm.com>,
-        Thierry Escande <thierry.escande@collabora.com>,
-        linux-kernel@vger.kernel.org,
-        Gustavo Padovan <gustavo.padovan@collabora.com>
-Subject: Re: [PATCH v6 1/6] [media] vb2: add is_unordered callback for
- drivers
-Message-ID: <20171221165128.31e16dc4@vento.lan>
-In-Reply-To: <20171211182741.29712-2-gustavo@padovan.org>
-References: <20171211182741.29712-1-gustavo@padovan.org>
-        <20171211182741.29712-2-gustavo@padovan.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail-wr0-f195.google.com ([209.85.128.195]:41465 "EHLO
+        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751866AbdLUUXb (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 21 Dec 2017 15:23:31 -0500
+Received: by mail-wr0-f195.google.com with SMTP id p69so17336176wrb.8
+        for <linux-media@vger.kernel.org>; Thu, 21 Dec 2017 12:23:30 -0800 (PST)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: linux-media@vger.kernel.org, mchehab@kernel.org,
+        mchehab@s-opensource.com
+Cc: rjkm@metzlerbros.de
+Subject: [PATCH 1/2] media: dvb_frontend: add FEC modes, S2X modulations and 64K transmission
+Date: Thu, 21 Dec 2017 21:23:20 +0100
+Message-Id: <20171221202321.30539-2-d.scheller.oss@gmail.com>
+In-Reply-To: <20171221202321.30539-1-d.scheller.oss@gmail.com>
+References: <20171221202321.30539-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 11 Dec 2017 16:27:36 -0200
-Gustavo Padovan <gustavo@padovan.org> escreveu:
+From: Daniel Scheller <d.scheller@gmx.net>
 
-> From: Gustavo Padovan <gustavo.padovan@collabora.com>
-> 
-> Explicit synchronization benefits a lot from ordered queues, they fit
-> better in a pipeline with DRM for example so create a opt-in way for
-> drivers notify videobuf2 that the queue is unordered.
-> 
-> Drivers don't need implement it if the queue is ordered.
-> 
-> Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
-> ---
->  include/media/videobuf2-core.h | 5 +++++
->  1 file changed, 5 insertions(+)
-> 
-> diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-> index ef9b64398c8c..eddb38a2a2f3 100644
-> --- a/include/media/videobuf2-core.h
-> +++ b/include/media/videobuf2-core.h
-> @@ -368,6 +368,9 @@ struct vb2_buffer {
->   *			callback by calling vb2_buffer_done() with either
->   *			%VB2_BUF_STATE_DONE or %VB2_BUF_STATE_ERROR; may use
->   *			vb2_wait_for_all_buffers() function
-> + * @is_unordered:	tell if the queue format is unordered. The default is
-> + *			assumed to be ordered and this function only needs to
-> + *			be implemented for unordered queues.
->   * @buf_queue:		passes buffer vb to the driver; driver may start
->   *			hardware operation on this buffer; driver should give
->   *			the buffer back by calling vb2_buffer_done() function;
-> @@ -391,6 +394,7 @@ struct vb2_ops {
->  
->  	int (*start_streaming)(struct vb2_queue *q, unsigned int count);
->  	void (*stop_streaming)(struct vb2_queue *q);
-> +	int (*is_unordered)(struct vb2_queue *q);
->  
->  	void (*buf_queue)(struct vb2_buffer *vb);
->  };
-> @@ -564,6 +568,7 @@ struct vb2_queue {
->  	u32				cnt_wait_finish;
->  	u32				cnt_start_streaming;
->  	u32				cnt_stop_streaming;
-> +	u32				cnt_is_unordered;
+Add 1/4 and 1/3 FEC ratios, 64/128/256-APSK S2X modulations and 64K
+transmission mode. Update relevant doc items aswell.
 
-If I understand, this is just a bit, right?
+Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+---
+ Documentation/media/frontend.h.rst.exceptions |  6 ++++++
+ include/uapi/linux/dvb/frontend.h             | 13 +++++++++++++
+ 2 files changed, 19 insertions(+)
 
-if so, better to declare it as:
-
-	u32				cnt_is_unordered : 1;
-
->  #endif
->  };
->  
-
-
+diff --git a/Documentation/media/frontend.h.rst.exceptions b/Documentation/media/frontend.h.rst.exceptions
+index f7c4df620a52..ae1148be0a39 100644
+--- a/Documentation/media/frontend.h.rst.exceptions
++++ b/Documentation/media/frontend.h.rst.exceptions
+@@ -84,6 +84,9 @@ ignore symbol APSK_16
+ ignore symbol APSK_32
+ ignore symbol DQPSK
+ ignore symbol QAM_4_NR
++ignore symbol APSK_64
++ignore symbol APSK_128
++ignore symbol APSK_256
+ 
+ ignore symbol SEC_VOLTAGE_13
+ ignore symbol SEC_VOLTAGE_18
+@@ -117,6 +120,8 @@ ignore symbol FEC_AUTO
+ ignore symbol FEC_3_5
+ ignore symbol FEC_9_10
+ ignore symbol FEC_2_5
++ignore symbol FEC_1_4
++ignore symbol FEC_1_3
+ 
+ ignore symbol TRANSMISSION_MODE_AUTO
+ ignore symbol TRANSMISSION_MODE_1K
+@@ -129,6 +134,7 @@ ignore symbol TRANSMISSION_MODE_C1
+ ignore symbol TRANSMISSION_MODE_C3780
+ ignore symbol TRANSMISSION_MODE_2K
+ ignore symbol TRANSMISSION_MODE_8K
++ignore symbol TRANSMISSION_MODE_64K
+ 
+ ignore symbol GUARD_INTERVAL_AUTO
+ ignore symbol GUARD_INTERVAL_1_128
+diff --git a/include/uapi/linux/dvb/frontend.h b/include/uapi/linux/dvb/frontend.h
+index 4f9b4551c534..227268a657cd 100644
+--- a/include/uapi/linux/dvb/frontend.h
++++ b/include/uapi/linux/dvb/frontend.h
+@@ -296,6 +296,8 @@ enum fe_spectral_inversion {
+  * @FEC_3_5:  Forward Error Correction Code 3/5
+  * @FEC_9_10: Forward Error Correction Code 9/10
+  * @FEC_2_5:  Forward Error Correction Code 2/5
++ * @FEC_1_4:  Forward Error Correction Code 1/4
++ * @FEC_1_3:  Forward Error Correction Code 1/3
+  *
+  * Please note that not all FEC types are supported by a given standard.
+  */
+@@ -313,6 +315,8 @@ enum fe_code_rate {
+ 	FEC_3_5,
+ 	FEC_9_10,
+ 	FEC_2_5,
++	FEC_1_4,
++	FEC_1_3,
+ };
+ 
+ /**
+@@ -331,6 +335,9 @@ enum fe_code_rate {
+  * @APSK_32:	32-APSK modulation
+  * @DQPSK:	DQPSK modulation
+  * @QAM_4_NR:	4-QAM-NR modulation
++ * @APSK_64:	64-APSK modulation
++ * @APSK_128:	128-APSK modulation
++ * @APSK_256:	256-APSK modulation
+  *
+  * Please note that not all modulations are supported by a given standard.
+  *
+@@ -350,6 +357,9 @@ enum fe_modulation {
+ 	APSK_32,
+ 	DQPSK,
+ 	QAM_4_NR,
++	APSK_64,
++	APSK_128,
++	APSK_256,
+ };
+ 
+ /**
+@@ -374,6 +384,8 @@ enum fe_modulation {
+  *	Single Carrier (C=1) transmission mode (DTMB only)
+  * @TRANSMISSION_MODE_C3780:
+  *	Multi Carrier (C=3780) transmission mode (DTMB only)
++ * @TRANSMISSION_MODE_64K:
++ *	Transmission mode 64K
+  *
+  * Please note that not all transmission modes are supported by a given
+  * standard.
+@@ -388,6 +400,7 @@ enum fe_transmit_mode {
+ 	TRANSMISSION_MODE_32K,
+ 	TRANSMISSION_MODE_C1,
+ 	TRANSMISSION_MODE_C3780,
++	TRANSMISSION_MODE_64K,
+ };
+ 
+ /**
 -- 
-Thanks,
-Mauro
+2.13.6
