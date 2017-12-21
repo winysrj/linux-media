@@ -1,200 +1,633 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:43812 "EHLO mga14.intel.com"
+Received: from mga14.intel.com ([192.55.52.115]:14184 "EHLO mga14.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932085AbdLOPSE (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 15 Dec 2017 10:18:04 -0500
-From: "Zhi, Yong" <yong.zhi@intel.com>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "Mani, Rajmohan" <rajmohan.mani@intel.com>
-Subject: RE: [RESEND GIT PULL for 4.16] Intel IPU3 CIO2 CSI-2 receiver driver
-Date: Fri, 15 Dec 2017 15:18:02 +0000
-Message-ID: <C193D76D23A22742993887E6D207B54D1AE4CDA2@ORSMSX106.amr.corp.intel.com>
-References: <20171201143135.c6r2e2iaoxcvyxpi@valkosipuli.retiisi.org.uk>
- <20171208125937.07bb3302@vento.lan>,<C193D76D23A22742993887E6D207B54D1AE4A17B@ORSMSX106.amr.corp.intel.com>
-In-Reply-To: <C193D76D23A22742993887E6D207B54D1AE4A17B@ORSMSX106.amr.corp.intel.com>
-Content-Language: en-US
-Content-Type: multipart/mixed;
-        boundary="_002_C193D76D23A22742993887E6D207B54D1AE4CDA2ORSMSX106amrcor_"
-MIME-Version: 1.0
+        id S1755861AbdLUAtB (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 20 Dec 2017 19:49:01 -0500
+Message-ID: <1513817327.2592.3.camel@intel.com>
+Subject: Re: [-next PATCH 3/4] treewide: Use DEVICE_ATTR_RO
+From: Zhang Rui <rui.zhang@intel.com>
+To: Joe Perches <joe@perches.com>, Daniel Mack <daniel@zonque.org>,
+        Haojian Zhuang <haojian.zhuang@gmail.com>,
+        Robert Jarzmik <robert.jarzmik@free.fr>,
+        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Len Brown <lenb@kernel.org>, Corey Minyard <minyard@acm.org>,
+        Jani Nikula <jani.nikula@linux.intel.com>,
+        Joonas Lahtinen <joonas.lahtinen@linux.intel.com>,
+        Rodrigo Vivi <rodrigo.vivi@intel.com>,
+        Keith Busch <keith.busch@intel.com>, Jens Axboe <axboe@fb.com>,
+        Christoph Hellwig <hch@lst.de>,
+        Sagi Grimberg <sagi@grimberg.me>,
+        Sebastian Ott <sebott@linux.vnet.ibm.com>,
+        Peter Oberparleiter <oberpar@linux.vnet.ibm.com>,
+        Harald Freudenberger <freude@de.ibm.com>,
+        Don Brace <don.brace@microsemi.com>,
+        "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>,
+        "Martin K. Petersen" <martin.petersen@oracle.com>,
+        James Smart <james.smart@broadcom.com>,
+        Dick Kennedy <dick.kennedy@broadcom.com>,
+        Eduardo Valentin <edubezval@gmail.com>,
+        Liam Girdwood <lgirdwood@gmail.com>,
+        Mark Brown <broonie@kernel.org>
+Cc: Russell King <linux@armlinux.org.uk>,
+        Yoshinori Sato <ysato@users.sourceforge.jp>,
+        Rich Felker <dalias@libc.org>, Arnd Bergmann <arnd@arndb.de>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        David Airlie <airlied@linux.ie>,
+        Martin Schwidefsky <schwidefsky@de.ibm.com>,
+        Heiko Carstens <heiko.carstens@de.ibm.com>,
+        Alan Cox <alan@linux.intel.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Jaroslav Kysela <perex@perex.cz>,
+        Takashi Iwai <tiwai@suse.com>,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-sh@vger.kernel.org, linux-acpi@vger.kernel.org,
+        openipmi-developer@lists.sourceforge.net,
+        intel-gfx@lists.freedesktop.org, dri-devel@lists.freedesktop.org,
+        linux-nvme@lists.infradead.org, linux-s390@vger.kernel.org,
+        esc.storagedev@microsemi.com, linux-scsi@vger.kernel.org,
+        linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        linux-pm@vger.kernel.org, alsa-devel@alsa-project.org
+Date: Thu, 21 Dec 2017 08:48:47 +0800
+In-Reply-To: <2e64e7d278fa9e4e255221fb84717884a7bfb69c.1513706701.git.joe@perches.com>
+References: <cover.1513706701.git.joe@perches.com>
+         <2e64e7d278fa9e4e255221fb84717884a7bfb69c.1513706701.git.joe@perches.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---_002_C193D76D23A22742993887E6D207B54D1AE4CDA2ORSMSX106amrcor_
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+On Tue, 2017-12-19 at 10:15 -0800, Joe Perches wrote:
+> Convert DEVICE_ATTR uses to DEVICE_ATTR_RO where possible.
+> 
+> Done with perl script:
+> 
+> $ git grep -w --name-only DEVICE_ATTR | \
+>   xargs perl -i -e 'local $/; while (<>) {
+> s/\bDEVICE_ATTR\s*\(\s*(\w+)\s*,\s*\(?(?:\s*S_IRUGO\s*|\s*0444\s*)\)?
+> \s*,\s*\1_show\s*,\s*NULL\s*\)/DEVICE_ATTR_RO(\1)/g; print;}'
+> 
+> Signed-off-by: Joe Perches <joe@perches.com>
+> ---
+>  arch/arm/mach-pxa/sharpsl_pm.c                       |  4 ++--
+>  arch/sh/drivers/push-switch.c                        |  2 +-
+>  arch/tile/kernel/sysfs.c                             | 10 +++++-----
+>  drivers/acpi/device_sysfs.c                          |  6 +++---
+>  drivers/char/ipmi/ipmi_msghandler.c                  | 17 ++++++++
+> ---------
+>  drivers/gpu/drm/i915/i915_sysfs.c                    |  6 +++---
+>  drivers/nvme/host/core.c                             | 10 +++++-----
+>  drivers/s390/cio/css.c                               |  8 ++++----
+>  drivers/s390/cio/device.c                            |  8 ++++----
+>  drivers/s390/crypto/ap_card.c                        |  2 +-
+>  drivers/scsi/hpsa.c                                  | 10 +++++-----
+>  drivers/scsi/lpfc/lpfc_attr.c                        | 18 ++++++++
+> ----------
+>  drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm.c |  8 ++++----
+>  drivers/thermal/thermal_sysfs.c                      |  6 +++---
 
-Hi, Mauro and Sakari,
+For the thermal part,
+ACK-by: Zhang Rui <rui.zhang@intel.com>
 
-Sorry for the late response, the fix of the 2 warnings is attached.
-
-Best regards,
-
-Yong
-________________________________________
-From: Zhi, Yong
-Sent: Friday, December 08, 2017 3:32 PM
-To: Mauro Carvalho Chehab; Sakari Ailus
-Cc: linux-media@vger.kernel.org; Mani, Rajmohan
-Subject: RE: [RESEND GIT PULL for 4.16] Intel IPU3 CIO2 CSI-2 receiver driv=
-er
-
-Hi, Mauro,
-
-> -----Original Message-----
-> From: Mauro Carvalho Chehab [mailto:mchehab@s-opensource.com]
-> Sent: Friday, December 8, 2017 7:00 AM
-> To: Sakari Ailus <sakari.ailus@iki.fi>
-> Cc: linux-media@vger.kernel.org; Mani, Rajmohan
-> <rajmohan.mani@intel.com>; Zhi, Yong <yong.zhi@intel.com>
-> Subject: Re: [RESEND GIT PULL for 4.16] Intel IPU3 CIO2 CSI-2 receiver dr=
-iver
->
-> Em Fri, 1 Dec 2017 16:31:36 +0200
-> Sakari Ailus <sakari.ailus@iki.fi> escreveu:
->
-> > Hi Mauro,
-> >
-> > Here's the Intel IPU3 CIO2 CSI-2 receiver driver, with the
-> > accompanying format definitions.
->
-> This patch generates two warnings:
->
-> drivers/media/pci/intel/ipu3/ipu3-cio2.c:1899:16: warning: Variable lengt=
-h
-> array is used.
-> drivers/media/pci/intel/ipu3/ipu3-cio2.c: In function 'cio2_pci_probe':
-> drivers/media/pci/intel/ipu3/ipu3-cio2.c:1726:14: warning: variable 'phys=
-'
-> set but not used [-Wunused-but-set-variable]
->   phys_addr_t phys;
->               ^~~~
->
-> We should never use variable-length array on Kernel, as Linux stack is ve=
-ry
-> limited, and we have static analyzers to check for it at compilation time=
-.
->
-> Also, the logic should check if pci_resource_start() succeeded, instead o=
-f
-> just ignoring it.
->
-> Please fix.
->
-
-Thanks for catching the warnings, for the variable size array, from the cod=
-e context,
-the size is limited to 128 bytes, maybe this language feature itself is not=
- recommended,
-we will send a patch to address above soon.
-
->
-> >
-> > Please pull.
-> >
-> >
-> > The following changes since commit
-> be9b53c83792e3898755dce90f8c632d40e7c83e:
-> >
-> >   media: dvb-frontends: complete kernel-doc markups (2017-11-30
-> > 04:19:05 -0500)
-> >
-> > are available in the git repository at:
-> >
-> >   ssh://linuxtv.org/git/sailus/media_tree.git ipu3
-> >
-> > for you to fetch changes up to
-> f178207daa68e817ab6fd702d81ed7c8637ab72c:
-> >
-> >   intel-ipu3: cio2: add new MIPI-CSI2 driver (2017-11-30 14:19:47
-> > +0200)
-> >
-> > ----------------------------------------------------------------
-> > Yong Zhi (3):
-> >       videodev2.h, v4l2-ioctl: add IPU3 raw10 color format
-> >       doc-rst: add IPU3 raw10 bayer pixel format definitions
-> >       intel-ipu3: cio2: add new MIPI-CSI2 driver
-> >
-> >  Documentation/media/uapi/v4l/pixfmt-rgb.rst        |    1 +
-> >  .../media/uapi/v4l/pixfmt-srggb10-ipu3.rst         |  335 ++++
-> >  MAINTAINERS                                        |    8 +
-> >  drivers/media/pci/Kconfig                          |    2 +
-> >  drivers/media/pci/Makefile                         |    3 +-
-> >  drivers/media/pci/intel/Makefile                   |    5 +
-> >  drivers/media/pci/intel/ipu3/Kconfig               |   19 +
-> >  drivers/media/pci/intel/ipu3/Makefile              |    1 +
-> >  drivers/media/pci/intel/ipu3/ipu3-cio2.c           | 2052
-> ++++++++++++++++++++
-> >  drivers/media/pci/intel/ipu3/ipu3-cio2.h           |  449 +++++
-> >  drivers/media/v4l2-core/v4l2-ioctl.c               |    4 +
-> >  include/uapi/linux/videodev2.h                     |    6 +
-> >  12 files changed, 2884 insertions(+), 1 deletion(-)  create mode
-> > 100644 Documentation/media/uapi/v4l/pixfmt-srggb10-ipu3.rst
-> >  create mode 100644 drivers/media/pci/intel/Makefile  create mode
-> > 100644 drivers/media/pci/intel/ipu3/Kconfig
-> >  create mode 100644 drivers/media/pci/intel/ipu3/Makefile
-> >  create mode 100644 drivers/media/pci/intel/ipu3/ipu3-cio2.c
-> >  create mode 100644 drivers/media/pci/intel/ipu3/ipu3-cio2.h
-> >
->
->
->
-> Thanks,
-> Mauro
-
---_002_C193D76D23A22742993887E6D207B54D1AE4CDA2ORSMSX106amrcor_
-Content-Type: text/x-patch;
-	name="0001-PATCH-v8-intel-ipu3-cio2-fix-two-warnings-in-the-cod.patch"
-Content-Description: 0001-PATCH-v8-intel-ipu3-cio2-fix-two-warnings-in-the-cod.patch
-Content-Disposition: attachment;
-	filename="0001-PATCH-v8-intel-ipu3-cio2-fix-two-warnings-in-the-cod.patch";
-	size=2402; creation-date="Fri, 15 Dec 2017 15:15:58 GMT";
-	modification-date="Fri, 15 Dec 2017 15:15:58 GMT"
-Content-Transfer-Encoding: base64
-
-RnJvbSBkN2U5YmFmMTNiMWE4YzgzMDg5MDZhN2VkMjEzZjc1ZDEyNzU2YzI0IE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBZb25nIFpoaSA8eW9uZy56aGlAaW50ZWwuY29tPgpEYXRlOiBU
-dWUsIDEyIERlYyAyMDE3IDEwOjE2OjMxIC0wNjAwClN1YmplY3Q6IFtQQVRDSF0gW1BBVENIIHY4
-XSBpbnRlbC1pcHUzOiBjaW8yOiBmaXggdHdvIHdhcm5pbmdzIGluIHRoZSBjb2RlCgpGaXggdHdv
-IHdhcm5pbmdzIHJlcG9ydGVkIGJ5IE1hdXJvIENhcnZhbGhvIENoZWhhYjoKCmlwdTMtY2lvMi5j
-OjE4OTk6MTY6IHdhcm5pbmc6IFZhcmlhYmxlIGxlbmd0aCBhcnJheSBpcyB1c2VkLgoKSW4gZnVu
-Y3Rpb24gJ2NpbzJfcGNpX3Byb2JlJzoKaXB1My1jaW8yLmM6MTcyNjoxNDogd2FybmluZzogdmFy
-aWFibGUgJ3BoeXMnIHNldApidXQgbm90IHVzZWQgWy1XdW51c2VkLWJ1dC1zZXQtdmFyaWFibGVd
-CgpIaSwgU2FrYXJpLCBjYW4geW91IHNxdWFzaCB0aGUgcGF0Y2ggdG8geW91ciB0cmVlPwoKU2ln
-bmVkLW9mZi1ieTogWW9uZyBaaGkgPHlvbmcuemhpQGludGVsLmNvbT4KLS0tCiBkcml2ZXJzL21l
-ZGlhL3BjaS9pbnRlbC9pcHUzL2lwdTMtY2lvMi5jIHwgMTYgKysrKysrLS0tLS0tLS0tLQogMSBm
-aWxlIGNoYW5nZWQsIDYgaW5zZXJ0aW9ucygrKSwgMTAgZGVsZXRpb25zKC0pCgpkaWZmIC0tZ2l0
-IGEvZHJpdmVycy9tZWRpYS9wY2kvaW50ZWwvaXB1My9pcHUzLWNpbzIuYyBiL2RyaXZlcnMvbWVk
-aWEvcGNpL2ludGVsL2lwdTMvaXB1My1jaW8yLmMKaW5kZXggNDI5NWJkYjhiMTkyLi45NDFjYWE5
-ODdkYWIgMTAwNjQ0Ci0tLSBhL2RyaXZlcnMvbWVkaWEvcGNpL2ludGVsL2lwdTMvaXB1My1jaW8y
-LmMKKysrIGIvZHJpdmVycy9tZWRpYS9wY2kvaW50ZWwvaXB1My9pcHUzLWNpbzIuYwpAQCAtMTcy
-Myw3ICsxNzIzLDYgQEAgc3RhdGljIGludCBjaW8yX3BjaV9wcm9iZShzdHJ1Y3QgcGNpX2RldiAq
-cGNpX2RldiwKIAkJCSAgY29uc3Qgc3RydWN0IHBjaV9kZXZpY2VfaWQgKmlkKQogewogCXN0cnVj
-dCBjaW8yX2RldmljZSAqY2lvMjsKLQlwaHlzX2FkZHJfdCBwaHlzOwogCXZvaWQgX19pb21lbSAq
-Y29uc3QgKmlvbWFwOwogCWludCByOwogCkBAIC0xNzQxLDggKzE3NDAsNiBAQCBzdGF0aWMgaW50
-IGNpbzJfcGNpX3Byb2JlKHN0cnVjdCBwY2lfZGV2ICpwY2lfZGV2LAogCWRldl9pbmZvKCZwY2lf
-ZGV2LT5kZXYsICJkZXZpY2UgMHgleCAocmV2OiAweCV4KVxuIiwKIAkJIHBjaV9kZXYtPmRldmlj
-ZSwgcGNpX2Rldi0+cmV2aXNpb24pOwogCi0JcGh5cyA9IHBjaV9yZXNvdXJjZV9zdGFydChwY2lf
-ZGV2LCBDSU8yX1BDSV9CQVIpOwotCiAJciA9IHBjaW1faW9tYXBfcmVnaW9ucyhwY2lfZGV2LCAx
-IDw8IENJTzJfUENJX0JBUiwgcGNpX25hbWUocGNpX2RldikpOwogCWlmIChyKSB7CiAJCWRldl9l
-cnIoJnBjaV9kZXYtPmRldiwgImZhaWxlZCB0byByZW1hcCBJL08gbWVtb3J5ICglZClcbiIsIHIp
-OwpAQCAtMTg5Niw3ICsxODkzLDYgQEAgc3RhdGljIHZvaWQgYXJyYW5nZSh2b2lkICpwdHIsIHNp
-emVfdCBlbGVtX3NpemUsIHNpemVfdCBlbGVtcywgc2l6ZV90IHN0YXJ0KQogCQl7IDAsIHN0YXJ0
-IC0gMSB9LAogCQl7IHN0YXJ0LCBlbGVtcyAtIDEgfSwKIAl9OwotCXU4IHRtcFtlbGVtX3NpemVd
-OwogCiAjZGVmaW5lIGFycl9zaXplKGEpICgoYSktPmVuZCAtIChhKS0+YmVnaW4gKyAxKQogCkBA
-IC0xOTE1LDEyICsxOTExLDEyIEBAIHN0YXRpYyB2b2lkIGFycmFuZ2Uodm9pZCAqcHRyLCBzaXpl
-X3QgZWxlbV9zaXplLCBzaXplX3QgZWxlbXMsIHNpemVfdCBzdGFydCkKIAogCQkvKiBTd2FwIHRo
-ZSBlbnRyaWVzIGluIHR3byBwYXJ0cyBvZiB0aGUgYXJyYXkuICovCiAJCWZvciAoaSA9IDA7IGkg
-PCBzaXplMDsgaSsrKSB7Ci0JCQltZW1jcHkodG1wLCBwdHIgKyBlbGVtX3NpemUgKiAoYXJyWzFd
-LmJlZ2luICsgaSksCi0JCQkgICAgICAgZWxlbV9zaXplKTsKLQkJCW1lbWNweShwdHIgKyBlbGVt
-X3NpemUgKiAoYXJyWzFdLmJlZ2luICsgaSksCi0JCQkgICAgICAgcHRyICsgZWxlbV9zaXplICog
-KGFyclswXS5iZWdpbiArIGkpLCBlbGVtX3NpemUpOwotCQkJbWVtY3B5KHB0ciArIGVsZW1fc2l6
-ZSAqIChhcnJbMF0uYmVnaW4gKyBpKSwgdG1wLAotCQkJICAgICAgIGVsZW1fc2l6ZSk7CisJCQl1
-OCAqZCA9IHB0ciArIGVsZW1fc2l6ZSAqIChhcnJbMV0uYmVnaW4gKyBpKTsKKwkJCXU4ICpzID0g
-cHRyICsgZWxlbV9zaXplICogKGFyclswXS5iZWdpbiArIGkpOworCQkJc2l6ZV90IGo7CisKKwkJ
-CWZvciAoaiA9IDA7IGogPCBlbGVtX3NpemU7IGorKykKKwkJCQlzd2FwKGRbal0sIHNbal0pOwog
-CQl9CiAKIAkJaWYgKGFycl9zaXplKCZhcnJbMF0pID4gYXJyX3NpemUoJmFyclsxXSkpIHsKLS0g
-CjIuNy40Cgo=
-
---_002_C193D76D23A22742993887E6D207B54D1AE4CDA2ORSMSX106amrcor_--
+thanks,
+rui
+>  sound/soc/soc-core.c                                 |  2 +-
+>  sound/soc/soc-dapm.c                                 |  2 +-
+>  16 files changed, 58 insertions(+), 61 deletions(-)
+> 
+> diff --git a/arch/arm/mach-pxa/sharpsl_pm.c b/arch/arm/mach-
+> pxa/sharpsl_pm.c
+> index 398ba9ba2632..ef9fd9b759cb 100644
+> --- a/arch/arm/mach-pxa/sharpsl_pm.c
+> +++ b/arch/arm/mach-pxa/sharpsl_pm.c
+> @@ -802,8 +802,8 @@ static ssize_t battery_voltage_show(struct device
+> *dev, struct device_attribute
+>  	return sprintf(buf, "%d\n",
+> sharpsl_pm.battstat.mainbat_voltage);
+>  }
+>  
+> -static DEVICE_ATTR(battery_percentage, 0444,
+> battery_percentage_show, NULL);
+> -static DEVICE_ATTR(battery_voltage, 0444, battery_voltage_show,
+> NULL);
+> +static DEVICE_ATTR_RO(battery_percentage);
+> +static DEVICE_ATTR_RO(battery_voltage);
+>  
+>  extern void (*apm_get_power_status)(struct apm_power_info *);
+>  
+> diff --git a/arch/sh/drivers/push-switch.c b/arch/sh/drivers/push-
+> switch.c
+> index a17181160233..762bc5619910 100644
+> --- a/arch/sh/drivers/push-switch.c
+> +++ b/arch/sh/drivers/push-switch.c
+> @@ -24,7 +24,7 @@ static ssize_t switch_show(struct device *dev,
+>  	struct push_switch_platform_info *psw_info = dev-
+> >platform_data;
+>  	return sprintf(buf, "%s\n", psw_info->name);
+>  }
+> -static DEVICE_ATTR(switch, S_IRUGO, switch_show, NULL);
+> +static DEVICE_ATTR_RO(switch);
+>  
+>  static void switch_timer(struct timer_list *t)
+>  {
+> diff --git a/arch/tile/kernel/sysfs.c b/arch/tile/kernel/sysfs.c
+> index af5024f0fb5a..b09456a3d77a 100644
+> --- a/arch/tile/kernel/sysfs.c
+> +++ b/arch/tile/kernel/sysfs.c
+> @@ -38,7 +38,7 @@ static ssize_t chip_width_show(struct device *dev,
+>  {
+>  	return sprintf(page, "%u\n", smp_width);
+>  }
+> -static DEVICE_ATTR(chip_width, 0444, chip_width_show, NULL);
+> +static DEVICE_ATTR_RO(chip_width);
+>  
+>  static ssize_t chip_height_show(struct device *dev,
+>  				struct device_attribute *attr,
+> @@ -46,7 +46,7 @@ static ssize_t chip_height_show(struct device *dev,
+>  {
+>  	return sprintf(page, "%u\n", smp_height);
+>  }
+> -static DEVICE_ATTR(chip_height, 0444, chip_height_show, NULL);
+> +static DEVICE_ATTR_RO(chip_height);
+>  
+>  static ssize_t chip_serial_show(struct device *dev,
+>  				struct device_attribute *attr,
+> @@ -54,7 +54,7 @@ static ssize_t chip_serial_show(struct device *dev,
+>  {
+>  	return get_hv_confstr(page, HV_CONFSTR_CHIP_SERIAL_NUM);
+>  }
+> -static DEVICE_ATTR(chip_serial, 0444, chip_serial_show, NULL);
+> +static DEVICE_ATTR_RO(chip_serial);
+>  
+>  static ssize_t chip_revision_show(struct device *dev,
+>  				  struct device_attribute *attr,
+> @@ -62,7 +62,7 @@ static ssize_t chip_revision_show(struct device
+> *dev,
+>  {
+>  	return get_hv_confstr(page, HV_CONFSTR_CHIP_REV);
+>  }
+> -static DEVICE_ATTR(chip_revision, 0444, chip_revision_show, NULL);
+> +static DEVICE_ATTR_RO(chip_revision);
+>  
+>  
+>  static ssize_t type_show(struct device *dev,
+> @@ -71,7 +71,7 @@ static ssize_t type_show(struct device *dev,
+>  {
+>  	return sprintf(page, "tilera\n");
+>  }
+> -static DEVICE_ATTR(type, 0444, type_show, NULL);
+> +static DEVICE_ATTR_RO(type);
+>  
+>  #define HV_CONF_ATTR(name, conf)					
+> \
+>  	static ssize_t name ## _show(struct device *dev,		
+> \
+> diff --git a/drivers/acpi/device_sysfs.c
+> b/drivers/acpi/device_sysfs.c
+> index a041689e5701..545e91420cde 100644
+> --- a/drivers/acpi/device_sysfs.c
+> +++ b/drivers/acpi/device_sysfs.c
+> @@ -357,7 +357,7 @@ static ssize_t real_power_state_show(struct
+> device *dev,
+>  	return sprintf(buf, "%s\n", acpi_power_state_string(state));
+>  }
+>  
+> -static DEVICE_ATTR(real_power_state, 0444, real_power_state_show,
+> NULL);
+> +static DEVICE_ATTR_RO(real_power_state);
+>  
+>  static ssize_t power_state_show(struct device *dev,
+>  				struct device_attribute *attr, char
+> *buf)
+> @@ -367,7 +367,7 @@ static ssize_t power_state_show(struct device
+> *dev,
+>  	return sprintf(buf, "%s\n", acpi_power_state_string(adev-
+> >power.state));
+>  }
+>  
+> -static DEVICE_ATTR(power_state, 0444, power_state_show, NULL);
+> +static DEVICE_ATTR_RO(power_state);
+>  
+>  static ssize_t
+>  acpi_eject_store(struct device *d, struct device_attribute *attr,
+> @@ -462,7 +462,7 @@ static ssize_t description_show(struct device
+> *dev,
+>  
+>  	return result;
+>  }
+> -static DEVICE_ATTR(description, 0444, description_show, NULL);
+> +static DEVICE_ATTR_RO(description);
+>  
+>  static ssize_t
+>  acpi_device_sun_show(struct device *dev, struct device_attribute
+> *attr,
+> diff --git a/drivers/char/ipmi/ipmi_msghandler.c
+> b/drivers/char/ipmi/ipmi_msghandler.c
+> index f45732a2cb3e..7f51acd74e10 100644
+> --- a/drivers/char/ipmi/ipmi_msghandler.c
+> +++ b/drivers/char/ipmi/ipmi_msghandler.c
+> @@ -2588,7 +2588,7 @@ static ssize_t device_id_show(struct device
+> *dev,
+>  
+>  	return snprintf(buf, 10, "%u\n", id.device_id);
+>  }
+> -static DEVICE_ATTR(device_id, S_IRUGO, device_id_show, NULL);
+> +static DEVICE_ATTR_RO(device_id);
+>  
+>  static ssize_t provides_device_sdrs_show(struct device *dev,
+>  					 struct device_attribute
+> *attr,
+> @@ -2604,8 +2604,7 @@ static ssize_t provides_device_sdrs_show(struct
+> device *dev,
+>  
+>  	return snprintf(buf, 10, "%u\n", (id.device_revision & 0x80)
+> >> 7);
+>  }
+> -static DEVICE_ATTR(provides_device_sdrs, S_IRUGO,
+> provides_device_sdrs_show,
+> -		   NULL);
+> +static DEVICE_ATTR_RO(provides_device_sdrs);
+>  
+>  static ssize_t revision_show(struct device *dev, struct
+> device_attribute *attr,
+>  			     char *buf)
+> @@ -2620,7 +2619,7 @@ static ssize_t revision_show(struct device
+> *dev, struct device_attribute *attr,
+>  
+>  	return snprintf(buf, 20, "%u\n", id.device_revision & 0x0F);
+>  }
+> -static DEVICE_ATTR(revision, S_IRUGO, revision_show, NULL);
+> +static DEVICE_ATTR_RO(revision);
+>  
+>  static ssize_t firmware_revision_show(struct device *dev,
+>  				      struct device_attribute *attr,
+> @@ -2637,7 +2636,7 @@ static ssize_t firmware_revision_show(struct
+> device *dev,
+>  	return snprintf(buf, 20, "%u.%x\n", id.firmware_revision_1,
+>  			id.firmware_revision_2);
+>  }
+> -static DEVICE_ATTR(firmware_revision, S_IRUGO,
+> firmware_revision_show, NULL);
+> +static DEVICE_ATTR_RO(firmware_revision);
+>  
+>  static ssize_t ipmi_version_show(struct device *dev,
+>  				 struct device_attribute *attr,
+> @@ -2655,7 +2654,7 @@ static ssize_t ipmi_version_show(struct device
+> *dev,
+>  			ipmi_version_major(&id),
+>  			ipmi_version_minor(&id));
+>  }
+> -static DEVICE_ATTR(ipmi_version, S_IRUGO, ipmi_version_show, NULL);
+> +static DEVICE_ATTR_RO(ipmi_version);
+>  
+>  static ssize_t add_dev_support_show(struct device *dev,
+>  				    struct device_attribute *attr,
+> @@ -2688,7 +2687,7 @@ static ssize_t manufacturer_id_show(struct
+> device *dev,
+>  
+>  	return snprintf(buf, 20, "0x%6.6x\n", id.manufacturer_id);
+>  }
+> -static DEVICE_ATTR(manufacturer_id, S_IRUGO, manufacturer_id_show,
+> NULL);
+> +static DEVICE_ATTR_RO(manufacturer_id);
+>  
+>  static ssize_t product_id_show(struct device *dev,
+>  			       struct device_attribute *attr,
+> @@ -2704,7 +2703,7 @@ static ssize_t product_id_show(struct device
+> *dev,
+>  
+>  	return snprintf(buf, 10, "0x%4.4x\n", id.product_id);
+>  }
+> -static DEVICE_ATTR(product_id, S_IRUGO, product_id_show, NULL);
+> +static DEVICE_ATTR_RO(product_id);
+>  
+>  static ssize_t aux_firmware_rev_show(struct device *dev,
+>  				     struct device_attribute *attr,
+> @@ -2742,7 +2741,7 @@ static ssize_t guid_show(struct device *dev,
+> struct device_attribute *attr,
+>  
+>  	return snprintf(buf, 38, "%pUl\n", guid.b);
+>  }
+> -static DEVICE_ATTR(guid, S_IRUGO, guid_show, NULL);
+> +static DEVICE_ATTR_RO(guid);
+>  
+>  static struct attribute *bmc_dev_attrs[] = {
+>  	&dev_attr_device_id.attr,
+> diff --git a/drivers/gpu/drm/i915/i915_sysfs.c
+> b/drivers/gpu/drm/i915/i915_sysfs.c
+> index 1d0ab8ff5915..b33d2158c234 100644
+> --- a/drivers/gpu/drm/i915/i915_sysfs.c
+> +++ b/drivers/gpu/drm/i915/i915_sysfs.c
+> @@ -445,13 +445,13 @@ static ssize_t gt_min_freq_mhz_store(struct
+> device *kdev,
+>  	return ret ?: count;
+>  }
+>  
+> -static DEVICE_ATTR(gt_act_freq_mhz, S_IRUGO, gt_act_freq_mhz_show,
+> NULL);
+> -static DEVICE_ATTR(gt_cur_freq_mhz, S_IRUGO, gt_cur_freq_mhz_show,
+> NULL);
+> +static DEVICE_ATTR_RO(gt_act_freq_mhz);
+> +static DEVICE_ATTR_RO(gt_cur_freq_mhz);
+>  static DEVICE_ATTR_RW(gt_boost_freq_mhz);
+>  static DEVICE_ATTR_RW(gt_max_freq_mhz);
+>  static DEVICE_ATTR_RW(gt_min_freq_mhz);
+>  
+> -static DEVICE_ATTR(vlv_rpe_freq_mhz, S_IRUGO, vlv_rpe_freq_mhz_show,
+> NULL);
+> +static DEVICE_ATTR_RO(vlv_rpe_freq_mhz);
+>  
+>  static ssize_t gt_rp_mhz_show(struct device *kdev, struct
+> device_attribute *attr, char *buf);
+>  static DEVICE_ATTR(gt_RP0_freq_mhz, S_IRUGO, gt_rp_mhz_show, NULL);
+> diff --git a/drivers/nvme/host/core.c b/drivers/nvme/host/core.c
+> index 63691e251f8c..8f9fa6f1dfb4 100644
+> --- a/drivers/nvme/host/core.c
+> +++ b/drivers/nvme/host/core.c
+> @@ -2516,14 +2516,14 @@ static ssize_t wwid_show(struct device *dev,
+> struct device_attribute *attr,
+>  		serial_len, subsys->serial, model_len, subsys-
+> >model,
+>  		head->ns_id);
+>  }
+> -static DEVICE_ATTR(wwid, S_IRUGO, wwid_show, NULL);
+> +static DEVICE_ATTR_RO(wwid);
+>  
+>  static ssize_t nguid_show(struct device *dev, struct
+> device_attribute *attr,
+>  		char *buf)
+>  {
+>  	return sprintf(buf, "%pU\n", dev_to_ns_head(dev)-
+> >ids.nguid);
+>  }
+> -static DEVICE_ATTR(nguid, S_IRUGO, nguid_show, NULL);
+> +static DEVICE_ATTR_RO(nguid);
+>  
+>  static ssize_t uuid_show(struct device *dev, struct device_attribute
+> *attr,
+>  		char *buf)
+> @@ -2540,21 +2540,21 @@ static ssize_t uuid_show(struct device *dev,
+> struct device_attribute *attr,
+>  	}
+>  	return sprintf(buf, "%pU\n", &ids->uuid);
+>  }
+> -static DEVICE_ATTR(uuid, S_IRUGO, uuid_show, NULL);
+> +static DEVICE_ATTR_RO(uuid);
+>  
+>  static ssize_t eui_show(struct device *dev, struct device_attribute
+> *attr,
+>  		char *buf)
+>  {
+>  	return sprintf(buf, "%8ph\n", dev_to_ns_head(dev)-
+> >ids.eui64);
+>  }
+> -static DEVICE_ATTR(eui, S_IRUGO, eui_show, NULL);
+> +static DEVICE_ATTR_RO(eui);
+>  
+>  static ssize_t nsid_show(struct device *dev, struct device_attribute
+> *attr,
+>  		char *buf)
+>  {
+>  	return sprintf(buf, "%d\n", dev_to_ns_head(dev)->ns_id);
+>  }
+> -static DEVICE_ATTR(nsid, S_IRUGO, nsid_show, NULL);
+> +static DEVICE_ATTR_RO(nsid);
+>  
+>  static struct attribute *nvme_ns_id_attrs[] = {
+>  	&dev_attr_wwid.attr,
+> diff --git a/drivers/s390/cio/css.c b/drivers/s390/cio/css.c
+> index 0f11dce6e224..9263a0fb3858 100644
+> --- a/drivers/s390/cio/css.c
+> +++ b/drivers/s390/cio/css.c
+> @@ -268,7 +268,7 @@ static ssize_t type_show(struct device *dev,
+> struct device_attribute *attr,
+>  	return sprintf(buf, "%01x\n", sch->st);
+>  }
+>  
+> -static DEVICE_ATTR(type, 0444, type_show, NULL);
+> +static DEVICE_ATTR_RO(type);
+>  
+>  static ssize_t modalias_show(struct device *dev, struct
+> device_attribute *attr,
+>  			     char *buf)
+> @@ -278,7 +278,7 @@ static ssize_t modalias_show(struct device *dev,
+> struct device_attribute *attr,
+>  	return sprintf(buf, "css:t%01X\n", sch->st);
+>  }
+>  
+> -static DEVICE_ATTR(modalias, 0444, modalias_show, NULL);
+> +static DEVICE_ATTR_RO(modalias);
+>  
+>  static struct attribute *subch_attrs[] = {
+>  	&dev_attr_type.attr,
+> @@ -315,7 +315,7 @@ static ssize_t chpids_show(struct device *dev,
+>  	ret += sprintf(buf + ret, "\n");
+>  	return ret;
+>  }
+> -static DEVICE_ATTR(chpids, 0444, chpids_show, NULL);
+> +static DEVICE_ATTR_RO(chpids);
+>  
+>  static ssize_t pimpampom_show(struct device *dev,
+>  			      struct device_attribute *attr,
+> @@ -327,7 +327,7 @@ static ssize_t pimpampom_show(struct device *dev,
+>  	return sprintf(buf, "%02x %02x %02x\n",
+>  		       pmcw->pim, pmcw->pam, pmcw->pom);
+>  }
+> -static DEVICE_ATTR(pimpampom, 0444, pimpampom_show, NULL);
+> +static DEVICE_ATTR_RO(pimpampom);
+>  
+>  static struct attribute *io_subchannel_type_attrs[] = {
+>  	&dev_attr_chpids.attr,
+> diff --git a/drivers/s390/cio/device.c b/drivers/s390/cio/device.c
+> index 6eefb67b31f3..f50ea035aa9b 100644
+> --- a/drivers/s390/cio/device.c
+> +++ b/drivers/s390/cio/device.c
+> @@ -597,13 +597,13 @@ static ssize_t vpm_show(struct device *dev,
+> struct device_attribute *attr,
+>  	return sprintf(buf, "%02x\n", sch->vpm);
+>  }
+>  
+> -static DEVICE_ATTR(devtype, 0444, devtype_show, NULL);
+> -static DEVICE_ATTR(cutype, 0444, cutype_show, NULL);
+> -static DEVICE_ATTR(modalias, 0444, modalias_show, NULL);
+> +static DEVICE_ATTR_RO(devtype);
+> +static DEVICE_ATTR_RO(cutype);
+> +static DEVICE_ATTR_RO(modalias);
+>  static DEVICE_ATTR_RW(online);
+>  static DEVICE_ATTR(availability, 0444, available_show, NULL);
+>  static DEVICE_ATTR(logging, 0200, NULL, initiate_logging);
+> -static DEVICE_ATTR(vpm, 0444, vpm_show, NULL);
+> +static DEVICE_ATTR_RO(vpm);
+>  
+>  static struct attribute *io_subchannel_attrs[] = {
+>  	&dev_attr_logging.attr,
+> diff --git a/drivers/s390/crypto/ap_card.c
+> b/drivers/s390/crypto/ap_card.c
+> index 97a8cf578116..2c726df210f6 100644
+> --- a/drivers/s390/crypto/ap_card.c
+> +++ b/drivers/s390/crypto/ap_card.c
+> @@ -57,7 +57,7 @@ static ssize_t ap_functions_show(struct device
+> *dev,
+>  	return snprintf(buf, PAGE_SIZE, "0x%08X\n", ac->functions);
+>  }
+>  
+> -static DEVICE_ATTR(ap_functions, 0444, ap_functions_show, NULL);
+> +static DEVICE_ATTR_RO(ap_functions);
+>  
+>  static ssize_t ap_req_count_show(struct device *dev,
+>  				 struct device_attribute *attr,
+> diff --git a/drivers/scsi/hpsa.c b/drivers/scsi/hpsa.c
+> index b0aa5dc1d54c..d62377b68ef4 100644
+> --- a/drivers/scsi/hpsa.c
+> +++ b/drivers/scsi/hpsa.c
+> @@ -901,14 +901,14 @@ static ssize_t host_show_legacy_board(struct
+> device *dev,
+>  	return snprintf(buf, 20, "%d\n", h->legacy_board ? 1 : 0);
+>  }
+>  
+> -static DEVICE_ATTR(raid_level, S_IRUGO, raid_level_show, NULL);
+> -static DEVICE_ATTR(lunid, S_IRUGO, lunid_show, NULL);
+> -static DEVICE_ATTR(unique_id, S_IRUGO, unique_id_show, NULL);
+> +static DEVICE_ATTR_RO(raid_level);
+> +static DEVICE_ATTR_RO(lunid);
+> +static DEVICE_ATTR_RO(unique_id);
+>  static DEVICE_ATTR(rescan, S_IWUSR, NULL, host_store_rescan);
+> -static DEVICE_ATTR(sas_address, S_IRUGO, sas_address_show, NULL);
+> +static DEVICE_ATTR_RO(sas_address);
+>  static DEVICE_ATTR(hp_ssd_smart_path_enabled, S_IRUGO,
+>  			host_show_hp_ssd_smart_path_enabled, NULL);
+> -static DEVICE_ATTR(path_info, S_IRUGO, path_info_show, NULL);
+> +static DEVICE_ATTR_RO(path_info);
+>  static DEVICE_ATTR(hp_ssd_smart_path_status,
+> S_IWUSR|S_IRUGO|S_IROTH,
+>  		host_show_hp_ssd_smart_path_status,
+>  		host_store_hp_ssd_smart_path_status);
+> diff --git a/drivers/scsi/lpfc/lpfc_attr.c
+> b/drivers/scsi/lpfc/lpfc_attr.c
+> index 95f7ba3c3f1a..517ff203cfde 100644
+> --- a/drivers/scsi/lpfc/lpfc_attr.c
+> +++ b/drivers/scsi/lpfc/lpfc_attr.c
+> @@ -2294,8 +2294,8 @@ static DEVICE_ATTR(num_discovered_ports,
+> S_IRUGO,
+>  		   lpfc_num_discovered_ports_show, NULL);
+>  static DEVICE_ATTR(menlo_mgmt_mode, S_IRUGO, lpfc_mlomgmt_show,
+> NULL);
+>  static DEVICE_ATTR(nport_evt_cnt, S_IRUGO, lpfc_nport_evt_cnt_show,
+> NULL);
+> -static DEVICE_ATTR(lpfc_drvr_version, S_IRUGO,
+> lpfc_drvr_version_show, NULL);
+> -static DEVICE_ATTR(lpfc_enable_fip, S_IRUGO, lpfc_enable_fip_show,
+> NULL);
+> +static DEVICE_ATTR_RO(lpfc_drvr_version);
+> +static DEVICE_ATTR_RO(lpfc_enable_fip);
+>  static DEVICE_ATTR(board_mode, S_IRUGO | S_IWUSR,
+>  		   lpfc_board_mode_show, lpfc_board_mode_store);
+>  static DEVICE_ATTR(issue_reset, S_IWUSR, NULL, lpfc_issue_reset);
+> @@ -2306,12 +2306,11 @@ static DEVICE_ATTR(used_rpi, S_IRUGO,
+> lpfc_used_rpi_show, NULL);
+>  static DEVICE_ATTR(max_xri, S_IRUGO, lpfc_max_xri_show, NULL);
+>  static DEVICE_ATTR(used_xri, S_IRUGO, lpfc_used_xri_show, NULL);
+>  static DEVICE_ATTR(npiv_info, S_IRUGO, lpfc_npiv_info_show, NULL);
+> -static DEVICE_ATTR(lpfc_temp_sensor, S_IRUGO, lpfc_temp_sensor_show,
+> NULL);
+> -static DEVICE_ATTR(lpfc_fips_level, S_IRUGO, lpfc_fips_level_show,
+> NULL);
+> -static DEVICE_ATTR(lpfc_fips_rev, S_IRUGO, lpfc_fips_rev_show,
+> NULL);
+> -static DEVICE_ATTR(lpfc_dss, S_IRUGO, lpfc_dss_show, NULL);
+> -static DEVICE_ATTR(lpfc_sriov_hw_max_virtfn, S_IRUGO,
+> -		   lpfc_sriov_hw_max_virtfn_show, NULL);
+> +static DEVICE_ATTR_RO(lpfc_temp_sensor);
+> +static DEVICE_ATTR_RO(lpfc_fips_level);
+> +static DEVICE_ATTR_RO(lpfc_fips_rev);
+> +static DEVICE_ATTR_RO(lpfc_dss);
+> +static DEVICE_ATTR_RO(lpfc_sriov_hw_max_virtfn);
+>  static DEVICE_ATTR(protocol, S_IRUGO, lpfc_sli4_protocol_show,
+> NULL);
+>  static DEVICE_ATTR(lpfc_xlane_supported, S_IRUGO,
+> lpfc_oas_supported_show,
+>  		   NULL);
+> @@ -3719,8 +3718,7 @@ lpfc_static_vport_show(struct device *dev,
+> struct device_attribute *attr,
+>  /*
+>   * Sysfs attribute to control the statistical data collection.
+>   */
+> -static DEVICE_ATTR(lpfc_static_vport, S_IRUGO,
+> -		   lpfc_static_vport_show, NULL);
+> +static DEVICE_ATTR_RO(lpfc_static_vport);
+>  
+>  /**
+>   * lpfc_stat_data_ctrl_store - write call back for
+> lpfc_stat_data_ctrl sysfs file
+> diff --git a/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm.c
+> b/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm.c
+> index a1c81c12718c..4338b8a1309f 100644
+> --- a/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm.c
+> +++ b/drivers/staging/media/atomisp/pci/atomisp2/hmm/hmm.c
+> @@ -158,10 +158,10 @@ static ssize_t dynamic_pool_show(struct device
+> *dev,
+>  	return ret;
+>  };
+>  
+> -static DEVICE_ATTR(active_bo, 0444, active_bo_show, NULL);
+> -static DEVICE_ATTR(free_bo, 0444, free_bo_show, NULL);
+> -static DEVICE_ATTR(reserved_pool, 0444, reserved_pool_show, NULL);
+> -static DEVICE_ATTR(dynamic_pool, 0444, dynamic_pool_show, NULL);
+> +static DEVICE_ATTR_RO(active_bo);
+> +static DEVICE_ATTR_RO(free_bo);
+> +static DEVICE_ATTR_RO(reserved_pool);
+> +static DEVICE_ATTR_RO(dynamic_pool);
+>  
+>  static struct attribute *sysfs_attrs_ctrl[] = {
+>  	&dev_attr_active_bo.attr,
+> diff --git a/drivers/thermal/thermal_sysfs.c
+> b/drivers/thermal/thermal_sysfs.c
+> index c008af7fb480..2bc964392924 100644
+> --- a/drivers/thermal/thermal_sysfs.c
+> +++ b/drivers/thermal/thermal_sysfs.c
+> @@ -396,10 +396,10 @@ create_s32_tzp_attr(offset);
+>   * All the attributes created for tzp (create_s32_tzp_attr) also are
+> always
+>   * present on the sysfs interface.
+>   */
+> -static DEVICE_ATTR(type, 0444, type_show, NULL);
+> -static DEVICE_ATTR(temp, 0444, temp_show, NULL);
+> +static DEVICE_ATTR_RO(type);
+> +static DEVICE_ATTR_RO(temp);
+>  static DEVICE_ATTR_RW(policy);
+> -static DEVICE_ATTR(available_policies, S_IRUGO,
+> available_policies_show, NULL);
+> +static DEVICE_ATTR_RO(available_policies);
+>  static DEVICE_ATTR_RW(sustainable_power);
+>  
+>  /* These thermal zone device attributes are created based on
+> conditions */
+> diff --git a/sound/soc/soc-core.c b/sound/soc/soc-core.c
+> index 2d392f2d7ffe..9a380e55f4af 100644
+> --- a/sound/soc/soc-core.c
+> +++ b/sound/soc/soc-core.c
+> @@ -173,7 +173,7 @@ static ssize_t codec_reg_show(struct device *dev,
+>  	return soc_codec_reg_show(rtd->codec, buf, PAGE_SIZE, 0);
+>  }
+>  
+> -static DEVICE_ATTR(codec_reg, 0444, codec_reg_show, NULL);
+> +static DEVICE_ATTR_RO(codec_reg);
+>  
+>  static ssize_t pmdown_time_show(struct device *dev,
+>  				struct device_attribute *attr, char
+> *buf)
+> diff --git a/sound/soc/soc-dapm.c b/sound/soc/soc-dapm.c
+> index a10b21cfc31e..d1977ced895f 100644
+> --- a/sound/soc/soc-dapm.c
+> +++ b/sound/soc/soc-dapm.c
+> @@ -2364,7 +2364,7 @@ static ssize_t dapm_widget_show(struct device
+> *dev,
+>  	return count;
+>  }
+>  
+> -static DEVICE_ATTR(dapm_widget, 0444, dapm_widget_show, NULL);
+> +static DEVICE_ATTR_RO(dapm_widget);
+>  
+>  struct attribute *soc_dapm_dev_attrs[] = {
+>  	&dev_attr_dapm_widget.attr,
