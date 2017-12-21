@@ -1,44 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:20901 "EHLO
-        mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753350AbdLHJgy (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 8 Dec 2017 04:36:54 -0500
-From: Smitha T Murthy <smitha.t@samsung.com>
-To: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Cc: kyungmin.park@samsung.com, kamil@wypas.org, jtp.park@samsung.com,
-        a.hajda@samsung.com, mchehab@kernel.org, pankaj.dubey@samsung.com,
-        krzk@kernel.org, m.szyprowski@samsung.com, s.nawrocki@samsung.com,
-        Smitha T Murthy <smitha.t@samsung.com>
-Subject: [Patch v6 06/12] [media] v4l2-ioctl: add HEVC format description
-Date: Fri, 08 Dec 2017 14:38:19 +0530
-Message-id: <1512724105-1778-7-git-send-email-smitha.t@samsung.com>
-In-reply-to: <1512724105-1778-1-git-send-email-smitha.t@samsung.com>
-References: <1512724105-1778-1-git-send-email-smitha.t@samsung.com>
-        <CGME20171208093652epcas1p284476d0cff4b03af0a79aa416445b2a5@epcas1p2.samsung.com>
+Received: from osg.samsung.com ([64.30.133.232]:41829 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752500AbdLUSRz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 21 Dec 2017 13:17:55 -0500
+Date: Thu, 21 Dec 2017 16:17:48 -0200
+From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+To: Gustavo Padovan <gustavo@padovan.org>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        Pawel Osciak <pawel@osciak.com>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Brian Starkey <brian.starkey@arm.com>,
+        Thierry Escande <thierry.escande@collabora.com>,
+        linux-kernel@vger.kernel.org,
+        Gustavo Padovan <gustavo.padovan@collabora.com>
+Subject: Re: [PATCH v6 2/6] [media] v4l: add 'unordered' flag to format
+ description ioctl
+Message-ID: <20171221161748.71a8f42e@vento.lan>
+In-Reply-To: <20171211182741.29712-3-gustavo@padovan.org>
+References: <20171211182741.29712-1-gustavo@padovan.org>
+        <20171211182741.29712-3-gustavo@padovan.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-HEVC is a video coding format
+Em Mon, 11 Dec 2017 16:27:37 -0200
+Gustavo Padovan <gustavo@padovan.org> escreveu:
 
-Signed-off-by: Smitha T Murthy <smitha.t@samsung.com>
-Reviewed-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/v4l2-core/v4l2-ioctl.c | 1 +
- 1 file changed, 1 insertion(+)
+> From: Gustavo Padovan <gustavo.padovan@collabora.com>
+> 
+> For explicit synchronization it important for userspace to know if the
+> format being used by the driver can deliver the buffers back to userspace
+> in the same order they were queued with QBUF.
+> 
+> Ordered streams fits nicely in a pipeline with DRM for example, where
+> ordered buffer are expected.
+> 
+> Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
 
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index 7961499..8a3c6a8 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -1268,6 +1268,7 @@ static void v4l_fill_fmtdesc(struct v4l2_fmtdesc *fmt)
- 		case V4L2_PIX_FMT_VC1_ANNEX_L:	descr = "VC-1 (SMPTE 412M Annex L)"; break;
- 		case V4L2_PIX_FMT_VP8:		descr = "VP8"; break;
- 		case V4L2_PIX_FMT_VP9:		descr = "VP9"; break;
-+		case V4L2_PIX_FMT_HEVC:		descr = "HEVC"; break; /* aka H.265 */
- 		case V4L2_PIX_FMT_CPIA1:	descr = "GSPCA CPiA YUV"; break;
- 		case V4L2_PIX_FMT_WNVA:		descr = "WNVA"; break;
- 		case V4L2_PIX_FMT_SN9C10X:	descr = "GSPCA SN9C10X"; break;
+Looks OK to me.
+
+> ---
+>  Documentation/media/uapi/v4l/vidioc-enum-fmt.rst | 3 +++
+>  include/uapi/linux/videodev2.h                   | 1 +
+>  2 files changed, 4 insertions(+)
+> 
+> diff --git a/Documentation/media/uapi/v4l/vidioc-enum-fmt.rst b/Documentation/media/uapi/v4l/vidioc-enum-fmt.rst
+> index 019c513df217..368115f44fc0 100644
+> --- a/Documentation/media/uapi/v4l/vidioc-enum-fmt.rst
+> +++ b/Documentation/media/uapi/v4l/vidioc-enum-fmt.rst
+> @@ -116,6 +116,9 @@ one until ``EINVAL`` is returned.
+>        - This format is not native to the device but emulated through
+>  	software (usually libv4l2), where possible try to use a native
+>  	format instead for better performance.
+> +    * - ``V4L2_FMT_FLAG_UNORDERED``
+> +      - 0x0004
+> +      - This is a format that doesn't guarantee timely order of frames.
+>  
+>  
+>  Return Value
+> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+> index 1c095b5a99c5..a8ea632c14f0 100644
+> --- a/include/uapi/linux/videodev2.h
+> +++ b/include/uapi/linux/videodev2.h
+> @@ -709,6 +709,7 @@ struct v4l2_fmtdesc {
+>  
+>  #define V4L2_FMT_FLAG_COMPRESSED 0x0001
+>  #define V4L2_FMT_FLAG_EMULATED   0x0002
+> +#define V4L2_FMT_FLAG_UNORDERED  0x0004
+>  
+>  	/* Frame Size and frame rate enumeration */
+>  /*
+
+
 -- 
-2.7.4
+Thanks,
+Mauro
