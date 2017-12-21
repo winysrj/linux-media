@@ -1,58 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:35730 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750950AbdL1Q3o (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 28 Dec 2017 11:29:44 -0500
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Hans Verkuil <hansverk@cisco.com>,
-        Christophe JAILLET <christophe.jaillet@wanadoo.fr>,
-        Hirokazu Honda <hiroh@chromium.org>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Satendra Singh Thakur <satendra.t@samsung.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: [PATCH 3/5] media: vb2: Enforce VB2_MAX_FRAME in vb2_core_reqbufs better
-Date: Thu, 28 Dec 2017 14:29:36 -0200
-Message-Id: <d7b7db68183db2655f9883368e836a45b1070171.1514478428.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1514478428.git.mchehab@s-opensource.com>
-References: <cover.1514478428.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1514478428.git.mchehab@s-opensource.com>
-References: <cover.1514478428.git.mchehab@s-opensource.com>
+Received: from mailout4.samsung.com ([203.254.224.34]:63028 "EHLO
+        mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1757408AbdLUCQp (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 20 Dec 2017 21:16:45 -0500
+Date: Thu, 21 Dec 2017 11:16:39 +0900
+From: Andi Shyti <andi.shyti@samsung.com>
+To: Philipp Rossak <embed3d@gmail.com>
+Cc: mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
+        maxime.ripard@free-electrons.com, wens@csie.org,
+        linux@armlinux.org.uk, sean@mess.org, p.zabel@pengutronix.de,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-sunxi@googlegroups.com
+Subject: Re: [PATCH v3 1/6] media: rc: update sunxi-ir driver to get base
+ clock frequency from devicetree
+Message-id: <20171221021639.GG25647@gangnam.samsung>
+MIME-version: 1.0
+Content-type: text/plain; charset="us-ascii"
+Content-disposition: inline
+In-reply-to: <20171219080747.4507-2-embed3d@gmail.com>
+References: <20171219080747.4507-1-embed3d@gmail.com>
+        <CGME20171219080753epcas5p15f4f2921a98e18db022afe8b3f2b445d@epcas5p1.samsung.com>
+        <20171219080747.4507-2-embed3d@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
+Hi Philipp,
 
-The check for the number of buffers requested against the maximum,
-VB2_MAX_FRAME, was performed before checking queue's minimum number of
-buffers. Reverse the order, thus ensuring that under no circumstances
-num_buffers exceeds VB2_MAX_FRAME here.
+On Tue, Dec 19, 2017 at 09:07:42AM +0100, Philipp Rossak wrote:
+> This patch updates the sunxi-ir driver to set the base clock frequency from
+> devicetree.
+> 
+> This is necessary since there are different ir receivers on the
+> market, that operate with different frequencies. So this value could be
+> set if the attached ir receiver needs a different base clock frequency,
+> than the default 8 MHz.
+> 
+> Signed-off-by: Philipp Rossak <embed3d@gmail.com>
 
-Also add a warning of the condition.
+feel free to add
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/common/videobuf/videobuf2-core.c | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+Reviewed-by: Andi Shyti <andi.shyti@samsung.com>
 
-diff --git a/drivers/media/common/videobuf/videobuf2-core.c b/drivers/media/common/videobuf/videobuf2-core.c
-index 1793bdb1fe54..ba04103f2f32 100644
---- a/drivers/media/common/videobuf/videobuf2-core.c
-+++ b/drivers/media/common/videobuf/videobuf2-core.c
-@@ -700,8 +700,9 @@ int vb2_core_reqbufs(struct vb2_queue *q, enum vb2_memory memory,
- 	/*
- 	 * Make sure the requested values and current defaults are sane.
- 	 */
--	num_buffers = min_t(unsigned int, *count, VB2_MAX_FRAME);
--	num_buffers = max_t(unsigned int, num_buffers, q->min_buffers_needed);
-+	WARN_ON(q->min_buffers_needed > VB2_MAX_FRAME);
-+	num_buffers = max_t(unsigned int, *count, q->min_buffers_needed);
-+	num_buffers = min_t(unsigned int, num_buffers, VB2_MAX_FRAME);
- 	memset(q->alloc_devs, 0, sizeof(q->alloc_devs));
- 	q->memory = memory;
- 
--- 
-2.14.3
+Andi
