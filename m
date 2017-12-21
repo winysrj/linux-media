@@ -1,77 +1,140 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:60475 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1759027AbdLRMac (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 18 Dec 2017 07:30:32 -0500
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>
-Subject: [PATCH v4 11/18] scripts: kernel-doc: replace tabs by spaces
-Date: Mon, 18 Dec 2017 10:30:12 -0200
-Message-Id: <da839904b0429a17d6f3b9080791fa7e73e1d95a.1513599193.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1513599193.git.mchehab@s-opensource.com>
-References: <cover.1513599193.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1513599193.git.mchehab@s-opensource.com>
-References: <cover.1513599193.git.mchehab@s-opensource.com>
+Received: from mail-qk0-f194.google.com ([209.85.220.194]:40555 "EHLO
+        mail-qk0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752601AbdLUUgs (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 21 Dec 2017 15:36:48 -0500
+Date: Thu, 21 Dec 2017 18:36:41 -0200
+From: Gustavo Padovan <gustavo@padovan.org>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        Pawel Osciak <pawel@osciak.com>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Brian Starkey <brian.starkey@arm.com>,
+        Thierry Escande <thierry.escande@collabora.com>,
+        linux-kernel@vger.kernel.org,
+        Gustavo Padovan <gustavo.padovan@collabora.com>
+Subject: Re: [PATCH v6 3/6] [media] vb2: add explicit fence user API
+Message-ID: <20171221203641.GC12003@jade>
+References: <20171211182741.29712-1-gustavo@padovan.org>
+ <20171211182741.29712-4-gustavo@padovan.org>
+ <20171221165215.46dc86a5@vento.lan>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20171221165215.46dc86a5@vento.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Sphinx has a hard time dealing with tabs, causing it to
-misinterpret paragraph continuation.
+2017-12-21 Mauro Carvalho Chehab <mchehab@osg.samsung.com>:
 
-As we're now mainly focused on supporting ReST output,
-replace tabs by spaces, in order to avoid troubles when
-the output is parsed by Sphinx.
+> Em Mon, 11 Dec 2017 16:27:38 -0200
+> Gustavo Padovan <gustavo@padovan.org> escreveu:
+> 
+> > From: Gustavo Padovan <gustavo.padovan@collabora.com>
+> > 
+> > Turn the reserved2 field into fence_fd that we will use to send
+> > an in-fence to the kernel and return an out-fence from the kernel to
+> > userspace.
+> > 
+> > Two new flags were added, V4L2_BUF_FLAG_IN_FENCE, that should be used
+> > when sending a fence to the kernel to be waited on, and
+> > V4L2_BUF_FLAG_OUT_FENCE, to ask the kernel to give back an out-fence.
+> > 
+> > v4:
+> > 	- make it a union with reserved2 and fence_fd (Hans Verkuil)
+> > 
+> > v3:
+> > 	- make the out_fence refer to the current buffer (Hans Verkuil)
+> > 
+> > v2: add documentation
+> > 
+> > Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
+> > ---
+> >  Documentation/media/uapi/v4l/buffer.rst       | 15 +++++++++++++++
+> >  drivers/media/usb/cpia2/cpia2_v4l.c           |  2 +-
+> >  drivers/media/v4l2-core/v4l2-compat-ioctl32.c |  4 ++--
+> >  drivers/media/v4l2-core/videobuf2-v4l2.c      |  2 +-
+> >  include/uapi/linux/videodev2.h                |  7 ++++++-
+> >  5 files changed, 25 insertions(+), 5 deletions(-)
+> > 
+> > diff --git a/Documentation/media/uapi/v4l/buffer.rst b/Documentation/media/uapi/v4l/buffer.rst
+> > index ae6ee73f151c..eeefbd2547e7 100644
+> > --- a/Documentation/media/uapi/v4l/buffer.rst
+> > +++ b/Documentation/media/uapi/v4l/buffer.rst
+> > @@ -648,6 +648,21 @@ Buffer Flags
+> >        - Start Of Exposure. The buffer timestamp has been taken when the
+> >  	exposure of the frame has begun. This is only valid for the
+> >  	``V4L2_BUF_TYPE_VIDEO_CAPTURE`` buffer type.
+> > +    * .. _`V4L2-BUF-FLAG-IN-FENCE`:
+> > +
+> > +      - ``V4L2_BUF_FLAG_IN_FENCE``
+> > +      - 0x00200000
+> > +      - Ask V4L2 to wait on fence passed in ``fence_fd`` field. The buffer
+> > +	won't be queued to the driver until the fence signals.
+> > +
+> > +    * .. _`V4L2-BUF-FLAG-OUT-FENCE`:
+> > +
+> > +      - ``V4L2_BUF_FLAG_OUT_FENCE``
+> > +      - 0x00400000
+> > +      - Request a fence to be attached to the buffer. The ``fence_fd``
+> > +	field on
+> > +	:ref:`VIDIOC_QBUF` is used as a return argument to send the out-fence
+> > +	fd to userspace.
+> >  
+> >  
+> >  
+> > diff --git a/drivers/media/usb/cpia2/cpia2_v4l.c b/drivers/media/usb/cpia2/cpia2_v4l.c
+> > index a1c59f19cf2d..7d7459fa2077 100644
+> > --- a/drivers/media/usb/cpia2/cpia2_v4l.c
+> > +++ b/drivers/media/usb/cpia2/cpia2_v4l.c
+> > @@ -948,7 +948,7 @@ static int cpia2_dqbuf(struct file *file, void *fh, struct v4l2_buffer *buf)
+> >  	buf->sequence = cam->buffers[buf->index].seq;
+> >  	buf->m.offset = cam->buffers[buf->index].data - cam->frame_buffer;
+> >  	buf->length = cam->frame_size;
+> > -	buf->reserved2 = 0;
+> > +	buf->fence_fd = -1;
+> >  	buf->reserved = 0;
+> >  	memset(&buf->timecode, 0, sizeof(buf->timecode));
+> >  
+> > diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+> > index 821f2aa299ae..3a31d318df2a 100644
+> > --- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+> > +++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+> > @@ -370,7 +370,7 @@ struct v4l2_buffer32 {
+> >  		__s32		fd;
+> >  	} m;
+> >  	__u32			length;
+> > -	__u32			reserved2;
+> > +	__s32			fence_fd;
+> >  	__u32			reserved;
+> >  };
+> >  
+> > @@ -533,7 +533,7 @@ static int put_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
+> >  		put_user(kp->timestamp.tv_usec, &up->timestamp.tv_usec) ||
+> >  		copy_to_user(&up->timecode, &kp->timecode, sizeof(struct v4l2_timecode)) ||
+> >  		put_user(kp->sequence, &up->sequence) ||
+> > -		put_user(kp->reserved2, &up->reserved2) ||
+> > +		put_user(kp->fence_fd, &up->fence_fd) ||
+> >  		put_user(kp->reserved, &up->reserved) ||
+> >  		put_user(kp->length, &up->length))
+> >  			return -EFAULT;
+> > diff --git a/drivers/media/v4l2-core/videobuf2-v4l2.c b/drivers/media/v4l2-core/videobuf2-v4l2.c
+> > index 4075314a6989..4a5244ee2c58 100644
+> > --- a/drivers/media/v4l2-core/videobuf2-v4l2.c
+> > +++ b/drivers/media/v4l2-core/videobuf2-v4l2.c
+> > @@ -203,7 +203,7 @@ static void __fill_v4l2_buffer(struct vb2_buffer *vb, void *pb)
+> >  	b->timestamp = ns_to_timeval(vb->timestamp);
+> >  	b->timecode = vbuf->timecode;
+> >  	b->sequence = vbuf->sequence;
+> > -	b->reserved2 = 0;
+> > +	b->fence_fd = -1;
+> 
+> The patch itself looks ok. I'm just in doubt here, but it is probably
+> ok to change its default to -1.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- scripts/kernel-doc | 10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+Right. What we can do is return 0 if the OUT_FENCE flag is not set.
 
-diff --git a/scripts/kernel-doc b/scripts/kernel-doc
-index e417d93575b9..05aadac0612a 100755
---- a/scripts/kernel-doc
-+++ b/scripts/kernel-doc
-@@ -1579,7 +1579,7 @@ sub tracepoint_munge($) {
- sub syscall_munge() {
- 	my $void = 0;
- 
--	$prototype =~ s@[\r\n\t]+@ @gos; # strip newlines/CR's/tabs
-+	$prototype =~ s@[\r\n]+@ @gos; # strip newlines/CR's
- ##	if ($prototype =~ m/SYSCALL_DEFINE0\s*\(\s*(a-zA-Z0-9_)*\s*\)/) {
- 	if ($prototype =~ m/SYSCALL_DEFINE0/) {
- 		$void = 1;
-@@ -1778,6 +1778,8 @@ sub process_file($) {
- 	while (s/\\\s*$//) {
- 	    $_ .= <IN>;
- 	}
-+	# Replace tabs by spaces
-+        while ($_ =~ s/\t+/' ' x (length($&) * 8 - length($`) % 8)/e) {};
- 	if ($state == STATE_NORMAL) {
- 	    if (/$doc_start/o) {
- 		$state = STATE_NAME;	# next line is always the function name
-@@ -1877,8 +1879,7 @@ sub process_file($) {
- 		$in_purpose = 0;
- 		$contents = $newcontents;
-                 $new_start_line = $.;
--		while ((substr($contents, 0, 1) eq " ") ||
--		       substr($contents, 0, 1) eq "\t") {
-+		while (substr($contents, 0, 1) eq " ") {
- 		    $contents = substr($contents, 1);
- 		}
- 		if ($contents ne "") {
-@@ -1947,8 +1948,7 @@ sub process_file($) {
- 		$contents = $2;
-                 $new_start_line = $.;
- 		if ($contents ne "") {
--		    while ((substr($contents, 0, 1) eq " ") ||
--		           substr($contents, 0, 1) eq "\t") {
-+		    while (substr($contents, 0, 1) eq " ") {
- 			$contents = substr($contents, 1);
- 		    }
- 		    $contents .= "\n";
--- 
-2.14.3
+Gustavo
