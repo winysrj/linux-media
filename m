@@ -1,160 +1,175 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from szxga04-in.huawei.com ([45.249.212.190]:2718 "EHLO huawei.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1750713AbdLWLEk (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 23 Dec 2017 06:04:40 -0500
-From: Yisheng Xie <xieyisheng1@huawei.com>
-To: <linux-kernel@vger.kernel.org>, <gregkh@linuxfoundation.org>
-CC: <ysxie@foxmail.com>, <ulf.hansson@linaro.org>,
-        <linux-mmc@vger.kernel.org>, <boris.brezillon@free-electrons.com>,
-        <richard@nod.at>, <marek.vasut@gmail.com>,
-        <cyrille.pitchen@wedev4u.fr>, <linux-mtd@lists.infradead.org>,
-        <alsa-devel@alsa-project.org>, <wim@iguana.be>,
-        <linux@roeck-us.net>, <linux-watchdog@vger.kernel.org>,
-        <b.zolnierkie@samsung.com>, <linux-fbdev@vger.kernel.org>,
-        <linus.walleij@linaro.org>, <linux-gpio@vger.kernel.org>,
-        <ralf@linux-mips.org>, <linux-mips@linux-mips.org>,
-        <lgirdwood@gmail.com>, <broonie@kernel.org>, <tglx@linutronix.de>,
-        <jason@lakedaemon.net>, <marc.zyngier@arm.com>, <arnd@arndb.de>,
-        <andriy.shevchenko@linux.intel.com>,
-        <industrypack-devel@lists.sourceforge.net>, <wg@grandegger.com>,
-        <mkl@pengutronix.de>, <linux-can@vger.kernel.org>,
-        <mchehab@kernel.org>, <linux-media@vger.kernel.org>,
-        <a.zummo@towertech.it>, <alexandre.belloni@free-electrons.com>,
-        <linux-rtc@vger.kernel.org>, <daniel.vetter@intel.com>,
-        <jani.nikula@linux.intel.com>, <seanpaul@chromium.org>,
-        <airlied@linux.ie>, <dri-devel@lists.freedesktop.org>,
-        <kvalo@codeaurora.org>, <linux-wireless@vger.kernel.org>,
-        <linux-spi@vger.kernel.org>, <tj@kernel.org>,
-        <linux-ide@vger.kernel.org>, <bhelgaas@google.com>,
-        <linux-pci@vger.kernel.org>, <devel@driverdev.osuosl.org>,
-        <dvhart@infradead.org>, <andy@infradead.org>,
-        <platform-driver-x86@vger.kernel.org>,
-        <jakub.kicinski@netronome.com>, <davem@davemloft.net>,
-        <nios2-dev@lists.rocketboards.org>, <netdev@vger.kernel.org>,
-        <vinod.koul@intel.com>, <dan.j.williams@intel.com>,
-        <dmaengine@vger.kernel.org>, <jslaby@suse.com>,
-        Yisheng Xie <xieyisheng1@huawei.com>
-Subject: [PATCH v3 00/27] kill devm_ioremap_nocache
-Date: Sat, 23 Dec 2017 18:55:25 +0800
-Message-ID: <1514026525-32538-1-git-send-email-xieyisheng1@huawei.com>
+Received: from mail-qt0-f195.google.com ([209.85.216.195]:39723 "EHLO
+        mail-qt0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752789AbdLUUl5 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 21 Dec 2017 15:41:57 -0500
+Date: Thu, 21 Dec 2017 18:41:49 -0200
+From: Gustavo Padovan <gustavo@padovan.org>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        Pawel Osciak <pawel@osciak.com>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Brian Starkey <brian.starkey@arm.com>,
+        Thierry Escande <thierry.escande@collabora.com>,
+        linux-kernel@vger.kernel.org,
+        Gustavo Padovan <gustavo.padovan@collabora.com>
+Subject: Re: [PATCH v6 4/6] [media] vb2: add in-fence support to QBUF
+Message-ID: <20171221204149.GD12003@jade>
+References: <20171211182741.29712-1-gustavo@padovan.org>
+ <20171211182741.29712-5-gustavo@padovan.org>
+ <20171221165756.56ef55b0@vento.lan>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20171221165756.56ef55b0@vento.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+2017-12-21 Mauro Carvalho Chehab <mchehab@osg.samsung.com>:
 
-When I tried to use devm_ioremap function and review related code, I found
-devm_ioremap and devm_ioremap_nocache is almost the same with each other,
-except one use ioremap while the other use ioremap_nocache. While ioremap's
-default function is ioremap_nocache, so devm_ioremap_nocache also have the
-same function with devm_ioremap, which can just be killed to reduce the size
-of devres.o(from 20304 bytes to 18992 bytes in my compile environment).
+> Em Mon, 11 Dec 2017 16:27:39 -0200
+> Gustavo Padovan <gustavo@padovan.org> escreveu:
+> 
+> > From: Gustavo Padovan <gustavo.padovan@collabora.com>
+> > 
+> > Receive in-fence from userspace and add support for waiting on them
+> > before queueing the buffer to the driver. Buffers can't be queued to the
+> > driver before its fences signal. And a buffer can't be queue to the driver
+> > out of the order they were queued from userspace. That means that even if
+> > it fence signal it must wait all other buffers, ahead of it in the queue,
+> > to signal first.
+> > 
+> > If the fence for some buffer fails we do not queue it to the driver,
+> > instead we mark it as error and wait until the previous buffer is done
+> > to notify userspace of the error. We wait here to deliver the buffers back
+> > to userspace in order.
+> > 
+> > v7:
+> > 	- get rid of the fence array stuff for ordering and just use
+> > 	get_num_buffers_ready() (Hans)
+> > 	- fix issue of queuing the buffer twice (Hans)
+> > 	- avoid the dma_fence_wait() in core_qbuf() (Alex)
+> > 	- merge preparation commit in
+> > 
+> > v6:
+> > 	- With fences always keep the order userspace queues the buffers.
+> > 	- Protect in_fence manipulation with a lock (Brian Starkey)
+> > 	- check if fences have the same context before adding a fence array
+> > 	- Fix last_fence ref unbalance in __set_in_fence() (Brian Starkey)
+> > 	- Clean up fence if __set_in_fence() fails (Brian Starkey)
+> > 	- treat -EINVAL from dma_fence_add_callback() (Brian Starkey)
+> > 
+> > v5:	- use fence_array to keep buffers ordered in vb2 core when
+> > 	needed (Brian Starkey)
+> > 	- keep backward compat on the reserved2 field (Brian Starkey)
+> > 	- protect fence callback removal with lock (Brian Starkey)
+> > 
+> > v4:
+> > 	- Add a comment about dma_fence_add_callback() not returning a
+> > 	error (Hans)
+> > 	- Call dma_fence_put(vb->in_fence) if fence signaled (Hans)
+> > 	- select SYNC_FILE under config VIDEOBUF2_CORE (Hans)
+> > 	- Move dma_fence_is_signaled() check to __enqueue_in_driver() (Hans)
+> > 	- Remove list_for_each_entry() in __vb2_core_qbuf() (Hans)
+> > 	-  Remove if (vb->state != VB2_BUF_STATE_QUEUED) from
+> > 	vb2_start_streaming() (Hans)
+> > 	- set IN_FENCE flags on __fill_v4l2_buffer (Hans)
+> > 	- Queue buffers to the driver as soon as they are ready (Hans)
+> > 	- call fill_user_buffer() after queuing the buffer (Hans)
+> > 	- add err: label to clean up fence
+> > 	- add dma_fence_wait() before calling vb2_start_streaming()
+> > 
+> > v3:	- document fence parameter
+> > 	- remove ternary if at vb2_qbuf() return (Mauro)
+> > 	- do not change if conditions behaviour (Mauro)
+> > 
+> > v2:
+> > 	- fix vb2_queue_or_prepare_buf() ret check
+> > 	- remove check for VB2_MEMORY_DMABUF only (Javier)
+> > 	- check num of ready buffers to start streaming
+> > 	- when queueing, start from the first ready buffer
+> > 	- handle queue cancel
+> > 
+> > Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
+> > ---
+> >  drivers/media/v4l2-core/Kconfig          |   1 +
+> >  drivers/media/v4l2-core/videobuf2-core.c | 154 +++++++++++++++++++++++++++----
+> >  drivers/media/v4l2-core/videobuf2-v4l2.c |  29 +++++-
+> >  include/media/videobuf2-core.h           |  14 ++-
+> >  4 files changed, 177 insertions(+), 21 deletions(-)
+> > 
+> > diff --git a/drivers/media/v4l2-core/Kconfig b/drivers/media/v4l2-core/Kconfig
+> > index a35c33686abf..3f988c407c80 100644
+> > --- a/drivers/media/v4l2-core/Kconfig
+> > +++ b/drivers/media/v4l2-core/Kconfig
+> > @@ -83,6 +83,7 @@ config VIDEOBUF_DVB
+> >  # Used by drivers that need Videobuf2 modules
+> >  config VIDEOBUF2_CORE
+> >  	select DMA_SHARED_BUFFER
+> > +	select SYNC_FILE
+> >  	tristate
+> >  
+> >  config VIDEOBUF2_MEMOPS
+> > diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+> > index a8589d96ef72..520aa3c7d9f0 100644
+> > --- a/drivers/media/v4l2-core/videobuf2-core.c
+> > +++ b/drivers/media/v4l2-core/videobuf2-core.c
+> > @@ -346,6 +346,7 @@ static int __vb2_queue_alloc(struct vb2_queue *q, enum vb2_memory memory,
+> >  		vb->index = q->num_buffers + buffer;
+> >  		vb->type = q->type;
+> >  		vb->memory = memory;
+> > +		spin_lock_init(&vb->fence_cb_lock);
+> >  		for (plane = 0; plane < num_planes; ++plane) {
+> >  			vb->planes[plane].length = plane_sizes[plane];
+> >  			vb->planes[plane].min_length = plane_sizes[plane];
+> > @@ -928,7 +929,7 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
+> >  
+> >  	switch (state) {
+> >  	case VB2_BUF_STATE_QUEUED:
+> > -		return;
+> > +		break;
+> >  	case VB2_BUF_STATE_REQUEUEING:
+> >  		if (q->start_streaming_called)
+> >  			__enqueue_in_driver(vb);
+> > @@ -938,6 +939,16 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
+> >  		wake_up(&q->done_wq);
+> >  		break;
+> >  	}
+> > +
+> > +	/*
+> > +	 * If the in-fence fails the buffer is not queued to the driver
+> > +	 * and we have to wait until the previous buffer is done before
+> > +	 * we notify userspace that the buffer with error can be dequeued.
+> > +	 * That way we maintain the ordering from userspace point of view.
+> > +	 */
+> > +	vb = list_next_entry(vb, queued_entry);
+> > +	if (vb && vb->state == VB2_BUF_STATE_ERROR)
+> > +		vb2_buffer_done(vb, vb->state);
+> 
+> This is not a comment for this specific hunk itself, but for all
+> similar occurrences on patches 4 and 5.
 
-I have posted two versions, which use macro instead of function for
-devm_ioremap_nocache[1] or devm_ioremap[2]. And Greg suggest me to kill
-devm_ioremap_nocache for no need to keep a macro around for the duplicate
-thing. So here comes v3 and please help to review.
+It in related to the this piece, but it seems I need to improve the
+quality of the comment.
 
-Thanks so much!
-Yisheng Xie
+> 
+> I really don't like the idea of unconditionally execute things at the
+> core without checking if fences will be used or not. It seems risky, and,
+> from my quick tests with dvb_vb2, at least one of such hunks seem
+> broken for the case where either the VB2 API-specific interface doesn't
+> implement fences or fences is not being used by the userspace application.
 
-[1] https://lkml.org/lkml/2017/11/20/135
-[2] https://lkml.org/lkml/2017/11/25/21
+Yeah, I'll have this in mind for the next iteration of this patchset.
 
-Yisheng Xie (27):
-  ASOC: replace devm_ioremap_nocache with devm_ioremap
-  spi: replace devm_ioremap_nocache with devm_ioremap
-  staging: replace devm_ioremap_nocache with devm_ioremap
-  ipack: replace devm_ioremap_nocache with devm_ioremap
-  media: replace devm_ioremap_nocache with devm_ioremap
-  gpio: replace devm_ioremap_nocache with devm_ioremap
-  mmc: replace devm_ioremap_nocache with devm_ioremap
-  PCI: replace devm_ioremap_nocache with devm_ioremap
-  platform/x86: replace devm_ioremap_nocache with devm_ioremap
-  tty: replace devm_ioremap_nocache with devm_ioremap
-  video: replace devm_ioremap_nocache with devm_ioremap
-  rtc: replace devm_ioremap_nocache with devm_ioremap
-  char: replace devm_ioremap_nocache with devm_ioremap
-  mtd: nand: replace devm_ioremap_nocache with devm_ioremap
-  dmaengine: replace devm_ioremap_nocache with devm_ioremap
-  ata: replace devm_ioremap_nocache with devm_ioremap
-  irqchip: replace devm_ioremap_nocache with devm_ioremap
-  pinctrl: replace devm_ioremap_nocache with devm_ioremap
-  drm: replace devm_ioremap_nocache with devm_ioremap
-  regulator: replace devm_ioremap_nocache with devm_ioremap
-  watchdog: replace devm_ioremap_nocache with devm_ioremap
-  tools/testing/nvdimm: replace devm_ioremap_nocache with devm_ioremap
-  MIPS: pci: replace devm_ioremap_nocache with devm_ioremap
-  can: replace devm_ioremap_nocache with devm_ioremap
-  wireless: replace devm_ioremap_nocache with devm_ioremap
-  ethernet: replace devm_ioremap_nocache with devm_ioremap
-  devres: kill devm_ioremap_nocache
+> 
+> I'm also wandering about the performance impacts for those things when
+> fences aren't used/implemented at the API-specific interfaces (currently,
+> videobuf2-v4l2 and dvb_vb2).
 
- Documentation/driver-model/devres.txt           |  1 -
- arch/mips/pci/pci-ar2315.c                      |  3 +--
- drivers/ata/pata_arasan_cf.c                    |  3 +--
- drivers/ata/pata_octeon_cf.c                    |  9 ++++----
- drivers/ata/pata_rb532_cf.c                     |  2 +-
- drivers/char/hw_random/bcm63xx-rng.c            |  3 +--
- drivers/char/hw_random/octeon-rng.c             | 10 ++++-----
- drivers/dma/altera-msgdma.c                     |  3 +--
- drivers/dma/sprd-dma.c                          |  4 ++--
- drivers/gpio/gpio-ath79.c                       |  3 +--
- drivers/gpio/gpio-em.c                          |  6 ++---
- drivers/gpio/gpio-htc-egpio.c                   |  4 ++--
- drivers/gpio/gpio-xgene.c                       |  3 +--
- drivers/gpu/drm/hisilicon/hibmc/hibmc_drm_drv.c |  2 +-
- drivers/gpu/drm/msm/msm_drv.c                   |  2 +-
- drivers/gpu/drm/sti/sti_dvo.c                   |  3 +--
- drivers/gpu/drm/sti/sti_hda.c                   |  4 ++--
- drivers/gpu/drm/sti/sti_hdmi.c                  |  2 +-
- drivers/gpu/drm/sti/sti_tvout.c                 |  2 +-
- drivers/gpu/drm/sti/sti_vtg.c                   |  2 +-
- drivers/ipack/devices/ipoctal.c                 | 13 +++++------
- drivers/irqchip/irq-renesas-intc-irqpin.c       |  4 ++--
- drivers/media/platform/tegra-cec/tegra_cec.c    |  4 ++--
- drivers/mmc/host/sdhci-acpi.c                   |  3 +--
- drivers/mtd/nand/fsl_upm.c                      |  4 ++--
- drivers/net/can/sja1000/sja1000_platform.c      |  4 ++--
- drivers/net/ethernet/altera/altera_tse_main.c   |  3 +--
- drivers/net/ethernet/ethoc.c                    |  8 +++----
- drivers/net/ethernet/lantiq_etop.c              |  4 ++--
- drivers/net/ethernet/ti/netcp_core.c            |  2 +-
- drivers/net/wireless/ath/ath9k/ahb.c            |  2 +-
- drivers/pci/dwc/pci-dra7xx.c                    |  2 +-
- drivers/pinctrl/bcm/pinctrl-ns2-mux.c           |  2 +-
- drivers/pinctrl/bcm/pinctrl-nsp-mux.c           |  4 ++--
- drivers/pinctrl/freescale/pinctrl-imx1-core.c   |  2 +-
- drivers/pinctrl/pinctrl-amd.c                   |  4 ++--
- drivers/platform/x86/intel_pmc_core.c           |  5 ++---
- drivers/regulator/ti-abb-regulator.c            |  6 ++---
- drivers/rtc/rtc-sh.c                            |  4 ++--
- drivers/spi/spi-jcore.c                         |  3 +--
- drivers/staging/fsl-mc/bus/mc-io.c              |  8 +++----
- drivers/tty/mips_ejtag_fdc.c                    |  4 ++--
- drivers/tty/serial/8250/8250_omap.c             |  3 +--
- drivers/tty/serial/lantiq.c                     |  3 +--
- drivers/tty/serial/meson_uart.c                 |  3 +--
- drivers/tty/serial/owl-uart.c                   |  2 +-
- drivers/tty/serial/pic32_uart.c                 |  4 ++--
- drivers/video/fbdev/mbx/mbxfb.c                 |  9 ++++----
- drivers/video/fbdev/mmp/hw/mmp_ctrl.c           |  2 +-
- drivers/video/fbdev/pxa168fb.c                  |  4 ++--
- drivers/watchdog/bcm63xx_wdt.c                  |  4 ++--
- drivers/watchdog/rc32434_wdt.c                  |  4 ++--
- include/linux/io.h                              |  2 --
- lib/devres.c                                    | 29 -------------------------
- scripts/coccinelle/free/devm_free.cocci         |  2 --
- sound/soc/au1x/ac97c.c                          |  4 ++--
- sound/soc/au1x/i2sc.c                           |  4 ++--
- sound/soc/intel/atom/sst/sst_acpi.c             | 20 ++++++++---------
- sound/soc/intel/boards/mfld_machine.c           |  4 ++--
- sound/soc/sh/fsi.c                              |  4 ++--
- tools/testing/nvdimm/Kbuild                     |  2 +-
- tools/testing/nvdimm/test/iomap.c               |  2 +-
- 62 files changed, 109 insertions(+), 168 deletions(-)
+I'm writing a DRM <-> V4L2 tool at the moment to start playing with a
+full pipeline and performance.
 
--- 
-1.8.3.1
+Gustavo
