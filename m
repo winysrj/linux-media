@@ -1,122 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtprelay.synopsys.com ([198.182.47.9]:40282 "EHLO
-        smtprelay.synopsys.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750967AbdLGJsP (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 7 Dec 2017 04:48:15 -0500
-From: Jose Abreu <Jose.Abreu@synopsys.com>
-To: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Jose Abreu <Jose.Abreu@synopsys.com>,
-        Joao Pinto <Joao.Pinto@synopsys.com>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sylwester Nawrocki <snawrocki@kernel.org>,
-        devicetree@vger.kernel.org
-Subject: [PATCH v9 1/4] dt-bindings: media: Document Synopsys DesignWare HDMI RX
-Date: Thu,  7 Dec 2017 09:47:43 +0000
-Message-Id: <befe90fc55bfa4d1dc599270bc0372cf8691247a.1512582979.git.joabreu@synopsys.com>
-In-Reply-To: <cover.1512582979.git.joabreu@synopsys.com>
-References: <cover.1512582979.git.joabreu@synopsys.com>
-In-Reply-To: <cover.1512582979.git.joabreu@synopsys.com>
-References: <cover.1512582979.git.joabreu@synopsys.com>
+Received: from mail-qk0-f193.google.com ([209.85.220.193]:39665 "EHLO
+        mail-qk0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752543AbdLUUcJ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 21 Dec 2017 15:32:09 -0500
+Date: Thu, 21 Dec 2017 18:32:03 -0200
+From: Gustavo Padovan <gustavo@padovan.org>
+To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        Pawel Osciak <pawel@osciak.com>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Brian Starkey <brian.starkey@arm.com>,
+        Thierry Escande <thierry.escande@collabora.com>,
+        linux-kernel@vger.kernel.org,
+        Gustavo Padovan <gustavo.padovan@collabora.com>
+Subject: Re: [PATCH v6 1/6] [media] vb2: add is_unordered callback for drivers
+Message-ID: <20171221203203.GB12003@jade>
+References: <20171211182741.29712-1-gustavo@padovan.org>
+ <20171211182741.29712-2-gustavo@padovan.org>
+ <20171221165128.31e16dc4@vento.lan>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20171221165128.31e16dc4@vento.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Document the bindings for the Synopsys DesignWare HDMI RX.
+2017-12-21 Mauro Carvalho Chehab <mchehab@osg.samsung.com>:
 
-Signed-off-by: Jose Abreu <joabreu@synopsys.com>
-Acked-by: Rob Herring <robh@kernel.org> (v8)
-Cc: Joao Pinto <jpinto@synopsys.com>
-Cc: Rob Herring <robh+dt@kernel.org>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Sylwester Nawrocki <snawrocki@kernel.org>
-Cc: devicetree@vger.kernel.org
----
-Changes from v7:
-	- Remove SoC specific bindings (Rob)
-Changes from v6:
-	- Document which properties are required/optional (Sylwester)
-	- Drop compatible string for SoC (Sylwester)
-	- Reword edid-phandle property (Sylwester)
-	- Typo fixes (Sylwester)
-Changes from v4:
-	- Use "cfg" instead of "cfg-clk" (Rob)
-	- Change node names (Rob)
-Changes from v3:
-	- Document the new DT bindings suggested by Sylwester
-Changes from v2:
-	- Document edid-phandle property
----
- .../devicetree/bindings/media/snps,dw-hdmi-rx.txt  | 58 ++++++++++++++++++++++
- 1 file changed, 58 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/snps,dw-hdmi-rx.txt
+> Em Mon, 11 Dec 2017 16:27:36 -0200
+> Gustavo Padovan <gustavo@padovan.org> escreveu:
+> 
+> > From: Gustavo Padovan <gustavo.padovan@collabora.com>
+> > 
+> > Explicit synchronization benefits a lot from ordered queues, they fit
+> > better in a pipeline with DRM for example so create a opt-in way for
+> > drivers notify videobuf2 that the queue is unordered.
+> > 
+> > Drivers don't need implement it if the queue is ordered.
+> > 
+> > Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
+> > ---
+> >  include/media/videobuf2-core.h | 5 +++++
+> >  1 file changed, 5 insertions(+)
+> > 
+> > diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+> > index ef9b64398c8c..eddb38a2a2f3 100644
+> > --- a/include/media/videobuf2-core.h
+> > +++ b/include/media/videobuf2-core.h
+> > @@ -368,6 +368,9 @@ struct vb2_buffer {
+> >   *			callback by calling vb2_buffer_done() with either
+> >   *			%VB2_BUF_STATE_DONE or %VB2_BUF_STATE_ERROR; may use
+> >   *			vb2_wait_for_all_buffers() function
+> > + * @is_unordered:	tell if the queue format is unordered. The default is
+> > + *			assumed to be ordered and this function only needs to
+> > + *			be implemented for unordered queues.
+> >   * @buf_queue:		passes buffer vb to the driver; driver may start
+> >   *			hardware operation on this buffer; driver should give
+> >   *			the buffer back by calling vb2_buffer_done() function;
+> > @@ -391,6 +394,7 @@ struct vb2_ops {
+> >  
+> >  	int (*start_streaming)(struct vb2_queue *q, unsigned int count);
+> >  	void (*stop_streaming)(struct vb2_queue *q);
+> > +	int (*is_unordered)(struct vb2_queue *q);
+> >  
+> >  	void (*buf_queue)(struct vb2_buffer *vb);
+> >  };
+> > @@ -564,6 +568,7 @@ struct vb2_queue {
+> >  	u32				cnt_wait_finish;
+> >  	u32				cnt_start_streaming;
+> >  	u32				cnt_stop_streaming;
+> > +	u32				cnt_is_unordered;
+> 
+> If I understand, this is just a bit, right?
+> 
+> if so, better to declare it as:
+> 
+> 	u32				cnt_is_unordered : 1;
 
-diff --git a/Documentation/devicetree/bindings/media/snps,dw-hdmi-rx.txt b/Documentation/devicetree/bindings/media/snps,dw-hdmi-rx.txt
-new file mode 100644
-index 0000000..1dc09c6
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/snps,dw-hdmi-rx.txt
-@@ -0,0 +1,58 @@
-+Synopsys DesignWare HDMI RX Decoder
-+===================================
-+
-+This document defines device tree properties for the Synopsys DesignWare HDMI
-+RX Decoder (DWC HDMI RX).
-+
-+The properties bellow belong to the Synopsys DesignWare HDMI RX Decoder node.
-+
-+Required properties:
-+
-+- compatible: Shall be "snps,dw-hdmi-rx".
-+- reg: Memory mapped base address and length of the DWC HDMI RX registers.
-+- interrupts: Reference to the DWC HDMI RX interrupt and the HDMI 5V sense
-+interrupt.
-+- clocks: Reference to the config clock.
-+- clock-names: Shall be "cfg".
-+- #address-cells: Shall be 1.
-+- #size-cells: Shall be 0.
-+
-+Optional properties:
-+
-+- edid-phandle: Reference to the EDID handler block; if this property is not
-+specified it is assumed that EDID is handled by device described by parent
-+node of the HDMI RX node. You should not specify this property if your HDMI RX
-+controller does not have CEC.
-+
-+You also have to create a subnode for the PHY device. PHY node properties are
-+as follows.
-+
-+Required properties:
-+
-+- compatible: Shall be "snps,dw-hdmi-phy-e405".
-+- reg: Shall be the JTAG address of the PHY.
-+- clocks: Reference to the config clock.
-+- clock-names: Shall be "cfg".
-+
-+Example:
-+
-+hdmi_rx: hdmi-rx@0 {
-+	compatible = "snps,dw-hdmi-rx";
-+	reg = <0x0 0x10000>;
-+	interrupts = <1 2>;
-+	edid-phandle = <&dw_hdmi_edid>;
-+
-+	clocks = <&dw_hdmi_refclk>;
-+	clock-names = "cfg";
-+
-+	#address-cells = <1>;
-+	#size-cells = <0>;
-+
-+	hdmi-phy@fc {
-+		compatible = "snps,dw-hdmi-phy-e405";
-+		reg = <0xfc>;
-+
-+		clocks = <&dw_hdmi_refclk>;
-+		clock-names = "cfg";
-+	};
-+};
--- 
-1.9.1
+no, is_unordered() is a vb2 callback to ask drivers if their current
+queue is not ordered and cnt_is_unordered is the counter of how many
+times this callback was called. This happens for all vb2 callbacks, see
+the other counters above, so I decided to add one for is_unordered() as
+well.
+
+Gustavo
