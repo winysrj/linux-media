@@ -1,130 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:45218 "EHLO osg.samsung.com"
+Received: from osg.samsung.com ([64.30.133.232]:57316 "EHLO osg.samsung.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751719AbdLNLsQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 14 Dec 2017 06:48:16 -0500
-Date: Thu, 14 Dec 2017 09:48:05 -0200
+        id S1751655AbdLUQSR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 21 Dec 2017 11:18:17 -0500
 From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Daniel Scheller <d.scheller.oss@gmail.com>
-Cc: Ralph Metzler <rjkm@metzlerbros.de>, linux-media@vger.kernel.org,
-        mchehab@kernel.org, jasmin@anw.at
-Subject: Re: [PATCH] [media] ddbridge: add IOCTLs
-Message-ID: <20171214094805.594a847f@vento.lan>
-In-Reply-To: <20170822172116.3e039209@audiostation.wuest.de>
-References: <20170820110855.7127-1-d.scheller.oss@gmail.com>
-        <20170820085356.0aa87e66@vento.lan>
-        <20170820141126.17b24bf1@audiostation.wuest.de>
-        <22940.14881.588623.414208@morden.metzler>
-        <20170822172116.3e039209@audiostation.wuest.de>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Geunyoung Kim <nenggun.kim@samsung.com>,
+        Philippe Ombredanne <pombredanne@nexb.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Seung-Woo Kim <sw0312.kim@samsung.com>,
+        Junghak Sung <jh1009.sung@samsung.com>,
+        Kyungmin Park <kyungmin.park@samsung.com>,
+        Satendra Singh Thakur <satendra.t@samsung.com>,
+        linux-fsdevel@vger.kernel.org,
+        devendra sharma <devendra.sharma9091@gmail.com>,
+        Alexander Viro <viro@zeniv.linux.org.uk>,
+        Pawel Osciak <pawel@osciak.com>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Inki Dae <inki.dae@samsung.com>,
+        Kate Stewart <kstewart@linuxfoundation.org>
+Subject: [PATCH 00/11] dvb: add support for memory mapped I/O
+Date: Thu, 21 Dec 2017 14:17:59 -0200
+Message-Id: <cover.1513872637.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 22 Aug 2017 17:21:16 +0200
-Daniel Scheller <d.scheller.oss@gmail.com> escreveu:
+This patch series is based on a work made by Samsung in 2015 meant
+to add memory-mapped I/O to the Linux media, in order to improve
+performance. The preparation patches were merged on that time, but
+we didn't have time to test and finish the final patch.
 
-> Am Tue, 22 Aug 2017 16:05:21 +0200
-> schrieb Ralph Metzler <rjkm@metzlerbros.de>:
-> 
-> > Daniel Scheller writes:  
-> >  > Am Sun, 20 Aug 2017 08:53:56 -0300
-> >  > schrieb Mauro Carvalho Chehab <mchehab@s-opensource.com>:
-> >  >     
-> >  > > Em Sun, 20 Aug 2017 13:08:55 +0200
-> >  > > Daniel Scheller <d.scheller.oss@gmail.com> escreveu:
-> >  > >     
-> >  > > > From: Daniel Scheller <d.scheller@gmx.net>
-> >  > > > 
-> >  > > > This patch adds back the IOCTL API/functionality which is
-> >  > > > present in the upstream dddvb driver package. In comparison,
-> >  > > > the IOCTL handler has been factored to a separate object (and
-> >  > > > with that, some functionality from -core has been moved there
-> >  > > > aswell), the IOCTLs are defined in an include in the uAPI, and
-> >  > > > ioctl-number.txt is updated to document that there are IOCTLs
-> >  > > > present in this driver.
-> >  > > > 
-> >  > > > Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
-> >  > > > ---
-> >  > > > This patch depends on the ddbridge-0.9.29 bump, see [1]. The
-> >  > > > functionality was part of the driver before.
-> >  > > > 
-> >  > > > [1] http://www.spinics.net/lists/linux-media/msg119911.html
-> >  > > > 
-> >  > > >  Documentation/ioctl/ioctl-number.txt        |   1 +
-> >  > > >  MAINTAINERS                                 |   1 +
-> >  > > >  drivers/media/pci/ddbridge/Makefile         |   2 +-
-> >  > > >  drivers/media/pci/ddbridge/ddbridge-core.c  | 111 +--------
-> >  > > >  drivers/media/pci/ddbridge/ddbridge-ioctl.c | 334
-> >  > > > ++++++++++++++++++++++++++++
-> >  > > > drivers/media/pci/ddbridge/ddbridge-ioctl.h |  32 +++
-> >  > > > include/uapi/linux/ddbridge-ioctl.h         | 110 +++++++++ 7
-> >  > > > files changed, 481 insertions(+), 110 deletions(-) create mode
-> >  > > > 100644 drivers/media/pci/ddbridge/ddbridge-ioctl.c create mode
-> >  > > > 100644 drivers/media/pci/ddbridge/ddbridge-ioctl.h create mode
-> >  > > > 100644 include/uapi/linux/ddbridge-ioctl.h
-> >  > > > 
-> >  > > > diff --git a/Documentation/ioctl/ioctl-number.txt
-> >  > > > b/Documentation/ioctl/ioctl-number.txt index
-> >  > > > 3e3fdae5f3ed..d78d1cd092d2 100644 ---
-> >  > > > a/Documentation/ioctl/ioctl-number.txt +++
-> >  > > > b/Documentation/ioctl/ioctl-number.txt @@ -215,6 +215,7 @@ Code
-> >  > > > Seq#(hex)	Include File		Comments 'c'
-> >  > > > A0-AF   arch/x86/include/asm/msr.h	conflict! 'd'
-> >  > > > 00-FF	linux/char/drm/drm.h	conflict! 'd'
-> >  > > > 02-40	pcmcia/ds.h		conflict! +'d'
-> >  > > > 00-0B	linux/ddbridge-ioctl.h	conflict!      
-> >  > > 
-> >  > > That's where the problem with this patch starts: we don't add
-> >  > > conflicts here :-)
-> >  > > 
-> >  > > We need more discussions with regards to the features added by
-> >  > > this patchset.    
-> >  > 
-> >  > Understood. The "good" thing is that this isn't a requirement to
-> >  > drive any tuner boards (at the moment), however we shouldn't lose
-> >  > track on this. Since this is the only complaint for now:
-> >  > 
-> >  > - We need to clear with Ralph if changing the MAGIC to something
-> >  >   different is an option. In the end, if we change the userspace
-> >  > apps to include the uAPI header from mainline if available (else
-> >  > fallback to what ie. dddvb carries), I don't see an issue with
-> >  > this. But if userspace apps keep on using private stuff, this will
-> >  > break ofc.
-> >  > - Other option: Fork dddvb and change userspace apps accordingly,
-> >  > and keep them in sync with upstream. Since we already have to care
-> >  > about the kernel part, this option is rather suboptimal.
-> >  > 
-> >  > Ralph, Ping :-)    
-> > 
-> > Changing to something different from 'd' should be fine.
-> > Is there anything still free?  
-> 
-> We could use 0xDD (for *D*igital *D*evices :-) ), subrange 0xc0-0xff or
-> so, that isn't declared "in use" in ioctl-number.txt (0xDD/0x00-0x3f
-> is used by some ZFCP driver). Other options would be ie. 0xD0-0xDA,
-> 0xDC, 0xDE-0xE4. There are also other single values and value-ranges
-> free, all according to ioctl-number.txt ofcourse.
+Fortunately, Satendra helped us doing such port. On my tests, even
+on USB drivers, where we need to do DMA at URB buffers, the
+performance gains seem considerable.
 
-0xDD seems to work. We need a series whose first a patch just touches
-ioctl-number.txt, that should be c/c to linux-doc ML and lkml.
+On the tests I did today, with perf stat, the gains were expressive:
 
-Please double-check first if the s390's zfcp driver doesn't use higher
-values. It is probably wise to c/c s390 maintainer on it.
+	- the number of task clocks reduced by 3,5 times;
+	- the number of context switches reduced by about 4,5 times;
+	- the number of CPU cycles reduced by almost 3,5 times;
+	- the number of executed instructions reduced almost 2 times;
+	- the number of cache references reduced by almost 8 times;
+	- the number of cache misses reduced more than 4,5 times.
 
-> Still yet not sure if this is everything that needs changing to be
-> accepted though.
+The patches are at:
+	https://git.linuxtv.org/mchehab/experimental.git/log/?h=dvb_mmap
 
-I'll review when you resubmit the patches. Please be verbose while
-documenting the patch(es) in this series, clearly explaining why
-such ioctls are needed.
+An userspace test patchset is at:
+	https://git.linuxtv.org/mchehab/experimental-v4l-utils.git/log/?h=dvb_mmap
 
-The best would be to add a documentation for ddbridge, explaining
-those new ioctls, under Documentation/media/dvb-drivers.
+More details about my tests can be found on my comments to the
+original Satendra's patch:
 
-I prefer if you place such documentation patch before the code, as
-it makes easier to review the ioctls.
+	https://patchwork.linuxtv.org/patch/46101/
 
-Thanks,
-Mauro
+Mauro Carvalho Chehab (9):
+  media: vb2-core: add pr_fmt() macro
+  media: vb2-core: add a new warning about pending buffers
+  media: dvb_vb2: fix a warning about streamoff logic
+  media: move videobuf2 to drivers/media/common
+  media: dvb uAPI docs: document demux mmap/munmap syscalls
+  media: dvb uAPI docs: document mmap-related ioctls
+  media: dvb-core: get rid of mmap reserved field
+  fs: compat_ioctl: add new DVB demux ioctls
+  media: dvb_vb2: add SPDX headers
+
+Satendra Singh Thakur (2):
+  media: vb2-core: Fix a bug about unnecessary calls to queue cancel and
+    free
+  media: videobuf2: Add new uAPI for DVB streaming I/O
+
+ Documentation/media/uapi/dvb/dmx-expbuf.rst        |  88 +++++
+ Documentation/media/uapi/dvb/dmx-mmap.rst          | 116 ++++++
+ Documentation/media/uapi/dvb/dmx-munmap.rst        |  54 +++
+ Documentation/media/uapi/dvb/dmx-qbuf.rst          |  83 ++++
+ Documentation/media/uapi/dvb/dmx-querybuf.rst      |  63 +++
+ Documentation/media/uapi/dvb/dmx-reqbufs.rst       |  74 ++++
+ Documentation/media/uapi/dvb/dmx_fcalls.rst        |   6 +
+ drivers/media/common/Kconfig                       |   1 +
+ drivers/media/common/Makefile                      |   2 +-
+ drivers/media/common/videobuf/Kconfig              |  31 ++
+ drivers/media/common/videobuf/Makefile             |   7 +
+ .../videobuf}/videobuf2-core.c                     |  38 +-
+ .../videobuf}/videobuf2-dma-contig.c               |   0
+ .../videobuf}/videobuf2-dma-sg.c                   |   0
+ .../{v4l2-core => common/videobuf}/videobuf2-dvb.c |   0
+ .../videobuf}/videobuf2-memops.c                   |   0
+ .../videobuf}/videobuf2-v4l2.c                     |   0
+ .../videobuf}/videobuf2-vmalloc.c                  |   0
+ drivers/media/dvb-core/Makefile                    |   2 +-
+ drivers/media/dvb-core/dmxdev.c                    | 196 ++++++++--
+ drivers/media/dvb-core/dmxdev.h                    |   4 +
+ drivers/media/dvb-core/dvb_vb2.c                   | 430 +++++++++++++++++++++
+ drivers/media/dvb-core/dvb_vb2.h                   |  74 ++++
+ drivers/media/v4l2-core/Kconfig                    |  32 --
+ drivers/media/v4l2-core/Makefile                   |   7 -
+ fs/compat_ioctl.c                                  |   5 +
+ include/uapi/linux/dvb/dmx.h                       |  63 ++-
+ 27 files changed, 1290 insertions(+), 86 deletions(-)
+ create mode 100644 Documentation/media/uapi/dvb/dmx-expbuf.rst
+ create mode 100644 Documentation/media/uapi/dvb/dmx-mmap.rst
+ create mode 100644 Documentation/media/uapi/dvb/dmx-munmap.rst
+ create mode 100644 Documentation/media/uapi/dvb/dmx-qbuf.rst
+ create mode 100644 Documentation/media/uapi/dvb/dmx-querybuf.rst
+ create mode 100644 Documentation/media/uapi/dvb/dmx-reqbufs.rst
+ create mode 100644 drivers/media/common/videobuf/Kconfig
+ create mode 100644 drivers/media/common/videobuf/Makefile
+ rename drivers/media/{v4l2-core => common/videobuf}/videobuf2-core.c (98%)
+ rename drivers/media/{v4l2-core => common/videobuf}/videobuf2-dma-contig.c (100%)
+ rename drivers/media/{v4l2-core => common/videobuf}/videobuf2-dma-sg.c (100%)
+ rename drivers/media/{v4l2-core => common/videobuf}/videobuf2-dvb.c (100%)
+ rename drivers/media/{v4l2-core => common/videobuf}/videobuf2-memops.c (100%)
+ rename drivers/media/{v4l2-core => common/videobuf}/videobuf2-v4l2.c (100%)
+ rename drivers/media/{v4l2-core => common/videobuf}/videobuf2-vmalloc.c (100%)
+ create mode 100644 drivers/media/dvb-core/dvb_vb2.c
+ create mode 100644 drivers/media/dvb-core/dvb_vb2.h
+
+-- 
+2.14.3
