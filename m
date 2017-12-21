@@ -1,76 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:41452 "EHLO
-        mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753194AbdLHJgP (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 8 Dec 2017 04:36:15 -0500
-From: Smitha T Murthy <smitha.t@samsung.com>
-To: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Cc: kyungmin.park@samsung.com, kamil@wypas.org, jtp.park@samsung.com,
-        a.hajda@samsung.com, mchehab@kernel.org, pankaj.dubey@samsung.com,
-        krzk@kernel.org, m.szyprowski@samsung.com, s.nawrocki@samsung.com,
-        Smitha T Murthy <smitha.t@samsung.com>
-Subject: [Patch v6 00/12] Add MFC v10.10 support
-Date: Fri, 08 Dec 2017 14:38:13 +0530
-Message-id: <1512724105-1778-1-git-send-email-smitha.t@samsung.com>
-References: <CGME20171208093612epcas1p1eda138655cf5397893fe1f2b2152bd1f@epcas1p1.samsung.com>
+Received: from osg.samsung.com ([64.30.133.232]:63758 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751655AbdLUQS0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 21 Dec 2017 11:18:26 -0500
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Pawel Osciak <pawel@osciak.com>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Kyungmin Park <kyungmin.park@samsung.com>
+Subject: [PATCH 04/11] media: vb2-core: add a new warning about pending buffers
+Date: Thu, 21 Dec 2017 14:18:03 -0200
+Message-Id: <d3124b349c89607520e44f94dddbeec061842819.1513872637.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1513872637.git.mchehab@s-opensource.com>
+References: <cover.1513872637.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1513872637.git.mchehab@s-opensource.com>
+References: <cover.1513872637.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch series adds MFC v10.10 support. MFC v10.10 is used in some
-of Exynos7 variants.
+There's a logic at the VB2 core that produces a WARN_ON if
+there are still buffers waiting to be filled. However, it doesn't
+indicate what buffers are still opened, with makes harder to
+identify issues inside caller drivers.
 
-This adds support for following:
+So, add a new pr_warn() pointing to such buffers. That, together
+with debug instrumentation inside the drivers can make easier to
+identify where the problem is.
 
-* Add support for HEVC encoder and decoder
-* Add support for VP9 decoder
-* Update Documentation for control id definitions
-* Update computation of min scratch buffer size requirement for V8 onwards
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/v4l2-core/videobuf2-core.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-Changes since v5:
- - Addressed review comments by Kamil Debski <kamil@wypas.org>.
- - Addressed review comments by 
-   Stanimir Varbanov <stanimir.varbanov@linaro.org>.
- - Addressed review comments by Hans Verkuil <hverkuil@xs4all.nl>.
- - Rebased on latest git://linuxtv.org/snawrocki/samsung.git
-   for-v4.15/media/next.
- - Applied r-o-b from Andrzej, Stanimir on respective patches.
- - Applied acked-by from Kamil, Hans on respective patches.
-
-Smitha T Murthy (12):
-  [media] s5p-mfc: Rename IS_MFCV8 macro
-  [media] s5p-mfc: Adding initial support for MFC v10.10
-  [media] s5p-mfc: Use min scratch buffer size as provided by F/W
-  [media] s5p-mfc: Support MFCv10.10 buffer requirements
-  [media] videodev2.h: Add v4l2 definition for HEVC
-  [media] v4l2-ioctl: add HEVC format description
-  Documentation: v4l: Documentation for HEVC v4l2 definition
-  [media] s5p-mfc: Add support for HEVC decoder
-  [media] s5p-mfc: Add VP9 decoder support
-  [media] v4l2: Add v4l2 control IDs for HEVC encoder
-  [media] s5p-mfc: Add support for HEVC encoder
-  Documention: v4l: Documentation for HEVC CIDs
-
- .../devicetree/bindings/media/s5p-mfc.txt          |   1 +
- Documentation/media/uapi/v4l/extended-controls.rst | 395 +++++++++++++++
- Documentation/media/uapi/v4l/pixfmt-compressed.rst |   5 +
- drivers/media/platform/s5p-mfc/regs-mfc-v10.h      |  88 ++++
- drivers/media/platform/s5p-mfc/regs-mfc-v8.h       |   2 +
- drivers/media/platform/s5p-mfc/s5p_mfc.c           |  28 ++
- drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c    |   9 +
- drivers/media/platform/s5p-mfc/s5p_mfc_common.h    |  68 ++-
- drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c      |   6 +-
- drivers/media/platform/s5p-mfc/s5p_mfc_dec.c       |  48 +-
- drivers/media/platform/s5p-mfc/s5p_mfc_enc.c       | 555 ++++++++++++++++++++-
- drivers/media/platform/s5p-mfc/s5p_mfc_opr.h       |  14 +
- drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c    | 397 +++++++++++++--
- drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h    |  15 +
- drivers/media/v4l2-core/v4l2-ctrls.c               | 118 +++++
- drivers/media/v4l2-core/v4l2-ioctl.c               |   1 +
- include/uapi/linux/v4l2-controls.h                 |  92 +++-
- include/uapi/linux/videodev2.h                     |   1 +
- 18 files changed, 1765 insertions(+), 78 deletions(-)
- create mode 100644 drivers/media/platform/s5p-mfc/regs-mfc-v10.h
-
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index 319ab8bf220f..064d3c6f1e74 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -1653,8 +1653,11 @@ static void __vb2_queue_cancel(struct vb2_queue *q)
+ 	 */
+ 	if (WARN_ON(atomic_read(&q->owned_by_drv_count))) {
+ 		for (i = 0; i < q->num_buffers; ++i)
+-			if (q->bufs[i]->state == VB2_BUF_STATE_ACTIVE)
++			if (q->bufs[i]->state == VB2_BUF_STATE_ACTIVE) {
++				pr_warn("driver bug: stop_streaming operation is leaving buf %p in active state\n",
++					q->bufs[i]);
+ 				vb2_buffer_done(q->bufs[i], VB2_BUF_STATE_ERROR);
++			}
+ 		/* Must be zero now */
+ 		WARN_ON(atomic_read(&q->owned_by_drv_count));
+ 	}
 -- 
-2.7.4
+2.14.3
