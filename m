@@ -1,209 +1,135 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:33792 "EHLO mga09.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752633AbdLSVBF (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 19 Dec 2017 16:01:05 -0500
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: Alan Cox <alan@linux.intel.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        devel@driverdev.osuosl.org, Kristian Beilke <beilke@posteo.de>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: [PATCH v1 09/10] staging: atomisp: Use standard DMI match table
-Date: Tue, 19 Dec 2017 22:59:56 +0200
-Message-Id: <20171219205957.10933-9-andriy.shevchenko@linux.intel.com>
-In-Reply-To: <20171219205957.10933-1-andriy.shevchenko@linux.intel.com>
-References: <20171219205957.10933-1-andriy.shevchenko@linux.intel.com>
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:33044 "EHLO
+        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751712AbdLUQgd (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 21 Dec 2017 11:36:33 -0500
+Subject: Re: [PATCH] devicetree: Add video bus switch
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Pavel Machek <pavel@ucw.cz>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>, robh+dt@kernel.org,
+        devicetree@vger.kernel.org, sre@kernel.org, pali.rohar@gmail.com,
+        linux-media@vger.kernel.org, galak@codeaurora.org,
+        mchehab@osg.samsung.com, linux-kernel@vger.kernel.org
+References: <20161023200355.GA5391@amd>
+ <20170203213454.GD12291@valkosipuli.retiisi.org.uk>
+ <20170204215610.GA9243@amd> <75694885.3PuLWzx4qN@avalon>
+From: Ivaylo Dimitrov <ivo.g.dimitrov.75@gmail.com>
+Message-ID: <14341891-5fa3-bc8d-f6b2-3dde322f8fac@gmail.com>
+Date: Thu, 21 Dec 2017 18:36:28 +0200
+MIME-Version: 1.0
+In-Reply-To: <75694885.3PuLWzx4qN@avalon>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-GB
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The traditional pattern is to use DMI matching table and provide a
-corresponding driver_data in it.
+Hi,
 
-Convert driver to use DMI matching table.
+On 20.12.2017 19:54, Laurent Pinchart wrote:
+> Hi Pavel,
+> 
+> On Saturday, 4 February 2017 23:56:10 EET Pavel Machek wrote:
+>> Hi!
+>>
+>>>>>> +Required properties
+>>>>>> +===================
+>>>>>> +
+>>>>>> +compatible	: must contain "video-bus-switch"
+>>>>>
+>>>>> How generic is this? Should we have e.g. nokia,video-bus-switch? And
+>>>>> if so, change the file name accordingly.
+>>>>
+>>>> Generic for "single GPIO controls the switch", AFAICT. But that should
+>>>> be common enough...
+>>>
+>>> Um, yes. Then... how about: video-bus-switch-gpio? No Nokia prefix.
+>>
+>> Ok, done. I also fixed the english a bit.
+>>
+>>>>>> +reg		: The interface:
+>>>>>> +		  0 - port for image signal processor
+>>>>>> +		  1 - port for first camera sensor
+>>>>>> +		  2 - port for second camera sensor
+>>>>>
+>>>>> I'd say this must be pretty much specific to the one in N900. You
+>>>>> could have more ports. Or you could say that ports beyond 0 are
+>>>>> camera sensors. I guess this is good enough for now though, it can be
+>>>>> changed later on with the source if a need arises.
+>>>>
+>>>> Well, I'd say that selecting between two sensors is going to be the
+>>>> common case. If someone needs more than two, it will no longer be
+>>>> simple GPIO, so we'll have some fixing to do.
+>>>
+>>> It could be two GPIOs --- that's how the GPIO I2C mux works.
+>>>
+>>> But I'd be surprised if someone ever uses something like that
+>>> again. ;-)
+>>
+>> I'd say.. lets handle that when we see hardware like that.
+>>
+>>>>> Btw. was it still considered a problem that the endpoint properties
+>>>>> for the sensors can be different? With the g_routing() pad op which is
+>>>>> to be added, the ISP driver (should actually go to a framework
+>>>>> somewhere) could parse the graph and find the proper endpoint there.
+>>>>
+>>>> I don't know about g_routing. I added g_endpoint_config method that
+>>>> passes the configuration, and that seems to work for me.
+>>>>
+>>>> I don't see g_routing in next-20170201 . Is there place to look?
+>>>
+>>> I think there was a patch by Laurent to LMML quite some time ago. I
+>>> suppose that set will be repicked soonish.
+>>>
+>>> I don't really object using g_endpoint_config() as a temporary solution;
+>>> I'd like to have Laurent's opinion on that though. Another option is to
+>>> wait, but we've already waited a looong time (as in total).
+>>
+>> Laurent, do you have some input here? We have simple "2 cameras
+>> connected to one signal processor" situation here. We need some way of
+>> passing endpoint configuration from the sensors through the switch. I
+>> did this:
+> 
+> Could you give me a bit more information about the platform you're targeting:
+> how the switch is connected, what kind of switch it is, and what endpoint
 
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
----
- .../platform/intel-mid/atomisp_gmin_platform.c     | 109 +++++++++++++--------
- 1 file changed, 70 insertions(+), 39 deletions(-)
 
-diff --git a/drivers/staging/media/atomisp/platform/intel-mid/atomisp_gmin_platform.c b/drivers/staging/media/atomisp/platform/intel-mid/atomisp_gmin_platform.c
-index 0f859bb714bf..8408a58ed764 100644
---- a/drivers/staging/media/atomisp/platform/intel-mid/atomisp_gmin_platform.c
-+++ b/drivers/staging/media/atomisp/platform/intel-mid/atomisp_gmin_platform.c
-@@ -209,7 +209,7 @@ struct gmin_cfg_var {
- 	const char *name, *val;
- };
- 
--static const struct gmin_cfg_var ffrd8_vars[] = {
-+static struct gmin_cfg_var ffrd8_vars[] = {
- 	{ "INTCF1B:00_ImxId",    "0x134" },
- 	{ "INTCF1B:00_CsiPort",  "1" },
- 	{ "INTCF1B:00_CsiLanes", "4" },
-@@ -220,14 +220,14 @@ static const struct gmin_cfg_var ffrd8_vars[] = {
- /* Cribbed from MCG defaults in the mt9m114 driver, not actually verified
-  * vs. T100 hardware
-  */
--static const struct gmin_cfg_var t100_vars[] = {
-+static struct gmin_cfg_var t100_vars[] = {
- 	{ "INT33F0:00_CsiPort",  "0" },
- 	{ "INT33F0:00_CsiLanes", "1" },
- 	{ "INT33F0:00_CamClk",   "1" },
- 	{},
- };
- 
--static const struct gmin_cfg_var mrd7_vars[] = {
-+static struct gmin_cfg_var mrd7_vars[] = {
- 	{"INT33F8:00_CamType", "1"},
- 	{"INT33F8:00_CsiPort", "1"},
- 	{"INT33F8:00_CsiLanes", "2"},
-@@ -243,7 +243,7 @@ static const struct gmin_cfg_var mrd7_vars[] = {
- 	{},
- };
- 
--static const struct gmin_cfg_var ecs7_vars[] = {
-+static struct gmin_cfg_var ecs7_vars[] = {
- 	{"INT33BE:00_CsiPort", "1"},
- 	{"INT33BE:00_CsiLanes", "2"},
- 	{"INT33BE:00_CsiFmt", "13"},
-@@ -258,8 +258,7 @@ static const struct gmin_cfg_var ecs7_vars[] = {
- 	{},
- };
- 
--
--static const struct gmin_cfg_var i8880_vars[] = {
-+static struct gmin_cfg_var i8880_vars[] = {
- 	{"XXOV2680:00_CsiPort", "1"},
- 	{"XXOV2680:00_CsiLanes", "1"},
- 	{"XXOV2680:00_CamClk", "0"},
-@@ -269,18 +268,45 @@ static const struct gmin_cfg_var i8880_vars[] = {
- 	{},
- };
- 
--static const struct {
--	const char *dmi_board_name;
--	const struct gmin_cfg_var *vars;
--} hard_vars[] = {
--	{ "BYT-T FFD8", ffrd8_vars },
--	{ "T100TA", t100_vars },
--	{ "MRD7", mrd7_vars },
--	{ "ST70408", ecs7_vars },
--	{ "VTA0803", i8880_vars },
-+static const struct dmi_system_id gmin_vars[] = {
-+	{
-+		.ident = "BYT-T FFD8",
-+		.matches = {
-+			DMI_MATCH(DMI_BOARD_NAME, "BYT-T FFD8"),
-+		},
-+		.driver_data = ffrd8_vars,
-+	},
-+	{
-+		.ident = "T100TA",
-+		.matches = {
-+			DMI_MATCH(DMI_BOARD_NAME, "T100TA"),
-+		},
-+		.driver_data = t100_vars,
-+	},
-+	{
-+		.ident = "MRD7",
-+		.matches = {
-+			DMI_MATCH(DMI_BOARD_NAME, "MRD7"),
-+		},
-+		.driver_data = mrd7_vars,
-+	},
-+	{
-+		.ident = "ST70408",
-+		.matches = {
-+			DMI_MATCH(DMI_BOARD_NAME, "ST70408"),
-+		},
-+		.driver_data = ecs7_vars,
-+	},
-+	{
-+		.ident = "VTA0803",
-+		.matches = {
-+			DMI_MATCH(DMI_BOARD_NAME, "VTA0803"),
-+		},
-+		.driver_data = i8880_vars,
-+	},
-+	{}
- };
- 
--
- #define GMIN_CFG_VAR_EFI_GUID EFI_GUID(0xecb54cd9, 0xe5ae, 0x4fdc, \
- 				       0xa9, 0x71, 0xe8, 0x77,	   \
- 				       0x75, 0x60, 0x68, 0xf7)
-@@ -604,6 +630,29 @@ int atomisp_gmin_register_vcm_control(struct camera_vcm_control *vcmCtrl)
- }
- EXPORT_SYMBOL_GPL(atomisp_gmin_register_vcm_control);
- 
-+static int gmin_get_hardcoded_var(struct gmin_cfg_var *varlist,
-+				  const char *var8, char *out, size_t *out_len)
-+{
-+	struct gmin_cfg_var *gv;
-+
-+	for (gv = varlist; gv->name; gv++) {
-+		size_t vl;
-+
-+		if (strcmp(var8, gv->name))
-+			continue;
-+
-+		vl = strlen(gv->val);
-+		if (vl > *out_len - 1)
-+			return -ENOSPC;
-+
-+		strcpy(out, gv->val);
-+		*out_len = vl;
-+		return 0;
-+	}
-+
-+	return -EINVAL;
-+}
-+
- /* Retrieves a device-specific configuration variable.  The dev
-  * argument should be a device with an ACPI companion, as all
-  * configuration is based on firmware ID.
-@@ -614,7 +663,8 @@ static int gmin_get_config_var(struct device *dev, const char *var,
- 	char var8[CFG_VAR_NAME_MAX];
- 	efi_char16_t var16[CFG_VAR_NAME_MAX];
- 	struct efivar_entry *ev;
--	int i, j, ret;
-+	const struct dmi_system_id *id;
-+	int i, ret;
- 
- 	if (dev && ACPI_COMPANION(dev))
- 		dev = &ACPI_COMPANION(dev)->dev;
-@@ -631,28 +681,9 @@ static int gmin_get_config_var(struct device *dev, const char *var,
- 	 * Some device firmwares lack the ability to set EFI variables at
- 	 * runtime.
- 	 */
--	for (i = 0; i < ARRAY_SIZE(hard_vars); i++) {
--		if (dmi_match(DMI_BOARD_NAME, hard_vars[i].dmi_board_name)) {
--			for (j = 0; hard_vars[i].vars[j].name; j++) {
--				size_t vl;
--				const struct gmin_cfg_var *gv;
--
--				gv = &hard_vars[i].vars[j];
--				vl = strlen(gv->val);
--
--				if (strcmp(var8, gv->name))
--					continue;
--				if (vl > *out_len - 1)
--					return -ENOSPC;
--
--				memcpy(out, gv->val, min(*out_len, vl+1));
--				out[*out_len-1] = 0;
--				*out_len = vl;
--
--				return 0;
--			}
--		}
--	}
-+	id = dmi_first_match(gmin_vars);
-+	if (id)
-+		return gmin_get_hardcoded_var(id->driver_data, var8, out, out_len);
- 
- 	/* Our variable names are ASCII by construction, but EFI names
- 	 * are wide chars.  Convert and zero-pad.
--- 
-2.15.1
+http://plan9.stanleylieber.com/hardware/n900/n900.schematics.pdf, on 
+page 2, see N5801 and N5802.
+
+> configuration data you need ?
+> 
+>>>> @@ -415,6 +416,8 @@ struct v4l2_subdev_video_ops {
+>>>>                           const struct v4l2_mbus_config *cfg);
+>>>>      int (*s_rx_buffer)(struct v4l2_subdev *sd, void *buf,
+>>>>                         unsigned int *size);
+>>>> +   int (*g_endpoint_config)(struct v4l2_subdev *sd,
+>>>> +                       struct v4l2_of_endpoint *cfg);
+>>
+>> Google of g_routing tells me:
+>>
+>> 9) Highly reconfigurable hardware - Julien Beraud
+>>
+>> - 44 sub-devices connected with an interconnect.
+>> - As long as formats match, any sub-device could be connected to any
+>> - other sub-device through a link.
+>> - The result is 44 * 44 links at worst.
+>> - A switch sub-device proposed as the solution to model the
+>> - interconnect. The sub-devices are connected to the switch
+>> - sub-devices through the hardware links that connect to the
+>> - interconnect.
+>> - The switch would be controlled through new IOCTLs S_ROUTING and
+>> - G_ROUTING.
+>> - Patches available:
+>>   http://git.linuxtv.org/cgit.cgi/pinchartl/media.git/log/?h=xilinx-wip
+>>
+>> but the patches are from 2005. So I guess I'll need some guidance here...
+> 
+> You made me feel very old for a moment. The patches are from 2015 :-)
+> 
+>>> I'll reply to the other patch containing the code.
+> 
+
+Regards,
+Ivo
