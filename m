@@ -1,91 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.free-electrons.com ([62.4.15.54]:41669 "EHLO
-        mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1757839AbdLRHrl (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:34906 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751202AbdLUJK7 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 18 Dec 2017 02:47:41 -0500
-Date: Mon, 18 Dec 2017 08:47:14 +0100
-From: Maxime Ripard <maxime.ripard@free-electrons.com>
-To: Philipp Rossak <embed3d@gmail.com>
-Cc: mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
-        wens@csie.org, linux@armlinux.org.uk, sean@mess.org,
-        p.zabel@pengutronix.de, andi.shyti@samsung.com,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-sunxi@googlegroups.com
-Subject: Re: [PATCH 4/5] arm: dts: sun8i: a83t: Add support for the ir
- interface
-Message-ID: <20171218074714.ei4cuvl3ydc72zev@flea.lan>
-References: <20171217224547.21481-1-embed3d@gmail.com>
- <20171217224547.21481-5-embed3d@gmail.com>
+        Thu, 21 Dec 2017 04:10:59 -0500
+Date: Thu, 21 Dec 2017 11:10:57 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Akinobu Mita <akinobu.mita@gmail.com>, linux-media@vger.kernel.org,
+        Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Subject: Re: [PATCH] media: ov9650: support VIDIOC_DBG_G/S_REGISTER ioctls
+Message-ID: <20171221091057.w7ofjniwykqx4c7z@valkosipuli.retiisi.org.uk>
+References: <1513180849-7913-1-git-send-email-akinobu.mita@gmail.com>
+ <20171219103515.6eetdss4cmlbsxzk@valkosipuli.retiisi.org.uk>
+ <CAC5umyiHxSfPRkP21-XJuMgiE8+1fLSMbYNXLYC19cPdXv_8JQ@mail.gmail.com>
+ <c16aaa0e-51b5-4b6c-7540-6f6b3f20b15b@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="2a2bt6rf4xkmfrxc"
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20171217224547.21481-5-embed3d@gmail.com>
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <c16aaa0e-51b5-4b6c-7540-6f6b3f20b15b@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Hans,
 
---2a2bt6rf4xkmfrxc
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Tue, Dec 19, 2017 at 04:50:19PM +0100, Hans Verkuil wrote:
+> On 19/12/17 16:39, Akinobu Mita wrote:
+> > Hi Sakari,
+> > 
+> > 2017-12-19 19:35 GMT+09:00 Sakari Ailus <sakari.ailus@iki.fi>:
+> >> Hi Akinobu,
+> >>
+> >> On Thu, Dec 14, 2017 at 01:00:49AM +0900, Akinobu Mita wrote:
+> >>> This adds support VIDIOC_DBG_G/S_REGISTER ioctls.
+> >>>
+> >>> There are many device control registers contained in the OV9650.  So
+> >>> this helps debugging the lower level issues by getting and setting the
+> >>> registers.
+> >>>
+> >>> Cc: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+> >>> Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
+> >>> Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> >>> Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+> >>
+> >> Just wondering --- doesn't the I涎 user space interface offer essentially
+> >> the same functionality?
+> > 
+> > You are right.  I thought /dev/i2c-X interface is not allowed for the
+> > i2c device that is currently in use by a driver.  But I found that
+> > there is I2C_SLAVE_FORCE ioctl to bypass the check and the i2cget and
+> > i2cset with '-f' option use I2C_SLAVE_FORCE ioctls.
+> > 
+> > So I can live without the proposed patch.
+> 
+> Sakari, there are lots of drivers that use this. There is nothing wrong with
+> it and it is easier to use than the i2c interface (although that's my opinion).
+> It certainly is more consistent with other drivers.
+> 
+> It is also possible to use registernames instead of addresses if the necessary
+> patch is applied to v4l2-dbg.
 
-On Sun, Dec 17, 2017 at 11:45:46PM +0100, Philipp Rossak wrote:
-> The ir interface is like on the H3 located at 0x01f02000 and is exactly
-> the same. This patch adds support for the ir interface on the A83T.
->=20
-> Signed-off-by: Philipp Rossak <embed3d@gmail.com>
-> ---
->  arch/arm/boot/dts/sun8i-a83t.dtsi | 10 ++++++++++
->  1 file changed, 10 insertions(+)
->=20
-> diff --git a/arch/arm/boot/dts/sun8i-a83t.dtsi b/arch/arm/boot/dts/sun8i-=
-a83t.dtsi
-> index 954c2393325f..9e7ed3b9a6b8 100644
-> --- a/arch/arm/boot/dts/sun8i-a83t.dtsi
-> +++ b/arch/arm/boot/dts/sun8i-a83t.dtsi
-> @@ -503,6 +503,16 @@
->  			#reset-cells =3D <1>;
->  		};
-> =20
-> +		ir: ir@01f02000 {
-> +			compatible =3D "allwinner,sun5i-a13-ir";
-> +			clocks =3D <&r_ccu CLK_APB0_IR>, <&r_ccu CLK_IR>;
-> +			clock-names =3D "apb", "ir";
-> +			resets =3D <&r_ccu RST_APB0_IR>;
-> +			interrupts =3D <GIC_SPI 37 IRQ_TYPE_LEVEL_HIGH>;
-> +			reg =3D <0x01f02000 0x40>;
+There are existing generic interfaces that provide the same functionality,
+in this case without driver changes. With debugfs, you can also use
+register names if needed. That's why I'm slightly reluctant in supporting
+s_register and g_register.
 
-The size should be the size of the whole memory block, not just the
-registers you need.
+Let's discuss this on #v4l when you're available.
 
-Maxime
+-- 
+Regards,
 
---=20
-Maxime Ripard, Free Electrons
-Embedded Linux and Kernel engineering
-http://free-electrons.com
-
---2a2bt6rf4xkmfrxc
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCAAdFiEE0VqZU19dR2zEVaqr0rTAlCFNr3QFAlo3cn4ACgkQ0rTAlCFN
-r3TdQw/+LOU8KwRDTCJhkvri2pXWNexLbAAsvlxfU2qNmsb6wlLW+A8RRoso2byo
-oqUXyWoYy0ynKhxPofbzKHwMPirXrp4dzY8Lt5WEtwTWeT1FGC5h1ND02XODFb0Q
-6F0sOpim+m8YWw5M9uAh/hjoAFYKJ+Dr7OXN2AEUJodL50rrmLi2/Wk1wMrWkhQ/
-BGaqH8AJs6X/D6vhYyNTJ3i9pqIuYq4CElcyojWtAaO4VdB1LxI+xYnTHl0lXC+V
-JV7hyzQCOnlufsqgnr2lQQhLPS7OxFWfquQ84yrrFR+Xqpm0xoWPxQbYEPnKI+qg
-4OyH3GdyFyJXhX93zh8D+F/ew1hGoAs4RQyXw6kcyuyMYW8q5vt0n+fvfWZeGx7r
-fvcZ7as9MATHdT4+OXFP5Wg9sTZ7JhnjqIdylaKbWWvfeIjiFl1dHkSRzduLSz5q
-LOScA2JdA1rQukns7iseYXs1ziVDHwK7RQ74iXM4YMZZsoQ5L6OSSfBBJ+3xvt+F
-sfGHM0LJo0uJ7qCbU6Y0ru9mtcemrNvwIwT3KYx/o8fBY7EgeFTc3ZHYN12fpslk
-xo/LA2GOD0m6sRBPnBF2pC4CHiD4BHvOvim7vL+VxelhzzLtHzHE5q4K5eht+Org
-DnT1HDKt6rDntZM/y+PcRwtnLgVABpT4BqJPglEq9x+Tk9Eb4go=
-=OlBX
------END PGP SIGNATURE-----
-
---2a2bt6rf4xkmfrxc--
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
