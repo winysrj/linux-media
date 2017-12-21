@@ -1,87 +1,215 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:40301 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750854AbdLDTDH (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 4 Dec 2017 14:03:07 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Eugeniu Rosca <erosca@de.adit-jv.com>
-Cc: kieran.bingham@ideasonboard.com, mchehab@kernel.org,
-        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
-Subject: Re: [PATCH] v4l: vsp1: Fix function declaration/definition mismatch
-Date: Mon, 04 Dec 2017 21:03:20 +0200
-Message-ID: <5605020.PYOHkQC8tp@avalon>
-In-Reply-To: <20171204181034.GA28598@vmlxhi-102.adit-jv.com>
-References: <20170820124006.4256-1-rosca.eugeniu@gmail.com> <3327408.dYccgZQZOG@avalon> <20171204181034.GA28598@vmlxhi-102.adit-jv.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from osg.samsung.com ([64.30.133.232]:47298 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753062AbdLUQSY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 21 Dec 2017 11:18:24 -0500
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Kate Stewart <kstewart@linuxfoundation.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Subject: [PATCH 06/11] media: move videobuf2 to drivers/media/common
+Date: Thu, 21 Dec 2017 14:18:05 -0200
+Message-Id: <f5d98a737941ccc776fd5c89ccb8c2c0d2e1014c.1513872637.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1513872637.git.mchehab@s-opensource.com>
+References: <cover.1513872637.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1513872637.git.mchehab@s-opensource.com>
+References: <cover.1513872637.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Eugeniu,
+Now that VB2 is used by both V4L2 and DVB core, move it to
+the common part of the subsystem.
 
-On Monday, 4 December 2017 20:10:34 EET Eugeniu Rosca wrote:
-> On Mon, Dec 04, 2017 at 12:52:17PM +0200, Laurent Pinchart wrote:
-> > On Friday, 24 November 2017 20:40:57 EET Kieran Bingham wrote:
-> >> Hi Eugeniu,
-> >> 
-> >> Thankyou for the patch,
-> >> 
-> >> Laurent - Any comments on this? Otherwise I'll bundle this in with my
-> >> suspend/resume patch for a pull request.
-> >> 
-> >> <CUT>
-> >> 
-> >> I was going to say: We know the object is an entity by it's type. Isn't
-> >> hgo more descriptive for it's name ?
-> >> 
-> >> However to answer my own question - The implementation function goes on
-> >> to define a struct vsp1_hgo *hgo, so no ... the Entity object shouldn't
-> >> be hgo.
-> > 
-> > And that's exactly why there's a difference between the declaration and
-> > implementation :-) Naming the parameter hgo in the declaration makes it
-> > clear to the reader what entity is expected. The parameter is then named
-> > entity in the function definition to allow for the vsp1_hgo *hgo local
-> > variable.
-> > 
-> > Is the mismatch a real issue ? I don't think the kernel coding style
-> > mandates parameter names to be identical between function declaration and
-> > definition.
-> 
-> You are the DRM/VSP1 and kernel experts, so feel free to drop the patch.
-> Still IMO what makes kernel coding style sweet is its simplicity [1].
-> Here is some statistics computed with exuberant ctags and cpccheck.
-> 
-> $ git describe HEAD
-> v4.15-rc2
-> 
-> $ ctags --version
-> Exuberant Ctags 5.9~svn20110310, Copyright (C) 1996-2009 Darren Hiebert
->   Addresses: <dhiebert@users.sourceforge.net>,
->   http://ctags.sourceforge.net
->     Optional compiled features: +wildcards, +regex
-> 
-> # Number of function definitions in drivers/media:
-> $ find drivers/media -type d | \
->   xargs -I {} sh -c "ctags -x --c-types=f {}/*" | wc -l
-> 24913
-> 
-> # Number of func declaration/definition mismatches found by cppcheck:
-> $ cppcheck --force --enable=all --inconclusive  drivers/media/ 2>&1 | \
->   grep declaration | wc -l
-> 168
-> 
-> It looks like only (168/24913) * 100% = 0,67% of all drivers/media
-> functions have a mismatch between function declaration and function
-> definition. Why making this number worse?
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/common/Kconfig                       |  1 +
+ drivers/media/common/Makefile                      |  2 +-
+ drivers/media/common/videobuf/Kconfig              | 31 +++++++++++++++++++++
+ drivers/media/common/videobuf/Makefile             |  7 +++++
+ .../videobuf}/videobuf2-core.c                     |  0
+ .../videobuf}/videobuf2-dma-contig.c               |  0
+ .../videobuf}/videobuf2-dma-sg.c                   |  0
+ .../{v4l2-core => common/videobuf}/videobuf2-dvb.c |  0
+ .../videobuf}/videobuf2-memops.c                   |  0
+ .../videobuf}/videobuf2-v4l2.c                     |  0
+ .../videobuf}/videobuf2-vmalloc.c                  |  0
+ drivers/media/v4l2-core/Kconfig                    | 32 ----------------------
+ drivers/media/v4l2-core/Makefile                   |  7 -----
+ 13 files changed, 40 insertions(+), 40 deletions(-)
+ create mode 100644 drivers/media/common/videobuf/Kconfig
+ create mode 100644 drivers/media/common/videobuf/Makefile
+ rename drivers/media/{v4l2-core => common/videobuf}/videobuf2-core.c (100%)
+ rename drivers/media/{v4l2-core => common/videobuf}/videobuf2-dma-contig.c (100%)
+ rename drivers/media/{v4l2-core => common/videobuf}/videobuf2-dma-sg.c (100%)
+ rename drivers/media/{v4l2-core => common/videobuf}/videobuf2-dvb.c (100%)
+ rename drivers/media/{v4l2-core => common/videobuf}/videobuf2-memops.c (100%)
+ rename drivers/media/{v4l2-core => common/videobuf}/videobuf2-v4l2.c (100%)
+ rename drivers/media/{v4l2-core => common/videobuf}/videobuf2-vmalloc.c (100%)
 
-Of course the goal is not to introduce a mismatch for the sake of it. It makes 
-sense for the declaration and definition to match in most cases. My point is 
-that in this particular case I believe the mismatch makes the code more 
-readable.
-
+diff --git a/drivers/media/common/Kconfig b/drivers/media/common/Kconfig
+index 326df0ad75c0..cdfc905967dc 100644
+--- a/drivers/media/common/Kconfig
++++ b/drivers/media/common/Kconfig
+@@ -16,6 +16,7 @@ config CYPRESS_FIRMWARE
+ 	tristate "Cypress firmware helper routines"
+ 	depends on USB
+ 
++source "drivers/media/common/videobuf/Kconfig"
+ source "drivers/media/common/b2c2/Kconfig"
+ source "drivers/media/common/saa7146/Kconfig"
+ source "drivers/media/common/siano/Kconfig"
+diff --git a/drivers/media/common/Makefile b/drivers/media/common/Makefile
+index 2d1b0a025084..f24b5ed39982 100644
+--- a/drivers/media/common/Makefile
++++ b/drivers/media/common/Makefile
+@@ -1,4 +1,4 @@
+-obj-y += b2c2/ saa7146/ siano/ v4l2-tpg/
++obj-y += b2c2/ saa7146/ siano/ v4l2-tpg/ videobuf/
+ obj-$(CONFIG_VIDEO_CX2341X) += cx2341x.o
+ obj-$(CONFIG_VIDEO_TVEEPROM) += tveeprom.o
+ obj-$(CONFIG_CYPRESS_FIRMWARE) += cypress_firmware.o
+diff --git a/drivers/media/common/videobuf/Kconfig b/drivers/media/common/videobuf/Kconfig
+new file mode 100644
+index 000000000000..5df05250de94
+--- /dev/null
++++ b/drivers/media/common/videobuf/Kconfig
+@@ -0,0 +1,31 @@
++# Used by drivers that need Videobuf2 modules
++config VIDEOBUF2_CORE
++	select DMA_SHARED_BUFFER
++	tristate
++
++config VIDEOBUF2_MEMOPS
++	tristate
++	select FRAME_VECTOR
++
++config VIDEOBUF2_DMA_CONTIG
++	tristate
++	depends on HAS_DMA
++	select VIDEOBUF2_CORE
++	select VIDEOBUF2_MEMOPS
++	select DMA_SHARED_BUFFER
++
++config VIDEOBUF2_VMALLOC
++	tristate
++	select VIDEOBUF2_CORE
++	select VIDEOBUF2_MEMOPS
++	select DMA_SHARED_BUFFER
++
++config VIDEOBUF2_DMA_SG
++	tristate
++	depends on HAS_DMA
++	select VIDEOBUF2_CORE
++	select VIDEOBUF2_MEMOPS
++
++config VIDEOBUF2_DVB
++	tristate
++	select VIDEOBUF2_CORE
+diff --git a/drivers/media/common/videobuf/Makefile b/drivers/media/common/videobuf/Makefile
+new file mode 100644
+index 000000000000..19de5ccda20b
+--- /dev/null
++++ b/drivers/media/common/videobuf/Makefile
+@@ -0,0 +1,7 @@
++
++obj-$(CONFIG_VIDEOBUF2_CORE) += videobuf2-core.o videobuf2-v4l2.o
++obj-$(CONFIG_VIDEOBUF2_MEMOPS) += videobuf2-memops.o
++obj-$(CONFIG_VIDEOBUF2_VMALLOC) += videobuf2-vmalloc.o
++obj-$(CONFIG_VIDEOBUF2_DMA_CONTIG) += videobuf2-dma-contig.o
++obj-$(CONFIG_VIDEOBUF2_DMA_SG) += videobuf2-dma-sg.o
++obj-$(CONFIG_VIDEOBUF2_DVB) += videobuf2-dvb.o
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/common/videobuf/videobuf2-core.c
+similarity index 100%
+rename from drivers/media/v4l2-core/videobuf2-core.c
+rename to drivers/media/common/videobuf/videobuf2-core.c
+diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/common/videobuf/videobuf2-dma-contig.c
+similarity index 100%
+rename from drivers/media/v4l2-core/videobuf2-dma-contig.c
+rename to drivers/media/common/videobuf/videobuf2-dma-contig.c
+diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/common/videobuf/videobuf2-dma-sg.c
+similarity index 100%
+rename from drivers/media/v4l2-core/videobuf2-dma-sg.c
+rename to drivers/media/common/videobuf/videobuf2-dma-sg.c
+diff --git a/drivers/media/v4l2-core/videobuf2-dvb.c b/drivers/media/common/videobuf/videobuf2-dvb.c
+similarity index 100%
+rename from drivers/media/v4l2-core/videobuf2-dvb.c
+rename to drivers/media/common/videobuf/videobuf2-dvb.c
+diff --git a/drivers/media/v4l2-core/videobuf2-memops.c b/drivers/media/common/videobuf/videobuf2-memops.c
+similarity index 100%
+rename from drivers/media/v4l2-core/videobuf2-memops.c
+rename to drivers/media/common/videobuf/videobuf2-memops.c
+diff --git a/drivers/media/v4l2-core/videobuf2-v4l2.c b/drivers/media/common/videobuf/videobuf2-v4l2.c
+similarity index 100%
+rename from drivers/media/v4l2-core/videobuf2-v4l2.c
+rename to drivers/media/common/videobuf/videobuf2-v4l2.c
+diff --git a/drivers/media/v4l2-core/videobuf2-vmalloc.c b/drivers/media/common/videobuf/videobuf2-vmalloc.c
+similarity index 100%
+rename from drivers/media/v4l2-core/videobuf2-vmalloc.c
+rename to drivers/media/common/videobuf/videobuf2-vmalloc.c
+diff --git a/drivers/media/v4l2-core/Kconfig b/drivers/media/v4l2-core/Kconfig
+index a35c33686abf..fbcb275e867b 100644
+--- a/drivers/media/v4l2-core/Kconfig
++++ b/drivers/media/v4l2-core/Kconfig
+@@ -79,35 +79,3 @@ config VIDEOBUF_DMA_CONTIG
+ config VIDEOBUF_DVB
+ 	tristate
+ 	select VIDEOBUF_GEN
+-
+-# Used by drivers that need Videobuf2 modules
+-config VIDEOBUF2_CORE
+-	select DMA_SHARED_BUFFER
+-	tristate
+-
+-config VIDEOBUF2_MEMOPS
+-	tristate
+-	select FRAME_VECTOR
+-
+-config VIDEOBUF2_DMA_CONTIG
+-	tristate
+-	depends on HAS_DMA
+-	select VIDEOBUF2_CORE
+-	select VIDEOBUF2_MEMOPS
+-	select DMA_SHARED_BUFFER
+-
+-config VIDEOBUF2_VMALLOC
+-	tristate
+-	select VIDEOBUF2_CORE
+-	select VIDEOBUF2_MEMOPS
+-	select DMA_SHARED_BUFFER
+-
+-config VIDEOBUF2_DMA_SG
+-	tristate
+-	depends on HAS_DMA
+-	select VIDEOBUF2_CORE
+-	select VIDEOBUF2_MEMOPS
+-
+-config VIDEOBUF2_DVB
+-	tristate
+-	select VIDEOBUF2_CORE
+diff --git a/drivers/media/v4l2-core/Makefile b/drivers/media/v4l2-core/Makefile
+index 77303286aef7..1618ce984674 100644
+--- a/drivers/media/v4l2-core/Makefile
++++ b/drivers/media/v4l2-core/Makefile
+@@ -33,13 +33,6 @@ obj-$(CONFIG_VIDEOBUF_DMA_CONTIG) += videobuf-dma-contig.o
+ obj-$(CONFIG_VIDEOBUF_VMALLOC) += videobuf-vmalloc.o
+ obj-$(CONFIG_VIDEOBUF_DVB) += videobuf-dvb.o
+ 
+-obj-$(CONFIG_VIDEOBUF2_CORE) += videobuf2-core.o videobuf2-v4l2.o
+-obj-$(CONFIG_VIDEOBUF2_MEMOPS) += videobuf2-memops.o
+-obj-$(CONFIG_VIDEOBUF2_VMALLOC) += videobuf2-vmalloc.o
+-obj-$(CONFIG_VIDEOBUF2_DMA_CONTIG) += videobuf2-dma-contig.o
+-obj-$(CONFIG_VIDEOBUF2_DMA_SG) += videobuf2-dma-sg.o
+-obj-$(CONFIG_VIDEOBUF2_DVB) += videobuf2-dvb.o
+-
+ ccflags-y += -I$(srctree)/drivers/media/dvb-core
+ ccflags-y += -I$(srctree)/drivers/media/dvb-frontends
+ ccflags-y += -I$(srctree)/drivers/media/tuners
 -- 
-Regards,
-
-Laurent Pinchart
+2.14.3
