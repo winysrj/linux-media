@@ -1,116 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:47339 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754054AbdLHJvn (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 8 Dec 2017 04:51:43 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Niklas =?ISO-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>
-Subject: Re: [PATCH v9 16/28] rcar-vin: add function to manipulate Gen3 chsel value
-Date: Fri, 08 Dec 2017 11:52:01 +0200
-Message-ID: <20173129.GKy7R676Pn@avalon>
-In-Reply-To: <20171208010842.20047-17-niklas.soderlund+renesas@ragnatech.se>
-References: <20171208010842.20047-1-niklas.soderlund+renesas@ragnatech.se> <20171208010842.20047-17-niklas.soderlund+renesas@ragnatech.se>
+Received: from osg.samsung.com ([64.30.133.232]:44876 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1755218AbdLUVgB (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 21 Dec 2017 16:36:01 -0500
+Date: Thu, 21 Dec 2017 19:35:42 -0200
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Jonathan Corbet <corbet@lwn.net>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Linux Doc Mailing List <linux-doc@vger.kernel.org>
+Subject: Re: [PATCH v4 00/18] kernel-doc: add supported to document nested
+ structs
+Message-ID: <20171221193542.5bfd4bfc@vento.lan>
+In-Reply-To: <20171221140843.5e4bcffd@lwn.net>
+References: <cover.1513599193.git.mchehab@s-opensource.com>
+        <20171221140843.5e4bcffd@lwn.net>
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset="iso-8859-1"
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Niklas,
+Em Thu, 21 Dec 2017 14:08:43 -0700
+Jonathan Corbet <corbet@lwn.net> escreveu:
 
-Thank you for the patch.
+> On Mon, 18 Dec 2017 10:30:01 -0200
+> Mauro Carvalho Chehab <mchehab@s-opensource.com> wrote:
+> 
+> > This is a rebased version of my patch series that add support for
+> > nested structs on kernel-doc. With this version, it won't produce anymore
+> > hundreds of identical warnings, as patch 17 removes the warning
+> > duplication.
+> > 
+> > Excluding warnings about duplicated Note: section at hash.h, before
+> > this series, it reports 166 kernel-doc warnings. After this patch series,
+> > it reports 123 kernel-doc warnings, being 51 from DVB. I have already a patch
+> > series that will cleanup those new DVB warnings due to nested structs.
+> > 
+> > So, the net result is that the number of warnings is reduced with
+> > this version.  
+> 
+> This seems like a great set of improvements overall, and I love getting
+> rid of all that old kernel-doc code. 
 
-On Friday, 8 December 2017 03:08:30 EET Niklas S=F6derlund wrote:
-> On Gen3 the CSI-2 routing is controlled by the VnCSI_IFMD register. One
-> feature of this register is that it's only present in the VIN0 and VIN4
-> instances. The register in VIN0 controls the routing for VIN0-3 and the
-> register in VIN4 controls routing for VIN4-7.
->=20
-> To be able to control routing from a media device this function is need
-> to control runtime PM for the subgroup master (VIN0 and VIN4). The
-> subgroup master must be switched on before the register is manipulated,
-> once the operation is complete it's safe to switch the master off and
-> the new routing will still be in effect.
->=20
-> Signed-off-by: Niklas S=F6derlund <niklas.soderlund+renesas@ragnatech.se>
-> Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  drivers/media/platform/rcar-vin/rcar-dma.c | 25 +++++++++++++++++++++++++
->  drivers/media/platform/rcar-vin/rcar-vin.h |  2 ++
->  2 files changed, 27 insertions(+)
->=20
-> diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c
-> b/drivers/media/platform/rcar-vin/rcar-dma.c index
-> ace95d5b543a17e3..d2788d8bb9565aaa 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-dma.c
-> +++ b/drivers/media/platform/rcar-vin/rcar-dma.c
-> @@ -16,6 +16,7 @@
->=20
->  #include <linux/delay.h>
->  #include <linux/interrupt.h>
-> +#include <linux/pm_runtime.h>
->=20
->  #include <media/videobuf2-dma-contig.h>
->=20
-> @@ -1228,3 +1229,27 @@ int rvin_dma_register(struct rvin_dev *vin, int ir=
-q)
->=20
->  	return ret;
->  }
-> +
-> +/* ---------------------------------------------------------------------=
-=2D--
->   + * Gen3 CHSEL manipulation
-> + */
-> +
-> +void rvin_set_chsel(struct rvin_dev *vin, u8 chsel)
+> I will note that it makes a full
+> htmldocs build take 20-30 seconds longer, which is not entirely
+> welcome, but so be it. Someday, I guess, $SOMEBODY should see if there's
+> some low-hanging optimization fruit there.
 
-How about naming the function a bit more explicitly,=20
-rvin_set_channel_routing() for instance ?
+Yeah. Well, I used a recursive algorithm, with can be painfull if there
+are mang things to parse.
 
-> +{
-> +	u32 ifmd, vnmc;
-> +
-> +	pm_runtime_get_sync(vin->dev);
+Anyway, I didn't notice it, because there was a major performance regression
+that happened recently that it is affecting all my sphinx builds: trying to
+compile stuff in parallel with SPHINXOPTS=-j5 is crashing with:
 
-Shouldn't you check the return value of this function ?
+# Loaded extensions:
+#   kfigure (1.0.0) from /devel/v4l/patchwork/Documentation/sphinx/kfigure.py
+#   kernel_include (1.0) from /devel/v4l/patchwork/Documentation/sphinx/kernel_include.py
+#   rstFlatTable (1.0) from /devel/v4l/patchwork/Documentation/sphinx/rstFlatTable.py
+#   cdomain (1.0) from /devel/v4l/patchwork/Documentation/sphinx/cdomain.py
+#   kerneldoc (1.0) from /devel/v4l/patchwork/Documentation/sphinx/kerneldoc.py
+#   alabaster (0.7.10) from /devel/v4l/docs/sphinx_1.4/lib/python2.7/site-packages/alabaster/__init__.pyc
+#   sphinx.ext.imgmath (1.4.9) from /devel/v4l/docs/sphinx_1.4/lib/python2.7/site-packages/sphinx/ext/imgmath.pyc
+Traceback (most recent call last):
+  File "/devel/v4l/docs/sphinx_1.4/lib/python2.7/site-packages/sphinx/cmdline.py", line 244, in main
+    app.build(opts.force_all, filenames)
+  File "/devel/v4l/docs/sphinx_1.4/lib/python2.7/site-packages/sphinx/application.py", line 297, in build
+    self.builder.build_update()
+  File "/devel/v4l/docs/sphinx_1.4/lib/python2.7/site-packages/sphinx/builders/__init__.py", line 251, in build_update
+    'out of date' % len(to_build))
+  File "/devel/v4l/docs/sphinx_1.4/lib/python2.7/site-packages/sphinx/builders/__init__.py", line 265, in build
+    self.doctreedir, self.app))
+  File "/devel/v4l/docs/sphinx_1.4/lib/python2.7/site-packages/sphinx/environment.py", line 567, in update
+    self._read_parallel(docnames, app, nproc=app.parallel)
+  File "/devel/v4l/docs/sphinx_1.4/lib/python2.7/site-packages/sphinx/environment.py", line 625, in _read_parallel
+    tasks.join()
+  File "/devel/v4l/docs/sphinx_1.4/lib/python2.7/site-packages/sphinx/util/parallel.py", line 92, in join
+    self._join_one()
+  File "/devel/v4l/docs/sphinx_1.4/lib/python2.7/site-packages/sphinx/util/parallel.py", line 97, in _join_one
+    exc, result = pipe.recv()
+EOFError
 
-> +
-> +	/* Make register writes take effect immediately */
-> +	vnmc =3D rvin_read(vin, VNMC_REG) & ~VNMC_VUP;
-> +	rvin_write(vin, vnmc, VNMC_REG);
+I had to change my build scripts to remove parallel build, with increased
+*a lot* the building time. So, right now, I just go out to take a coffee
+or two when building documentation, as, without -j (even without this
+patch series), is really slow.
 
-Shouldn't you restore the original value of VNMC at the end of the function=
- ?=20
-What if this races with device access local to the VIN0 or VIN4 instance ?
+If someone wants to look into it, the breakage happened by the time
+I upgraded to Fedora 27 and Kernel 4.14 was released. Yet, I'm using
+pip for Sphinx.
 
-> +	ifmd =3D VNCSI_IFMD_DES2 | VNCSI_IFMD_DES1 | VNCSI_IFMD_DES0 |
-> +		VNCSI_IFMD_CSI_CHSEL(chsel);
-> +
-> +	rvin_write(vin, ifmd, VNCSI_IFMD_REG);
-> +
-> +	vin_dbg(vin, "Set IFMD 0x%x\n", ifmd);
-> +
-> +	pm_runtime_put(vin->dev);
-> +}
-> diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h
-> b/drivers/media/platform/rcar-vin/rcar-vin.h index
-> a440effe4b86af31..7819c760c2c13422 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-vin.h
-> +++ b/drivers/media/platform/rcar-vin/rcar-vin.h
-> @@ -163,4 +163,6 @@ void rvin_v4l2_unregister(struct rvin_dev *vin);
->=20
->  const struct rvin_video_format *rvin_format_from_pixel(u32 pixelformat);
->=20
-> +void rvin_set_chsel(struct rvin_dev *vin, u8 chsel);
-> +
->  #endif
+So, I dunno what's the culprit. I didn't have time yet to investigate.
 
-=2D-=20
+> Applied, thanks.
+
+Thank you!
+
 Regards,
-
-Laurent Pinchart
+Mauro
