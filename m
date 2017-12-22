@@ -1,69 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mo4-p00-ob.smtp.rzone.de ([81.169.146.160]:9546 "EHLO
-        mo4-p00-ob.smtp.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754063AbdLNWB1 (ORCPT
+Received: from bombadil.infradead.org ([65.50.211.133]:48449 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750864AbdLVTCY (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 14 Dec 2017 17:01:27 -0500
-From: Ralph Metzler <rjkm@metzlerbros.de>
+        Fri, 22 Dec 2017 14:02:24 -0500
+Date: Fri, 22 Dec 2017 17:02:17 -0200
+From: Mauro Carvalho Chehab <mchehab@kernel.org>
+To: Nick Desaulniers <ndesaulniers@google.com>
+Cc: Hans Verkuil <hansverk@cisco.com>,
+        Colin Ian King <colin.king@canonical.com>,
+        Markus Elfring <elfring@users.sourceforge.net>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] [media] dvb-frontends: remove self assignments
+Message-ID: <20171219110817.5979d60c@vento.lan>
+In-Reply-To: <20171218171454.139245-1-ndesaulniers@google.com>
+References: <20171218171454.139245-1-ndesaulniers@google.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Message-ID: <23090.62262.800851.660592@morden.metzler>
-Date: Thu, 14 Dec 2017 22:55:02 +0100
-To: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: linux-media@vger.kernel.org
-Subject: [bug report] drx: add initial drx-d driver
-In-Reply-To: <20171214080316.nadtlgwyng3r7gro@mwanda>
-References: <20171214080316.nadtlgwyng3r7gro@mwanda>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Dan Carpenter,
+Em Mon, 18 Dec 2017 09:14:50 -0800
+Nick Desaulniers <ndesaulniers@google.com> escreveu:
 
-Dan Carpenter writes:
- > Hello Ralph Metzler,
- > 
- > The patch 126f1e618870: "drx: add initial drx-d driver" from Mar 12,
- > 2011, leads to the following static checker warning:
- > 
- > 	drivers/media/dvb-frontends/drxd_hard.c:1305 SC_WaitForReady()
- > 	info: return a literal instead of 'status'
- > 
- > drivers/media/dvb-frontends/drxd_hard.c
- >   1298  static int SC_WaitForReady(struct drxd_state *state)
- >   1299  {
- >   1300          int i;
- >   1301  
- >   1302          for (i = 0; i < DRXD_MAX_RETRIES; i += 1) {
- >   1303                  int status = Read16(state, SC_RA_RAM_CMD__A, NULL, 0);
- >   1304                  if (status == 0)
- >   1305                          return status;
- >                                 ^^^^^^^^^^^^^
- > The register is set to zero when ready?  The answer should obviously be
- > yes, but it wouldn't totally surprise me if this function just always
- > looped 1000 times...  Few of the callers check the return.  Anyway, it's
- > more clear to just "return 0;"
- > 
- >   1306          }
- >   1307          return -1;
- >                        ^^
- > -1 is not a proper error code.
- > 
- >   1308  }
- > 
- > regards,
- > dan carpenter
+> These were leftover from:
+> commit 469ffe083665 ("[media] tda18271c2dd: Remove the CHK_ERROR macro")
+> and
+> commit 58d5eaec9f87 ("[media] drxd: Don't use a macro for CHK_ERROR ...")
+> that programmatically removed the CHK_ERROR macro, which left behind a
+> few self assignments that Clang warns about.  These instances aren't
+> errors.
+> 
+> Signed-off-by: Nick Desaulniers <ndesaulniers@google.com>
 
-I think I wrote the driver more than 10 years ago and somebody later submitted it
-to the kernel.
+Thanks for the patch, but a similar one was already merged:
 
-I don't know if there is a anybody still maintaining this. Is it even used anymore?
-I could write a patch but cannot test it (e.g. to see if it really always
-loops 1000 times ...)
+commit 2ddc125de832f4d8e1820dc923cb2029170beea0
+Author: Colin Ian King <colin.king@canonical.com>
+Date:   Thu Nov 23 05:19:19 2017 -0500
+
+    media: dvb_frontend: remove redundant status self assignment
+    
+    The assignment status to itself is redundant and can be removed.
+    Detected with Coccinelle.
+    
+    Signed-off-by: Colin Ian King <colin.king@canonical.com>
+    Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 
 
-Regards,
-Ralph Metzler
+> ---
+>  drivers/media/dvb-frontends/drxd_hard.c    | 3 ---
+>  drivers/media/dvb-frontends/tda18271c2dd.c | 1 -
+>  2 files changed, 4 deletions(-)
+> 
+> diff --git a/drivers/media/dvb-frontends/drxd_hard.c b/drivers/media/dvb-frontends/drxd_hard.c
+> index 0696bc62dcc9..ff18a0f7dc41 100644
+> --- a/drivers/media/dvb-frontends/drxd_hard.c
+> +++ b/drivers/media/dvb-frontends/drxd_hard.c
+> @@ -2140,7 +2140,6 @@ static int DRX_Start(struct drxd_state *state, s32 off)
+>  			}
+>  			break;
+>  		}
+> -		status = status;
+>  		if (status < 0)
+>  			break;
+>  
+> @@ -2251,7 +2250,6 @@ static int DRX_Start(struct drxd_state *state, s32 off)
+>  			break;
+>  
+>  		}
+> -		status = status;
+>  		if (status < 0)
+>  			break;
+>  
+> @@ -2318,7 +2316,6 @@ static int DRX_Start(struct drxd_state *state, s32 off)
+>  			}
+>  			break;
+>  		}
+> -		status = status;
+>  		if (status < 0)
+>  			break;
+>  
+> diff --git a/drivers/media/dvb-frontends/tda18271c2dd.c b/drivers/media/dvb-frontends/tda18271c2dd.c
+> index 2d2778be2d2f..45cd5ba0cf8a 100644
+> --- a/drivers/media/dvb-frontends/tda18271c2dd.c
+> +++ b/drivers/media/dvb-frontends/tda18271c2dd.c
+> @@ -674,7 +674,6 @@ static int PowerScan(struct tda_state *state,
+>  			Count = 200000;
+>  			wait = true;
+>  		}
+> -		status = status;
+>  		if (status < 0)
+>  			break;
+>  		if (CID_Gain >= CID_Target) {
 
--- 
---
+
+
+Thanks,
+Mauro
