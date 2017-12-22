@@ -1,99 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:34982 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751548AbdLNMMN (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 14 Dec 2017 07:12:13 -0500
-Date: Thu, 14 Dec 2017 14:12:10 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Niklas =?iso-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>,
-        Sebastian Reichel <sre@kernel.org>
-Subject: Re: [PATCH v2 08/26] media: v4l2-async: shut up an unitialized
- symbol warning
-Message-ID: <20171214121209.of2xvhzyezp2r46g@valkosipuli.retiisi.org.uk>
-References: <c4389ab1c02bb08c1a55012fdb859c8b10bdc47e.1509569763.git.mchehab@s-opensource.com>
- <1844403.anYkCZaVIn@avalon>
- <20171211161058.6cdedb7a@vento.lan>
- <2408989.XGnSUWAzJY@avalon>
+Received: from vps-vb.mhejs.net ([37.28.154.113]:46030 "EHLO vps-vb.mhejs.net"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1756957AbdLVXS3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 22 Dec 2017 18:18:29 -0500
+From: "Maciej S. Szmigiero" <mail@maciej.szmigiero.name>
+Subject: [PATCH v5 2/6] cx25840: add kernel-doc description of struct
+ cx25840_state
+To: Michael Krufky <mkrufky@linuxtv.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Andy Walls <awalls@md.metrocast.net>,
+        linux-kernel <linux-kernel@vger.kernel.org>,
+        linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+        Philippe Ombredanne <pombredanne@nexb.com>
+References: <cover.1513982691.git.mail@maciej.szmigiero.name>
+Message-ID: <ba5924fb-aa56-f75f-269d-be5e8d5870bc@maciej.szmigiero.name>
+Date: Sat, 23 Dec 2017 00:18:26 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <2408989.XGnSUWAzJY@avalon>
+In-Reply-To: <cover.1513982691.git.mail@maciej.szmigiero.name>
+Content-Type: text/plain; charset=iso-8859-2
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi folks,
+This commit describes a device instance private data of the driver
+(struct cx25840_state) in a kernel-doc style comment.
 
-On Tue, Dec 12, 2017 at 12:13:59AM +0200, Laurent Pinchart wrote:
-> Hi Mauro,
-> 
-> On Monday, 11 December 2017 20:10:58 EET Mauro Carvalho Chehab wrote:
-> > Em Thu, 02 Nov 2017 04:51:40 +0200 Laurent Pinchart escreveu:
-> > > On Wednesday, 1 November 2017 23:05:45 EET Mauro Carvalho Chehab wrote:
-> > >> Smatch reports this warning:
-> > >> 	drivers/media/v4l2-core/v4l2-async.c:597 v4l2_async_register_subdev()
-> > >> 
-> > >> error: uninitialized symbol 'ret'.
-> > >> 
-> > >> However, there's nothing wrong there. So, just shut up the
-> > >> warning.
-> > > 
-> > > Nothing wrong, really ? ret does seem to be used uninitialized when the
-> > > function returns at the very last line.
-> > 
-> > There's nothing wrong. If you follow the logic, you'll see that
-> > the line:
-> > 
-> > 	return ret;
-> > 
-> > is called only at "err_unbind" label, with is called only on
-> > two places:
-> > 
-> >                 ret = v4l2_async_match_notify(notifier, v4l2_dev, sd, asd);
-> >                 if (ret)
-> >                         goto err_unbind;
-> > 
-> >                 ret = v4l2_async_notifier_try_complete(notifier);
-> >                 if (ret)
-> >                         goto err_unbind;
-> > 
-> > There, ret is defined.
-> > 
-> > Yeah, the logic there is confusing.
-> 
-> I had missed the return 0 just before the error label. Sorry for the noise.
+Signed-off-by: Maciej S. Szmigiero <mail@maciej.szmigiero.name>
+---
+ drivers/media/i2c/cx25840/cx25840-core.h | 33 ++++++++++++++++++++++++++++++--
+ 1 file changed, 31 insertions(+), 2 deletions(-)
 
-I believe the matter has been addressed by this patch:
-
-commit 580db6ca62c168733c6fd338cd2f0ebf39135283
-Author: Colin Ian King <colin.king@canonical.com>
-Date:   Fri Nov 3 02:58:27 2017 -0400
-
-    media: v4l: async: fix return of unitialized variable ret
-    
-    A shadow declaration of variable ret is being assigned a return error
-    status and this value is being lost when the error exit goto's jump
-    out of the local scope. This leads to an uninitalized error return value
-    in the outer scope being returned. Fix this by removing the inner scoped
-    declaration of variable ret.
-    
-    Detected by CoverityScan, CID#1460380 ("Uninitialized scalar variable")
-    
-    Fixes: fb45f436b818 ("media: v4l: async: Fix notifier complete callback error handling")
-    
-    Signed-off-by: Colin Ian King <colin.king@canonical.com>
-    Reviewed-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-    Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-    Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+diff --git a/drivers/media/i2c/cx25840/cx25840-core.h b/drivers/media/i2c/cx25840/cx25840-core.h
+index 55432ed42714..877b930e5b1f 100644
+--- a/drivers/media/i2c/cx25840/cx25840-core.h
++++ b/drivers/media/i2c/cx25840/cx25840-core.h
+@@ -45,6 +45,35 @@ enum cx25840_media_pads {
+ 	CX25840_NUM_PADS
+ };
+ 
++/**
++ * struct cx25840_state - a device instance private data
++ * @c:			i2c_client struct representing this device
++ * @sd:		our V4L2 sub-device
++ * @hdl:		our V4L2 control handler
++ * @volume:		audio volume V4L2 control (non-cx2583x devices only)
++ * @mute:		audio mute V4L2 control (non-cx2583x devices only)
++ * @pvr150_workaround:	whether we enable workaround for Hauppauge PVR150
++ *			hardware bug (audio dropping out)
++ * @radio:		set if we are currently in the radio mode, otherwise
++ *			the current mode is non-radio (that is, video)
++ * @std:		currently set video standard
++ * @vid_input:		currently set video input
++ * @aud_input:		currently set audio input
++ * @audclk_freq:	currently set audio sample rate
++ * @audmode:		currently set audio mode (when in non-radio mode)
++ * @vbi_line_offset:	vbi line number offset
++ * @id:		exact device model
++ * @rev:		raw device id read from the chip
++ * @is_initialized:	whether we have already loaded firmware into the chip
++ *			and initialized it
++ * @vbi_regs_offset:	offset of vbi regs
++ * @fw_wait:		wait queue to wake an initalization function up when
++ *			firmware loading (on a separate workqueue) finishes
++ * @fw_work:		a work that actually loads the firmware on a separate
++ *			workqueue
++ * @ir_state:		a pointer to chip IR controller private data
++ * @pads:		array of supported chip pads (currently only a stub)
++ */
+ struct cx25840_state {
+ 	struct i2c_client *c;
+ 	struct v4l2_subdev sd;
+@@ -66,8 +95,8 @@ struct cx25840_state {
+ 	u32 rev;
+ 	int is_initialized;
+ 	unsigned vbi_regs_offset;
+-	wait_queue_head_t fw_wait;    /* wake up when the fw load is finished */
+-	struct work_struct fw_work;   /* work entry for fw load */
++	wait_queue_head_t fw_wait;
++	struct work_struct fw_work;
+ 	struct cx25840_ir_state *ir_state;
+ #if defined(CONFIG_MEDIA_CONTROLLER)
+ 	struct media_pad	pads[CX25840_NUM_PADS];
