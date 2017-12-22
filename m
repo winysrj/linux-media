@@ -1,73 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:37072 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1755630AbdLONgB (ORCPT
+Received: from out20-85.mail.aliyun.com ([115.124.20.85]:38458 "EHLO
+        out20-85.mail.aliyun.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1756416AbdLVK4O (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 15 Dec 2017 08:36:01 -0500
-Subject: Re: [PATCH v10 2/4] MAINTAINERS: Add entry for Synopsys DesignWare
- HDMI drivers
-To: Jose Abreu <Jose.Abreu@synopsys.com>, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-References: <cover.1513013948.git.joabreu@synopsys.com>
- <8d468c10f1a66986b087a664e619dac339bad247.1513013948.git.joabreu@synopsys.com>
- <d1eae8b9-a3f1-5c6c-3c2c-119f55d4f38b@xs4all.nl>
-Cc: Joao Pinto <Joao.Pinto@synopsys.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <51bac9b6-b38a-5862-5925-2f6b3d837799@xs4all.nl>
-Date: Fri, 15 Dec 2017 14:35:59 +0100
-MIME-Version: 1.0
-In-Reply-To: <d1eae8b9-a3f1-5c6c-3c2c-119f55d4f38b@xs4all.nl>
-Content-Type: text/plain; charset=windows-1252
+        Fri, 22 Dec 2017 05:56:14 -0500
+Date: Fri, 22 Dec 2017 18:55:47 +0800
+From: Yong <yong.deng@magewell.com>
+To: Priit Laes <plaes@plaes.org>
+Cc: Maxime Ripard <maxime.ripard@free-electrons.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Chen-Yu Tsai <wens@csie.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Randy Dunlap <rdunlap@infradead.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Yannick Fertre <yannick.fertre@st.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Rick Chang <rick.chang@mediatek.com>,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-sunxi@googlegroups.com
+Subject: Re: [linux-sunxi] [PATCH v4 2/2] media: V3s: Add support for
+ Allwinner CSI.
+Message-Id: <20171222185547.356dbc3ebe76d0ebec88d052@magewell.com>
+In-Reply-To: <20171222102156.cfemen6ouxxxbrem@plaes.org>
+References: <1513936020-35569-1-git-send-email-yong.deng@magewell.com>
+        <20171222102156.cfemen6ouxxxbrem@plaes.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 15/12/17 14:35, Hans Verkuil wrote:
-> On 11/12/17 18:41, Jose Abreu wrote:
->> Add an entry for Synopsys DesignWare HDMI Receivers drivers
->> and phys.
->>
->> Signed-off-by: Jose Abreu <joabreu@synopsys.com>
->> Cc: Joao Pinto <jpinto@synopsys.com>
-> 
-> Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+Hi,
 
-Oops, I was a bit too quick here. You're missing this file:
+On Fri, 22 Dec 2017 10:21:56 +0000
+Priit Laes <plaes@plaes.org> wrote:
 
-Documentation/devicetree/bindings/media/snps,dw-hdmi-rx.txt
+> On Fri, Dec 22, 2017 at 05:47:00PM +0800, Yong Deng wrote:
+> > Allwinner V3s SoC have two CSI module. CSI0 is used for MIPI interface
+> > and CSI1 is used for parallel interface. This is not documented in
+> > datasheet but by testing and guess.
+> > 
+> > This patch implement a v4l2 framework driver for it.
 
-Regards,
+...
 
-	Hans
+> > +	if ((sdev->csi.v4l2_ep.bus_type == V4L2_MBUS_PARALLEL
+> > +	      || sdev->csi.v4l2_ep.bus_type == V4L2_MBUS_BT656)
+> > +	     && sdev->csi.v4l2_ep.bus.parallel.bus_width == 16) {
+> > +		switch (pixformat) {
+> > +		case V4L2_PIX_FMT_HM12:
+> > +		case V4L2_PIX_FMT_NV12:
+> > +		case V4L2_PIX_FMT_NV21:
+> > +		case V4L2_PIX_FMT_NV16:
+> > +		case V4L2_PIX_FMT_NV61:
+> > +		case V4L2_PIX_FMT_YUV420:
+> > +		case V4L2_PIX_FMT_YVU420:
+> > +		case V4L2_PIX_FMT_YUV422P:
+> > +			switch (mbus_code) {
+> > +			case MEDIA_BUS_FMT_UYVY8_1X16:
+> > +			case MEDIA_BUS_FMT_VYUY8_1X16:
+> > +			case MEDIA_BUS_FMT_YUYV8_1X16:
+> > +			case MEDIA_BUS_FMT_YVYU8_1X16:
+> > +				return true;
+> > +			}
+> > +			break;
+> > +		}
+> Should we add default cases and warning messages here for debug purposes?
 
-> 
-> Regards,
-> 
-> 	Hans
-> 
-> 
-> 
->> ---
->>  MAINTAINERS | 7 +++++++
->>  1 file changed, 7 insertions(+)
->>
->> diff --git a/MAINTAINERS b/MAINTAINERS
->> index 7a52a66..a1675bc 100644
->> --- a/MAINTAINERS
->> +++ b/MAINTAINERS
->> @@ -13108,6 +13108,13 @@ L:	netdev@vger.kernel.org
->>  S:	Supported
->>  F:	drivers/net/ethernet/synopsys/
->>  
->> +SYNOPSYS DESIGNWARE HDMI RECEIVERS AND PHY DRIVERS
->> +M:	Jose Abreu <joabreu@synopsys.com>
->> +L:	linux-media@vger.kernel.org
->> +S:	Maintained
->> +F:	drivers/media/platform/dwc/*
->> +F:	include/media/dwc/*
->> +
->>  SYNOPSYS DESIGNWARE I2C DRIVER
->>  M:	Jarkko Nikula <jarkko.nikula@linux.intel.com>
->>  R:	Andy Shevchenko <andriy.shevchenko@linux.intel.com>
->>
-> 
+OK. I will add all the default cases and messages.
+
+Thanks,
+Yong
