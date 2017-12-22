@@ -1,80 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:59319 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751543AbdLKQvj (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 11 Dec 2017 11:51:39 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Flavio Ceolin <flavio.ceolin@intel.com>
-Cc: linux-kernel@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Petr Cvek <petr.cvek@tul.cz>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Niklas =?ISO-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>,
-        Julia Lawall <Julia.Lawall@lip6.fr>,
-        Arnd Bergmann <arnd@arndb.de>,
-        "open list:MEDIA INPUT INFRASTRUCTURE (V4L/DVB)"
-        <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] media: pxa_camera: disable and unprepare the clock source on error
-Date: Mon, 11 Dec 2017 18:51:40 +0200
-Message-ID: <1880720.cnKARQTyeT@avalon>
-In-Reply-To: <20171206163852.8532-1-flavio.ceolin@intel.com>
-References: <20171206163852.8532-1-flavio.ceolin@intel.com>
+Received: from vps-vb.mhejs.net ([37.28.154.113]:46286 "EHLO vps-vb.mhejs.net"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1757016AbdLVXSm (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 22 Dec 2017 18:18:42 -0500
+From: "Maciej S. Szmigiero" <mail@maciej.szmigiero.name>
+Subject: [PATCH v5 4/6] tuner-simple: allow setting mono radio mode
+To: Michael Krufky <mkrufky@linuxtv.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Andy Walls <awalls@md.metrocast.net>,
+        linux-kernel <linux-kernel@vger.kernel.org>,
+        linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+        Philippe Ombredanne <pombredanne@nexb.com>
+References: <cover.1513982691.git.mail@maciej.szmigiero.name>
+Message-ID: <5e9d0f8d-2474-8dfa-85a8-6d01b766a863@maciej.szmigiero.name>
+Date: Sat, 23 Dec 2017 00:18:39 +0100
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <cover.1513982691.git.mail@maciej.szmigiero.name>
+Content-Type: text/plain; charset=iso-8859-2
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Flavio,
+For some types of tuners (Philips FMD1216ME(X) MK3 currently) we know that
+letting TDA9887 output port 1 remain high (inactive) will switch FM radio
+to mono mode.
+Let's make use of this functionality - nothing changes for the default
+stereo radio mode.
 
-Thank you for the patch.
+Tested on a Medion 95700 board which has a FMD1216ME tuner.
 
-On Wednesday, 6 December 2017 18:38:50 EET Flavio Ceolin wrote:
-> pxa_camera_probe() was not calling pxa_camera_deactivate(),
-> responsible to call clk_disable_unprepare(), on the failure path. This
-> was leading to unbalancing source clock.
-> 
-> Found by Linux Driver Verification project (linuxtesting.org).
+Signed-off-by: Maciej S. Szmigiero <mail@maciej.szmigiero.name>
+---
+ drivers/media/tuners/tuner-simple.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-Any chance I could sign you up for more work on this driver ? :-)
-
-> Signed-off-by: Flavio Ceolin <flavio.ceolin@intel.com>
-
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-I expect Hans Verkuil to pick up the patch.
-
-> ---
->  drivers/media/platform/pxa_camera.c | 4 +++-
->  1 file changed, 3 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/platform/pxa_camera.c
-> b/drivers/media/platform/pxa_camera.c index 9d3f0cb..7877037 100644
-> --- a/drivers/media/platform/pxa_camera.c
-> +++ b/drivers/media/platform/pxa_camera.c
-> @@ -2489,7 +2489,7 @@ static int pxa_camera_probe(struct platform_device
-> *pdev) dev_set_drvdata(&pdev->dev, pcdev);
->  	err = v4l2_device_register(&pdev->dev, &pcdev->v4l2_dev);
->  	if (err)
-> -		goto exit_free_dma;
-> +		goto exit_deactivate;
-> 
->  	pcdev->asds[0] = &pcdev->asd;
->  	pcdev->notifier.subdevs = pcdev->asds;
-> @@ -2525,6 +2525,8 @@ static int pxa_camera_probe(struct platform_device
-> *pdev) v4l2_clk_unregister(pcdev->mclk_clk);
->  exit_free_v4l2dev:
->  	v4l2_device_unregister(&pcdev->v4l2_dev);
-> +exit_deactivate:
-> +	pxa_camera_deactivate(pcdev);
->  exit_free_dma:
->  	dma_release_channel(pcdev->dma_chans[2]);
->  exit_free_dma_u:
-
--- 
-Regards,
-
-Laurent Pinchart
+diff --git a/drivers/media/tuners/tuner-simple.c b/drivers/media/tuners/tuner-simple.c
+index cf44d3657f55..01ab94681d2d 100644
+--- a/drivers/media/tuners/tuner-simple.c
++++ b/drivers/media/tuners/tuner-simple.c
+@@ -670,6 +670,7 @@ static int simple_set_radio_freq(struct dvb_frontend *fe,
+ 	int rc, j;
+ 	struct tuner_params *t_params;
+ 	unsigned int freq = params->frequency;
++	bool mono = params->audmode == V4L2_TUNER_MODE_MONO;
+ 
+ 	tun = priv->tun;
+ 
+@@ -736,8 +737,8 @@ static int simple_set_radio_freq(struct dvb_frontend *fe,
+ 			config |= TDA9887_PORT2_ACTIVE;
+ 		if (t_params->intercarrier_mode)
+ 			config |= TDA9887_INTERCARRIER;
+-/*		if (t_params->port1_set_for_fm_mono)
+-			config &= ~TDA9887_PORT1_ACTIVE;*/
++		if (t_params->port1_set_for_fm_mono && mono)
++			config &= ~TDA9887_PORT1_ACTIVE;
+ 		if (t_params->fm_gain_normal)
+ 			config |= TDA9887_GAIN_NORMAL;
+ 		if (t_params->radio_if == 2)
