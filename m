@@ -1,114 +1,235 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:43964 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1750985AbdLUWiK (ORCPT
+Received: from out20-2.mail.aliyun.com ([115.124.20.2]:45024 "EHLO
+        out20-2.mail.aliyun.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755774AbdLVJdz (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 21 Dec 2017 17:38:10 -0500
-Received: from valkosipuli.localdomain (valkosipuli.retiisi.org.uk [IPv6:2001:1bc8:1a6:d3d5::80:2])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by hillosipuli.retiisi.org.uk (Postfix) with ESMTPS id 0328E600DC
-        for <linux-media@vger.kernel.org>; Fri, 22 Dec 2017 00:38:07 +0200 (EET)
-Received: from sakke by valkosipuli.localdomain with local (Exim 4.89)
-        (envelope-from <sakari.ailus@retiisi.org.uk>)
-        id 1eS9Tb-00027w-Gv
-        for linux-media@vger.kernel.org; Fri, 22 Dec 2017 00:38:07 +0200
-Date: Fri, 22 Dec 2017 00:38:07 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Subject: [GIT PULL v2 for 4.16] An ordinary pile of atomisp cleanups and fixes
-Message-ID: <20171221223807.vsqqqv5zeq52ildm@valkosipuli.retiisi.org.uk>
+        Fri, 22 Dec 2017 04:33:55 -0500
+From: Yong Deng <yong.deng@magewell.com>
+To: "\"Maxime Ripard" <maxime.ripard@free-electrons.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Chen-Yu Tsai <wens@csie.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Randy Dunlap <rdunlap@infradead.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Yannick Fertre <yannick.fertre@st.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Rick Chang <rick.chang@mediatek.com>,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-sunxi@googlegroups.com, Yong Deng <yong.deng@magewell.com>
+Subject: [PATCH v4 0/2] Initial Allwinner V3s CSI Support
+Date: Fri, 22 Dec 2017 17:32:18 +0800
+Message-Id: <1513935138-35223-1-git-send-email-yong.deng@magewell.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+This patchset add initial support for Allwinner V3s CSI.
 
-Here's the regular pile of atomisp cleanups and some fixes, too.
+Allwinner V3s SoC have two CSI module. CSI0 is used for MIPI interface
+and CSI1 is used for parallel interface. This is not documented in
+datasheet but by testing and guess.
 
-since v1:
+This patchset implement a v4l2 framework driver and add a binding 
+documentation for it. 
 
-- Add Andy's cleanups and fixes.
+Currently, the driver only support the parallel interface. And has been
+tested with a BT1120 signal which generating from FPGA. The following
+fetures are not support with this patchset:
+  - ISP 
+  - MIPI-CSI2
+  - Master clock for camera sensor
+  - Power regulator for the front end IC
 
-Please pull.
+Thanks for Ondřej Jirman's help.
 
+Changes in v4:
+  * Deal with the CSI 'INNER QUEUE'.
+    CSI will lookup the next dma buffer for next frame before the
+    the current frame done IRQ triggered. This is not documented
+    but reported by Ondřej Jirman.
+    The BSP code has workaround for this too. It skip to mark the
+    first buffer as frame done for VB2 and pass the second buffer
+    to CSI in the first frame done ISR call. Then in second frame
+    done ISR call, it mark the first buffer as frame done for VB2
+    and pass the third buffer to CSI. And so on. The bad thing is
+    that the first buffer will be written twice and the first frame
+    is dropped even the queued buffer is sufficient.
+    So, I make some improvement here. Pass the next buffer to CSI
+    just follow starting the CSI. In this case, the first frame
+    will be stored in first buffer, second frame in second buffer.
+    This mothed is used to avoid dropping the first frame, it
+    would also drop frame when lacking of queued buffer.
+  * Fix: using a wrong mbus_code when getting the supported formats
+  * Change all fourcc to pixformat
+  * Change some function names
 
-The following changes since commit ae49432810c5cca2143afc1445edad6582c9f270:
+Changes in v3:
+  * Get rid of struct sun6i_csi_ops
+  * Move sun6i-csi to new directory drivers/media/platform/sunxi
+  * Merge sun6i_csi.c and sun6i_csi_v3s.c into sun6i_csi.c
+  * Use generic fwnode endpoints parser
+  * Only support a single subdev to make things simple
+  * Many complaintion fix
 
-  media: ddbridge: improve ddb_ports_attach() failure handling (2017-12-19 07:18:38 -0500)
+Changes in v2: 
+  * Change sunxi-csi to sun6i-csi
+  * Rebase to media_tree master branch 
 
-are available in the git repository at:
+Following is the 'v4l2-compliance -s -f' output, I have test this
+with both interlaced and progressive signal:
 
-  ssh://linuxtv.org/git/sailus/media_tree.git atomisp
+# ./v4l2-compliance -s -f
+v4l2-compliance SHA   : 6049ea8bd64f9d78ef87ef0c2b3dc9b5de1ca4a1
 
-for you to fetch changes up to e4e1b698c1a67f1d58ca5c232c1b44fa77bd1a7b:
+Driver Info:
+        Driver name   : sun6i-video
+        Card type     : sun6i-csi
+        Bus info      : platform:csi
+        Driver version: 4.15.0
+        Capabilities  : 0x84200001
+                Video Capture
+                Streaming
+                Extended Pix Format
+                Device Capabilities
+        Device Caps   : 0x04200001
+                Video Capture
+                Streaming
+                Extended Pix Format
 
-  staging: atomisp: Fix DMI matching entry for MRD7 (2017-12-21 23:44:26 +0200)
+Compliance test for device /dev/video0 (not using libv4l2):
 
-----------------------------------------------------------------
-Aishwarya Pant (1):
-      staging: atomisp2: replace DEVICE_ATTR with DEVICE_ATTR_RO
+Required ioctls:
+        test VIDIOC_QUERYCAP: OK
 
-Andy Shevchenko (10):
-      staging: atomisp: Don't leak GPIO resources if clk_get() failed
-      staging: atomisp: Remove duplicate NULL-check
-      staging: atomisp: lm3554: Fix control values
-      staging: atomisp: Disable custom format for now
-      staging: atomisp: Remove non-ACPI leftovers
-      staging: atomisp: Switch to use struct device_driver directly
-      staging: atomisp: Remove redundant PCI code
-      staging: atomisp: Unexport local function
-      staging: atomisp: Use standard DMI match table
-      staging: atomisp: Fix DMI matching entry for MRD7
+Allow for multiple opens:
+        test second video open: OK
+        test VIDIOC_QUERYCAP: OK
+        test VIDIOC_G/S_PRIORITY: OK
+        test for unlimited opens: OK
 
-Arnd Bergmann (1):
-      staging: atomisp: convert timestamps to ktime_t
+Debug ioctls:
+        test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
+        test VIDIOC_LOG_STATUS: OK (Not Supported)
 
-Jeremy Sowden (2):
-      media: staging: atomisp: fix for sparse "using plain integer as NULL pointer" warnings.
-      media: staging: atomisp: fixes for "symbol was not declared. Should it be static?" sparse warnings.
+Input ioctls:
+        test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
+        test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+        test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
+        test VIDIOC_ENUMAUDIO: OK (Not Supported)
+        test VIDIOC_G/S/ENUMINPUT: OK
+        test VIDIOC_G/S_AUDIO: OK (Not Supported)
+        Inputs: 1 Audio Inputs: 0 Tuners: 0
 
-Riccardo Schirone (4):
-      staging: add missing blank line after declarations in atomisp-ov5693
-      staging: improve comments usage in atomisp-ov5693
-      staging: improves comparisons readability in atomisp-ov5693
-      staging: fix indentation in atomisp-ov5693
+Output ioctls:
+        test VIDIOC_G/S_MODULATOR: OK (Not Supported)
+        test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+        test VIDIOC_ENUMAUDOUT: OK (Not Supported)
+        test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
+        test VIDIOC_G/S_AUDOUT: OK (Not Supported)
+        Outputs: 0 Audio Outputs: 0 Modulators: 0
 
-Sergiy Redko (1):
-      Staging: media: atomisp: made function static
+Input/Output configuration ioctls:
+        test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
+        test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
+        test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
+        test VIDIOC_G/S_EDID: OK (Not Supported)
 
-Sinan Kaya (1):
-      atomisp: deprecate pci_get_bus_and_slot()
+Test input 0:
 
- drivers/staging/media/atomisp/i2c/atomisp-gc0310.c |  10 +-
- drivers/staging/media/atomisp/i2c/atomisp-gc2235.c |   8 +-
- drivers/staging/media/atomisp/i2c/atomisp-lm3554.c |  38 +++---
- .../staging/media/atomisp/i2c/atomisp-mt9m114.c    |   8 +-
- drivers/staging/media/atomisp/i2c/atomisp-ov2680.c |  10 +-
- drivers/staging/media/atomisp/i2c/atomisp-ov2722.c |  17 +--
- drivers/staging/media/atomisp/i2c/ov2680.h         |   1 -
- .../media/atomisp/i2c/ov5693/atomisp-ov5693.c      |  94 ++++++++-------
- drivers/staging/media/atomisp/i2c/ov5693/ov5693.h  |   2 +-
- drivers/staging/media/atomisp/i2c/ov8858.c         |  43 ++++---
- .../staging/media/atomisp/include/linux/atomisp.h  |   2 +
- .../atomisp/include/linux/atomisp_gmin_platform.h  |   1 -
- .../media/atomisp/pci/atomisp2/atomisp_drvfs.c     |  17 ++-
- .../media/atomisp/pci/atomisp2/atomisp_drvfs.h     |   5 +-
- .../media/atomisp/pci/atomisp2/atomisp_internal.h  |   1 -
- .../media/atomisp/pci/atomisp2/atomisp_ioctl.c     |   5 +-
- .../media/atomisp/pci/atomisp2/atomisp_subdev.c    |   2 +
- .../media/atomisp/pci/atomisp2/atomisp_v4l2.c      |  12 +-
- .../isp/kernels/eed1_8/ia_css_eed1_8.host.c        |  24 ++--
- .../css2400/runtime/debug/src/ia_css_debug.c       |   1 +
- .../isp_param/interface/ia_css_isp_param_types.h   |   2 +-
- .../staging/media/atomisp/pci/atomisp2/hmm/hmm.c   |   8 +-
- .../platform/intel-mid/atomisp_gmin_platform.c     | 129 +++++++++++++--------
- 23 files changed, 221 insertions(+), 219 deletions(-)
+        Control ioctls:
+                test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK (Not Supported)
+                test VIDIOC_QUERYCTRL: OK (Not Supported)
+                test VIDIOC_G/S_CTRL: OK (Not Supported)
+                test VIDIOC_G/S/TRY_EXT_CTRLS: OK (Not Supported)
+                test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK (Not Supported)
+                test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
+                Standard Controls: 0 Private Controls: 0
+
+        Format ioctls:
+                test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
+                test VIDIOC_G/S_PARM: OK (Not Supported)
+                test VIDIOC_G_FBUF: OK (Not Supported)
+                test VIDIOC_G_FMT: OK
+                test VIDIOC_TRY_FMT: OK
+                test VIDIOC_S_FMT: OK
+                test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
+                test Cropping: OK (Not Supported)
+                test Composing: OK (Not Supported)
+                test Scaling: OK (Not Supported)
+
+        Codec ioctls:
+                test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
+                test VIDIOC_G_ENC_INDEX: OK (Not Supported)
+                test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
+
+        Buffer ioctls:
+                test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
+                test VIDIOC_EXPBUF: OK
+
+Test input 0:
+
+Streaming ioctls:
+        test read/write: OK (Not Supported)
+        test MMAP: OK                                     
+        test USERPTR: OK (Not Supported)
+        test DMABUF: Cannot test, specify --expbuf-device
+
+Stream using all formats:
+        test MMAP for Format HM12, Frame Size 1280x720:
+                Stride 1920, Field None: OK                                 
+        test MMAP for Format NV12, Frame Size 1280x720:
+                Stride 1920, Field None: OK                                 
+        test MMAP for Format NV21, Frame Size 1280x720:
+                Stride 1920, Field None: OK                                 
+        test MMAP for Format YU12, Frame Size 1280x720:
+                Stride 1920, Field None: OK                                 
+        test MMAP for Format YV12, Frame Size 1280x720:
+                Stride 1920, Field None: OK                                 
+        test MMAP for Format NV16, Frame Size 1280x720:
+                Stride 2560, Field None: OK                                 
+        test MMAP for Format NV61, Frame Size 1280x720:
+                Stride 2560, Field None: OK                                 
+        test MMAP for Format 422P, Frame Size 1280x720:
+                Stride 2560, Field None: OK                                 
+
+Total: 54, Succeeded: 54, Failed: 0, Warnings: 0
+
+Yong Deng (2):
+  dt-bindings: media: Add Allwinner V3s Camera Sensor Interface (CSI)
+  media: V3s: Add support for Allwinner CSI.
+
+ .../devicetree/bindings/media/sun6i-csi.txt        |  51 ++
+ MAINTAINERS                                        |   8 +
+ drivers/media/platform/Kconfig                     |   1 +
+ drivers/media/platform/Makefile                    |   2 +
+ drivers/media/platform/sunxi/sun6i-csi/Kconfig     |   9 +
+ drivers/media/platform/sunxi/sun6i-csi/Makefile    |   3 +
+ drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.c | 878 +++++++++++++++++++++
+ drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.h | 147 ++++
+ .../media/platform/sunxi/sun6i-csi/sun6i_csi_reg.h | 203 +++++
+ .../media/platform/sunxi/sun6i-csi/sun6i_video.c   | 752 ++++++++++++++++++
+ .../media/platform/sunxi/sun6i-csi/sun6i_video.h   |  60 ++
+ 11 files changed, 2114 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/sun6i-csi.txt
+ create mode 100644 drivers/media/platform/sunxi/sun6i-csi/Kconfig
+ create mode 100644 drivers/media/platform/sunxi/sun6i-csi/Makefile
+ create mode 100644 drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.c
+ create mode 100644 drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.h
+ create mode 100644 drivers/media/platform/sunxi/sun6i-csi/sun6i_csi_reg.h
+ create mode 100644 drivers/media/platform/sunxi/sun6i-csi/sun6i_video.c
+ create mode 100644 drivers/media/platform/sunxi/sun6i-csi/sun6i_video.h
 
 -- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+1.8.3.1
