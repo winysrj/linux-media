@@ -1,46 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from [203.156.198.64] ([203.156.198.64]:38590 "EHLO mail.sunz.wang"
-        rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org with ESMTP
-        id S934965AbdLRXn0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 18 Dec 2017 18:43:26 -0500
-Received: from yzabcddef (unknown [123.65.71.249])
-        by mail.sunz.wang (Postfix) with ESMTPA id D002943815
-        for <linux-media@vger.kernel.org>; Tue, 19 Dec 2017 07:43:23 +0800 (CST)
-Date: Tue, 19 Dec 2017 07:43:26 +0800
-From: "Arthur Cheung" <arthur_010@vip.163.com>
-Reply-To: arthur_010@vip.163.com
-To: "linux-media" <linux-media@vger.kernel.org>
-Subject: RK3229 4K Ultra HD Android TV Box
-Message-ID: <201712190743261969000@cLhvma.wang>
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:53394 "EHLO
+        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1756263AbdLVJYy (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 22 Dec 2017 04:24:54 -0500
+Date: Fri, 22 Dec 2017 10:24:52 +0100
+From: Pavel Machek <pavel@ucw.cz>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>, robh+dt@kernel.org,
+        devicetree@vger.kernel.org, ivo.g.dimitrov.75@gmail.com,
+        sre@kernel.org, pali.rohar@gmail.com, linux-media@vger.kernel.org,
+        galak@codeaurora.org, mchehab@osg.samsung.com,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] devicetree: Add video bus switch
+Message-ID: <20171222092452.GA16581@amd>
+References: <20161023200355.GA5391@amd>
+ <20170203213454.GD12291@valkosipuli.retiisi.org.uk>
+ <20170204215610.GA9243@amd>
+ <75694885.3PuLWzx4qN@avalon>
 MIME-Version: 1.0
-Content-Type: text/plain;
-        charset="UNICODE-1-1"
-Content-Transfer-Encoding: base64
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="dDRMvlgZJXvWKvBx"
+Content-Disposition: inline
+In-Reply-To: <75694885.3PuLWzx4qN@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-PGh0bWw+DQogIDxoZWFkPg0KICAgIDx0aXRsZT48L3RpdGxlPg0KICAgIDxtZXRhIGNvbnRlbnQ9
-InRleHQvaHRtbDsgY2hhcnNldD1VVEYtOCIgaHR0cC1lcXVpdj0iQ29udGVudC1UeXBlIiAvPg0K
-ICAgIDxzdHlsZT48L3N0eWxlPg0KICA8L2hlYWQ+DQogIDxib2R5IGJnY29sb3I9IiNmZmZmZmYi
-Pg0KICAgIDxkaXY+SGksIDwvZGl2Pg0KICAgIDxkaXY+Jm5ic3A7PC9kaXY+DQogICAgPGRpdj5I
-b3cgYXJlIHlvdT88L2Rpdj4NCiAgICA8ZGl2PiZuYnNwOzwvZGl2Pg0KICAgIDxkaXY+V2UgYXJl
-IHByb2Zlc3Npb25hbCBTdXBwbGllciBmb3IgQW5kcm9pZCBUViBCb3gsZnJvbSB3aGljaCB5b3Ug
-Y2FuIHdhdGNoIHdoYXRldmVyIG9uIHRoZSBpbnRlcm5ldC48L2Rpdj4NCiAgICA8ZGl2PiZuYnNw
-OzwvZGl2Pg0KICAgIDxkaXY+TW9kZWwgTm8uOiBNWFEgUHJvKFJLMzIyOSk6IDRLIFVsdHJhIEhE
-IEFuZHJvaWQgVFYgQm94PGJyIC8+Um9ja2NoaXAgUkszMjI5LFF1YWQgQ29yZSwgMS4yR0h6LCBB
-bmRyb2lkIDYuMCBNYXNobWFsbG93ICwgUkFNIDFHQiBERFIzLFN0b3JhZ2UgOEdCIEtPREkgMTYu
-MSw0S3gyS0A2MGZwcyxIRENQIDIuMiwxMDBNIExhbiwyLjRHSHogV2lGaS48L2Rpdj4NCiAgICA8
-ZGl2PiZuYnNwOzwvZGl2Pg0KICAgIDxkaXY+PGltZyBib3JkZXI9IjAiIGhzcGFjZT0iMCIgYWx0
-PSIiIHNyYz0iRDpcUHJvZHVjdFxSSzMyMjkgNEsgVWx0cmEgSEQgQW5kcm9pZCBUViBCb3hcTVhR
-IFByby0uanBnIiBhbGlnbj0iYmFzZWxpbmUiIC8+PC9kaXY+DQogICAgPGRpdj4mbmJzcDs8L2Rp
-dj4NCiAgICA8ZGl2PkJlc3QgUmVnYXJkcyw8YnIgLz4mIzE2MDs8YnIgLz5BcnRodXIgQ2hldW5n
-PGJyIC8+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PGJyIC8+RGlrb24gRWxlY3Ryb25pY3MgTGltaXRl
-ZDxiciAvPkFkZHJlc3M6IFJvb20gODA0LCBVbml0IDEsIEJ1aWxkaW5nIDIsIEJhblNoYW5ZdWFu
-LExvbmdTaGFuTGl1THUsIFdlc3Q8YnIgLz5EaXN0cmljdCwgRGFZYVdhbiwgSHVpWmhvdSxHdWFu
-Z0RvbmcgUHJvdmluY2UsQ2hpbmEuPGJyIC8+VGVsOiA4Ni0oMCk3NTItNTU4MzE2MjxiciAvPjxh
-IGhyZWY9Imh0dHA6Ly93d3cuZGlrb25lbGVjLmNvbSI+SHR0cDovL3d3dy5kaWtvbmVsZWMuY29t
-PC9hPjxiciAvPkVtYWlsOiA8YSBocmVmPSJtYWlsdG86YXJ0aHVyQGRpa29uZWxlYy5jb20iPmFy
-dGh1ckBkaWtvbmVsZWMuY29tPC9hPjxiciAvPlNreXBlOiBhcnRodXJjaGV1PGJyIC8+UVE6IDQx
-NjYzMTkwNCA8L2Rpdj4NCiAgICA8ZGl2PiZuYnNwOzwvZGl2Pg0KICAgIDxkaXY+Jm5ic3A7PC9k
-aXY+DQogIDwvYm9keT4NCjwvaHRtbD4=
+
+--dDRMvlgZJXvWKvBx
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+Hi!
+
+> > > I don't really object using g_endpoint_config() as a temporary soluti=
+on;
+> > > I'd like to have Laurent's opinion on that though. Another option is =
+to
+> > > wait, but we've already waited a looong time (as in total).
+> >=20
+> > Laurent, do you have some input here? We have simple "2 cameras
+> > connected to one signal processor" situation here. We need some way of
+> > passing endpoint configuration from the sensors through the switch. I
+> > did this:
+>=20
+> Could you give me a bit more information about the platform you're target=
+ing:=20
+> how the switch is connected, what kind of switch it is, and what endpoint=
+=20
+> configuration data you need ?
+
+Platform is Nokia N900, Ivaylo already gave pointer to schematics.
+
+Switch is controlled using GPIO, and basically there's CSI
+configuration that would normally be in the device tree, but now we
+have two CSI configurations to select from...
+
+> > 9) Highly reconfigurable hardware - Julien Beraud
+> >=20
+> > - 44 sub-devices connected with an interconnect.
+> > - As long as formats match, any sub-device could be connected to any
+> > - other sub-device through a link.
+> > - The result is 44 * 44 links at worst.
+> > - A switch sub-device proposed as the solution to model the
+> > - interconnect. The sub-devices are connected to the switch
+> > - sub-devices through the hardware links that connect to the
+> > - interconnect.
+> > - The switch would be controlled through new IOCTLs S_ROUTING and
+> > - G_ROUTING.
+> > - Patches available:
+> >  http://git.linuxtv.org/cgit.cgi/pinchartl/media.git/log/?h=3Dxilinx-wip
+> >=20
+> > but the patches are from 2005. So I guess I'll need some guidance here.=
+=2E.
+>=20
+> You made me feel very old for a moment. The patches are from 2015 :-)
+
+Sorry about that :-).
+									Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
+g.html
+
+--dDRMvlgZJXvWKvBx
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iEYEARECAAYFAlo8z2QACgkQMOfwapXb+vJsZgCbBTP/TSZqeMt9ztNZwy8vgxeo
+Dv0AoJlt7/yNRop9DRe4vJWCTXucHDJy
+=Ec4d
+-----END PGP SIGNATURE-----
+
+--dDRMvlgZJXvWKvBx--
