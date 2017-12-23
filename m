@@ -1,130 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:57140 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753301AbdLNWUE (ORCPT
+Received: from mail-pl0-f65.google.com ([209.85.160.65]:47030 "EHLO
+        mail-pl0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751279AbdLWP5q (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 14 Dec 2017 17:20:04 -0500
-Reply-To: kieran.bingham@ideasonboard.com
-Subject: Re: [PATCH/RFC v2 09/15] adv748x: csi2: add module param for virtual
- channel
-To: =?UTF-8?Q?Niklas_S=c3=b6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>,
-        linux-media@vger.kernel.org,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-renesas-soc@vger.kernel.org,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        Benoit Parrot <bparrot@ti.com>,
-        Maxime Ripard <maxime.ripard@free-electrons.com>
-References: <20171214190835.7672-1-niklas.soderlund+renesas@ragnatech.se>
- <20171214190835.7672-10-niklas.soderlund+renesas@ragnatech.se>
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Message-ID: <9eca77d9-641e-ed01-9f2a-0013aa6540d9@ideasonboard.com>
-Date: Thu, 14 Dec 2017 22:19:59 +0000
+        Sat, 23 Dec 2017 10:57:46 -0500
+Subject: Re: [PATCH v3 00/27] kill devm_ioremap_nocache
+To: Greg KH <gregkh@linuxfoundation.org>,
+        Yisheng Xie <xieyisheng1@huawei.com>
+Cc: linux-kernel@vger.kernel.org, ysxie@foxmail.com,
+        ulf.hansson@linaro.org, linux-mmc@vger.kernel.org,
+        boris.brezillon@free-electrons.com, richard@nod.at,
+        marek.vasut@gmail.com, cyrille.pitchen@wedev4u.fr,
+        linux-mtd@lists.infradead.org, alsa-devel@alsa-project.org,
+        wim@iguana.be, linux-watchdog@vger.kernel.org,
+        b.zolnierkie@samsung.com, linux-fbdev@vger.kernel.org,
+        linus.walleij@linaro.org, linux-gpio@vger.kernel.org,
+        ralf@linux-mips.org, linux-mips@linux-mips.org,
+        lgirdwood@gmail.com, broonie@kernel.org, tglx@linutronix.de,
+        jason@lakedaemon.net, marc.zyngier@arm.com, arnd@arndb.de,
+        andriy.shevchenko@linux.intel.com,
+        industrypack-devel@lists.sourceforge.net, wg@grandegger.com,
+        mkl@pengutronix.de, linux-can@vger.kernel.org, mchehab@kernel.org,
+        linux-media@vger.kernel.org, a.zummo@towertech.it,
+        alexandre.belloni@free-electrons.com, linux-rtc@vger.kernel.org,
+        daniel.vetter@intel.com, jani.nikula@linux.intel.com,
+        seanpaul@chromium.org, airlied@linux.ie,
+        dri-devel@lists.freedesktop.org, kvalo@codeaurora.org,
+        linux-wireless@vger.kernel.org, linux-spi@vger.kernel.org,
+        tj@kernel.org, linux-ide@vger.kernel.org, bhelgaas@google.com,
+        linux-pci@vger.kernel.org, devel@driverdev.osuosl.org,
+        dvhart@infradead.org, andy@infradead.org,
+        platform-driver-x86@vger.kernel.org, jakub.kicinski@netronome.com,
+        davem@davemloft.net, nios2-dev@lists.rocketboards.org,
+        netdev@vger.kernel.org, vinod.koul@intel.com,
+        dan.j.williams@intel.com, dmaengine@vger.kernel.org,
+        jslaby@suse.com
+References: <1514026525-32538-1-git-send-email-xieyisheng1@huawei.com>
+ <20171223134831.GB10103@kroah.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Message-ID: <f7632cf5-2bcc-4d74-b912-3999937a1269@roeck-us.net>
+Date: Sat, 23 Dec 2017 07:57:40 -0800
 MIME-Version: 1.0
-In-Reply-To: <20171214190835.7672-10-niklas.soderlund+renesas@ragnatech.se>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <20171223134831.GB10103@kroah.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Niklas,
-
-On 14/12/17 19:08, Niklas Söderlund wrote:
-> The hardware can output on any of the 4 (0-3) Virtual Channels of the
-> CSI-2 bus. Add a module parameter each for TXA and TXB to allow the user
-> to specify which channel should be used.
-
-This patch only configures the channel at initialisation time, (which is a valid
-thing to do here at the moment I think) - but will we expect to provide
-functionality to change the virtual channel later ?
-
-Do we need to communicate the virtual channel in use across the media pad links
-somehow? (or does that already happen?)
-
-Perhaps the commit message could be clear on the fact that this only sets the
-channels initialisation value - and that modifying the module parameter after
-module load will have no effect?
-
-Regards
-
-Kieran
-
-
-> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
->
-> ---
->  drivers/media/i2c/adv748x/adv748x-core.c | 10 ++++++++++
->  drivers/media/i2c/adv748x/adv748x-csi2.c |  2 +-
->  drivers/media/i2c/adv748x/adv748x.h      |  1 +
->  3 files changed, 12 insertions(+), 1 deletion(-)
+On 12/23/2017 05:48 AM, Greg KH wrote:
+> On Sat, Dec 23, 2017 at 06:55:25PM +0800, Yisheng Xie wrote:
+>> Hi all,
+>>
+>> When I tried to use devm_ioremap function and review related code, I found
+>> devm_ioremap and devm_ioremap_nocache is almost the same with each other,
+>> except one use ioremap while the other use ioremap_nocache.
 > 
-> diff --git a/drivers/media/i2c/adv748x/adv748x-core.c b/drivers/media/i2c/adv748x/adv748x-core.c
-> index fd92c9e4b519d2c5..3cad52532ead2e34 100644
-> --- a/drivers/media/i2c/adv748x/adv748x-core.c
-> +++ b/drivers/media/i2c/adv748x/adv748x-core.c
-> @@ -31,6 +31,9 @@
->  
->  #include "adv748x.h"
->  
-> +static unsigned int txavc;
-> +static unsigned int txbvc;
-> +
->  /* -----------------------------------------------------------------------------
->   * Register manipulation
->   */
-> @@ -747,6 +750,7 @@ static int adv748x_probe(struct i2c_client *client,
->  	}
->  
->  	/* Initialise TXA */
-> +	state->txa.vc = txavc;
->  	ret = adv748x_csi2_init(state, &state->txa);
->  	if (ret) {
->  		adv_err(state, "Failed to probe TXA");
-> @@ -754,6 +758,7 @@ static int adv748x_probe(struct i2c_client *client,
->  	}
->  
->  	/* Initialise TXB */
-> +	state->txb.vc = txbvc;
->  	ret = adv748x_csi2_init(state, &state->txb);
->  	if (ret) {
->  		adv_err(state, "Failed to probe TXB");
-> @@ -824,6 +829,11 @@ static struct i2c_driver adv748x_driver = {
->  
->  module_i2c_driver(adv748x_driver);
->  
-> +module_param(txavc, uint, 0644);
-> +MODULE_PARM_DESC(txavc, "Virtual Channel for TXA");
-> +module_param(txbvc, uint, 0644);
-> +MODULE_PARM_DESC(txbvc, "Virtual Channel for TXB");
-> +
->  MODULE_AUTHOR("Kieran Bingham <kieran.bingham@ideasonboard.com>");
->  MODULE_DESCRIPTION("ADV748X video decoder");
->  MODULE_LICENSE("GPL v2");
-> diff --git a/drivers/media/i2c/adv748x/adv748x-csi2.c b/drivers/media/i2c/adv748x/adv748x-csi2.c
-> index 820b44ed56a8679f..2a5dff8c571013bf 100644
-> --- a/drivers/media/i2c/adv748x/adv748x-csi2.c
-> +++ b/drivers/media/i2c/adv748x/adv748x-csi2.c
-> @@ -281,7 +281,7 @@ int adv748x_csi2_init(struct adv748x_state *state, struct adv748x_csi2 *tx)
->  	}
->  
->  	/* Initialise the virtual channel */
-> -	adv748x_csi2_set_virtual_channel(tx, 0);
-> +	adv748x_csi2_set_virtual_channel(tx, tx->vc);
->  
->  	adv748x_subdev_init(&tx->sd, state, &adv748x_csi2_ops,
->  			    MEDIA_ENT_F_UNKNOWN,
-> diff --git a/drivers/media/i2c/adv748x/adv748x.h b/drivers/media/i2c/adv748x/adv748x.h
-> index 6789e2f3bc8c2b49..f6e40ee3924e8f12 100644
-> --- a/drivers/media/i2c/adv748x/adv748x.h
-> +++ b/drivers/media/i2c/adv748x/adv748x.h
-> @@ -92,6 +92,7 @@ enum adv748x_csi2_pads {
->  
->  struct adv748x_csi2 {
->  	struct adv748x_state *state;
-> +	unsigned int vc;
->  	struct v4l2_mbus_framefmt format;
->  	unsigned int page;
->  
+> For all arches?  Really?  Look at MIPS, and x86, they have different
+> functions.
+> 
+
+Both mips and x86 end up mapping the same function, but other arches don't.
+mn10300 is one where ioremap and ioremap_nocache are definitely different.
+
+Guenter
+
+>> While ioremap's
+>> default function is ioremap_nocache, so devm_ioremap_nocache also have the
+>> same function with devm_ioremap, which can just be killed to reduce the size
+>> of devres.o(from 20304 bytes to 18992 bytes in my compile environment).
+>>
+>> I have posted two versions, which use macro instead of function for
+>> devm_ioremap_nocache[1] or devm_ioremap[2]. And Greg suggest me to kill
+>> devm_ioremap_nocache for no need to keep a macro around for the duplicate
+>> thing. So here comes v3 and please help to review.
+> 
+> I don't think this can be done, what am I missing?  These functions are
+> not identical, sorry for missing that before.
+> 
+> thanks,
+> 
+> greg k-h
 > 
