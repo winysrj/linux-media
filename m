@@ -1,97 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:39327 "EHLO
-        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752485AbdLVNlT (ORCPT
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:45361 "EHLO
+        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750802AbdLWOJd (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 22 Dec 2017 08:41:19 -0500
-Received: by mail-wm0-f68.google.com with SMTP id i11so21680916wmf.4
-        for <linux-media@vger.kernel.org>; Fri, 22 Dec 2017 05:41:19 -0800 (PST)
+        Sat, 23 Dec 2017 09:09:33 -0500
+Received: by mail-wm0-f66.google.com with SMTP id 9so26171068wme.4
+        for <linux-media@vger.kernel.org>; Sat, 23 Dec 2017 06:09:33 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <20171222102156.cfemen6ouxxxbrem@plaes.org>
-References: <1513936020-35569-1-git-send-email-yong.deng@magewell.com> <20171222102156.cfemen6ouxxxbrem@plaes.org>
+In-Reply-To: <07ce3ca4-b1db-331d-9218-83a2e7cc2017@maciej.szmigiero.name>
+References: <cover.1513982691.git.mail@maciej.szmigiero.name> <07ce3ca4-b1db-331d-9218-83a2e7cc2017@maciej.szmigiero.name>
 From: Philippe Ombredanne <pombredanne@nexb.com>
-Date: Fri, 22 Dec 2017 14:40:37 +0100
-Message-ID: <CAOFm3uEfD4G2cLWNBhtB0tfD0A0e47div0RNGFioNCm-b108bg@mail.gmail.com>
-Subject: Re: [linux-sunxi] [PATCH v4 2/2] media: V3s: Add support for
- Allwinner CSI.
-To: Yong Deng <yong.deng@magewell.com>
-Cc: Maxime Ripard <maxime.ripard@free-electrons.com>,
+Date: Sat, 23 Dec 2017 15:08:51 +0100
+Message-ID: <CAOFm3uE9F2nBTUyz6U0Xac7fo1QtcZdzg-i7T=eQt09RB540RA@mail.gmail.com>
+Subject: Re: [PATCH v5 3/6] cx25840: add pin to pad mapping and output format configuration
+To: "Maciej S. Szmigiero" <mail@maciej.szmigiero.name>
+Cc: Michael Krufky <mkrufky@linuxtv.org>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Chen-Yu Tsai <wens@csie.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Randy Dunlap <rdunlap@infradead.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Yannick Fertre <yannick.fertre@st.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Rick Chang <rick.chang@mediatek.com>,
+        Andy Walls <awalls@md.metrocast.net>,
+        linux-kernel <linux-kernel@vger.kernel.org>,
         Linux Media Mailing List <linux-media@vger.kernel.org>,
-        "open list:OPEN FIRMWARE AND FLATTENED DEVICE TREE BINDINGS"
-        <devicetree@vger.kernel.org>,
-        "moderated list:ARM/FREESCALE IMX / MXC ARM ARCHITECTURE"
-        <linux-arm-kernel@lists.infradead.org>,
-        LKML <linux-kernel@vger.kernel.org>,
-        linux-sunxi@googlegroups.com, Priit Laes <plaes@plaes.org>
+        Hans Verkuil <hverkuil@xs4all.nl>
 Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Yong,
+On Sat, Dec 23, 2017 at 12:18 AM, Maciej S. Szmigiero
+<mail@maciej.szmigiero.name> wrote:
+> This commit adds pin to pad mapping and output format configuration support
+> in CX2584x-series chips to cx25840 driver.
+>
+> This functionality is then used to allow disabling ivtv-specific hacks
+> (called a "generic mode"), so cx25840 driver can be used for other devices
+> not needing them without risking compatibility problems.
+>
+> Signed-off-by: Maciej S. Szmigiero <mail@maciej.szmigiero.name>
+> ---
+>  drivers/media/i2c/cx25840/cx25840-core.c | 396 ++++++++++++++++++++++++++++++-
+>  drivers/media/i2c/cx25840/cx25840-core.h |  13 +
+>  drivers/media/i2c/cx25840/cx25840-vbi.c  |   3 +
+>  include/media/drv-intf/cx25840.h         |  74 +++++-
+>  4 files changed, 484 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/media/i2c/cx25840/cx25840-core.c b/drivers/media/i2c/cx25840/cx25840-core.c
+> index 2189980a0f29..e2fd33a64550 100644
+> --- a/drivers/media/i2c/cx25840/cx25840-core.c
+> +++ b/drivers/media/i2c/cx25840/cx25840-core.c
+> @@ -21,6 +21,9 @@
+>   * CX23888 DIF support for the HVR1850
+>   * Copyright (C) 2011 Steven Toth <stoth@kernellabs.com>
+>   *
+> + * CX2584x pin to pad mapping and output format configuration support are
+> + * Copyright (C) 2011 Maciej S. Szmigiero <mail@maciej.szmigiero.name>
+> + *
+>   * This program is free software; you can redistribute it and/or
+>   * modify it under the terms of the GNU General Public License
+>   * as published by the Free Software Foundation; either version 2
 
-On Fri, Dec 22, 2017 at 11:21 AM, Priit Laes <plaes@plaes.org> wrote:
-> On Fri, Dec 22, 2017 at 05:47:00PM +0800, Yong Deng wrote:
->> Allwinner V3s SoC have two CSI module. CSI0 is used for MIPI interface
->> and CSI1 is used for parallel interface. This is not documented in
->> datasheet but by testing and guess.
->>
->> This patch implement a v4l2 framework driver for it.
->>
->> Currently, the driver only support the parallel interface. MIPI-CSI2,
->> ISP's support are not included in this patch.
->>
->> Signed-off-by: Yong Deng <yong.deng@magewell.com>
+Since you are touching the copyright here, I wonder if you could reach
+out to other copyright holders and switch to using an SPDX tag
+instead?
 
-<snip>
-
->> --- /dev/null
->> +++ b/drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.c
->> @@ -0,0 +1,878 @@
->> +/*
->> + * Copyright (c) 2017 Magewell Electronics Co., Ltd. (Nanjing).
->> + * All rights reserved.
->> + * Author: Yong Deng <yong.deng@magewell.com>
->> + *
->> + * This program is free software; you can redistribute it and/or modify
->> + * it under the terms of the GNU General Public License version 2 as
->> + * published by the Free Software Foundation.
->> + *
->> + * This program is distributed in the hope that it will be useful,
->> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
->> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
->> + * GNU General Public License for more details.
->> + */
-
-
-Would you mind using the new SPDX tags documented in Thomas patch set
-[1] rather than this fine but longer legalese?
-
->> +MODULE_LICENSE("GPL v2");
-
-Per module.h this means GPL2 only. This is not matching your top
-license above which is GPL2 or later.
-Please  make sure your MODULE_LICENSE is consistent with the top level license.
-
-
-[1] https://lkml.org/lkml/2017/12/4/934
-
---
+-- 
 Cordially
 Philippe Ombredanne
