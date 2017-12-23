@@ -1,66 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:50760 "EHLO
-        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750773AbdLSQs1 (ORCPT
+Received: from mail-wr0-f194.google.com ([209.85.128.194]:37093 "EHLO
+        mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1757086AbdLWP6d (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 19 Dec 2017 11:48:27 -0500
-From: Colin King <colin.king@canonical.com>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Sean Young <sean@mess.org>, linux-media@vger.kernel.org
-Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH][next] media: lirc: don't kfree the uninitialized pointer txbuf
-Date: Tue, 19 Dec 2017 16:48:25 +0000
-Message-Id: <20171219164825.14642-1-colin.king@canonical.com>
+        Sat, 23 Dec 2017 10:58:33 -0500
+Received: by mail-wr0-f194.google.com with SMTP id f8so19422500wre.4
+        for <linux-media@vger.kernel.org>; Sat, 23 Dec 2017 07:58:32 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <68e5073e-bc9e-ddeb-edf0-21938d63f34a@maciej.szmigiero.name>
+References: <cover.1513982691.git.mail@maciej.szmigiero.name> <68e5073e-bc9e-ddeb-edf0-21938d63f34a@maciej.szmigiero.name>
+From: Philippe Ombredanne <pombredanne@nexb.com>
+Date: Sat, 23 Dec 2017 16:57:51 +0100
+Message-ID: <CAOFm3uE38UikJ=qP9TCa8Vpe2O7Z-qRWqE_11Ap7YFY75+FGug@mail.gmail.com>
+Subject: Re: [PATCH v5 6/6] [media] cxusb: add analog mode support for Medion MD95700
+To: "Maciej S. Szmigiero" <mail@maciej.szmigiero.name>
+Cc: Michael Krufky <mkrufky@linuxtv.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Andy Walls <awalls@md.metrocast.net>,
+        linux-kernel <linux-kernel@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Colin Ian King <colin.king@canonical.com>
+On Sat, Dec 23, 2017 at 12:19 AM, Maciej S. Szmigiero
+<mail@maciej.szmigiero.name> wrote:
+> This patch adds support for analog part of Medion 95700 in the cxusb
+> driver.
+>
+> What works:
+> * Video capture at various sizes with sequential fields,
+> * Input switching (TV Tuner, Composite, S-Video),
+> * TV and radio tuning,
+> * Video standard switching and auto detection,
+> * Radio mode switching (stereo / mono),
+> * Unplugging while capturing,
+> * DVB / analog coexistence,
+> * Raw BT.656 stream support.
+>
+> What does not work yet:
+> * Audio,
+> * VBI,
+> * Picture controls.
+>
+> Signed-off-by: Maciej S. Szmigiero <mail@maciej.szmigiero.name>
+> ---
+>  drivers/media/usb/dvb-usb/Kconfig        |   16 +-
+>  drivers/media/usb/dvb-usb/Makefile       |    3 +
+>  drivers/media/usb/dvb-usb/cxusb-analog.c | 1914 ++++++++++++++++++++++++++++++
+>  drivers/media/usb/dvb-usb/cxusb.c        |    2 -
+>  drivers/media/usb/dvb-usb/cxusb.h        |  106 ++
+>  5 files changed, 2037 insertions(+), 4 deletions(-)
+>  create mode 100644 drivers/media/usb/dvb-usb/cxusb-analog.c
 
-The current error exit path if ir_raw_encode_scancode fails is via the
-label out_kfree which kfree's an uninitialized pointer txbuf. Fix this
-by exiting via a new exit path that does not kfree txbuf.  Also exit
-via this new exit path for a failed allocation of txbuf to avoid a
-redundant kfree on a NULL pointer (to save a bunch of CPU cycles).
+<snip>
 
-Detected by: CoverityScan, CID#1463070 ("Uninitialized pointer read")
+> index 000000000000..969d82b24f41
+> --- /dev/null
+> +++ b/drivers/media/usb/dvb-usb/cxusb-analog.c
+> @@ -0,0 +1,1914 @@
+> +// SPDX-License-Identifier: GPL-2.0+
 
-Fixes: f81a8158d4fb ("media: lirc: release lock before sleep")
-Signed-off-by: Colin Ian King <colin.king@canonical.com>
----
- drivers/media/rc/lirc_dev.c | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+Thanks! For the SPDX tags usage:
 
-diff --git a/drivers/media/rc/lirc_dev.c b/drivers/media/rc/lirc_dev.c
-index fae42f120aa4..62afa4493aea 100644
---- a/drivers/media/rc/lirc_dev.c
-+++ b/drivers/media/rc/lirc_dev.c
-@@ -295,14 +295,14 @@ static ssize_t ir_lirc_transmit_ir(struct file *file, const char __user *buf,
- 		ret = ir_raw_encode_scancode(scan.rc_proto, scan.scancode,
- 					     raw, LIRCBUF_SIZE);
- 		if (ret < 0)
--			goto out_kfree;
-+			goto out_kfree_raw;
- 
- 		count = ret;
- 
- 		txbuf = kmalloc_array(count, sizeof(unsigned int), GFP_KERNEL);
- 		if (!txbuf) {
- 			ret = -ENOMEM;
--			goto out_kfree;
-+			goto out_kfree_raw;
- 		}
- 
- 		for (i = 0; i < count; i++)
-@@ -366,6 +366,7 @@ static ssize_t ir_lirc_transmit_ir(struct file *file, const char __user *buf,
- 	return n;
- out_kfree:
- 	kfree(txbuf);
-+out_kfree_raw:
- 	kfree(raw);
- out_unlock:
- 	mutex_unlock(&dev->lock);
--- 
-2.14.1
+Acked-by: Philippe Ombredanne <pombredanne@nexb.com>
