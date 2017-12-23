@@ -1,27 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 201-174-78-188.transtelco.net ([201.174.78.188]:55979 "EHLO
-        mail.diputadospan.org.mx" rhost-flags-OK-FAIL-OK-OK)
-        by vger.kernel.org with ESMTP id S1752449AbdLKL7a (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 11 Dec 2017 06:59:30 -0500
-Content-Type: text/plain; charset="iso-8859-1"
+Received: from szxga05-in.huawei.com ([45.249.212.191]:2757 "EHLO huawei.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1756729AbdLWBwd (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 22 Dec 2017 20:52:33 -0500
+From: Wei Yongjun <weiyongjun1@huawei.com>
+To: Songjun Wu <songjun.wu@microchip.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Nicolas Ferre <nicolas.ferre@microchip.com>,
+        "Alexandre Belloni" <alexandre.belloni@free-electrons.com>,
+        Wenyou Yang <wenyou.yang@microchip.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+CC: Wei Yongjun <weiyongjun1@huawei.com>,
+        <linux-media@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>
+Subject: [PATCH -next] media: atmel-isc: Make local symbol fmt_configs_list static
+Date: Sat, 23 Dec 2017 01:57:04 +0000
+Message-ID: <1513994224-86350-1-git-send-email-weiyongjun1@huawei.com>
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8BIT
-Content-Description: Mail message body
-Subject: Seasons greetings
-To: Recipients <adriana.elizarraraz@diputadospan.org.mx>
-From: "Mr Sheng Li Hung" <adriana.elizarraraz@diputadospan.org.mx>
-Date: Mon, 11 Dec 2017 03:52:01 -0800
-Reply-To: shengli19@hotmail.com
-Message-Id: <20171211115536.2CF85610DCBE@mail.diputadospan.org.mx>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I am Mr.Sheng Li Hung, from china I got your information while search for
-a reliable person, I have a very profitable business proposition for you
-and i can assure you that you will not regret been part of this mutual
-beneficial transaction after completion. Kindly get back to me for more
-details on this email id: shengli19@hotmail.com
+Fixes the following sparse warning:
 
-Thanks
-Sheng Li Hung
+drivers/media/platform/atmel/atmel-isc.c:338:19: warning:
+ symbol 'fmt_configs_list' was not declared. Should it be static?
+
+Signed-off-by: Wei Yongjun <weiyongjun1@huawei.com>
+---
+ drivers/media/platform/atmel/atmel-isc.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/media/platform/atmel/atmel-isc.c b/drivers/media/platform/atmel/atmel-isc.c
+index 0c26356..2dd72fc 100644
+--- a/drivers/media/platform/atmel/atmel-isc.c
++++ b/drivers/media/platform/atmel/atmel-isc.c
+@@ -335,7 +335,7 @@ struct isc_device {
+ 	},
+ };
+ 
+-struct fmt_config fmt_configs_list[] = {
++static struct fmt_config fmt_configs_list[] = {
+ 	{
+ 		.fourcc		= V4L2_PIX_FMT_SBGGR8,
+ 		.pfe_cfg0_bps	= ISC_PFE_CFG0_BPS_EIGHT,
