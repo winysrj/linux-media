@@ -1,85 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.free-electrons.com ([62.4.15.54]:53781 "EHLO
-        mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752901AbdLROWn (ORCPT
+Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:49184 "EHLO
+        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752619AbdLXEjJ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 18 Dec 2017 09:22:43 -0500
-Date: Mon, 18 Dec 2017 15:22:41 +0100
-From: Maxime Ripard <maxime.ripard@free-electrons.com>
-To: Philipp Rossak <embed3d@gmail.com>
-Cc: mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
-        wens@csie.org, linux@armlinux.org.uk, sean@mess.org,
-        p.zabel@pengutronix.de, andi.shyti@samsung.com,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-sunxi@googlegroups.com
-Subject: Re: [PATCH v2 2/6] media: dt: bindings: Update binding documentation
- for sunxi IR controller
-Message-ID: <20171218142241.6hhuyr74pxtvpoyp@flea.lan>
-References: <20171218141146.23746-1-embed3d@gmail.com>
- <20171218141146.23746-3-embed3d@gmail.com>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="l27nkbgfnc4drjpy"
-Content-Disposition: inline
-In-Reply-To: <20171218141146.23746-3-embed3d@gmail.com>
+        Sat, 23 Dec 2017 23:39:09 -0500
+Message-ID: <95a471dfd2bf5a1e60efc9f8cb898cdd@smtp-cloud8.xs4all.net>
+Date: Sun, 24 Dec 2017 05:39:07 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
---l27nkbgfnc4drjpy
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Results of the daily build of media_tree:
 
-On Mon, Dec 18, 2017 at 03:11:42PM +0100, Philipp Rossak wrote:
-> This patch updates documentation for Device-Tree bindings for sunxi IR
-> controller and adds the new optional property for the base clock
-> frequency.
->=20
-> Signed-off-by: Philipp Rossak <embed3d@gmail.com>
-> ---
->  Documentation/devicetree/bindings/media/sunxi-ir.txt | 3 +++
->  1 file changed, 3 insertions(+)
->=20
-> diff --git a/Documentation/devicetree/bindings/media/sunxi-ir.txt b/Docum=
-entation/devicetree/bindings/media/sunxi-ir.txt
-> index 91648c569b1e..3d7f18780fae 100644
-> --- a/Documentation/devicetree/bindings/media/sunxi-ir.txt
-> +++ b/Documentation/devicetree/bindings/media/sunxi-ir.txt
-> @@ -11,6 +11,8 @@ Required properties:
->  Optional properties:
->  - linux,rc-map-name: see rc.txt file in the same directory.
->  - resets : phandle + reset specifier pair
-> +- clock-frequency  : IR Receiver clock frequency, in Herz. Defaults to 8=
- MHz
-                                                        ^ Hertz
+date:			Sun Dec 24 05:00:15 CET 2017
+media-tree git hash:	9eb124fe796cbadd454c8f946d7051f4c3f4a251
+media_build git hash:	fd6010ac1bcdf54a3a2b2752088def1b21b5e457
+v4l-utils git hash:	6049ea8bd64f9d78ef87ef0c2b3dc9b5de1ca4a1
+gcc version:		i686-linux-gcc (GCC) 7.1.0
+sparse version:		v0.5.0-3911-g6f737e1f
+smatch version:		v0.5.0-3911-g6f737e1f
+host hardware:		x86_64
+host os:		4.13.0-164
 
-Maxime
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12.67-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.7-i686: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.18.7-i686: ERRORS
+linux-3.19-i686: ERRORS
+linux-4.0.9-i686: ERRORS
+linux-4.1.33-i686: ERRORS
+linux-4.2.8-i686: ERRORS
+linux-4.3.6-i686: ERRORS
+linux-4.4.22-i686: ERRORS
+linux-4.5.7-i686: ERRORS
+linux-4.6.7-i686: ERRORS
+linux-4.7.5-i686: ERRORS
+linux-4.8-i686: ERRORS
+linux-4.9.26-i686: ERRORS
+linux-4.10.14-i686: ERRORS
+linux-4.11-i686: ERRORS
+linux-4.12.1-i686: ERRORS
+linux-4.13-i686: ERRORS
+linux-4.14-i686: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.67-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.7-x86_64: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.7-x86_64: ERRORS
+linux-3.19-x86_64: ERRORS
+linux-4.0.9-x86_64: ERRORS
+linux-4.1.33-x86_64: ERRORS
+linux-4.2.8-x86_64: ERRORS
+linux-4.3.6-x86_64: ERRORS
+linux-4.4.22-x86_64: ERRORS
+linux-4.5.7-x86_64: ERRORS
+linux-4.6.7-x86_64: ERRORS
+linux-4.7.5-x86_64: ERRORS
+linux-4.8-x86_64: ERRORS
+linux-4.9.26-x86_64: ERRORS
+linux-4.10.14-x86_64: ERRORS
+linux-4.11-x86_64: ERRORS
+linux-4.12.1-x86_64: ERRORS
+linux-4.13-x86_64: ERRORS
+linux-4.14-x86_64: ERRORS
+apps: OK
+spec-git: OK
+smatch: OK
 
---=20
-Maxime Ripard, Free Electrons
-Embedded Linux and Kernel engineering
-http://free-electrons.com
+Detailed results are available here:
 
---l27nkbgfnc4drjpy
-Content-Type: application/pgp-signature; name="signature.asc"
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
 
------BEGIN PGP SIGNATURE-----
+Full logs are available here:
 
-iQIzBAABCAAdFiEE0VqZU19dR2zEVaqr0rTAlCFNr3QFAlo3zzAACgkQ0rTAlCFN
-r3Twwg/+Oa+JIKmBtj5Ue6oj2o6JXFx7NcuuC/DFhReZhGfc+RDHK47/AmEjG251
-cHuZgxf+1C/yeh8+/bL4Or7hXF69SfjgIbuRhLnMkePm7/Ri6kLYkreQiOibAz8v
-wkqNmKpx7MPojJyUKa1wXA5VYq6kpv7KJuGk3fqC1t0NyH3fHExKTmdwX9YQLrxL
-r6lK0EtFTlLrA62T7b8xGKv4NuGOGczApa2AOlyeStkhv5x6clRFQAwqC1h3D2Rb
-C/0GBhEcaNJx9oIHWhyQhpQh4qrYzihFrFP1pVtMsL/ekD10nlWKWeTaojE6n5yB
-wo3fgjspTu7rYN+eJtM8742uaF1mYPvtwO2BAV1ivPvonVmmUy/XmjDcZKV8qQyU
-XjrcY1u9i98dRxQv38xYoQea7qtK9TWtxotROiYa/TYSl2InnyRbnp+DZofpxiGv
-W/s5wgSM9Y+IP78YkFP3K/nWp1f9Q63b19x3X3Dxsxg+g3GeVB94QibTVOCxg0Qt
-Oioj8OBxcTOENCFNJsoDI233js8lcNrl/Z+qHjZit7DYE5wiVVrr12y2o69y9ZMe
-3gJQdO24BPQqjtkh8oFyE/YOpMOPofohN7y0VDmHg+FCSZvg5eLZwBTbN2VUvbsD
-AaNR4aq6whLKIXENcQPwNGUvUXT0AkQuy5BykLjfjiuHsIVuK+s=
-=U66p
------END PGP SIGNATURE-----
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
 
---l27nkbgfnc4drjpy--
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
