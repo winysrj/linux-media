@@ -1,75 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga04.intel.com ([192.55.52.120]:5086 "EHLO mga04.intel.com"
+Received: from pegase1.c-s.fr ([93.17.236.30]:11200 "EHLO pegase1.c-s.fr"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752812AbdLSVIr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 19 Dec 2017 16:08:47 -0500
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: Alan Cox <alan@linux.intel.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        devel@driverdev.osuosl.org, Kristian Beilke <beilke@posteo.de>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: [PATCH v1 07/10] staging: atomisp: Remove redundant PCI code
-Date: Tue, 19 Dec 2017 22:59:54 +0200
-Message-Id: <20171219205957.10933-7-andriy.shevchenko@linux.intel.com>
-In-Reply-To: <20171219205957.10933-1-andriy.shevchenko@linux.intel.com>
-References: <20171219205957.10933-1-andriy.shevchenko@linux.intel.com>
+        id S1750860AbdLXJFR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 24 Dec 2017 04:05:17 -0500
+Subject: Re: [PATCH v3 00/27] kill devm_ioremap_nocache
+To: Greg KH <gregkh@linuxfoundation.org>,
+        Yisheng Xie <xieyisheng1@huawei.com>
+Cc: linux-kernel@vger.kernel.org, ysxie@foxmail.com,
+        ulf.hansson@linaro.org, linux-mmc@vger.kernel.org,
+        boris.brezillon@free-electrons.com, richard@nod.at,
+        marek.vasut@gmail.com, cyrille.pitchen@wedev4u.fr,
+        linux-mtd@lists.infradead.org, alsa-devel@alsa-project.org,
+        wim@iguana.be, linux@roeck-us.net, linux-watchdog@vger.kernel.org,
+        b.zolnierkie@samsung.com, linux-fbdev@vger.kernel.org,
+        linus.walleij@linaro.org, linux-gpio@vger.kernel.org,
+        ralf@linux-mips.org, linux-mips@linux-mips.org,
+        lgirdwood@gmail.com, broonie@kernel.org, tglx@linutronix.de,
+        jason@lakedaemon.net, marc.zyngier@arm.com, arnd@arndb.de,
+        andriy.shevchenko@linux.intel.com,
+        industrypack-devel@lists.sourceforge.net, wg@grandegger.com,
+        mkl@pengutronix.de, linux-can@vger.kernel.org, mchehab@kernel.org,
+        linux-media@vger.kernel.org, a.zummo@towertech.it,
+        alexandre.belloni@free-electrons.com, linux-rtc@vger.kernel.org,
+        daniel.vetter@intel.com, jani.nikula@linux.intel.com,
+        seanpaul@chromium.org, airlied@linux.ie,
+        dri-devel@lists.freedesktop.org, kvalo@codeaurora.org,
+        linux-wireless@vger.kernel.org, linux-spi@vger.kernel.org,
+        tj@kernel.org, linux-ide@vger.kernel.org, bhelgaas@google.com,
+        linux-pci@vger.kernel.org, devel@driverdev.osuosl.org,
+        dvhart@infradead.org, andy@infradead.org,
+        platform-driver-x86@vger.kernel.org, jakub.kicinski@netronome.com,
+        davem@davemloft.net, nios2-dev@lists.rocketboards.org,
+        netdev@vger.kernel.org, vinod.koul@intel.com,
+        dan.j.williams@intel.com, dmaengine@vger.kernel.org,
+        jslaby@suse.com
+References: <1514026525-32538-1-git-send-email-xieyisheng1@huawei.com>
+ <20171223134831.GB10103@kroah.com>
+From: christophe leroy <christophe.leroy@c-s.fr>
+Message-ID: <b8ff7f17-7f2c-f220-9833-7ae5bd7343d5@c-s.fr>
+Date: Sun, 24 Dec 2017 10:05:08 +0100
+MIME-Version: 1.0
+In-Reply-To: <20171223134831.GB10103@kroah.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: fr
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There is no need to keep a reference to PCI root bridge.
 
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+
+Le 23/12/2017 à 14:48, Greg KH a écrit :
+> On Sat, Dec 23, 2017 at 06:55:25PM +0800, Yisheng Xie wrote:
+>> Hi all,
+>>
+>> When I tried to use devm_ioremap function and review related code, I found
+>> devm_ioremap and devm_ioremap_nocache is almost the same with each other,
+>> except one use ioremap while the other use ioremap_nocache.
+> 
+> For all arches?  Really?  Look at MIPS, and x86, they have different
+> functions.
+> 
+>> While ioremap's
+>> default function is ioremap_nocache, so devm_ioremap_nocache also have the
+>> same function with devm_ioremap, which can just be killed to reduce the size
+>> of devres.o(from 20304 bytes to 18992 bytes in my compile environment).
+>>
+>> I have posted two versions, which use macro instead of function for
+>> devm_ioremap_nocache[1] or devm_ioremap[2]. And Greg suggest me to kill
+>> devm_ioremap_nocache for no need to keep a macro around for the duplicate
+>> thing. So here comes v3 and please help to review.
+> 
+> I don't think this can be done, what am I missing?  These functions are
+> not identical, sorry for missing that before.
+
+devm_ioremap() and devm_ioremap_nocache() are quite similar, both use 
+devm_ioremap_release() for the release, why not just defining:
+
+static void __iomem *__devm_ioremap(struct device *dev, resource_size_t 
+offset,
+			   resource_size_t size, bool nocache)
+{
+[...]
+	if (nocache)
+		addr = ioremap_nocache(offset, size);
+	else
+		addr = ioremap(offset, size);
+[...]
+}
+
+then in include/linux/io.h
+
+static inline void __iomem *devm_ioremap(struct device *dev, 
+resource_size_t offset,
+			   resource_size_t size)
+{return __devm_ioremap(dev, offset, size, false);}
+
+static inline void __iomem *devm_ioremap_nocache(struct device *dev, 
+resource_size_t offset,
+				   resource_size_t size);
+{return __devm_ioremap(dev, offset, size, true);}
+
+Christophe
+
+> 
+> thanks,
+> 
+> greg k-h
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-watchdog" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+
 ---
- drivers/staging/media/atomisp/pci/atomisp2/atomisp_internal.h | 1 -
- drivers/staging/media/atomisp/pci/atomisp2/atomisp_v4l2.c     | 8 --------
- 2 files changed, 9 deletions(-)
-
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_internal.h b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_internal.h
-index 52a6f8002048..dc476a3dd271 100644
---- a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_internal.h
-+++ b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_internal.h
-@@ -227,7 +227,6 @@ struct atomisp_device {
- 	struct media_device media_dev;
- 	struct atomisp_platform_data *pdata;
- 	void *mmu_l1_base;
--	struct pci_dev *pci_root;
- 	const struct firmware *firmware;
- 
- 	struct pm_qos_request pm_qos;
-diff --git a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_v4l2.c b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_v4l2.c
-index 7a9efc6847ca..548e00e7d67b 100644
---- a/drivers/staging/media/atomisp/pci/atomisp2/atomisp_v4l2.c
-+++ b/drivers/staging/media/atomisp/pci/atomisp2/atomisp_v4l2.c
-@@ -1210,11 +1210,6 @@ static int atomisp_pci_probe(struct pci_dev *dev,
- 	isp->pdev = dev;
- 	isp->dev = &dev->dev;
- 	isp->sw_contex.power_state = ATOM_ISP_POWER_UP;
--	isp->pci_root = pci_get_bus_and_slot(0, 0);
--	if (!isp->pci_root) {
--		dev_err(&dev->dev, "Unable to find PCI host\n");
--		return -ENODEV;
--	}
- 	isp->saved_regs.ispmmadr = start;
- 
- 	rt_mutex_init(&isp->mutex);
-@@ -1494,7 +1489,6 @@ static int atomisp_pci_probe(struct pci_dev *dev,
- 	/* Address later when we worry about the ...field chips */
- 	if (IS_ENABLED(CONFIG_PM) && atomisp_mrfld_power_down(isp))
- 		dev_err(&dev->dev, "Failed to switch off ISP\n");
--	pci_dev_put(isp->pci_root);
- 	return err;
- }
- 
-@@ -1515,8 +1509,6 @@ static void atomisp_pci_remove(struct pci_dev *dev)
- 	pm_qos_remove_request(&isp->pm_qos);
- 
- 	atomisp_msi_irq_uninit(isp, dev);
--	pci_dev_put(isp->pci_root);
--
- 	atomisp_unregister_entities(isp);
- 
- 	destroy_workqueue(isp->wdt_work_queue);
--- 
-2.15.1
+L'absence de virus dans ce courrier électronique a été vérifiée par le logiciel antivirus Avast.
+https://www.avast.com/antivirus
