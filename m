@@ -1,279 +1,205 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:51719 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752647AbdLANr0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 1 Dec 2017 08:47:26 -0500
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        lkml@vger.kernel.org, Borislav Petkov <bp@alien8.de>,
-        linux-edac@vger.kernel.org
-Subject: [PATCH v2 1/7] edac: adjust GPLv2 license and SPDX identifiers at the code I wrote
-Date: Fri,  1 Dec 2017 11:47:07 -0200
-Message-Id: <87092e1fd6509e7272bd7b95865cdc4b793c714e.1512135871.git.mchehab@s-opensource.com>
+Received: from guitar.tcltek.co.il ([192.115.133.116]:58898 "EHLO
+        mx.tkos.co.il" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750738AbdLYGFr (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 25 Dec 2017 01:05:47 -0500
+Date: Mon, 25 Dec 2017 08:05:42 +0200
+From: Baruch Siach <baruch@tkos.co.il>
+To: Dan Gopstein <dgopstein@nyu.edu>
+Cc: linux-media@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Subject: Re: [PATCH v3] media: ABS macro parameter parenthesization
+Message-ID: <20171225060542.juk5ev3pmjrnkxxl@sapphire.tkos.co.il>
+References: <1514174588-22694-1-git-send-email-dgopstein@nyu.edu>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1514174588-22694-1-git-send-email-dgopstein@nyu.edu>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As we're now using SPDX identifiers, on the several EDAC drivers
-I wrote, add the proper SPDX, identifying the license I meant.
+Hi Dan,
 
-As we're now using the short license, it doesn't make sense to
-keep the original license text.
+On Sun, Dec 24, 2017 at 11:03:08PM -0500, Dan Gopstein wrote:
+> From: Dan Gopstein <dgopstein@nyu.edu>
+> 
+> Replace usages of the locally defined ABS() macro with calls to the
+> canonical abs() from kernel.h and remove the old definitions of ABS()
 
-Also, fix MODULE_LICENSE to properly identify GPL v2.
+The note about some wrong ABS() macro implementations that the previous patch 
+version had is still useful, I believe.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Reviewed-by: Philippe Ombredanne <pombredanne@nexb.com>
----
- drivers/edac/ghes_edac.c   | 16 ++++++---------
- drivers/edac/i5400_edac.c  | 50 ++++++++++++++++++++++-----------------------
- drivers/edac/i7300_edac.c  | 36 +++++++++++++++-----------------
- drivers/edac/i7core_edac.c | 51 ++++++++++++++++++++++------------------------
- drivers/edac/sb_edac.c     | 21 ++++++++-----------
- 5 files changed, 79 insertions(+), 95 deletions(-)
+baruch
 
-diff --git a/drivers/edac/ghes_edac.c b/drivers/edac/ghes_edac.c
-index 68b6ee18bea6..7b722f3f4cdd 100644
---- a/drivers/edac/ghes_edac.c
-+++ b/drivers/edac/ghes_edac.c
-@@ -1,13 +1,9 @@
--/*
-- * GHES/EDAC Linux driver
-- *
-- * This file may be distributed under the terms of the GNU General Public
-- * License version 2.
-- *
-- * Copyright (c) 2013 by Mauro Carvalho Chehab
-- *
-- * Red Hat Inc. http://www.redhat.com
-- */
-+// SPDX-License-Identifier: GPL-2.0
-+// GHES/EDAC Linux driver
-+//
-+// Copyright (c) 2013 by Mauro Carvalho Chehab
-+//
-+// Red Hat Inc. http://www.redhat.com
- 
- #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
- 
-diff --git a/drivers/edac/i5400_edac.c b/drivers/edac/i5400_edac.c
-index 6f8bcdb9256a..9ab6965874ae 100644
---- a/drivers/edac/i5400_edac.c
-+++ b/drivers/edac/i5400_edac.c
-@@ -1,28 +1,26 @@
--/*
-- * Intel 5400 class Memory Controllers kernel module (Seaburg)
-- *
-- * This file may be distributed under the terms of the
-- * GNU General Public License.
-- *
-- * Copyright (c) 2008 by:
-- *	 Ben Woodard <woodard@redhat.com>
-- *	 Mauro Carvalho Chehab
-- *
-- * Red Hat Inc. http://www.redhat.com
-- *
-- * Forked and adapted from the i5000_edac driver which was
-- * written by Douglas Thompson Linux Networx <norsk5@xmission.com>
-- *
-- * This module is based on the following document:
-- *
-- * Intel 5400 Chipset Memory Controller Hub (MCH) - Datasheet
-- * 	http://developer.intel.com/design/chipsets/datashts/313070.htm
-- *
-- * This Memory Controller manages DDR2 FB-DIMMs. It has 2 branches, each with
-- * 2 channels operating in lockstep no-mirror mode. Each channel can have up to
-- * 4 dimm's, each with up to 8GB.
-- *
-- */
-+// SPDX-License-Identifier: GPL-2.0
-+// Intel 5400 class Memory Controllers kernel module (Seaburg)
-+//
-+// This file may be distributed under the terms of the
-+// GNU General Public License.
-+//
-+// Copyright (c) 2008 by:
-+//	 Ben Woodard <woodard@redhat.com>
-+//	 Mauro Carvalho Chehab
-+//
-+// Red Hat Inc. http://www.redhat.com
-+//
-+// Forked and adapted from the i5000_edac driver which was
-+// written by Douglas Thompson Linux Networx <norsk5@xmission.com>
-+//
-+// This module is based on the following document:
-+//
-+// Intel 5400 Chipset Memory Controller Hub (MCH) - Datasheet
-+// 	http://developer.intel.com/design/chipsets/datashts/313070.htm
-+//
-+// This Memory Controller manages DDR2 FB-DIMMs. It has 2 branches, each with
-+// 2 channels operating in lockstep no-mirror mode. Each channel can have up to
-+// 4 dimm's, each with up to 8GB.
- 
- #include <linux/module.h>
- #include <linux/init.h>
-@@ -1467,7 +1465,7 @@ static void __exit i5400_exit(void)
- module_init(i5400_init);
- module_exit(i5400_exit);
- 
--MODULE_LICENSE("GPL");
-+MODULE_LICENSE("GPL v2");
- MODULE_AUTHOR("Ben Woodard <woodard@redhat.com>");
- MODULE_AUTHOR("Mauro Carvalho Chehab");
- MODULE_AUTHOR("Red Hat Inc. (http://www.redhat.com)");
-diff --git a/drivers/edac/i7300_edac.c b/drivers/edac/i7300_edac.c
-index 6b5a554ba8e4..36d1ef559ab6 100644
---- a/drivers/edac/i7300_edac.c
-+++ b/drivers/edac/i7300_edac.c
-@@ -1,22 +1,18 @@
--/*
-- * Intel 7300 class Memory Controllers kernel module (Clarksboro)
-- *
-- * This file may be distributed under the terms of the
-- * GNU General Public License version 2 only.
-- *
-- * Copyright (c) 2010 by:
-- *	 Mauro Carvalho Chehab
-- *
-- * Red Hat Inc. http://www.redhat.com
-- *
-- * Intel 7300 Chipset Memory Controller Hub (MCH) - Datasheet
-- *	http://www.intel.com/Assets/PDF/datasheet/318082.pdf
-- *
-- * TODO: The chipset allow checking for PCI Express errors also. Currently,
-- *	 the driver covers only memory error errors
-- *
-- * This driver uses "csrows" EDAC attribute to represent DIMM slot#
-- */
-+// SPDX-License-Identifier: GPL-2.0
-+// Intel 7300 class Memory Controllers kernel module (Clarksboro)
-+//
-+// Copyright (c) 2010 by:
-+//	 Mauro Carvalho Chehab
-+//
-+// Red Hat Inc. http://www.redhat.com
-+//
-+// Intel 7300 Chipset Memory Controller Hub (MCH) - Datasheet
-+//	http://www.intel.com/Assets/PDF/datasheet/318082.pdf
-+//
-+// TODO: The chipset allow checking for PCI Express errors also. Currently,
-+//	 the driver covers only memory error errors
-+//
-+// This driver uses "csrows" EDAC attribute to represent DIMM slot#
- 
- #include <linux/module.h>
- #include <linux/init.h>
-@@ -1207,7 +1203,7 @@ static void __exit i7300_exit(void)
- module_init(i7300_init);
- module_exit(i7300_exit);
- 
--MODULE_LICENSE("GPL");
-+MODULE_LICENSE("GPL v2");
- MODULE_AUTHOR("Mauro Carvalho Chehab");
- MODULE_AUTHOR("Red Hat Inc. (http://www.redhat.com)");
- MODULE_DESCRIPTION("MC Driver for Intel I7300 memory controllers - "
-diff --git a/drivers/edac/i7core_edac.c b/drivers/edac/i7core_edac.c
-index 8c5540160a23..aa27ebcbd143 100644
---- a/drivers/edac/i7core_edac.c
-+++ b/drivers/edac/i7core_edac.c
-@@ -1,29 +1,26 @@
--/* Intel i7 core/Nehalem Memory Controller kernel module
-- *
-- * This driver supports the memory controllers found on the Intel
-- * processor families i7core, i7core 7xx/8xx, i5core, Xeon 35xx,
-- * Xeon 55xx and Xeon 56xx also known as Nehalem, Nehalem-EP, Lynnfield
-- * and Westmere-EP.
-- *
-- * This file may be distributed under the terms of the
-- * GNU General Public License version 2 only.
-- *
-- * Copyright (c) 2009-2010 by:
-- *	 Mauro Carvalho Chehab
-- *
-- * Red Hat Inc. http://www.redhat.com
-- *
-- * Forked and adapted from the i5400_edac driver
-- *
-- * Based on the following public Intel datasheets:
-- * Intel Core i7 Processor Extreme Edition and Intel Core i7 Processor
-- * Datasheet, Volume 2:
-- *	http://download.intel.com/design/processor/datashts/320835.pdf
-- * Intel Xeon Processor 5500 Series Datasheet Volume 2
-- *	http://www.intel.com/Assets/PDF/datasheet/321322.pdf
-- * also available at:
-- * 	http://www.arrownac.com/manufacturers/intel/s/nehalem/5500-datasheet-v2.pdf
-- */
-+// SPDX-License-Identifier: GPL-2.0
-+// Intel i7 core/Nehalem Memory Controller kernel module
-+//
-+// This driver supports the memory controllers found on the Intel
-+// processor families i7core, i7core 7xx/8xx, i5core, Xeon 35xx,
-+// Xeon 55xx and Xeon 56xx also known as Nehalem, Nehalem-EP, Lynnfield
-+// and Westmere-EP.
-+//
-+// Copyright (c) 2009-2010 by:
-+//	 Mauro Carvalho Chehab
-+//
-+// Red Hat Inc. http://www.redhat.com
-+//
-+// Forked and adapted from the i5400_edac driver
-+//
-+// Based on the following public Intel datasheets:
-+// Intel Core i7 Processor Extreme Edition and Intel Core i7 Processor
-+// Datasheet, Volume 2:
-+//	http://download.intel.com/design/processor/datashts/320835.pdf
-+// Intel Xeon Processor 5500 Series Datasheet Volume 2
-+//	http://www.intel.com/Assets/PDF/datasheet/321322.pdf
-+// also available at:
-+// 	http://www.arrownac.com/manufacturers/intel/s/nehalem/5500-datasheet-v2.pdf
- 
- #include <linux/module.h>
- #include <linux/init.h>
-@@ -2384,7 +2381,7 @@ static void __exit i7core_exit(void)
- module_init(i7core_init);
- module_exit(i7core_exit);
- 
--MODULE_LICENSE("GPL");
-+MODULE_LICENSE("GPL v2");
- MODULE_AUTHOR("Mauro Carvalho Chehab");
- MODULE_AUTHOR("Red Hat Inc. (http://www.redhat.com)");
- MODULE_DESCRIPTION("MC Driver for Intel i7 Core memory controllers - "
-diff --git a/drivers/edac/sb_edac.c b/drivers/edac/sb_edac.c
-index f34430f99fd8..ef2fc6a82e70 100644
---- a/drivers/edac/sb_edac.c
-+++ b/drivers/edac/sb_edac.c
-@@ -1,14 +1,11 @@
--/* Intel Sandy Bridge -EN/-EP/-EX Memory Controller kernel module
-- *
-- * This driver supports the memory controllers found on the Intel
-- * processor family Sandy Bridge.
-- *
-- * This file may be distributed under the terms of the
-- * GNU General Public License version 2 only.
-- *
-- * Copyright (c) 2011 by:
-- *	 Mauro Carvalho Chehab
-- */
-+// SPDX-License-Identifier: GPL-2.0
-+// Intel Sandy Bridge -EN/-EP/-EX Memory Controller kernel module
-+//
-+// This driver supports the memory controllers found on the Intel
-+// processor family Sandy Bridge.
-+//
-+// Copyright (c) 2011 by:
-+//	 Mauro Carvalho Chehab
- 
- #include <linux/module.h>
- #include <linux/init.h>
-@@ -3450,7 +3447,7 @@ module_exit(sbridge_exit);
- module_param(edac_op_state, int, 0444);
- MODULE_PARM_DESC(edac_op_state, "EDAC Error Reporting state: 0=Poll,1=NMI");
- 
--MODULE_LICENSE("GPL");
-+MODULE_LICENSE("GPL v2");
- MODULE_AUTHOR("Mauro Carvalho Chehab");
- MODULE_AUTHOR("Red Hat Inc. (http://www.redhat.com)");
- MODULE_DESCRIPTION("MC Driver for Intel Sandy Bridge and Ivy Bridge memory controllers - "
+> 
+> Signed-off-by: Dan Gopstein <dgopstein@nyu.edu>
+> ---
+> v2->v3:
+> * replace local ABS() with kernel's abs()
+> 
+> v1->v2:
+> * unmangled the patch
+> * added example to commit text
+> 
+>  drivers/media/dvb-frontends/dib0090.c        | 4 ++--
+>  drivers/media/dvb-frontends/dib7000p.c       | 2 +-
+>  drivers/media/dvb-frontends/dib8000.c        | 2 +-
+>  drivers/media/dvb-frontends/dibx000_common.h | 2 --
+>  drivers/media/dvb-frontends/mb86a16.c        | 8 +++-----
+>  drivers/media/dvb-frontends/stv0367_priv.h   | 1 -
+>  drivers/media/dvb-frontends/stv0900_priv.h   | 1 -
+>  drivers/media/dvb-frontends/stv0900_sw.c     | 6 +++---
+>  8 files changed, 10 insertions(+), 16 deletions(-)
+> 
+> diff --git a/drivers/media/dvb-frontends/dib0090.c b/drivers/media/dvb-frontends/dib0090.c
+> index d9d730d..633a961 100644
+> --- a/drivers/media/dvb-frontends/dib0090.c
+> +++ b/drivers/media/dvb-frontends/dib0090.c
+> @@ -1285,7 +1285,7 @@ int dib0090_gain_control(struct dvb_frontend *fe)
+>  #endif
+>  
+>  			if (*tune_state == CT_AGC_STEP_1) {	/* quickly go to the correct range of the ADC power */
+> -				if (ABS(adc_error) < 50 || state->agc_step++ > 5) {
+> +				if (abs(adc_error) < 50 || state->agc_step++ > 5) {
+>  
+>  #ifdef CONFIG_STANDARD_DAB
+>  					if (state->fe->dtv_property_cache.delivery_system == STANDARD_DAB) {
+> @@ -1754,7 +1754,7 @@ static int dib0090_dc_offset_calibration(struct dib0090_state *state, enum front
+>  			*tune_state = CT_TUNER_STEP_1;
+>  		} else {
+>  			/* the minimum was what we have seen in the step before */
+> -			if (ABS(state->adc_diff) > ABS(state->min_adc_diff)) {
+> +			if (abs(state->adc_diff) > abs(state->min_adc_diff)) {
+>  				dprintk("Since adc_diff N = %d  > adc_diff step N-1 = %d, Come back one step\n", state->adc_diff, state->min_adc_diff);
+>  				state->step--;
+>  			}
+> diff --git a/drivers/media/dvb-frontends/dib7000p.c b/drivers/media/dvb-frontends/dib7000p.c
+> index 0fbaabe..6fc34b3 100644
+> --- a/drivers/media/dvb-frontends/dib7000p.c
+> +++ b/drivers/media/dvb-frontends/dib7000p.c
+> @@ -809,7 +809,7 @@ static int dib7000p_set_dds(struct dib7000p_state *state, s32 offset_khz)
+>  {
+>  	u32 internal = dib7000p_get_internal_freq(state);
+>  	s32 unit_khz_dds_val;
+> -	u32 abs_offset_khz = ABS(offset_khz);
+> +	u32 abs_offset_khz = abs(offset_khz);
+>  	u32 dds = state->cfg.bw->ifreq & 0x1ffffff;
+>  	u8 invert = !!(state->cfg.bw->ifreq & (1 << 25));
+>  	if (internal == 0) {
+> diff --git a/drivers/media/dvb-frontends/dib8000.c b/drivers/media/dvb-frontends/dib8000.c
+> index 5d93815..4680a8b 100644
+> --- a/drivers/media/dvb-frontends/dib8000.c
+> +++ b/drivers/media/dvb-frontends/dib8000.c
+> @@ -2677,7 +2677,7 @@ static void dib8000_viterbi_state(struct dib8000_state *state, u8 onoff)
+>  static void dib8000_set_dds(struct dib8000_state *state, s32 offset_khz)
+>  {
+>  	s16 unit_khz_dds_val;
+> -	u32 abs_offset_khz = ABS(offset_khz);
+> +	u32 abs_offset_khz = abs(offset_khz);
+>  	u32 dds = state->cfg.pll->ifreq & 0x1ffffff;
+>  	u8 invert = !!(state->cfg.pll->ifreq & (1 << 25));
+>  	u8 ratio;
+> diff --git a/drivers/media/dvb-frontends/dibx000_common.h b/drivers/media/dvb-frontends/dibx000_common.h
+> index 8784af9..12b58f5 100644
+> --- a/drivers/media/dvb-frontends/dibx000_common.h
+> +++ b/drivers/media/dvb-frontends/dibx000_common.h
+> @@ -223,8 +223,6 @@ struct dvb_frontend_parametersContext {
+>  
+>  #define FE_CALLBACK_TIME_NEVER 0xffffffff
+>  
+> -#define ABS(x) ((x < 0) ? (-x) : (x))
+> -
+>  #define DATA_BUS_ACCESS_MODE_8BIT                 0x01
+>  #define DATA_BUS_ACCESS_MODE_16BIT                0x02
+>  #define DATA_BUS_ACCESS_MODE_NO_ADDRESS_INCREMENT 0x10
+> diff --git a/drivers/media/dvb-frontends/mb86a16.c b/drivers/media/dvb-frontends/mb86a16.c
+> index dfe322e..ced59f9 100644
+> --- a/drivers/media/dvb-frontends/mb86a16.c
+> +++ b/drivers/media/dvb-frontends/mb86a16.c
+> @@ -31,8 +31,6 @@
+>  static unsigned int verbose = 5;
+>  module_param(verbose, int, 0644);
+>  
+> -#define ABS(x)		((x) < 0 ? (-x) : (x))
+> -
+>  struct mb86a16_state {
+>  	struct i2c_adapter		*i2c_adap;
+>  	const struct mb86a16_config	*config;
+> @@ -1201,12 +1199,12 @@ static int mb86a16_set_fe(struct mb86a16_state *state)
+>  
+>  			signal_dupl = 0;
+>  			for (j = 0; j < prev_freq_num; j++) {
+> -				if ((ABS(prev_swp_freq[j] - swp_freq)) < (swp_ofs * 3 / 2)) {
+> +				if ((abs(prev_swp_freq[j] - swp_freq)) < (swp_ofs * 3 / 2)) {
+>  					signal_dupl = 1;
+>  					dprintk(verbose, MB86A16_INFO, 1, "Probably Duplicate Signal, j = %d", j);
+>  				}
+>  			}
+> -			if ((signal_dupl == 0) && (swp_freq > 0) && (ABS(swp_freq - state->frequency * 1000) < fcp + state->srate / 6)) {
+> +			if ((signal_dupl == 0) && (swp_freq > 0) && (abs(swp_freq - state->frequency * 1000) < fcp + state->srate / 6)) {
+>  				dprintk(verbose, MB86A16_DEBUG, 1, "------ Signal detect ------ [swp_freq=[%07d, srate=%05d]]", swp_freq, state->srate);
+>  				prev_swp_freq[prev_freq_num] = swp_freq;
+>  				prev_freq_num++;
+> @@ -1380,7 +1378,7 @@ static int mb86a16_set_fe(struct mb86a16_state *state)
+>  			dprintk(verbose, MB86A16_INFO, 1, "SWEEP Frequency = %d", swp_freq);
+>  			swp_freq += delta_freq;
+>  			dprintk(verbose, MB86A16_INFO, 1, "Adjusting .., DELTA Freq = %d, SWEEP Freq=%d", delta_freq, swp_freq);
+> -			if (ABS(state->frequency * 1000 - swp_freq) > 3800) {
+> +			if (abs(state->frequency * 1000 - swp_freq) > 3800) {
+>  				dprintk(verbose, MB86A16_INFO, 1, "NO  --  SIGNAL !");
+>  			} else {
+>  
+> diff --git a/drivers/media/dvb-frontends/stv0367_priv.h b/drivers/media/dvb-frontends/stv0367_priv.h
+> index 8abc451..460066a 100644
+> --- a/drivers/media/dvb-frontends/stv0367_priv.h
+> +++ b/drivers/media/dvb-frontends/stv0367_priv.h
+> @@ -35,7 +35,6 @@
+>  #endif
+>  
+>  /* MACRO definitions */
+> -#define ABS(X) ((X) < 0 ? (-1 * (X)) : (X))
+>  #define MAX(X, Y) ((X) >= (Y) ? (X) : (Y))
+>  #define MIN(X, Y) ((X) <= (Y) ? (X) : (Y))
+>  #define INRANGE(X, Y, Z) \
+> diff --git a/drivers/media/dvb-frontends/stv0900_priv.h b/drivers/media/dvb-frontends/stv0900_priv.h
+> index 7a95f95..97c1237 100644
+> --- a/drivers/media/dvb-frontends/stv0900_priv.h
+> +++ b/drivers/media/dvb-frontends/stv0900_priv.h
+> @@ -24,7 +24,6 @@
+>  
+>  #include <linux/i2c.h>
+>  
+> -#define ABS(X) ((X) < 0 ? (-1 * (X)) : (X))
+>  #define INRANGE(X, Y, Z) ((((X) <= (Y)) && ((Y) <= (Z))) \
+>  		|| (((Z) <= (Y)) && ((Y) <= (X))) ? 1 : 0)
+>  
+> diff --git a/drivers/media/dvb-frontends/stv0900_sw.c b/drivers/media/dvb-frontends/stv0900_sw.c
+> index c97a391..d406c83 100644
+> --- a/drivers/media/dvb-frontends/stv0900_sw.c
+> +++ b/drivers/media/dvb-frontends/stv0900_sw.c
+> @@ -1255,14 +1255,14 @@ fe_stv0900_signal_type stv0900_get_signal_params(struct dvb_frontend *fe)
+>  		else
+>  			intp->freq[d] = stv0900_get_tuner_freq(fe);
+>  
+> -		if (ABS(offsetFreq) <= ((intp->srch_range[d] / 2000) + 500))
+> +		if (abs(offsetFreq) <= ((intp->srch_range[d] / 2000) + 500))
+>  			range = STV0900_RANGEOK;
+> -		else if (ABS(offsetFreq) <=
+> +		else if (abs(offsetFreq) <=
+>  				(stv0900_carrier_width(result->symbol_rate,
+>  						result->rolloff) / 2000))
+>  			range = STV0900_RANGEOK;
+>  
+> -	} else if (ABS(offsetFreq) <= ((intp->srch_range[d] / 2000) + 500))
+> +	} else if (abs(offsetFreq) <= ((intp->srch_range[d] / 2000) + 500))
+>  		range = STV0900_RANGEOK;
+>  
+>  	dprintk("%s: range %d\n", __func__, range);
+> -- 
+> 2.7.4
+> 
+
 -- 
-2.14.3
+     http://baruch.siach.name/blog/                  ~. .~   Tk Open Systems
+=}------------------------------------------------ooO--U--Ooo------------{=
+   - baruch@tkos.co.il - tel: +972.2.679.5364, http://www.tkos.co.il -
