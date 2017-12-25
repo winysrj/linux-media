@@ -1,53 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from vps-vb.mhejs.net ([37.28.154.113]:36700 "EHLO vps-vb.mhejs.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752265AbdLKQFX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 11 Dec 2017 11:05:23 -0500
-Subject: Re: [PATCH v2 5/6] [media] cxusb: implement Medion MD95700 digital /
- analog coexistence
-To: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Michael Krufky <mkrufky@linuxtv.org>,
-        Andy Walls <awalls@md.metrocast.net>,
-        linux-kernel <linux-kernel@vger.kernel.org>,
-        linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
-References: <f80a8f9e-f142-086e-9160-aea829eac9dc@maciej.szmigiero.name>
- <20171211134501.4a7270ec@vento.lan>
-From: "Maciej S. Szmigiero" <mail@maciej.szmigiero.name>
-Message-ID: <16d5b34d-2910-6359-9f44-42a812d8d028@maciej.szmigiero.name>
-Date: Mon, 11 Dec 2017 16:48:02 +0100
+Received: from mail-lf0-f67.google.com ([209.85.215.67]:39892 "EHLO
+        mail-lf0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752914AbdLYVVc (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 25 Dec 2017 16:21:32 -0500
+Received: by mail-lf0-f67.google.com with SMTP id m20so25052536lfi.6
+        for <linux-media@vger.kernel.org>; Mon, 25 Dec 2017 13:21:31 -0800 (PST)
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Message-Id: <20171225212127.024131449@cogentembedded.com>
+Date: Tue, 26 Dec 2017 00:21:17 +0300
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+Cc: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Subject: [PATCH] vsp1: fix video output on R8A77970
 MIME-Version: 1.0
-In-Reply-To: <20171211134501.4a7270ec@vento.lan>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Disposition: inline; filename=vsp1-fix-video-output-on-R8A77970.patch
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11.12.2017 16:45, Mauro Carvalho Chehab wrote:
-> Em Tue, 10 Oct 2017 23:36:55 +0200
-> "Maciej S. Szmigiero" <mail@maciej.szmigiero.name> escreveu:
-> 
->> This patch prepares cxusb driver for supporting the analog part of
->> Medion 95700 (previously only the digital - DVB - mode was supported).
->>
->> Specifically, it adds support for:
->> * switching the device between analog and digital modes of operation,
->> * enforcing that only one mode is active at the same time due to hardware
->> limitations.
->>
->> Actual implementation of the analog mode will be provided by the next
->> commit.
->>
->> Signed-off-by: Maciej S. Szmigiero <mail@maciej.szmigiero.name>
-> 
-> This patch doesn't apply:
-> 
-> Hunk #2 FAILED at 25.
-> Hunk #3 FAILED at 47.
-(..)
+Laurent has added support for the VSP2-D found on R-Car V3M (R8A77970) but
+the video output that VSP2-D sends to DU has a greenish garbage-like line
+repeated every 8 or so screen rows.  It turns out that V3M has a teeny LIF
+register (at least it's documented!) that you need to set to some kind of
+a magic value for the LIF to work correctly...
 
-Probably it has already bit-rotted since October - will try to
-respin within two weeks (while addressing your comments to patch 1,
-too.)
+Based on the original (and large) patch by  Daisuke Matsushita
+<daisuke.matsushita.ns@hitachi.com>.
 
-Maciej
+Fixes: d455b45f8393 ("v4l: vsp1: Add support for new VSP2-BS, VSP2-DL and VSP2-D instances")
+Signed-off-by: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+
+---
+This patch is against the 'media_tree.git' repo's 'master' branch.
+
+ drivers/media/platform/vsp1/vsp1_lif.c  |    8 ++++++++
+ drivers/media/platform/vsp1/vsp1_regs.h |    5 +++++
+ 2 files changed, 13 insertions(+)
+
+Index: media_tree/drivers/media/platform/vsp1/vsp1_lif.c
+===================================================================
+--- media_tree.orig/drivers/media/platform/vsp1/vsp1_lif.c
++++ media_tree/drivers/media/platform/vsp1/vsp1_lif.c
+@@ -155,6 +155,14 @@ static void lif_configure(struct vsp1_en
+ 			(obth << VI6_LIF_CTRL_OBTH_SHIFT) |
+ 			(format->code == 0 ? VI6_LIF_CTRL_CFMT : 0) |
+ 			VI6_LIF_CTRL_REQSEL | VI6_LIF_CTRL_LIF_EN);
++
++	if ((entity->vsp1->version &
++	    (VI6_IP_VERSION_MODEL_MASK | VI6_IP_VERSION_SOC_MASK)) ==
++	    (VI6_IP_VERSION_MODEL_VSPD_V3 | VI6_IP_VERSION_SOC_V3M)) {
++		vsp1_lif_write(lif, dl, VI6_LIF_LBA,
++			       VI6_LIF_LBA_LBA0 |
++			       (1536 << VI6_LIF_LBA_LBA1_SHIFT));
++	}
+ }
+ 
+ static const struct vsp1_entity_operations lif_entity_ops = {
+Index: media_tree/drivers/media/platform/vsp1/vsp1_regs.h
+===================================================================
+--- media_tree.orig/drivers/media/platform/vsp1/vsp1_regs.h
++++ media_tree/drivers/media/platform/vsp1/vsp1_regs.h
+@@ -693,6 +693,11 @@
+ #define VI6_LIF_CSBTH_LBTH_MASK		(0x7ff << 0)
+ #define VI6_LIF_CSBTH_LBTH_SHIFT	0
+ 
++#define VI6_LIF_LBA			0x3b0c
++#define VI6_LIF_LBA_LBA0		(1 << 31)
++#define VI6_LIF_LBA_LBA1_MASK		(0xfff << 16)
++#define VI6_LIF_LBA_LBA1_SHIFT		16
++
+ /* -----------------------------------------------------------------------------
+  * Security Control Registers
+  */
