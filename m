@@ -1,134 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:56965 "EHLO
-        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750937AbdLHEkN (ORCPT
+Received: from mail-pl0-f66.google.com ([209.85.160.66]:42612 "EHLO
+        mail-pl0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752750AbdLYOLh (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 7 Dec 2017 23:40:13 -0500
-Message-ID: <aa9a1a562557d20512de575ec95c20f8@smtp-cloud8.xs4all.net>
-Date: Fri, 08 Dec 2017 05:40:11 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+        Mon, 25 Dec 2017 09:11:37 -0500
+From: Shunqian Zheng <zhengsq@rock-chips.com>
+To: mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com
+Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        ddl@rock-chips.com, tfiga@chromium.org,
+        Shunqian Zheng <zhengsq@rock-chips.com>
+Subject: [PATCH 2/4] [media] dt/bindings: Add bindings for OV5695
+Date: Mon, 25 Dec 2017 22:11:24 +0800
+Message-Id: <1514211086-13440-2-git-send-email-zhengsq@rock-chips.com>
+In-Reply-To: <1514211086-13440-1-git-send-email-zhengsq@rock-chips.com>
+References: <1514211086-13440-1-git-send-email-zhengsq@rock-chips.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Add device tree binding documentation for the OV5695 sensor.
 
-Results of the daily build of media_tree:
+Signed-off-by: Shunqian Zheng <zhengsq@rock-chips.com>
+---
+ .../devicetree/bindings/media/i2c/ov5695.txt       | 38 ++++++++++++++++++++++
+ 1 file changed, 38 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/ov5695.txt
 
-date:			Fri Dec  8 05:00:14 CET 2017
-media-tree git hash:	781b045baefdabf7e0bc9f33672ca830d3db9f27
-media_build git hash:	320b9b80ebbf318a67a9479c18a0e4be244c8409
-v4l-utils git hash:	58803000a99c22dceabfb45bec402e746ce966c3
-gcc version:		i686-linux-gcc (GCC) 7.1.0
-sparse version:		v0.5.0-3911-g6f737e1f
-smatch version:		v0.5.0-3911-g6f737e1f
-host hardware:		x86_64
-host os:		4.13.0-164
-
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: ERRORS
-linux-3.10.1-i686: ERRORS
-linux-3.11.1-i686: ERRORS
-linux-3.12.67-i686: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: ERRORS
-linux-3.15.2-i686: ERRORS
-linux-3.16.7-i686: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.18.7-i686: ERRORS
-linux-3.19-i686: ERRORS
-linux-4.0.9-i686: ERRORS
-linux-4.1.33-i686: ERRORS
-linux-4.2.8-i686: ERRORS
-linux-4.3.6-i686: ERRORS
-linux-4.4.22-i686: ERRORS
-linux-4.5.7-i686: ERRORS
-linux-4.6.7-i686: ERRORS
-linux-4.7.5-i686: ERRORS
-linux-4.8-i686: ERRORS
-linux-4.9.26-i686: ERRORS
-linux-4.10.14-i686: ERRORS
-linux-4.11-i686: ERRORS
-linux-4.12.1-i686: ERRORS
-linux-4.13-i686: ERRORS
-linux-4.14-i686: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: ERRORS
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.67-x86_64: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-x86_64: ERRORS
-linux-3.15.2-x86_64: ERRORS
-linux-3.16.7-x86_64: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.7-x86_64: ERRORS
-linux-3.19-x86_64: ERRORS
-linux-4.0.9-x86_64: ERRORS
-linux-4.1.33-x86_64: ERRORS
-linux-4.2.8-x86_64: ERRORS
-linux-4.3.6-x86_64: ERRORS
-linux-4.4.22-x86_64: ERRORS
-linux-4.5.7-x86_64: ERRORS
-linux-4.6.7-x86_64: ERRORS
-linux-4.7.5-x86_64: ERRORS
-linux-4.8-x86_64: ERRORS
-linux-4.9.26-x86_64: ERRORS
-linux-4.10.14-x86_64: ERRORS
-linux-4.11-x86_64: ERRORS
-linux-4.12.1-x86_64: ERRORS
-linux-4.13-x86_64: ERRORS
-linux-4.14-x86_64: ERRORS
-apps: OK
-spec-git: OK
-smatch: OK
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+diff --git a/Documentation/devicetree/bindings/media/i2c/ov5695.txt b/Documentation/devicetree/bindings/media/i2c/ov5695.txt
+new file mode 100644
+index 0000000..ed27eb1
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/i2c/ov5695.txt
+@@ -0,0 +1,38 @@
++* Omnivision OV5695 MIPI CSI-2 sensor
++
++Required Properties:
++- compatible: should be "ovti,ov5695"
++- clocks: reference to the 24M xvclk input clock.
++- clock-names: should be "xvclk".
++- dovdd-supply: Digital I/O voltage supply, 1.8 volts
++- avdd-supply: Analog voltage supply, 2.8 volts
++- dvdd-supply: Digital core voltage supply, 1.2 volts
++- reset-gpios: Low active reset gpio
++
++The device node must contain one 'port' child node for its digital output
++video port, in accordance with the video interface bindings defined in
++Documentation/devicetree/bindings/media/video-interfaces.txt.
++
++Example:
++&i2c1 {
++	compatible = "ovti,ov5695";
++	reg = <0x36>;
++	pinctrl-names = "default";
++	pinctrl-0 = <&clk_24m_cam &wcam_rst>;
++
++	clocks = <&cru SCLK_TESTCLKOUT1>;
++	clock-names = "xvclk";
++
++	avdd-supply = <&pp2800_cam>;
++	dvdd-supply = <&pp1250_cam>;
++	dovdd-supply = <&pp1800>;
++
++	reset-gpios = <&gpio2 5 GPIO_ACTIVE_LOW>;
++
++	port {
++		wcam_out: endpoint {
++			remote-endpoint = <&mipi_in_wcam>;
++			data-lanes = <1 2>;
++		};
++	};
++};
+-- 
+1.9.1
