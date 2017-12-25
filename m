@@ -1,48 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([65.50.211.133]:34419 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751440AbdLBHu7 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sat, 2 Dec 2017 02:50:59 -0500
-Date: Sat, 2 Dec 2017 05:50:47 -0200
-From: Mauro Carvalho Chehab <mchehab@kernel.org>
-To: Jaedon Shin <jaedon.shin@gmail.com>
-Cc: Shuah Khan <shuah@kernel.org>,
-        Colin Ian King <colin.king@canonical.com>,
-        Satendra Singh Thakur <satendra.t@samsung.com>,
-        linux-media@vger.kernel.org,
-        Michael Ira Krufky <mkrufky@linuxtv.org>,
-        Sean Young <sean@mess.org>
-Subject: Re: [PATCH 0/3] Add support compat in dvb_frontend.c
-Message-ID: <20171202055047.7613db42@vento.lan>
-In-Reply-To: <20171201123130.23128-1-jaedon.shin@gmail.com>
-References: <20171201123130.23128-1-jaedon.shin@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:44132 "EHLO
+        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750703AbdLYFB0 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 25 Dec 2017 00:01:26 -0500
+Message-ID: <1e0501972f481c2cc4fd7061a07a15c4@smtp-cloud9.xs4all.net>
+Date: Mon, 25 Dec 2017 06:01:24 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jaedon,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Em Fri,  1 Dec 2017 21:31:27 +0900
-Jaedon Shin <jaedon.shin@gmail.com> escreveu:
+Results of the daily build of media_tree:
 
-> This patch series supports compat ioctl for 32-bit user space applications
-> in 64-bit system.
-> 
-> Jaedon Shin (3):
->   media: dvb_frontend: Add unlocked_ioctl in dvb_frontend.c
->   media: dvb_frontend: Add compat_ioctl callback
->   media: dvb_frontend: Add commands implementation for compat ioct
+date:			Mon Dec 25 05:00:15 CET 2017
+media-tree git hash:	9eb124fe796cbadd454c8f946d7051f4c3f4a251
+media_build git hash:	fbf261bfe938ef902ec0206dd7763ce761fe0201
+v4l-utils git hash:	6049ea8bd64f9d78ef87ef0c2b3dc9b5de1ca4a1
+gcc version:		i686-linux-gcc (GCC) 7.1.0
+sparse version:		v0.5.0-3911-g6f737e1f
+smatch version:		v0.5.0-3911-g6f737e1f
+host hardware:		x86_64
+host os:		4.13.0-164
 
-Thanks for the series. Yeah, indeed we need something like that.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12.67-i686: ERRORS
+linux-3.13.11-i686: WARNINGS
+linux-3.14.9-i686: WARNINGS
+linux-3.15.2-i686: WARNINGS
+linux-3.16.7-i686: WARNINGS
+linux-3.17.8-i686: WARNINGS
+linux-3.18.7-i686: WARNINGS
+linux-3.19-i686: WARNINGS
+linux-4.0.9-i686: WARNINGS
+linux-4.1.33-i686: WARNINGS
+linux-4.2.8-i686: WARNINGS
+linux-4.3.6-i686: WARNINGS
+linux-4.4.22-i686: OK
+linux-4.5.7-i686: WARNINGS
+linux-4.6.7-i686: ERRORS
+linux-4.7.5-i686: ERRORS
+linux-4.8-i686: ERRORS
+linux-4.9.26-i686: OK
+linux-4.10.14-i686: OK
+linux-4.11-i686: OK
+linux-4.12.1-i686: OK
+linux-4.13-i686: OK
+linux-4.14-i686: OK
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.67-x86_64: ERRORS
+linux-3.13.11-x86_64: WARNINGS
+linux-3.14.9-x86_64: WARNINGS
+linux-3.15.2-x86_64: WARNINGS
+linux-3.16.7-x86_64: WARNINGS
+linux-3.17.8-x86_64: WARNINGS
+linux-3.18.7-x86_64: WARNINGS
+linux-3.19-x86_64: WARNINGS
+linux-4.0.9-x86_64: WARNINGS
+linux-4.1.33-x86_64: WARNINGS
+linux-4.2.8-x86_64: WARNINGS
+linux-4.3.6-x86_64: WARNINGS
+linux-4.4.22-x86_64: WARNINGS
+linux-4.5.7-x86_64: WARNINGS
+linux-4.6.7-x86_64: ERRORS
+linux-4.7.5-x86_64: ERRORS
+linux-4.8-x86_64: ERRORS
+linux-4.9.26-x86_64: WARNINGS
+linux-4.10.14-x86_64: WARNINGS
+linux-4.11-x86_64: WARNINGS
+linux-4.12.1-x86_64: WARNINGS
+linux-4.13-x86_64: OK
+linux-4.14-x86_64: OK
+apps: OK
+spec-git: OK
+smatch: OK
 
-Yet, I suspect that you should also move the logic inside
-dvb_frontend_handle_ioctl() with copies from/to userspace.
+Detailed results are available here:
 
-We don't want the logic there to be called when a 32-bit userspace
-copy happens, as it should now use the new compat32 code.
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
 
+Full logs are available here:
 
-Thanks,
-Mauro
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
