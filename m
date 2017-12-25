@@ -1,174 +1,188 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:40574 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751871AbdL0Vr2 (ORCPT
+Received: from mail-qk0-f195.google.com ([209.85.220.195]:39883 "EHLO
+        mail-qk0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751297AbdLYED1 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 27 Dec 2017 16:47:28 -0500
-Date: Wed, 27 Dec 2017 23:47:23 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Yong <yong.deng@magewell.com>
-Cc: maxime.ripard@free-electrons.com,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Chen-Yu Tsai <wens@csie.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Yannick Fertre <yannick.fertre@st.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Benoit Parrot <bparrot@ti.com>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Jean-Christophe Trotin <jean-christophe.trotin@st.com>,
-        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
-        Minghsiu Tsai <minghsiu.tsai@mediatek.com>,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Robert Jarzmik <robert.jarzmik@free.fr>,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-sunxi@googlegroups.com
-Subject: Re: [PATCH v2 2/3] dt-bindings: media: Add Allwinner V3s Camera
- Sensor Interface (CSI)
-Message-ID: <20171227214723.rcssyay2lqqjf6ty@valkosipuli.retiisi.org.uk>
-References: <1501131697-1359-1-git-send-email-yong.deng@magewell.com>
- <1501131697-1359-3-git-send-email-yong.deng@magewell.com>
- <20171219115327.ofs5xwwimpn7x72n@valkosipuli.retiisi.org.uk>
- <20171221104935.663812085b616935ca3046de@magewell.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20171221104935.663812085b616935ca3046de@magewell.com>
+        Sun, 24 Dec 2017 23:03:27 -0500
+Received: by mail-qk0-f195.google.com with SMTP id u184so40674149qkd.6
+        for <linux-media@vger.kernel.org>; Sun, 24 Dec 2017 20:03:27 -0800 (PST)
+From: Dan Gopstein <dgopstein@nyu.edu>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Dan Gopstein <dgopstein@nyu.edu>
+Subject: [PATCH v3] media: ABS macro parameter parenthesization
+Date: Sun, 24 Dec 2017 23:03:08 -0500
+Message-Id: <1514174588-22694-1-git-send-email-dgopstein@nyu.edu>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Yong,
+From: Dan Gopstein <dgopstein@nyu.edu>
 
-On Thu, Dec 21, 2017 at 10:49:35AM +0800, Yong wrote:
-> Hi,
-> 
-> On Tue, 19 Dec 2017 13:53:28 +0200
-> Sakari Ailus <sakari.ailus@iki.fi> wrote:
-> 
-> > Hi Yong,
-> > 
-> > On Thu, Jul 27, 2017 at 01:01:36PM +0800, Yong Deng wrote:
-> > > Add binding documentation for Allwinner V3s CSI.
-> > > 
-> > > Signed-off-by: Yong Deng <yong.deng@magewell.com>
-> > 
-> > DT bindings should precede the driver.
-> 
-> OK.
-> 
-> > 
-> > > ---
-> > >  .../devicetree/bindings/media/sun6i-csi.txt        | 49 ++++++++++++++++++++++
-> > >  1 file changed, 49 insertions(+)
-> > >  create mode 100644 Documentation/devicetree/bindings/media/sun6i-csi.txt
-> > > 
-> > > diff --git a/Documentation/devicetree/bindings/media/sun6i-csi.txt b/Documentation/devicetree/bindings/media/sun6i-csi.txt
-> > > new file mode 100644
-> > > index 0000000..f8d83f6
-> > > --- /dev/null
-> > > +++ b/Documentation/devicetree/bindings/media/sun6i-csi.txt
-> > > @@ -0,0 +1,49 @@
-> > > +Allwinner V3s Camera Sensor Interface
-> > > +------------------------------
-> > > +
-> > > +Required properties:
-> > > +  - compatible: value must be "allwinner,sun8i-v3s-csi"
-> > 
-> > What are sun6i and sun8i? Is this device first present in sun6i SoCs,
-> > whereas you have only defined bindings for sun8i?
-> 
-> Yes, some sun6i SoCs has the almost same CSI module.
-> There is only V3s on my hand. So, I only tested it on V3s. But
-> some people work on the others.
+Replace usages of the locally defined ABS() macro with calls to the
+canonical abs() from kernel.h and remove the old definitions of ABS()
 
-Ack.
+Signed-off-by: Dan Gopstein <dgopstein@nyu.edu>
+---
+v2->v3:
+* replace local ABS() with kernel's abs()
 
-> 
-> > 
-> > > +  - reg: base address and size of the memory-mapped region.
-> > > +  - interrupts: interrupt associated to this IP
-> > > +  - clocks: phandles to the clocks feeding the CSI
-> > > +    * ahb: the CSI interface clock
-> > > +    * mod: the CSI module clock
-> > > +    * ram: the CSI DRAM clock
-> > > +  - clock-names: the clock names mentioned above
-> > > +  - resets: phandles to the reset line driving the CSI
-> > > +
-> > > +- ports: A ports node with endpoint definitions as defined in
-> > > +  Documentation/devicetree/bindings/media/video-interfaces.txt.
-> > 
-> > Please document mandatory and optional endpoint properties relevant for the
-> > hardware.
-> 
-> I have added below commit in my v3:
-> Currently, the driver only support the parallel interface. So, a single port
-> node with one endpoint and parallel bus is supported.
+v1->v2:
+* unmangled the patch
+* added example to commit text
 
-Please specify the exact properties that are relevant for the hardware. No
-references should be made to the driver, the bindings are entirely
-separate.
+ drivers/media/dvb-frontends/dib0090.c        | 4 ++--
+ drivers/media/dvb-frontends/dib7000p.c       | 2 +-
+ drivers/media/dvb-frontends/dib8000.c        | 2 +-
+ drivers/media/dvb-frontends/dibx000_common.h | 2 --
+ drivers/media/dvb-frontends/mb86a16.c        | 8 +++-----
+ drivers/media/dvb-frontends/stv0367_priv.h   | 1 -
+ drivers/media/dvb-frontends/stv0900_priv.h   | 1 -
+ drivers/media/dvb-frontends/stv0900_sw.c     | 6 +++---
+ 8 files changed, 10 insertions(+), 16 deletions(-)
 
-Are the non-parallel (CSI-2?) and parallel bus on the same interface? If
-yes, they should probably use different endpoints, if not, then different
-ports.
-
-You could document the other bus or omit it now altogether, in which case
-you'd only detail the parallel bus properties here.
-
-> 
-> > 
-> > > +
-> > > +Example:
-> > > +
-> > > +	csi1: csi@01cb4000 {
-> > > +		compatible = "allwinner,sun8i-v3s-csi";
-> > > +		reg = <0x01cb4000 0x1000>;
-> > > +		interrupts = <GIC_SPI 84 IRQ_TYPE_LEVEL_HIGH>;
-> > > +		clocks = <&ccu CLK_BUS_CSI>,
-> > > +			 <&ccu CLK_CSI1_SCLK>,
-> > > +			 <&ccu CLK_DRAM_CSI>;
-> > > +		clock-names = "ahb", "mod", "ram";
-> > > +		resets = <&ccu RST_BUS_CSI>;
-> > > +
-> > > +		port {
-> > > +			#address-cells = <1>;
-> > > +			#size-cells = <0>;
-> > > +
-> > > +			/* Parallel bus endpoint */
-> > > +			csi1_ep: endpoint {
-> > > +				remote-endpoint = <&adv7611_ep>;
-> > > +				bus-width = <16>;
-> > > +				data-shift = <0>;
-> > > +
-> > > +				/* If hsync-active/vsync-active are missing,
-> > > +				   embedded BT.656 sync is used */
-> > > +				hsync-active = <0>; /* Active low */
-> > > +				vsync-active = <0>; /* Active low */
-> > > +				data-active = <1>;  /* Active high */
-> > > +				pclk-sample = <1>;  /* Rising */
-> > > +			};
-> > > +		};
-> > > +	};
-> > > +
-> > 
-> > -- 
-> > Kind regards,
-> > 
-> > Sakari Ailus
-> > e-mail: sakari.ailus@iki.fi
-> 
-> 
-> Thanks,
-> Yong
-
+diff --git a/drivers/media/dvb-frontends/dib0090.c b/drivers/media/dvb-frontends/dib0090.c
+index d9d730d..633a961 100644
+--- a/drivers/media/dvb-frontends/dib0090.c
++++ b/drivers/media/dvb-frontends/dib0090.c
+@@ -1285,7 +1285,7 @@ int dib0090_gain_control(struct dvb_frontend *fe)
+ #endif
+ 
+ 			if (*tune_state == CT_AGC_STEP_1) {	/* quickly go to the correct range of the ADC power */
+-				if (ABS(adc_error) < 50 || state->agc_step++ > 5) {
++				if (abs(adc_error) < 50 || state->agc_step++ > 5) {
+ 
+ #ifdef CONFIG_STANDARD_DAB
+ 					if (state->fe->dtv_property_cache.delivery_system == STANDARD_DAB) {
+@@ -1754,7 +1754,7 @@ static int dib0090_dc_offset_calibration(struct dib0090_state *state, enum front
+ 			*tune_state = CT_TUNER_STEP_1;
+ 		} else {
+ 			/* the minimum was what we have seen in the step before */
+-			if (ABS(state->adc_diff) > ABS(state->min_adc_diff)) {
++			if (abs(state->adc_diff) > abs(state->min_adc_diff)) {
+ 				dprintk("Since adc_diff N = %d  > adc_diff step N-1 = %d, Come back one step\n", state->adc_diff, state->min_adc_diff);
+ 				state->step--;
+ 			}
+diff --git a/drivers/media/dvb-frontends/dib7000p.c b/drivers/media/dvb-frontends/dib7000p.c
+index 0fbaabe..6fc34b3 100644
+--- a/drivers/media/dvb-frontends/dib7000p.c
++++ b/drivers/media/dvb-frontends/dib7000p.c
+@@ -809,7 +809,7 @@ static int dib7000p_set_dds(struct dib7000p_state *state, s32 offset_khz)
+ {
+ 	u32 internal = dib7000p_get_internal_freq(state);
+ 	s32 unit_khz_dds_val;
+-	u32 abs_offset_khz = ABS(offset_khz);
++	u32 abs_offset_khz = abs(offset_khz);
+ 	u32 dds = state->cfg.bw->ifreq & 0x1ffffff;
+ 	u8 invert = !!(state->cfg.bw->ifreq & (1 << 25));
+ 	if (internal == 0) {
+diff --git a/drivers/media/dvb-frontends/dib8000.c b/drivers/media/dvb-frontends/dib8000.c
+index 5d93815..4680a8b 100644
+--- a/drivers/media/dvb-frontends/dib8000.c
++++ b/drivers/media/dvb-frontends/dib8000.c
+@@ -2677,7 +2677,7 @@ static void dib8000_viterbi_state(struct dib8000_state *state, u8 onoff)
+ static void dib8000_set_dds(struct dib8000_state *state, s32 offset_khz)
+ {
+ 	s16 unit_khz_dds_val;
+-	u32 abs_offset_khz = ABS(offset_khz);
++	u32 abs_offset_khz = abs(offset_khz);
+ 	u32 dds = state->cfg.pll->ifreq & 0x1ffffff;
+ 	u8 invert = !!(state->cfg.pll->ifreq & (1 << 25));
+ 	u8 ratio;
+diff --git a/drivers/media/dvb-frontends/dibx000_common.h b/drivers/media/dvb-frontends/dibx000_common.h
+index 8784af9..12b58f5 100644
+--- a/drivers/media/dvb-frontends/dibx000_common.h
++++ b/drivers/media/dvb-frontends/dibx000_common.h
+@@ -223,8 +223,6 @@ struct dvb_frontend_parametersContext {
+ 
+ #define FE_CALLBACK_TIME_NEVER 0xffffffff
+ 
+-#define ABS(x) ((x < 0) ? (-x) : (x))
+-
+ #define DATA_BUS_ACCESS_MODE_8BIT                 0x01
+ #define DATA_BUS_ACCESS_MODE_16BIT                0x02
+ #define DATA_BUS_ACCESS_MODE_NO_ADDRESS_INCREMENT 0x10
+diff --git a/drivers/media/dvb-frontends/mb86a16.c b/drivers/media/dvb-frontends/mb86a16.c
+index dfe322e..ced59f9 100644
+--- a/drivers/media/dvb-frontends/mb86a16.c
++++ b/drivers/media/dvb-frontends/mb86a16.c
+@@ -31,8 +31,6 @@
+ static unsigned int verbose = 5;
+ module_param(verbose, int, 0644);
+ 
+-#define ABS(x)		((x) < 0 ? (-x) : (x))
+-
+ struct mb86a16_state {
+ 	struct i2c_adapter		*i2c_adap;
+ 	const struct mb86a16_config	*config;
+@@ -1201,12 +1199,12 @@ static int mb86a16_set_fe(struct mb86a16_state *state)
+ 
+ 			signal_dupl = 0;
+ 			for (j = 0; j < prev_freq_num; j++) {
+-				if ((ABS(prev_swp_freq[j] - swp_freq)) < (swp_ofs * 3 / 2)) {
++				if ((abs(prev_swp_freq[j] - swp_freq)) < (swp_ofs * 3 / 2)) {
+ 					signal_dupl = 1;
+ 					dprintk(verbose, MB86A16_INFO, 1, "Probably Duplicate Signal, j = %d", j);
+ 				}
+ 			}
+-			if ((signal_dupl == 0) && (swp_freq > 0) && (ABS(swp_freq - state->frequency * 1000) < fcp + state->srate / 6)) {
++			if ((signal_dupl == 0) && (swp_freq > 0) && (abs(swp_freq - state->frequency * 1000) < fcp + state->srate / 6)) {
+ 				dprintk(verbose, MB86A16_DEBUG, 1, "------ Signal detect ------ [swp_freq=[%07d, srate=%05d]]", swp_freq, state->srate);
+ 				prev_swp_freq[prev_freq_num] = swp_freq;
+ 				prev_freq_num++;
+@@ -1380,7 +1378,7 @@ static int mb86a16_set_fe(struct mb86a16_state *state)
+ 			dprintk(verbose, MB86A16_INFO, 1, "SWEEP Frequency = %d", swp_freq);
+ 			swp_freq += delta_freq;
+ 			dprintk(verbose, MB86A16_INFO, 1, "Adjusting .., DELTA Freq = %d, SWEEP Freq=%d", delta_freq, swp_freq);
+-			if (ABS(state->frequency * 1000 - swp_freq) > 3800) {
++			if (abs(state->frequency * 1000 - swp_freq) > 3800) {
+ 				dprintk(verbose, MB86A16_INFO, 1, "NO  --  SIGNAL !");
+ 			} else {
+ 
+diff --git a/drivers/media/dvb-frontends/stv0367_priv.h b/drivers/media/dvb-frontends/stv0367_priv.h
+index 8abc451..460066a 100644
+--- a/drivers/media/dvb-frontends/stv0367_priv.h
++++ b/drivers/media/dvb-frontends/stv0367_priv.h
+@@ -35,7 +35,6 @@
+ #endif
+ 
+ /* MACRO definitions */
+-#define ABS(X) ((X) < 0 ? (-1 * (X)) : (X))
+ #define MAX(X, Y) ((X) >= (Y) ? (X) : (Y))
+ #define MIN(X, Y) ((X) <= (Y) ? (X) : (Y))
+ #define INRANGE(X, Y, Z) \
+diff --git a/drivers/media/dvb-frontends/stv0900_priv.h b/drivers/media/dvb-frontends/stv0900_priv.h
+index 7a95f95..97c1237 100644
+--- a/drivers/media/dvb-frontends/stv0900_priv.h
++++ b/drivers/media/dvb-frontends/stv0900_priv.h
+@@ -24,7 +24,6 @@
+ 
+ #include <linux/i2c.h>
+ 
+-#define ABS(X) ((X) < 0 ? (-1 * (X)) : (X))
+ #define INRANGE(X, Y, Z) ((((X) <= (Y)) && ((Y) <= (Z))) \
+ 		|| (((Z) <= (Y)) && ((Y) <= (X))) ? 1 : 0)
+ 
+diff --git a/drivers/media/dvb-frontends/stv0900_sw.c b/drivers/media/dvb-frontends/stv0900_sw.c
+index c97a391..d406c83 100644
+--- a/drivers/media/dvb-frontends/stv0900_sw.c
++++ b/drivers/media/dvb-frontends/stv0900_sw.c
+@@ -1255,14 +1255,14 @@ fe_stv0900_signal_type stv0900_get_signal_params(struct dvb_frontend *fe)
+ 		else
+ 			intp->freq[d] = stv0900_get_tuner_freq(fe);
+ 
+-		if (ABS(offsetFreq) <= ((intp->srch_range[d] / 2000) + 500))
++		if (abs(offsetFreq) <= ((intp->srch_range[d] / 2000) + 500))
+ 			range = STV0900_RANGEOK;
+-		else if (ABS(offsetFreq) <=
++		else if (abs(offsetFreq) <=
+ 				(stv0900_carrier_width(result->symbol_rate,
+ 						result->rolloff) / 2000))
+ 			range = STV0900_RANGEOK;
+ 
+-	} else if (ABS(offsetFreq) <= ((intp->srch_range[d] / 2000) + 500))
++	} else if (abs(offsetFreq) <= ((intp->srch_range[d] / 2000) + 500))
+ 		range = STV0900_RANGEOK;
+ 
+ 	dprintk("%s: range %d\n", __func__, range);
 -- 
-Regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+2.7.4
