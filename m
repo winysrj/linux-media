@@ -1,314 +1,155 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f66.google.com ([209.85.215.66]:43424 "EHLO
-        mail-lf0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S935571AbdLSAF0 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 18 Dec 2017 19:05:26 -0500
-Received: by mail-lf0-f66.google.com with SMTP id o26so5454452lfc.10
-        for <linux-media@vger.kernel.org>; Mon, 18 Dec 2017 16:05:25 -0800 (PST)
-From: "Niklas =?iso-8859-1?Q?S=F6derlund?=" <niklas.soderlund@ragnatech.se>
-Date: Tue, 19 Dec 2017 01:05:23 +0100
-To: jacopo mondi <jacopo@jmondi.org>
-Cc: linux-media@vger.kernel.org,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-renesas-soc@vger.kernel.org,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
-        Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        Benoit Parrot <bparrot@ti.com>,
-        Maxime Ripard <maxime.ripard@free-electrons.com>
-Subject: Re: [PATCH/RFC v2 07/15] rcar-csi2: use frame description
- information to configure CSI-2 bus
-Message-ID: <20171219000523.GJ32148@bigcity.dyn.berto.se>
-References: <20171214190835.7672-1-niklas.soderlund+renesas@ragnatech.se>
- <20171214190835.7672-8-niklas.soderlund+renesas@ragnatech.se>
- <20171215141531.GC3375@w540>
+Received: from szxga05-in.huawei.com ([45.249.212.191]:2776 "EHLO huawei.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1750984AbdLYBJy (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 24 Dec 2017 20:09:54 -0500
+Subject: Re: [PATCH v3 00/27] kill devm_ioremap_nocache
+To: christophe leroy <christophe.leroy@c-s.fr>,
+        Guenter Roeck <linux@roeck-us.net>,
+        Greg KH <gregkh@linuxfoundation.org>
+References: <1514026525-32538-1-git-send-email-xieyisheng1@huawei.com>
+ <20171223134831.GB10103@kroah.com>
+ <f7632cf5-2bcc-4d74-b912-3999937a1269@roeck-us.net>
+ <c28ac0bc-8bd2-3dce-3167-8c0f80ec601e@c-s.fr>
+CC: <linux-kernel@vger.kernel.org>, <ysxie@foxmail.com>,
+        <ulf.hansson@linaro.org>, <linux-mmc@vger.kernel.org>,
+        <boris.brezillon@free-electrons.com>, <richard@nod.at>,
+        <marek.vasut@gmail.com>, <cyrille.pitchen@wedev4u.fr>,
+        <linux-mtd@lists.infradead.org>, <alsa-devel@alsa-project.org>,
+        <wim@iguana.be>, <linux-watchdog@vger.kernel.org>,
+        <b.zolnierkie@samsung.com>, <linux-fbdev@vger.kernel.org>,
+        <linus.walleij@linaro.org>, <linux-gpio@vger.kernel.org>,
+        <ralf@linux-mips.org>, <linux-mips@linux-mips.org>,
+        <lgirdwood@gmail.com>, <broonie@kernel.org>, <tglx@linutronix.de>,
+        <jason@lakedaemon.net>, <marc.zyngier@arm.com>, <arnd@arndb.de>,
+        <andriy.shevchenko@linux.intel.com>,
+        <industrypack-devel@lists.sourceforge.net>, <wg@grandegger.com>,
+        <mkl@pengutronix.de>, <linux-can@vger.kernel.org>,
+        <mchehab@kernel.org>, <linux-media@vger.kernel.org>,
+        <a.zummo@towertech.it>, <alexandre.belloni@free-electrons.com>,
+        <linux-rtc@vger.kernel.org>, <daniel.vetter@intel.com>,
+        <jani.nikula@linux.intel.com>, <seanpaul@chromium.org>,
+        <airlied@linux.ie>, <dri-devel@lists.freedesktop.org>,
+        <kvalo@codeaurora.org>, <linux-wireless@vger.kernel.org>,
+        <linux-spi@vger.kernel.org>, <tj@kernel.org>,
+        <linux-ide@vger.kernel.org>, <bhelgaas@google.com>,
+        <linux-pci@vger.kernel.org>, <devel@driverdev.osuosl.org>,
+        <dvhart@infradead.org>, <andy@infradead.org>,
+        <platform-driver-x86@vger.kernel.org>,
+        <jakub.kicinski@netronome.com>, <davem@davemloft.net>,
+        <nios2-dev@lists.rocketboards.org>, <netdev@vger.kernel.org>,
+        <vinod.koul@intel.com>, <dan.j.williams@intel.com>,
+        <dmaengine@vger.kernel.org>, <jslaby@suse.com>
+From: Yisheng Xie <xieyisheng1@huawei.com>
+Message-ID: <6c0ade63-f4d3-d44d-c622-b091eb2ba902@huawei.com>
+Date: Mon, 25 Dec 2017 09:09:10 +0800
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
+In-Reply-To: <c28ac0bc-8bd2-3dce-3167-8c0f80ec601e@c-s.fr>
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <20171215141531.GC3375@w540>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jacopo,
+hi Christophe and Greg,
 
-Thanks for your comments.
-
-On 2017-12-15 15:15:31 +0100, jacopo mondi wrote:
-> Hi Niklas,
->    thanks for the patch!
+On 2017/12/24 16:55, christophe leroy wrote:
 > 
-> On Thu, Dec 14, 2017 at 08:08:27PM +0100, Niklas S�derlund wrote:
-> > The driver now have access to frame descriptor information, use it. Only
-> > enable the virtual channels which are described in the frame descriptor
-> > and calculate the link based on all enabled streams.
-> >
-> > With multiplexed stream support it's now possible to have different
-> > formats on the different source pads. Make source formats independent
-> > off each other and disallowing a format on the multiplexed sink.
-> >
-> > Signed-off-by: Niklas S�derlund <niklas.soderlund+renesas@ragnatech.se>
-> > ---
-> >  drivers/media/platform/rcar-vin/rcar-csi2.c | 112 ++++++++++++++--------------
-> >  1 file changed, 58 insertions(+), 54 deletions(-)
-> >
-> > diff --git a/drivers/media/platform/rcar-vin/rcar-csi2.c b/drivers/media/platform/rcar-vin/rcar-csi2.c
-> > index 6b607b2e31e26063..2dd7d03d622d5510 100644
-> > --- a/drivers/media/platform/rcar-vin/rcar-csi2.c
-> > +++ b/drivers/media/platform/rcar-vin/rcar-csi2.c
-> > @@ -296,24 +296,22 @@ static const struct phtw_testdin_data testdin_data_v3m_e3[] = {
-> >  #define CSI0CLKFREQRANGE(n)		((n & 0x3f) << 16)
-> >
-> >  struct rcar_csi2_format {
-> > -	unsigned int code;
-> >  	unsigned int datatype;
-> >  	unsigned int bpp;
-> >  };
-> >
-> >  static const struct rcar_csi2_format rcar_csi2_formats[] = {
-> > -	{ .code = MEDIA_BUS_FMT_RGB888_1X24,	.datatype = 0x24, .bpp = 24 },
-> > -	{ .code = MEDIA_BUS_FMT_UYVY8_1X16,	.datatype = 0x1e, .bpp = 16 },
-> > -	{ .code = MEDIA_BUS_FMT_UYVY8_2X8,	.datatype = 0x1e, .bpp = 16 },
-> > -	{ .code = MEDIA_BUS_FMT_YUYV10_2X10,	.datatype = 0x1e, .bpp = 16 },
-> > +	{ .datatype = 0x1e, .bpp = 16 },
-> > +	{ .datatype = 0x24, .bpp = 24 },
-> >  };
-> >
-> > -static const struct rcar_csi2_format *rcar_csi2_code_to_fmt(unsigned int code)
-> > +static const struct rcar_csi2_format
-> > +*rcar_csi2_datatype_to_fmt(unsigned int datatype)
-> >  {
-> >  	unsigned int i;
-> >
-> >  	for (i = 0; i < ARRAY_SIZE(rcar_csi2_formats); i++)
-> > -		if (rcar_csi2_formats[i].code == code)
-> > +		if (rcar_csi2_formats[i].datatype == datatype)
-> >  			return rcar_csi2_formats + i;
-> >
-> >  	return NULL;
-> > @@ -355,7 +353,7 @@ struct rcar_csi2 {
-> >  	struct v4l2_async_notifier notifier;
-> >  	struct v4l2_async_subdev remote;
-> >
-> > -	struct v4l2_mbus_framefmt mf;
-> > +	struct v4l2_mbus_framefmt mf[4];
-> >
-> >  	struct mutex lock;
-> >  	int stream_count[4];
-> > @@ -411,25 +409,14 @@ static int rcar_csi2_wait_phy_start(struct rcar_csi2 *priv)
-> >  	return -ETIMEDOUT;
-> >  }
-> >
-> > -static int rcar_csi2_calc_mbps(struct rcar_csi2 *priv, unsigned int bpp)
-> > +static int rcar_csi2_calc_mbps(struct rcar_csi2 *priv,
-> > +			       struct v4l2_subdev *source,
-> > +			       struct v4l2_mbus_frame_desc *fd)
-> >  {
-> > -	struct media_pad *pad, *source_pad;
-> > -	struct v4l2_subdev *source = NULL;
-> >  	struct v4l2_ctrl *ctrl;
-> > +	unsigned int i, bpp = 0;
-> >  	u64 mbps;
-> >
-> > -	/* Get remote subdevice */
-> > -	pad = &priv->subdev.entity.pads[RCAR_CSI2_SINK];
-> > -	source_pad = media_entity_remote_pad(pad);
-> > -	if (!source_pad) {
-> > -		dev_err(priv->dev, "Could not find remote source pad\n");
-> > -		return -ENODEV;
-> > -	}
-> > -	source = media_entity_to_v4l2_subdev(source_pad->entity);
-> > -
-> > -	dev_dbg(priv->dev, "Using source %s pad: %u\n", source->name,
-> > -		source_pad->index);
-> > -
-> >  	/* Read the pixel rate control from remote */
-> >  	ctrl = v4l2_ctrl_find(source->ctrl_handler, V4L2_CID_PIXEL_RATE);
-> >  	if (!ctrl) {
-> > @@ -438,6 +425,21 @@ static int rcar_csi2_calc_mbps(struct rcar_csi2 *priv, unsigned int bpp)
-> >  		return -EINVAL;
-> >  	}
-> >
-> > +	/* Calculate total bpp */
-> > +	for (i = 0; i < fd->num_entries; i++) {
-> > +		const struct rcar_csi2_format *format;
-> > +
-> > +		format = rcar_csi2_datatype_to_fmt(
-> > +					fd->entry[i].bus.csi2.data_type);
-> > +		if (!format) {
-> > +			dev_err(priv->dev, "Unknown data type: %d\n",
-> > +				fd->entry[i].bus.csi2.data_type);
-> > +			return -EINVAL;
-> > +		}
-> > +
-> > +		bpp += format->bpp;
-> > +	}
-> > +
-> >  	/* Calculate the phypll */
-> >  	mbps = v4l2_ctrl_g_ctrl_int64(ctrl) * bpp;
-> >  	do_div(mbps, priv->lanes * 1000000);
-> > @@ -489,39 +491,33 @@ static int rcar_csi2_set_phtw(struct rcar_csi2 *priv, unsigned int mbps)
-> >  	return 0;
-> >  }
-> >
-> > -static int rcar_csi2_start(struct rcar_csi2 *priv)
-> > +static int rcar_csi2_start(struct rcar_csi2 *priv, struct v4l2_subdev *source,
-> > +			   struct v4l2_mbus_frame_desc *fd)
 > 
-> I'm not sure I got this right, but with the new s_stream pad
-> operation, and with rcar-csi2 endpoints connected to differenct VIN
-> instances, is it possible for "rcar_csi2_s_stream()" to be called on
-> the same rcar-csi2 instance from different VIN instances?
+> Le 23/12/2017 à 16:57, Guenter Roeck a écrit :
+>> On 12/23/2017 05:48 AM, Greg KH wrote:
+>>> On Sat, Dec 23, 2017 at 06:55:25PM +0800, Yisheng Xie wrote:
+>>>> Hi all,
+>>>>
+>>>> When I tried to use devm_ioremap function and review related code, I found
+>>>> devm_ioremap and devm_ioremap_nocache is almost the same with each other,
+>>>> except one use ioremap while the other use ioremap_nocache.
+>>>
+>>> For all arches?  Really?  Look at MIPS, and x86, they have different
+>>> functions.
+>>>
+>>
+>> Both mips and x86 end up mapping the same function, but other arches don't.
+>> mn10300 is one where ioremap and ioremap_nocache are definitely different.
+> 
+> alpha: identical
+> arc: identical
+> arm: identical
+> arm64: identical
+> cris: different        <==
+> frv: identical
+> hexagone: identical
+> ia64: different        <==
+> m32r: identical
+> m68k: identical
+> metag: identical
+> microblaze: identical
+> mips: identical
+> mn10300: different     <==
+> nios: identical
+> openrisc: different    <==
+> parisc: identical
+> riscv: identical
+> s390: identical
+> sh: identical
+> sparc: identical
+> tile: identical
+> um: rely on asm/generic
+> unicore32: identical
+> x86: identical
+> asm/generic (no mmu): identical
 
-Yes, this is true even without this series. You can configure the same 
-CSI-2 and virtual channel to two different VIN instances and view the 
-same stream on both of them. You can also ofc start and stop both VIN 
-instances independently of each other.
+Wow, that's correct, sorry for I have just checked the main archs, I means
+x86,arm, arm64, mips.
+
+However, I stall have no idea about why these 4 archs want different ioremap
+function with others. Drivers seems cannot aware this? If driver call ioremap
+want he really want for there 4 archs, cache or nocache?
 
 > 
-> In that case you are calling "rcar_csi2_start()" the first time only from
-> "rcar_csi2_s_stream()":
+> So 4 among all arches seems to have ioremap() and ioremap_nocache() being different.
 > 
-> 	for (i = 0; i < 4; i++)
-> 		count += priv->stream_count[i];
-> 
-> 	if (enable && count == 0) {
-> 		pm_runtime_get_sync(priv->dev);
-> 
-> 		ret = rcar_csi2_start(priv, nextsd, &fd);
-> 
-> and the consequentially VCDT register never gets updated to accommodate
-> new routes.
+> Could we have a define set by the 4 arches on which ioremap() and ioremap_nocache() are different, something like HAVE_DIFFERENT_IOREMAP_NOCACHE ?
 
-Yes, this is true. And for the use-case so far this is OK. All streams 
-needs to be configured before the first stream is started. This is why 
-you get those nasty -EPIPE errors if they are not. No format, link or 
-route change is allowed while a stream is on going so that VCDT is not 
-updated on each new stream but only on the first one is intentional.
+Then, what the HAVE_DIFFERENT_IOREMAP_NOCACHE is uesed for ?
 
-But you bring up a good point, route changes are not disallowed in this 
-set whit an ongoing stream and that should be fixed :-) Media links are 
-already disallowed but somehow this constraint was lost to me when 
-routes where added, thanks.
-
+Thanks
+Yisheng
 > 
-> Thanks
->    j
+> Christophe
 > 
-> >  {
-> > -	const struct rcar_csi2_format *format;
-> > -	u32 phycnt, tmp;
-> > -	u32 vcdt = 0, vcdt2 = 0;
-> > +	u32 phycnt, vcdt = 0, vcdt2 = 0;
-> >  	unsigned int i;
-> >  	int mbps, ret;
-> >
-> > -	dev_dbg(priv->dev, "Input size (%ux%u%c)\n",
-> > -		priv->mf.width, priv->mf.height,
-> > -		priv->mf.field == V4L2_FIELD_NONE ? 'p' : 'i');
-> > -
-> > -	/* Code is validated in set_ftm */
-> > -	format = rcar_csi2_code_to_fmt(priv->mf.code);
-> > +	for (i = 0; i < fd->num_entries; i++) {
-> > +		struct v4l2_mbus_frame_desc_entry *entry = &fd->entry[i];
-> > +		u32 tmp;
-> >
-> > -	/*
-> > -	 * Enable all Virtual Channels
-> > -	 *
-> > -	 * NOTE: It's not possible to get individual datatype for each
-> > -	 *       source virtual channel. Once this is possible in V4L2
-> > -	 *       it should be used here.
-> > -	 */
-> > -	for (i = 0; i < 4; i++) {
-> > -		tmp = VCDT_SEL_VC(i) | VCDT_VCDTN_EN | VCDT_SEL_DTN_ON |
-> > -			VCDT_SEL_DT(format->datatype);
-> > +		tmp = VCDT_SEL_VC(entry->bus.csi2.channel) | VCDT_VCDTN_EN |
-> > +			VCDT_SEL_DTN_ON |
-> > +			VCDT_SEL_DT(entry->bus.csi2.data_type);
-> >
-> >  		/* Store in correct reg and offset */
-> > -		if (i < 2)
-> > -			vcdt |= tmp << ((i % 2) * 16);
-> > +		if (entry->bus.csi2.channel < 2)
-> > +			vcdt |= tmp << ((entry->bus.csi2.channel % 2) * 16);
-> >  		else
-> > -			vcdt2 |= tmp << ((i % 2) * 16);
-> > +			vcdt2 |= tmp << ((entry->bus.csi2.channel % 2) * 16);
-> > +
-> > +		dev_dbg(priv->dev, "VC%d datatype: 0x%x\n",
-> > +			entry->bus.csi2.channel, entry->bus.csi2.data_type);
-> >  	}
-> >
-> > +	dev_dbg(priv->dev, "VCDT: 0x%08x VCDT2: 0x%08x\n", vcdt, vcdt2);
-> > +
-> >  	switch (priv->lanes) {
-> >  	case 1:
-> >  		phycnt = PHYCNT_ENABLECLK | PHYCNT_ENABLE_0;
-> > @@ -537,7 +533,7 @@ static int rcar_csi2_start(struct rcar_csi2 *priv)
-> >  		return -EINVAL;
-> >  	}
-> >
-> > -	mbps = rcar_csi2_calc_mbps(priv, format->bpp);
-> > +	mbps = rcar_csi2_calc_mbps(priv, source, fd);
-> >  	if (mbps < 0)
-> >  		return mbps;
-> >
-> > @@ -686,7 +682,7 @@ static int rcar_csi2_s_stream(struct v4l2_subdev *sd, unsigned int pad,
-> >  	if (enable && count == 0) {
-> >  		pm_runtime_get_sync(priv->dev);
-> >
-> > -		ret = rcar_csi2_start(priv);
-> > +		ret = rcar_csi2_start(priv, nextsd, &fd);
-> >  		if (ret) {
-> >  			pm_runtime_put(priv->dev);
-> >  			goto out;
-> > @@ -720,14 +716,16 @@ static int rcar_csi2_set_pad_format(struct v4l2_subdev *sd,
-> >  {
-> >  	struct rcar_csi2 *priv = sd_to_csi2(sd);
-> >  	struct v4l2_mbus_framefmt *framefmt;
-> > +	int vc;
-> >
-> > -	if (!rcar_csi2_code_to_fmt(format->format.code))
-> > -		return -EINVAL;
-> > +	vc = rcar_csi2_pad_to_vc(format->pad);
-> > +	if (vc < 0)
-> > +		return vc;
-> >
-> >  	if (format->which == V4L2_SUBDEV_FORMAT_ACTIVE) {
-> > -		priv->mf = format->format;
-> > +		priv->mf[vc] = format->format;
-> >  	} else {
-> > -		framefmt = v4l2_subdev_get_try_format(sd, cfg, 0);
-> > +		framefmt = v4l2_subdev_get_try_format(sd, cfg, format->pad);
-> >  		*framefmt = format->format;
-> >  	}
-> >
-> > @@ -739,11 +737,17 @@ static int rcar_csi2_get_pad_format(struct v4l2_subdev *sd,
-> >  				    struct v4l2_subdev_format *format)
-> >  {
-> >  	struct rcar_csi2 *priv = sd_to_csi2(sd);
-> > +	int vc;
-> > +
-> > +	vc = rcar_csi2_pad_to_vc(format->pad);
-> > +	if (vc < 0)
-> > +		return vc;
-> >
-> >  	if (format->which == V4L2_SUBDEV_FORMAT_ACTIVE)
-> > -		format->format = priv->mf;
-> > +		format->format = priv->mf[vc];
-> >  	else
-> > -		format->format = *v4l2_subdev_get_try_format(sd, cfg, 0);
-> > +		format->format = *v4l2_subdev_get_try_format(sd, cfg,
-> > +							     format->pad);
-> >
-> >  	return 0;
-> >  }
-> > --
-> > 2.15.1
-> >
+>>
+>> Guenter
+>>
+>>>> While ioremap's
+>>>> default function is ioremap_nocache, so devm_ioremap_nocache also have the
+>>>> same function with devm_ioremap, which can just be killed to reduce the size
+>>>> of devres.o(from 20304 bytes to 18992 bytes in my compile environment).
+>>>>
+>>>> I have posted two versions, which use macro instead of function for
+>>>> devm_ioremap_nocache[1] or devm_ioremap[2]. And Greg suggest me to kill
+>>>> devm_ioremap_nocache for no need to keep a macro around for the duplicate
+>>>> thing. So here comes v3 and please help to review.
+>>>
+>>> I don't think this can be done, what am I missing?  These functions are
+>>> not identical, sorry for missing that before.
 
--- 
-Regards,
-Niklas S�derlund
+Never mind, I should checked all the arches, sorry about that.
+
+>>>
+>>> thanks,
+>>>
+>>> greg k-h
+>>>
+>>
+>> -- 
+>> To unsubscribe from this list: send the line "unsubscribe linux-watchdog" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> ---
+> L'absence de virus dans ce courrier électronique a été vérifiée par le logiciel antivirus Avast.
+> https://www.avast.com/antivirus
+> 
+> 
+> .
+> 
