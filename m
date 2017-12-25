@@ -1,96 +1,165 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:56865 "EHLO
-        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1754051AbdLDNpD (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 4 Dec 2017 08:45:03 -0500
-Subject: Re: [PATCH 0/9] media: imx: Add better OF graph support
-To: Steve Longerbeam <slongerbeam@gmail.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-        linux-kernel@vger.kernel.org,
-        Russell King <rmk+kernel@armlinux.org.uk>,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-References: <1509223009-6392-1-git-send-email-steve_longerbeam@mentor.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <c20882c4-8a61-c2b1-6664-171f9bfbcaa6@xs4all.nl>
-Date: Mon, 4 Dec 2017 14:44:57 +0100
+Received: from szxga05-in.huawei.com ([45.249.212.191]:2777 "EHLO huawei.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1751097AbdLYBew (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 24 Dec 2017 20:34:52 -0500
+Subject: Re: [PATCH v3 00/27] kill devm_ioremap_nocache
+To: christophe leroy <christophe.leroy@c-s.fr>,
+        Greg KH <gregkh@linuxfoundation.org>
+References: <1514026525-32538-1-git-send-email-xieyisheng1@huawei.com>
+ <20171223134831.GB10103@kroah.com>
+ <b8ff7f17-7f2c-f220-9833-7ae5bd7343d5@c-s.fr>
+CC: <linux-kernel@vger.kernel.org>, <ysxie@foxmail.com>,
+        <ulf.hansson@linaro.org>, <linux-mmc@vger.kernel.org>,
+        <boris.brezillon@free-electrons.com>, <richard@nod.at>,
+        <marek.vasut@gmail.com>, <cyrille.pitchen@wedev4u.fr>,
+        <linux-mtd@lists.infradead.org>, <alsa-devel@alsa-project.org>,
+        <wim@iguana.be>, <linux@roeck-us.net>,
+        <linux-watchdog@vger.kernel.org>, <b.zolnierkie@samsung.com>,
+        <linux-fbdev@vger.kernel.org>, <linus.walleij@linaro.org>,
+        <linux-gpio@vger.kernel.org>, <ralf@linux-mips.org>,
+        <linux-mips@linux-mips.org>, <lgirdwood@gmail.com>,
+        <broonie@kernel.org>, <tglx@linutronix.de>, <jason@lakedaemon.net>,
+        <marc.zyngier@arm.com>, <arnd@arndb.de>,
+        <andriy.shevchenko@linux.intel.com>,
+        <industrypack-devel@lists.sourceforge.net>, <wg@grandegger.com>,
+        <mkl@pengutronix.de>, <linux-can@vger.kernel.org>,
+        <mchehab@kernel.org>, <linux-media@vger.kernel.org>,
+        <a.zummo@towertech.it>, <alexandre.belloni@free-electrons.com>,
+        <linux-rtc@vger.kernel.org>, <daniel.vetter@intel.com>,
+        <jani.nikula@linux.intel.com>, <seanpaul@chromium.org>,
+        <airlied@linux.ie>, <dri-devel@lists.freedesktop.org>,
+        <kvalo@codeaurora.org>, <linux-wireless@vger.kernel.org>,
+        <linux-spi@vger.kernel.org>, <tj@kernel.org>,
+        <linux-ide@vger.kernel.org>, <bhelgaas@google.com>,
+        <linux-pci@vger.kernel.org>, <devel@driverdev.osuosl.org>,
+        <dvhart@infradead.org>, <andy@infradead.org>,
+        <platform-driver-x86@vger.kernel.org>,
+        <jakub.kicinski@netronome.com>, <davem@davemloft.net>,
+        <nios2-dev@lists.rocketboards.org>, <netdev@vger.kernel.org>,
+        <vinod.koul@intel.com>, <dan.j.williams@intel.com>,
+        <dmaengine@vger.kernel.org>, <jslaby@suse.com>
+From: Yisheng Xie <xieyisheng1@huawei.com>
+Message-ID: <8dd19411-5b06-0aa4-fd0e-e5b112c25dcb@huawei.com>
+Date: Mon, 25 Dec 2017 09:34:25 +0800
 MIME-Version: 1.0
-In-Reply-To: <1509223009-6392-1-git-send-email-steve_longerbeam@mentor.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <b8ff7f17-7f2c-f220-9833-7ae5bd7343d5@c-s.fr>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Steve,
 
-On 10/28/2017 10:36 PM, Steve Longerbeam wrote:
-> This is a set of patches that improve support for more complex OF
-> graphs. Currently the imx-media driver only supports a single device
-> with a single port connected directly to either the CSI muxes or the
-> MIPI CSI-2 receiver input ports. There can't be a multi-port device in
-> between. This patch set removes those limitations.
-> 
-> For an example taken from automotive, a camera sensor or decoder could
-> be literally a remote device accessible over a FPD-III link, via TI
-> DS90Ux9xx deserializer/serializer pairs. This patch set would support
-> such OF graphs.
-> 
-> There are still some assumptions and restrictions, regarding the equivalence
-> of device-tree ports, port parents, and endpoints to media pads, entities,
-> and links that have been enumerated in the TODO file.
 
-Before I merge this patch series I wanted to know if Sakari's async work
-that has now been merged (see https://www.spinics.net/lists/linux-media/msg124082.html)
-affects this patch series.
+On 2017/12/24 17:05, christophe leroy wrote:
+> 
+> 
+> Le 23/12/2017 à 14:48, Greg KH a écrit :
+>> On Sat, Dec 23, 2017 at 06:55:25PM +0800, Yisheng Xie wrote:
+>>> Hi all,
+>>>
+>>> When I tried to use devm_ioremap function and review related code, I found
+>>> devm_ioremap and devm_ioremap_nocache is almost the same with each other,
+>>> except one use ioremap while the other use ioremap_nocache.
+>>
+>> For all arches?  Really?  Look at MIPS, and x86, they have different
+>> functions.
+>>
+>>> While ioremap's
+>>> default function is ioremap_nocache, so devm_ioremap_nocache also have the
+>>> same function with devm_ioremap, which can just be killed to reduce the size
+>>> of devres.o(from 20304 bytes to 18992 bytes in my compile environment).
+>>>
+>>> I have posted two versions, which use macro instead of function for
+>>> devm_ioremap_nocache[1] or devm_ioremap[2]. And Greg suggest me to kill
+>>> devm_ioremap_nocache for no need to keep a macro around for the duplicate
+>>> thing. So here comes v3 and please help to review.
+>>
+>> I don't think this can be done, what am I missing?  These functions are
+>> not identical, sorry for missing that before.
+> 
+> devm_ioremap() and devm_ioremap_nocache() are quite similar, both use devm_ioremap_release() for the release, why not just defining:
+> 
+> static void __iomem *__devm_ioremap(struct device *dev, resource_size_t offset,
+>                resource_size_t size, bool nocache)
+> {
+> [...]
+>     if (nocache)
+>         addr = ioremap_nocache(offset, size);
+>     else
+>         addr = ioremap(offset, size);
+> [...]
+> }
+> 
+> then in include/linux/io.h
+> 
+> static inline void __iomem *devm_ioremap(struct device *dev, resource_size_t offset,
+>                resource_size_t size)
+> {return __devm_ioremap(dev, offset, size, false);}
+> 
+> static inline void __iomem *devm_ioremap_nocache(struct device *dev, resource_size_t offset,
+>                    resource_size_t size);
+> {return __devm_ioremap(dev, offset, size, true);}
 
-It still applies cleanly, but I wondered if the subnotifier improvements
-would simplify this driver.
+Yeah, this seems good to me, right now we have devm_ioremap, devm_ioremap_wc, devm_ioremap_nocache
+May be we can use an enum like:
+typedef enum {
+	DEVM_IOREMAP = 0,
+	DEVM_IOREMAP_NOCACHE,
+	DEVM_IOREMAP_WC,
+} devm_ioremap_type;
 
-Of course, any such simplification can also be done after this series has
-been applied, but I don't know what your thoughts are on this.
+static inline void __iomem *devm_ioremap(struct device *dev, resource_size_t offset,
+                resource_size_t size)
+ {return __devm_ioremap(dev, offset, size, DEVM_IOREMAP);}
 
-Regards,
+ static inline void __iomem *devm_ioremap_nocache(struct device *dev, resource_size_t offset,
+                    resource_size_t size);
+ {return __devm_ioremap(dev, offset, size, DEVM_IOREMAP_NOCACHE);}
 
-	Hans
+ static inline void __iomem *devm_ioremap_wc(struct device *dev, resource_size_t offset,
+                    resource_size_t size);
+ {return __devm_ioremap(dev, offset, size, DEVM_IOREMAP_WC);}
 
-> This patch set supersedes the following patches submitted earlier:
+ static void __iomem *__devm_ioremap(struct device *dev, resource_size_t offset,
+                resource_size_t size, devm_ioremap_type type)
+ {
+     void __iomem **ptr, *addr = NULL;
+ [...]
+     switch (type){
+     case DEVM_IOREMAP:
+         addr = ioremap(offset, size);
+         break;
+     case DEVM_IOREMAP_NOCACHE:
+         addr = ioremap_nocache(offset, size);
+         break;
+     case DEVM_IOREMAP_WC:
+         addr = ioremap_wc(offset, size);
+         break;
+     }
+ [...]
+ }
+
+Thanks
+Yisheng
+
 > 
-> "[PATCH v2] media: staging/imx: do not return error in link_notify for unknown sources"
-> "[PATCH RFC] media: staging/imx: fix complete handler"
+> Christophe
 > 
-> Tested by: Steve Longerbeam <steve_longerbeam@mentor.com>
-> on SabreLite with the OV5640
+>>
+>> thanks,
+>>
+>> greg k-h
+>> -- 
+>> To unsubscribe from this list: send the line "unsubscribe linux-watchdog" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
 > 
-> Tested-by: Philipp Zabel <p.zabel@pengutronix.de>
-> on Nitrogen6X with the TC358743.
-> 
-> Tested-by: Russell King <rmk+kernel@armlinux.org.uk>
-> with the IMX219
+> ---
+> L'absence de virus dans ce courrier électronique a été vérifiée par le logiciel antivirus Avast.
+> https://www.avast.com/antivirus
 > 
 > 
-> Steve Longerbeam (9):
->   media: staging/imx: get CSI bus type from nearest upstream entity
->   media: staging/imx: remove static media link arrays
->   media: staging/imx: of: allow for recursing downstream
->   media: staging/imx: remove devname string from imx_media_subdev
->   media: staging/imx: pass fwnode handle to find/add async subdev
->   media: staging/imx: remove static subdev arrays
->   media: staging/imx: convert static vdev lists to list_head
->   media: staging/imx: reorder function prototypes
->   media: staging/imx: update TODO
-> 
->  drivers/staging/media/imx/TODO                    |  63 +++-
->  drivers/staging/media/imx/imx-ic-prp.c            |   4 +-
->  drivers/staging/media/imx/imx-media-capture.c     |   2 +
->  drivers/staging/media/imx/imx-media-csi.c         | 187 +++++-----
->  drivers/staging/media/imx/imx-media-dev.c         | 400 ++++++++++------------
->  drivers/staging/media/imx/imx-media-internal-sd.c | 253 +++++++-------
->  drivers/staging/media/imx/imx-media-of.c          | 278 ++++++++-------
->  drivers/staging/media/imx/imx-media-utils.c       | 122 +++----
->  drivers/staging/media/imx/imx-media.h             | 187 ++++------
->  9 files changed, 722 insertions(+), 774 deletions(-)
+> .
 > 
