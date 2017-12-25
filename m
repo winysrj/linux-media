@@ -1,102 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:40259 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751910AbdLMMgd (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 13 Dec 2017 07:36:33 -0500
-Date: Wed, 13 Dec 2017 10:36:20 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Subject: Re: [GIT PULL for v4.15-rc3] media fixes
-Message-ID: <20171213103620.6e34c124@vento.lan>
-In-Reply-To: <CAMuHMdV2gKwwDggOwqqXSGDowJNhxxyT9CJuBfFB3LUHZBYE-A@mail.gmail.com>
-References: <20171208135650.3f385c45@vento.lan>
-        <CA+55aFwBvXVQavgwDKVV3epFhd4MTaQvDktpDahkPhxweXnMmQ@mail.gmail.com>
-        <20171211091223.2ba10fb1@vento.lan>
-        <CAMuHMdUkHda_=7oUrPvOLG9Tt8ZdosQJa2mFkMeoLMjhrVV3PA@mail.gmail.com>
-        <20171213095315.437ecf2f@vento.lan>
-        <CAMuHMdV2gKwwDggOwqqXSGDowJNhxxyT9CJuBfFB3LUHZBYE-A@mail.gmail.com>
+Received: from szxga04-in.huawei.com ([45.249.212.190]:2726 "EHLO huawei.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1751112AbdLYBoG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 24 Dec 2017 20:44:06 -0500
+Subject: Re: [PATCH v3 27/27] devres: kill devm_ioremap_nocache
+To: Greg KH <gregkh@linuxfoundation.org>
+References: <1514026979-33838-1-git-send-email-xieyisheng1@huawei.com>
+ <20171223134532.GA10103@kroah.com>
+CC: <linux-kernel@vger.kernel.org>, <linux-mips@linux-mips.org>,
+        <ulf.hansson@linaro.org>, <jakub.kicinski@netronome.com>,
+        <airlied@linux.ie>, <linux-wireless@vger.kernel.org>,
+        <linus.walleij@linaro.org>, <alsa-devel@alsa-project.org>,
+        <dri-devel@lists.freedesktop.org>,
+        <platform-driver-x86@vger.kernel.org>, <linux-ide@vger.kernel.org>,
+        <linux-mtd@lists.infradead.org>, <daniel.vetter@intel.com>,
+        <dan.j.williams@intel.com>, <jason@lakedaemon.net>,
+        <linux-rtc@vger.kernel.org>, <boris.brezillon@free-electrons.com>,
+        <mchehab@kernel.org>, <dmaengine@vger.kernel.org>,
+        <vinod.koul@intel.com>, <richard@nod.at>, <marek.vasut@gmail.com>,
+        <industrypack-devel@lists.sourceforge.net>,
+        <linux-pci@vger.kernel.org>, <dvhart@infradead.org>,
+        <linux@roeck-us.net>, <linux-media@vger.kernel.org>,
+        <seanpaul@chromium.org>, <devel@driverdev.osuosl.org>,
+        <linux-watchdog@vger.kernel.org>, <arnd@arndb.de>,
+        <b.zolnierkie@samsung.com>, <marc.zyngier@arm.com>,
+        <jslaby@suse.com>, <jani.nikula@linux.intel.com>,
+        <linux-can@vger.kernel.org>, <linux-gpio@vger.kernel.org>,
+        <broonie@kernel.org>, <mkl@pengutronix.de>,
+        <linux-fbdev@vger.kernel.org>, <nios2-dev@lists.rocketboards.org>,
+        <bhelgaas@google.com>, <tglx@linutronix.de>,
+        <andriy.shevchenko@linux.intel.com>, <kvalo@codeaurora.org>,
+        <a.zummo@towertech.it>, <netdev@vger.kernel.org>,
+        <linux-mmc@vger.kernel.org>, <lgirdwood@gmail.com>,
+        <ralf@linux-mips.org>, <linux-spi@vger.kernel.org>,
+        <ysxie@foxmail.com>, <wg@grandegger.com>,
+        <cyrille.pitchen@wedev4u.fr>, <tj@kernel.org>,
+        <alexandre.belloni@free-electrons.com>, <davem@davemloft.net>,
+        <andy@infradead.org>
+From: Yisheng Xie <xieyisheng1@huawei.com>
+Message-ID: <4d0991ec-9cd4-0c33-5560-ae9c2c762765@huawei.com>
+Date: Mon, 25 Dec 2017 09:43:40 +0800
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+In-Reply-To: <20171223134532.GA10103@kroah.com>
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 13 Dec 2017 13:27:47 +0100
-Geert Uytterhoeven <geert@linux-m68k.org> escreveu:
-
-> Hi Mauro,
-> 
-> On Wed, Dec 13, 2017 at 12:53 PM, Mauro Carvalho Chehab
-> <mchehab@osg.samsung.com> wrote:
-> > Em Wed, 13 Dec 2017 10:03:56 +0100
-> > Geert Uytterhoeven <geert@linux-m68k.org> escreveu:  
-> >> On Mon, Dec 11, 2017 at 12:12 PM, Mauro Carvalho Chehab
-> >> <mchehab@osg.samsung.com> wrote:  
-> >> > Without this series, I was getting 809 lines of bogus warnings (see below),
-> >> > with was preventing me to see new warnings on my incremental builds
-> >> > while applying new patches at the media tree.  
-> >>
-> >> $ linux-log-diff build.log{.old,}
-> >>
-> >> (from https://github.com/geertu/linux-scripts)  
-> >
-> > That's nice!
-> >
-> > Yet, it is producing some noise. I did a clean build with:
-> >
-> > $ make ARCH=i386  CF=-D__CHECK_ENDIAN__ CONFIG_DEBUG_SECTION_MISMATCH=y W=1 CHECK='' M=drivers/staging/media | grep -v -e " CC " -e " LD " -e " AR " -e " CHK " -e " CALL " -e " UPD " -e "scripts/kconfig/conf " -e " CHECK " >old.log
-> > $ make ARCH=i386  CF=-D__CHECK_ENDIAN__ CONFIG_DEBUG_SECTION_MISMATCH=y W=1 CHECK='' M=drivers/media| grep -v -e " CC " -e " LD " -e " AR " -e " CHK " -e " CALL " -e " UPD " -e "scripts/kconfig/conf " -e " CHECK "  >>old.log
-> >
-> > and added a new uninitialized "foo" var to a random driver, doing an
-> > incremental build with:
-> >
-> > $ make ARCH=i386  CF=-D__CHECK_ENDIAN__ CONFIG_DEBUG_SECTION_MISMATCH=y W=1 CHECK='' | grep -v -e " CC " -e " LD " -e " AR " -e " CHK " -e " CALL " -e " UPD " -e "scripts/kconfig/conf " -e " CHECK " M=drivers/staging/media >new.log
-> > $ make ARCH=i386  CF=-D__CHECK_ENDIAN__ CONFIG_DEBUG_SECTION_MISMATCH=y W=1 CHECK='' | grep -v -e " CC " -e " LD " -e " AR " -e " CHK " -e " CALL " -e " UPD " -e "scripts/kconfig/conf " -e " CHECK " M=drivers/media >new.log
-> >
-> > Then, I ran the script:
-> >
-> > $ linux-log-diff old.log new.log
-> >
-> > *** ERRORS ***
-> >
-> >
-> > *** WARNINGS ***
-> >
-> > 1 warning regressions:
-> >   + drivers/media/dvb-frontends/dibx000_common.c: warning: unused variable 'foo' [-Wunused-variable]:  => 22:5
-> >
-> > 3 warning improvements:
-> >   - ./arch/x86/include/asm/bitops.h: warning: asm output is not an lvalue: 430:22 =>
-> >   - drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_common/host/mmu_private.h: warning: function 'mmu_reg_load' with external linkage has definition: 35:30 =>
-> >   - drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_common/host/mmu_private.h: warning: function 'mmu_reg_store' with external linkage has definition: 24:26 =>
-> >
-> > It detected the "foo" var warning, but it outputs 3 warning improvements
-> > on files that were not even built the second time.  
-> 
-> If the file wasn't built, the warning cannot be in the log ;-)
-> So yes, it works best for full builds, only flagging warnings that
-> (dis)appeared (and ignoring changes due to changed line numbers!).
-> 
-> If you do lots of incremental builds, you want to append the last incremental
-> log to the existing full log before doing a new build, to avoid false positives
-> from files that weren't built in the previous run:
-> 
->     $ cat new.log >> old.log
->     $ make ... > new.log
->     $ linux-log-diff old.log new.log
-> 
-> And only new warnings should be reported.
-
-Ok. I'll do some trials with this script, as it sounds promising!
-
-Regards,
-Mauro
 
 
--- 
-Thanks,
-Mauro
+On 2017/12/23 21:45, Greg KH wrote:
+> On Sat, Dec 23, 2017 at 07:02:59PM +0800, Yisheng Xie wrote:
+>> --- a/lib/devres.c
+>> +++ b/lib/devres.c
+>> @@ -44,35 +44,6 @@ void __iomem *devm_ioremap(struct device *dev, resource_size_t offset,
+>>  EXPORT_SYMBOL(devm_ioremap);
+>>  
+>>  /**
+>> - * devm_ioremap_nocache - Managed ioremap_nocache()
+>> - * @dev: Generic device to remap IO address for
+>> - * @offset: Resource address to map
+>> - * @size: Size of map
+>> - *
+>> - * Managed ioremap_nocache().  Map is automatically unmapped on driver
+>> - * detach.
+>> - */
+>> -void __iomem *devm_ioremap_nocache(struct device *dev, resource_size_t offset,
+>> -				   resource_size_t size)
+>> -{
+>> -	void __iomem **ptr, *addr;
+>> -
+>> -	ptr = devres_alloc(devm_ioremap_release, sizeof(*ptr), GFP_KERNEL);
+>> -	if (!ptr)
+>> -		return NULL;
+>> -
+>> -	addr = ioremap_nocache(offset, size);
+> 
+> Wait, devm_ioremap() calls ioremap(), not ioremap_nocache(), are you
+> _SURE_ that these are all identical?  For all arches?  If so, then
+> ioremap_nocache() can also be removed, right?
+
+Yeah, As Christophe pointed out, that 4 archs do not have the same function.
+But I do not why they do not want do the same thing. Driver may no know about
+this? right?
+
+> 
+> In my quick glance, I don't think you can do this series at all :(
+
+Yes, maybe should take Christophe suggestion and use a bool or enum to distinguish them?
+
+Thanks
+Yisheng
+> 
+> greg k-h
+> 
+> .
+> 
