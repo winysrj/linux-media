@@ -1,106 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:24570 "EHLO mga02.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751171AbdLSUhE (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 19 Dec 2017 15:37:04 -0500
-Message-ID: <1513715821.7000.228.camel@linux.intel.com>
-Subject: Re: [BUG] atomisp_ov2680 not initializing correctly
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>,
-        Kristian Beilke <beilke@posteo.de>
-Cc: linux-media@vger.kernel.org, alan@linux.intel.com
-Date: Tue, 19 Dec 2017 22:37:01 +0200
-In-Reply-To: <20171219120020.w7byb7bv3hhzn2jb@valkosipuli.retiisi.org.uk>
-References: <42dfd60f-2534-b9cd-eeab-3110d58ef7c0@posteo.de>
-         <20171219120020.w7byb7bv3hhzn2jb@valkosipuli.retiisi.org.uk>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mail-wr0-f196.google.com ([209.85.128.196]:42587 "EHLO
+        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751357AbdLZXiG (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 26 Dec 2017 18:38:06 -0500
+Received: by mail-wr0-f196.google.com with SMTP id w107so9724046wrb.9
+        for <linux-media@vger.kernel.org>; Tue, 26 Dec 2017 15:38:06 -0800 (PST)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: linux-media@vger.kernel.org, mchehab@kernel.org,
+        mchehab@s-opensource.com
+Cc: Ralph Metzler <rjkm@metzlerbros.de>
+Subject: [PATCH 3/4] [media] dvb-frontends/stv0910: field and register access helpers
+Date: Wed, 27 Dec 2017 00:37:58 +0100
+Message-Id: <20171226233759.16116-4-d.scheller.oss@gmail.com>
+In-Reply-To: <20171226233759.16116-1-d.scheller.oss@gmail.com>
+References: <20171226233759.16116-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 2017-12-19 at 14:00 +0200, Sakari Ailus wrote:
-> Cc Alan and Andy.
-> 
-> On Sat, Dec 16, 2017 at 04:50:04PM +0100, Kristian Beilke wrote:
-> > Dear all,
-> > 
-> > I am trying to get the cameras in a Lenovo IdeaPad Miix 320 (Atom
-> > x5-Z8350 BayTrail) to work. The front camera is an ov2680. With
-> > kernel
-> > 4.14.4 and 4.15rc3 I see the following dmesg output:
+From: Daniel Scheller <d.scheller@gmx.net>
 
-It seems I forgot to send the rest of the patches I did while ago
-against AtomISP code.
+Add a write_field() function that acts as helper to update specific bits
+specified in the field defines (FSTV0910_*) in stv0910_regs.h, which was
+recently updated to carry the missing offset values. With that, add the
+SET_FIELD(), SET_REG() and GET_REG() macros that wrap the write_field(),
+write_reg() and read_reg() functions to allow for making all demod
+access code cleaner.
 
-It includes switch to normal DMI matching instead of the crap we have
-there right now.
+The write_field() function is annotated with __maybe_unused temporarily
+to silence eventual compile warnings.
 
-WRT to the messages below it seems we have no platform data for that
-device. It needs to be added.
+Picked up from the dddvb upstream, with the macro names made uppercase
+so they are distinguishable as such.
 
-In any case, I have no firmware to test BayTrail hardware I have (MRD7).
+Cc: Ralph Metzler <rjkm@metzlerbros.de>
+Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+---
+ drivers/media/dvb-frontends/stv0910.c | 28 ++++++++++++++++++++++++++++
+ 1 file changed, 28 insertions(+)
 
-The driver claims it needs:
-
-Firmware file: shisp_2400b0_v21.bin
-Version string: irci_stable_candrpv_0415_20150521_0458
-
-What I have is:
-
-Version string: irci_stable_candrpv_0415_20150423_1753
-SHA1: 548d26a9b5daedbeb59a46ea1da69757d92cd4d6  shisp_2400b0_v21.bin
-
-> > [   21.469907] ov2680: module is from the staging directory, the
-> > quality
-> >  is unknown, you have been warned.
-> > [   21.492774] ov2680 i2c-OVTI2680:00: gmin: initializing atomisp
-> > module
-> > subdev data.PMIC ID 1
-> > [   21.492891] acpi OVTI2680:00: Failed to find gmin variable
-> > OVTI2680:00_CamClk
-> > [   21.492974] acpi OVTI2680:00: Failed to find gmin variable
-> > OVTI2680:00_ClkSrc
-> > [   21.493090] acpi OVTI2680:00: Failed to find gmin variable
-> > OVTI2680:00_CsiPort
-> > [   21.493209] acpi OVTI2680:00: Failed to find gmin variable
-> > OVTI2680:00_CsiLanes
-> > [   21.493511] ov2680 i2c-OVTI2680:00: i2c-OVTI2680:00 supply V1P8SX
-> > not
-> > found, using dummy regulator
-> > [   21.493550] ov2680 i2c-OVTI2680:00: i2c-OVTI2680:00 supply V2P8SX
-> > not
-> > found, using dummy regulator
-> > [   21.493569] ov2680 i2c-OVTI2680:00: i2c-OVTI2680:00 supply V1P2A
-> > not
-> > found, using dummy regulator
-> > [   21.493585] ov2680 i2c-OVTI2680:00: i2c-OVTI2680:00 supply
-> > VPROG4B
-> > not found, using dummy regulator
-> > [   21.568134] ov2680 i2c-OVTI2680:00: camera pdata: port: 0 lanes:
-> > 1
-> > order: 00000002
-> > [   21.568257] ov2680 i2c-OVTI2680:00: read from offset 0x300a error
-> > -121
-> > [   21.568265] ov2680 i2c-OVTI2680:00: sensor_id_high = 0xffff
-> > [   21.568269] ov2680 i2c-OVTI2680:00: ov2680_detect err s_config.
-> > [   21.568291] ov2680 i2c-OVTI2680:00: sensor power-gating failed
-> > 
-> > Afterwards I do not get a camera device.
-> > 
-> > Am I missing some firmware or dependency?
-
-See above.
-
-> >  Can I somehow help to improve
-> > the driver?
-
-Yes, definitely, but first of all we need to find at least one device
-and corresponding firmware where it actually works.
-
-For me it doesn't generate any interrupt (after huge hacking to make
-that firmware loaded and settings / platform data applied).
-
+diff --git a/drivers/media/dvb-frontends/stv0910.c b/drivers/media/dvb-frontends/stv0910.c
+index 06d2587125dd..5fed22685e28 100644
+--- a/drivers/media/dvb-frontends/stv0910.c
++++ b/drivers/media/dvb-frontends/stv0910.c
+@@ -194,6 +194,34 @@ static int write_shared_reg(struct stv *state, u16 reg, u8 mask, u8 val)
+ 	return status;
+ }
+ 
++static int __maybe_unused write_field(struct stv *state, u32 field, u8 val)
++{
++	int status;
++	u8 shift, mask, old, new;
++
++	status = read_reg(state, field >> 16, &old);
++	if (status)
++		return status;
++	mask = field & 0xff;
++	shift = (field >> 12) & 0xf;
++	new = ((val << shift) & mask) | (old & ~mask);
++	if (new == old)
++		return 0;
++	return write_reg(state, field >> 16, new);
++}
++
++#define SET_FIELD(_reg, _val)					\
++	write_field(state, state->nr ? FSTV0910_P2_##_reg :	\
++		    FSTV0910_P1_##_reg, _val)
++
++#define SET_REG(_reg, _val)					\
++	write_reg(state, state->nr ? RSTV0910_P2_##_reg :	\
++		  RSTV0910_P1_##_reg, _val)
++
++#define GET_REG(_reg, _val)					\
++	read_reg(state, state->nr ? RSTV0910_P2_##_reg :	\
++		 RSTV0910_P1_##_reg, _val)
++
+ static const struct slookup s1_sn_lookup[] = {
+ 	{   0,    9242  }, /* C/N=   0dB */
+ 	{   5,    9105  }, /* C/N= 0.5dB */
 -- 
-Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Intel Finland Oy
+2.13.6
