@@ -1,286 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:43583 "EHLO
-        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752647AbdLDJrv (ORCPT
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:38398 "EHLO
+        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751122AbdLZXiF (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 4 Dec 2017 04:47:51 -0500
-Subject: Re: [PATCH v8 04/28] rcar-vin: move subdevice handling to async
- callbacks
-To: =?UTF-8?Q?Niklas_S=c3=b6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>
-References: <20171129194342.26239-1-niklas.soderlund+renesas@ragnatech.se>
- <20171129194342.26239-5-niklas.soderlund+renesas@ragnatech.se>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <eaae0c05-dcbe-165e-c20e-e71ba0cc6c29@xs4all.nl>
-Date: Mon, 4 Dec 2017 10:47:46 +0100
-MIME-Version: 1.0
-In-Reply-To: <20171129194342.26239-5-niklas.soderlund+renesas@ragnatech.se>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 8bit
+        Tue, 26 Dec 2017 18:38:05 -0500
+Received: by mail-wm0-f66.google.com with SMTP id 64so36828826wme.3
+        for <linux-media@vger.kernel.org>; Tue, 26 Dec 2017 15:38:05 -0800 (PST)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: linux-media@vger.kernel.org, mchehab@kernel.org,
+        mchehab@s-opensource.com
+Cc: Ralph Metzler <rjkm@metzlerbros.de>
+Subject: [PATCH 2/4] [media] dvb-frontends/stv0910: cleanup I2C access functions
+Date: Wed, 27 Dec 2017 00:37:57 +0100
+Message-Id: <20171226233759.16116-3-d.scheller.oss@gmail.com>
+In-Reply-To: <20171226233759.16116-1-d.scheller.oss@gmail.com>
+References: <20171226233759.16116-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/29/2017 08:43 PM, Niklas Söderlund wrote:
-> In preparation for Gen3 support move the subdevice initialization and
-> clean up from rvin_v4l2_{register,unregister}() directly to the async
-> callbacks. This simplifies the addition of Gen3 support as the
-> rvin_v4l2_register() can be shared for both Gen2 and Gen3 while direct
-> subdevice control are only used on Gen2.
-> 
-> While moving this code drop a large comment which is copied from the
-> framework documentation and fold rvin_mbus_supported() into its only
-> caller.
-> 
-> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+From: Daniel Scheller <d.scheller@gmx.net>
 
-Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+write_reg() and i2c_write_reg16() only act as a proxy to i2c_write(), which
+isn't called from anywhere else throughout the driver. Clean this up by
+moving the message setup and the i2c_transfer() into write_reg() so it
+becomes the only I2C write function. While touching those parts, fix the
+error codes from EREMOTEIO to EIO.
 
-Regards,
+The I2C cleanup is picked from the upstream dddvb.
 
-	Hans
+Cc: Ralph Metzler <rjkm@metzlerbros.de>
+Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+---
+ drivers/media/dvb-frontends/stv0910.c | 28 ++++++++--------------------
+ 1 file changed, 8 insertions(+), 20 deletions(-)
 
-> ---
->  drivers/media/platform/rcar-vin/rcar-core.c | 105 ++++++++++++++++++----------
->  drivers/media/platform/rcar-vin/rcar-v4l2.c |  35 ----------
->  2 files changed, 67 insertions(+), 73 deletions(-)
-> 
-> diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
-> index 6d99542ec74b49a7..6ab51acd676641ec 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-core.c
-> +++ b/drivers/media/platform/rcar-vin/rcar-core.c
-> @@ -46,47 +46,11 @@ static int rvin_find_pad(struct v4l2_subdev *sd, int direction)
->  	return -EINVAL;
->  }
->  
-> -static bool rvin_mbus_supported(struct rvin_graph_entity *entity)
-> -{
-> -	struct v4l2_subdev *sd = entity->subdev;
-> -	struct v4l2_subdev_mbus_code_enum code = {
-> -		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
-> -	};
-> -
-> -	code.index = 0;
-> -	code.pad = entity->source_pad;
-> -	while (!v4l2_subdev_call(sd, pad, enum_mbus_code, NULL, &code)) {
-> -		code.index++;
-> -		switch (code.code) {
-> -		case MEDIA_BUS_FMT_YUYV8_1X16:
-> -		case MEDIA_BUS_FMT_UYVY8_2X8:
-> -		case MEDIA_BUS_FMT_UYVY10_2X10:
-> -		case MEDIA_BUS_FMT_RGB888_1X24:
-> -			entity->code = code.code;
-> -			return true;
-> -		default:
-> -			break;
-> -		}
-> -	}
-> -
-> -	return false;
-> -}
-> -
->  static int rvin_digital_notify_complete(struct v4l2_async_notifier *notifier)
->  {
->  	struct rvin_dev *vin = notifier_to_vin(notifier);
->  	int ret;
->  
-> -	/* Verify subdevices mbus format */
-> -	if (!rvin_mbus_supported(vin->digital)) {
-> -		vin_err(vin, "Unsupported media bus format for %s\n",
-> -			vin->digital->subdev->name);
-> -		return -EINVAL;
-> -	}
-> -
-> -	vin_dbg(vin, "Found media bus format for %s: %d\n",
-> -		vin->digital->subdev->name, vin->digital->code);
-> -
->  	ret = v4l2_device_register_subdev_nodes(&vin->v4l2_dev);
->  	if (ret < 0) {
->  		vin_err(vin, "Failed to register subdev nodes\n");
-> @@ -103,8 +67,16 @@ static void rvin_digital_notify_unbind(struct v4l2_async_notifier *notifier,
->  	struct rvin_dev *vin = notifier_to_vin(notifier);
->  
->  	vin_dbg(vin, "unbind digital subdev %s\n", subdev->name);
-> +
-> +	mutex_lock(&vin->lock);
-> +
->  	rvin_v4l2_unregister(vin);
-> +	v4l2_ctrl_handler_free(&vin->ctrl_handler);
-> +
-> +	vin->vdev.ctrl_handler = NULL;
->  	vin->digital->subdev = NULL;
-> +
-> +	mutex_unlock(&vin->lock);
->  }
->  
->  static int rvin_digital_notify_bound(struct v4l2_async_notifier *notifier,
-> @@ -112,12 +84,14 @@ static int rvin_digital_notify_bound(struct v4l2_async_notifier *notifier,
->  				     struct v4l2_async_subdev *asd)
->  {
->  	struct rvin_dev *vin = notifier_to_vin(notifier);
-> +	struct v4l2_subdev_mbus_code_enum code = {
-> +		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
-> +	};
->  	int ret;
->  
->  	v4l2_set_subdev_hostdata(subdev, vin);
->  
->  	/* Find source and sink pad of remote subdevice */
-> -
->  	ret = rvin_find_pad(subdev, MEDIA_PAD_FL_SOURCE);
->  	if (ret < 0)
->  		return ret;
-> @@ -126,21 +100,74 @@ static int rvin_digital_notify_bound(struct v4l2_async_notifier *notifier,
->  	ret = rvin_find_pad(subdev, MEDIA_PAD_FL_SINK);
->  	vin->digital->sink_pad = ret < 0 ? 0 : ret;
->  
-> +	/* Find compatible subdevices mbus format */
-> +	vin->digital->code = 0;
-> +	code.index = 0;
-> +	code.pad = vin->digital->source_pad;
-> +	while (!vin->digital->code &&
-> +	       !v4l2_subdev_call(subdev, pad, enum_mbus_code, NULL, &code)) {
-> +		code.index++;
-> +		switch (code.code) {
-> +		case MEDIA_BUS_FMT_YUYV8_1X16:
-> +		case MEDIA_BUS_FMT_UYVY8_2X8:
-> +		case MEDIA_BUS_FMT_UYVY10_2X10:
-> +		case MEDIA_BUS_FMT_RGB888_1X24:
-> +			vin->digital->code = code.code;
-> +			vin_dbg(vin, "Found media bus format for %s: %d\n",
-> +				subdev->name, vin->digital->code);
-> +			break;
-> +		default:
-> +			break;
-> +		}
-> +	}
-> +
-> +	if (!vin->digital->code) {
-> +		vin_err(vin, "Unsupported media bus format for %s\n",
-> +			subdev->name);
-> +		return -EINVAL;
-> +	}
-> +
-> +	/* Read tvnorms */
-> +	ret = v4l2_subdev_call(subdev, video, g_tvnorms, &vin->vdev.tvnorms);
-> +	if (ret < 0 && ret != -ENOIOCTLCMD && ret != -ENODEV)
-> +		return ret;
-> +
-> +	mutex_lock(&vin->lock);
-> +
-> +	/* Add the controls */
-> +	ret = v4l2_ctrl_handler_init(&vin->ctrl_handler, 16);
-> +	if (ret < 0)
-> +		goto err;
-> +
-> +	ret = v4l2_ctrl_add_handler(&vin->ctrl_handler, subdev->ctrl_handler,
-> +				    NULL);
-> +	if (ret < 0)
-> +		goto err_ctrl;
-> +
-> +	vin->vdev.ctrl_handler = &vin->ctrl_handler;
-> +
->  	vin->digital->subdev = subdev;
->  
-> +	mutex_unlock(&vin->lock);
-> +
->  	vin_dbg(vin, "bound subdev %s source pad: %u sink pad: %u\n",
->  		subdev->name, vin->digital->source_pad,
->  		vin->digital->sink_pad);
->  
->  	return 0;
-> +err_ctrl:
-> +	v4l2_ctrl_handler_free(&vin->ctrl_handler);
-> +err:
-> +	mutex_unlock(&vin->lock);
-> +	return ret;
->  }
-> +
->  static const struct v4l2_async_notifier_operations rvin_digital_notify_ops = {
->  	.bound = rvin_digital_notify_bound,
->  	.unbind = rvin_digital_notify_unbind,
->  	.complete = rvin_digital_notify_complete,
->  };
->  
-> -
->  static int rvin_digital_parse_v4l2(struct device *dev,
->  				   struct v4l2_fwnode_endpoint *vep,
->  				   struct v4l2_async_subdev *asd)
-> @@ -277,6 +304,8 @@ static int rcar_vin_remove(struct platform_device *pdev)
->  	v4l2_async_notifier_unregister(&vin->notifier);
->  	v4l2_async_notifier_cleanup(&vin->notifier);
->  
-> +	v4l2_ctrl_handler_free(&vin->ctrl_handler);
-> +
->  	rvin_dma_unregister(vin);
->  
->  	return 0;
-> diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> index 32a658214f48fa49..4a0610a6b4503501 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> +++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> @@ -847,9 +847,6 @@ void rvin_v4l2_unregister(struct rvin_dev *vin)
->  	v4l2_info(&vin->v4l2_dev, "Removing %s\n",
->  		  video_device_node_name(&vin->vdev));
->  
-> -	/* Checks internaly if handlers have been init or not */
-> -	v4l2_ctrl_handler_free(&vin->ctrl_handler);
-> -
->  	/* Checks internaly if vdev have been init or not */
->  	video_unregister_device(&vin->vdev);
->  }
-> @@ -872,41 +869,10 @@ static void rvin_notify(struct v4l2_subdev *sd,
->  int rvin_v4l2_register(struct rvin_dev *vin)
->  {
->  	struct video_device *vdev = &vin->vdev;
-> -	struct v4l2_subdev *sd = vin_to_source(vin);
->  	int ret;
->  
-> -	v4l2_set_subdev_hostdata(sd, vin);
-> -
->  	vin->v4l2_dev.notify = rvin_notify;
->  
-> -	ret = v4l2_subdev_call(sd, video, g_tvnorms, &vin->vdev.tvnorms);
-> -	if (ret < 0 && ret != -ENOIOCTLCMD && ret != -ENODEV)
-> -		return ret;
-> -
-> -	if (vin->vdev.tvnorms == 0) {
-> -		/* Disable the STD API if there are no tvnorms defined */
-> -		v4l2_disable_ioctl(&vin->vdev, VIDIOC_G_STD);
-> -		v4l2_disable_ioctl(&vin->vdev, VIDIOC_S_STD);
-> -		v4l2_disable_ioctl(&vin->vdev, VIDIOC_QUERYSTD);
-> -		v4l2_disable_ioctl(&vin->vdev, VIDIOC_ENUMSTD);
-> -	}
-> -
-> -	/* Add the controls */
-> -	/*
-> -	 * Currently the subdev with the largest number of controls (13) is
-> -	 * ov6550. So let's pick 16 as a hint for the control handler. Note
-> -	 * that this is a hint only: too large and you waste some memory, too
-> -	 * small and there is a (very) small performance hit when looking up
-> -	 * controls in the internal hash.
-> -	 */
-> -	ret = v4l2_ctrl_handler_init(&vin->ctrl_handler, 16);
-> -	if (ret < 0)
-> -		return ret;
-> -
-> -	ret = v4l2_ctrl_add_handler(&vin->ctrl_handler, sd->ctrl_handler, NULL);
-> -	if (ret < 0)
-> -		return ret;
-> -
->  	/* video node */
->  	vdev->fops = &rvin_fops;
->  	vdev->v4l2_dev = &vin->v4l2_dev;
-> @@ -915,7 +881,6 @@ int rvin_v4l2_register(struct rvin_dev *vin)
->  	vdev->release = video_device_release_empty;
->  	vdev->ioctl_ops = &rvin_ioctl_ops;
->  	vdev->lock = &vin->lock;
-> -	vdev->ctrl_handler = &vin->ctrl_handler;
->  	vdev->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING |
->  		V4L2_CAP_READWRITE;
->  
-> 
+diff --git a/drivers/media/dvb-frontends/stv0910.c b/drivers/media/dvb-frontends/stv0910.c
+index a6c473f3647f..06d2587125dd 100644
+--- a/drivers/media/dvb-frontends/stv0910.c
++++ b/drivers/media/dvb-frontends/stv0910.c
+@@ -137,33 +137,21 @@ struct slookup {
+ 	u32  reg_value;
+ };
+ 
+-static inline int i2c_write(struct i2c_adapter *adap, u8 adr,
+-			    u8 *data, int len)
++static int write_reg(struct stv *state, u16 reg, u8 val)
+ {
+-	struct i2c_msg msg = {.addr = adr, .flags = 0,
+-			      .buf = data, .len = len};
++	struct i2c_adapter *adap = state->base->i2c;
++	u8 data[3] = {reg >> 8, reg & 0xff, val};
++	struct i2c_msg msg = {.addr = state->base->adr, .flags = 0,
++			      .buf = data, .len = 3};
+ 
+ 	if (i2c_transfer(adap, &msg, 1) != 1) {
+ 		dev_warn(&adap->dev, "i2c write error ([%02x] %04x: %02x)\n",
+-			 adr, (data[0] << 8) | data[1],
+-			 (len > 2 ? data[2] : 0));
+-		return -EREMOTEIO;
++			 state->base->adr, reg, val);
++		return -EIO;
+ 	}
+ 	return 0;
+ }
+ 
+-static int i2c_write_reg16(struct i2c_adapter *adap, u8 adr, u16 reg, u8 val)
+-{
+-	u8 msg[3] = {reg >> 8, reg & 0xff, val};
+-
+-	return i2c_write(adap, adr, msg, 3);
+-}
+-
+-static int write_reg(struct stv *state, u16 reg, u8 val)
+-{
+-	return i2c_write_reg16(state->base->i2c, state->base->adr, reg, val);
+-}
+-
+ static inline int i2c_read_regs16(struct i2c_adapter *adapter, u8 adr,
+ 				  u16 reg, u8 *val, int count)
+ {
+@@ -176,7 +164,7 @@ static inline int i2c_read_regs16(struct i2c_adapter *adapter, u8 adr,
+ 	if (i2c_transfer(adapter, msgs, 2) != 2) {
+ 		dev_warn(&adapter->dev, "i2c read error ([%02x] %04x)\n",
+ 			 adr, reg);
+-		return -EREMOTEIO;
++		return -EIO;
+ 	}
+ 	return 0;
+ }
+-- 
+2.13.6
