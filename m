@@ -1,96 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay3-d.mail.gandi.net ([217.70.183.195]:39401 "EHLO
-        relay3-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756208AbdLOOhf (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 15 Dec 2017 09:37:35 -0500
-Date: Fri, 15 Dec 2017 15:37:28 +0100
-From: jacopo mondi <jacopo@jmondi.org>
-To: kieran.bingham@ideasonboard.com
-Cc: Niklas =?utf-8?Q?S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>,
-        linux-media@vger.kernel.org,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-renesas-soc@vger.kernel.org,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        Benoit Parrot <bparrot@ti.com>,
-        Maxime Ripard <maxime.ripard@free-electrons.com>
-Subject: Re: [PATCH/RFC v2 10/15] adv748x: csi2: add translation from
- pixelcode to CSI-2 datatype
-Message-ID: <20171215143728.GD3375@w540>
-References: <20171214190835.7672-1-niklas.soderlund+renesas@ragnatech.se>
- <20171214190835.7672-11-niklas.soderlund+renesas@ragnatech.se>
- <a41181ea-30a2-7b0d-d836-f4e5c8eba4f6@ideasonboard.com>
+Received: from mga05.intel.com ([192.55.52.43]:6481 "EHLO mga05.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750705AbdLZGX3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 26 Dec 2017 01:23:29 -0500
+Date: Tue, 26 Dec 2017 14:22:25 +0800
+From: kbuild test robot <lkp@intel.com>
+To: Shunqian Zheng <zhengsq@rock-chips.com>
+Cc: kbuild-all@01.org, mchehab@kernel.org, robh+dt@kernel.org,
+        mark.rutland@arm.com, linux-media@vger.kernel.org,
+        devicetree@vger.kernel.org, ddl@rock-chips.com, tfiga@chromium.org,
+        Shunqian Zheng <zhengsq@rock-chips.com>
+Subject: Re: [PATCH 3/4] media: ov2685: add support for OV2685 sensor
+Message-ID: <201712261417.LVKcMMgw%fengguang.wu@intel.com>
+References: <1514211086-13440-3-git-send-email-zhengsq@rock-chips.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <a41181ea-30a2-7b0d-d836-f4e5c8eba4f6@ideasonboard.com>
+In-Reply-To: <1514211086-13440-3-git-send-email-zhengsq@rock-chips.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Kieran,
+Hi Shunqian,
 
-On Thu, Dec 14, 2017 at 10:25:36PM +0000, Kieran Bingham wrote:
-> Hi Niklas,
->
-> On 14/12/17 19:08, Niklas Söderlund wrote:
-> > This will be needed to fill out the frame descriptor information
-> > correctly.
-> >
-> > Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-> > ---
-> >  drivers/media/i2c/adv748x/adv748x-csi2.c | 22 ++++++++++++++++++++++
-> >  1 file changed, 22 insertions(+)
-> >
-> > diff --git a/drivers/media/i2c/adv748x/adv748x-csi2.c b/drivers/media/i2c/adv748x/adv748x-csi2.c
-> > index 2a5dff8c571013bf..a2a6d93077204731 100644
-> > --- a/drivers/media/i2c/adv748x/adv748x-csi2.c
-> > +++ b/drivers/media/i2c/adv748x/adv748x-csi2.c
-> > @@ -18,6 +18,28 @@
-> >
-> >  #include "adv748x.h"
-> >
-> > +struct adv748x_csi2_format {
-> > +	unsigned int code;
-> > +	unsigned int datatype;
-> > +};
-> > +
-> > +static const struct adv748x_csi2_format adv748x_csi2_formats[] = {
-> > +	{ .code = MEDIA_BUS_FMT_RGB888_1X24,    .datatype = 0x24, },
-> > +	{ .code = MEDIA_BUS_FMT_UYVY8_1X16,     .datatype = 0x1e, },
-> > +	{ .code = MEDIA_BUS_FMT_UYVY8_2X8,      .datatype = 0x1e, },
-> > +	{ .code = MEDIA_BUS_FMT_YUYV10_2X10,    .datatype = 0x1e, },
+Thank you for the patch! Perhaps something to improve:
 
-YUV 422 10 bit is associated to data type 0x1d in CSI-2 specifications
+[auto build test WARNING on linuxtv-media/master]
+[also build test WARNING on v4.15-rc5 next-20171222]
+[if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
 
-> > +};
->
-> Is the datatype mapping specific to the ADV748x here?
-> or are these generic/common CSI2 mappings?
->
-> What do those datatype magic numbers represent?
+url:    https://github.com/0day-ci/linux/commits/Shunqian-Zheng/media-ov5695-add-support-for-OV5695-sensor/20171226-110821
+base:   git://linuxtv.org/media_tree.git master
+reproduce:
+        # apt-get install sparse
+        make ARCH=x86_64 allmodconfig
+        make C=1 CF=-D__CHECK_ENDIAN__
 
-They are fixed mappings defined by CSI-2 specifications and they
-should probably be generic to all drivers imho
 
->
-> --
-> Kieran
->
-> > +
-> > +static unsigned int adv748x_csi2_code_to_datatype(unsigned int code)
-> > +{
-> > +	unsigned int i;
-> > +
-> > +	for (i = 0; i < ARRAY_SIZE(adv748x_csi2_formats); i++)
-> > +		if (adv748x_csi2_formats[i].code == code)
-> > +			return adv748x_csi2_formats[i].datatype;
-> > +	return 0;
-> > +}
-> > +
-> >  static bool is_txa(struct adv748x_csi2 *tx)
-> >  {
-> >  	return tx == &tx->state->txa;
-> >
+sparse warnings: (new ones prefixed by >>)
+
+
+vim +248 drivers/media/i2c/ov2685.c
+
+   232	
+   233	/* Write registers up to 4 at a time */
+   234	static int ov2685_write_reg(struct i2c_client *client, u16 reg,
+   235				    unsigned int len, u32 val)
+   236	{
+   237		int buf_i;
+   238		int val_i;
+   239		u8 buf[6];
+   240		u8 *val_p;
+   241	
+   242		if (len > 4)
+   243			return -EINVAL;
+   244	
+   245		buf[0] = reg >> 8;
+   246		buf[1] = reg & 0xff;
+   247	
+ > 248		val = cpu_to_be32(val);
+   249		val_p = (u8 *)&val;
+   250		buf_i = 2;
+   251		val_i = 4 - len;
+   252	
+   253		while (val_i < 4)
+   254			buf[buf_i++] = val_p[val_i++];
+   255	
+   256		if (i2c_master_send(client, buf, len + 2) != len + 2)
+   257			return -EIO;
+   258	
+   259		return 0;
+   260	}
+   261	
+   262	static int ov2685_write_array(struct i2c_client *client,
+   263				      const struct regval *regs)
+   264	{
+   265		int i, ret = 0;
+   266	
+   267		for (i = 0; ret == 0 && regs[i].addr != REG_NULL; i++)
+   268			ret = ov2685_write_reg(client, regs[i].addr,
+   269					       OV2685_REG_VALUE_08BIT, regs[i].val);
+   270	
+   271		return ret;
+   272	}
+   273	
+   274	/* Read registers up to 4 at a time */
+   275	static int ov2685_read_reg(struct i2c_client *client, u16 reg,
+   276				   unsigned int len, u32 *val)
+   277	{
+   278		struct i2c_msg msgs[2];
+   279		u8 *data_be_p;
+   280		u32 data_be = 0;
+ > 281		u16 reg_addr_be = cpu_to_be16(reg);
+   282		int ret;
+   283	
+   284		if (len > 4)
+   285			return -EINVAL;
+   286	
+   287		data_be_p = (u8 *)&data_be;
+   288		/* Write register address */
+   289		msgs[0].addr = client->addr;
+   290		msgs[0].flags = 0;
+   291		msgs[0].len = 2;
+   292		msgs[0].buf = (u8 *)&reg_addr_be;
+   293	
+   294		/* Read data from register */
+   295		msgs[1].addr = client->addr;
+   296		msgs[1].flags = I2C_M_RD;
+   297		msgs[1].len = len;
+   298		msgs[1].buf = &data_be_p[4 - len];
+   299	
+   300		ret = i2c_transfer(client->adapter, msgs, ARRAY_SIZE(msgs));
+   301		if (ret != ARRAY_SIZE(msgs))
+   302			return -EIO;
+   303	
+ > 304		*val = be32_to_cpu(data_be);
+   305	
+   306		return 0;
+   307	}
+   308	
+
+---
+0-DAY kernel test infrastructure                Open Source Technology Center
+https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
