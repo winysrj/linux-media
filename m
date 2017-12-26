@@ -1,69 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:47314 "EHLO
-        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1755503AbdLOOWK (ORCPT
+Received: from mail-lf0-f67.google.com ([209.85.215.67]:42102 "EHLO
+        mail-lf0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750822AbdLZVOb (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 15 Dec 2017 09:22:10 -0500
-Subject: Re: [PATCH 2/2] media: coda: Add i.MX51 (CodaHx4) support
-To: Philipp Zabel <p.zabel@pengutronix.de>, linux-media@vger.kernel.org
-References: <20171213140918.22500-1-p.zabel@pengutronix.de>
- <20171213140918.22500-2-p.zabel@pengutronix.de>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Fabio Estevam <fabio.estevam@nxp.com>,
-        Chris Healy <Chris.Healy@zii.aero>, devicetree@vger.kernel.org,
-        kernel@pengutronix.de
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <e26f7f6a-afa6-c55c-d94e-095df27c19ae@xs4all.nl>
-Date: Fri, 15 Dec 2017 15:22:07 +0100
+        Tue, 26 Dec 2017 16:14:31 -0500
+Received: by mail-lf0-f67.google.com with SMTP id e27so5766154lfb.9
+        for <linux-media@vger.kernel.org>; Tue, 26 Dec 2017 13:14:30 -0800 (PST)
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Message-Id: <20171226211424.870595086@cogentembedded.com>
+Date: Wed, 27 Dec 2017 00:14:12 +0300
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+Cc: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Subject: [PATCH v2] vsp1: fix video output on R8A77970
 MIME-Version: 1.0
-In-Reply-To: <20171213140918.22500-2-p.zabel@pengutronix.de>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Disposition: inline; filename=vsp1-fix-video-output-on-R8A77970-v2.patch
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Philipp,
+Laurent has added support for the VSP2-D found on R-Car V3M (R8A77970) but
+the video  output that VSP2-D sends to DU has a greenish garbage-like line
+repeated every 8 or so screen rows. It turns out that V3M has a teeny LIF
+register (at least it's documented!) that you need to set to some kind of
+a  magic value for the LIF to work correctly...
 
-On 13/12/17 15:09, Philipp Zabel wrote:
-> Add support for the CodaHx4 VPU used on i.MX51.
-> 
-> Decoding h.264, MPEG-4, and MPEG-2 video works, as well as encoding
-> h.264. MPEG-4 encoding is not enabled, it currently produces visual
-> artifacts.
-> 
-> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-> ---
->  drivers/media/platform/coda/coda-bit.c    | 45 ++++++++++++++++++++++---------
->  drivers/media/platform/coda/coda-common.c | 44 +++++++++++++++++++++++++++---
->  drivers/media/platform/coda/coda.h        |  1 +
->  3 files changed, 74 insertions(+), 16 deletions(-)
-> 
+Based on the original (and large) patch by Daisuke Matsushita
+<daisuke.matsushita.ns@hitachi.com>.
 
-<snip>
+Fixes: d455b45f8393 ("v4l: vsp1: Add support for new VSP2-BS, VSP2-DL and VSP2-D instances")
+Signed-off-by: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
 
-> +	[CODA_IMX51] = {
-> +		.firmware     = {
-> +			"vpu_fw_imx51.bin",
-> +			"vpu/vpu_fw_imx51.bin",
-> +			"v4l-codahx4-imx51.bin"
-> +		},
-> +		.product      = CODA_HX4,
-> +		.codecs       = codahx4_codecs,
-> +		.num_codecs   = ARRAY_SIZE(codahx4_codecs),
-> +		.vdevs        = codahx4_video_devices,
-> +		.num_vdevs    = ARRAY_SIZE(codahx4_video_devices),
-> +		.workbuf_size = 128 * 1024,
-> +		.tempbuf_size = 304 * 1024,
-> +		.iram_size    = 0x14000,
-> +	},
+---
+This patch is against the 'media_tree.git' repo's 'master' branch.
 
-What's the status of the firmware? Is it going to be available in some firmware
-repository? I remember when testing other imx devices that it was a bit tricky
-to get hold of the firmware. And googling v4l-codahx4-imx51.bin doesn't find
-anything other than this patch.
+Changes in version 2:
+- added a  comment before the V3M SoC check;
+- fixed indetation in that check;
+- reformatted  the patch description.
 
-Regards,
+ drivers/media/platform/vsp1/vsp1_lif.c  |   12 ++++++++++++
+ drivers/media/platform/vsp1/vsp1_regs.h |    5 +++++
+ 2 files changed, 17 insertions(+)
 
-	Hans
+Index: media_tree/drivers/media/platform/vsp1/vsp1_lif.c
+===================================================================
+--- media_tree.orig/drivers/media/platform/vsp1/vsp1_lif.c
++++ media_tree/drivers/media/platform/vsp1/vsp1_lif.c
+@@ -155,6 +155,18 @@ static void lif_configure(struct vsp1_en
+ 			(obth << VI6_LIF_CTRL_OBTH_SHIFT) |
+ 			(format->code == 0 ? VI6_LIF_CTRL_CFMT : 0) |
+ 			VI6_LIF_CTRL_REQSEL | VI6_LIF_CTRL_LIF_EN);
++
++	/*
++	 * R-Car V3M has the buffer attribute register you absolutely need
++	 * to write kinda magic value to  for the LIF to work correctly...
++	 */
++	if ((entity->vsp1->version &
++	     (VI6_IP_VERSION_MODEL_MASK | VI6_IP_VERSION_SOC_MASK)) ==
++	    (VI6_IP_VERSION_MODEL_VSPD_V3 | VI6_IP_VERSION_SOC_V3M)) {
++		vsp1_lif_write(lif, dl, VI6_LIF_LBA,
++			       VI6_LIF_LBA_LBA0 |
++			       (1536 << VI6_LIF_LBA_LBA1_SHIFT));
++	}
+ }
+ 
+ static const struct vsp1_entity_operations lif_entity_ops = {
+Index: media_tree/drivers/media/platform/vsp1/vsp1_regs.h
+===================================================================
+--- media_tree.orig/drivers/media/platform/vsp1/vsp1_regs.h
++++ media_tree/drivers/media/platform/vsp1/vsp1_regs.h
+@@ -693,6 +693,11 @@
+ #define VI6_LIF_CSBTH_LBTH_MASK		(0x7ff << 0)
+ #define VI6_LIF_CSBTH_LBTH_SHIFT	0
+ 
++#define VI6_LIF_LBA			0x3b0c
++#define VI6_LIF_LBA_LBA0		(1 << 31)
++#define VI6_LIF_LBA_LBA1_MASK		(0xfff << 16)
++#define VI6_LIF_LBA_LBA1_SHIFT		16
++
+ /* -----------------------------------------------------------------------------
+  * Security Control Registers
+  */
