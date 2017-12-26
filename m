@@ -1,101 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:44978 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1758992AbdLRMab (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 18 Dec 2017 07:30:31 -0500
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Tom Saeger <tom.saeger@oracle.com>
-Subject: [PATCH v4 04/18] docs: kernel-doc.rst: improve structs chapter
-Date: Mon, 18 Dec 2017 10:30:05 -0200
-Message-Id: <c4ffb725fcd26ec045fb8a22a2108699fa04641b.1513599193.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1513599193.git.mchehab@s-opensource.com>
-References: <cover.1513599193.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1513599193.git.mchehab@s-opensource.com>
-References: <cover.1513599193.git.mchehab@s-opensource.com>
+Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:34386 "EHLO
+        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750705AbdLZFA4 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 26 Dec 2017 00:00:56 -0500
+Message-ID: <1527e426bd8409f5682e9836c3b408ca@smtp-cloud9.xs4all.net>
+Date: Tue, 26 Dec 2017 06:00:53 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There is a mess on this chapter: it suggests that even
-enums and unions should be documented with "struct". That's
-not the way it should be ;-)
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Fix it and move it to happen earlier.
+Results of the daily build of media_tree:
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- Documentation/doc-guide/kernel-doc.rst | 48 +++++++++++++++++-----------------
- 1 file changed, 24 insertions(+), 24 deletions(-)
+date:			Tue Dec 26 05:00:14 CET 2017
+media-tree git hash:	9eb124fe796cbadd454c8f946d7051f4c3f4a251
+media_build git hash:	f709aa47e1577563a814e2558cd78b6d00639021
+v4l-utils git hash:	6049ea8bd64f9d78ef87ef0c2b3dc9b5de1ca4a1
+gcc version:		i686-linux-gcc (GCC) 7.1.0
+sparse version:		v0.5.0-3911-g6f737e1f
+smatch version:		v0.5.0-3911-g6f737e1f
+host hardware:		x86_64
+host os:		4.13.0-164
 
-diff --git a/Documentation/doc-guide/kernel-doc.rst b/Documentation/doc-guide/kernel-doc.rst
-index 3aac228fc346..e3e82f8f4de5 100644
---- a/Documentation/doc-guide/kernel-doc.rst
-+++ b/Documentation/doc-guide/kernel-doc.rst
-@@ -258,6 +258,30 @@ named ``Return``.
-      as a new section heading, with probably won't produce the desired
-      effect.
- 
-+Structure, union, and enumeration documentation
-+-----------------------------------------------
-+
-+The general format of a struct, union, and enum kernel-doc comment is::
-+
-+  /**
-+   * struct struct_name - Brief description.
-+   * @argument: Description of member member_name.
-+   *
-+   * Description of the structure.
-+   */
-+
-+On the above, ``struct`` is used to mean structs. You can also use ``union``
-+and ``enum``  to describe unions and enums. ``argument`` is used
-+to mean struct and union member names as well as enumerations in an enum.
-+
-+The brief description following the structure name may span multiple lines, and
-+ends with a member description, a blank comment line, or the end of the
-+comment block.
-+
-+The kernel-doc data structure comments describe each member of the structure,
-+in order, with the member descriptions.
-+
-+
- 
- Highlights and cross-references
- -------------------------------
-@@ -331,30 +355,6 @@ cross-references.
- For further details, please refer to the `Sphinx C Domain`_ documentation.
- 
- 
--Structure, union, and enumeration documentation
-------------------------------------------------
--
--The general format of a struct, union, and enum kernel-doc comment is::
--
--  /**
--   * struct struct_name - Brief description.
--   * @member_name: Description of member member_name.
--   *
--   * Description of the structure.
--   */
--
--Below, "struct" is used to mean structs, unions and enums, and "member" is used
--to mean struct and union members as well as enumerations in an enum.
--
--The brief description following the structure name may span multiple lines, and
--ends with a ``@member:`` description, a blank comment line, or the end of the
--comment block.
--
--The kernel-doc data structure comments describe each member of the structure, in
--order, with the ``@member:`` descriptions. The ``@member:`` descriptions must
--begin on the very next line following the opening brief function description
--line, with no intervening blank comment lines. The ``@member:`` descriptions may
--span multiple lines. The continuation lines may contain indentation.
- 
- In-line member documentation comments
- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
--- 
-2.14.3
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: WARNINGS
+linux-3.11.1-i686: WARNINGS
+linux-3.12.67-i686: WARNINGS
+linux-3.13.11-i686: WARNINGS
+linux-3.14.9-i686: WARNINGS
+linux-3.15.2-i686: WARNINGS
+linux-3.16.7-i686: WARNINGS
+linux-3.17.8-i686: WARNINGS
+linux-3.18.7-i686: WARNINGS
+linux-3.19-i686: WARNINGS
+linux-4.0.9-i686: WARNINGS
+linux-4.1.33-i686: WARNINGS
+linux-4.2.8-i686: WARNINGS
+linux-4.3.6-i686: WARNINGS
+linux-4.4.22-i686: OK
+linux-4.5.7-i686: WARNINGS
+linux-4.6.7-i686: ERRORS
+linux-4.7.5-i686: ERRORS
+linux-4.8-i686: ERRORS
+linux-4.9.26-i686: OK
+linux-4.10.14-i686: OK
+linux-4.11-i686: OK
+linux-4.12.1-i686: OK
+linux-4.13-i686: OK
+linux-4.14-i686: OK
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-x86_64: WARNINGS
+linux-3.12.67-x86_64: WARNINGS
+linux-3.13.11-x86_64: WARNINGS
+linux-3.14.9-x86_64: WARNINGS
+linux-3.15.2-x86_64: WARNINGS
+linux-3.16.7-x86_64: WARNINGS
+linux-3.17.8-x86_64: WARNINGS
+linux-3.18.7-x86_64: WARNINGS
+linux-3.19-x86_64: WARNINGS
+linux-4.0.9-x86_64: WARNINGS
+linux-4.1.33-x86_64: WARNINGS
+linux-4.2.8-x86_64: WARNINGS
+linux-4.3.6-x86_64: WARNINGS
+linux-4.4.22-x86_64: WARNINGS
+linux-4.5.7-x86_64: WARNINGS
+linux-4.6.7-x86_64: ERRORS
+linux-4.7.5-x86_64: ERRORS
+linux-4.8-x86_64: ERRORS
+linux-4.9.26-x86_64: WARNINGS
+linux-4.10.14-x86_64: WARNINGS
+linux-4.11-x86_64: WARNINGS
+linux-4.12.1-x86_64: WARNINGS
+linux-4.13-x86_64: OK
+linux-4.14-x86_64: OK
+apps: OK
+spec-git: OK
+smatch: OK
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
