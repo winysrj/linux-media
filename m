@@ -1,127 +1,742 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f65.google.com ([209.85.215.65]:41182 "EHLO
-        mail-lf0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756058AbdLTTVg (ORCPT
+Received: from mail-lf0-f66.google.com ([209.85.215.66]:45059 "EHLO
+        mail-lf0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750758AbdLZOzE (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 20 Dec 2017 14:21:36 -0500
-Received: by mail-lf0-f65.google.com with SMTP id f18so25257095lfg.8
-        for <linux-media@vger.kernel.org>; Wed, 20 Dec 2017 11:21:36 -0800 (PST)
-Date: Wed, 20 Dec 2017 20:21:33 +0100
-From: Niklas =?iso-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-        Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        kieran.bingham@ideasonboard.com, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org
-Subject: Re: [PATCH] v4l: rcar-csi2: Don't bail out from probe on no ep
-Message-ID: <20171220192133.GA15701@bigcity.dyn.berto.se>
-References: <1512506508-17418-1-git-send-email-jacopo+renesas@jmondi.org>
- <d022e2a8-2343-42ef-4075-d81375a490e6@xs4all.nl>
- <20171215142310.GA1281@bigcity.dyn.berto.se>
- <4936185.ZshrHvUZzS@avalon>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <4936185.ZshrHvUZzS@avalon>
+        Tue, 26 Dec 2017 09:55:04 -0500
+Received: by mail-lf0-f66.google.com with SMTP id f13so39799609lff.12
+        for <linux-media@vger.kernel.org>; Tue, 26 Dec 2017 06:55:04 -0800 (PST)
+From: Olli Salonen <olli.salonen@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Olli Salonen <olli.salonen@iki.fi>
+Subject: [PATCH] dtv-scan-tables: update all Finnish Digita DVB-T2 transponders
+Date: Tue, 26 Dec 2017 16:49:57 +0200
+Message-Id: <1514299797-16552-1-git-send-email-olli.salonen@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Update Finnish frequencies for Digita.
 
-On 2017-12-20 20:06:13 +0200, Laurent Pinchart wrote:
-> Hi Niklas,
-> 
-> On Friday, 15 December 2017 16:23:10 EET Niklas Söderlund wrote:
-> > On 2017-12-15 15:06:44 +0100, Hans Verkuil wrote:
-> > > Niklas,
-> > > 
-> > > Did you look at this? If I should take it, can you Ack it? If you are
-> > > going to squash or add it to our of your own patch series, then let me
-> > > know and I can remove it from my todo queue.
-> > 
-> > I did look at it and talked to Jacobo about it. I think I have a better
-> > solution to his problem which I hope to try out in the near future. If
-> > my workaround turns out to not solve his problem I will squash this in
-> > when I resend the rcar-csi2 patch-set so in any case I think you can
-> > drop it from your todo queue.
-> > 
-> > The reason I'm a bit reluctant to ack this straight away is that I think
-> > it's kind of good that rcar-csi2 fails to probe if it finds no endpoints
-> > to work with, there is little use for the driver instance then. The
-> > problem Jacobo is trying to fix is related to how the rcar-vin Gen3
-> > group parses DT and I made a small mistake there which was discovered by
-> > Jacobo. And since the original fault is in the rcar-vin driver I think
-> > the issue should be fixed in that driver.
-> 
-> How do you plan to handle the case where only one CSI-2 receiver has a 
-> connected input ?
+---
+ dvb-t/fi-Anjalankoski_Ruotila | 18 +++++++++---------
+ dvb-t/fi-Enontekio_Kuttanen   |  7 +------
+ dvb-t/fi-Espoo                | 11 +++--------
+ dvb-t/fi-Eurajoki             | 20 ++++++++++----------
+ dvb-t/fi-Fiskars              | 11 +++--------
+ dvb-t/fi-Hyvinkaa             | 13 ++++---------
+ dvb-t/fi-Joutseno             | 18 +++++++++---------
+ dvb-t/fi-Jyvaskyla            | 17 ++++++-----------
+ dvb-t/fi-Karkkila             | 17 ++++++-----------
+ dvb-t/fi-Kruunupyy            | 20 ++++++++++----------
+ dvb-t/fi-Kuopio               | 18 +++++++++---------
+ dvb-t/fi-Lahti                | 11 +++--------
+ dvb-t/fi-Lapua                | 18 +++++++++---------
+ dvb-t/fi-Lohja                | 14 +++++---------
+ dvb-t/fi-Oulu                 | 13 ++++---------
+ dvb-t/fi-Tammela              | 21 +++++++++++----------
+ dvb-t/fi-Tampere              | 12 ++++--------
+ dvb-t/fi-Tampere_Pyynikki     | 18 +++++++++---------
+ dvb-t/fi-Turku                | 11 +++--------
+ dvb-t/fi-Vantaa_Hakunila      |  7 +------
+ 20 files changed, 119 insertions(+), 176 deletions(-)
 
-I'm sorry, I don't understand this question I think. If there only is 
-one CSI-2 receiver with connected endpoints, should that not be the only 
-hardware the driver handles? What would be the reason to enable a CSI-2 
-device in DT and not connect endpoints to it?
-
-> 
-> > > On 05/12/17 21:41, Jacopo Mondi wrote:
-> > >> When rcar-csi interface is not connected to any endpoint, it fails and
-> > >> bails out from probe before registering its own video subdevice.
-> > >> This prevents rcar-vin registered notifier from completing and no
-> > >> subdevice is ever registered, also for other properly connected csi
-> > >> interfaces.
-> > >> 
-> > >> Fix this not returning an error when no endpoint is connected to a csi
-> > >> interface and let the driver complete its probe function and register
-> > >> its own video subdevice.
-> > >> 
-> > >> ---
-> > >> Niklas,
-> > >> 
-> > >>    please squash this patch in your next rcar-csi2 series (if you like
-> > >>    it ;)
-> > >> 
-> > >> As we have discussed this is particularly useful for gmsl setup, where
-> > >> adv748x is connected to CSI20 and max9286 to CSI40/CSI41. If we disable
-> > >> adv748x from DTS we need CSI20 probe to complete anyhow otherwise no
-> > >> subdevice gets registered for the two deserializers.
-> > >> 
-> > >> Please note we cannot disable CSI20 entirely otherwise VIN's graph
-> > >> parsing breaks.
-> > >> 
-> > >> Thanks
-> > >> 
-> > >>    j
-> > >> 
-> > >> ---
-> > >> 
-> > >>  drivers/media/platform/rcar-vin/rcar-csi2.c | 4 ++--
-> > >>  1 file changed, 2 insertions(+), 2 deletions(-)
-> > >> 
-> > >> diff --git a/drivers/media/platform/rcar-vin/rcar-csi2.c
-> > >> b/drivers/media/platform/rcar-vin/rcar-csi2.c index 2793efb..90c4062
-> > >> 100644
-> > >> --- a/drivers/media/platform/rcar-vin/rcar-csi2.c
-> > >> +++ b/drivers/media/platform/rcar-vin/rcar-csi2.c
-> > >> @@ -928,8 +928,8 @@ static int rcar_csi2_parse_dt(struct rcar_csi2
-> > >> *priv)
-> > >> 
-> > >>  	ep = of_graph_get_endpoint_by_regs(priv->dev->of_node, 0, 0);
-> > >>  	if (!ep) {
-> > >> -		dev_err(priv->dev, "Not connected to subdevice\n");
-> > >> -		return -EINVAL;
-> > >> +		dev_dbg(priv->dev, "Not connected to subdevice\n");
-> > >> +		return 0;
-> > >>  	}
-> > >>  	
-> > >>  	ret = v4l2_fwnode_endpoint_parse(of_fwnode_handle(ep), &v4l2_ep);
-> 
-> -- 
-> Regards,
-> 
-> Laurent Pinchart
-> 
-
+diff --git a/dvb-t/fi-Anjalankoski_Ruotila b/dvb-t/fi-Anjalankoski_Ruotila
+index 8ae1231..4d3ab83 100644
+--- a/dvb-t/fi-Anjalankoski_Ruotila
++++ b/dvb-t/fi-Anjalankoski_Ruotila
+@@ -1,27 +1,27 @@
+ # 2014-04-18 Antti Palosaari <crope@iki.fi>
+ # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
+ 
+-[Anjalankoski_Ruotila]
++[Anjalankoski-A]
+ 	DELIVERY_SYSTEM = DVBT
+ 	FREQUENCY = 482000000
+ 	BANDWIDTH_HZ = 8000000
+ 
+-[Anjalankoski_Ruotila]
+-	DELIVERY_SYSTEM = DVBT
+-	FREQUENCY = 522000000
++[Anjalankoski-B]
++	DELIVERY_SYSTEM = DVBT2
++	FREQUENCY = 658000000
+ 	BANDWIDTH_HZ = 8000000
+ 
+-[Anjalankoski_Ruotila]
++[Anjalankoski-C]
+ 	DELIVERY_SYSTEM = DVBT
+-	FREQUENCY = 730000000
++	FREQUENCY = 514000000
+ 	BANDWIDTH_HZ = 8000000
+ 
+-[Anjalankoski_Ruotila]
++[Anjalankoski-D]
+ 	DELIVERY_SYSTEM = DVBT
+-	FREQUENCY = 754000000
++	FREQUENCY = 618000000
+ 	BANDWIDTH_HZ = 8000000
+ 
+-[Anjalankoski_Ruotila]
++[Anjalankoski-E]
+ 	DELIVERY_SYSTEM = DVBT2
+ 	FREQUENCY = 634000000
+ 	BANDWIDTH_HZ = 8000000
+diff --git a/dvb-t/fi-Enontekio_Kuttanen b/dvb-t/fi-Enontekio_Kuttanen
+index f9a6af8..a792d59 100644
+--- a/dvb-t/fi-Enontekio_Kuttanen
++++ b/dvb-t/fi-Enontekio_Kuttanen
+@@ -3,11 +3,6 @@
+ 
+ [Enontekio_Kuttanen]
+ 	DELIVERY_SYSTEM = DVBT
+-	FREQUENCY = 730000000
+-	BANDWIDTH_HZ = 8000000
+-
+-[Enontekio_Kuttanen]
+-	DELIVERY_SYSTEM = DVBT
+-	FREQUENCY = 770000000
++	FREQUENCY = 522000000
+ 	BANDWIDTH_HZ = 8000000
+ 
+diff --git a/dvb-t/fi-Espoo b/dvb-t/fi-Espoo
+index 6fb0ff2..bc01a39 100644
+--- a/dvb-t/fi-Espoo
++++ b/dvb-t/fi-Espoo
+@@ -7,8 +7,8 @@
+ 	BANDWIDTH_HZ = 8000000
+ 
+ [Espoo-B]
+-	DELIVERY_SYSTEM = DVBT
+-	FREQUENCY = 658000000
++	DELIVERY_SYSTEM = DVBT2
++	FREQUENCY = 650000000
+ 	BANDWIDTH_HZ = 8000000
+ 
+ [Espoo-C]
+@@ -21,12 +21,7 @@
+ 	FREQUENCY = 514000000
+ 	BANDWIDTH_HZ = 8000000
+ 
+-[Espoo-D]
+-	DELIVERY_SYSTEM = DVBT2
+-	FREQUENCY = 650000000
+-	BANDWIDTH_HZ = 8000000
+-
+-[Espoo-H]
++[Espoo-F]
+ 	DELIVERY_SYSTEM = DVBT2
+ 	FREQUENCY = 618000000
+ 	BANDWIDTH_HZ = 8000000
+diff --git a/dvb-t/fi-Eurajoki b/dvb-t/fi-Eurajoki
+index 1d090a5..2ccc418 100644
+--- a/dvb-t/fi-Eurajoki
++++ b/dvb-t/fi-Eurajoki
+@@ -1,28 +1,28 @@
+ # 2014-04-18 Antti Palosaari <crope@iki.fi>
+ # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
+ 
+-[Eurajoki]
++[Eurajoki-A]
+ 	DELIVERY_SYSTEM = DVBT
+ 	FREQUENCY = 610000000
+ 	BANDWIDTH_HZ = 8000000
+ 
+-[Eurajoki]
+-	DELIVERY_SYSTEM = DVBT
+-	FREQUENCY = 666000000
++[Eurajoki-B]
++	DELIVERY_SYSTEM = DVBT2
++	FREQUENCY = 594000000
+ 	BANDWIDTH_HZ = 8000000
+ 
+-[Eurajoki]
++[Eurajoki-C]
+ 	DELIVERY_SYSTEM = DVBT
+-	FREQUENCY = 722000000
++	FREQUENCY = 642000000
+ 	BANDWIDTH_HZ = 8000000
+ 
+-[Eurajoki]
++[Eurajoki-E]
+ 	DELIVERY_SYSTEM = DVBT
+-	FREQUENCY = 746000000
++	FREQUENCY = 602000000
+ 	BANDWIDTH_HZ = 8000000
+ 
+-[Eurajoki]
++[Eurajoki-F]
+ 	DELIVERY_SYSTEM = DVBT2
+-	FREQUENCY = 594000000
++	FREQUENCY = 570000000
+ 	BANDWIDTH_HZ = 8000000
+ 
+diff --git a/dvb-t/fi-Fiskars b/dvb-t/fi-Fiskars
+index 2b6b791..5f8cacc 100644
+--- a/dvb-t/fi-Fiskars
++++ b/dvb-t/fi-Fiskars
+@@ -1,22 +1,17 @@
+ # 2014-04-18 Antti Palosaari <crope@iki.fi>
+ # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
+ 
+-[Fiskars]
++[Fiskars-A]
+ 	DELIVERY_SYSTEM = DVBT
+ 	FREQUENCY = 562000000
+ 	BANDWIDTH_HZ = 8000000
+ 
+-[Fiskars]
+-	DELIVERY_SYSTEM = DVBT
+-	FREQUENCY = 498000000
+-	BANDWIDTH_HZ = 8000000
+-
+-[Fiskars]
++[Fiskars-C]
+ 	DELIVERY_SYSTEM = DVBT
+ 	FREQUENCY = 674000000
+ 	BANDWIDTH_HZ = 8000000
+ 
+-[Fiskars]
++[Fiskars-E]
+ 	DELIVERY_SYSTEM = DVBT
+ 	FREQUENCY = 490000000
+ 	BANDWIDTH_HZ = 8000000
+diff --git a/dvb-t/fi-Hyvinkaa b/dvb-t/fi-Hyvinkaa
+index e711b16..25b77d1 100644
+--- a/dvb-t/fi-Hyvinkaa
++++ b/dvb-t/fi-Hyvinkaa
+@@ -1,23 +1,18 @@
+ # 2014-04-18 Antti Palosaari <crope@iki.fi>
+ # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
+ 
+-[Hyvinkaa]
++[Hyvinkaa-A]
+ 	DELIVERY_SYSTEM = DVBT
+ 	FREQUENCY = 538000000
+ 	BANDWIDTH_HZ = 8000000
+ 
+-[Hyvinkaa]
+-	DELIVERY_SYSTEM = DVBT
+-	FREQUENCY = 698000000
+-	BANDWIDTH_HZ = 8000000
+-
+-[Hyvinkaa]
++[Hyvinkaa-C]
+ 	DELIVERY_SYSTEM = DVBT
+ 	FREQUENCY = 530000000
+ 	BANDWIDTH_HZ = 8000000
+ 
+-[Hyvinkaa]
++[Hyvinkaa-E]
+ 	DELIVERY_SYSTEM = DVBT
+-	FREQUENCY = 754000000
++	FREQUENCY = 610000000
+ 	BANDWIDTH_HZ = 8000000
+ 
+diff --git a/dvb-t/fi-Joutseno b/dvb-t/fi-Joutseno
+index 80337fc..0bde1b7 100644
+--- a/dvb-t/fi-Joutseno
++++ b/dvb-t/fi-Joutseno
+@@ -1,28 +1,28 @@
+ # 2014-04-18 Antti Palosaari <crope@iki.fi>
+ # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
+ 
+-[Joutseno]
++[Joutseno-A]
+ 	DELIVERY_SYSTEM = DVBT
+ 	FREQUENCY = 682000000
+ 	BANDWIDTH_HZ = 8000000
+ 
+-[Joutseno]
+-	DELIVERY_SYSTEM = DVBT
+-	FREQUENCY = 586000000
++[Joutseno-B]
++	DELIVERY_SYSTEM = DVBT2
++	FREQUENCY = 658000000
+ 	BANDWIDTH_HZ = 8000000
+ 
+-[Joutseno]
++[Joutseno-C]
+ 	DELIVERY_SYSTEM = DVBT
+-	FREQUENCY = 762000000
++	FREQUENCY = 594000000
+ 	BANDWIDTH_HZ = 8000000
+ 
+-[Joutseno]
++[Joutseno-E]
+ 	DELIVERY_SYSTEM = DVBT
+ 	FREQUENCY = 562000000
+ 	BANDWIDTH_HZ = 8000000
+ 
+-[Joutseno]
++[Joutseno-F]
+ 	DELIVERY_SYSTEM = DVBT2
+-	FREQUENCY = 514000000
++	FREQUENCY = 634000000
+ 	BANDWIDTH_HZ = 8000000
+ 
+diff --git a/dvb-t/fi-Jyvaskyla b/dvb-t/fi-Jyvaskyla
+index 02ced9e..287792e 100644
+--- a/dvb-t/fi-Jyvaskyla
++++ b/dvb-t/fi-Jyvaskyla
+@@ -7,27 +7,22 @@
+ 	BANDWIDTH_HZ = 8000000
+ 
+ [Jyvaskyla-B]
+-	DELIVERY_SYSTEM = DVBT
+-	FREQUENCY = 786000000
++	DELIVERY_SYSTEM = DVBT2
++	FREQUENCY = 522000000
+ 	BANDWIDTH_HZ = 8000000
+ 
+ [Jyvaskyla-C]
+ 	DELIVERY_SYSTEM = DVBT
+-	FREQUENCY = 746000000
++	FREQUENCY = 530000000
+ 	BANDWIDTH_HZ = 8000000
+ 
+ [Jyvaskyla-E]
+ 	DELIVERY_SYSTEM = DVBT
+-	FREQUENCY = 634000000
++	FREQUENCY = 482000000
+ 	BANDWIDTH_HZ = 8000000
+ 
+-[Jyvaskyla-D]
++[Jyvaskyla-F]
+ 	DELIVERY_SYSTEM = DVBT2
+-	FREQUENCY = 506000000
+-	BANDWIDTH_HZ = 8000000
+-
+-[Jyvaskyla-H]
+-	DELIVERY_SYSTEM = DVBT2
+-	FREQUENCY = 586000000
++	FREQUENCY = 634000000
+ 	BANDWIDTH_HZ = 8000000
+ 
+diff --git a/dvb-t/fi-Karkkila b/dvb-t/fi-Karkkila
+index d598f47..7baeef4 100644
+--- a/dvb-t/fi-Karkkila
++++ b/dvb-t/fi-Karkkila
+@@ -1,23 +1,18 @@
+ # 2014-04-18 Antti Palosaari <crope@iki.fi>
+ # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
+ 
+-[Karkkila]
++[Karkkila-A]
+ 	DELIVERY_SYSTEM = DVBT
+-	FREQUENCY = 594000000
++	FREQUENCY = 666000000
+ 	BANDWIDTH_HZ = 8000000
+ 
+-[Karkkila]
++[Karkkila-C]
+ 	DELIVERY_SYSTEM = DVBT
+-	FREQUENCY = 618000000
++	FREQUENCY = 610000000
+ 	BANDWIDTH_HZ = 8000000
+ 
+-[Karkkila]
++[Karkkila-E]
+ 	DELIVERY_SYSTEM = DVBT
+-	FREQUENCY = 762000000
+-	BANDWIDTH_HZ = 8000000
+-
+-[Karkkila]
+-	DELIVERY_SYSTEM = DVBT
+-	FREQUENCY = 698000000
++	FREQUENCY = 530000000
+ 	BANDWIDTH_HZ = 8000000
+ 
+diff --git a/dvb-t/fi-Kruunupyy b/dvb-t/fi-Kruunupyy
+index 65d86c4..ef91e8d 100644
+--- a/dvb-t/fi-Kruunupyy
++++ b/dvb-t/fi-Kruunupyy
+@@ -1,28 +1,28 @@
+ # 2014-04-18 Antti Palosaari <crope@iki.fi>
+ # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
+ 
+-[Kruunupyy]
++[Kruunupyy-A]
+ 	DELIVERY_SYSTEM = DVBT
+-	FREQUENCY = 522000000
++	FREQUENCY = 546000000
+ 	BANDWIDTH_HZ = 8000000
+ 
+-[Kruunupyy]
+-	DELIVERY_SYSTEM = DVBT
+-	FREQUENCY = 482000000
++[Kruunupyy-B]
++	DELIVERY_SYSTEM = DVBT2
++	FREQUENCY = 626000000
+ 	BANDWIDTH_HZ = 8000000
+ 
+-[Kruunupyy]
++[Kruunupyy-C]
+ 	DELIVERY_SYSTEM = DVBT
+ 	FREQUENCY = 634000000
+ 	BANDWIDTH_HZ = 8000000
+ 
+-[Kruunupyy]
++[Kruunupyy-E]
+ 	DELIVERY_SYSTEM = DVBT
+-	FREQUENCY = 658000000
++	FREQUENCY = 530000000
+ 	BANDWIDTH_HZ = 8000000
+ 
+-[Kruunupyy]
++[Kruunupyy-F]
+ 	DELIVERY_SYSTEM = DVBT2
+-	FREQUENCY = 546000000
++	FREQUENCY = 506000000
+ 	BANDWIDTH_HZ = 8000000
+ 
+diff --git a/dvb-t/fi-Kuopio b/dvb-t/fi-Kuopio
+index eb39e5f..ae9d0f2 100644
+--- a/dvb-t/fi-Kuopio
++++ b/dvb-t/fi-Kuopio
+@@ -1,28 +1,28 @@
+ # 2014-04-18 Antti Palosaari <crope@iki.fi>
+ # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
+ 
+-[Kuopio]
++[Kuopio-A]
+ 	DELIVERY_SYSTEM = DVBT
+ 	FREQUENCY = 498000000
+ 	BANDWIDTH_HZ = 8000000
+ 
+-[Kuopio]
+-	DELIVERY_SYSTEM = DVBT
+-	FREQUENCY = 594000000
++[Kuopio-B]
++	DELIVERY_SYSTEM = DVBT2
++	FREQUENCY = 562000000
+ 	BANDWIDTH_HZ = 8000000
+ 
+-[Kuopio]
++[Kuopio-C]
+ 	DELIVERY_SYSTEM = DVBT
+ 	FREQUENCY = 618000000
+ 	BANDWIDTH_HZ = 8000000
+ 
+-[Kuopio]
++[Kuopio-E]
+ 	DELIVERY_SYSTEM = DVBT
+-	FREQUENCY = 722000000
++	FREQUENCY = 674000000
+ 	BANDWIDTH_HZ = 8000000
+ 
+-[Kuopio]
++[Kuopio-F]
+ 	DELIVERY_SYSTEM = DVBT2
+-	FREQUENCY = 674000000
++	FREQUENCY = 634000000
+ 	BANDWIDTH_HZ = 8000000
+ 
+diff --git a/dvb-t/fi-Lahti b/dvb-t/fi-Lahti
+index ea4163c..19da8e7 100644
+--- a/dvb-t/fi-Lahti
++++ b/dvb-t/fi-Lahti
+@@ -7,8 +7,8 @@
+ 	BANDWIDTH_HZ = 8000000
+ 
+ [Lahti-B]
+-	DELIVERY_SYSTEM = DVBT
+-	FREQUENCY = 682000000
++	DELIVERY_SYSTEM = DVBT2
++	FREQUENCY = 602000000
+ 	BANDWIDTH_HZ = 8000000
+ 
+ [Lahti-C]
+@@ -21,12 +21,7 @@
+ 	FREQUENCY = 690000000
+ 	BANDWIDTH_HZ = 8000000
+ 
+-[Lahti-D]
+-	DELIVERY_SYSTEM = DVBT2
+-	FREQUENCY = 602000000
+-	BANDWIDTH_HZ = 8000000
+-
+-[Lahti-H]
++[Lahti-F]
+ 	DELIVERY_SYSTEM = DVBT2
+ 	FREQUENCY = 642000000
+ 	BANDWIDTH_HZ = 8000000
+diff --git a/dvb-t/fi-Lapua b/dvb-t/fi-Lapua
+index 9084440..cb982f1 100644
+--- a/dvb-t/fi-Lapua
++++ b/dvb-t/fi-Lapua
+@@ -1,28 +1,28 @@
+ # 2014-04-18 Antti Palosaari <crope@iki.fi>
+ # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
+ 
+-[Lapua]
++[Lapua-A]
+ 	DELIVERY_SYSTEM = DVBT
+ 	FREQUENCY = 610000000
+ 	BANDWIDTH_HZ = 8000000
+ 
+-[Lapua]
+-	DELIVERY_SYSTEM = DVBT
+-	FREQUENCY = 602000000
++[Lapua-B]
++	DELIVERY_SYSTEM = DVBT2
++	FREQUENCY = 626000000
+ 	BANDWIDTH_HZ = 8000000
+ 
+-[Lapua]
++[Lapua-C]
+ 	DELIVERY_SYSTEM = DVBT
+-	FREQUENCY = 746000000
++	FREQUENCY = 570000000
+ 	BANDWIDTH_HZ = 8000000
+ 
+-[Lapua]
++[Lapua-E]
+ 	DELIVERY_SYSTEM = DVBT
+ 	FREQUENCY = 690000000
+ 	BANDWIDTH_HZ = 8000000
+ 
+-[Lapua]
++[Lapua-F]
+ 	DELIVERY_SYSTEM = DVBT2
+-	FREQUENCY = 498000000
++	FREQUENCY = 506000000
+ 	BANDWIDTH_HZ = 8000000
+ 
+diff --git a/dvb-t/fi-Lohja b/dvb-t/fi-Lohja
+index d040f9b..7952ddf 100644
+--- a/dvb-t/fi-Lohja
++++ b/dvb-t/fi-Lohja
+@@ -1,23 +1,19 @@
+ # 2014-04-18 Antti Palosaari <crope@iki.fi>
+ # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
+ 
+-[Lohja]
++[Lohja-A]
+ 	DELIVERY_SYSTEM = DVBT
+ 	FREQUENCY = 690000000
+ 	BANDWIDTH_HZ = 8000000
+ 
+-[Lohja]
++[Lohja-C]
+ 	DELIVERY_SYSTEM = DVBT
+-	FREQUENCY = 746000000
++	FREQUENCY = 594000000
+ 	BANDWIDTH_HZ = 8000000
+ 
+-[Lohja]
++[Lohja-E]
+ 	DELIVERY_SYSTEM = DVBT
+-	FREQUENCY = 754000000
++	FREQUENCY = 514000000
+ 	BANDWIDTH_HZ = 8000000
+ 
+-[Lohja]
+-	DELIVERY_SYSTEM = DVBT
+-	FREQUENCY = 786000000
+-	BANDWIDTH_HZ = 8000000
+ 
+diff --git a/dvb-t/fi-Oulu b/dvb-t/fi-Oulu
+index 0e3906a..0753c6c 100644
+--- a/dvb-t/fi-Oulu
++++ b/dvb-t/fi-Oulu
+@@ -7,13 +7,13 @@
+ 	BANDWIDTH_HZ = 8000000
+ 
+ [Oulu-B]
+-	DELIVERY_SYSTEM = DVBT
+-	FREQUENCY = 714000000
++	DELIVERY_SYSTEM = DVBT2
++	FREQUENCY = 506000000
+ 	BANDWIDTH_HZ = 8000000
+ 
+ [Oulu-C]
+ 	DELIVERY_SYSTEM = DVBT
+-	FREQUENCY = 738000000
++	FREQUENCY = 530000000
+ 	BANDWIDTH_HZ = 8000000
+ 
+ [Oulu-E]
+@@ -21,12 +21,7 @@
+ 	FREQUENCY = 602000000
+ 	BANDWIDTH_HZ = 8000000
+ 
+-[Oulu-D]
+-	DELIVERY_SYSTEM = DVBT2
+-	FREQUENCY = 498000000
+-	BANDWIDTH_HZ = 8000000
+-
+-[Oulu-H]
++[Oulu-F]
+ 	DELIVERY_SYSTEM = DVBT2
+ 	FREQUENCY = 570000000
+ 	BANDWIDTH_HZ = 8000000
+diff --git a/dvb-t/fi-Tammela b/dvb-t/fi-Tammela
+index f537bef..8266610 100644
+--- a/dvb-t/fi-Tammela
++++ b/dvb-t/fi-Tammela
+@@ -1,28 +1,29 @@
+ # 2014-04-18 Antti Palosaari <crope@iki.fi>
+ # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
+ 
+-[Tammela]
++[Tammela-A]
+ 	DELIVERY_SYSTEM = DVBT
+ 	FREQUENCY = 482000000
+ 	BANDWIDTH_HZ = 8000000
+ 
+-[Tammela]
+-	DELIVERY_SYSTEM = DVBT
+-	FREQUENCY = 522000000
++[Tammela-B]
++	DELIVERY_SYSTEM = DVBT2
++	FREQUENCY = 554000000
+ 	BANDWIDTH_HZ = 8000000
+ 
+-[Tammela]
++[Tammela-C]
+ 	DELIVERY_SYSTEM = DVBT
+-	FREQUENCY = 706000000
++	FREQUENCY = 506000000
+ 	BANDWIDTH_HZ = 8000000
+ 
+-[Tammela]
++[Tammela-E]
+ 	DELIVERY_SYSTEM = DVBT
+-	FREQUENCY = 650000000
++	FREQUENCY = 546000000
+ 	BANDWIDTH_HZ = 8000000
+ 
+-[Tammela]
++[Tammela-F]
+ 	DELIVERY_SYSTEM = DVBT2
+-	FREQUENCY = 546000000
++	FREQUENCY = 586000000
+ 	BANDWIDTH_HZ = 8000000
+ 
++
+diff --git a/dvb-t/fi-Tampere b/dvb-t/fi-Tampere
+index 33d40c4..35497e7 100644
+--- a/dvb-t/fi-Tampere
++++ b/dvb-t/fi-Tampere
+@@ -7,8 +7,8 @@
+ 	BANDWIDTH_HZ = 8000000
+ 
+ [Tampere-B]
+-	DELIVERY_SYSTEM = DVBT
+-	FREQUENCY = 490000000
++	DELIVERY_SYSTEM = DVBT2
++	FREQUENCY = 650000000
+ 	BANDWIDTH_HZ = 8000000
+ 
+ [Tampere-C]
+@@ -21,13 +21,9 @@
+ 	FREQUENCY = 674000000
+ 	BANDWIDTH_HZ = 8000000
+ 
+-[Tampere-D]
+-	DELIVERY_SYSTEM = DVBT2
+-	FREQUENCY = 650000000
+-	BANDWIDTH_HZ = 8000000
+-
+-[Tampere-H]
++[Tampere-F]
+ 	DELIVERY_SYSTEM = DVBT2
+ 	FREQUENCY = 498000000
+ 	BANDWIDTH_HZ = 8000000
+ 
++
+diff --git a/dvb-t/fi-Tampere_Pyynikki b/dvb-t/fi-Tampere_Pyynikki
+index 1da6662..ebd975f 100644
+--- a/dvb-t/fi-Tampere_Pyynikki
++++ b/dvb-t/fi-Tampere_Pyynikki
+@@ -1,28 +1,28 @@
+ # 2014-04-18 Antti Palosaari <crope@iki.fi>
+ # generated from http://www.digita.fi/kuluttajat/tv/nakyvyysalueet/kanavanumerot_ja_taajuudet
+ 
+-[Tampere_Pyynikki]
++[Tampere_Pyynikki-A]
+ 	DELIVERY_SYSTEM = DVBT
+ 	FREQUENCY = 626000000
+ 	BANDWIDTH_HZ = 8000000
+ 
+-[Tampere_Pyynikki]
+-	DELIVERY_SYSTEM = DVBT
+-	FREQUENCY = 514000000
++[Tampere_Pyynikki-B]
++	DELIVERY_SYSTEM = DVBT2
++	FREQUENCY = 610000000
+ 	BANDWIDTH_HZ = 8000000
+ 
+-[Tampere_Pyynikki]
++[Tampere_Pyynikki-C]
+ 	DELIVERY_SYSTEM = DVBT
+ 	FREQUENCY = 682000000
+ 	BANDWIDTH_HZ = 8000000
+ 
+-[Tampere_Pyynikki]
++[Tampere_Pyynikki-E]
+ 	DELIVERY_SYSTEM = DVBT
+-	FREQUENCY = 610000000
++	FREQUENCY = 562000000
+ 	BANDWIDTH_HZ = 8000000
+ 
+-[Tampere_Pyynikki]
++[Tampere_Pyynikki-F]
+ 	DELIVERY_SYSTEM = DVBT2
+-	FREQUENCY = 562000000
++	FREQUENCY = 514000000
+ 	BANDWIDTH_HZ = 8000000
+ 
+diff --git a/dvb-t/fi-Turku b/dvb-t/fi-Turku
+index dd29eb5..413f6ca 100644
+--- a/dvb-t/fi-Turku
++++ b/dvb-t/fi-Turku
+@@ -7,8 +7,8 @@
+ 	BANDWIDTH_HZ = 8000000
+ 
+ [Turku-B]
+-	DELIVERY_SYSTEM = DVBT
+-	FREQUENCY = 658000000
++	DELIVERY_SYSTEM = DVBT2
++	FREQUENCY = 594000000
+ 	BANDWIDTH_HZ = 8000000
+ 
+ [Turku-C]
+@@ -21,12 +21,7 @@
+ 	FREQUENCY = 634000000
+ 	BANDWIDTH_HZ = 8000000
+ 
+-[Turku-D]
+-	DELIVERY_SYSTEM = DVBT2
+-	FREQUENCY = 594000000
+-	BANDWIDTH_HZ = 8000000
+-
+-[Turku-H]
++[Turku-F]
+ 	DELIVERY_SYSTEM = DVBT2
+ 	FREQUENCY = 570000000
+ 	BANDWIDTH_HZ = 8000000
+diff --git a/dvb-t/fi-Vantaa_Hakunila b/dvb-t/fi-Vantaa_Hakunila
+index af493a1..4fceb86 100644
+--- a/dvb-t/fi-Vantaa_Hakunila
++++ b/dvb-t/fi-Vantaa_Hakunila
+@@ -8,16 +8,11 @@
+ 
+ [Vantaa_Hakunila]
+ 	DELIVERY_SYSTEM = DVBT
+-	FREQUENCY = 658000000
+-	BANDWIDTH_HZ = 8000000
+-
+-[Vantaa_Hakunila]
+-	DELIVERY_SYSTEM = DVBT
+ 	FREQUENCY = 674000000
+ 	BANDWIDTH_HZ = 8000000
+ 
+ [Vantaa_Hakunila]
+ 	DELIVERY_SYSTEM = DVBT
+-	FREQUENCY = 730000000
++	FREQUENCY = 514000000
+ 	BANDWIDTH_HZ = 8000000
+ 
 -- 
-Regards,
-Niklas Söderlund
+2.7.4
