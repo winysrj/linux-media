@@ -1,203 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:42497 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752330AbdLKVxh (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 11 Dec 2017 16:53:37 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH v8] uvcvideo: Add a metadata device node
-Date: Mon, 11 Dec 2017 23:53:39 +0200
-Message-ID: <6880941.qHIMnLEYKN@avalon>
-In-Reply-To: <alpine.DEB.2.20.1712112243150.25473@axis700.grange>
-References: <1510156814-28645-1-git-send-email-g.liakhovetski@gmx.de> <4126225.WNi1TyRUA5@avalon> <alpine.DEB.2.20.1712112243150.25473@axis700.grange>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
+Received: from mga02.intel.com ([134.134.136.20]:18484 "EHLO mga02.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750822AbdLZWad (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 26 Dec 2017 17:30:33 -0500
+From: "Mani, Rajmohan" <rajmohan.mani@intel.com>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+CC: "Zhi, Yong" <yong.zhi@intel.com>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>,
+        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
+        "Toivonen, Tuukka" <tuukka.toivonen@intel.com>,
+        "Hu, Jerry W" <jerry.w.hu@intel.com>,
+        "arnd@arndb.de" <arnd@arndb.de>, "hch@lst.de" <hch@lst.de>,
+        "robin.murphy@arm.com" <robin.murphy@arm.com>,
+        "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>
+Subject: RE: [PATCH v4 00/12] Intel IPU3 ImgU patchset
+Date: Tue, 26 Dec 2017 22:30:31 +0000
+Message-ID: <6F87890CF0F5204F892DEA1EF0D77A5972FECBB2@FMSMSX114.amr.corp.intel.com>
+References: <1508298408-25822-1-git-send-email-yong.zhi@intel.com>
+        <6F87890CF0F5204F892DEA1EF0D77A5972FD4195@FMSMSX114.amr.corp.intel.com>
+ <20171220115744.591a12e2@vento.lan>
+In-Reply-To: <20171220115744.591a12e2@vento.lan>
+Content-Language: en-US
 Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
+Hi Mauro,
 
-On Monday, 11 December 2017 23:44:09 EET Guennadi Liakhovetski wrote:
-> On Mon, 11 Dec 2017, Laurent Pinchart wrote:
-> > On Monday, 11 December 2017 22:16:23 EET Laurent Pinchart wrote:
-> >> On Wednesday, 6 December 2017 17:15:40 EET Guennadi Liakhovetski wrote:
-> >>> From: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>
-> >>> 
-> >>> Some UVC video cameras contain metadata in their payload headers. This
-> >>> patch extracts that data, adding more clock synchronisation
-> >>> information, on both bulk and isochronous endpoints and makes it
-> >>> available to the user space on a separate video node, using the
-> >>> V4L2_CAP_META_CAPTURE capability and the V4L2_BUF_TYPE_META_CAPTURE
-> >>> buffer queue type. By default, only the V4L2_META_FMT_UVC pixel format
-> >>> is available from those nodes. However, cameras can be added to the
-> >>> device ID table to additionally specify their own metadata format, in
-> >>> which case that format will also become available from the metadata
-> >>> node.
-> >>> 
-> >>> Signed-off-by: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>
-> >>> ---
-> >>> 
-> >>> v8: addressed comments and integrated changes from Laurent, thanks
-> >>> again, e.g.:
-> >>> 
-> >>> - multiple stylistic changes
-> >>> - remove the UVC_DEV_FLAG_METADATA_NODE flag / quirk: nodes are now
-> >>>   created unconditionally
-> >>> - reuse uvc_ioctl_querycap()
-> >>> - reuse code in uvc_register_video()
-> >>> - set an error flag when the metadata buffer overflows
-> >>> 
-> >>>  drivers/media/usb/uvc/Makefile       |   2 +-
-> >>>  drivers/media/usb/uvc/uvc_driver.c   |  15 ++-
-> >>>  drivers/media/usb/uvc/uvc_isight.c   |   2 +-
-> >>>  drivers/media/usb/uvc/uvc_metadata.c | 179 ++++++++++++++++++++++++++++
-> >>>  drivers/media/usb/uvc/uvc_queue.c    |  44 +++++++--
-> >>>  drivers/media/usb/uvc/uvc_video.c    | 132 ++++++++++++++++++++++++--
-> >>>  drivers/media/usb/uvc/uvcvideo.h     |  16 +++-
-> >>>  include/uapi/linux/uvcvideo.h        |  26 +++++
-> >>>  8 files changed, 394 insertions(+), 22 deletions(-)
-> >>>  create mode 100644 drivers/media/usb/uvc/uvc_metadata.c
-> >> 
-> >> [snip]
-> >> 
-> >> > diff --git a/drivers/media/usb/uvc/uvc_video.c
-> >> > b/drivers/media/usb/uvc/uvc_video.c index 13f459e..2fc0bf2 100644
-> >> > --- a/drivers/media/usb/uvc/uvc_video.c
-> >> > +++ b/drivers/media/usb/uvc/uvc_video.c
-> >> 
-> >> [snip]
-> >> 
-> >>> +static void uvc_video_decode_meta(struct uvc_streaming *stream,
-> >>> +				  struct uvc_buffer *meta_buf,
-> >>> +				  const u8 *mem, unsigned int length)
-> >>> +{
-> >>> +	struct uvc_meta_buf *meta;
-> >>> +	size_t len_std = 2;
-> >>> +	bool has_pts, has_scr;
-> >>> +	unsigned long flags;
-> >>> +	ktime_t time;
-> >>> +	const u8 *scr;
-> >>> +
-> >>> +	if (!meta_buf || length == 2)
-> >>> +		return;
-> >>> +
-> >>> +	if (meta_buf->length - meta_buf->bytesused <
-> >>> +	    length + sizeof(meta->ns) + sizeof(meta->sof)) {
-> >>> +		meta_buf->error = 1;
-> >>> +		return;
-> >>> +	}
-> >>> +
-> >>> +	has_pts = mem[1] & UVC_STREAM_PTS;
-> >>> +	has_scr = mem[1] & UVC_STREAM_SCR;
-> >>> +
-> >>> +	if (has_pts) {
-> >>> +		len_std += 4;
-> >>> +		scr = mem + 6;
-> >>> +	} else {
-> >>> +		scr = mem + 2;
-> >>> +	}
-> >>> +
-> >>> +	if (has_scr)
-> >>> +		len_std += 6;
-> >>> +
-> >>> +	if (stream->meta.format == V4L2_META_FMT_UVC)
-> >>> +		length = len_std;
-> >>> +
-> >>> +	if (length == len_std && (!has_scr ||
-> >>> +				  !memcmp(scr, stream->clock.last_scr, 6)))
-> >>> +		return;
-> >>> +
-> >>> +	meta = (struct uvc_meta_buf *)((u8 *)meta_buf->mem +
-> >>> meta_buf->bytesused); +	local_irq_save(flags);
-> >>> +	time = uvc_video_get_time();
-> >>> +	meta->sof = usb_get_current_frame_number(stream->dev->udev);
-> >> 
-> >> You need a put_unaligned here too. If you're fine with the patch below
-> >> there's no need to resubmit, and
-> > 
-> > One more thing, __put_unaligned_cpu16() and __put_unaligned_cpu64() don't
-> > compile on x86_64 with v4.12 (using media_build.git). I propose replacing
-> > them with put_unaligned() which compiles and should do the right thing.
-> Sure, thanks for catching! Shall I fix and resubmit?
-
-If you're fine with
-
-	git://linuxtv.org/pinchartl/media.git uvc/next
-
-there's no need to resubmit.
-
-By the way, could you please review "uvcvideo: Factor out video device 
-registration to a function" and "uvcvideo: Report V4L2 device caps through the 
-video_device structure" ?
-
-I will send a pull request after testing the code and getting those two 
-patches reviewed.
-
-> >> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> >> 
-> >> Would you mind sending me your test tool patch ?
+> -----Original Message-----
+> From: Mauro Carvalho Chehab [mailto:mchehab@s-opensource.com]
+> Sent: Wednesday, December 20, 2017 5:58 AM
+> To: Mani, Rajmohan <rajmohan.mani@intel.com>
+> Cc: Zhi, Yong <yong.zhi@intel.com>; linux-media@vger.kernel.org;
+> sakari.ailus@linux.intel.com; Zheng, Jian Xu <jian.xu.zheng@intel.com>;
+> Toivonen, Tuukka <tuukka.toivonen@intel.com>; Hu, Jerry W
+> <jerry.w.hu@intel.com>; arnd@arndb.de; hch@lst.de;
+> robin.murphy@arm.com; iommu@lists.linux-foundation.org
+> Subject: Re: [PATCH v4 00/12] Intel IPU3 ImgU patchset
 > 
-> Will send it offline.
+> Hi,
 > 
-> Thanks
-> Guennadi
+> Em Fri, 17 Nov 2017 02:58:56 +0000
+> "Mani, Rajmohan" <rajmohan.mani@intel.com> escreveu:
 > 
-> >> diff --git a/drivers/media/usb/uvc/uvc_video.c b/drivers/media/usb/uvc/
-> >> uvc_video.c
-> >> index 2fc0bf2221db..02e4997a32bb 100644
-> >> --- a/drivers/media/usb/uvc/uvc_video.c
-> >> +++ b/drivers/media/usb/uvc/uvc_video.c
-> >> @@ -1142,6 +1142,7 @@ static void uvc_video_decode_meta(struct
-> >> uvc_streaming *stream,
-> >>  	size_t len_std = 2;
-> >>  	bool has_pts, has_scr;
-> >>  	unsigned long flags;
-> >> +	unsigned int sof;
-> >>  	ktime_t time;
-> >>  	const u8 *scr;
-> >> 
-> >> @@ -1177,9 +1178,10 @@ static void uvc_video_decode_meta(struct
-> >> uvc_streaming *stream,
-> >>  	meta = (struct uvc_meta_buf *)((u8 *)meta_buf->mem +
-> >>  	meta_buf->bytesused);
-> >> 
-> >>  local_irq_save(flags);
-> >>  	time = uvc_video_get_time();
-> >> -	meta->sof = usb_get_current_frame_number(stream->dev->udev);
-> >> +	sof = usb_get_current_frame_number(stream->dev->udev);
-> >>  	local_irq_restore(flags);
-> >>  	__put_unaligned_cpu64(ktime_to_ns(time), &meta->ns);
-> >> +	__put_unaligned_cpu16(sof, &meta->sof);
-> >> 
-> >>  	if (has_scr)
-> >>  		memcpy(stream->clock.last_scr, scr, 6);
-> >>
-> >>> +	local_irq_restore(flags);
-> >>> +	__put_unaligned_cpu64(ktime_to_ns(time), &meta->ns);
-> >>> +
-> >>> +	if (has_scr)
-> >>> +		memcpy(stream->clock.last_scr, scr, 6);
-> >>> +
-> >>> +	memcpy(&meta->length, mem, length);
-> >>> +	meta_buf->bytesused += length + sizeof(meta->ns) +
-> >>> sizeof(meta->sof);
-> >>> +
-> >>> +	uvc_trace(UVC_TRACE_FRAME,
-> >>> +		  "%s(): t-sys %lluns, SOF %u, len %u, flags 0x%x, PTS %u, STC %u
-> >>> frame
-> >>> SOF %u\n", +		  __func__, time, meta->sof, meta->length, meta-
->flags,
-> >>> +		  has_pts ? *(u32 *)meta->buf : 0,
-> >>> +		  has_scr ? *(u32 *)scr : 0,
-> >>> +		  has_scr ? *(u32 *)(scr + 4) & 0x7ff : 0);
-> >>> +}
-> >> 
-> >> [snip]
+> > Here is an update on the IPU3 documentation that we are currently working
+> on.
+> >
+> > Image processing in IPU3 relies on the following.
+> >
+> > 1) HW configuration to enable ISP and
+> > 2) setting customer specific 3A Tuning / Algorithm Parameters to achieve
+> desired image quality.
+> >
+> > We intend to provide documentation on ImgU driver programming interface
+> to help users of this driver to configure and enable ISP HW to meet their
+> needs.  This documentation will include details on complete V4L2 Kernel driver
+> interface and IO-Control parameters, except for the ISP internal algorithm and
+> its parameters (which is Intel proprietary IP).
+> 
+> Sakari asked me to take a look on this thread, specifically on this email. I took a
+> look on the other e-mails from this thread that are discussing about this IP
+> block.
+> 
+> I understand that Intel wants to keep their internal 3A algorithm protected,
+> just like other vendors protect their own algos. It was never a requirement to
+> open whatever algorithm are used inside a hardware (or firmware). The only
+> requirement is that firmwares should be licensed with redistribution
+> permission, ideally merged at linux-firmware git tree.
+> 
+> Yet, what I don't understand is why Intel also wants to also protect the
+> interface for such 3A hardware/firmware algorithm. The parameters that are
+> passed from an userspace application to Intel ISP logic doesn't contain the
+> algorithm itself. What's the issue of documenting the meaning of each
+> parameter?
+> 
 
--- 
-Regards,
+Thanks for looking into this.
 
-Laurent Pinchart
+To achieve improved image quality using IPU3, 3A (Auto White balance, Auto Focus
+and Auto Exposure) Tuning parameters specific to a given camera sensor module,
+are converted to Intel ISP algorithm parameters in user space camera HAL using
+AIC (Automatic ISP Configuration) library.
+
+As a unique design of Intel ISP, it exposes very detailed algorithm parameters
+(~ 10000 parameters) to configure ISP's image processing algorithm per each
+image fame in runtime. Typical Camera SW developers (including those at Intel)
+are not expected to fully understand and directly set these parameters to
+configure the ISP algorithm blocks. Due to the above, a user space AIC library
+(in binary form) is provided to generate ISP Algorithm specific parameters, for
+a given set of 3A tuning parameters. It significantly reduces the efforts of SW
+development in ISP HW configuration.
+
+On the other hand, the ISP algorithm details could be deduced readily through
+these detailed parameters by other ISP experts outside Intel. This is the reason
+that we want to keep these parameter definitions as Intel proprietary IP.
+
+We are fully aware of your concerns on how to enable open source developers
+to use Intel ISP through up-streamed Kernel Driver. Internally, we are working
+on the license for this AIC library release now (as Hans said NDA license is not
+acceptable). We believe this will be more efficient way to help open source
+developers.
+
+This AIC library release would be a binary-only release. This AIC library does
+not use any kernel uAPIs directly. The user space Camera HAL that uses kernel
+uAPIs is available at 
+https://chromium.googlesource.com/chromiumos/platform/arc-camera/+/master
+
+Thanks
+Raj
