@@ -1,62 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay4-d.mail.gandi.net ([217.70.183.196]:47085 "EHLO
-        relay4-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751443AbdLEUl5 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 5 Dec 2017 15:41:57 -0500
-From: Jacopo Mondi <jacopo+renesas@jmondi.org>
-To: niklas.soderlund+renesas@ragnatech.se,
-        laurent.pinchart@ideasonboard.com, kieran.bingham@ideasonboard.com
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
-Subject: [PATCH] v4l: rcar-csi2: Don't bail out from probe on no ep
-Date: Tue,  5 Dec 2017 21:41:48 +0100
-Message-Id: <1512506508-17418-1-git-send-email-jacopo+renesas@jmondi.org>
+Received: from mail-pl0-f68.google.com ([209.85.160.68]:33400 "EHLO
+        mail-pl0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751163AbdLZVzn (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 26 Dec 2017 16:55:43 -0500
+Date: Tue, 26 Dec 2017 15:55:37 -0600
+From: Rob Herring <robh@kernel.org>
+To: Yong Deng <yong.deng@magewell.com>
+Cc: Maxime Ripard <maxime.ripard@free-electrons.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Chen-Yu Tsai <wens@csie.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Randy Dunlap <rdunlap@infradead.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Yannick Fertre <yannick.fertre@st.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Rick Chang <rick.chang@mediatek.com>,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-sunxi@googlegroups.com
+Subject: Re: [PATCH v4 1/2] dt-bindings: media: Add Allwinner V3s Camera
+ Sensor Interface (CSI)
+Message-ID: <20171226215537.cmn4l7k2w764yrsg@rob-hp-laptop>
+References: <1513935689-35415-1-git-send-email-yong.deng@magewell.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1513935689-35415-1-git-send-email-yong.deng@magewell.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When rcar-csi interface is not connected to any endpoint, it fails and
-bails out from probe before registering its own video subdevice.
-This prevents rcar-vin registered notifier from completing and no
-subdevice is ever registered, also for other properly connected csi
-interfaces.
+On Fri, Dec 22, 2017 at 05:41:29PM +0800, Yong Deng wrote:
+> Add binding documentation for Allwinner V3s CSI.
+> 
+> Signed-off-by: Yong Deng <yong.deng@magewell.com>
+> ---
+>  .../devicetree/bindings/media/sun6i-csi.txt        | 51 ++++++++++++++++++++++
+>  1 file changed, 51 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/sun6i-csi.txt
+> 
+> diff --git a/Documentation/devicetree/bindings/media/sun6i-csi.txt b/Documentation/devicetree/bindings/media/sun6i-csi.txt
+> new file mode 100644
+> index 0000000..b5bfe3f
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/media/sun6i-csi.txt
+> @@ -0,0 +1,51 @@
+> +Allwinner V3s Camera Sensor Interface
+> +------------------------------
+> +
+> +Required properties:
+> +  - compatible: value must be "allwinner,sun8i-v3s-csi"
+> +  - reg: base address and size of the memory-mapped region.
+> +  - interrupts: interrupt associated to this IP
+> +  - clocks: phandles to the clocks feeding the CSI
+> +    * bus: the CSI interface clock
+> +    * mod: the CSI module clock
+> +    * ram: the CSI DRAM clock
+> +  - clock-names: the clock names mentioned above
+> +  - resets: phandles to the reset line driving the CSI
+> +
+> +- ports: A ports node with endpoint definitions as defined in
+> +  Documentation/devicetree/bindings/media/video-interfaces.txt.
+> +  Currently, the driver only support the parallel interface. So, a single port
+> +  node with one endpoint and parallel bus is supported.
 
-Fix this not returning an error when no endpoint is connected to a csi
-interface and let the driver complete its probe function and register its
-own video subdevice.
+What the driver supports is not relevant. Please document what the h/w 
+has.
 
----
-Niklas,
-   please squash this patch in your next rcar-csi2 series (if you like it ;)
+> +
+> +Example:
+> +
+> +	csi1: csi@1cb4000 {
+> +		compatible = "allwinner,sun8i-v3s-csi";
+> +		reg = <0x01cb4000 0x1000>;
+> +		interrupts = <GIC_SPI 84 IRQ_TYPE_LEVEL_HIGH>;
+> +		clocks = <&ccu CLK_BUS_CSI>,
+> +			 <&ccu CLK_CSI1_SCLK>,
+> +			 <&ccu CLK_DRAM_CSI>;
+> +		clock-names = "bus", "mod", "ram";
+> +		resets = <&ccu RST_BUS_CSI>;
+> +
+> +		port {
 
-As we have discussed this is particularly useful for gmsl setup, where adv748x
-is connected to CSI20 and max9286 to CSI40/CSI41. If we disable adv748x from DTS
-we need CSI20 probe to complete anyhow otherwise no subdevice gets registered
-for the two deserializers.
+> +			#address-cells = <1>;
+> +			#size-cells = <0>;
 
-Please note we cannot disable CSI20 entirely otherwise VIN's graph parsing
-breaks.
+These are not needed with a single endpoint.
 
-Thanks
-   j
-
----
- drivers/media/platform/rcar-vin/rcar-csi2.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/media/platform/rcar-vin/rcar-csi2.c b/drivers/media/platform/rcar-vin/rcar-csi2.c
-index 2793efb..90c4062 100644
---- a/drivers/media/platform/rcar-vin/rcar-csi2.c
-+++ b/drivers/media/platform/rcar-vin/rcar-csi2.c
-@@ -928,8 +928,8 @@ static int rcar_csi2_parse_dt(struct rcar_csi2 *priv)
-
- 	ep = of_graph_get_endpoint_by_regs(priv->dev->of_node, 0, 0);
- 	if (!ep) {
--		dev_err(priv->dev, "Not connected to subdevice\n");
--		return -EINVAL;
-+		dev_dbg(priv->dev, "Not connected to subdevice\n");
-+		return 0;
- 	}
-
- 	ret = v4l2_fwnode_endpoint_parse(of_fwnode_handle(ep), &v4l2_ep);
---
-2.7.4
+> +
+> +			/* Parallel bus endpoint */
+> +			csi1_ep: endpoint {
+> +				remote-endpoint = <&adv7611_ep>;
+> +				bus-width = <16>;
+> +				data-shift = <0>;
+> +
+> +				/* If hsync-active/vsync-active are missing,
+> +				   embedded BT.656 sync is used */
+> +				hsync-active = <0>; /* Active low */
+> +				vsync-active = <0>; /* Active low */
+> +				data-active = <1>;  /* Active high */
+> +				pclk-sample = <1>;  /* Rising */
+> +			};
+> +		};
+> +	};
+> +
+> -- 
+> 1.8.3.1
+> 
