@@ -1,47 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:20925 "EHLO
-        mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753328AbdLHJg4 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 8 Dec 2017 04:36:56 -0500
-From: Smitha T Murthy <smitha.t@samsung.com>
-To: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Cc: kyungmin.park@samsung.com, kamil@wypas.org, jtp.park@samsung.com,
-        a.hajda@samsung.com, mchehab@kernel.org, pankaj.dubey@samsung.com,
-        krzk@kernel.org, m.szyprowski@samsung.com, s.nawrocki@samsung.com,
-        Smitha T Murthy <smitha.t@samsung.com>
-Subject: [Patch v6 07/12] Documentation: v4l: Documentation for HEVC v4l2
- definition
-Date: Fri, 08 Dec 2017 14:38:20 +0530
-Message-id: <1512724105-1778-8-git-send-email-smitha.t@samsung.com>
-In-reply-to: <1512724105-1778-1-git-send-email-smitha.t@samsung.com>
-References: <1512724105-1778-1-git-send-email-smitha.t@samsung.com>
-        <CGME20171208093654epcas2p23b6b9666cbd85b3b72c139b172810947@epcas2p2.samsung.com>
+Received: from mail-wr0-f193.google.com ([209.85.128.193]:40567 "EHLO
+        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751122AbdLZXiD (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 26 Dec 2017 18:38:03 -0500
+Received: by mail-wr0-f193.google.com with SMTP id p17so11801625wre.7
+        for <linux-media@vger.kernel.org>; Tue, 26 Dec 2017 15:38:03 -0800 (PST)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: linux-media@vger.kernel.org, mchehab@kernel.org,
+        mchehab@s-opensource.com
+Subject: [PATCH 0/4] stv0910: upstream changes and PLS support
+Date: Wed, 27 Dec 2017 00:37:55 +0100
+Message-Id: <20171226233759.16116-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add V4L2 definition for HEVC compressed format which is also
-known as H.265.
+From: Daniel Scheller <d.scheller@gmx.net>
 
-Signed-off-by: Smitha T Murthy <smitha.t@samsung.com>
-Reviewed-by: Andrzej Hajda <a.hajda@samsung.com>
-Reviewed-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
----
- Documentation/media/uapi/v4l/pixfmt-compressed.rst | 5 +++++
- 1 file changed, 5 insertions(+)
+This series basically is meant to fully enable support for physical
+layer scrambling which is now supported by the DVB core. Though I
+decided to pick up the latest changes to the driver from the dddvb
+upstream and bring both drivers in sync. So, along with support for
+PLS, these patches apply some cosmetics and cleanups, adds macros to
+utilise the field definitions for which the offsets were added
+recently, and makes use of them while finally enabling PLS.
 
-diff --git a/Documentation/media/uapi/v4l/pixfmt-compressed.rst b/Documentation/media/uapi/v4l/pixfmt-compressed.rst
-index 728d7ed..abec039 100644
---- a/Documentation/media/uapi/v4l/pixfmt-compressed.rst
-+++ b/Documentation/media/uapi/v4l/pixfmt-compressed.rst
-@@ -90,3 +90,8 @@ Compressed Formats
-       - ``V4L2_PIX_FMT_VP9``
-       - 'VP90'
-       - VP9 video elementary stream.
-+    * .. _V4L2-PIX-FMT-HEVC:
-+
-+      - ``V4L2_PIX_FMT_HEVC``
-+      - 'HEVC'
-+      - HEVC/H.265 video elementary stream.
+Daniel Scheller (4):
+  [media] dvb-frontends/stv0910: deduplicate writes in
+    enable_puncture_rate()
+  [media] dvb-frontends/stv0910: cleanup I2C access functions
+  [media] dvb-frontends/stv0910: field and register access helpers
+  [media] dvb-frontends/stv0910: cleanup init_search_param() and enable
+    PLS
+
+ drivers/media/dvb-frontends/stv0910.c | 195 ++++++++++++++++++----------------
+ 1 file changed, 103 insertions(+), 92 deletions(-)
+
 -- 
-2.7.4
+2.13.6
