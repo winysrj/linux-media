@@ -1,78 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:50492 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756959AbdLQARX (ORCPT
+Received: from esa4.microchip.iphmx.com ([68.232.154.123]:10471 "EHLO
+        esa4.microchip.iphmx.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750806AbdLZBjs (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 16 Dec 2017 19:17:23 -0500
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: dri-devel@lists.freedesktop.org
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        Alexandru Gheorghe <Alexandru_Gheorghe@mentor.com>,
-        Russell King <linux@armlinux.org.uk>,
-        Ben Skeggs <bskeggs@redhat.com>,
-        Sinclair Yeh <syeh@vmware.com>,
-        Thomas Hellstrom <thellstrom@vmware.com>,
-        Jani Nikula <jani.nikula@linux.intel.com>,
-        Joonas Lahtinen <joonas.lahtinen@linux.intel.com>,
-        Rodrigo Vivi <rodrigo.vivi@intel.com>
-Subject: [PATCH/RFC 4/4] drm: rcar-du: Add support for color keying on Gen3
-Date: Sun, 17 Dec 2017 02:17:24 +0200
-Message-Id: <20171217001724.1348-5-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <20171217001724.1348-1-laurent.pinchart+renesas@ideasonboard.com>
-References: <20171217001724.1348-1-laurent.pinchart+renesas@ideasonboard.com>
+        Mon, 25 Dec 2017 20:39:48 -0500
+Subject: Re: [PATCH -next] media: atmel-isc: Make local symbol
+ fmt_configs_list static
+To: Wei Yongjun <weiyongjun1@huawei.com>,
+        Songjun Wu <songjun.wu@microchip.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Nicolas Ferre <nicolas.ferre@microchip.com>,
+        Alexandre Belloni <alexandre.belloni@free-electrons.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+CC: <linux-media@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>
+References: <1513994224-86350-1-git-send-email-weiyongjun1@huawei.com>
+From: "Yang, Wenyou" <Wenyou.Yang@Microchip.com>
+Message-ID: <fa1db8ce-c93a-cb0c-a5e0-a8886879090e@Microchip.com>
+Date: Tue, 26 Dec 2017 09:39:42 +0800
+MIME-Version: 1.0
+In-Reply-To: <1513994224-86350-1-git-send-email-weiyongjun1@huawei.com>
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Gen3 hardware supports color keying with replacement of the pixel value.
-Implement it using the standard KMS colorkey properties.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
----
- drivers/gpu/drm/rcar-du/rcar_du_vsp.c | 16 ++++++++++++++++
- 1 file changed, 16 insertions(+)
 
-diff --git a/drivers/gpu/drm/rcar-du/rcar_du_vsp.c b/drivers/gpu/drm/rcar-du/rcar_du_vsp.c
-index 882d1f7a328b..54deb9567cd3 100644
---- a/drivers/gpu/drm/rcar-du/rcar_du_vsp.c
-+++ b/drivers/gpu/drm/rcar-du/rcar_du_vsp.c
-@@ -198,6 +198,13 @@ static void rcar_du_vsp_plane_setup(struct rcar_du_vsp_plane *plane)
- 		}
- 	}
- 
-+	/* Convert the colorkey from 16 bits to 8 bits per component. */
-+	cfg.colorkey.enabled = state->state.colorkey.mode;
-+	cfg.colorkey.alpha = state->state.colorkey.value >> 56;
-+	cfg.colorkey.key = ((state->state.colorkey.min >> 24) & 0x00ff0000)
-+			 | ((state->state.colorkey.min >> 16) & 0x0000ff00)
-+			 | ((state->state.colorkey.min >>  8) & 0x000000ff);
-+
- 	vsp1_du_atomic_update(plane->vsp->vsp, crtc->vsp_pipe,
- 			      plane->index, &cfg);
- }
-@@ -383,6 +390,11 @@ static const struct drm_plane_funcs rcar_du_vsp_plane_funcs = {
- 	.atomic_get_property = rcar_du_vsp_plane_atomic_get_property,
- };
- 
-+static const struct drm_prop_enum_list colorkey_modes[] = {
-+	{ 0, "disabled" },
-+	{ 1, "source" },
-+};
-+
- int rcar_du_vsp_init(struct rcar_du_vsp *vsp, struct device_node *np,
- 		     unsigned int crtcs)
- {
-@@ -441,6 +453,10 @@ int rcar_du_vsp_init(struct rcar_du_vsp *vsp, struct device_node *np,
- 					   rcdu->props.alpha, 255);
- 		drm_plane_create_zpos_property(&plane->plane, 1, 1,
- 					       vsp->num_planes - 1);
-+		drm_plane_create_colorkey_properties(&plane->plane,
-+						     colorkey_modes,
-+						     ARRAY_SIZE(colorkey_modes),
-+						     true);
- 	}
- 
- 	return 0;
--- 
-Regards,
+On 2017/12/23 9:57, Wei Yongjun wrote:
+> Fixes the following sparse warning:
+>
+> drivers/media/platform/atmel/atmel-isc.c:338:19: warning:
+>   symbol 'fmt_configs_list' was not declared. Should it be static?
+>
+> Signed-off-by: Wei Yongjun <weiyongjun1@huawei.com>
+> ---
+Acked-by: Wenyou Yang <wenyou.yang@microchip.com>
 
-Laurent Pinchart
+>   drivers/media/platform/atmel/atmel-isc.c | 2 +-
+>   1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/drivers/media/platform/atmel/atmel-isc.c b/drivers/media/platform/atmel/atmel-isc.c
+> index 0c26356..2dd72fc 100644
+> --- a/drivers/media/platform/atmel/atmel-isc.c
+> +++ b/drivers/media/platform/atmel/atmel-isc.c
+> @@ -335,7 +335,7 @@ struct isc_device {
+>   	},
+>   };
+>   
+> -struct fmt_config fmt_configs_list[] = {
+> +static struct fmt_config fmt_configs_list[] = {
+>   	{
+>   		.fourcc		= V4L2_PIX_FMT_SBGGR8,
+>   		.pfe_cfg0_bps	= ISC_PFE_CFG0_BPS_EIGHT,
+>
