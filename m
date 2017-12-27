@@ -1,106 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtprelay0005.hostedemail.com ([216.40.44.5]:33729 "EHLO
-        smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751999AbdLLQCv (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:40428 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751864AbdL0Vb2 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 12 Dec 2017 11:02:51 -0500
-Message-ID: <1513094567.3036.54.camel@perches.com>
-Subject: Re: [PATCH] tuners: tda8290: reduce stack usage with kasan
-From: Joe Perches <joe@perches.com>
-To: Arnd Bergmann <arnd@arndb.de>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Michael Ira Krufky <mkrufky@linuxtv.org>,
-        linux-media <linux-media@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>
-Date: Tue, 12 Dec 2017 08:02:47 -0800
-In-Reply-To: <CAK8P3a2=FG-cO5G0S5xssrEcX-rmem2xS-SDsaLOGfYmcHWGBQ@mail.gmail.com>
-References: <20171211120612.3775893-1-arnd@arndb.de>
-         <1513020868.3036.0.camel@perches.com>
-         <CAOcJUbyARps1CeRFvLau3w-rBvn2QLbsY2PHGymbpUyuFCJ2HA@mail.gmail.com>
-         <CAK8P3a01sOsWSw4t-x6rv+9pzbfhZtEMc6iwV54Xq-48h6CN=Q@mail.gmail.com>
-         <1513078952.3036.36.camel@perches.com> <20171212104530.46ac4ffe@vento.lan>
-         <CAK8P3a2=FG-cO5G0S5xssrEcX-rmem2xS-SDsaLOGfYmcHWGBQ@mail.gmail.com>
-Content-Type: text/plain; charset="ISO-8859-1"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+        Wed, 27 Dec 2017 16:31:28 -0500
+Date: Wed, 27 Dec 2017 23:31:24 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH v2 6/8] media: v4l2-subdev: get rid of
+ __V4L2_SUBDEV_MK_GET_TRY() macro
+Message-ID: <20171227213124.gn6vzyyrkxmq3ziq@valkosipuli.retiisi.org.uk>
+References: <cover.1513682135.git.mchehab@s-opensource.com>
+ <e1a835c0f4c43a61bdee2950e1752051c92ca73d.1513682135.git.mchehab@s-opensource.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <e1a835c0f4c43a61bdee2950e1752051c92ca73d.1513682135.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 2017-12-12 at 15:21 +0100, Arnd Bergmann wrote:
-> On Tue, Dec 12, 2017 at 1:45 PM, Mauro Carvalho Chehab
-> <mchehab@kernel.org> wrote:
-> > Em Tue, 12 Dec 2017 03:42:32 -0800
-> > Joe Perches <joe@perches.com> escreveu:
-> > 
-> > > > I actually thought about marking them 'const' here before sending
-> > > > (without noticing the changelog text) and then ran into what must
-> > > > have led me to drop the 'const' originally: tuner_i2c_xfer_send()
-> > > > takes a non-const pointer. This can be fixed but it requires
-> > > > an ugly cast:
-> > > 
-> > > Casting away const is always a horrible hack.
-> > > 
-> > > Until it could be changed, my preference would
-> > > be to update the changelog and perhaps add to
-> > > the changelog the reason why it can not be const
-> > > as detailed below.
-> > > 
-> > > ie: xfer_send and xfer_xend_recv both take a
-> > >     non-const unsigned char *
-> 
-> Ok.
-> 
-> > Perhaps, on a separate changeset, we could change I2C routines to
-> > accept const unsigned char pointers. This is unrelated to tda8290
-> > KASAN fixes. So, it should go via I2C tree, and, once accepted
-> > there, we can change V4L2 drivers (and other drivers) accordingly.
-> 
-> I don't see how that would work unfortunately. i2c_msg contains
-> a pointer to the data, and that is used for both input and output,
-> including arrays like
-> 
->         struct i2c_msg msgs[] = {
->                 {
->                         .addr = dvo->slave_addr,
->                         .flags = 0,
->                         .len = 1,
->                         .buf = &addr,
->                 },
->                 {
->                         .addr = dvo->slave_addr,
->                         .flags = I2C_M_RD,
->                         .len = 1,
->                         .buf = val,
->                 }
->         };
-> 
-> that have one constant output pointer and one non-constant
-> input pointer. We could add an anonymous union for 'buf'
-> to make that two separate pointers, but that's barely any
-> better than the cast, and it would break the named initializers
-> in the example above, at least on older compilers. Adding
-> a second pointer to i2c_msg would add a bit of bloat and
-> also require tree-wide changes or ugly hacks.
+Hi Mauro,
 
-Perhaps add something like
+Thanks for the patch. Please see my comments below.
 
-struct i2c_msg_set {
-	__u16 addr;		/* slave address			*/
-	__u16 flags;
-	__u16 len;		/* msg length				*/
-	const __u8 *buf;	/* pointer to read-only msg data	*/
-};
+On Tue, Dec 19, 2017 at 09:18:22AM -0200, Mauro Carvalho Chehab wrote:
+> The __V4L2_SUBDEV_MK_GET_TRY() macro is used to define
+> 3 functions that have the same arguments. The code of those
+> functions is simple enough to just declare them, de-obfuscating
+> the code.
+> 
+> While here, replace BUG_ON() by WARN_ON() as there's no reason
+> why to panic the Kernel if this fails.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> ---
+>  include/media/v4l2-subdev.h | 40 ++++++++++++++++++++++++++++------------
+>  1 file changed, 28 insertions(+), 12 deletions(-)
+> 
+> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+> index 71b8ff4b2e0e..443e5e019006 100644
+> --- a/include/media/v4l2-subdev.h
+> +++ b/include/media/v4l2-subdev.h
+> @@ -896,19 +896,35 @@ struct v4l2_subdev_fh {
+>  	container_of(fh, struct v4l2_subdev_fh, vfh)
+>  
+>  #if defined(CONFIG_VIDEO_V4L2_SUBDEV_API)
+> -#define __V4L2_SUBDEV_MK_GET_TRY(rtype, fun_name, field_name)		\
+> -	static inline struct rtype *					\
+> -	fun_name(struct v4l2_subdev *sd,				\
+> -		 struct v4l2_subdev_pad_config *cfg,			\
+> -		 unsigned int pad)					\
+> -	{								\
+> -		BUG_ON(pad >= sd->entity.num_pads);			\
+> -		return &cfg[pad].field_name;				\
+> -	}
+> +static inline struct v4l2_mbus_framefmt
+> +*v4l2_subdev_get_try_format(struct v4l2_subdev *sd,
+> +			    struct v4l2_subdev_pad_config *cfg,
+> +			    unsigned int pad)
+> +{
+> +	if (WARN_ON(pad >= sd->entity.num_pads))
+> +		pad = 0;
+> +	return &cfg[pad].try_fmt;
 
-struct i2c_msg_get {
-	__u16 addr;		/* slave address			*/
-	__u16 flags;
-	__u16 len;		/* msg length				*/
-	__u8 *buf;		/* pointer to writeable msg data	*/
-};
+After I suggested this I came to think what happens if there are no pads?
 
-to the uapi include and use that where appropriate
-but where a write then read is done via a single
-i2c_msg array, it's not really feasible either.
+How about adding, before the first check:
 
-Probably better to avoid any churn and just mark
-all these as static rather than static const.
+if (WARN_ON(!sd->entity.num_pads))
+	return NULL;
+
+Instead of copying the code, you could still use a macro while having the
+function declaration itself separate from the macro. Up to you.
+
+> +}
+>  
+> -__V4L2_SUBDEV_MK_GET_TRY(v4l2_mbus_framefmt, v4l2_subdev_get_try_format, try_fmt)
+> -__V4L2_SUBDEV_MK_GET_TRY(v4l2_rect, v4l2_subdev_get_try_crop, try_crop)
+> -__V4L2_SUBDEV_MK_GET_TRY(v4l2_rect, v4l2_subdev_get_try_compose, try_compose)
+> +static inline struct v4l2_rect
+> +*v4l2_subdev_get_try_crop(struct v4l2_subdev *sd,
+> +			  struct v4l2_subdev_pad_config *cfg,
+> +			  unsigned int pad)
+> +{
+> +	if (WARN_ON(pad >= sd->entity.num_pads))
+> +		pad = 0;
+> +	return &cfg[pad].try_crop;
+> +}
+> +
+> +static inline struct v4l2_rect
+> +*v4l2_subdev_get_try_compose(struct v4l2_subdev *sd,
+> +			     struct v4l2_subdev_pad_config *cfg,
+> +			     unsigned int pad)
+> +{
+> +	if (WARN_ON(pad >= sd->entity.num_pads))
+> +		pad = 0;
+> +	return &cfg[pad].try_compose;
+> +}
+>  #endif
+>  
+>  extern const struct v4l2_file_operations v4l2_subdev_fops;
+> -- 
+> 2.14.3
+> 
+
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
