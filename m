@@ -1,11 +1,11 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:57218 "EHLO
-        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751499AbdLMErE (ORCPT
+Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:53252 "EHLO
+        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751495AbdL0E4A (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 12 Dec 2017 23:47:04 -0500
-Message-ID: <1617709d677afed87786af88c1a337ff@smtp-cloud9.xs4all.net>
-Date: Wed, 13 Dec 2017 05:47:01 +0100
+        Tue, 26 Dec 2017 23:56:00 -0500
+Message-ID: <3fe06a1e3dadd81131ac81a7a0457378@smtp-cloud7.xs4all.net>
+Date: Wed, 27 Dec 2017 05:55:57 +0100
 From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
 Subject: cron job: media_tree daily build: ERRORS
@@ -17,10 +17,10 @@ the kernels and architectures in the list below.
 
 Results of the daily build of media_tree:
 
-date:			Wed Dec 13 05:00:18 CET 2017
-media-tree git hash:	330dada5957e3ca0c8811b14c45e3ac42c694651
-media_build git hash:	f5a5e5e470d834f9843fee7a7c2ce3e4be610ca7
-v4l-utils git hash:	655a8e3e412fd30b5ec201b73ec2b923c76e34bb
+date:			Wed Dec 27 05:00:16 CET 2017
+media-tree git hash:	9eb124fe796cbadd454c8f946d7051f4c3f4a251
+media_build git hash:	f709aa47e1577563a814e2558cd78b6d00639021
+v4l-utils git hash:	6049ea8bd64f9d78ef87ef0c2b3dc9b5de1ca4a1
 gcc version:		i686-linux-gcc (GCC) 7.1.0
 sparse version:		v0.5.0-3911-g6f737e1f
 smatch version:		v0.5.0-3911-g6f737e1f
@@ -39,84 +39,84 @@ linux-git-mips: OK
 linux-git-powerpc64: OK
 linux-git-sh: OK
 linux-git-x86_64: OK
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: ERRORS
-linux-3.10.1-i686: ERRORS
-linux-3.11.1-i686: ERRORS
-linux-3.12.67-i686: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: ERRORS
-linux-3.15.2-i686: ERRORS
-linux-3.16.7-i686: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.18.7-i686: ERRORS
-linux-3.19-i686: ERRORS
-linux-4.0.9-i686: ERRORS
-linux-4.1.33-i686: ERRORS
-linux-4.2.8-i686: ERRORS
-linux-4.3.6-i686: ERRORS
-linux-4.4.22-i686: ERRORS
-linux-4.5.7-i686: ERRORS
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: WARNINGS
+linux-3.11.1-i686: WARNINGS
+linux-3.12.67-i686: WARNINGS
+linux-3.13.11-i686: WARNINGS
+linux-3.14.9-i686: WARNINGS
+linux-3.15.2-i686: WARNINGS
+linux-3.16.7-i686: WARNINGS
+linux-3.17.8-i686: WARNINGS
+linux-3.18.7-i686: WARNINGS
+linux-3.19-i686: WARNINGS
+linux-4.0.9-i686: WARNINGS
+linux-4.1.33-i686: WARNINGS
+linux-4.2.8-i686: WARNINGS
+linux-4.3.6-i686: WARNINGS
+linux-4.4.22-i686: OK
+linux-4.5.7-i686: WARNINGS
 linux-4.6.7-i686: ERRORS
 linux-4.7.5-i686: ERRORS
 linux-4.8-i686: ERRORS
-linux-4.9.26-i686: ERRORS
-linux-4.10.14-i686: ERRORS
-linux-4.11-i686: ERRORS
-linux-4.12.1-i686: ERRORS
-linux-4.13-i686: ERRORS
-linux-4.14-i686: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: ERRORS
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.67-x86_64: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-x86_64: ERRORS
-linux-3.15.2-x86_64: ERRORS
-linux-3.16.7-x86_64: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.7-x86_64: ERRORS
-linux-3.19-x86_64: ERRORS
-linux-4.0.9-x86_64: ERRORS
-linux-4.1.33-x86_64: ERRORS
-linux-4.2.8-x86_64: ERRORS
-linux-4.3.6-x86_64: ERRORS
-linux-4.4.22-x86_64: ERRORS
-linux-4.5.7-x86_64: ERRORS
+linux-4.9.26-i686: OK
+linux-4.10.14-i686: OK
+linux-4.11-i686: OK
+linux-4.12.1-i686: OK
+linux-4.13-i686: OK
+linux-4.14-i686: OK
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-x86_64: WARNINGS
+linux-3.12.67-x86_64: WARNINGS
+linux-3.13.11-x86_64: WARNINGS
+linux-3.14.9-x86_64: WARNINGS
+linux-3.15.2-x86_64: WARNINGS
+linux-3.16.7-x86_64: WARNINGS
+linux-3.17.8-x86_64: WARNINGS
+linux-3.18.7-x86_64: WARNINGS
+linux-3.19-x86_64: WARNINGS
+linux-4.0.9-x86_64: WARNINGS
+linux-4.1.33-x86_64: WARNINGS
+linux-4.2.8-x86_64: WARNINGS
+linux-4.3.6-x86_64: WARNINGS
+linux-4.4.22-x86_64: WARNINGS
+linux-4.5.7-x86_64: WARNINGS
 linux-4.6.7-x86_64: ERRORS
 linux-4.7.5-x86_64: ERRORS
 linux-4.8-x86_64: ERRORS
-linux-4.9.26-x86_64: ERRORS
-linux-4.10.14-x86_64: ERRORS
-linux-4.11-x86_64: ERRORS
-linux-4.12.1-x86_64: ERRORS
-linux-4.13-x86_64: ERRORS
-linux-4.14-x86_64: ERRORS
+linux-4.9.26-x86_64: WARNINGS
+linux-4.10.14-x86_64: WARNINGS
+linux-4.11-x86_64: WARNINGS
+linux-4.12.1-x86_64: WARNINGS
+linux-4.13-x86_64: OK
+linux-4.14-x86_64: OK
 apps: OK
 spec-git: OK
 smatch: OK
