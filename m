@@ -1,125 +1,208 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:48524 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751609AbdLLPcW (ORCPT
+Received: from mail3-relais-sop.national.inria.fr ([192.134.164.104]:61245
+        "EHLO mail3-relais-sop.national.inria.fr" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751457AbdL0PUS (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 12 Dec 2017 10:32:22 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        Niklas =?ISO-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH/RFC 1/2] v4l: v4l2-dev: Add infrastructure to protect device unplug race
-Date: Tue, 12 Dec 2017 17:32:24 +0200
-Message-ID: <2042086.mPSt6QL5YS@avalon>
-In-Reply-To: <20171212103932.73c542ce@vento.lan>
-References: <20171116003349.19235-1-laurent.pinchart+renesas@ideasonboard.com> <20171123142101.GA5155@kroah.com> <20171212103932.73c542ce@vento.lan>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+        Wed, 27 Dec 2017 10:20:18 -0500
+From: Julia Lawall <Julia.Lawall@lip6.fr>
+To: dri-devel@lists.freedesktop.org
+Cc: kernel-janitors@vger.kernel.org, amd-gfx@lists.freedesktop.org,
+        linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        dev@openvswitch.org, netdev@vger.kernel.org, dccp@vger.kernel.org,
+        linux-kernel@vger.kernel.org, cluster-devel@redhat.com,
+        linux-ext4@vger.kernel.org, linux-s390@vger.kernel.org,
+        Alexander Shishkin <alexander.shishkin@linux.intel.com>,
+        Jiri Olsa <jolsa@redhat.com>,
+        Namhyung Kim <namhyung@kernel.org>,
+        esc.storagedev@microsemi.com, linux-scsi@vger.kernel.org
+Subject: [PATCH 00/12] drop unneeded newline
+Date: Wed, 27 Dec 2017 15:51:33 +0100
+Message-Id: <1514386305-7402-1-git-send-email-Julia.Lawall@lip6.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Drop newline at the end of a message string when the printing function adds
+a newline.
 
-On Tuesday, 12 December 2017 14:39:32 EET Mauro Carvalho Chehab wrote:
-> Em Thu, 23 Nov 2017 15:21:01 +0100 Greg Kroah-Hartman escreveu:
-> > On Thu, Nov 23, 2017 at 11:07:51AM -0200, Mauro Carvalho Chehab wrote:
-> >> Em Thu, 16 Nov 2017 02:33:48 +0200 Laurent Pinchart escreveu:
-> >>> Device unplug being asynchronous, it naturally races with operations
-> >>> performed by userspace through ioctls or other file operations on
-> >>> video device nodes.
-> >>> 
-> >>> This leads to potential access to freed memory or to other resources
-> >>> during device access if unplug occurs during device access. To solve
-> >>> this, we need to wait until all device access completes when
-> >>> unplugging the device, and block all further access when the device is
-> >>> being unplugged.
-> >>> 
-> >>> Three new functions are introduced. The video_device_enter() and
-> >>> video_device_exit() functions must be used to mark entry and exit from
-> >>> all code sections where the device can be accessed. The
-> >>> video_device_unplug() function is then used in the unplug handler to
-> >>> mark the device as being unplugged and wait for all access to
-> >>> complete.
-> >>> 
-> >>> As an example mark the ioctl handler as a device access section. Other
-> >>> file operations need to be protected too, and blocking ioctls (such as
-> >>> VIDIOC_DQBUF) need to be handled as well.
-> >>> 
-> >>> Signed-off-by: Laurent Pinchart
-> >>> <laurent.pinchart+renesas@ideasonboard.com>
-> >>> ---
-> >>> 
-> >>>  drivers/media/v4l2-core/v4l2-dev.c | 57 ++++++++++++++++++++++++++++++
-> >>>  include/media/v4l2-dev.h           | 47 ++++++++++++++++++++++++++++++
-> >>>  2 files changed, 104 insertions(+)
+The complete semantic patch that detects this issue is as shown below
+(http://coccinelle.lip6.fr/).  It works in two phases - the first phase
+counts how many uses of a function involve a newline and how many don't,
+and then the second phase removes newlines in the case of calls where a
+newline is used one fourth of the times or less.
 
-[snip]
+This approach is only moderately reliable, and all patches have been
+checked to ensure that the newline is not needed.
 
-> >> I'm c/c Greg here, as I don't think, that, the way it is, it
-> >> belongs at V4L2 core.
-> >> 
-> >> I mean: if this is a problem that affects all drivers, it would should,
-> >> instead, be sitting at the driver's core.
-> > 
-> > What "problem" is trying to be solved here?  One where your specific
-> > device type races with your specific user api?  Doesn't sound very
-> > driver-core specific to me :)
-> > 
-> > As an example, what other bus/device type needs this?  If you can see
-> > others that do, then sure, move it into the core.  But for just one, I
-> > don't know if that's really needed here, do you?
-> 
-> The problem that this patch is trying to solve is related to
-> hot-unplugging a platform device[1]. Quoting Laurent's comments about
-> it on IRC:
-> 
-> 	"it applies to all platform devices at least"
+This also converts some cases of string concatenation to single strings in
+modified code, as this improves greppability.
 
-Note how I said "at least" :-) I2C, SPI and PCI devices are affected too, and 
-after a closer look at USB today I believe USB devices are affected as well.
+// <smpl>
+virtual after_start
 
-> 	"I'm actually considering moving that code to the device core as
-> 	 it applies to all drivers that have device nodes, but I'm not
-> 	 sure that will be feasible it won't hurt other devices
-> 	 it applies to I2C and SPI as well at least and PCI too"
-> 
-> [1] https://linuxtv.org/irc/irclogger_log/media-maint?date=2017-11-23,Thu
-> 
-> For USB drivers, hot-unplug seems to work fine for media drivers,
-> although keeping it working require tests from time to time, as
-> it is not hard to break hotplug support. so, currently, I don't see
-> the need of anything like that for non-platform drivers.
+@initialize:ocaml@
+@@
 
-I2C, SPI and PCI are non-platform drivers, and USB seems to be affected too. 
-The race window is small, making it difficult to reproduce the problem, but 
-with carefully placed delays it gets much easier to hit the race.
+let withnl = Hashtbl.create 101
+let withoutnl = Hashtbl.create 101
 
-> My point here is that adding a new lock inside the media core that
-> would be used for all media drivers, including the ones that don't need
-> doesn't sound a good idea.
+let ignore =
+  ["strcpy";"strlcpy";"strcat";"strlcat";"strcmp";"strncmp";"strcspn";
+    "strsep";"sprintf";"printf";"strncasecmp";"seq_printf";"strstr";"strspn";
+    "strlen";"strpbrk";"strtok_r";"memcmp";"memcpy"]
 
-Why not, if it doesn't affect performances (or anything else) negatively ?
+let dignore = ["tools";"samples"]
 
-> So, if this is something that applies to all platform drivers (including
-> non-media ones), or if are there anything that can be done at driver's core
-> that would improve hotplug support for all buses, making it more stable or
-> easier to implement, then it would make sense to improve the driver's core.
-> If not, this sounds a driver-specific issue whose fix doesn't belong to the
-> media core.
+let inc tbl k =
+  let cell =
+    try Hashtbl.find tbl k
+    with Not_found ->
+      let cell = ref 0 in
+      Hashtbl.add tbl k cell;
+      cell in
+  cell := 1 + !cell
 
-It's clearly not a driver-specific issue as most, if not all, drivers are 
-affected.
+let endnl c =
+  let len = String.length c in
+  try
+    String.get c (len-3) = '\\' && String.get c (len-2) = 'n' &&
+    String.get c (len-1) = '"'
+  with _ -> false
 
-I've replied to Greg's e-mail in this thread with more details, let's try to 
-keep the discussion there to avoid splitting it in multiple sub-threads.
+let clean_string s extra =
+  let pieces = Str.split (Str.regexp "\" \"") s in
+  let nonempty s =
+    not (s = "") && String.get s 0 = '"' && not (String.get s 1 = '"') in
+  let rec loop = function
+      [] -> []
+    | [x] -> [x]
+    | x::y::rest ->
+	if nonempty x && nonempty y
+	then
+	  let xend = String.get x (String.length x - 2) = ' ' in
+	  let yend = String.get y 1 = ' ' in
+	  match (xend,yend) with
+	    (true,false) | (false,true) -> x :: (loop (y::rest))
+	  | (true,true) ->
+	      x :: (loop (((String.sub y 0 (String.length y - 2))^"\"")::rest))
+	  | (false,false) ->
+	      ((String.sub x 0 (String.length x - 1)) ^ " \"") ::
+	      (loop (y::rest))
+	else x :: (loop (y::rest)) in
+  (String.concat "" (loop pieces))^extra
 
--- 
-Regards,
+@r depends on !after_start@
+constant char[] c;
+expression list[n] es;
+identifier f;
+position p;
+@@
 
-Laurent Pinchart
+f@p(es,c,...)
+
+@script:ocaml@
+f << r.f;
+n << r.n;
+p << r.p;
+c << r.c;
+@@
+
+let pieces = Str.split (Str.regexp "/") (List.hd p).file in
+if not (List.mem f ignore) &&
+  List.for_all (fun x -> not (List.mem x pieces)) dignore
+then
+  (if endnl c
+  then inc withnl (f,n)
+  else inc withoutnl (f,n))
+
+@finalize:ocaml depends on !after_start@
+w1 << merge.withnl;
+w2 << merge.withoutnl;
+@@
+
+let names = ref [] in
+let incn tbl k v =
+  let cell =
+    try Hashtbl.find tbl k
+    with Not_found ->
+      begin
+	let cell = ref 0 in
+	Hashtbl.add tbl k cell;
+	cell
+      end in
+  (if not (List.mem k !names) then names := k :: !names);
+  cell := !v + !cell in
+List.iter (function w -> Hashtbl.iter (incn withnl) w) w1;
+List.iter (function w -> Hashtbl.iter (incn withoutnl) w) w2;
+
+List.iter
+  (function name ->
+    let wth = try !(Hashtbl.find withnl name) with _ -> 0 in
+    let wo = try !(Hashtbl.find withoutnl name) with _ -> 0 in
+    if wth > 0 && wth <= wo / 3 then Hashtbl.remove withnl name
+    else (Printf.eprintf "dropping %s %d %d\n" (fst name) wth wo; Hashtbl.remove withoutnl name; Hashtbl.remove withnl name))
+  !names;
+
+let it = new iteration() in
+it#add_virtual_rule After_start;
+it#register()
+
+@s1 depends on after_start@
+constant char[] c;
+expression list[n] es;
+identifier f;
+position p;
+@@
+
+f(es,c@p,...)
+
+@script:ocaml s2@
+f << s1.f;
+n << s1.n;
+c << s1.c;
+newc;
+@@
+
+try
+  let _ = Hashtbl.find withnl (f,n) in
+  if endnl c
+  then Coccilib.include_match false
+  else newc :=
+    make_expr(clean_string (String.sub c 0 (String.length c - 1)) "\\n\"")
+with Not_found ->
+try
+  let _ = Hashtbl.find withoutnl (f,n) in
+  if endnl c
+  then newc :=
+    make_expr(clean_string (String.sub c 0 (String.length c - 3)) "\"")
+  else Coccilib.include_match false
+with Not_found -> Coccilib.include_match false
+
+@@
+constant char[] s1.c;
+position s1.p;
+expression s2.newc;
+@@
+
+- c@p
++ newc
+// </smpl>
+
+---
+
+ arch/arm/mach-davinci/board-da850-evm.c                 |    4 ++--
+ drivers/block/DAC960.c                                  |    4 ++--
+ drivers/gpu/drm/amd/powerplay/hwmgr/smu7_hwmgr.c        |   12 ++++++++----
+ drivers/gpu/drm/amd/powerplay/smumgr/fiji_smumgr.c      |    2 +-
+ drivers/gpu/drm/amd/powerplay/smumgr/iceland_smumgr.c   |    2 +-
+ drivers/gpu/drm/amd/powerplay/smumgr/polaris10_smumgr.c |    2 +-
+ drivers/gpu/drm/amd/powerplay/smumgr/tonga_smumgr.c     |    2 +-
+ drivers/media/usb/pvrusb2/pvrusb2-hdw.c                 |    3 ++-
+ drivers/s390/block/dasd_diag.c                          |    3 +--
+ drivers/scsi/hpsa.c                                     |    2 +-
+ fs/dlm/plock.c                                          |    3 +--
+ fs/ext2/super.c                                         |    2 +-
+ fs/hpfs/dnode.c                                         |    3 ++-
+ net/dccp/ackvec.c                                       |    2 +-
+ net/openvswitch/conntrack.c                             |    4 ++--
+ tools/perf/tests/dso-data.c                             |    9 +++++----
+ 16 files changed, 32 insertions(+), 27 deletions(-)
