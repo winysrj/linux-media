@@ -1,79 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:57371 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754125AbdLNXQN (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 14 Dec 2017 18:16:13 -0500
-Reply-To: kieran.bingham@ideasonboard.com
-Subject: Re: [PATCH/RFC v2 13/15] adv748x: csi2: only allow formats on sink
- pads
-To: =?UTF-8?Q?Niklas_S=c3=b6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>,
-        linux-media@vger.kernel.org,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: linux-renesas-soc@vger.kernel.org,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        Benoit Parrot <bparrot@ti.com>,
-        Maxime Ripard <maxime.ripard@free-electrons.com>
-References: <20171214190835.7672-1-niklas.soderlund+renesas@ragnatech.se>
- <20171214190835.7672-14-niklas.soderlund+renesas@ragnatech.se>
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Message-ID: <e365c00d-701d-4586-4013-e4f3ff58d85a@ideasonboard.com>
-Date: Thu, 14 Dec 2017 23:16:08 +0000
+Received: from mga01.intel.com ([192.55.52.88]:30673 "EHLO mga01.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751335AbdL0VR0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 27 Dec 2017 16:17:26 -0500
+Date: Wed, 27 Dec 2017 23:17:19 +0200
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: Pavel Machek <pavel@ucw.cz>
+Cc: pali.rohar@gmail.com, sre@kernel.org,
+        kernel list <linux-kernel@vger.kernel.org>,
+        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
+        linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org,
+        aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com,
+        patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com,
+        clayton@craftyguy.net, martijn@brixit.nl,
+        Filip =?utf-8?Q?Matijevi=C4=87?= <filip.matijevic.pz@gmail.com>,
+        laurent.pinchart@ideasonboard.com, linux-media@vger.kernel.org
+Subject: Re: v4.15: camera problems on n900
+Message-ID: <20171227211718.favif66afztygfje@kekkonen.localdomain>
+References: <20171227210543.GA19719@amd>
 MIME-Version: 1.0
-In-Reply-To: <20171214190835.7672-14-niklas.soderlund+renesas@ragnatech.se>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20171227210543.GA19719@amd>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Niklas,
-
-On 14/12/17 19:08, Niklas Söderlund wrote:
-> The driver is now pad and stream aware, only allow to get/set format on
-> sink pads.
-
-Ok - I can see the patch is doing this ...
-
-> Also record a different format for each sink pad since it's
-> no longer true that they are all the same
-
-But I can't see how the patch is doing this ^ ?
-
-What have I missed?
-
---
-Kieran
-
-> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-> ---
->  drivers/media/i2c/adv748x/adv748x-csi2.c | 6 ++++++
->  1 file changed, 6 insertions(+)
+On Wed, Dec 27, 2017 at 10:05:43PM +0100, Pavel Machek wrote:
+> Hi!
 > 
-> diff --git a/drivers/media/i2c/adv748x/adv748x-csi2.c b/drivers/media/i2c/adv748x/adv748x-csi2.c
-> index 39f993282dd3bb5c..291b35bef49d41fb 100644
-> --- a/drivers/media/i2c/adv748x/adv748x-csi2.c
-> +++ b/drivers/media/i2c/adv748x/adv748x-csi2.c
-> @@ -176,6 +176,9 @@ static int adv748x_csi2_get_format(struct v4l2_subdev *sd,
->  	struct adv748x_state *state = tx->state;
->  	struct v4l2_mbus_framefmt *mbusformat;
->  
-> +	if (sdformat->pad != ADV748X_CSI2_SINK)
-> +		return -EINVAL;
-> +
->  	mbusformat = adv748x_csi2_get_pad_format(sd, cfg, sdformat->pad,
->  						 sdformat->which);
->  	if (!mbusformat)
-> @@ -199,6 +202,9 @@ static int adv748x_csi2_set_format(struct v4l2_subdev *sd,
->  	struct v4l2_mbus_framefmt *mbusformat;
->  	int ret = 0;
->  
-> +	if (sdformat->pad != ADV748X_CSI2_SINK)
-> +		return -EINVAL;
-> +
->  	mbusformat = adv748x_csi2_get_pad_format(sd, cfg, sdformat->pad,
->  						 sdformat->which);
->  	if (!mbusformat)
+> In v4.14, back camera on N900 works. On v4.15-rc1.. it works for few
+> seconds, but then I get repeated oopses.
 > 
+> On v4.15-rc0.5 (commit ed30b147e1f6e396e70a52dbb6c7d66befedd786),
+> camera does not start.	  
+> 
+> Any ideas what might be wrong there?
+
+What kind of oopses do you get?
+
+-- 
+Sakari Ailus
+sakari.ailus@linux.intel.com
