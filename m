@@ -1,142 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:58819 "EHLO osg.samsung.com"
+Received: from osg.samsung.com ([64.30.133.232]:59220 "EHLO osg.samsung.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754111AbdLTL1C (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 20 Dec 2017 06:27:02 -0500
+        id S1750947AbdL1Q3o (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 28 Dec 2017 11:29:44 -0500
 From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: [PATCH] Intelsat34-55.5W: update definitions from Vivo streaming
-Date: Wed, 20 Dec 2017 09:26:52 -0200
-Message-Id: <ef3c857a54279732639f0a71e6e64595e5ae3195.1513769154.git.mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Gustavo Padovan <gustavo.padovan@collabora.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Hans Verkuil <hansverk@cisco.com>,
+        Satendra Singh Thakur <satendra.t@samsung.com>,
+        Hirokazu Honda <hiroh@chromium.org>,
+        Christophe JAILLET <christophe.jaillet@wanadoo.fr>,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Subject: [PATCH 0/5] some VB2 bug fixes and improvements
+Date: Thu, 28 Dec 2017 14:29:33 -0200
+Message-Id: <cover.1514478428.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There were some frequency changes on this Satellite.
-Update them.
+While working with DVB memory mapped patches, a few issues were
+noticed at VB2. None of those patches are directly related to
+dvb-vb2 logic, but they fix 3 issues found at VB2.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- dvb-s/Intelsat34-55.5W | 58 ++++++--------------------------------------------
- 1 file changed, 7 insertions(+), 51 deletions(-)
+There are two other patches that improve vb2 print messages, by
+defining pr_fmt() macro and by making clearer what's happening
+when VB2 prints a stack dump.
 
-diff --git a/dvb-s/Intelsat34-55.5W b/dvb-s/Intelsat34-55.5W
-index 3b96fc894c99..28d57fbbf73e 100644
---- a/dvb-s/Intelsat34-55.5W
-+++ b/dvb-s/Intelsat34-55.5W
-@@ -2,28 +2,6 @@
- 
- # TV channels
- 
--[CHANNEL]
--	DELIVERY_SYSTEM = DVBS2
--	FREQUENCY = 11825000
--	POLARIZATION = HORIZONTAL
--	SYMBOL_RATE = 45000000
--	INNER_FEC = AUTO
--	ROLLOFF = AUTO
--	MODULATION = QAM/AUTO
--	STREAM_ID = 0
--	INVERSION = AUTO
--
--[CHANNEL]
--	DELIVERY_SYSTEM = DVBS2
--	FREQUENCY = 11825000
--	POLARIZATION = VERTICAL
--	SYMBOL_RATE = 45000000
--	INNER_FEC = AUTO
--	ROLLOFF = AUTO
--	MODULATION = QAM/AUTO
--	STREAM_ID = 0
--	INVERSION = AUTO
--
- [CHANNEL]
- 	DELIVERY_SYSTEM = DVBS2
- 	FREQUENCY = 11890000
-@@ -31,18 +9,7 @@
- 	SYMBOL_RATE = 30000000
- 	INNER_FEC = AUTO
- 	ROLLOFF = AUTO
--	MODULATION = QAM/AUTO
--	STREAM_ID = 0
--	INVERSION = AUTO
--
--[CHANNEL]
--	DELIVERY_SYSTEM = DVBS2
--	FREQUENCY = 11905000
--	POLARIZATION = VERTICAL
--	SYMBOL_RATE = 45000000
--	INNER_FEC = AUTO
--	ROLLOFF = AUTO
--	MODULATION = QAM/AUTO
-+	MODULATION = PSK/8
- 	STREAM_ID = 0
- 	INVERSION = AUTO
- 
-@@ -53,7 +20,7 @@
- 	SYMBOL_RATE = 30000000
- 	INNER_FEC = AUTO
- 	ROLLOFF = AUTO
--	MODULATION = QAM/AUTO
-+	MODULATION = PSK/8
- 	STREAM_ID = 0
- 	INVERSION = AUTO
- 
-@@ -64,7 +31,7 @@
- 	SYMBOL_RATE = 30000000
- 	INNER_FEC = AUTO
- 	ROLLOFF = AUTO
--	MODULATION = QAM/AUTO
-+	MODULATION = PSK/8
- 	STREAM_ID = 0
- 	INVERSION = AUTO
- 
-@@ -75,7 +42,7 @@
- 	SYMBOL_RATE = 30000000
- 	INNER_FEC = AUTO
- 	ROLLOFF = AUTO
--	MODULATION = QAM/AUTO
-+	MODULATION = PSK/8
- 	STREAM_ID = 0
- 	INVERSION = AUTO
- 
-@@ -86,7 +53,7 @@
- 	SYMBOL_RATE = 30000000
- 	INNER_FEC = AUTO
- 	ROLLOFF = AUTO
--	MODULATION = QAM/AUTO
-+	MODULATION = PSK/8
- 	STREAM_ID = 0
- 	INVERSION = AUTO
- 
-@@ -97,7 +64,7 @@
- 	SYMBOL_RATE = 30000000
- 	INNER_FEC = AUTO
- 	ROLLOFF = AUTO
--	MODULATION = QAM/AUTO
-+	MODULATION = PSK/8
- 	STREAM_ID = 0
- 	INVERSION = AUTO
- 
-@@ -108,18 +75,7 @@
- 	SYMBOL_RATE = 30000000
- 	INNER_FEC = AUTO
- 	ROLLOFF = AUTO
--	MODULATION = QAM/AUTO
--	STREAM_ID = 0
--	INVERSION = AUTO
--
--[CHANNEL]
--	DELIVERY_SYSTEM = DVBS2
--	FREQUENCY = 12170000
--	POLARIZATION = HORIZONTAL
--	SYMBOL_RATE = 30000000
--	INNER_FEC = AUTO
--	ROLLOFF = AUTO
--	MODULATION = QAM/AUTO
-+	MODULATION = PSK/8
- 	STREAM_ID = 0
- 	INVERSION = AUTO
- 
+Mauro Carvalho Chehab (3):
+  media: vb2: don't go out of the buffer range
+  media: vb2: add pr_fmt() macro
+  media: vb2: add a new warning about pending buffers
+
+Sakari Ailus (1):
+  media: vb2: Enforce VB2_MAX_FRAME in vb2_core_reqbufs better
+
+Satendra Singh Thakur (1):
+  media: vb2: Fix a bug about unnecessary calls to queue cancel and free
+
+ drivers/media/common/videobuf/videobuf2-core.c | 50 ++++++++++++++++----------
+ 1 file changed, 31 insertions(+), 19 deletions(-)
+
 -- 
 2.14.3
