@@ -1,72 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx08-00178001.pphosted.com ([91.207.212.93]:60931 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1754520AbdLTJvk (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 20 Dec 2017 04:51:40 -0500
-From: Hugues Fruchet <hugues.fruchet@st.com>
-To: Steve Longerbeam <slongerbeam@gmail.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        "Mauro Carvalho Chehab" <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>
-CC: <linux-media@vger.kernel.org>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Subject: [PATCH v4 0/5] Add OV5640 parallel interface and RGB565/YUYV support
-Date: Wed, 20 Dec 2017 10:51:09 +0100
-Message-ID: <1513763474-1174-1-git-send-email-hugues.fruchet@st.com>
+Received: from mga04.intel.com ([192.55.52.120]:21905 "EHLO mga04.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1754228AbdL1S00 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 28 Dec 2017 13:26:26 -0500
+Date: Thu, 28 Dec 2017 20:26:20 +0200
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Hans Verkuil <hansverk@cisco.com>,
+        Christophe JAILLET <christophe.jaillet@wanadoo.fr>,
+        Satendra Singh Thakur <satendra.t@samsung.com>,
+        Gustavo Padovan <gustavo.padovan@collabora.com>,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Subject: Re: [PATCH 4/5] media: vb2: add pr_fmt() macro
+Message-ID: <20171228182620.ybyizepwwdwqw6os@kekkonen.localdomain>
+References: <cover.1514478428.git.mchehab@s-opensource.com>
+ <d758ab588b68118ed8e29ff3aec4bcd3bf48ba0c.1514478428.git.mchehab@s-opensource.com>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <d758ab588b68118ed8e29ff3aec4bcd3bf48ba0c.1514478428.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Enhance OV5640 CSI driver to support also DVP parallel interface.
-Add RGB565 (LE & BE) and YUV422 YUYV format in addition to existing
-YUV422 UYVY format.
-Some other improvements on chip identifier check and removal
-of warnings in powering phase around gpio handling.
+On Thu, Dec 28, 2017 at 02:29:37PM -0200, Mauro Carvalho Chehab wrote:
+> Simplify the pr_foo() macros by adding a pr_fmt() macro.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 
-===========
-= history =
-===========
-version 4:
-  - Refine bindings as per Sakari suggestion:
-    https://www.mail-archive.com/linux-media@vger.kernel.org/msg123609.html
-  - Parallel port control lines polarity can now be configured through
-    devicetree
+On 4th and 5th:
 
-version 3:
-  - Move chip identifier check at probe according to Fabio Estevam comment:
-    https://www.mail-archive.com/linux-media@vger.kernel.org/msg122575.html
-  - Use 16 bits register read for this check as per Steve Longerbeam comment:
-    https://www.mail-archive.com/linux-media@vger.kernel.org/msg122692.html
-  - Update bindings to document parallel mode support as per Fabio Estevam comment:
-    https://www.mail-archive.com/linux-media@vger.kernel.org/msg122576.html
-  - Enable the whole 10 bits parallel output and document 8/10 bits support
-    in ov5640_set_stream_dvp() to answer to Steve Longerbeam comment:
-    https://www.mail-archive.com/linux-media@vger.kernel.org/msg122693.html
-
-version 2:
-  - Fix comments from Sakari Ailus:
-    https://www.mail-archive.com/linux-media@vger.kernel.org/msg122259.html
-  - Revisit ov5640_set_stream_dvp() to only configure DVP at streamon
-  - Revisit ov5640_set_stream_dvp() implementation with fewer register settings
-
-version 1:
-  - Initial submission
-
-Hugues Fruchet (5):
-  media: ov5640: switch to gpiod_set_value_cansleep()
-  media: ov5640: check chip id
-  media: dt-bindings: ov5640: refine CSI-2 and add parallel interface
-  media: ov5640: add support of DVP parallel interface
-  media: ov5640: add support of RGB565 and YUYV formats
-
- .../devicetree/bindings/media/i2c/ov5640.txt       |  48 ++-
- drivers/media/i2c/ov5640.c                         | 325 ++++++++++++++++++---
- 2 files changed, 326 insertions(+), 47 deletions(-)
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
 -- 
-1.9.1
+Sakari Ailus
+sakari.ailus@linux.intel.com
