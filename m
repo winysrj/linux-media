@@ -1,178 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga05.intel.com ([192.55.52.43]:48306 "EHLO mga05.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755268AbdLONVK (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 15 Dec 2017 08:21:10 -0500
-Date: Fri, 15 Dec 2017 15:19:36 +0200
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: Niklas =?iso-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
-        Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        Benoit Parrot <bparrot@ti.com>,
-        Maxime Ripard <maxime.ripard@free-electrons.com>
-Subject: Re: [PATCH/RFC v2 06/15] rcar-csi2: use frame description
- information when propagating .s_stream()
-Message-ID: <20171215131936.2gs3inus5dpkd6cl@paasikivi.fi.intel.com>
-References: <20171214190835.7672-1-niklas.soderlund+renesas@ragnatech.se>
- <20171214190835.7672-7-niklas.soderlund+renesas@ragnatech.se>
+Received: from mail-wm0-f44.google.com ([74.125.82.44]:43048 "EHLO
+        mail-wm0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750899AbdL1V4M (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 28 Dec 2017 16:56:12 -0500
+Received: by mail-wm0-f44.google.com with SMTP id n138so45823280wmg.2
+        for <linux-media@vger.kernel.org>; Thu, 28 Dec 2017 13:56:12 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20171214190835.7672-7-niklas.soderlund+renesas@ragnatech.se>
+From: Tim Harvey <tharvey@gateworks.com>
+Date: Thu, 28 Dec 2017 13:56:10 -0800
+Message-ID: <CAJ+vNU1mRdxbfhEJY+n+U75cWW_op1Z+AzHOG=To8ooPzt9SJA@mail.gmail.com>
+Subject: IMX6 interlaced capture
+To: Steve Longerbeam <slongerbeam@gmail.com>,
+        Hans Verkuil <hansverk@cisco.com>,
+        linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Niklas,
+Steve/Hans,
 
-On Thu, Dec 14, 2017 at 08:08:26PM +0100, Niklas Söderlund wrote:
-> Use the frame description from the remote subdevice of the rcar-csi2's
-> sink pad to get the remote pad and stream pad needed to propagate the
-> .s_stream() operation.
-> 
-> The CSI-2 virtual channel which should be acted upon can be determined
-> by looking at which of the rcar-csi2 source pad the .s_stream() was
-> called on. This is because the rcar-csi2 acts as a demultiplexer for the
-> CSI-2 link on the one sink pad and outputs each virtual channel on a
-> distinct and known source pad.
-> 
-> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-> ---
->  drivers/media/platform/rcar-vin/rcar-csi2.c | 58 ++++++++++++++++++++---------
->  1 file changed, 41 insertions(+), 17 deletions(-)
-> 
-> diff --git a/drivers/media/platform/rcar-vin/rcar-csi2.c b/drivers/media/platform/rcar-vin/rcar-csi2.c
-> index e0f56cc3d25179a9..6b607b2e31e26063 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-csi2.c
-> +++ b/drivers/media/platform/rcar-vin/rcar-csi2.c
-> @@ -614,20 +614,31 @@ static void rcar_csi2_stop(struct rcar_csi2 *priv)
->  	rcar_csi2_reset(priv);
->  }
->  
-> -static int rcar_csi2_sd_info(struct rcar_csi2 *priv, struct v4l2_subdev **sd)
-> +static int rcar_csi2_get_source_info(struct rcar_csi2 *priv,
-> +				     struct v4l2_subdev **subdev,
+I'm trying to get interlaced capture working with the TDA1997x driver
+I've been working on which is connected to an IMX6 CSI.
 
-I wonder if using struct media_pad for this would be cleaner.
+The particular board I'm currently testing on is an IMX6Q which has
+both a TDA19971 HDMI receiver as well as an ADV7180 analog video
+decoder. The media-ctl topology for this board can be found at
+http://dev.gateworks.com/docs/linux/media/imx6q-gw54xx-media.png.
 
-> +				     unsigned int *pad,
-> +				     struct v4l2_mbus_frame_desc *fd)
->  {
-> -	struct media_pad *pad;
-> +	struct media_pad *remote_pad;
->  
-> -	pad = media_entity_remote_pad(&priv->pads[RCAR_CSI2_SINK]);
-> -	if (!pad) {
-> -		dev_err(priv->dev, "Could not find remote pad\n");
-> +	/* Get source subdevice and pad */
-> +	remote_pad = media_entity_remote_pad(&priv->pads[RCAR_CSI2_SINK]);
-> +	if (!remote_pad) {
-> +		dev_err(priv->dev, "Could not find remote source pad\n");
->  		return -ENODEV;
->  	}
-> +	*subdev = media_entity_to_v4l2_subdev(remote_pad->entity);
-> +	*pad = remote_pad->index;
->  
-> -	*sd = media_entity_to_v4l2_subdev(pad->entity);
-> -	if (!*sd) {
-> -		dev_err(priv->dev, "Could not find remote subdevice\n");
-> -		return -ENODEV;
-> +	/* Get frame descriptor */
-> +	if (v4l2_subdev_call(*subdev, pad, get_frame_desc, *pad, fd)) {
-> +		dev_err(priv->dev, "Could not read frame desc\n");
-> +		return -EINVAL;
-> +	}
-> +
-> +	if (fd->type != V4L2_MBUS_FRAME_DESC_TYPE_CSI2) {
-> +		dev_err(priv->dev, "Frame desc do not describe CSI-2 link");
-> +		return -EINVAL;
+For adv7180 everything appears to be working as expected:
+- media-ctl --get-v4l2 '"adv7180 2-0020":0' shows:
+[fmt:UYVY8_2X8/720x480 field:interlaced colorspace:smpte170m]
+- he following captures/streams from the adv7180 using the vdic to de-interlace:
+media-ctl --link "adv7180 2-0020":0 -> "ipu2_csi1_mux":1[1]
+media-ctl --link "ipu2_csi1_mux":2 -> "ipu2_csi1":0[1]
+media-ctl --link "ipu2_csi1":1 -> "ipu2_vdic":0[1]
+media-ctl --link "ipu2_vdic":2 -> "ipu2_ic_prp":0[1]
+media-ctl --link "ipu2_ic_prp":2 -> "ipu2_ic_prpvf":0[1]
+media-ctl --link "ipu2_ic_prpvf":1 -> "ipu2_ic_prpvf capture":0[1]
+media-ctl --set-v4l2 'adv7180 2-0020':0 [fmt:UYVY2X8/720x480]
+media-ctl --set-v4l2 'ipu2_csi1_mux':2 [fmt:UYVY2X8/720x480 field:interlaced]
+media-ctl --set-v4l2 'ipu2_csi1':1 [fmt:UYVY2X8/720x480 field:interlaced]
+media-ctl --set-v4l2 'ipu2_vdic':2 [fmt:UYVY2X8/720x480 field:interlaced]
+media-ctl --set-v4l2 'ipu2_ic_prp':2 [fmt:UYVY2X8/720x480 field:none]
+media-ctl --set-v4l2 'ipu2_ic_prpvf':1 [fmt:UYVY2X8/720x480 field:none]
+v4l2-ctl -d /dev/video3 --set-fmt-video=width=720,height=480,pixelformat=UYVY
+# capture 1 frame
+v4l2-ctl -d /dev/video1 --stream-mmap --stream-skip=1
+--stream-to=/tmp/x.raw --stream-count=1
+# stream jpeg/rtp
+gst-launch-1.0 v4l2src device=/dev/video3 !
+  "video/x-raw,width=720,height=480,format=UYVY" !
+   jpegenc ! rtpjpegpay ! udpsink host=$SERVER port=5000"
 
-I think this should also work with drivers that do not support frame
-descriptors.
+For the tda1997x I'm trying to do something similar:
+- media-ctl --get-v4l2 '"tda19971 2-0048":0' shows:
+[fmt:UYVY8_1X16/1920x1080 field:alternate colorspace:srgb]
+^^^^ still not sure V4L2_FIELD_ALTERNATE/SRGB returned from tda1997x
+get_fmt is correct
+- I setup the pipeline with:
+media-ctl --link "tda19971 2-0048":0 -> "ipu1_csi0_mux":1[1]
+media-ctl --link "ipu1_csi0_mux":2 -> "ipu1_csi0":0[1]
+media-ctl --link "ipu1_csi0":1 -> "ipu1_vdic":0[1]
+media-ctl --link "ipu1_vdic":2 -> "ipu1_ic_prp":0[1]
+media-ctl --link "ipu1_ic_prp":2 -> "ipu1_ic_prpvf":0[1]
+media-ctl --link "ipu1_ic_prpvf":1 -> "ipu1_ic_prpvf capture":0[1]
+media-ctl --set-v4l2 'tda19971 2-0048':0[fmt:UYVY8_1X16/1920x1080]
+media-ctl --set-v4l2 'ipu1_csi0_mux':2[fmt:UYVY8_1X16/1920x1080 field:alternate]
+media-ctl --set-v4l2 'ipu1_csi0':1[fmt:UYVY8_1X16/1920x1080 field:alternate]
+media-ctl --set-v4l2 'ipu1_vdic':2[fmt:UYVY8_1X16/1920x1080 field:alternate]
+media-ctl --set-v4l2 'ipu1_ic_prp':2[fmt:UYVY8_1X16/1920x1080 field:none]
+media-ctl --set-v4l2 'ipu1_ic_prpvf':1[fmt:UYVY8_1X16/1920x1080 field:none]
+v4l2-ctl -d /dev/video1 --set-fmt-video=width=1920,height=1080,pixelformat=UYVY
+v4l2-ctl -d /dev/v4l-subdev1 --set-dv-bt-timings=query
+v4l2-ctl -d /dev/video1 --stream-mmap --stream-skip=1
+--stream-to=/tmp/x.raw --stream-count=1
+ipu1_csi0: bayer/16-bit parallel buses must go to IDMAC pad
+ipu1_ic_prpvf: pipeline start failed with -22
+VIDIOC_STREAMON: failed: Invalid argument
+- if I try to use the idmac for deinterlace I configure the pipeline with:
+media-ctl --link "tda19971 2-0048":0 -> "ipu1_csi0_mux":1[1]
+media-ctl --link "ipu1_csi0_mux":2 -> "ipu1_csi0":0[1]
+media-ctl --link "ipu1_csi0":1 -> "ipu1_ic_prp":0[1]
+media-ctl --link "ipu1_ic_prp":2 -> "ipu1_ic_prpvf":0[1]
+media-ctl --link "ipu1_ic_prpvf":1 -> "ipu1_ic_prpvf capture":0[1]
+media-ctl --set-v4l2 'tda19971 2-0048':0[fmt:UYVY8_1X16/1920x1080]
+media-ctl --set-v4l2 'ipu1_csi0_mux':2[fmt:UYVY8_1X16/1920x1080 field:alternate]
+media-ctl --set-v4l2 'ipu1_csi0':1[fmt:UYVY8_1X16/1920x1080 field:alternate]
+media-ctl --set-v4l2 'ipu1_ic_prp':2[fmt:UYVY8_1X16/1920x1080 field:alternate]
+media-ctl --set-v4l2 'ipu1_ic_prpvf':1[fmt:UYVY8_1X16/1920x1080 field:none]
+v4l2-ctl -d /dev/video1 --set-fmt-video=width=1920,height=1080,pixelformat=UYVY
+v4l2-ctl -d /dev/v4l-subdev1 --set-dv-bt-timings=query
+v4l2-ctl -d /dev/video1 --stream-mmap --stream-to=/tmp/x.raw --stream-count=1
+ipu1_csi0: bayer/16-bit parallel buses must go to IDMAC pad
+ipu1_ic_prpvf: pipeline start failed with -22
+VIDIOC_STREAMON: failed: Invalid argument
 
-Alternatively support could be added for all drivers. In practice this
-would mean having a few bus specific implementations of get_frame_desc op
-that would dig the information from the frame format.
+Any ideas?
 
-Perhaps the former option would make sense here, for now.
+Thanks,
 
->  	}
->  
->  	return 0;
-> @@ -637,9 +648,10 @@ static int rcar_csi2_s_stream(struct v4l2_subdev *sd, unsigned int pad,
->  			      unsigned int stream, int enable)
->  {
->  	struct rcar_csi2 *priv = sd_to_csi2(sd);
-> +	struct v4l2_mbus_frame_desc fd;
->  	struct v4l2_subdev *nextsd;
-> -	unsigned int i, count = 0;
-> -	int ret, vc;
-> +	unsigned int i, rpad, count = 0;
-> +	int ret, vc, rstream = -1;
->  
->  	/* Only allow stream control on source pads and valid vc */
->  	vc = rcar_csi2_pad_to_vc(pad);
-> @@ -650,11 +662,23 @@ static int rcar_csi2_s_stream(struct v4l2_subdev *sd, unsigned int pad,
->  	if (stream != 0)
->  		return -EINVAL;
->  
-> -	mutex_lock(&priv->lock);
-> -
-> -	ret = rcar_csi2_sd_info(priv, &nextsd);
-> +	/* Get information about multiplexed link */
-> +	ret = rcar_csi2_get_source_info(priv, &nextsd, &rpad, &fd);
->  	if (ret)
-> -		goto out;
-> +		return ret;
-> +
-> +	/* Get stream on multiplexed link */
-> +	for (i = 0; i < fd.num_entries; i++)
-> +		if (fd.entry[i].bus.csi2.channel == vc)
-> +			rstream = fd.entry[i].stream;
-
-Virtual channel does not equate to the stream. You'll need the data type,
-too.
-
-You should actually obtain this from the configured routes instead.
-
-How does this work btw. if you have several streams on the same virtual
-channel that only have different data types?
-
-> +
-> +	if (rstream < 0) {
-> +		dev_err(priv->dev, "Could not find stream for vc %u\n", vc);
-> +		return -EINVAL;
-> +	}
-> +
-> +	/* Start or stop the requested stream */
-> +	mutex_lock(&priv->lock);
->  
->  	for (i = 0; i < 4; i++)
->  		count += priv->stream_count[i];
-> @@ -673,14 +697,14 @@ static int rcar_csi2_s_stream(struct v4l2_subdev *sd, unsigned int pad,
->  	}
->  
->  	if (enable && priv->stream_count[vc] == 0) {
-> -		ret = v4l2_subdev_call(nextsd, video, s_stream, 1);
-> +		ret = v4l2_subdev_call(nextsd, pad, s_stream, rpad, rstream, 1);
->  		if (ret) {
->  			rcar_csi2_stop(priv);
->  			pm_runtime_put(priv->dev);
->  			goto out;
->  		}
->  	} else if (!enable && priv->stream_count[vc] == 1) {
-> -		ret = v4l2_subdev_call(nextsd, video, s_stream, 0);
-> +		ret = v4l2_subdev_call(nextsd, pad, s_stream, rpad, rstream, 0);
->  	}
->  
->  	priv->stream_count[vc] += enable ? 1 : -1;
-> -- 
-> 2.15.1
-> 
-
--- 
-Sakari Ailus
-sakari.ailus@linux.intel.com
+Tim
