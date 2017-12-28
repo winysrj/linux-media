@@ -1,187 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from out20-87.mail.aliyun.com ([115.124.20.87]:54333 "EHLO
-        out20-87.mail.aliyun.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752016AbdL1BFS (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 27 Dec 2017 20:05:18 -0500
-Date: Thu, 28 Dec 2017 09:04:57 +0800
-From: Yong <yong.deng@magewell.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: maxime.ripard@free-electrons.com,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Chen-Yu Tsai <wens@csie.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Yannick Fertre <yannick.fertre@st.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Benoit Parrot <bparrot@ti.com>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Jean-Christophe Trotin <jean-christophe.trotin@st.com>,
-        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
-        Minghsiu Tsai <minghsiu.tsai@mediatek.com>,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Robert Jarzmik <robert.jarzmik@free.fr>,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-sunxi@googlegroups.com
-Subject: Re: [PATCH v2 2/3] dt-bindings: media: Add Allwinner V3s Camera
- Sensor Interface (CSI)
-Message-Id: <20171228090457.c8911b0bd24bd24bf7f3a585@magewell.com>
-In-Reply-To: <20171227214723.rcssyay2lqqjf6ty@valkosipuli.retiisi.org.uk>
-References: <1501131697-1359-1-git-send-email-yong.deng@magewell.com>
-        <1501131697-1359-3-git-send-email-yong.deng@magewell.com>
-        <20171219115327.ofs5xwwimpn7x72n@valkosipuli.retiisi.org.uk>
-        <20171221104935.663812085b616935ca3046de@magewell.com>
-        <20171227214723.rcssyay2lqqjf6ty@valkosipuli.retiisi.org.uk>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from osg.samsung.com ([64.30.133.232]:59183 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750947AbdL1Q3o (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 28 Dec 2017 11:29:44 -0500
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Hans Verkuil <hansverk@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Christophe JAILLET <christophe.jaillet@wanadoo.fr>,
+        Gustavo Padovan <gustavo.padovan@collabora.com>,
+        Hirokazu Honda <hiroh@chromium.org>
+Subject: [PATCH 5/5] media: vb2: add a new warning about pending buffers
+Date: Thu, 28 Dec 2017 14:29:38 -0200
+Message-Id: <2bc65a8418686185530e14711bd7727079614d07.1514478428.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1514478428.git.mchehab@s-opensource.com>
+References: <cover.1514478428.git.mchehab@s-opensource.com>
+In-Reply-To: <cover.1514478428.git.mchehab@s-opensource.com>
+References: <cover.1514478428.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+There's a logic at the VB2 core that produces a WARN_ON if
+there are still buffers waiting to be filled. However, it doesn't
+indicate what buffers are still opened, with makes harder to
+identify issues inside caller drivers.
 
-On Wed, 27 Dec 2017 23:47:23 +0200
-Sakari Ailus <sakari.ailus@iki.fi> wrote:
+So, add a new pr_warn() pointing to such buffers. That, together
+with debug instrumentation inside the drivers can make easier to
+identify where the problem is.
 
-> Hi Yong,
-> 
-> On Thu, Dec 21, 2017 at 10:49:35AM +0800, Yong wrote:
-> > Hi,
-> > 
-> > On Tue, 19 Dec 2017 13:53:28 +0200
-> > Sakari Ailus <sakari.ailus@iki.fi> wrote:
-> > 
-> > > Hi Yong,
-> > > 
-> > > On Thu, Jul 27, 2017 at 01:01:36PM +0800, Yong Deng wrote:
-> > > > Add binding documentation for Allwinner V3s CSI.
-> > > > 
-> > > > Signed-off-by: Yong Deng <yong.deng@magewell.com>
-> > > 
-> > > DT bindings should precede the driver.
-> > 
-> > OK.
-> > 
-> > > 
-> > > > ---
-> > > >  .../devicetree/bindings/media/sun6i-csi.txt        | 49 ++++++++++++++++++++++
-> > > >  1 file changed, 49 insertions(+)
-> > > >  create mode 100644 Documentation/devicetree/bindings/media/sun6i-csi.txt
-> > > > 
-> > > > diff --git a/Documentation/devicetree/bindings/media/sun6i-csi.txt b/Documentation/devicetree/bindings/media/sun6i-csi.txt
-> > > > new file mode 100644
-> > > > index 0000000..f8d83f6
-> > > > --- /dev/null
-> > > > +++ b/Documentation/devicetree/bindings/media/sun6i-csi.txt
-> > > > @@ -0,0 +1,49 @@
-> > > > +Allwinner V3s Camera Sensor Interface
-> > > > +------------------------------
-> > > > +
-> > > > +Required properties:
-> > > > +  - compatible: value must be "allwinner,sun8i-v3s-csi"
-> > > 
-> > > What are sun6i and sun8i? Is this device first present in sun6i SoCs,
-> > > whereas you have only defined bindings for sun8i?
-> > 
-> > Yes, some sun6i SoCs has the almost same CSI module.
-> > There is only V3s on my hand. So, I only tested it on V3s. But
-> > some people work on the others.
-> 
-> Ack.
-> 
-> > 
-> > > 
-> > > > +  - reg: base address and size of the memory-mapped region.
-> > > > +  - interrupts: interrupt associated to this IP
-> > > > +  - clocks: phandles to the clocks feeding the CSI
-> > > > +    * ahb: the CSI interface clock
-> > > > +    * mod: the CSI module clock
-> > > > +    * ram: the CSI DRAM clock
-> > > > +  - clock-names: the clock names mentioned above
-> > > > +  - resets: phandles to the reset line driving the CSI
-> > > > +
-> > > > +- ports: A ports node with endpoint definitions as defined in
-> > > > +  Documentation/devicetree/bindings/media/video-interfaces.txt.
-> > > 
-> > > Please document mandatory and optional endpoint properties relevant for the
-> > > hardware.
-> > 
-> > I have added below commit in my v3:
-> > Currently, the driver only support the parallel interface. So, a single port
-> > node with one endpoint and parallel bus is supported.
-> 
-> Please specify the exact properties that are relevant for the hardware. No
-> references should be made to the driver, the bindings are entirely
-> separate.
-> 
-> Are the non-parallel (CSI-2?) and parallel bus on the same interface? If
-> yes, they should probably use different endpoints, if not, then different
-> ports.
-> 
-> You could document the other bus or omit it now altogether, in which case
-> you'd only detail the parallel bus properties here.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/common/videobuf/videobuf2-core.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-Thanks for your explication. I have misunderstood this.
-
-> 
-> > 
-> > > 
-> > > > +
-> > > > +Example:
-> > > > +
-> > > > +	csi1: csi@01cb4000 {
-> > > > +		compatible = "allwinner,sun8i-v3s-csi";
-> > > > +		reg = <0x01cb4000 0x1000>;
-> > > > +		interrupts = <GIC_SPI 84 IRQ_TYPE_LEVEL_HIGH>;
-> > > > +		clocks = <&ccu CLK_BUS_CSI>,
-> > > > +			 <&ccu CLK_CSI1_SCLK>,
-> > > > +			 <&ccu CLK_DRAM_CSI>;
-> > > > +		clock-names = "ahb", "mod", "ram";
-> > > > +		resets = <&ccu RST_BUS_CSI>;
-> > > > +
-> > > > +		port {
-> > > > +			#address-cells = <1>;
-> > > > +			#size-cells = <0>;
-> > > > +
-> > > > +			/* Parallel bus endpoint */
-> > > > +			csi1_ep: endpoint {
-> > > > +				remote-endpoint = <&adv7611_ep>;
-> > > > +				bus-width = <16>;
-> > > > +				data-shift = <0>;
-> > > > +
-> > > > +				/* If hsync-active/vsync-active are missing,
-> > > > +				   embedded BT.656 sync is used */
-> > > > +				hsync-active = <0>; /* Active low */
-> > > > +				vsync-active = <0>; /* Active low */
-> > > > +				data-active = <1>;  /* Active high */
-> > > > +				pclk-sample = <1>;  /* Rising */
-> > > > +			};
-> > > > +		};
-> > > > +	};
-> > > > +
-> > > 
-> > > -- 
-> > > Kind regards,
-> > > 
-> > > Sakari Ailus
-> > > e-mail: sakari.ailus@iki.fi
-> > 
-> > 
-> > Thanks,
-> > Yong
-> 
-> -- 
-> Regards,
-> 
-> Sakari Ailus
-> e-mail: sakari.ailus@iki.fi
-
-
-Thanks,
-Yong
+diff --git a/drivers/media/common/videobuf/videobuf2-core.c b/drivers/media/common/videobuf/videobuf2-core.c
+index 195942bf8fde..c82c1e3157a4 100644
+--- a/drivers/media/common/videobuf/videobuf2-core.c
++++ b/drivers/media/common/videobuf/videobuf2-core.c
+@@ -1657,8 +1657,11 @@ static void __vb2_queue_cancel(struct vb2_queue *q)
+ 	 */
+ 	if (WARN_ON(atomic_read(&q->owned_by_drv_count))) {
+ 		for (i = 0; i < q->num_buffers; ++i)
+-			if (q->bufs[i]->state == VB2_BUF_STATE_ACTIVE)
++			if (q->bufs[i]->state == VB2_BUF_STATE_ACTIVE) {
++				pr_warn("driver bug: stop_streaming operation is leaving buf %p in active state\n",
++					q->bufs[i]);
+ 				vb2_buffer_done(q->bufs[i], VB2_BUF_STATE_ERROR);
++			}
+ 		/* Must be zero now */
+ 		WARN_ON(atomic_read(&q->owned_by_drv_count));
+ 	}
+-- 
+2.14.3
