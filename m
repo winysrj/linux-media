@@ -1,134 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:46617 "EHLO
-        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751345AbdLJEv0 (ORCPT
+Received: from Galois.linutronix.de ([146.0.238.70]:33358 "EHLO
+        Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750899AbdL1V73 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 9 Dec 2017 23:51:26 -0500
-Message-ID: <dfbda7f1802171b16a3669f5b0b29968@smtp-cloud9.xs4all.net>
-Date: Sun, 10 Dec 2017 05:51:23 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+        Thu, 28 Dec 2017 16:59:29 -0500
+Date: Thu, 28 Dec 2017 22:59:18 +0100 (CET)
+From: Thomas Gleixner <tglx@linutronix.de>
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+cc: "alan@linux.intel.com" <alan@linux.intel.com>,
+        "Ailus, Sakari" <sakari.ailus@intel.com>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: IRQ behaivour has been changed from v4.14 to v4.15-rc1
+In-Reply-To: <alpine.DEB.2.20.1712282218080.1899@nanos>
+Message-ID: <alpine.DEB.2.20.1712282256240.1899@nanos>
+References: <1514481444.7000.451.camel@intel.com>  <alpine.DEB.2.20.1712281820040.1899@nanos>  <1514482448.7000.460.camel@linux.intel.com>  <alpine.DEB.2.20.1712281834520.1899@nanos>  <1514489471.7000.463.camel@linux.intel.com>  <alpine.DEB.2.20.1712282117160.1899@nanos>
+ <1514495025.7000.484.camel@linux.intel.com> <alpine.DEB.2.20.1712282218080.1899@nanos>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On Thu, 28 Dec 2017, Thomas Gleixner wrote:
+> On Thu, 28 Dec 2017, Andy Shevchenko wrote:
+> > On Thu, 2017-12-28 at 21:18 +0100, Thomas Gleixner wrote:
+> > > Yes, you missed the typo in the command line. It should be:
+> > > 
+> > >  'trace_event=irq_vectors:* ftrace_dump_on_oops'
+> > 
+> > Indeed.
+> > 
+> > So, I had to disable LOCAL_TIMER_VECTOR, CALL_FUNCTION_VECTOR and
+> > RESCHDULE_VECTOR tracing, otherwise I got a lot of spam and RCU stalls.
+> 
+> Fair enough.
+> 
+> > The result w/o above is (full log is available here https://pastebin.com
+> > /J5yaTbM9):
+> 
+> Ok. Which irqs are related to that ISP thingy?
+> 
+> Are these interrupts MSI?
 
-Results of the daily build of media_tree:
+And looking at the log, I see that you can load the driver successfully and
+the trouble starts afterwards when you actually use it.
 
-date:			Sun Dec 10 05:00:15 CET 2017
-media-tree git hash:	0393e735649dc41358adb7b603bd57dad1ed3260
-media_build git hash:	b81bc32588e6643d2467524d18367a313d043731
-v4l-utils git hash:	58803000a99c22dceabfb45bec402e746ce966c3
-gcc version:		i686-linux-gcc (GCC) 7.1.0
-sparse version:		v0.5.0-3911-g6f737e1f
-smatch version:		v0.5.0-3911-g6f737e1f
-host hardware:		x86_64
-host os:		4.13.0-164
+Can you please enable CONFIG_GENERIC_IRQ_DEBUGFS and after login, check
+which interrupt is assigned to that atomisp thingy and then provide the
+output of
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: ERRORS
-linux-3.10.1-i686: ERRORS
-linux-3.11.1-i686: ERRORS
-linux-3.12.67-i686: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: ERRORS
-linux-3.15.2-i686: ERRORS
-linux-3.16.7-i686: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.18.7-i686: ERRORS
-linux-3.19-i686: WARNINGS
-linux-4.0.9-i686: WARNINGS
-linux-4.1.33-i686: WARNINGS
-linux-4.2.8-i686: WARNINGS
-linux-4.3.6-i686: WARNINGS
-linux-4.4.22-i686: WARNINGS
-linux-4.5.7-i686: WARNINGS
-linux-4.6.7-i686: WARNINGS
-linux-4.7.5-i686: WARNINGS
-linux-4.8-i686: OK
-linux-4.9.26-i686: OK
-linux-4.10.14-i686: OK
-linux-4.11-i686: OK
-linux-4.12.1-i686: OK
-linux-4.13-i686: OK
-linux-4.14-i686: OK
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: ERRORS
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.67-x86_64: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-x86_64: ERRORS
-linux-3.15.2-x86_64: ERRORS
-linux-3.16.7-x86_64: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.7-x86_64: ERRORS
-linux-3.19-x86_64: WARNINGS
-linux-4.0.9-x86_64: WARNINGS
-linux-4.1.33-x86_64: WARNINGS
-linux-4.2.8-x86_64: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.22-x86_64: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-x86_64: WARNINGS
-linux-4.9.26-x86_64: WARNINGS
-linux-4.10.14-x86_64: WARNINGS
-linux-4.11-x86_64: WARNINGS
-linux-4.12.1-x86_64: WARNINGS
-linux-4.13-x86_64: OK
-linux-4.14-x86_64: OK
-apps: OK
-spec-git: OK
-smatch: OK
+cat /sys/kernel/debug/irq/irqs/$ATOMISPIRQ
 
-Detailed results are available here:
+Thanks,
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+	tglx
