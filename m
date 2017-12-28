@@ -1,299 +1,384 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:47013 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750788AbdLHIDg (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 8 Dec 2017 03:03:36 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Niklas =?ISO-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>
-Subject: Re: [PATCH v9 04/28] rcar-vin: move subdevice handling to async callbacks
-Date: Fri, 08 Dec 2017 10:03:54 +0200
-Message-ID: <24014872.yB9kxvWvsF@avalon>
-In-Reply-To: <20171208010842.20047-5-niklas.soderlund+renesas@ragnatech.se>
-References: <20171208010842.20047-1-niklas.soderlund+renesas@ragnatech.se> <20171208010842.20047-5-niklas.soderlund+renesas@ragnatech.se>
-MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset="iso-8859-1"
+Received: from relay5-d.mail.gandi.net ([217.70.183.197]:40731 "EHLO
+        relay5-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932097AbdL1OBx (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 28 Dec 2017 09:01:53 -0500
+From: Jacopo Mondi <jacopo+renesas@jmondi.org>
+To: laurent.pinchart@ideasonboard.com, magnus.damm@gmail.com,
+        geert@glider.be, mchehab@kernel.org, hverkuil@xs4all.nl,
+        robh+dt@kernel.org, mark.rutland@arm.com
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-sh@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: [PATCH v2 5/9] arch: sh: migor: Use new renesas-ceu camera driver
+Date: Thu, 28 Dec 2017 15:01:17 +0100
+Message-Id: <1514469681-15602-6-git-send-email-jacopo+renesas@jmondi.org>
+In-Reply-To: <1514469681-15602-1-git-send-email-jacopo+renesas@jmondi.org>
+References: <1514469681-15602-1-git-send-email-jacopo+renesas@jmondi.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Niklas,
+Migo-R platform uses sh_mobile_ceu camera driver, which is now being
+replaced by a proper V4L2 camera driver named 'renesas-ceu'.
 
-Thank you for the patch.
+Move Migo-R platform to use the v4l2 renesas-ceu camera driver
+interface and get rid of soc_camera defined components used to register
+sensor drivers and of platform specific enable/disable routines.
 
-On Friday, 8 December 2017 03:08:18 EET Niklas S=F6derlund wrote:
-> In preparation for Gen3 support move the subdevice initialization and
-> clean up from rvin_v4l2_{register,unregister}() directly to the async
-> callbacks. This simplifies the addition of Gen3 support as the
-> rvin_v4l2_register() can be shared for both Gen2 and Gen3 while direct
-> subdevice control are only used on Gen2.
->=20
-> While moving this code drop a large comment which is copied from the
-> framework documentation and fold rvin_mbus_supported() into its only
-> caller.
+Register clock source and GPIOs for sensor drivers, so they can use
+clock and gpio APIs.
 
-I'd really move the initialization and cleanup code to two separate functio=
-ns,=20
-it's getting hard to read. This is especially true for the initialization=20
-code, but I'd do the same for the cleanup code as well even if it's just a=
-=20
-matter of calling v4l2_ctrl_handler_free().
+Also, memory for CEU video buffers is now reserved with membocks APIs,
+and need to be declared as dma_coherent during machine initialization to
+remove that architecture specific part from CEU driver.
 
-> Signed-off-by: Niklas S=F6derlund <niklas.soderlund+renesas@ragnatech.se>
-> Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  drivers/media/platform/rcar-vin/rcar-core.c | 105 ++++++++++++++++------=
-=2D-
->  drivers/media/platform/rcar-vin/rcar-v4l2.c |  35 ----------
->  2 files changed, 67 insertions(+), 73 deletions(-)
->=20
-> diff --git a/drivers/media/platform/rcar-vin/rcar-core.c
-> b/drivers/media/platform/rcar-vin/rcar-core.c index
-> 6d99542ec74b49a7..6ab51acd676641ec 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-core.c
-> +++ b/drivers/media/platform/rcar-vin/rcar-core.c
-> @@ -46,47 +46,11 @@ static int rvin_find_pad(struct v4l2_subdev *sd, int
-> direction) return -EINVAL;
->  }
->=20
-> -static bool rvin_mbus_supported(struct rvin_graph_entity *entity)
-> -{
-> -	struct v4l2_subdev *sd =3D entity->subdev;
-> -	struct v4l2_subdev_mbus_code_enum code =3D {
-> -		.which =3D V4L2_SUBDEV_FORMAT_ACTIVE,
-> -	};
-> -
-> -	code.index =3D 0;
-> -	code.pad =3D entity->source_pad;
-> -	while (!v4l2_subdev_call(sd, pad, enum_mbus_code, NULL, &code)) {
-> -		code.index++;
-> -		switch (code.code) {
-> -		case MEDIA_BUS_FMT_YUYV8_1X16:
-> -		case MEDIA_BUS_FMT_UYVY8_2X8:
-> -		case MEDIA_BUS_FMT_UYVY10_2X10:
-> -		case MEDIA_BUS_FMT_RGB888_1X24:
-> -			entity->code =3D code.code;
-> -			return true;
-> -		default:
-> -			break;
-> -		}
-> -	}
-> -
-> -	return false;
-> -}
-> -
->  static int rvin_digital_notify_complete(struct v4l2_async_notifier
-> *notifier) {
->  	struct rvin_dev *vin =3D notifier_to_vin(notifier);
->  	int ret;
->=20
-> -	/* Verify subdevices mbus format */
-> -	if (!rvin_mbus_supported(vin->digital)) {
-> -		vin_err(vin, "Unsupported media bus format for %s\n",
-> -			vin->digital->subdev->name);
-> -		return -EINVAL;
-> -	}
-> -
-> -	vin_dbg(vin, "Found media bus format for %s: %d\n",
-> -		vin->digital->subdev->name, vin->digital->code);
-> -
->  	ret =3D v4l2_device_register_subdev_nodes(&vin->v4l2_dev);
->  	if (ret < 0) {
->  		vin_err(vin, "Failed to register subdev nodes\n");
-> @@ -103,8 +67,16 @@ static void rvin_digital_notify_unbind(struct
-> v4l2_async_notifier *notifier, struct rvin_dev *vin =3D
-> notifier_to_vin(notifier);
->=20
->  	vin_dbg(vin, "unbind digital subdev %s\n", subdev->name);
-> +
-> +	mutex_lock(&vin->lock);
-> +
->  	rvin_v4l2_unregister(vin);
-> +	v4l2_ctrl_handler_free(&vin->ctrl_handler);
-> +
-> +	vin->vdev.ctrl_handler =3D NULL;
->  	vin->digital->subdev =3D NULL;
-> +
-> +	mutex_unlock(&vin->lock);
->  }
->=20
->  static int rvin_digital_notify_bound(struct v4l2_async_notifier *notifie=
-r,
-> @@ -112,12 +84,14 @@ static int rvin_digital_notify_bound(struct
-> v4l2_async_notifier *notifier, struct v4l2_async_subdev *asd)
->  {
->  	struct rvin_dev *vin =3D notifier_to_vin(notifier);
-> +	struct v4l2_subdev_mbus_code_enum code =3D {
-> +		.which =3D V4L2_SUBDEV_FORMAT_ACTIVE,
-> +	};
->  	int ret;
->=20
->  	v4l2_set_subdev_hostdata(subdev, vin);
->=20
->  	/* Find source and sink pad of remote subdevice */
-> -
->  	ret =3D rvin_find_pad(subdev, MEDIA_PAD_FL_SOURCE);
->  	if (ret < 0)
->  		return ret;
-> @@ -126,21 +100,74 @@ static int rvin_digital_notify_bound(struct
-> v4l2_async_notifier *notifier, ret =3D rvin_find_pad(subdev,
-> MEDIA_PAD_FL_SINK);
->  	vin->digital->sink_pad =3D ret < 0 ? 0 : ret;
->=20
-> +	/* Find compatible subdevices mbus format */
-> +	vin->digital->code =3D 0;
-> +	code.index =3D 0;
-> +	code.pad =3D vin->digital->source_pad;
-> +	while (!vin->digital->code &&
-> +	       !v4l2_subdev_call(subdev, pad, enum_mbus_code, NULL, &code)) {
-> +		code.index++;
-> +		switch (code.code) {
-> +		case MEDIA_BUS_FMT_YUYV8_1X16:
-> +		case MEDIA_BUS_FMT_UYVY8_2X8:
-> +		case MEDIA_BUS_FMT_UYVY10_2X10:
-> +		case MEDIA_BUS_FMT_RGB888_1X24:
-> +			vin->digital->code =3D code.code;
-> +			vin_dbg(vin, "Found media bus format for %s: %d\n",
-> +				subdev->name, vin->digital->code);
-> +			break;
-> +		default:
-> +			break;
-> +		}
-> +	}
-> +
-> +	if (!vin->digital->code) {
-> +		vin_err(vin, "Unsupported media bus format for %s\n",
-> +			subdev->name);
-> +		return -EINVAL;
-> +	}
-> +
-> +	/* Read tvnorms */
-> +	ret =3D v4l2_subdev_call(subdev, video, g_tvnorms, &vin->vdev.tvnorms);
-> +	if (ret < 0 && ret !=3D -ENOIOCTLCMD && ret !=3D -ENODEV)
-> +		return ret;
-> +
-> +	mutex_lock(&vin->lock);
-> +
-> +	/* Add the controls */
-> +	ret =3D v4l2_ctrl_handler_init(&vin->ctrl_handler, 16);
-> +	if (ret < 0)
-> +		goto err;
-> +
-> +	ret =3D v4l2_ctrl_add_handler(&vin->ctrl_handler, subdev->ctrl_handler,
-> +				    NULL);
-> +	if (ret < 0)
-> +		goto err_ctrl;
-> +
-> +	vin->vdev.ctrl_handler =3D &vin->ctrl_handler;
-> +
->  	vin->digital->subdev =3D subdev;
->=20
-> +	mutex_unlock(&vin->lock);
-> +
->  	vin_dbg(vin, "bound subdev %s source pad: %u sink pad: %u\n",
->  		subdev->name, vin->digital->source_pad,
->  		vin->digital->sink_pad);
->=20
->  	return 0;
-> +err_ctrl:
-> +	v4l2_ctrl_handler_free(&vin->ctrl_handler);
-> +err:
-> +	mutex_unlock(&vin->lock);
-> +	return ret;
->  }
-> +
->  static const struct v4l2_async_notifier_operations rvin_digital_notify_o=
-ps
-> =3D { .bound =3D rvin_digital_notify_bound,
->  	.unbind =3D rvin_digital_notify_unbind,
->  	.complete =3D rvin_digital_notify_complete,
->  };
->=20
-> -
->  static int rvin_digital_parse_v4l2(struct device *dev,
->  				   struct v4l2_fwnode_endpoint *vep,
->  				   struct v4l2_async_subdev *asd)
-> @@ -277,6 +304,8 @@ static int rcar_vin_remove(struct platform_device *pd=
-ev)
-> v4l2_async_notifier_unregister(&vin->notifier);
->  	v4l2_async_notifier_cleanup(&vin->notifier);
->=20
-> +	v4l2_ctrl_handler_free(&vin->ctrl_handler);
-> +
->  	rvin_dma_unregister(vin);
->=20
->  	return 0;
-> diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> b/drivers/media/platform/rcar-vin/rcar-v4l2.c index
-> 32a658214f48fa49..4a0610a6b4503501 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> +++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> @@ -847,9 +847,6 @@ void rvin_v4l2_unregister(struct rvin_dev *vin)
->  	v4l2_info(&vin->v4l2_dev, "Removing %s\n",
->  		  video_device_node_name(&vin->vdev));
->=20
-> -	/* Checks internaly if handlers have been init or not */
-> -	v4l2_ctrl_handler_free(&vin->ctrl_handler);
-> -
->  	/* Checks internaly if vdev have been init or not */
->  	video_unregister_device(&vin->vdev);
->  }
-> @@ -872,41 +869,10 @@ static void rvin_notify(struct v4l2_subdev *sd,
->  int rvin_v4l2_register(struct rvin_dev *vin)
->  {
->  	struct video_device *vdev =3D &vin->vdev;
-> -	struct v4l2_subdev *sd =3D vin_to_source(vin);
->  	int ret;
->=20
-> -	v4l2_set_subdev_hostdata(sd, vin);
-> -
->  	vin->v4l2_dev.notify =3D rvin_notify;
->=20
-> -	ret =3D v4l2_subdev_call(sd, video, g_tvnorms, &vin->vdev.tvnorms);
-> -	if (ret < 0 && ret !=3D -ENOIOCTLCMD && ret !=3D -ENODEV)
-> -		return ret;
-> -
-> -	if (vin->vdev.tvnorms =3D=3D 0) {
-> -		/* Disable the STD API if there are no tvnorms defined */
-> -		v4l2_disable_ioctl(&vin->vdev, VIDIOC_G_STD);
-> -		v4l2_disable_ioctl(&vin->vdev, VIDIOC_S_STD);
-> -		v4l2_disable_ioctl(&vin->vdev, VIDIOC_QUERYSTD);
-> -		v4l2_disable_ioctl(&vin->vdev, VIDIOC_ENUMSTD);
-> -	}
-> -
-> -	/* Add the controls */
-> -	/*
-> -	 * Currently the subdev with the largest number of controls (13) is
-> -	 * ov6550. So let's pick 16 as a hint for the control handler. Note
-> -	 * that this is a hint only: too large and you waste some memory, too
-> -	 * small and there is a (very) small performance hit when looking up
-> -	 * controls in the internal hash.
-> -	 */
-> -	ret =3D v4l2_ctrl_handler_init(&vin->ctrl_handler, 16);
-> -	if (ret < 0)
-> -		return ret;
-> -
-> -	ret =3D v4l2_ctrl_add_handler(&vin->ctrl_handler, sd->ctrl_handler, NUL=
-L);
-> -	if (ret < 0)
-> -		return ret;
-> -
->  	/* video node */
->  	vdev->fops =3D &rvin_fops;
->  	vdev->v4l2_dev =3D &vin->v4l2_dev;
-> @@ -915,7 +881,6 @@ int rvin_v4l2_register(struct rvin_dev *vin)
->  	vdev->release =3D video_device_release_empty;
->  	vdev->ioctl_ops =3D &rvin_ioctl_ops;
->  	vdev->lock =3D &vin->lock;
-> -	vdev->ctrl_handler =3D &vin->ctrl_handler;
->  	vdev->device_caps =3D V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING |
->  		V4L2_CAP_READWRITE;
+Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+---
+ arch/sh/boards/mach-migor/setup.c      | 213 ++++++++++++++-------------------
+ arch/sh/kernel/cpu/sh4a/clock-sh7722.c |   2 +-
+ 2 files changed, 89 insertions(+), 126 deletions(-)
 
-
-=2D-=20
-Regards,
-
-Laurent Pinchart
+diff --git a/arch/sh/boards/mach-migor/setup.c b/arch/sh/boards/mach-migor/setup.c
+index 0bcbe58..6eab2ac 100644
+--- a/arch/sh/boards/mach-migor/setup.c
++++ b/arch/sh/boards/mach-migor/setup.c
+@@ -1,17 +1,16 @@
++// SPDX-License-Identifier: GPL-2.0+
+ /*
+  * Renesas System Solutions Asia Pte. Ltd - Migo-R
+  *
+  * Copyright (C) 2008 Magnus Damm
+- *
+- * This file is subject to the terms and conditions of the GNU General Public
+- * License.  See the file "COPYING" in the main directory of this archive
+- * for more details.
+  */
++#include <linux/clkdev.h>
+ #include <linux/init.h>
+ #include <linux/platform_device.h>
+ #include <linux/interrupt.h>
+ #include <linux/input.h>
+ #include <linux/input/sh_keysc.h>
++#include <linux/memblock.h>
+ #include <linux/mmc/host.h>
+ #include <linux/mtd/physmap.h>
+ #include <linux/mfd/tmio.h>
+@@ -23,10 +22,11 @@
+ #include <linux/delay.h>
+ #include <linux/clk.h>
+ #include <linux/gpio.h>
++#include <linux/gpio/machine.h>
+ #include <linux/videodev2.h>
+ #include <linux/sh_intc.h>
+ #include <video/sh_mobile_lcdc.h>
+-#include <media/drv-intf/sh_mobile_ceu.h>
++#include <media/drv-intf/renesas-ceu.h>
+ #include <media/i2c/ov772x.h>
+ #include <media/soc_camera.h>
+ #include <media/i2c/tw9910.h>
+@@ -45,6 +45,9 @@
+  * 0x18000000       8GB    8   NAND Flash (K9K8G08U0A)
+  */
+ 
++#define CEU_BUFFER_MEMORY_SIZE		(4 << 20)
++static phys_addr_t ceu_dma_membase;
++
+ static struct smc91x_platdata smc91x_info = {
+ 	.flags = SMC91X_USE_16BIT | SMC91X_NOWAIT,
+ };
+@@ -301,65 +304,24 @@ static struct platform_device migor_lcdc_device = {
+ 	},
+ };
+ 
+-static struct clk *camera_clk;
+-static DEFINE_MUTEX(camera_lock);
+-
+-static void camera_power_on(int is_tw)
+-{
+-	mutex_lock(&camera_lock);
+-
+-	/* Use 10 MHz VIO_CKO instead of 24 MHz to work
+-	 * around signal quality issues on Panel Board V2.1.
+-	 */
+-	camera_clk = clk_get(NULL, "video_clk");
+-	clk_set_rate(camera_clk, 10000000);
+-	clk_enable(camera_clk);	/* start VIO_CKO */
+-
+-	/* use VIO_RST to take camera out of reset */
+-	mdelay(10);
+-	if (is_tw) {
+-		gpio_set_value(GPIO_PTT2, 0);
+-		gpio_set_value(GPIO_PTT0, 0);
+-	} else {
+-		gpio_set_value(GPIO_PTT0, 1);
+-	}
+-	gpio_set_value(GPIO_PTT3, 0);
+-	mdelay(10);
+-	gpio_set_value(GPIO_PTT3, 1);
+-	mdelay(10); /* wait to let chip come out of reset */
+-}
+-
+-static void camera_power_off(void)
+-{
+-	clk_disable(camera_clk); /* stop VIO_CKO */
+-	clk_put(camera_clk);
+-
+-	gpio_set_value(GPIO_PTT3, 0);
+-	mutex_unlock(&camera_lock);
+-}
+-
+-static int ov7725_power(struct device *dev, int mode)
+-{
+-	if (mode)
+-		camera_power_on(0);
+-	else
+-		camera_power_off();
+-
+-	return 0;
+-}
+-
+-static int tw9910_power(struct device *dev, int mode)
+-{
+-	if (mode)
+-		camera_power_on(1);
+-	else
+-		camera_power_off();
+-
+-	return 0;
+-}
+-
+-static struct sh_mobile_ceu_info sh_mobile_ceu_info = {
+-	.flags = SH_CEU_FLAG_USE_8BIT_BUS,
++static struct ceu_info ceu_info = {
++	.num_subdevs			= 2,
++	.subdevs = {
++		{ /* [0] = ov772x */
++			.flags		= 0,
++			.bus_width	= 8,
++			.bus_shift	= 0,
++			.i2c_adapter_id	= 0,
++			.i2c_address	= 0x21,
++		},
++		{ /* [1] = tw9910 */
++			.flags		= 0,
++			.bus_width	= 8,
++			.bus_shift	= 0,
++			.i2c_adapter_id	= 0,
++			.i2c_address	= 0x45,
++		},
++	},
+ };
+ 
+ static struct resource migor_ceu_resources[] = {
+@@ -373,18 +335,32 @@ static struct resource migor_ceu_resources[] = {
+ 		.start  = evt2irq(0x880),
+ 		.flags  = IORESOURCE_IRQ,
+ 	},
+-	[2] = {
+-		/* place holder for contiguous memory */
+-	},
+ };
+ 
+ static struct platform_device migor_ceu_device = {
+-	.name		= "sh_mobile_ceu",
+-	.id             = 0, /* "ceu0" clock */
++	.name		= "renesas-ceu",
++	.id             = 0, /* ceu.0 */
+ 	.num_resources	= ARRAY_SIZE(migor_ceu_resources),
+ 	.resource	= migor_ceu_resources,
+ 	.dev	= {
+-		.platform_data	= &sh_mobile_ceu_info,
++		.platform_data	= &ceu_info,
++	},
++};
++
++/* Powerdown/reset gpios for CEU image sensors */
++static struct gpiod_lookup_table ov7725_gpios = {
++	.dev_id		= "0-0021",
++	.table		= {
++		GPIO_LOOKUP("sh7722_pfc", GPIO_PTT0, "pwdn", GPIO_ACTIVE_HIGH),
++		GPIO_LOOKUP("sh7722_pfc", GPIO_PTT3, "rstb", GPIO_ACTIVE_HIGH),
++	},
++};
++
++static struct gpiod_lookup_table tw9910_gpios = {
++	.dev_id		= "0-0045",
++	.table		= {
++		GPIO_LOOKUP("sh7722_pfc", GPIO_PTT2, "pdn", GPIO_ACTIVE_HIGH),
++		GPIO_LOOKUP("sh7722_pfc", GPIO_PTT3, "rstb", GPIO_ACTIVE_HIGH),
+ 	},
+ };
+ 
+@@ -423,6 +399,15 @@ static struct platform_device sdhi_cn9_device = {
+ 	},
+ };
+ 
++static struct ov772x_camera_info ov7725_info = {
++	.xclk_rate	= 10000000,
++};
++
++static struct tw9910_video_info tw9910_info = {
++	.buswidth       = 8,
++	.mpout          = TW9910_MPO_FIELD,
++};
++
+ static struct i2c_board_info migor_i2c_devices[] = {
+ 	{
+ 		I2C_BOARD_INFO("rs5c372b", 0x32),
+@@ -434,51 +419,13 @@ static struct i2c_board_info migor_i2c_devices[] = {
+ 	{
+ 		I2C_BOARD_INFO("wm8978", 0x1a),
+ 	},
+-};
+-
+-static struct i2c_board_info migor_i2c_camera[] = {
+ 	{
+ 		I2C_BOARD_INFO("ov772x", 0x21),
++		.platform_data = &ov7725_info,
+ 	},
+ 	{
+ 		I2C_BOARD_INFO("tw9910", 0x45),
+-	},
+-};
+-
+-static struct ov772x_camera_info ov7725_info;
+-
+-static struct soc_camera_link ov7725_link = {
+-	.power		= ov7725_power,
+-	.board_info	= &migor_i2c_camera[0],
+-	.i2c_adapter_id	= 0,
+-	.priv		= &ov7725_info,
+-};
+-
+-static struct tw9910_video_info tw9910_info = {
+-	.buswidth	= SOCAM_DATAWIDTH_8,
+-	.mpout		= TW9910_MPO_FIELD,
+-};
+-
+-static struct soc_camera_link tw9910_link = {
+-	.power		= tw9910_power,
+-	.board_info	= &migor_i2c_camera[1],
+-	.i2c_adapter_id	= 0,
+-	.priv		= &tw9910_info,
+-};
+-
+-static struct platform_device migor_camera[] = {
+-	{
+-		.name	= "soc-camera-pdrv",
+-		.id	= 0,
+-		.dev	= {
+-			.platform_data = &ov7725_link,
+-		},
+-	}, {
+-		.name	= "soc-camera-pdrv",
+-		.id	= 1,
+-		.dev	= {
+-			.platform_data = &tw9910_link,
+-		},
++		.platform_data = &tw9910_info,
+ 	},
+ };
+ 
+@@ -486,12 +433,9 @@ static struct platform_device *migor_devices[] __initdata = {
+ 	&smc91x_eth_device,
+ 	&sh_keysc_device,
+ 	&migor_lcdc_device,
+-	&migor_ceu_device,
+ 	&migor_nor_flash_device,
+ 	&migor_nand_flash_device,
+ 	&sdhi_cn9_device,
+-	&migor_camera[0],
+-	&migor_camera[1],
+ };
+ 
+ extern char migor_sdram_enter_start;
+@@ -620,20 +564,8 @@ static int __init migor_devices_setup(void)
+ 	gpio_request(GPIO_FN_VIO_D9, NULL);
+ 	gpio_request(GPIO_FN_VIO_D8, NULL);
+ 
+-	gpio_request(GPIO_PTT3, NULL); /* VIO_RST */
+-	gpio_direction_output(GPIO_PTT3, 0);
+-	gpio_request(GPIO_PTT2, NULL); /* TV_IN_EN */
+-	gpio_direction_output(GPIO_PTT2, 1);
+-	gpio_request(GPIO_PTT0, NULL); /* CAM_EN */
+-#ifdef CONFIG_SH_MIGOR_RTA_WVGA
+-	gpio_direction_output(GPIO_PTT0, 0);
+-#else
+-	gpio_direction_output(GPIO_PTT0, 1);
+-#endif
+ 	__raw_writew(__raw_readw(PORT_MSELCRB) | 0x2000, PORT_MSELCRB); /* D15->D8 */
+ 
+-	platform_resource_setup_memory(&migor_ceu_device, "ceu", 4 << 20);
+-
+ 	/* SIU: Port B */
+ 	gpio_request(GPIO_FN_SIUBOLR, NULL);
+ 	gpio_request(GPIO_FN_SIUBOBT, NULL);
+@@ -647,9 +579,26 @@ static int __init migor_devices_setup(void)
+ 	 */
+ 	__raw_writew(__raw_readw(PORT_MSELCRA) | 1, PORT_MSELCRA);
+ 
++	/* Add a clock alias for ov7725 xclk source. */
++	clk_add_alias("xclk", NULL, "video_clk", NULL);
++
++	/* Register GPIOs for image sensors. */
++	gpiod_add_lookup_table(&ov7725_gpios);
++	gpiod_add_lookup_table(&tw9910_gpios);
++
+ 	i2c_register_board_info(0, migor_i2c_devices,
+ 				ARRAY_SIZE(migor_i2c_devices));
+ 
++	/* Initialize CEU platform device separately to map memory first */
++	device_initialize(&migor_ceu_device.dev);
++	arch_setup_pdev_archdata(&migor_ceu_device);
++	dma_declare_coherent_memory(&migor_ceu_device.dev,
++				    ceu_dma_membase, ceu_dma_membase,
++				    ceu_dma_membase + CEU_BUFFER_MEMORY_SIZE - 1,
++				    DMA_MEMORY_EXCLUSIVE);
++
++	platform_device_add(&migor_ceu_device);
++
+ 	return platform_add_devices(migor_devices, ARRAY_SIZE(migor_devices));
+ }
+ arch_initcall(migor_devices_setup);
+@@ -665,10 +614,24 @@ static int migor_mode_pins(void)
+ 	return MODE_PIN0 | MODE_PIN1 | MODE_PIN5;
+ }
+ 
++/* Reserve a portion of memory for CEU buffers */
++static void __init migor_mv_mem_reserve(void)
++{
++	phys_addr_t phys;
++	phys_addr_t size = CEU_BUFFER_MEMORY_SIZE;
++
++	phys = memblock_alloc_base(size, PAGE_SIZE, MEMBLOCK_ALLOC_ANYWHERE);
++	memblock_free(phys, size);
++	memblock_remove(phys, size);
++
++	ceu_dma_membase = phys;
++}
++
+ /*
+  * The Machine Vector
+  */
+ static struct sh_machine_vector mv_migor __initmv = {
+ 	.mv_name		= "Migo-R",
+ 	.mv_mode_pins		= migor_mode_pins,
++	.mv_mem_reserve		= migor_mv_mem_reserve,
+ };
+diff --git a/arch/sh/kernel/cpu/sh4a/clock-sh7722.c b/arch/sh/kernel/cpu/sh4a/clock-sh7722.c
+index 8f07a1a..d85091e 100644
+--- a/arch/sh/kernel/cpu/sh4a/clock-sh7722.c
++++ b/arch/sh/kernel/cpu/sh4a/clock-sh7722.c
+@@ -223,7 +223,7 @@ static struct clk_lookup lookups[] = {
+ 	CLKDEV_DEV_ID("sh-vou.0", &mstp_clks[HWBLK_VOU]),
+ 	CLKDEV_CON_ID("jpu0", &mstp_clks[HWBLK_JPU]),
+ 	CLKDEV_CON_ID("beu0", &mstp_clks[HWBLK_BEU]),
+-	CLKDEV_DEV_ID("sh_mobile_ceu.0", &mstp_clks[HWBLK_CEU]),
++	CLKDEV_DEV_ID("renesas-ceu.0", &mstp_clks[HWBLK_CEU]),
+ 	CLKDEV_CON_ID("veu0", &mstp_clks[HWBLK_VEU]),
+ 	CLKDEV_CON_ID("vpu0", &mstp_clks[HWBLK_VPU]),
+ 	CLKDEV_DEV_ID("sh_mobile_lcdc_fb.0", &mstp_clks[HWBLK_LCDC]),
+-- 
+2.7.4
