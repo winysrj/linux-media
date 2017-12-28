@@ -1,76 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:14694 "EHLO mga14.intel.com"
+Received: from mga04.intel.com ([192.55.52.120]:21451 "EHLO mga04.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754571AbdL1RXN (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 28 Dec 2017 12:23:13 -0500
-Message-ID: <1514481789.7000.458.camel@linux.intel.com>
-Subject: Re: IRQ behaivour has been changed from v4.14 to v4.15-rc1
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: "Ailus, Sakari" <sakari.ailus@intel.com>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        alan <alan@linux.intel.com>
-Cc: linux-media <linux-media@vger.kernel.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Date: Thu, 28 Dec 2017 19:23:09 +0200
-In-Reply-To: <1514481444.7000.451.camel@intel.com>
-References: <1514481444.7000.451.camel@intel.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+        id S1754110AbdL1SSL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 28 Dec 2017 13:18:11 -0500
+Date: Thu, 28 Dec 2017 20:18:05 +0200
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Hans Verkuil <hansverk@cisco.com>,
+        Christophe JAILLET <christophe.jaillet@wanadoo.fr>,
+        Satendra Singh Thakur <satendra.t@samsung.com>,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Subject: Re: [PATCH 1/5] media: vb2: don't go out of the buffer range
+Message-ID: <20171228181804.7xw4id32ebplblv3@kekkonen.localdomain>
+References: <cover.1514478428.git.mchehab@s-opensource.com>
+ <787806d7616aa595467b094c4fb5c43f60d144b3.1514478428.git.mchehab@s-opensource.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <787806d7616aa595467b094c4fb5c43f60d144b3.1514478428.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 2017-12-28 at 19:17 +0200, Andy Shevchenko wrote:
-> Hi!
-> 
-> Experimenting with AtomISP (yes, code is ugly and MSI handling rather
-> hackish, though...).
-> 
-> So, with v4.14 base:
+Hi Mauro,
 
-See additional note below.
+On Thu, Dec 28, 2017 at 02:29:34PM -0200, Mauro Carvalho Chehab wrote:
+> Currently, there's no check if an invalid buffer range
+> is passed. However, while testing DVB memory mapped apps,
+> I got this:
+> 
+>    videobuf2_core: VB: num_buffers -2143943680, buffer 33, index -2143943647
+>    unable to handle kernel paging request at ffff888b773c0890
+>    IP: __vb2_queue_alloc+0x134/0x4e0 [videobuf2_core]
+>    PGD 4142c7067 P4D 4142c7067 PUD 0
+>    Oops: 0002 [#1] SMP
+>    Modules linked in: xt_CHECKSUM iptable_mangle ipt_MASQUERADE nf_nat_masquerade_ipv4 iptable_nat nf_nat_ipv4 nf_nat nf_conntrack_ipv4 nf_defrag_ipv4 xt_conntrack nf_conntrack tun bridge stp llc ebtable_filter ebtables ip6table_filter ip6_tables bluetooth rfkill ecdh_generic binfmt_misc rc_dvbsky sp2 ts2020 intel_rapl x86_pkg_temp_thermal dvb_usb_dvbsky intel_powerclamp dvb_usb_v2 coretemp m88ds3103 kvm_intel i2c_mux dvb_core snd_hda_codec_hdmi crct10dif_pclmul crc32_pclmul videobuf2_vmalloc videobuf2_memops snd_hda_intel ghash_clmulni_intel videobuf2_core snd_hda_codec rc_core mei_me intel_cstate snd_hwdep snd_hda_core videodev intel_uncore snd_pcm mei media tpm_tis tpm_tis_core intel_rapl_perf tpm snd_timer lpc_ich snd soundcore kvm irqbypass libcrc32c i915 i2c_algo_bit drm_kms_helper
+>    e1000e ptp drm crc32c_intel video pps_core
+>    CPU: 3 PID: 1776 Comm: dvbv5-zap Not tainted 4.14.0+ #78
+>    Hardware name:                  /NUC5i7RYB, BIOS RYBDWi35.86A.0364.2017.0511.0949 05/11/2017
+>    task: ffff88877c73bc80 task.stack: ffffb7c402418000
+>    RIP: 0010:__vb2_queue_alloc+0x134/0x4e0 [videobuf2_core]
+>    RSP: 0018:ffffb7c40241bc60 EFLAGS: 00010246
+>    RAX: 0000000080360421 RBX: 0000000000000021 RCX: 000000000000000a
+>    RDX: ffffb7c40241bcf4 RSI: ffff888780362c60 RDI: ffff888796d8e130
+>    RBP: ffffb7c40241bcc8 R08: 0000000000000316 R09: 0000000000000004
+>    R10: ffff888780362c00 R11: 0000000000000001 R12: 000000000002f000
+>    R13: ffff8887758be700 R14: 0000000000021000 R15: 0000000000000001
+>    FS:  00007f2849024740(0000) GS:ffff888796d80000(0000) knlGS:0000000000000000
+>    CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+>    CR2: ffff888b773c0890 CR3: 000000043beb2005 CR4: 00000000003606e0
+>    Call Trace:
+>     vb2_core_reqbufs+0x226/0x420 [videobuf2_core]
+>     dvb_vb2_reqbufs+0x2d/0xc0 [dvb_core]
+>     dvb_dvr_do_ioctl+0x98/0x1d0 [dvb_core]
+>     dvb_usercopy+0x53/0x1b0 [dvb_core]
+>     ? dvb_demux_ioctl+0x20/0x20 [dvb_core]
+>     ? tty_ldisc_deref+0x16/0x20
+>     ? tty_write+0x1f9/0x310
+>     ? process_echoes+0x70/0x70
+>     dvb_dvr_ioctl+0x15/0x20 [dvb_core]
+>     do_vfs_ioctl+0xa5/0x600
+>     SyS_ioctl+0x79/0x90
+>     entry_SYSCALL_64_fastpath+0x1a/0xa5
+>    RIP: 0033:0x7f28486f7ea7
+>    RSP: 002b:00007ffc13b2db18 EFLAGS: 00000246 ORIG_RAX: 0000000000000010
+>    RAX: ffffffffffffffda RBX: 000055b10fc06130 RCX: 00007f28486f7ea7
+>    RDX: 00007ffc13b2db48 RSI: 00000000c0086f3c RDI: 0000000000000007
+>    RBP: 0000000000000203 R08: 000055b10df1e02c R09: 000000000000002e
+>    R10: 0036b42415108357 R11: 0000000000000246 R12: 0000000000000000
+>    R13: 00007f2849062f60 R14: 00000000000001f1 R15: 00007ffc13b2da54
+>    Code: 74 0a 60 8b 0a 48 83 c0 30 48 83 c2 04 89 48 d0 89 48 d4 48 39 f0 75 eb 41 8b 42 08 83 7d d4 01 41 c7 82 ec 01 00 00 ff ff ff ff <4d> 89 94 c5 88 00 00 00 74 14 83 c3 01 41 39 dc 0f 85 f1 fe ff
+>    RIP: __vb2_queue_alloc+0x134/0x4e0 [videobuf2_core] RSP: ffffb7c40241bc60
+>    CR2: ffff888b773c0890
+> 
+> So, add a sanity check in order to prevent going past array.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> ---
+>  drivers/media/common/videobuf/videobuf2-core.c | 3 +++
+>  1 file changed, 3 insertions(+)
+> 
+> diff --git a/drivers/media/common/videobuf/videobuf2-core.c b/drivers/media/common/videobuf/videobuf2-core.c
+> index a8589d96ef72..a3b4836fc41d 100644
+> --- a/drivers/media/common/videobuf/videobuf2-core.c
+> +++ b/drivers/media/common/videobuf/videobuf2-core.c
+> @@ -332,6 +332,9 @@ static int __vb2_queue_alloc(struct vb2_queue *q, enum vb2_memory memory,
+>  	struct vb2_buffer *vb;
+>  	int ret;
+>  
+> +	/* Ensure that q->num_buffers+num_buffers is below VB2_MAX_FRAME */
+> +	num_buffers = min_t(unsigned int, num_buffers, VB2_MAX_FRAME - q->num_buffers);
 
-> 
-> [   33.639224] atomisp-isp2 0000:00:03.0: Start stream on pad 1 for
-> asd0
-> [   33.652355] atomisp-isp2 0000:00:03.0: irq:0x20
-> [   33.662456] atomisp-isp2 0000:00:03.0: irq:0x20
-> [   33.698064] atomisp-isp2 0000:00:03.0: stream[0] started.
-> 
-> Ctrl+C
-> 
-> [   48.185643] atomisp-isp2 0000:00:03.0: <atomisp_dqbuf: -512
-> [   48.204641] atomisp-isp2 0000:00:03.0: release device ATOMISP ISP
-> CAPTURE output
-> ...
-> 
-> and machine still alive.
-> 
-> 
-> With v4.15-rc1 base (basically your branch + some my hack patches)
+Could you wrap the above line? It's over 80 characters.
 
-Needs a bit of elaboration:
-a) nothing had been changed WRT AtomISP driver or media stuff, under
-"your branch" one reads Sakari's media_tree.git/atomisp branch;
-b) my hack patches has nothing to do with anything except AtomISP
-itself;
-c) v4.14 base required media/v4.15-1 tag to be merged as well.
+With that,
 
->  the IRQ behaviour changed, i.e. I have got:
-> 
-> 
-> [   85.167061] spurious APIC interrupt through vector ff on CPU#0,
-> should never happen.
-> [   85.199886] atomisp-isp2 0000:00:03.0: stream[0] started.
-> 
-> and Ctrl+C does NOT work. Machine just hangs.
-> 
-> It might be related to this:
-> https://lkml.org/lkml/2017/12/22/697
-> 
-> Any comments, Thomas?
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+
+> +
+>  	for (buffer = 0; buffer < num_buffers; ++buffer) {
+>  		/* Allocate videobuf buffer structures */
+>  		vb = kzalloc(q->buf_struct_size, GFP_KERNEL);
+> -- 
+> 2.14.3
 > 
 
 -- 
-Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Intel Finland Oy
+Sakari Ailus
+sakari.ailus@linux.intel.com
