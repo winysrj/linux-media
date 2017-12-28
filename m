@@ -1,126 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:43287 "EHLO
-        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751121AbdLMKTF (ORCPT
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:35659 "EHLO
+        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751364AbdL1F7b (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 13 Dec 2017 05:19:05 -0500
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Petr Cvek <petr.cvek@tul.cz>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH] pxa_camera: rename the soc_camera_ prefix to pxa_camera_
-Message-ID: <ef7aeca6-b963-f83c-84e6-8f90fb47f0c9@xs4all.nl>
-Date: Wed, 13 Dec 2017 11:19:03 +0100
+        Thu, 28 Dec 2017 00:59:31 -0500
+Received: by mail-wm0-f65.google.com with SMTP id a79so3268846wma.0
+        for <linux-media@vger.kernel.org>; Wed, 27 Dec 2017 21:59:31 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Reply-To: michellerrichard@outlook.com
+From: "Mrs. Michelle Richard" <unionbanktransferunit.bankplc@gmail.com>
+Date: Thu, 28 Dec 2017 06:59:30 +0100
+Message-ID: <CAEU+9WEPW1LGomuhKMF5KkDHYoP15XF_N1uCfccF59q9fi92Nw@mail.gmail.com>
+Subject: Kannst du mir helfen?
+To: undisclosed-recipients:;
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Rename soc_camera to pxa_camera as this has no longer anything to do with the old
-soc_camera driver/framework. It's confusing when grepping on soc_camera.
+Lieber geliebter,
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
-diff --git a/drivers/media/platform/pxa_camera.c b/drivers/media/platform/pxa_camera.c
-index 295f34ad1080..7c765a00c504 100644
---- a/drivers/media/platform/pxa_camera.c
-+++ b/drivers/media/platform/pxa_camera.c
-@@ -647,16 +647,16 @@ static unsigned int pxa_mbus_config_compatible(const struct v4l2_mbus_config *cf
- }
+Bitte lesen Sie dies langsam und sorgf=C3=A4ltig, da es eine der
+wichtigsten E-Mails sein kann, die Sie jemals bekommen.Ich bin Frau
+Michelle Richard, ich war mit dem verstorbenen Robert Richard
+verheiratet.Er arbeitete fr=C3=BCher mit Shell Petroleum Development
+Company London und war auch ein erfahrene Auftragnehmer in der
+Westafrikanischen Region.Er starb am Montag, den 31. Juli 2003 in
+Paris. Wir waren sieben Jahre ohne Kind verheiratet.
 
- /**
-- * struct soc_camera_format_xlate - match between host and sensor formats
-+ * struct pxa_camera_format_xlate - match between host and sensor formats
-  * @code: code of a sensor provided format
-  * @host_fmt: host format after host translation from code
-  *
-  * Host and sensor translation structure. Used in table of host and sensor
-- * formats matchings in soc_camera_device. A host can override the generic list
-+ * formats matchings in pxa_camera_device. A host can override the generic list
-  * generation by implementing get_formats(), and use it for format checks and
-  * format setup.
-  */
--struct soc_camera_format_xlate {
-+struct pxa_camera_format_xlate {
- 	u32 code;
- 	const struct pxa_mbus_pixelfmt *host_fmt;
- };
-@@ -693,8 +693,8 @@ struct pxa_camera_dev {
- 	struct v4l2_async_notifier notifier;
- 	struct vb2_queue	vb2_vq;
- 	struct v4l2_subdev	*sensor;
--	struct soc_camera_format_xlate *user_formats;
--	const struct soc_camera_format_xlate *current_fmt;
-+	struct pxa_camera_format_xlate *user_formats;
-+	const struct pxa_camera_format_xlate *current_fmt;
- 	struct v4l2_pix_format	current_pix;
+W=C3=A4hrend du das liest, will ich nicht, dass du Mitleid mit mir hast,
+weil ich glaube, dass jeder irgendwann sterben wird. Ich wurde mit
+Speiser=C3=B6hrenkrebs diagnostiziert und mein Arzt sagte mir, dass ich
+wegen meiner komplizierten Gesundheitsprobleme nicht lange =C3=BCberleben
+w=C3=BCrde.
 
- 	struct v4l2_async_subdev asd;
-@@ -743,8 +743,8 @@ static const char *pxa_cam_driver_description = "PXA_Camera";
- /*
-  * Format translation functions
-  */
--static const struct soc_camera_format_xlate
--*pxa_mbus_xlate_by_fourcc(struct soc_camera_format_xlate *user_formats,
-+static const struct pxa_camera_format_xlate
-+*pxa_mbus_xlate_by_fourcc(struct pxa_camera_format_xlate *user_formats,
- 			  unsigned int fourcc)
- {
- 	unsigned int i;
-@@ -755,17 +755,17 @@ static const struct soc_camera_format_xlate
- 	return NULL;
- }
+Ich m=C3=B6chte, dass Gott mir gn=C3=A4dig ist und meine Seele akzeptiert, =
+also
+habe ich beschlossen, Wohlt=C3=A4tigkeitsorganisationen / Kirchen /
+Moscheen / mutterlosen Babys / Tempeln / weniger Privilegierten und
+Witwen Almosen zu geben, so wie ich m=C3=B6chte, dass dies eine der letzten
+guten Taten ist Ich mache es auf der Erde, bevor ich sterbe. Bis jetzt
+habe ich Geld an einige Wohlt=C3=A4tigkeitsorganisationen im Oman, Wales,
+Algerien und Malaysia verteilt. Jetzt wo sich meine Gesundheit so
+stark verschlechtert hat, kann ich das nicht mehr selbst machen.
 
--static struct soc_camera_format_xlate *pxa_mbus_build_fmts_xlate(
-+static struct pxa_camera_format_xlate *pxa_mbus_build_fmts_xlate(
- 	struct v4l2_device *v4l2_dev, struct v4l2_subdev *subdev,
- 	int (*get_formats)(struct v4l2_device *, unsigned int,
--			   struct soc_camera_format_xlate *xlate))
-+			   struct pxa_camera_format_xlate *xlate))
- {
- 	unsigned int i, fmts = 0, raw_fmts = 0;
- 	int ret;
- 	struct v4l2_subdev_mbus_code_enum code = {
- 		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
- 	};
--	struct soc_camera_format_xlate *user_formats;
-+	struct pxa_camera_format_xlate *user_formats;
+Ich habe einmal meine Familienangeh=C3=B6rigen gebeten, eines meiner Konten
+zu schlie=C3=9Fen und das Geld, das ich dort habe, an eine
+Wohlt=C3=A4tigkeitsorganisation in =C3=96sterreich, Belgien, Deutschland, d=
+en
+Niederlanden und der Schweiz zu verteilen. Sie weigerten sich und
+behielten das Geld f=C3=BCr sich. Daher traue ich nicht sie mehr, als sie
+scheinen, nicht mit dem bestraft zu werden, was ich f=C3=BCr sie verlassen
+habe. Das letzte Geld, das niemand kennt, ist die riesige Bareinlage
+von 6 Millionen US-Dollar, die ich bei einer Bank in Thailand habe, wo
+ich den Fonds eingezahlt habe. Ich m=C3=B6chte, dass Sie diesen Fonds f=C3=
+=BCr
+Wohlt=C3=A4tigkeitsprogramme nutzen und die Menschen in Ihrem Land
+unterst=C3=BCtzen, wenn Sie nur aufrichtig sind.
 
- 	while (!v4l2_subdev_call(subdev, pad, enum_mbus_code, NULL, &code)) {
- 		raw_fmts++;
-@@ -1722,7 +1722,7 @@ static bool pxa_camera_packing_supported(const struct pxa_mbus_pixelfmt *fmt)
+Ich habe diese Entscheidung getroffen, weil ich kein Kind habe, das
+dieses Geld erben w=C3=BCrde, ich habe keine Angst vor dem Tod, daher wei=
+=C3=9F
+ich, wohin ich gehe. Ich wei=C3=9F, dass ich im Scho=C3=9F des Herrn sein w=
+erde.
+Sobald ich Ihre Antwort erhalten habe, gebe ich Ihnen den Kontakt zur
+Bank und erteile Ihnen ein Vollmachtsschreiben, das Sie als
+Erstbeg=C3=BCnstigten dieses Fonds erm=C3=A4chtigt, dieses
+Wohlt=C3=A4tigkeitsprogramm sofort in Ihrem Land zu beginnen.
 
- static int pxa_camera_get_formats(struct v4l2_device *v4l2_dev,
- 				  unsigned int idx,
--				  struct soc_camera_format_xlate *xlate)
-+				  struct pxa_camera_format_xlate *xlate)
- {
- 	struct pxa_camera_dev *pcdev = v4l2_dev_to_pcdev(v4l2_dev);
- 	int formats = 0, ret;
-@@ -1794,7 +1794,7 @@ static int pxa_camera_get_formats(struct v4l2_device *v4l2_dev,
+Ich m=C3=B6chte, dass Sie immer f=C3=BCr mich beten. Jede Verz=C3=B6gerung =
+Ihrer
+Antwort wird mir Raum geben, eine andere Person f=C3=BCr diesen Zweck zu
+finden. Wenn Sie nicht interessiert sind, entschuldigen Sie bitte,
+dass ich Sie kontaktiert habe. Sie erreichen mich mit oder antworten
+Sie mir auf meine private E-Mail: (michellerich@outlook.com).
 
- static int pxa_camera_build_formats(struct pxa_camera_dev *pcdev)
- {
--	struct soc_camera_format_xlate *xlate;
-+	struct pxa_camera_format_xlate *xlate;
-
- 	xlate = pxa_mbus_build_fmts_xlate(&pcdev->v4l2_dev, pcdev->sensor,
- 					  pxa_camera_get_formats);
-@@ -1883,7 +1883,7 @@ static int pxac_vidioc_try_fmt_vid_cap(struct file *filp, void *priv,
- 				      struct v4l2_format *f)
- {
- 	struct pxa_camera_dev *pcdev = video_drvdata(filp);
--	const struct soc_camera_format_xlate *xlate;
-+	const struct pxa_camera_format_xlate *xlate;
- 	struct v4l2_pix_format *pix = &f->fmt.pix;
- 	struct v4l2_subdev_pad_config pad_cfg;
- 	struct v4l2_subdev_format format = {
-@@ -1947,7 +1947,7 @@ static int pxac_vidioc_s_fmt_vid_cap(struct file *filp, void *priv,
- 				    struct v4l2_format *f)
- {
- 	struct pxa_camera_dev *pcdev = video_drvdata(filp);
--	const struct soc_camera_format_xlate *xlate;
-+	const struct pxa_camera_format_xlate *xlate;
- 	struct v4l2_pix_format *pix = &f->fmt.pix;
- 	struct v4l2_subdev_format format = {
- 		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
+Vielen Dank,
+Dein,
+Frau Michelle Richard
+Email; michellerich@outlook.com
