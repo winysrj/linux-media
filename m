@@ -1,61 +1,187 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:48194 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752885AbdL1NJX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 28 Dec 2017 08:09:23 -0500
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Inki Dae <inki.dae@samsung.com>,
-        Junghak Sung <jh1009.sung@samsung.com>,
-        Seung-Woo Kim <sw0312.kim@samsung.com>,
-        Satendra Singh Thakur <satendra.t@samsung.com>
-Subject: [PATCH 2/2] media: dvb_vb2: limit reqbufs size to  a sane value
-Date: Thu, 28 Dec 2017 11:09:17 -0200
-Message-Id: <250e67e6e82643336d047e41780fbb72dc33687d.1514466421.git.mchehab@s-opensource.com>
-In-Reply-To: <60dd6554070454d7f76c9d6d65f4ec8fc370b994.1514466421.git.mchehab@s-opensource.com>
-References: <60dd6554070454d7f76c9d6d65f4ec8fc370b994.1514466421.git.mchehab@s-opensource.com>
-In-Reply-To: <60dd6554070454d7f76c9d6d65f4ec8fc370b994.1514466421.git.mchehab@s-opensource.com>
-References: <60dd6554070454d7f76c9d6d65f4ec8fc370b994.1514466421.git.mchehab@s-opensource.com>
+Received: from out20-87.mail.aliyun.com ([115.124.20.87]:54333 "EHLO
+        out20-87.mail.aliyun.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752016AbdL1BFS (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 27 Dec 2017 20:05:18 -0500
+Date: Thu, 28 Dec 2017 09:04:57 +0800
+From: Yong <yong.deng@magewell.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: maxime.ripard@free-electrons.com,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Chen-Yu Tsai <wens@csie.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Yannick Fertre <yannick.fertre@st.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Benoit Parrot <bparrot@ti.com>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Jean-Christophe Trotin <jean-christophe.trotin@st.com>,
+        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
+        Minghsiu Tsai <minghsiu.tsai@mediatek.com>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        Robert Jarzmik <robert.jarzmik@free.fr>,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-sunxi@googlegroups.com
+Subject: Re: [PATCH v2 2/3] dt-bindings: media: Add Allwinner V3s Camera
+ Sensor Interface (CSI)
+Message-Id: <20171228090457.c8911b0bd24bd24bf7f3a585@magewell.com>
+In-Reply-To: <20171227214723.rcssyay2lqqjf6ty@valkosipuli.retiisi.org.uk>
+References: <1501131697-1359-1-git-send-email-yong.deng@magewell.com>
+        <1501131697-1359-3-git-send-email-yong.deng@magewell.com>
+        <20171219115327.ofs5xwwimpn7x72n@valkosipuli.retiisi.org.uk>
+        <20171221104935.663812085b616935ca3046de@magewell.com>
+        <20171227214723.rcssyay2lqqjf6ty@valkosipuli.retiisi.org.uk>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-It is not a good idea to let users to request a very high buffer
-size.
+Hi,
 
-So, add an upper limit.
+On Wed, 27 Dec 2017 23:47:23 +0200
+Sakari Ailus <sakari.ailus@iki.fi> wrote:
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/dvb-core/dvb_vb2.c | 8 ++++++++
- 1 file changed, 8 insertions(+)
+> Hi Yong,
+> 
+> On Thu, Dec 21, 2017 at 10:49:35AM +0800, Yong wrote:
+> > Hi,
+> > 
+> > On Tue, 19 Dec 2017 13:53:28 +0200
+> > Sakari Ailus <sakari.ailus@iki.fi> wrote:
+> > 
+> > > Hi Yong,
+> > > 
+> > > On Thu, Jul 27, 2017 at 01:01:36PM +0800, Yong Deng wrote:
+> > > > Add binding documentation for Allwinner V3s CSI.
+> > > > 
+> > > > Signed-off-by: Yong Deng <yong.deng@magewell.com>
+> > > 
+> > > DT bindings should precede the driver.
+> > 
+> > OK.
+> > 
+> > > 
+> > > > ---
+> > > >  .../devicetree/bindings/media/sun6i-csi.txt        | 49 ++++++++++++++++++++++
+> > > >  1 file changed, 49 insertions(+)
+> > > >  create mode 100644 Documentation/devicetree/bindings/media/sun6i-csi.txt
+> > > > 
+> > > > diff --git a/Documentation/devicetree/bindings/media/sun6i-csi.txt b/Documentation/devicetree/bindings/media/sun6i-csi.txt
+> > > > new file mode 100644
+> > > > index 0000000..f8d83f6
+> > > > --- /dev/null
+> > > > +++ b/Documentation/devicetree/bindings/media/sun6i-csi.txt
+> > > > @@ -0,0 +1,49 @@
+> > > > +Allwinner V3s Camera Sensor Interface
+> > > > +------------------------------
+> > > > +
+> > > > +Required properties:
+> > > > +  - compatible: value must be "allwinner,sun8i-v3s-csi"
+> > > 
+> > > What are sun6i and sun8i? Is this device first present in sun6i SoCs,
+> > > whereas you have only defined bindings for sun8i?
+> > 
+> > Yes, some sun6i SoCs has the almost same CSI module.
+> > There is only V3s on my hand. So, I only tested it on V3s. But
+> > some people work on the others.
+> 
+> Ack.
+> 
+> > 
+> > > 
+> > > > +  - reg: base address and size of the memory-mapped region.
+> > > > +  - interrupts: interrupt associated to this IP
+> > > > +  - clocks: phandles to the clocks feeding the CSI
+> > > > +    * ahb: the CSI interface clock
+> > > > +    * mod: the CSI module clock
+> > > > +    * ram: the CSI DRAM clock
+> > > > +  - clock-names: the clock names mentioned above
+> > > > +  - resets: phandles to the reset line driving the CSI
+> > > > +
+> > > > +- ports: A ports node with endpoint definitions as defined in
+> > > > +  Documentation/devicetree/bindings/media/video-interfaces.txt.
+> > > 
+> > > Please document mandatory and optional endpoint properties relevant for the
+> > > hardware.
+> > 
+> > I have added below commit in my v3:
+> > Currently, the driver only support the parallel interface. So, a single port
+> > node with one endpoint and parallel bus is supported.
+> 
+> Please specify the exact properties that are relevant for the hardware. No
+> references should be made to the driver, the bindings are entirely
+> separate.
+> 
+> Are the non-parallel (CSI-2?) and parallel bus on the same interface? If
+> yes, they should probably use different endpoints, if not, then different
+> ports.
+> 
+> You could document the other bus or omit it now altogether, in which case
+> you'd only detail the parallel bus properties here.
 
-diff --git a/drivers/media/dvb-core/dvb_vb2.c b/drivers/media/dvb-core/dvb_vb2.c
-index ccb99cfed2b3..d9fafeeb0d04 100644
---- a/drivers/media/dvb-core/dvb_vb2.c
-+++ b/drivers/media/dvb-core/dvb_vb2.c
-@@ -19,6 +19,8 @@
- #include "dvbdev.h"
- #include "dvb_vb2.h"
- 
-+#define DVB_V2_MAX_SIZE 	(4096 * 188)
-+
- static int vb2_debug;
- module_param(vb2_debug, int, 0644);
- 
-@@ -330,6 +332,12 @@ int dvb_vb2_reqbufs(struct dvb_vb2_ctx *ctx, struct dmx_requestbuffers *req)
- {
- 	int ret;
- 
-+	/* Adjust size to a sane value */
-+	if (req->size > DVB_V2_MAX_SIZE)
-+		req->size = DVB_V2_MAX_SIZE;
-+
-+	/* FIXME: round req->size to a 188 or 204 multiple */
-+
- 	ctx->buf_siz = req->size;
- 	ctx->buf_cnt = req->count;
- 	ret = vb2_core_reqbufs(&ctx->vb_q, VB2_MEMORY_MMAP, &req->count);
--- 
-2.14.3
+Thanks for your explication. I have misunderstood this.
+
+> 
+> > 
+> > > 
+> > > > +
+> > > > +Example:
+> > > > +
+> > > > +	csi1: csi@01cb4000 {
+> > > > +		compatible = "allwinner,sun8i-v3s-csi";
+> > > > +		reg = <0x01cb4000 0x1000>;
+> > > > +		interrupts = <GIC_SPI 84 IRQ_TYPE_LEVEL_HIGH>;
+> > > > +		clocks = <&ccu CLK_BUS_CSI>,
+> > > > +			 <&ccu CLK_CSI1_SCLK>,
+> > > > +			 <&ccu CLK_DRAM_CSI>;
+> > > > +		clock-names = "ahb", "mod", "ram";
+> > > > +		resets = <&ccu RST_BUS_CSI>;
+> > > > +
+> > > > +		port {
+> > > > +			#address-cells = <1>;
+> > > > +			#size-cells = <0>;
+> > > > +
+> > > > +			/* Parallel bus endpoint */
+> > > > +			csi1_ep: endpoint {
+> > > > +				remote-endpoint = <&adv7611_ep>;
+> > > > +				bus-width = <16>;
+> > > > +				data-shift = <0>;
+> > > > +
+> > > > +				/* If hsync-active/vsync-active are missing,
+> > > > +				   embedded BT.656 sync is used */
+> > > > +				hsync-active = <0>; /* Active low */
+> > > > +				vsync-active = <0>; /* Active low */
+> > > > +				data-active = <1>;  /* Active high */
+> > > > +				pclk-sample = <1>;  /* Rising */
+> > > > +			};
+> > > > +		};
+> > > > +	};
+> > > > +
+> > > 
+> > > -- 
+> > > Kind regards,
+> > > 
+> > > Sakari Ailus
+> > > e-mail: sakari.ailus@iki.fi
+> > 
+> > 
+> > Thanks,
+> > Yong
+> 
+> -- 
+> Regards,
+> 
+> Sakari Ailus
+> e-mail: sakari.ailus@iki.fi
+
+
+Thanks,
+Yong
