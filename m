@@ -1,74 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f54.google.com ([209.85.218.54]:36406 "EHLO
-        mail-oi0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753256AbdLOJeg (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 15 Dec 2017 04:34:36 -0500
-MIME-Version: 1.0
-In-Reply-To: <20171214151040.3143ac33@vento.lan>
-References: <20171211120518.3746850-1-arnd@arndb.de> <20171214151040.3143ac33@vento.lan>
-From: Arnd Bergmann <arnd@arndb.de>
-Date: Fri, 15 Dec 2017 10:34:35 +0100
-Message-ID: <CAK8P3a2m6FSoc_NZChbCHcuJ2RpK9UK++_CV3aHt8CXG-Cg0Cw@mail.gmail.com>
-Subject: Re: [PATCH] em28xx: split up em28xx_dvb_init to reduce stack size
-To: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Kevin Cheng <kcheng@gmail.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Antti Palosaari <crope@iki.fi>,
-        Andrew Morton <akpm@linux-foundation.org>
+Received: from mga05.intel.com ([192.55.52.43]:25535 "EHLO mga05.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750800AbdL1QF3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 28 Dec 2017 11:05:29 -0500
+Message-ID: <1514477126.7000.439.camel@linux.intel.com>
+Subject: Re: [ov2722 Error] atomisp: ERROR
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: Andrei Lavreniyuk <andy.lavr@gmail.com>,
+        linux-media@vger.kernel.org
+Cc: sakari.ailus@linux.intel.com
+Date: Thu, 28 Dec 2017 18:05:26 +0200
+In-Reply-To: <9cfdd431-c8e3-c85c-07b5-e2e42f1fddca@gmail.com>
+References: <9cfdd431-c8e3-c85c-07b5-e2e42f1fddca@gmail.com>
 Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Dec 14, 2017 at 6:10 PM, Mauro Carvalho Chehab
-<mchehab@kernel.org> wrote:
-> Em Mon, 11 Dec 2017 13:05:02 +0100
-> Arnd Bergmann <arnd@arndb.de> escreveu:
->
->> With CONFIG_KASAN, the init function uses a large amount of kernel stack:
->>
->> drivers/media/usb/em28xx/em28xx-dvb.c: In function 'em28xx_dvb_init.part.4':
->> drivers/media/usb/em28xx/em28xx-dvb.c:2061:1: error: the frame size of 3232 bytes is larger than 2048 bytes [-Werror=frame-larger-than=]
->>
->> Using gcc-7 with -fsanitize-address-use-after-scope makes this even worse:
->>
->> drivers/media/usb/em28xx/em28xx-dvb.c: In function 'em28xx_dvb_init':
->> drivers/media/usb/em28xx/em28xx-dvb.c:2069:1: error: the frame size of 4280 bytes is larger than 3072 bytes [-Werror=frame-larger-than=]
->>
->> By splitting out each part of the switch/case statement that has its own local
->> variables into a separate function, no single one of them uses more than 500 bytes,
->> and with a noinline_for_stack annotation we can ensure that they are not merged
->> back together.
->
-> The right fix here is really to find a way to simplify the new method
-> of binding I2C devices by using some ancillary routines.
->
-> I'll keep this patch on my queue for now, but my plan is to try to solve
-> this issue instead of applying it, maybe on the next weeks (as the
-> volume of patches reduce due to end of year vacations and Seasons).
+On Tue, 2017-10-31 at 16:35 +0200, Andrei Lavreniyuk wrote:
+> Hi,
+> 
+> Very long I try to run ov2722 on Acer Aspire SW5-012 / Fendi2 Z3537F
+> 
+> Kernel 4.13.10 + atomisp from 4.14 and all your corrections for
+> atomisp 
+> from here
 
-That's ok, thanks. We have a workaround in linux-mm that partially solves this
-problem to the point where the stack size goes down to 1600 bytes with KASAN,
-that by itself would be sufficient to let us enable CONFIG_FRAME_WARN
-again for 64-bit platforms with the default 2048 byte warning limit. I reposted
-that patch mostly since I want to lower the frame sizes further so we can
-reduce the warning limit to 1280 bytes for 64-bit architectures in the future.
-There around 10 patches needed for that, and they mostly seem to address
-actual issues, so I'd like them to get addressed eventually and set the limit
-low enough that the warnings we get on 64-bit are more useful again.
+Check this [1] thread, please.
 
-However, could you please revisit two other patches:
 
-https://patchwork.linuxtv.org/patch/45716/ dvb-frontends: fix i2c
-access helpers for KASAN
-https://patchwork.linuxtv.org/patch/45709/ r820t: fix r820t_write_reg for KASAN
+[1]: https://www.spinics.net/lists/linux-media/msg126250.html
 
-These are currently the ones I'm most interested in getting merged
-into v4.15 and LTS kernels for the stack size reduction, since they
-are blocking the patch that enables CONFIG_FRAME_WARN for
-allmodconfig.
+> 
+> https://patchwork.linuxtv.org/project/linux-media/list/?submitter=Andy
+> +Shevchenko&state=* 
+> <https://patchwork.linuxtv.org/project/linux-media/list/?submitter=And
+> y+Shevchenko&state=*>
+> 
+> as a result:
+> 
+> [69.677080] media: Linux media interface: v0.10
+> [69.699534] Linux video capture interface: v2.00
+> [69.714154] ov2722: module is from the staging directory, the quality
+> is 
+> unknown, you have been warned.
+> [69.777623] ov2722 i2c-INT33FB: 00: gmin: initializing the atomisp 
+> module subdev data.PMIC ID 1
+> [69.778097] ov2722 i2c-INT33FB: 00: i2c-INT33FB: 00 supply V1P8SX not 
+> found, using dummy regulator
+> [69.778208] ov2722 i2c-INT33FB: 00: i2c-INT33FB: 00 supply V2P8SX not 
+> found, using dummy regulator
+> [69.778278] ov2722 i2c-INT33FB: 00: i2c-INT33FB: 00 supply V1P2A not 
+> found, using dummy regulator
+> [69.778348] ov2722 i2c-INT33FB: 00: i2c-INT33FB: 00 supply VPROG4B
+> not 
+> found, using dummy regulator
+> [69.785182] ov2722 i2c-INT33FB: 00: unable to set PMC rate 0
+> [69.807860] ov2722 i2c-INT33FB: 00: camera pdata: port: 0 lanes: 1 
+> order: 00000000
+> [69.808183] ov2722 i2c-INT33FB: 00: read from offset 0x300a error -121
+> [69.808203] ov2722 i2c-INT33FB: 00: sensor_id_high = 0xffff
+> [69.808216] ov2722 i2c-INT33FB: 00: ov2722_detect err s_config.
+> [69.808259] ov2722 i2c-INT33FB: 00: sensor power-gating failed
+> 
+> 
+> Tested the kernels from the repositories:
+> https://github.com/torvalds/linux 
+> <https://github.com/torvalds/linux> and master from git.linuxtv.org 
+> <http://git.linuxtv.org/>
+> 
+>   The result is the same - ov2722 i2c-INT33FB: 00: read from offset 
+> 0x300a error -121
+> 
+> Additional information for debug:
+> https://drive.google.com/drive/folders/0B5ngHZIeNdyTM0FEbWNVQzlpNUU 
+> <https://drive.google.com/drive/folders/0B5ngHZIeNdyTM0FEbWNVQzlpNUU>
+> 
+> Kernel build form my repo - 
+> https://github.com/AndyLavr/Aspire-SW5-012_Kernel_4.13 
+> <https://github.com/AndyLavr/Aspire-SW5-012_Kernel_4.13>
+> 
+> If you need more information, then I will.
+> 
+> 
+> ---
+> Best regards, Andrei Lavreniyuk
+> 
+> 
 
-Thanks,
-
-       Arnd
+-- 
+Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Intel Finland Oy
