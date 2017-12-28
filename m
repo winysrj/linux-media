@@ -1,293 +1,321 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga07.intel.com ([134.134.136.100]:47423 "EHLO mga07.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753749AbdL1QDT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 28 Dec 2017 11:03:19 -0500
-Message-ID: <1514476996.7000.437.camel@linux.intel.com>
-Subject: Re: [BUG] atomisp_ov2680 not initializing correctly
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: Kristian Beilke <beilke@posteo.de>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>, linux-media@vger.kernel.org,
-        alan@linux.intel.com
-Date: Thu, 28 Dec 2017 18:03:16 +0200
-In-Reply-To: <6d1a2dc7-1d7b-78f3-9334-ccdedaa66510@posteo.de>
-References: <42dfd60f-2534-b9cd-eeab-3110d58ef7c0@posteo.de>
-         <20171219120020.w7byb7bv3hhzn2jb@valkosipuli.retiisi.org.uk>
-         <1513715821.7000.228.camel@linux.intel.com>
-         <20171221125444.GB2935@ber-nb-001.aisec.fraunhofer.de>
-         <1513866211.7000.250.camel@linux.intel.com>
-         <6d1a2dc7-1d7b-78f3-9334-ccdedaa66510@posteo.de>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mail-pf0-f193.google.com ([209.85.192.193]:32823 "EHLO
+        mail-pf0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754135AbdL1UK2 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 28 Dec 2017 15:10:28 -0500
+Received: by mail-pf0-f193.google.com with SMTP id y89so21336681pfk.0
+        for <linux-media@vger.kernel.org>; Thu, 28 Dec 2017 12:10:28 -0800 (PST)
+From: Tim Harvey <tharvey@gateworks.com>
+To: linux-media@vger.kernel.org, alsa-devel@alsa-project.org
+Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        shawnguo@kernel.org, Steve Longerbeam <slongerbeam@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Hans Verkuil <hansverk@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Subject: [PATCH v6 3/6] media: dt-bindings: Add bindings for TDA1997X
+Date: Thu, 28 Dec 2017 12:09:46 -0800
+Message-Id: <1514491789-8697-4-git-send-email-tharvey@gateworks.com>
+In-Reply-To: <1514491789-8697-1-git-send-email-tharvey@gateworks.com>
+References: <1514491789-8697-1-git-send-email-tharvey@gateworks.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 2017-12-23 at 01:31 +0100, Kristian Beilke wrote:
-> On 12/21/2017 03:23 PM, Andy Shevchenko wrote:
-> > On Thu, 2017-12-21 at 13:54 +0100, Kristian Beilke wrote:
-> > > On Tue, Dec 19, 2017 at 10:37:01PM +0200, Andy Shevchenko wrote:
-> > > > On Tue, 2017-12-19 at 14:00 +0200, Sakari Ailus wrote:
-> > > > > Cc Alan and Andy.
-> > > > > 
-> > > > > On Sat, Dec 16, 2017 at 04:50:04PM +0100, Kristian Beilke
-> > > > > wrote:
-> > > > > > Dear all,
-> > > > > > 
-> > > > > > I am trying to get the cameras in a Lenovo IdeaPad Miix 320
-> > > > > > (Atom
-> > > > > > x5-Z8350 BayTrail) to work. The front camera is an ov2680.
-> > > > > > With
-> 
-> CherryTrail
-
-I didn't try even find a CherryTrail on hand that have AtomISP
-enumerated by PCI with a camera sensor connected.
-
-AFAIR Alan has CHT hardware he is developing / testing on.
-
-> > > > WRT to the messages below it seems we have no platform data for
-> > > > that
-> > > > device. It needs to be added.
-> > > > 
-> 
-> I tried to do exactly this. Extracted some values from
-> acpidump/acpixtract and dmidecode, but unsure I nailed it.
-
-Can you share somewhere it (pastebin.com, gist.github.com, etc)?
-
-> > > > > > Can I somehow help to improve
-> > > > > > the driver?
-> > > > 
-> > > > Yes, definitely, but first of all we need to find at least one
-> > > > device
-> > > > and corresponding firmware where it actually works.
-> > > > 
-> > > > For me it doesn't generate any interrupt (after huge hacking to
-> > > > make
-> > > > that firmware loaded and settings / platform data applied).
-> > > > 
-> > > 
-> > > What exactly are you looking for?
-> > 
-> > For anything that *somehow* works.
-> > 
-> > >  An Android device where the ov2680
-> > > works?
-> > 
-> > First of all, I most likely do not have hardware with such sensor.
-> > Second, I'm using one of the prototype HW based on BayTrail with PCI
-> > enumerable AtomISP.
-> > 
-> > >  Some x86_64 hardware, where the matching firmware is available
-> > > and
-> > > the driver in 4.15 works?
-> > 
-> > Yes, that's what I would like to have before moving forward with any
-> > new
-> > sensor drivers, clean ups or alike type of changes to the driver.
-> > 
-> 
-> After your set of patches I applied the CherryTrail support I found
-> here
-> https://github.com/croutor/atomisp2401
-> 
-> As a result I get:
-> 
-> [    0.000000] DMI: LENOVO 80XF/LNVNB161216, BIOS 5HCN31WW 09/11/2017
-> [    2.806685] axp20x-i2c i2c-INT33F4:00: AXP20x variant AXP288 found
-> [    2.849606] axp20x-i2c i2c-INT33F4:00: AXP20X driver loaded
-> [   19.593200] media: Linux media interface: v0.10
-> [   19.627138] Linux video capture interface: v2.00
-> [   19.652771] atomisp_ov2680: module is from the staging directory,
-> the
-> quality is unknown, you have been warned.
-> [   19.676093] ov2680 i2c-OVTI2680:00: gmin: initializing atomisp
-> module
-> subdev data.PMIC ID 2
-> [   19.676097] ov2680 i2c-OVTI2680:00: suddev name = ov2680 0-0010
-> [   19.677548] gmin_v1p8_ctrl PMIC_AXP.
-> [   19.685261] axp_regulator_set success.
-> [   19.685428] axp_v1p8_on XXOV2680 00000010
-> [   19.691777] axp_regulator_set success.
-> [   19.708488] dw_dmac INTL9C60:00: DesignWare DMA Controller, 8
-> channels
-> [   19.752432] ov2680 i2c-OVTI2680:00: unable to set PMC rate 1
-> [   19.760507] dw_dmac INTL9C60:01: DesignWare DMA Controller, 8
-> channels
-> [   19.789335] ov2680 i2c-OVTI2680:00: camera pdata: port: 0 lanes: 1
-> order: 00000002
-> [   19.793616] ov2680 i2c-OVTI2680:00: sensor_revision id = 0x2680
-> [   19.793638] gmin_v1p8_ctrl PMIC_AXP.
-> [   19.802615] axp_regulator_set success.
-> [   19.806384] axp_regulator_set success.
-> [   19.806396] ov2680 i2c-OVTI2680:00: register atomisp i2c module
-> type 1
-> [   19.859215] shpchp: Standard Hot Plug PCI Controller Driver
-> version: 0.4
-> [   19.906592] atomisp: module is from the staging directory, the
-> quality is unknown, you have been warned.
-> 
-> [   19.910763]
-> **********************************************************
-> [   19.910765] **   NOTICE NOTICE NOTICE NOTICE NOTICE NOTICE
-> NOTICE   **
-> [   19.910766]
-> **                                                      **
-> [   19.910767] ** trace_printk() being used. Allocating extra
-> memory.  **
-> [   19.910768]
-> **                                                      **
-> [   19.910769] ** This means that this is a DEBUG kernel and it
-> is     **
-> [   19.910770] ** unsafe for production
-> use.                           **
-> [   19.910771]
-> **                                                      **
-> [   19.910772] ** If you see this message and you are not
-> debugging    **
-> [   19.910773] ** the kernel, report this immediately to your
-> vendor!  **
-> [   19.910774]
-> **                                                      **
-> [   19.910775] **   NOTICE NOTICE NOTICE NOTICE NOTICE NOTICE
-> NOTICE   **
-> [   19.910776]
-> **********************************************************
-> [   19.923072] (NULL device *): hwmon_device_register() is deprecated.
-> Please convert the driver to use hwmon_device_register_with_info().
-> [   19.923219] (NULL device *): hwmon_device_register() is deprecated.
-> Please convert the driver to use hwmon_device_register_with_info().
-> [   19.932909] atomisp-isp2 0000:00:03.0: atomisp: device 000022B8
-> revision 54
-> [   19.932917] atomisp-isp2 0000:00:03.0: ISP HPLL frequency base =
-> 1600 MHz
-> [   20.133834] axp288_fuel_gauge axp288_fuel_gauge: axp288 not
-> configured by firmware
-> [   20.162738] atomisp-isp2 0000:00:03.0: Subdev OVTI2680:00
-> successfully register
-> [   20.162750] atomisp-isp2 0000:00:03.0: Entity type for entity ATOM
-> ISP CSI2-port0 was not initialized!
-> [   20.162753] atomisp-isp2 0000:00:03.0: Entity type for entity ATOM
-> ISP CSI2-port1 was not initialized!
-> [   20.162756] atomisp-isp2 0000:00:03.0: Entity type for entity ATOM
-> ISP CSI2-port2 was not initialized!
-> [   20.162759] atomisp-isp2 0000:00:03.0: Entity type for entity
-> file_input_subdev was not initialized!
-> [   20.162762] atomisp-isp2 0000:00:03.0: Entity type for entity
-> tpg_subdev was not initialized!
-> [   20.162765] atomisp-isp2 0000:00:03.0: Entity type for entity
-> ATOMISP_SUBDEV_0 was not initialized!
-> [   20.166183] atomisp-isp2 0000:00:03.0: Entity type for entity
-> ATOMISP_SUBDEV_1 was not initialized!
-> [   21.120554] rt5645 i2c-10EC5645:00: i2c-10EC5645:00 supply avdd not
-> found, using dummy regulator
-> [   21.120587] rt5645 i2c-10EC5645:00: i2c-10EC5645:00 supply cpvdd
-> not
-> found, using dummy regulator
-> [   21.145141] intel_sst_acpi 808622A8:00: LPE base: 0x91400000
-> size:0x200000
-> [   21.145146] intel_sst_acpi 808622A8:00: IRAM base: 0x914c0000
-> [   21.145241] intel_sst_acpi 808622A8:00: DRAM base: 0x91500000
-> [   21.145250] intel_sst_acpi 808622A8:00: SHIM base: 0x91540000
-> [   21.145262] intel_sst_acpi 808622A8:00: Mailbox base: 0x91544000
-> [   21.145269] intel_sst_acpi 808622A8:00: DDR base: 0x20000000
-> [   21.145403] intel_sst_acpi 808622A8:00: Got drv data max stream 25
-> [   21.892310] atomisp-isp2 0000:00:03.0: Refused to change power
-> state,
-> currently in D3
-> [   21.904537] OVTI2680:00:
->                ov2680_s_parm:run_mode :2000
-> [   21.919743] atomisp-isp2 0000:00:03.0: Refused to change power
-> state,
-> currently in D3
-> [   21.930399] OVTI2680:00:
->                ov2680_s_parm:run_mode :2000
-> [   21.956479] atomisp-isp2 0000:00:03.0: Refused to change power
-> state,
-> currently in D3
-
-I have few hacks on top of this.
-
-First of all, take a base as atomisp branch of sakari's media_tree
-repository:
-
-https://git.linuxtv.org/sailus/media_tree.git/
-
-Second, apply
-
---- a/drivers/staging/media/atomisp/platform/intel-
-mid/atomisp_gmin_platform.c
-+++ b/drivers/staging/media/atomisp/platform/intel-
-mid/atomisp_gmin_platform.c
-@@ -499,6 +499,7 @@ static int gmin_v1p8_ctrl(struct v4l2_subdev
-*subdev, int on)
-                        return regulator_disable(gs->v1p8_reg);
-        }
- 
-+return 0;
-        return -EINVAL;
- }
- 
-@@ -535,6 +536,7 @@ static int gmin_v2p8_ctrl(struct v4l2_subdev
-*subdev, int on)
-                        return regulator_disable(gs->v2p8_reg);
-        }
- 
-+return 0;
-        return -EINVAL;
- }
-
+Acked-by: Rob Herring <robh@kernel.org>
+Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
+Signed-off-by: Tim Harvey <tharvey@gateworks.com>
 ---
-a/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_firmware.c
-+++
-b/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css_firmware.c
-@@ -184,6 +184,7 @@ sh_css_check_firmware_version(const char *fw_data)
-        firmware_header = (struct firmware_header *)fw_data;
-        file_header = &firmware_header->file_header;
- 
-+return true;
-        if (strcmp(file_header->version, release_version) != 0) {
-                return false;
+v6:
+ - replace copyright with SPDX tag (Philippe)
+ - added Rob's ack (Rob)
 
---- a/drivers/staging/media/atomisp/pci/atomisp2/Makefile
-+++ b/drivers/staging/media/atomisp/pci/atomisp2/Makefile
-@@ -348,6 +348,8 @@ DEFINES := -DHRT_HW -DHRT_ISP_CSS_CUSTOM_HOST
--DHRT_USE_VIR_ADDRS -D__HOST__
- #DEFINES += -DPUNIT_CAMERA_BUSY
- #DEFINES += -DUSE_KMEM_CACHE
- 
-+DEFINES += -DDEBUG
+v5:
+ - added Sakari's ack
+
+v4:
+ - move include/dt-bindings/media/tda1997x.h to bindings patch
+ - clarify port node details
+
+v3:
+ - fix typo
+
+v2:
+ - add vendor prefix and remove _ from vidout-portcfg
+ - remove _ from labels
+ - remove max-pixel-rate property
+ - describe and provide example for single output port
+ - update to new audio port bindings
+---
+ .../devicetree/bindings/media/i2c/tda1997x.txt     | 179 +++++++++++++++++++++
+ include/dt-bindings/media/tda1997x.h               |  74 +++++++++
+ 2 files changed, 253 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/tda1997x.txt
+ create mode 100644 include/dt-bindings/media/tda1997x.h
+
+diff --git a/Documentation/devicetree/bindings/media/i2c/tda1997x.txt b/Documentation/devicetree/bindings/media/i2c/tda1997x.txt
+new file mode 100644
+index 0000000..9ab53c3
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/i2c/tda1997x.txt
+@@ -0,0 +1,179 @@
++Device-Tree bindings for the NXP TDA1997x HDMI receiver
 +
- DEFINES += -DATOMISP_POSTFIX=\"css2400b0_v21\" -DISP2400B0
-
-For CHT you have to change define in this file to 2401 here and line
-below AFAIU (never did this).
-
-Third, you need to change pmic_id to be PMIC_AXP (I have longer patch
-for this, that's why don't post here). Just hard code it for now in gmin
-file.
-
-Fourth, you have to be sure the clock rate is chosen correctly
-(currently there is a bug in clk_set_rate() where parameter is clock
-source index instead of frequency!). I think you need to hardcode
-19200000 there instead of gs->clock_src.
-
-> I am still not sure the FW gets loaded, and there is still no
-> /dev/camera, but it looks promising.
-
-You may add a debug print in necessary function inside ->probe (in
-atomisp_v4l2.c). I dont't remember if -DDEBUG will enable something like
-that. Perhaps.
-
-You are expecting /dev/video<N> nodes. /dev/camera is usually a udev's
-alias against one of /dev/video<N> nodes.
-
->  Am I on the right track here, or am
-> I wasting my (and your) time?
-
-It's both: track is right and it's waste of time.
-
++The TDA19971/73 are HDMI video receivers.
++
++The TDA19971 Video port output pins can be used as follows:
++ - RGB 8bit per color (24 bits total): R[11:4] B[11:4] G[11:4]
++ - YUV444 8bit per color (24 bits total): Y[11:4] Cr[11:4] Cb[11:4]
++ - YUV422 semi-planar 8bit per component (16 bits total): Y[11:4] CbCr[11:4]
++ - YUV422 semi-planar 10bit per component (20 bits total): Y[11:2] CbCr[11:2]
++ - YUV422 semi-planar 12bit per component (24 bits total): - Y[11:0] CbCr[11:0]
++ - YUV422 BT656 8bit per component (8 bits total): YCbCr[11:4] (2-cycles)
++ - YUV422 BT656 10bit per component (10 bits total): YCbCr[11:2] (2-cycles)
++ - YUV422 BT656 12bit per component (12 bits total): YCbCr[11:0] (2-cycles)
++
++The TDA19973 Video port output pins can be used as follows:
++ - RGB 12bit per color (36 bits total): R[11:0] B[11:0] G[11:0]
++ - YUV444 12bit per color (36 bits total): Y[11:0] Cb[11:0] Cr[11:0]
++ - YUV422 semi-planar 12bit per component (24 bits total): Y[11:0] CbCr[11:0]
++ - YUV422 BT656 12bit per component (12 bits total): YCbCr[11:0] (2-cycles)
++
++The Video port output pins are mapped via 4-bit 'pin groups' allowing
++for a variety of connection possibilities including swapping pin order within
++pin groups. The video_portcfg device-tree property consists of register mapping
++pairs which map a chip-specific VP output register to a 4-bit pin group. If
++the pin group needs to be bit-swapped you can use the *_S pin-group defines.
++
++Required Properties:
++ - compatible          :
++  - "nxp,tda19971" for the TDA19971
++  - "nxp,tda19973" for the TDA19973
++ - reg                 : I2C slave address
++ - interrupts          : The interrupt number
++ - DOVDD-supply        : Digital I/O supply
++ - DVDD-supply         : Digital Core supply
++ - AVDD-supply         : Analog supply
++ - nxp,vidout-portcfg  : array of pairs mapping VP output pins to pin groups.
++
++Optional Properties:
++ - nxp,audout-format   : DAI bus format: "i2s" or "spdif".
++ - nxp,audout-width    : width of audio output data bus (1-4).
++ - nxp,audout-layout   : data layout (0=AP0 used, 1=AP0/AP1/AP2/AP3 used).
++ - nxp,audout-mclk-fs  : Multiplication factor between stream rate and codec
++                         mclk.
++
++The port node shall contain one endpoint child node for its digital
++output video port, in accordance with the video interface bindings defined in
++Documentation/devicetree/bindings/media/video-interfaces.txt.
++
++Optional Endpoint Properties:
++  The following three properties are defined in video-interfaces.txt and
++  are valid for the output parallel bus endpoint:
++  - hsync-active: Horizontal synchronization polarity. Defaults to active high.
++  - vsync-active: Vertical synchronization polarity. Defaults to active high.
++  - data-active: Data polarity. Defaults to active high.
++
++Examples:
++ - VP[15:0] connected to IMX6 CSI_DATA[19:4] for 16bit YUV422
++   16bit I2S layout0 with a 128*fs clock (A_WS, AP0, A_CLK pins)
++	hdmi-receiver@48 {
++		compatible = "nxp,tda19971";
++		pinctrl-names = "default";
++		pinctrl-0 = <&pinctrl_tda1997x>;
++		reg = <0x48>;
++		interrupt-parent = <&gpio1>;
++		interrupts = <7 IRQ_TYPE_LEVEL_LOW>;
++		DOVDD-supply = <&reg_3p3v>;
++		AVDD-supply = <&reg_1p8v>;
++		DVDD-supply = <&reg_1p8v>;
++		/* audio */
++		#sound-dai-cells = <0>;
++		nxp,audout-format = "i2s";
++		nxp,audout-layout = <0>;
++		nxp,audout-width = <16>;
++		nxp,audout-mclk-fs = <128>;
++		/*
++		 * The 8bpp YUV422 semi-planar mode outputs CbCr[11:4]
++		 * and Y[11:4] across 16bits in the same pixclk cycle.
++		 */
++		nxp,vidout-portcfg =
++			/* Y[11:8]<->VP[15:12]<->CSI_DATA[19:16] */
++			< TDA1997X_VP24_V15_12 TDA1997X_G_Y_11_8 >,
++			/* Y[7:4]<->VP[11:08]<->CSI_DATA[15:12] */
++			< TDA1997X_VP24_V11_08 TDA1997X_G_Y_7_4 >,
++			/* CbCc[11:8]<->VP[07:04]<->CSI_DATA[11:8] */
++			< TDA1997X_VP24_V07_04 TDA1997X_R_CR_CBCR_11_8 >,
++			/* CbCr[7:4]<->VP[03:00]<->CSI_DATA[7:4] */
++			< TDA1997X_VP24_V03_00 TDA1997X_R_CR_CBCR_7_4 >;
++
++		port {
++			tda1997x_to_ipu1_csi0_mux: endpoint {
++				remote-endpoint = <&ipu1_csi0_mux_from_parallel_sensor>;
++				bus-width = <16>;
++				hsync-active = <1>;
++				vsync-active = <1>;
++				data-active = <1>;
++			};
++		};
++	};
++ - VP[15:8] connected to IMX6 CSI_DATA[19:12] for 8bit BT656
++   16bit I2S layout0 with a 128*fs clock (A_WS, AP0, A_CLK pins)
++	hdmi-receiver@48 {
++		compatible = "nxp,tda19971";
++		pinctrl-names = "default";
++		pinctrl-0 = <&pinctrl_tda1997x>;
++		reg = <0x48>;
++		interrupt-parent = <&gpio1>;
++		interrupts = <7 IRQ_TYPE_LEVEL_LOW>;
++		DOVDD-supply = <&reg_3p3v>;
++		AVDD-supply = <&reg_1p8v>;
++		DVDD-supply = <&reg_1p8v>;
++		/* audio */
++		#sound-dai-cells = <0>;
++		nxp,audout-format = "i2s";
++		nxp,audout-layout = <0>;
++		nxp,audout-width = <16>;
++		nxp,audout-mclk-fs = <128>;
++		/*
++		 * The 8bpp YUV422 semi-planar mode outputs CbCr[11:4]
++		 * and Y[11:4] across 16bits in the same pixclk cycle.
++		 */
++		nxp,vidout-portcfg =
++			/* Y[11:8]<->VP[15:12]<->CSI_DATA[19:16] */
++			< TDA1997X_VP24_V15_12 TDA1997X_G_Y_11_8 >,
++			/* Y[7:4]<->VP[11:08]<->CSI_DATA[15:12] */
++			< TDA1997X_VP24_V11_08 TDA1997X_G_Y_7_4 >,
++			/* CbCc[11:8]<->VP[07:04]<->CSI_DATA[11:8] */
++			< TDA1997X_VP24_V07_04 TDA1997X_R_CR_CBCR_11_8 >,
++			/* CbCr[7:4]<->VP[03:00]<->CSI_DATA[7:4] */
++			< TDA1997X_VP24_V03_00 TDA1997X_R_CR_CBCR_7_4 >;
++
++		port {
++			tda1997x_to_ipu1_csi0_mux: endpoint {
++				remote-endpoint = <&ipu1_csi0_mux_from_parallel_sensor>;
++				bus-width = <16>;
++				hsync-active = <1>;
++				vsync-active = <1>;
++				data-active = <1>;
++			};
++		};
++	};
++ - VP[15:8] connected to IMX6 CSI_DATA[19:12] for 8bit BT656
++   16bit I2S layout0 with a 128*fs clock (A_WS, AP0, A_CLK pins)
++	hdmi-receiver@48 {
++		compatible = "nxp,tda19971";
++		pinctrl-names = "default";
++		pinctrl-0 = <&pinctrl_tda1997x>;
++		reg = <0x48>;
++		interrupt-parent = <&gpio1>;
++		interrupts = <7 IRQ_TYPE_LEVEL_LOW>;
++		DOVDD-supply = <&reg_3p3v>;
++		AVDD-supply = <&reg_1p8v>;
++		DVDD-supply = <&reg_1p8v>;
++		/* audio */
++		#sound-dai-cells = <0>;
++		nxp,audout-format = "i2s";
++		nxp,audout-layout = <0>;
++		nxp,audout-width = <16>;
++		nxp,audout-mclk-fs = <128>;
++		/*
++		 * The 8bpp BT656 mode outputs YCbCr[11:4] across 8bits over
++		 * 2 pixclk cycles.
++		 */
++		nxp,vidout-portcfg =
++			/* YCbCr[11:8]<->VP[15:12]<->CSI_DATA[19:16] */
++			< TDA1997X_VP24_V15_12 TDA1997X_R_CR_CBCR_11_8 >,
++			/* YCbCr[7:4]<->VP[11:08]<->CSI_DATA[15:12] */
++			< TDA1997X_VP24_V11_08 TDA1997X_R_CR_CBCR_7_4 >,
++
++		port {
++			tda1997x_to_ipu1_csi0_mux: endpoint {
++				remote-endpoint = <&ipu1_csi0_mux_from_parallel_sensor>;
++				bus-width = <16>;
++				hsync-active = <1>;
++				vsync-active = <1>;
++				data-active = <1>;
++			};
++		};
++	};
++
+diff --git a/include/dt-bindings/media/tda1997x.h b/include/dt-bindings/media/tda1997x.h
+new file mode 100644
+index 0000000..bd9fbd7
+--- /dev/null
++++ b/include/dt-bindings/media/tda1997x.h
+@@ -0,0 +1,74 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++/*
++ * Copyright (C) 2017 Gateworks Corporation
++ */
++#ifndef _DT_BINDINGS_MEDIA_TDA1997X_H
++#define _DT_BINDINGS_MEDIA_TDA1997X_H
++
++/* TDA19973 36bit Video Port control registers */
++#define TDA1997X_VP36_35_32	0
++#define TDA1997X_VP36_31_28	1
++#define TDA1997X_VP36_27_24	2
++#define TDA1997X_VP36_23_20	3
++#define TDA1997X_VP36_19_16	4
++#define TDA1997X_VP36_15_12	5
++#define TDA1997X_VP36_11_08	6
++#define TDA1997X_VP36_07_04	7
++#define TDA1997X_VP36_03_00	8
++
++/* TDA19971 24bit Video Port control registers */
++#define TDA1997X_VP24_V23_20	0
++#define TDA1997X_VP24_V19_16	1
++#define TDA1997X_VP24_V15_12	3
++#define TDA1997X_VP24_V11_08	4
++#define TDA1997X_VP24_V07_04	6
++#define TDA1997X_VP24_V03_00	7
++
++/* Pin groups */
++#define TDA1997X_VP_OUT_EN        0x80	/* enable output group */
++#define TDA1997X_VP_HIZ           0x40	/* hi-Z output group when not used */
++#define TDA1997X_VP_SWP           0x10	/* pin-swap output group */
++#define TDA1997X_R_CR_CBCR_3_0    (0 | TDA1997X_VP_OUT_EN | TDA1997X_VP_HIZ)
++#define TDA1997X_R_CR_CBCR_7_4    (1 | TDA1997X_VP_OUT_EN | TDA1997X_VP_HIZ)
++#define TDA1997X_R_CR_CBCR_11_8   (2 | TDA1997X_VP_OUT_EN | TDA1997X_VP_HIZ)
++#define TDA1997X_B_CB_3_0         (3 | TDA1997X_VP_OUT_EN | TDA1997X_VP_HIZ)
++#define TDA1997X_B_CB_7_4         (4 | TDA1997X_VP_OUT_EN | TDA1997X_VP_HIZ)
++#define TDA1997X_B_CB_11_8        (5 | TDA1997X_VP_OUT_EN | TDA1997X_VP_HIZ)
++#define TDA1997X_G_Y_3_0          (6 | TDA1997X_VP_OUT_EN | TDA1997X_VP_HIZ)
++#define TDA1997X_G_Y_7_4          (7 | TDA1997X_VP_OUT_EN | TDA1997X_VP_HIZ)
++#define TDA1997X_G_Y_11_8         (8 | TDA1997X_VP_OUT_EN | TDA1997X_VP_HIZ)
++/* pinswapped groups */
++#define TDA1997X_R_CR_CBCR_3_0_S  (TDA1997X_R_CR_CBCR_3_0 | TDA1997X_VP_SWAP)
++#define TDA1997X_R_CR_CBCR_7_4_S  (TDA1997X_R_CR_CBCR_7_4 | TDA1997X_VP_SWAP)
++#define TDA1997X_R_CR_CBCR_11_8_S (TDA1997X_R_CR_CBCR_11_8 | TDA1997X_VP_SWAP)
++#define TDA1997X_B_CB_3_0_S       (TDA1997X_B_CB_3_0 | TDA1997X_VP_SWAP)
++#define TDA1997X_B_CB_7_4_S       (TDA1997X_B_CB_7_4 | TDA1997X_VP_SWAP)
++#define TDA1997X_B_CB_11_8_S      (TDA1997X_B_CB_11_8 | TDA1997X_VP_SWAP)
++#define TDA1997X_G_Y_3_0_S        (TDA1997X_G_Y_3_0 | TDA1997X_VP_SWAP)
++#define TDA1997X_G_Y_7_4_S        (TDA1997X_G_Y_7_4 | TDA1997X_VP_SWAP)
++#define TDA1997X_G_Y_11_8_S       (TDA1997X_G_Y_11_8 | TDA1997X_VP_SWAP)
++
++/* Audio bus DAI format */
++#define TDA1997X_I2S16			1 /* I2S 16bit */
++#define TDA1997X_I2S32			2 /* I2S 32bit */
++#define TDA1997X_SPDIF			3 /* SPDIF */
++#define TDA1997X_OBA			4 /* One Bit Audio */
++#define TDA1997X_DST			5 /* Direct Stream Transfer */
++#define TDA1997X_I2S16_HBR		6 /* HBR straight in I2S 16bit mode */
++#define TDA1997X_I2S16_HBR_DEMUX	7 /* HBR demux in I2S 16bit mode */
++#define TDA1997X_I2S32_HBR_DEMUX	8 /* HBR demux in I2S 32bit mode */
++#define TDA1997X_SPDIF_HBR_DEMUX	9 /* HBR demux in SPDIF mode */
++
++/* Audio bus channel layout */
++#define TDA1997X_LAYOUT0	0	/* 2-channel */
++#define TDA1997X_LAYOUT1	1	/* 8-channel */
++
++/* Audio bus clock */
++#define TDA1997X_ACLK_16FS	0
++#define TDA1997X_ACLK_32FS	1
++#define TDA1997X_ACLK_64FS	2
++#define TDA1997X_ACLK_128FS	3
++#define TDA1997X_ACLK_256FS	4
++#define TDA1997X_ACLK_512FS	5
++
++#endif /* _DT_BINDINGS_MEDIA_TDA1997X_H */
 -- 
-Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Intel Finland Oy
+2.7.4
