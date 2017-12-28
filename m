@@ -1,71 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f194.google.com ([209.85.216.194]:43968 "EHLO
-        mail-qt0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751281AbdLKS2A (ORCPT
+Received: from mail-pf0-f196.google.com ([209.85.192.196]:38460 "EHLO
+        mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754128AbdL1UK0 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 11 Dec 2017 13:28:00 -0500
-From: Gustavo Padovan <gustavo@padovan.org>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        Pawel Osciak <pawel@osciak.com>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Brian Starkey <brian.starkey@arm.com>,
-        Thierry Escande <thierry.escande@collabora.com>,
-        linux-kernel@vger.kernel.org,
-        Gustavo Padovan <gustavo.padovan@collabora.com>
-Subject: [PATCH v6 1/6] [media] vb2: add is_unordered callback for drivers
-Date: Mon, 11 Dec 2017 16:27:36 -0200
-Message-Id: <20171211182741.29712-2-gustavo@padovan.org>
-In-Reply-To: <20171211182741.29712-1-gustavo@padovan.org>
-References: <20171211182741.29712-1-gustavo@padovan.org>
+        Thu, 28 Dec 2017 15:10:26 -0500
+Received: by mail-pf0-f196.google.com with SMTP id u25so21320014pfg.5
+        for <linux-media@vger.kernel.org>; Thu, 28 Dec 2017 12:10:26 -0800 (PST)
+From: Tim Harvey <tharvey@gateworks.com>
+To: linux-media@vger.kernel.org, alsa-devel@alsa-project.org
+Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        shawnguo@kernel.org, Steve Longerbeam <slongerbeam@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Hans Verkuil <hansverk@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Subject: [PATCH v6 2/6] MAINTAINERS: add entry for NXP TDA1997x driver
+Date: Thu, 28 Dec 2017 12:09:45 -0800
+Message-Id: <1514491789-8697-3-git-send-email-tharvey@gateworks.com>
+In-Reply-To: <1514491789-8697-1-git-send-email-tharvey@gateworks.com>
+References: <1514491789-8697-1-git-send-email-tharvey@gateworks.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Gustavo Padovan <gustavo.padovan@collabora.com>
-
-Explicit synchronization benefits a lot from ordered queues, they fit
-better in a pipeline with DRM for example so create a opt-in way for
-drivers notify videobuf2 that the queue is unordered.
-
-Drivers don't need implement it if the queue is ordered.
-
-Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
+Signed-off-by: Tim Harvey <tharvey@gateworks.com>
 ---
- include/media/videobuf2-core.h | 5 +++++
- 1 file changed, 5 insertions(+)
+ MAINTAINERS | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index ef9b64398c8c..eddb38a2a2f3 100644
---- a/include/media/videobuf2-core.h
-+++ b/include/media/videobuf2-core.h
-@@ -368,6 +368,9 @@ struct vb2_buffer {
-  *			callback by calling vb2_buffer_done() with either
-  *			%VB2_BUF_STATE_DONE or %VB2_BUF_STATE_ERROR; may use
-  *			vb2_wait_for_all_buffers() function
-+ * @is_unordered:	tell if the queue format is unordered. The default is
-+ *			assumed to be ordered and this function only needs to
-+ *			be implemented for unordered queues.
-  * @buf_queue:		passes buffer vb to the driver; driver may start
-  *			hardware operation on this buffer; driver should give
-  *			the buffer back by calling vb2_buffer_done() function;
-@@ -391,6 +394,7 @@ struct vb2_ops {
+diff --git a/MAINTAINERS b/MAINTAINERS
+index aa71ab52f..502bc97 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -13244,6 +13244,14 @@ T:	git git://linuxtv.org/mkrufky/tuners.git
+ S:	Maintained
+ F:	drivers/media/tuners/tda18271*
  
- 	int (*start_streaming)(struct vb2_queue *q, unsigned int count);
- 	void (*stop_streaming)(struct vb2_queue *q);
-+	int (*is_unordered)(struct vb2_queue *q);
- 
- 	void (*buf_queue)(struct vb2_buffer *vb);
- };
-@@ -564,6 +568,7 @@ struct vb2_queue {
- 	u32				cnt_wait_finish;
- 	u32				cnt_start_streaming;
- 	u32				cnt_stop_streaming;
-+	u32				cnt_is_unordered;
- #endif
- };
- 
++TDA1997x MEDIA DRIVER
++M:	Tim Harvey <tharvey@gateworks.com>
++L:	linux-media@vger.kernel.org
++W:	https://linuxtv.org
++Q:	http://patchwork.linuxtv.org/project/linux-media/list/
++S:	Maintained
++F:	drivers/media/i2c/tda1997x.*
++
+ TDA827x MEDIA DRIVER
+ M:	Michael Krufky <mkrufky@linuxtv.org>
+ L:	linux-media@vger.kernel.org
 -- 
-2.13.6
+2.7.4
