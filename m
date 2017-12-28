@@ -1,293 +1,492 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f68.google.com ([209.85.215.68]:43509 "EHLO
-        mail-lf0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752470AbdLHMzj (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 8 Dec 2017 07:55:39 -0500
-Received: by mail-lf0-f68.google.com with SMTP id 94so11780597lfy.10
-        for <linux-media@vger.kernel.org>; Fri, 08 Dec 2017 04:55:38 -0800 (PST)
-From: "Niklas =?iso-8859-1?Q?S=F6derlund?=" <niklas.soderlund@ragnatech.se>
-Date: Fri, 8 Dec 2017 13:55:32 +0100
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>
-Subject: Re: [PATCH v9 01/28] rcar-vin: add Gen3 devicetree bindings
- documentation
-Message-ID: <20171208125532.GL31989@bigcity.dyn.berto.se>
-References: <20171208010842.20047-1-niklas.soderlund+renesas@ragnatech.se>
- <20171208010842.20047-2-niklas.soderlund+renesas@ragnatech.se>
- <1516159.4MxLsDy55H@avalon>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <1516159.4MxLsDy55H@avalon>
+Received: from mail-pg0-f68.google.com ([74.125.83.68]:43580 "EHLO
+        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751296AbdL1UKW (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 28 Dec 2017 15:10:22 -0500
+Received: by mail-pg0-f68.google.com with SMTP id f18so3575609pga.10
+        for <linux-media@vger.kernel.org>; Thu, 28 Dec 2017 12:10:22 -0800 (PST)
+From: Tim Harvey <tharvey@gateworks.com>
+To: linux-media@vger.kernel.org, alsa-devel@alsa-project.org
+Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        shawnguo@kernel.org, Steve Longerbeam <slongerbeam@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Hans Verkuil <hansverk@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Subject: [PATCH v6 0/6] TDA1997x HDMI video receiver
+Date: Thu, 28 Dec 2017 12:09:43 -0800
+Message-Id: <1514491789-8697-1-git-send-email-tharvey@gateworks.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+This is a v4l2 subdev driver supporting the TDA1997x HDMI video receiver.
 
-Thanks for your comments!
+I've tested this on a Gateworks GW54xx/GW551x with an IMX6Q/IMX6DL which
+uses the TDA19971 with 16bits connected to the IMX6 CSI and single-lane
+I2S audio providing 2-channel audio.
 
-On 2017-12-08 09:46:24 +0200, Laurent Pinchart wrote:
-> Hi Niklas,
-> 
-> Thank you for the patch.
-> 
-> On Friday, 8 December 2017 03:08:15 EET Niklas Söderlund wrote:
-> > Document the devicetree bindings for the CSI-2 inputs available on Gen3.
-> > 
-> > There is a need to add a custom property 'renesas,id' and to define
-> > which CSI-2 input is described in which endpoint under the port@1 node.
-> > This information is needed since there are a set of predefined routes
-> > between each VIN and CSI-2 block. This routing table will be kept
-> > inside the driver but in order for it to act on it it must know which
-> > VIN and CSI-2 is which.
-> > 
-> > Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-> > Acked-by: Rob Herring <robh@kernel.org>
-> > ---
-> >  .../devicetree/bindings/media/rcar_vin.txt         | 116 +++++++++++++++---
-> >  1 file changed, 104 insertions(+), 12 deletions(-)
-> > 
-> > diff --git a/Documentation/devicetree/bindings/media/rcar_vin.txt
-> > b/Documentation/devicetree/bindings/media/rcar_vin.txt index
-> > ff9697ed81396e64..5a95d9668d2c7dfd 100644
-> > --- a/Documentation/devicetree/bindings/media/rcar_vin.txt
-> > +++ b/Documentation/devicetree/bindings/media/rcar_vin.txt
-> > @@ -2,8 +2,12 @@ Renesas R-Car Video Input driver (rcar_vin)
-> >  -------------------------------------------
-> > 
-> >  The rcar_vin device provides video input capabilities for the Renesas R-Car
-> > -family of devices. The current blocks are always slaves and suppot one
-> > input
-> > -channel which can be either RGB, YUYV or BT656.
-> > +family of devices.
-> > +
-> > +Each VIN instance has a single parallel input that supports RGB and YUV
-> > video,
-> > +with both external synchronization and BT.656 synchronization for the
-> > latter.
-> > +Depending on the instance the VIN input is connected to external SoC pins,
-> > or
-> > +on Gen3 to a CSI-2 receiver.
-> > 
-> >   - compatible: Must be one or more of the following
-> >     - "renesas,vin-r8a7743" for the R8A7743 device
-> > @@ -31,21 +35,38 @@ channel which can be either RGB, YUYV or BT656.
-> >  Additionally, an alias named vinX will need to be created to specify
-> >  which video input device this is.
-> > 
-> > -The per-board settings:
-> > +The per-board settings Gen2:
-> 
-> Nitpicking, s/Gen2/for Gen2 platforms/
-> 
-> (or Gen2 hardware, or Gen2 systems, pick the one you like best)
+For this configuration I've tested both 16bit YUV422 and 8bit
+BT656 parallel video bus modes.
 
-Good catch, I guess I'm to caught up in it all and it's obvious for me 
-what Gen2 is :-) I will update and use "Gen2 platform" throughout this 
-document.
+While the driver should support the TDA1993 I do not have one for testing.
 
-> 
-> >   - port sub-node describing a single endpoint connected to the vin
-> >     as described in video-interfaces.txt[1]. Only the first one will
-> >     be considered as each vin interface has one input port.
-> > 
-> > -   These settings are used to work out video input format and widths
-> > -   into the system.
-> > +The per-board settings Gen3:
-> 
-> Ditto.
-> 
-> > +
-> > +Gen3 can support both a single connected parallel input source from
-> > +external SoC pins (port0) and/or multiple parallel input sources from
-> > +local SoC CSI-2 receivers (port1) depending on SoC.
-> > 
-> > +- renesas,id - ID number of the VIN, VINx in the documentation.
-> > +- ports
-> > +    - port0 - sub-node describing a single endpoint connected to the VIN
-> > +      from external SoC pins described in video-interfaces.txt[1]. Only
-> > +      the first one will be considered as each VIN interface has at most
-> > +      one set of SoC external input pins.
-> 
-> s/port0/port 0/ or s/port0/port@0/
+Further potential development efforts include:
+ - CEC support
+ - HDCP support
+ - mbus format selection support for bus widths that support multiple
+   formats
+ - TDA19972 support (2 inputs)
 
-I will use 'port 0' as I think it makes more sens when reading.
+Media graphs can be found at http://dev.gateworks.com/docs/linux/media
 
-> 
-> I'd go further than that and make it invalid to have multiple endpoints 
-> instead of ignoring all but the first one.
+History:
+v6:
+ - tda1997x: fix return on regulator enablei in tda1997x_set_power() (Fabio)
+ - tda1997x: fix colorspace handling (Hans)
+ - bindings: added Robs's ack (Rob)
+ - replace copyright with SPDX tag (Philippe)
 
-Good catch, I'm describing what the current rcar-vin driver dose and not 
-the generic case where in fact only one endpoint in port 0 is valid.  
-Will update.
+v5:
+ - added v4l2_hdmi_colorimetry() patch from Hans to series
+ - bindings: added Sakari's ack
+ - tda1997x: uppercase string constants
+ - tda1997x: use v4l2_hdmi_rx_coloriemtry to fill format
+ - tda1997x: fix V4L2_CID_DV_RX_RGB_RANGE
+ - tda1997x: fix interlaced mode format
+ - dts: remove leading 0 from unit address
+ - dts: add newline between property list and child node
+ - dts: added missing audmux in GW551x dts
 
-> 
-> I would also explicitly state that VIN instances not connected to external 
-> pins shall have no port 0.
+v4:
+ - move include/dt-bindings/media/tda1997x.h to bindings patch
+ - clarify port node details in bindings
+ - fix typos
+ - fix default quant range for VGA
+ - fix quant range handling and conv matrix
+ - add additional standards and capabilities to timings_cap
 
-It's good to be explicit, will add this.
+v3:
+ - fix typo in dt bindings
+ - added dt bindings for GW551x
+ - use V4L2_DV_BT_FRAME_WIDTH/HEIGHT macros
+ - fixed missing break
+ - use only hdmi_infoframe_log for infoframe logging
+ - simplify tda1997x_s_stream error handling
+ - add delayed work proc to handle hotplug enable/disable
+ - fix set_edid (disable HPD before writing, enable after)
+ - remove enabling edid by default
+ - initialize timings
+ - take quant range into account in colorspace conversion
+ - remove vendor/product tracking (we provide this in log_status via
+   infoframes)
+ - add v4l_controls
+ - add more detail to log_status
+ - calculate vhref generator timings
+ - timing detection fixes (rounding errors, hswidth errors)
+ - rename configure_input/configure_conv functions
 
-> 
-> > +    - port1 - sub-nodes describing one or more endpoints connected to
-> > +      the VIN from local SoC CSI-2 receivers. The endpoint numbers must
-> > +      use the following schema.
-> 
-> Nitpicking again, the Gen2-specific properties are indented above while the 
-> Gen3 properties are not indented here. Pick the one you prefer :-)
+v2:
+ - encorporate feedback into dt bindings
+ - change audio dt bindings
+ - implement dv timings enum/cap
+ - remove deprecated g_mbus_config op
+ - fix dv_query_timings
+ - add EDID get/set handling
+ - remove max-pixel-rate support
+ - add audio codec DAI support
+ - added media-ctl and v4l2-compliance details
 
-I like it they way it is :-)
+v1:
+ - initial RFC
 
-The Gen2-specific properties are all on the same level in the dt 
-description. While some Gen3-specific properties (port 0 and port 1) are 
-indented one level in the dt description and this is why I indented them 
-one level in the documentation. To make it clear that they should be 
-children of the ports node.
+Media device topology:
+# media-ctl -d /dev/media0 -p
+Media controller API version 4.13.0
 
-I don't feel strongly about this but I feel it adds to the readability.  
-If you don't agree I'm happy to remove the indentation for these two 
-properties.
+Media device information
+------------------------
+driver          imx-media
+model           imx-media
+serial          
+bus info        
+hw revision     0x0
+driver version  4.13.0
 
-> 
-> > -Device node example
-> > --------------------
-> > +        - Endpoint 0 - sub-node describing the endpoint which is CSI20
-> > +        - Endpoint 1 - sub-node describing the endpoint which is CSI21
-> > +        - Endpoint 2 - sub-node describing the endpoint which is CSI40
-> > +        - Endpoint 3 - sub-node describing the endpoint which is CSI41
-> 
-> How about s/which is/connected to/ ?
+Device topology
+- entity 1: adv7180 2-0020 (1 pad, 1 link)
+            type V4L2 subdev subtype Unknown flags 20004
+            device node name /dev/v4l-subdev0
+	pad0: Source
+		[fmt:UYVY8_2X8/720x480 field:interlaced colorspace:smpte170m]
+		-> "ipu2_csi1_mux":1 []
 
-Sounds better, will update.
+- entity 3: tda19971 2-0048 (1 pad, 1 link)
+            type V4L2 subdev subtype Unknown flags 0
+            device node name /dev/v4l-subdev1
+	pad0: Source
+		[fmt:UYVY8_1X16/640x480 field:none colorspace:srgb]
+		[dv.caps:BT.656/1120 min:640x480@13000000 max:1920x1080@165000000 stds:CEA-861,DMT caps:progressive]
+		[dv.detect:BT.656/1120 640x480p59 (800x525) stds:CEA-861,DMT flags:has-cea861-vic]
+		[dv.current:BT.656/1120 1920x1080p60 (2200x1125) stds:CEA-861,DMT flags:can-reduce-fps,CE-video,has-cea861-vic]
+		-> "ipu1_csi0_mux":1 []
+
+- entity 5: ipu1_vdic (3 pads, 3 links)
+            type V4L2 subdev subtype Unknown flags 0
+            device node name /dev/v4l-subdev2
+	pad0: Sink
+		[fmt:AYUV8_1X32/640x480@1/30 field:none colorspace:smpte170m xfer:709 ycbcr:601 quantization:lim-range]
+		<- "ipu1_csi0":1 []
+		<- "ipu1_csi1":1 []
+	pad1: Sink
+		[fmt:UYVY8_2X8/640x480@1/30 field:none colorspace:smpte170m xfer:709 ycbcr:601 quantization:lim-range]
+	pad2: Source
+		[fmt:AYUV8_1X32/640x480@1/60 field:none colorspace:smpte170m xfer:709 ycbcr:601 quantization:lim-range]
+		-> "ipu1_ic_prp":0 []
+
+- entity 9: ipu2_vdic (3 pads, 3 links)
+            type V4L2 subdev subtype Unknown flags 0
+            device node name /dev/v4l-subdev3
+	pad0: Sink
+		[fmt:AYUV8_1X32/640x480@1/30 field:none colorspace:smpte170m xfer:709 ycbcr:601 quantization:lim-range]
+		<- "ipu2_csi0":1 []
+		<- "ipu2_csi1":1 []
+	pad1: Sink
+		[fmt:UYVY8_2X8/640x480@1/30 field:none colorspace:smpte170m xfer:709 ycbcr:601 quantization:lim-range]
+	pad2: Source
+		[fmt:AYUV8_1X32/640x480@1/60 field:none colorspace:smpte170m xfer:709 ycbcr:601 quantization:lim-range]
+		-> "ipu2_ic_prp":0 []
+
+- entity 13: ipu1_ic_prp (3 pads, 5 links)
+             type V4L2 subdev subtype Unknown flags 0
+             device node name /dev/v4l-subdev4
+	pad0: Sink
+		[fmt:AYUV8_1X32/640x480@1/30 field:none colorspace:smpte170m xfer:709 ycbcr:601 quantization:lim-range]
+		<- "ipu1_vdic":2 []
+		<- "ipu1_csi0":1 []
+		<- "ipu1_csi1":1 []
+	pad1: Source
+		[fmt:AYUV8_1X32/640x480@1/30 field:none colorspace:smpte170m xfer:709 ycbcr:601 quantization:lim-range]
+		-> "ipu1_ic_prpenc":0 []
+	pad2: Source
+		[fmt:AYUV8_1X32/640x480@1/30 field:none colorspace:smpte170m xfer:709 ycbcr:601 quantization:lim-range]
+		-> "ipu1_ic_prpvf":0 []
+
+- entity 17: ipu1_ic_prpenc (2 pads, 2 links)
+             type V4L2 subdev subtype Unknown flags 0
+             device node name /dev/v4l-subdev5
+	pad0: Sink
+		[fmt:AYUV8_1X32/640x480@1/30 field:none colorspace:smpte170m xfer:709 ycbcr:601 quantization:lim-range]
+		<- "ipu1_ic_prp":1 []
+	pad1: Source
+		[fmt:AYUV8_1X32/640x480@1/30 field:none colorspace:smpte170m xfer:709 ycbcr:601 quantization:lim-range]
+		-> "ipu1_ic_prpenc capture":0 []
+
+- entity 20: ipu1_ic_prpenc capture (1 pad, 1 link)
+             type Node subtype V4L flags 0
+             device node name /dev/video0
+	pad0: Sink
+		<- "ipu1_ic_prpenc":1 []
+
+- entity 26: ipu1_ic_prpvf (2 pads, 2 links)
+             type V4L2 subdev subtype Unknown flags 0
+             device node name /dev/v4l-subdev6
+	pad0: Sink
+		[fmt:AYUV8_1X32/640x480@1/30 field:none colorspace:smpte170m xfer:709 ycbcr:601 quantization:lim-range]
+		<- "ipu1_ic_prp":2 []
+	pad1: Source
+		[fmt:AYUV8_1X32/640x480@1/30 field:none colorspace:smpte170m xfer:709 ycbcr:601 quantization:lim-range]
+		-> "ipu1_ic_prpvf capture":0 []
+
+- entity 29: ipu1_ic_prpvf capture (1 pad, 1 link)
+             type Node subtype V4L flags 0
+             device node name /dev/video1
+	pad0: Sink
+		<- "ipu1_ic_prpvf":1 []
+
+- entity 35: ipu2_ic_prp (3 pads, 5 links)
+             type V4L2 subdev subtype Unknown flags 0
+             device node name /dev/v4l-subdev7
+	pad0: Sink
+		[fmt:AYUV8_1X32/640x480@1/30 field:none colorspace:smpte170m xfer:709 ycbcr:601 quantization:lim-range]
+		<- "ipu2_vdic":2 []
+		<- "ipu2_csi0":1 []
+		<- "ipu2_csi1":1 []
+	pad1: Source
+		[fmt:AYUV8_1X32/640x480@1/30 field:none colorspace:smpte170m xfer:709 ycbcr:601 quantization:lim-range]
+		-> "ipu2_ic_prpenc":0 []
+	pad2: Source
+		[fmt:AYUV8_1X32/640x480@1/30 field:none colorspace:smpte170m xfer:709 ycbcr:601 quantization:lim-range]
+		-> "ipu2_ic_prpvf":0 []
+
+- entity 39: ipu2_ic_prpenc (2 pads, 2 links)
+             type V4L2 subdev subtype Unknown flags 0
+             device node name /dev/v4l-subdev8
+	pad0: Sink
+		[fmt:AYUV8_1X32/640x480@1/30 field:none colorspace:smpte170m xfer:709 ycbcr:601 quantization:lim-range]
+		<- "ipu2_ic_prp":1 []
+	pad1: Source
+		[fmt:AYUV8_1X32/640x480@1/30 field:none colorspace:smpte170m xfer:709 ycbcr:601 quantization:lim-range]
+		-> "ipu2_ic_prpenc capture":0 []
+
+- entity 42: ipu2_ic_prpenc capture (1 pad, 1 link)
+             type Node subtype V4L flags 0
+             device node name /dev/video2
+	pad0: Sink
+		<- "ipu2_ic_prpenc":1 []
+
+- entity 48: ipu2_ic_prpvf (2 pads, 2 links)
+             type V4L2 subdev subtype Unknown flags 0
+             device node name /dev/v4l-subdev9
+	pad0: Sink
+		[fmt:AYUV8_1X32/640x480@1/30 field:none colorspace:smpte170m xfer:709 ycbcr:601 quantization:lim-range]
+		<- "ipu2_ic_prp":2 []
+	pad1: Source
+		[fmt:AYUV8_1X32/640x480@1/30 field:none colorspace:smpte170m xfer:709 ycbcr:601 quantization:lim-range]
+		-> "ipu2_ic_prpvf capture":0 []
+
+- entity 51: ipu2_ic_prpvf capture (1 pad, 1 link)
+             type Node subtype V4L flags 0
+             device node name /dev/video3
+	pad0: Sink
+		<- "ipu2_ic_prpvf":1 []
+
+- entity 57: ipu1_csi0 (3 pads, 4 links)
+             type V4L2 subdev subtype Unknown flags 0
+             device node name /dev/v4l-subdev10
+	pad0: Sink
+		[fmt:UYVY8_2X8/640x480@1/30 field:none colorspace:smpte170m xfer:709 ycbcr:601 quantization:lim-range
+		 crop.bounds:(0,0)/640x480
+		 crop:(0,0)/640x480
+		 compose.bounds:(0,0)/640x480
+		 compose:(0,0)/640x480]
+		<- "ipu1_csi0_mux":2 []
+	pad1: Source
+		[fmt:AYUV8_1X32/640x480@1/30 field:none colorspace:smpte170m xfer:709 ycbcr:601 quantization:lim-range]
+		-> "ipu1_ic_prp":0 []
+		-> "ipu1_vdic":0 []
+	pad2: Source
+		[fmt:AYUV8_1X32/640x480@1/30 field:none colorspace:smpte170m xfer:709 ycbcr:601 quantization:lim-range]
+		-> "ipu1_csi0 capture":0 []
+
+- entity 61: ipu1_csi0 capture (1 pad, 1 link)
+             type Node subtype V4L flags 0
+             device node name /dev/video4
+	pad0: Sink
+		<- "ipu1_csi0":2 []
+
+- entity 67: ipu1_csi1 (3 pads, 3 links)
+             type V4L2 subdev subtype Unknown flags 0
+             device node name /dev/v4l-subdev11
+	pad0: Sink
+		[fmt:UYVY8_2X8/640x480@1/30 field:none colorspace:smpte170m xfer:709 ycbcr:601 quantization:lim-range
+		 crop.bounds:(0,0)/640x480
+		 crop:(0,0)/640x480
+		 compose.bounds:(0,0)/640x480
+		 compose:(0,0)/640x480]
+	pad1: Source
+		[fmt:AYUV8_1X32/640x480@1/30 field:none colorspace:smpte170m xfer:709 ycbcr:601 quantization:lim-range]
+		-> "ipu1_ic_prp":0 []
+		-> "ipu1_vdic":0 []
+	pad2: Source
+		[fmt:AYUV8_1X32/640x480@1/30 field:none colorspace:smpte170m xfer:709 ycbcr:601 quantization:lim-range]
+		-> "ipu1_csi1 capture":0 []
+
+- entity 71: ipu1_csi1 capture (1 pad, 1 link)
+             type Node subtype V4L flags 0
+             device node name /dev/video5
+	pad0: Sink
+		<- "ipu1_csi1":2 []
+
+- entity 77: ipu2_csi0 (3 pads, 3 links)
+             type V4L2 subdev subtype Unknown flags 0
+             device node name /dev/v4l-subdev12
+	pad0: Sink
+		[fmt:UYVY8_2X8/640x480@1/30 field:none colorspace:smpte170m xfer:709 ycbcr:601 quantization:lim-range
+		 crop.bounds:(0,0)/640x480
+		 crop:(0,0)/640x480
+		 compose.bounds:(0,0)/640x480
+		 compose:(0,0)/640x480]
+	pad1: Source
+		[fmt:AYUV8_1X32/640x480@1/30 field:none colorspace:smpte170m xfer:709 ycbcr:601 quantization:lim-range]
+		-> "ipu2_ic_prp":0 []
+		-> "ipu2_vdic":0 []
+	pad2: Source
+		[fmt:AYUV8_1X32/640x480@1/30 field:none colorspace:smpte170m xfer:709 ycbcr:601 quantization:lim-range]
+		-> "ipu2_csi0 capture":0 []
+
+- entity 81: ipu2_csi0 capture (1 pad, 1 link)
+             type Node subtype V4L flags 0
+             device node name /dev/video6
+	pad0: Sink
+		<- "ipu2_csi0":2 []
+
+- entity 87: ipu2_csi1 (3 pads, 4 links)
+             type V4L2 subdev subtype Unknown flags 0
+             device node name /dev/v4l-subdev13
+	pad0: Sink
+		[fmt:UYVY8_2X8/640x480@1/30 field:none colorspace:smpte170m xfer:709 ycbcr:601 quantization:lim-range
+		 crop.bounds:(0,0)/640x480
+		 crop:(0,0)/640x480
+		 compose.bounds:(0,0)/640x480
+		 compose:(0,0)/640x480]
+		<- "ipu2_csi1_mux":2 []
+	pad1: Source
+		[fmt:AYUV8_1X32/640x480@1/30 field:none colorspace:smpte170m xfer:709 ycbcr:601 quantization:lim-range]
+		-> "ipu2_ic_prp":0 []
+		-> "ipu2_vdic":0 []
+	pad2: Source
+		[fmt:AYUV8_1X32/640x480@1/30 field:none colorspace:smpte170m xfer:709 ycbcr:601 quantization:lim-range]
+		-> "ipu2_csi1 capture":0 []
+
+- entity 91: ipu2_csi1 capture (1 pad, 1 link)
+             type Node subtype V4L flags 0
+             device node name /dev/video7
+	pad0: Sink
+		<- "ipu2_csi1":2 []
+
+- entity 97: ipu1_csi0_mux (3 pads, 2 links)
+             type V4L2 subdev subtype Unknown flags 0
+             device node name /dev/v4l-subdev14
+	pad0: Sink
+		[fmt:unknown/0x0]
+	pad1: Sink
+		[fmt:unknown/0x0]
+		<- "tda19971 2-0048":0 []
+	pad2: Source
+		[fmt:unknown/0x0]
+		-> "ipu1_csi0":0 []
+
+- entity 101: ipu2_csi1_mux (3 pads, 2 links)
+              type V4L2 subdev subtype Unknown flags 0
+              device node name /dev/v4l-subdev15
+	pad0: Sink
+		[fmt:unknown/0x0]
+	pad1: Sink
+		[fmt:unknown/0x0]
+		<- "adv7180 2-0020":0 []
+	pad2: Source
+		[fmt:unknown/0x0]
+		-> "ipu2_csi1":0 []
 
 
-> 
-> > -	aliases {
-> > -	       vin0 = &vin0;
-> > -	};
-> > +Device node example Gen2
-> 
-> s/Gen2/for Gen2 platforms/
-> 
-> and same in a few places below.
+v4l2-compliance test results:
+(on /dev/video6 as v4l2-compliance doesn't yet support subdevs)
+Driver Info:
+	Driver name   : imx-media-captu
+	Card type     : imx-media-capture
+	Bus info      : platform:ipu2_csi0
+	Driver version: 4.13.0
+	Capabilities  : 0x84200001
+		Video Capture
+		Streaming
+		Extended Pix Format
+		Device Capabilities
+	Device Caps   : 0x04200001
+		Video Capture
+		Streaming
+		Extended Pix Format
 
-Will fix.
+Compliance test for device /dev/video6 (not using libv4l2):
 
-> 
-> > +------------------------
-> > +
-> > +        aliases {
-> > +                vin0 = &vin0;
-> > +        };
-> 
-> This is unrelated, but do we need aliases ?
+Required ioctls:
+	test VIDIOC_QUERYCAP: OK
 
-We don't have aliases for Gen3 but they exists in DTS for Gen2. My 
-feeling is that we don't need them. My plan is to once Gen3 support is 
-done try to sort this out, both in the documentation and in the dts 
-files for Gen2.
+Allow for multiple opens:
+	test second video open: OK
+	test VIDIOC_QUERYCAP: OK
+	test VIDIOC_G/S_PRIORITY: OK
 
-> 
-> >          vin0: vin@0xe6ef0000 {
-> >                  compatible = "renesas,vin-r8a7790",
-> > "renesas,rcar-gen2-vin"; @@ -55,8 +76,8 @@ Device node example
-> >                  status = "disabled";
-> >          };
-> > 
-> > -Board setup example (vin1 composite video input)
-> > -------------------------------------------------
-> > +Board setup example Gen2 (vin1 composite video input)
-> > +-----------------------------------------------------
-> > 
-> >  &i2c2   {
-> >          status = "ok";
-> > @@ -95,6 +116,77 @@ Board setup example (vin1 composite video input)
-> >          };
-> >  };
-> > 
-> > +Device node example Gen3
-> > +------------------------
-> > +
-> > +        vin0: video@e6ef0000 {
-> > +                compatible = "renesas,vin-r8a7795";
-> > +                reg = <0 0xe6ef0000 0 0x1000>;
-> > +                interrupts = <GIC_SPI 188 IRQ_TYPE_LEVEL_HIGH>;
-> > +                clocks = <&cpg CPG_MOD 811>;
-> > +                power-domains = <&sysc R8A7795_PD_ALWAYS_ON>;
-> > +                resets = <&cpg 811>;
-> > +                renesas,id = <0>;
-> > +
-> > +                ports {
-> > +                        #address-cells = <1>;
-> > +                        #size-cells = <0>;
-> > +
-> > +                        port@1 {
-> > +                                #address-cells = <1>;
-> > +                                #size-cells = <0>;
-> > +
-> > +                                reg = <1>;
-> > +
-> > +                                vin0csi20: endpoint@0 {
-> > +                                        reg = <0>;
-> > +                                        remote-endpoint= <&csi20vin0>;
-> > +                                };
-> > +                                vin0csi21: endpoint@1 {
-> > +                                        reg = <1>;
-> > +                                        remote-endpoint= <&csi21vin0>;
-> > +                                };
-> > +                                vin0csi40: endpoint@2 {
-> > +                                        reg = <2>;
-> > +                                        remote-endpoint= <&csi40vin0>;
-> > +                                };
-> > +                        };
-> > +                };
-> > +        };
-> > +
-> > +        csi20: csi2@fea80000 {
-> > +                compatible = "renesas,r8a7795-csi2";
-> > +                reg = <0 0xfea80000 0 0x10000>;
-> > +                interrupts = <GIC_SPI 184 IRQ_TYPE_LEVEL_HIGH>;
-> > +                clocks = <&cpg CPG_MOD 714>;
-> > +                power-domains = <&sysc R8A7795_PD_ALWAYS_ON>;
-> > +                resets = <&cpg 714>;
-> > +
-> > +                ports {
-> > +                        #address-cells = <1>;
-> > +                        #size-cells = <0>;
-> > +
-> > +                        port@0 {
-> > +                                reg = <0>;
-> > +                                csi20_in: endpoint {
-> > +                                        clock-lanes = <0>;
-> > +                                        data-lanes = <1>;
-> > +                                        remote-endpoint = <&adv7482_txb>;
-> > +                                };
-> > +                        };
-> > +
-> > +                        port@1 {
-> > +                                #address-cells = <1>;
-> > +                                #size-cells = <0>;
-> > 
-> > +                                reg = <1>;
-> > +
-> > +                                csi20vin0: endpoint@0 {
-> > +                                        reg = <0>;
-> > +                                        remote-endpoint = <&vin0csi20>;
-> > +                                };
-> > +                        };
-> > +                };
-> > +        };
-> > 
-> >  [1] video-interfaces.txt common video media interface
-> 
-> -- 
-> Regards,
-> 
-> Laurent Pinchart
-> 
+Debug ioctls:
+	test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
+	test VIDIOC_LOG_STATUS: OK (Not Supported)
+
+Input ioctls:
+	test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
+	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+	test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
+	test VIDIOC_ENUMAUDIO: OK (Not Supported)
+		fail: v4l2-test-input-output.cpp(418): G_INPUT not supported for a capture device
+	test VIDIOC_G/S/ENUMINPUT: FAIL
+	test VIDIOC_G/S_AUDIO: OK (Not Supported)
+	Inputs: 0 Audio Inputs: 0 Tuners: 0
+
+Output ioctls:
+	test VIDIOC_G/S_MODULATOR: OK (Not Supported)
+	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+	test VIDIOC_ENUMAUDOUT: OK (Not Supported)
+	test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
+	test VIDIOC_G/S_AUDOUT: OK (Not Supported)
+	Outputs: 0 Audio Outputs: 0 Modulators: 0
+
+Input/Output configuration ioctls:
+	test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
+	test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
+	test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
+	test VIDIOC_G/S_EDID: OK (Not Supported)
+
+	Control ioctls:
+		test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK
+		test VIDIOC_QUERYCTRL: OK
+		test VIDIOC_G/S_CTRL: OK
+		fail: v4l2-test-controls.cpp(574): g_ext_ctrls does not support count == 0
+		test VIDIOC_G/S/TRY_EXT_CTRLS: FAIL
+		test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK (Not Supported)
+		test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
+		Standard Controls: 0 Private Controls: 0
+
+	Format ioctls:
+		test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
+		test VIDIOC_G/S_PARM: OK
+		test VIDIOC_G_FBUF: OK (Not Supported)
+		test VIDIOC_G_FMT: OK
+		test VIDIOC_TRY_FMT: OK
+		test VIDIOC_S_FMT: OK
+		test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
+		test Cropping: OK (Not Supported)
+		test Composing: OK (Not Supported)
+		test Scaling: OK (Not Supported)
+
+	Codec ioctls:
+		test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
+		test VIDIOC_G_ENC_INDEX: OK (Not Supported)
+		test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
+
+	Buffer ioctls:
+		test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
+		test VIDIOC_EXPBUF: OK
+
+Test input 0:
+
+
+Total: 42, Succeeded: 40, Failed: 2, Warnings: 0
+
+Hans Verkuil (1):
+  v4l2-dv-timings: add v4l2_hdmi_colorimetry()
+
+Tim Harvey (5):
+  MAINTAINERS: add entry for NXP TDA1997x driver
+  media: dt-bindings: Add bindings for TDA1997X
+  media: i2c: Add TDA1997x HDMI receiver driver
+  ARM: dts: imx: Add TDA19971 HDMI Receiver to GW54xx
+  ARM: dts: imx: Add TDA19971 HDMI Receiver to GW551x
+
+ .../devicetree/bindings/media/i2c/tda1997x.txt     |  179 +
+ MAINTAINERS                                        |    8 +
+ arch/arm/boot/dts/imx6q-gw54xx.dts                 |  105 +
+ arch/arm/boot/dts/imx6qdl-gw54xx.dtsi              |   29 +-
+ arch/arm/boot/dts/imx6qdl-gw551x.dtsi              |  138 +
+ drivers/media/i2c/Kconfig                          |    9 +
+ drivers/media/i2c/Makefile                         |    1 +
+ drivers/media/i2c/tda1997x.c                       | 3476 ++++++++++++++++++++
+ drivers/media/v4l2-core/v4l2-dv-timings.c          |  141 +
+ include/dt-bindings/media/tda1997x.h               |   74 +
+ include/media/i2c/tda1997x.h                       |   41 +
+ include/media/v4l2-dv-timings.h                    |   21 +
+ 12 files changed, 4219 insertions(+), 3 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/tda1997x.txt
+ create mode 100644 drivers/media/i2c/tda1997x.c
+ create mode 100644 include/dt-bindings/media/tda1997x.h
+ create mode 100644 include/media/i2c/tda1997x.h
 
 -- 
-Regards,
-Niklas Söderlund
+2.7.4
