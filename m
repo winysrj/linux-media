@@ -1,97 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f49.google.com ([209.85.215.49]:42694 "EHLO
-        mail-lf0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751910AbdLMM1t (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 13 Dec 2017 07:27:49 -0500
-MIME-Version: 1.0
-In-Reply-To: <20171213095315.437ecf2f@vento.lan>
-References: <20171208135650.3f385c45@vento.lan> <CA+55aFwBvXVQavgwDKVV3epFhd4MTaQvDktpDahkPhxweXnMmQ@mail.gmail.com>
- <20171211091223.2ba10fb1@vento.lan> <CAMuHMdUkHda_=7oUrPvOLG9Tt8ZdosQJa2mFkMeoLMjhrVV3PA@mail.gmail.com>
- <20171213095315.437ecf2f@vento.lan>
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Date: Wed, 13 Dec 2017 13:27:47 +0100
-Message-ID: <CAMuHMdV2gKwwDggOwqqXSGDowJNhxxyT9CJuBfFB3LUHZBYE-A@mail.gmail.com>
-Subject: Re: [GIT PULL for v4.15-rc3] media fixes
-To: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Received: from osg.samsung.com ([64.30.133.232]:46037 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751244AbdL1MCm (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 28 Dec 2017 07:02:42 -0500
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Hans Verkuil <hansverk@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Christophe JAILLET <christophe.jaillet@wanadoo.fr>,
+        Hirokazu Honda <hiroh@chromium.org>,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Satendra Singh Thakur <satendra.t@samsung.com>
+Subject: [PATCH] videobuf2-core: don't go out of the buffer range
+Date: Thu, 28 Dec 2017 10:02:33 -0200
+Message-Id: <9d7d743966f05181299fbf18cec9243e62bdfd25.1514462548.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Currently, there's no check if an invalid buffer range
+is passed. However, while testing DVB memory mapped apps,
+I got this:
 
-On Wed, Dec 13, 2017 at 12:53 PM, Mauro Carvalho Chehab
-<mchehab@osg.samsung.com> wrote:
-> Em Wed, 13 Dec 2017 10:03:56 +0100
-> Geert Uytterhoeven <geert@linux-m68k.org> escreveu:
->> On Mon, Dec 11, 2017 at 12:12 PM, Mauro Carvalho Chehab
->> <mchehab@osg.samsung.com> wrote:
->> > Without this series, I was getting 809 lines of bogus warnings (see below),
->> > with was preventing me to see new warnings on my incremental builds
->> > while applying new patches at the media tree.
->>
->> $ linux-log-diff build.log{.old,}
->>
->> (from https://github.com/geertu/linux-scripts)
->
-> That's nice!
->
-> Yet, it is producing some noise. I did a clean build with:
->
-> $ make ARCH=i386  CF=-D__CHECK_ENDIAN__ CONFIG_DEBUG_SECTION_MISMATCH=y W=1 CHECK='' M=drivers/staging/media | grep -v -e " CC " -e " LD " -e " AR " -e " CHK " -e " CALL " -e " UPD " -e "scripts/kconfig/conf " -e " CHECK " >old.log
-> $ make ARCH=i386  CF=-D__CHECK_ENDIAN__ CONFIG_DEBUG_SECTION_MISMATCH=y W=1 CHECK='' M=drivers/media| grep -v -e " CC " -e " LD " -e " AR " -e " CHK " -e " CALL " -e " UPD " -e "scripts/kconfig/conf " -e " CHECK "  >>old.log
->
-> and added a new uninitialized "foo" var to a random driver, doing an
-> incremental build with:
->
-> $ make ARCH=i386  CF=-D__CHECK_ENDIAN__ CONFIG_DEBUG_SECTION_MISMATCH=y W=1 CHECK='' | grep -v -e " CC " -e " LD " -e " AR " -e " CHK " -e " CALL " -e " UPD " -e "scripts/kconfig/conf " -e " CHECK " M=drivers/staging/media >new.log
-> $ make ARCH=i386  CF=-D__CHECK_ENDIAN__ CONFIG_DEBUG_SECTION_MISMATCH=y W=1 CHECK='' | grep -v -e " CC " -e " LD " -e " AR " -e " CHK " -e " CALL " -e " UPD " -e "scripts/kconfig/conf " -e " CHECK " M=drivers/media >new.log
->
-> Then, I ran the script:
->
-> $ linux-log-diff old.log new.log
->
-> *** ERRORS ***
->
->
-> *** WARNINGS ***
->
-> 1 warning regressions:
->   + drivers/media/dvb-frontends/dibx000_common.c: warning: unused variable 'foo' [-Wunused-variable]:  => 22:5
->
-> 3 warning improvements:
->   - ./arch/x86/include/asm/bitops.h: warning: asm output is not an lvalue: 430:22 =>
->   - drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_common/host/mmu_private.h: warning: function 'mmu_reg_load' with external linkage has definition: 35:30 =>
->   - drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_common/host/mmu_private.h: warning: function 'mmu_reg_store' with external linkage has definition: 24:26 =>
->
-> It detected the "foo" var warning, but it outputs 3 warning improvements
-> on files that were not even built the second time.
+   videobuf2_core: VB: num_buffers -2143943680, buffer 33, index -2143943647
+   unable to handle kernel paging request at ffff888b773c0890
+   IP: __vb2_queue_alloc+0x134/0x4e0 [videobuf2_core]
+   PGD 4142c7067 P4D 4142c7067 PUD 0
+   Oops: 0002 [#1] SMP
+   Modules linked in: xt_CHECKSUM iptable_mangle ipt_MASQUERADE nf_nat_masquerade_ipv4 iptable_nat nf_nat_ipv4 nf_nat nf_conntrack_ipv4 nf_defrag_ipv4 xt_conntrack nf_conntrack tun bridge stp llc ebtable_filter ebtables ip6table_filter ip6_tables bluetooth rfkill ecdh_generic binfmt_misc rc_dvbsky sp2 ts2020 intel_rapl x86_pkg_temp_thermal dvb_usb_dvbsky intel_powerclamp dvb_usb_v2 coretemp m88ds3103 kvm_intel i2c_mux dvb_core snd_hda_codec_hdmi crct10dif_pclmul crc32_pclmul videobuf2_vmalloc videobuf2_memops snd_hda_intel ghash_clmulni_intel videobuf2_core snd_hda_codec rc_core mei_me intel_cstate snd_hwdep snd_hda_core videodev intel_uncore snd_pcm mei media tpm_tis tpm_tis_core intel_rapl_perf tpm snd_timer lpc_ich snd soundcore kvm irqbypass libcrc32c i915 i2c_algo_bit drm_kms_helper
+   e1000e ptp drm crc32c_intel video pps_core
+   CPU: 3 PID: 1776 Comm: dvbv5-zap Not tainted 4.14.0+ #78
+   Hardware name:                  /NUC5i7RYB, BIOS RYBDWi35.86A.0364.2017.0511.0949 05/11/2017
+   task: ffff88877c73bc80 task.stack: ffffb7c402418000
+   RIP: 0010:__vb2_queue_alloc+0x134/0x4e0 [videobuf2_core]
+   RSP: 0018:ffffb7c40241bc60 EFLAGS: 00010246
+   RAX: 0000000080360421 RBX: 0000000000000021 RCX: 000000000000000a
+   RDX: ffffb7c40241bcf4 RSI: ffff888780362c60 RDI: ffff888796d8e130
+   RBP: ffffb7c40241bcc8 R08: 0000000000000316 R09: 0000000000000004
+   R10: ffff888780362c00 R11: 0000000000000001 R12: 000000000002f000
+   R13: ffff8887758be700 R14: 0000000000021000 R15: 0000000000000001
+   FS:  00007f2849024740(0000) GS:ffff888796d80000(0000) knlGS:0000000000000000
+   CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+   CR2: ffff888b773c0890 CR3: 000000043beb2005 CR4: 00000000003606e0
+   Call Trace:
+    vb2_core_reqbufs+0x226/0x420 [videobuf2_core]
+    dvb_vb2_reqbufs+0x2d/0xc0 [dvb_core]
+    dvb_dvr_do_ioctl+0x98/0x1d0 [dvb_core]
+    dvb_usercopy+0x53/0x1b0 [dvb_core]
+    ? dvb_demux_ioctl+0x20/0x20 [dvb_core]
+    ? tty_ldisc_deref+0x16/0x20
+    ? tty_write+0x1f9/0x310
+    ? process_echoes+0x70/0x70
+    dvb_dvr_ioctl+0x15/0x20 [dvb_core]
+    do_vfs_ioctl+0xa5/0x600
+    SyS_ioctl+0x79/0x90
+    entry_SYSCALL_64_fastpath+0x1a/0xa5
+   RIP: 0033:0x7f28486f7ea7
+   RSP: 002b:00007ffc13b2db18 EFLAGS: 00000246 ORIG_RAX: 0000000000000010
+   RAX: ffffffffffffffda RBX: 000055b10fc06130 RCX: 00007f28486f7ea7
+   RDX: 00007ffc13b2db48 RSI: 00000000c0086f3c RDI: 0000000000000007
+   RBP: 0000000000000203 R08: 000055b10df1e02c R09: 000000000000002e
+   R10: 0036b42415108357 R11: 0000000000000246 R12: 0000000000000000
+   R13: 00007f2849062f60 R14: 00000000000001f1 R15: 00007ffc13b2da54
+   Code: 74 0a 60 8b 0a 48 83 c0 30 48 83 c2 04 89 48 d0 89 48 d4 48 39 f0 75 eb 41 8b 42 08 83 7d d4 01 41 c7 82 ec 01 00 00 ff ff ff ff <4d> 89 94 c5 88 00 00 00 74 14 83 c3 01 41 39 dc 0f 85 f1 fe ff
+   RIP: __vb2_queue_alloc+0x134/0x4e0 [videobuf2_core] RSP: ffffb7c40241bc60
+   CR2: ffff888b773c0890
 
-If the file wasn't built, the warning cannot be in the log ;-)
-So yes, it works best for full builds, only flagging warnings that
-(dis)appeared (and ignoring changes due to changed line numbers!).
+So, add a sanity check in order to prevent going past array.
 
-If you do lots of incremental builds, you want to append the last incremental
-log to the existing full log before doing a new build, to avoid false positives
-from files that weren't built in the previous run:
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/common/videobuf/videobuf2-core.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-    $ cat new.log >> old.log
-    $ make ... > new.log
-    $ linux-log-diff old.log new.log
-
-And only new warnings should be reported.
-
-Gr{oetje,eeting}s,
-
-                        Geert
-
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+diff --git a/drivers/media/common/videobuf/videobuf2-core.c b/drivers/media/common/videobuf/videobuf2-core.c
+index cb115ba6a1d2..9107ffc4d808 100644
+--- a/drivers/media/common/videobuf/videobuf2-core.c
++++ b/drivers/media/common/videobuf/videobuf2-core.c
+@@ -332,6 +332,10 @@ static int __vb2_queue_alloc(struct vb2_queue *q, enum vb2_memory memory,
+ 	struct vb2_buffer *vb;
+ 	int ret;
+ 
++	/* Sanity check to avoid going past q->bufs size */
++	if (q->num_buffers < 0 || q->num_buffers + num_buffers > VB2_MAX_FRAME)
++		return 0;
++
+ 	for (buffer = 0; buffer < num_buffers; ++buffer) {
+ 		/* Allocate videobuf buffer structures */
+ 		vb = kzalloc(q->buf_struct_size, GFP_KERNEL);
+-- 
+2.14.3
