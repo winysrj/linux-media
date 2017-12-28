@@ -1,163 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:56722 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752656AbdLNWCQ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 14 Dec 2017 17:02:16 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Greg KH <gregkh@linuxfoundation.org>,
-        Joe Perches <joe@perches.com>,
-        Dhaval Shah <dhaval23031987@gmail.com>, hyun.kwon@xilinx.com,
-        michal.simek@xilinx.com, linux-media@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] media: v4l: xilinx: Use SPDX-License-Identifier
-Date: Fri, 15 Dec 2017 00:02:21 +0200
-Message-ID: <7952229.SXlKMv2tvC@avalon>
-In-Reply-To: <20171214194536.2269667d@recife.lan>
-References: <20171208123537.18718-1-dhaval23031987@gmail.com> <20171214205706.GA1856@kroah.com> <20171214194536.2269667d@recife.lan>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from osg.samsung.com ([64.30.133.232]:45787 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752905AbdL1NJX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 28 Dec 2017 08:09:23 -0500
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Hans Verkuil <hansverk@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Christophe JAILLET <christophe.jaillet@wanadoo.fr>,
+        Gustavo Padovan <gustavo.padovan@collabora.com>,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Subject: [PATCH 1/2] media: videobuf2-core: don't go out of the buffer range
+Date: Thu, 28 Dec 2017 11:09:16 -0200
+Message-Id: <60dd6554070454d7f76c9d6d65f4ec8fc370b994.1514466421.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Currently, there's no check if an invalid buffer range
+is passed. However, while testing DVB memory mapped apps,
+I got this:
 
-On Thursday, 14 December 2017 23:50:03 EET Mauro Carvalho Chehab wrote:
-> Em Thu, 14 Dec 2017 21:57:06 +0100 Greg KH escreveu:
-> > On Thu, Dec 14, 2017 at 10:44:16PM +0200, Laurent Pinchart wrote:
-> >> On Thursday, 14 December 2017 22:08:51 EET Greg KH wrote:
-> >>> On Thu, Dec 14, 2017 at 09:05:27PM +0200, Laurent Pinchart wrote:
-> >>>> On Thursday, 14 December 2017 20:54:39 EET Joe Perches wrote:
-> >>>>> On Thu, 2017-12-14 at 20:37 +0200, Laurent Pinchart wrote:
-> >>>>>> On Thursday, 14 December 2017 20:32:20 EET Joe Perches wrote:
-> >>>>>>> On Thu, 2017-12-14 at 20:28 +0200, Laurent Pinchart wrote:
-> >>>>>>>> On Thursday, 14 December 2017 19:05:27 EET Mauro Carvalho Chehab
-> >>>>>>>> wrote:
-> >>>>>>>>> Em Fri,  8 Dec 2017 18:05:37 +0530 Dhaval Shah escreveu:
-> >>>>>>>>>> SPDX-License-Identifier is used for the Xilinx Video IP and
-> >>>>>>>>>> related drivers.
-> >>>>>>>>>> 
-> >>>>>>>>>> Signed-off-by: Dhaval Shah <dhaval23031987@gmail.com>
-> >>>>>>>>> 
-> >>>>>>>>> Hi Dhaval,
-> >>>>>>>>> 
-> >>>>>>>>> You're not listed as one of the Xilinx driver maintainers. I'm
-> >>>>>>>>> afraid that, without their explicit acks, sent to the ML, I
-> >>>>>>>>> can't accept a patch touching at the driver's license tags.
-> >>>>>>>> 
-> >>>>>>>> The patch doesn't change the license, I don't see why it would
-> >>>>>>>> cause any issue. Greg isn't listed as the maintainer or copyright
-> >>>>>>>> holder of any of the 10k+ files to which he added an SPDX license
-> >>>>>>>> header in the last kernel release.
-> >>>>>>> 
-> >>>>>>> Adding a comment line that describes an implicit or
-> >>>>>>> explicit license is different than removing the license
-> >>>>>>> text itself.
-> >>>>>> 
-> >>>>>> The SPDX license header is meant to be equivalent to the license
-> >>>>>> text.
-> >>>>> 
-> >>>>> I understand that.
-> >>>>> At a minimum, removing BSD license text is undesirable
-> >>>>> 
-> >>>>> as that license states:
-> >>>>>  *    * Redistributions of source code must retain the above copyright
-> >>>>>  *      notice, this list of conditions and the following disclaimer.
-> >>>>> 
-> >>>>> etc...
-> >>>> 
-> >>>> But this patch only removes the following text:
-> >>>> 
-> >>>> - * This program is free software; you can redistribute it and/or
-> >>>> modify
-> >>>> - * it under the terms of the GNU General Public License version 2 as
-> >>>> - * published by the Free Software Foundation.
-> >>>> 
-> >>>> and replaces it by the corresponding SPDX header.
-> >>>> 
-> >>>>>> The only reason why the large SPDX patch didn't touch the whole
-> >>>>>> kernel in one go was that it was easier to split in in multiple
-> >>>>>> chunks.
-> >>>>> 
-> >>>>> Not really, it was scripted.
-> >>>> 
-> >>>> But still manually reviewed as far as I know.
-> >>>> 
-> >>>>>> This is no different than not including the full GPL license in
-> >>>>>> every header file but only pointing to it through its name and
-> >>>>>> reference, as every kernel source file does.
-> >>>>> 
-> >>>>> Not every kernel source file had a license text
-> >>>>> or a reference to another license file.
-> >>>> 
-> >>>> Correct, but the files touched by this patch do.
-> >>>> 
-> >>>> This issue is in no way specific to linux-media and should be
-> >>>> decided upon at the top level, not on a per-subsystem basis. Greg,
-> >>>> could you comment on this ?
-> >>> 
-> >>> Comment on what exactly?  I don't understand the problem here, care to
-> >>> summarize it?
-> >> 
-> >> In a nutshell (if I understand it correctly), Dhaval Shah submitted
-> >> https:// patchwork.kernel.org/patch/10102451/ which replaces
-> >> 
-> >> +// SPDX-License-Identifier: GPL-2.0
-> >> [...]
-> >> - *
-> >> - * This program is free software; you can redistribute it and/or modify
-> >> - * it under the terms of the GNU General Public License version 2 as
-> >> - * published by the Free Software Foundation.
-> >> 
-> >> in all .c and .h files of the Xilinx V4L2 driver
-> >> (drivers/media/platform/
-> >> xilinx). I have reviewed the patch and acked it. Mauro then rejected it,
-> >> stating that he can't accept a change to license text without an
-> >> explicit ack from the official driver's maintainers. My position is
-> >> that such a change doesn't change the license and thus doesn't need to
-> >> track all copyright holders, and can be merged without an explicit ack
-> >> from the respective maintainers.
-> > 
-> > Yes, I agree with you, no license is being changed here, and no
-> > copyright is either.
-> > 
-> > BUT, I know that most major companies are reviewing this process right
-> > now.  We have gotten approval from almost all of the major kernel
-> > developer companies to do this, which is great, and supports this work
-> > as being acceptable.
-> > 
-> > So it's nice to ask Xilinx if they object to this happening, which I
-> > guess Mauro is trying to say here (in not so many words...)  To at least
-> > give them the heads-up that this is what is going to be going on
-> > throughout the kernel tree soon, and if they object, it would be good to
-> > speak up as to why (and if they do, I can put their lawyers in contact
-> > with some lawyers to explain it all to them.)
-> 
-> Yes, that's basically what I'm saying.
-> 
-> I don't feel comfortable on signing a patch changing the license text
-> without giving the copyright owners an opportunity and enough time
-> to review it and approve, or otherwise comment about such changes.
+   videobuf2_core: VB: num_buffers -2143943680, buffer 33, index -2143943647
+   unable to handle kernel paging request at ffff888b773c0890
+   IP: __vb2_queue_alloc+0x134/0x4e0 [videobuf2_core]
+   PGD 4142c7067 P4D 4142c7067 PUD 0
+   Oops: 0002 [#1] SMP
+   Modules linked in: xt_CHECKSUM iptable_mangle ipt_MASQUERADE nf_nat_masquerade_ipv4 iptable_nat nf_nat_ipv4 nf_nat nf_conntrack_ipv4 nf_defrag_ipv4 xt_conntrack nf_conntrack tun bridge stp llc ebtable_filter ebtables ip6table_filter ip6_tables bluetooth rfkill ecdh_generic binfmt_misc rc_dvbsky sp2 ts2020 intel_rapl x86_pkg_temp_thermal dvb_usb_dvbsky intel_powerclamp dvb_usb_v2 coretemp m88ds3103 kvm_intel i2c_mux dvb_core snd_hda_codec_hdmi crct10dif_pclmul crc32_pclmul videobuf2_vmalloc videobuf2_memops snd_hda_intel ghash_clmulni_intel videobuf2_core snd_hda_codec rc_core mei_me intel_cstate snd_hwdep snd_hda_core videodev intel_uncore snd_pcm mei media tpm_tis tpm_tis_core intel_rapl_perf tpm snd_timer lpc_ich snd soundcore kvm irqbypass libcrc32c i915 i2c_algo_bit drm_kms_helper
+   e1000e ptp drm crc32c_intel video pps_core
+   CPU: 3 PID: 1776 Comm: dvbv5-zap Not tainted 4.14.0+ #78
+   Hardware name:                  /NUC5i7RYB, BIOS RYBDWi35.86A.0364.2017.0511.0949 05/11/2017
+   task: ffff88877c73bc80 task.stack: ffffb7c402418000
+   RIP: 0010:__vb2_queue_alloc+0x134/0x4e0 [videobuf2_core]
+   RSP: 0018:ffffb7c40241bc60 EFLAGS: 00010246
+   RAX: 0000000080360421 RBX: 0000000000000021 RCX: 000000000000000a
+   RDX: ffffb7c40241bcf4 RSI: ffff888780362c60 RDI: ffff888796d8e130
+   RBP: ffffb7c40241bcc8 R08: 0000000000000316 R09: 0000000000000004
+   R10: ffff888780362c00 R11: 0000000000000001 R12: 000000000002f000
+   R13: ffff8887758be700 R14: 0000000000021000 R15: 0000000000000001
+   FS:  00007f2849024740(0000) GS:ffff888796d80000(0000) knlGS:0000000000000000
+   CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+   CR2: ffff888b773c0890 CR3: 000000043beb2005 CR4: 00000000003606e0
+   Call Trace:
+    vb2_core_reqbufs+0x226/0x420 [videobuf2_core]
+    dvb_vb2_reqbufs+0x2d/0xc0 [dvb_core]
+    dvb_dvr_do_ioctl+0x98/0x1d0 [dvb_core]
+    dvb_usercopy+0x53/0x1b0 [dvb_core]
+    ? dvb_demux_ioctl+0x20/0x20 [dvb_core]
+    ? tty_ldisc_deref+0x16/0x20
+    ? tty_write+0x1f9/0x310
+    ? process_echoes+0x70/0x70
+    dvb_dvr_ioctl+0x15/0x20 [dvb_core]
+    do_vfs_ioctl+0xa5/0x600
+    SyS_ioctl+0x79/0x90
+    entry_SYSCALL_64_fastpath+0x1a/0xa5
+   RIP: 0033:0x7f28486f7ea7
+   RSP: 002b:00007ffc13b2db18 EFLAGS: 00000246 ORIG_RAX: 0000000000000010
+   RAX: ffffffffffffffda RBX: 000055b10fc06130 RCX: 00007f28486f7ea7
+   RDX: 00007ffc13b2db48 RSI: 00000000c0086f3c RDI: 0000000000000007
+   RBP: 0000000000000203 R08: 000055b10df1e02c R09: 000000000000002e
+   R10: 0036b42415108357 R11: 0000000000000246 R12: 0000000000000000
+   R13: 00007f2849062f60 R14: 00000000000001f1 R15: 00007ffc13b2da54
+   Code: 74 0a 60 8b 0a 48 83 c0 30 48 83 c2 04 89 48 d0 89 48 d4 48 39 f0 75 eb 41 8b 42 08 83 7d d4 01 41 c7 82 ec 01 00 00 ff ff ff ff <4d> 89 94 c5 88 00 00 00 74 14 83 c3 01 41 39 dc 0f 85 f1 fe ff
+   RIP: __vb2_queue_alloc+0x134/0x4e0 [videobuf2_core] RSP: ffffb7c40241bc60
+   CR2: ffff888b773c0890
 
-If I understand you and Greg correctly, you would like to get a general 
-approval from Xilinx for SPDX-related changes, but that would be a blanket 
-approval that would cover this and all subsequent similar patches. Is that 
-correct ? That is reasonable for me.
+So, add a sanity check in order to prevent going past array.
 
-In that case, could the fact that commit
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/common/videobuf/videobuf2-core.c | 5 +++++
+ 1 file changed, 5 insertions(+)
 
-commit 5fd54ace4721fc5ce2bb5aef6318fcf17f421460
-Author: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Date:   Fri Nov 3 11:28:30 2017 +0100
-
-    USB: add SPDX identifiers to all remaining files in drivers/usb/
-
-add SPDX headers to several Xilinx-authored source files constitute such a 
-blanket approval ?
-
+diff --git a/drivers/media/common/videobuf/videobuf2-core.c b/drivers/media/common/videobuf/videobuf2-core.c
+index cb115ba6a1d2..d54f1c6b6ecb 100644
+--- a/drivers/media/common/videobuf/videobuf2-core.c
++++ b/drivers/media/common/videobuf/videobuf2-core.c
+@@ -332,6 +332,11 @@ static int __vb2_queue_alloc(struct vb2_queue *q, enum vb2_memory memory,
+ 	struct vb2_buffer *vb;
+ 	int ret;
+ 
++	/* Ensure that q->num_buffers+num_buffers is below VB2_MAX_FRAME */
++	if (q->num_buffers > VB2_MAX_FRAME)
++		return 0;
++	num_buffers = min_t(unsigned int, num_buffers, VB2_MAX_FRAME - q->num_buffers);
++
+ 	for (buffer = 0; buffer < num_buffers; ++buffer) {
+ 		/* Allocate videobuf buffer structures */
+ 		vb = kzalloc(q->buf_struct_size, GFP_KERNEL);
 -- 
-Regards,
-
-Laurent Pinchart
+2.14.3
