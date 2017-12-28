@@ -1,117 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pegase1.c-s.fr ([93.17.236.30]:11200 "EHLO pegase1.c-s.fr"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750860AbdLXJFR (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 24 Dec 2017 04:05:17 -0500
-Subject: Re: [PATCH v3 00/27] kill devm_ioremap_nocache
-To: Greg KH <gregkh@linuxfoundation.org>,
-        Yisheng Xie <xieyisheng1@huawei.com>
-Cc: linux-kernel@vger.kernel.org, ysxie@foxmail.com,
-        ulf.hansson@linaro.org, linux-mmc@vger.kernel.org,
-        boris.brezillon@free-electrons.com, richard@nod.at,
-        marek.vasut@gmail.com, cyrille.pitchen@wedev4u.fr,
-        linux-mtd@lists.infradead.org, alsa-devel@alsa-project.org,
-        wim@iguana.be, linux@roeck-us.net, linux-watchdog@vger.kernel.org,
-        b.zolnierkie@samsung.com, linux-fbdev@vger.kernel.org,
-        linus.walleij@linaro.org, linux-gpio@vger.kernel.org,
-        ralf@linux-mips.org, linux-mips@linux-mips.org,
-        lgirdwood@gmail.com, broonie@kernel.org, tglx@linutronix.de,
-        jason@lakedaemon.net, marc.zyngier@arm.com, arnd@arndb.de,
-        andriy.shevchenko@linux.intel.com,
-        industrypack-devel@lists.sourceforge.net, wg@grandegger.com,
-        mkl@pengutronix.de, linux-can@vger.kernel.org, mchehab@kernel.org,
-        linux-media@vger.kernel.org, a.zummo@towertech.it,
-        alexandre.belloni@free-electrons.com, linux-rtc@vger.kernel.org,
-        daniel.vetter@intel.com, jani.nikula@linux.intel.com,
-        seanpaul@chromium.org, airlied@linux.ie,
-        dri-devel@lists.freedesktop.org, kvalo@codeaurora.org,
-        linux-wireless@vger.kernel.org, linux-spi@vger.kernel.org,
-        tj@kernel.org, linux-ide@vger.kernel.org, bhelgaas@google.com,
-        linux-pci@vger.kernel.org, devel@driverdev.osuosl.org,
-        dvhart@infradead.org, andy@infradead.org,
-        platform-driver-x86@vger.kernel.org, jakub.kicinski@netronome.com,
-        davem@davemloft.net, nios2-dev@lists.rocketboards.org,
-        netdev@vger.kernel.org, vinod.koul@intel.com,
-        dan.j.williams@intel.com, dmaengine@vger.kernel.org,
-        jslaby@suse.com
-References: <1514026525-32538-1-git-send-email-xieyisheng1@huawei.com>
- <20171223134831.GB10103@kroah.com>
-From: christophe leroy <christophe.leroy@c-s.fr>
-Message-ID: <b8ff7f17-7f2c-f220-9833-7ae5bd7343d5@c-s.fr>
-Date: Sun, 24 Dec 2017 10:05:08 +0100
+Received: from Galois.linutronix.de ([146.0.238.70]:33118 "EHLO
+        Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754503AbdL1RVv (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 28 Dec 2017 12:21:51 -0500
+Date: Thu, 28 Dec 2017 18:21:46 +0100 (CET)
+From: Thomas Gleixner <tglx@linutronix.de>
+To: "Shevchenko, Andriy" <andriy.shevchenko@intel.com>
+cc: "alan@linux.intel.com" <alan@linux.intel.com>,
+        "Ailus, Sakari" <sakari.ailus@intel.com>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: IRQ behaivour has been changed from v4.14 to v4.15-rc1
+In-Reply-To: <1514481444.7000.451.camel@intel.com>
+Message-ID: <alpine.DEB.2.20.1712281820040.1899@nanos>
+References: <1514481444.7000.451.camel@intel.com>
 MIME-Version: 1.0
-In-Reply-To: <20171223134831.GB10103@kroah.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: fr
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Thu, 28 Dec 2017, Shevchenko, Andriy wrote:
 
-
-Le 23/12/2017 à 14:48, Greg KH a écrit :
-> On Sat, Dec 23, 2017 at 06:55:25PM +0800, Yisheng Xie wrote:
->> Hi all,
->>
->> When I tried to use devm_ioremap function and review related code, I found
->> devm_ioremap and devm_ioremap_nocache is almost the same with each other,
->> except one use ioremap while the other use ioremap_nocache.
+> Hi!
 > 
-> For all arches?  Really?  Look at MIPS, and x86, they have different
-> functions.
+> Experimenting with AtomISP (yes, code is ugly and MSI handling rather
+> hackish, though...).
 > 
->> While ioremap's
->> default function is ioremap_nocache, so devm_ioremap_nocache also have the
->> same function with devm_ioremap, which can just be killed to reduce the size
->> of devres.o(from 20304 bytes to 18992 bytes in my compile environment).
->>
->> I have posted two versions, which use macro instead of function for
->> devm_ioremap_nocache[1] or devm_ioremap[2]. And Greg suggest me to kill
->> devm_ioremap_nocache for no need to keep a macro around for the duplicate
->> thing. So here comes v3 and please help to review.
+> So, with v4.14 base:
 > 
-> I don't think this can be done, what am I missing?  These functions are
-> not identical, sorry for missing that before.
-
-devm_ioremap() and devm_ioremap_nocache() are quite similar, both use 
-devm_ioremap_release() for the release, why not just defining:
-
-static void __iomem *__devm_ioremap(struct device *dev, resource_size_t 
-offset,
-			   resource_size_t size, bool nocache)
-{
-[...]
-	if (nocache)
-		addr = ioremap_nocache(offset, size);
-	else
-		addr = ioremap(offset, size);
-[...]
-}
-
-then in include/linux/io.h
-
-static inline void __iomem *devm_ioremap(struct device *dev, 
-resource_size_t offset,
-			   resource_size_t size)
-{return __devm_ioremap(dev, offset, size, false);}
-
-static inline void __iomem *devm_ioremap_nocache(struct device *dev, 
-resource_size_t offset,
-				   resource_size_t size);
-{return __devm_ioremap(dev, offset, size, true);}
-
-Christophe
-
+> [   33.639224] atomisp-isp2 0000:00:03.0: Start stream on pad 1 for asd0
+> [   33.652355] atomisp-isp2 0000:00:03.0: irq:0x20
+> [   33.662456] atomisp-isp2 0000:00:03.0: irq:0x20
+> [   33.698064] atomisp-isp2 0000:00:03.0: stream[0] started.
 > 
-> thanks,
+> Ctrl+C
 > 
-> greg k-h
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-watchdog" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> [   48.185643] atomisp-isp2 0000:00:03.0: <atomisp_dqbuf: -512
+> [   48.204641] atomisp-isp2 0000:00:03.0: release device ATOMISP ISP
+> CAPTURE output
+> ...
 > 
+> and machine still alive.
+> 
+> 
+> With v4.15-rc1 base (basically your branch + some my hack patches) the
+> IR
+> Q behaviour changed, i.e. I have got:
+> 
+> 
+> [   85.167061] spurious APIC interrupt through vector ff on CPU#0,
+> should never happen.
+> [   85.199886] atomisp-isp2 0000:00:03.0: stream[0] started.
+> 
+> and Ctrl+C does NOT work. Machine just hangs.
+> 
+> It might be related to this:
+> https://lkml.org/lkml/2017/12/22/697
 
----
-L'absence de virus dans ce courrier électronique a été vérifiée par le logiciel antivirus Avast.
-https://www.avast.com/antivirus
+I don't think so.
+
+Does the patch below cure it?
+
+Thanks,
+
+	tglx
+8<-----------------
+ arch/x86/kernel/apic/apic_flat_64.c   |    2 +-
+ arch/x86/kernel/apic/probe_32.c       |    2 +-
+ arch/x86/kernel/apic/x2apic_cluster.c |    2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
+
+--- a/arch/x86/kernel/apic/apic_flat_64.c
++++ b/arch/x86/kernel/apic/apic_flat_64.c
+@@ -151,7 +151,7 @@ static struct apic apic_flat __ro_after_
+ 	.apic_id_valid			= default_apic_id_valid,
+ 	.apic_id_registered		= flat_apic_id_registered,
+ 
+-	.irq_delivery_mode		= dest_LowestPrio,
++	.irq_delivery_mode		= dest_Fixed,
+ 	.irq_dest_mode			= 1, /* logical */
+ 
+ 	.disable_esr			= 0,
+--- a/arch/x86/kernel/apic/probe_32.c
++++ b/arch/x86/kernel/apic/probe_32.c
+@@ -105,7 +105,7 @@ static struct apic apic_default __ro_aft
+ 	.apic_id_valid			= default_apic_id_valid,
+ 	.apic_id_registered		= default_apic_id_registered,
+ 
+-	.irq_delivery_mode		= dest_LowestPrio,
++	.irq_delivery_mode		= dest_Fixed,
+ 	/* logical delivery broadcast to all CPUs: */
+ 	.irq_dest_mode			= 1,
+ 
+--- a/arch/x86/kernel/apic/x2apic_cluster.c
++++ b/arch/x86/kernel/apic/x2apic_cluster.c
+@@ -184,7 +184,7 @@ static struct apic apic_x2apic_cluster _
+ 	.apic_id_valid			= x2apic_apic_id_valid,
+ 	.apic_id_registered		= x2apic_apic_id_registered,
+ 
+-	.irq_delivery_mode		= dest_LowestPrio,
++	.irq_delivery_mode		= dest_Fixed,
+ 	.irq_dest_mode			= 1, /* logical */
+ 
+ 	.disable_esr			= 0,
