@@ -1,161 +1,219 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-4.sys.kth.se ([130.237.48.193]:44808 "EHLO
-        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751010AbdLHBI5 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 7 Dec 2017 20:08:57 -0500
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH v9 02/28] rcar-vin: rename poorly named initialize and cleanup functions
-Date: Fri,  8 Dec 2017 02:08:16 +0100
-Message-Id: <20171208010842.20047-3-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20171208010842.20047-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20171208010842.20047-1-niklas.soderlund+renesas@ragnatech.se>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from mail-pl0-f66.google.com ([209.85.160.66]:43528 "EHLO
+        mail-pl0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754332AbdL1UKe (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 28 Dec 2017 15:10:34 -0500
+Received: by mail-pl0-f66.google.com with SMTP id z5so21695087plo.10
+        for <linux-media@vger.kernel.org>; Thu, 28 Dec 2017 12:10:34 -0800 (PST)
+From: Tim Harvey <tharvey@gateworks.com>
+To: linux-media@vger.kernel.org, alsa-devel@alsa-project.org
+Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        shawnguo@kernel.org, Steve Longerbeam <slongerbeam@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Hans Verkuil <hansverk@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Subject: [PATCH v6 6/6] ARM: dts: imx: Add TDA19971 HDMI Receiver to GW551x
+Date: Thu, 28 Dec 2017 12:09:49 -0800
+Message-Id: <1514491789-8697-7-git-send-email-tharvey@gateworks.com>
+In-Reply-To: <1514491789-8697-1-git-send-email-tharvey@gateworks.com>
+References: <1514491789-8697-1-git-send-email-tharvey@gateworks.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The functions to initialize and cleanup the hardware and video device
-where poorly named from the start. Rename them to better describe their
-intended function.
-
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Shawn Guo <shawnguo@kernel.org>
+Signed-off-by: Tim Harvey <tharvey@gateworks.com>
 ---
- drivers/media/platform/rcar-vin/rcar-core.c | 10 +++++-----
- drivers/media/platform/rcar-vin/rcar-dma.c  |  6 +++---
- drivers/media/platform/rcar-vin/rcar-v4l2.c |  4 ++--
- drivers/media/platform/rcar-vin/rcar-vin.h  |  8 ++++----
- 4 files changed, 14 insertions(+), 14 deletions(-)
+v6: no changes
+v5:
+ - add missing audmux config
+---
+ arch/arm/boot/dts/imx6qdl-gw551x.dtsi | 138 ++++++++++++++++++++++++++++++++++
+ 1 file changed, 138 insertions(+)
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
-index 108d776f32651b27..f7a4c21909da6923 100644
---- a/drivers/media/platform/rcar-vin/rcar-core.c
-+++ b/drivers/media/platform/rcar-vin/rcar-core.c
-@@ -93,7 +93,7 @@ static int rvin_digital_notify_complete(struct v4l2_async_notifier *notifier)
- 		return ret;
- 	}
+diff --git a/arch/arm/boot/dts/imx6qdl-gw551x.dtsi b/arch/arm/boot/dts/imx6qdl-gw551x.dtsi
+index 30d4662..749548a 100644
+--- a/arch/arm/boot/dts/imx6qdl-gw551x.dtsi
++++ b/arch/arm/boot/dts/imx6qdl-gw551x.dtsi
+@@ -46,6 +46,8 @@
+  */
  
--	return rvin_v4l2_probe(vin);
-+	return rvin_v4l2_register(vin);
- }
+ #include <dt-bindings/gpio/gpio.h>
++#include <dt-bindings/media/tda1997x.h>
++#include <dt-bindings/sound/fsl-imx-audmux.h>
  
- static void rvin_digital_notify_unbind(struct v4l2_async_notifier *notifier,
-@@ -103,7 +103,7 @@ static void rvin_digital_notify_unbind(struct v4l2_async_notifier *notifier,
- 	struct rvin_dev *vin = notifier_to_vin(notifier);
- 
- 	vin_dbg(vin, "unbind digital subdev %s\n", subdev->name);
--	rvin_v4l2_remove(vin);
-+	rvin_v4l2_unregister(vin);
- 	vin->digital->subdev = NULL;
- }
- 
-@@ -245,7 +245,7 @@ static int rcar_vin_probe(struct platform_device *pdev)
- 	if (irq < 0)
- 		return irq;
- 
--	ret = rvin_dma_probe(vin, irq);
-+	ret = rvin_dma_register(vin, irq);
- 	if (ret)
- 		return ret;
- 
-@@ -260,7 +260,7 @@ static int rcar_vin_probe(struct platform_device *pdev)
- 
- 	return 0;
- error:
--	rvin_dma_remove(vin);
-+	rvin_dma_unregister(vin);
- 	v4l2_async_notifier_cleanup(&vin->notifier);
- 
- 	return ret;
-@@ -275,7 +275,7 @@ static int rcar_vin_remove(struct platform_device *pdev)
- 	v4l2_async_notifier_unregister(&vin->notifier);
- 	v4l2_async_notifier_cleanup(&vin->notifier);
- 
--	rvin_dma_remove(vin);
-+	rvin_dma_unregister(vin);
- 
- 	return 0;
- }
-diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
-index 23fdff7a7370842e..d701b52d198243b5 100644
---- a/drivers/media/platform/rcar-vin/rcar-dma.c
-+++ b/drivers/media/platform/rcar-vin/rcar-dma.c
-@@ -1153,14 +1153,14 @@ static const struct vb2_ops rvin_qops = {
- 	.wait_finish		= vb2_ops_wait_finish,
+ / {
+ 	/* these are used by bootloader for disabling nodes */
+@@ -98,6 +100,50 @@
+ 		regulator-min-microvolt = <5000000>;
+ 		regulator-max-microvolt = <5000000>;
+ 	};
++
++	sound-digital {
++		compatible = "simple-audio-card";
++		simple-audio-card,name = "tda1997x-audio";
++
++		simple-audio-card,dai-link@0 {
++			format = "i2s";
++
++			cpu {
++				sound-dai = <&ssi2>;
++			};
++
++			codec {
++				bitclock-master;
++				frame-master;
++				sound-dai = <&tda1997x>;
++			};
++		};
++	};
++};
++
++&audmux {
++	pinctrl-names = "default";
++	pinctrl-0 = <&pinctrl_audmux>; /* AUD5<->tda1997x */
++	status = "okay";
++
++	ssi1 {
++		fsl,audmux-port = <0>;
++		fsl,port-config = <
++			(IMX_AUDMUX_V2_PTCR_TFSDIR |
++			IMX_AUDMUX_V2_PTCR_TFSEL(4+8) | /* RXFS */
++			IMX_AUDMUX_V2_PTCR_TCLKDIR |
++			IMX_AUDMUX_V2_PTCR_TCSEL(4+8) | /* RXC */
++			IMX_AUDMUX_V2_PTCR_SYN)
++			IMX_AUDMUX_V2_PDCR_RXDSEL(4)
++		>;
++	};
++
++	aud5 {
++		fsl,audmux-port = <4>;
++		fsl,port-config = <
++			IMX_AUDMUX_V2_PTCR_SYN
++			IMX_AUDMUX_V2_PDCR_RXDSEL(0)>;
++	};
  };
  
--void rvin_dma_remove(struct rvin_dev *vin)
-+void rvin_dma_unregister(struct rvin_dev *vin)
- {
- 	mutex_destroy(&vin->lock);
+ &can1 {
+@@ -263,6 +309,60 @@
+ 		#gpio-cells = <2>;
+ 	};
  
- 	v4l2_device_unregister(&vin->v4l2_dev);
- }
- 
--int rvin_dma_probe(struct rvin_dev *vin, int irq)
-+int rvin_dma_register(struct rvin_dev *vin, int irq)
- {
- 	struct vb2_queue *q = &vin->queue;
- 	int i, ret;
-@@ -1208,7 +1208,7 @@ int rvin_dma_probe(struct rvin_dev *vin, int irq)
- 
- 	return 0;
- error:
--	rvin_dma_remove(vin);
-+	rvin_dma_unregister(vin);
- 
- 	return ret;
- }
-diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-index b479b882da12f62d..178aecc94962abe2 100644
---- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-+++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-@@ -839,7 +839,7 @@ static const struct v4l2_file_operations rvin_fops = {
- 	.read		= vb2_fop_read,
++	tda1997x: tda1997x@48 {
++		compatible = "nxp,tda19971";
++		pinctrl-names = "default";
++		pinctrl-0 = <&pinctrl_tda1997x>;
++		reg = <0x48>;
++		interrupt-parent = <&gpio1>;
++		interrupts = <7 IRQ_TYPE_LEVEL_LOW>;
++		DOVDD-supply = <&reg_3p3>;
++		AVDD-supply = <&reg_1p8b>;
++		DVDD-supply = <&reg_1p8a>;
++		#sound-dai-cells = <0>;
++		nxp,audout-format = "i2s";
++		nxp,audout-layout = <0>;
++		nxp,audout-width = <16>;
++		nxp,audout-mclk-fs = <128>;
++		/*
++		 * The 8bpp YUV422 semi-planar mode outputs CbCr[11:4]
++		 * and Y[11:4] across 16bits in the same cycle
++		 * which we map to VP[15:08]<->CSI_DATA[19:12]
++		 */
++		nxp,vidout-portcfg =
++			/*G_Y_11_8<->VP[15:12]<->CSI_DATA[19:16]*/
++			< TDA1997X_VP24_V15_12 TDA1997X_G_Y_11_8 >,
++			/*G_Y_7_4<->VP[11:08]<->CSI_DATA[15:12]*/
++			< TDA1997X_VP24_V11_08 TDA1997X_G_Y_7_4 >,
++			/*R_CR_CBCR_11_8<->VP[07:04]<->CSI_DATA[11:08]*/
++			< TDA1997X_VP24_V07_04 TDA1997X_R_CR_CBCR_11_8 >,
++			/*R_CR_CBCR_7_4<->VP[03:00]<->CSI_DATA[07:04]*/
++			< TDA1997X_VP24_V03_00 TDA1997X_R_CR_CBCR_7_4 >;
++
++		port {
++			tda1997x_to_ipu1_csi0_mux: endpoint {
++				remote-endpoint = <&ipu1_csi0_mux_from_parallel_sensor>;
++				bus-width = <16>;
++				hsync-active = <1>;
++				vsync-active = <1>;
++				data-active = <1>;
++			};
++		};
++	};
++};
++
++&ipu1_csi0_from_ipu1_csi0_mux {
++	bus-width = <16>;
++};
++
++&ipu1_csi0_mux_from_parallel_sensor {
++	remote-endpoint = <&tda1997x_to_ipu1_csi0_mux>;
++	bus-width = <16>;
++};
++
++&ipu1_csi0 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&pinctrl_ipu1_csi0>;
  };
  
--void rvin_v4l2_remove(struct rvin_dev *vin)
-+void rvin_v4l2_unregister(struct rvin_dev *vin)
- {
- 	v4l2_info(&vin->v4l2_dev, "Removing %s\n",
- 		  video_device_node_name(&vin->vdev));
-@@ -866,7 +866,7 @@ static void rvin_notify(struct v4l2_subdev *sd,
- 	}
- }
+ &pcie {
+@@ -320,6 +420,14 @@
+ };
  
--int rvin_v4l2_probe(struct rvin_dev *vin)
-+int rvin_v4l2_register(struct rvin_dev *vin)
- {
- 	struct video_device *vdev = &vin->vdev;
- 	struct v4l2_subdev *sd = vin_to_source(vin);
-diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
-index 5382078143fb3869..85cb7ec53d2b08b5 100644
---- a/drivers/media/platform/rcar-vin/rcar-vin.h
-+++ b/drivers/media/platform/rcar-vin/rcar-vin.h
-@@ -153,11 +153,11 @@ struct rvin_dev {
- #define vin_warn(d, fmt, arg...)	dev_warn(d->dev, fmt, ##arg)
- #define vin_err(d, fmt, arg...)		dev_err(d->dev, fmt, ##arg)
+ &iomuxc {
++	pinctrl_audmux: audmuxgrp {
++		fsl,pins = <
++			MX6QDL_PAD_DISP0_DAT19__AUD5_RXD	0x130b0
++			MX6QDL_PAD_DISP0_DAT14__AUD5_RXC	0x130b0
++			MX6QDL_PAD_DISP0_DAT13__AUD5_RXFS	0x130b0
++		>;
++	};
++
+ 	pinctrl_flexcan1: flexcan1grp {
+ 		fsl,pins = <
+ 			MX6QDL_PAD_KEY_ROW2__FLEXCAN1_RX	0x1b0b1
+@@ -375,6 +483,30 @@
+ 		>;
+ 	};
  
--int rvin_dma_probe(struct rvin_dev *vin, int irq);
--void rvin_dma_remove(struct rvin_dev *vin);
-+int rvin_dma_register(struct rvin_dev *vin, int irq);
-+void rvin_dma_unregister(struct rvin_dev *vin);
++	pinctrl_ipu1_csi0: ipu1_csi0grp {
++		fsl,pins = <
++			MX6QDL_PAD_CSI0_DAT4__IPU1_CSI0_DATA04		0x1b0b0
++			MX6QDL_PAD_CSI0_DAT5__IPU1_CSI0_DATA05		0x1b0b0
++			MX6QDL_PAD_CSI0_DAT6__IPU1_CSI0_DATA06		0x1b0b0
++			MX6QDL_PAD_CSI0_DAT7__IPU1_CSI0_DATA07		0x1b0b0
++			MX6QDL_PAD_CSI0_DAT8__IPU1_CSI0_DATA08		0x1b0b0
++			MX6QDL_PAD_CSI0_DAT9__IPU1_CSI0_DATA09		0x1b0b0
++			MX6QDL_PAD_CSI0_DAT10__IPU1_CSI0_DATA10		0x1b0b0
++			MX6QDL_PAD_CSI0_DAT11__IPU1_CSI0_DATA11		0x1b0b0
++			MX6QDL_PAD_CSI0_DAT12__IPU1_CSI0_DATA12		0x1b0b0
++			MX6QDL_PAD_CSI0_DAT13__IPU1_CSI0_DATA13		0x1b0b0
++			MX6QDL_PAD_CSI0_DAT14__IPU1_CSI0_DATA14		0x1b0b0
++			MX6QDL_PAD_CSI0_DAT15__IPU1_CSI0_DATA15		0x1b0b0
++			MX6QDL_PAD_CSI0_DAT16__IPU1_CSI0_DATA16		0x1b0b0
++			MX6QDL_PAD_CSI0_DAT17__IPU1_CSI0_DATA17		0x1b0b0
++			MX6QDL_PAD_CSI0_DAT18__IPU1_CSI0_DATA18		0x1b0b0
++			MX6QDL_PAD_CSI0_DAT19__IPU1_CSI0_DATA19		0x1b0b0
++			MX6QDL_PAD_CSI0_MCLK__IPU1_CSI0_HSYNC		0x1b0b0
++			MX6QDL_PAD_CSI0_PIXCLK__IPU1_CSI0_PIXCLK	0x1b0b0
++			MX6QDL_PAD_CSI0_VSYNC__IPU1_CSI0_VSYNC		0x1b0b0
++		>;
++	};
++
+ 	pinctrl_pcie: pciegrp {
+ 		fsl,pins = <
+ 			MX6QDL_PAD_GPIO_0__GPIO1_IO00		0x1b0b0 /* PCIE RST */
+@@ -399,6 +531,12 @@
+ 		>;
+ 	};
  
--int rvin_v4l2_probe(struct rvin_dev *vin);
--void rvin_v4l2_remove(struct rvin_dev *vin);
-+int rvin_v4l2_register(struct rvin_dev *vin);
-+void rvin_v4l2_unregister(struct rvin_dev *vin);
- 
- const struct rvin_video_format *rvin_format_from_pixel(u32 pixelformat);
- 
++	pinctrl_tda1997x: tda1997xgrp {
++		fsl,pins = <
++			MX6QDL_PAD_GPIO_7__GPIO1_IO07		0x1b0b0
++		>;
++	};
++
+ 	pinctrl_uart2: uart2grp {
+ 		fsl,pins = <
+ 			MX6QDL_PAD_SD4_DAT7__UART2_TX_DATA	0x1b0b1
 -- 
-2.15.0
+2.7.4
