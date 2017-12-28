@@ -1,70 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:37872 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751975AbdLMJfL (ORCPT
+Received: from relay5-d.mail.gandi.net ([217.70.183.197]:60917 "EHLO
+        relay5-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932071AbdL1OBu (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 13 Dec 2017 04:35:11 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>
-Subject: [PATCH v2 2/2] uvcvideo: Report V4L2 device caps through the video_device structure
-Date: Wed, 13 Dec 2017 11:35:09 +0200
-Message-Id: <20171213093509.25563-3-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <20171213093509.25563-1-laurent.pinchart@ideasonboard.com>
-References: <20171213093509.25563-1-laurent.pinchart@ideasonboard.com>
+        Thu, 28 Dec 2017 09:01:50 -0500
+From: Jacopo Mondi <jacopo+renesas@jmondi.org>
+To: laurent.pinchart@ideasonboard.com, magnus.damm@gmail.com,
+        geert@glider.be, mchehab@kernel.org, hverkuil@xs4all.nl,
+        robh+dt@kernel.org, mark.rutland@arm.com
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-sh@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: [PATCH v2 4/9] ARM: dts: r7s72100: Add Capture Engine Unit (CEU)
+Date: Thu, 28 Dec 2017 15:01:16 +0100
+Message-Id: <1514469681-15602-5-git-send-email-jacopo+renesas@jmondi.org>
+In-Reply-To: <1514469681-15602-1-git-send-email-jacopo+renesas@jmondi.org>
+References: <1514469681-15602-1-git-send-email-jacopo+renesas@jmondi.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The V4L2 core populates the struct v4l2_capability device_caps field
-from the same field in video_device. There's no need to handle that
-manually in the driver.
+Add Capture Engine Unit (CEU) node to device tree.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Reviewed-by: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>
-Tested-by: Guennadi Liakhovetski <guennadi.liakhovetski@intel.com>
+Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
 ---
- drivers/media/usb/uvc/uvc_driver.c | 11 +++++++++++
- drivers/media/usb/uvc/uvc_v4l2.c   |  4 ----
- 2 files changed, 11 insertions(+), 4 deletions(-)
+ arch/arm/boot/dts/r7s72100.dtsi | 15 ++++++++++++---
+ 1 file changed, 12 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/usb/uvc/uvc_driver.c b/drivers/media/usb/uvc/uvc_driver.c
-index f6fbfc122871..d63458539e03 100644
---- a/drivers/media/usb/uvc/uvc_driver.c
-+++ b/drivers/media/usb/uvc/uvc_driver.c
-@@ -1921,6 +1921,17 @@ int uvc_register_video_device(struct uvc_device *dev,
- 		vdev->vfl_dir = VFL_DIR_TX;
- 	else
- 		vdev->vfl_dir = VFL_DIR_RX;
-+
-+	switch (type) {
-+	case V4L2_BUF_TYPE_VIDEO_CAPTURE:
-+	default:
-+		vdev->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING;
-+		break;
-+	case V4L2_BUF_TYPE_VIDEO_OUTPUT:
-+		vdev->device_caps = V4L2_CAP_VIDEO_OUTPUT | V4L2_CAP_STREAMING;
-+		break;
-+	}
-+
- 	strlcpy(vdev->name, dev->name, sizeof vdev->name);
+diff --git a/arch/arm/boot/dts/r7s72100.dtsi b/arch/arm/boot/dts/r7s72100.dtsi
+index ab9645a..b09b032 100644
+--- a/arch/arm/boot/dts/r7s72100.dtsi
++++ b/arch/arm/boot/dts/r7s72100.dtsi
+@@ -135,9 +135,9 @@
+ 			#clock-cells = <1>;
+ 			compatible = "renesas,r7s72100-mstp-clocks", "renesas,cpg-mstp-clocks";
+ 			reg = <0xfcfe042c 4>;
+-			clocks = <&p0_clk>;
+-			clock-indices = <R7S72100_CLK_RTC>;
+-			clock-output-names = "rtc";
++			clocks = <&b_clk>, <&p0_clk>;
++			clock-indices = <R7S72100_CLK_CEU R7S72100_CLK_RTC>;
++			clock-output-names = "ceu", "rtc";
+ 		};
  
- 	/*
-diff --git a/drivers/media/usb/uvc/uvc_v4l2.c b/drivers/media/usb/uvc/uvc_v4l2.c
-index 3e7e283a44a8..5e0323982577 100644
---- a/drivers/media/usb/uvc/uvc_v4l2.c
-+++ b/drivers/media/usb/uvc/uvc_v4l2.c
-@@ -568,10 +568,6 @@ static int uvc_ioctl_querycap(struct file *file, void *fh,
- 	usb_make_path(stream->dev->udev, cap->bus_info, sizeof(cap->bus_info));
- 	cap->capabilities = V4L2_CAP_DEVICE_CAPS | V4L2_CAP_STREAMING
- 			  | chain->caps;
--	if (stream->type == V4L2_BUF_TYPE_VIDEO_CAPTURE)
--		cap->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING;
--	else
--		cap->device_caps = V4L2_CAP_VIDEO_OUTPUT | V4L2_CAP_STREAMING;
- 
- 	return 0;
- }
+ 		mstp7_clks: mstp7_clks@fcfe0430 {
+@@ -667,4 +667,13 @@
+ 		power-domains = <&cpg_clocks>;
+ 		status = "disabled";
+ 	};
++
++	ceu: ceu@e8210000 {
++		reg = <0xe8210000 0x209c>;
++		compatible = "renesas,r7s72100-ceu";
++		interrupts = <GIC_SPI 332 IRQ_TYPE_LEVEL_HIGH>;
++		clocks = <&mstp6_clks R7S72100_CLK_CEU>;
++		power-domains = <&cpg_clocks>;
++		status = "disabled";
++	};
+ };
 -- 
-Regards,
-
-Laurent Pinchart
+2.7.4
