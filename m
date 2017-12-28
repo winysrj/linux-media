@@ -1,83 +1,135 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-4.sys.kth.se ([130.237.48.193]:44910 "EHLO
-        smtp-4.sys.kth.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752232AbdLHBI7 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 7 Dec 2017 20:08:59 -0500
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH v9 10/28] rcar-vin: do not reset crop and compose when setting format
-Date: Fri,  8 Dec 2017 02:08:24 +0100
-Message-Id: <20171208010842.20047-11-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20171208010842.20047-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20171208010842.20047-1-niklas.soderlund+renesas@ragnatech.se>
+Received: from mga14.intel.com ([192.55.52.115]:2647 "EHLO mga14.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751411AbdL1M5v (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 28 Dec 2017 07:57:51 -0500
+Date: Thu, 28 Dec 2017 14:57:46 +0200
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Hans Verkuil <hansverk@cisco.com>,
+        Christophe JAILLET <christophe.jaillet@wanadoo.fr>,
+        Hirokazu Honda <hiroh@chromium.org>,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Satendra Singh Thakur <satendra.t@samsung.com>
+Subject: Re: [PATCH] videobuf2-core: don't go out of the buffer range
+Message-ID: <20171228125746.7pherhu6vpxvu6az@kekkonen.localdomain>
+References: <9d7d743966f05181299fbf18cec9243e62bdfd25.1514462548.git.mchehab@s-opensource.com>
+ <20171228121956.4zec6bzragjvofha@kekkonen.localdomain>
+ <20171228102529.5c96e863@vento.lan>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20171228102529.5c96e863@vento.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-It was a bad idea to reset the crop and compose settings when a new
-format is set. This would overwrite any crop/compose set by s_select and
-cause unexpected behaviors, remove it. Also fold the reset helper in to
-the only remaining caller.
+On Thu, Dec 28, 2017 at 10:25:29AM -0200, Mauro Carvalho Chehab wrote:
+> Em Thu, 28 Dec 2017 14:19:56 +0200
+> Sakari Ailus <sakari.ailus@linux.intel.com> escreveu:
+> 
+> > Hi Mauro,
+> > 
+> > Thanks for the patch.
+> > 
+> > On Thu, Dec 28, 2017 at 10:02:33AM -0200, Mauro Carvalho Chehab wrote:
+> > > Currently, there's no check if an invalid buffer range
+> > > is passed. However, while testing DVB memory mapped apps,
+> > > I got this:
+> > > 
+> > >    videobuf2_core: VB: num_buffers -2143943680, buffer 33, index -2143943647
+> > >    unable to handle kernel paging request at ffff888b773c0890
+> > >    IP: __vb2_queue_alloc+0x134/0x4e0 [videobuf2_core]
+> > >    PGD 4142c7067 P4D 4142c7067 PUD 0
+> > >    Oops: 0002 [#1] SMP
+> > >    Modules linked in: xt_CHECKSUM iptable_mangle ipt_MASQUERADE nf_nat_masquerade_ipv4 iptable_nat nf_nat_ipv4 nf_nat nf_conntrack_ipv4 nf_defrag_ipv4 xt_conntrack nf_conntrack tun bridge stp llc ebtable_filter ebtables ip6table_filter ip6_tables bluetooth rfkill ecdh_generic binfmt_misc rc_dvbsky sp2 ts2020 intel_rapl x86_pkg_temp_thermal dvb_usb_dvbsky intel_powerclamp dvb_usb_v2 coretemp m88ds3103 kvm_intel i2c_mux dvb_core snd_hda_codec_hdmi crct10dif_pclmul crc32_pclmul videobuf2_vmalloc videobuf2_memops snd_hda_intel ghash_clmulni_intel videobuf2_core snd_hda_codec rc_core mei_me intel_cstate snd_hwdep snd_hda_core videodev intel_uncore snd_pcm mei media tpm_tis tpm_tis_core intel_rapl_perf tpm snd_timer lpc_ich snd soundcore kvm irqbypass libcrc32c i915 i2c_algo_bit drm_kms_helper
+> > >    e1000e ptp drm crc32c_intel video pps_core
+> > >    CPU: 3 PID: 1776 Comm: dvbv5-zap Not tainted 4.14.0+ #78
+> > >    Hardware name:                  /NUC5i7RYB, BIOS RYBDWi35.86A.0364.2017.0511.0949 05/11/2017
+> > >    task: ffff88877c73bc80 task.stack: ffffb7c402418000
+> > >    RIP: 0010:__vb2_queue_alloc+0x134/0x4e0 [videobuf2_core]
+> > >    RSP: 0018:ffffb7c40241bc60 EFLAGS: 00010246
+> > >    RAX: 0000000080360421 RBX: 0000000000000021 RCX: 000000000000000a
+> > >    RDX: ffffb7c40241bcf4 RSI: ffff888780362c60 RDI: ffff888796d8e130
+> > >    RBP: ffffb7c40241bcc8 R08: 0000000000000316 R09: 0000000000000004
+> > >    R10: ffff888780362c00 R11: 0000000000000001 R12: 000000000002f000
+> > >    R13: ffff8887758be700 R14: 0000000000021000 R15: 0000000000000001
+> > >    FS:  00007f2849024740(0000) GS:ffff888796d80000(0000) knlGS:0000000000000000
+> > >    CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+> > >    CR2: ffff888b773c0890 CR3: 000000043beb2005 CR4: 00000000003606e0
+> > >    Call Trace:
+> > >     vb2_core_reqbufs+0x226/0x420 [videobuf2_core]
+> > >     dvb_vb2_reqbufs+0x2d/0xc0 [dvb_core]
+> > >     dvb_dvr_do_ioctl+0x98/0x1d0 [dvb_core]
+> > >     dvb_usercopy+0x53/0x1b0 [dvb_core]
+> > >     ? dvb_demux_ioctl+0x20/0x20 [dvb_core]
+> > >     ? tty_ldisc_deref+0x16/0x20
+> > >     ? tty_write+0x1f9/0x310
+> > >     ? process_echoes+0x70/0x70
+> > >     dvb_dvr_ioctl+0x15/0x20 [dvb_core]
+> > >     do_vfs_ioctl+0xa5/0x600
+> > >     SyS_ioctl+0x79/0x90
+> > >     entry_SYSCALL_64_fastpath+0x1a/0xa5
+> > >    RIP: 0033:0x7f28486f7ea7
+> > >    RSP: 002b:00007ffc13b2db18 EFLAGS: 00000246 ORIG_RAX: 0000000000000010
+> > >    RAX: ffffffffffffffda RBX: 000055b10fc06130 RCX: 00007f28486f7ea7
+> > >    RDX: 00007ffc13b2db48 RSI: 00000000c0086f3c RDI: 0000000000000007
+> > >    RBP: 0000000000000203 R08: 000055b10df1e02c R09: 000000000000002e
+> > >    R10: 0036b42415108357 R11: 0000000000000246 R12: 0000000000000000
+> > >    R13: 00007f2849062f60 R14: 00000000000001f1 R15: 00007ffc13b2da54
+> > >    Code: 74 0a 60 8b 0a 48 83 c0 30 48 83 c2 04 89 48 d0 89 48 d4 48 39 f0 75 eb 41 8b 42 08 83 7d d4 01 41 c7 82 ec 01 00 00 ff ff ff ff <4d> 89 94 c5 88 00 00 00 74 14 83 c3 01 41 39 dc 0f 85 f1 fe ff
+> > >    RIP: __vb2_queue_alloc+0x134/0x4e0 [videobuf2_core] RSP: ffffb7c40241bc60
+> > >    CR2: ffff888b773c0890
+> > > 
+> > > So, add a sanity check in order to prevent going past array.
+> > > 
+> > > Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> > > ---
+> > >  drivers/media/common/videobuf/videobuf2-core.c | 4 ++++
+> > >  1 file changed, 4 insertions(+)
+> > > 
+> > > diff --git a/drivers/media/common/videobuf/videobuf2-core.c b/drivers/media/common/videobuf/videobuf2-core.c
+> > > index cb115ba6a1d2..9107ffc4d808 100644
+> > > --- a/drivers/media/common/videobuf/videobuf2-core.c
+> > > +++ b/drivers/media/common/videobuf/videobuf2-core.c
+> > > @@ -332,6 +332,10 @@ static int __vb2_queue_alloc(struct vb2_queue *q, enum vb2_memory memory,
+> > >  	struct vb2_buffer *vb;
+> > >  	int ret;
+> > >  
+> > > +	/* Sanity check to avoid going past q->bufs size */
+> > > +	if (q->num_buffers < 0 || q->num_buffers + num_buffers > VB2_MAX_FRAME)  
+> > 
+> > These checks already exists in vb2_core_reqbufs as well as in
+> > vb2_core_create_bufs. The queue_setup callback can change it though, so the
+> > check appears to be worth it.
+> > 
+> > I'm just trying to figure out whether it's only DVB that's affected.
+> 
+> I suspect so. At dvb-vb2, it just calls the VB2 core, without validating
+> the buffers.
+> 
+> Without this patch, it is accepting q->num_buffers + num_buffers to be
+> greater than VB2_MAX_FRAME.
+> 
+> In any case, as this causes a buffer overflow, it is worth having
+> the check there, where q->bufs[q->num_buffers + index] is
+> used for the first time.
+> 
+> I still think I'll add an additional check at dvb-vb2, but, as we
+> could have other clients in the future, it seems worth that the core
+> itself to double-check.
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/platform/rcar-vin/rcar-v4l2.c | 21 +++++++--------------
- 1 file changed, 7 insertions(+), 14 deletions(-)
+These checks are in core, or that appears to be the intention at least. As
+far as I can tell, with existing checks you don't end up with
+q->num_buffers + num_buffers greater than VB2_MAX_FRAME (unless queue_setup
+does that).
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-index 1c5e7f6d5b963740..254fa1c8770275a5 100644
---- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-+++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-@@ -90,17 +90,6 @@ static u32 rvin_format_sizeimage(struct v4l2_pix_format *pix)
-  * V4L2
-  */
- 
--static void rvin_reset_crop_compose(struct rvin_dev *vin)
--{
--	vin->crop.top = vin->crop.left = 0;
--	vin->crop.width = vin->source.width;
--	vin->crop.height = vin->source.height;
--
--	vin->compose.top = vin->compose.left = 0;
--	vin->compose.width = vin->format.width;
--	vin->compose.height = vin->format.height;
--}
--
- static int rvin_reset_format(struct rvin_dev *vin)
- {
- 	struct v4l2_subdev_format fmt = {
-@@ -147,7 +136,13 @@ static int rvin_reset_format(struct rvin_dev *vin)
- 		break;
- 	}
- 
--	rvin_reset_crop_compose(vin);
-+	vin->crop.top = vin->crop.left = 0;
-+	vin->crop.width = mf->width;
-+	vin->crop.height = mf->height;
-+
-+	vin->compose.top = vin->compose.left = 0;
-+	vin->compose.width = mf->width;
-+	vin->compose.height = mf->height;
- 
- 	vin->format.bytesperline = rvin_format_bytesperline(&vin->format);
- 	vin->format.sizeimage = rvin_format_sizeimage(&vin->format);
-@@ -317,8 +312,6 @@ static int rvin_s_fmt_vid_cap(struct file *file, void *priv,
- 
- 	vin->format = f->fmt.pix;
- 
--	rvin_reset_crop_compose(vin);
--
- 	return 0;
- }
- 
+q->num_buffers is also zero when __vb2_queue_alloc() is called through
+vb2_core_reqbufs.
+
+So could there be something else that's wrong, too?
+
 -- 
-2.15.0
+Sakari Ailus
+sakari.ailus@linux.intel.com
