@@ -1,94 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:61087 "EHLO osg.samsung.com"
+Received: from osg.samsung.com ([64.30.133.232]:48194 "EHLO osg.samsung.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753523AbdLHO7n (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 8 Dec 2017 09:59:43 -0500
-Date: Fri, 8 Dec 2017 12:59:37 -0200
+        id S1752885AbdL1NJX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 28 Dec 2017 08:09:23 -0500
 From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org, rajmohan.mani@intel.com,
-        yong.zhi@intel.com
-Subject: Re: [RESEND GIT PULL for 4.16] Intel IPU3 CIO2 CSI-2 receiver
- driver
-Message-ID: <20171208125937.07bb3302@vento.lan>
-In-Reply-To: <20171201143135.c6r2e2iaoxcvyxpi@valkosipuli.retiisi.org.uk>
-References: <20171201143135.c6r2e2iaoxcvyxpi@valkosipuli.retiisi.org.uk>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Inki Dae <inki.dae@samsung.com>,
+        Junghak Sung <jh1009.sung@samsung.com>,
+        Seung-Woo Kim <sw0312.kim@samsung.com>,
+        Satendra Singh Thakur <satendra.t@samsung.com>
+Subject: [PATCH 2/2] media: dvb_vb2: limit reqbufs size to  a sane value
+Date: Thu, 28 Dec 2017 11:09:17 -0200
+Message-Id: <250e67e6e82643336d047e41780fbb72dc33687d.1514466421.git.mchehab@s-opensource.com>
+In-Reply-To: <60dd6554070454d7f76c9d6d65f4ec8fc370b994.1514466421.git.mchehab@s-opensource.com>
+References: <60dd6554070454d7f76c9d6d65f4ec8fc370b994.1514466421.git.mchehab@s-opensource.com>
+In-Reply-To: <60dd6554070454d7f76c9d6d65f4ec8fc370b994.1514466421.git.mchehab@s-opensource.com>
+References: <60dd6554070454d7f76c9d6d65f4ec8fc370b994.1514466421.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 1 Dec 2017 16:31:36 +0200
-Sakari Ailus <sakari.ailus@iki.fi> escreveu:
+It is not a good idea to let users to request a very high buffer
+size.
 
-> Hi Mauro,
-> 
-> Here's the Intel IPU3 CIO2 CSI-2 receiver driver, with the accompanying
-> format definitions.
+So, add an upper limit.
 
-This patch generates two warnings:
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/media/dvb-core/dvb_vb2.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-drivers/media/pci/intel/ipu3/ipu3-cio2.c:1899:16: warning: Variable length array is used.
-drivers/media/pci/intel/ipu3/ipu3-cio2.c: In function 'cio2_pci_probe':
-drivers/media/pci/intel/ipu3/ipu3-cio2.c:1726:14: warning: variable 'phys' set but not used [-Wunused-but-set-variable]
-  phys_addr_t phys;
-              ^~~~
-
-We should never use variable-length array on Kernel, as Linux stack
-is very limited, and we have static analyzers to check for it at
-compilation time.
-
-Also, the logic should check if pci_resource_start() succeeded, instead
-of just ignoring it.
-
-Please fix.
-
-
-> 
-> Please pull.
-> 
-> 
-> The following changes since commit be9b53c83792e3898755dce90f8c632d40e7c83e:
-> 
->   media: dvb-frontends: complete kernel-doc markups (2017-11-30 04:19:05 -0500)
-> 
-> are available in the git repository at:
-> 
->   ssh://linuxtv.org/git/sailus/media_tree.git ipu3
-> 
-> for you to fetch changes up to f178207daa68e817ab6fd702d81ed7c8637ab72c:
-> 
->   intel-ipu3: cio2: add new MIPI-CSI2 driver (2017-11-30 14:19:47 +0200)
-> 
-> ----------------------------------------------------------------
-> Yong Zhi (3):
->       videodev2.h, v4l2-ioctl: add IPU3 raw10 color format
->       doc-rst: add IPU3 raw10 bayer pixel format definitions
->       intel-ipu3: cio2: add new MIPI-CSI2 driver
-> 
->  Documentation/media/uapi/v4l/pixfmt-rgb.rst        |    1 +
->  .../media/uapi/v4l/pixfmt-srggb10-ipu3.rst         |  335 ++++
->  MAINTAINERS                                        |    8 +
->  drivers/media/pci/Kconfig                          |    2 +
->  drivers/media/pci/Makefile                         |    3 +-
->  drivers/media/pci/intel/Makefile                   |    5 +
->  drivers/media/pci/intel/ipu3/Kconfig               |   19 +
->  drivers/media/pci/intel/ipu3/Makefile              |    1 +
->  drivers/media/pci/intel/ipu3/ipu3-cio2.c           | 2052 ++++++++++++++++++++
->  drivers/media/pci/intel/ipu3/ipu3-cio2.h           |  449 +++++
->  drivers/media/v4l2-core/v4l2-ioctl.c               |    4 +
->  include/uapi/linux/videodev2.h                     |    6 +
->  12 files changed, 2884 insertions(+), 1 deletion(-)
->  create mode 100644 Documentation/media/uapi/v4l/pixfmt-srggb10-ipu3.rst
->  create mode 100644 drivers/media/pci/intel/Makefile
->  create mode 100644 drivers/media/pci/intel/ipu3/Kconfig
->  create mode 100644 drivers/media/pci/intel/ipu3/Makefile
->  create mode 100644 drivers/media/pci/intel/ipu3/ipu3-cio2.c
->  create mode 100644 drivers/media/pci/intel/ipu3/ipu3-cio2.h
-> 
-
-
-
-Thanks,
-Mauro
+diff --git a/drivers/media/dvb-core/dvb_vb2.c b/drivers/media/dvb-core/dvb_vb2.c
+index ccb99cfed2b3..d9fafeeb0d04 100644
+--- a/drivers/media/dvb-core/dvb_vb2.c
++++ b/drivers/media/dvb-core/dvb_vb2.c
+@@ -19,6 +19,8 @@
+ #include "dvbdev.h"
+ #include "dvb_vb2.h"
+ 
++#define DVB_V2_MAX_SIZE 	(4096 * 188)
++
+ static int vb2_debug;
+ module_param(vb2_debug, int, 0644);
+ 
+@@ -330,6 +332,12 @@ int dvb_vb2_reqbufs(struct dvb_vb2_ctx *ctx, struct dmx_requestbuffers *req)
+ {
+ 	int ret;
+ 
++	/* Adjust size to a sane value */
++	if (req->size > DVB_V2_MAX_SIZE)
++		req->size = DVB_V2_MAX_SIZE;
++
++	/* FIXME: round req->size to a 188 or 204 multiple */
++
+ 	ctx->buf_siz = req->size;
+ 	ctx->buf_cnt = req->count;
+ 	ret = vb2_core_reqbufs(&ctx->vb_q, VB2_MEMORY_MMAP, &req->count);
+-- 
+2.14.3
