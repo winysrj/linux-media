@@ -1,92 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:38398 "EHLO
-        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751122AbdLZXiF (ORCPT
+Received: from mail-pl0-f65.google.com ([209.85.160.65]:35569 "EHLO
+        mail-pl0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755336AbdL2IIj (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 26 Dec 2017 18:38:05 -0500
-Received: by mail-wm0-f66.google.com with SMTP id 64so36828826wme.3
-        for <linux-media@vger.kernel.org>; Tue, 26 Dec 2017 15:38:05 -0800 (PST)
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: linux-media@vger.kernel.org, mchehab@kernel.org,
-        mchehab@s-opensource.com
-Cc: Ralph Metzler <rjkm@metzlerbros.de>
-Subject: [PATCH 2/4] [media] dvb-frontends/stv0910: cleanup I2C access functions
-Date: Wed, 27 Dec 2017 00:37:57 +0100
-Message-Id: <20171226233759.16116-3-d.scheller.oss@gmail.com>
-In-Reply-To: <20171226233759.16116-1-d.scheller.oss@gmail.com>
-References: <20171226233759.16116-1-d.scheller.oss@gmail.com>
+        Fri, 29 Dec 2017 03:08:39 -0500
+From: Shunqian Zheng <zhengsq@rock-chips.com>
+To: mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com
+Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        ddl@rock-chips.com, tfiga@chromium.org,
+        Shunqian Zheng <zhengsq@rock-chips.com>
+Subject: [PATCH v2 4/4] [media] dt/bindings: Add bindings for OV2685
+Date: Fri, 29 Dec 2017 16:08:25 +0800
+Message-Id: <1514534905-21393-4-git-send-email-zhengsq@rock-chips.com>
+In-Reply-To: <1514534905-21393-1-git-send-email-zhengsq@rock-chips.com>
+References: <1514534905-21393-1-git-send-email-zhengsq@rock-chips.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Daniel Scheller <d.scheller@gmx.net>
+Add device tree binding documentation for the OV2685 sensor.
 
-write_reg() and i2c_write_reg16() only act as a proxy to i2c_write(), which
-isn't called from anywhere else throughout the driver. Clean this up by
-moving the message setup and the i2c_transfer() into write_reg() so it
-becomes the only I2C write function. While touching those parts, fix the
-error codes from EREMOTEIO to EIO.
-
-The I2C cleanup is picked from the upstream dddvb.
-
-Cc: Ralph Metzler <rjkm@metzlerbros.de>
-Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+Signed-off-by: Shunqian Zheng <zhengsq@rock-chips.com>
 ---
- drivers/media/dvb-frontends/stv0910.c | 28 ++++++++--------------------
- 1 file changed, 8 insertions(+), 20 deletions(-)
+ .../devicetree/bindings/media/i2c/ov2685.txt       | 35 ++++++++++++++++++++++
+ 1 file changed, 35 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/ov2685.txt
 
-diff --git a/drivers/media/dvb-frontends/stv0910.c b/drivers/media/dvb-frontends/stv0910.c
-index a6c473f3647f..06d2587125dd 100644
---- a/drivers/media/dvb-frontends/stv0910.c
-+++ b/drivers/media/dvb-frontends/stv0910.c
-@@ -137,33 +137,21 @@ struct slookup {
- 	u32  reg_value;
- };
- 
--static inline int i2c_write(struct i2c_adapter *adap, u8 adr,
--			    u8 *data, int len)
-+static int write_reg(struct stv *state, u16 reg, u8 val)
- {
--	struct i2c_msg msg = {.addr = adr, .flags = 0,
--			      .buf = data, .len = len};
-+	struct i2c_adapter *adap = state->base->i2c;
-+	u8 data[3] = {reg >> 8, reg & 0xff, val};
-+	struct i2c_msg msg = {.addr = state->base->adr, .flags = 0,
-+			      .buf = data, .len = 3};
- 
- 	if (i2c_transfer(adap, &msg, 1) != 1) {
- 		dev_warn(&adap->dev, "i2c write error ([%02x] %04x: %02x)\n",
--			 adr, (data[0] << 8) | data[1],
--			 (len > 2 ? data[2] : 0));
--		return -EREMOTEIO;
-+			 state->base->adr, reg, val);
-+		return -EIO;
- 	}
- 	return 0;
- }
- 
--static int i2c_write_reg16(struct i2c_adapter *adap, u8 adr, u16 reg, u8 val)
--{
--	u8 msg[3] = {reg >> 8, reg & 0xff, val};
--
--	return i2c_write(adap, adr, msg, 3);
--}
--
--static int write_reg(struct stv *state, u16 reg, u8 val)
--{
--	return i2c_write_reg16(state->base->i2c, state->base->adr, reg, val);
--}
--
- static inline int i2c_read_regs16(struct i2c_adapter *adapter, u8 adr,
- 				  u16 reg, u8 *val, int count)
- {
-@@ -176,7 +164,7 @@ static inline int i2c_read_regs16(struct i2c_adapter *adapter, u8 adr,
- 	if (i2c_transfer(adapter, msgs, 2) != 2) {
- 		dev_warn(&adapter->dev, "i2c read error ([%02x] %04x)\n",
- 			 adr, reg);
--		return -EREMOTEIO;
-+		return -EIO;
- 	}
- 	return 0;
- }
+diff --git a/Documentation/devicetree/bindings/media/i2c/ov2685.txt b/Documentation/devicetree/bindings/media/i2c/ov2685.txt
+new file mode 100644
+index 0000000..85aec03
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/i2c/ov2685.txt
+@@ -0,0 +1,35 @@
++* Omnivision OV2685 MIPI CSI-2 sensor
++
++Required Properties:
++- compatible: should be "ovti,ov2685"
++- clocks: reference to the 24M xvclk input clock.
++- clock-names: should be "xvclk".
++- avdd-supply: Analog voltage supply, 2.8 volts
++- dvdd-supply: Digital core voltage supply, 1.2 volts
++- reset-gpios: Low active reset gpio
++
++The device node must contain one 'port' child node for its digital output
++video port, in accordance with the video interface bindings defined in
++Documentation/devicetree/bindings/media/video-interfaces.txt.
++
++Example:
++	ucam: camera-sensor@3c {
++		compatible = "ovti,ov2685";
++		reg = <0x3c>;
++		pinctrl-names = "default";
++		pinctrl-0 = <&clk_24m_cam>;
++
++		clocks = <&cru SCLK_TESTCLKOUT1>;
++		clock-names = "xvclk";
++
++		avdd-supply = <&pp2800_cam>;
++		dovdd-supply = <&pp1800>;
++		reset-gpios = <&gpio2 3 GPIO_ACTIVE_LOW>;
++
++		port {
++			ucam_out: endpoint {
++				remote-endpoint = <&mipi_in_ucam>;
++				data-lanes = <1>;
++			};
++		};
++	};
 -- 
-2.13.6
+1.9.1
