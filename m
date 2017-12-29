@@ -1,77 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:52359 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753732AbdLHOFS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 8 Dec 2017 09:05:18 -0500
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Jonathan Corbet <corbet@lwn.net>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        linux-doc@vger.kernel.org
-Subject: [PATCH v2] kernel-doc: parse DECLARE_KFIFO and DECLARE_KFIFO_PTR()
-Date: Fri,  8 Dec 2017 09:05:12 -0500
-Message-Id: <37a81ae259c9d3a90fbdbe1532f904946139bfdd.1512741889.git.mchehab@s-opensource.com>
+Received: from mail-pl0-f43.google.com ([209.85.160.43]:38771 "EHLO
+        mail-pl0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751356AbdL2HxJ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 29 Dec 2017 02:53:09 -0500
+From: Shunqian Zheng <zhengsq@rock-chips.com>
+To: linux-rockchip@lists.infradead.org, linux-media@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        mchehab@kernel.org, sakari.ailus@linux.intel.com,
+        hans.verkuil@cisco.com, tfiga@chromium.org, zhengsq@rock-chips.com,
+        laurent.pinchart@ideasonboard.com, zyc@rock-chips.com,
+        eddie.cai.linux@gmail.com, jeffy.chen@rock-chips.com,
+        allon.huang@rock-chips.com, devicetree@vger.kernel.org,
+        heiko@sntech.de, robh+dt@kernel.org, Joao.Pinto@synopsys.com,
+        Luis.Oliveira@synopsys.com, Jose.Abreu@synopsys.com,
+        jacob2.chen@rock-chips.com
+Subject: [PATCH v5 00/16] Rockchip ISP1 Driver
+Date: Fri, 29 Dec 2017 15:52:42 +0800
+Message-Id: <1514533978-20408-1-git-send-email-zhengsq@rock-chips.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On media, we now have an struct declared with:
+changes in V5: Sync with local changes,
+  - fix the SP height limit
+  - speed up the second stream capture
+  - the second stream can't force sync for rsz when start/stop streaming
+  - add frame id to param vb2 buf
+  - enable luminance maximum threshold
 
-struct lirc_fh {
-        struct list_head list;
-        struct rc_dev *rc;
-        int                             carrier_low;
-        bool                            send_timeout_reports;
-        DECLARE_KFIFO_PTR(rawir, unsigned int);
-        DECLARE_KFIFO_PTR(scancodes, struct lirc_scancode);
-        wait_queue_head_t               wait_poll;
-        u8                              send_mode;
-        u8                              rec_mode;
-};
+changes in V4:
+  - fix some bugs during development
+  - move quantization settings to rkisp1 subdev
+  - correct some spelling problems
+  - describe ports in dt-binding documents
 
-gpiolib.c has a similar declaration with DECLARE_KFIFO().
+changes in V3:
+  - add some comments
+  - fix wrong use of v4l2_async_subdev_notifier_register
+  - optimize two paths capture at a time
+  - remove compose
+  - re-struct headers
+  - add a tmp wiki page: http://opensource.rock-chips.com/wiki_Rockchip-isp1
 
-Currently, those produce the following error:
+changes in V2:
+  mipi-phy:
+    - use async probing
+    - make it be a child device of the GRF
+  isp:
+    - add dummy buffer
+    - change the way to get bus configuration, which make it possible to
+            add parallel sensor support in the future(without mipi-phy driver).
 
-	./include/media/rc-core.h:96: warning: No description found for parameter 'int'
-	./include/media/rc-core.h:96: warning: No description found for parameter 'lirc_scancode'
-	./include/media/rc-core.h:96: warning: Excess struct member 'rawir' description in 'lirc_fh'
-	./include/media/rc-core.h:96: warning: Excess struct member 'scancodes' description in 'lirc_fh'
-	../drivers/gpio/gpiolib.c:601: warning: No description found for parameter '16'
-	../drivers/gpio/gpiolib.c:601: warning: Excess struct member 'events' description in 'lineevent_state'
+This patch series add a ISP(Camera) v4l2 driver for rockchip rk3288/rk3399 SoC.
 
-So, teach kernel-doc how to parse DECLARE_KFIFO() and DECLARE_KFIFO_PTR().
+Wiki Pages:
+http://opensource.rock-chips.com/wiki_Rockchip-isp1
 
-While here, relax at the past DECLARE_foo() macros, accepting a random
-number of spaces after comma.
+Jacob Chen (12):
+  media: doc: add document for rkisp1 meta buffer format
+  media: rkisp1: add Rockchip MIPI Synopsys DPHY driver
+  media: rkisp1: add Rockchip ISP1 subdev driver
+  media: rkisp1: add ISP1 statistics driver
+  media: rkisp1: add ISP1 params driver
+  media: rkisp1: add capture device driver
+  media: rkisp1: add rockchip isp1 core driver
+  dt-bindings: Document the Rockchip ISP1 bindings
+  dt-bindings: Document the Rockchip MIPI RX D-PHY bindings
+  ARM: dts: rockchip: add isp node for rk3288
+  ARM: dts: rockchip: add rx0 mipi-phy for rk3288
+  MAINTAINERS: add entry for Rockchip ISP1 driver
 
-The addition of DECLARE_KFIFO() was
-Suggested-by: Randy Dunlap <rdunlap@infradead.org>
+Jeffy Chen (1):
+  media: rkisp1: Add user space ABI definitions
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- scripts/kernel-doc | 8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+Shunqian Zheng (3):
+  media: videodev2.h, v4l2-ioctl: add rkisp1 meta buffer format
+  arm64: dts: rockchip: add isp0 node for rk3399
+  arm64: dts: rockchip: add rx0 mipi-phy for rk3399
 
-diff --git a/scripts/kernel-doc b/scripts/kernel-doc
-index bd29a92b4b48..cfdabdd08631 100755
---- a/scripts/kernel-doc
-+++ b/scripts/kernel-doc
-@@ -2208,9 +2208,13 @@ sub dump_struct($$) {
- 	$members =~ s/__aligned\s*\([^;]*\)//gos;
- 	$members =~ s/\s*CRYPTO_MINALIGN_ATTR//gos;
- 	# replace DECLARE_BITMAP
--	$members =~ s/DECLARE_BITMAP\s*\(([^,)]+), ([^,)]+)\)/unsigned long $1\[BITS_TO_LONGS($2)\]/gos;
-+	$members =~ s/DECLARE_BITMAP\s*\(([^,)]+),\s*([^,)]+)\)/unsigned long $1\[BITS_TO_LONGS($2)\]/gos;
- 	# replace DECLARE_HASHTABLE
--	$members =~ s/DECLARE_HASHTABLE\s*\(([^,)]+), ([^,)]+)\)/unsigned long $1\[1 << (($2) - 1)\]/gos;
-+	$members =~ s/DECLARE_HASHTABLE\s*\(([^,)]+),\s*([^,)]+)\)/unsigned long $1\[1 << (($2) - 1)\]/gos;
-+	# replace DECLARE_KFIFO
-+	$members =~ s/DECLARE_KFIFO\s*\(([^,)]+),\s*([^,)]+),\s*([^,)]+)\)/$2 \*$1/gos;
-+	# replace DECLARE_KFIFO_PTR
-+	$members =~ s/DECLARE_KFIFO_PTR\s*\(([^,)]+),\s*([^,)]+)\)/$2 \*$1/gos;
- 
- 	create_parameterlist($members, ';', $file);
- 	check_sections($file, $declaration_name, $decl_type, $sectcheck, $struct_actual, $nested);
+ .../devicetree/bindings/media/rockchip-isp1.txt    |   69 +
+ .../bindings/media/rockchip-mipi-dphy.txt          |   88 +
+ Documentation/media/uapi/v4l/meta-formats.rst      |    2 +
+ .../media/uapi/v4l/pixfmt-meta-rkisp1-params.rst   |   17 +
+ .../media/uapi/v4l/pixfmt-meta-rkisp1-stat.rst     |   18 +
+ MAINTAINERS                                        |   10 +
+ arch/arm/boot/dts/rk3288.dtsi                      |   24 +
+ arch/arm64/boot/dts/rockchip/rk3399.dtsi           |   25 +
+ drivers/media/platform/Kconfig                     |   10 +
+ drivers/media/platform/Makefile                    |    1 +
+ drivers/media/platform/rockchip/isp1/Makefile      |    8 +
+ drivers/media/platform/rockchip/isp1/capture.c     | 1728 ++++++++++++++++++++
+ drivers/media/platform/rockchip/isp1/capture.h     |  194 +++
+ drivers/media/platform/rockchip/isp1/common.h      |  137 ++
+ drivers/media/platform/rockchip/isp1/dev.c         |  653 ++++++++
+ drivers/media/platform/rockchip/isp1/dev.h         |  120 ++
+ drivers/media/platform/rockchip/isp1/isp_params.c  | 1553 ++++++++++++++++++
+ drivers/media/platform/rockchip/isp1/isp_params.h  |   76 +
+ drivers/media/platform/rockchip/isp1/isp_stats.c   |  522 ++++++
+ drivers/media/platform/rockchip/isp1/isp_stats.h   |   85 +
+ .../media/platform/rockchip/isp1/mipi_dphy_sy.c    |  787 +++++++++
+ drivers/media/platform/rockchip/isp1/regs.c        |  266 +++
+ drivers/media/platform/rockchip/isp1/regs.h        | 1577 ++++++++++++++++++
+ drivers/media/platform/rockchip/isp1/rkisp1.c      | 1205 ++++++++++++++
+ drivers/media/platform/rockchip/isp1/rkisp1.h      |  132 ++
+ drivers/media/v4l2-core/v4l2-ioctl.c               |    2 +
+ include/uapi/linux/rkisp1-config.h                 |  757 +++++++++
+ include/uapi/linux/videodev2.h                     |    4 +
+ 28 files changed, 10070 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/rockchip-isp1.txt
+ create mode 100644 Documentation/devicetree/bindings/media/rockchip-mipi-dphy.txt
+ create mode 100644 Documentation/media/uapi/v4l/pixfmt-meta-rkisp1-params.rst
+ create mode 100644 Documentation/media/uapi/v4l/pixfmt-meta-rkisp1-stat.rst
+ create mode 100644 drivers/media/platform/rockchip/isp1/Makefile
+ create mode 100644 drivers/media/platform/rockchip/isp1/capture.c
+ create mode 100644 drivers/media/platform/rockchip/isp1/capture.h
+ create mode 100644 drivers/media/platform/rockchip/isp1/common.h
+ create mode 100644 drivers/media/platform/rockchip/isp1/dev.c
+ create mode 100644 drivers/media/platform/rockchip/isp1/dev.h
+ create mode 100644 drivers/media/platform/rockchip/isp1/isp_params.c
+ create mode 100644 drivers/media/platform/rockchip/isp1/isp_params.h
+ create mode 100644 drivers/media/platform/rockchip/isp1/isp_stats.c
+ create mode 100644 drivers/media/platform/rockchip/isp1/isp_stats.h
+ create mode 100644 drivers/media/platform/rockchip/isp1/mipi_dphy_sy.c
+ create mode 100644 drivers/media/platform/rockchip/isp1/regs.c
+ create mode 100644 drivers/media/platform/rockchip/isp1/regs.h
+ create mode 100644 drivers/media/platform/rockchip/isp1/rkisp1.c
+ create mode 100644 drivers/media/platform/rockchip/isp1/rkisp1.h
+ create mode 100644 include/uapi/linux/rkisp1-config.h
+
 -- 
-2.14.3
+1.9.1
