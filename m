@@ -1,117 +1,215 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:47233 "EHLO osg.samsung.com"
+Received: from mail.anw.at ([195.234.101.228]:54714 "EHLO mail.anw.at"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752628AbdLKQhf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 11 Dec 2017 11:37:35 -0500
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Ron Economos <w6rz@comcast.net>,
-        "David S. Miller" <davem@davemloft.net>,
-        Johannes Berg <johannes.berg@intel.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Arnd Bergmann <arnd@arndb.de>
-Subject: [PATCH 3/3] media: dvb-core: allow users to enable DVB net ULE debug
-Date: Mon, 11 Dec 2017 11:37:26 -0500
-Message-Id: <8359d14bcceb7516aeabfcaa518c134078132751.1513010227.git.mchehab@s-opensource.com>
-In-Reply-To: <3749c9084b647a3ca80e78a9f5a3bd83ecb1e4cb.1513010227.git.mchehab@s-opensource.com>
-References: <3749c9084b647a3ca80e78a9f5a3bd83ecb1e4cb.1513010227.git.mchehab@s-opensource.com>
-In-Reply-To: <3749c9084b647a3ca80e78a9f5a3bd83ecb1e4cb.1513010227.git.mchehab@s-opensource.com>
-References: <3749c9084b647a3ca80e78a9f5a3bd83ecb1e4cb.1513010227.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+        id S932252AbdL2IJQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 29 Dec 2017 03:09:16 -0500
+From: "Jasmin J." <jasmin@anw.at>
+To: linux-media@vger.kernel.org
+Cc: hverkuil@xs4all.nl, d.scheller@gmx.net, jasmin@anw.at
+Subject: [PATCH] build: Update videobuf2 related patches
+Date: Fri, 29 Dec 2017 09:09:02 +0000
+Message-Id: <1514538542-19917-1-git-send-email-jasmin@anw.at>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This debug option is there for a long time, but it is only
-enabled by editing the source code. Due to that, a breakage
-inside its code was only noticed years after a change at
-the ULE handling logic.
+From: Jasmin Jessich <jasmin@anw.at>
 
-Make it a Kconfig parameter, as it makes easier for
-advanced users to enable, and allow test if the compilation
-won't be broken in the future.
+Commit 03fbdb2f moved videobuf2 to drivers/media/common. Modified the
+backport patches to patch the files on the new location.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Jasmin Jessich <jasmin@anw.at>
 ---
- drivers/media/dvb-core/Kconfig   | 13 +++++++++++++
- drivers/media/dvb-core/dvb_net.c | 14 +++++---------
- 2 files changed, 18 insertions(+), 9 deletions(-)
+ backports/v4.0_dma_buf_export.patch  | 18 +++++++++---------
+ backports/v4.0_drop_trace.patch      |  6 +++---
+ backports/v4.10_refcount.patch       | 24 ++++++++++++------------
+ backports/v4.7_dma_attrs.patch       | 18 +++++++++---------
+ backports/v4.8_user_pages_flag.patch |  6 +++---
+ 5 files changed, 36 insertions(+), 36 deletions(-)
 
-diff --git a/drivers/media/dvb-core/Kconfig b/drivers/media/dvb-core/Kconfig
-index eeef94a0c84e..f004aea352e0 100644
---- a/drivers/media/dvb-core/Kconfig
-+++ b/drivers/media/dvb-core/Kconfig
-@@ -40,3 +40,16 @@ config DVB_DEMUX_SECTION_LOSS_LOG
- 	  be very verbose.
- 
- 	  If you are unsure about this, say N here.
-+
-+config DVB_ULE_DEBUG
-+	bool "Enable DVB net ULE packet debug messages"
-+	depends on DVB_CORE
-+	default n
-+	help
-+	  Enable extra log messages meant to detect problems while
-+	  handling DVB network ULE packet loss inside the Kernel.
-+
-+	  Should not be enabled on normal cases, as logs can
-+	  be very verbose.
-+
-+	  If you are unsure about this, say N here.
-diff --git a/drivers/media/dvb-core/dvb_net.c b/drivers/media/dvb-core/dvb_net.c
-index bf0bea5c21c1..d8adc968cbf2 100644
---- a/drivers/media/dvb-core/dvb_net.c
-+++ b/drivers/media/dvb-core/dvb_net.c
-@@ -38,7 +38,7 @@
-  *                       Competence Center for Advanced Satellite Communications.
-  *                     Bugfixes and robustness improvements.
-  *                     Filtering on dest MAC addresses, if present (D-Bit = 0)
-- *                     ULE_DEBUG compile-time option.
-+ *                     DVB_ULE_DEBUG compile-time option.
-  * Apr 2006: cp v3:    Bugfixes and compliency with RFC 4326 (ULE) by
-  *                       Christian Praehauser <cpraehaus@cosy.sbg.ac.at>,
-  *                       Paris Lodron University of Salzburg.
-@@ -78,12 +78,9 @@ static inline __u32 iov_crc32( __u32 c, struct kvec *iov, unsigned int cnt )
- 
- #define DVB_NET_MULTICAST_MAX 10
- 
--#undef ULE_DEBUG
--
--#ifdef ULE_DEBUG
--
-+#ifdef DVB_ULE_DEBUG
- /*
-- * The code inside ULE_DEBUG keeps a history of the
-+ * The code inside DVB_ULE_DEBUG keeps a history of the
-  * last 100 TS cells processed.
-  */
- static unsigned char ule_hist[100*TS_SZ] = { 0 };
-@@ -93,7 +90,6 @@ static void hexdump(const unsigned char *buf, unsigned short len)
- {
- 	print_hex_dump_debug("", DUMP_PREFIX_OFFSET, 16, 1, buf, len, true);
- }
--
- #endif
- 
- struct dvb_net_priv {
-@@ -331,7 +327,7 @@ static int dvb_net_ule_new_ts_cell(struct dvb_net_ule_handle *h)
- {
- 	/* We are about to process a new TS cell. */
- 
--#ifdef ULE_DEBUG
-+#ifdef DVB_ULE_DEBUG
- 	if (ule_where >= &ule_hist[100*TS_SZ])
- 		ule_where = ule_hist;
- 	memcpy(ule_where, h->ts, TS_SZ);
-@@ -669,7 +665,7 @@ static void dvb_net_ule_check_crc(struct dvb_net_ule_handle *h, struct kvec iov[
- 			h->ts_remain > 2 ?
- 				*(unsigned short *)h->from_where : 0);
- 
--	#ifdef ULE_DEBUG
-+	#ifdef DVB_ULE_DEBUG
- 		hexdump(iov[0].iov_base, iov[0].iov_len);
- 		hexdump(iov[1].iov_base, iov[1].iov_len);
- 		hexdump(iov[2].iov_base, iov[2].iov_len);
+diff --git a/backports/v4.0_dma_buf_export.patch b/backports/v4.0_dma_buf_export.patch
+index 5230026..5bc07db 100644
+--- a/backports/v4.0_dma_buf_export.patch
++++ b/backports/v4.0_dma_buf_export.patch
+@@ -1,7 +1,7 @@
+-diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
++diff --git a/drivers/media/common/videobuf/videobuf2-dma-contig.c b/drivers/media/common/videobuf/videobuf2-dma-contig.c
+ index 620c4aa..4b62c9c 100644
+---- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
+-+++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
++--- a/drivers/media/common/videobuf/videobuf2-dma-contig.c
+++++ b/drivers/media/common/videobuf/videobuf2-dma-contig.c
+ @@ -402,12 +402,6 @@ static struct dma_buf *vb2_dc_get_dmabuf(void *buf_priv, unsigned long flags)
+  {
+  	struct vb2_dc_buf *buf = buf_priv;
+@@ -24,10 +24,10 @@ index 620c4aa..4b62c9c 100644
+  	if (IS_ERR(dbuf))
+  		return NULL;
+  
+-diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/v4l2-core/videobuf2-dma-sg.c
++diff --git a/drivers/media/common/videobuf/videobuf2-dma-sg.c b/drivers/media/common/videobuf/videobuf2-dma-sg.c
+ index afd4b51..71510e4 100644
+---- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
+-+++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
++--- a/drivers/media/common/videobuf/videobuf2-dma-sg.c
+++++ b/drivers/media/common/videobuf/videobuf2-dma-sg.c
+ @@ -589,17 +589,11 @@ static struct dma_buf *vb2_dma_sg_get_dmabuf(void *buf_priv, unsigned long flags
+  {
+  	struct vb2_dma_sg_buf *buf = buf_priv;
+@@ -47,10 +47,10 @@ index afd4b51..71510e4 100644
+  	if (IS_ERR(dbuf))
+  		return NULL;
+  
+-diff --git a/drivers/media/v4l2-core/videobuf2-vmalloc.c b/drivers/media/v4l2-core/videobuf2-vmalloc.c
++diff --git a/drivers/media/common/videobuf/videobuf2-vmalloc.c b/drivers/media/common/videobuf/videobuf2-vmalloc.c
+ index 0ba40be..c060cf9 100644
+---- a/drivers/media/v4l2-core/videobuf2-vmalloc.c
+-+++ b/drivers/media/v4l2-core/videobuf2-vmalloc.c
++--- a/drivers/media/common/videobuf/videobuf2-vmalloc.c
+++++ b/drivers/media/common/videobuf/videobuf2-vmalloc.c
+ @@ -372,17 +372,11 @@ static struct dma_buf *vb2_vmalloc_get_dmabuf(void *buf_priv, unsigned long flag
+  {
+  	struct vb2_vmalloc_buf *buf = buf_priv;
+diff --git a/backports/v4.0_drop_trace.patch b/backports/v4.0_drop_trace.patch
+index d1fcef5..95c7243 100644
+--- a/backports/v4.0_drop_trace.patch
++++ b/backports/v4.0_drop_trace.patch
+@@ -38,10 +38,10 @@ index 4f27cfa134a1..3789a80f977e 100644
+  
+  	if (has_array_args) {
+  		*kernel_ptr = (void __force *)user_ptr;
+-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
++diff --git a/drivers/media/common/videobuf/videobuf2-core.c b/drivers/media/common/videobuf/videobuf2-core.c
+ index c0175ea7e7ad..bf9fee755ae4 100644
+---- a/drivers/media/v4l2-core/videobuf2-core.c
+-+++ b/drivers/media/v4l2-core/videobuf2-core.c
++--- a/drivers/media/common/videobuf/videobuf2-core.c
+++++ b/drivers/media/common/videobuf/videobuf2-core.c
+ @@ -27,8 +27,6 @@
+  #include <media/videobuf2-core.h>
+  #include <media/v4l2-mc.h>
+diff --git a/backports/v4.10_refcount.patch b/backports/v4.10_refcount.patch
+index 1d2a3d4..283f214 100644
+--- a/backports/v4.10_refcount.patch
++++ b/backports/v4.10_refcount.patch
+@@ -54,10 +54,10 @@ index 6777926f20f2..115414cf520f 100644
+  
+  	/* board name */
+  	int                        nr;
+-diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
++diff --git a/drivers/media/common/videobuf/videobuf2-dma-contig.c b/drivers/media/vcommon/videobuf/videobuf2-dma-contig.c
+ index d29a07f3b048..fb6a177be461 100644
+---- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
+-+++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
++--- a/drivers/media/common/videobuf/videobuf2-dma-contig.c
+++++ b/drivers/media/common/videobuf/videobuf2-dma-contig.c
+ @@ -12,7 +12,6 @@
+  
+  #include <linux/dma-buf.h>
+@@ -111,10 +111,10 @@ index d29a07f3b048..fb6a177be461 100644
+  
+  	return dbuf;
+  }
+-diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/v4l2-core/videobuf2-dma-sg.c
++diff --git a/drivers/media/common/videobuf/videobuf2-dma-sg.c b/drivers/media/common/videobuf/videobuf2-dma-sg.c
+ index 29fde1a58a79..ecff8f492c4f 100644
+---- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
+-+++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
++--- a/drivers/media/common/videobuf/videobuf2-dma-sg.c
+++++ b/drivers/media/common/videobuf/videobuf2-dma-sg.c
+ @@ -12,7 +12,6 @@
+  
+  #include <linux/module.h>
+@@ -168,10 +168,10 @@ index 29fde1a58a79..ecff8f492c4f 100644
+  
+  	return dbuf;
+  }
+-diff --git a/drivers/media/v4l2-core/videobuf2-memops.c b/drivers/media/v4l2-core/videobuf2-memops.c
++diff --git a/drivers/media/common/videobuf/videobuf2-memops.c b/drivers/media/common/videobuf/videobuf2-memops.c
+ index 4bb8424114ce..1cd322e939c7 100644
+---- a/drivers/media/v4l2-core/videobuf2-memops.c
+-+++ b/drivers/media/v4l2-core/videobuf2-memops.c
++--- a/drivers/media/common/videobuf/videobuf2-memops.c
+++++ b/drivers/media/common/videobuf/videobuf2-memops.c
+ @@ -96,10 +96,10 @@ static void vb2_common_vm_open(struct vm_area_struct *vma)
+  	struct vb2_vmarea_handler *h = vma->vm_private_data;
+  
+@@ -194,10 +194,10 @@ index 4bb8424114ce..1cd322e939c7 100644
+  	       vma->vm_end);
+  
+  	h->put(h->arg);
+-diff --git a/drivers/media/v4l2-core/videobuf2-vmalloc.c b/drivers/media/v4l2-core/videobuf2-vmalloc.c
++diff --git a/drivers/media/common/videobuf/videobuf2-vmalloc.c b/drivers/media/common/videobuf/videobuf2-vmalloc.c
+ index f83253a233ca..3f778147cdef 100644
+---- a/drivers/media/v4l2-core/videobuf2-vmalloc.c
+-+++ b/drivers/media/v4l2-core/videobuf2-vmalloc.c
++--- a/drivers/media/common/videobuf/videobuf2-vmalloc.c
+++++ b/drivers/media/common/videobuf/videobuf2-vmalloc.c
+ @@ -13,7 +13,6 @@
+  #include <linux/io.h>
+  #include <linux/module.h>
+diff --git a/backports/v4.7_dma_attrs.patch b/backports/v4.7_dma_attrs.patch
+index 40a7e5b..cccfbc5 100644
+--- a/backports/v4.7_dma_attrs.patch
++++ b/backports/v4.7_dma_attrs.patch
+@@ -65,10 +65,10 @@ index b7892f3..3df66d1 100644
+  	if (!base)
+  		return -ENOMEM;
+  
+-diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
++diff --git a/drivers/media/common/videobuf/videobuf2-dma-contig.c b/drivers/media/common/videobuf/videobuf2-dma-contig.c
+ index fb6a177..e50ef6a 100644
+---- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
+-+++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
++--- a/drivers/media/common/videobuf/videobuf2-dma-contig.c
+++++ b/drivers/media/common/videobuf/videobuf2-dma-contig.c
+ @@ -27,7 +27,7 @@ struct vb2_dc_buf {
+  	unsigned long			size;
+  	void				*cookie;
+@@ -176,10 +176,10 @@ index fb6a177..e50ef6a 100644
+  
+  fail_sgt_init:
+  	sg_free_table(sgt);
+-diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/v4l2-core/videobuf2-dma-sg.c
++diff --git a/drivers/media/common/videobuf/videobuf2-dma-sg.c b/drivers/media/common/videobuf/videobuf2-dma-sg.c
+ index ecff8f4..64a386d 100644
+---- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
+-+++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
++--- a/drivers/media/common/videobuf/videobuf2-dma-sg.c
+++++ b/drivers/media/common/videobuf/videobuf2-dma-sg.c
+ @@ -95,7 +95,7 @@ static int vb2_dma_sg_alloc_compacted(struct vb2_dma_sg_buf *buf,
+  	return 0;
+  }
+@@ -262,10 +262,10 @@ index ecff8f4..64a386d 100644
+  	if (buf->vaddr)
+  		vm_unmap_ram(buf->vaddr, buf->num_pages);
+  	sg_free_table(buf->dma_sgt);
+-diff --git a/drivers/media/v4l2-core/videobuf2-vmalloc.c b/drivers/media/v4l2-core/videobuf2-vmalloc.c
++diff --git a/drivers/media/common/videobuf/videobuf2-vmalloc.c b/drivers/media/common/videobuf/videobuf2-vmalloc.c
+ index ab3227b..4fdfefd 100644
+---- a/drivers/media/v4l2-core/videobuf2-vmalloc.c
+-+++ b/drivers/media/v4l2-core/videobuf2-vmalloc.c
++--- a/drivers/media/common/videobuf/videobuf2-vmalloc.c
+++++ b/drivers/media/common/videobuf/videobuf2-vmalloc.c
+ @@ -33,7 +33,7 @@ struct vb2_vmalloc_buf {
+  
+  static void vb2_vmalloc_put(void *buf_priv);
+diff --git a/backports/v4.8_user_pages_flag.patch b/backports/v4.8_user_pages_flag.patch
+index 7216626..b8253e9 100644
+--- a/backports/v4.8_user_pages_flag.patch
++++ b/backports/v4.8_user_pages_flag.patch
+@@ -62,10 +62,10 @@ index f412429..323ae3a 100644
+  
+  	if (err != dma->nr_pages) {
+  		dma->nr_pages = (err >= 0) ? err : 0;
+-diff --git a/drivers/media/v4l2-core/videobuf2-memops.c b/drivers/media/v4l2-core/videobuf2-memops.c
++diff --git a/drivers/media/common/videobuf/videobuf2-memops.c b/drivers/media/common/videobuf/videobuf2-memops.c
+ index 1cd322e..3c3b517 100644
+---- a/drivers/media/v4l2-core/videobuf2-memops.c
+-+++ b/drivers/media/v4l2-core/videobuf2-memops.c
++--- a/drivers/media/common/videobuf/videobuf2-memops.c
+++++ b/drivers/media/common/videobuf/videobuf2-memops.c
+ @@ -42,10 +42,6 @@ struct frame_vector *vb2_create_framevec(unsigned long start,
+  	unsigned long first, last;
+  	unsigned long nr;
 -- 
-2.14.3
+2.7.4
