@@ -1,81 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:41829 "EHLO osg.samsung.com"
+Received: from mga03.intel.com ([134.134.136.65]:45229 "EHLO mga03.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752500AbdLUSRz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 21 Dec 2017 13:17:55 -0500
-Date: Thu, 21 Dec 2017 16:17:48 -0200
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-To: Gustavo Padovan <gustavo@padovan.org>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        Pawel Osciak <pawel@osciak.com>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Brian Starkey <brian.starkey@arm.com>,
-        Thierry Escande <thierry.escande@collabora.com>,
-        linux-kernel@vger.kernel.org,
-        Gustavo Padovan <gustavo.padovan@collabora.com>
-Subject: Re: [PATCH v6 2/6] [media] v4l: add 'unordered' flag to format
- description ioctl
-Message-ID: <20171221161748.71a8f42e@vento.lan>
-In-Reply-To: <20171211182741.29712-3-gustavo@padovan.org>
-References: <20171211182741.29712-1-gustavo@padovan.org>
-        <20171211182741.29712-3-gustavo@padovan.org>
+        id S1753781AbdL2Jnr (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 29 Dec 2017 04:43:47 -0500
+Date: Fri, 29 Dec 2017 11:43:38 +0200
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Andy Walls <awalls@md.metrocast.net>,
+        Patrice Chotard <patrice.chotard@st.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Mike Isely <isely@pobox.com>,
+        Ezequiel Garcia <ezequiel@vanguardiasur.com.ar>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Kate Stewart <kstewart@linuxfoundation.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Philippe Ombredanne <pombredanne@nexb.com>,
+        Yannick Fertre <yannick.fertre@st.com>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Helen Koike <helen.koike@collabora.com>,
+        Jacob Chen <jacob-chen@iotwrt.com>,
+        Neil Armstrong <narmstrong@baylibre.com>,
+        linux-arm-kernel@lists.infradead.org
+Subject: Re: [PATCH 2/2] media: don't include drivers/media/i2c at cflags
+Message-ID: <20171229094338.rgcetcop33wflxre@kekkonen.localdomain>
+References: <fada1935590f66dc6784981e0d557ca09013c847.1514488526.git.mchehab@s-opensource.com>
+ <ada795551aff6662d2322f63e55a853a58389eb5.1514488526.git.mchehab@s-opensource.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <ada795551aff6662d2322f63e55a853a58389eb5.1514488526.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 11 Dec 2017 16:27:37 -0200
-Gustavo Padovan <gustavo@padovan.org> escreveu:
-
-> From: Gustavo Padovan <gustavo.padovan@collabora.com>
+On Thu, Dec 28, 2017 at 02:21:49PM -0500, Mauro Carvalho Chehab wrote:
+> Most of the I2C headers got moved a long time ago to
+> include/media/i2c. Stop including them at the patch.
 > 
-> For explicit synchronization it important for userspace to know if the
-> format being used by the driver can deliver the buffers back to userspace
-> in the same order they were queued with QBUF.
-> 
-> Ordered streams fits nicely in a pipeline with DRM for example, where
-> ordered buffer are expected.
-> 
-> Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 
-Looks OK to me.
-
-> ---
->  Documentation/media/uapi/v4l/vidioc-enum-fmt.rst | 3 +++
->  include/uapi/linux/videodev2.h                   | 1 +
->  2 files changed, 4 insertions(+)
-> 
-> diff --git a/Documentation/media/uapi/v4l/vidioc-enum-fmt.rst b/Documentation/media/uapi/v4l/vidioc-enum-fmt.rst
-> index 019c513df217..368115f44fc0 100644
-> --- a/Documentation/media/uapi/v4l/vidioc-enum-fmt.rst
-> +++ b/Documentation/media/uapi/v4l/vidioc-enum-fmt.rst
-> @@ -116,6 +116,9 @@ one until ``EINVAL`` is returned.
->        - This format is not native to the device but emulated through
->  	software (usually libv4l2), where possible try to use a native
->  	format instead for better performance.
-> +    * - ``V4L2_FMT_FLAG_UNORDERED``
-> +      - 0x0004
-> +      - This is a format that doesn't guarantee timely order of frames.
->  
->  
->  Return Value
-> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-> index 1c095b5a99c5..a8ea632c14f0 100644
-> --- a/include/uapi/linux/videodev2.h
-> +++ b/include/uapi/linux/videodev2.h
-> @@ -709,6 +709,7 @@ struct v4l2_fmtdesc {
->  
->  #define V4L2_FMT_FLAG_COMPRESSED 0x0001
->  #define V4L2_FMT_FLAG_EMULATED   0x0002
-> +#define V4L2_FMT_FLAG_UNORDERED  0x0004
->  
->  	/* Frame Size and frame rate enumeration */
->  /*
-
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
 -- 
-Thanks,
-Mauro
+Sakari Ailus
+sakari.ailus@linux.intel.com
