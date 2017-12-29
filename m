@@ -1,51 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f46.google.com ([74.125.82.46]:38492 "EHLO
-        mail-wm0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751788AbdLFSGe (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 6 Dec 2017 13:06:34 -0500
-Received: by mail-wm0-f46.google.com with SMTP id 64so8632906wme.3
-        for <linux-media@vger.kernel.org>; Wed, 06 Dec 2017 10:06:34 -0800 (PST)
-Date: Wed, 6 Dec 2017 19:06:26 +0100
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: linux-media@vger.kernel.org, mchehab@kernel.org,
-        mchehab@s-opensource.com
-Cc: jasmin@anw.at, rjkm@metzlerbros.de
-Subject: Re: [PATCH for 4.15] ddbridge update to 0.9.32
-Message-ID: <20171206190626.13a2daeb@audiostation.wuest.de>
-In-Reply-To: <20171015205157.14342-1-d.scheller.oss@gmail.com>
-References: <20171015205157.14342-1-d.scheller.oss@gmail.com>
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:36616 "EHLO
+        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750744AbdL2MsM (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 29 Dec 2017 07:48:12 -0500
+Received: by mail-wm0-f68.google.com with SMTP id b76so48194925wmg.1
+        for <linux-media@vger.kernel.org>; Fri, 29 Dec 2017 04:48:11 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <1514469681-15602-7-git-send-email-jacopo+renesas@jmondi.org>
+References: <1514469681-15602-1-git-send-email-jacopo+renesas@jmondi.org> <1514469681-15602-7-git-send-email-jacopo+renesas@jmondi.org>
+From: Philippe Ombredanne <pombredanne@nexb.com>
+Date: Fri, 29 Dec 2017 13:47:30 +0100
+Message-ID: <CAOFm3uEU1ZegJgjUYXVJCTLRROtJ_KJDgf1-KiHdoJSw-5zd3Q@mail.gmail.com>
+Subject: Re: [PATCH v2 6/9] v4l: i2c: Copy ov772x soc_camera sensor driver
+To: Jacopo Mondi <jacopo+renesas@jmondi.org>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Magnus Damm <magnus.damm@gmail.com>, geert@glider.be,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        linux-renesas-soc@vger.kernel.org,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        linux-sh@vger.kernel.org,
+        "open list:OPEN FIRMWARE AND FLATTENED DEVICE TREE BINDINGS"
+        <devicetree@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am Sun, 15 Oct 2017 22:51:49 +0200
-schrieb Daniel Scheller <d.scheller.oss@gmail.com>:
+Jacopo,
 
-> From: Daniel Scheller <d.scheller@gmx.net>
-> 
-> For the 4.15 merge window. These patches update the mainline ddbridge
-> driver to version 0.9.32, which was released ~3 weeks ago by upstream.
-> 
-> Nothing really fancy in this series, in fact upstream applied many of
-> the changes that went into the mainline driver, which was released as
-> 0.9.32. A few more changes were applied though, namely the CI DuoFlex/
-> PCIe Bridge support has been split from -core (like ie. the MaxS8 card
-> support), upstream named the files with the MaxS8 support code
-> "-max.[c|h]" (thus the rename), and everything was made checkpatch-
-> strict clean.
-> 
-> One condition in stv0910.c:read_status() was missing in mainline and
-> is being added in 7/8.
-> 
-> The series was tested for bisect safety and checked with smatch.
-> 
-> Please pull for 4.15.
+On Thu, Dec 28, 2017 at 3:01 PM, Jacopo Mondi <jacopo+renesas@jmondi.org> wrote:
+> Copy the soc_camera based driver in v4l2 sensor driver directory.
+> This commit just copies the original file without modifying it.
+> No modification to KConfig and Makefile as soc_camera framework
+> dependencies need to be removed first in next commit.
+>
+> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> ---
+>  drivers/media/i2c/ov772x.c | 1124 ++++++++++++++++++++++++++++++++++++++++++++
+>  1 file changed, 1124 insertions(+)
+>  create mode 100644 drivers/media/i2c/ov772x.c
+>
+> diff --git a/drivers/media/i2c/ov772x.c b/drivers/media/i2c/ov772x.c
+> new file mode 100644
+> index 0000000..8063835
+> --- /dev/null
+> +++ b/drivers/media/i2c/ov772x.c
+> @@ -0,0 +1,1124 @@
+> +/*
+> + * ov772x Camera Driver
+> + *
+> + * Copyright (C) 2008 Renesas Solutions Corp.
+> + * Kuninori Morimoto <morimoto.kuninori@renesas.com>
+> + *
+> + * Based on ov7670 and soc_camera_platform driver,
+> + *
+> + * Copyright 2006-7 Jonathan Corbet <corbet@lwn.net>
+> + * Copyright (C) 2008 Magnus Damm
+> + * Copyright (C) 2008, Guennadi Liakhovetski <kernel@pengutronix.de>
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + */
 
-Ping.
-
-Best regards,
-Daniel Scheller
+Do you mind using a simpler SPDX identifier instead of this long
+legalese boilerplate?
+This is documented in Thomas doc patches. This applies to your entire
+patch set of course.
+Thanks!
 -- 
-https://github.com/herrnst
+Cordially
+Philippe Ombredanne
