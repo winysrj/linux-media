@@ -1,1076 +1,801 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:50441 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753501AbdLUQSc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 21 Dec 2017 11:18:32 -0500
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>
-Cc: Satendra Singh Thakur <satendra.t@samsung.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Seung-Woo Kim <sw0312.kim@samsung.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Geunyoung Kim <nenggun.kim@samsung.com>,
-        Philippe Ombredanne <pombredanne@nexb.com>,
-        Inki Dae <inki.dae@samsung.com>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Junghak Sung <jh1009.sung@samsung.com>,
-        devendra sharma <devendra.sharma9091@gmail.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: [PATCH 02/11] media: videobuf2: Add new uAPI for DVB streaming I/O
-Date: Thu, 21 Dec 2017 14:18:01 -0200
-Message-Id: <6cb582dc945457e9626561b584d98cd053782481.1513872637.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1513872637.git.mchehab@s-opensource.com>
-References: <cover.1513872637.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1513872637.git.mchehab@s-opensource.com>
-References: <cover.1513872637.git.mchehab@s-opensource.com>
+Received: from mail-pf0-f194.google.com ([209.85.192.194]:33479 "EHLO
+        mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755198AbdL2HxX (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 29 Dec 2017 02:53:23 -0500
+From: Shunqian Zheng <zhengsq@rock-chips.com>
+To: linux-rockchip@lists.infradead.org, linux-media@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        mchehab@kernel.org, sakari.ailus@linux.intel.com,
+        hans.verkuil@cisco.com, tfiga@chromium.org, zhengsq@rock-chips.com,
+        laurent.pinchart@ideasonboard.com, zyc@rock-chips.com,
+        eddie.cai.linux@gmail.com, jeffy.chen@rock-chips.com,
+        allon.huang@rock-chips.com, devicetree@vger.kernel.org,
+        heiko@sntech.de, robh+dt@kernel.org, Joao.Pinto@synopsys.com,
+        Luis.Oliveira@synopsys.com, Jose.Abreu@synopsys.com,
+        jacob2.chen@rock-chips.com
+Subject: [PATCH v5 03/16] media: rkisp1: Add user space ABI definitions
+Date: Fri, 29 Dec 2017 15:52:45 +0800
+Message-Id: <1514533978-20408-4-git-send-email-zhengsq@rock-chips.com>
+In-Reply-To: <1514533978-20408-1-git-send-email-zhengsq@rock-chips.com>
+References: <1514533978-20408-1-git-send-email-zhengsq@rock-chips.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Satendra Singh Thakur <satendra.t@samsung.com>
+From: Jeffy Chen <jeffy.chen@rock-chips.com>
 
-Adds a new uAPI for DVB to use streaming I/O which is implemented
-based on videobuf2, using those new ioctls:
+Add the header for userspace
 
-- DMX_REQBUFS:  Request kernel to allocate buffers which count and size
-	        are dedicated by user.
-- DMX_QUERYBUF: Get the buffer information like a memory offset which
-		will mmap() and be shared with user-space.
-- DMX_EXPBUF:   Just for testing whether buffer-exporting success or not.
-- DMX_QBUF:     Pass the buffer to kernel-space.
-- DMX_DQBUF:    Get back the buffer which may contain TS data.
-
-Originally developed by: Junghak Sung <jh1009.sung@samsung.com>, as
-seen at:
-	https://patchwork.linuxtv.org/patch/31613/
-	https://patchwork.kernel.org/patch/7334301/
-
-The original patch was written before merging VB2-core functionalities
-upstream. When such series was added, several adjustments were made,
-fixing some issues with	V4L2, causing the original patch to be
-non-trivially rebased.
-
-After rebased, a few bugs in the patch were fixed. The patch was
-also enhanced it and polling functionality got added.
-
-The main changes over the original patch are:
-
-dvb_vb2_fill_buffer():
-	- Set the size of the outgoing buffer after while loop using
-	  vb2_set_plane_payload;
-
-	- Added NULL check for source buffer as per normal convention
-	  of demux driver, this is called twice, first time with valid
-	  buffer second time with NULL pointer, if its not handled,
-	  it will result in  crash
-
-	- Restricted spinlock for only list_* operations
-
-dvb_vb2_init():
-	- Restricted q->io_modes to only VB2_MMAP as its the only
-	  supported mode
-
-dvb_vb2_release():
-	- Replaced the && in if condiion with &, because otherwise
-	  it was always getting satisfied.
-
-dvb_vb2_stream_off():
-	- Added list_del code for enqueud buffers upon stream off
-
-dvb_vb2_poll():
-	- Added this new function in order to support polling
-
-dvb_demux_poll() and dvb_dvr_poll()
-	- dvb_vb2_poll() is now called from these functions
-
-- Ported this patch and latest videobuf2 to lower kernel versions and
-  tested auto scan.
-
-[mchehab@s-opensource.com: checkpatch fixes]
-Co-developed-by: Junghak Sung <jh1009.sung@samsung.com>
-Signed-off-by: Junghak Sung <jh1009.sung@samsung.com>
-Signed-off-by: Geunyoung Kim <nenggun.kim@samsung.com>
-Acked-by: Seung-Woo Kim <sw0312.kim@samsung.com>
-Acked-by: Inki Dae <inki.dae@samsung.com>
-Signed-off-by: Satendra Singh Thakur <satendra.t@samsung.com>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Jeffy Chen <jeffy.chen@rock-chips.com>
+Signed-off-by: Jacob Chen <jacob2.chen@rock-chips.com>
 ---
- drivers/media/dvb-core/Makefile  |   2 +-
- drivers/media/dvb-core/dmxdev.c  | 196 +++++++++++++++---
- drivers/media/dvb-core/dmxdev.h  |   4 +
- drivers/media/dvb-core/dvb_vb2.c | 423 +++++++++++++++++++++++++++++++++++++++
- drivers/media/dvb-core/dvb_vb2.h |  72 +++++++
- include/uapi/linux/dvb/dmx.h     |  66 +++++-
- 6 files changed, 733 insertions(+), 30 deletions(-)
- create mode 100644 drivers/media/dvb-core/dvb_vb2.c
- create mode 100644 drivers/media/dvb-core/dvb_vb2.h
+ include/uapi/linux/rkisp1-config.h | 757 +++++++++++++++++++++++++++++++++++++
+ 1 file changed, 757 insertions(+)
+ create mode 100644 include/uapi/linux/rkisp1-config.h
 
-diff --git a/drivers/media/dvb-core/Makefile b/drivers/media/dvb-core/Makefile
-index 47e2e391bfb8..bbc65dfa0a8e 100644
---- a/drivers/media/dvb-core/Makefile
-+++ b/drivers/media/dvb-core/Makefile
-@@ -7,6 +7,6 @@ dvb-net-$(CONFIG_DVB_NET) := dvb_net.o
- 
- dvb-core-objs := dvbdev.o dmxdev.o dvb_demux.o		 	\
- 		 dvb_ca_en50221.o dvb_frontend.o 		\
--		 $(dvb-net-y) dvb_ringbuffer.o dvb_math.o
-+		 $(dvb-net-y) dvb_ringbuffer.o dvb_vb2.o dvb_math.o
- 
- obj-$(CONFIG_DVB_CORE) += dvb-core.o
-diff --git a/drivers/media/dvb-core/dmxdev.c b/drivers/media/dvb-core/dmxdev.c
-index 18e4230865be..4cbb9003a1ed 100644
---- a/drivers/media/dvb-core/dmxdev.c
-+++ b/drivers/media/dvb-core/dmxdev.c
-@@ -28,6 +28,7 @@
- #include <linux/wait.h>
- #include <linux/uaccess.h>
- #include "dmxdev.h"
-+#include "dvb_vb2.h"
- 
- static int debug;
- 
-@@ -138,14 +139,8 @@ static int dvb_dvr_open(struct inode *inode, struct file *file)
- 		return -ENODEV;
- 	}
- 
--	if ((file->f_flags & O_ACCMODE) == O_RDWR) {
--		if (!(dmxdev->capabilities & DMXDEV_CAP_DUPLEX)) {
--			mutex_unlock(&dmxdev->mutex);
--			return -EOPNOTSUPP;
--		}
--	}
--
--	if ((file->f_flags & O_ACCMODE) == O_RDONLY) {
-+	if (((file->f_flags & O_ACCMODE) == O_RDONLY) ||
-+	    ((file->f_flags & O_ACCMODE) == O_RDWR)) {
- 		void *mem;
- 
- 		if (!dvbdev->readers) {
-@@ -158,6 +153,8 @@ static int dvb_dvr_open(struct inode *inode, struct file *file)
- 			return -ENOMEM;
- 		}
- 		dvb_ringbuffer_init(&dmxdev->dvr_buffer, mem, DVR_BUFFER_SIZE);
-+		dvb_vb2_init(&dmxdev->dvr_vb2_ctx, "dvr",
-+			     file->f_flags & O_NONBLOCK);
- 		dvbdev->readers--;
- 	}
- 
-@@ -195,7 +192,11 @@ static int dvb_dvr_release(struct inode *inode, struct file *file)
- 		dmxdev->demux->connect_frontend(dmxdev->demux,
- 						dmxdev->dvr_orig_fe);
- 	}
--	if ((file->f_flags & O_ACCMODE) == O_RDONLY) {
-+	if (((file->f_flags & O_ACCMODE) == O_RDONLY) ||
-+	    ((file->f_flags & O_ACCMODE) == O_RDWR)) {
-+		if (dvb_vb2_is_streaming(&dmxdev->dvr_vb2_ctx))
-+			dvb_vb2_stream_off(&dmxdev->dvr_vb2_ctx);
-+		dvb_vb2_release(&dmxdev->dvr_vb2_ctx);
- 		dvbdev->readers++;
- 		if (dmxdev->dvr_buffer.data) {
- 			void *mem = dmxdev->dvr_buffer.data;
-@@ -360,8 +361,8 @@ static int dvb_dmxdev_section_callback(const u8 *buffer1, size_t buffer1_len,
- {
- 	struct dmxdev_filter *dmxdevfilter = filter->priv;
- 	int ret;
--
--	if (dmxdevfilter->buffer.error) {
-+	if (!dvb_vb2_is_streaming(&dmxdevfilter->vb2_ctx) &&
-+	    dmxdevfilter->buffer.error) {
- 		wake_up(&dmxdevfilter->buffer.queue);
- 		return 0;
- 	}
-@@ -372,11 +373,19 @@ static int dvb_dmxdev_section_callback(const u8 *buffer1, size_t buffer1_len,
- 	}
- 	del_timer(&dmxdevfilter->timer);
- 	dprintk("section callback %*ph\n", 6, buffer1);
--	ret = dvb_dmxdev_buffer_write(&dmxdevfilter->buffer, buffer1,
--				      buffer1_len);
--	if (ret == buffer1_len) {
--		ret = dvb_dmxdev_buffer_write(&dmxdevfilter->buffer, buffer2,
--					      buffer2_len);
-+	if (dvb_vb2_is_streaming(&dmxdevfilter->vb2_ctx)) {
-+		ret = dvb_vb2_fill_buffer(&dmxdevfilter->vb2_ctx,
-+					  buffer1, buffer1_len);
-+		if (ret == buffer1_len)
-+			ret = dvb_vb2_fill_buffer(&dmxdevfilter->vb2_ctx,
-+						  buffer2, buffer2_len);
-+	} else {
-+		ret = dvb_dmxdev_buffer_write(&dmxdevfilter->buffer,
-+					      buffer1, buffer1_len);
-+		if (ret == buffer1_len) {
-+			ret = dvb_dmxdev_buffer_write(&dmxdevfilter->buffer,
-+						      buffer2, buffer2_len);
-+		}
- 	}
- 	if (ret < 0)
- 		dmxdevfilter->buffer.error = ret;
-@@ -393,6 +402,7 @@ static int dvb_dmxdev_ts_callback(const u8 *buffer1, size_t buffer1_len,
- {
- 	struct dmxdev_filter *dmxdevfilter = feed->priv;
- 	struct dvb_ringbuffer *buffer;
-+	struct dvb_vb2_ctx *ctx;
- 	int ret;
- 
- 	spin_lock(&dmxdevfilter->dev->lock);
-@@ -401,19 +411,30 @@ static int dvb_dmxdev_ts_callback(const u8 *buffer1, size_t buffer1_len,
- 		return 0;
- 	}
- 
--	if (dmxdevfilter->params.pes.output == DMX_OUT_TAP
--	    || dmxdevfilter->params.pes.output == DMX_OUT_TSDEMUX_TAP)
-+	if (dmxdevfilter->params.pes.output == DMX_OUT_TAP ||
-+	    dmxdevfilter->params.pes.output == DMX_OUT_TSDEMUX_TAP) {
- 		buffer = &dmxdevfilter->buffer;
--	else
-+		ctx = &dmxdevfilter->vb2_ctx;
-+	} else {
- 		buffer = &dmxdevfilter->dev->dvr_buffer;
--	if (buffer->error) {
--		spin_unlock(&dmxdevfilter->dev->lock);
--		wake_up(&buffer->queue);
--		return 0;
-+		ctx = &dmxdevfilter->dev->dvr_vb2_ctx;
-+	}
-+
-+	if (dvb_vb2_is_streaming(ctx)) {
-+		ret = dvb_vb2_fill_buffer(ctx, buffer1, buffer1_len);
-+		if (ret == buffer1_len)
-+			ret = dvb_vb2_fill_buffer(ctx, buffer2, buffer2_len);
-+	} else {
-+		if (buffer->error) {
-+			spin_unlock(&dmxdevfilter->dev->lock);
-+			wake_up(&buffer->queue);
-+			return 0;
-+		}
-+		ret = dvb_dmxdev_buffer_write(buffer, buffer1, buffer1_len);
-+		if (ret == buffer1_len)
-+			ret = dvb_dmxdev_buffer_write(buffer,
-+						      buffer2, buffer2_len);
- 	}
--	ret = dvb_dmxdev_buffer_write(buffer, buffer1, buffer1_len);
--	if (ret == buffer1_len)
--		ret = dvb_dmxdev_buffer_write(buffer, buffer2, buffer2_len);
- 	if (ret < 0)
- 		buffer->error = ret;
- 	spin_unlock(&dmxdevfilter->dev->lock);
-@@ -752,6 +773,8 @@ static int dvb_demux_open(struct inode *inode, struct file *file)
- 	file->private_data = dmxdevfilter;
- 
- 	dvb_ringbuffer_init(&dmxdevfilter->buffer, NULL, 8192);
-+	dvb_vb2_init(&dmxdevfilter->vb2_ctx, "demux_filter",
-+		     file->f_flags & O_NONBLOCK);
- 	dmxdevfilter->type = DMXDEV_TYPE_NONE;
- 	dvb_dmxdev_filter_state_set(dmxdevfilter, DMXDEV_STATE_ALLOCATED);
- 	init_timer(&dmxdevfilter->timer);
-@@ -767,6 +790,10 @@ static int dvb_dmxdev_filter_free(struct dmxdev *dmxdev,
- {
- 	mutex_lock(&dmxdev->mutex);
- 	mutex_lock(&dmxdevfilter->mutex);
-+	if (dvb_vb2_is_streaming(&dmxdevfilter->vb2_ctx))
-+		dvb_vb2_stream_off(&dmxdevfilter->vb2_ctx);
-+	dvb_vb2_release(&dmxdevfilter->vb2_ctx);
-+
- 
- 	dvb_dmxdev_filter_stop(dmxdevfilter);
- 	dvb_dmxdev_filter_reset(dmxdevfilter);
-@@ -1054,6 +1081,53 @@ static int dvb_demux_do_ioctl(struct file *file,
- 		mutex_unlock(&dmxdevfilter->mutex);
- 		break;
- 
-+	case DMX_REQBUFS:
-+		if (mutex_lock_interruptible(&dmxdevfilter->mutex)) {
-+			mutex_unlock(&dmxdev->mutex);
-+			return -ERESTARTSYS;
-+		}
-+		ret = dvb_vb2_reqbufs(&dmxdevfilter->vb2_ctx, parg);
-+		mutex_unlock(&dmxdevfilter->mutex);
-+		break;
-+
-+	case DMX_QUERYBUF:
-+		if (mutex_lock_interruptible(&dmxdevfilter->mutex)) {
-+			mutex_unlock(&dmxdev->mutex);
-+			return -ERESTARTSYS;
-+		}
-+		ret = dvb_vb2_querybuf(&dmxdevfilter->vb2_ctx, parg);
-+		mutex_unlock(&dmxdevfilter->mutex);
-+		break;
-+
-+	case DMX_EXPBUF:
-+		if (mutex_lock_interruptible(&dmxdevfilter->mutex)) {
-+			mutex_unlock(&dmxdev->mutex);
-+			return -ERESTARTSYS;
-+		}
-+		ret = dvb_vb2_expbuf(&dmxdevfilter->vb2_ctx, parg);
-+		mutex_unlock(&dmxdevfilter->mutex);
-+		break;
-+
-+	case DMX_QBUF:
-+		if (mutex_lock_interruptible(&dmxdevfilter->mutex)) {
-+			mutex_unlock(&dmxdev->mutex);
-+			return -ERESTARTSYS;
-+		}
-+		ret = dvb_vb2_qbuf(&dmxdevfilter->vb2_ctx, parg);
-+		if (ret == 0 && !dvb_vb2_is_streaming(&dmxdevfilter->vb2_ctx))
-+			ret = dvb_vb2_stream_on(&dmxdevfilter->vb2_ctx);
-+		mutex_unlock(&dmxdevfilter->mutex);
-+		break;
-+
-+	case DMX_DQBUF:
-+		if (mutex_lock_interruptible(&dmxdevfilter->mutex)) {
-+			mutex_unlock(&dmxdev->mutex);
-+			return -ERESTARTSYS;
-+		}
-+		ret = dvb_vb2_dqbuf(&dmxdevfilter->vb2_ctx, parg);
-+		mutex_unlock(&dmxdevfilter->mutex);
-+		break;
-+
- 	default:
- 		ret = -EINVAL;
- 		break;
-@@ -1075,6 +1149,8 @@ static unsigned int dvb_demux_poll(struct file *file, poll_table *wait)
- 
- 	if ((!dmxdevfilter) || dmxdevfilter->dev->exit)
- 		return POLLERR;
-+	if (dvb_vb2_is_streaming(&dmxdevfilter->vb2_ctx))
-+		return dvb_vb2_poll(&dmxdevfilter->vb2_ctx, file, wait);
- 
- 	poll_wait(file, &dmxdevfilter->buffer.queue, wait);
- 
-@@ -1092,11 +1168,31 @@ static unsigned int dvb_demux_poll(struct file *file, poll_table *wait)
- 	return mask;
- }
- 
-+static int dvb_demux_mmap(struct file *file, struct vm_area_struct *vma)
-+{
-+	struct dmxdev_filter *dmxdevfilter = file->private_data;
-+	struct dmxdev *dmxdev = dmxdevfilter->dev;
-+	int ret;
-+
-+	if (mutex_lock_interruptible(&dmxdev->mutex))
-+		return -ERESTARTSYS;
-+
-+	if (mutex_lock_interruptible(&dmxdevfilter->mutex)) {
-+		mutex_unlock(&dmxdev->mutex);
-+		return -ERESTARTSYS;
-+	}
-+	ret = dvb_vb2_mmap(&dmxdevfilter->vb2_ctx, vma);
-+
-+	mutex_unlock(&dmxdevfilter->mutex);
-+	mutex_unlock(&dmxdev->mutex);
-+
-+	return ret;
-+}
-+
- static int dvb_demux_release(struct inode *inode, struct file *file)
- {
- 	struct dmxdev_filter *dmxdevfilter = file->private_data;
- 	struct dmxdev *dmxdev = dmxdevfilter->dev;
--
- 	int ret;
- 
- 	ret = dvb_dmxdev_filter_free(dmxdev, dmxdevfilter);
-@@ -1120,6 +1216,7 @@ static const struct file_operations dvb_demux_fops = {
- 	.release = dvb_demux_release,
- 	.poll = dvb_demux_poll,
- 	.llseek = default_llseek,
-+	.mmap = dvb_demux_mmap,
- };
- 
- static const struct dvb_device dvbdev_demux = {
-@@ -1148,6 +1245,28 @@ static int dvb_dvr_do_ioctl(struct file *file,
- 		ret = dvb_dvr_set_buffer_size(dmxdev, arg);
- 		break;
- 
-+	case DMX_REQBUFS:
-+		ret = dvb_vb2_reqbufs(&dmxdev->dvr_vb2_ctx, parg);
-+		break;
-+
-+	case DMX_QUERYBUF:
-+		ret = dvb_vb2_querybuf(&dmxdev->dvr_vb2_ctx, parg);
-+		break;
-+
-+	case DMX_EXPBUF:
-+		ret = dvb_vb2_expbuf(&dmxdev->dvr_vb2_ctx, parg);
-+		break;
-+
-+	case DMX_QBUF:
-+		ret = dvb_vb2_qbuf(&dmxdev->dvr_vb2_ctx, parg);
-+		if (ret == 0 && !dvb_vb2_is_streaming(&dmxdev->dvr_vb2_ctx))
-+			ret = dvb_vb2_stream_on(&dmxdev->dvr_vb2_ctx);
-+		break;
-+
-+	case DMX_DQBUF:
-+		ret = dvb_vb2_dqbuf(&dmxdev->dvr_vb2_ctx, parg);
-+		break;
-+
- 	default:
- 		ret = -EINVAL;
- 		break;
-@@ -1172,10 +1291,13 @@ static unsigned int dvb_dvr_poll(struct file *file, poll_table *wait)
- 
- 	if (dmxdev->exit)
- 		return POLLERR;
-+	if (dvb_vb2_is_streaming(&dmxdev->dvr_vb2_ctx))
-+		return dvb_vb2_poll(&dmxdev->dvr_vb2_ctx, file, wait);
- 
- 	poll_wait(file, &dmxdev->dvr_buffer.queue, wait);
- 
--	if ((file->f_flags & O_ACCMODE) == O_RDONLY) {
-+	if (((file->f_flags & O_ACCMODE) == O_RDONLY) ||
-+	    ((file->f_flags & O_ACCMODE) == O_RDWR)) {
- 		if (dmxdev->dvr_buffer.error)
- 			mask |= (POLLIN | POLLRDNORM | POLLPRI | POLLERR);
- 
-@@ -1187,6 +1309,23 @@ static unsigned int dvb_dvr_poll(struct file *file, poll_table *wait)
- 	return mask;
- }
- 
-+static int dvb_dvr_mmap(struct file *file, struct vm_area_struct *vma)
-+{
-+	struct dvb_device *dvbdev = file->private_data;
-+	struct dmxdev *dmxdev = dvbdev->priv;
-+	int ret;
-+
-+	if (dmxdev->exit)
-+		return -ENODEV;
-+
-+	if (mutex_lock_interruptible(&dmxdev->mutex))
-+		return -ERESTARTSYS;
-+
-+	ret = dvb_vb2_mmap(&dmxdev->dvr_vb2_ctx, vma);
-+	mutex_unlock(&dmxdev->mutex);
-+	return ret;
-+}
-+
- static const struct file_operations dvb_dvr_fops = {
- 	.owner = THIS_MODULE,
- 	.read = dvb_dvr_read,
-@@ -1196,6 +1335,7 @@ static const struct file_operations dvb_dvr_fops = {
- 	.release = dvb_dvr_release,
- 	.poll = dvb_dvr_poll,
- 	.llseek = default_llseek,
-+	.mmap = dvb_dvr_mmap,
- };
- 
- static const struct dvb_device dvbdev_dvr = {
-diff --git a/drivers/media/dvb-core/dmxdev.h b/drivers/media/dvb-core/dmxdev.h
-index 054fd4eb6192..6b6aa80db22b 100644
---- a/drivers/media/dvb-core/dmxdev.h
-+++ b/drivers/media/dvb-core/dmxdev.h
-@@ -35,6 +35,7 @@
- #include "dvbdev.h"
- #include "demux.h"
- #include "dvb_ringbuffer.h"
-+#include "dvb_vb2.h"
- 
- enum dmxdev_type {
- 	DMXDEV_TYPE_NONE,
-@@ -77,6 +78,7 @@ struct dmxdev_filter {
- 	enum dmxdev_state state;
- 	struct dmxdev *dev;
- 	struct dvb_ringbuffer buffer;
-+	struct dvb_vb2_ctx vb2_ctx;
- 
- 	struct mutex mutex;
- 
-@@ -104,6 +106,8 @@ struct dmxdev {
- 	struct dvb_ringbuffer dvr_buffer;
- #define DVR_BUFFER_SIZE (10*188*1024)
- 
-+	struct dvb_vb2_ctx dvr_vb2_ctx;
-+
- 	struct mutex mutex;
- 	spinlock_t lock;
- };
-diff --git a/drivers/media/dvb-core/dvb_vb2.c b/drivers/media/dvb-core/dvb_vb2.c
+diff --git a/include/uapi/linux/rkisp1-config.h b/include/uapi/linux/rkisp1-config.h
 new file mode 100644
-index 000000000000..34193a4acc47
+index 0000000..0f9f4226
 --- /dev/null
-+++ b/drivers/media/dvb-core/dvb_vb2.c
-@@ -0,0 +1,423 @@
++++ b/include/uapi/linux/rkisp1-config.h
+@@ -0,0 +1,757 @@
++// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
 +/*
-+ * dvb-vb2.c - dvb-vb2
-+ *
-+ * Copyright (C) 2015 Samsung Electronics
-+ *
-+ * Author: jh1009.sung@samsung.com
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation.
++ * Rockchip isp1 driver
++ * Copyright (C) 2017 Rockchip Electronics Co., Ltd.
 + */
 +
-+#include <linux/err.h>
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/mm.h>
++#ifndef _UAPI_RKISP1_CONFIG_H
++#define _UAPI_RKISP1_CONFIG_H
 +
-+#include "dvbdev.h"
-+#include "dvb_vb2.h"
++#include <linux/types.h>
++#include <linux/v4l2-controls.h>
 +
-+static int vb2_debug;
-+module_param(vb2_debug, int, 0644);
++#define CIFISP_MODULE_DPCC              (1 << 0)
++#define CIFISP_MODULE_BLS               (1 << 1)
++#define CIFISP_MODULE_SDG               (1 << 2)
++#define CIFISP_MODULE_HST               (1 << 3)
++#define CIFISP_MODULE_LSC               (1 << 4)
++#define CIFISP_MODULE_AWB_GAIN          (1 << 5)
++#define CIFISP_MODULE_FLT               (1 << 6)
++#define CIFISP_MODULE_BDM               (1 << 7)
++#define CIFISP_MODULE_CTK               (1 << 8)
++#define CIFISP_MODULE_GOC               (1 << 9)
++#define CIFISP_MODULE_CPROC             (1 << 10)
++#define CIFISP_MODULE_AFC               (1 << 11)
++#define CIFISP_MODULE_AWB               (1 << 12)
++#define CIFISP_MODULE_IE                (1 << 13)
++#define CIFISP_MODULE_AEC               (1 << 14)
++#define CIFISP_MODULE_WDR               (1 << 15)
++#define CIFISP_MODULE_DPF               (1 << 16)
++#define CIFISP_MODULE_DPF_STRENGTH      (1 << 17)
 +
-+#define dprintk(level, fmt, arg...)					      \
-+	do {								      \
-+		if (vb2_debug >= level)					      \
-+			pr_info("vb2: %s: " fmt, __func__, ## arg); \
-+	} while (0)
++#define CIFISP_CTK_COEFF_MAX            0x100
++#define CIFISP_CTK_OFFSET_MAX           0x800
 +
-+static int _queue_setup(struct vb2_queue *vq,
-+			unsigned int *nbuffers, unsigned int *nplanes,
-+			unsigned int sizes[], struct device *alloc_devs[])
-+{
-+	struct dvb_vb2_ctx *ctx = vb2_get_drv_priv(vq);
++#define CIFISP_AE_MEAN_MAX              25
++#define CIFISP_HIST_BIN_N_MAX           16
++#define CIFISP_AFM_MAX_WINDOWS          3
++#define CIFISP_DEGAMMA_CURVE_SIZE       17
 +
-+	*nbuffers = ctx->buf_cnt;
-+	*nplanes = 1;
-+	sizes[0] = ctx->buf_siz;
++#define CIFISP_BDM_MAX_TH               0xFF
 +
++/*
++ * Black level compensation
++ */
++/* maximum value for horizontal start address */
++#define CIFISP_BLS_START_H_MAX             0x00000FFF
++/* maximum value for horizontal stop address */
++#define CIFISP_BLS_STOP_H_MAX              0x00000FFF
++/* maximum value for vertical start address */
++#define CIFISP_BLS_START_V_MAX             0x00000FFF
++/* maximum value for vertical stop address */
++#define CIFISP_BLS_STOP_V_MAX              0x00000FFF
++/* maximum is 2^18 = 262144*/
++#define CIFISP_BLS_SAMPLES_MAX             0x00000012
++/* maximum value for fixed black level */
++#define CIFISP_BLS_FIX_SUB_MAX             0x00000FFF
++/* minimum value for fixed black level */
++#define CIFISP_BLS_FIX_SUB_MIN             0xFFFFF000
++/* 13 bit range (signed)*/
++#define CIFISP_BLS_FIX_MASK                0x00001FFF
++
++/*
++ * Automatic white balance measurments
++ */
++#define CIFISP_AWB_MAX_GRID                1
++#define CIFISP_AWB_MAX_FRAMES              7
++
++/*
++ * Gamma out
++ */
++/* Maximum number of color samples supported */
++#define CIFISP_GAMMA_OUT_MAX_SAMPLES       17
++
++/*
++ * Lens shade correction
++ */
++#define CIFISP_LSC_GRAD_TBL_SIZE           8
++#define CIFISP_LSC_SIZE_TBL_SIZE           8
++/*
++ * The following matches the tuning process,
++ * not the max capabilities of the chip.
++ * Last value unused.
++ */
++#define	CIFISP_LSC_DATA_TBL_SIZE           290
++
++/*
++ * Histogram calculation
++ */
++/* Last 3 values unused. */
++#define CIFISP_HISTOGRAM_WEIGHT_GRIDS_SIZE 28
++
++/*
++ * Defect Pixel Cluster Correction
++ */
++#define CIFISP_DPCC_METHODS_MAX       3
++
++/*
++ * Denoising pre filter
++ */
++#define CIFISP_DPF_MAX_NLF_COEFFS      17
++#define CIFISP_DPF_MAX_SPATIAL_COEFFS  6
++
++/*
++ * Measurement types
++ */
++#define CIFISP_STAT_AWB           (1 << 0)
++#define CIFISP_STAT_AUTOEXP       (1 << 1)
++#define CIFISP_STAT_AFM_FIN       (1 << 2)
++#define CIFISP_STAT_HIST          (1 << 3)
++
++enum cifisp_histogram_mode {
++	CIFISP_HISTOGRAM_MODE_DISABLE,
++	CIFISP_HISTOGRAM_MODE_RGB_COMBINED,
++	CIFISP_HISTOGRAM_MODE_R_HISTOGRAM,
++	CIFISP_HISTOGRAM_MODE_G_HISTOGRAM,
++	CIFISP_HISTOGRAM_MODE_B_HISTOGRAM,
++	CIFISP_HISTOGRAM_MODE_Y_HISTOGRAM
++};
++
++enum cifisp_awb_mode_type {
++	CIFISP_AWB_MODE_MANUAL,
++	CIFISP_AWB_MODE_RGB,
++	CIFISP_AWB_MODE_YCBCR
++};
++
++enum cifisp_flt_mode {
++	CIFISP_FLT_STATIC_MODE,
++	CIFISP_FLT_DYNAMIC_MODE
++};
++
++/**
++ * enum cifisp_exp_ctrl_auotostop - stop modes
++ * @CIFISP_EXP_CTRL_AUTOSTOP_0: continous measurement
++ * @CIFISP_EXP_CTRL_AUTOSTOP_1: stop measuring after a complete frame
++ */
++enum cifisp_exp_ctrl_auotostop {
++	CIFISP_EXP_CTRL_AUTOSTOP_0 = 0,
++	CIFISP_EXP_CTRL_AUTOSTOP_1 = 1,
++};
++
++/**
++ * enum cifisp_exp_meas_mode - Exposure measure mode
++ * @CIFISP_EXP_MEASURING_MODE_0: Y = 16 + 0.25R + 0.5G + 0.1094B
++ * @CIFISP_EXP_MEASURING_MODE_1: Y = (R + G + B) x (85/256)
++ */
++enum cifisp_exp_meas_mode {
++	CIFISP_EXP_MEASURING_MODE_0,
++	CIFISP_EXP_MEASURING_MODE_1,
++};
++
++/*---------- PART1: Input Parameters ------------*/
++
++struct cifisp_window {
++	unsigned short h_offs;
++	unsigned short v_offs;
++	unsigned short h_size;
++	unsigned short v_size;
++} __attribute__ ((packed));
++
++/**
++ * struct cifisp_bls_fixed_val - BLS fixed subtraction values
++ *
++ * The values will be subtracted from the sensor
++ * values. Therefore a negative value means addition instead of subtraction!
++ *
++ * @r: Fixed (signed!) subtraction value for Bayer pattern R
++ * @gr: Fixed (signed!) subtraction value for Bayer pattern Gr
++ * @gb: Fixed (signed!) subtraction value for Bayer pattern Gb
++ * @b: Fixed (signed!) subtraction value for Bayer pattern B
++ */
++struct cifisp_bls_fixed_val {
++	signed short r;
++	signed short gr;
++	signed short gb;
++	signed short b;
++} __attribute__ ((packed));
++
++/**
++ * struct cifisp_bls_config - Configuration used by black level subtraction
++ *
++ * @enable_auto: Automatic mode activated means that the measured values
++ * are subtracted.Otherwise the fixed subtraction
++ * values will be subtracted.
++ * @en_windows: enabled window
++ * @bls_window1: Measurement window 1 size
++ * @bls_window2: Measurement window 2 size
++ * @bls_samples: Set amount of measured pixels for each Bayer position
++ * (A, B,C and D) to 2^bls_samples.
++ * @cifisp_bls_fixed_val: Fixed subtraction values
++ */
++struct cifisp_bls_config {
++	unsigned char enable_auto;
++	unsigned char en_windows;
++	struct cifisp_window bls_window1;
++	struct cifisp_window bls_window2;
++	unsigned char bls_samples;
++	struct cifisp_bls_fixed_val fixed_val;
++} __attribute__ ((packed));
++
++/**
++ * struct cifisp_dpcc_methods_config - Methods Configuration used by Defect Pixel Cluster Correction
++ *
++ * @method:
++ * @line_thresh:
++ * @line_mad_fac:
++ * @pg_fac:
++ * @rnd_thresh:
++ * @rg_fac:
++ */
++struct cifisp_dpcc_methods_config {
++	unsigned int method;
++	unsigned int line_thresh;
++	unsigned int line_mad_fac;
++	unsigned int pg_fac;
++	unsigned int rnd_thresh;
++	unsigned int rg_fac;
++} __attribute__ ((packed));
++
++/**
++ * struct cifisp_dpcc_methods_config - Configuration used by Defect Pixel Cluster Correction
++ *
++ * @mode: dpcc output mode
++ * @output_mode: whether use hard coded methods
++ * @set_use: stage1 methods set
++ * @methods: methods config
++ * @ro_limits: rank order limits
++ * @rnd_offs: differential rank offsets for rank neighbor difference
++ */
++struct cifisp_dpcc_config {
++	unsigned int mode;
++	unsigned int output_mode;
++	unsigned int set_use;
++	struct cifisp_dpcc_methods_config methods[CIFISP_DPCC_METHODS_MAX];
++	unsigned int ro_limits;
++	unsigned int rnd_offs;
++} __attribute__ ((packed));
++
++struct cifisp_gamma_corr_curve {
++	unsigned short gamma_y[CIFISP_DEGAMMA_CURVE_SIZE];
++} __attribute__ ((packed));
++
++struct cifisp_gamma_curve_x_axis_pnts {
++	unsigned int gamma_dx0;
++	unsigned int gamma_dx1;
++} __attribute__ ((packed));
++
++/**
++ * struct cifisp_gamma_corr_curve - Configuration used by sensor degamma
++ *
++ * @curve_x: gamma curve point definition axis for x
++ * @xa_pnts: x increments
++ */
++struct cifisp_sdg_config {
++	struct cifisp_gamma_corr_curve curve_r;
++	struct cifisp_gamma_corr_curve curve_g;
++	struct cifisp_gamma_corr_curve curve_b;
++	struct cifisp_gamma_curve_x_axis_pnts xa_pnts;
++} __attribute__ ((packed));
++
++/**
++ * struct cifisp_lsc_config - Configuration used by Lens shading correction
++ *
++ * refer to datasheet for details
++ */
++struct cifisp_lsc_config {
++	unsigned int r_data_tbl[CIFISP_LSC_DATA_TBL_SIZE];
++	unsigned int gr_data_tbl[CIFISP_LSC_DATA_TBL_SIZE];
++	unsigned int gb_data_tbl[CIFISP_LSC_DATA_TBL_SIZE];
++	unsigned int b_data_tbl[CIFISP_LSC_DATA_TBL_SIZE];
++
++	unsigned int x_grad_tbl[CIFISP_LSC_GRAD_TBL_SIZE];
++	unsigned int y_grad_tbl[CIFISP_LSC_GRAD_TBL_SIZE];
++
++	unsigned int x_size_tbl[CIFISP_LSC_SIZE_TBL_SIZE];
++	unsigned int y_size_tbl[CIFISP_LSC_SIZE_TBL_SIZE];
++	unsigned short config_width;
++	unsigned short config_height;
++} __attribute__ ((packed));
++
++/**
++ * struct cifisp_ie_config - Configuration used by image effects
++ *
++ * @eff_mat_1: 3x3 Matrix Coefficients for Emboss Effect 1
++ * @eff_mat_2: 3x3 Matrix Coefficients for Emboss Effect 2
++ * @eff_mat_3: 3x3 Matrix Coefficients for Emboss 3/Sketch 1
++ * @eff_mat_4: 3x3 Matrix Coefficients for Sketch Effect 2
++ * @eff_mat_5: 3x3 Matrix Coefficients for Sketch Effect 3
++ * @eff_tint: Chrominance increment values of tint (used for sepia effect)
++ */
++struct cifisp_ie_config {
++	unsigned short effect;
++	unsigned short color_sel;
++	unsigned short eff_mat_1;
++	unsigned short eff_mat_2;
++	unsigned short eff_mat_3;
++	unsigned short eff_mat_4;
++	unsigned short eff_mat_5;
++	unsigned short eff_tint;
++} __attribute__ ((packed));
++
++/**
++ * struct cifisp_cproc_config - Configuration used by Color Processing
++ *
++ * @c_out_range: Chrominance pixel clipping range at output. (0 for limit, 1 for full)
++ * @y_in_range: Luminance pixel clipping range at output.
++ * @y_out_range: Luminance pixel clipping range at output.
++ * @contrast: 00~ff, 0.0~1.992
++ * @brightness: 80~7F, -128~+127
++ * @sat: saturation, 00~FF, 0.0~1.992
++ * @hue: 80~7F, -90~+87.188
++ */
++struct cifisp_cproc_config {
++	unsigned char c_out_range;
++	unsigned char y_in_range;
++	unsigned char y_out_range;
++	unsigned char contrast;
++	unsigned char brightness;
++	unsigned char sat;
++	unsigned char hue;
++} __attribute__ ((packed));
++
++/**
++ * struct cifisp_awb_meas_config - Configuration used by auto white balance
++ *
++ * @awb_wnd: white balance measurement window (in pixels)
++ * @max_y: only pixels values < max_y contribute to awb measurement, set to 0 to disable this feature
++ * @min_y: only pixels values > min_y contribute to awb measurement
++ * @max_csum: Chrominance sum maximum value, only consider pixels with Cb+Cr, smaller than threshold for awb measurements
++ * @min_c: Chrominance minimum value, only consider pixels with Cb/Cr each greater than threshold value for awb measurements
++ * @frames: number of frames - 1 used for mean value calculation(ucFrames=0 means 1 Frame)
++ * @awb_ref_cr: reference Cr value for AWB regulation, target for AWB
++ * @awb_ref_cb: reference Cb value for AWB regulation, target for AWB
++ */
++struct cifisp_awb_meas_config {
 +	/*
-+	 * videobuf2-vmalloc allocator is context-less so no need to set
-+	 * alloc_ctxs array.
++	 * Note: currently the h and v offsets are mapped to grid offsets
 +	 */
++	struct cifisp_window awb_wnd;
++	enum cifisp_awb_mode_type awb_mode;
++	unsigned char max_y;
++	unsigned char min_y;
++	unsigned char max_csum;
++	unsigned char min_c;
++	unsigned char frames;
++	unsigned char awb_ref_cr;
++	unsigned char awb_ref_cb;
++	bool enable_ymax_cmp;
++} __attribute__ ((packed));
 +
-+	dprintk(3, "[%s] count=%d, size=%d\n", ctx->name,
-+		*nbuffers, sizes[0]);
-+
-+	return 0;
-+}
-+
-+static int _buffer_prepare(struct vb2_buffer *vb)
-+{
-+	struct dvb_vb2_ctx *ctx = vb2_get_drv_priv(vb->vb2_queue);
-+	unsigned long size = ctx->buf_siz;
-+
-+	if (vb2_plane_size(vb, 0) < size) {
-+		dprintk(1, "[%s] data will not fit into plane (%lu < %lu)\n",
-+			ctx->name, vb2_plane_size(vb, 0), size);
-+		return -EINVAL;
-+	}
-+
-+	vb2_set_plane_payload(vb, 0, size);
-+	dprintk(3, "[%s]\n", ctx->name);
-+
-+	return 0;
-+}
-+
-+static void _buffer_queue(struct vb2_buffer *vb)
-+{
-+	struct dvb_vb2_ctx *ctx = vb2_get_drv_priv(vb->vb2_queue);
-+	struct dvb_buffer *buf = container_of(vb, struct dvb_buffer, vb);
-+	unsigned long flags = 0;
-+
-+	spin_lock_irqsave(&ctx->slock, flags);
-+	list_add_tail(&buf->list, &ctx->dvb_q);
-+	spin_unlock_irqrestore(&ctx->slock, flags);
-+
-+	dprintk(3, "[%s]\n", ctx->name);
-+}
-+
-+static int _start_streaming(struct vb2_queue *vq, unsigned int count)
-+{
-+	struct dvb_vb2_ctx *ctx = vb2_get_drv_priv(vq);
-+
-+	dprintk(3, "[%s] count=%d\n", ctx->name, count);
-+	return 0;
-+}
-+
-+static void _stop_streaming(struct vb2_queue *vq)
-+{
-+	struct dvb_vb2_ctx *ctx = vb2_get_drv_priv(vq);
-+
-+	dprintk(3, "[%s]\n", ctx->name);
-+}
-+
-+static void _dmxdev_lock(struct vb2_queue *vq)
-+{
-+	struct dvb_vb2_ctx *ctx = vb2_get_drv_priv(vq);
-+
-+	mutex_lock(&ctx->mutex);
-+	dprintk(3, "[%s]\n", ctx->name);
-+}
-+
-+static void _dmxdev_unlock(struct vb2_queue *vq)
-+{
-+	struct dvb_vb2_ctx *ctx = vb2_get_drv_priv(vq);
-+
-+	if (mutex_is_locked(&ctx->mutex))
-+		mutex_unlock(&ctx->mutex);
-+	dprintk(3, "[%s]\n", ctx->name);
-+}
-+
-+static const struct vb2_ops dvb_vb2_qops = {
-+	.queue_setup		= _queue_setup,
-+	.buf_prepare		= _buffer_prepare,
-+	.buf_queue		= _buffer_queue,
-+	.start_streaming	= _start_streaming,
-+	.stop_streaming		= _stop_streaming,
-+	.wait_prepare		= _dmxdev_unlock,
-+	.wait_finish		= _dmxdev_lock,
-+};
-+
-+static void _fill_dmx_buffer(struct vb2_buffer *vb, void *pb)
-+{
-+	struct dvb_vb2_ctx *ctx = vb2_get_drv_priv(vb->vb2_queue);
-+	struct dmx_buffer *b = pb;
-+
-+	b->index = vb->index;
-+	b->length = vb->planes[0].length;
-+	b->bytesused = vb->planes[0].bytesused;
-+	b->offset = vb->planes[0].m.offset;
-+	memset(b->reserved, 0, sizeof(b->reserved));
-+	dprintk(3, "[%s]\n", ctx->name);
-+}
-+
-+static int _fill_vb2_buffer(struct vb2_buffer *vb,
-+			    const void *pb, struct vb2_plane *planes)
-+{
-+	struct dvb_vb2_ctx *ctx = vb2_get_drv_priv(vb->vb2_queue);
-+
-+	planes[0].bytesused = 0;
-+	dprintk(3, "[%s]\n", ctx->name);
-+
-+	return 0;
-+}
-+
-+static const struct vb2_buf_ops dvb_vb2_buf_ops = {
-+	.fill_user_buffer	= _fill_dmx_buffer,
-+	.fill_vb2_buffer	= _fill_vb2_buffer,
-+};
-+
-+/*
-+ * Videobuf operations
-+ */
-+int dvb_vb2_init(struct dvb_vb2_ctx *ctx, const char *name, int nonblocking)
-+{
-+	struct vb2_queue *q = &ctx->vb_q;
-+	int ret;
-+
-+	memset(ctx, 0, sizeof(struct dvb_vb2_ctx));
-+	q->type = DVB_BUF_TYPE_CAPTURE;
-+	/**capture type*/
-+	q->is_output = 0;
-+	/**only mmap is supported currently*/
-+	q->io_modes = VB2_MMAP;
-+	q->drv_priv = ctx;
-+	q->buf_struct_size = sizeof(struct dvb_buffer);
-+	q->min_buffers_needed = 1;
-+	q->ops = &dvb_vb2_qops;
-+	q->mem_ops = &vb2_vmalloc_memops;
-+	q->buf_ops = &dvb_vb2_buf_ops;
-+	q->num_buffers = 0;
-+	ret = vb2_core_queue_init(q);
-+	if (ret) {
-+		ctx->state = DVB_VB2_STATE_NONE;
-+		dprintk(1, "[%s] errno=%d\n", ctx->name, ret);
-+		return ret;
-+	}
-+
-+	mutex_init(&ctx->mutex);
-+	spin_lock_init(&ctx->slock);
-+	INIT_LIST_HEAD(&ctx->dvb_q);
-+
-+	strncpy(ctx->name, name, DVB_VB2_NAME_MAX);
-+	ctx->nonblocking = nonblocking;
-+	ctx->state = DVB_VB2_STATE_INIT;
-+
-+	dprintk(3, "[%s]\n", ctx->name);
-+
-+	return 0;
-+}
-+
-+int dvb_vb2_release(struct dvb_vb2_ctx *ctx)
-+{
-+	struct vb2_queue *q = (struct vb2_queue *)&ctx->vb_q;
-+
-+	if (ctx->state & DVB_VB2_STATE_INIT)
-+		vb2_core_queue_release(q);
-+
-+	ctx->state = DVB_VB2_STATE_NONE;
-+	dprintk(3, "[%s]\n", ctx->name);
-+
-+	return 0;
-+}
-+
-+int dvb_vb2_stream_on(struct dvb_vb2_ctx *ctx)
-+{
-+	struct vb2_queue *q = &ctx->vb_q;
-+	int ret;
-+
-+	ret = vb2_core_streamon(q, q->type);
-+	if (ret) {
-+		ctx->state = DVB_VB2_STATE_NONE;
-+		dprintk(1, "[%s] errno=%d\n", ctx->name, ret);
-+		return ret;
-+	}
-+	ctx->state |= DVB_VB2_STATE_STREAMON;
-+	dprintk(3, "[%s]\n", ctx->name);
-+
-+	return 0;
-+}
-+
-+int dvb_vb2_stream_off(struct dvb_vb2_ctx *ctx)
-+{
-+	struct vb2_queue *q = (struct vb2_queue *)&ctx->vb_q;
-+	int ret;
-+	unsigned long flags = 0;
-+
-+	ctx->state &= ~DVB_VB2_STATE_STREAMON;
-+	spin_lock_irqsave(&ctx->slock, flags);
-+	while (!list_empty(&ctx->dvb_q)) {
-+		struct dvb_buffer       *buf;
-+
-+		buf = list_entry(ctx->dvb_q.next,
-+				 struct dvb_buffer, list);
-+		list_del(&buf->list);
-+		spin_unlock_irqrestore(&ctx->slock, flags);
-+		vb2_buffer_done(&buf->vb, VB2_BUF_STATE_ERROR);
-+		spin_lock_irqsave(&ctx->slock, flags);
-+	}
-+	spin_unlock_irqrestore(&ctx->slock, flags);
-+	ret = vb2_core_streamoff(q, q->type);
-+	if (ret) {
-+		ctx->state = DVB_VB2_STATE_NONE;
-+		dprintk(1, "[%s] errno=%d\n", ctx->name, ret);
-+		return ret;
-+	}
-+	dprintk(3, "[%s]\n", ctx->name);
-+
-+	return 0;
-+}
-+
-+int dvb_vb2_is_streaming(struct dvb_vb2_ctx *ctx)
-+{
-+	return (ctx->state & DVB_VB2_STATE_STREAMON);
-+}
-+
-+int dvb_vb2_fill_buffer(struct dvb_vb2_ctx *ctx,
-+			const unsigned char *src, int len)
-+{
-+	unsigned long flags = 0;
-+	void *vbuf = NULL;
-+	int todo = len;
-+	unsigned char *psrc = (unsigned char *)src;
-+	int ll = 0;
-+
-+	dprintk(3, "[%s] %d bytes are rcvd\n", ctx->name, len);
-+	if (!src) {
-+		dprintk(3, "[%s]:NULL pointer src\n", ctx->name);
-+		/**normal case: This func is called twice from demux driver
-+		 * once with valid src pointer, second time with NULL pointer
-+		 */
-+		return 0;
-+	}
-+	while (todo) {
-+		if (!ctx->buf) {
-+			spin_lock_irqsave(&ctx->slock, flags);
-+			if (list_empty(&ctx->dvb_q)) {
-+				spin_unlock_irqrestore(&ctx->slock, flags);
-+				dprintk(3, "[%s] Buffer overflow!!!\n",
-+					ctx->name);
-+				break;
-+			}
-+
-+			ctx->buf = list_entry(ctx->dvb_q.next,
-+					      struct dvb_buffer, list);
-+			list_del(&ctx->buf->list);
-+			spin_unlock_irqrestore(&ctx->slock, flags);
-+			ctx->remain = vb2_plane_size(&ctx->buf->vb, 0);
-+			ctx->offset = 0;
-+		}
-+
-+		if (!dvb_vb2_is_streaming(ctx)) {
-+			vb2_buffer_done(&ctx->buf->vb, VB2_BUF_STATE_ERROR);
-+			ctx->buf = NULL;
-+			break;
-+		}
-+
-+		/* Fill buffer */
-+		ll = min(todo, ctx->remain);
-+		vbuf = vb2_plane_vaddr(&ctx->buf->vb, 0);
-+		memcpy(vbuf + ctx->offset, psrc, ll);
-+		todo -= ll;
-+		psrc += ll;
-+
-+		ctx->remain -= ll;
-+		ctx->offset += ll;
-+
-+		if (ctx->remain == 0) {
-+			vb2_buffer_done(&ctx->buf->vb, VB2_BUF_STATE_DONE);
-+			ctx->buf = NULL;
-+		}
-+	}
-+
-+	if (ctx->nonblocking && ctx->buf) {
-+		vb2_set_plane_payload(&ctx->buf->vb, 0, ll);
-+		vb2_buffer_done(&ctx->buf->vb, VB2_BUF_STATE_DONE);
-+		ctx->buf = NULL;
-+	}
-+
-+	if (todo)
-+		dprintk(1, "[%s] %d bytes are dropped.\n", ctx->name, todo);
-+	else
-+		dprintk(3, "[%s]\n", ctx->name);
-+
-+	dprintk(3, "[%s] %d bytes are copied\n", ctx->name, len - todo);
-+	return (len - todo);
-+}
-+
-+int dvb_vb2_reqbufs(struct dvb_vb2_ctx *ctx, struct dmx_requestbuffers *req)
-+{
-+	int ret;
-+
-+	ctx->buf_siz = req->size;
-+	ctx->buf_cnt = req->count;
-+	ret = vb2_core_reqbufs(&ctx->vb_q, VB2_MEMORY_MMAP, &req->count);
-+	if (ret) {
-+		ctx->state = DVB_VB2_STATE_NONE;
-+		dprintk(1, "[%s] count=%d size=%d errno=%d\n", ctx->name,
-+			ctx->buf_cnt, ctx->buf_siz, ret);
-+		return ret;
-+	}
-+	ctx->state |= DVB_VB2_STATE_REQBUFS;
-+	dprintk(3, "[%s] count=%d size=%d\n", ctx->name,
-+		ctx->buf_cnt, ctx->buf_siz);
-+
-+	return 0;
-+}
-+
-+int dvb_vb2_querybuf(struct dvb_vb2_ctx *ctx, struct dmx_buffer *b)
-+{
-+	vb2_core_querybuf(&ctx->vb_q, b->index, b);
-+	dprintk(3, "[%s] index=%d\n", ctx->name, b->index);
-+	return 0;
-+}
-+
-+int dvb_vb2_expbuf(struct dvb_vb2_ctx *ctx, struct dmx_exportbuffer *exp)
-+{
-+	struct vb2_queue *q = &ctx->vb_q;
-+	int ret;
-+
-+	ret = vb2_core_expbuf(&ctx->vb_q, &exp->fd, q->type, exp->index,
-+			      0, exp->flags);
-+	if (ret) {
-+		dprintk(1, "[%s] index=%d errno=%d\n", ctx->name,
-+			exp->index, ret);
-+		return ret;
-+	}
-+	dprintk(3, "[%s] index=%d fd=%d\n", ctx->name, exp->index, exp->fd);
-+
-+	return 0;
-+}
-+
-+int dvb_vb2_qbuf(struct dvb_vb2_ctx *ctx, struct dmx_buffer *b)
-+{
-+	int ret;
-+
-+	ret = vb2_core_qbuf(&ctx->vb_q, b->index, b);
-+	if (ret) {
-+		dprintk(1, "[%s] index=%d errno=%d\n", ctx->name,
-+			b->index, ret);
-+		return ret;
-+	}
-+	dprintk(5, "[%s] index=%d\n", ctx->name, b->index);
-+
-+	return 0;
-+}
-+
-+int dvb_vb2_dqbuf(struct dvb_vb2_ctx *ctx, struct dmx_buffer *b)
-+{
-+	int ret;
-+
-+	ret = vb2_core_dqbuf(&ctx->vb_q, &b->index, b, ctx->nonblocking);
-+	if (ret) {
-+		dprintk(1, "[%s] errno=%d\n", ctx->name, ret);
-+		return ret;
-+	}
-+	dprintk(5, "[%s] index=%d\n", ctx->name, b->index);
-+
-+	return 0;
-+}
-+
-+int dvb_vb2_mmap(struct dvb_vb2_ctx *ctx, struct vm_area_struct *vma)
-+{
-+	int ret;
-+
-+	ret = vb2_mmap(&ctx->vb_q, vma);
-+	if (ret) {
-+		dprintk(1, "[%s] errno=%d\n", ctx->name, ret);
-+		return ret;
-+	}
-+	dprintk(3, "[%s] ret=%d\n", ctx->name, ret);
-+
-+	return 0;
-+}
-+
-+unsigned int dvb_vb2_poll(struct dvb_vb2_ctx *ctx, struct file *file,
-+			  poll_table *wait)
-+{
-+	dprintk(3, "[%s]\n", ctx->name);
-+	return vb2_core_poll(&ctx->vb_q, file, wait);
-+}
-+
-diff --git a/drivers/media/dvb-core/dvb_vb2.h b/drivers/media/dvb-core/dvb_vb2.h
-new file mode 100644
-index 000000000000..d68653926d91
---- /dev/null
-+++ b/drivers/media/dvb-core/dvb_vb2.h
-@@ -0,0 +1,72 @@
-+/*
-+ * dvb-vb2.h - DVB driver helper framework for streaming I/O
-+ *
-+ * Copyright (C) 2015 Samsung Electronics
-+ *
-+ * Author: jh1009.sung@samsung.com
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation.
-+ */
-+
-+#ifndef _DVB_VB2_H
-+#define _DVB_VB2_H
-+
-+#include <linux/mutex.h>
-+#include <linux/poll.h>
-+#include <linux/dvb/dmx.h>
-+#include <media/videobuf2-core.h>
-+#include <media/videobuf2-dma-contig.h>
-+#include <media/videobuf2-vmalloc.h>
-+
-+enum dvb_buf_type {
-+	DVB_BUF_TYPE_CAPTURE        = 1,
-+	DVB_BUF_TYPE_OUTPUT         = 2,
-+};
-+
-+#define DVB_VB2_STATE_NONE (0x0)
-+#define DVB_VB2_STATE_INIT (0x1)
-+#define DVB_VB2_STATE_REQBUFS (0x2)
-+#define DVB_VB2_STATE_STREAMON (0x4)
-+
-+#define DVB_VB2_NAME_MAX (20)
-+
-+struct dvb_buffer {
-+	struct vb2_buffer	vb;
-+	struct list_head	list;
-+};
-+
-+struct dvb_vb2_ctx {
-+	struct vb2_queue	vb_q;
-+	struct mutex		mutex;
-+	spinlock_t		slock;
-+	struct list_head	dvb_q;
-+	struct dvb_buffer	*buf;
-+	int	offset;
-+	int	remain;
-+	int	state;
-+	int	buf_siz;
-+	int	buf_cnt;
-+	int	nonblocking;
-+	char	name[DVB_VB2_NAME_MAX + 1];
-+};
-+
-+int dvb_vb2_init(struct dvb_vb2_ctx *ctx, const char *name, int non_blocking);
-+int dvb_vb2_release(struct dvb_vb2_ctx *ctx);
-+int dvb_vb2_stream_on(struct dvb_vb2_ctx *ctx);
-+int dvb_vb2_stream_off(struct dvb_vb2_ctx *ctx);
-+int dvb_vb2_is_streaming(struct dvb_vb2_ctx *ctx);
-+int dvb_vb2_fill_buffer(struct dvb_vb2_ctx *ctx,
-+			const unsigned char *src, int len);
-+
-+int dvb_vb2_reqbufs(struct dvb_vb2_ctx *ctx, struct dmx_requestbuffers *req);
-+int dvb_vb2_querybuf(struct dvb_vb2_ctx *ctx, struct dmx_buffer *b);
-+int dvb_vb2_expbuf(struct dvb_vb2_ctx *ctx, struct dmx_exportbuffer *exp);
-+int dvb_vb2_qbuf(struct dvb_vb2_ctx *ctx, struct dmx_buffer *b);
-+int dvb_vb2_dqbuf(struct dvb_vb2_ctx *ctx, struct dmx_buffer *b);
-+int dvb_vb2_mmap(struct dvb_vb2_ctx *ctx, struct vm_area_struct *vma);
-+unsigned int dvb_vb2_poll(struct dvb_vb2_ctx *ctx, struct file *file,
-+			  poll_table *wait);
-+
-+#endif /* _DVB_VB2_H */
-diff --git a/include/uapi/linux/dvb/dmx.h b/include/uapi/linux/dvb/dmx.h
-index c10f1324b4ca..e212aa18ad78 100644
---- a/include/uapi/linux/dvb/dmx.h
-+++ b/include/uapi/linux/dvb/dmx.h
-@@ -211,6 +211,64 @@ struct dmx_stc {
- 	__u64 stc;
- };
- 
 +/**
-+ * struct dmx_buffer - dmx buffer info
++ * struct cifisp_awb_gain_config - Configuration used by auto white balance gain
 + *
-+ * @index:	id number of the buffer
-+ * @bytesused:	number of bytes occupied by data in the buffer (payload);
-+ * @offset:	for buffers with memory == DMX_MEMORY_MMAP;
-+ *		offset from the start of the device memory for this plane,
-+ *		(or a "cookie" that should be passed to mmap() as offset)
-+ * @length:	size in bytes of the buffer
-+ *
-+ * Contains data exchanged by application and driver using one of the streaming
-+ * I/O methods.
++ * out_data_x = ( AWB_GEAIN_X * in_data + 128) >> 8
 + */
-+struct dmx_buffer {
-+	__u32			index;
-+	__u32			bytesused;
-+	__u32			offset;
-+	__u32			length;
-+	__u32			reserved[4];
++struct cifisp_awb_gain_config {
++	unsigned short gain_red;
++	unsigned short gain_green_r;
++	unsigned short gain_blue;
++	unsigned short gain_green_b;
++} __attribute__ ((packed));
++
++/**
++ * struct cifisp_flt_config - Configuration used by ISP filtering
++ *
++ * @mode: ISP_FILT_MODE register fields
++ * @grn_stage1: ISP_FILT_MODE register fields
++ * @chr_h_mode: ISP_FILT_MODE register fields
++ * @chr_v_mode: ISP_FILT_MODE register fields
++ *
++ * refer to datasheet for details.
++ */
++struct cifisp_flt_config {
++	enum cifisp_flt_mode mode;
++	unsigned char grn_stage1;
++	unsigned char chr_h_mode;
++	unsigned char chr_v_mode;
++	unsigned int thresh_bl0;
++	unsigned int thresh_bl1;
++	unsigned int thresh_sh0;
++	unsigned int thresh_sh1;
++	unsigned int lum_weight;
++	unsigned int fac_sh1;
++	unsigned int fac_sh0;
++	unsigned int fac_mid;
++	unsigned int fac_bl0;
++	unsigned int fac_bl1;
++} __attribute__ ((packed));
++
++/**
++ * struct cifisp_bdm_config - Configuration used by Bayer DeMosaic
++ *
++ * @demosaic_th: threshod for bayer demosaicing texture detection
++ */
++struct cifisp_bdm_config {
++	unsigned char demosaic_th;
++} __attribute__ ((packed));
++
++/**
++ * struct cifisp_ctk_config - Configuration used by Cross Talk correction
++ *
++ * @coeff: color correction matrix
++ * @ct_offset_b: offset for the crosstalk correction matrix
++ */
++struct cifisp_ctk_config {
++	unsigned short coeff0;
++	unsigned short coeff1;
++	unsigned short coeff2;
++	unsigned short coeff3;
++	unsigned short coeff4;
++	unsigned short coeff5;
++	unsigned short coeff6;
++	unsigned short coeff7;
++	unsigned short coeff8;
++	unsigned short ct_offset_r;
++	unsigned short ct_offset_g;
++	unsigned short ct_offset_b;
++} __attribute__ ((packed));
++
++enum cifisp_goc_mode {
++	CIFISP_GOC_MODE_LOGARITHMIC,
++	CIFISP_GOC_MODE_EQUIDISTANT
 +};
 +
 +/**
-+ * struct dmx_requestbuffers - request dmx buffer information
++ * struct cifisp_goc_config - Configuration used by Gamma Out correction
 + *
-+ * @count:	number of requested buffers,
-+ * @size:	size in bytes of the requested buffer
-+ *
-+ * Contains data used for requesting a dmx buffer.
-+ * All reserved fields must be set to zero.
++ * @mode: goc mode
++ * @gamma_y: gamma out curve y-axis for all color components
 + */
-+struct dmx_requestbuffers {
-+	__u32			count;
-+	__u32			size;
-+	__u32			reserved[2];
++struct cifisp_goc_config {
++	enum cifisp_goc_mode mode;
++	unsigned short gamma_y[CIFISP_GAMMA_OUT_MAX_SAMPLES];
++} __attribute__ ((packed));
++
++/**
++ * struct cifisp_hst_config - Configuration used by Histogram
++ *
++ * @mode: histogram mode
++ * @histogram_predivider: process every stepsize pixel, all other pixels are skipped
++ * @meas_window: coordinates of the meas window
++ * @hist_weight: weighting factor for sub-windows
++ */
++struct cifisp_hst_config {
++	enum cifisp_histogram_mode mode;
++	unsigned char histogram_predivider;
++	struct cifisp_window meas_window;
++	unsigned char hist_weight[CIFISP_HISTOGRAM_WEIGHT_GRIDS_SIZE];
++} __attribute__ ((packed));
++
++/**
++ * struct cifisp_aec_config - Configuration used by Auto Exposure Control
++ *
++ * @mode: Exposure measure mode
++ * @autostop: stop mode (from enum cifisp_exp_ctrl_auotostop)
++ * @meas_window: coordinates of the meas window
++ */
++struct cifisp_aec_config {
++	enum cifisp_exp_meas_mode mode;
++	__u32 autostop;
++	struct cifisp_window meas_window;
++} __attribute__ ((packed));
++
++/**
++ * struct cifisp_afc_config - Configuration used by Auto Focus Control
++ *
++ * @num_afm_win: max CIFISP_AFM_MAX_WINDOWS
++ * @afm_win: coordinates of the meas window
++ * @thres: threshold used for minimizing the influence of noise
++ * @var_shift: the number of bits for the shift operation at the end of the calculation chain.
++ */
++struct cifisp_afc_config {
++	unsigned char num_afm_win;
++	struct cifisp_window afm_win[CIFISP_AFM_MAX_WINDOWS];
++	unsigned int thres;
++	unsigned int var_shift;
++} __attribute__ ((packed));
++
++/**
++ * enum cifisp_dpf_gain_usage - dpf gain usage
++ * @CIFISP_DPF_GAIN_USAGE_DISABLED: don't use any gains in preprocessing stage
++ * @CIFISP_DPF_GAIN_USAGE_NF_GAINS: use only the noise function gains from registers DPF_NF_GAIN_R, ...
++ * @CIFISP_DPF_GAIN_USAGE_LSC_GAINS:  use only the gains from LSC module
++ * @CIFISP_DPF_GAIN_USAGE_NF_LSC_GAINS: use the noise function gains and the gains from LSC module
++ * @CIFISP_DPF_GAIN_USAGE_AWB_GAINS: use only the gains from AWB module
++ * @CIFISP_DPF_GAIN_USAGE_AWB_LSC_GAINS: use the gains from AWB and LSC module
++ * @CIFISP_DPF_GAIN_USAGE_MAX: upper border (only for an internal evaluation)
++ */
++enum cifisp_dpf_gain_usage {
++	CIFISP_DPF_GAIN_USAGE_DISABLED,
++	CIFISP_DPF_GAIN_USAGE_NF_GAINS,
++	CIFISP_DPF_GAIN_USAGE_LSC_GAINS,
++	CIFISP_DPF_GAIN_USAGE_NF_LSC_GAINS,
++	CIFISP_DPF_GAIN_USAGE_AWB_GAINS,
++	CIFISP_DPF_GAIN_USAGE_AWB_LSC_GAINS,
++	CIFISP_DPF_GAIN_USAGE_MAX
 +};
 +
 +/**
-+ * struct dmx_exportbuffer - export of dmx buffer as DMABUF file descriptor
-+ *
-+ * @index:	id number of the buffer
-+ * @flags:	flags for newly created file, currently only O_CLOEXEC is
-+ *		supported, refer to manual of open syscall for more details
-+ * @fd:		file descriptor associated with DMABUF (set by driver)
-+ *
-+ * Contains data used for exporting a dmx buffer as DMABUF file descriptor.
-+ * The buffer is identified by a 'cookie' returned by DMX_QUERYBUF
-+ * (identical to the cookie used to mmap() the buffer to userspace). All
-+ * reserved fields must be set to zero. The field reserved0 is expected to
-+ * become a structure 'type' allowing an alternative layout of the structure
-+ * content. Therefore this field should not be used for any other extensions.
++ * enum cifisp_dpf_gain_usage - dpf gain usage
++ * @CIFISP_DPF_RB_FILTERSIZE_13x9: red and blue filter kernel size 13x9 (means 7x5 active pixel)
++ * @CIFISP_DPF_RB_FILTERSIZE_9x9: red and blue filter kernel size 9x9 (means 5x5 active pixel)
 + */
-+struct dmx_exportbuffer {
-+	__u32		index;
-+	__u32		flags;
-+	__s32		fd;
-+	__u32		reserved[5];
++enum cifisp_dpf_rb_filtersize {
++	CIFISP_DPF_RB_FILTERSIZE_13x9,
++	CIFISP_DPF_RB_FILTERSIZE_9x9,
 +};
 +
- #define DMX_START                _IO('o', 41)
- #define DMX_STOP                 _IO('o', 42)
- #define DMX_SET_FILTER           _IOW('o', 43, struct dmx_sct_filter_params)
-@@ -231,4 +289,10 @@ typedef struct dmx_filter dmx_filter_t;
- 
- #endif
- 
--#endif /* _UAPI_DVBDMX_H_ */
-+#define DMX_REQBUFS              _IOWR('o', 60, struct dmx_requestbuffers)
-+#define DMX_QUERYBUF             _IOWR('o', 61, struct dmx_buffer)
-+#define DMX_EXPBUF               _IOWR('o', 62, struct dmx_exportbuffer)
-+#define DMX_QBUF                 _IOWR('o', 63, struct dmx_buffer)
-+#define DMX_DQBUF                _IOWR('o', 64, struct dmx_buffer)
++/**
++ * enum cifisp_dpf_nll_scale_mode - dpf noise level scale mode
++ * @CIFISP_NLL_SCALE_LINEAR: use a linear scaling
++ * @CIFISP_NLL_SCALE_LOGARITHMIC: use a logarithmic scaling
++ */
++enum cifisp_dpf_nll_scale_mode {
++	CIFISP_NLL_SCALE_LINEAR,
++	CIFISP_NLL_SCALE_LOGARITHMIC,
++};
 +
-+#endif /* _DVBDMX_H_ */
++struct cifisp_dpf_nll {
++	unsigned short coeff[CIFISP_DPF_MAX_NLF_COEFFS];
++	enum cifisp_dpf_nll_scale_mode scale_mode;
++} __attribute__ ((packed));
++
++struct cifisp_dpf_rb_flt {
++	enum cifisp_dpf_rb_filtersize fltsize;
++	unsigned char spatial_coeff[CIFISP_DPF_MAX_SPATIAL_COEFFS];
++	bool r_enable;
++	bool b_enable;
++} __attribute__ ((packed));
++
++struct cifisp_dpf_g_flt {
++	unsigned char spatial_coeff[CIFISP_DPF_MAX_SPATIAL_COEFFS];
++	bool gr_enable;
++	bool gb_enable;
++} __attribute__ ((packed));
++
++struct cifisp_dpf_gain {
++	enum cifisp_dpf_gain_usage mode;
++	unsigned short nf_r_gain;
++	unsigned short nf_b_gain;
++	unsigned short nf_gr_gain;
++	unsigned short nf_gb_gain;
++} __attribute__ ((packed));
++
++/**
++ * struct cifisp_dpf_config - Configuration used by De-noising pre-filter
++ *
++ * @gain: noise function gain
++ * @g_flt: green filter config
++ * @rb_flt: red blue filter config
++ * @nll: noise level lookup
++ */
++struct cifisp_dpf_config {
++	struct cifisp_dpf_gain gain;
++	struct cifisp_dpf_g_flt g_flt;
++	struct cifisp_dpf_rb_flt rb_flt;
++	struct cifisp_dpf_nll nll;
++} __attribute__ ((packed));
++
++/**
++ * struct cifisp_dpf_strength_config - strength of the filter
++ *
++ * @r: filter strength of the RED filter
++ * @g: filter strength of the GREEN filter
++ * @b: filter strength of the BLUE filter
++ */
++struct cifisp_dpf_strength_config {
++	unsigned char r;
++	unsigned char g;
++	unsigned char b;
++} __attribute__ ((packed));
++
++/**
++ * struct cifisp_isp_other_cfg - Parameters for some blocks in rockchip isp1
++ *
++ * @dpcc_config: Defect Pixel Cluster Correction config
++ * @bls_config: Black Level Subtraction config
++ * @sdg_config: sensor degamma config
++ * @lsc_config: Lens Shade config
++ * @awb_gain_config: Auto White balance gain config
++ * @flt_config: filter config
++ * @bdm_config: demosaic config
++ * @ctk_config: cross talk config
++ * @goc_config: gamma out config
++ * @bls_config: black level suntraction config
++ * @dpf_config: De-noising pre-filter config
++ * @dpf_strength_config: dpf strength config
++ * @cproc_config: color process config
++ * @ie_config: image effects config
++ */
++struct cifisp_isp_other_cfg {
++	struct cifisp_dpcc_config dpcc_config;
++	struct cifisp_bls_config bls_config;
++	struct cifisp_sdg_config sdg_config;
++	struct cifisp_lsc_config lsc_config;
++	struct cifisp_awb_gain_config awb_gain_config;
++	struct cifisp_flt_config flt_config;
++	struct cifisp_bdm_config bdm_config;
++	struct cifisp_ctk_config ctk_config;
++	struct cifisp_goc_config goc_config;
++	struct cifisp_dpf_config dpf_config;
++	struct cifisp_dpf_strength_config dpf_strength_config;
++	struct cifisp_cproc_config cproc_config;
++	struct cifisp_ie_config ie_config;
++} __attribute__ ((packed));
++
++/**
++ * struct cifisp_isp_meas_cfg - Rockchip ISP1 Measure Parameters
++ *
++ * @awb_meas_config: auto white balance config
++ * @hst_config: histogram config
++ * @aec_config: auto exposure config
++ * @afc_config: auto focus config
++ */
++struct cifisp_isp_meas_cfg {
++	struct cifisp_awb_meas_config awb_meas_config;
++	struct cifisp_hst_config hst_config;
++	struct cifisp_aec_config aec_config;
++	struct cifisp_afc_config afc_config;
++} __attribute__ ((packed));
++
++/**
++ * struct rkisp1_isp_params_cfg - Rockchip ISP1 Input Parameters Meta Data
++ *
++ * @module_en_update: mask the enable bits of which module  should be updated
++ * @module_ens: mask the enable value of each module, only update the module
++ * which correspond bit was set in module_en_update
++ * @module_cfg_update: mask the config bits of which module  should be updated
++ * @meas: measurement config
++ * @others: other config
++ */
++struct rkisp1_isp_params_cfg {
++	unsigned int module_en_update;
++	unsigned int module_ens;
++	unsigned int module_cfg_update;
++
++	struct cifisp_isp_meas_cfg meas;
++	struct cifisp_isp_other_cfg others;
++} __attribute__ ((packed));
++
++/*---------- PART2: Measurement Statistics ------------*/
++
++/**
++ * struct cifisp_bls_meas_val - AWB measured values
++ *
++ * @cnt: White pixel count, number of "white pixels" found during laster measurement
++ * @mean_y_or_g: Mean value of Y within window and frames, Green if RGB is selected.
++ * @mean_cb_or_b: Mean value of Cb within window and frames, Blue if RGB is selected.
++ * @mean_cr_or_r: Mean value of Cr within window and frames, Red if RGB is selected.
++ */
++struct cifisp_awb_meas {
++	unsigned int cnt;
++	unsigned char mean_y_or_g;
++	unsigned char mean_cb_or_b;
++	unsigned char mean_cr_or_r;
++} __attribute__ ((packed));
++
++/**
++ * struct cifisp_awb_stat - statistics automatic white balance data
++ *
++ * @awb_mean: Mean measured data
++ */
++struct cifisp_awb_stat {
++	struct cifisp_awb_meas awb_mean[CIFISP_AWB_MAX_GRID];
++} __attribute__ ((packed));
++
++/**
++ * struct cifisp_bls_meas_val - BLS measured values
++ *
++ * @meas_r: Mean measured value for Bayer pattern R
++ * @meas_gr: Mean measured value for Bayer pattern Gr
++ * @meas_gb: Mean measured value for Bayer pattern Gb
++ * @meas_b: Mean measured value for Bayer pattern B
++ */
++struct cifisp_bls_meas_val {
++	unsigned short meas_r;
++	unsigned short meas_gr;
++	unsigned short meas_gb;
++	unsigned short meas_b;
++} __attribute__ ((packed));
++
++/**
++ * struct cifisp_ae_stat - statistics auto exposure data
++ *
++ * @exp_mean: Mean luminance value of block xx
++ * @bls_val: available wit exposure results
++ *
++ * Image is divided into 5x5 blocks.
++ */
++struct cifisp_ae_stat {
++	unsigned char exp_mean[CIFISP_AE_MEAN_MAX];
++	struct cifisp_bls_meas_val bls_val;
++} __attribute__ ((packed));
++
++/**
++ * struct cifisp_af_meas_val - AF measured values
++ *
++ * @sum: sharpness, refer to datasheet for definition
++ * @lum: luminance, refer to datasheet for definition
++ */
++struct cifisp_af_meas_val {
++	unsigned int sum;
++	unsigned int lum;
++} __attribute__ ((packed));
++
++/**
++ * struct cifisp_af_stat - statistics auto focus data
++ *
++ * @window: AF measured value of window x
++ *
++ * The module measures the sharpness in 3 windows of selectable size via
++ * register settings(ISP_AFM_*_A/B/C)
++ */
++struct cifisp_af_stat {
++	struct cifisp_af_meas_val window[CIFISP_AFM_MAX_WINDOWS];
++} __attribute__ ((packed));
++
++/**
++ * struct cifisp_hist_stat - statistics histogram data
++ *
++ * @hist_bins: measured bin counters
++ *
++ * Measurement window divided into 25 sub-windows, set
++ * with ISP_HIST_XXX
++ */
++struct cifisp_hist_stat {
++	unsigned short hist_bins[CIFISP_HIST_BIN_N_MAX];
++} __attribute__ ((packed));
++
++/**
++ * struct rkisp1_stat_buffer - Rockchip ISP1 Statistics Data
++ *
++ * @cifisp_awb_stat: statistics data for automatic white balance
++ * @cifisp_ae_stat: statistics data for auto exposure
++ * @cifisp_af_stat: statistics data for auto focus
++ * @cifisp_hist_stat: statistics histogram data
++ */
++struct cifisp_stat {
++	struct cifisp_awb_stat awb;
++	struct cifisp_ae_stat ae;
++	struct cifisp_af_stat af;
++	struct cifisp_hist_stat hist;
++} __attribute__ ((packed));
++
++/**
++ * struct rkisp1_stat_buffer - Rockchip ISP1 Statistics Meta Data
++ *
++ * @meas_type: measurement types (CIFISP_STAT_ definitions)
++ * @frame_id: frame ID for sync
++ * @params: statistics data
++ */
++struct rkisp1_stat_buffer {
++	unsigned int meas_type;
++	unsigned int frame_id;
++	struct cifisp_stat params;
++} __attribute__ ((packed));
++
++#endif /* _UAPI_RKISP1_CONFIG_H */
 -- 
-2.14.3
+1.9.1
