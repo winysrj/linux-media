@@ -1,54 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:64539 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1758870AbdLRMa0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 18 Dec 2017 07:30:26 -0500
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>
-Subject: [PATCH v4 10/18] scripts: kernel-doc: change default to ReST format
-Date: Mon, 18 Dec 2017 10:30:11 -0200
-Message-Id: <c1331cf05eabe43a32b8e2877a88a75f14a0b8ed.1513599193.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1513599193.git.mchehab@s-opensource.com>
-References: <cover.1513599193.git.mchehab@s-opensource.com>
-In-Reply-To: <cover.1513599193.git.mchehab@s-opensource.com>
-References: <cover.1513599193.git.mchehab@s-opensource.com>
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:43257 "EHLO
+        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750708AbdL2Mqa (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 29 Dec 2017 07:46:30 -0500
+Received: by mail-wm0-f68.google.com with SMTP id n138so48157626wmg.2
+        for <linux-media@vger.kernel.org>; Fri, 29 Dec 2017 04:46:29 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <1514533978-20408-6-git-send-email-zhengsq@rock-chips.com>
+References: <1514533978-20408-1-git-send-email-zhengsq@rock-chips.com> <1514533978-20408-6-git-send-email-zhengsq@rock-chips.com>
+From: Philippe Ombredanne <pombredanne@nexb.com>
+Date: Fri, 29 Dec 2017 13:45:47 +0100
+Message-ID: <CAOFm3uEEBvVKrR+HyCQ76gbVNz51Q343gm0JyfPgMxHFawR74w@mail.gmail.com>
+Subject: Re: [PATCH v5 05/16] media: rkisp1: add Rockchip ISP1 subdev driver
+To: Shunqian Zheng <zhengsq@rock-chips.com>
+Cc: "open list:ARM/Rockchip SoC..." <linux-rockchip@lists.infradead.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>,
+        "moderated list:ARM/FREESCALE IMX / MXC ARM ARCHITECTURE"
+        <linux-arm-kernel@lists.infradead.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Tomasz Figa <tfiga@chromium.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        zyc@rock-chips.com, eddie.cai.linux@gmail.com,
+        Jeffy Chen <jeffy.chen@rock-chips.com>,
+        allon.huang@rock-chips.com,
+        "open list:OPEN FIRMWARE AND FLATTENED DEVICE TREE BINDINGS"
+        <devicetree@vger.kernel.org>, Heiko Stuebner <heiko@sntech.de>,
+        Rob Herring <robh+dt@kernel.org>,
+        Joao Pinto <Joao.Pinto@synopsys.com>,
+        Luis.Oliveira@synopsys.com, Jose Abreu <Jose.Abreu@synopsys.com>,
+        jacob2.chen@rock-chips.com, Jacob Chen <cc@rock-chips.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Right now, if kernel-doc is called without arguments, it
-defaults to man pages. IMO, it makes more sense to
-default to ReST, as this is the output that it is most
-used nowadays, and it easier to check if everything got
-parsed fine on an enriched text mode format.
+Shunqian,
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- scripts/kernel-doc | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+On Fri, Dec 29, 2017 at 8:52 AM, Shunqian Zheng <zhengsq@rock-chips.com> wrote:
+> From: Jacob Chen <jacob2.chen@rock-chips.com>
+>
+> Add the subdev driver for rockchip isp1.
 
-diff --git a/scripts/kernel-doc b/scripts/kernel-doc
-index 11aec7469776..e417d93575b9 100755
---- a/scripts/kernel-doc
-+++ b/scripts/kernel-doc
-@@ -268,12 +268,12 @@ my $kernelversion;
- my $dohighlight = "";
- 
- my $verbose = 0;
--my $output_mode = "man";
-+my $output_mode = "rst";
- my $output_preformatted = 0;
- my $no_doc_sections = 0;
- my $enable_lineno = 0;
--my @highlights = @highlights_man;
--my $blankline = $blankline_man;
-+my @highlights = @highlights_rst;
-+my $blankline = $blankline_rst;
- my $modulename = "Kernel API";
- 
- use constant {
+<snip>
+
+> --- /dev/null
+> +++ b/drivers/media/platform/rockchip/isp1/rkisp1.c
+> @@ -0,0 +1,1205 @@
+> +/*
+> + * Rockchip isp1 driver
+> + *
+> + * Copyright (C) 2017 Rockchip Electronics Co., Ltd.
+> + *
+> + * This software is available to you under a choice of one of two
+> + * licenses.  You may choose to be licensed under the terms of the GNU
+> + * General Public License (GPL) Version 2, available from the file
+> + * COPYING in the main directory of this source tree, or the
+> + * OpenIB.org BSD license below:
+> + *
+> + *     Redistribution and use in source and binary forms, with or
+> + *     without modification, are permitted provided that the following
+> + *     conditions are met:
+> + *
+> + *      - Redistributions of source code must retain the above
+> + *        copyright notice, this list of conditions and the following
+> + *        disclaimer.
+> + *
+> + *      - Redistributions in binary form must reproduce the above
+> + *        copyright notice, this list of conditions and the following
+> + *        disclaimer in the documentation and/or other materials
+> + *        provided with the distribution.
+> + *
+> + * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+> + * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+> + * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+> + * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+> + * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+> + * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+> + * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+> + * SOFTWARE.
+> + */
+
+
+Do you mind using a simpler SPDX identifier instead of this long
+legalese boilerplate?
+This is documented in Thomas doc patches. This applies to your entire
+patch set of course.
+Thanks!
+
 -- 
-2.14.3
+Cordially
+Philippe Ombredanne
