@@ -1,53 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from userp2130.oracle.com ([156.151.31.86]:38919 "EHLO
-        userp2130.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754259AbdLTEyt (ORCPT
+Received: from mail-pl0-f66.google.com ([209.85.160.66]:38093 "EHLO
+        mail-pl0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755439AbdL2HyA (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 19 Dec 2017 23:54:49 -0500
-Date: Wed, 20 Dec 2017 07:54:16 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Alan Cox <alan@linux.intel.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        devel@driverdev.osuosl.org, Kristian Beilke <beilke@posteo.de>
-Subject: Re: [PATCH v1 05/10] staging: atomisp: Remove non-ACPI leftovers
-Message-ID: <20171220045416.qbge74ntj4s4zlcm@mwanda>
-References: <20171219205957.10933-1-andriy.shevchenko@linux.intel.com>
- <20171219205957.10933-5-andriy.shevchenko@linux.intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20171219205957.10933-5-andriy.shevchenko@linux.intel.com>
+        Fri, 29 Dec 2017 02:54:00 -0500
+From: Shunqian Zheng <zhengsq@rock-chips.com>
+To: linux-rockchip@lists.infradead.org, linux-media@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        mchehab@kernel.org, sakari.ailus@linux.intel.com,
+        hans.verkuil@cisco.com, tfiga@chromium.org, zhengsq@rock-chips.com,
+        laurent.pinchart@ideasonboard.com, zyc@rock-chips.com,
+        eddie.cai.linux@gmail.com, jeffy.chen@rock-chips.com,
+        allon.huang@rock-chips.com, devicetree@vger.kernel.org,
+        heiko@sntech.de, robh+dt@kernel.org, Joao.Pinto@synopsys.com,
+        Luis.Oliveira@synopsys.com, Jose.Abreu@synopsys.com,
+        jacob2.chen@rock-chips.com
+Subject: [PATCH v5 11/16] dt-bindings: Document the Rockchip MIPI RX D-PHY bindings
+Date: Fri, 29 Dec 2017 15:52:53 +0800
+Message-Id: <1514533978-20408-12-git-send-email-zhengsq@rock-chips.com>
+In-Reply-To: <1514533978-20408-1-git-send-email-zhengsq@rock-chips.com>
+References: <1514533978-20408-1-git-send-email-zhengsq@rock-chips.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Dec 19, 2017 at 10:59:52PM +0200, Andy Shevchenko wrote:
-> @@ -1147,10 +1145,8 @@ static int gc2235_probe(struct i2c_client *client)
->  	if (ret)
->  		gc2235_remove(client);
+From: Jacob Chen <jacob2.chen@rock-chips.com>
 
-This error handling is probably wrong...
+Add DT bindings documentation for Rockchip MIPI D-PHY RX
 
->  
-> -	if (ACPI_HANDLE(&client->dev))
-> -		ret = atomisp_register_i2c_module(&dev->sd, gcpdev, RAW_CAMERA);
-> +	return atomisp_register_i2c_module(&dev->sd, gcpdev, RAW_CAMERA);
+Signed-off-by: Jacob Chen <jacob2.chen@rock-chips.com>
+Reviewed-by: Rob Herring <robh@kernel.org>
+---
+ .../bindings/media/rockchip-mipi-dphy.txt          | 88 ++++++++++++++++++++++
+ 1 file changed, 88 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/rockchip-mipi-dphy.txt
 
-In the end this should look something like:
-
-	ret = atomisp_register_i2c_module(&dev->sd, gcpdev, RAW_CAMERA);
-	if (ret)
-		goto err_free_something;
-
-	return 0;
-
->  
-> -	return ret;
->  out_free:
->  	v4l2_device_unregister_subdev(&dev->sd);
->  	kfree(dev);
-
-regards,
-dan carpenter
+diff --git a/Documentation/devicetree/bindings/media/rockchip-mipi-dphy.txt b/Documentation/devicetree/bindings/media/rockchip-mipi-dphy.txt
+new file mode 100644
+index 0000000..0571d7f
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/rockchip-mipi-dphy.txt
+@@ -0,0 +1,88 @@
++Rockchip SoC MIPI RX D-PHY
++-------------------------------------------------------------
++
++Required properties:
++- compatible: value should be one of the following
++	"rockchip,rk3288-mipi-dphy"
++	"rockchip,rk3399-mipi-dphy"
++- clocks : list of clock specifiers, corresponding to entries in
++	clock-names property;
++- clock-names: required clock name.
++
++MIPI RX0 D-PHY use registers in "general register files", it
++should be a child of the GRF.
++MIPI TXRX D-PHY have its own registers, it must have a reg property.
++
++Optional properties:
++- reg: offset and length of the register set for the device.
++
++port node
++-------------------
++
++The device node should contain two 'port' child nodes, according to the bindings
++defined in Documentation/devicetree/bindings/media/video-interfaces.txt.
++
++The first port show the sensors connected in this mipi-dphy.
++- endpoint:
++	- remote-endpoint: Linked to a sensor with a MIPI CSI-2 video bus.
++	- data-lanes : (required) an array specifying active physical MIPI-CSI2
++			data input lanes and their mapping to logical lanes; the
++			D-PHY can't reroute lanes, so the array's content should
++			be consecutive and only its length is meaningful.
++
++The port node must contain at least one endpoint. It could have multiple endpoints
++linked to different sensors, but please note that they are not supposed to be
++activated at the same time.
++
++The second port should be connected to isp node.
++- endpoint:
++	- remote-endpoint:  Linked to Rockchip ISP1, which is defined
++		in rockchip-isp1.txt.
++
++Device node example
++-------------------
++
++grf: syscon@ff770000 {
++	compatible = "rockchip,rk3288-grf", "syscon", "simple-mfd";
++
++...
++
++	mipi_dphy_rx0: mipi-dphy-rx0 {
++		compatible = "rockchip,rk3399-mipi-dphy";
++		clocks = <&cru SCLK_MIPIDPHY_REF>,
++			<&cru SCLK_DPHY_RX0_CFG>,
++			<&cru PCLK_VIO_GRF>;
++		clock-names = "dphy-ref", "dphy-cfg", "grf";
++		power-domains = <&power RK3399_PD_VIO>;
++
++		ports {
++			#address-cells = <1>;
++			#size-cells = <0>;
++
++			port@0 {
++				reg = <0>;
++				#address-cells = <1>;
++				#size-cells = <0>;
++
++				mipi_in_wcam: endpoint@0 {
++					reg = <0>;
++					remote-endpoint = <&wcam_out>;
++					data-lanes = <1 2>;
++				};
++				mipi_in_ucam: endpoint@1 {
++					reg = <1>;
++					remote-endpoint = <&ucam_out>;
++					data-lanes = <1>;
++				};
++			};
++
++			port@1 {
++				reg = <1>;
++
++				dphy_rx0_out: endpoint {
++					remote-endpoint = <&isp0_mipi_in>;
++				};
++			};
++		};
++	};
++};
+-- 
+1.9.1
