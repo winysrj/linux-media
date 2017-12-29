@@ -1,68 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f193.google.com ([209.85.192.193]:33177 "EHLO
-        mail-pf0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751757AbdLFLUK (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 6 Dec 2017 06:20:10 -0500
-From: Jacob Chen <jacob-chen@iotwrt.com>
-To: linux-rockchip@lists.infradead.org
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        mchehab@kernel.org, linux-media@vger.kernel.org,
-        sakari.ailus@linux.intel.com, hans.verkuil@cisco.com,
-        tfiga@chromium.org, zhengsq@rock-chips.com,
-        laurent.pinchart@ideasonboard.com, zyc@rock-chips.com,
-        eddie.cai.linux@gmail.com, jeffy.chen@rock-chips.com,
-        allon.huang@rock-chips.com, devicetree@vger.kernel.org,
-        heiko@sntech.de, robh+dt@kernel.org, Joao.Pinto@synopsys.com,
-        Luis.Oliveira@synopsys.com, Jose.Abreu@synopsys.com,
-        Jacob Chen <jacob2.chen@rock-chips.com>
-Subject: [PATCH v3 01/12] media: videodev2.h, v4l2-ioctl: add rkisp1 meta buffer format
-Date: Wed,  6 Dec 2017 19:19:28 +0800
-Message-Id: <20171206111939.1153-2-jacob-chen@iotwrt.com>
-In-Reply-To: <20171206111939.1153-1-jacob-chen@iotwrt.com>
-References: <20171206111939.1153-1-jacob-chen@iotwrt.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:57468 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1750790AbdL2M7Q (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 29 Dec 2017 07:59:16 -0500
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: mchehab@s-opensource.com, yong.zhi@intel.com
+Subject: [PATCH 1/2] v4l: Fix references in Intel IPU3 Bayer documentation
+Date: Fri, 29 Dec 2017 14:59:13 +0200
+Message-Id: <20171229125914.7218-2-sakari.ailus@linux.intel.com>
+In-Reply-To: <20171229125914.7218-1-sakari.ailus@linux.intel.com>
+References: <20171229125914.7218-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Shunqian Zheng <zhengsq@rock-chips.com>
+The references in Intel IPU3 Bayer format documentation were wrong. Fix
+them.
 
-Add the Rockchip ISP1 specific processing parameter format
-V4L2_META_FMT_RK_ISP1_PARAMS and metadata format
-V4L2_META_FMT_RK_ISP1_STAT_3A for 3A.
-
-Signed-off-by: Shunqian Zheng <zhengsq@rock-chips.com>
-Signed-off-by: Jacob Chen <jacob2.chen@rock-chips.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/media/v4l2-core/v4l2-ioctl.c | 2 ++
- include/uapi/linux/videodev2.h       | 4 ++++
- 2 files changed, 6 insertions(+)
+ Documentation/media/uapi/v4l/pixfmt-srggb10-ipu3.rst | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index d6587b3ec33e..0604ae9ea444 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -1252,6 +1252,8 @@ static void v4l_fill_fmtdesc(struct v4l2_fmtdesc *fmt)
- 	case V4L2_TCH_FMT_TU08:		descr = "8-bit unsigned touch data"; break;
- 	case V4L2_META_FMT_VSP1_HGO:	descr = "R-Car VSP1 1-D Histogram"; break;
- 	case V4L2_META_FMT_VSP1_HGT:	descr = "R-Car VSP1 2-D Histogram"; break;
-+	case V4L2_META_FMT_RK_ISP1_PARAMS:	descr = "Rockchip ISP1 3A params"; break;
-+	case V4L2_META_FMT_RK_ISP1_STAT_3A:	descr = "Rockchip ISP1 3A statistics"; break;
+diff --git a/Documentation/media/uapi/v4l/pixfmt-srggb10-ipu3.rst b/Documentation/media/uapi/v4l/pixfmt-srggb10-ipu3.rst
+index 72fbd8f96381..99cde5077519 100644
+--- a/Documentation/media/uapi/v4l/pixfmt-srggb10-ipu3.rst
++++ b/Documentation/media/uapi/v4l/pixfmt-srggb10-ipu3.rst
+@@ -1,9 +1,9 @@
+ .. -*- coding: utf-8; mode: rst -*-
  
- 	default:
- 		/* Compressed formats */
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 7c871291c1fa..961545e64c12 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -691,6 +691,10 @@ struct v4l2_pix_format {
- #define V4L2_META_FMT_VSP1_HGO    v4l2_fourcc('V', 'S', 'P', 'H') /* R-Car VSP1 1-D Histogram */
- #define V4L2_META_FMT_VSP1_HGT    v4l2_fourcc('V', 'S', 'P', 'T') /* R-Car VSP1 2-D Histogram */
+-.. _V4L2_PIX_FMT_IPU3_SBGGR10:
+-.. _V4L2_PIX_FMT_IPU3_SGBRG10:
+-.. _V4L2_PIX_FMT_IPU3_SGRBG10:
+-.. _V4L2_PIX_FMT_IPU3_SRGGB10:
++.. _v4l2-pix-fmt-ipu3-sbggr10:
++.. _v4l2-pix-fmt-ipu3-sgbrg10:
++.. _v4l2-pix-fmt-ipu3-sgrbg10:
++.. _v4l2-pix-fmt-ipu3-srggb10:
  
-+/* Vendor specific - used for IPU3 camera sub-system */
-+#define V4L2_META_FMT_RK_ISP1_PARAMS	v4l2_fourcc('R', 'K', '1', 'P') /* Rockchip ISP1 params */
-+#define V4L2_META_FMT_RK_ISP1_STAT_3A	v4l2_fourcc('R', 'K', '1', 'S') /* Rockchip ISP1 3A statistics */
-+
- /* priv field value to indicates that subsequent fields are valid. */
- #define V4L2_PIX_FMT_PRIV_MAGIC		0xfeedcafe
- 
+ **********************************************************************************************************************************************
+ V4L2_PIX_FMT_IPU3_SBGGR10 ('ip3b'), V4L2_PIX_FMT_IPU3_SGBRG10 ('ip3g'), V4L2_PIX_FMT_IPU3_SGRBG10 ('ip3G'), V4L2_PIX_FMT_IPU3_SRGGB10 ('ip3r')
 -- 
-2.15.0
+2.11.0
