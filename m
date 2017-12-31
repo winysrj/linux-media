@@ -1,53 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from userp2120.oracle.com ([156.151.31.85]:32990 "EHLO
-        userp2120.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751271AbdLBKo2 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sat, 2 Dec 2017 05:44:28 -0500
-Date: Sat, 2 Dec 2017 13:20:09 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: Jeremy Sowden <jeremy@azazel.net>
-Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org
-Subject: Re: [PATCH v2 1/3] media: atomisp: convert default struct values to
- use compound-literals with designated initializers.
-Message-ID: <20171202102009.pdly5urlxkt4rdcx@mwanda>
-References: <20171201150725.cfcp6b4bs2ncqsip@mwanda>
- <20171201171939.3432-1-jeremy@azazel.net>
- <20171201171939.3432-2-jeremy@azazel.net>
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:34222 "EHLO
+        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750937AbdLaNkL (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 31 Dec 2017 08:40:11 -0500
+Received: by mail-wm0-f66.google.com with SMTP id y82so10817427wmg.1
+        for <linux-media@vger.kernel.org>; Sun, 31 Dec 2017 05:40:11 -0800 (PST)
+Subject: Re: [PATCH 01/33] clk_ops: change round_rate() to return unsigned
+ long
+To: Mikko Perttunen <cyndis@kapsi.fi>, mturquette@baylibre.com,
+        sboyd@codeaurora.org, linux-kernel@vger.kernel.org,
+        linux-clk@vger.kernel.org
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-mips@linux-mips.org, linux-rpi-kernel@lists.infradead.org,
+        patches@opensource.cirrus.com,
+        uclinux-h8-devel@lists.sourceforge.jp,
+        linux-amlogic@lists.infradead.org, linux-arm-msm@vger.kernel.org,
+        linux-soc@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        linux-rockchip@lists.infradead.org,
+        linux-samsung-soc@vger.kernel.org, linux-tegra@vger.kernel.org,
+        dri-devel@lists.freedesktop.org,
+        linux-mediatek@lists.infradead.org,
+        freedreno@lists.freedesktop.org, linux-media@vger.kernel.org,
+        linux-rtc@vger.kernel.org
+References: <1514596392-22270-1-git-send-email-pure.logic@nexus-software.ie>
+ <1514596392-22270-2-git-send-email-pure.logic@nexus-software.ie>
+ <9f4bef5a-8a71-6f30-5cfb-5e8fe133e3d3@kapsi.fi>
+From: Bryan O'Donoghue <pure.logic@nexus-software.ie>
+Message-ID: <6d83a5c3-6589-24bc-4ca5-4d1bbca47432@nexus-software.ie>
+Date: Sun, 31 Dec 2017 13:40:07 +0000
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20171201171939.3432-2-jeremy@azazel.net>
+In-Reply-To: <9f4bef5a-8a71-6f30-5cfb-5e8fe133e3d3@kapsi.fi>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Dec 01, 2017 at 05:19:37PM +0000, Jeremy Sowden wrote:
-> -#define DEFAULT_PIPE_INFO \
-> -{ \
-> -	{IA_CSS_BINARY_DEFAULT_FRAME_INFO},	/* output_info */ \
-> -	{IA_CSS_BINARY_DEFAULT_FRAME_INFO},	/* vf_output_info */ \
-> -	IA_CSS_BINARY_DEFAULT_FRAME_INFO,	/* raw_output_info */ \
-> -	{ 0, 0},				/* output system in res */ \
-> -	DEFAULT_SHADING_INFO,			/* shading_info */ \
-> -	DEFAULT_GRID_INFO,			/* grid_info */ \
-> -	0					/* num_invalid_frames */ \
-> -}
-> +#define DEFAULT_PIPE_INFO ( \
+On 30/12/17 16:36, Mikko Perttunen wrote:
+> FWIW, we had this problem some years ago with the Tegra CPU clock - then 
+> it was determined that a simpler solution was to have the determine_rate 
+> callback support unsigned long rates - so clock drivers that need to 
+> return rates higher than 2^31 can instead implement the determine_rate 
+> callback. That is what's currently implemented.
+> 
+> Mikko
 
-Why does this have a ( now?  That can't compile can it??
+Granted we could work around it but, having both zero and less than zero 
+indicate error means you can't support larger than LONG_MAX which is I 
+think worth fixing.
 
-> +	(struct ia_css_pipe_info) { \
-> +		.output_info			= {IA_CSS_BINARY_DEFAULT_FRAME_INFO}, \
-> +		.vf_output_info			= {IA_CSS_BINARY_DEFAULT_FRAME_INFO}, \
-> +		.raw_output_info		= IA_CSS_BINARY_DEFAULT_FRAME_INFO, \
-> +		.output_system_in_res_info	= { 0, 0 }, \
-> +		.shading_info			= DEFAULT_SHADING_INFO, \
-> +		.grid_info			= DEFAULT_GRID_INFO, \
-> +		.num_invalid_frames		= 0 \
-> +	} \
-> +)
-
-We need to get better compile test coverage on this...  :/  There are
-some others as well.
-
-regards,
-dan carpenter
+---
+bod
