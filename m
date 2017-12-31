@@ -1,202 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:50475 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751512AbdLQARU (ORCPT
+Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:37845 "EHLO
+        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750928AbdLaEj3 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 16 Dec 2017 19:17:20 -0500
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: dri-devel@lists.freedesktop.org
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        Alexandru Gheorghe <Alexandru_Gheorghe@mentor.com>,
-        Russell King <linux@armlinux.org.uk>,
-        Ben Skeggs <bskeggs@redhat.com>,
-        Sinclair Yeh <syeh@vmware.com>,
-        Thomas Hellstrom <thellstrom@vmware.com>,
-        Jani Nikula <jani.nikula@linux.intel.com>,
-        Joonas Lahtinen <joonas.lahtinen@linux.intel.com>,
-        Rodrigo Vivi <rodrigo.vivi@intel.com>
-Subject: [PATCH/RFC 0/4] Implement standard color keying properties
-Date: Sun, 17 Dec 2017 02:17:20 +0200
-Message-Id: <20171217001724.1348-1-laurent.pinchart+renesas@ideasonboard.com>
+        Sat, 30 Dec 2017 23:39:29 -0500
+Message-ID: <888e98b0e206b504fd4261cf6ff8ce8a@smtp-cloud9.xs4all.net>
+Date: Sun, 31 Dec 2017 05:39:27 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-This patch series is an attempt at implementing standard properties for color
-keying support in the KMS API.
+Results of the daily build of media_tree:
 
-Before designing the API proposal I've analyzed the KMS drivers that support
-color keying in the upstream kernel. Part of the explanation below was
-initially posted in a reply to "[PATCH v2 0/2] rcar-du, vsp1: rcar-gen3: Add
-support for colorkey alpha blending" and is copied here to continue the
-discussion.
+date:			Sun Dec 31 05:00:15 CET 2017
+media-tree git hash:	d0c8f6ad8b381dd572576ac50b9696d4d31142bb
+media_build git hash:	f709aa47e1577563a814e2558cd78b6d00639021
+v4l-utils git hash:	8aa401d119afaeb1b4fe4d2994789cd3e9396554
+gcc version:		i686-linux-gcc (GCC) 7.1.0
+sparse version:		v0.5.0-3911-g6f737e1f
+smatch version:		v0.5.0-3911-g6f737e1f
+host hardware:		x86_64
+host os:		4.13.0-164
 
-The armada, nouveau and rcar-du drivers expose the color key through DRM
-properties. The i915 and vmwgfx drivers use custom ioctls. Here is how they
-currently implement color keying.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: ERRORS
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-blackfin-bf561: ERRORS
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: ERRORS
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12.67-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.7-i686: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.18.7-i686: ERRORS
+linux-3.19-i686: ERRORS
+linux-4.0.9-i686: ERRORS
+linux-4.1.33-i686: ERRORS
+linux-4.2.8-i686: ERRORS
+linux-4.3.6-i686: ERRORS
+linux-4.4.22-i686: ERRORS
+linux-4.5.7-i686: ERRORS
+linux-4.6.7-i686: ERRORS
+linux-4.7.5-i686: ERRORS
+linux-4.8-i686: ERRORS
+linux-4.9.26-i686: ERRORS
+linux-4.10.14-i686: ERRORS
+linux-4.11-i686: OK
+linux-4.12.1-i686: OK
+linux-4.13-i686: OK
+linux-4.14-i686: OK
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.67-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.7-x86_64: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.7-x86_64: ERRORS
+linux-3.19-x86_64: ERRORS
+linux-4.0.9-x86_64: ERRORS
+linux-4.1.33-x86_64: ERRORS
+linux-4.2.8-x86_64: ERRORS
+linux-4.3.6-x86_64: ERRORS
+linux-4.4.22-x86_64: ERRORS
+linux-4.5.7-x86_64: ERRORS
+linux-4.6.7-x86_64: ERRORS
+linux-4.7.5-x86_64: ERRORS
+linux-4.8-x86_64: ERRORS
+linux-4.9.26-x86_64: ERRORS
+linux-4.10.14-x86_64: ERRORS
+linux-4.11-x86_64: WARNINGS
+linux-4.12.1-x86_64: WARNINGS
+linux-4.13-x86_64: OK
+linux-4.14-x86_64: OK
+apps: OK
+spec-git: OK
+smatch: OK
 
-- armada
+Detailed results are available here:
 
-"colorkey" range  0x00000000 0x00ffffff
-"colorkey_min" range  0x00000000 0x00ffffff
-"colorkey_max" range  0x00000000 0x00ffffff
-"colorkey_val" range  0x00000000 0x00ffffff
-"colorkey_alpha" range  0x00000000 0x00ffffff
-"colorkey_mode" enum "disable", "Y component", "U component", "V component", 
-"RGB", "R component", "G component", "B component"
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
 
-All range properties store a RGB888 or YUV888 triplet.
+Full logs are available here:
 
-The min and max properties store the comparison ranges. When a match occurs 
-for one of the components, the value and alpha from the val and alpha 
-properties replace the pixel. It's not clear which of the alpha "components" 
-is used when a match occurs in RGB mode.
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
 
-The colorkey property is a shortcut that stores identical values in min, max 
-and val and 0 in alpha.
+The Media Infrastructure API from this daily build is here:
 
-- i915
-
-#define I915_SET_COLORKEY_NONE          (1<<0)
-#define I915_SET_COLORKEY_DESTINATION   (1<<1)
-#define I915_SET_COLORKEY_SOURCE        (1<<2)
-
-struct drm_intel_sprite_colorkey {
-        __u32 plane_id;
-        __u32 min_value;
-        __u32 channel_mask;
-        __u32 max_value;
-        __u32 flags;
-};
-
-- nouveau
-
-"colorkey" range 0x00000000 0x01ffffff
-
-The format isn't documented but it seems from the source code that bits 23:0 
-store the color key value (written directly to a register, so possibly in a 
-pixel format-dependent format) and bit 24 enables color keying.
-
-- rcar-du
-
-"colorkey" range 0x00000000 0x01ffffff
-
-Bits 23:0 store the color key value in RGB888 (regardless of the pixel format 
-of the plane) and bit 24 enables color keying. This supports Gen2 hardware 
-only, where the only available more is  exact match. The pixel then becomes 
-fully transparent (the hardware doesn't support custom target alpha values).
-
-On Gen3 hardware color keying can be performed in exact RGB match, exact Y 
-match or range Y match (only the max value is programmable, the min value is 
-always 0). Furthermore in exact match modes the hardware can operate with a 
-single match value, in which case it can then override the full ARGB or AYUV 
-pixel, or double match value, in which case it can then override the alpha 
-component only, but with two distinct match values each associated with a 
-target alpha.
-
-- vmwgfx
-
-struct drm_vmw_control_stream_arg {
-        __u32 stream_id;
-        __u32 enabled;
-
-        __u32 flags;
-        __u32 color_key;
-
-        __u32 handle;
-        __u32 offset;
-        __s32 format;
-        __u32 size;
-        __u32 width;
-        __u32 height;
-        __u32 pitch[3];
-
-        __u32 pad64;
-        struct drm_vmw_rect src;
-        struct drm_vmw_rect dst;
-};
-
-The color_key field isn't documented, but the following (unused) macros hint 
-that it could store an RGB888, with the color key feature enabled through the 
-flags field.
-
-#define SVGA_VIDEO_FLAG_COLORKEY        0x0001
-#define SVGA_VIDEO_COLORKEY_MASK             0x00ffffff
-
-Looking at these drivers we can already see that the hardware implementations
-differ quite widely. There are however similarities, and we could express most
-of the above features through a set of generic properties similar to the ones
-already implemented by the armada driver. This is what the patch series
-attempts to do.
-
-- The match range can be set through minimum and maximum properties. Drivers
-that support exact match only simply report an error when minimum != maximum.
-
-- The replacement value can be set through a value property. The property
-stores both the pixel value (RGB or YUV) and the alpha value Bits that are not
-applicable are ignored (for instance RGB/YUV bits when the driver supports
-alpha replacement only). If programmable color replacement isn't supported (as
-in the R-Car Gen2 example above) the property is omitted.
-
-- The mode can be set through a mode property. Enabling color keying through
-one bit in a color property (like done by the nouveau and rcar-du drivers) is 
-a hack and I don't think we should carry it forward. A mode property allows
-configuring source or destination color keying.
-
-- Part of the mode information could be deduced automatically without a need
-to specify it explicitly. For instance RGB/YUV mode can be configured based on
-the pixel format of the plane. Similarly, exact match vs. range match can be
-configured based on whether the minimum and maximum value differ.
-
-- The modes exposed through the mode property are left as driver-specific in
-this RFC, with one "disabled" mode mandatory for all implementations. The
-rationale is that a generic userspace should be able to disable color keying,
-but that hardware features vary too much to standardize all modes. I'm however
-starting to think that we should standardize more modes than "disabled", but I
-still need to sleep over this particular issue. Ideas and comments are
-welcome.
-
-- Properties that store pixel values store them in a fixed AXYZ16161616 format
-where A is the alpha value and XYZ color components that correspond to the
-plane pixel format (usually RGB or YUV).
-
-- We need to keep the existing "colorkey" properties implemented by armada, 
-nouveau and rcar-du for backward compatibility reasons, but this proposed API 
-doesn't require a "colorkey" property. I have reimplemented the existing
-"colorkey" in the rcar-du driver as an alias for the new standard properties
-to show how it can be done in a driver.
-
-
-The R-Car Gen3 dual target mode feature doesn't fit in the properties proposed
-here. I have no use case for that mode at the moment but I'm fairly certain
-that someone will come up with one, at least if not for the R-Car for a
-different display engine that provides similarly exotic features. I believe
-this can for now be left for implementation through driver-specific
-properties.
-
-Alexandru Gheorghe (1):
-  v4l: vsp1: Add support for colorkey alpha blending
-
-Laurent Pinchart (3):
-  drm: Add colorkey properties
-  drm: rcar-du: Use standard colorkey properties
-  drm: rcar-du: Add support for color keying on Gen3
-
- drivers/gpu/drm/drm_atomic.c            |  16 +++++
- drivers/gpu/drm/drm_blend.c             | 108 ++++++++++++++++++++++++++++++++
- drivers/gpu/drm/rcar-du/rcar_du_plane.c |  60 +++++++++++++-----
- drivers/gpu/drm/rcar-du/rcar_du_plane.h |   2 -
- drivers/gpu/drm/rcar-du/rcar_du_vsp.c   |  17 ++++-
- drivers/media/platform/vsp1/vsp1_drm.c  |   3 +
- drivers/media/platform/vsp1/vsp1_rpf.c  |  10 ++-
- drivers/media/platform/vsp1/vsp1_rwpf.h |   5 ++
- include/drm/drm_blend.h                 |   4 ++
- include/drm/drm_plane.h                 |  28 ++++++++-
- include/media/vsp1.h                    |   5 ++
- 11 files changed, 235 insertions(+), 23 deletions(-)
-
--- 
-Regards,
-
-Laurent Pinchart
+http://www.xs4all.nl/~hverkuil/spec/index.html
