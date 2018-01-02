@@ -1,141 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f67.google.com ([74.125.82.67]:34957 "EHLO
-        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753682AbeAJOFq (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 10 Jan 2018 09:05:46 -0500
-Received: by mail-wm0-f67.google.com with SMTP id r78so2019731wme.0
-        for <linux-media@vger.kernel.org>; Wed, 10 Jan 2018 06:05:45 -0800 (PST)
-Date: Wed, 10 Jan 2018 15:05:42 +0100
-From: Daniel Vetter <daniel@ffwll.ch>
-To: christian.koenig@amd.com
-Cc: Daniel Vetter <daniel@ffwll.ch>, sumit.semwal@linaro.org,
-        gustavo@padovan.org, linux-media@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org
-Subject: Re: [Linaro-mm-sig] [PATCH] dma-buf: make returning the exclusive
- fence optional
-Message-ID: <20180110140542.GU13066@phenom.ffwll.local>
-References: <20180110125341.3618-1-christian.koenig@amd.com>
- <20180110132127.GT13066@phenom.ffwll.local>
- <7ec935dd-aa35-6793-de5e-67a0de790c90@gmail.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:50173 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752606AbeABLts (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 2 Jan 2018 06:49:48 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Jacopo Mondi <jacopo+renesas@jmondi.org>
+Cc: magnus.damm@gmail.com, geert@glider.be, mchehab@kernel.org,
+        hverkuil@xs4all.nl, robh+dt@kernel.org, mark.rutland@arm.com,
+        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-sh@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v2 2/9] include: media: Add Renesas CEU driver interface
+Date: Tue, 02 Jan 2018 13:50:07 +0200
+Message-ID: <2922415.TB8nfS0gW1@avalon>
+In-Reply-To: <1514469681-15602-3-git-send-email-jacopo+renesas@jmondi.org>
+References: <1514469681-15602-1-git-send-email-jacopo+renesas@jmondi.org> <1514469681-15602-3-git-send-email-jacopo+renesas@jmondi.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <7ec935dd-aa35-6793-de5e-67a0de790c90@gmail.com>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Jan 10, 2018 at 02:46:32PM +0100, Christian König wrote:
-> Am 10.01.2018 um 14:21 schrieb Daniel Vetter:
-> > On Wed, Jan 10, 2018 at 01:53:41PM +0100, Christian König wrote:
-> > > Change reservation_object_get_fences_rcu to make the exclusive fence
-> > > pointer optional.
-> > > 
-> > > If not specified the exclusive fence is put into the fence array as
-> > > well.
-> > > 
-> > > This is helpful for a couple of cases where we need all fences in a
-> > > single array.
-> > > 
-> > > Signed-off-by: Christian König <christian.koenig@amd.com>
-> > Seeing the use-case for this would be a lot more interesting ...
-> 
-> Yeah, sorry the use case is a 20 patches set on amd-gfx.
-> 
-> Didn't wanted to post all those here as well.
+Hi Jacopo,
 
-Imo better to spam more lists instead of splitting up discussions ... It's
-at least what we tend to do for i915 stuff, and no one seems to complain.
--Daniel
+Thank you for the patch.
 
+On Thursday, 28 December 2017 16:01:14 EET Jacopo Mondi wrote:
+> Add renesas-ceu header file.
 > 
-> Christian.
+> Do not remove the existing sh_mobile_ceu.h one as long as the original
+> driver does not go away.
 > 
-> > -Daniel
-> > 
-> > > ---
-> > >   drivers/dma-buf/reservation.c | 31 ++++++++++++++++++++++---------
-> > >   1 file changed, 22 insertions(+), 9 deletions(-)
-> > > 
-> > > diff --git a/drivers/dma-buf/reservation.c b/drivers/dma-buf/reservation.c
-> > > index b759a569b7b8..461afa9febd4 100644
-> > > --- a/drivers/dma-buf/reservation.c
-> > > +++ b/drivers/dma-buf/reservation.c
-> > > @@ -374,8 +374,9 @@ EXPORT_SYMBOL(reservation_object_copy_fences);
-> > >    * @pshared: the array of shared fence ptrs returned (array is krealloc'd to
-> > >    * the required size, and must be freed by caller)
-> > >    *
-> > > - * RETURNS
-> > > - * Zero or -errno
-> > > + * Retrieve all fences from the reservation object. If the pointer for the
-> > > + * exclusive fence is not specified the fence is put into the array of the
-> > > + * shared fences as well. Returns either zero or -ENOMEM.
-> > >    */
-> > >   int reservation_object_get_fences_rcu(struct reservation_object *obj,
-> > >   				      struct dma_fence **pfence_excl,
-> > > @@ -389,8 +390,8 @@ int reservation_object_get_fences_rcu(struct reservation_object *obj,
-> > >   	do {
-> > >   		struct reservation_object_list *fobj;
-> > > -		unsigned seq;
-> > > -		unsigned int i;
-> > > +		unsigned int i, seq;
-> > > +		size_t sz = 0;
-> > >   		shared_count = i = 0;
-> > > @@ -402,9 +403,14 @@ int reservation_object_get_fences_rcu(struct reservation_object *obj,
-> > >   			goto unlock;
-> > >   		fobj = rcu_dereference(obj->fence);
-> > > -		if (fobj) {
-> > > +		if (fobj)
-> > > +			sz += sizeof(*shared) * fobj->shared_max;
-> > > +
-> > > +		if (!pfence_excl && fence_excl)
-> > > +			sz += sizeof(*shared);
-> > > +
-> > > +		if (sz) {
-> > >   			struct dma_fence **nshared;
-> > > -			size_t sz = sizeof(*shared) * fobj->shared_max;
-> > >   			nshared = krealloc(shared, sz,
-> > >   					   GFP_NOWAIT | __GFP_NOWARN);
-> > > @@ -420,13 +426,19 @@ int reservation_object_get_fences_rcu(struct reservation_object *obj,
-> > >   				break;
-> > >   			}
-> > >   			shared = nshared;
-> > > -			shared_count = fobj->shared_count;
-> > > -
-> > > +			shared_count = fobj ? fobj->shared_count : 0;
-> > >   			for (i = 0; i < shared_count; ++i) {
-> > >   				shared[i] = rcu_dereference(fobj->shared[i]);
-> > >   				if (!dma_fence_get_rcu(shared[i]))
-> > >   					break;
-> > >   			}
-> > > +
-> > > +			if (!pfence_excl && fence_excl) {
-> > > +				shared[i] = fence_excl;
-> > > +				fence_excl = NULL;
-> > > +				++i;
-> > > +				++shared_count;
-> > > +			}
-> > >   		}
-> > >   		if (i != shared_count || read_seqcount_retry(&obj->seq, seq)) {
-> > > @@ -448,7 +460,8 @@ int reservation_object_get_fences_rcu(struct reservation_object *obj,
-> > >   	*pshared_count = shared_count;
-> > >   	*pshared = shared;
-> > > -	*pfence_excl = fence_excl;
-> > > +	if (pfence_excl)
-> > > +		*pfence_excl = fence_excl;
-> > >   	return ret;
-> > >   }
-> > > -- 
-> > > 2.14.1
-> > > 
-> > > _______________________________________________
-> > > Linaro-mm-sig mailing list
-> > > Linaro-mm-sig@lists.linaro.org
-> > > https://lists.linaro.org/mailman/listinfo/linaro-mm-sig
+> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+> ---
+>  include/media/drv-intf/renesas-ceu.h | 20 ++++++++++++++++++++
+>  1 file changed, 20 insertions(+)
+>  create mode 100644 include/media/drv-intf/renesas-ceu.h
 > 
+> diff --git a/include/media/drv-intf/renesas-ceu.h
+> b/include/media/drv-intf/renesas-ceu.h new file mode 100644
+> index 0000000..7470c3f
+> --- /dev/null
+> +++ b/include/media/drv-intf/renesas-ceu.h
+> @@ -0,0 +1,20 @@
+> +// SPDX-License-Identifier: GPL-2.0+
+
+Just out of curiosity, any reason you have picked GPL-2.0+ and not GPL-2.0 ?
+
+You might want to add a copyright header to state copyright ownership
+
+/**
+ * renesas-ceu.h - Renesas CEU driver interface
+ *
+ * Copyright 2017-2018 Jacopo Mondi <jacopo@jmondi.org>
+ */
+
+That's up to you.
+
+> +#ifndef __ASM_RENESAS_CEU_H__
+
+Maybe __MEDIA_DRV_INTF_RENESAS_CEU_H__ ?
+
+> +#define __ASM_RENESAS_CEU_H__
+> +
+> +#define CEU_MAX_SUBDEVS		2
+> +
+> +struct ceu_async_subdev {
+> +	unsigned long flags;
+> +	unsigned char bus_width;
+> +	unsigned char bus_shift;
+> +	unsigned int i2c_adapter_id;
+> +	unsigned int i2c_address;
+> +};
+> +
+> +struct ceu_info {
+
+This is really platform data, how about calling it ceu_platform_data ?
+
+> +	unsigned int num_subdevs;
+> +	struct ceu_async_subdev subdevs[CEU_MAX_SUBDEVS];
+> +};
+> +
+> +#endif /* __ASM_RENESAS_CEU_H__ */
+
+Don't forget to update the comment here too.
+
+Apart from that,
+
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
 -- 
-Daniel Vetter
-Software Engineer, Intel Corporation
-http://blog.ffwll.ch
+Regards,
+
+Laurent Pinchart
