@@ -1,90 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from esa4.microchip.iphmx.com ([68.232.154.123]:46116 "EHLO
-        esa4.microchip.iphmx.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933231AbeAKQZz (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 11 Jan 2018 11:25:55 -0500
-From: Nicolas Ferre <nicolas.ferre@microchip.com>
-To: <linux-arm-kernel@lists.infradead.org>,
-        <linux-kernel@vger.kernel.org>,
-        Ludovic Desroches <ludovic.desroches@microchip.com>,
-        Wenyou Yang <wenyou.yang@microchip.com>,
-        Boris BREZILLON <boris.brezillon@free-electrons.com>
-CC: <linux-media@vger.kernel.org>,
-        Alexandre Belloni <alexandre.belloni@free-electrons.com>,
-        <linux-mtd@lists.infradead.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Josh Wu <rainyfeeling@outlook.com>,
-        Nicolas Ferre <nicolas.ferre@microchip.com>
-Subject: [PATCH v2] MAINTAINERS: mtd/nand: update Microchip nand entry
-Date: Thu, 11 Jan 2018 17:26:59 +0100
-Message-ID: <20180111162659.740-1-nicolas.ferre@microchip.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from mga06.intel.com ([134.134.136.31]:11898 "EHLO mga06.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751380AbeABLNj (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 2 Jan 2018 06:13:39 -0500
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: rajmohan.mani@intel.com
+Subject: [RESEND PATCH 1/2] dw9714: Call pm_runtime_idle() at the end of probe()
+Date: Tue,  2 Jan 2018 13:12:11 +0200
+Message-Id: <1514891532-19348-2-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1514891532-19348-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1514891532-19348-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Update Wenyou Yang email address.
-Take advantage of this update to move this entry to the MICROCHIP / ATMEL
-location and add the DT binding documentation link.
+Call pm_runtime_idle() at the end of the driver's probe() function to
+enable the device to reach low power state once probe() finishes.
 
-Signed-off-by: Nicolas Ferre <nicolas.ferre@microchip.com>
-Acked-by: Wenyou Yang <wenyou.yang@microchip.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
-v2: - patch agains 09ec417b0ea8 ("mtd: nand: samsung: Disable subpage
-      writes on E-die NAND") of 
-      http://git.infradead.org/linux-mtd.git/shortlog/refs/heads/nand/next
-    - Ack by Wenyou added
+ drivers/media/i2c/dw9714.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-
-Hi,
-
-v1 patch was part of a series because it was conflicting with the previous one
-named:
-"[PATCH 1/2] MAINTAINERS: linux-media: update Microchip ISI and ISC entries"
-Boris asked me to rebase it so that they are independent.
-So, if this first one goes upstream through another tree, conflicts will have
-to be resolved at one point.
-
-Best regards,
-  Nicolas
-
-
- MAINTAINERS | 15 ++++++++-------
- 1 file changed, 8 insertions(+), 7 deletions(-)
-
-diff --git a/MAINTAINERS b/MAINTAINERS
-index aa71ab52fd76..37ee5ae4bae2 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -2382,13 +2382,6 @@ F:	Documentation/devicetree/bindings/input/atmel,maxtouch.txt
- F:	drivers/input/touchscreen/atmel_mxt_ts.c
- F:	include/linux/platform_data/atmel_mxt_ts.h
+diff --git a/drivers/media/i2c/dw9714.c b/drivers/media/i2c/dw9714.c
+index ed01e8b..7832210 100644
+--- a/drivers/media/i2c/dw9714.c
++++ b/drivers/media/i2c/dw9714.c
+@@ -183,6 +183,7 @@ static int dw9714_probe(struct i2c_client *client)
  
--ATMEL NAND DRIVER
--M:	Wenyou Yang <wenyou.yang@atmel.com>
--M:	Josh Wu <rainyfeeling@outlook.com>
--L:	linux-mtd@lists.infradead.org
--S:	Supported
--F:	drivers/mtd/nand/atmel/*
--
- ATMEL SAMA5D2 ADC DRIVER
- M:	Ludovic Desroches <ludovic.desroches@microchip.com>
- L:	linux-iio@vger.kernel.org
-@@ -9045,6 +9038,14 @@ F:	drivers/media/platform/atmel/atmel-isc.c
- F:	drivers/media/platform/atmel/atmel-isc-regs.h
- F:	devicetree/bindings/media/atmel-isc.txt
+ 	pm_runtime_set_active(&client->dev);
+ 	pm_runtime_enable(&client->dev);
++	pm_runtime_idle(&client->dev);
  
-+MICROCHIP / ATMEL NAND DRIVER
-+M:	Wenyou Yang <wenyou.yang@microchip.com>
-+M:	Josh Wu <rainyfeeling@outlook.com>
-+L:	linux-mtd@lists.infradead.org
-+S:	Supported
-+F:	drivers/mtd/nand/atmel/*
-+F:	Documentation/devicetree/bindings/mtd/atmel-nand.txt
-+
- MICROCHIP KSZ SERIES ETHERNET SWITCH DRIVER
- M:	Woojung Huh <Woojung.Huh@microchip.com>
- M:	Microchip Linux Driver Support <UNGLinuxDriver@microchip.com>
+ 	return 0;
+ 
 -- 
-2.9.0
+2.7.4
