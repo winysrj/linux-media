@@ -1,47 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:48042 "EHLO
-        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751812AbeA3K1J (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 30 Jan 2018 05:27:09 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Daniel Mentz <danielmentz@google.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>, stable@vger.kernel.org
-Subject: [PATCHv2 12/13] v4l2-compat-ioctl32.c: don't copy back the result for certain errors
-Date: Tue, 30 Jan 2018 11:27:00 +0100
-Message-Id: <20180130102701.13664-13-hverkuil@xs4all.nl>
-In-Reply-To: <20180130102701.13664-1-hverkuil@xs4all.nl>
-References: <20180130102701.13664-1-hverkuil@xs4all.nl>
+Received: from mout.kundenserver.de ([217.72.192.75]:59078 "EHLO
+        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750736AbeABJwL (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 2 Jan 2018 04:52:11 -0500
+From: Arnd Bergmann <arnd@arndb.de>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>,
+        Max Kellermann <max.kellermann@gmail.com>,
+        Wolfgang Rohdewald <wolfgang@rohdewald.de>,
+        Shuah Khan <shuah@kernel.org>,
+        Jaedon Shin <jaedon.shin@gmail.com>,
+        Colin Ian King <colin.king@canonical.com>,
+        Satendra Singh Thakur <satendra.t@samsung.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sean Young <sean@mess.org>, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: [PATCH] media: don't drop front-end reference count for ->detach
+Date: Tue,  2 Jan 2018 10:48:54 +0100
+Message-Id: <20180102095154.3424890-1-arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+A bugfix introduce a link failure in configurations without CONFIG_MODULES:
 
-Some ioctls need to copy back the result even if the ioctl returned
-an error. However, don't do this for the error code -ENOTTY.
-It makes no sense in that cases.
+In file included from drivers/media/usb/dvb-usb/pctv452e.c:20:0:
+drivers/media/usb/dvb-usb/pctv452e.c: In function 'pctv452e_frontend_attach':
+drivers/media/dvb-frontends/stb0899_drv.h:151:36: error: weak declaration of 'stb0899_attach' being applied to a already existing, static definition
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: <stable@vger.kernel.org>      # for v4.15 and up
+The problem is that the !IS_REACHABLE() declaration of stb0899_attach()
+is a 'static inline' definition that clashes with the weak definition.
+
+I further observed that the bugfix was only done for one of the five users
+of stb0899_attach(), the other four still have the problem.  This reverts
+the bugfix and instead addresses the problem by not dropping the reference
+count when calling '->detach()', instead we call this function directly
+in dvb_frontend_put() before dropping the kref on the front-end.
+
+Cc: Max Kellermann <max.kellermann@gmail.com>
+Cc: Wolfgang Rohdewald <wolfgang@rohdewald.de>
+Fixes: f686c14364ad ("[media] stb0899: move code to "detach" callback")
+Fixes: 6cdeaed3b142 ("media: dvb_usb_pctv452e: module refcount changes were unbalanced")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 ---
- drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 3 +++
- 1 file changed, 3 insertions(+)
+ drivers/media/dvb-core/dvb_frontend.c | 4 +++-
+ drivers/media/usb/dvb-usb/pctv452e.c  | 8 --------
+ 2 files changed, 3 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-index 7ee3777cbe9c..3a1fca1440ac 100644
---- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-+++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-@@ -968,6 +968,9 @@ static long do_video_ioctl(struct file *file, unsigned int cmd, unsigned long ar
- 		set_fs(old_fs);
- 	}
+diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
+index 87fc1bcae5ae..fe10b6f4d3e0 100644
+--- a/drivers/media/dvb-core/dvb_frontend.c
++++ b/drivers/media/dvb-core/dvb_frontend.c
+@@ -164,6 +164,9 @@ static void dvb_frontend_free(struct kref *ref)
  
-+	if (err == -ENOTTY)
-+		return err;
-+
- 	/* Special case: even after an error we need to put the
- 	   results back for these ioctls since the error_idx will
- 	   contain information on which control failed. */
+ static void dvb_frontend_put(struct dvb_frontend *fe)
+ {
++	/* call detach before dropping the reference count */
++	if (fe->ops.detach)
++		fe->ops.detach(fe);
+ 	/*
+ 	 * Check if the frontend was registered, as otherwise
+ 	 * kref was not initialized yet.
+@@ -2965,7 +2968,6 @@ void dvb_frontend_detach(struct dvb_frontend* fe)
+ 	dvb_frontend_invoke_release(fe, fe->ops.release_sec);
+ 	dvb_frontend_invoke_release(fe, fe->ops.tuner_ops.release);
+ 	dvb_frontend_invoke_release(fe, fe->ops.analog_ops.release);
+-	dvb_frontend_invoke_release(fe, fe->ops.detach);
+ 	dvb_frontend_put(fe);
+ }
+ EXPORT_SYMBOL(dvb_frontend_detach);
+diff --git a/drivers/media/usb/dvb-usb/pctv452e.c b/drivers/media/usb/dvb-usb/pctv452e.c
+index 0af74383083d..ae793dac4964 100644
+--- a/drivers/media/usb/dvb-usb/pctv452e.c
++++ b/drivers/media/usb/dvb-usb/pctv452e.c
+@@ -913,14 +913,6 @@ static int pctv452e_frontend_attach(struct dvb_usb_adapter *a)
+ 						&a->dev->i2c_adap);
+ 	if (!a->fe_adap[0].fe)
+ 		return -ENODEV;
+-
+-	/*
+-	 * dvb_frontend will call dvb_detach for both stb0899_detach
+-	 * and stb0899_release but we only do dvb_attach(stb0899_attach).
+-	 * Increment the module refcount instead.
+-	 */
+-	symbol_get(stb0899_attach);
+-
+ 	if ((dvb_attach(lnbp22_attach, a->fe_adap[0].fe,
+ 					&a->dev->i2c_adap)) == NULL)
+ 		err("Cannot attach lnbp22\n");
 -- 
-2.15.1
+2.9.0
