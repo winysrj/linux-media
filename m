@@ -1,48 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-co1nam03on0070.outbound.protection.outlook.com ([104.47.40.70]:29600
-        "EHLO NAM03-CO1-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1752337AbeA3Py2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 30 Jan 2018 10:54:28 -0500
-From: Simon Hatliff <hatliff@cadence.com>
-To: Maxime Ripard <maxime.ripard@free-electrons.com>
-CC: Benoit Parrot <bparrot@ti.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Rob Herring <robh+dt@kernel.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-        Richard Sproul <sproul@cadence.com>,
-        Alan Douglas <adouglas@cadence.com>,
-        Steve Creaney <screaney@cadence.com>,
-        Thomas Petazzoni <thomas.petazzoni@free-electrons.com>,
-        Boris Brezillon <boris.brezillon@free-electrons.com>,
-        =?iso-8859-1?Q?Niklas_S=F6derlund?= <niklas.soderlund@ragnatech.se>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        "nm@ti.com" <nm@ti.com>
-Subject: Re: [PATCH v5 2/2] v4l: cadence: Add Cadence MIPI-CSI2 RX driver
-Date: Tue, 30 Jan 2018 15:54:24 +0000
-Message-ID: <3F3A3B73-D31C-41D0-8E88-C78BC3E55A81@cadence.com>
-References: <20180119081357.20799-1-maxime.ripard@free-electrons.com>
- <20180119081357.20799-3-maxime.ripard@free-electrons.com>
- <20180129191036.GE25980@ti.com> <20180130154126.keytdulix5imq6b3@flea.lan>
-In-Reply-To: <20180130154126.keytdulix5imq6b3@flea.lan>
-Content-Language: en-US
-Content-Type: text/plain; charset="iso-8859-1"
-Content-ID: <A0960E0884F50E4E8F6C8A6BDB9C93CB@namprd07.prod.outlook.com>
-Content-Transfer-Encoding: quoted-printable
+Received: from relay6-d.mail.gandi.net ([217.70.183.198]:44066 "EHLO
+        relay6-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751551AbeABJTQ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 2 Jan 2018 04:19:16 -0500
+Date: Tue, 2 Jan 2018 10:19:10 +0100
+From: jacopo mondi <jacopo@jmondi.org>
+To: Shunqian Zheng <zhengsq@rock-chips.com>
+Cc: mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        ddl@rock-chips.com, tfiga@chromium.org
+Subject: Re: [PATCH v2 2/4] [media] dt/bindings: Add bindings for OV5695
+Message-ID: <20180102091910.GD4314@w540>
+References: <1514534905-21393-1-git-send-email-zhengsq@rock-chips.com>
+ <1514534905-21393-2-git-send-email-zhengsq@rock-chips.com>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <1514534905-21393-2-git-send-email-zhengsq@rock-chips.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 30 Jan 2018, at 15:41, Maxime Ripard <maxime.ripard@free-electrons.com> =
-wrote:
->=20
-> Since the lanes are not in use, I'm not sure we have to worry about
-> lanes collision. Simon, would it cause any trouble if we map to lanes
-> to the same physical lane?
+Hello Shunqian,
 
-Yes IIRC it would cause trouble.  Due to the internals of the design each
-lane needs to have a unique mapping even if it's not in use.=
+On Fri, Dec 29, 2017 at 04:08:23PM +0800, Shunqian Zheng wrote:
+> Add device tree binding documentation for the OV5695 sensor.
+>
+> Signed-off-by: Shunqian Zheng <zhengsq@rock-chips.com>
+> ---
+>  .../devicetree/bindings/media/i2c/ov5695.txt       | 38 ++++++++++++++++++++++
+>  1 file changed, 38 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/i2c/ov5695.txt
+>
+> diff --git a/Documentation/devicetree/bindings/media/i2c/ov5695.txt b/Documentation/devicetree/bindings/media/i2c/ov5695.txt
+> new file mode 100644
+> index 0000000..8d87dbc
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/media/i2c/ov5695.txt
+> @@ -0,0 +1,38 @@
+> +* Omnivision OV5695 MIPI CSI-2 sensor
+> +
+> +Required Properties:
+> +- compatible: should be "ovti,ov5695"
+> +- clocks: reference to the 24M xvclk input clock.
+> +- clock-names: should be "xvclk".
+> +- dovdd-supply: Digital I/O voltage supply, 1.8 volts
+> +- avdd-supply: Analog voltage supply, 2.8 volts
+> +- dvdd-supply: Digital core voltage supply, 1.2 volts
+> +- reset-gpios: Low active reset gpio
+> +
+> +The device node must contain one 'port' child node for its digital output
+> +video port, in accordance with the video interface bindings defined in
+> +Documentation/devicetree/bindings/media/video-interfaces.txt.
+> +
+> +Example:
+> +&i2c1: camera-sensor@36 {
+
+I think what Rob asked for in his v1 review was to have a
+"camera-sensor" node which is a child of the "i2c1" interface node.
+
+I would expect something like:
+
+&i2c1 {
+        pinctrl-names ...
+        pinctrl-0...
+
+        camera-sensor@36 {
+
+                compatible = "ovti,ov5695";
+                ...
+        };
+};
+
+Thanks
+   j
