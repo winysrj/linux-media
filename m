@@ -1,55 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay4-d.mail.gandi.net ([217.70.183.196]:60548 "EHLO
-        relay4-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752067AbeA3J76 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 30 Jan 2018 04:59:58 -0500
-From: Jacopo Mondi <jacopo+renesas@jmondi.org>
-To: laurent.pinchart@ideasonboard.com, magnus.damm@gmail.com,
-        geert@glider.be, hverkuil@xs4all.nl, mchehab@kernel.org,
-        festevam@gmail.com, sakari.ailus@iki.fi, robh+dt@kernel.org,
-        mark.rutland@arm.com, pombredanne@nexb.com
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-sh@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH v8 11/11] media: i2c: ov7670: Fully set mbus frame fmt
-Date: Tue, 30 Jan 2018 10:58:22 +0100
-Message-Id: <1517306302-27957-12-git-send-email-jacopo+renesas@jmondi.org>
-In-Reply-To: <1517306302-27957-1-git-send-email-jacopo+renesas@jmondi.org>
-References: <1517306302-27957-1-git-send-email-jacopo+renesas@jmondi.org>
+Received: from mx1.redhat.com ([209.132.183.28]:35838 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752054AbeABNwj (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 2 Jan 2018 08:52:39 -0500
+Date: Tue, 2 Jan 2018 08:52:38 -0500 (EST)
+From: Bob Peterson <rpeterso@redhat.com>
+To: Julia Lawall <Julia.Lawall@lip6.fr>
+Cc: dri-devel@lists.freedesktop.org, dev@openvswitch.org,
+        linux-s390@vger.kernel.org, linux-scsi@vger.kernel.org,
+        dccp@vger.kernel.org,
+        Alexander Shishkin <alexander.shishkin@linux.intel.com>,
+        netdev@vger.kernel.org, kernel-janitors@vger.kernel.org,
+        linux-kernel@vger.kernel.org, amd-gfx@lists.freedesktop.org,
+        cluster-devel@redhat.com,
+        esc storagedev <esc.storagedev@microsemi.com>,
+        Namhyung Kim <namhyung@kernel.org>, linux-ext4@vger.kernel.org,
+        Jiri Olsa <jolsa@redhat.com>,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+Message-ID: <1878806802.2632123.1514901158666.JavaMail.zimbra@redhat.com>
+In-Reply-To: <1514386305-7402-1-git-send-email-Julia.Lawall@lip6.fr>
+References: <1514386305-7402-1-git-send-email-Julia.Lawall@lip6.fr>
+Subject: Re: [Cluster-devel] [PATCH 00/12] drop unneeded newline
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The sensor driver sets mbus format colorspace information and sizes,
-but not ycbcr encoding, quantization and xfer function. When supplied
-with an badly initialized mbus frame format structure, those fields
-need to be set explicitly not to leave them uninitialized. This is
-tested by v4l2-compliance, which supplies a mbus format description
-structure and checks for all fields to be properly set.
+----- Original Message -----
+| Drop newline at the end of a message string when the printing function adds
+| a newline.
 
-Without this commit, v4l2-compliance fails when testing formats with:
-fail: v4l2-test-formats.cpp(335): ycbcr_enc >= 0xff
+Hi Julia,
 
-Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
----
- drivers/media/i2c/ov7670.c | 4 ++++
- 1 file changed, 4 insertions(+)
+NACK.
 
-diff --git a/drivers/media/i2c/ov7670.c b/drivers/media/i2c/ov7670.c
-index 25b26d4..61c472e 100644
---- a/drivers/media/i2c/ov7670.c
-+++ b/drivers/media/i2c/ov7670.c
-@@ -996,6 +996,10 @@ static int ov7670_try_fmt_internal(struct v4l2_subdev *sd,
- 	fmt->height = wsize->height;
- 	fmt->colorspace = ov7670_formats[index].colorspace;
- 
-+	fmt->ycbcr_enc = V4L2_YCBCR_ENC_DEFAULT;
-+	fmt->quantization = V4L2_QUANTIZATION_DEFAULT;
-+	fmt->xfer_func = V4L2_XFER_FUNC_DEFAULT;
-+
- 	info->format = *fmt;
- 
- 	return 0;
--- 
-2.7.4
+As much as it's a pain when searching the source code for output strings,
+this patch set goes against the accepted Linux coding style document. See:
+
+https://www.kernel.org/doc/html/v4.10/process/coding-style.html#breaking-long-lines-and-strings
+
+Regards,
+
+Bob Peterson
