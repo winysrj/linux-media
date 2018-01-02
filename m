@@ -1,157 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay4-d.mail.gandi.net ([217.70.183.196]:47279 "EHLO
-        relay4-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751668AbeACPpF (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 3 Jan 2018 10:45:05 -0500
-Date: Wed, 3 Jan 2018 16:44:58 +0100
-From: jacopo mondi <jacopo@jmondi.org>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>, magnus.damm@gmail.com,
-        geert@glider.be, mchehab@kernel.org, hverkuil@xs4all.nl,
-        robh+dt@kernel.org, mark.rutland@arm.com,
-        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-sh@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v2 7/9] media: i2c: ov772x: Remove soc_camera dependencies
-Message-ID: <20180103154458.GD9493@w540>
-References: <1514469681-15602-1-git-send-email-jacopo+renesas@jmondi.org>
- <1514469681-15602-8-git-send-email-jacopo+renesas@jmondi.org>
- <5703631.yJ335LfYLI@avalon>
+Received: from userp2130.oracle.com ([156.151.31.86]:48937 "EHLO
+        userp2130.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751685AbeABK1U (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 2 Jan 2018 05:27:20 -0500
+Date: Tue, 2 Jan 2018 13:26:45 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: Julia Lawall <julia.lawall@lip6.fr>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        kernel-janitors@vger.kernel.org, Alan Cox <alan@linux.intel.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        devel@driverdev.osuosl.org, Kristian Beilke <beilke@posteo.de>
+Subject: Re: [PATCH v1 05/10] staging: atomisp: Remove non-ACPI leftovers
+Message-ID: <20180102102644.km2lb65ehesphso7@mwanda>
+References: <20171219205957.10933-1-andriy.shevchenko@linux.intel.com>
+ <20171219205957.10933-5-andriy.shevchenko@linux.intel.com>
+ <20171220053828.5wphhl6oc2sl3su5@mwanda>
+ <alpine.DEB.2.20.1712201127240.13140@hadrien>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <5703631.yJ335LfYLI@avalon>
+In-Reply-To: <alpine.DEB.2.20.1712201127240.13140@hadrien>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
-
-On Tue, Jan 02, 2018 at 05:44:03PM +0200, Laurent Pinchart wrote:
-> Hi Jacopo,
->
-> Thank you for the patch.
->
-> On Thursday, 28 December 2017 16:01:19 EET Jacopo Mondi wrote:
-> > Remove soc_camera framework dependencies from ov772x sensor driver.
-> > - Handle clock and gpios
-> > - Register async subdevice
-> > - Remove soc_camera specific g/s_mbus_config operations
-> > - Change image format colorspace to SRGB
->
-> Could you explain the rationale for this ?
-
-Hans suggested this, and I assume it is beacause COLORSPACE_JPEG ==
-(COLORSPACE_SRGB + assumptions on quantization ranges) which does not
-apply to the sensor.
->
-> > - Remove sizes crop from get_selection as driver can't scale
-> > - Add kernel doc to driver interface header file
-> > - Adjust build system
->
-> That's a lot for a single patch. On the other hand I don't think splitting
-> this in 7 patches would be a good idea either. If you can find a better
-> granularity, go for it, otherwise keep it as-is. Same comment for the tw9910
-> driver.
-
-I know.
-I would have kept changes down to the minimum required to remove
-soc_camera dependencies, but I received comments on other parts of the
-driver not directly soc_camera specific. I understand this, since I'm
-touching the driver it is maybe worth changing some parts of it that
-needs updates..
-
->
-> > This commit does not remove the original soc_camera based driver as long
-> > as other platforms depends on soc_camera-based CEU driver.
+On Wed, Dec 20, 2017 at 11:30:01AM +0100, Julia Lawall wrote:
+> 
+> 
+> On Wed, 20 Dec 2017, Dan Carpenter wrote:
+> 
+> > On Tue, Dec 19, 2017 at 10:59:52PM +0200, Andy Shevchenko wrote:
+> > > @@ -914,9 +904,7 @@ static int lm3554_probe(struct i2c_client *client)
+> > >  		dev_err(&client->dev, "gpio request/direction_output fail");
+> > >  		goto fail2;
+> > >  	}
+> > > -	if (ACPI_HANDLE(&client->dev))
+> > > -		err = atomisp_register_i2c_module(&flash->sd, NULL, LED_FLASH);
+> > > -	return 0;
+> > > +	return atomisp_register_i2c_module(&flash->sd, NULL, LED_FLASH);
+> > >  fail2:
+> > >  	media_entity_cleanup(&flash->sd.entity);
+> > >  	v4l2_ctrl_handler_free(&flash->ctrl_handler);
 > >
-> > Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
-> > ---
-> >  drivers/media/i2c/Kconfig  |  11 +++
-> >  drivers/media/i2c/Makefile |   1 +
-> >  drivers/media/i2c/ov772x.c | 169 ++++++++++++++++++++++++++++-------------
-> >  include/media/i2c/ov772x.h |   8 ++-
-> >  4 files changed, 130 insertions(+), 59 deletions(-)
+> > Actually every place where we directly return a function call is wrong
+> > and needs error handling added.  I've been meaning to write a Smatch
+> > check for this because it's a common anti-pattern we don't check the
+> > last function call for errors.
 > >
-> > diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
-> > index cb5d7ff..a61d7f4 100644
-> > --- a/drivers/media/i2c/Kconfig
-> > +++ b/drivers/media/i2c/Kconfig
->
-> [snip]
->
-> > diff --git a/drivers/media/i2c/ov772x.c b/drivers/media/i2c/ov772x.c
-> > index 8063835..f7b293f 100644
-> > --- a/drivers/media/i2c/ov772x.c
-> > +++ b/drivers/media/i2c/ov772x.c
-> > @@ -1,6 +1,9 @@
->
-> [snip]
->
-> > @@ -25,8 +26,8 @@
-> >  #include <linux/videodev2.h>
-> >
-> >  #include <media/i2c/ov772x.h>
-> > -#include <media/soc_camera.h>
-> > -#include <media/v4l2-clk.h>
-> > +
-> > +#include <media/v4l2-device.h>
-> >  #include <media/v4l2-ctrls.h>
->
-> I think C comes before D.
->
-> >  #include <media/v4l2-subdev.h>
-> >  #include <media/v4l2-image-sizes.h>
->
-> [snip]
->
-> > @@ -650,13 +653,63 @@ static int ov772x_s_register(struct v4l2_subdev *sd,
-> >  }
-> >  #endif
-> >
-> > +static int ov772x_power_on(struct ov772x_priv *priv)
-> > +{
-> > +	struct i2c_client *client = v4l2_get_subdevdata(&priv->subdev);
-> > +	int ret;
-> > +
-> > +	if (priv->info->xclk_rate)
-> > +		ret = clk_set_rate(priv->clk, priv->info->xclk_rate);
->
-> The return value is then ignored.
->
-> I wonder whether the clk_set_rate() call shouldn't be kept in board code as
-> it's a board-specific frequency. DT platforms would use the assigned-clock-
-> rates property that doesn't require any explicit handling in the driver.
->
+> > Someone could probably do the same in Coccinelle if they want.
+> 
+> I'm not sure what you are suggesting.  Is every case of return f(...);
+> for any f wrong?  Or is it a particular function that is of concern?  Or
+> would it be that every function call that has error handling somewhere
+> should have error handling everywhere?  Or is it related to what seems to
+> be the problem in the above code that err is initialized but nothing
+> happens to it?
+> 
 
-DT based platforms won't have any info->xlkc_rate, so they should be
-fine. I wonder how could I set rate in board code, as I'm just
-registering an alias for the clock there...
+I was just thinking that it's a common pattern to treat the last
+function call differently and one mistake I often see looks like this:
 
-> > +	if (priv->clk) {
-> > +		ret = clk_prepare_enable(priv->clk);
-> > +		if (ret)
-> > +			return ret;
-> > +	}
-> > +
-> > +	if (priv->pwdn_gpio) {
-> > +		gpiod_set_value(priv->pwdn_gpio, 1);
-> > +		usleep_range(500, 1000);
-> > +	}
-> > +
-> > +	/* Reset GPIOs are shared in some platforms. */
->
-> I'd make this a FIXME comment as this is really a hack.
->
-> 	/*
-> 	 * FIXME: The reset signal is connected to a shared GPIO on some
-> 	 * platforms (namely the SuperH Migo-R). Until a framework becomes
-> 	 * available to handle this cleanly, request the GPIO temporarily
-> 	 * only to avoid conflicts.
-> 	 */
->
-> Same for the tw9910 driver.
+	ret = frob();
+	if (ret) {
+		cleanup();
+		return ret;
+	}
 
-Ack.
+	return another_function();
 
-Thanks
-    j
+No error handling for the last function call.
+
+regards,
+dan carpenter
