@@ -1,58 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:56317 "EHLO gofer.mess.org"
+Received: from www.llwyncelyn.cymru ([82.70.14.225]:35616 "EHLO fuzix.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754121AbeAGRD0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 7 Jan 2018 12:03:26 -0500
-Date: Sun, 7 Jan 2018 17:03:24 +0000
-From: Sean Young <sean@mess.org>
-To: linux-media@vger.kernel.org
-Subject: [GIT PULL FOR v4.16] RC fixes
-Message-ID: <20180107170324.x53wxu4zg6ymz75g@gofer.mess.org>
+        id S1751063AbeABSbb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 2 Jan 2018 13:31:31 -0500
+Date: Tue, 2 Jan 2018 18:31:06 +0000
+From: Alan Cox <gnomes@lxorguk.ukuu.org.uk>
+To: Andy Shevchenko <andy.shevchenko@gmail.com>
+Cc: Kristian Beilke <beilke@posteo.de>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Alan Cox <alan@linux.intel.com>,
+        Hans de Goede <hdegoede@redhat.com>
+Subject: Re: [BUG] atomisp_ov2680 not initializing correctly
+Message-ID: <20180102183106.79701c0f@alans-desktop>
+In-Reply-To: <CAHp75VftepWFT55Lwt-ki4K1+-Dy0y-=SU+bQQ6SRqkvapPF-w@mail.gmail.com>
+References: <42dfd60f-2534-b9cd-eeab-3110d58ef7c0@posteo.de>
+        <20171219120020.w7byb7bv3hhzn2jb@valkosipuli.retiisi.org.uk>
+        <1513715821.7000.228.camel@linux.intel.com>
+        <20171221125444.GB2935@ber-nb-001.aisec.fraunhofer.de>
+        <1513866211.7000.250.camel@linux.intel.com>
+        <6d1a2dc7-1d7b-78f3-9334-ccdedaa66510@posteo.de>
+        <1514476996.7000.437.camel@linux.intel.com>
+        <5fbb0600-82a0-5d17-a812-81d7707a335b@posteo.de>
+        <CAHp75VftepWFT55Lwt-ki4K1+-Dy0y-=SU+bQQ6SRqkvapPF-w@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+> Patch 0003-atomisp_gmin_platform-tweak-to-drive-axp288.patch gives a
+> little confusion.
+> The PMIC driver should work via ACPI OpRegion macro (and should be
+> enabled in kernel configuration). That's how it supposed to work.
+> The patch seems redundant.
 
-I've been testing the lirc changes on various distributions and versions;
-there were some regressions.
+I am fairly sure it is meant to work that way - but it doesn't. At least
+not at the moment.
 
-Thanks,
+> > I see your point, Still it feels, as if this could go somewhere.  
+> 
+> I hope so, though I didn't try CherryTrail and according to Alan that
+> is what he had tried on.
 
-Sean
+It's what we are currently trying on. I can fire up the ISP and actually
+get interrupts from it, but not much more at this point.
 
-The following changes since commit 6f0e5fd39143a59c22d60e7befc4f33f22aeed2f:
-
-  media: vb2: add a new warning about pending buffers (2018-01-03 05:30:35 -0500)
-
-are available in the Git repository at:
-
-  git://linuxtv.org/syoung/media_tree.git for-v4.16c
-
-for you to fetch changes up to 6dc84d93e557c787ae74a808d93a8493f85a7800:
-
-  media: rc: do not remove first bit if leader pulse is present (2018-01-05 15:13:15 +0000)
-
-----------------------------------------------------------------
-Colin Ian King (1):
-      media: lirc: don't kfree the uninitialized pointer txbuf
-
-Sean Young (5):
-      media: lirc: add module alias for lirc_dev
-      media: lirc: lirc daemon fails to detect raw IR device
-      media: lirc: lirc mode ioctls deal with current mode
-      media: rc: clean up leader pulse/space for manchester encoding
-      media: rc: do not remove first bit if leader pulse is present
-
- Documentation/media/uapi/rc/lirc-get-features.rst  | 24 ++++++-------
- Documentation/media/uapi/rc/lirc-get-rec-mode.rst  | 42 ++++++++++++++++------
- Documentation/media/uapi/rc/lirc-get-send-mode.rst | 38 +++++++++++++++-----
- drivers/media/rc/ir-mce_kbd-decoder.c              |  6 ++--
- drivers/media/rc/ir-rc5-decoder.c                  | 22 ++++++------
- drivers/media/rc/ir-rc6-decoder.c                  | 31 +++++-----------
- drivers/media/rc/lirc_dev.c                        | 11 +++---
- drivers/media/rc/rc-core-priv.h                    | 10 +++---
- drivers/media/rc/rc-ir-raw.c                       | 13 +++----
- 9 files changed, 112 insertions(+), 85 deletions(-)
+Alan
