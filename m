@@ -1,71 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:57044 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1752296AbeAJWZM (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 10 Jan 2018 17:25:12 -0500
-Date: Thu, 11 Jan 2018 00:25:08 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hugues FRUCHET <hugues.fruchet@st.com>
-Cc: Maxime Ripard <maxime.ripard@free-electrons.com>,
-        Yong Deng <yong.deng@magewell.com>,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
+Received: from mail-qt0-f196.google.com ([209.85.216.196]:45720 "EHLO
+        mail-qt0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751495AbeABJgB (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 2 Jan 2018 04:36:01 -0500
+MIME-Version: 1.0
+In-Reply-To: <1514469681-15602-5-git-send-email-jacopo+renesas@jmondi.org>
+References: <1514469681-15602-1-git-send-email-jacopo+renesas@jmondi.org> <1514469681-15602-5-git-send-email-jacopo+renesas@jmondi.org>
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Date: Tue, 2 Jan 2018 10:35:59 +0100
+Message-ID: <CAMuHMdXuApVjg4Sq3tY+p6SAfCqRaJ_GmaC2koiX1ZzDPiXXcQ@mail.gmail.com>
+Subject: Re: [PATCH v2 4/9] ARM: dts: r7s72100: Add Capture Engine Unit (CEU)
+To: Jacopo Mondi <jacopo+renesas@jmondi.org>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Magnus Damm <magnus.damm@gmail.com>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
         Rob Herring <robh+dt@kernel.org>,
         Mark Rutland <mark.rutland@arm.com>,
-        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Subject: Re: [PATCH v5 0/5] Add OV5640 parallel interface and RGB565/YUYV
- support
-Message-ID: <20180110222508.4x5kimanevttmqis@valkosipuli.retiisi.org.uk>
-References: <1514973452-10464-1-git-send-email-hugues.fruchet@st.com>
- <20180108153811.5xrvbaekm6nxtoa6@flea>
- <3010811e-ed37-4489-6a9f-6cc835f41575@st.com>
- <20180110153724.l77zpdgxfbzkznuf@flea>
- <2089de18-1f7f-6d6e-7aee-9dc424bca335@st.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <2089de18-1f7f-6d6e-7aee-9dc424bca335@st.com>
+        Linux-Renesas <linux-renesas-soc@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux-sh list <linux-sh@vger.kernel.org>,
+        devicetree@vger.kernel.org,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hugues,
+Hi Jacopo,
 
-On Wed, Jan 10, 2018 at 03:51:07PM +0000, Hugues FRUCHET wrote:
-> Good news Maxime !
-> 
-> Have you seen that you can adapt the polarities through devicetree ?
-> 
-> +                       /* Parallel bus endpoint */
-> +                       ov5640_to_parallel: endpoint {
-> [...]
-> +                               hsync-active = <0>;
-> +                               vsync-active = <0>;
-> +                               pclk-sample = <1>;
-> +                       };
-> 
-> Doing so you can adapt to your SoC/board setup easily.
-> 
-> If you don't put those lines in devicetree, the ov5640 default init 
-> sequence is used which set the polarity as defined in below comment:
-> ov5640_set_stream_dvp()
-> [...]
-> +        * Control lines polarity can be configured through
-> +        * devicetree endpoint control lines properties.
-> +        * If no endpoint control lines properties are set,
-> +        * polarity will be as below:
-> +        * - VSYNC:     active high
-> +        * - HREF:      active low
-> +        * - PCLK:      active low
-> +        */
-> [...]
+On Thu, Dec 28, 2017 at 3:01 PM, Jacopo Mondi <jacopo+renesas@jmondi.org> wrote:
+> Add Capture Engine Unit (CEU) node to device tree.
 
-The properties are at the moment documented as mandatory in DT binding
-documentation.
+Thanks for your patch!
 
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+
+With the issue below fixed:
+Reviewed-by: Geert Uytterhoeven <geert+renesas@glider.be>
+
+> --- a/arch/arm/boot/dts/r7s72100.dtsi
+> +++ b/arch/arm/boot/dts/r7s72100.dtsi
+
+> @@ -667,4 +667,13 @@
+>                 power-domains = <&cpg_clocks>;
+>                 status = "disabled";
+>         };
+> +
+> +       ceu: ceu@e8210000 {
+> +               reg = <0xe8210000 0x209c>;
+
+Given the last documented register is at offset 0x209C, the region above is too
+small (also in the example in the DT bindings).
+But due to MMU granularity, it will be accessible anyway.
+
+reg = <0xe8210000 0x3000>;
+
+I assume the mandatory "remote-endpoint" property will come with the board
+(GR-Peach) DTS patch?
+
+Gr{oetje,eeting}s,
+
+                        Geert
+
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
