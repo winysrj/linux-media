@@ -1,91 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from esa1.hgst.iphmx.com ([68.232.141.245]:20342 "EHLO
-        esa1.hgst.iphmx.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932349AbeAHQUV (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 8 Jan 2018 11:20:21 -0500
-Subject: Re: [PATCH 00/18] prevent bounds-check bypass via speculative
- execution
-To: Dan Williams <dan.j.williams@intel.com>,
-        "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Peter Zijlstra <peterz@infradead.org>,
-        Alan Cox <alan.cox@intel.com>,
-        Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>,
-        Will Deacon <will.deacon@arm.com>,
-        Solomon Peachy <pizza@shaftnet.org>,
-        "H. Peter Anvin" <hpa@zytor.com>,
-        Christian Lamparter <chunkeey@googlemail.com>,
-        Elena Reshetova <elena.reshetova@intel.com>,
-        linux-arch@vger.kernel.org, Andi Kleen <ak@linux.intel.com>,
-        "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>,
-        linux-scsi <linux-scsi@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>, X86 ML <x86@kernel.org>,
-        Ingo Molnar <mingo@redhat.com>,
-        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
-        Zhang Rui <rui.zhang@intel.com>,
-        "Linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        Arnd Bergmann <arnd@arndb.de>, Jan Kara <jack@suse.com>,
-        Eduardo Valentin <edubezval@gmail.com>,
-        Al Viro <viro@zeniv.linux.org.uk>, qla2xxx-upstream@qlogic.com,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Arjan van de Ven <arjan@linux.intel.com>,
-        Kalle Valo <kvalo@codeaurora.org>,
-        Alan Cox <alan@linux.intel.com>,
-        "Martin K. Petersen" <martin.petersen@oracle.com>,
-        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
-        Greg KH <gregkh@linuxfoundation.org>,
-        linux-wireless@vger.kernel.org, Netdev <netdev@vger.kernel.org>,
-        Linus Torvalds <torvalds@linux-foundation.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-References: <151520099201.32271.4677179499894422956.stgit@dwillia2-desk3.amr.corp.intel.com>
- <87y3lbpvzp.fsf@xmission.com>
- <CAPcyv4hVisGeXbTH985Hb6dkYKA9Sr8wwZHudNF-CtH0=ADFug@mail.gmail.com>
-From: Bart Van Assche <bart.vanassche@wdc.com>
-Message-ID: <c2fd13f6-a2c9-d11f-d439-abb847ebed3c@wdc.com>
-Date: Mon, 8 Jan 2018 08:20:19 -0800
-MIME-Version: 1.0
-In-Reply-To: <CAPcyv4hVisGeXbTH985Hb6dkYKA9Sr8wwZHudNF-CtH0=ADFug@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
+Received: from mga01.intel.com ([192.55.52.88]:25763 "EHLO mga01.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751015AbeABSAb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 2 Jan 2018 13:00:31 -0500
+From: "Navare, Manasi D" <manasi.d.navare@intel.com>
+To: Luc Verhaegen <libv@skynet.be>,
+        "xorg-devel@lists.x.org" <xorg-devel@lists.x.org>,
+        "xorg-announce@lists.freedesktop.org"
+        <xorg-announce@lists.freedesktop.org>,
+        "mesa-dev@lists.freedesktop.org" <mesa-dev@lists.freedesktop.org>,
+        "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+        "wayland-devel@lists.freedesktop.org"
+        <wayland-devel@lists.freedesktop.org>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: RE: FOSDEM 2018: Graphics DevRoom: Call for speaker.
+Date: Tue, 2 Jan 2018 17:18:32 +0000
+Message-ID: <87E1A67218970041879FDD2045F7145D1A40974D@ORSMSX106.amr.corp.intel.com>
+References: <20171119124743.GA8754@skynet.be>
+In-Reply-To: <20171119124743.GA8754@skynet.be>
 Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/05/18 22:30, Dan Williams wrote:
-> On Fri, Jan 5, 2018 at 6:22 PM, Eric W. Biederman <ebiederm@xmission.com> wrote:
->> Please expand this.
->>
->> It is not clear what the static analysis is looking for.  Have a clear
->> description of what is being fixed is crucial for allowing any of these
->> changes.
->>
->> For the details given in the change description what I read is magic
->> changes because a magic process says this code is vulnerable.
-> 
-> Yes, that was my first reaction to the patches as well, I try below to
-> add some more background and guidance, but in the end these are static
-> analysis reports across a wide swath of sub-systems. It's going to
-> take some iteration with domain experts to improve the patch
-> descriptions, and that's the point of this series, to get the better
-> trained eyes from the actual sub-system owners to take a look at these
-> reports.
-
-More information about what the static analysis is looking for would 
-definitely be welcome.
-
-Additionally, since the analysis tool is not publicly available, how are 
-authors of new kernel code assumed to verify whether or not their code 
-needs to use nospec_array_ptr()? How are reviewers of kernel code 
-assumed to verify whether or not nospec_array_ptr() is missing where it 
-should be used?
-
-Since this patch series only modifies the upstream kernel, how will 
-out-of-tree drivers be fixed, e.g. the nVidia driver and the Android 
-drivers?
-
-Thanks,
-
-Bart.
+DQpIaSBMdWMsDQoNCkkgaGF2ZSBzdWJtaXR0ZWQgYSBwcm9wb3NhbCBmb3IgYSB0YWxrIGluIEdy
+YXBoaWNzIERldiBSb29tLCBidXQgaGF2ZW7igJl0IGhlYXJkIGFueXRoaW5nIHJlZ2FyZGluZyB0
+aGUgc2VsZWN0aW9uLiBJcyB0aGVyZSBhIHRpbWVsaW5lIGJ5IHdoaWNoIHRoZSBub3RpZmljYXRp
+b25zIHdpbGwgYmUgc2VudCBzbyB0aGF0IHRoZSB0cmF2ZWwgY2FuIGJlIHBsYW5uZWQgYWNjb3Jk
+aW5nbHk/DQoNCkhhcyBhbnlvbmUgZWxzZSBoZWFyZCBhYm91dCB0aGUgc3VibWlzc2lvbnM/DQoN
+ClJlZ2FyZHMNCk1hbmFzaQ0KDQoNCkhpLA0KDQpBdCBGT1NERU0gb24gc2F0dXJkYXkgdGhlIDNy
+ZCBvZiBmZWJydWFyeSAyMDE4LCB0aGVyZSB3aWxsIGJlIGFub3RoZXIgZ3JhcGhpY3MgRGV2Um9v
+bS4gVVJMOiBodHRwczovL2Zvc2RlbS5vcmcvMjAxOC8NCg0KVGhlIGZvY3VzIG9mIHRoaXMgRGV2
+Um9vbSBpcyBvZiBjb3Vyc2UgdGhlIHNhbWUgYXMgdGhlIHByZXZpb3VzIGVkaXRpb25zLCBuYW1l
+bHk6DQoqIEdyYXBoaWNzIGRyaXZlcnM6IGZyb20gZGlzcGxheSB0byBtZWRpYSB0byAzZCBkcml2
+ZXJzLCBib3RoIGluIGtlcm5lbCBvciB1c2Vyc3BhY2UuIEJlIGl0IHBhcnQgb2YgRFJNLCBLTVMs
+IChkaXJlY3QpRkIsIFY0TCwgWG9yZywgTWVzYS4uLg0KKiBJbnB1dCBkcml2ZXJzOiBrZXJuZWwg
+YW5kIHVzZXJzcGFjZS4NCiogV2luZG93aW5nIHN5c3RlbXM6IFgsIFdheWxhbmQsIE1pciwgZGly
+ZWN0RkIsIC4uLg0KKiBFdmVuIGNvbG91ciBtYW5hZ2VtZW50LCBsb3cgbGV2ZWwgdG9vbGtpdCBz
+dHVmZiwgYW5kIG90aGVyIGFyZWFzIHdoaWNoIGkgbWlnaHQgaGF2ZSBvdmVybG9va2VkIGFib3Zl
+IGFyZSBhY2NlcHRlZC4NCg0KU2xvdHMgd2lsbCBiZSBoYW5kZWQgb3V0IG9uIGEgZmlyc3QgY29t
+ZSwgZmlyc3Qgc2VydmUgYmFzaXMuIFRoZSBiZXN0IHNsb3RzIHdpbGwgZ28gdG8gdGhvc2Ugd2hv
+IGFwcGx5IHRoZSBlYXJsaWVzdC4gV2UgaGF2ZSB0aGUgZGV2cm9vbSBmcm9tDQoxMDozMCB0aWwg
+MTk6MDAsIGdpdmluZyB1cyA4aDMwLCBzbyBlaWdodCA1MCBtaW51dGUgdGFsa2VzIGFuZCBvbmUg
+MjAgbWludXRlIHRhbGsgYXJlIGF2YWlsYWJsZS4NCg0KVGFsayBTdWJtaXNzaW9uOg0KLS0tLS0t
+LS0tLS0tLS0tLQ0KDQpMaWtlIHRoZSBsYXN0IGZldyB5ZWFycywgdGhlIHBlbnRhYmFyZiBzeXN0
+ZW0gd2lsbCBiZSB1c2VkIGZvciB0YWxrIHN1Ym1pc3Npb24uDQoNCmh0dHBzOi8vcGVudGEuZm9z
+ZGVtLm9yZy9zdWJtaXNzaW9uL0ZPU0RFTTE4DQoNClJlbWVtYmVyIHRoYXQgRk9TREVNIGlzIG5v
+dCBsaWtlIFhEQywgaXQncyBub3Qgc29tZSA1MCBvZGQgcGVvcGxlIG1lZXRpbmcgd2l0aCBhIHNs
+aWRpbmcgc2NoZWR1bGUgd2hpY2ggb25seSBnZXRzIGZpbGxlZCBvdXQgb24gdGhlIGxhc3QgZGF5
+LiBVcHdhcmRzIG9mIDEwMDAwIHBlb3BsZSBhcmUgdmlzaXRpbmcgdGhpcyBldmVudCwgYW5kIG1v
+c3Qgb2YgdGhlbSBnZXQgYSBwcmludGVkIGJvb2tsZXQgb3IgdXNlIHRoZSBzY2hlZHVsZSBvbiB0
+aGUgRk9TREVNIHdlYnNpdGUgb3IgYW4gYXBwIGZvciB0aGVpciBwaG9uZSB0byBmaWd1cmUgb3V0
+IHdoYXQgdG8gd2F0Y2ggb3IgcGFydGljaXBhdGUgaW4gbmV4dC4gDQpTbyBwbGVhc2UgcHV0IHNv
+bWUgZWZmb3J0IGluIHlvdXIgdGFsayBzdWJtaXNzaW9uIGFuZCBkZXRhaWxzLg0KDQpTaW5jZSB0
+aGlzIGFuIG9wZW4gc291cmNlIGNvbW11bml0eSBldmVudCwgcGxlYXNlIHJlZnJhaW4gZnJvbSB0
+dXJuaW5nIGluIGEgdGFsayB0aGF0IGlzIGEgcHVyZSBjb3Jwb3JhdGUgb3IgcHJvZHVjdCBjb21t
+ZXJjaWFsLiBBbHNvLCBpZiB5b3UgYXJlIHVuc3VyZSBvbiB3aGV0aGVyIHlvdSBjYW4gY29tZSBv
+ciBub3QgKHRoaXMgaXMgRk9TREVNLCB3aHkgYXJlIHlvdSBub3QgdGhlcmUgYW55d2F5PyksIHBs
+ZWFzZSB3YWl0IHdpdGggc3VibWl0dGluZyB5b3VyIHRhbGsuIFN1Ym1pdHRpbmcgYSB0YWxrIGFu
+ZCB0aGVuIG5vdCB0dXJuaW5nIHVwIGJlY2F1c2UgeW91IGNvdWxkIG5vdCBiZSBib3RoZXJlZCBp
+cyBhIHN1cmUtZmlyZSB3YXkgdG8gZ2V0IGxhcnRlZCBhbmQgdGhlbiB0byBuZXZlciBiZSBhbGxv
+d2VkIHRvIHRhbGsgYWdhaW4uDQoNCldoZW4gaW4gcGVudGFiYXJmLCBwbGVhc2UgZ2l2ZSB0aGUg
+YWJzdHJhY3QgYW5kIGRlc2NyaXB0aW9uLCBmb3IgYm90aCB0aGUgZXZlbnQgYW5kIHRoZSBzcGVh
+a2VyLCBzb21lIHRob3VnaHQuIFRoZSBhYnN0cmFjdCBzaG91bGQgYmUgYSBzaG9ydGVuZWQgZGVz
+Y3JpcHRpb24sIGFuZCB0aGUgZXZlbnQgYWJzdHJhY3Qgd2lsbCBzb21ldGltZXMgZXZlbiBiZSBw
+cmludGVkIGRpcmVjdGx5IGluIHRoZSBib29rbGV0LiBCVVQsIG9uIHRoZSB3ZWJzaXRlIHRoZSBh
+YnN0cmFjdCBpcyBpbW1lZGlhdGVseSBmb2xsb3dlZCBieSB0aGUgZnVsbCBkZXNjcmlwdGlvbi4g
+SWYgeW91ciBhYnN0cmFjdCBpcyBmdWxseSBkZXNjcmlwdGl2ZSwgd2hpbGUgdGVyc2UsIHlvdSBt
+aWdodCBnZXQgYXdheSB3aXRoIGp1c3QgdGhlIGFic3RyYWN0Lg0KDQpBbGwgdGFsa3Mgd2lsbCBi
+ZSByZWNvcmRlZCwgYW5kIHdpbGwgYmUgc3RyZWFtZWQgb3V0IGxpdmUsIGFuZCB3aWxsIGxhdGVy
+IGJlIG1hZGUgYXZhaWxhYmxlIGFzIENDLUJZIGFmdGVyIGEgZmV3IGRheXMuDQoNCkFzIGZvciBk
+ZWFkbGluZXMsIHRoZSBmb3NkZW0gb3JnYW5pemVycyB3YW50IHRvIGhhdmUgYSBmaW5pc2hlZCBz
+Y2hlZHVsZSBieSB0aGUgMTV0aCBvZiBkZWNlbWJlci4gRG9uJ3QgY291bnQgb24gdGhpcyBkZWFk
+bGluZTogZmlyc3QgY29tZSBmaXJzdCBzZXJ2ZSEgVGhlIHdvcnN0IHNsb3RzIHdpbGwgYmUgYXNz
+aWduZWQgdG8gdGhvc2Ugd2hvIGNvbWUgbGFzdCwgd2hpY2ggY291bGQgYmUgcHJldHR5IGRpcmUg
+Z2l2ZW4gdGhhdCB0aGVyZSBpcyB0aGUgdHJhZGl0aW9uYWwgRk9TREVNIGJlZXIgZXZlbnQgdGhl
+IG5pZ2h0IGJlZm9yZSA7KQ0KDQpQbGVhc2UgdHJ5IHRvIHJlLXVzZSB5b3VyIGFjY291bnRzIGZy
+b20gdGhlIHByZXZpb3VzIHllYXJzLCBpIGhvcGUgdGhhdCB0aGlzIHllYXIgeW91IGNhbiBhY3R1
+YWxseSByZWN5Y2xlIHlvdXIgZGF0YS4gSWYgeW91IGhhdmUgZm9yZ290dGVuIHlvdXIgcGFzc3dv
+cmQsIHRoZW4geW91IGNhbiByZXNldCBpdCBoZXJlOiANCmh0dHBzOi8vcGVudGEuZm9zZGVtLm9y
+Zy91c2VyL2ZvcmdvdF9wYXNzd29yZCBJZiB0aGVyZSBhcmUgYW55IGlzc3VlcywganVzdCBwb2tl
+IG1lIGhlcmUgb3Igb24gSVJDLg0KDQpOZWNlc3NhcnkgaW5mb3JtYXRpb246DQotLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tDQoNCkJlbG93IGlzIGEgbGlzdCBvZiB3aGF0IGkgbmVlZCB0byBzZWUgZmls
+bGVkIGluIGluIHBlbnRhYmFyZiB3aGVuIHlvdSBhcHBseSBmb3IgYSBkZXZyb29tIGJlZm9yZSBp
+IGNvbnNpZGVyIGl0IGEgdmFsaWQgc3VibWlzc2lvbi4gUmVtZW1iZXI6IA0KZmlyc3QgY29tZSwg
+Zmlyc3Qgc2VydmUuIFRoZSBiZXN0IHNsb3RzICh3aGljaCBhcmUgb24gc2F0dXJkYXkNCmFmdGVy
+bm9vbikgYXJlIGZvciB0aGUgZWFybGllc3Qgc3VibWlzc2lvbnMuDQoNCk9uIHlvdXIgcGVyc29u
+YWwgcGFnZToNCiogR2VuZXJhbDoNCiAgKiBGaXJzdCBhbmQgbGFzdCBuYW1lDQogICogTmlja25h
+bWUNCiAgKiBJbWFnZQ0KKiBDb250YWN0Og0KICAqIGVtYWlsIGFkZHJlc3MNCiAgKiBtb2JpbGUg
+bnVtYmVyICh0aGlzIGlzIGEgdmVyeSBoYXJkIHJlcXVpcmVtZW50IGFzIHRoZXJlIHdpbGwgYmUg
+bm8NCiAgIG90aGVyIHJlbGlhYmxlIGZvcm0gb2YgZW1lcmdlbmN5IGNvbW11bmljYXRpb24gb24g
+dGhlIGRheSkNCiogRGVzY3JpcHRpb246DQogICogQWJzdHJhY3QNCiAgKiBEZXNjcmlwdGlvbg0K
+DQpDcmVhdGUgYW4gZXZlbnQ6DQoqIE9uIHRoZSBHZW5lcmFsIHBhZ2U6DQogICogRXZlbnQgdGl0
+bGUNCiAgKiBFdmVudCBzdWJ0aXRsZS4NCiAgKiBUcmFjazogR3JhcGhpY3MgRGV2cm9vbQ0KICAq
+IEV2ZW50IHR5cGU6IExlY3R1cmUgKHRhbGspIG9yIE1lZXRpbmcgKEJvRikNCiogUGVyc29uczoN
+CiAgKiBBZGQgeW91cnNlbGYgYXMgc3BlYWtlci4NCiogRGVzY3JpcHRpb246DQogICogQWJzdHJh
+Y3Q6DQogICogRnVsbCBEZXNjcmlwdGlvbg0KKiBMaW5rczoNCiAgKiBBZGQgcmVsZXZhbnQgbGlu
+a3MuDQoNCkV2ZXJ5dGhpbmcgZWxzZSBjYW4gYmUgaWdub3JlZCBvciB3aWxsIGJlIGZpbGxlZCBp
+biBieSBtZSBvciB0aGUgRk9TREVNIG9yZ2FuaXplcnMuIFJlbWVtYmVyLCBpIHdpbGwgb25seSBz
+Y2hlZHVsZSB5b3VyIHRhbGsgYWZ0ZXIgdGhlIGJhc2ljcyBhcmUgc29tZXdoYXQgZmlsbGVkIGlu
+ICh5b3Ugc3RpbGwgY2FuIGNoYW5nZSB0aGVtIHVudGlsIGRlY2VtYmVyIDE1dGgpLg0KDQpJIHdp
+bGwgYmUga2VlcGluZyBhIGtlZW4gZXllIG9uIHlvdXIgc3VibWlzc2lvbnMgYW5kIHdpbGwgY29t
+ZSBiYWNrIHdpdGggZnVydGhlciBxdWVzdGlvbnMgb3IgbWFrZSBzbWFsbCBmaXhlcyBhcyBuZWVk
+ZWQuIEZlZWwgZnJlZSB0byBwb2tlIG1lIHdpdGggYW55IHF1ZXN0aW9ucyBvciBhbnl0aGluZywg
+Ym90aCBvbiBpcmMgKGxpYnZAZnJlZW5vZGUpIGFuZCBvbiBlbWFpbC4NCg0KVGhhdCdzIGFib3V0
+IGl0LiBIb3BlIHRvIHNlZSB5b3UgYWxsIGF0IEZPU0RFTSA6KQ0KDQpMdWMgVmVyaGFlZ2VuLg0K
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18NCmRyaS1kZXZl
+bCBtYWlsaW5nIGxpc3QNCmRyaS1kZXZlbEBsaXN0cy5mcmVlZGVza3RvcC5vcmcNCmh0dHBzOi8v
+bGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVsDQo=
