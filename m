@@ -1,53 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f193.google.com ([209.85.128.193]:36450 "EHLO
-        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751028AbeAVRN4 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 22 Jan 2018 12:13:56 -0500
-Received: by mail-wr0-f193.google.com with SMTP id d9so9498569wre.3
-        for <linux-media@vger.kernel.org>; Mon, 22 Jan 2018 09:13:56 -0800 (PST)
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: linux-media@vger.kernel.org, mchehab@kernel.org,
-        mchehab@s-opensource.com
-Cc: rascobie@slingshot.co.nz
-Subject: [PATCH v2 5/5] media: dvb-frontends/stv0910: report active delsys in get_frontend()
-Date: Mon, 22 Jan 2018 18:13:46 +0100
-Message-Id: <20180122171346.822-6-d.scheller.oss@gmail.com>
-In-Reply-To: <20180122171346.822-1-d.scheller.oss@gmail.com>
-References: <20180122171346.822-1-d.scheller.oss@gmail.com>
+Received: from mga14.intel.com ([192.55.52.115]:36427 "EHLO mga14.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751877AbeABLJv (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 2 Jan 2018 06:09:51 -0500
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: rajmonah.mani@intel.com
+Subject: [PATCH 1/2] dw9714: Call pm_runtime_idle() at the end of probe()
+Date: Tue,  2 Jan 2018 13:07:53 +0200
+Message-Id: <1514891274-19131-2-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <1514891274-19131-1-git-send-email-sakari.ailus@linux.intel.com>
+References: <1514891274-19131-1-git-send-email-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Daniel Scheller <d.scheller@gmx.net>
+Call pm_runtime_idle() at the end of the driver's probe() function to
+enable the device to reach low power state once probe() finishes.
 
-Report the active delivery system based on the receive_mode state of the
-demodulator.
-
-Suggested-by: Richard Scobie <rascobie@slingshot.co.nz>
-Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- drivers/media/dvb-frontends/stv0910.c | 2 ++
- 1 file changed, 2 insertions(+)
+ drivers/media/i2c/dw9714.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/media/dvb-frontends/stv0910.c b/drivers/media/dvb-frontends/stv0910.c
-index 7ab014cec56c..6e6a70ad7354 100644
---- a/drivers/media/dvb-frontends/stv0910.c
-+++ b/drivers/media/dvb-frontends/stv0910.c
-@@ -1580,6 +1580,7 @@ static int get_frontend(struct dvb_frontend *fe,
- 		p->modulation = modcod2mod[mc];
- 		p->fec_inner = modcod2fec[mc];
- 		p->rolloff = ro2ro[state->fe_rolloff];
-+		p->delivery_system = SYS_DVBS2;
- 	} else if (state->receive_mode == RCVMODE_DVBS) {
- 		read_reg(state, RSTV0910_P2_VITCURPUN + state->regoff, &tmp);
- 		switch (tmp & 0x1F) {
-@@ -1603,6 +1604,7 @@ static int get_frontend(struct dvb_frontend *fe,
- 			break;
- 		}
- 		p->rolloff = ROLLOFF_35;
-+		p->delivery_system = SYS_DVBS;
- 	}
+diff --git a/drivers/media/i2c/dw9714.c b/drivers/media/i2c/dw9714.c
+index ed01e8b..7832210 100644
+--- a/drivers/media/i2c/dw9714.c
++++ b/drivers/media/i2c/dw9714.c
+@@ -183,6 +183,7 @@ static int dw9714_probe(struct i2c_client *client)
  
- 	if (state->receive_mode != RCVMODE_NONE) {
+ 	pm_runtime_set_active(&client->dev);
+ 	pm_runtime_enable(&client->dev);
++	pm_runtime_idle(&client->dev);
+ 
+ 	return 0;
+ 
 -- 
-2.13.6
+2.7.4
