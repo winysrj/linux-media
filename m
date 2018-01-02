@@ -1,37 +1,27 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:46798 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1755289AbeASKzn (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 19 Jan 2018 05:55:43 -0500
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: zhengsq@rock-chips.com
-Subject: [PATCH 1/1] ov2685: Assign ret in default case in s_ctrl callback
-Date: Fri, 19 Jan 2018 12:55:40 +0200
-Message-Id: <20180119105540.5573-1-sakari.ailus@linux.intel.com>
+Received: from mail.anw.at ([195.234.101.228]:40218 "EHLO mail.anw.at"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751243AbeABFLX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 2 Jan 2018 00:11:23 -0500
+Subject: Re: cron job: media_tree daily build: ERRORS
+To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+References: <152cfd2b6600921b859893dfb0d188fe@smtp-cloud8.xs4all.net>
+From: "Jasmin J." <jasmin@anw.at>
+Message-ID: <691466cd-8c3f-1f60-8328-35bbf314e502@anw.at>
+Date: Tue, 2 Jan 2018 06:11:12 +0000
+MIME-Version: 1.0
+In-Reply-To: <152cfd2b6600921b859893dfb0d188fe@smtp-cloud8.xs4all.net>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Assign ret in the default case for s_ctrl callback. This can't happen but
-still may result in compiler warnings.
+Hi!
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/i2c/ov2685.c | 1 +
- 1 file changed, 1 insertion(+)
+Maybe someone can apply:
+  https://patchwork.linuxtv.org/patch/46252/
 
-diff --git a/drivers/media/i2c/ov2685.c b/drivers/media/i2c/ov2685.c
-index df4abecd8d74..904ac305d499 100644
---- a/drivers/media/i2c/ov2685.c
-+++ b/drivers/media/i2c/ov2685.c
-@@ -574,6 +574,7 @@ static int ov2685_set_ctrl(struct v4l2_ctrl *ctrl)
- 	default:
- 		dev_warn(&client->dev, "%s Unhandled id:0x%x, val:0x%x\n",
- 			 __func__, ctrl->id, ctrl->val);
-+		ret = -EINVAL;
- 		break;
- 	};
- 
--- 
-2.11.0
+BR,
+   Jasmin
