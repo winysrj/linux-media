@@ -1,93 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f66.google.com ([209.85.215.66]:46946 "EHLO
-        mail-lf0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932497AbeAROGF (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 18 Jan 2018 09:06:05 -0500
-Received: by mail-lf0-f66.google.com with SMTP id q194so15337258lfe.13
-        for <linux-media@vger.kernel.org>; Thu, 18 Jan 2018 06:06:04 -0800 (PST)
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Message-Id: <20180118140600.363149670@cogentembedded.com>
-Date: Thu, 18 Jan 2018 17:05:51 +0300
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
-Cc: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Subject: [PATCH v3] vsp1: fix video output on R8A77970
+Received: from smtp.codeaurora.org ([198.145.29.96]:60580 "EHLO
+        smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750787AbeABX2N (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 2 Jan 2018 18:28:13 -0500
+Date: Tue, 2 Jan 2018 15:28:11 -0800
+From: Stephen Boyd <sboyd@codeaurora.org>
+To: Bryan O'Donoghue <pure.logic@nexus-software.ie>
+Cc: Mikko Perttunen <cyndis@kapsi.fi>, mturquette@baylibre.com,
+        linux-kernel@vger.kernel.org, linux-clk@vger.kernel.org,
+        linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-mips@linux-mips.org, linux-rpi-kernel@lists.infradead.org,
+        patches@opensource.cirrus.com,
+        uclinux-h8-devel@lists.sourceforge.jp,
+        linux-amlogic@lists.infradead.org, linux-arm-msm@vger.kernel.org,
+        linux-soc@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        linux-rockchip@lists.infradead.org,
+        linux-samsung-soc@vger.kernel.org, linux-tegra@vger.kernel.org,
+        dri-devel@lists.freedesktop.org,
+        linux-mediatek@lists.infradead.org,
+        freedreno@lists.freedesktop.org, linux-media@vger.kernel.org,
+        linux-rtc@vger.kernel.org
+Subject: Re: [PATCH 01/33] clk_ops: change round_rate() to return unsigned
+ long
+Message-ID: <20180102232811.GN7997@codeaurora.org>
+References: <1514596392-22270-1-git-send-email-pure.logic@nexus-software.ie>
+ <1514596392-22270-2-git-send-email-pure.logic@nexus-software.ie>
+ <9f4bef5a-8a71-6f30-5cfb-5e8fe133e3d3@kapsi.fi>
+ <6d83a5c3-6589-24bc-4ca5-4d1bbca47432@nexus-software.ie>
+ <20180102190159.GH7997@codeaurora.org>
+ <c2212d56-a8b5-cba5-46a7-c2c7f66e752b@nexus-software.ie>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Disposition: inline; filename=vsp1-fix-video-output-on-R8A77970-v3.patch
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <c2212d56-a8b5-cba5-46a7-c2c7f66e752b@nexus-software.ie>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Commit d455b45f8393 ("v4l: vsp1: Add support for new VSP2-BS, VSP2-DL,
-and VSP2-D instances") added support for the VSP2-D found in the R-Car
-V3M (R8A77970) but the video output that VSP2-D sends to DU has a greenish
-garbage-like line repeated every 8 screen rows. It turns out that R-Car
-V3M has the LIF0 buffer attribute register that you need to set to a non-
-default value in order to get rid of the output artifacts...
+On 01/02, Bryan O'Donoghue wrote:
+> On 02/01/18 19:01, Stephen Boyd wrote:
+> >On 12/31, Bryan O'Donoghue wrote:
+> >>On 30/12/17 16:36, Mikko Perttunen wrote:
+> >>>FWIW, we had this problem some years ago with the Tegra CPU clock
+> >>>- then it was determined that a simpler solution was to have the
+> >>>determine_rate callback support unsigned long rates - so clock
+> >>>drivers that need to return rates higher than 2^31 can instead
+> >>>implement the determine_rate callback. That is what's currently
+> >>>implemented.
+> >>>
+> >>>Mikko
+> >>
+> >>Granted we could work around it but, having both zero and less than
+> >>zero indicate error means you can't support larger than LONG_MAX
+> >>which is I think worth fixing.
+> >>
+> >
+> >Ok. But can you implement the determine_rate op instead of the
+> >round_rate op for your clk?
+> 
+> Don't know .
 
-Based on the original (and large) patch by Daisuke Matsushita
-<daisuke.matsushita.ns@hitachi.com>.
+Please try.
 
-Fixes: d455b45f8393 ("v4l: vsp1: Add support for new VSP2-BS, VSP2-DL and VSP2-D instances")
-Signed-off-by: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+> 
+> >It's not a work-around, it's the
+> >preferred solution. That would allow rates larger than 2^31 for
+> >the clk without pushing through a change to all the drivers to
+> >express zero as "error" and non-zero as the rounded rate.
+> >
+> >I'm not entirely opposed to this approach, because we probably
+> >don't care to pass the particular error value from a clk provider
+> >to a clk consumer about what the error is.
+> 
+> Which was my thought. The return value of clk_ops->round_rate()
+> appears not to get pushed up the stack, which is what the last patch
+> in this series deals with.
+> 
+> [PATCH 33/33] clk: change handling of round_rate() such that only
+> zero is an error
 
----
-This patch is against the 'media_tree.git' repo's 'fixes' branch.
+Hmm? clk_core_determine_round_nolock() returns 'rate' if rate < 0
+from the round_rate op. clk_core_round_rate_nolock() returns that
+value to clk_round_rate() which returns it to the consumer.
 
-Changes in version 3:
-- reworded the comment in lif_configure();
-- reworded the patch description.
+> 
+> >It's actually what we
+> >proposed as the solution for clk_round_rate() to return values
+> >larger than LONG_MAX to consumers. But doing that consumer API
+> >change or this provider side change is going to require us to
+> >evaluate all the consumers of these clks to make sure they don't
+> >check for some error value that's less than zero. This series
+> >does half the work,
+> 
+> Do you mean users of clk_rounda_rate() ? I have a set of patches for
+> that but wanted to separate that from clk_ops->round_rate() so as
+> not to send ~70 patches out to LKML at once - even if they are in
+> two blocks.
 
-Changes in version 2:
-- added a  comment before the V3M SoC check;
-- fixed indetation in that check;
-- reformatted  the patch description.
+Ok. What have you done to the consumers of clk_round_rate()?
+Made them treat 0 as an error instead of less than zero? The
+documentation in clk.h needs to be updated. See this patch from
+Paul Wamsley[1] for one proposed patch that went nowhere. Also
+include Russell King please. It was also proposed to change the
+function signature of clk_round_rate() to return unsigned long,
+but that didn't go anywhere either.
 
- drivers/media/platform/vsp1/vsp1_lif.c  |   15 +++++++++++++++
- drivers/media/platform/vsp1/vsp1_regs.h |    5 +++++
- 2 files changed, 20 insertions(+)
+> 
+> If so, I can publish that set too for reference.
+> 
+> AFAICT on clk_ops->round_rate the last patch #33 ought to cover the
+> usage of the return value of clk_ops->round_rate().
+> 
+> Have I missed something ?
 
-Index: media_tree/drivers/media/platform/vsp1/vsp1_lif.c
-===================================================================
---- media_tree.orig/drivers/media/platform/vsp1/vsp1_lif.c
-+++ media_tree/drivers/media/platform/vsp1/vsp1_lif.c
-@@ -155,6 +155,21 @@ static void lif_configure(struct vsp1_en
- 			(obth << VI6_LIF_CTRL_OBTH_SHIFT) |
- 			(format->code == 0 ? VI6_LIF_CTRL_CFMT : 0) |
- 			VI6_LIF_CTRL_REQSEL | VI6_LIF_CTRL_LIF_EN);
-+
-+	/*
-+	 * On R-Car V3M the LIF0 buffer attribute register has to be set
-+	 * to a non-default value to guarantee proper operation (otherwise
-+	 * artifacts may appear on the output). The value required by
-+	 * the manual is not explained but is likely a buffer size or
-+	 * threshold...
-+	 */
-+	if ((entity->vsp1->version &
-+	     (VI6_IP_VERSION_MODEL_MASK | VI6_IP_VERSION_SOC_MASK)) ==
-+	    (VI6_IP_VERSION_MODEL_VSPD_V3 | VI6_IP_VERSION_SOC_V3M)) {
-+		vsp1_lif_write(lif, dl, VI6_LIF_LBA,
-+			       VI6_LIF_LBA_LBA0 |
-+			       (1536 << VI6_LIF_LBA_LBA1_SHIFT));
-+	}
- }
- 
- static const struct vsp1_entity_operations lif_entity_ops = {
-Index: media_tree/drivers/media/platform/vsp1/vsp1_regs.h
-===================================================================
---- media_tree.orig/drivers/media/platform/vsp1/vsp1_regs.h
-+++ media_tree/drivers/media/platform/vsp1/vsp1_regs.h
-@@ -693,6 +693,11 @@
- #define VI6_LIF_CSBTH_LBTH_MASK		(0x7ff << 0)
- #define VI6_LIF_CSBTH_LBTH_SHIFT	0
- 
-+#define VI6_LIF_LBA			0x3b0c
-+#define VI6_LIF_LBA_LBA0		(1 << 31)
-+#define VI6_LIF_LBA_LBA1_MASK		(0xfff << 16)
-+#define VI6_LIF_LBA_LBA1_SHIFT		16
-+
- /* -----------------------------------------------------------------------------
-  * Security Control Registers
-  */
+Hopefully not!
+
+> 
+> >by changing the provider side, while ignoring
+> >the consumer side and any potential fallout of the less than zero
+> >to zero return value change.
+> >
+> 
+> Can you look at #33 ? I'm not sure if you saw that one.
+> 
+
+Yeah I looked at it. From what I can tell it makes
+clk_round_rate() return 0 now instead of whatever negative value
+the clk_ops::round_rate function returns.
+
+[1] https://lkml.kernel.org/r/alpine.DEB.2.02.1311251603310.23090@tamien
+
+-- 
+Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
+a Linux Foundation Collaborative Project
