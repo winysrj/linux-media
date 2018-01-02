@@ -1,68 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from sub5.mail.dreamhost.com ([208.113.200.129]:45003 "EHLO
-        homiemail-a68.g.dreamhost.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S934004AbeALQUC (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:33368 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751713AbeABMUt (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 12 Jan 2018 11:20:02 -0500
-From: Brad Love <brad@nextdimension.cc>
-To: linux-media@vger.kernel.org
-Cc: Brad Love <brad@nextdimension.cc>
-Subject: [PATCH 0/7] cx231xx: Add multiple frontend USB device
-Date: Fri, 12 Jan 2018 10:19:35 -0600
-Message-Id: <1515773982-6411-1-git-send-email-brad@nextdimension.cc>
+        Tue, 2 Jan 2018 07:20:49 -0500
+Date: Tue, 2 Jan 2018 14:20:46 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Hugues Fruchet <hugues.fruchet@st.com>
+Cc: Steve Longerbeam <slongerbeam@gmail.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        linux-media@vger.kernel.org,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Subject: Re: [PATCH v4 3/5] media: dt-bindings: ov5640: refine CSI-2 and add
+ parallel interface
+Message-ID: <20180102122046.iso43ungfndrjhlp@valkosipuli.retiisi.org.uk>
+References: <1513763474-1174-1-git-send-email-hugues.fruchet@st.com>
+ <1513763474-1174-4-git-send-email-hugues.fruchet@st.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1513763474-1174-4-git-send-email-hugues.fruchet@st.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch set requires:
+Hi Hugues,
 
-https://patchwork.linuxtv.org/patch/46396/
-https://patchwork.linuxtv.org/patch/46397/
+One more thing, please see below.
 
-The Hauppauge HVR-975 is a dual frontend, single tuner USB device.
-The 975 has lgdt3306a (currently enabled) and si2168 demodulators,
-and one si2157 tuner. It provides analog capture via breakout cable.
+On Wed, Dec 20, 2017 at 10:51:12AM +0100, Hugues Fruchet wrote:
+> Refine CSI-2 endpoint documentation and add bindings
+> for DVP parallel interface support.
+> 
+> Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
+> ---
+>  .../devicetree/bindings/media/i2c/ov5640.txt       | 48 +++++++++++++++++++++-
+>  1 file changed, 46 insertions(+), 2 deletions(-)
+> 
+> diff --git a/Documentation/devicetree/bindings/media/i2c/ov5640.txt b/Documentation/devicetree/bindings/media/i2c/ov5640.txt
+> index 540b36c..e26a846 100644
+> --- a/Documentation/devicetree/bindings/media/i2c/ov5640.txt
+> +++ b/Documentation/devicetree/bindings/media/i2c/ov5640.txt
+> @@ -1,4 +1,4 @@
+> -* Omnivision OV5640 MIPI CSI-2 sensor
+> +* Omnivision OV5640 MIPI CSI-2 / parallel sensor
+>  
+>  Required Properties:
+>  - compatible: should be "ovti,ov5640"
+> @@ -18,7 +18,27 @@ The device node must contain one 'port' child node for its digital output
+>  video port, in accordance with the video interface bindings defined in
+>  Documentation/devicetree/bindings/media/video-interfaces.txt.
+>  
+> -Example:
+> +OV5640 can be connected to a MIPI CSI-2 bus or a parallel bus endpoint.
+> +
+> +Endpoint node required properties for CSI-2 connection are:
+> +- remote-endpoint: a phandle to the bus receiver's endpoint node.
+> +- clock-lanes: should be set to <0> (clock lane on hardware lane 0)
+> +- data-lanes: should be set to <1> or <1 2> (one or two CSI-2 lanes supported)
+> +
+> +Endpoint node required properties for parallel connection are:
+> +- remote-endpoint: a phandle to the bus receiver's endpoint node.
+> +- bus-width: shall be set to <8> for 8 bits parallel bus
+> +	     or <10> for 10 bits parallel bus
+> +- data-shift: shall be set to <2> for 8 bits parallel bus
+> +	      (lines 9:2 are used) or <0> for 10 bits parallel bus
+> +
+> +Endpoint node optional properties for parallel connection are:
+> +- hsync-active: active state of the HSYNC signal, 0/1 for LOW/HIGH respectively.
+> +- vsync-active: active state of the VSYNC signal, 0/1 for LOW/HIGH respectively.
+> +- pclk-sample: sample data on rising (1) or falling (0) edge of the pixel clock
+> +	       signal.
 
-This patch set adds pieces to the cx231xx USB bridge to allow a
-second frontend, whether it is old dvb_attach style, or new i2c
-device style. A new field is added to board config to accomodate
-second demod address.
+I presume the sensor can also do Bt.656 (CCIR656) in which case you
+wouldn't simply have hsync / vsync signals at all. How about making them
+mandatory for parallel bus now and then optional if support for CCIR656
+mode is added?
 
-To accomodate addubg the second demodulator to the si2157 tuner,
-hybrid tuner instance functionality was added. The contents of
-probe, moved to attach, and .release is provided for shared
-instances to clean their state. All changes are backwards
-compatible and transparent to current usages.
-
-The si2168 frontend driver required addition of ts bus control,
-without this both frontends remain active, after switching between,
-and the demux provides no data thereafter.
-
-Finally the second demod is added to the HVR975 and attached
-to the si2157.
-
-
-Brad Love (7):
-  cx231xx: Add second frontend option
-  cx231xx: Add second i2c demod client
-  si2157: Add hybrid tuner support
-  si2168: Add ts bus coontrol, turn off bus on sleep
-  si2168: Announce frontend creation failure
-  lgdt3306a: Announce successful creation
-  cx231xx: Add second i2c demod to Hauppauge 975
-
- drivers/media/dvb-frontends/lgdt3306a.c     |   4 +-
- drivers/media/dvb-frontends/si2168.c        |  40 ++++-
- drivers/media/dvb-frontends/si2168.h        |   1 +
- drivers/media/pci/saa7164/saa7164-dvb.c     |  11 +-
- drivers/media/tuners/si2157.c               | 232 +++++++++++++++++-------
- drivers/media/tuners/si2157.h               |  14 ++
- drivers/media/tuners/si2157_priv.h          |   5 +
- drivers/media/usb/cx231xx/cx231xx-cards.c   |   1 +
- drivers/media/usb/cx231xx/cx231xx-dvb.c     | 269 ++++++++++++++++++----------
- drivers/media/usb/cx231xx/cx231xx-dvb.c.rej |  11 ++
- drivers/media/usb/cx231xx/cx231xx.h         |   1 +
- 11 files changed, 411 insertions(+), 178 deletions(-)
- create mode 100644 drivers/media/usb/cx231xx/cx231xx-dvb.c.rej
+> +
+> +Examples:
+>  
+>  &i2c1 {
+>  	ov5640: camera@3c {
+> @@ -35,6 +55,7 @@ Example:
+>  		reset-gpios = <&gpio1 20 GPIO_ACTIVE_LOW>;
+>  
+>  		port {
+> +			/* MIPI CSI-2 bus endpoint */
+>  			ov5640_to_mipi_csi2: endpoint {
+>  				remote-endpoint = <&mipi_csi2_from_ov5640>;
+>  				clock-lanes = <0>;
+> @@ -43,3 +64,26 @@ Example:
+>  		};
+>  	};
+>  };
+> +
+> +&i2c1 {
+> +	ov5640: camera@3c {
+> +		compatible = "ovti,ov5640";
+> +		pinctrl-names = "default";
+> +		pinctrl-0 = <&pinctrl_ov5640>;
+> +		reg = <0x3c>;
+> +		clocks = <&clk_ext_camera>;
+> +		clock-names = "xclk";
+> +
+> +		port {
+> +			/* Parallel bus endpoint */
+> +			ov5640_to_parallel: endpoint {
+> +				remote-endpoint = <&parallel_from_ov5640>;
+> +				bus-width = <8>;
+> +				data-shift = <2>; /* lines 9:2 are used */
+> +				hsync-active = <0>;
+> +				vsync-active = <0>;
+> +				pclk-sample = <1>;
+> +			};
+> +		};
+> +	};
+> +};
+> -- 
+> 1.9.1
+> 
 
 -- 
-2.7.4
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
