@@ -1,135 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:50624 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751219AbeA3LuD (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 30 Jan 2018 06:50:03 -0500
-Date: Tue, 30 Jan 2018 13:50:01 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Daniel Mentz <danielmentz@google.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>, stable@vger.kernel.org
-Subject: Re: [PATCHv2 10/13] v4l2-compat-ioctl32.c: copy clip list in
- put_v4l2_window32
-Message-ID: <20180130115000.qs5um6nnlgqozh74@valkosipuli.retiisi.org.uk>
-References: <20180130102701.13664-1-hverkuil@xs4all.nl>
- <20180130102701.13664-11-hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20180130102701.13664-11-hverkuil@xs4all.nl>
+Received: from mail-pl0-f66.google.com ([209.85.160.66]:33794 "EHLO
+        mail-pl0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750864AbeACSXa (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 3 Jan 2018 13:23:30 -0500
+Received: by mail-pl0-f66.google.com with SMTP id d21so1729587pll.1
+        for <linux-media@vger.kernel.org>; Wed, 03 Jan 2018 10:23:30 -0800 (PST)
+From: Akinobu Mita <akinobu.mita@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Akinobu Mita <akinobu.mita@gmail.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Subject: [PATCH v2 4/4] media: mt9m111: add V4L2_CID_TEST_PATTERN control
+Date: Thu,  4 Jan 2018 03:22:47 +0900
+Message-Id: <1515003767-12006-5-git-send-email-akinobu.mita@gmail.com>
+In-Reply-To: <1515003767-12006-1-git-send-email-akinobu.mita@gmail.com>
+References: <1515003767-12006-1-git-send-email-akinobu.mita@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Jan 30, 2018 at 11:26:58AM +0100, Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> put_v4l2_window32() didn't copy back the clip list to userspace.
-> Drivers can update the clip rectangles, so this should be done.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> Cc: <stable@vger.kernel.org>      # for v4.15 and up
+The mt9m111 has the test pattern generator features.  This makes use of
+it through V4L2_CID_TEST_PATTERN control.
 
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+---
+* Changelog v2
+- Fix typo s/meida/media/ in the patch title, noticed by Sakari Ailus
 
-> ---
->  drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 59 ++++++++++++++++++---------
->  1 file changed, 40 insertions(+), 19 deletions(-)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-> index 30c5be1f0549..0df941ca4d90 100644
-> --- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-> +++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-> @@ -50,6 +50,11 @@ struct v4l2_window32 {
->  
->  static int get_v4l2_window32(struct v4l2_window *kp, struct v4l2_window32 __user *up)
->  {
-> +	struct v4l2_clip32 __user *uclips;
-> +	struct v4l2_clip __user *kclips;
-> +	compat_caddr_t p;
-> +	u32 n;
-> +
->  	if (!access_ok(VERIFY_READ, up, sizeof(*up)) ||
->  	    copy_from_user(&kp->w, &up->w, sizeof(up->w)) ||
->  	    get_user(kp->field, &up->field) ||
-> @@ -59,38 +64,54 @@ static int get_v4l2_window32(struct v4l2_window *kp, struct v4l2_window32 __user
->  		return -EFAULT;
->  	if (kp->clipcount > 2048)
->  		return -EINVAL;
-> -	if (kp->clipcount) {
-> -		struct v4l2_clip32 __user *uclips;
-> -		struct v4l2_clip __user *kclips;
-> -		int n = kp->clipcount;
-> -		compat_caddr_t p;
-> +	if (!kp->clipcount) {
-> +		kp->clips = NULL;
-> +		return 0;
-> +	}
->  
-> -		if (get_user(p, &up->clips))
-> +	n = kp->clipcount;
-> +	if (get_user(p, &up->clips))
-> +		return -EFAULT;
-> +	uclips = compat_ptr(p);
-> +	kclips = compat_alloc_user_space(n * sizeof(*kclips));
-> +	kp->clips = kclips;
-> +	while (n--) {
-> +		if (copy_in_user(&kclips->c, &uclips->c, sizeof(uclips->c)))
->  			return -EFAULT;
-> -		uclips = compat_ptr(p);
-> -		kclips = compat_alloc_user_space(n * sizeof(*kclips));
-> -		kp->clips = kclips;
-> -		while (--n >= 0) {
-> -			if (copy_in_user(&kclips->c, &uclips->c, sizeof(uclips->c)))
-> -				return -EFAULT;
-> -			if (put_user(n ? kclips + 1 : NULL, &kclips->next))
-> -				return -EFAULT;
-> -			uclips += 1;
-> -			kclips += 1;
-> -		}
-> -	} else
-> -		kp->clips = NULL;
-> +		if (put_user(n ? kclips + 1 : NULL, &kclips->next))
-> +			return -EFAULT;
-> +		uclips++;
-> +		kclips++;
-> +	}
->  	return 0;
->  }
->  
->  static int put_v4l2_window32(struct v4l2_window *kp, struct v4l2_window32 __user *up)
->  {
-> +	struct v4l2_clip __user *kclips = kp->clips;
-> +	struct v4l2_clip32 __user *uclips;
-> +	u32 n = kp->clipcount;
-> +	compat_caddr_t p;
-> +
->  	if (copy_to_user(&up->w, &kp->w, sizeof(kp->w)) ||
->  	    put_user(kp->field, &up->field) ||
->  	    put_user(kp->chromakey, &up->chromakey) ||
->  	    put_user(kp->clipcount, &up->clipcount) ||
->  	    put_user(kp->global_alpha, &up->global_alpha))
->  		return -EFAULT;
-> +
-> +	if (!kp->clipcount)
-> +		return 0;
-> +
-> +	if (get_user(p, &up->clips))
-> +		return -EFAULT;
-> +	uclips = compat_ptr(p);
-> +	while (n--) {
-> +		if (copy_in_user(&uclips->c, &kclips->c, sizeof(uclips->c)))
-> +			return -EFAULT;
-> +		uclips++;
-> +		kclips++;
-> +	}
->  	return 0;
->  }
->  
-> -- 
-> 2.15.1
-> 
+ drivers/media/i2c/mt9m111.c | 27 +++++++++++++++++++++++++++
+ 1 file changed, 27 insertions(+)
 
+diff --git a/drivers/media/i2c/mt9m111.c b/drivers/media/i2c/mt9m111.c
+index e1d5032..d74f254 100644
+--- a/drivers/media/i2c/mt9m111.c
++++ b/drivers/media/i2c/mt9m111.c
+@@ -92,6 +92,7 @@
+  */
+ #define MT9M111_OPER_MODE_CTRL		0x106
+ #define MT9M111_OUTPUT_FORMAT_CTRL	0x108
++#define MT9M111_TPG_CTRL		0x148
+ #define MT9M111_REDUCER_XZOOM_B		0x1a0
+ #define MT9M111_REDUCER_XSIZE_B		0x1a1
+ #define MT9M111_REDUCER_YZOOM_B		0x1a3
+@@ -124,6 +125,7 @@
+ #define MT9M111_OUTFMT_AVG_CHROMA	(1 << 2)
+ #define MT9M111_OUTFMT_SWAP_YCbCr_C_Y_RGB_EVEN	(1 << 1)
+ #define MT9M111_OUTFMT_SWAP_YCbCr_Cb_Cr_RGB_R_B	(1 << 0)
++#define MT9M111_TPG_SEL_MASK		GENMASK(2, 0)
+ 
+ /*
+  * Camera control register addresses (0x200..0x2ff not implemented)
+@@ -706,6 +708,25 @@ static int mt9m111_set_autowhitebalance(struct mt9m111 *mt9m111, int on)
+ 	return reg_clear(OPER_MODE_CTRL, MT9M111_OPMODE_AUTOWHITEBAL_EN);
+ }
+ 
++static const char * const mt9m111_test_pattern_menu[] = {
++	"Disabled",
++	"Vertical monochrome gradient",
++	"Flat color type 1",
++	"Flat color type 2",
++	"Flat color type 3",
++	"Flat color type 4",
++	"Flat color type 5",
++	"Color bar",
++};
++
++static int mt9m111_set_test_pattern(struct mt9m111 *mt9m111, int val)
++{
++	struct i2c_client *client = v4l2_get_subdevdata(&mt9m111->subdev);
++
++	return mt9m111_reg_mask(client, MT9M111_TPG_CTRL, val,
++				MT9M111_TPG_SEL_MASK);
++}
++
+ static int mt9m111_s_ctrl(struct v4l2_ctrl *ctrl)
+ {
+ 	struct mt9m111 *mt9m111 = container_of(ctrl->handler,
+@@ -724,6 +745,8 @@ static int mt9m111_s_ctrl(struct v4l2_ctrl *ctrl)
+ 		return mt9m111_set_autoexposure(mt9m111, ctrl->val);
+ 	case V4L2_CID_AUTO_WHITE_BALANCE:
+ 		return mt9m111_set_autowhitebalance(mt9m111, ctrl->val);
++	case V4L2_CID_TEST_PATTERN:
++		return mt9m111_set_test_pattern(mt9m111, ctrl->val);
+ 	}
+ 
+ 	return -EINVAL;
+@@ -968,6 +991,10 @@ static int mt9m111_probe(struct i2c_client *client,
+ 	v4l2_ctrl_new_std_menu(&mt9m111->hdl,
+ 			&mt9m111_ctrl_ops, V4L2_CID_EXPOSURE_AUTO, 1, 0,
+ 			V4L2_EXPOSURE_AUTO);
++	v4l2_ctrl_new_std_menu_items(&mt9m111->hdl,
++			&mt9m111_ctrl_ops, V4L2_CID_TEST_PATTERN,
++			ARRAY_SIZE(mt9m111_test_pattern_menu) - 1, 0, 0,
++			mt9m111_test_pattern_menu);
+ 	mt9m111->subdev.ctrl_handler = &mt9m111->hdl;
+ 	if (mt9m111->hdl.error) {
+ 		ret = mt9m111->hdl.error;
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+2.7.4
