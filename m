@@ -1,74 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:49234 "EHLO
-        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S933947AbeALPjt (ORCPT
+Received: from mx08-00178001.pphosted.com ([91.207.212.93]:55912 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1752249AbeACJ6j (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 12 Jan 2018 10:39:49 -0500
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [GIT PULL FOR v4.16] Various fixes
-Message-ID: <9c8d9e7e-ee61-4c12-e045-b82cff165514@xs4all.nl>
-Date: Fri, 12 Jan 2018 16:39:45 +0100
+        Wed, 3 Jan 2018 04:58:39 -0500
+From: Hugues Fruchet <hugues.fruchet@st.com>
+To: Steve Longerbeam <slongerbeam@gmail.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        "Mauro Carvalho Chehab" <mchehab@kernel.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>
+CC: <devicetree@vger.kernel.org>, <linux-media@vger.kernel.org>,
+        "Hugues Fruchet" <hugues.fruchet@st.com>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Subject: [PATCH v5 3/5] media: dt-bindings: ov5640: refine CSI-2 and add parallel interface
+Date: Wed, 3 Jan 2018 10:57:30 +0100
+Message-ID: <1514973452-10464-4-git-send-email-hugues.fruchet@st.com>
+In-Reply-To: <1514973452-10464-1-git-send-email-hugues.fruchet@st.com>
+References: <1514973452-10464-1-git-send-email-hugues.fruchet@st.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Refine CSI-2 endpoint documentation and add bindings
+for DVP parallel interface support.
 
-Some fixes for 4.16. Note the cec-gpio.txt patch: that has a CC to stable for
-4.15. It's probably too late to get that in for 4.15 itself, but it definitely
-should be backported to 4.15. Otherwise you can fry your Rpi if you aren't aware
-of the voltages involved.
+Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
+---
+ .../devicetree/bindings/media/i2c/ov5640.txt       | 46 +++++++++++++++++++++-
+ 1 file changed, 44 insertions(+), 2 deletions(-)
 
-Regards,
-
-	Hans
-
-The following changes since commit e3ee691dbf24096ea51b3200946b11d68ce75361:
-
-  media: ov5640: add support of RGB565 and YUYV formats (2018-01-05 12:54:14 -0500)
-
-are available in the Git repository at:
-
-  git://linuxtv.org/hverkuil/media_tree.git for-v4.16f
-
-for you to fetch changes up to 2b7d6056e7f0e235bc6abe70acf52afdb3a02448:
-
-  drivers/media/common/videobuf2: rename from videobuf (2018-01-12 16:33:34 +0100)
-
-----------------------------------------------------------------
-Arnd Bergmann (2):
-      media: staging: tegra-vde: select DMA_SHARED_BUFFER
-      media: cobalt: select CONFIG_SND_PCM
-
-Hans Verkuil (2):
-      dt-bindings/media/cec-gpio.txt: mention the CEC/HPD max voltages
-      drivers/media/common/videobuf2: rename from videobuf
-
- Documentation/devicetree/bindings/media/cec-gpio.txt                | 6 +++++-
- drivers/media/common/Kconfig                                        | 2 +-
- drivers/media/common/Makefile                                       | 2 +-
- drivers/media/common/{videobuf => videobuf2}/Kconfig                | 0
- drivers/media/common/{videobuf => videobuf2}/Makefile               | 0
- drivers/media/common/{videobuf => videobuf2}/videobuf2-core.c       | 0
- drivers/media/common/{videobuf => videobuf2}/videobuf2-dma-contig.c | 0
- drivers/media/common/{videobuf => videobuf2}/videobuf2-dma-sg.c     | 0
- drivers/media/common/{videobuf => videobuf2}/videobuf2-dvb.c        | 0
- drivers/media/common/{videobuf => videobuf2}/videobuf2-memops.c     | 0
- drivers/media/common/{videobuf => videobuf2}/videobuf2-v4l2.c       | 0
- drivers/media/common/{videobuf => videobuf2}/videobuf2-vmalloc.c    | 0
- drivers/media/pci/cobalt/Kconfig                                    | 1 +
- drivers/staging/media/tegra-vde/Kconfig                             | 1 +
- 14 files changed, 9 insertions(+), 3 deletions(-)
- rename drivers/media/common/{videobuf => videobuf2}/Kconfig (100%)
- rename drivers/media/common/{videobuf => videobuf2}/Makefile (100%)
- rename drivers/media/common/{videobuf => videobuf2}/videobuf2-core.c (100%)
- rename drivers/media/common/{videobuf => videobuf2}/videobuf2-dma-contig.c (100%)
- rename drivers/media/common/{videobuf => videobuf2}/videobuf2-dma-sg.c (100%)
- rename drivers/media/common/{videobuf => videobuf2}/videobuf2-dvb.c (100%)
- rename drivers/media/common/{videobuf => videobuf2}/videobuf2-memops.c (100%)
- rename drivers/media/common/{videobuf => videobuf2}/videobuf2-v4l2.c (100%)
- rename drivers/media/common/{videobuf => videobuf2}/videobuf2-vmalloc.c (100%)
+diff --git a/Documentation/devicetree/bindings/media/i2c/ov5640.txt b/Documentation/devicetree/bindings/media/i2c/ov5640.txt
+index 540b36c..8e36da0 100644
+--- a/Documentation/devicetree/bindings/media/i2c/ov5640.txt
++++ b/Documentation/devicetree/bindings/media/i2c/ov5640.txt
+@@ -1,4 +1,4 @@
+-* Omnivision OV5640 MIPI CSI-2 sensor
++* Omnivision OV5640 MIPI CSI-2 / parallel sensor
+ 
+ Required Properties:
+ - compatible: should be "ovti,ov5640"
+@@ -18,7 +18,25 @@ The device node must contain one 'port' child node for its digital output
+ video port, in accordance with the video interface bindings defined in
+ Documentation/devicetree/bindings/media/video-interfaces.txt.
+ 
+-Example:
++OV5640 can be connected to a MIPI CSI-2 bus or a parallel bus endpoint.
++
++Endpoint node required properties for CSI-2 connection are:
++- remote-endpoint: a phandle to the bus receiver's endpoint node.
++- clock-lanes: should be set to <0> (clock lane on hardware lane 0)
++- data-lanes: should be set to <1> or <1 2> (one or two CSI-2 lanes supported)
++
++Endpoint node required properties for parallel connection are:
++- remote-endpoint: a phandle to the bus receiver's endpoint node.
++- bus-width: shall be set to <8> for 8 bits parallel bus
++	     or <10> for 10 bits parallel bus
++- data-shift: shall be set to <2> for 8 bits parallel bus
++	      (lines 9:2 are used) or <0> for 10 bits parallel bus
++- hsync-active: active state of the HSYNC signal, 0/1 for LOW/HIGH respectively.
++- vsync-active: active state of the VSYNC signal, 0/1 for LOW/HIGH respectively.
++- pclk-sample: sample data on rising (1) or falling (0) edge of the pixel clock
++	       signal.
++
++Examples:
+ 
+ &i2c1 {
+ 	ov5640: camera@3c {
+@@ -35,6 +53,7 @@ Example:
+ 		reset-gpios = <&gpio1 20 GPIO_ACTIVE_LOW>;
+ 
+ 		port {
++			/* MIPI CSI-2 bus endpoint */
+ 			ov5640_to_mipi_csi2: endpoint {
+ 				remote-endpoint = <&mipi_csi2_from_ov5640>;
+ 				clock-lanes = <0>;
+@@ -43,3 +62,26 @@ Example:
+ 		};
+ 	};
+ };
++
++&i2c1 {
++	ov5640: camera@3c {
++		compatible = "ovti,ov5640";
++		pinctrl-names = "default";
++		pinctrl-0 = <&pinctrl_ov5640>;
++		reg = <0x3c>;
++		clocks = <&clk_ext_camera>;
++		clock-names = "xclk";
++
++		port {
++			/* Parallel bus endpoint */
++			ov5640_to_parallel: endpoint {
++				remote-endpoint = <&parallel_from_ov5640>;
++				bus-width = <8>;
++				data-shift = <2>; /* lines 9:2 are used */
++				hsync-active = <0>;
++				vsync-active = <0>;
++				pclk-sample = <1>;
++			};
++		};
++	};
++};
+-- 
+1.9.1
