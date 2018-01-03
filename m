@@ -1,72 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:56869 "EHLO mga02.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751315AbeAASBv (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 1 Jan 2018 13:01:51 -0500
-Date: Tue, 2 Jan 2018 02:01:18 +0800
-From: kbuild test robot <lkp@intel.com>
-To: Bryan O'Donoghue <pure.logic@nexus-software.ie>
-Cc: kbuild-all@01.org, mturquette@baylibre.com, sboyd@codeaurora.org,
-        linux-kernel@vger.kernel.org, linux-clk@vger.kernel.org,
-        uclinux-h8-devel@lists.sourceforge.jp, linux-mips@linux-mips.org,
-        linux-samsung-soc@vger.kernel.org, patches@opensource.cirrus.com,
-        linux-arm-msm@vger.kernel.org, freedreno@lists.freedesktop.org,
-        linux-rtc@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        linux-renesas-soc@vger.kernel.org,
-        linux-rockchip@lists.infradead.org,
-        linux-mediatek@lists.infradead.org,
-        linux-rpi-kernel@lists.infradead.org,
-        linux-amlogic@lists.infradead.org, linux-tegra@vger.kernel.org,
-        pure.logic@nexus-software.ie, linux-omap@vger.kernel.org,
-        linux-soc@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-media@vger.kernel.org
-Subject: Re: [PATCH 01/33] clk_ops: change round_rate() to return unsigned
- long
-Message-ID: <201801020112.PEMNifTo%fengguang.wu@intel.com>
-References: <1514596392-22270-2-git-send-email-pure.logic@nexus-software.ie>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1514596392-22270-2-git-send-email-pure.logic@nexus-software.ie>
+Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:51125 "EHLO
+        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750711AbeACFAl (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 3 Jan 2018 00:00:41 -0500
+Message-ID: <634fa44ee3dd332a65197df8f4811cb9@smtp-cloud7.xs4all.net>
+Date: Wed, 03 Jan 2018 06:00:38 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Bryan,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-I love your patch! Perhaps something to improve:
+Results of the daily build of media_tree:
 
-[auto build test WARNING on tegra/for-next]
-[also build test WARNING on v4.15-rc6]
-[cannot apply to clk/clk-next next-20171222]
-[if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
+date:			Wed Jan  3 05:00:15 CET 2018
+media-tree git hash:	d0c8f6ad8b381dd572576ac50b9696d4d31142bb
+media_build git hash:	46c9dc0a08499791cedfc7ee0df387e475f075a2
+v4l-utils git hash:	8aa401d119afaeb1b4fe4d2994789cd3e9396554
+gcc version:		i686-linux-gcc (GCC) 7.1.0
+sparse version:		v0.5.0-3911-g6f737e1f
+smatch version:		v0.5.0-3911-g6f737e1f
+host hardware:		x86_64
+host os:		4.13.0-164
 
-url:    https://github.com/0day-ci/linux/commits/Bryan-O-Donoghue/change-clk_ops-round_rate-to-scale-past-LONG_MAX/20180101-212907
-base:   https://git.kernel.org/pub/scm/linux/kernel/git/tegra/linux.git for-next
-reproduce:
-        # apt-get install sparse
-        make ARCH=x86_64 allmodconfig
-        make C=1 CF=-D__CHECK_ENDIAN__
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: WARNINGS
+linux-3.11.1-i686: ERRORS
+linux-3.12.67-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.7-i686: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.18.7-i686: ERRORS
+linux-3.19-i686: WARNINGS
+linux-4.0.9-i686: WARNINGS
+linux-4.1.33-i686: WARNINGS
+linux-4.2.8-i686: WARNINGS
+linux-4.3.6-i686: WARNINGS
+linux-4.4.22-i686: OK
+linux-4.5.7-i686: WARNINGS
+linux-4.6.7-i686: ERRORS
+linux-4.7.5-i686: ERRORS
+linux-4.8-i686: ERRORS
+linux-4.9.26-i686: OK
+linux-4.10.14-i686: OK
+linux-4.11-i686: OK
+linux-4.12.1-i686: OK
+linux-4.13-i686: OK
+linux-4.14-i686: OK
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.67-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.7-x86_64: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.7-x86_64: ERRORS
+linux-3.19-x86_64: WARNINGS
+linux-4.0.9-x86_64: WARNINGS
+linux-4.1.33-x86_64: WARNINGS
+linux-4.2.8-x86_64: WARNINGS
+linux-4.3.6-x86_64: WARNINGS
+linux-4.4.22-x86_64: WARNINGS
+linux-4.5.7-x86_64: WARNINGS
+linux-4.6.7-x86_64: ERRORS
+linux-4.7.5-x86_64: ERRORS
+linux-4.8-x86_64: ERRORS
+linux-4.9.26-x86_64: WARNINGS
+linux-4.10.14-x86_64: WARNINGS
+linux-4.11-x86_64: WARNINGS
+linux-4.12.1-x86_64: WARNINGS
+linux-4.13-x86_64: OK
+linux-4.14-x86_64: OK
+apps: OK
+spec-git: OK
+smatch: OK
 
+Detailed results are available here:
 
-sparse warnings: (new ones prefixed by >>)
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
 
+Full logs are available here:
 
-vim +321 drivers/clk/clk-versaclock5.c
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
 
-8c1ebe97 Marek Vasut 2017-07-09  318  
-8c1ebe97 Marek Vasut 2017-07-09  319  static const struct clk_ops vc5_dbl_ops = {
-8c1ebe97 Marek Vasut 2017-07-09  320  	.recalc_rate	= vc5_dbl_recalc_rate,
-8c1ebe97 Marek Vasut 2017-07-09 @321  	.round_rate	= vc5_dbl_round_rate,
-8c1ebe97 Marek Vasut 2017-07-09  322  	.set_rate	= vc5_dbl_set_rate,
-8c1ebe97 Marek Vasut 2017-07-09  323  };
-8c1ebe97 Marek Vasut 2017-07-09  324  
+The Media Infrastructure API from this daily build is here:
 
-:::::: The code at line 321 was first introduced by commit
-:::::: 8c1ebe9762670159ca982167131af63c94ff1571 clk: vc5: Add support for the input frequency doubler
-
-:::::: TO: Marek Vasut <marek.vasut@gmail.com>
-:::::: CC: Stephen Boyd <sboyd@codeaurora.org>
-
----
-0-DAY kernel test infrastructure                Open Source Technology Center
-https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
+http://www.xs4all.nl/~hverkuil/spec/index.html
