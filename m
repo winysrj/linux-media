@@ -1,70 +1,157 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay4-d.mail.gandi.net ([217.70.183.196]:42367 "EHLO
+Received: from relay4-d.mail.gandi.net ([217.70.183.196]:47279 "EHLO
         relay4-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751280AbeAPVpn (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 16 Jan 2018 16:45:43 -0500
-From: Jacopo Mondi <jacopo+renesas@jmondi.org>
-To: laurent.pinchart@ideasonboard.com, magnus.damm@gmail.com,
-        geert@glider.be, hverkuil@xs4all.nl, mchehab@kernel.org,
-        festevam@gmail.com, sakari.ailus@iki.fi, robh+dt@kernel.org,
-        mark.rutland@arm.com, pombredanne@nexb.com
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        with ESMTP id S1751668AbeACPpF (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 3 Jan 2018 10:45:05 -0500
+Date: Wed, 3 Jan 2018 16:44:58 +0100
+From: jacopo mondi <jacopo@jmondi.org>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>, magnus.damm@gmail.com,
+        geert@glider.be, mchehab@kernel.org, hverkuil@xs4all.nl,
+        robh+dt@kernel.org, mark.rutland@arm.com,
         linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
         linux-sh@vger.kernel.org, devicetree@vger.kernel.org,
         linux-kernel@vger.kernel.org
-Subject: [PATCH v6 2/9] include: media: Add Renesas CEU driver interface
-Date: Tue, 16 Jan 2018 22:44:54 +0100
-Message-Id: <1516139101-7835-3-git-send-email-jacopo+renesas@jmondi.org>
-In-Reply-To: <1516139101-7835-1-git-send-email-jacopo+renesas@jmondi.org>
-References: <1516139101-7835-1-git-send-email-jacopo+renesas@jmondi.org>
+Subject: Re: [PATCH v2 7/9] media: i2c: ov772x: Remove soc_camera dependencies
+Message-ID: <20180103154458.GD9493@w540>
+References: <1514469681-15602-1-git-send-email-jacopo+renesas@jmondi.org>
+ <1514469681-15602-8-git-send-email-jacopo+renesas@jmondi.org>
+ <5703631.yJ335LfYLI@avalon>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <5703631.yJ335LfYLI@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add renesas-ceu header file.
+Hi Laurent,
 
-Do not remove the existing sh_mobile_ceu.h one as long as the original
-driver does not go away.
+On Tue, Jan 02, 2018 at 05:44:03PM +0200, Laurent Pinchart wrote:
+> Hi Jacopo,
+>
+> Thank you for the patch.
+>
+> On Thursday, 28 December 2017 16:01:19 EET Jacopo Mondi wrote:
+> > Remove soc_camera framework dependencies from ov772x sensor driver.
+> > - Handle clock and gpios
+> > - Register async subdevice
+> > - Remove soc_camera specific g/s_mbus_config operations
+> > - Change image format colorspace to SRGB
+>
+> Could you explain the rationale for this ?
 
-Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- include/media/drv-intf/renesas-ceu.h | 26 ++++++++++++++++++++++++++
- 1 file changed, 26 insertions(+)
- create mode 100644 include/media/drv-intf/renesas-ceu.h
+Hans suggested this, and I assume it is beacause COLORSPACE_JPEG ==
+(COLORSPACE_SRGB + assumptions on quantization ranges) which does not
+apply to the sensor.
+>
+> > - Remove sizes crop from get_selection as driver can't scale
+> > - Add kernel doc to driver interface header file
+> > - Adjust build system
+>
+> That's a lot for a single patch. On the other hand I don't think splitting
+> this in 7 patches would be a good idea either. If you can find a better
+> granularity, go for it, otherwise keep it as-is. Same comment for the tw9910
+> driver.
 
-diff --git a/include/media/drv-intf/renesas-ceu.h b/include/media/drv-intf/renesas-ceu.h
-new file mode 100644
-index 0000000..52841d1
---- /dev/null
-+++ b/include/media/drv-intf/renesas-ceu.h
-@@ -0,0 +1,26 @@
-+// SPDX-License-Identifier: GPL-2.0
-+/*
-+ * renesas-ceu.h - Renesas CEU driver interface
-+ *
-+ * Copyright 2017-2018 Jacopo Mondi <jacopo+renesas@jmondi.org>
-+ */
-+
-+#ifndef __MEDIA_DRV_INTF_RENESAS_CEU_H__
-+#define __MEDIA_DRV_INTF_RENESAS_CEU_H__
-+
-+#define CEU_MAX_SUBDEVS		2
-+
-+struct ceu_async_subdev {
-+	unsigned long flags;
-+	unsigned char bus_width;
-+	unsigned char bus_shift;
-+	unsigned int i2c_adapter_id;
-+	unsigned int i2c_address;
-+};
-+
-+struct ceu_platform_data {
-+	unsigned int num_subdevs;
-+	struct ceu_async_subdev subdevs[CEU_MAX_SUBDEVS];
-+};
-+
-+#endif /* ___MEDIA_DRV_INTF_RENESAS_CEU_H__ */
--- 
-2.7.4
+I know.
+I would have kept changes down to the minimum required to remove
+soc_camera dependencies, but I received comments on other parts of the
+driver not directly soc_camera specific. I understand this, since I'm
+touching the driver it is maybe worth changing some parts of it that
+needs updates..
+
+>
+> > This commit does not remove the original soc_camera based driver as long
+> > as other platforms depends on soc_camera-based CEU driver.
+> >
+> > Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+> > ---
+> >  drivers/media/i2c/Kconfig  |  11 +++
+> >  drivers/media/i2c/Makefile |   1 +
+> >  drivers/media/i2c/ov772x.c | 169 ++++++++++++++++++++++++++++-------------
+> >  include/media/i2c/ov772x.h |   8 ++-
+> >  4 files changed, 130 insertions(+), 59 deletions(-)
+> >
+> > diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
+> > index cb5d7ff..a61d7f4 100644
+> > --- a/drivers/media/i2c/Kconfig
+> > +++ b/drivers/media/i2c/Kconfig
+>
+> [snip]
+>
+> > diff --git a/drivers/media/i2c/ov772x.c b/drivers/media/i2c/ov772x.c
+> > index 8063835..f7b293f 100644
+> > --- a/drivers/media/i2c/ov772x.c
+> > +++ b/drivers/media/i2c/ov772x.c
+> > @@ -1,6 +1,9 @@
+>
+> [snip]
+>
+> > @@ -25,8 +26,8 @@
+> >  #include <linux/videodev2.h>
+> >
+> >  #include <media/i2c/ov772x.h>
+> > -#include <media/soc_camera.h>
+> > -#include <media/v4l2-clk.h>
+> > +
+> > +#include <media/v4l2-device.h>
+> >  #include <media/v4l2-ctrls.h>
+>
+> I think C comes before D.
+>
+> >  #include <media/v4l2-subdev.h>
+> >  #include <media/v4l2-image-sizes.h>
+>
+> [snip]
+>
+> > @@ -650,13 +653,63 @@ static int ov772x_s_register(struct v4l2_subdev *sd,
+> >  }
+> >  #endif
+> >
+> > +static int ov772x_power_on(struct ov772x_priv *priv)
+> > +{
+> > +	struct i2c_client *client = v4l2_get_subdevdata(&priv->subdev);
+> > +	int ret;
+> > +
+> > +	if (priv->info->xclk_rate)
+> > +		ret = clk_set_rate(priv->clk, priv->info->xclk_rate);
+>
+> The return value is then ignored.
+>
+> I wonder whether the clk_set_rate() call shouldn't be kept in board code as
+> it's a board-specific frequency. DT platforms would use the assigned-clock-
+> rates property that doesn't require any explicit handling in the driver.
+>
+
+DT based platforms won't have any info->xlkc_rate, so they should be
+fine. I wonder how could I set rate in board code, as I'm just
+registering an alias for the clock there...
+
+> > +	if (priv->clk) {
+> > +		ret = clk_prepare_enable(priv->clk);
+> > +		if (ret)
+> > +			return ret;
+> > +	}
+> > +
+> > +	if (priv->pwdn_gpio) {
+> > +		gpiod_set_value(priv->pwdn_gpio, 1);
+> > +		usleep_range(500, 1000);
+> > +	}
+> > +
+> > +	/* Reset GPIOs are shared in some platforms. */
+>
+> I'd make this a FIXME comment as this is really a hack.
+>
+> 	/*
+> 	 * FIXME: The reset signal is connected to a shared GPIO on some
+> 	 * platforms (namely the SuperH Migo-R). Until a framework becomes
+> 	 * available to handle this cleanly, request the GPIO temporarily
+> 	 * only to avoid conflicts.
+> 	 */
+>
+> Same for the tw9910 driver.
+
+Ack.
+
+Thanks
+    j
