@@ -1,134 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:40090 "EHLO
-        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750819AbeABEjf (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:47450 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1752198AbeACMOW (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 1 Jan 2018 23:39:35 -0500
-Message-ID: <152cfd2b6600921b859893dfb0d188fe@smtp-cloud8.xs4all.net>
-Date: Tue, 02 Jan 2018 05:39:32 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+        Wed, 3 Jan 2018 07:14:22 -0500
+Date: Wed, 3 Jan 2018 14:14:19 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Shunqian Zheng <zhengsq@rock-chips.com>
+Cc: mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        ddl@rock-chips.com, tfiga@chromium.org
+Subject: Re: [PATCH v2 4/4] [media] dt/bindings: Add bindings for OV2685
+Message-ID: <20180103121418.r6bysio3cfbl24gn@valkosipuli.retiisi.org.uk>
+References: <1514534905-21393-1-git-send-email-zhengsq@rock-chips.com>
+ <1514534905-21393-4-git-send-email-zhengsq@rock-chips.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1514534905-21393-4-git-send-email-zhengsq@rock-chips.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Shunqian,
 
-Results of the daily build of media_tree:
+On Fri, Dec 29, 2017 at 04:08:25PM +0800, Shunqian Zheng wrote:
+> Add device tree binding documentation for the OV2685 sensor.
 
-date:			Tue Jan  2 05:00:15 CET 2018
-media-tree git hash:	d0c8f6ad8b381dd572576ac50b9696d4d31142bb
-media_build git hash:	f709aa47e1577563a814e2558cd78b6d00639021
-v4l-utils git hash:	8aa401d119afaeb1b4fe4d2994789cd3e9396554
-gcc version:		i686-linux-gcc (GCC) 7.1.0
-sparse version:		v0.5.0-3911-g6f737e1f
-smatch version:		v0.5.0-3911-g6f737e1f
-host hardware:		x86_64
-host os:		4.13.0-164
+DT bindings should precede the driver. Speaking of which --- you should add
+an entry in the MAINTAINERS file for both.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: ERRORS
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-blackfin-bf561: ERRORS
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: ERRORS
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: ERRORS
-linux-3.10.1-i686: ERRORS
-linux-3.11.1-i686: ERRORS
-linux-3.12.67-i686: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: ERRORS
-linux-3.15.2-i686: ERRORS
-linux-3.16.7-i686: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.18.7-i686: ERRORS
-linux-3.19-i686: ERRORS
-linux-4.0.9-i686: ERRORS
-linux-4.1.33-i686: ERRORS
-linux-4.2.8-i686: ERRORS
-linux-4.3.6-i686: ERRORS
-linux-4.4.22-i686: ERRORS
-linux-4.5.7-i686: ERRORS
-linux-4.6.7-i686: ERRORS
-linux-4.7.5-i686: ERRORS
-linux-4.8-i686: ERRORS
-linux-4.9.26-i686: ERRORS
-linux-4.10.14-i686: ERRORS
-linux-4.11-i686: OK
-linux-4.12.1-i686: OK
-linux-4.13-i686: OK
-linux-4.14-i686: OK
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: ERRORS
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.67-x86_64: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-x86_64: ERRORS
-linux-3.15.2-x86_64: ERRORS
-linux-3.16.7-x86_64: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.7-x86_64: ERRORS
-linux-3.19-x86_64: ERRORS
-linux-4.0.9-x86_64: ERRORS
-linux-4.1.33-x86_64: ERRORS
-linux-4.2.8-x86_64: ERRORS
-linux-4.3.6-x86_64: ERRORS
-linux-4.4.22-x86_64: ERRORS
-linux-4.5.7-x86_64: ERRORS
-linux-4.6.7-x86_64: ERRORS
-linux-4.7.5-x86_64: ERRORS
-linux-4.8-x86_64: ERRORS
-linux-4.9.26-x86_64: ERRORS
-linux-4.10.14-x86_64: ERRORS
-linux-4.11-x86_64: WARNINGS
-linux-4.12.1-x86_64: WARNINGS
-linux-4.13-x86_64: OK
-linux-4.14-x86_64: OK
-apps: OK
-spec-git: OK
-smatch: OK
+> 
+> Signed-off-by: Shunqian Zheng <zhengsq@rock-chips.com>
+> ---
+>  .../devicetree/bindings/media/i2c/ov2685.txt       | 35 ++++++++++++++++++++++
+>  1 file changed, 35 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/i2c/ov2685.txt
+> 
+> diff --git a/Documentation/devicetree/bindings/media/i2c/ov2685.txt b/Documentation/devicetree/bindings/media/i2c/ov2685.txt
+> new file mode 100644
+> index 0000000..85aec03
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/media/i2c/ov2685.txt
+> @@ -0,0 +1,35 @@
+> +* Omnivision OV2685 MIPI CSI-2 sensor
+> +
+> +Required Properties:
+> +- compatible: should be "ovti,ov2685"
+> +- clocks: reference to the 24M xvclk input clock.
+> +- clock-names: should be "xvclk".
+> +- avdd-supply: Analog voltage supply, 2.8 volts
+> +- dvdd-supply: Digital core voltage supply, 1.2 volts
+> +- reset-gpios: Low active reset gpio
+> +
+> +The device node must contain one 'port' child node for its digital output
 
-Detailed results are available here:
+s/must/shall/
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+Please add that the port shall contain one endpoint node as well.
 
-Full logs are available here:
+> +video port, in accordance with the video interface bindings defined in
+> +Documentation/devicetree/bindings/media/video-interfaces.txt.
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+Which specific properties are required and which ones are optional?
 
-The Media Infrastructure API from this daily build is here:
+> +
+> +Example:
+> +	ucam: camera-sensor@3c {
+> +		compatible = "ovti,ov2685";
+> +		reg = <0x3c>;
+> +		pinctrl-names = "default";
+> +		pinctrl-0 = <&clk_24m_cam>;
+> +
+> +		clocks = <&cru SCLK_TESTCLKOUT1>;
+> +		clock-names = "xvclk";
+> +
+> +		avdd-supply = <&pp2800_cam>;
+> +		dovdd-supply = <&pp1800>;
+> +		reset-gpios = <&gpio2 3 GPIO_ACTIVE_LOW>;
+> +
+> +		port {
+> +			ucam_out: endpoint {
+> +				remote-endpoint = <&mipi_in_ucam>;
+> +				data-lanes = <1>;
+> +			};
+> +		};
+> +	};
 
-http://www.xs4all.nl/~hverkuil/spec/index.html
+-- 
+Regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
