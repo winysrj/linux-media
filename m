@@ -1,247 +1,191 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from out20-15.mail.aliyun.com ([115.124.20.15]:45108 "EHLO
-        out20-15.mail.aliyun.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750760AbeAWIPC (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 23 Jan 2018 03:15:02 -0500
-From: Yong Deng <yong.deng@magewell.com>
-To: Maxime Ripard <maxime.ripard@free-electrons.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Chen-Yu Tsai <wens@csie.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        Randy Dunlap <rdunlap@infradead.org>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Yannick Fertre <yannick.fertre@st.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Rick Chang <rick.chang@mediatek.com>,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-sunxi@googlegroups.com, megous@megous.com,
-        Yong Deng <yong.deng@magewell.com>
-Subject: [PATCH v6 0/2] Initial Allwinner V3s CSI Support
-Date: Tue, 23 Jan 2018 16:13:44 +0800
-Message-Id: <1516695224-23183-1-git-send-email-yong.deng@magewell.com>
+Received: from relay4-d.mail.gandi.net ([217.70.183.196]:60784 "EHLO
+        relay4-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751603AbeACIuE (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 3 Jan 2018 03:50:04 -0500
+Date: Wed, 3 Jan 2018 09:49:52 +0100
+From: jacopo mondi <jacopo@jmondi.org>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>, magnus.damm@gmail.com,
+        geert@glider.be, mchehab@kernel.org, hverkuil@xs4all.nl,
+        robh+dt@kernel.org, mark.rutland@arm.com,
+        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-sh@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v2 1/9] dt-bindings: media: Add Renesas CEU bindings
+Message-ID: <20180103084952.GA9493@w540>
+References: <1514469681-15602-1-git-send-email-jacopo+renesas@jmondi.org>
+ <1514469681-15602-2-git-send-email-jacopo+renesas@jmondi.org>
+ <6263435.xWGUCtEJC1@avalon>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <6263435.xWGUCtEJC1@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patchset add initial support for Allwinner V3s CSI.
+Hi Laurent,
 
-Allwinner V3s SoC features two CSI module. CSI0 is used for MIPI CSI-2
-interface and CSI1 is used for parallel interface. This is not
-documented in datasheet but by test and guess.
+On Tue, Jan 02, 2018 at 01:45:30PM +0200, Laurent Pinchart wrote:
+> Hi Jacopo,
+>
+> Thank you for the patch.
+>
+> On Thursday, 28 December 2017 16:01:13 EET Jacopo Mondi wrote:
+> > Add bindings documentation for Renesas Capture Engine Unit (CEU).
+> >
+> > Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+> > ---
+> >  .../devicetree/bindings/media/renesas,ceu.txt      | 85 +++++++++++++++++++
+> >  1 file changed, 85 insertions(+)
+> >  create mode 100644 Documentation/devicetree/bindings/media/renesas,ceu.txt
+> >
+> > diff --git a/Documentation/devicetree/bindings/media/renesas,ceu.txt
+> > b/Documentation/devicetree/bindings/media/renesas,ceu.txt new file mode
+> > 100644
+> > index 0000000..f45628e
+> > --- /dev/null
+> > +++ b/Documentation/devicetree/bindings/media/renesas,ceu.txt
+> > @@ -0,0 +1,85 @@
+> > +Renesas Capture Engine Unit (CEU)
+> > +----------------------------------------------
+> > +
+> > +The Capture Engine Unit is the image capture interface found on Renesas
+> > +RZ chip series and on SH Mobile ones.
+>
+> "ones" sound a bit weird. How about "... found in the Renesas SH Mobil and RZ
+> SoCs." ?
+>
+> > +The interface supports a single parallel input with data bus width up to
+> > +8/16 bits.
+>
+> What do you mean by "up to 8/16 bits" ?
 
-This patchset implement a v4l2 framework driver and add a binding 
-documentation for it. 
+The input bus width can be 8 or 16 bit.
 
-Currently, the driver only support the parallel interface. And has been
-tested with a BT1120 signal which generating from FPGA. The following
-fetures are not support with this patchset:
-  - ISP 
-  - MIPI-CSI2
-  - Master clock for camera sensor
-  - Power regulator for the front end IC
+On a general note: I always assumed DT bindings should describe the
+hardware capabilities. In this case the hardware supports 8 or 16 bits
+as input width, but the driver only cares about the 8 bits case. Which
+one should I describe here?
 
-Changes in v6:
-  * Add Rob Herring's review tag.
-  * Fix a NULL pointer dereference by picking Maxime Ripard's patch.
-  * Add Maxime Ripard's test tag.
+I will fix all of yours and Geert's remarks in V3.
 
-Changes in v5:
-  * Using the new SPDX tags.
-  * Fix MODULE_LICENSE.
-  * Add many default cases and warning messages.
-  * Detail the parallel bus properties
-  * Fix some spelling and syntax mistakes.
+Thanks
+   j
+>
+> > +Required properties:
+> > +- compatible
+> > +	Must be one of:
+> > +	- "renesas,ceu"
+> > +	- "renesas,r7s72100-ceu"
+>
+> This is unclear, as Geert pointed out renesas,ceu sounds like a fallback. I
+> think this could be clarified if you explained how you plan to support other
+> SoCs (in particular the SH Mobile series, when/if it will receive DT support).
 
-Changes in v4:
-  * Deal with the CSI 'INNER QUEUE'.
-    CSI will lookup the next dma buffer for next frame before the
-    the current frame done IRQ triggered. This is not documented
-    but reported by Ondřej Jirman.
-    The BSP code has workaround for this too. It skip to mark the
-    first buffer as frame done for VB2 and pass the second buffer
-    to CSI in the first frame done ISR call. Then in second frame
-    done ISR call, it mark the first buffer as frame done for VB2
-    and pass the third buffer to CSI. And so on. The bad thing is
-    that the first buffer will be written twice and the first frame
-    is dropped even the queued buffer is sufficient.
-    So, I make some improvement here. Pass the next buffer to CSI
-    just follow starting the CSI. In this case, the first frame
-    will be stored in first buffer, second frame in second buffer.
-    This mothed is used to avoid dropping the first frame, it
-    would also drop frame when lacking of queued buffer.
-  * Fix: using a wrong mbus_code when getting the supported formats
-  * Change all fourcc to pixformat
-  * Change some function names
 
-Changes in v3:
-  * Get rid of struct sun6i_csi_ops
-  * Move sun6i-csi to new directory drivers/media/platform/sunxi
-  * Merge sun6i_csi.c and sun6i_csi_v3s.c into sun6i_csi.c
-  * Use generic fwnode endpoints parser
-  * Only support a single subdev to make things simple
-  * Many complaintion fix
-
-Changes in v2: 
-  * Change sunxi-csi to sun6i-csi
-  * Rebase to media_tree master branch 
-
-Following is the 'v4l2-compliance -s -f' output, I have test this
-with both interlaced and progressive signal:
-
-# ./v4l2-compliance -s -f
-v4l2-compliance SHA   : 6049ea8bd64f9d78ef87ef0c2b3dc9b5de1ca4a1
-
-Driver Info:
-        Driver name   : sun6i-video
-        Card type     : sun6i-csi
-        Bus info      : platform:csi
-        Driver version: 4.15.0
-        Capabilities  : 0x84200001
-                Video Capture
-                Streaming
-                Extended Pix Format
-                Device Capabilities
-        Device Caps   : 0x04200001
-                Video Capture
-                Streaming
-                Extended Pix Format
-
-Compliance test for device /dev/video0 (not using libv4l2):
-
-Required ioctls:
-        test VIDIOC_QUERYCAP: OK
-
-Allow for multiple opens:
-        test second video open: OK
-        test VIDIOC_QUERYCAP: OK
-        test VIDIOC_G/S_PRIORITY: OK
-        test for unlimited opens: OK
-
-Debug ioctls:
-        test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
-        test VIDIOC_LOG_STATUS: OK (Not Supported)
-
-Input ioctls:
-        test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
-        test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-        test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
-        test VIDIOC_ENUMAUDIO: OK (Not Supported)
-        test VIDIOC_G/S/ENUMINPUT: OK
-        test VIDIOC_G/S_AUDIO: OK (Not Supported)
-        Inputs: 1 Audio Inputs: 0 Tuners: 0
-
-Output ioctls:
-        test VIDIOC_G/S_MODULATOR: OK (Not Supported)
-        test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-        test VIDIOC_ENUMAUDOUT: OK (Not Supported)
-        test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
-        test VIDIOC_G/S_AUDOUT: OK (Not Supported)
-        Outputs: 0 Audio Outputs: 0 Modulators: 0
-
-Input/Output configuration ioctls:
-        test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
-        test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
-        test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
-        test VIDIOC_G/S_EDID: OK (Not Supported)
-
-Test input 0:
-
-        Control ioctls:
-                test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK (Not Supported)
-                test VIDIOC_QUERYCTRL: OK (Not Supported)
-                test VIDIOC_G/S_CTRL: OK (Not Supported)
-                test VIDIOC_G/S/TRY_EXT_CTRLS: OK (Not Supported)
-                test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK (Not Supported)
-                test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
-                Standard Controls: 0 Private Controls: 0
-
-        Format ioctls:
-                test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
-                test VIDIOC_G/S_PARM: OK (Not Supported)
-                test VIDIOC_G_FBUF: OK (Not Supported)
-                test VIDIOC_G_FMT: OK
-                test VIDIOC_TRY_FMT: OK
-                test VIDIOC_S_FMT: OK
-                test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
-                test Cropping: OK (Not Supported)
-                test Composing: OK (Not Supported)
-                test Scaling: OK (Not Supported)
-
-        Codec ioctls:
-                test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
-                test VIDIOC_G_ENC_INDEX: OK (Not Supported)
-                test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
-
-        Buffer ioctls:
-                test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
-                test VIDIOC_EXPBUF: OK
-
-Test input 0:
-
-Streaming ioctls:
-        test read/write: OK (Not Supported)
-        test MMAP: OK                                     
-        test USERPTR: OK (Not Supported)
-        test DMABUF: Cannot test, specify --expbuf-device
-
-Stream using all formats:
-        test MMAP for Format HM12, Frame Size 1280x720:
-                Stride 1920, Field None: OK                                 
-        test MMAP for Format NV12, Frame Size 1280x720:
-                Stride 1920, Field None: OK                                 
-        test MMAP for Format NV21, Frame Size 1280x720:
-                Stride 1920, Field None: OK                                 
-        test MMAP for Format YU12, Frame Size 1280x720:
-                Stride 1920, Field None: OK                                 
-        test MMAP for Format YV12, Frame Size 1280x720:
-                Stride 1920, Field None: OK                                 
-        test MMAP for Format NV16, Frame Size 1280x720:
-                Stride 2560, Field None: OK                                 
-        test MMAP for Format NV61, Frame Size 1280x720:
-                Stride 2560, Field None: OK                                 
-        test MMAP for Format 422P, Frame Size 1280x720:
-                Stride 2560, Field None: OK                                 
-
-Total: 54, Succeeded: 54, Failed: 0, Warnings: 0
-
-Yong Deng (2):
-  dt-bindings: media: Add Allwinner V3s Camera Sensor Interface (CSI)
-  media: V3s: Add support for Allwinner CSI.
-
- .../devicetree/bindings/media/sun6i-csi.txt        |  59 ++
- MAINTAINERS                                        |   8 +
- drivers/media/platform/Kconfig                     |   1 +
- drivers/media/platform/Makefile                    |   2 +
- drivers/media/platform/sunxi/sun6i-csi/Kconfig     |   9 +
- drivers/media/platform/sunxi/sun6i-csi/Makefile    |   3 +
- drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.c | 908 +++++++++++++++++++++
- drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.h | 143 ++++
- .../media/platform/sunxi/sun6i-csi/sun6i_csi_reg.h | 196 +++++
- .../media/platform/sunxi/sun6i-csi/sun6i_video.c   | 753 +++++++++++++++++
- .../media/platform/sunxi/sun6i-csi/sun6i_video.h   |  53 ++
- 11 files changed, 2135 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/sun6i-csi.txt
- create mode 100644 drivers/media/platform/sunxi/sun6i-csi/Kconfig
- create mode 100644 drivers/media/platform/sunxi/sun6i-csi/Makefile
- create mode 100644 drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.c
- create mode 100644 drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.h
- create mode 100644 drivers/media/platform/sunxi/sun6i-csi/sun6i_csi_reg.h
- create mode 100644 drivers/media/platform/sunxi/sun6i-csi/sun6i_video.c
- create mode 100644 drivers/media/platform/sunxi/sun6i-csi/sun6i_video.h
-
--- 
-1.8.3.1
+>
+> > +- reg
+> > +	Physical address base and size.
+>
+> The standard practice, if I'm not mistaken, is to document properties with the
+> description starting on the same line as the property name.
+>
+> - reg: Physical address base and size.
+>
+> And nitpicking again, I'd write "register" instead of "physical" to clarify
+> what the properties contains (even if its name should make it clear).
+>
+> > +- interrupts
+> > +	The interrupt specifier.
+> > +- pinctrl-names, pinctrl-0
+> > +	phandle of pin controller sub-node configuring pins for CEU operations.
+>
+> pinctrl-names isn't a phandle. If you want to document those properties (not
+> all DT bindings do, I'm not sure what is best) you should document them both,
+> possibly on two separate lines. There are plenty of examples in the upstream
+> DT bindings.
+>
+> > +- remote-endpoint
+> > +	phandle to an 'endpoint' subnode of a remote device node.
+>
+> As Geert pointed out this isn't a top-level property. I wouldn't document it
+> as such, but instead reference Documentation/devicetree/bindings/media/video-
+> interfaces.txt (see Documentation/devicetree/bindings/display/renesas,du.txt
+> or Documentation/devicetree/bindings/media/renesas,drif.txt for examples).
+>
+> > +CEU supports a single parallel input and should contain a single 'port'
+>
+> s/CEU/The CEU/
+>
+> > subnode
+> > +with a single 'endpoint'. Optional endpoint properties applicable to
+> > parallel
+> > +input bus described in "video-interfaces.txt" supported by this driver are:
+> > +
+> > +- hsync-active
+> > +	active state of the HSYNC signal, 0/1 for LOW/HIGH respectively.
+> > +- vsync-active
+> > +	active state of the VSYNC signal, 0/1 for LOW/HIGH respectively.
+> > +
+> > +Example:
+> > +
+> > +The example describes the connection between the Capture Engine Unit and an
+> > +OV7670 image sensor sitting on bus i2c1.
+>
+> Maybe s/sitting on/connected to/ ?
+>
+> > +ceu: ceu@e8210000 {
+> > +	reg = <0xe8210000 0x209c>;
+> > +	compatible = "renesas,ceu";
+> > +	interrupts = <GIC_SPI 332 IRQ_TYPE_LEVEL_HIGH>;
+> > +
+> > +	pinctrl-names = "default";
+> > +	pinctrl-0 = <&vio_pins>;
+> > +
+> > +	status = "okay";
+> > +
+> > +	port {
+> > +		ceu_in: endpoint {
+> > +			remote-endpoint = <&ov7670_out>;
+> > +
+> > +			hsync-active = <1>;
+> > +			vsync-active = <0>;
+> > +		};
+> > +	};
+> > +};
+> > +
+> > +i2c1: i2c@fcfee400 {
+> > +	pinctrl-names = "default";
+> > +	pinctrl-0 = <&i2c1_pins>;
+> > +
+> > +	status = "okay";
+> > +
+> > +	clock-frequency = <100000>;
+> > +
+> > +	ov7670: camera@21 {
+> > +		compatible = "ovti,ov7670";
+> > +		reg = <0x21>;
+> > +
+> > +		pinctrl-names = "default";
+> > +		pinctrl-0 = <&vio_pins>;
+> > +
+> > +		reset-gpios = <&port3 11 GPIO_ACTIVE_LOW>;
+> > +		powerdown-gpios = <&port3 12 GPIO_ACTIVE_HIGH>;
+> > +
+> > +		port {
+> > +			ov7670_out: endpoint {
+> > +				remote-endpoint = <&ceu_in>;
+> > +
+> > +				hsync-active = <1>;
+> > +				vsync-active = <0>;
+> > +			};
+> > +		};
+> > +	};
+> > +};
+>
+> --
+> Regards,
+>
+> Laurent Pinchart
+>
