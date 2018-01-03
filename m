@@ -1,115 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:33181 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S933147AbeAKWK2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 11 Jan 2018 17:10:28 -0500
-Subject: Re: [PATCH] media: v4l2-core: v4l2-mc: Add SPDX license identifier
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: mchehab@kernel.org, shuah@kernel.org, sakari.ailus@linux.intel.com,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Shuah Khan <shuahkh@osg.samsung.com>
-References: <20180110163540.8396-1-shuahkh@osg.samsung.com>
- <1730571.xFN9zJKHcq@avalon>
- <7202d0d2-94af-69d1-94d8-ec905c101a5b@osg.samsung.com>
- <2155290.Rp4ZkgTADR@avalon>
-From: Shuah Khan <shuahkh@osg.samsung.com>
-Message-ID: <559b9a21-7b80-e4ac-ef5a-1073e6b84d80@osg.samsung.com>
-Date: Thu, 11 Jan 2018 15:10:25 -0700
-MIME-Version: 1.0
-In-Reply-To: <2155290.Rp4ZkgTADR@avalon>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
+Received: from metis.ext.4.pengutronix.de ([92.198.50.35]:33127 "EHLO
+        metis.ext.4.pengutronix.de" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752484AbeACPrD (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 3 Jan 2018 10:47:03 -0500
+Message-ID: <1514994414.5019.9.camel@pengutronix.de>
+Subject: Re: [PATCH v2 2/2] media: coda: Add i.MX51 (CodaHx4) support
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: kbuild test robot <lkp@intel.com>
+Cc: kbuild-all@01.org, linux-media@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Fabio Estevam <fabio.estevam@nxp.com>,
+        Chris Healy <Chris.Healy@zii.aero>, devicetree@vger.kernel.org,
+        kernel@pengutronix.de
+Date: Wed, 03 Jan 2018 16:46:54 +0100
+In-Reply-To: <201712210511.bpsOELIY%fengguang.wu@intel.com>
+References: <20171218101629.31395-2-p.zabel@pengutronix.de>
+         <201712210511.bpsOELIY%fengguang.wu@intel.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/11/2018 02:33 PM, Laurent Pinchart wrote:
-> Hi Shuah,
+On Thu, 2017-12-21 at 05:52 +0800, kbuild test robot wrote:
+> Hi Philipp,
 > 
-> On Thursday, 11 January 2018 22:44:08 EET Shuah Khan wrote:
->> On 01/11/2018 11:42 AM, Laurent Pinchart wrote:
->>> On Thursday, 11 January 2018 17:45:15 EET Shuah Khan wrote:
->>>> On 01/11/2018 05:55 AM, Laurent Pinchart wrote:
->>>>> On Wednesday, 10 January 2018 18:35:36 EET Shuah Khan wrote:
->>>>>> Replace GPL license statement with SPDX GPL-2.0 license identifier.
->>>>>>
->>>>>> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
->>>>>> ---
->>>>>>
->>>>>>  drivers/media/v4l2-core/v4l2-mc.c | 11 +----------
->>>>>>  1 file changed, 1 insertion(+), 10 deletions(-)
->>>>>>
->>>>>> diff --git a/drivers/media/v4l2-core/v4l2-mc.c
->>>>>> b/drivers/media/v4l2-core/v4l2-mc.c index 303980b71aae..1297132acd4e
->>>>>> 100644
->>>>>> --- a/drivers/media/v4l2-core/v4l2-mc.c
->>>>>> +++ b/drivers/media/v4l2-core/v4l2-mc.c
->>>>>> @@ -1,3 +1,4 @@
->>>>>> +/* SPDX-License-Identifier: GPL-2.0 */
->>>>>
->>>>> The header doesn't match the existing license.
->>>>
->>>> When I added the file, I must have cut and pasted the license statement
->>>> from another file. More on this below the deleted license lines.
->>>>
->>>>> Furthermore, unless I'm mistaken, the standard comment style for SPDX
->>>>> headers in the kernel is //, not /* ... */
->>>>
->>>> Looks like we have 3 conventions for SPDX comment style.
->>>> /* ... */ for headers and # ... for shell scripts and
->>>> // for .c files.
->>>>
->>>> I can update it it and send v2 provided we think the change is inline
->>>> with the original license.
->>>
->>> Personally I prefer the /* ... */ comment style, but I noticed that Greg
->>> used // in his large patch the adds SPDX license headers, so I think we
->>> should follow the established practice. I'll let you investigate to find
->>> what is preferred :)
->>
->> Yeah /*...*/ is my preferred as well. Hence  the autopilot change I made
->> in the first place. I redid a couple of patches already to follow the
->> // convention and I can do the same here.
->>
->>>>>>  /*
->>>>>>  
->>>>>>   * Media Controller ancillary functions
->>>>>>   *
->>>>>>
->>>>>> @@ -5,16 +6,6 @@
->>>>>>
->>>>>>   * Copyright (C) 2016 Shuah Khan <shuahkh@osg.samsung.com>
->>>>>>   * Copyright (C) 2006-2010 Nokia Corporation
->>>>>>   * Copyright (c) 2016 Intel Corporation.
->>>>>>
->>>>>> - *
->>>>>> - *  This program is free software; you can redistribute it and/or
->>>>>> modify
->>>>>> - *  it under the terms of the GNU General Public License as published
->>>>>> by
->>>>>> - *  the Free Software Foundation; either version 2 of the License, or
->>>>>> - *  (at your option) any later version.
->>>>
->>>> Are you concerned about the "or (at your option) any later version." part
->>>> that it doesn't match?
->>>
->>> Yes, that's my concern. I'm personally fine with GPL-2.0-only, but you'll
->>> have a hard time contacting all the other copyright holders if you want
->>> to relicense this. Good luck getting hold of the appropriate legal
->>> department at Nokia :-)
->>
->> Yeah. I don't think it is beneficial to continue this effort. I am going to
->> not pursue the patch at this file. Thanks for the review.
+> I love your patch! Perhaps something to improve:
 > 
-> How about just using
+> [auto build test WARNING on linuxtv-media/master]
+> [also build test WARNING on v4.15-rc4 next-20171220]
+> [if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
 > 
-> // SPDX-License-Identifier: GPL-2.0-or-later
+> url:    https://github.com/0day-ci/linux/commits/Philipp-Zabel/media-dt-bindings-coda-Add-compatible-for-CodaHx4-on-i-MX51/20171221-050217
+> base:   git://linuxtv.org/media_tree.git master
+> config: x86_64-allmodconfig (attached as .config)
+> compiler: gcc-7 (Debian 7.2.0-12) 7.2.1 20171025
+> reproduce:
+>         # save the attached .config to linux build tree
+>         make ARCH=x86_64 
 > 
-> ? That is equivalent to the current license text.
-> 
+> Note: it may well be a FALSE warning.
 
-Hmm. Yes GPL-2.0-or-later would maintain the intent and doesn't change
-the license. I can send v2 with that and see anybody objects to it.
+I think it is.
 
-thanks,
--- Shuah
+>  FWIW you are at least aware of it now.
+> http://gcc.gnu.org/wiki/Better_Uninitialized_Warnings
+> 
+> All warnings (new ones prefixed by >>):
+> 
+>    drivers/media/platform/coda/coda-bit.c: In function 'coda_setup_iram':
+> > > drivers/media/platform/coda/coda-bit.c:648:28: warning: 'me_bits' may be used uninitialized in this function [-Wmaybe-uninitialized]
+> 
+>        iram_info->axi_sram_use |= me_bits;
+>                                ^~
+> 
+> vim +/me_bits +648 drivers/media/platform/coda/coda-bit.c
+> 
+>    588	
+>    589	static void coda_setup_iram(struct coda_ctx *ctx)
+>    590	{
+>    591		struct coda_iram_info *iram_info = &ctx->iram_info;
+>    592		struct coda_dev *dev = ctx->dev;
+>    593		int w64, w128;
+>    594		int mb_width;
+>    595		int dbk_bits;
+>    596		int bit_bits;
+>    597		int ip_bits;
+>    598		int me_bits;
+>    599	
+>    600		memset(iram_info, 0, sizeof(*iram_info));
+>    601		iram_info->next_paddr = dev->iram.paddr;
+>    602		iram_info->remaining = dev->iram.size;
+>    603	
+>    604		if (!dev->iram.vaddr)
+>    605			return;
+>    606	
+>    607		switch (dev->devtype->product) {
+>    608		case CODA_HX4:
+>    609			dbk_bits = CODA7_USE_HOST_DBK_ENABLE;
+>    610			bit_bits = CODA7_USE_HOST_BIT_ENABLE;
+>    611			ip_bits = CODA7_USE_HOST_IP_ENABLE;
+>    612			me_bits = CODA7_USE_HOST_ME_ENABLE;
+>    613			break;
+>    614		case CODA_7541:
+>    615			dbk_bits = CODA7_USE_HOST_DBK_ENABLE | CODA7_USE_DBK_ENABLE;
+>    616			bit_bits = CODA7_USE_HOST_BIT_ENABLE | CODA7_USE_BIT_ENABLE;
+>    617			ip_bits = CODA7_USE_HOST_IP_ENABLE | CODA7_USE_IP_ENABLE;
+>    618			me_bits = CODA7_USE_HOST_ME_ENABLE | CODA7_USE_ME_ENABLE;
+>    619			break;
+>    620		case CODA_960:
+>    621			dbk_bits = CODA9_USE_HOST_DBK_ENABLE | CODA9_USE_DBK_ENABLE;
+>    622			bit_bits = CODA9_USE_HOST_BIT_ENABLE | CODA7_USE_BIT_ENABLE;
+>    623			ip_bits = CODA9_USE_HOST_IP_ENABLE | CODA7_USE_IP_ENABLE;
+
+This is the only path that continues with me_bits uninitialized.
+In this case ...
+
+>    624			break;
+>    625		default: /* CODA_DX6 */
+>    626			return;
+>    627		}
+>    628	
+>    629		if (ctx->inst_type == CODA_INST_ENCODER) {
+>    630			struct coda_q_data *q_data_src;
+>    631	
+>    632			q_data_src = get_q_data(ctx, V4L2_BUF_TYPE_VIDEO_OUTPUT);
+>    633			mb_width = DIV_ROUND_UP(q_data_src->width, 16);
+>    634			w128 = mb_width * 128;
+>    635			w64 = mb_width * 64;
+>    636	
+>    637			/* Prioritize in case IRAM is too small for everything */
+>    638			if (dev->devtype->product == CODA_HX4 ||
+>    639			    dev->devtype->product == CODA_7541) {
+>    640				iram_info->search_ram_size = round_up(mb_width * 16 *
+>    641								      36 + 2048, 1024);
+>    642				iram_info->search_ram_paddr = coda_iram_alloc(iram_info,
+>    643							iram_info->search_ram_size);
+>    644				if (!iram_info->search_ram_paddr) {
+>    645					pr_err("IRAM is smaller than the search ram size\n");
+>    646					goto out;
+>    647				}
+>  > 648				iram_info->axi_sram_use |= me_bits;
+
+... dev->devtype->product == CODA_960, and this use of me_bits is never
+reached.
+
+regards
+Philipp
