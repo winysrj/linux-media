@@ -1,134 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:33542 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750813AbeA2EsM (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sun, 28 Jan 2018 23:48:12 -0500
-Message-ID: <45f428a68ef25cf0c1a318ad733db992@smtp-cloud7.xs4all.net>
-Date: Mon, 29 Jan 2018 05:48:10 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+Received: from relay2-d.mail.gandi.net ([217.70.183.194]:42483 "EHLO
+        relay2-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750831AbeACRNz (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 3 Jan 2018 12:13:55 -0500
+Date: Wed, 3 Jan 2018 18:13:47 +0100
+From: jacopo mondi <jacopo@jmondi.org>
+To: Fabio Estevam <festevam@gmail.com>
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Magnus Damm <magnus.damm@gmail.com>, geert@glider.be,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        linux-renesas-soc@vger.kernel.org,
+        linux-media <linux-media@vger.kernel.org>,
+        linux-sh@vger.kernel.org,
+        "open list:OPEN FIRMWARE AND FLATTENED DEVICE TREE BINDINGS"
+        <devicetree@vger.kernel.org>,
+        linux-kernel <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH v2 9/9] media: i2c: tw9910: Remove soc_camera dependencies
+Message-ID: <20180103171347.GF9493@w540>
+References: <1514469681-15602-1-git-send-email-jacopo+renesas@jmondi.org>
+ <1514469681-15602-10-git-send-email-jacopo+renesas@jmondi.org>
+ <CAOMZO5CjrXfzum7JgimGqvnM7kjMyZZdtpEhvYwO-DLnig=uMQ@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <CAOMZO5CjrXfzum7JgimGqvnM7kjMyZZdtpEhvYwO-DLnig=uMQ@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Fabio,
 
-Results of the daily build of media_tree:
+On Wed, Jan 03, 2018 at 02:41:20PM -0200, Fabio Estevam wrote:
+> Hi Jacopo,
+>
+> On Thu, Dec 28, 2017 at 12:01 PM, Jacopo Mondi
+> <jacopo+renesas@jmondi.org> wrote:
+>
+> > +       if (priv->rstb_gpio) {
+> > +               gpiod_set_value(priv->rstb_gpio, 0);
+> > +               usleep_range(500, 1000);
+> > +               gpiod_set_value(priv->rstb_gpio, 1);
+> > +               usleep_range(500, 1000);
+>
+> This seems to be inverted.
+>
+> Consider you have an active low GPIO reset.
+>
+> In order to reset it:
+>
+> Put the GPIO to logic level 0
+> Wait some time
+> Put the GPIO to logic level 1
+>
+> gpiod_set_value(priv->rstb_gpio, 1), means the GPIO in the active
+> state (0 in this example).
+>
+> , so this should be:
+>
+> gpiod_set_value(priv->rstb_gpio, 1);
+> usleep_range(500, 1000);
+> gpiod_set_value(priv->rstb_gpio, 0);
 
-date:			Mon Jan 29 05:00:16 CET 2018
-media-tree git hash:	4852fdca8818972d0ea5b5ce7114da628f9954a4
-media_build git hash:	d17383327f00d45e6c07161876fb4f3d9d9358e1
-v4l-utils git hash:	c2cc9e17b1411865d40a0e7d3ab027204fc0cf19
-gcc version:		i686-linux-gcc (GCC) 7.1.0
-sparse version:		v0.5.0-3911-g6f737e1f
-smatch version:		v0.5.0-3911-g6f737e1f
-host hardware:		x86_64
-host os:		4.14.0-364
+That would be true if I would have declared the GPIO to be ACTIVE_LOW.
+See patch [5/9] in this series and search for "rstb". The GPIO (which
+is shared between two devices) is said to be active high...
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: ERRORS
-linux-3.12.67-i686: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: ERRORS
-linux-3.15.2-i686: ERRORS
-linux-3.16.7-i686: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.18.7-i686: ERRORS
-linux-3.19-i686: ERRORS
-linux-4.0.9-i686: ERRORS
-linux-4.1.33-i686: ERRORS
-linux-4.2.8-i686: ERRORS
-linux-4.3.6-i686: ERRORS
-linux-4.4.22-i686: ERRORS
-linux-4.5.7-i686: ERRORS
-linux-4.6.7-i686: ERRORS
-linux-4.7.5-i686: ERRORS
-linux-4.8-i686: ERRORS
-linux-4.9.26-i686: ERRORS
-linux-4.10.14-i686: WARNINGS
-linux-4.11-i686: WARNINGS
-linux-4.12.1-i686: WARNINGS
-linux-4.13-i686: WARNINGS
-linux-4.14-i686: WARNINGS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.67-x86_64: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-x86_64: ERRORS
-linux-3.15.2-x86_64: ERRORS
-linux-3.16.7-x86_64: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.7-x86_64: ERRORS
-linux-3.19-x86_64: ERRORS
-linux-4.0.9-x86_64: ERRORS
-linux-4.1.33-x86_64: ERRORS
-linux-4.2.8-x86_64: ERRORS
-linux-4.3.6-x86_64: ERRORS
-linux-4.4.22-x86_64: ERRORS
-linux-4.5.7-x86_64: ERRORS
-linux-4.6.7-x86_64: ERRORS
-linux-4.7.5-x86_64: ERRORS
-linux-4.8-x86_64: ERRORS
-linux-4.9.26-x86_64: ERRORS
-linux-4.10.14-x86_64: WARNINGS
-linux-4.11-x86_64: WARNINGS
-linux-4.12.1-x86_64: WARNINGS
-linux-4.13-x86_64: WARNINGS
-linux-4.14-x86_64: WARNINGS
-apps: WARNINGS
-spec-git: OK
-smatch: OK
+Are you maybe suggesting I should declare it ACTIVE_LOW in board setup
+code and invert the set_value() order in the driver as you proposed?
+Don't you think it would be more natural for the driver to follow the
+current sequence, as the reset GPIO is effectively active low (so
+setting it to 0 put the video decoder in reset state and setting it to
+1 wakes the video decoder up)?
 
-Detailed results are available here:
+I can maybe agree with you for the PDN GPIO instead. That's said to be
+active high, so setting it to 1 disables the video decoder, and yes,
+it feels unnatural in the driver's power up routines to set PDN GPIO
+to 0 and set it to 1 when putting the device to sleep...
 
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+Thanks
+   j
