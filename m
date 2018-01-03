@@ -1,164 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:60373 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751422AbeACPte (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 3 Jan 2018 10:49:34 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: jacopo mondi <jacopo@jmondi.org>
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>, magnus.damm@gmail.com,
-        geert@glider.be, mchehab@kernel.org, hverkuil@xs4all.nl,
-        robh+dt@kernel.org, mark.rutland@arm.com,
-        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-sh@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v2 7/9] media: i2c: ov772x: Remove soc_camera dependencies
-Date: Wed, 03 Jan 2018 17:49:55 +0200
-Message-ID: <2597640.1dqQloDucb@avalon>
-In-Reply-To: <20180103154458.GD9493@w540>
-References: <1514469681-15602-1-git-send-email-jacopo+renesas@jmondi.org> <5703631.yJ335LfYLI@avalon> <20180103154458.GD9493@w540>
+Received: from mail-oi0-f67.google.com ([209.85.218.67]:46593 "EHLO
+        mail-oi0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751014AbeACXC7 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 3 Jan 2018 18:02:59 -0500
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <20180103082310.59d7e52f@vento.lan>
+References: <20180102095154.3424890-1-arnd@arndb.de> <20180103082310.59d7e52f@vento.lan>
+From: Arnd Bergmann <arnd@arndb.de>
+Date: Thu, 4 Jan 2018 00:02:58 +0100
+Message-ID: <CAK8P3a0Vv7Pr4eyDgbFH8zYrdN0BqEgz76bQecGCpoq+NxOZQw@mail.gmail.com>
+Subject: Re: [PATCH] media: don't drop front-end reference count for ->detach
+To: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Max Kellermann <max.kellermann@gmail.com>,
+        Wolfgang Rohdewald <wolfgang@rohdewald.de>,
+        Shuah Khan <shuah@kernel.org>,
+        Jaedon Shin <jaedon.shin@gmail.com>,
+        Colin Ian King <colin.king@canonical.com>,
+        Satendra Singh Thakur <satendra.t@samsung.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sean Young <sean@mess.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jacopo,
+On Wed, Jan 3, 2018 at 11:23 AM, Mauro Carvalho Chehab
+<mchehab@kernel.org> wrote:
+> Em Tue,  2 Jan 2018 10:48:54 +0100
+> Arnd Bergmann <arnd@arndb.de> escreveu:
 
-On Wednesday, 3 January 2018 17:44:58 EET jacopo mondi wrote:
-> On Tue, Jan 02, 2018 at 05:44:03PM +0200, Laurent Pinchart wrote:
-> > On Thursday, 28 December 2017 16:01:19 EET Jacopo Mondi wrote:
-> >> Remove soc_camera framework dependencies from ov772x sensor driver.
-> >> - Handle clock and gpios
-> >> - Register async subdevice
-> >> - Remove soc_camera specific g/s_mbus_config operations
-> >> - Change image format colorspace to SRGB
-> > 
-> > Could you explain the rationale for this ?
-> 
-> Hans suggested this, and I assume it is beacause COLORSPACE_JPEG ==
-> (COLORSPACE_SRGB + assumptions on quantization ranges) which does not
-> apply to the sensor.
+>> @@ -2965,7 +2968,6 @@ void dvb_frontend_detach(struct dvb_frontend* fe)
+>>       dvb_frontend_invoke_release(fe, fe->ops.release_sec);
+>>       dvb_frontend_invoke_release(fe, fe->ops.tuner_ops.release);
+>>       dvb_frontend_invoke_release(fe, fe->ops.analog_ops.release);
+>> -     dvb_frontend_invoke_release(fe, fe->ops.detach);
+>>       dvb_frontend_put(fe);
+>
+> Hmm... stb0899 is not the only driver using detach:
+>
+> drivers/media/dvb-frontends/stb0899_drv.c:      .detach                         = stb0899_detach,
+> drivers/media/pci/saa7146/hexium_gemini.c:      .detach = hexium_detach,
+> drivers/media/pci/saa7146/hexium_orion.c:       .detach = hexium_detach,
+> drivers/media/pci/saa7146/mxb.c:        .detach         = mxb_detach,
+> drivers/media/pci/ttpci/av7110.c:       .detach         = av7110_detach,
+> drivers/media/pci/ttpci/budget-av.c:    .detach = budget_av_detach,
+> drivers/media/pci/ttpci/budget-ci.c:    .detach = budget_ci_detach,
+> drivers/media/pci/ttpci/budget-patch.c: .detach         = budget_patch_detach,
+> drivers/media/pci/ttpci/budget.c:       .detach         = budget_detach,
 
-Could you capture it in the commit message ? :-)
+I'm pretty sure I checked this before and found stb0899_detach to be the
+only implementation of dvb_frontend_ops:detach.
 
-> >> - Remove sizes crop from get_selection as driver can't scale
-> >> - Add kernel doc to driver interface header file
-> >> - Adjust build system
-> > 
-> > That's a lot for a single patch. On the other hand I don't think splitting
-> > this in 7 patches would be a good idea either. If you can find a better
-> > granularity, go for it, otherwise keep it as-is. Same comment for the
-> > tw9910 driver.
-> 
-> I know.
-> I would have kept changes down to the minimum required to remove
-> soc_camera dependencies, but I received comments on other parts of the
-> driver not directly soc_camera specific. I understand this, since I'm
-> touching the driver it is maybe worth changing some parts of it that
-> needs updates..
-> 
-> >> This commit does not remove the original soc_camera based driver as long
-> >> as other platforms depends on soc_camera-based CEU driver.
-> >> 
-> >> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
-> >> ---
-> >> 
-> >>  drivers/media/i2c/Kconfig  |  11 +++
-> >>  drivers/media/i2c/Makefile |   1 +
-> >>  drivers/media/i2c/ov772x.c | 169 +++++++++++++++++++++++++-------------
-> >>  include/media/i2c/ov772x.h |   8 ++-
-> >>  4 files changed, 130 insertions(+), 59 deletions(-)
-> >> 
-> >> diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
-> >> index cb5d7ff..a61d7f4 100644
-> >> --- a/drivers/media/i2c/Kconfig
-> >> +++ b/drivers/media/i2c/Kconfig
-> > 
-> > [snip]
-> > 
-> >> diff --git a/drivers/media/i2c/ov772x.c b/drivers/media/i2c/ov772x.c
-> >> index 8063835..f7b293f 100644
-> >> --- a/drivers/media/i2c/ov772x.c
-> >> +++ b/drivers/media/i2c/ov772x.c
-> >> @@ -1,6 +1,9 @@
-> > 
-> > [snip]
-> > 
-> >> @@ -25,8 +26,8 @@
-> >> 
-> >>  #include <linux/videodev2.h>
-> >>  
-> >>  #include <media/i2c/ov772x.h>
-> > > 
-> > > -#include <media/soc_camera.h>
-> > > -#include <media/v4l2-clk.h>
-> > > +
-> > > +#include <media/v4l2-device.h>
-> > > 
-> > >  #include <media/v4l2-ctrls.h>
-> > 
-> > I think C comes before D.
-> > 
-> > >  #include <media/v4l2-subdev.h>
-> > >  #include <media/v4l2-image-sizes.h>
-> > 
-> > [snip]
-> > 
-> >> @@ -650,13 +653,63 @@ static int ov772x_s_register(struct v4l2_subdev
-> >> *sd,
-> >>  }
-> >>  #endif
-> >> 
-> >> +static int ov772x_power_on(struct ov772x_priv *priv)
-> >> +{
-> >> +	struct i2c_client *client = v4l2_get_subdevdata(&priv->subdev);
-> >> +	int ret;
-> >> +
-> >> +	if (priv->info->xclk_rate)
-> >> +		ret = clk_set_rate(priv->clk, priv->info->xclk_rate);
-> > 
-> > The return value is then ignored.
-> > 
-> > I wonder whether the clk_set_rate() call shouldn't be kept in board code
-> > as it's a board-specific frequency. DT platforms would use the
-> > assigned-clock-rates property that doesn't require any explicit handling
-> > in the driver.
-> 
-> DT based platforms won't have any info->xlkc_rate, so they should be
-> fine. I wonder how could I set rate in board code, as I'm just
-> registering an alias for the clock there...
+The other eight you quoted are all setting the member in struct
+saa7146_extension, not struct dvb_frontend_ops, so they are
+not called using the same method.
 
-Exactly as done by the current code, get the clock and set the rate :) You can 
-do that at initialization time, when you register the alias. Don't forget to 
-put the clock too.
+> Unfortunately, I don't have any device that would be affected by
+> this change, but it sounds risky to not call this code anymore:
+>
+>         #ifdef CONFIG_MEDIA_ATTACH
+>                 dvb_detach(release);
+>         #endif
+>
+> for .detach ops, as it has the potential of preventing unbind on
+> those drivers.
 
-> >> +	if (priv->clk) {
-> >> +		ret = clk_prepare_enable(priv->clk);
-> >> +		if (ret)
-> >> +			return ret;
-> >> +	}
-> >> +
-> >> +	if (priv->pwdn_gpio) {
-> >> +		gpiod_set_value(priv->pwdn_gpio, 1);
-> >> +		usleep_range(500, 1000);
-> >> +	}
-> >> +
-> >> +	/* Reset GPIOs are shared in some platforms. */
-> > 
-> > I'd make this a FIXME comment as this is really a hack.
-> > 
-> > 	/*
-> > 	 * FIXME: The reset signal is connected to a shared GPIO on some
-> > 	 * platforms (namely the SuperH Migo-R). Until a framework becomes
-> > 	 * available to handle this cleanly, request the GPIO temporarily
-> > 	 * only to avoid conflicts.
-> > 	 */
-> > 
-> > Same for the tw9910 driver.
-> 
-> Ack.
+The problem that Wolfgang reported originally was specifically that
+this dvb_detach() call was one more than there should be,
+leading to a negative reference count. As far as I can tell, this
+is true for every user of the 'detach' callback.
 
--- 
-Regards,
+>> diff --git a/drivers/media/usb/dvb-usb/pctv452e.c b/drivers/media/usb/dvb-usb/pctv452e.c
+>> index 0af74383083d..ae793dac4964 100644
+>> --- a/drivers/media/usb/dvb-usb/pctv452e.c
+>> +++ b/drivers/media/usb/dvb-usb/pctv452e.c
+>> @@ -913,14 +913,6 @@ static int pctv452e_frontend_attach(struct dvb_usb_adapter *a)
+>>                                               &a->dev->i2c_adap);
+>>       if (!a->fe_adap[0].fe)
+>>               return -ENODEV;
+>> -
+>> -     /*
+>> -      * dvb_frontend will call dvb_detach for both stb0899_detach
+>> -      * and stb0899_release but we only do dvb_attach(stb0899_attach).
+>> -      * Increment the module refcount instead.
+>> -      */
+>> -     symbol_get(stb0899_attach);
+>
+>
+> IMHO, the safest fix would be, instead, to do:
+>
+>         #ifdef CONFIG_MEDIA_ATTACH
+>                 symbol_get(stb0899_attach);
+>         #endif
+>
+> Btw, we have some code similar to that on other drivers
+> with either symbol_get() or symbol_put().
 
-Laurent Pinchart
+This would work if we do it for every user of a driver that
+has a detach callback in dvb_frontend_ops, but I still think
+my suggested patch is correct and less error-prone as a
+workaround here.
+
+> Yeah, I agree that this sucks. The right fix here is to use i2c high level
+> interfaces, binding it via i2c bus, instead of using the symbol_get()
+> based dvb_attach() macro.
+>
+> We're (very) slowing doing such changes along the media subsystem.
+
+Good to know there is a proper solution already. I had some ideas
+for how to change it, but the i2c bus method is clearly better than
+whatever I had in mind there.
+
+       Arnd
