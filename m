@@ -1,80 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay2-d.mail.gandi.net ([217.70.183.194]:38486 "EHLO
-        relay2-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750769AbeAYLZU (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 25 Jan 2018 06:25:20 -0500
-From: Jacopo Mondi <jacopo+renesas@jmondi.org>
-To: magnus.damm@gmail.com, kuninori.morimoto.gx@renesas.com,
-        geert@linux-m68k.org, laurent.pinchart@ideasonboard.com,
-        ysato@users.sourceforge.jp, dalias@libc.org
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>, linux-sh@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH] sh: clk: Relax clk rate match test
-Date: Thu, 25 Jan 2018 12:24:53 +0100
-Message-Id: <1516879493-24637-1-git-send-email-jacopo+renesas@jmondi.org>
+Received: from mail-oi0-f66.google.com ([209.85.218.66]:33586 "EHLO
+        mail-oi0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750913AbeACVNL (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 3 Jan 2018 16:13:11 -0500
+Received: by mail-oi0-f66.google.com with SMTP id w131so1821426oiw.0
+        for <linux-media@vger.kernel.org>; Wed, 03 Jan 2018 13:13:11 -0800 (PST)
+Subject: Re: [RFC/RFT PATCH 0/6] Asynchronous UVC
+To: Kieran Bingham <kbingham@kernel.org>, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org, laurent.pinchart@ideasonboard.com
+Cc: Olivier BRAUN <olivier.braun@stereolabs.com>,
+        kieran.bingham@ideasonboard.com
+References: <cover.67dff754d6d314373ac0a04777b3b1d785fc5dd4.1515010476.git-series.kieran.bingham@ideasonboard.com>
+From: Troy Kisky <troy.kisky@boundarydevices.com>
+Message-ID: <b18d0633-cb04-639b-4ade-55b6839da0b3@boundarydevices.com>
+Date: Wed, 3 Jan 2018 13:13:10 -0800
+MIME-Version: 1.0
+In-Reply-To: <cover.67dff754d6d314373ac0a04777b3b1d785fc5dd4.1515010476.git-series.kieran.bingham@ideasonboard.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When asking for a clk rate to be set, the sh core clock matches only
-exact rate values against the calculated frequency table entries. If the
-rate does not match exactly the test fails, and the whole frequency
-table is walked, resulting in selection of the last entry, corresponding to
-the lowest available clock rate.
+On 1/3/2018 12:32 PM, Kieran Bingham wrote:
+> From: Kieran Bingham <kieran.bingham@ideasonboard.com>
+> 
+> The Linux UVC driver has long provided adequate performance capabilities for
+> web-cams and low data rate video devices in Linux while resolutions were low.
+> 
+> Modern USB cameras are now capable of high data rates thanks to USB3 with
+> 1080p, and even 4k capture resolutions supported.
+> 
+> Cameras such as the Stereolabs ZED or the Logitech Brio can generate more data
+> than an embedded ARM core is able to process on a single core, resulting in
+> frame loss.
+> 
+> A large part of this performance impact is from the requirement to
+> ‘memcpy’ frames out from URB packets to destination frames. This unfortunate
+> requirement is due to the UVC protocol allowing a variable length header, and
+> thus it is not possible to provide the target frame buffers directly.
 
-Ie. when asking for a 10MHz clock rate on div6 clocks (ie. "video_clk" line),
-the calculated clock frequency 10088572 Hz gets ignored, and the clock is
-actually set to 5201920 Hz, which is the last available entry of the frequencies
-table.
 
-Relax the clock frequency match test, allowing selection of clock rates
-immediately slower than the required one.
+I have a rather large patch that does provide frame buffers directly for bulk
+cameras. It cannot be used with ISOC cameras.  But it is currently for 4.1.
+I'll be porting it to 4.9 in a few days if you'd like to see it.
 
-Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+BR
+Troy
 
----
-Hello renesas lists,
 
-I'm now working on handling frame rate for the ov7720 image sensor to have that
-driver accepted as part of v4l2. The sensor is installed on on Migo-R board.
-In order to properly calculate pixel clock and the framerate I noticed the
-clock signal fed to the sensor from the SH7722 chip was always the lowest
-available one.
-
-This patch fixes the issues and allows me to properly select which clock
-frequency supply to the sensor, which according to datasheet does not support
-input clock frequencies slower than 10MHz (but works anyhow).
-
-As all patches for SH architecture I wonder where they should be picked up from,
-as SH seems not maintained at the moment.
-
-Thanks
-   j
-
----
- drivers/sh/clk/core.c | 9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/sh/clk/core.c b/drivers/sh/clk/core.c
-index 92863e3..d2cb94c 100644
---- a/drivers/sh/clk/core.c
-+++ b/drivers/sh/clk/core.c
-@@ -198,9 +198,12 @@ int clk_rate_table_find(struct clk *clk,
- {
- 	struct cpufreq_frequency_table *pos;
-
--	cpufreq_for_each_valid_entry(pos, freq_table)
--		if (pos->frequency == rate)
--			return pos - freq_table;
-+	cpufreq_for_each_valid_entry(pos, freq_table) {
-+		if (pos->frequency > rate)
-+			continue;
-+
-+		return pos - freq_table;
-+	}
-
- 	return -ENOENT;
- }
---
-2.7.4
+> 
+> Extra throughput is possible by moving the actual memcpy actions to a work
+> queue, and moving the memcpy out of interrupt context and allowing work tasks
+> to be scheduled across multiple cores.
+> 
+> This series has been tested on both the ZED and Brio cameras on arm64
+> platforms, however due to the intrinsic changes in the driver I would like to
+> see it tested with other devices and other platforms, so I'd appreciate if
+> anyone can test this on a range of USB cameras.
+> 
+> Kieran Bingham (6):
+>   uvcvideo: Refactor URB descriptors
+>   uvcvideo: Convert decode functions to use new context structure
+>   uvcvideo: Protect queue internals with helper
+>   uvcvideo: queue: Simplify spin-lock usage
+>   uvcvideo: queue: Support asynchronous buffer handling
+>   uvcvideo: Move decode processing to process context
+> 
+>  drivers/media/usb/uvc/uvc_isight.c |   4 +-
+>  drivers/media/usb/uvc/uvc_queue.c  | 115 ++++++++++++++----
+>  drivers/media/usb/uvc/uvc_video.c  | 191 ++++++++++++++++++++++--------
+>  drivers/media/usb/uvc/uvcvideo.h   |  56 +++++++--
+>  4 files changed, 289 insertions(+), 77 deletions(-)
+> 
+> base-commit: 6f0e5fd39143a59c22d60e7befc4f33f22aeed2f
+> 
