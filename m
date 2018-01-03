@@ -1,50 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f67.google.com ([74.125.83.67]:46120 "EHLO
-        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751766AbeAIInB (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 9 Jan 2018 03:43:01 -0500
-Received: by mail-pg0-f67.google.com with SMTP id r2so7537379pgq.13
-        for <linux-media@vger.kernel.org>; Tue, 09 Jan 2018 00:43:01 -0800 (PST)
-From: Tomasz Figa <tfiga@chromium.org>
-To: linux-media@vger.kernel.org
-Cc: Tiffany Lin <tiffany.lin@mediatek.com>,
-        Andrew-CT Chen <andrew-ct.chen@mediatek.com>,
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:45532 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751191AbeACJKX (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 3 Jan 2018 04:10:23 -0500
+Date: Wed, 3 Jan 2018 11:10:21 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Hugues FRUCHET <hugues.fruchet@st.com>
+Cc: Steve Longerbeam <slongerbeam@gmail.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Matthias Brugger <matthias.bgg@gmail.com>,
-        linux-arm-kernel@lists.infradead.org,
-        linux-mediatek@lists.infradead.org, linux-kernel@vger.kernel.org,
-        =?UTF-8?q?Pawe=C5=82=20O=C5=9Bciak?= <posciak@chromium.org>,
-        "Wu-Cheng Li" <wuchengli@chromium.org>,
-        Tomasz Figa <tfiga@chromium.org>
-Subject: [PATCH] media: mtk-vcodec: Always signal source change event on format change
-Date: Tue,  9 Jan 2018 17:42:47 +0900
-Message-Id: <20180109084247.104601-1-tfiga@chromium.org>
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Subject: Re: [PATCH v4 3/5] media: dt-bindings: ov5640: refine CSI-2 and add
+ parallel interface
+Message-ID: <20180103091021.x2yego3wmhsq6bfx@valkosipuli.retiisi.org.uk>
+References: <1513763474-1174-1-git-send-email-hugues.fruchet@st.com>
+ <1513763474-1174-4-git-send-email-hugues.fruchet@st.com>
+ <20180102122046.iso43ungfndrjhlp@valkosipuli.retiisi.org.uk>
+ <20180102122453.u4tb7cmy5ig76v7z@valkosipuli.retiisi.org.uk>
+ <55be0bed-7964-fc94-58fb-d385b1adcc98@st.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <55be0bed-7964-fc94-58fb-d385b1adcc98@st.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Currently the driver signals the source change event only in case of
-a midstream resolution change, however the initial format detection
-is also defined as a source change by the V4L2 codec API specification.
-Fix this by signaling the event after the initial header is parsed as
-well.
+On Wed, Jan 03, 2018 at 08:47:09AM +0000, Hugues FRUCHET wrote:
+> Hi Sakari,
+> this is fine for me to drop those two lines so sync signals become 
+> mandatory.
+> Must I repost a v5 serie ?
 
-Signed-off-by: Tomasz Figa <tfiga@chromium.org>
----
- drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.c | 2 ++
- 1 file changed, 2 insertions(+)
+Here's the diff:
 
-diff --git a/drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.c b/drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.c
-index 843510979ad8..86f0a7134365 100644
---- a/drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.c
-+++ b/drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.c
-@@ -1224,6 +1224,8 @@ static void vb2ops_vdec_buf_queue(struct vb2_buffer *vb)
- 	ctx->dpb_size = dpbsize;
- 	ctx->state = MTK_STATE_HEADER;
- 	mtk_v4l2_debug(1, "[%d] dpbsize=%d", ctx->id, ctx->dpb_size);
-+
-+	mtk_vdec_queue_res_chg_event(ctx);
- }
- 
- static void vb2ops_vdec_buf_finish(struct vb2_buffer *vb)
+diff --git a/Documentation/devicetree/bindings/media/i2c/ov5640.txt b/Documentation/devicetree/bindings/media/i2c/ov5640.txt
+index e26a84646603..8e36da0d8406 100644
+--- a/Documentation/devicetree/bindings/media/i2c/ov5640.txt
++++ b/Documentation/devicetree/bindings/media/i2c/ov5640.txt
+@@ -31,8 +31,6 @@ Endpoint node required properties for parallel connection are:
+ 	     or <10> for 10 bits parallel bus
+ - data-shift: shall be set to <2> for 8 bits parallel bus
+ 	      (lines 9:2 are used) or <0> for 10 bits parallel bus
+-
+-Endpoint node optional properties for parallel connection are:
+ - hsync-active: active state of the HSYNC signal, 0/1 for LOW/HIGH respectively.
+ - vsync-active: active state of the VSYNC signal, 0/1 for LOW/HIGH respectively.
+ - pclk-sample: sample data on rising (1) or falling (0) edge of the pixel clock
+
 -- 
-2.16.0.rc0.223.g4a4ac83678-goog
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
