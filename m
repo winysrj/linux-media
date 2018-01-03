@@ -1,103 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.free-electrons.com ([62.4.15.54]:45565 "EHLO
-        mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752799AbeA3Pl3 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 30 Jan 2018 10:41:29 -0500
-Date: Tue, 30 Jan 2018 16:41:26 +0100
-From: Maxime Ripard <maxime.ripard@free-electrons.com>
-To: Benoit Parrot <bparrot@ti.com>, Simon Hatliff <hatliff@cadence.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Rob Herring <robh+dt@kernel.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        Richard Sproul <sproul@cadence.com>,
-        Alan Douglas <adouglas@cadence.com>,
-        Steve Creaney <screaney@cadence.com>,
-        Thomas Petazzoni <thomas.petazzoni@free-electrons.com>,
-        Boris Brezillon <boris.brezillon@free-electrons.com>,
-        Niklas =?iso-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund@ragnatech.se>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>, nm@ti.com
-Subject: Re: [PATCH v5 2/2] v4l: cadence: Add Cadence MIPI-CSI2 RX driver
-Message-ID: <20180130154126.keytdulix5imq6b3@flea.lan>
-References: <20180119081357.20799-1-maxime.ripard@free-electrons.com>
- <20180119081357.20799-3-maxime.ripard@free-electrons.com>
- <20180129191036.GE25980@ti.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:60137 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751329AbeACOVZ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 3 Jan 2018 09:21:25 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: mchehab@s-opensource.com
+Cc: linux-media@vger.kernel.org
+Subject: [GIT PULL FOR v4.16] uvcvideo changes
+Date: Wed, 03 Jan 2018 16:21:46 +0200
+Message-ID: <2334224.jSy5smKVkF@avalon>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="pkhuki3st7u2jpzf"
-Content-Disposition: inline
-In-Reply-To: <20180129191036.GE25980@ti.com>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Mauro,
 
---pkhuki3st7u2jpzf
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+The following changes since commit 9eb124fe796cbadd454c8f946d7051f4c3f4a251:
 
-Hi Benoit,
+  Merge branch 'docs-next' of git://git.lwn.net/linux into patchwork 
+(2017-12-22 14:38:28 -0500)
 
-On Mon, Jan 29, 2018 at 01:10:36PM -0600, Benoit Parrot wrote:
-> > +	reg =3D csi2rx->num_lanes << 8;
-> > +	for (i =3D 0; i < csi2rx->num_lanes; i++)
-> > +		reg |=3D CSI2RX_STATIC_CFG_DLANE_MAP(i, csi2rx->lanes[i]);
-> > +
-> > +	for (i =3D csi2rx->num_lanes; i < csi2rx->max_lanes; i++)
-> > +		reg |=3D CSI2RX_STATIC_CFG_DLANE_MAP(i, i + 1);
->=20
-> Not sure why the above init loop is needed, but at any rate it could
-> cause lane number collision. As far as I can see the MIPI spec does
-> not require data lane to be consecutive or starting at a specific
-> physical lane number.
+are available in the git repository at:
 
-I should probably add a comment there, but the hardware needs the data
-lanes to have a mapping even though they are not in use. This was
-addressing this behaviour but...
+  git://linuxtv.org/pinchartl/media.git uvc/next
 
-> Based on that the following DT node could be a valid configuration
-> 	csi2_cam0: endpoint {
-> 		clock-lanes =3D <0>;
-> 		data-lanes =3D <2 3>;
-> 		...
-> 	};
+for you to fetch changes up to 0a108c817a45bd5215d041bc0ecfe1e13e8559a6:
 
-I obviously overlooked a few corner cases :)
+  uvcvideo: Add a quirk for Generalplus Technology Inc. 808 Camera (2017-12-28 
+17:50:27 +0200)
 
-Since the lanes are not in use, I'm not sure we have to worry about
-lanes collision. Simon, would it cause any trouble if we map to lanes
-to the same physical lane?
+----------------------------------------------------------------
+Arnd Bergmann (2):
+      uvcvideo: Use ktime_t for stats
+      uvcvideo: Use ktime_t for timestamps
 
-Thanks!
-maxime
+Guennadi Liakhovetski (3):
+      v4l: Add a UVC Metadata format
+      uvcvideo: Add extensible device information
+      uvcvideo: Add a metadata device node
 
---=20
-Maxime Ripard, Free Electrons
-Embedded Linux and Kernel engineering
-http://free-electrons.com
+Laurent Pinchart (2):
+      uvcvideo: Factor out video device registration to a function
+      uvcvideo: Report V4L2 device caps through the video_device structure
 
---pkhuki3st7u2jpzf
-Content-Type: application/pgp-signature; name="signature.asc"
+Neil Armstrong (1):
+      uvcvideo: Add a quirk for Generalplus Technology Inc. 808 Camera
 
------BEGIN PGP SIGNATURE-----
+ Documentation/media/uapi/v4l/meta-formats.rst    |   1 +
+ Documentation/media/uapi/v4l/pixfmt-meta-uvc.rst |  51 +++++++
+ drivers/media/usb/uvc/Makefile                   |   2 +-
+ drivers/media/usb/uvc/uvc_driver.c               | 230 ++++++++++++++++------
+ drivers/media/usb/uvc/uvc_isight.c               |   2 +-
+ drivers/media/usb/uvc/uvc_metadata.c             | 179 ++++++++++++++++++++++
+ drivers/media/usb/uvc/uvc_queue.c                |  44 +++++-
+ drivers/media/usb/uvc/uvc_v4l2.c                 |   4 -
+ drivers/media/usb/uvc/uvc_video.c                | 182 +++++++++++++++------
+ drivers/media/usb/uvc/uvcvideo.h                 |  30 +++-
+ drivers/media/v4l2-core/v4l2-ioctl.c             |   1 +
+ include/uapi/linux/uvcvideo.h                    |  26 ++++
+ include/uapi/linux/videodev2.h                   |   1 +
+ 13 files changed, 618 insertions(+), 135 deletions(-)
+ create mode 100644 Documentation/media/uapi/v4l/pixfmt-meta-uvc.rst
+ create mode 100644 drivers/media/usb/uvc/uvc_metadata.c
 
-iQIzBAABCAAdFiEE0VqZU19dR2zEVaqr0rTAlCFNr3QFAlpwkiYACgkQ0rTAlCFN
-r3REZA//anq9dIomRL4bguGYU/PMo8r+BeTm3KPx+geLhyqmwnsHjni51KthdVlE
-U+G2FOlAXiVUFO04oFffSppALiSeUhGcVzghVLa2SAKydGimWfDg5QHJAWwzge73
-Fp9mvdDqowAKikd38PhqDEImrfD858MOeiEn9QYm9C3jL0dJliuSFxq04+BMW743
-tEor9L4Jyl62ZrDfTT85jQNfmqe1qdSq9KGGiIx/SbeyAbKog/Ghym2XcwWBC/s7
-KpxXOf6wcL4IbkaukI78SjYFzvZ+z+wXXJMUULTEjv/Q0TqXbrV61X5kGCydYNxU
-EkeoHIaUdHd9BJxdM0LqGEts9uhBcJwQaklNwwRFY+JlWl14iR5oEOt7m+JVB/g+
-Gnfs2TogM27X9FlEpezuemHOALtorUlaDiShuCsLDtxPE5lwxaq+G+xlYnekfX8p
-DNsFhWpZp/otC9iGJ58LPfuppNeZaZ6lQ5xV2pbKVmgdBeCfk8nsVp/zfKha0QDE
-OhS5I4tjPfo8pbl0XeFTIRx+fURzTibAoSU8v2oJZSOaxYR7Lo+NRRXpxT6vfAy6
-wn5W0lDoOBFT+QQdjx7fBTZuwDtbQFKPDHCWRR94M2eJ+rJOpvl08luBrC21nsJR
-ZZSshZyoVnNpvb9qaAL8dGraEktAOrrXG9cFYDgXWCo4zs4ZxrM=
-=CWmJ
------END PGP SIGNATURE-----
+-- 
+Regards,
 
---pkhuki3st7u2jpzf--
+Laurent Pinchart
