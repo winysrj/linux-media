@@ -1,201 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f68.google.com ([74.125.83.68]:39623 "EHLO
-        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753147AbeAaKZQ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 31 Jan 2018 05:25:16 -0500
-Received: by mail-pg0-f68.google.com with SMTP id w17so9676907pgv.6
-        for <linux-media@vger.kernel.org>; Wed, 31 Jan 2018 02:25:16 -0800 (PST)
-From: Alexandre Courbot <acourbot@chromium.org>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
+Received: from relay3-d.mail.gandi.net ([217.70.183.195]:55311 "EHLO
+        relay3-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750865AbeACTeW (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 3 Jan 2018 14:34:22 -0500
+Date: Wed, 3 Jan 2018 20:34:15 +0100
+From: jacopo mondi <jacopo@jmondi.org>
+To: Fabio Estevam <festevam@gmail.com>
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
         Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Pawel Osciak <posciak@chromium.org>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Gustavo Padovan <gustavo.padovan@collabora.com>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        Alexandre Courbot <acourbot@chromium.org>
-Subject: [RFCv2 05/17] media: Document the media request API
-Date: Wed, 31 Jan 2018 19:24:23 +0900
-Message-Id: <20180131102427.207721-6-acourbot@chromium.org>
-In-Reply-To: <20180131102427.207721-1-acourbot@chromium.org>
-References: <20180131102427.207721-1-acourbot@chromium.org>
+        Magnus Damm <magnus.damm@gmail.com>, geert@glider.be,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        linux-renesas-soc@vger.kernel.org,
+        linux-media <linux-media@vger.kernel.org>,
+        linux-sh@vger.kernel.org,
+        "open list:OPEN FIRMWARE AND FLATTENED DEVICE TREE BINDINGS"
+        <devicetree@vger.kernel.org>,
+        linux-kernel <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH v2 9/9] media: i2c: tw9910: Remove soc_camera dependencies
+Message-ID: <20180103193415.GI9493@w540>
+References: <1514469681-15602-1-git-send-email-jacopo+renesas@jmondi.org>
+ <1514469681-15602-10-git-send-email-jacopo+renesas@jmondi.org>
+ <CAOMZO5CjrXfzum7JgimGqvnM7kjMyZZdtpEhvYwO-DLnig=uMQ@mail.gmail.com>
+ <20180103171347.GF9493@w540>
+ <CAOMZO5Biwbwct_vBD3zXyFvFgW00JxVnFoDcQthARVLxdqPYhA@mail.gmail.com>
+ <20180103173726.GH9493@w540>
+ <CAOMZO5AGEt7pvjLnFN4P19qR28f2d128+80OnJ8SC59-pSgBpA@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <CAOMZO5AGEt7pvjLnFN4P19qR28f2d128+80OnJ8SC59-pSgBpA@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Hi Fabio,
 
-The media request API is made of a new ioctl to implement request
-management. Document it.
+On Wed, Jan 03, 2018 at 04:14:35PM -0200, Fabio Estevam wrote:
+> On Wed, Jan 3, 2018 at 3:37 PM, jacopo mondi <jacopo@jmondi.org> wrote:
+>
+> >> Initially the rest GPIO was doing:
+> >>
+> >> -       gpio_set_value(GPIO_PTT3, 0);
+> >> -       mdelay(10);
+> >> -       gpio_set_value(GPIO_PTT3, 1);
+> >> -       mdelay(10); /* wait to let chip come out of reset */
+> >
+> > And that's what my driver code does :)
+>
+> No, on 5/9 you converted the original code to:
+>
+> GPIO_LOOKUP("sh7722_pfc", GPIO_PTT3, "rstb", GPIO_ACTIVE_HIGH)
+>
+> It should be GPIO_ACTIVE_LOW instead.
+>
+> > My point is that if I read the manual and I see an active low gpio (0
+> > is reset state) then the driver code uses it as and active high one (1
+> > is the reset state), that would be weird to me.
+>
+> Then on this patch you should do:
+>
+> gpiod_set_value(priv->rstb_gpio, 1);  ---> This tells the GPIO to go
+> to its active state (In this case active == logic level 0)
+> usleep_range(500, 1000);
+> gpiod_set_value(priv->rstb_gpio, 0); ---> This tells the GPIO to go to
+> its inactive state (In this case inactive == logic level 1)
+>
+> You can also look at Documentation/gpio/consumer.txt where the usage
+> of the gpiod_xxx API is described.
+>
+> It seems you are confusing it with the legacy gpio_set_value() API
+> (Documentation/gpio/gpio-legacy.txt)
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-[acourbot@chromium.org: adapt for newest API]
-Signed-off-by: Alexandre Courbot <acourbot@chromium.org>
----
- Documentation/media/uapi/mediactl/media-funcs.rst  |   1 +
- .../media/uapi/mediactl/media-ioc-request-cmd.rst  | 141 +++++++++++++++++++++
- 2 files changed, 142 insertions(+)
- create mode 100644 Documentation/media/uapi/mediactl/media-ioc-request-cmd.rst
+It took you 3 email messages, but maybe I finally got it.
 
-diff --git a/Documentation/media/uapi/mediactl/media-funcs.rst b/Documentation/media/uapi/mediactl/media-funcs.rst
-index 076856501cdb..e3a45d82ffcb 100644
---- a/Documentation/media/uapi/mediactl/media-funcs.rst
-+++ b/Documentation/media/uapi/mediactl/media-funcs.rst
-@@ -15,4 +15,5 @@ Function Reference
-     media-ioc-g-topology
-     media-ioc-enum-entities
-     media-ioc-enum-links
-+    media-ioc-request-cmd
-     media-ioc-setup-link
-diff --git a/Documentation/media/uapi/mediactl/media-ioc-request-cmd.rst b/Documentation/media/uapi/mediactl/media-ioc-request-cmd.rst
-new file mode 100644
-index 000000000000..723b422afcce
---- /dev/null
-+++ b/Documentation/media/uapi/mediactl/media-ioc-request-cmd.rst
-@@ -0,0 +1,141 @@
-+.. -*- coding: utf-8; mode: rst -*-
-+
-+.. _media_ioc_request_cmd:
-+
-+***************************
-+ioctl MEDIA_IOC_REQUEST_CMD
-+***************************
-+
-+Name
-+====
-+
-+MEDIA_IOC_REQUEST_CMD - Manage media device requests
-+
-+
-+Synopsis
-+========
-+
-+.. c:function:: int ioctl( int fd, MEDIA_IOC_REQUEST_CMD, struct media_request_cmd *argp )
-+    :name: MEDIA_IOC_REQUEST_CMD
-+
-+
-+Arguments
-+=========
-+
-+``fd``
-+    File descriptor returned by :ref:`open() <media-func-open>`.
-+
-+``argp``
-+
-+
-+Description
-+===========
-+
-+The MEDIA_IOC_REQUEST_CMD ioctl allow applications to manage media device
-+requests. A request is an object that can group media device configuration
-+parameters, including subsystem-specific parameters, in order to apply all the
-+parameters atomically. Applications are responsible for allocating and
-+deleting requests, filling them with configuration parameters submitting them.
-+
-+Request operations are performed by calling the MEDIA_IOC_REQUEST_CMD ioctl
-+with a pointer to a struct :c:type:`media_request_cmd` with the cmd field set
-+to the appropriate command. :ref:`media-request-command` lists the commands
-+supported by the ioctl.
-+
-+The struct :c:type:`media_request_cmd` request field contains the file
-+descriptorof the request on which the command operates. For the
-+``MEDIA_REQ_CMD_ALLOC`` command the field is set to zero by applications and
-+filled by the driver. For all other commands the field is set by applications
-+and left untouched by the driver.
-+
-+To allocate a new request applications use the ``MEDIA_REQ_CMD_ALLOC``
-+command. The driver will allocate a new request and return its FD in the
-+request field. After allocation, the request is "empty", which means that it
-+does not hold any state of its own, and that the hardware's state will not be
-+affected by it unless it is passed as argument to V4L2 or media controller
-+commands.
-+
-+Requests are reference-counted. A newly allocated request is referenced
-+by the returned file descriptor, and can be later referenced by
-+subsystem-specific operations. Requests will thus be automatically deleted
-+when they're not longer used after the returned file descriptor is closed.
-+
-+If a request isn't needed applications can delete it by calling ``close()``
-+on it. The driver will drop the file handle reference. The request will not
-+be usable through the MEDIA_IOC_REQUEST_CMD ioctl anymore, but will only be
-+deleted when the last reference is released. If no other reference exists when
-+``close()`` is invoked the request will be deleted immediately.
-+
-+After creating a request applications should fill it with configuration
-+parameters. This is performed through subsystem-specific request APIs outside
-+the scope of the media controller API. See the appropriate subsystem APIs for
-+more information, including how they interact with the MEDIA_IOC_REQUEST_CMD
-+ioctl.
-+
-+Once a request contains all the desired configuration parameters it can be
-+submitted using the ``MEDIA_REQ_CMD_SUBMIT`` command. This will let the
-+buffers queued for the request be passed to their respective drivers, which
-+will then apply the request's parameters before processing them.
-+
-+Once a request has been queued applications are not allowed to modify its
-+configuration parameters until the request has been fully processed. Any
-+attempt to do so will result in the related subsystem API returning an error.
-+The application that submitted the request can wait for its completion by
-+polling on the request's file descriptor.
-+
-+Once a request has completed, it can be reused. The ``MEDIA_REQ_CMD_REINIT``
-+command will bring it back to its initial state, so it can be prepared and
-+submitted again.
-+
-+.. c:type:: media_request_cmd
-+
-+.. flat-table:: struct media_request_cmd
-+    :header-rows:  0
-+    :stub-columns: 0
-+    :widths: 1 2 8
-+
-+    * - __u32
-+      - ``cmd``
-+      - Command, set by the application. See below for the list of supported
-+        commands.
-+    * - __u32
-+      - ``fd``
-+      - Request FD, set by the driver for the MEDIA_REQ_CMD_ALLOC command and
-+        by the application for all other commands.
-+
-+
-+.. _media-request-command:
-+
-+.. cssclass:: longtable
-+
-+.. flat-table:: Media request commands
-+    :header-rows:  0
-+    :stub-columns: 0
-+
-+    * .. _MEDIA-REQ-CMD-ALLOC:
-+
-+      - ``MEDIA_REQ_CMD_ALLOC``
-+      - Allocate a new request.
-+    * .. _MEDIA-REQ-CMD-SUBMIT:
-+
-+      - ``MEDIA_REQ_CMD_SUBMIT``
-+      - Submit a request to be processed.
-+    * .. _MEDIA-REQ-CMD-QUEUE:
-+
-+      - ``MEDIA_REQ_CMD_REINIT``
-+      - Reinitializes a completed request.
-+
-+
-+Return Value
-+============
-+
-+On success 0 is returned, on error -1 and the ``errno`` variable is set
-+appropriately. The generic error codes are described at the
-+:ref:`Generic Error Codes <gen-errors>` chapter.
-+
-+EINVAL
-+    The struct :c:type:`media_request_cmd` specifies an invalid command or
-+    references a non-existing request.
-+
-+ENOSYS
-+    Request API is not available on this device.
--- 
-2.16.0.rc1.238.g530d649a79-goog
+So, 1 and 0 do not actually represent the line level but the active
+or inactive states, that's fine. This seems to me a bit inconsistent with
+the existence of flags like GPIOD_OUT_HIGH/LOW meant to be used at gpiod_get()
+time, where the actual line level has to be used instead, but that's a
+discussion surely not pertinent to this series.
+
+Thanks for your patience.
+    j
+
+
+>
+> Hope this helps.
