@@ -1,116 +1,172 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay2-d.mail.gandi.net ([217.70.183.194]:52361 "EHLO
-        relay2-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933582AbeALOEa (ORCPT
+Received: from mx08-00178001.pphosted.com ([91.207.212.93]:16294 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1752133AbeACJ6j (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 12 Jan 2018 09:04:30 -0500
-From: Jacopo Mondi <jacopo+renesas@jmondi.org>
-To: laurent.pinchart@ideasonboard.com, magnus.damm@gmail.com,
-        geert@glider.be, mchehab@kernel.org, hverkuil@xs4all.nl,
-        festevam@gmail.com, sakari.ailus@iki.fi, robh+dt@kernel.org,
-        mark.rutland@arm.com, pombredanne@nexb.com
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-sh@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH v5 0/9] Renesas Capture Engine Unit (CEU) V4L2 driver
-Date: Fri, 12 Jan 2018 15:04:00 +0100
-Message-Id: <1515765849-10345-1-git-send-email-jacopo+renesas@jmondi.org>
+        Wed, 3 Jan 2018 04:58:39 -0500
+From: Hugues Fruchet <hugues.fruchet@st.com>
+To: Steve Longerbeam <slongerbeam@gmail.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        "Mauro Carvalho Chehab" <mchehab@kernel.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>
+CC: <devicetree@vger.kernel.org>, <linux-media@vger.kernel.org>,
+        "Hugues Fruchet" <hugues.fruchet@st.com>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Subject: [PATCH v5 5/5] media: ov5640: add support of RGB565 and YUYV formats
+Date: Wed, 3 Jan 2018 10:57:32 +0100
+Message-ID: <1514973452-10464-6-git-send-email-hugues.fruchet@st.com>
+In-Reply-To: <1514973452-10464-1-git-send-email-hugues.fruchet@st.com>
+References: <1514973452-10464-1-git-send-email-hugues.fruchet@st.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
-   (hopefully) last round for CEU driver.
+Add RGB565 (LE & BE) and YUV422 YUYV format in addition
+to existing YUV422 UYVY format.
 
-Changelog is quite thin, I have updated CEU driver MODULE_LICENSE to match
-SPDX identifier, added Rob's and Laurent's Reviewed-by tags to bindings, and
-made variables of "struct ceu_data" type static in the driver.
+Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
+---
+ drivers/media/i2c/ov5640.c | 74 +++++++++++++++++++++++++++++++++++++++++-----
+ 1 file changed, 67 insertions(+), 7 deletions(-)
 
-All of the patches are now Reviewed/Acked. Time to have this series included?
-
-Thanks
-   j
-
-v4->v5:
-- Added Rob's and Laurent's Reviewed-by tag to DT bindings
-- Change CEU driver module license to "GPL v2" to match SPDX identifier as
-  suggested by Philippe Ombredanne
-- Make struct ceu_data static as suggested by Laurent and add his
-  Reviewed-by to CEU driver.
-
-v3->v4:
-- Drop generic fallback compatible string "renesas,ceu"
-- Addressed Laurent's comments on [3/9]
-  - Fix error messages on irq get/request
-  - Do not leak ceudev if irq_get fails
-  - Make irq_mask a const field
-
-v2->v3:
-- Improved DT bindings removing standard properties (pinctrl- ones and
-  remote-endpoint) not specific to this driver and improved description of
-  compatible strings
-- Remove ov772x's xlkc_rate property and set clock rate in Migo-R board file
-- Made 'xclk' clock private to ov772x driver in Migo-R board file
-- Change 'rstb' GPIO active output level and changed ov772x and tw9910 drivers
-  accordingly as suggested by Fabio
-- Minor changes in CEU driver to address Laurent's comments
-- Moved Migo-R setup patch to the end of the series to silence 0-day bot
-- Renamed tw9910 clock to 'xti' as per video decoder manual
-- Changed all SPDX identifiers to GPL-2.0 from previous GPL-2.0+
-
-v1->v2:
- - DT
- -- Addressed Geert's comments and added clocks for CEU to mstp6 clock source
- -- Specified supported generic video iterfaces properties in dt-bindings and
-    simplified example
-
- - CEU driver
- -- Re-worked interrupt handler, interrupt management, reset(*) and capture
-    start operation
- -- Re-worked querycap/enum_input/enum_frameintervals to fix some
-    v4l2_compliance failures
- -- Removed soc_camera legacy operations g/s_mbus_format
- -- Update to new notifier implementation
- -- Fixed several comments from Hans, Laurent and Sakari
-
- - Migo-R
- -- Register clocks and gpios for sensor drivers in Migo-R setup
- -- Updated sensors (tw9910 and ov772x) drivers headers and drivers to close
-    remarks from Hans and Laurent:
- --- Removed platform callbacks and handle clocks and gpios from sensor drivers
- --- Remove g/s_mbus_config operations
-
-Jacopo Mondi (9):
-  dt-bindings: media: Add Renesas CEU bindings
-  include: media: Add Renesas CEU driver interface
-  v4l: platform: Add Renesas CEU driver
-  ARM: dts: r7s72100: Add Capture Engine Unit (CEU)
-  v4l: i2c: Copy ov772x soc_camera sensor driver
-  media: i2c: ov772x: Remove soc_camera dependencies
-  v4l: i2c: Copy tw9910 soc_camera sensor driver
-  media: i2c: tw9910: Remove soc_camera dependencies
-  arch: sh: migor: Use new renesas-ceu camera driver
-
- .../devicetree/bindings/media/renesas,ceu.txt      |   81 +
- arch/arm/boot/dts/r7s72100.dtsi                    |   15 +-
- arch/sh/boards/mach-migor/setup.c                  |  225 ++-
- arch/sh/kernel/cpu/sh4a/clock-sh7722.c             |    2 +-
- drivers/media/i2c/Kconfig                          |   20 +
- drivers/media/i2c/Makefile                         |    2 +
- drivers/media/i2c/ov772x.c                         | 1181 ++++++++++++++
- drivers/media/i2c/tw9910.c                         | 1039 ++++++++++++
- drivers/media/platform/Kconfig                     |    9 +
- drivers/media/platform/Makefile                    |    1 +
- drivers/media/platform/renesas-ceu.c               | 1648 ++++++++++++++++++++
- include/media/drv-intf/renesas-ceu.h               |   26 +
- include/media/i2c/ov772x.h                         |    6 +-
- include/media/i2c/tw9910.h                         |    9 +
- 14 files changed, 4133 insertions(+), 131 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/media/renesas,ceu.txt
- create mode 100644 drivers/media/i2c/ov772x.c
- create mode 100644 drivers/media/i2c/tw9910.c
- create mode 100644 drivers/media/platform/renesas-ceu.c
- create mode 100644 include/media/drv-intf/renesas-ceu.h
-
---
-2.7.4
+diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
+index a44b680..f017742 100644
+--- a/drivers/media/i2c/ov5640.c
++++ b/drivers/media/i2c/ov5640.c
+@@ -76,9 +76,11 @@
+ #define OV5640_REG_HZ5060_CTRL01	0x3c01
+ #define OV5640_REG_SIGMADELTA_CTRL0C	0x3c0c
+ #define OV5640_REG_FRAME_CTRL01		0x4202
++#define OV5640_REG_FORMAT_CONTROL00	0x4300
+ #define OV5640_REG_POLARITY_CTRL00	0x4740
+ #define OV5640_REG_MIPI_CTRL00		0x4800
+ #define OV5640_REG_DEBUG_MODE		0x4814
++#define OV5640_REG_ISP_FORMAT_MUX_CTRL	0x501f
+ #define OV5640_REG_PRE_ISP_TEST_SET1	0x503d
+ #define OV5640_REG_SDE_CTRL0		0x5580
+ #define OV5640_REG_SDE_CTRL1		0x5581
+@@ -106,6 +108,18 @@ enum ov5640_frame_rate {
+ 	OV5640_NUM_FRAMERATES,
+ };
+ 
++struct ov5640_pixfmt {
++	u32 code;
++	u32 colorspace;
++};
++
++static const struct ov5640_pixfmt ov5640_formats[] = {
++	{ MEDIA_BUS_FMT_UYVY8_2X8, V4L2_COLORSPACE_SRGB, },
++	{ MEDIA_BUS_FMT_YUYV8_2X8, V4L2_COLORSPACE_SRGB, },
++	{ MEDIA_BUS_FMT_RGB565_2X8_LE, V4L2_COLORSPACE_SRGB, },
++	{ MEDIA_BUS_FMT_RGB565_2X8_BE, V4L2_COLORSPACE_SRGB, },
++};
++
+ /*
+  * FIXME: remove this when a subdev API becomes available
+  * to set the MIPI CSI-2 virtual channel.
+@@ -1837,17 +1851,23 @@ static int ov5640_try_fmt_internal(struct v4l2_subdev *sd,
+ {
+ 	struct ov5640_dev *sensor = to_ov5640_dev(sd);
+ 	const struct ov5640_mode_info *mode;
++	int i;
+ 
+ 	mode = ov5640_find_mode(sensor, fr, fmt->width, fmt->height, true);
+ 	if (!mode)
+ 		return -EINVAL;
+-
+ 	fmt->width = mode->width;
+ 	fmt->height = mode->height;
+-	fmt->code = sensor->fmt.code;
+ 
+ 	if (new_mode)
+ 		*new_mode = mode;
++
++	for (i = 0; i < ARRAY_SIZE(ov5640_formats); i++)
++		if (ov5640_formats[i].code == fmt->code)
++			break;
++	if (i >= ARRAY_SIZE(ov5640_formats))
++		fmt->code = ov5640_formats[0].code;
++
+ 	return 0;
+ }
+ 
+@@ -1890,6 +1910,45 @@ static int ov5640_set_fmt(struct v4l2_subdev *sd,
+ 	return ret;
+ }
+ 
++static int ov5640_set_framefmt(struct ov5640_dev *sensor,
++			       struct v4l2_mbus_framefmt *format)
++{
++	int ret = 0;
++	bool is_rgb = false;
++	u8 val;
++
++	switch (format->code) {
++	case MEDIA_BUS_FMT_UYVY8_2X8:
++		/* YUV422, UYVY */
++		val = 0x3f;
++		break;
++	case MEDIA_BUS_FMT_YUYV8_2X8:
++		/* YUV422, YUYV */
++		val = 0x30;
++		break;
++	case MEDIA_BUS_FMT_RGB565_2X8_LE:
++		/* RGB565 {g[2:0],b[4:0]},{r[4:0],g[5:3]} */
++		val = 0x6F;
++		is_rgb = true;
++		break;
++	case MEDIA_BUS_FMT_RGB565_2X8_BE:
++		/* RGB565 {r[4:0],g[5:3]},{g[2:0],b[4:0]} */
++		val = 0x61;
++		is_rgb = true;
++		break;
++	default:
++		return -EINVAL;
++	}
++
++	/* FORMAT CONTROL00: YUV and RGB formatting */
++	ret = ov5640_write_reg(sensor, OV5640_REG_FORMAT_CONTROL00, val);
++	if (ret)
++		return ret;
++
++	/* FORMAT MUX CONTROL: ISP YUV or RGB */
++	return ov5640_write_reg(sensor, OV5640_REG_ISP_FORMAT_MUX_CTRL,
++				is_rgb ? 0x01 : 0x00);
++}
+ 
+ /*
+  * Sensor Controls.
+@@ -2275,15 +2334,12 @@ static int ov5640_enum_mbus_code(struct v4l2_subdev *sd,
+ 				  struct v4l2_subdev_pad_config *cfg,
+ 				  struct v4l2_subdev_mbus_code_enum *code)
+ {
+-	struct ov5640_dev *sensor = to_ov5640_dev(sd);
+-
+ 	if (code->pad != 0)
+ 		return -EINVAL;
+-	if (code->index != 0)
++	if (code->index >= ARRAY_SIZE(ov5640_formats))
+ 		return -EINVAL;
+ 
+-	code->code = sensor->fmt.code;
+-
++	code->code = ov5640_formats[code->index].code;
+ 	return 0;
+ }
+ 
+@@ -2299,6 +2355,10 @@ static int ov5640_s_stream(struct v4l2_subdev *sd, int enable)
+ 			ret = ov5640_set_mode(sensor, sensor->current_mode);
+ 			if (ret)
+ 				goto out;
++
++			ret = ov5640_set_framefmt(sensor, &sensor->fmt);
++			if (ret)
++				goto out;
+ 		}
+ 
+ 		if (sensor->ep.bus_type == V4L2_MBUS_CSI2)
+-- 
+1.9.1
