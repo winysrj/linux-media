@@ -1,159 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bin-mail-out-06.binero.net ([195.74.38.229]:35093 "EHLO
-        bin-vsp-out-03.atm.binero.net" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751611AbeA2Qff (ORCPT
+Received: from mx08-00178001.pphosted.com ([91.207.212.93]:28411 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1752246AbeACJ6j (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 29 Jan 2018 11:35:35 -0500
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH v10 15/30] rcar-vin: break out format alignment and checking
-Date: Mon, 29 Jan 2018 17:34:20 +0100
-Message-Id: <20180129163435.24936-16-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20180129163435.24936-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20180129163435.24936-1-niklas.soderlund+renesas@ragnatech.se>
+        Wed, 3 Jan 2018 04:58:39 -0500
+From: Hugues Fruchet <hugues.fruchet@st.com>
+To: Steve Longerbeam <slongerbeam@gmail.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        "Mauro Carvalho Chehab" <mchehab@kernel.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>
+CC: <devicetree@vger.kernel.org>, <linux-media@vger.kernel.org>,
+        "Hugues Fruchet" <hugues.fruchet@st.com>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Subject: [PATCH v5 1/5] media: ov5640: switch to gpiod_set_value_cansleep()
+Date: Wed, 3 Jan 2018 10:57:28 +0100
+Message-ID: <1514973452-10464-2-git-send-email-hugues.fruchet@st.com>
+In-Reply-To: <1514973452-10464-1-git-send-email-hugues.fruchet@st.com>
+References: <1514973452-10464-1-git-send-email-hugues.fruchet@st.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Part of the format alignment and checking can be shared with the Gen3
-format handling. Break that part out to a separate function.
+Switch gpiod_set_value to gpiod_set_value_cansleep to avoid
+warnings when powering sensor.
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
 ---
- drivers/media/platform/rcar-vin/rcar-v4l2.c | 93 ++++++++++++++++-------------
- 1 file changed, 50 insertions(+), 43 deletions(-)
+ drivers/media/i2c/ov5640.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-index c606942e59b5d934..1169e6a279ecfb55 100644
---- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-+++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-@@ -86,6 +86,55 @@ static u32 rvin_format_sizeimage(struct v4l2_pix_format *pix)
- 	return pix->bytesperline * pix->height;
- }
+diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
+index c89ed66..61071f5 100644
+--- a/drivers/media/i2c/ov5640.c
++++ b/drivers/media/i2c/ov5640.c
+@@ -1524,7 +1524,7 @@ static int ov5640_restore_mode(struct ov5640_dev *sensor)
  
-+static int rvin_format_align(struct rvin_dev *vin, struct v4l2_pix_format *pix)
-+{
-+	u32 walign;
-+
-+	/* If requested format is not supported fallback to the default */
-+	if (!rvin_format_from_pixel(pix->pixelformat)) {
-+		vin_dbg(vin, "Format 0x%x not found, using default 0x%x\n",
-+			pix->pixelformat, RVIN_DEFAULT_FORMAT);
-+		pix->pixelformat = RVIN_DEFAULT_FORMAT;
-+	}
-+
-+	/* Reject ALTERNATE  until support is added to the driver */
-+	switch (pix->field) {
-+	case V4L2_FIELD_TOP:
-+	case V4L2_FIELD_BOTTOM:
-+	case V4L2_FIELD_NONE:
-+	case V4L2_FIELD_INTERLACED_TB:
-+	case V4L2_FIELD_INTERLACED_BT:
-+	case V4L2_FIELD_INTERLACED:
-+		break;
-+	default:
-+		pix->field = V4L2_FIELD_NONE;
-+		break;
-+	}
-+
-+	/* HW limit width to a multiple of 32 (2^5) for NV16 else 2 (2^1) */
-+	walign = vin->format.pixelformat == V4L2_PIX_FMT_NV16 ? 5 : 1;
-+
-+	/* Limit to VIN capabilities */
-+	v4l_bound_align_image(&pix->width, 2, vin->info->max_width, walign,
-+			      &pix->height, 4, vin->info->max_height, 2, 0);
-+
-+	pix->bytesperline = max_t(u32, pix->bytesperline,
-+				  rvin_format_bytesperline(pix));
-+	pix->sizeimage = max_t(u32, pix->sizeimage,
-+			       rvin_format_sizeimage(pix));
-+
-+	if (vin->info->model == RCAR_M1 &&
-+	    pix->pixelformat == V4L2_PIX_FMT_XBGR32) {
-+		vin_err(vin, "pixel format XBGR32 not supported on M1\n");
-+		return -EINVAL;
-+	}
-+
-+	vin_dbg(vin, "Format %ux%u bpl: %d size: %d\n",
-+		pix->width, pix->height, pix->bytesperline, pix->sizeimage);
-+
-+	return 0;
-+}
-+
- /* -----------------------------------------------------------------------------
-  * V4L2
-  */
-@@ -215,19 +264,12 @@ static int __rvin_try_format_source(struct rvin_dev *vin,
- static int __rvin_try_format(struct rvin_dev *vin,
- 			     u32 which, struct v4l2_pix_format *pix)
+ static void ov5640_power(struct ov5640_dev *sensor, bool enable)
  {
--	u32 walign;
- 	int ret;
- 
- 	/* Keep current field if no specific one is asked for */
- 	if (pix->field == V4L2_FIELD_ANY)
- 		pix->field = vin->format.field;
- 
--	/* If requested format is not supported fallback to the default */
--	if (!rvin_format_from_pixel(pix->pixelformat)) {
--		vin_dbg(vin, "Format 0x%x not found, using default 0x%x\n",
--			pix->pixelformat, RVIN_DEFAULT_FORMAT);
--		pix->pixelformat = RVIN_DEFAULT_FORMAT;
--	}
- 
- 	/* Always recalculate */
- 	pix->bytesperline = 0;
-@@ -238,42 +280,7 @@ static int __rvin_try_format(struct rvin_dev *vin,
- 	if (ret)
- 		return ret;
- 
--	/* Reject ALTERNATE  until support is added to the driver */
--	switch (pix->field) {
--	case V4L2_FIELD_TOP:
--	case V4L2_FIELD_BOTTOM:
--	case V4L2_FIELD_NONE:
--	case V4L2_FIELD_INTERLACED_TB:
--	case V4L2_FIELD_INTERLACED_BT:
--	case V4L2_FIELD_INTERLACED:
--		break;
--	default:
--		pix->field = V4L2_FIELD_NONE;
--		break;
--	}
--
--	/* HW limit width to a multiple of 32 (2^5) for NV16 else 2 (2^1) */
--	walign = vin->format.pixelformat == V4L2_PIX_FMT_NV16 ? 5 : 1;
--
--	/* Limit to VIN capabilities */
--	v4l_bound_align_image(&pix->width, 2, vin->info->max_width, walign,
--			      &pix->height, 4, vin->info->max_height, 2, 0);
--
--	pix->bytesperline = max_t(u32, pix->bytesperline,
--				  rvin_format_bytesperline(pix));
--	pix->sizeimage = max_t(u32, pix->sizeimage,
--			       rvin_format_sizeimage(pix));
--
--	if (vin->info->model == RCAR_M1 &&
--	    pix->pixelformat == V4L2_PIX_FMT_XBGR32) {
--		vin_err(vin, "pixel format XBGR32 not supported on M1\n");
--		return -EINVAL;
--	}
--
--	vin_dbg(vin, "Format %ux%u bpl: %d size: %d\n",
--		pix->width, pix->height, pix->bytesperline, pix->sizeimage);
--
--	return 0;
-+	return rvin_format_align(vin, pix);
+-	gpiod_set_value(sensor->pwdn_gpio, enable ? 0 : 1);
++	gpiod_set_value_cansleep(sensor->pwdn_gpio, enable ? 0 : 1);
  }
  
- static int rvin_querycap(struct file *file, void *priv,
+ static void ov5640_reset(struct ov5640_dev *sensor)
+@@ -1532,7 +1532,7 @@ static void ov5640_reset(struct ov5640_dev *sensor)
+ 	if (!sensor->reset_gpio)
+ 		return;
+ 
+-	gpiod_set_value(sensor->reset_gpio, 0);
++	gpiod_set_value_cansleep(sensor->reset_gpio, 0);
+ 
+ 	/* camera power cycle */
+ 	ov5640_power(sensor, false);
+@@ -1540,10 +1540,10 @@ static void ov5640_reset(struct ov5640_dev *sensor)
+ 	ov5640_power(sensor, true);
+ 	usleep_range(5000, 10000);
+ 
+-	gpiod_set_value(sensor->reset_gpio, 1);
++	gpiod_set_value_cansleep(sensor->reset_gpio, 1);
+ 	usleep_range(1000, 2000);
+ 
+-	gpiod_set_value(sensor->reset_gpio, 0);
++	gpiod_set_value_cansleep(sensor->reset_gpio, 0);
+ 	usleep_range(5000, 10000);
+ }
+ 
 -- 
-2.16.1
+1.9.1
