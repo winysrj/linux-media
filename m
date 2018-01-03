@@ -1,99 +1,168 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:43012 "EHLO mga02.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751030AbeAVJYR (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 22 Jan 2018 04:24:17 -0500
-Date: Mon, 22 Jan 2018 11:24:14 +0200
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        andriy.shevchenko@linux.intel.com, alan@linux.intel.com
-Subject: Re: atomisp and g/s_parm
-Message-ID: <20180122092413.66mn6dcts7dixd26@paasikivi.fi.intel.com>
-References: <fdb4a3df-e7fa-9197-a64a-02be81b548bd@xs4all.nl>
- <20180121224858.bmf32prgkqh5yht7@kekkonen.localdomain>
- <5b344cd1-3bb5-290d-b07b-15ddbd6ef7c5@xs4all.nl>
+Received: from mx08-00178001.pphosted.com ([91.207.212.93]:22993 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1752239AbeACJ6e (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 3 Jan 2018 04:58:34 -0500
+From: Hugues Fruchet <hugues.fruchet@st.com>
+To: Steve Longerbeam <slongerbeam@gmail.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        "Mauro Carvalho Chehab" <mchehab@kernel.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>
+CC: <devicetree@vger.kernel.org>, <linux-media@vger.kernel.org>,
+        "Hugues Fruchet" <hugues.fruchet@st.com>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Subject: [PATCH v5 2/5] media: ov5640: check chip id
+Date: Wed, 3 Jan 2018 10:57:29 +0100
+Message-ID: <1514973452-10464-3-git-send-email-hugues.fruchet@st.com>
+In-Reply-To: <1514973452-10464-1-git-send-email-hugues.fruchet@st.com>
+References: <1514973452-10464-1-git-send-email-hugues.fruchet@st.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <5b344cd1-3bb5-290d-b07b-15ddbd6ef7c5@xs4all.nl>
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Verify that chip identifier is correct when probing.
 
-On Mon, Jan 22, 2018 at 10:19:13AM +0100, Hans Verkuil wrote:
-> On 21/01/18 23:48, Sakari Ailus wrote:
-> > Hi Hans,
-> > 
-> > On Sun, Jan 21, 2018 at 11:46:46AM +0100, Hans Verkuil wrote:
-> >> Hi Sakari,
-> >>
-> >> I looked a bit closer at how atomisp uses g/s_parm. They abuse the capturemode field
-> >> to select video/preview/still modes on the sensor, which actually changes the list
-> >> of supported resolutions.
-> >>
-> >> The following files use this:
-> >>
-> >> i2c/atomisp-gc0310.c
-> >> i2c/atomisp-gc2235.c
-> >> i2c/atomisp-ov2680.c
-> >> i2c/atomisp-ov2722.c
-> >> i2c/ov5693/atomisp-ov5693.c
-> >> pci/atomisp2/atomisp_file.c
-> >> pci/atomisp2/atomisp_tpg.c
-> >>
-> >> The last two have a dummy g/s_parm implementation, so are easy to fix.
-> >> The gc0310 and 0v2680 have identical resolution lists for all three modes, so
-> >> the capturemode can just be ignored and these two drivers can be simplified.
-> >>
-> >> Looking at the higher level code it turns out that this atomisp driver appears
-> >> to be in the middle of a conversion from using s_parm to a V4L2_CID_RUN_MODE
-> >> control. If the control is present, then that will be used to set the mode,
-> >> otherwise it falls back to s_parm.
-> >>
-> >> So the best solution would be if Intel can convert the remaining drivers from
-> >> using s_parm to the new control and then drop all code that uses s_parm to do
-> >> this, so g/s_parm is then only used to get/set the framerate.
-> >>
-> >> Is this something you or a colleague can take on?
-> > 
-> > I've stabbed the atomisp sensor drivers enough to remove the s_parm and
-> > g_parm usage there. This effectively removes the s_parm abuse, as there was
-> > nothing else it was being used for.
-> > 
-> > The patches are here; there are no changes to your patches in the branch
-> > you pointed me to:
-> > 
-> > <URL:https://git.linuxtv.org/sailus/media_tree.git/log/?h=sparm>
-> > 
-> > I've split dropping support for certain modes in the drivers into separate
-> > patch; it's easy to bring them back by just reverting the patch ("staging:
-> > atomisp: i2c: Disable non-preview configurations") or removing the ifdefs.
-> > I don't object merging this with the previous patch either.
-> > 
-> > What comes to the run mode control --- this logic should have always
-> > resided in user space; that control (and s_parm hack) is basically getting
-> > around lack of support for MC / V4L2 sub-device interface in the driver. So
-> > that control isn't the right solution either going forward.
-> > 
-> > Cc Andy and Alan.
-> > 
-> 
-> Looks good. Just one note: in atomisp_ioctl.c the atomisp_g_parm function still
-> abuses this API (setting capturemode) but more importantly, it never calls
-> g_frame_interval. The atomisp_s_parm function *does* call s_frame_interval.
-> 
-> So this is inconsistent. However, this was always there, so it's not something
-> that was introduced by these changes.
+Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
+---
+ drivers/media/i2c/ov5640.c | 95 ++++++++++++++++++++++++++++++++++++++--------
+ 1 file changed, 79 insertions(+), 16 deletions(-)
 
-There could be some value in bringing the sensor drivers as such out of
-staging, too; so implementing g_frame_interval is a good thing.
-
-If you're fine with the additional patches, feel free to send to the list.
-
+diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
+index 61071f5..9f031f3 100644
+--- a/drivers/media/i2c/ov5640.c
++++ b/drivers/media/i2c/ov5640.c
+@@ -1547,24 +1547,58 @@ static void ov5640_reset(struct ov5640_dev *sensor)
+ 	usleep_range(5000, 10000);
+ }
+ 
+-static int ov5640_set_power(struct ov5640_dev *sensor, bool on)
++static int ov5640_set_power_on(struct ov5640_dev *sensor)
+ {
+-	int ret = 0;
++	struct i2c_client *client = sensor->i2c_client;
++	int ret;
+ 
+-	if (on) {
+-		clk_prepare_enable(sensor->xclk);
++	ret = clk_prepare_enable(sensor->xclk);
++	if (ret) {
++		dev_err(&client->dev, "%s: failed to enable clock\n",
++			__func__);
++		return ret;
++	}
+ 
+-		ret = regulator_bulk_enable(OV5640_NUM_SUPPLIES,
+-					    sensor->supplies);
+-		if (ret)
+-			goto xclk_off;
++	ret = regulator_bulk_enable(OV5640_NUM_SUPPLIES,
++				    sensor->supplies);
++	if (ret) {
++		dev_err(&client->dev, "%s: failed to enable regulators\n",
++			__func__);
++		goto xclk_off;
++	}
++
++	ov5640_reset(sensor);
++	ov5640_power(sensor, true);
++
++	ret = ov5640_init_slave_id(sensor);
++	if (ret)
++		goto power_off;
++
++	return 0;
++
++power_off:
++	ov5640_power(sensor, false);
++	regulator_bulk_disable(OV5640_NUM_SUPPLIES, sensor->supplies);
++xclk_off:
++	clk_disable_unprepare(sensor->xclk);
++	return ret;
++}
++
++static void ov5640_set_power_off(struct ov5640_dev *sensor)
++{
++	ov5640_power(sensor, false);
++	regulator_bulk_disable(OV5640_NUM_SUPPLIES, sensor->supplies);
++	clk_disable_unprepare(sensor->xclk);
++}
+ 
+-		ov5640_reset(sensor);
+-		ov5640_power(sensor, true);
++static int ov5640_set_power(struct ov5640_dev *sensor, bool on)
++{
++	int ret = 0;
+ 
+-		ret = ov5640_init_slave_id(sensor);
++	if (on) {
++		ret = ov5640_set_power_on(sensor);
+ 		if (ret)
+-			goto power_off;
++			return ret;
+ 
+ 		ret = ov5640_restore_mode(sensor);
+ 		if (ret)
+@@ -1586,10 +1620,7 @@ static int ov5640_set_power(struct ov5640_dev *sensor, bool on)
+ 	}
+ 
+ power_off:
+-	ov5640_power(sensor, false);
+-	regulator_bulk_disable(OV5640_NUM_SUPPLIES, sensor->supplies);
+-xclk_off:
+-	clk_disable_unprepare(sensor->xclk);
++	ov5640_set_power_off(sensor);
+ 	return ret;
+ }
+ 
+@@ -2202,6 +2233,34 @@ static int ov5640_get_regulators(struct ov5640_dev *sensor)
+ 				       sensor->supplies);
+ }
+ 
++static int ov5640_check_chip_id(struct ov5640_dev *sensor)
++{
++	struct i2c_client *client = sensor->i2c_client;
++	int ret = 0;
++	u16 chip_id;
++
++	ret = ov5640_set_power_on(sensor);
++	if (ret)
++		return ret;
++
++	ret = ov5640_read_reg16(sensor, OV5640_REG_CHIP_ID, &chip_id);
++	if (ret) {
++		dev_err(&client->dev, "%s: failed to read chip identifier\n",
++			__func__);
++		goto power_off;
++	}
++
++	if (chip_id != 0x5640) {
++		dev_err(&client->dev, "%s: wrong chip identifier, expected 0x5640, got 0x%x\n",
++			__func__, chip_id);
++		ret = -ENXIO;
++	}
++
++power_off:
++	ov5640_set_power_off(sensor);
++	return ret;
++}
++
+ static int ov5640_probe(struct i2c_client *client,
+ 			const struct i2c_device_id *id)
+ {
+@@ -2284,6 +2343,10 @@ static int ov5640_probe(struct i2c_client *client,
+ 
+ 	mutex_init(&sensor->lock);
+ 
++	ret = ov5640_check_chip_id(sensor);
++	if (ret)
++		goto entity_cleanup;
++
+ 	ret = ov5640_init_controls(sensor);
+ 	if (ret)
+ 		goto entity_cleanup;
 -- 
-Regards,
-
-Sakari Ailus
-sakari.ailus@linux.intel.com
+1.9.1
