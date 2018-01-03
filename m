@@ -1,138 +1,136 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([65.50.211.133]:60577 "EHLO
+Received: from bombadil.infradead.org ([65.50.211.133]:35521 "EHLO
         bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755883AbeAIUjz (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 9 Jan 2018 15:39:55 -0500
-From: Christoph Hellwig <hch@lst.de>
-To: Bjorn Helgaas <bhelgaas@google.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: linux-pci@vger.kernel.org, linux-media@vger.kernel.org,
+        with ESMTP id S1751335AbeACKXW (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 3 Jan 2018 05:23:22 -0500
+Date: Wed, 3 Jan 2018 08:23:10 -0200
+From: Mauro Carvalho Chehab <mchehab@kernel.org>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Max Kellermann <max.kellermann@gmail.com>,
+        Wolfgang Rohdewald <wolfgang@rohdewald.de>,
+        Shuah Khan <shuah@kernel.org>,
+        Jaedon Shin <jaedon.shin@gmail.com>,
+        Colin Ian King <colin.king@canonical.com>,
+        Satendra Singh Thakur <satendra.t@samsung.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sean Young <sean@mess.org>, linux-media@vger.kernel.org,
         linux-kernel@vger.kernel.org
-Subject: [PATCH 3/3] pci-dma-compat: remove handling of NULL pdev arguments
-Date: Tue,  9 Jan 2018 21:39:39 +0100
-Message-Id: <20180109203939.5930-4-hch@lst.de>
-In-Reply-To: <20180109203939.5930-1-hch@lst.de>
-References: <20180109203939.5930-1-hch@lst.de>
+Subject: Re: [PATCH] media: don't drop front-end reference count for
+ ->detach
+Message-ID: <20180103082310.59d7e52f@vento.lan>
+In-Reply-To: <20180102095154.3424890-1-arnd@arndb.de>
+References: <20180102095154.3424890-1-arnd@arndb.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Historically some ISA drivers used the old pci DMA API with a NULL pdev
-argument, but these days this isn't used and not too useful due to the
-per-device DMA ops, so remove it.
+Em Tue,  2 Jan 2018 10:48:54 +0100
+Arnd Bergmann <arnd@arndb.de> escreveu:
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
----
- include/linux/pci-dma-compat.h | 27 +++++++++++++--------------
- 1 file changed, 13 insertions(+), 14 deletions(-)
+> A bugfix introduce a link failure in configurations without CONFIG_MODULES:
+> 
+> In file included from drivers/media/usb/dvb-usb/pctv452e.c:20:0:
+> drivers/media/usb/dvb-usb/pctv452e.c: In function 'pctv452e_frontend_attach':
+> drivers/media/dvb-frontends/stb0899_drv.h:151:36: error: weak declaration of 'stb0899_attach' being applied to a already existing, static definition
+> 
+> The problem is that the !IS_REACHABLE() declaration of stb0899_attach()
+> is a 'static inline' definition that clashes with the weak definition.
+> 
+> I further observed that the bugfix was only done for one of the five users
+> of stb0899_attach(), the other four still have the problem.  This reverts
+> the bugfix and instead addresses the problem by not dropping the reference
+> count when calling '->detach()', instead we call this function directly
+> in dvb_frontend_put() before dropping the kref on the front-end.
+> 
+> Cc: Max Kellermann <max.kellermann@gmail.com>
+> Cc: Wolfgang Rohdewald <wolfgang@rohdewald.de>
+> Fixes: f686c14364ad ("[media] stb0899: move code to "detach" callback")
+> Fixes: 6cdeaed3b142 ("media: dvb_usb_pctv452e: module refcount changes were unbalanced")
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> ---
+>  drivers/media/dvb-core/dvb_frontend.c | 4 +++-
+>  drivers/media/usb/dvb-usb/pctv452e.c  | 8 --------
+>  2 files changed, 3 insertions(+), 9 deletions(-)
+> 
+> diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
+> index 87fc1bcae5ae..fe10b6f4d3e0 100644
+> --- a/drivers/media/dvb-core/dvb_frontend.c
+> +++ b/drivers/media/dvb-core/dvb_frontend.c
+> @@ -164,6 +164,9 @@ static void dvb_frontend_free(struct kref *ref)
+>  
+>  static void dvb_frontend_put(struct dvb_frontend *fe)
+>  {
+> +	/* call detach before dropping the reference count */
+> +	if (fe->ops.detach)
+> +		fe->ops.detach(fe);
+>  	/*
+>  	 * Check if the frontend was registered, as otherwise
+>  	 * kref was not initialized yet.
+> @@ -2965,7 +2968,6 @@ void dvb_frontend_detach(struct dvb_frontend* fe)
+>  	dvb_frontend_invoke_release(fe, fe->ops.release_sec);
+>  	dvb_frontend_invoke_release(fe, fe->ops.tuner_ops.release);
+>  	dvb_frontend_invoke_release(fe, fe->ops.analog_ops.release);
+> -	dvb_frontend_invoke_release(fe, fe->ops.detach);
+>  	dvb_frontend_put(fe);
 
-diff --git a/include/linux/pci-dma-compat.h b/include/linux/pci-dma-compat.h
-index d1f9fdade1e0..0dd1a3f7b309 100644
---- a/include/linux/pci-dma-compat.h
-+++ b/include/linux/pci-dma-compat.h
-@@ -17,91 +17,90 @@ static inline void *
- pci_alloc_consistent(struct pci_dev *hwdev, size_t size,
- 		     dma_addr_t *dma_handle)
- {
--	return dma_alloc_coherent(hwdev == NULL ? NULL : &hwdev->dev, size, dma_handle, GFP_ATOMIC);
-+	return dma_alloc_coherent(&hwdev->dev, size, dma_handle, GFP_ATOMIC);
- }
- 
- static inline void *
- pci_zalloc_consistent(struct pci_dev *hwdev, size_t size,
- 		      dma_addr_t *dma_handle)
- {
--	return dma_zalloc_coherent(hwdev == NULL ? NULL : &hwdev->dev,
--				   size, dma_handle, GFP_ATOMIC);
-+	return dma_zalloc_coherent(&hwdev->dev, size, dma_handle, GFP_ATOMIC);
- }
- 
- static inline void
- pci_free_consistent(struct pci_dev *hwdev, size_t size,
- 		    void *vaddr, dma_addr_t dma_handle)
- {
--	dma_free_coherent(hwdev == NULL ? NULL : &hwdev->dev, size, vaddr, dma_handle);
-+	dma_free_coherent(&hwdev->dev, size, vaddr, dma_handle);
- }
- 
- static inline dma_addr_t
- pci_map_single(struct pci_dev *hwdev, void *ptr, size_t size, int direction)
- {
--	return dma_map_single(hwdev == NULL ? NULL : &hwdev->dev, ptr, size, (enum dma_data_direction)direction);
-+	return dma_map_single(&hwdev->dev, ptr, size, (enum dma_data_direction)direction);
- }
- 
- static inline void
- pci_unmap_single(struct pci_dev *hwdev, dma_addr_t dma_addr,
- 		 size_t size, int direction)
- {
--	dma_unmap_single(hwdev == NULL ? NULL : &hwdev->dev, dma_addr, size, (enum dma_data_direction)direction);
-+	dma_unmap_single(&hwdev->dev, dma_addr, size, (enum dma_data_direction)direction);
- }
- 
- static inline dma_addr_t
- pci_map_page(struct pci_dev *hwdev, struct page *page,
- 	     unsigned long offset, size_t size, int direction)
- {
--	return dma_map_page(hwdev == NULL ? NULL : &hwdev->dev, page, offset, size, (enum dma_data_direction)direction);
-+	return dma_map_page(&hwdev->dev, page, offset, size, (enum dma_data_direction)direction);
- }
- 
- static inline void
- pci_unmap_page(struct pci_dev *hwdev, dma_addr_t dma_address,
- 	       size_t size, int direction)
- {
--	dma_unmap_page(hwdev == NULL ? NULL : &hwdev->dev, dma_address, size, (enum dma_data_direction)direction);
-+	dma_unmap_page(&hwdev->dev, dma_address, size, (enum dma_data_direction)direction);
- }
- 
- static inline int
- pci_map_sg(struct pci_dev *hwdev, struct scatterlist *sg,
- 	   int nents, int direction)
- {
--	return dma_map_sg(hwdev == NULL ? NULL : &hwdev->dev, sg, nents, (enum dma_data_direction)direction);
-+	return dma_map_sg(&hwdev->dev, sg, nents, (enum dma_data_direction)direction);
- }
- 
- static inline void
- pci_unmap_sg(struct pci_dev *hwdev, struct scatterlist *sg,
- 	     int nents, int direction)
- {
--	dma_unmap_sg(hwdev == NULL ? NULL : &hwdev->dev, sg, nents, (enum dma_data_direction)direction);
-+	dma_unmap_sg(&hwdev->dev, sg, nents, (enum dma_data_direction)direction);
- }
- 
- static inline void
- pci_dma_sync_single_for_cpu(struct pci_dev *hwdev, dma_addr_t dma_handle,
- 		    size_t size, int direction)
- {
--	dma_sync_single_for_cpu(hwdev == NULL ? NULL : &hwdev->dev, dma_handle, size, (enum dma_data_direction)direction);
-+	dma_sync_single_for_cpu(&hwdev->dev, dma_handle, size, (enum dma_data_direction)direction);
- }
- 
- static inline void
- pci_dma_sync_single_for_device(struct pci_dev *hwdev, dma_addr_t dma_handle,
- 		    size_t size, int direction)
- {
--	dma_sync_single_for_device(hwdev == NULL ? NULL : &hwdev->dev, dma_handle, size, (enum dma_data_direction)direction);
-+	dma_sync_single_for_device(&hwdev->dev, dma_handle, size, (enum dma_data_direction)direction);
- }
- 
- static inline void
- pci_dma_sync_sg_for_cpu(struct pci_dev *hwdev, struct scatterlist *sg,
- 		int nelems, int direction)
- {
--	dma_sync_sg_for_cpu(hwdev == NULL ? NULL : &hwdev->dev, sg, nelems, (enum dma_data_direction)direction);
-+	dma_sync_sg_for_cpu(&hwdev->dev, sg, nelems, (enum dma_data_direction)direction);
- }
- 
- static inline void
- pci_dma_sync_sg_for_device(struct pci_dev *hwdev, struct scatterlist *sg,
- 		int nelems, int direction)
- {
--	dma_sync_sg_for_device(hwdev == NULL ? NULL : &hwdev->dev, sg, nelems, (enum dma_data_direction)direction);
-+	dma_sync_sg_for_device(&hwdev->dev, sg, nelems, (enum dma_data_direction)direction);
- }
- 
- static inline int
--- 
-2.14.2
+Hmm... stb0899 is not the only driver using detach:
+
+drivers/media/dvb-frontends/stb0899_drv.c:      .detach                         = stb0899_detach,
+drivers/media/pci/saa7146/hexium_gemini.c:      .detach = hexium_detach,
+drivers/media/pci/saa7146/hexium_orion.c:       .detach = hexium_detach,
+drivers/media/pci/saa7146/mxb.c:        .detach         = mxb_detach,
+drivers/media/pci/ttpci/av7110.c:       .detach         = av7110_detach,
+drivers/media/pci/ttpci/budget-av.c:    .detach = budget_av_detach,
+drivers/media/pci/ttpci/budget-ci.c:    .detach = budget_ci_detach,
+drivers/media/pci/ttpci/budget-patch.c: .detach         = budget_patch_detach,
+drivers/media/pci/ttpci/budget.c:       .detach         = budget_detach,
+
+Unfortunately, I don't have any device that would be affected by
+this change, but it sounds risky to not call this code anymore:
+
+	#ifdef CONFIG_MEDIA_ATTACH
+                dvb_detach(release);
+	#endif
+
+for .detach ops, as it has the potential of preventing unbind on
+those drivers.
+
+
+>  }
+>  EXPORT_SYMBOL(dvb_frontend_detach);
+> diff --git a/drivers/media/usb/dvb-usb/pctv452e.c b/drivers/media/usb/dvb-usb/pctv452e.c
+> index 0af74383083d..ae793dac4964 100644
+> --- a/drivers/media/usb/dvb-usb/pctv452e.c
+> +++ b/drivers/media/usb/dvb-usb/pctv452e.c
+> @@ -913,14 +913,6 @@ static int pctv452e_frontend_attach(struct dvb_usb_adapter *a)
+>  						&a->dev->i2c_adap);
+>  	if (!a->fe_adap[0].fe)
+>  		return -ENODEV;
+> -
+> -	/*
+> -	 * dvb_frontend will call dvb_detach for both stb0899_detach
+> -	 * and stb0899_release but we only do dvb_attach(stb0899_attach).
+> -	 * Increment the module refcount instead.
+> -	 */
+> -	symbol_get(stb0899_attach);
+
+
+IMHO, the safest fix would be, instead, to do:
+
+	#ifdef CONFIG_MEDIA_ATTACH
+		symbol_get(stb0899_attach);
+	#endif
+
+Btw, we have some code similar to that on other drivers
+with either symbol_get() or symbol_put().
+
+Yeah, I agree that this sucks. The right fix here is to use i2c high level
+interfaces, binding it via i2c bus, instead of using the symbol_get()
+based dvb_attach() macro.
+
+We're (very) slowing doing such changes along the media subsystem.
+
+Thanks,
+Mauro
