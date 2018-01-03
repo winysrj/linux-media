@@ -1,106 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f194.google.com ([209.85.128.194]:39701 "EHLO
-        mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751028AbeAVRNx (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 22 Jan 2018 12:13:53 -0500
-Received: by mail-wr0-f194.google.com with SMTP id z48so9500698wrz.6
-        for <linux-media@vger.kernel.org>; Mon, 22 Jan 2018 09:13:53 -0800 (PST)
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: linux-media@vger.kernel.org, mchehab@kernel.org,
-        mchehab@s-opensource.com
-Cc: rascobie@slingshot.co.nz
-Subject: [PATCH v2 2/5] media: dvb_frontend: add DVB-S2X rolloff factors
-Date: Mon, 22 Jan 2018 18:13:43 +0100
-Message-Id: <20180122171346.822-3-d.scheller.oss@gmail.com>
-In-Reply-To: <20180122171346.822-1-d.scheller.oss@gmail.com>
-References: <20180122171346.822-1-d.scheller.oss@gmail.com>
+Received: from mail.kernel.org ([198.145.29.99]:53630 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751268AbeACUdH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 3 Jan 2018 15:33:07 -0500
+From: Kieran Bingham <kbingham@kernel.org>
+To: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        laurent.pinchart@ideasonboard.com
+Cc: Olivier BRAUN <olivier.braun@stereolabs.com>,
+        kieran.bingham@ideasonboard.com
+Subject: [RFC/RFT PATCH 0/6] Asynchronous UVC
+Date: Wed,  3 Jan 2018 20:32:50 +0000
+Message-Id: <cover.67dff754d6d314373ac0a04777b3b1d785fc5dd4.1515010476.git-series.kieran.bingham@ideasonboard.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Daniel Scheller <d.scheller@gmx.net>
+From: Kieran Bingham <kieran.bingham@ideasonboard.com>
 
-Add 15%, 10% and 5% DVB-S2X rolloff factors. Also fix roloff typos.
+The Linux UVC driver has long provided adequate performance capabilities for
+web-cams and low data rate video devices in Linux while resolutions were low.
 
-Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
----
- Documentation/media/frontend.h.rst.exceptions |  3 +++
- drivers/media/dvb-core/dvb_frontend.c         |  9 +++++++++
- include/uapi/linux/dvb/frontend.h             | 16 +++++++++++-----
- 3 files changed, 23 insertions(+), 5 deletions(-)
+Modern USB cameras are now capable of high data rates thanks to USB3 with
+1080p, and even 4k capture resolutions supported.
 
-diff --git a/Documentation/media/frontend.h.rst.exceptions b/Documentation/media/frontend.h.rst.exceptions
-index ae1148be0a39..c1643ce93426 100644
---- a/Documentation/media/frontend.h.rst.exceptions
-+++ b/Documentation/media/frontend.h.rst.exceptions
-@@ -167,6 +167,9 @@ ignore symbol ROLLOFF_35
- ignore symbol ROLLOFF_20
- ignore symbol ROLLOFF_25
- ignore symbol ROLLOFF_AUTO
-+ignore symbol ROLLOFF_15
-+ignore symbol ROLLOFF_10
-+ignore symbol ROLLOFF_5
- 
- ignore symbol INVERSION_ON
- ignore symbol INVERSION_OFF
-diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
-index 722b86a43497..e5105c1783b8 100644
---- a/drivers/media/dvb-core/dvb_frontend.c
-+++ b/drivers/media/dvb-core/dvb_frontend.c
-@@ -2183,6 +2183,15 @@ static int dtv_set_frontend(struct dvb_frontend *fe)
- 		break;
- 	case SYS_DVBS2:
- 		switch (c->rolloff) {
-+		case ROLLOFF_5:
-+			rolloff = 105;
-+			break;
-+		case ROLLOFF_10:
-+			rolloff = 110;
-+			break;
-+		case ROLLOFF_15:
-+			rolloff = 115;
-+			break;
- 		case ROLLOFF_20:
- 			rolloff = 120;
- 			break;
-diff --git a/include/uapi/linux/dvb/frontend.h b/include/uapi/linux/dvb/frontend.h
-index 227268a657cd..8bf1c63627a2 100644
---- a/include/uapi/linux/dvb/frontend.h
-+++ b/include/uapi/linux/dvb/frontend.h
-@@ -580,20 +580,26 @@ enum fe_pilot {
- 
- /**
-  * enum fe_rolloff - Rolloff factor
-- * @ROLLOFF_35:		Roloff factor: α=35%
-- * @ROLLOFF_20:		Roloff factor: α=20%
-- * @ROLLOFF_25:		Roloff factor: α=25%
-- * @ROLLOFF_AUTO:	Auto-detect the roloff factor.
-+ * @ROLLOFF_35:		Rolloff factor: α=35%
-+ * @ROLLOFF_20:		Rolloff factor: α=20%
-+ * @ROLLOFF_25:		Rolloff factor: α=25%
-+ * @ROLLOFF_AUTO:	Auto-detect the rolloff factor.
-+ * @ROLLOFF_15:		Rolloff factor: α=15%
-+ * @ROLLOFF_10:		Rolloff factor: α=10%
-+ * @ROLLOFF_5:		Rolloff factor: α=5%
-  *
-  * .. note:
-  *
-- *    Roloff factor of 35% is implied on DVB-S. On DVB-S2, it is default.
-+ *    Rolloff factor of 35% is implied on DVB-S. On DVB-S2, it is default.
-  */
- enum fe_rolloff {
- 	ROLLOFF_35,
- 	ROLLOFF_20,
- 	ROLLOFF_25,
- 	ROLLOFF_AUTO,
-+	ROLLOFF_15,
-+	ROLLOFF_10,
-+	ROLLOFF_5,
- };
- 
- /**
+Cameras such as the Stereolabs ZED or the Logitech Brio can generate more data
+than an embedded ARM core is able to process on a single core, resulting in
+frame loss.
+
+A large part of this performance impact is from the requirement to
+‘memcpy’ frames out from URB packets to destination frames. This unfortunate
+requirement is due to the UVC protocol allowing a variable length header, and
+thus it is not possible to provide the target frame buffers directly.
+
+Extra throughput is possible by moving the actual memcpy actions to a work
+queue, and moving the memcpy out of interrupt context and allowing work tasks
+to be scheduled across multiple cores.
+
+This series has been tested on both the ZED and Brio cameras on arm64
+platforms, however due to the intrinsic changes in the driver I would like to
+see it tested with other devices and other platforms, so I'd appreciate if
+anyone can test this on a range of USB cameras.
+
+Kieran Bingham (6):
+  uvcvideo: Refactor URB descriptors
+  uvcvideo: Convert decode functions to use new context structure
+  uvcvideo: Protect queue internals with helper
+  uvcvideo: queue: Simplify spin-lock usage
+  uvcvideo: queue: Support asynchronous buffer handling
+  uvcvideo: Move decode processing to process context
+
+ drivers/media/usb/uvc/uvc_isight.c |   4 +-
+ drivers/media/usb/uvc/uvc_queue.c  | 115 ++++++++++++++----
+ drivers/media/usb/uvc/uvc_video.c  | 191 ++++++++++++++++++++++--------
+ drivers/media/usb/uvc/uvcvideo.h   |  56 +++++++--
+ 4 files changed, 289 insertions(+), 77 deletions(-)
+
+base-commit: 6f0e5fd39143a59c22d60e7befc4f33f22aeed2f
 -- 
-2.13.6
+git-series 0.9.1
