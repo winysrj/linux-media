@@ -1,71 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f194.google.com ([209.85.220.194]:45404 "EHLO
-        mail-qk0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S966003AbeAJQKC (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 10 Jan 2018 11:10:02 -0500
-From: Gustavo Padovan <gustavo@padovan.org>
+Received: from mail-pg0-f66.google.com ([74.125.83.66]:41476 "EHLO
+        mail-pg0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750864AbeACSX2 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 3 Jan 2018 13:23:28 -0500
+Received: by mail-pg0-f66.google.com with SMTP id 77so984693pgd.8
+        for <linux-media@vger.kernel.org>; Wed, 03 Jan 2018 10:23:28 -0800 (PST)
+From: Akinobu Mita <akinobu.mita@gmail.com>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        Pawel Osciak <pawel@osciak.com>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Brian Starkey <brian.starkey@arm.com>,
-        Thierry Escande <thierry.escande@collabora.com>,
-        linux-kernel@vger.kernel.org,
-        Gustavo Padovan <gustavo.padovan@collabora.com>
-Subject: [PATCH v7 1/6] [media] vb2: add is_unordered callback for drivers
-Date: Wed, 10 Jan 2018 14:07:27 -0200
-Message-Id: <20180110160732.7722-2-gustavo@padovan.org>
-In-Reply-To: <20180110160732.7722-1-gustavo@padovan.org>
-References: <20180110160732.7722-1-gustavo@padovan.org>
+Cc: Akinobu Mita <akinobu.mita@gmail.com>,
+        Rob Herring <robh@kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Subject: [PATCH v2 3/4] media: mt9m111: document missing required clocks property
+Date: Thu,  4 Jan 2018 03:22:46 +0900
+Message-Id: <1515003767-12006-4-git-send-email-akinobu.mita@gmail.com>
+In-Reply-To: <1515003767-12006-1-git-send-email-akinobu.mita@gmail.com>
+References: <1515003767-12006-1-git-send-email-akinobu.mita@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Gustavo Padovan <gustavo.padovan@collabora.com>
+The mt9m111 driver requires clocks property for the master clock to the
+sensor, but there is no description for that.  This adds it.
 
-Explicit synchronization benefits a lot from ordered queues, they fit
-better in a pipeline with DRM for example so create a opt-in way for
-drivers notify videobuf2 that the queue is unordered.
-
-Drivers don't need implement it if the queue is ordered.
-
-Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
+Cc: Rob Herring <robh@kernel.org>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
 ---
- include/media/videobuf2-core.h | 5 +++++
- 1 file changed, 5 insertions(+)
+* Changelog v2
+- Fix typo s/meida/media/ in the patch title, noticed by Sakari Ailus
+- Improve the wording for "clock-names" property, suggested by Sakari Ailus
 
-diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index f3ee4c7c2fb3..583cdc06de79 100644
---- a/include/media/videobuf2-core.h
-+++ b/include/media/videobuf2-core.h
-@@ -370,6 +370,9 @@ struct vb2_buffer {
-  *			callback by calling vb2_buffer_done() with either
-  *			%VB2_BUF_STATE_DONE or %VB2_BUF_STATE_ERROR; may use
-  *			vb2_wait_for_all_buffers() function
-+ * @is_unordered:	tell if the queue format is unordered. The default is
-+ *			assumed to be ordered and this function only needs to
-+ *			be implemented for unordered queues.
-  * @buf_queue:		passes buffer vb to the driver; driver may start
-  *			hardware operation on this buffer; driver should give
-  *			the buffer back by calling vb2_buffer_done() function;
-@@ -393,6 +396,7 @@ struct vb2_ops {
+ Documentation/devicetree/bindings/media/i2c/mt9m111.txt | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/Documentation/devicetree/bindings/media/i2c/mt9m111.txt b/Documentation/devicetree/bindings/media/i2c/mt9m111.txt
+index ed5a334..6b91003 100644
+--- a/Documentation/devicetree/bindings/media/i2c/mt9m111.txt
++++ b/Documentation/devicetree/bindings/media/i2c/mt9m111.txt
+@@ -6,6 +6,8 @@ interface.
  
- 	int (*start_streaming)(struct vb2_queue *q, unsigned int count);
- 	void (*stop_streaming)(struct vb2_queue *q);
-+	int (*is_unordered)(struct vb2_queue *q);
+ Required Properties:
+ - compatible: value should be "micron,mt9m111"
++- clocks: reference to the master clock.
++- clock-names: shall be "mclk".
  
- 	void (*buf_queue)(struct vb2_buffer *vb);
- };
-@@ -566,6 +570,7 @@ struct vb2_queue {
- 	u32				cnt_wait_finish;
- 	u32				cnt_start_streaming;
- 	u32				cnt_stop_streaming;
-+	u32				cnt_is_unordered;
- #endif
- };
+ For further reading on port node refer to
+ Documentation/devicetree/bindings/media/video-interfaces.txt.
+@@ -16,6 +18,8 @@ Example:
+ 		mt9m111@5d {
+ 			compatible = "micron,mt9m111";
+ 			reg = <0x5d>;
++			clocks = <&mclk>;
++			clock-names = "mclk";
  
+ 			remote = <&pxa_camera>;
+ 			port {
 -- 
-2.14.3
+2.7.4
