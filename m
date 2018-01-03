@@ -1,92 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ua0-f194.google.com ([209.85.217.194]:43664 "EHLO
-        mail-ua0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751017AbeAPCmi (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 15 Jan 2018 21:42:38 -0500
-Received: by mail-ua0-f194.google.com with SMTP id i5so701009uai.10
-        for <linux-media@vger.kernel.org>; Mon, 15 Jan 2018 18:42:38 -0800 (PST)
-Received: from mail-vk0-f47.google.com (mail-vk0-f47.google.com. [209.85.213.47])
-        by smtp.gmail.com with ESMTPSA id v39sm224593uav.47.2018.01.15.18.42.36
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Mon, 15 Jan 2018 18:42:37 -0800 (PST)
-Received: by mail-vk0-f47.google.com with SMTP id n4so8556619vkd.6
-        for <linux-media@vger.kernel.org>; Mon, 15 Jan 2018 18:42:36 -0800 (PST)
+Received: from galahad.ideasonboard.com ([185.26.127.97]:58864 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751653AbeACK5J (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 3 Jan 2018 05:57:09 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Edgar Thier <info@edgarthier.net>
+Cc: Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        linux-media@vger.kernel.org
+Subject: Re: [PATCH] uvcvideo: Apply flags from device to actual properties
+Date: Wed, 03 Jan 2018 12:57:30 +0200
+Message-ID: <24839161.SxonQjYASC@avalon>
+In-Reply-To: <c95024db-c6f8-f346-07f7-d99acf05cd00@edgarthier.net>
+References: <ca483e75-4519-2bc3-eb11-db647fc60860@edgarthier.net> <4142585.lFnxXeD9HU@avalon> <c95024db-c6f8-f346-07f7-d99acf05cd00@edgarthier.net>
 MIME-Version: 1.0
-In-Reply-To: <C193D76D23A22742993887E6D207B54D1AEB61AE@FMSMSX151.amr.corp.intel.com>
-References: <1515034637-3517-1-git-send-email-yong.zhi@intel.com>
- <1515034637-3517-2-git-send-email-yong.zhi@intel.com> <CAAFQd5AaOSQ_wcA_w5vBufVk5FfLPe6x9BnS=hcShv_asf3Cyw@mail.gmail.com>
- <C193D76D23A22742993887E6D207B54D1AEB61AE@FMSMSX151.amr.corp.intel.com>
-From: Tomasz Figa <tfiga@chromium.org>
-Date: Tue, 16 Jan 2018 11:42:16 +0900
-Message-ID: <CAAFQd5AAmMtdu-cYHpGjB+LO+ZKqyLrqySv7RfohHgq-Ngc+YQ@mail.gmail.com>
-Subject: Re: [PATCH 2/2] media: intel-ipu3: cio2: fix for wrong vb2buf state warnings
-To: "Zhi, Yong" <yong.zhi@intel.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        "Mani, Rajmohan" <rajmohan.mani@intel.com>,
-        "Cao, Bingbu" <bingbu.cao@intel.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Jan 16, 2018 at 2:07 AM, Zhi, Yong <yong.zhi@intel.com> wrote:
-> Hi, Tomasz,
->
-> Thanks for reviewing the patch.
->
->> -----Original Message-----
->> From: Tomasz Figa [mailto:tfiga@chromium.org]
->> Sent: Friday, January 12, 2018 12:19 AM
->> To: Zhi, Yong <yong.zhi@intel.com>
->> Cc: Linux Media Mailing List <linux-media@vger.kernel.org>; Sakari Ailus
->> <sakari.ailus@linux.intel.com>; Mani, Rajmohan
->> <rajmohan.mani@intel.com>; Cao, Bingbu <bingbu.cao@intel.com>
->> Subject: Re: [PATCH 2/2] media: intel-ipu3: cio2: fix for wrong vb2buf state
->> warnings
->>
->> On Thu, Jan 4, 2018 at 11:57 AM, Yong Zhi <yong.zhi@intel.com> wrote:
->> > cio2 driver should release buffer with QUEUED state when start_stream
->> > op failed, wrong buffer state will cause vb2 core throw a warning.
->> >
->> > Signed-off-by: Yong Zhi <yong.zhi@intel.com>
->> > Signed-off-by: Cao Bing Bu <bingbu.cao@intel.com>
->> > ---
->> >  drivers/media/pci/intel/ipu3/ipu3-cio2.c | 9 +++++----
->> >  1 file changed, 5 insertions(+), 4 deletions(-)
->> >
->> > diff --git a/drivers/media/pci/intel/ipu3/ipu3-cio2.c
->> > b/drivers/media/pci/intel/ipu3/ipu3-cio2.c
->> > index 949f43d206ad..106d04306372 100644
->> > --- a/drivers/media/pci/intel/ipu3/ipu3-cio2.c
->> > +++ b/drivers/media/pci/intel/ipu3/ipu3-cio2.c
->> > @@ -785,7 +785,8 @@ static irqreturn_t cio2_irq(int irq, void
->> > *cio2_ptr)
->> >
->> >  /**************** Videobuf2 interface ****************/
->> >
->> > -static void cio2_vb2_return_all_buffers(struct cio2_queue *q)
->> > +static void cio2_vb2_return_all_buffers(struct cio2_queue *q,
->> > +                                       enum vb2_buffer_state state)
->> >  {
->> >         unsigned int i;
->> >
->> > @@ -793,7 +794,7 @@ static void cio2_vb2_return_all_buffers(struct
->> cio2_queue *q)
->> >                 if (q->bufs[i]) {
->> >                         atomic_dec(&q->bufs_queued);
->> >                         vb2_buffer_done(&q->bufs[i]->vbb.vb2_buf,
->> > -                                       VB2_BUF_STATE_ERROR);
->> > +                                       state);
->>
->> nit: Does it really exceed 80 characters after folding into previous line?
->>
->
-> Thanks for catching this, seems this patch was merged, may I fix it in future patch?
+Hi Edgar,
 
-It's just a nit that I was hoping to be fixed at patch applying time.
-Otherwise just never mind.
+On Wednesday, 3 January 2018 08:07:44 EET Edgar Thier wrote:
+> Hi Emmanuel,
 
-Best regards,
-Tomasz
+If we pick names randomly I'll call you David :-)
+
+> >>> +	int flags = 0;
+> >>> +
+> >>> +	data = kmalloc(2, GFP_KERNEL);
+> > 
+> > Isn't 1 byte enough ?
+> 
+> To quote from Kieran further up this thread:
+> 
+> >> kmalloc seems a bit of an overhead for 2 bytes (only one of which is
+> >> used). Can this use local stack storage?
+> >> 
+> >> (Laurent, looks like you originally wrote the code that did that, was
+> >> there a reason for the kmalloc for 2 bytes?)
+> > 
+> > Aha - OK, Just spoke with Laurent and - yes this is needed, as we can't
+> > DMA to the stack  - I hadn't realised the 'data' was being DMA'd ..
+
+I don't dispute the fact that we need to kmalloc the memory, but I think we 
+only need to kmalloc one byte, not two. The existing 2 bytes allocation comes 
+from the size of the GET_LEN reply. Now that you only issue a GET_INFO here, 
+one byte is enough.
+
+> >> All these are small issues. Let me try to address them, I'll send you an
+> >> updated patch shortly.
+> 
+> I'll be waiting.
+
+-- 
+Regards,
+
+Laurent Pinchart
