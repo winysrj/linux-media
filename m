@@ -1,293 +1,417 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f195.google.com ([209.85.192.195]:41844 "EHLO
-        mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754144AbeAGQyq (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sun, 7 Jan 2018 11:54:46 -0500
-From: Akinobu Mita <akinobu.mita@gmail.com>
-To: linux-media@vger.kernel.org, devicetree@vger.kernel.org
-Cc: Akinobu Mita <akinobu.mita@gmail.com>,
-        Jacopo Mondi <jacopo@jmondi.org>,
-        "H . Nikolaus Schaller" <hns@goldelico.com>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Rob Herring <robh@kernel.org>
-Subject: [PATCH v2 1/2] media: ov9650: support device tree probing
-Date: Mon,  8 Jan 2018 01:54:23 +0900
-Message-Id: <1515344064-23156-2-git-send-email-akinobu.mita@gmail.com>
-In-Reply-To: <1515344064-23156-1-git-send-email-akinobu.mita@gmail.com>
-References: <1515344064-23156-1-git-send-email-akinobu.mita@gmail.com>
+Received: from relay4-d.mail.gandi.net ([217.70.183.196]:54417 "EHLO
+        relay4-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753403AbeADQEA (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 4 Jan 2018 11:04:00 -0500
+From: Jacopo Mondi <jacopo+renesas@jmondi.org>
+To: laurent.pinchart@ideasonboard.com, magnus.damm@gmail.com,
+        geert@glider.be, mchehab@kernel.org, hverkuil@xs4all.nl,
+        festevam@gmail.com, sakari.ailus@iki.fi, robh+dt@kernel.org,
+        mark.rutland@arm.com
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-sh@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: [PATCH v3 6/9] media: i2c: ov772x: Remove soc_camera dependencies
+Date: Thu,  4 Jan 2018 17:03:14 +0100
+Message-Id: <1515081797-17174-7-git-send-email-jacopo+renesas@jmondi.org>
+In-Reply-To: <1515081797-17174-1-git-send-email-jacopo+renesas@jmondi.org>
+References: <1515081797-17174-1-git-send-email-jacopo+renesas@jmondi.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The ov9650 driver currently only supports legacy platform data probe.
-This change adds device tree probing.
+Remove soc_camera framework dependencies from ov772x sensor driver.
+- Handle clock and gpios
+- Register async subdevice
+- Remove soc_camera specific g/s_mbus_config operations
+- Change image format colorspace from JPEG to SRGB as the two use the
+  same colorspace information but JPEG makes assumptions on color
+  components quantization that do not apply to the sensor
+- Remove sizes crop from get_selection as driver can't scale
+- Add kernel doc to driver interface header file
+- Adjust build system
 
-There has been an attempt to add device tree support for ov9650 driver
-by Hugues Fruchet as a part of the patchset that adds support of OV9655
-camera (http://www.spinics.net/lists/linux-media/msg117903.html), but
-it wasn't merged into mainline because creating a separate driver for
-OV9655 is preferred.
+This commit does not remove the original soc_camera based driver as long
+as other platforms depends on soc_camera-based CEU driver.
 
-This is very similar to Hugues's patch, but not supporting new device.
-
-Cc: Jacopo Mondi <jacopo@jmondi.org>
-Cc: H. Nikolaus Schaller <hns@goldelico.com>
-Cc: Hugues Fruchet <hugues.fruchet@st.com>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Rob Herring <robh@kernel.org>
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
 ---
-* Changelog v2
-- Split binding documentation, suggested by Rob Herring and Jacopo Mondi
-- Remove ov965x_gpio_set() helper and open-code it, suggested by Jacopo Mondi
-  and Sakari Ailus
-- Call clk_prepare_enable() in s_power callback instead of probe, suggested
-  by Sakari Ailus
-- Unify clk and gpio configuration in a single if-else block and, also add
-  a check either platform data or fwnode is actually specified, suggested
-  by Jacopo Mondi
-- Add CONFIG_OF guards, suggested by Jacopo Mondi
+ drivers/media/i2c/Kconfig  |  11 +++
+ drivers/media/i2c/Makefile |   1 +
+ drivers/media/i2c/ov772x.c | 177 ++++++++++++++++++++++++++++++---------------
+ include/media/i2c/ov772x.h |   6 +-
+ 4 files changed, 133 insertions(+), 62 deletions(-)
 
- drivers/media/i2c/ov9650.c | 130 ++++++++++++++++++++++++++++++++-------------
- 1 file changed, 92 insertions(+), 38 deletions(-)
+diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
+index cb5d7ff..a61d7f4 100644
+--- a/drivers/media/i2c/Kconfig
++++ b/drivers/media/i2c/Kconfig
+@@ -645,6 +645,17 @@ config VIDEO_OV5670
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called ov5670.
 
-diff --git a/drivers/media/i2c/ov9650.c b/drivers/media/i2c/ov9650.c
-index 69433e1..99a3eab 100644
---- a/drivers/media/i2c/ov9650.c
-+++ b/drivers/media/i2c/ov9650.c
-@@ -11,8 +11,10 @@
-  * it under the terms of the GNU General Public License version 2 as
-  * published by the Free Software Foundation.
-  */
-+#include <linux/clk.h>
- #include <linux/delay.h>
- #include <linux/gpio.h>
-+#include <linux/gpio/consumer.h>
- #include <linux/i2c.h>
- #include <linux/kernel.h>
- #include <linux/media.h>
-@@ -249,9 +251,10 @@ struct ov965x {
- 	struct v4l2_subdev sd;
- 	struct media_pad pad;
- 	enum v4l2_mbus_type bus_type;
--	int gpios[NUM_GPIOS];
-+	struct gpio_desc *gpios[NUM_GPIOS];
- 	/* External master clock frequency */
- 	unsigned long mclk_frequency;
-+	struct clk *clk;
- 
- 	/* Protects the struct fields below */
- 	struct mutex lock;
-@@ -513,24 +516,27 @@ static int ov965x_set_color_matrix(struct ov965x *ov965x)
- 	return 0;
- }
- 
--static void ov965x_gpio_set(int gpio, int val)
--{
--	if (gpio_is_valid(gpio))
--		gpio_set_value(gpio, val);
--}
--
--static void __ov965x_set_power(struct ov965x *ov965x, int on)
-+static int __ov965x_set_power(struct ov965x *ov965x, int on)
- {
- 	if (on) {
--		ov965x_gpio_set(ov965x->gpios[GPIO_PWDN], 0);
--		ov965x_gpio_set(ov965x->gpios[GPIO_RST], 0);
-+		int ret = clk_prepare_enable(ov965x->clk);
++config VIDEO_OV772X
++	tristate "OmniVision OV772x sensor support"
++	depends on I2C && VIDEO_V4L2
++	depends on MEDIA_CAMERA_SUPPORT
++	---help---
++	  This is a Video4Linux2 sensor-level driver for the OmniVision
++	  OV772x camera.
 +
++	  To compile this driver as a module, choose M here: the
++	  module will be called ov772x.
++
+ config VIDEO_OV7640
+ 	tristate "OmniVision OV7640 sensor support"
+ 	depends on I2C && VIDEO_V4L2
+diff --git a/drivers/media/i2c/Makefile b/drivers/media/i2c/Makefile
+index 548a9ef..fb99293 100644
+--- a/drivers/media/i2c/Makefile
++++ b/drivers/media/i2c/Makefile
+@@ -66,6 +66,7 @@ obj-$(CONFIG_VIDEO_OV5645) += ov5645.o
+ obj-$(CONFIG_VIDEO_OV5647) += ov5647.o
+ obj-$(CONFIG_VIDEO_OV5670) += ov5670.o
+ obj-$(CONFIG_VIDEO_OV6650) += ov6650.o
++obj-$(CONFIG_VIDEO_OV772X) += ov772x.o
+ obj-$(CONFIG_VIDEO_OV7640) += ov7640.o
+ obj-$(CONFIG_VIDEO_OV7670) += ov7670.o
+ obj-$(CONFIG_VIDEO_OV9650) += ov9650.o
+diff --git a/drivers/media/i2c/ov772x.c b/drivers/media/i2c/ov772x.c
+index 8063835..df2516c 100644
+--- a/drivers/media/i2c/ov772x.c
++++ b/drivers/media/i2c/ov772x.c
+@@ -1,6 +1,9 @@
++// SPDX-License-Identifier: GPL-2.0
+ /*
+  * ov772x Camera Driver
+  *
++ * Copyright (C) 2017 Jacopo Mondi <jacopo+renesas@jmondi.org>
++ *
+  * Copyright (C) 2008 Renesas Solutions Corp.
+  * Kuninori Morimoto <morimoto.kuninori@renesas.com>
+  *
+@@ -9,27 +12,25 @@
+  * Copyright 2006-7 Jonathan Corbet <corbet@lwn.net>
+  * Copyright (C) 2008 Magnus Damm
+  * Copyright (C) 2008, Guennadi Liakhovetski <kernel@pengutronix.de>
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+  */
+
++#include <linux/clk.h>
++#include <linux/delay.h>
++#include <linux/gpio/consumer.h>
++#include <linux/i2c.h>
+ #include <linux/init.h>
+ #include <linux/kernel.h>
+ #include <linux/module.h>
+-#include <linux/i2c.h>
+ #include <linux/slab.h>
+-#include <linux/delay.h>
+ #include <linux/v4l2-mediabus.h>
+ #include <linux/videodev2.h>
+
+ #include <media/i2c/ov772x.h>
+-#include <media/soc_camera.h>
+-#include <media/v4l2-clk.h>
++
+ #include <media/v4l2-ctrls.h>
+-#include <media/v4l2-subdev.h>
++#include <media/v4l2-device.h>
+ #include <media/v4l2-image-sizes.h>
++#include <media/v4l2-subdev.h>
+
+ /*
+  * register offset
+@@ -393,8 +394,10 @@ struct ov772x_win_size {
+ struct ov772x_priv {
+ 	struct v4l2_subdev                subdev;
+ 	struct v4l2_ctrl_handler	  hdl;
+-	struct v4l2_clk			 *clk;
++	struct clk			 *clk;
+ 	struct ov772x_camera_info        *info;
++	struct gpio_desc		 *pwdn_gpio;
++	struct gpio_desc		 *rstb_gpio;
+ 	const struct ov772x_color_format *cfmt;
+ 	const struct ov772x_win_size     *win;
+ 	unsigned short                    flag_vflip:1;
+@@ -409,7 +412,7 @@ struct ov772x_priv {
+ static const struct ov772x_color_format ov772x_cfmts[] = {
+ 	{
+ 		.code		= MEDIA_BUS_FMT_YUYV8_2X8,
+-		.colorspace	= V4L2_COLORSPACE_JPEG,
++		.colorspace	= V4L2_COLORSPACE_SRGB,
+ 		.dsp3		= 0x0,
+ 		.dsp4		= DSP_OFMT_YUV,
+ 		.com3		= SWAP_YUV,
+@@ -417,7 +420,7 @@ static const struct ov772x_color_format ov772x_cfmts[] = {
+ 	},
+ 	{
+ 		.code		= MEDIA_BUS_FMT_YVYU8_2X8,
+-		.colorspace	= V4L2_COLORSPACE_JPEG,
++		.colorspace	= V4L2_COLORSPACE_SRGB,
+ 		.dsp3		= UV_ON,
+ 		.dsp4		= DSP_OFMT_YUV,
+ 		.com3		= SWAP_YUV,
+@@ -425,7 +428,7 @@ static const struct ov772x_color_format ov772x_cfmts[] = {
+ 	},
+ 	{
+ 		.code		= MEDIA_BUS_FMT_UYVY8_2X8,
+-		.colorspace	= V4L2_COLORSPACE_JPEG,
++		.colorspace	= V4L2_COLORSPACE_SRGB,
+ 		.dsp3		= 0x0,
+ 		.dsp4		= DSP_OFMT_YUV,
+ 		.com3		= 0x0,
+@@ -550,7 +553,7 @@ static int ov772x_reset(struct i2c_client *client)
+ }
+
+ /*
+- * soc_camera_ops function
++ * subdev ops
+  */
+
+ static int ov772x_s_stream(struct v4l2_subdev *sd, int enable)
+@@ -650,13 +653,65 @@ static int ov772x_s_register(struct v4l2_subdev *sd,
+ }
+ #endif
+
++static int ov772x_power_on(struct ov772x_priv *priv)
++{
++	struct i2c_client *client = v4l2_get_subdevdata(&priv->subdev);
++	int ret;
++
++	if (priv->clk) {
++		ret = clk_prepare_enable(priv->clk);
 +		if (ret)
 +			return ret;
++	}
 +
-+		gpiod_set_value_cansleep(ov965x->gpios[GPIO_PWDN], 0);
-+		gpiod_set_value_cansleep(ov965x->gpios[GPIO_RST], 0);
- 		msleep(25);
- 	} else {
--		ov965x_gpio_set(ov965x->gpios[GPIO_RST], 1);
--		ov965x_gpio_set(ov965x->gpios[GPIO_PWDN], 1);
-+		gpiod_set_value_cansleep(ov965x->gpios[GPIO_RST], 1);
-+		gpiod_set_value_cansleep(ov965x->gpios[GPIO_PWDN], 1);
++	if (priv->pwdn_gpio) {
++		gpiod_set_value(priv->pwdn_gpio, 1);
++		usleep_range(500, 1000);
++	}
 +
-+		clk_disable_unprepare(ov965x->clk);
- 	}
- 
- 	ov965x->streaming = 0;
++	/*
++	 * FIXME: The reset signal is connected to a shared GPIO on some
++	 * platforms (namely the SuperH Migo-R). Until a framework becomes
++	 * available to handle this cleanly, request the GPIO temporarily
++	 * to avoid conflicts.
++	 */
++	priv->rstb_gpio = gpiod_get_optional(&client->dev, "rstb",
++					     GPIOD_OUT_LOW);
++	if (IS_ERR(priv->rstb_gpio)) {
++		dev_info(&client->dev, "Unable to get GPIO \"rstb\"");
++		return PTR_ERR(priv->rstb_gpio);
++	}
 +
-+	return 0;
- }
- 
- static int ov965x_s_power(struct v4l2_subdev *sd, int on)
-@@ -543,8 +549,8 @@ static int ov965x_s_power(struct v4l2_subdev *sd, int on)
- 
- 	mutex_lock(&ov965x->lock);
- 	if (ov965x->power == !on) {
--		__ov965x_set_power(ov965x, on);
--		if (on) {
-+		ret = __ov965x_set_power(ov965x, on);
-+		if (!ret && on) {
- 			ret = ov965x_write_array(client,
- 						 ov965x_init_regs);
- 			ov965x->apply_frame_fmt = 1;
-@@ -1408,16 +1414,17 @@ static const struct v4l2_subdev_ops ov965x_subdev_ops = {
- /*
-  * Reset and power down GPIOs configuration
-  */
--static int ov965x_configure_gpios(struct ov965x *ov965x,
--				  const struct ov9650_platform_data *pdata)
-+static int ov965x_configure_gpios_pdata(struct ov965x *ov965x,
-+				const struct ov9650_platform_data *pdata)
- {
- 	int ret, i;
-+	int gpios[NUM_GPIOS];
- 
--	ov965x->gpios[GPIO_PWDN] = pdata->gpio_pwdn;
--	ov965x->gpios[GPIO_RST]  = pdata->gpio_reset;
-+	gpios[GPIO_PWDN] = pdata->gpio_pwdn;
-+	gpios[GPIO_RST]  = pdata->gpio_reset;
- 
- 	for (i = 0; i < ARRAY_SIZE(ov965x->gpios); i++) {
--		int gpio = ov965x->gpios[i];
-+		int gpio = gpios[i];
- 
- 		if (!gpio_is_valid(gpio))
- 			continue;
-@@ -1427,9 +1434,30 @@ static int ov965x_configure_gpios(struct ov965x *ov965x,
- 			return ret;
- 		v4l2_dbg(1, debug, &ov965x->sd, "set gpio %d to 1\n", gpio);
- 
--		gpio_set_value(gpio, 1);
-+		gpio_set_value_cansleep(gpio, 1);
- 		gpio_export(gpio, 0);
--		ov965x->gpios[i] = gpio;
-+		ov965x->gpios[i] = gpio_to_desc(gpio);
++	if (priv->rstb_gpio) {
++		gpiod_set_value(priv->rstb_gpio, 1);
++		usleep_range(500, 1000);
++		gpiod_set_value(priv->rstb_gpio, 0);
++		usleep_range(500, 1000);
++
++		gpiod_put(priv->rstb_gpio);
 +	}
 +
 +	return 0;
 +}
 +
-+static int ov965x_configure_gpios(struct ov965x *ov965x)
++static int ov772x_power_off(struct ov772x_priv *priv)
 +{
-+	struct device *dev = &ov965x->client->dev;
++	clk_disable_unprepare(priv->clk);
 +
-+	ov965x->gpios[GPIO_PWDN] = devm_gpiod_get_optional(dev, "powerdown",
-+							GPIOD_OUT_HIGH);
-+	if (IS_ERR(ov965x->gpios[GPIO_PWDN])) {
-+		dev_info(dev, "can't get %s GPIO\n", "powerdown");
-+		return PTR_ERR(ov965x->gpios[GPIO_PWDN]);
++	if (priv->pwdn_gpio) {
++		gpiod_set_value(priv->pwdn_gpio, 0);
++		usleep_range(500, 1000);
 +	}
 +
-+	ov965x->gpios[GPIO_RST] = devm_gpiod_get_optional(dev, "reset",
-+							GPIOD_OUT_HIGH);
-+	if (IS_ERR(ov965x->gpios[GPIO_RST])) {
-+		dev_info(dev, "can't get %s GPIO\n", "reset");
-+		return PTR_ERR(ov965x->gpios[GPIO_RST]);
++	return 0;
++}
++
+ static int ov772x_s_power(struct v4l2_subdev *sd, int on)
+ {
+-	struct i2c_client *client = v4l2_get_subdevdata(sd);
+-	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
+ 	struct ov772x_priv *priv = to_ov772x(sd);
+
+-	return soc_camera_set_power(&client->dev, ssdd, priv->clk, on);
++	return on ? ov772x_power_on(priv) :
++		    ov772x_power_off(priv);
+ }
+
+ static const struct ov772x_win_size *ov772x_select_win(u32 width, u32 height)
+@@ -855,24 +910,21 @@ static int ov772x_get_selection(struct v4l2_subdev *sd,
+ 		struct v4l2_subdev_pad_config *cfg,
+ 		struct v4l2_subdev_selection *sel)
+ {
++	struct ov772x_priv *priv = to_ov772x(sd);
++
+ 	if (sel->which != V4L2_SUBDEV_FORMAT_ACTIVE)
+ 		return -EINVAL;
+
+-	sel->r.left = 0;
+-	sel->r.top = 0;
+ 	switch (sel->target) {
+ 	case V4L2_SEL_TGT_CROP_BOUNDS:
+ 	case V4L2_SEL_TGT_CROP_DEFAULT:
+-		sel->r.width = OV772X_MAX_WIDTH;
+-		sel->r.height = OV772X_MAX_HEIGHT;
+-		return 0;
+ 	case V4L2_SEL_TGT_CROP:
+-		sel->r.width = VGA_WIDTH;
+-		sel->r.height = VGA_HEIGHT;
+-		return 0;
+-	default:
+-		return -EINVAL;
++		sel->r.width = priv->win->rect.width;
++		sel->r.height = priv->win->rect.height;
++		break;
  	}
- 
++
++	return 0;
+ }
+
+ static int ov772x_get_fmt(struct v4l2_subdev *sd,
+@@ -997,24 +1049,8 @@ static int ov772x_enum_mbus_code(struct v4l2_subdev *sd,
  	return 0;
-@@ -1443,7 +1471,10 @@ static int ov965x_detect_sensor(struct v4l2_subdev *sd)
- 	int ret;
- 
- 	mutex_lock(&ov965x->lock);
--	__ov965x_set_power(ov965x, 1);
-+	ret = __ov965x_set_power(ov965x, 1);
-+	if (ret)
-+		goto out;
-+
- 	msleep(25);
- 
- 	/* Check sensor revision */
-@@ -1463,6 +1494,7 @@ static int ov965x_detect_sensor(struct v4l2_subdev *sd)
- 			ret = -ENODEV;
- 		}
- 	}
-+out:
- 	mutex_unlock(&ov965x->lock);
- 
- 	return ret;
-@@ -1476,23 +1508,39 @@ static int ov965x_probe(struct i2c_client *client,
- 	struct ov965x *ov965x;
- 	int ret;
- 
--	if (!pdata) {
--		dev_err(&client->dev, "platform data not specified\n");
--		return -EINVAL;
--	}
+ }
+
+-static int ov772x_g_mbus_config(struct v4l2_subdev *sd,
+-				struct v4l2_mbus_config *cfg)
+-{
+-	struct i2c_client *client = v4l2_get_subdevdata(sd);
+-	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
 -
--	if (pdata->mclk_frequency == 0) {
--		dev_err(&client->dev, "MCLK frequency not specified\n");
--		return -EINVAL;
--	}
+-	cfg->flags = V4L2_MBUS_PCLK_SAMPLE_RISING | V4L2_MBUS_MASTER |
+-		V4L2_MBUS_VSYNC_ACTIVE_HIGH | V4L2_MBUS_HSYNC_ACTIVE_HIGH |
+-		V4L2_MBUS_DATA_ACTIVE_HIGH;
+-	cfg->type = V4L2_MBUS_PARALLEL;
+-	cfg->flags = soc_camera_apply_board_flags(ssdd, cfg);
 -
- 	ov965x = devm_kzalloc(&client->dev, sizeof(*ov965x), GFP_KERNEL);
- 	if (!ov965x)
- 		return -ENOMEM;
- 
--	mutex_init(&ov965x->lock);
- 	ov965x->client = client;
--	ov965x->mclk_frequency = pdata->mclk_frequency;
-+
-+	if (pdata) {
-+		if (pdata->mclk_frequency == 0) {
-+			dev_err(&client->dev, "MCLK frequency not specified\n");
-+			return -EINVAL;
-+		}
-+		ov965x->mclk_frequency = pdata->mclk_frequency;
-+
-+		ret = ov965x_configure_gpios_pdata(ov965x, pdata);
-+		if (ret < 0)
-+			return ret;
-+	} else if (dev_fwnode(&client->dev)) {
-+		ov965x->clk = devm_clk_get(&ov965x->client->dev, NULL);
-+		if (IS_ERR(ov965x->clk))
-+			return PTR_ERR(ov965x->clk);
-+		ov965x->mclk_frequency = clk_get_rate(ov965x->clk);
-+
-+		ret = ov965x_configure_gpios(ov965x);
-+		if (ret < 0)
-+			return ret;
-+	} else {
-+		dev_err(&client->dev,
-+			"Neither platform data nor device property specified\n");
-+
-+		return -EINVAL;
-+	}
-+
-+	mutex_init(&ov965x->lock);
- 
- 	sd = &ov965x->sd;
- 	v4l2_i2c_subdev_init(sd, client, &ov965x_subdev_ops);
-@@ -1502,10 +1550,6 @@ static int ov965x_probe(struct i2c_client *client,
- 	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE |
- 		     V4L2_SUBDEV_FL_HAS_EVENTS;
- 
--	ret = ov965x_configure_gpios(ov965x, pdata);
--	if (ret < 0)
--		goto err_mutex;
+-	return 0;
+-}
 -
- 	ov965x->pad.flags = MEDIA_PAD_FL_SOURCE;
- 	sd->entity.function = MEDIA_ENT_F_CAM_SENSOR;
- 	ret = media_entity_pads_init(&sd->entity, 1, &ov965x->pad);
-@@ -1561,9 +1605,19 @@ static const struct i2c_device_id ov965x_id[] = {
+ static const struct v4l2_subdev_video_ops ov772x_subdev_video_ops = {
+ 	.s_stream	= ov772x_s_stream,
+-	.g_mbus_config	= ov772x_g_mbus_config,
  };
- MODULE_DEVICE_TABLE(i2c, ov965x_id);
- 
-+#if IS_ENABLED(CONFIG_OF)
-+static const struct of_device_id ov965x_of_match[] = {
-+	{ .compatible = "ovti,ov9650", },
-+	{ .compatible = "ovti,ov9652", },
-+	{ /* sentinel */ }
-+};
-+MODULE_DEVICE_TABLE(of, ov965x_of_match);
-+#endif
+
+ static const struct v4l2_subdev_pad_ops ov772x_subdev_pad_ops = {
+@@ -1038,12 +1074,11 @@ static int ov772x_probe(struct i2c_client *client,
+ 			const struct i2c_device_id *did)
+ {
+ 	struct ov772x_priv	*priv;
+-	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
+-	struct i2c_adapter	*adapter = to_i2c_adapter(client->dev.parent);
++	struct i2c_adapter	*adapter = client->adapter;
+ 	int			ret;
+
+-	if (!ssdd || !ssdd->drv_priv) {
+-		dev_err(&client->dev, "OV772X: missing platform data!\n");
++	if (!client->dev.platform_data) {
++		dev_err(&client->dev, "Missing OV7725 platform data\n");
+ 		return -EINVAL;
+ 	}
+
+@@ -1059,7 +1094,7 @@ static int ov772x_probe(struct i2c_client *client,
+ 	if (!priv)
+ 		return -ENOMEM;
+
+-	priv->info = ssdd->drv_priv;
++	priv->info = client->dev.platform_data;
+
+ 	v4l2_i2c_subdev_init(&priv->subdev, client, &ov772x_subdev_ops);
+ 	v4l2_ctrl_handler_init(&priv->hdl, 3);
+@@ -1073,22 +1108,42 @@ static int ov772x_probe(struct i2c_client *client,
+ 	if (priv->hdl.error)
+ 		return priv->hdl.error;
+
+-	priv->clk = v4l2_clk_get(&client->dev, "mclk");
++	priv->clk = clk_get(&client->dev, "xclk");
+ 	if (IS_ERR(priv->clk)) {
++		dev_err(&client->dev, "Unable to get xclk clock\n");
+ 		ret = PTR_ERR(priv->clk);
+-		goto eclkget;
++		goto error_ctrl_free;
+ 	}
+
+-	ret = ov772x_video_probe(priv);
+-	if (ret < 0) {
+-		v4l2_clk_put(priv->clk);
+-eclkget:
+-		v4l2_ctrl_handler_free(&priv->hdl);
+-	} else {
+-		priv->cfmt = &ov772x_cfmts[0];
+-		priv->win = &ov772x_win_sizes[0];
++	priv->pwdn_gpio = gpiod_get_optional(&client->dev, "pwdn",
++					     GPIOD_OUT_LOW);
++	if (IS_ERR(priv->pwdn_gpio)) {
++		dev_info(&client->dev, "Unable to get GPIO \"pwdn\"");
++		ret = PTR_ERR(priv->pwdn_gpio);
++		goto error_clk_put;
+ 	}
+
++	ret = ov772x_video_probe(priv);
++	if (ret < 0)
++		goto error_gpio_put;
 +
- static struct i2c_driver ov965x_i2c_driver = {
- 	.driver = {
- 		.name	= DRIVER_NAME,
-+		.of_match_table = of_match_ptr(ov965x_of_match),
- 	},
- 	.probe		= ov965x_probe,
- 	.remove		= ov965x_remove,
--- 
++	priv->cfmt = &ov772x_cfmts[0];
++	priv->win = &ov772x_win_sizes[0];
++
++	ret = v4l2_async_register_subdev(&priv->subdev);
++	if (ret)
++		goto error_gpio_put;
++
++	return 0;
++
++error_gpio_put:
++	if (priv->pwdn_gpio)
++		gpiod_put(priv->pwdn_gpio);
++error_clk_put:
++	clk_put(priv->clk);
++error_ctrl_free:
++	v4l2_ctrl_handler_free(&priv->hdl);
++
+ 	return ret;
+ }
+
+@@ -1096,7 +1151,9 @@ static int ov772x_remove(struct i2c_client *client)
+ {
+ 	struct ov772x_priv *priv = to_ov772x(i2c_get_clientdata(client));
+
+-	v4l2_clk_put(priv->clk);
++	clk_put(priv->clk);
++	if (priv->pwdn_gpio)
++		gpiod_put(priv->pwdn_gpio);
+ 	v4l2_device_unregister_subdev(&priv->subdev);
+ 	v4l2_ctrl_handler_free(&priv->hdl);
+ 	return 0;
+@@ -1119,6 +1176,6 @@ static struct i2c_driver ov772x_i2c_driver = {
+
+ module_i2c_driver(ov772x_i2c_driver);
+
+-MODULE_DESCRIPTION("SoC Camera driver for ov772x");
++MODULE_DESCRIPTION("V4L2 driver for OV772x image sensor");
+ MODULE_AUTHOR("Kuninori Morimoto");
+ MODULE_LICENSE("GPL v2");
+diff --git a/include/media/i2c/ov772x.h b/include/media/i2c/ov772x.h
+index 00dbb7c..27d087b 100644
+--- a/include/media/i2c/ov772x.h
++++ b/include/media/i2c/ov772x.h
+@@ -48,8 +48,10 @@ struct ov772x_edge_ctrl {
+ 	.threshold = (t & OV772X_EDGE_THRESHOLD_MASK),	\
+ }
+
+-/*
+- * ov772x camera info
++/**
++ * ov772x_camera_info -	ov772x driver interface structure
++ * @flags:		Sensor configuration flags
++ * @edgectrl:		Sensor edge control
+  */
+ struct ov772x_camera_info {
+ 	unsigned long		flags;
+--
 2.7.4
