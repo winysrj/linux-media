@@ -1,67 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:47068 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1754562AbeASLTV (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 19 Jan 2018 06:19:21 -0500
-Date: Fri, 19 Jan 2018 13:19:18 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        laurent.pinchart@ideasonboard.com, magnus.damm@gmail.com,
-        geert@glider.be, mchehab@kernel.org, festevam@gmail.com,
-        robh+dt@kernel.org, mark.rutland@arm.com, pombredanne@nexb.com,
-        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-sh@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v6 6/9] media: i2c: ov772x: Remove soc_camera dependencies
-Message-ID: <20180119111917.76wosrokgracbdrz@valkosipuli.retiisi.org.uk>
-References: <1516139101-7835-1-git-send-email-jacopo+renesas@jmondi.org>
- <1516139101-7835-7-git-send-email-jacopo+renesas@jmondi.org>
- <d67c21e5-2488-977b-39d8-561048409209@xs4all.nl>
- <00f1dd19-6420-26ab-0529-a97f2b0de682@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <00f1dd19-6420-26ab-0529-a97f2b0de682@xs4all.nl>
+Received: from osg.samsung.com ([64.30.133.232]:65000 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752690AbeADTor (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 4 Jan 2018 14:44:47 -0500
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        devel@driverdev.osuosl.org
+Subject: [PATCH 1/2] media: staging: use tabs instead of spaces at Kconfig and davinci
+Date: Thu,  4 Jan 2018 14:44:40 -0500
+Message-Id: <96780202f1f7ffe13f6e0426394c8c93a2cbaa77.1515091119.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Even on text and Kconfigs, what we do on media is to use
+tabs for indentation.
 
-On Fri, Jan 19, 2018 at 11:47:33AM +0100, Hans Verkuil wrote:
-> On 01/19/18 11:24, Hans Verkuil wrote:
-> > On 01/16/18 22:44, Jacopo Mondi wrote:
-> >> Remove soc_camera framework dependencies from ov772x sensor driver.
-> >> - Handle clock and gpios
-> >> - Register async subdevice
-> >> - Remove soc_camera specific g/s_mbus_config operations
-> >> - Change image format colorspace from JPEG to SRGB as the two use the
-> >>   same colorspace information but JPEG makes assumptions on color
-> >>   components quantization that do not apply to the sensor
-> >> - Remove sizes crop from get_selection as driver can't scale
-> >> - Add kernel doc to driver interface header file
-> >> - Adjust build system
-> >>
-> >> This commit does not remove the original soc_camera based driver as long
-> >> as other platforms depends on soc_camera-based CEU driver.
-> >>
-> >> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
-> >> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > 
-> > Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> Un-acked.
-> 
-> I just noticed that this sensor driver has no enum_frame_interval and
-> g/s_parm support. How would a driver ever know the frame rate of the
-> sensor without that?
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+---
+ drivers/staging/media/Kconfig           | 14 +++++++-------
+ drivers/staging/media/davinci_vpfe/TODO | 10 +++++-----
+ 2 files changed, 12 insertions(+), 12 deletions(-)
 
-s/_parm/_frame_interval/ ?
-
-We should have wrappers for this or rather to convert g/s_parm users to
-g/s_frame_interval so drivers don't need to implement both.
-
+diff --git a/drivers/staging/media/Kconfig b/drivers/staging/media/Kconfig
+index 227437f22acf..e68e1d343d53 100644
+--- a/drivers/staging/media/Kconfig
++++ b/drivers/staging/media/Kconfig
+@@ -1,19 +1,19 @@
+ menuconfig STAGING_MEDIA
+-        bool "Media staging drivers"
+-        default n
+-        ---help---
+-          This option allows you to select a number of media drivers that
++	bool "Media staging drivers"
++	default n
++	---help---
++	  This option allows you to select a number of media drivers that
+ 	  don't have the "normal" Linux kernel quality level.
+ 	  Most of them don't follow properly the V4L, DVB and/or RC API's,
+ 	  so, they won't likely work fine with the existing applications.
+ 	  That also means that, once fixed, their API's will change to match
+ 	  the existing ones.
+ 
+-          If you wish to work on these drivers, to help improve them, or
+-          to report problems you have with them, please use the
++	  If you wish to work on these drivers, to help improve them, or
++	  to report problems you have with them, please use the
+ 	  linux-media@vger.kernel.org mailing list.
+ 
+-          If in doubt, say N here.
++	  If in doubt, say N here.
+ 
+ 
+ if STAGING_MEDIA && MEDIA_SUPPORT
+diff --git a/drivers/staging/media/davinci_vpfe/TODO b/drivers/staging/media/davinci_vpfe/TODO
+index 7015ab35ded5..3e5477e8cfa5 100644
+--- a/drivers/staging/media/davinci_vpfe/TODO
++++ b/drivers/staging/media/davinci_vpfe/TODO
+@@ -2,11 +2,11 @@ TODO (general):
+ ==================================
+ 
+ - User space interface refinement
+-        - Controls should be used when possible rather than private ioctl
+-        - No enums should be used
+-        - Use of MC and V4L2 subdev APIs when applicable
+-        - Single interface header might suffice
+-        - Current interface forces to configure everything at once
++	- Controls should be used when possible rather than private ioctl
++	- No enums should be used
++	- Use of MC and V4L2 subdev APIs when applicable
++	- Single interface header might suffice
++	- Current interface forces to configure everything at once
+ - Get rid of the dm365_ipipe_hw.[ch] layer
+ - Active external sub-devices defined by link configuration; no strcmp
+   needed
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+2.14.3
