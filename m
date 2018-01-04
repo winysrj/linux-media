@@ -1,57 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga05.intel.com ([192.55.52.43]:55366 "EHLO mga05.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750718AbeARWH5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 18 Jan 2018 17:07:57 -0500
-Date: Fri, 19 Jan 2018 00:07:53 +0200
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: Andy Yeh <andy.yeh@intel.com>
-Cc: linux-media@vger.kernel.org, tfiga@chromium.org
-Subject: Re: [PATCH v3] media: imx258: Add imx258 camera sensor driver
-Message-ID: <20180118220753.6gfkpauxibl3igfc@kekkonen.localdomain>
-References: <1516292705-12500-1-git-send-email-andy.yeh@intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1516292705-12500-1-git-send-email-andy.yeh@intel.com>
+Received: from relay3-d.mail.gandi.net ([217.70.183.195]:34435 "EHLO
+        relay3-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752343AbeADJwo (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 4 Jan 2018 04:52:44 -0500
+From: Jacopo Mondi <jacopo+renesas@jmondi.org>
+To: corbet@lwn.net, mchehab@kernel.org, sakari.ailus@iki.fi,
+        robh+dt@kernel.org, mark.rutland@arm.com
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: [PATCH v2 0/2] media: ov7670: Implement mbus configuration
+Date: Thu,  4 Jan 2018 10:52:31 +0100
+Message-Id: <1515059553-10219-1-git-send-email-jacopo+renesas@jmondi.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Andy,
+Hello,
+   this series adds mbus configuration properties to ov7670 sensor driver.
 
-On Fri, Jan 19, 2018 at 12:25:05AM +0800, Andy Yeh wrote:
-> Add a V4L2 sub-device driver for the Sony IMX258 image sensor.
-> This is a camera sensor using the I2C bus for control and the
-> CSI-2 bus for data.
-> 
-> Signed-off-by: Andy Yeh <andy.yeh@intel.com>
-> ---
+I have sent v1 a few days ago and forgot to cc device tree people. Doing it
+now with bindings description and implementation split in 2 separate patches.
 
-Please specify in the future which version the differences are from.
+I have fixed Sakari's comment on v1, and I'm sending v2 out with support for
+"pll-bypass" custom property as it was in v1. If we decide it is not worth
+to make an OF property out of it, I will drop it in v3. Technically it is not
+even an mbus configuration option, so I'm fine dropping it eventually.
 
-> - Update the streaming function to remove SW_STANDBY in the beginning.
-> - Adjust the delay time from 1ms to 12ms before set stream-on register.
-> - make clear and fix typo in comments.
+Thanks
+  j
 
-I'll apply the patch with the following diff. It wouldn't otherwise compile
-on the mainline kernel:
+v1->v2:
+- Split bindings description and implementation
+- Addressed Sakari's comments on v1
+- Check for return values of register writes in set_fmt()
+- TODO: decide if "pll-bypass" should be an OF property.
 
-diff --git a/drivers/media/i2c/imx258.c b/drivers/media/i2c/imx258.c
-index 54f1a62e5703..a7e58bd23de7 100644
---- a/drivers/media/i2c/imx258.c
-+++ b/drivers/media/i2c/imx258.c
-@@ -1071,7 +1071,7 @@ static int imx258_probe(struct i2c_client *client)
- 	/* Initialize subdev */
- 	imx258->sd.internal_ops = &imx258_internal_ops;
- 	imx258->sd.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
--	imx258->sd.entity.type = MEDIA_ENT_T_V4L2_SUBDEV_SENSOR;
-+	imx258->sd.entity.function = MEDIA_ENT_F_CAM_SENSOR;
- 
- 	/* Initialize source pad */
- 	imx258->pad.flags = MEDIA_PAD_FL_SOURCE;
+Jacopo Mondi (2):
+  v4l2: i2c: ov7670: Implement OF mbus configuration
+  media: dt-bindings: Add OF properties to ov7670
 
--- 
-Regards,
+ .../devicetree/bindings/media/i2c/ov7670.txt       |  14 +++
+ drivers/media/i2c/ov7670.c                         | 124 ++++++++++++++++++---
+ 2 files changed, 124 insertions(+), 14 deletions(-)
 
-Sakari Ailus
-sakari.ailus@linux.intel.com
+--
+2.7.4
