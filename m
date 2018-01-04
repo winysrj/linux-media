@@ -1,94 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:43377 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751144AbeAVMb2 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 22 Jan 2018 07:31:28 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mga09.intel.com ([134.134.136.24]:54042 "EHLO mga09.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751580AbeADDsY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 3 Jan 2018 22:48:24 -0500
+From: tian.shu.qiu@intel.com
 To: linux-media@vger.kernel.org
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv2 4/9] staging: atomisp: i2c: Disable non-preview configurations
-Date: Mon, 22 Jan 2018 13:31:20 +0100
-Message-Id: <20180122123125.24709-5-hverkuil@xs4all.nl>
-In-Reply-To: <20180122123125.24709-1-hverkuil@xs4all.nl>
-References: <20180122123125.24709-1-hverkuil@xs4all.nl>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Qiu@vger.kernel.org, Tianshu <tian.shu.qiu@intel.com>
+Subject: [MAIN PATCH v1 1/2] Update headers from upstream kernel
+Date: Thu,  4 Jan 2018 11:47:44 +0800
+Message-Id: <1515037666-29281-2-git-send-email-tian.shu.qiu@intel.com>
+In-Reply-To: <1515037666-29281-1-git-send-email-tian.shu.qiu@intel.com>
+References: <1515037666-29281-1-git-send-email-tian.shu.qiu@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
+From: Tianshu Qiu <tian.shu.qiu@intel.com>
 
-Disable configurations for non-preview modes until configuration selection
-is improved.
+Upstream commit 6f0e5fd39143a59c22d60e7befc4f33f22aeed2f
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Tianshu Qiu <tian.shu.qiu@intel.com>
 ---
- drivers/staging/media/atomisp/i2c/gc2235.h        | 2 ++
- drivers/staging/media/atomisp/i2c/ov2722.h        | 2 ++
- drivers/staging/media/atomisp/i2c/ov5693/ov5693.h | 2 ++
- 3 files changed, 6 insertions(+)
+ include/linux/videodev2.h | 15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
 
-diff --git a/drivers/staging/media/atomisp/i2c/gc2235.h b/drivers/staging/media/atomisp/i2c/gc2235.h
-index 45a54fea5466..817c0068c1d3 100644
---- a/drivers/staging/media/atomisp/i2c/gc2235.h
-+++ b/drivers/staging/media/atomisp/i2c/gc2235.h
-@@ -574,6 +574,7 @@ static struct gc2235_resolution gc2235_res_preview[] = {
- };
- #define N_RES_PREVIEW (ARRAY_SIZE(gc2235_res_preview))
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index b1e36ee553da..afa4d09c59a3 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -1,3 +1,4 @@
++/* SPDX-License-Identifier: ((GPL-2.0+ WITH Linux-syscall-note) OR BSD-3-Clause) */
+ /*
+  *  Video for Linux Two header file
+  *
+@@ -599,6 +600,11 @@ struct v4l2_pix_format {
+ #define V4L2_PIX_FMT_SGBRG12 v4l2_fourcc('G', 'B', '1', '2') /* 12  GBGB.. RGRG.. */
+ #define V4L2_PIX_FMT_SGRBG12 v4l2_fourcc('B', 'A', '1', '2') /* 12  GRGR.. BGBG.. */
+ #define V4L2_PIX_FMT_SRGGB12 v4l2_fourcc('R', 'G', '1', '2') /* 12  RGRG.. GBGB.. */
++	/* 12bit raw bayer packed, 6 bytes for every 4 pixels */
++#define V4L2_PIX_FMT_SBGGR12P v4l2_fourcc('p', 'B', 'C', 'C')
++#define V4L2_PIX_FMT_SGBRG12P v4l2_fourcc('p', 'G', 'C', 'C')
++#define V4L2_PIX_FMT_SGRBG12P v4l2_fourcc('p', 'g', 'C', 'C')
++#define V4L2_PIX_FMT_SRGGB12P v4l2_fourcc('p', 'R', 'C', 'C')
+ #define V4L2_PIX_FMT_SBGGR16 v4l2_fourcc('B', 'Y', 'R', '2') /* 16  BGBG.. GRGR.. */
+ #define V4L2_PIX_FMT_SGBRG16 v4l2_fourcc('G', 'B', '1', '6') /* 16  GBGB.. RGRG.. */
+ #define V4L2_PIX_FMT_SGRBG16 v4l2_fourcc('G', 'R', '1', '6') /* 16  GRGR.. BGBG.. */
+@@ -659,12 +665,21 @@ struct v4l2_pix_format {
+ #define V4L2_PIX_FMT_MT21C    v4l2_fourcc('M', 'T', '2', '1') /* Mediatek compressed block mode  */
+ #define V4L2_PIX_FMT_INZI     v4l2_fourcc('I', 'N', 'Z', 'I') /* Intel Planar Greyscale 10-bit and Depth 16-bit */
  
-+#if 0 /* Disable non-previes configurations for now */
- static struct gc2235_resolution gc2235_res_still[] = {
- 	{
- 		.desc = "gc2235_1600_900_30fps",
-@@ -658,6 +659,7 @@ static struct gc2235_resolution gc2235_res_video[] = {
++/* 10bit raw bayer packed, 32 bytes for every 25 pixels, last LSB 6 bits unused */
++#define V4L2_PIX_FMT_IPU3_SBGGR10	v4l2_fourcc('i', 'p', '3', 'b') /* IPU3 packed 10-bit BGGR bayer */
++#define V4L2_PIX_FMT_IPU3_SGBRG10	v4l2_fourcc('i', 'p', '3', 'g') /* IPU3 packed 10-bit GBRG bayer */
++#define V4L2_PIX_FMT_IPU3_SGRBG10	v4l2_fourcc('i', 'p', '3', 'G') /* IPU3 packed 10-bit GRBG bayer */
++#define V4L2_PIX_FMT_IPU3_SRGGB10	v4l2_fourcc('i', 'p', '3', 'r') /* IPU3 packed 10-bit RGGB bayer */
++
+ /* SDR formats - used only for Software Defined Radio devices */
+ #define V4L2_SDR_FMT_CU8          v4l2_fourcc('C', 'U', '0', '8') /* IQ u8 */
+ #define V4L2_SDR_FMT_CU16LE       v4l2_fourcc('C', 'U', '1', '6') /* IQ u16le */
+ #define V4L2_SDR_FMT_CS8          v4l2_fourcc('C', 'S', '0', '8') /* complex s8 */
+ #define V4L2_SDR_FMT_CS14LE       v4l2_fourcc('C', 'S', '1', '4') /* complex s14le */
+ #define V4L2_SDR_FMT_RU12LE       v4l2_fourcc('R', 'U', '1', '2') /* real u12le */
++#define V4L2_SDR_FMT_PCU16BE	  v4l2_fourcc('P', 'C', '1', '6') /* planar complex u16be */
++#define V4L2_SDR_FMT_PCU18BE	  v4l2_fourcc('P', 'C', '1', '8') /* planar complex u18be */
++#define V4L2_SDR_FMT_PCU20BE	  v4l2_fourcc('P', 'C', '2', '0') /* planar complex u20be */
  
- };
- #define N_RES_VIDEO (ARRAY_SIZE(gc2235_res_video))
-+#endif
- 
- static struct gc2235_resolution *gc2235_res = gc2235_res_preview;
- static unsigned long N_RES = N_RES_PREVIEW;
-diff --git a/drivers/staging/media/atomisp/i2c/ov2722.h b/drivers/staging/media/atomisp/i2c/ov2722.h
-index d8a973d71699..f133439adfd5 100644
---- a/drivers/staging/media/atomisp/i2c/ov2722.h
-+++ b/drivers/staging/media/atomisp/i2c/ov2722.h
-@@ -1148,6 +1148,7 @@ struct ov2722_resolution ov2722_res_preview[] = {
- };
- #define N_RES_PREVIEW (ARRAY_SIZE(ov2722_res_preview))
- 
-+#if 0 /* Disable non-previes configurations for now */
- struct ov2722_resolution ov2722_res_still[] = {
- 	{
- 		.desc = "ov2722_480P_30fps",
-@@ -1250,6 +1251,7 @@ struct ov2722_resolution ov2722_res_video[] = {
- 	},
- };
- #define N_RES_VIDEO (ARRAY_SIZE(ov2722_res_video))
-+#endif
- 
- static struct ov2722_resolution *ov2722_res = ov2722_res_preview;
- static unsigned long N_RES = N_RES_PREVIEW;
-diff --git a/drivers/staging/media/atomisp/i2c/ov5693/ov5693.h b/drivers/staging/media/atomisp/i2c/ov5693/ov5693.h
-index 68cfcb4a6c3c..15a33dcd2d59 100644
---- a/drivers/staging/media/atomisp/i2c/ov5693/ov5693.h
-+++ b/drivers/staging/media/atomisp/i2c/ov5693/ov5693.h
-@@ -1147,6 +1147,7 @@ struct ov5693_resolution ov5693_res_preview[] = {
- };
- #define N_RES_PREVIEW (ARRAY_SIZE(ov5693_res_preview))
- 
-+#if 0 /* Disable non-previes configurations for now */
- struct ov5693_resolution ov5693_res_still[] = {
- 	{
- 		.desc = "ov5693_736x496_30fps",
-@@ -1364,6 +1365,7 @@ struct ov5693_resolution ov5693_res_video[] = {
- 	},
- };
- #define N_RES_VIDEO (ARRAY_SIZE(ov5693_res_video))
-+#endif
- 
- static struct ov5693_resolution *ov5693_res = ov5693_res_preview;
- static unsigned long N_RES = N_RES_PREVIEW;
+ /* Touch formats - used for Touch devices */
+ #define V4L2_TCH_FMT_DELTA_TD16	v4l2_fourcc('T', 'D', '1', '6') /* 16-bit signed deltas */
 -- 
-2.15.1
+2.7.4
