@@ -1,134 +1,194 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:41355 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750911AbeAYEt1 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 24 Jan 2018 23:49:27 -0500
-Message-ID: <298d687c7fbfe2d840dfd89ea04d2f12@smtp-cloud7.xs4all.net>
-Date: Thu, 25 Jan 2018 05:49:25 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+Received: from galahad.ideasonboard.com ([185.26.127.97]:49955 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752486AbeADUlR (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 4 Jan 2018 15:41:17 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Jacopo Mondi <jacopo+renesas@jmondi.org>
+Cc: magnus.damm@gmail.com, geert@glider.be, mchehab@kernel.org,
+        hverkuil@xs4all.nl, festevam@gmail.com, sakari.ailus@iki.fi,
+        robh+dt@kernel.org, mark.rutland@arm.com,
+        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-sh@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v3 3/9] v4l: platform: Add Renesas CEU driver
+Date: Thu, 04 Jan 2018 22:41:40 +0200
+Message-ID: <1661119.HFTSOmjBYx@avalon>
+In-Reply-To: <1515081797-17174-4-git-send-email-jacopo+renesas@jmondi.org>
+References: <1515081797-17174-1-git-send-email-jacopo+renesas@jmondi.org> <1515081797-17174-4-git-send-email-jacopo+renesas@jmondi.org>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Jacopo,
 
-Results of the daily build of media_tree:
+Thank you for the patch.
 
-date:			Thu Jan 25 05:00:17 CET 2018
-media-tree git hash:	4852fdca8818972d0ea5b5ce7114da628f9954a4
-media_build git hash:	d17383327f00d45e6c07161876fb4f3d9d9358e1
-v4l-utils git hash:	c2cc9e17b1411865d40a0e7d3ab027204fc0cf19
-gcc version:		i686-linux-gcc (GCC) 7.1.0
-sparse version:		v0.5.0-3911-g6f737e1f
-smatch version:		v0.5.0-3911-g6f737e1f
-host hardware:		x86_64
-host os:		4.14.0-364
+On Thursday, 4 January 2018 18:03:11 EET Jacopo Mondi wrote:
+> Add driver for Renesas Capture Engine Unit (CEU).
+> 
+> The CEU interface supports capturing 'data' (YUV422) and 'images'
+> (NV[12|21|16|61]).
+> 
+> This driver aims to replace the soc_camera-based sh_mobile_ceu one.
+> 
+> Tested with ov7670 camera sensor, providing YUYV_2X8 data on Renesas RZ
+> platform GR-Peach.
+> 
+> Tested with ov7725 camera sensor on SH4 platform Migo-R.
+> 
+> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+> ---
+>  drivers/media/platform/Kconfig       |    9 +
+>  drivers/media/platform/Makefile      |    1 +
+>  drivers/media/platform/renesas-ceu.c | 1649 +++++++++++++++++++++++++++++++
+>  3 files changed, 1659 insertions(+)
+>  create mode 100644 drivers/media/platform/renesas-ceu.c
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: ERRORS
-linux-3.12.67-i686: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: ERRORS
-linux-3.15.2-i686: ERRORS
-linux-3.16.7-i686: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.18.7-i686: ERRORS
-linux-3.19-i686: ERRORS
-linux-4.0.9-i686: ERRORS
-linux-4.1.33-i686: ERRORS
-linux-4.2.8-i686: ERRORS
-linux-4.3.6-i686: ERRORS
-linux-4.4.22-i686: ERRORS
-linux-4.5.7-i686: ERRORS
-linux-4.6.7-i686: ERRORS
-linux-4.7.5-i686: ERRORS
-linux-4.8-i686: ERRORS
-linux-4.9.26-i686: ERRORS
-linux-4.10.14-i686: WARNINGS
-linux-4.11-i686: WARNINGS
-linux-4.12.1-i686: WARNINGS
-linux-4.13-i686: WARNINGS
-linux-4.14-i686: WARNINGS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.67-x86_64: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-x86_64: ERRORS
-linux-3.15.2-x86_64: ERRORS
-linux-3.16.7-x86_64: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.7-x86_64: ERRORS
-linux-3.19-x86_64: ERRORS
-linux-4.0.9-x86_64: ERRORS
-linux-4.1.33-x86_64: ERRORS
-linux-4.2.8-x86_64: ERRORS
-linux-4.3.6-x86_64: ERRORS
-linux-4.4.22-x86_64: ERRORS
-linux-4.5.7-x86_64: ERRORS
-linux-4.6.7-x86_64: ERRORS
-linux-4.7.5-x86_64: ERRORS
-linux-4.8-x86_64: ERRORS
-linux-4.9.26-x86_64: ERRORS
-linux-4.10.14-x86_64: WARNINGS
-linux-4.11-x86_64: WARNINGS
-linux-4.12.1-x86_64: WARNINGS
-linux-4.13-x86_64: WARNINGS
-linux-4.14-x86_64: WARNINGS
-apps: WARNINGS
-spec-git: OK
-smatch: OK
+[snip]
 
-Detailed results are available here:
+> diff --git a/drivers/media/platform/renesas-ceu.c
+> b/drivers/media/platform/renesas-ceu.c new file mode 100644
+> index 0000000..a614859
+> --- /dev/null
+> +++ b/drivers/media/platform/renesas-ceu.c
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+[snip]
 
-Full logs are available here:
+> +/*
+> + * struct ceu_data - Platform specific CEU data
+> + * @irq_mask: CETCR mask with all interrupt sources enabled. The mask
+> differs
+> + *	      between SH4 and RZ platforms.
+> + */
+> +struct ceu_data {
+> +	u32 irq_mask;
+> +};
+> +
+> +const struct ceu_data ceu_data_rz = {
+> +	.irq_mask = CEU_CETCR_ALL_IRQS_RZ,
+> +};
+> +
+> +const struct ceu_data ceu_data_sh4 = {
+> +	.irq_mask = CEU_CETCR_ALL_IRQS_SH4,
+> +};
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+These two can be const.
 
-The Media Infrastructure API from this daily build is here:
+> +#if IS_ENABLED(CONFIG_OF)
+> +static const struct of_device_id ceu_of_match[] = {
+> +	{ .compatible = "renesas,r7s72100-ceu", .data = &ceu_data_rz },
+> +	{ .compatible = "renesas,ceu", .data = &ceu_data_rz },
 
-http://www.xs4all.nl/~hverkuil/spec/index.html
+Do you need both ? What's your policy for compatible strings ? As far as I 
+understand there's no generic CEU, as the SH4 and RZ versions are not 
+compatible. Should the "renesas,ceu" compatible string then be replaced by 
+"renesas,rz-ceu" and the first entry dropped ?
+
+> +	{ }
+> +};
+> +MODULE_DEVICE_TABLE(of, ceu_of_match);
+> +#endif
+> +
+> +static int ceu_probe(struct platform_device *pdev)
+> +{
+> +	struct device *dev = &pdev->dev;
+> +	const struct ceu_data *ceu_data;
+> +	struct ceu_device *ceudev;
+> +	struct resource *res;
+> +	unsigned int irq;
+> +	int num_subdevs;
+> +	int ret;
+> +
+> +	ceudev = kzalloc(sizeof(*ceudev), GFP_KERNEL);
+> +	if (!ceudev)
+> +		return -ENOMEM;
+> +
+> +	platform_set_drvdata(pdev, ceudev);
+> +	ceudev->dev = dev;
+> +
+> +	INIT_LIST_HEAD(&ceudev->capture);
+> +	spin_lock_init(&ceudev->lock);
+> +	mutex_init(&ceudev->mlock);
+> +
+> +	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+> +	ceudev->base = devm_ioremap_resource(dev, res);
+> +	if (IS_ERR(ceudev->base))
+> +		goto error_free_ceudev;
+> +
+> +	ret = platform_get_irq(pdev, 0);
+> +	if (ret < 0) {
+> +		dev_err(dev, "Failed to request irq: %d\n", ret);
+
+s/request/get/ (it was correct in v2).
+
+> +		goto error_free_ceudev;
+> +	}
+> +	irq = ret;
+> +
+> +	ret = devm_request_irq(dev, irq, ceu_irq,
+> +			       0, dev_name(dev), ceudev);
+> +	if (ret) {
+> +		dev_err(&pdev->dev, "Unable to register CEU interrupt.\n");
+
+s/register/request/ (this is the message that should have been changed).
+
+> +		return ret;
+
+You're leaking ceudev here.
+
+> +	}
+> +
+> +	pm_runtime_enable(dev);
+> +
+> +	ret = v4l2_device_register(dev, &ceudev->v4l2_dev);
+> +	if (ret)
+> +		goto error_pm_disable;
+> +
+> +	if (IS_ENABLED(CONFIG_OF) && dev->of_node) {
+> +		ceu_data = of_match_device(ceu_of_match, dev)->data;
+> +		num_subdevs = ceu_parse_dt(ceudev);
+> +	} else if (dev->platform_data) {
+> +		/* Assume SH4 if booting with platform data. */
+> +		ceu_data = &ceu_data_sh4;
+> +		num_subdevs = ceu_parse_platform_data(ceudev,
+> +						      dev->platform_data);
+> +	} else {
+> +		num_subdevs = -EINVAL;
+> +	}
+> +
+> +	if (num_subdevs < 0) {
+> +		ret = num_subdevs;
+> +		goto error_v4l2_unregister;
+> +	}
+> +	ceudev->irq_mask = ceu_data->irq_mask;
+> +
+> +	ceudev->notifier.v4l2_dev	= &ceudev->v4l2_dev;
+> +	ceudev->notifier.subdevs	= ceudev->asds;
+> +	ceudev->notifier.num_subdevs	= num_subdevs;
+> +	ceudev->notifier.ops		= &ceu_notify_ops;
+> +	ret = v4l2_async_notifier_register(&ceudev->v4l2_dev,
+> +					   &ceudev->notifier);
+> +	if (ret)
+> +		goto error_v4l2_unregister;
+> +
+> +	dev_info(dev, "Renesas Capture Engine Unit %s\n", dev_name(dev));
+> +
+> +	return 0;
+> +
+> +error_v4l2_unregister:
+> +	v4l2_device_unregister(&ceudev->v4l2_dev);
+> +error_pm_disable:
+> +	pm_runtime_disable(dev);
+> +error_free_ceudev:
+> +	kfree(ceudev);
+> +
+> +	return ret;
+> +}
+
+-- 
+Regards,
+
+Laurent Pinchart
