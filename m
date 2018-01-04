@@ -1,97 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:48831 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751041AbeAVMSP (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 22 Jan 2018 07:18:15 -0500
-Subject: Re: [Patch v6 00/12] Add MFC v10.10 support
-To: Smitha T Murthy <smitha.t@samsung.com>,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-References: <CGME20171208093612epcas1p1eda138655cf5397893fe1f2b2152bd1f@epcas1p1.samsung.com>
- <1512724105-1778-1-git-send-email-smitha.t@samsung.com>
-Cc: kyungmin.park@samsung.com, kamil@wypas.org, jtp.park@samsung.com,
-        a.hajda@samsung.com, mchehab@kernel.org, pankaj.dubey@samsung.com,
-        krzk@kernel.org, m.szyprowski@samsung.com, s.nawrocki@samsung.com
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <126f1982-060a-6fdb-e1b3-b5c81d65ca13@xs4all.nl>
-Date: Mon, 22 Jan 2018 13:18:13 +0100
+Received: from mout.gmx.net ([212.227.17.20]:64891 "EHLO mout.gmx.net"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752562AbeADSZN (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 4 Jan 2018 13:25:13 -0500
+Date: Thu, 4 Jan 2018 19:24:04 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Kieran Bingham <kbingham@kernel.org>
+cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        laurent.pinchart@ideasonboard.com,
+        Olivier BRAUN <olivier.braun@stereolabs.com>,
+        kieran.bingham@ideasonboard.com,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Jaejoong Kim <climbbb.kim@gmail.com>,
+        Baoyou Xie <baoyou.xie@linaro.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Aviv Greenberg <avivgr@gmail.com>,
+        Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Daniel Patrick Johnson <teknotus@teknot.us>,
+        Jim Lin <jilin@nvidia.com>
+Subject: Re: [RFC/RFT PATCH 1/6] uvcvideo: Refactor URB descriptors
+In-Reply-To: <cac2db68616f9855ceb5a57786f1ee8631b9df79.1515010476.git-series.kieran.bingham@ideasonboard.com>
+Message-ID: <alpine.DEB.2.20.1801041607070.13441@axis700.grange>
+References: <cover.67dff754d6d314373ac0a04777b3b1d785fc5dd4.1515010476.git-series.kieran.bingham@ideasonboard.com> <cac2db68616f9855ceb5a57786f1ee8631b9df79.1515010476.git-series.kieran.bingham@ideasonboard.com>
 MIME-Version: 1.0
-In-Reply-To: <1512724105-1778-1-git-send-email-smitha.t@samsung.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Smitha,
+Hi Kieran,
 
-Thank you for this v6 series!
+Just minor suggestions below:
 
-You can add my:
+On Wed, 3 Jan 2018, Kieran Bingham wrote:
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-
-to patches 1-9 and 11. See my review for patches 10 and 12. The comments
-are minor, so I hope I can Ack v7 once it's posted and this can be merged
-for 4.17.
-
-Regards,
-
-	Hans
-
-On 08/12/17 10:08, Smitha T Murthy wrote:
-> This patch series adds MFC v10.10 support. MFC v10.10 is used in some
-> of Exynos7 variants.
+> From: Kieran Bingham <kieran.bingham@ideasonboard.com>
 > 
-> This adds support for following:
+> We currently store three separate arrays for each URB reference we hold.
 > 
-> * Add support for HEVC encoder and decoder
-> * Add support for VP9 decoder
-> * Update Documentation for control id definitions
-> * Update computation of min scratch buffer size requirement for V8 onwards
+> Objectify the data needed to track URBs into a single uvc_urb structure,
+> allowing better object management and tracking of the URB.
 > 
-> Changes since v5:
->  - Addressed review comments by Kamil Debski <kamil@wypas.org>.
->  - Addressed review comments by 
->    Stanimir Varbanov <stanimir.varbanov@linaro.org>.
->  - Addressed review comments by Hans Verkuil <hverkuil@xs4all.nl>.
->  - Rebased on latest git://linuxtv.org/snawrocki/samsung.git
->    for-v4.15/media/next.
->  - Applied r-o-b from Andrzej, Stanimir on respective patches.
->  - Applied acked-by from Kamil, Hans on respective patches.
+> All accesses to the data pointers through stream, are converted to use a
+> uvc_urb pointer for consistency.
 > 
-> Smitha T Murthy (12):
->   [media] s5p-mfc: Rename IS_MFCV8 macro
->   [media] s5p-mfc: Adding initial support for MFC v10.10
->   [media] s5p-mfc: Use min scratch buffer size as provided by F/W
->   [media] s5p-mfc: Support MFCv10.10 buffer requirements
->   [media] videodev2.h: Add v4l2 definition for HEVC
->   [media] v4l2-ioctl: add HEVC format description
->   Documentation: v4l: Documentation for HEVC v4l2 definition
->   [media] s5p-mfc: Add support for HEVC decoder
->   [media] s5p-mfc: Add VP9 decoder support
->   [media] v4l2: Add v4l2 control IDs for HEVC encoder
->   [media] s5p-mfc: Add support for HEVC encoder
->   Documention: v4l: Documentation for HEVC CIDs
-> 
->  .../devicetree/bindings/media/s5p-mfc.txt          |   1 +
->  Documentation/media/uapi/v4l/extended-controls.rst | 395 +++++++++++++++
->  Documentation/media/uapi/v4l/pixfmt-compressed.rst |   5 +
->  drivers/media/platform/s5p-mfc/regs-mfc-v10.h      |  88 ++++
->  drivers/media/platform/s5p-mfc/regs-mfc-v8.h       |   2 +
->  drivers/media/platform/s5p-mfc/s5p_mfc.c           |  28 ++
->  drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c    |   9 +
->  drivers/media/platform/s5p-mfc/s5p_mfc_common.h    |  68 ++-
->  drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c      |   6 +-
->  drivers/media/platform/s5p-mfc/s5p_mfc_dec.c       |  48 +-
->  drivers/media/platform/s5p-mfc/s5p_mfc_enc.c       | 555 ++++++++++++++++++++-
->  drivers/media/platform/s5p-mfc/s5p_mfc_opr.h       |  14 +
->  drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c    | 397 +++++++++++++--
->  drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h    |  15 +
->  drivers/media/v4l2-core/v4l2-ctrls.c               | 118 +++++
->  drivers/media/v4l2-core/v4l2-ioctl.c               |   1 +
->  include/uapi/linux/v4l2-controls.h                 |  92 +++-
->  include/uapi/linux/videodev2.h                     |   1 +
->  18 files changed, 1765 insertions(+), 78 deletions(-)
->  create mode 100644 drivers/media/platform/s5p-mfc/regs-mfc-v10.h
+> Signed-off-by: Kieran Bingham <kieran.bingham@ideasonboard.com>
+> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> ---
+>  drivers/media/usb/uvc/uvc_video.c | 46 ++++++++++++++++++++------------
+>  drivers/media/usb/uvc/uvcvideo.h  | 18 ++++++++++---
+>  2 files changed, 44 insertions(+), 20 deletions(-)
+
+[snip]
+
+> diff --git a/drivers/media/usb/uvc/uvcvideo.h b/drivers/media/usb/uvc/uvcvideo.h
+> index 19e725e2bda5..4afa8ce13ea7 100644
+> --- a/drivers/media/usb/uvc/uvcvideo.h
+> +++ b/drivers/media/usb/uvc/uvcvideo.h
+> @@ -479,6 +479,20 @@ struct uvc_stats_stream {
+>  	unsigned int max_sof;		/* Maximum STC.SOF value */
+>  };
+>  
+> +/**
+> + * struct uvc_urb - URB context management structure
+> + *
+> + * @urb: described URB. Must be allocated with usb_alloc_urb()
+
+Didn't you mean "describes?"
+
+> + * @urb_buffer: memory storage for the URB
+> + * @urb_dma: DMA coherent addressing for the urb_buffer
+
+The whole struct describes URBs, so, I wouldn't repeat that in these two 
+field names, I'd just call them "buffer" and "dma." OTOH, later you add 
+more fields like "stream," which aren't per-URB, so, maybe you want to 
+keep these prefixes.
+
+Thanks
+Guennadi
+
+> + */
+> +struct uvc_urb {
+> +	struct urb *urb;
+> +
+> +	char *urb_buffer;
+> +	dma_addr_t urb_dma;
+> +};
+> +
+>  struct uvc_streaming {
+>  	struct list_head list;
+>  	struct uvc_device *dev;
+> @@ -521,9 +535,7 @@ struct uvc_streaming {
+>  		__u32 max_payload_size;
+>  	} bulk;
+>  
+> -	struct urb *urb[UVC_URBS];
+> -	char *urb_buffer[UVC_URBS];
+> -	dma_addr_t urb_dma[UVC_URBS];
+> +	struct uvc_urb uvc_urb[UVC_URBS];
+>  	unsigned int urb_size;
+>  
+>  	__u32 sequence;
+> -- 
+> git-series 0.9.1
 > 
