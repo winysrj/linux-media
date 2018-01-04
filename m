@@ -1,79 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga12.intel.com ([192.55.52.136]:63443 "EHLO mga12.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753144AbeA0QYm (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 27 Jan 2018 11:24:42 -0500
-From: "Yeh, Andy" <andy.yeh@intel.com>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: [PATCH v3 1/1] imx258: Fix sparse warnings
-Date: Sat, 27 Jan 2018 16:24:39 +0000
-Message-ID: <8E0971CCB6EA9D41AF58191A2D3978B61D4F3064@PGSMSX111.gar.corp.intel.com>
-References: <20180122212542.26474-1-sakari.ailus@linux.intel.com>
-In-Reply-To: <20180122212542.26474-1-sakari.ailus@linux.intel.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+Received: from relay4-d.mail.gandi.net ([217.70.183.196]:39346 "EHLO
+        relay4-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753294AbeADQDv (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 4 Jan 2018 11:03:51 -0500
+From: Jacopo Mondi <jacopo+renesas@jmondi.org>
+To: laurent.pinchart@ideasonboard.com, magnus.damm@gmail.com,
+        geert@glider.be, mchehab@kernel.org, hverkuil@xs4all.nl,
+        festevam@gmail.com, sakari.ailus@iki.fi, robh+dt@kernel.org,
+        mark.rutland@arm.com
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-sh@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: [PATCH v3 4/9] ARM: dts: r7s72100: Add Capture Engine Unit (CEU)
+Date: Thu,  4 Jan 2018 17:03:12 +0100
+Message-Id: <1515081797-17174-5-git-send-email-jacopo+renesas@jmondi.org>
+In-Reply-To: <1515081797-17174-1-git-send-email-jacopo+renesas@jmondi.org>
+References: <1515081797-17174-1-git-send-email-jacopo+renesas@jmondi.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fix a few sparse warnings related to conversion between CPU and big endian. Also simplify the code in the process.
+Add Capture Engine Unit (CEU) node to device tree.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Acked-by: Andy Yeh <andy.yeh@intel.com>
+Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+Reviewed-by: Geert Uytterhoeven <geert+renesas@glider.be>
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
-since v2:
+ arch/arm/boot/dts/r7s72100.dtsi | 15 ++++++++++++---
+ 1 file changed, 12 insertions(+), 3 deletions(-)
 
-- Count loop downwards, not up.
-
- drivers/media/i2c/imx258.c | 23 +++++++++--------------
- 1 file changed, 9 insertions(+), 14 deletions(-)
-
-diff --git a/drivers/media/i2c/imx258.c b/drivers/media/i2c/imx258.c index a7e58bd23de7..213429cca8b5 100644
---- a/drivers/media/i2c/imx258.c
-+++ b/drivers/media/i2c/imx258.c
-@@ -440,10 +440,10 @@ static int imx258_read_reg(struct imx258 *imx258, u16 reg, u32 len, u32 *val)  {
- 	struct i2c_client *client = v4l2_get_subdevdata(&imx258->sd);
- 	struct i2c_msg msgs[2];
-+	__be16 reg_addr_be = cpu_to_be16(reg);
-+	__be32 data_be = 0;
- 	u8 *data_be_p;
- 	int ret;
--	u32 data_be = 0;
--	u16 reg_addr_be = cpu_to_be16(reg);
+diff --git a/arch/arm/boot/dts/r7s72100.dtsi b/arch/arm/boot/dts/r7s72100.dtsi
+index ab9645a..5fe62f9 100644
+--- a/arch/arm/boot/dts/r7s72100.dtsi
++++ b/arch/arm/boot/dts/r7s72100.dtsi
+@@ -135,9 +135,9 @@
+ 			#clock-cells = <1>;
+ 			compatible = "renesas,r7s72100-mstp-clocks", "renesas,cpg-mstp-clocks";
+ 			reg = <0xfcfe042c 4>;
+-			clocks = <&p0_clk>;
+-			clock-indices = <R7S72100_CLK_RTC>;
+-			clock-output-names = "rtc";
++			clocks = <&b_clk>, <&p0_clk>;
++			clock-indices = <R7S72100_CLK_CEU R7S72100_CLK_RTC>;
++			clock-output-names = "ceu", "rtc";
+ 		};
  
- 	if (len > 4)
- 		return -EINVAL;
-@@ -474,24 +474,19 @@ static int imx258_read_reg(struct imx258 *imx258, u16 reg, u32 len, u32 *val)  static int imx258_write_reg(struct imx258 *imx258, u16 reg, u32 len, u32 val)  {
- 	struct i2c_client *client = v4l2_get_subdevdata(&imx258->sd);
--	int buf_i, val_i;
--	u8 buf[6], *val_p;
-+	u8 __buf[6], *buf = __buf;
-+	int i;
- 
- 	if (len > 4)
- 		return -EINVAL;
- 
--	buf[0] = reg >> 8;
--	buf[1] = reg & 0xff;
-+	*buf++ = reg >> 8;
-+	*buf++ = reg & 0xff;
- 
--	val = cpu_to_be32(val);
--	val_p = (u8 *)&val;
--	buf_i = 2;
--	val_i = 4 - len;
-+	for (i = len - 1; i >= 0; i--)
-+		*buf++ = (u8)(val >> (i << 3));
- 
--	while (val_i < 4)
--		buf[buf_i++] = val_p[val_i++];
--
--	if (i2c_master_send(client, buf, len + 2) != len + 2)
-+	if (i2c_master_send(client, __buf, len + 2) != len + 2)
- 		return -EIO;
- 
- 	return 0;
---
-2.11.0
+ 		mstp7_clks: mstp7_clks@fcfe0430 {
+@@ -667,4 +667,13 @@
+ 		power-domains = <&cpg_clocks>;
+ 		status = "disabled";
+ 	};
++
++	ceu: ceu@e8210000 {
++		reg = <0xe8210000 0x3000>;
++		compatible = "renesas,r7s72100-ceu";
++		interrupts = <GIC_SPI 332 IRQ_TYPE_LEVEL_HIGH>;
++		clocks = <&mstp6_clks R7S72100_CLK_CEU>;
++		power-domains = <&cpg_clocks>;
++		status = "disabled";
++	};
+ };
+-- 
+2.7.4
