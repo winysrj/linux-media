@@ -1,201 +1,174 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from sub5.mail.dreamhost.com ([208.113.200.129]:35224 "EHLO
-        homiemail-a118.g.dreamhost.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751729AbeAIQof (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 9 Jan 2018 11:44:35 -0500
-From: Brad Love <brad@nextdimension.cc>
-To: linux-media@vger.kernel.org
-Cc: Brad Love <brad@nextdimension.cc>
-Subject: [PATCH v2 2/2] cx231xx: Add support for Hauppauge HVR-975
-Date: Tue,  9 Jan 2018 10:44:26 -0600
-Message-Id: <1515516266-365-1-git-send-email-brad@nextdimension.cc>
-In-Reply-To: <1515515916-32108-3-git-send-email-brad@nextdimension.cc>
-References: <1515515916-32108-3-git-send-email-brad@nextdimension.cc>
+Received: from pegase1.c-s.fr ([93.17.236.30]:41892 "EHLO pegase1.c-s.fr"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751615AbeADIGB (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 4 Jan 2018 03:06:01 -0500
+Subject: Re: [PATCH v3 00/27] kill devm_ioremap_nocache
+To: Yisheng Xie <xieyisheng1@huawei.com>,
+        Greg KH <gregkh@linuxfoundation.org>
+Cc: linux-kernel@vger.kernel.org, ysxie@foxmail.com,
+        ulf.hansson@linaro.org, linux-mmc@vger.kernel.org,
+        boris.brezillon@free-electrons.com, richard@nod.at,
+        marek.vasut@gmail.com, cyrille.pitchen@wedev4u.fr,
+        linux-mtd@lists.infradead.org, alsa-devel@alsa-project.org,
+        wim@iguana.be, linux@roeck-us.net, linux-watchdog@vger.kernel.org,
+        b.zolnierkie@samsung.com, linux-fbdev@vger.kernel.org,
+        linus.walleij@linaro.org, linux-gpio@vger.kernel.org,
+        ralf@linux-mips.org, linux-mips@linux-mips.org,
+        lgirdwood@gmail.com, broonie@kernel.org, tglx@linutronix.de,
+        jason@lakedaemon.net, marc.zyngier@arm.com, arnd@arndb.de,
+        andriy.shevchenko@linux.intel.com,
+        industrypack-devel@lists.sourceforge.net, wg@grandegger.com,
+        mkl@pengutronix.de, linux-can@vger.kernel.org, mchehab@kernel.org,
+        linux-media@vger.kernel.org, a.zummo@towertech.it,
+        alexandre.belloni@free-electrons.com, linux-rtc@vger.kernel.org,
+        daniel.vetter@intel.com, jani.nikula@linux.intel.com,
+        seanpaul@chromium.org, airlied@linux.ie,
+        dri-devel@lists.freedesktop.org, kvalo@codeaurora.org,
+        linux-wireless@vger.kernel.org, linux-spi@vger.kernel.org,
+        tj@kernel.org, linux-ide@vger.kernel.org, bhelgaas@google.com,
+        linux-pci@vger.kernel.org, devel@driverdev.osuosl.org,
+        dvhart@infradead.org, andy@infradead.org,
+        platform-driver-x86@vger.kernel.org, jakub.kicinski@netronome.com,
+        davem@davemloft.net, nios2-dev@lists.rocketboards.org,
+        netdev@vger.kernel.org, vinod.koul@intel.com,
+        dan.j.williams@intel.com, dmaengine@vger.kernel.org,
+        jslaby@suse.com
+References: <1514026525-32538-1-git-send-email-xieyisheng1@huawei.com>
+ <20171223134831.GB10103@kroah.com>
+ <b8ff7f17-7f2c-f220-9833-7ae5bd7343d5@c-s.fr>
+ <8dd19411-5b06-0aa4-fd0e-e5b112c25dcb@huawei.com>
+From: Christophe LEROY <christophe.leroy@c-s.fr>
+Message-ID: <1eb206ed-95e9-5839-485d-0e549ff3f505@c-s.fr>
+Date: Thu, 4 Jan 2018 09:05:45 +0100
+MIME-Version: 1.0
+In-Reply-To: <8dd19411-5b06-0aa4-fd0e-e5b112c25dcb@huawei.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: fr
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hauppauge HVR-975 is hybrid NTSC/PAL, QAM/ATSC, and DVB-C/T/T2 usb device.
-
-Only ATSC/QAM front end is initially active. Second frontend support is
-work in progress.
-
-CX23102 + LG3306A/Si2168(WiP) + Si2157
-
-Changes since v1:
-- removed double semicolon
 
 
-Signed-off-by: Brad Love <brad@nextdimension.cc>
----
- drivers/media/usb/cx231xx/cx231xx-cards.c | 42 ++++++++++++++++++
- drivers/media/usb/cx231xx/cx231xx-dvb.c   | 74 +++++++++++++++++++++++++++++++
- drivers/media/usb/cx231xx/cx231xx.h       |  1 +
- 3 files changed, 117 insertions(+)
+Le 25/12/2017 à 02:34, Yisheng Xie a écrit :
+> 
+> 
+> On 2017/12/24 17:05, christophe leroy wrote:
+>>
+>>
+>> Le 23/12/2017 à 14:48, Greg KH a écrit :
+>>> On Sat, Dec 23, 2017 at 06:55:25PM +0800, Yisheng Xie wrote:
+>>>> Hi all,
+>>>>
+>>>> When I tried to use devm_ioremap function and review related code, I found
+>>>> devm_ioremap and devm_ioremap_nocache is almost the same with each other,
+>>>> except one use ioremap while the other use ioremap_nocache.
+>>>
+>>> For all arches?  Really?  Look at MIPS, and x86, they have different
+>>> functions.
+>>>
+>>>> While ioremap's
+>>>> default function is ioremap_nocache, so devm_ioremap_nocache also have the
+>>>> same function with devm_ioremap, which can just be killed to reduce the size
+>>>> of devres.o(from 20304 bytes to 18992 bytes in my compile environment).
+>>>>
+>>>> I have posted two versions, which use macro instead of function for
+>>>> devm_ioremap_nocache[1] or devm_ioremap[2]. And Greg suggest me to kill
+>>>> devm_ioremap_nocache for no need to keep a macro around for the duplicate
+>>>> thing. So here comes v3 and please help to review.
+>>>
+>>> I don't think this can be done, what am I missing?  These functions are
+>>> not identical, sorry for missing that before.
+>>
+>> devm_ioremap() and devm_ioremap_nocache() are quite similar, both use devm_ioremap_release() for the release, why not just defining:
+>>
+>> static void __iomem *__devm_ioremap(struct device *dev, resource_size_t offset,
+>>                 resource_size_t size, bool nocache)
+>> {
+>> [...]
+>>      if (nocache)
+>>          addr = ioremap_nocache(offset, size);
+>>      else
+>>          addr = ioremap(offset, size);
+>> [...]
+>> }
+>>
+>> then in include/linux/io.h
+>>
+>> static inline void __iomem *devm_ioremap(struct device *dev, resource_size_t offset,
+>>                 resource_size_t size)
+>> {return __devm_ioremap(dev, offset, size, false);}
+>>
+>> static inline void __iomem *devm_ioremap_nocache(struct device *dev, resource_size_t offset,
+>>                     resource_size_t size);
+>> {return __devm_ioremap(dev, offset, size, true);}
+> 
+> Yeah, this seems good to me, right now we have devm_ioremap, devm_ioremap_wc, devm_ioremap_nocache
+> May be we can use an enum like:
+> typedef enum {
+> 	DEVM_IOREMAP = 0,
+> 	DEVM_IOREMAP_NOCACHE,
+> 	DEVM_IOREMAP_WC,
+> } devm_ioremap_type;
+> 
+> static inline void __iomem *devm_ioremap(struct device *dev, resource_size_t offset,
+>                  resource_size_t size)
+>   {return __devm_ioremap(dev, offset, size, DEVM_IOREMAP);}
+> 
+>   static inline void __iomem *devm_ioremap_nocache(struct device *dev, resource_size_t offset,
+>                      resource_size_t size);
+>   {return __devm_ioremap(dev, offset, size, DEVM_IOREMAP_NOCACHE);}
+> 
+>   static inline void __iomem *devm_ioremap_wc(struct device *dev, resource_size_t offset,
+>                      resource_size_t size);
+>   {return __devm_ioremap(dev, offset, size, DEVM_IOREMAP_WC);}
+> 
+>   static void __iomem *__devm_ioremap(struct device *dev, resource_size_t offset,
+>                  resource_size_t size, devm_ioremap_type type)
+>   {
+>       void __iomem **ptr, *addr = NULL;
+>   [...]
+>       switch (type){
+>       case DEVM_IOREMAP:
+>           addr = ioremap(offset, size);
+>           break;
+>       case DEVM_IOREMAP_NOCACHE:
+>           addr = ioremap_nocache(offset, size);
+>           break;
+>       case DEVM_IOREMAP_WC:
+>           addr = ioremap_wc(offset, size);
+>           break;
+>       }
+>   [...]
+>   }
 
-diff --git a/drivers/media/usb/cx231xx/cx231xx-cards.c b/drivers/media/usb/cx231xx/cx231xx-cards.c
-index c2efbff..8582568 100644
---- a/drivers/media/usb/cx231xx/cx231xx-cards.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-cards.c
-@@ -961,6 +961,45 @@ struct cx231xx_board cx231xx_boards[] = {
- 			.gpio = NULL,
- 		} },
- 	},
-+	[CX231XX_BOARD_HAUPPAUGE_975] = {
-+		.name = "Hauppauge WinTV-HVR-975",
-+		.tuner_type = TUNER_ABSENT,
-+		.tuner_addr = 0x60,
-+		.tuner_gpio = RDE250_XCV_TUNER,
-+		.tuner_sif_gpio = 0x05,
-+		.tuner_scl_gpio = 0x1a,
-+		.tuner_sda_gpio = 0x1b,
-+		.decoder = CX231XX_AVDECODER,
-+		.output_mode = OUT_MODE_VIP11,
-+		.demod_xfer_mode = 0,
-+		.ctl_pin_status_mask = 0xFFFFFFC4,
-+		.agc_analog_digital_select_gpio = 0x0c,
-+		.gpio_pin_status_mask = 0x4001000,
-+		.tuner_i2c_master = I2C_1_MUX_3,
-+		.demod_i2c_master = I2C_1_MUX_3,
-+		.has_dvb = 1,
-+		.demod_addr = 0x59, /* 0xb2 >> 1 */
-+		.norm = V4L2_STD_ALL,
-+
-+		.input = {{
-+			.type = CX231XX_VMUX_TELEVISION,
-+			.vmux = CX231XX_VIN_3_1,
-+			.amux = CX231XX_AMUX_VIDEO,
-+			.gpio = NULL,
-+		}, {
-+			.type = CX231XX_VMUX_COMPOSITE1,
-+			.vmux = CX231XX_VIN_2_1,
-+			.amux = CX231XX_AMUX_LINE_IN,
-+			.gpio = NULL,
-+		}, {
-+			.type = CX231XX_VMUX_SVIDEO,
-+			.vmux = CX231XX_VIN_1_1 |
-+				(CX231XX_VIN_1_2 << 8) |
-+				CX25840_SVIDEO_ON,
-+			.amux = CX231XX_AMUX_LINE_IN,
-+			.gpio = NULL,
-+		} },
-+	},
- };
- const unsigned int cx231xx_bcount = ARRAY_SIZE(cx231xx_boards);
- 
-@@ -994,6 +1033,8 @@ struct usb_device_id cx231xx_id_table[] = {
- 	 .driver_info = CX231XX_BOARD_HAUPPAUGE_955Q},
- 	{USB_DEVICE(0x2040, 0xb151),
- 	 .driver_info = CX231XX_BOARD_HAUPPAUGE_935C},
-+	{USB_DEVICE(0x2040, 0xb150),
-+	 .driver_info = CX231XX_BOARD_HAUPPAUGE_975},
- 	{USB_DEVICE(0x2040, 0xb130),
- 	 .driver_info = CX231XX_BOARD_HAUPPAUGE_930C_HD_1113xx},
- 	{USB_DEVICE(0x2040, 0xb131),
-@@ -1253,6 +1294,7 @@ void cx231xx_card_setup(struct cx231xx *dev)
- 	case CX231XX_BOARD_HAUPPAUGE_930C_HD_1114xx:
- 	case CX231XX_BOARD_HAUPPAUGE_955Q:
- 	case CX231XX_BOARD_HAUPPAUGE_935C:
-+	case CX231XX_BOARD_HAUPPAUGE_975:
- 		{
- 			struct eeprom {
- 				struct tveeprom tvee;
-diff --git a/drivers/media/usb/cx231xx/cx231xx-dvb.c b/drivers/media/usb/cx231xx/cx231xx-dvb.c
-index 2e6bb09..cb8e90a 100644
---- a/drivers/media/usb/cx231xx/cx231xx-dvb.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-dvb.c
-@@ -1143,6 +1143,80 @@ static int dvb_init(struct cx231xx *dev)
- 		dev->dvb->i2c_client_tuner = client;
- 		break;
- 	}
-+	case CX231XX_BOARD_HAUPPAUGE_975:
-+	{
-+		struct i2c_client *client;
-+		struct i2c_adapter *adapter;
-+		struct i2c_board_info info = {};
-+		struct si2157_config si2157_config = {};
-+		struct lgdt3306a_config lgdt3306a_config = {};
-+
-+		/* attach demodulator chip */
-+		lgdt3306a_config = hauppauge_955q_lgdt3306a_config;
-+		lgdt3306a_config.fe = &dev->dvb->frontend;
-+		lgdt3306a_config.i2c_adapter = &adapter;
-+
-+		strlcpy(info.type, "lgdt3306a", sizeof(info.type));
-+		info.addr = dev->board.demod_addr;
-+		info.platform_data = &lgdt3306a_config;
-+
-+		request_module(info.type);
-+		client = i2c_new_device(demod_i2c, &info);
-+		if (client == NULL || client->dev.driver == NULL) {
-+			result = -ENODEV;
-+			goto out_free;
-+		}
-+
-+		if (!try_module_get(client->dev.driver->owner)) {
-+			dev_err(dev->dev,
-+				"Failed to attach %s frontend.\n", info.type);
-+			i2c_unregister_device(client);
-+			result = -ENODEV;
-+			goto out_free;
-+		}
-+
-+		dvb->i2c_client_demod = client;
-+		dev->dvb->frontend->ops.i2c_gate_ctrl = NULL;
-+
-+		/* define general-purpose callback pointer */
-+		dvb->frontend->callback = cx231xx_tuner_callback;
-+
-+		/* attach tuner */
-+		si2157_config.fe = dev->dvb->frontend;
-+#ifdef CONFIG_MEDIA_CONTROLLER_DVB
-+		si2157_config.mdev = dev->media_dev;
-+#endif
-+		si2157_config.if_port = 1;
-+		si2157_config.inversion = true;
-+
-+		memset(&info, 0, sizeof(struct i2c_board_info));
-+		strlcpy(info.type, "si2157", I2C_NAME_SIZE);
-+		info.addr = dev->board.tuner_addr;
-+		info.platform_data = &si2157_config;
-+		request_module("si2157");
-+
-+		client = i2c_new_device(tuner_i2c, &info);
-+		if (client == NULL || client->dev.driver == NULL) {
-+			module_put(dvb->i2c_client_demod->dev.driver->owner);
-+			i2c_unregister_device(dvb->i2c_client_demod);
-+			result = -ENODEV;
-+			goto out_free;
-+		}
-+
-+		if (!try_module_get(client->dev.driver->owner)) {
-+			dev_err(dev->dev,
-+				"Failed to obtain %s tuner.\n",	info.type);
-+			i2c_unregister_device(client);
-+			module_put(dvb->i2c_client_demod->dev.driver->owner);
-+			i2c_unregister_device(dvb->i2c_client_demod);
-+			result = -ENODEV;
-+			goto out_free;
-+		}
-+
-+		dev->cx231xx_reset_analog_tuner = NULL;
-+		dev->dvb->i2c_client_tuner = client;
-+		break;
-+	}
- 	default:
- 		dev_err(dev->dev,
- 			"%s/2: The frontend of your DVB/ATSC card isn't supported yet\n",
-diff --git a/drivers/media/usb/cx231xx/cx231xx.h b/drivers/media/usb/cx231xx/cx231xx.h
-index 1493192..fa993f7 100644
---- a/drivers/media/usb/cx231xx/cx231xx.h
-+++ b/drivers/media/usb/cx231xx/cx231xx.h
-@@ -82,6 +82,7 @@
- #define CX231XX_BOARD_ASTROMETA_T2HYBRID 24
- #define CX231XX_BOARD_THE_IMAGING_SOURCE_DFG_USB2_PRO 25
- #define CX231XX_BOARD_HAUPPAUGE_935C 26
-+#define CX231XX_BOARD_HAUPPAUGE_975 27
- 
- /* Limits minimum and default number of buffers */
- #define CX231XX_MIN_BUF                 4
--- 
-2.7.4
+
+That looks good to me, will you submit a v4 ?
+
+Christophe
+
+> 
+> Thanks
+> Yisheng
+> 
+>>
+>> Christophe
+>>
+>>>
+>>> thanks,
+>>>
+>>> greg k-h
+>>> -- 
+>>> To unsubscribe from this list: send the line "unsubscribe linux-watchdog" in
+>>> the body of a message to majordomo@vger.kernel.org
+>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>>
+>>
+>> ---
+>> L'absence de virus dans ce courrier électronique a été vérifiée par le logiciel antivirus Avast.
+>> https://www.avast.com/antivirus
+>>
+>>
+>> .
+>>
