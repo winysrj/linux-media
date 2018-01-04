@@ -1,116 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:54582 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S932601AbeARPNP (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 18 Jan 2018 10:13:15 -0500
-Subject: Re: [RFC PATCH] v4l2-event/dev: wakeup pending events when
- unregistering
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Michael Walz <m.walz@digitalendoscopy.de>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <83e3318b-3f6e-7f27-6585-b5b69ddd9f65@xs4all.nl>
-Message-ID: <8ea3ba15-102a-4d61-f7fb-e6ccd527a32d@xs4all.nl>
-Date: Thu, 18 Jan 2018 16:13:10 +0100
-MIME-Version: 1.0
-In-Reply-To: <83e3318b-3f6e-7f27-6585-b5b69ddd9f65@xs4all.nl>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
+Received: from mga07.intel.com ([134.134.136.100]:17576 "EHLO mga07.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752057AbeADRwQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 4 Jan 2018 12:52:16 -0500
+Message-ID: <1515088333.7000.708.camel@linux.intel.com>
+Subject: Re: [BUG] atomisp_ov2680 not initializing correctly
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: Alan Cox <gnomes@lxorguk.ukuu.org.uk>
+Cc: Kristian Beilke <beilke@posteo.de>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        linux-media@vger.kernel.org, alan@linux.intel.com
+Date: Thu, 04 Jan 2018 19:52:13 +0200
+In-Reply-To: <20171230211025.7aeaafcd@alans-desktop>
+References: <42dfd60f-2534-b9cd-eeab-3110d58ef7c0@posteo.de>
+         <20171219120020.w7byb7bv3hhzn2jb@valkosipuli.retiisi.org.uk>
+         <1513715821.7000.228.camel@linux.intel.com>
+         <20171221125444.GB2935@ber-nb-001.aisec.fraunhofer.de>
+         <1513866211.7000.250.camel@linux.intel.com>
+         <6d1a2dc7-1d7b-78f3-9334-ccdedaa66510@posteo.de>
+         <1514476996.7000.437.camel@linux.intel.com>
+         <20171230211025.7aeaafcd@alans-desktop>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Michael,
+On Sat, 2017-12-30 at 21:10 +0000, Alan Cox wrote:
+> > AFAIR Alan has CHT hardware he is developing / testing on.
+> 
+> I have a loaned board from the company Vincent (who did the intial
+> patches) works for. At the moment it's loading firmware, finding
+> cameras
+> doing power management but not transferring images.
+> 
+> Unfortunately because of the design of the driver and firmware at the
+> moment we are reduced to analyzing all the structs by hand between
+> multiple different driver releases, and playing games to try and find
+> out
+> why various things are not matching up (assuming the firmware we have
+> will actually work with the Windows tablet in question in the first
+> place).
 
-Only apply the change to v4l2_dev.c, ignore the changes to v4l2_event.
-I think it is sufficient to just apply that bit.
+Maybe we need start over, i.e. find a (presumable old) kernel with
+driver _and_ corresponding firmware _and_ hardware it supports to start
+with...
 
-Regards,
+> It's nasty because there are complex structs shared between the
+> firmware
+> and the OS, and in at least one spot the supposedly 'pristine' CHT
+> driver
+> that was used for the merge we now know could never have worked
+> because
+> it mismatched its own firmware !
 
-	Hans
+Argh!
 
-On 01/18/18 12:21, Hans Verkuil wrote:
-> When the video device is unregistered any filehandles waiting on
-> an event (i.e. in VIDIOC_DQEVENT) will never wake up.
-> 
-> Wake them up and detect that the video device is unregistered in
-> __v4l2_event_dequeue() and return -ENODEV in that case.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
-> Note: this is a quick hack, just for events. We have the same problem
-> with vb2 (waiting for a buffer) and cec (waiting for an event). Not sure if rc
-> or dvb are also suffering from the same problem.
-> 
-> I wonder if there is an easier way to wake up all fhs that are waiting for
-> some event.
-> 
-> Michael: most applications use non-blocking mode and poll/select to wait
-> for something to happen. In such applications the poll/select will return
-> when the device is unregistered and this problem does not occur.
-> ---
-> diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
-> index d5e0e536ef04..42574ccbd770 100644
-> --- a/drivers/media/v4l2-core/v4l2-dev.c
-> +++ b/drivers/media/v4l2-core/v4l2-dev.c
-> @@ -1017,6 +1017,9 @@ EXPORT_SYMBOL(__video_register_device);
->   */
->  void video_unregister_device(struct video_device *vdev)
->  {
-> +	unsigned long flags;
-> +	struct v4l2_fh *fh;
-> +
->  	/* Check if vdev was ever registered at all */
->  	if (!vdev || !video_is_registered(vdev))
->  		return;
-> @@ -1027,6 +1030,12 @@ void video_unregister_device(struct video_device *vdev)
->  	 */
->  	clear_bit(V4L2_FL_REGISTERED, &vdev->flags);
->  	mutex_unlock(&videodev_lock);
-> +
-> +	spin_lock_irqsave(&vdev->fh_lock, flags);
-> +	list_for_each_entry(fh, &vdev->fh_list, list)
-> +		wake_up_all(&fh->wait);
-> +	spin_unlock_irqrestore(&vdev->fh_lock, flags);
-> +
->  	device_unregister(&vdev->dev);
->  }
->  EXPORT_SYMBOL(video_unregister_device);
-> diff --git a/drivers/media/v4l2-core/v4l2-event.c b/drivers/media/v4l2-core/v4l2-event.c
-> index 968c2eb08b5a..d04977cd1bfb 100644
-> --- a/drivers/media/v4l2-core/v4l2-event.c
-> +++ b/drivers/media/v4l2-core/v4l2-event.c
-> @@ -36,12 +36,17 @@ static int __v4l2_event_dequeue(struct v4l2_fh *fh, struct v4l2_event *event)
->  {
->  	struct v4l2_kevent *kev;
->  	unsigned long flags;
-> +	int ret = 0;
-> 
->  	spin_lock_irqsave(&fh->vdev->fh_lock, flags);
-> 
-> +	if (!video_is_registered(fh->vdev)) {
-> +		ret = -ENODEV;
-> +		goto err;
-> +	}
->  	if (list_empty(&fh->available)) {
-> -		spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
-> -		return -ENOENT;
-> +		ret = -ENOENT;
-> +		goto err;
->  	}
-> 
->  	WARN_ON(fh->navailable == 0);
-> @@ -54,10 +59,10 @@ static int __v4l2_event_dequeue(struct v4l2_fh *fh, struct v4l2_event *event)
->  	*event = kev->event;
->  	kev->sev->first = sev_pos(kev->sev, 1);
->  	kev->sev->in_use--;
-> -
-> +err:
->  	spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
-> 
-> -	return 0;
-> +	return ret;
->  }
-> 
->  int v4l2_event_dequeue(struct v4l2_fh *fh, struct v4l2_event *event,
-> 
+> On BYT I can't currently do much as my latest Intel Android tablet has
+> died and it's getting hard to find more because I guess the rest of
+> those
+> made have also died.
+
+I have MRD7 with some BIOS on it I even don't know if there is any newer
+still available inside.
+
+-- 
+Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Intel Finland Oy
