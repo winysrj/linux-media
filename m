@@ -1,70 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f68.google.com ([209.85.215.68]:37068 "EHLO
-        mail-lf0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752412AbeAaIHr (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 31 Jan 2018 03:07:47 -0500
-Received: by mail-lf0-f68.google.com with SMTP id 63so19297429lfv.4
-        for <linux-media@vger.kernel.org>; Wed, 31 Jan 2018 00:07:46 -0800 (PST)
-Subject: Re: [PATCH v8 04/11] ARM: dts: r7s72100: Add Capture Engine Unit
- (CEU)
-To: Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        laurent.pinchart@ideasonboard.com, magnus.damm@gmail.com,
-        geert@glider.be, hverkuil@xs4all.nl, mchehab@kernel.org,
-        festevam@gmail.com, sakari.ailus@iki.fi, robh+dt@kernel.org,
-        mark.rutland@arm.com, pombredanne@nexb.com
-Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-sh@vger.kernel.org, devicetree@vger.kernel.org,
+Received: from mout.kundenserver.de ([212.227.126.135]:60653 "EHLO
+        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752469AbeADNoH (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 4 Jan 2018 08:44:07 -0500
+From: Arnd Bergmann <arnd@arndb.de>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>, linux-media@vger.kernel.org,
         linux-kernel@vger.kernel.org
-References: <1517306302-27957-1-git-send-email-jacopo+renesas@jmondi.org>
- <1517306302-27957-5-git-send-email-jacopo+renesas@jmondi.org>
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Message-ID: <567f779c-591c-4798-a8d0-504d25c439de@cogentembedded.com>
-Date: Wed, 31 Jan 2018 11:07:44 +0300
-MIME-Version: 1.0
-In-Reply-To: <1517306302-27957-5-git-send-email-jacopo+renesas@jmondi.org>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Subject: [PATCH] [v2] media: au0828: fix VIDEO_V4L2 dependency
+Date: Thu,  4 Jan 2018 14:43:50 +0100
+Message-Id: <20180104134401.2642255-1-arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello!
+After the move of videobuf2 into the common directory, selecting the
+au0828 driver with CONFIG_V4L2 disabled started causing a link failure,
+as we now attempt to build videobuf2 but it still requires v4l2:
 
-On 1/30/2018 12:58 PM, Jacopo Mondi wrote:
+ERROR: "v4l2_event_pending" [drivers/media/common/videobuf/videobuf2-v4l2.ko] undefined!
+ERROR: "v4l2_fh_release" [drivers/media/common/videobuf/videobuf2-v4l2.ko] undefined!
+ERROR: "video_devdata" [drivers/media/common/videobuf/videobuf2-v4l2.ko] undefined!
+ERROR: "__tracepoint_vb2_buf_done" [drivers/media/common/videobuf/videobuf2-core.ko] undefined!
+ERROR: "__tracepoint_vb2_dqbuf" [drivers/media/common/videobuf/videobuf2-core.ko] undefined!
+ERROR: "v4l_vb2q_enable_media_source" [drivers/media/common/videobuf/videobuf2-core.ko] undefined!
 
-> Add Capture Engine Unit (CEU) node to device tree.
-> 
-> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
-> Reviewed-by: Geert Uytterhoeven <geert+renesas@glider.be>
-> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->   arch/arm/boot/dts/r7s72100.dtsi | 15 ++++++++++++---
->   1 file changed, 12 insertions(+), 3 deletions(-)
-> 
-> diff --git a/arch/arm/boot/dts/r7s72100.dtsi b/arch/arm/boot/dts/r7s72100.dtsi
-> index ab9645a..5fe62f9 100644
-> --- a/arch/arm/boot/dts/r7s72100.dtsi
-> +++ b/arch/arm/boot/dts/r7s72100.dtsi
-[...]
-> @@ -667,4 +667,13 @@
->   		power-domains = <&cpg_clocks>;
->   		status = "disabled";
->   	};
-> +
-> +	ceu: ceu@e8210000 {
+We want to be able to build the core au0828 support without V4L2,
+so this makes the 'select' conditional on V4L2, and refines the
+dependencies in VIDEO_AU0828_V4L2 so it can only be enabled in
+the exact conditions that have VIDEOBUF2_VMALLOC reachable.
 
-    The DT spec dictates the generic node names should be used. For the R-Car 
-VIN we use "video@...", hence I suggest that use the same here.
+Fixes: 03fbdb2fc2b8 ("media: move videobuf2 to drivers/media/common")
+Fixes: 05439b1a3693 ("[media] media: au0828 - convert to use videobuf2")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+---
+ drivers/media/usb/au0828/Kconfig | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-> +		reg = <0xe8210000 0x3000>;
-> +		compatible = "renesas,r7s72100-ceu";
-> +		interrupts = <GIC_SPI 332 IRQ_TYPE_LEVEL_HIGH>;
-> +		clocks = <&mstp6_clks R7S72100_CLK_CEU>;
-> +		power-domains = <&cpg_clocks>;
-> +		status = "disabled";
-> +	};
->   };
-
-MBR, Sergei
+diff --git a/drivers/media/usb/au0828/Kconfig b/drivers/media/usb/au0828/Kconfig
+index 70521e0b4c53..18630b033d5b 100644
+--- a/drivers/media/usb/au0828/Kconfig
++++ b/drivers/media/usb/au0828/Kconfig
+@@ -4,7 +4,7 @@ config VIDEO_AU0828
+ 	depends on I2C && INPUT && DVB_CORE && USB
+ 	select I2C_ALGOBIT
+ 	select VIDEO_TVEEPROM
+-	select VIDEOBUF2_VMALLOC
++	select VIDEOBUF2_VMALLOC if VIDEO_V4L2
+ 	select DVB_AU8522_DTV if MEDIA_SUBDRV_AUTOSELECT
+ 	select MEDIA_TUNER_XC5000 if MEDIA_SUBDRV_AUTOSELECT
+ 	select MEDIA_TUNER_MXL5007T if MEDIA_SUBDRV_AUTOSELECT
+@@ -18,7 +18,8 @@ config VIDEO_AU0828
+ 
+ config VIDEO_AU0828_V4L2
+ 	bool "Auvitek AU0828 v4l2 analog video support"
+-	depends on VIDEO_AU0828 && VIDEO_V4L2
++	depends on VIDEO_AU0828
++	depends on VIDEO_V4L2=y || VIDEO_V4L2=VIDEO_AU0828
+ 	select DVB_AU8522_V4L if MEDIA_SUBDRV_AUTOSELECT
+ 	select VIDEO_TUNER
+ 	default y
+-- 
+2.9.0
