@@ -1,67 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:59146 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751576AbeAWMwf (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 23 Jan 2018 07:52:35 -0500
-Date: Tue, 23 Jan 2018 14:52:33 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [GIT PULL for 4.16] CIO2 compiler warning fix
-Message-ID: <20180123125232.bswrswaxbyyu7vsq@valkosipuli.retiisi.org.uk>
-References: <20180109223517.lkj4opdpm64jpf5d@valkosipuli.retiisi.org.uk>
- <20180123104008.25ebdef5@vela.lan>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20180123104008.25ebdef5@vela.lan>
+Received: from mout.kundenserver.de ([212.227.126.187]:54444 "EHLO
+        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752159AbeADKcj (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 4 Jan 2018 05:32:39 -0500
+From: Arnd Bergmann <arnd@arndb.de>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Daniel Vetter <daniel.vetter@ffwll.ch>,
+        Sean Young <sean@mess.org>, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: [PATCH 2/3] media: dvb: fix DVB_MMAP dependency
+Date: Thu,  4 Jan 2018 11:31:31 +0100
+Message-Id: <20180104103215.15591-2-arnd@arndb.de>
+In-Reply-To: <20180104103215.15591-1-arnd@arndb.de>
+References: <20180104103215.15591-1-arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Jan 23, 2018 at 10:40:13AM -0200, Mauro Carvalho Chehab wrote:
-> Em Wed, 10 Jan 2018 00:35:18 +0200
-> Sakari Ailus <sakari.ailus@iki.fi> escreveu:
-> 
-> > Hi Mauro,
-> > 
-> > Here's compile warning fix for the Intel IPU3 CIO2 driver from Arnd.
-> > 
-> > Please pull.
-> > 
-> > 
-> > The following changes since commit e3ee691dbf24096ea51b3200946b11d68ce75361:
-> > 
-> >   media: ov5640: add support of RGB565 and YUYV formats (2018-01-05 12:54:14 -0500)
-> > 
-> > are available in the git repository at:
-> > 
-> >   ssh://linuxtv.org/git/sailus/media_tree.git ipu3
-> > 
-> > for you to fetch changes up to 0bf3352560b82c12380823f035f5fb2171683f23:
-> > 
-> >   media: intel-ipu3: cio2: mark more PM functions as __maybe_unused (2018-01-09 13:16:07 +0200)
-> > 
-> > ----------------------------------------------------------------
-> > Arnd Bergmann (1):
-> >       media: intel-ipu3: cio2: mark more PM functions as __maybe_unused
-> > 
-> >  drivers/media/pci/intel/ipu3/ipu3-cio2.c | 4 ++--
-> >  1 file changed, 2 insertions(+), 2 deletions(-)
-> 
-> I got more changes than mentioned above:
-> 
-> git pull logs
-> Updating e3ee691dbf24..8d677b031a4f
-> Fast-forward
->  drivers/media/pci/intel/ipu3/ipu3-cio2.c | 9 ++++-----
->  1 file changed, 4 insertions(+), 5 deletions(-)
-> 
-> Something wrong happened here.
+Enabling CONFIG_DVB_MMAP without CONFIG_VIDEOBUF2_VMALLOC results
+in a link error:
 
-Oops. There was an additional patch but I forgot to replace the pull
-request. I'll do that now.
+drivers/media/dvb-core/dvb_vb2.o: In function `_stop_streaming':
+dvb_vb2.c:(.text+0x894): undefined reference to `vb2_buffer_done'
+drivers/media/dvb-core/dvb_vb2.o: In function `dvb_vb2_init':
+dvb_vb2.c:(.text+0xbec): undefined reference to `vb2_vmalloc_memops'
+dvb_vb2.c:(.text+0xc4c): undefined reference to `vb2_core_queue_init'
+drivers/media/dvb-core/dvb_vb2.o: In function `dvb_vb2_release':
+dvb_vb2.c:(.text+0xe14): undefined reference to `vb2_core_queue_release'
+drivers/media/dvb-core/dvb_vb2.o: In function `dvb_vb2_stream_on':
+dvb_vb2.c:(.text+0xeb8): undefined reference to `vb2_core_streamon'
+drivers/media/dvb-core/dvb_vb2.o: In function `dvb_vb2_stream_off':
+dvb_vb2.c:(.text+0xfe8): undefined reference to `vb2_core_streamoff'
+drivers/media/dvb-core/dvb_vb2.o: In function `dvb_vb2_fill_buffer':
+dvb_vb2.c:(.text+0x13ec): undefined reference to `vb2_plane_vaddr'
+dvb_vb2.c:(.text+0x149c): undefined reference to `vb2_buffer_done'
 
+This adds a 'select' statement for it, plus a dependency that
+ensures that videobuf2 in turn works, as it in turn depends on
+VIDEO_V4L2 to link, and that must not be a module if videobuf2
+is built-in.
+
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+---
+ drivers/media/Kconfig | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/drivers/media/Kconfig b/drivers/media/Kconfig
+index 3f69b948d102..d1be86ebfd9a 100644
+--- a/drivers/media/Kconfig
++++ b/drivers/media/Kconfig
+@@ -147,6 +147,8 @@ config DVB_CORE
+ config DVB_MMAP
+ 	bool "Enable DVB memory-mapped API (EXPERIMENTAL)"
+ 	depends on DVB_CORE
++	depends on VIDEO_V4L2=y || VIDEO_V4L2=DVB_CORE
++	select VIDEOBUF2_VMALLOC
+ 	default n
+ 	help
+ 	  This option enables DVB experimental memory-mapped API, with
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+2.9.0
