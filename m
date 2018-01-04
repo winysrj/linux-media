@@ -1,206 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bin-mail-out-06.binero.net ([195.74.38.229]:20184 "EHLO
-        bin-vsp-out-03.atm.binero.net" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751748AbeA2QgB (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 29 Jan 2018 11:36:01 -0500
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH v10 28/30] rcar-vin: enable support for r8a7795
-Date: Mon, 29 Jan 2018 17:34:33 +0100
-Message-Id: <20180129163435.24936-29-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20180129163435.24936-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20180129163435.24936-1-niklas.soderlund+renesas@ragnatech.se>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from mga04.intel.com ([192.55.52.120]:4388 "EHLO mga04.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751748AbeADDs5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 3 Jan 2018 22:48:57 -0500
+From: tian.shu.qiu@intel.com
+To: linux-media@vger.kernel.org
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Qiu@vger.kernel.org, Tianshu <tian.shu.qiu@intel.com>
+Subject: [MAIN PATCH v1 1/2] Update headers from upstream kernel
+Date: Thu,  4 Jan 2018 11:48:12 +0800
+Message-Id: <1515037693-29631-2-git-send-email-tian.shu.qiu@intel.com>
+In-Reply-To: <1515037693-29631-1-git-send-email-tian.shu.qiu@intel.com>
+References: <1515037693-29631-1-git-send-email-tian.shu.qiu@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add the SoC specific information for Renesas r8a7795 ES1.x and ES2.0.
+From: Tianshu Qiu <tian.shu.qiu@intel.com>
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Upstream commit 6f0e5fd39143a59c22d60e7befc4f33f22aeed2f
+
+Signed-off-by: Tianshu Qiu <tian.shu.qiu@intel.com>
 ---
- drivers/media/platform/rcar-vin/Kconfig     |   2 +-
- drivers/media/platform/rcar-vin/rcar-core.c | 120 ++++++++++++++++++++++++++++
- 2 files changed, 121 insertions(+), 1 deletion(-)
+ include/linux/videodev2.h | 15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
 
-diff --git a/drivers/media/platform/rcar-vin/Kconfig b/drivers/media/platform/rcar-vin/Kconfig
-index af4c98b44d2e22cb..8fa7ee468c63afb9 100644
---- a/drivers/media/platform/rcar-vin/Kconfig
-+++ b/drivers/media/platform/rcar-vin/Kconfig
-@@ -6,7 +6,7 @@ config VIDEO_RCAR_VIN
- 	select V4L2_FWNODE
- 	---help---
- 	  Support for Renesas R-Car Video Input (VIN) driver.
--	  Supports R-Car Gen2 SoCs.
-+	  Supports R-Car Gen2 and Gen3 SoCs.
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index b1e36ee553da..afa4d09c59a3 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -1,3 +1,4 @@
++/* SPDX-License-Identifier: ((GPL-2.0+ WITH Linux-syscall-note) OR BSD-3-Clause) */
+ /*
+  *  Video for Linux Two header file
+  *
+@@ -599,6 +600,11 @@ struct v4l2_pix_format {
+ #define V4L2_PIX_FMT_SGBRG12 v4l2_fourcc('G', 'B', '1', '2') /* 12  GBGB.. RGRG.. */
+ #define V4L2_PIX_FMT_SGRBG12 v4l2_fourcc('B', 'A', '1', '2') /* 12  GRGR.. BGBG.. */
+ #define V4L2_PIX_FMT_SRGGB12 v4l2_fourcc('R', 'G', '1', '2') /* 12  RGRG.. GBGB.. */
++	/* 12bit raw bayer packed, 6 bytes for every 4 pixels */
++#define V4L2_PIX_FMT_SBGGR12P v4l2_fourcc('p', 'B', 'C', 'C')
++#define V4L2_PIX_FMT_SGBRG12P v4l2_fourcc('p', 'G', 'C', 'C')
++#define V4L2_PIX_FMT_SGRBG12P v4l2_fourcc('p', 'g', 'C', 'C')
++#define V4L2_PIX_FMT_SRGGB12P v4l2_fourcc('p', 'R', 'C', 'C')
+ #define V4L2_PIX_FMT_SBGGR16 v4l2_fourcc('B', 'Y', 'R', '2') /* 16  BGBG.. GRGR.. */
+ #define V4L2_PIX_FMT_SGBRG16 v4l2_fourcc('G', 'B', '1', '6') /* 16  GBGB.. RGRG.. */
+ #define V4L2_PIX_FMT_SGRBG16 v4l2_fourcc('G', 'R', '1', '6') /* 16  GRGR.. BGBG.. */
+@@ -659,12 +665,21 @@ struct v4l2_pix_format {
+ #define V4L2_PIX_FMT_MT21C    v4l2_fourcc('M', 'T', '2', '1') /* Mediatek compressed block mode  */
+ #define V4L2_PIX_FMT_INZI     v4l2_fourcc('I', 'N', 'Z', 'I') /* Intel Planar Greyscale 10-bit and Depth 16-bit */
  
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called rcar-vin.
-diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
-index 7ceff0de40078580..43d2fa83875817f0 100644
---- a/drivers/media/platform/rcar-vin/rcar-core.c
-+++ b/drivers/media/platform/rcar-vin/rcar-core.c
-@@ -21,6 +21,7 @@
- #include <linux/platform_device.h>
- #include <linux/pm_runtime.h>
- #include <linux/slab.h>
-+#include <linux/sys_soc.h>
++/* 10bit raw bayer packed, 32 bytes for every 25 pixels, last LSB 6 bits unused */
++#define V4L2_PIX_FMT_IPU3_SBGGR10	v4l2_fourcc('i', 'p', '3', 'b') /* IPU3 packed 10-bit BGGR bayer */
++#define V4L2_PIX_FMT_IPU3_SGBRG10	v4l2_fourcc('i', 'p', '3', 'g') /* IPU3 packed 10-bit GBRG bayer */
++#define V4L2_PIX_FMT_IPU3_SGRBG10	v4l2_fourcc('i', 'p', '3', 'G') /* IPU3 packed 10-bit GRBG bayer */
++#define V4L2_PIX_FMT_IPU3_SRGGB10	v4l2_fourcc('i', 'p', '3', 'r') /* IPU3 packed 10-bit RGGB bayer */
++
+ /* SDR formats - used only for Software Defined Radio devices */
+ #define V4L2_SDR_FMT_CU8          v4l2_fourcc('C', 'U', '0', '8') /* IQ u8 */
+ #define V4L2_SDR_FMT_CU16LE       v4l2_fourcc('C', 'U', '1', '6') /* IQ u16le */
+ #define V4L2_SDR_FMT_CS8          v4l2_fourcc('C', 'S', '0', '8') /* complex s8 */
+ #define V4L2_SDR_FMT_CS14LE       v4l2_fourcc('C', 'S', '1', '4') /* complex s14le */
+ #define V4L2_SDR_FMT_RU12LE       v4l2_fourcc('R', 'U', '1', '2') /* real u12le */
++#define V4L2_SDR_FMT_PCU16BE	  v4l2_fourcc('P', 'C', '1', '6') /* planar complex u16be */
++#define V4L2_SDR_FMT_PCU18BE	  v4l2_fourcc('P', 'C', '1', '8') /* planar complex u18be */
++#define V4L2_SDR_FMT_PCU20BE	  v4l2_fourcc('P', 'C', '2', '0') /* planar complex u20be */
  
- #include <media/v4l2-async.h>
- #include <media/v4l2-fwnode.h>
-@@ -815,6 +816,104 @@ static const struct rvin_info rcar_info_gen2 = {
- 	.max_height = 2048,
- };
- 
-+static const struct rvin_group_route rcar_info_r8a7795_routes[] = {
-+	{ .vin = 0, .csi = RVIN_CSI40, .chan = 0, .mask = BIT(0) | BIT(3) },
-+	{ .vin = 0, .csi = RVIN_CSI20, .chan = 0, .mask = BIT(1) | BIT(4) },
-+	{ .vin = 0, .csi = RVIN_CSI40, .chan = 1, .mask = BIT(2) },
-+	{ .vin = 1, .csi = RVIN_CSI20, .chan = 0, .mask = BIT(0) },
-+	{ .vin = 1, .csi = RVIN_CSI40, .chan = 1, .mask = BIT(1) | BIT(3) },
-+	{ .vin = 1, .csi = RVIN_CSI40, .chan = 0, .mask = BIT(2) },
-+	{ .vin = 1, .csi = RVIN_CSI20, .chan = 1, .mask = BIT(4) },
-+	{ .vin = 2, .csi = RVIN_CSI20, .chan = 1, .mask = BIT(0) },
-+	{ .vin = 2, .csi = RVIN_CSI40, .chan = 0, .mask = BIT(1) },
-+	{ .vin = 2, .csi = RVIN_CSI20, .chan = 0, .mask = BIT(2) },
-+	{ .vin = 2, .csi = RVIN_CSI40, .chan = 2, .mask = BIT(3) },
-+	{ .vin = 2, .csi = RVIN_CSI20, .chan = 2, .mask = BIT(4) },
-+	{ .vin = 3, .csi = RVIN_CSI40, .chan = 1, .mask = BIT(0) },
-+	{ .vin = 3, .csi = RVIN_CSI20, .chan = 1, .mask = BIT(1) | BIT(2) },
-+	{ .vin = 3, .csi = RVIN_CSI40, .chan = 3, .mask = BIT(3) },
-+	{ .vin = 3, .csi = RVIN_CSI20, .chan = 3, .mask = BIT(4) },
-+	{ .vin = 4, .csi = RVIN_CSI41, .chan = 0, .mask = BIT(0) | BIT(3) },
-+	{ .vin = 4, .csi = RVIN_CSI20, .chan = 0, .mask = BIT(1) | BIT(4) },
-+	{ .vin = 4, .csi = RVIN_CSI41, .chan = 1, .mask = BIT(2) },
-+	{ .vin = 5, .csi = RVIN_CSI20, .chan = 0, .mask = BIT(0) },
-+	{ .vin = 5, .csi = RVIN_CSI41, .chan = 1, .mask = BIT(1) | BIT(3) },
-+	{ .vin = 5, .csi = RVIN_CSI41, .chan = 0, .mask = BIT(2) },
-+	{ .vin = 5, .csi = RVIN_CSI20, .chan = 1, .mask = BIT(4) },
-+	{ .vin = 6, .csi = RVIN_CSI20, .chan = 1, .mask = BIT(0) },
-+	{ .vin = 6, .csi = RVIN_CSI41, .chan = 0, .mask = BIT(1) },
-+	{ .vin = 6, .csi = RVIN_CSI20, .chan = 0, .mask = BIT(2) },
-+	{ .vin = 6, .csi = RVIN_CSI41, .chan = 2, .mask = BIT(3) },
-+	{ .vin = 6, .csi = RVIN_CSI20, .chan = 2, .mask = BIT(4) },
-+	{ .vin = 7, .csi = RVIN_CSI41, .chan = 1, .mask = BIT(0) },
-+	{ .vin = 7, .csi = RVIN_CSI20, .chan = 1, .mask = BIT(1) | BIT(2) },
-+	{ .vin = 7, .csi = RVIN_CSI41, .chan = 3, .mask = BIT(3) },
-+	{ .vin = 7, .csi = RVIN_CSI20, .chan = 3, .mask = BIT(4) },
-+	{ /* Sentinel */ }
-+};
-+
-+static const struct rvin_info rcar_info_r8a7795 = {
-+	.model = RCAR_GEN3,
-+	.use_mc = true,
-+	.max_width = 4096,
-+	.max_height = 4096,
-+	.routes = rcar_info_r8a7795_routes,
-+};
-+
-+static const struct rvin_group_route rcar_info_r8a7795es1_routes[] = {
-+	{ .vin = 0, .csi = RVIN_CSI40, .chan = 0, .mask = BIT(0) | BIT(3) },
-+	{ .vin = 0, .csi = RVIN_CSI20, .chan = 0, .mask = BIT(1) | BIT(4) },
-+	{ .vin = 0, .csi = RVIN_CSI21, .chan = 0, .mask = BIT(2) | BIT(5) },
-+	{ .vin = 1, .csi = RVIN_CSI20, .chan = 0, .mask = BIT(0) },
-+	{ .vin = 1, .csi = RVIN_CSI21, .chan = 0, .mask = BIT(1) },
-+	{ .vin = 1, .csi = RVIN_CSI40, .chan = 0, .mask = BIT(2) },
-+	{ .vin = 1, .csi = RVIN_CSI40, .chan = 1, .mask = BIT(3) },
-+	{ .vin = 1, .csi = RVIN_CSI20, .chan = 1, .mask = BIT(4) },
-+	{ .vin = 1, .csi = RVIN_CSI21, .chan = 1, .mask = BIT(5) },
-+	{ .vin = 2, .csi = RVIN_CSI21, .chan = 0, .mask = BIT(0) },
-+	{ .vin = 2, .csi = RVIN_CSI40, .chan = 0, .mask = BIT(1) },
-+	{ .vin = 2, .csi = RVIN_CSI20, .chan = 0, .mask = BIT(2) },
-+	{ .vin = 2, .csi = RVIN_CSI40, .chan = 2, .mask = BIT(3) },
-+	{ .vin = 2, .csi = RVIN_CSI20, .chan = 2, .mask = BIT(4) },
-+	{ .vin = 2, .csi = RVIN_CSI21, .chan = 2, .mask = BIT(5) },
-+	{ .vin = 3, .csi = RVIN_CSI40, .chan = 1, .mask = BIT(0) },
-+	{ .vin = 3, .csi = RVIN_CSI20, .chan = 1, .mask = BIT(1) },
-+	{ .vin = 3, .csi = RVIN_CSI21, .chan = 1, .mask = BIT(2) },
-+	{ .vin = 3, .csi = RVIN_CSI40, .chan = 3, .mask = BIT(3) },
-+	{ .vin = 3, .csi = RVIN_CSI20, .chan = 3, .mask = BIT(4) },
-+	{ .vin = 3, .csi = RVIN_CSI21, .chan = 3, .mask = BIT(5) },
-+	{ .vin = 4, .csi = RVIN_CSI41, .chan = 0, .mask = BIT(0) | BIT(3) },
-+	{ .vin = 4, .csi = RVIN_CSI20, .chan = 0, .mask = BIT(1) | BIT(4) },
-+	{ .vin = 4, .csi = RVIN_CSI21, .chan = 0, .mask = BIT(2) | BIT(5) },
-+	{ .vin = 5, .csi = RVIN_CSI20, .chan = 0, .mask = BIT(0) },
-+	{ .vin = 5, .csi = RVIN_CSI21, .chan = 0, .mask = BIT(1) },
-+	{ .vin = 5, .csi = RVIN_CSI41, .chan = 0, .mask = BIT(2) },
-+	{ .vin = 5, .csi = RVIN_CSI41, .chan = 1, .mask = BIT(3) },
-+	{ .vin = 5, .csi = RVIN_CSI20, .chan = 1, .mask = BIT(4) },
-+	{ .vin = 5, .csi = RVIN_CSI21, .chan = 1, .mask = BIT(5) },
-+	{ .vin = 6, .csi = RVIN_CSI21, .chan = 0, .mask = BIT(0) },
-+	{ .vin = 6, .csi = RVIN_CSI41, .chan = 0, .mask = BIT(1) },
-+	{ .vin = 6, .csi = RVIN_CSI20, .chan = 0, .mask = BIT(2) },
-+	{ .vin = 6, .csi = RVIN_CSI41, .chan = 2, .mask = BIT(3) },
-+	{ .vin = 6, .csi = RVIN_CSI20, .chan = 2, .mask = BIT(4) },
-+	{ .vin = 6, .csi = RVIN_CSI21, .chan = 2, .mask = BIT(5) },
-+	{ .vin = 7, .csi = RVIN_CSI41, .chan = 1, .mask = BIT(0) },
-+	{ .vin = 7, .csi = RVIN_CSI20, .chan = 1, .mask = BIT(1) },
-+	{ .vin = 7, .csi = RVIN_CSI21, .chan = 1, .mask = BIT(2) },
-+	{ .vin = 7, .csi = RVIN_CSI41, .chan = 3, .mask = BIT(3) },
-+	{ .vin = 7, .csi = RVIN_CSI20, .chan = 3, .mask = BIT(4) },
-+	{ .vin = 7, .csi = RVIN_CSI21, .chan = 3, .mask = BIT(5) },
-+	{ /* Sentinel */ }
-+};
-+
-+static const struct rvin_info rcar_info_r8a7795es1 = {
-+	.model = RCAR_GEN3,
-+	.use_mc = true,
-+	.max_width = 4096,
-+	.max_height = 4096,
-+	.routes = rcar_info_r8a7795es1_routes,
-+};
-+
- static const struct of_device_id rvin_of_id_table[] = {
- 	{
- 		.compatible = "renesas,vin-r8a7778",
-@@ -844,12 +943,25 @@ static const struct of_device_id rvin_of_id_table[] = {
- 		.compatible = "renesas,rcar-gen2-vin",
- 		.data = &rcar_info_gen2,
- 	},
-+	{
-+		.compatible = "renesas,vin-r8a7795",
-+		.data = &rcar_info_r8a7795,
-+	},
- 	{ /* Sentinel */ },
- };
- MODULE_DEVICE_TABLE(of, rvin_of_id_table);
- 
-+static const struct soc_device_attribute r8a7795es1[] = {
-+	{
-+		.soc_id = "r8a7795", .revision = "ES1.*",
-+		.data = &rcar_info_r8a7795es1,
-+	},
-+	{ /* Sentinel */ }
-+};
-+
- static int rcar_vin_probe(struct platform_device *pdev)
- {
-+	const struct soc_device_attribute *attr;
- 	struct rvin_dev *vin;
- 	struct resource *mem;
- 	int irq, ret;
-@@ -861,6 +973,14 @@ static int rcar_vin_probe(struct platform_device *pdev)
- 	vin->dev = &pdev->dev;
- 	vin->info = of_device_get_match_data(&pdev->dev);
- 
-+	/*
-+	 * Special care is needed on r8a7795 ES1.x since it
-+	 * uses different routing than r8a7795 ES2.0.
-+	 */
-+	attr = soc_device_match(r8a7795es1);
-+	if (attr)
-+		vin->info = attr->data;
-+
- 	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
- 	if (mem == NULL)
- 		return -EINVAL;
+ /* Touch formats - used for Touch devices */
+ #define V4L2_TCH_FMT_DELTA_TD16	v4l2_fourcc('T', 'D', '1', '6') /* 16-bit signed deltas */
 -- 
-2.16.1
+2.7.4
