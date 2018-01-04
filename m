@@ -1,419 +1,325 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga07.intel.com ([134.134.136.100]:1427 "EHLO mga07.intel.com"
+Received: from osg.samsung.com ([64.30.133.232]:49814 "EHLO osg.samsung.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751528AbeA3BFH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 29 Jan 2018 20:05:07 -0500
-From: "Yeh, Andy" <andy.yeh@intel.com>
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-CC: "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>,
-        "tfiga@chromium.org" <tfiga@chromium.org>,
-        "Chiang, AlanX" <alanx.chiang@intel.com>
-Subject: RE: [PATCH v4] media: dw9807: Add dw9807 vcm driver
-Date: Tue, 30 Jan 2018 01:05:03 +0000
-Message-ID: <8E0971CCB6EA9D41AF58191A2D3978B61D4F7770@PGSMSX111.gar.corp.intel.com>
-References: <1517244779-20201-1-git-send-email-andy.yeh@intel.com>
-In-Reply-To: <1517244779-20201-1-git-send-email-andy.yeh@intel.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+        id S1751870AbeADS0v (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 4 Jan 2018 13:26:51 -0500
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 0/2]  Cleanup bad whitespaces along media tree
+Date: Thu,  4 Jan 2018 13:26:40 -0500
+Message-Id: <cover.1515089828.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is the right one. Sorry for inconvenience.
+>From time to time, bad whitespaces end by being merged at the tree.
+Instead of taking lots of individual patches fixing them, it is a way better
+to remove them at once. That's what this patch series does.
 
------Original Message-----
-From: Yeh, Andy 
-Sent: Tuesday, January 30, 2018 12:53 AM
-To: linux-media@vger.kernel.org
-Cc: Yeh, Andy <andy.yeh@intel.com>; sakari.ailus@linux.intel.com; tfiga@chromium.org; Chiang, AlanX <alanx.chiang@intel.com>
-Subject: [PATCH v4] media: dw9807: Add dw9807 vcm driver
+Both use the script below. The first patch was made using it at its
+"standard" mode, with checks only for identations, whitespaces at the
+end and comments like " *<space><tab>".
 
-From: Alan Chiang <alanx.chiang@intel.com>
+The second one was generated using "--spacetab" with looks specifically for
+"<space><tab>" patterns.
 
-DW9807 is a 10 bit DAC from Dongwoon, designed for linear control of voice coil motor.
+This script has other modes, but they aren't used, as the goal here is not to
+replace all spaces by tabs. Just to fix the ones that violate our coding style.
 
-This driver creates a V4L2 subdevice and provides control to set the desired focus.
+#!/usr/bin/perl
+use Getopt::Long;
+use strict;
+use autodie;
+use Text::Tabs;
 
-Signed-off-by: Andy Yeh <andy.yeh@intel.com>
----
-since v1:
-- changed author.
-since v2:
-- addressed outstanding comments.
-- enabled sequential write to update 2 registers in a single transaction.
-since v3:
-- addressed comments for v3.
-- Remove redundant codes and declar some variables as constant variable.
-- separate DT binding to another patch
+my $hard;
+my $harder;
+my $notab;
+my $help;
+my $diffmode;
+my $spacetab;
 
- MAINTAINERS                |   7 +
- drivers/media/i2c/Kconfig  |  10 ++
- drivers/media/i2c/Makefile |   1 +
- drivers/media/i2c/dw9807.c | 319 +++++++++++++++++++++++++++++++++++++++++++++
- 4 files changed, 337 insertions(+)
- create mode 100644 drivers/media/i2c/dw9807.c
+GetOptions(
+	    "--hard" => \$hard,
+	    "--harder" => \$harder,
+	    "--spacetab" => \$spacetab,
+	    "--notabremoval" => \$notab,
+	    "--help" => \$help,
+	    "--diff" => \$diffmode);
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 845fc25..a339bb5 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -4385,6 +4385,13 @@ T:	git git://linuxtv.org/media_tree.git
- S:	Maintained
- F:	drivers/media/i2c/dw9714.c
- 
-+DONGWOON DW9807 LENS VOICE COIL DRIVER
-+M:	Sakari Ailus <sakari.ailus@linux.intel.com>
-+L:	linux-media@vger.kernel.org
-+T:	git git://linuxtv.org/media_tree.git
-+S:	Maintained
-+F:	drivers/media/i2c/dw9807.c
-+
- DOUBLETALK DRIVER
- M:	"James R. Van Zandt" <jrv@vanzandt.mv.com>
- L:	blinux-list@redhat.com
-diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig index cb5d7ff..fd01842 100644
---- a/drivers/media/i2c/Kconfig
-+++ b/drivers/media/i2c/Kconfig
-@@ -325,6 +325,16 @@ config VIDEO_DW9714
- 	  capability. This is designed for linear control of
- 	  voice coil motors, controlled via I2C serial interface.
- 
-+config VIDEO_DW9807
-+	tristate "DW9807 lens voice coil support"
-+	depends on I2C && VIDEO_V4L2 && MEDIA_CONTROLLER
-+	depends on VIDEO_V4L2_SUBDEV_API
-+	---help---
-+	  This is a driver for the DW9807 camera lens voice coil.
-+	  DW9807 is a 10 bit DAC with 100mA output current sink
-+	  capability. This is designed for linear control of
-+	  voice coil motors, controlled via I2C serial interface.
-+
- config VIDEO_SAA7110
- 	tristate "Philips SAA7110 video decoder"
- 	depends on VIDEO_V4L2 && I2C
-diff --git a/drivers/media/i2c/Makefile b/drivers/media/i2c/Makefile index 548a9ef..1b62639 100644
---- a/drivers/media/i2c/Makefile
-+++ b/drivers/media/i2c/Makefile
-@@ -23,6 +23,7 @@ obj-$(CONFIG_VIDEO_SAA7185) += saa7185.o
- obj-$(CONFIG_VIDEO_SAA6752HS) += saa6752hs.o
- obj-$(CONFIG_VIDEO_AD5820)  += ad5820.o
- obj-$(CONFIG_VIDEO_DW9714)  += dw9714.o
-+obj-$(CONFIG_VIDEO_DW9807)  += dw9807.o
- obj-$(CONFIG_VIDEO_ADV7170) += adv7170.o
- obj-$(CONFIG_VIDEO_ADV7175) += adv7175.o
- obj-$(CONFIG_VIDEO_ADV7180) += adv7180.o diff --git a/drivers/media/i2c/dw9807.c b/drivers/media/i2c/dw9807.c new file mode 100644 index 0000000..607e3ac
---- /dev/null
-+++ b/drivers/media/i2c/dw9807.c
-@@ -0,0 +1,319 @@
-+// Copyright (C) 2018 Intel Corporation // SPDX-License-Identifier: 
-+GPL-2.0
-+
-+#include <linux/acpi.h>
-+#include <linux/delay.h>
-+#include <linux/i2c.h>
-+#include <linux/module.h>
-+#include <linux/pm_runtime.h>
-+#include <media/v4l2-ctrls.h>
-+#include <media/v4l2-device.h>
-+
-+#define DW9807_NAME		"dw9807"
-+#define DW9807_MAX_FOCUS_POS	1023
-+/*
-+ * This sets the minimum granularity for the focus positions.
-+ * A value of 1 gives maximum accuracy for a desired focus position  */
-+#define DW9807_FOCUS_STEPS	1
-+/*
-+ * This acts as the minimum granularity of lens movement.
-+ * Keep this value power of 2, so the control steps can be
-+ * uniformly adjusted for gradual lens movement, with desired
-+ * number of control steps.
-+ */
-+#define DW9807_CTRL_STEPS	16
-+#define DW9807_CTRL_DELAY_US	1000
-+
-+#define DW9807_CTL_ADDR		0x02
-+/*
-+ * DW9807 separates two registers to control the VCM position.
-+ * One for MSB value, another is LSB value.
-+ */
-+#define DW9807_MSB_ADDR		0x03
-+#define DW9807_LSB_ADDR		0x04
-+#define DW9807_STATUS_ADDR	0x05
-+#define DW9807_MODE_ADDR	0x06
-+#define DW9807_RESONANCE_ADDR	0x07
-+
-+#define MAX_RETRY		10
-+
-+struct dw9807_device {
-+	struct v4l2_ctrl_handler ctrls_vcm;
-+	struct v4l2_subdev sd;
-+	u16 current_val;
-+};
-+
-+static inline struct dw9807_device *sd_to_dw9807_vcm(struct v4l2_subdev 
-+*subdev) {
-+	return container_of(subdev, struct dw9807_device, sd); }
-+
-+static int dw9807_i2c_check(struct i2c_client *client) {
-+	const char status_addr = DW9807_STATUS_ADDR;
-+	char status_result = 0x1;
-+	int ret;
-+
-+	ret = i2c_master_send(client, (const char *)&status_addr, sizeof(status_addr));
-+	if (ret != sizeof(status_addr)) {
-+		dev_err(&client->dev, "I2C write STATUS address fail ret = %d\n",
-+			ret);
-+		return -EIO;
-+	}
-+
-+	ret = i2c_master_recv(client, (char *)&status_result, sizeof(status_result));
-+	if (ret != sizeof(status_result)) {
-+		dev_err(&client->dev, "I2C read STATUS value fail ret=%d\n",
-+			ret);
-+		return -EIO;
-+	}
-+
-+	return status_result;
-+}
-+
-+static int dw9807_set_dac(struct i2c_client *client, u16 data) {
-+	int ret, retry = 0;
-+	const char tx_data[3] = {DW9807_MSB_ADDR, (char)((data >> 8) & 0x03), 
-+(char)(data & 0xFF)};
-+
-+	/*
-+	 * According to the datasheet, need to check the bus status before we
-+	 * write VCM position. This ensure that we really write the value
-+	 * into the register
-+	 */
-+	while (dw9807_i2c_check(client) != 0) {
-+		if (MAX_RETRY == ++retry) {
-+			dev_err(&client->dev, "Cannot do the write operation because VCM is busy\n");
-+			return -EIO;
-+		}
-+		usleep_range(DW9807_CTRL_DELAY_US, DW9807_CTRL_DELAY_US + 10);
-+	}
-+
-+	/* Write VCM position to registers */
-+	ret = i2c_master_send(client, (const char *)&tx_data, sizeof(tx_data));
-+	if (ret != sizeof(tx_data)) {
-+		dev_err(&client->dev, "I2C write MSB fail\n");
-+		return -EIO;
-+	}
-+
-+	return 0;
-+}
-+
-+static int dw9807_set_ctrl(struct v4l2_ctrl *ctrl) {
-+	struct dw9807_device *dev_vcm = container_of(ctrl->handler, struct 
-+dw9807_device, ctrls_vcm);
-+
-+	if (ctrl->id == V4L2_CID_FOCUS_ABSOLUTE) {
-+		struct i2c_client *client = v4l2_get_subdevdata(&dev_vcm->sd);
-+
-+		dev_vcm->current_val = ctrl->val;
-+		return dw9807_set_dac(client, ctrl->val);
-+	}
-+
-+	return -EINVAL;
-+}
-+
-+static const struct v4l2_ctrl_ops dw9807_vcm_ctrl_ops = {
-+	.s_ctrl = dw9807_set_ctrl,
-+};
-+
-+static int dw9807_open(struct v4l2_subdev *sd, struct v4l2_subdev_fh 
-+*fh) {
-+	int rval;
-+
-+	rval = pm_runtime_get_sync(sd->dev);
-+	if (rval < 0) {
-+		pm_runtime_put_noidle(sd->dev);
-+		return rval;
-+	}
-+
-+	return 0;
-+}
-+
-+static int dw9807_close(struct v4l2_subdev *sd, struct v4l2_subdev_fh 
-+*fh) {
-+	pm_runtime_put(sd->dev);
-+
-+	return 0;
-+}
-+
-+static const struct v4l2_subdev_internal_ops dw9807_int_ops = {
-+	.open = dw9807_open,
-+	.close = dw9807_close,
-+};
-+
-+static const struct v4l2_subdev_ops dw9807_ops = { };
-+
-+static void dw9807_subdev_cleanup(struct dw9807_device *dw9807_dev) {
-+	v4l2_async_unregister_subdev(&dw9807_dev->sd);
-+	v4l2_ctrl_handler_free(&dw9807_dev->ctrls_vcm);
-+	media_entity_cleanup(&dw9807_dev->sd.entity);
-+}
-+
-+static int dw9807_init_controls(struct dw9807_device *dev_vcm) {
-+	struct v4l2_ctrl_handler *hdl = &dev_vcm->ctrls_vcm;
-+	const struct v4l2_ctrl_ops *ops = &dw9807_vcm_ctrl_ops;
-+	struct i2c_client *client = v4l2_get_subdevdata(&dev_vcm->sd);;
-+
-+	v4l2_ctrl_handler_init(hdl, 1);
-+
-+	v4l2_ctrl_new_std(hdl, ops, V4L2_CID_FOCUS_ABSOLUTE,
-+			  0, DW9807_MAX_FOCUS_POS, DW9807_FOCUS_STEPS, 0);
-+
-+	dev_vcm->sd.ctrl_handler = hdl;
-+	if (hdl->error) {
-+		dev_err(&client->dev, "%s fail error: 0x%x\n",
-+			__func__, hdl->error);
-+		return hdl->error;
-+	}
-+
-+	return 0;
-+}
-+
-+static int dw9807_probe(struct i2c_client *client) {
-+	struct dw9807_device *dw9807_dev;
-+	int rval;
-+
-+	dw9807_dev = devm_kzalloc(&client->dev, sizeof(*dw9807_dev),
-+				  GFP_KERNEL);
-+	if (dw9807_dev == NULL)
-+		return -ENOMEM;
-+
-+	v4l2_i2c_subdev_init(&dw9807_dev->sd, client, &dw9807_ops);
-+	dw9807_dev->sd.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
-+	dw9807_dev->sd.internal_ops = &dw9807_int_ops;
-+
-+	rval = dw9807_init_controls(dw9807_dev);
-+	if (rval)
-+		goto err_cleanup;
-+
-+	rval = media_entity_pads_init(&dw9807_dev->sd.entity, 0, NULL);
-+	if (rval < 0)
-+		goto err_cleanup;
-+
-+	dw9807_dev->sd.entity.function = MEDIA_ENT_F_LENS;
-+
-+	rval = v4l2_async_register_subdev(&dw9807_dev->sd);
-+	if (rval < 0)
-+		goto err_cleanup;
-+
-+	pm_runtime_set_active(&client->dev);
-+	pm_runtime_enable(&client->dev);
-+	pm_runtime_idle(&client->dev);
-+
-+	return 0;
-+
-+err_cleanup:
-+	dw9807_subdev_cleanup(dw9807_dev);
-+	return rval;
-+}
-+
-+static int dw9807_remove(struct i2c_client *client) {
-+	struct v4l2_subdev *sd = i2c_get_clientdata(client);
-+	struct dw9807_device *dw9807_dev = sd_to_dw9807_vcm(sd);
-+
-+	pm_runtime_disable(&client->dev);
-+	pm_runtime_set_suspended(&client->dev);
-+
-+	dw9807_subdev_cleanup(dw9807_dev);
-+
-+	return 0;
-+}
-+
-+/*
-+ * This function sets the vcm position, so it consumes least current
-+ * The lens position is gradually moved in units of DW9807_CTRL_STEPS,
-+ * to make the movements smoothly.
-+ */
-+static int __maybe_unused dw9807_vcm_suspend(struct device *dev) {
-+	struct i2c_client *client = to_i2c_client(dev);
-+	struct v4l2_subdev *sd = i2c_get_clientdata(client);
-+	struct dw9807_device *dw9807_dev = sd_to_dw9807_vcm(sd);
-+	int ret, val;
-+	const char tx_data[2] = { DW9807_CTL_ADDR, 0x01};
-+
-+	for (val = dw9807_dev->current_val & ~(DW9807_CTRL_STEPS - 1);
-+	     val >= 0; val -= DW9807_CTRL_STEPS) {
-+		ret = dw9807_set_dac(client, val);
-+		if (ret)
-+			dev_err_once(dev, "%s I2C failure: %d", __func__, ret);
-+		usleep_range(DW9807_CTRL_DELAY_US, DW9807_CTRL_DELAY_US + 10);
-+	}
-+
-+	/* Power down */
-+	ret = i2c_master_send(client, (const char *)&tx_data, 
-+sizeof(tx_data));
-+
-+	if (ret != sizeof(tx_data)) {
-+		dev_err(&client->dev, "I2C write CTL fail\n");
-+		return -EIO;
-+	}
-+
-+	return 0;
-+}
-+
-+/*
-+ * This function sets the vcm position to the value set by the user
-+ * through v4l2_ctrl_ops s_ctrl handler
-+ * The lens position is gradually moved in units of DW9807_CTRL_STEPS,
-+ * to make the movements smoothly.
-+ */
-+static int  __maybe_unused dw9807_vcm_resume(struct device *dev) {
-+	struct i2c_client *client = to_i2c_client(dev);
-+	struct v4l2_subdev *sd = i2c_get_clientdata(client);
-+	struct dw9807_device *dw9807_dev = sd_to_dw9807_vcm(sd);
-+	int ret, val;
-+	const char tx_data[2] = { DW9807_CTL_ADDR, 0x00};
-+
-+	/* Power on */
-+	ret = i2c_master_send(client, (const char *)&tx_data, sizeof(tx_data));
-+	if (ret != sizeof(tx_data)) {
-+		dev_err(&client->dev, "I2C write CTL fail\n");
-+		return -EIO;
-+	}
-+
-+	for (val = dw9807_dev->current_val % DW9807_CTRL_STEPS;
-+	     val < dw9807_dev->current_val + DW9807_CTRL_STEPS - 1;
-+	     val += DW9807_CTRL_STEPS) {
-+		ret = dw9807_set_dac(client, val);
-+		if (ret)
-+			dev_err_ratelimited(dev, "%s I2C failure: %d",
-+						__func__, ret);
-+		usleep_range(DW9807_CTRL_DELAY_US, DW9807_CTRL_DELAY_US + 10);
-+	}
-+
-+	return 0;
-+}
-+
-+static const struct of_device_id dw9807_of_table[] = {
-+	{ .compatible = "dongwoon,dw9807" },
-+	{ { 0 } }
-+};
-+MODULE_DEVICE_TABLE(of, dw9807_of_table);
-+
-+static const struct dev_pm_ops dw9807_pm_ops = {
-+	SET_SYSTEM_SLEEP_PM_OPS(dw9807_vcm_suspend, dw9807_vcm_resume)
-+	SET_RUNTIME_PM_OPS(dw9807_vcm_suspend, dw9807_vcm_resume, NULL) };
-+
-+static struct i2c_driver dw9807_i2c_driver = {
-+	.driver = {
-+		.name = DW9807_NAME,
-+		.pm = &dw9807_pm_ops,
-+		.of_match_table = dw9807_of_table,
-+	},
-+	.probe_new = dw9807_probe,
-+	.remove = dw9807_remove,
-+};
-+
-+module_i2c_driver(dw9807_i2c_driver);
-+
-+MODULE_AUTHOR("Chiang, Alan <alanx.chiang@intel.com>");
-+MODULE_DESCRIPTION("DW9807 VCM driver"); MODULE_LICENSE("GPL v2");
---
-2.7.4
+$help = 1 if ($#ARGV < 0);
+
+print "Usage: $ARGV[0] [--help] [--hard] [--spacetab] [--notabremoval] [--diff] files\n" if ($help);
+print "Hard algorithm for remove spaces. May unalign spaces.\n" if ($hard);
+print "Working with diff files\n" if ($diffmode);
+
+foreach my $argnum (0 .. $#ARGV) {
+	my $changed = 0;
+	my $file=$ARGV[$argnum];
+
+	my ($dev,$ino,$mode) = stat($file);
+
+	open IN, "<$file";
+	open OUT, ">$file.new";
+	while (<IN>) {
+		if ($diffmode) {
+			if (!(/^[\+][^\+]/)) {
+				print OUT $_;
+ 				next;
+			}
+			s,^[\+],,;
+		}
+
+		my $prev = $_;
+		s/[ \t]+$//;
+		s<^ {8}> <\t> if (!$notab);
+		s<^ {1,7}\t> <\t> if (!$notab);
+		s<^ \* {1,4}\t> < *\t>; # Handle Kernel-doc comments
+
+		if ($spacetab) {
+			while (m/^(.*)( +\t)/g) {
+				my $t = expand($1);
+				my ($o, $s) = ($2, $2);				
+
+				my $pos = length($t) - 1;
+				my $p = 7 - ($pos % 8);
+#printf STDERR "pos $pos, tabstop up to $p\n$_";
+				if (!$p) {
+					$s =~ s<^ {1,7}> <>;
+				} else {
+					my $p1 = $p - 1;
+					$s =~ s<\ {1,$p1}> <>;
+					$s =~ s<\ {$p,7}> <\t>;
+				}
+				$s =~ s/\t {8}/\t\t/g;
+				s/($o)/$s/;
+#print STDERR $_;
+			}
+		}
+
+		s< {1,7}\t> <\t> if ($hard);
+		$_ = unexpand($_) if ($harder);
+
+		if (!$notab) {
+			while( s<\t {8}> <\t\t>g || s<\t {1,7}\t> <\t\t>g ) {}
+		}
+
+		$_ = "+$_" if ($diffmode);
+
+		print OUT $_;
+
+		$changed = 1 if ($prev ne $_);
+	}
+	close IN;
+	close OUT;
+	rename "$file.new", $file;
+
+	chmod $mode, $file;
+
+	print "whitespaces cleaned on $file\n" if ($changed);
+}
+
+
+Mauro Carvalho Chehab (2):
+  media: fix usage of whitespaces and on indentation
+  media: replace all <spaces><tab> occurrences
+
+ drivers/media/Kconfig                              |   8 +-
+ drivers/media/common/saa7146/saa7146_video.c       |   8 +-
+ drivers/media/dvb-core/Makefile                    |   4 +-
+ drivers/media/dvb-core/dvb_ca_en50221.c            |   2 +-
+ drivers/media/dvb-frontends/au8522_priv.h          | 218 ++++++++---------
+ drivers/media/dvb-frontends/cx24116.c              |   2 +-
+ drivers/media/dvb-frontends/drx39xyj/drx_driver.h  |   2 +-
+ drivers/media/dvb-frontends/drx39xyj/drxj.c        |   2 +-
+ drivers/media/dvb-frontends/drxk.h                 |   6 +-
+ drivers/media/dvb-frontends/mb86a20s.c             |   2 +-
+ drivers/media/dvb-frontends/mn88473.c              |   2 +-
+ drivers/media/dvb-frontends/stb0899_drv.c          |  10 +-
+ drivers/media/dvb-frontends/stb0899_drv.h          |   2 +-
+ drivers/media/dvb-frontends/stb0899_priv.h         |   2 +-
+ drivers/media/dvb-frontends/stv0900_core.c         |   2 +-
+ drivers/media/dvb-frontends/stv0900_init.h         |  34 +--
+ drivers/media/dvb-frontends/stv0900_priv.h         |   2 +-
+ drivers/media/dvb-frontends/stv090x.c              |  12 +-
+ drivers/media/dvb-frontends/stv090x_priv.h         |   2 +-
+ drivers/media/dvb-frontends/stv6110x.c             |   2 +-
+ drivers/media/dvb-frontends/stv6110x_priv.h        |   6 +-
+ drivers/media/dvb-frontends/tda10023.c             |   2 +-
+ drivers/media/dvb-frontends/tda18271c2dd.h         |   4 +-
+ drivers/media/firewire/firedtv-avc.c               |   4 +-
+ drivers/media/firewire/firedtv-fe.c                |   6 +-
+ drivers/media/i2c/Kconfig                          |  10 +-
+ drivers/media/i2c/adv7343.c                        |   2 +-
+ drivers/media/i2c/adv7393.c                        |   2 +-
+ drivers/media/i2c/cx25840/cx25840-core.c           |   8 +-
+ drivers/media/i2c/cx25840/cx25840-core.h           |   2 +-
+ drivers/media/i2c/cx25840/cx25840-ir.c             |   6 +-
+ drivers/media/i2c/ks0127.c                         |   2 +-
+ drivers/media/i2c/ov7670.c                         |  38 +--
+ drivers/media/i2c/saa6752hs.c                      |   8 +-
+ drivers/media/i2c/saa7115.c                        |   2 +-
+ drivers/media/i2c/saa7127.c                        | 162 ++++++-------
+ drivers/media/i2c/saa717x.c                        |  12 +-
+ drivers/media/i2c/smiapp/smiapp-core.c             |   2 +-
+ drivers/media/i2c/ths7303.c                        |   2 +-
+ drivers/media/i2c/tvaudio.c                        |   2 +-
+ drivers/media/i2c/tvp5150_reg.h                    |   4 +-
+ drivers/media/i2c/tvp7002_reg.h                    |   6 +-
+ drivers/media/i2c/vpx3220.c                        |   2 +-
+ drivers/media/pci/bt8xx/bttv-cards.c               | 266 ++++++++++-----------
+ drivers/media/pci/bt8xx/bttv-input.c               |   8 +-
+ drivers/media/pci/bt8xx/bttv.h                     |   4 +-
+ drivers/media/pci/bt8xx/bttvp.h                    |   6 +-
+ drivers/media/pci/cx18/cx18-alsa-pcm.c             |   2 +-
+ drivers/media/pci/cx18/cx18-av-audio.c             |   2 +-
+ drivers/media/pci/cx18/cx18-av-core.c              |  18 +-
+ drivers/media/pci/cx18/cx18-av-core.h              |   2 +-
+ drivers/media/pci/cx18/cx18-cards.c                |   8 +-
+ drivers/media/pci/cx18/cx18-cards.h                |  32 +--
+ drivers/media/pci/cx18/cx18-driver.h               |  46 ++--
+ drivers/media/pci/cx18/cx18-fileops.c              |   2 +-
+ drivers/media/pci/cx18/cx18-firmware.c             |  88 +++----
+ drivers/media/pci/cx18/cx18-mailbox.c              |   8 +-
+ drivers/media/pci/cx18/cx18-streams.c              |   4 +-
+ drivers/media/pci/cx18/cx18-vbi.c                  |   2 +-
+ drivers/media/pci/cx18/cx23418.h                   |  86 +++----
+ drivers/media/pci/cx23885/cimax2.c                 |   2 +-
+ drivers/media/pci/cx23885/cx23885-video.c          |   2 +-
+ drivers/media/pci/cx23885/cx23885.h                |   4 +-
+ drivers/media/pci/cx23885/cx23888-ir.c             |   6 +-
+ drivers/media/pci/ivtv/ivtv-cards.c                |   2 +-
+ drivers/media/pci/ivtv/ivtv-cards.h                | 126 +++++-----
+ drivers/media/pci/ivtv/ivtv-driver.h               | 102 ++++----
+ drivers/media/pci/ivtv/ivtv-firmware.c             |  34 +--
+ drivers/media/pci/ivtv/ivtv-i2c.c                  |  26 +-
+ drivers/media/pci/ivtv/ivtv-ioctl.c                |  74 +++---
+ drivers/media/pci/ivtv/ivtv-mailbox.c              | 182 +++++++-------
+ drivers/media/pci/mantis/mantis_reg.h              |   6 +-
+ drivers/media/pci/mantis/mantis_vp1041.c           | 210 ++++++++--------
+ drivers/media/pci/meye/meye.c                      |   2 +-
+ drivers/media/pci/pluto2/pluto2.c                  |   2 +-
+ drivers/media/pci/pt1/pt1.c                        |   2 +-
+ drivers/media/pci/pt1/va1j5jf8007s.c               |   2 +-
+ drivers/media/pci/pt1/va1j5jf8007s.h               |   2 +-
+ drivers/media/pci/pt1/va1j5jf8007t.c               |   2 +-
+ drivers/media/pci/pt1/va1j5jf8007t.h               |   2 +-
+ drivers/media/pci/saa7134/saa7134-cards.c          |  64 ++---
+ drivers/media/pci/saa7134/saa7134-dvb.c            |   4 +-
+ drivers/media/pci/saa7134/saa7134-video.c          |   4 +-
+ drivers/media/pci/saa7134/saa7134.h                |   8 +-
+ drivers/media/pci/saa7146/hexium_gemini.c          |  22 +-
+ drivers/media/pci/saa7146/hexium_orion.c           |  18 +-
+ drivers/media/pci/saa7146/mxb.c                    |  26 +-
+ drivers/media/pci/ttpci/av7110.h                   |   2 +-
+ drivers/media/pci/ttpci/budget-av.c                |   6 +-
+ drivers/media/pci/ttpci/budget-ci.c                | 210 ++++++++--------
+ drivers/media/pci/tw5864/tw5864-video.c            |   2 +-
+ drivers/media/pci/zoran/zoran_driver.c             |  38 +--
+ drivers/media/pci/zoran/zr36057.h                  |   4 +-
+ drivers/media/platform/Kconfig                     |  38 +--
+ drivers/media/platform/Makefile                    |  14 +-
+ drivers/media/platform/arv.c                       |  54 ++---
+ drivers/media/platform/blackfin/ppi.c              |   2 +-
+ drivers/media/platform/coda/coda_regs.h            |   2 +-
+ drivers/media/platform/davinci/dm355_ccdc.c        |   4 +-
+ drivers/media/platform/davinci/dm355_ccdc_regs.h   |   6 +-
+ drivers/media/platform/davinci/dm644x_ccdc.c       |   6 +-
+ drivers/media/platform/davinci/dm644x_ccdc_regs.h  |   4 +-
+ drivers/media/platform/davinci/isif_regs.h         |   6 +-
+ drivers/media/platform/davinci/vpfe_capture.c      |   8 +-
+ drivers/media/platform/davinci/vpif.h              |   4 +-
+ drivers/media/platform/davinci/vpss.c              |  10 +-
+ drivers/media/platform/exynos4-is/fimc-core.c      |   2 +-
+ drivers/media/platform/exynos4-is/fimc-core.h      |   2 +-
+ drivers/media/platform/exynos4-is/fimc-lite.h      |   4 +-
+ drivers/media/platform/m2m-deinterlace.c           |  12 +-
+ drivers/media/platform/mtk-vcodec/vdec_vpu_if.h    |   2 +-
+ drivers/media/platform/omap/omap_vout.c            |  12 +-
+ drivers/media/platform/omap3isp/isp.c              |   2 +-
+ drivers/media/platform/sh_vou.c                    |   2 +-
+ drivers/media/platform/sti/hva/hva.h               |   2 +-
+ drivers/media/platform/via-camera.h                |   2 +-
+ drivers/media/radio/radio-aimslab.c                |   2 +-
+ drivers/media/radio/radio-aztech.c                 |   2 +-
+ drivers/media/radio/radio-cadet.c                  |   4 +-
+ drivers/media/radio/radio-gemtek.c                 |   8 +-
+ drivers/media/radio/radio-maxiradio.c              |   2 +-
+ drivers/media/radio/radio-mr800.c                  |  24 +-
+ drivers/media/radio/radio-rtrack2.c                |   2 +-
+ drivers/media/radio/radio-sf16fmi.c                |   4 +-
+ drivers/media/radio/radio-sf16fmr2.c               |   2 +-
+ drivers/media/radio/radio-tea5764.c                |   2 +-
+ drivers/media/radio/radio-terratec.c               |   6 +-
+ drivers/media/radio/si470x/radio-si470x-common.c   |  24 +-
+ drivers/media/radio/tea575x.c                      |   2 +-
+ drivers/media/radio/wl128x/fmdrv_common.h          |  10 +-
+ drivers/media/rc/Kconfig                           |   8 +-
+ drivers/media/rc/keymaps/rc-behold-columbus.c      |   6 +-
+ drivers/media/rc/keymaps/rc-winfast-usbii-deluxe.c |   2 +-
+ drivers/media/tuners/mt2063.c                      |   4 +-
+ drivers/media/tuners/mxl5005s.c                    |   6 +-
+ drivers/media/tuners/si2157.c                      |   2 +-
+ drivers/media/tuners/tda827x.h                     |   2 +-
+ drivers/media/tuners/tda9887.c                     |   4 +-
+ drivers/media/tuners/tuner-i2c.h                   |   2 +-
+ drivers/media/tuners/tuner-simple.c                |   2 +-
+ drivers/media/tuners/tuner-xc2028.c                |   6 +-
+ drivers/media/tuners/tuner-xc2028.h                |   2 +-
+ drivers/media/usb/as102/as10x_cmd_cfg.c            |   6 +-
+ drivers/media/usb/au0828/au0828-cards.h            |   2 +-
+ drivers/media/usb/au0828/au0828-video.c            |   2 +-
+ drivers/media/usb/au0828/au0828.h                  |   6 +-
+ drivers/media/usb/cpia2/cpia2_usb.c                |  14 +-
+ drivers/media/usb/cx231xx/cx231xx-audio.c          |   6 +-
+ drivers/media/usb/cx231xx/cx231xx-avcore.c         |   4 +-
+ drivers/media/usb/cx231xx/cx231xx-core.c           |   2 +-
+ drivers/media/usb/cx231xx/cx231xx-i2c.c            |   2 +-
+ drivers/media/usb/cx231xx/cx231xx-pcb-cfg.h        |   2 +-
+ drivers/media/usb/cx231xx/cx231xx-reg.h            |  20 +-
+ drivers/media/usb/dvb-usb/az6027.c                 | 216 ++++++++---------
+ drivers/media/usb/em28xx/Kconfig                   |  14 +-
+ drivers/media/usb/gspca/autogain_functions.c       |  12 +-
+ drivers/media/usb/gspca/cpia1.c                    |   2 +-
+ drivers/media/usb/gspca/stv06xx/stv06xx.c          |   2 +-
+ drivers/media/usb/gspca/stv06xx/stv06xx.h          |   2 +-
+ drivers/media/usb/hdpvr/hdpvr-video.c              |  26 +-
+ drivers/media/usb/hdpvr/hdpvr.h                    |  16 +-
+ drivers/media/usb/pvrusb2/pvrusb2-devattr.c        |  12 +-
+ drivers/media/usb/pwc/pwc.h                        |   6 +-
+ drivers/media/usb/siano/smsusb.c                   |   2 +-
+ drivers/media/usb/stk1160/Makefile                 |   2 +-
+ drivers/media/usb/stkwebcam/stk-sensor.c           |  44 ++--
+ drivers/media/usb/tm6000/tm6000.h                  |   2 +-
+ drivers/media/usb/usbtv/Kconfig                    |  16 +-
+ drivers/media/usb/uvc/uvc_driver.c                 |  14 +-
+ drivers/media/usb/uvc/uvc_isight.c                 |  10 +-
+ drivers/media/v4l2-core/Kconfig                    |   4 +-
+ drivers/media/v4l2-core/v4l2-compat-ioctl32.c      |   8 +-
+ drivers/media/v4l2-core/v4l2-dv-timings.c          |   2 +-
+ drivers/media/v4l2-core/v4l2-ioctl.c               |  62 ++---
+ include/media/drv-intf/cx2341x.h                   | 144 +++++------
+ include/media/drv-intf/msp3400.h                   |  62 ++---
+ include/media/drv-intf/saa7146.h                   |   2 +-
+ include/media/dvb_frontend.h                       |  12 +-
+ include/media/dvb_vb2.h                            |   2 +-
+ include/media/dvbdev.h                             |   4 +-
+ include/media/i2c/bt819.h                          |   4 +-
+ include/media/i2c/m52790.h                         |  52 ++--
+ include/media/i2c/saa7115.h                        |  12 +-
+ include/media/i2c/upd64031a.h                      |   6 +-
+ include/media/v4l2-async.h                         |   8 +-
+ include/media/v4l2-common.h                        |  12 +-
+ include/media/v4l2-ctrls.h                         |   2 +-
+ include/media/v4l2-dev.h                           |  16 +-
+ include/media/v4l2-event.h                         |   2 +-
+ include/media/v4l2-subdev.h                        |   8 +-
+ include/uapi/linux/dvb/video.h                     |  20 +-
+ include/uapi/linux/v4l2-controls.h                 |  96 ++++----
+ include/uapi/linux/videodev2.h                     |  56 ++---
+ 193 files changed, 1900 insertions(+), 1900 deletions(-)
+
+-- 
+2.14.3
