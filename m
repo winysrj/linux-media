@@ -1,165 +1,135 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:45731 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754169AbeAHR5Y (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 8 Jan 2018 12:57:24 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Niklas =?ISO-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund@ragnatech.se>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>
-Subject: Re: [PATCH v9 21/28] rcar-vin: add group allocator functions
-Date: Mon, 08 Jan 2018 19:57:53 +0200
-Message-ID: <1681465.QYWytPgN3R@avalon>
-In-Reply-To: <20180108172447.GD23075@bigcity.dyn.berto.se>
-References: <20171208010842.20047-1-niklas.soderlund+renesas@ragnatech.se> <2338267.IAVXeh1rRr@avalon> <20180108172447.GD23075@bigcity.dyn.berto.se>
+Received: from xff.cz ([195.181.215.36]:60872 "EHLO megous.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751682AbeADP16 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 4 Jan 2018 10:27:58 -0500
+Date: Thu, 4 Jan 2018 16:27:41 +0100
+From: =?utf-8?Q?Ond=C5=99ej?= Jirman <megous@megous.com>
+To: Maxime Ripard <maxime.ripard@free-electrons.com>
+Cc: Yong <yong.deng@magewell.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Chen-Yu Tsai <wens@csie.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Randy Dunlap <rdunlap@infradead.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Yannick Fertre <yannick.fertre@st.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Rick Chang <rick.chang@mediatek.com>,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-sunxi@googlegroups.com
+Subject: Re: [linux-sunxi] [PATCH v4 0/2] Initial Allwinner V3s CSI Support
+Message-ID: <20180104152741.m6bsno4vdh65ouw3@core.my.home>
+References: <1513935138-35223-1-git-send-email-yong.deng@magewell.com>
+ <1513950408.841.81.camel@megous.com>
+ <20171225111526.4663f997f5d6bfc6cf157f10@magewell.com>
+ <20171225085802.lfyk4blmbqxq6r2m@core.my.home>
+ <20180104140625.5gbeaj5vgetusjlf@flea.lan>
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset="iso-8859-1"
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20180104140625.5gbeaj5vgetusjlf@flea.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Niklas,
+On Thu, Jan 04, 2018 at 03:06:25PM +0100, Maxime Ripard wrote:
+> On Mon, Dec 25, 2017 at 09:58:02AM +0100, Ondřej Jirman wrote:
+> > Hello,
+> > 
+> > On Mon, Dec 25, 2017 at 11:15:26AM +0800, Yong wrote:
+> > > Hi,
+> > > 
+> > > On Fri, 22 Dec 2017 14:46:48 +0100
+> > > Ondřej Jirman <megous@megous.com> wrote:
+> > > 
+> > > > Hello,
+> > > > 
+> > > > Yong Deng píše v Pá 22. 12. 2017 v 17:32 +0800:
+> > > > > 
+> > > > > Test input 0:
+> > > > > 
+> > > > >         Control ioctls:
+> > > > >                 test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK (Not Supported)
+> > > > >                 test VIDIOC_QUERYCTRL: OK (Not Supported)
+> > > > >                 test VIDIOC_G/S_CTRL: OK (Not Supported)
+> > > > >                 test VIDIOC_G/S/TRY_EXT_CTRLS: OK (Not Supported)
+> > > > >                 test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK (Not Supported)
+> > > > >                 test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
+> > > > >                 Standard Controls: 0 Private Controls: 0
+> > > > 
+> > > > I'm not sure if your driver passes control queries to the subdev. It
+> > > > did not originally, and I'm not sure you picked up the change from my
+> > > > version of the driver. "Not supported" here seems to indicate that it
+> > > > does not.
+> > > > 
+> > > > I'd be interested what's the recommended practice here. It sure helps
+> > > > with some apps that expect to be able to modify various input controls
+> > > > directly on the /dev/video# device. These are then supported out of the
+> > > > box.
+> > > > 
+> > > > It's a one-line change. See:
+> > > > 
+> > > > https://www.kernel.org/doc/html/latest/media/kapi/v4l2-controls.html#in
+> > > > heriting-controls
+> > > 
+> > > I think this is a feature and not affect the driver's main function.
+> > > I just focused on making the CSI main function to work properly in 
+> > > the initial version. Is this feature mandatory or most commonly used?
+> > 
+> > I grepped the platform/ code and it seems, that inheriting controls
+> > from subdevs is pretty common for input drivers. (there are varying
+> > approaches though, some inherit by hand in the link function, some
+> > just register and empty ctrl_handler on the v4l2_dev and leave the
+> > rest to the core).
+> > 
+> > Practically, I haven't found a common app that would allow me to enter
+> > both /dev/video0 and /dev/v4l-subdevX. I'm sure anyone can write one
+> > themselves, but it would be better if current controls were available
+> > at the /dev/video0 device automatically.
+> > 
+> > It's much simpler for the userspace apps than the alternative, which
+> > is trying to identify the correct subdev that is currently
+> > associated with the CSI driver at runtime, which is not exactly
+> > straightforward and requires much more code, than a few lines in
+> > the kernel, that are required to inherit controls:
+> 
+> And it becomes much more complicated once you have the same controls
+> on the v4l2 device and subdevice, which is not that uncommon.
 
-On Monday, 8 January 2018 19:24:47 EET Niklas S=F6derlund wrote:
-> On 2017-12-08 22:12:56 +0200, Laurent Pinchart wrote:
-> > On Friday, 8 December 2017 03:08:35 EET Niklas S=F6derlund wrote:
-> >> In media controller mode all VIN instances needs to be part of the same
-> >> media graph. There is also a need to each VIN instance to know and in
-> >> some cases be able to communicate with other VIN instances.
-> >>=20
-> >> Add an allocator framework where the first VIN instance to be probed
-> >> creates a shared data structure and creates a media device.
-> >>=20
-> >> Signed-off-by: Niklas S=F6derlund <niklas.soderlund+renesas@ragnatech.=
-se>
-> >> Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
-> >> ---
-> >>=20
-> >>  drivers/media/platform/rcar-vin/rcar-core.c | 179 +++++++++++++++++++=
-++-
-> >>  drivers/media/platform/rcar-vin/rcar-vin.h  |  38 ++++++
-> >>  2 files changed, 215 insertions(+), 2 deletions(-)
-> >>=20
-> >> diff --git a/drivers/media/platform/rcar-vin/rcar-core.c
-> >> b/drivers/media/platform/rcar-vin/rcar-core.c index
-> >> 45de4079fd835759..a6713fd61dd87a88 100644
-> >> --- a/drivers/media/platform/rcar-vin/rcar-core.c
-> >> +++ b/drivers/media/platform/rcar-vin/rcar-core.c
+Hi Maxime,
 
-[snip]
+I don't think you understand the issue. In your hypothetical situation, if the
+CSI device will have any controls in the future, the merging of controls from
+subdev will be done automatically anyway, it's not some optional feature.
 
-> >> +static struct rvin_group *__rvin_group_allocate(struct rvin_dev *vin)
-> >> +{
-> >> +	struct rvin_group *group;
-> >> +
-> >> +	if (rvin_group_data) {
-> >> +		group =3D rvin_group_data;
-> >> +		kref_get(&group->refcount);
-> >> +		vin_dbg(vin, "%s: get group=3D%p\n", __func__, group);
-> >> +		return group;
-> >> +	}
-> >> +
-> >> +	group =3D kzalloc(sizeof(*group), GFP_KERNEL);
-> >> +	if (!group)
-> >> +		return NULL;
-> >> +
-> >> +	kref_init(&group->refcount);
-> >> +	rvin_group_data =3D group;
-> >=20
-> > Ouch. While I agree with the global mutex, a single global group variab=
-le
-> > reminds me of the days when per-device data was happily stored in global
-> > variables because, you know, we will never have more than one instance =
-of
-> > that device, right ? (Or, sometimes, because the driver author didn't
-> > know what an instance was.)
-> >=20
-> > Ideally we'd want a linked list of groups, and this function would eith=
-er
-> > retrieve the group that the VIN instance is part of, or allocate a new
-> > one.
->=20
-> I agree that removing the global group variable would be for the better,
-> and I was hoping to be able to use the device allocator API for this
-> once it's ready. However for now on all supported hardware (I know of)
-> there would only be one group for the whole system.
->=20
-> - On H3 and M3-W CSI20 is connected to all VINs.
-> - On V3M there is only one CSI40 and it is connected to all VINs.
->=20
-> Is this satisfactory for you or do you believe it would be better to
-> complete the device allocator first. Or implement parts of the ideas
-> from that API locally to this driver? If I understand things correctly
-> there are still obstacles blocking that API which are not trivial. And
-> even if they are cleared it have no DT support AFIK so functionality to
-> iterate over all nodes in a graph would be needed which in itself is no
-> trivial task.
+Also userspace will not get any more complicated than without my proposed change
+to the driver. It will be at most the same as without the change if any subdev
+controls are masked by the CSI device controls.
 
-I don't think we need to wait for the API to be finalized. My dislike for=20
-global variables pushes me to ask for a local implementation based on a=20
-linked-list, but that would be a bit overkill given that all platforms will=
-=20
-have a single group. I'm OK with your current implementation, but please ad=
-d a=20
-=46IXME comment that explains that the single global pointer should really =
-be a=20
-linked list, and that it should eventually be replaced by usage of a global=
-=20
-device allocator API.
+This CSI driver has no controls anyway. All my change does is create an empty
+handler for future controls of the CSI driver, so that apps can depend on this
+merging behavior right now, and not wait until someone adds the first control
+to the CSI driver.
 
-> >> +	vin_dbg(vin, "%s: alloc group=3D%p\n", __func__, group);
-> >=20
-> > Do you still need those two debug statements (and all of the other ones
-> > below) ?
->=20
-> Wops, no they can be dropped.
->=20
-> >> +	return group;
-> >> +}
-> >> +
-> >> +static int rvin_group_add_vin(struct rvin_dev *vin)
-> >> +{
-> >> +	int ret;
-> >> +
-> >> +	ret =3D rvin_group_read_id(vin, vin->dev->of_node);
-> >> +	if (ret < 0)
-> >> +		return ret;
-> >> +
-> >> +	mutex_lock(&vin->group->lock);
-> >> +
-> >> +	if (vin->group->vin[ret]) {
-> >> +		mutex_unlock(&vin->group->lock);
-> >> +		vin_err(vin, "VIN number %d already occupied\n", ret);
-> >> +		return -EINVAL;
-> >=20
-> > Can this happen ?
->=20
-> Sure, the values are read from DT so if the renesas,id property have the
-> same value for more then one node. This is a incorrect DT of course but
-> better to handle and warn for such a case I think?
+regards,
+  o.j.
 
-Good point. How about phrasing the error as "Duplicate renesas,id %u" or ev=
-en=20
-"Duplicate renesas,id property value %u" ? That would more clearly point to=
- a=20
-DT error.
-
-> >> +	}
-> >> +
-> >> +	vin->group->vin[ret] =3D vin;
-> >> +
-> >> +	mutex_unlock(&vin->group->lock);
-> >> +
-> >> +	vin_dbg(vin, "I'm VIN number %d", ret);
-> >> +
-> >> +	return 0;
-> >> +}
-
-[snip]
-
-=2D-=20
-Regards,
-
-Laurent Pinchart
+> 
+> Maxime
+> 
+> 
+> 
+> -- 
+> Maxime Ripard, Free Electrons
+> Embedded Linux and Kernel engineering
+> http://free-electrons.com
