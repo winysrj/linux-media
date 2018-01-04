@@ -1,56 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f196.google.com ([209.85.128.196]:45252 "EHLO
-        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752317AbeA3RrD (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 30 Jan 2018 12:47:03 -0500
-From: Philipp Rossak <embed3d@gmail.com>
-To: mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
-        maxime.ripard@free-electrons.com, wens@csie.org,
-        linux@armlinux.org.uk, sean@mess.org, p.zabel@pengutronix.de,
-        andi.shyti@samsung.com
-Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-sunxi@googlegroups.com
-Subject: [PATCH v5 4/6] arm: dts: sun8i: a83t: Add support for the cir interface
-Date: Tue, 30 Jan 2018 18:46:54 +0100
-Message-Id: <20180130174656.10657-5-embed3d@gmail.com>
-In-Reply-To: <20180130174656.10657-1-embed3d@gmail.com>
-References: <20180130174656.10657-1-embed3d@gmail.com>
+Received: from mout.kundenserver.de ([212.227.126.130]:61093 "EHLO
+        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752159AbeADKco (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 4 Jan 2018 05:32:44 -0500
+From: Arnd Bergmann <arnd@arndb.de>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: [PATCH 3/3] media: au0828: add VIDEO_V4L2 dependency
+Date: Thu,  4 Jan 2018 11:31:32 +0100
+Message-Id: <20180104103215.15591-3-arnd@arndb.de>
+In-Reply-To: <20180104103215.15591-1-arnd@arndb.de>
+References: <20180104103215.15591-1-arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The cir interface is like on the H3 located at 0x01f02000 and is exactly
-the same. This patch adds support for the ir interface on the A83T.
+After the move of videobuf2 into the common directory, selecting the
+au0828 driver with CONFIG_V4L2 disabled started causing a link failure,
+as we now attempt to build videobuf2 but it still requires v4l2:
 
-Signed-off-by: Philipp Rossak <embed3d@gmail.com>
+ERROR: "v4l2_event_pending" [drivers/media/common/videobuf/videobuf2-v4l2.ko] undefined!
+ERROR: "v4l2_fh_release" [drivers/media/common/videobuf/videobuf2-v4l2.ko] undefined!
+ERROR: "video_devdata" [drivers/media/common/videobuf/videobuf2-v4l2.ko] undefined!
+ERROR: "__tracepoint_vb2_buf_done" [drivers/media/common/videobuf/videobuf2-core.ko] undefined!
+ERROR: "__tracepoint_vb2_dqbuf" [drivers/media/common/videobuf/videobuf2-core.ko] undefined!
+ERROR: "v4l_vb2q_enable_media_source" [drivers/media/common/videobuf/videobuf2-core.ko] undefined!
+
+This adds the same dependency in au0828 that the other users of videobuf2
+have.
+
+Fixes: 03fbdb2fc2b8 ("media: move videobuf2 to drivers/media/common")
+Fixes: 05439b1a3693 ("[media] media: au0828 - convert to use videobuf2")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 ---
- arch/arm/boot/dts/sun8i-a83t.dtsi | 13 +++++++++++++
- 1 file changed, 13 insertions(+)
+ drivers/media/usb/au0828/Kconfig | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/arch/arm/boot/dts/sun8i-a83t.dtsi b/arch/arm/boot/dts/sun8i-a83t.dtsi
-index f7f78a27e21d..1e04a5cfd32d 100644
---- a/arch/arm/boot/dts/sun8i-a83t.dtsi
-+++ b/arch/arm/boot/dts/sun8i-a83t.dtsi
-@@ -704,6 +704,19 @@
- 			#reset-cells = <1>;
- 		};
+diff --git a/drivers/media/usb/au0828/Kconfig b/drivers/media/usb/au0828/Kconfig
+index 70521e0b4c53..bfaa806633df 100644
+--- a/drivers/media/usb/au0828/Kconfig
++++ b/drivers/media/usb/au0828/Kconfig
+@@ -1,7 +1,7 @@
  
-+		r_cir: ir@1f02000 {
-+			compatible = "allwinner,sun8i-a83t-ir",
-+				     "allwinner,sun5i-a13-ir";
-+			clocks = <&r_ccu CLK_APB0_IR>, <&r_ccu CLK_IR>;
-+			clock-names = "apb", "ir";
-+			resets = <&r_ccu RST_APB0_IR>;
-+			interrupts = <GIC_SPI 37 IRQ_TYPE_LEVEL_HIGH>;
-+			reg = <0x01f02000 0x400>;
-+			pinctrl-names = "default";
-+			pinctrl-0 = <&r_cir_pin>;
-+			status = "disabled";
-+		};
-+
- 		r_pio: pinctrl@1f02c00 {
- 			compatible = "allwinner,sun8i-a83t-r-pinctrl";
- 			reg = <0x01f02c00 0x400>;
+ config VIDEO_AU0828
+ 	tristate "Auvitek AU0828 support"
+-	depends on I2C && INPUT && DVB_CORE && USB
++	depends on I2C && INPUT && DVB_CORE && USB && VIDEO_V4L2
+ 	select I2C_ALGOBIT
+ 	select VIDEO_TVEEPROM
+ 	select VIDEOBUF2_VMALLOC
 -- 
-2.11.0
+2.9.0
