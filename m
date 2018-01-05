@@ -1,86 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:32924 "EHLO
-        mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753390AbeAIKEI (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 9 Jan 2018 05:04:08 -0500
-Date: Tue, 9 Jan 2018 11:04:10 +0100
-From: Greg KH <gregkh@linuxfoundation.org>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Dan Williams <dan.j.williams@intel.com>,
-        linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org,
-        alan@linux.intel.com, peterz@infradead.org, netdev@vger.kernel.org,
-        tglx@linutronix.de, Mauro Carvalho Chehab <mchehab@kernel.org>,
-        torvalds@linux-foundation.org,
-        Elena Reshetova <elena.reshetova@intel.com>,
-        linux-media@vger.kernel.org
-Subject: Re: [PATCH 07/18] [media] uvcvideo: prevent bounds-check bypass via
- speculative execution
-Message-ID: <20180109100410.GA11968@kroah.com>
-References: <151520099201.32271.4677179499894422956.stgit@dwillia2-desk3.amr.corp.intel.com>
- <20180106090907.GG4380@kroah.com>
- <20180106094026.GA11525@kroah.com>
- <7187306.jmXyF4vJKt@avalon>
+Received: from mail-qk0-f195.google.com ([209.85.220.195]:45278 "EHLO
+        mail-qk0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751400AbeAEOUm (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 5 Jan 2018 09:20:42 -0500
+Received: by mail-qk0-f195.google.com with SMTP id o126so6063753qke.12
+        for <linux-media@vger.kernel.org>; Fri, 05 Jan 2018 06:20:41 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <7187306.jmXyF4vJKt@avalon>
+In-Reply-To: <CAOcJUbwmCysV7pcCZK6udNpZVsaU+pxfCrJnEGBWcP9ta0Jqrg@mail.gmail.com>
+References: <1515110659-20145-1-git-send-email-brad@nextdimension.cc>
+ <1515110659-20145-3-git-send-email-brad@nextdimension.cc> <CAOcJUbwmCysV7pcCZK6udNpZVsaU+pxfCrJnEGBWcP9ta0Jqrg@mail.gmail.com>
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+Date: Fri, 5 Jan 2018 09:20:40 -0500
+Message-ID: <CAGoCfizB9+zLFOv7NJ3WGmeD1Z59yb2dSWOS+13=2DkzAGSNnA@mail.gmail.com>
+Subject: Re: [PATCH 2/9] em28xx: Bulk transfer implementation fix
+To: Michael Ira Krufky <mkrufky@linuxtv.org>
+Cc: Brad Love <brad@nextdimension.cc>,
+        linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Jan 09, 2018 at 10:40:21AM +0200, Laurent Pinchart wrote:
-> On Saturday, 6 January 2018 11:40:26 EET Greg KH wrote:
-> > On Sat, Jan 06, 2018 at 10:09:07AM +0100, Greg KH wrote:
-> > 
-> > While I'm all for fixing this type of thing, I feel like we need to do
-> > something "else" for this as playing whack-a-mole for this pattern is
-> > going to be a never-ending battle for all drivers for forever.
-> 
-> That's my concern too, as even if we managed to find and fix all the 
-> occurrences of the problematic patterns (and we won't), new ones will keep 
-> being merged all the time.
+Hi Brad,
 
-And what about the millions of lines of out-of-tree drivers that we all
-rely on every day in our devices?  What about the distro kernels that
-add random new drivers?
+My documents indicate that Register 0x5D and 0x5E are read-only, and
+populated based on the eeprom programming.
 
-We need some sort of automated way to scan for this.
+On your device, what is the value of those registers prior to you changing them?
 
-Intel, any chance we can get your coverity rules?  Given that the date
-of this original patchset was from last August, has anyone looked at
-what is now in Linus's tree?  What about linux-next?  I just added 3
-brand-new driver subsystems to the kernel tree there, how do we know
-there isn't problems in them?
+If you write to those registers, do they reflect the new values if you
+read them back?
 
-And what about all of the other ways user-data can be affected?  Again,
-as Peter pointed out, USB devices.  I want some chance to be able to at
-least audit the codebase we have to see if that path is an issue.
-Without any hint of how to do this in an automated manner, we are all
-in deep shit for forever.
+Does changing these values result in any change to the device's
+endpoint configuration (which is typically statically defined when the
+device is probed)?
 
-> > Either we need some way to mark this data path to make it easy for tools
-> > like sparse to flag easily, or we need to catch the issue in the driver
-> > subsystems, which unfortunatly, would harm the drivers that don't have
-> > this type of issue (like here.)
-> 
-> But how would you do so ?
+What precisely is the behavior you were seeing prior to this patch?
 
-I do not know, it all depends on the access pattern, right?
+Devin
 
-> > I'm guessing that other operating systems, which don't have the luxury
-> > of auditing all of their drivers are going for the "big hammer in the
-> > subsystem" type of fix, right?
-> 
-> Other operating systems that ship closed-source drivers authored by hardware 
-> vendors and not reviewed by third parties will likely stay vulnerable forever. 
-> That's a small concern though as I expect those drivers to contain much large 
-> security holes anyway.
+On Thu, Jan 4, 2018 at 7:22 PM, Michael Ira Krufky <mkrufky@linuxtv.org> wrote:
+> On Thu, Jan 4, 2018 at 7:04 PM, Brad Love <brad@nextdimension.cc> wrote:
+>> Set appropriate bulk/ISOC transfer multiplier on capture start.
+>> This sets ISOC transfer to 940 bytes (188 * 5)
+>> This sets bulk transfer to 48128 bytes (188 * 256)
+>>
+>> The above values are maximum allowed according to Empia.
+>>
+>> Signed-off-by: Brad Love <brad@nextdimension.cc>
+>
+> :+1
+>
+> Reviewed-by: Michael Ira Krufky <mkrufky@linuxtv.org>
+>
+>> ---
+>>  drivers/media/usb/em28xx/em28xx-core.c | 12 ++++++++++++
+>>  1 file changed, 12 insertions(+)
+>>
+>> diff --git a/drivers/media/usb/em28xx/em28xx-core.c b/drivers/media/usb/em28xx/em28xx-core.c
+>> index ef38e56..67ed6a3 100644
+>> --- a/drivers/media/usb/em28xx/em28xx-core.c
+>> +++ b/drivers/media/usb/em28xx/em28xx-core.c
+>> @@ -638,6 +638,18 @@ int em28xx_capture_start(struct em28xx *dev, int start)
+>>             dev->chip_id == CHIP_ID_EM28174 ||
+>>             dev->chip_id == CHIP_ID_EM28178) {
+>>                 /* The Transport Stream Enable Register moved in em2874 */
+>> +               if (dev->dvb_xfer_bulk) {
+>> +                       /* Max Tx Size = 188 * 256 = 48128 - LCM(188,512) * 2 */
+>> +                       em28xx_write_reg(dev, (dev->ts == PRIMARY_TS) ?
+>> +                                       EM2874_R5D_TS1_PKT_SIZE :
+>> +                                       EM2874_R5E_TS2_PKT_SIZE,
+>> +                                       0xFF);
+>> +               } else {
+>> +                       /* TS2 Maximum Transfer Size = 188 * 5 */
+>> +                       em28xx_write_reg(dev, (dev->ts == PRIMARY_TS) ?
+>> +                                       EM2874_R5D_TS1_PKT_SIZE :
+>> +                                       EM2874_R5E_TS2_PKT_SIZE, 0x05);
+>> +               }
+>>                 if (dev->ts == PRIMARY_TS)
+>>                         rc = em28xx_write_reg_bits(dev,
+>>                                 EM2874_R5F_TS_ENABLE,
+>> --
+>> 2.7.4
+>>
 
-Well yes, but odds are those operating systems are doing something to
-mitigate this, right?  Slowing down all user/kernel data paths?
-Targeted code analysis tools?  Something else?  I doubt they just don't
-care at all about it.  At the least, I would think Coverity would be
-trying to sell licenses for this :(
 
-thanks,
 
-greg k-h
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
