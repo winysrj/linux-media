@@ -1,100 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.free-electrons.com ([62.4.15.54]:33519 "EHLO
-        mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753570AbeASIOP (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 19 Jan 2018 03:14:15 -0500
-From: Maxime Ripard <maxime.ripard@free-electrons.com>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Rob Herring <robh+dt@kernel.org>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        Richard Sproul <sproul@cadence.com>,
-        Alan Douglas <adouglas@cadence.com>,
-        Steve Creaney <screaney@cadence.com>,
-        Thomas Petazzoni <thomas.petazzoni@free-electrons.com>,
-        Boris Brezillon <boris.brezillon@free-electrons.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Benoit Parrot <bparrot@ti.com>, nm@ti.com,
-        Simon Hatliff <hatliff@cadence.com>,
-        Maxime Ripard <maxime.ripard@free-electrons.com>
-Subject: [PATCH v5 0/2] media: v4l: Add support for the Cadence MIPI-CSI2 RX
-Date: Fri, 19 Jan 2018 09:13:55 +0100
-Message-Id: <20180119081357.20799-1-maxime.ripard@free-electrons.com>
+Received: from mail-qk0-f193.google.com ([209.85.220.193]:44865 "EHLO
+        mail-qk0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751108AbeAEAW1 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 4 Jan 2018 19:22:27 -0500
+Received: by mail-qk0-f193.google.com with SMTP id v188so4097949qkh.11
+        for <linux-media@vger.kernel.org>; Thu, 04 Jan 2018 16:22:27 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <1515110659-20145-3-git-send-email-brad@nextdimension.cc>
+References: <1515110659-20145-1-git-send-email-brad@nextdimension.cc> <1515110659-20145-3-git-send-email-brad@nextdimension.cc>
+From: Michael Ira Krufky <mkrufky@linuxtv.org>
+Date: Thu, 4 Jan 2018 19:22:26 -0500
+Message-ID: <CAOcJUbwmCysV7pcCZK6udNpZVsaU+pxfCrJnEGBWcP9ta0Jqrg@mail.gmail.com>
+Subject: Re: [PATCH 2/9] em28xx: Bulk transfer implementation fix
+To: Brad Love <brad@nextdimension.cc>
+Cc: linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Thu, Jan 4, 2018 at 7:04 PM, Brad Love <brad@nextdimension.cc> wrote:
+> Set appropriate bulk/ISOC transfer multiplier on capture start.
+> This sets ISOC transfer to 940 bytes (188 * 5)
+> This sets bulk transfer to 48128 bytes (188 * 256)
+>
+> The above values are maximum allowed according to Empia.
+>
+> Signed-off-by: Brad Love <brad@nextdimension.cc>
 
-Here is the fifth attempt at supporting the MIPI-CSI2 RX block from
-Cadence.
+:+1
 
-This IP block is able to receive CSI data over up to 4 lanes, and
-split it to over 4 streams. Those streams are basically the interfaces
-to the video grabbers that will perform the capture.
+Reviewed-by: Michael Ira Krufky <mkrufky@linuxtv.org>
 
-It is able to map streams to both CSI datatypes and virtual channels,
-dynamically. This is unclear at this point what the right way to
-support it would be, so the driver only uses a static mapping between
-the virtual channels and streams, and ignores the data types.
-
-Let me know what you think!
-Maxime
-
-Changes from v4:
-  - Rebased on top of 4.15
-  - Fixed a lane mapping issue that prevented the CSI2-RX device to operate
-    properly.
-  - Reworded the output endpoints documentation in the binding
-
-Changes from v3:
-  - Removed stale printk
-  - Propagate start/stop functions error code to s_stream
-  - Renamed the DT bindings files
-  - Clarified the output ports wording in the DT binding doc
-  - Added a define for the maximum number of lanes
-  - Rebased on top of Sakari's serie
-  - Gathered tags based on the reviews
-
-Changes from v2:
-  - Added reference counting for the controller initialisation
-  - Fixed checkpatch warnings
-  - Moved the sensor initialisation after the DPHY configuration
-  - Renamed the sensor fields to source for consistency
-  - Defined some variables
-  - Renamed a few structures variables
-  - Added internal and external phy errors messages
-  - Reworked the binding slighty by making the external D-PHY optional
-  - Moved the notifier registration in the probe function
-  - Removed some clocks that are not system clocks
-  - Added clocks enabling where needed
-  - Added the code to remap the data lanes
-  - Changed the memory allocator for the non-devm function, and a
-    comment explaining why
-  - Reworked the binding wording
-
-Changes from v1:
-  - Amended the DT bindings as suggested by Rob
-  - Rebase on top of 4.13-rc1 and latest Niklas' serie iteration
-
-Maxime Ripard (2):
-  dt-bindings: media: Add Cadence MIPI-CSI2 RX Device Tree bindings
-  v4l: cadence: Add Cadence MIPI-CSI2 RX driver
-
- .../devicetree/bindings/media/cdns,csi2rx.txt      | 100 +++++
- drivers/media/platform/Kconfig                     |   1 +
- drivers/media/platform/Makefile                    |   2 +
- drivers/media/platform/cadence/Kconfig             |  12 +
- drivers/media/platform/cadence/Makefile            |   1 +
- drivers/media/platform/cadence/cdns-csi2rx.c       | 463 +++++++++++++++++++++
- 6 files changed, 579 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/cdns,csi2rx.txt
- create mode 100644 drivers/media/platform/cadence/Kconfig
- create mode 100644 drivers/media/platform/cadence/Makefile
- create mode 100644 drivers/media/platform/cadence/cdns-csi2rx.c
-
--- 
-2.14.3
+> ---
+>  drivers/media/usb/em28xx/em28xx-core.c | 12 ++++++++++++
+>  1 file changed, 12 insertions(+)
+>
+> diff --git a/drivers/media/usb/em28xx/em28xx-core.c b/drivers/media/usb/em28xx/em28xx-core.c
+> index ef38e56..67ed6a3 100644
+> --- a/drivers/media/usb/em28xx/em28xx-core.c
+> +++ b/drivers/media/usb/em28xx/em28xx-core.c
+> @@ -638,6 +638,18 @@ int em28xx_capture_start(struct em28xx *dev, int start)
+>             dev->chip_id == CHIP_ID_EM28174 ||
+>             dev->chip_id == CHIP_ID_EM28178) {
+>                 /* The Transport Stream Enable Register moved in em2874 */
+> +               if (dev->dvb_xfer_bulk) {
+> +                       /* Max Tx Size = 188 * 256 = 48128 - LCM(188,512) * 2 */
+> +                       em28xx_write_reg(dev, (dev->ts == PRIMARY_TS) ?
+> +                                       EM2874_R5D_TS1_PKT_SIZE :
+> +                                       EM2874_R5E_TS2_PKT_SIZE,
+> +                                       0xFF);
+> +               } else {
+> +                       /* TS2 Maximum Transfer Size = 188 * 5 */
+> +                       em28xx_write_reg(dev, (dev->ts == PRIMARY_TS) ?
+> +                                       EM2874_R5D_TS1_PKT_SIZE :
+> +                                       EM2874_R5E_TS2_PKT_SIZE, 0x05);
+> +               }
+>                 if (dev->ts == PRIMARY_TS)
+>                         rc = em28xx_write_reg_bits(dev,
+>                                 EM2874_R5F_TS_ENABLE,
+> --
+> 2.7.4
+>
