@@ -1,123 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay4-d.mail.gandi.net ([217.70.183.196]:54111 "EHLO
-        relay4-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751562AbeA3J6s (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 30 Jan 2018 04:58:48 -0500
-From: Jacopo Mondi <jacopo+renesas@jmondi.org>
-To: laurent.pinchart@ideasonboard.com, magnus.damm@gmail.com,
-        geert@glider.be, hverkuil@xs4all.nl, mchehab@kernel.org,
-        festevam@gmail.com, sakari.ailus@iki.fi, robh+dt@kernel.org,
-        mark.rutland@arm.com, pombredanne@nexb.com
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-sh@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH v8 01/11] dt-bindings: media: Add Renesas CEU bindings
-Date: Tue, 30 Jan 2018 10:58:12 +0100
-Message-Id: <1517306302-27957-2-git-send-email-jacopo+renesas@jmondi.org>
-In-Reply-To: <1517306302-27957-1-git-send-email-jacopo+renesas@jmondi.org>
-References: <1517306302-27957-1-git-send-email-jacopo+renesas@jmondi.org>
+Received: from hapkido.dreamhost.com ([66.33.216.122]:43538 "EHLO
+        hapkido.dreamhost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751226AbeAEAFQ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 4 Jan 2018 19:05:16 -0500
+Received: from homiemail-a116.g.dreamhost.com (sub5.mail.dreamhost.com [208.113.200.129])
+        by hapkido.dreamhost.com (Postfix) with ESMTP id 96AEC8ED86
+        for <linux-media@vger.kernel.org>; Thu,  4 Jan 2018 16:05:16 -0800 (PST)
+From: Brad Love <brad@nextdimension.cc>
+To: linux-media@vger.kernel.org
+Cc: Brad Love <brad@nextdimension.cc>
+Subject: [PATCH 5/9] em28xx: Add Hauppauge SoloHD/DualHD bulk models
+Date: Thu,  4 Jan 2018 18:04:15 -0600
+Message-Id: <1515110659-20145-6-git-send-email-brad@nextdimension.cc>
+In-Reply-To: <1515110659-20145-1-git-send-email-brad@nextdimension.cc>
+References: <1515110659-20145-1-git-send-email-brad@nextdimension.cc>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add bindings documentation for Renesas Capture Engine Unit (CEU).
+Add additional pids to driver list
 
-Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
-Reviewed-by: Rob Herring <robh@kernel.org>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Brad Love <brad@nextdimension.cc>
 ---
- .../devicetree/bindings/media/renesas,ceu.txt      | 81 ++++++++++++++++++++++
- 1 file changed, 81 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/renesas,ceu.txt
+ drivers/media/usb/em28xx/em28xx-cards.c | 22 +++++++++++++++++-----
+ 1 file changed, 17 insertions(+), 5 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/media/renesas,ceu.txt b/Documentation/devicetree/bindings/media/renesas,ceu.txt
-new file mode 100644
-index 0000000..3fc66df
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/renesas,ceu.txt
-@@ -0,0 +1,81 @@
-+Renesas Capture Engine Unit (CEU)
-+----------------------------------------------
-+
-+The Capture Engine Unit is the image capture interface found in the Renesas
-+SH Mobile and RZ SoCs.
-+
-+The interface supports a single parallel input with data bus width of 8 or 16
-+bits.
-+
-+Required properties:
-+- compatible: Shall be "renesas,r7s72100-ceu" for CEU units found in RZ/A1H
-+  and RZ/A1M SoCs.
-+- reg: Registers address base and size.
-+- interrupts: The interrupt specifier.
-+
-+The CEU supports a single parallel input and should contain a single 'port'
-+subnode with a single 'endpoint'. Connection to input devices are modeled
-+according to the video interfaces OF bindings specified in:
-+Documentation/devicetree/bindings/media/video-interfaces.txt
-+
-+Optional endpoint properties applicable to parallel input bus described in
-+the above mentioned "video-interfaces.txt" file are supported.
-+
-+- hsync-active: Active state of the HSYNC signal, 0/1 for LOW/HIGH respectively.
-+  If property is not present, default is active high.
-+- vsync-active: Active state of the VSYNC signal, 0/1 for LOW/HIGH respectively.
-+  If property is not present, default is active high.
-+
-+Example:
-+
-+The example describes the connection between the Capture Engine Unit and an
-+OV7670 image sensor connected to i2c1 interface.
-+
-+ceu: ceu@e8210000 {
-+	reg = <0xe8210000 0x209c>;
-+	compatible = "renesas,r7s72100-ceu";
-+	interrupts = <GIC_SPI 332 IRQ_TYPE_LEVEL_HIGH>;
-+
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&vio_pins>;
-+
-+	status = "okay";
-+
-+	port {
-+		ceu_in: endpoint {
-+			remote-endpoint = <&ov7670_out>;
-+
-+			hsync-active = <1>;
-+			vsync-active = <0>;
-+		};
-+	};
-+};
-+
-+i2c1: i2c@fcfee400 {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&i2c1_pins>;
-+
-+	status = "okay";
-+
-+	clock-frequency = <100000>;
-+
-+	ov7670: camera@21 {
-+		compatible = "ovti,ov7670";
-+		reg = <0x21>;
-+
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&vio_pins>;
-+
-+		reset-gpios = <&port3 11 GPIO_ACTIVE_LOW>;
-+		powerdown-gpios = <&port3 12 GPIO_ACTIVE_HIGH>;
-+
-+		port {
-+			ov7670_out: endpoint {
-+				remote-endpoint = <&ceu_in>;
-+
-+				hsync-active = <1>;
-+				vsync-active = <0>;
-+			};
-+		};
-+	};
-+};
+diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
+index 7f5d0b28..34c693a 100644
+--- a/drivers/media/usb/em28xx/em28xx-cards.c
++++ b/drivers/media/usb/em28xx/em28xx-cards.c
+@@ -507,8 +507,10 @@ static struct em28xx_reg_seq plex_px_bcud[] = {
+ };
+ 
+ /*
+- * 2040:0265 Hauppauge WinTV-dualHD DVB
+- * 2040:026d Hauppauge WinTV-dualHD ATSC/QAM
++ * 2040:0265 Hauppauge WinTV-dualHD DVB Isoc
++ * 2040:8265 Hauppauge WinTV-dualHD DVB Bulk
++ * 2040:026d Hauppauge WinTV-dualHD ATSC/QAM Isoc
++ * 2040:826d Hauppauge WinTV-dualHD ATSC/QAM Bulk
+  * reg 0x80/0x84:
+  * GPIO_0: Yellow LED tuner 1, 0=on, 1=off
+  * GPIO_1: Green LED tuner 1, 0=on, 1=off
+@@ -2391,7 +2393,8 @@ struct em28xx_board em28xx_boards[] = {
+ 		.has_dvb       = 1,
+ 	},
+ 	/*
+-	 * 2040:0265 Hauppauge WinTV-dualHD (DVB version).
++	 * 2040:0265 Hauppauge WinTV-dualHD (DVB version) Isoc.
++	 * 2040:8265 Hauppauge WinTV-dualHD (DVB version) Bulk.
+ 	 * Empia EM28274, 2x Silicon Labs Si2168, 2x Silicon Labs Si2157
+ 	 */
+ 	[EM28174_BOARD_HAUPPAUGE_WINTV_DUALHD_DVB] = {
+@@ -2407,7 +2410,8 @@ struct em28xx_board em28xx_boards[] = {
+ 		.leds          = hauppauge_dualhd_leds,
+ 	},
+ 	/*
+-	 * 2040:026d Hauppauge WinTV-dualHD (model 01595 - ATSC/QAM).
++	 * 2040:026d Hauppauge WinTV-dualHD (model 01595 - ATSC/QAM) Isoc.
++	 * 2040:826d Hauppauge WinTV-dualHD (model 01595 - ATSC/QAM) Bulk.
+ 	 * Empia EM28274, 2x LG LGDT3306A, 2x Silicon Labs Si2157
+ 	 */
+ 	[EM28174_BOARD_HAUPPAUGE_WINTV_DUALHD_01595] = {
+@@ -2549,8 +2553,12 @@ struct usb_device_id em28xx_id_table[] = {
+ 			.driver_info = EM2883_BOARD_HAUPPAUGE_WINTV_HVR_850 },
+ 	{ USB_DEVICE(0x2040, 0x0265),
+ 			.driver_info = EM28174_BOARD_HAUPPAUGE_WINTV_DUALHD_DVB },
++	{ USB_DEVICE(0x2040, 0x8265),
++			.driver_info = EM28174_BOARD_HAUPPAUGE_WINTV_DUALHD_DVB },
+ 	{ USB_DEVICE(0x2040, 0x026d),
+ 			.driver_info = EM28174_BOARD_HAUPPAUGE_WINTV_DUALHD_01595 },
++	{ USB_DEVICE(0x2040, 0x826d),
++			.driver_info = EM28174_BOARD_HAUPPAUGE_WINTV_DUALHD_01595 },
+ 	{ USB_DEVICE(0x0438, 0xb002),
+ 			.driver_info = EM2880_BOARD_AMD_ATI_TV_WONDER_HD_600 },
+ 	{ USB_DEVICE(0x2001, 0xf112),
+@@ -2611,7 +2619,11 @@ struct usb_device_id em28xx_id_table[] = {
+ 			.driver_info = EM28178_BOARD_PCTV_461E },
+ 	{ USB_DEVICE(0x2013, 0x025f),
+ 			.driver_info = EM28178_BOARD_PCTV_292E },
+-	{ USB_DEVICE(0x2040, 0x0264), /* Hauppauge WinTV-soloHD */
++	{ USB_DEVICE(0x2040, 0x0264), /* Hauppauge WinTV-soloHD Isoc */
++			.driver_info = EM28178_BOARD_PCTV_292E },
++	{ USB_DEVICE(0x2040, 0x8264), /* Hauppauge OEM Generic WinTV-soloHD Bulk */
++			.driver_info = EM28178_BOARD_PCTV_292E },
++	{ USB_DEVICE(0x2040, 0x8268), /* Hauppauge Retail WinTV-soloHD Bulk */
+ 			.driver_info = EM28178_BOARD_PCTV_292E },
+ 	{ USB_DEVICE(0x0413, 0x6f07),
+ 			.driver_info = EM2861_BOARD_LEADTEK_VC100 },
 -- 
 2.7.4
