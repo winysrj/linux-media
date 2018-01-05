@@ -1,55 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:37868 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750779AbeAPO4F (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 16 Jan 2018 09:56:05 -0500
-Subject: Re: [RFT PATCH v3 0/6] Asynchronous UVC
-To: Philipp Zabel <philipp.zabel@gmail.com>,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>,
-        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Olivier BRAUN <olivier.braun@stereolabs.com>,
-        Troy Kisky <troy.kisky@boundarydevices.com>
-References: <cover.30aaad9a6abac5e92d4a1a0e6634909d97cc54d8.1515748369.git-series.kieran.bingham@ideasonboard.com>
- <CA+gwMcfh0Oc53TZLc=_xtFJrqfw8s0gjD9mfPFZ_Cp9=vMAMDQ@mail.gmail.com>
-From: Kieran Bingham <kieran.bingham@ideasonboard.com>
-Message-ID: <03c7a709-7a9a-3921-844b-d4d91b7e70c4@ideasonboard.com>
-Date: Tue, 16 Jan 2018 14:55:55 +0000
-MIME-Version: 1.0
-In-Reply-To: <CA+gwMcfh0Oc53TZLc=_xtFJrqfw8s0gjD9mfPFZ_Cp9=vMAMDQ@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 8bit
+Received: from hapkido.dreamhost.com ([66.33.216.122]:43537 "EHLO
+        hapkido.dreamhost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751193AbeAEAFQ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 4 Jan 2018 19:05:16 -0500
+Received: from homiemail-a116.g.dreamhost.com (sub5.mail.dreamhost.com [208.113.200.129])
+        by hapkido.dreamhost.com (Postfix) with ESMTP id 102E58ED86
+        for <linux-media@vger.kernel.org>; Thu,  4 Jan 2018 16:05:16 -0800 (PST)
+From: Brad Love <brad@nextdimension.cc>
+To: linux-media@vger.kernel.org
+Cc: Brad Love <brad@nextdimension.cc>
+Subject: [PATCH 4/9] em28xx: Increase max em28xx boards to max dvb adapters
+Date: Thu,  4 Jan 2018 18:04:14 -0600
+Message-Id: <1515110659-20145-5-git-send-email-brad@nextdimension.cc>
+In-Reply-To: <1515110659-20145-1-git-send-email-brad@nextdimension.cc>
+References: <1515110659-20145-1-git-send-email-brad@nextdimension.cc>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Phillip
+Maximum 4 em28xx boards is too low, this can be maxed out by two devices.
+This allows all the dvb adapters in the system to be em28xx if so desired.
 
-On 15/01/18 19:35, Philipp Zabel wrote:
-> Hi Kieran,
-> 
-> On Fri, Jan 12, 2018 at 10:19 AM, Kieran Bingham
-> <kieran.bingham@ideasonboard.com> wrote:
->> This series has been tested on both the ZED and BRIO cameras on arm64
->> platforms, however due to the intrinsic changes in the driver I would like to
->> see it tested with other devices and other platforms, so I'd appreciate if
->> anyone can test this on a range of USB cameras.
-> 
-> FWIW,
-> 
-> Tested-by: Philipp Zabel <philipp.zabel@gmail.com>
-> 
-> with a Lite-On internal Laptop Webcam, Logitech C910 (USB2 isoc),
-> Oculus Sensor (USB3 isoc), and Microsoft HoloLens Sensors (USB3 bulk).
+Signed-off-by: Brad Love <brad@nextdimension.cc>
+---
+ drivers/media/usb/em28xx/em28xx.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Thank you, that is very much appreciated!
-
-I presume that was on x86_64?
-
---
-Regards
-
-Kieran
+diff --git a/drivers/media/usb/em28xx/em28xx.h b/drivers/media/usb/em28xx/em28xx.h
+index 7be8ac9..3dbcc9d 100644
+--- a/drivers/media/usb/em28xx/em28xx.h
++++ b/drivers/media/usb/em28xx/em28xx.h
+@@ -166,7 +166,7 @@
+ #define EM28XX_STOP_AUDIO       0
+ 
+ /* maximum number of em28xx boards */
+-#define EM28XX_MAXBOARDS 4 /*FIXME: should be bigger */
++#define EM28XX_MAXBOARDS DVB_MAX_ADAPTERS /* All adapters could be em28xx */
+ 
+ /* maximum number of frames that can be queued */
+ #define EM28XX_NUM_FRAMES 5
+-- 
+2.7.4
