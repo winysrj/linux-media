@@ -1,47 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:41401 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751187AbeAPVHH (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 16 Jan 2018 16:07:07 -0500
-Received: from avalon.bb.dnainternet.fi (dfj612ybrt5fhg77mgycy-3.rev.dnainternet.fi [IPv6:2001:14ba:21f5:5b00:2e86:4862:ef6a:2804])
-        by galahad.ideasonboard.com (Postfix) with ESMTPSA id DE771201F5
-        for <linux-media@vger.kernel.org>; Tue, 16 Jan 2018 22:06:15 +0100 (CET)
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 0/4] uvcvideo style cleanups
-Date: Tue, 16 Jan 2018 23:07:03 +0200
-Message-Id: <20180116210707.7727-1-laurent.pinchart@ideasonboard.com>
+Received: from mout.kundenserver.de ([212.227.17.24]:57450 "EHLO
+        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751262AbeAEJoW (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 5 Jan 2018 04:44:22 -0500
+From: Arnd Bergmann <arnd@arndb.de>
+To: Hans Verkuil <hans.verkuil@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: [PATCH] media: cobalt: select CONFIG_SND_PCM
+Date: Fri,  5 Jan 2018 10:44:04 +0100
+Message-Id: <20180105094415.2839559-1-arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+The cobalt sound driver has a dependency on ALSA, but not
+on the PCM helper code, so this can lead to an extremely
+rare link error in randconfig builds:
 
-I was growing tired of explaining during review that, while the uvcvideo.h
-header used the extern keyword in front of function declarations, the same
-style mistake didn't have to be copied in all patches. I thus decided to write
-patch 1/4, and while at it I fixed similar style issues in patch 2/4 to 4/4.
+ERROR: "snd_pcm_period_elapsed" [drivers/media/pci/cobalt/cobalt.ko] undefined!
+ERROR: "_snd_pcm_stream_lock_irqsave" [drivers/media/pci/cobalt/cobalt.ko] undefined!
+ERROR: "snd_pcm_hw_constraint_integer" [drivers/media/pci/cobalt/cobalt.ko] undefined!
+ERROR: "snd_pcm_set_ops" [drivers/media/pci/cobalt/cobalt.ko] undefined!
+ERROR: "snd_pcm_stream_unlock_irqrestore" [drivers/media/pci/cobalt/cobalt.ko] undefined!
+ERROR: "snd_pcm_lib_ioctl" [drivers/media/pci/cobalt/cobalt.ko] undefined!
+ERROR: "snd_pcm_new" [drivers/media/pci/cobalt/cobalt.ko] undefined!
 
-Apart from the kmalloc() to kmalloc_array() change, a byte-to-byte comparison
-of the .text sections of the module shows no difference before and after this
-series.
+The other audio drivers select 'SND_PCM' for this, so let's
+do the same.
 
-Laurent Pinchart (4):
-  uvcvideo: Drop extern keyword in function declarations
-  uvcvideo: Use kernel integer types
-  uvcvideo: Use internal kernel integer types
-  uvcvideo: Use parentheses around sizeof operand
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+---
+ drivers/media/pci/cobalt/Kconfig | 1 +
+ 1 file changed, 1 insertion(+)
 
- drivers/media/usb/uvc/uvc_ctrl.c   |  62 +++----
- drivers/media/usb/uvc/uvc_driver.c |  97 +++++------
- drivers/media/usb/uvc/uvc_isight.c |   6 +-
- drivers/media/usb/uvc/uvc_status.c |   4 +-
- drivers/media/usb/uvc/uvc_v4l2.c   |  76 ++++-----
- drivers/media/usb/uvc/uvc_video.c  |  42 ++---
- drivers/media/usb/uvc/uvcvideo.h   | 321 ++++++++++++++++++-------------------
- 7 files changed, 303 insertions(+), 305 deletions(-)
-
+diff --git a/drivers/media/pci/cobalt/Kconfig b/drivers/media/pci/cobalt/Kconfig
+index 70343829a125..aa35cbc0a904 100644
+--- a/drivers/media/pci/cobalt/Kconfig
++++ b/drivers/media/pci/cobalt/Kconfig
+@@ -6,6 +6,7 @@ config VIDEO_COBALT
+ 	depends on SND
+ 	depends on MTD
+ 	select I2C_ALGOBIT
++	select SND_PCM
+ 	select VIDEO_ADV7604
+ 	select VIDEO_ADV7511
+ 	select VIDEO_ADV7842
 -- 
-Regards,
-
-Laurent Pinchart
+2.9.0
