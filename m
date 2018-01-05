@@ -1,56 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:49885 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751829AbeADUKH (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 4 Jan 2018 15:10:07 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Jacopo Mondi <jacopo+renesas@jmondi.org>
-Cc: magnus.damm@gmail.com, geert@glider.be, mchehab@kernel.org,
-        hverkuil@xs4all.nl, festevam@gmail.com, sakari.ailus@iki.fi,
-        robh+dt@kernel.org, mark.rutland@arm.com,
-        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-sh@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v3 9/9] arch: sh: migor: Use new renesas-ceu camera driver
-Date: Thu, 04 Jan 2018 22:10:30 +0200
-Message-ID: <8062486.QngExgQv9j@avalon>
-In-Reply-To: <1515081797-17174-10-git-send-email-jacopo+renesas@jmondi.org>
-References: <1515081797-17174-1-git-send-email-jacopo+renesas@jmondi.org> <1515081797-17174-10-git-send-email-jacopo+renesas@jmondi.org>
+Received: from mail-qk0-f195.google.com ([209.85.220.195]:35010 "EHLO
+        mail-qk0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751202AbeAEI46 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 5 Jan 2018 03:56:58 -0500
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <14433032.8RBNSVMmkm@avalon>
+References: <1515081797-17174-1-git-send-email-jacopo+renesas@jmondi.org>
+ <1515081797-17174-2-git-send-email-jacopo+renesas@jmondi.org> <14433032.8RBNSVMmkm@avalon>
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Date: Fri, 5 Jan 2018 09:56:56 +0100
+Message-ID: <CAMuHMdU=CCsn21pkzmKN=9yFn4f2H6QAKSJ5DWCzRBT-F=U=dA@mail.gmail.com>
+Subject: Re: [PATCH v3 1/9] dt-bindings: media: Add Renesas CEU bindings
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        Magnus Damm <magnus.damm@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Fabio Estevam <festevam@gmail.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Linux-Renesas <linux-renesas-soc@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux-sh list <linux-sh@vger.kernel.org>,
+        devicetree@vger.kernel.org,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jacopo,
+On Thu, Jan 4, 2018 at 11:28 PM, Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
+> On Thursday, 4 January 2018 18:03:09 EET Jacopo Mondi wrote:
+>> Add bindings documentation for Renesas Capture Engine Unit (CEU).
 
-Thank you for the patch.
+>> +++ b/Documentation/devicetree/bindings/media/renesas,ceu.txt
+>> @@ -0,0 +1,85 @@
+>> +Renesas Capture Engine Unit (CEU)
+>> +----------------------------------------------
+>> +
+>> +The Capture Engine Unit is the image capture interface found in the Renesas
+>> +SH Mobile and RZ SoCs.
+>> +
+>> +The interface supports a single parallel input with data bus width of 8 or
+>> 16
+>> +bits.
+>> +
+>> +Required properties:
+>> +- compatible: Must be one of the following.
+>> +     - "renesas,r7s72100-ceu" for CEU units found in R7S72100 (RZ/A1) SoCs.
+>> +     - "renesas,ceu" as a generic fallback.
+>
+> As asked in my review of patch 3/9, what's your policy for compatible strings
+> ? As far as I understand there's no generic CEU, as the SH4 and RZ versions
+> are not compatible. Should the "renesas,ceu" compatible string then be
+> replaced by "renesas,rz-ceu" ?
 
-On Thursday, 4 January 2018 18:03:17 EET Jacopo Mondi wrote:
-> Migo-R platform uses sh_mobile_ceu camera driver, which is now being
-> replaced by a proper V4L2 camera driver named 'renesas-ceu'.
-> 
-> Move Migo-R platform to use the v4l2 renesas-ceu camera driver
-> interface and get rid of soc_camera defined components used to register
-> sensor drivers and of platform specific enable/disable routines.
-> 
-> Register clock source and GPIOs for sensor drivers, so they can use
-> clock and gpio APIs.
-> 
-> Also, memory for CEU video buffers is now reserved with membocks APIs,
-> and need to be declared as dma_coherent during machine initialization to
-> remove that architecture specific part from CEU driver.
-> 
-> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+If they're not compatible, it indeed doesn't make much sense to have a
+generic "renesas,ceu".
 
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Note that anything with "rz-" is a bad idea, as after RZ/A1, Renesas introduced
+RZ/G1, RZ/N1, and RZ/T1, which are completely different (yes I know
+we have a few of these in use, unfortunately).
 
-> ---
->  arch/sh/boards/mach-migor/setup.c      | 225 ++++++++++++++----------------
->  arch/sh/kernel/cpu/sh4a/clock-sh7722.c |   2 +-
->  2 files changed, 101 insertions(+), 126 deletions(-)
+Gr{oetje,eeting}s,
 
--- 
-Regards,
+                        Geert
 
-Laurent Pinchart
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
