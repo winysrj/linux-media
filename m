@@ -1,61 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f171.google.com ([209.85.220.171]:44544 "EHLO
-        mail-qk0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752357AbeAOMBW (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 15 Jan 2018 07:01:22 -0500
-Date: Mon, 15 Jan 2018 10:01:11 -0200
-From: Gustavo Padovan <gustavo@padovan.org>
-To: Alexandre Courbot <acourbot@chromium.org>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        Pawel Osciak <pawel@osciak.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Brian Starkey <brian.starkey@arm.com>,
-        Thierry Escande <thierry.escande@collabora.com>,
-        linux-kernel@vger.kernel.org,
-        Gustavo Padovan <gustavo.padovan@collabora.com>
-Subject: Re: [PATCH v7 1/6] [media] vb2: add is_unordered callback for drivers
-Message-ID: <20180115120111.GA9598@jade>
-References: <20180110160732.7722-1-gustavo@padovan.org>
- <20180110160732.7722-2-gustavo@padovan.org>
- <CAPBb6MV6ErW-Z7n1aK55TxJNRDkt2SkWGEJiXkxrLmZ_GabJOA@mail.gmail.com>
+Received: from mail-lf0-f65.google.com ([209.85.215.65]:37062 "EHLO
+        mail-lf0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751254AbeAEMEB (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 5 Jan 2018 07:04:01 -0500
+Subject: Re: [PATCH] media: staging: tegra-vde: select DMA_SHARED_BUFFER
+To: Arnd Bergmann <arnd@arndb.de>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Thierry Reding <thierry.reding@gmail.com>,
+        Jonathan Hunter <jonathanh@nvidia.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        linux-media@vger.kernel.org, linux-tegra@vger.kernel.org,
+        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org
+References: <20180105094343.2813148-1-arnd@arndb.de>
+From: Dmitry Osipenko <digetx@gmail.com>
+Message-ID: <481fe121-8937-81a5-40d5-d8fe8a0036dd@gmail.com>
+Date: Fri, 5 Jan 2018 15:03:56 +0300
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAPBb6MV6ErW-Z7n1aK55TxJNRDkt2SkWGEJiXkxrLmZ_GabJOA@mail.gmail.com>
+In-Reply-To: <20180105094343.2813148-1-arnd@arndb.de>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2018-01-15 Alexandre Courbot <acourbot@chromium.org>:
-
-> On Thu, Jan 11, 2018 at 1:07 AM, Gustavo Padovan <gustavo@padovan.org> wrote:
-> > From: Gustavo Padovan <gustavo.padovan@collabora.com>
-> >
-> > Explicit synchronization benefits a lot from ordered queues, they fit
-> > better in a pipeline with DRM for example so create a opt-in way for
-> > drivers notify videobuf2 that the queue is unordered.
-> >
-> > Drivers don't need implement it if the queue is ordered.
+On 05.01.2018 12:43, Arnd Bergmann wrote:
+> Without CONFIG_DMA_SHARED_BUFFER we run into a link error for the
+> dma_buf_* APIs:
 > 
-> This is going to make user-space believe that *all* vb2 drivers use
-> ordered queues by default, at least until non-ordered drivers catch up
-> with this change. Wouldn't it be less dangerous to do the opposite
-> (make queues non-ordered by default)?
+> ERROR: "dma_buf_map_attachment" [drivers/staging/media/tegra-vde/tegra-vde.ko] undefined!
+> ERROR: "dma_buf_attach" [drivers/staging/media/tegra-vde/tegra-vde.ko] undefined!
+> ERROR: "dma_buf_get" [drivers/staging/media/tegra-vde/tegra-vde.ko] undefined!
+> ERROR: "dma_buf_put" [drivers/staging/media/tegra-vde/tegra-vde.ko] undefined!
+> ERROR: "dma_buf_detach" [drivers/staging/media/tegra-vde/tegra-vde.ko] undefined!
+> ERROR: "dma_buf_unmap_attachment" [drivers/staging/media/tegra-vde/tegra-vde.ko] undefined!
+> 
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> ---
+>  drivers/staging/media/tegra-vde/Kconfig | 1 +
+>  1 file changed, 1 insertion(+)
+> 
+> diff --git a/drivers/staging/media/tegra-vde/Kconfig b/drivers/staging/media/tegra-vde/Kconfig
+> index ec3ddddebdaa..5c4914674468 100644
+> --- a/drivers/staging/media/tegra-vde/Kconfig
+> +++ b/drivers/staging/media/tegra-vde/Kconfig
+> @@ -1,6 +1,7 @@
+>  config TEGRA_VDE
+>  	tristate "NVIDIA Tegra Video Decoder Engine driver"
+>  	depends on ARCH_TEGRA || COMPILE_TEST
+> +	select DMA_SHARED_BUFFER
+>  	select SRAM
+>  	help
+>  	    Say Y here to enable support for the NVIDIA Tegra video decoder
+> 
 
-The rational behind this decision was because most formats/drivers are
-ordered so only a small amount of drivers need to changed. I think this
-was proposed by Hans on the Media Summit.
+Thanks!
 
-I understand your concern. My question is how dangerous will it be. If
-you are building a product you will make the changes in the driver if
-they are not there yet, or if it is a distribution you'd never know
-which driver/format you are using so you should be prepared for
-everything.
-
-AFAIK all Capture drivers are ordered and that is where I think fences
-is most useful.
-
-Gustavo
+Acked-by: Dmitry Osipenko <digetx@gmail.com>
