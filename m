@@ -1,39 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:48428 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S932140AbeAXU6p (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 24 Jan 2018 15:58:45 -0500
-Date: Wed, 24 Jan 2018 22:58:41 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Jacopo Mondi <jacopo+renesas@jmondi.org>
-Cc: corbet@lwn.net, mchehab@kernel.org, robh+dt@kernel.org,
-        mark.rutland@arm.com, linux-media@vger.kernel.org,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v4 0/2] media: ov7670: Implement mbus configuration
-Message-ID: <20180124205839.fvv5ria4kdkbhk6h@valkosipuli.retiisi.org.uk>
-References: <1516786250-3750-1-git-send-email-jacopo+renesas@jmondi.org>
+Received: from mail-qk0-f196.google.com ([209.85.220.196]:33493 "EHLO
+        mail-qk0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751195AbeAEAYl (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 4 Jan 2018 19:24:41 -0500
+Received: by mail-qk0-f196.google.com with SMTP id x85so142828qkb.0
+        for <linux-media@vger.kernel.org>; Thu, 04 Jan 2018 16:24:41 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1516786250-3750-1-git-send-email-jacopo+renesas@jmondi.org>
+In-Reply-To: <1515110659-20145-7-git-send-email-brad@nextdimension.cc>
+References: <1515110659-20145-1-git-send-email-brad@nextdimension.cc> <1515110659-20145-7-git-send-email-brad@nextdimension.cc>
+From: Michael Ira Krufky <mkrufky@linuxtv.org>
+Date: Thu, 4 Jan 2018 19:24:40 -0500
+Message-ID: <CAOcJUbxpGS1p68kpTEv5O0CGipDZ3xtEcYuS9wFraGdy=ZFHDw@mail.gmail.com>
+Subject: Re: [PATCH 6/9] em28xx: Enable Hauppauge SoloHD rebranded 292e SE
+To: Brad Love <brad@nextdimension.cc>
+Cc: linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jacopo,
+On Thu, Jan 4, 2018 at 7:04 PM, Brad Love <brad@nextdimension.cc> wrote:
+> Add a missing device to the driver table.
+>
+> Signed-off-by: Brad Love <brad@nextdimension.cc>
 
-On Wed, Jan 24, 2018 at 10:30:48AM +0100, Jacopo Mondi wrote:
-> Hello,
->    4th round for this series, now based on Hans' 'parm' branch from
-> git://linuxtv.org/hverkuil/media_tree.git
-> 
-> I addressed Sakari's comments on bindings documentation and driver error path,
-> and I hope to get both driver and bindings acked to have this included in next
-> merge window.
+:+1
 
-The patches seem fine to me, but before applying them I'd like to have Rob's
-ack on the DT changes.
+Reviewed-by: Michael Ira Krufky <mkrufky@linuxtv.org>
 
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+> ---
+>  drivers/media/usb/em28xx/em28xx-cards.c | 2 ++
+>  1 file changed, 2 insertions(+)
+>
+> diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
+> index 34c693a..66d4c3a 100644
+> --- a/drivers/media/usb/em28xx/em28xx-cards.c
+> +++ b/drivers/media/usb/em28xx/em28xx-cards.c
+> @@ -2619,6 +2619,8 @@ struct usb_device_id em28xx_id_table[] = {
+>                         .driver_info = EM28178_BOARD_PCTV_461E },
+>         { USB_DEVICE(0x2013, 0x025f),
+>                         .driver_info = EM28178_BOARD_PCTV_292E },
+> +       { USB_DEVICE(0x2013, 0x0264), /* Hauppauge WinTV-soloHD 292e SE */
+> +                       .driver_info = EM28178_BOARD_PCTV_292E },
+>         { USB_DEVICE(0x2040, 0x0264), /* Hauppauge WinTV-soloHD Isoc */
+>                         .driver_info = EM28178_BOARD_PCTV_292E },
+>         { USB_DEVICE(0x2040, 0x8264), /* Hauppauge OEM Generic WinTV-soloHD Bulk */
+> --
+> 2.7.4
+>
