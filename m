@@ -1,99 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:50736 "EHLO
-        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750890AbeAVKda (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 22 Jan 2018 05:33:30 -0500
-Subject: Re: [PATCH 2/9] media: convert g/s_parm to g/s_frame_interval in
- subdevs
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-References: <20180122101857.51401-1-hverkuil@xs4all.nl>
- <20180122101857.51401-3-hverkuil@xs4all.nl>
- <20180122102644.4n5yv7z4y3a47n3z@paasikivi.fi.intel.com>
-Cc: linux-media@vger.kernel.org,
-        Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <9198b319-6821-0263-044e-3ccbc73c61f8@xs4all.nl>
-Date: Mon, 22 Jan 2018 11:33:28 +0100
-MIME-Version: 1.0
-In-Reply-To: <20180122102644.4n5yv7z4y3a47n3z@paasikivi.fi.intel.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Received: from hapkido.dreamhost.com ([66.33.216.122]:43542 "EHLO
+        hapkido.dreamhost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751240AbeAEAFS (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 4 Jan 2018 19:05:18 -0500
+Received: from homiemail-a116.g.dreamhost.com (sub5.mail.dreamhost.com [208.113.200.129])
+        by hapkido.dreamhost.com (Postfix) with ESMTP id 08ABF8ED96
+        for <linux-media@vger.kernel.org>; Thu,  4 Jan 2018 16:05:18 -0800 (PST)
+From: Brad Love <brad@nextdimension.cc>
+To: linux-media@vger.kernel.org
+Cc: Brad Love <brad@nextdimension.cc>
+Subject: [PATCH 7/9] lgdt3306a: Set fe ops.release to NULL if probed
+Date: Thu,  4 Jan 2018 18:04:17 -0600
+Message-Id: <1515110659-20145-8-git-send-email-brad@nextdimension.cc>
+In-Reply-To: <1515110659-20145-1-git-send-email-brad@nextdimension.cc>
+References: <1515110659-20145-1-git-send-email-brad@nextdimension.cc>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 22/01/18 11:26, Sakari Ailus wrote:
-> Hi Hans,
-> 
-> On Mon, Jan 22, 2018 at 11:18:50AM +0100, Hans Verkuil wrote:
->> From: Hans Verkuil <hans.verkuil@cisco.com>
->>
->> Convert all g/s_parm calls to g/s_frame_interval. This allows us
->> to remove the g/s_parm ops since those are a duplicate of
->> g/s_frame_interval.
->>
->> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
->> ---
->>  drivers/media/i2c/mt9v011.c                     | 29 +++++++++----------
->>  drivers/media/i2c/ov6650.c                      | 33 ++++++++++------------
->>  drivers/media/i2c/ov7670.c                      | 26 +++++++++--------
->>  drivers/media/i2c/ov7740.c                      | 29 ++++++++-----------
->>  drivers/media/i2c/tvp514x.c                     | 37 +++++++++++--------------
->>  drivers/media/i2c/vs6624.c                      | 29 ++++++++++---------
->>  drivers/media/platform/atmel/atmel-isc.c        | 10 ++-----
->>  drivers/media/platform/atmel/atmel-isi.c        | 12 ++------
->>  drivers/media/platform/blackfin/bfin_capture.c  | 14 +++-------
->>  drivers/media/platform/marvell-ccic/mcam-core.c | 12 ++++----
->>  drivers/media/platform/soc_camera/soc_camera.c  | 10 ++++---
->>  drivers/media/platform/via-camera.c             |  4 +--
->>  drivers/media/usb/em28xx/em28xx-video.c         | 36 ++++++++++++++++++++----
->>  13 files changed, 137 insertions(+), 144 deletions(-)
->>
->> diff --git a/drivers/media/i2c/mt9v011.c b/drivers/media/i2c/mt9v011.c
->> index 5e29064fae91..0e0bcc8b67ca 100644
->> --- a/drivers/media/i2c/mt9v011.c
->> +++ b/drivers/media/i2c/mt9v011.c
->> @@ -364,33 +364,30 @@ static int mt9v011_set_fmt(struct v4l2_subdev *sd,
->>  	return 0;
->>  }
->>  
->> -static int mt9v011_g_parm(struct v4l2_subdev *sd, struct v4l2_streamparm *parms)
->> +static int mt9v011_g_frame_interval(struct v4l2_subdev *sd,
->> +				    struct v4l2_subdev_frame_interval *ival)
->>  {
->> -	struct v4l2_captureparm *cp = &parms->parm.capture;
->> -
->> -	if (parms->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
->> +	if (ival->pad)
->>  		return -EINVAL;
-> 
-> The pad number checks are already present in v4l2-subdev.c. Do you think
-> we'll need them in drivers as well?
-> 
-> It's true that another driver could mis-use this interface. In that case
-> I'd introduce a wrapper to the op rather than introduce the check in every
-> driver.
+If release is part of frontend ops then it is called in the
+course of dvb_frontend_detach. The process also decrements
+the module usage count. The problem is if the lgdt3306a
+driver is reached via i2c_new_device, then when it is
+eventually destroyed remove is called, which further
+decrements the module usage count to negative. After this
+occurs the driver is in a bad state and no longer works.
+Also fixed by NULLing out the release callback is a double
+kfree of state, which introduces arbitrary oopses/GPF.
+This problem is only currently reachable via the em28xx driver.
 
-I'm not that keen on introducing wrappers for an op. I wouldn't actually know
-how to implement that cleanly. Since the pad check is subdev driver specific,
-and the overhead of a wrapper is almost certainly higher than just doing this
-check I feel it is OK to do this.
+On disconnect of Hauppauge SoloHD before:
 
-> 
->>  
->> -	memset(cp, 0, sizeof(struct v4l2_captureparm));
->> -	cp->capability = V4L2_CAP_TIMEPERFRAME;
->> +	memset(ival->reserved, 0, sizeof(ival->reserved));
->>  	calc_fps(sd,
->> -		 &cp->timeperframe.numerator,
->> -		 &cp->timeperframe.denominator);
->> +		 &ival->interval.numerator,
->> +		 &ival->interval.denominator);
->>  
->>  	return 0;
->>  }
+lsmod | grep lgdt3306a
+lgdt3306a              28672  -1
+i2c_mux                16384  1 lgdt3306a
 
-Regards,
+On disconnect of Hauppauge SoloHD after:
 
-	Hans
+lsmod | grep lgdt3306a
+lgdt3306a              28672  0
+i2c_mux                16384  1 lgdt3306a
+
+Signed-off-by: Brad Love <brad@nextdimension.cc>
+---
+ drivers/media/dvb-frontends/lgdt3306a.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/media/dvb-frontends/lgdt3306a.c b/drivers/media/dvb-frontends/lgdt3306a.c
+index 6356815..d2477ed 100644
+--- a/drivers/media/dvb-frontends/lgdt3306a.c
++++ b/drivers/media/dvb-frontends/lgdt3306a.c
+@@ -2177,6 +2177,7 @@ static int lgdt3306a_probe(struct i2c_client *client,
+ 
+ 	i2c_set_clientdata(client, fe->demodulator_priv);
+ 	state = fe->demodulator_priv;
++	state->frontend.ops.release = NULL;
+ 
+ 	/* create mux i2c adapter for tuner */
+ 	state->muxc = i2c_mux_alloc(client->adapter, &client->dev,
+-- 
+2.7.4
