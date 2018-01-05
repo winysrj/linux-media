@@ -1,129 +1,235 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from netrider.rowland.org ([192.131.102.5]:54499 "HELO
-        netrider.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with SMTP id S1753452AbeAGPlj (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sun, 7 Jan 2018 10:41:39 -0500
-Date: Sun, 7 Jan 2018 10:41:37 -0500 (EST)
-From: Alan Stern <stern@rowland.harvard.edu>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-cc: Josef Griebichler <griebichler.josef@gmx.at>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        <linux-usb@vger.kernel.org>, Eric Dumazet <edumazet@google.com>,
-        Rik van Riel <riel@redhat.com>,
-        Paolo Abeni <pabeni@redhat.com>,
-        Hannes Frederic Sowa <hannes@redhat.com>,
-        Jesper Dangaard Brouer <jbrouer@redhat.com>,
-        linux-kernel <linux-kernel@vger.kernel.org>,
-        netdev <netdev@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>,
-        LMML <linux-media@vger.kernel.org>,
-        Peter Zijlstra <peterz@infradead.org>,
-        David Miller <davem@davemloft.net>,
-        <torvalds@linux-foundation.org>
-Subject: Re: dvb usb issues since kernel 4.9
-In-Reply-To: <20180107090336.03826df2@vento.lan>
-Message-ID: <Pine.LNX.4.44L0.1801071010540.13425-100000@netrider.rowland.org>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:60764 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751230AbeAENaX (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 5 Jan 2018 08:30:23 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Philipp Zabel <philipp.zabel@gmail.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH] media: uvcvideo: support multiple frame descriptors with the same dimensions
+Date: Fri, 05 Jan 2018 15:30:46 +0200
+Message-ID: <3663272.AjVBumhkVf@avalon>
+In-Reply-To: <20180104225129.9488-1-philipp.zabel@gmail.com>
+References: <20180104225129.9488-1-philipp.zabel@gmail.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, 7 Jan 2018, Mauro Carvalho Chehab wrote:
+Hi Philipp,
 
-> > > It seems that the original patch were designed to solve some IRQ issues
-> > > with network cards with causes data losses on high traffic. However,
-> > > it is also causing bad effects on sustained high bandwidth demands
-> > > required by DVB cards, at least on some USB host drivers.
-> > > 
-> > > Alan/Greg/Eric/David:
-> > > 
-> > > Any ideas about how to fix it without causing regressions to
-> > > network?  
-> > 
-> > It would be good to know what hardware was involved on the x86 system
-> > and to have some timing data.  Can we see the output from lsusb and
-> > usbmon, running on a vanilla kernel that gets plenty of video glitches?
+Thank you for the patch.
+
+On Friday, 5 January 2018 00:51:29 EET Philipp Zabel wrote:
+> The Microsoft HoloLens Sensors device has two separate frame descriptors
+> with the same dimensions, each with a single different frame interval:
 > 
-> From Josef's report, and from the BZ, the affected hardware seems
-> to be based on Montage Technology M88DS3103/M88TS2022 chipset.
-
-What type of USB host controller does the x86_64 system use?  EHCI or
-xHCI?
-
-> The driver it uses is at drivers/media/usb/dvb-usb-v2/dvbsky.c,
-> with shares a USB implementation that is used by a lot more drivers.
-> The URB handling code is at:
+>       VideoStreaming Interface Descriptor:
+>         bLength                            30
+>         bDescriptorType                    36
+>         bDescriptorSubtype                  5 (FRAME_UNCOMPRESSED)
+>         bFrameIndex                         1
+>         bmCapabilities                   0x00
+>           Still image unsupported
+>         wWidth                           1280
+>         wHeight                           481
+>         dwMinBitRate                147763200
+>         dwMaxBitRate                147763200
+>         dwMaxVideoFrameBufferSize      615680
+>         dwDefaultFrameInterval         333333
+>         bFrameIntervalType                  1
+>         dwFrameInterval( 0)            333333
+>       VideoStreaming Interface Descriptor:
+>         bLength                            30
+>         bDescriptorType                    36
+>         bDescriptorSubtype                  5 (FRAME_UNCOMPRESSED)
+>         bFrameIndex                         2
+>         bmCapabilities                   0x00
+>           Still image unsupported
+>         wWidth                           1280
+>         wHeight                           481
+>         dwMinBitRate                443289600
+>         dwMaxBitRate                443289600
+>         dwMaxVideoFrameBufferSize      615680
+>         dwDefaultFrameInterval         111111
+>         bFrameIntervalType                  1
+>         dwFrameInterval( 0)            111111
 > 
-> 	drivers/media/usb/dvb-usb-v2/usb_urb.c
+> Skip duplicate dimensions in enum_framesizes, let enum_frameintervals list
+> the intervals from both frame descriptors. Change set_streamparm to switch
+> to the correct frame index when changing the interval. This enables 90 fps
+> capture on a Lenovo Explorer Windows Mixed Reality headset.
 > 
-> This particular driver allocates 8 buffers with 4096 bytes each
-> for bulk transfers, using transfer_flags = URB_NO_TRANSFER_DMA_MAP.
+> Signed-off-by: Philipp Zabel <philipp.zabel@gmail.com>
+> ---
+> Changes since v1 [1]:
+> - Break out of frame size loop if maxd == 0 in uvc_v4l2_set_streamparm.
+> - Moved d and tmp variables in uvc_v4l2_set_streamparm into loop,
+>   renamed tmp variable to tmp_ival.
+> - Changed i loop variables to unsigned int.
+> - Changed index variables to unsigned int.
+> - One line per variable declaration.
 > 
-> This become a popular USB hardware nowadays. I have one S960c
-> myself, so I can send you the lsusb from it. You should notice, however,
-> that a DVB-C/DVB-S2 channel can easily provide very high sustained bit
-> rates. Here, on my DVB-S2 provider, a typical transponder produces 58 Mpps
-> of payload after removing URB headers.
-
-You mentioned earlier that the driver uses bulk transfers.  In USB-2.0,
-the maximum possible payload data transfer rate using bulk transfers is
-53248 bytes/ms, which is 53.248 MB/s (i.e., lower than 58 MB/s).  And
-even this is possible only if almost nothing else is using the bus at
-the same time.
-
-> A 10 minutes record with the
-> entire data (with typically contains 5-10 channels) can easily go
-> above 4 GB, just to reproduce 1-2 glitches. So, I'm not sure if
-> a usbmon dump would be useful.
-
-It might not be helpful at all.  However, I'm not interested in the 
-payload data (which would be unintelligible to me anyway) but rather 
-the timing of URB submissions and completions.  A usbmon trace which 
-didn't keep much of the payload data would only require on the order of 
-50 MB per minute -- and Josef said that glitches usually would show up 
-within a minute or so.
-
-> I'm enclosing the lsusb from a S960C device, with is based on those
-> Montage chipsets:
-
-What I wanted to see was the output from "lsusb" on the affected
-system, not the output from "lsusb -v -s B:D" on your system.
-
-> > Overall, this may be a very difficult problem to solve.  The
-> > 4cd13c21b207 commit was intended to improve throughput at the cost of
-> > increased latency.  But then what do you do when the latency becomes
-> > too high for the video subsystem to handle?
+> [1] https://patchwork.linuxtv.org/patch/46109/
+> ---
+>  drivers/media/usb/uvc/uvc_v4l2.c | 71
+> +++++++++++++++++++++++++++++++--------- 1 file changed, 55 insertions(+),
+> 16 deletions(-)
 > 
-> Latency can't be too high, otherwise frames will be dropped.
+> diff --git a/drivers/media/usb/uvc/uvc_v4l2.c
+> b/drivers/media/usb/uvc/uvc_v4l2.c index f5ab8164bca5..d9ee400bf47c 100644
+> --- a/drivers/media/usb/uvc/uvc_v4l2.c
+> +++ b/drivers/media/usb/uvc/uvc_v4l2.c
+> @@ -373,7 +373,10 @@ static int uvc_v4l2_set_streamparm(struct uvc_streaming
+> *stream, {
+>  	struct uvc_streaming_control probe;
+>  	struct v4l2_fract timeperframe;
+> -	uint32_t interval;
+> +	struct uvc_format *format;
+> +	struct uvc_frame *frame;
+> +	__u32 interval, maxd;
+> +	unsigned int i;
+>  	int ret;
+> 
+>  	if (parm->type != stream->type)
+> @@ -396,9 +399,33 @@ static int uvc_v4l2_set_streamparm(struct uvc_streaming
+> *stream, return -EBUSY;
+>  	}
+> 
+> +	format = stream->cur_format;
+> +	frame = stream->cur_frame;
+>  	probe = stream->ctrl;
+> -	probe.dwFrameInterval =
+> -		uvc_try_frame_interval(stream->cur_frame, interval);
+> +	probe.dwFrameInterval = uvc_try_frame_interval(frame, interval);
+> +	maxd = abs((__s32)probe.dwFrameInterval - interval);
+> +
+> +	/* Try frames with matching size to find the best frame interval. */
+> +	for (i = 0; i < format->nframes && maxd != 0; i++) {
+> +		__u32 d, tmp_ival;
 
-Yes, that's the whole point.
+How about ival instead of tmp_ival ?
 
-> Even if the Kernel itself doesn't drop, if the delay goes higher
-> than a certain threshold, userspace will need to drop, as it
-> should be presenting audio and video on real time. Yet, typically,
-> userspace will delay it by one or two seconds, with would mean
-> 1500-3500 buffers, with I suspect it is a lot more than the hardware
-> limits. So I suspect that the hardware starves free buffers a way 
-> before userspace, as media hardware don't have unlimited buffers
-> inside them, as they assume that the Kernel/userspace will be fast
-> enough to sustain bit rates up to 66 Mbps of payload.
+Apart from that,
 
-The timing information would tell us how large the latency is.
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-In any case, you might be able to attack the problem simply by using
-more than 8 buffers.  With just eight 4096-byte buffers, the total
-pipeline capacity is only about 0.62 ms (at the maximum possible
-transfer rate).  Increasing the number of buffers to 65 would give a
-capacity of 5 ms, which is probably a lot better suited for situations
-where completions are handled by the ksoftirqd thread.
+If you're fine with the change there's no need to resubmit.
 
-> Perhaps media drivers could pass some quirk similar to URB_ISO_ASAP,
-> in order to revert the kernel logic to prioritize latency instead of
-> throughput.
+> +
+> +		if (&format->frame[i] == stream->cur_frame)
+> +			continue;
+> +
+> +		if (format->frame[i].wWidth != stream->cur_frame->wWidth ||
+> +		    format->frame[i].wHeight != stream->cur_frame->wHeight)
+> +			continue;
+> +
+> +		tmp_ival = uvc_try_frame_interval(&format->frame[i], interval);
+> +		d = abs((__s32)tmp_ival - interval);
+> +		if (d >= maxd)
+> +			continue;
+> +
+> +		frame = &format->frame[i];
+> +		probe.bFrameIndex = frame->bFrameIndex;
+> +		probe.dwFrameInterval = tmp_ival;
+> +		maxd = d;
+> +	}
+> 
+>  	/* Probe the device with the new settings. */
+>  	ret = uvc_probe_video(stream, &probe);
+> @@ -408,6 +435,7 @@ static int uvc_v4l2_set_streamparm(struct uvc_streaming
+> *stream, }
+> 
+>  	stream->ctrl = probe;
+> +	stream->cur_frame = frame;
+>  	mutex_unlock(&stream->mutex);
+> 
+>  	/* Return the actual frame period. */
+> @@ -1209,7 +1237,8 @@ static int uvc_ioctl_enum_framesizes(struct file
+> *file, void *fh, struct uvc_streaming *stream = handle->stream;
+>  	struct uvc_format *format = NULL;
+>  	struct uvc_frame *frame;
+> -	int i;
+> +	unsigned int index;
+> +	unsigned int i;
+> 
+>  	/* Look for the given pixel format */
+>  	for (i = 0; i < stream->nformats; i++) {
+> @@ -1221,10 +1250,20 @@ static int uvc_ioctl_enum_framesizes(struct file
+> *file, void *fh, if (format == NULL)
+>  		return -EINVAL;
+> 
+> -	if (fsize->index >= format->nframes)
+> +	/* Skip duplicate frame sizes */
+> +	for (i = 0, index = 0; i < format->nframes; i++) {
+> +		if (i && frame->wWidth == format->frame[i].wWidth &&
+> +		    frame->wHeight == format->frame[i].wHeight)
+> +			continue;
+> +		frame = &format->frame[i];
+> +		if (index == fsize->index)
+> +			break;
+> +		index++;
+> +	}
+> +
+> +	if (i == format->nframes)
+>  		return -EINVAL;
+> 
+> -	frame = &format->frame[fsize->index];
+>  	fsize->type = V4L2_FRMSIZE_TYPE_DISCRETE;
+>  	fsize->discrete.width = frame->wWidth;
+>  	fsize->discrete.height = frame->wHeight;
+> @@ -1238,7 +1277,9 @@ static int uvc_ioctl_enum_frameintervals(struct file
+> *file, void *fh, struct uvc_streaming *stream = handle->stream;
+>  	struct uvc_format *format = NULL;
+>  	struct uvc_frame *frame = NULL;
+> -	int i;
+> +	unsigned int nintervals;
+> +	unsigned int index;
+> +	unsigned int i;
+> 
+>  	/* Look for the given pixel format and frame size */
+>  	for (i = 0; i < stream->nformats; i++) {
+> @@ -1250,30 +1291,28 @@ static int uvc_ioctl_enum_frameintervals(struct file
+> *file, void *fh, if (format == NULL)
+>  		return -EINVAL;
+> 
+> +	index = fival->index;
+>  	for (i = 0; i < format->nframes; i++) {
+>  		if (format->frame[i].wWidth == fival->width &&
+>  		    format->frame[i].wHeight == fival->height) {
+>  			frame = &format->frame[i];
+> -			break;
+> +			nintervals = frame->bFrameIntervalType ?: 1;
+> +			if (index < nintervals)
+> +				break;
+> +			index -= nintervals;
+>  		}
+>  	}
+> -	if (frame == NULL)
+> +	if (i == format->nframes)
+>  		return -EINVAL;
+> 
+>  	if (frame->bFrameIntervalType) {
+> -		if (fival->index >= frame->bFrameIntervalType)
+> -			return -EINVAL;
+> -
+>  		fival->type = V4L2_FRMIVAL_TYPE_DISCRETE;
+>  		fival->discrete.numerator =
+> -			frame->dwFrameInterval[fival->index];
+> +			frame->dwFrameInterval[index];
+>  		fival->discrete.denominator = 10000000;
+>  		uvc_simplify_fraction(&fival->discrete.numerator,
+>  			&fival->discrete.denominator, 8, 333);
+>  	} else {
+> -		if (fival->index)
+> -			return -EINVAL;
+> -
+>  		fival->type = V4L2_FRMIVAL_TYPE_STEPWISE;
+>  		fival->stepwise.min.numerator = frame->dwFrameInterval[0];
+>  		fival->stepwise.min.denominator = 10000000;
 
-It can't be done without pervasive changes to the USB subsystem, which
-I would greatly prefer to avoid.  Besides, this wouldn't really solve
-the problem.  Decreasing the latency for one device will cause it to be
-increased for others.
+-- 
+Regards,
 
-Alan Stern
+Laurent Pinchart
