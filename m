@@ -1,206 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bin-mail-out-06.binero.net ([195.74.38.229]:43535 "EHLO
-        bin-vsp-out-03.atm.binero.net" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751546AbeA2Qfa (ORCPT
+Received: from sub5.mail.dreamhost.com ([208.113.200.129]:41070 "EHLO
+        homiemail-a121.g.dreamhost.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751100AbeAEBbN (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 29 Jan 2018 11:35:30 -0500
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH v10 11/30] rcar-vin: move media bus configuration to struct rvin_info
-Date: Mon, 29 Jan 2018 17:34:16 +0100
-Message-Id: <20180129163435.24936-12-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20180129163435.24936-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20180129163435.24936-1-niklas.soderlund+renesas@ragnatech.se>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+        Thu, 4 Jan 2018 20:31:13 -0500
+From: Brad Love <brad@nextdimension.cc>
+To: linux-media@vger.kernel.org
+Cc: Brad Love <brad@nextdimension.cc>
+Subject: [PATCH v2 8/9] lgdt3306a: QAM streaming improvement
+Date: Thu,  4 Jan 2018 19:30:24 -0600
+Message-Id: <1515115824-5295-1-git-send-email-brad@nextdimension.cc>
+In-Reply-To: <1515110659-20145-9-git-send-email-brad@nextdimension.cc>
+References: <1515110659-20145-9-git-send-email-brad@nextdimension.cc>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Bus configuration will once the driver is extended to support Gen3
-contain information not specific to only the directly connected parallel
-subdevice. Move it to struct rvin_dev to show it's not always coupled
-to the parallel subdevice.
+Add some register updates required for stable viewing
+on Cablevision in NY. Does not adversely affect other providers.
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+Changes since v1:
+- Change upper case hex to lower case.
+
+Signed-off-by: Brad Love <brad@nextdimension.cc>
 ---
- drivers/media/platform/rcar-vin/rcar-core.c | 18 +++++++++---------
- drivers/media/platform/rcar-vin/rcar-dma.c  | 11 ++++++-----
- drivers/media/platform/rcar-vin/rcar-v4l2.c |  2 +-
- drivers/media/platform/rcar-vin/rcar-vin.h  |  9 ++++-----
- 4 files changed, 20 insertions(+), 20 deletions(-)
+ drivers/media/dvb-frontends/lgdt3306a.c | 22 ++++++++++++++++++++++
+ 1 file changed, 22 insertions(+)
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
-index cc863e4ec9a4d4b3..ce1c90405c6002eb 100644
---- a/drivers/media/platform/rcar-vin/rcar-core.c
-+++ b/drivers/media/platform/rcar-vin/rcar-core.c
-@@ -65,10 +65,10 @@ static int rvin_digital_subdevice_attach(struct rvin_dev *vin,
- 	vin->digital->sink_pad = ret < 0 ? 0 : ret;
+diff --git a/drivers/media/dvb-frontends/lgdt3306a.c b/drivers/media/dvb-frontends/lgdt3306a.c
+index d2477ed..2f540f1 100644
+--- a/drivers/media/dvb-frontends/lgdt3306a.c
++++ b/drivers/media/dvb-frontends/lgdt3306a.c
+@@ -598,6 +598,28 @@ static int lgdt3306a_set_qam(struct lgdt3306a_state *state, int modulation)
+ 	if (lg_chkerr(ret))
+ 		goto fail;
  
- 	/* Find compatible subdevices mbus format */
--	vin->digital->code = 0;
-+	vin->code = 0;
- 	code.index = 0;
- 	code.pad = vin->digital->source_pad;
--	while (!vin->digital->code &&
-+	while (!vin->code &&
- 	       !v4l2_subdev_call(subdev, pad, enum_mbus_code, NULL, &code)) {
- 		code.index++;
- 		switch (code.code) {
-@@ -76,16 +76,16 @@ static int rvin_digital_subdevice_attach(struct rvin_dev *vin,
- 		case MEDIA_BUS_FMT_UYVY8_2X8:
- 		case MEDIA_BUS_FMT_UYVY10_2X10:
- 		case MEDIA_BUS_FMT_RGB888_1X24:
--			vin->digital->code = code.code;
-+			vin->code = code.code;
- 			vin_dbg(vin, "Found media bus format for %s: %d\n",
--				subdev->name, vin->digital->code);
-+				subdev->name, vin->code);
- 			break;
- 		default:
- 			break;
- 		}
- 	}
- 
--	if (!vin->digital->code) {
-+	if (!vin->code) {
- 		vin_err(vin, "Unsupported media bus format for %s\n",
- 			subdev->name);
- 		return -EINVAL;
-@@ -190,16 +190,16 @@ static int rvin_digital_parse_v4l2(struct device *dev,
- 	if (vep->base.port || vep->base.id)
- 		return -ENOTCONN;
- 
--	rvge->mbus_cfg.type = vep->bus_type;
-+	vin->mbus_cfg.type = vep->bus_type;
- 
--	switch (rvge->mbus_cfg.type) {
-+	switch (vin->mbus_cfg.type) {
- 	case V4L2_MBUS_PARALLEL:
- 		vin_dbg(vin, "Found PARALLEL media bus\n");
--		rvge->mbus_cfg.flags = vep->bus.parallel.flags;
-+		vin->mbus_cfg.flags = vep->bus.parallel.flags;
- 		break;
- 	case V4L2_MBUS_BT656:
- 		vin_dbg(vin, "Found BT656 media bus\n");
--		rvge->mbus_cfg.flags = 0;
-+		vin->mbus_cfg.flags = 0;
- 		break;
- 	default:
- 		vin_err(vin, "Unknown media bus type\n");
-diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
-index c8831e189d362c8b..561500f65cfa2e74 100644
---- a/drivers/media/platform/rcar-vin/rcar-dma.c
-+++ b/drivers/media/platform/rcar-vin/rcar-dma.c
-@@ -633,7 +633,7 @@ static int rvin_setup(struct rvin_dev *vin)
- 	/*
- 	 * Input interface
- 	 */
--	switch (vin->digital->code) {
-+	switch (vin->code) {
- 	case MEDIA_BUS_FMT_YUYV8_1X16:
- 		/* BT.601/BT.1358 16bit YCbCr422 */
- 		vnmc |= VNMC_INF_YUV16;
-@@ -641,7 +641,7 @@ static int rvin_setup(struct rvin_dev *vin)
- 		break;
- 	case MEDIA_BUS_FMT_UYVY8_2X8:
- 		/* BT.656 8bit YCbCr422 or BT.601 8bit YCbCr422 */
--		vnmc |= vin->digital->mbus_cfg.type == V4L2_MBUS_BT656 ?
-+		vnmc |= vin->mbus_cfg.type == V4L2_MBUS_BT656 ?
- 			VNMC_INF_YUV8_BT656 : VNMC_INF_YUV8_BT601;
- 		input_is_yuv = true;
- 		break;
-@@ -650,7 +650,7 @@ static int rvin_setup(struct rvin_dev *vin)
- 		break;
- 	case MEDIA_BUS_FMT_UYVY10_2X10:
- 		/* BT.656 10bit YCbCr422 or BT.601 10bit YCbCr422 */
--		vnmc |= vin->digital->mbus_cfg.type == V4L2_MBUS_BT656 ?
-+		vnmc |= vin->mbus_cfg.type == V4L2_MBUS_BT656 ?
- 			VNMC_INF_YUV10_BT656 : VNMC_INF_YUV10_BT601;
- 		input_is_yuv = true;
- 		break;
-@@ -662,11 +662,11 @@ static int rvin_setup(struct rvin_dev *vin)
- 	dmr2 = VNDMR2_FTEV | VNDMR2_VLV(1);
- 
- 	/* Hsync Signal Polarity Select */
--	if (!(vin->digital->mbus_cfg.flags & V4L2_MBUS_HSYNC_ACTIVE_LOW))
-+	if (!(vin->mbus_cfg.flags & V4L2_MBUS_HSYNC_ACTIVE_LOW))
- 		dmr2 |= VNDMR2_HPS;
- 
- 	/* Vsync Signal Polarity Select */
--	if (!(vin->digital->mbus_cfg.flags & V4L2_MBUS_VSYNC_ACTIVE_LOW))
-+	if (!(vin->mbus_cfg.flags & V4L2_MBUS_VSYNC_ACTIVE_LOW))
- 		dmr2 |= VNDMR2_VPS;
- 
- 	/*
-@@ -875,6 +875,7 @@ static void rvin_capture_stop(struct rvin_dev *vin)
- 	rvin_write(vin, rvin_read(vin, VNMC_REG) & ~VNMC_ME, VNMC_REG);
- }
- 
++	/* 5.1 V0.36 SRDCHKALWAYS : For better QAM detection */
++	ret = lgdt3306a_read_reg(state, 0x000a, &val);
++	val &= 0xfd;
++	val |= 0x02;
++	ret = lgdt3306a_write_reg(state, 0x000a, val);
++	if (lg_chkerr(ret))
++		goto fail;
 +
- /* -----------------------------------------------------------------------------
-  * DMA Functions
-  */
-diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-index 9f7902d29c62e205..c606942e59b5d934 100644
---- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-+++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-@@ -185,7 +185,7 @@ static int __rvin_try_format_source(struct rvin_dev *vin,
- 
- 	sd = vin_to_source(vin);
- 
--	v4l2_fill_mbus_format(&format.format, pix, vin->digital->code);
-+	v4l2_fill_mbus_format(&format.format, pix, vin->code);
- 
- 	pad_cfg = v4l2_subdev_alloc_pad_config(sd);
- 	if (pad_cfg == NULL)
-diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
-index 39051da31650bd79..b852e7f4fa3db017 100644
---- a/drivers/media/platform/rcar-vin/rcar-vin.h
-+++ b/drivers/media/platform/rcar-vin/rcar-vin.h
-@@ -62,8 +62,6 @@ struct rvin_video_format {
-  * struct rvin_graph_entity - Video endpoint from async framework
-  * @asd:	sub-device descriptor for async framework
-  * @subdev:	subdevice matched using async framework
-- * @code:	Media bus format from source
-- * @mbus_cfg:	Media bus format from DT
-  * @source_pad:	source pad of remote subdevice
-  * @sink_pad:	sink pad of remote subdevice
-  */
-@@ -71,9 +69,6 @@ struct rvin_graph_entity {
- 	struct v4l2_async_subdev asd;
- 	struct v4l2_subdev *subdev;
- 
--	u32 code;
--	struct v4l2_mbus_config mbus_cfg;
--
- 	unsigned int source_pad;
- 	unsigned int sink_pad;
- };
-@@ -114,6 +109,8 @@ struct rvin_info {
-  * @sequence:		V4L2 buffers sequence number
-  * @state:		keeps track of operation state
-  *
-+ * @mbus_cfg:		media bus configuration from DT
-+ * @code:		media bus format code
-  * @format:		active V4L2 pixel format
-  *
-  * @crop:		active cropping
-@@ -140,6 +137,8 @@ struct rvin_dev {
- 	unsigned int sequence;
- 	enum rvin_dma_state state;
- 
-+	struct v4l2_mbus_config mbus_cfg;
-+	u32 code;
- 	struct v4l2_pix_format format;
- 
- 	struct v4l2_rect crop;
++	/* 5.2 V0.36 Control of "no signal" detector function */
++	ret = lgdt3306a_read_reg(state, 0x2849, &val);
++	val &= 0xdf;
++	ret = lgdt3306a_write_reg(state, 0x2849, val);
++	if (lg_chkerr(ret))
++		goto fail;
++
++	/* 5.3 Fix for Blonder Tongue HDE-2H-QAM and AQM modulators */
++	ret = lgdt3306a_read_reg(state, 0x302b, &val);
++	val &= 0x7f;  /* SELFSYNCFINDEN_CQS=0; disable auto reset */
++	ret = lgdt3306a_write_reg(state, 0x302b, val);
++	if (lg_chkerr(ret))
++		goto fail;
++
+ 	/* 6. Reset */
+ 	ret = lgdt3306a_soft_reset(state);
+ 	if (lg_chkerr(ret))
 -- 
-2.16.1
+2.7.4
