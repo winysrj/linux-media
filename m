@@ -1,112 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:53391 "EHLO
-        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751273AbeA3Lx4 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 30 Jan 2018 06:53:56 -0500
-Subject: Re: [PATCHv2 13/13] v4l2-compat-ioctl32.c: refactor, fix security bug
- in compat ioctl32
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org, Daniel Mentz <danielmentz@google.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>, stable@vger.kernel.org
-References: <20180130102701.13664-1-hverkuil@xs4all.nl>
- <20180130102701.13664-14-hverkuil@xs4all.nl>
- <20180130114619.v55lvnto3wxnhygt@valkosipuli.retiisi.org.uk>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <ae433de5-cd6c-74d0-9ca4-e59d2e8e2a13@xs4all.nl>
-Date: Tue, 30 Jan 2018 12:53:51 +0100
+Received: from mail-qt0-f195.google.com ([209.85.216.195]:43733 "EHLO
+        mail-qt0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751108AbeAEATF (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 4 Jan 2018 19:19:05 -0500
+Received: by mail-qt0-f195.google.com with SMTP id w10so3974271qtb.10
+        for <linux-media@vger.kernel.org>; Thu, 04 Jan 2018 16:19:05 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <20180130114619.v55lvnto3wxnhygt@valkosipuli.retiisi.org.uk>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <1515110659-20145-8-git-send-email-brad@nextdimension.cc>
+References: <1515110659-20145-1-git-send-email-brad@nextdimension.cc> <1515110659-20145-8-git-send-email-brad@nextdimension.cc>
+From: Michael Ira Krufky <mkrufky@linuxtv.org>
+Date: Thu, 4 Jan 2018 19:19:04 -0500
+Message-ID: <CAOcJUbxdODb2_txnrKgEa23-tq4AQzV4eGiDQuvXYNpofcvzAw@mail.gmail.com>
+Subject: Re: [PATCH 7/9] lgdt3306a: Set fe ops.release to NULL if probed
+To: Brad Love <brad@nextdimension.cc>
+Cc: linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/30/18 12:46, Sakari Ailus wrote:
-> Hi Hans,
-> 
-> Thanks for the update. Please see a few additional comments below.
-> 
-> On Tue, Jan 30, 2018 at 11:27:01AM +0100, Hans Verkuil wrote:
-> ...
->> @@ -891,30 +1057,53 @@ static long do_video_ioctl(struct file *file, unsigned int cmd, unsigned long ar
->>  	case VIDIOC_STREAMOFF:
->>  	case VIDIOC_S_INPUT:
->>  	case VIDIOC_S_OUTPUT:
->> -		err = get_user(karg.vi, (s32 __user *)up);
->> +		err = alloc_userspace(sizeof(unsigned int), 0, &up_native);
->> +		if (!err && assign_in_user((unsigned int __user *)up_native,
->> +					   (compat_uint_t __user *)up))
->> +			err = -EFAULT;
->>  		compatible_arg = 0;
->>  		break;
->>  
->>  	case VIDIOC_G_INPUT:
->>  	case VIDIOC_G_OUTPUT:
->> +		err = alloc_userspace(sizeof(unsigned int), 0,
->> +				      &up_native);
-> 
-> Fits on a single line.
+On Thu, Jan 4, 2018 at 7:04 PM, Brad Love <brad@nextdimension.cc> wrote:
+> If release is part of frontend ops then it is called in the
+> course of dvb_frontend_detach. The process also decrements
+> the module usage count. The problem is if the lgdt3306a
+> driver is reached via i2c_new_device, then when it is
+> eventually destroyed remove is called, which further
+> decrements the module usage count to negative. After this
+> occurs the driver is in a bad state and no longer works.
+> Also fixed by NULLing out the release callback is a double
+> kfree of state, which introduces arbitrary oopses/GPF.
+> This problem is only currently reachable via the em28xx driver.
+>
+> On disconnect of Hauppauge SoloHD before:
+>
+> lsmod | grep lgdt3306a
+> lgdt3306a              28672  -1
+> i2c_mux                16384  1 lgdt3306a
+>
+> On disconnect of Hauppauge SoloHD after:
+>
+> lsmod | grep lgdt3306a
+> lgdt3306a              28672  0
+> i2c_mux                16384  1 lgdt3306a
+>
+> Signed-off-by: Brad Love <brad@nextdimension.cc>
+> ---
+>  drivers/media/dvb-frontends/lgdt3306a.c | 1 +
+>  1 file changed, 1 insertion(+)
+>
 
-Changed.
+Brad,
 
-> 
->>  		compatible_arg = 0;
->>  		break;
->>  
->>  	case VIDIOC_G_EDID:
->>  	case VIDIOC_S_EDID:
->> -		err = get_v4l2_edid32(&karg.v2edid, up);
->> +		err = alloc_userspace(sizeof(struct v4l2_edid), 0, &up_native);
->> +		if (!err)
->> +			err = get_v4l2_edid32(up_native, up);
->>  		compatible_arg = 0;
->>  		break;
->>  
->>  	case VIDIOC_G_FMT:
->>  	case VIDIOC_S_FMT:
->>  	case VIDIOC_TRY_FMT:
->> -		err = get_v4l2_format32(&karg.v2f, up);
->> +		err = bufsize_v4l2_format(up, &aux_space);
->> +		if (!err)
->> +			err = alloc_userspace(sizeof(struct v4l2_format),
->> +					      aux_space, &up_native);
->> +		if (!err) {
->> +			aux_buf = up_native + sizeof(struct v4l2_format);
->> +			err = get_v4l2_format32(up_native, up,
->> +						aux_buf, aux_space);
->> +		}
->>  		compatible_arg = 0;
->>  		break;
->>  
->>  	case VIDIOC_CREATE_BUFS:
->> -		err = get_v4l2_create32(&karg.v2crt, up);
->> +		err = bufsize_v4l2_create(up, &aux_space);
->> +		if (!err)
->> +			err = alloc_userspace(sizeof(struct v4l2_create_buffers),
->> +					    aux_space, &up_native);
->> +		if (!err) {
->> +			aux_buf = up_native + sizeof(struct v4l2_create_buffers);
-> 
-> A few lines over 80 characters. It's not a lot but I see no reason to avoid
-> wrapping them either.
+We won't be able to apply this one.  The symptom that you're trying to
+fix is indicative of some other problem, probably in the em28xx
+driver.  NULL'ing the release callback is not the right thing to do.
 
-I'm not changing this. It looks really ugly if I split it up.
+-Mike Krufky
 
-> 
->> +			err = get_v4l2_create32(up_native, up,
->> +						aux_buf, aux_space);
->> +		}
->>  		compatible_arg = 0;
->>  		break;
->>  
-> 
-> The above can be addressed later, right now this isn't a priority.
-> 
-> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> 
-
-Thanks!
-
-	Hans
+> diff --git a/drivers/media/dvb-frontends/lgdt3306a.c b/drivers/media/dvb-frontends/lgdt3306a.c
+> index 6356815..d2477ed 100644
+> --- a/drivers/media/dvb-frontends/lgdt3306a.c
+> +++ b/drivers/media/dvb-frontends/lgdt3306a.c
+> @@ -2177,6 +2177,7 @@ static int lgdt3306a_probe(struct i2c_client *client,
+>
+>         i2c_set_clientdata(client, fe->demodulator_priv);
+>         state = fe->demodulator_priv;
+> +       state->frontend.ops.release = NULL;
+>
+>         /* create mux i2c adapter for tuner */
+>         state->muxc = i2c_mux_alloc(client->adapter, &client->dev,
+> --
+> 2.7.4
+>
