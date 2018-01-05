@@ -1,54 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f67.google.com ([74.125.83.67]:42480 "EHLO
-        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754864AbeAMQK6 (ORCPT
+Received: from sub5.mail.dreamhost.com ([208.113.200.129]:41218 "EHLO
+        homiemail-a121.g.dreamhost.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751100AbeAEBhS (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 13 Jan 2018 11:10:58 -0500
+        Thu, 4 Jan 2018 20:37:18 -0500
+Subject: Re: [PATCH 7/9] lgdt3306a: Set fe ops.release to NULL if probed
+To: Michael Ira Krufky <mkrufky@linuxtv.org>
+Cc: linux-media <linux-media@vger.kernel.org>
+References: <1515110659-20145-1-git-send-email-brad@nextdimension.cc>
+ <1515110659-20145-8-git-send-email-brad@nextdimension.cc>
+ <CAOcJUbxdODb2_txnrKgEa23-tq4AQzV4eGiDQuvXYNpofcvzAw@mail.gmail.com>
+From: Brad Love <brad@nextdimension.cc>
+Message-ID: <1c01e895-534c-0a97-4463-dd6f0179e0f6@nextdimension.cc>
+Date: Thu, 4 Jan 2018 19:37:17 -0600
 MIME-Version: 1.0
-In-Reply-To: <438bc4cb-6486-8013-80aa-9e2253941fb8@samsung.com>
-References: <1515344064-23156-1-git-send-email-akinobu.mita@gmail.com>
- <1515344064-23156-3-git-send-email-akinobu.mita@gmail.com>
- <CGME20180112141549epcas2p18e8981052885dbaaf8a0be2ac8410082@epcas2p1.samsung.com>
- <20180108093513.nvr2e7vbt7imai2p@paasikivi.fi.intel.com> <438bc4cb-6486-8013-80aa-9e2253941fb8@samsung.com>
-From: Akinobu Mita <akinobu.mita@gmail.com>
-Date: Sun, 14 Jan 2018 01:10:37 +0900
-Message-ID: <CAC5umyjhoZkvca+fgm-YfA666MDWh4gSDqdu5oxqYQmt6pHTyA@mail.gmail.com>
-Subject: Re: [PATCH v2 2/2] media: ov9650: add device tree binding
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org,
-        devicetree <devicetree@vger.kernel.org>,
-        Jacopo Mondi <jacopo@jmondi.org>,
-        "H . Nikolaus Schaller" <hns@goldelico.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Rob Herring <robh@kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+In-Reply-To: <CAOcJUbxdODb2_txnrKgEa23-tq4AQzV4eGiDQuvXYNpofcvzAw@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+Content-Language: en-GB
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2018-01-12 23:15 GMT+09:00 Sylwester Nawrocki <s.nawrocki@samsung.com>:
-> On 01/08/2018 10:35 AM, Sakari Ailus wrote:
->
->> I was going to say you're missing the MAINTAINERS entry for this newly
->> added file but then I noticed that the entire driver is missing an entry.
->> Still this file should have a MAINTAINERS entry added for it independently
->> of that, in the same patch.
+
+
+On 2018-01-04 18:19, Michael Ira Krufky wrote:
+> On Thu, Jan 4, 2018 at 7:04 PM, Brad Love <brad@nextdimension.cc> wrote=
+:
+>> If release is part of frontend ops then it is called in the
+>> course of dvb_frontend_detach. The process also decrements
+>> the module usage count. The problem is if the lgdt3306a
+>> driver is reached via i2c_new_device, then when it is
+>> eventually destroyed remove is called, which further
+>> decrements the module usage count to negative. After this
+>> occurs the driver is in a bad state and no longer works.
+>> Also fixed by NULLing out the release callback is a double
+>> kfree of state, which introduces arbitrary oopses/GPF.
+>> This problem is only currently reachable via the em28xx driver.
 >>
->> Cc Sylwester.
+>> On disconnect of Hauppauge SoloHD before:
+>>
+>> lsmod | grep lgdt3306a
+>> lgdt3306a              28672  -1
+>> i2c_mux                16384  1 lgdt3306a
+>>
+>> On disconnect of Hauppauge SoloHD after:
+>>
+>> lsmod | grep lgdt3306a
+>> lgdt3306a              28672  0
+>> i2c_mux                16384  1 lgdt3306a
+>>
+>> Signed-off-by: Brad Love <brad@nextdimension.cc>
+>> ---
+>>  drivers/media/dvb-frontends/lgdt3306a.c | 1 +
+>>  1 file changed, 1 insertion(+)
+>>
+> Brad,
 >
-> I don't the hardware and I can't test the patches so Mita-san if you wish
-> so please add yourself as a maintainer of whole driver.
+> We won't be able to apply this one.  The symptom that you're trying to
+> fix is indicative of some other problem, probably in the em28xx
+> driver.  NULL'ing the release callback is not the right thing to do.
+>
+> -Mike Krufky
 
-Even if you don't have the hardware, you can help reviwing.  So if you
-don't mind, I would like to add the following maintainer entry for this
-driver.
+Hey Mike,
 
-OMNIVISION OV9650 SENSOR DRIVER
-M:      Sakari Ailus <sakari.ailus@iki.fi>
-R:      Akinobu Mita <akinobu.mita@gmail.com>
-R:      Sylwester Nawrocki <s.nawrocki@samsung.com>
-L:      linux-media@vger.kernel.org
-T:      git git://linuxtv.org/media_tree.git
-S:      Maintained
-F:      drivers/media/i2c/ov9650.c
-F:      Documentation/devicetree/bindings/media/i2c/ov9650.txt
+Redacting this patch to deal with individually. I will separately send
+to the list an example of another bridge driver which exhibits the same
+issue, when using the lgdt3306a driver similarly. I don't think this is
+solely an em28xx issue. I will also send a patch fixing only the double
+free, as that seems to be most important.
+
+Cheers,
+
+Brad
+
+
+
+
+
+>> diff --git a/drivers/media/dvb-frontends/lgdt3306a.c b/drivers/media/d=
+vb-frontends/lgdt3306a.c
+>> index 6356815..d2477ed 100644
+>> --- a/drivers/media/dvb-frontends/lgdt3306a.c
+>> +++ b/drivers/media/dvb-frontends/lgdt3306a.c
+>> @@ -2177,6 +2177,7 @@ static int lgdt3306a_probe(struct i2c_client *cl=
+ient,
+>>
+>>         i2c_set_clientdata(client, fe->demodulator_priv);
+>>         state =3D fe->demodulator_priv;
+>> +       state->frontend.ops.release =3D NULL;
+>>
+>>         /* create mux i2c adapter for tuner */
+>>         state->muxc =3D i2c_mux_alloc(client->adapter, &client->dev,
+>> --
+>> 2.7.4
+>>
