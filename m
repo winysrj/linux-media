@@ -1,96 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relmlor2.renesas.com ([210.160.252.172]:22130 "EHLO
-        relmlie1.idc.renesas.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S964818AbeAXRFj (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 24 Jan 2018 12:05:39 -0500
-From: Fabrizio Castro <fabrizio.castro@bp.renesas.com>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>
-CC: =?iso-8859-1?Q?Niklas_S=F6derlund?= <niklas.soderlund@ragnatech.se>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "linux-renesas-soc@vger.kernel.org"
-        <linux-renesas-soc@vger.kernel.org>,
-        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-        Simon Horman <horms+renesas@verge.net.au>,
-        Geert Uytterhoeven <geert@linux-m68k.org>,
-        Chris Paterson <Chris.Paterson2@renesas.com>,
-        Biju Das <biju.das@bp.renesas.com>,
-        Fabrizio Castro <fabrizio.castro@bp.renesas.com>,
-        Mark Rutland <mark.rutland@arm.com>
-Subject: RE: [PATCH v2 2/4] dt-bindings: media: rcar_vin: add device tree
- support for r8a774[35]
-Date: Wed, 24 Jan 2018 17:05:34 +0000
-Message-ID: <SG2PR06MB0886F5169407E95110EA324CC0E20@SG2PR06MB0886.apcprd06.prod.outlook.com>
-References: <1510856571-30281-1-git-send-email-fabrizio.castro@bp.renesas.com>
- <1510856571-30281-3-git-send-email-fabrizio.castro@bp.renesas.com>
-In-Reply-To: <1510856571-30281-3-git-send-email-fabrizio.castro@bp.renesas.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Received: from gofer.mess.org ([88.97.38.141]:59729 "EHLO gofer.mess.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750907AbeAEMC4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 5 Jan 2018 07:02:56 -0500
+Date: Fri, 5 Jan 2018 12:02:53 +0000
+From: Sean Young <sean@mess.org>
+To: Philipp Rossak <embed3d@gmail.com>
+Cc: mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
+        maxime.ripard@free-electrons.com, wens@csie.org,
+        linux@armlinux.org.uk, p.zabel@pengutronix.de,
+        andi.shyti@samsung.com, linux-media@vger.kernel.org,
+        devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-kernel@vger.kernel.org, linux-sunxi@googlegroups.com
+Subject: Re: [PATCH v3 0/6] arm: sunxi: IR support for A83T
+Message-ID: <20180105120253.zvwaz25scuk76bnt@gofer.mess.org>
+References: <20171219080747.4507-1-embed3d@gmail.com>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20171219080747.4507-1-embed3d@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello guys,
+On Tue, Dec 19, 2017 at 09:07:41AM +0100, Philipp Rossak wrote:
+> This patch series adds support for the sunxi A83T ir module and enhances 
+> the sunxi-ir driver. Right now the base clock frequency for the ir driver
+> is a hard coded define and is set to 8 MHz.
+> This works for the most common ir receivers. On the Sinovoip Bananapi M3 
+> the ir receiver needs, a 3 MHz base clock frequency to work without
+> problems with this driver.
+> 
+> This patch series adds support for an optinal property that makes it able
+> to override the default base clock frequency and enables the ir interface 
+> on the a83t and the Bananapi M3.
+> 
+> changes since v2:
+> * reorder cir pin (alphabetical)
+> * fix typo in documentation
+> 
+> changes since v1:
+> * fix typos, reword Documentation
+> * initialize 'b_clk_freq' to 'SUNXI_IR_BASE_CLK' & remove if statement
+> * change dev_info() to dev_dbg()
+> * change naming to cir* in dts/dtsi
+> * Added acked Ackedi-by to related patch
+> * use whole memory block instead of registers needed + fix for h3/h5
+> 
+> changes since rfc:
+> * The property is now optinal. If the property is not available in 
+>   the dtb the driver uses the default base clock frequency.
+> * the driver prints out the the selected base clock frequency.
+> * changed devicetree property from base-clk-frequency to clock-frequency
+> 
+> Regards,
+> Philipp
+> 
+> 
+> Philipp Rossak (6):
+>   media: rc: update sunxi-ir driver to get base clock frequency from
+>     devicetree
+>   media: dt: bindings: Update binding documentation for sunxi IR
+>     controller
+>   arm: dts: sun8i: a83t: Add the cir pin for the A83T
+>   arm: dts: sun8i: a83t: Add support for the cir interface
+>   arm: dts: sun8i: a83t: bananapi-m3: Enable IR controller
+>   arm: dts: sun8i: h3-h8: ir register size should be the whole memory
+>     block
 
-I am sorry to bother you,  just wondering if this patch has any chance to e=
-nd up in v4.16?
+I can take this series (through rc-core, i.e. linux-media), but I need an
+maintainer Acked-by: for the sun[x8]i dts changes (all four patches).
 
-Thanks,
-Fabrizio
-
-> Subject: [PATCH v2 2/4] dt-bindings: media: rcar_vin: add device tree sup=
-port for r8a774[35]
->
-> Add compatible strings for r8a7743 and r8a7745. No driver change
-> is needed as "renesas,rcar-gen2-vin" will activate the right code.
-> However, it is good practice to document compatible strings for the
-> specific SoC as this allows SoC specific changes to the driver if
-> needed, in addition to document SoC support and therefore allow
-> checkpatch.pl to validate compatible string values.
->
-> Signed-off-by: Fabrizio Castro <fabrizio.castro@bp.renesas.com>
-> Reviewed-by: Biju Das <biju.das@bp.renesas.com>
-> ---
-> v1->v2:
-> * Fixed double "change" in changelog
->
->  Documentation/devicetree/bindings/media/rcar_vin.txt | 5 ++++-
->  1 file changed, 4 insertions(+), 1 deletion(-)
->
-> diff --git a/Documentation/devicetree/bindings/media/rcar_vin.txt b/Docum=
-entation/devicetree/bindings/media/rcar_vin.txt
-> index 98931f5..ff9697e 100644
-> --- a/Documentation/devicetree/bindings/media/rcar_vin.txt
-> +++ b/Documentation/devicetree/bindings/media/rcar_vin.txt
-> @@ -6,6 +6,8 @@ family of devices. The current blocks are always slaves a=
-nd suppot one input
->  channel which can be either RGB, YUYV or BT656.
->
->   - compatible: Must be one or more of the following
-> +   - "renesas,vin-r8a7743" for the R8A7743 device
-> +   - "renesas,vin-r8a7745" for the R8A7745 device
->     - "renesas,vin-r8a7778" for the R8A7778 device
->     - "renesas,vin-r8a7779" for the R8A7779 device
->     - "renesas,vin-r8a7790" for the R8A7790 device
-> @@ -14,7 +16,8 @@ channel which can be either RGB, YUYV or BT656.
->     - "renesas,vin-r8a7793" for the R8A7793 device
->     - "renesas,vin-r8a7794" for the R8A7794 device
->     - "renesas,vin-r8a7795" for the R8A7795 device
-> -   - "renesas,rcar-gen2-vin" for a generic R-Car Gen2 compatible device.
-> +   - "renesas,rcar-gen2-vin" for a generic R-Car Gen2 or RZ/G1 compatibl=
-e
-> +     device.
->     - "renesas,rcar-gen3-vin" for a generic R-Car Gen3 compatible device.
->
->     When compatible with the generic version nodes must list the
-> --
-> 2.7.4
-
+>  Documentation/devicetree/bindings/media/sunxi-ir.txt |  3 +++
+>  arch/arm/boot/dts/sun8i-a83t-bananapi-m3.dts         |  7 +++++++
+>  arch/arm/boot/dts/sun8i-a83t.dtsi                    | 15 +++++++++++++++
+>  arch/arm/boot/dts/sunxi-h3-h5.dtsi                   |  2 +-
+>  drivers/media/rc/sunxi-cir.c                         | 19 +++++++++++--------
+>  5 files changed, 37 insertions(+), 9 deletions(-)
 
 
-
-Renesas Electronics Europe Ltd, Dukes Meadow, Millboard Road, Bourne End, B=
-uckinghamshire, SL8 5FH, UK. Registered in England & Wales under Registered=
- No. 04586709.
+Thanks
+Sean
