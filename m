@@ -1,175 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-by2nam03on0126.outbound.protection.outlook.com ([104.47.42.126]:20025
-        "EHLO NAM03-BY2-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1754847AbeARIrK (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 18 Jan 2018 03:47:10 -0500
-From: <Yasunari.Takiguchi@sony.com>
-To: <linux-kernel@vger.kernel.org>, <devicetree@vger.kernel.org>,
-        <linux-media@vger.kernel.org>
-CC: <tbird20d@gmail.com>, <frowand.list@gmail.com>,
-        <Yasunari.Takiguchi@sony.com>, <Masayuki.Yamamoto@sony.com>,
-        <Hideki.Nozawa@sony.com>, <Kota.Yonezawa@sony.com>,
-        <Toshihiko.Matsumoto@sony.com>, <Satoshi.C.Watanabe@sony.com>
-Subject: [PATCH v5 06/12] [media] cxd2880: Add integration layer for the driver
-Date: Thu, 18 Jan 2018 17:51:10 +0900
-Message-ID: <20180118085110.21374-1-Yasunari.Takiguchi@sony.com>
-In-Reply-To: <20180118084016.20689-1-Yasunari.Takiguchi@sony.com>
-References: <20180118084016.20689-1-Yasunari.Takiguchi@sony.com>
+Received: from mail-qk0-f169.google.com ([209.85.220.169]:35525 "EHLO
+        mail-qk0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751754AbeAEPjX (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 5 Jan 2018 10:39:23 -0500
+Received: by mail-qk0-f169.google.com with SMTP id 143so6368089qki.2
+        for <linux-media@vger.kernel.org>; Fri, 05 Jan 2018 07:39:22 -0800 (PST)
+Received: from mail-qk0-f171.google.com (mail-qk0-f171.google.com. [209.85.220.171])
+        by smtp.gmail.com with ESMTPSA id 46sm3696593qtx.65.2018.01.05.07.39.21
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Fri, 05 Jan 2018 07:39:21 -0800 (PST)
+Received: by mail-qk0-f171.google.com with SMTP id i17so1980270qke.0
+        for <linux-media@vger.kernel.org>; Fri, 05 Jan 2018 07:39:21 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain
+From: Olli Salonen <olli.salonen@iki.fi>
+Date: Fri, 5 Jan 2018 16:39:20 +0100
+Message-ID: <CAAZRmGzMyQv4DZiU33+N3qWkZkuXb53fZZiK881NU3u+SS0O6Q@mail.gmail.com>
+Subject: Mygica 230C defined in two drivers
+To: stefan.bruens@rwth-aachen.de,
+        linux-media <linux-media@vger.kernel.org>
+Cc: Antti Palosaari <crope@iki.fi>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Yasunari Takiguchi <Yasunari.Takiguchi@sony.com>
+Hi Stefan and all,
 
-These functions monitor the driver and watch for task completion.
-This is part of the Sony CXD2880 DVB-T2/T tuner + demodulator driver.
+I noticed that the Mygica 230C is currently defined in two different drivers.
 
-Signed-off-by: Yasunari Takiguchi <Yasunari.Takiguchi@sony.com>
-Signed-off-by: Masayuki Yamamoto <Masayuki.Yamamoto@sony.com>
-Signed-off-by: Hideki Nozawa <Hideki.Nozawa@sony.com>
-Signed-off-by: Kota Yonezawa <Kota.Yonezawa@sony.com>
-Signed-off-by: Toshihiko Matsumoto <Toshihiko.Matsumoto@sony.com>
-Signed-off-by: Satoshi Watanabe <Satoshi.C.Watanabe@sony.com>
----
+in dvbsky.c:
 
-[Change list]
-Changes in V5
-   Using SPDX-License-Identifier
-   drivers/media/dvb-frontends/cxd2880/cxd2880_integ.c
-      -removed unnecessary if() 
-      -changed timer function from stop_watch to ktime
+    { DVB_USB_DEVICE(USB_VID_CONEXANT, USB_PID_MYGICA_T230C,
+        &mygica_t230c_props, "MyGica Mini DVB-T2 USB Stick T230C",
+        RC_MAP_TOTAL_MEDIA_IN_HAND_02) },
 
-Changes in V4   
-   drivers/media/dvb-frontends/cxd2880/cxd2880_integ.c
-      -removed unnecessary initialization at variable declaration
 
-Changes in V3
-   drivers/media/dvb-frontends/cxd2880/cxd2880_integ.c
-      -changed cxd2880_atomic_read to atomic_read
-      -changed cxd2880_atomic_set to atomic_set
-      -modified return code
-      -modified coding style of if() 
-   drivers/media/dvb-frontends/cxd2880/cxd2880_integ.h
-      -modified return code
+in cxusb.c:
 
- .../media/dvb-frontends/cxd2880/cxd2880_integ.c    | 72 ++++++++++++++++++++++
- .../media/dvb-frontends/cxd2880/cxd2880_integ.h    | 27 ++++++++
- 2 files changed, 99 insertions(+)
- create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_integ.c
- create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_integ.h
+    [MYGICA_T230] = {
+        USB_DEVICE(USB_VID_CONEXANT, USB_PID_MYGICA_T230)
+    },
+    [MYGICA_T230C] = {
+        USB_DEVICE(USB_VID_CONEXANT, USB_PID_MYGICA_T230+1)
+    },
 
-diff --git a/drivers/media/dvb-frontends/cxd2880/cxd2880_integ.c b/drivers/media/dvb-frontends/cxd2880/cxd2880_integ.c
-new file mode 100644
-index 000000000000..5302ab0964c1
---- /dev/null
-+++ b/drivers/media/dvb-frontends/cxd2880/cxd2880_integ.c
-@@ -0,0 +1,72 @@
-+// SPDX-License-Identifier: GPL-2.0
-+/*
-+ * cxd2880_integ.c
-+ * Sony CXD2880 DVB-T2/T tuner + demodulator driver
-+ * integration layer common functions
-+ *
-+ * Copyright (C) 2016, 2017, 2018 Sony Semiconductor Solutions Corporation
-+ */
-+
-+#include <linux/ktime.h>
-+#include <linux/errno.h>
-+
-+#include "cxd2880_tnrdmd.h"
-+#include "cxd2880_tnrdmd_mon.h"
-+#include "cxd2880_integ.h"
-+
-+int cxd2880_integ_init(struct cxd2880_tnrdmd *tnr_dmd)
-+{
-+	int ret;
-+	ktime_t start;
-+	u8 cpu_task_completed = 0;
-+
-+	if (!tnr_dmd)
-+		return -EINVAL;
-+
-+	ret = cxd2880_tnrdmd_init1(tnr_dmd);
-+	if (ret)
-+		return ret;
-+
-+	start = ktime_get();
-+
-+	while (1) {
-+		ret =
-+		    cxd2880_tnrdmd_check_internal_cpu_status(tnr_dmd,
-+						     &cpu_task_completed);
-+		if (ret)
-+			return ret;
-+
-+		if (cpu_task_completed)
-+			break;
-+
-+		if (ktime_to_ms(ktime_sub(ktime_get(), start)) >
-+					CXD2880_TNRDMD_WAIT_INIT_TIMEOUT)
-+			return -ETIMEDOUT;
-+
-+		usleep_range(CXD2880_TNRDMD_WAIT_INIT_INTVL,
-+			     CXD2880_TNRDMD_WAIT_INIT_INTVL + 1000);
-+	}
-+
-+	return cxd2880_tnrdmd_init2(tnr_dmd);
-+}
-+
-+int cxd2880_integ_cancel(struct cxd2880_tnrdmd *tnr_dmd)
-+{
-+	if (!tnr_dmd)
-+		return -EINVAL;
-+
-+	atomic_set(&tnr_dmd->cancel, 1);
-+
-+	return 0;
-+}
-+
-+int cxd2880_integ_check_cancellation(struct cxd2880_tnrdmd *tnr_dmd)
-+{
-+	if (!tnr_dmd)
-+		return -EINVAL;
-+
-+	if (atomic_read(&tnr_dmd->cancel) != 0)
-+		return -ECANCELED;
-+
-+	return 0;
-+}
-diff --git a/drivers/media/dvb-frontends/cxd2880/cxd2880_integ.h b/drivers/media/dvb-frontends/cxd2880/cxd2880_integ.h
-new file mode 100644
-index 000000000000..7160225db8b9
---- /dev/null
-+++ b/drivers/media/dvb-frontends/cxd2880/cxd2880_integ.h
-@@ -0,0 +1,27 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+/*
-+ * cxd2880_integ.h
-+ * Sony CXD2880 DVB-T2/T tuner + demodulator driver
-+ * integration layer common interface
-+ *
-+ * Copyright (C) 2016, 2017, 2018 Sony Semiconductor Solutions Corporation
-+ */
-+
-+#ifndef CXD2880_INTEG_H
-+#define CXD2880_INTEG_H
-+
-+#include "cxd2880_tnrdmd.h"
-+
-+#define CXD2880_TNRDMD_WAIT_INIT_TIMEOUT	500
-+#define CXD2880_TNRDMD_WAIT_INIT_INTVL	10
-+
-+#define CXD2880_TNRDMD_WAIT_AGC_STABLE		100
-+
-+int cxd2880_integ_init(struct cxd2880_tnrdmd *tnr_dmd);
-+
-+int cxd2880_integ_cancel(struct cxd2880_tnrdmd *tnr_dmd);
-+
-+int cxd2880_integ_check_cancellation(struct cxd2880_tnrdmd
-+				     *tnr_dmd);
-+
-+#endif
--- 
-2.15.1
+and in dvb-usb-ids.h:
+
+#define USB_PID_MYGICA_T230                    0xc688
+#define USB_PID_MYGICA_T230C                0xc689
+
+I think you've played around with this device earlier. Do you have any
+insight on which driver works better or all they all the same?
+
+Cheers,
+-olli
