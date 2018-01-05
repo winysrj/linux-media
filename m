@@ -1,151 +1,485 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:40890 "EHLO
-        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751665AbeAaDa7 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 30 Jan 2018 22:30:59 -0500
-MIME-Version: 1.0
-In-Reply-To: <20180131030807.GA19945@bart.dudau.co.uk>
-References: <1516695531-23349-1-git-send-email-yong.deng@magewell.com>
- <201801260759.RyNhDZz4%fengguang.wu@intel.com> <20180126094658.aa70ed3f890464f6051e21e4@magewell.com>
- <20180126110041.f89848325b9ecfb07df387ca@magewell.com> <20180131030807.GA19945@bart.dudau.co.uk>
-From: Chen-Yu Tsai <wens@csie.org>
-Date: Wed, 31 Jan 2018 11:24:56 +0800
-Message-ID: <CAGb2v65T559qcBRnx-e-qbDRkp6TqKvV1JD+pd2r0oGdDYVwUg@mail.gmail.com>
-Subject: Re: [linux-sunxi] Re: [PATCH v6 2/2] media: V3s: Add support for
- Allwinner CSI.
-To: Liviu Dudau <liviu@dudau.co.uk>
-Cc: Yong <yong.deng@magewell.com>, kbuild test robot <lkp@intel.com>,
-        kbuild-all@01.org,
-        Maxime Ripard <maxime.ripard@free-electrons.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        "David S. Miller" <davem@davemloft.net>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        Randy Dunlap <rdunlap@infradead.org>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Yannick Fertre <yannick.fertre@st.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Rick Chang <rick.chang@mediatek.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        devicetree <devicetree@vger.kernel.org>,
-        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-        linux-kernel <linux-kernel@vger.kernel.org>,
-        linux-sunxi <linux-sunxi@googlegroups.com>,
-        =?UTF-8?Q?Ond=C5=99ej_Jirman?= <megous@megous.com>,
-        Dave Martin <dave.martin@arm.com>,
-        Thierry Reding <thierry.reding@gmail.com>
-Content-Type: text/plain; charset="UTF-8"
+Received: from hapkido.dreamhost.com ([66.33.216.122]:43533 "EHLO
+        hapkido.dreamhost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751100AbeAEAFO (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 4 Jan 2018 19:05:14 -0500
+Received: from homiemail-a116.g.dreamhost.com (sub5.mail.dreamhost.com [208.113.200.129])
+        by hapkido.dreamhost.com (Postfix) with ESMTP id 8F3F78ED92
+        for <linux-media@vger.kernel.org>; Thu,  4 Jan 2018 16:05:14 -0800 (PST)
+From: Brad Love <brad@nextdimension.cc>
+To: linux-media@vger.kernel.org
+Cc: Brad Love <brad@nextdimension.cc>
+Subject: [PATCH 1/9] em28xx: Hauppauge DualHD second tuner functionality
+Date: Thu,  4 Jan 2018 18:04:11 -0600
+Message-Id: <1515110659-20145-2-git-send-email-brad@nextdimension.cc>
+In-Reply-To: <1515110659-20145-1-git-send-email-brad@nextdimension.cc>
+References: <1515110659-20145-1-git-send-email-brad@nextdimension.cc>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Jan 31, 2018 at 11:08 AM, Liviu Dudau <liviu@dudau.co.uk> wrote:
-> On Fri, Jan 26, 2018 at 11:00:41AM +0800, Yong wrote:
->> Hi Maxime,
->>
->> On Fri, 26 Jan 2018 09:46:58 +0800
->> Yong <yong.deng@magewell.com> wrote:
->>
->> > Hi Maxime,
->> >
->> > Do you have any experience in solving this problem?
->> > It seems the PHYS_OFFSET maybe undeclared when the ARCH is not arm.
->>
->> Got it.
->> Should I add 'depends on ARM' in Kconfig?
->
-> No, I don't think you should do that, you should fix the code.
->
-> The dma_addr_t addr that you've got is ideally coming from dma_alloc_coherent(),
-> in which case the addr is already "suitable" for use by the device (because the
-> bus where the device is attached to does all the address translations). If you
-> apply PHYS_OFFSET forcefully to it you might get unexpected results.
+Implement use of secondary TS port on em28xx.
+Adds has_dual_ts field, allows secondary demod/tuner to be
+added to a single em28xx device.
 
-As explained in the thread, the dma_addr_t address is based on the kernel
-and processor's viewpoint, which has DRAM at an offset. This particular
-peripheral (and some others, such as display and video decoder) on Allwinner
-platforms do DMA on the separate memory bus directly, which does _not_
-have that memory offset. This is specific to our hardware. And also mentioned
-is that there is no sensible representation in the device tree that would
-allow the DMA API to do proper address translation.
+Hauppauge DualHD models are configured to use this feature.
 
-Just throwing it out there, maybe we could do a dummy IOMMU that does the
-simple translation of (addr - PHYS_OFFSET)? Still I'm not sure if the device
-tree representation would be sane.
+Signed-off-by: Brad Love <brad@nextdimension.cc>
+---
+ drivers/media/usb/em28xx/em28xx-cards.c | 126 +++++++++++++++++++++++++++++++-
+ drivers/media/usb/em28xx/em28xx-core.c  |  42 +++++++++--
+ drivers/media/usb/em28xx/em28xx-dvb.c   |  33 +++++++--
+ drivers/media/usb/em28xx/em28xx.h       |  12 +++
+ 4 files changed, 196 insertions(+), 17 deletions(-)
 
-ChenYu
-
->>
->> >
->> > On Fri, 26 Jan 2018 08:04:18 +0800
->> > kbuild test robot <lkp@intel.com> wrote:
->> >
->> > > Hi Yong,
->> > >
->> > > I love your patch! Yet something to improve:
->> > >
->> > > [auto build test ERROR on linuxtv-media/master]
->> > > [also build test ERROR on v4.15-rc9 next-20180119]
->> > > [if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
->> > >
->> > > url:    https://github.com/0day-ci/linux/commits/Yong-Deng/dt-bindings-media-Add-Allwinner-V3s-Camera-Sensor-Interface-CSI/20180126-054511
->> > > base:   git://linuxtv.org/media_tree.git master
->> > > config: i386-allmodconfig (attached as .config)
->> > > compiler: gcc-7 (Debian 7.2.0-12) 7.2.1 20171025
->> > > reproduce:
->> > >         # save the attached .config to linux build tree
->> > >         make ARCH=i386
->> > >
->> > > All errors (new ones prefixed by >>):
->> > >
->> > >    drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.c: In function 'sun6i_csi_update_buf_addr':
->> > > >> drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.c:567:31: error: 'PHYS_OFFSET' undeclared (first use in this function); did you mean 'PAGE_OFFSET'?
->> > >      dma_addr_t bus_addr = addr - PHYS_OFFSET;
->> > >                                   ^~~~~~~~~~~
->> > >                                   PAGE_OFFSET
->> > >    drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.c:567:31: note: each undeclared identifier is reported only once for each function it appears in
->> > >
->> > > vim +567 drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.c
->> > >
->> > >    562
->> > >    563    void sun6i_csi_update_buf_addr(struct sun6i_csi *csi, dma_addr_t addr)
->> > >    564    {
->> > >    565            struct sun6i_csi_dev *sdev = sun6i_csi_to_dev(csi);
->> > >    566            /* transform physical address to bus address */
->> > >  > 567            dma_addr_t bus_addr = addr - PHYS_OFFSET;
->> > >    568
->> > >    569            regmap_write(sdev->regmap, CSI_CH_F0_BUFA_REG,
->> > >    570                         (bus_addr + sdev->planar_offset[0]) >> 2);
->> > >    571            if (sdev->planar_offset[1] != -1)
->> > >    572                    regmap_write(sdev->regmap, CSI_CH_F1_BUFA_REG,
->> > >    573                                 (bus_addr + sdev->planar_offset[1]) >> 2);
->> > >    574            if (sdev->planar_offset[2] != -1)
->> > >    575                    regmap_write(sdev->regmap, CSI_CH_F2_BUFA_REG,
->> > >    576                                 (bus_addr + sdev->planar_offset[2]) >> 2);
->> > >    577    }
->> > >    578
->> > >
->> > > ---
->> > > 0-DAY kernel test infrastructure                Open Source Technology Center
->> > > https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
->> >
->> >
->> > Thanks,
->> > Yong
->>
->>
->> Thanks,
->> Yong
->>
->> --
->> You received this message because you are subscribed to the Google Groups "linux-sunxi" group.
->> To unsubscribe from this group and stop receiving emails from it, send an email to linux-sunxi+unsubscribe@googlegroups.com.
->> For more options, visit https://groups.google.com/d/optout.
+diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
+index 34e16f6a..7f5d0b28 100644
+--- a/drivers/media/usb/em28xx/em28xx-cards.c
++++ b/drivers/media/usb/em28xx/em28xx-cards.c
+@@ -2402,6 +2402,7 @@ struct em28xx_board em28xx_boards[] = {
+ 		.tuner_type    = TUNER_ABSENT,
+ 		.tuner_gpio    = hauppauge_dualhd_dvb,
+ 		.has_dvb       = 1,
++		.has_dual_ts   = 1,
+ 		.ir_codes      = RC_MAP_HAUPPAUGE,
+ 		.leds          = hauppauge_dualhd_leds,
+ 	},
+@@ -2417,6 +2418,7 @@ struct em28xx_board em28xx_boards[] = {
+ 		.tuner_type    = TUNER_ABSENT,
+ 		.tuner_gpio    = hauppauge_dualhd_dvb,
+ 		.has_dvb       = 1,
++		.has_dual_ts   = 1,
+ 		.ir_codes      = RC_MAP_HAUPPAUGE,
+ 		.leds          = hauppauge_dualhd_leds,
+ 	},
+@@ -3239,7 +3241,8 @@ static void em28xx_release_resources(struct em28xx *dev)
+ 		em28xx_i2c_unregister(dev, 1);
+ 	em28xx_i2c_unregister(dev, 0);
+ 
+-	usb_put_dev(udev);
++	if (dev->ts == PRIMARY_TS)
++		usb_put_dev(udev);
+ 
+ 	/* Mark device as unused */
+ 	clear_bit(dev->devno, em28xx_devused);
+@@ -3432,6 +3435,35 @@ static int em28xx_init_dev(struct em28xx *dev, struct usb_device *udev,
+ 	return 0;
+ }
+ 
++int em28xx_duplicate_dev(struct em28xx *dev)
++{
++	int nr;
++	struct em28xx *sec_dev = kzalloc(sizeof(*sec_dev), GFP_KERNEL);
++
++	if (sec_dev == NULL) {
++		dev->dev_next = NULL;
++		return -ENOMEM;
++	}
++	memcpy(sec_dev, dev, sizeof(sizeof(*sec_dev)));
++	/* Check to see next free device and mark as used */
++	do {
++		nr = find_first_zero_bit(em28xx_devused, EM28XX_MAXBOARDS);
++		if (nr >= EM28XX_MAXBOARDS) {
++			/* No free device slots */
++			dev_warn(&dev->intf->dev, ": Supports only %i em28xx boards.\n",
++					EM28XX_MAXBOARDS);
++			kfree(sec_dev);
++			dev->dev_next = NULL;
++			return -ENOMEM;
++		}
++	} while (test_and_set_bit(nr, em28xx_devused));
++	sec_dev->devno = nr;
++	snprintf(sec_dev->name, 28, "em28xx #%d", nr);
++	sec_dev->dev_next = NULL;
++	dev->dev_next = sec_dev;
++	return 0;
++}
++
+ /* high bandwidth multiplier, as encoded in highspeed endpoint descriptors */
+ #define hb_mult(wMaxPacketSize) (1 + (((wMaxPacketSize) >> 11) & 0x03))
+ 
+@@ -3551,6 +3583,17 @@ static int em28xx_usb_probe(struct usb_interface *interface,
+ 						}
+ 					}
+ 					break;
++				case 0x85:
++					if (usb_endpoint_xfer_isoc(e)) {
++						if (size > dev->dvb_max_pkt_size_isoc_ts2) {
++							dev->dvb_ep_isoc_ts2 = e->bEndpointAddress;
++							dev->dvb_max_pkt_size_isoc_ts2 = size;
++							dev->dvb_alt_isoc = i;
++						}
++					} else {
++						dev->dvb_ep_bulk_ts2 = e->bEndpointAddress;
++					}
++					break;
+ 				}
+ 			}
+ 			/* NOTE:
+@@ -3565,6 +3608,8 @@ static int em28xx_usb_probe(struct usb_interface *interface,
+ 			 *  0x83	isoc*		=> audio
+ 			 *  0x84	isoc		=> digital
+ 			 *  0x84	bulk		=> analog or digital**
++			 *  0x85	isoc		=> digital TS2
++			 *  0x85	bulk		=> digital TS2
+ 			 * (*: audio should always be isoc)
+ 			 * (**: analog, if ep 0x82 is isoc, otherwise digital)
+ 			 *
+@@ -3632,6 +3677,10 @@ static int em28xx_usb_probe(struct usb_interface *interface,
+ 	dev->has_video = has_video;
+ 	dev->ifnum = ifnum;
+ 
++	dev->ts = PRIMARY_TS;
++	snprintf(dev->name, 28, "em28xx");
++	dev->dev_next = NULL;
++
+ 	if (has_vendor_audio) {
+ 		dev_err(&interface->dev,
+ 			"Audio interface %i found (Vendor Class)\n", ifnum);
+@@ -3711,6 +3760,65 @@ static int em28xx_usb_probe(struct usb_interface *interface,
+ 			dev->dvb_xfer_bulk ? "bulk" : "isoc");
+ 	}
+ 
++	if (dev->board.has_dual_ts && em28xx_duplicate_dev(dev) == 0) {
++		dev->dev_next->ts = SECONDARY_TS;
++		dev->dev_next->alt   = -1;
++		dev->dev_next->is_audio_only = has_vendor_audio &&
++						!(has_video || has_dvb);
++		dev->dev_next->has_video = false;
++		dev->dev_next->ifnum = ifnum;
++		dev->dev_next->model = id->driver_info;
++
++		mutex_init(&dev->dev_next->lock);
++		retval = em28xx_init_dev(dev->dev_next, udev, interface,
++					dev->dev_next->devno);
++		if (retval)
++			goto err_free;
++
++		dev->dev_next->board.ir_codes = NULL; /* No IR for 2nd tuner */
++		dev->dev_next->board.has_ir_i2c = 0; /* No IR for 2nd tuner */
++
++		if (usb_xfer_mode < 0) {
++			if (dev->dev_next->board.is_webcam)
++				try_bulk = 1;
++			else
++				try_bulk = 0;
++		} else {
++			try_bulk = usb_xfer_mode > 0;
++		}
++
++		/* Select USB transfer types to use */
++		if (has_dvb) {
++			if (!dev->dvb_ep_isoc_ts2 ||
++			   (try_bulk && dev->dvb_ep_bulk_ts2))
++				dev->dev_next->dvb_xfer_bulk = 1;
++			dev_info(&dev->intf->dev, "dvb ts2 set to %s mode.\n",
++				dev->dev_next->dvb_xfer_bulk ? "bulk" : "isoc");
++		}
++
++		dev->dev_next->dvb_ep_isoc = dev->dvb_ep_isoc_ts2;
++		dev->dev_next->dvb_ep_bulk = dev->dvb_ep_bulk_ts2;
++		dev->dev_next->dvb_max_pkt_size_isoc = dev->dvb_max_pkt_size_isoc_ts2;
++		dev->dev_next->dvb_alt_isoc = dev->dvb_alt_isoc;
++
++		/* Configuare hardware to support TS2*/
++		if (dev->dvb_xfer_bulk) {
++			/* The ep4 and ep5 are configuared for BULK */
++			em28xx_write_reg(dev, 0x0b, 0x96);
++			mdelay(100);
++			em28xx_write_reg(dev, 0x0b, 0x80);
++			mdelay(100);
++		} else {
++			/* The ep4 and ep5 are configuared for ISO */
++			em28xx_write_reg(dev, 0x0b, 0x96);
++			mdelay(100);
++			em28xx_write_reg(dev, 0x0b, 0x82);
++			mdelay(100);
++		}
++
++		kref_init(&dev->dev_next->ref);
++	}
++
+ 	kref_init(&dev->ref);
+ 
+ 	request_modules(dev);
+@@ -3753,15 +3861,29 @@ static void em28xx_usb_disconnect(struct usb_interface *interface)
+ 	if (!dev)
+ 		return;
+ 
++	if (dev->dev_next != NULL) {
++		dev->dev_next->disconnected = 1;
++		dev_info(&dev->intf->dev, "Disconnecting %s\n",
++			dev->dev_next->name);
++		flush_request_modules(dev->dev_next);
++	}
++
+ 	dev->disconnected = 1;
+ 
+-	dev_err(&dev->intf->dev, "Disconnecting\n");
++	dev_err(&dev->intf->dev, "Disconnecting %s\n", dev->name);
+ 
+ 	flush_request_modules(dev);
+ 
+ 	em28xx_close_extension(dev);
+ 
++	if (dev->dev_next != NULL)
++		em28xx_release_resources(dev->dev_next);
+ 	em28xx_release_resources(dev);
++
++	if (dev->dev_next != NULL) {
++		kref_put(&dev->dev_next->ref, em28xx_free_device);
++		dev->dev_next = NULL;
++	}
+ 	kref_put(&dev->ref, em28xx_free_device);
+ }
+ 
+diff --git a/drivers/media/usb/em28xx/em28xx-core.c b/drivers/media/usb/em28xx/em28xx-core.c
+index 1d0d8cc..ef38e56 100644
+--- a/drivers/media/usb/em28xx/em28xx-core.c
++++ b/drivers/media/usb/em28xx/em28xx-core.c
+@@ -638,10 +638,18 @@ int em28xx_capture_start(struct em28xx *dev, int start)
+ 	    dev->chip_id == CHIP_ID_EM28174 ||
+ 	    dev->chip_id == CHIP_ID_EM28178) {
+ 		/* The Transport Stream Enable Register moved in em2874 */
+-		rc = em28xx_write_reg_bits(dev, EM2874_R5F_TS_ENABLE,
+-					   start ?
+-					       EM2874_TS1_CAPTURE_ENABLE : 0x00,
+-					   EM2874_TS1_CAPTURE_ENABLE);
++		if (dev->ts == PRIMARY_TS)
++			rc = em28xx_write_reg_bits(dev,
++				EM2874_R5F_TS_ENABLE,
++				start ?
++				EM2874_TS1_CAPTURE_ENABLE : 0x00,
++				EM2874_TS1_CAPTURE_ENABLE);
++		else
++			rc = em28xx_write_reg_bits(dev,
++				EM2874_R5F_TS_ENABLE,
++				start ?
++				EM2874_TS2_CAPTURE_ENABLE : 0x00,
++				EM2874_TS2_CAPTURE_ENABLE);
+ 	} else {
+ 		/* FIXME: which is the best order? */
+ 		/* video registers are sampled by VREF */
+@@ -1077,7 +1085,11 @@ int em28xx_register_extension(struct em28xx_ops *ops)
+ 	mutex_lock(&em28xx_devlist_mutex);
+ 	list_add_tail(&ops->next, &em28xx_extension_devlist);
+ 	list_for_each_entry(dev, &em28xx_devlist, devlist) {
+-		ops->init(dev);
++		if (ops->init) {
++			ops->init(dev);
++			if (dev->dev_next != NULL)
++				ops->init(dev->dev_next);
++		}
+ 	}
+ 	mutex_unlock(&em28xx_devlist_mutex);
+ 	pr_info("em28xx: Registered (%s) extension\n", ops->name);
+@@ -1091,7 +1103,11 @@ void em28xx_unregister_extension(struct em28xx_ops *ops)
+ 
+ 	mutex_lock(&em28xx_devlist_mutex);
+ 	list_for_each_entry(dev, &em28xx_devlist, devlist) {
+-		ops->fini(dev);
++		if (ops->fini) {
++			if (dev->dev_next != NULL)
++				ops->fini(dev->dev_next);
++			ops->fini(dev);
++		}
+ 	}
+ 	list_del(&ops->next);
+ 	mutex_unlock(&em28xx_devlist_mutex);
+@@ -1106,8 +1122,11 @@ void em28xx_init_extension(struct em28xx *dev)
+ 	mutex_lock(&em28xx_devlist_mutex);
+ 	list_add_tail(&dev->devlist, &em28xx_devlist);
+ 	list_for_each_entry(ops, &em28xx_extension_devlist, next) {
+-		if (ops->init)
++		if (ops->init) {
+ 			ops->init(dev);
++			if (dev->dev_next != NULL)
++				ops->init(dev->dev_next);
++		}
+ 	}
+ 	mutex_unlock(&em28xx_devlist_mutex);
+ }
+@@ -1118,8 +1137,11 @@ void em28xx_close_extension(struct em28xx *dev)
+ 
+ 	mutex_lock(&em28xx_devlist_mutex);
+ 	list_for_each_entry(ops, &em28xx_extension_devlist, next) {
+-		if (ops->fini)
++		if (ops->fini) {
++			if (dev->dev_next != NULL)
++				ops->fini(dev->dev_next);
+ 			ops->fini(dev);
++		}
+ 	}
+ 	list_del(&dev->devlist);
+ 	mutex_unlock(&em28xx_devlist_mutex);
+@@ -1134,6 +1156,8 @@ int em28xx_suspend_extension(struct em28xx *dev)
+ 	list_for_each_entry(ops, &em28xx_extension_devlist, next) {
+ 		if (ops->suspend)
+ 			ops->suspend(dev);
++		if (dev->dev_next != NULL)
++			ops->suspend(dev->dev_next);
+ 	}
+ 	mutex_unlock(&em28xx_devlist_mutex);
+ 	return 0;
+@@ -1148,6 +1172,8 @@ int em28xx_resume_extension(struct em28xx *dev)
+ 	list_for_each_entry(ops, &em28xx_extension_devlist, next) {
+ 		if (ops->resume)
+ 			ops->resume(dev);
++		if (dev->dev_next != NULL)
++			ops->resume(dev->dev_next);
+ 	}
+ 	mutex_unlock(&em28xx_devlist_mutex);
+ 	return 0;
+diff --git a/drivers/media/usb/em28xx/em28xx-dvb.c b/drivers/media/usb/em28xx/em28xx-dvb.c
+index 8a81c94..9bc9576 100644
+--- a/drivers/media/usb/em28xx/em28xx-dvb.c
++++ b/drivers/media/usb/em28xx/em28xx-dvb.c
+@@ -199,7 +199,6 @@ static int em28xx_start_streaming(struct em28xx_dvb *dvb)
+ 	int rc;
+ 	struct em28xx_i2c_bus *i2c_bus = dvb->adapter.priv;
+ 	struct em28xx *dev = i2c_bus->dev;
+-	struct usb_device *udev = interface_to_usbdev(dev->intf);
+ 	int dvb_max_packet_size, packet_multiplier, dvb_alt;
+ 
+ 	if (dev->dvb_xfer_bulk) {
+@@ -218,7 +217,6 @@ static int em28xx_start_streaming(struct em28xx_dvb *dvb)
+ 		dvb_alt = dev->dvb_alt_isoc;
+ 	}
+ 
+-	usb_set_interface(udev, dev->ifnum, dvb_alt);
+ 	rc = em28xx_set_mode(dev, EM28XX_DIGITAL_MODE);
+ 	if (rc < 0)
+ 		return rc;
+@@ -1128,8 +1126,9 @@ static void em28xx_unregister_dvb(struct em28xx_dvb *dvb)
+ 
+ static int em28xx_dvb_init(struct em28xx *dev)
+ {
+-	int result = 0;
++	int result = 0, dvb_alt = 0;
+ 	struct em28xx_dvb *dvb;
++	struct usb_device *udev;
+ 
+ 	if (dev->is_audio_only) {
+ 		/* Shouldn't initialize IR for this interface */
+@@ -1914,7 +1913,10 @@ static int em28xx_dvb_init(struct em28xx *dev)
+ 			si2168_config.ts_mode = SI2168_TS_SERIAL;
+ 			memset(&info, 0, sizeof(struct i2c_board_info));
+ 			strlcpy(info.type, "si2168", I2C_NAME_SIZE);
+-			info.addr = 0x64;
++			if (dev->ts == PRIMARY_TS)
++				info.addr = 0x64;
++			else
++				info.addr = 0x67;
+ 			info.platform_data = &si2168_config;
+ 			request_module(info.type);
+ 			client = i2c_new_device(&dev->i2c_adap[dev->def_i2c_bus], &info);
+@@ -1940,7 +1942,10 @@ static int em28xx_dvb_init(struct em28xx *dev)
+ #endif
+ 			memset(&info, 0, sizeof(struct i2c_board_info));
+ 			strlcpy(info.type, "si2157", I2C_NAME_SIZE);
+-			info.addr = 0x60;
++			if (dev->ts == PRIMARY_TS)
++				info.addr = 0x60;
++			else
++				info.addr = 0x63;
+ 			info.platform_data = &si2157_config;
+ 			request_module(info.type);
+ 			client = i2c_new_device(adapter, &info);
+@@ -1976,7 +1981,10 @@ static int em28xx_dvb_init(struct em28xx *dev)
+ 			lgdt3306a_config.fe = &dvb->fe[0];
+ 			lgdt3306a_config.i2c_adapter = &adapter;
+ 			strlcpy(info.type, "lgdt3306a", sizeof(info.type));
+-			info.addr = 0x59;
++			if (dev->ts == PRIMARY_TS)
++				info.addr = 0x59;
++			else
++				info.addr = 0x0e;
+ 			info.platform_data = &lgdt3306a_config;
+ 			request_module(info.type);
+ 			client = i2c_new_device(&dev->i2c_adap[dev->def_i2c_bus],
+@@ -2003,7 +2011,10 @@ static int em28xx_dvb_init(struct em28xx *dev)
+ #endif
+ 			memset(&info, 0, sizeof(struct i2c_board_info));
+ 			strlcpy(info.type, "si2157", sizeof(info.type));
+-			info.addr = 0x60;
++			if (dev->ts == PRIMARY_TS)
++				info.addr = 0x60;
++			else
++				info.addr = 0x62;
+ 			info.platform_data = &si2157_config;
+ 			request_module(info.type);
+ 
+@@ -2046,6 +2057,14 @@ static int em28xx_dvb_init(struct em28xx *dev)
+ 	if (result < 0)
+ 		goto out_free;
+ 
++	if (dev->dvb_xfer_bulk) {
++		dvb_alt = 0;
++	} else { /* isoc */
++		dvb_alt = dev->dvb_alt_isoc;
++	}
++
++	udev = interface_to_usbdev(dev->intf);
++	usb_set_interface(udev, dev->ifnum, dvb_alt);
+ 	dev_info(&dev->intf->dev, "DVB extension successfully initialized\n");
+ 
+ 	kref_get(&dev->ref);
+diff --git a/drivers/media/usb/em28xx/em28xx.h b/drivers/media/usb/em28xx/em28xx.h
+index 88084f2..c85292c 100644
+--- a/drivers/media/usb/em28xx/em28xx.h
++++ b/drivers/media/usb/em28xx/em28xx.h
+@@ -217,6 +217,9 @@
+ /* max. number of button state polling addresses */
+ #define EM28XX_NUM_BUTTON_ADDRESSES_MAX		5
+ 
++#define PRIMARY_TS	0
++#define SECONDARY_TS	1
++
+ enum em28xx_mode {
+ 	EM28XX_SUSPEND,
+ 	EM28XX_ANALOG_MODE,
+@@ -457,6 +460,7 @@ struct em28xx_board {
+ 	unsigned int mts_firmware:1;
+ 	unsigned int max_range_640_480:1;
+ 	unsigned int has_dvb:1;
++	unsigned int has_dual_ts:1;
+ 	unsigned int is_webcam:1;
+ 	unsigned int valid:1;
+ 	unsigned int has_ir_i2c:1;
+@@ -621,6 +625,7 @@ struct em28xx {
+ 	unsigned int is_audio_only:1;
+ 	enum em28xx_int_audio_type int_audio_type;
+ 	enum em28xx_usb_audio_type usb_audio_type;
++	unsigned char name[32];
+ 
+ 	struct em28xx_board board;
+ 
+@@ -682,6 +687,8 @@ struct em28xx {
+ 	u8 ifnum;		/* number of the assigned usb interface */
+ 	u8 analog_ep_isoc;	/* address of isoc endpoint for analog */
+ 	u8 analog_ep_bulk;	/* address of bulk endpoint for analog */
++	u8 dvb_ep_isoc_ts2;	/* address of isoc endpoint for DVB TS2*/
++	u8 dvb_ep_bulk_ts2;	/* address of bulk endpoint for DVB TS2*/
+ 	u8 dvb_ep_isoc;		/* address of isoc endpoint for DVB */
+ 	u8 dvb_ep_bulk;		/* address of bulk endpoint for DVB */
+ 	int alt;		/* alternate setting */
+@@ -695,6 +702,8 @@ struct em28xx {
+ 	int dvb_alt_isoc;	/* alternate setting for DVB isoc transfers */
+ 	unsigned int dvb_max_pkt_size_isoc;	/* isoc max packet size of the
+ 						   selected DVB ep at dvb_alt */
++	unsigned int dvb_max_pkt_size_isoc_ts2;	/* isoc max packet size of the
++						   selected DVB ep at dvb_alt */
+ 	unsigned int dvb_xfer_bulk:1;		/* use bulk instead of isoc
+ 						   transfers for DVB          */
+ 	char urb_buf[URB_MAX_CTRL_SIZE];	/* urb control msg buffer */
+@@ -726,6 +735,9 @@ struct em28xx {
+ 	struct media_entity input_ent[MAX_EM28XX_INPUT];
+ 	struct media_pad input_pad[MAX_EM28XX_INPUT];
+ #endif
++
++	struct em28xx	*dev_next;
++	int ts;
+ };
+ 
+ #define kref_to_dev(d) container_of(d, struct em28xx, ref)
+-- 
+2.7.4
