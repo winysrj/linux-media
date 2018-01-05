@@ -1,288 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bin-mail-out-06.binero.net ([195.74.38.229]:50347 "EHLO
-        bin-vsp-out-03.atm.binero.net" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751072AbeA2QfJ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 29 Jan 2018 11:35:09 -0500
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH v10 00/30] rcar-vin: Add Gen3 with media controller
-Date: Mon, 29 Jan 2018 17:34:05 +0100
-Message-Id: <20180129163435.24936-1-niklas.soderlund+renesas@ragnatech.se>
+Received: from mail.free-electrons.com ([62.4.15.54]:44904 "EHLO
+        mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751562AbeAEO7Z (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 5 Jan 2018 09:59:25 -0500
+Date: Fri, 5 Jan 2018 15:59:13 +0100
+From: Maxime Ripard <maxime.ripard@free-electrons.com>
+To: Sean Young <sean@mess.org>
+Cc: Philipp Rossak <embed3d@gmail.com>, mchehab@kernel.org,
+        robh+dt@kernel.org, mark.rutland@arm.com, wens@csie.org,
+        linux@armlinux.org.uk, p.zabel@pengutronix.de,
+        andi.shyti@samsung.com, linux-media@vger.kernel.org,
+        devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-kernel@vger.kernel.org, linux-sunxi@googlegroups.com
+Subject: Re: [PATCH v3 0/6] arm: sunxi: IR support for A83T
+Message-ID: <20180105145913.ddb5l5dyt7yn3kwc@flea.lan>
+References: <20171219080747.4507-1-embed3d@gmail.com>
+ <20180105120253.zvwaz25scuk76bnt@gofer.mess.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="etu2d3krdpaqtjtv"
+Content-Disposition: inline
+In-Reply-To: <20180105120253.zvwaz25scuk76bnt@gofer.mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+
+--etu2d3krdpaqtjtv
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
 Hi,
 
-This series adds Gen3 VIN support to rcar-vin driver for Renesas r8a7795,
-r8a7796 and r8a77970. It is based on the media-tree and depends on 
-Fabrizio Castro patches as they touches the order of the compatible 
-strings in the documentation to reduce merge conflicts. The dependencies 
-are:
+On Fri, Jan 05, 2018 at 12:02:53PM +0000, Sean Young wrote:
+> On Tue, Dec 19, 2017 at 09:07:41AM +0100, Philipp Rossak wrote:
+> > This patch series adds support for the sunxi A83T ir module and enhance=
+s=20
+> > the sunxi-ir driver. Right now the base clock frequency for the ir driv=
+er
+> > is a hard coded define and is set to 8 MHz.
+> > This works for the most common ir receivers. On the Sinovoip Bananapi M=
+3=20
+> > the ir receiver needs, a 3 MHz base clock frequency to work without
+> > problems with this driver.
+> >=20
+> > This patch series adds support for an optinal property that makes it ab=
+le
+> > to override the default base clock frequency and enables the ir interfa=
+ce=20
+> > on the a83t and the Bananapi M3.
+> >=20
+> > changes since v2:
+> > * reorder cir pin (alphabetical)
+> > * fix typo in documentation
+> >=20
+> > changes since v1:
+> > * fix typos, reword Documentation
+> > * initialize 'b_clk_freq' to 'SUNXI_IR_BASE_CLK' & remove if statement
+> > * change dev_info() to dev_dbg()
+> > * change naming to cir* in dts/dtsi
+> > * Added acked Ackedi-by to related patch
+> > * use whole memory block instead of registers needed + fix for h3/h5
+> >=20
+> > changes since rfc:
+> > * The property is now optinal. If the property is not available in=20
+> >   the dtb the driver uses the default base clock frequency.
+> > * the driver prints out the the selected base clock frequency.
+> > * changed devicetree property from base-clk-frequency to clock-frequency
+> >=20
+> > Regards,
+> > Philipp
+> >=20
+> >=20
+> > Philipp Rossak (6):
+> >   media: rc: update sunxi-ir driver to get base clock frequency from
+> >     devicetree
+> >   media: dt: bindings: Update binding documentation for sunxi IR
+> >     controller
+> >   arm: dts: sun8i: a83t: Add the cir pin for the A83T
+> >   arm: dts: sun8i: a83t: Add support for the cir interface
+> >   arm: dts: sun8i: a83t: bananapi-m3: Enable IR controller
+> >   arm: dts: sun8i: h3-h8: ir register size should be the whole memory
+> >     block
+>=20
+> I can take this series (through rc-core, i.e. linux-media), but I need an
+> maintainer Acked-by: for the sun[x8]i dts changes (all four patches).
 
-[PATCH v2 1/4] dt-bindings: media: rcar_vin: Reverse SoC part number list
-[PATCH v2 2/4] dt-bindings: media: rcar_vin: add device tree support for r8a774[35]
+We'll merge them through our tree. We usually have a rather big number
+of patches around, so we'd be better off avoiding conflicts :)
 
-The driver is tested on Renesas H3 (r8a7795, ES2.0),
-M3-W (r8a7796) together with the rcar-csi2 driver (posted separately and
-not yet upstream) and the Salvator-X onboard ADV7482. It is also tested 
-on the V3M (r8a77970) on the Eagle board together with its expansion 
-board with a ADV7482 and out of tree patches for GMSL capture using the 
-max9286 and rdacm20 drivers.
+Philipp, can you resubmit the DTs as soon as -rc1 is out?
 
-It is possible to capture both CVBS and HDMI video streams,
-v4l2-compliance passes with no errors and media-ctl can be used to
-change the routing and formats for the different entities in the media
-graph.
+Thanks!
+Maxime
 
-Gen2 compatibility is verified on Koelsch and no problems where found,
-video can be captured just like before and v4l2-compliance passes
-without errors or warnings just like before this series.
+--=20
+Maxime Ripard, Free Electrons
+Embedded Linux and Kernel engineering
+http://free-electrons.com
 
-I have started on a very basic test suite for the VIN driver at:
+--etu2d3krdpaqtjtv
+Content-Type: application/pgp-signature; name="signature.asc"
 
-  https://git.ragnatech.se/vin-tests
+-----BEGIN PGP SIGNATURE-----
 
-And as before the state of the driver and information about how to test
-it can be found on the elinux wiki:
+iQIzBAABCAAdFiEE0VqZU19dR2zEVaqr0rTAlCFNr3QFAlpPksAACgkQ0rTAlCFN
+r3RDrg/+KxD34oD4gQYvZBYBCEEidx2XtW4AMRiBK9EOpCtHJfYuPU5oHb42whx8
+55rZK8GS65FcQQ2LbS92shz4kvWSDr3KSeBH9lcOEacyoK9c7rdZnlzy2gzgOue8
+kiJza6nXTn6Cqzih1ry5vghf3lPfsIJBuJXxdSYbKngINEQlUunxBxWzkEIQ1qW1
+GyYJnJ31gxrtcxvAljsEQmnwVFzWqCRUZeI6KxS01QkOyE3vW2O+DlNamlentd62
+sn3/CGGK+u/Zwzjwtzoa1TnQN+0feT4FRgJh8uYQYHJsYAidYJf4Aebe3RHvWabi
+kPt++WNu5Sw5ew28QwrZeBfE2NPyJrmsKErTih6gsQyoUOSBmeWUA8cB1Smig/Jd
+edoxFc1J5w56bfKXa10gpxBUpAR6tbRa6ATjeucAMam3sXbRK4ctA9ucnA9X68ej
+029W2ZtXA62fV+iHIqYu58mPQViGAaeS7ky/in3zufbePyhWSc0Ctxgo0kouaInY
+c6ufx1sfhUlAjI0xIEsdQ4n7dPiE+gWuvtjKWgyMjiKwwKBkdBblMRCLXJq4ithp
+gJD7+Zq9R3wKd6Ws2fht4tT5Qbu4YrPk/UkPEEHuYwjilZYKuj+ihnB+n21Rv2UK
+xZ7HOOBpiJ4LagbHF0gwL3WqWRVNlHtBhFjpiP1+whHufYtfG8M=
+=L07m
+-----END PGP SIGNATURE-----
 
-  http://elinux.org/R-Car/Tests:rcar-vin
-
-* Changes since v9
-- Fixed mistakes in the device tree description pointed out by  Laurent.
-    - GenX -> GenX platforms
-    - portX -> port X
-    - Explicitly state the on Gen3 platforms port 0 can only describe 
-      one endpoint and that only VIN instances connected to external 
-      pins should have a port 0 node.
-    - s/which is/connected to/ in he endpoint description for Gen3 
-      platforms.
-- Update some poorly written commit messages.
-- Moved the digital subdevice attach and detach code to two separate 
-  functions to increase readability.
-- Rename the struct rvin_info member chip to model to better describe 
-  its purpose.
-- Change the video name from "rcar_vin e6ef0000.video" to "VINx output" 
-  where x is the VIN id.
-- Dropped patch 'rcar-vin: do not allow changing scaling and composing 
-  while streaming' as it removed Gen2 functionality which is valid as 
-  pointed out by Laurent.
-- Rename rvin_get_sd_format() to rvin_get_source_format() and change its 
-  parameter from struct v4l2_pix_format* to struct v4l2_mbus_framefmt*.
-- Clarified commit message and add a few move comments to 'rcar-vin: fix 
-  handling of single field frames (top, bottom and alternate fields'.
-- Update documentation for struct rvin_dev fields mbus_cfg and code.
-- Fix argument in VNCSI_IFMD_CSI_CHSEL macro.
-- Renamed rvin_set_chsel() to rvin_set_channel_routing().
-- Restore the VNMC register after changing CHSEL setting.
-- Broke patch 'rcar-vin: break out format alignment and checking' into 
-  three parts to ease review.
-- Add new patch to introduce a default field.
-- Only include media/v4l2-mc.h in the .c files that needs it and not in 
-  rcar-vin.h.
-- Rename rvin_group_allocate() rvin_group_get()
-- Rename rvin_group_delete() rvin_group_put()
-- Updated error message "VIN number %d already occupied\n" to "Duplicate 
-  renesas,id property value %u\n".
-- Removed dev_dbg messages which only where useful during development.
-- Dropped patch '[PATCH v9 10/28] rcar-vin: do not reset crop and 
-  compose when setting format' as it introduces a regression on Gen2.
-- Inline rvin_group_read_id() and rvin_group_add_vin() into 
-  rvin_group_get().
-- Define static variables at the top of rcar-core.c.
-- Fix potential deadlock in rvin_group_get().
-- Set media device model name to the VIN module name.
-- Set media device model to matched complicity string.
-- Do not use a 2 dimensional sparse array for chsel values in struct 
-  rvin_info, instead use a flat array and store VIN and CHSEL value 
-  inside each array item.
-- Reworked DT parsing code to make use of the new 
-  v4l2_async_notifier_parse_fwnode_endpoints_by_port() helper removing a 
-  lot of iffy custom parsing code.
-- Rework how CHSEL value is calculated in the link notifier callback.
-  Using a bitmap of possible values instead of looping over an array 
-  turned out great reducing both LoC and increasing readability of the 
-  code which was a bit difficult before. It also reduced to memory 
-  needed to contain the static routing information.
-- Verify the media bus pixel code when starting a stream.
-- Take the media device graph lock when figuring out and starting a 
-  stream so not to race between simultaneous stream start from multiple 
-  rcar-vin instances as they might share common subdevices.
-- Added review tags from Laurent.
-- Dropped tags from patches that where changed more then just correcting 
-  spelling or other gramma errors.
-
-* Changes since v8
-- Fixed issue in rvin_group_init() where rvin_group_update_links() was 
-  called, but after moving the video device registration to the 
-  complete() callback this is now invalid.
-- Fixed spelling in commit messages.
-- Added review and acks from Hans, Kieran and Rob.
-
-* Changes since v7
-- Dropped '[PATCH v7 02/25] rcar-vin: register the video device at probe time'
-- Add patch which renames four badly name functions. Some of the 
-  renaming was in v7 part of the dropped patch 02/25. Make it a own 
-  patch and rename all badly named functions in one patch.
-- Add patch to replace part of the functionality of the dropped patch v7 
-  02/25. The new patch keeps the subdevice (un)registration calls in the 
-  async callbacks bind() and unbind() but moves the direct subdevice 
-  initialization which only is used on Gen2 from the Gen2 and Gen3 
-  shared rvin_v4l2_register().
-- Add patch to enable Renesas V3M (r8a77970)
-- Patch 'rcar-vin: parse Gen3 OF and setup media graph' have had code 
-  additions since v7 since it now registers the video devices in the 
-  async complete() callback instead of at probe time as an effect of 
-  dropping v7 02/25.
-  - The complete() callback now register all video devices.
-  - The unbind() callback now unregister all video devices.
-  - A new member '*notifier' is added to struct rvin_group which keeps 
-    track of which rcar-vin instance have registered its notifier on the 
-    groups behalf.
-  For the reason above all Reviewed-by tags have been dropped for this 
-  patch.
-- Replaced all kernel messages which used of_node_full_name() as now 
-  only returns the basename and not till full path, thanks Geert.
-
-    printk("%s", of_node_full_name(ep)); -> printk("%pOF", ep);
-
-- Added Reviewed-by tags from Hans, big thanks!
-
-* Changes since v6
-- Rebase ontop of latest media-tree which brings in the use of the
-  fwnode async helpers for Gen2.
-- Updated DT binding documentation, thanks Laurent for very helpful
-  input!
-- Removed help text which where copied in from v4l2_ctrl_handler_init()
-  documentation when moving that code block, this was a residue from the
-  soc_camera conversion and should have been removed at that time.
-- Removed bad check of tvnorms which disables IOCTLs if it's not set,
-  this was a residue from soc_camera conversion and have use in the
-  current driver.
-- Moved all subdevice initialization from complete to bound handler
-  while improving the unbind handler. With this move all operations of
-  the ctrl_handler from the subdevice is handled in either bound or
-  unbind removing races pointed out by Laurent.
-- Renamed rvin_v4l2_probe() -> rvin_v4l2_register() and
-  rvin_v4l2_remove() -> rvin_v4l2_unregister().
-- Fold rvin_mbus_supported() into its only caller.
-- Sort compatible string entries in ascending order.
-- Improved documentation for struct rvin_group_chsel.
-- Clarify comment in rvin_group_csi_pad_to_chan().
-- Make use of of_device_get_match_data() as suggested by Geert.
-- Fixed spelling mistakes.
-- Added review tags from Hans.
-
-* Changes since v5
-- Extract and make use of common format checking for both Gen2 and Gen3.
-- Assign pad at declaration time in rvin_get_sd_format()
-- Always call pm_runtime_{get_sync,put}() and v4l2_pipeline_pm_use()
-  when opening/closing a video device, remove the check of
-  v4l2_fh_is_singular_file().
-- Make rvin_set_chsel() return void instead of int since it always
-  return 0.
-- Simplify the VIN group allocator functions.
-- Make the group notifier callbacks and setup more robust.
-- Moved the video device registration back to probe time.
-- Add H3 ES2.0 support.
-- Fix handling of single field formats (top, bottom, alternate) as this
-  was obviously wrong before but hidden by the Gen2 scaler support.
-- Added review tags from Kieran.
-
-* Changes since v4 (Not posted to ML)
-- Updated to the new fwnode functions.
-- Moved the registration of the video devices to the async notification
-  callback.
-
-* Changes since v3
-- Only add neighboring subdevices to the async notifier. Instead of
-  parsing the whole OF graph depend on incremental async subnotifier to
-  discover the whole pipeline. This is needed to support arbitrarily
-  long graphs and support the new ADV7482 prototype driver which Kieran
-  is working on.
-- Fix warning from lockdep, reported by Kieran.
-- Fix commit messages from feedback from Sergei, thanks.
-- Fix chip info an OF device ids sorting order, thanks Geert.
-- Use subdev->of_node instead of subdev->dev->of_node, thanks Kieran.
-
-* Changes since v2
-- Do not try to control the subdevices in the media graph from the rcar-vin
-  driver. Have user-space configure to format in the pipeline instead.
-- Add link validation before starting the stream.
-- Rework on how the subdevices are and the video node behave by defining
-  specific V4L2 operations for the MC mode of operation, this simplified
-  the driver quit a bit, thanks Laurent!
-- Add a new 'renesas,id' DT property which is needed to to be able to
-  keep the VIN to CSI-2 routing table inside the driver. Previously this
-  information was taken from the CSI-2 DT node which is obviously the
-  wrong way to do things. Thanks Laurent for pointing this out.
-- Fixed a memory leek in the group allocator function.
-- Return -EMLINK instead of -EBUSY if a MC link is not possible given
-  the current routing setup.
-- Add comments to clarify that the 4 channels from the CSI-2 node is not
-  directly related to CSI-2 virtual channels, the CSI-2 node can output
-  any VC on any of its output channels.
-
-* Changes since v1
-- Remove unneeded casts as pointed out by Geert.
-- Fix spelling and DT documentation as pointed out by Geert and Sergei,
-  thanks!
-- Refresh patch 2/32 with an updated version, thanks Sakari for pointing
-  this out.
-- Add Sakaris Ack to patch 1/32.
-- Rebase on top of v4.9-rc1 instead of v4.9-rc3 to ease integration
-  testing together with renesas-drivers tree.
-
-
-Niklas Söderlund (30):
-  rcar-vin: add Gen3 devicetree bindings documentation
-  rcar-vin: rename poorly named initialize and cleanup functions
-  rcar-vin: unregister video device on driver removal
-  rcar-vin: move subdevice handling to async callbacks
-  rcar-vin: move model information to own struct
-  rcar-vin: move max width and height information to chip information
-  rcar-vin: move functions regarding scaling
-  rcar-vin: all Gen2 boards can scale simplify logic
-  rcar-vin: read subdevice format for crop only when needed
-  rcar-vin: fix handling of single field frames (top, bottom and
-    alternate fields)
-  rcar-vin: move media bus configuration to struct rvin_info
-  rcar-vin: enable Gen3 hardware configuration
-  rcar-vin: add function to manipulate Gen3 chsel value
-  rcar-vin: add flag to switch to media controller mode
-  rcar-vin: break out format alignment and checking
-  rcar-vin: update bytesperline and sizeimage calculation
-  rcar-vin: update pixelformat check for M1
-  rcar-vin: add check for colorspace
-  rcar-vin: set a default field to fallback on
-  rcar-vin: use different v4l2 operations in media controller mode
-  rcar-vin: prepare for media controller mode initialization
-  rcar-vin: add group allocator functions
-  rcar-vin: change name of video device
-  rcar-vin: add chsel information to rvin_info
-  rcar-vin: parse Gen3 OF and setup media graph
-  rcar-vin: add link notify for Gen3
-  rcar-vin: extend {start,stop}_streaming to work with media controller
-  rcar-vin: enable support for r8a7795
-  rcar-vin: enable support for r8a7796
-  rcar-vin: enable support for r8a77970
-
- .../devicetree/bindings/media/rcar_vin.txt         | 118 ++-
- drivers/media/platform/rcar-vin/Kconfig            |   2 +-
- drivers/media/platform/rcar-vin/rcar-core.c        | 945 +++++++++++++++++++--
- drivers/media/platform/rcar-vin/rcar-dma.c         | 844 ++++++++++--------
- drivers/media/platform/rcar-vin/rcar-v4l2.c        | 483 +++++++----
- drivers/media/platform/rcar-vin/rcar-vin.h         | 130 ++-
- 6 files changed, 1898 insertions(+), 624 deletions(-)
-
--- 
-2.16.1
+--etu2d3krdpaqtjtv--
