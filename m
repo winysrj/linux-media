@@ -1,36 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:2151 "EHLO mga02.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751362AbeA2M0b (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 29 Jan 2018 07:26:31 -0500
-Message-ID: <1517228788.7000.1298.camel@linux.intel.com>
-Subject: Re: [PATCH v2] staging: media: remove remains of
- VIDEO_ATOMISP_OV8858
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: Corentin Labbe <clabbe@baylibre.com>, gregkh@linuxfoundation.org,
-        mchehab@kernel.org
-Cc: devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
-        linux-media@vger.kernel.org
-Date: Mon, 29 Jan 2018 14:26:28 +0200
-In-Reply-To: <1517228167-1157-1-git-send-email-clabbe@baylibre.com>
-References: <1517228167-1157-1-git-send-email-clabbe@baylibre.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from sub5.mail.dreamhost.com ([208.113.200.129]:34158 "EHLO
+        homiemail-a56.g.dreamhost.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751593AbeAEO51 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 5 Jan 2018 09:57:27 -0500
+From: Brad Love <brad@nextdimension.cc>
+To: linux-media@vger.kernel.org
+Cc: Brad Love <brad@nextdimension.cc>
+Subject: [PATCH 1/2] lgdt3306a: Fix module count mismatch on usb unplug
+Date: Fri,  5 Jan 2018 08:57:12 -0600
+Message-Id: <1515164233-2423-2-git-send-email-brad@nextdimension.cc>
+In-Reply-To: <1515164233-2423-1-git-send-email-brad@nextdimension.cc>
+References: <1515164233-2423-1-git-send-email-brad@nextdimension.cc>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 2018-01-29 at 12:16 +0000, Corentin Labbe wrote:
-> OV8858 files are left unusable since commit 3a81c7660f80 ("media:
-> staging: atomisp: Remove IMX sensor support")
-> They are uncompilable since they depends on dw9718.c and vcm.c which
-> was removed.
-> 
-> Remove the OV8858 kconfig and files.
+When used as an i2c device there is a module usage count mismatch on
+removal, preventing the driver from being used thereafter. dvb_attach
+increments the usage count so it is properly balanced on removal.
 
-Fine with me. We can sort things out later (repository will have the
-sources still in any case) when the driver itself shows signs of life.
+On disconnect of Hauppauge SoloHD/DualHD before:
 
+lsmod | grep lgdt3306a
+lgdt3306a              28672  -1
+i2c_mux                16384  1 lgdt3306a
+
+On disconnect of Hauppauge SoloHD/DualHD after:
+
+lsmod | grep lgdt3306a
+lgdt3306a              28672  0
+i2c_mux                16384  1 lgdt3306a
+
+Signed-off-by: Brad Love <brad@nextdimension.cc>
+---
+ drivers/media/dvb-frontends/lgdt3306a.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/media/dvb-frontends/lgdt3306a.c b/drivers/media/dvb-frontends/lgdt3306a.c
+index 6356815..d370671 100644
+--- a/drivers/media/dvb-frontends/lgdt3306a.c
++++ b/drivers/media/dvb-frontends/lgdt3306a.c
+@@ -2169,7 +2169,7 @@ static int lgdt3306a_probe(struct i2c_client *client,
+ 			sizeof(struct lgdt3306a_config));
+ 
+ 	config->i2c_addr = client->addr;
+-	fe = lgdt3306a_attach(config, client->adapter);
++	fe = dvb_attach(lgdt3306a_attach, config, client->adapter);
+ 	if (fe == NULL) {
+ 		ret = -ENODEV;
+ 		goto err_fe;
 -- 
-Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Intel Finland Oy
+2.7.4
