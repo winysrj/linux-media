@@ -1,81 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([65.50.211.133]:47522 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932363AbeAHLzd (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 8 Jan 2018 06:55:33 -0500
-Date: Mon, 8 Jan 2018 12:55:02 +0100
-From: Peter Zijlstra <peterz@infradead.org>
-To: Alan Cox <gnomes@lxorguk.ukuu.org.uk>
-Cc: Dan Williams <dan.j.williams@intel.com>,
-        "Eric W. Biederman" <ebiederm@xmission.com>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Alan Cox <alan.cox@intel.com>,
-        Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>,
-        Will Deacon <will.deacon@arm.com>,
-        Solomon Peachy <pizza@shaftnet.org>,
-        "H. Peter Anvin" <hpa@zytor.com>,
-        Christian Lamparter <chunkeey@googlemail.com>,
-        Elena Reshetova <elena.reshetova@intel.com>,
-        linux-arch@vger.kernel.org, Andi Kleen <ak@linux.intel.com>,
-        "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>,
-        linux-scsi <linux-scsi@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>, X86 ML <x86@kernel.org>,
-        Ingo Molnar <mingo@redhat.com>,
-        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
-        Zhang Rui <rui.zhang@intel.com>,
-        "Linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        Arnd Bergmann <arnd@arndb.de>, Jan Kara <jack@suse.com>,
-        Eduardo Valentin <edubezval@gmail.com>,
-        Al Viro <viro@zeniv.linux.org.uk>, qla2xxx-upstream@qlogic.com,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Arjan van de Ven <arjan@linux.intel.com>,
-        Kalle Valo <kvalo@codeaurora.org>,
-        Alan Cox <alan@linux.intel.com>,
-        "Martin K. Petersen" <martin.petersen@oracle.com>,
-        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
-        Greg KH <gregkh@linuxfoundation.org>,
-        linux-wireless@vger.kernel.org, Netdev <netdev@vger.kernel.org>,
-        Linus Torvalds <torvalds@linux-foundation.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH 00/18] prevent bounds-check bypass via speculative
- execution
-Message-ID: <20180108115502.GA6176@hirez.programming.kicks-ass.net>
-References: <151520099201.32271.4677179499894422956.stgit@dwillia2-desk3.amr.corp.intel.com>
- <87y3lbpvzp.fsf@xmission.com>
- <CAPcyv4hVisGeXbTH985Hb6dkYKA9Sr8wwZHudNF-CtH0=ADFug@mail.gmail.com>
- <20180108100836.GF3040@hirez.programming.kicks-ass.net>
- <20180108114342.3b2d99fb@alans-desktop>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20180108114342.3b2d99fb@alans-desktop>
+Received: from hapkido.dreamhost.com ([66.33.216.122]:43544 "EHLO
+        hapkido.dreamhost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751145AbeAEAFT (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 4 Jan 2018 19:05:19 -0500
+Received: from homiemail-a116.g.dreamhost.com (sub5.mail.dreamhost.com [208.113.200.129])
+        by hapkido.dreamhost.com (Postfix) with ESMTP id D159B8ED86
+        for <linux-media@vger.kernel.org>; Thu,  4 Jan 2018 16:05:18 -0800 (PST)
+From: Brad Love <brad@nextdimension.cc>
+To: linux-media@vger.kernel.org
+Cc: Brad Love <brad@nextdimension.cc>
+Subject: [PATCH 8/9] lgdt3306a: QAM streaming improvement
+Date: Thu,  4 Jan 2018 18:04:18 -0600
+Message-Id: <1515110659-20145-9-git-send-email-brad@nextdimension.cc>
+In-Reply-To: <1515110659-20145-1-git-send-email-brad@nextdimension.cc>
+References: <1515110659-20145-1-git-send-email-brad@nextdimension.cc>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jan 08, 2018 at 11:43:42AM +0000, Alan Cox wrote:
-> On Mon, 8 Jan 2018 11:08:36 +0100
-> Peter Zijlstra <peterz@infradead.org> wrote:
-> 
-> > On Fri, Jan 05, 2018 at 10:30:16PM -0800, Dan Williams wrote:
-> > > On Fri, Jan 5, 2018 at 6:22 PM, Eric W. Biederman <ebiederm@xmission.com> wrote:  
-> > > > In at least one place (mpls) you are patching a fast path.  Compile out
-> > > > or don't load mpls by all means.  But it is not acceptable to change the
-> > > > fast path without even considering performance.  
-> > > 
-> > > Performance matters greatly, but I need help to identify a workload
-> > > that is representative for this fast path to see what, if any, impact
-> > > is incurred. Even better is a review that says "nope, 'index' is not
-> > > subject to arbitrary userspace control at this point, drop the patch."  
-> > 
-> > I think we're focussing a little too much on pure userspace. That is, we
-> > should be saying under the attackers control. Inbound network packets
-> > could equally be under the attackers control.
-> 
-> Inbound network packets don't come with a facility to read back and do
-> cache timimg. 
+Add some register updates required for stable viewing
+on Cablevision in NY. Does not adversely affect other providers.
 
-But could they not be used in conjunction with a local task to prime the
-stuff?
+Signed-off-by: Brad Love <brad@nextdimension.cc>
+---
+ drivers/media/dvb-frontends/lgdt3306a.c | 22 ++++++++++++++++++++++
+ 1 file changed, 22 insertions(+)
+
+diff --git a/drivers/media/dvb-frontends/lgdt3306a.c b/drivers/media/dvb-frontends/lgdt3306a.c
+index d2477ed..2f540f1 100644
+--- a/drivers/media/dvb-frontends/lgdt3306a.c
++++ b/drivers/media/dvb-frontends/lgdt3306a.c
+@@ -598,6 +598,28 @@ static int lgdt3306a_set_qam(struct lgdt3306a_state *state, int modulation)
+ 	if (lg_chkerr(ret))
+ 		goto fail;
+ 
++	/* 5.1 V0.36 SRDCHKALWAYS : For better QAM detection */
++	ret = lgdt3306a_read_reg(state, 0x000A, &val);
++	val &= 0xFD;
++	val |= 0x02;
++	ret = lgdt3306a_write_reg(state, 0x000A, val);
++	if (lg_chkerr(ret))
++		goto fail;
++
++	/* 5.2 V0.36 Control of "no signal" detector function */
++	ret = lgdt3306a_read_reg(state, 0x2849, &val);
++	val &= 0xDF;
++	ret = lgdt3306a_write_reg(state, 0x2849, val);
++	if (lg_chkerr(ret))
++		goto fail;
++
++	/* 5.3 Fix for Blonder Tongue HDE-2H-QAM and AQM modulators */
++	ret = lgdt3306a_read_reg(state, 0x302B, &val);
++	val &= 0x7F;  /* SELFSYNCFINDEN_CQS=0; disable auto reset */
++	ret = lgdt3306a_write_reg(state, 0x302B, val);
++	if (lg_chkerr(ret))
++		goto fail;
++
+ 	/* 6. Reset */
+ 	ret = lgdt3306a_soft_reset(state);
+ 	if (lg_chkerr(ret))
+-- 
+2.7.4
