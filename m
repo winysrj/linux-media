@@ -1,324 +1,161 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from vsp-unauthed02.binero.net ([195.74.38.227]:32167 "EHLO
-        bin-vsp-out-03.atm.binero.net" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751608AbeA2Qfr (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 29 Jan 2018 11:35:47 -0500
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH v10 22/30] rcar-vin: add group allocator functions
-Date: Mon, 29 Jan 2018 17:34:27 +0100
-Message-Id: <20180129163435.24936-23-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20180129163435.24936-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20180129163435.24936-1-niklas.soderlund+renesas@ragnatech.se>
+Received: from mail-ot0-f182.google.com ([74.125.82.182]:35691 "EHLO
+        mail-ot0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751422AbeAFGaR (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sat, 6 Jan 2018 01:30:17 -0500
+Received: by mail-ot0-f182.google.com with SMTP id q5so5636880oth.2
+        for <linux-media@vger.kernel.org>; Fri, 05 Jan 2018 22:30:17 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <87y3lbpvzp.fsf@xmission.com>
+References: <151520099201.32271.4677179499894422956.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <87y3lbpvzp.fsf@xmission.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Fri, 5 Jan 2018 22:30:16 -0800
+Message-ID: <CAPcyv4hVisGeXbTH985Hb6dkYKA9Sr8wwZHudNF-CtH0=ADFug@mail.gmail.com>
+Subject: Re: [PATCH 00/18] prevent bounds-check bypass via speculative execution
+To: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Peter Zijlstra <peterz@infradead.org>,
+        Alan Cox <alan.cox@intel.com>,
+        Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>,
+        Will Deacon <will.deacon@arm.com>,
+        Solomon Peachy <pizza@shaftnet.org>,
+        "H. Peter Anvin" <hpa@zytor.com>,
+        Christian Lamparter <chunkeey@googlemail.com>,
+        Elena Reshetova <elena.reshetova@intel.com>,
+        linux-arch@vger.kernel.org, Andi Kleen <ak@linux.intel.com>,
+        "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>,
+        linux-scsi <linux-scsi@vger.kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>, X86 ML <x86@kernel.org>,
+        Ingo Molnar <mingo@redhat.com>,
+        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
+        Zhang Rui <rui.zhang@intel.com>,
+        "Linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        Arnd Bergmann <arnd@arndb.de>, Jan Kara <jack@suse.com>,
+        Eduardo Valentin <edubezval@gmail.com>,
+        Al Viro <viro@zeniv.linux.org.uk>, qla2xxx-upstream@qlogic.com,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Arjan van de Ven <arjan@linux.intel.com>,
+        Kalle Valo <kvalo@codeaurora.org>,
+        Alan Cox <alan@linux.intel.com>,
+        "Martin K. Petersen" <martin.petersen@oracle.com>,
+        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
+        Greg KH <gregkh@linuxfoundation.org>,
+        linux-wireless@vger.kernel.org, Netdev <netdev@vger.kernel.org>,
+        Linus Torvalds <torvalds@linux-foundation.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In media controller mode all VIN instances needs to be part of the same
-media graph. There is also a need for each VIN instance to know about
-and in some cases be able to communicate with other VIN instances.
+On Fri, Jan 5, 2018 at 6:22 PM, Eric W. Biederman <ebiederm@xmission.com> wrote:
+> Dan Williams <dan.j.williams@intel.com> writes:
+>
+>> Quoting Mark's original RFC:
+>>
+>> "Recently, Google Project Zero discovered several classes of attack
+>> against speculative execution. One of these, known as variant-1, allows
+>> explicit bounds checks to be bypassed under speculation, providing an
+>> arbitrary read gadget. Further details can be found on the GPZ blog [1]
+>> and the Documentation patch in this series."
+>>
+>> This series incorporates Mark Rutland's latest api and adds the x86
+>> specific implementation of nospec_barrier. The
+>> nospec_{array_ptr,ptr,barrier} helpers are then combined with a kernel
+>> wide analysis performed by Elena Reshetova to address static analysis
+>> reports where speculative execution on a userspace controlled value
+>> could bypass a bounds check. The patches address a precondition for the
+>> attack discussed in the Spectre paper [2].
+>
+> Please expand this.
+>
+> It is not clear what the static analysis is looking for.  Have a clear
+> description of what is being fixed is crucial for allowing any of these
+> changes.
+>
+> For the details given in the change description what I read is magic
+> changes because a magic process says this code is vunlerable.
 
-Add an allocator framework where the first VIN instance to be probed
-creates a shared data structure and registers a media device.
-Consecutive VINs insert themself into the global group.
+Yes, that was my first reaction to the patches as well, I try below to
+add some more background and guidance, but in the end these are static
+analysis reports across a wide swath of sub-systems. It's going to
+take some iteration with domain experts to improve the patch
+descriptions, and that's the point of this series, to get the better
+trained eyes from the actual sub-system owners to take a look at these
+reports.
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
----
- drivers/media/platform/rcar-vin/rcar-core.c | 177 +++++++++++++++++++++++++++-
- drivers/media/platform/rcar-vin/rcar-vin.h  |  31 +++++
- 2 files changed, 206 insertions(+), 2 deletions(-)
+For example, I'm looking for feedback like what Srinivas gave where he
+identified that the report is bogus, the branch condition can not be
+seeded with bad values in that path. Be like Srinivas.
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
-index 0c6960756c33f86c..4a64df5019ce45f7 100644
---- a/drivers/media/platform/rcar-vin/rcar-core.c
-+++ b/drivers/media/platform/rcar-vin/rcar-core.c
-@@ -20,12 +20,177 @@
- #include <linux/of_graph.h>
- #include <linux/platform_device.h>
- #include <linux/pm_runtime.h>
-+#include <linux/slab.h>
- 
- #include <media/v4l2-async.h>
- #include <media/v4l2-fwnode.h>
- 
- #include "rcar-vin.h"
- 
-+/* -----------------------------------------------------------------------------
-+ * Gen3 CSI2 Group Allocator
-+ */
-+
-+/* FIXME:  This should if we find a system that supports more
-+ * then one group for the whole system be replaced with a linked
-+ * list of groups. And eventually all of this should be replaced
-+ * with a global device allocator API.
-+ *
-+ * But for now this works as on all supported systems there will
-+ * be only one group for all instances.
-+ */
-+
-+static DEFINE_MUTEX(rvin_group_lock);
-+static struct rvin_group *rvin_group_data;
-+
-+static void rvin_group_cleanup(struct rvin_group *group)
-+{
-+	media_device_unregister(&group->mdev);
-+	media_device_cleanup(&group->mdev);
-+	mutex_destroy(&group->lock);
-+}
-+
-+static int rvin_group_init(struct rvin_group *group, struct rvin_dev *vin)
-+{
-+	struct media_device *mdev = &group->mdev;
-+	const struct of_device_id *match;
-+	struct device_node *np;
-+	int ret;
-+
-+	mutex_init(&group->lock);
-+
-+	/* Count number of VINs in the system */
-+	group->count = 0;
-+	for_each_matching_node(np, vin->dev->driver->of_match_table)
-+		if (of_device_is_available(np))
-+			group->count++;
-+
-+	vin_dbg(vin, "found %u enabled VIN's in DT", group->count);
-+
-+	mdev->dev = vin->dev;
-+
-+	match = of_match_node(vin->dev->driver->of_match_table,
-+			      vin->dev->of_node);
-+
-+	strlcpy(mdev->driver_name, KBUILD_MODNAME, sizeof(mdev->driver_name));
-+	strlcpy(mdev->model, match->compatible, sizeof(mdev->model));
-+	snprintf(mdev->bus_info, sizeof(mdev->bus_info), "platform:%s",
-+		 dev_name(mdev->dev));
-+
-+	media_device_init(mdev);
-+
-+	ret = media_device_register(&group->mdev);
-+	if (ret)
-+		rvin_group_cleanup(group);
-+
-+	return ret;
-+}
-+
-+static void rvin_group_release(struct kref *kref)
-+{
-+	struct rvin_group *group =
-+		container_of(kref, struct rvin_group, refcount);
-+
-+	mutex_lock(&rvin_group_lock);
-+
-+	rvin_group_data = NULL;
-+
-+	rvin_group_cleanup(group);
-+
-+	kfree(group);
-+
-+	mutex_unlock(&rvin_group_lock);
-+}
-+
-+static int rvin_group_get(struct rvin_dev *vin)
-+{
-+	struct rvin_group *group;
-+	u32 id;
-+	int ret;
-+
-+	/* Make sure VIN id is present and sane */
-+	ret = of_property_read_u32(vin->dev->of_node, "renesas,id", &id);
-+	if (ret) {
-+		vin_err(vin, "%pOF: No renesas,id property found\n",
-+			vin->dev->of_node);
-+		return -EINVAL;
-+	}
-+
-+	if (id >= RCAR_VIN_NUM) {
-+		vin_err(vin, "%pOF: Invalid renesas,id '%u'\n",
-+			vin->dev->of_node, id);
-+		return -EINVAL;
-+	}
-+
-+	/* Join or create a VIN group */
-+	mutex_lock(&rvin_group_lock);
-+	if (rvin_group_data) {
-+		group = rvin_group_data;
-+		kref_get(&group->refcount);
-+	} else {
-+		group = kzalloc(sizeof(*group), GFP_KERNEL);
-+		if (!group) {
-+			ret = -ENOMEM;
-+			goto err_group;
-+		}
-+
-+		ret = rvin_group_init(group, vin);
-+		if (ret) {
-+			kfree(group);
-+			vin_err(vin, "Failed to initialize group\n");
-+			goto err_group;
-+		}
-+
-+		kref_init(&group->refcount);
-+
-+		rvin_group_data = group;
-+	}
-+	mutex_unlock(&rvin_group_lock);
-+
-+	/* Add VIN to group */
-+	mutex_lock(&group->lock);
-+
-+	if (group->vin[id]) {
-+		vin_err(vin, "Duplicate renesas,id property value %u\n", id);
-+		ret = -EINVAL;
-+		goto err_vin;
-+	}
-+
-+	group->vin[id] = vin;
-+
-+	vin->id = id;
-+	vin->group = group;
-+	vin->v4l2_dev.mdev = &group->mdev;
-+
-+	mutex_unlock(&group->lock);
-+
-+	return 0;
-+err_group:
-+	mutex_unlock(&rvin_group_lock);
-+	return ret;
-+err_vin:
-+	mutex_unlock(&group->lock);
-+	kref_put(&group->refcount, rvin_group_release);
-+	return ret;
-+}
-+
-+static void rvin_group_put(struct rvin_dev *vin)
-+{
-+	mutex_lock(&vin->group->lock);
-+
-+	vin->group = NULL;
-+	vin->v4l2_dev.mdev = NULL;
-+
-+	if (WARN_ON(vin->group->vin[vin->id] != vin))
-+		goto out;
-+
-+	vin->group->vin[vin->id] = NULL;
-+out:
-+	mutex_unlock(&vin->group->lock);
-+
-+	kref_put(&vin->group->refcount, rvin_group_release);
-+}
-+
- /* -----------------------------------------------------------------------------
-  * Async notifier
-  */
-@@ -243,12 +408,18 @@ static int rvin_digital_graph_init(struct rvin_dev *vin)
- 
- static int rvin_mc_init(struct rvin_dev *vin)
- {
-+	int ret;
-+
- 	/* All our sources are CSI-2 */
- 	vin->mbus_cfg.type = V4L2_MBUS_CSI2;
- 	vin->mbus_cfg.flags = 0;
- 
- 	vin->pad.flags = MEDIA_PAD_FL_SINK;
--	return media_entity_pads_init(&vin->vdev.entity, 1, &vin->pad);
-+	ret = media_entity_pads_init(&vin->vdev.entity, 1, &vin->pad);
-+	if (ret)
-+		return ret;
-+
-+	return rvin_group_get(vin);
- }
- 
- /* -----------------------------------------------------------------------------
-@@ -368,7 +539,9 @@ static int rcar_vin_remove(struct platform_device *pdev)
- 	v4l2_async_notifier_unregister(&vin->notifier);
- 	v4l2_async_notifier_cleanup(&vin->notifier);
- 
--	if (!vin->info->use_mc)
-+	if (vin->info->use_mc)
-+		rvin_group_put(vin);
-+	else
- 		v4l2_ctrl_handler_free(&vin->ctrl_handler);
- 
- 	rvin_dma_unregister(vin);
-diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
-index 4caef7193db09c5b..903d8fb8426a7860 100644
---- a/drivers/media/platform/rcar-vin/rcar-vin.h
-+++ b/drivers/media/platform/rcar-vin/rcar-vin.h
-@@ -17,6 +17,8 @@
- #ifndef __RCAR_VIN__
- #define __RCAR_VIN__
- 
-+#include <linux/kref.h>
-+
- #include <media/v4l2-async.h>
- #include <media/v4l2-ctrls.h>
- #include <media/v4l2-dev.h>
-@@ -29,6 +31,11 @@
- /* Address alignment mask for HW buffers */
- #define HW_BUFFER_MASK 0x7f
- 
-+/* Max number on VIN instances that can be in a system */
-+#define RCAR_VIN_NUM 8
-+
-+struct rvin_group;
-+
- enum model_id {
- 	RCAR_H1,
- 	RCAR_M1,
-@@ -101,6 +108,8 @@ struct rvin_info {
-  * @notifier:		V4L2 asynchronous subdevs notifier
-  * @digital:		entity in the DT for local digital subdevice
-  *
-+ * @group:		Gen3 CSI group
-+ * @id:			Gen3 group id for this VIN
-  * @pad:		media pad for the video device entity
-  *
-  * @lock:		protects @queue
-@@ -132,6 +141,8 @@ struct rvin_dev {
- 	struct v4l2_async_notifier notifier;
- 	struct rvin_graph_entity *digital;
- 
-+	struct rvin_group *group;
-+	unsigned char id;
- 	struct media_pad pad;
- 
- 	struct mutex lock;
-@@ -160,6 +171,26 @@ struct rvin_dev {
- #define vin_warn(d, fmt, arg...)	dev_warn(d->dev, fmt, ##arg)
- #define vin_err(d, fmt, arg...)		dev_err(d->dev, fmt, ##arg)
- 
-+/**
-+ * struct rvin_group - VIN CSI2 group information
-+ * @refcount:		number of VIN instances using the group
-+ *
-+ * @mdev:		media device which represents the group
-+ *
-+ * @lock:		protects the count and vin members
-+ * @count:		number of enabled VIN instances found in DT
-+ * @vin:		VIN instances which are part of the group
-+ */
-+struct rvin_group {
-+	struct kref refcount;
-+
-+	struct media_device mdev;
-+
-+	struct mutex lock;
-+	unsigned int count;
-+	struct rvin_dev *vin[RCAR_VIN_NUM];
-+};
-+
- int rvin_dma_register(struct rvin_dev *vin, int irq);
- void rvin_dma_unregister(struct rvin_dev *vin);
- 
--- 
-2.16.1
+> Given the similarities in the code that is being patched to many other
+> places in the kernel it is not at all clear that this small set of
+> changes is sufficient for any purpose.
+
+I find this assertion absurd, when in the past have we as kernel
+developers ever been handed a static analysis report and then
+questioned why the static analysis did not flag other call sites
+before first reviewing the ones it did find?
+
+>> A consideration worth noting for reviewing these patches is to weigh the
+>> dramatic cost of being wrong about whether a given report is exploitable
+>> vs the overhead nospec_{array_ptr,ptr} may introduce. In other words,
+>> lets make the bar for applying these patches be "can you prove that the
+>> bounds check bypass is *not* exploitable". Consider that the Spectre
+>> paper reports one example of a speculation window being ~180 cycles.
+>
+>
+>> Note that there is also a proposal from Linus, array_access [3], that
+>> attempts to quash speculative execution past a bounds check without
+>> introducing an lfence instruction. That may be a future optimization
+>> possibility that is compatible with this api, but it would appear to
+>> need guarantees from the compiler that it is not clear the kernel can
+>> rely on at this point. It is also not clear that it would be a
+>> significant performance win vs lfence.
+>
+> It is also not clear that these changes fix anything, or are in any
+> sense correct for the problem they are trying to fix as the problem
+> is not clearly described.
+
+I'll try my best. I don't have first hand knowledge of how the static
+analyzer is doing this job, and I don't think it matters for
+evaluating these reports. I'll give you my thoughts on how I would
+handle one of these reports if it flagged one of the sub-systems I
+maintain.
+
+Start with the example from the Spectre paper:
+
+    if (x < array1_size)
+        y = array2[array1[x] * 256];
+
+In all the patches 'x' and 'array1' are called out explicitly. For example:
+
+    net: mpls: prevent bounds-check bypass via speculative execution
+
+    Static analysis reports that 'index' may be a user controlled value that
+    is used as a data dependency reading 'rt' from the 'platform_label'
+    array...
+
+So the first thing to review is whether the analyzer got it wrong and
+'x' is not arbitrarily controllable by userspace to cause speculation
+outside of the checked bounds. Be like Srinivas. The next step is to
+ask whether the code can be refactored so that 'x' is sanitized
+earlier in the call stack, especially if the nospec_array_ptr() lands
+in a hot path. The next aspect that I expect most would be tempted to
+go check is whether 'array2[array1[x]]' occurs later in the code
+stream, but with speculation windows being architecture dependent and
+potentially large (~180 cycles in one case says the paper) I submit
+that we should err on the side of caution and not guess if that second
+dependent read has been emitted somewhere in the instruction stream.
+
+> In at least one place (mpls) you are patching a fast path.  Compile out
+> or don't load mpls by all means.  But it is not acceptable to change the
+> fast path without even considering performance.
+
+Performance matters greatly, but I need help to identify a workload
+that is representative for this fast path to see what, if any, impact
+is incurred. Even better is a review that says "nope, 'index' is not
+subject to arbitrary userspace control at this point, drop the patch."
