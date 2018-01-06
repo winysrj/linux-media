@@ -1,130 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:45785 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754560AbeAHSHE (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 8 Jan 2018 13:07:04 -0500
-Subject: Re: [PATCH] v4l: doc: clarify v4l2_mbus_fmt height definition
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-        =?UTF-8?Q?Niklas_S=c3=b6derlund?= <niklas.soderlund@ragnatech.se>,
-        Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Archit Taneja <architt@codeaurora.org>,
-        Sean Paul <seanpaul@chromium.org>,
-        Neil Armstrong <narmstrong@baylibre.com>,
-        open list <linux-kernel@vger.kernel.org>
-References: <1515422746-5971-1-git-send-email-kieran.bingham@ideasonboard.com>
- <20180108151353.zn2ee2tbdq2yragp@valkosipuli.retiisi.org.uk>
- <20180108153247.GA23075@bigcity.dyn.berto.se>
- <7c5ad9a4-c218-45f4-e21e-7aa9935cfd41@xs4all.nl>
-From: Kieran Bingham <kieran.bingham@ideasonboard.com>
-Message-ID: <9002632f-4ce3-e063-ffbc-a164a348c0f8@ideasonboard.com>
-Date: Mon, 8 Jan 2018 18:06:58 +0000
-MIME-Version: 1.0
-In-Reply-To: <7c5ad9a4-c218-45f4-e21e-7aa9935cfd41@xs4all.nl>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 8bit
+Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:45891 "EHLO
+        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751831AbeAFEwN (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 5 Jan 2018 23:52:13 -0500
+Message-ID: <9c2bf6f7f571da198b12973b1bf9b8fd@smtp-cloud7.xs4all.net>
+Date: Sat, 06 Jan 2018 05:52:10 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans, Niklas, Sakari,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Thank you for the very prompt reviews!
+Results of the daily build of media_tree:
 
-I fired the patch - disappeared to teach code club, and came back to the answers
-:-D - very streamlined!
+date:			Sat Jan  6 05:00:17 CET 2018
+media-tree git hash:	e3ee691dbf24096ea51b3200946b11d68ce75361
+media_build git hash:	46c9dc0a08499791cedfc7ee0df387e475f075a2
+v4l-utils git hash:	8aa401d119afaeb1b4fe4d2994789cd3e9396554
+gcc version:		i686-linux-gcc (GCC) 7.1.0
+sparse version:		v0.5.0-3911-g6f737e1f
+smatch version:		v0.5.0-3911-g6f737e1f
+host hardware:		x86_64
+host os:		4.13.0-164
 
-On 08/01/18 15:48, Hans Verkuil wrote:
-> On 01/08/2018 04:32 PM, Niklas Söderlund wrote:
->> Hi,
->>
->> Thanks for your patch.
->>
->> On 2018-01-08 17:13:53 +0200, Sakari Ailus wrote:
->>> Hi Kieran,
->>>
->>> On Mon, Jan 08, 2018 at 02:45:49PM +0000, Kieran Bingham wrote:
->>>> The v4l2_mbus_fmt width and height corresponds directly with the
->>>> v4l2_pix_format definitions, yet the differences in documentation make
->>>> it ambiguous what to do in the event of field heights.
->>>>
->>>> Clarify this by referencing the v4l2_pix_format which is explicit on the
->>>> matter, and by matching the terminology of 'image height' rather than
->>>> the misleading 'frame height'.
->>
->> Nice that this relationship is documented as it have contributed to some 
->> confusion on my side in the past!
->>
->>>>
->>>> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
->>>> ---
->>>>  Documentation/media/uapi/v4l/subdev-formats.rst | 6 ++++--
->>>>  include/uapi/linux/v4l2-mediabus.h              | 4 ++--
->>>>  2 files changed, 6 insertions(+), 4 deletions(-)
->>>>
->>>> diff --git a/Documentation/media/uapi/v4l/subdev-formats.rst b/Documentation/media/uapi/v4l/subdev-formats.rst
->>>> index b1eea44550e1..a2a00202b430 100644
->>>> --- a/Documentation/media/uapi/v4l/subdev-formats.rst
->>>> +++ b/Documentation/media/uapi/v4l/subdev-formats.rst
->>>> @@ -16,10 +16,12 @@ Media Bus Formats
->>>>  
->>>>      * - __u32
->>>>        - ``width``
->>>> -      - Image width, in pixels.
->>>> +      - Image width in pixels. See struct
->>>> +	:c:type:`v4l2_pix_format`.
->>>>      * - __u32
->>>>        - ``height``
->>>> -      - Image height, in pixels.
->>>> +      - Image height in pixels. See struct
->>>> +	:c:type:`v4l2_pix_format`.
->>>>      * - __u32
->>>>        - ``code``
->>>>        - Format code, from enum
->>>> diff --git a/include/uapi/linux/v4l2-mediabus.h b/include/uapi/linux/v4l2-mediabus.h
->>>> index 6e20de63ec59..6b34108d0338 100644
->>>> --- a/include/uapi/linux/v4l2-mediabus.h
->>>> +++ b/include/uapi/linux/v4l2-mediabus.h
->>>> @@ -18,8 +18,8 @@
->>>>  
->>>>  /**
->>>>   * struct v4l2_mbus_framefmt - frame format on the media bus
->>>> - * @width:	frame width
->>>> - * @height:	frame height
->>>> + * @width:	image width
->>>> + * @height:	image height (see struct v4l2_pix_format)
->>>
->>> Hmm. This is the media bus format and it has no direct relation to
->>> v4l2_pix_format. So no, I can't see what would be the point in making such
->>> a reference.
->>
->> Well we have functions like v4l2_fill_pix_format() that do
->>
->>     pix_fmt->width = mbus_fmt->width;
->>     pix_fmt->height = mbus_fmt->height;
->>
->> So I think there at least is an implicit relation between the two 
->> structs. The issue I think Kieran is trying to address is in the case of 
->> TOP, BOTTOM and ALTERNATE field formats. From the v4l2_pix_format 
->> documentation on the height field:
+linux-git-arm-at91: ERRORS
+linux-git-arm-davinci: OK
+linux-git-arm-multi: ERRORS
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-blackfin-bf561: ERRORS
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: ERRORS
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: WARNINGS
+linux-3.11.1-i686: ERRORS
+linux-3.12.67-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.7-i686: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.18.7-i686: ERRORS
+linux-3.19-i686: ERRORS
+linux-4.0.9-i686: ERRORS
+linux-4.1.33-i686: ERRORS
+linux-4.2.8-i686: ERRORS
+linux-4.3.6-i686: ERRORS
+linux-4.4.22-i686: ERRORS
+linux-4.5.7-i686: ERRORS
+linux-4.6.7-i686: ERRORS
+linux-4.7.5-i686: ERRORS
+linux-4.8-i686: ERRORS
+linux-4.9.26-i686: ERRORS
+linux-4.10.14-i686: WARNINGS
+linux-4.11-i686: WARNINGS
+linux-4.12.1-i686: WARNINGS
+linux-4.13-i686: WARNINGS
+linux-4.14-i686: WARNINGS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.67-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.7-x86_64: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.7-x86_64: ERRORS
+linux-3.19-x86_64: ERRORS
+linux-4.0.9-x86_64: ERRORS
+linux-4.1.33-x86_64: ERRORS
+linux-4.2.8-x86_64: ERRORS
+linux-4.3.6-x86_64: ERRORS
+linux-4.4.22-x86_64: ERRORS
+linux-4.5.7-x86_64: ERRORS
+linux-4.6.7-x86_64: ERRORS
+linux-4.7.5-x86_64: ERRORS
+linux-4.8-x86_64: ERRORS
+linux-4.9.26-x86_64: ERRORS
+linux-4.10.14-x86_64: WARNINGS
+linux-4.11-x86_64: WARNINGS
+linux-4.12.1-x86_64: WARNINGS
+linux-4.13-x86_64: WARNINGS
+linux-4.14-x86_64: WARNINGS
+apps: OK
+spec-git: OK
+smatch: OK
 
+Detailed results are available here:
 
-Yes, it was this relationship which made me feel it was appropriate to just
-reference in the same way that the subdevice version did.
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
 
->>    "Image height in pixels. If field is one of V4L2_FIELD_TOP, 
->>    V4L2_FIELD_BOTTOM or V4L2_FIELD_ALTERNATE then height refers to the 
->>    number of lines in the field, otherwise it refers to the number of 
->>    lines in the frame (which is twice the field height for interlaced 
->>    formats)."
-> 
-> Right, and I'd just copy this text to subdev-formats.rst rather than referring
-> to it.
+Full logs are available here:
 
-Ok - Copied for V2.
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
 
-Thanks
+The Media Infrastructure API from this daily build is here:
 
-Kieran
+http://www.xs4all.nl/~hverkuil/spec/index.html
