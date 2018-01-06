@@ -1,108 +1,188 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from vsp-unauthed02.binero.net ([195.74.38.227]:54157 "EHLO
-        bin-vsp-out-03.atm.binero.net" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751438AbeA2QfQ (ORCPT
+Received: from sub5.mail.dreamhost.com ([208.113.200.129]:43185 "EHLO
+        homiemail-a82.g.dreamhost.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753447AbeAFAs1 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 29 Jan 2018 11:35:16 -0500
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH v10 06/30] rcar-vin: move max width and height information to chip information
-Date: Mon, 29 Jan 2018 17:34:11 +0100
-Message-Id: <20180129163435.24936-7-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20180129163435.24936-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20180129163435.24936-1-niklas.soderlund+renesas@ragnatech.se>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+        Fri, 5 Jan 2018 19:48:27 -0500
+From: Brad Love <brad@nextdimension.cc>
+To: linux-media@vger.kernel.org
+Cc: Brad Love <brad@nextdimension.cc>
+Subject: [PATCH 4/4] cx23885: Add support for new Hauppauge QuadHD (885)
+Date: Fri,  5 Jan 2018 18:48:22 -0600
+Message-Id: <1515199702-16083-5-git-send-email-brad@nextdimension.cc>
+In-Reply-To: <1515199702-16083-1-git-send-email-brad@nextdimension.cc>
+References: <1515199702-16083-1-git-send-email-brad@nextdimension.cc>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Gen3 the max supported width and height will be different from Gen2.
-Move the limits to the struct rvin_info to prepare for Gen3 support.
+Add new QuadHD digital only PCIe boards to driver list.
+Differentiate them from 888 digital/analog QuadHD models.
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Brad Love <brad@nextdimension.cc>
 ---
- drivers/media/platform/rcar-vin/rcar-core.c | 6 ++++++
- drivers/media/platform/rcar-vin/rcar-v4l2.c | 6 ++----
- drivers/media/platform/rcar-vin/rcar-vin.h  | 5 +++++
- 3 files changed, 13 insertions(+), 4 deletions(-)
+ drivers/media/pci/cx23885/cx23885-cards.c | 42 ++++++++++++++++++++++---------
+ drivers/media/pci/cx23885/cx23885-core.c  |  8 ++++++
+ drivers/media/pci/cx23885/cx23885-dvb.c   |  6 +++++
+ drivers/media/pci/cx23885/cx23885.h       |  2 ++
+ 4 files changed, 46 insertions(+), 12 deletions(-)
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
-index d2b27ccff690cede..cc863e4ec9a4d4b3 100644
---- a/drivers/media/platform/rcar-vin/rcar-core.c
-+++ b/drivers/media/platform/rcar-vin/rcar-core.c
-@@ -243,14 +243,20 @@ static int rvin_digital_graph_init(struct rvin_dev *vin)
+diff --git a/drivers/media/pci/cx23885/cx23885-cards.c b/drivers/media/pci/cx23885/cx23885-cards.c
+index 70f1047..a0d8858 100644
+--- a/drivers/media/pci/cx23885/cx23885-cards.c
++++ b/drivers/media/pci/cx23885/cx23885-cards.c
+@@ -771,11 +771,21 @@ struct cx23885_board cx23885_boards[] = {
+ 		.portb        = CX23885_MPEG_DVB,
+ 		.portc        = CX23885_MPEG_DVB,
+ 	},
++	[CX23885_BOARD_HAUPPAUGE_QUADHD_DVB_885] = {
++		.name       = "Hauppauge WinTV-QuadHD-DVB(885)",
++		.portb        = CX23885_MPEG_DVB,
++		.portc        = CX23885_MPEG_DVB,
++	},
+ 	[CX23885_BOARD_HAUPPAUGE_QUADHD_ATSC] = {
+ 		.name        = "Hauppauge WinTV-QuadHD-ATSC",
+ 		.portb        = CX23885_MPEG_DVB,
+ 		.portc        = CX23885_MPEG_DVB,
+ 	},
++	[CX23885_BOARD_HAUPPAUGE_QUADHD_ATSC_885] = {
++		.name       = "Hauppauge WinTV-QuadHD-ATSC(885)",
++		.portb        = CX23885_MPEG_DVB,
++		.portc        = CX23885_MPEG_DVB,
++	},
+ 	[CX23885_BOARD_HAUPPAUGE_HVR1265_K4] = {
+ 		.name		= "Hauppauge WinTV-HVR-1265(161111)",
+ 		.portc		= CX23885_MPEG_DVB,
+@@ -1311,25 +1321,25 @@ static void hauppauge_eeprom(struct cx23885_dev *dev, u8 *eeprom_data)
+ 	case 161111:
+ 		/* WinTV-HVR-1265 (PCIe, Analog/ATSC/QAM-B) */
+ 		break;
+-	case 166100:
++	case 166100: /* 888 version, hybrid */
++	case 166200: /* 885 version, DVB only */
+ 		/* WinTV-QuadHD (DVB) Tuner Pair 1 (PCIe, IR, half height,
+ 		   DVB-T/T2/C, DVB-T/T2/C */
+ 		break;
+-	case 166101:
++	case 166101: /* 888 version, hybrid */
++	case 166201: /* 885 version, DVB only */
+ 		/* WinTV-QuadHD (DVB) Tuner Pair 2 (PCIe, IR, half height,
+ 		   DVB-T/T2/C, DVB-T/T2/C */
+ 		break;
+-	case 165100:
+-		/*
+-		 * WinTV-QuadHD (ATSC) Tuner Pair 1 (PCIe, IR, half height,
+-		 * ATSC, ATSC
+-		 */
++	case 165100: /* 888 version, hybrid */
++	case 165200: /* 885 version, digital only */
++		/* WinTV-QuadHD (ATSC) Tuner Pair 1 (PCIe, IR, half height,
++		 * ATSC/QAM-B, ATSC/QAM-B */
+ 		break;
+-	case 165101:
+-		/*
+-		 * WinTV-QuadHD (DVB) Tuner Pair 2 (PCIe, IR, half height,
+-		 * ATSC, ATSC
+-		 */
++	case 165101: /* 888 version, hybrid */
++	case 165201: /* 885 version, digital only */
++		/* WinTV-QuadHD (ATSC) Tuner Pair 2 (PCIe, IR, half height,
++		 * ATSC/QAM-B, ATSC/QAM-B */
+ 		break;
+ 	default:
+ 		pr_warn("%s: warning: unknown hauppauge model #%d\n",
+@@ -1835,6 +1845,8 @@ void cx23885_gpio_setup(struct cx23885_dev *dev)
+ 		 */
+ 		break;
+ 	case CX23885_BOARD_HAUPPAUGE_HVR1265_K4:
++	case CX23885_BOARD_HAUPPAUGE_QUADHD_DVB_885:
++	case CX23885_BOARD_HAUPPAUGE_QUADHD_ATSC_885:
+ 		/*
+ 		 * GPIO-08 TER1_RESN
+ 		 * GPIO-09 TER2_RESN
+@@ -2094,7 +2106,9 @@ void cx23885_card_setup(struct cx23885_dev *dev)
+ 	case CX23885_BOARD_HAUPPAUGE_HVR1265_K4:
+ 	case CX23885_BOARD_HAUPPAUGE_STARBURST2:
+ 	case CX23885_BOARD_HAUPPAUGE_QUADHD_DVB:
++	case CX23885_BOARD_HAUPPAUGE_QUADHD_DVB_885:
+ 	case CX23885_BOARD_HAUPPAUGE_QUADHD_ATSC:
++	case CX23885_BOARD_HAUPPAUGE_QUADHD_ATSC_885:
+ 		if (dev->i2c_bus[0].i2c_rc == 0)
+ 			hauppauge_eeprom(dev, eeprom+0xc0);
+ 		break;
+@@ -2243,7 +2257,9 @@ void cx23885_card_setup(struct cx23885_dev *dev)
+ 		break;
+ 	case CX23885_BOARD_HAUPPAUGE_HVR1265_K4:
+ 	case CX23885_BOARD_HAUPPAUGE_QUADHD_DVB:
++	case CX23885_BOARD_HAUPPAUGE_QUADHD_DVB_885:
+ 	case CX23885_BOARD_HAUPPAUGE_QUADHD_ATSC:
++	case CX23885_BOARD_HAUPPAUGE_QUADHD_ATSC_885:
+ 		ts1->gen_ctrl_val  = 0xc; /* Serial bus + punctured clock */
+ 		ts1->ts_clk_en_val = 0x1; /* Enable TS_CLK */
+ 		ts1->src_sel_val   = CX23885_SRC_SEL_PARALLEL_MPEG_VIDEO;
+@@ -2301,6 +2317,8 @@ void cx23885_card_setup(struct cx23885_dev *dev)
+ 	case CX23885_BOARD_HAUPPAUGE_HVR1255:
+ 	case CX23885_BOARD_HAUPPAUGE_HVR1255_22111:
+ 	case CX23885_BOARD_HAUPPAUGE_HVR1265_K4:
++	case CX23885_BOARD_HAUPPAUGE_QUADHD_DVB:
++	case CX23885_BOARD_HAUPPAUGE_QUADHD_ATSC:
+ 	case CX23885_BOARD_HAUPPAUGE_HVR1270:
+ 	case CX23885_BOARD_HAUPPAUGE_HVR1850:
+ 	case CX23885_BOARD_MYGICA_X8506:
+diff --git a/drivers/media/pci/cx23885/cx23885-core.c b/drivers/media/pci/cx23885/cx23885-core.c
+index 8f63df1..8afddd6 100644
+--- a/drivers/media/pci/cx23885/cx23885-core.c
++++ b/drivers/media/pci/cx23885/cx23885-core.c
+@@ -869,6 +869,14 @@ static int cx23885_dev_setup(struct cx23885_dev *dev)
+ 		cx23885_card_list(dev);
+ 	}
  
- static const struct rvin_info rcar_info_h1 = {
- 	.model = RCAR_H1,
-+	.max_width = 2048,
-+	.max_height = 2048,
- };
- 
- static const struct rvin_info rcar_info_m1 = {
- 	.model = RCAR_M1,
-+	.max_width = 2048,
-+	.max_height = 2048,
- };
- 
- static const struct rvin_info rcar_info_gen2 = {
- 	.model = RCAR_GEN2,
-+	.max_width = 2048,
-+	.max_height = 2048,
- };
- 
- static const struct of_device_id rvin_of_id_table[] = {
-diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-index 0a035667c0b0e93f..8805d7911a761019 100644
---- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-+++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-@@ -23,8 +23,6 @@
- #include "rcar-vin.h"
- 
- #define RVIN_DEFAULT_FORMAT	V4L2_PIX_FMT_YUYV
--#define RVIN_MAX_WIDTH		2048
--#define RVIN_MAX_HEIGHT		2048
- 
- /* -----------------------------------------------------------------------------
-  * Format Conversions
-@@ -258,8 +256,8 @@ static int __rvin_try_format(struct rvin_dev *vin,
- 	walign = vin->format.pixelformat == V4L2_PIX_FMT_NV16 ? 5 : 1;
- 
- 	/* Limit to VIN capabilities */
--	v4l_bound_align_image(&pix->width, 2, RVIN_MAX_WIDTH, walign,
--			      &pix->height, 4, RVIN_MAX_HEIGHT, 2, 0);
-+	v4l_bound_align_image(&pix->width, 2, vin->info->max_width, walign,
-+			      &pix->height, 4, vin->info->max_height, 2, 0);
- 
- 	pix->bytesperline = max_t(u32, pix->bytesperline,
- 				  rvin_format_bytesperline(pix));
-diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
-index 3f49d2f2d6b88471..f195d174eeacda10 100644
---- a/drivers/media/platform/rcar-vin/rcar-vin.h
-+++ b/drivers/media/platform/rcar-vin/rcar-vin.h
-@@ -91,9 +91,14 @@ struct rvin_graph_entity {
- /**
-  * struct rvin_info - Information about the particular VIN implementation
-  * @model:		VIN model
-+ * @max_width:		max input width the VIN supports
-+ * @max_height:		max input height the VIN supports
-  */
- struct rvin_info {
- 	enum model_id model;
++	if (dev->pci->device == 0x8852) {
++		/* no DIF on cx23885, so no analog tuner support possible */
++		if (dev->board == CX23885_BOARD_HAUPPAUGE_QUADHD_ATSC)
++			dev->board = CX23885_BOARD_HAUPPAUGE_QUADHD_ATSC_885;
++		else if (dev->board == CX23885_BOARD_HAUPPAUGE_QUADHD_DVB)
++			dev->board = CX23885_BOARD_HAUPPAUGE_QUADHD_DVB_885;
++	}
 +
-+	unsigned int max_width;
-+	unsigned int max_height;
- };
+ 	/* If the user specific a clk freq override, apply it */
+ 	if (cx23885_boards[dev->board].clk_freq > 0)
+ 		dev->clk_freq = cx23885_boards[dev->board].clk_freq;
+diff --git a/drivers/media/pci/cx23885/cx23885-dvb.c b/drivers/media/pci/cx23885/cx23885-dvb.c
+index 260d843..2bd45ad 100644
+--- a/drivers/media/pci/cx23885/cx23885-dvb.c
++++ b/drivers/media/pci/cx23885/cx23885-dvb.c
+@@ -2333,6 +2333,9 @@ static int dvb_register(struct cx23885_tsport *port)
+ 		}
+ 		break;
+ 	case CX23885_BOARD_HAUPPAUGE_QUADHD_DVB:
++	case CX23885_BOARD_HAUPPAUGE_QUADHD_DVB_885:
++		pr_info("%s(): board=%d port=%d\n", __func__,
++			dev->board, port->nr);
+ 		switch (port->nr) {
+ 		/* port b - Terrestrial/cable */
+ 		case 1:
+@@ -2430,6 +2433,9 @@ static int dvb_register(struct cx23885_tsport *port)
+ 		}
+ 		break;
+ 	case CX23885_BOARD_HAUPPAUGE_QUADHD_ATSC:
++	case CX23885_BOARD_HAUPPAUGE_QUADHD_ATSC_885:
++		pr_info("%s(): board=%d port=%d\n", __func__,
++			dev->board, port->nr);
+ 		switch (port->nr) {
+ 		/* port b - Terrestrial/cable */
+ 		case 1:
+diff --git a/drivers/media/pci/cx23885/cx23885.h b/drivers/media/pci/cx23885/cx23885.h
+index 6523fe3..6e659be 100644
+--- a/drivers/media/pci/cx23885/cx23885.h
++++ b/drivers/media/pci/cx23885/cx23885.h
+@@ -109,6 +109,8 @@
+ #define CX23885_BOARD_HAUPPAUGE_QUADHD_ATSC    57
+ #define CX23885_BOARD_HAUPPAUGE_HVR1265_K4     58
+ #define CX23885_BOARD_HAUPPAUGE_STARBURST2     59
++#define CX23885_BOARD_HAUPPAUGE_QUADHD_DVB_885 60
++#define CX23885_BOARD_HAUPPAUGE_QUADHD_ATSC_885 61
  
- /**
+ #define GPIO_0 0x00000001
+ #define GPIO_1 0x00000002
 -- 
-2.16.1
+2.7.4
