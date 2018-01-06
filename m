@@ -1,111 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay3-d.mail.gandi.net ([217.70.183.195]:45974 "EHLO
-        relay3-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750853AbeAUR3P (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sun, 21 Jan 2018 12:29:15 -0500
-Date: Sun, 21 Jan 2018 18:29:07 +0100
-From: jacopo mondi <jacopo@jmondi.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        laurent.pinchart@ideasonboard.com, magnus.damm@gmail.com,
-        geert@glider.be, mchehab@kernel.org, festevam@gmail.com,
-        sakari.ailus@iki.fi, robh+dt@kernel.org, mark.rutland@arm.com,
-        pombredanne@nexb.com, linux-renesas-soc@vger.kernel.org,
-        linux-media@vger.kernel.org, linux-sh@vger.kernel.org,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v6 3/9] v4l: platform: Add Renesas CEU driver
-Message-ID: <20180121172907.GO24926@w540>
-References: <1516139101-7835-1-git-send-email-jacopo+renesas@jmondi.org>
- <1516139101-7835-4-git-send-email-jacopo+renesas@jmondi.org>
- <d056343b-46be-436a-e316-0a588a182eb9@xs4all.nl>
- <20180121095323.GL24926@w540>
- <55c3ab66-0886-4b2b-6842-ac07fc9138f3@xs4all.nl>
- <e9623e9c-6444-2531-62c0-feed622c6e3b@xs4all.nl>
+Received: from youngberry.canonical.com ([91.189.89.112]:59794 "EHLO
+        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753376AbeAFQDc (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sat, 6 Jan 2018 11:03:32 -0500
+From: Colin King <colin.king@canonical.com>
+To: Kyungmin Park <kyungmin.park@samsung.com>,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Kukjin Kim <kgene@kernel.org>,
+        Krzysztof Kozlowski <krzk@kernel.org>,
+        linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        linux-samsung-soc@vger.kernel.org
+Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] [media] exynos4-is: make array 'cmd' static, shrinks object size
+Date: Sat,  6 Jan 2018 16:03:27 +0000
+Message-Id: <20180106160327.17961-1-colin.king@canonical.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <e9623e9c-6444-2531-62c0-feed622c6e3b@xs4all.nl>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+From: Colin Ian King <colin.king@canonical.com>
 
-On Sun, Jan 21, 2018 at 11:23:12AM +0100, Hans Verkuil wrote:
-> On 21/01/18 11:21, Hans Verkuil wrote:
-> > On 21/01/18 10:53, jacopo mondi wrote:
-> >> Hi Hans,
-> >>
-> >> On Fri, Jan 19, 2018 at 12:20:19PM +0100, Hans Verkuil wrote:
-> >>> static int ov7670_g_parm(struct v4l2_subdev *sd, struct v4l2_streamparm *parms)
-> >>> {
-> >>>         struct v4l2_captureparm *cp = &parms->parm.capture;
-> >>>         struct ov7670_info *info = to_state(sd);
-> >>>
-> >>>         if (parms->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
-> >>>                 return -EINVAL;
-> >>>
-> >>> And parms->type is CAPTURE_MPLANE. Just drop this test from the ov7670 driver
-> >>> in the g/s_parm functions. It shouldn't test for that since a subdev driver
-> >>> knows nothing about buffer types.
-> >>>
-> >>
-> >> I will drop that test in an additional patch part of next iteration of this series,
-> >
-> > Replace g/s_parm by g/s_frame_interval. Consider g/s_parm for subdev drivers as
-> > deprecated (I'm working on a patch series to replace all g/s_parm uses by
-> > g/s_frame_interval).
->
-> Take a look here:
->
-> https://git.linuxtv.org/hverkuil/media_tree.git/log/?h=parm
->
-> You probably want to use the patch 'v4l2-common: add g/s_parm helper functions'
-> for the new ceu driver in your patch series. Feel free to add it.
+Don't populate the const read-only array 'cmd' on the stack but instead
+make it static. Makes the object code smaller by 38 bytes:
 
-Thanks, I have now re-based my series on top of your 'parm' branch,
-and now I have silenced those errors on bad frame interval.
+Before:
+   text	   data	    bss	    dec	    hex	filename
+   4950	    868	      0	   5818	   16ba	fimc-is-regs.o
 
-CEU g/s_parm now look like this:
+After:
+   text	   data	    bss	    dec	    hex	filename
+   4824	    956	      0	   5780	   1694	fimc-is-regs.o
 
-static int ceu_g_parm(struct file *file, void *fh, struct v4l2_streamparm *a)
-{
-	struct ceu_device *ceudev = video_drvdata(file);
-	int ret;
+(gcc version 7.2.0 x86_64)
 
-	ret = v4l2_g_parm(V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE,
-			  ceudev->sd->v4l2_sd, a);
-	if (ret)
-		return ret;
+Signed-off-by: Colin Ian King <colin.king@canonical.com>
+---
+ drivers/media/platform/exynos4-is/fimc-is-regs.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-	a->parm.capture.readbuffers = 0;
-
-	return 0;
-}
-
-Very similar to what you've done on other platform drivers in this
-commit:
-https://git.linuxtv.org/hverkuil/media_tree.git/commit/?h=parm&id=a58956ef45cebaa5ce43a5f740fe04517b24a853
-
-I have a question though (please bear with me a little more :)
-I had to manually set a->parm.capture.readbuffers to 0 to silence the following
-error in v4l2_compliance (which I have now updated to the most recent
-remote HEAD):
-
- fail: v4l2-test-formats.cpp(1114): cap->readbuffers
-                test VIDIOC_G/S_PARM: FAIL
-
-		fail_on_test(cap->readbuffers > VIDEO_MAX_FRAME);
-		if (!(node->g_caps() & V4L2_CAP_READWRITE))
-			fail_on_test(cap->readbuffers);
-		else if (node->g_caps() & V4L2_CAP_STREAMING)
-			fail_on_test(!cap->readbuffers);
-
-CEU does not support CAP_READWRITE, as it seems atmel-isc/isi do not, so
-v4l2-compliance wants to have readbuffers set to 0. I wonder why in
-the previously mentioned commit you didn't have to set readbuffers
-explicitly to 0 for atmel-isc/isi as I had to for CEU. Will v4l2-compliance
-fail if run on atmel-isc/isi with your commit, or am I missing something?
-
-Thanks
-   j
+diff --git a/drivers/media/platform/exynos4-is/fimc-is-regs.c b/drivers/media/platform/exynos4-is/fimc-is-regs.c
+index cfe4406a83ff..e0e291066037 100644
+--- a/drivers/media/platform/exynos4-is/fimc-is-regs.c
++++ b/drivers/media/platform/exynos4-is/fimc-is-regs.c
+@@ -159,7 +159,7 @@ void fimc_is_hw_load_setfile(struct fimc_is *is)
+ 
+ int fimc_is_hw_change_mode(struct fimc_is *is)
+ {
+-	const u8 cmd[] = {
++	static const u8 cmd[] = {
+ 		HIC_PREVIEW_STILL, HIC_PREVIEW_VIDEO,
+ 		HIC_CAPTURE_STILL, HIC_CAPTURE_VIDEO,
+ 	};
+-- 
+2.15.1
