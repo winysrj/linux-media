@@ -1,47 +1,179 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:39394 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753272AbeARAI7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 17 Jan 2018 19:08:59 -0500
-Date: Wed, 17 Jan 2018 18:08:56 -0600
-From: Bjorn Helgaas <helgaas@kernel.org>
-To: Christoph Hellwig <hch@lst.de>
-Cc: Bjorn Helgaas <bhelgaas@google.com>,
+Received: from galahad.ideasonboard.com ([185.26.127.97]:43425 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750940AbeAFS3r (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sat, 6 Jan 2018 13:29:47 -0500
+Subject: Re: [RFC/RFT PATCH 6/6] uvcvideo: Move decode processing to process
+ context
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        laurent.pinchart@ideasonboard.com,
+        Olivier BRAUN <olivier.braun@stereolabs.com>,
+        kieran.bingham@ideasonboard.com,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Kong Lai <kong.lai@tundra.com>, linux-pci@vger.kernel.org,
-        linux-media@vger.kernel.org, netdev@vger.kernel.org,
-        linux-kernel@vger.kernel.org,
-        "David S. Miller" <davem@davemloft.net>
-Subject: Re: remove pci_dma_* abuses and workarounds V2
-Message-ID: <20180118000856.GE53542@bhelgaas-glaptop.roam.corp.google.com>
-References: <20180110180322.30186-1-hch@lst.de>
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Baoyou Xie <baoyou.xie@linaro.org>,
+        Jaejoong Kim <climbbb.kim@gmail.com>,
+        Kate Stewart <kstewart@linuxfoundation.org>,
+        Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Daniel Patrick Johnson <teknotus@teknot.us>,
+        Jim Lin <jilin@nvidia.com>
+References: <cover.67dff754d6d314373ac0a04777b3b1d785fc5dd4.1515010476.git-series.kieran.bingham@ideasonboard.com>
+ <48e2716d3902214a89aa30f3d1672512f8ea8773.1515010476.git-series.kieran.bingham@ideasonboard.com>
+ <alpine.DEB.2.20.1801041941320.13441@axis700.grange>
+From: Kieran Bingham <kieran.bingham@ideasonboard.com>
+Message-ID: <bb9a4463-fda5-a9e8-5af5-7ee4d3b098ec@ideasonboard.com>
+Date: Sat, 6 Jan 2018 18:29:42 +0000
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20180110180322.30186-1-hch@lst.de>
+In-Reply-To: <alpine.DEB.2.20.1801041941320.13441@axis700.grange>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-[+cc David]
+Hi Guennadi,
 
-On Wed, Jan 10, 2018 at 07:03:18PM +0100, Christoph Hellwig wrote:
-> Back before the dawn of time pci_dma_* with a NULL pci_dev argument
-> was used for all kinds of things, e.g. dma mapping for non-PCI
-> devices.  All this has been long removed, but it turns out we
-> still care for a NULL pci_dev in the wrappers, and we still have
-> two odd USB drivers that use pci_dma_alloc_consistent for allocating
-> memory while ignoring the dma_addr_t entirely, and a network driver
-> mixing the already wrong usage of dma_* with a NULL device with a
-> single call to pci_free_consistent.
-> 
-> This series switches the two usb drivers to use plain kzalloc, the
-> net driver to properly use the dma API and then removes the handling
-> of the NULL pci_dev in the pci_dma_* wrappers.
-> 
-> Changes since V1:
->  - remove allocation failure printks
->  - use kcalloc
->  - fix tsi108_eth
->  - improve changelogs
+Thank you for taking the time to review this series,
 
-Applied to pci/dma for v4.16, thanks!
+On 04/01/18 18:54, Guennadi Liakhovetski wrote:
+> On Wed, 3 Jan 2018, Kieran Bingham wrote:
+> 
+>> From: Kieran Bingham <kieran.bingham@ideasonboard.com>
+>>
+>> Newer high definition cameras, and cameras with multiple lenses such as
+>> the range of stereovision cameras now available have ever increasing
+>> data rates.
+>>
+>> The inclusion of a variable length packet header in URB packets mean
+>> that we must memcpy the frame data out to our destination 'manually'.
+>> This can result in data rates of up to 2 gigabits per second being
+>> processed.
+>>
+>> To improve efficiency, and maximise throughput, handle the URB decode
+>> processing through a work queue to move it from interrupt context, and
+>> allow multiple processors to work on URBs in parallel.
+>>
+>> Signed-off-by: Kieran Bingham <kieran.bingham@ideasonboard.com>
+>> ---
+>>  drivers/media/usb/uvc/uvc_queue.c |  12 +++-
+>>  drivers/media/usb/uvc/uvc_video.c | 114 ++++++++++++++++++++++++++-----
+>>  drivers/media/usb/uvc/uvcvideo.h  |  24 +++++++-
+>>  3 files changed, 132 insertions(+), 18 deletions(-)
+>>
+>> diff --git a/drivers/media/usb/uvc/uvc_queue.c b/drivers/media/usb/uvc/uvc_queue.c
+>> index 204dd91a8526..07fcbfc132c9 100644
+>> --- a/drivers/media/usb/uvc/uvc_queue.c
+>> +++ b/drivers/media/usb/uvc/uvc_queue.c
+>> @@ -179,10 +179,22 @@ static void uvc_stop_streaming(struct vb2_queue *vq)
+>>  	struct uvc_video_queue *queue = vb2_get_drv_priv(vq);
+>>  	struct uvc_streaming *stream = uvc_queue_to_stream(queue);
+>>  
+>> +	/* Prevent new buffers coming in. */
+>> +	spin_lock_irq(&queue->irqlock);
+>> +	queue->flags |= UVC_QUEUE_STOPPING;
+>> +	spin_unlock_irq(&queue->irqlock);
+>> +
+>> +	/*
+>> +	 * All pending work should be completed before disabling the stream, as
+>> +	 * all URBs will be free'd during uvc_video_enable(s, 0).
+>> +	 */
+>> +	flush_workqueue(stream->async_wq);
+>> +
+>>  	uvc_video_enable(stream, 0);
+>>  
+>>  	spin_lock_irq(&queue->irqlock);
+>>  	uvc_queue_return_buffers(queue, UVC_BUF_STATE_ERROR);
+>> +	queue->flags &= ~UVC_QUEUE_STOPPING;
+>>  	spin_unlock_irq(&queue->irqlock);
+>>  }
+>>  
+>> diff --git a/drivers/media/usb/uvc/uvc_video.c b/drivers/media/usb/uvc/uvc_video.c
+>> index 045ac655313c..b7b32a6bc2dc 100644
+>> --- a/drivers/media/usb/uvc/uvc_video.c
+>> +++ b/drivers/media/usb/uvc/uvc_video.c
+>> @@ -1058,21 +1058,70 @@ static int uvc_video_decode_start(struct uvc_streaming *stream,
+>>  	return data[0];
+>>  }
+>>  
+>> -static void uvc_video_decode_data(struct uvc_streaming *stream,
+>> -		struct uvc_buffer *buf, const __u8 *data, int len)
+>> +/*
+>> + * uvc_video_decode_data_work: Asynchronous memcpy processing
+>> + *
+>> + * Perform memcpy tasks in process context, with completion handlers
+>> + * to return the URB, and buffer handles.
+>> + *
+>> + * The work submitter must pre-determine that the work is safe
+>> + */
+>> +static void uvc_video_decode_data_work(struct work_struct *work)
+>>  {
+>> -	unsigned int maxlen, nbytes;
+>> -	void *mem;
+>> +	struct uvc_urb *uvc_urb = container_of(work, struct uvc_urb, work);
+>> +	struct uvc_streaming *stream = uvc_urb->stream;
+>> +	struct uvc_video_queue *queue = &stream->queue;
+>> +	unsigned int i;
+>> +	bool stopping;
+>> +	int ret;
+>> +
+>> +	for (i = 0; i < uvc_urb->packets; i++) {
+>> +		struct uvc_decode_op *op = &uvc_urb->decodes[i];
+>> +
+>> +		memcpy(op->dst, op->src, op->len);
+>> +
+>> +		/* Release reference taken on this buffer */
+>> +		uvc_queue_buffer_release(op->buf);
+>> +	}
+>> +
+>> +	/*
+>> +	 * Prevent resubmitting URBs when shutting down to ensure that no new
+>> +	 * work item will be scheduled after uvc_stop_streaming() flushes the
+>> +	 * work queue.
+>> +	 */
+>> +	spin_lock_irq(&queue->irqlock);
+>> +	stopping = queue->flags & UVC_QUEUE_STOPPING;
+>> +	spin_unlock_irq(&queue->irqlock);
+> 
+> Are you sure this locking really helps? What if uvc_stop_streaming() runs 
+> here?
+
+Quite - there is a race there. It protects the flag though ;-)
+
+I thought I had pulled the lock out to only check the flag, to prevent
+surrounding the usb_submit_urb(), but now I look again - I see no reason not to
+lock for the whole critical section.
+
+I've tested locally on my laptop, and it seems safe to hold the lock during the
+usb_submit_urb() (unless anyone sees something I'm missing), so I'll update this
+for the next spin to something more like:
+
+       spin_lock_irq(&queue->irqlock);
+       if (!(queue->flags & UVC_QUEUE_STOPPING)) {
+               ret = usb_submit_urb(uvc_urb->urb, GFP_ATOMIC);
+               if (ret < 0)
+                       uvc_printk(KERN_ERR,
+                                  "Failed to resubmit video URB (%d).\n",
+                                  ret);
+       }
+       spin_unlock_irq(&queue->irqlock);
+
+
+> Thanks
+> Guennadi
+> 
+>> +
+>> +	if (stopping)
+>> +		return;
+>> +
+>> +	ret = usb_submit_urb(uvc_urb->urb, GFP_ATOMIC);
+>> +	if (ret < 0)
+>> +		uvc_printk(KERN_ERR, "Failed to resubmit video URB (%d).\n",
+>> +			   ret);
+>> +}
+
+
+Regards
+--
+Kieran
