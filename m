@@ -1,132 +1,133 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f68.google.com ([209.85.215.68]:38227 "EHLO
-        mail-lf0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932487AbeAHPcu (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 8 Jan 2018 10:32:50 -0500
-Received: by mail-lf0-f68.google.com with SMTP id d19so4212146lfj.5
-        for <linux-media@vger.kernel.org>; Mon, 08 Jan 2018 07:32:49 -0800 (PST)
-Date: Mon, 8 Jan 2018 16:32:47 +0100
-From: Niklas =?iso-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund@ragnatech.se>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
+Received: from galahad.ideasonboard.com ([185.26.127.97]:43439 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751136AbeAFSaq (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sat, 6 Jan 2018 13:30:46 -0500
+Subject: Re: [RFC/RFT PATCH 1/6] uvcvideo: Refactor URB descriptors
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        laurent.pinchart@ideasonboard.com,
+        Olivier BRAUN <olivier.braun@stereolabs.com>,
+        kieran.bingham@ideasonboard.com,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Archit Taneja <architt@codeaurora.org>,
-        Sean Paul <seanpaul@chromium.org>,
-        Neil Armstrong <narmstrong@baylibre.com>,
-        open list <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH] v4l: doc: clarify v4l2_mbus_fmt height definition
-Message-ID: <20180108153247.GA23075@bigcity.dyn.berto.se>
-References: <1515422746-5971-1-git-send-email-kieran.bingham@ideasonboard.com>
- <20180108151353.zn2ee2tbdq2yragp@valkosipuli.retiisi.org.uk>
+        Jaejoong Kim <climbbb.kim@gmail.com>,
+        Baoyou Xie <baoyou.xie@linaro.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Aviv Greenberg <avivgr@gmail.com>,
+        Nicolas Dufresne <nicolas.dufresne@collabora.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Daniel Patrick Johnson <teknotus@teknot.us>,
+        Jim Lin <jilin@nvidia.com>
+References: <cover.67dff754d6d314373ac0a04777b3b1d785fc5dd4.1515010476.git-series.kieran.bingham@ideasonboard.com>
+ <cac2db68616f9855ceb5a57786f1ee8631b9df79.1515010476.git-series.kieran.bingham@ideasonboard.com>
+ <alpine.DEB.2.20.1801041607070.13441@axis700.grange>
+From: Kieran Bingham <kieran.bingham@ideasonboard.com>
+Message-ID: <74a7e71d-7876-5323-f515-ebe9d4067b36@ideasonboard.com>
+Date: Sat, 6 Jan 2018 18:30:42 +0000
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20180108151353.zn2ee2tbdq2yragp@valkosipuli.retiisi.org.uk>
+In-Reply-To: <alpine.DEB.2.20.1801041607070.13441@axis700.grange>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hi Guennadi,
 
-Thanks for your patch.
+Thanks for your review,
 
-On 2018-01-08 17:13:53 +0200, Sakari Ailus wrote:
+On 04/01/18 18:24, Guennadi Liakhovetski wrote:
 > Hi Kieran,
 > 
-> On Mon, Jan 08, 2018 at 02:45:49PM +0000, Kieran Bingham wrote:
-> > The v4l2_mbus_fmt width and height corresponds directly with the
-> > v4l2_pix_format definitions, yet the differences in documentation make
-> > it ambiguous what to do in the event of field heights.
-> > 
-> > Clarify this by referencing the v4l2_pix_format which is explicit on the
-> > matter, and by matching the terminology of 'image height' rather than
-> > the misleading 'frame height'.
-
-Nice that this relationship is documented as it have contributed to some 
-confusion on my side in the past!
-
-> > 
-> > Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-> > ---
-> >  Documentation/media/uapi/v4l/subdev-formats.rst | 6 ++++--
-> >  include/uapi/linux/v4l2-mediabus.h              | 4 ++--
-> >  2 files changed, 6 insertions(+), 4 deletions(-)
-> > 
-> > diff --git a/Documentation/media/uapi/v4l/subdev-formats.rst b/Documentation/media/uapi/v4l/subdev-formats.rst
-> > index b1eea44550e1..a2a00202b430 100644
-> > --- a/Documentation/media/uapi/v4l/subdev-formats.rst
-> > +++ b/Documentation/media/uapi/v4l/subdev-formats.rst
-> > @@ -16,10 +16,12 @@ Media Bus Formats
-> >  
-> >      * - __u32
-> >        - ``width``
-> > -      - Image width, in pixels.
-> > +      - Image width in pixels. See struct
-> > +	:c:type:`v4l2_pix_format`.
-> >      * - __u32
-> >        - ``height``
-> > -      - Image height, in pixels.
-> > +      - Image height in pixels. See struct
-> > +	:c:type:`v4l2_pix_format`.
-> >      * - __u32
-> >        - ``code``
-> >        - Format code, from enum
-> > diff --git a/include/uapi/linux/v4l2-mediabus.h b/include/uapi/linux/v4l2-mediabus.h
-> > index 6e20de63ec59..6b34108d0338 100644
-> > --- a/include/uapi/linux/v4l2-mediabus.h
-> > +++ b/include/uapi/linux/v4l2-mediabus.h
-> > @@ -18,8 +18,8 @@
-> >  
-> >  /**
-> >   * struct v4l2_mbus_framefmt - frame format on the media bus
-> > - * @width:	frame width
-> > - * @height:	frame height
-> > + * @width:	image width
-> > + * @height:	image height (see struct v4l2_pix_format)
+> Just minor suggestions below:
 > 
-> Hmm. This is the media bus format and it has no direct relation to
-> v4l2_pix_format. So no, I can't see what would be the point in making such
-> a reference.
+> On Wed, 3 Jan 2018, Kieran Bingham wrote:
+> 
+>> From: Kieran Bingham <kieran.bingham@ideasonboard.com>
+>>
+>> We currently store three separate arrays for each URB reference we hold.
+>>
+>> Objectify the data needed to track URBs into a single uvc_urb structure,
+>> allowing better object management and tracking of the URB.
+>>
+>> All accesses to the data pointers through stream, are converted to use a
+>> uvc_urb pointer for consistency.
+>>
+>> Signed-off-by: Kieran Bingham <kieran.bingham@ideasonboard.com>
+>> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+>> ---
+>>  drivers/media/usb/uvc/uvc_video.c | 46 ++++++++++++++++++++------------
+>>  drivers/media/usb/uvc/uvcvideo.h  | 18 ++++++++++---
+>>  2 files changed, 44 insertions(+), 20 deletions(-)
+> 
+> [snip]
+> 
+>> diff --git a/drivers/media/usb/uvc/uvcvideo.h b/drivers/media/usb/uvc/uvcvideo.h
+>> index 19e725e2bda5..4afa8ce13ea7 100644
+>> --- a/drivers/media/usb/uvc/uvcvideo.h
+>> +++ b/drivers/media/usb/uvc/uvcvideo.h
+>> @@ -479,6 +479,20 @@ struct uvc_stats_stream {
+>>  	unsigned int max_sof;		/* Maximum STC.SOF value */
+>>  };
+>>  
+>> +/**
+>> + * struct uvc_urb - URB context management structure
+>> + *
+>> + * @urb: described URB. Must be allocated with usb_alloc_urb()
+> 
+> Didn't you mean "describes?"
 
-Well we have functions like v4l2_fill_pix_format() that do
+Hrm ... I think I meant described as in "This is the URB described by this
+uvc_urb structure", rather than "this variable describes the URB"
 
-    pix_fmt->width = mbus_fmt->width;
-    pix_fmt->height = mbus_fmt->height;
+Perhaps I'll change this to:
 
-So I think there at least is an implicit relation between the two 
-structs. The issue I think Kieran is trying to address is in the case of 
-TOP, BOTTOM and ALTERNATE field formats. From the v4l2_pix_format 
-documentation on the height field:
+  @urb: The URB described by this context structure.
 
-   "Image height in pixels. If field is one of V4L2_FIELD_TOP, 
-   V4L2_FIELD_BOTTOM or V4L2_FIELD_ALTERNATE then height refers to the 
-   number of lines in the field, otherwise it refers to the number of 
-   lines in the frame (which is twice the field height for interlaced 
-   formats)."
-
-But there are no such clear definition of the height field for 
-v4l2_mbus_framefmt. This have cased some confusion for us which would be 
-nice to clarify. I think it would be a good thing to add to the 
-documentation if the height in v4l2_mbus_framefmt should describe the 
-height of a frame or field. And if it should represent the frame height 
-then v4l2_fill_pix_format() and v4l2_fill_mbus_format() should be 
-updated to support converting from the two different formats for height.
+I think the 'must be allocated with usb_alloc_urb() is fairly implicit, so could
+be dropped in that case.
 
 > 
-> >   * @code:	data format code (from enum v4l2_mbus_pixelcode)
-> >   * @field:	used interlacing type (from enum v4l2_field)
-> >   * @colorspace:	colorspace of the data (from enum v4l2_colorspace)
+>> + * @urb_buffer: memory storage for the URB
+>> + * @urb_dma: DMA coherent addressing for the urb_buffer
 > 
-> -- 
-> Regards,
-> 
-> Sakari Ailus
-> e-mail: sakari.ailus@iki.fi
+> The whole struct describes URBs, so, I wouldn't repeat that in these two 
+> field names, I'd just call them "buffer" and "dma." OTOH, later you add 
+> more fields like "stream," which aren't per-URB, so, maybe you want to 
+> keep these prefixes.
 
--- 
-Regards,
-Niklas Söderlund
+These names were kept from the original fields. But actually I think you're
+right here - it wouldn't hurt to shorten the names, even with the other fields
+added.
+
+> Thanks
+> Guennadi
+> 
+>> + */
+>> +struct uvc_urb {
+>> +	struct urb *urb;
+>> +
+>> +	char *urb_buffer;
+>> +	dma_addr_t urb_dma;
+>> +};
+>> +
+>>  struct uvc_streaming {
+>>  	struct list_head list;
+>>  	struct uvc_device *dev;
+>> @@ -521,9 +535,7 @@ struct uvc_streaming {
+>>  		__u32 max_payload_size;
+>>  	} bulk;
+>>  
+>> -	struct urb *urb[UVC_URBS];
+>> -	char *urb_buffer[UVC_URBS];
+>> -	dma_addr_t urb_dma[UVC_URBS];
+>> +	struct uvc_urb uvc_urb[UVC_URBS];
+>>  	unsigned int urb_size;
+>>  
+>>  	__u32 sequence;
+>> -- 
+>> git-series 0.9.1
+>>
+
+--
+Kieran
