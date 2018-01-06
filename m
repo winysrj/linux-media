@@ -1,107 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:44339 "EHLO
-        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750994AbeAYGrs (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 25 Jan 2018 01:47:48 -0500
-Received: by mail-wm0-f65.google.com with SMTP id t74so12667163wme.3
-        for <linux-media@vger.kernel.org>; Wed, 24 Jan 2018 22:47:48 -0800 (PST)
-Date: Thu, 25 Jan 2018 07:47:44 +0100 (CET)
-From: Enrico Mioso <mrkiko.rs@gmail.com>
-To: =?ISO-8859-15?Q?Honza_Petrou=A8?= <jpetrous@gmail.com>
-cc: linux-media@vger.kernel.org, Sean Young <sean@mess.org>,
-        Piotr Oleszczyk <piotr.oleszczyk@gmail.com>,
-        Andrey Konovalov <andreyknvl@google.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Alexey Dobriyan <adobriyan@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Subject: Re: [PATCH] dib700: stop flooding system ring buffer
-In-Reply-To: <CAJbz7-0hBw_j8LXU5P=xTc2DQpNuU81S5BNub_TRkN2epQDhhA@mail.gmail.com>
-Message-ID: <alpine.LNX.2.21.99.1801250746120.3761@mStation.localdomain>
-References: <20180124074038.13275-1-mrkiko.rs@gmail.com> <CAJbz7-0hBw_j8LXU5P=xTc2DQpNuU81S5BNub_TRkN2epQDhhA@mail.gmail.com>
+Received: from mga07.intel.com ([134.134.136.100]:23197 "EHLO mga07.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753141AbeAFS7J (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sat, 6 Jan 2018 13:59:09 -0500
+Subject: Re: [PATCH 00/18] prevent bounds-check bypass via speculative
+ execution
+To: Florian Fainelli <f.fainelli@gmail.com>,
+        Dan Williams <dan.j.williams@intel.com>,
+        linux-kernel@vger.kernel.org
+Cc: Mark Rutland <mark.rutland@arm.com>, peterz@infradead.org,
+        Alan Cox <alan.cox@intel.com>,
+        Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>,
+        Will Deacon <will.deacon@arm.com>,
+        Solomon Peachy <pizza@shaftnet.org>,
+        "H. Peter Anvin" <hpa@zytor.com>,
+        Christian Lamparter <chunkeey@googlemail.com>,
+        Elena Reshetova <elena.reshetova@intel.com>,
+        linux-arch@vger.kernel.org, Andi Kleen <ak@linux.intel.com>,
+        "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>,
+        linux-scsi@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
+        x86@kernel.org, Ingo Molnar <mingo@redhat.com>,
+        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
+        Zhang Rui <rui.zhang@intel.com>, linux-media@vger.kernel.org,
+        Arnd Bergmann <arnd@arndb.de>, Jan Kara <jack@suse.com>,
+        Eduardo Valentin <edubezval@gmail.com>,
+        Al Viro <viro@zeniv.linux.org.uk>, qla2xxx-upstream@qlogic.com,
+        tglx@linutronix.de, Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Kalle Valo <kvalo@codeaurora.org>, alan@linux.intel.com,
+        "Martin K. Petersen" <martin.petersen@oracle.com>,
+        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
+        gregkh@linuxfoundation.org, linux-wireless@vger.kernel.org,
+        "Eric W. Biederman" <ebiederm@xmission.com>,
+        netdev@vger.kernel.org, torvalds@linux-foundation.org,
+        "David S. Miller" <davem@davemloft.net>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        dan.carpenter@oracle.com
+References: <151520099201.32271.4677179499894422956.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <ca6f24c0-d6cf-e309-aa68-92f1378ee75a@gmail.com>
+From: Arjan van de Ven <arjan@linux.intel.com>
+Message-ID: <e567c704-e141-63db-5d59-7294e0c78e26@linux.intel.com>
+Date: Sat, 6 Jan 2018 10:59:06 -0800
 MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="8323329-1579914518-1516862866=:3761"
+In-Reply-To: <ca6f24c0-d6cf-e309-aa68-92f1378ee75a@gmail.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+> It sounds like Coverity was used to produce these patches? If so, is
+> there a plan to have smatch (hey Dan) or other open source static
+> analysis tool be possibly enhanced to do a similar type of work?
 
---8323329-1579914518-1516862866=:3761
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8BIT
+I'd love for that to happen; the tricky part is being able to have even a
+sort of sensible concept of "trusted" vs "untrusted" value...
 
-Hello Honza,
-
-thank you very very much for your help and hints. These things make a community what it is, and I apreciate it extremely.
-You're perfectly right, I didn't think about this well and/or enough.
-Apreciated your hints.....
-
-
-On Wed, 24 Jan 2018, Honza Petrouš wrote:
-
-> Date: Wed, 24 Jan 2018 14:07:52
-> From: Honza Petrouš <jpetrous@gmail.com>
-> To: Enrico Mioso <mrkiko.rs@gmail.com>
-> Cc: linux-media@vger.kernel.org, Sean Young <sean@mess.org>,
->     Piotr Oleszczyk <piotr.oleszczyk@gmail.com>,
->     Andrey Konovalov <andreyknvl@google.com>,
->     Andrew Morton <akpm@linux-foundation.org>,
->     Alexey Dobriyan <adobriyan@gmail.com>,
->     Mauro Carvalho Chehab <mchehab@kernel.org>
-> Subject: Re: [PATCH] dib700: stop flooding system ring buffer
-> 
-> Hi Enrico,
->
-> I'm not maintener, so treat next hints as hints only :)
->
-> 2018-01-24 8:40 GMT+01:00 Enrico Mioso <mrkiko.rs@gmail.com>:
->> Stop flooding system ring buffer with messages like:
->> dib0700: stk7700ph_xc3028_callback: unknown command 2, arg 0
->> while tuning an Asus My Cinema-U3000Hybrid dvb card.
->>
->> The correctness of this patch is opinable, but it's annoying me so much I
->> sent it anyway.
->>
->> CC: linux-media@vger.kernel.org
->> CC: Sean Young <sean@mess.org>
->> CC: Piotr Oleszczyk <piotr.oleszczyk@gmail.com>
->> CC: Andrey Konovalov <andreyknvl@google.com>
->> CC: Andrew Morton <akpm@linux-foundation.org>
->> CC: Alexey Dobriyan <adobriyan@gmail.com>
->> CC: Mauro Carvalho Chehab <mchehab@kernel.org>
->> Signed-off-by: Enrico Mioso <mrkiko.rs@gmail.com>
->> ---
->>  drivers/media/usb/dvb-usb/dib0700_devices.c | 3 +--
->>  1 file changed, 1 insertion(+), 2 deletions(-)
->>
->> diff --git a/drivers/media/usb/dvb-usb/dib0700_devices.c b/drivers/media/usb/dvb-usb/dib0700_devices.c
->> index 366b05529915..bc5d250ed2f2 100644
->> --- a/drivers/media/usb/dvb-usb/dib0700_devices.c
->> +++ b/drivers/media/usb/dvb-usb/dib0700_devices.c
->> @@ -432,8 +432,7 @@ static int stk7700ph_xc3028_callback(void *ptr, int component,
->>         case XC2028_RESET_CLK:
->>                 break;
->>         default:
->> -               err("%s: unknown command %d, arg %d\n", __func__,
->> -                       command, arg);
->
-> May be change err() to debug() or something similar would be better?
->
->> +               break;
->>                 return -EINVAL;
->
-> Anyway it looks strange to break before return.
->
-> In both cases (w/ or w/o removal of message) I would stay
-> with -EINVAL for unknown command here.
->
->>         }
->>         return 0;
->> --
->> 2.16.1
->>
->
-> /Honza
->
---8323329-1579914518-1516862866=:3761--
+if you look at a very small window of code, that does not work well;
+you likely need to even look (as tool) across .c file boundaries
