@@ -1,172 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx08-00178001.pphosted.com ([91.207.212.93]:16294 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1752133AbeACJ6j (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 3 Jan 2018 04:58:39 -0500
-From: Hugues Fruchet <hugues.fruchet@st.com>
-To: Steve Longerbeam <slongerbeam@gmail.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        "Mauro Carvalho Chehab" <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>
-CC: <devicetree@vger.kernel.org>, <linux-media@vger.kernel.org>,
-        "Hugues Fruchet" <hugues.fruchet@st.com>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Subject: [PATCH v5 5/5] media: ov5640: add support of RGB565 and YUYV formats
-Date: Wed, 3 Jan 2018 10:57:32 +0100
-Message-ID: <1514973452-10464-6-git-send-email-hugues.fruchet@st.com>
-In-Reply-To: <1514973452-10464-1-git-send-email-hugues.fruchet@st.com>
-References: <1514973452-10464-1-git-send-email-hugues.fruchet@st.com>
+Received: from mga06.intel.com ([134.134.136.31]:15544 "EHLO mga06.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753389AbeAFBSI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 5 Jan 2018 20:18:08 -0500
+Subject: [PATCH 00/18] prevent bounds-check bypass via speculative execution
+From: Dan Williams <dan.j.williams@intel.com>
+To: linux-kernel@vger.kernel.org
+Cc: Mark Rutland <mark.rutland@arm.com>, peterz@infradead.org,
+        Alan Cox <alan.cox@intel.com>,
+        Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>,
+        Will Deacon <will.deacon@arm.com>,
+        Solomon Peachy <pizza@shaftnet.org>,
+        "H. Peter Anvin" <hpa@zytor.com>,
+        Christian Lamparter <chunkeey@googlemail.com>,
+        Elena Reshetova <elena.reshetova@intel.com>,
+        linux-arch@vger.kernel.org, Andi Kleen <ak@linux.intel.com>,
+        "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>,
+        linux-scsi@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
+        x86@kernel.org, Ingo Molnar <mingo@redhat.com>,
+        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
+        Zhang Rui <rui.zhang@intel.com>, linux-media@vger.kernel.org,
+        Arnd Bergmann <arnd@arndb.de>, Jan Kara <jack@suse.com>,
+        Eduardo Valentin <edubezval@gmail.com>,
+        Al Viro <viro@zeniv.linux.org.uk>, qla2xxx-upstream@qlogic.com,
+        tglx@linutronix.de, Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Arjan van de Ven <arjan@linux.intel.com>,
+        Kalle Valo <kvalo@codeaurora.org>, alan@linux.intel.com,
+        "Martin K. Petersen" <martin.petersen@oracle.com>,
+        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
+        gregkh@linuxfoundation.org, linux-wireless@vger.kernel.org,
+        "Eric W. Biederman" <ebiederm@xmission.com>,
+        netdev@vger.kernel.org, torvalds@linux-foundation.org,
+        "David S. Miller" <davem@davemloft.net>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Date: Fri, 05 Jan 2018 17:09:53 -0800
+Message-ID: <151520099201.32271.4677179499894422956.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add RGB565 (LE & BE) and YUV422 YUYV format in addition
-to existing YUV422 UYVY format.
+Quoting Mark's original RFC:
 
-Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
+"Recently, Google Project Zero discovered several classes of attack
+against speculative execution. One of these, known as variant-1, allows
+explicit bounds checks to be bypassed under speculation, providing an
+arbitrary read gadget. Further details can be found on the GPZ blog [1]
+and the Documentation patch in this series."
+
+This series incorporates Mark Rutland's latest api and adds the x86
+specific implementation of nospec_barrier. The
+nospec_{array_ptr,ptr,barrier} helpers are then combined with a kernel
+wide analysis performed by Elena Reshetova to address static analysis
+reports where speculative execution on a userspace controlled value
+could bypass a bounds check. The patches address a precondition for the
+attack discussed in the Spectre paper [2].
+
+A consideration worth noting for reviewing these patches is to weigh the
+dramatic cost of being wrong about whether a given report is exploitable
+vs the overhead nospec_{array_ptr,ptr} may introduce. In other words,
+lets make the bar for applying these patches be "can you prove that the
+bounds check bypass is *not* exploitable". Consider that the Spectre
+paper reports one example of a speculation window being ~180 cycles.
+
+Note that there is also a proposal from Linus, array_access [3], that
+attempts to quash speculative execution past a bounds check without
+introducing an lfence instruction. That may be a future optimization
+possibility that is compatible with this api, but it would appear to
+need guarantees from the compiler that it is not clear the kernel can
+rely on at this point. It is also not clear that it would be a
+significant performance win vs lfence.
+
+These patches also will also be available via the 'nospec' git branch
+here:
+
+    git://git.kernel.org/pub/scm/linux/kernel/git/djbw/linux nospec
+
+[1]: https://googleprojectzero.blogspot.co.uk/2018/01/reading-privileged-memory-with-side.html
+[2]: https://spectreattack.com/spectre.pdf
+[3]: https://marc.info/?l=linux-kernel&m=151510446027625&w=2
+
 ---
- drivers/media/i2c/ov5640.c | 74 +++++++++++++++++++++++++++++++++++++++++-----
- 1 file changed, 67 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
-index a44b680..f017742 100644
---- a/drivers/media/i2c/ov5640.c
-+++ b/drivers/media/i2c/ov5640.c
-@@ -76,9 +76,11 @@
- #define OV5640_REG_HZ5060_CTRL01	0x3c01
- #define OV5640_REG_SIGMADELTA_CTRL0C	0x3c0c
- #define OV5640_REG_FRAME_CTRL01		0x4202
-+#define OV5640_REG_FORMAT_CONTROL00	0x4300
- #define OV5640_REG_POLARITY_CTRL00	0x4740
- #define OV5640_REG_MIPI_CTRL00		0x4800
- #define OV5640_REG_DEBUG_MODE		0x4814
-+#define OV5640_REG_ISP_FORMAT_MUX_CTRL	0x501f
- #define OV5640_REG_PRE_ISP_TEST_SET1	0x503d
- #define OV5640_REG_SDE_CTRL0		0x5580
- #define OV5640_REG_SDE_CTRL1		0x5581
-@@ -106,6 +108,18 @@ enum ov5640_frame_rate {
- 	OV5640_NUM_FRAMERATES,
- };
- 
-+struct ov5640_pixfmt {
-+	u32 code;
-+	u32 colorspace;
-+};
-+
-+static const struct ov5640_pixfmt ov5640_formats[] = {
-+	{ MEDIA_BUS_FMT_UYVY8_2X8, V4L2_COLORSPACE_SRGB, },
-+	{ MEDIA_BUS_FMT_YUYV8_2X8, V4L2_COLORSPACE_SRGB, },
-+	{ MEDIA_BUS_FMT_RGB565_2X8_LE, V4L2_COLORSPACE_SRGB, },
-+	{ MEDIA_BUS_FMT_RGB565_2X8_BE, V4L2_COLORSPACE_SRGB, },
-+};
-+
- /*
-  * FIXME: remove this when a subdev API becomes available
-  * to set the MIPI CSI-2 virtual channel.
-@@ -1837,17 +1851,23 @@ static int ov5640_try_fmt_internal(struct v4l2_subdev *sd,
- {
- 	struct ov5640_dev *sensor = to_ov5640_dev(sd);
- 	const struct ov5640_mode_info *mode;
-+	int i;
- 
- 	mode = ov5640_find_mode(sensor, fr, fmt->width, fmt->height, true);
- 	if (!mode)
- 		return -EINVAL;
--
- 	fmt->width = mode->width;
- 	fmt->height = mode->height;
--	fmt->code = sensor->fmt.code;
- 
- 	if (new_mode)
- 		*new_mode = mode;
-+
-+	for (i = 0; i < ARRAY_SIZE(ov5640_formats); i++)
-+		if (ov5640_formats[i].code == fmt->code)
-+			break;
-+	if (i >= ARRAY_SIZE(ov5640_formats))
-+		fmt->code = ov5640_formats[0].code;
-+
- 	return 0;
- }
- 
-@@ -1890,6 +1910,45 @@ static int ov5640_set_fmt(struct v4l2_subdev *sd,
- 	return ret;
- }
- 
-+static int ov5640_set_framefmt(struct ov5640_dev *sensor,
-+			       struct v4l2_mbus_framefmt *format)
-+{
-+	int ret = 0;
-+	bool is_rgb = false;
-+	u8 val;
-+
-+	switch (format->code) {
-+	case MEDIA_BUS_FMT_UYVY8_2X8:
-+		/* YUV422, UYVY */
-+		val = 0x3f;
-+		break;
-+	case MEDIA_BUS_FMT_YUYV8_2X8:
-+		/* YUV422, YUYV */
-+		val = 0x30;
-+		break;
-+	case MEDIA_BUS_FMT_RGB565_2X8_LE:
-+		/* RGB565 {g[2:0],b[4:0]},{r[4:0],g[5:3]} */
-+		val = 0x6F;
-+		is_rgb = true;
-+		break;
-+	case MEDIA_BUS_FMT_RGB565_2X8_BE:
-+		/* RGB565 {r[4:0],g[5:3]},{g[2:0],b[4:0]} */
-+		val = 0x61;
-+		is_rgb = true;
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	/* FORMAT CONTROL00: YUV and RGB formatting */
-+	ret = ov5640_write_reg(sensor, OV5640_REG_FORMAT_CONTROL00, val);
-+	if (ret)
-+		return ret;
-+
-+	/* FORMAT MUX CONTROL: ISP YUV or RGB */
-+	return ov5640_write_reg(sensor, OV5640_REG_ISP_FORMAT_MUX_CTRL,
-+				is_rgb ? 0x01 : 0x00);
-+}
- 
- /*
-  * Sensor Controls.
-@@ -2275,15 +2334,12 @@ static int ov5640_enum_mbus_code(struct v4l2_subdev *sd,
- 				  struct v4l2_subdev_pad_config *cfg,
- 				  struct v4l2_subdev_mbus_code_enum *code)
- {
--	struct ov5640_dev *sensor = to_ov5640_dev(sd);
--
- 	if (code->pad != 0)
- 		return -EINVAL;
--	if (code->index != 0)
-+	if (code->index >= ARRAY_SIZE(ov5640_formats))
- 		return -EINVAL;
- 
--	code->code = sensor->fmt.code;
--
-+	code->code = ov5640_formats[code->index].code;
- 	return 0;
- }
- 
-@@ -2299,6 +2355,10 @@ static int ov5640_s_stream(struct v4l2_subdev *sd, int enable)
- 			ret = ov5640_set_mode(sensor, sensor->current_mode);
- 			if (ret)
- 				goto out;
-+
-+			ret = ov5640_set_framefmt(sensor, &sensor->fmt);
-+			if (ret)
-+				goto out;
- 		}
- 
- 		if (sensor->ep.bus_type == V4L2_MBUS_CSI2)
--- 
-1.9.1
+Andi Kleen (1):
+      x86, barrier: stop speculation for failed access_ok
+
+Dan Williams (13):
+      x86: implement nospec_barrier()
+      [media] uvcvideo: prevent bounds-check bypass via speculative execution
+      carl9170: prevent bounds-check bypass via speculative execution
+      p54: prevent bounds-check bypass via speculative execution
+      qla2xxx: prevent bounds-check bypass via speculative execution
+      cw1200: prevent bounds-check bypass via speculative execution
+      Thermal/int340x: prevent bounds-check bypass via speculative execution
+      ipv6: prevent bounds-check bypass via speculative execution
+      ipv4: prevent bounds-check bypass via speculative execution
+      vfs, fdtable: prevent bounds-check bypass via speculative execution
+      net: mpls: prevent bounds-check bypass via speculative execution
+      udf: prevent bounds-check bypass via speculative execution
+      userns: prevent bounds-check bypass via speculative execution
+
+Mark Rutland (4):
+      asm-generic/barrier: add generic nospec helpers
+      Documentation: document nospec helpers
+      arm64: implement nospec_ptr()
+      arm: implement nospec_ptr()
+
+ Documentation/speculation.txt                      |  166 ++++++++++++++++++++
+ arch/arm/include/asm/barrier.h                     |   75 +++++++++
+ arch/arm64/include/asm/barrier.h                   |   55 +++++++
+ arch/x86/include/asm/barrier.h                     |    6 +
+ arch/x86/include/asm/uaccess.h                     |   17 ++
+ drivers/media/usb/uvc/uvc_v4l2.c                   |    7 +
+ drivers/net/wireless/ath/carl9170/main.c           |    6 -
+ drivers/net/wireless/intersil/p54/main.c           |    8 +
+ drivers/net/wireless/st/cw1200/sta.c               |   10 +
+ drivers/net/wireless/st/cw1200/wsm.h               |    4 
+ drivers/scsi/qla2xxx/qla_mr.c                      |   15 +-
+ .../thermal/int340x_thermal/int340x_thermal_zone.c |   14 +-
+ fs/udf/misc.c                                      |   39 +++--
+ include/asm-generic/barrier.h                      |   68 ++++++++
+ include/linux/fdtable.h                            |    5 -
+ kernel/user_namespace.c                            |   10 -
+ net/ipv4/raw.c                                     |    9 +
+ net/ipv6/raw.c                                     |    9 +
+ net/mpls/af_mpls.c                                 |   12 +
+ 19 files changed, 466 insertions(+), 69 deletions(-)
+ create mode 100644 Documentation/speculation.txt
