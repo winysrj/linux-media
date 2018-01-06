@@ -1,227 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:35292 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751224AbeAYVks (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 25 Jan 2018 16:40:48 -0500
-From: Kieran Bingham <kieran.bingham@ideasonboard.com>
-Subject: Re: [PATCH v2] v4l: async: Protect against double notifier
- registrations
-To: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        =?UTF-8?Q?Niklas_S=c3=b6derlund?= <niklas.soderlund@ragnatech.se>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Linux-Renesas <linux-renesas-soc@vger.kernel.org>,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-References: <1516146473-18234-1-git-send-email-kieran.bingham@ideasonboard.com>
- <CAMuHMdUsCMqSG5kci9FhAfwvgxgXo5xy=JRtiQbYdESsmVYvPw@mail.gmail.com>
-Message-ID: <7f6c248e-6644-dafa-70e4-0839c31818fc@ideasonboard.com>
-Date: Thu, 25 Jan 2018 21:40:43 +0000
+Received: from netrider.rowland.org ([192.131.102.5]:36625 "HELO
+        netrider.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with SMTP id S1753069AbeAFVoW (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sat, 6 Jan 2018 16:44:22 -0500
+Date: Sat, 6 Jan 2018 16:44:20 -0500 (EST)
+From: Alan Stern <stern@rowland.harvard.edu>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+cc: Josef Griebichler <griebichler.josef@gmx.at>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        <linux-usb@vger.kernel.org>, Eric Dumazet <edumazet@google.com>,
+        Rik van Riel <riel@redhat.com>,
+        Paolo Abeni <pabeni@redhat.com>,
+        Hannes Frederic Sowa <hannes@redhat.com>,
+        Jesper Dangaard Brouer <jbrouer@redhat.com>,
+        linux-kernel <linux-kernel@vger.kernel.org>,
+        netdev <netdev@vger.kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>,
+        LMML <linux-media@vger.kernel.org>,
+        Peter Zijlstra <peterz@infradead.org>,
+        David Miller <davem@davemloft.net>,
+        <torvalds@linux-foundation.org>
+Subject: Re: dvb usb issues since kernel 4.9
+In-Reply-To: <20180106175420.275e24e7@recife.lan>
+Message-ID: <Pine.LNX.4.44L0.1801061638220.12069-100000@netrider.rowland.org>
 MIME-Version: 1.0
-In-Reply-To: <CAMuHMdUsCMqSG5kci9FhAfwvgxgXo5xy=JRtiQbYdESsmVYvPw@mail.gmail.com>
-Content-Type: multipart/mixed;
- boundary="------------A500F309CA27E77D5F9407DA"
-Content-Language: en-GB
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------A500F309CA27E77D5F9407DA
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+On Sat, 6 Jan 2018, Mauro Carvalho Chehab wrote:
 
-Hi Geert,
-
-Thanks for the review
-
-On 17/01/18 08:00, Geert Uytterhoeven wrote:
-> Hi Kieran,
+> Hi Josef,
 > 
-> On Wed, Jan 17, 2018 at 12:47 AM, Kieran Bingham
-> <kieran.bingham@ideasonboard.com> wrote:
->> From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
->>
->> It can be easy to attempt to register the same notifier twice
->> in mis-handled error cases such as working with -EPROBE_DEFER.
->>
->> This results in odd kernel crashes where the notifier_list becomes
->> corrupted due to adding the same entry twice.
->>
->> Protect against this so that a developer has some sense of the pending
->> failure, and use a WARN_ON to identify the fault.
->>
->> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+> Em Sat, 6 Jan 2018 16:04:16 +0100
+> "Josef Griebichler" <griebichler.josef@gmx.at> escreveu:
 > 
-> Thanks for your patch!
+> > Hi,
+> > 
+> > the causing commit has been identified.
+> > After reverting commit https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=4cd13c21b207e80ddb1144c576500098f2d5f882
+> > its working again.
 > 
-> However, I have several comments:
->   1. Instead of walking notifier_list (O(n)), can't you just check if
->      notifier.list is part of a list or not (O(1))?
-
-Not safely as far as I can see: (unless you know better)
-
-Looks like I'd have to at least check something like the following:
-  notifier->next != LIST_POISON1 && notifier->next != NULL &&
-  notifier->prev != LIST_POISON2 && notifier->prev != NULL &&
-  notifier->next != notifier->prev
-
-Although - that doesn't count the possibility that the struct list_head in the
-object being added is essentially un-initialised before being added to the list
-- so it could technically contain any value ...
-
-(Looking forward to being told I'm completely missing something obvious here...)
-
-
->   2. Isn't notifier usually (always?) allocated dynamically, so if will be a
->      different pointer after a previous -EPROBE_DEFER anyway?
-
-Nope. The notifier can be part of the device context structure to reduce
-allocations.
-
-
-
->   3. If you enable CONFIG_DEBUG_LIST, it should scream, too.
-
-Aha - maybe that was my missing link. -E_NOT_ENOUGH_DEBUG_ENABLED.
-
-Although I've just looked through the code that checks against a double entry.
-It may have helped me find my bug in fact, but I think that would only fire if
-the entry tried to add twice consecutively, which certainly wouldn't be
-guaranteed if a driver returned with -EPROBE_DEFER.
-
-So - I've just tested that if you have A B C and HEAD,
-
-list_add(A, HEAD);
-list_add(A, HEAD);
-  // would fire in __list_add_valid as (new == prev || new == next)
-
-However,
-
-list_add(A, HEAD);
-list_add(B, HEAD);
-list_add(C, HEAD);
-list_add(B, HEAD);
-
-Will not catch this double-add-B in __list_add_valid(), and will generate an
-infinitely looping list if you try to then walk it with list_for_each_entry()
-
-(As demonstrated by the attached list-test.c module which I used to test this)
-
-Oh what fun :D
-
---
-Kieran
-
-
+> Just replying to me won't magically fix this. The ones that were involved on
+> this patch should also be c/c, plus USB people. Just added them.
 > 
->> --- a/drivers/media/v4l2-core/v4l2-async.c
->> +++ b/drivers/media/v4l2-core/v4l2-async.c
->> @@ -374,17 +374,26 @@ static int __v4l2_async_notifier_register(struct v4l2_async_notifier *notifier)
->>         struct device *dev =
->>                 notifier->v4l2_dev ? notifier->v4l2_dev->dev : NULL;
->>         struct v4l2_async_subdev *asd;
->> +       struct v4l2_async_notifier *n;
->>         int ret;
->>         int i;
->>
->>         if (notifier->num_subdevs > V4L2_MAX_SUBDEVS)
->>                 return -EINVAL;
->>
->> +       mutex_lock(&list_lock);
->> +
->> +       /* Avoid re-registering a notifier. */
->> +       list_for_each_entry(n, &notifier_list, list) {
->> +               if (WARN_ON(n == notifier)) {
->> +                       ret = -EEXIST;
->> +                       goto err_unlock;
->> +               }
->> +       }
->> +
->>         INIT_LIST_HEAD(&notifier->waiting);
->>         INIT_LIST_HEAD(&notifier->done);
->>
->> -       mutex_lock(&list_lock);
->> -
->>         for (i = 0; i < notifier->num_subdevs; i++) {
->>                 asd = notifier->subdevs[i];
+> > Please have a look into the thread https://forum.libreelec.tv/thread/4235-dvb-issue-since-le-switched-to-kernel-4-9-x/?pageNo=13
+> > here are several users aknowledging the revert solves their issues with usb dvb cards.
 > 
-> Gr{oetje,eeting}s,
+> I read the entire (long) thread there. In order to make easier for the
+> others, from what I understand, the problem happens on both x86 and arm,
+> although almost all comments there are mentioning tests with raspbian
+> Kernel (with uses a different USB host driver than the upstream one).
 > 
->                         Geert
+> It happens when watching digital TV DVB-C channels, with usually means
+> a sustained bit rate of 11 MBps to 54 MBps.
 > 
-> --
-> Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+> The reports mention the dvbsky, with uses USB URB bulk transfers.
+> On every several minutes (5 to 10 mins), the stream suffer "glitches"
+> caused by frame losses.
 > 
-> In personal conversations with technical people, I call myself a hacker. But
-> when I'm talking to journalists I just say "programmer" or something like that.
->                                 -- Linus Torvalds
+> The part of the thread that contains the bisect is at:
+> 	https://forum.libreelec.tv/thread/4235-dvb-issue-since-le-switched-to-kernel-4-9-x/?postID=75965#post75965
 > 
+> It indirectly mentions another comment on the thread with points
+> to:
+> 	https://github.com/raspberrypi/linux/issues/2134
+> 
+> There, it says that this fix part of the issues:
+> 	https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=34f41c0316ed52b0b44542491d89278efdaa70e4
+> 
+> but it affects URB packet losses on a lesser extend.
+> 
+> The main issue is really the logic changes a the core softirq logic.
+> 
+> Using Kernel 4.14.10 on a Raspberry Pi 3 with 4cd13c2 commit reverted
+> fixed the issue. 
+> 
+> Joseph, is the above right? Anything else to mention? Does the
+> same issue affect also on x86 with vanilla Kernel 4.14.10?
+> 
+> -
+> 
+> It seems that the original patch were designed to solve some IRQ issues
+> with network cards with causes data losses on high traffic. However,
+> it is also causing bad effects on sustained high bandwidth demands
+> required by DVB cards, at least on some USB host drivers.
+> 
+> Alan/Greg/Eric/David:
+> 
+> Any ideas about how to fix it without causing regressions to
+> network?
 
+It would be good to know what hardware was involved on the x86 system
+and to have some timing data.  Can we see the output from lsusb and
+usbmon, running on a vanilla kernel that gets plenty of video glitches?
 
---------------A500F309CA27E77D5F9407DA
-Content-Type: text/x-csrc;
- name="list-test.c"
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: attachment;
- filename="list-test.c"
+Overall, this may be a very difficult problem to solve.  The
+4cd13c21b207 commit was intended to improve throughput at the cost of
+increased latency.  But then what do you do when the latency becomes
+too high for the video subsystem to handle?
 
-#include <linux/module.h>
-#include <linux/kernel.h>
-#include <linux/list.h>
-
-
-struct item {
-	struct list_head list;
-	int i;
-};
-
-struct item items[5];
-
-int __init helloworld_init(void)
-{
-	int a;
-	struct list_head head;
-	struct item * ob;
-	bool catch_double_add =3D 1;
-
-	INIT_LIST_HEAD(&head);
-
-	printk("Hello World !\n");
-
-	for (a =3D 0; a < 5; a++) {
-		items[a].i =3D a;
-		list_add(&items[a].list, &head);
-	}
-
-	for (a =3D 0; a < 5; a++)
-		printk("Item[%d] =3D %d\n", a, items[a].i);
-
-	list_for_each_entry(ob, &head, list) {
-		printk("ob =3D %d\n", ob->i);
-	}
-
-	if (catch_double_add)
-		list_add(&items[4].list, &head);
-	else
-		list_add(&items[2].list, &head);
-
-	list_for_each_entry(ob, &head, list) {
-		printk("ob =3D %d\n", ob->i);
-	}
-
-	return 0;
-}
-
-void __exit helloworld_exit(void)
-{
-	pr_info("Goodbye cruel world...\n");
-}
-
-module_init(helloworld_init);
-module_exit(helloworld_exit);
-MODULE_LICENSE("GPL");
-
---------------A500F309CA27E77D5F9407DA--
+Alan Stern
