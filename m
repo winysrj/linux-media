@@ -1,115 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ot0-f193.google.com ([74.125.82.193]:40154 "EHLO
-        mail-ot0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751280AbeAPVqE (ORCPT
+Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:51749 "EHLO
+        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751545AbeAGEpx (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 16 Jan 2018 16:46:04 -0500
-MIME-Version: 1.0
-In-Reply-To: <3536229.Z78lxBGCHq@avalon>
-References: <20180116164740.2097257-1-arnd@arndb.de> <3536229.Z78lxBGCHq@avalon>
-From: Arnd Bergmann <arnd@arndb.de>
-Date: Tue, 16 Jan 2018 22:46:03 +0100
-Message-ID: <CAK8P3a3mBGtMbCuC73Jos33_9-MTXXhKC6jsCe1jb963H5gxZw@mail.gmail.com>
-Subject: Re: [PATCH] [v3] media: s3c-camif: fix out-of-bounds array access
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        "moderated list:ARM/SAMSUNG EXYNOS ARM ARCHITECTURES"
-        <linux-samsung-soc@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+        Sat, 6 Jan 2018 23:45:53 -0500
+Message-ID: <89eea795bfac5995f511aef4fc146005@smtp-cloud7.xs4all.net>
+Date: Sun, 07 Jan 2018 05:45:50 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Jan 16, 2018 at 9:17 PM, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
-> Hi Arnd,
->
-> Thank you for the patch.
->
-> On Tuesday, 16 January 2018 18:47:24 EET Arnd Bergmann wrote:
->> While experimenting with older compiler versions, I ran
->> into a warning that no longer shows up on gcc-4.8 or newer:
->>
->> drivers/media/platform/s3c-camif/camif-capture.c: In function
->> '__camif_subdev_try_format':
->> drivers/media/platform/s3c-camif/camif-capture.c:1265:25: error: array
->> subscript is below array bounds
->>
->> This is an off-by-one bug, leading to an access before the start of the
->> array, while newer compilers silently assume this undefined behavior
->> cannot happen and leave the loop at index 0 if no other entry matches.
->>
->> As Sylvester explains, we actually need to ensure that the
->> value is within the range, so this reworks the loop to be
->> easier to parse correctly, and an additional check to fall
->> back on the first format value for any unexpected input.
->>
->> I found an existing gcc bug for it and added a reduced version
->> of the function there.
->>
->> Link: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=69249#c3
->> Fixes: babde1c243b2 ("[media] V4L: Add driver for S3C24XX/S3C64XX SoC series
->> camera interface") Signed-off-by: Arnd Bergmann <arnd@arndb.de>
->> ---
->> v3: fix newly introduced off-by-one bug.
->> v2: rework logic rather than removing it.
->> ---
->>  drivers/media/platform/s3c-camif/camif-capture.c | 9 ++++++---
->>  1 file changed, 6 insertions(+), 3 deletions(-)
->>
->> diff --git a/drivers/media/platform/s3c-camif/camif-capture.c
->> b/drivers/media/platform/s3c-camif/camif-capture.c index
->> 437395a61065..f51b92e94a32 100644
->> --- a/drivers/media/platform/s3c-camif/camif-capture.c
->> +++ b/drivers/media/platform/s3c-camif/camif-capture.c
->> @@ -1256,16 +1256,19 @@ static void __camif_subdev_try_format(struct
->> camif_dev *camif, {
->>       const struct s3c_camif_variant *variant = camif->variant;
->>       const struct vp_pix_limits *pix_lim;
->> -     int i = ARRAY_SIZE(camif_mbus_formats);
->> +     int i;
->>
->>       /* FIXME: constraints against codec or preview path ? */
->>       pix_lim = &variant->vp_pix_limits[VP_CODEC];
->>
->> -     while (i-- >= 0)
->> +     for (i = 0; i < ARRAY_SIZE(camif_mbus_formats); i++)
->>               if (camif_mbus_formats[i] == mf->code)
->>                       break;
->>
->> -     mf->code = camif_mbus_formats[i];
->> +     if (i == ARRAY_SIZE(camif_mbus_formats))
->> +             mf->code = camif_mbus_formats[0];
->> +     else
->> +             mf->code = camif_mbus_formats[i];
->
-> I might be missing something very obvious, but isn't mf->code already ==
-> camif_mbus_formats[i] in the else branch ?
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Ah, that must be what I was thinking back when I first
-discussed it with Sylvester in
-https://patchwork.kernel.org/patch/9950041/
+Results of the daily build of media_tree:
 
-Unfortunately, I hadn't given it as much thought today when
-I tried to reconstruct the result to send a new version
+date:			Sun Jan  7 05:00:15 CET 2018
+media-tree git hash:	e3ee691dbf24096ea51b3200946b11d68ce75361
+media_build git hash:	46c9dc0a08499791cedfc7ee0df387e475f075a2
+v4l-utils git hash:	8aa401d119afaeb1b4fe4d2994789cd3e9396554
+gcc version:		i686-linux-gcc (GCC) 7.1.0
+sparse version:		v0.5.0-3911-g6f737e1f
+smatch version:		v0.5.0-3911-g6f737e1f
+host hardware:		x86_64
+host os:		4.13.0-164
 
-> How about simply
+linux-git-arm-at91: ERRORS
+linux-git-arm-davinci: OK
+linux-git-arm-multi: ERRORS
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-blackfin-bf561: ERRORS
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: ERRORS
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: WARNINGS
+linux-3.11.1-i686: ERRORS
+linux-3.12.67-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.7-i686: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.18.7-i686: ERRORS
+linux-3.19-i686: ERRORS
+linux-4.0.9-i686: ERRORS
+linux-4.1.33-i686: ERRORS
+linux-4.2.8-i686: ERRORS
+linux-4.3.6-i686: ERRORS
+linux-4.4.22-i686: ERRORS
+linux-4.5.7-i686: ERRORS
+linux-4.6.7-i686: ERRORS
+linux-4.7.5-i686: ERRORS
+linux-4.8-i686: ERRORS
+linux-4.9.26-i686: ERRORS
+linux-4.10.14-i686: WARNINGS
+linux-4.11-i686: WARNINGS
+linux-4.12.1-i686: WARNINGS
+linux-4.13-i686: WARNINGS
+linux-4.14-i686: WARNINGS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.67-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.7-x86_64: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.7-x86_64: ERRORS
+linux-3.19-x86_64: ERRORS
+linux-4.0.9-x86_64: ERRORS
+linux-4.1.33-x86_64: ERRORS
+linux-4.2.8-x86_64: ERRORS
+linux-4.3.6-x86_64: ERRORS
+linux-4.4.22-x86_64: ERRORS
+linux-4.5.7-x86_64: ERRORS
+linux-4.6.7-x86_64: ERRORS
+linux-4.7.5-x86_64: ERRORS
+linux-4.8-x86_64: ERRORS
+linux-4.9.26-x86_64: ERRORS
+linux-4.10.14-x86_64: WARNINGS
+linux-4.11-x86_64: WARNINGS
+linux-4.12.1-x86_64: WARNINGS
+linux-4.13-x86_64: WARNINGS
+linux-4.14-x86_64: WARNINGS
+apps: OK
+spec-git: OK
+smatch: OK
 
->         unsigned int i;
->
->         /* FIXME: constraints against codec or preview path ? */
->         pix_lim = &variant->vp_pix_limits[VP_CODEC];
->
->         for (i = 0; i < ARRAY_SIZE(camif_mbus_formats); i++)
->                 if (camif_mbus_formats[i] == mf->code)
->                         break;
->
->         if (i == ARRAY_SIZE(camif_mbus_formats))
->                 mf->code = camif_mbus_formats[0];
+Detailed results are available here:
 
-Yes, makes sense. I'll send a v4.
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
 
-          Arnd
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
