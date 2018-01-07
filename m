@@ -1,137 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:39244 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753208AbeARAIX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 17 Jan 2018 19:08:23 -0500
-Date: Wed, 17 Jan 2018 18:08:18 -0600
-From: Bjorn Helgaas <helgaas@kernel.org>
-To: Christoph Hellwig <hch@lst.de>
-Cc: Bjorn Helgaas <bhelgaas@google.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Kong Lai <kong.lai@tundra.com>, linux-pci@vger.kernel.org,
-        linux-media@vger.kernel.org, netdev@vger.kernel.org,
-        linux-kernel@vger.kernel.org,
-        "David S. Miller" <davem@davemloft.net>
-Subject: Re: [PATCH 3/4] tsi108_eth: use dma API properly
-Message-ID: <20180118000818.GD53542@bhelgaas-glaptop.roam.corp.google.com>
-References: <20180110180322.30186-1-hch@lst.de>
- <20180110180322.30186-4-hch@lst.de>
+Received: from mail-io0-f179.google.com ([209.85.223.179]:40395 "EHLO
+        mail-io0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750965AbeAGVXk (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sun, 7 Jan 2018 16:23:40 -0500
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20180110180322.30186-4-hch@lst.de>
+In-Reply-To: <20180106175420.275e24e7@recife.lan>
+References: <trinity-35b3a044-b548-4a31-9646-ed9bc83e6846-1513505978471@3c-app-gmx-bs03>
+ <20171217120634.pmmuhdqyqmbkxrvl@gofer.mess.org> <20171217112738.4f3a4f9b@recife.lan>
+ <trinity-1fa14556-8596-44b1-95cb-b8919d94d2d4-1515251056328@3c-app-gmx-bs15> <20180106175420.275e24e7@recife.lan>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Date: Sun, 7 Jan 2018 13:23:39 -0800
+Message-ID: <CA+55aFzHPYuxg3LwhqcxwJD2fuKzg6wU5ypfMvrpRoioiQHDFg@mail.gmail.com>
+Subject: Re: dvb usb issues since kernel 4.9
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Ingo Molnar <mingo@kernel.org>
+Cc: Josef Griebichler <griebichler.josef@gmx.at>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Alan Stern <stern@rowland.harvard.edu>,
+        USB list <linux-usb@vger.kernel.org>,
+        Eric Dumazet <edumazet@google.com>,
+        Rik van Riel <riel@redhat.com>,
+        Paolo Abeni <pabeni@redhat.com>,
+        Hannes Frederic Sowa <hannes@redhat.com>,
+        Jesper Dangaard Brouer <jbrouer@redhat.com>,
+        linux-kernel <linux-kernel@vger.kernel.org>,
+        netdev <netdev@vger.kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>,
+        LMML <linux-media@vger.kernel.org>,
+        Peter Zijlstra <peterz@infradead.org>,
+        David Miller <davem@davemloft.net>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-[+cc David, FYI, I plan to merge this via PCI along with the rest of
-Christoph's series]
+On Sat, Jan 6, 2018 at 11:54 AM, Mauro Carvalho Chehab
+<mchehab@s-opensource.com> wrote:
+>
+> Em Sat, 6 Jan 2018 16:04:16 +0100
+> "Josef Griebichler" <griebichler.josef@gmx.at> escreveu:
+>>
+>> the causing commit has been identified.
+>> After reverting commit https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=4cd13c21b207e80ddb1144c576500098f2d5f882
+>> its working again.
+>
+> Just replying to me won't magically fix this. The ones that were involved on
+> this patch should also be c/c, plus USB people. Just added them.
 
-On Wed, Jan 10, 2018 at 07:03:21PM +0100, Christoph Hellwig wrote:
-> We need to pass a struct device to the dma API, even if some
-> architectures still support that for legacy reasons, and should not mix
-> it with the old PCI dma API.
-> 
-> Note that the driver also seems to never actually unmap its dma mappings,
-> but to fix that we'll need someone more familar with the driver.
-> 
-> Signed-off-by: Christoph Hellwig <hch@lst.de>
-> ---
->  drivers/net/ethernet/tundra/tsi108_eth.c | 36 ++++++++++++++++++--------------
->  1 file changed, 20 insertions(+), 16 deletions(-)
-> 
-> diff --git a/drivers/net/ethernet/tundra/tsi108_eth.c b/drivers/net/ethernet/tundra/tsi108_eth.c
-> index 0624b71ab5d4..edcd1e60b30d 100644
-> --- a/drivers/net/ethernet/tundra/tsi108_eth.c
-> +++ b/drivers/net/ethernet/tundra/tsi108_eth.c
-> @@ -152,6 +152,8 @@ struct tsi108_prv_data {
->  	u32 msg_enable;			/* debug message level */
->  	struct mii_if_info mii_if;
->  	unsigned int init_media;
-> +
-> +	struct platform_device *pdev;
->  };
->  
->  /* Structure for a device driver */
-> @@ -703,17 +705,18 @@ static int tsi108_send_packet(struct sk_buff * skb, struct net_device *dev)
->  		data->txskbs[tx] = skb;
->  
->  		if (i == 0) {
-> -			data->txring[tx].buf0 = dma_map_single(NULL, skb->data,
-> -					skb_headlen(skb), DMA_TO_DEVICE);
-> +			data->txring[tx].buf0 = dma_map_single(&data->pdev->dev,
-> +					skb->data, skb_headlen(skb),
-> +					DMA_TO_DEVICE);
->  			data->txring[tx].len = skb_headlen(skb);
->  			misc |= TSI108_TX_SOF;
->  		} else {
->  			const skb_frag_t *frag = &skb_shinfo(skb)->frags[i - 1];
->  
-> -			data->txring[tx].buf0 = skb_frag_dma_map(NULL, frag,
-> -								 0,
-> -								 skb_frag_size(frag),
-> -								 DMA_TO_DEVICE);
-> +			data->txring[tx].buf0 =
-> +				skb_frag_dma_map(&data->pdev->dev, frag,
-> +						0, skb_frag_size(frag),
-> +						DMA_TO_DEVICE);
->  			data->txring[tx].len = skb_frag_size(frag);
->  		}
->  
-> @@ -808,9 +811,9 @@ static int tsi108_refill_rx(struct net_device *dev, int budget)
->  		if (!skb)
->  			break;
->  
-> -		data->rxring[rx].buf0 = dma_map_single(NULL, skb->data,
-> -							TSI108_RX_SKB_SIZE,
-> -							DMA_FROM_DEVICE);
-> +		data->rxring[rx].buf0 = dma_map_single(&data->pdev->dev,
-> +				skb->data, TSI108_RX_SKB_SIZE,
-> +				DMA_FROM_DEVICE);
->  
->  		/* Sometimes the hardware sets blen to zero after packet
->  		 * reception, even though the manual says that it's only ever
-> @@ -1308,15 +1311,15 @@ static int tsi108_open(struct net_device *dev)
->  		       data->id, dev->irq, dev->name);
->  	}
->  
-> -	data->rxring = dma_zalloc_coherent(NULL, rxring_size, &data->rxdma,
-> -					   GFP_KERNEL);
-> +	data->rxring = dma_zalloc_coherent(&data->pdev->dev, rxring_size,
-> +			&data->rxdma, GFP_KERNEL);
->  	if (!data->rxring)
->  		return -ENOMEM;
->  
-> -	data->txring = dma_zalloc_coherent(NULL, txring_size, &data->txdma,
-> -					   GFP_KERNEL);
-> +	data->txring = dma_zalloc_coherent(&data->pdev->dev, txring_size,
-> +			&data->txdma, GFP_KERNEL);
->  	if (!data->txring) {
-> -		pci_free_consistent(NULL, rxring_size, data->rxring,
-> +		dma_free_coherent(&data->pdev->dev, rxring_size, data->rxring,
->  				    data->rxdma);
->  		return -ENOMEM;
->  	}
-> @@ -1428,10 +1431,10 @@ static int tsi108_close(struct net_device *dev)
->  		dev_kfree_skb(skb);
->  	}
->  
-> -	dma_free_coherent(0,
-> +	dma_free_coherent(&data->pdev->dev,
->  			    TSI108_RXRING_LEN * sizeof(rx_desc),
->  			    data->rxring, data->rxdma);
-> -	dma_free_coherent(0,
-> +	dma_free_coherent(&data->pdev->dev,
->  			    TSI108_TXRING_LEN * sizeof(tx_desc),
->  			    data->txring, data->txdma);
->  
-> @@ -1576,6 +1579,7 @@ tsi108_init_one(struct platform_device *pdev)
->  	printk("tsi108_eth%d: probe...\n", pdev->id);
->  	data = netdev_priv(dev);
->  	data->dev = dev;
-> +	data->pdev = pdev;
->  
->  	pr_debug("tsi108_eth%d:regs:phyresgs:phy:irq_num=0x%x:0x%x:0x%x:0x%x\n",
->  			pdev->id, einfo->regs, einfo->phyregs,
-> -- 
-> 2.14.2
-> 
+Actually, you seem to have added an odd subset of the people involved.
+
+For example, Ingo - who actually committed that patch - wasn't on the cc.
+
+I do think we need to simply revert that patch. It's very simple: it
+has been reported to lead to actual problems for people, and we don't
+fix one problem and then say "well, it fixed something else" when
+something breaks.
+
+When something breaks, we either unbreak it, or we revert the change
+that caused the breakage.
+
+It's really that simple. That's what "no regressions" means.  We don't
+accept changes that cause regressions. This one did.
+
+                  Linus
