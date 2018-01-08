@@ -1,80 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f195.google.com ([209.85.128.195]:42548 "EHLO
-        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752264AbeAIR1q (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 9 Jan 2018 12:27:46 -0500
-Received: by mail-wr0-f195.google.com with SMTP id w107so14907114wrb.9
-        for <linux-media@vger.kernel.org>; Tue, 09 Jan 2018 09:27:45 -0800 (PST)
+Received: from o1678950229.outbound-mail.sendgrid.net ([167.89.50.229]:14385
+        "EHLO o1678950229.outbound-mail.sendgrid.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1754896AbeAHSOF (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 8 Jan 2018 13:14:05 -0500
+From: Kieran Bingham <kieran.bingham@ideasonboard.com>
+To: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, niklas.soderlund@ragnatech.se,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-kernel@vger.kernel.org (open list)
+Subject: [PATCH v2] media: i2c: adv748x: fix HDMI field heights
+Date: Mon, 08 Jan 2018 18:14:04 +0000 (UTC)
+Message-Id: <1515435242-22956-1-git-send-email-kieran.bingham@ideasonboard.com>
 MIME-Version: 1.0
-In-Reply-To: <trinity-920967ce-ab0f-4535-8557-f82a7e667a79-1515516669310@3c-app-gmx-bs24>
-References: <20180107090336.03826df2@vento.lan> <Pine.LNX.4.44L0.1801071010540.13425-100000@netrider.rowland.org>
- <20180108074324.3c153189@vento.lan> <trinity-c7ec7cbd-a186-4a2a-bcb6-cce8993d6a90-1515428770628@3c-app-gmx-bs32>
- <20180108223109.66c91554@redhat.com> <20180108214427.GT29822@worktop.programming.kicks-ass.net>
- <20180108231656.3bbd1968@redhat.com> <trinity-920967ce-ab0f-4535-8557-f82a7e667a79-1515516669310@3c-app-gmx-bs24>
-From: Eric Dumazet <edumazet@google.com>
-Date: Tue, 9 Jan 2018 09:27:43 -0800
-Message-ID: <CANn89iJqRH4uzFJVKyPxc8dN38z319C1O18nTJ-CCidtuOH2+g@mail.gmail.com>
-Subject: Re: Re: dvb usb issues since kernel 4.9
-To: Josef Griebichler <griebichler.josef@gmx.at>
-Cc: Jesper Dangaard Brouer <jbrouer@redhat.com>,
-        Peter Zijlstra <peterz@infradead.org>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Alan Stern <stern@rowland.harvard.edu>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        linux-usb@vger.kernel.org, Rik van Riel <riel@redhat.com>,
-        Paolo Abeni <pabeni@redhat.com>,
-        Hannes Frederic Sowa <hannes@redhat.com>,
-        linux-kernel <linux-kernel@vger.kernel.org>,
-        netdev <netdev@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>,
-        LMML <linux-media@vger.kernel.org>,
-        David Miller <davem@davemloft.net>,
-        Linus Torvalds <torvalds@linux-foundation.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=UTF-8
+content-transfer-encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Jan 9, 2018 at 8:51 AM, Josef Griebichler
-<griebichler.josef@gmx.at> wrote:
-> Hi Linus,
->
-> your patch works very good for me and others (please see https://forum.libreelec.tv/thread/4235-dvb-issue-since-le-switched-to-kernel-4-9-x/?postID=77006#post77006). No errors in recordings any more.
-> The patch was also tested on x86_64 (Revo 3700) with positive effect.
-> I agree with the forum poster, that there's still an issue when recording and watching livetv at same time. I also get audio dropouts and audio is out of sync.
-> According to user smp kernel 4.9.73 with your patch on rpi and according to user jahutchi kernel 4.11.12 on x86_64 have no such issues.
-> I don't know if this dropouts are related to this topic.
->
-> If of any help I could provide perf output on raspberry with libreelec and tvheadend.
->
-
-Sorry to come late to the party.
-
-It seems problem comes from some piece of hardware/driver having some
-precise timing prereq, and opportunistic use of softirq/tasklet
-(instead maybe of hard irq handlers )
-
-While it is true that softirq might do the job in most cases, we
-already have cases where this can be easily defeated,
-say if one cpu has suddenly to handle multiple sources of interrupts
-for various devices.
-NET_RX can easily lock the cpu for 10ms (on HZ=100 builds)
-
-So yes, commit 4cd13c21b207 ("softirq: Let ksoftirqd do its job") has
-shown up multiple times in various 'regressions'
-simply because it could surface the problem more often.
-But even if you revert it, you can still make the faulty
-driver/subsystem misbehave by adding more stress to the cpu handling
-the IRQ.
-
-Note that networking lacks fine control of its softirq processing.
-Some people found/complained that relying more on ksoftirqd was
-potentially adding tail latencies.
-
-Maybe the answer is to tune the kernel for small latencies at the
-price of small throughput (situation before the patch)
-
-1) Revert the patch
-2) get rid of ksoftirqd since it adds unexpected latencies.
-3) Let applications that expect to have high throughput make sure to
-pin their threads on cpus that are not processing IRQ.
-    (And make sure to not use irqbalance, and setup IRQ cpu affinities)
+The ADV748x handles interlaced media using V4L2_FIELD_ALTERNATE field=0D
+types.  The correct specification for the height on the mbus is the=0D
+image height, in this instance, the field height.=0D
+=0D
+The AFE component already correctly adjusts the height on the mbus, but=0D
+the HDMI component got left behind.=0D
+=0D
+Adjust the mbus height to correctly describe the image height of the=0D
+fields when processing interlaced video for HDMI pipelines.=0D
+=0D
+Fixes: 3e89586a64df ("media: i2c: adv748x: add adv748x driver")=0D
+Reviewed-by: Niklas S=C3=B6derlund <niklas.soderlund+renesas@ragnatech.se>=
+=0D
+Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>=0D
+---=0D
+v2:=0D
+ - switch conditional to check the fmt->field, removing the need for=0D
+   the comment.=0D
+=0D
+ drivers/media/i2c/adv748x/adv748x-hdmi.c | 3 +++=0D
+ 1 file changed, 3 insertions(+)=0D
+=0D
+diff --git a/drivers/media/i2c/adv748x/adv748x-hdmi.c b/drivers/media/i2c/a=
+dv748x/adv748x-hdmi.c=0D
+index 4da4253553fc..10d229a4f088 100644=0D
+--- a/drivers/media/i2c/adv748x/adv748x-hdmi.c=0D
++++ b/drivers/media/i2c/adv748x/adv748x-hdmi.c=0D
+@@ -105,6 +105,9 @@ static void adv748x_hdmi_fill_format(struct adv748x_hdm=
+i *hdmi,=0D
+ =0D
+ 	fmt->width =3D hdmi->timings.bt.width;=0D
+ 	fmt->height =3D hdmi->timings.bt.height;=0D
++=0D
++	if (fmt->field =3D=3D V4L2_FIELD_ALTERNATE)=0D
++		fmt->height /=3D 2;=0D
+ }=0D
+ =0D
+ static void adv748x_fill_optional_dv_timings(struct v4l2_dv_timings *timin=
+gs)=0D
+-- =0D
+2.7.4=0D
