@@ -1,83 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga04.intel.com ([192.55.52.120]:62574 "EHLO mga04.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:53734 "EHLO mga01.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S964951AbeALR7b (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 12 Jan 2018 12:59:31 -0500
-From: "Mani, Rajmohan" <rajmohan.mani@intel.com>
-To: "Zhi, Yong" <yong.zhi@intel.com>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>
-CC: "tfiga@chromium.org" <tfiga@chromium.org>,
-        "Cao, Bingbu" <bingbu.cao@intel.com>
-Subject: RE: [PATCH 1/2] media: intel-ipu3: cio2: fix a crash with
- out-of-bounds access
-Date: Fri, 12 Jan 2018 17:59:25 +0000
-Message-ID: <6F87890CF0F5204F892DEA1EF0D77A5972FEFF72@FMSMSX114.amr.corp.intel.com>
-References: <1515034637-3517-1-git-send-email-yong.zhi@intel.com>
-In-Reply-To: <1515034637-3517-1-git-send-email-yong.zhi@intel.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+        id S1756322AbeAHJhQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 8 Jan 2018 04:37:16 -0500
+Date: Mon, 8 Jan 2018 11:37:12 +0200
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: jacopo mondi <jacopo@jmondi.org>
+Cc: Akinobu Mita <akinobu.mita@gmail.com>, linux-media@vger.kernel.org,
+        devicetree@vger.kernel.org,
+        "H . Nikolaus Schaller" <hns@goldelico.com>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Rob Herring <robh@kernel.org>
+Subject: Re: [PATCH v2 1/2] media: ov9650: support device tree probing
+Message-ID: <20180108093712.xqpxmgbqsmkhw632@paasikivi.fi.intel.com>
+References: <1515344064-23156-1-git-send-email-akinobu.mita@gmail.com>
+ <1515344064-23156-2-git-send-email-akinobu.mita@gmail.com>
+ <20180108091838.GM9493@w540>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20180108091838.GM9493@w540>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Yong,
+Hi Jacopo,
 
-> -----Original Message-----
-> From: Zhi, Yong
-> Sent: Wednesday, January 03, 2018 6:57 PM
-> To: linux-media@vger.kernel.org; sakari.ailus@linux.intel.com
-> Cc: tfiga@chromium.org; Mani, Rajmohan <rajmohan.mani@intel.com>; Zhi,
-> Yong <yong.zhi@intel.com>; Cao, Bingbu <bingbu.cao@intel.com>
-> Subject: [PATCH 1/2] media: intel-ipu3: cio2: fix a crash with out-of-bounds
-> access
+On Mon, Jan 08, 2018 at 10:18:38AM +0100, jacopo mondi wrote:
+> > @@ -1561,9 +1605,19 @@ static const struct i2c_device_id ov965x_id[] = {
+> >  };
+> >  MODULE_DEVICE_TABLE(i2c, ov965x_id);
+> >
+> > +#if IS_ENABLED(CONFIG_OF)
+> > +static const struct of_device_id ov965x_of_match[] = {
+> > +	{ .compatible = "ovti,ov9650", },
+> > +	{ .compatible = "ovti,ov9652", },
+> > +	{ /* sentinel */ }
+> > +};
+> > +MODULE_DEVICE_TABLE(of, ov965x_of_match);
+> > +#endif
+> > +
+> >  static struct i2c_driver ov965x_i2c_driver = {
+> >  	.driver = {
+> >  		.name	= DRIVER_NAME,
+> > +		.of_match_table = of_match_ptr(ov965x_of_match),
 > 
-> When dmabuf is used for BLOB type frame, the frame buffers allocated by
-> gralloc will hold more pages than the valid frame data due to height alignment.
-> 
-> In this case, the page numbers in sg list could exceed the FBPT upper limit
-> value - max_lops(8)*1024 to cause crash.
-> 
-> Limit the LOP access to the valid data length to avoid FBPT sub-entries
-> overflow.
-> 
-> Signed-off-by: Yong Zhi <yong.zhi@intel.com>
-> Signed-off-by: Cao Bing Bu <bingbu.cao@intel.com>
-> ---
->  drivers/media/pci/intel/ipu3/ipu3-cio2.c | 7 +++++--
->  1 file changed, 5 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/media/pci/intel/ipu3/ipu3-cio2.c
-> b/drivers/media/pci/intel/ipu3/ipu3-cio2.c
-> index 941caa987dab..949f43d206ad 100644
-> --- a/drivers/media/pci/intel/ipu3/ipu3-cio2.c
-> +++ b/drivers/media/pci/intel/ipu3/ipu3-cio2.c
-> @@ -838,8 +838,9 @@ static int cio2_vb2_buf_init(struct vb2_buffer *vb)
->  		container_of(vb, struct cio2_buffer, vbb.vb2_buf);
->  	static const unsigned int entries_per_page =
->  		CIO2_PAGE_SIZE / sizeof(u32);
-> -	unsigned int pages = DIV_ROUND_UP(vb->planes[0].length,
-> CIO2_PAGE_SIZE);
-> -	unsigned int lops = DIV_ROUND_UP(pages + 1, entries_per_page);
-> +	unsigned int pages = DIV_ROUND_UP(vb->planes[0].length,
-> +					  CIO2_PAGE_SIZE) + 1;
-> +	unsigned int lops = DIV_ROUND_UP(pages, entries_per_page);
->  	struct sg_table *sg;
->  	struct sg_page_iter sg_iter;
->  	int i, j;
-> @@ -869,6 +870,8 @@ static int cio2_vb2_buf_init(struct vb2_buffer *vb)
-> 
->  	i = j = 0;
+> If CONFIG_OF is not defined, this will break compilation.
+> Please guard this with #if IS_ENABLED(CONFIG_OF) as well.
 
-Nit: separate assignments are preferred over multiple assignments
+of_match_ptr() will be NULL if CONFIG_OF is not defined, so AFAICT this is
+fine.
 
->  	for_each_sg_page(sg->sgl, &sg_iter, sg->nents, 0) {
-> +		if (!pages--)
-> +			break;
->  		b->lop[i][j] = sg_page_iter_dma_address(&sg_iter) >>
-> PAGE_SHIFT;
->  		j++;
->  		if (j == entries_per_page) {
-> --
-> 2.7.4
+-- 
+Sakari Ailus
+sakari.ailus@linux.intel.com
