@@ -1,77 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:50653 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751109AbeABNxm (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 2 Jan 2018 08:53:42 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Jacopo Mondi <jacopo+renesas@jmondi.org>
-Cc: magnus.damm@gmail.com, geert@glider.be, mchehab@kernel.org,
-        hverkuil@xs4all.nl, robh+dt@kernel.org, mark.rutland@arm.com,
-        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-sh@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v2 4/9] ARM: dts: r7s72100: Add Capture Engine Unit (CEU)
-Date: Tue, 02 Jan 2018 15:54:02 +0200
-Message-ID: <2050708.XlLFKrlIvW@avalon>
-In-Reply-To: <1514469681-15602-5-git-send-email-jacopo+renesas@jmondi.org>
-References: <1514469681-15602-1-git-send-email-jacopo+renesas@jmondi.org> <1514469681-15602-5-git-send-email-jacopo+renesas@jmondi.org>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:54074 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751326AbeAHVN1 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 8 Jan 2018 16:13:27 -0500
+Date: Mon, 8 Jan 2018 23:13:23 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Kieran Bingham <kieran.bingham@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        niklas.soderlund@ragnatech.se, Hans Verkuil <hverkuil@xs4all.nl>,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>,
+        Archit Taneja <architt@codeaurora.org>,
+        Neil Armstrong <narmstrong@baylibre.com>,
+        open list <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH v2] v4l: doc: Clarify v4l2_mbus_fmt height definition
+Message-ID: <20180108211322.ilzzgde4vh2eozsf@valkosipuli.retiisi.org.uk>
+References: <1515434106-18747-1-git-send-email-kieran.bingham@ideasonboard.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1515434106-18747-1-git-send-email-kieran.bingham@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jacopo,
+Hi Kieran,
 
-Thank you for the patch.
+Thanks for the update.
 
-On Thursday, 28 December 2017 16:01:16 EET Jacopo Mondi wrote:
-> Add Capture Engine Unit (CEU) node to device tree.
+On Mon, Jan 08, 2018 at 05:55:24PM +0000, Kieran Bingham wrote:
+> The v4l2_mbus_fmt width and height corresponds directly with the
+> v4l2_pix_format definitions, yet the differences in documentation make
+> it ambiguous what to do in the event of field heights.
 > 
-> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
-> ---
->  arch/arm/boot/dts/r7s72100.dtsi | 15 ++++++++++++---
->  1 file changed, 12 insertions(+), 3 deletions(-)
+> Clarify this using the same text as is provided for the v4l2_pix_format
+> which is explicit on the matter, and by matching the terminology of
+> 'image height' rather than the misleading 'frame height'.
 > 
-> diff --git a/arch/arm/boot/dts/r7s72100.dtsi
-> b/arch/arm/boot/dts/r7s72100.dtsi index ab9645a..b09b032 100644
-> --- a/arch/arm/boot/dts/r7s72100.dtsi
-> +++ b/arch/arm/boot/dts/r7s72100.dtsi
-> @@ -135,9 +135,9 @@
->  			#clock-cells = <1>;
->  			compatible = "renesas,r7s72100-mstp-clocks", "renesas,cpg-mstp-
-clocks";
->  			reg = <0xfcfe042c 4>;
-> -			clocks = <&p0_clk>;
-> -			clock-indices = <R7S72100_CLK_RTC>;
-> -			clock-output-names = "rtc";
-> +			clocks = <&b_clk>, <&p0_clk>;
-> +			clock-indices = <R7S72100_CLK_CEU R7S72100_CLK_RTC>;
-> +			clock-output-names = "ceu", "rtc";
->  		};
-> 
->  		mstp7_clks: mstp7_clks@fcfe0430 {
-> @@ -667,4 +667,13 @@
->  		power-domains = <&cpg_clocks>;
->  		status = "disabled";
->  	};
-> +
-> +	ceu: ceu@e8210000 {
-> +		reg = <0xe8210000 0x209c>;
+> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
 
-With the reg issue pointed out by Geert fixed,
-
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-> +		compatible = "renesas,r7s72100-ceu";
-> +		interrupts = <GIC_SPI 332 IRQ_TYPE_LEVEL_HIGH>;
-> +		clocks = <&mstp6_clks R7S72100_CLK_CEU>;
-> +		power-domains = <&cpg_clocks>;
-> +		status = "disabled";
-> +	};
->  };
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
 -- 
-Regards,
-
-Laurent Pinchart
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
