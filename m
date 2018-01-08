@@ -1,86 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-io0-f195.google.com ([209.85.223.195]:39790 "EHLO
-        mail-io0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753386AbeAMSvz (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 13 Jan 2018 13:51:55 -0500
-MIME-Version: 1.0
-In-Reply-To: <CA+8MBb+H0FqciBw9nSO9L0fNQtiRvc_1TREitH9z89YxhtyFAQ@mail.gmail.com>
-References: <151571798296.27429.7166552848688034184.stgit@dwillia2-desk3.amr.corp.intel.com>
- <CA+55aFzNQ8CZ8iNcPXrCfyk=1edMiRGDA0fY0rd87BsFKBxgAw@mail.gmail.com> <CA+8MBb+H0FqciBw9nSO9L0fNQtiRvc_1TREitH9z89YxhtyFAQ@mail.gmail.com>
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Date: Sat, 13 Jan 2018 10:51:53 -0800
-Message-ID: <CA+55aFwUspY8DG3hRxZqQaf_n_0OZxGCd=pELc8ZVuBu+058cA@mail.gmail.com>
-Subject: Re: [PATCH v2 00/19] prevent bounds-check bypass via speculative execution
-To: Tony Luck <tony.luck@gmail.com>
+Received: from bombadil.infradead.org ([65.50.211.133]:47522 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932363AbeAHLzd (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 8 Jan 2018 06:55:33 -0500
+Date: Mon, 8 Jan 2018 12:55:02 +0100
+From: Peter Zijlstra <peterz@infradead.org>
+To: Alan Cox <gnomes@lxorguk.ukuu.org.uk>
 Cc: Dan Williams <dan.j.williams@intel.com>,
+        "Eric W. Biederman" <ebiederm@xmission.com>,
         Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
         Mark Rutland <mark.rutland@arm.com>,
-        kernel-hardening@lists.openwall.com,
-        Peter Zijlstra <peterz@infradead.org>,
         Alan Cox <alan.cox@intel.com>,
+        Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>,
         Will Deacon <will.deacon@arm.com>,
-        Alexei Starovoitov <ast@kernel.org>,
         Solomon Peachy <pizza@shaftnet.org>,
         "H. Peter Anvin" <hpa@zytor.com>,
         Christian Lamparter <chunkeey@googlemail.com>,
         Elena Reshetova <elena.reshetova@intel.com>,
-        "linux-arch@vger.kernel.org" <linux-arch@vger.kernel.org>,
-        Andi Kleen <ak@linux.intel.com>,
+        linux-arch@vger.kernel.org, Andi Kleen <ak@linux.intel.com>,
         "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>,
-        Linux SCSI List <linux-scsi@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>,
-        "the arch/x86 maintainers" <x86@kernel.org>,
-        Russell King <linux@armlinux.org.uk>,
+        linux-scsi <linux-scsi@vger.kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>, X86 ML <x86@kernel.org>,
         Ingo Molnar <mingo@redhat.com>,
-        Catalin Marinas <catalin.marinas@arm.com>,
         Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Tom Lendacky <thomas.lendacky@amd.com>,
-        Kees Cook <keescook@chromium.org>, Jan Kara <jack@suse.com>,
+        Zhang Rui <rui.zhang@intel.com>,
+        "Linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        Arnd Bergmann <arnd@arndb.de>, Jan Kara <jack@suse.com>,
+        Eduardo Valentin <edubezval@gmail.com>,
         Al Viro <viro@zeniv.linux.org.uk>, qla2xxx-upstream@qlogic.com,
         Thomas Gleixner <tglx@linutronix.de>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Arjan van de Ven <arjan@linux.intel.com>,
         Kalle Valo <kvalo@codeaurora.org>,
         Alan Cox <alan@linux.intel.com>,
         "Martin K. Petersen" <martin.petersen@oracle.com>,
         Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
         Greg KH <gregkh@linuxfoundation.org>,
-        Linux Wireless List <linux-wireless@vger.kernel.org>,
-        "Eric W. Biederman" <ebiederm@xmission.com>,
-        Network Development <netdev@vger.kernel.org>,
-        Andrew Morton <akpm@linux-foundation.org>,
+        linux-wireless@vger.kernel.org, Netdev <netdev@vger.kernel.org>,
+        Linus Torvalds <torvalds@linux-foundation.org>,
         "David S. Miller" <davem@davemloft.net>,
         Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset="UTF-8"
+Subject: Re: [PATCH 00/18] prevent bounds-check bypass via speculative
+ execution
+Message-ID: <20180108115502.GA6176@hirez.programming.kicks-ass.net>
+References: <151520099201.32271.4677179499894422956.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <87y3lbpvzp.fsf@xmission.com>
+ <CAPcyv4hVisGeXbTH985Hb6dkYKA9Sr8wwZHudNF-CtH0=ADFug@mail.gmail.com>
+ <20180108100836.GF3040@hirez.programming.kicks-ass.net>
+ <20180108114342.3b2d99fb@alans-desktop>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20180108114342.3b2d99fb@alans-desktop>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Jan 12, 2018 at 4:15 PM, Tony Luck <tony.luck@gmail.com> wrote:
->
-> Here there isn't any reason for speculation. The core has the
-> value of 'x' in a register and the upper bound encoded into the
-> "cmp" instruction.  Both are right there, no waiting, no speculation.
+On Mon, Jan 08, 2018 at 11:43:42AM +0000, Alan Cox wrote:
+> On Mon, 8 Jan 2018 11:08:36 +0100
+> Peter Zijlstra <peterz@infradead.org> wrote:
+> 
+> > On Fri, Jan 05, 2018 at 10:30:16PM -0800, Dan Williams wrote:
+> > > On Fri, Jan 5, 2018 at 6:22 PM, Eric W. Biederman <ebiederm@xmission.com> wrote:  
+> > > > In at least one place (mpls) you are patching a fast path.  Compile out
+> > > > or don't load mpls by all means.  But it is not acceptable to change the
+> > > > fast path without even considering performance.  
+> > > 
+> > > Performance matters greatly, but I need help to identify a workload
+> > > that is representative for this fast path to see what, if any, impact
+> > > is incurred. Even better is a review that says "nope, 'index' is not
+> > > subject to arbitrary userspace control at this point, drop the patch."  
+> > 
+> > I think we're focussing a little too much on pure userspace. That is, we
+> > should be saying under the attackers control. Inbound network packets
+> > could equally be under the attackers control.
+> 
+> Inbound network packets don't come with a facility to read back and do
+> cache timimg. 
 
-So this is an argument I haven't seen before (although it was brought
-up in private long ago), but that is very relevant: the actual scope
-and depth of speculation.
-
-Your argument basically depends on just what gets speculated, and on
-the _actual_ order of execution.
-
-So your argument depends on "the uarch will actually run the code in
-order if there are no events that block the pipeline".
-
-Or at least it depends on a certain latency of the killing of any OoO
-execution being low enough that the cache access doesn't even begin.
-
-I realize that that is very much a particular microarchitectural
-detail, but it's actually a *big* deal. Do we have a set of rules for
-what is not a worry, simply because the speculated accesses get killed
-early enough?
-
-Apparently "test a register value against a constant" is good enough,
-assuming that register is also needed for the address of the access.
-
-            Linus
+But could they not be used in conjunction with a local task to prime the
+stuff?
