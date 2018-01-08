@@ -1,86 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from sub5.mail.dreamhost.com ([208.113.200.129]:40119 "EHLO
-        homiemail-a123.g.dreamhost.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753332AbeAQWdD (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 17 Jan 2018 17:33:03 -0500
-From: Brad Love <brad@nextdimension.cc>
-To: linux-media@vger.kernel.org
-Cc: Brad Love <brad@nextdimension.cc>
-Subject: [PATCH v3 1/2] si2168: Add spectrum inversion property
-Date: Wed, 17 Jan 2018 16:31:58 -0600
-Message-Id: <1516228318-4727-1-git-send-email-brad@nextdimension.cc>
-In-Reply-To: <1516225967-21668-1-git-send-email-brad@nextdimension.cc>
-References: <1516225967-21668-1-git-send-email-brad@nextdimension.cc>
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:42654 "EHLO
+        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751143AbeAHRz4 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 8 Jan 2018 12:55:56 -0500
+Date: Mon, 8 Jan 2018 18:55:51 +0100
+From: Ingo Molnar <mingo@kernel.org>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Josef Griebichler <griebichler.josef@gmx.at>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Alan Stern <stern@rowland.harvard.edu>,
+        USB list <linux-usb@vger.kernel.org>,
+        Eric Dumazet <edumazet@google.com>,
+        Rik van Riel <riel@redhat.com>,
+        Paolo Abeni <pabeni@redhat.com>,
+        Hannes Frederic Sowa <hannes@redhat.com>,
+        Jesper Dangaard Brouer <jbrouer@redhat.com>,
+        linux-kernel <linux-kernel@vger.kernel.org>,
+        netdev <netdev@vger.kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>,
+        LMML <linux-media@vger.kernel.org>,
+        Peter Zijlstra <peterz@infradead.org>,
+        David Miller <davem@davemloft.net>
+Subject: Re: dvb usb issues since kernel 4.9
+Message-ID: <20180108175551.wp6thxmiozrz4yp2@gmail.com>
+References: <trinity-35b3a044-b548-4a31-9646-ed9bc83e6846-1513505978471@3c-app-gmx-bs03>
+ <20171217120634.pmmuhdqyqmbkxrvl@gofer.mess.org>
+ <20171217112738.4f3a4f9b@recife.lan>
+ <trinity-1fa14556-8596-44b1-95cb-b8919d94d2d4-1515251056328@3c-app-gmx-bs15>
+ <20180106175420.275e24e7@recife.lan>
+ <CA+55aFzHPYuxg3LwhqcxwJD2fuKzg6wU5ypfMvrpRoioiQHDFg@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CA+55aFzHPYuxg3LwhqcxwJD2fuKzg6wU5ypfMvrpRoioiQHDFg@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Some tuners produce inverted spectrum, but the si2168 is not
-currently set up to accept it. This adds an optional parameter
-to set the frontend up to receive inverted spectrum.
 
-Parameter is optional and only boards who enable inversion
-will utilize this.
+* Linus Torvalds <torvalds@linux-foundation.org> wrote:
 
-Signed-off-by: Brad Love <brad@nextdimension.cc>
----
-Changes since v2:
-- platform_data is not safe outside of probe, move property to state
+> On Sat, Jan 6, 2018 at 11:54 AM, Mauro Carvalho Chehab
+> <mchehab@s-opensource.com> wrote:
+> >
+> > Em Sat, 6 Jan 2018 16:04:16 +0100
+> > "Josef Griebichler" <griebichler.josef@gmx.at> escreveu:
+> >>
+> >> the causing commit has been identified.
+> >> After reverting commit https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=4cd13c21b207e80ddb1144c576500098f2d5f882
+> >> its working again.
+> >
+> > Just replying to me won't magically fix this. The ones that were involved on
+> > this patch should also be c/c, plus USB people. Just added them.
+> 
+> Actually, you seem to have added an odd subset of the people involved.
+> 
+> For example, Ingo - who actually committed that patch - wasn't on the cc.
+> 
+> I do think we need to simply revert that patch. It's very simple: it
+> has been reported to lead to actual problems for people, and we don't
+> fix one problem and then say "well, it fixed something else" when
+> something breaks.
+> 
+> When something breaks, we either unbreak it, or we revert the change
+> that caused the breakage.
+> 
+> It's really that simple. That's what "no regressions" means.  We don't
+> accept changes that cause regressions. This one did.
 
-Changes since v1:
-- Embarassing build failure due to missing declaration.
+Yeah, absolutely - for the revert:
 
- drivers/media/dvb-frontends/si2168.c      | 3 +++
- drivers/media/dvb-frontends/si2168.h      | 3 +++
- drivers/media/dvb-frontends/si2168_priv.h | 1 +
- 3 files changed, 7 insertions(+)
+   Acked-by: Ingo Molnar <mingo@kernel.org>
 
-diff --git a/drivers/media/dvb-frontends/si2168.c b/drivers/media/dvb-frontends/si2168.c
-index c041e79..3306dc5 100644
---- a/drivers/media/dvb-frontends/si2168.c
-+++ b/drivers/media/dvb-frontends/si2168.c
-@@ -339,6 +339,8 @@ static int si2168_set_frontend(struct dvb_frontend *fe)
- 
- 	memcpy(cmd.args, "\x14\x00\x0a\x10\x00\x00", 6);
- 	cmd.args[4] = delivery_system | bandwidth;
-+	if (dev->spectral_inversion)
-+		cmd.args[5] |= 1;
- 	cmd.wlen = 6;
- 	cmd.rlen = 4;
- 	ret = si2168_cmd_execute(client, &cmd);
-@@ -799,6 +801,7 @@ static int si2168_probe(struct i2c_client *client,
- 	dev->ts_mode = config->ts_mode;
- 	dev->ts_clock_inv = config->ts_clock_inv;
- 	dev->ts_clock_gapped = config->ts_clock_gapped;
-+	dev->spectral_inversion = config->spectral_inversion;
- 
- 	dev_info(&client->dev, "Silicon Labs Si2168-%c%d%d successfully identified\n",
- 		 dev->version >> 24 & 0xff, dev->version >> 16 & 0xff,
-diff --git a/drivers/media/dvb-frontends/si2168.h b/drivers/media/dvb-frontends/si2168.h
-index f48f0fb..d519edd 100644
---- a/drivers/media/dvb-frontends/si2168.h
-+++ b/drivers/media/dvb-frontends/si2168.h
-@@ -46,6 +46,9 @@ struct si2168_config {
- 
- 	/* TS clock gapped */
- 	bool ts_clock_gapped;
-+
-+	/* Inverted spectrum */
-+	bool spectral_inversion;
- };
- 
- #endif
-diff --git a/drivers/media/dvb-frontends/si2168_priv.h b/drivers/media/dvb-frontends/si2168_priv.h
-index 3c8746a..2d362e1 100644
---- a/drivers/media/dvb-frontends/si2168_priv.h
-+++ b/drivers/media/dvb-frontends/si2168_priv.h
-@@ -48,6 +48,7 @@ struct si2168_dev {
- 	u8 ts_mode;
- 	bool ts_clock_inv;
- 	bool ts_clock_gapped;
-+	bool spectral_inversion;
- };
- 
- /* firmware command struct */
--- 
-2.7.4
+as I doubt we have enough time to root-case this properly.
+
+Thanks,
+
+	Ingo
