@@ -1,53 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.126.130]:61093 "EHLO
-        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752159AbeADKco (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 4 Jan 2018 05:32:44 -0500
-From: Arnd Bergmann <arnd@arndb.de>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH 3/3] media: au0828: add VIDEO_V4L2 dependency
-Date: Thu,  4 Jan 2018 11:31:32 +0100
-Message-Id: <20180104103215.15591-3-arnd@arndb.de>
-In-Reply-To: <20180104103215.15591-1-arnd@arndb.de>
-References: <20180104103215.15591-1-arnd@arndb.de>
+Received: from www.llwyncelyn.cymru ([82.70.14.225]:34042 "EHLO fuzix.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1756529AbeAHO1C (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 8 Jan 2018 09:27:02 -0500
+Date: Mon, 8 Jan 2018 14:26:39 +0000
+From: Alan Cox <gnomes@lxorguk.ukuu.org.uk>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Alan Cox <alan@linux.intel.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: Re: [PATCH 2/2] media: staging: atomisp: cleanup whitespaces
+Message-ID: <20180108142639.5ac53fe1@alans-desktop>
+In-Reply-To: <20180108142121.wsinvtmhngokhpp7@paasikivi.fi.intel.com>
+References: <96780202f1f7ffe13f6e0426394c8c93a2cbaa77.1515091119.git.mchehab@s-opensource.com>
+        <ab42c265e347855bb95809ef03e043653ab84a21.1515091119.git.mchehab@s-opensource.com>
+        <20180108142121.wsinvtmhngokhpp7@paasikivi.fi.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-After the move of videobuf2 into the common directory, selecting the
-au0828 driver with CONFIG_V4L2 disabled started causing a link failure,
-as we now attempt to build videobuf2 but it still requires v4l2:
+On Mon, 8 Jan 2018 16:21:21 +0200
+Sakari Ailus <sakari.ailus@linux.intel.com> wrote:
 
-ERROR: "v4l2_event_pending" [drivers/media/common/videobuf/videobuf2-v4l2.ko] undefined!
-ERROR: "v4l2_fh_release" [drivers/media/common/videobuf/videobuf2-v4l2.ko] undefined!
-ERROR: "video_devdata" [drivers/media/common/videobuf/videobuf2-v4l2.ko] undefined!
-ERROR: "__tracepoint_vb2_buf_done" [drivers/media/common/videobuf/videobuf2-core.ko] undefined!
-ERROR: "__tracepoint_vb2_dqbuf" [drivers/media/common/videobuf/videobuf2-core.ko] undefined!
-ERROR: "v4l_vb2q_enable_media_source" [drivers/media/common/videobuf/videobuf2-core.ko] undefined!
+> Hi Mauro,
+> 
+> On Thu, Jan 04, 2018 at 02:44:41PM -0500, Mauro Carvalho Chehab wrote:
+> > There are lots of bad whitespaces at atomisp driver.
+> > 
+> > Fix them.
+> > 
+> > Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> > ---
+> > 
+> > Sakari/Alan,
+> > 
+> > This is a script-generated patch that can be re-generated anytime.
+> > If you prefer to not touch on it now, i'm perfectly fine.
+> > 
+> > I'm sending it just as completeness, as I'm doing a similar
+> > cleanup under drivers/media, where  a number of <TAB><SPACE>
+> > sequences accumulated over the time.   
+> 
+> Thanks for the patch.
+> 
+> In principle this is a worthwhile patch; I'd postpone it for the time being
+> though: I understand that a few people are bisecting and / or applying
+> out-of-tree patches to the driver to debug it on a few different hardware
+> platforms. Let's wait until that work is done, and then apply this.
 
-This adds the same dependency in au0828 that the other users of videobuf2
-have.
+Given the kind of debug going on and the amount of time it's taking (plus
+AtomISP for reasons people now know got mostly dropped from my work queue
+since June) I'm happy if they get applied.
 
-Fixes: 03fbdb2fc2b8 ("media: move videobuf2 to drivers/media/common")
-Fixes: 05439b1a3693 ("[media] media: au0828 - convert to use videobuf2")
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
----
- drivers/media/usb/au0828/Kconfig | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Can we apply the core ISP2401 merge from Vincent first though ?
 
-diff --git a/drivers/media/usb/au0828/Kconfig b/drivers/media/usb/au0828/Kconfig
-index 70521e0b4c53..bfaa806633df 100644
---- a/drivers/media/usb/au0828/Kconfig
-+++ b/drivers/media/usb/au0828/Kconfig
-@@ -1,7 +1,7 @@
- 
- config VIDEO_AU0828
- 	tristate "Auvitek AU0828 support"
--	depends on I2C && INPUT && DVB_CORE && USB
-+	depends on I2C && INPUT && DVB_CORE && USB && VIDEO_V4L2
- 	select I2C_ALGOBIT
- 	select VIDEO_TVEEPROM
- 	select VIDEOBUF2_VMALLOC
--- 
-2.9.0
+Alan
