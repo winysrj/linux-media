@@ -1,72 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:42500 "EHLO
-        mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751184AbeAYMFl (ORCPT
+Received: from o1.7nn.fshared.sendgrid.net ([167.89.55.65]:48559 "EHLO
+        o1.7nn.fshared.sendgrid.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753879AbeAHRjh (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 25 Jan 2018 07:05:41 -0500
-Subject: Re: [PATCH v3 2/3] media: MAINTAINERS: add entry for ov9650 driver
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: Akinobu Mita <akinobu.mita@gmail.com>, linux-media@vger.kernel.org,
-        Jacopo Mondi <jacopo@jmondi.org>,
-        "H . Nikolaus Schaller" <hns@goldelico.com>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Rob Herring <robh@kernel.org>
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Message-id: <b6ad0b4f-4731-9ecc-0347-1023f2a38887@samsung.com>
-Date: Thu, 25 Jan 2018 13:05:22 +0100
-MIME-version: 1.0
-In-reply-to: <1516547656-3879-3-git-send-email-akinobu.mita@gmail.com>
-Content-type: text/plain; charset="utf-8"
-Content-language: en-GB
-Content-transfer-encoding: 7bit
-References: <1516547656-3879-1-git-send-email-akinobu.mita@gmail.com>
-        <1516547656-3879-3-git-send-email-akinobu.mita@gmail.com>
-        <CGME20180125120538epcas1p3f4f24d080cf92be8ba91bfc66eded51e@epcas1p3.samsung.com>
+        Mon, 8 Jan 2018 12:39:37 -0500
+From: Kieran Bingham <kieran.bingham@ideasonboard.com>
+To: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, niklas.soderlund@ragnatech.se,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-kernel@vger.kernel.org (open list)
+Subject: [PATCH] media: i2c: adv748x: fix HDMI field heights
+Date: Mon, 08 Jan 2018 17:39:30 +0000 (UTC)
+Message-Id: <1515433167-15912-1-git-send-email-kieran.bingham@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/21/2018 04:14 PM, Akinobu Mita wrote:
-> This adds an entry to the MAINTAINERS file for ov9650 driver.  The
-> following persons are added in this entry.
-> 
-> * Sakari as a person who looks after media sensor driver patches
-> * Sylwester as a module author
-> * Myself as a person who has the hardware and can test the patches
-> 
-> Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> Cc: Jacopo Mondi <jacopo@jmondi.org>
-> Cc: H. Nikolaus Schaller <hns@goldelico.com>
-> Cc: Hugues Fruchet <hugues.fruchet@st.com>
-> Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
-> Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> Cc: Rob Herring <robh@kernel.org>
-> Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+The ADV748x handles interlaced media using V4L2_FIELD_ALTERNATE field
+types.  The correct specification for the height on the mbus is the
+image height, in this instance, the field height.
 
-Feel free to add my:
+The AFE component already correctly adjusts the height on the mbus, but
+the HDMI component got left behind.
 
-Acked-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Adjust the mbus height to correctly describe the image height of the
+fields when processing interlaced video for HDMI pipelines.
 
-> ---
->  MAINTAINERS | 9 +++++++++
->  1 file changed, 9 insertions(+)
-> 
-> diff --git a/MAINTAINERS b/MAINTAINERS
-> index e358141..8924e39 100644
-> --- a/MAINTAINERS
-> +++ b/MAINTAINERS
-> @@ -10052,6 +10052,15 @@ S:	Maintained
->  F:	drivers/media/i2c/ov7670.c
->  F:	Documentation/devicetree/bindings/media/i2c/ov7670.txt
->  
-> +OMNIVISION OV9650 SENSOR DRIVER
-> +M:	Sakari Ailus <sakari.ailus@linux.intel.com>
-> +R:	Akinobu Mita <akinobu.mita@gmail.com>
-> +R:	Sylwester Nawrocki <s.nawrocki@samsung.com>
-> +L:	linux-media@vger.kernel.org
-> +T:	git git://linuxtv.org/media_tree.git
-> +S:	Maintained
-> +F:	drivers/media/i2c/ov9650.c
+Fixes: 3e89586a64df ("media: i2c: adv748x: add adv748x driver")
+Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+---
+ drivers/media/i2c/adv748x/adv748x-hdmi.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-Regards,
-Sylwester
+diff --git a/drivers/media/i2c/adv748x/adv748x-hdmi.c b/drivers/media/i2c/adv748x/adv748x-hdmi.c
+index 4da4253553fc..0e2f76f3f029 100644
+--- a/drivers/media/i2c/adv748x/adv748x-hdmi.c
++++ b/drivers/media/i2c/adv748x/adv748x-hdmi.c
+@@ -105,6 +105,10 @@ static void adv748x_hdmi_fill_format(struct adv748x_hdmi *hdmi,
+ 
+ 	fmt->width = hdmi->timings.bt.width;
+ 	fmt->height = hdmi->timings.bt.height;
++
++	/* Propagate field height on the mbus for FIELD_ALTERNATE fmts */
++	if (hdmi->timings.bt.interlaced)
++		fmt->height /= 2;
+ }
+ 
+ static void adv748x_fill_optional_dv_timings(struct v4l2_dv_timings *timings)
+-- 
+2.7.4
