@@ -1,97 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from vsp-unauthed02.binero.net ([195.74.38.227]:62265 "EHLO
-        bin-vsp-out-03.atm.binero.net" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751546AbeA2Qfe (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 29 Jan 2018 11:35:34 -0500
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH v10 14/30] rcar-vin: add flag to switch to media controller mode
-Date: Mon, 29 Jan 2018 17:34:19 +0100
-Message-Id: <20180129163435.24936-15-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20180129163435.24936-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20180129163435.24936-1-niklas.soderlund+renesas@ragnatech.se>
+Received: from mail-lf0-f68.google.com ([209.85.215.68]:34017 "EHLO
+        mail-lf0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754863AbeAHR4c (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 8 Jan 2018 12:56:32 -0500
+Received: by mail-lf0-f68.google.com with SMTP id h140so13016746lfg.1
+        for <linux-media@vger.kernel.org>; Mon, 08 Jan 2018 09:56:31 -0800 (PST)
+Date: Mon, 8 Jan 2018 18:56:29 +0100
+From: Niklas =?iso-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund@ragnatech.se>
+To: Kieran Bingham <kieran.bingham@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        open list <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH] media: i2c: adv748x: fix HDMI field heights
+Message-ID: <20180108175629.GE23075@bigcity.dyn.berto.se>
+References: <1515433167-15912-1-git-send-email-kieran.bingham@ideasonboard.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
+In-Reply-To: <1515433167-15912-1-git-send-email-kieran.bingham@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Gen3 a media controller API needs to be used to allow userspace to
-configure the subdevices in the pipeline instead of directly controlling
-a single source subdevice, which is and will continue to be the mode of
-operation on Gen2.
+Hi Kieran,
 
-Prepare for these two modes of operation by adding a flag to struct
-rvin_info which will control which mode to use.
+Thanks for your patch.
 
-Signed-off-by: Niklas SÃ¶derlund <niklas.soderlund+renesas@ragnatech.se>
-Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/platform/rcar-vin/rcar-core.c | 6 +++++-
- drivers/media/platform/rcar-vin/rcar-vin.h  | 2 ++
- 2 files changed, 7 insertions(+), 1 deletion(-)
+On 2018-01-08 17:39:30 +0000, Kieran Bingham wrote:
+> The ADV748x handles interlaced media using V4L2_FIELD_ALTERNATE field
+> types.  The correct specification for the height on the mbus is the
+> image height, in this instance, the field height.
+> 
+> The AFE component already correctly adjusts the height on the mbus, but
+> the HDMI component got left behind.
+> 
+> Adjust the mbus height to correctly describe the image height of the
+> fields when processing interlaced video for HDMI pipelines.
+> 
+> Fixes: 3e89586a64df ("media: i2c: adv748x: add adv748x driver")
+> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+> ---
+>  drivers/media/i2c/adv748x/adv748x-hdmi.c | 4 ++++
+>  1 file changed, 4 insertions(+)
+> 
+> diff --git a/drivers/media/i2c/adv748x/adv748x-hdmi.c b/drivers/media/i2c/adv748x/adv748x-hdmi.c
+> index 4da4253553fc..0e2f76f3f029 100644
+> --- a/drivers/media/i2c/adv748x/adv748x-hdmi.c
+> +++ b/drivers/media/i2c/adv748x/adv748x-hdmi.c
+> @@ -105,6 +105,10 @@ static void adv748x_hdmi_fill_format(struct adv748x_hdmi *hdmi,
+>  
+>  	fmt->width = hdmi->timings.bt.width;
+>  	fmt->height = hdmi->timings.bt.height;
+> +
+> +	/* Propagate field height on the mbus for FIELD_ALTERNATE fmts */
+> +	if (hdmi->timings.bt.interlaced)
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
-index ce1c90405c6002eb..64034c96f384b3ed 100644
---- a/drivers/media/platform/rcar-vin/rcar-core.c
-+++ b/drivers/media/platform/rcar-vin/rcar-core.c
-@@ -243,18 +243,21 @@ static int rvin_digital_graph_init(struct rvin_dev *vin)
- 
- static const struct rvin_info rcar_info_h1 = {
- 	.model = RCAR_H1,
-+	.use_mc = false,
- 	.max_width = 2048,
- 	.max_height = 2048,
- };
- 
- static const struct rvin_info rcar_info_m1 = {
- 	.model = RCAR_M1,
-+	.use_mc = false,
- 	.max_width = 2048,
- 	.max_height = 2048,
- };
- 
- static const struct rvin_info rcar_info_gen2 = {
- 	.model = RCAR_GEN2,
-+	.use_mc = false,
- 	.max_width = 2048,
- 	.max_height = 2048,
- };
-@@ -349,7 +352,8 @@ static int rcar_vin_remove(struct platform_device *pdev)
- 	v4l2_async_notifier_unregister(&vin->notifier);
- 	v4l2_async_notifier_cleanup(&vin->notifier);
- 
--	v4l2_ctrl_handler_free(&vin->ctrl_handler);
-+	if (!vin->info->use_mc)
-+		v4l2_ctrl_handler_free(&vin->ctrl_handler);
- 
- 	rvin_dma_unregister(vin);
- 
-diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
-index a5dae5b5e9cb704b..64476bc5c8abc6d0 100644
---- a/drivers/media/platform/rcar-vin/rcar-vin.h
-+++ b/drivers/media/platform/rcar-vin/rcar-vin.h
-@@ -77,11 +77,13 @@ struct rvin_graph_entity {
- /**
-  * struct rvin_info - Information about the particular VIN implementation
-  * @model:		VIN model
-+ * @use_mc:		use media controller instead of controlling subdevice
-  * @max_width:		max input width the VIN supports
-  * @max_height:		max input height the VIN supports
-  */
- struct rvin_info {
- 	enum model_id model;
-+	bool use_mc;
- 
- 	unsigned int max_width;
- 	unsigned int max_height;
+        if (V4L2_FIELD_HAS_T_OR_B(fmt->field))
+
+Nit-picking but I would use the field here (which is set just above this 
+in the same function) as it makes it more clear why the format is cut in 
+half. I looked at the documentation for bt.interlaced and I'm not sure 
+if it would be set to true for INTERLACED field formats when the height 
+should not be halved? In this case it do not matter as 
+
+        fmt->field = hdmi->timings.bt.interlaced ?
+            V4L2_FIELD_ALTERNATE : V4L2_FIELD_NONE;
+
+So I leave this up to you and feel free to add in either case.
+
+Reviewed-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+
+> +		fmt->height /= 2;
+>  }
+>  
+>  static void adv748x_fill_optional_dv_timings(struct v4l2_dv_timings *timings)
+> -- 
+> 2.7.4
+> 
+
 -- 
-2.16.1
+Regards,
+Niklas Söderlund
