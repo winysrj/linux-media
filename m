@@ -1,104 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:47410 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932483AbeAKSla (ORCPT
+Received: from relmlor4.renesas.com ([210.160.252.174]:64737 "EHLO
+        relmlie3.idc.renesas.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1757537AbeAHUyY (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 11 Jan 2018 13:41:30 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Shuah Khan <shuahkh@osg.samsung.com>
-Cc: mchehab@kernel.org, shuah@kernel.org, sakari.ailus@linux.intel.com,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] media: v4l2-core: v4l2-mc: Add SPDX license identifier
-Date: Thu, 11 Jan 2018 20:42:04 +0200
-Message-ID: <1730571.xFN9zJKHcq@avalon>
-In-Reply-To: <9e7fdf1e-64f5-093a-e1ad-a64653791429@osg.samsung.com>
-References: <20180110163540.8396-1-shuahkh@osg.samsung.com> <2473844.IFKS5XRpDA@avalon> <9e7fdf1e-64f5-093a-e1ad-a64653791429@osg.samsung.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
+        Mon, 8 Jan 2018 15:54:24 -0500
+From: Fabrizio Castro <fabrizio.castro@bp.renesas.com>
+To: Hugues Fruchet <hugues.fruchet@st.com>,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>
+CC: "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "Benjamin Gaignard" <benjamin.gaignard@linaro.org>
+Subject: RE: [PATCH v5 0/5] Add OV5640 parallel interface and RGB565/YUYV
+ support
+Date: Mon, 8 Jan 2018 20:54:18 +0000
+Message-ID: <TY1PR06MB0895C74B45AF75CEB9F7AA4BC0130@TY1PR06MB0895.apcprd06.prod.outlook.com>
+References: <1514973452-10464-1-git-send-email-hugues.fruchet@st.com>
+In-Reply-To: <1514973452-10464-1-git-send-email-hugues.fruchet@st.com>
+Content-Language: en-US
 Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Shuah,
+Hello Hugues,
 
-On Thursday, 11 January 2018 17:45:15 EET Shuah Khan wrote:
-> On 01/11/2018 05:55 AM, Laurent Pinchart wrote:
-> > On Wednesday, 10 January 2018 18:35:36 EET Shuah Khan wrote:
-> >> Replace GPL license statement with SPDX GPL-2.0 license identifier.
-> >> 
-> >> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
-> >> ---
-> >> 
-> >>  drivers/media/v4l2-core/v4l2-mc.c | 11 +----------
-> >>  1 file changed, 1 insertion(+), 10 deletions(-)
-> >> 
-> >> diff --git a/drivers/media/v4l2-core/v4l2-mc.c
-> >> b/drivers/media/v4l2-core/v4l2-mc.c index 303980b71aae..1297132acd4e
-> >> 100644
-> >> --- a/drivers/media/v4l2-core/v4l2-mc.c
-> >> +++ b/drivers/media/v4l2-core/v4l2-mc.c
-> >> @@ -1,3 +1,4 @@
-> >> +/* SPDX-License-Identifier: GPL-2.0 */
-> > 
-> > The header doesn't match the existing license.
-> 
-> When I added the file, I must have cut and pasted the license statement
-> from another file. More on this below the deleted license lines.
-> 
-> > Furthermore, unless I'm mistaken, the standard comment style for SPDX
-> > headers in the kernel is //, not /* ... */
-> 
-> Looks like we have 3 conventions for SPDX comment style.
-> /* ... */ for headers and # ... for shell scripts and
-> // for .c files.
-> 
-> I can update it it and send v2 provided we think the change is inline
-> with the original license.
+thank you for the patch series.
+I am having a go with your patches, and although they seem alright, I don't=
+ seem to be able to grab a non-black picture on the iWave iwg20d in plain D=
+VP mode, but if I switch to BT656 just by setting register 0x4730 to 0x01 (=
+I know, it's a nasty hack...) I can get something sensible out.
 
-Personally I prefer the /* ... */ comment style, but I noticed that Greg used 
-// in his large patch the adds SPDX license headers, so I think we should 
-follow the established practice. I'll let you investigate to find what is 
-preferred :)
+At the moment there is no proper BT656 support in the driver, I was wonderi=
+ng if you have any plans to enhance the ov5640 driver a little bit further =
+to add proper BT656 support as it may be convenient.
 
-> >>  /*
-> >>  
-> >>   * Media Controller ancillary functions
-> >>   *
-> >> 
-> >> @@ -5,16 +6,6 @@
-> >> 
-> >>   * Copyright (C) 2016 Shuah Khan <shuahkh@osg.samsung.com>
-> >>   * Copyright (C) 2006-2010 Nokia Corporation
-> >>   * Copyright (c) 2016 Intel Corporation.
-> >> 
-> >> - *
-> >> - *  This program is free software; you can redistribute it and/or modify
-> >> - *  it under the terms of the GNU General Public License as published by
-> >> - *  the Free Software Foundation; either version 2 of the License, or
-> >> - *  (at your option) any later version.
-> 
-> Are you concerned about the "or (at your option) any later version." part
-> that it doesn't match?
+Do you know if someone else was able to get DVP to work by means of this pa=
+tch series on a non-STM32 platform?
 
-Yes, that's my concern. I'm personally fine with GPL-2.0-only, but you'll have 
-a hard time contacting all the other copyright holders if you want to 
-relicense this. Good luck getting hold of the appropriate legal department at 
-Nokia :-)
+Thanks,
+Fabrizio
 
-On a related note, I nowadays encourage developers to keep their copyright on 
-code they wrote when possible, and to at least negotiate that with their 
-employers.
 
-> >> - *
-> >> - *  This program is distributed in the hope that it will be useful,
-> >> - *  but WITHOUT ANY WARRANTY; without even the implied warranty of
-> >> - *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> >> - *  GNU General Public License for more details.
-> >>   */
-> >>  
-> >>  #include <linux/module.h>
+> Subject: [PATCH v5 0/5] Add OV5640 parallel interface and RGB565/YUYV sup=
+port
+>
+> Enhance OV5640 CSI driver to support also DVP parallel interface.
+> Add RGB565 (LE & BE) and YUV422 YUYV format in addition to existing
+> YUV422 UYVY format.
+> Some other improvements on chip identifier check and removal
+> of warnings in powering phase around gpio handling.
+>
+> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+> =3D history =3D
+> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+> version 5:
+>   - Refine bindings as per Sakari suggestion:
+>     https://www.mail-archive.com/linux-media@vger.kernel.org/msg124048.ht=
+ml
+>
+> version 4:
+>   - Refine bindings as per Sakari suggestion:
+>     https://www.mail-archive.com/linux-media@vger.kernel.org/msg123609.ht=
+ml
+>   - Parallel port control lines polarity can now be configured through
+>     devicetree
+>
+> version 3:
+>   - Move chip identifier check at probe according to Fabio Estevam commen=
+t:
+>     https://www.mail-archive.com/linux-media@vger.kernel.org/msg122575.ht=
+ml
+>   - Use 16 bits register read for this check as per Steve Longerbeam comm=
+ent:
+>     https://www.mail-archive.com/linux-media@vger.kernel.org/msg122692.ht=
+ml
+>   - Update bindings to document parallel mode support as per Fabio Esteva=
+m comment:
+>     https://www.mail-archive.com/linux-media@vger.kernel.org/msg122576.ht=
+ml
+>   - Enable the whole 10 bits parallel output and document 8/10 bits suppo=
+rt
+>     in ov5640_set_stream_dvp() to answer to Steve Longerbeam comment:
+>     https://www.mail-archive.com/linux-media@vger.kernel.org/msg122693.ht=
+ml
+>
+> version 2:
+>   - Fix comments from Sakari Ailus:
+>     https://www.mail-archive.com/linux-media@vger.kernel.org/msg122259.ht=
+ml
+>   - Revisit ov5640_set_stream_dvp() to only configure DVP at streamon
+>   - Revisit ov5640_set_stream_dvp() implementation with fewer register se=
+ttings
+>
+> version 1:
+>   - Initial submission
+>
+> Hugues Fruchet (5):
+>   media: ov5640: switch to gpiod_set_value_cansleep()
+>   media: ov5640: check chip id
+>   media: dt-bindings: ov5640: refine CSI-2 and add parallel interface
+>   media: ov5640: add support of DVP parallel interface
+>   media: ov5640: add support of RGB565 and YUYV formats
+>
+>  .../devicetree/bindings/media/i2c/ov5640.txt       |  46 ++-
+>  drivers/media/i2c/ov5640.c                         | 325 +++++++++++++++=
++++---
+>  2 files changed, 324 insertions(+), 47 deletions(-)
+>
+> --
+> 1.9.1
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe devicetree" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
--- 
-Regards,
 
-Laurent Pinchart
+
+Renesas Electronics Europe Ltd, Dukes Meadow, Millboard Road, Bourne End, B=
+uckinghamshire, SL8 5FH, UK. Registered in England & Wales under Registered=
+ No. 04586709.
