@@ -1,194 +1,196 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:49955 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752486AbeADUlR (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 4 Jan 2018 15:41:17 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Jacopo Mondi <jacopo+renesas@jmondi.org>
-Cc: magnus.damm@gmail.com, geert@glider.be, mchehab@kernel.org,
-        hverkuil@xs4all.nl, festevam@gmail.com, sakari.ailus@iki.fi,
-        robh+dt@kernel.org, mark.rutland@arm.com,
-        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-sh@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v3 3/9] v4l: platform: Add Renesas CEU driver
-Date: Thu, 04 Jan 2018 22:41:40 +0200
-Message-ID: <1661119.HFTSOmjBYx@avalon>
-In-Reply-To: <1515081797-17174-4-git-send-email-jacopo+renesas@jmondi.org>
-References: <1515081797-17174-1-git-send-email-jacopo+renesas@jmondi.org> <1515081797-17174-4-git-send-email-jacopo+renesas@jmondi.org>
+Received: from mail-bn3nam01on0086.outbound.protection.outlook.com ([104.47.33.86]:35411
+        "EHLO NAM01-BN3-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1757049AbeAHMax (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 8 Jan 2018 07:30:53 -0500
+Subject: Re: [PATCH] media: v4l: xilinx: Use SPDX-License-Identifier
+To: Michal Simek <michal.simek@xilinx.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Dhaval Shah <dhaval23031987@gmail.com>
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Greg KH <gregkh@linuxfoundation.org>,
+        Joe Perches <joe@perches.com>, <hyun.kwon@xilinx.com>,
+        <linux-media@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-kernel@vger.kernel.org>
+References: <20171208123537.18718-1-dhaval23031987@gmail.com>
+ <20171214205706.GA1856@kroah.com> <20171214194536.2269667d@recife.lan>
+ <7952229.SXlKMv2tvC@avalon>
+ <CAOymtfJKzs=1xUeJOYqvxhb-o9r=aTUOLOM4-DMUj8xXdD2PUw@mail.gmail.com>
+ <20171215072734.6180613b@vento.lan>
+ <9614a2cb-66bf-6689-e6ac-abd24a71bb04@xilinx.com>
+From: Michal Simek <michal.simek@xilinx.com>
+Message-ID: <be9e3891-b56d-9cbf-6233-d0d645b9b7ef@xilinx.com>
+Date: Mon, 8 Jan 2018 13:30:36 +0100
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <9614a2cb-66bf-6689-e6ac-abd24a71bb04@xilinx.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jacopo,
+Hi Mauro,
 
-Thank you for the patch.
-
-On Thursday, 4 January 2018 18:03:11 EET Jacopo Mondi wrote:
-> Add driver for Renesas Capture Engine Unit (CEU).
+On 18.12.2017 08:32, Michal Simek wrote:
+> Hi guys,
 > 
-> The CEU interface supports capturing 'data' (YUV422) and 'images'
-> (NV[12|21|16|61]).
+> On 15.12.2017 10:27, Mauro Carvalho Chehab wrote:
+>> Em Fri, 15 Dec 2017 10:55:26 +0530
+>> Dhaval Shah <dhaval23031987@gmail.com> escreveu:
+>>
+>>> Hi Laurent/Mauro/Greg,
+>>>
+>>> On Fri, Dec 15, 2017 at 3:32 AM, Laurent Pinchart
+>>> <laurent.pinchart@ideasonboard.com> wrote:
+>>>> Hi Mauro,
+>>>>
+>>>> On Thursday, 14 December 2017 23:50:03 EET Mauro Carvalho Chehab wrote:
+>>>>> Em Thu, 14 Dec 2017 21:57:06 +0100 Greg KH escreveu:
+>>>>>> On Thu, Dec 14, 2017 at 10:44:16PM +0200, Laurent Pinchart wrote:
+>>>>>>> On Thursday, 14 December 2017 22:08:51 EET Greg KH wrote:
+>>>>>>>> On Thu, Dec 14, 2017 at 09:05:27PM +0200, Laurent Pinchart wrote:
+>>>>>>>>> On Thursday, 14 December 2017 20:54:39 EET Joe Perches wrote:
+>>>>>>>>>> On Thu, 2017-12-14 at 20:37 +0200, Laurent Pinchart wrote:
+>>>>>>>>>>> On Thursday, 14 December 2017 20:32:20 EET Joe Perches wrote:
+>>>>>>>>>>>> On Thu, 2017-12-14 at 20:28 +0200, Laurent Pinchart wrote:
+>>>>>>>>>>>>> On Thursday, 14 December 2017 19:05:27 EET Mauro Carvalho Chehab
+>>>>>>>>>>>>> wrote:
+>>>>>>>>>>>>>> Em Fri,  8 Dec 2017 18:05:37 +0530 Dhaval Shah escreveu:
+>>>>>>>>>>>>>>> SPDX-License-Identifier is used for the Xilinx Video IP and
+>>>>>>>>>>>>>>> related drivers.
+>>>>>>>>>>>>>>>
+>>>>>>>>>>>>>>> Signed-off-by: Dhaval Shah <dhaval23031987@gmail.com>
+>>>>>>>>>>>>>>
+>>>>>>>>>>>>>> Hi Dhaval,
+>>>>>>>>>>>>>>
+>>>>>>>>>>>>>> You're not listed as one of the Xilinx driver maintainers. I'm
+>>>>>>>>>>>>>> afraid that, without their explicit acks, sent to the ML, I
+>>>>>>>>>>>>>> can't accept a patch touching at the driver's license tags.
+>>>>>>>>>>>>>
+>>>>>>>>>>>>> The patch doesn't change the license, I don't see why it would
+>>>>>>>>>>>>> cause any issue. Greg isn't listed as the maintainer or copyright
+>>>>>>>>>>>>> holder of any of the 10k+ files to which he added an SPDX license
+>>>>>>>>>>>>> header in the last kernel release.
+>>>>>>>>>>>>
+>>>>>>>>>>>> Adding a comment line that describes an implicit or
+>>>>>>>>>>>> explicit license is different than removing the license
+>>>>>>>>>>>> text itself.
+>>>>>>>>>>>
+>>>>>>>>>>> The SPDX license header is meant to be equivalent to the license
+>>>>>>>>>>> text.
+>>>>>>>>>>
+>>>>>>>>>> I understand that.
+>>>>>>>>>> At a minimum, removing BSD license text is undesirable
+>>>>>>>>>>
+>>>>>>>>>> as that license states:
+>>>>>>>>>>  *    * Redistributions of source code must retain the above copyright
+>>>>>>>>>>  *      notice, this list of conditions and the following disclaimer.
+>>>>>>>>>>
+>>>>>>>>>> etc...
+>>>>>>>>>
+>>>>>>>>> But this patch only removes the following text:
+>>>>>>>>>
+>>>>>>>>> - * This program is free software; you can redistribute it and/or
+>>>>>>>>> modify
+>>>>>>>>> - * it under the terms of the GNU General Public License version 2 as
+>>>>>>>>> - * published by the Free Software Foundation.
+>>>>>>>>>
+>>>>>>>>> and replaces it by the corresponding SPDX header.
+>>>>>>>>>
+>>>>>>>>>>> The only reason why the large SPDX patch didn't touch the whole
+>>>>>>>>>>> kernel in one go was that it was easier to split in in multiple
+>>>>>>>>>>> chunks.
+>>>>>>>>>>
+>>>>>>>>>> Not really, it was scripted.
+>>>>>>>>>
+>>>>>>>>> But still manually reviewed as far as I know.
+>>>>>>>>>
+>>>>>>>>>>> This is no different than not including the full GPL license in
+>>>>>>>>>>> every header file but only pointing to it through its name and
+>>>>>>>>>>> reference, as every kernel source file does.
+>>>>>>>>>>
+>>>>>>>>>> Not every kernel source file had a license text
+>>>>>>>>>> or a reference to another license file.
+>>>>>>>>>
+>>>>>>>>> Correct, but the files touched by this patch do.
+>>>>>>>>>
+>>>>>>>>> This issue is in no way specific to linux-media and should be
+>>>>>>>>> decided upon at the top level, not on a per-subsystem basis. Greg,
+>>>>>>>>> could you comment on this ?
+>>>>>>>>
+>>>>>>>> Comment on what exactly?  I don't understand the problem here, care to
+>>>>>>>> summarize it?
+>>>>>>>
+>>>>>>> In a nutshell (if I understand it correctly), Dhaval Shah submitted
+>>>>>>> https:// patchwork.kernel.org/patch/10102451/ which replaces
+>>>>>>>
+>>>>>>> +// SPDX-License-Identifier: GPL-2.0
+>>>>>>> [...]
+>>>>>>> - *
+>>>>>>> - * This program is free software; you can redistribute it and/or modify
+>>>>>>> - * it under the terms of the GNU General Public License version 2 as
+>>>>>>> - * published by the Free Software Foundation.
+>>>>>>>
+>>>>>>> in all .c and .h files of the Xilinx V4L2 driver
+>>>>>>> (drivers/media/platform/
+>>>>>>> xilinx). I have reviewed the patch and acked it. Mauro then rejected it,
+>>>>>>> stating that he can't accept a change to license text without an
+>>>>>>> explicit ack from the official driver's maintainers. My position is
+>>>>>>> that such a change doesn't change the license and thus doesn't need to
+>>>>>>> track all copyright holders, and can be merged without an explicit ack
+>>>>>>> from the respective maintainers.
+>>>>>>
+>>>>>> Yes, I agree with you, no license is being changed here, and no
+>>>>>> copyright is either.
+>>>>>>
+>>>>>> BUT, I know that most major companies are reviewing this process right
+>>>>>> now.  We have gotten approval from almost all of the major kernel
+>>>>>> developer companies to do this, which is great, and supports this work
+>>>>>> as being acceptable.
+>>>>>>
+>>>>>> So it's nice to ask Xilinx if they object to this happening, which I
+>>>>>> guess Mauro is trying to say here (in not so many words...)  To at least
+>>>>>> give them the heads-up that this is what is going to be going on
+>>>>>> throughout the kernel tree soon, and if they object, it would be good to
+>>>>>> speak up as to why (and if they do, I can put their lawyers in contact
+>>>>>> with some lawyers to explain it all to them.)
+>>>>>
+>>>>> Yes, that's basically what I'm saying.
+>>>>>
+>>>>> I don't feel comfortable on signing a patch changing the license text
+>>>>> without giving the copyright owners an opportunity and enough time
+>>>>> to review it and approve, or otherwise comment about such changes.
+>>>>
+>>>> If I understand you and Greg correctly, you would like to get a general
+>>>> approval from Xilinx for SPDX-related changes, but that would be a blanket
+>>>> approval that would cover this and all subsequent similar patches. Is that
+>>>> correct ? That is reasonable for me.
+>>>>
+>>>> In that case, could the fact that commit
+>>>>
+>>>> commit 5fd54ace4721fc5ce2bb5aef6318fcf17f421460
+>>>> Author: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+>>>> Date:   Fri Nov 3 11:28:30 2017 +0100
+>>>>
+>>>>     USB: add SPDX identifiers to all remaining files in drivers/usb/
+>>>>
+>>>> add SPDX headers to several Xilinx-authored source files constitute such a
+>>>> blanket approval ?
+>>>>
+>>> I have to do anything here or Once, we get approval from the Michal
+>>> Simek(michal.simek@xilinx.com) and Hyun.kwon@xilinx.com ACK this patch
+>>> then it will go into mainline?
+>>
+>> I would wait for their feedback.
 > 
-> This driver aims to replace the soc_camera-based sh_mobile_ceu one.
-> 
-> Tested with ov7670 camera sensor, providing YUYV_2X8 data on Renesas RZ
-> platform GR-Peach.
-> 
-> Tested with ov7725 camera sensor on SH4 platform Migo-R.
-> 
-> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
-> ---
->  drivers/media/platform/Kconfig       |    9 +
->  drivers/media/platform/Makefile      |    1 +
->  drivers/media/platform/renesas-ceu.c | 1649 +++++++++++++++++++++++++++++++
->  3 files changed, 1659 insertions(+)
->  create mode 100644 drivers/media/platform/renesas-ceu.c
+> Please do not apply this patch till I get approval from legal. I have
+> already discussed things about SPDX some weeks ago.
 
-[snip]
+There is no concern from xilinx legal about this change that's why
 
-> diff --git a/drivers/media/platform/renesas-ceu.c
-> b/drivers/media/platform/renesas-ceu.c new file mode 100644
-> index 0000000..a614859
-> --- /dev/null
-> +++ b/drivers/media/platform/renesas-ceu.c
+Acked-by: Michal Simek <michal.simek@xilinx.com>
 
-[snip]
-
-> +/*
-> + * struct ceu_data - Platform specific CEU data
-> + * @irq_mask: CETCR mask with all interrupt sources enabled. The mask
-> differs
-> + *	      between SH4 and RZ platforms.
-> + */
-> +struct ceu_data {
-> +	u32 irq_mask;
-> +};
-> +
-> +const struct ceu_data ceu_data_rz = {
-> +	.irq_mask = CEU_CETCR_ALL_IRQS_RZ,
-> +};
-> +
-> +const struct ceu_data ceu_data_sh4 = {
-> +	.irq_mask = CEU_CETCR_ALL_IRQS_SH4,
-> +};
-
-These two can be const.
-
-> +#if IS_ENABLED(CONFIG_OF)
-> +static const struct of_device_id ceu_of_match[] = {
-> +	{ .compatible = "renesas,r7s72100-ceu", .data = &ceu_data_rz },
-> +	{ .compatible = "renesas,ceu", .data = &ceu_data_rz },
-
-Do you need both ? What's your policy for compatible strings ? As far as I 
-understand there's no generic CEU, as the SH4 and RZ versions are not 
-compatible. Should the "renesas,ceu" compatible string then be replaced by 
-"renesas,rz-ceu" and the first entry dropped ?
-
-> +	{ }
-> +};
-> +MODULE_DEVICE_TABLE(of, ceu_of_match);
-> +#endif
-> +
-> +static int ceu_probe(struct platform_device *pdev)
-> +{
-> +	struct device *dev = &pdev->dev;
-> +	const struct ceu_data *ceu_data;
-> +	struct ceu_device *ceudev;
-> +	struct resource *res;
-> +	unsigned int irq;
-> +	int num_subdevs;
-> +	int ret;
-> +
-> +	ceudev = kzalloc(sizeof(*ceudev), GFP_KERNEL);
-> +	if (!ceudev)
-> +		return -ENOMEM;
-> +
-> +	platform_set_drvdata(pdev, ceudev);
-> +	ceudev->dev = dev;
-> +
-> +	INIT_LIST_HEAD(&ceudev->capture);
-> +	spin_lock_init(&ceudev->lock);
-> +	mutex_init(&ceudev->mlock);
-> +
-> +	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-> +	ceudev->base = devm_ioremap_resource(dev, res);
-> +	if (IS_ERR(ceudev->base))
-> +		goto error_free_ceudev;
-> +
-> +	ret = platform_get_irq(pdev, 0);
-> +	if (ret < 0) {
-> +		dev_err(dev, "Failed to request irq: %d\n", ret);
-
-s/request/get/ (it was correct in v2).
-
-> +		goto error_free_ceudev;
-> +	}
-> +	irq = ret;
-> +
-> +	ret = devm_request_irq(dev, irq, ceu_irq,
-> +			       0, dev_name(dev), ceudev);
-> +	if (ret) {
-> +		dev_err(&pdev->dev, "Unable to register CEU interrupt.\n");
-
-s/register/request/ (this is the message that should have been changed).
-
-> +		return ret;
-
-You're leaking ceudev here.
-
-> +	}
-> +
-> +	pm_runtime_enable(dev);
-> +
-> +	ret = v4l2_device_register(dev, &ceudev->v4l2_dev);
-> +	if (ret)
-> +		goto error_pm_disable;
-> +
-> +	if (IS_ENABLED(CONFIG_OF) && dev->of_node) {
-> +		ceu_data = of_match_device(ceu_of_match, dev)->data;
-> +		num_subdevs = ceu_parse_dt(ceudev);
-> +	} else if (dev->platform_data) {
-> +		/* Assume SH4 if booting with platform data. */
-> +		ceu_data = &ceu_data_sh4;
-> +		num_subdevs = ceu_parse_platform_data(ceudev,
-> +						      dev->platform_data);
-> +	} else {
-> +		num_subdevs = -EINVAL;
-> +	}
-> +
-> +	if (num_subdevs < 0) {
-> +		ret = num_subdevs;
-> +		goto error_v4l2_unregister;
-> +	}
-> +	ceudev->irq_mask = ceu_data->irq_mask;
-> +
-> +	ceudev->notifier.v4l2_dev	= &ceudev->v4l2_dev;
-> +	ceudev->notifier.subdevs	= ceudev->asds;
-> +	ceudev->notifier.num_subdevs	= num_subdevs;
-> +	ceudev->notifier.ops		= &ceu_notify_ops;
-> +	ret = v4l2_async_notifier_register(&ceudev->v4l2_dev,
-> +					   &ceudev->notifier);
-> +	if (ret)
-> +		goto error_v4l2_unregister;
-> +
-> +	dev_info(dev, "Renesas Capture Engine Unit %s\n", dev_name(dev));
-> +
-> +	return 0;
-> +
-> +error_v4l2_unregister:
-> +	v4l2_device_unregister(&ceudev->v4l2_dev);
-> +error_pm_disable:
-> +	pm_runtime_disable(dev);
-> +error_free_ceudev:
-> +	kfree(ceudev);
-> +
-> +	return ret;
-> +}
-
--- 
-Regards,
-
-Laurent Pinchart
+Thanks,
+Michal
