@@ -1,140 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:53972 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751330AbeA2LzH (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 29 Jan 2018 06:55:07 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: jacopo mondi <jacopo@jmondi.org>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>,
-        Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        Magnus Damm <magnus.damm@gmail.com>,
-        Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>,
-        Yoshinori Sato <ysato@users.sourceforge.jp>,
-        Rich Felker <dalias@libc.org>,
-        Linux-sh list <linux-sh@vger.kernel.org>,
-        Linux-Renesas <linux-renesas-soc@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        linux-clk <linux-clk@vger.kernel.org>
-Subject: Re: [PATCH] sh: clk: Relax clk rate match test
-Date: Mon, 29 Jan 2018 13:55:20 +0200
-Message-ID: <1598767.1mUcEZddqr@avalon>
-In-Reply-To: <20180126162454.GA11798@w540>
-References: <1516879493-24637-1-git-send-email-jacopo+renesas@jmondi.org> <CAMuHMdWi=s=9oAA5YdPrZA=RjnPfh2YBiPOGQXu1ksj2srxZfA@mail.gmail.com> <20180126162454.GA11798@w540>
+Received: from mail-io0-f177.google.com ([209.85.223.177]:45677 "EHLO
+        mail-io0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755000AbeAHSdA (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 8 Jan 2018 13:33:00 -0500
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <20180108175551.wp6thxmiozrz4yp2@gmail.com>
+References: <trinity-35b3a044-b548-4a31-9646-ed9bc83e6846-1513505978471@3c-app-gmx-bs03>
+ <20171217120634.pmmuhdqyqmbkxrvl@gofer.mess.org> <20171217112738.4f3a4f9b@recife.lan>
+ <trinity-1fa14556-8596-44b1-95cb-b8919d94d2d4-1515251056328@3c-app-gmx-bs15>
+ <20180106175420.275e24e7@recife.lan> <CA+55aFzHPYuxg3LwhqcxwJD2fuKzg6wU5ypfMvrpRoioiQHDFg@mail.gmail.com>
+ <20180108175551.wp6thxmiozrz4yp2@gmail.com>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Date: Mon, 8 Jan 2018 10:32:58 -0800
+Message-ID: <CA+55aFx90oOU-3R8pCeM0ESTDYhmugD5znA9LrGj1zhazWBtcg@mail.gmail.com>
+Subject: Re: dvb usb issues since kernel 4.9
+To: Ingo Molnar <mingo@kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Josef Griebichler <griebichler.josef@gmx.at>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Alan Stern <stern@rowland.harvard.edu>,
+        USB list <linux-usb@vger.kernel.org>,
+        Eric Dumazet <edumazet@google.com>,
+        Rik van Riel <riel@redhat.com>,
+        Paolo Abeni <pabeni@redhat.com>,
+        Hannes Frederic Sowa <hannes@redhat.com>,
+        Jesper Dangaard Brouer <jbrouer@redhat.com>,
+        linux-kernel <linux-kernel@vger.kernel.org>,
+        netdev <netdev@vger.kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>,
+        LMML <linux-media@vger.kernel.org>,
+        Peter Zijlstra <peterz@infradead.org>,
+        David Miller <davem@davemloft.net>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jacopo,
+On Mon, Jan 8, 2018 at 9:55 AM, Ingo Molnar <mingo@kernel.org> wrote:
+>
+> as I doubt we have enough time to root-case this properly.
 
-On Friday, 26 January 2018 18:24:54 EET jacopo mondi wrote:
-> On Thu, Jan 25, 2018 at 03:39:32PM +0100, Geert Uytterhoeven wrote:
-> > Hi Jacopo,
-> 
-> [snip]
-> 
-> >>>> ---
-> >>>> 
-> >>>>  drivers/sh/clk/core.c | 9 ++++++---
-> >>>>  1 file changed, 6 insertions(+), 3 deletions(-)
-> >>>> 
-> >>>> diff --git a/drivers/sh/clk/core.c b/drivers/sh/clk/core.c
-> >>>> index 92863e3..d2cb94c 100644
-> >>>> --- a/drivers/sh/clk/core.c
-> >>>> +++ b/drivers/sh/clk/core.c
-> >>>> @@ -198,9 +198,12 @@ int clk_rate_table_find(struct clk *clk,
-> >>>>  {
-> >>>>         struct cpufreq_frequency_table *pos;
-> >>>> 
-> >>>> -       cpufreq_for_each_valid_entry(pos, freq_table)
-> >>>> -               if (pos->frequency == rate)
-> >>>> -                       return pos - freq_table;
-> >>>> +       cpufreq_for_each_valid_entry(pos, freq_table) {
-> >>>> +               if (pos->frequency > rate)
-> >>>> +                       continue;
-> >>> 
-> >>> This assumes all frequency tables are sorted.
-> >>> 
-> >>> Shouldn't you pick the closest frequency?
-> >>> 
-> >>> However, that's what clk_rate_table_round() does, which is called from
-> >>> 
-> >>> sh_clk_div_round_rate(), and thus already used as .round_rate:
-> >>> 
-> >>>     static struct sh_clk_ops sh_clk_div_enable_clk_ops = {
-> >>>             .recalc         = sh_clk_div_recalc,
-> >>>             .set_rate       = sh_clk_div_set_rate,
-> >>>             .round_rate     = sh_clk_div_round_rate,
-> >>>             .enable         = sh_clk_div_enable,
-> >>>             .disable        = sh_clk_div_disable,
-> >>>     
-> >>>     };
-> >> 
-> >> Does this implies clock rates should be set using clk_round_rate() and
-> >> not clk_set_rate() if I understand this right?
-> > 
-> > Not necessarily...
-> > 
-> > Note that both cpg_div6_clock_round_rate() and cpg_div6_clock_set_rate()
-> > in the CCF implementation for DIV6 clocks use rounding.
-> 
-> Yeah but it doesn't seem to me that CCF implementation for DIV6 clocks does
-> have to walk static tables like the old sh clock driver does. They
-> perform rounding, but on the clock dividers given a requested rate
-> and the respective parent clock, if I'm not wrong.
+Well, it's not like this is a new issue, and we don't have to get it
+fixed for 4.15. It's been around since 4.9, it's not a "have to
+suddenly fix it this week" issue.
 
-While clk_set_rate() doesn't explicitly document that the rate will be 
-rounded, the clk_round_rate() documentation does:
+I just think that people should plan on having to maybe revert it and
+mark the revert for stable.
 
-/**
- * clk_round_rate - adjust a rate to the exact rate a clock can provide
- * @clk: clock source
- * @rate: desired clock rate in Hz
- *
- * This answers the question "if I were to pass @rate to clk_set_rate(),
- * what clock rate would I end up with?" without changing the hardware
- * in any way.  In other words:
- *
- *   rate = clk_round_rate(clk, r);
- *
- * and:
- *
- *   clk_set_rate(clk, r);
- *   rate = clk_get_rate(clk);
- *
- * are equivalent except the former does not modify the clock hardware
- * in any way.
- *
- * Returns rounded clock rate in Hz, or negative errno.
- */
+But if the USB or DVB layers can instead just make the packet queue a
+bit deeper and not react so badly to the latency of a single softirq,
+that would obviously be a good thing in general, and maybe fix this
+issue. So I'm not saying that the revert is inevitable either.
 
-So I think the SH implementation of clk_set_rate() should round rates.
+But I have to say that that commit 4cd13c21b207 ("softirq: Let
+ksoftirqd do its job") was a pretty damn big hammer, and entirely
+ignored the "softirqs can have latency concerns" issue.
 
-(And feel free to send a patch for the clk_set_rate() documentation in 
-include/linux/clk.h to state explicitly that the rate will be rounded).
+So I do feel like the UDP packet storm thing might want a somewhat
+more directed fix than that huge hammer of trying to move softirqs
+aggressively into the softirq thread.
 
-> Anyway, in this case a much simpler:
-> clk_set_rate(video_clk, clk_round_rate(video_clk, 10000000));
-> does the job for Migo-R.
-> 
-> I will include this in next CEU iterations, since I already have a
-> small comment from you to fix there ;)
+This is not that different from threaded irqs. And while you can set
+the "thread every irq" flag, that would be largely insane to do by
+default and in general. So instead, people do it either for specific
+irqs (ie "request_threaded_irq()") or they have a way to opt out of it
+(IRQF_NO_THREAD).
 
-That should not be needed, but if the above code is in a board file, I can 
-live with that until drivers/sh/clk/ gets fixed.
+I _suspect_ that the softirq thing really just wants the same thing.
+Have the networking case maybe set the "prefer threaded" flag just for
+networking, if it's less latency-sensitive for softirq handling than
 
-> >>> (clk_rate_table_find() is called from sh_clk_div_set_rate())
-> >>> 
-> >>> Or are you supposed to ask for the exact clock rate? Where does the 10
-> >>> MHz come from?
-> >> 
-> >> From board initialization code, in order to provide a valid input
-> >> clock to OV7720 sensor.
+In fact, even for networking, there are separate TX/RX softirqs, maybe
+networking would only set it for the RX case? Or maybe even trigger it
+only for cases where things queue up and it goes into a "polling mode"
+(like NAPI already does).
 
--- 
-Regards,
+Of course, I don't even know _which_ softirq it is that the DVB case
+has issues with. Maybe it's the same NET_RX case?
 
-Laurent Pinchart
+But looking at that offending commit, I do note (for example), that we
+literally have things like tasklet[_hi]_schedule() that might have
+been explicitly expected to just run the tasklet at a fairly low
+latency (maybe instead of a workqueue exactly because it doesn't need
+to sleep and wants lower latency).
+
+So saying "just because softirqd is possibly already woken up, let's
+delay all those tasklets etc" does really seem very wrong to me.
+
+Can somebody tell which softirq it is that dvb/usb cares about?
+
+             Linus
