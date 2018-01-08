@@ -1,84 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.17.20]:50210 "EHLO mout.gmx.net"
+Received: from osg.samsung.com ([64.30.133.232]:49431 "EHLO osg.samsung.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750990AbeADS0D (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 4 Jan 2018 13:26:03 -0500
-Date: Thu, 4 Jan 2018 19:25:02 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Kieran Bingham <kbingham@kernel.org>
-cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        laurent.pinchart@ideasonboard.com,
-        Olivier BRAUN <olivier.braun@stereolabs.com>,
-        kieran.bingham@ideasonboard.com,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Jaejoong Kim <climbbb.kim@gmail.com>,
-        Baoyou Xie <baoyou.xie@linaro.org>,
-        Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Jim Lin <jilin@nvidia.com>,
-        Daniel Patrick Johnson <teknotus@teknot.us>
-Subject: Re: [RFC/RFT PATCH 3/6] uvcvideo: Protect queue internals with
- helper
-In-Reply-To: <fc4bbb70ea8937f7a09fc404520eec0f908e43d2.1515010476.git-series.kieran.bingham@ideasonboard.com>
-Message-ID: <alpine.DEB.2.20.1801041624460.13441@axis700.grange>
-References: <cover.67dff754d6d314373ac0a04777b3b1d785fc5dd4.1515010476.git-series.kieran.bingham@ideasonboard.com> <fc4bbb70ea8937f7a09fc404520eec0f908e43d2.1515010476.git-series.kieran.bingham@ideasonboard.com>
+        id S1757538AbeAHNOJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 8 Jan 2018 08:14:09 -0500
+Date: Mon, 8 Jan 2018 11:14:02 -0200
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Hans Verkuil <hansverk@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Christophe JAILLET <christophe.jaillet@wanadoo.fr>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Hirokazu Honda <hiroh@chromium.org>,
+        Satendra Singh Thakur <satendra.t@samsung.com>
+Subject: Re: [PATCH v3] media: videobuf2-core: don't go out of the buffer
+ range
+Message-ID: <20180108111402.1e76c897@vento.lan>
+In-Reply-To: <cae9629d-9c9f-d986-7f5a-69ec73fee2f4@xs4all.nl>
+References: <794d4bf6395160b2077f55148e3caa58751215a9.1514470603.git.mchehab@s-opensource.com>
+        <cae9629d-9c9f-d986-7f5a-69ec73fee2f4@xs4all.nl>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Kieran,
+Em Mon, 8 Jan 2018 12:34:15 +0100
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-On Wed, 3 Jan 2018, Kieran Bingham wrote:
-
-> From: Kieran Bingham <kieran.bingham@ideasonboard.com>
+> Hi Mauro,
 > 
-> The URB completion operation obtains the current buffer by reading
-> directly into the queue internal interface.
+> On 12/28/2017 03:16 PM, Mauro Carvalho Chehab wrote:
+> > Currently, there's no check if an invalid buffer range
+> > is passed. However, while testing DVB memory mapped apps,
+> > I got this:
+> > 
+> >    videobuf2_core: VB: num_buffers -2143943680, buffer 33, index -2143943647
+> >    unable to handle kernel paging request at ffff888b773c0890
+> >    IP: __vb2_queue_alloc+0x134/0x4e0 [videobuf2_core]
+> >    PGD 4142c7067 P4D 4142c7067 PUD 0
+> >    Oops: 0002 [#1] SMP
+> >    Modules linked in: xt_CHECKSUM iptable_mangle ipt_MASQUERADE nf_nat_masquerade_ipv4 iptable_nat nf_nat_ipv4 nf_nat nf_conntrack_ipv4 nf_defrag_ipv4 xt_conntrack nf_conntrack tun bridge stp llc ebtable_filter ebtables ip6table_filter ip6_tables bluetooth rfkill ecdh_generic binfmt_misc rc_dvbsky sp2 ts2020 intel_rapl x86_pkg_temp_thermal dvb_usb_dvbsky intel_powerclamp dvb_usb_v2 coretemp m88ds3103 kvm_intel i2c_mux dvb_core snd_hda_codec_hdmi crct10dif_pclmul crc32_pclmul videobuf2_vmalloc videobuf2_memops snd_hda_intel ghash_clmulni_intel videobuf2_core snd_hda_codec rc_core mei_me intel_cstate snd_hwdep snd_hda_core videodev intel_uncore snd_pcm mei media tpm_tis tpm_tis_core intel_rapl_perf tpm snd_timer lpc_ich snd soundcore kvm irqbypass libcrc32c i915 i2c_algo_bit drm_kms_helper
+> >    e1000e ptp drm crc32c_intel video pps_core
+> >    CPU: 3 PID: 1776 Comm: dvbv5-zap Not tainted 4.14.0+ #78
+> >    Hardware name:                  /NUC5i7RYB, BIOS RYBDWi35.86A.0364.2017.0511.0949 05/11/2017
+> >    task: ffff88877c73bc80 task.stack: ffffb7c402418000
+> >    RIP: 0010:__vb2_queue_alloc+0x134/0x4e0 [videobuf2_core]
+> >    RSP: 0018:ffffb7c40241bc60 EFLAGS: 00010246
+> >    RAX: 0000000080360421 RBX: 0000000000000021 RCX: 000000000000000a
+> >    RDX: ffffb7c40241bcf4 RSI: ffff888780362c60 RDI: ffff888796d8e130
+> >    RBP: ffffb7c40241bcc8 R08: 0000000000000316 R09: 0000000000000004
+> >    R10: ffff888780362c00 R11: 0000000000000001 R12: 000000000002f000
+> >    R13: ffff8887758be700 R14: 0000000000021000 R15: 0000000000000001
+> >    FS:  00007f2849024740(0000) GS:ffff888796d80000(0000) knlGS:0000000000000000
+> >    CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+> >    CR2: ffff888b773c0890 CR3: 000000043beb2005 CR4: 00000000003606e0
+> >    Call Trace:
+> >     vb2_core_reqbufs+0x226/0x420 [videobuf2_core]
+> >     dvb_vb2_reqbufs+0x2d/0xc0 [dvb_core]
+> >     dvb_dvr_do_ioctl+0x98/0x1d0 [dvb_core]
+> >     dvb_usercopy+0x53/0x1b0 [dvb_core]
+> >     ? dvb_demux_ioctl+0x20/0x20 [dvb_core]
+> >     ? tty_ldisc_deref+0x16/0x20
+> >     ? tty_write+0x1f9/0x310
+> >     ? process_echoes+0x70/0x70
+> >     dvb_dvr_ioctl+0x15/0x20 [dvb_core]
+> >     do_vfs_ioctl+0xa5/0x600
+> >     SyS_ioctl+0x79/0x90
+> >     entry_SYSCALL_64_fastpath+0x1a/0xa5
+> >    RIP: 0033:0x7f28486f7ea7
+> >    RSP: 002b:00007ffc13b2db18 EFLAGS: 00000246 ORIG_RAX: 0000000000000010
+> >    RAX: ffffffffffffffda RBX: 000055b10fc06130 RCX: 00007f28486f7ea7
+> >    RDX: 00007ffc13b2db48 RSI: 00000000c0086f3c RDI: 0000000000000007
+> >    RBP: 0000000000000203 R08: 000055b10df1e02c R09: 000000000000002e
+> >    R10: 0036b42415108357 R11: 0000000000000246 R12: 0000000000000000
+> >    R13: 00007f2849062f60 R14: 00000000000001f1 R15: 00007ffc13b2da54
+> >    Code: 74 0a 60 8b 0a 48 83 c0 30 48 83 c2 04 89 48 d0 89 48 d4 48 39 f0 75 eb 41 8b 42 08 83 7d d4 01 41 c7 82 ec 01 00 00 ff ff ff ff <4d> 89 94 c5 88 00 00 00 74 14 83 c3 01 41 39 dc 0f 85 f1 fe ff
+> >    RIP: __vb2_queue_alloc+0x134/0x4e0 [videobuf2_core] RSP: ffffb7c40241bc60
+> >    CR2: ffff888b773c0890
+> > 
+> > So, add a sanity check in order to prevent going past array.  
 > 
-> Protect this queue abstraction by providing a helper
-> uvc_queue_get_current_buffer() which can be used by both the decode
-> task, and the uvc_queue_next_buffer() functions.
-> 
-> Signed-off-by: Kieran Bingham <kieran.bingham@ideasonboard.com>
-> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> ---
->  drivers/media/usb/uvc/uvc_queue.c | 34 +++++++++++++++++++++++++++-----
->  drivers/media/usb/uvc/uvc_video.c |  7 +------
->  drivers/media/usb/uvc/uvcvideo.h  |  2 ++-
->  3 files changed, 32 insertions(+), 11 deletions(-)
-> 
-> diff --git a/drivers/media/usb/uvc/uvc_queue.c b/drivers/media/usb/uvc/uvc_queue.c
-> index c8d78b2f3de4..0711e3d9ff76 100644
-> --- a/drivers/media/usb/uvc/uvc_queue.c
-> +++ b/drivers/media/usb/uvc/uvc_queue.c
-> @@ -399,6 +399,34 @@ void uvc_queue_cancel(struct uvc_video_queue *queue, int disconnect)
->  	spin_unlock_irqrestore(&queue->irqlock, flags);
->  }
->  
-> +/*
-> + * uvc_queue_get_current_buffer: Obtain the current working output buffer
-> + *
-> + * Buffers may span multiple packets, and even URBs, therefore the active buffer
-> + * remains on the queue until the EOF marker.
-> + */
-> +static struct uvc_buffer *
-> +__uvc_queue_get_current_buffer(struct uvc_video_queue *queue)
-> +{
-> +	if (!list_empty(&queue->irqqueue))
-> +		return list_first_entry(&queue->irqqueue, struct uvc_buffer,
-> +					queue);
-> +	else
-> +		return NULL;
+> While this does not hurt from the point of view of robustness, it is not the right
+> fix for this kernel oops. The actual bug is in the vb2 dvb code. I'll reply to that
+> patch with more details.
 
-I think the preferred style is not to use "else" in such cases. It might 
-even be prettier to write
+Hi Hans,
 
-	if (list_empty(...))
-		return NULL;
+Yes, the bug where at dvb-vb2, with was setting the buffer size inside
+a videobuf ops. Yet, vb2 core should be smarter than that and don't
+allow going past the internally-allocated array if the driver asks
+for more buffers than it support, via a vb2 ops.
 
-	return list_first_entry(...);
 
-Thanks
-Guennadi
+
+
+Thanks,
+Mauro
