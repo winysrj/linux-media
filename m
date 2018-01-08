@@ -1,50 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-it0-f44.google.com ([209.85.214.44]:46698 "EHLO
-        mail-it0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751604AbeAOHMQ (ORCPT
+Received: from mx07-00178001.pphosted.com ([62.209.51.94]:8285 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S934907AbeAHRNx (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 15 Jan 2018 02:12:16 -0500
-Received: by mail-it0-f44.google.com with SMTP id c16so15550525itc.5
-        for <linux-media@vger.kernel.org>; Sun, 14 Jan 2018 23:12:16 -0800 (PST)
-Received: from mail-it0-f45.google.com (mail-it0-f45.google.com. [209.85.214.45])
-        by smtp.gmail.com with ESMTPSA id f20sm15491334ioh.19.2018.01.14.23.12.14
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Sun, 14 Jan 2018 23:12:14 -0800 (PST)
-Received: by mail-it0-f45.google.com with SMTP id f143so15864382itb.0
-        for <linux-media@vger.kernel.org>; Sun, 14 Jan 2018 23:12:14 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <20180110160732.7722-2-gustavo@padovan.org>
-References: <20180110160732.7722-1-gustavo@padovan.org> <20180110160732.7722-2-gustavo@padovan.org>
-From: Alexandre Courbot <acourbot@chromium.org>
-Date: Mon, 15 Jan 2018 16:11:53 +0900
-Message-ID: <CAPBb6MV6ErW-Z7n1aK55TxJNRDkt2SkWGEJiXkxrLmZ_GabJOA@mail.gmail.com>
-Subject: Re: [PATCH v7 1/6] [media] vb2: add is_unordered callback for drivers
-To: Gustavo Padovan <gustavo@padovan.org>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        Pawel Osciak <pawel@osciak.com>,
+        Mon, 8 Jan 2018 12:13:53 -0500
+From: Hugues FRUCHET <hugues.fruchet@st.com>
+To: Maxime Ripard <maxime.ripard@free-electrons.com>
+CC: Steve Longerbeam <slongerbeam@gmail.com>,
         Sakari Ailus <sakari.ailus@iki.fi>,
-        Brian Starkey <brian.starkey@arm.com>,
-        Thierry Escande <thierry.escande@collabora.com>,
-        linux-kernel@vger.kernel.org,
-        Gustavo Padovan <gustavo.padovan@collabora.com>
-Content-Type: text/plain; charset="UTF-8"
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        "Mauro Carvalho Chehab" <mchehab@kernel.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Subject: Re: [PATCH v5 0/5] Add OV5640 parallel interface and RGB565/YUYV
+ support
+Date: Mon, 8 Jan 2018 17:13:39 +0000
+Message-ID: <3010811e-ed37-4489-6a9f-6cc835f41575@st.com>
+References: <1514973452-10464-1-git-send-email-hugues.fruchet@st.com>
+ <20180108153811.5xrvbaekm6nxtoa6@flea>
+In-Reply-To: <20180108153811.5xrvbaekm6nxtoa6@flea>
+Content-Language: en-US
+Content-Type: text/plain; charset="Windows-1252"
+Content-ID: <F28FB6BF15967F4694CBD7C24E092B0F@st.com>
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jan 11, 2018 at 1:07 AM, Gustavo Padovan <gustavo@padovan.org> wrote:
-> From: Gustavo Padovan <gustavo.padovan@collabora.com>
->
-> Explicit synchronization benefits a lot from ordered queues, they fit
-> better in a pipeline with DRM for example so create a opt-in way for
-> drivers notify videobuf2 that the queue is unordered.
->
-> Drivers don't need implement it if the queue is ordered.
+Hi Maxime,
 
-This is going to make user-space believe that *all* vb2 drivers use
-ordered queues by default, at least until non-ordered drivers catch up
-with this change. Wouldn't it be less dangerous to do the opposite
-(make queues non-ordered by default)?
+I'm using a ST board with OV5640 wired in parallel bus output in order 
+to interface to my STM32 DCMI parallel interface.
+Perhaps could you describe your setup so I could help on understanding 
+the problem on your side. From my past experience with this sensor 
+module, you can first check hsync/vsync polarities, the datasheet is 
+buggy on VSYNC polarity as documented in patch 4/5.
+
+Best regards,
+Hugues.
+
+On 01/08/2018 04:38 PM, Maxime Ripard wrote:
+> Hi Hugues,
+> 
+> On Wed, Jan 03, 2018 at 10:57:27AM +0100, Hugues Fruchet wrote:
+>> Enhance OV5640 CSI driver to support also DVP parallel interface.
+>> Add RGB565 (LE & BE) and YUV422 YUYV format in addition to existing
+>> YUV422 UYVY format.
+>> Some other improvements on chip identifier check and removal
+>> of warnings in powering phase around gpio handling.
+> 
+> I've been trying to use your patches on top of 4.14, but I cannot seem
+> to get any signal out of it.
+> 
+> What is your test setup and which commands are you running?
+> 
+> Thanks!
+> Maxime
+> 
