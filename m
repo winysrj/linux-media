@@ -1,101 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pl0-f66.google.com ([209.85.160.66]:33794 "EHLO
-        mail-pl0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750864AbeACSXa (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 3 Jan 2018 13:23:30 -0500
-Received: by mail-pl0-f66.google.com with SMTP id d21so1729587pll.1
-        for <linux-media@vger.kernel.org>; Wed, 03 Jan 2018 10:23:30 -0800 (PST)
-From: Akinobu Mita <akinobu.mita@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: Akinobu Mita <akinobu.mita@gmail.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: [PATCH v2 4/4] media: mt9m111: add V4L2_CID_TEST_PATTERN control
-Date: Thu,  4 Jan 2018 03:22:47 +0900
-Message-Id: <1515003767-12006-5-git-send-email-akinobu.mita@gmail.com>
-In-Reply-To: <1515003767-12006-1-git-send-email-akinobu.mita@gmail.com>
-References: <1515003767-12006-1-git-send-email-akinobu.mita@gmail.com>
+Received: from bombadil.infradead.org ([65.50.211.133]:39344 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932157AbeAHKJN (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 8 Jan 2018 05:09:13 -0500
+Date: Mon, 8 Jan 2018 11:08:36 +0100
+From: Peter Zijlstra <peterz@infradead.org>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Alan Cox <alan.cox@intel.com>,
+        Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>,
+        Will Deacon <will.deacon@arm.com>,
+        Solomon Peachy <pizza@shaftnet.org>,
+        "H. Peter Anvin" <hpa@zytor.com>,
+        Christian Lamparter <chunkeey@googlemail.com>,
+        Elena Reshetova <elena.reshetova@intel.com>,
+        linux-arch@vger.kernel.org, Andi Kleen <ak@linux.intel.com>,
+        "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>,
+        linux-scsi <linux-scsi@vger.kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>, X86 ML <x86@kernel.org>,
+        Ingo Molnar <mingo@redhat.com>,
+        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
+        Zhang Rui <rui.zhang@intel.com>,
+        "Linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        Arnd Bergmann <arnd@arndb.de>, Jan Kara <jack@suse.com>,
+        Eduardo Valentin <edubezval@gmail.com>,
+        Al Viro <viro@zeniv.linux.org.uk>, qla2xxx-upstream@qlogic.com,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Arjan van de Ven <arjan@linux.intel.com>,
+        Kalle Valo <kvalo@codeaurora.org>,
+        Alan Cox <alan@linux.intel.com>,
+        "Martin K. Petersen" <martin.petersen@oracle.com>,
+        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
+        Greg KH <gregkh@linuxfoundation.org>,
+        linux-wireless@vger.kernel.org, Netdev <netdev@vger.kernel.org>,
+        Linus Torvalds <torvalds@linux-foundation.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH 00/18] prevent bounds-check bypass via speculative
+ execution
+Message-ID: <20180108100836.GF3040@hirez.programming.kicks-ass.net>
+References: <151520099201.32271.4677179499894422956.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <87y3lbpvzp.fsf@xmission.com>
+ <CAPcyv4hVisGeXbTH985Hb6dkYKA9Sr8wwZHudNF-CtH0=ADFug@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAPcyv4hVisGeXbTH985Hb6dkYKA9Sr8wwZHudNF-CtH0=ADFug@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The mt9m111 has the test pattern generator features.  This makes use of
-it through V4L2_CID_TEST_PATTERN control.
+On Fri, Jan 05, 2018 at 10:30:16PM -0800, Dan Williams wrote:
+> On Fri, Jan 5, 2018 at 6:22 PM, Eric W. Biederman <ebiederm@xmission.com> wrote:
+> > In at least one place (mpls) you are patching a fast path.  Compile out
+> > or don't load mpls by all means.  But it is not acceptable to change the
+> > fast path without even considering performance.
+> 
+> Performance matters greatly, but I need help to identify a workload
+> that is representative for this fast path to see what, if any, impact
+> is incurred. Even better is a review that says "nope, 'index' is not
+> subject to arbitrary userspace control at this point, drop the patch."
 
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
----
-* Changelog v2
-- Fix typo s/meida/media/ in the patch title, noticed by Sakari Ailus
+I think we're focussing a little too much on pure userspace. That is, we
+should be saying under the attackers control. Inbound network packets
+could equally be under the attackers control.
 
- drivers/media/i2c/mt9m111.c | 27 +++++++++++++++++++++++++++
- 1 file changed, 27 insertions(+)
-
-diff --git a/drivers/media/i2c/mt9m111.c b/drivers/media/i2c/mt9m111.c
-index e1d5032..d74f254 100644
---- a/drivers/media/i2c/mt9m111.c
-+++ b/drivers/media/i2c/mt9m111.c
-@@ -92,6 +92,7 @@
-  */
- #define MT9M111_OPER_MODE_CTRL		0x106
- #define MT9M111_OUTPUT_FORMAT_CTRL	0x108
-+#define MT9M111_TPG_CTRL		0x148
- #define MT9M111_REDUCER_XZOOM_B		0x1a0
- #define MT9M111_REDUCER_XSIZE_B		0x1a1
- #define MT9M111_REDUCER_YZOOM_B		0x1a3
-@@ -124,6 +125,7 @@
- #define MT9M111_OUTFMT_AVG_CHROMA	(1 << 2)
- #define MT9M111_OUTFMT_SWAP_YCbCr_C_Y_RGB_EVEN	(1 << 1)
- #define MT9M111_OUTFMT_SWAP_YCbCr_Cb_Cr_RGB_R_B	(1 << 0)
-+#define MT9M111_TPG_SEL_MASK		GENMASK(2, 0)
- 
- /*
-  * Camera control register addresses (0x200..0x2ff not implemented)
-@@ -706,6 +708,25 @@ static int mt9m111_set_autowhitebalance(struct mt9m111 *mt9m111, int on)
- 	return reg_clear(OPER_MODE_CTRL, MT9M111_OPMODE_AUTOWHITEBAL_EN);
- }
- 
-+static const char * const mt9m111_test_pattern_menu[] = {
-+	"Disabled",
-+	"Vertical monochrome gradient",
-+	"Flat color type 1",
-+	"Flat color type 2",
-+	"Flat color type 3",
-+	"Flat color type 4",
-+	"Flat color type 5",
-+	"Color bar",
-+};
-+
-+static int mt9m111_set_test_pattern(struct mt9m111 *mt9m111, int val)
-+{
-+	struct i2c_client *client = v4l2_get_subdevdata(&mt9m111->subdev);
-+
-+	return mt9m111_reg_mask(client, MT9M111_TPG_CTRL, val,
-+				MT9M111_TPG_SEL_MASK);
-+}
-+
- static int mt9m111_s_ctrl(struct v4l2_ctrl *ctrl)
- {
- 	struct mt9m111 *mt9m111 = container_of(ctrl->handler,
-@@ -724,6 +745,8 @@ static int mt9m111_s_ctrl(struct v4l2_ctrl *ctrl)
- 		return mt9m111_set_autoexposure(mt9m111, ctrl->val);
- 	case V4L2_CID_AUTO_WHITE_BALANCE:
- 		return mt9m111_set_autowhitebalance(mt9m111, ctrl->val);
-+	case V4L2_CID_TEST_PATTERN:
-+		return mt9m111_set_test_pattern(mt9m111, ctrl->val);
- 	}
- 
- 	return -EINVAL;
-@@ -968,6 +991,10 @@ static int mt9m111_probe(struct i2c_client *client,
- 	v4l2_ctrl_new_std_menu(&mt9m111->hdl,
- 			&mt9m111_ctrl_ops, V4L2_CID_EXPOSURE_AUTO, 1, 0,
- 			V4L2_EXPOSURE_AUTO);
-+	v4l2_ctrl_new_std_menu_items(&mt9m111->hdl,
-+			&mt9m111_ctrl_ops, V4L2_CID_TEST_PATTERN,
-+			ARRAY_SIZE(mt9m111_test_pattern_menu) - 1, 0, 0,
-+			mt9m111_test_pattern_menu);
- 	mt9m111->subdev.ctrl_handler = &mt9m111->hdl;
- 	if (mt9m111->hdl.error) {
- 		ret = mt9m111->hdl.error;
--- 
-2.7.4
+Sure, userspace is the most direct and highest bandwidth one, but I
+think we should treat all (kernel) external values with the same
+paranoia.
