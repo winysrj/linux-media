@@ -1,50 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.126.187]:59456 "EHLO
-        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751262AbeAEJn4 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 5 Jan 2018 04:43:56 -0500
-From: Arnd Bergmann <arnd@arndb.de>
-To: Dmitry Osipenko <digetx@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>,
+Received: from mga09.intel.com ([134.134.136.24]:37763 "EHLO mga09.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1757071AbeAHOV0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 8 Jan 2018 09:21:26 -0500
+Date: Mon, 8 Jan 2018 16:21:21 +0200
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Alan Cox <alan@linux.intel.com>,
         Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Thierry Reding <thierry.reding@gmail.com>,
-        Jonathan Hunter <jonathanh@nvidia.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        linux-media@vger.kernel.org, linux-tegra@vger.kernel.org,
-        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org
-Subject: [PATCH] media: staging: tegra-vde: select DMA_SHARED_BUFFER
-Date: Fri,  5 Jan 2018 10:43:27 +0100
-Message-Id: <20180105094343.2813148-1-arnd@arndb.de>
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: Re: [PATCH 2/2] media: staging: atomisp: cleanup whitespaces
+Message-ID: <20180108142121.wsinvtmhngokhpp7@paasikivi.fi.intel.com>
+References: <96780202f1f7ffe13f6e0426394c8c93a2cbaa77.1515091119.git.mchehab@s-opensource.com>
+ <ab42c265e347855bb95809ef03e043653ab84a21.1515091119.git.mchehab@s-opensource.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <ab42c265e347855bb95809ef03e043653ab84a21.1515091119.git.mchehab@s-opensource.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Without CONFIG_DMA_SHARED_BUFFER we run into a link error for the
-dma_buf_* APIs:
+Hi Mauro,
 
-ERROR: "dma_buf_map_attachment" [drivers/staging/media/tegra-vde/tegra-vde.ko] undefined!
-ERROR: "dma_buf_attach" [drivers/staging/media/tegra-vde/tegra-vde.ko] undefined!
-ERROR: "dma_buf_get" [drivers/staging/media/tegra-vde/tegra-vde.ko] undefined!
-ERROR: "dma_buf_put" [drivers/staging/media/tegra-vde/tegra-vde.ko] undefined!
-ERROR: "dma_buf_detach" [drivers/staging/media/tegra-vde/tegra-vde.ko] undefined!
-ERROR: "dma_buf_unmap_attachment" [drivers/staging/media/tegra-vde/tegra-vde.ko] undefined!
+On Thu, Jan 04, 2018 at 02:44:41PM -0500, Mauro Carvalho Chehab wrote:
+> There are lots of bad whitespaces at atomisp driver.
+> 
+> Fix them.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> ---
+> 
+> Sakari/Alan,
+> 
+> This is a script-generated patch that can be re-generated anytime.
+> If you prefer to not touch on it now, i'm perfectly fine.
+> 
+> I'm sending it just as completeness, as I'm doing a similar
+> cleanup under drivers/media, where  a number of <TAB><SPACE>
+> sequences accumulated over the time. 
 
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
----
- drivers/staging/media/tegra-vde/Kconfig | 1 +
- 1 file changed, 1 insertion(+)
+Thanks for the patch.
 
-diff --git a/drivers/staging/media/tegra-vde/Kconfig b/drivers/staging/media/tegra-vde/Kconfig
-index ec3ddddebdaa..5c4914674468 100644
---- a/drivers/staging/media/tegra-vde/Kconfig
-+++ b/drivers/staging/media/tegra-vde/Kconfig
-@@ -1,6 +1,7 @@
- config TEGRA_VDE
- 	tristate "NVIDIA Tegra Video Decoder Engine driver"
- 	depends on ARCH_TEGRA || COMPILE_TEST
-+	select DMA_SHARED_BUFFER
- 	select SRAM
- 	help
- 	    Say Y here to enable support for the NVIDIA Tegra video decoder
+In principle this is a worthwhile patch; I'd postpone it for the time being
+though: I understand that a few people are bisecting and / or applying
+out-of-tree patches to the driver to debug it on a few different hardware
+platforms. Let's wait until that work is done, and then apply this.
+
 -- 
-2.9.0
+Kind regards,
+
+Sakari Ailus
+sakari.ailus@linux.intel.com
