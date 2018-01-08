@@ -1,64 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.126.187]:54444 "EHLO
-        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752159AbeADKcj (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 4 Jan 2018 05:32:39 -0500
-From: Arnd Bergmann <arnd@arndb.de>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Daniel Vetter <daniel.vetter@ffwll.ch>,
-        Sean Young <sean@mess.org>, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH 2/3] media: dvb: fix DVB_MMAP dependency
-Date: Thu,  4 Jan 2018 11:31:31 +0100
-Message-Id: <20180104103215.15591-2-arnd@arndb.de>
-In-Reply-To: <20180104103215.15591-1-arnd@arndb.de>
-References: <20180104103215.15591-1-arnd@arndb.de>
+Received: from mail.free-electrons.com ([62.4.15.54]:56035 "EHLO
+        mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932104AbeAHPiP (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 8 Jan 2018 10:38:15 -0500
+Date: Mon, 8 Jan 2018 16:38:11 +0100
+From: Maxime Ripard <maxime.ripard@free-electrons.com>
+To: Hugues Fruchet <hugues.fruchet@st.com>
+Cc: Steve Longerbeam <slongerbeam@gmail.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        devicetree@vger.kernel.org, linux-media@vger.kernel.org,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Subject: Re: [PATCH v5 0/5] Add OV5640 parallel interface and RGB565/YUYV
+ support
+Message-ID: <20180108153811.5xrvbaekm6nxtoa6@flea>
+References: <1514973452-10464-1-git-send-email-hugues.fruchet@st.com>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="svijk2twi5xfreba"
+Content-Disposition: inline
+In-Reply-To: <1514973452-10464-1-git-send-email-hugues.fruchet@st.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Enabling CONFIG_DVB_MMAP without CONFIG_VIDEOBUF2_VMALLOC results
-in a link error:
 
-drivers/media/dvb-core/dvb_vb2.o: In function `_stop_streaming':
-dvb_vb2.c:(.text+0x894): undefined reference to `vb2_buffer_done'
-drivers/media/dvb-core/dvb_vb2.o: In function `dvb_vb2_init':
-dvb_vb2.c:(.text+0xbec): undefined reference to `vb2_vmalloc_memops'
-dvb_vb2.c:(.text+0xc4c): undefined reference to `vb2_core_queue_init'
-drivers/media/dvb-core/dvb_vb2.o: In function `dvb_vb2_release':
-dvb_vb2.c:(.text+0xe14): undefined reference to `vb2_core_queue_release'
-drivers/media/dvb-core/dvb_vb2.o: In function `dvb_vb2_stream_on':
-dvb_vb2.c:(.text+0xeb8): undefined reference to `vb2_core_streamon'
-drivers/media/dvb-core/dvb_vb2.o: In function `dvb_vb2_stream_off':
-dvb_vb2.c:(.text+0xfe8): undefined reference to `vb2_core_streamoff'
-drivers/media/dvb-core/dvb_vb2.o: In function `dvb_vb2_fill_buffer':
-dvb_vb2.c:(.text+0x13ec): undefined reference to `vb2_plane_vaddr'
-dvb_vb2.c:(.text+0x149c): undefined reference to `vb2_buffer_done'
+--svijk2twi5xfreba
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-This adds a 'select' statement for it, plus a dependency that
-ensures that videobuf2 in turn works, as it in turn depends on
-VIDEO_V4L2 to link, and that must not be a module if videobuf2
-is built-in.
+Hi Hugues,
 
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
----
- drivers/media/Kconfig | 2 ++
- 1 file changed, 2 insertions(+)
+On Wed, Jan 03, 2018 at 10:57:27AM +0100, Hugues Fruchet wrote:
+> Enhance OV5640 CSI driver to support also DVP parallel interface.
+> Add RGB565 (LE & BE) and YUV422 YUYV format in addition to existing
+> YUV422 UYVY format.
+> Some other improvements on chip identifier check and removal
+> of warnings in powering phase around gpio handling.
 
-diff --git a/drivers/media/Kconfig b/drivers/media/Kconfig
-index 3f69b948d102..d1be86ebfd9a 100644
---- a/drivers/media/Kconfig
-+++ b/drivers/media/Kconfig
-@@ -147,6 +147,8 @@ config DVB_CORE
- config DVB_MMAP
- 	bool "Enable DVB memory-mapped API (EXPERIMENTAL)"
- 	depends on DVB_CORE
-+	depends on VIDEO_V4L2=y || VIDEO_V4L2=DVB_CORE
-+	select VIDEOBUF2_VMALLOC
- 	default n
- 	help
- 	  This option enables DVB experimental memory-mapped API, with
--- 
-2.9.0
+I've been trying to use your patches on top of 4.14, but I cannot seem
+to get any signal out of it.
+
+What is your test setup and which commands are you running?
+
+Thanks!
+Maxime
+
+--=20
+Maxime Ripard, Free Electrons
+Embedded Linux and Kernel engineering
+http://free-electrons.com
+
+--svijk2twi5xfreba
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCAAdFiEE0VqZU19dR2zEVaqr0rTAlCFNr3QFAlpTkGIACgkQ0rTAlCFN
+r3T9QQ//QEAsQ+K1knpUpX1Xr9LZIPfpwmpxOYgT4qssv4L8QSjlGqtxRVw9bi0r
+qFkvgykSN2rpAWsM5TbaBe436Zqor1UqirjUshisUB3TAlmaIcR9MRydb0TpWOce
+OeCuARuS9JytW1n/Ox1QS26ZnZ+uu17SFCgsFzUzgsfd8mBXj6ajWUHnDDEFa5J1
+Q3QZdUiQ6tdVkNGn6NGJu6qYEHKhfiwX5YU9nWtvrSjn4XqALaK7+uihctTir1cH
+gQJAtX+rcjJx3703UKAoa4iVc2xiMrGT2fnEuKZKpZ2kbuEyaZg1ELuKuSOVpXAv
+LKbStOx36fssya2r2uUbJ8fBawxpVS4yYA+4M1y7iKVipDAWtz4d81xj3BsAY4Xr
+yYvaHKZY5OUAtFMZAkJKifKNg7qrLeq5k6G2vhsDf1uDyJEVmrljBqAG8Qw/RYLz
+FNto17/9jE2UuFvMy/SaB2nG4CrjXPNTj957JnRaMFPeY1jS9WiTG6YYSzMcM+nM
+pD4mWS3WXDCjJ/jUxBRVA3VHmghd3U7MvCgAlVA9h9gsU+QgEd7lXmuWliIbgJoJ
+zfn63DUPgDro0/ZhyUlS/QnYpnou3AiEU2rD9CItXohvaYxrA+zXKddBwVdZg1CV
+8IqdvVYeKUS6GgJXn381IM+cjVsjJS9uNl43pJ+KDBLOtqr5Fog=
+=fp9s
+-----END PGP SIGNATURE-----
+
+--svijk2twi5xfreba--
