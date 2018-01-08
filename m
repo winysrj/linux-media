@@ -1,198 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from vsp-unauthed02.binero.net ([195.74.38.227]:12679 "EHLO
-        bin-vsp-out-03.atm.binero.net" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751764AbeA2Qf6 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 29 Jan 2018 11:35:58 -0500
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH v10 27/30] rcar-vin: extend {start,stop}_streaming to work with media controller
-Date: Mon, 29 Jan 2018 17:34:32 +0100
-Message-Id: <20180129163435.24936-28-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20180129163435.24936-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20180129163435.24936-1-niklas.soderlund+renesas@ragnatech.se>
+Received: from iolanthe.rowland.org ([192.131.102.54]:38412 "HELO
+        iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with SMTP id S1756430AbeAHTPg (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 8 Jan 2018 14:15:36 -0500
+Date: Mon, 8 Jan 2018 14:15:35 -0500 (EST)
+From: Alan Stern <stern@rowland.harvard.edu>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+cc: Ingo Molnar <mingo@kernel.org>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Josef Griebichler <griebichler.josef@gmx.at>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        USB list <linux-usb@vger.kernel.org>,
+        Eric Dumazet <edumazet@google.com>,
+        Rik van Riel <riel@redhat.com>,
+        Paolo Abeni <pabeni@redhat.com>,
+        Hannes Frederic Sowa <hannes@redhat.com>,
+        Jesper Dangaard Brouer <jbrouer@redhat.com>,
+        linux-kernel <linux-kernel@vger.kernel.org>,
+        netdev <netdev@vger.kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>,
+        LMML <linux-media@vger.kernel.org>,
+        Peter Zijlstra <peterz@infradead.org>,
+        David Miller <davem@davemloft.net>
+Subject: Re: dvb usb issues since kernel 4.9
+In-Reply-To: <CA+55aFx90oOU-3R8pCeM0ESTDYhmugD5znA9LrGj1zhazWBtcg@mail.gmail.com>
+Message-ID: <Pine.LNX.4.44L0.1801081354450.1908-100000@iolanthe.rowland.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The procedure to start or stop streaming using the non-MC single
-subdevice and the MC graph and multiple subdevices are quite different.
-Create a new function to abstract which method is used based on which
-mode the driver is running in and add logic to start the MC graph.
+On Mon, 8 Jan 2018, Linus Torvalds wrote:
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
----
- drivers/media/platform/rcar-vin/rcar-dma.c | 123 +++++++++++++++++++++++++++--
- 1 file changed, 116 insertions(+), 7 deletions(-)
+> Can somebody tell which softirq it is that dvb/usb cares about?
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
-index 811d8f8638d21200..6784e7eb3d96e1c0 100644
---- a/drivers/media/platform/rcar-vin/rcar-dma.c
-+++ b/drivers/media/platform/rcar-vin/rcar-dma.c
-@@ -1087,15 +1087,126 @@ static void rvin_buffer_queue(struct vb2_buffer *vb)
- 	spin_unlock_irqrestore(&vin->qlock, flags);
- }
- 
-+static int rvin_set_stream(struct rvin_dev *vin, int on)
-+{
-+	struct v4l2_subdev_format fmt = {
-+		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
-+	};
-+	struct media_pipeline *pipe;
-+	struct media_device *mdev;
-+	struct  v4l2_subdev *sd;
-+	struct media_pad *pad;
-+	int ret;
-+
-+	/* No media controller used, simply pass operation to subdevice */
-+	if (!vin->info->use_mc) {
-+		ret = v4l2_subdev_call(vin->digital->subdev, video, s_stream,
-+				       on);
-+
-+		return ret == -ENOIOCTLCMD ? 0 : ret;
-+	}
-+
-+	pad = media_entity_remote_pad(&vin->pad);
-+	if (!pad)
-+		return -EPIPE;
-+
-+	sd = media_entity_to_v4l2_subdev(pad->entity);
-+
-+	if (!on) {
-+		media_pipeline_stop(&vin->vdev.entity);
-+		return v4l2_subdev_call(sd, video, s_stream, 0);
-+	}
-+
-+	fmt.pad = pad->index;
-+	if (v4l2_subdev_call(sd, pad, get_fmt, NULL, &fmt))
-+		return -EPIPE;
-+
-+	switch (fmt.format.code) {
-+	case MEDIA_BUS_FMT_YUYV8_1X16:
-+	case MEDIA_BUS_FMT_UYVY8_2X8:
-+	case MEDIA_BUS_FMT_UYVY10_2X10:
-+	case MEDIA_BUS_FMT_RGB888_1X24:
-+		vin->code = fmt.format.code;
-+		break;
-+	default:
-+		return -EPIPE;
-+	}
-+
-+	switch (fmt.format.field) {
-+	case V4L2_FIELD_TOP:
-+	case V4L2_FIELD_BOTTOM:
-+	case V4L2_FIELD_NONE:
-+	case V4L2_FIELD_INTERLACED_TB:
-+	case V4L2_FIELD_INTERLACED_BT:
-+	case V4L2_FIELD_INTERLACED:
-+	case V4L2_FIELD_SEQ_TB:
-+	case V4L2_FIELD_SEQ_BT:
-+		/* Supported natively */
-+		break;
-+	case V4L2_FIELD_ALTERNATE:
-+		switch (vin->format.field) {
-+		case V4L2_FIELD_TOP:
-+		case V4L2_FIELD_BOTTOM:
-+		case V4L2_FIELD_NONE:
-+			break;
-+		case V4L2_FIELD_INTERLACED_TB:
-+		case V4L2_FIELD_INTERLACED_BT:
-+		case V4L2_FIELD_INTERLACED:
-+		case V4L2_FIELD_SEQ_TB:
-+		case V4L2_FIELD_SEQ_BT:
-+			/* Use VIN hardware to combine the two fields */
-+			fmt.format.height *= 2;
-+			break;
-+		default:
-+			return -EPIPE;
-+		}
-+		break;
-+	default:
-+		return -EPIPE;
-+	}
-+
-+	if (fmt.format.width != vin->format.width ||
-+	    fmt.format.height != vin->format.height ||
-+	    fmt.format.code != vin->code)
-+		return -EPIPE;
-+
-+	mdev = vin->vdev.entity.graph_obj.mdev;
-+
-+	/*
-+	 * The graph lock needs to be taken to protect concurrent
-+	 * starts of multiple VIN instances as they might share
-+	 * a common subdevice down the line and then should use
-+	 * the same pipe.
-+	 */
-+	mutex_lock(&mdev->graph_mutex);
-+	pipe = sd->entity.pipe ? sd->entity.pipe : &vin->vdev.pipe;
-+	ret = __media_pipeline_start(&vin->vdev.entity, pipe);
-+	mutex_unlock(&mdev->graph_mutex);
-+	if (ret)
-+		return ret;
-+
-+	ret = v4l2_subdev_call(sd, video, s_stream, 1);
-+	if (ret == -ENOIOCTLCMD)
-+		ret = 0;
-+	if (ret)
-+		media_pipeline_stop(&vin->vdev.entity);
-+
-+	return ret;
-+}
-+
- static int rvin_start_streaming(struct vb2_queue *vq, unsigned int count)
- {
- 	struct rvin_dev *vin = vb2_get_drv_priv(vq);
--	struct v4l2_subdev *sd;
- 	unsigned long flags;
- 	int ret;
- 
--	sd = vin_to_source(vin);
--	v4l2_subdev_call(sd, video, s_stream, 1);
-+	ret = rvin_set_stream(vin, 1);
-+	if (ret) {
-+		spin_lock_irqsave(&vin->qlock, flags);
-+		return_all_buffers(vin, VB2_BUF_STATE_QUEUED);
-+		spin_unlock_irqrestore(&vin->qlock, flags);
-+		return ret;
-+	}
- 
- 	spin_lock_irqsave(&vin->qlock, flags);
- 
-@@ -1104,7 +1215,7 @@ static int rvin_start_streaming(struct vb2_queue *vq, unsigned int count)
- 	ret = rvin_capture_start(vin);
- 	if (ret) {
- 		return_all_buffers(vin, VB2_BUF_STATE_QUEUED);
--		v4l2_subdev_call(sd, video, s_stream, 0);
-+		rvin_set_stream(vin, 0);
- 	}
- 
- 	spin_unlock_irqrestore(&vin->qlock, flags);
-@@ -1115,7 +1226,6 @@ static int rvin_start_streaming(struct vb2_queue *vq, unsigned int count)
- static void rvin_stop_streaming(struct vb2_queue *vq)
- {
- 	struct rvin_dev *vin = vb2_get_drv_priv(vq);
--	struct v4l2_subdev *sd;
- 	unsigned long flags;
- 	int retries = 0;
- 
-@@ -1154,8 +1264,7 @@ static void rvin_stop_streaming(struct vb2_queue *vq)
- 
- 	spin_unlock_irqrestore(&vin->qlock, flags);
- 
--	sd = vin_to_source(vin);
--	v4l2_subdev_call(sd, video, s_stream, 0);
-+	rvin_set_stream(vin, 0);
- 
- 	/* disable interrupts */
- 	rvin_disable_interrupts(vin);
--- 
-2.16.1
+I don't know about the DVB part.  The USB part is a little difficult to
+analyze, mostly because the bug reports I've seen are mostly from
+people running non-vanilla kernels.  For example, Josef is using a
+Raspberry Pi 3B with a non-standard USB host controller driver:
+dwc_otg_hcd is built into raspbian in place of the normal dwc2_hsotg
+driver.
+
+Both dwc2_hsotg and ehci-hcd use the tasklets embedded in the 
+giveback_urb_bh member of struct usb_hcd.  See usb_hcd_giveback_urb() 
+in drivers/usb/core/hcd.c; the calls are
+
+        else if (high_prio_bh)
+                tasklet_hi_schedule(&bh->bh);
+        else
+                tasklet_schedule(&bh->bh);
+
+As it turns out, high_prio_bh gets set for interrupt and isochronous
+URBs but not for bulk and control URBs.  The DVB driver in question
+uses bulk transfers.
+
+xhci-hcd, on the other hand, does not use these tasklets (it doesn't
+set the HCD_BH bit in the hc_driver's .flags member).
+
+Alan Stern
