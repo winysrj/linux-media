@@ -1,191 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.126.135]:56577 "EHLO
-        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752159AbeADKcV (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 4 Jan 2018 05:32:21 -0500
-From: Arnd Bergmann <arnd@arndb.de>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH 1/3] media: dvb: fix DVB_MMAP symbol name
-Date: Thu,  4 Jan 2018 11:31:30 +0100
-Message-Id: <20180104103215.15591-1-arnd@arndb.de>
+Received: from mail-lf0-f67.google.com ([209.85.215.67]:37490 "EHLO
+        mail-lf0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1758089AbeAHWiF (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 8 Jan 2018 17:38:05 -0500
+Received: by mail-lf0-f67.google.com with SMTP id f3so13825924lfe.4
+        for <linux-media@vger.kernel.org>; Mon, 08 Jan 2018 14:38:04 -0800 (PST)
+Date: Mon, 8 Jan 2018 23:38:02 +0100
+From: Niklas =?iso-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund@ragnatech.se>
+To: Kieran Bingham <kieran.bingham@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        sakari.ailus@iki.fi, Hans Verkuil <hverkuil@xs4all.nl>,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>,
+        Archit Taneja <architt@codeaurora.org>,
+        Neil Armstrong <narmstrong@baylibre.com>,
+        open list <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH v2] v4l: doc: Clarify v4l2_mbus_fmt height definition
+Message-ID: <20180108223802.GF23075@bigcity.dyn.berto.se>
+References: <1515434106-18747-1-git-send-email-kieran.bingham@ideasonboard.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <1515434106-18747-1-git-send-email-kieran.bingham@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-CONFIG_DVB_MMAP was misspelled either as CONFIG_DVB_MMSP
-or DVB_MMAP, so it had no effect at all. This fixes that,
-to make it possible to build it again.
+Hi Kieran,
 
-Fixes: 4021053ed52d ("media: dvb-core: make DVB mmap API optional")
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
----
- drivers/media/dvb-core/Makefile |  2 +-
- drivers/media/dvb-core/dmxdev.c | 30 +++++++++++++++---------------
- include/media/dvb_vb2.h         |  2 +-
- 3 files changed, 17 insertions(+), 17 deletions(-)
+Thanks for your patch.
 
-diff --git a/drivers/media/dvb-core/Makefile b/drivers/media/dvb-core/Makefile
-index 3756ccf83384..045e2392c668 100644
---- a/drivers/media/dvb-core/Makefile
-+++ b/drivers/media/dvb-core/Makefile
-@@ -4,7 +4,7 @@
- #
- 
- dvb-net-$(CONFIG_DVB_NET) := dvb_net.o
--dvb-vb2-$(CONFIG_DVB_MMSP) := dvb_vb2.o
-+dvb-vb2-$(CONFIG_DVB_MMAP) := dvb_vb2.o
- 
- dvb-core-objs := dvbdev.o dmxdev.o dvb_demux.o		 	\
- 		 dvb_ca_en50221.o dvb_frontend.o 		\
-diff --git a/drivers/media/dvb-core/dmxdev.c b/drivers/media/dvb-core/dmxdev.c
-index bc198f84b9cd..41e0259fc1c7 100644
---- a/drivers/media/dvb-core/dmxdev.c
-+++ b/drivers/media/dvb-core/dmxdev.c
-@@ -128,7 +128,7 @@ static int dvb_dvr_open(struct inode *inode, struct file *file)
- 	struct dvb_device *dvbdev = file->private_data;
- 	struct dmxdev *dmxdev = dvbdev->priv;
- 	struct dmx_frontend *front;
--#ifndef DVB_MMAP
-+#ifndef CONFIG_DVB_MMAP
- 	bool need_ringbuffer = false;
- #else
- 	const bool need_ringbuffer = true;
-@@ -144,7 +144,7 @@ static int dvb_dvr_open(struct inode *inode, struct file *file)
- 		return -ENODEV;
- 	}
- 
--#ifndef DVB_MMAP
-+#ifndef CONFIG_DVB_MMAP
- 	if ((file->f_flags & O_ACCMODE) == O_RDONLY)
- 		need_ringbuffer = true;
- #else
-@@ -200,7 +200,7 @@ static int dvb_dvr_release(struct inode *inode, struct file *file)
- {
- 	struct dvb_device *dvbdev = file->private_data;
- 	struct dmxdev *dmxdev = dvbdev->priv;
--#ifndef DVB_MMAP
-+#ifndef CONFIG_DVB_MMAP
- 	bool need_ringbuffer = false;
- #else
- 	const bool need_ringbuffer = true;
-@@ -213,7 +213,7 @@ static int dvb_dvr_release(struct inode *inode, struct file *file)
- 		dmxdev->demux->connect_frontend(dmxdev->demux,
- 						dmxdev->dvr_orig_fe);
- 	}
--#ifndef DVB_MMAP
-+#ifndef CONFIG_DVB_MMAP
- 	if ((file->f_flags & O_ACCMODE) == O_RDONLY)
- 		need_ringbuffer = true;
- #endif
-@@ -426,7 +426,7 @@ static int dvb_dmxdev_ts_callback(const u8 *buffer1, size_t buffer1_len,
- {
- 	struct dmxdev_filter *dmxdevfilter = feed->priv;
- 	struct dvb_ringbuffer *buffer;
--#ifdef DVB_MMAP
-+#ifdef CONFIG_DVB_MMAP
- 	struct dvb_vb2_ctx *ctx;
- #endif
- 	int ret;
-@@ -440,12 +440,12 @@ static int dvb_dmxdev_ts_callback(const u8 *buffer1, size_t buffer1_len,
- 	if (dmxdevfilter->params.pes.output == DMX_OUT_TAP ||
- 	    dmxdevfilter->params.pes.output == DMX_OUT_TSDEMUX_TAP) {
- 		buffer = &dmxdevfilter->buffer;
--#ifdef DVB_MMAP
-+#ifdef CONFIG_DVB_MMAP
- 		ctx = &dmxdevfilter->vb2_ctx;
- #endif
- 	} else {
- 		buffer = &dmxdevfilter->dev->dvr_buffer;
--#ifdef DVB_MMAP
-+#ifdef CONFIG_DVB_MMAP
- 		ctx = &dmxdevfilter->dev->dvr_vb2_ctx;
- #endif
- 	}
-@@ -1111,7 +1111,7 @@ static int dvb_demux_do_ioctl(struct file *file,
- 		mutex_unlock(&dmxdevfilter->mutex);
- 		break;
- 
--#ifdef DVB_MMAP
-+#ifdef CONFIG_DVB_MMAP
- 	case DMX_REQBUFS:
- 		if (mutex_lock_interruptible(&dmxdevfilter->mutex)) {
- 			mutex_unlock(&dmxdev->mutex);
-@@ -1199,7 +1199,7 @@ static __poll_t dvb_demux_poll(struct file *file, poll_table *wait)
- 	return mask;
- }
- 
--#ifdef DVB_MMAP
-+#ifdef CONFIG_DVB_MMAP
- static int dvb_demux_mmap(struct file *file, struct vm_area_struct *vma)
- {
- 	struct dmxdev_filter *dmxdevfilter = file->private_data;
-@@ -1249,7 +1249,7 @@ static const struct file_operations dvb_demux_fops = {
- 	.release = dvb_demux_release,
- 	.poll = dvb_demux_poll,
- 	.llseek = default_llseek,
--#ifdef DVB_MMAP
-+#ifdef CONFIG_DVB_MMAP
- 	.mmap = dvb_demux_mmap,
- #endif
- };
-@@ -1280,7 +1280,7 @@ static int dvb_dvr_do_ioctl(struct file *file,
- 		ret = dvb_dvr_set_buffer_size(dmxdev, arg);
- 		break;
- 
--#ifdef DVB_MMAP
-+#ifdef CONFIG_DVB_MMAP
- 	case DMX_REQBUFS:
- 		ret = dvb_vb2_reqbufs(&dmxdev->dvr_vb2_ctx, parg);
- 		break;
-@@ -1322,7 +1322,7 @@ static __poll_t dvb_dvr_poll(struct file *file, poll_table *wait)
- 	struct dvb_device *dvbdev = file->private_data;
- 	struct dmxdev *dmxdev = dvbdev->priv;
- 	__poll_t mask = 0;
--#ifndef DVB_MMAP
-+#ifndef CONFIG_DVB_MMAP
- 	bool need_ringbuffer = false;
- #else
- 	const bool need_ringbuffer = true;
-@@ -1337,7 +1337,7 @@ static __poll_t dvb_dvr_poll(struct file *file, poll_table *wait)
- 
- 	poll_wait(file, &dmxdev->dvr_buffer.queue, wait);
- 
--#ifndef DVB_MMAP
-+#ifndef CONFIG_DVB_MMAP
- 	if ((file->f_flags & O_ACCMODE) == O_RDONLY)
- 		need_ringbuffer = true;
- #endif
-@@ -1353,7 +1353,7 @@ static __poll_t dvb_dvr_poll(struct file *file, poll_table *wait)
- 	return mask;
- }
- 
--#ifdef DVB_MMAP
-+#ifdef CONFIG_DVB_MMAP
- static int dvb_dvr_mmap(struct file *file, struct vm_area_struct *vma)
- {
- 	struct dvb_device *dvbdev = file->private_data;
-@@ -1381,7 +1381,7 @@ static const struct file_operations dvb_dvr_fops = {
- 	.release = dvb_dvr_release,
- 	.poll = dvb_dvr_poll,
- 	.llseek = default_llseek,
--#ifdef DVB_MMAP
-+#ifdef CONFIG_DVB_MMAP
- 	.mmap = dvb_dvr_mmap,
- #endif
- };
-diff --git a/include/media/dvb_vb2.h b/include/media/dvb_vb2.h
-index 49b46e5bdcf0..f511b4d7760b 100644
---- a/include/media/dvb_vb2.h
-+++ b/include/media/dvb_vb2.h
-@@ -103,7 +103,7 @@ struct dvb_vb2_ctx {
- 	char	name[DVB_VB2_NAME_MAX + 1];
- };
- 
--#ifndef DVB_MMAP
-+#ifndef CONFIG_DVB_MMAP
- static inline int dvb_vb2_init(struct dvb_vb2_ctx *ctx,
- 			       const char *name, int non_blocking)
- {
+On 2018-01-08 17:55:24 +0000, Kieran Bingham wrote:
+> The v4l2_mbus_fmt width and height corresponds directly with the
+> v4l2_pix_format definitions, yet the differences in documentation make
+> it ambiguous what to do in the event of field heights.
+> 
+> Clarify this using the same text as is provided for the v4l2_pix_format
+> which is explicit on the matter, and by matching the terminology of
+> 'image height' rather than the misleading 'frame height'.
+> 
+> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+
+Reviewed-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+
+> ---
+> v2:
+>  - Duplicated explicit text from v4l2_pix_format rather than
+>    referencing it.
+> 
+>  Documentation/media/uapi/v4l/subdev-formats.rst | 8 ++++++--
+>  include/uapi/linux/v4l2-mediabus.h              | 4 ++--
+>  2 files changed, 8 insertions(+), 4 deletions(-)
+> 
+> diff --git a/Documentation/media/uapi/v4l/subdev-formats.rst b/Documentation/media/uapi/v4l/subdev-formats.rst
+> index b1eea44550e1..9fcabe7f9367 100644
+> --- a/Documentation/media/uapi/v4l/subdev-formats.rst
+> +++ b/Documentation/media/uapi/v4l/subdev-formats.rst
+> @@ -16,10 +16,14 @@ Media Bus Formats
+>  
+>      * - __u32
+>        - ``width``
+> -      - Image width, in pixels.
+> +      - Image width in pixels.
+>      * - __u32
+>        - ``height``
+> -      - Image height, in pixels.
+> +      - Image height in pixels. If ``field`` is one of ``V4L2_FIELD_TOP``,
+> +	``V4L2_FIELD_BOTTOM`` or ``V4L2_FIELD_ALTERNATE`` then height
+> +	refers to the number of lines in the field, otherwise it refers to
+> +	the number of lines in the frame (which is twice the field height
+> +	for interlaced formats).
+>      * - __u32
+>        - ``code``
+>        - Format code, from enum
+> diff --git a/include/uapi/linux/v4l2-mediabus.h b/include/uapi/linux/v4l2-mediabus.h
+> index 6e20de63ec59..123a231001a8 100644
+> --- a/include/uapi/linux/v4l2-mediabus.h
+> +++ b/include/uapi/linux/v4l2-mediabus.h
+> @@ -18,8 +18,8 @@
+>  
+>  /**
+>   * struct v4l2_mbus_framefmt - frame format on the media bus
+> - * @width:	frame width
+> - * @height:	frame height
+> + * @width:	image width
+> + * @height:	image height
+>   * @code:	data format code (from enum v4l2_mbus_pixelcode)
+>   * @field:	used interlacing type (from enum v4l2_field)
+>   * @colorspace:	colorspace of the data (from enum v4l2_colorspace)
+> -- 
+> 2.7.4
+> 
+
 -- 
-2.9.0
+Regards,
+Niklas Söderlund
