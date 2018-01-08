@@ -1,118 +1,313 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.free-electrons.com ([62.4.15.54]:35442 "EHLO
-        mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752910AbeAaHm3 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 31 Jan 2018 02:42:29 -0500
-Date: Wed, 31 Jan 2018 08:42:12 +0100
-From: Maxime Ripard <maxime.ripard@free-electrons.com>
-To: Liviu Dudau <liviu@dudau.co.uk>
-Cc: Yong <yong.deng@magewell.com>, kbuild test robot <lkp@intel.com>,
-        kbuild-all@01.org, Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Chen-Yu Tsai <wens@csie.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        Randy Dunlap <rdunlap@infradead.org>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+Received: from relay3-d.mail.gandi.net ([217.70.183.195]:34147 "EHLO
+        relay3-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755931AbeAHJSq (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 8 Jan 2018 04:18:46 -0500
+Date: Mon, 8 Jan 2018 10:18:38 +0100
+From: jacopo mondi <jacopo@jmondi.org>
+To: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        "H . Nikolaus Schaller" <hns@goldelico.com>,
         Hugues Fruchet <hugues.fruchet@st.com>,
-        Yannick Fertre <yannick.fertre@st.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
         Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Rick Chang <rick.chang@mediatek.com>,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-sunxi@googlegroups.com, megous@megous.com
-Subject: Re: [linux-sunxi] Re: [PATCH v6 2/2] media: V3s: Add support for
- Allwinner CSI.
-Message-ID: <20180131074212.7hvb3nqkt22h2chg@flea.lan>
-References: <1516695531-23349-1-git-send-email-yong.deng@magewell.com>
- <201801260759.RyNhDZz4%fengguang.wu@intel.com>
- <20180126094658.aa70ed3f890464f6051e21e4@magewell.com>
- <20180126110041.f89848325b9ecfb07df387ca@magewell.com>
- <20180131030807.GA19945@bart.dudau.co.uk>
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Rob Herring <robh@kernel.org>
+Subject: Re: [PATCH v2 1/2] media: ov9650: support device tree probing
+Message-ID: <20180108091838.GM9493@w540>
+References: <1515344064-23156-1-git-send-email-akinobu.mita@gmail.com>
+ <1515344064-23156-2-git-send-email-akinobu.mita@gmail.com>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="x2ob3palwahja4lz"
+Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
-In-Reply-To: <20180131030807.GA19945@bart.dudau.co.uk>
+In-Reply-To: <1515344064-23156-2-git-send-email-akinobu.mita@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Akinobu,
 
---x2ob3palwahja4lz
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+   just one small comments below
 
-Hi Liviu,
+On Mon, Jan 08, 2018 at 01:54:23AM +0900, Akinobu Mita wrote:
+> The ov9650 driver currently only supports legacy platform data probe.
+> This change adds device tree probing.
+>
+> There has been an attempt to add device tree support for ov9650 driver
+> by Hugues Fruchet as a part of the patchset that adds support of OV9655
+> camera (http://www.spinics.net/lists/linux-media/msg117903.html), but
+> it wasn't merged into mainline because creating a separate driver for
+> OV9655 is preferred.
+>
+> This is very similar to Hugues's patch, but not supporting new device.
+>
+> Cc: Jacopo Mondi <jacopo@jmondi.org>
+> Cc: H. Nikolaus Schaller <hns@goldelico.com>
+> Cc: Hugues Fruchet <hugues.fruchet@st.com>
+> Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
+> Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> Cc: Rob Herring <robh@kernel.org>
+> Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+> ---
+> * Changelog v2
+> - Split binding documentation, suggested by Rob Herring and Jacopo Mondi
+> - Remove ov965x_gpio_set() helper and open-code it, suggested by Jacopo Mondi
+>   and Sakari Ailus
+> - Call clk_prepare_enable() in s_power callback instead of probe, suggested
+>   by Sakari Ailus
+> - Unify clk and gpio configuration in a single if-else block and, also add
+>   a check either platform data or fwnode is actually specified, suggested
+>   by Jacopo Mondi
+> - Add CONFIG_OF guards, suggested by Jacopo Mondi
+>
+>  drivers/media/i2c/ov9650.c | 130 ++++++++++++++++++++++++++++++++-------------
+>  1 file changed, 92 insertions(+), 38 deletions(-)
+>
+> diff --git a/drivers/media/i2c/ov9650.c b/drivers/media/i2c/ov9650.c
+> index 69433e1..99a3eab 100644
+> --- a/drivers/media/i2c/ov9650.c
+> +++ b/drivers/media/i2c/ov9650.c
+> @@ -11,8 +11,10 @@
+>   * it under the terms of the GNU General Public License version 2 as
+>   * published by the Free Software Foundation.
+>   */
+> +#include <linux/clk.h>
+>  #include <linux/delay.h>
+>  #include <linux/gpio.h>
+> +#include <linux/gpio/consumer.h>
+>  #include <linux/i2c.h>
+>  #include <linux/kernel.h>
+>  #include <linux/media.h>
+> @@ -249,9 +251,10 @@ struct ov965x {
+>  	struct v4l2_subdev sd;
+>  	struct media_pad pad;
+>  	enum v4l2_mbus_type bus_type;
+> -	int gpios[NUM_GPIOS];
+> +	struct gpio_desc *gpios[NUM_GPIOS];
+>  	/* External master clock frequency */
+>  	unsigned long mclk_frequency;
+> +	struct clk *clk;
+>
+>  	/* Protects the struct fields below */
+>  	struct mutex lock;
+> @@ -513,24 +516,27 @@ static int ov965x_set_color_matrix(struct ov965x *ov965x)
+>  	return 0;
+>  }
+>
+> -static void ov965x_gpio_set(int gpio, int val)
+> -{
+> -	if (gpio_is_valid(gpio))
+> -		gpio_set_value(gpio, val);
+> -}
+> -
+> -static void __ov965x_set_power(struct ov965x *ov965x, int on)
+> +static int __ov965x_set_power(struct ov965x *ov965x, int on)
+>  {
+>  	if (on) {
+> -		ov965x_gpio_set(ov965x->gpios[GPIO_PWDN], 0);
+> -		ov965x_gpio_set(ov965x->gpios[GPIO_RST], 0);
+> +		int ret = clk_prepare_enable(ov965x->clk);
+> +
+> +		if (ret)
+> +			return ret;
+> +
+> +		gpiod_set_value_cansleep(ov965x->gpios[GPIO_PWDN], 0);
+> +		gpiod_set_value_cansleep(ov965x->gpios[GPIO_RST], 0);
+>  		msleep(25);
+>  	} else {
+> -		ov965x_gpio_set(ov965x->gpios[GPIO_RST], 1);
+> -		ov965x_gpio_set(ov965x->gpios[GPIO_PWDN], 1);
+> +		gpiod_set_value_cansleep(ov965x->gpios[GPIO_RST], 1);
+> +		gpiod_set_value_cansleep(ov965x->gpios[GPIO_PWDN], 1);
+> +
+> +		clk_disable_unprepare(ov965x->clk);
+>  	}
+>
+>  	ov965x->streaming = 0;
+> +
+> +	return 0;
+>  }
+>
+>  static int ov965x_s_power(struct v4l2_subdev *sd, int on)
+> @@ -543,8 +549,8 @@ static int ov965x_s_power(struct v4l2_subdev *sd, int on)
+>
+>  	mutex_lock(&ov965x->lock);
+>  	if (ov965x->power == !on) {
+> -		__ov965x_set_power(ov965x, on);
+> -		if (on) {
+> +		ret = __ov965x_set_power(ov965x, on);
+> +		if (!ret && on) {
+>  			ret = ov965x_write_array(client,
+>  						 ov965x_init_regs);
+>  			ov965x->apply_frame_fmt = 1;
+> @@ -1408,16 +1414,17 @@ static const struct v4l2_subdev_ops ov965x_subdev_ops = {
+>  /*
+>   * Reset and power down GPIOs configuration
+>   */
+> -static int ov965x_configure_gpios(struct ov965x *ov965x,
+> -				  const struct ov9650_platform_data *pdata)
+> +static int ov965x_configure_gpios_pdata(struct ov965x *ov965x,
+> +				const struct ov9650_platform_data *pdata)
+>  {
+>  	int ret, i;
+> +	int gpios[NUM_GPIOS];
+>
+> -	ov965x->gpios[GPIO_PWDN] = pdata->gpio_pwdn;
+> -	ov965x->gpios[GPIO_RST]  = pdata->gpio_reset;
+> +	gpios[GPIO_PWDN] = pdata->gpio_pwdn;
+> +	gpios[GPIO_RST]  = pdata->gpio_reset;
+>
+>  	for (i = 0; i < ARRAY_SIZE(ov965x->gpios); i++) {
+> -		int gpio = ov965x->gpios[i];
+> +		int gpio = gpios[i];
+>
+>  		if (!gpio_is_valid(gpio))
+>  			continue;
+> @@ -1427,9 +1434,30 @@ static int ov965x_configure_gpios(struct ov965x *ov965x,
+>  			return ret;
+>  		v4l2_dbg(1, debug, &ov965x->sd, "set gpio %d to 1\n", gpio);
+>
+> -		gpio_set_value(gpio, 1);
+> +		gpio_set_value_cansleep(gpio, 1);
+>  		gpio_export(gpio, 0);
+> -		ov965x->gpios[i] = gpio;
+> +		ov965x->gpios[i] = gpio_to_desc(gpio);
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +static int ov965x_configure_gpios(struct ov965x *ov965x)
+> +{
+> +	struct device *dev = &ov965x->client->dev;
+> +
+> +	ov965x->gpios[GPIO_PWDN] = devm_gpiod_get_optional(dev, "powerdown",
+> +							GPIOD_OUT_HIGH);
+> +	if (IS_ERR(ov965x->gpios[GPIO_PWDN])) {
+> +		dev_info(dev, "can't get %s GPIO\n", "powerdown");
+> +		return PTR_ERR(ov965x->gpios[GPIO_PWDN]);
+> +	}
+> +
+> +	ov965x->gpios[GPIO_RST] = devm_gpiod_get_optional(dev, "reset",
+> +							GPIOD_OUT_HIGH);
+> +	if (IS_ERR(ov965x->gpios[GPIO_RST])) {
+> +		dev_info(dev, "can't get %s GPIO\n", "reset");
+> +		return PTR_ERR(ov965x->gpios[GPIO_RST]);
+>  	}
+>
+>  	return 0;
+> @@ -1443,7 +1471,10 @@ static int ov965x_detect_sensor(struct v4l2_subdev *sd)
+>  	int ret;
+>
+>  	mutex_lock(&ov965x->lock);
+> -	__ov965x_set_power(ov965x, 1);
+> +	ret = __ov965x_set_power(ov965x, 1);
+> +	if (ret)
+> +		goto out;
+> +
+>  	msleep(25);
+>
+>  	/* Check sensor revision */
+> @@ -1463,6 +1494,7 @@ static int ov965x_detect_sensor(struct v4l2_subdev *sd)
+>  			ret = -ENODEV;
+>  		}
+>  	}
+> +out:
+>  	mutex_unlock(&ov965x->lock);
+>
+>  	return ret;
+> @@ -1476,23 +1508,39 @@ static int ov965x_probe(struct i2c_client *client,
+>  	struct ov965x *ov965x;
+>  	int ret;
+>
+> -	if (!pdata) {
+> -		dev_err(&client->dev, "platform data not specified\n");
+> -		return -EINVAL;
+> -	}
+> -
+> -	if (pdata->mclk_frequency == 0) {
+> -		dev_err(&client->dev, "MCLK frequency not specified\n");
+> -		return -EINVAL;
+> -	}
+> -
+>  	ov965x = devm_kzalloc(&client->dev, sizeof(*ov965x), GFP_KERNEL);
+>  	if (!ov965x)
+>  		return -ENOMEM;
+>
+> -	mutex_init(&ov965x->lock);
+>  	ov965x->client = client;
+> -	ov965x->mclk_frequency = pdata->mclk_frequency;
+> +
+> +	if (pdata) {
+> +		if (pdata->mclk_frequency == 0) {
+> +			dev_err(&client->dev, "MCLK frequency not specified\n");
+> +			return -EINVAL;
+> +		}
+> +		ov965x->mclk_frequency = pdata->mclk_frequency;
+> +
+> +		ret = ov965x_configure_gpios_pdata(ov965x, pdata);
+> +		if (ret < 0)
+> +			return ret;
+> +	} else if (dev_fwnode(&client->dev)) {
+> +		ov965x->clk = devm_clk_get(&ov965x->client->dev, NULL);
+> +		if (IS_ERR(ov965x->clk))
+> +			return PTR_ERR(ov965x->clk);
+> +		ov965x->mclk_frequency = clk_get_rate(ov965x->clk);
+> +
+> +		ret = ov965x_configure_gpios(ov965x);
+> +		if (ret < 0)
+> +			return ret;
+> +	} else {
+> +		dev_err(&client->dev,
+> +			"Neither platform data nor device property specified\n");
+> +
+> +		return -EINVAL;
+> +	}
+> +
+> +	mutex_init(&ov965x->lock);
+>
+>  	sd = &ov965x->sd;
+>  	v4l2_i2c_subdev_init(sd, client, &ov965x_subdev_ops);
+> @@ -1502,10 +1550,6 @@ static int ov965x_probe(struct i2c_client *client,
+>  	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE |
+>  		     V4L2_SUBDEV_FL_HAS_EVENTS;
+>
+> -	ret = ov965x_configure_gpios(ov965x, pdata);
+> -	if (ret < 0)
+> -		goto err_mutex;
+> -
+>  	ov965x->pad.flags = MEDIA_PAD_FL_SOURCE;
+>  	sd->entity.function = MEDIA_ENT_F_CAM_SENSOR;
+>  	ret = media_entity_pads_init(&sd->entity, 1, &ov965x->pad);
+> @@ -1561,9 +1605,19 @@ static const struct i2c_device_id ov965x_id[] = {
+>  };
+>  MODULE_DEVICE_TABLE(i2c, ov965x_id);
+>
+> +#if IS_ENABLED(CONFIG_OF)
+> +static const struct of_device_id ov965x_of_match[] = {
+> +	{ .compatible = "ovti,ov9650", },
+> +	{ .compatible = "ovti,ov9652", },
+> +	{ /* sentinel */ }
+> +};
+> +MODULE_DEVICE_TABLE(of, ov965x_of_match);
+> +#endif
+> +
+>  static struct i2c_driver ov965x_i2c_driver = {
+>  	.driver = {
+>  		.name	= DRIVER_NAME,
+> +		.of_match_table = of_match_ptr(ov965x_of_match),
 
-On Wed, Jan 31, 2018 at 03:08:08AM +0000, Liviu Dudau wrote:
-> On Fri, Jan 26, 2018 at 11:00:41AM +0800, Yong wrote:
-> > Hi Maxime,
-> >=20
-> > On Fri, 26 Jan 2018 09:46:58 +0800
-> > Yong <yong.deng@magewell.com> wrote:
-> >=20
-> > > Hi Maxime,
-> > >=20
-> > > Do you have any experience in solving this problem?
-> > > It seems the PHYS_OFFSET maybe undeclared when the ARCH is not arm.
-> >=20
-> > Got it.
-> > Should I add 'depends on ARM' in Kconfig?
->=20
-> No, I don't think you should do that, you should fix the code.
->=20
-> The dma_addr_t addr that you've got is ideally coming from dma_alloc_cohe=
-rent(),
-> in which case the addr is already "suitable" for use by the device (becau=
-se the
-> bus where the device is attached to does all the address translations).
+If CONFIG_OF is not defined, this will break compilation.
+Please guard this with #if IS_ENABLED(CONFIG_OF) as well.
 
-Like we're discussing in that other part of the thread with Thierry
-and Arnd, things are slightly more complicated than that :)
+Apart from this:
 
-In our case, the bus where the device is attached will not do the
-address translations, and shouldn't.
+Reviewed-by: Jacopo Mondi <jacopo@jmondi.org>
 
-> If you apply PHYS_OFFSET forcefully to it you might get unexpected
-> results.
+Thanks
+   j
 
-Out of curiosity, what would be these unexpected results?
-
-Thanks!
-Maxime
-
---=20
-Maxime Ripard, Free Electrons
-Embedded Linux and Kernel engineering
-http://free-electrons.com
-
---x2ob3palwahja4lz
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCAAdFiEE0VqZU19dR2zEVaqr0rTAlCFNr3QFAlpxc1MACgkQ0rTAlCFN
-r3R/Lw//ZA3imZaVQtgX/SzMgCsYQ8fcq/wOXFqNPVp8Du/Ce8QRO1Wu/rl6FU5q
-LfeYJtMMz+/0rEN7HjX76gjJZ7t3w1aPL1rFIL5bwWeFmYjSVEup0BSCOmbO4NSu
-Q1nPxal3Af/6JMp5upBb8oU0CDv+V8fQ1ca3BaTmX1doab87bgFtRE5qTCeXk/uF
-PFtSGL3xbtdnwmCi4HCGk93VSxxF8dfzwmJ1CyBZCJEHF0wxAU/VkGpz7ngZR3x4
-9WgPk7Rf9kXrSHdhluihy8aJd/A+91iE9ObzjzmYrsZ5dGjbDzPXQ6N2YsMtOxsL
-RD9hwmG06X44jDzL28ArnBDKTZn4VgC6k258cDymK0vxmxmz+maAXpqT+AK2ckH9
-3rzOK2EHE8bYVGSIWV9Jd/rCIGa4V6sR58YrAjaI9vlYdQtogKgd/S65a6Tr2oah
-fzc3AHy4OJFhYWECCBAB4uUIMvuUYbnLHsBfPBFoecCUUdup+x2YCeEhv7Q82VKq
-Cr7iYX9Q8Hy8ThOoCi6MXyhiy3RfL5zUMExNQfLfObGc57op0frLbXYfJ3C56jdu
-ZW+YfV/h/5OpMUkpIF5QpOGw1aqIxMUi5MJUUkCIJa/u+q3CwHfnC1Sgq8lmrjjK
-z0Enny5NG2Ni0DN5D1mLWnUQUZ2/2EcjSg8GcUWWm7dNLT/NSB4=
-=4Z7h
------END PGP SIGNATURE-----
-
---x2ob3palwahja4lz--
+>  	},
+>  	.probe		= ov965x_probe,
+>  	.remove		= ov965x_remove,
+> --
+> 2.7.4
+>
