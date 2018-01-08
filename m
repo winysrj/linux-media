@@ -1,81 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from o1678950229.outbound-mail.sendgrid.net ([167.89.50.229]:26535
-        "EHLO o1678950229.outbound-mail.sendgrid.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S966133AbeAOQin (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 15 Jan 2018 11:38:43 -0500
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Subject: [PATCH v5 2/9] v4l: vsp1: Protect bodies against overflow
-Date: Mon, 15 Jan 2018 16:38:42 +0000 (UTC)
-Message-Id: <c843f227e694a9e94c43b2f67cdef54cc186a0ad.1516028582.git-series.kieran.bingham+renesas@ideasonboard.com>
-In-Reply-To: <cover.7c5bc67e9d7032daf8ea4d7bd18cf237c61676b4.1516028582.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.7c5bc67e9d7032daf8ea4d7bd18cf237c61676b4.1516028582.git-series.kieran.bingham+renesas@ideasonboard.com>
-In-Reply-To: <cover.7c5bc67e9d7032daf8ea4d7bd18cf237c61676b4.1516028582.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.7c5bc67e9d7032daf8ea4d7bd18cf237c61676b4.1516028582.git-series.kieran.bingham+renesas@ideasonboard.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:44863 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1756624AbeAHQey (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 8 Jan 2018 11:34:54 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Niklas =?ISO-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund@ragnatech.se>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>
+Subject: Re: [PATCH v9 07/28] rcar-vin: change name of video device
+Date: Mon, 08 Jan 2018 18:35:23 +0200
+Message-ID: <5666028.A5BLSl6sJg@avalon>
+In-Reply-To: <20171220152055.GB32148@bigcity.dyn.berto.se>
+References: <20171208010842.20047-1-niklas.soderlund+renesas@ragnatech.se> <3340556.KXTJ26DsAn@avalon> <20171220152055.GB32148@bigcity.dyn.berto.se>
+MIME-Version: 1.0
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="iso-8859-1"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The body write function relies on the code never asking it to write more
-than the entries available in the list.
+Hi Niklas,
 
-Currently with each list body containing 256 entries, this is fine, but
-we can reduce this number greatly saving memory. In preparation of this
-add a level of protection to catch any buffer overflows.
+On Wednesday, 20 December 2017 17:20:55 EET Niklas S=F6derlund wrote:
+> On 2017-12-14 17:50:24 +0200, Laurent Pinchart wrote:
+> > On Thursday, 14 December 2017 16:25:00 EET Sakari Ailus wrote:
+> >> On Fri, Dec 08, 2017 at 10:17:36AM +0200, Laurent Pinchart wrote:
+> >>> On Friday, 8 December 2017 03:08:21 EET Niklas S=F6derlund wrote:
+> >>>> The rcar-vin driver needs to be part of a media controller to
+> >>>> support Gen3. Give each VIN instance a unique name so it can be
+> >>>> referenced from userspace.
+> >>>>=20
+> >>>> Signed-off-by: Niklas S=F6derlund
+> >>>> <niklas.soderlund+renesas@ragnatech.se>
+> >>>> Reviewed-by: Kieran Bingham
+> >>>> <kieran.bingham+renesas@ideasonboard.com>
+> >>>> Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+> >>>> ---
+> >>>>=20
+> >>>>  drivers/media/platform/rcar-vin/rcar-v4l2.c | 3 ++-
+> >>>>  1 file changed, 2 insertions(+), 1 deletion(-)
+> >>>>=20
+> >>>> diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c
+> >>>> b/drivers/media/platform/rcar-vin/rcar-v4l2.c index
+> >>>> 59ec6d3d119590aa..19de99133f048960 100644
+> >>>> --- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
+> >>>> +++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+> >>>> @@ -876,7 +876,8 @@ int rvin_v4l2_register(struct rvin_dev *vin)
+> >>>>  	vdev->fops =3D &rvin_fops;
+> >>>>  	vdev->v4l2_dev =3D &vin->v4l2_dev;
+> >>>>  	vdev->queue =3D &vin->queue;
+> >>>> -	strlcpy(vdev->name, KBUILD_MODNAME, sizeof(vdev->name));
+> >>>> +	snprintf(vdev->name, sizeof(vdev->name), "%s %s", KBUILD_MODNAME,
+> >>>> +		 dev_name(vin->dev));
+> >>>=20
+> >>> Do we need the module name here ? How about calling them "%s output",
+> >>> dev_name(vin->dev) to emphasize the fact that this is a video node and
+> >>> not a VIN subdev ? This is what the omap3isp and vsp1 drivers do.
+> >>>=20
+> >>> We're suffering a bit from the fact that V4L2 has never standardized a
+> >>> naming scheme for the devices. It wouldn't be fair to ask you to fix
+> >>> that as a prerequisite to get the VIN driver merged, but we clearly h=
+ave
+> >>> to work on that at some point.
+> >>=20
+> >> Agreed, this needs to be stable and I think aligning to what omap3isp =
+or
+> >> vsp1 do would be a good fix here.
+> >=20
+> > Even omap3isp and vsp1 are not fully aligned, so I think we need to des=
+ign
+> > a naming policy and document it.
+>=20
+> I agree that align this is a good idea. And for this reason I chosen to
+> update this patch as such:
+>=20
+> "%s output", dev_name(vin->dev)
 
-Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Wouldn't it be easier for userspace to use
 
----
+	"VIN%u output", index
 
-v3:
- - adapt for new 'body' terminology
- - simplify WARN_ON macro usage
----
- drivers/media/platform/vsp1/vsp1_dl.c | 7 +++++++
- 1 file changed, 7 insertions(+)
+where index is the VIN index as specified in DT ?
 
-diff --git a/drivers/media/platform/vsp1/vsp1_dl.c b/drivers/media/platform/vsp1/vsp1_dl.c
-index 90e972a75c62..ecc3659a7884 100644
---- a/drivers/media/platform/vsp1/vsp1_dl.c
-+++ b/drivers/media/platform/vsp1/vsp1_dl.c
-@@ -50,6 +50,7 @@ struct vsp1_dl_entry {
-  * @dma: DMA address of the entries
-  * @size: size of the DMA memory in bytes
-  * @num_entries: number of stored entries
-+ * @max_entries: number of entries available
-  */
- struct vsp1_dl_body {
- 	struct list_head list;
-@@ -60,6 +61,7 @@ struct vsp1_dl_body {
- 	size_t size;
- 
- 	unsigned int num_entries;
-+	unsigned int max_entries;
- };
- 
- /**
-@@ -139,6 +141,7 @@ static int vsp1_dl_body_init(struct vsp1_device *vsp1,
- 
- 	dlb->vsp1 = vsp1;
- 	dlb->size = size;
-+	dlb->max_entries = num_entries;
- 
- 	dlb->entries = dma_alloc_wc(vsp1->bus_master, dlb->size, &dlb->dma,
- 				    GFP_KERNEL);
-@@ -220,6 +223,10 @@ void vsp1_dl_body_free(struct vsp1_dl_body *dlb)
-  */
- void vsp1_dl_body_write(struct vsp1_dl_body *dlb, u32 reg, u32 data)
- {
-+	if (WARN_ONCE(dlb->num_entries >= dlb->max_entries,
-+		      "DLB size exceeded (max %u)", dlb->max_entries))
-+		return;
-+
- 	dlb->entries[dlb->num_entries].addr = reg;
- 	dlb->entries[dlb->num_entries].data = data;
- 	dlb->num_entries++;
--- 
-git-series 0.9.1
+> I hope this is a step in the correct direction. If not please let me
+> know as soon as possible so I can minimize the trouble for the other
+> developers doing stuff on-top of this series and there test scripts :-)
+
+=2D-=20
+Regards,
+
+Laurent Pinchart
