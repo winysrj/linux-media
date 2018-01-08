@@ -1,223 +1,196 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:59069 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751056AbeAWHyv (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 23 Jan 2018 02:54:51 -0500
-Subject: Re: [PATCH 2/2] drm: adv7511: Add support for
- i2c_new_secondary_device
-To: Lars-Peter Clausen <lars@metafoo.de>, linux-media@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org
-Cc: Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>,
-        David Airlie <airlied@linux.ie>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
+Received: from mail-lf0-f41.google.com ([209.85.215.41]:42302 "EHLO
+        mail-lf0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S934510AbeAHQLw (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 8 Jan 2018 11:11:52 -0500
+Received: by mail-lf0-f41.google.com with SMTP id e27so12638111lfb.9
+        for <linux-media@vger.kernel.org>; Mon, 08 Jan 2018 08:11:52 -0800 (PST)
+Date: Mon, 8 Jan 2018 17:11:49 +0100
+From: Niklas =?iso-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund@ragnatech.se>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
         Archit Taneja <architt@codeaurora.org>,
-        Andrzej Hajda <a.hajda@samsung.com>,
-        Laurent Pinchart <Laurent.pinchart@ideasonboard.com>,
-        John Stultz <john.stultz@linaro.org>,
-        Mark Brown <broonie@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Daniel Vetter <daniel.vetter@ffwll.ch>,
-        Bhumika Goyal <bhumirks@gmail.com>,
-        Inki Dae <inki.dae@samsung.com>,
-        "open list:OPEN FIRMWARE AND FLATTENED DEVICE TREE BINDINGS"
-        <devicetree@vger.kernel.org>
-References: <1516625389-6362-1-git-send-email-kieran.bingham@ideasonboard.com>
- <1516625389-6362-3-git-send-email-kieran.bingham@ideasonboard.com>
- <8369b342-e7b2-2519-5dec-424b9c361869@metafoo.de>
-From: Kieran Bingham <kieran.bingham@ideasonboard.com>
-Message-ID: <fea576b0-a638-8b35-8b1f-b0340da8d486@ideasonboard.com>
-Date: Tue, 23 Jan 2018 07:54:45 +0000
+        Sean Paul <seanpaul@chromium.org>,
+        Neil Armstrong <narmstrong@baylibre.com>,
+        open list <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH] v4l: doc: clarify v4l2_mbus_fmt height definition
+Message-ID: <20180108161149.GB23075@bigcity.dyn.berto.se>
+References: <1515422746-5971-1-git-send-email-kieran.bingham@ideasonboard.com>
+ <20180108151353.zn2ee2tbdq2yragp@valkosipuli.retiisi.org.uk>
+ <20180108153247.GA23075@bigcity.dyn.berto.se>
+ <7c5ad9a4-c218-45f4-e21e-7aa9935cfd41@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <8369b342-e7b2-2519-5dec-424b9c361869@metafoo.de>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
+In-Reply-To: <7c5ad9a4-c218-45f4-e21e-7aa9935cfd41@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 22/01/18 13:00, Lars-Peter Clausen wrote:
-> On 01/22/2018 01:50 PM, Kieran Bingham wrote:
->> The ADV7511 has four 256-byte maps that can be accessed via the main IÂ²C
->> ports. Each map has it own IÂ²C address and acts as a standard slave
->> device on the IÂ²C bus.
->>
->> Allow a device tree node to override the default addresses so that
->> address conflicts with other devices on the same bus may be resolved at
->> the board description level.
->>
->> Signed-off-by: Kieran Bingham <kieran.bingham@ideasonboard.com>
+On 2018-01-08 16:48:35 +0100, Hans Verkuil wrote:
+> On 01/08/2018 04:32 PM, Niklas Söderlund wrote:
+> > Hi,
+> > 
+> > Thanks for your patch.
+> > 
+> > On 2018-01-08 17:13:53 +0200, Sakari Ailus wrote:
+> >> Hi Kieran,
+> >>
+> >> On Mon, Jan 08, 2018 at 02:45:49PM +0000, Kieran Bingham wrote:
+> >>> The v4l2_mbus_fmt width and height corresponds directly with the
+> >>> v4l2_pix_format definitions, yet the differences in documentation make
+> >>> it ambiguous what to do in the event of field heights.
+> >>>
+> >>> Clarify this by referencing the v4l2_pix_format which is explicit on the
+> >>> matter, and by matching the terminology of 'image height' rather than
+> >>> the misleading 'frame height'.
+> > 
+> > Nice that this relationship is documented as it have contributed to some 
+> > confusion on my side in the past!
+> > 
+> >>>
+> >>> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+> >>> ---
+> >>>  Documentation/media/uapi/v4l/subdev-formats.rst | 6 ++++--
+> >>>  include/uapi/linux/v4l2-mediabus.h              | 4 ++--
+> >>>  2 files changed, 6 insertions(+), 4 deletions(-)
+> >>>
+> >>> diff --git a/Documentation/media/uapi/v4l/subdev-formats.rst b/Documentation/media/uapi/v4l/subdev-formats.rst
+> >>> index b1eea44550e1..a2a00202b430 100644
+> >>> --- a/Documentation/media/uapi/v4l/subdev-formats.rst
+> >>> +++ b/Documentation/media/uapi/v4l/subdev-formats.rst
+> >>> @@ -16,10 +16,12 @@ Media Bus Formats
+> >>>  
+> >>>      * - __u32
+> >>>        - ``width``
+> >>> -      - Image width, in pixels.
+> >>> +      - Image width in pixels. See struct
+> >>> +	:c:type:`v4l2_pix_format`.
+> >>>      * - __u32
+> >>>        - ``height``
+> >>> -      - Image height, in pixels.
+> >>> +      - Image height in pixels. See struct
+> >>> +	:c:type:`v4l2_pix_format`.
+> >>>      * - __u32
+> >>>        - ``code``
+> >>>        - Format code, from enum
+> >>> diff --git a/include/uapi/linux/v4l2-mediabus.h b/include/uapi/linux/v4l2-mediabus.h
+> >>> index 6e20de63ec59..6b34108d0338 100644
+> >>> --- a/include/uapi/linux/v4l2-mediabus.h
+> >>> +++ b/include/uapi/linux/v4l2-mediabus.h
+> >>> @@ -18,8 +18,8 @@
+> >>>  
+> >>>  /**
+> >>>   * struct v4l2_mbus_framefmt - frame format on the media bus
+> >>> - * @width:	frame width
+> >>> - * @height:	frame height
+> >>> + * @width:	image width
+> >>> + * @height:	image height (see struct v4l2_pix_format)
+> >>
+> >> Hmm. This is the media bus format and it has no direct relation to
+> >> v4l2_pix_format. So no, I can't see what would be the point in making such
+> >> a reference.
+> > 
+> > Well we have functions like v4l2_fill_pix_format() that do
+> > 
+> >     pix_fmt->width = mbus_fmt->width;
+> >     pix_fmt->height = mbus_fmt->height;
+> > 
+> > So I think there at least is an implicit relation between the two 
+> > structs. The issue I think Kieran is trying to address is in the case of 
+> > TOP, BOTTOM and ALTERNATE field formats. From the v4l2_pix_format 
+> > documentation on the height field:
+> > 
+> >    "Image height in pixels. If field is one of V4L2_FIELD_TOP, 
+> >    V4L2_FIELD_BOTTOM or V4L2_FIELD_ALTERNATE then height refers to the 
+> >    number of lines in the field, otherwise it refers to the number of 
+> >    lines in the frame (which is twice the field height for interlaced 
+> >    formats)."
 > 
-> I've been working on the same thing, but you've beat me to it! Patch looks
-> mostly OK, but I think you are missing this piece:
+> Right, and I'd just copy this text to subdev-formats.rst rather than referring
+> to it.
 > 
-> https://github.com/analogdevicesinc/linux/commit/ba9b57507cb78724a606eb24104e22fea942437d#diff-2cf1828c644e351adefabe9509410400L553
-
-Ah yes - Thanks, - you're correct - I had missed that bit.
-
-Added locally for a v2.
---
-Kieran
-
->> ---
->>  .../bindings/display/bridge/adi,adv7511.txt        | 10 +++++-
->>  drivers/gpu/drm/bridge/adv7511/adv7511.h           |  4 +++
->>  drivers/gpu/drm/bridge/adv7511/adv7511_drv.c       | 36 ++++++++++++++--------
->>  3 files changed, 37 insertions(+), 13 deletions(-)
->>
->> diff --git a/Documentation/devicetree/bindings/display/bridge/adi,adv7511.txt b/Documentation/devicetree/bindings/display/bridge/adi,adv7511.txt
->> index 0047b1394c70..f6bb9f6d3f48 100644
->> --- a/Documentation/devicetree/bindings/display/bridge/adi,adv7511.txt
->> +++ b/Documentation/devicetree/bindings/display/bridge/adi,adv7511.txt
->> @@ -70,6 +70,9 @@ Optional properties:
->>    rather than generate its own timings for HDMI output.
->>  - clocks: from common clock binding: reference to the CEC clock.
->>  - clock-names: from common clock binding: must be "cec".
->> +- reg-names : Names of maps with programmable addresses.
->> +	It can contain any map needing a non-default address.
->> +	Possible maps names are : "main", "edid", "cec", "packet"
->>  
->>  Required nodes:
->>  
->> @@ -88,7 +91,12 @@ Example
->>  
->>  	adv7511w: hdmi@39 {
->>  		compatible = "adi,adv7511w";
->> -		reg = <39>;
->> +		/*
->> +		 * The EDID page will be accessible on address 0x66 on the i2c
->> +		 * bus. All other maps continue to use their default addresses.
->> +		 */
->> +		reg = <0x39 0x66>;
->> +		reg-names = "main", "edid";
->>  		interrupt-parent = <&gpio3>;
->>  		interrupts = <29 IRQ_TYPE_EDGE_FALLING>;
->>  		clocks = <&cec_clock>;
->> diff --git a/drivers/gpu/drm/bridge/adv7511/adv7511.h b/drivers/gpu/drm/bridge/adv7511/adv7511.h
->> index d034b2cb5eee..7d81ce3808e0 100644
->> --- a/drivers/gpu/drm/bridge/adv7511/adv7511.h
->> +++ b/drivers/gpu/drm/bridge/adv7511/adv7511.h
->> @@ -53,8 +53,10 @@
->>  #define ADV7511_REG_POWER			0x41
->>  #define ADV7511_REG_STATUS			0x42
->>  #define ADV7511_REG_EDID_I2C_ADDR		0x43
->> +#define ADV7511_REG_EDID_I2C_ADDR_DEFAULT	0x3f
->>  #define ADV7511_REG_PACKET_ENABLE1		0x44
->>  #define ADV7511_REG_PACKET_I2C_ADDR		0x45
->> +#define ADV7511_REG_PACKET_I2C_ADDR_DEFAULT	0x38
->>  #define ADV7511_REG_DSD_ENABLE			0x46
->>  #define ADV7511_REG_VIDEO_INPUT_CFG2		0x48
->>  #define ADV7511_REG_INFOFRAME_UPDATE		0x4a
->> @@ -89,6 +91,7 @@
->>  #define ADV7511_REG_TMDS_CLOCK_INV		0xde
->>  #define ADV7511_REG_ARC_CTRL			0xdf
->>  #define ADV7511_REG_CEC_I2C_ADDR		0xe1
->> +#define ADV7511_REG_CEC_I2C_ADDR_DEFAULT	0x3c
->>  #define ADV7511_REG_CEC_CTRL			0xe2
->>  #define ADV7511_REG_CHIP_ID_HIGH		0xf5
->>  #define ADV7511_REG_CHIP_ID_LOW			0xf6
->> @@ -322,6 +325,7 @@ struct adv7511 {
->>  	struct i2c_client *i2c_main;
->>  	struct i2c_client *i2c_edid;
->>  	struct i2c_client *i2c_cec;
->> +	struct i2c_client *i2c_packet;
->>  
->>  	struct regmap *regmap;
->>  	struct regmap *regmap_cec;
->> diff --git a/drivers/gpu/drm/bridge/adv7511/adv7511_drv.c b/drivers/gpu/drm/bridge/adv7511/adv7511_drv.c
->> index efa29db5fc2b..7ec33837752b 100644
->> --- a/drivers/gpu/drm/bridge/adv7511/adv7511_drv.c
->> +++ b/drivers/gpu/drm/bridge/adv7511/adv7511_drv.c
->> @@ -969,8 +969,8 @@ static int adv7511_init_cec_regmap(struct adv7511 *adv)
->>  {
->>  	int ret;
->>  
->> -	adv->i2c_cec = i2c_new_dummy(adv->i2c_main->adapter,
->> -				     adv->i2c_main->addr - 1);
->> +	adv->i2c_cec = i2c_new_secondary_device(adv->i2c_main, "cec",
->> +					ADV7511_REG_CEC_I2C_ADDR_DEFAULT);
->>  	if (!adv->i2c_cec)
->>  		return -ENOMEM;
->>  	i2c_set_clientdata(adv->i2c_cec, adv);
->> @@ -1082,8 +1082,6 @@ static int adv7511_probe(struct i2c_client *i2c, const struct i2c_device_id *id)
->>  	struct adv7511_link_config link_config;
->>  	struct adv7511 *adv7511;
->>  	struct device *dev = &i2c->dev;
->> -	unsigned int main_i2c_addr = i2c->addr << 1;
->> -	unsigned int edid_i2c_addr = main_i2c_addr + 4;
->>  	unsigned int val;
->>  	int ret;
->>  
->> @@ -1153,24 +1151,35 @@ static int adv7511_probe(struct i2c_client *i2c, const struct i2c_device_id *id)
->>  	if (ret)
->>  		goto uninit_regulators;
->>  
->> -	regmap_write(adv7511->regmap, ADV7511_REG_EDID_I2C_ADDR, edid_i2c_addr);
->> -	regmap_write(adv7511->regmap, ADV7511_REG_PACKET_I2C_ADDR,
->> -		     main_i2c_addr - 0xa);
->> -	regmap_write(adv7511->regmap, ADV7511_REG_CEC_I2C_ADDR,
->> -		     main_i2c_addr - 2);
->> -
->>  	adv7511_packet_disable(adv7511, 0xffff);
->>  
->> -	adv7511->i2c_edid = i2c_new_dummy(i2c->adapter, edid_i2c_addr >> 1);
->> +	adv7511->i2c_edid = i2c_new_secondary_device(i2c, "edid",
->> +					ADV7511_REG_EDID_I2C_ADDR_DEFAULT);
->>  	if (!adv7511->i2c_edid) {
->>  		ret = -ENOMEM;
->>  		goto uninit_regulators;
->>  	}
->>  
->> +	regmap_write(adv7511->regmap, ADV7511_REG_EDID_I2C_ADDR,
->> +		     adv7511->i2c_edid->addr << 1);
->> +
->>  	ret = adv7511_init_cec_regmap(adv7511);
->>  	if (ret)
->>  		goto err_i2c_unregister_edid;
->>  
->> +	regmap_write(adv7511->regmap, ADV7511_REG_CEC_I2C_ADDR,
->> +		     adv7511->i2c_cec->addr << 1);
->> +
->> +	adv7511->i2c_packet = i2c_new_secondary_device(i2c, "packet",
->> +					ADV7511_REG_PACKET_I2C_ADDR_DEFAULT);
->> +	if (!adv7511->i2c_packet) {
->> +		ret = -ENOMEM;
->> +		goto err_unregister_cec;
->> +	}
->> +
->> +	regmap_write(adv7511->regmap, ADV7511_REG_PACKET_I2C_ADDR,
->> +		     adv7511->i2c_packet->addr << 1);
->> +
->>  	INIT_WORK(&adv7511->hpd_work, adv7511_hpd_work);
->>  
->>  	if (i2c->irq) {
->> @@ -1181,7 +1190,7 @@ static int adv7511_probe(struct i2c_client *i2c, const struct i2c_device_id *id)
->>  						IRQF_ONESHOT, dev_name(dev),
->>  						adv7511);
->>  		if (ret)
->> -			goto err_unregister_cec;
->> +			goto err_unregister_packet;
->>  	}
->>  
->>  	adv7511_power_off(adv7511);
->> @@ -1203,6 +1212,8 @@ static int adv7511_probe(struct i2c_client *i2c, const struct i2c_device_id *id)
->>  	adv7511_audio_init(dev, adv7511);
->>  	return 0;
->>  
->> +err_unregister_packet:
->> +	i2c_unregister_device(adv7511->i2c_packet);
->>  err_unregister_cec:
->>  	i2c_unregister_device(adv7511->i2c_cec);
->>  	if (adv7511->cec_clk)
->> @@ -1234,6 +1245,7 @@ static int adv7511_remove(struct i2c_client *i2c)
->>  	cec_unregister_adapter(adv7511->cec_adap);
->>  
->>  	i2c_unregister_device(adv7511->i2c_edid);
->> +	i2c_unregister_device(adv7511->i2c_packet);
->>  
->>  	return 0;
->>  }
->>
+> > 
+> > But there are no such clear definition of the height field for 
+> > v4l2_mbus_framefmt. This have cased some confusion for us which would be 
+> > nice to clarify. I think it would be a good thing to add to the 
+> > documentation if the height in v4l2_mbus_framefmt should describe the 
+> > height of a frame or field. And if it should represent the frame height 
+> > then v4l2_fill_pix_format() and v4l2_fill_mbus_format() should be 
+> > updated to support converting from the two different formats for height.
 > 
+> And that makes no sense as it would make things even more difficult.
+> 
+> So I believe it's best to be clear about it and talk about image height
+> instead of frame height.
+
+And to be clear, image height for ALTERNATE should be half the frame 
+height?
+
+> 
+> Just double check first in the code if there are any subdevs that support
+> TOP/BOTTOM/ALTERNATE and how they fill in the height, I don't think we
+> have any at the moment, but I'm not 100% certain.
+
+A quick look and I find no subdevs which supports TOP or BOTTOM but two 
+who supports ALTERNATE, adv748x and tvp5150. And of course they handle 
+this differently.
+
+* adv748x - adv748x_afe_fill_format()
+
+  fmt->field = V4L2_FIELD_ALTERNATE;
+  fmt->height = afe->curr_norm & V4L2_STD_525_60 ? 480 : 576;
+  fmt->height /= 2;
+
+* tvp5150 - tvp5150_fill_fmt()
+
+  f->height = decoder->rect.height;
+  f->field = V4L2_FIELD_ALTERNATE;
+
+  Where rect is from tvp5150_probe() and tvp5150_s_std()
+
+  #define TVP5150_V_MAX_525_60    480U
+  #define TVP5150_V_MAX_OTHERS    576U
+
+  if (tvp5150_read_std(sd) & V4L2_STD_525_60)
+          core->rect.height = TVP5150_V_MAX_525_60;
+  else
+          core->rect.height = TVP5150_V_MAX_OTHERS
+
+  But it can be changed to any value < TVP5150_V_MAX_OTHERS in 
+  tvp5150_set_selection(). And interestingly enough it is reported as 
+  half size in .enum_frame_size() - tvp5150_enum_frame_size():
+
+  fse->min_height = decoder->rect.height / 2;
+  fse->max_height = decoder->rect.height / 2;
+
+Not sure how this two different solutions best should be handled and 
+which one is correct.
+
+> 
+> Regards,
+> 
+> 	Hans
+> 
+> > 
+> >>
+> >>>   * @code:	data format code (from enum v4l2_mbus_pixelcode)
+> >>>   * @field:	used interlacing type (from enum v4l2_field)
+> >>>   * @colorspace:	colorspace of the data (from enum v4l2_colorspace)
+> >>
+> >> -- 
+> >> Regards,
+> >>
+> >> Sakari Ailus
+> >> e-mail: sakari.ailus@iki.fi
+> > 
+> 
+
+-- 
+Regards,
+Niklas Söderlund
