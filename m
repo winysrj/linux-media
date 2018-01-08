@@ -1,43 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.17.20]:62764 "EHLO mout.gmx.net"
+Received: from mx1.redhat.com ([209.132.183.28]:37534 "EHLO mx1.redhat.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752689AbeAREDM (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 17 Jan 2018 23:03:12 -0500
-Received: from minime.bse ([77.22.132.34]) by mail.gmx.com (mrgmx102
- [212.227.17.168]) with ESMTPSA (Nemesis) id 0LwGDy-1etHdY1oHW-017zlW for
- <linux-media@vger.kernel.org>; Thu, 18 Jan 2018 05:03:10 +0100
-Date: Thu, 18 Jan 2018 05:03:08 +0100
-From: Daniel =?iso-8859-1?Q?Gl=F6ckner?= <daniel-gl@gmx.net>
-To: Florian Boor <florian.boor@kernelconcepts.de>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: MT9M131 on I.MX6DL CSI color issue
-Message-ID: <20180118040308.GA21998@minime.bse>
-References: <b704a2fb-efa1-a2f8-7af0-43d869c688eb@kernelconcepts.de>
- <20180112105840.75260abb@crub>
- <20180112110606.47499410@crub>
- <929ef892-467b-dfd1-8ae0-0190263be38a@kernelconcepts.de>
- <20180117103109.GA18072@minime.bse>
- <ff51f6e2-270d-c881-4445-8dadf5d7db6f@kernelconcepts.de>
+        id S1757718AbeAHWRO (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 8 Jan 2018 17:17:14 -0500
+Date: Mon, 8 Jan 2018 23:16:56 +0100
+From: Jesper Dangaard Brouer <jbrouer@redhat.com>
+To: Peter Zijlstra <peterz@infradead.org>
+Cc: Josef Griebichler <griebichler.josef@gmx.at>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Alan Stern <stern@rowland.harvard.edu>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-usb@vger.kernel.org, Eric Dumazet <edumazet@google.com>,
+        Rik van Riel <riel@redhat.com>,
+        Paolo Abeni <pabeni@redhat.com>,
+        Hannes Frederic Sowa <hannes@redhat.com>,
+        linux-kernel <linux-kernel@vger.kernel.org>,
+        netdev <netdev@vger.kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>,
+        LMML <linux-media@vger.kernel.org>,
+        David Miller <davem@davemloft.net>,
+        torvalds@linux-foundation.org
+Subject: Re: dvb usb issues since kernel 4.9
+Message-ID: <20180108231656.3bbd1968@redhat.com>
+In-Reply-To: <20180108214427.GT29822@worktop.programming.kicks-ass.net>
+References: <20180107090336.03826df2@vento.lan>
+        <Pine.LNX.4.44L0.1801071010540.13425-100000@netrider.rowland.org>
+        <20180108074324.3c153189@vento.lan>
+        <trinity-c7ec7cbd-a186-4a2a-bcb6-cce8993d6a90-1515428770628@3c-app-gmx-bs32>
+        <20180108223109.66c91554@redhat.com>
+        <20180108214427.GT29822@worktop.programming.kicks-ass.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <ff51f6e2-270d-c881-4445-8dadf5d7db6f@kernelconcepts.de>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Jan 17, 2018 at 01:58:42PM +0100, Florian Boor wrote:
-> http://www.kernelconcepts.de/~florian/screenshot.png
+On Mon, 8 Jan 2018 22:44:27 +0100
+Peter Zijlstra <peterz@infradead.org> wrote:
+
+> On Mon, Jan 08, 2018 at 10:31:09PM +0100, Jesper Dangaard Brouer wrote:
+> > I did expected the issue to get worse, when you load the Pi with
+> > network traffic, as now the softirq time-budget have to be shared
+> > between networking and USB/DVB. Thus, I guess you are running TCP and
+> > USB/mpeg2ts on the same CPU (why when you have 4 CPUs?...)  
 > 
-> Its not really obvious for me what is wrong but these wraparounds Philipp
-> mentioned are really nice to see within the bars.
+> Isn't networking also over USB on the Pi ?
 
-The vertical lines tell me that videoparse format=5 is wrong. Since the
-U and V planes are so similar in the screenshot, it is most likely
-format 4 or 19.
+Darn, that is true. Looking at the dmesg output in http://ix.io/DOg:
 
-But that does not explain the wraparounds. Can you rule out that the
-data lines have been connected in the wrong order?
+[    0.405942] usbcore: registered new interface driver smsc95xx
+[    5.821104] smsc95xx 1-1.1:1.0 eth0: link up, 100Mbps, full-duplex, lpa 0x45E1
 
+I don't know enough about USB... is it possible to control which CPU
+handles the individual USB ports, or on some other level (than ports)?
+
+-- 
 Best regards,
-
-  Daniel
+  Jesper Dangaard Brouer
+  MSc.CS, Principal Kernel Engineer at Red Hat
+  LinkedIn: http://www.linkedin.com/in/brouer
