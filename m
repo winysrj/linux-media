@@ -1,46 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:45431 "EHLO
-        mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933687AbeALOPw (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:49410 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1755386AbeAHPKQ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 12 Jan 2018 09:15:52 -0500
-Subject: Re: [PATCH v2 2/2] media: ov9650: add device tree binding
-To: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Akinobu Mita <akinobu.mita@gmail.com>
-Cc: linux-media@vger.kernel.org,
-        devicetree <devicetree@vger.kernel.org>,
-        Jacopo Mondi <jacopo@jmondi.org>,
-        "H . Nikolaus Schaller" <hns@goldelico.com>,
-        "H . Nikolaus Schaller" <hns@goldelico.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Rob Herring <robh@kernel.org>
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Message-id: <438bc4cb-6486-8013-80aa-9e2253941fb8@samsung.com>
-Date: Fri, 12 Jan 2018 15:15:44 +0100
-MIME-version: 1.0
-In-reply-to: <20180108093513.nvr2e7vbt7imai2p@paasikivi.fi.intel.com>
-Content-type: text/plain; charset="utf-8"
-Content-language: en-GB
-Content-transfer-encoding: 7bit
-References: <1515344064-23156-1-git-send-email-akinobu.mita@gmail.com>
-        <1515344064-23156-3-git-send-email-akinobu.mita@gmail.com>
-        <20180108093513.nvr2e7vbt7imai2p@paasikivi.fi.intel.com>
-        <CGME20180112141549epcas2p18e8981052885dbaaf8a0be2ac8410082@epcas2p1.samsung.com>
+        Mon, 8 Jan 2018 10:10:16 -0500
+Date: Mon, 8 Jan 2018 17:10:13 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Xiongfeng Wang <wangxiongfeng2@huawei.com>
+Cc: mchehab@kernel.org, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org, arnd@arndb.de
+Subject: Re: [PATCH] media: media-device: use strlcpy() instead of strncpy()
+Message-ID: <20180108151013.ess23wiff7slpr7h@valkosipuli.retiisi.org.uk>
+References: <1515415259-195067-1-git-send-email-wangxiongfeng2@huawei.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1515415259-195067-1-git-send-email-wangxiongfeng2@huawei.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/08/2018 10:35 AM, Sakari Ailus wrote:
- 
-> I was going to say you're missing the MAINTAINERS entry for this newly
-> added file but then I noticed that the entire driver is missing an entry.
-> Still this file should have a MAINTAINERS entry added for it independently
-> of that, in the same patch.
+On Mon, Jan 08, 2018 at 08:40:59PM +0800, Xiongfeng Wang wrote:
+> From: Xiongfeng Wang <xiongfeng.wang@linaro.org>
 > 
-> Cc Sylwester.
+> gcc-8 reports
+> 
+> drivers/media/media-device.c: In function 'media_device_get_topology':
+> ./include/linux/string.h:245:9: warning: '__builtin_strncpy' specified
+> bound 64 equals destination size [-Wstringop-truncation]
+> 
+> We need to use strlcpy() to make sure the dest string is nul-terminated.
+> 
+> Signed-off-by: Xiongfeng Wang <xiongfeng.wang@linaro.org>
 
-I don't the hardware and I can't test the patches so Mita-san if you wish
-so please add yourself as a maintainer of whole driver.
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
 -- 
-Regards,
-Sylwester
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
