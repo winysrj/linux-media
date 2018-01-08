@@ -1,321 +1,225 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga05.intel.com ([192.55.52.43]:18590 "EHLO mga05.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752800AbeAGJyP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 7 Jan 2018 04:54:15 -0500
-Date: Sun, 7 Jan 2018 11:54:12 +0200
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: linux-media@vger.kernel.org,
-        "H . Nikolaus Schaller" <hns@goldelico.com>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Rob Herring <robh@kernel.org>
-Subject: Re: [PATCH] media: ov9650: support device tree probing
-Message-ID: <20180107095412.7n3u2grptkfmowwp@kekkonen.localdomain>
-References: <1515174543-31121-1-git-send-email-akinobu.mita@gmail.com>
+Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:52509 "EHLO
+        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S933647AbeAHQ6j (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 8 Jan 2018 11:58:39 -0500
+Subject: Re: [PATCH] v4l: doc: clarify v4l2_mbus_fmt height definition
+To: =?UTF-8?Q?Niklas_S=c3=b6derlund?= <niklas.soderlund@ragnatech.se>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Archit Taneja <architt@codeaurora.org>,
+        Sean Paul <seanpaul@chromium.org>,
+        Neil Armstrong <narmstrong@baylibre.com>,
+        open list <linux-kernel@vger.kernel.org>
+References: <1515422746-5971-1-git-send-email-kieran.bingham@ideasonboard.com>
+ <20180108151353.zn2ee2tbdq2yragp@valkosipuli.retiisi.org.uk>
+ <20180108153247.GA23075@bigcity.dyn.berto.se>
+ <7c5ad9a4-c218-45f4-e21e-7aa9935cfd41@xs4all.nl>
+ <20180108161149.GB23075@bigcity.dyn.berto.se>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <9034ede0-e7e5-9f54-16c9-91876fe1d21d@xs4all.nl>
+Date: Mon, 8 Jan 2018 17:58:25 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1515174543-31121-1-git-send-email-akinobu.mita@gmail.com>
+In-Reply-To: <20180108161149.GB23075@bigcity.dyn.berto.se>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Akinobu,
-
-Thanks for the patch. Please see my comments below.
-
-On Sat, Jan 06, 2018 at 02:49:03AM +0900, Akinobu Mita wrote:
-> The ov9650 driver currently only supports legacy platform data probe.
-> This change adds device tree probing.
+On 01/08/2018 05:11 PM, Niklas Söderlund wrote:
+> On 2018-01-08 16:48:35 +0100, Hans Verkuil wrote:
+>> On 01/08/2018 04:32 PM, Niklas Söderlund wrote:
+>>> Hi,
+>>>
+>>> Thanks for your patch.
+>>>
+>>> On 2018-01-08 17:13:53 +0200, Sakari Ailus wrote:
+>>>> Hi Kieran,
+>>>>
+>>>> On Mon, Jan 08, 2018 at 02:45:49PM +0000, Kieran Bingham wrote:
+>>>>> The v4l2_mbus_fmt width and height corresponds directly with the
+>>>>> v4l2_pix_format definitions, yet the differences in documentation make
+>>>>> it ambiguous what to do in the event of field heights.
+>>>>>
+>>>>> Clarify this by referencing the v4l2_pix_format which is explicit on the
+>>>>> matter, and by matching the terminology of 'image height' rather than
+>>>>> the misleading 'frame height'.
+>>>
+>>> Nice that this relationship is documented as it have contributed to some 
+>>> confusion on my side in the past!
+>>>
+>>>>>
+>>>>> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+>>>>> ---
+>>>>>  Documentation/media/uapi/v4l/subdev-formats.rst | 6 ++++--
+>>>>>  include/uapi/linux/v4l2-mediabus.h              | 4 ++--
+>>>>>  2 files changed, 6 insertions(+), 4 deletions(-)
+>>>>>
+>>>>> diff --git a/Documentation/media/uapi/v4l/subdev-formats.rst b/Documentation/media/uapi/v4l/subdev-formats.rst
+>>>>> index b1eea44550e1..a2a00202b430 100644
+>>>>> --- a/Documentation/media/uapi/v4l/subdev-formats.rst
+>>>>> +++ b/Documentation/media/uapi/v4l/subdev-formats.rst
+>>>>> @@ -16,10 +16,12 @@ Media Bus Formats
+>>>>>  
+>>>>>      * - __u32
+>>>>>        - ``width``
+>>>>> -      - Image width, in pixels.
+>>>>> +      - Image width in pixels. See struct
+>>>>> +	:c:type:`v4l2_pix_format`.
+>>>>>      * - __u32
+>>>>>        - ``height``
+>>>>> -      - Image height, in pixels.
+>>>>> +      - Image height in pixels. See struct
+>>>>> +	:c:type:`v4l2_pix_format`.
+>>>>>      * - __u32
+>>>>>        - ``code``
+>>>>>        - Format code, from enum
+>>>>> diff --git a/include/uapi/linux/v4l2-mediabus.h b/include/uapi/linux/v4l2-mediabus.h
+>>>>> index 6e20de63ec59..6b34108d0338 100644
+>>>>> --- a/include/uapi/linux/v4l2-mediabus.h
+>>>>> +++ b/include/uapi/linux/v4l2-mediabus.h
+>>>>> @@ -18,8 +18,8 @@
+>>>>>  
+>>>>>  /**
+>>>>>   * struct v4l2_mbus_framefmt - frame format on the media bus
+>>>>> - * @width:	frame width
+>>>>> - * @height:	frame height
+>>>>> + * @width:	image width
+>>>>> + * @height:	image height (see struct v4l2_pix_format)
+>>>>
+>>>> Hmm. This is the media bus format and it has no direct relation to
+>>>> v4l2_pix_format. So no, I can't see what would be the point in making such
+>>>> a reference.
+>>>
+>>> Well we have functions like v4l2_fill_pix_format() that do
+>>>
+>>>     pix_fmt->width = mbus_fmt->width;
+>>>     pix_fmt->height = mbus_fmt->height;
+>>>
+>>> So I think there at least is an implicit relation between the two 
+>>> structs. The issue I think Kieran is trying to address is in the case of 
+>>> TOP, BOTTOM and ALTERNATE field formats. From the v4l2_pix_format 
+>>> documentation on the height field:
+>>>
+>>>    "Image height in pixels. If field is one of V4L2_FIELD_TOP, 
+>>>    V4L2_FIELD_BOTTOM or V4L2_FIELD_ALTERNATE then height refers to the 
+>>>    number of lines in the field, otherwise it refers to the number of 
+>>>    lines in the frame (which is twice the field height for interlaced 
+>>>    formats)."
+>>
+>> Right, and I'd just copy this text to subdev-formats.rst rather than referring
+>> to it.
+>>
+>>>
+>>> But there are no such clear definition of the height field for 
+>>> v4l2_mbus_framefmt. This have cased some confusion for us which would be 
+>>> nice to clarify. I think it would be a good thing to add to the 
+>>> documentation if the height in v4l2_mbus_framefmt should describe the 
+>>> height of a frame or field. And if it should represent the frame height 
+>>> then v4l2_fill_pix_format() and v4l2_fill_mbus_format() should be 
+>>> updated to support converting from the two different formats for height.
+>>
+>> And that makes no sense as it would make things even more difficult.
+>>
+>> So I believe it's best to be clear about it and talk about image height
+>> instead of frame height.
 > 
-> There has been an attempt to add device tree support for ov9650 driver
-> by Hugues Fruchet as a part of the patchset that adds support of OV9655
-> camera (http://www.spinics.net/lists/linux-media/msg117903.html), but
-> it wasn't merged into mainline because creating a separate driver for
-> OV9655 is preferred.
+> And to be clear, image height for ALTERNATE should be half the frame 
+> height?
+
+Right.
+
 > 
-> This is very similar to Hugues's patch, but not supporting new device.
+>>
+>> Just double check first in the code if there are any subdevs that support
+>> TOP/BOTTOM/ALTERNATE and how they fill in the height, I don't think we
+>> have any at the moment, but I'm not 100% certain.
 > 
-> Cc: H. Nikolaus Schaller <hns@goldelico.com>
-> Cc: Hugues Fruchet <hugues.fruchet@st.com>
-> Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
-> Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> Cc: Rob Herring <robh@kernel.org>
-> Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-> ---
->  .../devicetree/bindings/media/i2c/ov9650.txt       |  35 +++++++
->  drivers/media/i2c/ov9650.c                         | 107 ++++++++++++++++-----
->  2 files changed, 117 insertions(+), 25 deletions(-)
->  create mode 100644 Documentation/devicetree/bindings/media/i2c/ov9650.txt
+> A quick look and I find no subdevs which supports TOP or BOTTOM but two 
+> who supports ALTERNATE, adv748x and tvp5150. And of course they handle 
+> this differently.
 > 
-> diff --git a/Documentation/devicetree/bindings/media/i2c/ov9650.txt b/Documentation/devicetree/bindings/media/i2c/ov9650.txt
-> new file mode 100644
-> index 0000000..aa5024d
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/media/i2c/ov9650.txt
-> @@ -0,0 +1,35 @@
-> +* Omnivision OV9650/OV9652 CMOS sensor
-> +
-> +Required Properties:
-> +- compatible: should be one of
-> +	"ovti,ov9650"
-> +	"ovti,ov9652"
-> +- clocks: reference to the xvclk input clock.
-> +
-> +Optional Properties:
-> +- reset-gpios: reference to the GPIO connected to the resetb pin, if any.
-> +  Active is high.
-> +- powerdown-gpios: reference to the GPIO connected to the pwdn pin, if any.
-> +  Active is high.
-> +
-> +The device node must contain one 'port' child node for its digital output
+> * adv748x - adv748x_afe_fill_format()
+> 
+>   fmt->field = V4L2_FIELD_ALTERNATE;
+>   fmt->height = afe->curr_norm & V4L2_STD_525_60 ? 480 : 576;
+>   fmt->height /= 2;
+> 
+> * tvp5150 - tvp5150_fill_fmt()
+> 
+>   f->height = decoder->rect.height;
+>   f->field = V4L2_FIELD_ALTERNATE;
+> 
+>   Where rect is from tvp5150_probe() and tvp5150_s_std()
+> 
+>   #define TVP5150_V_MAX_525_60    480U
+>   #define TVP5150_V_MAX_OTHERS    576U
+> 
+>   if (tvp5150_read_std(sd) & V4L2_STD_525_60)
+>           core->rect.height = TVP5150_V_MAX_525_60;
+>   else
+>           core->rect.height = TVP5150_V_MAX_OTHERS
+> 
+>   But it can be changed to any value < TVP5150_V_MAX_OTHERS in 
+>   tvp5150_set_selection(). And interestingly enough it is reported as 
+>   half size in .enum_frame_size() - tvp5150_enum_frame_size():
+> 
+>   fse->min_height = decoder->rect.height / 2;
+>   fse->max_height = decoder->rect.height / 2;
+> 
+> Not sure how this two different solutions best should be handled and 
+> which one is correct.
 
-s/must/shall/
+The first (adv748x) is correct.
 
-Please do say there's one 'endpoint' as well.
+The tvp5150.c should divide the height by 2in fill_fmt.
 
-> +video port, in accordance with the video interface bindings defined in
-> +Documentation/devicetree/bindings/media/video-interfaces.txt.
-> +
-> +Example:
-> +
-> +&i2c0 {
-> +	ov9650: camera@30 {
-> +		compatible = "ovti,ov9650";
-> +		reg = <0x30>;
-> +		reset-gpios = <&axi_gpio_0 0 GPIO_ACTIVE_HIGH>;
-> +		powerdown-gpios = <&axi_gpio_0 1 GPIO_ACTIVE_HIGH>;
-> +		clocks = <&xclk>;
-> +
-> +		port {
-> +			ov9650_0: endpoint {
-> +				remote-endpoint = <&vcap1_in0>;
-> +			};
-> +		};
-> +	};
-> +};
-> diff --git a/drivers/media/i2c/ov9650.c b/drivers/media/i2c/ov9650.c
-> index 69433e1..1affdc0 100644
-> --- a/drivers/media/i2c/ov9650.c
-> +++ b/drivers/media/i2c/ov9650.c
-> @@ -11,8 +11,10 @@
->   * it under the terms of the GNU General Public License version 2 as
->   * published by the Free Software Foundation.
->   */
-> +#include <linux/clk.h>
->  #include <linux/delay.h>
->  #include <linux/gpio.h>
-> +#include <linux/gpio/consumer.h>
->  #include <linux/i2c.h>
->  #include <linux/kernel.h>
->  #include <linux/media.h>
-> @@ -249,9 +251,10 @@ struct ov965x {
->  	struct v4l2_subdev sd;
->  	struct media_pad pad;
->  	enum v4l2_mbus_type bus_type;
-> -	int gpios[NUM_GPIOS];
-> +	struct gpio_desc *gpios[NUM_GPIOS];
->  	/* External master clock frequency */
->  	unsigned long mclk_frequency;
-> +	struct clk *clk;
->  
->  	/* Protects the struct fields below */
->  	struct mutex lock;
-> @@ -513,10 +516,9 @@ static int ov965x_set_color_matrix(struct ov965x *ov965x)
->  	return 0;
->  }
->  
-> -static void ov965x_gpio_set(int gpio, int val)
-> +static void ov965x_gpio_set(struct gpio_desc *gpio, int val)
+Luckily, nobody is using either get_fmt or set_fmt ops from this driver,
+so the changes shouldn't affect anything.
 
-Could you call gpiod_set_value_cansleep() directly?
+Note that the rectangle used by the crop selection API uses *frame* coordinates,
+not image coordinates. This driver handles that correctly already.
 
->  {
-> -	if (gpio_is_valid(gpio))
-> -		gpio_set_value(gpio, val);
-> +	gpiod_set_value_cansleep(gpio, val);
->  }
->  
->  static void __ov965x_set_power(struct ov965x *ov965x, int on)
-> @@ -1408,16 +1410,17 @@ static const struct v4l2_subdev_ops ov965x_subdev_ops = {
->  /*
->   * Reset and power down GPIOs configuration
->   */
-> -static int ov965x_configure_gpios(struct ov965x *ov965x,
-> -				  const struct ov9650_platform_data *pdata)
-> +static int ov965x_configure_gpios_pdata(struct ov965x *ov965x,
-> +				const struct ov9650_platform_data *pdata)
->  {
->  	int ret, i;
-> +	int gpios[NUM_GPIOS];
->  
-> -	ov965x->gpios[GPIO_PWDN] = pdata->gpio_pwdn;
-> -	ov965x->gpios[GPIO_RST]  = pdata->gpio_reset;
-> +	gpios[GPIO_PWDN] = pdata->gpio_pwdn;
-> +	gpios[GPIO_RST]  = pdata->gpio_reset;
->  
->  	for (i = 0; i < ARRAY_SIZE(ov965x->gpios); i++) {
-> -		int gpio = ov965x->gpios[i];
-> +		int gpio = gpios[i];
->  
->  		if (!gpio_is_valid(gpio))
->  			continue;
-> @@ -1427,14 +1430,52 @@ static int ov965x_configure_gpios(struct ov965x *ov965x,
->  			return ret;
->  		v4l2_dbg(1, debug, &ov965x->sd, "set gpio %d to 1\n", gpio);
->  
-> -		gpio_set_value(gpio, 1);
-> +		gpio_set_value_cansleep(gpio, 1);
->  		gpio_export(gpio, 0);
-> -		ov965x->gpios[i] = gpio;
-> +		ov965x->gpios[i] = gpio_to_desc(gpio);
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +static int ov965x_configure_gpios(struct ov965x *ov965x)
-> +{
-> +	struct device *dev = &ov965x->client->dev;
-> +
-> +	ov965x->gpios[GPIO_PWDN] = devm_gpiod_get_optional(dev, "powerdown",
-> +							GPIOD_OUT_HIGH);
-> +	if (IS_ERR(ov965x->gpios[GPIO_PWDN])) {
-> +		dev_info(dev, "can't get %s GPIO\n", "powerdown");
-> +		return PTR_ERR(ov965x->gpios[GPIO_PWDN]);
-> +	}
-> +
-> +	ov965x->gpios[GPIO_RST] = devm_gpiod_get_optional(dev, "reset",
-> +							GPIOD_OUT_HIGH);
-> +	if (IS_ERR(ov965x->gpios[GPIO_RST])) {
-> +		dev_info(dev, "can't get %s GPIO\n", "reset");
-> +		return PTR_ERR(ov965x->gpios[GPIO_RST]);
->  	}
->  
->  	return 0;
->  }
->  
-> +static int ov965x_configure_clk(struct ov965x *ov965x)
-> +{
-> +	int ret;
-> +
-> +	ov965x->clk = devm_clk_get(&ov965x->client->dev, NULL);
-> +	if (IS_ERR(ov965x->clk))
-> +		return PTR_ERR(ov965x->clk);
-> +
-> +	ret = clk_prepare_enable(ov965x->clk);
+tvp5150_enum_frame_size should be removed: it is not used and in general
+it makes no sense for video receivers. I think it is broken as well since
+this initial check makes no sense:
 
-The driver has an s_power callback; this should go there.
+       if (fse->index >= 8 || fse->code != MEDIA_BUS_FMT_UYVY8_2X8)
+                return -EINVAL;
 
-> +	if (ret)
-> +		return ret;
-> +
-> +	ov965x->mclk_frequency = clk_get_rate(ov965x->clk);
-> +
-> +	return 0;
-> +}
-> +
->  static int ov965x_detect_sensor(struct v4l2_subdev *sd)
->  {
->  	struct i2c_client *client = v4l2_get_subdevdata(sd);
-> @@ -1476,23 +1517,25 @@ static int ov965x_probe(struct i2c_client *client,
->  	struct ov965x *ov965x;
->  	int ret;
->  
-> -	if (!pdata) {
-> -		dev_err(&client->dev, "platform data not specified\n");
-> -		return -EINVAL;
-> -	}
-> -
-> -	if (pdata->mclk_frequency == 0) {
-> -		dev_err(&client->dev, "MCLK frequency not specified\n");
-> -		return -EINVAL;
-> -	}
-> -
->  	ov965x = devm_kzalloc(&client->dev, sizeof(*ov965x), GFP_KERNEL);
->  	if (!ov965x)
->  		return -ENOMEM;
->  
->  	mutex_init(&ov965x->lock);
->  	ov965x->client = client;
-> -	ov965x->mclk_frequency = pdata->mclk_frequency;
-> +
-> +	if (pdata) {
-> +		ov965x->mclk_frequency = pdata->mclk_frequency;
-> +		if (ov965x->mclk_frequency == 0) {
-> +			dev_err(&client->dev, "MCLK frequency not specified\n");
-> +			ret = -EINVAL;
-> +			goto err_mutex;
-> +		}
-> +	} else {
-> +		ret = ov965x_configure_clk(ov965x);
-> +		if (ret)
-> +			goto err_mutex;
-> +	}
->  
->  	sd = &ov965x->sd;
->  	v4l2_i2c_subdev_init(sd, client, &ov965x_subdev_ops);
-> @@ -1502,15 +1545,18 @@ static int ov965x_probe(struct i2c_client *client,
->  	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE |
->  		     V4L2_SUBDEV_FL_HAS_EVENTS;
->  
-> -	ret = ov965x_configure_gpios(ov965x, pdata);
-> +	if (pdata)
-> +		ret = ov965x_configure_gpios_pdata(ov965x, pdata);
-> +	else
-> +		ret = ov965x_configure_gpios(ov965x);
->  	if (ret < 0)
-> -		goto err_mutex;
-> +		goto err_clk;
->  
->  	ov965x->pad.flags = MEDIA_PAD_FL_SOURCE;
->  	sd->entity.function = MEDIA_ENT_F_CAM_SENSOR;
->  	ret = media_entity_pads_init(&sd->entity, 1, &ov965x->pad);
->  	if (ret < 0)
-> -		goto err_mutex;
-> +		goto err_clk;
->  
->  	ret = ov965x_initialize_controls(ov965x);
->  	if (ret < 0)
-> @@ -1536,6 +1582,8 @@ static int ov965x_probe(struct i2c_client *client,
->  	v4l2_ctrl_handler_free(sd->ctrl_handler);
->  err_me:
->  	media_entity_cleanup(&sd->entity);
-> +err_clk:
-> +	clk_disable_unprepare(ov965x->clk);
->  err_mutex:
->  	mutex_destroy(&ov965x->lock);
->  	return ret;
-> @@ -1549,6 +1597,7 @@ static int ov965x_remove(struct i2c_client *client)
->  	v4l2_async_unregister_subdev(sd);
->  	v4l2_ctrl_handler_free(sd->ctrl_handler);
->  	media_entity_cleanup(&sd->entity);
-> +	clk_disable_unprepare(ov965x->clk);
->  	mutex_destroy(&ov965x->lock);
->  
->  	return 0;
-> @@ -1561,9 +1610,17 @@ static const struct i2c_device_id ov965x_id[] = {
->  };
->  MODULE_DEVICE_TABLE(i2c, ov965x_id);
->  
-> +static const struct of_device_id ov965x_of_match[] = {
-> +	{ .compatible = "ovti,ov9650", },
-> +	{ .compatible = "ovti,ov9652", },
-> +	{ /* sentinel */ }
-> +};
-> +MODULE_DEVICE_TABLE(of, ov965x_of_match);
-> +
->  static struct i2c_driver ov965x_i2c_driver = {
->  	.driver = {
->  		.name	= DRIVER_NAME,
-> +		.of_match_table = ov965x_of_match,
->  	},
->  	.probe		= ov965x_probe,
->  	.remove		= ov965x_remove,
+No idea where 'fse->index >= 8' comes from. It appears it just enumerates
+8 identical formats!
 
--- 
+Talking about removing functions: tvp5150_g_mbus_config should also be
+dropped. It's unused by em28xx and I want to get rid of that callback since
+this belongs in the device tree or usb/pci card information.
+
 Regards,
 
-Sakari Ailus
-sakari.ailus@linux.intel.com
+	Hans
+
+> 
+>>
+>> Regards,
+>>
+>> 	Hans
+>>
+>>>
+>>>>
+>>>>>   * @code:	data format code (from enum v4l2_mbus_pixelcode)
+>>>>>   * @field:	used interlacing type (from enum v4l2_field)
+>>>>>   * @colorspace:	colorspace of the data (from enum v4l2_colorspace)
+>>>>
+>>>> -- 
+>>>> Regards,
+>>>>
+>>>> Sakari Ailus
+>>>> e-mail: sakari.ailus@iki.fi
+>>>
+>>
+> 
