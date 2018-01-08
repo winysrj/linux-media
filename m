@@ -1,134 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from o1678950229.outbound-mail.sendgrid.net ([167.89.50.229]:22958
-        "EHLO o1678950229.outbound-mail.sendgrid.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751667AbeAINJy (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:48522 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1755200AbeAHNrY (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 9 Jan 2018 08:09:54 -0500
-From: Kieran Bingham <kieran.bingham@ideasonboard.com>
-To: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-        laurent@vger.kernel.org,
-        Olivier BRAUN <olivier.braun@stereolabs.com>,
-        Troy Kisky <troy.kisky@boundarydevices.com>,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>
-Subject: [RFT PATCH v2 3/6] uvcvideo: Protect queue internals with helper
-Date: Tue, 09 Jan 2018 13:09:53 +0000 (UTC)
-Message-Id: <0f14323f98ca64dd828514577167dc232a33a8ad.1515501206.git-series.kieran.bingham@ideasonboard.com>
-In-Reply-To: <cover.99b809a1c1f6238bb8c0a2c8b0bc7b49dd777d94.1515501206.git-series.kieran.bingham@ideasonboard.com>
-References: <cover.99b809a1c1f6238bb8c0a2c8b0bc7b49dd777d94.1515501206.git-series.kieran.bingham@ideasonboard.com>
-In-Reply-To: <cover.99b809a1c1f6238bb8c0a2c8b0bc7b49dd777d94.1515501206.git-series.kieran.bingham@ideasonboard.com>
-References: <cover.99b809a1c1f6238bb8c0a2c8b0bc7b49dd777d94.1515501206.git-series.kieran.bingham@ideasonboard.com>
+        Mon, 8 Jan 2018 08:47:24 -0500
+Date: Mon, 8 Jan 2018 15:47:21 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, mchehab@s-opensource.com,
+        hverkuil@xs4all.nl
+Subject: =?iso-8859-1?B?W0FOTl2gTWVldGlu?= =?iso-8859-1?Q?g?= notes on naming
+ meeting 2017-10-11/13
+Message-ID: <20180108134720.urmfzleeeyvmxlff@valkosipuli.retiisi.org.uk>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The URB completion operation obtains the current buffer by reading
-directly into the queue internal interface.
+Hi folks,
 
-Protect this queue abstraction by providing a helper
-uvc_queue_get_current_buffer() which can be used by both the decode
-task, and the uvc_queue_next_buffer() functions.
+Here are the meeting notes on the IRC meeting that took place 11th and 13th
+last October. The brief summary is below, the full log can be found here:
 
-Signed-off-by: Kieran Bingham <kieran.bingham@ideasonboard.com>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+<URL:http://www.retiisi.org.uk/v4l2/notes/v4l2-naming-2017-10-11.txt>
 
----
+Attendees:
 
-v2:
- - Fix coding style of conditional statements
+	Laurent Pinchart
+	Mauro Chehab
+	Hans Verkuil
+	Lars-Peter Clausen
+	Sylwester Nawrocki
+	Sakari Ailus
 
- drivers/media/usb/uvc/uvc_queue.c | 33 +++++++++++++++++++++++++++-----
- drivers/media/usb/uvc/uvc_video.c |  7 +------
- drivers/media/usb/uvc/uvcvideo.h  |  2 ++-
- 3 files changed, 31 insertions(+), 11 deletions(-)
+Notes:
 
-diff --git a/drivers/media/usb/uvc/uvc_queue.c b/drivers/media/usb/uvc/uvc_queue.c
-index c8d78b2f3de4..4a581d631525 100644
---- a/drivers/media/usb/uvc/uvc_queue.c
-+++ b/drivers/media/usb/uvc/uvc_queue.c
-@@ -399,6 +399,33 @@ void uvc_queue_cancel(struct uvc_video_queue *queue, int disconnect)
- 	spin_unlock_irqrestore(&queue->irqlock, flags);
- }
- 
-+/*
-+ * uvc_queue_get_current_buffer: Obtain the current working output buffer
-+ *
-+ * Buffers may span multiple packets, and even URBs, therefore the active buffer
-+ * remains on the queue until the EOF marker.
-+ */
-+static struct uvc_buffer *
-+__uvc_queue_get_current_buffer(struct uvc_video_queue *queue)
-+{
-+	if (list_empty(&queue->irqqueue))
-+		return NULL;
-+
-+	return list_first_entry(&queue->irqqueue, struct uvc_buffer, queue);
-+}
-+
-+struct uvc_buffer *uvc_queue_get_current_buffer(struct uvc_video_queue *queue)
-+{
-+	struct uvc_buffer *nextbuf;
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&queue->irqlock, flags);
-+	nextbuf = __uvc_queue_get_current_buffer(queue);
-+	spin_unlock_irqrestore(&queue->irqlock, flags);
-+
-+	return nextbuf;
-+}
-+
- struct uvc_buffer *uvc_queue_next_buffer(struct uvc_video_queue *queue,
- 		struct uvc_buffer *buf)
- {
-@@ -415,11 +442,7 @@ struct uvc_buffer *uvc_queue_next_buffer(struct uvc_video_queue *queue,
- 
- 	spin_lock_irqsave(&queue->irqlock, flags);
- 	list_del(&buf->queue);
--	if (!list_empty(&queue->irqqueue))
--		nextbuf = list_first_entry(&queue->irqqueue, struct uvc_buffer,
--					   queue);
--	else
--		nextbuf = NULL;
-+	nextbuf = __uvc_queue_get_current_buffer(queue);
- 	spin_unlock_irqrestore(&queue->irqlock, flags);
- 
- 	buf->state = buf->error ? UVC_BUF_STATE_ERROR : UVC_BUF_STATE_DONE;
-diff --git a/drivers/media/usb/uvc/uvc_video.c b/drivers/media/usb/uvc/uvc_video.c
-index 92bd0952a66e..3878bec3276e 100644
---- a/drivers/media/usb/uvc/uvc_video.c
-+++ b/drivers/media/usb/uvc/uvc_video.c
-@@ -1322,7 +1322,6 @@ static void uvc_video_complete(struct urb *urb)
- 	struct uvc_streaming *stream = uvc_urb->stream;
- 	struct uvc_video_queue *queue = &stream->queue;
- 	struct uvc_buffer *buf = NULL;
--	unsigned long flags;
- 	int ret;
- 
- 	switch (urb->status) {
-@@ -1343,11 +1342,7 @@ static void uvc_video_complete(struct urb *urb)
- 		return;
- 	}
- 
--	spin_lock_irqsave(&queue->irqlock, flags);
--	if (!list_empty(&queue->irqqueue))
--		buf = list_first_entry(&queue->irqqueue, struct uvc_buffer,
--				       queue);
--	spin_unlock_irqrestore(&queue->irqlock, flags);
-+	buf = uvc_queue_get_current_buffer(queue);
- 
- 	stream->decode(uvc_urb, buf);
- 
-diff --git a/drivers/media/usb/uvc/uvcvideo.h b/drivers/media/usb/uvc/uvcvideo.h
-index 81a9a419a423..5caa1f4de3cb 100644
---- a/drivers/media/usb/uvc/uvcvideo.h
-+++ b/drivers/media/usb/uvc/uvcvideo.h
-@@ -692,6 +692,8 @@ extern int uvc_queue_streamon(struct uvc_video_queue *queue,
- extern int uvc_queue_streamoff(struct uvc_video_queue *queue,
- 			       enum v4l2_buf_type type);
- extern void uvc_queue_cancel(struct uvc_video_queue *queue, int disconnect);
-+extern struct uvc_buffer *
-+		uvc_queue_get_current_buffer(struct uvc_video_queue *queue);
- extern struct uvc_buffer *uvc_queue_next_buffer(struct uvc_video_queue *queue,
- 		struct uvc_buffer *buf);
- extern int uvc_queue_mmap(struct uvc_video_queue *queue,
+- It was decided to call a group of multiple interconnected hardware
+  devices that that are designed to operate together as a "media hardware
+  complex". We haven't had a proper term for this in the past. Effectively
+  this means device that can be accessed through a given media device.
+
+- "Device", when it refers to a device node on a file system, shall be
+  replaced by "device node" in uAPI documentation if there's any ambiguity.
+  The same applies to "device" when it refers to hardware, i.e. "hardware
+  device". Further use of the "device" to refer either is fine as long as
+  there is no ambiguity of what it means.
+
+- During the discussion on V4L2 sub-devices as V4L2 devices, the following
+  points were brought up:
+
+  - V4L2 sub-device nodes are V4L2 device nodes in the following respects:
+
+    - They share the same major number as V4L2 and they are implemented by
+      the V4L2 framework (as instantiated by drivers).
+    
+    - V4L2 sub-devices share some IOCTLs such as V4L2 controls with other
+      V4L2 device nodes.
+      
+    - They do share the "V4L2" in their name.
+
+  - But there are some differences as well:
+  
+    - V4L2 sub-devices implement only a handful of IOCTLs, most of which
+      are uniformly implemented by all other V4L2 device node types (video,
+      radio, touch). E.g. QUERYCAP is not implemented for sub-devices
+      albeit there have been proposals to add this for unrelated reasons.
+    
+    - Historically V4L2 sub-device documentation has been always outside
+      the main V4L2 documentation (section 1 in particular). This is
+      primarily a documentation issue though.
+
+    - Some V4L2 sub-device IOCTLs have different arguments from the V4L2
+      IOCTLs due to e.g. the fact that sub-devices are a control only
+      interface dealing with media bus formats whereas V4L2 video device
+      nodes deal with in-memory V4L2 formats.
+
+- Documentation-wise, there's a common need to refer to V4L2 device nodes
+  which are not sub-device nodes as the rest have quite a bit in common. In
+  this case, they should be called "V4L2 video device node" or "V4L2 radio
+  device node", or "V4L2 video/radio device nodes". This technically does
+  not include touch device nodes.
+  
+- This distinction enables calling also V4L2 sub-device nodes as V4L2
+  device nodes, which was also agreed. The corresponding changes should be
+  made to the uAPI documentation.
+
+Let me know if there are inaccuracies or if you feel something is missing.
+It's been a while we had the meeting but this is why IRC meetings are
+great: you can write the meeting notes afterwards with pretty good
+accuracy. :-)
+
+Also thanks to Mauro for reminding me we had no proper notes on the
+meeting.
+
 -- 
-git-series 0.9.1
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
