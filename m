@@ -1,55 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:37763 "EHLO mga09.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1757071AbeAHOV0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 8 Jan 2018 09:21:26 -0500
-Date: Mon, 8 Jan 2018 16:21:21 +0200
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Alan Cox <alan@linux.intel.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: Re: [PATCH 2/2] media: staging: atomisp: cleanup whitespaces
-Message-ID: <20180108142121.wsinvtmhngokhpp7@paasikivi.fi.intel.com>
-References: <96780202f1f7ffe13f6e0426394c8c93a2cbaa77.1515091119.git.mchehab@s-opensource.com>
- <ab42c265e347855bb95809ef03e043653ab84a21.1515091119.git.mchehab@s-opensource.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <ab42c265e347855bb95809ef03e043653ab84a21.1515091119.git.mchehab@s-opensource.com>
+Received: from mail-pg0-f66.google.com ([74.125.83.66]:35054 "EHLO
+        mail-pg0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752769AbeAIOsi (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 9 Jan 2018 09:48:38 -0500
+From: Shunqian Zheng <zhengsq@rock-chips.com>
+To: mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com
+Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        ddl@rock-chips.com, tfiga@chromium.org,
+        Shunqian Zheng <zhengsq@rock-chips.com>
+Subject: [PATCH v4 0/5] Add supports for OV2685 and OV5695 sensors
+Date: Tue,  9 Jan 2018 22:48:19 +0800
+Message-Id: <1515509304-15941-1-git-send-email-zhengsq@rock-chips.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+This adds the OV2685 and OV5695 sensor supports.
 
-On Thu, Jan 04, 2018 at 02:44:41PM -0500, Mauro Carvalho Chehab wrote:
-> There are lots of bad whitespaces at atomisp driver.
-> 
-> Fix them.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> ---
-> 
-> Sakari/Alan,
-> 
-> This is a script-generated patch that can be re-generated anytime.
-> If you prefer to not touch on it now, i'm perfectly fine.
-> 
-> I'm sending it just as completeness, as I'm doing a similar
-> cleanup under drivers/media, where  a number of <TAB><SPACE>
-> sequences accumulated over the time. 
+Mainly changes of v4 are addressing the comments from Sakari,
+including,
+ - Put dt binding before driver in series
+ - Add MAINTAINERS entries
+ - Use regulator_bulk_*()
+ - Fix the pm_runtime_* in probe()
+ - Fix the typo of 2685 0x3008/0x3010 regs
 
-Thanks for the patch.
+Shunqian Zheng (5):
+  dt-bindings: media: Add bindings for OV5695
+  media: ov5695: add support for OV5695 sensor
+  dt-bindings: media: Add bindings for OV2685
+  media: ov2685: add support for OV2685 sensor
+  [media] MAINTAINERS: add entries for OV2685/OV5695 sensor drivers
 
-In principle this is a worthwhile patch; I'd postpone it for the time being
-though: I understand that a few people are bisecting and / or applying
-out-of-tree patches to the driver to debug it on a few different hardware
-platforms. Let's wait until that work is done, and then apply this.
+ .../devicetree/bindings/media/i2c/ov2685.txt       |   41 +
+ .../devicetree/bindings/media/i2c/ov5695.txt       |   41 +
+ MAINTAINERS                                        |   14 +
+ drivers/media/i2c/Kconfig                          |   23 +
+ drivers/media/i2c/Makefile                         |    2 +
+ drivers/media/i2c/ov2685.c                         |  842 ++++++++++++
+ drivers/media/i2c/ov5695.c                         | 1396 ++++++++++++++++++++
+ 7 files changed, 2359 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/ov2685.txt
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/ov5695.txt
+ create mode 100644 drivers/media/i2c/ov2685.c
+ create mode 100644 drivers/media/i2c/ov5695.c
 
 -- 
-Kind regards,
-
-Sakari Ailus
-sakari.ailus@linux.intel.com
+1.9.1
