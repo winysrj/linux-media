@@ -1,76 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx08-00178001.pphosted.com ([91.207.212.93]:29826 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1752242AbeACJ6j (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 3 Jan 2018 04:58:39 -0500
-From: Hugues Fruchet <hugues.fruchet@st.com>
-To: Steve Longerbeam <slongerbeam@gmail.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        "Mauro Carvalho Chehab" <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>
-CC: <devicetree@vger.kernel.org>, <linux-media@vger.kernel.org>,
-        "Hugues Fruchet" <hugues.fruchet@st.com>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Subject: [PATCH v5 0/5] Add OV5640 parallel interface and RGB565/YUYV support
-Date: Wed, 3 Jan 2018 10:57:27 +0100
-Message-ID: <1514973452-10464-1-git-send-email-hugues.fruchet@st.com>
+Received: from mail-ot0-f196.google.com ([74.125.82.196]:38162 "EHLO
+        mail-ot0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754634AbeAIDf5 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 8 Jan 2018 22:35:57 -0500
+Date: Mon, 8 Jan 2018 21:35:55 -0600
+From: Rob Herring <robh@kernel.org>
+To: Jacopo Mondi <jacopo+renesas@jmondi.org>
+Cc: corbet@lwn.net, mchehab@kernel.org, sakari.ailus@iki.fi,
+        mark.rutland@arm.com, linux-media@vger.kernel.org,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v2 2/2] media: dt-bindings: Add OF properties to ov7670
+Message-ID: <20180109033555.vgofzbnpx37iqaon@rob-hp-laptop>
+References: <1515059553-10219-1-git-send-email-jacopo+renesas@jmondi.org>
+ <1515059553-10219-3-git-send-email-jacopo+renesas@jmondi.org>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1515059553-10219-3-git-send-email-jacopo+renesas@jmondi.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Enhance OV5640 CSI driver to support also DVP parallel interface.
-Add RGB565 (LE & BE) and YUV422 YUYV format in addition to existing
-YUV422 UYVY format.
-Some other improvements on chip identifier check and removal
-of warnings in powering phase around gpio handling.
+On Thu, Jan 04, 2018 at 10:52:33AM +0100, Jacopo Mondi wrote:
+> Describe newly introduced OF properties for ov7670 image sensor.
+> The driver supports two standard properties to configure synchronism
+> signals polarities and two custom properties already supported as
+> platform data options by the driver.
 
-===========
-= history =
-===========
-version 5:
-  - Refine bindings as per Sakari suggestion:
-    https://www.mail-archive.com/linux-media@vger.kernel.org/msg124048.html
+Missing S-o-b.
 
-version 4:
-  - Refine bindings as per Sakari suggestion:
-    https://www.mail-archive.com/linux-media@vger.kernel.org/msg123609.html
-  - Parallel port control lines polarity can now be configured through
-    devicetree
+> ---
+>  Documentation/devicetree/bindings/media/i2c/ov7670.txt | 14 ++++++++++++++
+>  1 file changed, 14 insertions(+)
+> 
+> diff --git a/Documentation/devicetree/bindings/media/i2c/ov7670.txt b/Documentation/devicetree/bindings/media/i2c/ov7670.txt
+> index 826b656..57ded18 100644
+> --- a/Documentation/devicetree/bindings/media/i2c/ov7670.txt
+> +++ b/Documentation/devicetree/bindings/media/i2c/ov7670.txt
+> @@ -9,11 +9,22 @@ Required Properties:
+>  - clocks: reference to the xclk input clock.
+>  - clock-names: should be "xclk".
+>  
+> +The following properties, as defined by video interfaces OF bindings
+> +"Documentation/devicetree/bindings/media/video-interfaces.txt" are supported:
+> +
+> +- hsync-active: active state of the HSYNC signal, 0/1 for LOW/HIGH respectively.
+> +- vsync-active: active state of the VSYNC signal, 0/1 for LOW/HIGH respectively.
 
-version 3:
-  - Move chip identifier check at probe according to Fabio Estevam comment:
-    https://www.mail-archive.com/linux-media@vger.kernel.org/msg122575.html
-  - Use 16 bits register read for this check as per Steve Longerbeam comment:
-    https://www.mail-archive.com/linux-media@vger.kernel.org/msg122692.html
-  - Update bindings to document parallel mode support as per Fabio Estevam comment:
-    https://www.mail-archive.com/linux-media@vger.kernel.org/msg122576.html
-  - Enable the whole 10 bits parallel output and document 8/10 bits support
-    in ov5640_set_stream_dvp() to answer to Steve Longerbeam comment:
-    https://www.mail-archive.com/linux-media@vger.kernel.org/msg122693.html
+Don't these go in the endpoint? Not sure offhand.
 
-version 2:
-  - Fix comments from Sakari Ailus:
-    https://www.mail-archive.com/linux-media@vger.kernel.org/msg122259.html
-  - Revisit ov5640_set_stream_dvp() to only configure DVP at streamon
-  - Revisit ov5640_set_stream_dvp() implementation with fewer register settings
+> +
+> +Default is high active state for both vsync and hsync signals.
+> +
+>  Optional Properties:
+>  - reset-gpios: reference to the GPIO connected to the resetb pin, if any.
+>    Active is low.
+>  - powerdown-gpios: reference to the GPIO connected to the pwdn pin, if any.
+>    Active is high.
+> +- ov7670,pll-bypass: set to 1 to bypass PLL for pixel clock generation.
 
-version 1:
-  - Initial submission
+Boolean instead?
 
-Hugues Fruchet (5):
-  media: ov5640: switch to gpiod_set_value_cansleep()
-  media: ov5640: check chip id
-  media: dt-bindings: ov5640: refine CSI-2 and add parallel interface
-  media: ov5640: add support of DVP parallel interface
-  media: ov5640: add support of RGB565 and YUYV formats
+> +- ov7670,pclk-hb-disable: set to 1 to suppress pixel clock output signal during
+> +  horizontal blankings.
 
- .../devicetree/bindings/media/i2c/ov5640.txt       |  46 ++-
- drivers/media/i2c/ov5640.c                         | 325 ++++++++++++++++++---
- 2 files changed, 324 insertions(+), 47 deletions(-)
+ditto
 
--- 
-1.9.1
+>  
+>  The device node must contain one 'port' child node for its digital output
+>  video port, in accordance with the video interface bindings defined in
+> @@ -34,6 +45,9 @@ Example:
+>  			assigned-clocks = <&pck0>;
+>  			assigned-clock-rates = <25000000>;
+>  
+> +			vsync-active = <0>;
+> +			ov7670,pclk-hb-disable = <1>;
+> +
+>  			port {
+>  				ov7670_0: endpoint {
+>  					remote-endpoint = <&isi_0>;
+> -- 
+> 2.7.4
+> 
