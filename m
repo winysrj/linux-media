@@ -1,135 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from dliviu.plus.com ([80.229.23.120]:51924 "EHLO smtp.dudau.co.uk"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751404AbeAaDPF (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 30 Jan 2018 22:15:05 -0500
-Date: Wed, 31 Jan 2018 03:08:08 +0000
-From: Liviu Dudau <liviu@dudau.co.uk>
-To: Yong <yong.deng@magewell.com>
-Cc: kbuild test robot <lkp@intel.com>, kbuild-all@01.org,
-        Maxime Ripard <maxime.ripard@free-electrons.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Chen-Yu Tsai <wens@csie.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        Randy Dunlap <rdunlap@infradead.org>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Yannick Fertre <yannick.fertre@st.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Rick Chang <rick.chang@mediatek.com>,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-sunxi@googlegroups.com, megous@megous.com
-Subject: Re: [linux-sunxi] Re: [PATCH v6 2/2] media: V3s: Add support for
- Allwinner CSI.
-Message-ID: <20180131030807.GA19945@bart.dudau.co.uk>
-References: <1516695531-23349-1-git-send-email-yong.deng@magewell.com>
- <201801260759.RyNhDZz4%fengguang.wu@intel.com>
- <20180126094658.aa70ed3f890464f6051e21e4@magewell.com>
- <20180126110041.f89848325b9ecfb07df387ca@magewell.com>
+Received: from mail-ot0-f196.google.com ([74.125.82.196]:34341 "EHLO
+        mail-ot0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1759168AbeAIToH (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 9 Jan 2018 14:44:07 -0500
+Received: by mail-ot0-f196.google.com with SMTP id p16so9690905otf.1
+        for <linux-media@vger.kernel.org>; Tue, 09 Jan 2018 11:44:07 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <20180126110041.f89848325b9ecfb07df387ca@magewell.com>
+In-Reply-To: <alpine.LRH.2.00.1801092017330.27010@gjva.wvxbf.pm>
+References: <151520099201.32271.4677179499894422956.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <alpine.LRH.2.00.1801092017330.27010@gjva.wvxbf.pm>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Tue, 9 Jan 2018 11:44:05 -0800
+Message-ID: <CAPcyv4gccDQYx9urpagnBo-TqNLoQ00gEoE7kp+JXNKsmFxcHw@mail.gmail.com>
+Subject: Re: [PATCH 00/18] prevent bounds-check bypass via speculative execution
+To: Jiri Kosina <jikos@kernel.org>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Peter Zijlstra <peterz@infradead.org>,
+        Alan Cox <alan.cox@intel.com>,
+        Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>,
+        Will Deacon <will.deacon@arm.com>,
+        Solomon Peachy <pizza@shaftnet.org>,
+        "H. Peter Anvin" <hpa@zytor.com>,
+        Christian Lamparter <chunkeey@googlemail.com>,
+        Elena Reshetova <elena.reshetova@intel.com>,
+        linux-arch@vger.kernel.org, Andi Kleen <ak@linux.intel.com>,
+        "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>,
+        linux-scsi <linux-scsi@vger.kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>, X86 ML <x86@kernel.org>,
+        Ingo Molnar <mingo@redhat.com>,
+        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
+        Zhang Rui <rui.zhang@intel.com>,
+        "Linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        Arnd Bergmann <arnd@arndb.de>, Jan Kara <jack@suse.com>,
+        Eduardo Valentin <edubezval@gmail.com>,
+        Al Viro <viro@zeniv.linux.org.uk>, qla2xxx-upstream@qlogic.com,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Arjan van de Ven <arjan@linux.intel.com>,
+        Kalle Valo <kvalo@codeaurora.org>,
+        Alan Cox <alan@linux.intel.com>,
+        "Martin K. Petersen" <martin.petersen@oracle.com>,
+        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
+        Greg KH <gregkh@linuxfoundation.org>,
+        linux-wireless@vger.kernel.org,
+        "Eric W. Biederman" <ebiederm@xmission.com>,
+        Netdev <netdev@vger.kernel.org>,
+        Linus Torvalds <torvalds@linux-foundation.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Jan 26, 2018 at 11:00:41AM +0800, Yong wrote:
-> Hi Maxime,
-> 
-> On Fri, 26 Jan 2018 09:46:58 +0800
-> Yong <yong.deng@magewell.com> wrote:
-> 
-> > Hi Maxime,
-> > 
-> > Do you have any experience in solving this problem?
-> > It seems the PHYS_OFFSET maybe undeclared when the ARCH is not arm.
-> 
-> Got it.
-> Should I add 'depends on ARM' in Kconfig?
+On Tue, Jan 9, 2018 at 11:34 AM, Jiri Kosina <jikos@kernel.org> wrote:
+> On Fri, 5 Jan 2018, Dan Williams wrote:
+>
+> [ ... snip ... ]
+>> Andi Kleen (1):
+>>       x86, barrier: stop speculation for failed access_ok
+>>
+>> Dan Williams (13):
+>>       x86: implement nospec_barrier()
+>>       [media] uvcvideo: prevent bounds-check bypass via speculative execution
+>>       carl9170: prevent bounds-check bypass via speculative execution
+>>       p54: prevent bounds-check bypass via speculative execution
+>>       qla2xxx: prevent bounds-check bypass via speculative execution
+>>       cw1200: prevent bounds-check bypass via speculative execution
+>>       Thermal/int340x: prevent bounds-check bypass via speculative execution
+>>       ipv6: prevent bounds-check bypass via speculative execution
+>>       ipv4: prevent bounds-check bypass via speculative execution
+>>       vfs, fdtable: prevent bounds-check bypass via speculative execution
+>>       net: mpls: prevent bounds-check bypass via speculative execution
+>>       udf: prevent bounds-check bypass via speculative execution
+>>       userns: prevent bounds-check bypass via speculative execution
+>>
+>> Mark Rutland (4):
+>>       asm-generic/barrier: add generic nospec helpers
+>>       Documentation: document nospec helpers
+>>       arm64: implement nospec_ptr()
+>>       arm: implement nospec_ptr()
+>
+> So considering the recent publication of [1], how come we all of a sudden
+> don't need the barriers in ___bpf_prog_run(), namely for LD_IMM_DW and
+> LDX_MEM_##SIZEOP, and something comparable for eBPF JIT?
+>
+> Is this going to be handled in eBPF in some other way?
+>
+> Without that in place, and considering Jann Horn's paper, it would seem
+> like PTI doesn't really lock it down fully, right?
 
-No, I don't think you should do that, you should fix the code.
+Here is the latest (v3) bpf fix:
 
-The dma_addr_t addr that you've got is ideally coming from dma_alloc_coherent(),
-in which case the addr is already "suitable" for use by the device (because the
-bus where the device is attached to does all the address translations). If you
-apply PHYS_OFFSET forcefully to it you might get unexpected results.
+https://patchwork.ozlabs.org/patch/856645/
 
-Best regards,
-Liviu
-
-> 
-> > 
-> > On Fri, 26 Jan 2018 08:04:18 +0800
-> > kbuild test robot <lkp@intel.com> wrote:
-> > 
-> > > Hi Yong,
-> > > 
-> > > I love your patch! Yet something to improve:
-> > > 
-> > > [auto build test ERROR on linuxtv-media/master]
-> > > [also build test ERROR on v4.15-rc9 next-20180119]
-> > > [if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
-> > > 
-> > > url:    https://github.com/0day-ci/linux/commits/Yong-Deng/dt-bindings-media-Add-Allwinner-V3s-Camera-Sensor-Interface-CSI/20180126-054511
-> > > base:   git://linuxtv.org/media_tree.git master
-> > > config: i386-allmodconfig (attached as .config)
-> > > compiler: gcc-7 (Debian 7.2.0-12) 7.2.1 20171025
-> > > reproduce:
-> > >         # save the attached .config to linux build tree
-> > >         make ARCH=i386 
-> > > 
-> > > All errors (new ones prefixed by >>):
-> > > 
-> > >    drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.c: In function 'sun6i_csi_update_buf_addr':
-> > > >> drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.c:567:31: error: 'PHYS_OFFSET' undeclared (first use in this function); did you mean 'PAGE_OFFSET'?
-> > >      dma_addr_t bus_addr = addr - PHYS_OFFSET;
-> > >                                   ^~~~~~~~~~~
-> > >                                   PAGE_OFFSET
-> > >    drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.c:567:31: note: each undeclared identifier is reported only once for each function it appears in
-> > > 
-> > > vim +567 drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.c
-> > > 
-> > >    562	
-> > >    563	void sun6i_csi_update_buf_addr(struct sun6i_csi *csi, dma_addr_t addr)
-> > >    564	{
-> > >    565		struct sun6i_csi_dev *sdev = sun6i_csi_to_dev(csi);
-> > >    566		/* transform physical address to bus address */
-> > >  > 567		dma_addr_t bus_addr = addr - PHYS_OFFSET;
-> > >    568	
-> > >    569		regmap_write(sdev->regmap, CSI_CH_F0_BUFA_REG,
-> > >    570			     (bus_addr + sdev->planar_offset[0]) >> 2);
-> > >    571		if (sdev->planar_offset[1] != -1)
-> > >    572			regmap_write(sdev->regmap, CSI_CH_F1_BUFA_REG,
-> > >    573				     (bus_addr + sdev->planar_offset[1]) >> 2);
-> > >    574		if (sdev->planar_offset[2] != -1)
-> > >    575			regmap_write(sdev->regmap, CSI_CH_F2_BUFA_REG,
-> > >    576				     (bus_addr + sdev->planar_offset[2]) >> 2);
-> > >    577	}
-> > >    578	
-> > > 
-> > > ---
-> > > 0-DAY kernel test infrastructure                Open Source Technology Center
-> > > https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
-> > 
-> > 
-> > Thanks,
-> > Yong
-> 
-> 
-> Thanks,
-> Yong
-> 
-> -- 
-> You received this message because you are subscribed to the Google Groups "linux-sunxi" group.
-> To unsubscribe from this group and stop receiving emails from it, send an email to linux-sunxi+unsubscribe@googlegroups.com.
-> For more options, visit https://groups.google.com/d/optout.
+I currently have v2 on my 'nospec' branch and will move that to v3 for
+the next update, unless it goes upstream before then.
