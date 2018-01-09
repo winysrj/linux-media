@@ -1,54 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f177.google.com ([209.85.128.177]:41508 "EHLO
-        mail-wr0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751613AbeAFMIT (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sat, 6 Jan 2018 07:08:19 -0500
-Received: by mail-wr0-f177.google.com with SMTP id o7so3711727wro.8
-        for <linux-media@vger.kernel.org>; Sat, 06 Jan 2018 04:08:19 -0800 (PST)
-Date: Sat, 6 Jan 2018 13:08:12 +0100
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: mchehab@kernel.org, mchehab@s-opensource.com
-Cc: linux-media@vger.kernel.org, rjkm@metzlerbros.de
-Subject: Re: [PATCH 0/2] Add FEC rates, S2X modulations and 64K transmission
-Message-ID: <20180106130812.33e59792@lt530>
-In-Reply-To: <20171221202321.30539-1-d.scheller.oss@gmail.com>
-References: <20171221202321.30539-1-d.scheller.oss@gmail.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:42040 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1755350AbeAIWp0 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 9 Jan 2018 17:45:26 -0500
+Received: from valkosipuli.localdomain (valkosipuli.retiisi.org.uk [IPv6:2001:1bc8:1a6:d3d5::80:2])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by hillosipuli.retiisi.org.uk (Postfix) with ESMTPS id ED66F600C8
+        for <linux-media@vger.kernel.org>; Wed, 10 Jan 2018 00:45:24 +0200 (EET)
+Received: from sakke by valkosipuli.localdomain with local (Exim 4.89)
+        (envelope-from <sakari.ailus@retiisi.org.uk>)
+        id 1eZ2e4-0005Id-1N
+        for linux-media@vger.kernel.org; Wed, 10 Jan 2018 00:45:24 +0200
+Date: Wed, 10 Jan 2018 00:45:23 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Subject: [GIT PULL for 4.16] dw9714 PM fix, cleanups
+Message-ID: <20180109224523.jncg5qlnssawz4iz@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am Thu, 21 Dec 2017 21:23:19 +0100
-schrieb Daniel Scheller <d.scheller.oss@gmail.com>:
+Hi Mauro,
 
-> From: Daniel Scheller <d.scheller@gmx.net>
-> 
-> As the DVB API is bumped to 5.11 for the next cycle.
-> 
-> dddvb brings a few additional FEC rates (1/4 and 1/3), 64/128/256APSK
-> modulations (DVB-S2X) and the 64K transmission mode. These two rather
-> trivial patches bring them to mainline, and puts these missing bits
-> into the stv0910's get_frontend() callback (FEC 1/4 and 1/3 are
-> handled throughout the rest of the demod driver already).
-> 
-> Let's have these enums as a part of DVB core 5.11.
-> 
-> Daniel Scheller (2):
->   media: dvb_frontend: add FEC modes, S2X modulations and 64K
->     transmission
->   media: dvb-frontends/stv0910: report FEC 1/4 and 1/3 in
-> get_frontend()
-> 
->  Documentation/media/frontend.h.rst.exceptions |  6 ++++++
->  drivers/media/dvb-frontends/stv0910.c         |  2 +-
->  include/uapi/linux/dvb/frontend.h             | 13 +++++++++++++
->  3 files changed, 20 insertions(+), 1 deletion(-)
+Here's a PM fix and a small cleanup for the dw9714 driver.
 
-(Rather early) Ping - any chance these few constants/enums can make it
-as part of DVB core 5.11?
+Please pull.
 
-Best regards,
-Daniel Scheller
+
+The following changes since commit e3ee691dbf24096ea51b3200946b11d68ce75361:
+
+  media: ov5640: add support of RGB565 and YUYV formats (2018-01-05 12:54:14 -0500)
+
+are available in the git repository at:
+
+  ssh://linuxtv.org/git/sailus/media_tree.git dw9714
+
+for you to fetch changes up to 973c0145c2b5ea837cdad467c928be653c6a5872:
+
+  dw9714: Remove client field in driver's struct (2018-01-10 00:44:09 +0200)
+
+----------------------------------------------------------------
+Sakari Ailus (2):
+      dw9714: Call pm_runtime_idle() at the end of probe()
+      dw9714: Remove client field in driver's struct
+
+ drivers/media/i2c/dw9714.c | 20 ++++++--------------
+ 1 file changed, 6 insertions(+), 14 deletions(-)
+
 -- 
-https://github.com/herrnst
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
