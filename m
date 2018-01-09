@@ -1,50 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-out-1.itc.rwth-aachen.de ([134.130.5.46]:9252 "EHLO
-        mail-out-1.itc.rwth-aachen.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S932186AbeAIXno (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 9 Jan 2018 18:43:44 -0500
-From: =?UTF-8?q?Stefan=20Br=C3=BCns?= <stefan.bruens@rwth-aachen.de>
-To: <linux-media@vger.kernel.org>
-CC: =?UTF-8?q?Stefan=20Br=C3=BCns?= <stefan.bruens@rwth-aachen.de>,
-        "Michael Krufky" <mkrufky@linuxtv.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        <linux-kernel@vger.kernel.org>
-Subject: [PATCH v1 2/2] [media] cxusb: restore RC_MAP for MyGica T230
-Date: Wed, 10 Jan 2018 00:33:39 +0100
-In-Reply-To: <20180109233339.8147-1-stefan.bruens@rwth-aachen.de>
-References: <20180109233339.8147-1-stefan.bruens@rwth-aachen.de>
+Received: from guitar.tcltek.co.il ([192.115.133.116]:59793 "EHLO
+        mx.tkos.co.il" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S934275AbeAIQyo (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 9 Jan 2018 11:54:44 -0500
+Date: Tue, 9 Jan 2018 18:54:40 +0200
+From: Baruch Siach <baruch@tkos.co.il>
+To: Shunqian Zheng <zhengsq@rock-chips.com>
+Cc: mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        ddl@rock-chips.com, tfiga@chromium.org
+Subject: Re: [PATCH v4 2/5] media: ov5695: add support for OV5695 sensor
+Message-ID: <20180109165440.droexlfysvtyt6kl@tarshish>
+References: <1515509304-15941-1-git-send-email-zhengsq@rock-chips.com>
+ <1515509304-15941-3-git-send-email-zhengsq@rock-chips.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
-Message-ID: <c813f10e-dcfb-4eba-a173-8d4b2ff60795@rwthex-w2-a.rwth-ad.de>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1515509304-15941-3-git-send-email-zhengsq@rock-chips.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Commit f8585ce655e9cdeabc38e8e2580b05735110e4a5 ("[media] dvb-usb-cxusb:
-Geniatech T230C support") sneaked in an unrelated change for the older
-T230 (not C) model. As the commit was reverted this change was reverted
-too, although likely correct.
+Hi Shunqian Zheng,
 
-Signed-off-by: Stefan Brüns <stefan.bruens@rwth-aachen.de>
+On Tue, Jan 09, 2018 at 10:48:21PM +0800, Shunqian Zheng wrote:
+> +static int ov5695_write_array(struct i2c_client *client,
+> +			      const struct regval *regs)
+> +{
+> +	u32 i;
+> +	int ret = 0;
+> +
+> +	for (i = 0; ret == 0 && regs[i].addr != REG_NULL; i++)
+> +		ret = ov5695_write_reg(client, regs[i].addr,
+> +				       OV5695_REG_VALUE_08BIT, regs[i].val);
 
----
+This loop should stop on first failure, and return the error value. With 
+current code a register write failure is masked by following writes.
 
- drivers/media/usb/dvb-usb/cxusb.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+> +
+> +	return ret;
+> +}
 
-diff --git a/drivers/media/usb/dvb-usb/cxusb.c b/drivers/media/usb/dvb-usb/cxusb.c
-index edb7cd2e43d9..75f44b534007 100644
---- a/drivers/media/usb/dvb-usb/cxusb.c
-+++ b/drivers/media/usb/dvb-usb/cxusb.c
-@@ -2165,7 +2165,7 @@ static struct dvb_usb_device_properties cxusb_mygica_t230_properties = {
- 
- 	.rc.core = {
- 		.rc_interval	= 100,
--		.rc_codes	= RC_MAP_D680_DMB,
-+		.rc_codes	= RC_MAP_TOTAL_MEDIA_IN_HAND_02,
- 		.module_name	= KBUILD_MODNAME,
- 		.rc_query       = cxusb_d680_dmb_rc_query,
- 		.allowed_protos = RC_PROTO_BIT_UNKNOWN,
+baruch
+
 -- 
-2.15.1
+     http://baruch.siach.name/blog/                  ~. .~   Tk Open Systems
+=}------------------------------------------------ooO--U--Ooo------------{=
+   - baruch@tkos.co.il - tel: +972.52.368.4656, http://www.tkos.co.il -
