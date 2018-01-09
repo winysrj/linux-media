@@ -1,45 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:39434 "EHLO
-        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751102AbeAVRNy (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 22 Jan 2018 12:13:54 -0500
-Received: by mail-wm0-f68.google.com with SMTP id b21so18319539wme.4
-        for <linux-media@vger.kernel.org>; Mon, 22 Jan 2018 09:13:54 -0800 (PST)
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: linux-media@vger.kernel.org, mchehab@kernel.org,
-        mchehab@s-opensource.com
-Cc: rascobie@slingshot.co.nz
-Subject: [PATCH v2 3/5] media: dvb-frontends/stv0910: report FEC 1/4 and 1/3 in get_frontend()
-Date: Mon, 22 Jan 2018 18:13:44 +0100
-Message-Id: <20180122171346.822-4-d.scheller.oss@gmail.com>
-In-Reply-To: <20180122171346.822-1-d.scheller.oss@gmail.com>
-References: <20180122171346.822-1-d.scheller.oss@gmail.com>
+Received: from mga05.intel.com ([192.55.52.43]:27169 "EHLO mga05.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751294AbeAIWuv (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 9 Jan 2018 17:50:51 -0500
+Date: Wed, 10 Jan 2018 00:50:45 +0200
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: Alan Cox <gnomes@lxorguk.ukuu.org.uk>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>,
+        Alan Cox <alan@linux.intel.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: Re: [PATCH 2/2] media: staging: atomisp: cleanup whitespaces
+Message-ID: <20180109225044.tk5tt2gwzmhbosee@kekkonen.localdomain>
+References: <96780202f1f7ffe13f6e0426394c8c93a2cbaa77.1515091119.git.mchehab@s-opensource.com>
+ <ab42c265e347855bb95809ef03e043653ab84a21.1515091119.git.mchehab@s-opensource.com>
+ <20180108142121.wsinvtmhngokhpp7@paasikivi.fi.intel.com>
+ <20180108142639.5ac53fe1@alans-desktop>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20180108142639.5ac53fe1@alans-desktop>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Daniel Scheller <d.scheller@gmx.net>
+Hi Alan,
 
-The first two missing FECs in the modcod2fec fe_code_rate table were 1/4
-and 1/3. Add them as they're now defined by the API.
+On Mon, Jan 08, 2018 at 02:26:39PM +0000, Alan Cox wrote:
+> On Mon, 8 Jan 2018 16:21:21 +0200
+> Sakari Ailus <sakari.ailus@linux.intel.com> wrote:
+> 
+> > Hi Mauro,
+> > 
+> > On Thu, Jan 04, 2018 at 02:44:41PM -0500, Mauro Carvalho Chehab wrote:
+> > > There are lots of bad whitespaces at atomisp driver.
+> > > 
+> > > Fix them.
+> > > 
+> > > Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> > > ---
+> > > 
+> > > Sakari/Alan,
+> > > 
+> > > This is a script-generated patch that can be re-generated anytime.
+> > > If you prefer to not touch on it now, i'm perfectly fine.
+> > > 
+> > > I'm sending it just as completeness, as I'm doing a similar
+> > > cleanup under drivers/media, where  a number of <TAB><SPACE>
+> > > sequences accumulated over the time.   
+> > 
+> > Thanks for the patch.
+> > 
+> > In principle this is a worthwhile patch; I'd postpone it for the time being
+> > though: I understand that a few people are bisecting and / or applying
+> > out-of-tree patches to the driver to debug it on a few different hardware
+> > platforms. Let's wait until that work is done, and then apply this.
+> 
+> Given the kind of debug going on and the amount of time it's taking (plus
+> AtomISP for reasons people now know got mostly dropped from my work queue
+> since June) I'm happy if they get applied.
+> 
+> Can we apply the core ISP2401 merge from Vincent first though ?
 
-Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
----
- drivers/media/dvb-frontends/stv0910.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+I'm not sure which patches do you mean here --- there are no recent atomisp
+patches from Vincent I'm aware of.
 
-diff --git a/drivers/media/dvb-frontends/stv0910.c b/drivers/media/dvb-frontends/stv0910.c
-index a2f7c0c1587f..de132a85e537 100644
---- a/drivers/media/dvb-frontends/stv0910.c
-+++ b/drivers/media/dvb-frontends/stv0910.c
-@@ -1562,7 +1562,7 @@ static int get_frontend(struct dvb_frontend *fe,
- 			APSK_32,
- 		};
- 		const enum fe_code_rate modcod2fec[0x20] = {
--			FEC_NONE, FEC_NONE, FEC_NONE, FEC_2_5,
-+			FEC_NONE, FEC_1_4, FEC_1_3, FEC_2_5,
- 			FEC_1_2, FEC_3_5, FEC_2_3, FEC_3_4,
- 			FEC_4_5, FEC_5_6, FEC_8_9, FEC_9_10,
- 			FEC_3_5, FEC_2_3, FEC_3_4, FEC_5_6,
 -- 
-2.13.6
+Regards,
+
+Sakari Ailus
+sakari.ailus@linux.intel.com
