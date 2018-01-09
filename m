@@ -1,59 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.126.135]:55846 "EHLO
-        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751014AbeACWgC (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 3 Jan 2018 17:36:02 -0500
-From: Arnd Bergmann <arnd@arndb.de>
-To: Yong Zhi <yong.zhi@intel.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>,
-        Rajmohan Mani <rajmohan.mani@intel.com>,
-        Hyungwoo Yang <hyungwoo.yang@intel.com>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH] media: intel-ipu3: cio2: fix building with large PAGE_SIZE
-Date: Wed,  3 Jan 2018 23:35:31 +0100
-Message-Id: <20180103223546.3546694-1-arnd@arndb.de>
+Received: from mail-pf0-f196.google.com ([209.85.192.196]:39384 "EHLO
+        mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1758651AbeAIOsv (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 9 Jan 2018 09:48:51 -0500
+From: Shunqian Zheng <zhengsq@rock-chips.com>
+To: mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com
+Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        ddl@rock-chips.com, tfiga@chromium.org,
+        Shunqian Zheng <zhengsq@rock-chips.com>
+Subject: [PATCH v4 5/5] [media] MAINTAINERS: add entries for OV2685/OV5695 sensor drivers
+Date: Tue,  9 Jan 2018 22:48:24 +0800
+Message-Id: <1515509304-15941-6-git-send-email-zhengsq@rock-chips.com>
+In-Reply-To: <1515509304-15941-1-git-send-email-zhengsq@rock-chips.com>
+References: <1515509304-15941-1-git-send-email-zhengsq@rock-chips.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The driver apparently assumes that the device uses the same page size
-as the CPU, but also assumes that this is 4096 bytes. On architectures
-with a larger page size like 65536 bytes, we get a warning about an
-integer overflow:
+Add maintainer entries for the OV2685 and OV5695 V4L2 sensor drivers.
 
-drivers/media/pci/intel/ipu3/ipu3-cio2.c: In function 'cio2_fbpt_entry_init_dummy':
-arch/arm64/include/asm/page-def.h:28:20: error: large integer implicitly truncated to unsigned type [-Werror=overflow]
- #define PAGE_SIZE  (_AC(1, UL) << PAGE_SHIFT)
-                    ^
-drivers/media/pci/intel/ipu3/ipu3-cio2.h:404:26: note: in expansion of macro 'PAGE_SIZE'
- #define CIO2_PAGE_SIZE   PAGE_SIZE
-                          ^~~~~~~~~
-drivers/media/pci/intel/ipu3/ipu3-cio2.c:172:3: note: in expansion of macro 'CIO2_PAGE_SIZE'
-   CIO2_PAGE_SIZE / sizeof(u32) * CIO2_MAX_LOPS;
-
-Obviously this won't work, but the driver is also unlikely to ever be
-used on such an architecture, so the easiest workaround is to define
-the CIO2_PAGE_SIZE macro to the size that the hardware actually uses.
-
-Fixes: c2a6a07afe4a ("media: intel-ipu3: cio2: add new MIPI-CSI2 driver")
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Signed-off-by: Shunqian Zheng <zhengsq@rock-chips.com>
 ---
- drivers/media/pci/intel/ipu3/ipu3-cio2.h | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ MAINTAINERS | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
 
-diff --git a/drivers/media/pci/intel/ipu3/ipu3-cio2.h b/drivers/media/pci/intel/ipu3/ipu3-cio2.h
-index 1a559990920f..78a5799f08e7 100644
---- a/drivers/media/pci/intel/ipu3/ipu3-cio2.h
-+++ b/drivers/media/pci/intel/ipu3/ipu3-cio2.h
-@@ -401,7 +401,7 @@ struct cio2_device {
- 					 sizeof(struct cio2_fbpt_entry))
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 85773bf..32afc69 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -10032,6 +10032,13 @@ T:	git git://linuxtv.org/media_tree.git
+ S:	Maintained
+ F:	drivers/media/i2c/ov13858.c
  
- #define CIO2_FBPT_SUBENTRY_UNIT		4
--#define CIO2_PAGE_SIZE			PAGE_SIZE
-+#define CIO2_PAGE_SIZE			4096
++OMNIVISION OV2685 SENSOR DRIVER
++M:	Shunqian Zheng <zhengsq@rock-chips.com>
++L:	linux-media@vger.kernel.org
++T:	git git://linuxtv.org/media_tree.git
++S:	Maintained
++F:	drivers/media/i2c/ov2685.c
++
+ OMNIVISION OV5640 SENSOR DRIVER
+ M:	Steve Longerbeam <slongerbeam@gmail.com>
+ L:	linux-media@vger.kernel.org
+@@ -10046,6 +10053,13 @@ T:	git git://linuxtv.org/media_tree.git
+ S:	Maintained
+ F:	drivers/media/i2c/ov5647.c
  
- /* cio2 fbpt first_entry ctrl status */
- #define CIO2_FBPT_CTRL_VALID		BIT(0)
++OMNIVISION OV5695 SENSOR DRIVER
++M:	Shunqian Zheng <zhengsq@rock-chips.com>
++L:	linux-media@vger.kernel.org
++T:	git git://linuxtv.org/media_tree.git
++S:	Maintained
++F:	drivers/media/i2c/ov5695.c
++
+ OMNIVISION OV7670 SENSOR DRIVER
+ M:	Jonathan Corbet <corbet@lwn.net>
+ L:	linux-media@vger.kernel.org
 -- 
-2.9.0
+1.9.1
