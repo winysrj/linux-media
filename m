@@ -1,258 +1,138 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f48.google.com ([209.85.215.48]:34922 "EHLO
-        mail-lf0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750873AbeABVqy (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 2 Jan 2018 16:46:54 -0500
-MIME-Version: 1.0
-In-Reply-To: <f345f64e-1d2d-5f9f-d225-29d0ec2e0042@xs4all.nl>
-References: <59BEEC39.2030609@googlemail.com> <CAGoCfizQS3fg2Sqjtg2ypiCqa5cMQ=irMZ1nwEVJ8+TeBuAZCA@mail.gmail.com>
- <59C1044E.8060805@googlemail.com> <59C16D1E.80308@googlemail.com> <f345f64e-1d2d-5f9f-d225-29d0ec2e0042@xs4all.nl>
-From: Nigel Kettlewell <nigel.kettlewell@googlemail.com>
-Date: Tue, 2 Jan 2018 21:46:51 +0000
-Message-ID: <CAMYSmme2LgUSXevao5o0KeM-CztaVa+n6_3M2KSMumbxhcVZ0w@mail.gmail.com>
-Subject: Re: [PATCH] Support HVR-1200 analog video as a clone of HVR-1500.
- Tested, composite and s-video inputs.
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Received: from bombadil.infradead.org ([65.50.211.133]:60577 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755883AbeAIUjz (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 9 Jan 2018 15:39:55 -0500
+From: Christoph Hellwig <hch@lst.de>
+To: Bjorn Helgaas <bhelgaas@google.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: linux-pci@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: [PATCH 3/3] pci-dma-compat: remove handling of NULL pdev arguments
+Date: Tue,  9 Jan 2018 21:39:39 +0100
+Message-Id: <20180109203939.5930-4-hch@lst.de>
+In-Reply-To: <20180109203939.5930-1-hch@lst.de>
+References: <20180109203939.5930-1-hch@lst.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-To be honest we should probably just drop this, I no longer have the
-card in my machine so cannot re-test it if ever needed.
+Historically some ISA drivers used the old pci DMA API with a NULL pdev
+argument, but these days this isn't used and not too useful due to the
+per-device DMA ops, so remove it.
 
-On 4 December 2017 at 12:01, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> Hi Nigel,
->
-> Can you repost this as a proper patch? It doesn't apply (issues with tabs and
-> whitespace: please use tabs!), and I am missing a "Signed-off-by" line (see
-> https://elinux.org/Developer_Certificate_Of_Origin).
->
-> Thanks!
->
->         Hans
->
-> On 09/19/2017 09:16 PM, Nigel Kettlewell wrote:
->> [adding kernel mailing lists missed from my reply]
->>
->> Thank you, yes I think I cribbed too much from the 1500. I think the
->> tuner part is not necessary: I have no analog over-the-air signal so I
->> cannot test it, hence I have removed the tuner element from the patch
->> (below).
->>
->> I have tested DVB-T which works fine. dmesg shows no errors (attached).
->>
->> DISPLAY=xxx:0.0 vlc dvb-t://frequency=498000000:bandwidth=8
->> --dvb-adapter=0 --programs=8373
->> <works>
->>
->> /usr/local/bin/v4l2-ctl --set-input 1
->> /usr/local/bin/v4l2-ctl -s 0x000000f7
->> cat /dev/video0 > /tmp/svideo.raw
->> <ctrl-c>
->> ffmpeg -f rawvideo -pix_fmt yuyv422 -r 25 -s:v 720x576 -i
->> /tmp/svideo.raw -vcodec mpeg2video -vb 2000k -y /tmp/svideo.mpg
->> <svideo.mpg plays>
->>
->> Revised patch:
->>
->> ---
->>   drivers/media/pci/cx23885/cx23885-cards.c | 16 ++++++++++++++++
->>   1 file changed, 16 insertions(+)
->>
->> diff --git a/drivers/media/pci/cx23885/cx23885-cards.c
->> b/drivers/media/pci/cx23885/cx23885-cards.c
->> index 0350f13..1b685f0 100644
->> --- a/drivers/media/pci/cx23885/cx23885-cards.c
->> +++ b/drivers/media/pci/cx23885/cx23885-cards.c
->> @@ -196,7 +196,22 @@ struct cx23885_board cx23885_boards[] = {
->>          },
->>          [CX23885_BOARD_HAUPPAUGE_HVR1200] = {
->>                  .name           = "Hauppauge WinTV-HVR1200",
->> +               .porta          = CX23885_ANALOG_VIDEO,
->>                  .portc          = CX23885_MPEG_DVB,
->> +               .input          = {{
->> +                       .type   = CX23885_VMUX_COMPOSITE1,
->> +                       .vmux   =       CX25840_VIN7_CH3 |
->> +                                       CX25840_VIN4_CH2 |
->> +                                       CX25840_VIN6_CH1,
->> +                       .gpio0  = 0,
->> +               }, {
->> +                       .type   = CX23885_VMUX_SVIDEO,
->> +                       .vmux   =       CX25840_VIN7_CH3 |
->> +                                       CX25840_VIN4_CH2 |
->> +                                       CX25840_VIN8_CH1 |
->> +                                       CX25840_SVIDEO_ON,
->> +                       .gpio0  = 0,
->> +               } },
->>          },
->>          [CX23885_BOARD_HAUPPAUGE_HVR1700] = {
->>                  .name           = "Hauppauge WinTV-HVR1700",
->> @@ -2260,6 +2275,7 @@ void cx23885_card_setup(struct cx23885_dev *dev)
->>          case CX23885_BOARD_HAUPPAUGE_HVR1290:
->>          case CX23885_BOARD_LEADTEK_WINFAST_PXTV1200:
->>          case CX23885_BOARD_GOTVIEW_X5_3D_HYBRID:
->> +       case CX23885_BOARD_HAUPPAUGE_HVR1200:
->>          case CX23885_BOARD_HAUPPAUGE_HVR1500:
->>          case CX23885_BOARD_MPX885:
->>          case CX23885_BOARD_MYGICA_X8507:
->> --
->> 2.9.4
->>
->>> Nigel Kettlewell <mailto:nigel.kettlewell@googlemail.com>
->>> 19 September 2017 12:49
->>> Thank you, yes I think I cribbed too much from the 1500. I think the
->>> tuner part is not necessary: I have no analog over-the-air signal so I
->>> cannot test it, hence I have removed the tuner element from the patch
->>> (below).
->>>
->>> I have tested DVB-T which works fine. dmesg shows no errors (attached).
->>>
->>> DISPLAY=xxx:0.0 vlc dvb-t://frequency=498000000:bandwidth=8
->>> --dvb-adapter=0 --programs=8373
->>> <works>
->>>
->>> /usr/local/bin/v4l2-ctl --set-input 1
->>> /usr/local/bin/v4l2-ctl -s 0x000000f7
->>> cat /dev/video0 > /tmp/svideo.raw
->>> <ctrl-c>
->>> ffmpeg -f rawvideo -pix_fmt yuyv422 -r 25 -s:v 720x576 -i
->>> /tmp/svideo.raw -vcodec mpeg2video -vb 2000k -y /tmp/svideo.mpg
->>> <svideo.mpg plays>
->>>
->>> Revised patch:
->>>
->>> ---
->>>  drivers/media/pci/cx23885/cx23885-cards.c | 16 ++++++++++++++++
->>>  1 file changed, 16 insertions(+)
->>>
->>> diff --git a/drivers/media/pci/cx23885/cx23885-cards.c
->>> b/drivers/media/pci/cx23885/cx23885-cards.c
->>> index 0350f13..1b685f0 100644
->>> --- a/drivers/media/pci/cx23885/cx23885-cards.c
->>> +++ b/drivers/media/pci/cx23885/cx23885-cards.c
->>> @@ -196,7 +196,22 @@ struct cx23885_board cx23885_boards[] = {
->>>         },
->>>         [CX23885_BOARD_HAUPPAUGE_HVR1200] = {
->>>                 .name           = "Hauppauge WinTV-HVR1200",
->>> +               .porta          = CX23885_ANALOG_VIDEO,
->>>                 .portc          = CX23885_MPEG_DVB,
->>> +               .input          = {{
->>> +                       .type   = CX23885_VMUX_COMPOSITE1,
->>> +                       .vmux   =       CX25840_VIN7_CH3 |
->>> +                                       CX25840_VIN4_CH2 |
->>> +                                       CX25840_VIN6_CH1,
->>> +                       .gpio0  = 0,
->>> +               }, {
->>> +                       .type   = CX23885_VMUX_SVIDEO,
->>> +                       .vmux   =       CX25840_VIN7_CH3 |
->>> +                                       CX25840_VIN4_CH2 |
->>> +                                       CX25840_VIN8_CH1 |
->>> +                                       CX25840_SVIDEO_ON,
->>> +                       .gpio0  = 0,
->>> +               } },
->>>         },
->>>         [CX23885_BOARD_HAUPPAUGE_HVR1700] = {
->>>                 .name           = "Hauppauge WinTV-HVR1700",
->>> @@ -2260,6 +2275,7 @@ void cx23885_card_setup(struct cx23885_dev *dev)
->>>         case CX23885_BOARD_HAUPPAUGE_HVR1290:
->>>         case CX23885_BOARD_LEADTEK_WINFAST_PXTV1200:
->>>         case CX23885_BOARD_GOTVIEW_X5_3D_HYBRID:
->>> +       case CX23885_BOARD_HAUPPAUGE_HVR1200:
->>>         case CX23885_BOARD_HAUPPAUGE_HVR1500:
->>>         case CX23885_BOARD_MPX885:
->>>         case CX23885_BOARD_MYGICA_X8507:
->>> --
->>> 2.9.4
->>>
->>>
->>>
->>> Devin Heitmueller <mailto:dheitmueller@kernellabs.com>
->>> 18 September 2017 13:57
->>> On Sun, Sep 17, 2017 at 5:42 PM, Nigel Kettlewell
->>>
->>> I'm not confident the tuner config for this board is correct. The
->>> HVR-1200 is much closer to the HVR-1250 as opposed to the HVR-1500,
->>> and IIRC it didn't have an xc3028.
->>>
->>> I don't dispute that with the patch in question the composite/s-video
->>> are probably working ok, but I wouldn't recommend accepting this patch
->>> as-is until the tuner is verified for DVB-T and analog (ideally both).
->>>
->>> Can you provide the output of dmesg on device load? If it's filled
->>> with a bunch of errors showing xc3028 firmware load failures, that
->>> would be a smoking gun that it doesn't have the xc3028.
->>>
->>> Devin
->>>
->>> Nigel Kettlewell <mailto:nigel.kettlewell@googlemail.com>
->>> 17 September 2017 22:42
->>> I propose the following patch to support Hauppauge HVR-1200 analog
->>> video, nothing more than a clone of HVR-1500. Patch based on Linux 4.9
->>> commit 69973b830859bc6529a7a0468ba0d80ee5117826
->>>
->>> I have tested composite and S-Video inputs.
->>>
->>> With the change, HVR-1200 devices have a /dev/video<n> entry which is
->>> accessible in the normal way.
->>>
->>> Let me know if you need anything more.
->>>
->>> Nigel Kettlewell
->>>
->>>
->>>
->>> ---
->>>  drivers/media/pci/cx23885/cx23885-cards.c | 24 ++++++++++++++++++++++++
->>>  1 file changed, 24 insertions(+)
->>>
->>> diff --git a/drivers/media/pci/cx23885/cx23885-cards.c
->>> b/drivers/media/pci/cx23885/cx23885-cards.c
->>> index 99ba8d6..5be38f1 100644
->>> --- a/drivers/media/pci/cx23885/cx23885-cards.c
->>> +++ b/drivers/media/pci/cx23885/cx23885-cards.c
->>> @@ -195,7 +195,30 @@ struct cx23885_board cx23885_boards[] = {
->>>         },
->>>         [CX23885_BOARD_HAUPPAUGE_HVR1200] = {
->>>                 .name           = "Hauppauge WinTV-HVR1200",
->>> +               .porta          = CX23885_ANALOG_VIDEO,
->>>                 .portc          = CX23885_MPEG_DVB,
->>> +               .tuner_type     = TUNER_XC2028,
->>> +               .tuner_addr     = 0x61, /* 0xc2 >> 1 */
->>> +               .input          = {{
->>> +                       .type   = CX23885_VMUX_TELEVISION,
->>> +                       .vmux   =       CX25840_VIN7_CH3 |
->>> +                                       CX25840_VIN5_CH2 |
->>> +                                       CX25840_VIN2_CH1,
->>> +                       .gpio0  = 0,
->>> +               }, {
->>> +                       .type   = CX23885_VMUX_COMPOSITE1,
->>> +                       .vmux   =       CX25840_VIN7_CH3 |
->>> +                                       CX25840_VIN4_CH2 |
->>> +                                       CX25840_VIN6_CH1,
->>> +                       .gpio0  = 0,
->>> +               }, {
->>> +                       .type   = CX23885_VMUX_SVIDEO,
->>> +                       .vmux   =       CX25840_VIN7_CH3 |
->>> +                                       CX25840_VIN4_CH2 |
->>> +                                       CX25840_VIN8_CH1 |
->>> +                                       CX25840_SVIDEO_ON,
->>> +                       .gpio0  = 0,
->>> +               } },
->>>         },
->>>         [CX23885_BOARD_HAUPPAUGE_HVR1700] = {
->>>                 .name           = "Hauppauge WinTV-HVR1700",
->>> @@ -2262,6 +2285,7 @@ void cx23885_card_setup(struct cx23885_dev *dev)
->>>         case CX23885_BOARD_HAUPPAUGE_HVR1290:
->>>         case CX23885_BOARD_LEADTEK_WINFAST_PXTV1200:
->>>         case CX23885_BOARD_GOTVIEW_X5_3D_HYBRID:
->>> +       case CX23885_BOARD_HAUPPAUGE_HVR1200:
->>>         case CX23885_BOARD_HAUPPAUGE_HVR1500:
->>>         case CX23885_BOARD_MPX885:
->>>         case CX23885_BOARD_MYGICA_X8507:
->>> --
->>> 2.9.4
->>>
->>
->
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+---
+ include/linux/pci-dma-compat.h | 27 +++++++++++++--------------
+ 1 file changed, 13 insertions(+), 14 deletions(-)
+
+diff --git a/include/linux/pci-dma-compat.h b/include/linux/pci-dma-compat.h
+index d1f9fdade1e0..0dd1a3f7b309 100644
+--- a/include/linux/pci-dma-compat.h
++++ b/include/linux/pci-dma-compat.h
+@@ -17,91 +17,90 @@ static inline void *
+ pci_alloc_consistent(struct pci_dev *hwdev, size_t size,
+ 		     dma_addr_t *dma_handle)
+ {
+-	return dma_alloc_coherent(hwdev == NULL ? NULL : &hwdev->dev, size, dma_handle, GFP_ATOMIC);
++	return dma_alloc_coherent(&hwdev->dev, size, dma_handle, GFP_ATOMIC);
+ }
+ 
+ static inline void *
+ pci_zalloc_consistent(struct pci_dev *hwdev, size_t size,
+ 		      dma_addr_t *dma_handle)
+ {
+-	return dma_zalloc_coherent(hwdev == NULL ? NULL : &hwdev->dev,
+-				   size, dma_handle, GFP_ATOMIC);
++	return dma_zalloc_coherent(&hwdev->dev, size, dma_handle, GFP_ATOMIC);
+ }
+ 
+ static inline void
+ pci_free_consistent(struct pci_dev *hwdev, size_t size,
+ 		    void *vaddr, dma_addr_t dma_handle)
+ {
+-	dma_free_coherent(hwdev == NULL ? NULL : &hwdev->dev, size, vaddr, dma_handle);
++	dma_free_coherent(&hwdev->dev, size, vaddr, dma_handle);
+ }
+ 
+ static inline dma_addr_t
+ pci_map_single(struct pci_dev *hwdev, void *ptr, size_t size, int direction)
+ {
+-	return dma_map_single(hwdev == NULL ? NULL : &hwdev->dev, ptr, size, (enum dma_data_direction)direction);
++	return dma_map_single(&hwdev->dev, ptr, size, (enum dma_data_direction)direction);
+ }
+ 
+ static inline void
+ pci_unmap_single(struct pci_dev *hwdev, dma_addr_t dma_addr,
+ 		 size_t size, int direction)
+ {
+-	dma_unmap_single(hwdev == NULL ? NULL : &hwdev->dev, dma_addr, size, (enum dma_data_direction)direction);
++	dma_unmap_single(&hwdev->dev, dma_addr, size, (enum dma_data_direction)direction);
+ }
+ 
+ static inline dma_addr_t
+ pci_map_page(struct pci_dev *hwdev, struct page *page,
+ 	     unsigned long offset, size_t size, int direction)
+ {
+-	return dma_map_page(hwdev == NULL ? NULL : &hwdev->dev, page, offset, size, (enum dma_data_direction)direction);
++	return dma_map_page(&hwdev->dev, page, offset, size, (enum dma_data_direction)direction);
+ }
+ 
+ static inline void
+ pci_unmap_page(struct pci_dev *hwdev, dma_addr_t dma_address,
+ 	       size_t size, int direction)
+ {
+-	dma_unmap_page(hwdev == NULL ? NULL : &hwdev->dev, dma_address, size, (enum dma_data_direction)direction);
++	dma_unmap_page(&hwdev->dev, dma_address, size, (enum dma_data_direction)direction);
+ }
+ 
+ static inline int
+ pci_map_sg(struct pci_dev *hwdev, struct scatterlist *sg,
+ 	   int nents, int direction)
+ {
+-	return dma_map_sg(hwdev == NULL ? NULL : &hwdev->dev, sg, nents, (enum dma_data_direction)direction);
++	return dma_map_sg(&hwdev->dev, sg, nents, (enum dma_data_direction)direction);
+ }
+ 
+ static inline void
+ pci_unmap_sg(struct pci_dev *hwdev, struct scatterlist *sg,
+ 	     int nents, int direction)
+ {
+-	dma_unmap_sg(hwdev == NULL ? NULL : &hwdev->dev, sg, nents, (enum dma_data_direction)direction);
++	dma_unmap_sg(&hwdev->dev, sg, nents, (enum dma_data_direction)direction);
+ }
+ 
+ static inline void
+ pci_dma_sync_single_for_cpu(struct pci_dev *hwdev, dma_addr_t dma_handle,
+ 		    size_t size, int direction)
+ {
+-	dma_sync_single_for_cpu(hwdev == NULL ? NULL : &hwdev->dev, dma_handle, size, (enum dma_data_direction)direction);
++	dma_sync_single_for_cpu(&hwdev->dev, dma_handle, size, (enum dma_data_direction)direction);
+ }
+ 
+ static inline void
+ pci_dma_sync_single_for_device(struct pci_dev *hwdev, dma_addr_t dma_handle,
+ 		    size_t size, int direction)
+ {
+-	dma_sync_single_for_device(hwdev == NULL ? NULL : &hwdev->dev, dma_handle, size, (enum dma_data_direction)direction);
++	dma_sync_single_for_device(&hwdev->dev, dma_handle, size, (enum dma_data_direction)direction);
+ }
+ 
+ static inline void
+ pci_dma_sync_sg_for_cpu(struct pci_dev *hwdev, struct scatterlist *sg,
+ 		int nelems, int direction)
+ {
+-	dma_sync_sg_for_cpu(hwdev == NULL ? NULL : &hwdev->dev, sg, nelems, (enum dma_data_direction)direction);
++	dma_sync_sg_for_cpu(&hwdev->dev, sg, nelems, (enum dma_data_direction)direction);
+ }
+ 
+ static inline void
+ pci_dma_sync_sg_for_device(struct pci_dev *hwdev, struct scatterlist *sg,
+ 		int nelems, int direction)
+ {
+-	dma_sync_sg_for_device(hwdev == NULL ? NULL : &hwdev->dev, sg, nelems, (enum dma_data_direction)direction);
++	dma_sync_sg_for_device(&hwdev->dev, sg, nelems, (enum dma_data_direction)direction);
+ }
+ 
+ static inline int
+-- 
+2.14.2
