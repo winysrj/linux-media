@@ -1,84 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:33380 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S932086AbeAKITQ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 11 Jan 2018 03:19:16 -0500
-Date: Thu, 11 Jan 2018 10:19:13 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hugues FRUCHET <hugues.fruchet@st.com>
-Cc: Maxime Ripard <maxime.ripard@free-electrons.com>,
-        Yong Deng <yong.deng@magewell.com>,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Subject: Re: [PATCH v5 0/5] Add OV5640 parallel interface and RGB565/YUYV
- support
-Message-ID: <20180111081912.curkvpguof6ul555@valkosipuli.retiisi.org.uk>
-References: <1514973452-10464-1-git-send-email-hugues.fruchet@st.com>
- <20180108153811.5xrvbaekm6nxtoa6@flea>
- <3010811e-ed37-4489-6a9f-6cc835f41575@st.com>
- <20180110153724.l77zpdgxfbzkznuf@flea>
- <2089de18-1f7f-6d6e-7aee-9dc424bca335@st.com>
- <20180110222508.4x5kimanevttmqis@valkosipuli.retiisi.org.uk>
- <6661b493-5f2a-b201-390d-e3452e6873a0@st.com>
+Received: from smtp.gentoo.org ([140.211.166.183]:48010 "EHLO smtp.gentoo.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1755454AbeAIFSe (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 9 Jan 2018 00:18:34 -0500
+Subject: Re: [PATCH 7/9] lgdt3306a: Set fe ops.release to NULL if probed
+To: Michael Ira Krufky <mkrufky@linuxtv.org>,
+        Brad Love <brad@nextdimension.cc>
+Cc: linux-media <linux-media@vger.kernel.org>
+References: <1515110659-20145-1-git-send-email-brad@nextdimension.cc>
+ <1515110659-20145-8-git-send-email-brad@nextdimension.cc>
+ <CAOcJUbxdODb2_txnrKgEa23-tq4AQzV4eGiDQuvXYNpofcvzAw@mail.gmail.com>
+From: Matthias Schwarzott <zzam@gentoo.org>
+Message-ID: <485ca421-1a94-29cb-66ea-6bdea1ac5fe8@gentoo.org>
+Date: Tue, 9 Jan 2018 06:17:49 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <6661b493-5f2a-b201-390d-e3452e6873a0@st.com>
+In-Reply-To: <CAOcJUbxdODb2_txnrKgEa23-tq4AQzV4eGiDQuvXYNpofcvzAw@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jan 11, 2018 at 08:12:11AM +0000, Hugues FRUCHET wrote:
-> Hi Sakari,
+Am 05.01.2018 um 01:19 schrieb Michael Ira Krufky:
+> On Thu, Jan 4, 2018 at 7:04 PM, Brad Love <brad@nextdimension.cc> wrote:
+>> If release is part of frontend ops then it is called in the
+>> course of dvb_frontend_detach. The process also decrements
+>> the module usage count. The problem is if the lgdt3306a
+>> driver is reached via i2c_new_device, then when it is
+>> eventually destroyed remove is called, which further
+>> decrements the module usage count to negative. After this
+>> occurs the driver is in a bad state and no longer works.
+>> Also fixed by NULLing out the release callback is a double
+>> kfree of state, which introduces arbitrary oopses/GPF.
+>> This problem is only currently reachable via the em28xx driver.
+>>
+>> On disconnect of Hauppauge SoloHD before:
+>>
+>> lsmod | grep lgdt3306a
+>> lgdt3306a              28672  -1
+>> i2c_mux                16384  1 lgdt3306a
+>>
+>> On disconnect of Hauppauge SoloHD after:
+>>
+>> lsmod | grep lgdt3306a
+>> lgdt3306a              28672  0
+>> i2c_mux                16384  1 lgdt3306a
+>>
+>> Signed-off-by: Brad Love <brad@nextdimension.cc>
+>> ---
+>>  drivers/media/dvb-frontends/lgdt3306a.c | 1 +
+>>  1 file changed, 1 insertion(+)
+>>
 > 
-> On 01/10/2018 11:25 PM, Sakari Ailus wrote:
-> > Hi Hugues,
-> > 
-> > On Wed, Jan 10, 2018 at 03:51:07PM +0000, Hugues FRUCHET wrote:
-> >> Good news Maxime !
-> >>
-> >> Have you seen that you can adapt the polarities through devicetree ?
-> >>
-> >> +                       /* Parallel bus endpoint */
-> >> +                       ov5640_to_parallel: endpoint {
-> >> [...]
-> >> +                               hsync-active = <0>;
-> >> +                               vsync-active = <0>;
-> >> +                               pclk-sample = <1>;
-> >> +                       };
-> >>
-> >> Doing so you can adapt to your SoC/board setup easily.
-> >>
-> >> If you don't put those lines in devicetree, the ov5640 default init
-> >> sequence is used which set the polarity as defined in below comment:
-> >> ov5640_set_stream_dvp()
-> >> [...]
-> >> +        * Control lines polarity can be configured through
-> >> +        * devicetree endpoint control lines properties.
-> >> +        * If no endpoint control lines properties are set,
-> >> +        * polarity will be as below:
-> >> +        * - VSYNC:     active high
-> >> +        * - HREF:      active low
-> >> +        * - PCLK:      active low
-> >> +        */
-> >> [...]
-> > 
-> > The properties are at the moment documented as mandatory in DT binding
-> > documentation.
-> > 
-> of course, it was just to ask Maxime to check the devicetree on its 
-> side, the symptom observed by Maxime with hsync/vsync inversed is the 
-> same than the one observed if we stick to just default init sequence.
+> Brad,
+> 
+> We won't be able to apply this one.  The symptom that you're trying to
+> fix is indicative of some other problem, probably in the em28xx
+> driver.  NULL'ing the release callback is not the right thing to do.
+> 
 
-I wonder if the driver should be changed to require hsync and vsync. These
-signals won't be there at all in Bt.656 mode.
+Hi Mike,
+Why do you nak this perfectly fine patch?
+Let me start to explain.
 
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+dvb_attach style drivers have an attach function and for unloading a
+.release callback.
+
+i2c-style drivers have a probe and a remove function.
+
+Mixed style drivers must be constructed, that either release or remove
+is called, never both.
+They both do the same thing, but with different signature.
+
+
+Now checking lgdt3306a driver:
+
+dvb attach style:
+In lgdt3306a_attach the release callback is set to lgdt3306a_release and
+no remove exists. Fine.
+
+i2c style probe:
+struct i2c_driver contains lgdt3306a_probe and lgdt3306a_remove.
+lgdt3306a_probe shares code and calls lgdt3306a_attach, but afterwards
+the release callback field must be set to NULL.
+
+This is/was done exactly like this in multiple other drivers as long as
+they have been multiple style attachable.
+
+Regards
+Matthias
+
+> 
+>> diff --git a/drivers/media/dvb-frontends/lgdt3306a.c b/drivers/media/dvb-frontends/lgdt3306a.c
+>> index 6356815..d2477ed 100644
+>> --- a/drivers/media/dvb-frontends/lgdt3306a.c
+>> +++ b/drivers/media/dvb-frontends/lgdt3306a.c
+>> @@ -2177,6 +2177,7 @@ static int lgdt3306a_probe(struct i2c_client *client,
+>>
+>>         i2c_set_clientdata(client, fe->demodulator_priv);
+>>         state = fe->demodulator_priv;
+>> +       state->frontend.ops.release = NULL;
+>>
+>>         /* create mux i2c adapter for tuner */
+>>         state->muxc = i2c_mux_alloc(client->adapter, &client->dev,
+>> --
+>> 2.7.4
+>>
+> 
