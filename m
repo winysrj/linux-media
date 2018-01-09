@@ -1,49 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([217.72.192.75]:52148 "EHLO
-        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1755598AbeAHMxt (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 8 Jan 2018 07:53:49 -0500
-From: Arnd Bergmann <arnd@arndb.de>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Wenyou Yang <wenyou.yang@microchip.com>,
-        Songjun Wu <songjun.wu@microchip.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Pavel Machek <pavel@ucw.cz>, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH] media: i2c: ov7740: add media-controller dependency
-Date: Mon,  8 Jan 2018 13:52:28 +0100
-Message-Id: <20180108125322.3993808-1-arnd@arndb.de>
+Received: from mail-io0-f170.google.com ([209.85.223.170]:46168 "EHLO
+        mail-io0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752152AbeAIRzU (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 9 Jan 2018 12:55:20 -0500
+MIME-Version: 1.0
+In-Reply-To: <20180109154235.2a42f0a0@vento.lan>
+References: <CA+55aFx90oOU-3R8pCeM0ESTDYhmugD5znA9LrGj1zhazWBtcg@mail.gmail.com>
+ <Pine.LNX.4.44L0.1801081354450.1908-100000@iolanthe.rowland.org>
+ <CA+55aFwuAojr7vAfiRO-2je-wDs7pu+avQZNhX_k9NN=D7_zVQ@mail.gmail.com> <20180109154235.2a42f0a0@vento.lan>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Date: Tue, 9 Jan 2018 09:55:18 -0800
+Message-ID: <CA+55aFxccKqTabDo3iTfLs9zMNpSBUk-tQmF8H7XwVPSV0dB6g@mail.gmail.com>
+Subject: Re: dvb usb issues since kernel 4.9
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Peter Zijlstra <peterz@infradead.org>,
+        Alan Stern <stern@rowland.harvard.edu>,
+        Ingo Molnar <mingo@kernel.org>,
+        Josef Griebichler <griebichler.josef@gmx.at>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        USB list <linux-usb@vger.kernel.org>,
+        Eric Dumazet <edumazet@google.com>,
+        Rik van Riel <riel@redhat.com>,
+        Paolo Abeni <pabeni@redhat.com>,
+        Hannes Frederic Sowa <hannes@redhat.com>,
+        Jesper Dangaard Brouer <jbrouer@redhat.com>,
+        linux-kernel <linux-kernel@vger.kernel.org>,
+        netdev <netdev@vger.kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>,
+        LMML <linux-media@vger.kernel.org>,
+        David Miller <davem@davemloft.net>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Without CONFIG_MEDIA_CONTROLLER, the new driver fails to build:
+On Tue, Jan 9, 2018 at 9:42 AM, Mauro Carvalho Chehab
+<mchehab@s-opensource.com> wrote:
+>
+> On my preliminar tests, writing to a file on an ext4 partition at a
+> USB stick loses data up to the point to make it useless (1/4 of the data
+> is lost!). However, writing to a class 10 microSD card is doable.
 
-drivers/perf/arm_dsu_pmu.c: In function 'dsu_pmu_probe_pmu':
-drivers/perf/arm_dsu_pmu.c:661:2: error: implicit declaration of function 'bitmap_from_u32array'; did you mean 'bitmap_from_arr32'? [-Werror=implicit-function-declaration]
+Note that most USB sticks are horrible crap. They can have write
+latencies counted in _seconds_.
 
-This adds a dependency similar to what we have for other drivers
-like this.
+You can cause VM issues and various other non-hardware stalls with
+them, simply because something gets stuck waiting for a page writeout
+that should take a few ms on any reasonable hardware, but ends up
+talking half a second or more.
 
-Fixes: 39c5c4471b8d ("media: i2c: Add the ov7740 image sensor driver")
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
----
- drivers/media/i2c/Kconfig | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+For example, even really well-written software that tries to do things
+like threaded write-behind to smooth out the IO will be _totally_
+screwed by the USB stick behavior (where you might write a few MB at
+high speeds, and then the next write - however small - takes a second
+because the stupid USB stick does a synchronous garbage collection.
+Suddenly all that clever software that tried to keep things moving
+along smoothly without any hiccups, and tried hard to make the USB bus
+have a nice constant loadm can't do anything at all about the crap
+hardware.
 
-diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
-index 9f18cd296841..03cf3a1a1e06 100644
---- a/drivers/media/i2c/Kconfig
-+++ b/drivers/media/i2c/Kconfig
-@@ -667,7 +667,7 @@ config VIDEO_OV7670
- 
- config VIDEO_OV7740
- 	tristate "OmniVision OV7740 sensor support"
--	depends on I2C && VIDEO_V4L2
-+	depends on I2C && VIDEO_V4L2 && MEDIA_CONTROLLER
- 	depends on MEDIA_CAMERA_SUPPORT
- 	---help---
- 	  This is a Video4Linux2 sensor-level driver for the OmniVision
--- 
-2.9.0
+So when testing writes to USB sticks, I'm not convinced you're
+actually testing any USB bus limitations or even really any other
+hardware limitations than the USB stick itself.
+
+                  Linus
