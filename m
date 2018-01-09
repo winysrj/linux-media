@@ -1,49 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from szxga07-in.huawei.com ([45.249.212.35]:52021 "EHLO huawei.com"
-        rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
-        id S932172AbeAHMrK (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 8 Jan 2018 07:47:10 -0500
-From: Xiongfeng Wang <wangxiongfeng2@huawei.com>
-To: <mchehab@kernel.org>
-CC: <linux-media@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-        <wangxiongfeng2@huawei.com>, <arnd@arndb.de>
-Subject: [PATCH] [media] dibx000_common: use strlcpy() instead of strncpy()
-Date: Mon, 8 Jan 2018 20:52:34 +0800
-Message-ID: <1515415954-10963-1-git-send-email-wangxiongfeng2@huawei.com>
+Received: from esa3.microchip.iphmx.com ([68.232.153.233]:59884 "EHLO
+        esa3.microchip.iphmx.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932129AbeAINpg (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 9 Jan 2018 08:45:36 -0500
+From: Nicolas Ferre <nicolas.ferre@microchip.com>
+To: <linux-arm-kernel@lists.infradead.org>,
+        <linux-kernel@vger.kernel.org>,
+        Ludovic Desroches <ludovic.desroches@microchip.com>,
+        Wenyou Yang <wenyou.yang@microchip.com>,
+        Boris BREZILLON <boris.brezillon@free-electrons.com>
+CC: <linux-media@vger.kernel.org>,
+        Alexandre Belloni <alexandre.belloni@free-electrons.com>,
+        <linux-mtd@lists.infradead.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Josh Wu <rainyfeeling@outlook.com>,
+        Nicolas Ferre <nicolas.ferre@microchip.com>
+Subject: [PATCH 1/2] MAINTAINERS: linux-media: update Microchip ISI and ISC entries
+Date: Tue, 9 Jan 2018 14:46:39 +0100
+Message-ID: <eb6b3cbe8e48faee7e88eca0649e42cbde91ffa6.1515503733.git.nicolas.ferre@microchip.com>
 MIME-Version: 1.0
 Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Xiongfeng Wang <xiongfeng.wang@linaro.org>
+These two image capture interface drivers are now handled
+by Wenyou Yang.
+I benefit from this change to update the two entries by correcting the
+binding documentation link for ISC and moving the ISI to the new
+MICROCHIP / ATMEL location.
 
-gcc-8 reports
-
-drivers/media/dvb-frontends/dibx000_common.c: In function
-'i2c_adapter_init':
-./include/linux/string.h:245:9: warning: '__builtin_strncpy' specified
-bound 48 equals destination size [-Wstringop-truncation]
-
-We need to use strlcpy() to make sure the dest string is
-nul-terminated.
-
-Signed-off-by: Xiongfeng Wang <xiongfeng.wang@linaro.org>
+Signed-off-by: Nicolas Ferre <nicolas.ferre@microchip.com>
 ---
- drivers/media/dvb-frontends/dibx000_common.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Hi,
 
-diff --git a/drivers/media/dvb-frontends/dibx000_common.c b/drivers/media/dvb-frontends/dibx000_common.c
-index bc28184..6486f17 100644
---- a/drivers/media/dvb-frontends/dibx000_common.c
-+++ b/drivers/media/dvb-frontends/dibx000_common.c
-@@ -424,7 +424,7 @@ static int i2c_adapter_init(struct i2c_adapter *i2c_adap,
- 				struct i2c_algorithm *algo, const char *name,
- 				struct dibx000_i2c_master *mst)
- {
--	strncpy(i2c_adap->name, name, sizeof(i2c_adap->name));
-+	strlcpy(i2c_adap->name, name, sizeof(i2c_adap->name));
- 	i2c_adap->algo = algo;
- 	i2c_adap->algo_data = NULL;
- 	i2c_set_adapdata(i2c_adap, mst);
+Patch against next-20180109.
+Note that I didn't find it useful to have several patches for these changes.
+Tell me if you feel differently.
+
+I would like to have the Ack from Ludovic and Wenyou obviously. I don't know if
+Songjun can answer as he's not with Microchip anymore.
+
+Best regards,
+  Nicolas
+
+ MAINTAINERS | 19 ++++++++++---------
+ 1 file changed, 10 insertions(+), 9 deletions(-)
+
+diff --git a/MAINTAINERS b/MAINTAINERS
+index a7d10a2bb980..65c4b59b582f 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -2353,13 +2353,6 @@ L:	linux-i2c@vger.kernel.org
+ S:	Supported
+ F:	drivers/i2c/busses/i2c-at91.c
+ 
+-ATMEL ISI DRIVER
+-M:	Ludovic Desroches <ludovic.desroches@microchip.com>
+-L:	linux-media@vger.kernel.org
+-S:	Supported
+-F:	drivers/media/platform/atmel/atmel-isi.c
+-F:	include/media/atmel-isi.h
+-
+ ATMEL LCDFB DRIVER
+ M:	Nicolas Ferre <nicolas.ferre@microchip.com>
+ L:	linux-fbdev@vger.kernel.org
+@@ -9102,12 +9095,20 @@ S:	Maintained
+ F:	drivers/crypto/atmel-ecc.*
+ 
+ MICROCHIP / ATMEL ISC DRIVER
+-M:	Songjun Wu <songjun.wu@microchip.com>
++M:	Wenyou Yang <wenyou.yang@microchip.com>
+ L:	linux-media@vger.kernel.org
+ S:	Supported
+ F:	drivers/media/platform/atmel/atmel-isc.c
+ F:	drivers/media/platform/atmel/atmel-isc-regs.h
+-F:	devicetree/bindings/media/atmel-isc.txt
++F:	Documentation/devicetree/bindings/media/atmel-isc.txt
++
++MICROCHIP / ATMEL ISI DRIVER
++M:	Wenyou Yang <wenyou.yang@microchip.com>
++L:	linux-media@vger.kernel.org
++S:	Supported
++F:	drivers/media/platform/atmel/atmel-isi.c
++F:	include/media/atmel-isi.h
++F:	Documentation/devicetree/bindings/media/atmel-isi.txt
+ 
+ MICROCHIP KSZ SERIES ETHERNET SWITCH DRIVER
+ M:	Woojung Huh <Woojung.Huh@microchip.com>
 -- 
-1.8.3.1
+2.9.0
