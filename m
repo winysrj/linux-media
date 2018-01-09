@@ -1,48 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:38605 "EHLO
-        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751028AbeAVRNv (ORCPT
+Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:44706 "EHLO
+        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753812AbeAIH3A (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 22 Jan 2018 12:13:51 -0500
-Received: by mail-wm0-f66.google.com with SMTP id 141so18209377wme.3
-        for <linux-media@vger.kernel.org>; Mon, 22 Jan 2018 09:13:51 -0800 (PST)
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: linux-media@vger.kernel.org, mchehab@kernel.org,
-        mchehab@s-opensource.com
-Cc: rascobie@slingshot.co.nz
-Subject: [PATCH v2 0/5] Add FEC rates, S2X params and 64K transmission
-Date: Mon, 22 Jan 2018 18:13:41 +0100
-Message-Id: <20180122171346.822-1-d.scheller.oss@gmail.com>
+        Tue, 9 Jan 2018 02:29:00 -0500
+Subject: Re: [PATCH v2] media: i2c: adv748x: fix HDMI field heights
+To: Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+Cc: niklas.soderlund@ragnatech.se,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        open list <linux-kernel@vger.kernel.org>
+References: <1515435242-22956-1-git-send-email-kieran.bingham@ideasonboard.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <9c95a0d3-52de-9078-46f3-b0ba470b687f@xs4all.nl>
+Date: Tue, 9 Jan 2018 08:28:54 +0100
+MIME-Version: 1.0
+In-Reply-To: <1515435242-22956-1-git-send-email-kieran.bingham@ideasonboard.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Daniel Scheller <d.scheller@gmx.net>
+On 01/08/2018 07:14 PM, Kieran Bingham wrote:
+> The ADV748x handles interlaced media using V4L2_FIELD_ALTERNATE field
+> types.  The correct specification for the height on the mbus is the
+> image height, in this instance, the field height.
+> 
+> The AFE component already correctly adjusts the height on the mbus, but
+> the HDMI component got left behind.
+> 
+> Adjust the mbus height to correctly describe the image height of the
+> fields when processing interlaced video for HDMI pipelines.
+> 
+> Fixes: 3e89586a64df ("media: i2c: adv748x: add adv748x driver")
+> Reviewed-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
 
-dddvb brings a few additional FEC rates (1/4 and 1/3), 64/128/256APSK
-modulations and more rolloff factors (DVB-S2X), and 64K transmission mode
-(DVB-T2). These rather trivial patches bring them to mainline, and puts
-these missing bits into the stv0910's get_frontend() callback (FEC 1/4
-and 1/3 are handled throughout the rest of the demod driver already). In
-addition (as suggestion from Richard Scobie), the stv0910 driver now
-reports it's active delivery system.
+Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-Changes from v1 to v2:
-- DVB-S2X rolloff factors and reporting
-- report of the active delivery system in stv0910:get_frontend()
+Regards,
 
-Daniel Scheller (5):
-  media: dvb_frontend: add FEC modes, S2X modulations and 64K
-    transmission
-  media: dvb_frontend: add DVB-S2X rolloff factors
-  media: dvb-frontends/stv0910: report FEC 1/4 and 1/3 in get_frontend()
-  media: dvb-frontends/stv0910: report S2 rolloff in get_frontend()
-  media: dvb-frontends/stv0910: report active delsys in get_frontend()
+	Hans
 
- Documentation/media/frontend.h.rst.exceptions |  9 +++++++++
- drivers/media/dvb-core/dvb_frontend.c         |  9 +++++++++
- drivers/media/dvb-frontends/stv0910.c         | 16 ++++++++++-----
- include/uapi/linux/dvb/frontend.h             | 29 ++++++++++++++++++++++-----
- 4 files changed, 53 insertions(+), 10 deletions(-)
-
--- 
-2.13.6
+> ---
+> v2:
+>  - switch conditional to check the fmt->field, removing the need for
+>    the comment.
+> 
+>  drivers/media/i2c/adv748x/adv748x-hdmi.c | 3 +++
+>  1 file changed, 3 insertions(+)
+> 
+> diff --git a/drivers/media/i2c/adv748x/adv748x-hdmi.c b/drivers/media/i2c/adv748x/adv748x-hdmi.c
+> index 4da4253553fc..10d229a4f088 100644
+> --- a/drivers/media/i2c/adv748x/adv748x-hdmi.c
+> +++ b/drivers/media/i2c/adv748x/adv748x-hdmi.c
+> @@ -105,6 +105,9 @@ static void adv748x_hdmi_fill_format(struct adv748x_hdmi *hdmi,
+>  
+>  	fmt->width = hdmi->timings.bt.width;
+>  	fmt->height = hdmi->timings.bt.height;
+> +
+> +	if (fmt->field == V4L2_FIELD_ALTERNATE)
+> +		fmt->height /= 2;
+>  }
+>  
+>  static void adv748x_fill_optional_dv_timings(struct v4l2_dv_timings *timings)
+> 
