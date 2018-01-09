@@ -1,61 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from hermes.aosc.io ([199.195.250.187]:45249 "EHLO hermes.aosc.io"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752938AbeASVRc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 19 Jan 2018 16:17:32 -0500
-From: Icenowy Zheng <icenowy@aosc.io>
-To: linux-arm-kernel@lists.infradead.org
-Cc: Rob Herring <robh@kernel.org>, Yong Deng <yong.deng@magewell.com>,
-        Mark Rutland <mark.rutland@arm.com>, megous@megous.com,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        linux-sunxi@googlegroups.com,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Rick Chang <rick.chang@mediatek.com>,
-        Chen-Yu Tsai <wens@csie.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Randy Dunlap <rdunlap@infradead.org>,
-        linux-kernel@vger.kernel.org,
-        Yannick Fertre <yannick.fertre@st.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Maxime Ripard <maxime.ripard@free-electrons.com>,
-        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
-        "David S. Miller" <davem@davemloft.net>
-Subject: Re: [PATCH v5 1/2] dt-bindings: media: Add Allwinner V3s Camera Sensor Interface (CSI)
-Date: Sat, 20 Jan 2018 05:17:25 +0800
-Message-ID: <2315959.AJds7mCBWN@ice-x220i>
-In-Reply-To: <20180119211409.ubysuyvhkmfotbdg@rob-hp-laptop>
-References: <1515639823-35782-1-git-send-email-yong.deng@magewell.com> <20180119211409.ubysuyvhkmfotbdg@rob-hp-laptop>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8BIT
-Content-Type: text/plain; charset="UTF-8"
+Received: from relay2-d.mail.gandi.net ([217.70.183.194]:45522 "EHLO
+        relay2-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1759298AbeAIQ0L (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 9 Jan 2018 11:26:11 -0500
+From: Jacopo Mondi <jacopo+renesas@jmondi.org>
+To: laurent.pinchart@ideasonboard.com, magnus.damm@gmail.com,
+        geert@glider.be, mchehab@kernel.org, hverkuil@xs4all.nl,
+        festevam@gmail.com, sakari.ailus@iki.fi, robh+dt@kernel.org,
+        mark.rutland@arm.com
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-sh@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: [PATCH v4 2/9] include: media: Add Renesas CEU driver interface
+Date: Tue,  9 Jan 2018 17:25:24 +0100
+Message-Id: <1515515131-13760-3-git-send-email-jacopo+renesas@jmondi.org>
+In-Reply-To: <1515515131-13760-1-git-send-email-jacopo+renesas@jmondi.org>
+References: <1515515131-13760-1-git-send-email-jacopo+renesas@jmondi.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-在 2018年1月20日星期六 CST 上午5:14:09，Rob Herring 写道：
-> On Thu, Jan 11, 2018 at 11:03:43AM +0800, Yong Deng wrote:
-> > Add binding documentation for Allwinner V3s CSI.
-> > 
-> > Signed-off-by: Yong Deng <yong.deng@magewell.com>
-> > ---
-> > 
-> >  .../devicetree/bindings/media/sun6i-csi.txt        | 59
-> >  ++++++++++++++++++++++ 1 file changed, 59 insertions(+)
-> >  create mode 100644 Documentation/devicetree/bindings/media/sun6i-csi.txt
-> 
-> Reviewed-by: Rob Herring <robh@kernel.org>
+Add renesas-ceu header file.
 
-I think other subsystem's maintainer may expect a Acked-by from you here.
+Do not remove the existing sh_mobile_ceu.h one as long as the original
+driver does not go away.
 
-Why do you use Reviewed-by here instead?
+Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ include/media/drv-intf/renesas-ceu.h | 26 ++++++++++++++++++++++++++
+ 1 file changed, 26 insertions(+)
+ create mode 100644 include/media/drv-intf/renesas-ceu.h
 
-> 
-> _______________________________________________
-> linux-arm-kernel mailing list
-> linux-arm-kernel@lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+diff --git a/include/media/drv-intf/renesas-ceu.h b/include/media/drv-intf/renesas-ceu.h
+new file mode 100644
+index 0000000..52841d1
+--- /dev/null
++++ b/include/media/drv-intf/renesas-ceu.h
+@@ -0,0 +1,26 @@
++// SPDX-License-Identifier: GPL-2.0
++/*
++ * renesas-ceu.h - Renesas CEU driver interface
++ *
++ * Copyright 2017-2018 Jacopo Mondi <jacopo+renesas@jmondi.org>
++ */
++
++#ifndef __MEDIA_DRV_INTF_RENESAS_CEU_H__
++#define __MEDIA_DRV_INTF_RENESAS_CEU_H__
++
++#define CEU_MAX_SUBDEVS		2
++
++struct ceu_async_subdev {
++	unsigned long flags;
++	unsigned char bus_width;
++	unsigned char bus_shift;
++	unsigned int i2c_adapter_id;
++	unsigned int i2c_address;
++};
++
++struct ceu_platform_data {
++	unsigned int num_subdevs;
++	struct ceu_async_subdev subdevs[CEU_MAX_SUBDEVS];
++};
++
++#endif /* ___MEDIA_DRV_INTF_RENESAS_CEU_H__ */
+-- 
+2.7.4
