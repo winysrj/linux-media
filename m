@@ -1,72 +1,162 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga04.intel.com ([192.55.52.120]:4388 "EHLO mga04.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751748AbeADDs5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 3 Jan 2018 22:48:57 -0500
-From: tian.shu.qiu@intel.com
+Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:44807 "EHLO
+        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751969AbeAIMqw (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 9 Jan 2018 07:46:52 -0500
+Subject: Re: [PATCHv5 0/3] drm/i915: add DisplayPort CEC-Tunneling-over-AUX
+ support
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Qiu@vger.kernel.org, Tianshu <tian.shu.qiu@intel.com>
-Subject: [MAIN PATCH v1 1/2] Update headers from upstream kernel
-Date: Thu,  4 Jan 2018 11:48:12 +0800
-Message-Id: <1515037693-29631-2-git-send-email-tian.shu.qiu@intel.com>
-In-Reply-To: <1515037693-29631-1-git-send-email-tian.shu.qiu@intel.com>
-References: <1515037693-29631-1-git-send-email-tian.shu.qiu@intel.com>
+Cc: Daniel Vetter <daniel.vetter@ffwll.ch>,
+        dri-devel@lists.freedesktop.org,
+        Carlos Santa <carlos.santa@intel.com>,
+        =?UTF-8?B?VmlsbGUgU3lyasOkbMOk?= <ville.syrjala@linux.intel.com>,
+        Sean Paul <seanpaul@chromium.org>
+References: <20171120114211.21825-1-hverkuil@xs4all.nl>
+ <3f7a93ba-8a7d-c2bf-151a-b5b59a3c6fbd@xs4all.nl>
+ <fd864450-0b0c-c867-c108-f51e788adec0@xs4all.nl>
+Message-ID: <b6ac8671-7b66-977e-1322-f31e08d76436@xs4all.nl>
+Date: Tue, 9 Jan 2018 13:46:44 +0100
+MIME-Version: 1.0
+In-Reply-To: <fd864450-0b0c-c867-c108-f51e788adec0@xs4all.nl>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Tianshu Qiu <tian.shu.qiu@intel.com>
+First of all a Happy New Year for all of you!
 
-Upstream commit 6f0e5fd39143a59c22d60e7befc4f33f22aeed2f
+And secondly: can this v5 patch series be reviewed/merged? It's been waiting
+for that for a very long time now...
 
-Signed-off-by: Tianshu Qiu <tian.shu.qiu@intel.com>
----
- include/linux/videodev2.h | 15 +++++++++++++++
- 1 file changed, 15 insertions(+)
+Regards,
 
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index b1e36ee553da..afa4d09c59a3 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -1,3 +1,4 @@
-+/* SPDX-License-Identifier: ((GPL-2.0+ WITH Linux-syscall-note) OR BSD-3-Clause) */
- /*
-  *  Video for Linux Two header file
-  *
-@@ -599,6 +600,11 @@ struct v4l2_pix_format {
- #define V4L2_PIX_FMT_SGBRG12 v4l2_fourcc('G', 'B', '1', '2') /* 12  GBGB.. RGRG.. */
- #define V4L2_PIX_FMT_SGRBG12 v4l2_fourcc('B', 'A', '1', '2') /* 12  GRGR.. BGBG.. */
- #define V4L2_PIX_FMT_SRGGB12 v4l2_fourcc('R', 'G', '1', '2') /* 12  RGRG.. GBGB.. */
-+	/* 12bit raw bayer packed, 6 bytes for every 4 pixels */
-+#define V4L2_PIX_FMT_SBGGR12P v4l2_fourcc('p', 'B', 'C', 'C')
-+#define V4L2_PIX_FMT_SGBRG12P v4l2_fourcc('p', 'G', 'C', 'C')
-+#define V4L2_PIX_FMT_SGRBG12P v4l2_fourcc('p', 'g', 'C', 'C')
-+#define V4L2_PIX_FMT_SRGGB12P v4l2_fourcc('p', 'R', 'C', 'C')
- #define V4L2_PIX_FMT_SBGGR16 v4l2_fourcc('B', 'Y', 'R', '2') /* 16  BGBG.. GRGR.. */
- #define V4L2_PIX_FMT_SGBRG16 v4l2_fourcc('G', 'B', '1', '6') /* 16  GBGB.. RGRG.. */
- #define V4L2_PIX_FMT_SGRBG16 v4l2_fourcc('G', 'R', '1', '6') /* 16  GRGR.. BGBG.. */
-@@ -659,12 +665,21 @@ struct v4l2_pix_format {
- #define V4L2_PIX_FMT_MT21C    v4l2_fourcc('M', 'T', '2', '1') /* Mediatek compressed block mode  */
- #define V4L2_PIX_FMT_INZI     v4l2_fourcc('I', 'N', 'Z', 'I') /* Intel Planar Greyscale 10-bit and Depth 16-bit */
- 
-+/* 10bit raw bayer packed, 32 bytes for every 25 pixels, last LSB 6 bits unused */
-+#define V4L2_PIX_FMT_IPU3_SBGGR10	v4l2_fourcc('i', 'p', '3', 'b') /* IPU3 packed 10-bit BGGR bayer */
-+#define V4L2_PIX_FMT_IPU3_SGBRG10	v4l2_fourcc('i', 'p', '3', 'g') /* IPU3 packed 10-bit GBRG bayer */
-+#define V4L2_PIX_FMT_IPU3_SGRBG10	v4l2_fourcc('i', 'p', '3', 'G') /* IPU3 packed 10-bit GRBG bayer */
-+#define V4L2_PIX_FMT_IPU3_SRGGB10	v4l2_fourcc('i', 'p', '3', 'r') /* IPU3 packed 10-bit RGGB bayer */
-+
- /* SDR formats - used only for Software Defined Radio devices */
- #define V4L2_SDR_FMT_CU8          v4l2_fourcc('C', 'U', '0', '8') /* IQ u8 */
- #define V4L2_SDR_FMT_CU16LE       v4l2_fourcc('C', 'U', '1', '6') /* IQ u16le */
- #define V4L2_SDR_FMT_CS8          v4l2_fourcc('C', 'S', '0', '8') /* complex s8 */
- #define V4L2_SDR_FMT_CS14LE       v4l2_fourcc('C', 'S', '1', '4') /* complex s14le */
- #define V4L2_SDR_FMT_RU12LE       v4l2_fourcc('R', 'U', '1', '2') /* real u12le */
-+#define V4L2_SDR_FMT_PCU16BE	  v4l2_fourcc('P', 'C', '1', '6') /* planar complex u16be */
-+#define V4L2_SDR_FMT_PCU18BE	  v4l2_fourcc('P', 'C', '1', '8') /* planar complex u18be */
-+#define V4L2_SDR_FMT_PCU20BE	  v4l2_fourcc('P', 'C', '2', '0') /* planar complex u20be */
- 
- /* Touch formats - used for Touch devices */
- #define V4L2_TCH_FMT_DELTA_TD16	v4l2_fourcc('T', 'D', '1', '6') /* 16-bit signed deltas */
--- 
-2.7.4
+	Hans
+
+On 12/11/17 09:57, Hans Verkuil wrote:
+> Ping again. Added a CC to Ville whom I inexplicably forgot to add when
+> I sent the v5 patch series.
+> 
+> Regards,
+> 
+> 	Hans
+> 
+> On 01/12/17 08:23, Hans Verkuil wrote:
+>> Ping!
+>>
+>> I really like to get this in for 4.16 so I can move forward with hooking
+>> this up for nouveau/amd.
+>>
+>> Regards,
+>>
+>> 	Hans
+>>
+>> On 11/20/2017 12:42 PM, Hans Verkuil wrote:
+>>> This patch series adds support for the DisplayPort CEC-Tunneling-over-AUX
+>>> feature. This patch series is based on the 4.14 mainline release but applies
+>>> as well to drm-next.
+>>>
+>>> This patch series has been tested with my NUC7i5BNK, a Samsung USB-C to 
+>>> HDMI adapter and a Club 3D DisplayPort MST Hub + modified UpTab DP-to-HDMI
+>>> adapter (where the CEC pin is wired up).
+>>>
+>>> Please note this comment at the start of drm_dp_cec.c:
+>>>
+>>> ----------------------------------------------------------------------
+>>> Unfortunately it turns out that we have a chicken-and-egg situation
+>>> here. Quite a few active (mini-)DP-to-HDMI or USB-C-to-HDMI adapters
+>>> have a converter chip that supports CEC-Tunneling-over-AUX (usually the
+>>> Parade PS176 or MegaChips MCDP2900), but they do not wire up the CEC pin,
+>>> thus making CEC useless.
+>>>
+>>> Sadly there is no way for this driver to know this. What happens is
+>>> that a /dev/cecX device is created that is isolated and unable to see
+>>> any of the other CEC devices. Quite literally the CEC wire is cut
+>>> (or in this case, never connected in the first place).
+>>>
+>>> I suspect that the reason so few adapters support this is that this
+>>> tunneling protocol was never supported by any OS. So there was no
+>>> easy way of testing it, and no incentive to correctly wire up the
+>>> CEC pin.
+>>>
+>>> Hopefully by creating this driver it will be easier for vendors to
+>>> finally fix their adapters and test the CEC functionality.
+>>>
+>>> I keep a list of known working adapters here:
+>>>
+>>> https://hverkuil.home.xs4all.nl/cec-status.txt
+>>>
+>>> Please mail me (hverkuil@xs4all.nl) if you find an adapter that works
+>>> and is not yet listed there.
+>>>
+>>> Note that the current implementation does not support CEC over an MST hub.
+>>> As far as I can see there is no mechanism defined in the DisplayPort
+>>> standard to transport CEC interrupts over an MST device. It might be
+>>> possible to do this through polling, but I have not been able to get that
+>>> to work.
+>>> ----------------------------------------------------------------------
+>>>
+>>> I really hope that this work will provide an incentive for vendors to
+>>> finally connect the CEC pin. It's a shame that there are so few adapters
+>>> that work (I found only two USB-C to HDMI adapters that work, and no
+>>> (mini-)DP to HDMI adapters at all).
+>>>
+>>> Hopefully if this gets merged there will be an incentive for vendors
+>>> to make adapters where this actually works. It is a very nice feature
+>>> for HTPC boxes.
+>>>
+>>> The main reason why this v5 is delayed by 2 months is due to the fact
+>>> that I needed some dedicated time to investigate what happens when an
+>>> MST hub is in use. It turns out that this is not working. There is no
+>>> mechanism defined in the DisplayPort standard to transport the CEC
+>>> interrupt back up the MST chain. I was actually able to send a CEC
+>>> message but the interrupt that tells when the transmit finished is
+>>> unavailable.
+>>>
+>>> I attempted to implement this via polling, but I got weird errors
+>>> and was not able to read the DP_DEVICE_SERVICE_IRQ_VECTOR_ESI1
+>>> register. I decided to give up on this for now and just disable CEC
+>>> for DP-to-HDMI adapters after an MST hub. I plan to revisit this
+>>> later since it would be neat to make this work as well. Although it
+>>> might not be possible at all.
+>>>
+>>> If anyone is interested, work-in-progress for this is here:
+>>>
+>>> https://git.linuxtv.org/hverkuil/media_tree.git/log/?h=dp-cec-mst
+>>>
+>>> Note that I removed the Tested-by tag from Carlos Santa due to the
+>>> almost complete rework of the third patch. Carlos, can you test this again?
+>>>
+>>> Regards,
+>>>
+>>>         Hans
+>>>
+>>> Changes since v4:
+>>>
+>>> - Updated comment at the start of drm_dp_cec.c
+>>> - Add edid pointer to drm_dp_cec_configure_adapter
+>>> - Reworked the last patch (adding CEC to i915) based on Ville's comments
+>>>   and my MST testing:
+>>> 	- register/unregister CEC in intel_dp_connector_register/unregister
+>>> 	- add comment and check if connector is registered in long_pulse
+>>> 	- unregister CEC if an MST 'connector' is detected.
+>>>
+>>> _______________________________________________
+>>> dri-devel mailing list
+>>> dri-devel@lists.freedesktop.org
+>>> https://lists.freedesktop.org/mailman/listinfo/dri-devel
+>>>
+>>
+>> _______________________________________________
+>> dri-devel mailing list
+>> dri-devel@lists.freedesktop.org
+>> https://lists.freedesktop.org/mailman/listinfo/dri-devel
+>>
+> 
+> _______________________________________________
+> dri-devel mailing list
+> dri-devel@lists.freedesktop.org
+> https://lists.freedesktop.org/mailman/listinfo/dri-devel
+> 
