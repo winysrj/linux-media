@@ -1,84 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44442 "EHLO
-        mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752213AbeAFJJE (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sat, 6 Jan 2018 04:09:04 -0500
-Date: Sat, 6 Jan 2018 10:09:07 +0100
-From: Greg KH <gregkh@linuxfoundation.org>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org,
-        alan@linux.intel.com, peterz@infradead.org, netdev@vger.kernel.org,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        tglx@linutronix.de, Mauro Carvalho Chehab <mchehab@kernel.org>,
-        torvalds@linux-foundation.org,
-        Elena Reshetova <elena.reshetova@intel.com>,
-        linux-media@vger.kernel.org
-Subject: Re: [PATCH 07/18] [media] uvcvideo: prevent bounds-check bypass via
- speculative execution
-Message-ID: <20180106090907.GG4380@kroah.com>
-References: <151520099201.32271.4677179499894422956.stgit@dwillia2-desk3.amr.corp.intel.com>
- <151520103240.32271.14706852449205864676.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <151520103240.32271.14706852449205864676.stgit@dwillia2-desk3.amr.corp.intel.com>
+Received: from relay2-d.mail.gandi.net ([217.70.183.194]:38719 "EHLO
+        relay2-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753483AbeAIQ0F (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 9 Jan 2018 11:26:05 -0500
+From: Jacopo Mondi <jacopo+renesas@jmondi.org>
+To: laurent.pinchart@ideasonboard.com, magnus.damm@gmail.com,
+        geert@glider.be, mchehab@kernel.org, hverkuil@xs4all.nl,
+        festevam@gmail.com, sakari.ailus@iki.fi, robh+dt@kernel.org,
+        mark.rutland@arm.com
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-sh@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: [PATCH v4 1/9] dt-bindings: media: Add Renesas CEU bindings
+Date: Tue,  9 Jan 2018 17:25:23 +0100
+Message-Id: <1515515131-13760-2-git-send-email-jacopo+renesas@jmondi.org>
+In-Reply-To: <1515515131-13760-1-git-send-email-jacopo+renesas@jmondi.org>
+References: <1515515131-13760-1-git-send-email-jacopo+renesas@jmondi.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Jan 05, 2018 at 05:10:32PM -0800, Dan Williams wrote:
-> Static analysis reports that 'index' may be a user controlled value that
-> is used as a data dependency to read 'pin' from the
-> 'selector->baSourceID' array. In order to avoid potential leaks of
-> kernel memory values, block speculative execution of the instruction
-> stream that could issue reads based on an invalid value of 'pin'.
-> 
-> Based on an original patch by Elena Reshetova.
-> 
-> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
-> Cc: linux-media@vger.kernel.org
-> Signed-off-by: Elena Reshetova <elena.reshetova@intel.com>
-> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-> ---
->  drivers/media/usb/uvc/uvc_v4l2.c |    7 +++++--
->  1 file changed, 5 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/media/usb/uvc/uvc_v4l2.c b/drivers/media/usb/uvc/uvc_v4l2.c
-> index 3e7e283a44a8..7442626dc20e 100644
-> --- a/drivers/media/usb/uvc/uvc_v4l2.c
-> +++ b/drivers/media/usb/uvc/uvc_v4l2.c
-> @@ -22,6 +22,7 @@
->  #include <linux/mm.h>
->  #include <linux/wait.h>
->  #include <linux/atomic.h>
-> +#include <linux/compiler.h>
->  
->  #include <media/v4l2-common.h>
->  #include <media/v4l2-ctrls.h>
-> @@ -810,6 +811,7 @@ static int uvc_ioctl_enum_input(struct file *file, void *fh,
->  	struct uvc_entity *iterm = NULL;
->  	u32 index = input->index;
->  	int pin = 0;
-> +	__u8 *elem;
->  
->  	if (selector == NULL ||
->  	    (chain->dev->quirks & UVC_QUIRK_IGNORE_SELECTOR_UNIT)) {
-> @@ -820,8 +822,9 @@ static int uvc_ioctl_enum_input(struct file *file, void *fh,
->  				break;
->  		}
->  		pin = iterm->id;
-> -	} else if (index < selector->bNrInPins) {
-> -		pin = selector->baSourceID[index];
-> +	} else if ((elem = nospec_array_ptr(selector->baSourceID, index,
-> +					selector->bNrInPins))) {
-> +		pin = *elem;
+Add bindings documentation for Renesas Capture Engine Unit (CEU).
 
-I dug through this before, and I couldn't find where index came from
-userspace, I think seeing the coverity rule would be nice.
+Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+---
+ .../devicetree/bindings/media/renesas,ceu.txt      | 81 ++++++++++++++++++++++
+ 1 file changed, 81 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/renesas,ceu.txt
 
-And if this value really is user controlled, then why is this the only
-v4l driver that is affected?  This is a common callback.
-
-thanks,
-
-greg k-h
+diff --git a/Documentation/devicetree/bindings/media/renesas,ceu.txt b/Documentation/devicetree/bindings/media/renesas,ceu.txt
+new file mode 100644
+index 0000000..590ee27
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/renesas,ceu.txt
+@@ -0,0 +1,81 @@
++Renesas Capture Engine Unit (CEU)
++----------------------------------------------
++
++The Capture Engine Unit is the image capture interface found in the Renesas
++SH Mobile and RZ SoCs.
++
++The interface supports a single parallel input with data bus width of 8 or 16
++bits.
++
++Required properties:
++- compatible: Shall be "renesas,r7s72100-ceu" for CEU units found in RZ/A1-H
++  and RZ/A1-M SoCs.
++- reg: Registers address base and size.
++- interrupts: The interrupt specifier.
++
++The CEU supports a single parallel input and should contain a single 'port'
++subnode with a single 'endpoint'. Connection to input devices are modeled
++according to the video interfaces OF bindings specified in:
++Documentation/devicetree/bindings/media/video-interfaces.txt
++
++Optional endpoint properties applicable to parallel input bus described in
++the above mentioned "video-interfaces.txt" file are supported.
++
++- hsync-active: Active state of the HSYNC signal, 0/1 for LOW/HIGH respectively.
++  If property is not present, default is active high.
++- vsync-active: Active state of the VSYNC signal, 0/1 for LOW/HIGH respectively.
++  If property is not present, default is active high.
++
++Example:
++
++The example describes the connection between the Capture Engine Unit and an
++OV7670 image sensor connected to i2c1 interface.
++
++ceu: ceu@e8210000 {
++	reg = <0xe8210000 0x209c>;
++	compatible = "renesas,r7s72100-ceu";
++	interrupts = <GIC_SPI 332 IRQ_TYPE_LEVEL_HIGH>;
++
++	pinctrl-names = "default";
++	pinctrl-0 = <&vio_pins>;
++
++	status = "okay";
++
++	port {
++		ceu_in: endpoint {
++			remote-endpoint = <&ov7670_out>;
++
++			hsync-active = <1>;
++			vsync-active = <0>;
++		};
++	};
++};
++
++i2c1: i2c@fcfee400 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&i2c1_pins>;
++
++	status = "okay";
++
++	clock-frequency = <100000>;
++
++	ov7670: camera@21 {
++		compatible = "ovti,ov7670";
++		reg = <0x21>;
++
++		pinctrl-names = "default";
++		pinctrl-0 = <&vio_pins>;
++
++		reset-gpios = <&port3 11 GPIO_ACTIVE_LOW>;
++		powerdown-gpios = <&port3 12 GPIO_ACTIVE_HIGH>;
++
++		port {
++			ov7670_out: endpoint {
++				remote-endpoint = <&ceu_in>;
++
++				hsync-active = <1>;
++				vsync-active = <0>;
++			};
++		};
++	};
++};
+-- 
+2.7.4
