@@ -1,50 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.rusoil.net ([188.128.114.25]:55406 "EHLO mail.rusoil.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1755360AbeASJDY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 19 Jan 2018 04:03:24 -0500
-Date: Fri, 19 Jan 2018 14:03:53 +0500 (YEKT)
-From: Facebook Int'l <engineering@rusoil.net>
-Reply-To: Facebook Int'l <dustinmoskovitz.facebook@gmail.com>
-Message-ID: <318393306.347860.1516352633399.JavaMail.zimbra@rusoil.net>
-Subject: ITS ALL ABOUT FACEBOOK
+Received: from esa1.microchip.iphmx.com ([68.232.147.91]:36485 "EHLO
+        esa1.microchip.iphmx.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1758014AbeAINpm (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 9 Jan 2018 08:45:42 -0500
+From: Nicolas Ferre <nicolas.ferre@microchip.com>
+To: <linux-arm-kernel@lists.infradead.org>,
+        <linux-kernel@vger.kernel.org>,
+        Ludovic Desroches <ludovic.desroches@microchip.com>,
+        Wenyou Yang <wenyou.yang@microchip.com>,
+        Boris BREZILLON <boris.brezillon@free-electrons.com>
+CC: <linux-media@vger.kernel.org>,
+        Alexandre Belloni <alexandre.belloni@free-electrons.com>,
+        <linux-mtd@lists.infradead.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Josh Wu <rainyfeeling@outlook.com>,
+        Nicolas Ferre <nicolas.ferre@microchip.com>
+Subject: [PATCH 2/2] MAINTAINERS: mtd/nand: update Microchip nand entry
+Date: Tue, 9 Jan 2018 14:46:40 +0100
+Message-ID: <d8a6b8a3fe05c57972de1c374fcdeb933717396b.1515503733.git.nicolas.ferre@microchip.com>
+In-Reply-To: <eb6b3cbe8e48faee7e88eca0649e42cbde91ffa6.1515503733.git.nicolas.ferre@microchip.com>
+References: <eb6b3cbe8e48faee7e88eca0649e42cbde91ffa6.1515503733.git.nicolas.ferre@microchip.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Update Wenyou Yang email address.
+Take advantage of this update to move this entry to the MICROCHIP / ATMEL
+location and add the DT binding documentation link.
+
+Signed-off-by: Nicolas Ferre <nicolas.ferre@microchip.com>
+---
+Hi,
+
+Patch against next-20180109.
+This patch is somehow dependent on the previous one in the series
+("MAINTAINERS: linux-media: update Microchip ISI and ISC entries") but can be
+rebased easily.
+
+I don't know if it's better to have them added at the end of the development
+cycle or just after rc1: let me know if you plan to take them or if I need to
+rebase them for next cycle.
+
+Best regards,
+  Nicolas
 
 
+ MAINTAINERS | 15 ++++++++-------
+ 1 file changed, 8 insertions(+), 7 deletions(-)
 
-
-
-
-Hello ,
-
-It=E2=80=99s hard to believe it right??? Facebook celebrates its 14th year =
-anniversary.=20
-That means 14-years ago, I, Mark Zuckerberg and my pals were in our Harvard=
- dorm rooms making history,=20
-launching what would become the largest social network of all time, now rol=
-ling in billions of dollars via=20
-commercials, with company worth of over a hundred billion dollars
-To help commemorate this occasion, we are giving back to 14,000 users $14,0=
-00.00USD (Fourteen Thousand Dollars)=20
-and a grand prize of 14,000,000.USD (Fourteen Million Dollars) to 14 lucky =
-users and has launched a new feature called=20
-=E2=80=98Look Back=E2=80=99, where each user's "Look Back" compilation cont=
-ains 15 or so of your most-liked photos, statuses, and=20
-life events set to a catchy tune. Find yours at https://facebook.com/lookba=
-ck/ . It's all about 14.
-Please, get back for the verification of your details for prompt payment by=
- sending Your Unique Code (FB/BF14-13M5250UD)=20
-using your registration email, to the Verification Department at; dustinmos=
-kovitz.facebook@gmail.com
-
-Dustin Moskovitz
-Facebook Team
-Copyright =C2=A9 2018 Facebook Int'l
-
-Facebook Celebrates its 14th Year Anniversary
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 65c4b59b582f..b48e217d41fb 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -2373,13 +2373,6 @@ F:	Documentation/devicetree/bindings/input/atmel,maxtouch.txt
+ F:	drivers/input/touchscreen/atmel_mxt_ts.c
+ F:	include/linux/platform_data/atmel_mxt_ts.h
+ 
+-ATMEL NAND DRIVER
+-M:	Wenyou Yang <wenyou.yang@atmel.com>
+-M:	Josh Wu <rainyfeeling@outlook.com>
+-L:	linux-mtd@lists.infradead.org
+-S:	Supported
+-F:	drivers/mtd/nand/atmel/*
+-
+ ATMEL SAMA5D2 ADC DRIVER
+ M:	Ludovic Desroches <ludovic.desroches@microchip.com>
+ L:	linux-iio@vger.kernel.org
+@@ -9110,6 +9103,14 @@ F:	drivers/media/platform/atmel/atmel-isi.c
+ F:	include/media/atmel-isi.h
+ F:	Documentation/devicetree/bindings/media/atmel-isi.txt
+ 
++MICROCHIP / ATMEL NAND DRIVER
++M:	Wenyou Yang <wenyou.yang@microchip.com>
++M:	Josh Wu <rainyfeeling@outlook.com>
++L:	linux-mtd@lists.infradead.org
++S:	Supported
++F:	drivers/mtd/nand/atmel/*
++F:	Documentation/devicetree/bindings/mtd/atmel-nand.txt
++
+ MICROCHIP KSZ SERIES ETHERNET SWITCH DRIVER
+ M:	Woojung Huh <Woojung.Huh@microchip.com>
+ M:	Microchip Linux Driver Support <UNGLinuxDriver@microchip.com>
+-- 
+2.9.0
