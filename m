@@ -1,141 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:45374 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752773AbeA3O2D (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 30 Jan 2018 09:28:03 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Daniel Mentz <danielmentz@google.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>, stable@vger.kernel.org
-Subject: Re: [PATCHv2 10/13] v4l2-compat-ioctl32.c: copy clip list in put_v4l2_window32
-Date: Tue, 30 Jan 2018 16:28:17 +0200
-Message-ID: <4863902.8Pkeng1b4R@avalon>
-In-Reply-To: <20180130102701.13664-11-hverkuil@xs4all.nl>
-References: <20180130102701.13664-1-hverkuil@xs4all.nl> <20180130102701.13664-11-hverkuil@xs4all.nl>
+Received: from mx1.redhat.com ([209.132.183.28]:47184 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751749AbeAIV0V (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 9 Jan 2018 16:26:21 -0500
+Date: Tue, 9 Jan 2018 22:26:04 +0100
+From: Jesper Dangaard Brouer <jbrouer@redhat.com>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>,
+        Peter Zijlstra <peterz@infradead.org>,
+        Alan Stern <stern@rowland.harvard.edu>,
+        Ingo Molnar <mingo@kernel.org>,
+        Josef Griebichler <griebichler.josef@gmx.at>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        USB list <linux-usb@vger.kernel.org>,
+        Eric Dumazet <edumazet@google.com>,
+        Rik van Riel <riel@redhat.com>,
+        Paolo Abeni <pabeni@redhat.com>,
+        Hannes Frederic Sowa <hannes@redhat.com>,
+        linux-kernel <linux-kernel@vger.kernel.org>,
+        netdev <netdev@vger.kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>,
+        LMML <linux-media@vger.kernel.org>,
+        David Miller <davem@davemloft.net>
+Subject: Re: dvb usb issues since kernel 4.9
+Message-ID: <20180109222604.64d4377c@redhat.com>
+In-Reply-To: <20180109154235.2a42f0a0@vento.lan>
+References: <CA+55aFx90oOU-3R8pCeM0ESTDYhmugD5znA9LrGj1zhazWBtcg@mail.gmail.com>
+        <Pine.LNX.4.44L0.1801081354450.1908-100000@iolanthe.rowland.org>
+        <CA+55aFwuAojr7vAfiRO-2je-wDs7pu+avQZNhX_k9NN=D7_zVQ@mail.gmail.com>
+        <20180109154235.2a42f0a0@vento.lan>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
 
-Thank you for the patch.
-
-On Tuesday, 30 January 2018 12:26:58 EET Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
+On Tue, 9 Jan 2018 15:42:35 -0200 Mauro Carvalho Chehab <mchehab@s-opensource.com> wrote:
+> Em Mon, 8 Jan 2018 11:51:04 -0800 Linus Torvalds <torvalds@linux-foundation.org> escreveu:
 > 
-> put_v4l2_window32() didn't copy back the clip list to userspace.
-> Drivers can update the clip rectangles, so this should be done.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> Cc: <stable@vger.kernel.org>      # for v4.15 and up
-> ---
->  drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 59
-> ++++++++++++++++++--------- 1 file changed, 40 insertions(+), 19
-> deletions(-)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-> b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c index
-> 30c5be1f0549..0df941ca4d90 100644
-> --- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-> +++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-> @@ -50,6 +50,11 @@ struct v4l2_window32 {
-> 
->  static int get_v4l2_window32(struct v4l2_window *kp, struct v4l2_window32
-> __user *up) {
-> +	struct v4l2_clip32 __user *uclips;
-> +	struct v4l2_clip __user *kclips;
-> +	compat_caddr_t p;
-> +	u32 n;
-> +
->  	if (!access_ok(VERIFY_READ, up, sizeof(*up)) ||
->  	    copy_from_user(&kp->w, &up->w, sizeof(up->w)) ||
->  	    get_user(kp->field, &up->field) ||
-> @@ -59,38 +64,54 @@ static int get_v4l2_window32(struct v4l2_window *kp,
-> struct v4l2_window32 __user return -EFAULT;
->  	if (kp->clipcount > 2048)
->  		return -EINVAL;
-> -	if (kp->clipcount) {
-> -		struct v4l2_clip32 __user *uclips;
-> -		struct v4l2_clip __user *kclips;
-> -		int n = kp->clipcount;
-> -		compat_caddr_t p;
-> +	if (!kp->clipcount) {
-> +		kp->clips = NULL;
-> +		return 0;
-> +	}
-> 
-> -		if (get_user(p, &up->clips))
-> +	n = kp->clipcount;
-> +	if (get_user(p, &up->clips))
-> +		return -EFAULT;
-> +	uclips = compat_ptr(p);
-> +	kclips = compat_alloc_user_space(n * sizeof(*kclips));
-> +	kp->clips = kclips;
-> +	while (n--) {
-> +		if (copy_in_user(&kclips->c, &uclips->c, sizeof(uclips->c)))
->  			return -EFAULT;
-> -		uclips = compat_ptr(p);
-> -		kclips = compat_alloc_user_space(n * sizeof(*kclips));
-> -		kp->clips = kclips;
-> -		while (--n >= 0) {
-> -			if (copy_in_user(&kclips->c, &uclips->c, sizeof(uclips->c)))
-> -				return -EFAULT;
-> -			if (put_user(n ? kclips + 1 : NULL, &kclips->next))
-> -				return -EFAULT;
-> -			uclips += 1;
-> -			kclips += 1;
-> -		}
-> -	} else
-> -		kp->clips = NULL;
-> +		if (put_user(n ? kclips + 1 : NULL, &kclips->next))
-> +			return -EFAULT;
-> +		uclips++;
-> +		kclips++;
-> +	}
->  	return 0;
->  }
-> 
->  static int put_v4l2_window32(struct v4l2_window *kp, struct v4l2_window32
-> __user *up) {
-> +	struct v4l2_clip __user *kclips = kp->clips;
-> +	struct v4l2_clip32 __user *uclips;
-> +	u32 n = kp->clipcount;
-> +	compat_caddr_t p;
-> +
->  	if (copy_to_user(&up->w, &kp->w, sizeof(kp->w)) ||
->  	    put_user(kp->field, &up->field) ||
->  	    put_user(kp->chromakey, &up->chromakey) ||
->  	    put_user(kp->clipcount, &up->clipcount) ||
->  	    put_user(kp->global_alpha, &up->global_alpha))
->  		return -EFAULT;
-> +
-> +	if (!kp->clipcount)
-> +		return 0;
-> +
-> +	if (get_user(p, &up->clips))
-> +		return -EFAULT;
-> +	uclips = compat_ptr(p);
+[...]
+> Patch makes sense to me, although I was not able to test it myself.
+ 
+The patch also make sense to me.  I've done some basic testing with it
+on my high-end Broadwell system (that I use for 100Gbit/s testing). As
+expected the network overload case still works, as NET_RX_SOFTIRQ is
+not matched. 
 
-This is compat code so I don't care too much, but it would be more readable if 
-you assigned both kclips and uclips here instead of assigning kclips at the 
-beginning of the function.
+> I set a RPi3 machine here with vanilla Kernel 4.14.11 running a
+> standard raspbian distribution (with elevator=deadline).
 
-> +	while (n--) {
+I found a Raspberry Pi Model B+ (I think, BCM2835), that I loaded the
+LibreELEC distro on.  One of the guys even created an image for me with
+a specific kernel[1] (that I just upgraded the system with).
 
-Similarly a for loop would be easier to read.
+[1] https://forum.libreelec.tv/thread/4235-dvb-issue-since-le-switched-to-kernel-4-9-x/?postID=77031#post77031
+ 
+> My plan is to do more tests along this week, and try to tweak a little
+> bit both userspace and kernelspace, in order to see if I can get
+> better results.
+ 
+I've previously experienced that you can be affected by the scheduler
+granularity, which is adjustable (with CONFIG_SCHED_DEBUG=y):
 
-> +		if (copy_in_user(&uclips->c, &kclips->c, sizeof(uclips->c)))
-> +			return -EFAULT;
-> +		uclips++;
-> +		kclips++;
-> +	}
->  	return 0;
->  }
+ $ grep -H . /proc/sys/kernel/sched_*_granularity_ns
+ /proc/sys/kernel/sched_min_granularity_ns:2250000
+ /proc/sys/kernel/sched_wakeup_granularity_ns:3000000
 
+The above numbers were confirmed on the RPi2 (see[2]). With commit
+4cd13c21b207 ("softirq: Let ksoftirqd do its job"), I expect/assume that
+softirq processing latency is bounded by the sched_wakeup_granularity_ns,
+which with 3 ms is not good enough for their use-case.
+
+Thus, if you manage to reproduce the case, try to see if adjusting this
+can mitigate the issue...
+
+
+Their system have non-preempt kernel, should they use PREEMPT?
+
+ LibreELEC:~ # uname -a
+ Linux LibreELEC 4.14.10 #1 SMP Tue Jan 9 17:35:03 GMT 2018 armv7l GNU/Linux
+
+[2] https://forum.libreelec.tv/thread/4235-dvb-issue-since-le-switched-to-kernel-4-9-x/?postID=76999#post76999
 -- 
-Regards,
-
-Laurent Pinchart
+Best regards,
+  Jesper Dangaard Brouer
+  MSc.CS, Principal Kernel Engineer at Red Hat
+  LinkedIn: http://www.linkedin.com/in/brouer
