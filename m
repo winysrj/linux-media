@@ -1,232 +1,195 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:50670 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751829AbeADVmJ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 4 Jan 2018 16:42:09 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Philipp Zabel <philipp.zabel@gmail.com>
-Cc: linux-media@vger.kernel.org,
-        Nicolas Dufresne <nicolas.dufresne@collabora.com>
-Subject: Re: [PATCH] media: uvcvideo: support multiple frame descriptors with the same dimensions
-Date: Thu, 04 Jan 2018 23:42:32 +0200
-Message-ID: <1926180.iWD88b28mP@avalon>
-In-Reply-To: <20171219081735.4384-1-philipp.zabel@gmail.com>
-References: <20171219081735.4384-1-philipp.zabel@gmail.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from sub5.mail.dreamhost.com ([208.113.200.129]:35071 "EHLO
+        homiemail-a118.g.dreamhost.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751791AbeAIQik (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 9 Jan 2018 11:38:40 -0500
+From: Brad Love <brad@nextdimension.cc>
+To: linux-media@vger.kernel.org
+Cc: Brad Love <brad@nextdimension.cc>
+Subject: [PATCH 1/2] cx231xx: Add support for Hauppauge HVR-935C
+Date: Tue,  9 Jan 2018 10:38:35 -0600
+Message-Id: <1515515916-32108-2-git-send-email-brad@nextdimension.cc>
+In-Reply-To: <1515515916-32108-1-git-send-email-brad@nextdimension.cc>
+References: <1515515916-32108-1-git-send-email-brad@nextdimension.cc>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Philipp,
+HVR-935C is hybrid PAL, DVB-C/T/T2 usb device.
 
-Thank you for the patch.
+CX23102 + Si2168 + Si2157
 
-On Tuesday, 19 December 2017 10:17:35 EET Philipp Zabel wrote:
-> The Microsoft HoloLens Sensors device has two separate frame descriptors
-> with the same dimensions, each with a single different frame interval:
+Signed-off-by: Brad Love <brad@nextdimension.cc>
+---
+ drivers/media/usb/cx231xx/cx231xx-cards.c | 42 +++++++++++++++++
+ drivers/media/usb/cx231xx/cx231xx-dvb.c   | 75 +++++++++++++++++++++++++++++++
+ drivers/media/usb/cx231xx/cx231xx.h       |  1 +
+ 3 files changed, 118 insertions(+)
 
-Why, oh why ? :-(
-
->       VideoStreaming Interface Descriptor:
->         bLength                            30
->         bDescriptorType                    36
->         bDescriptorSubtype                  5 (FRAME_UNCOMPRESSED)
->         bFrameIndex                         1
->         bmCapabilities                   0x00
->           Still image unsupported
->         wWidth                           1280
->         wHeight                           481
->         dwMinBitRate                147763200
->         dwMaxBitRate                147763200
->         dwMaxVideoFrameBufferSize      615680
->         dwDefaultFrameInterval         333333
->         bFrameIntervalType                  1
->         dwFrameInterval( 0)            333333
->       VideoStreaming Interface Descriptor:
->         bLength                            30
->         bDescriptorType                    36
->         bDescriptorSubtype                  5 (FRAME_UNCOMPRESSED)
->         bFrameIndex                         2
->         bmCapabilities                   0x00
->           Still image unsupported
->         wWidth                           1280
->         wHeight                           481
->         dwMinBitRate                443289600
->         dwMaxBitRate                443289600
->         dwMaxVideoFrameBufferSize      615680
->         dwDefaultFrameInterval         111111
->         bFrameIntervalType                  1
->         dwFrameInterval( 0)            111111
-> 
-> Skip duplicate dimensions in enum_framesizes, let enum_frameintervals list
-> the intervals from both frame descriptors. Change set_streamparm to switch
-> to the correct frame index when changing the interval. This enables 90 fps
-> capture on a Lenovo Explorer Windows Mixed Reality headset.
->
-> Signed-off-by: Philipp Zabel <philipp.zabel@gmail.com>
-> ---
->  drivers/media/usb/uvc/uvc_v4l2.c | 66 +++++++++++++++++++++++++++----------
->  1 file changed, 50 insertions(+), 16 deletions(-)
-> 
-> diff --git a/drivers/media/usb/uvc/uvc_v4l2.c
-> b/drivers/media/usb/uvc/uvc_v4l2.c index 3e7e283a44a8..7d5bf8d56a99 100644
-> --- a/drivers/media/usb/uvc/uvc_v4l2.c
-> +++ b/drivers/media/usb/uvc/uvc_v4l2.c
-> @@ -373,8 +373,11 @@ static int uvc_v4l2_set_streamparm(struct uvc_streaming
-> *stream, {
->  	struct uvc_streaming_control probe;
->  	struct v4l2_fract timeperframe;
-> -	uint32_t interval;
-> +	struct uvc_format *format;
-> +	struct uvc_frame *frame;
-> +	__u32 interval, tmp, d, maxd;
-
-You can declare tmp and d inside the loop, it should simplify the code 
-slightly. Please also avoid naming the variable tmp.
-
->  	int ret;
-> +	int i;
-
-i can be unsigned.
-
->  	if (parm->type != stream->type)
->  		return -EINVAL;
-> @@ -396,9 +399,31 @@ static int uvc_v4l2_set_streamparm(struct uvc_streaming
-> *stream, return -EBUSY;
->  	}
-> 
-> +	format = stream->cur_format;
-> +	frame = stream->cur_frame;
->  	probe = stream->ctrl;
-> -	probe.dwFrameInterval =
-> -		uvc_try_frame_interval(stream->cur_frame, interval);
-> +	probe.dwFrameInterval = uvc_try_frame_interval(frame, interval);
-> +	maxd = abs((__s32)probe.dwFrameInterval - interval);
-> +
-> +	/* Try frames with matching size to find the best frame interval. */
-> +	for (i = 0; i < format->nframes; i++) {
-
-As a small optimization you can also stop when maxd == 0.
-
-> +		if (&format->frame[i] == stream->cur_frame)
-> +			continue;
-> +
-> +		if (format->frame[i].wWidth != stream->cur_frame->wWidth ||
-> +		    format->frame[i].wHeight != stream->cur_frame->wHeight)
-> +			continue;
-> +
-> +		tmp = uvc_try_frame_interval(&format->frame[i], interval);
-> +		d = abs((__s32)tmp - interval);
-> +		if (d >= maxd)
-> +			continue;
-> +
-> +		frame = &format->frame[i];
-> +		probe.bFrameIndex = frame->bFrameIndex;
-> +		probe.dwFrameInterval = tmp;
-> +		maxd = d;
-> +	}
-> 
->  	/* Probe the device with the new settings. */
->  	ret = uvc_probe_video(stream, &probe);
-> @@ -408,6 +433,7 @@ static int uvc_v4l2_set_streamparm(struct uvc_streaming
-> *stream, }
-> 
->  	stream->ctrl = probe;
-> +	stream->cur_frame = frame;
->  	mutex_unlock(&stream->mutex);
-> 
->  	/* Return the actual frame period. */
-> @@ -1150,7 +1176,7 @@ static int uvc_ioctl_enum_framesizes(struct file
-> *file, void *fh, struct uvc_streaming *stream = handle->stream;
->  	struct uvc_format *format = NULL;
->  	struct uvc_frame *frame;
-> -	int i;
-> +	int i, index;
-
-Could you declare unrelated variables on separate lines ?
-
-I think index can be unsigned (and it seems i can be as well for that matter).
-
->  	/* Look for the given pixel format */
->  	for (i = 0; i < stream->nformats; i++) {
-> @@ -1162,10 +1188,20 @@ static int uvc_ioctl_enum_framesizes(struct file
-> *file, void *fh, if (format == NULL)
->  		return -EINVAL;
-> 
-> -	if (fsize->index >= format->nframes)
-> +	/* Skip duplicate frame sizes */
-> +	for (i = 0, index = 0; i < format->nframes; i++) {
-> +		if (i && frame->wWidth == format->frame[i].wWidth &&
-> +		    frame->wHeight == format->frame[i].wHeight)
-> +			continue;
-> +		frame = &format->frame[i];
-> +		if (index == fsize->index)
-> +			break;
-> +		index++;
-> +	}
-> +
-> +	if (i == format->nframes)
->  		return -EINVAL;
-> 
-> -	frame = &format->frame[fsize->index];
->  	fsize->type = V4L2_FRMSIZE_TYPE_DISCRETE;
->  	fsize->discrete.width = frame->wWidth;
->  	fsize->discrete.height = frame->wHeight;
-> @@ -1179,7 +1215,7 @@ static int uvc_ioctl_enum_frameintervals(struct file
-> *file, void *fh, struct uvc_streaming *stream = handle->stream;
->  	struct uvc_format *format = NULL;
->  	struct uvc_frame *frame = NULL;
-> -	int i;
-> +	int i, index, nintervals;
-
-Same comments here.
-
->  	/* Look for the given pixel format and frame size */
->  	for (i = 0; i < stream->nformats; i++) {
-> @@ -1191,30 +1227,28 @@ static int uvc_ioctl_enum_frameintervals(struct file
-> *file, void *fh, if (format == NULL)
->  		return -EINVAL;
-> 
-> +	index = fival->index;
->  	for (i = 0; i < format->nframes; i++) {
->  		if (format->frame[i].wWidth == fival->width &&
->  		    format->frame[i].wHeight == fival->height) {
->  			frame = &format->frame[i];
-> -			break;
-> +			nintervals = frame->bFrameIntervalType ?: 1;
-> +			if (index < nintervals)
-> +				break;
-> +			index -= nintervals;
->  		}
->  	}
-> -	if (frame == NULL)
-> +	if (i == format->nframes)
->  		return -EINVAL;
-> 
->  	if (frame->bFrameIntervalType) {
-> -		if (fival->index >= frame->bFrameIntervalType)
-> -			return -EINVAL;
-> -
->  		fival->type = V4L2_FRMIVAL_TYPE_DISCRETE;
->  		fival->discrete.numerator =
-> -			frame->dwFrameInterval[fival->index];
-> +			frame->dwFrameInterval[index];
->  		fival->discrete.denominator = 10000000;
->  		uvc_simplify_fraction(&fival->discrete.numerator,
->  			&fival->discrete.denominator, 8, 333);
->  	} else {
-> -		if (fival->index)
-> -			return -EINVAL;
-> -
->  		fival->type = V4L2_FRMIVAL_TYPE_STEPWISE;
->  		fival->stepwise.min.numerator = frame->dwFrameInterval[0];
->  		fival->stepwise.min.denominator = 10000000;
-
-I have to say I dislike the complexity added by this patch, but it's not your 
-fault. The code itself is probably as clean as it can be :)
-
+diff --git a/drivers/media/usb/cx231xx/cx231xx-cards.c b/drivers/media/usb/cx231xx/cx231xx-cards.c
+index f9ec7fe..c2efbff 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-cards.c
++++ b/drivers/media/usb/cx231xx/cx231xx-cards.c
+@@ -922,6 +922,45 @@ struct cx231xx_board cx231xx_boards[] = {
+ 			.gpio = NULL,
+ 		} },
+ 	},
++	[CX231XX_BOARD_HAUPPAUGE_935C] = {
++		.name = "Hauppauge WinTV-HVR-935C",
++		.tuner_type = TUNER_ABSENT,
++		.tuner_addr = 0x60,
++		.tuner_gpio = RDE250_XCV_TUNER,
++		.tuner_sif_gpio = 0x05,
++		.tuner_scl_gpio = 0x1a,
++		.tuner_sda_gpio = 0x1b,
++		.decoder = CX231XX_AVDECODER,
++		.output_mode = OUT_MODE_VIP11,
++		.demod_xfer_mode = 0,
++		.ctl_pin_status_mask = 0xFFFFFFC4,
++		.agc_analog_digital_select_gpio = 0x0c,
++		.gpio_pin_status_mask = 0x4001000,
++		.tuner_i2c_master = I2C_1_MUX_3,
++		.demod_i2c_master = I2C_1_MUX_3,
++		.has_dvb = 1,
++		.demod_addr = 0x64, /* 0xc8 >> 1 */
++		.norm = V4L2_STD_PAL,
++
++		.input = {{
++			.type = CX231XX_VMUX_TELEVISION,
++			.vmux = CX231XX_VIN_3_1,
++			.amux = CX231XX_AMUX_VIDEO,
++			.gpio = NULL,
++		}, {
++			.type = CX231XX_VMUX_COMPOSITE1,
++			.vmux = CX231XX_VIN_2_1,
++			.amux = CX231XX_AMUX_LINE_IN,
++			.gpio = NULL,
++		}, {
++			.type = CX231XX_VMUX_SVIDEO,
++			.vmux = CX231XX_VIN_1_1 |
++				(CX231XX_VIN_1_2 << 8) |
++				CX25840_SVIDEO_ON,
++			.amux = CX231XX_AMUX_LINE_IN,
++			.gpio = NULL,
++		} },
++	},
+ };
+ const unsigned int cx231xx_bcount = ARRAY_SIZE(cx231xx_boards);
+ 
+@@ -953,6 +992,8 @@ struct usb_device_id cx231xx_id_table[] = {
+ 	 .driver_info = CX231XX_BOARD_HAUPPAUGE_EXETER},
+ 	{USB_DEVICE(0x2040, 0xb123),
+ 	 .driver_info = CX231XX_BOARD_HAUPPAUGE_955Q},
++	{USB_DEVICE(0x2040, 0xb151),
++	 .driver_info = CX231XX_BOARD_HAUPPAUGE_935C},
+ 	{USB_DEVICE(0x2040, 0xb130),
+ 	 .driver_info = CX231XX_BOARD_HAUPPAUGE_930C_HD_1113xx},
+ 	{USB_DEVICE(0x2040, 0xb131),
+@@ -1211,6 +1252,7 @@ void cx231xx_card_setup(struct cx231xx *dev)
+ 	case CX231XX_BOARD_HAUPPAUGE_930C_HD_1113xx:
+ 	case CX231XX_BOARD_HAUPPAUGE_930C_HD_1114xx:
+ 	case CX231XX_BOARD_HAUPPAUGE_955Q:
++	case CX231XX_BOARD_HAUPPAUGE_935C:
+ 		{
+ 			struct eeprom {
+ 				struct tveeprom tvee;
+diff --git a/drivers/media/usb/cx231xx/cx231xx-dvb.c b/drivers/media/usb/cx231xx/cx231xx-dvb.c
+index fb56540..2e6bb09 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-dvb.c
++++ b/drivers/media/usb/cx231xx/cx231xx-dvb.c
+@@ -1068,6 +1068,81 @@ static int dvb_init(struct cx231xx *dev)
+ 			   &astrometa_t2hybrid_r820t_config);
+ 		break;
+ 	}
++	case CX231XX_BOARD_HAUPPAUGE_935C:
++	{
++		struct i2c_client *client;
++		struct i2c_adapter *adapter;
++		struct i2c_board_info info = {};
++		struct si2157_config si2157_config = {};
++		struct si2168_config si2168_config = {};
++
++		/* attach demodulator chip */
++		si2168_config.ts_mode = SI2168_TS_SERIAL;
++		si2168_config.fe = &dev->dvb->frontend;
++		si2168_config.i2c_adapter = &adapter;
++		si2168_config.ts_clock_inv = true;
++
++		strlcpy(info.type, "si2168", sizeof(info.type));
++		info.addr = dev->board.demod_addr;
++		info.platform_data = &si2168_config;
++
++		request_module(info.type);
++		client = i2c_new_device(demod_i2c, &info);
++		if (client == NULL || client->dev.driver == NULL) {
++			result = -ENODEV;
++			goto out_free;
++		}
++
++		if (!try_module_get(client->dev.driver->owner)) {
++			dev_err(dev->dev,
++				"Failed to attach %s frontend.\n", info.type);
++			i2c_unregister_device(client);
++			result = -ENODEV;
++			goto out_free;
++		}
++
++		dvb->i2c_client_demod = client;
++		dev->dvb->frontend->ops.i2c_gate_ctrl = NULL;
++
++		/* define general-purpose callback pointer */
++		dvb->frontend->callback = cx231xx_tuner_callback;
++
++		/* attach tuner */
++		si2157_config.fe = dev->dvb->frontend;
++#ifdef CONFIG_MEDIA_CONTROLLER_DVB
++		si2157_config.mdev = dev->media_dev;
++#endif
++		si2157_config.if_port = 1;
++		si2157_config.inversion = true;
++
++		memset(&info, 0, sizeof(struct i2c_board_info));
++		strlcpy(info.type, "si2157", I2C_NAME_SIZE);
++		info.addr = dev->board.tuner_addr;
++		info.platform_data = &si2157_config;
++		request_module("si2157");
++
++		client = i2c_new_device(adapter, &info);
++		if (client == NULL || client->dev.driver == NULL) {
++			module_put(dvb->i2c_client_demod->dev.driver->owner);
++			i2c_unregister_device(dvb->i2c_client_demod);
++			result = -ENODEV;
++			goto out_free;
++		}
++
++		if (!try_module_get(client->dev.driver->owner)) {
++			dev_err(dev->dev,
++				"Failed to obtain %s tuner.\n",	info.type);
++			i2c_unregister_device(client);
++			module_put(dvb->i2c_client_demod->dev.driver->owner);
++			i2c_unregister_device(dvb->i2c_client_demod);
++			result = -ENODEV;
++			goto out_free;
++		}
++
++		dev->cx231xx_reset_analog_tuner = NULL;
++		dev->dvb->i2c_client_tuner = client;
++		break;
++	}
+ 	default:
+ 		dev_err(dev->dev,
+ 			"%s/2: The frontend of your DVB/ATSC card isn't supported yet\n",
+diff --git a/drivers/media/usb/cx231xx/cx231xx.h b/drivers/media/usb/cx231xx/cx231xx.h
+index 65b039c..1493192 100644
+--- a/drivers/media/usb/cx231xx/cx231xx.h
++++ b/drivers/media/usb/cx231xx/cx231xx.h
+@@ -81,6 +81,7 @@
+ #define CX231XX_BOARD_EVROMEDIA_FULL_HYBRID_FULLHD 23
+ #define CX231XX_BOARD_ASTROMETA_T2HYBRID 24
+ #define CX231XX_BOARD_THE_IMAGING_SOURCE_DFG_USB2_PRO 25
++#define CX231XX_BOARD_HAUPPAUGE_935C 26
+ 
+ /* Limits minimum and default number of buffers */
+ #define CX231XX_MIN_BUF                 4
 -- 
-Regards,
-
-Laurent Pinchart
+2.7.4
