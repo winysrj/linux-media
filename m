@@ -1,80 +1,133 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga07.intel.com ([134.134.136.100]:59830 "EHLO mga07.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750928AbeAUWtB (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 21 Jan 2018 17:49:01 -0500
-Date: Mon, 22 Jan 2018 00:48:58 +0200
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        andriy.shevchenko@linux.intel.com, alan@linux.intel.com
-Subject: Re: atomisp and g/s_parm
-Message-ID: <20180121224858.bmf32prgkqh5yht7@kekkonen.localdomain>
-References: <fdb4a3df-e7fa-9197-a64a-02be81b548bd@xs4all.nl>
+Received: from relmlor2.renesas.com ([210.160.252.172]:46888 "EHLO
+        relmlie1.idc.renesas.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1754768AbeAILuL (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 9 Jan 2018 06:50:11 -0500
+From: Fabrizio Castro <fabrizio.castro@bp.renesas.com>
+To: Hugues FRUCHET <hugues.fruchet@st.com>,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>
+CC: "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "Benjamin Gaignard" <benjamin.gaignard@linaro.org>,
+        Maxime Ripard <maxime.ripard@free-electrons.com>
+Subject: RE: [PATCH v5 0/5] Add OV5640 parallel interface and RGB565/YUYV
+ support
+Date: Tue, 9 Jan 2018 11:50:05 +0000
+Message-ID: <TY1PR06MB0895E8328AC5EB376C4556EEC0100@TY1PR06MB0895.apcprd06.prod.outlook.com>
+References: <1514973452-10464-1-git-send-email-hugues.fruchet@st.com>
+ <TY1PR06MB0895C74B45AF75CEB9F7AA4BC0130@TY1PR06MB0895.apcprd06.prod.outlook.com>
+ <a02789f0-d41c-7dfb-406c-fe29ccc0dc9e@st.com>
+In-Reply-To: <a02789f0-d41c-7dfb-406c-fe29ccc0dc9e@st.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <fdb4a3df-e7fa-9197-a64a-02be81b548bd@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
-
-On Sun, Jan 21, 2018 at 11:46:46AM +0100, Hans Verkuil wrote:
-> Hi Sakari,
-> 
-> I looked a bit closer at how atomisp uses g/s_parm. They abuse the capturemode field
-> to select video/preview/still modes on the sensor, which actually changes the list
-> of supported resolutions.
-> 
-> The following files use this:
-> 
-> i2c/atomisp-gc0310.c
-> i2c/atomisp-gc2235.c
-> i2c/atomisp-ov2680.c
-> i2c/atomisp-ov2722.c
-> i2c/ov5693/atomisp-ov5693.c
-> pci/atomisp2/atomisp_file.c
-> pci/atomisp2/atomisp_tpg.c
-> 
-> The last two have a dummy g/s_parm implementation, so are easy to fix.
-> The gc0310 and 0v2680 have identical resolution lists for all three modes, so
-> the capturemode can just be ignored and these two drivers can be simplified.
-> 
-> Looking at the higher level code it turns out that this atomisp driver appears
-> to be in the middle of a conversion from using s_parm to a V4L2_CID_RUN_MODE
-> control. If the control is present, then that will be used to set the mode,
-> otherwise it falls back to s_parm.
-> 
-> So the best solution would be if Intel can convert the remaining drivers from
-> using s_parm to the new control and then drop all code that uses s_parm to do
-> this, so g/s_parm is then only used to get/set the framerate.
-> 
-> Is this something you or a colleague can take on?
-
-I've stabbed the atomisp sensor drivers enough to remove the s_parm and
-g_parm usage there. This effectively removes the s_parm abuse, as there was
-nothing else it was being used for.
-
-The patches are here; there are no changes to your patches in the branch
-you pointed me to:
-
-<URL:https://git.linuxtv.org/sailus/media_tree.git/log/?h=sparm>
-
-I've split dropping support for certain modes in the drivers into separate
-patch; it's easy to bring them back by just reverting the patch ("staging:
-atomisp: i2c: Disable non-preview configurations") or removing the ifdefs.
-I don't object merging this with the previous patch either.
-
-What comes to the run mode control --- this logic should have always
-resided in user space; that control (and s_parm hack) is basically getting
-around lack of support for MC / V4L2 sub-device interface in the driver. So
-that control isn't the right solution either going forward.
-
-Cc Andy and Alan.
-
--- 
-Regards,
-
-Sakari Ailus
-sakari.ailus@linux.intel.com
+SGVsbG8gSHVndWVzLA0KDQp0aGFuayB5b3UgZm9yIGdldHRpbmcgYmFjayB0byBtZSwgSSdsbCBs
+b29rIGludG8geW91ciBzdWdnZXN0aW9ucyBpbiB0aGUgbmV4dCBmZXcgZGF5cywgSSdsbCBnaXZl
+IHlvdSBhIGZlZWRiYWNrIGFzIHNvb24gYXMgSSBrbm93IG1vcmUuDQoNClRoYW5rcywNCkZhYg0K
+DQo+IFN1YmplY3Q6IFJlOiBbUEFUQ0ggdjUgMC81XSBBZGQgT1Y1NjQwIHBhcmFsbGVsIGludGVy
+ZmFjZSBhbmQgUkdCNTY1L1lVWVYgc3VwcG9ydA0KPg0KPiBIaSBGYWJyaXppbywNCj4NCj4gSGFw
+cHkgdG8gc2VlIHRoYXQgdGhpcyBwYXRjaCBzZXJpZXMgaXMgb2YgaW50ZXJlc3QgOykNCj4NCj4g
+QXMgeW91IGNhbiBzZWUgaW4gbWFpbCB0aHJlYWQsIE1heGltZSBSaXBhcmQgaXMgYWxzbyB0ZXN0
+aW5nIGl0Og0KPiBodHRwczovL3d3dy5tYWlsLWFyY2hpdmUuY29tL2xpbnV4LW1lZGlhQHZnZXIu
+a2VybmVsLm9yZy9tc2cxMjQzMjIuaHRtbA0KPg0KPiBGb3IgQlQ2NTYgc3VwcG9ydCwgaXQgd2Fz
+IG5vdCBpbml0aWFsbHkgcGxhbm5lZCBidXQgaXQgc2VlbXMNCj4gc3RyYWlnaHRmb3J3YXJkIHRv
+IGNvZGUgaXQsIGFuZCBhbnl3YXkgSSBoYXZlIHRvIGFkZCBKUEVHIHN1cHBvcnQsIHNvIEkNCj4g
+Y291bGQgYWRkIEJUNjU2IHN1cHBvcnQgaW4gbmV4dCBwYXRjaCBzZXJpZXMuDQo+DQo+IEZvciB5
+b3VyIHN5bXB0b20sIEkgd291bGQgc2F5IHNhbWUgYXMgSSBzYWlkIHRvIE1heGltZSwgY2hlY2sg
+Zmlyc3QgdGhlDQo+IHBvbGFyaXR5IG9mIHN5bmMgc2lnbmFscyAoaHlzbmMvdnlzbmMvcGNsaykg
+YmV0d2VlbiBJU1AgYW5kIE9WNTY0MC4NCj4gTm90ZSBhbHNvIHRoYXQgc2V2ZXJhbCBmcmFtZXMg
+YXJlIG5lZWRlZCB0byBnZXQgYSBub24tYmxhY2sgcGljdHVyZS4NCj4gWW91IGNhbiBhbHNvIHVz
+ZSB0aGUgY29sb3JiYXIgdGVzdCB0byB2YWxpZGF0ZSBidXMgY29ubmVjdGlvbiBiZXR3ZWVuDQo+
+IElTUCBhbmQgc2Vuc29yLg0KPg0KPiBIZXJlIGFyZSB0aGUgeWF2dGEgY29tbWFuZHMgdGhhdCBJ
+J20gY29tbW9ubHkgdXNpbmc6DQo+DQo+ICogZ3JhYiBRVkdBIFJHQjU2NSByYXcgZnJhbWUgKG5v
+dGUgdGhlIHNraXA9MTAgdG8gZ2V0IGEgY29ycmVjdCBpbWFnZSkNCj4geWF2dGEgLXMgMzIweDI0
+MCAtbiAzIC0tY2FwdHVyZT0xMyAtLXNraXA9MTAgLS1mb3JtYXQ9UkdCNTY1IC9kZXYvdmlkZW8w
+DQo+IC0tZmlsZT1ncmFiLTMyMHgyNDAtcmdiNTY1LSMucmF3DQo+DQo+ICogZ3JhYiBRVkdBIFlV
+ViBmcmFtZQ0KPiB5YXZ0YSAtcyAzMjB4MjQwIC1uIDMgLS1jYXB0dXJlPTEzIC0tc2tpcD0xMCAt
+LWZvcm1hdD1ZVVlWIC9kZXYvdmlkZW8wDQo+IC0tZmlsZT1ncmFiLTMyMHgyNDAteXV5di0jLnJh
+dw0KPg0KPiAqIGdyYWIgUVZHQSBjb2xvcmJhciBSR0I1NjUgcmF3IGZyYW1lDQo+IHlhdnRhIC1z
+IDMyMHgyNDAgLW4gMyAtdyAnMHgwMDlmMDkwMyAxJyAtLWNhcHR1cmU9MSAtLWZvcm1hdD1SR0I1
+NjUNCj4gL2Rldi92aWRlbzAgLS1maWxlPWdyYWItY29sb3JiYXItMzIweDI0MC1yZ2I1NjUtIy5y
+YXcNCj4NCj4gKiBkaXNhYmxlIGNvbG9yYmFycw0KPiB5YXZ0YSAtcyAzMjB4MjQwIC1uIDMgLXcg
+JzB4MDA5ZjA5MDMgMCcgL2Rldi92aWRlbzANCj4NCj4NCj4gSG9wZSB0aGlzIHdpbGwgaGVscCAh
+DQo+DQo+IEJlc3QgcmVnYXJkcywNCj4gSHVndWVzLg0KPg0KPiBPbiAwMS8wOC8yMDE4IDA5OjU0
+IFBNLCBGYWJyaXppbyBDYXN0cm8gd3JvdGU6DQo+ID4gSGVsbG8gSHVndWVzLA0KPiA+DQo+ID4g
+dGhhbmsgeW91IGZvciB0aGUgcGF0Y2ggc2VyaWVzLg0KPiA+IEkgYW0gaGF2aW5nIGEgZ28gd2l0
+aCB5b3VyIHBhdGNoZXMsIGFuZCBhbHRob3VnaCB0aGV5IHNlZW0gYWxyaWdodCwgSSBkb24ndCBz
+ZWVtIHRvIGJlIGFibGUgdG8gZ3JhYiBhIG5vbi1ibGFjayBwaWN0dXJlIG9uIHRoZSBpV2F2ZQ0K
+PiBpd2cyMGQgaW4gcGxhaW4gRFZQIG1vZGUsIGJ1dCBpZiBJIHN3aXRjaCB0byBCVDY1NiBqdXN0
+IGJ5IHNldHRpbmcgcmVnaXN0ZXIgMHg0NzMwIHRvIDB4MDEgKEkga25vdywgaXQncyBhIG5hc3R5
+IGhhY2suLi4pIEkgY2FuIGdldA0KPiBzb21ldGhpbmcgc2Vuc2libGUgb3V0Lg0KPiA+DQo+ID4g
+QXQgdGhlIG1vbWVudCB0aGVyZSBpcyBubyBwcm9wZXIgQlQ2NTYgc3VwcG9ydCBpbiB0aGUgZHJp
+dmVyLCBJIHdhcyB3b25kZXJpbmcgaWYgeW91IGhhdmUgYW55IHBsYW5zIHRvIGVuaGFuY2UgdGhl
+IG92NTY0MCBkcml2ZXIgYQ0KPiBsaXR0bGUgYml0IGZ1cnRoZXIgdG8gYWRkIHByb3BlciBCVDY1
+NiBzdXBwb3J0IGFzIGl0IG1heSBiZSBjb252ZW5pZW50Lg0KPiA+DQo+ID4gRG8geW91IGtub3cg
+aWYgc29tZW9uZSBlbHNlIHdhcyBhYmxlIHRvIGdldCBEVlAgdG8gd29yayBieSBtZWFucyBvZiB0
+aGlzIHBhdGNoIHNlcmllcyBvbiBhIG5vbi1TVE0zMiBwbGF0Zm9ybT8NCj4gPg0KPiA+IFRoYW5r
+cywNCj4gPiBGYWJyaXppbw0KPiA+DQo+ID4NCj4gPj4gU3ViamVjdDogW1BBVENIIHY1IDAvNV0g
+QWRkIE9WNTY0MCBwYXJhbGxlbCBpbnRlcmZhY2UgYW5kIFJHQjU2NS9ZVVlWIHN1cHBvcnQNCj4g
+Pj4NCj4gPj4gRW5oYW5jZSBPVjU2NDAgQ1NJIGRyaXZlciB0byBzdXBwb3J0IGFsc28gRFZQIHBh
+cmFsbGVsIGludGVyZmFjZS4NCj4gPj4gQWRkIFJHQjU2NSAoTEUgJiBCRSkgYW5kIFlVVjQyMiBZ
+VVlWIGZvcm1hdCBpbiBhZGRpdGlvbiB0byBleGlzdGluZw0KPiA+PiBZVVY0MjIgVVlWWSBmb3Jt
+YXQuDQo+ID4+IFNvbWUgb3RoZXIgaW1wcm92ZW1lbnRzIG9uIGNoaXAgaWRlbnRpZmllciBjaGVj
+ayBhbmQgcmVtb3ZhbA0KPiA+PiBvZiB3YXJuaW5ncyBpbiBwb3dlcmluZyBwaGFzZSBhcm91bmQg
+Z3BpbyBoYW5kbGluZy4NCj4gPj4NCj4gPj4gPT09PT09PT09PT0NCj4gPj4gPSBoaXN0b3J5ID0N
+Cj4gPj4gPT09PT09PT09PT0NCj4gPj4gdmVyc2lvbiA1Og0KPiA+PiAgICAtIFJlZmluZSBiaW5k
+aW5ncyBhcyBwZXIgU2FrYXJpIHN1Z2dlc3Rpb246DQo+ID4+ICAgICAgaHR0cHM6Ly93d3cubWFp
+bC1hcmNoaXZlLmNvbS9saW51eC1tZWRpYUB2Z2VyLmtlcm5lbC5vcmcvbXNnMTI0MDQ4Lmh0bWwN
+Cj4gPj4NCj4gPj4gdmVyc2lvbiA0Og0KPiA+PiAgICAtIFJlZmluZSBiaW5kaW5ncyBhcyBwZXIg
+U2FrYXJpIHN1Z2dlc3Rpb246DQo+ID4+ICAgICAgaHR0cHM6Ly93d3cubWFpbC1hcmNoaXZlLmNv
+bS9saW51eC1tZWRpYUB2Z2VyLmtlcm5lbC5vcmcvbXNnMTIzNjA5Lmh0bWwNCj4gPj4gICAgLSBQ
+YXJhbGxlbCBwb3J0IGNvbnRyb2wgbGluZXMgcG9sYXJpdHkgY2FuIG5vdyBiZSBjb25maWd1cmVk
+IHRocm91Z2gNCj4gPj4gICAgICBkZXZpY2V0cmVlDQo+ID4+DQo+ID4+IHZlcnNpb24gMzoNCj4g
+Pj4gICAgLSBNb3ZlIGNoaXAgaWRlbnRpZmllciBjaGVjayBhdCBwcm9iZSBhY2NvcmRpbmcgdG8g
+RmFiaW8gRXN0ZXZhbSBjb21tZW50Og0KPiA+PiAgICAgIGh0dHBzOi8vd3d3Lm1haWwtYXJjaGl2
+ZS5jb20vbGludXgtbWVkaWFAdmdlci5rZXJuZWwub3JnL21zZzEyMjU3NS5odG1sDQo+ID4+ICAg
+IC0gVXNlIDE2IGJpdHMgcmVnaXN0ZXIgcmVhZCBmb3IgdGhpcyBjaGVjayBhcyBwZXIgU3RldmUg
+TG9uZ2VyYmVhbSBjb21tZW50Og0KPiA+PiAgICAgIGh0dHBzOi8vd3d3Lm1haWwtYXJjaGl2ZS5j
+b20vbGludXgtbWVkaWFAdmdlci5rZXJuZWwub3JnL21zZzEyMjY5Mi5odG1sDQo+ID4+ICAgIC0g
+VXBkYXRlIGJpbmRpbmdzIHRvIGRvY3VtZW50IHBhcmFsbGVsIG1vZGUgc3VwcG9ydCBhcyBwZXIg
+RmFiaW8gRXN0ZXZhbSBjb21tZW50Og0KPiA+PiAgICAgIGh0dHBzOi8vd3d3Lm1haWwtYXJjaGl2
+ZS5jb20vbGludXgtbWVkaWFAdmdlci5rZXJuZWwub3JnL21zZzEyMjU3Ni5odG1sDQo+ID4+ICAg
+IC0gRW5hYmxlIHRoZSB3aG9sZSAxMCBiaXRzIHBhcmFsbGVsIG91dHB1dCBhbmQgZG9jdW1lbnQg
+OC8xMCBiaXRzIHN1cHBvcnQNCj4gPj4gICAgICBpbiBvdjU2NDBfc2V0X3N0cmVhbV9kdnAoKSB0
+byBhbnN3ZXIgdG8gU3RldmUgTG9uZ2VyYmVhbSBjb21tZW50Og0KPiA+PiAgICAgIGh0dHBzOi8v
+d3d3Lm1haWwtYXJjaGl2ZS5jb20vbGludXgtbWVkaWFAdmdlci5rZXJuZWwub3JnL21zZzEyMjY5
+My5odG1sDQo+ID4+DQo+ID4+IHZlcnNpb24gMjoNCj4gPj4gICAgLSBGaXggY29tbWVudHMgZnJv
+bSBTYWthcmkgQWlsdXM6DQo+ID4+ICAgICAgaHR0cHM6Ly93d3cubWFpbC1hcmNoaXZlLmNvbS9s
+aW51eC1tZWRpYUB2Z2VyLmtlcm5lbC5vcmcvbXNnMTIyMjU5Lmh0bWwNCj4gPj4gICAgLSBSZXZp
+c2l0IG92NTY0MF9zZXRfc3RyZWFtX2R2cCgpIHRvIG9ubHkgY29uZmlndXJlIERWUCBhdCBzdHJl
+YW1vbg0KPiA+PiAgICAtIFJldmlzaXQgb3Y1NjQwX3NldF9zdHJlYW1fZHZwKCkgaW1wbGVtZW50
+YXRpb24gd2l0aCBmZXdlciByZWdpc3RlciBzZXR0aW5ncw0KPiA+Pg0KPiA+PiB2ZXJzaW9uIDE6
+DQo+ID4+ICAgIC0gSW5pdGlhbCBzdWJtaXNzaW9uDQo+ID4+DQo+ID4+IEh1Z3VlcyBGcnVjaGV0
+ICg1KToNCj4gPj4gICAgbWVkaWE6IG92NTY0MDogc3dpdGNoIHRvIGdwaW9kX3NldF92YWx1ZV9j
+YW5zbGVlcCgpDQo+ID4+ICAgIG1lZGlhOiBvdjU2NDA6IGNoZWNrIGNoaXAgaWQNCj4gPj4gICAg
+bWVkaWE6IGR0LWJpbmRpbmdzOiBvdjU2NDA6IHJlZmluZSBDU0ktMiBhbmQgYWRkIHBhcmFsbGVs
+IGludGVyZmFjZQ0KPiA+PiAgICBtZWRpYTogb3Y1NjQwOiBhZGQgc3VwcG9ydCBvZiBEVlAgcGFy
+YWxsZWwgaW50ZXJmYWNlDQo+ID4+ICAgIG1lZGlhOiBvdjU2NDA6IGFkZCBzdXBwb3J0IG9mIFJH
+QjU2NSBhbmQgWVVZViBmb3JtYXRzDQo+ID4+DQo+ID4+ICAgLi4uL2RldmljZXRyZWUvYmluZGlu
+Z3MvbWVkaWEvaTJjL292NTY0MC50eHQgICAgICAgfCAgNDYgKystDQo+ID4+ICAgZHJpdmVycy9t
+ZWRpYS9pMmMvb3Y1NjQwLmMgICAgICAgICAgICAgICAgICAgICAgICAgfCAzMjUgKysrKysrKysr
+KysrKysrKysrLS0tDQo+ID4+ICAgMiBmaWxlcyBjaGFuZ2VkLCAzMjQgaW5zZXJ0aW9ucygrKSwg
+NDcgZGVsZXRpb25zKC0pDQo+ID4+DQo+ID4+IC0tDQo+ID4+IDEuOS4xDQo+ID4+DQo+ID4+IC0t
+DQo+ID4+IFRvIHVuc3Vic2NyaWJlIGZyb20gdGhpcyBsaXN0OiBzZW5kIHRoZSBsaW5lICJ1bnN1
+YnNjcmliZSBkZXZpY2V0cmVlIiBpbg0KPiA+PiB0aGUgYm9keSBvZiBhIG1lc3NhZ2UgdG8gbWFq
+b3Jkb21vQHZnZXIua2VybmVsLm9yZw0KPiA+PiBNb3JlIG1ham9yZG9tbyBpbmZvIGF0ICBodHRw
+Oi8vdmdlci5rZXJuZWwub3JnL21ham9yZG9tby1pbmZvLmh0bWwNCj4gPg0KPiA+DQo+ID4NCj4g
+PiBSZW5lc2FzIEVsZWN0cm9uaWNzIEV1cm9wZSBMdGQsIER1a2VzIE1lYWRvdywgTWlsbGJvYXJk
+IFJvYWQsIEJvdXJuZSBFbmQsIEJ1Y2tpbmdoYW1zaGlyZSwgU0w4IDVGSCwgVUsuIFJlZ2lzdGVy
+ZWQgaW4gRW5nbGFuZA0KPiAmIFdhbGVzIHVuZGVyIFJlZ2lzdGVyZWQgTm8uIDA0NTg2NzA5Lg0K
+PiA+DQoNCg0KDQpSZW5lc2FzIEVsZWN0cm9uaWNzIEV1cm9wZSBMdGQsIER1a2VzIE1lYWRvdywg
+TWlsbGJvYXJkIFJvYWQsIEJvdXJuZSBFbmQsIEJ1Y2tpbmdoYW1zaGlyZSwgU0w4IDVGSCwgVUsu
+IFJlZ2lzdGVyZWQgaW4gRW5nbGFuZCAmIFdhbGVzIHVuZGVyIFJlZ2lzdGVyZWQgTm8uIDA0NTg2
+NzA5Lg0K
