@@ -1,88 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:43080 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932867AbeAKPpZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 11 Jan 2018 10:45:25 -0500
-Subject: Re: [PATCH] media: v4l2-core: v4l2-mc: Add SPDX license identifier
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: mchehab@kernel.org, shuah@kernel.org, sakari.ailus@linux.intel.com,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Shuah Khan <shuahkh@osg.samsung.com>
-References: <20180110163540.8396-1-shuahkh@osg.samsung.com>
- <20180110163540.8396-2-shuahkh@osg.samsung.com> <2473844.IFKS5XRpDA@avalon>
-From: Shuah Khan <shuahkh@osg.samsung.com>
-Message-ID: <9e7fdf1e-64f5-093a-e1ad-a64653791429@osg.samsung.com>
-Date: Thu, 11 Jan 2018 08:45:15 -0700
+Received: from mail-wr0-f195.google.com ([209.85.128.195]:42548 "EHLO
+        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752264AbeAIR1q (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 9 Jan 2018 12:27:46 -0500
+Received: by mail-wr0-f195.google.com with SMTP id w107so14907114wrb.9
+        for <linux-media@vger.kernel.org>; Tue, 09 Jan 2018 09:27:45 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <2473844.IFKS5XRpDA@avalon>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <trinity-920967ce-ab0f-4535-8557-f82a7e667a79-1515516669310@3c-app-gmx-bs24>
+References: <20180107090336.03826df2@vento.lan> <Pine.LNX.4.44L0.1801071010540.13425-100000@netrider.rowland.org>
+ <20180108074324.3c153189@vento.lan> <trinity-c7ec7cbd-a186-4a2a-bcb6-cce8993d6a90-1515428770628@3c-app-gmx-bs32>
+ <20180108223109.66c91554@redhat.com> <20180108214427.GT29822@worktop.programming.kicks-ass.net>
+ <20180108231656.3bbd1968@redhat.com> <trinity-920967ce-ab0f-4535-8557-f82a7e667a79-1515516669310@3c-app-gmx-bs24>
+From: Eric Dumazet <edumazet@google.com>
+Date: Tue, 9 Jan 2018 09:27:43 -0800
+Message-ID: <CANn89iJqRH4uzFJVKyPxc8dN38z319C1O18nTJ-CCidtuOH2+g@mail.gmail.com>
+Subject: Re: Re: dvb usb issues since kernel 4.9
+To: Josef Griebichler <griebichler.josef@gmx.at>
+Cc: Jesper Dangaard Brouer <jbrouer@redhat.com>,
+        Peter Zijlstra <peterz@infradead.org>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Alan Stern <stern@rowland.harvard.edu>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        linux-usb@vger.kernel.org, Rik van Riel <riel@redhat.com>,
+        Paolo Abeni <pabeni@redhat.com>,
+        Hannes Frederic Sowa <hannes@redhat.com>,
+        linux-kernel <linux-kernel@vger.kernel.org>,
+        netdev <netdev@vger.kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>,
+        LMML <linux-media@vger.kernel.org>,
+        David Miller <davem@davemloft.net>,
+        Linus Torvalds <torvalds@linux-foundation.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/11/2018 05:55 AM, Laurent Pinchart wrote:
-> Hi Shuah,
-> 
-> Thank you for the patch.
-> 
-> On Wednesday, 10 January 2018 18:35:36 EET Shuah Khan wrote:
->> Replace GPL license statement with SPDX GPL-2.0 license identifier.
->>
->> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
->> ---
->>  drivers/media/v4l2-core/v4l2-mc.c | 11 +----------
->>  1 file changed, 1 insertion(+), 10 deletions(-)
->>
->> diff --git a/drivers/media/v4l2-core/v4l2-mc.c
->> b/drivers/media/v4l2-core/v4l2-mc.c index 303980b71aae..1297132acd4e 100644
->> --- a/drivers/media/v4l2-core/v4l2-mc.c
->> +++ b/drivers/media/v4l2-core/v4l2-mc.c
->> @@ -1,3 +1,4 @@
->> +/* SPDX-License-Identifier: GPL-2.0 */
-> 
-> The header doesn't match the existing license.
+On Tue, Jan 9, 2018 at 8:51 AM, Josef Griebichler
+<griebichler.josef@gmx.at> wrote:
+> Hi Linus,
+>
+> your patch works very good for me and others (please see https://forum.libreelec.tv/thread/4235-dvb-issue-since-le-switched-to-kernel-4-9-x/?postID=77006#post77006). No errors in recordings any more.
+> The patch was also tested on x86_64 (Revo 3700) with positive effect.
+> I agree with the forum poster, that there's still an issue when recording and watching livetv at same time. I also get audio dropouts and audio is out of sync.
+> According to user smp kernel 4.9.73 with your patch on rpi and according to user jahutchi kernel 4.11.12 on x86_64 have no such issues.
+> I don't know if this dropouts are related to this topic.
+>
+> If of any help I could provide perf output on raspberry with libreelec and tvheadend.
+>
 
-When I added the file, I must have cut and pasted the license statement
-from another file. More on this below the deleted license lines.
+Sorry to come late to the party.
 
-> 
-> Furthermore, unless I'm mistaken, the standard comment style for SPDX headers 
-> in the kernel is //, not /* ... */
+It seems problem comes from some piece of hardware/driver having some
+precise timing prereq, and opportunistic use of softirq/tasklet
+(instead maybe of hard irq handlers )
 
-Looks like we have 3 conventions for SPDX comment style.
-/* ... */ for headers and # ... for shell scripts and
-// for .c files.
+While it is true that softirq might do the job in most cases, we
+already have cases where this can be easily defeated,
+say if one cpu has suddenly to handle multiple sources of interrupts
+for various devices.
+NET_RX can easily lock the cpu for 10ms (on HZ=100 builds)
 
-I can update it it and send v2 provided we think the change is inline
-with the original license.
+So yes, commit 4cd13c21b207 ("softirq: Let ksoftirqd do its job") has
+shown up multiple times in various 'regressions'
+simply because it could surface the problem more often.
+But even if you revert it, you can still make the faulty
+driver/subsystem misbehave by adding more stress to the cpu handling
+the IRQ.
 
-> 
->>  /*
->>   * Media Controller ancillary functions
->>   *
->> @@ -5,16 +6,6 @@
->>   * Copyright (C) 2016 Shuah Khan <shuahkh@osg.samsung.com>
->>   * Copyright (C) 2006-2010 Nokia Corporation
->>   * Copyright (c) 2016 Intel Corporation.
->> - *
->> - *  This program is free software; you can redistribute it and/or modify
->> - *  it under the terms of the GNU General Public License as published by
->> - *  the Free Software Foundation; either version 2 of the License, or
->> - *  (at your option) any later version.
+Note that networking lacks fine control of its softirq processing.
+Some people found/complained that relying more on ksoftirqd was
+potentially adding tail latencies.
 
-Are you concerned about the "or (at your option) any later version." part
-that it doesn't match?
+Maybe the answer is to tune the kernel for small latencies at the
+price of small throughput (situation before the patch)
 
->> - *
->> - *  This program is distributed in the hope that it will be useful,
->> - *  but WITHOUT ANY WARRANTY; without even the implied warranty of
->> - *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
->> - *  GNU General Public License for more details.
->>   */
->>
->>  #include <linux/module.h>
-> 
-
-thanks,
--- Shuah
+1) Revert the patch
+2) get rid of ksoftirqd since it adds unexpected latencies.
+3) Let applications that expect to have high throughput make sure to
+pin their threads on cpus that are not processing IRQ.
+    (And make sure to not use irqbalance, and setup IRQ cpu affinities)
