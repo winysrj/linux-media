@@ -1,64 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f48.google.com ([74.125.82.48]:41211 "EHLO
-        mail-wm0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751086AbeAYRII (ORCPT
+Received: from o1678950229.outbound-mail.sendgrid.net ([167.89.50.229]:22958
+        "EHLO o1678950229.outbound-mail.sendgrid.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751667AbeAINJy (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 25 Jan 2018 12:08:08 -0500
-Received: by mail-wm0-f48.google.com with SMTP id f71so15949175wmf.0
-        for <linux-media@vger.kernel.org>; Thu, 25 Jan 2018 09:08:08 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <d76143d2-5c7d-87ca-3f2f-1a73778b400f@gmail.com>
-References: <50e5ba3c-4e32-f2e4-7844-150eefdf71b5@web.de> <d693cf1b-de3d-5994-5ef0-eeb0e37065a3@web.de>
- <20170827073040.6e96d79a@vento.lan> <e9d87f55-18fc-e57b-f9aa-a41c7f983b34@web.de>
- <20170909181123.392cfbb0@vento.lan> <a44b8eb0-cdd5-aa28-ad30-68db0126b6f6@web.de>
- <20170916125042.78c4abad@recife.lan> <fab215f8-29f3-1857-6f33-c45e78bb5e3c@web.de>
- <7c17c0a1-1c98-1272-8430-4a194b658872@gmail.com> <20171127092408.20de0fe0@vento.lan>
- <e2076533-5c33-f3be-b438-a1616f743a92@gmail.com> <20171202174922.34a6f9b9@vento.lan>
- <ce4f25e6-7d75-2391-d685-35b50a0639bb@web.de> <335e279e-d498-135f-8077-770c77cf353b@gmail.com>
- <5070ebf3-79a9-571e-d56c-cee41b51f191@gmail.com> <CAObVMRvxT_=LmO-mJNPRewQq05PqMHpD83m1UBoK+QiBSwqUNw@mail.gmail.com>
- <d76143d2-5c7d-87ca-3f2f-1a73778b400f@gmail.com>
-From: Jemma Denson <jdenson@gmail.com>
-Date: Thu, 25 Jan 2018 17:08:06 +0000
-Message-ID: <CAObVMRtD0+qQzqo8Bp8k+9q=BuZcrFK0JAHYFBs3EO=iL+rW7A@mail.gmail.com>
-Subject: Re: SAA716x DVB driver
-To: =?UTF-8?Q?Tycho_L=C3=BCrsen?= <tycholursen@gmail.com>,
-        Soeren Moch <smoch@web.de>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Luis Alves <ljalvs@gmail.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+        Tue, 9 Jan 2018 08:09:54 -0500
+From: Kieran Bingham <kieran.bingham@ideasonboard.com>
+To: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+        laurent@vger.kernel.org,
+        Olivier BRAUN <olivier.braun@stereolabs.com>,
+        Troy Kisky <troy.kisky@boundarydevices.com>,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>
+Subject: [RFT PATCH v2 3/6] uvcvideo: Protect queue internals with helper
+Date: Tue, 09 Jan 2018 13:09:53 +0000 (UTC)
+Message-Id: <0f14323f98ca64dd828514577167dc232a33a8ad.1515501206.git-series.kieran.bingham@ideasonboard.com>
+In-Reply-To: <cover.99b809a1c1f6238bb8c0a2c8b0bc7b49dd777d94.1515501206.git-series.kieran.bingham@ideasonboard.com>
+References: <cover.99b809a1c1f6238bb8c0a2c8b0bc7b49dd777d94.1515501206.git-series.kieran.bingham@ideasonboard.com>
+In-Reply-To: <cover.99b809a1c1f6238bb8c0a2c8b0bc7b49dd777d94.1515501206.git-series.kieran.bingham@ideasonboard.com>
+References: <cover.99b809a1c1f6238bb8c0a2c8b0bc7b49dd777d94.1515501206.git-series.kieran.bingham@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Tycho,
+The URB completion operation obtains the current buffer by reading
+directly into the queue internal interface.
 
-On 20/01/18 15:49, Tycho L=C3=BCrsen wrote:
-> Right, but we still need a maintainer. Are you capable/willing to
-> volunteer for the job?
+Protect this queue abstraction by providing a helper
+uvc_queue_get_current_buffer() which can be used by both the decode
+task, and the uvc_queue_next_buffer() functions.
 
-If no-one else will then yes I can, but I can't claim to know these devices
-inside out. It would really depend on what's required of a maintainer, I'm
-struggling to find this documented anywhere.
+Signed-off-by: Kieran Bingham <kieran.bingham@ideasonboard.com>
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-Cards I can't test with would really need someone to be able to add a
-tested-by to verify they work.
+---
 
->>
->>> I think that your proposal to use a stripped version of Luis Alves
->>> repo is a no go, since it contains a couple of demod/tuner drivers
->>> that are not upstreamed yet. That complicates the upstreaming process
->>> too much, I think.
->> Oh, I would have stripped it *right* down and removed every card except
->> my TBS6280. The end result would probably be pretty close to Soeren's at
->> that point anyway, so I was starting to think like what you've done and
->> base it on that instead.
-> If you want, I can strip the driver down a lot more and ad back the
-> drivers you need. Just tell me what it is you need.
+v2:
+ - Fix coding style of conditional statements
 
-As above, it's really just a case of making it maintainable. If someone
-can step forward and ack for them working then they could be included
-but if not then I think it's best dropping them until that happens.
+ drivers/media/usb/uvc/uvc_queue.c | 33 +++++++++++++++++++++++++++-----
+ drivers/media/usb/uvc/uvc_video.c |  7 +------
+ drivers/media/usb/uvc/uvcvideo.h  |  2 ++-
+ 3 files changed, 31 insertions(+), 11 deletions(-)
 
-
-Jemma.
+diff --git a/drivers/media/usb/uvc/uvc_queue.c b/drivers/media/usb/uvc/uvc_queue.c
+index c8d78b2f3de4..4a581d631525 100644
+--- a/drivers/media/usb/uvc/uvc_queue.c
++++ b/drivers/media/usb/uvc/uvc_queue.c
+@@ -399,6 +399,33 @@ void uvc_queue_cancel(struct uvc_video_queue *queue, int disconnect)
+ 	spin_unlock_irqrestore(&queue->irqlock, flags);
+ }
+ 
++/*
++ * uvc_queue_get_current_buffer: Obtain the current working output buffer
++ *
++ * Buffers may span multiple packets, and even URBs, therefore the active buffer
++ * remains on the queue until the EOF marker.
++ */
++static struct uvc_buffer *
++__uvc_queue_get_current_buffer(struct uvc_video_queue *queue)
++{
++	if (list_empty(&queue->irqqueue))
++		return NULL;
++
++	return list_first_entry(&queue->irqqueue, struct uvc_buffer, queue);
++}
++
++struct uvc_buffer *uvc_queue_get_current_buffer(struct uvc_video_queue *queue)
++{
++	struct uvc_buffer *nextbuf;
++	unsigned long flags;
++
++	spin_lock_irqsave(&queue->irqlock, flags);
++	nextbuf = __uvc_queue_get_current_buffer(queue);
++	spin_unlock_irqrestore(&queue->irqlock, flags);
++
++	return nextbuf;
++}
++
+ struct uvc_buffer *uvc_queue_next_buffer(struct uvc_video_queue *queue,
+ 		struct uvc_buffer *buf)
+ {
+@@ -415,11 +442,7 @@ struct uvc_buffer *uvc_queue_next_buffer(struct uvc_video_queue *queue,
+ 
+ 	spin_lock_irqsave(&queue->irqlock, flags);
+ 	list_del(&buf->queue);
+-	if (!list_empty(&queue->irqqueue))
+-		nextbuf = list_first_entry(&queue->irqqueue, struct uvc_buffer,
+-					   queue);
+-	else
+-		nextbuf = NULL;
++	nextbuf = __uvc_queue_get_current_buffer(queue);
+ 	spin_unlock_irqrestore(&queue->irqlock, flags);
+ 
+ 	buf->state = buf->error ? UVC_BUF_STATE_ERROR : UVC_BUF_STATE_DONE;
+diff --git a/drivers/media/usb/uvc/uvc_video.c b/drivers/media/usb/uvc/uvc_video.c
+index 92bd0952a66e..3878bec3276e 100644
+--- a/drivers/media/usb/uvc/uvc_video.c
++++ b/drivers/media/usb/uvc/uvc_video.c
+@@ -1322,7 +1322,6 @@ static void uvc_video_complete(struct urb *urb)
+ 	struct uvc_streaming *stream = uvc_urb->stream;
+ 	struct uvc_video_queue *queue = &stream->queue;
+ 	struct uvc_buffer *buf = NULL;
+-	unsigned long flags;
+ 	int ret;
+ 
+ 	switch (urb->status) {
+@@ -1343,11 +1342,7 @@ static void uvc_video_complete(struct urb *urb)
+ 		return;
+ 	}
+ 
+-	spin_lock_irqsave(&queue->irqlock, flags);
+-	if (!list_empty(&queue->irqqueue))
+-		buf = list_first_entry(&queue->irqqueue, struct uvc_buffer,
+-				       queue);
+-	spin_unlock_irqrestore(&queue->irqlock, flags);
++	buf = uvc_queue_get_current_buffer(queue);
+ 
+ 	stream->decode(uvc_urb, buf);
+ 
+diff --git a/drivers/media/usb/uvc/uvcvideo.h b/drivers/media/usb/uvc/uvcvideo.h
+index 81a9a419a423..5caa1f4de3cb 100644
+--- a/drivers/media/usb/uvc/uvcvideo.h
++++ b/drivers/media/usb/uvc/uvcvideo.h
+@@ -692,6 +692,8 @@ extern int uvc_queue_streamon(struct uvc_video_queue *queue,
+ extern int uvc_queue_streamoff(struct uvc_video_queue *queue,
+ 			       enum v4l2_buf_type type);
+ extern void uvc_queue_cancel(struct uvc_video_queue *queue, int disconnect);
++extern struct uvc_buffer *
++		uvc_queue_get_current_buffer(struct uvc_video_queue *queue);
+ extern struct uvc_buffer *uvc_queue_next_buffer(struct uvc_video_queue *queue,
+ 		struct uvc_buffer *buf);
+ extern int uvc_queue_mmap(struct uvc_video_queue *queue,
+-- 
+git-series 0.9.1
