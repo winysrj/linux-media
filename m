@@ -1,76 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:33454 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751973AbeABMax (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 2 Jan 2018 07:30:53 -0500
-Date: Tue, 2 Jan 2018 14:30:50 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: linux-media@vger.kernel.org, Rob Herring <robh@kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: Re: [PATCH 3/4] meida: mt9m111: document missing required clocks
- property
-Message-ID: <20180102123050.fmgwwo4si7gf6722@valkosipuli.retiisi.org.uk>
-References: <1513787614-12008-1-git-send-email-akinobu.mita@gmail.com>
- <1513787614-12008-4-git-send-email-akinobu.mita@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1513787614-12008-4-git-send-email-akinobu.mita@gmail.com>
+Received: from mail-pg0-f67.google.com ([74.125.83.67]:46120 "EHLO
+        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751766AbeAIInB (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 9 Jan 2018 03:43:01 -0500
+Received: by mail-pg0-f67.google.com with SMTP id r2so7537379pgq.13
+        for <linux-media@vger.kernel.org>; Tue, 09 Jan 2018 00:43:01 -0800 (PST)
+From: Tomasz Figa <tfiga@chromium.org>
+To: linux-media@vger.kernel.org
+Cc: Tiffany Lin <tiffany.lin@mediatek.com>,
+        Andrew-CT Chen <andrew-ct.chen@mediatek.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Matthias Brugger <matthias.bgg@gmail.com>,
+        linux-arm-kernel@lists.infradead.org,
+        linux-mediatek@lists.infradead.org, linux-kernel@vger.kernel.org,
+        =?UTF-8?q?Pawe=C5=82=20O=C5=9Bciak?= <posciak@chromium.org>,
+        "Wu-Cheng Li" <wuchengli@chromium.org>,
+        Tomasz Figa <tfiga@chromium.org>
+Subject: [PATCH] media: mtk-vcodec: Always signal source change event on format change
+Date: Tue,  9 Jan 2018 17:42:47 +0900
+Message-Id: <20180109084247.104601-1-tfiga@chromium.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Akinobu,
+Currently the driver signals the source change event only in case of
+a midstream resolution change, however the initial format detection
+is also defined as a source change by the V4L2 codec API specification.
+Fix this by signaling the event after the initial header is parsed as
+well.
 
-Thanks for the patchset.
+Signed-off-by: Tomasz Figa <tfiga@chromium.org>
+---
+ drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-On Thu, Dec 21, 2017 at 01:33:33AM +0900, Akinobu Mita wrote:
-> The mt9m111 driver requires clocks property for the master clock to the
-> sensor, but there is no description for that.  This adds it.
-> 
-> Cc: Rob Herring <robh@kernel.org>
-> Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
-> Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-> ---
->  Documentation/devicetree/bindings/media/i2c/mt9m111.txt | 4 ++++
->  1 file changed, 4 insertions(+)
-> 
-> diff --git a/Documentation/devicetree/bindings/media/i2c/mt9m111.txt b/Documentation/devicetree/bindings/media/i2c/mt9m111.txt
-> index ed5a334..ffb57d1 100644
-> --- a/Documentation/devicetree/bindings/media/i2c/mt9m111.txt
-> +++ b/Documentation/devicetree/bindings/media/i2c/mt9m111.txt
-> @@ -6,6 +6,8 @@ interface.
->  
->  Required Properties:
->  - compatible: value should be "micron,mt9m111"
-> +- clocks: reference to the master clock.
-> +- clock-names: should be "mclk".
-
-s/should/shall/
-
-?
-
-The subject could begin with "media: " but not with "meida: ". Mauro's
-scripts will add it so you may equally well omit it altogether.
-
->  
->  For further reading on port node refer to
->  Documentation/devicetree/bindings/media/video-interfaces.txt.
-> @@ -16,6 +18,8 @@ Example:
->  		mt9m111@5d {
->  			compatible = "micron,mt9m111";
->  			reg = <0x5d>;
-> +			clocks = <&mclk>;
-> +			clock-names = "mclk";
->  
->  			remote = <&pxa_camera>;
->  			port {
-
+diff --git a/drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.c b/drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.c
+index 843510979ad8..86f0a7134365 100644
+--- a/drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.c
++++ b/drivers/media/platform/mtk-vcodec/mtk_vcodec_dec.c
+@@ -1224,6 +1224,8 @@ static void vb2ops_vdec_buf_queue(struct vb2_buffer *vb)
+ 	ctx->dpb_size = dpbsize;
+ 	ctx->state = MTK_STATE_HEADER;
+ 	mtk_v4l2_debug(1, "[%d] dpbsize=%d", ctx->id, ctx->dpb_size);
++
++	mtk_vdec_queue_res_chg_event(ctx);
+ }
+ 
+ static void vb2ops_vdec_buf_finish(struct vb2_buffer *vb)
 -- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+2.16.0.rc0.223.g4a4ac83678-goog
