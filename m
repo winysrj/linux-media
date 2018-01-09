@@ -1,109 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-io0-f170.google.com ([209.85.223.170]:34773 "EHLO
-        mail-io0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753658AbeAOIYi (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 15 Jan 2018 03:24:38 -0500
-Received: by mail-io0-f170.google.com with SMTP id c17so12271727iod.1
-        for <linux-media@vger.kernel.org>; Mon, 15 Jan 2018 00:24:37 -0800 (PST)
-Received: from mail-io0-f170.google.com (mail-io0-f170.google.com. [209.85.223.170])
-        by smtp.gmail.com with ESMTPSA id w69sm4866890itb.35.2018.01.15.00.24.35
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Mon, 15 Jan 2018 00:24:35 -0800 (PST)
-Received: by mail-io0-f170.google.com with SMTP id f89so4192993ioj.4
-        for <linux-media@vger.kernel.org>; Mon, 15 Jan 2018 00:24:35 -0800 (PST)
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59336 "EHLO
+        mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1756222AbeAIOrx (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 9 Jan 2018 09:47:53 -0500
+Date: Tue, 9 Jan 2018 15:47:54 +0100
+From: Greg KH <gregkh@linuxfoundation.org>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Dan Williams <dan.j.williams@intel.com>,
+        linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org,
+        alan@linux.intel.com, peterz@infradead.org, netdev@vger.kernel.org,
+        tglx@linutronix.de, Mauro Carvalho Chehab <mchehab@kernel.org>,
+        torvalds@linux-foundation.org,
+        Elena Reshetova <elena.reshetova@intel.com>,
+        linux-media@vger.kernel.org
+Subject: Re: [PATCH 07/18] [media] uvcvideo: prevent bounds-check bypass via
+ speculative execution
+Message-ID: <20180109144754.GB13228@kroah.com>
+References: <151520099201.32271.4677179499894422956.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <7187306.jmXyF4vJKt@avalon>
+ <20180109100410.GA11968@kroah.com>
+ <2835808.JOrOUjDU6l@avalon>
 MIME-Version: 1.0
-In-Reply-To: <8fde3248-97b6-f87a-7d8a-8f9c478697a5@xs4all.nl>
-References: <20171215075625.27028-1-acourbot@chromium.org> <8fde3248-97b6-f87a-7d8a-8f9c478697a5@xs4all.nl>
-From: Alexandre Courbot <acourbot@chromium.org>
-Date: Mon, 15 Jan 2018 17:24:14 +0900
-Message-ID: <CAPBb6MXgMPU+9hQK2uyMLiOvywrPX=L7xiP5TwKzZLNkvbtNyQ@mail.gmail.com>
-Subject: Re: [RFC PATCH 0/9] media: base request API support
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Pawel Osciak <posciak@chromium.org>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Gustavo Padovan <gustavo.padovan@collabora.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <2835808.JOrOUjDU6l@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+On Tue, Jan 09, 2018 at 04:26:28PM +0200, Laurent Pinchart wrote:
+> Hi Greg,
+> 
+> On Tuesday, 9 January 2018 12:04:10 EET Greg KH wrote:
+> > On Tue, Jan 09, 2018 at 10:40:21AM +0200, Laurent Pinchart wrote:
+> > > On Saturday, 6 January 2018 11:40:26 EET Greg KH wrote:
+> > >> On Sat, Jan 06, 2018 at 10:09:07AM +0100, Greg KH wrote:
+> > >> 
+> > >> While I'm all for fixing this type of thing, I feel like we need to do
+> > >> something "else" for this as playing whack-a-mole for this pattern is
+> > >> going to be a never-ending battle for all drivers for forever.
+> > > 
+> > > That's my concern too, as even if we managed to find and fix all the
+> > > occurrences of the problematic patterns (and we won't), new ones will keep
+> > > being merged all the time.
+> > 
+> > And what about the millions of lines of out-of-tree drivers that we all
+> > rely on every day in our devices?  What about the distro kernels that
+> > add random new drivers?
+> 
+> Of course, even though the out-of-tree drivers probably come with lots of 
+> security issues worse than this one.
 
-On Fri, Jan 12, 2018 at 8:45 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> Hi Alexandre,
->
-> On 12/15/17 08:56, Alexandre Courbot wrote:
->> Here is a new attempt at the request API, following the UAPI we agreed on in
->> Prague. Hopefully this can be used as the basis to move forward.
->>
->> This series only introduces the very basics of how requests work: allocate a
->> request, queue buffers to it, queue the request itself, wait for it to complete,
->> reuse it. It does *not* yet use Hans' work with controls setting. I have
->> preferred to submit it this way for now as it allows us to concentrate on the
->> basic request/buffer flow, which was harder to get properly than I initially
->> thought. I still have a gut feeling that it can be improved, with less back-and-
->> forth into drivers.
->>
->> Plugging in controls support should not be too hard a task (basically just apply
->> the saved controls when the request starts), and I am looking at it now.
->>
->> The resulting vim2m driver can be successfully used with requests, and my tests
->> so far have been successful.
->>
->> There are still some rougher edges:
->>
->> * locking is currently quite coarse-grained
->> * too many #ifdef CONFIG_MEDIA_CONTROLLER in the code, as the request API
->>   depends on it - I plan to craft the headers so that it becomes unnecessary.
->>   As it is, some of the code will probably not even compile if
->>   CONFIG_MEDIA_CONTROLLER is not set
->>
->> But all in all I think the request flow should be clear and easy to review, and
->> the possibility of custom queue and entity support implementations should give
->> us the flexibility we need to support more specific use-cases (I expect the
->> generic implementations to be sufficient most of the time though).
->>
->> A very simple test program exercising this API is available here (don't forget
->> to adapt the /dev/media0 hardcoding):
->> https://gist.github.com/Gnurou/dbc3776ed97ea7d4ce6041ea15eb0438
->>
->> Looking forward to your feedback and comments!
->
-> I think this will become more interesting when the control code is in.
+Sure, but I have worked with some teams that have used coverity to find
+and fix all of the reported bugs it founds.  So some companies are
+trying to fix their problems here, let's not make it impossible for them :)
 
-Definitely.
+> > We need some sort of automated way to scan for this.
+> 
+> Is there any initiative to implement such a scan in an open-source tool ?
 
-> The main thing I've noticed with this patch series is that it is very codec
-> oriented. Which in some ways is OK (after all, that's the first type of HW
-> that we want to support), but the vb2 code in particular should be more
-> generic.
+Sure, if you want to, but I have no such initiative...
 
-I don't want to expand too much into use-cases I do not master ; doing
-so would be speculating about how the API will be used. But feel free
-to point out where you think my focus on the codec use-case is not
-future-proof.
+> We also need to educate developers. An automatic scanner could help there, but 
+> in the end the information has to spread to all our brains. It won't be easy, 
+> and is likely not fully feasible, but it's no different than how developers 
+> have to be educated about race conditions and locking for instance. It's a 
+> mind set.
 
-> I would also recommend that you start preparing documentation patches: we
-> can review that and make sure all the corner-cases are correctly documented.
->
-> The public API changes are (I think) fairly limited, but the devil is in
-> the details, so getting that reviewed early on will help you later.
+Agreed.
 
-Yeah, I now regret to have submitted this series without
-documentation. Won't do that mistake again.
+> > Intel, any chance we can get your coverity rules?  Given that the date
+> > of this original patchset was from last August, has anyone looked at
+> > what is now in Linus's tree?  What about linux-next?  I just added 3
+> > brand-new driver subsystems to the kernel tree there, how do we know
+> > there isn't problems in them?
+> > 
+> > And what about all of the other ways user-data can be affected?  Again,
+> > as Peter pointed out, USB devices.  I want some chance to be able to at
+> > least audit the codebase we have to see if that path is an issue.
+> > Without any hint of how to do this in an automated manner, we are all
+> > in deep shit for forever.
+> 
+> Or at least until the hardware architecture evolves. Let's drop the x86 
+> instruction set, expose the µops, and have gcc handle the scheduling. Sure, it 
+> will mean recompiling everything for every x86 CPU model out there, but we 
+> have source-based distros to the rescue :-D
 
-> It's a bit unfortunate that the fence patch series is also making vb2 changes,
-> but I hope that will be merged fairly soon so you can develop on top of that
-> series.
+Then we are back at the itanium mess, where all of the hardware issues
+were supposed be fixed by the compiler writers.  We all remember how
+well that worked out...
 
-The fence series may actually make things easier. The vb2 code of this
-series is a bit confusing, and fences add a few extra constraints that
-should make things more predictable. So I am looking forward to being
-able to work on top of it.
+> > >> Either we need some way to mark this data path to make it easy for tools
+> > >> like sparse to flag easily, or we need to catch the issue in the driver
+> > >> subsystems, which unfortunatly, would harm the drivers that don't have
+> > >> this type of issue (like here.)
+> > > 
+> > > But how would you do so ?
+> > 
+> > I do not know, it all depends on the access pattern, right?
+> 
+> Any data coming from userspace could trigger such accesses. If we want 
+> complete coverage the only way I can think of is starting from syscalls and 
+> tainting data down the call stacks (__user could help to some extend), but 
+> we'll likely be drowned in false positives. I don't see how we could mark 
+> paths manually.
+
+I agree, which is why I want to see how someone did this work
+originally.  We have no idea as no one is telling us anything :(
+
+How do we "know" that these are the only problem areas?  When was the
+last scan run?  On what tree?  And so on...
+
+thanks,
+
+greg k-h
