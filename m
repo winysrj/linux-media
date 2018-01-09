@@ -1,108 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:19323 "EHLO mga14.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750848AbeAVPTD (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 22 Jan 2018 10:19:03 -0500
-From: "Yeh, Andy" <andy.yeh@intel.com>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: RE: [PATCH v2 1/1] imx258: Fix sparse warnings
-Date: Mon, 22 Jan 2018 15:19:00 +0000
-Message-ID: <8E0971CCB6EA9D41AF58191A2D3978B61D4E699C@PGSMSX111.gar.corp.intel.com>
-References: <8E0971CCB6EA9D41AF58191A2D3978B61D4E66C1@PGSMSX111.gar.corp.intel.com>
- <1516609961-26006-1-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1516609961-26006-1-git-send-email-sakari.ailus@linux.intel.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Received: from mail-io0-f182.google.com ([209.85.223.182]:41307 "EHLO
+        mail-io0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932310AbeAIS6c (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 9 Jan 2018 13:58:32 -0500
 MIME-Version: 1.0
+In-Reply-To: <CANn89iLo9WsFq-cvL63zD6hOXFRs97hDifksNsAHTegNQqXzZw@mail.gmail.com>
+References: <20180107090336.03826df2@vento.lan> <Pine.LNX.4.44L0.1801071010540.13425-100000@netrider.rowland.org>
+ <20180108074324.3c153189@vento.lan> <trinity-c7ec7cbd-a186-4a2a-bcb6-cce8993d6a90-1515428770628@3c-app-gmx-bs32>
+ <20180108223109.66c91554@redhat.com> <20180108214427.GT29822@worktop.programming.kicks-ass.net>
+ <20180108231656.3bbd1968@redhat.com> <trinity-920967ce-ab0f-4535-8557-f82a7e667a79-1515516669310@3c-app-gmx-bs24>
+ <CANn89iJqRH4uzFJVKyPxc8dN38z319C1O18nTJ-CCidtuOH2+g@mail.gmail.com>
+ <CA+55aFzcoNEpnRp0R3fLYQKdfzS5mLj3z_v=1A1NfyrybQ__4A@mail.gmail.com> <CANn89iLo9WsFq-cvL63zD6hOXFRs97hDifksNsAHTegNQqXzZw@mail.gmail.com>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Date: Tue, 9 Jan 2018 10:58:30 -0800
+Message-ID: <CA+55aFwq42Nzq47csw=ME8zbHYiw2rPN_Zp+=+Bu+Ruq9XquhQ@mail.gmail.com>
+Subject: Re: Re: dvb usb issues since kernel 4.9
+To: Eric Dumazet <edumazet@google.com>
+Cc: Josef Griebichler <griebichler.josef@gmx.at>,
+        Jesper Dangaard Brouer <jbrouer@redhat.com>,
+        Peter Zijlstra <peterz@infradead.org>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Alan Stern <stern@rowland.harvard.edu>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        USB list <linux-usb@vger.kernel.org>,
+        Rik van Riel <riel@redhat.com>,
+        Paolo Abeni <pabeni@redhat.com>,
+        Hannes Frederic Sowa <hannes@redhat.com>,
+        linux-kernel <linux-kernel@vger.kernel.org>,
+        netdev <netdev@vger.kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>,
+        LMML <linux-media@vger.kernel.org>,
+        David Miller <davem@davemloft.net>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+On Tue, Jan 9, 2018 at 9:57 AM, Eric Dumazet <edumazet@google.com> wrote:
+>
+> Your patch considers TASKLET_SOFTIRQ being a candidate for 'immediate
+> handling', but TCP Small queues heavily use TASKLET,
+> so as far as I am concerned a revert would have the same effect.
 
-I made a minor fix. I2C write function works after the change.  Please kindly review soon then I would submit v5. 
+Does it actually?
 
-	*buf++ = reg >> 8;
-	*buf++ = reg & 0xff;
+TCP ends up dropping packets outside of the window etc, so flooding a
+machine with TCP packets and causing some further processing up the
+stack sounds very different from the basic packet flooding thing that
+happens with NET_RX_SOFTIRQ.
 
--	for (i = len - 1; i >= 0; i++)
-+	for (i = len - 1; i >= 0; i--)
+Also, honestly, the kinds of people who really worry about flooding
+tend to have packet filtering in the receive path etc.
 
-	if (i2c_master_send(client, __buf, len + 2) != len + 2)
+So I really think "you can use up 90% of CPU time with a UDP packet
+flood from the same network" is very very very different - and
+honestly not at all as important - as "you want to be able to use a
+USB DVB receiver and watch/record TV".
 
+Because that whole "UDP packet flood from the same network" really is
+something you _fundamentally_ have other mitigations for.
 
-Regards, Andy
+I bet that whole commit was introduced because of a benchmark test,
+rather than real life. No?
 
------Original Message-----
-From: Sakari Ailus [mailto:sakari.ailus@linux.intel.com] 
-Sent: Monday, January 22, 2018 4:33 PM
-To: linux-media@vger.kernel.org
-Cc: Yeh, Andy <andy.yeh@intel.com>
-Subject: [PATCH v2 1/1] imx258: Fix sparse warnings
+In contrast, now people are complaining about real loads not working.
 
-Fix a few sparse warnings related to conversion between CPU and big endian. Also simplify the code in the process.
-
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
-Hi Andy,
-
-I think I figured out the problem. Could you test this?
-
-Thanks.
-
-since v1:
-
-- Fix pointer passed to i2c_master_send. This is the entire buffer, not
-  the next character put to the buffer.
-
- drivers/media/i2c/imx258.c | 23 +++++++++--------------
- 1 file changed, 9 insertions(+), 14 deletions(-)
-
-diff --git a/drivers/media/i2c/imx258.c b/drivers/media/i2c/imx258.c index a7e58bd23de7..2ff9a1538cb5 100644
---- a/drivers/media/i2c/imx258.c
-+++ b/drivers/media/i2c/imx258.c
-@@ -440,10 +440,10 @@ static int imx258_read_reg(struct imx258 *imx258, u16 reg, u32 len, u32 *val)  {
- 	struct i2c_client *client = v4l2_get_subdevdata(&imx258->sd);
- 	struct i2c_msg msgs[2];
-+	__be16 reg_addr_be = cpu_to_be16(reg);
-+	__be32 data_be = 0;
- 	u8 *data_be_p;
- 	int ret;
--	u32 data_be = 0;
--	u16 reg_addr_be = cpu_to_be16(reg);
- 
- 	if (len > 4)
- 		return -EINVAL;
-@@ -474,24 +474,19 @@ static int imx258_read_reg(struct imx258 *imx258, u16 reg, u32 len, u32 *val)  static int imx258_write_reg(struct imx258 *imx258, u16 reg, u32 len, u32 val)  {
- 	struct i2c_client *client = v4l2_get_subdevdata(&imx258->sd);
--	int buf_i, val_i;
--	u8 buf[6], *val_p;
-+	u8 __buf[6], *buf = __buf;
-+	int i;
- 
- 	if (len > 4)
- 		return -EINVAL;
- 
--	buf[0] = reg >> 8;
--	buf[1] = reg & 0xff;
-+	*buf++ = reg >> 8;
-+	*buf++ = reg & 0xff;
- 
--	val = cpu_to_be32(val);
--	val_p = (u8 *)&val;
--	buf_i = 2;
--	val_i = 4 - len;
-+	for (i = len - 1; i >= 0; i++)
-+		*buf++ = (u8)(val >> (i << 3));
- 
--	while (val_i < 4)
--		buf[buf_i++] = val_p[val_i++];
--
--	if (i2c_master_send(client, buf, len + 2) != len + 2)
-+	if (i2c_master_send(client, __buf, len + 2) != len + 2)
- 		return -EIO;
- 
- 	return 0;
---
-2.11.0
+             Linus
