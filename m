@@ -1,84 +1,25 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga07.intel.com ([134.134.136.100]:16071 "EHLO mga07.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932465AbeALAzz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 11 Jan 2018 19:55:55 -0500
-Subject: [PATCH v2 14/19] [media] uvcvideo: prevent bounds-check bypass via
- speculative execution
-From: Dan Williams <dan.j.williams@intel.com>
-To: linux-kernel@vger.kernel.org
-Cc: linux-arch@vger.kernel.org, alan@linux.intel.com,
-        kernel-hardening@lists.openwall.com,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        tglx@linutronix.de, Mauro Carvalho Chehab <mchehab@kernel.org>,
-        torvalds@linux-foundation.org, akpm@linux-foundation.org,
-        Elena Reshetova <elena.reshetova@intel.com>,
-        linux-media@vger.kernel.org
-Date: Thu, 11 Jan 2018 16:47:40 -0800
-Message-ID: <151571806069.27429.6683179525235570687.stgit@dwillia2-desk3.amr.corp.intel.com>
-In-Reply-To: <151571798296.27429.7166552848688034184.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <151571798296.27429.7166552848688034184.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Received: from bombadil.infradead.org ([65.50.211.133]:38298 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754821AbeAIUjq (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 9 Jan 2018 15:39:46 -0500
+From: Christoph Hellwig <hch@lst.de>
+To: Bjorn Helgaas <bhelgaas@google.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: linux-pci@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: remove pci_dma_* abuses and workarounds
+Date: Tue,  9 Jan 2018 21:39:36 +0100
+Message-Id: <20180109203939.5930-1-hch@lst.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Static analysis reports that 'index' may be a user controlled value that
-is used as a data dependency to read 'pin' from the
-'selector->baSourceID' array. In order to avoid potential leaks of
-kernel memory values, block speculative execution of the instruction
-stream that could issue reads based on an invalid value of 'pin'.
+Back before the dawn of time pci_dma_* with a NULL pci_dev argument
+was used for all kinds of things, e.g. dma mapping for non-PCI
+devices.  All this has been long removed, but it turns out we
+still care for a NULL pci_dev in the wrappers, and we still have
+two odd USB drivers that use pci_dma_alloc_consistent for allocating
+memory while ignoring the dma_addr_t entirely.
 
-Based on an original patch by Elena Reshetova.
-
-Laurent notes:
-
-    "...as this is nowhere close to being a fast path, I think we can close
-    this potential hole as proposed in the patch"
-
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: linux-media@vger.kernel.org
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Signed-off-by: Elena Reshetova <elena.reshetova@intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- drivers/media/usb/uvc/uvc_v4l2.c |    9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/media/usb/uvc/uvc_v4l2.c b/drivers/media/usb/uvc/uvc_v4l2.c
-index 3e7e283a44a8..30ee200206ee 100644
---- a/drivers/media/usb/uvc/uvc_v4l2.c
-+++ b/drivers/media/usb/uvc/uvc_v4l2.c
-@@ -22,6 +22,7 @@
- #include <linux/mm.h>
- #include <linux/wait.h>
- #include <linux/atomic.h>
-+#include <linux/nospec.h>
- 
- #include <media/v4l2-common.h>
- #include <media/v4l2-ctrls.h>
-@@ -809,8 +810,12 @@ static int uvc_ioctl_enum_input(struct file *file, void *fh,
- 	const struct uvc_entity *selector = chain->selector;
- 	struct uvc_entity *iterm = NULL;
- 	u32 index = input->index;
-+	__u8 *elem = NULL;
- 	int pin = 0;
- 
-+	if (selector)
-+		elem = array_ptr(selector->baSourceID, index,
-+				selector->bNrInPins);
- 	if (selector == NULL ||
- 	    (chain->dev->quirks & UVC_QUIRK_IGNORE_SELECTOR_UNIT)) {
- 		if (index != 0)
-@@ -820,8 +825,8 @@ static int uvc_ioctl_enum_input(struct file *file, void *fh,
- 				break;
- 		}
- 		pin = iterm->id;
--	} else if (index < selector->bNrInPins) {
--		pin = selector->baSourceID[index];
-+	} else if (elem) {
-+		pin = *elem;
- 		list_for_each_entry(iterm, &chain->entities, chain) {
- 			if (!UVC_ENTITY_IS_ITERM(iterm))
- 				continue;
+This series switches the two drivers to use plain kzalloc and then
+removes the handling of the NULL pci_dev in the pci_dma_* wrappers.
