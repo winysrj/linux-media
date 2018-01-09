@@ -1,70 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:64251 "EHLO mga03.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750769AbeAYLzd (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 25 Jan 2018 06:55:33 -0500
-Date: Thu, 25 Jan 2018 13:55:29 +0200
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: jacopo mondi <jacopo@jmondi.org>
-Cc: Akinobu Mita <akinobu.mita@gmail.com>, linux-media@vger.kernel.org,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        "H . Nikolaus Schaller" <hns@goldelico.com>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Rob Herring <robh@kernel.org>
-Subject: Re: [PATCH v3 0/3] media: ov9650: support device tree probing
-Message-ID: <20180125115529.lfarlhakoh4x4vc6@paasikivi.fi.intel.com>
-References: <1516547656-3879-1-git-send-email-akinobu.mita@gmail.com>
- <20180121163314.GN24926@w540>
+Received: from mail-wm0-f41.google.com ([74.125.82.41]:40534 "EHLO
+        mail-wm0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752557AbeAIR51 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 9 Jan 2018 12:57:27 -0500
+Received: by mail-wm0-f41.google.com with SMTP id f206so22258529wmf.5
+        for <linux-media@vger.kernel.org>; Tue, 09 Jan 2018 09:57:27 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20180121163314.GN24926@w540>
+In-Reply-To: <CA+55aFzcoNEpnRp0R3fLYQKdfzS5mLj3z_v=1A1NfyrybQ__4A@mail.gmail.com>
+References: <20180107090336.03826df2@vento.lan> <Pine.LNX.4.44L0.1801071010540.13425-100000@netrider.rowland.org>
+ <20180108074324.3c153189@vento.lan> <trinity-c7ec7cbd-a186-4a2a-bcb6-cce8993d6a90-1515428770628@3c-app-gmx-bs32>
+ <20180108223109.66c91554@redhat.com> <20180108214427.GT29822@worktop.programming.kicks-ass.net>
+ <20180108231656.3bbd1968@redhat.com> <trinity-920967ce-ab0f-4535-8557-f82a7e667a79-1515516669310@3c-app-gmx-bs24>
+ <CANn89iJqRH4uzFJVKyPxc8dN38z319C1O18nTJ-CCidtuOH2+g@mail.gmail.com> <CA+55aFzcoNEpnRp0R3fLYQKdfzS5mLj3z_v=1A1NfyrybQ__4A@mail.gmail.com>
+From: Eric Dumazet <edumazet@google.com>
+Date: Tue, 9 Jan 2018 09:57:24 -0800
+Message-ID: <CANn89iLo9WsFq-cvL63zD6hOXFRs97hDifksNsAHTegNQqXzZw@mail.gmail.com>
+Subject: Re: Re: dvb usb issues since kernel 4.9
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Josef Griebichler <griebichler.josef@gmx.at>,
+        Jesper Dangaard Brouer <jbrouer@redhat.com>,
+        Peter Zijlstra <peterz@infradead.org>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Alan Stern <stern@rowland.harvard.edu>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        USB list <linux-usb@vger.kernel.org>,
+        Rik van Riel <riel@redhat.com>,
+        Paolo Abeni <pabeni@redhat.com>,
+        Hannes Frederic Sowa <hannes@redhat.com>,
+        linux-kernel <linux-kernel@vger.kernel.org>,
+        netdev <netdev@vger.kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>,
+        LMML <linux-media@vger.kernel.org>,
+        David Miller <davem@davemloft.net>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Jan 21, 2018 at 05:33:14PM +0100, jacopo mondi wrote:
-> Hello Akinobu,
-> 
-> On Mon, Jan 22, 2018 at 12:14:13AM +0900, Akinobu Mita wrote:
-> > This patchset adds device tree probing for ov9650 driver. This contains
-> > an actual driver change and a newly added binding documentation part.
-> >
-> > * Changelog v3
-> > - Add Reviewed-by: tags
-> > - Add MAINTAINERS entry
-> >
-> > * Changelog v2
-> > - Split binding documentation, suggested by Rob Herring and Jacopo Mondi
-> > - Improve the wording for compatible property in the binding documentation,
-> >   suggested by Jacopo Mondi
-> > - Improve the description for the device node in the binding documentation,
-> >   suggested by Sakari Ailus
-> > - Remove ov965x_gpio_set() helper and open-code it, suggested by Jacopo Mondi
-> >   and Sakari Ailus
-> > - Call clk_prepare_enable() in s_power callback instead of probe, suggested
-> >   by Sakari Ailus
-> > - Unify clk and gpio configuration in a single if-else block and, also add
-> >   a check either platform data or fwnode is actually specified, suggested
-> >   by Jacopo Mondi
-> > - Add CONFIG_OF guards, suggested by Jacopo Mondi
-> >
-> > Akinobu Mita (3):
-> >   media: ov9650: support device tree probing
-> >   media: MAINTAINERS: add entry for ov9650 driver
-> >   media: ov9650: add device tree binding
-> 
-> As you've closed my comments on v1/v2, for driver and device tree bindings:
-> 
-> Reviewed-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
-> 
-> No need to resend just to add the tags, but in case you have to, please
-> add them.
+On Tue, Jan 9, 2018 at 9:48 AM, Linus Torvalds
+<torvalds@linux-foundation.org> wrote:
+> On Tue, Jan 9, 2018 at 9:27 AM, Eric Dumazet <edumazet@google.com> wrote:
+>>
+>> So yes, commit 4cd13c21b207 ("softirq: Let ksoftirqd do its job") has
+>> shown up multiple times in various 'regressions'
+>> simply because it could surface the problem more often.
+>> But even if you revert it, you can still make the faulty
+>> driver/subsystem misbehave by adding more stress to the cpu handling
+>> the IRQ.
+>
+> ..but that's always true. People sometimes live on the edge - often by
+> design (ie hardware has been designed/selected to be the crappiest
+> possible that still work).
+>
+> That doesn't change anything. A patch that takes "bad things can
+> happen" to "bad things DO happen" is a bad patch.
 
-Thanks, guys!
+I was expecting that people could get a chance to fix the root cause,
+instead of trying to keep status quo.
 
-Applied in order 2, 3 and 1 --- the DT changes come before driver changes.
+Strangely, it took 18 months for someone to complain enough and
+'bisect to this commit'
 
--- 
-Sakari Ailus
-sakari.ailus@linux.intel.com
+Your patch considers TASKLET_SOFTIRQ being a candidate for 'immediate
+handling', but TCP Small queues heavily use TASKLET,
+so as far as I am concerned a revert would have the same effect.
