@@ -1,131 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:34088 "EHLO
-        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S964998AbeALTJC (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 12 Jan 2018 14:09:02 -0500
-Subject: Re: Fwd: Re: [PATCHv5 0/3] drm/i915: add DisplayPort
- CEC-Tunneling-over-AUX support
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: ville.syrjala@linux.intel.com
-Cc: dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
-References: <b6ac8671-7b66-977e-1322-f31e08d76436@xs4all.nl>
- <7ec14da2-7aed-906e-3d55-8af1907aaf0c@xs4all.nl>
- <20180112163027.GG10981@intel.com>
- <e7c4e82c-e563-834b-8708-42efa222e7d3@xs4all.nl>
- <20180112175218.GJ10981@intel.com>
- <47a32832-4a4e-c66b-2d7f-f8f7a6093ada@xs4all.nl>
-Message-ID: <9e28a8fe-c792-df98-012d-f7d02ad1e9b2@xs4all.nl>
-Date: Fri, 12 Jan 2018 20:08:57 +0100
-MIME-Version: 1.0
-In-Reply-To: <47a32832-4a4e-c66b-2d7f-f8f7a6093ada@xs4all.nl>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 8bit
+Received: from mail-pf0-f193.google.com ([209.85.192.193]:40134 "EHLO
+        mail-pf0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1758644AbeAIOsq (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 9 Jan 2018 09:48:46 -0500
+From: Shunqian Zheng <zhengsq@rock-chips.com>
+To: mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com
+Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        ddl@rock-chips.com, tfiga@chromium.org,
+        Shunqian Zheng <zhengsq@rock-chips.com>
+Subject: [PATCH v4 3/5] dt-bindings: media: Add bindings for OV2685
+Date: Tue,  9 Jan 2018 22:48:22 +0800
+Message-Id: <1515509304-15941-4-git-send-email-zhengsq@rock-chips.com>
+In-Reply-To: <1515509304-15941-1-git-send-email-zhengsq@rock-chips.com>
+References: <1515509304-15941-1-git-send-email-zhengsq@rock-chips.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/12/2018 07:12 PM, Hans Verkuil wrote:
-> On 01/12/2018 06:52 PM, Ville Syrjälä wrote:
->> On Fri, Jan 12, 2018 at 06:14:53PM +0100, Hans Verkuil wrote:
->>> On 01/12/2018 05:30 PM, Ville Syrjälä wrote:
->>>> On Fri, Jan 12, 2018 at 05:19:44PM +0100, Hans Verkuil wrote:
->>>>> Hi Ville,
->>>>>
->>>>> For some strange reason your email disappeared from the Cc list. Perhaps it's the
->>>>> ä that confuses something somewhere.
->>>>>
->>>>> So I'll just forward this directly to you.
->>>>>
->>>>> Can you please take a look? This patch series has been in limbo for too long.
->>>>
->>>> IIRC last I looked we still had some ragistration race to deal with.
->>>> Was that fixed?
->>>
->>> That was fixed in v5.
->>>
->>>>
->>>> Also I think we got stuck on leaving the zombie device lingering around
->>>> when the display is disconnected. I couldn't understand why that is
->>>> at all useful since you anyway remove the device eventually.
->>>
->>> It's not a zombie device. If you disconnect and reconnect the display then the
->>> application using the CEC device will see the display disappear and reappear
->>> as expected.
->>>
->>> It helps if you think of the normal situation (as is present in most ARM SoCs)
->>> where CEC is integral to the HDMI transmitter. I.e. it is not functionality that
->>> can be removed. So the cec device is always there and an application opens the
->>> device and can use it, regardless of whether a display is connected or not.
->>>
->>> If a display is detected, the EDID will be read and the CEC physical address is
->>> set. The application is informed of that through an event and the CEC adapter
->>> can be used. If the HPD disappears the physical address is reset to f.f.f.f and
->>> again the application is informed. And in fact it still has to be able to use
->>> the CEC adapter even if there is no HPD since some displays turn off the HPD when
->>> in standby, but CEC can still be used to power them up again.
->>
->> Hmm. So you're saying there are DP devices out there that release HPD
->> but still respond to DPCD accesses? That sounds... wrong.
-> 
-> Not quite. To be precise: there are HDMI displays that release HPD when in standby
-> but still respond to CEC commands.
-> 
-> Such displays are still being made today so if you are building a product like
-> a media streaming box, then this is something to take into account.
-> 
-> However, for this specific case (CEC tunneling) it is a non-issue since the
-> DP CEC protocol simply doesn't support sending CEC commands without HPD.
-> 
->> In general I don't think we can assume that a device has retained its
->> state if it has deasserted HPD, thus we have to reconfigure everything
->> again anyway.
->>
->>>
->>> Now consider a future Intel NUC with an HDMI connector on the backplane and
->>> working DP CEC-Tunneling-over-AUX support (e.g. the Megachips MCDP2900): the
->>> CEC support is always there (it's built in), but only becomes visible to the
->>> kernel when you connect a display. You don't want the cec device to disappear
->>> whenever you unplug the display, that makes no sense. Applications would
->>> loose the CEC configuration and have to close and reopen (when it reappears)
->>> the cec device for no good reason since it is built in.
->>
->> If the application can't remember its settings across a disconnect it
->> sounds broken anwyay. This would anyway happen when you disconenct the
->> entire dongle.
-> 
-> Huh?
-> 
->>
->>>
->>> The same situation is valid when using a USB-C to HDMI adapter: disconnecting
->>> or reconnecting a display should not lead to the removal of the CEC device.
->>> Only when an adapter with different CEC capabilities is detected is there a
->>> need to actually unregister the CEC device.
->>>
->>> All this is really a workaround of the fact that when the HPD disappears the
->>> DP-to-HDMI adapter (either external or built-in) also disappears from the
->>> topology, even though it is physically still there.
->>
->> The dongles I've seen do not disappear. The downstream hpd is
->> signalled with short hpd pulses + SINK_COUNT instead.
->>
->> But I've not actually seen a dongle that implements the
->> BRANCH_DEVICE_CTRL DPCD register, so not quite sure what those would
->> actually do. The spec does say they should default to using long
->> hpd for downstream hpd handling.
-> 
-> I did a few more experiments and it appears that someone somewhere keeps
-> track of DP branch devices. I.e. after disconnecting my usb-c to hdmi adapter
-> it still appears in i915_display_info. At least until something else is
-> connected. I basically need to hook into the DP branch detection.
-> 
-> Something to look at this weekend.
+Add device tree binding documentation for the OV2685 sensor.
 
-I found a better place to do the CEC (un)registration: a long HPD pulse
-indicates that the DPCD registers have changed, so that's when I should
-detect whether there is a new branch device with CEC capabilities.
+Signed-off-by: Shunqian Zheng <zhengsq@rock-chips.com>
+---
+ .../devicetree/bindings/media/i2c/ov2685.txt       | 41 ++++++++++++++++++++++
+ 1 file changed, 41 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/ov2685.txt
 
-Regards,
-
-	Hans
+diff --git a/Documentation/devicetree/bindings/media/i2c/ov2685.txt b/Documentation/devicetree/bindings/media/i2c/ov2685.txt
+new file mode 100644
+index 0000000..f1586a2
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/i2c/ov2685.txt
+@@ -0,0 +1,41 @@
++* Omnivision OV2685 MIPI CSI-2 sensor
++
++Required Properties:
++- compatible: shall be "ovti,ov2685"
++- clocks: reference to the xvclk input clock
++- clock-names: shall be "xvclk"
++- avdd-supply: Analog voltage supply, 2.8 volts
++- dovdd-supply: Digital I/O voltage supply, 1.8 volts
++- dvdd-supply: Digital core voltage supply, 1.8 volts
++- reset-gpios: Low active reset gpio
++
++The device node shall contain one 'port' child node with an
++'endpoint' subnode for its digital output video port,
++in accordance with the video interface bindings defined in
++Documentation/devicetree/bindings/media/video-interfaces.txt.
++The endpoint optional property 'data-lanes' shall be "<1>".
++
++Example:
++&i2c7 {
++	camera-sensor: ov2685@3c {
++		compatible = "ovti,ov2685";
++		reg = <0x3c>;
++		pinctrl-names = "default";
++		pinctrl-0 = <&clk_24m_cam>;
++
++		clocks = <&cru SCLK_TESTCLKOUT1>;
++		clock-names = "xvclk";
++
++		avdd-supply = <&pp2800_cam>;
++		dovdd-supply = <&pp1800>;
++		dvdd-supply = <&pp1800>;
++		reset-gpios = <&gpio2 3 GPIO_ACTIVE_LOW>;
++
++		port {
++			ucam_out: endpoint {
++				remote-endpoint = <&mipi_in_ucam>;
++				data-lanes = <1>;
++			};
++		};
++	};
++};
+-- 
+1.9.1
