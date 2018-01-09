@@ -1,66 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay4-d.mail.gandi.net ([217.70.183.196]:53085 "EHLO
-        relay4-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751280AbeAPVp4 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 16 Jan 2018 16:45:56 -0500
-From: Jacopo Mondi <jacopo+renesas@jmondi.org>
-To: laurent.pinchart@ideasonboard.com, magnus.damm@gmail.com,
-        geert@glider.be, hverkuil@xs4all.nl, mchehab@kernel.org,
-        festevam@gmail.com, sakari.ailus@iki.fi, robh+dt@kernel.org,
-        mark.rutland@arm.com, pombredanne@nexb.com
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-sh@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH v6 4/9] ARM: dts: r7s72100: Add Capture Engine Unit (CEU)
-Date: Tue, 16 Jan 2018 22:44:56 +0100
-Message-Id: <1516139101-7835-5-git-send-email-jacopo+renesas@jmondi.org>
-In-Reply-To: <1516139101-7835-1-git-send-email-jacopo+renesas@jmondi.org>
-References: <1516139101-7835-1-git-send-email-jacopo+renesas@jmondi.org>
+Received: from mail-io0-f174.google.com ([209.85.223.174]:40476 "EHLO
+        mail-io0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752191AbeAIRst (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 9 Jan 2018 12:48:49 -0500
+MIME-Version: 1.0
+In-Reply-To: <CANn89iJqRH4uzFJVKyPxc8dN38z319C1O18nTJ-CCidtuOH2+g@mail.gmail.com>
+References: <20180107090336.03826df2@vento.lan> <Pine.LNX.4.44L0.1801071010540.13425-100000@netrider.rowland.org>
+ <20180108074324.3c153189@vento.lan> <trinity-c7ec7cbd-a186-4a2a-bcb6-cce8993d6a90-1515428770628@3c-app-gmx-bs32>
+ <20180108223109.66c91554@redhat.com> <20180108214427.GT29822@worktop.programming.kicks-ass.net>
+ <20180108231656.3bbd1968@redhat.com> <trinity-920967ce-ab0f-4535-8557-f82a7e667a79-1515516669310@3c-app-gmx-bs24>
+ <CANn89iJqRH4uzFJVKyPxc8dN38z319C1O18nTJ-CCidtuOH2+g@mail.gmail.com>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Date: Tue, 9 Jan 2018 09:48:47 -0800
+Message-ID: <CA+55aFzcoNEpnRp0R3fLYQKdfzS5mLj3z_v=1A1NfyrybQ__4A@mail.gmail.com>
+Subject: Re: Re: dvb usb issues since kernel 4.9
+To: Eric Dumazet <edumazet@google.com>
+Cc: Josef Griebichler <griebichler.josef@gmx.at>,
+        Jesper Dangaard Brouer <jbrouer@redhat.com>,
+        Peter Zijlstra <peterz@infradead.org>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Alan Stern <stern@rowland.harvard.edu>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        USB list <linux-usb@vger.kernel.org>,
+        Rik van Riel <riel@redhat.com>,
+        Paolo Abeni <pabeni@redhat.com>,
+        Hannes Frederic Sowa <hannes@redhat.com>,
+        linux-kernel <linux-kernel@vger.kernel.org>,
+        netdev <netdev@vger.kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>,
+        LMML <linux-media@vger.kernel.org>,
+        David Miller <davem@davemloft.net>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add Capture Engine Unit (CEU) node to device tree.
+On Tue, Jan 9, 2018 at 9:27 AM, Eric Dumazet <edumazet@google.com> wrote:
+>
+> So yes, commit 4cd13c21b207 ("softirq: Let ksoftirqd do its job") has
+> shown up multiple times in various 'regressions'
+> simply because it could surface the problem more often.
+> But even if you revert it, you can still make the faulty
+> driver/subsystem misbehave by adding more stress to the cpu handling
+> the IRQ.
 
-Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
-Reviewed-by: Geert Uytterhoeven <geert+renesas@glider.be>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- arch/arm/boot/dts/r7s72100.dtsi | 15 ++++++++++++---
- 1 file changed, 12 insertions(+), 3 deletions(-)
+..but that's always true. People sometimes live on the edge - often by
+design (ie hardware has been designed/selected to be the crappiest
+possible that still work).
 
-diff --git a/arch/arm/boot/dts/r7s72100.dtsi b/arch/arm/boot/dts/r7s72100.dtsi
-index ab9645a..5fe62f9 100644
---- a/arch/arm/boot/dts/r7s72100.dtsi
-+++ b/arch/arm/boot/dts/r7s72100.dtsi
-@@ -135,9 +135,9 @@
- 			#clock-cells = <1>;
- 			compatible = "renesas,r7s72100-mstp-clocks", "renesas,cpg-mstp-clocks";
- 			reg = <0xfcfe042c 4>;
--			clocks = <&p0_clk>;
--			clock-indices = <R7S72100_CLK_RTC>;
--			clock-output-names = "rtc";
-+			clocks = <&b_clk>, <&p0_clk>;
-+			clock-indices = <R7S72100_CLK_CEU R7S72100_CLK_RTC>;
-+			clock-output-names = "ceu", "rtc";
- 		};
- 
- 		mstp7_clks: mstp7_clks@fcfe0430 {
-@@ -667,4 +667,13 @@
- 		power-domains = <&cpg_clocks>;
- 		status = "disabled";
- 	};
-+
-+	ceu: ceu@e8210000 {
-+		reg = <0xe8210000 0x3000>;
-+		compatible = "renesas,r7s72100-ceu";
-+		interrupts = <GIC_SPI 332 IRQ_TYPE_LEVEL_HIGH>;
-+		clocks = <&mstp6_clks R7S72100_CLK_CEU>;
-+		power-domains = <&cpg_clocks>;
-+		status = "disabled";
-+	};
- };
--- 
-2.7.4
+That doesn't change anything. A patch that takes "bad things can
+happen" to "bad things DO happen" is a bad patch.
+
+> Maybe the answer is to tune the kernel for small latencies at the
+> price of small throughput (situation before the patch)
+
+Generally we always want to tune for latency. Throughput is "easy",
+but almost never interesting.
+
+Sure, people do batch jobs. And yes, people often _benchmark_
+throughput, because it's easy to benchmark. It's much harder to
+benchmark latency, even when it's often much more important.
+
+A prime example is the SSD benchmarks in the last few years - they
+improved _dramatically_ when people noticed that the real problem was
+latency, not the idiotic maximum big-block bandwidth numbers that have
+almost zero impact on most people.
+
+Put another way: we already have a very strong implicit bias towards
+bandwidth just because it's easier to see and measure.
+
+That means that we generally should strive to have a explicit bias
+towards optimizing for latency when that choice comes up.  Just to
+balance things out (and just to not take the easy way out: bandwidth
+can often be improved by adding more layers of buffering and bigger
+buffers, and that often ends up really hurting latency).
+
+> 1) Revert the patch
+
+Well, we can revert it only partially - limiting it to just networking
+for example.
+
+Just saying "act the way you used to for tasklets" already seems to
+have fixed the issue in DVB.
+
+> 2) get rid of ksoftirqd since it adds unexpected latencies.
+
+We can't get rid of it entirely, since the synchronous softirq code
+can cause problems too. It's why we have that "maximum of ten
+synchronous events" in __do_softirq().
+
+And we don't *want* to get rid of it.
+
+We've _always_ had that small-scale "at some point we can't do it
+synchronously any more".
+
+That is a small-scale "don't have horrible latency for _other_ things"
+protection. So it's about latency too, it's just about protecting
+latency of the rest of the system.
+
+The problem with commit 4cd13c21b207 is that it turns the small-scale
+latency issues in softirq handling (they get larger latencies for lots
+of hardware interrupts or even from non-preemptible kernel code) into
+the _huge_ scale latency of scheduling, and does so in a racy way too.
+
+> 3) Let applications that expect to have high throughput make sure to
+> pin their threads on cpus that are not processing IRQ.
+>     (And make sure to not use irqbalance, and setup IRQ cpu affinities)
+
+The only people that really deal in "thoughput only" tend to be the
+HPC people, and they already do things like this.
+
+(The other end of the spectrum is the realtime people that have
+extreme latency requirements, who do things like that for the reverse
+reason: keeping one or more CPU's reserved for the particular
+low-latency realtime job).
+
+                   Linus
