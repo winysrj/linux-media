@@ -1,50 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from www.llwyncelyn.cymru ([82.70.14.225]:35616 "EHLO fuzix.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751063AbeABSbb (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 2 Jan 2018 13:31:31 -0500
-Date: Tue, 2 Jan 2018 18:31:06 +0000
-From: Alan Cox <gnomes@lxorguk.ukuu.org.uk>
-To: Andy Shevchenko <andy.shevchenko@gmail.com>
-Cc: Kristian Beilke <beilke@posteo.de>,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Alan Cox <alan@linux.intel.com>,
-        Hans de Goede <hdegoede@redhat.com>
-Subject: Re: [BUG] atomisp_ov2680 not initializing correctly
-Message-ID: <20180102183106.79701c0f@alans-desktop>
-In-Reply-To: <CAHp75VftepWFT55Lwt-ki4K1+-Dy0y-=SU+bQQ6SRqkvapPF-w@mail.gmail.com>
-References: <42dfd60f-2534-b9cd-eeab-3110d58ef7c0@posteo.de>
-        <20171219120020.w7byb7bv3hhzn2jb@valkosipuli.retiisi.org.uk>
-        <1513715821.7000.228.camel@linux.intel.com>
-        <20171221125444.GB2935@ber-nb-001.aisec.fraunhofer.de>
-        <1513866211.7000.250.camel@linux.intel.com>
-        <6d1a2dc7-1d7b-78f3-9334-ccdedaa66510@posteo.de>
-        <1514476996.7000.437.camel@linux.intel.com>
-        <5fbb0600-82a0-5d17-a812-81d7707a335b@posteo.de>
-        <CAHp75VftepWFT55Lwt-ki4K1+-Dy0y-=SU+bQQ6SRqkvapPF-w@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail-pg0-f68.google.com ([74.125.83.68]:45007 "EHLO
+        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933300AbeAJCG3 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 9 Jan 2018 21:06:29 -0500
+From: Shunqian Zheng <zhengsq@rock-chips.com>
+To: mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com
+Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        ddl@rock-chips.com, tfiga@chromium.org,
+        Shunqian Zheng <zhengsq@rock-chips.com>
+Subject: [PATCH v5 3/4] dt-bindings: media: Add bindings for OV2685
+Date: Wed, 10 Jan 2018 10:06:06 +0800
+Message-Id: <1515549967-5302-4-git-send-email-zhengsq@rock-chips.com>
+In-Reply-To: <1515549967-5302-1-git-send-email-zhengsq@rock-chips.com>
+References: <1515549967-5302-1-git-send-email-zhengsq@rock-chips.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> Patch 0003-atomisp_gmin_platform-tweak-to-drive-axp288.patch gives a
-> little confusion.
-> The PMIC driver should work via ACPI OpRegion macro (and should be
-> enabled in kernel configuration). That's how it supposed to work.
-> The patch seems redundant.
+Add device tree binding documentation for the OV2685 sensor.
 
-I am fairly sure it is meant to work that way - but it doesn't. At least
-not at the moment.
+Signed-off-by: Shunqian Zheng <zhengsq@rock-chips.com>
+---
+ .../devicetree/bindings/media/i2c/ov2685.txt       | 41 ++++++++++++++++++++++
+ 1 file changed, 41 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/ov2685.txt
 
-> > I see your point, Still it feels, as if this could go somewhere.  
-> 
-> I hope so, though I didn't try CherryTrail and according to Alan that
-> is what he had tried on.
-
-It's what we are currently trying on. I can fire up the ISP and actually
-get interrupts from it, but not much more at this point.
-
-Alan
+diff --git a/Documentation/devicetree/bindings/media/i2c/ov2685.txt b/Documentation/devicetree/bindings/media/i2c/ov2685.txt
+new file mode 100644
+index 0000000..f1586a2
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/i2c/ov2685.txt
+@@ -0,0 +1,41 @@
++* Omnivision OV2685 MIPI CSI-2 sensor
++
++Required Properties:
++- compatible: shall be "ovti,ov2685"
++- clocks: reference to the xvclk input clock
++- clock-names: shall be "xvclk"
++- avdd-supply: Analog voltage supply, 2.8 volts
++- dovdd-supply: Digital I/O voltage supply, 1.8 volts
++- dvdd-supply: Digital core voltage supply, 1.8 volts
++- reset-gpios: Low active reset gpio
++
++The device node shall contain one 'port' child node with an
++'endpoint' subnode for its digital output video port,
++in accordance with the video interface bindings defined in
++Documentation/devicetree/bindings/media/video-interfaces.txt.
++The endpoint optional property 'data-lanes' shall be "<1>".
++
++Example:
++&i2c7 {
++	camera-sensor: ov2685@3c {
++		compatible = "ovti,ov2685";
++		reg = <0x3c>;
++		pinctrl-names = "default";
++		pinctrl-0 = <&clk_24m_cam>;
++
++		clocks = <&cru SCLK_TESTCLKOUT1>;
++		clock-names = "xvclk";
++
++		avdd-supply = <&pp2800_cam>;
++		dovdd-supply = <&pp1800>;
++		dvdd-supply = <&pp1800>;
++		reset-gpios = <&gpio2 3 GPIO_ACTIVE_LOW>;
++
++		port {
++			ucam_out: endpoint {
++				remote-endpoint = <&mipi_in_ucam>;
++				data-lanes = <1>;
++			};
++		};
++	};
++};
+-- 
+1.9.1
