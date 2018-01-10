@@ -1,77 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.17.24]:51400 "EHLO
-        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750772AbeAPQrv (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 16 Jan 2018 11:47:51 -0500
-From: Arnd Bergmann <arnd@arndb.de>
-To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH] [v3] media: s3c-camif: fix out-of-bounds array access
-Date: Tue, 16 Jan 2018 17:47:24 +0100
-Message-Id: <20180116164740.2097257-1-arnd@arndb.de>
+Received: from osg.samsung.com ([64.30.133.232]:36281 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753722AbeAJMU4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 10 Jan 2018 07:20:56 -0500
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH] media: ts2020: avoid integer overflows on 32 bit machines
+Date: Wed, 10 Jan 2018 07:20:51 -0500
+Message-Id: <5a76e47a889fde8726d60834ac1b0fdb8c775d96.1515586847.git.mchehab@s-opensource.com>
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-While experimenting with older compiler versions, I ran
-into a warning that no longer shows up on gcc-4.8 or newer:
+Before this patch, when compiled for arm32, the signal strength
+were reported as:
 
-drivers/media/platform/s3c-camif/camif-capture.c: In function '__camif_subdev_try_format':
-drivers/media/platform/s3c-camif/camif-capture.c:1265:25: error: array subscript is below array bounds
+Lock   (0x1f) Signal= 4294908.66dBm C/N= 12.79dB
 
-This is an off-by-one bug, leading to an access before the start of the
-array, while newer compilers silently assume this undefined behavior
-cannot happen and leave the loop at index 0 if no other entry matches.
+Because of a 32 bit integer overflow. After it, it is properly
+reported as:
 
-As Sylvester explains, we actually need to ensure that the
-value is within the range, so this reworks the loop to be
-easier to parse correctly, and an additional check to fall
-back on the first format value for any unexpected input.
+	Lock   (0x1f) Signal= -58.64dBm C/N= 12.79dB
 
-I found an existing gcc bug for it and added a reduced version
-of the function there.
-
-Link: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=69249#c3
-Fixes: babde1c243b2 ("[media] V4L: Add driver for S3C24XX/S3C64XX SoC series camera interface")
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
 ---
-v3: fix newly introduced off-by-one bug.
-v2: rework logic rather than removing it.
----
- drivers/media/platform/s3c-camif/camif-capture.c | 9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ drivers/media/dvb-frontends/ts2020.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/platform/s3c-camif/camif-capture.c b/drivers/media/platform/s3c-camif/camif-capture.c
-index 437395a61065..f51b92e94a32 100644
---- a/drivers/media/platform/s3c-camif/camif-capture.c
-+++ b/drivers/media/platform/s3c-camif/camif-capture.c
-@@ -1256,16 +1256,19 @@ static void __camif_subdev_try_format(struct camif_dev *camif,
- {
- 	const struct s3c_camif_variant *variant = camif->variant;
- 	const struct vp_pix_limits *pix_lim;
--	int i = ARRAY_SIZE(camif_mbus_formats);
-+	int i;
+diff --git a/drivers/media/dvb-frontends/ts2020.c b/drivers/media/dvb-frontends/ts2020.c
+index 931e5c98da8a..b879e1571469 100644
+--- a/drivers/media/dvb-frontends/ts2020.c
++++ b/drivers/media/dvb-frontends/ts2020.c
+@@ -368,7 +368,7 @@ static int ts2020_read_tuner_gain(struct dvb_frontend *fe, unsigned v_agc,
+ 		gain2 = clamp_t(long, gain2, 0, 13);
+ 		v_agc = clamp_t(long, v_agc, 400, 1100);
  
- 	/* FIXME: constraints against codec or preview path ? */
- 	pix_lim = &variant->vp_pix_limits[VP_CODEC];
+-		*_gain = -(gain1 * 2330 +
++		*_gain = -((__s64)gain1 * 2330 +
+ 			   gain2 * 3500 +
+ 			   v_agc * 24 / 10 * 10 +
+ 			   10000);
+@@ -386,7 +386,7 @@ static int ts2020_read_tuner_gain(struct dvb_frontend *fe, unsigned v_agc,
+ 		gain3 = clamp_t(long, gain3, 0, 6);
+ 		v_agc = clamp_t(long, v_agc, 600, 1600);
  
--	while (i-- >= 0)
-+	for (i = 0; i < ARRAY_SIZE(camif_mbus_formats); i++)
- 		if (camif_mbus_formats[i] == mf->code)
- 			break;
- 
--	mf->code = camif_mbus_formats[i];
-+	if (i == ARRAY_SIZE(camif_mbus_formats))
-+		mf->code = camif_mbus_formats[0];
-+	else
-+		mf->code = camif_mbus_formats[i];
- 
- 	if (pad == CAMIF_SD_PAD_SINK) {
- 		v4l_bound_align_image(&mf->width, 8, CAMIF_MAX_PIX_WIDTH,
+-		*_gain = -(gain1 * 2650 +
++		*_gain = -((__s64)gain1 * 2650 +
+ 			   gain2 * 3380 +
+ 			   gain3 * 2850 +
+ 			   v_agc * 176 / 100 * 10 -
 -- 
-2.9.0
+2.14.3
