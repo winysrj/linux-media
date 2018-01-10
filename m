@@ -1,156 +1,160 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from regular1.263xmail.com ([211.150.99.141]:48282 "EHLO
-        regular1.263xmail.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751042AbeAKGVg (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 11 Jan 2018 01:21:36 -0500
-Reply-To: zhengsq@rock-chips.com
-Subject: Re: [PATCH v5 2/4] media: ov5695: add support for OV5695 sensor
-To: jacopo mondi <jacopo@jmondi.org>
-Cc: mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        ddl@rock-chips.com, tfiga@chromium.org
-References: <1515549967-5302-1-git-send-email-zhengsq@rock-chips.com>
- <1515549967-5302-3-git-send-email-zhengsq@rock-chips.com>
- <20180110090836.GB6834@w540>
-From: Shunqian Zheng <zhengsq@rock-chips.com>
-Message-ID: <2ab51b3f-0c37-6c3d-6b2e-c7e767275380@rock-chips.com>
-Date: Thu, 11 Jan 2018 14:21:17 +0800
+Received: from mail.kernel.org ([198.145.29.99]:47936 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752721AbeAJAZx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 9 Jan 2018 19:25:53 -0500
+Date: Tue, 9 Jan 2018 18:25:44 -0600
+From: Bjorn Helgaas <helgaas@kernel.org>
+To: Christoph Hellwig <hch@lst.de>
+Cc: Bjorn Helgaas <bhelgaas@google.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-pci@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 3/3] pci-dma-compat: remove handling of NULL pdev
+ arguments
+Message-ID: <20180110002544.GA157182@bhelgaas-glaptop.roam.corp.google.com>
+References: <20180109203939.5930-1-hch@lst.de>
+ <20180109203939.5930-4-hch@lst.de>
 MIME-Version: 1.0
-In-Reply-To: <20180110090836.GB6834@w540>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
-Content-Language: en-US
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20180109203939.5930-4-hch@lst.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jacopo,
+s/pci-dma-compat: remove handling of NULL pdev
+ /PCI: Remove NULL device handling from DMA API/
 
+On Tue, Jan 09, 2018 at 09:39:39PM +0100, Christoph Hellwig wrote:
+> Historically some ISA drivers used the old pci DMA API with a NULL pdev
+> argument, but these days this isn't used and not too useful due to the
+> per-device DMA ops, so remove it.
 
-On 2018年01月10日 17:08, jacopo mondi wrote:
-> Hello Shunqian,
->
-> On Wed, Jan 10, 2018 at 10:06:05AM +0800, Shunqian Zheng wrote:
->
-> [snip]
->
->> +static int __ov5695_start_stream(struct ov5695 *ov5695)
->> +{
->> +	int ret;
->> +
->> +	ret = ov5695_write_array(ov5695->client, ov5695_global_regs);
->> +	if (ret)
->> +		return ret;
->> +	ret = ov5695_write_array(ov5695->client, ov5695->cur_mode->reg_list);
->> +	if (ret)
->> +		return ret;
->> +
->> +	/* In case these controls are set before streaming */
->> +	ret = __v4l2_ctrl_handler_setup(&ov5695->ctrl_handler);
->> +	if (ret)
->> +		return ret;
->> +
->> +	return ov5695_write_reg(ov5695->client, OV5695_REG_CTRL_MODE,
->> +				OV5695_REG_VALUE_08BIT, OV5695_MODE_STREAMING);
->> +}
->> +
->> +static int __ov5695_stop_stream(struct ov5695 *ov5695)
->> +{
->> +	return ov5695_write_reg(ov5695->client, OV5695_REG_CTRL_MODE,
->> +				OV5695_REG_VALUE_08BIT, OV5695_MODE_SW_STANDBY);
->> +}
->> +
->> +static int ov5695_s_stream(struct v4l2_subdev *sd, int on)
->> +{
->> +	struct ov5695 *ov5695 = to_ov5695(sd);
->> +	struct i2c_client *client = ov5695->client;
->> +	int ret = 0;
->> +
->> +	mutex_lock(&ov5695->mutex);
->> +	on = !!on;
->> +	if (on == ov5695->streaming)
->> +		goto unlock_and_return;
->> +
->> +	if (on) {
->> +		ret = pm_runtime_get_sync(&client->dev);
->> +		if (ret < 0) {
->> +			pm_runtime_put_noidle(&client->dev);
->> +			goto unlock_and_return;
->> +		}
->> +
->> +		ret = __ov5695_start_stream(ov5695);
->> +		if (ret) {
->> +			v4l2_err(sd, "start stream failed while write regs\n");
->> +			pm_runtime_put(&client->dev);
->> +			goto unlock_and_return;
->> +		}
->> +	} else {
->> +		__ov5695_stop_stream(ov5695);
->> +		ret = pm_runtime_put(&client->dev);
-> I would return the result of __ov5695_stop_stream() instead of
-> pm_runtime_put().
->
-> I know I asked for this, but if the first s_stream(0) fails, the
-> sensor may not have been stopped but the interface will be put in
-> "streaming = 0" state, preventing a second s_stream(0) to be issued
-> because of your check "on == ov5695->streaming" a few lines above.
->
-> I can't tell how bad this is. Imho is acceptable but I would like to
-> hear someone else opinion here :)
-How about not checking the return values of s_stream(0) branch?
-It seems not much this driver can do if pm_runtime_put() fails.
->
->> +	}
->> +
->> +	ov5695->streaming = on;
->> +
->> +unlock_and_return:
->> +	mutex_unlock(&ov5695->mutex);
->> +
->> +	return ret;
->> +}
->> +
->> +
-> [snip]
->
->> +static const struct of_device_id ov5695_of_match[] = {
->> +	{ .compatible = "ovti,ov5695" },
->> +	{},
->> +};
-> If you don't list CONFIG_OF as a dependecy for this driver (which you
-> should not imho), please guard this with:
->
-> #if IS_ENABLED(CONFIG_OF)
->
-> #endif
->
->> +
->> +static struct i2c_driver ov5695_i2c_driver = {
->> +	.driver = {
->> +		.name = "ov5695",
->> +		.owner = THIS_MODULE,
->> +		.pm = &ov5695_pm_ops,
->> +		.of_match_table = ov5695_of_match
->> +	},
->> +	.probe		= &ov5695_probe,
->> +	.remove		= &ov5695_remove,
->> +};
->> +
->> +module_i2c_driver(ov5695_i2c_driver);
->> +
->> +MODULE_DESCRIPTION("OmniVision ov5695 sensor driver");
->> +MODULE_LICENSE("GPL v2");
-> As you've fixed my comments on v1, and with the above bits addressed:
->
-> Reviewed-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
-Thank you very much~
-Shunqian
->
-> Thanks
->     j
->
->> --
->> 1.9.1
->>
->
->
+s/pci/PCI/
+
+I like this a lot, thanks!
+
+It looks like "pci_free_consistent(NULL" is still used in
+drivers/net/ethernet/tundra/tsi108_eth.c.
+
+> Signed-off-by: Christoph Hellwig <hch@lst.de>
+
+With Mauro's ack on the media/ttusb-dev patches, I could merge the
+whole series via the PCI tree?
+
+> ---
+>  include/linux/pci-dma-compat.h | 27 +++++++++++++--------------
+>  1 file changed, 13 insertions(+), 14 deletions(-)
+> 
+> diff --git a/include/linux/pci-dma-compat.h b/include/linux/pci-dma-compat.h
+> index d1f9fdade1e0..0dd1a3f7b309 100644
+> --- a/include/linux/pci-dma-compat.h
+> +++ b/include/linux/pci-dma-compat.h
+> @@ -17,91 +17,90 @@ static inline void *
+>  pci_alloc_consistent(struct pci_dev *hwdev, size_t size,
+>  		     dma_addr_t *dma_handle)
+>  {
+> -	return dma_alloc_coherent(hwdev == NULL ? NULL : &hwdev->dev, size, dma_handle, GFP_ATOMIC);
+> +	return dma_alloc_coherent(&hwdev->dev, size, dma_handle, GFP_ATOMIC);
+>  }
+>  
+>  static inline void *
+>  pci_zalloc_consistent(struct pci_dev *hwdev, size_t size,
+>  		      dma_addr_t *dma_handle)
+>  {
+> -	return dma_zalloc_coherent(hwdev == NULL ? NULL : &hwdev->dev,
+> -				   size, dma_handle, GFP_ATOMIC);
+> +	return dma_zalloc_coherent(&hwdev->dev, size, dma_handle, GFP_ATOMIC);
+>  }
+>  
+>  static inline void
+>  pci_free_consistent(struct pci_dev *hwdev, size_t size,
+>  		    void *vaddr, dma_addr_t dma_handle)
+>  {
+> -	dma_free_coherent(hwdev == NULL ? NULL : &hwdev->dev, size, vaddr, dma_handle);
+> +	dma_free_coherent(&hwdev->dev, size, vaddr, dma_handle);
+>  }
+>  
+>  static inline dma_addr_t
+>  pci_map_single(struct pci_dev *hwdev, void *ptr, size_t size, int direction)
+>  {
+> -	return dma_map_single(hwdev == NULL ? NULL : &hwdev->dev, ptr, size, (enum dma_data_direction)direction);
+> +	return dma_map_single(&hwdev->dev, ptr, size, (enum dma_data_direction)direction);
+>  }
+>  
+>  static inline void
+>  pci_unmap_single(struct pci_dev *hwdev, dma_addr_t dma_addr,
+>  		 size_t size, int direction)
+>  {
+> -	dma_unmap_single(hwdev == NULL ? NULL : &hwdev->dev, dma_addr, size, (enum dma_data_direction)direction);
+> +	dma_unmap_single(&hwdev->dev, dma_addr, size, (enum dma_data_direction)direction);
+>  }
+>  
+>  static inline dma_addr_t
+>  pci_map_page(struct pci_dev *hwdev, struct page *page,
+>  	     unsigned long offset, size_t size, int direction)
+>  {
+> -	return dma_map_page(hwdev == NULL ? NULL : &hwdev->dev, page, offset, size, (enum dma_data_direction)direction);
+> +	return dma_map_page(&hwdev->dev, page, offset, size, (enum dma_data_direction)direction);
+>  }
+>  
+>  static inline void
+>  pci_unmap_page(struct pci_dev *hwdev, dma_addr_t dma_address,
+>  	       size_t size, int direction)
+>  {
+> -	dma_unmap_page(hwdev == NULL ? NULL : &hwdev->dev, dma_address, size, (enum dma_data_direction)direction);
+> +	dma_unmap_page(&hwdev->dev, dma_address, size, (enum dma_data_direction)direction);
+>  }
+>  
+>  static inline int
+>  pci_map_sg(struct pci_dev *hwdev, struct scatterlist *sg,
+>  	   int nents, int direction)
+>  {
+> -	return dma_map_sg(hwdev == NULL ? NULL : &hwdev->dev, sg, nents, (enum dma_data_direction)direction);
+> +	return dma_map_sg(&hwdev->dev, sg, nents, (enum dma_data_direction)direction);
+>  }
+>  
+>  static inline void
+>  pci_unmap_sg(struct pci_dev *hwdev, struct scatterlist *sg,
+>  	     int nents, int direction)
+>  {
+> -	dma_unmap_sg(hwdev == NULL ? NULL : &hwdev->dev, sg, nents, (enum dma_data_direction)direction);
+> +	dma_unmap_sg(&hwdev->dev, sg, nents, (enum dma_data_direction)direction);
+>  }
+>  
+>  static inline void
+>  pci_dma_sync_single_for_cpu(struct pci_dev *hwdev, dma_addr_t dma_handle,
+>  		    size_t size, int direction)
+>  {
+> -	dma_sync_single_for_cpu(hwdev == NULL ? NULL : &hwdev->dev, dma_handle, size, (enum dma_data_direction)direction);
+> +	dma_sync_single_for_cpu(&hwdev->dev, dma_handle, size, (enum dma_data_direction)direction);
+>  }
+>  
+>  static inline void
+>  pci_dma_sync_single_for_device(struct pci_dev *hwdev, dma_addr_t dma_handle,
+>  		    size_t size, int direction)
+>  {
+> -	dma_sync_single_for_device(hwdev == NULL ? NULL : &hwdev->dev, dma_handle, size, (enum dma_data_direction)direction);
+> +	dma_sync_single_for_device(&hwdev->dev, dma_handle, size, (enum dma_data_direction)direction);
+>  }
+>  
+>  static inline void
+>  pci_dma_sync_sg_for_cpu(struct pci_dev *hwdev, struct scatterlist *sg,
+>  		int nelems, int direction)
+>  {
+> -	dma_sync_sg_for_cpu(hwdev == NULL ? NULL : &hwdev->dev, sg, nelems, (enum dma_data_direction)direction);
+> +	dma_sync_sg_for_cpu(&hwdev->dev, sg, nelems, (enum dma_data_direction)direction);
+>  }
+>  
+>  static inline void
+>  pci_dma_sync_sg_for_device(struct pci_dev *hwdev, struct scatterlist *sg,
+>  		int nelems, int direction)
+>  {
+> -	dma_sync_sg_for_device(hwdev == NULL ? NULL : &hwdev->dev, sg, nelems, (enum dma_data_direction)direction);
+> +	dma_sync_sg_for_device(&hwdev->dev, sg, nelems, (enum dma_data_direction)direction);
+>  }
+>  
+>  static inline int
+> -- 
+> 2.14.2
+> 
