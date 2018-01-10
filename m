@@ -1,53 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gateway30.websitewelcome.com ([192.185.194.16]:43101 "EHLO
-        gateway30.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S932083AbeAXBGP (ORCPT
+Received: from mail-qk0-f172.google.com ([209.85.220.172]:33711 "EHLO
+        mail-qk0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S965487AbeAJQoU (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 23 Jan 2018 20:06:15 -0500
-Received: from cm14.websitewelcome.com (cm14.websitewelcome.com [100.42.49.7])
-        by gateway30.websitewelcome.com (Postfix) with ESMTP id 690CF6DE2
-        for <linux-media@vger.kernel.org>; Tue, 23 Jan 2018 18:43:41 -0600 (CST)
-Date: Tue, 23 Jan 2018 18:43:40 -0600
-From: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
-To: Steve Longerbeam <slongerbeam@gmail.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Arnd Bergmann <arnd@arndb.de>
-Cc: linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+        Wed, 10 Jan 2018 11:44:20 -0500
+Received: by mail-qk0-f172.google.com with SMTP id i141so2247697qke.0
+        for <linux-media@vger.kernel.org>; Wed, 10 Jan 2018 08:44:20 -0800 (PST)
+Message-ID: <1515602656.5266.15.camel@ndufresne.ca>
+Subject: Re: [PATCH v7 0/6] V4L2 Explicit Synchronization
+From: Nicolas Dufresne <nicolas@ndufresne.ca>
+To: Gustavo Padovan <gustavo@padovan.org>, linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        Pawel Osciak <pawel@osciak.com>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Brian Starkey <brian.starkey@arm.com>,
+        Thierry Escande <thierry.escande@collabora.com>,
         linux-kernel@vger.kernel.org,
-        "Gustavo A. R. Silva" <garsilva@embeddedor.com>
-Subject: [PATCH] staging: imx-media-vdic: fix inconsistent IS_ERR and PTR_ERR
-Message-ID: <20180124004340.GA25212@embeddedgus>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+        Gustavo Padovan <gustavo.padovan@collabora.com>
+Date: Wed, 10 Jan 2018 11:44:16 -0500
+In-Reply-To: <20180110160732.7722-1-gustavo@padovan.org>
+References: <20180110160732.7722-1-gustavo@padovan.org>
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature";
+        boundary="=-pGVNhnL6838h6CCK7gTP"
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fix inconsistent IS_ERR and PTR_ERR in vdic_get_ipu_resources.
-The proper pointer to be passed as argument is ch.
 
-This issue was detected with the help of Coccinelle.
+--=-pGVNhnL6838h6CCK7gTP
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-Fixes: 0b2e9e7947e7 ("media: staging/imx: remove confusing IS_ERR_OR_NULL usage")
-Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
----
- drivers/staging/media/imx/imx-media-vdic.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Le mercredi 10 janvier 2018 =C3=A0 14:07 -0200, Gustavo Padovan a =C3=A9cri=
+t :
+> v7 bring a fix for a crash when not using fences and a uAPI fix.
+> I've done a bit more of testing on it and also measured some
+> performance. On a intel laptop a DRM<->V4L2 pipeline with fences is
+> runnning twice as faster than the same pipeline with no fences.
 
-diff --git a/drivers/staging/media/imx/imx-media-vdic.c b/drivers/staging/media/imx/imx-media-vdic.c
-index 433474d..ed35684 100644
---- a/drivers/staging/media/imx/imx-media-vdic.c
-+++ b/drivers/staging/media/imx/imx-media-vdic.c
-@@ -177,7 +177,7 @@ static int vdic_get_ipu_resources(struct vdic_priv *priv)
- 		priv->vdi_in_ch = ch;
- 
- 		ch = ipu_idmac_get(priv->ipu, IPUV3_CHANNEL_MEM_VDI_NEXT);
--		if (IS_ERR(priv->vdi_in_ch_n)) {
-+		if (IS_ERR(ch)) {
- 			err_chan = IPUV3_CHANNEL_MEM_VDI_NEXT;
- 			ret = PTR_ERR(ch);
- 			goto out_err_chan;
--- 
-2.7.4
+What does it mean twice faster here ?
+
+Nicolas
+--=-pGVNhnL6838h6CCK7gTP
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+Content-Transfer-Encoding: 7bit
+
+-----BEGIN PGP SIGNATURE-----
+
+iF0EABECAB0WIQSScpfJiL+hb5vvd45xUwItrAaoHAUCWlZC4AAKCRBxUwItrAao
+HBkPAKDIl+ctr9WaE2IRpXm/nb7SroytGQCghjWle1edOls8KwjIQJaRaFGmeQw=
+=cK8y
+-----END PGP SIGNATURE-----
+
+--=-pGVNhnL6838h6CCK7gTP--
