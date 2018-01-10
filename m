@@ -1,49 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx08-00178001.pphosted.com ([91.207.212.93]:59527 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751028AbeAVKHT (ORCPT
+Received: from mail-qt0-f196.google.com ([209.85.216.196]:40925 "EHLO
+        mail-qt0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755130AbeAJQJp (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 22 Jan 2018 05:07:19 -0500
-From: Hugues Fruchet <hugues.fruchet@st.com>
-To: Steve Longerbeam <slongerbeam@gmail.com>,
+        Wed, 10 Jan 2018 11:09:45 -0500
+From: Gustavo Padovan <gustavo@padovan.org>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        Pawel Osciak <pawel@osciak.com>,
+        Alexandre Courbot <acourbot@chromium.org>,
         Sakari Ailus <sakari.ailus@iki.fi>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        "Mauro Carvalho Chehab" <mchehab@kernel.org>
-CC: <linux-media@vger.kernel.org>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Subject: [PATCH] media: ov5640: fix spurious streamon failures
-Date: Mon, 22 Jan 2018 11:06:41 +0100
-Message-ID: <1516615601-16276-2-git-send-email-hugues.fruchet@st.com>
-In-Reply-To: <1516615601-16276-1-git-send-email-hugues.fruchet@st.com>
-References: <1516615601-16276-1-git-send-email-hugues.fruchet@st.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+        Brian Starkey <brian.starkey@arm.com>,
+        Thierry Escande <thierry.escande@collabora.com>,
+        linux-kernel@vger.kernel.org,
+        Gustavo Padovan <gustavo.padovan@collabora.com>
+Subject: [PATCH v7 0/6] V4L2 Explicit Synchronization
+Date: Wed, 10 Jan 2018 14:07:26 -0200
+Message-Id: <20180110160732.7722-1-gustavo@padovan.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Time to time, stream is failing with a strange positive error.
-Error code is returned erroneously by ov5640_set_ctrl_exposure()
-due to ov5640_get_vts() return value wrongly treated as error.
-Fix this by forcing ret to 0 after ov5640_get_vts() success call,
-in order that ret is set to success for rest of code sequence.
+From: Gustavo Padovan <gustavo.padovan@collabora.com>
 
-Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
----
- drivers/media/i2c/ov5640.c | 1 +
- 1 file changed, 1 insertion(+)
+Hi,
 
-diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
-index f017742..e2dd352 100644
---- a/drivers/media/i2c/ov5640.c
-+++ b/drivers/media/i2c/ov5640.c
-@@ -2057,6 +2057,7 @@ static int ov5640_set_ctrl_exposure(struct ov5640_dev *sensor, int exp)
- 		if (ret < 0)
- 			return ret;
- 		max_exp += ret;
-+		ret = 0;
- 
- 		if (ctrls->exposure->val < max_exp)
- 			ret = ov5640_set_exposure(sensor, ctrls->exposure->val);
+v7 bring a fix for a crash when not using fences and a uAPI fix.
+I've done a bit more of testing on it and also measured some
+performance. On a intel laptop a DRM<->V4L2 pipeline with fences is
+runnning twice as faster than the same pipeline with no fences.
+
+For more details on how fences work refer to patch 6 in this series.
+
+The test tools I've been using are:
+https://gitlab.collabora.com/padovan/drm-v4l2-test
+https://gitlab.collabora.com/padovan/v4l2-fences-test
+
+Please review,
+
+Gustavo
+
+Gustavo Padovan (6):
+  [media] vb2: add is_unordered callback for drivers
+  [media] v4l: add 'unordered' flag to format description ioctl
+  [media] vb2: add explicit fence user API
+  [media] vb2: add in-fence support to QBUF
+  [media] vb2: add out-fence support to QBUF
+  [media] v4l: Document explicit synchronization behavior
+
+ Documentation/media/uapi/v4l/buffer.rst          |  15 ++
+ Documentation/media/uapi/v4l/vidioc-enum-fmt.rst |   3 +
+ Documentation/media/uapi/v4l/vidioc-qbuf.rst     |  47 ++++-
+ Documentation/media/uapi/v4l/vidioc-querybuf.rst |   9 +-
+ drivers/media/common/videobuf/videobuf2-core.c   | 253 +++++++++++++++++++++--
+ drivers/media/common/videobuf/videobuf2-v4l2.c   |  51 ++++-
+ drivers/media/v4l2-core/Kconfig                  |  33 +++
+ drivers/media/v4l2-core/v4l2-compat-ioctl32.c    |   4 +-
+ include/media/videobuf2-core.h                   |  41 +++-
+ include/uapi/linux/videodev2.h                   |   8 +-
+ 10 files changed, 437 insertions(+), 27 deletions(-)
+
 -- 
-1.9.1
+2.14.3
