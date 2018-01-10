@@ -1,49 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:49968 "EHLO
-        mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933255AbeAXLXp (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 24 Jan 2018 06:23:45 -0500
-From: Smitha T Murthy <smitha.t@samsung.com>
-To: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Cc: kyungmin.park@samsung.com, kamil@wypas.org, jtp.park@samsung.com,
-        a.hajda@samsung.com, mchehab@kernel.org, pankaj.dubey@samsung.com,
-        krzk@kernel.org, m.szyprowski@samsung.com, s.nawrocki@samsung.com,
-        Smitha T Murthy <smitha.t@samsung.com>
-Subject: [Patch v7 07/12] Documentation: v4l: Documentation for HEVC v4l2
- definition
-Date: Wed, 24 Jan 2018 16:29:39 +0530
-Message-id: <1516791584-7980-8-git-send-email-smitha.t@samsung.com>
-In-reply-to: <1516791584-7980-1-git-send-email-smitha.t@samsung.com>
-References: <1516791584-7980-1-git-send-email-smitha.t@samsung.com>
-        <CGME20180124112342epcas1p151c1c463c0d31efc6d15da38172ed01d@epcas1p1.samsung.com>
+Received: from esa5.microchip.iphmx.com ([216.71.150.166]:26824 "EHLO
+        esa5.microchip.iphmx.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932754AbeAJBwa (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 9 Jan 2018 20:52:30 -0500
+Subject: Re: [PATCH 1/2] MAINTAINERS: linux-media: update Microchip ISI and
+ ISC entries
+To: Nicolas Ferre <nicolas.ferre@microchip.com>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-kernel@vger.kernel.org>,
+        Ludovic Desroches <ludovic.desroches@microchip.com>,
+        Boris BREZILLON <boris.brezillon@free-electrons.com>
+CC: <linux-media@vger.kernel.org>,
+        Alexandre Belloni <alexandre.belloni@free-electrons.com>,
+        <linux-mtd@lists.infradead.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Josh Wu <rainyfeeling@outlook.com>
+References: <eb6b3cbe8e48faee7e88eca0649e42cbde91ffa6.1515503733.git.nicolas.ferre@microchip.com>
+From: "Yang, Wenyou" <Wenyou.Yang@Microchip.com>
+Message-ID: <066d1016-51f6-75d5-c68c-00029b49b9c9@Microchip.com>
+Date: Wed, 10 Jan 2018 09:52:25 +0800
+MIME-Version: 1.0
+In-Reply-To: <eb6b3cbe8e48faee7e88eca0649e42cbde91ffa6.1515503733.git.nicolas.ferre@microchip.com>
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add V4L2 definition for HEVC compressed format which is also
-known as H.265.
 
-Signed-off-by: Smitha T Murthy <smitha.t@samsung.com>
-Reviewed-by: Andrzej Hajda <a.hajda@samsung.com>
-Reviewed-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- Documentation/media/uapi/v4l/pixfmt-compressed.rst | 5 +++++
- 1 file changed, 5 insertions(+)
 
-diff --git a/Documentation/media/uapi/v4l/pixfmt-compressed.rst b/Documentation/media/uapi/v4l/pixfmt-compressed.rst
-index 728d7ed..abec039 100644
---- a/Documentation/media/uapi/v4l/pixfmt-compressed.rst
-+++ b/Documentation/media/uapi/v4l/pixfmt-compressed.rst
-@@ -90,3 +90,8 @@ Compressed Formats
-       - ``V4L2_PIX_FMT_VP9``
-       - 'VP90'
-       - VP9 video elementary stream.
-+    * .. _V4L2-PIX-FMT-HEVC:
-+
-+      - ``V4L2_PIX_FMT_HEVC``
-+      - 'HEVC'
-+      - HEVC/H.265 video elementary stream.
--- 
-2.7.4
+On 2018/1/9 21:46, Nicolas Ferre wrote:
+> These two image capture interface drivers are now handled
+> by Wenyou Yang.
+> I benefit from this change to update the two entries by correcting the
+> binding documentation link for ISC and moving the ISI to the new
+> MICROCHIP / ATMEL location.
+>
+> Signed-off-by: Nicolas Ferre <nicolas.ferre@microchip.com>
+Acked-by: Wenyou Yang <wenyou.yang@microchip.com>
+> ---
+> Hi,
+>
+> Patch against next-20180109.
+> Note that I didn't find it useful to have several patches for these changes.
+> Tell me if you feel differently.
+>
+> I would like to have the Ack from Ludovic and Wenyou obviously. I don't know if
+> Songjun can answer as he's not with Microchip anymore.
+>
+> Best regards,
+>    Nicolas
+>
+>   MAINTAINERS | 19 ++++++++++---------
+>   1 file changed, 10 insertions(+), 9 deletions(-)
+>
+> diff --git a/MAINTAINERS b/MAINTAINERS
+> index a7d10a2bb980..65c4b59b582f 100644
+> --- a/MAINTAINERS
+> +++ b/MAINTAINERS
+> @@ -2353,13 +2353,6 @@ L:	linux-i2c@vger.kernel.org
+>   S:	Supported
+>   F:	drivers/i2c/busses/i2c-at91.c
+>   
+> -ATMEL ISI DRIVER
+> -M:	Ludovic Desroches <ludovic.desroches@microchip.com>
+> -L:	linux-media@vger.kernel.org
+> -S:	Supported
+> -F:	drivers/media/platform/atmel/atmel-isi.c
+> -F:	include/media/atmel-isi.h
+> -
+>   ATMEL LCDFB DRIVER
+>   M:	Nicolas Ferre <nicolas.ferre@microchip.com>
+>   L:	linux-fbdev@vger.kernel.org
+> @@ -9102,12 +9095,20 @@ S:	Maintained
+>   F:	drivers/crypto/atmel-ecc.*
+>   
+>   MICROCHIP / ATMEL ISC DRIVER
+> -M:	Songjun Wu <songjun.wu@microchip.com>
+> +M:	Wenyou Yang <wenyou.yang@microchip.com>
+>   L:	linux-media@vger.kernel.org
+>   S:	Supported
+>   F:	drivers/media/platform/atmel/atmel-isc.c
+>   F:	drivers/media/platform/atmel/atmel-isc-regs.h
+> -F:	devicetree/bindings/media/atmel-isc.txt
+> +F:	Documentation/devicetree/bindings/media/atmel-isc.txt
+> +
+> +MICROCHIP / ATMEL ISI DRIVER
+> +M:	Wenyou Yang <wenyou.yang@microchip.com>
+> +L:	linux-media@vger.kernel.org
+> +S:	Supported
+> +F:	drivers/media/platform/atmel/atmel-isi.c
+> +F:	include/media/atmel-isi.h
+> +F:	Documentation/devicetree/bindings/media/atmel-isi.txt
+>   
+>   MICROCHIP KSZ SERIES ETHERNET SWITCH DRIVER
+>   M:	Woojung Huh <Woojung.Huh@microchip.com>
+Best Regards,
+Wenyou Yang
