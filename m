@@ -1,141 +1,171 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([85.220.165.71]:57635 "EHLO
-        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754713AbeALK1O (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 12 Jan 2018 05:27:14 -0500
-Message-ID: <1515669224.12538.53.camel@pengutronix.de>
-Subject: Re: [Linaro-mm-sig] [PATCH] dma-buf: add some lockdep asserts to
- the reservation object implementation
-From: Lucas Stach <l.stach@pengutronix.de>
-To: christian.koenig@amd.com, Sumit Semwal <sumit.semwal@linaro.org>
-Cc: linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, kernel@pengutronix.de,
-        patchwork-lst@pengutronix.de
-Date: Thu, 11 Jan 2018 12:13:44 +0100
-In-Reply-To: <7a1961d2-2701-e3e9-ae24-08b8fcfb9dd4@gmail.com>
-References: <20171201111216.7050-1-l.stach@pengutronix.de>
-         <1515667384.12538.51.camel@pengutronix.de>
-         <7a1961d2-2701-e3e9-ae24-08b8fcfb9dd4@gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Received: from mx1.redhat.com ([209.132.183.28]:41758 "EHLO mx1.redhat.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S933639AbeAJOuj (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 10 Jan 2018 09:50:39 -0500
+Subject: [PATCH] dvb: Save port number and provide sysfs attributes to pass
+ values to udev
+From: David Howells <dhowells@redhat.com>
+To: mchehab@kernel.org
+Cc: dhowells@redhat.com, linux-kernel@vger.kernel.org,
+        linux-media@vger.kernel.org
+Date: Wed, 10 Jan 2018 14:50:35 +0000
+Message-ID: <151559583569.13545.12649741692530472663.stgit@warthog.procyon.org.uk>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am Donnerstag, den 11.01.2018, 11:54 +0100 schrieb Christian König:
-> Yeah, somehow missed that one.
-> 
-> The patch looks mostly good, except for reservation_object_get_excl().
-> 
-> For that one an RCU protection is usually sufficient, so annotating it 
-> with reservation_object_assert_held() sounds incorrect to me.
+Some devices, such as the DVBSky S952 and T982 cards, are dual port cards
+that provide two cx23885 devices on the same PCI device, which means the
+attributes available for writing udev rules are exactly the same, apart
+from the adapter number.  Unfortunately, the adapter numbers are dependent
+on the order in which things are initialised, so this can change over
+different releases of the kernel.
 
-Ah, you are correct. I was confused about this one as
-reservation_object_get_excl_rcu() exists and and the doc
-above reservation_object_get_excl() states "The obj->lock must be
-held.", which is misleading for the read-only case.
+The struct cx23885_tsport has a port number available, which is printed
+during boot:
 
-I'll send a v2 with that fixed.
+	[   10.951517] DVBSky T982 port 1 MAC address: 00:17:42:54:09:87
+	...
+	[   10.984875] DVBSky T982 port 2 MAC address: 00:17:42:54:09:88
 
-Regards,
-Lucas
+To make it possible to distinguish these in udev, do the following steps:
 
-> Regards,
-> Christian.
-> 
-> Am 11.01.2018 um 11:43 schrieb Lucas Stach:
-> > Did this fall through the cracks over the holidays? It really has made
-> > my work much easier while reworking some of the reservation object
-> > handling in etnaviv and I think it might benefit others.
-> > 
-> > Regards,
-> > Lucas
-> > 
-> > Am Freitag, den 01.12.2017, 12:12 +0100 schrieb Lucas Stach:
-> > > This adds lockdep asserts to the reservation functions which state in their
-> > > documentation that obj->lock must be held. Allows builds with PROVE_LOCKING
-> > > enabled to check that the locking requirements are met.
-> > > 
-> > > > Signed-off-by: Lucas Stach <l.stach@pengutronix.de>
-> > > 
-> > > ---
-> > >   drivers/dma-buf/reservation.c | 8 ++++++++
-> > >   include/linux/reservation.h   | 2 ++
-> > >   2 files changed, 10 insertions(+)
-> > > 
-> > > diff --git a/drivers/dma-buf/reservation.c b/drivers/dma-buf/reservation.c
-> > > index b44d9d7db347..accd398e2ea6 100644
-> > > --- a/drivers/dma-buf/reservation.c
-> > > +++ b/drivers/dma-buf/reservation.c
-> > > @@ -71,6 +71,8 @@ int reservation_object_reserve_shared(struct reservation_object *obj)
-> > > > > > > >   	struct reservation_object_list *fobj, *old;
-> > > >   	u32 max;
-> > > 
-> > >   
-> > > > +	reservation_object_assert_held(obj);
-> > > 
-> > > +
-> > > >   	old = reservation_object_get_list(obj);
-> > > 
-> > >   
-> > > >   	if (old && old->shared_max) {
-> > > 
-> > > @@ -211,6 +213,8 @@ void reservation_object_add_shared_fence(struct reservation_object *obj,
-> > >   {
-> > > >   	struct reservation_object_list *old, *fobj = obj->staged;
-> > > 
-> > >   
-> > > > +	reservation_object_assert_held(obj);
-> > > 
-> > > +
-> > > > > > > >   	old = reservation_object_get_list(obj);
-> > > >   	obj->staged = NULL;
-> > > 
-> > >   
-> > > @@ -236,6 +240,8 @@ void reservation_object_add_excl_fence(struct reservation_object *obj,
-> > > > > > > >   	struct reservation_object_list *old;
-> > > >   	u32 i = 0;
-> > > 
-> > >   
-> > > > +	reservation_object_assert_held(obj);
-> > > 
-> > > +
-> > > > > > > >   	old = reservation_object_get_list(obj);
-> > > > > > > >   	if (old)
-> > > >   		i = old->shared_count;
-> > > 
-> > > @@ -276,6 +282,8 @@ int reservation_object_copy_fences(struct reservation_object *dst,
-> > > > > > > >   	size_t size;
-> > > >   	unsigned i;
-> > > 
-> > >   
-> > > > +	reservation_object_assert_held(dst);
-> > > 
-> > > +
-> > > > > > > >   	rcu_read_lock();
-> > > >   	src_list = rcu_dereference(src->fence);
-> > > 
-> > >   
-> > > diff --git a/include/linux/reservation.h b/include/linux/reservation.h
-> > > index 21fc84d82d41..55e7318800fd 100644
-> > > --- a/include/linux/reservation.h
-> > > +++ b/include/linux/reservation.h
-> > > @@ -212,6 +212,8 @@ reservation_object_unlock(struct reservation_object *obj)
-> > >   static inline struct dma_fence *
-> > >   reservation_object_get_excl(struct reservation_object *obj)
-> > >   {
-> > > > +	reservation_object_assert_held(obj);
-> > > 
-> > > +
-> > > > > > > >   	return rcu_dereference_protected(obj->fence_excl,
-> > > >   					 reservation_object_held(obj));
-> > > 
-> > >   }
-> > 
-> > _______________________________________________
-> > dri-devel mailing list
-> > dri-devel@lists.freedesktop.org
-> > https://lists.freedesktop.org/mailman/listinfo/dri-devel
-> 
-> 
+ (1) Save the port number into struct dvb_adapter.
+
+ (2) Provide sysfs attributes to export port number and also MAC address,
+     adapter number and type.  There are other fields that could perhaps be
+     exported also.
+
+The new sysfs attributes can be seen from userspace as:
+
+	[root@deneb ~]# ls /sys/class/dvb/dvb0.frontend0/
+	dev  device  dvb_adapter  dvb_mac  dvb_port  dvb_type
+	power  subsystem  uevent
+	[root@deneb ~]# cat /sys/class/dvb/dvb0.frontend0/dvb_*
+	0
+	00:17:42:54:09:87
+	0
+	frontend
+
+They can be used in udev rules:
+
+	SUBSYSTEM=="dvb", ATTRS{vendor}=="0x14f1", ATTRS{device}=="0x8852", ATTRS{subsystem_device}=="0x0982", ATTR{dvb_mac}=="00:17:42:54:09:87", PROGRAM="/bin/sh -c 'K=%k; K=$${K#dvb}; printf dvb/adapter9820/%%s $${K#*.}'", SYMLINK+="%c"
+	SUBSYSTEM=="dvb", ATTRS{vendor}=="0x14f1", ATTRS{device}=="0x8852", ATTRS{subsystem_device}=="0x0982", ATTR{dvb_mac}=="00:17:42:54:09:88", PROGRAM="/bin/sh -c 'K=%k; K=$${K#dvb}; printf dvb/adapter9821/%%s $${K#*.}'", SYMLINK+="%c"
+
+where the match is made with ATTR{dvb_mac} or similar.  The rules above
+make symlinks from /dev/dvb/adapter982/* to /dev/dvb/adapterXX/*.
+
+Note that binding the dvb-net device to a network interface and changing it
+there does not reflect back into the the dvb_adapter struct and doesn't
+change the MAC address here.  This means that a system with two identical
+cards in it may need to distinguish them by some other means than MAC
+address.
+
+Signed-off-by: David Howells <dhowells@redhat.com>
+---
+
+ drivers/media/dvb-core/dvbdev.c         |   46 +++++++++++++++++++++++++++++++
+ drivers/media/dvb-core/dvbdev.h         |    2 +
+ drivers/media/pci/cx23885/cx23885-dvb.c |    2 +
+ 3 files changed, 50 insertions(+)
+
+diff --git a/drivers/media/dvb-core/dvbdev.c b/drivers/media/dvb-core/dvbdev.c
+index 060c60ddfcc3..b3aa5ae3d57f 100644
+--- a/drivers/media/dvb-core/dvbdev.c
++++ b/drivers/media/dvb-core/dvbdev.c
+@@ -941,6 +941,51 @@ int dvb_usercopy(struct file *file,
+ 	return err;
+ }
+ 
++static ssize_t dvb_adapter_show(struct device *dev,
++				struct device_attribute *attr, char *buf)
++{
++	struct dvb_device *dvbdev = dev_get_drvdata(dev);
++
++	return sprintf(buf, "%d\n", dvbdev->adapter->num);
++}
++static DEVICE_ATTR_RO(dvb_adapter);
++
++static ssize_t dvb_mac_show(struct device *dev,
++			    struct device_attribute *attr, char *buf)
++{
++	struct dvb_device *dvbdev = dev_get_drvdata(dev);
++
++	return sprintf(buf, "%pM\n", dvbdev->adapter->proposed_mac);
++}
++static DEVICE_ATTR_RO(dvb_mac);
++
++static ssize_t dvb_port_show(struct device *dev,
++			     struct device_attribute *attr, char *buf)
++{
++	struct dvb_device *dvbdev = dev_get_drvdata(dev);
++
++	return sprintf(buf, "%d\n", dvbdev->adapter->port_num);
++}
++static DEVICE_ATTR_RO(dvb_port);
++
++static ssize_t dvb_type_show(struct device *dev,
++			     struct device_attribute *attr, char *buf)
++{
++	struct dvb_device *dvbdev = dev_get_drvdata(dev);
++
++	return sprintf(buf, "%s\n", dnames[dvbdev->type]);
++}
++static DEVICE_ATTR_RO(dvb_type);
++
++static struct attribute *dvb_class_attrs[] = {
++	&dev_attr_dvb_adapter.attr,
++	&dev_attr_dvb_mac.attr,
++	&dev_attr_dvb_port.attr,
++	&dev_attr_dvb_type.attr,
++	NULL
++};
++ATTRIBUTE_GROUPS(dvb_class);
++
+ static int dvb_uevent(struct device *dev, struct kobj_uevent_env *env)
+ {
+ 	struct dvb_device *dvbdev = dev_get_drvdata(dev);
+@@ -981,6 +1026,7 @@ static int __init init_dvbdev(void)
+ 		retval = PTR_ERR(dvb_class);
+ 		goto error;
+ 	}
++	dvb_class->dev_groups = dvb_class_groups,
+ 	dvb_class->dev_uevent = dvb_uevent;
+ 	dvb_class->devnode = dvb_devnode;
+ 	return 0;
+diff --git a/drivers/media/dvb-core/dvbdev.h b/drivers/media/dvb-core/dvbdev.h
+index bbc1c20c0529..1d5a170e279a 100644
+--- a/drivers/media/dvb-core/dvbdev.h
++++ b/drivers/media/dvb-core/dvbdev.h
+@@ -83,6 +83,7 @@ struct dvb_frontend;
+  * @device_list:	List with the DVB devices
+  * @name:		Name of the adapter
+  * @proposed_mac:	proposed MAC address for the adapter
++ * @port_num:		Port number for multi-adapter devices
+  * @priv:		private data
+  * @device:		pointer to struct device
+  * @module:		pointer to struct module
+@@ -103,6 +104,7 @@ struct dvb_adapter {
+ 	struct list_head device_list;
+ 	const char *name;
+ 	u8 proposed_mac [6];
++	u8 port_num;
+ 	void* priv;
+ 
+ 	struct device *device;
+diff --git a/drivers/media/pci/cx23885/cx23885-dvb.c b/drivers/media/pci/cx23885/cx23885-dvb.c
+index e795ddeb7fe2..19c72c66d7e0 100644
+--- a/drivers/media/pci/cx23885/cx23885-dvb.c
++++ b/drivers/media/pci/cx23885/cx23885-dvb.c
+@@ -1217,6 +1217,8 @@ static int dvb_register(struct cx23885_tsport *port)
+ 	/* Sets the gate control callback to be used by i2c command calls */
+ 	port->gate_ctrl = cx23885_dvb_gate_ctrl;
+ 
++	port->frontends.adapter.port_num = port->nr;
++
+ 	/* init frontend */
+ 	switch (dev->board) {
+ 	case CX23885_BOARD_HAUPPAUGE_HVR1250:
