@@ -1,184 +1,148 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bin-mail-out-06.binero.net ([195.74.38.229]:2793 "EHLO
-        bin-vsp-out-03.atm.binero.net" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751435AbeA2QfQ (ORCPT
+Received: from mail-qk0-f195.google.com ([209.85.220.195]:33963 "EHLO
+        mail-qk0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S966115AbeAJQKx (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 29 Jan 2018 11:35:16 -0500
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH v10 05/30] rcar-vin: move model information to own struct
-Date: Mon, 29 Jan 2018 17:34:10 +0100
-Message-Id: <20180129163435.24936-6-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20180129163435.24936-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20180129163435.24936-1-niklas.soderlund+renesas@ragnatech.se>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+        Wed, 10 Jan 2018 11:10:53 -0500
+From: Gustavo Padovan <gustavo@padovan.org>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        Pawel Osciak <pawel@osciak.com>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Brian Starkey <brian.starkey@arm.com>,
+        Thierry Escande <thierry.escande@collabora.com>,
+        linux-kernel@vger.kernel.org,
+        Gustavo Padovan <gustavo.padovan@collabora.com>
+Subject: [PATCH v7 6/6] [media] v4l: Document explicit synchronization behavior
+Date: Wed, 10 Jan 2018 14:07:32 -0200
+Message-Id: <20180110160732.7722-7-gustavo@padovan.org>
+In-Reply-To: <20180110160732.7722-1-gustavo@padovan.org>
+References: <20180110160732.7722-1-gustavo@padovan.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When Gen3 support is added to the driver more than model ID will be
-different for the different SoCs. To avoid a lot of if statements in the
-code create a struct rvin_info to store this information.
+From: Gustavo Padovan <gustavo.padovan@collabora.com>
 
-While we are at it rename the poorly chosen enum which contains the
-different model IDs from chip_id to model_id. Also sort the compatible
-string entries and make use of of_device_get_match_data() which will
-always work as the driver is DT only, so there's always a valid match.
+Add section to VIDIOC_QBUF about it
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+v5:
+	- Remove V4L2_CAP_ORDERED
+	- Add doc about V4L2_FMT_FLAG_UNORDERED
+
+v4:
+	- Document ordering behavior for in-fences
+	- Document V4L2_CAP_ORDERED capability
+	- Remove doc about OUT_FENCE event
+	- Document immediate return of out-fence in QBUF
+
+v3:
+	- make the out_fence refer to the current buffer (Hans)
+	- Note what happens when the IN_FENCE is not set (Hans)
+
+v2:
+	- mention that fences are files (Hans)
+	- rework for the new API
+
+Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
 ---
- drivers/media/platform/rcar-vin/rcar-core.c | 56 +++++++++++++++++++++--------
- drivers/media/platform/rcar-vin/rcar-v4l2.c |  3 +-
- drivers/media/platform/rcar-vin/rcar-vin.h  | 14 ++++++--
- 3 files changed, 55 insertions(+), 18 deletions(-)
+ Documentation/media/uapi/v4l/vidioc-qbuf.rst     | 47 +++++++++++++++++++++++-
+ Documentation/media/uapi/v4l/vidioc-querybuf.rst |  9 ++++-
+ 2 files changed, 54 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
-index 663309ca9c04f208..d2b27ccff690cede 100644
---- a/drivers/media/platform/rcar-vin/rcar-core.c
-+++ b/drivers/media/platform/rcar-vin/rcar-core.c
-@@ -241,21 +241,53 @@ static int rvin_digital_graph_init(struct rvin_dev *vin)
-  * Platform Device Driver
-  */
+diff --git a/Documentation/media/uapi/v4l/vidioc-qbuf.rst b/Documentation/media/uapi/v4l/vidioc-qbuf.rst
+index 9e448a4aa3aa..8809397fb110 100644
+--- a/Documentation/media/uapi/v4l/vidioc-qbuf.rst
++++ b/Documentation/media/uapi/v4l/vidioc-qbuf.rst
+@@ -54,7 +54,7 @@ When the buffer is intended for output (``type`` is
+ or ``V4L2_BUF_TYPE_VBI_OUTPUT``) applications must also initialize the
+ ``bytesused``, ``field`` and ``timestamp`` fields, see :ref:`buffer`
+ for details. Applications must also set ``flags`` to 0. The
+-``reserved2`` and ``reserved`` fields must be set to 0. When using the
++``reserved`` field must be set to 0. When using the
+ :ref:`multi-planar API <planar-apis>`, the ``m.planes`` field must
+ contain a userspace pointer to a filled-in array of struct
+ :c:type:`v4l2_plane` and the ``length`` field must be set
+@@ -118,6 +118,51 @@ immediately with an ``EAGAIN`` error code when no buffer is available.
+ The struct :c:type:`v4l2_buffer` structure is specified in
+ :ref:`buffer`.
  
-+static const struct rvin_info rcar_info_h1 = {
-+	.model = RCAR_H1,
-+};
++Explicit Synchronization
++------------------------
 +
-+static const struct rvin_info rcar_info_m1 = {
-+	.model = RCAR_M1,
-+};
++Explicit Synchronization allows us to control the synchronization of
++shared buffers from userspace by passing fences to the kernel and/or
++receiving them from it. Fences passed to the kernel are named in-fences and
++the kernel should wait on them to signal before using the buffer, i.e., queueing
++it to the driver. On the other side, the kernel can create out-fences for the
++buffers it queues to the drivers. Out-fences signal when the driver is
++finished with buffer, i.e., the buffer is ready. The fences are represented
++as a file and passed as a file descriptor to userspace.
 +
-+static const struct rvin_info rcar_info_gen2 = {
-+	.model = RCAR_GEN2,
-+};
++The in-fences are communicated to the kernel at the ``VIDIOC_QBUF`` ioctl
++using the ``V4L2_BUF_FLAG_IN_FENCE`` buffer flag and the `fence_fd` field. If
++an in-fence needs to be passed to the kernel, `fence_fd` should be set to the
++fence file descriptor number and the ``V4L2_BUF_FLAG_IN_FENCE`` should be set
++as well. Setting one but not the other will cause ``VIDIOC_QBUF`` to return
++with error. The fence_fd field will be ignored if the
++``V4L2_BUF_FLAG_IN_FENCE`` is not set.
 +
- static const struct of_device_id rvin_of_id_table[] = {
--	{ .compatible = "renesas,vin-r8a7794", .data = (void *)RCAR_GEN2 },
--	{ .compatible = "renesas,vin-r8a7793", .data = (void *)RCAR_GEN2 },
--	{ .compatible = "renesas,vin-r8a7791", .data = (void *)RCAR_GEN2 },
--	{ .compatible = "renesas,vin-r8a7790", .data = (void *)RCAR_GEN2 },
--	{ .compatible = "renesas,vin-r8a7779", .data = (void *)RCAR_H1 },
--	{ .compatible = "renesas,vin-r8a7778", .data = (void *)RCAR_M1 },
--	{ .compatible = "renesas,rcar-gen2-vin", .data = (void *)RCAR_GEN2 },
--	{ },
-+	{
-+		.compatible = "renesas,vin-r8a7778",
-+		.data = &rcar_info_m1,
-+	},
-+	{
-+		.compatible = "renesas,vin-r8a7779",
-+		.data = &rcar_info_h1,
-+	},
-+	{
-+		.compatible = "renesas,vin-r8a7790",
-+		.data = &rcar_info_gen2,
-+	},
-+	{
-+		.compatible = "renesas,vin-r8a7791",
-+		.data = &rcar_info_gen2,
-+	},
-+	{
-+		.compatible = "renesas,vin-r8a7793",
-+		.data = &rcar_info_gen2,
-+	},
-+	{
-+		.compatible = "renesas,vin-r8a7794",
-+		.data = &rcar_info_gen2,
-+	},
-+	{
-+		.compatible = "renesas,rcar-gen2-vin",
-+		.data = &rcar_info_gen2,
-+	},
-+	{ /* Sentinel */ },
- };
- MODULE_DEVICE_TABLE(of, rvin_of_id_table);
- 
- static int rcar_vin_probe(struct platform_device *pdev)
- {
--	const struct of_device_id *match;
- 	struct rvin_dev *vin;
- 	struct resource *mem;
- 	int irq, ret;
-@@ -264,12 +296,8 @@ static int rcar_vin_probe(struct platform_device *pdev)
- 	if (!vin)
- 		return -ENOMEM;
- 
--	match = of_match_device(of_match_ptr(rvin_of_id_table), &pdev->dev);
--	if (!match)
--		return -ENODEV;
--
- 	vin->dev = &pdev->dev;
--	vin->chip = (enum chip_id)match->data;
-+	vin->info = of_device_get_match_data(&pdev->dev);
- 
- 	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
- 	if (mem == NULL)
-diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-index 4a0610a6b4503501..0a035667c0b0e93f 100644
---- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-+++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-@@ -266,7 +266,8 @@ static int __rvin_try_format(struct rvin_dev *vin,
- 	pix->sizeimage = max_t(u32, pix->sizeimage,
- 			       rvin_format_sizeimage(pix));
- 
--	if (vin->chip == RCAR_M1 && pix->pixelformat == V4L2_PIX_FMT_XBGR32) {
-+	if (vin->info->model == RCAR_M1 &&
-+	    pix->pixelformat == V4L2_PIX_FMT_XBGR32) {
- 		vin_err(vin, "pixel format XBGR32 not supported on M1\n");
- 		return -EINVAL;
- 	}
-diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
-index 85cb7ec53d2b08b5..3f49d2f2d6b88471 100644
---- a/drivers/media/platform/rcar-vin/rcar-vin.h
-+++ b/drivers/media/platform/rcar-vin/rcar-vin.h
-@@ -29,7 +29,7 @@
- /* Address alignment mask for HW buffers */
- #define HW_BUFFER_MASK 0x7f
- 
--enum chip_id {
-+enum model_id {
- 	RCAR_H1,
- 	RCAR_M1,
- 	RCAR_GEN2,
-@@ -88,11 +88,19 @@ struct rvin_graph_entity {
- 	unsigned int sink_pad;
- };
- 
-+/**
-+ * struct rvin_info - Information about the particular VIN implementation
-+ * @model:		VIN model
-+ */
-+struct rvin_info {
-+	enum model_id model;
-+};
++The videobuf2-core will guarantee that all buffers queued with in-fence will
++be queued to the drivers in the same order. Fence may signal out of order, so
++this guarantee at videobuf2 is necessary to not change ordering.
 +
- /**
-  * struct rvin_dev - Renesas VIN device structure
-  * @dev:		(OF) device
-  * @base:		device I/O register space remapped to virtual memory
-- * @chip:		type of VIN chip
-+ * @info:		info about VIN instance
-  *
-  * @vdev:		V4L2 video device associated with VIN
-  * @v4l2_dev:		V4L2 device
-@@ -120,7 +128,7 @@ struct rvin_graph_entity {
- struct rvin_dev {
- 	struct device *dev;
- 	void __iomem *base;
--	enum chip_id chip;
-+	const struct rvin_info *info;
++If the in-fence signals with an error the videobuf2 won't queue the buffer to
++the driver, instead it will flag it with an error. And then wait for the
++previous buffer to complete before asking userspace dequeue the buffer with
++error - to make sure we deliver the buffers back in the correct order.
++
++To get an out-fence back from V4L2 the ``V4L2_BUF_FLAG_OUT_FENCE`` flag should
++be set to ask for a fence to be attached to the buffer. The out-fence fd is
++sent to userspace as a ``VIDIOC_QBUF`` return argument on the `fence_fd` field.
++
++Note the the same `fence_fd` field is used for both sending the in-fence as
++input argument to receive the out-fence as a return argument.
++
++At streamoff the out-fences will either signal normally if the driver waits
++for the operations on the buffers to finish or signal with an error if the
++driver cancels the pending operations. Buffers with in-fences won't be queued
++to the driver if their fences signal. It will be cleaned up.
++
++The ``V4L2_FMT_FLAG_UNORDERED`` flag in ``VIDIOC_ENUM_FMT`` tells userspace
++that the current buffer queues is able to keep the ordering of buffers, i.e.,
++the dequeing of buffers will happen at the same order we queue them, with no
++reordering by the driver.
  
- 	struct video_device vdev;
- 	struct v4l2_device v4l2_dev;
+ Return Value
+ ============
+diff --git a/Documentation/media/uapi/v4l/vidioc-querybuf.rst b/Documentation/media/uapi/v4l/vidioc-querybuf.rst
+index dd54747fabc9..df964c4d916b 100644
+--- a/Documentation/media/uapi/v4l/vidioc-querybuf.rst
++++ b/Documentation/media/uapi/v4l/vidioc-querybuf.rst
+@@ -44,7 +44,7 @@ and the ``index`` field. Valid index numbers range from zero to the
+ number of buffers allocated with
+ :ref:`VIDIOC_REQBUFS` (struct
+ :c:type:`v4l2_requestbuffers` ``count``) minus
+-one. The ``reserved`` and ``reserved2`` fields must be set to 0. When
++one. The ``reserved`` field must be set to 0. When
+ using the :ref:`multi-planar API <planar-apis>`, the ``m.planes``
+ field must contain a userspace pointer to an array of struct
+ :c:type:`v4l2_plane` and the ``length`` field has to be set
+@@ -64,6 +64,13 @@ elements will be used instead and the ``length`` field of struct
+ array elements. The driver may or may not set the remaining fields and
+ flags, they are meaningless in this context.
+ 
++When using in-fences, the ``V4L2_BUF_FLAG_IN_FENCE`` will be set if the
++in-fence didn't signal at the time of the
++:ref:`VIDIOC_QUERYBUF`. The ``V4L2_BUF_FLAG_OUT_FENCE`` will be set if
++the user asked for an out-fence for the buffer, but the ``fence_fd``
++field will be set to -1. In case ``V4L2_BUF_FLAG_OUT_FENCE`` is not set
++``fence_fd`` will be set to 0 for backward compatibility.
++
+ The struct :c:type:`v4l2_buffer` structure is specified in
+ :ref:`buffer`.
+ 
 -- 
-2.16.1
+2.14.3
