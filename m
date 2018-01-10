@@ -1,100 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:43478 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750932AbeAFSh3 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sat, 6 Jan 2018 13:37:29 -0500
-Subject: Re: [RFC/RFT PATCH 3/6] uvcvideo: Protect queue internals with helper
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        laurent.pinchart@ideasonboard.com,
-        Olivier BRAUN <olivier.braun@stereolabs.com>,
-        kieran.bingham@ideasonboard.com,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Jaejoong Kim <climbbb.kim@gmail.com>,
-        Baoyou Xie <baoyou.xie@linaro.org>,
-        Nicolas Dufresne <nicolas.dufresne@collabora.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Jim Lin <jilin@nvidia.com>,
-        Daniel Patrick Johnson <teknotus@teknot.us>
-References: <cover.67dff754d6d314373ac0a04777b3b1d785fc5dd4.1515010476.git-series.kieran.bingham@ideasonboard.com>
- <fc4bbb70ea8937f7a09fc404520eec0f908e43d2.1515010476.git-series.kieran.bingham@ideasonboard.com>
- <alpine.DEB.2.20.1801041624460.13441@axis700.grange>
-From: Kieran Bingham <kieran.bingham@ideasonboard.com>
-Message-ID: <e63de5f9-97e6-6671-f2ee-f387a8e4501c@ideasonboard.com>
-Date: Sat, 6 Jan 2018 18:37:24 +0000
+Received: from relay2-d.mail.gandi.net ([217.70.183.194]:41473 "EHLO
+        relay2-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751165AbeAJJUP (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 10 Jan 2018 04:20:15 -0500
+Date: Wed, 10 Jan 2018 10:20:10 +0100
+From: jacopo mondi <jacopo@jmondi.org>
+To: Shunqian Zheng <zhengsq@rock-chips.com>
+Cc: mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        ddl@rock-chips.com, tfiga@chromium.org
+Subject: Re: [PATCH v5 1/4] dt-bindings: media: Add bindings for OV5695
+Message-ID: <20180110092010.GC6834@w540>
+References: <1515549967-5302-1-git-send-email-zhengsq@rock-chips.com>
+ <1515549967-5302-2-git-send-email-zhengsq@rock-chips.com>
 MIME-Version: 1.0
-In-Reply-To: <alpine.DEB.2.20.1801041624460.13441@axis700.grange>
 Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 8bit
+Content-Disposition: inline
+In-Reply-To: <1515549967-5302-2-git-send-email-zhengsq@rock-chips.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
+Hi Shunqian,
 
-On 04/01/18 18:25, Guennadi Liakhovetski wrote:
-> Hi Kieran,
-> 
-> On Wed, 3 Jan 2018, Kieran Bingham wrote:
-> 
->> From: Kieran Bingham <kieran.bingham@ideasonboard.com>
->>
->> The URB completion operation obtains the current buffer by reading
->> directly into the queue internal interface.
->>
->> Protect this queue abstraction by providing a helper
->> uvc_queue_get_current_buffer() which can be used by both the decode
->> task, and the uvc_queue_next_buffer() functions.
->>
->> Signed-off-by: Kieran Bingham <kieran.bingham@ideasonboard.com>
->> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
->> ---
->>  drivers/media/usb/uvc/uvc_queue.c | 34 +++++++++++++++++++++++++++-----
->>  drivers/media/usb/uvc/uvc_video.c |  7 +------
->>  drivers/media/usb/uvc/uvcvideo.h  |  2 ++-
->>  3 files changed, 32 insertions(+), 11 deletions(-)
->>
->> diff --git a/drivers/media/usb/uvc/uvc_queue.c b/drivers/media/usb/uvc/uvc_queue.c
->> index c8d78b2f3de4..0711e3d9ff76 100644
->> --- a/drivers/media/usb/uvc/uvc_queue.c
->> +++ b/drivers/media/usb/uvc/uvc_queue.c
->> @@ -399,6 +399,34 @@ void uvc_queue_cancel(struct uvc_video_queue *queue, int disconnect)
->>  	spin_unlock_irqrestore(&queue->irqlock, flags);
->>  }
->>  
->> +/*
->> + * uvc_queue_get_current_buffer: Obtain the current working output buffer
->> + *
->> + * Buffers may span multiple packets, and even URBs, therefore the active buffer
->> + * remains on the queue until the EOF marker.
->> + */
->> +static struct uvc_buffer *
->> +__uvc_queue_get_current_buffer(struct uvc_video_queue *queue)
->> +{
->> +	if (!list_empty(&queue->irqqueue))
->> +		return list_first_entry(&queue->irqqueue, struct uvc_buffer,
->> +					queue);
->> +	else
->> +		return NULL;
-> 
-> I think the preferred style is not to use "else" in such cases. It might 
-> even be prettier to write
-> 
-> 	if (list_empty(...))
-> 		return NULL;
-> 
-> 	return list_first_entry(...);
+On Wed, Jan 10, 2018 at 10:06:04AM +0800, Shunqian Zheng wrote:
+> Add device tree binding documentation for the OV5695 sensor.
+>
+> Signed-off-by: Shunqian Zheng <zhengsq@rock-chips.com>
+> ---
+>  .../devicetree/bindings/media/i2c/ov5695.txt       | 41 ++++++++++++++++++++++
+>  1 file changed, 41 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/i2c/ov5695.txt
+>
+> diff --git a/Documentation/devicetree/bindings/media/i2c/ov5695.txt b/Documentation/devicetree/bindings/media/i2c/ov5695.txt
+> new file mode 100644
+> index 0000000..2f2f698
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/media/i2c/ov5695.txt
+> @@ -0,0 +1,41 @@
+> +* Omnivision OV5695 MIPI CSI-2 sensor
+> +
+> +Required Properties:
+> +- compatible: shall be "ovti,ov5695"
+> +- clocks: reference to the xvclk input clock
+> +- clock-names: shall be "xvclk"
+> +- avdd-supply: Analog voltage supply, 2.8 volts
+> +- dovdd-supply: Digital I/O voltage supply, 1.8 volts
+> +- dvdd-supply: Digital core voltage supply, 1.2 volts
+> +- reset-gpios: Low active reset gpio
+> +
+> +The device node shall contain one 'port' child node with an
+> +'endpoint' subnode for its digital output video port,
+> +in accordance with the video interface bindings defined in
+> +Documentation/devicetree/bindings/media/video-interfaces.txt.
+> +The endpoint optional property 'data-lanes' shall be "<1 2>".
 
-Ah yes, I believe you are correct.
-Good spot!
+What happens if the property is not present? What's the default?
 
-Fixed, and looks much neater.
+I would:
 
---
-Kieran
+Required Properties:
+- compatible: ..
+....
 
-> 
-> Thanks
-> Guennadi
-> 
+Option Endpoint Properties:
+- data-lanes: ...
+
+> +
+> +Example:
+> +&i2c7 {
+> +	camera-sensor: ov5695@36 {
+
+You have inverted the label with the node name which should be generic
+
+        ov5695: camera@36 {
+
+
+        }
+Thanks
+   j
