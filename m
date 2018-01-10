@@ -1,127 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx07-00178001.pphosted.com ([62.209.51.94]:44624 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751834AbeAaJIf (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 31 Jan 2018 04:08:35 -0500
-From: Hugues Fruchet <hugues.fruchet@st.com>
-To: Steve Longerbeam <slongerbeam@gmail.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        "Mauro Carvalho Chehab" <mchehab@kernel.org>
-CC: <linux-media@vger.kernel.org>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Subject: [PATCH v3] media: ov5640: add JPEG support
-Date: Wed, 31 Jan 2018 10:08:10 +0100
-Message-ID: <1517389690-3138-1-git-send-email-hugues.fruchet@st.com>
+Received: from regular1.263xmail.com ([211.150.99.139]:50419 "EHLO
+        regular1.263xmail.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751888AbeAJBIQ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 9 Jan 2018 20:08:16 -0500
+Reply-To: zhengsq@rock-chips.com
+Subject: Re: [PATCH v4 2/5] media: ov5695: add support for OV5695 sensor
+To: Baruch Siach <baruch@tkos.co.il>
+Cc: mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        ddl@rock-chips.com, tfiga@chromium.org
+References: <1515509304-15941-1-git-send-email-zhengsq@rock-chips.com>
+ <1515509304-15941-3-git-send-email-zhengsq@rock-chips.com>
+ <20180109165440.droexlfysvtyt6kl@tarshish>
+From: Shunqian Zheng <zhengsq@rock-chips.com>
+Message-ID: <155c9971-f5a5-b79e-4c32-70d2bfccd098@rock-chips.com>
+Date: Wed, 10 Jan 2018 09:08:04 +0800
 MIME-Version: 1.0
-Content-Type: text/plain
+In-Reply-To: <20180109165440.droexlfysvtyt6kl@tarshish>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add YUV422 encoded JPEG support.
+Hi Baruch,
 
-Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
----
-version 2:
-  - Revisit code as per Sakari suggestions:
-    - fix lock scheme
-    - fix switch back to non-JPEG output while sensor powered
-    See https://www.mail-archive.com/linux-media@vger.kernel.org/msg124979.html
 
-version 3:
-  - After discussion with Sakari, drop get/set_frame_desc
-    code for JPEG max length estimation, ISP side will
-    allocate buffer on WxH basis, no special information
-    is needed to be conveyed from sensor to ISP.
+On 2018年01月10日 00:54, Baruch Siach wrote:
+> Hi Shunqian Zheng,
+>
+> On Tue, Jan 09, 2018 at 10:48:21PM +0800, Shunqian Zheng wrote:
+>> +static int ov5695_write_array(struct i2c_client *client,
+>> +			      const struct regval *regs)
+>> +{
+>> +	u32 i;
+>> +	int ret = 0;
+>> +
+>> +	for (i = 0; ret == 0 && regs[i].addr != REG_NULL; i++)
+>> +		ret = ov5695_write_reg(client, regs[i].addr,
+>> +				       OV5695_REG_VALUE_08BIT, regs[i].val);
+> This loop should stop on first failure, and return the error value. With
+> current code a register write failure is masked by following writes.
+This loop will stop once ret != 0 as in for loop condition
 
- drivers/media/i2c/ov5640.c | 45 +++++++++++++++++++++++++++++++++++++++++++--
- 1 file changed, 43 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
-index e2dd352..99a5902 100644
---- a/drivers/media/i2c/ov5640.c
-+++ b/drivers/media/i2c/ov5640.c
-@@ -34,6 +34,8 @@
- 
- #define OV5640_DEFAULT_SLAVE_ID 0x3c
- 
-+#define OV5640_REG_SYS_RESET02		0x3002
-+#define OV5640_REG_SYS_CLOCK_ENABLE02	0x3006
- #define OV5640_REG_SYS_CTRL0		0x3008
- #define OV5640_REG_CHIP_ID		0x300a
- #define OV5640_REG_IO_MIPI_CTRL00	0x300e
-@@ -114,6 +116,7 @@ struct ov5640_pixfmt {
- };
- 
- static const struct ov5640_pixfmt ov5640_formats[] = {
-+	{ MEDIA_BUS_FMT_JPEG_1X8, V4L2_COLORSPACE_JPEG, },
- 	{ MEDIA_BUS_FMT_UYVY8_2X8, V4L2_COLORSPACE_SRGB, },
- 	{ MEDIA_BUS_FMT_YUYV8_2X8, V4L2_COLORSPACE_SRGB, },
- 	{ MEDIA_BUS_FMT_RGB565_2X8_LE, V4L2_COLORSPACE_SRGB, },
-@@ -1915,6 +1918,7 @@ static int ov5640_set_framefmt(struct ov5640_dev *sensor,
- {
- 	int ret = 0;
- 	bool is_rgb = false;
-+	bool is_jpeg = false;
- 	u8 val;
- 
- 	switch (format->code) {
-@@ -1936,6 +1940,11 @@ static int ov5640_set_framefmt(struct ov5640_dev *sensor,
- 		val = 0x61;
- 		is_rgb = true;
- 		break;
-+	case MEDIA_BUS_FMT_JPEG_1X8:
-+		/* YUV422, YUYV */
-+		val = 0x30;
-+		is_jpeg = true;
-+		break;
- 	default:
- 		return -EINVAL;
- 	}
-@@ -1946,8 +1955,40 @@ static int ov5640_set_framefmt(struct ov5640_dev *sensor,
- 		return ret;
- 
- 	/* FORMAT MUX CONTROL: ISP YUV or RGB */
--	return ov5640_write_reg(sensor, OV5640_REG_ISP_FORMAT_MUX_CTRL,
--				is_rgb ? 0x01 : 0x00);
-+	ret = ov5640_write_reg(sensor, OV5640_REG_ISP_FORMAT_MUX_CTRL,
-+			       is_rgb ? 0x01 : 0x00);
-+	if (ret)
-+		return ret;
-+
-+	/*
-+	 * TIMING TC REG21:
-+	 * - [5]:	JPEG enable
-+	 */
-+	ret = ov5640_mod_reg(sensor, OV5640_REG_TIMING_TC_REG21,
-+			     BIT(5), is_jpeg ? BIT(5) : 0);
-+	if (ret)
-+		return ret;
-+
-+	/*
-+	 * SYSTEM RESET02:
-+	 * - [4]:	Reset JFIFO
-+	 * - [3]:	Reset SFIFO
-+	 * - [2]:	Reset JPEG
-+	 */
-+	ret = ov5640_mod_reg(sensor, OV5640_REG_SYS_RESET02,
-+			     BIT(4) | BIT(3) | BIT(2),
-+			     is_jpeg ? 0 : (BIT(4) | BIT(3) | BIT(2)));
-+	if (ret)
-+		return ret;
-+
-+	/*
-+	 * CLOCK ENABLE02:
-+	 * - [5]:	Enable JPEG 2x clock
-+	 * - [3]:	Enable JPEG clock
-+	 */
-+	return ov5640_mod_reg(sensor, OV5640_REG_SYS_CLOCK_ENABLE02,
-+			      BIT(5) | BIT(3),
-+			      is_jpeg ? (BIT(5) | BIT(3)) : 0);
- }
- 
- /*
--- 
-1.9.1
+Thanks,
+>
+>> +
+>> +	return ret;
+>> +}
+> baruch
+>
