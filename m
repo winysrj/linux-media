@@ -1,116 +1,141 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ua0-f193.google.com ([209.85.217.193]:45969 "EHLO
-        mail-ua0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750927AbeAPCkr (ORCPT
+Received: from mail-qk0-f170.google.com ([209.85.220.170]:44844 "EHLO
+        mail-qk0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751637AbeAJUJW (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 15 Jan 2018 21:40:47 -0500
-Received: by mail-ua0-f193.google.com with SMTP id e39so9821446uae.12
-        for <linux-media@vger.kernel.org>; Mon, 15 Jan 2018 18:40:46 -0800 (PST)
-Received: from mail-vk0-f43.google.com (mail-vk0-f43.google.com. [209.85.213.43])
-        by smtp.gmail.com with ESMTPSA id t43sm490479uah.8.2018.01.15.18.40.45
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Mon, 15 Jan 2018 18:40:45 -0800 (PST)
-Received: by mail-vk0-f43.google.com with SMTP id v70so8562353vkd.8
-        for <linux-media@vger.kernel.org>; Mon, 15 Jan 2018 18:40:45 -0800 (PST)
+        Wed, 10 Jan 2018 15:09:22 -0500
 MIME-Version: 1.0
-In-Reply-To: <C193D76D23A22742993887E6D207B54D1AEB6195@FMSMSX151.amr.corp.intel.com>
-References: <1515034637-3517-1-git-send-email-yong.zhi@intel.com>
- <CAAFQd5AO4n4kge1dijXLK-Ckudd5wJnuRnNMef+H4W00G2mpwQ@mail.gmail.com> <C193D76D23A22742993887E6D207B54D1AEB6195@FMSMSX151.amr.corp.intel.com>
-From: Tomasz Figa <tfiga@chromium.org>
-Date: Tue, 16 Jan 2018 11:40:24 +0900
-Message-ID: <CAAFQd5AxKSphur-fqHWvK5DLhQfJ+x30UQKuEx3Xe9mjnWRh4g@mail.gmail.com>
-Subject: Re: [PATCH 1/2] media: intel-ipu3: cio2: fix a crash with
- out-of-bounds access
-To: "Zhi, Yong" <yong.zhi@intel.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        "Mani, Rajmohan" <rajmohan.mani@intel.com>,
-        "Cao, Bingbu" <bingbu.cao@intel.com>
+In-Reply-To: <20180110180322.30186-4-hch@lst.de>
+References: <20180110180322.30186-1-hch@lst.de> <20180110180322.30186-4-hch@lst.de>
+From: Andy Shevchenko <andy.shevchenko@gmail.com>
+Date: Wed, 10 Jan 2018 22:09:20 +0200
+Message-ID: <CAHp75VeyM+ctSPO5p3DGizR34woFn3=B+b0Uf+pxM5oXkbS=Zw@mail.gmail.com>
+Subject: Re: [PATCH 3/4] tsi108_eth: use dma API properly
+To: Christoph Hellwig <hch@lst.de>
+Cc: Bjorn Helgaas <bhelgaas@google.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Kong Lai <kong.lai@tundra.com>, linux-pci@vger.kernel.org,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        netdev <netdev@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Yong,
-
-On Tue, Jan 16, 2018 at 2:05 AM, Zhi, Yong <yong.zhi@intel.com> wrote:
-> Hi, Tomasz,
+On Wed, Jan 10, 2018 at 8:03 PM, Christoph Hellwig <hch@lst.de> wrote:
+> We need to pass a struct device to the dma API, even if some
+> architectures still support that for legacy reasons, and should not mix
+> it with the old PCI dma API.
 >
-> Thanks for the patch review.
->
->> -----Original Message-----
->> From: Tomasz Figa [mailto:tfiga@chromium.org]
->> Sent: Friday, January 12, 2018 12:17 AM
->> To: Zhi, Yong <yong.zhi@intel.com>
->> Cc: Linux Media Mailing List <linux-media@vger.kernel.org>; Sakari Ailus
->> <sakari.ailus@linux.intel.com>; Mani, Rajmohan
->> <rajmohan.mani@intel.com>; Cao, Bingbu <bingbu.cao@intel.com>
->> Subject: Re: [PATCH 1/2] media: intel-ipu3: cio2: fix a crash with out-of-
->> bounds access
->>
->> On Thu, Jan 4, 2018 at 11:57 AM, Yong Zhi <yong.zhi@intel.com> wrote:
->> > When dmabuf is used for BLOB type frame, the frame buffers allocated
->> > by gralloc will hold more pages than the valid frame data due to
->> > height alignment.
->> >
->> > In this case, the page numbers in sg list could exceed the FBPT upper
->> > limit value - max_lops(8)*1024 to cause crash.
->> >
->> > Limit the LOP access to the valid data length to avoid FBPT
->> > sub-entries overflow.
->> >
->> > Signed-off-by: Yong Zhi <yong.zhi@intel.com>
->> > Signed-off-by: Cao Bing Bu <bingbu.cao@intel.com>
->> > ---
->> >  drivers/media/pci/intel/ipu3/ipu3-cio2.c | 7 +++++--
->> >  1 file changed, 5 insertions(+), 2 deletions(-)
->> >
->> > diff --git a/drivers/media/pci/intel/ipu3/ipu3-cio2.c
->> > b/drivers/media/pci/intel/ipu3/ipu3-cio2.c
->> > index 941caa987dab..949f43d206ad 100644
->> > --- a/drivers/media/pci/intel/ipu3/ipu3-cio2.c
->> > +++ b/drivers/media/pci/intel/ipu3/ipu3-cio2.c
->> > @@ -838,8 +838,9 @@ static int cio2_vb2_buf_init(struct vb2_buffer *vb)
->> >                 container_of(vb, struct cio2_buffer, vbb.vb2_buf);
->> >         static const unsigned int entries_per_page =
->> >                 CIO2_PAGE_SIZE / sizeof(u32);
->> > -       unsigned int pages = DIV_ROUND_UP(vb->planes[0].length,
->> CIO2_PAGE_SIZE);
->> > -       unsigned int lops = DIV_ROUND_UP(pages + 1, entries_per_page);
->> > +       unsigned int pages = DIV_ROUND_UP(vb->planes[0].length,
->> > +                                         CIO2_PAGE_SIZE) + 1;
->>
->> Why + 1? This would still overflow the buffer, wouldn't it?
->
-> The "pages" variable is used to calculate lops which has one extra page at the end that points to dummy page.
->
->>
->> > +       unsigned int lops = DIV_ROUND_UP(pages, entries_per_page);
->> >         struct sg_table *sg;
->> >         struct sg_page_iter sg_iter;
->> >         int i, j;
->> > @@ -869,6 +870,8 @@ static int cio2_vb2_buf_init(struct vb2_buffer
->> > *vb)
->> >
->> >         i = j = 0;
->> >         for_each_sg_page(sg->sgl, &sg_iter, sg->nents, 0) {
->> > +               if (!pages--)
->> > +                       break;
->>
->> Or perhaps we should check here for (pages > 1)?
->
-> This is so that the end of lop is set to the dummy_page.
+> Note that the driver also seems to never actually unmap its dma mappings,
+> but to fix that we'll need someone more familar with the driver.
 
-How about this simple example:
+> +       struct platform_device *pdev;
 
-vb->planes[0].length = 1023 * 4096
-pages = 1023 + 1 = 1024
-lops  = 1
+Do you really need platform_defice reference?
 
-If sg->sgl includes more than 1023 pages, the for_each_sg_page() loop
-will iterate for pages from 1024 to 1 inclusive and ends up
-overflowing the dummy page to next lop (i == 1 and j == 0), but we
-only allocated 1 lop.
+Perhaps
 
-Best regards,
-Tomasz
+struct device *hdev; // hardware device
+
+
+data->hdev = &pdev->dev;
+
+Another idea
+
+dev->dev.parent = &pdev->dev;
+
+No new member needed.
+
+>  };
+>
+>  /* Structure for a device driver */
+> @@ -703,17 +705,18 @@ static int tsi108_send_packet(struct sk_buff * skb, struct net_device *dev)
+>                 data->txskbs[tx] = skb;
+>
+>                 if (i == 0) {
+> -                       data->txring[tx].buf0 = dma_map_single(NULL, skb->data,
+> -                                       skb_headlen(skb), DMA_TO_DEVICE);
+> +                       data->txring[tx].buf0 = dma_map_single(&data->pdev->dev,
+> +                                       skb->data, skb_headlen(skb),
+> +                                       DMA_TO_DEVICE);
+>                         data->txring[tx].len = skb_headlen(skb);
+>                         misc |= TSI108_TX_SOF;
+>                 } else {
+>                         const skb_frag_t *frag = &skb_shinfo(skb)->frags[i - 1];
+>
+> -                       data->txring[tx].buf0 = skb_frag_dma_map(NULL, frag,
+> -                                                                0,
+> -                                                                skb_frag_size(frag),
+> -                                                                DMA_TO_DEVICE);
+> +                       data->txring[tx].buf0 =
+> +                               skb_frag_dma_map(&data->pdev->dev, frag,
+> +                                               0, skb_frag_size(frag),
+> +                                               DMA_TO_DEVICE);
+>                         data->txring[tx].len = skb_frag_size(frag);
+>                 }
+>
+> @@ -808,9 +811,9 @@ static int tsi108_refill_rx(struct net_device *dev, int budget)
+>                 if (!skb)
+>                         break;
+>
+> -               data->rxring[rx].buf0 = dma_map_single(NULL, skb->data,
+> -                                                       TSI108_RX_SKB_SIZE,
+> -                                                       DMA_FROM_DEVICE);
+> +               data->rxring[rx].buf0 = dma_map_single(&data->pdev->dev,
+> +                               skb->data, TSI108_RX_SKB_SIZE,
+> +                               DMA_FROM_DEVICE);
+>
+>                 /* Sometimes the hardware sets blen to zero after packet
+>                  * reception, even though the manual says that it's only ever
+> @@ -1308,15 +1311,15 @@ static int tsi108_open(struct net_device *dev)
+>                        data->id, dev->irq, dev->name);
+>         }
+>
+> -       data->rxring = dma_zalloc_coherent(NULL, rxring_size, &data->rxdma,
+> -                                          GFP_KERNEL);
+> +       data->rxring = dma_zalloc_coherent(&data->pdev->dev, rxring_size,
+> +                       &data->rxdma, GFP_KERNEL);
+>         if (!data->rxring)
+>                 return -ENOMEM;
+>
+> -       data->txring = dma_zalloc_coherent(NULL, txring_size, &data->txdma,
+> -                                          GFP_KERNEL);
+> +       data->txring = dma_zalloc_coherent(&data->pdev->dev, txring_size,
+> +                       &data->txdma, GFP_KERNEL);
+>         if (!data->txring) {
+> -               pci_free_consistent(NULL, rxring_size, data->rxring,
+> +               dma_free_coherent(&data->pdev->dev, rxring_size, data->rxring,
+>                                     data->rxdma);
+>                 return -ENOMEM;
+>         }
+> @@ -1428,10 +1431,10 @@ static int tsi108_close(struct net_device *dev)
+>                 dev_kfree_skb(skb);
+>         }
+>
+> -       dma_free_coherent(0,
+> +       dma_free_coherent(&data->pdev->dev,
+>                             TSI108_RXRING_LEN * sizeof(rx_desc),
+>                             data->rxring, data->rxdma);
+> -       dma_free_coherent(0,
+> +       dma_free_coherent(&data->pdev->dev,
+>                             TSI108_TXRING_LEN * sizeof(tx_desc),
+>                             data->txring, data->txdma);
+>
+> @@ -1576,6 +1579,7 @@ tsi108_init_one(struct platform_device *pdev)
+>         printk("tsi108_eth%d: probe...\n", pdev->id);
+>         data = netdev_priv(dev);
+>         data->dev = dev;
+> +       data->pdev = pdev;
+>
+>         pr_debug("tsi108_eth%d:regs:phyresgs:phy:irq_num=0x%x:0x%x:0x%x:0x%x\n",
+>                         pdev->id, einfo->regs, einfo->phyregs,
+> --
+> 2.14.2
+>
+
+
+
+-- 
+With Best Regards,
+Andy Shevchenko
