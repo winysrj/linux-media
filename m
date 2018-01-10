@@ -1,34 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:36380 "EHLO mga09.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754112AbeAKKZr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 11 Jan 2018 05:25:47 -0500
-Date: Thu, 11 Jan 2018 18:25:13 +0800
-From: kbuild test robot <fengguang.wu@intel.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: kbuild-all@01.org, linux-media@vger.kernel.org
-Subject: [linux-next:master 6051/9035]
- drivers/media/common/videobuf/videobuf2-core.o:(__jump_table+0x10):
- undefined reference to `__tracepoint_vb2_buf_queue'
-Message-ID: <201801111810.RRkvEnSJ%fengguang.wu@intel.com>
+Received: from mail-wm0-f66.google.com ([74.125.82.66]:45800 "EHLO
+        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754982AbeAJNVj (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 10 Jan 2018 08:21:39 -0500
+Received: by mail-wm0-f66.google.com with SMTP id i186so10483713wmi.4
+        for <linux-media@vger.kernel.org>; Wed, 10 Jan 2018 05:21:38 -0800 (PST)
+Date: Wed, 10 Jan 2018 14:21:27 +0100
+From: Daniel Vetter <daniel@ffwll.ch>
+To: Christian =?iso-8859-1?Q?K=F6nig?=
+        <ckoenig.leichtzumerken@gmail.com>
+Cc: sumit.semwal@linaro.org, gustavo@padovan.org,
+        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        linaro-mm-sig@lists.linaro.org
+Subject: Re: [Linaro-mm-sig] [PATCH] dma-buf: make returning the exclusive
+ fence optional
+Message-ID: <20180110132127.GT13066@phenom.ffwll.local>
+References: <20180110125341.3618-1-christian.koenig@amd.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20180110125341.3618-1-christian.koenig@amd.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-tree:   https://git.kernel.org/pub/scm/linux/kernel/git/next/linux-next.git master
-head:   b4464bcab38d3f7fe995a7cb960eeac6889bec08
-commit: 03fbdb2fc2b8bb27b0ee0534fd3e9c57cdc3854a [6051/9035] media: move videobuf2 to drivers/media/common
-config: x86_64-randconfig-s5-01110339
-compiler: gcc-7 (Debian 7.2.0-12) 7.2.1 20171025
-reproduce:
-        git checkout 03fbdb2fc2b8bb27b0ee0534fd3e9c57cdc3854a
-        make ARCH=x86_64  randconfig
-        make ARCH=x86_64 
+On Wed, Jan 10, 2018 at 01:53:41PM +0100, Christian König wrote:
+> Change reservation_object_get_fences_rcu to make the exclusive fence
+> pointer optional.
+> 
+> If not specified the exclusive fence is put into the fence array as
+> well.
+> 
+> This is helpful for a couple of cases where we need all fences in a
+> single array.
+> 
+> Signed-off-by: Christian König <christian.koenig@amd.com>
 
-All errors (new ones prefixed by >>):
+Seeing the use-case for this would be a lot more interesting ...
+-Daniel
 
----
-0-DAY kernel test infrastructure                Open Source Technology Center
-https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
+> ---
+>  drivers/dma-buf/reservation.c | 31 ++++++++++++++++++++++---------
+>  1 file changed, 22 insertions(+), 9 deletions(-)
+> 
+> diff --git a/drivers/dma-buf/reservation.c b/drivers/dma-buf/reservation.c
+> index b759a569b7b8..461afa9febd4 100644
+> --- a/drivers/dma-buf/reservation.c
+> +++ b/drivers/dma-buf/reservation.c
+> @@ -374,8 +374,9 @@ EXPORT_SYMBOL(reservation_object_copy_fences);
+>   * @pshared: the array of shared fence ptrs returned (array is krealloc'd to
+>   * the required size, and must be freed by caller)
+>   *
+> - * RETURNS
+> - * Zero or -errno
+> + * Retrieve all fences from the reservation object. If the pointer for the
+> + * exclusive fence is not specified the fence is put into the array of the
+> + * shared fences as well. Returns either zero or -ENOMEM.
+>   */
+>  int reservation_object_get_fences_rcu(struct reservation_object *obj,
+>  				      struct dma_fence **pfence_excl,
+> @@ -389,8 +390,8 @@ int reservation_object_get_fences_rcu(struct reservation_object *obj,
+>  
+>  	do {
+>  		struct reservation_object_list *fobj;
+> -		unsigned seq;
+> -		unsigned int i;
+> +		unsigned int i, seq;
+> +		size_t sz = 0;
+>  
+>  		shared_count = i = 0;
+>  
+> @@ -402,9 +403,14 @@ int reservation_object_get_fences_rcu(struct reservation_object *obj,
+>  			goto unlock;
+>  
+>  		fobj = rcu_dereference(obj->fence);
+> -		if (fobj) {
+> +		if (fobj)
+> +			sz += sizeof(*shared) * fobj->shared_max;
+> +
+> +		if (!pfence_excl && fence_excl)
+> +			sz += sizeof(*shared);
+> +
+> +		if (sz) {
+>  			struct dma_fence **nshared;
+> -			size_t sz = sizeof(*shared) * fobj->shared_max;
+>  
+>  			nshared = krealloc(shared, sz,
+>  					   GFP_NOWAIT | __GFP_NOWARN);
+> @@ -420,13 +426,19 @@ int reservation_object_get_fences_rcu(struct reservation_object *obj,
+>  				break;
+>  			}
+>  			shared = nshared;
+> -			shared_count = fobj->shared_count;
+> -
+> +			shared_count = fobj ? fobj->shared_count : 0;
+>  			for (i = 0; i < shared_count; ++i) {
+>  				shared[i] = rcu_dereference(fobj->shared[i]);
+>  				if (!dma_fence_get_rcu(shared[i]))
+>  					break;
+>  			}
+> +
+> +			if (!pfence_excl && fence_excl) {
+> +				shared[i] = fence_excl;
+> +				fence_excl = NULL;
+> +				++i;
+> +				++shared_count;
+> +			}
+>  		}
+>  
+>  		if (i != shared_count || read_seqcount_retry(&obj->seq, seq)) {
+> @@ -448,7 +460,8 @@ int reservation_object_get_fences_rcu(struct reservation_object *obj,
+>  
+>  	*pshared_count = shared_count;
+>  	*pshared = shared;
+> -	*pfence_excl = fence_excl;
+> +	if (pfence_excl)
+> +		*pfence_excl = fence_excl;
+>  
+>  	return ret;
+>  }
+> -- 
+> 2.14.1
+> 
+> _______________________________________________
+> Linaro-mm-sig mailing list
+> Linaro-mm-sig@lists.linaro.org
+> https://lists.linaro.org/mailman/listinfo/linaro-mm-sig
+
+-- 
+Daniel Vetter
+Software Engineer, Intel Corporation
+http://blog.ffwll.ch
