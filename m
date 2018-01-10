@@ -1,59 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:60214 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1752159AbeADKTY (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 4 Jan 2018 05:19:24 -0500
-Date: Thu, 4 Jan 2018 12:19:21 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: yong.zhi@intel.com
-Subject: [GIT PULL for 4.16] Intel IPU3 CIO2 fixes, cleanup
-Message-ID: <20180104101921.h7lbi2rsekvqpr4c@valkosipuli.retiisi.org.uk>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Received: from osg.samsung.com ([64.30.133.232]:47157 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932430AbeAJQgG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 10 Jan 2018 11:36:06 -0500
+From: Shuah Khan <shuahkh@osg.samsung.com>
+To: mchehab@kernel.org, shuah@kernel.org, sakari.ailus@linux.intel.com,
+        laurent.pinchart@ideasonboard.com
+Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: [PATCH] media: v4l2-core: v4l2-mc: Add SPDX license identifier
+Date: Wed, 10 Jan 2018 09:35:36 -0700
+Message-Id: <20180110163540.8396-2-shuahkh@osg.samsung.com>
+In-Reply-To: <20180110163540.8396-1-shuahkh@osg.samsung.com>
+References: <20180110163540.8396-1-shuahkh@osg.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Replace GPL license statement with SPDX GPL-2.0 license identifier.
 
-Here are a bunch of fixes for the Intel IPU3 CIO2 driver, as well as the
-cleanup I wrote earlier.
+Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+---
+ drivers/media/v4l2-core/v4l2-mc.c | 11 +----------
+ 1 file changed, 1 insertion(+), 10 deletions(-)
 
-Please pull.
-
-
-The following changes since commit d0c8f6ad8b381dd572576ac50b9696d4d31142bb:
-
-  media: imx: fix breakages when compiling for arm (2017-12-29 14:55:41 -0500)
-
-are available in the git repository at:
-
-  ssh://linuxtv.org/git/sailus/media_tree.git ipu3
-
-for you to fetch changes up to ec9d117f472d27289bf0e845b325e5852d5799dd:
-
-  media: intel-ipu3: cio2: fix for wrong vb2buf state warnings (2018-01-04 12:14:28 +0200)
-
-----------------------------------------------------------------
-Arnd Bergmann (2):
-      media: intel-ipu3: cio2: mark PM functions as __maybe_unused
-      media: intel-ipu3: cio2: fix building with large PAGE_SIZE
-
-Sakari Ailus (1):
-      intel-ipu3: Rename arr_size macro, use min
-
-Yong Zhi (2):
-      media: intel-ipu3: cio2: fix a crash with out-of-bounds access
-      media: intel-ipu3: cio2: fix for wrong vb2buf state warnings
-
- drivers/media/pci/intel/ipu3/ipu3-cio2.c | 31 ++++++++++++++++---------------
- drivers/media/pci/intel/ipu3/ipu3-cio2.h |  2 +-
- 2 files changed, 17 insertions(+), 16 deletions(-)
-
+diff --git a/drivers/media/v4l2-core/v4l2-mc.c b/drivers/media/v4l2-core/v4l2-mc.c
+index 303980b71aae..1297132acd4e 100644
+--- a/drivers/media/v4l2-core/v4l2-mc.c
++++ b/drivers/media/v4l2-core/v4l2-mc.c
+@@ -1,3 +1,4 @@
++/* SPDX-License-Identifier: GPL-2.0 */
+ /*
+  * Media Controller ancillary functions
+  *
+@@ -5,16 +6,6 @@
+  * Copyright (C) 2016 Shuah Khan <shuahkh@osg.samsung.com>
+  * Copyright (C) 2006-2010 Nokia Corporation
+  * Copyright (c) 2016 Intel Corporation.
+- *
+- *  This program is free software; you can redistribute it and/or modify
+- *  it under the terms of the GNU General Public License as published by
+- *  the Free Software Foundation; either version 2 of the License, or
+- *  (at your option) any later version.
+- *
+- *  This program is distributed in the hope that it will be useful,
+- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- *  GNU General Public License for more details.
+  */
+ 
+ #include <linux/module.h>
 -- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+2.14.1
