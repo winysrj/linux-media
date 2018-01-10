@@ -1,102 +1,144 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ot0-f196.google.com ([74.125.82.196]:42121 "EHLO
-        mail-ot0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751428AbeA2OeD (ORCPT
+Received: from mail-qt0-f195.google.com ([209.85.216.195]:38540 "EHLO
+        mail-qt0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S966003AbeAJQKX (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 29 Jan 2018 09:34:03 -0500
-MIME-Version: 1.0
-In-Reply-To: <CACRpkdYAGwUjr2C-w5U+WuG48pZAOUcnxFjznLbdF6Lmy1uZuQ@mail.gmail.com>
-References: <1516695531-23349-1-git-send-email-yong.deng@magewell.com>
- <CACRpkdan52UB7HOyH1gnHWg4CDke_VQxAdq8cBgwUroibE59Ow@mail.gmail.com>
- <20180129082533.6edmqgbauo6q5dgz@flea.lan> <CACRpkdYAGwUjr2C-w5U+WuG48pZAOUcnxFjznLbdF6Lmy1uZuQ@mail.gmail.com>
-From: Arnd Bergmann <arnd@arndb.de>
-Date: Mon, 29 Jan 2018 15:34:02 +0100
-Message-ID: <CAK8P3a2HmPOTHAzqBnmim388pcWOE=fG50mG5HJifT=vzKOaTg@mail.gmail.com>
-Subject: Re: [PATCH v6 2/2] media: V3s: Add support for Allwinner CSI.
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: Maxime Ripard <maxime.ripard@free-electrons.com>,
-        Yong Deng <yong.deng@magewell.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Chen-Yu Tsai <wens@csie.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Randy Dunlap <rdunlap@infradead.org>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Yannick Fertre <yannick.fertre@st.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Rick Chang <rick.chang@mediatek.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        "open list:OPEN FIRMWARE AND FLATTENED DEVICE TREE BINDINGS"
-        <devicetree@vger.kernel.org>,
-        Linux ARM <linux-arm-kernel@lists.infradead.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        linux-sunxi <linux-sunxi@googlegroups.com>, megous@megous.com,
-        Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
-Content-Type: text/plain; charset="UTF-8"
+        Wed, 10 Jan 2018 11:10:23 -0500
+From: Gustavo Padovan <gustavo@padovan.org>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        Pawel Osciak <pawel@osciak.com>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Brian Starkey <brian.starkey@arm.com>,
+        Thierry Escande <thierry.escande@collabora.com>,
+        linux-kernel@vger.kernel.org,
+        Gustavo Padovan <gustavo.padovan@collabora.com>
+Subject: [PATCH v7 3/6] [media] vb2: add explicit fence user API
+Date: Wed, 10 Jan 2018 14:07:29 -0200
+Message-Id: <20180110160732.7722-4-gustavo@padovan.org>
+In-Reply-To: <20180110160732.7722-1-gustavo@padovan.org>
+References: <20180110160732.7722-1-gustavo@padovan.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jan 29, 2018 at 10:25 AM, Linus Walleij
-<linus.walleij@linaro.org> wrote:
-> On Mon, Jan 29, 2018 at 9:25 AM, Maxime Ripard
-> <maxime.ripard@free-electrons.com> wrote:
->> On Sat, Jan 27, 2018 at 05:14:26PM +0100, Linus Walleij wrote:
->> However, in DT systems, that
->> field is filled only with the parent's node dma-ranges property. In
->> our case, and since the DT parenthood is based on the "control" bus,
->> and not the "data" bus, our parent node would be the AXI bus, and not
->> the memory bus that enforce those constraints.
->>
->> And other devices doing DMA through regular DMA accesses won't have
->> that mapping, so we definitely shouldn't enforce it for all the
->> devices there, but only the one connected to the separate memory bus.
->>
->> tl; dr: the DT is not really an option to store that info.
->>
->> I suggested setting dma_pfn_offset at probe, but Arnd didn't seem too
->> fond of that approach either at the time.
->>
->> So, well, I guess we could do better. We just have no idea how :)
->
-> Usually of Arnd cannot suggest something smart, neither can I :(
->
-> If some aspect of the memory layout of the system *really* doesn't
-> fit into DT because of the assumptions that DT is doing about
-> how systems work, we have a problem.
->
-> Is the problem that DT's model assumes that devices have one and
-> only one data port to the system memory, and that is how it
-> populates the Linux devices?
->
-> I guess, if nothing else works, I would use auxdata in the board file.
-> It is our definitive last resort when DT doesn't hold.
->
-> I.e. I would go into struct of_dev_auxdata
-> (from <linux/of_platform.h>) and add a
-> dma_pfn_offset field that gets set into the device's dma_pfn_offset
-> in drivers/of/platform.c overriding anything else and use that to hammer
-> it down in the boardfile.
->
-> But I bet some DT people are going to have other ideas.
+From: Gustavo Padovan <gustavo.padovan@collabora.com>
 
-At one point we had discussed adding a 'dma-masters' property that
-lists all the buses on which a device can be a dma master, and
-the respective properties of those masters (iommu, coherency,
-offset, ...).
+Turn the reserved2 field into fence_fd that we will use to send
+an in-fence to the kernel and return an out-fence from the kernel to
+userspace.
 
-IIRC at the time we decided that we could live without that complexity,
-but perhaps we cannot.
+Two new flags were added, V4L2_BUF_FLAG_IN_FENCE, that should be used
+when sending a fence to the kernel to be waited on, and
+V4L2_BUF_FLAG_OUT_FENCE, to ask the kernel to give back an out-fence.
 
-Another local hack that we can do here is to have two separate
-device nodes and let the device driver bind to one device and then
-look up the other one through a phandle to look up a platform_device
-for it, which it can then use with the DMA mapping interface.
+v5:
+	- keep using reserved2 field for cpia2
+	- set fence_fd to 0 for now, for compat with userspace(Mauro)
 
-      Arnd
+v4:
+	- make it a union with reserved2 and fence_fd (Hans Verkuil)
+
+v3:
+	- make the out_fence refer to the current buffer (Hans Verkuil)
+
+v2: add documentation
+
+Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
+---
+ Documentation/media/uapi/v4l/buffer.rst        | 15 +++++++++++++++
+ drivers/media/common/videobuf/videobuf2-v4l2.c |  2 +-
+ drivers/media/v4l2-core/v4l2-compat-ioctl32.c  |  4 ++--
+ include/uapi/linux/videodev2.h                 |  7 ++++++-
+ 4 files changed, 24 insertions(+), 4 deletions(-)
+
+diff --git a/Documentation/media/uapi/v4l/buffer.rst b/Documentation/media/uapi/v4l/buffer.rst
+index ae6ee73f151c..eeefbd2547e7 100644
+--- a/Documentation/media/uapi/v4l/buffer.rst
++++ b/Documentation/media/uapi/v4l/buffer.rst
+@@ -648,6 +648,21 @@ Buffer Flags
+       - Start Of Exposure. The buffer timestamp has been taken when the
+ 	exposure of the frame has begun. This is only valid for the
+ 	``V4L2_BUF_TYPE_VIDEO_CAPTURE`` buffer type.
++    * .. _`V4L2-BUF-FLAG-IN-FENCE`:
++
++      - ``V4L2_BUF_FLAG_IN_FENCE``
++      - 0x00200000
++      - Ask V4L2 to wait on fence passed in ``fence_fd`` field. The buffer
++	won't be queued to the driver until the fence signals.
++
++    * .. _`V4L2-BUF-FLAG-OUT-FENCE`:
++
++      - ``V4L2_BUF_FLAG_OUT_FENCE``
++      - 0x00400000
++      - Request a fence to be attached to the buffer. The ``fence_fd``
++	field on
++	:ref:`VIDIOC_QBUF` is used as a return argument to send the out-fence
++	fd to userspace.
+ 
+ 
+ 
+diff --git a/drivers/media/common/videobuf/videobuf2-v4l2.c b/drivers/media/common/videobuf/videobuf2-v4l2.c
+index fac3cd6f901d..d838524a459e 100644
+--- a/drivers/media/common/videobuf/videobuf2-v4l2.c
++++ b/drivers/media/common/videobuf/videobuf2-v4l2.c
+@@ -203,7 +203,7 @@ static void __fill_v4l2_buffer(struct vb2_buffer *vb, void *pb)
+ 	b->timestamp = ns_to_timeval(vb->timestamp);
+ 	b->timecode = vbuf->timecode;
+ 	b->sequence = vbuf->sequence;
+-	b->reserved2 = 0;
++	b->fence_fd = 0;
+ 	b->reserved = 0;
+ 
+ 	if (q->is_multiplanar) {
+diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+index e48d59046086..a11a0a2bed47 100644
+--- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
++++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+@@ -370,7 +370,7 @@ struct v4l2_buffer32 {
+ 		__s32		fd;
+ 	} m;
+ 	__u32			length;
+-	__u32			reserved2;
++	__s32			fence_fd;
+ 	__u32			reserved;
+ };
+ 
+@@ -533,7 +533,7 @@ static int put_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
+ 		put_user(kp->timestamp.tv_usec, &up->timestamp.tv_usec) ||
+ 		copy_to_user(&up->timecode, &kp->timecode, sizeof(struct v4l2_timecode)) ||
+ 		put_user(kp->sequence, &up->sequence) ||
+-		put_user(kp->reserved2, &up->reserved2) ||
++		put_user(kp->fence_fd, &up->fence_fd) ||
+ 		put_user(kp->reserved, &up->reserved) ||
+ 		put_user(kp->length, &up->length))
+ 			return -EFAULT;
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 58894cfe9479..2d424aebdd1e 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -933,7 +933,10 @@ struct v4l2_buffer {
+ 		__s32		fd;
+ 	} m;
+ 	__u32			length;
+-	__u32			reserved2;
++	union {
++		__s32		fence_fd;
++		__u32		reserved2;
++	};
+ 	__u32			reserved;
+ };
+ 
+@@ -970,6 +973,8 @@ struct v4l2_buffer {
+ #define V4L2_BUF_FLAG_TSTAMP_SRC_SOE		0x00010000
+ /* mem2mem encoder/decoder */
+ #define V4L2_BUF_FLAG_LAST			0x00100000
++#define V4L2_BUF_FLAG_IN_FENCE			0x00200000
++#define V4L2_BUF_FLAG_OUT_FENCE			0x00400000
+ 
+ /**
+  * struct v4l2_exportbuffer - export of video buffer as DMABUF file descriptor
+-- 
+2.14.3
