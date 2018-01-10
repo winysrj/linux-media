@@ -1,59 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.15.19]:62662 "EHLO mout.gmx.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1756236AbeATPCJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 20 Jan 2018 10:02:09 -0500
-Received: from minime.bse ([77.22.132.34]) by mail.gmx.com (mrgmx001
- [212.227.17.190]) with ESMTPSA (Nemesis) id 0M8NBi-1eyPkr0Hha-00vuco for
- <linux-media@vger.kernel.org>; Sat, 20 Jan 2018 16:02:07 +0100
-Date: Sat, 20 Jan 2018 16:02:05 +0100
-From: Daniel =?iso-8859-1?Q?Gl=F6ckner?= <daniel-gl@gmx.net>
-To: Florian Boor <florian.boor@kernelconcepts.de>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: MT9M131 on I.MX6DL CSI color issue
-Message-ID: <20180120150204.GA17833@minime.bse>
-References: <b704a2fb-efa1-a2f8-7af0-43d869c688eb@kernelconcepts.de>
- <20180112105840.75260abb@crub>
- <20180112110606.47499410@crub>
- <929ef892-467b-dfd1-8ae0-0190263be38a@kernelconcepts.de>
- <20180117103109.GA18072@minime.bse>
- <ff51f6e2-270d-c881-4445-8dadf5d7db6f@kernelconcepts.de>
- <20180118040308.GA21998@minime.bse>
- <4407aea6-4a7e-a637-40ae-3b25f43b81e5@kernelconcepts.de>
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:44336 "EHLO
+        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933907AbeAJMxq (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 10 Jan 2018 07:53:46 -0500
+Received: by mail-wm0-f68.google.com with SMTP id t8so26570753wmc.3
+        for <linux-media@vger.kernel.org>; Wed, 10 Jan 2018 04:53:45 -0800 (PST)
+From: "=?UTF-8?q?Christian=20K=C3=B6nig?="
+        <ckoenig.leichtzumerken@gmail.com>
+To: sumit.semwal@linaro.org, gustavo@padovan.org,
+        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        linaro-mm-sig@lists.linaro.org
+Subject: [PATCH] dma-buf: make returning the exclusive fence optional
+Date: Wed, 10 Jan 2018 13:53:41 +0100
+Message-Id: <20180110125341.3618-1-christian.koenig@amd.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <4407aea6-4a7e-a637-40ae-3b25f43b81e5@kernelconcepts.de>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Florian,
+Change reservation_object_get_fences_rcu to make the exclusive fence
+pointer optional.
 
-On Thu, Jan 18, 2018 at 05:31:43PM +0100, Florian Boor wrote:
-> > But that does not explain the wraparounds. Can you rule out that the
-> > data lines have been connected in the wrong order?
-> 
-> According to the schematics and camera documentation I have the order of the
-> data lines is correct. I checked one more time... but I'm not sure if the
-> configuration of the parallel camera input is perfectly right.
-> 
-> The hardware uses CSI0 data lines 12 to 19 and so I used the configuration
-> from the SabreLite board:
+If not specified the exclusive fence is put into the fence array as
+well.
 
-The VM-009 has 10 data lines. Do you use a board designed by Phytec?
-If not, did you connect the lower or the upper 8 data lines to the i.MX6?
-Using the upper 8 data lines is correct.
+This is helpful for a couple of cases where we need all fences in a
+single array.
 
-I'm asking because the raw frames I asked for off list* contain only odd
-bytes except for some null bytes. And for all components they exceed the
-standard value range (Y 16-235, Cb/Cr 16-240).
+Signed-off-by: Christian König <christian.koenig@amd.com>
+---
+ drivers/dma-buf/reservation.c | 31 ++++++++++++++++++++++---------
+ 1 file changed, 22 insertions(+), 9 deletions(-)
 
-Have you ever tried to capture images in one of the RGB formats?
-
-Best regards,
-
-  Daniel
-
-*)
-http://www.kernelconcepts.de/~florian/frame.raw
-http://www.kernelconcepts.de/~florian/frame2.raw
+diff --git a/drivers/dma-buf/reservation.c b/drivers/dma-buf/reservation.c
+index b759a569b7b8..461afa9febd4 100644
+--- a/drivers/dma-buf/reservation.c
++++ b/drivers/dma-buf/reservation.c
+@@ -374,8 +374,9 @@ EXPORT_SYMBOL(reservation_object_copy_fences);
+  * @pshared: the array of shared fence ptrs returned (array is krealloc'd to
+  * the required size, and must be freed by caller)
+  *
+- * RETURNS
+- * Zero or -errno
++ * Retrieve all fences from the reservation object. If the pointer for the
++ * exclusive fence is not specified the fence is put into the array of the
++ * shared fences as well. Returns either zero or -ENOMEM.
+  */
+ int reservation_object_get_fences_rcu(struct reservation_object *obj,
+ 				      struct dma_fence **pfence_excl,
+@@ -389,8 +390,8 @@ int reservation_object_get_fences_rcu(struct reservation_object *obj,
+ 
+ 	do {
+ 		struct reservation_object_list *fobj;
+-		unsigned seq;
+-		unsigned int i;
++		unsigned int i, seq;
++		size_t sz = 0;
+ 
+ 		shared_count = i = 0;
+ 
+@@ -402,9 +403,14 @@ int reservation_object_get_fences_rcu(struct reservation_object *obj,
+ 			goto unlock;
+ 
+ 		fobj = rcu_dereference(obj->fence);
+-		if (fobj) {
++		if (fobj)
++			sz += sizeof(*shared) * fobj->shared_max;
++
++		if (!pfence_excl && fence_excl)
++			sz += sizeof(*shared);
++
++		if (sz) {
+ 			struct dma_fence **nshared;
+-			size_t sz = sizeof(*shared) * fobj->shared_max;
+ 
+ 			nshared = krealloc(shared, sz,
+ 					   GFP_NOWAIT | __GFP_NOWARN);
+@@ -420,13 +426,19 @@ int reservation_object_get_fences_rcu(struct reservation_object *obj,
+ 				break;
+ 			}
+ 			shared = nshared;
+-			shared_count = fobj->shared_count;
+-
++			shared_count = fobj ? fobj->shared_count : 0;
+ 			for (i = 0; i < shared_count; ++i) {
+ 				shared[i] = rcu_dereference(fobj->shared[i]);
+ 				if (!dma_fence_get_rcu(shared[i]))
+ 					break;
+ 			}
++
++			if (!pfence_excl && fence_excl) {
++				shared[i] = fence_excl;
++				fence_excl = NULL;
++				++i;
++				++shared_count;
++			}
+ 		}
+ 
+ 		if (i != shared_count || read_seqcount_retry(&obj->seq, seq)) {
+@@ -448,7 +460,8 @@ int reservation_object_get_fences_rcu(struct reservation_object *obj,
+ 
+ 	*pshared_count = shared_count;
+ 	*pshared = shared;
+-	*pfence_excl = fence_excl;
++	if (pfence_excl)
++		*pfence_excl = fence_excl;
+ 
+ 	return ret;
+ }
+-- 
+2.14.1
