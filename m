@@ -1,1043 +1,2206 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay4-d.mail.gandi.net ([217.70.183.196]:42523 "EHLO
-        relay4-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751968AbeAPVqO (ORCPT
+Received: from out20-38.mail.aliyun.com ([115.124.20.38]:60918 "EHLO
+        out20-38.mail.aliyun.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753295AbeAKDHH (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 16 Jan 2018 16:46:14 -0500
-From: Jacopo Mondi <jacopo+renesas@jmondi.org>
-To: laurent.pinchart@ideasonboard.com, magnus.damm@gmail.com,
-        geert@glider.be, hverkuil@xs4all.nl, mchehab@kernel.org,
-        festevam@gmail.com, sakari.ailus@iki.fi, robh+dt@kernel.org,
-        mark.rutland@arm.com, pombredanne@nexb.com
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-sh@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH v6 7/9] v4l: i2c: Copy tw9910 soc_camera sensor driver
-Date: Tue, 16 Jan 2018 22:44:59 +0100
-Message-Id: <1516139101-7835-8-git-send-email-jacopo+renesas@jmondi.org>
-In-Reply-To: <1516139101-7835-1-git-send-email-jacopo+renesas@jmondi.org>
-References: <1516139101-7835-1-git-send-email-jacopo+renesas@jmondi.org>
+        Wed, 10 Jan 2018 22:07:07 -0500
+From: Yong Deng <yong.deng@magewell.com>
+To: Maxime Ripard <maxime.ripard@free-electrons.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Chen-Yu Tsai <wens@csie.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Randy Dunlap <rdunlap@infradead.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Yannick Fertre <yannick.fertre@st.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Rick Chang <rick.chang@mediatek.com>,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-sunxi@googlegroups.com, megous@megous.com,
+        Yong Deng <yong.deng@magewell.com>
+Subject: [PATCH v5 2/2] media: V3s: Add support for Allwinner CSI.
+Date: Thu, 11 Jan 2018 11:06:06 +0800
+Message-Id: <1515639966-35902-1-git-send-email-yong.deng@magewell.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Copy the soc_camera based driver in v4l2 sensor driver directory.
-This commit just copies the original file without modifying it.
-No modification to KConfig and Makefile as soc_camera framework
-dependencies need to be removed first in next commit.
+Allwinner V3s SoC features two CSI module. CSI0 is used for MIPI CSI-2
+interface and CSI1 is used for parallel interface. This is not
+documented in datasheet but by test and guess.
 
-Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+This patch implement a v4l2 framework driver for it.
+
+Currently, the driver only support the parallel interface. MIPI-CSI2,
+ISP's support are not included in this patch.
+
+Signed-off-by: Yong Deng <yong.deng@magewell.com>
 ---
- drivers/media/i2c/tw9910.c | 999 +++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 999 insertions(+)
- create mode 100644 drivers/media/i2c/tw9910.c
+ MAINTAINERS                                        |   8 +
+ drivers/media/platform/Kconfig                     |   1 +
+ drivers/media/platform/Makefile                    |   2 +
+ drivers/media/platform/sunxi/sun6i-csi/Kconfig     |   9 +
+ drivers/media/platform/sunxi/sun6i-csi/Makefile    |   3 +
+ drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.c | 908 +++++++++++++++++++++
+ drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.h | 143 ++++
+ .../media/platform/sunxi/sun6i-csi/sun6i_csi_reg.h | 196 +++++
+ .../media/platform/sunxi/sun6i-csi/sun6i_video.c   | 741 +++++++++++++++++
+ .../media/platform/sunxi/sun6i-csi/sun6i_video.h   |  53 ++
+ 10 files changed, 2064 insertions(+)
+ create mode 100644 drivers/media/platform/sunxi/sun6i-csi/Kconfig
+ create mode 100644 drivers/media/platform/sunxi/sun6i-csi/Makefile
+ create mode 100644 drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.c
+ create mode 100644 drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.h
+ create mode 100644 drivers/media/platform/sunxi/sun6i-csi/sun6i_csi_reg.h
+ create mode 100644 drivers/media/platform/sunxi/sun6i-csi/sun6i_video.c
+ create mode 100644 drivers/media/platform/sunxi/sun6i-csi/sun6i_video.h
 
-diff --git a/drivers/media/i2c/tw9910.c b/drivers/media/i2c/tw9910.c
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 9501403..b792fe5 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -3783,6 +3783,14 @@ M:	Jaya Kumar <jayakumar.alsa@gmail.com>
+ S:	Maintained
+ F:	sound/pci/cs5535audio/
+ 
++CSI DRIVERS FOR ALLWINNER V3s
++M:	Yong Deng <yong.deng@magewell.com>
++L:	linux-media@vger.kernel.org
++T:	git git://linuxtv.org/media_tree.git
++S:	Maintained
++F:	drivers/media/platform/sunxi/sun6i-csi/
++F:	Documentation/devicetree/bindings/media/sun6i-csi.txt
++
+ CW1200 WLAN driver
+ M:	Solomon Peachy <pizza@shaftnet.org>
+ S:	Maintained
+diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
+index fd0c998..41017e3 100644
+--- a/drivers/media/platform/Kconfig
++++ b/drivers/media/platform/Kconfig
+@@ -150,6 +150,7 @@ source "drivers/media/platform/am437x/Kconfig"
+ source "drivers/media/platform/xilinx/Kconfig"
+ source "drivers/media/platform/rcar-vin/Kconfig"
+ source "drivers/media/platform/atmel/Kconfig"
++source "drivers/media/platform/sunxi/sun6i-csi/Kconfig"
+ 
+ config VIDEO_TI_CAL
+ 	tristate "TI CAL (Camera Adaptation Layer) driver"
+diff --git a/drivers/media/platform/Makefile b/drivers/media/platform/Makefile
+index 003b0bb..e6e9ce7 100644
+--- a/drivers/media/platform/Makefile
++++ b/drivers/media/platform/Makefile
+@@ -97,3 +97,5 @@ obj-$(CONFIG_VIDEO_QCOM_CAMSS)		+= qcom/camss-8x16/
+ obj-$(CONFIG_VIDEO_QCOM_VENUS)		+= qcom/venus/
+ 
+ obj-y					+= meson/
++
++obj-$(CONFIG_VIDEO_SUN6I_CSI)		+= sunxi/sun6i-csi/
+diff --git a/drivers/media/platform/sunxi/sun6i-csi/Kconfig b/drivers/media/platform/sunxi/sun6i-csi/Kconfig
 new file mode 100644
-index 0000000..bdb5e0a
+index 0000000..314188a
 --- /dev/null
-+++ b/drivers/media/i2c/tw9910.c
-@@ -0,0 +1,999 @@
++++ b/drivers/media/platform/sunxi/sun6i-csi/Kconfig
+@@ -0,0 +1,9 @@
++config VIDEO_SUN6I_CSI
++	tristate "Allwinner V3s Camera Sensor Interface driver"
++	depends on VIDEO_V4L2 && COMMON_CLK && VIDEO_V4L2_SUBDEV_API && HAS_DMA
++	depends on ARCH_SUNXI || COMPILE_TEST
++	select VIDEOBUF2_DMA_CONTIG
++	select REGMAP_MMIO
++	select V4L2_FWNODE
++	---help---
++	   Support for the Allwinner Camera Sensor Interface Controller on V3s.
+diff --git a/drivers/media/platform/sunxi/sun6i-csi/Makefile b/drivers/media/platform/sunxi/sun6i-csi/Makefile
+new file mode 100644
+index 0000000..213cb6b
+--- /dev/null
++++ b/drivers/media/platform/sunxi/sun6i-csi/Makefile
+@@ -0,0 +1,3 @@
++sun6i-csi-y += sun6i_video.o sun6i_csi.o
++
++obj-$(CONFIG_VIDEO_SUN6I_CSI) += sun6i-csi.o
+diff --git a/drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.c b/drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.c
+new file mode 100644
+index 0000000..9c341f0
+--- /dev/null
++++ b/drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.c
+@@ -0,0 +1,908 @@
++// SPDX-License-Identifier: GPL-2.0
 +/*
-+ * tw9910 Video Driver
-+ *
-+ * Copyright (C) 2008 Renesas Solutions Corp.
-+ * Kuninori Morimoto <morimoto.kuninori@renesas.com>
-+ *
-+ * Based on ov772x driver,
-+ *
-+ * Copyright (C) 2008 Kuninori Morimoto <morimoto.kuninori@renesas.com>
-+ * Copyright 2006-7 Jonathan Corbet <corbet@lwn.net>
-+ * Copyright (C) 2008 Magnus Damm
-+ * Copyright (C) 2008, Guennadi Liakhovetski <kernel@pengutronix.de>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
++ * Copyright (c) 2011-2018 Magewell Electronics Co., Ltd. (Nanjing)
++ * All rights reserved.
++ * Author: Yong Deng <yong.deng@magewell.com>
 + */
 +
-+#include <linux/init.h>
-+#include <linux/module.h>
-+#include <linux/i2c.h>
-+#include <linux/slab.h>
-+#include <linux/kernel.h>
++#include <linux/clk.h>
 +#include <linux/delay.h>
-+#include <linux/v4l2-mediabus.h>
-+#include <linux/videodev2.h>
++#include <linux/dma-mapping.h>
++#include <linux/err.h>
++#include <linux/fs.h>
++#include <linux/interrupt.h>
++#include <linux/io.h>
++#include <linux/ioctl.h>
++#include <linux/module.h>
++#include <linux/of.h>
++#include <linux/platform_device.h>
++#include <linux/pm_runtime.h>
++#include <linux/regmap.h>
++#include <linux/reset.h>
++#include <linux/sched.h>
++#include <linux/sizes.h>
++#include <linux/slab.h>
 +
-+#include <media/soc_camera.h>
-+#include <media/i2c/tw9910.h>
-+#include <media/v4l2-clk.h>
-+#include <media/v4l2-subdev.h>
++#include "sun6i_csi.h"
++#include "sun6i_csi_reg.h"
 +
-+#define GET_ID(val)  ((val & 0xF8) >> 3)
-+#define GET_REV(val) (val & 0x07)
++#define MODULE_NAME	"sun6i-csi"
 +
-+/*
-+ * register offset
-+ */
-+#define ID		0x00 /* Product ID Code Register */
-+#define STATUS1		0x01 /* Chip Status Register I */
-+#define INFORM		0x02 /* Input Format */
-+#define OPFORM		0x03 /* Output Format Control Register */
-+#define DLYCTR		0x04 /* Hysteresis and HSYNC Delay Control */
-+#define OUTCTR1		0x05 /* Output Control I */
-+#define ACNTL1		0x06 /* Analog Control Register 1 */
-+#define CROP_HI		0x07 /* Cropping Register, High */
-+#define VDELAY_LO	0x08 /* Vertical Delay Register, Low */
-+#define VACTIVE_LO	0x09 /* Vertical Active Register, Low */
-+#define HDELAY_LO	0x0A /* Horizontal Delay Register, Low */
-+#define HACTIVE_LO	0x0B /* Horizontal Active Register, Low */
-+#define CNTRL1		0x0C /* Control Register I */
-+#define VSCALE_LO	0x0D /* Vertical Scaling Register, Low */
-+#define SCALE_HI	0x0E /* Scaling Register, High */
-+#define HSCALE_LO	0x0F /* Horizontal Scaling Register, Low */
-+#define BRIGHT		0x10 /* BRIGHTNESS Control Register */
-+#define CONTRAST	0x11 /* CONTRAST Control Register */
-+#define SHARPNESS	0x12 /* SHARPNESS Control Register I */
-+#define SAT_U		0x13 /* Chroma (U) Gain Register */
-+#define SAT_V		0x14 /* Chroma (V) Gain Register */
-+#define HUE		0x15 /* Hue Control Register */
-+#define CORING1		0x17
-+#define CORING2		0x18 /* Coring and IF compensation */
-+#define VBICNTL		0x19 /* VBI Control Register */
-+#define ACNTL2		0x1A /* Analog Control 2 */
-+#define OUTCTR2		0x1B /* Output Control 2 */
-+#define SDT		0x1C /* Standard Selection */
-+#define SDTR		0x1D /* Standard Recognition */
-+#define TEST		0x1F /* Test Control Register */
-+#define CLMPG		0x20 /* Clamping Gain */
-+#define IAGC		0x21 /* Individual AGC Gain */
-+#define AGCGAIN		0x22 /* AGC Gain */
-+#define PEAKWT		0x23 /* White Peak Threshold */
-+#define CLMPL		0x24 /* Clamp level */
-+#define SYNCT		0x25 /* Sync Amplitude */
-+#define MISSCNT		0x26 /* Sync Miss Count Register */
-+#define PCLAMP		0x27 /* Clamp Position Register */
-+#define VCNTL1		0x28 /* Vertical Control I */
-+#define VCNTL2		0x29 /* Vertical Control II */
-+#define CKILL		0x2A /* Color Killer Level Control */
-+#define COMB		0x2B /* Comb Filter Control */
-+#define LDLY		0x2C /* Luma Delay and H Filter Control */
-+#define MISC1		0x2D /* Miscellaneous Control I */
-+#define LOOP		0x2E /* LOOP Control Register */
-+#define MISC2		0x2F /* Miscellaneous Control II */
-+#define MVSN		0x30 /* Macrovision Detection */
-+#define STATUS2		0x31 /* Chip STATUS II */
-+#define HFREF		0x32 /* H monitor */
-+#define CLMD		0x33 /* CLAMP MODE */
-+#define IDCNTL		0x34 /* ID Detection Control */
-+#define CLCNTL1		0x35 /* Clamp Control I */
-+#define ANAPLLCTL	0x4C
-+#define VBIMIN		0x4D
-+#define HSLOWCTL	0x4E
-+#define WSS3		0x4F
-+#define FILLDATA	0x50
-+#define SDID		0x51
-+#define DID		0x52
-+#define WSS1		0x53
-+#define WSS2		0x54
-+#define VVBI		0x55
-+#define LCTL6		0x56
-+#define LCTL7		0x57
-+#define LCTL8		0x58
-+#define LCTL9		0x59
-+#define LCTL10		0x5A
-+#define LCTL11		0x5B
-+#define LCTL12		0x5C
-+#define LCTL13		0x5D
-+#define LCTL14		0x5E
-+#define LCTL15		0x5F
-+#define LCTL16		0x60
-+#define LCTL17		0x61
-+#define LCTL18		0x62
-+#define LCTL19		0x63
-+#define LCTL20		0x64
-+#define LCTL21		0x65
-+#define LCTL22		0x66
-+#define LCTL23		0x67
-+#define LCTL24		0x68
-+#define LCTL25		0x69
-+#define LCTL26		0x6A
-+#define HSBEGIN		0x6B
-+#define HSEND		0x6C
-+#define OVSDLY		0x6D
-+#define OVSEND		0x6E
-+#define VBIDELAY	0x6F
++struct sun6i_csi_dev {
++	struct sun6i_csi		csi;
++	struct device			*dev;
 +
-+/*
-+ * register detail
-+ */
++	struct regmap			*regmap;
++	struct clk			*clk_mod;
++	struct clk			*clk_ram;
++	struct reset_control		*rstc_bus;
 +
-+/* INFORM */
-+#define FC27_ON     0x40 /* 1 : Input crystal clock frequency is 27MHz */
-+#define FC27_FF     0x00 /* 0 : Square pixel mode. */
-+			 /*     Must use 24.54MHz for 60Hz field rate */
-+			 /*     source or 29.5MHz for 50Hz field rate */
-+#define IFSEL_S     0x10 /* 01 : S-video decoding */
-+#define IFSEL_C     0x00 /* 00 : Composite video decoding */
-+			 /* Y input video selection */
-+#define YSEL_M0     0x00 /*  00 : Mux0 selected */
-+#define YSEL_M1     0x04 /*  01 : Mux1 selected */
-+#define YSEL_M2     0x08 /*  10 : Mux2 selected */
-+#define YSEL_M3     0x10 /*  11 : Mux3 selected */
-+
-+/* OPFORM */
-+#define MODE        0x80 /* 0 : CCIR601 compatible YCrCb 4:2:2 format */
-+			 /* 1 : ITU-R-656 compatible data sequence format */
-+#define LEN         0x40 /* 0 : 8-bit YCrCb 4:2:2 output format */
-+			 /* 1 : 16-bit YCrCb 4:2:2 output format.*/
-+#define LLCMODE     0x20 /* 1 : LLC output mode. */
-+			 /* 0 : free-run output mode */
-+#define AINC        0x10 /* Serial interface auto-indexing control */
-+			 /* 0 : auto-increment */
-+			 /* 1 : non-auto */
-+#define VSCTL       0x08 /* 1 : Vertical out ctrl by DVALID */
-+			 /* 0 : Vertical out ctrl by HACTIVE and DVALID */
-+#define OEN_TRI_SEL_MASK	0x07
-+#define OEN_TRI_SEL_ALL_ON	0x00 /* Enable output for Rev0/Rev1 */
-+#define OEN_TRI_SEL_ALL_OFF_r0	0x06 /* All tri-stated for Rev0 */
-+#define OEN_TRI_SEL_ALL_OFF_r1	0x07 /* All tri-stated for Rev1 */
-+
-+/* OUTCTR1 */
-+#define VSP_LO      0x00 /* 0 : VS pin output polarity is active low */
-+#define VSP_HI      0x80 /* 1 : VS pin output polarity is active high. */
-+			 /* VS pin output control */
-+#define VSSL_VSYNC  0x00 /*   0 : VSYNC  */
-+#define VSSL_VACT   0x10 /*   1 : VACT   */
-+#define VSSL_FIELD  0x20 /*   2 : FIELD  */
-+#define VSSL_VVALID 0x30 /*   3 : VVALID */
-+#define VSSL_ZERO   0x70 /*   7 : 0      */
-+#define HSP_LOW     0x00 /* 0 : HS pin output polarity is active low */
-+#define HSP_HI      0x08 /* 1 : HS pin output polarity is active high.*/
-+			 /* HS pin output control */
-+#define HSSL_HACT   0x00 /*   0 : HACT   */
-+#define HSSL_HSYNC  0x01 /*   1 : HSYNC  */
-+#define HSSL_DVALID 0x02 /*   2 : DVALID */
-+#define HSSL_HLOCK  0x03 /*   3 : HLOCK  */
-+#define HSSL_ASYNCW 0x04 /*   4 : ASYNCW */
-+#define HSSL_ZERO   0x07 /*   7 : 0      */
-+
-+/* ACNTL1 */
-+#define SRESET      0x80 /* resets the device to its default state
-+			  * but all register content remain unchanged.
-+			  * This bit is self-resetting.
-+			  */
-+#define ACNTL1_PDN_MASK	0x0e
-+#define CLK_PDN		0x08 /* system clock power down */
-+#define Y_PDN		0x04 /* Luma ADC power down */
-+#define C_PDN		0x02 /* Chroma ADC power down */
-+
-+/* ACNTL2 */
-+#define ACNTL2_PDN_MASK	0x40
-+#define PLL_PDN		0x40 /* PLL power down */
-+
-+/* VBICNTL */
-+
-+/* RTSEL : control the real time signal output from the MPOUT pin */
-+#define RTSEL_MASK  0x07
-+#define RTSEL_VLOSS 0x00 /* 0000 = Video loss */
-+#define RTSEL_HLOCK 0x01 /* 0001 = H-lock */
-+#define RTSEL_SLOCK 0x02 /* 0010 = S-lock */
-+#define RTSEL_VLOCK 0x03 /* 0011 = V-lock */
-+#define RTSEL_MONO  0x04 /* 0100 = MONO */
-+#define RTSEL_DET50 0x05 /* 0101 = DET50 */
-+#define RTSEL_FIELD 0x06 /* 0110 = FIELD */
-+#define RTSEL_RTCO  0x07 /* 0111 = RTCO ( Real Time Control ) */
-+
-+/* HSYNC start and end are constant for now */
-+#define HSYNC_START	0x0260
-+#define HSYNC_END	0x0300
-+
-+/*
-+ * structure
-+ */
-+
-+struct regval_list {
-+	unsigned char reg_num;
-+	unsigned char value;
++	int				planar_offset[3];
 +};
 +
-+struct tw9910_scale_ctrl {
-+	char           *name;
-+	unsigned short  width;
-+	unsigned short  height;
-+	u16             hscale;
-+	u16             vscale;
++static const u32 supported_pixformats[] = {
++	V4L2_PIX_FMT_SBGGR8,
++	V4L2_PIX_FMT_SGBRG8,
++	V4L2_PIX_FMT_SGRBG8,
++	V4L2_PIX_FMT_SRGGB8,
++	V4L2_PIX_FMT_SBGGR10,
++	V4L2_PIX_FMT_SGBRG10,
++	V4L2_PIX_FMT_SGRBG10,
++	V4L2_PIX_FMT_SRGGB10,
++	V4L2_PIX_FMT_SBGGR12,
++	V4L2_PIX_FMT_SGBRG12,
++	V4L2_PIX_FMT_SGRBG12,
++	V4L2_PIX_FMT_SRGGB12,
++	V4L2_PIX_FMT_YUYV,
++	V4L2_PIX_FMT_YVYU,
++	V4L2_PIX_FMT_UYVY,
++	V4L2_PIX_FMT_VYUY,
++	V4L2_PIX_FMT_HM12,
++	V4L2_PIX_FMT_NV12,
++	V4L2_PIX_FMT_NV21,
++	V4L2_PIX_FMT_YUV420,
++	V4L2_PIX_FMT_YVU420,
++	V4L2_PIX_FMT_NV16,
++	V4L2_PIX_FMT_NV61,
++	V4L2_PIX_FMT_YUV422P,
 +};
 +
-+struct tw9910_priv {
-+	struct v4l2_subdev		subdev;
-+	struct v4l2_clk			*clk;
-+	struct tw9910_video_info	*info;
-+	const struct tw9910_scale_ctrl	*scale;
-+	v4l2_std_id			norm;
-+	u32				revision;
-+};
-+
-+static const struct tw9910_scale_ctrl tw9910_ntsc_scales[] = {
-+	{
-+		.name   = "NTSC SQ",
-+		.width  = 640,
-+		.height = 480,
-+		.hscale = 0x0100,
-+		.vscale = 0x0100,
-+	},
-+	{
-+		.name   = "NTSC CCIR601",
-+		.width  = 720,
-+		.height = 480,
-+		.hscale = 0x0100,
-+		.vscale = 0x0100,
-+	},
-+	{
-+		.name   = "NTSC SQ (CIF)",
-+		.width  = 320,
-+		.height = 240,
-+		.hscale = 0x0200,
-+		.vscale = 0x0200,
-+	},
-+	{
-+		.name   = "NTSC CCIR601 (CIF)",
-+		.width  = 360,
-+		.height = 240,
-+		.hscale = 0x0200,
-+		.vscale = 0x0200,
-+	},
-+	{
-+		.name   = "NTSC SQ (QCIF)",
-+		.width  = 160,
-+		.height = 120,
-+		.hscale = 0x0400,
-+		.vscale = 0x0400,
-+	},
-+	{
-+		.name   = "NTSC CCIR601 (QCIF)",
-+		.width  = 180,
-+		.height = 120,
-+		.hscale = 0x0400,
-+		.vscale = 0x0400,
-+	},
-+};
-+
-+static const struct tw9910_scale_ctrl tw9910_pal_scales[] = {
-+	{
-+		.name   = "PAL SQ",
-+		.width  = 768,
-+		.height = 576,
-+		.hscale = 0x0100,
-+		.vscale = 0x0100,
-+	},
-+	{
-+		.name   = "PAL CCIR601",
-+		.width  = 720,
-+		.height = 576,
-+		.hscale = 0x0100,
-+		.vscale = 0x0100,
-+	},
-+	{
-+		.name   = "PAL SQ (CIF)",
-+		.width  = 384,
-+		.height = 288,
-+		.hscale = 0x0200,
-+		.vscale = 0x0200,
-+	},
-+	{
-+		.name   = "PAL CCIR601 (CIF)",
-+		.width  = 360,
-+		.height = 288,
-+		.hscale = 0x0200,
-+		.vscale = 0x0200,
-+	},
-+	{
-+		.name   = "PAL SQ (QCIF)",
-+		.width  = 192,
-+		.height = 144,
-+		.hscale = 0x0400,
-+		.vscale = 0x0400,
-+	},
-+	{
-+		.name   = "PAL CCIR601 (QCIF)",
-+		.width  = 180,
-+		.height = 144,
-+		.hscale = 0x0400,
-+		.vscale = 0x0400,
-+	},
-+};
-+
-+/*
-+ * general function
-+ */
-+static struct tw9910_priv *to_tw9910(const struct i2c_client *client)
++static inline struct sun6i_csi_dev *sun6i_csi_to_dev(struct sun6i_csi *csi)
 +{
-+	return container_of(i2c_get_clientdata(client), struct tw9910_priv,
-+			    subdev);
++	return container_of(csi, struct sun6i_csi_dev, csi);
 +}
 +
-+static int tw9910_mask_set(struct i2c_client *client, u8 command,
-+			   u8 mask, u8 set)
++int sun6i_csi_get_supported_pixformats(struct sun6i_csi *csi,
++				       const u32 **pixformats)
 +{
-+	s32 val = i2c_smbus_read_byte_data(client, command);
-+	if (val < 0)
-+		return val;
++	if (pixformats != NULL)
++		*pixformats = supported_pixformats;
 +
-+	val &= ~mask;
-+	val |= set & mask;
-+
-+	return i2c_smbus_write_byte_data(client, command, val);
++	return ARRAY_SIZE(supported_pixformats);
 +}
 +
-+static int tw9910_set_scale(struct i2c_client *client,
-+			    const struct tw9910_scale_ctrl *scale)
++/* TODO add 10&12 bit YUV, RGB support */
++bool sun6i_csi_is_format_support(struct sun6i_csi *csi,
++				 u32 pixformat, u32 mbus_code)
 +{
-+	int ret;
++	struct sun6i_csi_dev *sdev = sun6i_csi_to_dev(csi);
 +
-+	ret = i2c_smbus_write_byte_data(client, SCALE_HI,
-+					(scale->vscale & 0x0F00) >> 4 |
-+					(scale->hscale & 0x0F00) >> 8);
-+	if (ret < 0)
-+		return ret;
-+
-+	ret = i2c_smbus_write_byte_data(client, HSCALE_LO,
-+					scale->hscale & 0x00FF);
-+	if (ret < 0)
-+		return ret;
-+
-+	ret = i2c_smbus_write_byte_data(client, VSCALE_LO,
-+					scale->vscale & 0x00FF);
-+
-+	return ret;
-+}
-+
-+static int tw9910_set_hsync(struct i2c_client *client)
-+{
-+	struct tw9910_priv *priv = to_tw9910(client);
-+	int ret;
-+
-+	/* bit 10 - 3 */
-+	ret = i2c_smbus_write_byte_data(client, HSBEGIN,
-+					(HSYNC_START & 0x07F8) >> 3);
-+	if (ret < 0)
-+		return ret;
-+
-+	/* bit 10 - 3 */
-+	ret = i2c_smbus_write_byte_data(client, HSEND,
-+					(HSYNC_END & 0x07F8) >> 3);
-+	if (ret < 0)
-+		return ret;
-+
-+	/* So far only revisions 0 and 1 have been seen */
-+	/* bit 2 - 0 */
-+	if (1 == priv->revision)
-+		ret = tw9910_mask_set(client, HSLOWCTL, 0x77,
-+				      (HSYNC_START & 0x0007) << 4 |
-+				      (HSYNC_END   & 0x0007));
-+
-+	return ret;
-+}
-+
-+static void tw9910_reset(struct i2c_client *client)
-+{
-+	tw9910_mask_set(client, ACNTL1, SRESET, SRESET);
-+	msleep(1);
-+}
-+
-+static int tw9910_power(struct i2c_client *client, int enable)
-+{
-+	int ret;
-+	u8 acntl1;
-+	u8 acntl2;
-+
-+	if (enable) {
-+		acntl1 = 0;
-+		acntl2 = 0;
-+	} else {
-+		acntl1 = CLK_PDN | Y_PDN | C_PDN;
-+		acntl2 = PLL_PDN;
-+	}
-+
-+	ret = tw9910_mask_set(client, ACNTL1, ACNTL1_PDN_MASK, acntl1);
-+	if (ret < 0)
-+		return ret;
-+
-+	return tw9910_mask_set(client, ACNTL2, ACNTL2_PDN_MASK, acntl2);
-+}
-+
-+static const struct tw9910_scale_ctrl *tw9910_select_norm(v4l2_std_id norm,
-+							  u32 width, u32 height)
-+{
-+	const struct tw9910_scale_ctrl *scale;
-+	const struct tw9910_scale_ctrl *ret = NULL;
-+	__u32 diff = 0xffffffff, tmp;
-+	int size, i;
-+
-+	if (norm & V4L2_STD_NTSC) {
-+		scale = tw9910_ntsc_scales;
-+		size = ARRAY_SIZE(tw9910_ntsc_scales);
-+	} else if (norm & V4L2_STD_PAL) {
-+		scale = tw9910_pal_scales;
-+		size = ARRAY_SIZE(tw9910_pal_scales);
-+	} else {
-+		return NULL;
-+	}
-+
-+	for (i = 0; i < size; i++) {
-+		tmp = abs(width - scale[i].width) +
-+			abs(height - scale[i].height);
-+		if (tmp < diff) {
-+			diff = tmp;
-+			ret = scale + i;
++	/*
++	 * Some video receivers have the ability to be compatible with
++	 * 8bit and 16bit bus width.
++	 * Identify the media bus format from device tree.
++	 */
++	if ((sdev->csi.v4l2_ep.bus_type == V4L2_MBUS_PARALLEL
++	      || sdev->csi.v4l2_ep.bus_type == V4L2_MBUS_BT656)
++	     && sdev->csi.v4l2_ep.bus.parallel.bus_width == 16) {
++		switch (pixformat) {
++		case V4L2_PIX_FMT_HM12:
++		case V4L2_PIX_FMT_NV12:
++		case V4L2_PIX_FMT_NV21:
++		case V4L2_PIX_FMT_NV16:
++		case V4L2_PIX_FMT_NV61:
++		case V4L2_PIX_FMT_YUV420:
++		case V4L2_PIX_FMT_YVU420:
++		case V4L2_PIX_FMT_YUV422P:
++			switch (mbus_code) {
++			case MEDIA_BUS_FMT_UYVY8_1X16:
++			case MEDIA_BUS_FMT_VYUY8_1X16:
++			case MEDIA_BUS_FMT_YUYV8_1X16:
++			case MEDIA_BUS_FMT_YVYU8_1X16:
++				return true;
++			default:
++				dev_warn(sdev->dev,
++					 "Unsupported mbus code: 0x%x\n",
++					 mbus_code);
++				break;
++			}
++			break;
++		default:
++			dev_warn(sdev->dev, "Unsupported pixformat: 0x%x\n",
++				 pixformat);
++			break;
 +		}
++		return false;
 +	}
 +
-+	return ret;
++	switch (pixformat) {
++	case V4L2_PIX_FMT_SBGGR8:
++		return (mbus_code == MEDIA_BUS_FMT_SBGGR8_1X8);
++	case V4L2_PIX_FMT_SGBRG8:
++		return (mbus_code == MEDIA_BUS_FMT_SGBRG8_1X8);
++	case V4L2_PIX_FMT_SGRBG8:
++		return (mbus_code == MEDIA_BUS_FMT_SGRBG8_1X8);
++	case V4L2_PIX_FMT_SRGGB8:
++		return (mbus_code == MEDIA_BUS_FMT_SRGGB8_1X8);
++	case V4L2_PIX_FMT_SBGGR10:
++		return (mbus_code == MEDIA_BUS_FMT_SBGGR10_1X10);
++	case V4L2_PIX_FMT_SGBRG10:
++		return (mbus_code == MEDIA_BUS_FMT_SGBRG10_1X10);
++	case V4L2_PIX_FMT_SGRBG10:
++		return (mbus_code == MEDIA_BUS_FMT_SGRBG10_1X10);
++	case V4L2_PIX_FMT_SRGGB10:
++		return (mbus_code == MEDIA_BUS_FMT_SRGGB10_1X10);
++	case V4L2_PIX_FMT_SBGGR12:
++		return (mbus_code == MEDIA_BUS_FMT_SBGGR12_1X12);
++	case V4L2_PIX_FMT_SGBRG12:
++		return (mbus_code == MEDIA_BUS_FMT_SGBRG12_1X12);
++	case V4L2_PIX_FMT_SGRBG12:
++		return (mbus_code == MEDIA_BUS_FMT_SGRBG12_1X12);
++	case V4L2_PIX_FMT_SRGGB12:
++		return (mbus_code == MEDIA_BUS_FMT_SRGGB12_1X12);
++
++	case V4L2_PIX_FMT_YUYV:
++		return (mbus_code == MEDIA_BUS_FMT_YUYV8_2X8);
++	case V4L2_PIX_FMT_YVYU:
++		return (mbus_code == MEDIA_BUS_FMT_YVYU8_2X8);
++	case V4L2_PIX_FMT_UYVY:
++		return (mbus_code == MEDIA_BUS_FMT_UYVY8_2X8);
++	case V4L2_PIX_FMT_VYUY:
++		return (mbus_code == MEDIA_BUS_FMT_VYUY8_2X8);
++
++	case V4L2_PIX_FMT_HM12:
++	case V4L2_PIX_FMT_NV12:
++	case V4L2_PIX_FMT_NV21:
++	case V4L2_PIX_FMT_NV16:
++	case V4L2_PIX_FMT_NV61:
++	case V4L2_PIX_FMT_YUV420:
++	case V4L2_PIX_FMT_YVU420:
++	case V4L2_PIX_FMT_YUV422P:
++		switch (mbus_code) {
++		case MEDIA_BUS_FMT_UYVY8_2X8:
++		case MEDIA_BUS_FMT_VYUY8_2X8:
++		case MEDIA_BUS_FMT_YUYV8_2X8:
++		case MEDIA_BUS_FMT_YVYU8_2X8:
++			return true;
++		default:
++			dev_warn(sdev->dev, "Unsupported mbus code: 0x%x\n",
++				 mbus_code);
++			break;
++		}
++		break;
++	default:
++		dev_warn(sdev->dev, "Unsupported pixformat: 0x%x\n", pixformat);
++		break;
++	}
++
++	return false;
 +}
 +
-+/*
-+ * subdevice operations
-+ */
-+static int tw9910_s_stream(struct v4l2_subdev *sd, int enable)
++int sun6i_csi_set_power(struct sun6i_csi *csi, bool enable)
 +{
-+	struct i2c_client *client = v4l2_get_subdevdata(sd);
-+	struct tw9910_priv *priv = to_tw9910(client);
-+	u8 val;
++	struct sun6i_csi_dev *sdev = sun6i_csi_to_dev(csi);
++	struct regmap *regmap = sdev->regmap;
 +	int ret;
 +
 +	if (!enable) {
-+		switch (priv->revision) {
-+		case 0:
-+			val = OEN_TRI_SEL_ALL_OFF_r0;
-+			break;
-+		case 1:
-+			val = OEN_TRI_SEL_ALL_OFF_r1;
-+			break;
-+		default:
-+			dev_err(&client->dev, "un-supported revision\n");
-+			return -EINVAL;
-+		}
-+	} else {
-+		val = OEN_TRI_SEL_ALL_ON;
++		regmap_update_bits(regmap, CSI_EN_REG, CSI_EN_CSI_EN, 0);
 +
-+		if (!priv->scale) {
-+			dev_err(&client->dev, "norm select error\n");
-+			return -EPERM;
-+		}
-+
-+		dev_dbg(&client->dev, "%s %dx%d\n",
-+			priv->scale->name,
-+			priv->scale->width,
-+			priv->scale->height);
++		clk_disable_unprepare(sdev->clk_ram);
++		clk_disable_unprepare(sdev->clk_mod);
++		reset_control_assert(sdev->rstc_bus);
++		return 0;
 +	}
 +
-+	ret = tw9910_mask_set(client, OPFORM, OEN_TRI_SEL_MASK, val);
-+	if (ret < 0)
++	ret = clk_prepare_enable(sdev->clk_mod);
++	if (ret) {
++		dev_err(sdev->dev, "Enable csi clk err %d\n", ret);
 +		return ret;
++	}
 +
-+	return tw9910_power(client, enable);
-+}
++	ret = clk_prepare_enable(sdev->clk_ram);
++	if (ret) {
++		dev_err(sdev->dev, "Enable clk_dram_csi clk err %d\n", ret);
++		return ret;
++	}
 +
-+static int tw9910_g_std(struct v4l2_subdev *sd, v4l2_std_id *norm)
-+{
-+	struct i2c_client *client = v4l2_get_subdevdata(sd);
-+	struct tw9910_priv *priv = to_tw9910(client);
++	ret = reset_control_deassert(sdev->rstc_bus);
++	if (ret) {
++		dev_err(sdev->dev, "reset err %d\n", ret);
++		return ret;
++	}
 +
-+	*norm = priv->norm;
++	regmap_update_bits(regmap, CSI_EN_REG, CSI_EN_CSI_EN, CSI_EN_CSI_EN);
 +
 +	return 0;
 +}
 +
-+static int tw9910_s_std(struct v4l2_subdev *sd, v4l2_std_id norm)
++static enum csi_input_fmt get_csi_input_format(u32 mbus_code, u32 pixformat)
 +{
-+	struct i2c_client *client = v4l2_get_subdevdata(sd);
-+	struct tw9910_priv *priv = to_tw9910(client);
-+	const unsigned hact = 720;
-+	const unsigned hdelay = 15;
-+	unsigned vact;
-+	unsigned vdelay;
-+	int ret;
++	/* bayer */
++	if ((mbus_code & 0xF000) == 0x3000)
++		return CSI_INPUT_FORMAT_RAW;
 +
-+	if (!(norm & (V4L2_STD_NTSC | V4L2_STD_PAL)))
-+		return -EINVAL;
-+
-+	priv->norm = norm;
-+	if (norm & V4L2_STD_525_60) {
-+		vact = 240;
-+		vdelay = 18;
-+		ret = tw9910_mask_set(client, VVBI, 0x10, 0x10);
-+	} else {
-+		vact = 288;
-+		vdelay = 24;
-+		ret = tw9910_mask_set(client, VVBI, 0x10, 0x00);
-+	}
-+	if (!ret)
-+		ret = i2c_smbus_write_byte_data(client, CROP_HI,
-+			((vdelay >> 2) & 0xc0) |
-+			((vact >> 4) & 0x30) |
-+			((hdelay >> 6) & 0x0c) |
-+			((hact >> 8) & 0x03));
-+	if (!ret)
-+		ret = i2c_smbus_write_byte_data(client, VDELAY_LO,
-+			vdelay & 0xff);
-+	if (!ret)
-+		ret = i2c_smbus_write_byte_data(client, VACTIVE_LO,
-+			vact & 0xff);
-+
-+	return ret;
-+}
-+
-+#ifdef CONFIG_VIDEO_ADV_DEBUG
-+static int tw9910_g_register(struct v4l2_subdev *sd,
-+			     struct v4l2_dbg_register *reg)
-+{
-+	struct i2c_client *client = v4l2_get_subdevdata(sd);
-+	int ret;
-+
-+	if (reg->reg > 0xff)
-+		return -EINVAL;
-+
-+	reg->size = 1;
-+	ret = i2c_smbus_read_byte_data(client, reg->reg);
-+	if (ret < 0)
-+		return ret;
-+
-+	/*
-+	 * ret      = int
-+	 * reg->val = __u64
-+	 */
-+	reg->val = (__u64)ret;
-+
-+	return 0;
-+}
-+
-+static int tw9910_s_register(struct v4l2_subdev *sd,
-+			     const struct v4l2_dbg_register *reg)
-+{
-+	struct i2c_client *client = v4l2_get_subdevdata(sd);
-+
-+	if (reg->reg > 0xff ||
-+	    reg->val > 0xff)
-+		return -EINVAL;
-+
-+	return i2c_smbus_write_byte_data(client, reg->reg, reg->val);
-+}
-+#endif
-+
-+static int tw9910_s_power(struct v4l2_subdev *sd, int on)
-+{
-+	struct i2c_client *client = v4l2_get_subdevdata(sd);
-+	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
-+	struct tw9910_priv *priv = to_tw9910(client);
-+
-+	return soc_camera_set_power(&client->dev, ssdd, priv->clk, on);
-+}
-+
-+static int tw9910_set_frame(struct v4l2_subdev *sd, u32 *width, u32 *height)
-+{
-+	struct i2c_client *client = v4l2_get_subdevdata(sd);
-+	struct tw9910_priv *priv = to_tw9910(client);
-+	int ret = -EINVAL;
-+	u8 val;
-+
-+	/*
-+	 * select suitable norm
-+	 */
-+	priv->scale = tw9910_select_norm(priv->norm, *width, *height);
-+	if (!priv->scale)
-+		goto tw9910_set_fmt_error;
-+
-+	/*
-+	 * reset hardware
-+	 */
-+	tw9910_reset(client);
-+
-+	/*
-+	 * set bus width
-+	 */
-+	val = 0x00;
-+	if (SOCAM_DATAWIDTH_16 == priv->info->buswidth)
-+		val = LEN;
-+
-+	ret = tw9910_mask_set(client, OPFORM, LEN, val);
-+	if (ret < 0)
-+		goto tw9910_set_fmt_error;
-+
-+	/*
-+	 * select MPOUT behavior
-+	 */
-+	switch (priv->info->mpout) {
-+	case TW9910_MPO_VLOSS:
-+		val = RTSEL_VLOSS; break;
-+	case TW9910_MPO_HLOCK:
-+		val = RTSEL_HLOCK; break;
-+	case TW9910_MPO_SLOCK:
-+		val = RTSEL_SLOCK; break;
-+	case TW9910_MPO_VLOCK:
-+		val = RTSEL_VLOCK; break;
-+	case TW9910_MPO_MONO:
-+		val = RTSEL_MONO;  break;
-+	case TW9910_MPO_DET50:
-+		val = RTSEL_DET50; break;
-+	case TW9910_MPO_FIELD:
-+		val = RTSEL_FIELD; break;
-+	case TW9910_MPO_RTCO:
-+		val = RTSEL_RTCO;  break;
++	switch (pixformat) {
++	case V4L2_PIX_FMT_YUYV:
++	case V4L2_PIX_FMT_YVYU:
++	case V4L2_PIX_FMT_UYVY:
++	case V4L2_PIX_FMT_VYUY:
++		return CSI_INPUT_FORMAT_RAW;
 +	default:
-+		val = 0;
++		break;
 +	}
 +
-+	ret = tw9910_mask_set(client, VBICNTL, RTSEL_MASK, val);
-+	if (ret < 0)
-+		goto tw9910_set_fmt_error;
-+
-+	/*
-+	 * set scale
-+	 */
-+	ret = tw9910_set_scale(client, priv->scale);
-+	if (ret < 0)
-+		goto tw9910_set_fmt_error;
-+
-+	/*
-+	 * set hsync
-+	 */
-+	ret = tw9910_set_hsync(client);
-+	if (ret < 0)
-+		goto tw9910_set_fmt_error;
-+
-+	*width = priv->scale->width;
-+	*height = priv->scale->height;
-+
-+	return ret;
-+
-+tw9910_set_fmt_error:
-+
-+	tw9910_reset(client);
-+	priv->scale = NULL;
-+
-+	return ret;
++	/* not support YUV420 input format yet */
++	pr_debug("Select YUV422 as default input format of CSI.\n");
++	return CSI_INPUT_FORMAT_YUV422;
 +}
 +
-+static int tw9910_get_selection(struct v4l2_subdev *sd,
-+		struct v4l2_subdev_pad_config *cfg,
-+		struct v4l2_subdev_selection *sel)
++static enum csi_output_fmt get_csi_output_format(u32 pixformat, u32 field)
 +{
-+	struct i2c_client *client = v4l2_get_subdevdata(sd);
-+	struct tw9910_priv *priv = to_tw9910(client);
++	bool buf_interlaced = false;
 +
-+	if (sel->which != V4L2_SUBDEV_FORMAT_ACTIVE)
-+		return -EINVAL;
-+	/* Only CROP, CROP_DEFAULT and CROP_BOUNDS are supported */
-+	if (sel->target > V4L2_SEL_TGT_CROP_BOUNDS)
-+		return -EINVAL;
++	if (field == V4L2_FIELD_INTERLACED
++	    || field == V4L2_FIELD_INTERLACED_TB
++	    || field == V4L2_FIELD_INTERLACED_BT)
++		buf_interlaced = true;
 +
-+	sel->r.left	= 0;
-+	sel->r.top	= 0;
-+	if (priv->norm & V4L2_STD_NTSC) {
-+		sel->r.width	= 640;
-+		sel->r.height	= 480;
-+	} else {
-+		sel->r.width	= 768;
-+		sel->r.height	= 576;
++	switch (pixformat) {
++	case V4L2_PIX_FMT_SBGGR8:
++	case V4L2_PIX_FMT_SGBRG8:
++	case V4L2_PIX_FMT_SGRBG8:
++	case V4L2_PIX_FMT_SRGGB8:
++		return buf_interlaced ? CSI_FRAME_RAW_8 : CSI_FIELD_RAW_8;
++	case V4L2_PIX_FMT_SBGGR10:
++	case V4L2_PIX_FMT_SGBRG10:
++	case V4L2_PIX_FMT_SGRBG10:
++	case V4L2_PIX_FMT_SRGGB10:
++		return buf_interlaced ? CSI_FRAME_RAW_10 : CSI_FIELD_RAW_10;
++	case V4L2_PIX_FMT_SBGGR12:
++	case V4L2_PIX_FMT_SGBRG12:
++	case V4L2_PIX_FMT_SGRBG12:
++	case V4L2_PIX_FMT_SRGGB12:
++		return buf_interlaced ? CSI_FRAME_RAW_12 : CSI_FIELD_RAW_12;
++
++	case V4L2_PIX_FMT_YUYV:
++	case V4L2_PIX_FMT_YVYU:
++	case V4L2_PIX_FMT_UYVY:
++	case V4L2_PIX_FMT_VYUY:
++		return buf_interlaced ? CSI_FRAME_RAW_8 : CSI_FIELD_RAW_8;
++
++	case V4L2_PIX_FMT_HM12:
++		return buf_interlaced ? CSI_FRAME_MB_YUV420 :
++					CSI_FIELD_MB_YUV420;
++	case V4L2_PIX_FMT_NV12:
++	case V4L2_PIX_FMT_NV21:
++		return buf_interlaced ? CSI_FRAME_UV_CB_YUV420 :
++					CSI_FIELD_UV_CB_YUV420;
++	case V4L2_PIX_FMT_YUV420:
++	case V4L2_PIX_FMT_YVU420:
++		return buf_interlaced ? CSI_FRAME_PLANAR_YUV420 :
++					CSI_FIELD_PLANAR_YUV420;
++	case V4L2_PIX_FMT_NV16:
++	case V4L2_PIX_FMT_NV61:
++		return buf_interlaced ? CSI_FRAME_UV_CB_YUV422 :
++					CSI_FIELD_UV_CB_YUV422;
++	case V4L2_PIX_FMT_YUV422P:
++		return buf_interlaced ? CSI_FRAME_PLANAR_YUV422 :
++					CSI_FIELD_PLANAR_YUV422;
++	default:
++		WARN(1, "Unsupported pixformat: 0x%x\n", pixformat);
++		break;
 +	}
++
++	return CSI_FIELD_RAW_8;
++}
++
++static enum csi_input_seq get_csi_input_seq(u32 mbus_code, u32 pixformat)
++{
++
++	switch (pixformat) {
++	case V4L2_PIX_FMT_HM12:
++	case V4L2_PIX_FMT_NV12:
++	case V4L2_PIX_FMT_NV16:
++	case V4L2_PIX_FMT_YUV420:
++	case V4L2_PIX_FMT_YUV422P:
++		switch (mbus_code) {
++		case MEDIA_BUS_FMT_UYVY8_2X8:
++		case MEDIA_BUS_FMT_UYVY8_1X16:
++			return CSI_INPUT_SEQ_UYVY;
++		case MEDIA_BUS_FMT_VYUY8_2X8:
++		case MEDIA_BUS_FMT_VYUY8_1X16:
++			return CSI_INPUT_SEQ_VYUY;
++		case MEDIA_BUS_FMT_YUYV8_2X8:
++		case MEDIA_BUS_FMT_YUYV8_1X16:
++			return CSI_INPUT_SEQ_YUYV;
++		case MEDIA_BUS_FMT_YVYU8_1X16:
++		case MEDIA_BUS_FMT_YVYU8_2X8:
++			return CSI_INPUT_SEQ_YVYU;
++		default:
++			WARN(1, "Unsupported mbus code: 0x%x\n", mbus_code);
++			break;
++		}
++		break;
++	case V4L2_PIX_FMT_NV21:
++	case V4L2_PIX_FMT_NV61:
++	case V4L2_PIX_FMT_YVU420:
++		switch (mbus_code) {
++		case MEDIA_BUS_FMT_UYVY8_2X8:
++		case MEDIA_BUS_FMT_UYVY8_1X16:
++			return CSI_INPUT_SEQ_VYUY;
++		case MEDIA_BUS_FMT_VYUY8_2X8:
++		case MEDIA_BUS_FMT_VYUY8_1X16:
++			return CSI_INPUT_SEQ_UYVY;
++		case MEDIA_BUS_FMT_YUYV8_2X8:
++		case MEDIA_BUS_FMT_YUYV8_1X16:
++			return CSI_INPUT_SEQ_YVYU;
++		case MEDIA_BUS_FMT_YVYU8_1X16:
++		case MEDIA_BUS_FMT_YVYU8_2X8:
++			return CSI_INPUT_SEQ_YUYV;
++		default:
++			WARN(1, "Unsupported mbus code: 0x%x\n", mbus_code);
++			break;
++		}
++		break;
++	default:
++		WARN(1, "Unsupported pixformat: 0x%x\n", pixformat);
++		break;
++	}
++
++	return CSI_INPUT_SEQ_YUYV;
++}
++
++static void sun6i_csi_setup_bus(struct sun6i_csi_dev *sdev)
++{
++	struct v4l2_fwnode_endpoint *endpoint = &sdev->csi.v4l2_ep;
++	unsigned char bus_width;
++	u32 flags;
++	u32 cfg;
++
++	bus_width = endpoint->bus.parallel.bus_width;
++
++	regmap_read(sdev->regmap, CSI_IF_CFG_REG, &cfg);
++
++	cfg &= ~(CSI_IF_CFG_CSI_IF_MASK | CSI_IF_CFG_MIPI_IF_MASK |
++		 CSI_IF_CFG_IF_DATA_WIDTH_MASK |
++		 CSI_IF_CFG_CLK_POL_MASK | CSI_IF_CFG_VREF_POL_MASK |
++		 CSI_IF_CFG_HREF_POL_MASK | CSI_IF_CFG_FIELD_MASK);
++
++	switch (endpoint->bus_type) {
++	case V4L2_MBUS_PARALLEL:
++		cfg |= CSI_IF_CFG_MIPI_IF_CSI;
++
++		flags = endpoint->bus.parallel.flags;
++
++		cfg |= (bus_width == 16) ? CSI_IF_CFG_CSI_IF_YUV422_16BIT :
++					   CSI_IF_CFG_CSI_IF_YUV422_INTLV;
++
++		if (flags & V4L2_MBUS_FIELD_EVEN_LOW)
++			cfg |= CSI_IF_CFG_FIELD_POSITIVE;
++
++		if (flags & V4L2_MBUS_VSYNC_ACTIVE_HIGH)
++			cfg |= CSI_IF_CFG_VREF_POL_POSITIVE;
++		if (flags & V4L2_MBUS_HSYNC_ACTIVE_HIGH)
++			cfg |= CSI_IF_CFG_HREF_POL_POSITIVE;
++
++		if (flags & V4L2_MBUS_PCLK_SAMPLE_FALLING)
++			cfg |= CSI_IF_CFG_CLK_POL_FALLING_EDGE;
++		break;
++	case V4L2_MBUS_BT656:
++		cfg |= CSI_IF_CFG_MIPI_IF_CSI;
++
++		flags = endpoint->bus.parallel.flags;
++
++		cfg |= (bus_width == 16) ? CSI_IF_CFG_CSI_IF_BT1120 :
++					   CSI_IF_CFG_CSI_IF_BT656;
++
++		if (flags & V4L2_MBUS_FIELD_EVEN_LOW)
++			cfg |= CSI_IF_CFG_FIELD_POSITIVE;
++
++		if (flags & V4L2_MBUS_PCLK_SAMPLE_FALLING)
++			cfg |= CSI_IF_CFG_CLK_POL_FALLING_EDGE;
++		break;
++	default:
++		dev_warn(sdev->dev, "Unsupported bus type: %d\n",
++			 endpoint->bus_type);
++		break;
++	}
++
++	switch (bus_width) {
++	case 8:
++		cfg |= CSI_IF_CFG_IF_DATA_WIDTH_8BIT;
++		break;
++	case 10:
++		cfg |= CSI_IF_CFG_IF_DATA_WIDTH_10BIT;
++		break;
++	case 12:
++		cfg |= CSI_IF_CFG_IF_DATA_WIDTH_12BIT;
++		break;
++	case 16: /* No need to configure DATA_WIDTH for 16bit */
++		break;
++	default:
++		dev_warn(sdev->dev, "Unsupported bus width: %d\n", bus_width);
++		break;
++	}
++
++	regmap_write(sdev->regmap, CSI_IF_CFG_REG, cfg);
++}
++
++static void sun6i_csi_set_format(struct sun6i_csi_dev *sdev)
++{
++	struct sun6i_csi *csi = &sdev->csi;
++	u32 cfg;
++	u32 val;
++
++	regmap_read(sdev->regmap, CSI_CH_CFG_REG, &cfg);
++
++	cfg &= ~(CSI_CH_CFG_INPUT_FMT_MASK |
++		 CSI_CH_CFG_OUTPUT_FMT_MASK | CSI_CH_CFG_VFLIP_EN |
++		 CSI_CH_CFG_HFLIP_EN | CSI_CH_CFG_FIELD_SEL_MASK |
++		 CSI_CH_CFG_INPUT_SEQ_MASK);
++
++	val = get_csi_input_format(csi->config.code, csi->config.pixelformat);
++	cfg |= CSI_CH_CFG_INPUT_FMT(val);
++
++	val = get_csi_output_format(csi->config.pixelformat, csi->config.field);
++	cfg |= CSI_CH_CFG_OUTPUT_FMT(val);
++
++	val = get_csi_input_seq(csi->config.code, csi->config.pixelformat);
++	cfg |= CSI_CH_CFG_INPUT_SEQ(val);
++
++	if (csi->config.field == V4L2_FIELD_TOP)
++		cfg |= CSI_CH_CFG_FIELD_SEL_FIELD0;
++	else if (csi->config.field == V4L2_FIELD_BOTTOM)
++		cfg |= CSI_CH_CFG_FIELD_SEL_FIELD1;
++	else
++		cfg |= CSI_CH_CFG_FIELD_SEL_BOTH;
++
++	regmap_write(sdev->regmap, CSI_CH_CFG_REG, cfg);
++}
++
++static void sun6i_csi_set_window(struct sun6i_csi_dev *sdev)
++{
++	struct sun6i_csi_config *config = &sdev->csi.config;
++	u32 bytesperline_y;
++	u32 bytesperline_c;
++	int *planar_offset = sdev->planar_offset;
++	u32 width = config->width;
++	u32 height = config->height;
++	u32 hor_len = width;
++
++	switch (config->pixelformat) {
++	case V4L2_PIX_FMT_YUYV:
++	case V4L2_PIX_FMT_YVYU:
++	case V4L2_PIX_FMT_UYVY:
++	case V4L2_PIX_FMT_VYUY:
++		dev_dbg(sdev->dev,
++			"Horizontal length should be 2 times of width for packed YUV formats!\n");
++		hor_len = width * 2;
++		break;
++	default:
++		break;
++	}
++
++	regmap_write(sdev->regmap, CSI_CH_HSIZE_REG,
++		     CSI_CH_HSIZE_HOR_LEN(hor_len) |
++		     CSI_CH_HSIZE_HOR_START(0));
++	regmap_write(sdev->regmap, CSI_CH_VSIZE_REG,
++		     CSI_CH_VSIZE_VER_LEN(height) |
++		     CSI_CH_VSIZE_VER_START(0));
++
++	planar_offset[0] = 0;
++	switch (config->pixelformat) {
++	case V4L2_PIX_FMT_HM12:
++	case V4L2_PIX_FMT_NV12:
++	case V4L2_PIX_FMT_NV21:
++	case V4L2_PIX_FMT_NV16:
++	case V4L2_PIX_FMT_NV61:
++		bytesperline_y = width;
++		bytesperline_c = width;
++		planar_offset[1] = bytesperline_y * height;
++		planar_offset[2] = -1;
++		break;
++	case V4L2_PIX_FMT_YUV420:
++	case V4L2_PIX_FMT_YVU420:
++		bytesperline_y = width;
++		bytesperline_c = width / 2;
++		planar_offset[1] = bytesperline_y * height;
++		planar_offset[2] = planar_offset[1] +
++				bytesperline_c * height / 2;
++		break;
++	case V4L2_PIX_FMT_YUV422P:
++		bytesperline_y = width;
++		bytesperline_c = width / 2;
++		planar_offset[1] = bytesperline_y * height;
++		planar_offset[2] = planar_offset[1] +
++				bytesperline_c * height;
++		break;
++	default: /* raw */
++		dev_dbg(sdev->dev,
++			"Calculating pixelformat(0x%x)'s bytesperline as a packed format\n",
++			config->pixelformat);
++		bytesperline_y = (sun6i_csi_get_bpp(config->pixelformat) *
++				  config->width) / 8;
++		bytesperline_c = 0;
++		planar_offset[1] = -1;
++		planar_offset[2] = -1;
++		break;
++	}
++
++	regmap_write(sdev->regmap, CSI_CH_BUF_LEN_REG,
++		     CSI_CH_BUF_LEN_BUF_LEN_C(bytesperline_c) |
++		     CSI_CH_BUF_LEN_BUF_LEN_Y(bytesperline_y));
++}
++
++int sun6i_csi_update_config(struct sun6i_csi *csi,
++			    struct sun6i_csi_config *config)
++{
++	struct sun6i_csi_dev *sdev = sun6i_csi_to_dev(csi);
++
++	if (config == NULL)
++		return -EINVAL;
++
++	memcpy(&csi->config, config, sizeof(csi->config));
++
++	sun6i_csi_setup_bus(sdev);
++	sun6i_csi_set_format(sdev);
++	sun6i_csi_set_window(sdev);
++
 +	return 0;
 +}
 +
-+static int tw9910_get_fmt(struct v4l2_subdev *sd,
-+		struct v4l2_subdev_pad_config *cfg,
-+		struct v4l2_subdev_format *format)
++void sun6i_csi_update_buf_addr(struct sun6i_csi *csi, dma_addr_t addr)
 +{
-+	struct v4l2_mbus_framefmt *mf = &format->format;
-+	struct i2c_client *client = v4l2_get_subdevdata(sd);
-+	struct tw9910_priv *priv = to_tw9910(client);
++	struct sun6i_csi_dev *sdev = sun6i_csi_to_dev(csi);
++	/* transform physical address to bus address */
++	dma_addr_t bus_addr = addr - PHYS_OFFSET;
 +
-+	if (format->pad)
-+		return -EINVAL;
-+
-+	if (!priv->scale) {
-+		priv->scale = tw9910_select_norm(priv->norm, 640, 480);
-+		if (!priv->scale)
-+			return -EINVAL;
-+	}
-+
-+	mf->width	= priv->scale->width;
-+	mf->height	= priv->scale->height;
-+	mf->code	= MEDIA_BUS_FMT_UYVY8_2X8;
-+	mf->colorspace	= V4L2_COLORSPACE_SMPTE170M;
-+	mf->field	= V4L2_FIELD_INTERLACED_BT;
-+
-+	return 0;
++	regmap_write(sdev->regmap, CSI_CH_F0_BUFA_REG,
++		     (bus_addr + sdev->planar_offset[0]) >> 2);
++	if (sdev->planar_offset[1] != -1)
++		regmap_write(sdev->regmap, CSI_CH_F1_BUFA_REG,
++			     (bus_addr + sdev->planar_offset[1]) >> 2);
++	if (sdev->planar_offset[2] != -1)
++		regmap_write(sdev->regmap, CSI_CH_F2_BUFA_REG,
++			     (bus_addr + sdev->planar_offset[2]) >> 2);
 +}
 +
-+static int tw9910_s_fmt(struct v4l2_subdev *sd,
-+			struct v4l2_mbus_framefmt *mf)
++void sun6i_csi_set_stream(struct sun6i_csi *csi, bool enable)
 +{
-+	u32 width = mf->width, height = mf->height;
++	struct sun6i_csi_dev *sdev = sun6i_csi_to_dev(csi);
++	struct regmap *regmap = sdev->regmap;
++
++	if (!enable) {
++		regmap_update_bits(regmap, CSI_CAP_REG, CSI_CAP_CH0_VCAP_ON, 0);
++		regmap_write(regmap, CSI_CH_INT_EN_REG, 0);
++		return;
++	}
++
++	regmap_write(regmap, CSI_CH_INT_STA_REG, 0xFF);
++	regmap_write(regmap, CSI_CH_INT_EN_REG,
++		     CSI_CH_INT_EN_HB_OF_INT_EN |
++		     CSI_CH_INT_EN_FIFO2_OF_INT_EN |
++		     CSI_CH_INT_EN_FIFO1_OF_INT_EN |
++		     CSI_CH_INT_EN_FIFO0_OF_INT_EN |
++		     CSI_CH_INT_EN_FD_INT_EN |
++		     CSI_CH_INT_EN_CD_INT_EN);
++
++	regmap_update_bits(regmap, CSI_CAP_REG, CSI_CAP_CH0_VCAP_ON,
++			   CSI_CAP_CH0_VCAP_ON);
++}
++
++/* -----------------------------------------------------------------------------
++ * Media Controller and V4L2
++ */
++static int sun6i_csi_link_entity(struct sun6i_csi *csi,
++				 struct media_entity *entity)
++{
++	struct media_entity *sink;
++	struct media_pad *sink_pad;
++	int ret;
++	int i;
++
++	if (!entity->num_pads) {
++		dev_err(csi->dev, "%s: invalid entity\n", entity->name);
++		return -EINVAL;
++	}
++
++	for (i = 0; i < entity->num_pads; i++) {
++		if (entity->pads[i].flags & MEDIA_PAD_FL_SOURCE)
++			break;
++	}
++
++	if (i == entity->num_pads) {
++		dev_err(csi->dev, "%s: no source pad in external entity %s\n",
++			__func__, entity->name);
++		return -EINVAL;
++	}
++
++	sink = &csi->video.vdev.entity;
++	sink_pad = &csi->video.pad;
++
++	dev_dbg(csi->dev, "creating %s:%u -> %s:%u link\n",
++		entity->name, i, sink->name, sink_pad->index);
++	ret = media_create_pad_link(entity, i, sink, sink_pad->index,
++				    MEDIA_LNK_FL_ENABLED);
++	if (ret < 0) {
++		dev_err(csi->dev, "failed to create %s:%u -> %s:%u link\n",
++			entity->name, i, sink->name, sink_pad->index);
++		return ret;
++	}
++
++	return media_entity_call(sink, link_setup, sink_pad, &entity->pads[i],
++				 MEDIA_LNK_FL_ENABLED);
++}
++
++static int sun6i_subdev_notify_complete(struct v4l2_async_notifier *notifier)
++{
++	struct sun6i_csi *csi = container_of(notifier, struct sun6i_csi,
++					     notifier);
++	struct v4l2_device *v4l2_dev = &csi->v4l2_dev;
++	struct v4l2_subdev *sd;
 +	int ret;
 +
-+	WARN_ON(mf->field != V4L2_FIELD_ANY &&
-+		mf->field != V4L2_FIELD_INTERLACED_BT);
++	dev_dbg(csi->dev, "notify complete, all subdevs registered\n");
 +
-+	/*
-+	 * check color format
-+	 */
-+	if (mf->code != MEDIA_BUS_FMT_UYVY8_2X8)
++	if (notifier->num_subdevs != 1)
 +		return -EINVAL;
 +
-+	mf->colorspace = V4L2_COLORSPACE_SMPTE170M;
-+
-+	ret = tw9910_set_frame(sd, &width, &height);
-+	if (!ret) {
-+		mf->width	= width;
-+		mf->height	= height;
-+	}
-+	return ret;
-+}
-+
-+static int tw9910_set_fmt(struct v4l2_subdev *sd,
-+		struct v4l2_subdev_pad_config *cfg,
-+		struct v4l2_subdev_format *format)
-+{
-+	struct v4l2_mbus_framefmt *mf = &format->format;
-+	struct i2c_client *client = v4l2_get_subdevdata(sd);
-+	struct tw9910_priv *priv = to_tw9910(client);
-+	const struct tw9910_scale_ctrl *scale;
-+
-+	if (format->pad)
++	sd = list_first_entry(&v4l2_dev->subdevs, struct v4l2_subdev, list);
++	if (sd == NULL)
 +		return -EINVAL;
 +
-+	if (V4L2_FIELD_ANY == mf->field) {
-+		mf->field = V4L2_FIELD_INTERLACED_BT;
-+	} else if (V4L2_FIELD_INTERLACED_BT != mf->field) {
-+		dev_err(&client->dev, "Field type %d invalid.\n", mf->field);
-+		return -EINVAL;
-+	}
-+
-+	mf->code = MEDIA_BUS_FMT_UYVY8_2X8;
-+	mf->colorspace = V4L2_COLORSPACE_SMPTE170M;
-+
-+	/*
-+	 * select suitable norm
-+	 */
-+	scale = tw9910_select_norm(priv->norm, mf->width, mf->height);
-+	if (!scale)
-+		return -EINVAL;
-+
-+	mf->width	= scale->width;
-+	mf->height	= scale->height;
-+
-+	if (format->which == V4L2_SUBDEV_FORMAT_ACTIVE)
-+		return tw9910_s_fmt(sd, mf);
-+	cfg->try_fmt = *mf;
-+	return 0;
-+}
-+
-+static int tw9910_video_probe(struct i2c_client *client)
-+{
-+	struct tw9910_priv *priv = to_tw9910(client);
-+	s32 id;
-+	int ret;
-+
-+	/*
-+	 * tw9910 only use 8 or 16 bit bus width
-+	 */
-+	if (SOCAM_DATAWIDTH_16 != priv->info->buswidth &&
-+	    SOCAM_DATAWIDTH_8  != priv->info->buswidth) {
-+		dev_err(&client->dev, "bus width error\n");
-+		return -ENODEV;
-+	}
-+
-+	ret = tw9910_s_power(&priv->subdev, 1);
++	ret = sun6i_csi_link_entity(csi, &sd->entity);
 +	if (ret < 0)
 +		return ret;
 +
-+	/*
-+	 * check and show Product ID
-+	 * So far only revisions 0 and 1 have been seen
-+	 */
-+	id = i2c_smbus_read_byte_data(client, ID);
-+	priv->revision = GET_REV(id);
-+	id = GET_ID(id);
++	ret = v4l2_device_register_subdev_nodes(&csi->v4l2_dev);
++	if (ret < 0)
++		return ret;
 +
-+	if (0x0B != id ||
-+	    0x01 < priv->revision) {
-+		dev_err(&client->dev,
-+			"Product ID error %x:%x\n",
-+			id, priv->revision);
-+		ret = -ENODEV;
-+		goto done;
++	return media_device_register(&csi->media_dev);
++}
++
++static const struct v4l2_async_notifier_operations sun6i_csi_async_ops = {
++	.complete = sun6i_subdev_notify_complete,
++};
++
++static int sun6i_csi_fwnode_parse(struct device *dev,
++				  struct v4l2_fwnode_endpoint *vep,
++				  struct v4l2_async_subdev *asd)
++{
++	struct sun6i_csi *csi = dev_get_drvdata(dev);
++
++	if (vep->base.port || vep->base.id) {
++		dev_warn(dev, "Only support a single port with one endpoint\n");
++		return -ENOTCONN;
 +	}
 +
-+	dev_info(&client->dev,
-+		 "tw9910 Product ID %0x:%0x\n", id, priv->revision);
++	switch (vep->bus_type) {
++	case V4L2_MBUS_PARALLEL:
++	case V4L2_MBUS_BT656:
++		csi->v4l2_ep = *vep;
++		return 0;
++	default:
++		dev_err(dev, "Unsupported media bus type\n");
++		return -ENOTCONN;
++	}
++}
 +
-+	priv->norm = V4L2_STD_NTSC;
-+	priv->scale = &tw9910_ntsc_scales[0];
++static void sun6i_csi_v4l2_cleanup(struct sun6i_csi *csi)
++{
++	v4l2_async_notifier_cleanup(&csi->notifier);
++	v4l2_async_notifier_unregister(&csi->notifier);
++	sun6i_video_cleanup(&csi->video);
++	v4l2_device_unregister(&csi->v4l2_dev);
++	media_device_unregister(&csi->media_dev);
++	media_device_cleanup(&csi->media_dev);
++}
 +
-+done:
-+	tw9910_s_power(&priv->subdev, 0);
++static int sun6i_csi_v4l2_init(struct sun6i_csi *csi)
++{
++	int ret;
++
++	csi->media_dev.dev = csi->dev;
++	strlcpy(csi->media_dev.model, "Allwinner Video Capture Device",
++		sizeof(csi->media_dev.model));
++	csi->media_dev.hw_revision = 0;
++
++	media_device_init(&csi->media_dev);
++
++	csi->v4l2_dev.mdev = &csi->media_dev;
++	ret = v4l2_device_register(csi->dev, &csi->v4l2_dev);
++	if (ret) {
++		dev_err(csi->dev, "V4L2 device registration failed (%d)\n",
++			ret);
++		goto clean_media;
++	}
++
++	ret = sun6i_video_init(&csi->video, csi, "sun6i-csi");
++	if (ret)
++		goto unreg_v4l2;
++
++	ret = v4l2_async_notifier_parse_fwnode_endpoints(
++		csi->dev, &csi->notifier, sizeof(struct v4l2_async_subdev),
++		sun6i_csi_fwnode_parse);
++	if (ret)
++		goto clean_video;
++
++	csi->notifier.ops = &sun6i_csi_async_ops;
++
++	ret = v4l2_async_notifier_register(&csi->v4l2_dev, &csi->notifier);
++	if (ret) {
++		dev_err(csi->dev, "notifier registration failed\n");
++		goto clean_notifier;
++	}
++
++	return 0;
++
++clean_notifier:
++	v4l2_async_notifier_cleanup(&csi->notifier);
++clean_video:
++	sun6i_video_cleanup(&csi->video);
++unreg_v4l2:
++	v4l2_device_unregister(&csi->v4l2_dev);
++clean_media:
++	media_device_cleanup(&csi->media_dev);
++
 +	return ret;
 +}
 +
-+static const struct v4l2_subdev_core_ops tw9910_subdev_core_ops = {
-+#ifdef CONFIG_VIDEO_ADV_DEBUG
-+	.g_register	= tw9910_g_register,
-+	.s_register	= tw9910_s_register,
-+#endif
-+	.s_power	= tw9910_s_power,
++/* -----------------------------------------------------------------------------
++ * Resources and IRQ
++ */
++static irqreturn_t sun6i_csi_isr(int irq, void *dev_id)
++{
++	struct sun6i_csi_dev *sdev = (struct sun6i_csi_dev *)dev_id;
++	struct regmap *regmap = sdev->regmap;
++	u32 status;
++
++	regmap_read(regmap, CSI_CH_INT_STA_REG, &status);
++
++	if (!(status & 0xFF))
++		return IRQ_NONE;
++
++	if ((status & CSI_CH_INT_STA_FIFO0_OF_PD) ||
++	    (status & CSI_CH_INT_STA_FIFO1_OF_PD) ||
++	    (status & CSI_CH_INT_STA_FIFO2_OF_PD) ||
++	    (status & CSI_CH_INT_STA_HB_OF_PD)) {
++		regmap_write(regmap, CSI_CH_INT_STA_REG, status);
++		regmap_update_bits(regmap, CSI_EN_REG, CSI_EN_CSI_EN, 0);
++		regmap_update_bits(regmap, CSI_EN_REG, CSI_EN_CSI_EN,
++				   CSI_EN_CSI_EN);
++		return IRQ_HANDLED;
++	}
++
++	if (status & CSI_CH_INT_STA_FD_PD)
++		sun6i_video_frame_done(&sdev->csi.video);
++
++	regmap_write(regmap, CSI_CH_INT_STA_REG, status);
++
++	return IRQ_HANDLED;
++}
++
++static const struct regmap_config sun6i_csi_regmap_config = {
++	.reg_bits       = 32,
++	.reg_stride     = 4,
++	.val_bits       = 32,
++	.max_register	= 0x1000,
 +};
 +
-+static int tw9910_enum_mbus_code(struct v4l2_subdev *sd,
-+		struct v4l2_subdev_pad_config *cfg,
-+		struct v4l2_subdev_mbus_code_enum *code)
++static int sun6i_csi_resource_request(struct sun6i_csi_dev *sdev,
++				      struct platform_device *pdev)
 +{
-+	if (code->pad || code->index)
-+		return -EINVAL;
++	struct resource *res;
++	void __iomem *io_base;
++	int ret;
++	int irq;
 +
-+	code->code = MEDIA_BUS_FMT_UYVY8_2X8;
++	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	io_base = devm_ioremap_resource(&pdev->dev, res);
++	if (IS_ERR(io_base))
++		return PTR_ERR(io_base);
++
++	sdev->regmap = devm_regmap_init_mmio_clk(&pdev->dev, "bus", io_base,
++					    &sun6i_csi_regmap_config);
++	if (IS_ERR(sdev->regmap)) {
++		dev_err(&pdev->dev, "Failed to init register map\n");
++		return PTR_ERR(sdev->regmap);
++	}
++
++	sdev->clk_mod = devm_clk_get(&pdev->dev, "mod");
++	if (IS_ERR(sdev->clk_mod)) {
++		dev_err(&pdev->dev, "Unable to acquire csi clock\n");
++		return PTR_ERR(sdev->clk_mod);
++	}
++
++	sdev->clk_ram = devm_clk_get(&pdev->dev, "ram");
++	if (IS_ERR(sdev->clk_ram)) {
++		dev_err(&pdev->dev, "Unable to acquire dram-csi clock\n");
++		return PTR_ERR(sdev->clk_ram);
++	}
++
++	sdev->rstc_bus = devm_reset_control_get_shared(&pdev->dev, NULL);
++	if (IS_ERR(sdev->rstc_bus)) {
++		dev_err(&pdev->dev, "Cannot get reset controller\n");
++		return PTR_ERR(sdev->rstc_bus);
++	}
++
++	irq = platform_get_irq(pdev, 0);
++	if (irq < 0) {
++		dev_err(&pdev->dev, "No csi IRQ specified\n");
++		ret = -ENXIO;
++		return ret;
++	}
++
++	ret = devm_request_irq(&pdev->dev, irq, sun6i_csi_isr, 0, MODULE_NAME,
++			       sdev);
++	if (ret) {
++		dev_err(&pdev->dev, "Cannot request csi IRQ\n");
++		return ret;
++	}
 +	return 0;
 +}
 +
-+static int tw9910_g_mbus_config(struct v4l2_subdev *sd,
-+				struct v4l2_mbus_config *cfg)
++static int sun6i_csi_probe(struct platform_device *pdev)
 +{
-+	struct i2c_client *client = v4l2_get_subdevdata(sd);
-+	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
++	struct sun6i_csi_dev *sdev;
++	int ret;
 +
-+	cfg->flags = V4L2_MBUS_PCLK_SAMPLE_RISING | V4L2_MBUS_MASTER |
-+		V4L2_MBUS_VSYNC_ACTIVE_HIGH | V4L2_MBUS_VSYNC_ACTIVE_LOW |
-+		V4L2_MBUS_HSYNC_ACTIVE_HIGH | V4L2_MBUS_HSYNC_ACTIVE_LOW |
-+		V4L2_MBUS_DATA_ACTIVE_HIGH;
-+	cfg->type = V4L2_MBUS_PARALLEL;
-+	cfg->flags = soc_camera_apply_board_flags(ssdd, cfg);
++	sdev = devm_kzalloc(&pdev->dev, sizeof(*sdev), GFP_KERNEL);
++	if (!sdev)
++		return -ENOMEM;
++
++	sdev->dev = &pdev->dev;
++
++	ret = sun6i_csi_resource_request(sdev, pdev);
++	if (ret)
++		return ret;
++
++	platform_set_drvdata(pdev, sdev);
++
++	sdev->csi.dev = &pdev->dev;
++	ret = sun6i_csi_v4l2_init(&sdev->csi);
++	if (ret)
++		return ret;
 +
 +	return 0;
 +}
 +
-+static int tw9910_s_mbus_config(struct v4l2_subdev *sd,
-+				const struct v4l2_mbus_config *cfg)
++static int sun6i_csi_remove(struct platform_device *pdev)
 +{
-+	struct i2c_client *client = v4l2_get_subdevdata(sd);
-+	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
-+	u8 val = VSSL_VVALID | HSSL_DVALID;
-+	unsigned long flags = soc_camera_apply_board_flags(ssdd, cfg);
++	struct sun6i_csi_dev *sdev = platform_get_drvdata(pdev);
 +
-+	/*
-+	 * set OUTCTR1
-+	 *
-+	 * We use VVALID and DVALID signals to control VSYNC and HSYNC
-+	 * outputs, in this mode their polarity is inverted.
-+	 */
-+	if (flags & V4L2_MBUS_HSYNC_ACTIVE_LOW)
-+		val |= HSP_HI;
++	sun6i_csi_v4l2_cleanup(&sdev->csi);
 +
-+	if (flags & V4L2_MBUS_VSYNC_ACTIVE_LOW)
-+		val |= VSP_HI;
-+
-+	return i2c_smbus_write_byte_data(client, OUTCTR1, val);
-+}
-+
-+static int tw9910_g_tvnorms(struct v4l2_subdev *sd, v4l2_std_id *norm)
-+{
-+	*norm = V4L2_STD_NTSC | V4L2_STD_PAL;
 +	return 0;
 +}
 +
-+static const struct v4l2_subdev_video_ops tw9910_subdev_video_ops = {
-+	.s_std		= tw9910_s_std,
-+	.g_std		= tw9910_g_std,
-+	.s_stream	= tw9910_s_stream,
-+	.g_mbus_config	= tw9910_g_mbus_config,
-+	.s_mbus_config	= tw9910_s_mbus_config,
-+	.g_tvnorms	= tw9910_g_tvnorms,
++static const struct of_device_id sun6i_csi_of_match[] = {
++	{ .compatible = "allwinner,sun8i-v3s-csi", },
++	{},
++};
++MODULE_DEVICE_TABLE(of, sun6i_csi_of_match);
++
++static struct platform_driver sun6i_csi_platform_driver = {
++	.probe = sun6i_csi_probe,
++	.remove = sun6i_csi_remove,
++	.driver = {
++		.name = MODULE_NAME,
++		.of_match_table = of_match_ptr(sun6i_csi_of_match),
++	},
++};
++module_platform_driver(sun6i_csi_platform_driver);
++
++MODULE_DESCRIPTION("Allwinner V3s Camera Sensor Interface driver");
++MODULE_AUTHOR("Yong Deng <yong.deng@magewell.com>");
++MODULE_LICENSE("GPL");
+diff --git a/drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.h b/drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.h
+new file mode 100644
+index 0000000..c1a1e3a
+--- /dev/null
++++ b/drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.h
+@@ -0,0 +1,143 @@
++// SPDX-License-Identifier: GPL-2.0
++/*
++ * Copyright (c) 2011-2018 Magewell Electronics Co., Ltd. (Nanjing)
++ * All rights reserved.
++ * Author: Yong Deng <yong.deng@magewell.com>
++ */
++
++#ifndef __SUN6I_CSI_H__
++#define __SUN6I_CSI_H__
++
++#include <media/v4l2-device.h>
++#include <media/v4l2-fwnode.h>
++
++#include "sun6i_video.h"
++
++struct sun6i_csi;
++
++/**
++ * struct sun6i_csi_config - configs for sun6i csi
++ * @pixelformat: v4l2 pixel format (V4L2_PIX_FMT_*)
++ * @code:	media bus format code (MEDIA_BUS_FMT_*)
++ * @field:	used interlacing type (enum v4l2_field)
++ * @width:	frame width
++ * @height:	frame height
++ */
++struct sun6i_csi_config {
++	u32		pixelformat;
++	u32		code;
++	u32		field;
++	u32		width;
++	u32		height;
 +};
 +
-+static const struct v4l2_subdev_pad_ops tw9910_subdev_pad_ops = {
-+	.enum_mbus_code = tw9910_enum_mbus_code,
-+	.get_selection	= tw9910_get_selection,
-+	.get_fmt	= tw9910_get_fmt,
-+	.set_fmt	= tw9910_set_fmt,
++struct sun6i_csi {
++	struct device			*dev;
++	struct v4l2_device		v4l2_dev;
++	struct media_device		media_dev;
++
++	struct v4l2_async_notifier	notifier;
++
++	/* video port settings */
++	struct v4l2_fwnode_endpoint	v4l2_ep;
++
++	struct sun6i_csi_config		config;
++
++	struct sun6i_video		video;
 +};
 +
-+static const struct v4l2_subdev_ops tw9910_subdev_ops = {
-+	.core	= &tw9910_subdev_core_ops,
-+	.video	= &tw9910_subdev_video_ops,
-+	.pad	= &tw9910_subdev_pad_ops,
++/**
++ * sun6i_csi_get_supported_pixformats() - get csi supported pixformats
++ * @csi:	pointer to the csi
++ * @pixformats:	supported pixformats return from csi
++ *
++ * @return the count of pixformats or error(< 0)
++ */
++int sun6i_csi_get_supported_pixformats(struct sun6i_csi *csi,
++				       const u32 **pixformats);
++
++/**
++ * sun6i_csi_is_format_support() - check if the format supported by csi
++ * @csi:	pointer to the csi
++ * @pixformat:	v4l2 pixel format (V4L2_PIX_FMT_*)
++ * @mbus_code:	media bus format code (MEDIA_BUS_FMT_*)
++ */
++bool sun6i_csi_is_format_support(struct sun6i_csi *csi, u32 pixformat,
++				 u32 mbus_code);
++
++/**
++ * sun6i_csi_set_power() - power on/off the csi
++ * @csi:	pointer to the csi
++ * @enable:	on/off
++ */
++int sun6i_csi_set_power(struct sun6i_csi *csi, bool enable);
++
++/**
++ * sun6i_csi_update_config() - update the csi register setttings
++ * @csi:	pointer to the csi
++ * @config:	see struct sun6i_csi_config
++ */
++int sun6i_csi_update_config(struct sun6i_csi *csi,
++			    struct sun6i_csi_config *config);
++
++/**
++ * sun6i_csi_update_buf_addr() - update the csi frame buffer address
++ * @csi:	pointer to the csi
++ * @addr:	frame buffer's physical address
++ */
++void sun6i_csi_update_buf_addr(struct sun6i_csi *csi, dma_addr_t addr);
++
++/**
++ * sun6i_csi_set_stream() - start/stop csi streaming
++ * @csi:	pointer to the csi
++ * @enable:	start/stop
++ */
++void sun6i_csi_set_stream(struct sun6i_csi *csi, bool enable);
++
++/* get bpp form v4l2 pixformat */
++static inline int sun6i_csi_get_bpp(unsigned int pixformat)
++{
++	switch (pixformat) {
++	case V4L2_PIX_FMT_SBGGR8:
++	case V4L2_PIX_FMT_SGBRG8:
++	case V4L2_PIX_FMT_SGRBG8:
++	case V4L2_PIX_FMT_SRGGB8:
++		return 8;
++	case V4L2_PIX_FMT_SBGGR10:
++	case V4L2_PIX_FMT_SGBRG10:
++	case V4L2_PIX_FMT_SGRBG10:
++	case V4L2_PIX_FMT_SRGGB10:
++		return 10;
++	case V4L2_PIX_FMT_SBGGR12:
++	case V4L2_PIX_FMT_SGBRG12:
++	case V4L2_PIX_FMT_SGRBG12:
++	case V4L2_PIX_FMT_SRGGB12:
++	case V4L2_PIX_FMT_HM12:
++	case V4L2_PIX_FMT_NV12:
++	case V4L2_PIX_FMT_NV21:
++	case V4L2_PIX_FMT_YUV420:
++	case V4L2_PIX_FMT_YVU420:
++		return 12;
++	case V4L2_PIX_FMT_YUYV:
++	case V4L2_PIX_FMT_YVYU:
++	case V4L2_PIX_FMT_UYVY:
++	case V4L2_PIX_FMT_VYUY:
++	case V4L2_PIX_FMT_NV16:
++	case V4L2_PIX_FMT_NV61:
++	case V4L2_PIX_FMT_YUV422P:
++		return 16;
++	case V4L2_PIX_FMT_RGB24:
++	case V4L2_PIX_FMT_BGR24:
++		return 24;
++	case V4L2_PIX_FMT_RGB32:
++	case V4L2_PIX_FMT_BGR32:
++		return 32;
++	default:
++		WARN(1, "Unsupported pixformat: 0x%x\n", pixformat);
++		break;
++	}
++
++	return 0;
++}
++
++#endif /* __SUN6I_CSI_H__ */
+diff --git a/drivers/media/platform/sunxi/sun6i-csi/sun6i_csi_reg.h b/drivers/media/platform/sunxi/sun6i-csi/sun6i_csi_reg.h
+new file mode 100644
+index 0000000..b55b21f
+--- /dev/null
++++ b/drivers/media/platform/sunxi/sun6i-csi/sun6i_csi_reg.h
+@@ -0,0 +1,196 @@
++// SPDX-License-Identifier: GPL-2.0
++/*
++ * Copyright (c) 2011-2018 Magewell Electronics Co., Ltd. (Nanjing)
++ * All rights reserved.
++ * Author: Yong Deng <yong.deng@magewell.com>
++ */
++
++#ifndef __SUN6I_CSI_REG_H__
++#define __SUN6I_CSI_REG_H__
++
++#include <linux/kernel.h>
++
++#define CSI_EN_REG			0x0
++#define CSI_EN_VER_EN				BIT(30)
++#define CSI_EN_CSI_EN				BIT(0)
++
++#define CSI_IF_CFG_REG			0x4
++#define CSI_IF_CFG_SRC_TYPE_MASK		BIT(21)
++#define CSI_IF_CFG_SRC_TYPE_PROGRESSED		((0 << 21) & CSI_IF_CFG_SRC_TYPE_MASK)
++#define CSI_IF_CFG_SRC_TYPE_INTERLACED		((1 << 21) & CSI_IF_CFG_SRC_TYPE_MASK)
++#define CSI_IF_CFG_FPS_DS_EN			BIT(20)
++#define CSI_IF_CFG_FIELD_MASK			BIT(19)
++#define CSI_IF_CFG_FIELD_NEGATIVE		((0 << 19) & CSI_IF_CFG_FIELD_MASK)
++#define CSI_IF_CFG_FIELD_POSITIVE		((1 << 19) & CSI_IF_CFG_FIELD_MASK)
++#define CSI_IF_CFG_VREF_POL_MASK		BIT(18)
++#define CSI_IF_CFG_VREF_POL_NEGATIVE		((0 << 18) & CSI_IF_CFG_VREF_POL_MASK)
++#define CSI_IF_CFG_VREF_POL_POSITIVE		((1 << 18) & CSI_IF_CFG_VREF_POL_MASK)
++#define CSI_IF_CFG_HREF_POL_MASK		BIT(17)
++#define CSI_IF_CFG_HREF_POL_NEGATIVE		((0 << 17) & CSI_IF_CFG_HREF_POL_MASK)
++#define CSI_IF_CFG_HREF_POL_POSITIVE		((1 << 17) & CSI_IF_CFG_HREF_POL_MASK)
++#define CSI_IF_CFG_CLK_POL_MASK			BIT(16)
++#define CSI_IF_CFG_CLK_POL_RISING_EDGE		((0 << 16) & CSI_IF_CFG_CLK_POL_MASK)
++#define CSI_IF_CFG_CLK_POL_FALLING_EDGE		((1 << 16) & CSI_IF_CFG_CLK_POL_MASK)
++#define CSI_IF_CFG_IF_DATA_WIDTH_MASK		GENMASK(10, 8)
++#define CSI_IF_CFG_IF_DATA_WIDTH_8BIT		((0 << 8) & CSI_IF_CFG_IF_DATA_WIDTH_MASK)
++#define CSI_IF_CFG_IF_DATA_WIDTH_10BIT		((1 << 8) & CSI_IF_CFG_IF_DATA_WIDTH_MASK)
++#define CSI_IF_CFG_IF_DATA_WIDTH_12BIT		((2 << 8) & CSI_IF_CFG_IF_DATA_WIDTH_MASK)
++#define CSI_IF_CFG_MIPI_IF_MASK			BIT(7)
++#define CSI_IF_CFG_MIPI_IF_CSI			(0 << 7)
++#define CSI_IF_CFG_MIPI_IF_MIPI			(1 << 7)
++#define CSI_IF_CFG_CSI_IF_MASK			GENMASK(4, 0)
++#define CSI_IF_CFG_CSI_IF_YUV422_INTLV		((0 << 0) & CSI_IF_CFG_CSI_IF_MASK)
++#define CSI_IF_CFG_CSI_IF_YUV422_16BIT		((1 << 0) & CSI_IF_CFG_CSI_IF_MASK)
++#define CSI_IF_CFG_CSI_IF_BT656			((4 << 0) & CSI_IF_CFG_CSI_IF_MASK)
++#define CSI_IF_CFG_CSI_IF_BT1120		((5 << 0) & CSI_IF_CFG_CSI_IF_MASK)
++
++#define CSI_CAP_REG			0x8
++#define CSI_CAP_CH0_CAP_MASK_MASK		GENMASK(5, 2)
++#define CSI_CAP_CH0_CAP_MASK(count)		((count << 2) & CSI_CAP_CH0_CAP_MASK_MASK)
++#define CSI_CAP_CH0_VCAP_ON			BIT(1)
++#define CSI_CAP_CH0_SCAP_ON			BIT(0)
++
++#define CSI_SYNC_CNT_REG		0xc
++#define CSI_FIFO_THRS_REG		0x10
++#define CSI_BT656_HEAD_CFG_REG		0x14
++#define CSI_PTN_LEN_REG			0x30
++#define CSI_PTN_ADDR_REG		0x34
++#define CSI_VER_REG			0x3c
++
++#define CSI_CH_CFG_REG			0x44
++#define CSI_CH_CFG_INPUT_FMT_MASK		GENMASK(23, 20)
++#define CSI_CH_CFG_INPUT_FMT(fmt)		((fmt << 20) & CSI_CH_CFG_INPUT_FMT_MASK)
++#define CSI_CH_CFG_OUTPUT_FMT_MASK		GENMASK(19, 16)
++#define CSI_CH_CFG_OUTPUT_FMT(fmt)		((fmt << 16) & CSI_CH_CFG_OUTPUT_FMT_MASK)
++#define CSI_CH_CFG_VFLIP_EN			BIT(13)
++#define CSI_CH_CFG_HFLIP_EN			BIT(12)
++#define CSI_CH_CFG_FIELD_SEL_MASK		GENMASK(11, 10)
++#define CSI_CH_CFG_FIELD_SEL_FIELD0		((0 << 10) & CSI_CH_CFG_FIELD_SEL_MASK)
++#define CSI_CH_CFG_FIELD_SEL_FIELD1		((1 << 10) & CSI_CH_CFG_FIELD_SEL_MASK)
++#define CSI_CH_CFG_FIELD_SEL_BOTH		((2 << 10) & CSI_CH_CFG_FIELD_SEL_MASK)
++#define CSI_CH_CFG_INPUT_SEQ_MASK		GENMASK(9, 8)
++#define CSI_CH_CFG_INPUT_SEQ(seq)		((seq << 8) & CSI_CH_CFG_INPUT_SEQ_MASK)
++
++#define CSI_CH_SCALE_REG		0x4c
++#define CSI_CH_SCALE_QUART_EN			BIT(0)
++
++#define CSI_CH_F0_BUFA_REG		0x50
++
++#define CSI_CH_F1_BUFA_REG		0x58
++
++#define CSI_CH_F2_BUFA_REG		0x60
++
++#define CSI_CH_STA_REG			0x6c
++#define CSI_CH_STA_FIELD_STA_MASK		BIT(2)
++#define CSI_CH_STA_FIELD_STA_FIELD0		((0 << 2) & CSI_CH_STA_FIELD_STA_MASK)
++#define CSI_CH_STA_FIELD_STA_FIELD1		((1 << 2) & CSI_CH_STA_FIELD_STA_MASK)
++#define CSI_CH_STA_VCAP_STA			BIT(1)
++#define CSI_CH_STA_SCAP_STA			BIT(0)
++
++#define CSI_CH_INT_EN_REG		0x70
++#define CSI_CH_INT_EN_VS_INT_EN			BIT(7)
++#define CSI_CH_INT_EN_HB_OF_INT_EN		BIT(6)
++#define CSI_CH_INT_EN_MUL_ERR_INT_EN		BIT(5)
++#define CSI_CH_INT_EN_FIFO2_OF_INT_EN		BIT(4)
++#define CSI_CH_INT_EN_FIFO1_OF_INT_EN		BIT(3)
++#define CSI_CH_INT_EN_FIFO0_OF_INT_EN		BIT(2)
++#define CSI_CH_INT_EN_FD_INT_EN			BIT(1)
++#define CSI_CH_INT_EN_CD_INT_EN			BIT(0)
++
++#define CSI_CH_INT_STA_REG		0x74
++#define CSI_CH_INT_STA_VS_PD			BIT(7)
++#define CSI_CH_INT_STA_HB_OF_PD			BIT(6)
++#define CSI_CH_INT_STA_MUL_ERR_PD		BIT(5)
++#define CSI_CH_INT_STA_FIFO2_OF_PD		BIT(4)
++#define CSI_CH_INT_STA_FIFO1_OF_PD		BIT(3)
++#define CSI_CH_INT_STA_FIFO0_OF_PD		BIT(2)
++#define CSI_CH_INT_STA_FD_PD			BIT(1)
++#define CSI_CH_INT_STA_CD_PD			BIT(0)
++
++#define CSI_CH_FLD1_VSIZE_REG		0x78
++
++#define CSI_CH_HSIZE_REG		0x80
++#define CSI_CH_HSIZE_HOR_LEN_MASK		GENMASK(28, 16)
++#define CSI_CH_HSIZE_HOR_LEN(len)		((len << 16) & CSI_CH_HSIZE_HOR_LEN_MASK)
++#define CSI_CH_HSIZE_HOR_START_MASK		GENMASK(12, 0)
++#define CSI_CH_HSIZE_HOR_START(start)		((start << 0) & CSI_CH_HSIZE_HOR_START_MASK)
++
++#define CSI_CH_VSIZE_REG		0x84
++#define CSI_CH_VSIZE_VER_LEN_MASK		GENMASK(28, 16)
++#define CSI_CH_VSIZE_VER_LEN(len)		((len << 16) & CSI_CH_VSIZE_VER_LEN_MASK)
++#define CSI_CH_VSIZE_VER_START_MASK		GENMASK(12, 0)
++#define CSI_CH_VSIZE_VER_START(start)		((start << 0) & CSI_CH_VSIZE_VER_START_MASK)
++
++#define CSI_CH_BUF_LEN_REG		0x88
++#define CSI_CH_BUF_LEN_BUF_LEN_C_MASK		GENMASK(29, 16)
++#define CSI_CH_BUF_LEN_BUF_LEN_C(len)		((len << 16) & CSI_CH_BUF_LEN_BUF_LEN_C_MASK)
++#define CSI_CH_BUF_LEN_BUF_LEN_Y_MASK		GENMASK(13, 0)
++#define CSI_CH_BUF_LEN_BUF_LEN_Y(len)		((len << 0) & CSI_CH_BUF_LEN_BUF_LEN_Y_MASK)
++
++#define CSI_CH_FLIP_SIZE_REG		0x8c
++#define CSI_CH_FLIP_SIZE_VER_LEN_MASK		GENMASK(28, 16)
++#define CSI_CH_FLIP_SIZE_VER_LEN(len)		((len << 16) & CSI_CH_FLIP_SIZE_VER_LEN_MASK)
++#define CSI_CH_FLIP_SIZE_VALID_LEN_MASK		GENMASK(12, 0)
++#define CSI_CH_FLIP_SIZE_VALID_LEN(len)		((len << 0) & CSI_CH_FLIP_SIZE_VALID_LEN_MASK)
++
++#define CSI_CH_FRM_CLK_CNT_REG		0x90
++#define CSI_CH_ACC_ITNL_CLK_CNT_REG	0x94
++#define CSI_CH_FIFO_STAT_REG		0x98
++#define CSI_CH_PCLK_STAT_REG		0x9c
++
++/*
++ * csi input data format
++ */
++enum csi_input_fmt {
++	CSI_INPUT_FORMAT_RAW		= 0,
++	CSI_INPUT_FORMAT_YUV422		= 3,
++	CSI_INPUT_FORMAT_YUV420		= 4,
 +};
 +
 +/*
-+ * i2c_driver function
++ * csi output data format
++ */
++enum csi_output_fmt {
++	/* only when input format is RAW */
++	CSI_FIELD_RAW_8			= 0,
++	CSI_FIELD_RAW_10		= 1,
++	CSI_FIELD_RAW_12		= 2,
++	CSI_FIELD_RGB565		= 4,
++	CSI_FIELD_RGB888		= 5,
++	CSI_FIELD_PRGB888		= 6,
++	CSI_FRAME_RAW_8			= 8,
++	CSI_FRAME_RAW_10		= 9,
++	CSI_FRAME_RAW_12		= 10,
++	CSI_FRAME_RGB565		= 12,
++	CSI_FRAME_RGB888		= 13,
++	CSI_FRAME_PRGB888		= 14,
++
++	/* only when input format is YUV422 */
++	CSI_FIELD_PLANAR_YUV422		= 0,
++	CSI_FIELD_PLANAR_YUV420		= 1,
++	CSI_FRAME_PLANAR_YUV420		= 2,
++	CSI_FRAME_PLANAR_YUV422		= 3,
++	CSI_FIELD_UV_CB_YUV422		= 4,
++	CSI_FIELD_UV_CB_YUV420		= 5,
++	CSI_FRAME_UV_CB_YUV420		= 6,
++	CSI_FRAME_UV_CB_YUV422		= 7,
++	CSI_FIELD_MB_YUV422		= 8,
++	CSI_FIELD_MB_YUV420		= 9,
++	CSI_FRAME_MB_YUV420		= 10,
++	CSI_FRAME_MB_YUV422		= 11,
++	CSI_FIELD_UV_CB_YUV422_10	= 12,
++	CSI_FIELD_UV_CB_YUV420_10	= 13,
++};
++
++/*
++ * csi YUV input data sequence
++ */
++enum csi_input_seq {
++	/* only when input format is YUV422 */
++	CSI_INPUT_SEQ_YUYV = 0,
++	CSI_INPUT_SEQ_YVYU,
++	CSI_INPUT_SEQ_UYVY,
++	CSI_INPUT_SEQ_VYUY,
++};
++
++#endif /* __SUN6I_CSI_REG_H__ */
+diff --git a/drivers/media/platform/sunxi/sun6i-csi/sun6i_video.c b/drivers/media/platform/sunxi/sun6i-csi/sun6i_video.c
+new file mode 100644
+index 0000000..a8885d2
+--- /dev/null
++++ b/drivers/media/platform/sunxi/sun6i-csi/sun6i_video.c
+@@ -0,0 +1,741 @@
++// SPDX-License-Identifier: GPL-2.0
++/*
++ * Copyright (c) 2011-2018 Magewell Electronics Co., Ltd. (Nanjing)
++ * All rights reserved.
++ * Author: Yong Deng <yong.deng@magewell.com>
 + */
 +
-+static int tw9910_probe(struct i2c_client *client,
-+			const struct i2c_device_id *did)
++#include <linux/of.h>
 +
++#include <media/v4l2-device.h>
++#include <media/v4l2-ioctl.h>
++#include <media/v4l2-mc.h>
++#include <media/videobuf2-dma-contig.h>
++#include <media/videobuf2-v4l2.h>
++
++#include "sun6i_csi.h"
++#include "sun6i_video.h"
++
++struct sun6i_csi_buffer {
++	struct vb2_v4l2_buffer		vb;
++	struct list_head		list;
++
++	dma_addr_t			dma_addr;
++	bool				queued_to_csi;
++};
++
++static struct sun6i_csi_format *
++find_format_by_pixformat(struct sun6i_video *video, unsigned int pixformat)
 +{
-+	struct tw9910_priv		*priv;
-+	struct tw9910_video_info	*info;
-+	struct i2c_adapter		*adapter =
-+		to_i2c_adapter(client->dev.parent);
-+	struct soc_camera_subdev_desc	*ssdd = soc_camera_i2c_to_desc(client);
-+	int ret;
++	unsigned int num_formats = video->num_formats;
++	struct sun6i_csi_format *fmt;
++	unsigned int i;
 +
-+	if (!ssdd || !ssdd->drv_priv) {
-+		dev_err(&client->dev, "TW9910: missing platform data!\n");
++	for (i = 0; i < num_formats; i++) {
++		fmt = &video->formats[i];
++		if (fmt->pixformat == pixformat)
++			return fmt;
++	}
++
++	return NULL;
++}
++
++static struct v4l2_subdev *
++sun6i_video_remote_subdev(struct sun6i_video *video, u32 *pad)
++{
++	struct media_pad *remote;
++
++	remote = media_entity_remote_pad(&video->pad);
++
++	if (!remote || !is_media_entity_v4l2_subdev(remote->entity))
++		return NULL;
++
++	if (pad)
++		*pad = remote->index;
++
++	return media_entity_to_v4l2_subdev(remote->entity);
++}
++
++static int sun6i_video_queue_setup(struct vb2_queue *vq,
++				 unsigned int *nbuffers, unsigned int *nplanes,
++				 unsigned int sizes[],
++				 struct device *alloc_devs[])
++{
++	struct sun6i_video *video = vb2_get_drv_priv(vq);
++	unsigned int size = video->fmt.fmt.pix.sizeimage;
++
++	if (*nplanes)
++		return sizes[0] < size ? -EINVAL : 0;
++
++	*nplanes = 1;
++	sizes[0] = size;
++
++	return 0;
++}
++
++static int sun6i_video_buffer_prepare(struct vb2_buffer *vb)
++{
++	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
++	struct sun6i_csi_buffer *buf =
++			container_of(vbuf, struct sun6i_csi_buffer, vb);
++	struct sun6i_video *video = vb2_get_drv_priv(vb->vb2_queue);
++	unsigned long size = video->fmt.fmt.pix.sizeimage;
++
++	if (vb2_plane_size(vb, 0) < size) {
++		v4l2_err(video->vdev.v4l2_dev, "buffer too small (%lu < %lu)\n",
++			 vb2_plane_size(vb, 0), size);
 +		return -EINVAL;
 +	}
 +
-+	info = ssdd->drv_priv;
++	vb2_set_plane_payload(vb, 0, size);
 +
-+	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA)) {
-+		dev_err(&client->dev,
-+			"I2C-Adapter doesn't support I2C_FUNC_SMBUS_BYTE_DATA\n");
-+		return -EIO;
++	buf->dma_addr = vb2_dma_contig_plane_dma_addr(vb, 0);
++
++	vbuf->field = video->fmt.fmt.pix.field;
++
++	return 0;
++}
++
++static int sun6i_pipeline_set_stream(struct sun6i_video *video, bool enable)
++{
++	struct media_entity *entity;
++	struct media_pad *pad;
++	struct v4l2_subdev *subdev;
++	int ret;
++
++	entity = &video->vdev.entity;
++	while (1) {
++		pad = &entity->pads[0];
++		if (!(pad->flags & MEDIA_PAD_FL_SINK))
++			break;
++
++		pad = media_entity_remote_pad(pad);
++		if (!pad || !is_media_entity_v4l2_subdev(pad->entity))
++			break;
++
++		entity = pad->entity;
++		subdev = media_entity_to_v4l2_subdev(entity);
++
++		ret = v4l2_subdev_call(subdev, video, s_stream, enable);
++		if (enable && ret < 0 && ret != -ENOIOCTLCMD)
++			return ret;
 +	}
 +
-+	priv = devm_kzalloc(&client->dev, sizeof(*priv), GFP_KERNEL);
-+	if (!priv)
-+		return -ENOMEM;
++	return 0;
++}
 +
-+	priv->info   = info;
++static int sun6i_video_start_streaming(struct vb2_queue *vq, unsigned int count)
++{
++	struct sun6i_video *video = vb2_get_drv_priv(vq);
++	struct sun6i_csi_buffer *buf;
++	struct sun6i_csi_buffer *next_buf;
++	struct sun6i_csi_config config;
++	unsigned long flags;
++	int ret;
 +
-+	v4l2_i2c_subdev_init(&priv->subdev, client, &tw9910_subdev_ops);
++	video->sequence = 0;
 +
-+	priv->clk = v4l2_clk_get(&client->dev, "mclk");
-+	if (IS_ERR(priv->clk))
-+		return PTR_ERR(priv->clk);
-+
-+	ret = tw9910_video_probe(client);
++	ret = media_pipeline_start(&video->vdev.entity, &video->vdev.pipe);
 +	if (ret < 0)
-+		v4l2_clk_put(priv->clk);
++		goto clear_dma_queue;
++
++	config.pixelformat = video->fmt.fmt.pix.pixelformat;
++	config.code = video->current_fmt->mbus_code;
++	config.field = video->fmt.fmt.pix.field;
++	config.width = video->fmt.fmt.pix.width;
++	config.height = video->fmt.fmt.pix.height;
++
++	ret = sun6i_csi_update_config(video->csi, &config);
++	if (ret < 0)
++		goto stop_media_pipeline;
++
++	spin_lock_irqsave(&video->dma_queue_lock, flags);
++
++	buf = list_first_entry(&video->dma_queue,
++			       struct sun6i_csi_buffer, list);
++	buf->queued_to_csi = true;
++	sun6i_csi_update_buf_addr(video->csi, buf->dma_addr);
++
++	sun6i_csi_set_stream(video->csi, true);
++
++	/*
++	 * CSI will lookup the next dma buffer for next frame before the
++	 * the current frame done IRQ triggered. This is not documented
++	 * but reported by Ondřej Jirman.
++	 * The BSP code has workaround for this too. It skip to mark the
++	 * first buffer as frame done for VB2 and pass the second buffer
++	 * to CSI in the first frame done ISR call. Then in second frame
++	 * done ISR call, it mark the first buffer as frame done for VB2
++	 * and pass the third buffer to CSI. And so on. The bad thing is
++	 * that the first buffer will be written twice and the first frame
++	 * is dropped even the queued buffer is sufficient.
++	 * So, I make some improvement here. Pass the next buffer to CSI
++	 * just follow starting the CSI. In this case, the first frame
++	 * will be stored in first buffer, second frame in second buffer.
++	 * This method is used to avoid dropping the first frame, it
++	 * would also drop frame when lacking of queued buffer.
++	 */
++	next_buf = list_next_entry(buf, list);
++	next_buf->queued_to_csi = true;
++	sun6i_csi_update_buf_addr(video->csi, next_buf->dma_addr);
++
++	spin_unlock_irqrestore(&video->dma_queue_lock, flags);
++
++	ret = sun6i_pipeline_set_stream(video, true);
++	if (ret < 0)
++		goto stop_csi_stream;
++
++	return 0;
++
++stop_csi_stream:
++	sun6i_csi_set_stream(video->csi, false);
++stop_media_pipeline:
++	media_pipeline_stop(&video->vdev.entity);
++clear_dma_queue:
++	spin_lock_irqsave(&video->dma_queue_lock, flags);
++	list_for_each_entry(buf, &video->dma_queue, list)
++		vb2_buffer_done(&buf->vb.vb2_buf, VB2_BUF_STATE_QUEUED);
++	INIT_LIST_HEAD(&video->dma_queue);
++	spin_unlock_irqrestore(&video->dma_queue_lock, flags);
 +
 +	return ret;
 +}
 +
-+static int tw9910_remove(struct i2c_client *client)
++static void sun6i_video_stop_streaming(struct vb2_queue *vq)
 +{
-+	struct tw9910_priv *priv = to_tw9910(client);
-+	v4l2_clk_put(priv->clk);
++	struct sun6i_video *video = vb2_get_drv_priv(vq);
++	unsigned long flags;
++	struct sun6i_csi_buffer *buf;
++
++	sun6i_pipeline_set_stream(video, false);
++
++	sun6i_csi_set_stream(video->csi, false);
++
++	media_pipeline_stop(&video->vdev.entity);
++
++	/* Release all active buffers */
++	spin_lock_irqsave(&video->dma_queue_lock, flags);
++	list_for_each_entry(buf, &video->dma_queue, list)
++		vb2_buffer_done(&buf->vb.vb2_buf, VB2_BUF_STATE_ERROR);
++	INIT_LIST_HEAD(&video->dma_queue);
++	spin_unlock_irqrestore(&video->dma_queue_lock, flags);
++}
++
++static void sun6i_video_buffer_queue(struct vb2_buffer *vb)
++{
++	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
++	struct sun6i_csi_buffer *buf =
++			container_of(vbuf, struct sun6i_csi_buffer, vb);
++	struct sun6i_video *video = vb2_get_drv_priv(vb->vb2_queue);
++	unsigned long flags;
++
++	spin_lock_irqsave(&video->dma_queue_lock, flags);
++	buf->queued_to_csi = false;
++	list_add_tail(&buf->list, &video->dma_queue);
++	spin_unlock_irqrestore(&video->dma_queue_lock, flags);
++}
++
++void sun6i_video_frame_done(struct sun6i_video *video)
++{
++	struct sun6i_csi_buffer *buf;
++	struct sun6i_csi_buffer *next_buf;
++	struct vb2_v4l2_buffer *vbuf;
++
++	spin_lock(&video->dma_queue_lock);
++
++	buf = list_first_entry(&video->dma_queue,
++			       struct sun6i_csi_buffer, list);
++	if (list_is_last(&buf->list, &video->dma_queue)) {
++		dev_dbg(video->csi->dev, "Frame droped!\n");
++		goto unlock;
++	}
++
++	next_buf = list_next_entry(buf, list);
++	/* If a new buffer (#next_buf) had not been queued to CSI, the old
++	 * buffer (#buf) is still holding by CSI for storing the next
++	 * frame. So, we queue a new buffer (#next_buf) to CSI then wait
++	 * for next ISR call.
++	 */
++	if (!next_buf->queued_to_csi) {
++		next_buf->queued_to_csi = true;
++		sun6i_csi_update_buf_addr(video->csi, next_buf->dma_addr);
++		dev_dbg(video->csi->dev, "Frame droped!\n");
++		goto unlock;
++	}
++
++	list_del(&buf->list);
++	vbuf = &buf->vb;
++	vbuf->vb2_buf.timestamp = ktime_get_ns();
++	vbuf->sequence = video->sequence;
++	vb2_buffer_done(&vbuf->vb2_buf, VB2_BUF_STATE_DONE);
++
++	/* Prepare buffer for next frame but one.  */
++	if (!list_is_last(&next_buf->list, &video->dma_queue)) {
++		next_buf = list_next_entry(next_buf, list);
++		next_buf->queued_to_csi = true;
++		sun6i_csi_update_buf_addr(video->csi, next_buf->dma_addr);
++	} else {
++		dev_dbg(video->csi->dev, "Next frame will be dropped!\n");
++	}
++
++unlock:
++	video->sequence++;
++	spin_unlock(&video->dma_queue_lock);
++}
++
++static struct vb2_ops sun6i_csi_vb2_ops = {
++	.queue_setup		= sun6i_video_queue_setup,
++	.wait_prepare		= vb2_ops_wait_prepare,
++	.wait_finish		= vb2_ops_wait_finish,
++	.buf_prepare		= sun6i_video_buffer_prepare,
++	.start_streaming	= sun6i_video_start_streaming,
++	.stop_streaming		= sun6i_video_stop_streaming,
++	.buf_queue		= sun6i_video_buffer_queue,
++};
++
++static int vidioc_querycap(struct file *file, void *priv,
++				struct v4l2_capability *cap)
++{
++	struct sun6i_video *video = video_drvdata(file);
++
++	strlcpy(cap->driver, "sun6i-video", sizeof(cap->driver));
++	strlcpy(cap->card, video->vdev.name, sizeof(cap->card));
++	snprintf(cap->bus_info, sizeof(cap->bus_info), "platform:%s",
++		 video->csi->dev->of_node->name);
++
 +	return 0;
 +}
 +
-+static const struct i2c_device_id tw9910_id[] = {
-+	{ "tw9910", 0 },
-+	{ }
++static int vidioc_enum_fmt_vid_cap(struct file *file, void *priv,
++				   struct v4l2_fmtdesc *f)
++{
++	struct sun6i_video *video = video_drvdata(file);
++	u32 index = f->index;
++
++	if (index >= video->num_formats)
++		return -EINVAL;
++
++	f->pixelformat = video->formats[index].pixformat;
++
++	return 0;
++}
++
++static int vidioc_g_fmt_vid_cap(struct file *file, void *priv,
++				struct v4l2_format *fmt)
++{
++	struct sun6i_video *video = video_drvdata(file);
++
++	*fmt = video->fmt;
++
++	return 0;
++}
++
++static int sun6i_video_try_fmt(struct sun6i_video *video, struct v4l2_format *f,
++			       struct sun6i_csi_format **current_fmt)
++{
++	struct sun6i_csi_format *csi_fmt;
++	struct v4l2_pix_format *pixfmt = &f->fmt.pix;
++	struct v4l2_subdev_format format;
++	struct v4l2_subdev *subdev;
++	u32 pad;
++	int ret;
++
++	subdev = sun6i_video_remote_subdev(video, &pad);
++	if (subdev == NULL)
++		return -ENXIO;
++
++	csi_fmt = find_format_by_pixformat(video, pixfmt->pixelformat);
++	if (csi_fmt == NULL) {
++		if (video->num_formats > 0) {
++			csi_fmt = &video->formats[0];
++			pixfmt->pixelformat = csi_fmt->pixformat;
++		} else
++			return -EINVAL;
++	}
++
++	format.pad = pad;
++	format.which = V4L2_SUBDEV_FORMAT_TRY;
++	v4l2_fill_mbus_format(&format.format, pixfmt, csi_fmt->mbus_code);
++	ret = v4l2_subdev_call(subdev, pad, get_fmt, NULL, &format);
++	if (ret)
++		return ret;
++
++	v4l2_fill_pix_format(pixfmt, &format.format);
++
++	pixfmt->bytesperline = (pixfmt->width * csi_fmt->bpp) >> 3;
++	pixfmt->sizeimage = (pixfmt->width * csi_fmt->bpp * pixfmt->height) / 8;
++
++	if (current_fmt)
++		*current_fmt = csi_fmt;
++
++	return 0;
++}
++
++static int sun6i_video_set_fmt(struct sun6i_video *video, struct v4l2_format *f)
++{
++	struct v4l2_subdev_format format;
++	struct sun6i_csi_format *current_fmt;
++	struct v4l2_subdev *subdev;
++	u32 pad;
++	int ret;
++
++	subdev = sun6i_video_remote_subdev(video, &pad);
++	if (subdev == NULL)
++		return -ENXIO;
++
++	ret = sun6i_video_try_fmt(video, f, &current_fmt);
++	if (ret)
++		return ret;
++
++	format.which = V4L2_SUBDEV_FORMAT_ACTIVE;
++	v4l2_fill_mbus_format(&format.format, &f->fmt.pix,
++			      current_fmt->mbus_code);
++	ret = v4l2_subdev_call(subdev, pad, set_fmt, NULL, &format);
++	if (ret < 0)
++		return ret;
++
++	video->fmt = *f;
++	video->current_fmt = current_fmt;
++
++	return 0;
++}
++
++static int vidioc_s_fmt_vid_cap(struct file *file, void *priv,
++				struct v4l2_format *f)
++{
++	struct sun6i_video *video = video_drvdata(file);
++
++	if (vb2_is_busy(&video->vb2_vidq))
++		return -EBUSY;
++
++	return sun6i_video_set_fmt(video, f);
++}
++
++static int vidioc_try_fmt_vid_cap(struct file *file, void *priv,
++				  struct v4l2_format *f)
++{
++	struct sun6i_video *video = video_drvdata(file);
++
++	return sun6i_video_try_fmt(video, f, NULL);
++}
++
++static int vidioc_enum_input(struct file *file, void *fh,
++			 struct v4l2_input *inp)
++{
++	struct sun6i_video *video = video_drvdata(file);
++	struct v4l2_subdev *subdev;
++	u32 pad;
++	int ret;
++
++	if (inp->index != 0)
++		return -EINVAL;
++
++	subdev = sun6i_video_remote_subdev(video, &pad);
++	if (subdev == NULL)
++		return -ENXIO;
++
++	ret = v4l2_subdev_call(subdev, video, g_input_status, &inp->status);
++	if (ret < 0 && ret != -ENOIOCTLCMD && ret != -ENODEV)
++		return ret;
++
++	inp->type = V4L2_INPUT_TYPE_CAMERA;
++
++	inp->capabilities = 0;
++	inp->std = 0;
++	if (v4l2_subdev_has_op(subdev, pad, dv_timings_cap))
++		inp->capabilities = V4L2_IN_CAP_DV_TIMINGS;
++
++	strlcpy(inp->name, subdev->name, sizeof(inp->name));
++
++	return 0;
++}
++
++static int vidioc_g_input(struct file *file, void *fh, unsigned int *i)
++{
++	*i = 0;
++
++	return 0;
++}
++
++static int vidioc_s_input(struct file *file, void *fh, unsigned int i)
++{
++	if (i != 0)
++		return -EINVAL;
++
++	return 0;
++}
++
++static const struct v4l2_ioctl_ops sun6i_video_ioctl_ops = {
++	.vidioc_querycap		= vidioc_querycap,
++	.vidioc_enum_fmt_vid_cap	= vidioc_enum_fmt_vid_cap,
++	.vidioc_g_fmt_vid_cap		= vidioc_g_fmt_vid_cap,
++	.vidioc_s_fmt_vid_cap		= vidioc_s_fmt_vid_cap,
++	.vidioc_try_fmt_vid_cap		= vidioc_try_fmt_vid_cap,
++
++	.vidioc_enum_input		= vidioc_enum_input,
++	.vidioc_s_input			= vidioc_s_input,
++	.vidioc_g_input			= vidioc_g_input,
++
++	.vidioc_reqbufs			= vb2_ioctl_reqbufs,
++	.vidioc_querybuf		= vb2_ioctl_querybuf,
++	.vidioc_qbuf			= vb2_ioctl_qbuf,
++	.vidioc_expbuf			= vb2_ioctl_expbuf,
++	.vidioc_dqbuf			= vb2_ioctl_dqbuf,
++	.vidioc_create_bufs		= vb2_ioctl_create_bufs,
++	.vidioc_prepare_buf		= vb2_ioctl_prepare_buf,
++	.vidioc_streamon		= vb2_ioctl_streamon,
++	.vidioc_streamoff		= vb2_ioctl_streamoff,
 +};
-+MODULE_DEVICE_TABLE(i2c, tw9910_id);
 +
-+static struct i2c_driver tw9910_i2c_driver = {
-+	.driver = {
-+		.name = "tw9910",
-+	},
-+	.probe    = tw9910_probe,
-+	.remove   = tw9910_remove,
-+	.id_table = tw9910_id,
++/* -----------------------------------------------------------------------------
++ * V4L2 file operations
++ */
++static int sun6i_video_open(struct file *file)
++{
++	struct sun6i_video *video = video_drvdata(file);
++	int ret;
++
++	if (mutex_lock_interruptible(&video->lock))
++		return -ERESTARTSYS;
++
++	ret = v4l2_fh_open(file);
++	if (ret < 0)
++		goto unlock;
++
++	ret = v4l2_pipeline_pm_use(&video->vdev.entity, 1);
++	if (ret < 0)
++		goto fh_release;
++
++	/* check if already powered */
++	if (!v4l2_fh_is_singular_file(file))
++		goto unlock;
++
++	ret = sun6i_csi_set_power(video->csi, true);
++	if (ret < 0)
++		goto fh_release;
++
++	mutex_unlock(&video->lock);
++	return 0;
++
++fh_release:
++	v4l2_fh_release(file);
++unlock:
++	mutex_unlock(&video->lock);
++	return ret;
++}
++
++static int sun6i_video_close(struct file *file)
++{
++	struct sun6i_video *video = video_drvdata(file);
++	bool last_fh;
++
++	mutex_lock(&video->lock);
++
++	last_fh = v4l2_fh_is_singular_file(file);
++
++	_vb2_fop_release(file, NULL);
++
++	v4l2_pipeline_pm_use(&video->vdev.entity, 0);
++
++	if (last_fh)
++		sun6i_csi_set_power(video->csi, false);
++
++	mutex_unlock(&video->lock);
++
++	return 0;
++}
++
++static const struct v4l2_file_operations sun6i_video_fops = {
++	.owner		= THIS_MODULE,
++	.open		= sun6i_video_open,
++	.release	= sun6i_video_close,
++	.unlocked_ioctl	= video_ioctl2,
++	.mmap		= vb2_fop_mmap,
++	.poll		= vb2_fop_poll
 +};
 +
-+module_i2c_driver(tw9910_i2c_driver);
++/* -----------------------------------------------------------------------------
++ * Media Operations
++ */
++static int sun6i_video_formats_init(struct sun6i_video *video)
++{
++	struct v4l2_subdev_mbus_code_enum mbus_code = { 0 };
++	struct sun6i_csi *csi = video->csi;
++	struct v4l2_format format;
++	struct v4l2_subdev *subdev;
++	u32 pad;
++	const u32 *pixformats;
++	int pixformat_count = 0;
++	u32 subdev_codes[32]; /* subdev format codes, 32 should be enough */
++	int codes_count = 0;
++	int num_fmts = 0;
++	int i, j;
 +
-+MODULE_DESCRIPTION("SoC Camera driver for tw9910");
-+MODULE_AUTHOR("Kuninori Morimoto");
-+MODULE_LICENSE("GPL v2");
++	subdev = sun6i_video_remote_subdev(video, &pad);
++	if (subdev == NULL)
++		return -ENXIO;
++
++	/* Get supported pixformats of CSI */
++	pixformat_count = sun6i_csi_get_supported_pixformats(csi, &pixformats);
++	if (pixformat_count <= 0)
++		return -ENXIO;
++
++	/* Get subdev formats codes */
++	mbus_code.pad = pad;
++	mbus_code.which = V4L2_SUBDEV_FORMAT_ACTIVE;
++	while (!v4l2_subdev_call(subdev, pad, enum_mbus_code, NULL,
++				 &mbus_code)) {
++		if (codes_count >= ARRAY_SIZE(subdev_codes)) {
++			dev_warn(video->csi->dev,
++				 "subdev_codes array is full!\n");
++			break;
++		}
++		subdev_codes[codes_count] = mbus_code.code;
++		codes_count++;
++		mbus_code.index++;
++	}
++
++	if (!codes_count)
++		return -ENXIO;
++
++	/* Get supported formats count */
++	for (i = 0; i < codes_count; i++) {
++		for (j = 0; j < pixformat_count; j++) {
++			if (!sun6i_csi_is_format_support(csi, pixformats[j],
++					subdev_codes[i])) {
++				continue;
++			}
++			num_fmts++;
++		}
++	}
++
++	if (!num_fmts)
++		return -ENXIO;
++
++	video->num_formats = num_fmts;
++	video->formats = devm_kcalloc(video->csi->dev, num_fmts,
++			sizeof(struct sun6i_csi_format), GFP_KERNEL);
++	if (!video->formats)
++		return -ENOMEM;
++
++	/* Get supported formats */
++	num_fmts = 0;
++	for (i = 0; i < codes_count; i++) {
++		for (j = 0; j < pixformat_count; j++) {
++			if (!sun6i_csi_is_format_support(csi, pixformats[j],
++					subdev_codes[i])) {
++				continue;
++			}
++
++			video->formats[num_fmts].pixformat = pixformats[j];
++			video->formats[num_fmts].mbus_code = subdev_codes[i];
++			video->formats[num_fmts].bpp =
++					sun6i_csi_get_bpp(pixformats[j]);
++			num_fmts++;
++		}
++	}
++
++	/* setup default format */
++	format.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
++	format.fmt.pix.width = 1280;
++	format.fmt.pix.height = 720;
++	format.fmt.pix.pixelformat = video->formats[0].pixformat;
++	sun6i_video_set_fmt(video, &format);
++
++	return 0;
++}
++
++static int sun6i_video_link_setup(struct media_entity *entity,
++				  const struct media_pad *local,
++				  const struct media_pad *remote, u32 flags)
++{
++	struct video_device *vdev = media_entity_to_video_device(entity);
++	struct sun6i_video *video = video_get_drvdata(vdev);
++
++	if (WARN_ON(video == NULL))
++		return 0;
++
++	return sun6i_video_formats_init(video);
++}
++
++static const struct media_entity_operations sun6i_video_media_ops = {
++	.link_setup = sun6i_video_link_setup,
++};
++
++int sun6i_video_init(struct sun6i_video *video, struct sun6i_csi *csi,
++		     const char *name)
++{
++	struct video_device *vdev = &video->vdev;
++	struct vb2_queue *vidq = &video->vb2_vidq;
++	int ret;
++
++	video->csi = csi;
++
++	/* Initialize the media entity... */
++	video->pad.flags = MEDIA_PAD_FL_SINK | MEDIA_PAD_FL_MUST_CONNECT;
++	vdev->entity.ops = &sun6i_video_media_ops;
++	ret = media_entity_pads_init(&vdev->entity, 1, &video->pad);
++	if (ret < 0)
++		return ret;
++
++	mutex_init(&video->lock);
++
++	INIT_LIST_HEAD(&video->dma_queue);
++	spin_lock_init(&video->dma_queue_lock);
++
++	video->sequence = 0;
++	video->num_formats = 0;
++
++	/* Initialize videobuf2 queue */
++	vidq->type			= V4L2_BUF_TYPE_VIDEO_CAPTURE;
++	vidq->io_modes			= VB2_MMAP | VB2_DMABUF;
++	vidq->drv_priv			= video;
++	vidq->buf_struct_size		= sizeof(struct sun6i_csi_buffer);
++	vidq->ops			= &sun6i_csi_vb2_ops;
++	vidq->mem_ops			= &vb2_dma_contig_memops;
++	vidq->timestamp_flags		= V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
++	vidq->lock			= &video->lock;
++	/* Make sure non-dropped frame */
++	vidq->min_buffers_needed	= 3;
++	vidq->dev			= csi->dev;
++
++	ret = vb2_queue_init(vidq);
++	if (ret) {
++		v4l2_err(&csi->v4l2_dev, "vb2_queue_init failed: %d\n", ret);
++		goto error;
++	}
++
++	/* Register video device */
++	strlcpy(vdev->name, name, sizeof(vdev->name));
++	vdev->release		= video_device_release_empty;
++	vdev->fops		= &sun6i_video_fops;
++	vdev->ioctl_ops		= &sun6i_video_ioctl_ops;
++	vdev->vfl_type		= VFL_TYPE_GRABBER;
++	vdev->vfl_dir		= VFL_DIR_RX;
++	vdev->v4l2_dev		= &csi->v4l2_dev;
++	vdev->queue		= vidq;
++	vdev->lock		= &video->lock;
++	vdev->device_caps	= V4L2_CAP_STREAMING | V4L2_CAP_VIDEO_CAPTURE;
++	video_set_drvdata(vdev, video);
++
++	ret = video_register_device(vdev, VFL_TYPE_GRABBER, -1);
++	if (ret < 0) {
++		v4l2_err(&csi->v4l2_dev,
++			 "video_register_device failed: %d\n", ret);
++		goto error;
++	}
++
++	return 0;
++
++error:
++	sun6i_video_cleanup(video);
++	return ret;
++}
++
++void sun6i_video_cleanup(struct sun6i_video *video)
++{
++	if (video_is_registered(&video->vdev))
++		video_unregister_device(&video->vdev);
++
++	media_entity_cleanup(&video->vdev.entity);
++}
+diff --git a/drivers/media/platform/sunxi/sun6i-csi/sun6i_video.h b/drivers/media/platform/sunxi/sun6i-csi/sun6i_video.h
+new file mode 100644
+index 0000000..9e7171b
+--- /dev/null
++++ b/drivers/media/platform/sunxi/sun6i-csi/sun6i_video.h
+@@ -0,0 +1,53 @@
++// SPDX-License-Identifier: GPL-2.0
++/*
++ * Copyright (c) 2011-2018 Magewell Electronics Co., Ltd. (Nanjing)
++ * All rights reserved.
++ * Author: Yong Deng <yong.deng@magewell.com>
++ */
++
++#ifndef __SUN6I_VIDEO_H__
++#define __SUN6I_VIDEO_H__
++
++#include <media/v4l2-dev.h>
++#include <media/videobuf2-core.h>
++
++/*
++ * struct sun6i_csi_format - CSI media bus format information
++ * @pixformat: V4l2 pixformat for this format
++ * @mbus_code: V4L2 media bus format code.
++ * @bpp: Bytes per pixel (when stored in memory)
++ */
++struct sun6i_csi_format {
++	u32				pixformat;
++	u32				mbus_code;
++	u8				bpp;
++};
++
++struct sun6i_csi;
++
++struct sun6i_video {
++	struct video_device		vdev;
++	struct media_pad		pad;
++	struct sun6i_csi		*csi;
++
++	struct mutex			lock;
++
++	struct vb2_queue		vb2_vidq;
++	spinlock_t			dma_queue_lock;
++	struct list_head		dma_queue;
++
++	unsigned int			sequence;
++
++	struct sun6i_csi_format		*formats;
++	unsigned int			num_formats;
++	struct sun6i_csi_format		*current_fmt;
++	struct v4l2_format		fmt;
++};
++
++int sun6i_video_init(struct sun6i_video *video, struct sun6i_csi *csi,
++		     const char *name);
++void sun6i_video_cleanup(struct sun6i_video *video);
++
++void sun6i_video_frame_done(struct sun6i_video *video);
++
++#endif /* __SUN6I_VIDEO_H__ */
 -- 
-2.7.4
+1.8.3.1
