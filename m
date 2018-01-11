@@ -1,91 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:47637 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932089AbeAHKCO (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 8 Jan 2018 05:02:14 -0500
-Date: Mon, 8 Jan 2018 08:02:00 -0200
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Ingo Molnar <mingo@kernel.org>,
-        Josef Griebichler <griebichler.josef@gmx.at>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Alan Stern <stern@rowland.harvard.edu>,
-        USB list <linux-usb@vger.kernel.org>,
-        Eric Dumazet <edumazet@google.com>,
-        Rik van Riel <riel@redhat.com>,
-        Paolo Abeni <pabeni@redhat.com>,
-        Hannes Frederic Sowa <hannes@redhat.com>,
-        Jesper Dangaard Brouer <jbrouer@redhat.com>,
-        linux-kernel <linux-kernel@vger.kernel.org>,
-        netdev <netdev@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>,
-        LMML <linux-media@vger.kernel.org>,
-        Peter Zijlstra <peterz@infradead.org>,
-        David Miller <davem@davemloft.net>
-Subject: Re: dvb usb issues since kernel 4.9
-Message-ID: <20180108080200.77d374c2@vento.lan>
-In-Reply-To: <CA+55aFzHPYuxg3LwhqcxwJD2fuKzg6wU5ypfMvrpRoioiQHDFg@mail.gmail.com>
-References: <trinity-35b3a044-b548-4a31-9646-ed9bc83e6846-1513505978471@3c-app-gmx-bs03>
-        <20171217120634.pmmuhdqyqmbkxrvl@gofer.mess.org>
-        <20171217112738.4f3a4f9b@recife.lan>
-        <trinity-1fa14556-8596-44b1-95cb-b8919d94d2d4-1515251056328@3c-app-gmx-bs15>
-        <20180106175420.275e24e7@recife.lan>
-        <CA+55aFzHPYuxg3LwhqcxwJD2fuKzg6wU5ypfMvrpRoioiQHDFg@mail.gmail.com>
+Received: from mail.free-electrons.com ([62.4.15.54]:51629 "EHLO
+        mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933184AbeAKMhX (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 11 Jan 2018 07:37:23 -0500
+Date: Thu, 11 Jan 2018 13:37:11 +0100
+From: Maxime Ripard <maxime.ripard@free-electrons.com>
+To: Hugues FRUCHET <hugues.fruchet@st.com>
+Cc: Yong Deng <yong.deng@magewell.com>,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Subject: Re: [PATCH v5 0/5] Add OV5640 parallel interface and RGB565/YUYV
+ support
+Message-ID: <20180111123711.snz5skdpydudxnhh@flea.lan>
+References: <1514973452-10464-1-git-send-email-hugues.fruchet@st.com>
+ <20180108153811.5xrvbaekm6nxtoa6@flea>
+ <3010811e-ed37-4489-6a9f-6cc835f41575@st.com>
+ <20180110153724.l77zpdgxfbzkznuf@flea>
+ <2089de18-1f7f-6d6e-7aee-9dc424bca335@st.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="hc743kok26txqmh7"
+Content-Disposition: inline
+In-Reply-To: <2089de18-1f7f-6d6e-7aee-9dc424bca335@st.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Linus,
 
-Em Sun, 7 Jan 2018 13:23:39 -0800
-Linus Torvalds <torvalds@linux-foundation.org> escreveu:
+--hc743kok26txqmh7
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> On Sat, Jan 6, 2018 at 11:54 AM, Mauro Carvalho Chehab
-> <mchehab@s-opensource.com> wrote:
-> >
-> > Em Sat, 6 Jan 2018 16:04:16 +0100
-> > "Josef Griebichler" <griebichler.josef@gmx.at> escreveu:  
-> >>
-> >> the causing commit has been identified.
-> >> After reverting commit https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=4cd13c21b207e80ddb1144c576500098f2d5f882
-> >> its working again.  
-> >
-> > Just replying to me won't magically fix this. The ones that were involved on
-> > this patch should also be c/c, plus USB people. Just added them.  
-> 
-> Actually, you seem to have added an odd subset of the people involved.
-> 
-> For example, Ingo - who actually committed that patch - wasn't on the cc.
+Hi Hugues,
 
-Sorry, my fault. I forgot to add him to it.
+On Wed, Jan 10, 2018 at 03:51:07PM +0000, Hugues FRUCHET wrote:
+> Good news Maxime !
+>=20
+> Have you seen that you can adapt the polarities through devicetree ?
+>=20
+> +                       /* Parallel bus endpoint */
+> +                       ov5640_to_parallel: endpoint {
+> [...]
+> +                               hsync-active =3D <0>;
+> +                               vsync-active =3D <0>;
+> +                               pclk-sample =3D <1>;
+> +                       };
 
-> I do think we need to simply revert that patch. It's very simple: it
-> has been reported to lead to actual problems for people, and we don't
-> fix one problem and then say "well, it fixed something else" when
-> something breaks.
-> 
-> When something breaks, we either unbreak it, or we revert the change
-> that caused the breakage.
-> 
-> It's really that simple. That's what "no regressions" means.  We don't
-> accept changes that cause regressions. This one did.
+It's what I did, with the polarity infos on both side of the
+endpoints.
+Here it is:
+http://code.bulix.org/4vgchd-257344?raw
 
-Yeah, we should either unbreak or revert it. In the specific case of
-media devices, Alan came with a proposal of increasing the number of
-buffers. This is an one line change, and increase a capture delay from
-0.63 ms to 5 ms on this specific case (Digital TV) shouldn't make much
-harm. So, I guess it would worth trying it before reverting the patch.
+You can see that the polarity are inverted on both sides of the link,
+which seems weird :)
 
-It is hard to foresee the consequences of the softirq changes for other
-devices, though.
+Maxime
 
-For example, we didn't have any reports about this issue affecting cameras,
-Most cameras use ISOC nowadays, but some only provide bulk transfers.
-We usually try to use the minimum number of buffers possible, as
-increasing latency on cameras can be very annoying, specially on
-videoconference applications.
+--=20
+Maxime Ripard, Free Electrons
+Embedded Linux and Kernel engineering
+http://free-electrons.com
 
-Thanks,
-Mauro
+--hc743kok26txqmh7
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCAAdFiEE0VqZU19dR2zEVaqr0rTAlCFNr3QFAlpXWnYACgkQ0rTAlCFN
+r3TbPA//duIqNjy4gPvRJTuwfkg9UQhNUEORR+KUius89+FtObU8qAtov5+Oi7B9
+vDnjBkJzaJUMPwAVY4P2rYff/lTH65sJf6z6B8HB8GDxssnSOWu3y279p/cf8Rtg
+NGPZoBTmszrg07mE9iZV5bT9p5vuqdZlyk+rXXKx85jmkh8ewqyd7O0W50MrooY5
+oYEzFByGuAbQesQlSq0lTsyB9IlZXiAQUI8JUig2exDeyMawZCiU68l1GAG0VnGw
+QP+WjVXPSn8riU9yNp0BKUI+UT3/nc0VrskcCndiPKtjaI0LnaM1Bx8jywbuI666
+boCWS3m8czJkjkQDOVlv/i82ArwUlb05VJvBZejy3bhVjWTkai17ced5b8E9HuKR
+NhEt3hC6bRhvjbHuothK4CQy6jJPXuHvoI/8vpnvoWVbBCRSCa5csNgaBnNbiDa5
+E1Z42Om5tvl/Z+OfmaU7/dqjwEzwTXxRCFRRsAPI7xTClVMmDOMkEhR1l3eaEh2W
+XGgap4HdWKEoP7g/iR6uoFsn+qQJNMNhhLpCVZjawQLN4l3VD7mvCG5piTeYMVFS
+OswM0MrbLQV5DKWCdHsr0AL2Au2uAFNgE2D5j/aDFsiaodNt3CR50a0DxQpVwpNQ
+jAWUHhEC6RNxswoTKVmi7lO9tolTIUSM7kAuuknpt/jjhv2qzhc=
+=W/+J
+-----END PGP SIGNATURE-----
+
+--hc743kok26txqmh7--
