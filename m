@@ -1,91 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([217.72.192.75]:59078 "EHLO
-        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750736AbeABJwL (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 2 Jan 2018 04:52:11 -0500
-From: Arnd Bergmann <arnd@arndb.de>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>,
-        Max Kellermann <max.kellermann@gmail.com>,
-        Wolfgang Rohdewald <wolfgang@rohdewald.de>,
-        Shuah Khan <shuah@kernel.org>,
-        Jaedon Shin <jaedon.shin@gmail.com>,
-        Colin Ian King <colin.king@canonical.com>,
-        Satendra Singh Thakur <satendra.t@samsung.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sean Young <sean@mess.org>, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH] media: don't drop front-end reference count for ->detach
-Date: Tue,  2 Jan 2018 10:48:54 +0100
-Message-Id: <20180102095154.3424890-1-arnd@arndb.de>
+Received: from mail.free-electrons.com ([62.4.15.54]:51656 "EHLO
+        mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933184AbeAKMka (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 11 Jan 2018 07:40:30 -0500
+Date: Thu, 11 Jan 2018 13:40:18 +0100
+From: Maxime Ripard <maxime.ripard@free-electrons.com>
+To: Yong <yong.deng@magewell.com>
+Cc: Hugues FRUCHET <hugues.fruchet@st.com>,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Subject: Re: [PATCH v5 0/5] Add OV5640 parallel interface and RGB565/YUYV
+ support
+Message-ID: <20180111124018.azdzjeitjsyenmra@flea.lan>
+References: <1514973452-10464-1-git-send-email-hugues.fruchet@st.com>
+ <20180108153811.5xrvbaekm6nxtoa6@flea>
+ <3010811e-ed37-4489-6a9f-6cc835f41575@st.com>
+ <20180110153724.l77zpdgxfbzkznuf@flea>
+ <20180111091508.a0c9f630c6b4ef80178694fb@magewell.com>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="o7pqzwq2ylfpgigj"
+Content-Disposition: inline
+In-Reply-To: <20180111091508.a0c9f630c6b4ef80178694fb@magewell.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-A bugfix introduce a link failure in configurations without CONFIG_MODULES:
 
-In file included from drivers/media/usb/dvb-usb/pctv452e.c:20:0:
-drivers/media/usb/dvb-usb/pctv452e.c: In function 'pctv452e_frontend_attach':
-drivers/media/dvb-frontends/stb0899_drv.h:151:36: error: weak declaration of 'stb0899_attach' being applied to a already existing, static definition
+--o7pqzwq2ylfpgigj
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-The problem is that the !IS_REACHABLE() declaration of stb0899_attach()
-is a 'static inline' definition that clashes with the weak definition.
+Hi Yong,
 
-I further observed that the bugfix was only done for one of the five users
-of stb0899_attach(), the other four still have the problem.  This reverts
-the bugfix and instead addresses the problem by not dropping the reference
-count when calling '->detach()', instead we call this function directly
-in dvb_frontend_put() before dropping the kref on the front-end.
+On Thu, Jan 11, 2018 at 09:15:08AM +0800, Yong wrote:
+> > On Mon, Jan 08, 2018 at 05:13:39PM +0000, Hugues FRUCHET wrote:
+> > > I'm using a ST board with OV5640 wired in parallel bus output in orde=
+r=20
+> > > to interface to my STM32 DCMI parallel interface.
+> > > Perhaps could you describe your setup so I could help on understandin=
+g=20
+> > > the problem on your side. From my past experience with this sensor=20
+> > > module, you can first check hsync/vsync polarities, the datasheet is=
+=20
+> > > buggy on VSYNC polarity as documented in patch 4/5.
+> >=20
+> > It turns out that it was indeed a polarity issue.
+> >=20
+> > It looks like that in order to operate properly, I need to setup the
+> > opposite polarity on HSYNC and VSYNC on the interface. I looked at the
+> > signals under a scope, and VSYNC is obviously inversed as you
+> > described. HSYNC, I'm not so sure since the HBLANK period seems very
+> > long, almost a line.
+> >=20
+> > Since VSYNC at least looks correct, I'd be inclined to think that the
+> > polarity is inversed on at least the SoC I'm using it on.
+> >=20
+> > Yong, did you test the V3S CSI driver with a parallel interface? With
+> > what sensor driver? Have you found some polarities issues like this?
+>=20
+> Did you try it with Allwinner SoCs?
 
-Cc: Max Kellermann <max.kellermann@gmail.com>
-Cc: Wolfgang Rohdewald <wolfgang@rohdewald.de>
-Fixes: f686c14364ad ("[media] stb0899: move code to "detach" callback")
-Fixes: 6cdeaed3b142 ("media: dvb_usb_pctv452e: module refcount changes were unbalanced")
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
----
- drivers/media/dvb-core/dvb_frontend.c | 4 +++-
- drivers/media/usb/dvb-usb/pctv452e.c  | 8 --------
- 2 files changed, 3 insertions(+), 9 deletions(-)
+Yes, on an H3. Looking at all the Allwinner datasheet I could get my
+hands on, they are all documented in the same way. However, I really
+start to wonder whether the polarity shouldn't be reversed.
 
-diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
-index 87fc1bcae5ae..fe10b6f4d3e0 100644
---- a/drivers/media/dvb-core/dvb_frontend.c
-+++ b/drivers/media/dvb-core/dvb_frontend.c
-@@ -164,6 +164,9 @@ static void dvb_frontend_free(struct kref *ref)
- 
- static void dvb_frontend_put(struct dvb_frontend *fe)
- {
-+	/* call detach before dropping the reference count */
-+	if (fe->ops.detach)
-+		fe->ops.detach(fe);
- 	/*
- 	 * Check if the frontend was registered, as otherwise
- 	 * kref was not initialized yet.
-@@ -2965,7 +2968,6 @@ void dvb_frontend_detach(struct dvb_frontend* fe)
- 	dvb_frontend_invoke_release(fe, fe->ops.release_sec);
- 	dvb_frontend_invoke_release(fe, fe->ops.tuner_ops.release);
- 	dvb_frontend_invoke_release(fe, fe->ops.analog_ops.release);
--	dvb_frontend_invoke_release(fe, fe->ops.detach);
- 	dvb_frontend_put(fe);
- }
- EXPORT_SYMBOL(dvb_frontend_detach);
-diff --git a/drivers/media/usb/dvb-usb/pctv452e.c b/drivers/media/usb/dvb-usb/pctv452e.c
-index 0af74383083d..ae793dac4964 100644
---- a/drivers/media/usb/dvb-usb/pctv452e.c
-+++ b/drivers/media/usb/dvb-usb/pctv452e.c
-@@ -913,14 +913,6 @@ static int pctv452e_frontend_attach(struct dvb_usb_adapter *a)
- 						&a->dev->i2c_adap);
- 	if (!a->fe_adap[0].fe)
- 		return -ENODEV;
--
--	/*
--	 * dvb_frontend will call dvb_detach for both stb0899_detach
--	 * and stb0899_release but we only do dvb_attach(stb0899_attach).
--	 * Increment the module refcount instead.
--	 */
--	symbol_get(stb0899_attach);
--
- 	if ((dvb_attach(lnbp22_attach, a->fe_adap[0].fe,
- 					&a->dev->i2c_adap)) == NULL)
- 		err("Cannot attach lnbp22\n");
--- 
-2.9.0
+At least the fact that VSYNC is clearly active low on the
+oscilloscope, while I have to set it active high in the controller
+seems like a strong hint :)
+
+> No. I only tested with a BT1120 signal generated by FPGA or ADV7611. HSYNC
+> and VSYNC are not used.
+
+Ok, that's good to know :)
+
+> For V3s CSI driver, I will add the following to dt-bindings:
+> Endpoint node properties for CSI1
+> ---------------------------------
+>=20
+> - remote-endpoint      : (required) a phandle to the bus receiver's endpo=
+int
+>                           node
+> - bus-width:           : (required) must be 8, 10, 12 or 16
+> - pclk-sample          : (optional) (default: sample on falling edge)
+> - hsync-active         : (only required for parallel)
+> - vsync-active         : (only required for parallel)
+>=20
+> You could try diffrent hsync-active/vsync-active values here.
+
+I did already, and the only combination that works is the one that is
+the inversed polarity on HSYNC and VSYNC than what the sensor setup.
+
+Maxime
+
+--=20
+Maxime Ripard, Free Electrons
+Embedded Linux and Kernel engineering
+http://free-electrons.com
+
+--o7pqzwq2ylfpgigj
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCAAdFiEE0VqZU19dR2zEVaqr0rTAlCFNr3QFAlpXWzEACgkQ0rTAlCFN
+r3TU4w//c8Z+ZjKAgyxrCMqg2nv171OpS9Ox1kjUop3YJ8X4NDaY83+I0kzmwsdo
+eElIRQSVSe1el1WtqU3CgHnQiO6OQZq0c4hYBAs6FBF1uP8BgAdD8IFbGFGXJP7p
+J45A472C80ZgatNmpmsnm7ADCThOlzs4PW37aWxftzcLqkKDox6HhWzwSGgq9W8i
+PZADkO96T0867spbNLRfwqlsS+Uk062KRYT82GUDhOvoyUEC+THnSlPYfxReqLH3
+TW0TIwVO2HIfP2w4mzuJfs8alRp5CZ3wAHkYcSkiOry87PZ3RYFk30wAucBhOVoL
+Cra/IIPyfRX8UEEnz6/oCuHi8L/Pd8rIGW2UdIXK2ut+SRoxaHQBkYZydGEx0MWR
+DP+YqD3eSS4yqv7er7j4+t8LPaDDZdp5EIXNKABWWhMCIeh9an11xwk8NUW4SSfc
+/suwroFxoHQ7h+87ucRqAejiwTsT+HJKIhyGMLLptuRL2rfMskiAdGtiCggdmkX/
+I7eNcUWyWM6Lm7HGPod5KT7lBPS2hgl8DmO4kXcJg9P1UeBQG8DTAW9tlKF/Dj1k
+IaAQ/PbCDThHvJ/8F1IYh2orywiC/5pXRc8qMGJhwM72aZ9bI1z/j+OcwsdH1n6U
+wVvN5lW5XKeSZ+ee5vwcAvz9yCtJCpkZUZy1YsCt2rDurDxOVPY=
+=XRAc
+-----END PGP SIGNATURE-----
+
+--o7pqzwq2ylfpgigj--
