@@ -1,94 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:34170 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1752561AbeAKJSl (ORCPT
+Received: from www62.your-server.de ([213.133.104.62]:46981 "EHLO
+        www62.your-server.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S965090AbeAKQgz (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 11 Jan 2018 04:18:41 -0500
-Date: Thu, 11 Jan 2018 11:18:37 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hugues FRUCHET <hugues.fruchet@st.com>
-Cc: Maxime Ripard <maxime.ripard@free-electrons.com>,
-        Yong Deng <yong.deng@magewell.com>,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
+        Thu, 11 Jan 2018 11:36:55 -0500
+Subject: Re: [PATCH 00/18] prevent bounds-check bypass via speculative
+ execution
+To: Dan Williams <dan.j.williams@intel.com>,
+        Jiri Kosina <jikos@kernel.org>
+Cc: Josh Poimboeuf <jpoimboe@redhat.com>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
         Mark Rutland <mark.rutland@arm.com>,
-        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Subject: Re: [PATCH v5 0/5] Add OV5640 parallel interface and RGB565/YUYV
- support
-Message-ID: <20180111091837.dznauzkdztx3crlf@valkosipuli.retiisi.org.uk>
-References: <1514973452-10464-1-git-send-email-hugues.fruchet@st.com>
- <20180108153811.5xrvbaekm6nxtoa6@flea>
- <3010811e-ed37-4489-6a9f-6cc835f41575@st.com>
- <20180110153724.l77zpdgxfbzkznuf@flea>
- <2089de18-1f7f-6d6e-7aee-9dc424bca335@st.com>
- <20180110222508.4x5kimanevttmqis@valkosipuli.retiisi.org.uk>
- <6661b493-5f2a-b201-390d-e3452e6873a0@st.com>
- <20180111081912.curkvpguof6ul555@valkosipuli.retiisi.org.uk>
- <40f2e25e-3662-fce9-549b-360bbafad623@st.com>
+        Peter Zijlstra <peterz@infradead.org>,
+        Alan Cox <alan.cox@intel.com>,
+        Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>,
+        Will Deacon <will.deacon@arm.com>,
+        Solomon Peachy <pizza@shaftnet.org>,
+        "H. Peter Anvin" <hpa@zytor.com>,
+        Christian Lamparter <chunkeey@googlemail.com>,
+        Elena Reshetova <elena.reshetova@intel.com>,
+        linux-arch@vger.kernel.org, Andi Kleen <ak@linux.intel.com>,
+        "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>,
+        linux-scsi <linux-scsi@vger.kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>, X86 ML <x86@kernel.org>,
+        Ingo Molnar <mingo@redhat.com>,
+        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
+        Zhang Rui <rui.zhang@intel.com>,
+        "Linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        Arnd Bergmann <arnd@arndb.de>, Jan Kara <jack@suse.com>,
+        Eduardo Valentin <edubezval@gmail.com>,
+        Al Viro <viro@zeniv.linux.org.uk>, qla2xxx-upstream@qlogic.com,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Arjan van de Ven <arjan@linux.intel.com>,
+        Kalle Valo <kvalo@codeaurora.org>,
+        Alan Cox <alan@linux.intel.com>,
+        "Martin K. Petersen" <martin.petersen@oracle.com>,
+        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
+        Greg KH <gregkh@linuxfoundation.org>,
+        linux-wireless@vger.kernel.org,
+        "Eric W. Biederman" <ebiederm@xmission.com>,
+        Netdev <netdev@vger.kernel.org>,
+        Linus Torvalds <torvalds@linux-foundation.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Alexei Starovoitov <ast@kernel.org>
+References: <151520099201.32271.4677179499894422956.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <alpine.LRH.2.00.1801092017330.27010@gjva.wvxbf.pm>
+ <CAPcyv4gccDQYx9urpagnBo-TqNLoQ00gEoE7kp+JXNKsmFxcHw@mail.gmail.com>
+ <20180109205549.osb25c4r2h2n2wqx@treble>
+ <nycvar.YFH.7.76.1801111052310.11852@cbobk.fhfr.pm>
+ <CAPcyv4jRbHZH9OWD_6DmeA=MGr+2cy83LGqMCjK_nj79Pug4NQ@mail.gmail.com>
+From: Daniel Borkmann <daniel@iogearbox.net>
+Message-ID: <4408b424-1a85-326a-6506-02fde32bf8b8@iogearbox.net>
+Date: Thu, 11 Jan 2018 17:34:52 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <40f2e25e-3662-fce9-549b-360bbafad623@st.com>
+In-Reply-To: <CAPcyv4jRbHZH9OWD_6DmeA=MGr+2cy83LGqMCjK_nj79Pug4NQ@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jan 11, 2018 at 08:25:41AM +0000, Hugues FRUCHET wrote:
-> On 01/11/2018 09:19 AM, Sakari Ailus wrote:
-> > On Thu, Jan 11, 2018 at 08:12:11AM +0000, Hugues FRUCHET wrote:
-> >> Hi Sakari,
-> >>
-> >> On 01/10/2018 11:25 PM, Sakari Ailus wrote:
-> >>> Hi Hugues,
-> >>>
-> >>> On Wed, Jan 10, 2018 at 03:51:07PM +0000, Hugues FRUCHET wrote:
-> >>>> Good news Maxime !
-> >>>>
-> >>>> Have you seen that you can adapt the polarities through devicetree ?
-> >>>>
-> >>>> +                       /* Parallel bus endpoint */
-> >>>> +                       ov5640_to_parallel: endpoint {
-> >>>> [...]
-> >>>> +                               hsync-active = <0>;
-> >>>> +                               vsync-active = <0>;
-> >>>> +                               pclk-sample = <1>;
-> >>>> +                       };
-> >>>>
-> >>>> Doing so you can adapt to your SoC/board setup easily.
-> >>>>
-> >>>> If you don't put those lines in devicetree, the ov5640 default init
-> >>>> sequence is used which set the polarity as defined in below comment:
-> >>>> ov5640_set_stream_dvp()
-> >>>> [...]
-> >>>> +        * Control lines polarity can be configured through
-> >>>> +        * devicetree endpoint control lines properties.
-> >>>> +        * If no endpoint control lines properties are set,
-> >>>> +        * polarity will be as below:
-> >>>> +        * - VSYNC:     active high
-> >>>> +        * - HREF:      active low
-> >>>> +        * - PCLK:      active low
-> >>>> +        */
-> >>>> [...]
-> >>>
-> >>> The properties are at the moment documented as mandatory in DT binding
-> >>> documentation.
-> >>>
-> >> of course, it was just to ask Maxime to check the devicetree on its
-> >> side, the symptom observed by Maxime with hsync/vsync inversed is the
-> >> same than the one observed if we stick to just default init sequence.
-> > 
-> > I wonder if the driver should be changed to require hsync and vsync. These
-> > signals won't be there at all in Bt.656 mode.
-> > 
-> I will revisit this when pushing Bt.656 mode.
+On 01/11/2018 04:58 PM, Dan Williams wrote:
+> On Thu, Jan 11, 2018 at 1:54 AM, Jiri Kosina <jikos@kernel.org> wrote:
+>> On Tue, 9 Jan 2018, Josh Poimboeuf wrote:
+>>> On Tue, Jan 09, 2018 at 11:44:05AM -0800, Dan Williams wrote:
+>>>> On Tue, Jan 9, 2018 at 11:34 AM, Jiri Kosina <jikos@kernel.org> wrote:
+>>>>> On Fri, 5 Jan 2018, Dan Williams wrote:
+>>>>>
+>>>>> [ ... snip ... ]
+>>>>>> Andi Kleen (1):
+>>>>>>       x86, barrier: stop speculation for failed access_ok
+>>>>>>
+>>>>>> Dan Williams (13):
+>>>>>>       x86: implement nospec_barrier()
+>>>>>>       [media] uvcvideo: prevent bounds-check bypass via speculative execution
+>>>>>>       carl9170: prevent bounds-check bypass via speculative execution
+>>>>>>       p54: prevent bounds-check bypass via speculative execution
+>>>>>>       qla2xxx: prevent bounds-check bypass via speculative execution
+>>>>>>       cw1200: prevent bounds-check bypass via speculative execution
+>>>>>>       Thermal/int340x: prevent bounds-check bypass via speculative execution
+>>>>>>       ipv6: prevent bounds-check bypass via speculative execution
+>>>>>>       ipv4: prevent bounds-check bypass via speculative execution
+>>>>>>       vfs, fdtable: prevent bounds-check bypass via speculative execution
+>>>>>>       net: mpls: prevent bounds-check bypass via speculative execution
+>>>>>>       udf: prevent bounds-check bypass via speculative execution
+>>>>>>       userns: prevent bounds-check bypass via speculative execution
+>>>>>>
+>>>>>> Mark Rutland (4):
+>>>>>>       asm-generic/barrier: add generic nospec helpers
+>>>>>>       Documentation: document nospec helpers
+>>>>>>       arm64: implement nospec_ptr()
+>>>>>>       arm: implement nospec_ptr()
+>>>>>
+>>>>> So considering the recent publication of [1], how come we all of a sudden
+>>>>> don't need the barriers in ___bpf_prog_run(), namely for LD_IMM_DW and
+>>>>> LDX_MEM_##SIZEOP, and something comparable for eBPF JIT?
+>>>>>
+>>>>> Is this going to be handled in eBPF in some other way?
+>>>>>
+>>>>> Without that in place, and considering Jann Horn's paper, it would seem
+>>>>> like PTI doesn't really lock it down fully, right?
+>>>>
+>>>> Here is the latest (v3) bpf fix:
+>>>>
+>>>> https://patchwork.ozlabs.org/patch/856645/
+>>>>
+>>>> I currently have v2 on my 'nospec' branch and will move that to v3 for
+>>>> the next update, unless it goes upstream before then.
+>>
+>> Daniel, I guess you're planning to send this still for 4.15?
+> 
+> It's pending in the bpf.git tree:
+> 
+>     https://git.kernel.org/pub/scm/linux/kernel/git/bpf/bpf.git/commit/?id=b2157399cc9
 
-That may lead to a situation where DT source which currently intends to use
-parallel bus with sync signals will automatically switch to Bt.656. That
-could be an issue for the receiver.
+Sorry for the delay, just noticed the question now since not on Cc either:
+It made it into in DaveM's tree already and part of his latest pull-req
+to Linus.
 
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+>>> That patch seems specific to CONFIG_BPF_SYSCALL.  Is the bpf() syscall
+>>> the only attack vector?  Or are there other ways to run bpf programs
+>>> that we should be worried about?
+>>
+>> Seems like Alexei is probably the only person in the whole universe who
+>> isn't CCed here ... let's fix that.
+> 
+> He will be cc'd on v2 of this series which will be available later today.
