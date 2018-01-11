@@ -1,151 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.free-electrons.com ([62.4.15.54]:33653 "EHLO
-        mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751747AbeASIQB (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 19 Jan 2018 03:16:01 -0500
-From: Maxime Ripard <maxime.ripard@free-electrons.com>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Rob Herring <robh+dt@kernel.org>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        Richard Sproul <sproul@cadence.com>,
-        Alan Douglas <adouglas@cadence.com>,
-        Steve Creaney <screaney@cadence.com>,
-        Thomas Petazzoni <thomas.petazzoni@free-electrons.com>,
-        Boris Brezillon <boris.brezillon@free-electrons.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Benoit Parrot <bparrot@ti.com>, nm@ti.com,
-        Simon Hatliff <hatliff@cadence.com>,
-        Maxime Ripard <maxime.ripard@free-electrons.com>
-Subject: [PATCH v2 1/2] dt-bindings: media: Add Cadence MIPI-CSI2 TX Device Tree bindings
-Date: Fri, 19 Jan 2018 09:15:46 +0100
-Message-Id: <20180119081547.22312-2-maxime.ripard@free-electrons.com>
-In-Reply-To: <20180119081547.22312-1-maxime.ripard@free-electrons.com>
-References: <20180119081547.22312-1-maxime.ripard@free-electrons.com>
+Received: from osg.samsung.com ([64.30.133.232]:43080 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S932867AbeAKPpZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 11 Jan 2018 10:45:25 -0500
+Subject: Re: [PATCH] media: v4l2-core: v4l2-mc: Add SPDX license identifier
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: mchehab@kernel.org, shuah@kernel.org, sakari.ailus@linux.intel.com,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Shuah Khan <shuahkh@osg.samsung.com>
+References: <20180110163540.8396-1-shuahkh@osg.samsung.com>
+ <20180110163540.8396-2-shuahkh@osg.samsung.com> <2473844.IFKS5XRpDA@avalon>
+From: Shuah Khan <shuahkh@osg.samsung.com>
+Message-ID: <9e7fdf1e-64f5-093a-e1ad-a64653791429@osg.samsung.com>
+Date: Thu, 11 Jan 2018 08:45:15 -0700
+MIME-Version: 1.0
+In-Reply-To: <2473844.IFKS5XRpDA@avalon>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The Cadence MIPI-CSI2 TX controller is a CSI2 bridge that supports up to 4
-video streams and can output on up to 4 CSI-2 lanes, depending on the
-hardware implementation.
+On 01/11/2018 05:55 AM, Laurent Pinchart wrote:
+> Hi Shuah,
+> 
+> Thank you for the patch.
+> 
+> On Wednesday, 10 January 2018 18:35:36 EET Shuah Khan wrote:
+>> Replace GPL license statement with SPDX GPL-2.0 license identifier.
+>>
+>> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+>> ---
+>>  drivers/media/v4l2-core/v4l2-mc.c | 11 +----------
+>>  1 file changed, 1 insertion(+), 10 deletions(-)
+>>
+>> diff --git a/drivers/media/v4l2-core/v4l2-mc.c
+>> b/drivers/media/v4l2-core/v4l2-mc.c index 303980b71aae..1297132acd4e 100644
+>> --- a/drivers/media/v4l2-core/v4l2-mc.c
+>> +++ b/drivers/media/v4l2-core/v4l2-mc.c
+>> @@ -1,3 +1,4 @@
+>> +/* SPDX-License-Identifier: GPL-2.0 */
+> 
+> The header doesn't match the existing license.
 
-It can operate with an external D-PHY, an internal one or no D-PHY at all
-in some configurations.
+When I added the file, I must have cut and pasted the license statement
+from another file. More on this below the deleted license lines.
 
-Acked-by: Rob Herring <robh@kernel.org>
-Signed-off-by: Maxime Ripard <maxime.ripard@free-electrons.com>
----
- .../devicetree/bindings/media/cdns,csi2tx.txt      | 98 ++++++++++++++++++++++
- 1 file changed, 98 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/cdns,csi2tx.txt
+> 
+> Furthermore, unless I'm mistaken, the standard comment style for SPDX headers 
+> in the kernel is //, not /* ... */
 
-diff --git a/Documentation/devicetree/bindings/media/cdns,csi2tx.txt b/Documentation/devicetree/bindings/media/cdns,csi2tx.txt
-new file mode 100644
-index 000000000000..acbbd625a75f
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/cdns,csi2tx.txt
-@@ -0,0 +1,98 @@
-+Cadence MIPI-CSI2 TX controller
-+===============================
-+
-+The Cadence MIPI-CSI2 TX controller is a CSI-2 bridge supporting up to
-+4 CSI lanes in output, and up to 4 different pixel streams in input.
-+
-+Required properties:
-+  - compatible: must be set to "cdns,csi2tx"
-+  - reg: base address and size of the memory mapped region
-+  - clocks: phandles to the clocks driving the controller
-+  - clock-names: must contain:
-+    * esc_clk: escape mode clock
-+    * p_clk: register bank clock
-+    * pixel_if[0-3]_clk: pixel stream output clock, one for each stream
-+                         implemented in hardware, between 0 and 3
-+
-+Optional properties
-+  - phys: phandle to the D-PHY. If it is set, phy-names need to be set
-+  - phy-names: must contain dphy
-+
-+Required subnodes:
-+  - ports: A ports node with one port child node per device input and output
-+           port, in accordance with the video interface bindings defined in
-+           Documentation/devicetree/bindings/media/video-interfaces.txt. The
-+           port nodes numbered as follows.
-+
-+           Port Description
-+           -----------------------------
-+           0    CSI-2 output
-+           1    Stream 0 input
-+           2    Stream 1 input
-+           3    Stream 2 input
-+           4    Stream 3 input
-+
-+           The stream input port nodes are optional if they are not
-+           connected to anything at the hardware level or implemented
-+           in the design. Since there is only one endpoint per port,
-+           the endpoints are not numbered.
-+
-+Example:
-+
-+csi2tx: csi-bridge@0d0e1000 {
-+	compatible = "cdns,csi2tx";
-+	reg = <0x0d0e1000 0x1000>;
-+	clocks = <&byteclock>, <&byteclock>,
-+		 <&coreclock>, <&coreclock>,
-+		 <&coreclock>, <&coreclock>;
-+	clock-names = "p_clk", "esc_clk",
-+		      "pixel_if0_clk", "pixel_if1_clk",
-+		      "pixel_if2_clk", "pixel_if3_clk";
-+
-+	ports {
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+
-+		port@0 {
-+			reg = <0>;
-+
-+			csi2tx_out: endpoint {
-+				remote-endpoint = <&remote_in>;
-+				clock-lanes = <0>;
-+				data-lanes = <1 2>;
-+			};
-+		};
-+
-+		port@1 {
-+			reg = <1>;
-+
-+			csi2tx_in_stream0: endpoint {
-+				remote-endpoint = <&stream0_out>;
-+			};
-+		};
-+
-+		port@2 {
-+			reg = <2>;
-+
-+			csi2tx_in_stream1: endpoint {
-+				remote-endpoint = <&stream1_out>;
-+			};
-+		};
-+
-+		port@3 {
-+			reg = <3>;
-+
-+			csi2tx_in_stream2: endpoint {
-+				remote-endpoint = <&stream2_out>;
-+			};
-+		};
-+
-+		port@4 {
-+			reg = <4>;
-+
-+			csi2tx_in_stream3: endpoint {
-+				remote-endpoint = <&stream3_out>;
-+			};
-+		};
-+	};
-+};
--- 
-2.14.3
+Looks like we have 3 conventions for SPDX comment style.
+/* ... */ for headers and # ... for shell scripts and
+// for .c files.
+
+I can update it it and send v2 provided we think the change is inline
+with the original license.
+
+> 
+>>  /*
+>>   * Media Controller ancillary functions
+>>   *
+>> @@ -5,16 +6,6 @@
+>>   * Copyright (C) 2016 Shuah Khan <shuahkh@osg.samsung.com>
+>>   * Copyright (C) 2006-2010 Nokia Corporation
+>>   * Copyright (c) 2016 Intel Corporation.
+>> - *
+>> - *  This program is free software; you can redistribute it and/or modify
+>> - *  it under the terms of the GNU General Public License as published by
+>> - *  the Free Software Foundation; either version 2 of the License, or
+>> - *  (at your option) any later version.
+
+Are you concerned about the "or (at your option) any later version." part
+that it doesn't match?
+
+>> - *
+>> - *  This program is distributed in the hope that it will be useful,
+>> - *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+>> - *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+>> - *  GNU General Public License for more details.
+>>   */
+>>
+>>  #include <linux/module.h>
+> 
+
+thanks,
+-- Shuah
