@@ -1,415 +1,356 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from o1682455182.outbound-mail.sendgrid.net ([168.245.5.182]:10525
-        "EHLO o1682455182.outbound-mail.sendgrid.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S965919AbeAOQim (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:47311 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932621AbeAKRyu (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 15 Jan 2018 11:38:42 -0500
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Subject: [PATCH v5 1/9] v4l: vsp1: Reword uses of 'fragment' as 'body'
-Date: Mon, 15 Jan 2018 16:38:42 +0000 (UTC)
-Message-Id: <44285fddcaccf54892de8806ac525e67b8a6305a.1516028582.git-series.kieran.bingham+renesas@ideasonboard.com>
-In-Reply-To: <cover.7c5bc67e9d7032daf8ea4d7bd18cf237c61676b4.1516028582.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.7c5bc67e9d7032daf8ea4d7bd18cf237c61676b4.1516028582.git-series.kieran.bingham+renesas@ideasonboard.com>
-In-Reply-To: <cover.7c5bc67e9d7032daf8ea4d7bd18cf237c61676b4.1516028582.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.7c5bc67e9d7032daf8ea4d7bd18cf237c61676b4.1516028582.git-series.kieran.bingham+renesas@ideasonboard.com>
+        Thu, 11 Jan 2018 12:54:50 -0500
+Subject: Re: [RFT PATCH v2 6/6] uvcvideo: Move decode processing to process
+ context
+To: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Olivier BRAUN <olivier.braun@stereolabs.com>,
+        Troy Kisky <troy.kisky@boundarydevices.com>
+References: <cover.99b809a1c1f6238bb8c0a2c8b0bc7b49dd777d94.1515501206.git-series.kieran.bingham@ideasonboard.com>
+ <79ae0dc6fea7ffb39125f3c2956dc101a3dacb9f.1515501206.git-series.kieran.bingham@ideasonboard.com>
+From: Kieran Bingham <kieran.bingham@ideasonboard.com>
+Message-ID: <e6a61ab6-d115-6fbb-4a7d-d88b87c0d4d1@ideasonboard.com>
+Date: Thu, 11 Jan 2018 17:54:45 +0000
+MIME-Version: 1.0
+In-Reply-To: <79ae0dc6fea7ffb39125f3c2956dc101a3dacb9f.1515501206.git-series.kieran.bingham@ideasonboard.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Throughout the codebase, the term 'fragment' is used to represent a
-display list body. This term duplicates the 'body' which is already in
-use.
+Hi Kieran !
 
-The datasheet references these objects as a body, therefore replace all
-mentions of a fragment with a body, along with the corresponding
-pluralised terms.
+Thanking you for the patch might be rather self serving here :D
 
-Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
----
- drivers/media/platform/vsp1/vsp1_clu.c |  10 +-
- drivers/media/platform/vsp1/vsp1_dl.c  | 107 ++++++++++++--------------
- drivers/media/platform/vsp1/vsp1_dl.h  |  14 +--
- drivers/media/platform/vsp1/vsp1_lut.c |   8 +-
- 4 files changed, 69 insertions(+), 70 deletions(-)
+On 09/01/18 13:09, Kieran Bingham wrote:
+> Newer high definition cameras, and cameras with multiple lenses such as
+> the range of stereo-vision cameras now available have ever increasing
+> data rates.
+> 
+> The inclusion of a variable length packet header in URB packets mean
+> that we must memcpy the frame data out to our destination 'manually'.
+> This can result in data rates of up to 2 gigabits per second being
+> processed.
+> 
+> To improve efficiency, and maximise throughput, handle the URB decode
+> processing through a work queue to move it from interrupt context, and
+> allow multiple processors to work on URBs in parallel.
+> 
+> Signed-off-by: Kieran Bingham <kieran.bingham@ideasonboard.com>
+> 
+> ---
+> v2:
+>  - Lock full critical section of usb_submit_urb()
+> 
+>  drivers/media/usb/uvc/uvc_queue.c |  12 +++-
+>  drivers/media/usb/uvc/uvc_video.c | 111 +++++++++++++++++++++++++------
+>  drivers/media/usb/uvc/uvcvideo.h  |  24 +++++++-
+>  3 files changed, 129 insertions(+), 18 deletions(-)
+> 
+> diff --git a/drivers/media/usb/uvc/uvc_queue.c b/drivers/media/usb/uvc/uvc_queue.c
+> index 5a9987e547d3..598087eeb5c2 100644
+> --- a/drivers/media/usb/uvc/uvc_queue.c
+> +++ b/drivers/media/usb/uvc/uvc_queue.c
+> @@ -179,10 +179,22 @@ static void uvc_stop_streaming(struct vb2_queue *vq)
+>  	struct uvc_video_queue *queue = vb2_get_drv_priv(vq);
+>  	struct uvc_streaming *stream = uvc_queue_to_stream(queue);
+>  
+> +	/* Prevent new buffers coming in. */
+> +	spin_lock_irq(&queue->irqlock);
+> +	queue->flags |= UVC_QUEUE_STOPPING;
+> +	spin_unlock_irq(&queue->irqlock);
+> +
+> +	/*
+> +	 * All pending work should be completed before disabling the stream, as
+> +	 * all URBs will be free'd during uvc_video_enable(s, 0).
+> +	 */
+> +	flush_workqueue(stream->async_wq);
+> +
+>  	uvc_video_enable(stream, 0);
+>  
+>  	spin_lock_irq(&queue->irqlock);
+>  	uvc_queue_return_buffers(queue, UVC_BUF_STATE_ERROR);
+> +	queue->flags &= ~UVC_QUEUE_STOPPING;
+>  	spin_unlock_irq(&queue->irqlock);
+>  }
+>  
+> diff --git a/drivers/media/usb/uvc/uvc_video.c b/drivers/media/usb/uvc/uvc_video.c
+> index 3878bec3276e..a9ddc4f27012 100644
+> --- a/drivers/media/usb/uvc/uvc_video.c
+> +++ b/drivers/media/usb/uvc/uvc_video.c
+> @@ -1058,21 +1058,67 @@ static int uvc_video_decode_start(struct uvc_streaming *stream,
+>  	return data[0];
+>  }
+>  
+> -static void uvc_video_decode_data(struct uvc_streaming *stream,
+> -		struct uvc_buffer *buf, const __u8 *data, int len)
+> +/*
+> + * uvc_video_decode_data_work: Asynchronous memcpy processing
+> + *
+> + * Perform memcpy tasks in process context, with completion handlers
+> + * to return the URB, and buffer handles.
+> + *
+> + * The work submitter must pre-determine that the work is safe
+> + */
+> +static void uvc_video_decode_data_work(struct work_struct *work)
 
-diff --git a/drivers/media/platform/vsp1/vsp1_clu.c b/drivers/media/platform/vsp1/vsp1_clu.c
-index bc931a3ab498..246dd595c978 100644
---- a/drivers/media/platform/vsp1/vsp1_clu.c
-+++ b/drivers/media/platform/vsp1/vsp1_clu.c
-@@ -47,19 +47,19 @@ static int clu_set_table(struct vsp1_clu *clu, struct v4l2_ctrl *ctrl)
- 	struct vsp1_dl_body *dlb;
- 	unsigned int i;
- 
--	dlb = vsp1_dl_fragment_alloc(clu->entity.vsp1, 1 + 17 * 17 * 17);
-+	dlb = vsp1_dl_body_alloc(clu->entity.vsp1, 1 + 17 * 17 * 17);
- 	if (!dlb)
- 		return -ENOMEM;
- 
--	vsp1_dl_fragment_write(dlb, VI6_CLU_ADDR, 0);
-+	vsp1_dl_body_write(dlb, VI6_CLU_ADDR, 0);
- 	for (i = 0; i < 17 * 17 * 17; ++i)
--		vsp1_dl_fragment_write(dlb, VI6_CLU_DATA, ctrl->p_new.p_u32[i]);
-+		vsp1_dl_body_write(dlb, VI6_CLU_DATA, ctrl->p_new.p_u32[i]);
- 
- 	spin_lock_irq(&clu->lock);
- 	swap(clu->clu, dlb);
- 	spin_unlock_irq(&clu->lock);
- 
--	vsp1_dl_fragment_free(dlb);
-+	vsp1_dl_body_free(dlb);
- 	return 0;
- }
- 
-@@ -215,7 +215,7 @@ static void clu_configure(struct vsp1_entity *entity,
- 		spin_unlock_irqrestore(&clu->lock, flags);
- 
- 		if (dlb)
--			vsp1_dl_list_add_fragment(dl, dlb);
-+			vsp1_dl_list_add_body(dl, dlb);
- 		break;
- 	}
- }
-diff --git a/drivers/media/platform/vsp1/vsp1_dl.c b/drivers/media/platform/vsp1/vsp1_dl.c
-index 4257451f1bd8..90e972a75c62 100644
---- a/drivers/media/platform/vsp1/vsp1_dl.c
-+++ b/drivers/media/platform/vsp1/vsp1_dl.c
-@@ -69,7 +69,7 @@ struct vsp1_dl_body {
-  * @header: display list header, NULL for headerless lists
-  * @dma: DMA address for the header
-  * @body0: first display list body
-- * @fragments: list of extra display list bodies
-+ * @bodies: list of extra display list bodies
-  * @has_chain: if true, indicates that there's a partition chain
-  * @chain: entry in the display list partition chain
-  */
-@@ -81,7 +81,7 @@ struct vsp1_dl_list {
- 	dma_addr_t dma;
- 
- 	struct vsp1_dl_body body0;
--	struct list_head fragments;
-+	struct list_head bodies;
- 
- 	bool has_chain;
- 	struct list_head chain;
-@@ -98,13 +98,13 @@ enum vsp1_dl_mode {
-  * @mode: display list operation mode (header or headerless)
-  * @singleshot: execute the display list in single-shot mode
-  * @vsp1: the VSP1 device
-- * @lock: protects the free, active, queued, pending and gc_fragments lists
-+ * @lock: protects the free, active, queued, pending and gc_bodies lists
-  * @free: array of all free display lists
-  * @active: list currently being processed (loaded) by hardware
-  * @queued: list queued to the hardware (written to the DL registers)
-  * @pending: list waiting to be queued to the hardware
-- * @gc_work: fragments garbage collector work struct
-- * @gc_fragments: array of display list fragments waiting to be freed
-+ * @gc_work: bodies garbage collector work struct
-+ * @gc_bodies: array of display list bodies waiting to be freed
-  */
- struct vsp1_dl_manager {
- 	unsigned int index;
-@@ -119,7 +119,7 @@ struct vsp1_dl_manager {
- 	struct vsp1_dl_list *pending;
- 
- 	struct work_struct gc_work;
--	struct list_head gc_fragments;
-+	struct list_head gc_bodies;
- };
- 
- /* -----------------------------------------------------------------------------
-@@ -157,17 +157,16 @@ static void vsp1_dl_body_cleanup(struct vsp1_dl_body *dlb)
- }
- 
- /**
-- * vsp1_dl_fragment_alloc - Allocate a display list fragment
-+ * vsp1_dl_body_alloc - Allocate a display list body
-  * @vsp1: The VSP1 device
-- * @num_entries: The maximum number of entries that the fragment can contain
-+ * @num_entries: The maximum number of entries that the body can contain
-  *
-- * Allocate a display list fragment with enough memory to contain the requested
-+ * Allocate a display list body with enough memory to contain the requested
-  * number of entries.
-  *
-- * Return a pointer to a fragment on success or NULL if memory can't be
-- * allocated.
-+ * Return a pointer to a body on success or NULL if memory can't be allocated.
-  */
--struct vsp1_dl_body *vsp1_dl_fragment_alloc(struct vsp1_device *vsp1,
-+struct vsp1_dl_body *vsp1_dl_body_alloc(struct vsp1_device *vsp1,
- 					    unsigned int num_entries)
- {
- 	struct vsp1_dl_body *dlb;
-@@ -187,20 +186,20 @@ struct vsp1_dl_body *vsp1_dl_fragment_alloc(struct vsp1_device *vsp1,
- }
- 
- /**
-- * vsp1_dl_fragment_free - Free a display list fragment
-- * @dlb: The fragment
-+ * vsp1_dl_body_free - Free a display list body
-+ * @dlb: The body
-  *
-- * Free the given display list fragment and the associated DMA memory.
-+ * Free the given display list body and the associated DMA memory.
-  *
-- * Fragments must only be freed explicitly if they are not added to a display
-+ * Bodies must only be freed explicitly if they are not added to a display
-  * list, as the display list will take ownership of them and free them
-- * otherwise. Manual free typically happens at cleanup time for fragments that
-+ * otherwise. Manual free typically happens at cleanup time for bodies that
-  * have been allocated but not used.
-  *
-  * Passing a NULL pointer to this function is safe, in that case no operation
-  * will be performed.
-  */
--void vsp1_dl_fragment_free(struct vsp1_dl_body *dlb)
-+void vsp1_dl_body_free(struct vsp1_dl_body *dlb)
- {
- 	if (!dlb)
- 		return;
-@@ -210,16 +209,16 @@ void vsp1_dl_fragment_free(struct vsp1_dl_body *dlb)
- }
- 
- /**
-- * vsp1_dl_fragment_write - Write a register to a display list fragment
-- * @dlb: The fragment
-+ * vsp1_dl_body_write - Write a register to a display list body
-+ * @dlb: The body
-  * @reg: The register address
-  * @data: The register value
-  *
-- * Write the given register and value to the display list fragment. The maximum
-- * number of entries that can be written in a fragment is specified when the
-- * fragment is allocated by vsp1_dl_fragment_alloc().
-+ * Write the given register and value to the display list body. The maximum
-+ * number of entries that can be written in a body is specified when the body is
-+ * allocated by vsp1_dl_body_alloc().
-  */
--void vsp1_dl_fragment_write(struct vsp1_dl_body *dlb, u32 reg, u32 data)
-+void vsp1_dl_body_write(struct vsp1_dl_body *dlb, u32 reg, u32 data)
- {
- 	dlb->entries[dlb->num_entries].addr = reg;
- 	dlb->entries[dlb->num_entries].data = data;
-@@ -240,7 +239,7 @@ static struct vsp1_dl_list *vsp1_dl_list_alloc(struct vsp1_dl_manager *dlm)
- 	if (!dl)
- 		return NULL;
- 
--	INIT_LIST_HEAD(&dl->fragments);
-+	INIT_LIST_HEAD(&dl->bodies);
- 	dl->dlm = dlm;
- 
- 	/*
-@@ -277,7 +276,7 @@ static struct vsp1_dl_list *vsp1_dl_list_alloc(struct vsp1_dl_manager *dlm)
- static void vsp1_dl_list_free(struct vsp1_dl_list *dl)
- {
- 	vsp1_dl_body_cleanup(&dl->body0);
--	list_splice_init(&dl->fragments, &dl->dlm->gc_fragments);
-+	list_splice_init(&dl->bodies, &dl->dlm->gc_bodies);
- 	kfree(dl);
- }
- 
-@@ -332,13 +331,13 @@ static void __vsp1_dl_list_put(struct vsp1_dl_list *dl)
- 	dl->has_chain = false;
- 
- 	/*
--	 * We can't free fragments here as DMA memory can only be freed in
--	 * interruptible context. Move all fragments to the display list
--	 * manager's list of fragments to be freed, they will be
--	 * garbage-collected by the work queue.
-+	 * We can't free bodies here as DMA memory can only be freed in
-+	 * interruptible context. Move all bodies to the display list manager's
-+	 * list of bodies to be freed, they will be garbage-collected by the
-+	 * work queue.
- 	 */
--	if (!list_empty(&dl->fragments)) {
--		list_splice_init(&dl->fragments, &dl->dlm->gc_fragments);
-+	if (!list_empty(&dl->bodies)) {
-+		list_splice_init(&dl->bodies, &dl->dlm->gc_bodies);
- 		schedule_work(&dl->dlm->gc_work);
- 	}
- 
-@@ -379,33 +378,33 @@ void vsp1_dl_list_put(struct vsp1_dl_list *dl)
-  */
- void vsp1_dl_list_write(struct vsp1_dl_list *dl, u32 reg, u32 data)
- {
--	vsp1_dl_fragment_write(&dl->body0, reg, data);
-+	vsp1_dl_body_write(&dl->body0, reg, data);
- }
- 
- /**
-- * vsp1_dl_list_add_fragment - Add a fragment to the display list
-+ * vsp1_dl_list_add_body - Add a body to the display list
-  * @dl: The display list
-- * @dlb: The fragment
-+ * @dlb: The body
-  *
-- * Add a display list body as a fragment to a display list. Registers contained
-- * in fragments are processed after registers contained in the main display
-- * list, in the order in which fragments are added.
-+ * Add a display list body as a body to a display list. Registers contained
-+ * in bodies are processed after registers contained in the main display list,
-+ * in the order in which bodies are added.
-  *
-- * Adding a fragment to a display list passes ownership of the fragment to the
-- * list. The caller must not touch the fragment after this call, and must not
-- * free it explicitly with vsp1_dl_fragment_free().
-+ * Adding a body to a display list passes ownership of the body to the list. The
-+ * caller must not touch the body after this call, and must not free it
-+ * explicitly with vsp1_dl_body_free().
-  *
-- * Fragments are only usable for display lists in header mode. Attempt to
-- * add a fragment to a header-less display list will return an error.
-+ * Additional bodies are only usable for display lists in header mode.
-+ * Attempting to add a body to a header-less display list will return an error.
-  */
--int vsp1_dl_list_add_fragment(struct vsp1_dl_list *dl,
-+int vsp1_dl_list_add_body(struct vsp1_dl_list *dl,
- 			      struct vsp1_dl_body *dlb)
- {
- 	/* Multi-body lists are only available in header mode. */
- 	if (dl->dlm->mode != VSP1_DL_MODE_HEADER)
- 		return -EINVAL;
- 
--	list_add_tail(&dlb->list, &dl->fragments);
-+	list_add_tail(&dlb->list, &dl->bodies);
- 	return 0;
- }
- 
-@@ -454,7 +453,7 @@ static void vsp1_dl_list_fill_header(struct vsp1_dl_list *dl, bool is_last)
- 	hdr->num_bytes = dl->body0.num_entries
- 		       * sizeof(*dl->header->lists);
- 
--	list_for_each_entry(dlb, &dl->fragments, list) {
-+	list_for_each_entry(dlb, &dl->bodies, list) {
- 		num_lists++;
- 		hdr++;
- 
-@@ -710,25 +709,25 @@ void vsp1_dlm_reset(struct vsp1_dl_manager *dlm)
- }
- 
- /*
-- * Free all fragments awaiting to be garbage-collected.
-+ * Free all bodies awaiting to be garbage-collected.
-  *
-  * This function must be called without the display list manager lock held.
-  */
--static void vsp1_dlm_fragments_free(struct vsp1_dl_manager *dlm)
-+static void vsp1_dlm_bodies_free(struct vsp1_dl_manager *dlm)
- {
- 	unsigned long flags;
- 
- 	spin_lock_irqsave(&dlm->lock, flags);
- 
--	while (!list_empty(&dlm->gc_fragments)) {
-+	while (!list_empty(&dlm->gc_bodies)) {
- 		struct vsp1_dl_body *dlb;
- 
--		dlb = list_first_entry(&dlm->gc_fragments, struct vsp1_dl_body,
-+		dlb = list_first_entry(&dlm->gc_bodies, struct vsp1_dl_body,
- 				       list);
- 		list_del(&dlb->list);
- 
- 		spin_unlock_irqrestore(&dlm->lock, flags);
--		vsp1_dl_fragment_free(dlb);
-+		vsp1_dl_body_free(dlb);
- 		spin_lock_irqsave(&dlm->lock, flags);
- 	}
- 
-@@ -740,7 +739,7 @@ static void vsp1_dlm_garbage_collect(struct work_struct *work)
- 	struct vsp1_dl_manager *dlm =
- 		container_of(work, struct vsp1_dl_manager, gc_work);
- 
--	vsp1_dlm_fragments_free(dlm);
-+	vsp1_dlm_bodies_free(dlm);
- }
- 
- struct vsp1_dl_manager *vsp1_dlm_create(struct vsp1_device *vsp1,
-@@ -762,7 +761,7 @@ struct vsp1_dl_manager *vsp1_dlm_create(struct vsp1_device *vsp1,
- 
- 	spin_lock_init(&dlm->lock);
- 	INIT_LIST_HEAD(&dlm->free);
--	INIT_LIST_HEAD(&dlm->gc_fragments);
-+	INIT_LIST_HEAD(&dlm->gc_bodies);
- 	INIT_WORK(&dlm->gc_work, vsp1_dlm_garbage_collect);
- 
- 	for (i = 0; i < prealloc; ++i) {
-@@ -792,5 +791,5 @@ void vsp1_dlm_destroy(struct vsp1_dl_manager *dlm)
- 		vsp1_dl_list_free(dl);
- 	}
- 
--	vsp1_dlm_fragments_free(dlm);
-+	vsp1_dlm_bodies_free(dlm);
- }
-diff --git a/drivers/media/platform/vsp1/vsp1_dl.h b/drivers/media/platform/vsp1/vsp1_dl.h
-index ee3508172f0a..d4f7695c4ed3 100644
---- a/drivers/media/platform/vsp1/vsp1_dl.h
-+++ b/drivers/media/platform/vsp1/vsp1_dl.h
-@@ -16,7 +16,7 @@
- #include <linux/types.h>
- 
- struct vsp1_device;
--struct vsp1_dl_fragment;
-+struct vsp1_dl_body;
- struct vsp1_dl_list;
- struct vsp1_dl_manager;
- 
-@@ -34,12 +34,12 @@ void vsp1_dl_list_put(struct vsp1_dl_list *dl);
- void vsp1_dl_list_write(struct vsp1_dl_list *dl, u32 reg, u32 data);
- void vsp1_dl_list_commit(struct vsp1_dl_list *dl);
- 
--struct vsp1_dl_body *vsp1_dl_fragment_alloc(struct vsp1_device *vsp1,
--					    unsigned int num_entries);
--void vsp1_dl_fragment_free(struct vsp1_dl_body *dlb);
--void vsp1_dl_fragment_write(struct vsp1_dl_body *dlb, u32 reg, u32 data);
--int vsp1_dl_list_add_fragment(struct vsp1_dl_list *dl,
--			      struct vsp1_dl_body *dlb);
-+struct vsp1_dl_body *vsp1_dl_body_alloc(struct vsp1_device *vsp1,
-+					unsigned int num_entries);
-+void vsp1_dl_body_free(struct vsp1_dl_body *dlb);
-+void vsp1_dl_body_write(struct vsp1_dl_body *dlb, u32 reg, u32 data);
-+int vsp1_dl_list_add_body(struct vsp1_dl_list *dl,
-+			  struct vsp1_dl_body *dlb);
- int vsp1_dl_list_add_chain(struct vsp1_dl_list *head, struct vsp1_dl_list *dl);
- 
- #endif /* __VSP1_DL_H__ */
-diff --git a/drivers/media/platform/vsp1/vsp1_lut.c b/drivers/media/platform/vsp1/vsp1_lut.c
-index 63f8127a65a4..32771372bee2 100644
---- a/drivers/media/platform/vsp1/vsp1_lut.c
-+++ b/drivers/media/platform/vsp1/vsp1_lut.c
-@@ -44,19 +44,19 @@ static int lut_set_table(struct vsp1_lut *lut, struct v4l2_ctrl *ctrl)
- 	struct vsp1_dl_body *dlb;
- 	unsigned int i;
- 
--	dlb = vsp1_dl_fragment_alloc(lut->entity.vsp1, 256);
-+	dlb = vsp1_dl_body_alloc(lut->entity.vsp1, 256);
- 	if (!dlb)
- 		return -ENOMEM;
- 
- 	for (i = 0; i < 256; ++i)
--		vsp1_dl_fragment_write(dlb, VI6_LUT_TABLE + 4 * i,
-+		vsp1_dl_body_write(dlb, VI6_LUT_TABLE + 4 * i,
- 				       ctrl->p_new.p_u32[i]);
- 
- 	spin_lock_irq(&lut->lock);
- 	swap(lut->lut, dlb);
- 	spin_unlock_irq(&lut->lock);
- 
--	vsp1_dl_fragment_free(dlb);
-+	vsp1_dl_body_free(dlb);
- 	return 0;
- }
- 
-@@ -171,7 +171,7 @@ static void lut_configure(struct vsp1_entity *entity,
- 		spin_unlock_irqrestore(&lut->lock, flags);
- 
- 		if (dlb)
--			vsp1_dl_list_add_fragment(dl, dlb);
-+			vsp1_dl_list_add_body(dl, dlb);
- 		break;
- 	}
- }
--- 
-git-series 0.9.1
+This handles asynchronous memory copy work - which could equally be encode work
+- so _decode_ might not be an appropriate name here.
+
+>  {
+> -	unsigned int maxlen, nbytes;
+> -	void *mem;
+> +	struct uvc_urb *uvc_urb = container_of(work, struct uvc_urb, work);
+> +	struct uvc_streaming *stream = uvc_urb->stream;
+> +	struct uvc_video_queue *queue = &stream->queue;
+> +	unsigned int i;
+> +	int ret;
+> +
+> +	for (i = 0; i < uvc_urb->packets; i++) {
+> +		struct uvc_decode_op *op = &uvc_urb->decodes[i];
+> +
+> +		memcpy(op->dst, op->src, op->len);
+> +
+> +		/* Release reference taken on this buffer */
+> +		uvc_queue_buffer_release(op->buf);
+> +	}
+> +
+> +	/*
+> +	 * Prevent resubmitting URBs when shutting down to ensure that no new
+> +	 * work item will be scheduled after uvc_stop_streaming() flushes the
+> +	 * work queue.
+> +	 */
+> +	spin_lock_irq(&queue->irqlock);
+> +	if (!(queue->flags & UVC_QUEUE_STOPPING)) {
+> +		ret = usb_submit_urb(uvc_urb->urb, GFP_ATOMIC);
+> +		if (ret < 0)
+> +			uvc_printk(KERN_ERR,
+> +				   "Failed to resubmit video URB (%d).\n",
+> +				   ret);
+> +	}
+> +	spin_unlock_irq(&queue->irqlock);
+> +}
+> +
+> +static void uvc_video_decode_data(struct uvc_decode_op *decode,
+> +		struct uvc_urb *uvc_urb, struct uvc_buffer *buf,
+> +		const __u8 *data, int len)
+> +{
+> +	unsigned int maxlen;
+>  
+>  	if (len <= 0)
+>  		return;
+>  
+> -	/* Copy the video data to the buffer. */
+>  	maxlen = buf->length - buf->bytesused;
+> -	mem = buf->mem + buf->bytesused;
+> -	nbytes = min((unsigned int)len, maxlen);
+> -	memcpy(mem, data, nbytes);
+> -	buf->bytesused += nbytes;
+> +
+> +	/* Take a buffer reference for async work */
+> +	kref_get(&buf->ref);
+> +
+> +	decode->buf = buf;
+> +	decode->src = data;
+> +	decode->dst = buf->mem + buf->bytesused;
+> +	decode->len = min_t(unsigned int, len, maxlen);
+> +
+> +	buf->bytesused += decode->len;
+>  
+>  	/* Complete the current frame if the buffer size was exceeded. */
+>  	if (len > maxlen) {
+> @@ -1080,6 +1126,8 @@ static void uvc_video_decode_data(struct uvc_streaming *stream,
+>  		buf->error = 1;
+>  		buf->state = UVC_BUF_STATE_READY;
+>  	}
+> +
+> +	uvc_urb->packets++;
+>  }
+>  
+>  static void uvc_video_decode_end(struct uvc_streaming *stream,
+> @@ -1162,6 +1210,8 @@ static void uvc_video_decode_isoc(struct uvc_urb *uvc_urb,
+>  	int ret, i;
+>  
+>  	for (i = 0; i < urb->number_of_packets; ++i) {
+> +		struct uvc_decode_op *op = &uvc_urb->decodes[uvc_urb->packets];
+> +
+
+This structure is only ever used by the uvc_video_decode_data() function, and it
+could be obtained in there directly.
+
+
+>  		if (urb->iso_frame_desc[i].status < 0) {
+>  			uvc_trace(UVC_TRACE_FRAME, "USB isochronous frame "
+>  				"lost (%d).\n", urb->iso_frame_desc[i].status);
+> @@ -1187,7 +1237,7 @@ static void uvc_video_decode_isoc(struct uvc_urb *uvc_urb,
+>  			continue;
+>  
+>  		/* Decode the payload data. */
+> -		uvc_video_decode_data(stream, buf, mem + ret,
+> +		uvc_video_decode_data(op, uvc_urb, buf, mem + ret,
+>  			urb->iso_frame_desc[i].actual_length - ret);
+>  
+>  		/* Process the header again. */
+> @@ -1248,9 +1298,12 @@ static void uvc_video_decode_bulk(struct uvc_urb *uvc_urb,
+>  	 * sure buf is never dereferenced if NULL.
+>  	 */
+>  
+> -	/* Process video data. */
+> -	if (!stream->bulk.skip_payload && buf != NULL)
+> -		uvc_video_decode_data(stream, buf, mem, len);
+> +	/* Prepare video data for processing. */
+> +	if (!stream->bulk.skip_payload && buf != NULL) {
+> +		struct uvc_decode_op *op = &uvc_urb->decodes[0];
+
+Again - no reason to obtain this op here.
+
+
+> +
+> +		uvc_video_decode_data(op, uvc_urb, buf, mem, len);
+> +	}
+>  
+>  	/* Detect the payload end by a URB smaller than the maximum size (or
+>  	 * a payload size equal to the maximum) and process the header again.
+> @@ -1322,7 +1375,8 @@ static void uvc_video_complete(struct urb *urb)
+>  	struct uvc_streaming *stream = uvc_urb->stream;
+>  	struct uvc_video_queue *queue = &stream->queue;
+>  	struct uvc_buffer *buf = NULL;
+> -	int ret;
+> +	unsigned long flags;
+> +	bool stopping;
+>  
+>  	switch (urb->status) {
+>  	case 0:
+> @@ -1342,14 +1396,30 @@ static void uvc_video_complete(struct urb *urb)
+>  		return;
+>  	}
+>  
+> +	/*
+> +	 * Simply accept and discard completed URBs without processing when the
+> +	 * stream is being shutdown. URBs will be freed as part of the
+> +	 * uvc_video_enable(s, 0) action, so we must not queue asynchronous
+> +	 * work based upon them.
+> +	 */
+> +	spin_lock_irqsave(&queue->irqlock, flags);
+> +	stopping = queue->flags & UVC_QUEUE_STOPPING;
+> +	spin_unlock_irqrestore(&queue->irqlock, flags);
+> +
+> +	if (stopping)
+> +		return;
+> +
+
+We can race here if the stream gets stopped at this point...! (Thanks Laurent)
+
+
+>  	buf = uvc_queue_get_current_buffer(queue);
+>  
+> +	/* Re-initialise the URB packet work */
+> +	uvc_urb->packets = 0;
+> +
+> +	/* Process the URB headers, but work is deferred to a work queue */
+>  	stream->decode(uvc_urb, buf);
+>  
+> -	if ((ret = usb_submit_urb(urb, GFP_ATOMIC)) < 0) {
+> -		uvc_printk(KERN_ERR, "Failed to resubmit video URB (%d).\n",
+> -			ret);
+> -	}
+> +	/* Handle any heavy lifting required */
+> +	INIT_WORK(&uvc_urb->work, uvc_video_decode_data_work);> +	queue_work(stream->async_wq, &uvc_urb->work);
+
+The encode operations don't currently schedule any work to be done - but the URB
+isn't submitted until the work queue runs, which adds unnecessary latency to
+non-async functionality.!
+
+>  }
+>  
+>  /*
+> @@ -1620,6 +1690,11 @@ static int uvc_init_video(struct uvc_streaming *stream, gfp_t gfp_flags)
+>  
+>  	uvc_video_stats_start(stream);
+>  
+> +	stream->async_wq = alloc_workqueue("uvcvideo", WQ_UNBOUND | WQ_HIGHPRI,
+> +			0);
+> +	if (!stream->async_wq)
+> +		return -ENOMEM;
+> +
+>  	if (intf->num_altsetting > 1) {
+>  		struct usb_host_endpoint *best_ep = NULL;
+>  		unsigned int best_psize = UINT_MAX;
+> diff --git a/drivers/media/usb/uvc/uvcvideo.h b/drivers/media/usb/uvc/uvcvideo.h
+> index 6a18dbfc3e5b..13dc0b2bb8b9 100644
+> --- a/drivers/media/usb/uvc/uvcvideo.h
+> +++ b/drivers/media/usb/uvc/uvcvideo.h
+> @@ -411,6 +411,7 @@ struct uvc_buffer {
+>  
+>  #define UVC_QUEUE_DISCONNECTED		(1 << 0)
+>  #define UVC_QUEUE_DROP_CORRUPTED	(1 << 1)
+> +#define UVC_QUEUE_STOPPING		(1 << 2)
+>  
+>  struct uvc_video_queue {
+>  	struct vb2_queue queue;
+> @@ -483,12 +484,30 @@ struct uvc_stats_stream {
+>  };
+>  
+>  /**
+> + * struct uvc_decode_op: Context structure to schedule asynchronous memcpy
+> + *
+> + * @buf: active buf object for this decode
+> + * @dst: copy destination address
+> + * @src: copy source address
+> + * @len: copy length
+> + */
+> +struct uvc_decode_op {
+> +	struct uvc_buffer *buf;
+> +	void *dst;
+> +	const __u8 *src;
+> +	int len;
+> +};
+> +
+> +/**
+>   * struct uvc_urb - URB context management structure
+>   *
+>   * @urb: the URB described by this context structure
+>   * @stream: UVC streaming context
+>   * @buffer: memory storage for the URB
+>   * @dma: DMA coherent addressing for the urb_buffer
+> + * @packets: counter to indicate the number of copy operations
+> + * @decodes: work descriptors for asynchronous copy operations
+> + * @work: work queue entry for asynchronous decode
+>   */
+>  struct uvc_urb {
+>  	struct urb *urb;
+> @@ -496,6 +515,10 @@ struct uvc_urb {
+>  
+>  	char *buffer;
+>  	dma_addr_t dma;
+> +
+> +	unsigned int packets;
+> +	struct uvc_decode_op decodes[UVC_MAX_PACKETS];
+
+Whilst not currently, the encode functions could also use this system - so
+perhaps decodes isn't the right name here.
+
+	struct uvc_copy_op copy_operations[UVC_MAX_PACKETS];
+
+might be a better description
+
+> +	struct work_struct work;
+>  };
+>  
+>  struct uvc_streaming {
+> @@ -528,6 +551,7 @@ struct uvc_streaming {
+>  	/* Buffers queue. */
+>  	unsigned int frozen : 1;
+>  	struct uvc_video_queue queue;
+> +	struct workqueue_struct *async_wq;
+>  	void (*decode)(struct uvc_urb *uvc_urb, struct uvc_buffer *buf);
+>  
+>  	/* Context data used by the bulk completion handler. */
+> 
