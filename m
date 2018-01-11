@@ -1,77 +1,141 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from sub5.mail.dreamhost.com ([208.113.200.129]:45903 "EHLO
-        homiemail-a123.g.dreamhost.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751926AbeAPUOI (ORCPT
+Received: from metis.ext.pengutronix.de ([85.220.165.71]:57635 "EHLO
+        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754713AbeALK1O (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 16 Jan 2018 15:14:08 -0500
-Subject: Re: [PATCH 4/7] si2168: Add ts bus coontrol, turn off bus on sleep
-To: Antti Palosaari <crope@iki.fi>, Brad Love <brad@nextdimension.cc>,
-        linux-media@vger.kernel.org
-References: <1515773982-6411-1-git-send-email-brad@nextdimension.cc>
- <1515773982-6411-5-git-send-email-brad@nextdimension.cc>
- <ce8faa6a-0ffb-a432-e269-58486c857fea@iki.fi>
- <0770dc98-9153-e386-ca54-b7e4123b774d@nextdimension.cc>
- <3dbf6692-ea03-38d1-a6c0-3291cf48dbae@iki.fi>
-From: Brad Love <brad@nextdimension.cc>
-Message-ID: <491ebce5-cc46-5c1b-b223-f46d5f387285@nextdimension.cc>
-Date: Tue, 16 Jan 2018 14:14:07 -0600
-MIME-Version: 1.0
-In-Reply-To: <3dbf6692-ea03-38d1-a6c0-3291cf48dbae@iki.fi>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Content-Language: en-GB
+        Fri, 12 Jan 2018 05:27:14 -0500
+Message-ID: <1515669224.12538.53.camel@pengutronix.de>
+Subject: Re: [Linaro-mm-sig] [PATCH] dma-buf: add some lockdep asserts to
+ the reservation object implementation
+From: Lucas Stach <l.stach@pengutronix.de>
+To: christian.koenig@amd.com, Sumit Semwal <sumit.semwal@linaro.org>
+Cc: linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org,
+        dri-devel@lists.freedesktop.org, kernel@pengutronix.de,
+        patchwork-lst@pengutronix.de
+Date: Thu, 11 Jan 2018 12:13:44 +0100
+In-Reply-To: <7a1961d2-2701-e3e9-ae24-08b8fcfb9dd4@gmail.com>
+References: <20171201111216.7050-1-l.stach@pengutronix.de>
+         <1515667384.12538.51.camel@pengutronix.de>
+         <7a1961d2-2701-e3e9-ae24-08b8fcfb9dd4@gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Am Donnerstag, den 11.01.2018, 11:54 +0100 schrieb Christian König:
+> Yeah, somehow missed that one.
+> 
+> The patch looks mostly good, except for reservation_object_get_excl().
+> 
+> For that one an RCU protection is usually sufficient, so annotating it 
+> with reservation_object_assert_held() sounds incorrect to me.
 
-On 2018-01-16 13:32, Antti Palosaari wrote:
-> On 01/16/2018 07:31 PM, Brad Love wrote:
->>
->> On 2018-01-15 23:07, Antti Palosaari wrote:
->>> Hello
->>> And what is rationale here, is there some use case demod must be
->>> active and ts set to tristate (disabled)? Just put demod sleep when
->>> you don't use it.
->>>
->>> regards
->>> Antti
->>
->> Hello Antti,
->>
->> Perhaps the .ts_bus_ctrl callback does not need to be included in ops,
->> but the function is necessary. The demod is already put to sleep when
->> not in use, but it leaves the ts bus open. The ts bus has no reason to
->> be open when the demod is put to sleep. Leaving the ts bus open during
->> sleep affects the other connected demod and nothing is received by it.
->> The lgdt3306a driver already tri states its ts bus when put to sleep,
->> the si2168 should as well.
->
-> Sounds possible, but unlikely as chip is firmware driven. When you put
-> chip to sleep you usually want set ts pins to tristate (also other
-> unused pins) in order to save energy. I haven't never tested it anyway
-> though, so it could be possible it leaves those pins to some other
-> state like random output at given time.
->
-> And if you cannot get stream from lgdt3306a, which is connected to
-> same bus, it really sounds like ts bus pins are left some state
-> (cannot work if same pin is driven high to other demod whilst other
-> tries to drive it low.
->
-> Setting ts pins to tri-state during sleep should resolve your issue.
+Ah, you are correct. I was confused about this one as
+reservation_object_get_excl_rcu() exists and and the doc
+above reservation_object_get_excl() states "The obj->lock must be
+held.", which is misleading for the read-only case.
 
-Hello Antti,
+I'll send a v2 with that fixed.
 
-This patch fixes the issue I'm describing, hence why I submitted it. The
-ts bus must be tristated before putting the chip to sleep for the other
-demod to get a stream.
+Regards,
+Lucas
 
-Cheers,
-
-Brad
-
-
-
->
->
-> regards
-> Antti
+> Regards,
+> Christian.
+> 
+> Am 11.01.2018 um 11:43 schrieb Lucas Stach:
+> > Did this fall through the cracks over the holidays? It really has made
+> > my work much easier while reworking some of the reservation object
+> > handling in etnaviv and I think it might benefit others.
+> > 
+> > Regards,
+> > Lucas
+> > 
+> > Am Freitag, den 01.12.2017, 12:12 +0100 schrieb Lucas Stach:
+> > > This adds lockdep asserts to the reservation functions which state in their
+> > > documentation that obj->lock must be held. Allows builds with PROVE_LOCKING
+> > > enabled to check that the locking requirements are met.
+> > > 
+> > > > Signed-off-by: Lucas Stach <l.stach@pengutronix.de>
+> > > 
+> > > ---
+> > >   drivers/dma-buf/reservation.c | 8 ++++++++
+> > >   include/linux/reservation.h   | 2 ++
+> > >   2 files changed, 10 insertions(+)
+> > > 
+> > > diff --git a/drivers/dma-buf/reservation.c b/drivers/dma-buf/reservation.c
+> > > index b44d9d7db347..accd398e2ea6 100644
+> > > --- a/drivers/dma-buf/reservation.c
+> > > +++ b/drivers/dma-buf/reservation.c
+> > > @@ -71,6 +71,8 @@ int reservation_object_reserve_shared(struct reservation_object *obj)
+> > > > > > > >   	struct reservation_object_list *fobj, *old;
+> > > >   	u32 max;
+> > > 
+> > >   
+> > > > +	reservation_object_assert_held(obj);
+> > > 
+> > > +
+> > > >   	old = reservation_object_get_list(obj);
+> > > 
+> > >   
+> > > >   	if (old && old->shared_max) {
+> > > 
+> > > @@ -211,6 +213,8 @@ void reservation_object_add_shared_fence(struct reservation_object *obj,
+> > >   {
+> > > >   	struct reservation_object_list *old, *fobj = obj->staged;
+> > > 
+> > >   
+> > > > +	reservation_object_assert_held(obj);
+> > > 
+> > > +
+> > > > > > > >   	old = reservation_object_get_list(obj);
+> > > >   	obj->staged = NULL;
+> > > 
+> > >   
+> > > @@ -236,6 +240,8 @@ void reservation_object_add_excl_fence(struct reservation_object *obj,
+> > > > > > > >   	struct reservation_object_list *old;
+> > > >   	u32 i = 0;
+> > > 
+> > >   
+> > > > +	reservation_object_assert_held(obj);
+> > > 
+> > > +
+> > > > > > > >   	old = reservation_object_get_list(obj);
+> > > > > > > >   	if (old)
+> > > >   		i = old->shared_count;
+> > > 
+> > > @@ -276,6 +282,8 @@ int reservation_object_copy_fences(struct reservation_object *dst,
+> > > > > > > >   	size_t size;
+> > > >   	unsigned i;
+> > > 
+> > >   
+> > > > +	reservation_object_assert_held(dst);
+> > > 
+> > > +
+> > > > > > > >   	rcu_read_lock();
+> > > >   	src_list = rcu_dereference(src->fence);
+> > > 
+> > >   
+> > > diff --git a/include/linux/reservation.h b/include/linux/reservation.h
+> > > index 21fc84d82d41..55e7318800fd 100644
+> > > --- a/include/linux/reservation.h
+> > > +++ b/include/linux/reservation.h
+> > > @@ -212,6 +212,8 @@ reservation_object_unlock(struct reservation_object *obj)
+> > >   static inline struct dma_fence *
+> > >   reservation_object_get_excl(struct reservation_object *obj)
+> > >   {
+> > > > +	reservation_object_assert_held(obj);
+> > > 
+> > > +
+> > > > > > > >   	return rcu_dereference_protected(obj->fence_excl,
+> > > >   					 reservation_object_held(obj));
+> > > 
+> > >   }
+> > 
+> > _______________________________________________
+> > dri-devel mailing list
+> > dri-devel@lists.freedesktop.org
+> > https://lists.freedesktop.org/mailman/listinfo/dri-devel
+> 
+> 
