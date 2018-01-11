@@ -1,114 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:55256 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1756245AbeARNSc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 18 Jan 2018 08:18:32 -0500
-Date: Thu, 18 Jan 2018 13:18:37 +0000
-From: Will Deacon <will.deacon@arm.com>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        kernel-hardening@lists.openwall.com,
-        Peter Zijlstra <peterz@infradead.org>,
-        Alan Cox <alan.cox@intel.com>,
-        Alexei Starovoitov <ast@kernel.org>,
-        Solomon Peachy <pizza@shaftnet.org>,
-        "H. Peter Anvin" <hpa@zytor.com>,
-        Christian Lamparter <chunkeey@googlemail.com>,
-        Elena Reshetova <elena.reshetova@intel.com>,
-        linux-arch@vger.kernel.org, Andi Kleen <ak@linux.intel.com>,
-        "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>,
-        Linux SCSI List <linux-scsi@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>,
-        the arch/x86 maintainers <x86@kernel.org>,
-        Russell King <linux@armlinux.org.uk>,
-        Ingo Molnar <mingo@redhat.com>,
-        Catalin Marinas <catalin.marinas@arm.com>,
-        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Tom Lendacky <thomas.lendacky@amd.com>,
-        Kees Cook <keescook@chromium.org>, Jan Kara <jack@suse.com>,
-        Al Viro <viro@zeniv.linux.org.uk>, qla2xxx-upstream@qlogic.com,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Kalle Valo <kvalo@codeaurora.org>,
-        Alan Cox <alan@linux.intel.com>,
-        "Martin K. Petersen" <martin.petersen@oracle.com>,
-        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
-        Greg KH <gregkh@linuxfoundation.org>,
-        Linux Wireless List <linux-wireless@vger.kernel.org>,
-        "Eric W. Biederman" <ebiederm@xmission.com>,
-        Network Development <netdev@vger.kernel.org>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH v2 00/19] prevent bounds-check bypass via speculative
- execution
-Message-ID: <20180118131837.GA20783@arm.com>
-References: <151571798296.27429.7166552848688034184.stgit@dwillia2-desk3.amr.corp.intel.com>
- <CA+55aFzNQ8CZ8iNcPXrCfyk=1edMiRGDA0fY0rd87BsFKBxgAw@mail.gmail.com>
- <CAPcyv4gPcV7MRumSJNz6nDw=HhKO4MK2QqKbj4uc_6APsSFr+g@mail.gmail.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:36250 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1754278AbeAKMne (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 11 Jan 2018 07:43:34 -0500
+Received: from valkosipuli.localdomain (valkosipuli.retiisi.org.uk [IPv6:2001:1bc8:1a6:d3d5::80:2])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by hillosipuli.retiisi.org.uk (Postfix) with ESMTPS id 3B74E60100
+        for <linux-media@vger.kernel.org>; Thu, 11 Jan 2018 14:43:32 +0200 (EET)
+Received: from sakke by valkosipuli.localdomain with local (Exim 4.89)
+        (envelope-from <sakari.ailus@retiisi.org.uk>)
+        id 1eZcCh-0005ac-Kl
+        for linux-media@vger.kernel.org; Thu, 11 Jan 2018 14:43:31 +0200
+Date: Thu, 11 Jan 2018 14:43:31 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Subject: [GIT PULL for 4.16] Print fwnode parsing results, add nop
+ media_entity_cleanup
+Message-ID: <20180111124330.cgsvv5wugb527gl4@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <CAPcyv4gPcV7MRumSJNz6nDw=HhKO4MK2QqKbj4uc_6APsSFr+g@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Dan, Linus,
+Hi Mauro,
 
-On Thu, Jan 11, 2018 at 05:41:08PM -0800, Dan Williams wrote:
-> On Thu, Jan 11, 2018 at 5:19 PM, Linus Torvalds
-> <torvalds@linux-foundation.org> wrote:
-> > On Thu, Jan 11, 2018 at 4:46 PM, Dan Williams <dan.j.williams@intel.com> wrote:
-> >>
-> >> This series incorporates Mark Rutland's latest ARM changes and adds
-> >> the x86 specific implementation of 'ifence_array_ptr'. That ifence
-> >> based approach is provided as an opt-in fallback, but the default
-> >> mitigation, '__array_ptr', uses a 'mask' approach that removes
-> >> conditional branches instructions, and otherwise aims to redirect
-> >> speculation to use a NULL pointer rather than a user controlled value.
-> >
-> > Do you have any performance numbers and perhaps example code
-> > generation? Is this noticeable? Are there any microbenchmarks showing
-> > the difference between lfence use and the masking model?
-> 
-> I don't have performance numbers, but here's a sample code generation
-> from __fcheck_files, where the 'and; lea; and' sequence is portion of
-> array_ptr() after the mask generation with 'sbb'.
-> 
->         fdp = array_ptr(fdt->fd, fd, fdt->max_fds);
->      8e7:       8b 02                   mov    (%rdx),%eax
->      8e9:       48 39 c7                cmp    %rax,%rdi
->      8ec:       48 19 c9                sbb    %rcx,%rcx
->      8ef:       48 8b 42 08             mov    0x8(%rdx),%rax
->      8f3:       48 89 fe                mov    %rdi,%rsi
->      8f6:       48 21 ce                and    %rcx,%rsi
->      8f9:       48 8d 04 f0             lea    (%rax,%rsi,8),%rax
->      8fd:       48 21 c8                and    %rcx,%rax
-> 
-> 
-> > Having both seems good for testing, but wouldn't we want to pick one in the end?
-> 
-> I was thinking we'd keep it as a 'just in case' sort of thing, at
-> least until the 'probably safe' assumption of the 'mask' approach has
-> more time to settle out.
+This pull request adds printing fwnode parsing debug information and a nop
+variant for media_entity_cleanup, which makes a little easier to write
+drivers that support operation with and without MC.
 
->From the arm64 side, the only concern I have (and this actually applies to
-our CSDB sequence as well) is the calculation of the array size by the
-caller. As Linus mentioned at the end of [1], if the determination of the
-size argument is based on a conditional branch, then masking doesn't help
-because you bound within the wrong range under speculation.
+Please pull.
 
-We ran into this when trying to use masking to protect our uaccess routines
-where the conditional bound is either KERNEL_DS or USER_DS. It's possible
-that a prior conditional set_fs(KERNEL_DS) could defeat the masking and so
-we'd need to throw some heavy barriers in set_fs to make it robust.
+The following changes since commit e3ee691dbf24096ea51b3200946b11d68ce75361:
 
-The question then is whether or not we're likely to run into this elsewhere,
-and I don't have a good feel for that.
+  media: ov5640: add support of RGB565 and YUYV formats (2018-01-05 12:54:14 -0500)
 
-Will
+are available in the git repository at:
 
-[1] http://lkml.kernel.org/r/CA+55aFz0tsreoa=5Ud2noFCpng-dizLBhT9WU9asyhpLfjdcYA@mail.gmail.com
+  ssh://linuxtv.org/git/sailus/media_tree.git for-4.16-3
+
+for you to fetch changes up to 5a7d72afcc70c9842a3738becec2d76bfbe2eeb4:
+
+  media: entity: Add a nop variant of media_entity_cleanup (2018-01-11 14:14:27 +0200)
+
+----------------------------------------------------------------
+Sakari Ailus (2):
+      v4l: fwnode: Add debug prints for V4L2 endpoint property parsing
+      media: entity: Add a nop variant of media_entity_cleanup
+
+ drivers/media/i2c/mt9m111.c           |   2 -
+ drivers/media/i2c/ov2640.c            |   4 --
+ drivers/media/i2c/ov2659.c            |   4 --
+ drivers/media/i2c/ov7670.c            |   4 --
+ drivers/media/i2c/ov7740.c            |   2 -
+ drivers/media/i2c/tvp514x.c           |   4 --
+ drivers/media/v4l2-core/v4l2-fwnode.c | 101 +++++++++++++++++++++++++++-------
+ include/media/media-entity.h          |   6 +-
+ 8 files changed, 85 insertions(+), 42 deletions(-)
+
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
