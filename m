@@ -1,127 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:39938 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751110AbeAVMTT (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:33380 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S932086AbeAKITQ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 22 Jan 2018 07:19:19 -0500
-Subject: Re: [PATCH 2/9] media: convert g/s_parm to g/s_frame_interval in
- subdevs
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-References: <20180122101857.51401-1-hverkuil@xs4all.nl>
- <20180122101857.51401-3-hverkuil@xs4all.nl>
- <20180122102644.4n5yv7z4y3a47n3z@paasikivi.fi.intel.com>
- <9198b319-6821-0263-044e-3ccbc73c61f8@xs4all.nl>
- <20180122105933.uhfeqon5jnv22gbh@paasikivi.fi.intel.com>
-Cc: linux-media@vger.kernel.org,
-        Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <642fe0fa-ac26-92b7-e807-91006cc4d3d4@xs4all.nl>
-Date: Mon, 22 Jan 2018 13:19:16 +0100
+        Thu, 11 Jan 2018 03:19:16 -0500
+Date: Thu, 11 Jan 2018 10:19:13 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Hugues FRUCHET <hugues.fruchet@st.com>
+Cc: Maxime Ripard <maxime.ripard@free-electrons.com>,
+        Yong Deng <yong.deng@magewell.com>,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Subject: Re: [PATCH v5 0/5] Add OV5640 parallel interface and RGB565/YUYV
+ support
+Message-ID: <20180111081912.curkvpguof6ul555@valkosipuli.retiisi.org.uk>
+References: <1514973452-10464-1-git-send-email-hugues.fruchet@st.com>
+ <20180108153811.5xrvbaekm6nxtoa6@flea>
+ <3010811e-ed37-4489-6a9f-6cc835f41575@st.com>
+ <20180110153724.l77zpdgxfbzkznuf@flea>
+ <2089de18-1f7f-6d6e-7aee-9dc424bca335@st.com>
+ <20180110222508.4x5kimanevttmqis@valkosipuli.retiisi.org.uk>
+ <6661b493-5f2a-b201-390d-e3452e6873a0@st.com>
 MIME-Version: 1.0
-In-Reply-To: <20180122105933.uhfeqon5jnv22gbh@paasikivi.fi.intel.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <6661b493-5f2a-b201-390d-e3452e6873a0@st.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 22/01/18 11:59, Sakari Ailus wrote:
-> Hi Hans,
+On Thu, Jan 11, 2018 at 08:12:11AM +0000, Hugues FRUCHET wrote:
+> Hi Sakari,
 > 
-> On Mon, Jan 22, 2018 at 11:33:28AM +0100, Hans Verkuil wrote:
->> On 22/01/18 11:26, Sakari Ailus wrote:
->>> Hi Hans,
->>>
->>> On Mon, Jan 22, 2018 at 11:18:50AM +0100, Hans Verkuil wrote:
->>>> From: Hans Verkuil <hans.verkuil@cisco.com>
->>>>
->>>> Convert all g/s_parm calls to g/s_frame_interval. This allows us
->>>> to remove the g/s_parm ops since those are a duplicate of
->>>> g/s_frame_interval.
->>>>
->>>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
->>>> ---
->>>>  drivers/media/i2c/mt9v011.c                     | 29 +++++++++----------
->>>>  drivers/media/i2c/ov6650.c                      | 33 ++++++++++------------
->>>>  drivers/media/i2c/ov7670.c                      | 26 +++++++++--------
->>>>  drivers/media/i2c/ov7740.c                      | 29 ++++++++-----------
->>>>  drivers/media/i2c/tvp514x.c                     | 37 +++++++++++--------------
->>>>  drivers/media/i2c/vs6624.c                      | 29 ++++++++++---------
->>>>  drivers/media/platform/atmel/atmel-isc.c        | 10 ++-----
->>>>  drivers/media/platform/atmel/atmel-isi.c        | 12 ++------
->>>>  drivers/media/platform/blackfin/bfin_capture.c  | 14 +++-------
->>>>  drivers/media/platform/marvell-ccic/mcam-core.c | 12 ++++----
->>>>  drivers/media/platform/soc_camera/soc_camera.c  | 10 ++++---
->>>>  drivers/media/platform/via-camera.c             |  4 +--
->>>>  drivers/media/usb/em28xx/em28xx-video.c         | 36 ++++++++++++++++++++----
->>>>  13 files changed, 137 insertions(+), 144 deletions(-)
->>>>
->>>> diff --git a/drivers/media/i2c/mt9v011.c b/drivers/media/i2c/mt9v011.c
->>>> index 5e29064fae91..0e0bcc8b67ca 100644
->>>> --- a/drivers/media/i2c/mt9v011.c
->>>> +++ b/drivers/media/i2c/mt9v011.c
->>>> @@ -364,33 +364,30 @@ static int mt9v011_set_fmt(struct v4l2_subdev *sd,
->>>>  	return 0;
->>>>  }
->>>>  
->>>> -static int mt9v011_g_parm(struct v4l2_subdev *sd, struct v4l2_streamparm *parms)
->>>> +static int mt9v011_g_frame_interval(struct v4l2_subdev *sd,
->>>> +				    struct v4l2_subdev_frame_interval *ival)
->>>>  {
->>>> -	struct v4l2_captureparm *cp = &parms->parm.capture;
->>>> -
->>>> -	if (parms->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
->>>> +	if (ival->pad)
->>>>  		return -EINVAL;
->>>
->>> The pad number checks are already present in v4l2-subdev.c. Do you think
->>> we'll need them in drivers as well?
->>>
->>> It's true that another driver could mis-use this interface. In that case
->>> I'd introduce a wrapper to the op rather than introduce the check in every
->>> driver.
->>
->> I'm not that keen on introducing wrappers for an op. I wouldn't actually know
->> how to implement that cleanly. Since the pad check is subdev driver specific,
->> and the overhead of a wrapper is almost certainly higher than just doing this
->> check I feel it is OK to do this.
-> 
-> For a majority of drivers, the check is that the pad must be a valid
-> pad in an entity. The case where the overhead could matter (it's just a
-> single if) is when called through an IOCTL from the user space. And the
-> subdevices' IOCTL handler already performs this check. The wrapper would
-> simply extend the check to other drivers calling the op.
-> 
-> It's easy to miss such checks in drivers. We've had quite a few such cases
-> in the past. Performing the check universally would make the framework more
-> robust.
-> 
-> What comes to this patchset, I'd omit the pad number check as other drivers
-> don't do such checks either --- unless the check is more strict than what
-> the interface allows.
+> On 01/10/2018 11:25 PM, Sakari Ailus wrote:
+> > Hi Hugues,
+> > 
+> > On Wed, Jan 10, 2018 at 03:51:07PM +0000, Hugues FRUCHET wrote:
+> >> Good news Maxime !
+> >>
+> >> Have you seen that you can adapt the polarities through devicetree ?
+> >>
+> >> +                       /* Parallel bus endpoint */
+> >> +                       ov5640_to_parallel: endpoint {
+> >> [...]
+> >> +                               hsync-active = <0>;
+> >> +                               vsync-active = <0>;
+> >> +                               pclk-sample = <1>;
+> >> +                       };
+> >>
+> >> Doing so you can adapt to your SoC/board setup easily.
+> >>
+> >> If you don't put those lines in devicetree, the ov5640 default init
+> >> sequence is used which set the polarity as defined in below comment:
+> >> ov5640_set_stream_dvp()
+> >> [...]
+> >> +        * Control lines polarity can be configured through
+> >> +        * devicetree endpoint control lines properties.
+> >> +        * If no endpoint control lines properties are set,
+> >> +        * polarity will be as below:
+> >> +        * - VSYNC:     active high
+> >> +        * - HREF:      active low
+> >> +        * - PCLK:      active low
+> >> +        */
+> >> [...]
+> > 
+> > The properties are at the moment documented as mandatory in DT binding
+> > documentation.
+> > 
+> of course, it was just to ask Maxime to check the devicetree on its 
+> side, the symptom observed by Maxime with hsync/vsync inversed is the 
+> same than the one observed if we stick to just default init sequence.
 
-I'll remove the check.
+I wonder if the driver should be changed to require hsync and vsync. These
+signals won't be there at all in Bt.656 mode.
 
-	Hans
-
-> 
->>
->>>
->>>>  
->>>> -	memset(cp, 0, sizeof(struct v4l2_captureparm));
->>>> -	cp->capability = V4L2_CAP_TIMEPERFRAME;
->>>> +	memset(ival->reserved, 0, sizeof(ival->reserved));
->>>>  	calc_fps(sd,
->>>> -		 &cp->timeperframe.numerator,
->>>> -		 &cp->timeperframe.denominator);
->>>> +		 &ival->interval.numerator,
->>>> +		 &ival->interval.denominator);
->>>>  
->>>>  	return 0;
->>>>  }
->>
->> Regards,
->>
->> 	Hans
->>
-> 
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
