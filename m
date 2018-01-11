@@ -1,134 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:45701 "EHLO
-        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750757AbeASEqx (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:47410 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932483AbeAKSla (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 18 Jan 2018 23:46:53 -0500
-Message-ID: <7514956ee8a8f775965895b5261bbca4@smtp-cloud8.xs4all.net>
-Date: Fri, 19 Jan 2018 05:46:49 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+        Thu, 11 Jan 2018 13:41:30 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Shuah Khan <shuahkh@osg.samsung.com>
+Cc: mchehab@kernel.org, shuah@kernel.org, sakari.ailus@linux.intel.com,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] media: v4l2-core: v4l2-mc: Add SPDX license identifier
+Date: Thu, 11 Jan 2018 20:42:04 +0200
+Message-ID: <1730571.xFN9zJKHcq@avalon>
+In-Reply-To: <9e7fdf1e-64f5-093a-e1ad-a64653791429@osg.samsung.com>
+References: <20180110163540.8396-1-shuahkh@osg.samsung.com> <2473844.IFKS5XRpDA@avalon> <9e7fdf1e-64f5-093a-e1ad-a64653791429@osg.samsung.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Shuah,
 
-Results of the daily build of media_tree:
+On Thursday, 11 January 2018 17:45:15 EET Shuah Khan wrote:
+> On 01/11/2018 05:55 AM, Laurent Pinchart wrote:
+> > On Wednesday, 10 January 2018 18:35:36 EET Shuah Khan wrote:
+> >> Replace GPL license statement with SPDX GPL-2.0 license identifier.
+> >> 
+> >> Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+> >> ---
+> >> 
+> >>  drivers/media/v4l2-core/v4l2-mc.c | 11 +----------
+> >>  1 file changed, 1 insertion(+), 10 deletions(-)
+> >> 
+> >> diff --git a/drivers/media/v4l2-core/v4l2-mc.c
+> >> b/drivers/media/v4l2-core/v4l2-mc.c index 303980b71aae..1297132acd4e
+> >> 100644
+> >> --- a/drivers/media/v4l2-core/v4l2-mc.c
+> >> +++ b/drivers/media/v4l2-core/v4l2-mc.c
+> >> @@ -1,3 +1,4 @@
+> >> +/* SPDX-License-Identifier: GPL-2.0 */
+> > 
+> > The header doesn't match the existing license.
+> 
+> When I added the file, I must have cut and pasted the license statement
+> from another file. More on this below the deleted license lines.
+> 
+> > Furthermore, unless I'm mistaken, the standard comment style for SPDX
+> > headers in the kernel is //, not /* ... */
+> 
+> Looks like we have 3 conventions for SPDX comment style.
+> /* ... */ for headers and # ... for shell scripts and
+> // for .c files.
+> 
+> I can update it it and send v2 provided we think the change is inline
+> with the original license.
 
-date:			Fri Jan 19 05:00:15 CET 2018
-media-tree git hash:	e3ee691dbf24096ea51b3200946b11d68ce75361
-media_build git hash:	2bd1f1623fbadfdc1026712b3d55141ba164c403
-v4l-utils git hash:	7eadec47ff4db4a032612349c362f3337b29d485
-gcc version:		i686-linux-gcc (GCC) 7.1.0
-sparse version:		v0.5.0-3911-g6f737e1f
-smatch version:		v0.5.0-3911-g6f737e1f
-host hardware:		x86_64
-host os:		4.13.0-164
+Personally I prefer the /* ... */ comment style, but I noticed that Greg used 
+// in his large patch the adds SPDX license headers, so I think we should 
+follow the established practice. I'll let you investigate to find what is 
+preferred :)
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: ERRORS
-linux-3.12.67-i686: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: ERRORS
-linux-3.15.2-i686: ERRORS
-linux-3.16.7-i686: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.18.7-i686: ERRORS
-linux-3.19-i686: ERRORS
-linux-4.0.9-i686: ERRORS
-linux-4.1.33-i686: ERRORS
-linux-4.2.8-i686: ERRORS
-linux-4.3.6-i686: ERRORS
-linux-4.4.22-i686: ERRORS
-linux-4.5.7-i686: ERRORS
-linux-4.6.7-i686: ERRORS
-linux-4.7.5-i686: ERRORS
-linux-4.8-i686: ERRORS
-linux-4.9.26-i686: ERRORS
-linux-4.10.14-i686: WARNINGS
-linux-4.11-i686: WARNINGS
-linux-4.12.1-i686: WARNINGS
-linux-4.13-i686: WARNINGS
-linux-4.14-i686: WARNINGS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.67-x86_64: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-x86_64: ERRORS
-linux-3.15.2-x86_64: ERRORS
-linux-3.16.7-x86_64: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.7-x86_64: ERRORS
-linux-3.19-x86_64: ERRORS
-linux-4.0.9-x86_64: ERRORS
-linux-4.1.33-x86_64: ERRORS
-linux-4.2.8-x86_64: ERRORS
-linux-4.3.6-x86_64: ERRORS
-linux-4.4.22-x86_64: ERRORS
-linux-4.5.7-x86_64: ERRORS
-linux-4.6.7-x86_64: ERRORS
-linux-4.7.5-x86_64: ERRORS
-linux-4.8-x86_64: ERRORS
-linux-4.9.26-x86_64: ERRORS
-linux-4.10.14-x86_64: WARNINGS
-linux-4.11-x86_64: WARNINGS
-linux-4.12.1-x86_64: WARNINGS
-linux-4.13-x86_64: WARNINGS
-linux-4.14-x86_64: WARNINGS
-apps: OK
-spec-git: OK
-smatch: OK
+> >>  /*
+> >>  
+> >>   * Media Controller ancillary functions
+> >>   *
+> >> 
+> >> @@ -5,16 +6,6 @@
+> >> 
+> >>   * Copyright (C) 2016 Shuah Khan <shuahkh@osg.samsung.com>
+> >>   * Copyright (C) 2006-2010 Nokia Corporation
+> >>   * Copyright (c) 2016 Intel Corporation.
+> >> 
+> >> - *
+> >> - *  This program is free software; you can redistribute it and/or modify
+> >> - *  it under the terms of the GNU General Public License as published by
+> >> - *  the Free Software Foundation; either version 2 of the License, or
+> >> - *  (at your option) any later version.
+> 
+> Are you concerned about the "or (at your option) any later version." part
+> that it doesn't match?
 
-Detailed results are available here:
+Yes, that's my concern. I'm personally fine with GPL-2.0-only, but you'll have 
+a hard time contacting all the other copyright holders if you want to 
+relicense this. Good luck getting hold of the appropriate legal department at 
+Nokia :-)
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
+On a related note, I nowadays encourage developers to keep their copyright on 
+code they wrote when possible, and to at least negotiate that with their 
+employers.
 
-Full logs are available here:
+> >> - *
+> >> - *  This program is distributed in the hope that it will be useful,
+> >> - *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+> >> - *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> >> - *  GNU General Public License for more details.
+> >>   */
+> >>  
+> >>  #include <linux/module.h>
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+-- 
+Regards,
 
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+Laurent Pinchart
