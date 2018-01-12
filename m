@@ -1,79 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:36670 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752141AbeAWNVe (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 23 Jan 2018 08:21:34 -0500
-Date: Tue, 23 Jan 2018 11:21:27 -0200
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [GIT PULL for 4.16] CIO2 compiler warning fix
-Message-ID: <20180123112127.6cd6fe24@vela.lan>
-In-Reply-To: <20180123125600.ifcsieuywln2bg6g@valkosipuli.retiisi.org.uk>
-References: <20180109223517.lkj4opdpm64jpf5d@valkosipuli.retiisi.org.uk>
-        <20180123104008.25ebdef5@vela.lan>
-        <20180123125600.ifcsieuywln2bg6g@valkosipuli.retiisi.org.uk>
+Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:35776 "EHLO
+        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S932797AbeALMFM (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 12 Jan 2018 07:05:12 -0500
+Subject: Re: [PATCH v7 2/6] [media] v4l: add 'unordered' flag to format
+ description ioctl
+To: Gustavo Padovan <gustavo@padovan.org>, linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        Pawel Osciak <pawel@osciak.com>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Brian Starkey <brian.starkey@arm.com>,
+        Thierry Escande <thierry.escande@collabora.com>,
+        linux-kernel@vger.kernel.org,
+        Gustavo Padovan <gustavo.padovan@collabora.com>
+References: <20180110160732.7722-1-gustavo@padovan.org>
+ <20180110160732.7722-3-gustavo@padovan.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <d53a9ec1-8e9c-c19f-768d-2783d7ea4a1c@xs4all.nl>
+Date: Fri, 12 Jan 2018 13:05:06 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+In-Reply-To: <20180110160732.7722-3-gustavo@padovan.org>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 23 Jan 2018 14:56:01 +0200
-Sakari Ailus <sakari.ailus@iki.fi> escreveu:
-
-> On Tue, Jan 23, 2018 at 10:40:13AM -0200, Mauro Carvalho Chehab wrote:
-> > Em Wed, 10 Jan 2018 00:35:18 +0200
-> > Sakari Ailus <sakari.ailus@iki.fi> escreveu:
-> >   
-> > > Hi Mauro,
-> > > 
-> > > Here's compile warning fix for the Intel IPU3 CIO2 driver from Arnd.
-> > > 
-> > > Please pull.
-> > > 
-> > > 
-> > > The following changes since commit e3ee691dbf24096ea51b3200946b11d68ce75361:
-> > > 
-> > >   media: ov5640: add support of RGB565 and YUYV formats (2018-01-05 12:54:14 -0500)
-> > > 
-> > > are available in the git repository at:
-> > > 
-> > >   ssh://linuxtv.org/git/sailus/media_tree.git ipu3
-> > > 
-> > > for you to fetch changes up to 0bf3352560b82c12380823f035f5fb2171683f23:
-> > > 
-> > >   media: intel-ipu3: cio2: mark more PM functions as __maybe_unused (2018-01-09 13:16:07 +0200)
-> > > 
-> > > ----------------------------------------------------------------
-> > > Arnd Bergmann (1):
-> > >       media: intel-ipu3: cio2: mark more PM functions as __maybe_unused
-> > > 
-> > >  drivers/media/pci/intel/ipu3/ipu3-cio2.c | 4 ++--
-> > >  1 file changed, 2 insertions(+), 2 deletions(-)  
-> > 
-> > I got more changes than mentioned above:
-> > 
-> > git pull logs
-> > Updating e3ee691dbf24..8d677b031a4f
-> > Fast-forward
-> >  drivers/media/pci/intel/ipu3/ipu3-cio2.c | 9 ++++-----
-> >  1 file changed, 4 insertions(+), 5 deletions(-)
-> > 
-> > Something wrong happened here.  
+On 01/10/18 17:07, Gustavo Padovan wrote:
+> From: Gustavo Padovan <gustavo.padovan@collabora.com>
 > 
-> Ah, this is an older CIO2 pull request I've already replaced in Patchwork.
-> The new one is here, sent on 19th:
+> For explicit synchronization it important for userspace to know if the
+> format being used by the driver can deliver the buffers back to userspace
+> in the same order they were queued with QBUF.
 > 
-> <URL:https://patchwork.linuxtv.org/patch/46545/>
-
-Please always mark the older one as Superseded before sending a new
-pull request.
-
+> Ordered streams fits nicely in a pipeline with DRM for example, where
+> ordered buffer are expected.
 > 
+> Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
+> ---
+>  Documentation/media/uapi/v4l/vidioc-enum-fmt.rst | 3 +++
+>  include/uapi/linux/videodev2.h                   | 1 +
+>  2 files changed, 4 insertions(+)
+> 
+> diff --git a/Documentation/media/uapi/v4l/vidioc-enum-fmt.rst b/Documentation/media/uapi/v4l/vidioc-enum-fmt.rst
+> index 019c513df217..368115f44fc0 100644
+> --- a/Documentation/media/uapi/v4l/vidioc-enum-fmt.rst
+> +++ b/Documentation/media/uapi/v4l/vidioc-enum-fmt.rst
+> @@ -116,6 +116,9 @@ one until ``EINVAL`` is returned.
+>        - This format is not native to the device but emulated through
+>  	software (usually libv4l2), where possible try to use a native
+>  	format instead for better performance.
+> +    * - ``V4L2_FMT_FLAG_UNORDERED``
+> +      - 0x0004
+> +      - This is a format that doesn't guarantee timely order of frames.
 
+I'd rephrase this:
 
+"This format doesn't guarantee ordered buffer handling. I.e. the order in
+which buffers are dequeued with VIDIOC_DQBUF may be different from the order
+in which they were queued with VIDIOC_QBUF."
 
+(Use proper links to VIDIOC_(D)QBUF)
 
-Cheers,
-Mauro
+I would also like to see an example of a driver that uses this. The cobalt
+driver is a candidate for this.
+
+Regards,
+
+	Hans
+
+>  
+>  
+>  Return Value
+> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+> index 982718965180..58894cfe9479 100644
+> --- a/include/uapi/linux/videodev2.h
+> +++ b/include/uapi/linux/videodev2.h
+> @@ -716,6 +716,7 @@ struct v4l2_fmtdesc {
+>  
+>  #define V4L2_FMT_FLAG_COMPRESSED 0x0001
+>  #define V4L2_FMT_FLAG_EMULATED   0x0002
+> +#define V4L2_FMT_FLAG_UNORDERED  0x0004
+>  
+>  	/* Frame Size and frame rate enumeration */
+>  /*
+> 
