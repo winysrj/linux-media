@@ -1,107 +1,144 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from sub5.mail.dreamhost.com ([208.113.200.129]:51243 "EHLO
-        homiemail-a123.g.dreamhost.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S933574AbeARQXe (ORCPT
+Received: from sub5.mail.dreamhost.com ([208.113.200.129]:45016 "EHLO
+        homiemail-a68.g.dreamhost.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S934152AbeALQUF (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 18 Jan 2018 11:23:34 -0500
-Subject: Re: [PATCH v2 1/2] si2168: Add spectrum inversion property
-To: Brad Love <brad@nextdimension.cc>, Antti Palosaari <crope@iki.fi>,
-        linux-media@vger.kernel.org
-References: <1516224756-1649-2-git-send-email-brad@nextdimension.cc>
- <1516225967-21668-1-git-send-email-brad@nextdimension.cc>
- <dbcea672-b748-0521-b9c1-6aac14b1deac@iki.fi>
- <2e882928-5c1b-b9ad-96dc-bb41346a32b1@b-rad.cc>
- <c044b327-eee7-31e1-df93-11e24f336961@nextdimension.cc>
- <43f50e93-3060-c0cd-ea16-0b0a39c952c0@iki.fi>
- <d780be11-46af-7293-d80b-40a360d23323@nextdimension.cc>
+        Fri, 12 Jan 2018 11:20:05 -0500
 From: Brad Love <brad@nextdimension.cc>
-Message-ID: <7a8d6e57-5d60-f2f3-24e1-2f028df0fd5b@nextdimension.cc>
-Date: Thu, 18 Jan 2018 10:23:32 -0600
-MIME-Version: 1.0
-In-Reply-To: <d780be11-46af-7293-d80b-40a360d23323@nextdimension.cc>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: quoted-printable
+To: linux-media@vger.kernel.org
+Cc: Brad Love <brad@nextdimension.cc>
+Subject: [PATCH 7/7] cx231xx: Add second i2c demod to Hauppauge 975
+Date: Fri, 12 Jan 2018 10:19:42 -0600
+Message-Id: <1515773982-6411-8-git-send-email-brad@nextdimension.cc>
+In-Reply-To: <1515773982-6411-1-git-send-email-brad@nextdimension.cc>
+References: <1515773982-6411-1-git-send-email-brad@nextdimension.cc>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hauppauge HVR-975 is a dual frontend, single tuner USB device. It contains
+lgdt3306a and si2168 frontends and one si2157 tuner. The lgdt3306a frontend
+is currently enabled. This creates the second demodulator and attaches it
+to the tuner.
 
-On 2018-01-17 21:10, Brad Love wrote:
-> On 2018-01-17 20:36, Antti Palosaari wrote:
->> On 01/18/2018 03:58 AM, Brad Love wrote:
->>> On 2018-01-17 16:08, Brad Love wrote:
->>>> On 2018-01-17 16:02, Antti Palosaari wrote:
->>>>> On 01/17/2018 11:52 PM, Brad Love wrote:
->>>>>> Some tuners produce inverted spectrum, but the si2168 is not
->>>>>> currently set up to accept it. This adds an optional parameter
->>>>>> to set the frontend up to receive inverted spectrum.
->>>>>>
->>>>>> Parameter is optional and only boards who enable inversion
->>>>>> will utilize this.
->>>>>>
->>>>>> Signed-off-by: Brad Love <brad@nextdimension.cc>
->>>>>> ---
->>>>>> Changes since v1:
->>>>>> - Embarassing build failure due to missing declaration.
->>>>>>
->>>>>> =C2=A0=C2=A0 drivers/media/dvb-frontends/si2168.c | 3 +++
->>>>>> =C2=A0=C2=A0 drivers/media/dvb-frontends/si2168.h | 3 +++
->>>>>> =C2=A0=C2=A0 2 files changed, 6 insertions(+)
->>>>>>
->>>>>> diff --git a/drivers/media/dvb-frontends/si2168.c
->>>>>> b/drivers/media/dvb-frontends/si2168.c
->>>>>> index c041e79..048b815 100644
->>>>>> --- a/drivers/media/dvb-frontends/si2168.c
->>>>>> +++ b/drivers/media/dvb-frontends/si2168.c
->>>>>> @@ -213,6 +213,7 @@ static int si2168_set_frontend(struct
->>>>>> dvb_frontend *fe)
->>>>>> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 struct i2c_client *client =3D=
- fe->demodulator_priv;
->>>>>> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 struct si2168_dev *dev =3D i2=
-c_get_clientdata(client);
->>>>>> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 struct dtv_frontend_propertie=
-s *c =3D &fe->dtv_property_cache;
->>>>>> +=C2=A0=C2=A0=C2=A0 struct si2168_config *config =3D client->dev.p=
-latform_data;
->>>>> hmmm, are you sure platform data pointer points is const? I usually
->>>>> tend to store all config information to device state. Then there is=
- no
->>>>> need to care if pointer is valid or not anymore.
->>>>>
->>>>> And inversion happens when those wires are cross-connected
->>>> It just dawned on me that the platform_data is stack allocated and
->>>> therefore not safe to access outside of probe. I will fix this
->>>> momentarily.
->>>>
->>>> I was informed by one of our hardware guys that the two models in pa=
-tch
->>>> 2/2 are inverted spectrum, so I guess they have wires
->>>> cross-connected. I
->>>> can verify this again to be sure.
->>>
->>> Hello Antti,
->>>
->>> I have confirmation. No 'cross-connected' / swapped differential pair
->>> polarities (if that's what you meant) on the IF pins. The si2157
->>> inverted spectrum output is configurable though, and Hauppauge
->>> have the tuner set up to output inverted. Sounds like it was a decisi=
-on
->>> based on interoperability with older demods.
->> yeah, that was what I was thinking for. That board single tuner and
->> two demods which other demod does not support if spectrum inversion?
->>
->> If there is just si2168 and si2157, you can set both to invert or both
->> to non-invert - the end result is same.
->>
->> Antti
->
-> I will check on the HVR975 tomorrow, if it's affected as well I'll
-> submit a patch. The lgdt3306a frontend is already set up for auto
-> spectrum inversion, so it is able handle the si2157 in either config.
->
+Enables lgdt3306a|si2168 + si2157
 
-The HVR975 should be good as currently submitted.
+Signed-off-by: Brad Love <brad@nextdimension.cc>
+---
+ drivers/media/usb/cx231xx/cx231xx-cards.c |  1 +
+ drivers/media/usb/cx231xx/cx231xx-dvb.c   | 50 +++++++++++++++++++++++++++++--
+ 2 files changed, 48 insertions(+), 3 deletions(-)
 
-Cheers,
-
-Brad
+diff --git a/drivers/media/usb/cx231xx/cx231xx-cards.c b/drivers/media/usb/cx231xx/cx231xx-cards.c
+index 8582568..00e88a8f 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-cards.c
++++ b/drivers/media/usb/cx231xx/cx231xx-cards.c
+@@ -979,6 +979,7 @@ struct cx231xx_board cx231xx_boards[] = {
+ 		.demod_i2c_master = I2C_1_MUX_3,
+ 		.has_dvb = 1,
+ 		.demod_addr = 0x59, /* 0xb2 >> 1 */
++		.demod_addr2 = 0x64, /* 0xc8 >> 1 */
+ 		.norm = V4L2_STD_ALL,
+ 
+ 		.input = {{
+diff --git a/drivers/media/usb/cx231xx/cx231xx-dvb.c b/drivers/media/usb/cx231xx/cx231xx-dvb.c
+index 7201e14..7c947ca 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-dvb.c
++++ b/drivers/media/usb/cx231xx/cx231xx-dvb.c
+@@ -1173,14 +1173,17 @@ static int dvb_init(struct cx231xx *dev)
+ 	{
+ 		struct i2c_client *client;
+ 		struct i2c_adapter *adapter;
++		struct i2c_adapter *adapter2;
+ 		struct i2c_board_info info = {};
+ 		struct si2157_config si2157_config = {};
+ 		struct lgdt3306a_config lgdt3306a_config = {};
++		struct si2168_config si2168_config = {};
+ 
+-		/* attach demodulator chip */
++		/* attach first demodulator chip */
+ 		lgdt3306a_config = hauppauge_955q_lgdt3306a_config;
+ 		lgdt3306a_config.fe = &dev->dvb->frontend[0];
+ 		lgdt3306a_config.i2c_adapter = &adapter;
++		lgdt3306a_config.deny_i2c_rptr = 0;
+ 
+ 		strlcpy(info.type, "lgdt3306a", sizeof(info.type));
+ 		info.addr = dev->board.demod_addr;
+@@ -1202,10 +1205,39 @@ static int dvb_init(struct cx231xx *dev)
+ 		}
+ 
+ 		dvb->i2c_client_demod[0] = client;
+-		dev->dvb->frontend[0]->ops.i2c_gate_ctrl = NULL;
++
++		/* attach second demodulator chip */
++		si2168_config.ts_mode = SI2168_TS_SERIAL;
++		si2168_config.fe = &dev->dvb->frontend[1];
++		si2168_config.i2c_adapter = &adapter2;
++		si2168_config.ts_clock_inv = true;
++
++		memset(&info, 0, sizeof(struct i2c_board_info));
++		strlcpy(info.type, "si2168", sizeof(info.type));
++		info.addr = dev->board.demod_addr2;
++		info.platform_data = &si2168_config;
++
++		request_module(info.type);
++		client = i2c_new_device(adapter, &info);
++		if (client == NULL || client->dev.driver == NULL) {
++			result = -ENODEV;
++			goto out_free;
++		}
++
++		if (!try_module_get(client->dev.driver->owner)) {
++			dev_err(dev->dev,
++				"Failed to attach %s frontend.\n", info.type);
++			i2c_unregister_device(client);
++			result = -ENODEV;
++			goto out_free;
++		}
++
++		dvb->i2c_client_demod[1] = client;
++		dev->dvb->frontend[1]->id = 1;
+ 
+ 		/* define general-purpose callback pointer */
+ 		dvb->frontend[0]->callback = cx231xx_tuner_callback;
++		dvb->frontend[1]->callback = cx231xx_tuner_callback;
+ 
+ 		/* attach tuner */
+ 		si2157_config.fe = dev->dvb->frontend[0];
+@@ -1221,8 +1253,10 @@ static int dvb_init(struct cx231xx *dev)
+ 		info.platform_data = &si2157_config;
+ 		request_module("si2157");
+ 
+-		client = i2c_new_device(tuner_i2c, &info);
++		client = i2c_new_device(adapter, &info);
+ 		if (client == NULL || client->dev.driver == NULL) {
++			module_put(dvb->i2c_client_demod[1]->dev.driver->owner);
++			i2c_unregister_device(dvb->i2c_client_demod[1]);
+ 			module_put(dvb->i2c_client_demod[0]->dev.driver->owner);
+ 			i2c_unregister_device(dvb->i2c_client_demod[0]);
+ 			result = -ENODEV;
+@@ -1233,6 +1267,8 @@ static int dvb_init(struct cx231xx *dev)
+ 			dev_err(dev->dev,
+ 				"Failed to obtain %s tuner.\n",	info.type);
+ 			i2c_unregister_device(client);
++			module_put(dvb->i2c_client_demod[1]->dev.driver->owner);
++			i2c_unregister_device(dvb->i2c_client_demod[1]);
+ 			module_put(dvb->i2c_client_demod[0]->dev.driver->owner);
+ 			i2c_unregister_device(dvb->i2c_client_demod[0]);
+ 			result = -ENODEV;
+@@ -1241,6 +1277,14 @@ static int dvb_init(struct cx231xx *dev)
+ 
+ 		dev->cx231xx_reset_analog_tuner = NULL;
+ 		dev->dvb->i2c_client_tuner = client;
++
++		dev->dvb->frontend[1]->tuner_priv =
++			dev->dvb->frontend[0]->tuner_priv;
++
++		dvb_attach(si2157_attach, dev->dvb->frontend[1],
++			dev->board.tuner_addr, adapter,
++			&si2157_config);
++
+ 		break;
+ 	}
+ 	default:
+-- 
+2.7.4
