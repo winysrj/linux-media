@@ -1,73 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([65.50.211.133]:34105 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751932AbeAJSD3 (ORCPT
+Received: from mail-qt0-f195.google.com ([209.85.216.195]:39852 "EHLO
+        mail-qt0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752969AbeALJBT (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 10 Jan 2018 13:03:29 -0500
-From: Christoph Hellwig <hch@lst.de>
-To: Bjorn Helgaas <bhelgaas@google.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Kong Lai <kong.lai@tundra.com>, linux-pci@vger.kernel.org,
-        linux-media@vger.kernel.org, netdev@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH 1/4] media/ttusb-budget: remove pci_zalloc_coherent abuse
-Date: Wed, 10 Jan 2018 19:03:19 +0100
-Message-Id: <20180110180322.30186-2-hch@lst.de>
-In-Reply-To: <20180110180322.30186-1-hch@lst.de>
-References: <20180110180322.30186-1-hch@lst.de>
+        Fri, 12 Jan 2018 04:01:19 -0500
+MIME-Version: 1.0
+In-Reply-To: <4595365.GB5AfDQQ8V@avalon>
+References: <1515515131-13760-1-git-send-email-jacopo+renesas@jmondi.org>
+ <1515515131-13760-4-git-send-email-jacopo+renesas@jmondi.org> <4595365.GB5AfDQQ8V@avalon>
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Date: Fri, 12 Jan 2018 10:01:18 +0100
+Message-ID: <CAMuHMdVCa=mXBLjUpqUgg90=Yqj0_r0cmB5UsOYJvdxw3HSsmw@mail.gmail.com>
+Subject: Re: [PATCH v4 3/9] v4l: platform: Add Renesas CEU driver
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        Magnus Damm <magnus.damm@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Fabio Estevam <festevam@gmail.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Linux-Renesas <linux-renesas-soc@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux-sh list <linux-sh@vger.kernel.org>,
+        devicetree@vger.kernel.org,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Switch to a plain kzalloc instead of pci_zalloc_coherent to allocate
-memory for the USB DMA.
+Hi Laurent,
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
----
- drivers/media/usb/ttusb-budget/dvb-ttusb-budget.c | 18 ++++--------------
- 1 file changed, 4 insertions(+), 14 deletions(-)
+On Fri, Jan 12, 2018 at 12:12 AM, Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
+> On Tuesday, 9 January 2018 18:25:25 EET Jacopo Mondi wrote:
+>> Add driver for Renesas Capture Engine Unit (CEU).
+>>
+>> The CEU interface supports capturing 'data' (YUV422) and 'images'
+>> (NV[12|21|16|61]).
+>>
+>> This driver aims to replace the soc_camera-based sh_mobile_ceu one.
+>>
+>> Tested with ov7670 camera sensor, providing YUYV_2X8 data on Renesas RZ
+>> platform GR-Peach.
+>>
+>> Tested with ov7725 camera sensor on SH4 platform Migo-R.
+>>
+>> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+>> ---
+>>  drivers/media/platform/Kconfig       |    9 +
+>>  drivers/media/platform/Makefile      |    1 +
+>>  drivers/media/platform/renesas-ceu.c | 1648
+>> ++++++++++++++++++++++++++++++++++ 3 files changed, 1658 insertions(+)
+>>  create mode 100644 drivers/media/platform/renesas-ceu.c
+>
+> [snip]
+>
+>> diff --git a/drivers/media/platform/renesas-ceu.c
+>> b/drivers/media/platform/renesas-ceu.c new file mode 100644
+>> index 0000000..d261704
+>> --- /dev/null
+>> +++ b/drivers/media/platform/renesas-ceu.c
+>> @@ -0,0 +1,1648 @@
+>> +// SPDX-License-Identifier: GPL-2.0
+>
+> It was recently brought to my attention that SPDX headers should use either
+> GPL-2.0-only or GPL-2.0-or-later, no the ambiguous GPL-2.0. Could you please
+> update all patches in this series ?
 
-diff --git a/drivers/media/usb/ttusb-budget/dvb-ttusb-budget.c b/drivers/media/usb/ttusb-budget/dvb-ttusb-budget.c
-index a142b9dc0feb..ea40a24947ba 100644
---- a/drivers/media/usb/ttusb-budget/dvb-ttusb-budget.c
-+++ b/drivers/media/usb/ttusb-budget/dvb-ttusb-budget.c
-@@ -102,7 +102,6 @@ struct ttusb {
- 	unsigned int isoc_in_pipe;
- 
- 	void *iso_buffer;
--	dma_addr_t iso_dma_handle;
- 
- 	struct urb *iso_urb[ISO_BUF_COUNT];
- 
-@@ -792,26 +791,17 @@ static void ttusb_free_iso_urbs(struct ttusb *ttusb)
- 
- 	for (i = 0; i < ISO_BUF_COUNT; i++)
- 		usb_free_urb(ttusb->iso_urb[i]);
--
--	pci_free_consistent(NULL,
--			    ISO_FRAME_SIZE * FRAMES_PER_ISO_BUF *
--			    ISO_BUF_COUNT, ttusb->iso_buffer,
--			    ttusb->iso_dma_handle);
-+	kfree(ttusb->iso_buffer);
- }
- 
- static int ttusb_alloc_iso_urbs(struct ttusb *ttusb)
- {
- 	int i;
- 
--	ttusb->iso_buffer = pci_zalloc_consistent(NULL,
--						  ISO_FRAME_SIZE * FRAMES_PER_ISO_BUF * ISO_BUF_COUNT,
--						  &ttusb->iso_dma_handle);
--
--	if (!ttusb->iso_buffer) {
--		dprintk("%s: pci_alloc_consistent - not enough memory\n",
--			__func__);
-+	ttusb->iso_buffer = kcalloc(FRAMES_PER_ISO_BUF * ISO_BUF_COUNT,
-+			ISO_FRAME_SIZE, GFP_KERNEL);
-+	if (!ttusb->iso_buffer)
- 		return -ENOMEM;
--	}
- 
- 	for (i = 0; i < ISO_BUF_COUNT; i++) {
- 		struct urb *urb;
--- 
-2.14.2
+IMHO it's a bit premature to do that.
+As long as Documentation/process/license-rules.rst isn't updated, I wouldn't
+follow this change.
+
+See also https://www.spinics.net/lists/linux-xfs/msg14536.html
+
+Gr{oetje,eeting}s,
+
+                        Geert
+
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
