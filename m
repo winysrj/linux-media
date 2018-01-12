@@ -1,55 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:45212 "EHLO
-        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751804AbeA3K1J (ORCPT
+Received: from mail-wr0-f195.google.com ([209.85.128.195]:42174 "EHLO
+        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754740AbeALKhN (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 30 Jan 2018 05:27:09 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Daniel Mentz <danielmentz@google.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>, stable@vger.kernel.org
-Subject: [PATCHv2 11/13] v4l2-compat-ioctl32.c: drop pr_info for unknown buffer type
-Date: Tue, 30 Jan 2018 11:26:59 +0100
-Message-Id: <20180130102701.13664-12-hverkuil@xs4all.nl>
-In-Reply-To: <20180130102701.13664-1-hverkuil@xs4all.nl>
-References: <20180130102701.13664-1-hverkuil@xs4all.nl>
+        Fri, 12 Jan 2018 05:37:13 -0500
+Received: by mail-wr0-f195.google.com with SMTP id e41so4559083wre.9
+        for <linux-media@vger.kernel.org>; Fri, 12 Jan 2018 02:37:12 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <1515515131-13760-4-git-send-email-jacopo+renesas@jmondi.org>
+References: <1515515131-13760-1-git-send-email-jacopo+renesas@jmondi.org> <1515515131-13760-4-git-send-email-jacopo+renesas@jmondi.org>
+From: Philippe Ombredanne <pombredanne@nexb.com>
+Date: Fri, 12 Jan 2018 11:36:31 +0100
+Message-ID: <CAOFm3uGxm3bAHPryMV8+MAFy+45-3Ld7RbKqo1saigzPUZ8mqg@mail.gmail.com>
+Subject: Re: [PATCH v4 3/9] v4l: platform: Add Renesas CEU driver
+To: Jacopo Mondi <jacopo+renesas@jmondi.org>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Magnus Damm <magnus.damm@gmail.com>, geert@glider.be,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Fabio Estevam <festevam@gmail.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        linux-renesas-soc@vger.kernel.org,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        linux-sh@vger.kernel.org,
+        "open list:OPEN FIRMWARE AND FLATTENED DEVICE TREE BINDINGS"
+        <devicetree@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On Tue, Jan 9, 2018 at 5:25 PM, Jacopo Mondi <jacopo+renesas@jmondi.org> wrote:
+> Add driver for Renesas Capture Engine Unit (CEU).
 
-There is nothing wrong with using an unknown buffer type. So
-stop spamming the kernel log whenever this happens. The kernel
-will just return -EINVAL to signal this.
+<snip>
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: <stable@vger.kernel.org>      # for v4.15 and up
----
- drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 4 ----
- 1 file changed, 4 deletions(-)
+> --- /dev/null
+> +++ b/drivers/media/platform/renesas-ceu.c
+> @@ -0,0 +1,1648 @@
+> +// SPDX-License-Identifier: GPL-2.0
 
-diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-index 0df941ca4d90..7ee3777cbe9c 100644
---- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-+++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-@@ -179,8 +179,6 @@ static int __get_v4l2_format32(struct v4l2_format *kp, struct v4l2_format32 __us
- 		return copy_from_user(&kp->fmt.meta, &up->fmt.meta,
- 				      sizeof(kp->fmt.meta)) ? -EFAULT : 0;
- 	default:
--		pr_info("compat_ioctl32: unexpected VIDIOC_FMT type %d\n",
--			kp->type);
- 		return -EINVAL;
- 	}
- }
-@@ -233,8 +231,6 @@ static int __put_v4l2_format32(struct v4l2_format *kp, struct v4l2_format32 __us
- 		return copy_to_user(&up->fmt.meta, &kp->fmt.meta,
- 				    sizeof(kp->fmt.meta)) ? -EFAULT : 0;
- 	default:
--		pr_info("compat_ioctl32: unexpected VIDIOC_FMT type %d\n",
--			kp->type);
- 		return -EINVAL;
- 	}
- }
+<snip>
+
+> +MODULE_DESCRIPTION("Renesas CEU camera driver");
+> +MODULE_AUTHOR("Jacopo Mondi <jacopo+renesas@jmondi.org>");
+> +MODULE_LICENSE("GPL");
+
+Jacopo,
+the MODULE_LICENSE does not match the SPDX tag. Per module.h "GPL"
+means GPL-2.0 or later ;)
+
+It should be instead:
+
+> +MODULE_LICENSE("GPL v2");
+
+... to match your
+
+> +// SPDX-License-Identifier: GPL-2.0
+
+I know this can be confusing, but updating the MODULE_LICENSE tags
+definitions in module.h to match SPDX tags is unlikely to happen as it
+would create mayhem for everyone and every module loader relying on
+this established convention.
+
 -- 
-2.15.1
+Cordially
+Philippe Ombredanne
