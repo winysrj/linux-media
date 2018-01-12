@@ -1,122 +1,218 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from sub5.mail.dreamhost.com ([208.113.200.129]:34971 "EHLO
-        homiemail-a56.g.dreamhost.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751499AbeAEPVw (ORCPT
+Received: from pandora.armlinux.org.uk ([78.32.30.218]:53644 "EHLO
+        pandora.armlinux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754350AbeALKDF (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 5 Jan 2018 10:21:52 -0500
-Subject: Re: [PATCH 2/9] em28xx: Bulk transfer implementation fix
-To: Devin Heitmueller <dheitmueller@kernellabs.com>,
-        Michael Ira Krufky <mkrufky@linuxtv.org>
-Cc: Brad Love <brad@nextdimension.cc>,
-        linux-media <linux-media@vger.kernel.org>
-References: <1515110659-20145-1-git-send-email-brad@nextdimension.cc>
- <1515110659-20145-3-git-send-email-brad@nextdimension.cc>
- <CAOcJUbwmCysV7pcCZK6udNpZVsaU+pxfCrJnEGBWcP9ta0Jqrg@mail.gmail.com>
- <CAGoCfizB9+zLFOv7NJ3WGmeD1Z59yb2dSWOS+13=2DkzAGSNnA@mail.gmail.com>
-From: Brad Love <brad@nextdimension.cc>
-Message-ID: <f522b99c-533a-1b07-3c9c-e823ebb355a9@nextdimension.cc>
-Date: Fri, 5 Jan 2018 09:21:50 -0600
+        Fri, 12 Jan 2018 05:03:05 -0500
+Date: Fri, 12 Jan 2018 10:02:08 +0000
+From: Russell King - ARM Linux <linux@armlinux.org.uk>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: linux-kernel@vger.kernel.org, Mark Rutland <mark.rutland@arm.com>,
+        kernel-hardening@lists.openwall.com,
+        Peter Zijlstra <peterz@infradead.org>,
+        Alan Cox <alan.cox@intel.com>,
+        Will Deacon <will.deacon@arm.com>,
+        Alexei Starovoitov <ast@kernel.org>,
+        Solomon Peachy <pizza@shaftnet.org>,
+        "H. Peter Anvin" <hpa@zytor.com>,
+        Christian Lamparter <chunkeey@googlemail.com>,
+        Elena Reshetova <elena.reshetova@intel.com>,
+        linux-arch@vger.kernel.org, Andi Kleen <ak@linux.intel.com>,
+        "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>,
+        linux-scsi@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
+        x86@kernel.org, Ingo Molnar <mingo@redhat.com>,
+        Catalin Marinas <catalin.marinas@arm.com>,
+        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
+        linux-media@vger.kernel.org,
+        Tom Lendacky <thomas.lendacky@amd.com>,
+        Kees Cook <keescook@chromium.org>, Jan Kara <jack@suse.com>,
+        Al Viro <viro@zeniv.linux.org.uk>, qla2xxx-upstream@qlogic.com,
+        tglx@linutronix.de, Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Kalle Valo <kvalo@codeaurora.org>, alan@linux.intel.com,
+        "Martin K. Petersen" <martin.petersen@oracle.com>,
+        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
+        Greg KH <gregkh@linuxfoundation.org>,
+        linux-wireless@vger.kernel.org,
+        "Eric W. Biederman" <ebiederm@xmission.com>,
+        netdev@vger.kernel.org, akpm@linux-foundation.org,
+        torvalds@linux-foundation.org,
+        "David S. Miller" <davem@davemloft.net>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH v2 00/19] prevent bounds-check bypass via speculative
+ execution
+Message-ID: <20180112100208.GX17719@n2100.armlinux.org.uk>
+References: <151571798296.27429.7166552848688034184.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
-In-Reply-To: <CAGoCfizB9+zLFOv7NJ3WGmeD1Z59yb2dSWOS+13=2DkzAGSNnA@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Content-Language: en-GB
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <151571798296.27429.7166552848688034184.stgit@dwillia2-desk3.amr.corp.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Do you think that the appropriate patches could be copied to the
+appropriate people please?
 
+On Thu, Jan 11, 2018 at 04:46:24PM -0800, Dan Williams wrote:
+> Changes since v1 [1]:
+> * fixup the ifence definition to use alternative_2 per recent AMD
+>   changes in tip/x86/pti (Tom)
+> 
+> * drop 'nospec_ptr' (Linus, Mark)
+> 
+> * rename 'nospec_array_ptr' to 'array_ptr' (Alexei)
+> 
+> * rename 'nospec_barrier' to 'ifence' (Peter, Ingo)
+> 
+> * clean up occasions of 'variable assignment in if()' (Sergei, Stephen)
+> 
+> * make 'array_ptr' use a mask instead of an architectural ifence by
+>   default (Linus, Alexei)
+> 
+> * provide a command line and compile-time opt-in to the ifence
+>   mechanism, if an architecture provides 'ifence_array_ptr'.
+> 
+> * provide an optimized mask generation helper, 'array_ptr_mask', for
+>   x86 (Linus)
+> 
+> * move 'get_user' hardening from '__range_not_ok' to '__uaccess_begin'
+>   (Linus)
+> 
+> * drop "Thermal/int340x: prevent bounds-check..." since userspace does
+>   not have arbitrary control over the 'trip' index (Srinivas)
+> 
+> * update the changelog of "net: mpls: prevent bounds-check..." and keep
+>   it in the series to continue the debate about Spectre hygiene patches.
+>   (Eric).
+> 
+> * record a reviewed-by from Laurent on "[media] uvcvideo: prevent
+>   bounds-check..."
+> 
+> * update the cover letter
+> 
+> [1]: https://lwn.net/Articles/743376/
+> 
+> ---
+> 
+> Quoting Mark's original RFC:
+> 
+> "Recently, Google Project Zero discovered several classes of attack
+> against speculative execution. One of these, known as variant-1, allows
+> explicit bounds checks to be bypassed under speculation, providing an
+> arbitrary read gadget. Further details can be found on the GPZ blog [2]
+> and the Documentation patch in this series."
+> 
+> This series incorporates Mark Rutland's latest ARM changes and adds
+> the x86 specific implementation of 'ifence_array_ptr'. That ifence
+> based approach is provided as an opt-in fallback, but the default
+> mitigation, '__array_ptr', uses a 'mask' approach that removes
+> conditional branches instructions, and otherwise aims to redirect
+> speculation to use a NULL pointer rather than a user controlled value.
+> 
+> The mask is generated by the following from Alexei, and Linus:
+> 
+>     mask = ~(long)(_i | (_s - 1 - _i)) >> (BITS_PER_LONG - 1);
+> 
+> ...and Linus provided an optimized mask generation helper for x86:
+> 
+>     asm ("cmpq %1,%2; sbbq %0,%0;"
+> 		:"=r" (mask)
+> 		:"r"(sz),"r" (idx)
+> 		:"cc");
+> 
+> The 'array_ptr' mechanism can be switched between 'mask' and 'ifence'
+> via the spectre_v1={mask,ifence} command line option, and the
+> compile-time default is set by selecting either CONFIG_SPECTRE1_MASK or
+> CONFIG_SPECTRE1_IFENCE.
+> 
+> The 'array_ptr' infrastructure is the primary focus this patch set. The
+> individual patches that perform 'array_ptr' conversions are a point in
+> time (i.e. earlier kernel, early analysis tooling, x86 only etc...)
+> start at finding some of these gadgets.
+> 
+> Another consideration for reviewing these patches is the 'hygiene'
+> argument. When a patch refers to hygiene it is concerned with stopping
+> speculation on an unconstrained or insufficiently constrained pointer
+> value under userspace control. That by itself is not sufficient for
+> attack (per current understanding) [3], but it is a necessary
+> pre-condition.  So 'hygiene' refers to cleaning up those suspect
+> pointers regardless of whether they are usable as a gadget.
+> 
+> These patches are also be available via the 'nospec-v2' git branch
+> here:
+> 
+>     git://git.kernel.org/pub/scm/linux/kernel/git/djbw/linux nospec-v2
+> 
+> Note that the BPF fix for Spectre variant1 is merged in the bpf.git
+> tree [4], and is not included in this branch.
+> 
+> [2]: https://googleprojectzero.blogspot.co.uk/2018/01/reading-privileged-memory-with-side.html
+> [3]: https://spectreattack.com/spectre.pdf
+> [4]: https://git.kernel.org/pub/scm/linux/kernel/git/bpf/bpf.git/commit/?id=b2157399cc98
+> 
+> ---
+> 
+> Dan Williams (16):
+>       x86: implement ifence()
+>       x86: implement ifence_array_ptr() and array_ptr_mask()
+>       asm-generic/barrier: mask speculative execution flows
+>       x86: introduce __uaccess_begin_nospec and ASM_IFENCE
+>       x86: use __uaccess_begin_nospec and ASM_IFENCE in get_user paths
+>       ipv6: prevent bounds-check bypass via speculative execution
+>       ipv4: prevent bounds-check bypass via speculative execution
+>       vfs, fdtable: prevent bounds-check bypass via speculative execution
+>       userns: prevent bounds-check bypass via speculative execution
+>       udf: prevent bounds-check bypass via speculative execution
+>       [media] uvcvideo: prevent bounds-check bypass via speculative execution
+>       carl9170: prevent bounds-check bypass via speculative execution
+>       p54: prevent bounds-check bypass via speculative execution
+>       qla2xxx: prevent bounds-check bypass via speculative execution
+>       cw1200: prevent bounds-check bypass via speculative execution
+>       net: mpls: prevent bounds-check bypass via speculative execution
+> 
+> Mark Rutland (3):
+>       Documentation: document array_ptr
+>       arm64: implement ifence_array_ptr()
+>       arm: implement ifence_array_ptr()
+> 
+>  Documentation/speculation.txt            |  142 ++++++++++++++++++++++++++++++
+>  arch/arm/Kconfig                         |    1 
+>  arch/arm/include/asm/barrier.h           |   24 +++++
+>  arch/arm64/Kconfig                       |    1 
+>  arch/arm64/include/asm/barrier.h         |   24 +++++
+>  arch/x86/Kconfig                         |    3 +
+>  arch/x86/include/asm/barrier.h           |   46 ++++++++++
+>  arch/x86/include/asm/msr.h               |    3 -
+>  arch/x86/include/asm/smap.h              |    4 +
+>  arch/x86/include/asm/uaccess.h           |   16 +++
+>  arch/x86/include/asm/uaccess_32.h        |    6 +
+>  arch/x86/include/asm/uaccess_64.h        |   12 +--
+>  arch/x86/lib/copy_user_64.S              |    3 +
+>  arch/x86/lib/usercopy_32.c               |    8 +-
+>  drivers/media/usb/uvc/uvc_v4l2.c         |    9 +-
+>  drivers/net/wireless/ath/carl9170/main.c |    7 +
+>  drivers/net/wireless/intersil/p54/main.c |    9 +-
+>  drivers/net/wireless/st/cw1200/sta.c     |   11 +-
+>  drivers/net/wireless/st/cw1200/wsm.h     |    4 -
+>  drivers/scsi/qla2xxx/qla_mr.c            |   17 ++--
+>  fs/udf/misc.c                            |   40 +++++---
+>  include/linux/fdtable.h                  |    7 +
+>  include/linux/nospec.h                   |   71 +++++++++++++++
+>  kernel/Kconfig.nospec                    |   31 +++++++
+>  kernel/Makefile                          |    1 
+>  kernel/nospec.c                          |   52 +++++++++++
+>  kernel/user_namespace.c                  |   11 +-
+>  lib/Kconfig                              |    3 +
+>  net/ipv4/raw.c                           |   10 +-
+>  net/ipv6/raw.c                           |   10 +-
+>  net/mpls/af_mpls.c                       |   12 +--
+>  31 files changed, 521 insertions(+), 77 deletions(-)
+>  create mode 100644 Documentation/speculation.txt
+>  create mode 100644 include/linux/nospec.h
+>  create mode 100644 kernel/Kconfig.nospec
+>  create mode 100644 kernel/nospec.c
+> 
 
-On 2018-01-05 08:20, Devin Heitmueller wrote:
-> Hi Brad,
->
-> My documents indicate that Register 0x5D and 0x5E are read-only, and
-> populated based on the eeprom programming.
->
-> On your device, what is the value of those registers prior to you chang=
-ing them?
->
-> If you write to those registers, do they reflect the new values if you
-> read them back?
->
-> Does changing these values result in any change to the device's
-> endpoint configuration (which is typically statically defined when the
-> device is probed)?
->
-> What precisely is the behavior you were seeing prior to this patch?
->
-> Devin
-
-Hey Devin,
-
-We have devices programmed ISOC and bulk in eeprom, but we were seeing
-before that bulk transfers were not happening as expected. This included
-continuity errors and corrupted packets. After speaking with Empia they
-supplied this patch to configure the multiplier explicitly. They also
-suggested changing the usb configuration to match this multiplier. This
-is done in patch 3/9. I will add some instrumentation to check out the
-data you're looking for though. I can say offhand that modifying those
-values does have tangible effects. On 'native' machines, there is little
-difference, but the multiplier values are make or break in VMWare.
-
-Will reply with the data later.
-
-Cheers,
-
-Brad
-
-
-
-> On Thu, Jan 4, 2018 at 7:22 PM, Michael Ira Krufky <mkrufky@linuxtv.org=
-> wrote:
->> On Thu, Jan 4, 2018 at 7:04 PM, Brad Love <brad@nextdimension.cc> wrot=
-e:
->>> Set appropriate bulk/ISOC transfer multiplier on capture start.
->>> This sets ISOC transfer to 940 bytes (188 * 5)
->>> This sets bulk transfer to 48128 bytes (188 * 256)
->>>
->>> The above values are maximum allowed according to Empia.
->>>
->>> Signed-off-by: Brad Love <brad@nextdimension.cc>
->> :+1
->>
->> Reviewed-by: Michael Ira Krufky <mkrufky@linuxtv.org>
->>
->>> ---
->>>  drivers/media/usb/em28xx/em28xx-core.c | 12 ++++++++++++
->>>  1 file changed, 12 insertions(+)
->>>
->>> diff --git a/drivers/media/usb/em28xx/em28xx-core.c b/drivers/media/u=
-sb/em28xx/em28xx-core.c
->>> index ef38e56..67ed6a3 100644
->>> --- a/drivers/media/usb/em28xx/em28xx-core.c
->>> +++ b/drivers/media/usb/em28xx/em28xx-core.c
->>> @@ -638,6 +638,18 @@ int em28xx_capture_start(struct em28xx *dev, int=
- start)
->>>             dev->chip_id =3D=3D CHIP_ID_EM28174 ||
->>>             dev->chip_id =3D=3D CHIP_ID_EM28178) {
->>>                 /* The Transport Stream Enable Register moved in em28=
-74 */
->>> +               if (dev->dvb_xfer_bulk) {
->>> +                       /* Max Tx Size =3D 188 * 256 =3D 48128 - LCM(=
-188,512) * 2 */
->>> +                       em28xx_write_reg(dev, (dev->ts =3D=3D PRIMARY=
-_TS) ?
->>> +                                       EM2874_R5D_TS1_PKT_SIZE :
->>> +                                       EM2874_R5E_TS2_PKT_SIZE,
->>> +                                       0xFF);
->>> +               } else {
->>> +                       /* TS2 Maximum Transfer Size =3D 188 * 5 */
->>> +                       em28xx_write_reg(dev, (dev->ts =3D=3D PRIMARY=
-_TS) ?
->>> +                                       EM2874_R5D_TS1_PKT_SIZE :
->>> +                                       EM2874_R5E_TS2_PKT_SIZE, 0x05=
-);
->>> +               }
->>>                 if (dev->ts =3D=3D PRIMARY_TS)
->>>                         rc =3D em28xx_write_reg_bits(dev,
->>>                                 EM2874_R5F_TS_ENABLE,
->>> --
->>> 2.7.4
->>>
->
->
+-- 
+RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
+FTTC broadband for 0.8mile line in suburbia: sync at 8.8Mbps down 630kbps up
+According to speedtest.net: 8.21Mbps down 510kbps up
