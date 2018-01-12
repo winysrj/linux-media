@@ -1,120 +1,272 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from userp2130.oracle.com ([156.151.31.86]:34088 "EHLO
-        userp2130.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751759AbeAYMZv (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 25 Jan 2018 07:25:51 -0500
-Date: Thu, 25 Jan 2018 15:25:22 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: Andrzej Hajda <a.hajda@samsung.com>
-Cc: linux-media@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [bug report] [media] s5p-mfc: use MFC_BUF_FLAG_EOS to identify
- last buffers in decoder capture queue
-Message-ID: <20180125122522.vdly5ketvkugq53h@mwanda>
-References: <CGME20180123083259epcas3p1fb9a8b4e4ad34eb245fca67d4204cba4@epcas3p1.samsung.com>
- <20180123083245.GA10091@mwanda>
- <e30dedbc-68bc-fae8-ffb7-5cdea05f534d@samsung.com>
+Received: from mga01.intel.com ([192.55.52.88]:18906 "EHLO mga01.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S964844AbeALRwW (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 12 Jan 2018 12:52:22 -0500
+Date: Fri, 12 Jan 2018 19:52:18 +0200
+From: Ville =?iso-8859-1?Q?Syrj=E4l=E4?= <ville.syrjala@linux.intel.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
+Subject: Re: Fwd: Re: [PATCHv5 0/3] drm/i915: add DisplayPort
+ CEC-Tunneling-over-AUX support
+Message-ID: <20180112175218.GJ10981@intel.com>
+References: <b6ac8671-7b66-977e-1322-f31e08d76436@xs4all.nl>
+ <7ec14da2-7aed-906e-3d55-8af1907aaf0c@xs4all.nl>
+ <20180112163027.GG10981@intel.com>
+ <e7c4e82c-e563-834b-8708-42efa222e7d3@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
-In-Reply-To: <e30dedbc-68bc-fae8-ffb7-5cdea05f534d@samsung.com>
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <e7c4e82c-e563-834b-8708-42efa222e7d3@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jan 25, 2018 at 10:58:45AM +0100, Andrzej Hajda wrote:
-> On 23.01.2018 09:32, Dan Carpenter wrote:
-> > Hello Andrzej Hajda,
-> >
-> > The patch 4d0b0ed63660: "[media] s5p-mfc: use MFC_BUF_FLAG_EOS to
-> > identify last buffers in decoder capture queue" from Oct 7, 2015,
-> > leads to the following static checker warning:
-> >
-> > 	drivers/media/platform/s5p-mfc/s5p_mfc_dec.c:658 vidioc_dqbuf()
-> > 	error: buffer overflow 'ctx->dst_bufs' 32 user_rl = '0-u32max'
-> >
-> > drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-> >    635  /* Dequeue a buffer */
-> >    636  static int vidioc_dqbuf(struct file *file, void *priv, struct v4l2_buffer *buf)
-> >    637  {
-> >    638          const struct v4l2_event ev = {
-> >    639                  .type = V4L2_EVENT_EOS
-> >    640          };
-> >    641          struct s5p_mfc_ctx *ctx = fh_to_ctx(priv);
-> >    642          int ret;
-> >    643  
-> >    644          if (ctx->state == MFCINST_ERROR) {
-> >    645                  mfc_err_limited("Call on DQBUF after unrecoverable error\n");
-> >    646                  return -EIO;
-> >    647          }
-> >    648  
-> >    649          switch (buf->type) {
-> >    650          case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
-> >    651                  return vb2_dqbuf(&ctx->vq_src, buf, file->f_flags & O_NONBLOCK);
-> >    652          case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
-> >    653                  ret = vb2_dqbuf(&ctx->vq_dst, buf, file->f_flags & O_NONBLOCK);
-> >    654                  if (ret)
-> >    655                          return ret;
-> >    656  
-> >    657                  if (ctx->state == MFCINST_FINISHED &&
-> >    658                      (ctx->dst_bufs[buf->index].flags & MFC_BUF_FLAG_EOS))
-> >                                            ^^^^^^^^^^
-> > Smatch is complaining that "buf->index" is not capped.  So far as I can
-> > see this is true.  I would have expected it to be checked in
-> > check_array_args() or video_usercopy() but I couldn't find the check.
+On Fri, Jan 12, 2018 at 06:14:53PM +0100, Hans Verkuil wrote:
+> On 01/12/2018 05:30 PM, Ville Syrjälä wrote:
+> > On Fri, Jan 12, 2018 at 05:19:44PM +0100, Hans Verkuil wrote:
+> >> Hi Ville,
+> >>
+> >> For some strange reason your email disappeared from the Cc list. Perhaps it's the
+> >> ä that confuses something somewhere.
+> >>
+> >> So I'll just forward this directly to you.
+> >>
+> >> Can you please take a look? This patch series has been in limbo for too long.
+> > 
+> > IIRC last I looked we still had some ragistration race to deal with.
+> > Was that fixed?
 > 
-> I did not work in V4L2 area for long time, so I could be wrong, but I
-> hope the code is correct, below my explanation.
-> User provides only type, memory and reserved fields in buf, other fields
-> are filled by vb2_dqbuf (line 653) core function, ie index field is
-> copied from buffer which was queued by qbuf.
-> And vidioc_qbuf calls vb2_qbuf, which calls vb2_queue_or_prepare_buf,
-> which checks index bounds [1].
+> That was fixed in v5.
 > 
-> So I suppose this code is correct.
-> Btw, I have also looked at other drivers and it looks omap driver
-> handles it incorrectly, ie it uses index field provided by user -
-> possible memory leak. CC Hans and Mauro, since there is no driver
-> maintainer of OMAP.
+> > 
+> > Also I think we got stuck on leaving the zombie device lingering around
+> > when the display is disconnected. I couldn't understand why that is
+> > at all useful since you anyway remove the device eventually.
 > 
-> Btw2, is it possible to check in smatch which fields of passed struct
-> given callback can read or fill ? For example here API restrict dqbuf
-> callback to read only three fields of buf, and fill the others.
+> It's not a zombie device. If you disconnect and reconnect the display then the
+> application using the CEC device will see the display disappear and reappear
+> as expected.
 > 
-> [1]:
-> http://elixir.free-electrons.com/linux/latest/source/drivers/media/v4l2-core/videobuf2-v4l2.c#L165
-> [2]:
-> http://elixir.free-electrons.com/linux/latest/source/drivers/media/platform/omap/omap_vout.c#L1520
+> It helps if you think of the normal situation (as is present in most ARM SoCs)
+> where CEC is integral to the HDMI transmitter. I.e. it is not functionality that
+> can be removed. So the cec device is always there and an application opens the
+> device and can use it, regardless of whether a display is connected or not.
 > 
-> Regards
-> Andrzej
+> If a display is detected, the EDID will be read and the CEC physical address is
+> set. The application is informed of that through an event and the CEC adapter
+> can be used. If the HPD disappears the physical address is reset to f.f.f.f and
+> again the application is informed. And in fact it still has to be able to use
+> the CEC adapter even if there is no HPD since some displays turn off the HPD when
+> in standby, but CEC can still be used to power them up again.
 
-Smatch does track the feilds...  Smatch sees that buf->index is capped
-in vidioc_qbuf() but it still complains that buf->index gets set by the
-user in the ioctl and not checked before we use it vb2_dqbuf().  The
-call tree looks like this:
+Hmm. So you're saying there are DP devices out there that release HPD
+but still respond to DPCD accesses? That sounds... wrong.
 
---> video_usercopy()
-    Copies _IOC_SIZE(cmd) bytes to parg.  The _IOC_SIZE() is
-    sizeof(struct v4l2_buffer) so all the feilds are reset.  Smatch
-    doesn't track how many bytes the users controls, it just marks
-    everything in *parg as tainted but it doesn't matter in this case
-    since all the feilds are set.
-    video_usercopy() calls err = func(file, cmd, parg);
+In general I don't think we can assume that a device has retained its
+state if it has deasserted HPD, thus we have to reconfigure everything
+again anyway.
 
-    --> __video_do_ioctl()
-        calls info->u.func(ops, file, fh, arg);
+> 
+> Now consider a future Intel NUC with an HDMI connector on the backplane and
+> working DP CEC-Tunneling-over-AUX support (e.g. the Megachips MCDP2900): the
+> CEC support is always there (it's built in), but only becomes visible to the
+> kernel when you connect a display. You don't want the cec device to disappear
+> whenever you unplug the display, that makes no sense. Applications would
+> loose the CEC configuration and have to close and reopen (when it reappears)
+> the cec device for no good reason since it is built in.
 
-        --> v4l_dqbuf()
-            calls ops->vidioc_dqbuf(file, fh, p);
+If the application can't remember its settings across a disconnect it
+sounds broken anwyay. This would anyway happen when you disconenct the
+entire dongle.
 
-            --> vidioc_dqbuf()
-                uses unchecked buf->index
+> 
+> The same situation is valid when using a USB-C to HDMI adapter: disconnecting
+> or reconnecting a display should not lead to the removal of the CEC device.
+> Only when an adapter with different CEC capabilities is detected is there a
+> need to actually unregister the CEC device.
+> 
+> All this is really a workaround of the fact that when the HPD disappears the
+> DP-to-HDMI adapter (either external or built-in) also disappears from the
+> topology, even though it is physically still there.
 
-Ah...  Hm.  Is it the call to vb2_core_dqbuf() which limits buf->index?
-I don't see a path from vb2_core_dqbuf() to vb2_qbuf() but I may have
-missed it.
+The dongles I've seen do not disappear. The downstream hpd is
+signalled with short hpd pulses + SINK_COUNT instead.
 
-regards,
-dan carpenter
+But I've not actually seen a dongle that implements the
+BRANCH_DEVICE_CTRL DPCD register, so not quite sure what those would
+actually do. The spec does say they should default to using long
+hpd for downstream hpd handling.
+
+> If there was a way to
+> detect the adapter when there is no display connected, then this workaround
+> wouldn't be needed.
+> 
+> This situation is specific to DisplayPort, this is the only case where the
+> HDMI connector disappears in a puff of smoke when you disconnect the HDMI
+> cable, even though the actual physical connector is obviously still there.
+> 
+> Regards,
+> 
+> 	Hans
+> 
+> > 
+> > Adding the lists back to cc so I don't have to repeat myself there...
+> > 
+> >>
+> >> Regards,
+> >>
+> >> 	Hans
+> >>
+> >>
+> >> -------- Forwarded Message --------
+> >> Subject: Re: [PATCHv5 0/3] drm/i915: add DisplayPort CEC-Tunneling-over-AUX support
+> >> Date: Tue, 9 Jan 2018 13:46:44 +0100
+> >> From: Hans Verkuil <hverkuil@xs4all.nl>
+> >> To: linux-media@vger.kernel.org
+> >> CC: Daniel Vetter <daniel.vetter@ffwll.ch>, Carlos Santa <carlos.santa@intel.com>, dri-devel@lists.freedesktop.org
+> >>
+> >> First of all a Happy New Year for all of you!
+> >>
+> >> And secondly: can this v5 patch series be reviewed/merged? It's been waiting
+> >> for that for a very long time now...
+> >>
+> >> Regards,
+> >>
+> >> 	Hans
+> >>
+> >> On 12/11/17 09:57, Hans Verkuil wrote:
+> >>> Ping again. Added a CC to Ville whom I inexplicably forgot to add when
+> >>> I sent the v5 patch series.
+> >>>
+> >>> Regards,
+> >>>
+> >>> 	Hans
+> >>>
+> >>> On 01/12/17 08:23, Hans Verkuil wrote:
+> >>>> Ping!
+> >>>>
+> >>>> I really like to get this in for 4.16 so I can move forward with hooking
+> >>>> this up for nouveau/amd.
+> >>>>
+> >>>> Regards,
+> >>>>
+> >>>> 	Hans
+> >>>>
+> >>>> On 11/20/2017 12:42 PM, Hans Verkuil wrote:
+> >>>>> This patch series adds support for the DisplayPort CEC-Tunneling-over-AUX
+> >>>>> feature. This patch series is based on the 4.14 mainline release but applies
+> >>>>> as well to drm-next.
+> >>>>>
+> >>>>> This patch series has been tested with my NUC7i5BNK, a Samsung USB-C to 
+> >>>>> HDMI adapter and a Club 3D DisplayPort MST Hub + modified UpTab DP-to-HDMI
+> >>>>> adapter (where the CEC pin is wired up).
+> >>>>>
+> >>>>> Please note this comment at the start of drm_dp_cec.c:
+> >>>>>
+> >>>>> ----------------------------------------------------------------------
+> >>>>> Unfortunately it turns out that we have a chicken-and-egg situation
+> >>>>> here. Quite a few active (mini-)DP-to-HDMI or USB-C-to-HDMI adapters
+> >>>>> have a converter chip that supports CEC-Tunneling-over-AUX (usually the
+> >>>>> Parade PS176 or MegaChips MCDP2900), but they do not wire up the CEC pin,
+> >>>>> thus making CEC useless.
+> >>>>>
+> >>>>> Sadly there is no way for this driver to know this. What happens is
+> >>>>> that a /dev/cecX device is created that is isolated and unable to see
+> >>>>> any of the other CEC devices. Quite literally the CEC wire is cut
+> >>>>> (or in this case, never connected in the first place).
+> >>>>>
+> >>>>> I suspect that the reason so few adapters support this is that this
+> >>>>> tunneling protocol was never supported by any OS. So there was no
+> >>>>> easy way of testing it, and no incentive to correctly wire up the
+> >>>>> CEC pin.
+> >>>>>
+> >>>>> Hopefully by creating this driver it will be easier for vendors to
+> >>>>> finally fix their adapters and test the CEC functionality.
+> >>>>>
+> >>>>> I keep a list of known working adapters here:
+> >>>>>
+> >>>>> https://hverkuil.home.xs4all.nl/cec-status.txt
+> >>>>>
+> >>>>> Please mail me (hverkuil@xs4all.nl) if you find an adapter that works
+> >>>>> and is not yet listed there.
+> >>>>>
+> >>>>> Note that the current implementation does not support CEC over an MST hub.
+> >>>>> As far as I can see there is no mechanism defined in the DisplayPort
+> >>>>> standard to transport CEC interrupts over an MST device. It might be
+> >>>>> possible to do this through polling, but I have not been able to get that
+> >>>>> to work.
+> >>>>> ----------------------------------------------------------------------
+> >>>>>
+> >>>>> I really hope that this work will provide an incentive for vendors to
+> >>>>> finally connect the CEC pin. It's a shame that there are so few adapters
+> >>>>> that work (I found only two USB-C to HDMI adapters that work, and no
+> >>>>> (mini-)DP to HDMI adapters at all).
+> >>>>>
+> >>>>> Hopefully if this gets merged there will be an incentive for vendors
+> >>>>> to make adapters where this actually works. It is a very nice feature
+> >>>>> for HTPC boxes.
+> >>>>>
+> >>>>> The main reason why this v5 is delayed by 2 months is due to the fact
+> >>>>> that I needed some dedicated time to investigate what happens when an
+> >>>>> MST hub is in use. It turns out that this is not working. There is no
+> >>>>> mechanism defined in the DisplayPort standard to transport the CEC
+> >>>>> interrupt back up the MST chain. I was actually able to send a CEC
+> >>>>> message but the interrupt that tells when the transmit finished is
+> >>>>> unavailable.
+> >>>>>
+> >>>>> I attempted to implement this via polling, but I got weird errors
+> >>>>> and was not able to read the DP_DEVICE_SERVICE_IRQ_VECTOR_ESI1
+> >>>>> register. I decided to give up on this for now and just disable CEC
+> >>>>> for DP-to-HDMI adapters after an MST hub. I plan to revisit this
+> >>>>> later since it would be neat to make this work as well. Although it
+> >>>>> might not be possible at all.
+> >>>>>
+> >>>>> If anyone is interested, work-in-progress for this is here:
+> >>>>>
+> >>>>> https://git.linuxtv.org/hverkuil/media_tree.git/log/?h=dp-cec-mst
+> >>>>>
+> >>>>> Note that I removed the Tested-by tag from Carlos Santa due to the
+> >>>>> almost complete rework of the third patch. Carlos, can you test this again?
+> >>>>>
+> >>>>> Regards,
+> >>>>>
+> >>>>>         Hans
+> >>>>>
+> >>>>> Changes since v4:
+> >>>>>
+> >>>>> - Updated comment at the start of drm_dp_cec.c
+> >>>>> - Add edid pointer to drm_dp_cec_configure_adapter
+> >>>>> - Reworked the last patch (adding CEC to i915) based on Ville's comments
+> >>>>>   and my MST testing:
+> >>>>> 	- register/unregister CEC in intel_dp_connector_register/unregister
+> >>>>> 	- add comment and check if connector is registered in long_pulse
+> >>>>> 	- unregister CEC if an MST 'connector' is detected.
+> >>>>>
+> >>>>> _______________________________________________
+> >>>>> dri-devel mailing list
+> >>>>> dri-devel@lists.freedesktop.org
+> >>>>> https://lists.freedesktop.org/mailman/listinfo/dri-devel
+> >>>>>
+> >>>>
+> >>>> _______________________________________________
+> >>>> dri-devel mailing list
+> >>>> dri-devel@lists.freedesktop.org
+> >>>> https://lists.freedesktop.org/mailman/listinfo/dri-devel
+> >>>>
+> >>>
+> >>> _______________________________________________
+> >>> dri-devel mailing list
+> >>> dri-devel@lists.freedesktop.org
+> >>> https://lists.freedesktop.org/mailman/listinfo/dri-devel
+> >>>
+> >>
+> >> _______________________________________________
+> >> dri-devel mailing list
+> >> dri-devel@lists.freedesktop.org
+> >> https://lists.freedesktop.org/mailman/listinfo/dri-devel
+> > 
+
+-- 
+Ville Syrjälä
+Intel OTC
