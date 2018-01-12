@@ -1,112 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from out20-86.mail.aliyun.com ([115.124.20.86]:35338 "EHLO
-        out20-86.mail.aliyun.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932538AbeALCSt (ORCPT
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:41668 "EHLO
+        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932414AbeALJrc (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 11 Jan 2018 21:18:49 -0500
-Date: Fri, 12 Jan 2018 10:18:39 +0800
-From: Yong <yong.deng@magewell.com>
-To: Maxime Ripard <maxime.ripard@free-electrons.com>
-Cc: Hugues FRUCHET <hugues.fruchet@st.com>,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Subject: Re: [PATCH v5 0/5] Add OV5640 parallel interface and RGB565/YUYV
- support
-Message-Id: <20180112101839.cc13571a099d64eea2ac6e3a@magewell.com>
-In-Reply-To: <20180111124018.azdzjeitjsyenmra@flea.lan>
-References: <1514973452-10464-1-git-send-email-hugues.fruchet@st.com>
-        <20180108153811.5xrvbaekm6nxtoa6@flea>
-        <3010811e-ed37-4489-6a9f-6cc835f41575@st.com>
-        <20180110153724.l77zpdgxfbzkznuf@flea>
-        <20180111091508.a0c9f630c6b4ef80178694fb@magewell.com>
-        <20180111124018.azdzjeitjsyenmra@flea.lan>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+        Fri, 12 Jan 2018 04:47:32 -0500
+Received: by mail-wm0-f65.google.com with SMTP id g75so10894176wme.0
+        for <linux-media@vger.kernel.org>; Fri, 12 Jan 2018 01:47:32 -0800 (PST)
+From: "=?UTF-8?q?Christian=20K=C3=B6nig?="
+        <ckoenig.leichtzumerken@gmail.com>
+To: daniel@ffwll.ch, sumit.semwal@linaro.org, gustavo@padovan.org,
+        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        linaro-mm-sig@lists.linaro.org
+Subject: [PATCH 1/3] dma-buf: make returning the exclusive fence optional
+Date: Fri, 12 Jan 2018 10:47:27 +0100
+Message-Id: <20180112094729.17491-1-christian.koenig@amd.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Maxime,
+Change reservation_object_get_fences_rcu to make the exclusive fence
+pointer optional.
 
-On Thu, 11 Jan 2018 13:40:18 +0100
-Maxime Ripard <maxime.ripard@free-electrons.com> wrote:
+If not specified the exclusive fence is put into the fence array as
+well.
 
-> Hi Yong,
-> 
-> On Thu, Jan 11, 2018 at 09:15:08AM +0800, Yong wrote:
-> > > On Mon, Jan 08, 2018 at 05:13:39PM +0000, Hugues FRUCHET wrote:
-> > > > I'm using a ST board with OV5640 wired in parallel bus output in order 
-> > > > to interface to my STM32 DCMI parallel interface.
-> > > > Perhaps could you describe your setup so I could help on understanding 
-> > > > the problem on your side. From my past experience with this sensor 
-> > > > module, you can first check hsync/vsync polarities, the datasheet is 
-> > > > buggy on VSYNC polarity as documented in patch 4/5.
-> > > 
-> > > It turns out that it was indeed a polarity issue.
-> > > 
-> > > It looks like that in order to operate properly, I need to setup the
-> > > opposite polarity on HSYNC and VSYNC on the interface. I looked at the
-> > > signals under a scope, and VSYNC is obviously inversed as you
-> > > described. HSYNC, I'm not so sure since the HBLANK period seems very
-> > > long, almost a line.
-> > > 
-> > > Since VSYNC at least looks correct, I'd be inclined to think that the
-> > > polarity is inversed on at least the SoC I'm using it on.
-> > > 
-> > > Yong, did you test the V3S CSI driver with a parallel interface? With
-> > > what sensor driver? Have you found some polarities issues like this?
-> > 
-> > Did you try it with Allwinner SoCs?
-> 
-> Yes, on an H3. Looking at all the Allwinner datasheet I could get my
-> hands on, they are all documented in the same way. However, I really
-> start to wonder whether the polarity shouldn't be reversed.
-> 
-> At least the fact that VSYNC is clearly active low on the
-> oscilloscope, while I have to set it active high in the controller
-> seems like a strong hint :)
+This is helpful for a couple of cases where we need all fences in a
+single array.
 
-The BSP code of Allwinner also treat V4L2_MBUS_VSYNC_ACTIVE_HIGH as
-they documented 'positive'.
-Maybe there need some more tests to confirm if the datasheet and BSP
-code are both wrong.
+Signed-off-by: Christian König <christian.koenig@amd.com>
+---
+ drivers/dma-buf/reservation.c | 31 ++++++++++++++++++++++---------
+ 1 file changed, 22 insertions(+), 9 deletions(-)
 
-> 
-> > No. I only tested with a BT1120 signal generated by FPGA or ADV7611. HSYNC
-> > and VSYNC are not used.
-> 
-> Ok, that's good to know :)
-> 
-> > For V3s CSI driver, I will add the following to dt-bindings:
-> > Endpoint node properties for CSI1
-> > ---------------------------------
-> > 
-> > - remote-endpoint      : (required) a phandle to the bus receiver's endpoint
-> >                           node
-> > - bus-width:           : (required) must be 8, 10, 12 or 16
-> > - pclk-sample          : (optional) (default: sample on falling edge)
-> > - hsync-active         : (only required for parallel)
-> > - vsync-active         : (only required for parallel)
-> > 
-> > You could try diffrent hsync-active/vsync-active values here.
-> 
-> I did already, and the only combination that works is the one that is
-> the inversed polarity on HSYNC and VSYNC than what the sensor setup.
-> 
-> Maxime
-> 
-> -- 
-> Maxime Ripard, Free Electrons
-> Embedded Linux and Kernel engineering
-> http://free-electrons.com
-
-
-Thanks,
-Yong
+diff --git a/drivers/dma-buf/reservation.c b/drivers/dma-buf/reservation.c
+index b759a569b7b8..461afa9febd4 100644
+--- a/drivers/dma-buf/reservation.c
++++ b/drivers/dma-buf/reservation.c
+@@ -374,8 +374,9 @@ EXPORT_SYMBOL(reservation_object_copy_fences);
+  * @pshared: the array of shared fence ptrs returned (array is krealloc'd to
+  * the required size, and must be freed by caller)
+  *
+- * RETURNS
+- * Zero or -errno
++ * Retrieve all fences from the reservation object. If the pointer for the
++ * exclusive fence is not specified the fence is put into the array of the
++ * shared fences as well. Returns either zero or -ENOMEM.
+  */
+ int reservation_object_get_fences_rcu(struct reservation_object *obj,
+ 				      struct dma_fence **pfence_excl,
+@@ -389,8 +390,8 @@ int reservation_object_get_fences_rcu(struct reservation_object *obj,
+ 
+ 	do {
+ 		struct reservation_object_list *fobj;
+-		unsigned seq;
+-		unsigned int i;
++		unsigned int i, seq;
++		size_t sz = 0;
+ 
+ 		shared_count = i = 0;
+ 
+@@ -402,9 +403,14 @@ int reservation_object_get_fences_rcu(struct reservation_object *obj,
+ 			goto unlock;
+ 
+ 		fobj = rcu_dereference(obj->fence);
+-		if (fobj) {
++		if (fobj)
++			sz += sizeof(*shared) * fobj->shared_max;
++
++		if (!pfence_excl && fence_excl)
++			sz += sizeof(*shared);
++
++		if (sz) {
+ 			struct dma_fence **nshared;
+-			size_t sz = sizeof(*shared) * fobj->shared_max;
+ 
+ 			nshared = krealloc(shared, sz,
+ 					   GFP_NOWAIT | __GFP_NOWARN);
+@@ -420,13 +426,19 @@ int reservation_object_get_fences_rcu(struct reservation_object *obj,
+ 				break;
+ 			}
+ 			shared = nshared;
+-			shared_count = fobj->shared_count;
+-
++			shared_count = fobj ? fobj->shared_count : 0;
+ 			for (i = 0; i < shared_count; ++i) {
+ 				shared[i] = rcu_dereference(fobj->shared[i]);
+ 				if (!dma_fence_get_rcu(shared[i]))
+ 					break;
+ 			}
++
++			if (!pfence_excl && fence_excl) {
++				shared[i] = fence_excl;
++				fence_excl = NULL;
++				++i;
++				++shared_count;
++			}
+ 		}
+ 
+ 		if (i != shared_count || read_seqcount_retry(&obj->seq, seq)) {
+@@ -448,7 +460,8 @@ int reservation_object_get_fences_rcu(struct reservation_object *obj,
+ 
+ 	*pshared_count = shared_count;
+ 	*pshared = shared;
+-	*pfence_excl = fence_excl;
++	if (pfence_excl)
++		*pfence_excl = fence_excl;
+ 
+ 	return ret;
+ }
+-- 
+2.14.1
