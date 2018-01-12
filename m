@@ -1,115 +1,182 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f194.google.com ([209.85.192.194]:32870 "EHLO
-        mail-pf0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753716AbeAaK0c (ORCPT
+Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:40059 "EHLO
+        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S932705AbeALMQC (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 31 Jan 2018 05:26:32 -0500
-Received: by mail-pf0-f194.google.com with SMTP id t5so12157368pfi.0
-        for <linux-media@vger.kernel.org>; Wed, 31 Jan 2018 02:26:32 -0800 (PST)
-From: Alexandre Courbot <acourbot@chromium.org>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Pawel Osciak <posciak@chromium.org>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Fri, 12 Jan 2018 07:16:02 -0500
+Subject: Re: [PATCH v7 3/6] [media] vb2: add explicit fence user API
+To: Gustavo Padovan <gustavo@padovan.org>, linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        Pawel Osciak <pawel@osciak.com>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Brian Starkey <brian.starkey@arm.com>,
+        Thierry Escande <thierry.escande@collabora.com>,
+        linux-kernel@vger.kernel.org,
         Gustavo Padovan <gustavo.padovan@collabora.com>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Alexandre Courbot <acourbot@chromium.org>
-Subject: [RFCv2 10/17] v4l2-ctrls: support g/s_ext_ctrls for requests
-Date: Wed, 31 Jan 2018 19:26:18 +0900
-Message-Id: <20180131102625.208021-1-acourbot@chromium.org>
+References: <20180110160732.7722-1-gustavo@padovan.org>
+ <20180110160732.7722-4-gustavo@padovan.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <a3fc1b74-f82b-c643-8a85-594ff95c9585@xs4all.nl>
+Date: Fri, 12 Jan 2018 13:15:54 +0100
+MIME-Version: 1.0
+In-Reply-To: <20180110160732.7722-4-gustavo@padovan.org>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On 01/10/18 17:07, Gustavo Padovan wrote:
+> From: Gustavo Padovan <gustavo.padovan@collabora.com>
+> 
+> Turn the reserved2 field into fence_fd that we will use to send
+> an in-fence to the kernel and return an out-fence from the kernel to
 
-The v4l2_g/s_ext_ctrls functions now support control handlers that
-represent requests.
+s/and/or/
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Signed-off-by: Alexandre Courbot <acourbot@chromium.org>
----
- drivers/media/v4l2-core/v4l2-ctrls.c | 37 ++++++++++++++++++++++++++++++++----
- 1 file changed, 33 insertions(+), 4 deletions(-)
+> userspace.
+> 
+> Two new flags were added, V4L2_BUF_FLAG_IN_FENCE, that should be used
+> when sending a fence to the kernel to be waited on, and
+> V4L2_BUF_FLAG_OUT_FENCE, to ask the kernel to give back an out-fence.
+> 
+> v5:
+> 	- keep using reserved2 field for cpia2
+> 	- set fence_fd to 0 for now, for compat with userspace(Mauro)
+> 
+> v4:
+> 	- make it a union with reserved2 and fence_fd (Hans Verkuil)
+> 
+> v3:
+> 	- make the out_fence refer to the current buffer (Hans Verkuil)
+> 
+> v2: add documentation
+> 
+> Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
+> ---
+>  Documentation/media/uapi/v4l/buffer.rst        | 15 +++++++++++++++
+>  drivers/media/common/videobuf/videobuf2-v4l2.c |  2 +-
+>  drivers/media/v4l2-core/v4l2-compat-ioctl32.c  |  4 ++--
+>  include/uapi/linux/videodev2.h                 |  7 ++++++-
+>  4 files changed, 24 insertions(+), 4 deletions(-)
+> 
+> diff --git a/Documentation/media/uapi/v4l/buffer.rst b/Documentation/media/uapi/v4l/buffer.rst
+> index ae6ee73f151c..eeefbd2547e7 100644
+> --- a/Documentation/media/uapi/v4l/buffer.rst
+> +++ b/Documentation/media/uapi/v4l/buffer.rst
 
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index 0fa20c89ece1..e4d29cc76ca8 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -1518,6 +1518,13 @@ static int new_to_user(struct v4l2_ext_control *c,
- 	return ptr_to_user(c, ctrl, ctrl->p_new);
- }
- 
-+/* Helper function: copy the request value back to the caller */
-+static int req_to_user(struct v4l2_ext_control *c,
-+		       struct v4l2_ctrl_ref *ref)
-+{
-+	return ptr_to_user(c, ref->ctrl, ref->p_req);
-+}
-+
- /* Helper function: copy the initial control value back to the caller */
- static int def_to_user(struct v4l2_ext_control *c, struct v4l2_ctrl *ctrl)
- {
-@@ -1637,6 +1644,14 @@ static void cur_to_new(struct v4l2_ctrl *ctrl)
- 	ptr_to_ptr(ctrl, ctrl->p_cur, ctrl->p_new);
- }
- 
-+/* Copy the new value to the request value */
-+static void new_to_req(struct v4l2_ctrl_ref *ref)
-+{
-+	if (!ref)
-+		return;
-+	ptr_to_ptr(ref->ctrl, ref->ctrl->p_new, ref->p_req);
-+}
-+
- /* Return non-zero if one or more of the controls in the cluster has a new
-    value that differs from the current value. */
- static int cluster_changed(struct v4l2_ctrl *master)
-@@ -2967,7 +2982,8 @@ int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct v4l2_ext_controls *cs
- 				    struct v4l2_ctrl *ctrl);
- 		struct v4l2_ctrl *master;
- 
--		ctrl_to_user = def_value ? def_to_user : cur_to_user;
-+		ctrl_to_user = def_value ? def_to_user :
-+			       (hdl->is_request ? NULL : cur_to_user);
- 
- 		if (helpers[i].mref == NULL)
- 			continue;
-@@ -2993,8 +3009,12 @@ int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct v4l2_ext_controls *cs
- 			u32 idx = i;
- 
- 			do {
--				ret = ctrl_to_user(cs->controls + idx,
--						   helpers[idx].ref->ctrl);
-+				if (ctrl_to_user)
-+					ret = ctrl_to_user(cs->controls + idx,
-+						helpers[idx].ref->ctrl);
-+				else
-+					ret = req_to_user(cs->controls + idx,
-+						helpers[idx].ref);
- 				idx = helpers[idx].next;
- 			} while (!ret && idx);
- 		}
-@@ -3267,7 +3287,16 @@ static int try_set_ext_ctrls(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
- 		} while (!ret && idx);
- 
- 		if (!ret)
--			ret = try_or_set_cluster(fh, master, set, 0);
-+			ret = try_or_set_cluster(fh, master,
-+						 !hdl->is_request && set, 0);
-+		if (!ret && hdl->is_request && set) {
-+			for (j = 0; j < master->ncontrols; j++) {
-+				struct v4l2_ctrl_ref *ref =
-+					find_ref(hdl, master->cluster[j]->id);
-+
-+				new_to_req(ref);
-+			}
-+		}
- 
- 		/* Copy the new values back to userspace. */
- 		if (!ret) {
--- 
-2.16.0.rc1.238.g530d649a79-goog
+I'm missing documentation for the new fence_fd field in struct v4l2_buffer.
+Make sure to mention what value should be used if you don't set the IN_FENCE
+flag.
+
+> @@ -648,6 +648,21 @@ Buffer Flags
+>        - Start Of Exposure. The buffer timestamp has been taken when the
+>  	exposure of the frame has begun. This is only valid for the
+>  	``V4L2_BUF_TYPE_VIDEO_CAPTURE`` buffer type.
+> +    * .. _`V4L2-BUF-FLAG-IN-FENCE`:
+> +
+> +      - ``V4L2_BUF_FLAG_IN_FENCE``
+> +      - 0x00200000
+> +      - Ask V4L2 to wait on fence passed in ``fence_fd`` field. The buffer
+
+s/fence/the fence/
+s/in/in the/
+
+> +	won't be queued to the driver until the fence signals.
+> +
+> +    * .. _`V4L2-BUF-FLAG-OUT-FENCE`:
+> +
+> +      - ``V4L2_BUF_FLAG_OUT_FENCE``
+> +      - 0x00400000
+> +      - Request a fence to be attached to the buffer. The ``fence_fd``
+
+s/Request/Request for/
+
+> +	field on
+
+This very short line looks weird.
+
+> +	:ref:`VIDIOC_QBUF` is used as a return argument to send the out-fence
+> +	fd to userspace.
+
+I'd rephrase this:
+
+"The driver will fill in the out-fence fd in the ``fence_fd`` field when
+:ref:`VIDIOC_QBUF` returns."
+
+For both flags you also need to be explicit in mentioning that the application
+sets these flags before calling VIDIOC_QBUF. For other ioctls the driver just
+reports these flags.
+
+Also mention what happens if the fence can't be found or can't be created.
+
+Regards,
+
+	Hans
+
+>  
+>  
+>  
+> diff --git a/drivers/media/common/videobuf/videobuf2-v4l2.c b/drivers/media/common/videobuf/videobuf2-v4l2.c
+> index fac3cd6f901d..d838524a459e 100644
+> --- a/drivers/media/common/videobuf/videobuf2-v4l2.c
+> +++ b/drivers/media/common/videobuf/videobuf2-v4l2.c
+> @@ -203,7 +203,7 @@ static void __fill_v4l2_buffer(struct vb2_buffer *vb, void *pb)
+>  	b->timestamp = ns_to_timeval(vb->timestamp);
+>  	b->timecode = vbuf->timecode;
+>  	b->sequence = vbuf->sequence;
+> -	b->reserved2 = 0;
+> +	b->fence_fd = 0;
+>  	b->reserved = 0;
+>  
+>  	if (q->is_multiplanar) {
+> diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+> index e48d59046086..a11a0a2bed47 100644
+> --- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+> +++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+> @@ -370,7 +370,7 @@ struct v4l2_buffer32 {
+>  		__s32		fd;
+>  	} m;
+>  	__u32			length;
+> -	__u32			reserved2;
+> +	__s32			fence_fd;
+>  	__u32			reserved;
+>  };
+>  
+> @@ -533,7 +533,7 @@ static int put_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
+>  		put_user(kp->timestamp.tv_usec, &up->timestamp.tv_usec) ||
+>  		copy_to_user(&up->timecode, &kp->timecode, sizeof(struct v4l2_timecode)) ||
+>  		put_user(kp->sequence, &up->sequence) ||
+> -		put_user(kp->reserved2, &up->reserved2) ||
+> +		put_user(kp->fence_fd, &up->fence_fd) ||
+>  		put_user(kp->reserved, &up->reserved) ||
+>  		put_user(kp->length, &up->length))
+>  			return -EFAULT;
+> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+> index 58894cfe9479..2d424aebdd1e 100644
+> --- a/include/uapi/linux/videodev2.h
+> +++ b/include/uapi/linux/videodev2.h
+> @@ -933,7 +933,10 @@ struct v4l2_buffer {
+>  		__s32		fd;
+>  	} m;
+>  	__u32			length;
+> -	__u32			reserved2;
+> +	union {
+> +		__s32		fence_fd;
+> +		__u32		reserved2;
+> +	};
+>  	__u32			reserved;
+>  };
+>  
+> @@ -970,6 +973,8 @@ struct v4l2_buffer {
+>  #define V4L2_BUF_FLAG_TSTAMP_SRC_SOE		0x00010000
+>  /* mem2mem encoder/decoder */
+>  #define V4L2_BUF_FLAG_LAST			0x00100000
+> +#define V4L2_BUF_FLAG_IN_FENCE			0x00200000
+> +#define V4L2_BUF_FLAG_OUT_FENCE			0x00400000
+>  
+>  /**
+>   * struct v4l2_exportbuffer - export of video buffer as DMABUF file descriptor
+> 
