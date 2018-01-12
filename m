@@ -1,75 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ot0-f193.google.com ([74.125.82.193]:35794 "EHLO
-        mail-ot0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751273AbeA2XM6 (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:47312 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1750714AbeALHaL (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 29 Jan 2018 18:12:58 -0500
+        Fri, 12 Jan 2018 02:30:11 -0500
+Date: Fri, 12 Jan 2018 09:30:08 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Shunqian Zheng <zhengsq@rock-chips.com>
+Cc: mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        ddl@rock-chips.com, tfiga@chromium.org
+Subject: Re: [PATCH v4 5/5] [media] MAINTAINERS: add entries for
+ OV2685/OV5695 sensor drivers
+Message-ID: <20180112073008.t4ia4kts5w2ybpao@valkosipuli.retiisi.org.uk>
+References: <1515509304-15941-1-git-send-email-zhengsq@rock-chips.com>
+ <1515509304-15941-6-git-send-email-zhengsq@rock-chips.com>
+ <20180109223337.7ep3fip7lrqds5m4@valkosipuli.retiisi.org.uk>
+ <7e73473b-1c72-2fcd-4c55-e2c6c87550f6@rock-chips.com>
 MIME-Version: 1.0
-In-Reply-To: <c86097d7-dade-01e5-3826-3f22f9ca4b4f@infradead.org>
-References: <1517217696-17816-1-git-send-email-yong.deng@magewell.com> <c86097d7-dade-01e5-3826-3f22f9ca4b4f@infradead.org>
-From: Arnd Bergmann <arnd@arndb.de>
-Date: Tue, 30 Jan 2018 00:12:56 +0100
-Message-ID: <CAK8P3a1W2VC3CEUvPLKoE7FGU1Osm53YQ-F892wqNekn-h8m1A@mail.gmail.com>
-Subject: Re: [PATCH v7 2/2] media: V3s: Add support for Allwinner CSI.
-To: Randy Dunlap <rdunlap@infradead.org>
-Cc: Yong Deng <yong.deng@magewell.com>,
-        Maxime Ripard <maxime.ripard@free-electrons.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Chen-Yu Tsai <wens@csie.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Yannick Fertre <yannick.fertre@st.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Rick Chang <rick.chang@mediatek.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        DTML <devicetree@vger.kernel.org>,
-        Linux ARM <linux-arm-kernel@lists.infradead.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        linux-sunxi <linux-sunxi@googlegroups.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <7e73473b-1c72-2fcd-4c55-e2c6c87550f6@rock-chips.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jan 29, 2018 at 10:49 PM, Randy Dunlap <rdunlap@infradead.org> wrote:
-> On 01/29/2018 01:21 AM, Yong Deng wrote:
->> Allwinner V3s SoC features two CSI module. CSI0 is used for MIPI CSI-2
->> interface and CSI1 is used for parallel interface. This is not
->> documented in datasheet but by test and guess.
->>
->> This patch implement a v4l2 framework driver for it.
->>
->> Currently, the driver only support the parallel interface. MIPI-CSI2,
->> ISP's support are not included in this patch.
->>
->> Tested-by: Maxime Ripard <maxime.ripard@free-electrons.com>
->> Signed-off-by: Yong Deng <yong.deng@magewell.com>
->> ---
->
->
-> A previous version (I think v6) had a build error with the use of
-> PHYS_OFFSET, so Kconfig was modified to depend on ARM and ARCH_SUNXI
-> (one of which seems to be overkill).  As is here, the COMPILE_TEST piece is
-> meaningless for all arches except ARM.  If you care enough for COMPILE_TEST
-> (and I would), then you could make COMPILE_TEST useful on any arch by
-> removing the "depends on ARM" (the ARCH_SUNXI takes care of that) and by
-> having an alternate value for PHYS_OFFSET, like so:
->
-> +#if defined(CONFIG_COMPILE_TEST) && !defined(PHYS_OFFSET)
-> +#define PHYS_OFFSET    0
-> +#endif
->
-> With those 2 changes, the driver builds for me on x86_64.
+On Fri, Jan 12, 2018 at 09:52:13AM +0800, Shunqian Zheng wrote:
+> Hi Sakari,
+> 
+> 
+> On 2018年01月10日 06:33, Sakari Ailus wrote:
+> > On Tue, Jan 09, 2018 at 10:48:24PM +0800, Shunqian Zheng wrote:
+> > > Add maintainer entries for the OV2685 and OV5695 V4L2 sensor drivers.
+> > > 
+> > > Signed-off-by: Shunqian Zheng <zhengsq@rock-chips.com>
+> > Same patch with the driver, please.
+> > 
+> > Other than that seems good to me.
+> Does that mean I can add your Reviewed-by in the new patches?
 
-I think the PHYS_OFFSET really has to get removed from the driver, it's
-wrong on ARM as well.
+Presumably you'll have one patch less in v5. I'll still check the rest of
+the patches.
 
-      Arnd
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
