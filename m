@@ -1,112 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from out20-3.mail.aliyun.com ([115.124.20.3]:53366 "EHLO
-        out20-3.mail.aliyun.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750934AbeAWIR0 (ORCPT
+Received: from kirsty.vergenet.net ([202.4.237.240]:58985 "EHLO
+        kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750716AbeALGs1 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 23 Jan 2018 03:17:26 -0500
-From: Yong Deng <yong.deng@magewell.com>
-To: Maxime Ripard <maxime.ripard@free-electrons.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Chen-Yu Tsai <wens@csie.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        Randy Dunlap <rdunlap@infradead.org>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Yannick Fertre <yannick.fertre@st.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Rick Chang <rick.chang@mediatek.com>,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-sunxi@googlegroups.com, megous@megous.com,
-        Yong Deng <yong.deng@magewell.com>
-Subject: [PATCH v6 1/2] dt-bindings: media: Add Allwinner V3s Camera Sensor Interface (CSI)
-Date: Tue, 23 Jan 2018 16:16:17 +0800
-Message-Id: <1516695377-23262-1-git-send-email-yong.deng@magewell.com>
+        Fri, 12 Jan 2018 01:48:27 -0500
+Date: Fri, 12 Jan 2018 07:48:22 +0100
+From: Simon Horman <horms@verge.net.au>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>, magnus.damm@gmail.com,
+        geert@glider.be, mchehab@kernel.org, hverkuil@xs4all.nl,
+        festevam@gmail.com, sakari.ailus@iki.fi, robh+dt@kernel.org,
+        mark.rutland@arm.com, linux-renesas-soc@vger.kernel.org,
+        linux-media@vger.kernel.org, linux-sh@vger.kernel.org,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v4 1/9] dt-bindings: media: Add Renesas CEU bindings
+Message-ID: <20180112064821.aj2yfcvt4p5co7pc@verge.net.au>
+References: <1515515131-13760-1-git-send-email-jacopo+renesas@jmondi.org>
+ <1515515131-13760-2-git-send-email-jacopo+renesas@jmondi.org>
+ <3717276.fcpQzKB3PM@avalon>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <3717276.fcpQzKB3PM@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add binding documentation for Allwinner V3s CSI.
+On Fri, Jan 12, 2018 at 12:50:41AM +0200, Laurent Pinchart wrote:
+> Hi Jacopo,
+> 
+> Thank you for the patch.
+> 
+> On Tuesday, 9 January 2018 18:25:23 EET Jacopo Mondi wrote:
+> > Add bindings documentation for Renesas Capture Engine Unit (CEU).
+> > 
+> > Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+> 
+> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-Reviewed-by: Rob Herring <robh@kernel.org>
-Signed-off-by: Yong Deng <yong.deng@magewell.com>
----
- .../devicetree/bindings/media/sun6i-csi.txt        | 59 ++++++++++++++++++++++
- 1 file changed, 59 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/sun6i-csi.txt
+Hi,
 
-diff --git a/Documentation/devicetree/bindings/media/sun6i-csi.txt b/Documentation/devicetree/bindings/media/sun6i-csi.txt
-new file mode 100644
-index 0000000..2ff47a9
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/sun6i-csi.txt
-@@ -0,0 +1,59 @@
-+Allwinner V3s Camera Sensor Interface
-+-------------------------------------
-+
-+Allwinner V3s SoC features two CSI module. CSI0 is used for MIPI CSI-2
-+interface and CSI1 is used for parallel interface.
-+
-+Required properties:
-+  - compatible: value must be "allwinner,sun8i-v3s-csi"
-+  - reg: base address and size of the memory-mapped region.
-+  - interrupts: interrupt associated to this IP
-+  - clocks: phandles to the clocks feeding the CSI
-+    * bus: the CSI interface clock
-+    * mod: the CSI module clock
-+    * ram: the CSI DRAM clock
-+  - clock-names: the clock names mentioned above
-+  - resets: phandles to the reset line driving the CSI
-+
-+Each CSI node should contain one 'port' child node with one child 'endpoint'
-+node, according to the bindings defined in
-+Documentation/devicetree/bindings/media/video-interfaces.txt. As mentioned
-+above, the endpoint's bus type should be MIPI CSI-2 for CSI0 and parallel or
-+Bt656 for CSI1.
-+
-+Endpoint node properties for CSI1
-+---------------------------------
-+
-+- remote-endpoint	: (required) a phandle to the bus receiver's endpoint
-+			   node
-+- bus-width:		: (required) must be 8, 10, 12 or 16
-+- pclk-sample		: (optional) (default: sample on falling edge)
-+- hsync-active		: (only required for parallel)
-+- vsync-active		: (only required for parallel)
-+
-+Example:
-+
-+csi1: csi@1cb4000 {
-+	compatible = "allwinner,sun8i-v3s-csi";
-+	reg = <0x01cb4000 0x1000>;
-+	interrupts = <GIC_SPI 84 IRQ_TYPE_LEVEL_HIGH>;
-+	clocks = <&ccu CLK_BUS_CSI>,
-+		 <&ccu CLK_CSI1_SCLK>,
-+		 <&ccu CLK_DRAM_CSI>;
-+	clock-names = "bus", "mod", "ram";
-+	resets = <&ccu RST_BUS_CSI>;
-+
-+	port {
-+		/* Parallel bus endpoint */
-+		csi1_ep: endpoint {
-+			remote-endpoint = <&adv7611_ep>;
-+			bus-width = <16>;
-+
-+			/* If hsync-active/vsync-active are missing,
-+			   embedded BT.656 sync is used */
-+			hsync-active = <0>; /* Active low */
-+			vsync-active = <0>; /* Active low */
-+			pclk-sample = <1>;  /* Rising */
-+		};
-+	};
-+};
--- 
-1.8.3.1
+I see that these bindings have now been reviewed. What is their (likely)
+path to upstream from here? I'd like to accept the related DTS changes
+once there is a clear path for the bindings to land in upstream.
