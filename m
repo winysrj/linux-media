@@ -1,66 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay4-d.mail.gandi.net ([217.70.183.196]:35245 "EHLO
-        relay4-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751881AbeA3J7G (ORCPT
+Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:40561 "EHLO
+        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S932753AbeALEpm (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 30 Jan 2018 04:59:06 -0500
-From: Jacopo Mondi <jacopo+renesas@jmondi.org>
-To: laurent.pinchart@ideasonboard.com, magnus.damm@gmail.com,
-        geert@glider.be, hverkuil@xs4all.nl, mchehab@kernel.org,
-        festevam@gmail.com, sakari.ailus@iki.fi, robh+dt@kernel.org,
-        mark.rutland@arm.com, pombredanne@nexb.com
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-sh@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH v8 04/11] ARM: dts: r7s72100: Add Capture Engine Unit (CEU)
-Date: Tue, 30 Jan 2018 10:58:15 +0100
-Message-Id: <1517306302-27957-5-git-send-email-jacopo+renesas@jmondi.org>
-In-Reply-To: <1517306302-27957-1-git-send-email-jacopo+renesas@jmondi.org>
-References: <1517306302-27957-1-git-send-email-jacopo+renesas@jmondi.org>
+        Thu, 11 Jan 2018 23:45:42 -0500
+Message-ID: <8fd3c346ea5c0dc537c14f3513aca78a@smtp-cloud8.xs4all.net>
+Date: Fri, 12 Jan 2018 05:45:35 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add Capture Engine Unit (CEU) node to device tree.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
-Reviewed-by: Geert Uytterhoeven <geert+renesas@glider.be>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- arch/arm/boot/dts/r7s72100.dtsi | 15 ++++++++++++---
- 1 file changed, 12 insertions(+), 3 deletions(-)
+Results of the daily build of media_tree:
 
-diff --git a/arch/arm/boot/dts/r7s72100.dtsi b/arch/arm/boot/dts/r7s72100.dtsi
-index ab9645a..5fe62f9 100644
---- a/arch/arm/boot/dts/r7s72100.dtsi
-+++ b/arch/arm/boot/dts/r7s72100.dtsi
-@@ -135,9 +135,9 @@
- 			#clock-cells = <1>;
- 			compatible = "renesas,r7s72100-mstp-clocks", "renesas,cpg-mstp-clocks";
- 			reg = <0xfcfe042c 4>;
--			clocks = <&p0_clk>;
--			clock-indices = <R7S72100_CLK_RTC>;
--			clock-output-names = "rtc";
-+			clocks = <&b_clk>, <&p0_clk>;
-+			clock-indices = <R7S72100_CLK_CEU R7S72100_CLK_RTC>;
-+			clock-output-names = "ceu", "rtc";
- 		};
- 
- 		mstp7_clks: mstp7_clks@fcfe0430 {
-@@ -667,4 +667,13 @@
- 		power-domains = <&cpg_clocks>;
- 		status = "disabled";
- 	};
-+
-+	ceu: ceu@e8210000 {
-+		reg = <0xe8210000 0x3000>;
-+		compatible = "renesas,r7s72100-ceu";
-+		interrupts = <GIC_SPI 332 IRQ_TYPE_LEVEL_HIGH>;
-+		clocks = <&mstp6_clks R7S72100_CLK_CEU>;
-+		power-domains = <&cpg_clocks>;
-+		status = "disabled";
-+	};
- };
--- 
-2.7.4
+date:			Fri Jan 12 05:00:15 CET 2018
+media-tree git hash:	e3ee691dbf24096ea51b3200946b11d68ce75361
+media_build git hash:	46c9dc0a08499791cedfc7ee0df387e475f075a2
+v4l-utils git hash:	351eb68ac235f37f749a1c5d6ed2fae80e9dffe3
+gcc version:		i686-linux-gcc (GCC) 7.1.0
+sparse version:		v0.5.0-3911-g6f737e1f
+smatch version:		v0.5.0-3911-g6f737e1f
+host hardware:		x86_64
+host os:		4.13.0-164
+
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: WARNINGS
+linux-3.11.1-i686: ERRORS
+linux-3.12.67-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.7-i686: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.18.7-i686: ERRORS
+linux-3.19-i686: ERRORS
+linux-4.0.9-i686: ERRORS
+linux-4.1.33-i686: ERRORS
+linux-4.2.8-i686: ERRORS
+linux-4.3.6-i686: ERRORS
+linux-4.4.22-i686: ERRORS
+linux-4.5.7-i686: ERRORS
+linux-4.6.7-i686: ERRORS
+linux-4.7.5-i686: ERRORS
+linux-4.8-i686: ERRORS
+linux-4.9.26-i686: ERRORS
+linux-4.10.14-i686: WARNINGS
+linux-4.11-i686: WARNINGS
+linux-4.12.1-i686: WARNINGS
+linux-4.13-i686: WARNINGS
+linux-4.14-i686: WARNINGS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.67-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.7-x86_64: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.7-x86_64: ERRORS
+linux-3.19-x86_64: ERRORS
+linux-4.0.9-x86_64: ERRORS
+linux-4.1.33-x86_64: ERRORS
+linux-4.2.8-x86_64: ERRORS
+linux-4.3.6-x86_64: ERRORS
+linux-4.4.22-x86_64: ERRORS
+linux-4.5.7-x86_64: ERRORS
+linux-4.6.7-x86_64: ERRORS
+linux-4.7.5-x86_64: ERRORS
+linux-4.8-x86_64: ERRORS
+linux-4.9.26-x86_64: ERRORS
+linux-4.10.14-x86_64: WARNINGS
+linux-4.11-x86_64: WARNINGS
+linux-4.12.1-x86_64: WARNINGS
+linux-4.13-x86_64: WARNINGS
+linux-4.14-x86_64: WARNINGS
+apps: OK
+spec-git: OK
+smatch: OK
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
