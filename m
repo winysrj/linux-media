@@ -1,407 +1,414 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga12.intel.com ([192.55.52.136]:1235 "EHLO mga12.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751025AbeAaMTM (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 31 Jan 2018 07:19:12 -0500
-Date: Wed, 31 Jan 2018 14:19:06 +0200
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: Alexandre Courbot <acourbot@chromium.org>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Pawel Osciak <posciak@chromium.org>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Gustavo Padovan <gustavo.padovan@collabora.com>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [RFC PATCH 3/8] media: videobuf2: add support for requests
-Message-ID: <20180131121906.h25fll5whpk3cxsb@paasikivi.fi.intel.com>
-References: <20180126060216.147918-1-acourbot@chromium.org>
- <20180126060216.147918-4-acourbot@chromium.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20180126060216.147918-4-acourbot@chromium.org>
+Received: from sub5.mail.dreamhost.com ([208.113.200.129]:45020 "EHLO
+        homiemail-a68.g.dreamhost.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S934004AbeALQUE (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 12 Jan 2018 11:20:04 -0500
+From: Brad Love <brad@nextdimension.cc>
+To: linux-media@vger.kernel.org
+Cc: Brad Love <brad@nextdimension.cc>
+Subject: [PATCH 3/7] si2157: Add hybrid tuner support
+Date: Fri, 12 Jan 2018 10:19:38 -0600
+Message-Id: <1515773982-6411-4-git-send-email-brad@nextdimension.cc>
+In-Reply-To: <1515773982-6411-1-git-send-email-brad@nextdimension.cc>
+References: <1515773982-6411-1-git-send-email-brad@nextdimension.cc>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Alexandre,
+Add ability to share a tuner amongst demodulators. Addtional
+demods are attached using hybrid_tuner_instance_list.
 
-On Fri, Jan 26, 2018 at 03:02:11PM +0900, Alexandre Courbot wrote:
-> Make vb2 aware of requests. Drivers can specify whether a given queue
-> can accept requests or not. Queues that accept requests will block on a
-> buffer that is part of a request until that request is submitted.
-> 
-> Signed-off-by: Alexandre Courbot <acourbot@chromium.org>
-> ---
->  drivers/media/v4l2-core/videobuf2-core.c | 125 +++++++++++++++++++++++++++++--
->  drivers/media/v4l2-core/videobuf2-v4l2.c |  28 ++++++-
->  include/media/videobuf2-core.h           |  15 +++-
->  3 files changed, 160 insertions(+), 8 deletions(-)
-> 
-> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-> index cb115ba6a1d2..f6d013b141f1 100644
-> --- a/drivers/media/v4l2-core/videobuf2-core.c
-> +++ b/drivers/media/v4l2-core/videobuf2-core.c
-> @@ -26,6 +26,7 @@
->  
->  #include <media/videobuf2-core.h>
->  #include <media/v4l2-mc.h>
-> +#include <media/media-request.h>
->  
->  #include <trace/events/vb2.h>
->  
-> @@ -922,6 +923,17 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
->  		vb->state = state;
->  	}
->  	atomic_dec(&q->owned_by_drv_count);
-> +	if (vb->request) {
-> +		struct media_request *req = vb->request;
-> +
-> +		if (atomic_dec_and_test(&req->buf_cpt))
-> +			media_request_complete(vb->request);
-> +
-> +		/* release reference acquired during qbuf */
-> +		vb->request = NULL;
-> +		media_request_put(req);
-> +	}
-> +
->  	spin_unlock_irqrestore(&q->done_lock, flags);
->  
->  	trace_vb2_buf_done(q, vb);
-> @@ -1298,6 +1310,53 @@ int vb2_core_prepare_buf(struct vb2_queue *q, unsigned int index, void *pb)
->  }
->  EXPORT_SYMBOL_GPL(vb2_core_prepare_buf);
->  
-> +/**
-> + * vb2_check_buf_req_status() - Validate request state of a buffer
-> + * @vb:		buffer to check
-> + *
-> + * Returns true if a buffer is ready to be passed to the driver request-wise.
-> + * This means that neither this buffer nor any previously-queued buffer is
-> + * associated to a request that is not yet submitted.
-> + *
-> + * If this function returns false, then the buffer shall not be passed to its
-> + * driver since the request state is not completely built yet. In that case,
-> + * this function will register a notifier to be called when the request is
-> + * submitted and the queue can be unblocked.
-> + *
-> + * This function must be called with req_lock held.
-> + */
-> +static bool vb2_check_buf_req_status(struct vb2_buffer *vb)
-> +{
-> +	struct media_request *req = vb->request;
-> +	struct vb2_queue *q = vb->vb2_queue;
-> +	int ret = false;
-> +
-> +	mutex_lock(&q->req_lock);
-> +
-> +	if (!req) {
-> +		ret = !q->waiting_req;
-> +		goto done;
-> +	}
-> +
-> +	mutex_lock(&req->lock);
-> +	if (req->state == MEDIA_REQUEST_STATE_SUBMITTED) {
+The changes are equivalent to moving all of probe to _attach.
+Results are backwards compatible with current usage.
 
-Would it make sense to serialise access to request state using the queue
-lock instead? The queue and the state are often accessed together.
+If the tuner is acquired via attach, then .release cleans state.
+if the tuner is an i2c driver, then .release is set to NULL, and
+.remove cleans remaining state.
 
-The function itself seems weird. The VB2 framework does not have enough
-information to determine whether a request is complete; this is something a
-driver must evaluate at the time of queueing the request.
+The following file contains a static si2157_attach:
+- drivers/media/pci/saa7164/saa7164-dvb.c
+The function name has been appended with _priv to appease
+the compiler.
 
-> +		mutex_unlock(&req->lock);
-> +		ret = !q->waiting_req;
-> +		goto done;
-> +	}
-> +
-> +	if (!q->waiting_req) {
-> +		q->waiting_req = true;
-> +		atomic_notifier_chain_register(&req->submit_notif,
-> +					       &q->req_blk);
-> +	}
-> +	mutex_unlock(&req->lock);
-> +
-> +done:
-> +	mutex_unlock(&q->req_lock);
-> +	return ret;
-> +}
-> +
->  /**
->   * vb2_start_streaming() - Attempt to start streaming.
->   * @q:		videobuf2 queue
-> @@ -1318,8 +1377,11 @@ static int vb2_start_streaming(struct vb2_queue *q)
->  	 * If any buffers were queued before streamon,
->  	 * we can now pass them to driver for processing.
->  	 */
-> -	list_for_each_entry(vb, &q->queued_list, queued_entry)
-> +	list_for_each_entry(vb, &q->queued_list, queued_entry) {
-> +		if (!vb2_check_buf_req_status(vb))
-> +			break;
->  		__enqueue_in_driver(vb);
+Signed-off-by: Brad Love <brad@nextdimension.cc>
+---
+ drivers/media/pci/saa7164/saa7164-dvb.c |  11 +-
+ drivers/media/tuners/si2157.c           | 232 +++++++++++++++++++++++---------
+ drivers/media/tuners/si2157.h           |  14 ++
+ drivers/media/tuners/si2157_priv.h      |   5 +
+ 4 files changed, 192 insertions(+), 70 deletions(-)
 
-Queueing buffers to drivers this way hardly makes sense with requests. The
-driver has no use for it, all it cares about is the request.
-
-VB2 could manage its own state of the buffer this way but that's only
-useful from V4L2 API point of view, it has no functional purpose. This
-suggests we need an overhaul of the existing buffer management for
-requests.
-
-> +	}
->  
->  	/* Tell the driver to start streaming */
->  	q->start_streaming_called = 1;
-> @@ -1361,7 +1423,46 @@ static int vb2_start_streaming(struct vb2_queue *q)
->  	return ret;
->  }
->  
-> -int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb)
-> +/**
-> + * vb2_unblock_requests() - unblock a queue waiting for a request submission
-> + * @nb:		notifier block that has been registered
-> + * @action:	unused
-> + * @data:	request that has been submitted
-> + *
-> + * This is a callback function that is registered when
-> + * vb2_check_buf_req_status() returns false. It is invoked when the request
-> + * blocking the queue has been submitted. This means its buffers (and all
-> + * following valid buffers) can be passed to drivers.
-
-This is a perplexing one. Why would you not queue the request to the driver
-at the time of... it is queued, by the user? The VB2 framework (nor the
-media or V4L2 frameworks to that matter) does not have enough information
-in order to help the driver here.
-
-> + */
-> +static int vb2_unblock_requests(struct notifier_block *nb, unsigned long action,
-> +				void *data)
-> +{
-> +	struct vb2_queue *q = container_of(nb, struct vb2_queue, req_blk);
-> +	struct media_request *req = data;
-> +	struct vb2_buffer *vb;
-> +	bool found_request = false;
-> +
-> +	mutex_lock(&q->req_lock);
-> +	atomic_notifier_chain_unregister(&req->submit_notif, &q->req_blk);
-> +	q->waiting_req = false;
-> +	mutex_unlock(&q->req_lock);
-> +
-> +	list_for_each_entry(vb, &q->queued_list, queued_entry) {
-> +		/* All buffers before our request are already passed to the driver */
-> +		if (!found_request && vb->request != req)
-> +			continue;
-> +		found_request = true;
-> +
-> +		if (!vb2_check_buf_req_status(vb))
-> +			break;
-> +		__enqueue_in_driver(vb);
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +int vb2_core_qbuf(struct vb2_queue *q, unsigned int index,
-> +		  struct media_request *req, void *pb)
->  {
->  	struct vb2_buffer *vb;
->  	int ret;
-> @@ -1398,11 +1499,21 @@ int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb)
->  
->  	trace_vb2_qbuf(q, vb);
->  
-> +	vb->request = req;
-> +	if (req) {
-> +		if (!q->allow_requests)
-> +			return -EINVAL;
-> +
-> +		/* make sure the request stays alive as long as we need */
-> +		media_request_get(req);
-> +		atomic_inc(&req->buf_cpt);
-> +	}
-> +
->  	/*
->  	 * If already streaming, give the buffer to driver for processing.
->  	 * If not, the buffer will be given to driver on next streamon.
->  	 */
-> -	if (q->start_streaming_called)
-> +	if (q->start_streaming_called && vb2_check_buf_req_status(vb))
->  		__enqueue_in_driver(vb);
->  
->  	/* Fill buffer information for the userspace */
-> @@ -1993,6 +2104,8 @@ int vb2_core_queue_init(struct vb2_queue *q)
->  	spin_lock_init(&q->done_lock);
->  	mutex_init(&q->mmap_lock);
->  	init_waitqueue_head(&q->done_wq);
-> +	mutex_init(&q->req_lock);
-> +	q->req_blk.notifier_call = vb2_unblock_requests;
->  
->  	if (q->buf_struct_size == 0)
->  		q->buf_struct_size = sizeof(struct vb2_buffer);
-> @@ -2242,7 +2355,7 @@ static int __vb2_init_fileio(struct vb2_queue *q, int read)
->  		 * Queue all buffers.
->  		 */
->  		for (i = 0; i < q->num_buffers; i++) {
-> -			ret = vb2_core_qbuf(q, i, NULL);
-> +			ret = vb2_core_qbuf(q, i, NULL, NULL);
->  			if (ret)
->  				goto err_reqbufs;
->  			fileio->bufs[i].queued = 1;
-> @@ -2421,7 +2534,7 @@ static size_t __vb2_perform_fileio(struct vb2_queue *q, char __user *data, size_
->  
->  		if (copy_timestamp)
->  			b->timestamp = ktime_get_ns();
-> -		ret = vb2_core_qbuf(q, index, NULL);
-> +		ret = vb2_core_qbuf(q, index, NULL, NULL);
->  		dprintk(5, "vb2_dbuf result: %d\n", ret);
->  		if (ret)
->  			return ret;
-> @@ -2524,7 +2637,7 @@ static int vb2_thread(void *data)
->  		if (copy_timestamp)
->  			vb->timestamp = ktime_get_ns();;
->  		if (!threadio->stop)
-> -			ret = vb2_core_qbuf(q, vb->index, NULL);
-> +			ret = vb2_core_qbuf(q, vb->index, NULL, NULL);
->  		call_void_qop(q, wait_prepare, q);
->  		if (ret || threadio->stop)
->  			break;
-> diff --git a/drivers/media/v4l2-core/videobuf2-v4l2.c b/drivers/media/v4l2-core/videobuf2-v4l2.c
-> index 0f8edbdebe30..267fe2d669b2 100644
-> --- a/drivers/media/v4l2-core/videobuf2-v4l2.c
-> +++ b/drivers/media/v4l2-core/videobuf2-v4l2.c
-> @@ -30,6 +30,7 @@
->  #include <media/v4l2-common.h>
->  
->  #include <media/videobuf2-v4l2.h>
-> +#include <media/media-request.h>
-
-Alphabetical order, please.
-
->  
->  static int debug;
->  module_param(debug, int, 0644);
-> @@ -561,6 +562,7 @@ EXPORT_SYMBOL_GPL(vb2_create_bufs);
->  
->  int vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
->  {
-> +	struct media_request *req = NULL;
->  	int ret;
->  
->  	if (vb2_fileio_is_active(q)) {
-> @@ -568,8 +570,32 @@ int vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
->  		return -EBUSY;
->  	}
->  
-> +	/*
-> +	 * The caller should have validated that the request is valid,
-> +	 * so we just need to look it up without further checking
-
-Why? This would mean you'll need to look up a request twice per IOCTL.
-
-> +	 */
-> +	if (b->request_fd > 0) {
-> +		req = media_request_get_from_fd(b->request_fd);
-> +		if (!req)
-> +			return -EINVAL;
-> +
-> +		mutex_lock(&req->lock);
-> +		if (req->state != MEDIA_REQUEST_STATE_IDLE) {
-> +			mutex_unlock(&req->lock);
-> +			media_request_put(req);
-> +			return -EINVAL;
-> +		}
-> +		mutex_unlock(&req->lock);
-> +	}
-> +
->  	ret = vb2_queue_or_prepare_buf(q, b, "qbuf");
-> -	return ret ? ret : vb2_core_qbuf(q, b->index, b);
-> +	if (!ret)
-> +		ret = vb2_core_qbuf(q, b->index, req, b);
-> +
-> +	if (req)
-> +		media_request_put(req);
-> +
-> +	return ret;
->  }
->  EXPORT_SYMBOL_GPL(vb2_qbuf);
->  
-> diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-> index ef9b64398c8c..7bb17c842ab4 100644
-> --- a/include/media/videobuf2-core.h
-> +++ b/include/media/videobuf2-core.h
-> @@ -237,6 +237,7 @@ struct vb2_queue;
->   *			on an internal driver queue
->   * @planes:		private per-plane information; do not change
->   * @timestamp:		frame timestamp in ns
-> + * @request:		request the buffer belongs to, if any
->   */
->  struct vb2_buffer {
->  	struct vb2_queue	*vb2_queue;
-> @@ -246,6 +247,7 @@ struct vb2_buffer {
->  	unsigned int		num_planes;
->  	struct vb2_plane	planes[VB2_MAX_PLANES];
->  	u64			timestamp;
-> +	struct media_request	*request;
->  
->  	/* private: internal use only
->  	 *
-> @@ -443,6 +445,7 @@ struct vb2_buf_ops {
->   * @quirk_poll_must_check_waiting_for_buffers: Return POLLERR at poll when QBUF
->   *              has not been called. This is a vb1 idiom that has been adopted
->   *              also by vb2.
-> + * @allow_requests:	whether requests are supported on this queue.
->   * @lock:	pointer to a mutex that protects the vb2_queue struct. The
->   *		driver can set this to a mutex to let the v4l2 core serialize
->   *		the queuing ioctls. If the driver wants to handle locking
-> @@ -500,6 +503,9 @@ struct vb2_buf_ops {
->   *		when a buffer with the V4L2_BUF_FLAG_LAST is dequeued.
->   * @fileio:	file io emulator internal data, used only if emulator is active
->   * @threadio:	thread io internal data, used only if thread is active
-> + * @req_lock:	protects req_blk and waiting_req
-> + * @req_blk:	notifier to be called when waiting for a request to be submitted
-> + * @waiting_req:whether this queue is currently waiting on a request submission
->   */
->  struct vb2_queue {
->  	unsigned int			type;
-> @@ -511,6 +517,7 @@ struct vb2_queue {
->  	unsigned			fileio_write_immediately:1;
->  	unsigned			allow_zero_bytesused:1;
->  	unsigned		   quirk_poll_must_check_waiting_for_buffers:1;
-> +	unsigned			allow_requests:1;
->  
->  	struct mutex			*lock;
->  	void				*owner;
-> @@ -554,6 +561,10 @@ struct vb2_queue {
->  	struct vb2_fileio_data		*fileio;
->  	struct vb2_threadio_data	*threadio;
->  
-> +	struct mutex			req_lock;
-> +	struct notifier_block		req_blk;
-> +	bool				waiting_req;
-> +
->  #ifdef CONFIG_VIDEO_ADV_DEBUG
->  	/*
->  	 * Counters for how often these queue-related ops are
-> @@ -724,6 +735,7 @@ int vb2_core_prepare_buf(struct vb2_queue *q, unsigned int index, void *pb);
->   *
->   * @q:		videobuf2 queue
->   * @index:	id number of the buffer
-> + * @req:	request this buffer belongs to, if any
->   * @pb:		buffer structure passed from userspace to vidioc_qbuf handler
->   *		in driver
->   *
-> @@ -740,7 +752,8 @@ int vb2_core_prepare_buf(struct vb2_queue *q, unsigned int index, void *pb);
->   * The return values from this function are intended to be directly returned
->   * from vidioc_qbuf handler in driver.
->   */
-> -int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb);
-> +int vb2_core_qbuf(struct vb2_queue *q, unsigned int index,
-> +		  struct media_request *req, void *pb);
->  
->  /**
->   * vb2_core_dqbuf() - Dequeue a buffer to the userspace
-
+diff --git a/drivers/media/pci/saa7164/saa7164-dvb.c b/drivers/media/pci/saa7164/saa7164-dvb.c
+index e76d3ba..9522c6c 100644
+--- a/drivers/media/pci/saa7164/saa7164-dvb.c
++++ b/drivers/media/pci/saa7164/saa7164-dvb.c
+@@ -110,8 +110,9 @@ static struct si2157_config hauppauge_hvr2255_tuner_config = {
+ 	.if_port = 1,
+ };
+ 
+-static int si2157_attach(struct saa7164_port *port, struct i2c_adapter *adapter,
+-	struct dvb_frontend *fe, u8 addr8bit, struct si2157_config *cfg)
++static int si2157_attach_priv(struct saa7164_port *port,
++	struct i2c_adapter *adapter, struct dvb_frontend *fe,
++	u8 addr8bit, struct si2157_config *cfg)
+ {
+ 	struct i2c_board_info bi;
+ 	struct i2c_client *tuner;
+@@ -624,11 +625,13 @@ int saa7164_dvb_register(struct saa7164_port *port)
+ 		if (port->dvb.frontend != NULL) {
+ 
+ 			if (port->nr == 0) {
+-				si2157_attach(port, &dev->i2c_bus[0].i2c_adap,
++				si2157_attach_priv(port,
++					      &dev->i2c_bus[0].i2c_adap,
+ 					      port->dvb.frontend, 0xc0,
+ 					      &hauppauge_hvr2255_tuner_config);
+ 			} else {
+-				si2157_attach(port, &dev->i2c_bus[1].i2c_adap,
++				si2157_attach_priv(port,
++					      &dev->i2c_bus[1].i2c_adap,
+ 					      port->dvb.frontend, 0xc0,
+ 					      &hauppauge_hvr2255_tuner_config);
+ 			}
+diff --git a/drivers/media/tuners/si2157.c b/drivers/media/tuners/si2157.c
+index e35b1fa..9121361 100644
+--- a/drivers/media/tuners/si2157.c
++++ b/drivers/media/tuners/si2157.c
+@@ -18,6 +18,11 @@
+ 
+ static const struct dvb_tuner_ops si2157_ops;
+ 
++static DEFINE_MUTEX(si2157_list_mutex);
++static LIST_HEAD(hybrid_tuner_instance_list);
++
++/*---------------------------------------------------------------------*/
++
+ /* execute firmware command */
+ static int si2157_cmd_execute(struct i2c_client *client, struct si2157_cmd *cmd)
+ {
+@@ -385,6 +390,31 @@ static int si2157_get_if_frequency(struct dvb_frontend *fe, u32 *frequency)
+ 	return 0;
+ }
+ 
++static void si2157_release(struct dvb_frontend *fe)
++{
++	struct i2c_client *client = fe->tuner_priv;
++	struct si2157_dev *dev = i2c_get_clientdata(client);
++
++	dev_dbg(&client->dev, "%s()\n", __func__);
++
++	/* only do full cleanup on final instance */
++	if (hybrid_tuner_report_instance_count(dev) == 1) {
++		/* stop statistics polling */
++		cancel_delayed_work_sync(&dev->stat_work);
++#ifdef CONFIG_MEDIA_CONTROLLER_DVB
++		if (dev->mdev)
++			media_device_unregister_entity(&dev->ent);
++#endif
++		i2c_set_clientdata(client, NULL);
++	}
++
++	mutex_lock(&si2157_list_mutex);
++	hybrid_tuner_release_state(dev);
++	mutex_unlock(&si2157_list_mutex);
++
++	fe->tuner_priv = NULL;
++}
++
+ static const struct dvb_tuner_ops si2157_ops = {
+ 	.info = {
+ 		.name           = "Silicon Labs Si2141/Si2146/2147/2148/2157/2158",
+@@ -396,6 +426,7 @@ static const struct dvb_tuner_ops si2157_ops = {
+ 	.sleep = si2157_sleep,
+ 	.set_params = si2157_set_params,
+ 	.get_if_frequency = si2157_get_if_frequency,
++	.release = si2157_release,
+ };
+ 
+ static void si2157_stat_work(struct work_struct *work)
+@@ -431,72 +462,30 @@ static int si2157_probe(struct i2c_client *client,
+ {
+ 	struct si2157_config *cfg = client->dev.platform_data;
+ 	struct dvb_frontend *fe = cfg->fe;
+-	struct si2157_dev *dev;
+-	struct si2157_cmd cmd;
+-	int ret;
+-
+-	dev = kzalloc(sizeof(*dev), GFP_KERNEL);
+-	if (!dev) {
+-		ret = -ENOMEM;
+-		dev_err(&client->dev, "kzalloc() failed\n");
+-		goto err;
+-	}
+-
+-	i2c_set_clientdata(client, dev);
+-	dev->fe = cfg->fe;
+-	dev->inversion = cfg->inversion;
+-	dev->if_port = cfg->if_port;
+-	dev->chiptype = (u8)id->driver_data;
+-	dev->if_frequency = 5000000; /* default value of property 0x0706 */
+-	mutex_init(&dev->i2c_mutex);
+-	INIT_DELAYED_WORK(&dev->stat_work, si2157_stat_work);
++	struct si2157_dev *dev = NULL;
++	unsigned short addr = client->addr;
++	int ret = 0;
+ 
+-	/* check if the tuner is there */
+-	cmd.wlen = 0;
+-	cmd.rlen = 1;
+-	ret = si2157_cmd_execute(client, &cmd);
+-	if (ret)
+-		goto err_kfree;
+-
+-	memcpy(&fe->ops.tuner_ops, &si2157_ops, sizeof(struct dvb_tuner_ops));
++	dev_dbg(&client->dev, "Probing tuner\n");
+ 	fe->tuner_priv = client;
+ 
+-#ifdef CONFIG_MEDIA_CONTROLLER
+-	if (cfg->mdev) {
+-		dev->mdev = cfg->mdev;
+-
+-		dev->ent.name = KBUILD_MODNAME;
+-		dev->ent.function = MEDIA_ENT_F_TUNER;
+-
+-		dev->pad[TUNER_PAD_RF_INPUT].flags = MEDIA_PAD_FL_SINK;
+-		dev->pad[TUNER_PAD_OUTPUT].flags = MEDIA_PAD_FL_SOURCE;
+-		dev->pad[TUNER_PAD_AUD_OUT].flags = MEDIA_PAD_FL_SOURCE;
+-
+-		ret = media_entity_pads_init(&dev->ent, TUNER_NUM_PADS,
+-					     &dev->pad[0]);
+-
+-		if (ret)
+-			goto err_kfree;
+-
+-		ret = media_device_register_entity(cfg->mdev, &dev->ent);
+-		if (ret) {
+-			media_entity_cleanup(&dev->ent);
+-			goto err_kfree;
+-		}
++	if (si2157_attach(fe, (u8)addr, client->adapter, cfg) == NULL) {
++		dev_err(&client->dev, "%s: attaching si2157 tuner failed\n",
++				__func__);
++		goto err;
+ 	}
+-#endif
++	fe->ops.tuner_ops.release = NULL;
+ 
++	dev = i2c_get_clientdata(client);
++	dev->chiptype = (u8)id->driver_data;
+ 	dev_info(&client->dev, "Silicon Labs %s successfully attached\n",
+ 			dev->chiptype == SI2157_CHIPTYPE_SI2141 ?  "Si2141" :
+ 			dev->chiptype == SI2157_CHIPTYPE_SI2146 ?
+ 			"Si2146" : "Si2147/2148/2157/2158");
+ 
+ 	return 0;
+-
+-err_kfree:
+-	kfree(dev);
+ err:
+-	dev_dbg(&client->dev, "failed=%d\n", ret);
++	dev_warn(&client->dev, "probe failed = %d\n", ret);
+ 	return ret;
+ }
+ 
+@@ -505,19 +494,10 @@ static int si2157_remove(struct i2c_client *client)
+ 	struct si2157_dev *dev = i2c_get_clientdata(client);
+ 	struct dvb_frontend *fe = dev->fe;
+ 
+-	dev_dbg(&client->dev, "\n");
+-
+-	/* stop statistics polling */
+-	cancel_delayed_work_sync(&dev->stat_work);
+-
+-#ifdef CONFIG_MEDIA_CONTROLLER_DVB
+-	if (dev->mdev)
+-		media_device_unregister_entity(&dev->ent);
+-#endif
++	dev_dbg(&client->dev, "%s()\n", __func__);
+ 
+ 	memset(&fe->ops.tuner_ops, 0, sizeof(struct dvb_tuner_ops));
+-	fe->tuner_priv = NULL;
+-	kfree(dev);
++	si2157_release(fe);
+ 
+ 	return 0;
+ }
+@@ -542,7 +522,127 @@ static struct i2c_driver si2157_driver = {
+ 
+ module_i2c_driver(si2157_driver);
+ 
+-MODULE_DESCRIPTION("Silicon Labs Si2141/Si2146/2147/2148/2157/2158 silicon tuner driver");
++struct dvb_frontend *si2157_attach(struct dvb_frontend *fe, u8 addr,
++		struct i2c_adapter *i2c,
++		struct si2157_config *cfg)
++{
++	struct i2c_client *client = NULL;
++	struct si2157_dev *dev = NULL;
++	struct si2157_cmd cmd;
++	int instance = 0, ret;
++
++	pr_debug("%s (%d-%04x)\n", __func__,
++	       i2c ? i2c_adapter_id(i2c) : 0,
++	       addr);
++
++	if (!cfg) {
++		pr_warn("no configuration submitted\n");
++		goto fail;
++	}
++
++	if (!fe) {
++		pr_warn("fe is NULL\n");
++		goto fail;
++	}
++
++	client = fe->tuner_priv;
++	if (!client) {
++		pr_warn("client is NULL\n");
++		goto fail;
++	}
++
++	mutex_lock(&si2157_list_mutex);
++
++	instance = hybrid_tuner_request_state(struct si2157_dev, dev,
++			hybrid_tuner_instance_list,
++			i2c, addr, "si2157");
++
++	switch (instance) {
++	case 0:
++		goto fail;
++	case 1:
++		/* new tuner instance */
++		dev_dbg(&client->dev, "%s(): new instance for tuner @0x%02x\n",
++				__func__, addr);
++		dev->addr = addr;
++		i2c_set_clientdata(client, dev);
++
++		dev->fe = fe;
++		dev->chiptype = SI2157_CHIPTYPE_SI2157;
++		dev->if_frequency = 0;
++		dev->if_port   = cfg->if_port;
++		dev->inversion = cfg->inversion;
++
++		mutex_init(&dev->i2c_mutex);
++		INIT_DELAYED_WORK(&dev->stat_work, si2157_stat_work);
++
++		break;
++	default:
++		/* existing tuner instance */
++		dev_dbg(&client->dev,
++				"%s(): using existing instance for tuner @0x%02x\n",
++				 __func__, addr);
++		break;
++	}
++
++	/* check if the tuner is there */
++	cmd.wlen = 0;
++	cmd.rlen = 1;
++	ret = si2157_cmd_execute(client, &cmd);
++	/* verify no i2c error and CTS is set */
++	if (ret) {
++		dev_warn(&client->dev, "no HW found ret=%d\n", ret);
++		goto fail_instance;
++	}
++
++	memcpy(&fe->ops.tuner_ops, &si2157_ops, sizeof(struct dvb_tuner_ops));
++
++#ifdef CONFIG_MEDIA_CONTROLLER
++	if (instance == 1 && cfg->mdev) {
++		dev->mdev = cfg->mdev;
++
++		dev->ent.name = KBUILD_MODNAME;
++		dev->ent.function = MEDIA_ENT_F_TUNER;
++
++		dev->pad[TUNER_PAD_RF_INPUT].flags = MEDIA_PAD_FL_SINK;
++		dev->pad[TUNER_PAD_OUTPUT].flags = MEDIA_PAD_FL_SOURCE;
++		dev->pad[TUNER_PAD_AUD_OUT].flags = MEDIA_PAD_FL_SOURCE;
++
++		ret = media_entity_pads_init(&dev->ent, TUNER_NUM_PADS,
++					     &dev->pad[0]);
++
++		if (ret)
++			goto fail_instance;
++
++		ret = media_device_register_entity(cfg->mdev, &dev->ent);
++		if (ret) {
++			dev_warn(&client->dev,
++				"media_device_regiser_entity returns %d\n", ret);
++			media_entity_cleanup(&dev->ent);
++			goto fail_instance;
++		}
++	}
++#endif
++	mutex_unlock(&si2157_list_mutex);
++
++	if (instance != 1)
++		dev_info(&client->dev, "Silicon Labs %s successfully attached\n",
++			dev->chiptype == SI2157_CHIPTYPE_SI2141 ?  "Si2141" :
++			dev->chiptype == SI2157_CHIPTYPE_SI2146 ?
++			"Si2146" : "Si2147/2148/2157/2158");
++
++	return fe;
++fail_instance:
++	mutex_unlock(&si2157_list_mutex);
++
++	si2157_release(fe);
++fail:
++	dev_warn(&client->dev, "Attach failed\n");
++	return NULL;
++}
++EXPORT_SYMBOL(si2157_attach);
++
++MODULE_DESCRIPTION("Silicon Labs Si2141/2146/2147/2148/2157/2158 silicon tuner driver");
+ MODULE_AUTHOR("Antti Palosaari <crope@iki.fi>");
+ MODULE_LICENSE("GPL");
+ MODULE_FIRMWARE(SI2158_A20_FIRMWARE);
+diff --git a/drivers/media/tuners/si2157.h b/drivers/media/tuners/si2157.h
+index de597fa..26b94ca 100644
+--- a/drivers/media/tuners/si2157.h
++++ b/drivers/media/tuners/si2157.h
+@@ -46,4 +46,18 @@ struct si2157_config {
+ 	u8 if_port;
+ };
+ 
++#if IS_REACHABLE(CONFIG_MEDIA_TUNER_SI2157)
++extern struct dvb_frontend *si2157_attach(struct dvb_frontend *fe, u8 addr,
++					    struct i2c_adapter *i2c,
++					    struct si2157_config *cfg);
++#else
++static inline struct dvb_frontend *si2157_attach(struct dvb_frontend *fe,
++						   u8 addr,
++						   struct i2c_adapter *i2c,
++						   struct si2157_config *cfg)
++{
++	pr_err("%s: driver disabled by Kconfig\n", __func__);
++	return NULL;
++}
++#endif
+ #endif
+diff --git a/drivers/media/tuners/si2157_priv.h b/drivers/media/tuners/si2157_priv.h
+index e6436f7..2801aaa 100644
+--- a/drivers/media/tuners/si2157_priv.h
++++ b/drivers/media/tuners/si2157_priv.h
+@@ -19,15 +19,20 @@
+ 
+ #include <linux/firmware.h>
+ #include <media/v4l2-mc.h>
++#include "tuner-i2c.h"
+ #include "si2157.h"
+ 
+ /* state struct */
+ struct si2157_dev {
++	struct list_head hybrid_tuner_instance_list;
++	struct tuner_i2c_props  i2c_props;
++
+ 	struct mutex i2c_mutex;
+ 	struct dvb_frontend *fe;
+ 	bool active;
+ 	bool inversion;
+ 	u8 chiptype;
++	u8 addr;
+ 	u8 if_port;
+ 	u32 if_frequency;
+ 	struct delayed_work stat_work;
 -- 
-Sakari Ailus
-sakari.ailus@linux.intel.com
+2.7.4
