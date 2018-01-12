@@ -1,128 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:58080 "EHLO
-        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1754403AbeALLqB (ORCPT
+Received: from out20-86.mail.aliyun.com ([115.124.20.86]:35338 "EHLO
+        out20-86.mail.aliyun.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932538AbeALCSt (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 12 Jan 2018 06:46:01 -0500
-Subject: Re: [RFC PATCH 0/9] media: base request API support
-To: Alexandre Courbot <acourbot@chromium.org>,
+        Thu, 11 Jan 2018 21:18:49 -0500
+Date: Fri, 12 Jan 2018 10:18:39 +0800
+From: Yong <yong.deng@magewell.com>
+To: Maxime Ripard <maxime.ripard@free-electrons.com>
+Cc: Hugues FRUCHET <hugues.fruchet@st.com>,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Pawel Osciak <posciak@chromium.org>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Gustavo Padovan <gustavo.padovan@collabora.com>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-References: <20171215075625.27028-1-acourbot@chromium.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <8fde3248-97b6-f87a-7d8a-8f9c478697a5@xs4all.nl>
-Date: Fri, 12 Jan 2018 12:45:56 +0100
-MIME-Version: 1.0
-In-Reply-To: <20171215075625.27028-1-acourbot@chromium.org>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Subject: Re: [PATCH v5 0/5] Add OV5640 parallel interface and RGB565/YUYV
+ support
+Message-Id: <20180112101839.cc13571a099d64eea2ac6e3a@magewell.com>
+In-Reply-To: <20180111124018.azdzjeitjsyenmra@flea.lan>
+References: <1514973452-10464-1-git-send-email-hugues.fruchet@st.com>
+        <20180108153811.5xrvbaekm6nxtoa6@flea>
+        <3010811e-ed37-4489-6a9f-6cc835f41575@st.com>
+        <20180110153724.l77zpdgxfbzkznuf@flea>
+        <20180111091508.a0c9f630c6b4ef80178694fb@magewell.com>
+        <20180111124018.azdzjeitjsyenmra@flea.lan>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Alexandre,
+Hi Maxime,
 
-On 12/15/17 08:56, Alexandre Courbot wrote:
-> Here is a new attempt at the request API, following the UAPI we agreed on in
-> Prague. Hopefully this can be used as the basis to move forward.
-> 
-> This series only introduces the very basics of how requests work: allocate a
-> request, queue buffers to it, queue the request itself, wait for it to complete,
-> reuse it. It does *not* yet use Hans' work with controls setting. I have
-> preferred to submit it this way for now as it allows us to concentrate on the
-> basic request/buffer flow, which was harder to get properly than I initially
-> thought. I still have a gut feeling that it can be improved, with less back-and-
-> forth into drivers.
-> 
-> Plugging in controls support should not be too hard a task (basically just apply
-> the saved controls when the request starts), and I am looking at it now.
-> 
-> The resulting vim2m driver can be successfully used with requests, and my tests
-> so far have been successful.
-> 
-> There are still some rougher edges:
-> 
-> * locking is currently quite coarse-grained
-> * too many #ifdef CONFIG_MEDIA_CONTROLLER in the code, as the request API
->   depends on it - I plan to craft the headers so that it becomes unnecessary.
->   As it is, some of the code will probably not even compile if
->   CONFIG_MEDIA_CONTROLLER is not set
-> 
-> But all in all I think the request flow should be clear and easy to review, and
-> the possibility of custom queue and entity support implementations should give
-> us the flexibility we need to support more specific use-cases (I expect the
-> generic implementations to be sufficient most of the time though).
-> 
-> A very simple test program exercising this API is available here (don't forget
-> to adapt the /dev/media0 hardcoding):
-> https://gist.github.com/Gnurou/dbc3776ed97ea7d4ce6041ea15eb0438
-> 
-> Looking forward to your feedback and comments!
+On Thu, 11 Jan 2018 13:40:18 +0100
+Maxime Ripard <maxime.ripard@free-electrons.com> wrote:
 
-I think this will become more interesting when the control code is in.
+> Hi Yong,
+> 
+> On Thu, Jan 11, 2018 at 09:15:08AM +0800, Yong wrote:
+> > > On Mon, Jan 08, 2018 at 05:13:39PM +0000, Hugues FRUCHET wrote:
+> > > > I'm using a ST board with OV5640 wired in parallel bus output in order 
+> > > > to interface to my STM32 DCMI parallel interface.
+> > > > Perhaps could you describe your setup so I could help on understanding 
+> > > > the problem on your side. From my past experience with this sensor 
+> > > > module, you can first check hsync/vsync polarities, the datasheet is 
+> > > > buggy on VSYNC polarity as documented in patch 4/5.
+> > > 
+> > > It turns out that it was indeed a polarity issue.
+> > > 
+> > > It looks like that in order to operate properly, I need to setup the
+> > > opposite polarity on HSYNC and VSYNC on the interface. I looked at the
+> > > signals under a scope, and VSYNC is obviously inversed as you
+> > > described. HSYNC, I'm not so sure since the HBLANK period seems very
+> > > long, almost a line.
+> > > 
+> > > Since VSYNC at least looks correct, I'd be inclined to think that the
+> > > polarity is inversed on at least the SoC I'm using it on.
+> > > 
+> > > Yong, did you test the V3S CSI driver with a parallel interface? With
+> > > what sensor driver? Have you found some polarities issues like this?
+> > 
+> > Did you try it with Allwinner SoCs?
+> 
+> Yes, on an H3. Looking at all the Allwinner datasheet I could get my
+> hands on, they are all documented in the same way. However, I really
+> start to wonder whether the polarity shouldn't be reversed.
+> 
+> At least the fact that VSYNC is clearly active low on the
+> oscilloscope, while I have to set it active high in the controller
+> seems like a strong hint :)
 
-The main thing I've noticed with this patch series is that it is very codec
-oriented. Which in some ways is OK (after all, that's the first type of HW
-that we want to support), but the vb2 code in particular should be more
-generic.
-
-I would also recommend that you start preparing documentation patches: we
-can review that and make sure all the corner-cases are correctly documented.
-
-The public API changes are (I think) fairly limited, but the devil is in
-the details, so getting that reviewed early on will help you later.
-
-It's a bit unfortunate that the fence patch series is also making vb2 changes,
-but I hope that will be merged fairly soon so you can develop on top of that
-series.
-
-Regards,
-
-	Hans
+The BSP code of Allwinner also treat V4L2_MBUS_VSYNC_ACTIVE_HIGH as
+they documented 'positive'.
+Maybe there need some more tests to confirm if the datasheet and BSP
+code are both wrong.
 
 > 
-> Alexandre Courbot (8):
->   media: add request API core and UAPI
->   media: request: add generic queue
->   media: request: add generic entity ops
->   media: vb2: add support for requests
->   media: vb2: add support for requests in QBUF ioctl
->   media: v4l2-mem2mem: add request support
->   media: vim2m: add media device
->   media: vim2m: add request support
+> > No. I only tested with a BT1120 signal generated by FPGA or ADV7611. HSYNC
+> > and VSYNC are not used.
 > 
-> Hans Verkuil (1):
->   videodev2.h: Add request field to v4l2_buffer
+> Ok, that's good to know :)
 > 
->  drivers/media/Makefile                        |   4 +-
->  drivers/media/media-device.c                  |   6 +
->  drivers/media/media-request-entity-generic.c  |  56 ++++
->  drivers/media/media-request-queue-generic.c   | 150 ++++++++++
->  drivers/media/media-request.c                 | 390 ++++++++++++++++++++++++++
->  drivers/media/platform/vim2m.c                |  46 +++
->  drivers/media/usb/cpia2/cpia2_v4l.c           |   2 +-
->  drivers/media/v4l2-core/v4l2-compat-ioctl32.c |   7 +-
->  drivers/media/v4l2-core/v4l2-ioctl.c          |  99 ++++++-
->  drivers/media/v4l2-core/v4l2-mem2mem.c        |  34 +++
->  drivers/media/v4l2-core/videobuf2-core.c      |  59 +++-
->  drivers/media/v4l2-core/videobuf2-v4l2.c      |  32 ++-
->  include/media/media-device.h                  |   3 +
->  include/media/media-entity.h                  |   6 +
->  include/media/media-request.h                 | 282 +++++++++++++++++++
->  include/media/v4l2-mem2mem.h                  |  19 ++
->  include/media/videobuf2-core.h                |  25 +-
->  include/media/videobuf2-v4l2.h                |   2 +
->  include/uapi/linux/media.h                    |  11 +
->  include/uapi/linux/videodev2.h                |   3 +-
->  20 files changed, 1216 insertions(+), 20 deletions(-)
->  create mode 100644 drivers/media/media-request-entity-generic.c
->  create mode 100644 drivers/media/media-request-queue-generic.c
->  create mode 100644 drivers/media/media-request.c
->  create mode 100644 include/media/media-request.h
+> > For V3s CSI driver, I will add the following to dt-bindings:
+> > Endpoint node properties for CSI1
+> > ---------------------------------
+> > 
+> > - remote-endpoint      : (required) a phandle to the bus receiver's endpoint
+> >                           node
+> > - bus-width:           : (required) must be 8, 10, 12 or 16
+> > - pclk-sample          : (optional) (default: sample on falling edge)
+> > - hsync-active         : (only required for parallel)
+> > - vsync-active         : (only required for parallel)
+> > 
+> > You could try diffrent hsync-active/vsync-active values here.
 > 
+> I did already, and the only combination that works is the one that is
+> the inversed polarity on HSYNC and VSYNC than what the sensor setup.
+> 
+> Maxime
+> 
+> -- 
+> Maxime Ripard, Free Electrons
+> Embedded Linux and Kernel engineering
+> http://free-electrons.com
+
+
+Thanks,
+Yong
