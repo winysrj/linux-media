@@ -1,65 +1,235 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:41847 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752290AbeAWNO2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 23 Jan 2018 08:14:28 -0500
-Date: Tue, 23 Jan 2018 13:14:25 +0000
-From: Sean Young <sean@mess.org>
-To: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>,
-        linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
-Subject: Re: [PATCH] media: lirc: Fix uninitialized variable in
- ir_lirc_transmit_ir()
-Message-ID: <20180123131425.sghf77ivdd6weqsf@gofer.mess.org>
-References: <20180110093623.z5kqrsnu72stchu5@mwanda>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20180110093623.z5kqrsnu72stchu5@mwanda>
+Received: from mailout3.samsung.com ([203.254.224.33]:12738 "EHLO
+        mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933687AbeALOOQ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 12 Jan 2018 09:14:16 -0500
+Subject: Re: [PATCH v2 1/2] media: ov9650: support device tree probing
+To: Akinobu Mita <akinobu.mita@gmail.com>, linux-media@vger.kernel.org,
+        devicetree@vger.kernel.org
+Cc: Jacopo Mondi <jacopo@jmondi.org>,
+        "H . Nikolaus Schaller" <hns@goldelico.com>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Rob Herring <robh@kernel.org>
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Message-id: <02ea7734-fa64-7a3a-1eaf-7944bbe6caa4@samsung.com>
+Date: Fri, 12 Jan 2018 15:14:07 +0100
+MIME-version: 1.0
+In-reply-to: <1515344064-23156-2-git-send-email-akinobu.mita@gmail.com>
+Content-type: text/plain; charset="utf-8"
+Content-language: en-GB
+Content-transfer-encoding: 7bit
+References: <1515344064-23156-1-git-send-email-akinobu.mita@gmail.com>
+        <1515344064-23156-2-git-send-email-akinobu.mita@gmail.com>
+        <CGME20180112141412epcas2p1e00472715d601bc52dcef6d850d5f13c@epcas2p1.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Jan 10, 2018 at 12:36:23PM +0300, Dan Carpenter wrote:
-> The "txbuf" is uninitialized when we call ir_raw_encode_scancode() so
-> this failure path would lead to a crash.
+On 01/07/2018 05:54 PM, Akinobu Mita wrote:
+> The ov9650 driver currently only supports legacy platform data probe.
+> This change adds device tree probing.
 
-Thanks for reporting this issue, however I'm afraid that the issue has
-already been resolved:
+> Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+> ---
 
-https://www.mail-archive.com/linux-media@vger.kernel.org/msg123672.html
-
-and:
-
-https://git.linuxtv.org/media_tree.git/commit/?id=8d25e15d94a2d7b60c28d3a30e4e0e780cab2056
-
-Many thanks,
-
-Sean
-
-
+>  drivers/media/i2c/ov9650.c | 130 ++++++++++++++++++++++++++++++++-------------
+>  1 file changed, 92 insertions(+), 38 deletions(-)
 > 
-> Fixes: a74b2bff5945 ("media: lirc: do not pass ERR_PTR to kfree")
-> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-> 
-> diff --git a/drivers/media/rc/lirc_dev.c b/drivers/media/rc/lirc_dev.c
-> index fae42f120aa4..5efe9cd2309a 100644
-> --- a/drivers/media/rc/lirc_dev.c
-> +++ b/drivers/media/rc/lirc_dev.c
-> @@ -295,7 +295,7 @@ static ssize_t ir_lirc_transmit_ir(struct file *file, const char __user *buf,
->  		ret = ir_raw_encode_scancode(scan.rc_proto, scan.scancode,
->  					     raw, LIRCBUF_SIZE);
->  		if (ret < 0)
-> -			goto out_kfree;
-> +			goto out_free_raw;
+> diff --git a/drivers/media/i2c/ov9650.c b/drivers/media/i2c/ov9650.c
+> index 69433e1..99a3eab 100644
+> --- a/drivers/media/i2c/ov9650.c
+> +++ b/drivers/media/i2c/ov9650.c
+
+> -static void __ov965x_set_power(struct ov965x *ov965x, int on)
+> +static int __ov965x_set_power(struct ov965x *ov965x, int on)
+>  {
+>  	if (on) {
+> -		ov965x_gpio_set(ov965x->gpios[GPIO_PWDN], 0);
+> -		ov965x_gpio_set(ov965x->gpios[GPIO_RST], 0);
+> +		int ret = clk_prepare_enable(ov965x->clk);
+
+It seems you rely on the fact clk_prepare_enable() is a nop when passed
+argument is NULL, which happens in non-DT case.
+
+> +		if (ret)
+> +			return ret;
+> +
+> +		gpiod_set_value_cansleep(ov965x->gpios[GPIO_PWDN], 0);
+> +		gpiod_set_value_cansleep(ov965x->gpios[GPIO_RST], 0);
+>  		msleep(25);
+>  	} else {
+> -		ov965x_gpio_set(ov965x->gpios[GPIO_RST], 1);
+> -		ov965x_gpio_set(ov965x->gpios[GPIO_PWDN], 1);
+> +		gpiod_set_value_cansleep(ov965x->gpios[GPIO_RST], 1);
+> +		gpiod_set_value_cansleep(ov965x->gpios[GPIO_PWDN], 1);
+> +
+> +		clk_disable_unprepare(ov965x->clk);
+>  	}
 >  
->  		count = ret;
+>  	ov965x->streaming = 0;
+> +
+> +	return 0;
+>  }
+
+> @@ -1408,16 +1414,17 @@ static const struct v4l2_subdev_ops ov965x_subdev_ops = {
+>  /*
+>   * Reset and power down GPIOs configuration
+>   */
+> -static int ov965x_configure_gpios(struct ov965x *ov965x,
+> -				  const struct ov9650_platform_data *pdata)
+> +static int ov965x_configure_gpios_pdata(struct ov965x *ov965x,
+> +				const struct ov9650_platform_data *pdata)
+>  {
+>  	int ret, i;
+> +	int gpios[NUM_GPIOS];
 >  
-> @@ -366,6 +366,7 @@ static ssize_t ir_lirc_transmit_ir(struct file *file, const char __user *buf,
->  	return n;
->  out_kfree:
->  	kfree(txbuf);
-> +out_free_raw:
->  	kfree(raw);
->  out_unlock:
->  	mutex_unlock(&dev->lock);
+> -	ov965x->gpios[GPIO_PWDN] = pdata->gpio_pwdn;
+> -	ov965x->gpios[GPIO_RST]  = pdata->gpio_reset;
+> +	gpios[GPIO_PWDN] = pdata->gpio_pwdn;
+> +	gpios[GPIO_RST]  = pdata->gpio_reset;
+>  
+>  	for (i = 0; i < ARRAY_SIZE(ov965x->gpios); i++) {
+> -		int gpio = ov965x->gpios[i];
+> +		int gpio = gpios[i];
+>  
+>  		if (!gpio_is_valid(gpio))
+>  			continue;
+> @@ -1427,9 +1434,30 @@ static int ov965x_configure_gpios(struct ov965x *ov965x,
+>  			return ret;
+>  		v4l2_dbg(1, debug, &ov965x->sd, "set gpio %d to 1\n", gpio);
+>  
+> -		gpio_set_value(gpio, 1);
+> +		gpio_set_value_cansleep(gpio, 1);
+>  		gpio_export(gpio, 0);
+> -		ov965x->gpios[i] = gpio;
+> +		ov965x->gpios[i] = gpio_to_desc(gpio);
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +static int ov965x_configure_gpios(struct ov965x *ov965x)
+> +{
+> +	struct device *dev = &ov965x->client->dev;
+> +
+> +	ov965x->gpios[GPIO_PWDN] = devm_gpiod_get_optional(dev, "powerdown",
+> +							GPIOD_OUT_HIGH);
+> +	if (IS_ERR(ov965x->gpios[GPIO_PWDN])) {
+> +		dev_info(dev, "can't get %s GPIO\n", "powerdown");
+> +		return PTR_ERR(ov965x->gpios[GPIO_PWDN]);
+> +	}
+> +
+> +	ov965x->gpios[GPIO_RST] = devm_gpiod_get_optional(dev, "reset",
+> +							GPIOD_OUT_HIGH);
+> +	if (IS_ERR(ov965x->gpios[GPIO_RST])) {
+> +		dev_info(dev, "can't get %s GPIO\n", "reset");
+> +		return PTR_ERR(ov965x->gpios[GPIO_RST]);
+>  	}
+>  
+>  	return 0;
+> @@ -1443,7 +1471,10 @@ static int ov965x_detect_sensor(struct v4l2_subdev *sd)
+>  	int ret;
+>  
+>  	mutex_lock(&ov965x->lock);
+> -	__ov965x_set_power(ov965x, 1);
+> +	ret = __ov965x_set_power(ov965x, 1);
+> +	if (ret)
+> +		goto out;
+> +
+>  	msleep(25);
+>  
+>  	/* Check sensor revision */
+> @@ -1463,6 +1494,7 @@ static int ov965x_detect_sensor(struct v4l2_subdev *sd)
+>  			ret = -ENODEV;
+>  		}
+>  	}
+> +out:
+>  	mutex_unlock(&ov965x->lock);
+>  
+>  	return ret;
+> @@ -1476,23 +1508,39 @@ static int ov965x_probe(struct i2c_client *client,
+>  	struct ov965x *ov965x;
+>  	int ret;
+>  
+> -	if (!pdata) {
+> -		dev_err(&client->dev, "platform data not specified\n");
+> -		return -EINVAL;
+> -	}
+> -
+> -	if (pdata->mclk_frequency == 0) {
+> -		dev_err(&client->dev, "MCLK frequency not specified\n");
+> -		return -EINVAL;
+> -	}
+> -
+>  	ov965x = devm_kzalloc(&client->dev, sizeof(*ov965x), GFP_KERNEL);
+>  	if (!ov965x)
+>  		return -ENOMEM;
+>  
+> -	mutex_init(&ov965x->lock);
+
+I would leave mutex initialization as first thing after the private data
+structure allocation, is there a need to move it further?
+
+>  	ov965x->client = client;
+> -	ov965x->mclk_frequency = pdata->mclk_frequency;
+> +
+> +	if (pdata) {
+> +		if (pdata->mclk_frequency == 0) {
+> +			dev_err(&client->dev, "MCLK frequency not specified\n");
+> +			return -EINVAL;
+> +		}
+> +		ov965x->mclk_frequency = pdata->mclk_frequency;
+> +
+> +		ret = ov965x_configure_gpios_pdata(ov965x, pdata);
+> +		if (ret < 0)
+> +			return ret;
+> +	} else if (dev_fwnode(&client->dev)) {
+> +		ov965x->clk = devm_clk_get(&ov965x->client->dev, NULL);
+> +		if (IS_ERR(ov965x->clk))
+> +			return PTR_ERR(ov965x->clk);
+> +		ov965x->mclk_frequency = clk_get_rate(ov965x->clk);
+> +
+> +		ret = ov965x_configure_gpios(ov965x);
+> +		if (ret < 0)
+> +			return ret;
+> +	} else {
+> +		dev_err(&client->dev,
+> +			"Neither platform data nor device property specified\n");
+> +
+> +		return -EINVAL;
+> +	}
+> +
+> +	mutex_init(&ov965x->lock);
+>  
+>  	sd = &ov965x->sd;
+>  	v4l2_i2c_subdev_init(sd, client, &ov965x_subdev_ops);
+> @@ -1502,10 +1550,6 @@ static int ov965x_probe(struct i2c_client *client,
+>  	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE |
+>  		     V4L2_SUBDEV_FL_HAS_EVENTS;
+>  
+> -	ret = ov965x_configure_gpios(ov965x, pdata);
+> -	if (ret < 0)
+> -		goto err_mutex;
+> -
+>  	ov965x->pad.flags = MEDIA_PAD_FL_SOURCE;
+>  	sd->entity.function = MEDIA_ENT_F_CAM_SENSOR;
+>  	ret = media_entity_pads_init(&sd->entity, 1, &ov965x->pad);
+> @@ -1561,9 +1605,19 @@ static const struct i2c_device_id ov965x_id[] = {
+>  };
+>  MODULE_DEVICE_TABLE(i2c, ov965x_id);
+>  
+> +#if IS_ENABLED(CONFIG_OF)
+
+Is there any advantage in using IS_ENABLED() rather than just
+#ifdef CONFIG_OF ? of_match_ptr() is defined with just #idef CONFIG_OF/
+#else/#endif. I would use simply #ifdef CONFIG_OF here.
+
+Otherwise looks good.
+
+Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+
+-- 
+Regards,
+Sylwester
