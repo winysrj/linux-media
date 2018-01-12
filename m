@@ -1,104 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:43446 "EHLO
-        mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751345AbeAYJ6u (ORCPT
+Received: from mail.free-electrons.com ([62.4.15.54]:43111 "EHLO
+        mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754273AbeALIhv (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 25 Jan 2018 04:58:50 -0500
-Subject: Re: [bug report] [media] s5p-mfc: use MFC_BUF_FLAG_EOS to identify
- last buffers in decoder capture queue
-To: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: linux-media@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-From: Andrzej Hajda <a.hajda@samsung.com>
-Message-id: <e30dedbc-68bc-fae8-ffb7-5cdea05f534d@samsung.com>
-Date: Thu, 25 Jan 2018 10:58:45 +0100
-MIME-version: 1.0
-In-reply-to: <20180123083245.GA10091@mwanda>
-Content-type: text/plain; charset="utf-8"
-Content-transfer-encoding: 7bit
-Content-language: en-US
-References: <CGME20180123083259epcas3p1fb9a8b4e4ad34eb245fca67d4204cba4@epcas3p1.samsung.com>
-        <20180123083245.GA10091@mwanda>
+        Fri, 12 Jan 2018 03:37:51 -0500
+Date: Fri, 12 Jan 2018 09:37:49 +0100
+From: Maxime Ripard <maxime.ripard@free-electrons.com>
+To: Yong <yong.deng@magewell.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Chen-Yu Tsai <wens@csie.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Randy Dunlap <rdunlap@infradead.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Yannick Fertre <yannick.fertre@st.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Rick Chang <rick.chang@mediatek.com>,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-sunxi@googlegroups.com, megous@megous.com
+Subject: Re: [linux-sunxi] Re: [PATCH v5 2/2] media: V3s: Add support for
+ Allwinner CSI.
+Message-ID: <20180112083749.syxtwiigxafxw4zq@flea.lan>
+References: <1515639966-35902-1-git-send-email-yong.deng@magewell.com>
+ <20180111132844.mok7upqjycpx3bqm@flea.lan>
+ <20180112095114.b2414fe44cff7bf7cf6f8822@magewell.com>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="mzjxflidhun7f3lz"
+Content-Disposition: inline
+In-Reply-To: <20180112095114.b2414fe44cff7bf7cf6f8822@magewell.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 23.01.2018 09:32, Dan Carpenter wrote:
-> Hello Andrzej Hajda,
->
-> The patch 4d0b0ed63660: "[media] s5p-mfc: use MFC_BUF_FLAG_EOS to
-> identify last buffers in decoder capture queue" from Oct 7, 2015,
-> leads to the following static checker warning:
->
-> 	drivers/media/platform/s5p-mfc/s5p_mfc_dec.c:658 vidioc_dqbuf()
-> 	error: buffer overflow 'ctx->dst_bufs' 32 user_rl = '0-u32max'
->
-> drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
->    635  /* Dequeue a buffer */
->    636  static int vidioc_dqbuf(struct file *file, void *priv, struct v4l2_buffer *buf)
->    637  {
->    638          const struct v4l2_event ev = {
->    639                  .type = V4L2_EVENT_EOS
->    640          };
->    641          struct s5p_mfc_ctx *ctx = fh_to_ctx(priv);
->    642          int ret;
->    643  
->    644          if (ctx->state == MFCINST_ERROR) {
->    645                  mfc_err_limited("Call on DQBUF after unrecoverable error\n");
->    646                  return -EIO;
->    647          }
->    648  
->    649          switch (buf->type) {
->    650          case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
->    651                  return vb2_dqbuf(&ctx->vq_src, buf, file->f_flags & O_NONBLOCK);
->    652          case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
->    653                  ret = vb2_dqbuf(&ctx->vq_dst, buf, file->f_flags & O_NONBLOCK);
->    654                  if (ret)
->    655                          return ret;
->    656  
->    657                  if (ctx->state == MFCINST_FINISHED &&
->    658                      (ctx->dst_bufs[buf->index].flags & MFC_BUF_FLAG_EOS))
->                                            ^^^^^^^^^^
-> Smatch is complaining that "buf->index" is not capped.  So far as I can
-> see this is true.  I would have expected it to be checked in
-> check_array_args() or video_usercopy() but I couldn't find the check.
 
-I did not work in V4L2 area for long time, so I could be wrong, but I
-hope the code is correct, below my explanation.
-User provides only type, memory and reserved fields in buf, other fields
-are filled by vb2_dqbuf (line 653) core function, ie index field is
-copied from buffer which was queued by qbuf.
-And vidioc_qbuf calls vb2_qbuf, which calls vb2_queue_or_prepare_buf,
-which checks index bounds [1].
+--mzjxflidhun7f3lz
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-So I suppose this code is correct.
-Btw, I have also looked at other drivers and it looks omap driver
-handles it incorrectly, ie it uses index field provided by user -
-possible memory leak. CC Hans and Mauro, since there is no driver
-maintainer of OMAP.
+On Fri, Jan 12, 2018 at 09:51:14AM +0800, Yong wrote:
+> Hi Maxime,
+>=20
+> On Thu, 11 Jan 2018 14:28:44 +0100
+> Maxime Ripard <maxime.ripard@free-electrons.com> wrote:
+>=20
+> > Hi Yong,
+> >=20
+> > On Thu, Jan 11, 2018 at 11:06:06AM +0800, Yong Deng wrote:
+> > > Allwinner V3s SoC features two CSI module. CSI0 is used for MIPI CSI-2
+> > > interface and CSI1 is used for parallel interface. This is not
+> > > documented in datasheet but by test and guess.
+> > >=20
+> > > This patch implement a v4l2 framework driver for it.
+> > >=20
+> > > Currently, the driver only support the parallel interface. MIPI-CSI2,
+> > > ISP's support are not included in this patch.
+> > >=20
+> > > Signed-off-by: Yong Deng <yong.deng@magewell.com>
+> >=20
+> > I've needed this patch in order to fix a NULL pointer dereference:
+> > http://code.bulix.org/oz6gmb-257359?raw
+> >=20
+> > This is needed because while it's ok to have a NULL pointer to
+> > v4l2_subdev_pad_config when you call the subdev set_fmt with
+> > V4L2_SUBDEV_FORMAT_ACTIVE, it's not with V4L2_SUBDEV_FORMAT_TRY, and
+> > sensors will assume taht it's a valid pointer.
+> >=20
+> > Otherwise,
+> > Tested-by: Maxime Ripard <maxime.ripard@free-electrons.com>
+>=20
+> I revisit some code of subdevs and you are right.
+>=20
+> Squash your patch into my driver patch and add your Tested-by in
+> commit. Is it right?
 
-Btw2, is it possible to check in smatch which fields of passed struct
-given callback can read or fill ? For example here API restrict dqbuf
-callback to read only three fields of buf, and fill the others.
+Yep, that's perfect :)
 
-[1]:
-http://elixir.free-electrons.com/linux/latest/source/drivers/media/v4l2-core/videobuf2-v4l2.c#L165
-[2]:
-http://elixir.free-electrons.com/linux/latest/source/drivers/media/platform/omap/omap_vout.c#L1520
+Maxime
 
-Regards
-Andrzej
->
->    659                          v4l2_event_queue_fh(&ctx->fh, &ev);
->    660                  return 0;
->    661          default:
->    662                  return -EINVAL;
->    663          }
->    664  }
->
->
-> regards,
-> dan carpenter
->
->
->
+--=20
+Maxime Ripard, Free Electrons
+Embedded Linux and Kernel engineering
+http://free-electrons.com
+
+--mzjxflidhun7f3lz
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCAAdFiEE0VqZU19dR2zEVaqr0rTAlCFNr3QFAlpYc90ACgkQ0rTAlCFN
+r3T7pA//bfFwhPIWs/oOKJEc1kYHo4L7E14tSVm6nBiaCgEgn9kTTp+EHb8NaEmh
+9lKPHYKc0PDTJiLyD3+TvHqZSVBaTc7/ZMFyC7IiKJn9W64sGQYVALrQSm8K3hfN
+/Gocqb0rmLQ6qOOG3qWbpOMhmOXF7ohkggrkjCmRmvJK9OU3pPhf60z/1HzQa3EM
+4zZmUsuJsg0Q8MVmfAIR54QTnt/PWvzTldL5mkW949Lgvo/Nzc7B+VnA4473V6So
+xpRXLIhLGjoANf2Yw6bfkYxpc+bKllpCcde+xY5d2Wyq2QvOGmoYrpPidPxHMrL/
+gqHkyHO8xO/tE9btkMzHnB83oBDl5eJZApWxEYYQYp4EME6JT9/9zNOhr5tYO6ib
+RbZn+A+M0vIWHJCs9xlboLvy5/U0PqilJnKoDCptSFI3VuKD3rLvfPkycKtVSodR
+K6BAkv+EJYJ6UxL/HrZ5AZQcKVRO4IUnLMR52wv3ErCrYeGrqmJ14vBTnAOtd1YJ
+mBv9SxEJDKQSXlca9kM6E2u7SvklzD42CpVCHE5qWCXWcR1G0CUombO0k7alCV9w
+Amn7dJeG+WO0/mbv8aNVeZPg7rpwQ8SFXf0LEstcmEV+07KC7KpEVA8KYYYxVPsY
+CvDwK5WMIksqT8exWCZaDPnhwmqDUE3gjsHHnZex63aFK3bnM48=
+=w89n
+-----END PGP SIGNATURE-----
+
+--mzjxflidhun7f3lz--
