@@ -1,157 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ot0-f193.google.com ([74.125.82.193]:33767 "EHLO
-        mail-ot0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754278AbeAJRAg (ORCPT
+Received: from relay2-d.mail.gandi.net ([217.70.183.194]:33511 "EHLO
+        relay2-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933582AbeALOEe (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 10 Jan 2018 12:00:36 -0500
-Received: by mail-ot0-f193.google.com with SMTP id x15so14841184ote.0
-        for <linux-media@vger.kernel.org>; Wed, 10 Jan 2018 09:00:36 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <20180109223141.55p7bv4klcsyqet4@kekkonen.localdomain>
-References: <20180109135858.1964-1-sakari.ailus@linux.intel.com>
- <CAK8P3a0otMJjeJi3RGyyCq73FdSfEUZvGybytGYJWOJfRd8qnQ@mail.gmail.com> <20180109223141.55p7bv4klcsyqet4@kekkonen.localdomain>
-From: Arnd Bergmann <arnd@arndb.de>
-Date: Wed, 10 Jan 2018 18:00:35 +0100
-Message-ID: <CAK8P3a2R0Bhb2MvXsVBN5e0um6yiGY0Ow_9T0ki_N4DNtMCzaA@mail.gmail.com>
-Subject: Re: [PATCH 1/1] media: entity: Add a nop variant of media_entity_cleanupr
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Wenyou Yang <wenyou.yang@microchip.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Pavel Machek <pavel@ucw.cz>
-Content-Type: text/plain; charset="UTF-8"
+        Fri, 12 Jan 2018 09:04:34 -0500
+From: Jacopo Mondi <jacopo+renesas@jmondi.org>
+To: laurent.pinchart@ideasonboard.com, magnus.damm@gmail.com,
+        geert@glider.be, mchehab@kernel.org, hverkuil@xs4all.nl,
+        festevam@gmail.com, sakari.ailus@iki.fi, robh+dt@kernel.org,
+        mark.rutland@arm.com, pombredanne@nexb.com
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-sh@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: [PATCH v5 1/9] dt-bindings: media: Add Renesas CEU bindings
+Date: Fri, 12 Jan 2018 15:04:01 +0100
+Message-Id: <1515765849-10345-2-git-send-email-jacopo+renesas@jmondi.org>
+In-Reply-To: <1515765849-10345-1-git-send-email-jacopo+renesas@jmondi.org>
+References: <1515765849-10345-1-git-send-email-jacopo+renesas@jmondi.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Jan 9, 2018 at 11:31 PM, Sakari Ailus
-<sakari.ailus@linux.intel.com> wrote:
+Add bindings documentation for Renesas Capture Engine Unit (CEU).
 
->>         depends on VIDEO_V4L2_SUBDEV_API
->>         ---help---
->>           This is a driver for the DW9714 camera lens voice coil.
->> @@ -636,7 +636,6 @@ config VIDEO_OV5670
->>         tristate "OmniVision OV5670 sensor support"
->>         depends on I2C && VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
->>         depends on MEDIA_CAMERA_SUPPORT
->> -       depends on MEDIA_CONTROLLER
->
-> ov5670 does depend on MC at least right now. I guess it might not take much
-> to make it optional. But it's more than this patch. :-)
->
->>         select V4L2_FWNODE
->>         ---help---
->>           This is a Video4Linux2 sensor-level driver for the OmniVision
->> @@ -667,7 +666,7 @@ config VIDEO_OV7670
->>
->>  config VIDEO_OV7740
->>         tristate "OmniVision OV7740 sensor support"
->> -       depends on I2C && VIDEO_V4L2 && MEDIA_CONTROLLER
->> +       depends on I2C && VIDEO_V4L2
->
-> Hmm. In here the ov7740 driver doesn't seem to depend on MC.
+Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+Reviewed-by: Rob Herring <robh@kernel.org>
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ .../devicetree/bindings/media/renesas,ceu.txt      | 81 ++++++++++++++++++++++
+ 1 file changed, 81 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/renesas,ceu.txt
 
-Right, this was on top of the earlier patch I sent that you rejected ;-)
-
->>         depends on MEDIA_CAMERA_SUPPORT
->>         ---help---
->>           This is a Video4Linux2 sensor-level driver for the OmniVision
->> @@ -815,7 +814,7 @@ comment "Flash devices"
->>
->>  config VIDEO_ADP1653
->>         tristate "ADP1653 flash support"
->> -       depends on I2C && VIDEO_V4L2 && MEDIA_CONTROLLER
->> +       depends on I2C && VIDEO_V4L2
->>         depends on MEDIA_CAMERA_SUPPORT
->>         ---help---
->>           This is a driver for the ADP1653 flash controller. It is used for
->> @@ -823,7 +822,7 @@ config VIDEO_ADP1653
->>
->>  config VIDEO_LM3560
->>         tristate "LM3560 dual flash driver support"
->> -       depends on I2C && VIDEO_V4L2 && MEDIA_CONTROLLER
->> +       depends on I2C && VIDEO_V4L2
->>         depends on MEDIA_CAMERA_SUPPORT
->>         select REGMAP_I2C
->>         ---help---
-
-Those two also failed to build
-
->> @@ -832,7 +831,7 @@ config VIDEO_LM3560
->>
->>  config VIDEO_LM3646
->>         tristate "LM3646 dual flash driver support"
->> -       depends on I2C && VIDEO_V4L2 && MEDIA_CONTROLLER
->> +       depends on I2C && VIDEO_V4L2
->>         depends on MEDIA_CAMERA_SUPPORT
->>         select REGMAP_I2C
->>         ---help---
->
-> These also call media_entity_pads_init() unconditionally.
->
-> How was this tested? :-)
-
-Not before I sent it, what I meant is that I'd give it a try, blindly applying
-the patch to my randconfig build tree to see what breaks.
-
-The result after a day worth of randconfig builds is this one, which
-basically matches what you concluded already:
-
-diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
-index 03cf3a1a1e06..5d465221fbfa 100644
---- a/drivers/media/i2c/Kconfig
-+++ b/drivers/media/i2c/Kconfig
-@@ -310,14 +310,14 @@ config VIDEO_ML86V7667
-
- config VIDEO_AD5820
-        tristate "AD5820 lens voice coil support"
--       depends on I2C && VIDEO_V4L2 && MEDIA_CONTROLLER
-+       depends on I2C && VIDEO_V4L2
-        ---help---
-          This is a driver for the AD5820 camera lens voice coil.
-          It is used for example in Nokia N900 (RX-51).
-
- config VIDEO_DW9714
-        tristate "DW9714 lens voice coil support"
--       depends on I2C && VIDEO_V4L2 && MEDIA_CONTROLLER
-+       depends on I2C && VIDEO_V4L2
-        depends on VIDEO_V4L2_SUBDEV_API
-        ---help---
-          This is a driver for the DW9714 camera lens voice coil.
-@@ -636,7 +636,6 @@ config VIDEO_OV5670
-        tristate "OmniVision OV5670 sensor support"
-        depends on I2C && VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
-        depends on MEDIA_CAMERA_SUPPORT
--       depends on MEDIA_CONTROLLER
-        select V4L2_FWNODE
-        ---help---
-          This is a Video4Linux2 sensor-level driver for the OmniVision
-@@ -667,7 +666,7 @@ config VIDEO_OV7670
-
- config VIDEO_OV7740
-        tristate "OmniVision OV7740 sensor support"
--       depends on I2C && VIDEO_V4L2 && MEDIA_CONTROLLER
-+       depends on I2C && VIDEO_V4L2
-        depends on MEDIA_CAMERA_SUPPORT
-        ---help---
-          This is a Video4Linux2 sensor-level driver for the OmniVision
-diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-index d7a669058b5e..3f34a1126bd1 100644
---- a/include/media/media-entity.h
-+++ b/include/media/media-entity.h
-@@ -636,6 +636,11 @@ int media_entity_pads_init(struct media_entity
-*entity, u16 num_pads,
-  */
- static inline void media_entity_cleanup(struct media_entity *entity) {};
-
-+#ifndef CONFIG_MEDIA_CONTROLLER
-+#define media_entity_pads_init(e, n, p) 0
-+#define media_entity_cleanup(e) do { } while (0)
-+#endif
+diff --git a/Documentation/devicetree/bindings/media/renesas,ceu.txt b/Documentation/devicetree/bindings/media/renesas,ceu.txt
+new file mode 100644
+index 0000000..590ee27
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/renesas,ceu.txt
+@@ -0,0 +1,81 @@
++Renesas Capture Engine Unit (CEU)
++----------------------------------------------
 +
- /**
-  * media_create_pad_link() - creates a link between two entities.
-  *
-
-I'll just drop that patch then from my build tree.
-
-         Arnd
++The Capture Engine Unit is the image capture interface found in the Renesas
++SH Mobile and RZ SoCs.
++
++The interface supports a single parallel input with data bus width of 8 or 16
++bits.
++
++Required properties:
++- compatible: Shall be "renesas,r7s72100-ceu" for CEU units found in RZ/A1-H
++  and RZ/A1-M SoCs.
++- reg: Registers address base and size.
++- interrupts: The interrupt specifier.
++
++The CEU supports a single parallel input and should contain a single 'port'
++subnode with a single 'endpoint'. Connection to input devices are modeled
++according to the video interfaces OF bindings specified in:
++Documentation/devicetree/bindings/media/video-interfaces.txt
++
++Optional endpoint properties applicable to parallel input bus described in
++the above mentioned "video-interfaces.txt" file are supported.
++
++- hsync-active: Active state of the HSYNC signal, 0/1 for LOW/HIGH respectively.
++  If property is not present, default is active high.
++- vsync-active: Active state of the VSYNC signal, 0/1 for LOW/HIGH respectively.
++  If property is not present, default is active high.
++
++Example:
++
++The example describes the connection between the Capture Engine Unit and an
++OV7670 image sensor connected to i2c1 interface.
++
++ceu: ceu@e8210000 {
++	reg = <0xe8210000 0x209c>;
++	compatible = "renesas,r7s72100-ceu";
++	interrupts = <GIC_SPI 332 IRQ_TYPE_LEVEL_HIGH>;
++
++	pinctrl-names = "default";
++	pinctrl-0 = <&vio_pins>;
++
++	status = "okay";
++
++	port {
++		ceu_in: endpoint {
++			remote-endpoint = <&ov7670_out>;
++
++			hsync-active = <1>;
++			vsync-active = <0>;
++		};
++	};
++};
++
++i2c1: i2c@fcfee400 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&i2c1_pins>;
++
++	status = "okay";
++
++	clock-frequency = <100000>;
++
++	ov7670: camera@21 {
++		compatible = "ovti,ov7670";
++		reg = <0x21>;
++
++		pinctrl-names = "default";
++		pinctrl-0 = <&vio_pins>;
++
++		reset-gpios = <&port3 11 GPIO_ACTIVE_LOW>;
++		powerdown-gpios = <&port3 12 GPIO_ACTIVE_HIGH>;
++
++		port {
++			ov7670_out: endpoint {
++				remote-endpoint = <&ceu_in>;
++
++				hsync-active = <1>;
++				vsync-active = <0>;
++			};
++		};
++	};
++};
+-- 
+2.7.4
