@@ -1,45 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga17.intel.com ([192.55.52.151]:7196 "EHLO mga17.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751711AbeA3Mp2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 30 Jan 2018 07:45:28 -0500
-Date: Tue, 30 Jan 2018 14:45:23 +0200
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: "Rapolu, Chiranjeevi" <chiranjeevi.rapolu@intel.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "tfiga@chromium.org" <tfiga@chromium.org>,
-        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
-        "Qiu, Tian Shu" <tian.shu.qiu@intel.com>,
-        "Yeh, Andy" <andy.yeh@intel.com>,
-        "Mani, Rajmohan" <rajmohan.mani@intel.com>,
-        "Yang, Hyungwoo" <hyungwoo.yang@intel.com>
-Subject: Re: [PATCH v1] media: ov13858: Avoid possible null first frame
-Message-ID: <20180130124523.m5sikm3gvrktcnuh@kekkonen.localdomain>
-References: <1516854879-15029-1-git-send-email-chiranjeevi.rapolu@intel.com>
- <20180125102958.dxky4qrzv5ags6av@paasikivi.fi.intel.com>
- <8408A4B5C50F354EA5F62D9FC805153D2C53637E@ORSMSX115.amr.corp.intel.com>
+Received: from mail-io0-f193.google.com ([209.85.223.193]:32986 "EHLO
+        mail-io0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754134AbeALBTx (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 11 Jan 2018 20:19:53 -0500
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <8408A4B5C50F354EA5F62D9FC805153D2C53637E@ORSMSX115.amr.corp.intel.com>
+In-Reply-To: <151571798296.27429.7166552848688034184.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <151571798296.27429.7166552848688034184.stgit@dwillia2-desk3.amr.corp.intel.com>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Date: Thu, 11 Jan 2018 17:19:51 -0800
+Message-ID: <CA+55aFzNQ8CZ8iNcPXrCfyk=1edMiRGDA0fY0rd87BsFKBxgAw@mail.gmail.com>
+Subject: Re: [PATCH v2 00/19] prevent bounds-check bypass via speculative execution
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        kernel-hardening@lists.openwall.com,
+        Peter Zijlstra <peterz@infradead.org>,
+        Alan Cox <alan.cox@intel.com>,
+        Will Deacon <will.deacon@arm.com>,
+        Alexei Starovoitov <ast@kernel.org>,
+        Solomon Peachy <pizza@shaftnet.org>,
+        "H. Peter Anvin" <hpa@zytor.com>,
+        Christian Lamparter <chunkeey@googlemail.com>,
+        Elena Reshetova <elena.reshetova@intel.com>,
+        linux-arch@vger.kernel.org, Andi Kleen <ak@linux.intel.com>,
+        "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>,
+        Linux SCSI List <linux-scsi@vger.kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>,
+        "the arch/x86 maintainers" <x86@kernel.org>,
+        Russell King <linux@armlinux.org.uk>,
+        Ingo Molnar <mingo@redhat.com>,
+        Catalin Marinas <catalin.marinas@arm.com>,
+        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Tom Lendacky <thomas.lendacky@amd.com>,
+        Kees Cook <keescook@chromium.org>, Jan Kara <jack@suse.com>,
+        Al Viro <viro@zeniv.linux.org.uk>, qla2xxx-upstream@qlogic.com,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Kalle Valo <kvalo@codeaurora.org>,
+        Alan Cox <alan@linux.intel.com>,
+        "Martin K. Petersen" <martin.petersen@oracle.com>,
+        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
+        Greg KH <gregkh@linuxfoundation.org>,
+        Linux Wireless List <linux-wireless@vger.kernel.org>,
+        "Eric W. Biederman" <ebiederm@xmission.com>,
+        Network Development <netdev@vger.kernel.org>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jan 25, 2018 at 05:36:44PM +0000, Rapolu, Chiranjeevi wrote:
-> Hi Sakari,
-> 
-> >I'll apply this now, however I see that most of the registers in the
-> > four modes are the same. In the future it'd be good to separate the
-> > parts that are common in all of them (to be written in sensor power-on)
-> > to make this (slightly) more maintainable.
-> 
-> Thanks for the review. Makes sense. Not sure how it impacts because the
-> sequence of writes will be different, need thorough testing to confirm
-> nothing is broken.
+On Thu, Jan 11, 2018 at 4:46 PM, Dan Williams <dan.j.williams@intel.com> wrote:
+>
+> This series incorporates Mark Rutland's latest ARM changes and adds
+> the x86 specific implementation of 'ifence_array_ptr'. That ifence
+> based approach is provided as an opt-in fallback, but the default
+> mitigation, '__array_ptr', uses a 'mask' approach that removes
+> conditional branches instructions, and otherwise aims to redirect
+> speculation to use a NULL pointer rather than a user controlled value.
 
-Yeah, that's a fair consideration. Most registers still have no side
-effects apart of streaming control or such.
+Do you have any performance numbers and perhaps example code
+generation? Is this noticeable? Are there any microbenchmarks showing
+the difference between lfence use and the masking model?
 
--- 
-Sakari Ailus
-sakari.ailus@linux.intel.com
+Having both seems good for testing, but wouldn't we want to pick one in the end?
+
+Also, I do think that there is one particular array load that would
+seem to be pretty obvious: the system call function pointer array.
+
+Yes, yes, the actual call is now behind a retpoline, but that protects
+against a speculative BTB access, it's not obvious that it  protects
+against the mispredict of the __NR_syscall_max comparison in
+arch/x86/entry/entry_64.S.
+
+The act of fetching code is a kind of read too. And retpoline protects
+against BTB stuffing etc, but what if the _actual_ system call
+function address is wrong (due to mis-prediction of the system call
+index check)?
+
+Should the array access in entry_SYSCALL_64_fastpath be made to use
+the masking approach?
+
+                Linus
