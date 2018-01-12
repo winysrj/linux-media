@@ -1,44 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fllnx210.ext.ti.com ([198.47.19.17]:18014 "EHLO
-        fllnx210.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754805AbeASNeZ (ORCPT
+Received: from sub5.mail.dreamhost.com ([208.113.200.129]:45003 "EHLO
+        homiemail-a68.g.dreamhost.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S934004AbeALQUC (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 19 Jan 2018 08:34:25 -0500
-From: Peter Ujfalusi <peter.ujfalusi@ti.com>
-To: <mchehab@kernel.org>
-CC: <arnd@arndb.de>, <linux-media@vger.kernel.org>,
-        <linux-kernel@vger.kernel.org>
-Subject: [PATCH] media: v4l: omap_vout: vrfb: Use the wrapper for prep_interleaved_dma()
-Date: Fri, 19 Jan 2018 15:34:34 +0200
-Message-ID: <20180119133434.3587-1-peter.ujfalusi@ti.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+        Fri, 12 Jan 2018 11:20:02 -0500
+From: Brad Love <brad@nextdimension.cc>
+To: linux-media@vger.kernel.org
+Cc: Brad Love <brad@nextdimension.cc>
+Subject: [PATCH 0/7] cx231xx: Add multiple frontend USB device
+Date: Fri, 12 Jan 2018 10:19:35 -0600
+Message-Id: <1515773982-6411-1-git-send-email-brad@nextdimension.cc>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of directly accessing to dmadev->device_prep_interleaved_dma() use
-the dmaengine_prep_interleaved_dma() wrapper instead.
+This patch set requires:
 
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
----
- drivers/media/platform/omap/omap_vout_vrfb.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+https://patchwork.linuxtv.org/patch/46396/
+https://patchwork.linuxtv.org/patch/46397/
 
-diff --git a/drivers/media/platform/omap/omap_vout_vrfb.c b/drivers/media/platform/omap/omap_vout_vrfb.c
-index 123c2b26a933..72c0ac2cbf3d 100644
---- a/drivers/media/platform/omap/omap_vout_vrfb.c
-+++ b/drivers/media/platform/omap/omap_vout_vrfb.c
-@@ -271,7 +271,7 @@ int omap_vout_prepare_vrfb(struct omap_vout_device *vout,
- 	xt->dst_sgl = true;
- 	xt->dst_inc = true;
- 
--	tx = dmadev->device_prep_interleaved_dma(chan, xt, flags);
-+	tx = dmaengine_prep_interleaved_dma(chan, xt, flags);
- 	if (tx == NULL) {
- 		pr_err("%s: DMA interleaved prep error\n", __func__);
- 		return -EINVAL;
+The Hauppauge HVR-975 is a dual frontend, single tuner USB device.
+The 975 has lgdt3306a (currently enabled) and si2168 demodulators,
+and one si2157 tuner. It provides analog capture via breakout cable.
+
+This patch set adds pieces to the cx231xx USB bridge to allow a
+second frontend, whether it is old dvb_attach style, or new i2c
+device style. A new field is added to board config to accomodate
+second demod address.
+
+To accomodate addubg the second demodulator to the si2157 tuner,
+hybrid tuner instance functionality was added. The contents of
+probe, moved to attach, and .release is provided for shared
+instances to clean their state. All changes are backwards
+compatible and transparent to current usages.
+
+The si2168 frontend driver required addition of ts bus control,
+without this both frontends remain active, after switching between,
+and the demux provides no data thereafter.
+
+Finally the second demod is added to the HVR975 and attached
+to the si2157.
+
+
+Brad Love (7):
+  cx231xx: Add second frontend option
+  cx231xx: Add second i2c demod client
+  si2157: Add hybrid tuner support
+  si2168: Add ts bus coontrol, turn off bus on sleep
+  si2168: Announce frontend creation failure
+  lgdt3306a: Announce successful creation
+  cx231xx: Add second i2c demod to Hauppauge 975
+
+ drivers/media/dvb-frontends/lgdt3306a.c     |   4 +-
+ drivers/media/dvb-frontends/si2168.c        |  40 ++++-
+ drivers/media/dvb-frontends/si2168.h        |   1 +
+ drivers/media/pci/saa7164/saa7164-dvb.c     |  11 +-
+ drivers/media/tuners/si2157.c               | 232 +++++++++++++++++-------
+ drivers/media/tuners/si2157.h               |  14 ++
+ drivers/media/tuners/si2157_priv.h          |   5 +
+ drivers/media/usb/cx231xx/cx231xx-cards.c   |   1 +
+ drivers/media/usb/cx231xx/cx231xx-dvb.c     | 269 ++++++++++++++++++----------
+ drivers/media/usb/cx231xx/cx231xx-dvb.c.rej |  11 ++
+ drivers/media/usb/cx231xx/cx231xx.h         |   1 +
+ 11 files changed, 411 insertions(+), 178 deletions(-)
+ create mode 100644 drivers/media/usb/cx231xx/cx231xx-dvb.c.rej
+
 -- 
-Peter
-
-Texas Instruments Finland Oy, Porkkalankatu 22, 00180 Helsinki.
-Y-tunnus/Business ID: 0615521-4. Kotipaikka/Domicile: Helsinki
+2.7.4
