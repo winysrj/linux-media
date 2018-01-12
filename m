@@ -1,128 +1,192 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relmlor4.renesas.com ([210.160.252.174]:64737 "EHLO
-        relmlie3.idc.renesas.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1757537AbeAHUyY (ORCPT
+Received: from o1.7nn.fshared.sendgrid.net ([167.89.55.65]:61520 "EHLO
+        o1.7nn.fshared.sendgrid.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1754499AbeALJT3 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 8 Jan 2018 15:54:24 -0500
-From: Fabrizio Castro <fabrizio.castro@bp.renesas.com>
-To: Hugues Fruchet <hugues.fruchet@st.com>,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>
-CC: "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "Benjamin Gaignard" <benjamin.gaignard@linaro.org>
-Subject: RE: [PATCH v5 0/5] Add OV5640 parallel interface and RGB565/YUYV
- support
-Date: Mon, 8 Jan 2018 20:54:18 +0000
-Message-ID: <TY1PR06MB0895C74B45AF75CEB9F7AA4BC0130@TY1PR06MB0895.apcprd06.prod.outlook.com>
-References: <1514973452-10464-1-git-send-email-hugues.fruchet@st.com>
-In-Reply-To: <1514973452-10464-1-git-send-email-hugues.fruchet@st.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-MIME-Version: 1.0
+        Fri, 12 Jan 2018 04:19:29 -0500
+From: Kieran Bingham <kieran.bingham@ideasonboard.com>
+To: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Olivier BRAUN <olivier.braun@stereolabs.com>,
+        Troy Kisky <troy.kisky@boundarydevices.com>,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>
+Subject: [RFT PATCH v3 2/6] uvcvideo: Convert decode functions to use new context structure
+Date: Fri, 12 Jan 2018 09:19:26 +0000 (UTC)
+Message-Id: <8c5d36e2260dff89105cf6ffc783abb53a014359.1515748369.git-series.kieran.bingham@ideasonboard.com>
+In-Reply-To: <cover.30aaad9a6abac5e92d4a1a0e6634909d97cc54d8.1515748369.git-series.kieran.bingham@ideasonboard.com>
+References: <cover.30aaad9a6abac5e92d4a1a0e6634909d97cc54d8.1515748369.git-series.kieran.bingham@ideasonboard.com>
+In-Reply-To: <cover.30aaad9a6abac5e92d4a1a0e6634909d97cc54d8.1515748369.git-series.kieran.bingham@ideasonboard.com>
+References: <cover.30aaad9a6abac5e92d4a1a0e6634909d97cc54d8.1515748369.git-series.kieran.bingham@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Hugues,
+The URB completion handlers currently reference the stream context.
 
-thank you for the patch series.
-I am having a go with your patches, and although they seem alright, I don't=
- seem to be able to grab a non-black picture on the iWave iwg20d in plain D=
-VP mode, but if I switch to BT656 just by setting register 0x4730 to 0x01 (=
-I know, it's a nasty hack...) I can get something sensible out.
+Now that each URB has its own context structure, convert the decode (and
+one encode) functions to utilise this context for URB management.
 
-At the moment there is no proper BT656 support in the driver, I was wonderi=
-ng if you have any plans to enhance the ov5640 driver a little bit further =
-to add proper BT656 support as it may be convenient.
+Signed-off-by: Kieran Bingham <kieran.bingham@ideasonboard.com>
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-Do you know if someone else was able to get DVP to work by means of this pa=
-tch series on a non-STM32 platform?
+---
+v2:
+ - fix checkpatch warning (pre-existing in code)
+---
+ drivers/media/usb/uvc/uvc_isight.c |  4 +++-
+ drivers/media/usb/uvc/uvc_video.c  | 32 ++++++++++++++++++++-----------
+ drivers/media/usb/uvc/uvcvideo.h   |  8 ++++----
+ 3 files changed, 28 insertions(+), 16 deletions(-)
 
-Thanks,
-Fabrizio
-
-
-> Subject: [PATCH v5 0/5] Add OV5640 parallel interface and RGB565/YUYV sup=
-port
->
-> Enhance OV5640 CSI driver to support also DVP parallel interface.
-> Add RGB565 (LE & BE) and YUV422 YUYV format in addition to existing
-> YUV422 UYVY format.
-> Some other improvements on chip identifier check and removal
-> of warnings in powering phase around gpio handling.
->
-> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> =3D history =3D
-> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> version 5:
->   - Refine bindings as per Sakari suggestion:
->     https://www.mail-archive.com/linux-media@vger.kernel.org/msg124048.ht=
-ml
->
-> version 4:
->   - Refine bindings as per Sakari suggestion:
->     https://www.mail-archive.com/linux-media@vger.kernel.org/msg123609.ht=
-ml
->   - Parallel port control lines polarity can now be configured through
->     devicetree
->
-> version 3:
->   - Move chip identifier check at probe according to Fabio Estevam commen=
-t:
->     https://www.mail-archive.com/linux-media@vger.kernel.org/msg122575.ht=
-ml
->   - Use 16 bits register read for this check as per Steve Longerbeam comm=
-ent:
->     https://www.mail-archive.com/linux-media@vger.kernel.org/msg122692.ht=
-ml
->   - Update bindings to document parallel mode support as per Fabio Esteva=
-m comment:
->     https://www.mail-archive.com/linux-media@vger.kernel.org/msg122576.ht=
-ml
->   - Enable the whole 10 bits parallel output and document 8/10 bits suppo=
-rt
->     in ov5640_set_stream_dvp() to answer to Steve Longerbeam comment:
->     https://www.mail-archive.com/linux-media@vger.kernel.org/msg122693.ht=
-ml
->
-> version 2:
->   - Fix comments from Sakari Ailus:
->     https://www.mail-archive.com/linux-media@vger.kernel.org/msg122259.ht=
-ml
->   - Revisit ov5640_set_stream_dvp() to only configure DVP at streamon
->   - Revisit ov5640_set_stream_dvp() implementation with fewer register se=
-ttings
->
-> version 1:
->   - Initial submission
->
-> Hugues Fruchet (5):
->   media: ov5640: switch to gpiod_set_value_cansleep()
->   media: ov5640: check chip id
->   media: dt-bindings: ov5640: refine CSI-2 and add parallel interface
->   media: ov5640: add support of DVP parallel interface
->   media: ov5640: add support of RGB565 and YUYV formats
->
->  .../devicetree/bindings/media/i2c/ov5640.txt       |  46 ++-
->  drivers/media/i2c/ov5640.c                         | 325 +++++++++++++++=
-+++---
->  2 files changed, 324 insertions(+), 47 deletions(-)
->
-> --
-> 1.9.1
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe devicetree" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-
-
-Renesas Electronics Europe Ltd, Dukes Meadow, Millboard Road, Bourne End, B=
-uckinghamshire, SL8 5FH, UK. Registered in England & Wales under Registered=
- No. 04586709.
+diff --git a/drivers/media/usb/uvc/uvc_isight.c b/drivers/media/usb/uvc/uvc_isight.c
+index 8510e7259e76..433b8b4f96e2 100644
+--- a/drivers/media/usb/uvc/uvc_isight.c
++++ b/drivers/media/usb/uvc/uvc_isight.c
+@@ -99,9 +99,11 @@ static int isight_decode(struct uvc_video_queue *queue, struct uvc_buffer *buf,
+ 	return 0;
+ }
+ 
+-void uvc_video_decode_isight(struct urb *urb, struct uvc_streaming *stream,
++void uvc_video_decode_isight(struct uvc_urb *uvc_urb,
+ 		struct uvc_buffer *buf)
+ {
++	struct urb *urb = uvc_urb->urb;
++	struct uvc_streaming *stream = uvc_urb->stream;
+ 	int ret, i;
+ 
+ 	for (i = 0; i < urb->number_of_packets; ++i) {
+diff --git a/drivers/media/usb/uvc/uvc_video.c b/drivers/media/usb/uvc/uvc_video.c
+index e57c5f52c73b..92bd0952a66e 100644
+--- a/drivers/media/usb/uvc/uvc_video.c
++++ b/drivers/media/usb/uvc/uvc_video.c
+@@ -1153,9 +1153,11 @@ static void uvc_video_validate_buffer(const struct uvc_streaming *stream,
+ /*
+  * Completion handler for video URBs.
+  */
+-static void uvc_video_decode_isoc(struct urb *urb, struct uvc_streaming *stream,
+-	struct uvc_buffer *buf)
++static void uvc_video_decode_isoc(struct uvc_urb *uvc_urb,
++		struct uvc_buffer *buf)
+ {
++	struct urb *urb = uvc_urb->urb;
++	struct uvc_streaming *stream = uvc_urb->stream;
+ 	u8 *mem;
+ 	int ret, i;
+ 
+@@ -1199,9 +1201,11 @@ static void uvc_video_decode_isoc(struct urb *urb, struct uvc_streaming *stream,
+ 	}
+ }
+ 
+-static void uvc_video_decode_bulk(struct urb *urb, struct uvc_streaming *stream,
+-	struct uvc_buffer *buf)
++static void uvc_video_decode_bulk(struct uvc_urb *uvc_urb,
++		struct uvc_buffer *buf)
+ {
++	struct urb *urb = uvc_urb->urb;
++	struct uvc_streaming *stream = uvc_urb->stream;
+ 	u8 *mem;
+ 	int len, ret;
+ 
+@@ -1266,9 +1270,12 @@ static void uvc_video_decode_bulk(struct urb *urb, struct uvc_streaming *stream,
+ 	}
+ }
+ 
+-static void uvc_video_encode_bulk(struct urb *urb, struct uvc_streaming *stream,
+-	struct uvc_buffer *buf)
++static void uvc_video_encode_bulk(struct uvc_urb *uvc_urb,
++		struct uvc_buffer *buf)
+ {
++	struct urb *urb = uvc_urb->urb;
++	struct uvc_streaming *stream = uvc_urb->stream;
++
+ 	u8 *mem = urb->transfer_buffer;
+ 	int len = stream->urb_size, ret;
+ 
+@@ -1311,7 +1318,8 @@ static void uvc_video_encode_bulk(struct urb *urb, struct uvc_streaming *stream,
+ 
+ static void uvc_video_complete(struct urb *urb)
+ {
+-	struct uvc_streaming *stream = urb->context;
++	struct uvc_urb *uvc_urb = urb->context;
++	struct uvc_streaming *stream = uvc_urb->stream;
+ 	struct uvc_video_queue *queue = &stream->queue;
+ 	struct uvc_buffer *buf = NULL;
+ 	unsigned long flags;
+@@ -1341,7 +1349,7 @@ static void uvc_video_complete(struct urb *urb)
+ 				       queue);
+ 	spin_unlock_irqrestore(&queue->irqlock, flags);
+ 
+-	stream->decode(urb, stream, buf);
++	stream->decode(uvc_urb, buf);
+ 
+ 	if ((ret = usb_submit_urb(urb, GFP_ATOMIC)) < 0) {
+ 		uvc_printk(KERN_ERR, "Failed to resubmit video URB (%d).\n",
+@@ -1419,6 +1427,8 @@ static int uvc_alloc_urb_buffers(struct uvc_streaming *stream,
+ 				uvc_free_urb_buffers(stream);
+ 				break;
+ 			}
++
++			uvc_urb->stream = stream;
+ 		}
+ 
+ 		if (i == UVC_URBS) {
+@@ -1517,7 +1527,7 @@ static int uvc_init_video_isoc(struct uvc_streaming *stream,
+ 		}
+ 
+ 		urb->dev = stream->dev->udev;
+-		urb->context = stream;
++		urb->context = uvc_urb;
+ 		urb->pipe = usb_rcvisocpipe(stream->dev->udev,
+ 				ep->desc.bEndpointAddress);
+ #ifndef CONFIG_DMA_NONCOHERENT
+@@ -1584,8 +1594,8 @@ static int uvc_init_video_bulk(struct uvc_streaming *stream,
+ 			return -ENOMEM;
+ 		}
+ 
+-		usb_fill_bulk_urb(urb, stream->dev->udev, pipe, uvc_urb->buffer,
+-				  size, uvc_video_complete, stream);
++		usb_fill_bulk_urb(urb, stream->dev->udev, pipe,	uvc_urb->buffer,
++				  size, uvc_video_complete, uvc_urb);
+ #ifndef CONFIG_DMA_NONCOHERENT
+ 		urb->transfer_flags = URB_NO_TRANSFER_DMA_MAP;
+ 		urb->transfer_dma = uvc_urb->dma;
+diff --git a/drivers/media/usb/uvc/uvcvideo.h b/drivers/media/usb/uvc/uvcvideo.h
+index 2a5dc7f09463..81a9a419a423 100644
+--- a/drivers/media/usb/uvc/uvcvideo.h
++++ b/drivers/media/usb/uvc/uvcvideo.h
+@@ -483,11 +483,13 @@ struct uvc_stats_stream {
+  * struct uvc_urb - URB context management structure
+  *
+  * @urb: the URB described by this context structure
++ * @stream: UVC streaming context
+  * @buffer: memory storage for the URB
+  * @dma: DMA coherent addressing for the urb_buffer
+  */
+ struct uvc_urb {
+ 	struct urb *urb;
++	struct uvc_streaming *stream;
+ 
+ 	char *buffer;
+ 	dma_addr_t dma;
+@@ -523,8 +525,7 @@ struct uvc_streaming {
+ 	/* Buffers queue. */
+ 	unsigned int frozen : 1;
+ 	struct uvc_video_queue queue;
+-	void (*decode) (struct urb *urb, struct uvc_streaming *video,
+-			struct uvc_buffer *buf);
++	void (*decode)(struct uvc_urb *uvc_urb, struct uvc_buffer *buf);
+ 
+ 	/* Context data used by the bulk completion handler. */
+ 	struct {
+@@ -780,8 +781,7 @@ extern struct usb_host_endpoint *uvc_find_endpoint(
+ 		struct usb_host_interface *alts, __u8 epaddr);
+ 
+ /* Quirks support */
+-void uvc_video_decode_isight(struct urb *urb, struct uvc_streaming *stream,
+-		struct uvc_buffer *buf);
++void uvc_video_decode_isight(struct uvc_urb *uvc_urb, struct uvc_buffer *buf);
+ 
+ /* debugfs and statistics */
+ void uvc_debugfs_init(void);
+-- 
+git-series 0.9.1
