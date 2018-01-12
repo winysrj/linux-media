@@ -1,69 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:59200 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751492AbeAWM4D (ORCPT
+Received: from mail-ua0-f193.google.com ([209.85.217.193]:45049 "EHLO
+        mail-ua0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754495AbeALIT1 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 23 Jan 2018 07:56:03 -0500
-Date: Tue, 23 Jan 2018 14:56:01 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [GIT PULL for 4.16] CIO2 compiler warning fix
-Message-ID: <20180123125600.ifcsieuywln2bg6g@valkosipuli.retiisi.org.uk>
-References: <20180109223517.lkj4opdpm64jpf5d@valkosipuli.retiisi.org.uk>
- <20180123104008.25ebdef5@vela.lan>
+        Fri, 12 Jan 2018 03:19:27 -0500
+Received: by mail-ua0-f193.google.com with SMTP id x16so3493461uaj.11
+        for <linux-media@vger.kernel.org>; Fri, 12 Jan 2018 00:19:27 -0800 (PST)
+Received: from mail-ua0-f169.google.com (mail-ua0-f169.google.com. [209.85.217.169])
+        by smtp.gmail.com with ESMTPSA id 66sm3190455vkc.53.2018.01.12.00.19.25
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Fri, 12 Jan 2018 00:19:25 -0800 (PST)
+Received: by mail-ua0-f169.google.com with SMTP id t7so202336uae.5
+        for <linux-media@vger.kernel.org>; Fri, 12 Jan 2018 00:19:25 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20180123104008.25ebdef5@vela.lan>
+In-Reply-To: <1515034637-3517-2-git-send-email-yong.zhi@intel.com>
+References: <1515034637-3517-1-git-send-email-yong.zhi@intel.com> <1515034637-3517-2-git-send-email-yong.zhi@intel.com>
+From: Tomasz Figa <tfiga@chromium.org>
+Date: Fri, 12 Jan 2018 17:19:04 +0900
+Message-ID: <CAAFQd5AaOSQ_wcA_w5vBufVk5FfLPe6x9BnS=hcShv_asf3Cyw@mail.gmail.com>
+Subject: Re: [PATCH 2/2] media: intel-ipu3: cio2: fix for wrong vb2buf state warnings
+To: Yong Zhi <yong.zhi@intel.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        "Mani, Rajmohan" <rajmohan.mani@intel.com>,
+        Cao Bing Bu <bingbu.cao@intel.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Jan 23, 2018 at 10:40:13AM -0200, Mauro Carvalho Chehab wrote:
-> Em Wed, 10 Jan 2018 00:35:18 +0200
-> Sakari Ailus <sakari.ailus@iki.fi> escreveu:
-> 
-> > Hi Mauro,
-> > 
-> > Here's compile warning fix for the Intel IPU3 CIO2 driver from Arnd.
-> > 
-> > Please pull.
-> > 
-> > 
-> > The following changes since commit e3ee691dbf24096ea51b3200946b11d68ce75361:
-> > 
-> >   media: ov5640: add support of RGB565 and YUYV formats (2018-01-05 12:54:14 -0500)
-> > 
-> > are available in the git repository at:
-> > 
-> >   ssh://linuxtv.org/git/sailus/media_tree.git ipu3
-> > 
-> > for you to fetch changes up to 0bf3352560b82c12380823f035f5fb2171683f23:
-> > 
-> >   media: intel-ipu3: cio2: mark more PM functions as __maybe_unused (2018-01-09 13:16:07 +0200)
-> > 
-> > ----------------------------------------------------------------
-> > Arnd Bergmann (1):
-> >       media: intel-ipu3: cio2: mark more PM functions as __maybe_unused
-> > 
-> >  drivers/media/pci/intel/ipu3/ipu3-cio2.c | 4 ++--
-> >  1 file changed, 2 insertions(+), 2 deletions(-)
-> 
-> I got more changes than mentioned above:
-> 
-> git pull logs
-> Updating e3ee691dbf24..8d677b031a4f
-> Fast-forward
->  drivers/media/pci/intel/ipu3/ipu3-cio2.c | 9 ++++-----
->  1 file changed, 4 insertions(+), 5 deletions(-)
-> 
-> Something wrong happened here.
+On Thu, Jan 4, 2018 at 11:57 AM, Yong Zhi <yong.zhi@intel.com> wrote:
+> cio2 driver should release buffer with QUEUED state
+> when start_stream op failed, wrong buffer state will
+> cause vb2 core throw a warning.
+>
+> Signed-off-by: Yong Zhi <yong.zhi@intel.com>
+> Signed-off-by: Cao Bing Bu <bingbu.cao@intel.com>
+> ---
+>  drivers/media/pci/intel/ipu3/ipu3-cio2.c | 9 +++++----
+>  1 file changed, 5 insertions(+), 4 deletions(-)
+>
+> diff --git a/drivers/media/pci/intel/ipu3/ipu3-cio2.c b/drivers/media/pci/intel/ipu3/ipu3-cio2.c
+> index 949f43d206ad..106d04306372 100644
+> --- a/drivers/media/pci/intel/ipu3/ipu3-cio2.c
+> +++ b/drivers/media/pci/intel/ipu3/ipu3-cio2.c
+> @@ -785,7 +785,8 @@ static irqreturn_t cio2_irq(int irq, void *cio2_ptr)
+>
+>  /**************** Videobuf2 interface ****************/
+>
+> -static void cio2_vb2_return_all_buffers(struct cio2_queue *q)
+> +static void cio2_vb2_return_all_buffers(struct cio2_queue *q,
+> +                                       enum vb2_buffer_state state)
+>  {
+>         unsigned int i;
+>
+> @@ -793,7 +794,7 @@ static void cio2_vb2_return_all_buffers(struct cio2_queue *q)
+>                 if (q->bufs[i]) {
+>                         atomic_dec(&q->bufs_queued);
+>                         vb2_buffer_done(&q->bufs[i]->vbb.vb2_buf,
+> -                                       VB2_BUF_STATE_ERROR);
+> +                                       state);
 
-Ah, this is an older CIO2 pull request I've already replaced in Patchwork.
-The new one is here, sent on 19th:
+nit: Does it really exceed 80 characters after folding into previous line?
 
-<URL:https://patchwork.linuxtv.org/patch/46545/>
+With the nit fixed:
+Reviewed-by: Tomasz Figa <tfiga@chromium.org>
 
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+Best regards,
+Tomasz
