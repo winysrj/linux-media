@@ -1,89 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from hapkido.dreamhost.com ([66.33.216.122]:37694 "EHLO
-        hapkido.dreamhost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753701AbeAHUnw (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 8 Jan 2018 15:43:52 -0500
-Received: from homiemail-a126.g.dreamhost.com (sub5.mail.dreamhost.com [208.113.200.129])
-        by hapkido.dreamhost.com (Postfix) with ESMTP id 1485A8DB5B
-        for <linux-media@vger.kernel.org>; Mon,  8 Jan 2018 12:43:52 -0800 (PST)
-Subject: Re: [PATCH 2/2] lgdt3306a: Fix a double kfree on i2c device remove
-To: Matthias Schwarzott <zzam@gentoo.org>,
-        Brad Love <brad@nextdimension.cc>, linux-media@vger.kernel.org
-References: <1515164233-2423-1-git-send-email-brad@nextdimension.cc>
- <1515164233-2423-3-git-send-email-brad@nextdimension.cc>
- <86509eed-b1c3-f7d4-9281-47e072fb7232@gentoo.org>
-From: Brad Love <brad@b-rad.cc>
-Message-ID: <8c5dfc5c-db5b-8efe-2e1a-30b301b54c46@b-rad.cc>
-Date: Mon, 8 Jan 2018 14:43:50 -0600
+Received: from mail.free-electrons.com ([62.4.15.54]:55747 "EHLO
+        mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933767AbeALOI6 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 12 Jan 2018 09:08:58 -0500
+Date: Fri, 12 Jan 2018 15:08:46 +0100
+From: Boris Brezillon <boris.brezillon@free-electrons.com>
+To: Nicolas Ferre <nicolas.ferre@microchip.com>
+Cc: <linux-arm-kernel@lists.infradead.org>,
+        <linux-kernel@vger.kernel.org>,
+        Ludovic Desroches <ludovic.desroches@microchip.com>,
+        Wenyou Yang <wenyou.yang@microchip.com>,
+        <linux-media@vger.kernel.org>,
+        Alexandre Belloni <alexandre.belloni@free-electrons.com>,
+        <linux-mtd@lists.infradead.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Josh Wu <rainyfeeling@outlook.com>
+Subject: Re: [PATCH v2] MAINTAINERS: mtd/nand: update Microchip nand entry
+Message-ID: <20180112150846.3b74ad67@bbrezillon>
+In-Reply-To: <20180111162659.740-1-nicolas.ferre@microchip.com>
+References: <20180111162659.740-1-nicolas.ferre@microchip.com>
 MIME-Version: 1.0
-In-Reply-To: <86509eed-b1c3-f7d4-9281-47e072fb7232@gentoo.org>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Content-Language: en-GB
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Thu, 11 Jan 2018 17:26:59 +0100
+Nicolas Ferre <nicolas.ferre@microchip.com> wrote:
 
-On 2018-01-08 14:34, Matthias Schwarzott wrote:
-> Am 05.01.2018 um 15:57 schrieb Brad Love:
->> Both lgdt33606a_release and lgdt3306a_remove kfree state, but _release=
- is
->> called first, then _remove operates on states members before kfree'ing=
- it.
->> This can lead to random oops/GPF/etc on USB disconnect.
->>
-> lgdt3306a_release does nothing but the kfree. So the exact same effect
-> can be archived by setting state->frontend.ops.release to NULL. This
-> need to be done already at probe time I think.
-> lgdt3306a_remove does this, but too late (after the call to release).
->
-> Regards
-> Matthias
+> Update Wenyou Yang email address.
+> Take advantage of this update to move this entry to the MICROCHIP / ATMEL
+> location and add the DT binding documentation link.
+> 
+> Signed-off-by: Nicolas Ferre <nicolas.ferre@microchip.com>
+> Acked-by: Wenyou Yang <wenyou.yang@microchip.com>
 
-Hi Matthias,
+Applied.
 
-I agree. This was my rationale in the previous patch:
+Thanks,
 
-/patch/46328
+Boris
 
-Both methods handle the issue. I thought the previous
-attempt was fairly clean, but it did not pass review, so
-I provided this solution.
-
-Cheers,
-
-Brad
-
-
-
-
-
-
-
->> Signed-off-by: Brad Love <brad@nextdimension.cc>
->> ---
->>  drivers/media/dvb-frontends/lgdt3306a.c | 8 +++++++-
->>  1 file changed, 7 insertions(+), 1 deletion(-)
->>
->> diff --git a/drivers/media/dvb-frontends/lgdt3306a.c b/drivers/media/d=
-vb-frontends/lgdt3306a.c
->> index d370671..3642e6e 100644
->> --- a/drivers/media/dvb-frontends/lgdt3306a.c
->> +++ b/drivers/media/dvb-frontends/lgdt3306a.c
->> @@ -1768,7 +1768,13 @@ static void lgdt3306a_release(struct dvb_fronte=
-nd *fe)
->>  	struct lgdt3306a_state *state =3D fe->demodulator_priv;
->> =20
->>  	dbg_info("\n");
->> -	kfree(state);
->> +
->> +	/*
->> +	 * If state->muxc is not NULL, then we are an i2c device
->> +	 * and lgdt3306a_remove will clean up state
->> +	 */
->> +	if (!state->muxc)
->> +		kfree(state);
->>  }
->> =20
->>  static const struct dvb_frontend_ops lgdt3306a_ops;
->>
+> ---
+> v2: - patch agains 09ec417b0ea8 ("mtd: nand: samsung: Disable subpage
+>       writes on E-die NAND") of 
+>       http://git.infradead.org/linux-mtd.git/shortlog/refs/heads/nand/next
+>     - Ack by Wenyou added
+> 
+> 
+> Hi,
+> 
+> v1 patch was part of a series because it was conflicting with the previous one
+> named:
+> "[PATCH 1/2] MAINTAINERS: linux-media: update Microchip ISI and ISC entries"
+> Boris asked me to rebase it so that they are independent.
+> So, if this first one goes upstream through another tree, conflicts will have
+> to be resolved at one point.
+> 
+> Best regards,
+>   Nicolas
+> 
+> 
+>  MAINTAINERS | 15 ++++++++-------
+>  1 file changed, 8 insertions(+), 7 deletions(-)
+> 
+> diff --git a/MAINTAINERS b/MAINTAINERS
+> index aa71ab52fd76..37ee5ae4bae2 100644
+> --- a/MAINTAINERS
+> +++ b/MAINTAINERS
+> @@ -2382,13 +2382,6 @@ F:	Documentation/devicetree/bindings/input/atmel,maxtouch.txt
+>  F:	drivers/input/touchscreen/atmel_mxt_ts.c
+>  F:	include/linux/platform_data/atmel_mxt_ts.h
+>  
+> -ATMEL NAND DRIVER
+> -M:	Wenyou Yang <wenyou.yang@atmel.com>
+> -M:	Josh Wu <rainyfeeling@outlook.com>
+> -L:	linux-mtd@lists.infradead.org
+> -S:	Supported
+> -F:	drivers/mtd/nand/atmel/*
+> -
+>  ATMEL SAMA5D2 ADC DRIVER
+>  M:	Ludovic Desroches <ludovic.desroches@microchip.com>
+>  L:	linux-iio@vger.kernel.org
+> @@ -9045,6 +9038,14 @@ F:	drivers/media/platform/atmel/atmel-isc.c
+>  F:	drivers/media/platform/atmel/atmel-isc-regs.h
+>  F:	devicetree/bindings/media/atmel-isc.txt
+>  
+> +MICROCHIP / ATMEL NAND DRIVER
+> +M:	Wenyou Yang <wenyou.yang@microchip.com>
+> +M:	Josh Wu <rainyfeeling@outlook.com>
+> +L:	linux-mtd@lists.infradead.org
+> +S:	Supported
+> +F:	drivers/mtd/nand/atmel/*
+> +F:	Documentation/devicetree/bindings/mtd/atmel-nand.txt
+> +
+>  MICROCHIP KSZ SERIES ETHERNET SWITCH DRIVER
+>  M:	Woojung Huh <Woojung.Huh@microchip.com>
+>  M:	Microchip Linux Driver Support <UNGLinuxDriver@microchip.com>
