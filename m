@@ -1,52 +1,206 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:45194 "EHLO mail.kernel.org"
+Received: from mga02.intel.com ([134.134.136.20]:13976 "EHLO mga02.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751200AbeASMLV (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 19 Jan 2018 07:11:21 -0500
-Received: from mail-qt0-f172.google.com (mail-qt0-f172.google.com [209.85.216.172])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-        (No client certificate requested)
-        by mail.kernel.org (Postfix) with ESMTPSA id 8854521719
-        for <linux-media@vger.kernel.org>; Fri, 19 Jan 2018 12:11:20 +0000 (UTC)
-Received: by mail-qt0-f172.google.com with SMTP id f4so3224718qtj.6
-        for <linux-media@vger.kernel.org>; Fri, 19 Jan 2018 04:11:20 -0800 (PST)
+        id S932148AbeALAyk (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 11 Jan 2018 19:54:40 -0500
+Subject: [PATCH v2 00/19] prevent bounds-check bypass via speculative
+ execution
+From: Dan Williams <dan.j.williams@intel.com>
+To: linux-kernel@vger.kernel.org
+Cc: Mark Rutland <mark.rutland@arm.com>,
+        kernel-hardening@lists.openwall.com,
+        Peter Zijlstra <peterz@infradead.org>,
+        Alan Cox <alan.cox@intel.com>,
+        Will Deacon <will.deacon@arm.com>,
+        Alexei Starovoitov <ast@kernel.org>,
+        Solomon Peachy <pizza@shaftnet.org>,
+        "H. Peter Anvin" <hpa@zytor.com>,
+        Christian Lamparter <chunkeey@googlemail.com>,
+        Elena Reshetova <elena.reshetova@intel.com>,
+        linux-arch@vger.kernel.org, Andi Kleen <ak@linux.intel.com>,
+        "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>,
+        linux-scsi@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
+        x86@kernel.org, Russell King <linux@armlinux.org.uk>,
+        Ingo Molnar <mingo@redhat.com>,
+        Catalin Marinas <catalin.marinas@arm.com>,
+        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
+        linux-media@vger.kernel.org,
+        Tom Lendacky <thomas.lendacky@amd.com>,
+        Kees Cook <keescook@chromium.org>, Jan Kara <jack@suse.com>,
+        Al Viro <viro@zeniv.linux.org.uk>, qla2xxx-upstream@qlogic.com,
+        tglx@linutronix.de, Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Kalle Valo <kvalo@codeaurora.org>, alan@linux.intel.com,
+        "Martin K. Petersen" <martin.petersen@oracle.com>,
+        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
+        Greg KH <gregkh@linuxfoundation.org>,
+        linux-wireless@vger.kernel.org,
+        "Eric W. Biederman" <ebiederm@xmission.com>,
+        netdev@vger.kernel.org, akpm@linux-foundation.org,
+        torvalds@linux-foundation.org,
+        "David S. Miller" <davem@davemloft.net>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Date: Thu, 11 Jan 2018 16:46:24 -0800
+Message-ID: <151571798296.27429.7166552848688034184.stgit@dwillia2-desk3.amr.corp.intel.com>
 MIME-Version: 1.0
-In-Reply-To: <1516196123-24327-1-git-send-email-pochun.lin@mediatek.com>
-References: <1516196123-24327-1-git-send-email-pochun.lin@mediatek.com>
-From: Josh Boyer <jwboyer@kernel.org>
-Date: Fri, 19 Jan 2018 07:11:19 -0500
-Message-ID: <CA+5PVA6np4ZCCxE6Qk9s7UpN3By-3g1sqSg90xrD7BVjKu8ubw@mail.gmail.com>
-Subject: Re: pull request: linux-firmware: Update Mediatek MT8173 VPU firmware
-To: pochun.lin@mediatek.com
-Cc: Linux Firmware <linux-firmware@kernel.org>,
-        linux-mediatek@lists.infradead.org,
-        linux-arm-kernel@lists.infradead.org,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        tiffany.lin@mediatek.com, eddie.huang@mediatek.com,
-        wuchengli@google.com, srv_heupstream@mediatek.com
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Jan 17, 2018 at 8:35 AM,  <pochun.lin@mediatek.com> wrote:
-> The following changes since commit 65b1c68c63f974d72610db38dfae49861117cae2:
->
->   wl18xx: update firmware file 8.9.0.0.76 (2018-01-04 10:06:01 -0500)
->
-> are available in the git repository at:
->
->   https://github.com/pochun-lin/linux_fw_vpu_v1.0.8.git v1.0.8
->
-> for you to fetch changes up to e72c23c9ff2ceeb3509cb6441cc81f0227edf06d:
->
->   mediatek: update MT8173 VPU firmware to 1.0.8 (2018-01-17 20:19:56 +0800)
->
-> ----------------------------------------------------------------
-> pochun.lin (1):
->       mediatek: update MT8173 VPU firmware to 1.0.8
+Changes since v1 [1]:
+* fixup the ifence definition to use alternative_2 per recent AMD
+  changes in tip/x86/pti (Tom)
 
-Pulled and pushed out.  If the firmware is versioned, perhaps that
-version should be listed in the WHENCE file?  You might want to add
-that in a future patch.
+* drop 'nospec_ptr' (Linus, Mark)
 
-josh
+* rename 'nospec_array_ptr' to 'array_ptr' (Alexei)
+
+* rename 'nospec_barrier' to 'ifence' (Peter, Ingo)
+
+* clean up occasions of 'variable assignment in if()' (Sergei, Stephen)
+
+* make 'array_ptr' use a mask instead of an architectural ifence by
+  default (Linus, Alexei)
+
+* provide a command line and compile-time opt-in to the ifence
+  mechanism, if an architecture provides 'ifence_array_ptr'.
+
+* provide an optimized mask generation helper, 'array_ptr_mask', for
+  x86 (Linus)
+
+* move 'get_user' hardening from '__range_not_ok' to '__uaccess_begin'
+  (Linus)
+
+* drop "Thermal/int340x: prevent bounds-check..." since userspace does
+  not have arbitrary control over the 'trip' index (Srinivas)
+
+* update the changelog of "net: mpls: prevent bounds-check..." and keep
+  it in the series to continue the debate about Spectre hygiene patches.
+  (Eric).
+
+* record a reviewed-by from Laurent on "[media] uvcvideo: prevent
+  bounds-check..."
+
+* update the cover letter
+
+[1]: https://lwn.net/Articles/743376/
+
+---
+
+Quoting Mark's original RFC:
+
+"Recently, Google Project Zero discovered several classes of attack
+against speculative execution. One of these, known as variant-1, allows
+explicit bounds checks to be bypassed under speculation, providing an
+arbitrary read gadget. Further details can be found on the GPZ blog [2]
+and the Documentation patch in this series."
+
+This series incorporates Mark Rutland's latest ARM changes and adds
+the x86 specific implementation of 'ifence_array_ptr'. That ifence
+based approach is provided as an opt-in fallback, but the default
+mitigation, '__array_ptr', uses a 'mask' approach that removes
+conditional branches instructions, and otherwise aims to redirect
+speculation to use a NULL pointer rather than a user controlled value.
+
+The mask is generated by the following from Alexei, and Linus:
+
+    mask = ~(long)(_i | (_s - 1 - _i)) >> (BITS_PER_LONG - 1);
+
+...and Linus provided an optimized mask generation helper for x86:
+
+    asm ("cmpq %1,%2; sbbq %0,%0;"
+		:"=r" (mask)
+		:"r"(sz),"r" (idx)
+		:"cc");
+
+The 'array_ptr' mechanism can be switched between 'mask' and 'ifence'
+via the spectre_v1={mask,ifence} command line option, and the
+compile-time default is set by selecting either CONFIG_SPECTRE1_MASK or
+CONFIG_SPECTRE1_IFENCE.
+
+The 'array_ptr' infrastructure is the primary focus this patch set. The
+individual patches that perform 'array_ptr' conversions are a point in
+time (i.e. earlier kernel, early analysis tooling, x86 only etc...)
+start at finding some of these gadgets.
+
+Another consideration for reviewing these patches is the 'hygiene'
+argument. When a patch refers to hygiene it is concerned with stopping
+speculation on an unconstrained or insufficiently constrained pointer
+value under userspace control. That by itself is not sufficient for
+attack (per current understanding) [3], but it is a necessary
+pre-condition.  So 'hygiene' refers to cleaning up those suspect
+pointers regardless of whether they are usable as a gadget.
+
+These patches are also be available via the 'nospec-v2' git branch
+here:
+
+    git://git.kernel.org/pub/scm/linux/kernel/git/djbw/linux nospec-v2
+
+Note that the BPF fix for Spectre variant1 is merged in the bpf.git
+tree [4], and is not included in this branch.
+
+[2]: https://googleprojectzero.blogspot.co.uk/2018/01/reading-privileged-memory-with-side.html
+[3]: https://spectreattack.com/spectre.pdf
+[4]: https://git.kernel.org/pub/scm/linux/kernel/git/bpf/bpf.git/commit/?id=b2157399cc98
+
+---
+
+Dan Williams (16):
+      x86: implement ifence()
+      x86: implement ifence_array_ptr() and array_ptr_mask()
+      asm-generic/barrier: mask speculative execution flows
+      x86: introduce __uaccess_begin_nospec and ASM_IFENCE
+      x86: use __uaccess_begin_nospec and ASM_IFENCE in get_user paths
+      ipv6: prevent bounds-check bypass via speculative execution
+      ipv4: prevent bounds-check bypass via speculative execution
+      vfs, fdtable: prevent bounds-check bypass via speculative execution
+      userns: prevent bounds-check bypass via speculative execution
+      udf: prevent bounds-check bypass via speculative execution
+      [media] uvcvideo: prevent bounds-check bypass via speculative execution
+      carl9170: prevent bounds-check bypass via speculative execution
+      p54: prevent bounds-check bypass via speculative execution
+      qla2xxx: prevent bounds-check bypass via speculative execution
+      cw1200: prevent bounds-check bypass via speculative execution
+      net: mpls: prevent bounds-check bypass via speculative execution
+
+Mark Rutland (3):
+      Documentation: document array_ptr
+      arm64: implement ifence_array_ptr()
+      arm: implement ifence_array_ptr()
+
+ Documentation/speculation.txt            |  142 ++++++++++++++++++++++++++++++
+ arch/arm/Kconfig                         |    1 
+ arch/arm/include/asm/barrier.h           |   24 +++++
+ arch/arm64/Kconfig                       |    1 
+ arch/arm64/include/asm/barrier.h         |   24 +++++
+ arch/x86/Kconfig                         |    3 +
+ arch/x86/include/asm/barrier.h           |   46 ++++++++++
+ arch/x86/include/asm/msr.h               |    3 -
+ arch/x86/include/asm/smap.h              |    4 +
+ arch/x86/include/asm/uaccess.h           |   16 +++
+ arch/x86/include/asm/uaccess_32.h        |    6 +
+ arch/x86/include/asm/uaccess_64.h        |   12 +--
+ arch/x86/lib/copy_user_64.S              |    3 +
+ arch/x86/lib/usercopy_32.c               |    8 +-
+ drivers/media/usb/uvc/uvc_v4l2.c         |    9 +-
+ drivers/net/wireless/ath/carl9170/main.c |    7 +
+ drivers/net/wireless/intersil/p54/main.c |    9 +-
+ drivers/net/wireless/st/cw1200/sta.c     |   11 +-
+ drivers/net/wireless/st/cw1200/wsm.h     |    4 -
+ drivers/scsi/qla2xxx/qla_mr.c            |   17 ++--
+ fs/udf/misc.c                            |   40 +++++---
+ include/linux/fdtable.h                  |    7 +
+ include/linux/nospec.h                   |   71 +++++++++++++++
+ kernel/Kconfig.nospec                    |   31 +++++++
+ kernel/Makefile                          |    1 
+ kernel/nospec.c                          |   52 +++++++++++
+ kernel/user_namespace.c                  |   11 +-
+ lib/Kconfig                              |    3 +
+ net/ipv4/raw.c                           |   10 +-
+ net/ipv6/raw.c                           |   10 +-
+ net/mpls/af_mpls.c                       |   12 +--
+ 31 files changed, 521 insertions(+), 77 deletions(-)
+ create mode 100644 Documentation/speculation.txt
+ create mode 100644 include/linux/nospec.h
+ create mode 100644 kernel/Kconfig.nospec
+ create mode 100644 kernel/nospec.c
