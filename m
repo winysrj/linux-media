@@ -1,89 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:1793 "EHLO mga14.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750785AbeASH3u (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 19 Jan 2018 02:29:50 -0500
-From: "Yeh, Andy" <andy.yeh@intel.com>
-To: Tomasz Figa <tfiga@chromium.org>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: RE: [PATCH v4] media: imx258: Add imx258 camera sensor driver
-Date: Fri, 19 Jan 2018 07:29:46 +0000
-Message-ID: <8E0971CCB6EA9D41AF58191A2D3978B61D4E49E8@PGSMSX111.gar.corp.intel.com>
-References: <1516333071-9766-1-git-send-email-andy.yeh@intel.com>
- <CAAFQd5Aq4oX+-ux0r4SjyWAyRUA1DJ34mgBmcvuY6HpG9SJ++g@mail.gmail.com>
-In-Reply-To: <CAAFQd5Aq4oX+-ux0r4SjyWAyRUA1DJ34mgBmcvuY6HpG9SJ++g@mail.gmail.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Received: from mail.kernelconcepts.de ([188.40.83.200]:54456 "EHLO
+        mail.kernelconcepts.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753186AbeALAQG (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 11 Jan 2018 19:16:06 -0500
+Received: from [77.181.168.144] (helo=[192.168.1.189])
+        by mail.kernelconcepts.de with esmtpsa (TLS1.2:ECDHE_RSA_AES_128_GCM_SHA256:128)
+        (Exim 4.84_2)
+        (envelope-from <florian.boor@kernelconcepts.de>)
+        id 1eZn0t-0007xe-N5
+        for linux-media@vger.kernel.org; Fri, 12 Jan 2018 01:16:03 +0100
+From: Florian Boor <florian.boor@kernelconcepts.de>
+Subject: MT9M131 on I.MX6DL CSI color issue
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Message-ID: <b704a2fb-efa1-a2f8-7af0-43d869c688eb@kernelconcepts.de>
+Date: Fri, 12 Jan 2018 01:16:03 +0100
 MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Language: de-DE
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-VGhhbmtzIFRvbWFzeiwNCg0KQWdyZWUgd2l0aCB5b3VyIHBvaW50LCBpZiBzbywgd2UgY291bGQg
-anVzdCBjaGFuZ2UgYXMgYmVsb3cgd2l0aCBhIHNpbXBsZSBjaGVjayBvZiBzdHJlYW1pbmcgZmxh
-Zy4NCkFuZCBmb3IgU2FrYXJpLCBkbyB5b3UgYWdyZWUgd2l0aCBUb21hc3oncyBjb21tZW50Pw0K
-DQpLaW5kbHkgcmV2aWV3IGFuZCBJIHdvdWxkIHNlbmQgdjUgd2l0aCB0aGUgY2hhbmdlLg0KDQpk
-aWZmIC0tZ2l0IGEvZHJpdmVycy9tZWRpYS9pMmMvaW14MjU4LmMgYi9kcml2ZXJzL21lZGlhL2ky
-Yy9pbXgyNTguYw0KaW5kZXggYTdlNThiZDIuLmNmMWM1ZWUgMTAwNjQ0DQotLS0gYS9kcml2ZXJz
-L21lZGlhL2kyYy9pbXgyNTguYw0KKysrIGIvZHJpdmVycy9tZWRpYS9pMmMvaW14MjU4LmMNCkBA
-IC01NjEsMTAgKzU2MSwxMyBAQCBzdGF0aWMgaW50IGlteDI1OF9zZXRfY3RybChzdHJ1Y3QgdjRs
-Ml9jdHJsICpjdHJsKQ0KDQogICAgICAgIC8qDQogICAgICAgICAqIEFwcGx5aW5nIFY0TDIgY29u
-dHJvbCB2YWx1ZSBvbmx5IGhhcHBlbnMNCi0gICAgICAgICogd2hlbiBwb3dlciBpcyB1cCBmb3Ig
-cXN0cmVhbWluZw0KKyAgICAgICAgKiB3aGVuIHN0cmVhbWluZyBmbGFnIGlzIG9uDQogICAgICAg
-ICAqLw0KLSAgICAgICBpZiAocG1fcnVudGltZV9nZXRfaWZfaW5fdXNlKCZjbGllbnQtPmRldikg
-PD0gMCkNCisgICAgICAgaWYgKGlteDI1OC0+c3RyZWFtaW5nID09IDApDQogICAgICAgICAgICAg
-ICAgcmV0dXJuIDA7DQoNCiAgICAgICAgc3dpdGNoIChjdHJsLT5pZCkgew0KICAgICAgICBjYXNl
-IFY0TDJfQ0lEX0FOQUxPR1VFX0dBSU46DQpAQCAtNTkwLDggKzU5Myw2IEBAIHN0YXRpYyBpbnQg
-aW14MjU4X3NldF9jdHJsKHN0cnVjdCB2NGwyX2N0cmwgKmN0cmwpDQogICAgICAgICAgICAgICAg
-YnJlYWs7DQogICAgICAgIH0NCg0KLSAgICAgICBwbV9ydW50aW1lX3B1dCgmY2xpZW50LT5kZXYp
-Ow0KLQ0KICAgICAgICByZXR1cm4gcmV0Ow0KIH0NCg0KDQpSZWdhcmRzLCBBbmR5DQoNCi0tLS0t
-T3JpZ2luYWwgTWVzc2FnZS0tLS0tDQpGcm9tOiBUb21hc3ogRmlnYSBbbWFpbHRvOnRmaWdhQGNo
-cm9taXVtLm9yZ10gDQpTZW50OiBGcmlkYXksIEphbnVhcnkgMTksIDIwMTggMTI6MTggUE0NClRv
-OiBZZWgsIEFuZHkgPGFuZHkueWVoQGludGVsLmNvbT4NCkNjOiBMaW51eCBNZWRpYSBNYWlsaW5n
-IExpc3QgPGxpbnV4LW1lZGlhQHZnZXIua2VybmVsLm9yZz47IFNha2FyaSBBaWx1cyA8c2FrYXJp
-LmFpbHVzQGxpbnV4LmludGVsLmNvbT4NClN1YmplY3Q6IFJlOiBbUEFUQ0ggdjRdIG1lZGlhOiBp
-bXgyNTg6IEFkZCBpbXgyNTggY2FtZXJhIHNlbnNvciBkcml2ZXINCg0KSGkgQW5keSwNCg0KVGhh
-bmtzIGZvciB0aGUgcGF0Y2guIFBsZWFzZSBzZWUgbXkgY29tbWVudHMgaW5saW5lLg0KDQpPbiBG
-cmksIEphbiAxOSwgMjAxOCBhdCAxMjozNyBQTSwgQW5keSBZZWggPGFuZHkueWVoQGludGVsLmNv
-bT4gd3JvdGU6DQo+IEFkZCBhIFY0TDIgc3ViLWRldmljZSBkcml2ZXIgZm9yIHRoZSBTb255IElN
-WDI1OCBpbWFnZSBzZW5zb3IuDQo+IFRoaXMgaXMgYSBjYW1lcmEgc2Vuc29yIHVzaW5nIHRoZSBJ
-MkMgYnVzIGZvciBjb250cm9sIGFuZCB0aGUNCj4gQ1NJLTIgYnVzIGZvciBkYXRhLg0KPg0KPiBT
-aWduZWQtb2ZmLWJ5OiBBbmR5IFllaCA8YW5keS55ZWhAaW50ZWwuY29tPg0KPiAtLS0NCj4gLSB2
-Mi0+djMNCj4gLS0gVXBkYXRlIHRoZSBzdHJlYW1pbmcgZnVuY3Rpb24gdG8gcmVtb3ZlIFNXX1NU
-QU5EQlkgaW4gdGhlIGJlZ2lubmluZy4NCj4gLS0gQWRqdXN0IHRoZSBkZWxheSB0aW1lIGZyb20g
-MW1zIHRvIDEybXMgYmVmb3JlIHNldCBzdHJlYW0tb24gcmVnaXN0ZXIuDQo+IC0gdjMtPnY0DQo+
-IC0tIGZpeCB0aGUgc2QuZW50aXR5IHRvIG1ha2UgY29kZSBiZSBjb21waWxlZCBvbiB0aGUgbWFp
-bmxpbmUga2VybmVsLg0KPiAtLSAiIC0gaW14MjU4LT5zZC5lbnRpdHkudHlwZSA9IE1FRElBX0VO
-VF9UX1Y0TDJfU1VCREVWX1NFTlNPUjsiDQo+IC0tICIgKyBpbXgyNTgtPnNkLmVudGl0eS5mdW5j
-dGlvbiA9IE1FRElBX0VOVF9GX0NBTV9TRU5TT1I7Ig0KPg0KPiAgTUFJTlRBSU5FUlMgICAgICAg
-ICAgICAgICAgfCAgICA3ICsNCj4gIGRyaXZlcnMvbWVkaWEvaTJjL0tjb25maWcgIHwgICAxMSAr
-DQo+ICBkcml2ZXJzL21lZGlhL2kyYy9NYWtlZmlsZSB8ICAgIDEgKw0KPiAgZHJpdmVycy9tZWRp
-YS9pMmMvaW14MjU4LmMgfCAxMTQ4IA0KPiArKysrKysrKysrKysrKysrKysrKysrKysrKysrKysr
-KysrKysrKysrKysrKw0KPiAgNCBmaWxlcyBjaGFuZ2VkLCAxMTY3IGluc2VydGlvbnMoKykNCj4g
-IGNyZWF0ZSBtb2RlIDEwMDY0NCBkcml2ZXJzL21lZGlhL2kyYy9pbXgyNTguYw0KW3NuaXBdDQo+
-ICtzdGF0aWMgaW50IGlteDI1OF9zZXRfY3RybChzdHJ1Y3QgdjRsMl9jdHJsICpjdHJsKSB7DQo+
-ICsgICAgICAgc3RydWN0IGlteDI1OCAqaW14MjU4ID0NCj4gKyAgICAgICAgICAgICAgIGNvbnRh
-aW5lcl9vZihjdHJsLT5oYW5kbGVyLCBzdHJ1Y3QgaW14MjU4LCBjdHJsX2hhbmRsZXIpOw0KPiAr
-ICAgICAgIHN0cnVjdCBpMmNfY2xpZW50ICpjbGllbnQgPSB2NGwyX2dldF9zdWJkZXZkYXRhKCZp
-bXgyNTgtPnNkKTsNCj4gKyAgICAgICBzNjQgbWF4Ow0KPiArICAgICAgIGludCByZXQgPSAwOw0K
-PiArDQo+ICsgICAgICAgLyogUHJvcGFnYXRlIGNoYW5nZSBvZiBjdXJyZW50IGNvbnRyb2wgdG8g
-YWxsIHJlbGF0ZWQgY29udHJvbHMgKi8NCj4gKyAgICAgICBpZiAoY3RybC0+aWQgPT0gVjRMMl9D
-SURfVkJMQU5LKSB7DQo+ICsgICAgICAgICAgICAgICAvKiBVcGRhdGUgbWF4IGV4cG9zdXJlIHdo
-aWxlIG1lZXRpbmcgZXhwZWN0ZWQgdmJsYW5raW5nICovDQo+ICsgICAgICAgICAgICAgICBtYXgg
-PSBpbXgyNTgtPmN1cl9tb2RlLT5oZWlnaHQgKyBjdHJsLT52YWwgLSA4Ow0KPiArICAgICAgICAg
-ICAgICAgX192NGwyX2N0cmxfbW9kaWZ5X3JhbmdlKGlteDI1OC0+ZXhwb3N1cmUsDQo+ICsgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgaW14MjU4LT5leHBvc3VyZS0+bWlu
-aW11bSwNCj4gKyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBtYXgsIGlt
-eDI1OC0+ZXhwb3N1cmUtPnN0ZXAsIG1heCk7DQo+ICsgICAgICAgfQ0KPiArDQo+ICsgICAgICAg
-LyoNCj4gKyAgICAgICAgKiBBcHBseWluZyBWNEwyIGNvbnRyb2wgdmFsdWUgb25seSBoYXBwZW5z
-DQo+ICsgICAgICAgICogd2hlbiBwb3dlciBpcyB1cCBmb3Igc3RyZWFtaW5nDQo+ICsgICAgICAg
-ICovDQo+ICsgICAgICAgaWYgKHBtX3J1bnRpbWVfZ2V0X2lmX2luX3VzZSgmY2xpZW50LT5kZXYp
-IDw9IDApDQo+ICsgICAgICAgICAgICAgICByZXR1cm4gMDsNCg0KVGhpcyB3b24ndCB3b3JrIGlm
-IHJ1bnRpbWUgUE0gaXMgbm90IGNvbXBpbGVkIGluIG9yIGlzIGRpc2FibGVkIGF0IHJ1bnRpbWUs
-IGkuZS4gcG1fcnVudGltZV9nZXRfaWZfaW5fdXNlKCkgcmV0dXJucyAtRUlOVkFMLg0KDQpCdXQg
-YWN0dWFsbHksIGRvIHdlIG5lZWQgdG8gY2FyZSBhYm91dCBydW50aW1lIFBNIGhlcmU/IENvdWxk
-IHdlIGp1c3QgcmV0dXJuIGVhcmx5IGlmIHdlJ3JlIG5vdCBzdHJlYW1pbmc/IFRoZW4gdGhlIGNv
-bnRyb2xzIHdvdWxkIGJlIGhhbmRsZWQgd2hlbiBzdHJlYW1pbmcgc3RhcnRzLCBzaW5jZSB3ZSBj
-YWxsDQpfX3Y0bDJfY3RybF9oYW5kbGVyX3NldHVwKCkgZnJvbSBfc3RhcnRfc3RyZWFtaW5nKCku
-DQoNCkJlc3QgcmVnYXJkcywNClRvbWFzeg0K
+Hello all,
+
+I have a Phytec VM-009 camera based on MT9M131 connected to CSI0 of a I.MX6DL
+based board running mainline 4.13.0 + custom devicetree. Its using the parallel
+interface, 8 bit bus width on pins 12 to 19.
+
+Basically it works pretty well apart from the really strange colors. I guess its
+some YUV vs. RGB issue or similar. Here [1] is an example generated with the
+following command.
+
+gst-launch v4l2src device=/dev/video4 num-buffers=1 ! jpegenc ! filesink
+location=capture1.jpeg
+
+Apart from the colors everything is fine.
+I'm pretty sure I have not seen such an effect before - what might be wrong here?
+
+The current setup looks like this:
+
+IF=UYVY2X8
+GEOM="1280x1024"
+media-ctl -l "'mt9m111 2-0048':0 -> 'ipu1_csi0_mux':4[1]"
+media-ctl -l "'ipu1_csi0_mux':5 -> 'ipu1_csi0':0[1]"
+media-ctl -l "'ipu1_csi0':2 -> 'ipu1_csi0 capture':0[1]"
+
+media-ctl -d /dev/media0 -v -V "'ipu1_csi0':2 [fmt:${IF}/${GEOM} field:none]"
+media-ctl -d /dev/media0 -v -V "'ipu1_csi0 capture':0 [fmt:${IF}/${GEOM}
+field:none]"
+media-ctl -d /dev/media0 -v -V "'ipu1_csi0_mux':4 [fmt:${IF}/${GEOM} field: none]"
+media-ctl -d /dev/media0 -v -V "'ipu1_csi0_mux':5 [fmt:${IF}/${GEOM} field: none]"
+media-ctl -d /dev/media0 -v -V "'mt9m111 2-0048':0 [fmt:${IF}/${GEOM} field: none]"
+
+
+Greetings
+
+Florian
+
+[1] http://www.kernelconcepts.de/~florian/capture1.jpeg
+
+-- 
+The dream of yesterday                  Florian Boor
+is the hope of today                    Tel: +49 271-771091-15
+and the reality of tomorrow.		Fax: +49 271-338857-29
+[Robert Hutchings Goddard, 1904]        florian.boor@kernelconcepts.de
+                                        http://www.kernelconcepts.de/en
+
+kernel concepts GmbH
+Hauptstraße 16
+D-57074 Siegen
+Geschäftsführer: Ole Reinhardt
+HR Siegen, HR B 9613
