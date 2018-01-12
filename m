@@ -1,125 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:36443 "EHLO
+Received: from galahad.ideasonboard.com ([185.26.127.97]:34839 "EHLO
         galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933810AbeALO1w (ORCPT
+        with ESMTP id S1754532AbeALKfo (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 12 Jan 2018 09:27:52 -0500
+        Fri, 12 Jan 2018 05:35:44 -0500
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Jacopo Mondi <jacopo+renesas@jmondi.org>
-Cc: magnus.damm@gmail.com, geert@glider.be, mchehab@kernel.org,
-        hverkuil@xs4all.nl, festevam@gmail.com, sakari.ailus@iki.fi,
-        robh+dt@kernel.org, mark.rutland@arm.com, pombredanne@nexb.com,
-        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-sh@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v5 0/9] Renesas Capture Engine Unit (CEU) V4L2 driver
-Date: Fri, 12 Jan 2018 16:27:50 +0200
-Message-ID: <3051373.PoZynrBGJV@avalon>
-In-Reply-To: <1515765849-10345-1-git-send-email-jacopo+renesas@jmondi.org>
-References: <1515765849-10345-1-git-send-email-jacopo+renesas@jmondi.org>
+To: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        Magnus Damm <magnus.damm@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Fabio Estevam <festevam@gmail.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Linux-Renesas <linux-renesas-soc@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux-sh list <linux-sh@vger.kernel.org>,
+        devicetree@vger.kernel.org,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH v4 3/9] v4l: platform: Add Renesas CEU driver
+Date: Fri, 12 Jan 2018 12:35:42 +0200
+Message-ID: <6661804.aHnDt5XQHf@avalon>
+In-Reply-To: <CAMuHMdVCa=mXBLjUpqUgg90=Yqj0_r0cmB5UsOYJvdxw3HSsmw@mail.gmail.com>
+References: <1515515131-13760-1-git-send-email-jacopo+renesas@jmondi.org> <4595365.GB5AfDQQ8V@avalon> <CAMuHMdVCa=mXBLjUpqUgg90=Yqj0_r0cmB5UsOYJvdxw3HSsmw@mail.gmail.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7Bit
 Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jacopo,
+Hi Geert,
 
-On Friday, 12 January 2018 16:04:00 EET Jacopo Mondi wrote:
-> Hello,
->    (hopefully) last round for CEU driver.
+On Friday, 12 January 2018 11:01:18 EET Geert Uytterhoeven wrote:
+> On Fri, Jan 12, 2018 at 12:12 AM, Laurent Pinchart wrote:
+> > On Tuesday, 9 January 2018 18:25:25 EET Jacopo Mondi wrote:
+> >> Add driver for Renesas Capture Engine Unit (CEU).
+> >> 
+> >> The CEU interface supports capturing 'data' (YUV422) and 'images'
+> >> (NV[12|21|16|61]).
+> >> 
+> >> This driver aims to replace the soc_camera-based sh_mobile_ceu one.
+> >> 
+> >> Tested with ov7670 camera sensor, providing YUYV_2X8 data on Renesas RZ
+> >> platform GR-Peach.
+> >> 
+> >> Tested with ov7725 camera sensor on SH4 platform Migo-R.
+> >> 
+> >> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+> >> ---
+> >> 
+> >>  drivers/media/platform/Kconfig       |    9 +
+> >>  drivers/media/platform/Makefile      |    1 +
+> >>  drivers/media/platform/renesas-ceu.c | 1648 ++++++++++++++++++++++++++++
+> >>  3 files changed, 1658 insertions(+)
+> >> 
+> >>  create mode 100644 drivers/media/platform/renesas-ceu.c
+> > 
+> > [snip]
+> > 
+> >> diff --git a/drivers/media/platform/renesas-ceu.c
+> >> b/drivers/media/platform/renesas-ceu.c new file mode 100644
+> >> index 0000000..d261704
+> >> --- /dev/null
+> >> +++ b/drivers/media/platform/renesas-ceu.c
+> >> @@ -0,0 +1,1648 @@
+> >> +// SPDX-License-Identifier: GPL-2.0
+> > 
+> > It was recently brought to my attention that SPDX headers should use
+> > either GPL-2.0-only or GPL-2.0-or-later, no the ambiguous GPL-2.0. Could
+> > you please update all patches in this series ?
 > 
-> Changelog is quite thin, I have updated CEU driver MODULE_LICENSE to match
-> SPDX identifier, added Rob's and Laurent's Reviewed-by tags to bindings, and
-> made variables of "struct ceu_data" type static in the driver.
+> IMHO it's a bit premature to do that.
+> As long as Documentation/process/license-rules.rst isn't updated, I wouldn't
+> follow this change.
 > 
-> All of the patches are now Reviewed/Acked. Time to have this series
-> included?
+> See also https://www.spinics.net/lists/linux-xfs/msg14536.html
 
-Yes please !
-
-Hans, could you pick this up ?
-
-> v4->v5:
-> - Added Rob's and Laurent's Reviewed-by tag to DT bindings
-> - Change CEU driver module license to "GPL v2" to match SPDX identifier as
->   suggested by Philippe Ombredanne
-> - Make struct ceu_data static as suggested by Laurent and add his
->   Reviewed-by to CEU driver.
-> 
-> v3->v4:
-> - Drop generic fallback compatible string "renesas,ceu"
-> - Addressed Laurent's comments on [3/9]
->   - Fix error messages on irq get/request
->   - Do not leak ceudev if irq_get fails
->   - Make irq_mask a const field
-> 
-> v2->v3:
-> - Improved DT bindings removing standard properties (pinctrl- ones and
->   remote-endpoint) not specific to this driver and improved description of
->   compatible strings
-> - Remove ov772x's xlkc_rate property and set clock rate in Migo-R board file
-> - Made 'xclk' clock private to ov772x driver in Migo-R board file
-> - Change 'rstb' GPIO active output level and changed ov772x and tw9910
-> drivers accordingly as suggested by Fabio
-> - Minor changes in CEU driver to address Laurent's comments
-> - Moved Migo-R setup patch to the end of the series to silence 0-day bot
-> - Renamed tw9910 clock to 'xti' as per video decoder manual
-> - Changed all SPDX identifiers to GPL-2.0 from previous GPL-2.0+
-> 
-> v1->v2:
->  - DT
->  -- Addressed Geert's comments and added clocks for CEU to mstp6 clock
-> source -- Specified supported generic video iterfaces properties in
-> dt-bindings and simplified example
-> 
->  - CEU driver
->  -- Re-worked interrupt handler, interrupt management, reset(*) and capture
->     start operation
->  -- Re-worked querycap/enum_input/enum_frameintervals to fix some
->     v4l2_compliance failures
->  -- Removed soc_camera legacy operations g/s_mbus_format
->  -- Update to new notifier implementation
->  -- Fixed several comments from Hans, Laurent and Sakari
-> 
->  - Migo-R
->  -- Register clocks and gpios for sensor drivers in Migo-R setup
->  -- Updated sensors (tw9910 and ov772x) drivers headers and drivers to close
-> remarks from Hans and Laurent:
->  --- Removed platform callbacks and handle clocks and gpios from sensor
-> drivers --- Remove g/s_mbus_config operations
-> 
-> Jacopo Mondi (9):
->   dt-bindings: media: Add Renesas CEU bindings
->   include: media: Add Renesas CEU driver interface
->   v4l: platform: Add Renesas CEU driver
->   ARM: dts: r7s72100: Add Capture Engine Unit (CEU)
->   v4l: i2c: Copy ov772x soc_camera sensor driver
->   media: i2c: ov772x: Remove soc_camera dependencies
->   v4l: i2c: Copy tw9910 soc_camera sensor driver
->   media: i2c: tw9910: Remove soc_camera dependencies
->   arch: sh: migor: Use new renesas-ceu camera driver
-> 
->  .../devicetree/bindings/media/renesas,ceu.txt      |   81 +
->  arch/arm/boot/dts/r7s72100.dtsi                    |   15 +-
->  arch/sh/boards/mach-migor/setup.c                  |  225 ++-
->  arch/sh/kernel/cpu/sh4a/clock-sh7722.c             |    2 +-
->  drivers/media/i2c/Kconfig                          |   20 +
->  drivers/media/i2c/Makefile                         |    2 +
->  drivers/media/i2c/ov772x.c                         | 1181 ++++++++++++++
->  drivers/media/i2c/tw9910.c                         | 1039 ++++++++++++
->  drivers/media/platform/Kconfig                     |    9 +
->  drivers/media/platform/Makefile                    |    1 +
->  drivers/media/platform/renesas-ceu.c               | 1648 +++++++++++++++++
->  include/media/drv-intf/renesas-ceu.h               |   26 +
->  include/media/i2c/ov772x.h                         |    6 +-
->  include/media/i2c/tw9910.h                         |    9 +
->  14 files changed, 4133 insertions(+), 131 deletions(-)
->  create mode 100644 Documentation/devicetree/bindings/media/renesas,ceu.txt
->  create mode 100644 drivers/media/i2c/ov772x.c
->  create mode 100644 drivers/media/i2c/tw9910.c
->  create mode 100644 drivers/media/platform/renesas-ceu.c
->  create mode 100644 include/media/drv-intf/renesas-ceu.h
+Thank you for bringing this to my attention. I agree with you.
 
 -- 
 Regards,
