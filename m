@@ -1,154 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f67.google.com ([74.125.83.67]:38754 "EHLO
-        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753830AbeAaK0i (ORCPT
+Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:41029 "EHLO
+        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S932489AbeALL5u (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 31 Jan 2018 05:26:38 -0500
-Received: by mail-pg0-f67.google.com with SMTP id y27so9692772pgc.5
-        for <linux-media@vger.kernel.org>; Wed, 31 Jan 2018 02:26:38 -0800 (PST)
-From: Alexandre Courbot <acourbot@chromium.org>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Pawel Osciak <posciak@chromium.org>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Fri, 12 Jan 2018 06:57:50 -0500
+Subject: Re: [PATCH v7 1/6] [media] vb2: add is_unordered callback for drivers
+To: Gustavo Padovan <gustavo@padovan.org>, linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        Pawel Osciak <pawel@osciak.com>,
+        Alexandre Courbot <acourbot@chromium.org>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Brian Starkey <brian.starkey@arm.com>,
+        Thierry Escande <thierry.escande@collabora.com>,
+        linux-kernel@vger.kernel.org,
         Gustavo Padovan <gustavo.padovan@collabora.com>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Alexandre Courbot <acourbot@chromium.org>
-Subject: [RFCv2 12/17] v4l2: add request API support
-Date: Wed, 31 Jan 2018 19:26:20 +0900
-Message-Id: <20180131102625.208021-3-acourbot@chromium.org>
-In-Reply-To: <20180131102625.208021-1-acourbot@chromium.org>
-References: <20180131102625.208021-1-acourbot@chromium.org>
+References: <20180110160732.7722-1-gustavo@padovan.org>
+ <20180110160732.7722-2-gustavo@padovan.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <c11c095d-4eb2-537e-22f1-d35ff07cc3f3@xs4all.nl>
+Date: Fri, 12 Jan 2018 12:57:44 +0100
+MIME-Version: 1.0
+In-Reply-To: <20180110160732.7722-2-gustavo@padovan.org>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add a v4l2 request entity data structure that takes care of storing the
-request-related state of a V4L2 device ; in this case, its controls.
+On 01/10/18 17:07, Gustavo Padovan wrote:
+> From: Gustavo Padovan <gustavo.padovan@collabora.com>
+> 
+> Explicit synchronization benefits a lot from ordered queues, they fit
+> better in a pipeline with DRM for example so create a opt-in way for
+> drivers notify videobuf2 that the queue is unordered.
+> 
+> Drivers don't need implement it if the queue is ordered.
+> 
+> Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
+> ---
+>  include/media/videobuf2-core.h | 5 +++++
+>  1 file changed, 5 insertions(+)
+> 
+> diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+> index f3ee4c7c2fb3..583cdc06de79 100644
+> --- a/include/media/videobuf2-core.h
+> +++ b/include/media/videobuf2-core.h
+> @@ -370,6 +370,9 @@ struct vb2_buffer {
+>   *			callback by calling vb2_buffer_done() with either
+>   *			%VB2_BUF_STATE_DONE or %VB2_BUF_STATE_ERROR; may use
+>   *			vb2_wait_for_all_buffers() function
+> + * @is_unordered:	tell if the queue format is unordered. The default is
 
-Signed-off-by: Alexandre Courbot <acourbot@chromium.org>
----
- drivers/media/v4l2-core/Makefile       |  2 +-
- drivers/media/v4l2-core/v4l2-request.c | 54 ++++++++++++++++++++++++++++++++++
- include/media/v4l2-request.h           | 34 +++++++++++++++++++++
- 3 files changed, 89 insertions(+), 1 deletion(-)
- create mode 100644 drivers/media/v4l2-core/v4l2-request.c
- create mode 100644 include/media/v4l2-request.h
+I'd replace the first sentence by this:
 
-diff --git a/drivers/media/v4l2-core/Makefile b/drivers/media/v4l2-core/Makefile
-index 77303286aef7..5d885932f68f 100644
---- a/drivers/media/v4l2-core/Makefile
-+++ b/drivers/media/v4l2-core/Makefile
-@@ -15,7 +15,7 @@ obj-$(CONFIG_V4L2_FWNODE) += v4l2-fwnode.o
- ifeq ($(CONFIG_TRACEPOINTS),y)
-   videodev-objs += vb2-trace.o v4l2-trace.o
- endif
--videodev-$(CONFIG_MEDIA_CONTROLLER) += v4l2-mc.o
-+videodev-$(CONFIG_MEDIA_CONTROLLER) += v4l2-mc.o v4l2-request.o
- 
- obj-$(CONFIG_VIDEO_V4L2) += videodev.o
- obj-$(CONFIG_VIDEO_V4L2) += v4l2-common.o
-diff --git a/drivers/media/v4l2-core/v4l2-request.c b/drivers/media/v4l2-core/v4l2-request.c
-new file mode 100644
-index 000000000000..7bc29d3cc332
---- /dev/null
-+++ b/drivers/media/v4l2-core/v4l2-request.c
-@@ -0,0 +1,54 @@
-+/*
-+ * Media requests support for V4L2
-+ *
-+ * Copyright (C) 2018, The Chromium OS Authors.  All rights reserved.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ */
-+
-+#include <linux/slab.h>
-+
-+#include <media/v4l2-request.h>
-+
-+struct media_request_entity_data *media_request_v4l2_entity_data_alloc(
-+	struct v4l2_ctrl_handler *hdl)
-+{
-+	struct media_request_v4l2_entity_data *data;
-+	int ret;
-+
-+	data = kzalloc(sizeof(*data), GFP_KERNEL);
-+
-+	ret = v4l2_ctrl_request_init(&data->ctrls);
-+	if (ret) {
-+		kfree(data);
-+		return ERR_PTR(ret);
-+	}
-+
-+	ret = v4l2_ctrl_request_clone(&data->ctrls, hdl, NULL);
-+	if (ret) {
-+		kfree(data);
-+		return ERR_PTR(ret);
-+	}
-+
-+	return &data->base;
-+}
-+EXPORT_SYMBOL_GPL(media_request_v4l2_entity_data_alloc);
-+
-+void
-+media_request_v4l2_entity_data_free(struct media_request_entity_data *_data)
-+{
-+	struct media_request_v4l2_entity_data *data;
-+
-+	data = to_v4l2_entity_data(_data);
-+
-+	v4l2_ctrl_handler_free(&data->ctrls);
-+	kfree(data);
-+}
-+EXPORT_SYMBOL_GPL(media_request_v4l2_entity_data_free);
-diff --git a/include/media/v4l2-request.h b/include/media/v4l2-request.h
-new file mode 100644
-index 000000000000..db38dc5fc460
---- /dev/null
-+++ b/include/media/v4l2-request.h
-@@ -0,0 +1,34 @@
-+/*
-+ * Media requests support for V4L2
-+ *
-+ * Copyright (C) 2018, The Chromium OS Authors.  All rights reserved.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ */
-+
-+#ifndef _MEDIA_REQUEST_V4L2_H
-+#define _MEDIA_REQUEST_V4L2_H
-+
-+#include <media/media-request.h>
-+#include <media/v4l2-ctrls.h>
-+
-+struct media_request_v4l2_entity_data {
-+	struct media_request_entity_data base;
-+
-+	struct v4l2_ctrl_handler ctrls;
-+};
-+#define to_v4l2_entity_data(d) \
-+	container_of(d, struct media_request_v4l2_entity_data, base)
-+
-+struct media_request_entity_data *media_request_v4l2_entity_data_alloc(
-+	struct v4l2_ctrl_handler *hdl);
-+void media_request_v4l2_entity_data_free(struct media_request_entity_data *data);
-+
-+#endif
--- 
-2.16.0.rc1.238.g530d649a79-goog
+"tell if the queue is unordered, i.e. buffers can be dequeued in a different
+order from how they were queued."
+
+Regards,
+
+	Hans
+
+> + *			assumed to be ordered and this function only needs to
+> + *			be implemented for unordered queues.
+>   * @buf_queue:		passes buffer vb to the driver; driver may start
+>   *			hardware operation on this buffer; driver should give
+>   *			the buffer back by calling vb2_buffer_done() function;
+> @@ -393,6 +396,7 @@ struct vb2_ops {
+>  
+>  	int (*start_streaming)(struct vb2_queue *q, unsigned int count);
+>  	void (*stop_streaming)(struct vb2_queue *q);
+> +	int (*is_unordered)(struct vb2_queue *q);
+>  
+>  	void (*buf_queue)(struct vb2_buffer *vb);
+>  };
+> @@ -566,6 +570,7 @@ struct vb2_queue {
+>  	u32				cnt_wait_finish;
+>  	u32				cnt_start_streaming;
+>  	u32				cnt_stop_streaming;
+> +	u32				cnt_is_unordered;
+>  #endif
+>  };
+>  
+> 
