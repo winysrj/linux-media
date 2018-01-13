@@ -1,121 +1,171 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ot0-f194.google.com ([74.125.82.194]:44933 "EHLO
-        mail-ot0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932506AbeAKP65 (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:41974 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750740AbeAMHdB (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 11 Jan 2018 10:58:57 -0500
-Received: by mail-ot0-f194.google.com with SMTP id g59so2470196otg.11
-        for <linux-media@vger.kernel.org>; Thu, 11 Jan 2018 07:58:57 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <nycvar.YFH.7.76.1801111052310.11852@cbobk.fhfr.pm>
-References: <151520099201.32271.4677179499894422956.stgit@dwillia2-desk3.amr.corp.intel.com>
- <alpine.LRH.2.00.1801092017330.27010@gjva.wvxbf.pm> <CAPcyv4gccDQYx9urpagnBo-TqNLoQ00gEoE7kp+JXNKsmFxcHw@mail.gmail.com>
- <20180109205549.osb25c4r2h2n2wqx@treble> <nycvar.YFH.7.76.1801111052310.11852@cbobk.fhfr.pm>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Thu, 11 Jan 2018 07:58:55 -0800
-Message-ID: <CAPcyv4jRbHZH9OWD_6DmeA=MGr+2cy83LGqMCjK_nj79Pug4NQ@mail.gmail.com>
-Subject: Re: [PATCH 00/18] prevent bounds-check bypass via speculative execution
-To: Jiri Kosina <jikos@kernel.org>
-Cc: Josh Poimboeuf <jpoimboe@redhat.com>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Peter Zijlstra <peterz@infradead.org>,
-        Alan Cox <alan.cox@intel.com>,
-        Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>,
-        Will Deacon <will.deacon@arm.com>,
-        Solomon Peachy <pizza@shaftnet.org>,
-        "H. Peter Anvin" <hpa@zytor.com>,
-        Christian Lamparter <chunkeey@googlemail.com>,
-        Elena Reshetova <elena.reshetova@intel.com>,
-        linux-arch@vger.kernel.org, Andi Kleen <ak@linux.intel.com>,
-        "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>,
-        linux-scsi <linux-scsi@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>, X86 ML <x86@kernel.org>,
-        Ingo Molnar <mingo@redhat.com>,
-        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
-        Zhang Rui <rui.zhang@intel.com>,
-        "Linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        Arnd Bergmann <arnd@arndb.de>, Jan Kara <jack@suse.com>,
-        Eduardo Valentin <edubezval@gmail.com>,
-        Al Viro <viro@zeniv.linux.org.uk>, qla2xxx-upstream@qlogic.com,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Arjan van de Ven <arjan@linux.intel.com>,
-        Kalle Valo <kvalo@codeaurora.org>,
-        Alan Cox <alan@linux.intel.com>,
-        "Martin K. Petersen" <martin.petersen@oracle.com>,
-        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
-        Greg KH <gregkh@linuxfoundation.org>,
-        linux-wireless@vger.kernel.org,
-        "Eric W. Biederman" <ebiederm@xmission.com>,
-        Netdev <netdev@vger.kernel.org>,
-        Linus Torvalds <torvalds@linux-foundation.org>,
-        "David S. Miller" <davem@davemloft.net>,
+        Sat, 13 Jan 2018 02:33:01 -0500
+Subject: Re: [RFT PATCH v3 6/6] uvcvideo: Move decode processing to process
+ context
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
         Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Alexei Starovoitov <ast@kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+        Olivier BRAUN <olivier.braun@stereolabs.com>,
+        Troy Kisky <troy.kisky@boundarydevices.com>
+References: <cover.30aaad9a6abac5e92d4a1a0e6634909d97cc54d8.1515748369.git-series.kieran.bingham@ideasonboard.com>
+ <c857652f179fbc083a16029affefbde83a8932dc.1515748369.git-series.kieran.bingham@ideasonboard.com>
+ <alpine.DEB.2.20.1801121025210.4338@axis700.grange>
+From: Kieran Bingham <kieran.bingham@ideasonboard.com>
+Message-ID: <d88ac9c7-bc9d-b656-fd0f-9f8a445276f8@ideasonboard.com>
+Date: Sat, 13 Jan 2018 07:32:57 +0000
+MIME-Version: 1.0
+In-Reply-To: <alpine.DEB.2.20.1801121025210.4338@axis700.grange>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jan 11, 2018 at 1:54 AM, Jiri Kosina <jikos@kernel.org> wrote:
-> On Tue, 9 Jan 2018, Josh Poimboeuf wrote:
->
->> On Tue, Jan 09, 2018 at 11:44:05AM -0800, Dan Williams wrote:
->> > On Tue, Jan 9, 2018 at 11:34 AM, Jiri Kosina <jikos@kernel.org> wrote:
->> > > On Fri, 5 Jan 2018, Dan Williams wrote:
->> > >
->> > > [ ... snip ... ]
->> > >> Andi Kleen (1):
->> > >>       x86, barrier: stop speculation for failed access_ok
->> > >>
->> > >> Dan Williams (13):
->> > >>       x86: implement nospec_barrier()
->> > >>       [media] uvcvideo: prevent bounds-check bypass via speculative execution
->> > >>       carl9170: prevent bounds-check bypass via speculative execution
->> > >>       p54: prevent bounds-check bypass via speculative execution
->> > >>       qla2xxx: prevent bounds-check bypass via speculative execution
->> > >>       cw1200: prevent bounds-check bypass via speculative execution
->> > >>       Thermal/int340x: prevent bounds-check bypass via speculative execution
->> > >>       ipv6: prevent bounds-check bypass via speculative execution
->> > >>       ipv4: prevent bounds-check bypass via speculative execution
->> > >>       vfs, fdtable: prevent bounds-check bypass via speculative execution
->> > >>       net: mpls: prevent bounds-check bypass via speculative execution
->> > >>       udf: prevent bounds-check bypass via speculative execution
->> > >>       userns: prevent bounds-check bypass via speculative execution
->> > >>
->> > >> Mark Rutland (4):
->> > >>       asm-generic/barrier: add generic nospec helpers
->> > >>       Documentation: document nospec helpers
->> > >>       arm64: implement nospec_ptr()
->> > >>       arm: implement nospec_ptr()
->> > >
->> > > So considering the recent publication of [1], how come we all of a sudden
->> > > don't need the barriers in ___bpf_prog_run(), namely for LD_IMM_DW and
->> > > LDX_MEM_##SIZEOP, and something comparable for eBPF JIT?
->> > >
->> > > Is this going to be handled in eBPF in some other way?
->> > >
->> > > Without that in place, and considering Jann Horn's paper, it would seem
->> > > like PTI doesn't really lock it down fully, right?
->> >
->> > Here is the latest (v3) bpf fix:
->> >
->> > https://patchwork.ozlabs.org/patch/856645/
->> >
->> > I currently have v2 on my 'nospec' branch and will move that to v3 for
->> > the next update, unless it goes upstream before then.
->
-> Daniel, I guess you're planning to send this still for 4.15?
+Hi Guennadi,
 
-It's pending in the bpf.git tree:
+Thanks for your review and time on this.
+I certainly appreciate the extra eyes here!
 
-    https://git.kernel.org/pub/scm/linux/kernel/git/bpf/bpf.git/commit/?id=b2157399cc9
+On 12/01/18 09:37, Guennadi Liakhovetski wrote:
+> Hi Kieran,
+> 
+> On Fri, 12 Jan 2018, Kieran Bingham wrote:
+> 
+>> Newer high definition cameras, and cameras with multiple lenses such as
+>> the range of stereo-vision cameras now available have ever increasing
+>> data rates.
+>>
+>> The inclusion of a variable length packet header in URB packets mean
+>> that we must memcpy the frame data out to our destination 'manually'.
+>> This can result in data rates of up to 2 gigabits per second being
+>> processed.
+>>
+>> To improve efficiency, and maximise throughput, handle the URB decode
+>> processing through a work queue to move it from interrupt context, and
+>> allow multiple processors to work on URBs in parallel.
+>>
+>> Signed-off-by: Kieran Bingham <kieran.bingham@ideasonboard.com>
+>>
+>> ---
+>> v2:
+>>  - Lock full critical section of usb_submit_urb()
+>>
+>> v3:
+>>  - Fix race on submitting uvc_video_decode_data_work() to work queue.
+>>  - Rename uvc_decode_op -> uvc_copy_op (Generic to encode/decode)
+>>  - Rename decodes -> copy_operations
+>>  - Don't queue work if there is no async task
+>>  - obtain copy op structure directly in uvc_video_decode_data()
+>>  - uvc_video_decode_data_work() -> uvc_video_copy_data_work()
+>> ---
+>>  drivers/media/usb/uvc/uvc_queue.c |  12 +++-
+>>  drivers/media/usb/uvc/uvc_video.c | 116 +++++++++++++++++++++++++++----
+>>  drivers/media/usb/uvc/uvcvideo.h  |  24 ++++++-
+>>  3 files changed, 138 insertions(+), 14 deletions(-)
+>>
+>> diff --git a/drivers/media/usb/uvc/uvc_queue.c b/drivers/media/usb/uvc/uvc_queue.c
+>> index 5a9987e547d3..598087eeb5c2 100644
+>> --- a/drivers/media/usb/uvc/uvc_queue.c
+>> +++ b/drivers/media/usb/uvc/uvc_queue.c
+>> @@ -179,10 +179,22 @@ static void uvc_stop_streaming(struct vb2_queue *vq)
+>>  	struct uvc_video_queue *queue = vb2_get_drv_priv(vq);
+>>  	struct uvc_streaming *stream = uvc_queue_to_stream(queue);
+>>  
+>> +	/* Prevent new buffers coming in. */
+>> +	spin_lock_irq(&queue->irqlock);
+>> +	queue->flags |= UVC_QUEUE_STOPPING;
+>> +	spin_unlock_irq(&queue->irqlock);
 
->> That patch seems specific to CONFIG_BPF_SYSCALL.  Is the bpf() syscall
->> the only attack vector?  Or are there other ways to run bpf programs
->> that we should be worried about?
->
-> Seems like Alexei is probably the only person in the whole universe who
-> isn't CCed here ... let's fix that.
+Q_A: <label for below>
 
-He will be cc'd on v2 of this series which will be available later today.
+>> +
+>> +	/*
+>> +	 * All pending work should be completed before disabling the stream, as
+>> +	 * all URBs will be free'd during uvc_video_enable(s, 0).
+>> +	 */
+>> +	flush_workqueue(stream->async_wq);
+> 
+> What if we manage to get one last URB here, then...
+
+
+That will be fine. queue->flags = UVC_QUEUE_STOPPING, and thus no more items can
+be added to the workqueue.
+
+>> +
+>>  	uvc_video_enable(stream, 0);
+>>  
+
+Q_B: <label for below>
+
+>>  	spin_lock_irq(&queue->irqlock);
+>>  	uvc_queue_return_buffers(queue, UVC_BUF_STATE_ERROR);
+>> +	queue->flags &= ~UVC_QUEUE_STOPPING;
+>>  	spin_unlock_irq(&queue->irqlock);
+>>  }
+>>  
+>> diff --git a/drivers/media/usb/uvc/uvc_video.c b/drivers/media/usb/uvc/uvc_video.c
+>> index 3878bec3276e..fb6b5af17380 100644
+>> --- a/drivers/media/usb/uvc/uvc_video.c
+>> +++ b/drivers/media/usb/uvc/uvc_video.c
+> 
+> [snip]
+> 
+>> +	/*
+>> +	 * When the stream is stopped, all URBs are freed as part of the call to
+>> +	 * uvc_stop_streaming() and must not be handled asynchronously. In that
+>> +	 * event we can safely complete the packet work directly in this
+>> +	 * context, without resubmitting the URB.
+>> +	 */
+>> +	spin_lock_irqsave(&queue->irqlock, flags);
+>> +	if (!(queue->flags & UVC_QUEUE_STOPPING)) {
+>> +		INIT_WORK(&uvc_urb->work, uvc_video_copy_data_work);
+>> +		queue_work(stream->async_wq, &uvc_urb->work);
+>> +	} else {
+>> +		uvc_video_copy_packets(uvc_urb);
+> 
+> Can it not happen, that if the stream is currently being stopped, the 
+> queue has been flushed, possibly the previous URB or a couple of them 
+> don't get decoded, but you do decode this one, creating a corrupted frame? 
+> Wouldn't it be better to just drop this URB too?
+
+I don't think so.
+
+The only time that this uvc_video_copy_packets() can be called directly in this
+context is if UVC_QUEUE_STOPPING is set, *AND* we have the lock...
+Therefore we must be executing between points Q_A and Q_B above.
+
+The flush_workqueue() will ensure that all queued work is completed.
+
+By calling uvc_video_copy_packets() directly we are ensuring that this last
+packet is also completed. The headers have already been processed at this stage
+during the call to ->decode() - so all we are actually doing here is the async
+memcpy work which has already been promised by the header processing, and
+releasing the references on the vb2 buffers if applicable.
+
+Any buffers not fully completed will be returned marked and returned by the call
+to :
+
+  	uvc_queue_return_buffers(queue, UVC_BUF_STATE_ERROR);
+
+
+which happens *after* label Q_B:
+
+--
+Regards
+
+Kieran
+
+> 
+>>  	}
+>> +	spin_unlock_irqrestore(&queue->irqlock, flags);
+>>  }
+>>  
+>>  /*
+> 
+> Thanks
+> Guennadi
+> 
