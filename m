@@ -1,115 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:33003 "EHLO
-        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933478AbeAKKyz (ORCPT
+Received: from mail-qt0-f195.google.com ([209.85.216.195]:44242 "EHLO
+        mail-qt0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S965312AbeAMAPO (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 11 Jan 2018 05:54:55 -0500
-Received: by mail-wm0-f66.google.com with SMTP id x4so2160785wmc.0
-        for <linux-media@vger.kernel.org>; Thu, 11 Jan 2018 02:54:55 -0800 (PST)
-Reply-To: christian.koenig@amd.com
-Subject: Re: [Linaro-mm-sig] [PATCH] dma-buf: add some lockdep asserts to the
- reservation object implementation
-To: Lucas Stach <l.stach@pengutronix.de>,
-        Sumit Semwal <sumit.semwal@linaro.org>
-Cc: linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, kernel@pengutronix.de,
-        patchwork-lst@pengutronix.de
-References: <20171201111216.7050-1-l.stach@pengutronix.de>
- <1515667384.12538.51.camel@pengutronix.de>
-From: =?UTF-8?Q?Christian_K=c3=b6nig?= <ckoenig.leichtzumerken@gmail.com>
-Message-ID: <7a1961d2-2701-e3e9-ae24-08b8fcfb9dd4@gmail.com>
-Date: Thu, 11 Jan 2018 11:54:52 +0100
+        Fri, 12 Jan 2018 19:15:14 -0500
 MIME-Version: 1.0
-In-Reply-To: <1515667384.12538.51.camel@pengutronix.de>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
-Content-Language: en-US
+In-Reply-To: <CA+55aFzNQ8CZ8iNcPXrCfyk=1edMiRGDA0fY0rd87BsFKBxgAw@mail.gmail.com>
+References: <151571798296.27429.7166552848688034184.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <CA+55aFzNQ8CZ8iNcPXrCfyk=1edMiRGDA0fY0rd87BsFKBxgAw@mail.gmail.com>
+From: Tony Luck <tony.luck@gmail.com>
+Date: Fri, 12 Jan 2018 16:15:12 -0800
+Message-ID: <CA+8MBb+H0FqciBw9nSO9L0fNQtiRvc_1TREitH9z89YxhtyFAQ@mail.gmail.com>
+Subject: Re: [PATCH v2 00/19] prevent bounds-check bypass via speculative execution
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Dan Williams <dan.j.williams@intel.com>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        kernel-hardening@lists.openwall.com,
+        Peter Zijlstra <peterz@infradead.org>,
+        Alan Cox <alan.cox@intel.com>,
+        Will Deacon <will.deacon@arm.com>,
+        Alexei Starovoitov <ast@kernel.org>,
+        Solomon Peachy <pizza@shaftnet.org>,
+        "H. Peter Anvin" <hpa@zytor.com>,
+        Christian Lamparter <chunkeey@googlemail.com>,
+        Elena Reshetova <elena.reshetova@intel.com>,
+        "linux-arch@vger.kernel.org" <linux-arch@vger.kernel.org>,
+        Andi Kleen <ak@linux.intel.com>,
+        "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>,
+        Linux SCSI List <linux-scsi@vger.kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>,
+        "the arch/x86 maintainers" <x86@kernel.org>,
+        Russell King <linux@armlinux.org.uk>,
+        Ingo Molnar <mingo@redhat.com>,
+        Catalin Marinas <catalin.marinas@arm.com>,
+        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Tom Lendacky <thomas.lendacky@amd.com>,
+        Kees Cook <keescook@chromium.org>, Jan Kara <jack@suse.com>,
+        Al Viro <viro@zeniv.linux.org.uk>, qla2xxx-upstream@qlogic.com,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Kalle Valo <kvalo@codeaurora.org>,
+        Alan Cox <alan@linux.intel.com>,
+        "Martin K. Petersen" <martin.petersen@oracle.com>,
+        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
+        Greg KH <gregkh@linuxfoundation.org>,
+        Linux Wireless List <linux-wireless@vger.kernel.org>,
+        "Eric W. Biederman" <ebiederm@xmission.com>,
+        Network Development <netdev@vger.kernel.org>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Yeah, somehow missed that one.
+On Thu, Jan 11, 2018 at 5:19 PM, Linus Torvalds
+<torvalds@linux-foundation.org> wrote:
+> Should the array access in entry_SYSCALL_64_fastpath be made to use
+> the masking approach?
 
-The patch looks mostly good, except for reservation_object_get_excl().
+That one has a bounds check for an inline constant.
 
-For that one an RCU protection is usually sufficient, so annotating it 
-with reservation_object_assert_held() sounds incorrect to me.
+     cmpq    $__NR_syscall_max, %rax
 
-Regards,
-Christian.
+so should be safe.
 
-Am 11.01.2018 um 11:43 schrieb Lucas Stach:
-> Did this fall through the cracks over the holidays? It really has made
-> my work much easier while reworking some of the reservation object
-> handling in etnaviv and I think it might benefit others.
->
-> Regards,
-> Lucas
->
-> Am Freitag, den 01.12.2017, 12:12 +0100 schrieb Lucas Stach:
->> This adds lockdep asserts to the reservation functions which state in their
->> documentation that obj->lock must be held. Allows builds with PROVE_LOCKING
->> enabled to check that the locking requirements are met.
->>
->>> Signed-off-by: Lucas Stach <l.stach@pengutronix.de>
->> ---
->>   drivers/dma-buf/reservation.c | 8 ++++++++
->>   include/linux/reservation.h   | 2 ++
->>   2 files changed, 10 insertions(+)
->>
->> diff --git a/drivers/dma-buf/reservation.c b/drivers/dma-buf/reservation.c
->> index b44d9d7db347..accd398e2ea6 100644
->> --- a/drivers/dma-buf/reservation.c
->> +++ b/drivers/dma-buf/reservation.c
->> @@ -71,6 +71,8 @@ int reservation_object_reserve_shared(struct reservation_object *obj)
->>>   	struct reservation_object_list *fobj, *old;
->>>   	u32 max;
->>   
->>> +	reservation_object_assert_held(obj);
->> +
->>>   	old = reservation_object_get_list(obj);
->>   
->>>   	if (old && old->shared_max) {
->> @@ -211,6 +213,8 @@ void reservation_object_add_shared_fence(struct reservation_object *obj,
->>   {
->>>   	struct reservation_object_list *old, *fobj = obj->staged;
->>   
->>> +	reservation_object_assert_held(obj);
->> +
->>>   	old = reservation_object_get_list(obj);
->>>   	obj->staged = NULL;
->>   
->> @@ -236,6 +240,8 @@ void reservation_object_add_excl_fence(struct reservation_object *obj,
->>>   	struct reservation_object_list *old;
->>>   	u32 i = 0;
->>   
->>> +	reservation_object_assert_held(obj);
->> +
->>>   	old = reservation_object_get_list(obj);
->>>   	if (old)
->>>   		i = old->shared_count;
->> @@ -276,6 +282,8 @@ int reservation_object_copy_fences(struct reservation_object *dst,
->>>   	size_t size;
->>>   	unsigned i;
->>   
->>> +	reservation_object_assert_held(dst);
->> +
->>>   	rcu_read_lock();
->>>   	src_list = rcu_dereference(src->fence);
->>   
->> diff --git a/include/linux/reservation.h b/include/linux/reservation.h
->> index 21fc84d82d41..55e7318800fd 100644
->> --- a/include/linux/reservation.h
->> +++ b/include/linux/reservation.h
->> @@ -212,6 +212,8 @@ reservation_object_unlock(struct reservation_object *obj)
->>   static inline struct dma_fence *
->>   reservation_object_get_excl(struct reservation_object *obj)
->>   {
->>> +	reservation_object_assert_held(obj);
->> +
->>>   	return rcu_dereference_protected(obj->fence_excl,
->>>   					 reservation_object_held(obj));
->>   }
-> _______________________________________________
-> dri-devel mailing list
-> dri-devel@lists.freedesktop.org
-> https://lists.freedesktop.org/mailman/listinfo/dri-devel
+The classic Spectre variant #1 code sequence is:
+
+int array_size;
+
+       if (x < array_size) {
+               something with array[x]
+       }
+
+which runs into problems because the array_size variable may not
+be in cache, and while the CPU core is waiting for the value it
+speculates inside the "if" body.
+
+The syscall entry is more like:
+
+#define ARRAY_SIZE 10
+
+     if (x < ARRAY_SIZE) {
+          something with array[x]
+     }
+
+Here there isn't any reason for speculation. The core has the
+value of 'x' in a register and the upper bound encoded into the
+"cmp" instruction.  Both are right there, no waiting, no speculation.
+
+-Tony
