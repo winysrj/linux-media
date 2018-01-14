@@ -1,218 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pandora.armlinux.org.uk ([78.32.30.218]:53644 "EHLO
-        pandora.armlinux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754350AbeALKDF (ORCPT
+Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:38949 "EHLO
+        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753658AbeANEpp (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 12 Jan 2018 05:03:05 -0500
-Date: Fri, 12 Jan 2018 10:02:08 +0000
-From: Russell King - ARM Linux <linux@armlinux.org.uk>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: linux-kernel@vger.kernel.org, Mark Rutland <mark.rutland@arm.com>,
-        kernel-hardening@lists.openwall.com,
-        Peter Zijlstra <peterz@infradead.org>,
-        Alan Cox <alan.cox@intel.com>,
-        Will Deacon <will.deacon@arm.com>,
-        Alexei Starovoitov <ast@kernel.org>,
-        Solomon Peachy <pizza@shaftnet.org>,
-        "H. Peter Anvin" <hpa@zytor.com>,
-        Christian Lamparter <chunkeey@googlemail.com>,
-        Elena Reshetova <elena.reshetova@intel.com>,
-        linux-arch@vger.kernel.org, Andi Kleen <ak@linux.intel.com>,
-        "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>,
-        linux-scsi@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>,
-        x86@kernel.org, Ingo Molnar <mingo@redhat.com>,
-        Catalin Marinas <catalin.marinas@arm.com>,
-        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
-        linux-media@vger.kernel.org,
-        Tom Lendacky <thomas.lendacky@amd.com>,
-        Kees Cook <keescook@chromium.org>, Jan Kara <jack@suse.com>,
-        Al Viro <viro@zeniv.linux.org.uk>, qla2xxx-upstream@qlogic.com,
-        tglx@linutronix.de, Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Kalle Valo <kvalo@codeaurora.org>, alan@linux.intel.com,
-        "Martin K. Petersen" <martin.petersen@oracle.com>,
-        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
-        Greg KH <gregkh@linuxfoundation.org>,
-        linux-wireless@vger.kernel.org,
-        "Eric W. Biederman" <ebiederm@xmission.com>,
-        netdev@vger.kernel.org, akpm@linux-foundation.org,
-        torvalds@linux-foundation.org,
-        "David S. Miller" <davem@davemloft.net>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH v2 00/19] prevent bounds-check bypass via speculative
- execution
-Message-ID: <20180112100208.GX17719@n2100.armlinux.org.uk>
-References: <151571798296.27429.7166552848688034184.stgit@dwillia2-desk3.amr.corp.intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <151571798296.27429.7166552848688034184.stgit@dwillia2-desk3.amr.corp.intel.com>
+        Sat, 13 Jan 2018 23:45:45 -0500
+Message-ID: <8abcbaec90e0769e24c8609984e1d520@smtp-cloud7.xs4all.net>
+Date: Sun, 14 Jan 2018 05:45:42 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Do you think that the appropriate patches could be copied to the
-appropriate people please?
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-On Thu, Jan 11, 2018 at 04:46:24PM -0800, Dan Williams wrote:
-> Changes since v1 [1]:
-> * fixup the ifence definition to use alternative_2 per recent AMD
->   changes in tip/x86/pti (Tom)
-> 
-> * drop 'nospec_ptr' (Linus, Mark)
-> 
-> * rename 'nospec_array_ptr' to 'array_ptr' (Alexei)
-> 
-> * rename 'nospec_barrier' to 'ifence' (Peter, Ingo)
-> 
-> * clean up occasions of 'variable assignment in if()' (Sergei, Stephen)
-> 
-> * make 'array_ptr' use a mask instead of an architectural ifence by
->   default (Linus, Alexei)
-> 
-> * provide a command line and compile-time opt-in to the ifence
->   mechanism, if an architecture provides 'ifence_array_ptr'.
-> 
-> * provide an optimized mask generation helper, 'array_ptr_mask', for
->   x86 (Linus)
-> 
-> * move 'get_user' hardening from '__range_not_ok' to '__uaccess_begin'
->   (Linus)
-> 
-> * drop "Thermal/int340x: prevent bounds-check..." since userspace does
->   not have arbitrary control over the 'trip' index (Srinivas)
-> 
-> * update the changelog of "net: mpls: prevent bounds-check..." and keep
->   it in the series to continue the debate about Spectre hygiene patches.
->   (Eric).
-> 
-> * record a reviewed-by from Laurent on "[media] uvcvideo: prevent
->   bounds-check..."
-> 
-> * update the cover letter
-> 
-> [1]: https://lwn.net/Articles/743376/
-> 
-> ---
-> 
-> Quoting Mark's original RFC:
-> 
-> "Recently, Google Project Zero discovered several classes of attack
-> against speculative execution. One of these, known as variant-1, allows
-> explicit bounds checks to be bypassed under speculation, providing an
-> arbitrary read gadget. Further details can be found on the GPZ blog [2]
-> and the Documentation patch in this series."
-> 
-> This series incorporates Mark Rutland's latest ARM changes and adds
-> the x86 specific implementation of 'ifence_array_ptr'. That ifence
-> based approach is provided as an opt-in fallback, but the default
-> mitigation, '__array_ptr', uses a 'mask' approach that removes
-> conditional branches instructions, and otherwise aims to redirect
-> speculation to use a NULL pointer rather than a user controlled value.
-> 
-> The mask is generated by the following from Alexei, and Linus:
-> 
->     mask = ~(long)(_i | (_s - 1 - _i)) >> (BITS_PER_LONG - 1);
-> 
-> ...and Linus provided an optimized mask generation helper for x86:
-> 
->     asm ("cmpq %1,%2; sbbq %0,%0;"
-> 		:"=r" (mask)
-> 		:"r"(sz),"r" (idx)
-> 		:"cc");
-> 
-> The 'array_ptr' mechanism can be switched between 'mask' and 'ifence'
-> via the spectre_v1={mask,ifence} command line option, and the
-> compile-time default is set by selecting either CONFIG_SPECTRE1_MASK or
-> CONFIG_SPECTRE1_IFENCE.
-> 
-> The 'array_ptr' infrastructure is the primary focus this patch set. The
-> individual patches that perform 'array_ptr' conversions are a point in
-> time (i.e. earlier kernel, early analysis tooling, x86 only etc...)
-> start at finding some of these gadgets.
-> 
-> Another consideration for reviewing these patches is the 'hygiene'
-> argument. When a patch refers to hygiene it is concerned with stopping
-> speculation on an unconstrained or insufficiently constrained pointer
-> value under userspace control. That by itself is not sufficient for
-> attack (per current understanding) [3], but it is a necessary
-> pre-condition.  So 'hygiene' refers to cleaning up those suspect
-> pointers regardless of whether they are usable as a gadget.
-> 
-> These patches are also be available via the 'nospec-v2' git branch
-> here:
-> 
->     git://git.kernel.org/pub/scm/linux/kernel/git/djbw/linux nospec-v2
-> 
-> Note that the BPF fix for Spectre variant1 is merged in the bpf.git
-> tree [4], and is not included in this branch.
-> 
-> [2]: https://googleprojectzero.blogspot.co.uk/2018/01/reading-privileged-memory-with-side.html
-> [3]: https://spectreattack.com/spectre.pdf
-> [4]: https://git.kernel.org/pub/scm/linux/kernel/git/bpf/bpf.git/commit/?id=b2157399cc98
-> 
-> ---
-> 
-> Dan Williams (16):
->       x86: implement ifence()
->       x86: implement ifence_array_ptr() and array_ptr_mask()
->       asm-generic/barrier: mask speculative execution flows
->       x86: introduce __uaccess_begin_nospec and ASM_IFENCE
->       x86: use __uaccess_begin_nospec and ASM_IFENCE in get_user paths
->       ipv6: prevent bounds-check bypass via speculative execution
->       ipv4: prevent bounds-check bypass via speculative execution
->       vfs, fdtable: prevent bounds-check bypass via speculative execution
->       userns: prevent bounds-check bypass via speculative execution
->       udf: prevent bounds-check bypass via speculative execution
->       [media] uvcvideo: prevent bounds-check bypass via speculative execution
->       carl9170: prevent bounds-check bypass via speculative execution
->       p54: prevent bounds-check bypass via speculative execution
->       qla2xxx: prevent bounds-check bypass via speculative execution
->       cw1200: prevent bounds-check bypass via speculative execution
->       net: mpls: prevent bounds-check bypass via speculative execution
-> 
-> Mark Rutland (3):
->       Documentation: document array_ptr
->       arm64: implement ifence_array_ptr()
->       arm: implement ifence_array_ptr()
-> 
->  Documentation/speculation.txt            |  142 ++++++++++++++++++++++++++++++
->  arch/arm/Kconfig                         |    1 
->  arch/arm/include/asm/barrier.h           |   24 +++++
->  arch/arm64/Kconfig                       |    1 
->  arch/arm64/include/asm/barrier.h         |   24 +++++
->  arch/x86/Kconfig                         |    3 +
->  arch/x86/include/asm/barrier.h           |   46 ++++++++++
->  arch/x86/include/asm/msr.h               |    3 -
->  arch/x86/include/asm/smap.h              |    4 +
->  arch/x86/include/asm/uaccess.h           |   16 +++
->  arch/x86/include/asm/uaccess_32.h        |    6 +
->  arch/x86/include/asm/uaccess_64.h        |   12 +--
->  arch/x86/lib/copy_user_64.S              |    3 +
->  arch/x86/lib/usercopy_32.c               |    8 +-
->  drivers/media/usb/uvc/uvc_v4l2.c         |    9 +-
->  drivers/net/wireless/ath/carl9170/main.c |    7 +
->  drivers/net/wireless/intersil/p54/main.c |    9 +-
->  drivers/net/wireless/st/cw1200/sta.c     |   11 +-
->  drivers/net/wireless/st/cw1200/wsm.h     |    4 -
->  drivers/scsi/qla2xxx/qla_mr.c            |   17 ++--
->  fs/udf/misc.c                            |   40 +++++---
->  include/linux/fdtable.h                  |    7 +
->  include/linux/nospec.h                   |   71 +++++++++++++++
->  kernel/Kconfig.nospec                    |   31 +++++++
->  kernel/Makefile                          |    1 
->  kernel/nospec.c                          |   52 +++++++++++
->  kernel/user_namespace.c                  |   11 +-
->  lib/Kconfig                              |    3 +
->  net/ipv4/raw.c                           |   10 +-
->  net/ipv6/raw.c                           |   10 +-
->  net/mpls/af_mpls.c                       |   12 +--
->  31 files changed, 521 insertions(+), 77 deletions(-)
->  create mode 100644 Documentation/speculation.txt
->  create mode 100644 include/linux/nospec.h
->  create mode 100644 kernel/Kconfig.nospec
->  create mode 100644 kernel/nospec.c
-> 
+Results of the daily build of media_tree:
 
--- 
-RMK's Patch system: http://www.armlinux.org.uk/developer/patches/
-FTTC broadband for 0.8mile line in suburbia: sync at 8.8Mbps down 630kbps up
-According to speedtest.net: 8.21Mbps down 510kbps up
+date:			Sun Jan 14 05:00:16 CET 2018
+media-tree git hash:	e3ee691dbf24096ea51b3200946b11d68ce75361
+media_build git hash:	46c9dc0a08499791cedfc7ee0df387e475f075a2
+v4l-utils git hash:	351eb68ac235f37f749a1c5d6ed2fae80e9dffe3
+gcc version:		i686-linux-gcc (GCC) 7.1.0
+sparse version:		v0.5.0-3911-g6f737e1f
+smatch version:		v0.5.0-3911-g6f737e1f
+host hardware:		x86_64
+host os:		4.13.0-164
+
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: WARNINGS
+linux-3.11.1-i686: ERRORS
+linux-3.12.67-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.7-i686: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.18.7-i686: ERRORS
+linux-3.19-i686: ERRORS
+linux-4.0.9-i686: ERRORS
+linux-4.1.33-i686: ERRORS
+linux-4.2.8-i686: ERRORS
+linux-4.3.6-i686: ERRORS
+linux-4.4.22-i686: ERRORS
+linux-4.5.7-i686: ERRORS
+linux-4.6.7-i686: ERRORS
+linux-4.7.5-i686: ERRORS
+linux-4.8-i686: ERRORS
+linux-4.9.26-i686: ERRORS
+linux-4.10.14-i686: WARNINGS
+linux-4.11-i686: WARNINGS
+linux-4.12.1-i686: WARNINGS
+linux-4.13-i686: WARNINGS
+linux-4.14-i686: WARNINGS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.67-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.7-x86_64: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.7-x86_64: ERRORS
+linux-3.19-x86_64: ERRORS
+linux-4.0.9-x86_64: ERRORS
+linux-4.1.33-x86_64: ERRORS
+linux-4.2.8-x86_64: ERRORS
+linux-4.3.6-x86_64: ERRORS
+linux-4.4.22-x86_64: ERRORS
+linux-4.5.7-x86_64: ERRORS
+linux-4.6.7-x86_64: ERRORS
+linux-4.7.5-x86_64: ERRORS
+linux-4.8-x86_64: ERRORS
+linux-4.9.26-x86_64: ERRORS
+linux-4.10.14-x86_64: WARNINGS
+linux-4.11-x86_64: WARNINGS
+linux-4.12.1-x86_64: WARNINGS
+linux-4.13-x86_64: WARNINGS
+linux-4.14-x86_64: WARNINGS
+apps: OK
+spec-git: OK
+smatch: OK
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
