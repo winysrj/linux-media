@@ -1,52 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga04.intel.com ([192.55.52.120]:64303 "EHLO mga04.intel.com"
+Received: from mail.anw.at ([195.234.101.228]:42757 "EHLO mail.anw.at"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751321AbeANWzM (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 14 Jan 2018 17:55:12 -0500
-Date: Mon, 15 Jan 2018 00:55:09 +0200
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: Tomasz Figa <tfiga@chromium.org>
-Cc: Yong Zhi <yong.zhi@intel.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        "Mani, Rajmohan" <rajmohan.mani@intel.com>,
-        Cao Bing Bu <bingbu.cao@intel.com>
-Subject: Re: [PATCH 2/2] media: intel-ipu3: cio2: fix for wrong vb2buf state
- warnings
-Message-ID: <20180114225508.5oa54rjxilum4tvm@kekkonen.localdomain>
-References: <1515034637-3517-1-git-send-email-yong.zhi@intel.com>
- <1515034637-3517-2-git-send-email-yong.zhi@intel.com>
- <CAAFQd5AaOSQ_wcA_w5vBufVk5FfLPe6x9BnS=hcShv_asf3Cyw@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAAFQd5AaOSQ_wcA_w5vBufVk5FfLPe6x9BnS=hcShv_asf3Cyw@mail.gmail.com>
+        id S1750915AbeANJWC (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 14 Jan 2018 04:22:02 -0500
+From: "Jasmin J." <jasmin@anw.at>
+To: linux-media@vger.kernel.org
+Cc: hverkuil@xs4all.nl, mchehab@s-opensource.com, arnd@arndb.de,
+        jasmin@anw.at
+Subject: [PATCH] media: uvcvideo: Fixed ktime_t to ns conversion
+Date: Sun, 14 Jan 2018 10:21:43 +0000
+Message-Id: <1515925303-5160-1-git-send-email-jasmin@anw.at>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Tomasz and others,
+From: Jasmin Jessich <jasmin@anw.at>
 
-On Fri, Jan 12, 2018 at 05:19:04PM +0900, Tomasz Figa wrote:
-> On Thu, Jan 4, 2018 at 11:57 AM, Yong Zhi <yong.zhi@intel.com> wrote:
-...
-> > @@ -793,7 +794,7 @@ static void cio2_vb2_return_all_buffers(struct cio2_queue *q)
-> >                 if (q->bufs[i]) {
-> >                         atomic_dec(&q->bufs_queued);
-> >                         vb2_buffer_done(&q->bufs[i]->vbb.vb2_buf,
-> > -                                       VB2_BUF_STATE_ERROR);
-> > +                                       state);
-> 
-> nit: Does it really exceed 80 characters after folding into previous line?
-> 
-> With the nit fixed:
-> Reviewed-by: Tomasz Figa <tfiga@chromium.org>
+Commit 828ee8c71950 ("media: uvcvideo: Use ktime_t for timestamps")
+changed to use ktime_t for timestamps. Older Kernels use a struct for
+ktime_t, which requires the conversion function ktime_to_ns to be used on
+some places. With this patch it will compile now also for older Kernel
+versions.
 
-The patches have been merged to media tree master; if there are matters to
-address, then please send more patches on top of the master branch. :-)
+Signed-off-by: Jasmin Jessich <jasmin@anw.at>
+---
+ drivers/media/usb/uvc/uvc_video.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-Thanks.
-
+diff --git a/drivers/media/usb/uvc/uvc_video.c b/drivers/media/usb/uvc/uvc_video.c
+index 5441553..1670aeb 100644
+--- a/drivers/media/usb/uvc/uvc_video.c
++++ b/drivers/media/usb/uvc/uvc_video.c
+@@ -1009,7 +1009,7 @@ static int uvc_video_decode_start(struct uvc_streaming *stream,
+ 
+ 		buf->buf.field = V4L2_FIELD_NONE;
+ 		buf->buf.sequence = stream->sequence;
+-		buf->buf.vb2_buf.timestamp = uvc_video_get_time();
++		buf->buf.vb2_buf.timestamp = ktime_to_ns(uvc_video_get_time());
+ 
+ 		/* TODO: Handle PTS and SCR. */
+ 		buf->state = UVC_BUF_STATE_ACTIVE;
+@@ -1191,7 +1191,8 @@ static void uvc_video_decode_meta(struct uvc_streaming *stream,
+ 
+ 	uvc_trace(UVC_TRACE_FRAME,
+ 		  "%s(): t-sys %lluns, SOF %u, len %u, flags 0x%x, PTS %u, STC %u frame SOF %u\n",
+-		  __func__, time, meta->sof, meta->length, meta->flags,
++		  __func__, ktime_to_ns(time), meta->sof, meta->length,
++		  meta->flags,
+ 		  has_pts ? *(u32 *)meta->buf : 0,
+ 		  has_scr ? *(u32 *)scr : 0,
+ 		  has_scr ? *(u32 *)(scr + 4) & 0x7ff : 0);
 -- 
-Cheers,
-
-Sakari Ailus
-sakari.ailus@linux.intel.com
+2.7.4
