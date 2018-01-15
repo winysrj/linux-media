@@ -1,114 +1,142 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-io0-f193.google.com ([209.85.223.193]:44382 "EHLO
-        mail-io0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754505AbeAOHM7 (ORCPT
+Received: from relay6-d.mail.gandi.net ([217.70.183.198]:49141 "EHLO
+        relay6-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751253AbeAOGzM (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 15 Jan 2018 02:12:59 -0500
-Received: by mail-io0-f193.google.com with SMTP id k18so12069433ioc.11
-        for <linux-media@vger.kernel.org>; Sun, 14 Jan 2018 23:12:59 -0800 (PST)
-Received: from mail-io0-f175.google.com (mail-io0-f175.google.com. [209.85.223.175])
-        by smtp.gmail.com with ESMTPSA id l14sm4816363itl.24.2018.01.14.23.12.58
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Sun, 14 Jan 2018 23:12:58 -0800 (PST)
-Received: by mail-io0-f175.google.com with SMTP id f34so6816820ioi.13
-        for <linux-media@vger.kernel.org>; Sun, 14 Jan 2018 23:12:58 -0800 (PST)
+        Mon, 15 Jan 2018 01:55:12 -0500
+Date: Mon, 15 Jan 2018 07:55:03 +0100
+From: jacopo mondi <jacopo@jmondi.org>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        hverkuil@xs4all.nl
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>, magnus.damm@gmail.com,
+        geert@glider.be, mchehab@kernel.org, festevam@gmail.com,
+        sakari.ailus@iki.fi, robh+dt@kernel.org, mark.rutland@arm.com,
+        pombredanne@nexb.com, linux-renesas-soc@vger.kernel.org,
+        linux-media@vger.kernel.org, linux-sh@vger.kernel.org,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v5 0/9] Renesas Capture Engine Unit (CEU) V4L2 driver
+Message-ID: <20180115065503.GB8343@w540>
+References: <1515765849-10345-1-git-send-email-jacopo+renesas@jmondi.org>
+ <3051373.PoZynrBGJV@avalon>
 MIME-Version: 1.0
-In-Reply-To: <20180110160732.7722-6-gustavo@padovan.org>
-References: <20180110160732.7722-1-gustavo@padovan.org> <20180110160732.7722-6-gustavo@padovan.org>
-From: Alexandre Courbot <acourbot@chromium.org>
-Date: Mon, 15 Jan 2018 16:12:37 +0900
-Message-ID: <CAPBb6MU-83QXHht_gLciGzfZtNxJL_=Fj5h1yfwPEt3vSKHVXg@mail.gmail.com>
-Subject: Re: [PATCH v7 5/6] [media] vb2: add out-fence support to QBUF
-To: Gustavo Padovan <gustavo@padovan.org>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        Pawel Osciak <pawel@osciak.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Brian Starkey <brian.starkey@arm.com>,
-        Thierry Escande <thierry.escande@collabora.com>,
-        linux-kernel@vger.kernel.org,
-        Gustavo Padovan <gustavo.padovan@collabora.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <3051373.PoZynrBGJV@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jan 11, 2018 at 1:07 AM, Gustavo Padovan <gustavo@padovan.org> wrote:
->  /*
->   * vb2_start_streaming() - Attempt to start streaming.
->   * @q:         videobuf2 queue
-> @@ -1489,18 +1562,16 @@ int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb,
->         if (vb->in_fence) {
->                 ret = dma_fence_add_callback(vb->in_fence, &vb->fence_cb,
->                                              vb2_qbuf_fence_cb);
-> -               if (ret == -EINVAL) {
-> +               /* is the fence signaled? */
-> +               if (ret == -ENOENT) {
-> +                       dma_fence_put(vb->in_fence);
-> +                       vb->in_fence = NULL;
-> +               } else if (ret) {
->                         spin_unlock_irqrestore(&vb->fence_cb_lock, flags);
->                         goto err;
-> -               } else if (!ret) {
-> -                       goto fill;
->                 }
-> -
-> -               dma_fence_put(vb->in_fence);
-> -               vb->in_fence = NULL;
+Hello Hans,
 
-This chunk seems to deal with input fences, shouldn't it be part of
-the previous patch instead of this one?
+On Fri, Jan 12, 2018 at 04:27:50PM +0200, Laurent Pinchart wrote:
+> Hi Jacopo,
+>
+> On Friday, 12 January 2018 16:04:00 EET Jacopo Mondi wrote:
+> > Hello,
+> >    (hopefully) last round for CEU driver.
+> >
+> > Changelog is quite thin, I have updated CEU driver MODULE_LICENSE to match
+> > SPDX identifier, added Rob's and Laurent's Reviewed-by tags to bindings, and
+> > made variables of "struct ceu_data" type static in the driver.
+> >
+> > All of the patches are now Reviewed/Acked. Time to have this series
+> > included?
+>
+> Yes please !
+>
+> Hans, could you pick this up ?
+
+Hans, since this series contains changes for the SH architecture as
+well, and SH maintainers have prove to be somehow unreachable, could
+you please consider to have the whole series being merged thorough
+your tree?
+
+Thanks
+   j
 
 >
-> -       if ((b->fence_fd != 0 && b->fence_fd != -1) &&
-> -           !(b->flags & V4L2_BUF_FLAG_IN_FENCE)) {
-> +       if (b->fence_fd > 0 && !(b->flags & V4L2_BUF_FLAG_IN_FENCE)) {
->                 dprintk(1, "%s: fence_fd set without IN_FENCE flag\n", opname);
->                 return -EINVAL;
->         }
+> > v4->v5:
+> > - Added Rob's and Laurent's Reviewed-by tag to DT bindings
+> > - Change CEU driver module license to "GPL v2" to match SPDX identifier as
+> >   suggested by Philippe Ombredanne
+> > - Make struct ceu_data static as suggested by Laurent and add his
+> >   Reviewed-by to CEU driver.
+> >
+> > v3->v4:
+> > - Drop generic fallback compatible string "renesas,ceu"
+> > - Addressed Laurent's comments on [3/9]
+> >   - Fix error messages on irq get/request
+> >   - Do not leak ceudev if irq_get fails
+> >   - Make irq_mask a const field
+> >
+> > v2->v3:
+> > - Improved DT bindings removing standard properties (pinctrl- ones and
+> >   remote-endpoint) not specific to this driver and improved description of
+> >   compatible strings
+> > - Remove ov772x's xlkc_rate property and set clock rate in Migo-R board file
+> > - Made 'xclk' clock private to ov772x driver in Migo-R board file
+> > - Change 'rstb' GPIO active output level and changed ov772x and tw9910
+> > drivers accordingly as suggested by Fabio
+> > - Minor changes in CEU driver to address Laurent's comments
+> > - Moved Migo-R setup patch to the end of the series to silence 0-day bot
+> > - Renamed tw9910 clock to 'xti' as per video decoder manual
+> > - Changed all SPDX identifiers to GPL-2.0 from previous GPL-2.0+
+> >
+> > v1->v2:
+> >  - DT
+> >  -- Addressed Geert's comments and added clocks for CEU to mstp6 clock
+> > source -- Specified supported generic video iterfaces properties in
+> > dt-bindings and simplified example
+> >
+> >  - CEU driver
+> >  -- Re-worked interrupt handler, interrupt management, reset(*) and capture
+> >     start operation
+> >  -- Re-worked querycap/enum_input/enum_frameintervals to fix some
+> >     v4l2_compliance failures
+> >  -- Removed soc_camera legacy operations g/s_mbus_format
+> >  -- Update to new notifier implementation
+> >  -- Fixed several comments from Hans, Laurent and Sakari
+> >
+> >  - Migo-R
+> >  -- Register clocks and gpios for sensor drivers in Migo-R setup
+> >  -- Updated sensors (tw9910 and ov772x) drivers headers and drivers to close
+> > remarks from Hans and Laurent:
+> >  --- Removed platform callbacks and handle clocks and gpios from sensor
+> > drivers --- Remove g/s_mbus_config operations
+> >
+> > Jacopo Mondi (9):
+> >   dt-bindings: media: Add Renesas CEU bindings
+> >   include: media: Add Renesas CEU driver interface
+> >   v4l: platform: Add Renesas CEU driver
+> >   ARM: dts: r7s72100: Add Capture Engine Unit (CEU)
+> >   v4l: i2c: Copy ov772x soc_camera sensor driver
+> >   media: i2c: ov772x: Remove soc_camera dependencies
+> >   v4l: i2c: Copy tw9910 soc_camera sensor driver
+> >   media: i2c: tw9910: Remove soc_camera dependencies
+> >   arch: sh: migor: Use new renesas-ceu camera driver
+> >
+> >  .../devicetree/bindings/media/renesas,ceu.txt      |   81 +
+> >  arch/arm/boot/dts/r7s72100.dtsi                    |   15 +-
+> >  arch/sh/boards/mach-migor/setup.c                  |  225 ++-
+> >  arch/sh/kernel/cpu/sh4a/clock-sh7722.c             |    2 +-
+> >  drivers/media/i2c/Kconfig                          |   20 +
+> >  drivers/media/i2c/Makefile                         |    2 +
+> >  drivers/media/i2c/ov772x.c                         | 1181 ++++++++++++++
+> >  drivers/media/i2c/tw9910.c                         | 1039 ++++++++++++
+> >  drivers/media/platform/Kconfig                     |    9 +
+> >  drivers/media/platform/Makefile                    |    1 +
+> >  drivers/media/platform/renesas-ceu.c               | 1648 +++++++++++++++++
+> >  include/media/drv-intf/renesas-ceu.h               |   26 +
+> >  include/media/i2c/ov772x.h                         |    6 +-
+> >  include/media/i2c/tw9910.h                         |    9 +
+> >  14 files changed, 4133 insertions(+), 131 deletions(-)
+> >  create mode 100644 Documentation/devicetree/bindings/media/renesas,ceu.txt
+> >  create mode 100644 drivers/media/i2c/ov772x.c
+> >  create mode 100644 drivers/media/i2c/tw9910.c
+> >  create mode 100644 drivers/media/platform/renesas-ceu.c
+> >  create mode 100644 include/media/drv-intf/renesas-ceu.h
 >
-> +       if (b->fence_fd == -1 && (b->flags & V4L2_BUF_FLAG_IN_FENCE)) {
-> +               dprintk(1, "%s: IN_FENCE flag set but no fence_fd\n", opname);
-> +               return -EINVAL;
-> +       }
-> +
-
-Same here?
-
->         return __verify_planes_array(q->bufs[b->index], b);
->  }
+> --
+> Regards,
 >
-> @@ -212,7 +216,12 @@ static void __fill_v4l2_buffer(struct vb2_buffer *vb, void *pb)
->         b->sequence = vbuf->sequence;
->         b->reserved = 0;
+> Laurent Pinchart
 >
-> -       b->fence_fd = 0;
-> +       if (b->flags & V4L2_BUF_FLAG_OUT_FENCE) {
-> +               b->fence_fd = vb->out_fence_fd;
-> +       } else {
-> +               b->fence_fd = 0;
-> +       }
-
-Sorry if this has already been discussed, but I don't remember the
-outcome if it has.
-
-I wonder if doing this here could not make out_fence_fd leak in
-situations where we don't need/want it to. Let's take for instance a
-multi-process user program. One process queues a buffer with an
-OUT_FENCE and gets a valid fd in fence_fd upon return. Then the other
-process performs a QUERYBUF and gets the same fence_fd - which is
-invalid in its context. Would it not be preferable fill the out fence
-information only when queuing buffers, since it is the only time where
-we are guaranteed it will be usable by the caller?
-
-Similarly, when a buffer is processed and user-space performs a DQBUF,
-the V4L2_BUF_FLAG_OUT_FENCE will be set but fence_fd will be 0. Again,
-limiting the return of out fence information to QBUF would prevent
-this.
-
-If we go that route, out_fence_fd could maybe become a local variable
-of vb2_qbuf() instead of being a member of vb2_buffer, and would be
-returned by vb2_setup_out_fence(). This would guarantee it does not
-leak anywhere else.
