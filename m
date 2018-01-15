@@ -1,114 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:43726 "EHLO
-        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751079AbeAUKSs (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:56818 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S967228AbeAOMv0 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 21 Jan 2018 05:18:48 -0500
-Subject: Re: [PATCH v6 6/9] media: i2c: ov772x: Remove soc_camera dependencies
-To: jacopo mondi <jacopo@jmondi.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-References: <1516139101-7835-1-git-send-email-jacopo+renesas@jmondi.org>
- <00f1dd19-6420-26ab-0529-a97f2b0de682@xs4all.nl>
- <20180119111917.76wosrokgracbdrz@valkosipuli.retiisi.org.uk>
- <2694661.NEH0HeGgLD@avalon> <20180121093117.GK24926@w540>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>,
-        Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        magnus.damm@gmail.com, geert@glider.be, mchehab@kernel.org,
-        festevam@gmail.com, robh+dt@kernel.org, mark.rutland@arm.com,
-        pombredanne@nexb.com, linux-renesas-soc@vger.kernel.org,
-        linux-media@vger.kernel.org, linux-sh@vger.kernel.org,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <8fd4699c-0d51-6cd8-c915-45283b628062@xs4all.nl>
-Date: Sun, 21 Jan 2018 11:18:43 +0100
+        Mon, 15 Jan 2018 07:51:26 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+Subject: Re: [PATCH v2] vsp1: fix video output on R8A77970
+Date: Mon, 15 Jan 2018 14:51:28 +0200
+Message-ID: <2210461.kXqmUypRF2@avalon>
+In-Reply-To: <20171226211424.870595086@cogentembedded.com>
+References: <20171226211424.870595086@cogentembedded.com>
 MIME-Version: 1.0
-In-Reply-To: <20180121093117.GK24926@w540>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 21/01/18 10:31, jacopo mondi wrote:
-> Hello Hans, Laurent, Sakari,
+Hi Sergei,
+
+Thank you for the patch.
+
+On Tuesday, 26 December 2017 23:14:12 EET Sergei Shtylyov wrote:
+> Laurent has added support for the VSP2-D found on R-Car V3M (R8A77970) but
+
+I'm not sure there's a need to state my name in the commit message.
+
+> the video  output that VSP2-D sends to DU has a greenish garbage-like line
+
+Why does the text in your patches (commit message, comments, ...) sometime 
+have double spaces between words ?
+
+> repeated every 8 or so screen rows.
+
+Is it every "8 or so" rows, or exactly every 8 rows ?
+
+> It turns out that V3M has a teeny LIF register (at least it's documented!)
+> that you need to set to some kind of a  magic value for the LIF to work
+> correctly...
 > 
-> On Fri, Jan 19, 2018 at 02:23:21PM +0200, Laurent Pinchart wrote:
->> Hello,
->>
->> On Friday, 19 January 2018 13:19:18 EET Sakari Ailus wrote:
->>> On Fri, Jan 19, 2018 at 11:47:33AM +0100, Hans Verkuil wrote:
->>>> On 01/19/18 11:24, Hans Verkuil wrote:
->>>>> On 01/16/18 22:44, Jacopo Mondi wrote:
->>>>>> Remove soc_camera framework dependencies from ov772x sensor driver.
->>>>>> - Handle clock and gpios
->>>>>> - Register async subdevice
->>>>>> - Remove soc_camera specific g/s_mbus_config operations
->>>>>> - Change image format colorspace from JPEG to SRGB as the two use the
->>>>>>   same colorspace information but JPEG makes assumptions on color
->>>>>>   components quantization that do not apply to the sensor
->>>>>> - Remove sizes crop from get_selection as driver can't scale
->>>>>> - Add kernel doc to driver interface header file
->>>>>> - Adjust build system
->>>>>>
->>>>>> This commit does not remove the original soc_camera based driver as
->>>>>> long as other platforms depends on soc_camera-based CEU driver.
->>>>>>
->>>>>> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
->>>>>> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
->>>>>
->>>>> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
->>>>
->>>> Un-acked.
->>>>
->>>> I just noticed that this sensor driver has no enum_frame_interval and
->>>> g/s_parm support. How would a driver ever know the frame rate of the
->>>> sensor without that?
+> Based on the original (and large) patch by Daisuke Matsushita
+> <daisuke.matsushita.ns@hitachi.com>.
+
+What else is in the big patch ? Is it available somewhere ?
+
+> Fixes: d455b45f8393 ("v4l: vsp1: Add support for new VSP2-BS, VSP2-DL and
+> VSP2-D instances")
+> Signed-off-by: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
 > 
-> Does it make any difference if I point out that this series hasn't
-> removed any of that code, and the driver was not supporting that
-> already? Or was it handled through soc_camera?
-
-That last question is a good one. Can you check?
-
-There are two sh boards that use this sensor. Are you able to test on one
-of those boards?
-
-There is reversed engineered code for the ox772x here:
-drivers/media/usb/gspca/ov534.c
-
-That appears to handle framerates.
-
-I am very uncomfortable promoting this driver to drivers/media/i2c without
-having functioning frame interval handling. It could be as simple as a single
-fixed framerate, it doesn't have to be fancy. Without it it is basically
-unusable by applications since those typically expect support for this.
-
-Moving it to staging might be another option, with a TODO mentioning this
-missing feature.
-
+> ---
+> This patch is against the 'media_tree.git' repo's 'master' branch.
 > 
->>>
->>> s/_parm/_frame_interval/ ?
->>>
->>> We should have wrappers for this or rather to convert g/s_parm users to
->>> g/s_frame_interval so drivers don't need to implement both.
->>
->> There are two ways to set the frame interval, either explicitly through the
->> s_frame_interval operation, or implicitly through control of the pixel clock,
->> horizontal blanking and vertical blanking (which in turn can be influenced by
->> the exposure time).
->>
->> Having two ways to perform the same operation seems sub-optimal to me, but I
->> could understand if they covered different use cases. As far as I know we
->> don't document the use cases for those methods. What's your opinion on that ?
->>
+> Changes in version 2:
+> - added a  comment before the V3M SoC check;
+> - fixed indetation in that check;
+> - reformatted  the patch description.
 > 
-> -If- I have to implement that in this series to have it accepted,
-> please let me know which one of the two is the preferred one :)
+>  drivers/media/platform/vsp1/vsp1_lif.c  |   12 ++++++++++++
+>  drivers/media/platform/vsp1/vsp1_regs.h |    5 +++++
+>  2 files changed, 17 insertions(+)
+> 
+> Index: media_tree/drivers/media/platform/vsp1/vsp1_lif.c
+> ===================================================================
+> --- media_tree.orig/drivers/media/platform/vsp1/vsp1_lif.c
+> +++ media_tree/drivers/media/platform/vsp1/vsp1_lif.c
+> @@ -155,6 +155,18 @@ static void lif_configure(struct vsp1_en
+>  			(obth << VI6_LIF_CTRL_OBTH_SHIFT) |
+>  			(format->code == 0 ? VI6_LIF_CTRL_CFMT : 0) |
+>  			VI6_LIF_CTRL_REQSEL | VI6_LIF_CTRL_LIF_EN);
+> +
+> +	/*
+> +	 * R-Car V3M has the buffer attribute register you absolutely need
+> +	 * to write kinda magic value to  for the LIF to work correctly...
+> +	 */
 
-g/s_frame_interval. The other is (I think) for highly specialized devices. For
-regular normal sensors I do not think it makes much sense. Certainly not for
-fairly old sensors like this one.
+I'm not sure about the "kinda" magic value. 1536 is very likely a buffer size. 
+How about the following text ?
 
+	/*
+	 * On V3M the LBA register has to be set to a non-default value to
+	 * guarantee proper operation (otherwise artifacts may appear on the
+	 * output). The value required by the datasheet is not documented but
+	 * is likely a buffer size or threshold.
+	 */
+
+The commit message should also be updated to feel a bit less magic.
+
+> +	if ((entity->vsp1->version &
+> +	     (VI6_IP_VERSION_MODEL_MASK | VI6_IP_VERSION_SOC_MASK)) ==
+> +	    (VI6_IP_VERSION_MODEL_VSPD_V3 | VI6_IP_VERSION_SOC_V3M)) {
+> +		vsp1_lif_write(lif, dl, VI6_LIF_LBA,
+> +			       VI6_LIF_LBA_LBA0 |
+> +			       (1536 << VI6_LIF_LBA_LBA1_SHIFT));
+> +	}
+>  }
+
+The datasheet documents the register as being present on both V3M and M3-W 
+(and the test I've just run on H3 shows that the register is present there as 
+well). Should we program it on M3-W or leave it to the default value that 
+should be what is recommended by the datasheet for that SoC ?
+
+>  static const struct vsp1_entity_operations lif_entity_ops = {
+> Index: media_tree/drivers/media/platform/vsp1/vsp1_regs.h
+> ===================================================================
+> --- media_tree.orig/drivers/media/platform/vsp1/vsp1_regs.h
+> +++ media_tree/drivers/media/platform/vsp1/vsp1_regs.h
+> @@ -693,6 +693,11 @@
+>  #define VI6_LIF_CSBTH_LBTH_MASK		(0x7ff << 0)
+>  #define VI6_LIF_CSBTH_LBTH_SHIFT	0
+> 
+> +#define VI6_LIF_LBA			0x3b0c
+> +#define VI6_LIF_LBA_LBA0		(1 << 31)
+> +#define VI6_LIF_LBA_LBA1_MASK		(0xfff << 16)
+> +#define VI6_LIF_LBA_LBA1_SHIFT		16
+> +
+>  /* ------------------------------------------------------------------------
+>   * Security Control Registers
+>   */
+
+-- 
 Regards,
 
-	Hans
+Laurent Pinchart
