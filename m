@@ -1,93 +1,149 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from esa1.microchip.iphmx.com ([68.232.147.91]:56567 "EHLO
-        esa1.microchip.iphmx.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933016AbeAJByD (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 9 Jan 2018 20:54:03 -0500
-Subject: Re: [PATCH 2/2] MAINTAINERS: mtd/nand: update Microchip nand entry
-To: Nicolas Ferre <nicolas.ferre@microchip.com>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <linux-kernel@vger.kernel.org>,
-        Ludovic Desroches <ludovic.desroches@microchip.com>,
-        Boris BREZILLON <boris.brezillon@free-electrons.com>
-CC: <linux-media@vger.kernel.org>,
-        Alexandre Belloni <alexandre.belloni@free-electrons.com>,
-        <linux-mtd@lists.infradead.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Josh Wu <rainyfeeling@outlook.com>
-References: <eb6b3cbe8e48faee7e88eca0649e42cbde91ffa6.1515503733.git.nicolas.ferre@microchip.com>
- <d8a6b8a3fe05c57972de1c374fcdeb933717396b.1515503733.git.nicolas.ferre@microchip.com>
-From: "Yang, Wenyou" <Wenyou.Yang@Microchip.com>
-Message-ID: <cf8d2448-f4ba-c6d3-2fe6-ded5d32151fc@Microchip.com>
-Date: Wed, 10 Jan 2018 09:53:54 +0800
-MIME-Version: 1.0
-In-Reply-To: <d8a6b8a3fe05c57972de1c374fcdeb933717396b.1515503733.git.nicolas.ferre@microchip.com>
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-Content-Language: en-US
+Received: from o1678950229.outbound-mail.sendgrid.net ([167.89.50.229]:18428
+        "EHLO o1678950229.outbound-mail.sendgrid.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S966371AbeAOQio (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 15 Jan 2018 11:38:44 -0500
+From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+To: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Subject: [PATCH v5 5/9] v4l: vsp1: Use reference counting for bodies
+Date: Mon, 15 Jan 2018 16:38:42 +0000 (UTC)
+Message-Id: <edfe6825f7ce2400c215a2a2247d68f25ed8f678.1516028582.git-series.kieran.bingham+renesas@ideasonboard.com>
+In-Reply-To: <cover.7c5bc67e9d7032daf8ea4d7bd18cf237c61676b4.1516028582.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.7c5bc67e9d7032daf8ea4d7bd18cf237c61676b4.1516028582.git-series.kieran.bingham+renesas@ideasonboard.com>
+In-Reply-To: <cover.7c5bc67e9d7032daf8ea4d7bd18cf237c61676b4.1516028582.git-series.kieran.bingham+renesas@ideasonboard.com>
+References: <cover.7c5bc67e9d7032daf8ea4d7bd18cf237c61676b4.1516028582.git-series.kieran.bingham+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Extend the display list body with a reference count, allowing bodies to
+be kept as long as a reference is maintained. This provides the ability
+to keep a cached copy of bodies which will not change, so that they can
+be re-applied to multiple display lists.
 
+Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
 
-On 2018/1/9 21:46, Nicolas Ferre wrote:
-> Update Wenyou Yang email address.
-> Take advantage of this update to move this entry to the MICROCHIP / ATMEL
-> location and add the DT binding documentation link.
->
-> Signed-off-by: Nicolas Ferre <nicolas.ferre@microchip.com>
-Acked-by: Wenyou Yang <wenyou.yang@microchip.com>
-> ---
-> Hi,
->
-> Patch against next-20180109.
-> This patch is somehow dependent on the previous one in the series
-> ("MAINTAINERS: linux-media: update Microchip ISI and ISC entries") but can be
-> rebased easily.
->
-> I don't know if it's better to have them added at the end of the development
-> cycle or just after rc1: let me know if you plan to take them or if I need to
-> rebase them for next cycle.
->
-> Best regards,
->    Nicolas
->
->
->   MAINTAINERS | 15 ++++++++-------
->   1 file changed, 8 insertions(+), 7 deletions(-)
->
-> diff --git a/MAINTAINERS b/MAINTAINERS
-> index 65c4b59b582f..b48e217d41fb 100644
-> --- a/MAINTAINERS
-> +++ b/MAINTAINERS
-> @@ -2373,13 +2373,6 @@ F:	Documentation/devicetree/bindings/input/atmel,maxtouch.txt
->   F:	drivers/input/touchscreen/atmel_mxt_ts.c
->   F:	include/linux/platform_data/atmel_mxt_ts.h
->   
-> -ATMEL NAND DRIVER
-> -M:	Wenyou Yang <wenyou.yang@atmel.com>
-> -M:	Josh Wu <rainyfeeling@outlook.com>
-> -L:	linux-mtd@lists.infradead.org
-> -S:	Supported
-> -F:	drivers/mtd/nand/atmel/*
-> -
->   ATMEL SAMA5D2 ADC DRIVER
->   M:	Ludovic Desroches <ludovic.desroches@microchip.com>
->   L:	linux-iio@vger.kernel.org
-> @@ -9110,6 +9103,14 @@ F:	drivers/media/platform/atmel/atmel-isi.c
->   F:	include/media/atmel-isi.h
->   F:	Documentation/devicetree/bindings/media/atmel-isi.txt
->   
-> +MICROCHIP / ATMEL NAND DRIVER
-> +M:	Wenyou Yang <wenyou.yang@microchip.com>
-> +M:	Josh Wu <rainyfeeling@outlook.com>
-> +L:	linux-mtd@lists.infradead.org
-> +S:	Supported
-> +F:	drivers/mtd/nand/atmel/*
-> +F:	Documentation/devicetree/bindings/mtd/atmel-nand.txt
-> +
->   MICROCHIP KSZ SERIES ETHERNET SWITCH DRIVER
->   M:	Woojung Huh <Woojung.Huh@microchip.com>
->   M:	Microchip Linux Driver Support <UNGLinuxDriver@microchip.com>
+---
+This could be squashed into the body update code, but it's not a
+straightforward squash as the refcounts will affect both:
+  v4l: vsp1: Provide a body pool
+and
+  v4l: vsp1: Convert display lists to use new body pool
+therefore, I have kept this separate to prevent breaking bisectability
+of the vsp-tests.
 
-Best Regards,
-Wenyou Yang
+v3:
+ - 's/fragment/body/'
+
+v4:
+ - Fix up reference handling comments.
+---
+ drivers/media/platform/vsp1/vsp1_clu.c |  7 ++++++-
+ drivers/media/platform/vsp1/vsp1_dl.c  | 15 ++++++++++++++-
+ drivers/media/platform/vsp1/vsp1_lut.c |  7 ++++++-
+ 3 files changed, 26 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/media/platform/vsp1/vsp1_clu.c b/drivers/media/platform/vsp1/vsp1_clu.c
+index a765d56c4118..1142d004e238 100644
+--- a/drivers/media/platform/vsp1/vsp1_clu.c
++++ b/drivers/media/platform/vsp1/vsp1_clu.c
+@@ -216,8 +216,13 @@ static void clu_configure(struct vsp1_entity *entity,
+ 		clu->clu = NULL;
+ 		spin_unlock_irqrestore(&clu->lock, flags);
+ 
+-		if (dlb)
++		if (dlb) {
+ 			vsp1_dl_list_add_body(dl, dlb);
++
++			/* release our local reference */
++			vsp1_dl_body_put(dlb);
++		}
++
+ 		break;
+ 	}
+ }
+diff --git a/drivers/media/platform/vsp1/vsp1_dl.c b/drivers/media/platform/vsp1/vsp1_dl.c
+index 961c3fd2ff1c..2784d3b48b02 100644
+--- a/drivers/media/platform/vsp1/vsp1_dl.c
++++ b/drivers/media/platform/vsp1/vsp1_dl.c
+@@ -14,6 +14,7 @@
+ #include <linux/device.h>
+ #include <linux/dma-mapping.h>
+ #include <linux/gfp.h>
++#include <linux/refcount.h>
+ #include <linux/slab.h>
+ #include <linux/workqueue.h>
+ 
+@@ -58,6 +59,8 @@ struct vsp1_dl_body {
+ 	struct list_head list;
+ 	struct list_head free;
+ 
++	refcount_t refcnt;
++
+ 	struct vsp1_dl_body_pool *pool;
+ 	struct vsp1_device *vsp1;
+ 
+@@ -259,6 +262,7 @@ struct vsp1_dl_body *vsp1_dl_body_get(struct vsp1_dl_body_pool *pool)
+ 	if (!list_empty(&pool->free)) {
+ 		dlb = list_first_entry(&pool->free, struct vsp1_dl_body, free);
+ 		list_del(&dlb->free);
++		refcount_set(&dlb->refcnt, 1);
+ 	}
+ 
+ 	spin_unlock_irqrestore(&pool->lock, flags);
+@@ -279,6 +283,9 @@ void vsp1_dl_body_put(struct vsp1_dl_body *dlb)
+ 	if (!dlb)
+ 		return;
+ 
++	if (!refcount_dec_and_test(&dlb->refcnt))
++		return;
++
+ 	dlb->num_entries = 0;
+ 
+ 	spin_lock_irqsave(&dlb->pool->lock, flags);
+@@ -465,7 +472,11 @@ void vsp1_dl_list_write(struct vsp1_dl_list *dl, u32 reg, u32 data)
+  * in the order in which bodies are added.
+  *
+  * Adding a body to a display list passes ownership of the body to the list. The
+- * caller must not touch the body after this call.
++ * caller retains its reference to the fragment when adding it to the display
++ * list, but is not allowed to add new entries to the body.
++ *
++ * The reference must be explicitly released by a call to vsp1_dl_body_put()
++ * when the body isn't needed anymore.
+  *
+  * Additional bodies are only usable for display lists in header mode.
+  * Attempting to add a body to a header-less display list will return an error.
+@@ -477,6 +488,8 @@ int vsp1_dl_list_add_body(struct vsp1_dl_list *dl,
+ 	if (dl->dlm->mode != VSP1_DL_MODE_HEADER)
+ 		return -EINVAL;
+ 
++	refcount_inc(&dlb->refcnt);
++
+ 	list_add_tail(&dlb->list, &dl->bodies);
+ 	return 0;
+ }
+diff --git a/drivers/media/platform/vsp1/vsp1_lut.c b/drivers/media/platform/vsp1/vsp1_lut.c
+index a9cf874312c1..7643f18b1ea6 100644
+--- a/drivers/media/platform/vsp1/vsp1_lut.c
++++ b/drivers/media/platform/vsp1/vsp1_lut.c
+@@ -172,8 +172,13 @@ static void lut_configure(struct vsp1_entity *entity,
+ 		lut->lut = NULL;
+ 		spin_unlock_irqrestore(&lut->lock, flags);
+ 
+-		if (dlb)
++		if (dlb) {
+ 			vsp1_dl_list_add_body(dl, dlb);
++
++			/* release our local reference */
++			vsp1_dl_body_put(dlb);
++		}
++
+ 		break;
+ 	}
+ }
+-- 
+git-series 0.9.1
