@@ -1,190 +1,152 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:36632 "EHLO
-        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751298AbeA2LVT (ORCPT
+Received: from mail-io0-f196.google.com ([209.85.223.196]:39332 "EHLO
+        mail-io0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751228AbeAOIZN (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 29 Jan 2018 06:21:19 -0500
-Subject: Re: [RFC PATCH 0/8] [media] Request API, take three
-To: Alexandre Courbot <acourbot@chromium.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Mon, 15 Jan 2018 03:25:13 -0500
+Received: by mail-io0-f196.google.com with SMTP id b198so9575454iof.6
+        for <linux-media@vger.kernel.org>; Mon, 15 Jan 2018 00:25:12 -0800 (PST)
+Received: from mail-it0-f54.google.com (mail-it0-f54.google.com. [209.85.214.54])
+        by smtp.gmail.com with ESMTPSA id c8sm5055096itg.15.2018.01.15.00.25.11
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Mon, 15 Jan 2018 00:25:11 -0800 (PST)
+Received: by mail-it0-f54.google.com with SMTP id c16so12492itc.5
+        for <linux-media@vger.kernel.org>; Mon, 15 Jan 2018 00:25:11 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <39a23bdb-8493-d47f-7596-e4954743766b@xs4all.nl>
+References: <20171215075625.27028-1-acourbot@chromium.org> <20171215075625.27028-7-acourbot@chromium.org>
+ <39a23bdb-8493-d47f-7596-e4954743766b@xs4all.nl>
+From: Alexandre Courbot <acourbot@chromium.org>
+Date: Mon, 15 Jan 2018 17:24:50 +0900
+Message-ID: <CAPBb6MU7tLj-tMeME5wuFku_AsOqQzTPd7_cG5PM7HTy-_anmQ@mail.gmail.com>
+Subject: Re: [RFC PATCH 6/9] media: vb2: add support for requests in QBUF ioctl
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
         Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
         Pawel Osciak <posciak@chromium.org>,
         Marek Szyprowski <m.szyprowski@samsung.com>,
         Tomasz Figa <tfiga@chromium.org>,
         Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Gustavo Padovan <gustavo.padovan@collabora.com>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-References: <20180126060216.147918-1-acourbot@chromium.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <ced425a2-8b66-05c6-367d-46a0a40b1873@xs4all.nl>
-Date: Mon, 29 Jan 2018 12:21:08 +0100
-MIME-Version: 1.0
-In-Reply-To: <20180126060216.147918-1-acourbot@chromium.org>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+        Gustavo Padovan <gustavo.padovan@collabora.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/26/2018 07:02 AM, Alexandre Courbot wrote:
-> Howdy. Here is your bi-weekly request API redesign! ;)
-> 
-> Again, this is a simple version that only implements the flow of requests,
-> without applying controls. The intent is to get an agreement on a base to work
-> on, since the previous versions went straight back to the redesign board.
-> 
-> Highlights of this version:
-> 
-> * As requested by Hans, request-bound buffers are now passed earlier to drivers,
-> as early as the request itself is submitted. Doing it earlier is not be useful
-> since the driver would not know the state of the request, and thus cannot do
-> anything with the buffer. Drivers are now responsible for applying request
-> parameters themselves.
-> 
-> * As a consequence, there is no such thing as a "request queue" anymore. The
-> flow of buffers decides the order in which requests are processed. Individual
-> devices of the same pipeline can implement synchronization if needed, but this
-> is beyond this first version.
-> 
-> * VB2 code is still a bit shady. Some of it will interfere with the fences
-> series, so I am waiting for the latter to land to do it properly.
-> 
-> * Requests that are not yet submitted effectively act as fences on the buffers
-> they own, resulting in the buffer queue being blocked until the request is
-> submitted. An alternate design would be to only block the
-> not-submitted-request's buffer and let further buffers pass before it, but since
-> buffer order is becoming increasingly important I have decided to just block the
-> queue. This is open to discussion though.
+On Fri, Jan 12, 2018 at 8:37 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> On 12/15/17 08:56, Alexandre Courbot wrote:
+>> Support the request argument of the QBUF ioctl.
+>>
+>> Signed-off-by: Alexandre Courbot <acourbot@chromium.org>
+>> ---
+>>  drivers/media/v4l2-core/v4l2-ioctl.c | 93 +++++++++++++++++++++++++++++++++++-
+>>  1 file changed, 92 insertions(+), 1 deletion(-)
+>>
+>> diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+>> index 8d041247e97f..28f9c368563e 100644
+>> --- a/drivers/media/v4l2-core/v4l2-ioctl.c
+>> +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+>> @@ -29,6 +29,7 @@
+>>  #include <media/v4l2-device.h>
+>>  #include <media/videobuf2-v4l2.h>
+>>  #include <media/v4l2-mc.h>
+>> +#include <media/media-request.h>
+>>
+>>  #include <trace/events/v4l2.h>
+>>
+>> @@ -965,6 +966,81 @@ static int check_fmt(struct file *file, enum v4l2_buf_type type)
+>>       return -EINVAL;
+>>  }
+>>
+>> +/*
+>> + * Validate that a given request can be used during an ioctl.
+>> + *
+>> + * When using the request API, request file descriptors must be matched against
+>> + * the actual request object. User-space can pass any file descriptor, so we
+>> + * need to make sure the call is valid before going further.
+>> + *
+>> + * This function looks up the request and associated data and performs the
+>> + * following sanity checks:
+>> + *
+>> + * * Make sure that the entity supports requests,
+>> + * * Make sure that the entity belongs to the media_device managing the passed
+>> + *   request,
+>> + * * Make sure that the entity data (if any) is associated to the current file
+>> + *   handler.
+>> + *
+>> + * This function returns a pointer to the valid request, or and error code in
+>> + * case of failure. When successful, a reference to the request is acquired and
+>> + * must be properly released.
+>> + */
+>> +#ifdef CONFIG_MEDIA_CONTROLLER
+>> +static struct media_request *
+>> +check_request(int request, struct file *file, void *fh)
+>> +{
+>> +     struct media_request *req = NULL;
+>> +     struct video_device *vfd = video_devdata(file);
+>> +     struct v4l2_fh *vfh =
+>> +             test_bit(V4L2_FL_USES_V4L2_FH, &vfd->flags) ? fh : NULL;
+>> +     struct media_entity *entity = &vfd->entity;
+>> +     const struct media_entity *ent;
+>> +     struct media_request_entity_data *data;
+>> +     bool found = false;
+>> +
+>> +     if (!entity)
+>> +             return ERR_PTR(-EINVAL);
+>> +
+>> +     /* Check that the entity supports requests */
+>> +     if (!entity->req_ops)
+>> +             return ERR_PTR(-ENOTSUPP);
+>> +
+>> +     req = media_request_get_from_fd(request);
+>
+> You can get the media_device from vfd->v4l2_dev->mdev. So it is much easier
+> to just pass the media_device as an argument to media_request_get_from_fd()...
+>
+>> +     if (!req)
+>> +             return ERR_PTR(-EINVAL);
+>> +
+>> +     /* Validate that the entity belongs to the media_device managing
+>> +      * the request queue */
+>> +     media_device_for_each_entity(ent, req->queue->mdev) {
+>> +             if (entity == ent) {
+>> +                     found = true;
+>> +                     break;
+>> +             }
+>> +     }
+>> +     if (!found) {
+>> +             media_request_put(req);
+>> +             return ERR_PTR(-EINVAL);
+>> +     }
+>
+> ...and then you don't need to do this ^^^ extra validation check.
 
-I don't think we should mess with the order.
+Ah right, all you need to do is check that req->queue->mdev ==
+vfd->v4l2_dev->mdev and you can get rid of this whole block. I don't
+think we can do that in media_request_get_from_fd() though, since it
+is called from other places where (IIUC) we don't have access to the
+media_device.
 
-> 
-> * Documentation! Also described usecases for codec and simple (i.e. not part of
-> a complex pipeline) capture device.
+>
+>> +
+>> +     /* Validate that the entity's data belongs to the correct fh */
+>> +     data = media_request_get_entity_data(req, entity, vfh);
+>> +     if (IS_ERR(data)) {
+>> +             media_request_put(req);
+>> +             return ERR_PTR(PTR_ERR(data));
+>> +     }
+>
+> This assumes that each filehandle has its own state. That's true for codecs,
+> but not for most (all?) other devices. There the state is per device instance.
+>
+> I'm not sure if we have a unique identifying mark for such drivers. The closest
+> is checking if fh->m2m_ctx is non-NULL, but I don't know if all drivers with
+> per-filehandle state use that field. An alternative might be to check if
+> fh->ctrl_handler is non-NULL. But again, I'm not sure if that's a 100% valid
+> check.
 
-I'll concentrate on reviewing that.
-
-> 
-> Still remaining to do:
-> 
-> * As pointed out by Hans on the previous revision, do not assume that drivers
-> using v4l2_fh have a per-handle state. I have not yet found a good way to
-> differenciate both usages.
-
-I suspect we need to add a flag or something for this.
-
-> * Integrate Hans' patchset for control handling: as said above, this is futile
-> unless we can agree on the basic design, which I hope we can do this time.
-> Chrome OS needs this really badly now and will have to move forward no matter
-> what, so I hope this will be considered good enough for a common base of work.
-
-I am not sure there is any reason to not move forward with the control handling.
-You need this anyway IMHO, regardless of any public API considerations.
-
-> A few thoughts/questions that emerged when writing this patchset:
-> 
-> * Since requests are exposed as file descriptors, we could easily move the
-> MEDIA_REQ_CMD_SUBMIT and MEDIA_REQ_CMD_REININT commands as ioctls on the
-> requests themselves, instead of having to perform them on the media device that
-> provided the request in the first place. That would add a bit more flexibility
-> if/when passing requests around and means the media device only needs to handle
-> MEDIA_REQ_CMD_ALLOC. Conceptually speaking, this seems to make sense to me.
-> Any comment for/against that?
-
-Makes sense IMHO.
-
-> * For the codec usecase, I have experimented a bit marking CAPTURE buffers with
-> the request FD that produced them (vim2m acts that way). This seems to work
-> well, however FDs are process-local and could be closed before the CAPTURE
-> buffer is dequeued, rendering that information less meaningful, if not
-> dangerous.
-
-I don't follow this. Once the fd is passed to the kernel its refcount should be
-increased so the data it represents won't be released if userspace closes the fd.
-
-Obviously if userspace closes the fd it cannot do anything with it anymore, but
-it shouldn't be 'dangerous' AFAICT.
-
-> Wouldn't it be better/safer to use a global request ID for
-> such information instead? That ID would be returned upon MEDIA_REQ_CMD_ALLOC so
-> user-space knows which request ID a FD refers to.
-
-I think it is not a good idea to have both an fd and an ID to refer to the
-same object. That's going to be very confusing I think.
-
-> * Using the media node to provide requests makes absolute sense for complex
-> camera devices, but is tedious for codec devices which work on one node and
-> require to protect request/media related code with #ifdef
-> CONFIG_MEDIA_CONTROLLER.
-
-Why? They would now depend on MEDIA_CONTROLLER (i.e. they won't appear in the
-menuconfig unless MEDIA_CONTROLLER is set). No need for an #ifdef.
-
- For these devices, the sole role of the media node is
-> to produce the request, and that's it (since request submission could be moved
-> to the request FD as explained above). That's a modest use that hardly justifies
-> bringing in the whole media framework IMHO. With a bit of extra abstraction, it
-> should be possible to decouple the base requests from the media controller
-> altogether, and propose two kinds of requests implementations: one simpler
-> implementation that works directly with a single V4L2 node (useful for codecs),
-> and another one that works on a media node and can control all its entities
-> (good for camera). This would allow codecs to use the request API without
-> forcing the media controller, and would considerably simplify the use-case. Any
-> objection to that? IIRC the earlier design documents mentioned this possibility.
-
-I think this is an interesting idea, but I would postpone making a decision on
-this until later. We need this MC support regardless, so let's start off with that.
-
-Once that's working we can discuss if we should or should not create a shortcut
-for codecs. Trying to decide this now would only confuse the process.
-
-Regards,
-
-	Hans
-
-> 
-> Alexandre Courbot (6):
->   media: add request API core and UAPI
->   media: videobuf2: add support for requests
->   media: vb2: add support for requests in QBUF ioctl
->   v4l2: document the request API interface
->   media: vim2m: add media device
->   media: vim2m: add request support
-> 
-> Hans Verkuil (1):
->   videodev2.h: Add request field to v4l2_buffer
-> 
-> Laurent Pinchart (1):
->   media: Document the media request API
-> 
->  Documentation/media/uapi/mediactl/media-funcs.rst  |   1 +
->  .../media/uapi/mediactl/media-ioc-request-cmd.rst  | 140 ++++++++++
->  Documentation/media/uapi/v4l/buffer.rst            |  10 +-
->  Documentation/media/uapi/v4l/common.rst            |   1 +
->  Documentation/media/uapi/v4l/request-api.rst       | 194 +++++++++++++
->  Documentation/media/uapi/v4l/vidioc-qbuf.rst       |  21 ++
->  drivers/media/Makefile                             |   3 +-
->  drivers/media/media-device.c                       |   7 +
->  drivers/media/media-request-mgr.c                  | 107 +++++++
->  drivers/media/media-request.c                      | 308 +++++++++++++++++++++
->  drivers/media/platform/vim2m.c                     |  55 ++++
->  drivers/media/usb/cpia2/cpia2_v4l.c                |   2 +-
->  drivers/media/v4l2-core/v4l2-compat-ioctl32.c      |   7 +-
->  drivers/media/v4l2-core/v4l2-ioctl.c               |  85 +++++-
->  drivers/media/v4l2-core/videobuf2-core.c           | 125 ++++++++-
->  drivers/media/v4l2-core/videobuf2-v4l2.c           |  31 ++-
->  include/media/media-device.h                       |   3 +
->  include/media/media-request-mgr.h                  |  73 +++++
->  include/media/media-request.h                      | 184 ++++++++++++
->  include/media/videobuf2-core.h                     |  15 +-
->  include/media/videobuf2-v4l2.h                     |   2 +
->  include/uapi/linux/media.h                         |  10 +
->  include/uapi/linux/videodev2.h                     |   3 +-
->  23 files changed, 1365 insertions(+), 22 deletions(-)
->  create mode 100644 Documentation/media/uapi/mediactl/media-ioc-request-cmd.rst
->  create mode 100644 Documentation/media/uapi/v4l/request-api.rst
->  create mode 100644 drivers/media/media-request-mgr.c
->  create mode 100644 drivers/media/media-request.c
->  create mode 100644 include/media/media-request-mgr.h
->  create mode 100644 include/media/media-request.h
-> 
+I think the current code already takes that case into account: if the
+device does not uses v4l2_fh, then the fh argument passed to
+media_request_get_entity_data() will be null, and so will be data->fh.
