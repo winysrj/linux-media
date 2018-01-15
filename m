@@ -1,51 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f195.google.com ([209.85.128.195]:33947 "EHLO
-        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752324AbeA3RrE (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 30 Jan 2018 12:47:04 -0500
-From: Philipp Rossak <embed3d@gmail.com>
-To: mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
-        maxime.ripard@free-electrons.com, wens@csie.org,
-        linux@armlinux.org.uk, sean@mess.org, p.zabel@pengutronix.de,
-        andi.shyti@samsung.com
-Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-sunxi@googlegroups.com
-Subject: [PATCH v5 5/6] arm: dts: sun8i: a83t: bananapi-m3: Enable IR controller
-Date: Tue, 30 Jan 2018 18:46:55 +0100
-Message-Id: <20180130174656.10657-6-embed3d@gmail.com>
-In-Reply-To: <20180130174656.10657-1-embed3d@gmail.com>
-References: <20180130174656.10657-1-embed3d@gmail.com>
+Received: from mail-sn1nam02on0090.outbound.protection.outlook.com ([104.47.36.90]:41136
+        "EHLO NAM02-SN1-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1753402AbeAOAti (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 14 Jan 2018 19:49:38 -0500
+From: "Takiguchi, Yasunari" <Yasunari.Takiguchi@sony.com>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        "Bird, Timothy" <Tim.Bird@sony.com>
+CC: Philippe Ombredanne <pombredanne@nexb.com>,
+        "akpm@linux-foundation.org" <akpm@linux-foundation.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "tbird20d@gmail.com" <tbird20d@gmail.com>,
+        "frowand.list@gmail.com" <frowand.list@gmail.com>,
+        "Yamamoto, Masayuki" <Masayuki.Yamamoto@sony.com>,
+        "Nozawa, Hideki (STWN)" <Hideki.Nozawa@sony.com>,
+        "Yonezawa, Kota" <Kota.Yonezawa@sony.com>,
+        "Matsumoto, Toshihiko" <Toshihiko.Matsumoto@sony.com>,
+        "Watanabe, Satoshi (SSS)" <Satoshi.C.Watanabe@sony.com>,
+        "Takiguchi, Yasunari" <Yasunari.Takiguchi@sony.com>
+Subject: RE: [PATCH v4 00/12] [dt-bindings] [media] Add document file and
+ driver for Sony CXD2880 DVB-T2/T tuner + demodulator
+Date: Mon, 15 Jan 2018 00:49:14 +0000
+Message-ID: <02699364973B424C83A42A84B04FDA8544F7E1@JPYOKXMS113.jp.sony.com>
+References: <20171013054635.20946-1-Yasunari.Takiguchi@sony.com>
+        <20171213173633.57edca85@vento.lan>
+        <02699364973B424C83A42A84B04FDA85431742@JPYOKXMS113.jp.sony.com>
+        <20171214085503.289f06f8@vento.lan>
+        <CAOFm3uEYfMH8Zj8uEx-D9yYrTyDMTG_j02619esHu-j0brQKaA@mail.gmail.com>
+        <ECADFF3FD767C149AD96A924E7EA6EAF40AE4BB5@USCULXMSG01.am.sony.com>
+ <20171214160411.32f23456@vento.lan>
+In-Reply-To: <20171214160411.32f23456@vento.lan>
+Content-Language: ja-JP
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The Bananapi M3 has an onboard IR receiver.
-This enables the onboard IR receiver subnode.
-Unlike the other IR receivers this one needs a base clock frequency
-of 3000000 Hz (3 MHz), to be able to work.
+Dear Mauro
 
-Signed-off-by: Philipp Rossak <embed3d@gmail.com>
-Acked-by: Chen-Yu Tsai <wens@csie.org>
----
- arch/arm/boot/dts/sun8i-a83t-bananapi-m3.dts | 5 +++++
- 1 file changed, 5 insertions(+)
+I am creating patch files for version 5 of our driver.
+I need to add our driver information into /drivers/media/dvb-frontends/Kconfig.
+This Kconfig has no SPDX license Identifier now.
+Is it unnecessary for us to add SPDX into  /drivers/media/dvb-frontends/Kconfig?
+(Should we add our driver information only into /drivers/media/dvb-frontends/Kconfig?)
 
-diff --git a/arch/arm/boot/dts/sun8i-a83t-bananapi-m3.dts b/arch/arm/boot/dts/sun8i-a83t-bananapi-m3.dts
-index 6550bf0e594b..26c015fd4f4d 100644
---- a/arch/arm/boot/dts/sun8i-a83t-bananapi-m3.dts
-+++ b/arch/arm/boot/dts/sun8i-a83t-bananapi-m3.dts
-@@ -145,6 +145,11 @@
- 	status = "okay";
- };
- 
-+&r_cir {
-+	clock-frequency = <3000000>;
-+	status = "okay";
-+};
-+
- &r_rsb {
- 	status = "okay";
- 
--- 
-2.11.0
+Regards,
+Takiguchi
