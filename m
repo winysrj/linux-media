@@ -1,88 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:58896 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S933544AbeAKOp6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 11 Jan 2018 09:45:58 -0500
-MIME-Version: 1.0
-In-Reply-To: <20180109080111.GD25666@w540>
-References: <1515059553-10219-1-git-send-email-jacopo+renesas@jmondi.org>
- <1515059553-10219-3-git-send-email-jacopo+renesas@jmondi.org>
- <20180109033555.vgofzbnpx37iqaon@rob-hp-laptop> <20180109080111.GD25666@w540>
-From: Rob Herring <robh@kernel.org>
-Date: Thu, 11 Jan 2018 08:45:35 -0600
-Message-ID: <CAL_Jsq+zNEzkV0M715so=RxfTmgNrD8D=VxcBHk+Cw8xMiQ7NQ@mail.gmail.com>
-Subject: Re: [PATCH v2 2/2] media: dt-bindings: Add OF properties to ov7670
-To: jacopo mondi <jacopo@jmondi.org>
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        Jonathan Corbet <corbet@lwn.net>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
+Received: from mail-qt0-f175.google.com ([209.85.216.175]:45722 "EHLO
+        mail-qt0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751483AbeAOR4N (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 15 Jan 2018 12:56:13 -0500
+Date: Mon, 15 Jan 2018 15:55:54 -0200
+From: Gustavo Padovan <gustavo@padovan.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Alexandre Courbot <acourbot@chromium.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        Pawel Osciak <pawel@osciak.com>,
         Sakari Ailus <sakari.ailus@iki.fi>,
-        Mark Rutland <mark.rutland@arm.com>,
-        linux-media@vger.kernel.org,
-        "open list:OPEN FIRMWARE AND FLATTENED DEVICE TREE BINDINGS"
-        <devicetree@vger.kernel.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+        Brian Starkey <brian.starkey@arm.com>,
+        Thierry Escande <thierry.escande@collabora.com>,
+        linux-kernel@vger.kernel.org,
+        Gustavo Padovan <gustavo.padovan@collabora.com>
+Subject: Re: [PATCH v7 1/6] [media] vb2: add is_unordered callback for drivers
+Message-ID: <20180115175554.GB9598@jade>
+References: <20180110160732.7722-1-gustavo@padovan.org>
+ <20180110160732.7722-2-gustavo@padovan.org>
+ <CAPBb6MV6ErW-Z7n1aK55TxJNRDkt2SkWGEJiXkxrLmZ_GabJOA@mail.gmail.com>
+ <20180115120111.GA9598@jade>
+ <373924ea-a35c-78f5-dd0c-e5f36623cb84@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <373924ea-a35c-78f5-dd0c-e5f36623cb84@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Jan 9, 2018 at 2:01 AM, jacopo mondi <jacopo@jmondi.org> wrote:
-> Hi Rob,
->    thanks for comments
->
-> On Mon, Jan 08, 2018 at 09:35:55PM -0600, Rob Herring wrote:
->> On Thu, Jan 04, 2018 at 10:52:33AM +0100, Jacopo Mondi wrote:
->> > Describe newly introduced OF properties for ov7670 image sensor.
->> > The driver supports two standard properties to configure synchronism
->> > signals polarities and two custom properties already supported as
->> > platform data options by the driver.
->>
->> Missing S-o-b.
->>
->
-> Ups, that was trivial, sorry about that
->
->> > ---
->> >  Documentation/devicetree/bindings/media/i2c/ov7670.txt | 14 ++++++++++++++
->> >  1 file changed, 14 insertions(+)
->> >
->> > diff --git a/Documentation/devicetree/bindings/media/i2c/ov7670.txt b/Documentation/devicetree/bindings/media/i2c/ov7670.txt
->> > index 826b656..57ded18 100644
->> > --- a/Documentation/devicetree/bindings/media/i2c/ov7670.txt
->> > +++ b/Documentation/devicetree/bindings/media/i2c/ov7670.txt
->> > @@ -9,11 +9,22 @@ Required Properties:
->> >  - clocks: reference to the xclk input clock.
->> >  - clock-names: should be "xclk".
->> >
->> > +The following properties, as defined by video interfaces OF bindings
->> > +"Documentation/devicetree/bindings/media/video-interfaces.txt" are supported:
->> > +
->> > +- hsync-active: active state of the HSYNC signal, 0/1 for LOW/HIGH respectively.
->> > +- vsync-active: active state of the VSYNC signal, 0/1 for LOW/HIGH respectively.
->>
->> Don't these go in the endpoint? Not sure offhand.
->>
->
-> Yes they do. I will list them as "Optional endpoint properties", and
->
->> > +
->> > +Default is high active state for both vsync and hsync signals.
->> > +
->> >  Optional Properties:
->> >  - reset-gpios: reference to the GPIO connected to the resetb pin, if any.
->> >    Active is low.
->> >  - powerdown-gpios: reference to the GPIO connected to the pwdn pin, if any.
->> >    Active is high.
->> > +- ov7670,pll-bypass: set to 1 to bypass PLL for pixel clock generation.
->>
->> Boolean instead?
->>
->
-> Do we have booleans? I had a look at device tree specs and grep for
-> "true"/"false" in arch/arm*/boot/dts, and didn't find that much.
-> Seems like they're actually strings, am I wrong?
+2018-01-15 Hans Verkuil <hverkuil@xs4all.nl>:
 
-Properties with no value are boolean. Present is true, absent is
-false. "foo = <0>" is also treated as true, but not recommended.
+> On 01/15/2018 01:01 PM, Gustavo Padovan wrote:
+> > 2018-01-15 Alexandre Courbot <acourbot@chromium.org>:
+> > 
+> >> On Thu, Jan 11, 2018 at 1:07 AM, Gustavo Padovan <gustavo@padovan.org> wrote:
+> >>> From: Gustavo Padovan <gustavo.padovan@collabora.com>
+> >>>
+> >>> Explicit synchronization benefits a lot from ordered queues, they fit
+> >>> better in a pipeline with DRM for example so create a opt-in way for
+> >>> drivers notify videobuf2 that the queue is unordered.
+> >>>
+> >>> Drivers don't need implement it if the queue is ordered.
+> >>
+> >> This is going to make user-space believe that *all* vb2 drivers use
+> >> ordered queues by default, at least until non-ordered drivers catch up
+> >> with this change. Wouldn't it be less dangerous to do the opposite
+> >> (make queues non-ordered by default)?
+> > 
+> > The rational behind this decision was because most formats/drivers are
+> > ordered so only a small amount of drivers need to changed. I think this
+> > was proposed by Hans on the Media Summit.
+> > 
+> > I understand your concern. My question is how dangerous will it be. If
+> > you are building a product you will make the changes in the driver if
+> > they are not there yet, or if it is a distribution you'd never know
+> > which driver/format you are using so you should be prepared for
+> > everything.
+> > 
+> > AFAIK all Capture drivers are ordered and that is where I think fences
+> > is most useful.
+> 
+> Right. What could be done is to mark all codec drivers as unordered initially
+> ask the driver authors to verify this. All capture drivers using vb2 and not
+> using REQUEUE are ordered.
 
-Rob
+That is a good way out.
+
+> 
+> One thing we haven't looked at is what to do with drivers that do not use vb2.
+> Those won't support fences, but how will userspace know that fences are not
+> supported? I'm not sure what the best method is for that.
+> 
+> I am leaning towards a new capability since this has to be advertised clearly.
+
+The capability flag makes sense to me, I'll incorporate it as part of my
+next patchset.
+
+Gustavo
