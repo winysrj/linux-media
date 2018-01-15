@@ -1,60 +1,192 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from hapkido.dreamhost.com ([66.33.216.122]:43535 "EHLO
-        hapkido.dreamhost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751145AbeAEAFP (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 4 Jan 2018 19:05:15 -0500
-Received: from homiemail-a116.g.dreamhost.com (sub5.mail.dreamhost.com [208.113.200.129])
-        by hapkido.dreamhost.com (Postfix) with ESMTP id 92B9B8ED96
-        for <linux-media@vger.kernel.org>; Thu,  4 Jan 2018 16:05:15 -0800 (PST)
-From: Brad Love <brad@nextdimension.cc>
-To: linux-media@vger.kernel.org
-Cc: Brad Love <brad@nextdimension.cc>
-Subject: [PATCH 3/9] em28xx: USB bulk packet size fix
-Date: Thu,  4 Jan 2018 18:04:13 -0600
-Message-Id: <1515110659-20145-4-git-send-email-brad@nextdimension.cc>
-In-Reply-To: <1515110659-20145-1-git-send-email-brad@nextdimension.cc>
-References: <1515110659-20145-1-git-send-email-brad@nextdimension.cc>
+Received: from mail-it0-f67.google.com ([209.85.214.67]:43338 "EHLO
+        mail-it0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754386AbeAOIYo (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 15 Jan 2018 03:24:44 -0500
+Received: by mail-it0-f67.google.com with SMTP id u62so24364ita.2
+        for <linux-media@vger.kernel.org>; Mon, 15 Jan 2018 00:24:44 -0800 (PST)
+Received: from mail-io0-f175.google.com (mail-io0-f175.google.com. [209.85.223.175])
+        by smtp.gmail.com with ESMTPSA id d3sm4777667itf.39.2018.01.15.00.24.42
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Mon, 15 Jan 2018 00:24:42 -0800 (PST)
+Received: by mail-io0-f175.google.com with SMTP id l17so2362249ioc.3
+        for <linux-media@vger.kernel.org>; Mon, 15 Jan 2018 00:24:42 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <450dce81-0641-82ef-4898-f39e39745176@xs4all.nl>
+References: <20171215075625.27028-1-acourbot@chromium.org> <20171215075625.27028-5-acourbot@chromium.org>
+ <450dce81-0641-82ef-4898-f39e39745176@xs4all.nl>
+From: Alexandre Courbot <acourbot@chromium.org>
+Date: Mon, 15 Jan 2018 17:24:21 +0900
+Message-ID: <CAPBb6MUyZ_m-VLERqGNa8jHGdUF0iUiWqN4ywX4Ot11yTTwSvA@mail.gmail.com>
+Subject: Re: [RFC PATCH 4/9] videodev2.h: Add request field to v4l2_buffer
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Pawel Osciak <posciak@chromium.org>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Tomasz Figa <tfiga@chromium.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Gustavo Padovan <gustavo.padovan@collabora.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        linux-kernel@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hauppauge em28xx bulk devices exhibit continuity errors and corrupted
-packets, when run in VMWare virtual machines. Unknown if other
-manufacturers bulk models exhibit the same issue. KVM/Qemu is unaffected.
+On Fri, Jan 12, 2018 at 7:22 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> On 12/15/17 08:56, Alexandre Courbot wrote:
+>> From: Hans Verkuil <hans.verkuil@cisco.com>
+>>
+>> When queuing buffers allow for passing the request ID that
+>> should be associated with this buffer.
+>>
+>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+>> [acourbot@chromium.org: make request ID 32-bit]
+>> Signed-off-by: Alexandre Courbot <acourbot@chromium.org>
+>> ---
+>>  drivers/media/usb/cpia2/cpia2_v4l.c           | 2 +-
+>>  drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 7 ++++---
+>>  drivers/media/v4l2-core/v4l2-ioctl.c          | 4 ++--
+>>  drivers/media/v4l2-core/videobuf2-v4l2.c      | 3 ++-
+>>  include/media/videobuf2-v4l2.h                | 2 ++
+>>  include/uapi/linux/videodev2.h                | 3 ++-
+>>  6 files changed, 13 insertions(+), 8 deletions(-)
+>>
+>> diff --git a/drivers/media/usb/cpia2/cpia2_v4l.c b/drivers/media/usb/cpia2/cpia2_v4l.c
+>> index 3dedd83f0b19..7217dde95a8a 100644
+>> --- a/drivers/media/usb/cpia2/cpia2_v4l.c
+>> +++ b/drivers/media/usb/cpia2/cpia2_v4l.c
+>> @@ -948,7 +948,7 @@ static int cpia2_dqbuf(struct file *file, void *fh, struct v4l2_buffer *buf)
+>>       buf->sequence = cam->buffers[buf->index].seq;
+>>       buf->m.offset = cam->buffers[buf->index].data - cam->frame_buffer;
+>>       buf->length = cam->frame_size;
+>> -     buf->reserved2 = 0;
+>> +     buf->request = 0;
+>>       buf->reserved = 0;
+>>       memset(&buf->timecode, 0, sizeof(buf->timecode));
+>>
+>> diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+>> index 821f2aa299ae..94f07c3b0b53 100644
+>> --- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+>> +++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+>> @@ -370,7 +370,7 @@ struct v4l2_buffer32 {
+>>               __s32           fd;
+>>       } m;
+>>       __u32                   length;
+>> -     __u32                   reserved2;
+>> +     __u32                   request;
+>>       __u32                   reserved;
+>>  };
+>>
+>> @@ -438,7 +438,8 @@ static int get_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
+>>               get_user(kp->type, &up->type) ||
+>>               get_user(kp->flags, &up->flags) ||
+>>               get_user(kp->memory, &up->memory) ||
+>> -             get_user(kp->length, &up->length))
+>> +             get_user(kp->length, &up->length) ||
+>> +             get_user(kp->request, &up->request))
+>>                       return -EFAULT;
+>>
+>>       if (V4L2_TYPE_IS_OUTPUT(kp->type))
+>> @@ -533,7 +534,7 @@ static int put_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
+>>               put_user(kp->timestamp.tv_usec, &up->timestamp.tv_usec) ||
+>>               copy_to_user(&up->timecode, &kp->timecode, sizeof(struct v4l2_timecode)) ||
+>>               put_user(kp->sequence, &up->sequence) ||
+>> -             put_user(kp->reserved2, &up->reserved2) ||
+>> +             put_user(kp->request, &up->request) ||
+>>               put_user(kp->reserved, &up->reserved) ||
+>>               put_user(kp->length, &up->length))
+>>                       return -EFAULT;
+>> diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+>> index ec4ecd5aa8bf..8d041247e97f 100644
+>> --- a/drivers/media/v4l2-core/v4l2-ioctl.c
+>> +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+>> @@ -437,13 +437,13 @@ static void v4l_print_buffer(const void *arg, bool write_only)
+>>       const struct v4l2_plane *plane;
+>>       int i;
+>>
+>> -     pr_cont("%02ld:%02d:%02d.%08ld index=%d, type=%s, flags=0x%08x, field=%s, sequence=%d, memory=%s",
+>> +     pr_cont("%02ld:%02d:%02d.%08ld index=%d, type=%s, request=%u, flags=0x%08x, field=%s, sequence=%d, memory=%s",
+>>                       p->timestamp.tv_sec / 3600,
+>>                       (int)(p->timestamp.tv_sec / 60) % 60,
+>>                       (int)(p->timestamp.tv_sec % 60),
+>>                       (long)p->timestamp.tv_usec,
+>>                       p->index,
+>> -                     prt_names(p->type, v4l2_type_names),
+>> +                     prt_names(p->type, v4l2_type_names), p->request,
+>>                       p->flags, prt_names(p->field, v4l2_field_names),
+>>                       p->sequence, prt_names(p->memory, v4l2_memory_names));
+>>
+>> diff --git a/drivers/media/v4l2-core/videobuf2-v4l2.c b/drivers/media/v4l2-core/videobuf2-v4l2.c
+>> index 0c0669976bdc..bde7b8a3a303 100644
+>> --- a/drivers/media/v4l2-core/videobuf2-v4l2.c
+>> +++ b/drivers/media/v4l2-core/videobuf2-v4l2.c
+>> @@ -203,7 +203,7 @@ static void __fill_v4l2_buffer(struct vb2_buffer *vb, void *pb)
+>>       b->timestamp = ns_to_timeval(vb->timestamp);
+>>       b->timecode = vbuf->timecode;
+>>       b->sequence = vbuf->sequence;
+>> -     b->reserved2 = 0;
+>> +     b->request = vbuf->request;
+>>       b->reserved = 0;
+>>
+>>       if (q->is_multiplanar) {
+>> @@ -320,6 +320,7 @@ static int __fill_vb2_buffer(struct vb2_buffer *vb,
+>>       }
+>>       vb->timestamp = 0;
+>>       vbuf->sequence = 0;
+>> +     vbuf->request = b->request;
+>>
+>>       if (V4L2_TYPE_IS_MULTIPLANAR(b->type)) {
+>>               if (b->memory == VB2_MEMORY_USERPTR) {
+>> diff --git a/include/media/videobuf2-v4l2.h b/include/media/videobuf2-v4l2.h
+>> index 036127c54bbf..ef2be0ccff14 100644
+>> --- a/include/media/videobuf2-v4l2.h
+>> +++ b/include/media/videobuf2-v4l2.h
+>> @@ -31,6 +31,7 @@
+>>   * @field:   enum v4l2_field; field order of the image in the buffer
+>>   * @timecode:        frame timecode
+>>   * @sequence:        sequence count of this frame
+>> + * @request: request used by the buffer
+>>   *
+>>   * Should contain enough information to be able to cover all the fields
+>>   * of struct v4l2_buffer at videodev2.h
+>> @@ -42,6 +43,7 @@ struct vb2_v4l2_buffer {
+>>       __u32                   field;
+>>       struct v4l2_timecode    timecode;
+>>       __u32                   sequence;
+>> +     __u32                   request;
+>>  };
+>>
+>>  /*
+>> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+>> index 1c095b5a99c5..0650e8d14971 100644
+>> --- a/include/uapi/linux/videodev2.h
+>> +++ b/include/uapi/linux/videodev2.h
+>> @@ -902,6 +902,7 @@ struct v4l2_plane {
+>>   * @length:  size in bytes of the buffer (NOT its payload) for single-plane
+>>   *           buffers (when type != *_MPLANE); number of elements in the
+>>   *           planes array for multi-plane buffers
+>> + * @request: this buffer should use this request
+>>   *
+>>   * Contains data exchanged by application and driver using one of the Streaming
+>>   * I/O methods.
+>> @@ -925,7 +926,7 @@ struct v4l2_buffer {
+>>               __s32           fd;
+>>       } m;
+>>       __u32                   length;
+>> -     __u32                   reserved2;
+>> +     __u32                   request;
+>
+> Aren't file descriptors signed integers? So this would become __s32.
 
-According to documentation the maximum packet multiplier for em28xx in bulk
-transfer mode is 256 * 188 bytes. This changes the size of bulk transfers
-to maximum supported value and have a bonus beneficial alignment.
+Indeed, fixed.
 
-Before:
-# 512 * 384 = 196608
-## 196608 % 188 != 0
+>
+> I also think I would prefer to rename this to request_fd, so it is clear this is a
+> file descriptor. Same for struct vb2_v4l2_buffer and struct v4l2_buffer32.
+>
+> Also update the @request descriptions in the comments and v4l_print_buffer.
 
-After:
-# 512 * 47 * 2 = 48128    (188 * 128 * 2)
-## 48128 % 188 = 0
-
-This sets up USB to expect just as many bytes as the em28xx is set to emit.
-
-Successful usage under load afterwards natively and in both VMWare
-and KVM/Qemu virtual machines.
-
-Signed-off-by: Brad Love <brad@nextdimension.cc>
----
- drivers/media/usb/em28xx/em28xx.h | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/media/usb/em28xx/em28xx.h b/drivers/media/usb/em28xx/em28xx.h
-index c85292c..7be8ac9 100644
---- a/drivers/media/usb/em28xx/em28xx.h
-+++ b/drivers/media/usb/em28xx/em28xx.h
-@@ -191,7 +191,7 @@
-    USB 2.0 spec says bulk packet size is always 512 bytes
-  */
- #define EM28XX_BULK_PACKET_MULTIPLIER 384
--#define EM28XX_DVB_BULK_PACKET_MULTIPLIER 384
-+#define EM28XX_DVB_BULK_PACKET_MULTIPLIER 94
- 
- #define EM28XX_INTERLACED_DEFAULT 1
- 
--- 
-2.7.4
+All done, thanks!
