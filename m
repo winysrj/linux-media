@@ -1,64 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from esa3.microchip.iphmx.com ([68.232.153.233]:55514 "EHLO
-        esa3.microchip.iphmx.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752188AbeAII7O (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 9 Jan 2018 03:59:14 -0500
-Subject: Re: [PATCH] media: i2c: ov7740: add media-controller dependency
-To: Arnd Bergmann <arnd@arndb.de>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-CC: Songjun Wu <songjun.wu@microchip.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Pavel Machek <pavel@ucw.cz>, <linux-media@vger.kernel.org>,
-        <linux-kernel@vger.kernel.org>
-References: <20180108125322.3993808-1-arnd@arndb.de>
-From: "Yang, Wenyou" <Wenyou.Yang@Microchip.com>
-Message-ID: <77115583-f54e-54b4-e0db-6019bab14099@Microchip.com>
-Date: Tue, 9 Jan 2018 16:59:10 +0800
+Received: from mga03.intel.com ([134.134.136.65]:54864 "EHLO mga03.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751284AbeAPQws (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 16 Jan 2018 11:52:48 -0500
+Date: Tue, 16 Jan 2018 18:52:43 +0200
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] [v3] media: s3c-camif: fix out-of-bounds array access
+Message-ID: <20180116165243.ll4llily5rtctddt@paasikivi.fi.intel.com>
+References: <20180116164740.2097257-1-arnd@arndb.de>
 MIME-Version: 1.0
-In-Reply-To: <20180108125322.3993808-1-arnd@arndb.de>
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-Content-Language: en-US
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20180116164740.2097257-1-arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Arnd,
-
-
-On 2018/1/8 20:52, Arnd Bergmann wrote:
-> Without CONFIG_MEDIA_CONTROLLER, the new driver fails to build:
->
-> drivers/perf/arm_dsu_pmu.c: In function 'dsu_pmu_probe_pmu':
-> drivers/perf/arm_dsu_pmu.c:661:2: error: implicit declaration of function 'bitmap_from_u32array'; did you mean 'bitmap_from_arr32'? [-Werror=implicit-function-declaration]
->
-> This adds a dependency similar to what we have for other drivers
-> like this.
->
-> Fixes: 39c5c4471b8d ("media: i2c: Add the ov7740 image sensor driver")
+On Tue, Jan 16, 2018 at 05:47:24PM +0100, Arnd Bergmann wrote:
+> While experimenting with older compiler versions, I ran
+> into a warning that no longer shows up on gcc-4.8 or newer:
+> 
+> drivers/media/platform/s3c-camif/camif-capture.c: In function '__camif_subdev_try_format':
+> drivers/media/platform/s3c-camif/camif-capture.c:1265:25: error: array subscript is below array bounds
+> 
+> This is an off-by-one bug, leading to an access before the start of the
+> array, while newer compilers silently assume this undefined behavior
+> cannot happen and leave the loop at index 0 if no other entry matches.
+> 
+> As Sylvester explains, we actually need to ensure that the
+> value is within the range, so this reworks the loop to be
+> easier to parse correctly, and an additional check to fall
+> back on the first format value for any unexpected input.
+> 
+> I found an existing gcc bug for it and added a reduced version
+> of the function there.
+> 
+> Link: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=69249#c3
+> Fixes: babde1c243b2 ("[media] V4L: Add driver for S3C24XX/S3C64XX SoC series camera interface")
 > Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-> ---
-Indeed.
-Thank you for your fix.
 
-Acked-by: Wenyou Yang <wenyou.yang@microchip.com>
+Thanks!
 
->   drivers/media/i2c/Kconfig | 2 +-
->   1 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
-> index 9f18cd296841..03cf3a1a1e06 100644
-> --- a/drivers/media/i2c/Kconfig
-> +++ b/drivers/media/i2c/Kconfig
-> @@ -667,7 +667,7 @@ config VIDEO_OV7670
->   
->   config VIDEO_OV7740
->   	tristate "OmniVision OV7740 sensor support"
-> -	depends on I2C && VIDEO_V4L2
-> +	depends on I2C && VIDEO_V4L2 && MEDIA_CONTROLLER
->   	depends on MEDIA_CAMERA_SUPPORT
->   	---help---
->   	  This is a Video4Linux2 sensor-level driver for the OmniVision
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-Best Regards,
-Wenyou Yang
+-- 
+Sakari Ailus
+sakari.ailus@linux.intel.com
