@@ -1,120 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:45448 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751433AbeA3Olf (ORCPT
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:54885 "EHLO
+        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751199AbeAPKLo (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 30 Jan 2018 09:41:35 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Daniel Mentz <danielmentz@google.com>
-Subject: Re: [PATCHv2 00/13] v4l2-compat-ioctl32.c: remove set_fs(KERNEL_DS)
-Date: Tue, 30 Jan 2018 16:41:50 +0200
-Message-ID: <2040102.b8zQ4JN7km@avalon>
-In-Reply-To: <20180130102701.13664-1-hverkuil@xs4all.nl>
-References: <20180130102701.13664-1-hverkuil@xs4all.nl>
+        Tue, 16 Jan 2018 05:11:44 -0500
+Subject: Re: [PATCH v5 9/9] arch: sh: migor: Use new renesas-ceu camera driver
+To: Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        laurent.pinchart@ideasonboard.com, magnus.damm@gmail.com,
+        geert@glider.be, mchehab@kernel.org, festevam@gmail.com,
+        sakari.ailus@iki.fi, robh+dt@kernel.org, mark.rutland@arm.com,
+        pombredanne@nexb.com
+Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-sh@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+References: <1515765849-10345-1-git-send-email-jacopo+renesas@jmondi.org>
+ <1515765849-10345-10-git-send-email-jacopo+renesas@jmondi.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <1c6f7b57-2d0c-50c2-add9-386fe1308adc@xs4all.nl>
+Date: Tue, 16 Jan 2018 11:11:38 +0100
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <1515765849-10345-10-git-send-email-jacopo+renesas@jmondi.org>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+On 01/12/2018 03:04 PM, Jacopo Mondi wrote:
+> Migo-R platform uses sh_mobile_ceu camera driver, which is now being
+> replaced by a proper V4L2 camera driver named 'renesas-ceu'.
+> 
+> Move Migo-R platform to use the v4l2 renesas-ceu camera driver
+> interface and get rid of soc_camera defined components used to register
+> sensor drivers and of platform specific enable/disable routines.
+> 
+> Register clock source and GPIOs for sensor drivers, so they can use
+> clock and gpio APIs.
+> 
+> Also, memory for CEU video buffers is now reserved with membocks APIs,
+> and need to be declared as dma_coherent during machine initialization to
+> remove that architecture specific part from CEU driver.
+> 
+> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-Thank you for the patches.
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-For patches 01/13 to 08/13 and 10/13 to 12/13,
-
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-On Tuesday, 30 January 2018 12:26:48 EET Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> This patch series fixes a number of bugs and culminates in the removal
-> of the set_fs(KERNEL_DS) call in v4l2-compat-ioctl32.c.
-> 
-> See
-> http://people.canonical.com/~ubuntu-security/cve/2017/CVE-2017-13166.html
-> for why this set_fs call is a bad idea.
-> 
-> In order to test this I used vivid and a 32-bit v4l2-compliance. The
-> advantage of vivid is that it implements almost all ioctls, and those
-> are all tested by v4l2-compliance. This ensures good test coverage.
-> 
-> Since I had to track down all failures that v4l2-compliance reported
-> in order to verify whether those were introduced by the final patch
-> or if those were pre-existing bugs, this series starts off with fixes
-> for bugs that v4l2-compliance found, mostly in v4l2-compat-ioctl32.c.
-> It is clear that v4l2-compat-ioctl32.c doesn't receive a lot of
-> testing.
-> 
-> There are also three patches that just clean up v4l2-compat-ioctl32.c
-> in order to simplify the final patch:
-> 
->   v4l2-compat-ioctl32.c: fix the indentation
->   v4l2-compat-ioctl32.c: move 'helper' functions to __get/put_v4l2_format32
->   v4l2-compat-ioctl32.c: avoid sizeof(type)
-> 
-> No functional changes are introduced in these three patches.
-> 
-> Note the "fix ctrl_is_pointer" patch: we've discussed this in the past,
-> but now I really had to fix this.
-> 
-> It would be really nice if the next time someone finds a security risk
-> in V4L2 core code they would contact the V4L2 maintainers. We only heard
-> about this last week, while all the information about this CVE has been
-> out there for 6 months or so.
-> 
-> Backporting this will be a bit of a nightmare since v4l2-compat-ioctl32.c
-> changes frequently, so assuming we'll only backport this to lts kernels
-> then for each lts the patch series needs to be adapted. But let's get
-> this upstream first before looking at that.
-> 
-> Please review!
-> 
-> Regards,
-> 
-> 	Hans
-> 
-> Changes since v1:
-> - Incorporated all Sakari's comments
-> - Added the 'v4l2-ioctl.c: don't copy back the result for -ENOTTY' patch
->   (suggested by Sakari).
-> - Added back the "Reported-by" tag for the last patch.
-> - Added "Co-Developed-by" tag for the last patch.
-> - Added "Cc: <stable@vger.kernel.org>      # for v4.15 and up" tags to
->   this series.
-> 
-> Note: I prefer to backport the whole series to older kernels. Although it
-> is just the last patch that is the real fix, it is very hard to verify
-> without using v4l2-compliance and vivid. And that requires the other fixes.
-> 
-> Daniel Mentz (1):
->   v4l2-compat-ioctl32.c: refactor, fix security bug in compat ioctl32
-> 
-> Hans Verkuil (12):
->   vivid: fix module load error when enabling fb and no_error_inj=1
->   v4l2-ioctl.c: use check_fmt for enum/g/s/try_fmt
->   v4l2-ioctl.c: don't copy back the result for -ENOTTY
->   v4l2-compat-ioctl32.c: add missing VIDIOC_PREPARE_BUF
->   v4l2-compat-ioctl32.c: fix the indentation
->   v4l2-compat-ioctl32.c: move 'helper' functions to
->     __get/put_v4l2_format32
->   v4l2-compat-ioctl32.c: avoid sizeof(type)
->   v4l2-compat-ioctl32.c: copy m.userptr in put_v4l2_plane32
->   v4l2-compat-ioctl32.c: fix ctrl_is_pointer
->   v4l2-compat-ioctl32.c: copy clip list in put_v4l2_window32
->   v4l2-compat-ioctl32.c: drop pr_info for unknown buffer type
->   v4l2-compat-ioctl32.c: don't copy back the result for certain errors
-> 
->  drivers/media/platform/vivid/vivid-core.h     |    1 +
->  drivers/media/platform/vivid/vivid-ctrls.c    |   35 +-
->  drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 1033
-> +++++++++++++++---------- drivers/media/v4l2-core/v4l2-ioctl.c          | 
-> 145 ++--
->  4 files changed, 696 insertions(+), 518 deletions(-)
-
-
--- 
 Regards,
 
-Laurent Pinchart
+        Hans
