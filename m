@@ -1,134 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:45800 "EHLO
-        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754982AbeAJNVj (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 10 Jan 2018 08:21:39 -0500
-Received: by mail-wm0-f66.google.com with SMTP id i186so10483713wmi.4
-        for <linux-media@vger.kernel.org>; Wed, 10 Jan 2018 05:21:38 -0800 (PST)
-Date: Wed, 10 Jan 2018 14:21:27 +0100
-From: Daniel Vetter <daniel@ffwll.ch>
-To: Christian =?iso-8859-1?Q?K=F6nig?=
-        <ckoenig.leichtzumerken@gmail.com>
-Cc: sumit.semwal@linaro.org, gustavo@padovan.org,
-        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        linaro-mm-sig@lists.linaro.org
-Subject: Re: [Linaro-mm-sig] [PATCH] dma-buf: make returning the exclusive
- fence optional
-Message-ID: <20180110132127.GT13066@phenom.ffwll.local>
-References: <20180110125341.3618-1-christian.koenig@amd.com>
+Received: from [134.134.136.24] ([134.134.136.24]:9980 "EHLO mga09.intel.com"
+        rhost-flags-FAIL-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1750798AbeAPEFK (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 15 Jan 2018 23:05:10 -0500
+From: "Cao, Bingbu" <bingbu.cao@intel.com>
+To: Tomasz Figa <tfiga@chromium.org>, "Zhi, Yong" <yong.zhi@intel.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        "Mani, Rajmohan" <rajmohan.mani@intel.com>
+Subject: RE: [PATCH 1/2] media: intel-ipu3: cio2: fix a crash with
+ out-of-bounds access
+Date: Tue, 16 Jan 2018 04:05:05 +0000
+Message-ID: <EE45BB6704246A4E914B70E8B61FB42A14FE2F31@SHSMSX103.ccr.corp.intel.com>
+References: <1515034637-3517-1-git-send-email-yong.zhi@intel.com>
+ <CAAFQd5AO4n4kge1dijXLK-Ckudd5wJnuRnNMef+H4W00G2mpwQ@mail.gmail.com>
+ <C193D76D23A22742993887E6D207B54D1AEB6195@FMSMSX151.amr.corp.intel.com>
+ <CAAFQd5AxKSphur-fqHWvK5DLhQfJ+x30UQKuEx3Xe9mjnWRh4g@mail.gmail.com>
+In-Reply-To: <CAAFQd5AxKSphur-fqHWvK5DLhQfJ+x30UQKuEx3Xe9mjnWRh4g@mail.gmail.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20180110125341.3618-1-christian.koenig@amd.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Jan 10, 2018 at 01:53:41PM +0100, Christian König wrote:
-> Change reservation_object_get_fences_rcu to make the exclusive fence
-> pointer optional.
-> 
-> If not specified the exclusive fence is put into the fence array as
-> well.
-> 
-> This is helpful for a couple of cases where we need all fences in a
-> single array.
-> 
-> Signed-off-by: Christian König <christian.koenig@amd.com>
-
-Seeing the use-case for this would be a lot more interesting ...
--Daniel
-
-> ---
->  drivers/dma-buf/reservation.c | 31 ++++++++++++++++++++++---------
->  1 file changed, 22 insertions(+), 9 deletions(-)
-> 
-> diff --git a/drivers/dma-buf/reservation.c b/drivers/dma-buf/reservation.c
-> index b759a569b7b8..461afa9febd4 100644
-> --- a/drivers/dma-buf/reservation.c
-> +++ b/drivers/dma-buf/reservation.c
-> @@ -374,8 +374,9 @@ EXPORT_SYMBOL(reservation_object_copy_fences);
->   * @pshared: the array of shared fence ptrs returned (array is krealloc'd to
->   * the required size, and must be freed by caller)
->   *
-> - * RETURNS
-> - * Zero or -errno
-> + * Retrieve all fences from the reservation object. If the pointer for the
-> + * exclusive fence is not specified the fence is put into the array of the
-> + * shared fences as well. Returns either zero or -ENOMEM.
->   */
->  int reservation_object_get_fences_rcu(struct reservation_object *obj,
->  				      struct dma_fence **pfence_excl,
-> @@ -389,8 +390,8 @@ int reservation_object_get_fences_rcu(struct reservation_object *obj,
->  
->  	do {
->  		struct reservation_object_list *fobj;
-> -		unsigned seq;
-> -		unsigned int i;
-> +		unsigned int i, seq;
-> +		size_t sz = 0;
->  
->  		shared_count = i = 0;
->  
-> @@ -402,9 +403,14 @@ int reservation_object_get_fences_rcu(struct reservation_object *obj,
->  			goto unlock;
->  
->  		fobj = rcu_dereference(obj->fence);
-> -		if (fobj) {
-> +		if (fobj)
-> +			sz += sizeof(*shared) * fobj->shared_max;
-> +
-> +		if (!pfence_excl && fence_excl)
-> +			sz += sizeof(*shared);
-> +
-> +		if (sz) {
->  			struct dma_fence **nshared;
-> -			size_t sz = sizeof(*shared) * fobj->shared_max;
->  
->  			nshared = krealloc(shared, sz,
->  					   GFP_NOWAIT | __GFP_NOWARN);
-> @@ -420,13 +426,19 @@ int reservation_object_get_fences_rcu(struct reservation_object *obj,
->  				break;
->  			}
->  			shared = nshared;
-> -			shared_count = fobj->shared_count;
-> -
-> +			shared_count = fobj ? fobj->shared_count : 0;
->  			for (i = 0; i < shared_count; ++i) {
->  				shared[i] = rcu_dereference(fobj->shared[i]);
->  				if (!dma_fence_get_rcu(shared[i]))
->  					break;
->  			}
-> +
-> +			if (!pfence_excl && fence_excl) {
-> +				shared[i] = fence_excl;
-> +				fence_excl = NULL;
-> +				++i;
-> +				++shared_count;
-> +			}
->  		}
->  
->  		if (i != shared_count || read_seqcount_retry(&obj->seq, seq)) {
-> @@ -448,7 +460,8 @@ int reservation_object_get_fences_rcu(struct reservation_object *obj,
->  
->  	*pshared_count = shared_count;
->  	*pshared = shared;
-> -	*pfence_excl = fence_excl;
-> +	if (pfence_excl)
-> +		*pfence_excl = fence_excl;
->  
->  	return ret;
->  }
-> -- 
-> 2.14.1
-> 
-> _______________________________________________
-> Linaro-mm-sig mailing list
-> Linaro-mm-sig@lists.linaro.org
-> https://lists.linaro.org/mailman/listinfo/linaro-mm-sig
-
--- 
-Daniel Vetter
-Software Engineer, Intel Corporation
-http://blog.ffwll.ch
+SSB0aGluayBpZiBzZXQgdGhlIHBhZ2VzIGFzIHRoZSBESVZfUk9VTkRfVVAodmItPnBsYW5lc1sw
+XS5sZW5ndGgsIENJTzJfUEFHRV9TSVpFKSArIDEsIHRoZSAnIGlmICghcGFnZXMtLSknIGluIGxv
+b3AgaXMgbm90IGNvcnJlY3QuDQpzaG91bGQgYmUgJ2lmICghLS1wYWdlcyknLg0KVGhlIGxhc3Qg
+cGFnZSBmcm9tIHNnIGxpc3QgaXMgdGhlIGxhc3QgdmFsaWQgcGFnZS4NCg0KDQpfX19fX19fX19f
+X19fX19fX19fX19fX19fXw0KQlJzLA0KQ2FvLCBCaW5nYnUNCg0KDQoNCj4gLS0tLS1PcmlnaW5h
+bCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogVG9tYXN6IEZpZ2EgW21haWx0bzp0ZmlnYUBjaHJvbWl1
+bS5vcmddDQo+IFNlbnQ6IFR1ZXNkYXksIEphbnVhcnkgMTYsIDIwMTggMTA6NDAgQU0NCj4gVG86
+IFpoaSwgWW9uZyA8eW9uZy56aGlAaW50ZWwuY29tPg0KPiBDYzogTGludXggTWVkaWEgTWFpbGlu
+ZyBMaXN0IDxsaW51eC1tZWRpYUB2Z2VyLmtlcm5lbC5vcmc+OyBTYWthcmkgQWlsdXMNCj4gPHNh
+a2FyaS5haWx1c0BsaW51eC5pbnRlbC5jb20+OyBNYW5pLCBSYWptb2hhbiA8cmFqbW9oYW4ubWFu
+aUBpbnRlbC5jb20+Ow0KPiBDYW8sIEJpbmdidSA8YmluZ2J1LmNhb0BpbnRlbC5jb20+DQo+IFN1
+YmplY3Q6IFJlOiBbUEFUQ0ggMS8yXSBtZWRpYTogaW50ZWwtaXB1MzogY2lvMjogZml4IGEgY3Jh
+c2ggd2l0aCBvdXQtDQo+IG9mLWJvdW5kcyBhY2Nlc3MNCj4gDQo+IEhpIFlvbmcsDQo+IA0KPiBP
+biBUdWUsIEphbiAxNiwgMjAxOCBhdCAyOjA1IEFNLCBaaGksIFlvbmcgPHlvbmcuemhpQGludGVs
+LmNvbT4gd3JvdGU6DQo+ID4gSGksIFRvbWFzeiwNCj4gPg0KPiA+IFRoYW5rcyBmb3IgdGhlIHBh
+dGNoIHJldmlldy4NCj4gPg0KPiA+PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiA+PiBG
+cm9tOiBUb21hc3ogRmlnYSBbbWFpbHRvOnRmaWdhQGNocm9taXVtLm9yZ10NCj4gPj4gU2VudDog
+RnJpZGF5LCBKYW51YXJ5IDEyLCAyMDE4IDEyOjE3IEFNDQo+ID4+IFRvOiBaaGksIFlvbmcgPHlv
+bmcuemhpQGludGVsLmNvbT4NCj4gPj4gQ2M6IExpbnV4IE1lZGlhIE1haWxpbmcgTGlzdCA8bGlu
+dXgtbWVkaWFAdmdlci5rZXJuZWwub3JnPjsgU2FrYXJpDQo+ID4+IEFpbHVzIDxzYWthcmkuYWls
+dXNAbGludXguaW50ZWwuY29tPjsgTWFuaSwgUmFqbW9oYW4NCj4gPj4gPHJham1vaGFuLm1hbmlA
+aW50ZWwuY29tPjsgQ2FvLCBCaW5nYnUgPGJpbmdidS5jYW9AaW50ZWwuY29tPg0KPiA+PiBTdWJq
+ZWN0OiBSZTogW1BBVENIIDEvMl0gbWVkaWE6IGludGVsLWlwdTM6IGNpbzI6IGZpeCBhIGNyYXNo
+IHdpdGgNCj4gPj4gb3V0LW9mLSBib3VuZHMgYWNjZXNzDQo+ID4+DQo+ID4+IE9uIFRodSwgSmFu
+IDQsIDIwMTggYXQgMTE6NTcgQU0sIFlvbmcgWmhpIDx5b25nLnpoaUBpbnRlbC5jb20+IHdyb3Rl
+Og0KPiA+PiA+IFdoZW4gZG1hYnVmIGlzIHVzZWQgZm9yIEJMT0IgdHlwZSBmcmFtZSwgdGhlIGZy
+YW1lIGJ1ZmZlcnMNCj4gPj4gPiBhbGxvY2F0ZWQgYnkgZ3JhbGxvYyB3aWxsIGhvbGQgbW9yZSBw
+YWdlcyB0aGFuIHRoZSB2YWxpZCBmcmFtZSBkYXRhDQo+ID4+ID4gZHVlIHRvIGhlaWdodCBhbGln
+bm1lbnQuDQo+ID4+ID4NCj4gPj4gPiBJbiB0aGlzIGNhc2UsIHRoZSBwYWdlIG51bWJlcnMgaW4g
+c2cgbGlzdCBjb3VsZCBleGNlZWQgdGhlIEZCUFQNCj4gPj4gPiB1cHBlciBsaW1pdCB2YWx1ZSAt
+IG1heF9sb3BzKDgpKjEwMjQgdG8gY2F1c2UgY3Jhc2guDQo+ID4+ID4NCj4gPj4gPiBMaW1pdCB0
+aGUgTE9QIGFjY2VzcyB0byB0aGUgdmFsaWQgZGF0YSBsZW5ndGggdG8gYXZvaWQgRkJQVA0KPiA+
+PiA+IHN1Yi1lbnRyaWVzIG92ZXJmbG93Lg0KPiA+PiA+DQo+ID4+ID4gU2lnbmVkLW9mZi1ieTog
+WW9uZyBaaGkgPHlvbmcuemhpQGludGVsLmNvbT4NCj4gPj4gPiBTaWduZWQtb2ZmLWJ5OiBDYW8g
+QmluZyBCdSA8YmluZ2J1LmNhb0BpbnRlbC5jb20+DQo+ID4+ID4gLS0tDQo+ID4+ID4gIGRyaXZl
+cnMvbWVkaWEvcGNpL2ludGVsL2lwdTMvaXB1My1jaW8yLmMgfCA3ICsrKysrLS0NCj4gPj4gPiAg
+MSBmaWxlIGNoYW5nZWQsIDUgaW5zZXJ0aW9ucygrKSwgMiBkZWxldGlvbnMoLSkNCj4gPj4gPg0K
+PiA+PiA+IGRpZmYgLS1naXQgYS9kcml2ZXJzL21lZGlhL3BjaS9pbnRlbC9pcHUzL2lwdTMtY2lv
+Mi5jDQo+ID4+ID4gYi9kcml2ZXJzL21lZGlhL3BjaS9pbnRlbC9pcHUzL2lwdTMtY2lvMi5jDQo+
+ID4+ID4gaW5kZXggOTQxY2FhOTg3ZGFiLi45NDlmNDNkMjA2YWQgMTAwNjQ0DQo+ID4+ID4gLS0t
+IGEvZHJpdmVycy9tZWRpYS9wY2kvaW50ZWwvaXB1My9pcHUzLWNpbzIuYw0KPiA+PiA+ICsrKyBi
+L2RyaXZlcnMvbWVkaWEvcGNpL2ludGVsL2lwdTMvaXB1My1jaW8yLmMNCj4gPj4gPiBAQCAtODM4
+LDggKzgzOCw5IEBAIHN0YXRpYyBpbnQgY2lvMl92YjJfYnVmX2luaXQoc3RydWN0IHZiMl9idWZm
+ZXINCj4gKnZiKQ0KPiA+PiA+ICAgICAgICAgICAgICAgICBjb250YWluZXJfb2YodmIsIHN0cnVj
+dCBjaW8yX2J1ZmZlciwgdmJiLnZiMl9idWYpOw0KPiA+PiA+ICAgICAgICAgc3RhdGljIGNvbnN0
+IHVuc2lnbmVkIGludCBlbnRyaWVzX3Blcl9wYWdlID0NCj4gPj4gPiAgICAgICAgICAgICAgICAg
+Q0lPMl9QQUdFX1NJWkUgLyBzaXplb2YodTMyKTsNCj4gPj4gPiAtICAgICAgIHVuc2lnbmVkIGlu
+dCBwYWdlcyA9IERJVl9ST1VORF9VUCh2Yi0+cGxhbmVzWzBdLmxlbmd0aCwNCj4gPj4gQ0lPMl9Q
+QUdFX1NJWkUpOw0KPiA+PiA+IC0gICAgICAgdW5zaWduZWQgaW50IGxvcHMgPSBESVZfUk9VTkRf
+VVAocGFnZXMgKyAxLA0KPiBlbnRyaWVzX3Blcl9wYWdlKTsNCj4gPj4gPiArICAgICAgIHVuc2ln
+bmVkIGludCBwYWdlcyA9IERJVl9ST1VORF9VUCh2Yi0+cGxhbmVzWzBdLmxlbmd0aCwNCj4gPj4g
+PiArICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBDSU8yX1BBR0VfU0la
+RSkgKyAxOw0KPiA+Pg0KPiA+PiBXaHkgKyAxPyBUaGlzIHdvdWxkIHN0aWxsIG92ZXJmbG93IHRo
+ZSBidWZmZXIsIHdvdWxkbid0IGl0Pw0KPiA+DQo+ID4gVGhlICJwYWdlcyIgdmFyaWFibGUgaXMg
+dXNlZCB0byBjYWxjdWxhdGUgbG9wcyB3aGljaCBoYXMgb25lIGV4dHJhDQo+IHBhZ2UgYXQgdGhl
+IGVuZCB0aGF0IHBvaW50cyB0byBkdW1teSBwYWdlLg0KPiA+DQo+ID4+DQo+ID4+ID4gKyAgICAg
+ICB1bnNpZ25lZCBpbnQgbG9wcyA9IERJVl9ST1VORF9VUChwYWdlcywgZW50cmllc19wZXJfcGFn
+ZSk7DQo+ID4+ID4gICAgICAgICBzdHJ1Y3Qgc2dfdGFibGUgKnNnOw0KPiA+PiA+ICAgICAgICAg
+c3RydWN0IHNnX3BhZ2VfaXRlciBzZ19pdGVyOw0KPiA+PiA+ICAgICAgICAgaW50IGksIGo7DQo+
+ID4+ID4gQEAgLTg2OSw2ICs4NzAsOCBAQCBzdGF0aWMgaW50IGNpbzJfdmIyX2J1Zl9pbml0KHN0
+cnVjdCB2YjJfYnVmZmVyDQo+ID4+ID4gKnZiKQ0KPiA+PiA+DQo+ID4+ID4gICAgICAgICBpID0g
+aiA9IDA7DQo+ID4+ID4gICAgICAgICBmb3JfZWFjaF9zZ19wYWdlKHNnLT5zZ2wsICZzZ19pdGVy
+LCBzZy0+bmVudHMsIDApIHsNCj4gPj4gPiArICAgICAgICAgICAgICAgaWYgKCFwYWdlcy0tKQ0K
+PiA+PiA+ICsgICAgICAgICAgICAgICAgICAgICAgIGJyZWFrOw0KPiA+Pg0KPiA+PiBPciBwZXJo
+YXBzIHdlIHNob3VsZCBjaGVjayBoZXJlIGZvciAocGFnZXMgPiAxKT8NCj4gPg0KPiA+IFRoaXMg
+aXMgc28gdGhhdCB0aGUgZW5kIG9mIGxvcCBpcyBzZXQgdG8gdGhlIGR1bW15X3BhZ2UuDQo+IA0K
+PiBIb3cgYWJvdXQgdGhpcyBzaW1wbGUgZXhhbXBsZToNCj4gDQo+IHZiLT5wbGFuZXNbMF0ubGVu
+Z3RoID0gMTAyMyAqIDQwOTYNCj4gcGFnZXMgPSAxMDIzICsgMSA9IDEwMjQNCj4gbG9wcyAgPSAx
+DQo+IA0KPiBJZiBzZy0+c2dsIGluY2x1ZGVzIG1vcmUgdGhhbiAxMDIzIHBhZ2VzLCB0aGUgZm9y
+X2VhY2hfc2dfcGFnZSgpIGxvb3ANCj4gd2lsbCBpdGVyYXRlIGZvciBwYWdlcyBmcm9tIDEwMjQg
+dG8gMSBpbmNsdXNpdmUgYW5kIGVuZHMgdXAgb3ZlcmZsb3dpbmcNCj4gdGhlIGR1bW15IHBhZ2Ug
+dG8gbmV4dCBsb3AgKGkgPT0gMSBhbmQgaiA9PSAwKSwgYnV0IHdlIG9ubHkgYWxsb2NhdGVkIDEN
+Cj4gbG9wLg0KPiANCj4gQmVzdCByZWdhcmRzLA0KPiBUb21hc3oNCg==
