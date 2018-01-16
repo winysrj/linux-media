@@ -1,43 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga07.intel.com ([134.134.136.100]:25735 "EHLO mga07.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751026AbeAVIhr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 22 Jan 2018 03:37:47 -0500
-Date: Mon, 22 Jan 2018 10:37:44 +0200
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: "Yeh, Andy" <andy.yeh@intel.com>
-Cc: Tomasz Figa <tfiga@chromium.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH v4] media: imx258: Add imx258 camera sensor driver
-Message-ID: <20180122083743.4lghsxgyahs2iw7g@paasikivi.fi.intel.com>
-References: <1516333071-9766-1-git-send-email-andy.yeh@intel.com>
- <CAAFQd5Aq4oX+-ux0r4SjyWAyRUA1DJ34mgBmcvuY6HpG9SJ++g@mail.gmail.com>
- <8E0971CCB6EA9D41AF58191A2D3978B61D4E49E8@PGSMSX111.gar.corp.intel.com>
- <20180119091732.x3qyex6lzev2sp2u@paasikivi.fi.intel.com>
- <8E0971CCB6EA9D41AF58191A2D3978B61D4E66E1@PGSMSX111.gar.corp.intel.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <8E0971CCB6EA9D41AF58191A2D3978B61D4E66E1@PGSMSX111.gar.corp.intel.com>
+Received: from mout.kundenserver.de ([212.227.17.24]:51400 "EHLO
+        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750772AbeAPQrv (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 16 Jan 2018 11:47:51 -0500
+From: Arnd Bergmann <arnd@arndb.de>
+To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: [PATCH] [v3] media: s3c-camif: fix out-of-bounds array access
+Date: Tue, 16 Jan 2018 17:47:24 +0100
+Message-Id: <20180116164740.2097257-1-arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Andy,
+While experimenting with older compiler versions, I ran
+into a warning that no longer shows up on gcc-4.8 or newer:
 
-On Mon, Jan 22, 2018 at 08:03:23AM +0000, Yeh, Andy wrote:
-> Hi Sakari, Tomasz,
-> 
-> As below discussion that other drivers are with this pattern, I would prefer to defer to address the concern in later discussion with you and owners of other sensors.
-> 
-> Thanks a lot.
+drivers/media/platform/s3c-camif/camif-capture.c: In function '__camif_subdev_try_format':
+drivers/media/platform/s3c-camif/camif-capture.c:1265:25: error: array subscript is below array bounds
 
-I thought of taking a look into the problem area and one sensor driver
-which doesn't appear to have the problem in this respect is imx258. This is
-because the v4l2_ctrl_handler_setup() isn't called in a runtime PM
-callback, but through V4L2 sub-dev s_stream callback instead. The runtime
-PM transition has already taken place by then. This isn't entirely optimal
-but works. Other sensor drivers will still need to be fixed.
+This is an off-by-one bug, leading to an access before the start of the
+array, while newer compilers silently assume this undefined behavior
+cannot happen and leave the loop at index 0 if no other entry matches.
 
+As Sylvester explains, we actually need to ensure that the
+value is within the range, so this reworks the loop to be
+easier to parse correctly, and an additional check to fall
+back on the first format value for any unexpected input.
+
+I found an existing gcc bug for it and added a reduced version
+of the function there.
+
+Link: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=69249#c3
+Fixes: babde1c243b2 ("[media] V4L: Add driver for S3C24XX/S3C64XX SoC series camera interface")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+---
+v3: fix newly introduced off-by-one bug.
+v2: rework logic rather than removing it.
+---
+ drivers/media/platform/s3c-camif/camif-capture.c | 9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/media/platform/s3c-camif/camif-capture.c b/drivers/media/platform/s3c-camif/camif-capture.c
+index 437395a61065..f51b92e94a32 100644
+--- a/drivers/media/platform/s3c-camif/camif-capture.c
++++ b/drivers/media/platform/s3c-camif/camif-capture.c
+@@ -1256,16 +1256,19 @@ static void __camif_subdev_try_format(struct camif_dev *camif,
+ {
+ 	const struct s3c_camif_variant *variant = camif->variant;
+ 	const struct vp_pix_limits *pix_lim;
+-	int i = ARRAY_SIZE(camif_mbus_formats);
++	int i;
+ 
+ 	/* FIXME: constraints against codec or preview path ? */
+ 	pix_lim = &variant->vp_pix_limits[VP_CODEC];
+ 
+-	while (i-- >= 0)
++	for (i = 0; i < ARRAY_SIZE(camif_mbus_formats); i++)
+ 		if (camif_mbus_formats[i] == mf->code)
+ 			break;
+ 
+-	mf->code = camif_mbus_formats[i];
++	if (i == ARRAY_SIZE(camif_mbus_formats))
++		mf->code = camif_mbus_formats[0];
++	else
++		mf->code = camif_mbus_formats[i];
+ 
+ 	if (pad == CAMIF_SD_PAD_SINK) {
+ 		v4l_bound_align_image(&mf->width, 8, CAMIF_MAX_PIX_WIDTH,
 -- 
-Sakari Ailus
-sakari.ailus@linux.intel.com
+2.9.0
