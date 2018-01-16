@@ -1,53 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtprelay0218.hostedemail.com ([216.40.44.218]:42046 "EHLO
-        smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1753968AbeAIUta (ORCPT
+Received: from mail-io0-f175.google.com ([209.85.223.175]:45120 "EHLO
+        mail-io0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751017AbeAPCf4 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 9 Jan 2018 15:49:30 -0500
-Message-ID: <1515530966.9619.124.camel@perches.com>
-Subject: Re: [PATCH 1/3] media/ttusb-budget: remove pci_zalloc_coherent abuse
-From: Joe Perches <joe@perches.com>
-To: Christoph Hellwig <hch@lst.de>,
-        Bjorn Helgaas <bhelgaas@google.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: linux-pci@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Date: Tue, 09 Jan 2018 12:49:26 -0800
-In-Reply-To: <20180109203939.5930-2-hch@lst.de>
-References: <20180109203939.5930-1-hch@lst.de>
-         <20180109203939.5930-2-hch@lst.de>
-Content-Type: text/plain; charset="ISO-8859-1"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+        Mon, 15 Jan 2018 21:35:56 -0500
+Received: by mail-io0-f175.google.com with SMTP id p188so2396741ioe.12
+        for <linux-media@vger.kernel.org>; Mon, 15 Jan 2018 18:35:55 -0800 (PST)
+Received: from mail-io0-f178.google.com (mail-io0-f178.google.com. [209.85.223.178])
+        by smtp.gmail.com with ESMTPSA id z77sm631227ita.19.2018.01.15.18.35.54
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Mon, 15 Jan 2018 18:35:54 -0800 (PST)
+Received: by mail-io0-f178.google.com with SMTP id d11so15156960iog.5
+        for <linux-media@vger.kernel.org>; Mon, 15 Jan 2018 18:35:54 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <20180115120111.GA9598@jade>
+References: <20180110160732.7722-1-gustavo@padovan.org> <20180110160732.7722-2-gustavo@padovan.org>
+ <CAPBb6MV6ErW-Z7n1aK55TxJNRDkt2SkWGEJiXkxrLmZ_GabJOA@mail.gmail.com> <20180115120111.GA9598@jade>
+From: Alexandre Courbot <acourbot@chromium.org>
+Date: Tue, 16 Jan 2018 11:35:33 +0900
+Message-ID: <CAPBb6MUNPtD-74ON6Wvw4waOuk4YPmYjXgFV=fBeCKTozwHJjw@mail.gmail.com>
+Subject: Re: [PATCH v7 1/6] [media] vb2: add is_unordered callback for drivers
+To: Gustavo Padovan <gustavo@padovan.org>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
+        Shuah Khan <shuahkh@osg.samsung.com>,
+        Pawel Osciak <pawel@osciak.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Brian Starkey <brian.starkey@arm.com>,
+        Thierry Escande <thierry.escande@collabora.com>,
+        linux-kernel@vger.kernel.org,
+        Gustavo Padovan <gustavo.padovan@collabora.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 2018-01-09 at 21:39 +0100, Christoph Hellwig wrote:
-> Switch to a plain kzalloc instea of pci_zalloc_coherent to allocate
-> memory for the USB DMA.
-[]
-> diff --git a/drivers/media/usb/ttusb-budget/dvb-ttusb-budget.c b/drivers/media/usb/ttusb-budget/dvb-ttusb-budget.c
-[]
-> @@ -792,21 +791,15 @@ static void ttusb_free_iso_urbs(struct ttusb *ttusb)
-> []
->  static int ttusb_alloc_iso_urbs(struct ttusb *ttusb)
->  {
->  	int i;
->  
-> -	ttusb->iso_buffer = pci_zalloc_consistent(NULL,
-> -						  ISO_FRAME_SIZE * FRAMES_PER_ISO_BUF * ISO_BUF_COUNT,
-> -						  &ttusb->iso_dma_handle);
-> -
-> +	ttusb->iso_buffer = kzalloc(ISO_FRAME_SIZE * FRAMES_PER_ISO_BUF *
-> +			ISO_BUF_COUNT, GFP_KERNEL);
->  	if (!ttusb->iso_buffer) {
->  		dprintk("%s: pci_alloc_consistent - not enough memory\n",
->  			__func__);
+On Mon, Jan 15, 2018 at 9:01 PM, Gustavo Padovan <gustavo@padovan.org> wrote:
+> 2018-01-15 Alexandre Courbot <acourbot@chromium.org>:
+>
+>> On Thu, Jan 11, 2018 at 1:07 AM, Gustavo Padovan <gustavo@padovan.org> wrote:
+>> > From: Gustavo Padovan <gustavo.padovan@collabora.com>
+>> >
+>> > Explicit synchronization benefits a lot from ordered queues, they fit
+>> > better in a pipeline with DRM for example so create a opt-in way for
+>> > drivers notify videobuf2 that the queue is unordered.
+>> >
+>> > Drivers don't need implement it if the queue is ordered.
+>>
+>> This is going to make user-space believe that *all* vb2 drivers use
+>> ordered queues by default, at least until non-ordered drivers catch up
+>> with this change. Wouldn't it be less dangerous to do the opposite
+>> (make queues non-ordered by default)?
+>
+> The rational behind this decision was because most formats/drivers are
+> ordered so only a small amount of drivers need to changed. I think this
+> was proposed by Hans on the Media Summit.
 
-This message doesn't make sense anymore and it might as well
-be deleted.
-
-And it might be better to use kcalloc
-
-	ttusb->iso_buffer = kcalloc(FRAMES_PER_ISO_BUF * ISO_BUF_COUNT,
-				    ISO_FRAME_SIZE, GFP_KERNEL);
+As long as all concerned drivers are updated we should be on the safe
+side. At first I was surprised that we expose the ordering feature in
+a negative tense, but if the vast majority of devices are ordered this
+probably makes sense.
