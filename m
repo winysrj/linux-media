@@ -1,75 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from userp2130.oracle.com ([156.151.31.86]:48937 "EHLO
-        userp2130.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751685AbeABK1U (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 2 Jan 2018 05:27:20 -0500
-Date: Tue, 2 Jan 2018 13:26:45 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: Julia Lawall <julia.lawall@lip6.fr>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        kernel-janitors@vger.kernel.org, Alan Cox <alan@linux.intel.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        devel@driverdev.osuosl.org, Kristian Beilke <beilke@posteo.de>
-Subject: Re: [PATCH v1 05/10] staging: atomisp: Remove non-ACPI leftovers
-Message-ID: <20180102102644.km2lb65ehesphso7@mwanda>
-References: <20171219205957.10933-1-andriy.shevchenko@linux.intel.com>
- <20171219205957.10933-5-andriy.shevchenko@linux.intel.com>
- <20171220053828.5wphhl6oc2sl3su5@mwanda>
- <alpine.DEB.2.20.1712201127240.13140@hadrien>
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:51305 "EHLO
+        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751391AbeAPJtl (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 16 Jan 2018 04:49:41 -0500
+Subject: Re: [PATCH v5 1/9] dt-bindings: media: Add Renesas CEU bindings
+To: Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        laurent.pinchart@ideasonboard.com, magnus.damm@gmail.com,
+        geert@glider.be, mchehab@kernel.org, festevam@gmail.com,
+        sakari.ailus@iki.fi, robh+dt@kernel.org, mark.rutland@arm.com,
+        pombredanne@nexb.com
+Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-sh@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+References: <1515765849-10345-1-git-send-email-jacopo+renesas@jmondi.org>
+ <1515765849-10345-2-git-send-email-jacopo+renesas@jmondi.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <b053414f-3861-50ad-c672-68977a9f4cd4@xs4all.nl>
+Date: Tue, 16 Jan 2018 10:49:36 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.20.1712201127240.13140@hadrien>
+In-Reply-To: <1515765849-10345-2-git-send-email-jacopo+renesas@jmondi.org>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Dec 20, 2017 at 11:30:01AM +0100, Julia Lawall wrote:
+On 01/12/2018 03:04 PM, Jacopo Mondi wrote:
+> Add bindings documentation for Renesas Capture Engine Unit (CEU).
 > 
+> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+> Reviewed-by: Rob Herring <robh@kernel.org>
+> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+
+Regards,
+
+        Hans
+
+> ---
+>  .../devicetree/bindings/media/renesas,ceu.txt      | 81 ++++++++++++++++++++++
+>  1 file changed, 81 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/renesas,ceu.txt
 > 
-> On Wed, 20 Dec 2017, Dan Carpenter wrote:
+> diff --git a/Documentation/devicetree/bindings/media/renesas,ceu.txt b/Documentation/devicetree/bindings/media/renesas,ceu.txt
+> new file mode 100644
+> index 0000000..590ee27
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/media/renesas,ceu.txt
+> @@ -0,0 +1,81 @@
+> +Renesas Capture Engine Unit (CEU)
+> +----------------------------------------------
+> +
+> +The Capture Engine Unit is the image capture interface found in the Renesas
+> +SH Mobile and RZ SoCs.
+> +
+> +The interface supports a single parallel input with data bus width of 8 or 16
+> +bits.
+> +
+> +Required properties:
+> +- compatible: Shall be "renesas,r7s72100-ceu" for CEU units found in RZ/A1-H
+> +  and RZ/A1-M SoCs.
+> +- reg: Registers address base and size.
+> +- interrupts: The interrupt specifier.
+> +
+> +The CEU supports a single parallel input and should contain a single 'port'
+> +subnode with a single 'endpoint'. Connection to input devices are modeled
+> +according to the video interfaces OF bindings specified in:
+> +Documentation/devicetree/bindings/media/video-interfaces.txt
+> +
+> +Optional endpoint properties applicable to parallel input bus described in
+> +the above mentioned "video-interfaces.txt" file are supported.
+> +
+> +- hsync-active: Active state of the HSYNC signal, 0/1 for LOW/HIGH respectively.
+> +  If property is not present, default is active high.
+> +- vsync-active: Active state of the VSYNC signal, 0/1 for LOW/HIGH respectively.
+> +  If property is not present, default is active high.
+> +
+> +Example:
+> +
+> +The example describes the connection between the Capture Engine Unit and an
+> +OV7670 image sensor connected to i2c1 interface.
+> +
+> +ceu: ceu@e8210000 {
+> +	reg = <0xe8210000 0x209c>;
+> +	compatible = "renesas,r7s72100-ceu";
+> +	interrupts = <GIC_SPI 332 IRQ_TYPE_LEVEL_HIGH>;
+> +
+> +	pinctrl-names = "default";
+> +	pinctrl-0 = <&vio_pins>;
+> +
+> +	status = "okay";
+> +
+> +	port {
+> +		ceu_in: endpoint {
+> +			remote-endpoint = <&ov7670_out>;
+> +
+> +			hsync-active = <1>;
+> +			vsync-active = <0>;
+> +		};
+> +	};
+> +};
+> +
+> +i2c1: i2c@fcfee400 {
+> +	pinctrl-names = "default";
+> +	pinctrl-0 = <&i2c1_pins>;
+> +
+> +	status = "okay";
+> +
+> +	clock-frequency = <100000>;
+> +
+> +	ov7670: camera@21 {
+> +		compatible = "ovti,ov7670";
+> +		reg = <0x21>;
+> +
+> +		pinctrl-names = "default";
+> +		pinctrl-0 = <&vio_pins>;
+> +
+> +		reset-gpios = <&port3 11 GPIO_ACTIVE_LOW>;
+> +		powerdown-gpios = <&port3 12 GPIO_ACTIVE_HIGH>;
+> +
+> +		port {
+> +			ov7670_out: endpoint {
+> +				remote-endpoint = <&ceu_in>;
+> +
+> +				hsync-active = <1>;
+> +				vsync-active = <0>;
+> +			};
+> +		};
+> +	};
+> +};
 > 
-> > On Tue, Dec 19, 2017 at 10:59:52PM +0200, Andy Shevchenko wrote:
-> > > @@ -914,9 +904,7 @@ static int lm3554_probe(struct i2c_client *client)
-> > >  		dev_err(&client->dev, "gpio request/direction_output fail");
-> > >  		goto fail2;
-> > >  	}
-> > > -	if (ACPI_HANDLE(&client->dev))
-> > > -		err = atomisp_register_i2c_module(&flash->sd, NULL, LED_FLASH);
-> > > -	return 0;
-> > > +	return atomisp_register_i2c_module(&flash->sd, NULL, LED_FLASH);
-> > >  fail2:
-> > >  	media_entity_cleanup(&flash->sd.entity);
-> > >  	v4l2_ctrl_handler_free(&flash->ctrl_handler);
-> >
-> > Actually every place where we directly return a function call is wrong
-> > and needs error handling added.  I've been meaning to write a Smatch
-> > check for this because it's a common anti-pattern we don't check the
-> > last function call for errors.
-> >
-> > Someone could probably do the same in Coccinelle if they want.
-> 
-> I'm not sure what you are suggesting.  Is every case of return f(...);
-> for any f wrong?  Or is it a particular function that is of concern?  Or
-> would it be that every function call that has error handling somewhere
-> should have error handling everywhere?  Or is it related to what seems to
-> be the problem in the above code that err is initialized but nothing
-> happens to it?
-> 
-
-I was just thinking that it's a common pattern to treat the last
-function call differently and one mistake I often see looks like this:
-
-	ret = frob();
-	if (ret) {
-		cleanup();
-		return ret;
-	}
-
-	return another_function();
-
-No error handling for the last function call.
-
-regards,
-dan carpenter
