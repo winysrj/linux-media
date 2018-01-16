@@ -1,64 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay4-d.mail.gandi.net ([217.70.183.196]:39346 "EHLO
-        relay4-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753294AbeADQDv (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 4 Jan 2018 11:03:51 -0500
-From: Jacopo Mondi <jacopo+renesas@jmondi.org>
-To: laurent.pinchart@ideasonboard.com, magnus.damm@gmail.com,
-        geert@glider.be, mchehab@kernel.org, hverkuil@xs4all.nl,
-        festevam@gmail.com, sakari.ailus@iki.fi, robh+dt@kernel.org,
-        mark.rutland@arm.com
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-sh@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH v3 4/9] ARM: dts: r7s72100: Add Capture Engine Unit (CEU)
-Date: Thu,  4 Jan 2018 17:03:12 +0100
-Message-Id: <1515081797-17174-5-git-send-email-jacopo+renesas@jmondi.org>
-In-Reply-To: <1515081797-17174-1-git-send-email-jacopo+renesas@jmondi.org>
-References: <1515081797-17174-1-git-send-email-jacopo+renesas@jmondi.org>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:40163 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750747AbeAPRXY (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 16 Jan 2018 12:23:24 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Kieran Bingham <kieran.bingham@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+        Olivier BRAUN <olivier.braun@stereolabs.com>,
+        Troy Kisky <troy.kisky@boundarydevices.com>
+Subject: Re: [RFT PATCH v3 4/6] uvcvideo: queue: Simplify spin-lock usage
+Date: Tue, 16 Jan 2018 19:23:27 +0200
+Message-ID: <1566744.FFqUaHsn7F@avalon>
+In-Reply-To: <9f83cda1d54615e068c20fcadf69a1f09ae50ec1.1515748369.git-series.kieran.bingham@ideasonboard.com>
+References: <cover.30aaad9a6abac5e92d4a1a0e6634909d97cc54d8.1515748369.git-series.kieran.bingham@ideasonboard.com> <9f83cda1d54615e068c20fcadf69a1f09ae50ec1.1515748369.git-series.kieran.bingham@ideasonboard.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add Capture Engine Unit (CEU) node to device tree.
+Hi Kieran,
 
-Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
-Reviewed-by: Geert Uytterhoeven <geert+renesas@glider.be>
+Thank you for the patch.
+
+On Friday, 12 January 2018 11:19:26 EET Kieran Bingham wrote:
+> Both uvc_start_streaming(), and uvc_stop_streaming() are called from
+> userspace context. As such, they do not need to save the IRQ state, and
+> can use spin_lock_irq() and spin_unlock_irq() respectively.
+
+Note that userspace context isn't enough, the key part is that they're called 
+with interrupts enabled. If they were called from userspace context but under 
+a spin_lock_irq() you couldn't use spin_unlock_irq() in those functions.
+
+> Signed-off-by: Kieran Bingham <kieran.bingham@ideasonboard.com>
+> ---
+>  drivers/media/usb/uvc/uvc_queue.c | 10 ++++------
+>  1 file changed, 4 insertions(+), 6 deletions(-)
+> 
+> diff --git a/drivers/media/usb/uvc/uvc_queue.c
+> b/drivers/media/usb/uvc/uvc_queue.c index 4a581d631525..ddac4d89a291 100644
+> --- a/drivers/media/usb/uvc/uvc_queue.c
+> +++ b/drivers/media/usb/uvc/uvc_queue.c
+> @@ -158,7 +158,6 @@ static int uvc_start_streaming(struct vb2_queue *vq,
+> unsigned int count) {
+>  	struct uvc_video_queue *queue = vb2_get_drv_priv(vq);
+>  	struct uvc_streaming *stream = uvc_queue_to_stream(queue);
+> -	unsigned long flags;
+>  	int ret;
+> 
+>  	queue->buf_used = 0;
+> @@ -167,9 +166,9 @@ static int uvc_start_streaming(struct vb2_queue *vq,
+> unsigned int count) if (ret == 0)
+>  		return 0;
+> 
+> -	spin_lock_irqsave(&queue->irqlock, flags);
+> +	spin_lock_irq(&queue->irqlock);
+>  	uvc_queue_return_buffers(queue, UVC_BUF_STATE_QUEUED);
+> -	spin_unlock_irqrestore(&queue->irqlock, flags);
+> +	spin_unlock_irq(&queue->irqlock);
+> 
+>  	return ret;
+>  }
+> @@ -178,13 +177,12 @@ static void uvc_stop_streaming(struct vb2_queue *vq)
+>  {
+>  	struct uvc_video_queue *queue = vb2_get_drv_priv(vq);
+>  	struct uvc_streaming *stream = uvc_queue_to_stream(queue);
+> -	unsigned long flags;
+> 
+>  	uvc_video_enable(stream, 0);
+> 
+> -	spin_lock_irqsave(&queue->irqlock, flags);
+> +	spin_lock_irq(&queue->irqlock);
+>  	uvc_queue_return_buffers(queue, UVC_BUF_STATE_ERROR);
+> -	spin_unlock_irqrestore(&queue->irqlock, flags);
+> +	spin_unlock_irq(&queue->irqlock);
+>  }
+
+Please add a one-line comment above both functions to state
+
+/* Must be called with interrupts enabled. */
+
+With this and the commit message updated,
+
 Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- arch/arm/boot/dts/r7s72100.dtsi | 15 ++++++++++++---
- 1 file changed, 12 insertions(+), 3 deletions(-)
 
-diff --git a/arch/arm/boot/dts/r7s72100.dtsi b/arch/arm/boot/dts/r7s72100.dtsi
-index ab9645a..5fe62f9 100644
---- a/arch/arm/boot/dts/r7s72100.dtsi
-+++ b/arch/arm/boot/dts/r7s72100.dtsi
-@@ -135,9 +135,9 @@
- 			#clock-cells = <1>;
- 			compatible = "renesas,r7s72100-mstp-clocks", "renesas,cpg-mstp-clocks";
- 			reg = <0xfcfe042c 4>;
--			clocks = <&p0_clk>;
--			clock-indices = <R7S72100_CLK_RTC>;
--			clock-output-names = "rtc";
-+			clocks = <&b_clk>, <&p0_clk>;
-+			clock-indices = <R7S72100_CLK_CEU R7S72100_CLK_RTC>;
-+			clock-output-names = "ceu", "rtc";
- 		};
- 
- 		mstp7_clks: mstp7_clks@fcfe0430 {
-@@ -667,4 +667,13 @@
- 		power-domains = <&cpg_clocks>;
- 		status = "disabled";
- 	};
-+
-+	ceu: ceu@e8210000 {
-+		reg = <0xe8210000 0x3000>;
-+		compatible = "renesas,r7s72100-ceu";
-+		interrupts = <GIC_SPI 332 IRQ_TYPE_LEVEL_HIGH>;
-+		clocks = <&mstp6_clks R7S72100_CLK_CEU>;
-+		power-domains = <&cpg_clocks>;
-+		status = "disabled";
-+	};
- };
+>  static const struct vb2_ops uvc_queue_qops = {
+
 -- 
-2.7.4
+Regards,
+
+Laurent Pinchart
