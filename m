@@ -1,78 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:11533 "EHLO
-        mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932891AbeAXLX1 (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:41596 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751636AbeAPWNh (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 24 Jan 2018 06:23:27 -0500
-From: Smitha T Murthy <smitha.t@samsung.com>
-To: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        Tue, 16 Jan 2018 17:13:37 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
         linux-kernel@vger.kernel.org
-Cc: kyungmin.park@samsung.com, kamil@wypas.org, jtp.park@samsung.com,
-        a.hajda@samsung.com, mchehab@kernel.org, pankaj.dubey@samsung.com,
-        krzk@kernel.org, m.szyprowski@samsung.com, s.nawrocki@samsung.com,
-        Smitha T Murthy <smitha.t@samsung.com>
-Subject: [Patch v7 00/12] Add MFC v10.10 support
-Date: Wed, 24 Jan 2018 16:29:32 +0530
-Message-id: <1516791584-7980-1-git-send-email-smitha.t@samsung.com>
-References: <CGME20180124112324epcas2p246e0983b55ae9d6923b537cb34d7346f@epcas2p2.samsung.com>
+Subject: Re: [PATCH] [v4] media: s3c-camif: fix out-of-bounds array access
+Date: Wed, 17 Jan 2018 00:13:41 +0200
+Message-ID: <3727279.VykOP2t76P@avalon>
+In-Reply-To: <20180116215242.784423-1-arnd@arndb.de>
+References: <20180116215242.784423-1-arnd@arndb.de>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch series adds MFC v10.10 support. MFC v10.10 is used in some
-of Exynos7 variants.
+Hi Arnd,
 
-This adds support for following:
+Thank you for the patch.
 
-* Add support for HEVC encoder and decoder
-* Add support for VP9 decoder
-* Update Documentation for control id definitions
-* Update computation of min scratch buffer size requirement for V8 onwards
+On Tuesday, 16 January 2018 23:52:15 EET Arnd Bergmann wrote:
+> While experimenting with older compiler versions, I ran
+> into a warning that no longer shows up on gcc-4.8 or newer:
+> 
+> drivers/media/platform/s3c-camif/camif-capture.c: In function
+> '__camif_subdev_try_format':
+> drivers/media/platform/s3c-camif/camif-capture.c:1265:25: error: array
+> subscript is below array bounds
+> 
+> This is an off-by-one bug, leading to an access before the start of the
+> array, while newer compilers silently assume this undefined behavior
+> cannot happen and leave the loop at index 0 if no other entry matches.
+> 
+> As Sylvester explains, we actually need to ensure that the
+> value is within the range, so this reworks the loop to be
+> easier to parse correctly, and an additional check to fall
+> back on the first format value for any unexpected input.
+> 
+> I found an existing gcc bug for it and added a reduced version
+> of the function there.
+> 
+> Link: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=69249#c3
+> Fixes: babde1c243b2 ("[media] V4L: Add driver for S3C24XX/S3C64XX SoC series
+> camera interface") Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 
-Changes since v6:
- - Addressed review comments by Kamil Debski <kamil@wypas.org>.
- - Addressed review comments by
-   Stanimir Varbanov <stanimir.varbanov@linaro.org>.
- - Addressed review comments by Hans Verkuil <hverkuil@xs4all.nl>.
- - Addressed review comments by Philippe Ombredanne <pombredanne@nexb.com>
- - Rebased on latest git://linuxtv.org/snawrocki/samsung.git
-   for-v4.16/media/next.
- - Applied r-o-b from Andrzej, Stanimir on respective patches.
- - Applied acked-by from Kamil, Hans on respective patches.
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-Smitha T Murthy (12):
-  [media] s5p-mfc: Rename IS_MFCV8 macro
-  [media] s5p-mfc: Adding initial support for MFC v10.10
-  [media] s5p-mfc: Use min scratch buffer size as provided by F/W
-  [media] s5p-mfc: Support MFCv10.10 buffer requirements
-  [media] videodev2.h: Add v4l2 definition for HEVC
-  [media] v4l2-ioctl: add HEVC format description
-  Documentation: v4l: Documentation for HEVC v4l2 definition
-  [media] s5p-mfc: Add support for HEVC decoder
-  [media] s5p-mfc: Add VP9 decoder support
-  [media] v4l2: Add v4l2 control IDs for HEVC encoder
-  [media] s5p-mfc: Add support for HEVC encoder
-  Documention: v4l: Documentation for HEVC CIDs
+> ---
+> v4: simplify a bit
+> v3: fix newly introduced off-by-one bug.
+> v2: rework logic rather than removing it.
+> ---
+>  drivers/media/platform/s3c-camif/camif-capture.c | 7 ++++---
+>  1 file changed, 4 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/media/platform/s3c-camif/camif-capture.c
+> b/drivers/media/platform/s3c-camif/camif-capture.c index
+> 437395a61065..9ab8e7ee2e1e 100644
+> --- a/drivers/media/platform/s3c-camif/camif-capture.c
+> +++ b/drivers/media/platform/s3c-camif/camif-capture.c
+> @@ -1256,16 +1256,17 @@ static void __camif_subdev_try_format(struct
+> camif_dev *camif, {
+>  	const struct s3c_camif_variant *variant = camif->variant;
+>  	const struct vp_pix_limits *pix_lim;
+> -	int i = ARRAY_SIZE(camif_mbus_formats);
+> +	unsigned int i;
+> 
+>  	/* FIXME: constraints against codec or preview path ? */
+>  	pix_lim = &variant->vp_pix_limits[VP_CODEC];
+> 
+> -	while (i-- >= 0)
+> +	for (i = 0; i < ARRAY_SIZE(camif_mbus_formats); i++)
+>  		if (camif_mbus_formats[i] == mf->code)
+>  			break;
+> 
+> -	mf->code = camif_mbus_formats[i];
+> +	if (i == ARRAY_SIZE(camif_mbus_formats))
+> +		mf->code = camif_mbus_formats[0];
+> 
+>  	if (pad == CAMIF_SD_PAD_SINK) {
+>  		v4l_bound_align_image(&mf->width, 8, CAMIF_MAX_PIX_WIDTH,
 
- .../devicetree/bindings/media/s5p-mfc.txt          |   1 +
- Documentation/media/uapi/v4l/extended-controls.rst | 400 +++++++++++++++
- Documentation/media/uapi/v4l/pixfmt-compressed.rst |   5 +
- drivers/media/platform/s5p-mfc/regs-mfc-v10.h      |  87 ++++
- drivers/media/platform/s5p-mfc/regs-mfc-v8.h       |   2 +
- drivers/media/platform/s5p-mfc/s5p_mfc.c           |  28 ++
- drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c    |   9 +
- drivers/media/platform/s5p-mfc/s5p_mfc_common.h    |  68 ++-
- drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c      |   6 +-
- drivers/media/platform/s5p-mfc/s5p_mfc_dec.c       |  48 +-
- drivers/media/platform/s5p-mfc/s5p_mfc_enc.c       | 557 ++++++++++++++++++++-
- drivers/media/platform/s5p-mfc/s5p_mfc_opr.h       |  14 +
- drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c    | 397 +++++++++++++--
- drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h    |  15 +
- drivers/media/v4l2-core/v4l2-ctrls.c               | 119 +++++
- drivers/media/v4l2-core/v4l2-ioctl.c               |   1 +
- include/uapi/linux/v4l2-controls.h                 |  93 +++-
- include/uapi/linux/videodev2.h                     |   1 +
- 18 files changed, 1773 insertions(+), 78 deletions(-)
- create mode 100644 drivers/media/platform/s5p-mfc/regs-mfc-v10.h
 
 -- 
-2.7.4
+Regards,
+
+Laurent Pinchart
