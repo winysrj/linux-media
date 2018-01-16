@@ -1,246 +1,296 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:36346 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1752469AbeAaOXI (ORCPT
+Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:35688 "EHLO
+        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751228AbeAPKhx (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 31 Jan 2018 09:23:08 -0500
-Date: Wed, 31 Jan 2018 16:23:05 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hugues Fruchet <hugues.fruchet@st.com>
-Cc: Steve Longerbeam <slongerbeam@gmail.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Subject: Re: [PATCH] media: ov5640: various typo & style fixes
-Message-ID: <20180131142305.6hbdf2xjyn4ay3ij@valkosipuli.retiisi.org.uk>
-References: <1517397729-12758-1-git-send-email-hugues.fruchet@st.com>
+        Tue, 16 Jan 2018 05:37:53 -0500
+Subject: Re: [RFC PATCH 5/9] media: vb2: add support for requests
+To: Alexandre Courbot <acourbot@chromium.org>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Pawel Osciak <posciak@chromium.org>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Tomasz Figa <tfiga@chromium.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Gustavo Padovan <gustavo.padovan@collabora.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        linux-kernel@vger.kernel.org
+References: <20171215075625.27028-1-acourbot@chromium.org>
+ <20171215075625.27028-6-acourbot@chromium.org>
+ <b23c9899-cc09-bc75-a29d-fc8185e0cc63@xs4all.nl>
+ <CAPBb6MVsE0doJ5CeV3h-X5b=Nd-Fn3SOa_pcjDHBabA-H7KyMQ@mail.gmail.com>
+ <08090730-a828-40f9-2cd6-0501655937af@xs4all.nl>
+ <CAPBb6MWjtQZpqGQeiCHbta=O6j0Jd_THf4MJUuvUdZBuWHLo2Q@mail.gmail.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <3da94f7b-fb60-585d-1b9a-912d7a5555dc@xs4all.nl>
+Date: Tue, 16 Jan 2018 11:37:46 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1517397729-12758-1-git-send-email-hugues.fruchet@st.com>
+In-Reply-To: <CAPBb6MWjtQZpqGQeiCHbta=O6j0Jd_THf4MJUuvUdZBuWHLo2Q@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hugues,
-
-Thanks for the patch. It's nice to see cleanups, too! :-)
-
-A few comments below. Apart those this seems good to me.
-
-On Wed, Jan 31, 2018 at 12:22:09PM +0100, Hugues Fruchet wrote:
-> Various typo & style fixes either detected by code
-> review or checkpatch.
+On 01/16/2018 10:39 AM, Alexandre Courbot wrote:
+> On Mon, Jan 15, 2018 at 6:07 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>> On 01/15/2018 09:24 AM, Alexandre Courbot wrote:
+>>> On Fri, Jan 12, 2018 at 7:49 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>>>> On 12/15/17 08:56, Alexandre Courbot wrote:
+>>>>> Add throttling support for buffers when requests are in use on a given
+>>>>> queue. Buffers associated to a request are kept into the vb2 queue until
+>>>>> the request becomes active, at which point all the buffers are passed to
+>>>>> the driver. The queue can also signal that is has processed all of a
+>>>>> request's buffers.
+>>>>>
+>>>>> Also add support for the request parameter when handling the QBUF ioctl.
+>>>>>
+>>>>> Signed-off-by: Alexandre Courbot <acourbot@chromium.org>
+>>>>> ---
+>>>>>  drivers/media/v4l2-core/videobuf2-core.c | 59 ++++++++++++++++++++++++++++----
+>>>>>  drivers/media/v4l2-core/videobuf2-v4l2.c | 29 +++++++++++++++-
+>>>>>  include/media/videobuf2-core.h           | 25 +++++++++++++-
+>>>>>  3 files changed, 104 insertions(+), 9 deletions(-)
+>>>>>
+>>>>> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+>>>>> index cb115ba6a1d2..c01038b7962a 100644
+>>>>> --- a/drivers/media/v4l2-core/videobuf2-core.c
+>>>>> +++ b/drivers/media/v4l2-core/videobuf2-core.c
+>>>>> @@ -898,6 +898,8 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
+>>>>>                   state != VB2_BUF_STATE_REQUEUEING))
+>>>>>               state = VB2_BUF_STATE_ERROR;
+>>>>>
+>>>>> +     WARN_ON(vb->request != q->cur_req);
+>>>>
+>>>> What's the reason for this WARN_ON? It's not immediately obvious to me.
+>>>
+>>> This is a safeguard against driver bugs: a buffer should not complete
+>>> unless it is part of the request being currently processed.
+>>>
+>>>>
+>>>>> +
+>>>>>  #ifdef CONFIG_VIDEO_ADV_DEBUG
+>>>>>       /*
+>>>>>        * Although this is not a callback, it still does have to balance
+>>>>> @@ -920,6 +922,13 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
+>>>>>               /* Add the buffer to the done buffers list */
+>>>>>               list_add_tail(&vb->done_entry, &q->done_list);
+>>>>>               vb->state = state;
+>>>>> +
+>>>>> +             if (q->cur_req) {
+>>>>> +                     WARN_ON(q->req_buf_cnt < 1);
+>>>>> +
+>>>>> +                     if (--q->req_buf_cnt == 0)
+>>>>> +                             q->cur_req = NULL;
+>>>>> +             }
+>>>>>       }
+>>>>>       atomic_dec(&q->owned_by_drv_count);
+>>>>>       spin_unlock_irqrestore(&q->done_lock, flags);
+>>>>> @@ -1298,6 +1307,16 @@ int vb2_core_prepare_buf(struct vb2_queue *q, unsigned int index, void *pb)
+>>>>>  }
+>>>>>  EXPORT_SYMBOL_GPL(vb2_core_prepare_buf);
+>>>>>
+>>>>> +static void vb2_queue_enqueue_current_buffers(struct vb2_queue *q)
+>>>>> +{
+>>>>> +     struct vb2_buffer *vb;
+>>>>> +
+>>>>> +     list_for_each_entry(vb, &q->queued_list, queued_entry) {
+>>>>> +             if (vb->request == q->cur_req)
+>>>>> +                     __enqueue_in_driver(vb);
+>>>>> +     }
+>>>>> +}
+>>>>
+>>>> I think this will clash big time with the v4l2 fence patch series...
+>>>
+>>> Indeed, but on the other hand I was not a big fan of going through the
+>>> whole list. :) So I welcome the extra throttling introduced by the
+>>> fence series.
+>>
+>> There is only throttling if fences are used by userspace. Otherwise there
+>> is no change.
+>>
+>>>
+>>>>
+>>>>> +
+>>>>>  /**
+>>>>>   * vb2_start_streaming() - Attempt to start streaming.
+>>>>>   * @q:               videobuf2 queue
+>>>>> @@ -1318,8 +1337,7 @@ static int vb2_start_streaming(struct vb2_queue *q)
+>>>>>        * If any buffers were queued before streamon,
+>>>>>        * we can now pass them to driver for processing.
+>>>>>        */
+>>>>> -     list_for_each_entry(vb, &q->queued_list, queued_entry)
+>>>>> -             __enqueue_in_driver(vb);
+>>>>> +     vb2_queue_enqueue_current_buffers(q);
+>>>>>
+>>>>>       /* Tell the driver to start streaming */
+>>>>>       q->start_streaming_called = 1;
+>>>>> @@ -1361,7 +1379,8 @@ static int vb2_start_streaming(struct vb2_queue *q)
+>>>>>       return ret;
+>>>>>  }
+>>>>>
+>>>>> -int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb)
+>>>>> +int vb2_core_qbuf(struct vb2_queue *q, unsigned int index,
+>>>>> +               struct media_request *req, void *pb)
+>>>>>  {
+>>>>>       struct vb2_buffer *vb;
+>>>>>       int ret;
+>>>>> @@ -1392,6 +1411,7 @@ int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb)
+>>>>>       q->queued_count++;
+>>>>>       q->waiting_for_buffers = false;
+>>>>>       vb->state = VB2_BUF_STATE_QUEUED;
+>>>>> +     vb->request = req;
+>>>>>
+>>>>>       if (pb)
+>>>>>               call_void_bufop(q, copy_timestamp, vb, pb);
+>>>>> @@ -1401,8 +1421,11 @@ int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb)
+>>>>>       /*
+>>>>>        * If already streaming, give the buffer to driver for processing.
+>>>>>        * If not, the buffer will be given to driver on next streamon.
+>>>>> +      *
+>>>>> +      * If using the request API, the buffer will be given to the driver
+>>>>> +      * when the request becomes active.
+>>>>>        */
+>>>>> -     if (q->start_streaming_called)
+>>>>> +     if (q->start_streaming_called && !req)
+>>>>>               __enqueue_in_driver(vb);
+>>>>>
+>>>>>       /* Fill buffer information for the userspace */
+>>>>> @@ -1427,6 +1450,28 @@ int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb)
+>>>>>  }
+>>>>>  EXPORT_SYMBOL_GPL(vb2_core_qbuf);
+>>>>>
+>>>>> +void vb2_queue_start_request(struct vb2_queue *q, struct media_request *req)
+>>>>> +{
+>>>>> +     struct vb2_buffer *vb;
+>>>>> +
+>>>>> +     q->req_buf_cnt = 0;
+>>>>> +     list_for_each_entry(vb, &q->queued_list, queued_entry) {
+>>>>> +             if (vb->request == req)
+>>>>> +                     ++q->req_buf_cnt;
+>>>>> +     }
+>>>>> +
+>>>>> +     /* only consider the request if we actually have buffers for it */
+>>>>> +     if (q->req_buf_cnt == 0)
+>>>>> +             return;
+>>>>> +
+>>>>> +     q->cur_req = req;
+>>>>> +
+>>>>> +     /* If not streaming yet, we will enqueue the buffers later */
+>>>>> +     if (q->start_streaming_called)
+>>>>> +             vb2_queue_enqueue_current_buffers(q);
+>>>>
+>>>> If I understand all this correctly, then you are queuing one request at a
+>>>> time to the vb2_queue. I.e. all the buffers queued to the driver belong to
+>>>> the same request (q->cur_req).
+>>>
+>>> That is correct.
+>>>
+>>>> But that might work for codecs, but not
+>>>> for camera drivers: you will typically have multiple requests queued up in
+>>>> the driver.
+>>>
+>>> Aren't requests supposed to be performed sequentially, even in the
+>>> camera case? Passing a buffer to the driver means that we allow it to
+>>> process it using its current settings ; if another request is
+>>> currently active, wouldn't that become an issue?
+>>
+>> Drivers often need multiple buffers queued before they can start the DMA
+>> engine (usually at least two buffers have to be queued, just do a
+>> git grep min_buffers_needed drivers/media).
+>>
+>> In addition, sensors often have to be programmed one or two frames earlier
+>> for a new setting to take effect for the required frame.
+>>
+>> In other words: drivers need to be able to look ahead and vb2 should just
+>> queue buffers/requests as soon as they are ready.
 > 
-> Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
-> ---
->  drivers/media/i2c/ov5640.c | 52 +++++++++++++++++++++++-----------------------
->  1 file changed, 26 insertions(+), 26 deletions(-)
+> Cannot drivers simply peek into their vb2_queue if they need to look
+> ahead? My main concern here is that I would like to avoid having to
+> make individual drivers aware of requests as much as possible. With
+> the current design, drivers just need to care about unconditionally
+> processing all the buffers that are passed to them by vb2, and not
+> keeping it that way would complicate things.
+
+I'm not sure what the problem is. Once buffers are ready (i.e. not waiting
+for fences or unfinished requests) then they should be queued to the driver.
+At that time the driver can look at whatever associated request data the
+newly queued buffer has and program the hardware.
+
+Once a buffer is ready, just queue it up to the driver. Drivers should never
+look into buffers not explicitly queued to them. They don't need to either,
+since those buffers are not ready anyway.
+
+It's also a matter of who owns a buffer: that can be either userspace, vb2
+or the driver. Each 'owner' can only touch the buffers it owns and should
+never access buffers from other owners.
+
+> The issue of programming sensors ahead-of-time is more complex. As
+> always, it would probably be preferable to manage as much of this at
+> the framework level. I am not sure that a bulletproof solution exists
+> here, especially given the extra synchronization introduced by fences:
+> you may want to program a sensor two frames ahead, but what if the
+> frame in between has a non-yet signaled input fence? You could
+> potentially block and miss the timing. The solution here would be to
+> delay the processing of frame F-2 until the fence is signaled, or
+> introduce an empty "latency frame" once the fence signals to get the
+> timing right. Unless I am missing something, the ability to look into
+> the vb2_queue should be enough to achieve this.
+
+It is the responsibility of the application to make sure buffers aren't
+held up waiting for fences. That's no different to what happens today
+if the application cannot process buffers fast enough and the DMA engine
+is starved of buffers.
+
+Handling such complex scenarios is out-of-scope to the request API. The
+request framework should just hand over the buffers + request data to
+the driver as soon as it can, and that's it.
+
+We will probably want to provide helper functions for drivers to use
+to simplify such complex scenarios, but that's something for the future.
+
+Right now we just need to get core functionality right.
+
 > 
-> diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
-> index 882a7c3..9cceb5f 100644
-> --- a/drivers/media/i2c/ov5640.c
-> +++ b/drivers/media/i2c/ov5640.c
-> @@ -14,14 +14,14 @@
->  #include <linux/ctype.h>
->  #include <linux/delay.h>
->  #include <linux/device.h>
-> +#include <linux/gpio/consumer.h>
->  #include <linux/i2c.h>
->  #include <linux/init.h>
->  #include <linux/module.h>
->  #include <linux/of_device.h>
-> +#include <linux/regulator/consumer.h>
->  #include <linux/slab.h>
->  #include <linux/types.h>
-> -#include <linux/gpio/consumer.h>
-> -#include <linux/regulator/consumer.h>
->  #include <media/v4l2-async.h>
->  #include <media/v4l2-ctrls.h>
->  #include <media/v4l2-device.h>
-> @@ -128,7 +128,7 @@ struct ov5640_pixfmt {
->   * to set the MIPI CSI-2 virtual channel.
->   */
->  static unsigned int virtual_channel;
-> -module_param(virtual_channel, int, 0);
-> +module_param(virtual_channel, int, 0000);
+>>
+>>>
+>>>>
+>>>> In any case, I don't think the req_buf_cnt and cur_req fields belong in
+>>>> vb2_queue.
+>>>>
+>>>> Another weird thing here is that it appears that you allow for multiple
+>>>> buffers for the same device in the same request. I'm not sure that is
+>>>> useful. For one, it will postpone the completion of the request until
+>>>> all buffers are dequeued.
+>>>
+>>> s/dequeued/completed. A request is marked as completed as soon as all
+>>> its buffers are marked as done, and can be polled before its buffers
+>>> are dequeued by user-space.
+>>>
+>>> Do you suggest that we enforce a "one buffer per queue per request"
+>>> rule? I cannot thing of any case where this would be a hard limiting
+>>> factor (and it would certainly simplify the code), on the other hand
+>>> it may slow things down a bit in the case where we want to e.g. take
+>>> several shots in fast succession with the same parameters. But I have
+>>> no evidence that the extra lag would be noticeable.
+>>
+>> This is something that should go into an RFC for discussion. My opinion
+>> at this time is that you should stick with one buffer per queue per request.
+>> This can always be relaxed in the future. For now it is better to keep
+>> it simple.
+> 
+> The more I think about this idea, the more it looks like a good one.
+> It also answers the question "can we queue buffers not associated to a
+> request after we started using requests?". The answer would be yes:
+> such buffers would be processed immediately after the preceding
+> request completes, almost emulating the behavior of having several
+> buffers per request (with the exceptions that the request completes
+> earlier and with a different ending state, but this can be fixed by
+> associated another request without any control set to the last frame).
+> 
 
-Why?
+It sounds reasonable, but, as always, the devil is in the details.
 
->  MODULE_PARM_DESC(virtual_channel,
->  		 "MIPI CSI-2 virtual channel (0..3), default 0");
->  
-> @@ -139,7 +139,7 @@ struct ov5640_pixfmt {
->  
->  /* regulator supplies */
->  static const char * const ov5640_supply_name[] = {
-> -	"DOVDD", /* Digital I/O (1.8V) suppply */
-> +	"DOVDD", /* Digital I/O (1.8V) supply */
->  	"DVDD",  /* Digital Core (1.5V) supply */
->  	"AVDD",  /* Analog (2.8V) supply */
->  };
-> @@ -245,7 +245,6 @@ static inline struct v4l2_subdev *ctrl_to_sd(struct v4l2_ctrl *ctrl)
->   */
->  
->  static const struct reg_value ov5640_init_setting_30fps_VGA[] = {
-> -
->  	{0x3103, 0x11, 0, 0}, {0x3008, 0x82, 0, 5}, {0x3008, 0x42, 0, 0},
->  	{0x3103, 0x03, 0, 0}, {0x3017, 0x00, 0, 0}, {0x3018, 0x00, 0, 0},
->  	{0x3034, 0x18, 0, 0}, {0x3035, 0x14, 0, 0}, {0x3036, 0x38, 0, 0},
-> @@ -334,7 +333,6 @@ static inline struct v4l2_subdev *ctrl_to_sd(struct v4l2_ctrl *ctrl)
->  };
->  
->  static const struct reg_value ov5640_setting_30fps_VGA_640_480[] = {
-> -
->  	{0x3035, 0x14, 0, 0}, {0x3036, 0x38, 0, 0}, {0x3c07, 0x08, 0, 0},
->  	{0x3c09, 0x1c, 0, 0}, {0x3c0a, 0x9c, 0, 0}, {0x3c0b, 0x40, 0, 0},
->  	{0x3820, 0x41, 0, 0}, {0x3821, 0x07, 0, 0}, {0x3814, 0x31, 0, 0},
-> @@ -377,7 +375,6 @@ static inline struct v4l2_subdev *ctrl_to_sd(struct v4l2_ctrl *ctrl)
->  };
->  
->  static const struct reg_value ov5640_setting_30fps_XGA_1024_768[] = {
-> -
->  	{0x3035, 0x14, 0, 0}, {0x3036, 0x38, 0, 0}, {0x3c07, 0x08, 0, 0},
->  	{0x3c09, 0x1c, 0, 0}, {0x3c0a, 0x9c, 0, 0}, {0x3c0b, 0x40, 0, 0},
->  	{0x3820, 0x41, 0, 0}, {0x3821, 0x07, 0, 0}, {0x3814, 0x31, 0, 0},
-> @@ -484,6 +481,7 @@ static inline struct v4l2_subdev *ctrl_to_sd(struct v4l2_ctrl *ctrl)
->  	{0x4407, 0x04, 0, 0}, {0x460b, 0x35, 0, 0}, {0x460c, 0x22, 0, 0},
->  	{0x3824, 0x02, 0, 0}, {0x5001, 0xa3, 0, 0},
->  };
-> +
->  static const struct reg_value ov5640_setting_15fps_QCIF_176_144[] = {
->  	{0x3035, 0x22, 0, 0}, {0x3036, 0x38, 0, 0}, {0x3c07, 0x08, 0, 0},
->  	{0x3c09, 0x1c, 0, 0}, {0x3c0a, 0x9c, 0, 0}, {0x3c0b, 0x40, 0, 0},
-> @@ -840,7 +838,7 @@ static int ov5640_write_reg(struct ov5640_dev *sensor, u16 reg, u8 val)
->  	ret = i2c_transfer(client->adapter, &msg, 1);
->  	if (ret < 0) {
->  		v4l2_err(&sensor->sd, "%s: error: reg=%x, val=%x\n",
-> -			__func__, reg, val);
-> +			 __func__, reg, val);
->  		return ret;
->  	}
->  
-> @@ -886,7 +884,7 @@ static int ov5640_read_reg16(struct ov5640_dev *sensor, u16 reg, u16 *val)
->  	ret = ov5640_read_reg(sensor, reg, &hi);
->  	if (ret)
->  		return ret;
-> -	ret = ov5640_read_reg(sensor, reg+1, &lo);
-> +	ret = ov5640_read_reg(sensor, reg + 1, &lo);
->  	if (ret)
->  		return ret;
->  
-> @@ -947,7 +945,7 @@ static int ov5640_load_regs(struct ov5640_dev *sensor,
->  			break;
->  
->  		if (delay_ms)
-> -			usleep_range(1000*delay_ms, 1000*delay_ms+100);
-> +			usleep_range(1000 * delay_ms, 1000 * delay_ms + 100);
->  	}
->  
->  	return ret;
-> @@ -1289,7 +1287,6 @@ static int ov5640_set_bandingfilter(struct ov5640_dev *sensor)
->  		return ret;
->  	prev_vts = ret;
->  
-> -
->  	/* calculate banding filter */
->  	/* 60Hz */
->  	band_step60 = sensor->prev_sysclk * 100 / sensor->prev_hts * 100 / 120;
-> @@ -1405,8 +1402,8 @@ static int ov5640_set_virtual_channel(struct ov5640_dev *sensor)
->   * sensor changes between scaling and subsampling, go through
->   * exposure calculation
->   */
-> -static int ov5640_set_mode_exposure_calc(
-> -	struct ov5640_dev *sensor, const struct ov5640_mode_info *mode)
-> +static int ov5640_set_mode_exposure_calc(struct ov5640_dev *sensor,
-> +					 const struct ov5640_mode_info *mode)
->  {
->  	u32 prev_shutter, prev_gain16;
->  	u32 cap_shutter, cap_gain16;
-> @@ -1416,7 +1413,7 @@ static int ov5640_set_mode_exposure_calc(
->  	u8 average;
->  	int ret;
->  
-> -	if (mode->reg_data == NULL)
-> +	if (!mode->reg_data)
->  		return -EINVAL;
->  
->  	/* read preview shutter */
-> @@ -1570,7 +1567,7 @@ static int ov5640_set_mode_direct(struct ov5640_dev *sensor,
->  {
->  	int ret;
->  
-> -	if (mode->reg_data == NULL)
-> +	if (!mode->reg_data)
->  		return -EINVAL;
->  
->  	/* Write capture setting */
-> @@ -2117,7 +2114,8 @@ static int ov5640_set_ctrl_gain(struct ov5640_dev *sensor, int auto_gain)
->  
->  	if (ctrls->auto_gain->is_new) {
->  		ret = ov5640_mod_reg(sensor, OV5640_REG_AEC_PK_MANUAL,
-> -				     BIT(1), ctrls->auto_gain->val ? 0 : BIT(1));
-> +				     BIT(1),
-> +				     ctrls->auto_gain->val ? 0 : BIT(1));
->  		if (ret)
->  			return ret;
->  	}
-> @@ -2297,18 +2295,20 @@ static int ov5640_enum_frame_size(struct v4l2_subdev *sd,
->  	if (fse->index >= OV5640_NUM_MODES)
->  		return -EINVAL;
->  
-> -	fse->min_width = fse->max_width =
-> +	fse->min_width =
->  		ov5640_mode_data[0][fse->index].width;
-> -	fse->min_height = fse->max_height =
-> +	fse->max_width = fse->min_width;
-> +	fse->min_height =
->  		ov5640_mode_data[0][fse->index].height;
-> +	fse->max_height = fse->min_height;
->  
->  	return 0;
->  }
->  
-> -static int ov5640_enum_frame_interval(
-> -	struct v4l2_subdev *sd,
-> -	struct v4l2_subdev_pad_config *cfg,
-> -	struct v4l2_subdev_frame_interval_enum *fie)
-> +static int ov5640_enum_frame_interval
-> +				(struct v4l2_subdev *sd,
-> +				 struct v4l2_subdev_pad_config *cfg,
-> +				 struct v4l2_subdev_frame_interval_enum *fie)
->  {
->  	struct ov5640_dev *sensor = to_ov5640_dev(sd);
->  	struct v4l2_fract tpf;
-> @@ -2376,8 +2376,8 @@ static int ov5640_s_frame_interval(struct v4l2_subdev *sd,
->  }
->  
->  static int ov5640_enum_mbus_code(struct v4l2_subdev *sd,
-> -				  struct v4l2_subdev_pad_config *cfg,
-> -				  struct v4l2_subdev_mbus_code_enum *code)
-> +				 struct v4l2_subdev_pad_config *cfg,
-> +				 struct v4l2_subdev_mbus_code_enum *code)
->  {
->  	if (code->pad != 0)
->  		return -EINVAL;
-> @@ -2509,8 +2509,8 @@ static int ov5640_probe(struct i2c_client *client,
->  
->  	sensor->ae_target = 52;
->  
-> -	endpoint = fwnode_graph_get_next_endpoint(
-> -		of_fwnode_handle(client->dev.of_node), NULL);
-> +	endpoint = fwnode_graph_get_next_endpoint
-> +		(of_fwnode_handle(client->dev.of_node), NULL);
-
-Hmm. This looks weird to me. Isn't the change rather against the common
-practices? The same on ov5640_enum_frame_interval prototype change.
-
->  	if (!endpoint) {
->  		dev_err(dev, "endpoint node not found\n");
->  		return -EINVAL;
-
--- 
 Regards,
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+	Hans
