@@ -1,149 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:41671 "EHLO
-        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932489AbeALJrd (ORCPT
+Received: from mout.kundenserver.de ([212.227.126.130]:50421 "EHLO
+        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751145AbeAPPbR (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 12 Jan 2018 04:47:33 -0500
-Received: by mail-wm0-f66.google.com with SMTP id g75so10894249wme.0
-        for <linux-media@vger.kernel.org>; Fri, 12 Jan 2018 01:47:33 -0800 (PST)
-From: "=?UTF-8?q?Christian=20K=C3=B6nig?="
-        <ckoenig.leichtzumerken@gmail.com>
-To: daniel@ffwll.ch, sumit.semwal@linaro.org, gustavo@padovan.org,
-        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        linaro-mm-sig@lists.linaro.org
-Subject: [PATCH 2/3] drm/amdgpu: add amdgpu_pasid_free_delayed v2
-Date: Fri, 12 Jan 2018 10:47:28 +0100
-Message-Id: <20180112094729.17491-2-christian.koenig@amd.com>
-In-Reply-To: <20180112094729.17491-1-christian.koenig@amd.com>
-References: <20180112094729.17491-1-christian.koenig@amd.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+        Tue, 16 Jan 2018 10:31:17 -0500
+From: Arnd Bergmann <arnd@arndb.de>
+To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: [PATCH] [v2] media: s3c-camif: fix out-of-bounds array access
+Date: Tue, 16 Jan 2018 16:30:46 +0100
+Message-Id: <20180116153105.3523235-1-arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Free up a pasid after all fences signaled.
+While experimenting with older compiler versions, I ran
+into a warning that no longer shows up on gcc-4.8 or newer:
 
-v2: also handle the case when we can't allocate a fence array.
+drivers/media/platform/s3c-camif/camif-capture.c: In function '__camif_subdev_try_format':
+drivers/media/platform/s3c-camif/camif-capture.c:1265:25: error: array subscript is below array bounds
 
-Signed-off-by: Christian König <christian.koenig@amd.com>
+This is an off-by-one bug, leading to an access before the start of the
+array, while newer compilers silently assume this undefined behavior
+cannot happen and leave the loop at index 0 if no other entry matches.
+
+As Sylvester explains, we actually need to ensure that the
+value is within the range, so this reworks the loop to be
+easier to parse correctly, and an additional check to fall
+back on the first format value for any unexpected input.
+
+I found an existing gcc bug for it and added a reduced version
+of the function there.
+
+Link: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=69249#c3
+Fixes: babde1c243b2 ("[media] V4L: Add driver for S3C24XX/S3C64XX SoC series camera interface")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 ---
- drivers/gpu/drm/amd/amdgpu/amdgpu_ids.c | 82 +++++++++++++++++++++++++++++++++
- drivers/gpu/drm/amd/amdgpu/amdgpu_ids.h |  2 +
- 2 files changed, 84 insertions(+)
+v2: rework logic rather than removing it.
+---
+ drivers/media/platform/s3c-camif/camif-capture.c | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu_ids.c b/drivers/gpu/drm/amd/amdgpu/amdgpu_ids.c
-index 5248a3232aff..842caa5ed73b 100644
---- a/drivers/gpu/drm/amd/amdgpu/amdgpu_ids.c
-+++ b/drivers/gpu/drm/amd/amdgpu/amdgpu_ids.c
-@@ -40,6 +40,12 @@
-  */
- static DEFINE_IDA(amdgpu_pasid_ida);
+diff --git a/drivers/media/platform/s3c-camif/camif-capture.c b/drivers/media/platform/s3c-camif/camif-capture.c
+index 437395a61065..002609be1400 100644
+--- a/drivers/media/platform/s3c-camif/camif-capture.c
++++ b/drivers/media/platform/s3c-camif/camif-capture.c
+@@ -1256,15 +1256,18 @@ static void __camif_subdev_try_format(struct camif_dev *camif,
+ {
+ 	const struct s3c_camif_variant *variant = camif->variant;
+ 	const struct vp_pix_limits *pix_lim;
+-	int i = ARRAY_SIZE(camif_mbus_formats);
++	int i;
  
-+/* Helper to free pasid from a fence callback */
-+struct amdgpu_pasid_cb {
-+	struct dma_fence_cb cb;
-+	unsigned int pasid;
-+};
-+
- /**
-  * amdgpu_pasid_alloc - Allocate a PASID
-  * @bits: Maximum width of the PASID in bits, must be at least 1
-@@ -75,6 +81,82 @@ void amdgpu_pasid_free(unsigned int pasid)
- 	ida_simple_remove(&amdgpu_pasid_ida, pasid);
- }
+ 	/* FIXME: constraints against codec or preview path ? */
+ 	pix_lim = &variant->vp_pix_limits[VP_CODEC];
  
-+static void amdgpu_pasid_free_cb(struct dma_fence *fence,
-+				 struct dma_fence_cb *_cb)
-+{
-+	struct amdgpu_pasid_cb *cb =
-+		container_of(_cb, struct amdgpu_pasid_cb, cb);
-+
-+	amdgpu_pasid_free(cb->pasid);
-+	dma_fence_put(fence);
-+	kfree(cb);
-+}
-+
-+/**
-+ * amdgpu_pasid_free_delayed - free pasid when fences signal
-+ *
-+ * @resv: reservation object with the fences to wait for
-+ * @pasid: pasid to free
-+ *
-+ * Free the pasid only after all the fences in resv are signaled.
-+ */
-+void amdgpu_pasid_free_delayed(struct reservation_object *resv,
-+			       unsigned int pasid)
-+{
-+	struct dma_fence *fence, **fences;
-+	struct amdgpu_pasid_cb *cb;
-+	unsigned count;
-+	int r;
-+
-+	r = reservation_object_get_fences_rcu(resv, NULL, &count, &fences);
-+	if (r)
-+		goto fallback;
-+
-+	if (count == 0) {
-+		amdgpu_pasid_free(pasid);
-+		return;
-+	}
-+
-+	if (count == 1) {
-+		fence = fences[0];
-+		kfree(fences);
-+	} else {
-+		uint64_t context = dma_fence_context_alloc(1);
-+		struct dma_fence_array *array;
-+
-+		array = dma_fence_array_create(count, fences, context,
-+					       1, false);
-+		if (!array) {
-+			kfree(fences);
-+			goto fallback;
-+		}
-+		fence = &array->base;
-+	}
-+
-+	cb = kmalloc(sizeof(*cb), GFP_KERNEL);
-+	if (!cb) {
-+		/* Last resort when we are OOM */
-+		dma_fence_wait(fence, false);
-+		dma_fence_put(fence);
-+		amdgpu_pasid_free(pasid);
-+	} else {
-+		cb->pasid = pasid;
-+		if (dma_fence_add_callback(fence, &cb->cb,
-+					   amdgpu_pasid_free_cb))
-+			amdgpu_pasid_free_cb(fence, &cb->cb);
-+	}
-+
-+	return;
-+
-+fallback:
-+	/* Not enough memory for the delayed delete, as last resort
-+	 * block for all the fences to complete.
-+	 */
-+	reservation_object_wait_timeout_rcu(resv, true, false,
-+					    MAX_SCHEDULE_TIMEOUT);
-+	amdgpu_pasid_free(pasid);
-+}
-+
- /*
-  * VMID manager
-  *
-diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu_ids.h b/drivers/gpu/drm/amd/amdgpu/amdgpu_ids.h
-index ad931fa570b3..38f37c16fc5e 100644
---- a/drivers/gpu/drm/amd/amdgpu/amdgpu_ids.h
-+++ b/drivers/gpu/drm/amd/amdgpu/amdgpu_ids.h
-@@ -69,6 +69,8 @@ struct amdgpu_vmid_mgr {
+-	while (i-- >= 0)
++	for (i = 0; i < ARRAY_SIZE(camif_mbus_formats); i++)
+ 		if (camif_mbus_formats[i] == mf->code)
+ 			break;
  
- int amdgpu_pasid_alloc(unsigned int bits);
- void amdgpu_pasid_free(unsigned int pasid);
-+void amdgpu_pasid_free_delayed(struct reservation_object *resv,
-+			       unsigned int pasid);
++	if (i == ARRAY_SIZE(camif_mbus_formats))
++		mf->code = camif_mbus_formats[0];
++
+ 	mf->code = camif_mbus_formats[i];
  
- bool amdgpu_vmid_had_gpu_reset(struct amdgpu_device *adev,
- 			       struct amdgpu_vmid *id);
+ 	if (pad == CAMIF_SD_PAD_SINK) {
 -- 
-2.14.1
+2.9.0
