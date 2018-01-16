@@ -1,180 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:11698 "EHLO
-        mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933445AbeAXLXz (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 24 Jan 2018 06:23:55 -0500
-From: Smitha T Murthy <smitha.t@samsung.com>
-To: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Cc: kyungmin.park@samsung.com, kamil@wypas.org, jtp.park@samsung.com,
-        a.hajda@samsung.com, mchehab@kernel.org, pankaj.dubey@samsung.com,
-        krzk@kernel.org, m.szyprowski@samsung.com, s.nawrocki@samsung.com,
-        Smitha T Murthy <smitha.t@samsung.com>
-Subject: [Patch v7 09/12] [media] s5p-mfc: Add VP9 decoder support
-Date: Wed, 24 Jan 2018 16:29:41 +0530
-Message-id: <1516791584-7980-10-git-send-email-smitha.t@samsung.com>
-In-reply-to: <1516791584-7980-1-git-send-email-smitha.t@samsung.com>
-References: <1516791584-7980-1-git-send-email-smitha.t@samsung.com>
-        <CGME20180124112351epcas2p2e111be35495863530b11043b3fccd795@epcas2p2.samsung.com>
+Received: from mail.kapsi.fi ([91.232.154.25]:48406 "EHLO mail.kapsi.fi"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751534AbeAPUjB (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 16 Jan 2018 15:39:01 -0500
+Subject: Re: [PATCH 4/7] si2168: Add ts bus coontrol, turn off bus on sleep
+To: Brad Love <brad@nextdimension.cc>, linux-media@vger.kernel.org
+References: <1515773982-6411-1-git-send-email-brad@nextdimension.cc>
+ <1515773982-6411-5-git-send-email-brad@nextdimension.cc>
+ <ce8faa6a-0ffb-a432-e269-58486c857fea@iki.fi>
+ <0770dc98-9153-e386-ca54-b7e4123b774d@nextdimension.cc>
+ <3dbf6692-ea03-38d1-a6c0-3291cf48dbae@iki.fi>
+ <491ebce5-cc46-5c1b-b223-f46d5f387285@nextdimension.cc>
+From: Antti Palosaari <crope@iki.fi>
+Message-ID: <a9eec965-e56b-fdf2-b030-779f1b5a71b0@iki.fi>
+Date: Tue, 16 Jan 2018 22:38:59 +0200
+MIME-Version: 1.0
+In-Reply-To: <491ebce5-cc46-5c1b-b223-f46d5f387285@nextdimension.cc>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add support for codec definition and corresponding buffer
-requirements for VP9 decoder.
+On 01/16/2018 10:14 PM, Brad Love wrote:
+> 
+> On 2018-01-16 13:32, Antti Palosaari wrote:
+>> On 01/16/2018 07:31 PM, Brad Love wrote:
+>>>
+>>> On 2018-01-15 23:07, Antti Palosaari wrote:
+>>>> Hello
+>>>> And what is rationale here, is there some use case demod must be
+>>>> active and ts set to tristate (disabled)? Just put demod sleep when
+>>>> you don't use it.
+>>>>
+>>>> regards
+>>>> Antti
+>>>
+>>> Hello Antti,
+>>>
+>>> Perhaps the .ts_bus_ctrl callback does not need to be included in ops,
+>>> but the function is necessary. The demod is already put to sleep when
+>>> not in use, but it leaves the ts bus open. The ts bus has no reason to
+>>> be open when the demod is put to sleep. Leaving the ts bus open during
+>>> sleep affects the other connected demod and nothing is received by it.
+>>> The lgdt3306a driver already tri states its ts bus when put to sleep,
+>>> the si2168 should as well.
+>>
+>> Sounds possible, but unlikely as chip is firmware driven. When you put
+>> chip to sleep you usually want set ts pins to tristate (also other
+>> unused pins) in order to save energy. I haven't never tested it anyway
+>> though, so it could be possible it leaves those pins to some other
+>> state like random output at given time.
+>>
+>> And if you cannot get stream from lgdt3306a, which is connected to
+>> same bus, it really sounds like ts bus pins are left some state
+>> (cannot work if same pin is driven high to other demod whilst other
+>> tries to drive it low.
+>>
+>> Setting ts pins to tri-state during sleep should resolve your issue.
+> 
+> Hello Antti,
+> 
+> This patch fixes the issue I'm describing, hence why I submitted it. The
+> ts bus must be tristated before putting the chip to sleep for the other
+> demod to get a stream.
+> 
 
-Signed-off-by: Smitha T Murthy <smitha.t@samsung.com>
-Reviewed-by: Andrzej Hajda <a.hajda@samsung.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/platform/s5p-mfc/regs-mfc-v10.h   |  6 ++++++
- drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c |  3 +++
- drivers/media/platform/s5p-mfc/s5p_mfc_common.h |  1 +
- drivers/media/platform/s5p-mfc/s5p_mfc_dec.c    |  7 +++++++
- drivers/media/platform/s5p-mfc/s5p_mfc_opr.h    |  2 ++
- drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c | 26 +++++++++++++++++++++++++
- 6 files changed, 45 insertions(+)
+I can test tri-state using power meter on some day, but it may be so 
+small current that it cannot be seen usb power meter I use (YZXstudio, 
+very nice small power meter).
 
-diff --git a/drivers/media/platform/s5p-mfc/regs-mfc-v10.h b/drivers/media/platform/s5p-mfc/regs-mfc-v10.h
-index d905468..bbfa1cf 100644
---- a/drivers/media/platform/s5p-mfc/regs-mfc-v10.h
-+++ b/drivers/media/platform/s5p-mfc/regs-mfc-v10.h
-@@ -17,6 +17,8 @@
- /* MFCv10 register definitions*/
- #define S5P_FIMV_MFC_CLOCK_OFF_V10			0x7120
- #define S5P_FIMV_MFC_STATE_V10				0x7124
-+#define S5P_FIMV_D_STATIC_BUFFER_ADDR_V10		0xF570
-+#define S5P_FIMV_D_STATIC_BUFFER_SIZE_V10		0xF574
- 
- /* MFCv10 Context buffer sizes */
- #define MFC_CTX_BUF_SIZE_V10		(30 * SZ_1K)
-@@ -33,8 +35,12 @@
- 
- /* MFCv10 codec defines*/
- #define S5P_FIMV_CODEC_HEVC_DEC		17
-+#define S5P_FIMV_CODEC_VP9_DEC		18
- #define S5P_FIMV_CODEC_HEVC_ENC         26
- 
-+/* Decoder buffer size for MFC v10 */
-+#define DEC_VP9_STATIC_BUFFER_SIZE	20480
-+
- /* Encoder buffer size for MFC v10.0 */
- #define ENC_V100_BASE_SIZE(x, y) \
- 	(((x + 3) * (y + 3) * 8) \
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c b/drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c
-index 76eca67..102b47e 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c
-@@ -104,6 +104,9 @@ static int s5p_mfc_open_inst_cmd_v6(struct s5p_mfc_ctx *ctx)
- 	case S5P_MFC_CODEC_HEVC_DEC:
- 		codec_type = S5P_FIMV_CODEC_HEVC_DEC;
- 		break;
-+	case S5P_MFC_CODEC_VP9_DEC:
-+		codec_type = S5P_FIMV_CODEC_VP9_DEC;
-+		break;
- 	case S5P_MFC_CODEC_H264_ENC:
- 		codec_type = S5P_FIMV_CODEC_H264_ENC_V6;
- 		break;
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-index 702e136..e748b99 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-@@ -73,6 +73,7 @@
- #define S5P_MFC_CODEC_VC1RCV_DEC	6
- #define S5P_MFC_CODEC_VP8_DEC		7
- #define S5P_MFC_CODEC_HEVC_DEC		17
-+#define S5P_MFC_CODEC_VP9_DEC		18
- 
- #define S5P_MFC_CODEC_H264_ENC		20
- #define S5P_MFC_CODEC_H264_MVC_ENC	21
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-index 4749355..5cf4d99 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-@@ -151,6 +151,13 @@ static struct s5p_mfc_fmt formats[] = {
- 		.num_planes	= 1,
- 		.versions	= MFC_V10_BIT,
- 	},
-+	{
-+		.fourcc		= V4L2_PIX_FMT_VP9,
-+		.codec_mode	= S5P_FIMV_CODEC_VP9_DEC,
-+		.type		= MFC_FMT_DEC,
-+		.num_planes	= 1,
-+		.versions	= MFC_V10_BIT,
-+	},
- };
- 
- #define NUM_FORMATS ARRAY_SIZE(formats)
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr.h b/drivers/media/platform/s5p-mfc/s5p_mfc_opr.h
-index e7a2d46..57f4560 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr.h
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr.h
-@@ -170,6 +170,8 @@ struct s5p_mfc_regs {
- 	void __iomem *d_used_dpb_flag_upper;/* v7 and v8 */
- 	void __iomem *d_used_dpb_flag_lower;/* v7 and v8 */
- 	void __iomem *d_min_scratch_buffer_size; /* v10 */
-+	void __iomem *d_static_buffer_addr; /* v10 */
-+	void __iomem *d_static_buffer_size; /* v10 */
- 
- 	/* encoder registers */
- 	void __iomem *e_frame_width;
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-index 8c47294..f47612c 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-@@ -226,6 +226,12 @@ static int s5p_mfc_alloc_codec_buffers_v6(struct s5p_mfc_ctx *ctx)
- 			ctx->scratch_buf_size +
- 			(ctx->mv_count * ctx->mv_size);
- 		break;
-+	case S5P_MFC_CODEC_VP9_DEC:
-+		mfc_debug(2, "Use min scratch buffer size\n");
-+		ctx->bank1.size =
-+			ctx->scratch_buf_size +
-+			DEC_VP9_STATIC_BUFFER_SIZE;
-+		break;
- 	case S5P_MFC_CODEC_H264_ENC:
- 		if (IS_MFCV10(dev)) {
- 			mfc_debug(2, "Use min scratch buffer size\n");
-@@ -336,6 +342,7 @@ static int s5p_mfc_alloc_instance_buffer_v6(struct s5p_mfc_ctx *ctx)
- 	case S5P_MFC_CODEC_VC1_DEC:
- 	case S5P_MFC_CODEC_MPEG2_DEC:
- 	case S5P_MFC_CODEC_VP8_DEC:
-+	case S5P_MFC_CODEC_VP9_DEC:
- 		ctx->ctx.size = buf_size->other_dec_ctx;
- 		break;
- 	case S5P_MFC_CODEC_H264_ENC:
-@@ -566,6 +573,13 @@ static int s5p_mfc_set_dec_frame_buffer_v6(struct s5p_mfc_ctx *ctx)
- 			buf_size1 -= frame_size_mv;
- 		}
- 	}
-+	if (ctx->codec_mode == S5P_FIMV_CODEC_VP9_DEC) {
-+		writel(buf_addr1, mfc_regs->d_static_buffer_addr);
-+		writel(DEC_VP9_STATIC_BUFFER_SIZE,
-+				mfc_regs->d_static_buffer_size);
-+		buf_addr1 += DEC_VP9_STATIC_BUFFER_SIZE;
-+		buf_size1 -= DEC_VP9_STATIC_BUFFER_SIZE;
-+	}
- 
- 	mfc_debug(2, "Buf1: %zx, buf_size1: %d (frames %d)\n",
- 			buf_addr1, buf_size1, ctx->total_dpb_count);
-@@ -2272,6 +2286,18 @@ const struct s5p_mfc_regs *s5p_mfc_init_regs_v6_plus(struct s5p_mfc_dev *dev)
- 	R(e_h264_options, S5P_FIMV_E_H264_OPTIONS_V8);
- 	R(e_min_scratch_buffer_size, S5P_FIMV_E_MIN_SCRATCH_BUFFER_SIZE_V8);
- 
-+	if (!IS_MFCV10(dev))
-+		goto done;
-+
-+	/* Initialize registers used in MFC v10 only.
-+	 * Also, over-write the registers which have
-+	 * a different offset for MFC v10.
-+	 */
-+
-+	/* decoder registers */
-+	R(d_static_buffer_addr, S5P_FIMV_D_STATIC_BUFFER_ADDR_V10);
-+	R(d_static_buffer_size, S5P_FIMV_D_STATIC_BUFFER_SIZE_V10);
-+
- done:
- 	return &mfc_regs;
- #undef S5P_MFC_REG_ADDR
+regards
+Antti
+
 -- 
-2.7.4
+http://palosaari.fi/
