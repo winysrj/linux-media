@@ -1,75 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f68.google.com ([74.125.83.68]:45007 "EHLO
-        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933300AbeAJCG3 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 9 Jan 2018 21:06:29 -0500
-From: Shunqian Zheng <zhengsq@rock-chips.com>
-To: mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com
-Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        ddl@rock-chips.com, tfiga@chromium.org,
-        Shunqian Zheng <zhengsq@rock-chips.com>
-Subject: [PATCH v5 3/4] dt-bindings: media: Add bindings for OV2685
-Date: Wed, 10 Jan 2018 10:06:06 +0800
-Message-Id: <1515549967-5302-4-git-send-email-zhengsq@rock-chips.com>
-In-Reply-To: <1515549967-5302-1-git-send-email-zhengsq@rock-chips.com>
-References: <1515549967-5302-1-git-send-email-zhengsq@rock-chips.com>
+Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:50486 "EHLO
+        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750852AbeAPJsC (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 16 Jan 2018 04:48:02 -0500
+Subject: Re: [PATCH v5 5/9] v4l: i2c: Copy ov772x soc_camera sensor driver
+To: Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        laurent.pinchart@ideasonboard.com, magnus.damm@gmail.com,
+        geert@glider.be, mchehab@kernel.org, festevam@gmail.com,
+        sakari.ailus@iki.fi, robh+dt@kernel.org, mark.rutland@arm.com,
+        pombredanne@nexb.com
+Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-sh@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+References: <1515765849-10345-1-git-send-email-jacopo+renesas@jmondi.org>
+ <1515765849-10345-6-git-send-email-jacopo+renesas@jmondi.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <5daa42ce-b5ff-2fa7-79ff-e13891c18c33@xs4all.nl>
+Date: Tue, 16 Jan 2018 10:47:56 +0100
+MIME-Version: 1.0
+In-Reply-To: <1515765849-10345-6-git-send-email-jacopo+renesas@jmondi.org>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add device tree binding documentation for the OV2685 sensor.
+On 01/12/2018 03:04 PM, Jacopo Mondi wrote:
+> Copy the soc_camera based driver in v4l2 sensor driver directory.
+> This commit just copies the original file without modifying it.
+> No modification to KConfig and Makefile as soc_camera framework
+> dependencies need to be removed first in next commit.
+> 
+> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-Signed-off-by: Shunqian Zheng <zhengsq@rock-chips.com>
----
- .../devicetree/bindings/media/i2c/ov2685.txt       | 41 ++++++++++++++++++++++
- 1 file changed, 41 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/i2c/ov2685.txt
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-diff --git a/Documentation/devicetree/bindings/media/i2c/ov2685.txt b/Documentation/devicetree/bindings/media/i2c/ov2685.txt
-new file mode 100644
-index 0000000..f1586a2
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/i2c/ov2685.txt
-@@ -0,0 +1,41 @@
-+* Omnivision OV2685 MIPI CSI-2 sensor
-+
-+Required Properties:
-+- compatible: shall be "ovti,ov2685"
-+- clocks: reference to the xvclk input clock
-+- clock-names: shall be "xvclk"
-+- avdd-supply: Analog voltage supply, 2.8 volts
-+- dovdd-supply: Digital I/O voltage supply, 1.8 volts
-+- dvdd-supply: Digital core voltage supply, 1.8 volts
-+- reset-gpios: Low active reset gpio
-+
-+The device node shall contain one 'port' child node with an
-+'endpoint' subnode for its digital output video port,
-+in accordance with the video interface bindings defined in
-+Documentation/devicetree/bindings/media/video-interfaces.txt.
-+The endpoint optional property 'data-lanes' shall be "<1>".
-+
-+Example:
-+&i2c7 {
-+	camera-sensor: ov2685@3c {
-+		compatible = "ovti,ov2685";
-+		reg = <0x3c>;
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&clk_24m_cam>;
-+
-+		clocks = <&cru SCLK_TESTCLKOUT1>;
-+		clock-names = "xvclk";
-+
-+		avdd-supply = <&pp2800_cam>;
-+		dovdd-supply = <&pp1800>;
-+		dvdd-supply = <&pp1800>;
-+		reset-gpios = <&gpio2 3 GPIO_ACTIVE_LOW>;
-+
-+		port {
-+			ucam_out: endpoint {
-+				remote-endpoint = <&mipi_in_ucam>;
-+				data-lanes = <1>;
-+			};
-+		};
-+	};
-+};
--- 
-1.9.1
+Regards,
+
+	Hans
