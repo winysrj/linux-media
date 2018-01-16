@@ -1,109 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:37075 "EHLO
-        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751378AbeA2P6R (ORCPT
+Received: from mail-ua0-f193.google.com ([209.85.217.193]:45969 "EHLO
+        mail-ua0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750927AbeAPCkr (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 29 Jan 2018 10:58:17 -0500
-From: Philipp Rossak <embed3d@gmail.com>
-To: mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
-        maxime.ripard@free-electrons.com, wens@csie.org,
-        linux@armlinux.org.uk, sean@mess.org, p.zabel@pengutronix.de,
-        andi.shyti@samsung.com
-Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-sunxi@googlegroups.com
-Subject: [PATCH v4 1/6] media: rc: update sunxi-ir driver to get base clock frequency from devicetree
-Date: Mon, 29 Jan 2018 16:58:05 +0100
-Message-Id: <20180129155810.7867-2-embed3d@gmail.com>
-In-Reply-To: <20180129155810.7867-1-embed3d@gmail.com>
-References: <20180129155810.7867-1-embed3d@gmail.com>
+        Mon, 15 Jan 2018 21:40:47 -0500
+Received: by mail-ua0-f193.google.com with SMTP id e39so9821446uae.12
+        for <linux-media@vger.kernel.org>; Mon, 15 Jan 2018 18:40:46 -0800 (PST)
+Received: from mail-vk0-f43.google.com (mail-vk0-f43.google.com. [209.85.213.43])
+        by smtp.gmail.com with ESMTPSA id t43sm490479uah.8.2018.01.15.18.40.45
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Mon, 15 Jan 2018 18:40:45 -0800 (PST)
+Received: by mail-vk0-f43.google.com with SMTP id v70so8562353vkd.8
+        for <linux-media@vger.kernel.org>; Mon, 15 Jan 2018 18:40:45 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <C193D76D23A22742993887E6D207B54D1AEB6195@FMSMSX151.amr.corp.intel.com>
+References: <1515034637-3517-1-git-send-email-yong.zhi@intel.com>
+ <CAAFQd5AO4n4kge1dijXLK-Ckudd5wJnuRnNMef+H4W00G2mpwQ@mail.gmail.com> <C193D76D23A22742993887E6D207B54D1AEB6195@FMSMSX151.amr.corp.intel.com>
+From: Tomasz Figa <tfiga@chromium.org>
+Date: Tue, 16 Jan 2018 11:40:24 +0900
+Message-ID: <CAAFQd5AxKSphur-fqHWvK5DLhQfJ+x30UQKuEx3Xe9mjnWRh4g@mail.gmail.com>
+Subject: Re: [PATCH 1/2] media: intel-ipu3: cio2: fix a crash with
+ out-of-bounds access
+To: "Zhi, Yong" <yong.zhi@intel.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        "Mani, Rajmohan" <rajmohan.mani@intel.com>,
+        "Cao, Bingbu" <bingbu.cao@intel.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch updates the sunxi-ir driver to set the base clock frequency from
-devicetree.
+Hi Yong,
 
-This is necessary since there are different ir receivers on the
-market, that operate with different frequencies. So this value could be
-set if the attached ir receiver needs a different base clock frequency,
-than the default 8 MHz.
+On Tue, Jan 16, 2018 at 2:05 AM, Zhi, Yong <yong.zhi@intel.com> wrote:
+> Hi, Tomasz,
+>
+> Thanks for the patch review.
+>
+>> -----Original Message-----
+>> From: Tomasz Figa [mailto:tfiga@chromium.org]
+>> Sent: Friday, January 12, 2018 12:17 AM
+>> To: Zhi, Yong <yong.zhi@intel.com>
+>> Cc: Linux Media Mailing List <linux-media@vger.kernel.org>; Sakari Ailus
+>> <sakari.ailus@linux.intel.com>; Mani, Rajmohan
+>> <rajmohan.mani@intel.com>; Cao, Bingbu <bingbu.cao@intel.com>
+>> Subject: Re: [PATCH 1/2] media: intel-ipu3: cio2: fix a crash with out-of-
+>> bounds access
+>>
+>> On Thu, Jan 4, 2018 at 11:57 AM, Yong Zhi <yong.zhi@intel.com> wrote:
+>> > When dmabuf is used for BLOB type frame, the frame buffers allocated
+>> > by gralloc will hold more pages than the valid frame data due to
+>> > height alignment.
+>> >
+>> > In this case, the page numbers in sg list could exceed the FBPT upper
+>> > limit value - max_lops(8)*1024 to cause crash.
+>> >
+>> > Limit the LOP access to the valid data length to avoid FBPT
+>> > sub-entries overflow.
+>> >
+>> > Signed-off-by: Yong Zhi <yong.zhi@intel.com>
+>> > Signed-off-by: Cao Bing Bu <bingbu.cao@intel.com>
+>> > ---
+>> >  drivers/media/pci/intel/ipu3/ipu3-cio2.c | 7 +++++--
+>> >  1 file changed, 5 insertions(+), 2 deletions(-)
+>> >
+>> > diff --git a/drivers/media/pci/intel/ipu3/ipu3-cio2.c
+>> > b/drivers/media/pci/intel/ipu3/ipu3-cio2.c
+>> > index 941caa987dab..949f43d206ad 100644
+>> > --- a/drivers/media/pci/intel/ipu3/ipu3-cio2.c
+>> > +++ b/drivers/media/pci/intel/ipu3/ipu3-cio2.c
+>> > @@ -838,8 +838,9 @@ static int cio2_vb2_buf_init(struct vb2_buffer *vb)
+>> >                 container_of(vb, struct cio2_buffer, vbb.vb2_buf);
+>> >         static const unsigned int entries_per_page =
+>> >                 CIO2_PAGE_SIZE / sizeof(u32);
+>> > -       unsigned int pages = DIV_ROUND_UP(vb->planes[0].length,
+>> CIO2_PAGE_SIZE);
+>> > -       unsigned int lops = DIV_ROUND_UP(pages + 1, entries_per_page);
+>> > +       unsigned int pages = DIV_ROUND_UP(vb->planes[0].length,
+>> > +                                         CIO2_PAGE_SIZE) + 1;
+>>
+>> Why + 1? This would still overflow the buffer, wouldn't it?
+>
+> The "pages" variable is used to calculate lops which has one extra page at the end that points to dummy page.
+>
+>>
+>> > +       unsigned int lops = DIV_ROUND_UP(pages, entries_per_page);
+>> >         struct sg_table *sg;
+>> >         struct sg_page_iter sg_iter;
+>> >         int i, j;
+>> > @@ -869,6 +870,8 @@ static int cio2_vb2_buf_init(struct vb2_buffer
+>> > *vb)
+>> >
+>> >         i = j = 0;
+>> >         for_each_sg_page(sg->sgl, &sg_iter, sg->nents, 0) {
+>> > +               if (!pages--)
+>> > +                       break;
+>>
+>> Or perhaps we should check here for (pages > 1)?
+>
+> This is so that the end of lop is set to the dummy_page.
 
-Signed-off-by: Philipp Rossak <embed3d@gmail.com>
-Reviewed-by: Andi Shyti <andi.shyti@samsung.com>
-Acked-by: Sean Young <sean@mess.org>
----
- drivers/media/rc/sunxi-cir.c | 19 +++++++++++--------
- 1 file changed, 11 insertions(+), 8 deletions(-)
+How about this simple example:
 
-diff --git a/drivers/media/rc/sunxi-cir.c b/drivers/media/rc/sunxi-cir.c
-index 97f367b446c4..f500cea228a9 100644
---- a/drivers/media/rc/sunxi-cir.c
-+++ b/drivers/media/rc/sunxi-cir.c
-@@ -72,12 +72,8 @@
- /* CIR_REG register idle threshold */
- #define REG_CIR_ITHR(val)    (((val) << 8) & (GENMASK(15, 8)))
- 
--/* Required frequency for IR0 or IR1 clock in CIR mode */
-+/* Required frequency for IR0 or IR1 clock in CIR mode (default) */
- #define SUNXI_IR_BASE_CLK     8000000
--/* Frequency after IR internal divider  */
--#define SUNXI_IR_CLK          (SUNXI_IR_BASE_CLK / 64)
--/* Sample period in ns */
--#define SUNXI_IR_SAMPLE       (1000000000ul / SUNXI_IR_CLK)
- /* Noise threshold in samples  */
- #define SUNXI_IR_RXNOISE      1
- /* Idle Threshold in samples */
-@@ -122,7 +118,8 @@ static irqreturn_t sunxi_ir_irq(int irqno, void *dev_id)
- 			/* for each bit in fifo */
- 			dt = readb(ir->base + SUNXI_IR_RXFIFO_REG);
- 			rawir.pulse = (dt & 0x80) != 0;
--			rawir.duration = ((dt & 0x7f) + 1) * SUNXI_IR_SAMPLE;
-+			rawir.duration = ((dt & 0x7f) + 1) *
-+					 ir->rc->rx_resolution;
- 			ir_raw_event_store_with_filter(ir->rc, &rawir);
- 		}
- 	}
-@@ -148,6 +145,7 @@ static int sunxi_ir_probe(struct platform_device *pdev)
- 	struct device_node *dn = dev->of_node;
- 	struct resource *res;
- 	struct sunxi_ir *ir;
-+	u32 b_clk_freq = SUNXI_IR_BASE_CLK;
- 
- 	ir = devm_kzalloc(dev, sizeof(struct sunxi_ir), GFP_KERNEL);
- 	if (!ir)
-@@ -172,6 +170,9 @@ static int sunxi_ir_probe(struct platform_device *pdev)
- 		return PTR_ERR(ir->clk);
- 	}
- 
-+	/* Base clock frequency (optional) */
-+	of_property_read_u32(dn, "clock-frequency", &b_clk_freq);
-+
- 	/* Reset (optional) */
- 	ir->rst = devm_reset_control_get_optional_exclusive(dev, NULL);
- 	if (IS_ERR(ir->rst))
-@@ -180,11 +181,12 @@ static int sunxi_ir_probe(struct platform_device *pdev)
- 	if (ret)
- 		return ret;
- 
--	ret = clk_set_rate(ir->clk, SUNXI_IR_BASE_CLK);
-+	ret = clk_set_rate(ir->clk, b_clk_freq);
- 	if (ret) {
- 		dev_err(dev, "set ir base clock failed!\n");
- 		goto exit_reset_assert;
- 	}
-+	dev_dbg(dev, "set base clock frequency to %d Hz.\n", b_clk_freq);
- 
- 	if (clk_prepare_enable(ir->apb_clk)) {
- 		dev_err(dev, "try to enable apb_ir_clk failed\n");
-@@ -225,7 +227,8 @@ static int sunxi_ir_probe(struct platform_device *pdev)
- 	ir->rc->map_name = ir->map_name ?: RC_MAP_EMPTY;
- 	ir->rc->dev.parent = dev;
- 	ir->rc->allowed_protocols = RC_PROTO_BIT_ALL_IR_DECODER;
--	ir->rc->rx_resolution = SUNXI_IR_SAMPLE;
-+	/* Frequency after IR internal divider with sample period in ns */
-+	ir->rc->rx_resolution = (1000000000ul / (b_clk_freq / 64));
- 	ir->rc->timeout = MS_TO_NS(SUNXI_IR_TIMEOUT);
- 	ir->rc->driver_name = SUNXI_IR_DEV;
- 
--- 
-2.11.0
+vb->planes[0].length = 1023 * 4096
+pages = 1023 + 1 = 1024
+lops  = 1
+
+If sg->sgl includes more than 1023 pages, the for_each_sg_page() loop
+will iterate for pages from 1024 to 1 inclusive and ends up
+overflowing the dummy page to next lop (i == 1 and j == 0), but we
+only allocated 1 lop.
+
+Best regards,
+Tomasz
