@@ -1,85 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f195.google.com ([209.85.216.195]:43120 "EHLO
-        mail-qt0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932297AbeARUCf (ORCPT
+Received: from mail-oi0-f51.google.com ([209.85.218.51]:46439 "EHLO
+        mail-oi0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750764AbeAPRKM (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 18 Jan 2018 15:02:35 -0500
-Received: by mail-qt0-f195.google.com with SMTP id s3so33305357qtb.10
-        for <linux-media@vger.kernel.org>; Thu, 18 Jan 2018 12:02:34 -0800 (PST)
-Received: from Constantine (pool-96-230-237-116.bstnma.fios.verizon.net. [96.230.237.116])
-        by smtp.gmail.com with ESMTPSA id q32sm5392741qkq.71.2018.01.18.12.02.34
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
-        Thu, 18 Jan 2018 12:02:34 -0800 (PST)
-Date: Thu, 18 Jan 2018 15:01:59 -0500
-From: Douglas Fischer <fischerdouglasc@gmail.com>
-To: linux-media@vger.kernel.org
-Subject: [PATCH] media: radio: Critical v4l2 registration bugfix for si470x
- over i2c
-Message-ID: <20180118150159.71943a1b@Constantine>
+        Tue, 16 Jan 2018 12:10:12 -0500
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <1517434.pRS3rpdWG0@avalon>
+References: <20171127132027.1734806-1-arnd@arndb.de> <20171127132027.1734806-5-arnd@arndb.de>
+ <1517434.pRS3rpdWG0@avalon>
+From: Arnd Bergmann <arnd@arndb.de>
+Date: Tue, 16 Jan 2018 18:10:10 +0100
+Message-ID: <CAK8P3a0wscoLR7+VRQ9JC=5ffZWp_SLx=o-kdYvQK-S=6hM--A@mail.gmail.com>
+Subject: Re: [PATCH 5/8] [media] omap3isp: support 64-bit version of omap3isp_stat_data
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        y2038 Mailman List <y2038@lists.linaro.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Sakari Ailus <sakari.ailus@iki.fi>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Added the call to v4l2_device_register() required to add a new radio
-device. Without this patch, it is impossible for the driver to load.
-This does not affect USB devices.
+On Tue, Dec 5, 2017 at 1:41 AM, Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
+> Hi Arnd,
+>
+> Thank you for the patch.
+>
+> I'll try to review this without too much delay. In the meantime, I'm CC'ing
+> Sakari Ailus who might be faster than me :-)
 
-Signed-off-by: Douglas Fischer <fischerdouglasc@gmail.com>
----
+Hi Laurent and Sakari,
 
-diff -uprN linux.orig/drivers/media/radio/si470x/radio-si470x-i2c.c
-linux/drivers/media/radio/si470x/radio-si470x-i2c.c ---
-linux.orig/drivers/media/radio/si470x/radio-si470x-i2c.c
-2018-01-15 21:58:10.675620432 -0500 +++
-linux/drivers/media/radio/si470x/radio-si470x-i2c.c	2018-01-16
-17:08:02.929734342 -0500 @@ -43,7 +43,6 @@ static const struct
-i2c_device_id si470x MODULE_DEVICE_TABLE(i2c, si470x_i2c_id); 
--
- /**************************************************************************
-  * Module Parameters
-  **************************************************************************/
-@@ -362,8 +361,29 @@ static int si470x_i2c_probe(struct i2c_c
- 	mutex_init(&radio->lock);
- 	init_completion(&radio->completion);
- 
-+	retval = v4l2_device_register(&client->dev, &radio->v4l2_dev);
-+	if (retval < 0) {
-+		dev_err(&client->dev, "couldn't register
-v4l2_device\n");
-+		goto err_initial;
-+	}
-+
-+	v4l2_ctrl_handler_init(&radio->hdl, 2);
-+	v4l2_ctrl_new_std(&radio->hdl, &si470x_ctrl_ops,
-+			V4L2_CID_AUDIO_MUTE, 0, 1, 1, 1);
-+	v4l2_ctrl_new_std(&radio->hdl, &si470x_ctrl_ops,
-+			V4L2_CID_AUDIO_VOLUME, 0, 15, 1, 15);
-+	if (radio->hdl.error) {
-+		retval = radio->hdl.error;
-+		dev_err(&client->dev, "couldn't register control\n");
-+		goto err_dev;
-+	}
-+
- 	/* video device initialization */
- 	radio->videodev = si470x_viddev_template;
-+	radio->videodev.ctrl_handler =
-&radio->hdl;				// no?
-+	radio->videodev.lock =
-&radio->lock;					// no?
-+	radio->videodev.v4l2_dev = &radio->v4l2_dev;
-+	radio->videodev.release = video_device_release_empty;
- 	video_set_drvdata(&radio->videodev, radio);
- 
- 	/* power up : need 110ms */
-@@ -435,6 +455,8 @@ static int si470x_i2c_probe(struct i2c_c
- 	return 0;
- err_all:
- 	free_irq(client->irq, radio);
-+err_dev:
-+	v4l2_device_unregister(&radio->v4l2_dev);
- err_rds:
- 	kfree(radio->buffer);
- err_radio:
+I stumbled over this while cleaning out my backlog of patches. Any chance one
+of you can have a look at this one? It's not needed for the 4.16 merge window,
+but we do need it at some point and I would like to not see it again the next
+time I clean out my old patches ;-)
+
+      Arnd
