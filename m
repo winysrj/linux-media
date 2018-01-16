@@ -1,90 +1,154 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.free-electrons.com ([62.4.15.54]:33334 "EHLO
-        mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751628AbeA3Iji (ORCPT
+Received: from mail-vk0-f50.google.com ([209.85.213.50]:37100 "EHLO
+        mail-vk0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750798AbeAPEID (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 30 Jan 2018 03:39:38 -0500
-Date: Tue, 30 Jan 2018 09:39:27 +0100
-From: Maxime Ripard <maxime.ripard@free-electrons.com>
-To: Philipp Rossak <embed3d@gmail.com>
-Cc: mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
-        wens@csie.org, linux@armlinux.org.uk, sean@mess.org,
-        p.zabel@pengutronix.de, andi.shyti@samsung.com,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-sunxi@googlegroups.com
-Subject: Re: [PATCH v4 4/6] arm: dts: sun8i: a83t: Add support for the cir
- interface
-Message-ID: <20180130083927.z4jcilqm3aludncb@flea.lan>
-References: <20180129155810.7867-1-embed3d@gmail.com>
- <20180129155810.7867-5-embed3d@gmail.com>
+        Mon, 15 Jan 2018 23:08:03 -0500
+Received: by mail-vk0-f50.google.com with SMTP id g83so8637253vki.4
+        for <linux-media@vger.kernel.org>; Mon, 15 Jan 2018 20:08:03 -0800 (PST)
+Received: from mail-ua0-f172.google.com (mail-ua0-f172.google.com. [209.85.217.172])
+        by smtp.gmail.com with ESMTPSA id m186sm295093vkd.5.2018.01.15.20.08.01
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Mon, 15 Jan 2018 20:08:01 -0800 (PST)
+Received: by mail-ua0-f172.google.com with SMTP id e39so9918547uae.12
+        for <linux-media@vger.kernel.org>; Mon, 15 Jan 2018 20:08:01 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="rkwxsw3xptbos3il"
-Content-Disposition: inline
-In-Reply-To: <20180129155810.7867-5-embed3d@gmail.com>
+In-Reply-To: <EE45BB6704246A4E914B70E8B61FB42A14FE2F31@SHSMSX103.ccr.corp.intel.com>
+References: <1515034637-3517-1-git-send-email-yong.zhi@intel.com>
+ <CAAFQd5AO4n4kge1dijXLK-Ckudd5wJnuRnNMef+H4W00G2mpwQ@mail.gmail.com>
+ <C193D76D23A22742993887E6D207B54D1AEB6195@FMSMSX151.amr.corp.intel.com>
+ <CAAFQd5AxKSphur-fqHWvK5DLhQfJ+x30UQKuEx3Xe9mjnWRh4g@mail.gmail.com> <EE45BB6704246A4E914B70E8B61FB42A14FE2F31@SHSMSX103.ccr.corp.intel.com>
+From: Tomasz Figa <tfiga@chromium.org>
+Date: Tue, 16 Jan 2018 13:07:40 +0900
+Message-ID: <CAAFQd5AeqhqFTpfS3GyH1cPpz7o_-MUeWK+tQ95eNFRM6RmwJQ@mail.gmail.com>
+Subject: Re: [PATCH 1/2] media: intel-ipu3: cio2: fix a crash with
+ out-of-bounds access
+To: "Cao, Bingbu" <bingbu.cao@intel.com>
+Cc: "Zhi, Yong" <yong.zhi@intel.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        "Mani, Rajmohan" <rajmohan.mani@intel.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Bingbu,
 
---rkwxsw3xptbos3il
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Tue, Jan 16, 2018 at 1:05 PM, Cao, Bingbu <bingbu.cao@intel.com> wrote:
+> I think if set the pages as the DIV_ROUND_UP(vb->planes[0].length, CIO2_PAGE_SIZE) + 1, the ' if (!pages--)' in loop is not correct.
+> should be 'if (!--pages)'.
+> The last page from sg list is the last valid page.
+>
 
-hi,
+Yes, that's exactly what I meant.
 
-On Mon, Jan 29, 2018 at 04:58:08PM +0100, Philipp Rossak wrote:
-> The cir interface is like on the H3 located at 0x01f02000 and is exactly
-> the same. This patch adds support for the ir interface on the A83T.
->=20
-> Signed-off-by: Philipp Rossak <embed3d@gmail.com>
-> ---
->  arch/arm/boot/dts/sun8i-a83t.dtsi | 10 ++++++++++
->  1 file changed, 10 insertions(+)
->=20
-> diff --git a/arch/arm/boot/dts/sun8i-a83t.dtsi b/arch/arm/boot/dts/sun8i-=
-a83t.dtsi
-> index 06e96db7c41a..ddc0d592107f 100644
-> --- a/arch/arm/boot/dts/sun8i-a83t.dtsi
-> +++ b/arch/arm/boot/dts/sun8i-a83t.dtsi
-> @@ -605,6 +605,16 @@
->  			#reset-cells =3D <1>;
->  		};
-> =20
-> +		cir: cir@01f02000 {
+By the way, please avoid top-posting to mailing lists, it isn't well
+received by recipients.
 
-r_cir: ir@1f02000
+Best regards,
+Tomasz
 
-> +			compatible =3D "allwinner,sun5i-a13-ir";
-
-You should have an A83t compatible there first.
-
-Maxime
-
---=20
-Maxime Ripard, Free Electrons
-Embedded Linux and Kernel engineering
-http://free-electrons.com
-
---rkwxsw3xptbos3il
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCAAdFiEE0VqZU19dR2zEVaqr0rTAlCFNr3QFAlpwLz4ACgkQ0rTAlCFN
-r3QUTQ/+K2G0LlAJyeSazKoN1KZt64PQ8gZUXOIONSBiR4hsfnIpFgPwF3v1VAel
-jZDHmFgK+yadwIcbCiNR8C9XTd+yDhafsenkTuieZhFz4WYNVjO9qg+BLvb5ZceI
-gjrhQreyXKbUuIhJqqH4Ed6+zTEDfC6Gxr4EMV9Zqw/nvgBX0DB0gvmtuC2sxf+e
-aY8y4mh5GlNl8X1/iTkYNtetaipoBpc0/klqFPemxqy1RvPwYFjQeqq/QII3zKbL
-ySNskN9nXCW9rRr6kQXPfy5NLxgCYt23uUglEjfRSNUebTAvOQIIoE6kqSqIaLQ9
-vmglu7jfi9gWsl8LBZd7BjcP4aSjCj048OIRSA4cEoDIugsVFKPyZ9g6app+W9Gd
-ASE3Xc1hxDU1G2+Hsl5XWxbtMZPNq6+F9H/MpvTonF28tBS6e1A0Qtxjp3RmUYG4
-pKsZZSVZlnvQfs9XlOCEp11DIIPsyx0YnAJnZ+VgfBCG0x9kzL+ioDJc8UU8fWiv
-q5Ec0g1ae2YHZdOPIZJ6uly9t8hyLfrGlf4e4kjOXTR7+EqYj/ub/1F1D60UZxE9
-9kBlv/hW0d0s4LMfaWw6g7WCalDz0wkUq5/hlU/0cOyR0koNzndG96OehiMgfj70
-w7SWoJ2TIjS7mXd7TP5MA/ScfJE6uL5TiHGJ5SHYchNefNtzXBs=
-=m2gq
------END PGP SIGNATURE-----
-
---rkwxsw3xptbos3il--
+>
+> __________________________
+> BRs,
+> Cao, Bingbu
+>
+>
+>
+>> -----Original Message-----
+>> From: Tomasz Figa [mailto:tfiga@chromium.org]
+>> Sent: Tuesday, January 16, 2018 10:40 AM
+>> To: Zhi, Yong <yong.zhi@intel.com>
+>> Cc: Linux Media Mailing List <linux-media@vger.kernel.org>; Sakari Ailus
+>> <sakari.ailus@linux.intel.com>; Mani, Rajmohan <rajmohan.mani@intel.com>;
+>> Cao, Bingbu <bingbu.cao@intel.com>
+>> Subject: Re: [PATCH 1/2] media: intel-ipu3: cio2: fix a crash with out-
+>> of-bounds access
+>>
+>> Hi Yong,
+>>
+>> On Tue, Jan 16, 2018 at 2:05 AM, Zhi, Yong <yong.zhi@intel.com> wrote:
+>> > Hi, Tomasz,
+>> >
+>> > Thanks for the patch review.
+>> >
+>> >> -----Original Message-----
+>> >> From: Tomasz Figa [mailto:tfiga@chromium.org]
+>> >> Sent: Friday, January 12, 2018 12:17 AM
+>> >> To: Zhi, Yong <yong.zhi@intel.com>
+>> >> Cc: Linux Media Mailing List <linux-media@vger.kernel.org>; Sakari
+>> >> Ailus <sakari.ailus@linux.intel.com>; Mani, Rajmohan
+>> >> <rajmohan.mani@intel.com>; Cao, Bingbu <bingbu.cao@intel.com>
+>> >> Subject: Re: [PATCH 1/2] media: intel-ipu3: cio2: fix a crash with
+>> >> out-of- bounds access
+>> >>
+>> >> On Thu, Jan 4, 2018 at 11:57 AM, Yong Zhi <yong.zhi@intel.com> wrote:
+>> >> > When dmabuf is used for BLOB type frame, the frame buffers
+>> >> > allocated by gralloc will hold more pages than the valid frame data
+>> >> > due to height alignment.
+>> >> >
+>> >> > In this case, the page numbers in sg list could exceed the FBPT
+>> >> > upper limit value - max_lops(8)*1024 to cause crash.
+>> >> >
+>> >> > Limit the LOP access to the valid data length to avoid FBPT
+>> >> > sub-entries overflow.
+>> >> >
+>> >> > Signed-off-by: Yong Zhi <yong.zhi@intel.com>
+>> >> > Signed-off-by: Cao Bing Bu <bingbu.cao@intel.com>
+>> >> > ---
+>> >> >  drivers/media/pci/intel/ipu3/ipu3-cio2.c | 7 +++++--
+>> >> >  1 file changed, 5 insertions(+), 2 deletions(-)
+>> >> >
+>> >> > diff --git a/drivers/media/pci/intel/ipu3/ipu3-cio2.c
+>> >> > b/drivers/media/pci/intel/ipu3/ipu3-cio2.c
+>> >> > index 941caa987dab..949f43d206ad 100644
+>> >> > --- a/drivers/media/pci/intel/ipu3/ipu3-cio2.c
+>> >> > +++ b/drivers/media/pci/intel/ipu3/ipu3-cio2.c
+>> >> > @@ -838,8 +838,9 @@ static int cio2_vb2_buf_init(struct vb2_buffer
+>> *vb)
+>> >> >                 container_of(vb, struct cio2_buffer, vbb.vb2_buf);
+>> >> >         static const unsigned int entries_per_page =
+>> >> >                 CIO2_PAGE_SIZE / sizeof(u32);
+>> >> > -       unsigned int pages = DIV_ROUND_UP(vb->planes[0].length,
+>> >> CIO2_PAGE_SIZE);
+>> >> > -       unsigned int lops = DIV_ROUND_UP(pages + 1,
+>> entries_per_page);
+>> >> > +       unsigned int pages = DIV_ROUND_UP(vb->planes[0].length,
+>> >> > +                                         CIO2_PAGE_SIZE) + 1;
+>> >>
+>> >> Why + 1? This would still overflow the buffer, wouldn't it?
+>> >
+>> > The "pages" variable is used to calculate lops which has one extra
+>> page at the end that points to dummy page.
+>> >
+>> >>
+>> >> > +       unsigned int lops = DIV_ROUND_UP(pages, entries_per_page);
+>> >> >         struct sg_table *sg;
+>> >> >         struct sg_page_iter sg_iter;
+>> >> >         int i, j;
+>> >> > @@ -869,6 +870,8 @@ static int cio2_vb2_buf_init(struct vb2_buffer
+>> >> > *vb)
+>> >> >
+>> >> >         i = j = 0;
+>> >> >         for_each_sg_page(sg->sgl, &sg_iter, sg->nents, 0) {
+>> >> > +               if (!pages--)
+>> >> > +                       break;
+>> >>
+>> >> Or perhaps we should check here for (pages > 1)?
+>> >
+>> > This is so that the end of lop is set to the dummy_page.
+>>
+>> How about this simple example:
+>>
+>> vb->planes[0].length = 1023 * 4096
+>> pages = 1023 + 1 = 1024
+>> lops  = 1
+>>
+>> If sg->sgl includes more than 1023 pages, the for_each_sg_page() loop
+>> will iterate for pages from 1024 to 1 inclusive and ends up overflowing
+>> the dummy page to next lop (i == 1 and j == 0), but we only allocated 1
+>> lop.
+>>
+>> Best regards,
+>> Tomasz
