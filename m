@@ -1,105 +1,355 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from sub5.mail.dreamhost.com ([208.113.200.129]:37481 "EHLO
-        homiemail-a123.g.dreamhost.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750846AbeAPRbn (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:41876 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751628AbeAPX5T (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 16 Jan 2018 12:31:43 -0500
-Subject: Re: [PATCH 4/7] si2168: Add ts bus coontrol, turn off bus on sleep
-To: Antti Palosaari <crope@iki.fi>, Brad Love <brad@nextdimension.cc>,
-        linux-media@vger.kernel.org
-References: <1515773982-6411-1-git-send-email-brad@nextdimension.cc>
- <1515773982-6411-5-git-send-email-brad@nextdimension.cc>
- <ce8faa6a-0ffb-a432-e269-58486c857fea@iki.fi>
-From: Brad Love <brad@nextdimension.cc>
-Message-ID: <0770dc98-9153-e386-ca54-b7e4123b774d@nextdimension.cc>
-Date: Tue, 16 Jan 2018 11:31:41 -0600
+        Tue, 16 Jan 2018 18:57:19 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Kieran Bingham <kieran.bingham@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+        Olivier BRAUN <olivier.braun@stereolabs.com>,
+        Troy Kisky <troy.kisky@boundarydevices.com>
+Subject: Re: [RFT PATCH v3 6/6] uvcvideo: Move decode processing to process context
+Date: Wed, 17 Jan 2018 01:57:22 +0200
+Message-ID: <2738845.uTp0159gga@avalon>
+In-Reply-To: <c857652f179fbc083a16029affefbde83a8932dc.1515748369.git-series.kieran.bingham@ideasonboard.com>
+References: <cover.30aaad9a6abac5e92d4a1a0e6634909d97cc54d8.1515748369.git-series.kieran.bingham@ideasonboard.com> <c857652f179fbc083a16029affefbde83a8932dc.1515748369.git-series.kieran.bingham@ideasonboard.com>
 MIME-Version: 1.0
-In-Reply-To: <ce8faa6a-0ffb-a432-e269-58486c857fea@iki.fi>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: base64
-Content-Language: en-GB
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Ck9uIDIwMTgtMDEtMTUgMjM6MDcsIEFudHRpIFBhbG9zYWFyaSB3cm90ZToKPiBIZWxsbwo+
-IEFuZCB3aGF0IGlzIHJhdGlvbmFsZSBoZXJlLCBpcyB0aGVyZSBzb21lIHVzZSBjYXNlIGRl
-bW9kIG11c3QgYmUKPiBhY3RpdmUgYW5kIHRzIHNldCB0byB0cmlzdGF0ZSAoZGlzYWJsZWQp
-PyBKdXN0IHB1dCBkZW1vZCBzbGVlcCB3aGVuCj4geW91IGRvbid0IHVzZSBpdC4KPgo+IHJl
-Z2FyZHMKPiBBbnR0aQoKSGVsbG8gQW50dGksCgpQZXJoYXBzIHRoZSAudHNfYnVzX2N0cmwg
-Y2FsbGJhY2sgZG9lcyBub3QgbmVlZCB0byBiZSBpbmNsdWRlZCBpbiBvcHMsCmJ1dCB0aGUg
-ZnVuY3Rpb24gaXMgbmVjZXNzYXJ5LiBUaGUgZGVtb2QgaXMgYWxyZWFkeSBwdXQgdG8gc2xl
-ZXAgd2hlbgpub3QgaW4gdXNlLCBidXQgaXQgbGVhdmVzIHRoZSB0cyBidXMgb3Blbi4gVGhl
-IHRzIGJ1cyBoYXMgbm8gcmVhc29uIHRvCmJlIG9wZW4gd2hlbiB0aGUgZGVtb2QgaXMgcHV0
-IHRvIHNsZWVwLiBMZWF2aW5nIHRoZSB0cyBidXMgb3BlbiBkdXJpbmcKc2xlZXAgYWZmZWN0
-cyB0aGUgb3RoZXIgY29ubmVjdGVkIGRlbW9kIGFuZCBub3RoaW5nIGlzIHJlY2VpdmVkIGJ5
-IGl0LgpUaGUgbGdkdDMzMDZhIGRyaXZlciBhbHJlYWR5IHRyaSBzdGF0ZXMgaXRzIHRzIGJ1
-cyB3aGVuIHB1dCB0byBzbGVlcCwKdGhlIHNpMjE2OCBzaG91bGQgYXMgd2VsbC4KCkNoZWVy
-cywKCkJyYWQKCgoKPgo+IE9uIDAxLzEyLzIwMTggMDY6MTkgUE0sIEJyYWQgTG92ZSB3cm90
-ZToKPj4gSW5jbHVkZXMgYSBmdW5jdGlvbiB0byBzZXQgVFMgTU9ERSBwcm9wZXJ0eSBvcyBz
-aTIxNjguIFRoZSBmdW5jdGlvbgo+PiBlaXRoZXIgZGlzYWJsZXMgdGhlIFRTIG91dHB1dCBi
-dXMsIG9yIHNldHMgbW9kZSB0byBjb25maWcgb3B0aW9uLgo+Pgo+PiBXaGVuIGdvaW5nIHRv
-IHNsZWVwIHRoZSBUUyBidXMgaXMgdHVybmVkIG9mZiwgdGhpcyBtYWtlcyB0aGUgZHJpdmVy
-Cj4+IGNvbXBhdGlibGUgd2l0aCBtdWx0aXBsZSBmcm9udGVuZCB1c2FnZS4KPj4KPj4gU2ln
-bmVkLW9mZi1ieTogQnJhZCBMb3ZlIDxicmFkQG5leHRkaW1lbnNpb24uY2M+Cj4+IC0tLQo+
-PiDCoCBkcml2ZXJzL21lZGlhL2R2Yi1mcm9udGVuZHMvc2kyMTY4LmMgfCAzOAo+PiArKysr
-KysrKysrKysrKysrKysrKysrKysrKysrLS0tLS0tLS0KPj4gwqAgZHJpdmVycy9tZWRpYS9k
-dmItZnJvbnRlbmRzL3NpMjE2OC5oIHzCoCAxICsKPj4gwqAgMiBmaWxlcyBjaGFuZ2VkLCAz
-MSBpbnNlcnRpb25zKCspLCA4IGRlbGV0aW9ucygtKQo+Pgo+PiBkaWZmIC0tZ2l0IGEvZHJp
-dmVycy9tZWRpYS9kdmItZnJvbnRlbmRzL3NpMjE2OC5jCj4+IGIvZHJpdmVycy9tZWRpYS9k
-dmItZnJvbnRlbmRzL3NpMjE2OC5jCj4+IGluZGV4IDUzOTM5OWQuLjQyOWMwM2EgMTAwNjQ0
-Cj4+IC0tLSBhL2RyaXZlcnMvbWVkaWEvZHZiLWZyb250ZW5kcy9zaTIxNjguYwo+PiArKysg
-Yi9kcml2ZXJzL21lZGlhL2R2Yi1mcm9udGVuZHMvc2kyMTY4LmMKPj4gQEAgLTQwOSw2ICs0
-MDksMzAgQEAgc3RhdGljIGludCBzaTIxNjhfc2V0X2Zyb250ZW5kKHN0cnVjdAo+PiBkdmJf
-ZnJvbnRlbmQgKmZlKQo+PiDCoMKgwqDCoMKgIHJldHVybiByZXQ7Cj4+IMKgIH0KPj4gwqAg
-K3N0YXRpYyBpbnQgc2kyMTY4X3RzX2J1c19jdHJsKHN0cnVjdCBkdmJfZnJvbnRlbmQgKmZl
-LCBpbnQgYWNxdWlyZSkKPj4gK3sKPj4gK8KgwqDCoCBzdHJ1Y3QgaTJjX2NsaWVudCAqY2xp
-ZW50ID0gZmUtPmRlbW9kdWxhdG9yX3ByaXY7Cj4+ICvCoMKgwqAgc3RydWN0IHNpMjE2OF9k
-ZXYgKmRldiA9IGkyY19nZXRfY2xpZW50ZGF0YShjbGllbnQpOwo+PiArwqDCoMKgIHN0cnVj
-dCBzaTIxNjhfY21kIGNtZDsKPj4gK8KgwqDCoCBpbnQgcmV0ID0gMDsKPj4gKwo+PiArwqDC
-oMKgIGRldl9kYmcoJmNsaWVudC0+ZGV2LCAiJXMgYWNxdWlyZTogJWRcbiIsIF9fZnVuY19f
-LCBhY3F1aXJlKTsKPj4gKwo+PiArwqDCoMKgIC8qIHNldCBUU19NT0RFIHByb3BlcnR5ICov
-Cj4+ICvCoMKgwqAgbWVtY3B5KGNtZC5hcmdzLCAiXHgxNFx4MDBceDAxXHgxMFx4MTBceDAw
-IiwgNik7Cj4+ICvCoMKgwqAgaWYgKGFjcXVpcmUpCj4+ICvCoMKgwqDCoMKgwqDCoCBjbWQu
-YXJnc1s0XSB8PSBkZXYtPnRzX21vZGU7Cj4+ICvCoMKgwqAgZWxzZQo+PiArwqDCoMKgwqDC
-oMKgwqAgY21kLmFyZ3NbNF0gfD0gU0kyMTY4X1RTX1RSSVNUQVRFOwo+PiArwqDCoMKgIGlm
-IChkZXYtPnRzX2Nsb2NrX2dhcHBlZCkKPj4gK8KgwqDCoMKgwqDCoMKgIGNtZC5hcmdzWzRd
-IHw9IDB4NDA7Cj4+ICvCoMKgwqAgY21kLndsZW4gPSA2Owo+PiArwqDCoMKgIGNtZC5ybGVu
-ID0gNDsKPj4gK8KgwqDCoCByZXQgPSBzaTIxNjhfY21kX2V4ZWN1dGUoY2xpZW50LCAmY21k
-KTsKPj4gKwo+PiArwqDCoMKgIHJldHVybiByZXQ7Cj4+ICt9Cj4+ICsKPj4gwqAgc3RhdGlj
-IGludCBzaTIxNjhfaW5pdChzdHJ1Y3QgZHZiX2Zyb250ZW5kICpmZSkKPj4gwqAgewo+PiDC
-oMKgwqDCoMKgIHN0cnVjdCBpMmNfY2xpZW50ICpjbGllbnQgPSBmZS0+ZGVtb2R1bGF0b3Jf
-cHJpdjsKPj4gQEAgLTU0MCwxNCArNTY0LDcgQEAgc3RhdGljIGludCBzaTIxNjhfaW5pdChz
-dHJ1Y3QgZHZiX2Zyb250ZW5kICpmZSkKPj4gwqDCoMKgwqDCoMKgwqDCoMKgwqAgZGV2LT52
-ZXJzaW9uID4+IDI0ICYgMHhmZiwgZGV2LT52ZXJzaW9uID4+IDE2ICYgMHhmZiwKPj4gwqDC
-oMKgwqDCoMKgwqDCoMKgwqAgZGV2LT52ZXJzaW9uID4+IDggJiAweGZmLCBkZXYtPnZlcnNp
-b24gPj4gMCAmIDB4ZmYpOwo+PiDCoCAtwqDCoMKgIC8qIHNldCB0cyBtb2RlICovCj4+IC3C
-oMKgwqAgbWVtY3B5KGNtZC5hcmdzLCAiXHgxNFx4MDBceDAxXHgxMFx4MTBceDAwIiwgNik7
-Cj4+IC3CoMKgwqAgY21kLmFyZ3NbNF0gfD0gZGV2LT50c19tb2RlOwo+PiAtwqDCoMKgIGlm
-IChkZXYtPnRzX2Nsb2NrX2dhcHBlZCkKPj4gLcKgwqDCoMKgwqDCoMKgIGNtZC5hcmdzWzRd
-IHw9IDB4NDA7Cj4+IC3CoMKgwqAgY21kLndsZW4gPSA2Owo+PiAtwqDCoMKgIGNtZC5ybGVu
-ID0gNDsKPj4gLcKgwqDCoCByZXQgPSBzaTIxNjhfY21kX2V4ZWN1dGUoY2xpZW50LCAmY21k
-KTsKPj4gK8KgwqDCoCByZXQgPSBzaTIxNjhfdHNfYnVzX2N0cmwoZmUsIDEpOwo+PiDCoMKg
-wqDCoMKgIGlmIChyZXQpCj4+IMKgwqDCoMKgwqDCoMKgwqDCoCBnb3RvIGVycjsKPj4gwqAg
-QEAgLTU4NCw2ICs2MDEsOSBAQCBzdGF0aWMgaW50IHNpMjE2OF9zbGVlcChzdHJ1Y3QgZHZi
-X2Zyb250ZW5kICpmZSkKPj4gwqAgwqDCoMKgwqDCoCBkZXYtPmFjdGl2ZSA9IGZhbHNlOwo+
-PiDCoCArwqDCoMKgIC8qIHRyaS1zdGF0ZSBkYXRhIGJ1cyAqLwo+PiArwqDCoMKgIHNpMjE2
-OF90c19idXNfY3RybChmZSwgMCk7Cj4+ICsKPj4gwqDCoMKgwqDCoCAvKiBGaXJtd2FyZSBC
-IDQuMC0xMSBvciBsYXRlciBsb3NlcyB3YXJtIHN0YXRlIGR1cmluZyBzbGVlcCAqLwo+PiDC
-oMKgwqDCoMKgIGlmIChkZXYtPnZlcnNpb24gPiAoJ0InIDw8IDI0IHwgNCA8PCAxNiB8IDAg
-PDwgOCB8IDExIDw8IDApKQo+PiDCoMKgwqDCoMKgwqDCoMKgwqAgZGV2LT53YXJtID0gZmFs
-c2U7Cj4+IEBAIC02ODEsNiArNzAxLDggQEAgc3RhdGljIGNvbnN0IHN0cnVjdCBkdmJfZnJv
-bnRlbmRfb3BzIHNpMjE2OF9vcHMgPSB7Cj4+IMKgwqDCoMKgwqAgLmluaXQgPSBzaTIxNjhf
-aW5pdCwKPj4gwqDCoMKgwqDCoCAuc2xlZXAgPSBzaTIxNjhfc2xlZXAsCj4+IMKgICvCoMKg
-wqAgLnRzX2J1c19jdHJswqDCoMKgwqDCoMKgwqDCoMKgID0gc2kyMTY4X3RzX2J1c19jdHJs
-LAo+PiArCj4+IMKgwqDCoMKgwqAgLnNldF9mcm9udGVuZCA9IHNpMjE2OF9zZXRfZnJvbnRl
-bmQsCj4+IMKgIMKgwqDCoMKgwqAgLnJlYWRfc3RhdHVzID0gc2kyMTY4X3JlYWRfc3RhdHVz
-LAo+PiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9tZWRpYS9kdmItZnJvbnRlbmRzL3NpMjE2OC5o
-Cj4+IGIvZHJpdmVycy9tZWRpYS9kdmItZnJvbnRlbmRzL3NpMjE2OC5oCj4+IGluZGV4IDMy
-MjVkMGMuLmY0OGYwZmIgMTAwNjQ0Cj4+IC0tLSBhL2RyaXZlcnMvbWVkaWEvZHZiLWZyb250
-ZW5kcy9zaTIxNjguaAo+PiArKysgYi9kcml2ZXJzL21lZGlhL2R2Yi1mcm9udGVuZHMvc2ky
-MTY4LmgKPj4gQEAgLTM4LDYgKzM4LDcgQEAgc3RydWN0IHNpMjE2OF9jb25maWcgewo+PiDC
-oMKgwqDCoMKgIC8qIFRTIG1vZGUgKi8KPj4gwqAgI2RlZmluZSBTSTIxNjhfVFNfUEFSQUxM
-RUzCoMKgwqAgMHgwNgo+PiDCoCAjZGVmaW5lIFNJMjE2OF9UU19TRVJJQUzCoMKgwqAgMHgw
-Mwo+PiArI2RlZmluZSBTSTIxNjhfVFNfVFJJU1RBVEXCoMKgwqAgMHgwMAo+PiDCoMKgwqDC
-oMKgIHU4IHRzX21vZGU7Cj4+IMKgIMKgwqDCoMKgwqAgLyogVFMgY2xvY2sgaW52ZXJ0ZWQg
-Ki8KPj4KPgoK
+Hi Kieran,
+
+Thank you for the patch.
+
+On Friday, 12 January 2018 11:19:27 EET Kieran Bingham wrote:
+> Newer high definition cameras, and cameras with multiple lenses such as
+> the range of stereo-vision cameras now available have ever increasing
+> data rates.
+> 
+> The inclusion of a variable length packet header in URB packets mean
+> that we must memcpy the frame data out to our destination 'manually'.
+> This can result in data rates of up to 2 gigabits per second being
+> processed.
+> 
+> To improve efficiency, and maximise throughput, handle the URB decode
+> processing through a work queue to move it from interrupt context, and
+> allow multiple processors to work on URBs in parallel.
+> 
+> Signed-off-by: Kieran Bingham <kieran.bingham@ideasonboard.com>
+> 
+> ---
+> v2:
+>  - Lock full critical section of usb_submit_urb()
+> 
+> v3:
+>  - Fix race on submitting uvc_video_decode_data_work() to work queue.
+>  - Rename uvc_decode_op -> uvc_copy_op (Generic to encode/decode)
+>  - Rename decodes -> copy_operations
+>  - Don't queue work if there is no async task
+>  - obtain copy op structure directly in uvc_video_decode_data()
+>  - uvc_video_decode_data_work() -> uvc_video_copy_data_work()
+> ---
+>  drivers/media/usb/uvc/uvc_queue.c |  12 +++-
+>  drivers/media/usb/uvc/uvc_video.c | 116 +++++++++++++++++++++++++++----
+>  drivers/media/usb/uvc/uvcvideo.h  |  24 ++++++-
+>  3 files changed, 138 insertions(+), 14 deletions(-)
+> 
+> diff --git a/drivers/media/usb/uvc/uvc_queue.c
+> b/drivers/media/usb/uvc/uvc_queue.c index 5a9987e547d3..598087eeb5c2 100644
+> --- a/drivers/media/usb/uvc/uvc_queue.c
+> +++ b/drivers/media/usb/uvc/uvc_queue.c
+> @@ -179,10 +179,22 @@ static void uvc_stop_streaming(struct vb2_queue *vq)
+>  	struct uvc_video_queue *queue = vb2_get_drv_priv(vq);
+>  	struct uvc_streaming *stream = uvc_queue_to_stream(queue);
+> 
+> +	/* Prevent new buffers coming in. */
+> +	spin_lock_irq(&queue->irqlock);
+> +	queue->flags |= UVC_QUEUE_STOPPING;
+> +	spin_unlock_irq(&queue->irqlock);
+> +
+> +	/*
+> +	 * All pending work should be completed before disabling the stream, as
+> +	 * all URBs will be free'd during uvc_video_enable(s, 0).
+> +	 */
+> +	flush_workqueue(stream->async_wq);
+> +
+>  	uvc_video_enable(stream, 0);
+> 
+>  	spin_lock_irq(&queue->irqlock);
+>  	uvc_queue_return_buffers(queue, UVC_BUF_STATE_ERROR);
+> +	queue->flags &= ~UVC_QUEUE_STOPPING;
+>  	spin_unlock_irq(&queue->irqlock);
+
+As discussed today I believe you'll rework this part so I won't comment on it.
+
+>  }
+> 
+> diff --git a/drivers/media/usb/uvc/uvc_video.c
+> b/drivers/media/usb/uvc/uvc_video.c index 3878bec3276e..fb6b5af17380 100644
+> --- a/drivers/media/usb/uvc/uvc_video.c
+> +++ b/drivers/media/usb/uvc/uvc_video.c
+> @@ -1058,21 +1058,74 @@ static int uvc_video_decode_start(struct
+> uvc_streaming *stream, return data[0];
+>  }
+> 
+> -static void uvc_video_decode_data(struct uvc_streaming *stream,
+> +static void uvc_video_copy_packets(struct uvc_urb *uvc_urb)
+
+Maybe uvc_video_copy_data() as the function doesn't copy the full packets but 
+the data only ?
+
+> +{
+> +	unsigned int i;
+> +
+> +	for (i = 0; i < uvc_urb->async_operations; i++) {
+> +		struct uvc_copy_op *op = &uvc_urb->copy_operations[i];
+> +
+> +		memcpy(op->dst, op->src, op->len);
+> +
+> +		/* Release reference taken on this buffer */
+> +		uvc_queue_buffer_release(op->buf);
+> +	}
+> +}
+> +
+> +/*
+> + * uvc_video_decode_data_work: Asynchronous memcpy processing
+> + *
+> + * Perform memcpy tasks in process context, with completion handlers
+> + * to return the URB, and buffer handles.
+> + *
+> + * The work submitter must pre-determine that the work is safe
+
+s/safe/safe./
+
+Could you explain what safe work means ?
+
+> + */
+> +static void uvc_video_copy_data_work(struct work_struct *work)
+> +{
+> +	struct uvc_urb *uvc_urb = container_of(work, struct uvc_urb, work);
+> +	struct uvc_streaming *stream = uvc_urb->stream;
+> +	struct uvc_video_queue *queue = &stream->queue;
+> +	int ret;
+> +
+> +	uvc_video_copy_packets(uvc_urb);
+> +
+> +	/*
+> +	 * Prevent resubmitting URBs when shutting down to ensure that no new
+> +	 * work item will be scheduled after uvc_stop_streaming() flushes the
+> +	 * work queue.
+> +	 */
+> +	spin_lock_irq(&queue->irqlock);
+> +	if (!(queue->flags & UVC_QUEUE_STOPPING)) {
+> +		ret = usb_submit_urb(uvc_urb->urb, GFP_ATOMIC);
+> +		if (ret < 0)
+> +			uvc_printk(KERN_ERR,
+> +				   "Failed to resubmit video URB (%d).\n",
+> +				   ret);
+> +	}
+> +	spin_unlock_irq(&queue->irqlock);
+> +}
+> +
+> +static void uvc_video_decode_data(struct uvc_urb *uvc_urb,
+>  		struct uvc_buffer *buf, const __u8 *data, int len)
+>  {
+> -	unsigned int maxlen, nbytes;
+> -	void *mem;
+> +	unsigned int active_op = uvc_urb->async_operations;
+> +	struct uvc_copy_op *decode = &uvc_urb->copy_operations[active_op];
+> +	unsigned int maxlen;
+> 
+>  	if (len <= 0)
+>  		return;
+> 
+> -	/* Copy the video data to the buffer. */
+>  	maxlen = buf->length - buf->bytesused;
+> -	mem = buf->mem + buf->bytesused;
+> -	nbytes = min((unsigned int)len, maxlen);
+> -	memcpy(mem, data, nbytes);
+> -	buf->bytesused += nbytes;
+> +
+> +	/* Take a buffer reference for async work */
+> +	kref_get(&buf->ref);
+> +
+> +	decode->buf = buf;
+> +	decode->src = data;
+> +	decode->dst = buf->mem + buf->bytesused;
+> +	decode->len = min_t(unsigned int, len, maxlen);
+> +
+> +	buf->bytesused += decode->len;
+> 
+>  	/* Complete the current frame if the buffer size was exceeded. */
+>  	if (len > maxlen) {
+> @@ -1080,6 +1133,8 @@ static void uvc_video_decode_data(struct uvc_streaming
+> *stream, buf->error = 1;
+>  		buf->state = UVC_BUF_STATE_READY;
+>  	}
+> +
+> +	uvc_urb->async_operations++;
+>  }
+> 
+>  static void uvc_video_decode_end(struct uvc_streaming *stream,
+> @@ -1187,7 +1242,7 @@ static void uvc_video_decode_isoc(struct uvc_urb
+> *uvc_urb, continue;
+> 
+>  		/* Decode the payload data. */
+> -		uvc_video_decode_data(stream, buf, mem + ret,
+> +		uvc_video_decode_data(uvc_urb, buf, mem + ret,
+>  			urb->iso_frame_desc[i].actual_length - ret);
+> 
+>  		/* Process the header again. */
+> @@ -1248,9 +1303,9 @@ static void uvc_video_decode_bulk(struct uvc_urb
+> *uvc_urb, * sure buf is never dereferenced if NULL.
+>  	 */
+> 
+> -	/* Process video data. */
+> +	/* Prepare video data for processing. */
+>  	if (!stream->bulk.skip_payload && buf != NULL)
+> -		uvc_video_decode_data(stream, buf, mem, len);
+> +		uvc_video_decode_data(uvc_urb, buf, mem, len);
+> 
+>  	/* Detect the payload end by a URB smaller than the maximum size (or
+>  	 * a payload size equal to the maximum) and process the header again.
+> @@ -1322,6 +1377,7 @@ static void uvc_video_complete(struct urb *urb)
+>  	struct uvc_streaming *stream = uvc_urb->stream;
+>  	struct uvc_video_queue *queue = &stream->queue;
+>  	struct uvc_buffer *buf = NULL;
+> +	unsigned long flags;
+>  	int ret;
+> 
+>  	switch (urb->status) {
+> @@ -1344,12 +1400,39 @@ static void uvc_video_complete(struct urb *urb)
+> 
+>  	buf = uvc_queue_get_current_buffer(queue);
+> 
+> +	/* Re-initialise the URB async work. */
+> +	uvc_urb->async_operations = 0;
+> +
+> +	/*
+> +	 * Process the URB headers, and optionally queue expensive memcpy tasks
+> +	 * to be deferred to a work queue.
+> +	 */
+>  	stream->decode(uvc_urb, buf);
+> 
+> -	if ((ret = usb_submit_urb(urb, GFP_ATOMIC)) < 0) {
+> -		uvc_printk(KERN_ERR, "Failed to resubmit video URB (%d).\n",
+> -			ret);
+> +	/* Without any queued work, we must submit the URB. */
+
+How about "If no async work is needed, resubmit the URB immediately." ?
+
+> +	if (!uvc_urb->async_operations) {
+> +		ret = usb_submit_urb(uvc_urb->urb, GFP_ATOMIC);
+> +		if (ret < 0)
+> +			uvc_printk(KERN_ERR,
+> +				   "Failed to resubmit video URB (%d).\n",
+> +				   ret);
+> +		return;
+> +	}
+> +
+> +	/*
+> +	 * When the stream is stopped, all URBs are freed as part of the call to
+> +	 * uvc_stop_streaming() and must not be handled asynchronously. In that
+> +	 * event we can safely complete the packet work directly in this
+> +	 * context, without resubmitting the URB.
+> +	 */
+> +	spin_lock_irqsave(&queue->irqlock, flags);
+> +	if (!(queue->flags & UVC_QUEUE_STOPPING)) {
+> +		INIT_WORK(&uvc_urb->work, uvc_video_copy_data_work);
+> +		queue_work(stream->async_wq, &uvc_urb->work);
+> +	} else {
+> +		uvc_video_copy_packets(uvc_urb);
+>  	}
+> +	spin_unlock_irqrestore(&queue->irqlock, flags);
+>  }
+> 
+>  /*
+> @@ -1620,6 +1703,11 @@ static int uvc_init_video(struct uvc_streaming
+> *stream, gfp_t gfp_flags)
+> 
+>  	uvc_video_stats_start(stream);
+> 
+> +	stream->async_wq = alloc_workqueue("uvcvideo", WQ_UNBOUND | WQ_HIGHPRI,
+> +			0);
+> +	if (!stream->async_wq)
+> +		return -ENOMEM;
+
+Shouldn't you call destroy_workqueue() somewhere ?
+
+>  	if (intf->num_altsetting > 1) {
+>  		struct usb_host_endpoint *best_ep = NULL;
+>  		unsigned int best_psize = UINT_MAX;
+> diff --git a/drivers/media/usb/uvc/uvcvideo.h
+> b/drivers/media/usb/uvc/uvcvideo.h index 6a18dbfc3e5b..4a814da03913 100644
+> --- a/drivers/media/usb/uvc/uvcvideo.h
+> +++ b/drivers/media/usb/uvc/uvcvideo.h
+> @@ -411,6 +411,7 @@ struct uvc_buffer {
+> 
+>  #define UVC_QUEUE_DISCONNECTED		(1 << 0)
+>  #define UVC_QUEUE_DROP_CORRUPTED	(1 << 1)
+> +#define UVC_QUEUE_STOPPING		(1 << 2)
+> 
+>  struct uvc_video_queue {
+>  	struct vb2_queue queue;
+> @@ -483,12 +484,30 @@ struct uvc_stats_stream {
+>  };
+> 
+>  /**
+> + * struct uvc_copy_op: Context structure to schedule asynchronous memcpy
+> + *
+> + * @buf: active buf object for this operation
+> + * @dst: copy destination address
+> + * @src: copy source address
+> + * @len: copy length
+> + */
+> +struct uvc_copy_op {
+> +	struct uvc_buffer *buf;
+> +	void *dst;
+> +	const __u8 *src;
+> +	int len;
+
+Can the length be negative ?
+
+> +};
+> +
+> +/**
+>   * struct uvc_urb - URB context management structure
+>   *
+>   * @urb: the URB described by this context structure
+>   * @stream: UVC streaming context
+>   * @buffer: memory storage for the URB
+>   * @dma: DMA coherent addressing for the urb_buffer
+> + * @async_operations: counter to indicate the number of copy operations
+> + * @copy_operations: work descriptors for asynchronous copy operations
+> + * @work: work queue entry for asynchronous decode
+>   */
+>  struct uvc_urb {
+>  	struct urb *urb;
+> @@ -496,6 +515,10 @@ struct uvc_urb {
+> 
+>  	char *buffer;
+>  	dma_addr_t dma;
+> +
+> +	unsigned int async_operations;
+> +	struct uvc_copy_op copy_operations[UVC_MAX_PACKETS];
+> +	struct work_struct work;
+>  };
+> 
+>  struct uvc_streaming {
+> @@ -528,6 +551,7 @@ struct uvc_streaming {
+>  	/* Buffers queue. */
+>  	unsigned int frozen : 1;
+>  	struct uvc_video_queue queue;
+> +	struct workqueue_struct *async_wq;
+>  	void (*decode)(struct uvc_urb *uvc_urb, struct uvc_buffer *buf);
+> 
+>  	/* Context data used by the bulk completion handler. */
+
+-- 
+Regards,
+
+Laurent Pinchart
