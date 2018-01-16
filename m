@@ -1,103 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from out20-25.mail.aliyun.com ([115.124.20.25]:58512 "EHLO
-        out20-25.mail.aliyun.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751409AbeAZBrb (ORCPT
+Received: from relay4-d.mail.gandi.net ([217.70.183.196]:58975 "EHLO
+        relay4-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751280AbeAPVph (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 25 Jan 2018 20:47:31 -0500
-Date: Fri, 26 Jan 2018 09:46:58 +0800
-From: Yong <yong.deng@magewell.com>
-To: kbuild test robot <lkp@intel.com>
-Cc: kbuild-all@01.org,
-        Maxime Ripard <maxime.ripard@free-electrons.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Chen-Yu Tsai <wens@csie.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        Randy Dunlap <rdunlap@infradead.org>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Yannick Fertre <yannick.fertre@st.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Rick Chang <rick.chang@mediatek.com>,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-sunxi@googlegroups.com, megous@megous.com
-Subject: Re: [PATCH v6 2/2] media: V3s: Add support for Allwinner CSI.
-Message-Id: <20180126094658.aa70ed3f890464f6051e21e4@magewell.com>
-In-Reply-To: <201801260759.RyNhDZz4%fengguang.wu@intel.com>
-References: <1516695531-23349-1-git-send-email-yong.deng@magewell.com>
-        <201801260759.RyNhDZz4%fengguang.wu@intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+        Tue, 16 Jan 2018 16:45:37 -0500
+From: Jacopo Mondi <jacopo+renesas@jmondi.org>
+To: laurent.pinchart@ideasonboard.com, magnus.damm@gmail.com,
+        geert@glider.be, hverkuil@xs4all.nl, mchehab@kernel.org,
+        festevam@gmail.com, sakari.ailus@iki.fi, robh+dt@kernel.org,
+        mark.rutland@arm.com, pombredanne@nexb.com
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-sh@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: [PATCH v6 1/9] dt-bindings: media: Add Renesas CEU bindings
+Date: Tue, 16 Jan 2018 22:44:53 +0100
+Message-Id: <1516139101-7835-2-git-send-email-jacopo+renesas@jmondi.org>
+In-Reply-To: <1516139101-7835-1-git-send-email-jacopo+renesas@jmondi.org>
+References: <1516139101-7835-1-git-send-email-jacopo+renesas@jmondi.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Maxime,
+Add bindings documentation for Renesas Capture Engine Unit (CEU).
 
-Do you have any experience in solving this problem?
-It seems the PHYS_OFFSET maybe undeclared when the ARCH is not arm.
+Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+Reviewed-by: Rob Herring <robh@kernel.org>
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ .../devicetree/bindings/media/renesas,ceu.txt      | 81 ++++++++++++++++++++++
+ 1 file changed, 81 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/renesas,ceu.txt
 
-On Fri, 26 Jan 2018 08:04:18 +0800
-kbuild test robot <lkp@intel.com> wrote:
-
-> Hi Yong,
-> 
-> I love your patch! Yet something to improve:
-> 
-> [auto build test ERROR on linuxtv-media/master]
-> [also build test ERROR on v4.15-rc9 next-20180119]
-> [if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
-> 
-> url:    https://github.com/0day-ci/linux/commits/Yong-Deng/dt-bindings-media-Add-Allwinner-V3s-Camera-Sensor-Interface-CSI/20180126-054511
-> base:   git://linuxtv.org/media_tree.git master
-> config: i386-allmodconfig (attached as .config)
-> compiler: gcc-7 (Debian 7.2.0-12) 7.2.1 20171025
-> reproduce:
->         # save the attached .config to linux build tree
->         make ARCH=i386 
-> 
-> All errors (new ones prefixed by >>):
-> 
->    drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.c: In function 'sun6i_csi_update_buf_addr':
-> >> drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.c:567:31: error: 'PHYS_OFFSET' undeclared (first use in this function); did you mean 'PAGE_OFFSET'?
->      dma_addr_t bus_addr = addr - PHYS_OFFSET;
->                                   ^~~~~~~~~~~
->                                   PAGE_OFFSET
->    drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.c:567:31: note: each undeclared identifier is reported only once for each function it appears in
-> 
-> vim +567 drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.c
-> 
->    562	
->    563	void sun6i_csi_update_buf_addr(struct sun6i_csi *csi, dma_addr_t addr)
->    564	{
->    565		struct sun6i_csi_dev *sdev = sun6i_csi_to_dev(csi);
->    566		/* transform physical address to bus address */
->  > 567		dma_addr_t bus_addr = addr - PHYS_OFFSET;
->    568	
->    569		regmap_write(sdev->regmap, CSI_CH_F0_BUFA_REG,
->    570			     (bus_addr + sdev->planar_offset[0]) >> 2);
->    571		if (sdev->planar_offset[1] != -1)
->    572			regmap_write(sdev->regmap, CSI_CH_F1_BUFA_REG,
->    573				     (bus_addr + sdev->planar_offset[1]) >> 2);
->    574		if (sdev->planar_offset[2] != -1)
->    575			regmap_write(sdev->regmap, CSI_CH_F2_BUFA_REG,
->    576				     (bus_addr + sdev->planar_offset[2]) >> 2);
->    577	}
->    578	
-> 
-> ---
-> 0-DAY kernel test infrastructure                Open Source Technology Center
-> https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
-
-
-Thanks,
-Yong
+diff --git a/Documentation/devicetree/bindings/media/renesas,ceu.txt b/Documentation/devicetree/bindings/media/renesas,ceu.txt
+new file mode 100644
+index 0000000..590ee27
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/renesas,ceu.txt
+@@ -0,0 +1,81 @@
++Renesas Capture Engine Unit (CEU)
++----------------------------------------------
++
++The Capture Engine Unit is the image capture interface found in the Renesas
++SH Mobile and RZ SoCs.
++
++The interface supports a single parallel input with data bus width of 8 or 16
++bits.
++
++Required properties:
++- compatible: Shall be "renesas,r7s72100-ceu" for CEU units found in RZ/A1-H
++  and RZ/A1-M SoCs.
++- reg: Registers address base and size.
++- interrupts: The interrupt specifier.
++
++The CEU supports a single parallel input and should contain a single 'port'
++subnode with a single 'endpoint'. Connection to input devices are modeled
++according to the video interfaces OF bindings specified in:
++Documentation/devicetree/bindings/media/video-interfaces.txt
++
++Optional endpoint properties applicable to parallel input bus described in
++the above mentioned "video-interfaces.txt" file are supported.
++
++- hsync-active: Active state of the HSYNC signal, 0/1 for LOW/HIGH respectively.
++  If property is not present, default is active high.
++- vsync-active: Active state of the VSYNC signal, 0/1 for LOW/HIGH respectively.
++  If property is not present, default is active high.
++
++Example:
++
++The example describes the connection between the Capture Engine Unit and an
++OV7670 image sensor connected to i2c1 interface.
++
++ceu: ceu@e8210000 {
++	reg = <0xe8210000 0x209c>;
++	compatible = "renesas,r7s72100-ceu";
++	interrupts = <GIC_SPI 332 IRQ_TYPE_LEVEL_HIGH>;
++
++	pinctrl-names = "default";
++	pinctrl-0 = <&vio_pins>;
++
++	status = "okay";
++
++	port {
++		ceu_in: endpoint {
++			remote-endpoint = <&ov7670_out>;
++
++			hsync-active = <1>;
++			vsync-active = <0>;
++		};
++	};
++};
++
++i2c1: i2c@fcfee400 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&i2c1_pins>;
++
++	status = "okay";
++
++	clock-frequency = <100000>;
++
++	ov7670: camera@21 {
++		compatible = "ovti,ov7670";
++		reg = <0x21>;
++
++		pinctrl-names = "default";
++		pinctrl-0 = <&vio_pins>;
++
++		reset-gpios = <&port3 11 GPIO_ACTIVE_LOW>;
++		powerdown-gpios = <&port3 12 GPIO_ACTIVE_HIGH>;
++
++		port {
++			ov7670_out: endpoint {
++				remote-endpoint = <&ceu_in>;
++
++				hsync-active = <1>;
++				vsync-active = <0>;
++			};
++		};
++	};
++};
+-- 
+2.7.4
