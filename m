@@ -1,130 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:40621 "EHLO
-        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751219AbeA3LQB (ORCPT
+Received: from mout.kundenserver.de ([212.227.17.24]:55789 "EHLO
+        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750832AbeAPVxE (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 30 Jan 2018 06:16:01 -0500
-Subject: Re: [PATCH 8/8] platform: vivid-cec: fix potential integer overflow
- in vivid_cec_pin_adap_events
-To: "Gustavo A. R. Silva" <garsilva@embeddedor.com>
-Cc: "Gustavo A. R. Silva" <gustavo@embeddedor.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-References: <cover.1517268667.git.gustavo@embeddedor.com>
- <00eea53890802b679c138fc7f68a0f162261d95c.1517268668.git.gustavo@embeddedor.com>
- <2e1afa55-d214-f932-4ba7-2e21f6a2cd3d@xs4all.nl>
- <20180130025141.Horde.h4aoQSwrqdPlpFtSKtB9DuS@gator4166.hostgator.com>
- <43652014-30af-1e4b-c0a9-c23f9633fb2f@xs4all.nl>
- <20180130045545.Horde.1SSKgcFKaDeoUtmczJ8SRH1@gator4166.hostgator.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <3efaaf36-8edb-d899-b89d-902ba1bc63a6@xs4all.nl>
-Date: Tue, 30 Jan 2018 12:15:55 +0100
-MIME-Version: 1.0
-In-Reply-To: <20180130045545.Horde.1SSKgcFKaDeoUtmczJ8SRH1@gator4166.hostgator.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+        Tue, 16 Jan 2018 16:53:04 -0500
+From: Arnd Bergmann <arnd@arndb.de>
+To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: [PATCH] [v4] media: s3c-camif: fix out-of-bounds array access
+Date: Tue, 16 Jan 2018 22:52:15 +0100
+Message-Id: <20180116215242.784423-1-arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/30/18 11:55, Gustavo A. R. Silva wrote:
-> 
-> Quoting Hans Verkuil <hverkuil@xs4all.nl>:
-> 
->> On 01/30/2018 09:51 AM, Gustavo A. R. Silva wrote:
->>> Hi Hans,
->>>
->>> Quoting Hans Verkuil <hverkuil@xs4all.nl>:
->>>
->>>> Hi Gustavo,
->>>>
->>>> On 01/30/2018 01:33 AM, Gustavo A. R. Silva wrote:
->>>>> Cast len to const u64 in order to avoid a potential integer
->>>>> overflow. This variable is being used in a context that expects
->>>>> an expression of type const u64.
->>>>>
->>>>> Addresses-Coverity-ID: 1454996 ("Unintentional integer overflow")
->>>>> Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
->>>>> ---
->>>>>  drivers/media/platform/vivid/vivid-cec.c | 2 +-
->>>>>  1 file changed, 1 insertion(+), 1 deletion(-)
->>>>>
->>>>> diff --git a/drivers/media/platform/vivid/vivid-cec.c
->>>>> b/drivers/media/platform/vivid/vivid-cec.c
->>>>> index b55d278..30240ab 100644
->>>>> --- a/drivers/media/platform/vivid/vivid-cec.c
->>>>> +++ b/drivers/media/platform/vivid/vivid-cec.c
->>>>> @@ -83,7 +83,7 @@ static void vivid_cec_pin_adap_events(struct
->>>>> cec_adapter *adap, ktime_t ts,
->>>>>  	if (adap == NULL)
->>>>>  		return;
->>>>>  	ts = ktime_sub_us(ts, (CEC_TIM_START_BIT_TOTAL +
->>>>> -			       len * 10 * CEC_TIM_DATA_BIT_TOTAL));
->>>>> +			       (const u64)len * 10 * CEC_TIM_DATA_BIT_TOTAL));
->>>>
->>>> This makes no sense. Certainly the const part is pointless. And given that
->>>> len is always <= 16 there definitely is no overflow.
->>>>
->>>
->>> Yeah, I understand your point and I know there is no chance of an
->>> overflow in this particular case.
->>>
->>>> I don't really want this cast in the code.
->>>>
->>>> Sorry,
->>>>
->>>
->>> I'm working through all the Linux kernel Coverity reports, and I
->>> thought of sending a patch for this because IMHO it doesn't hurt to
->>> give the compiler complete information about the arithmetic in which
->>> an expression is intended to be evaluated.
->>>
->>> I agree that the _const_ part is a bit odd. What do you think about
->>> the cast to u64 alone?
->>
->> What happens if you do: ((u64)CEC_TIM_START_BIT_TOTAL +
->>
->> I think that forces everything else in the expression to be evaluated
->> as u64.
->>
-> 
-> Well, in this case the operator precedence takes place and the  
-> expression len * 10 * CEC_TIM_DATA_BIT_TOTAL is computed first. So the  
-> issue remains the same.
-> 
-> I can switch the expressions as follows:
-> 
-> (u64)len * 10 * CEC_TIM_DATA_BIT_TOTAL + CEC_TIM_START_BIT_TOTAL
+While experimenting with older compiler versions, I ran
+into a warning that no longer shows up on gcc-4.8 or newer:
 
-What about:
+drivers/media/platform/s3c-camif/camif-capture.c: In function '__camif_subdev_try_format':
+drivers/media/platform/s3c-camif/camif-capture.c:1265:25: error: array subscript is below array bounds
 
-10ULL * len * ...
+This is an off-by-one bug, leading to an access before the start of the
+array, while newer compilers silently assume this undefined behavior
+cannot happen and leave the loop at index 0 if no other entry matches.
 
-> 
-> and avoid the cast in the middle.
-> 
-> What do you think?
+As Sylvester explains, we actually need to ensure that the
+value is within the range, so this reworks the loop to be
+easier to parse correctly, and an additional check to fall
+back on the first format value for any unexpected input.
 
-My problem is that (u64)len suggests that there is some problem with len
-specifically, which isn't true.
+I found an existing gcc bug for it and added a reduced version
+of the function there.
 
-> 
->> It definitely needs a comment that this fixes a bogus Coverity report.
->>
-> 
-> I actually added the following line to the message changelog:
-> Addresses-Coverity-ID: 1454996 ("Unintentional integer overflow")
+Link: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=69249#c3
+Fixes: babde1c243b2 ("[media] V4L: Add driver for S3C24XX/S3C64XX SoC series camera interface")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+---
+v4: simplify a bit
+v3: fix newly introduced off-by-one bug.
+v2: rework logic rather than removing it.
+---
+ drivers/media/platform/s3c-camif/camif-capture.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-That needs to be in the source, otherwise someone will remove the
-cast (or ULL) at some time in the future since it isn't clear why
-it is done. And nobody reads commit logs from X years back :-)
-
-> 
-> Certainly, I've run across multiple false positives as in this case,  
-> but I have also fixed many actual bugs thanks to the Coverity reports.  
-> So I think in general it is valuable to take a look into these  
-> reports, either if they spot actual bugs or promote code correctness.
-
-Regards,
-
-	Hans
+diff --git a/drivers/media/platform/s3c-camif/camif-capture.c b/drivers/media/platform/s3c-camif/camif-capture.c
+index 437395a61065..9ab8e7ee2e1e 100644
+--- a/drivers/media/platform/s3c-camif/camif-capture.c
++++ b/drivers/media/platform/s3c-camif/camif-capture.c
+@@ -1256,16 +1256,17 @@ static void __camif_subdev_try_format(struct camif_dev *camif,
+ {
+ 	const struct s3c_camif_variant *variant = camif->variant;
+ 	const struct vp_pix_limits *pix_lim;
+-	int i = ARRAY_SIZE(camif_mbus_formats);
++	unsigned int i;
+ 
+ 	/* FIXME: constraints against codec or preview path ? */
+ 	pix_lim = &variant->vp_pix_limits[VP_CODEC];
+ 
+-	while (i-- >= 0)
++	for (i = 0; i < ARRAY_SIZE(camif_mbus_formats); i++)
+ 		if (camif_mbus_formats[i] == mf->code)
+ 			break;
+ 
+-	mf->code = camif_mbus_formats[i];
++	if (i == ARRAY_SIZE(camif_mbus_formats))
++		mf->code = camif_mbus_formats[0];
+ 
+ 	if (pad == CAMIF_SD_PAD_SINK) {
+ 		v4l_bound_align_image(&mf->width, 8, CAMIF_MAX_PIX_WIDTH,
+-- 
+2.9.0
