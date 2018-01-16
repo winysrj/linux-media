@@ -1,181 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:51106 "EHLO
-        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1754403AbeALLhx (ORCPT
+Received: from sub5.mail.dreamhost.com ([208.113.200.129]:37481 "EHLO
+        homiemail-a123.g.dreamhost.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750846AbeAPRbn (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 12 Jan 2018 06:37:53 -0500
-Subject: Re: [RFC PATCH 6/9] media: vb2: add support for requests in QBUF
- ioctl
-To: Alexandre Courbot <acourbot@chromium.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Pawel Osciak <posciak@chromium.org>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Gustavo Padovan <gustavo.padovan@collabora.com>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-References: <20171215075625.27028-1-acourbot@chromium.org>
- <20171215075625.27028-7-acourbot@chromium.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <39a23bdb-8493-d47f-7596-e4954743766b@xs4all.nl>
-Date: Fri, 12 Jan 2018 12:37:48 +0100
+        Tue, 16 Jan 2018 12:31:43 -0500
+Subject: Re: [PATCH 4/7] si2168: Add ts bus coontrol, turn off bus on sleep
+To: Antti Palosaari <crope@iki.fi>, Brad Love <brad@nextdimension.cc>,
+        linux-media@vger.kernel.org
+References: <1515773982-6411-1-git-send-email-brad@nextdimension.cc>
+ <1515773982-6411-5-git-send-email-brad@nextdimension.cc>
+ <ce8faa6a-0ffb-a432-e269-58486c857fea@iki.fi>
+From: Brad Love <brad@nextdimension.cc>
+Message-ID: <0770dc98-9153-e386-ca54-b7e4123b774d@nextdimension.cc>
+Date: Tue, 16 Jan 2018 11:31:41 -0600
 MIME-Version: 1.0
-In-Reply-To: <20171215075625.27028-7-acourbot@chromium.org>
+In-Reply-To: <ce8faa6a-0ffb-a432-e269-58486c857fea@iki.fi>
 Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: base64
+Content-Language: en-GB
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/15/17 08:56, Alexandre Courbot wrote:
-> Support the request argument of the QBUF ioctl.
-> 
-> Signed-off-by: Alexandre Courbot <acourbot@chromium.org>
-> ---
->  drivers/media/v4l2-core/v4l2-ioctl.c | 93 +++++++++++++++++++++++++++++++++++-
->  1 file changed, 92 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-> index 8d041247e97f..28f9c368563e 100644
-> --- a/drivers/media/v4l2-core/v4l2-ioctl.c
-> +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-> @@ -29,6 +29,7 @@
->  #include <media/v4l2-device.h>
->  #include <media/videobuf2-v4l2.h>
->  #include <media/v4l2-mc.h>
-> +#include <media/media-request.h>
->  
->  #include <trace/events/v4l2.h>
->  
-> @@ -965,6 +966,81 @@ static int check_fmt(struct file *file, enum v4l2_buf_type type)
->  	return -EINVAL;
->  }
->  
-> +/*
-> + * Validate that a given request can be used during an ioctl.
-> + *
-> + * When using the request API, request file descriptors must be matched against
-> + * the actual request object. User-space can pass any file descriptor, so we
-> + * need to make sure the call is valid before going further.
-> + *
-> + * This function looks up the request and associated data and performs the
-> + * following sanity checks:
-> + *
-> + * * Make sure that the entity supports requests,
-> + * * Make sure that the entity belongs to the media_device managing the passed
-> + *   request,
-> + * * Make sure that the entity data (if any) is associated to the current file
-> + *   handler.
-> + *
-> + * This function returns a pointer to the valid request, or and error code in
-> + * case of failure. When successful, a reference to the request is acquired and
-> + * must be properly released.
-> + */
-> +#ifdef CONFIG_MEDIA_CONTROLLER
-> +static struct media_request *
-> +check_request(int request, struct file *file, void *fh)
-> +{
-> +	struct media_request *req = NULL;
-> +	struct video_device *vfd = video_devdata(file);
-> +	struct v4l2_fh *vfh =
-> +		test_bit(V4L2_FL_USES_V4L2_FH, &vfd->flags) ? fh : NULL;
-> +	struct media_entity *entity = &vfd->entity;
-> +	const struct media_entity *ent;
-> +	struct media_request_entity_data *data;
-> +	bool found = false;
-> +
-> +	if (!entity)
-> +		return ERR_PTR(-EINVAL);
-> +
-> +	/* Check that the entity supports requests */
-> +	if (!entity->req_ops)
-> +		return ERR_PTR(-ENOTSUPP);
-> +
-> +	req = media_request_get_from_fd(request);
-
-You can get the media_device from vfd->v4l2_dev->mdev. So it is much easier
-to just pass the media_device as an argument to media_request_get_from_fd()...
-
-> +	if (!req)
-> +		return ERR_PTR(-EINVAL);
-> +
-> +	/* Validate that the entity belongs to the media_device managing
-> +	 * the request queue */
-> +	media_device_for_each_entity(ent, req->queue->mdev) {
-> +		if (entity == ent) {
-> +			found = true;
-> +			break;
-> +		}
-> +	}
-> +	if (!found) {
-> +		media_request_put(req);
-> +		return ERR_PTR(-EINVAL);
-> +	}
-
-...and then you don't need to do this ^^^ extra validation check.
-
-> +
-> +	/* Validate that the entity's data belongs to the correct fh */
-> +	data = media_request_get_entity_data(req, entity, vfh);
-> +	if (IS_ERR(data)) {
-> +		media_request_put(req);
-> +		return ERR_PTR(PTR_ERR(data));
-> +	}
-
-This assumes that each filehandle has its own state. That's true for codecs,
-but not for most (all?) other devices. There the state is per device instance.
-
-I'm not sure if we have a unique identifying mark for such drivers. The closest
-is checking if fh->m2m_ctx is non-NULL, but I don't know if all drivers with
-per-filehandle state use that field. An alternative might be to check if
-fh->ctrl_handler is non-NULL. But again, I'm not sure if that's a 100% valid
-check.
-
-> +
-> +	return req;
-> +}
-> +#else /* CONFIG_MEDIA_CONTROLLER */
-> +static struct media_request *
-> +check_request(int request, struct file *file, void *fh)
-> +{
-> +	return ERR_PTR(-ENOTSUPP);
-> +}
-> +
-> +#endif /* CONFIG_MEDIA_CONTROLLER */
-> +
->  static void v4l_sanitize_format(struct v4l2_format *fmt)
->  {
->  	unsigned int offset;
-> @@ -1902,10 +1978,25 @@ static int v4l_querybuf(const struct v4l2_ioctl_ops *ops,
->  static int v4l_qbuf(const struct v4l2_ioctl_ops *ops,
->  				struct file *file, void *fh, void *arg)
->  {
-> +	struct media_request *req = NULL;
->  	struct v4l2_buffer *p = arg;
->  	int ret = check_fmt(file, p->type);
->  
-> -	return ret ? ret : ops->vidioc_qbuf(file, fh, p);
-> +	if (ret)
-> +		return ret;
-> +
-> +	if (p->request > 0) {
-> +		req = check_request(p->request, file, fh);
-> +		if (IS_ERR(req))
-> +			return PTR_ERR(req);
-> +	}
-> +
-> +	ret = ops->vidioc_qbuf(file, fh, p);
-> +
-> +	if (req)
-> +		media_request_put(req);
-> +
-> +	return ret;
->  }
->  
->  static int v4l_dqbuf(const struct v4l2_ioctl_ops *ops,
-> 
-
-Regards,
-
-	Hans
+Ck9uIDIwMTgtMDEtMTUgMjM6MDcsIEFudHRpIFBhbG9zYWFyaSB3cm90ZToKPiBIZWxsbwo+
+IEFuZCB3aGF0IGlzIHJhdGlvbmFsZSBoZXJlLCBpcyB0aGVyZSBzb21lIHVzZSBjYXNlIGRl
+bW9kIG11c3QgYmUKPiBhY3RpdmUgYW5kIHRzIHNldCB0byB0cmlzdGF0ZSAoZGlzYWJsZWQp
+PyBKdXN0IHB1dCBkZW1vZCBzbGVlcCB3aGVuCj4geW91IGRvbid0IHVzZSBpdC4KPgo+IHJl
+Z2FyZHMKPiBBbnR0aQoKSGVsbG8gQW50dGksCgpQZXJoYXBzIHRoZSAudHNfYnVzX2N0cmwg
+Y2FsbGJhY2sgZG9lcyBub3QgbmVlZCB0byBiZSBpbmNsdWRlZCBpbiBvcHMsCmJ1dCB0aGUg
+ZnVuY3Rpb24gaXMgbmVjZXNzYXJ5LiBUaGUgZGVtb2QgaXMgYWxyZWFkeSBwdXQgdG8gc2xl
+ZXAgd2hlbgpub3QgaW4gdXNlLCBidXQgaXQgbGVhdmVzIHRoZSB0cyBidXMgb3Blbi4gVGhl
+IHRzIGJ1cyBoYXMgbm8gcmVhc29uIHRvCmJlIG9wZW4gd2hlbiB0aGUgZGVtb2QgaXMgcHV0
+IHRvIHNsZWVwLiBMZWF2aW5nIHRoZSB0cyBidXMgb3BlbiBkdXJpbmcKc2xlZXAgYWZmZWN0
+cyB0aGUgb3RoZXIgY29ubmVjdGVkIGRlbW9kIGFuZCBub3RoaW5nIGlzIHJlY2VpdmVkIGJ5
+IGl0LgpUaGUgbGdkdDMzMDZhIGRyaXZlciBhbHJlYWR5IHRyaSBzdGF0ZXMgaXRzIHRzIGJ1
+cyB3aGVuIHB1dCB0byBzbGVlcCwKdGhlIHNpMjE2OCBzaG91bGQgYXMgd2VsbC4KCkNoZWVy
+cywKCkJyYWQKCgoKPgo+IE9uIDAxLzEyLzIwMTggMDY6MTkgUE0sIEJyYWQgTG92ZSB3cm90
+ZToKPj4gSW5jbHVkZXMgYSBmdW5jdGlvbiB0byBzZXQgVFMgTU9ERSBwcm9wZXJ0eSBvcyBz
+aTIxNjguIFRoZSBmdW5jdGlvbgo+PiBlaXRoZXIgZGlzYWJsZXMgdGhlIFRTIG91dHB1dCBi
+dXMsIG9yIHNldHMgbW9kZSB0byBjb25maWcgb3B0aW9uLgo+Pgo+PiBXaGVuIGdvaW5nIHRv
+IHNsZWVwIHRoZSBUUyBidXMgaXMgdHVybmVkIG9mZiwgdGhpcyBtYWtlcyB0aGUgZHJpdmVy
+Cj4+IGNvbXBhdGlibGUgd2l0aCBtdWx0aXBsZSBmcm9udGVuZCB1c2FnZS4KPj4KPj4gU2ln
+bmVkLW9mZi1ieTogQnJhZCBMb3ZlIDxicmFkQG5leHRkaW1lbnNpb24uY2M+Cj4+IC0tLQo+
+PiDCoCBkcml2ZXJzL21lZGlhL2R2Yi1mcm9udGVuZHMvc2kyMTY4LmMgfCAzOAo+PiArKysr
+KysrKysrKysrKysrKysrKysrKysrKysrLS0tLS0tLS0KPj4gwqAgZHJpdmVycy9tZWRpYS9k
+dmItZnJvbnRlbmRzL3NpMjE2OC5oIHzCoCAxICsKPj4gwqAgMiBmaWxlcyBjaGFuZ2VkLCAz
+MSBpbnNlcnRpb25zKCspLCA4IGRlbGV0aW9ucygtKQo+Pgo+PiBkaWZmIC0tZ2l0IGEvZHJp
+dmVycy9tZWRpYS9kdmItZnJvbnRlbmRzL3NpMjE2OC5jCj4+IGIvZHJpdmVycy9tZWRpYS9k
+dmItZnJvbnRlbmRzL3NpMjE2OC5jCj4+IGluZGV4IDUzOTM5OWQuLjQyOWMwM2EgMTAwNjQ0
+Cj4+IC0tLSBhL2RyaXZlcnMvbWVkaWEvZHZiLWZyb250ZW5kcy9zaTIxNjguYwo+PiArKysg
+Yi9kcml2ZXJzL21lZGlhL2R2Yi1mcm9udGVuZHMvc2kyMTY4LmMKPj4gQEAgLTQwOSw2ICs0
+MDksMzAgQEAgc3RhdGljIGludCBzaTIxNjhfc2V0X2Zyb250ZW5kKHN0cnVjdAo+PiBkdmJf
+ZnJvbnRlbmQgKmZlKQo+PiDCoMKgwqDCoMKgIHJldHVybiByZXQ7Cj4+IMKgIH0KPj4gwqAg
+K3N0YXRpYyBpbnQgc2kyMTY4X3RzX2J1c19jdHJsKHN0cnVjdCBkdmJfZnJvbnRlbmQgKmZl
+LCBpbnQgYWNxdWlyZSkKPj4gK3sKPj4gK8KgwqDCoCBzdHJ1Y3QgaTJjX2NsaWVudCAqY2xp
+ZW50ID0gZmUtPmRlbW9kdWxhdG9yX3ByaXY7Cj4+ICvCoMKgwqAgc3RydWN0IHNpMjE2OF9k
+ZXYgKmRldiA9IGkyY19nZXRfY2xpZW50ZGF0YShjbGllbnQpOwo+PiArwqDCoMKgIHN0cnVj
+dCBzaTIxNjhfY21kIGNtZDsKPj4gK8KgwqDCoCBpbnQgcmV0ID0gMDsKPj4gKwo+PiArwqDC
+oMKgIGRldl9kYmcoJmNsaWVudC0+ZGV2LCAiJXMgYWNxdWlyZTogJWRcbiIsIF9fZnVuY19f
+LCBhY3F1aXJlKTsKPj4gKwo+PiArwqDCoMKgIC8qIHNldCBUU19NT0RFIHByb3BlcnR5ICov
+Cj4+ICvCoMKgwqAgbWVtY3B5KGNtZC5hcmdzLCAiXHgxNFx4MDBceDAxXHgxMFx4MTBceDAw
+IiwgNik7Cj4+ICvCoMKgwqAgaWYgKGFjcXVpcmUpCj4+ICvCoMKgwqDCoMKgwqDCoCBjbWQu
+YXJnc1s0XSB8PSBkZXYtPnRzX21vZGU7Cj4+ICvCoMKgwqAgZWxzZQo+PiArwqDCoMKgwqDC
+oMKgwqAgY21kLmFyZ3NbNF0gfD0gU0kyMTY4X1RTX1RSSVNUQVRFOwo+PiArwqDCoMKgIGlm
+IChkZXYtPnRzX2Nsb2NrX2dhcHBlZCkKPj4gK8KgwqDCoMKgwqDCoMKgIGNtZC5hcmdzWzRd
+IHw9IDB4NDA7Cj4+ICvCoMKgwqAgY21kLndsZW4gPSA2Owo+PiArwqDCoMKgIGNtZC5ybGVu
+ID0gNDsKPj4gK8KgwqDCoCByZXQgPSBzaTIxNjhfY21kX2V4ZWN1dGUoY2xpZW50LCAmY21k
+KTsKPj4gKwo+PiArwqDCoMKgIHJldHVybiByZXQ7Cj4+ICt9Cj4+ICsKPj4gwqAgc3RhdGlj
+IGludCBzaTIxNjhfaW5pdChzdHJ1Y3QgZHZiX2Zyb250ZW5kICpmZSkKPj4gwqAgewo+PiDC
+oMKgwqDCoMKgIHN0cnVjdCBpMmNfY2xpZW50ICpjbGllbnQgPSBmZS0+ZGVtb2R1bGF0b3Jf
+cHJpdjsKPj4gQEAgLTU0MCwxNCArNTY0LDcgQEAgc3RhdGljIGludCBzaTIxNjhfaW5pdChz
+dHJ1Y3QgZHZiX2Zyb250ZW5kICpmZSkKPj4gwqDCoMKgwqDCoMKgwqDCoMKgwqAgZGV2LT52
+ZXJzaW9uID4+IDI0ICYgMHhmZiwgZGV2LT52ZXJzaW9uID4+IDE2ICYgMHhmZiwKPj4gwqDC
+oMKgwqDCoMKgwqDCoMKgwqAgZGV2LT52ZXJzaW9uID4+IDggJiAweGZmLCBkZXYtPnZlcnNp
+b24gPj4gMCAmIDB4ZmYpOwo+PiDCoCAtwqDCoMKgIC8qIHNldCB0cyBtb2RlICovCj4+IC3C
+oMKgwqAgbWVtY3B5KGNtZC5hcmdzLCAiXHgxNFx4MDBceDAxXHgxMFx4MTBceDAwIiwgNik7
+Cj4+IC3CoMKgwqAgY21kLmFyZ3NbNF0gfD0gZGV2LT50c19tb2RlOwo+PiAtwqDCoMKgIGlm
+IChkZXYtPnRzX2Nsb2NrX2dhcHBlZCkKPj4gLcKgwqDCoMKgwqDCoMKgIGNtZC5hcmdzWzRd
+IHw9IDB4NDA7Cj4+IC3CoMKgwqAgY21kLndsZW4gPSA2Owo+PiAtwqDCoMKgIGNtZC5ybGVu
+ID0gNDsKPj4gLcKgwqDCoCByZXQgPSBzaTIxNjhfY21kX2V4ZWN1dGUoY2xpZW50LCAmY21k
+KTsKPj4gK8KgwqDCoCByZXQgPSBzaTIxNjhfdHNfYnVzX2N0cmwoZmUsIDEpOwo+PiDCoMKg
+wqDCoMKgIGlmIChyZXQpCj4+IMKgwqDCoMKgwqDCoMKgwqDCoCBnb3RvIGVycjsKPj4gwqAg
+QEAgLTU4NCw2ICs2MDEsOSBAQCBzdGF0aWMgaW50IHNpMjE2OF9zbGVlcChzdHJ1Y3QgZHZi
+X2Zyb250ZW5kICpmZSkKPj4gwqAgwqDCoMKgwqDCoCBkZXYtPmFjdGl2ZSA9IGZhbHNlOwo+
+PiDCoCArwqDCoMKgIC8qIHRyaS1zdGF0ZSBkYXRhIGJ1cyAqLwo+PiArwqDCoMKgIHNpMjE2
+OF90c19idXNfY3RybChmZSwgMCk7Cj4+ICsKPj4gwqDCoMKgwqDCoCAvKiBGaXJtd2FyZSBC
+IDQuMC0xMSBvciBsYXRlciBsb3NlcyB3YXJtIHN0YXRlIGR1cmluZyBzbGVlcCAqLwo+PiDC
+oMKgwqDCoMKgIGlmIChkZXYtPnZlcnNpb24gPiAoJ0InIDw8IDI0IHwgNCA8PCAxNiB8IDAg
+PDwgOCB8IDExIDw8IDApKQo+PiDCoMKgwqDCoMKgwqDCoMKgwqAgZGV2LT53YXJtID0gZmFs
+c2U7Cj4+IEBAIC02ODEsNiArNzAxLDggQEAgc3RhdGljIGNvbnN0IHN0cnVjdCBkdmJfZnJv
+bnRlbmRfb3BzIHNpMjE2OF9vcHMgPSB7Cj4+IMKgwqDCoMKgwqAgLmluaXQgPSBzaTIxNjhf
+aW5pdCwKPj4gwqDCoMKgwqDCoCAuc2xlZXAgPSBzaTIxNjhfc2xlZXAsCj4+IMKgICvCoMKg
+wqAgLnRzX2J1c19jdHJswqDCoMKgwqDCoMKgwqDCoMKgID0gc2kyMTY4X3RzX2J1c19jdHJs
+LAo+PiArCj4+IMKgwqDCoMKgwqAgLnNldF9mcm9udGVuZCA9IHNpMjE2OF9zZXRfZnJvbnRl
+bmQsCj4+IMKgIMKgwqDCoMKgwqAgLnJlYWRfc3RhdHVzID0gc2kyMTY4X3JlYWRfc3RhdHVz
+LAo+PiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9tZWRpYS9kdmItZnJvbnRlbmRzL3NpMjE2OC5o
+Cj4+IGIvZHJpdmVycy9tZWRpYS9kdmItZnJvbnRlbmRzL3NpMjE2OC5oCj4+IGluZGV4IDMy
+MjVkMGMuLmY0OGYwZmIgMTAwNjQ0Cj4+IC0tLSBhL2RyaXZlcnMvbWVkaWEvZHZiLWZyb250
+ZW5kcy9zaTIxNjguaAo+PiArKysgYi9kcml2ZXJzL21lZGlhL2R2Yi1mcm9udGVuZHMvc2ky
+MTY4LmgKPj4gQEAgLTM4LDYgKzM4LDcgQEAgc3RydWN0IHNpMjE2OF9jb25maWcgewo+PiDC
+oMKgwqDCoMKgIC8qIFRTIG1vZGUgKi8KPj4gwqAgI2RlZmluZSBTSTIxNjhfVFNfUEFSQUxM
+RUzCoMKgwqAgMHgwNgo+PiDCoCAjZGVmaW5lIFNJMjE2OF9UU19TRVJJQUzCoMKgwqAgMHgw
+Mwo+PiArI2RlZmluZSBTSTIxNjhfVFNfVFJJU1RBVEXCoMKgwqAgMHgwMAo+PiDCoMKgwqDC
+oMKgIHU4IHRzX21vZGU7Cj4+IMKgIMKgwqDCoMKgwqAgLyogVFMgY2xvY2sgaW52ZXJ0ZWQg
+Ki8KPj4KPgoK
