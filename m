@@ -1,93 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f193.google.com ([209.85.220.193]:34161 "EHLO
-        mail-qk0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752467AbeAQIAU (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:33577 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751259AbeAPLpo (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 17 Jan 2018 03:00:20 -0500
+        Tue, 16 Jan 2018 06:45:44 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>, magnus.damm@gmail.com,
+        geert@glider.be, mchehab@kernel.org, festevam@gmail.com,
+        sakari.ailus@iki.fi, robh+dt@kernel.org, mark.rutland@arm.com,
+        pombredanne@nexb.com, linux-renesas-soc@vger.kernel.org,
+        linux-media@vger.kernel.org, linux-sh@vger.kernel.org,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v5 6/9] media: i2c: ov772x: Remove soc_camera dependencies
+Date: Tue, 16 Jan 2018 13:45:47 +0200
+Message-ID: <3160666.n1yGRyzbCt@avalon>
+In-Reply-To: <d0249577-ebd5-aa4d-b017-c11fae9c612a@xs4all.nl>
+References: <1515765849-10345-1-git-send-email-jacopo+renesas@jmondi.org> <1515765849-10345-7-git-send-email-jacopo+renesas@jmondi.org> <d0249577-ebd5-aa4d-b017-c11fae9c612a@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <1516146473-18234-1-git-send-email-kieran.bingham@ideasonboard.com>
-References: <1516146473-18234-1-git-send-email-kieran.bingham@ideasonboard.com>
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Date: Wed, 17 Jan 2018 09:00:19 +0100
-Message-ID: <CAMuHMdUsCMqSG5kci9FhAfwvgxgXo5xy=JRtiQbYdESsmVYvPw@mail.gmail.com>
-Subject: Re: [PATCH v2] v4l: async: Protect against double notifier registrations
-To: Kieran Bingham <kieran.bingham@ideasonboard.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        =?UTF-8?Q?Niklas_S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Linux-Renesas <linux-renesas-soc@vger.kernel.org>,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Kieran,
+Hi Hans,
 
-On Wed, Jan 17, 2018 at 12:47 AM, Kieran Bingham
-<kieran.bingham@ideasonboard.com> wrote:
-> From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
->
-> It can be easy to attempt to register the same notifier twice
-> in mis-handled error cases such as working with -EPROBE_DEFER.
->
-> This results in odd kernel crashes where the notifier_list becomes
-> corrupted due to adding the same entry twice.
->
-> Protect against this so that a developer has some sense of the pending
-> failure, and use a WARN_ON to identify the fault.
->
-> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+On Tuesday, 16 January 2018 12:08:17 EET Hans Verkuil wrote:
+> On 01/12/2018 03:04 PM, Jacopo Mondi wrote:
+> > Remove soc_camera framework dependencies from ov772x sensor driver.
+> > - Handle clock and gpios
+> > - Register async subdevice
+> > - Remove soc_camera specific g/s_mbus_config operations
+> > - Change image format colorspace from JPEG to SRGB as the two use the
+> > 
+> >   same colorspace information but JPEG makes assumptions on color
+> >   components quantization that do not apply to the sensor
+> > 
+> > - Remove sizes crop from get_selection as driver can't scale
+> > - Add kernel doc to driver interface header file
+> > - Adjust build system
+> > 
+> > This commit does not remove the original soc_camera based driver as long
+> > as other platforms depends on soc_camera-based CEU driver.
+> > 
+> > Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+> > Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > ---
+> > 
+> >  drivers/media/i2c/Kconfig  |  11 +++
+> >  drivers/media/i2c/Makefile |   1 +
+> >  drivers/media/i2c/ov772x.c | 177 ++++++++++++++++++++++++++++------------
+> >  include/media/i2c/ov772x.h |   6 +-
+> >  4 files changed, 133 insertions(+), 62 deletions(-)
 
-Thanks for your patch!
+[snip]
 
-However, I have several comments:
-  1. Instead of walking notifier_list (O(n)), can't you just check if
-     notifier.list is part of a list or not (O(1))?
-  2. Isn't notifier usually (always?) allocated dynamically, so if will be a
-     different pointer after a previous -EPROBE_DEFER anyway?
-  3. If you enable CONFIG_DEBUG_LIST, it should scream, too.
+> > diff --git a/drivers/media/i2c/ov772x.c b/drivers/media/i2c/ov772x.c
+> > index 8063835..df2516c 100644
+> > --- a/drivers/media/i2c/ov772x.c
+> > +++ b/drivers/media/i2c/ov772x.c
 
-> --- a/drivers/media/v4l2-core/v4l2-async.c
-> +++ b/drivers/media/v4l2-core/v4l2-async.c
-> @@ -374,17 +374,26 @@ static int __v4l2_async_notifier_register(struct v4l2_async_notifier *notifier)
->         struct device *dev =
->                 notifier->v4l2_dev ? notifier->v4l2_dev->dev : NULL;
->         struct v4l2_async_subdev *asd;
-> +       struct v4l2_async_notifier *n;
->         int ret;
->         int i;
->
->         if (notifier->num_subdevs > V4L2_MAX_SUBDEVS)
->                 return -EINVAL;
->
-> +       mutex_lock(&list_lock);
-> +
-> +       /* Avoid re-registering a notifier. */
-> +       list_for_each_entry(n, &notifier_list, list) {
-> +               if (WARN_ON(n == notifier)) {
-> +                       ret = -EEXIST;
-> +                       goto err_unlock;
-> +               }
-> +       }
-> +
->         INIT_LIST_HEAD(&notifier->waiting);
->         INIT_LIST_HEAD(&notifier->done);
->
-> -       mutex_lock(&list_lock);
-> -
->         for (i = 0; i < notifier->num_subdevs; i++) {
->                 asd = notifier->subdevs[i];
+[snip]
 
-Gr{oetje,eeting}s,
+> > @@ -1038,12 +1074,11 @@ static int ov772x_probe(struct i2c_client *client,
+> >  			const struct i2c_device_id *did)
+> >  {
+> >  	struct ov772x_priv	*priv;
+> > -	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
+> > -	struct i2c_adapter	*adapter = to_i2c_adapter(client->dev.parent);
+> > +	struct i2c_adapter	*adapter = client->adapter;
+> >  	int			ret;
+> > 
+> > -	if (!ssdd || !ssdd->drv_priv) {
+> > -		dev_err(&client->dev, "OV772X: missing platform data!\n");
+> > +	if (!client->dev.platform_data) {
+> > +		dev_err(&client->dev, "Missing OV7725 platform data\n");
+> 
+> Nitpick: I'd prefer lowercase in this string: ov7725. It also should be
+> ov772x.
 
-                        Geert
+Agreed.
 
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+> >  		return -EINVAL;
+> >  	
+> >  	}
 
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+[snip]
+
+> > @@ -1119,6 +1176,6 @@ static struct i2c_driver ov772x_i2c_driver = {
+> > 
+> >  module_i2c_driver(ov772x_i2c_driver);
+> > 
+> > -MODULE_DESCRIPTION("SoC Camera driver for ov772x");
+> > +MODULE_DESCRIPTION("V4L2 driver for OV772x image sensor");
+> 
+> Ditto: lower case ov772x.
+
+I'd keep that uppercase. The usual practice (unless I'm mistaken) is to use 
+uppercase for chip names and lowercase for driver names. The description 
+clearly refers to the chip, so uppercase seems better to me.
+
+> >  MODULE_AUTHOR("Kuninori Morimoto");
+> >  MODULE_LICENSE("GPL v2");
+> 
+> Hmm, shouldn't there be a struct of_device_id as well? So this can be
+> used in the device tree?
+> 
+> I see this sensor was only tested with a non-dt platform. Is it possible
+> to test this sensor with the GR-Peach platform (which I gather uses the
+> device tree)?
+> 
+> Making this driver DT compliant can be done as a follow-up patch.
+
+I think it's a good idea, but I'd prefer having that in a separate patch. We 
+will also need DT bindings, it's a bit out of scope for this series.
+
+Jacopo, you can keep my ack after addressing Hans' comments.
+
+-- 
+Regards,
+
+Laurent Pinchart
