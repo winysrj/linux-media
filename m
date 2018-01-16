@@ -1,254 +1,332 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pl0-f67.google.com ([209.85.160.67]:37396 "EHLO
-        mail-pl0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754956AbeAMQJP (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:41403 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751195AbeAPVHL (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 13 Jan 2018 11:09:15 -0500
-MIME-Version: 1.0
-In-Reply-To: <02ea7734-fa64-7a3a-1eaf-7944bbe6caa4@samsung.com>
-References: <1515344064-23156-1-git-send-email-akinobu.mita@gmail.com>
- <CGME20180112141412epcas2p1e00472715d601bc52dcef6d850d5f13c@epcas2p1.samsung.com>
- <1515344064-23156-2-git-send-email-akinobu.mita@gmail.com> <02ea7734-fa64-7a3a-1eaf-7944bbe6caa4@samsung.com>
-From: Akinobu Mita <akinobu.mita@gmail.com>
-Date: Sun, 14 Jan 2018 01:08:54 +0900
-Message-ID: <CAC5umyjRhs7Y9oPktny=ua9-y-RZwi7Wjpr9c0hikCKgJexqpQ@mail.gmail.com>
-Subject: Re: [PATCH v2 1/2] media: ov9650: support device tree probing
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: linux-media@vger.kernel.org,
-        "open list:OPEN FIRMWARE AND..." <devicetree@vger.kernel.org>,
-        Jacopo Mondi <jacopo@jmondi.org>,
-        "H . Nikolaus Schaller" <hns@goldelico.com>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Rob Herring <robh@kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+        Tue, 16 Jan 2018 16:07:11 -0500
+Received: from avalon.bb.dnainternet.fi (dfj612ybrt5fhg77mgycy-3.rev.dnainternet.fi [IPv6:2001:14ba:21f5:5b00:2e86:4862:ef6a:2804])
+        by galahad.ideasonboard.com (Postfix) with ESMTPSA id 02637208A5
+        for <linux-media@vger.kernel.org>; Tue, 16 Jan 2018 22:06:16 +0100 (CET)
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 4/4] uvcvideo: Use parentheses around sizeof operand
+Date: Tue, 16 Jan 2018 23:07:07 +0200
+Message-Id: <20180116210707.7727-5-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <20180116210707.7727-1-laurent.pinchart@ideasonboard.com>
+References: <20180116210707.7727-1-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2018-01-12 23:14 GMT+09:00 Sylwester Nawrocki <s.nawrocki@samsung.com>:
-> On 01/07/2018 05:54 PM, Akinobu Mita wrote:
->> The ov9650 driver currently only supports legacy platform data probe.
->> This change adds device tree probing.
->
->> Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
->> ---
->
->>  drivers/media/i2c/ov9650.c | 130 ++++++++++++++++++++++++++++++++-------------
->>  1 file changed, 92 insertions(+), 38 deletions(-)
->>
->> diff --git a/drivers/media/i2c/ov9650.c b/drivers/media/i2c/ov9650.c
->> index 69433e1..99a3eab 100644
->> --- a/drivers/media/i2c/ov9650.c
->> +++ b/drivers/media/i2c/ov9650.c
->
->> -static void __ov965x_set_power(struct ov965x *ov965x, int on)
->> +static int __ov965x_set_power(struct ov965x *ov965x, int on)
->>  {
->>       if (on) {
->> -             ov965x_gpio_set(ov965x->gpios[GPIO_PWDN], 0);
->> -             ov965x_gpio_set(ov965x->gpios[GPIO_RST], 0);
->> +             int ret = clk_prepare_enable(ov965x->clk);
->
-> It seems you rely on the fact clk_prepare_enable() is a nop when passed
-> argument is NULL, which happens in non-DT case.
+While the sizeof is an operator and not a function, the preferred coding
+style in the kernel is to enclose its operand in parentheses. To avoid
+mixing multiple coding styles in the driver, use parentheses around all
+sizeof operands.
 
-So this works fine as before in non-DT case, doesn't it?
+While at it replace a kmalloc() with a kmalloc_array() to silence a
+checkpatch warning triggered by this patch.
 
->> +             if (ret)
->> +                     return ret;
->> +
->> +             gpiod_set_value_cansleep(ov965x->gpios[GPIO_PWDN], 0);
->> +             gpiod_set_value_cansleep(ov965x->gpios[GPIO_RST], 0);
->>               msleep(25);
->>       } else {
->> -             ov965x_gpio_set(ov965x->gpios[GPIO_RST], 1);
->> -             ov965x_gpio_set(ov965x->gpios[GPIO_PWDN], 1);
->> +             gpiod_set_value_cansleep(ov965x->gpios[GPIO_RST], 1);
->> +             gpiod_set_value_cansleep(ov965x->gpios[GPIO_PWDN], 1);
->> +
->> +             clk_disable_unprepare(ov965x->clk);
->>       }
->>
->>       ov965x->streaming = 0;
->> +
->> +     return 0;
->>  }
->
->> @@ -1408,16 +1414,17 @@ static const struct v4l2_subdev_ops ov965x_subdev_ops = {
->>  /*
->>   * Reset and power down GPIOs configuration
->>   */
->> -static int ov965x_configure_gpios(struct ov965x *ov965x,
->> -                               const struct ov9650_platform_data *pdata)
->> +static int ov965x_configure_gpios_pdata(struct ov965x *ov965x,
->> +                             const struct ov9650_platform_data *pdata)
->>  {
->>       int ret, i;
->> +     int gpios[NUM_GPIOS];
->>
->> -     ov965x->gpios[GPIO_PWDN] = pdata->gpio_pwdn;
->> -     ov965x->gpios[GPIO_RST]  = pdata->gpio_reset;
->> +     gpios[GPIO_PWDN] = pdata->gpio_pwdn;
->> +     gpios[GPIO_RST]  = pdata->gpio_reset;
->>
->>       for (i = 0; i < ARRAY_SIZE(ov965x->gpios); i++) {
->> -             int gpio = ov965x->gpios[i];
->> +             int gpio = gpios[i];
->>
->>               if (!gpio_is_valid(gpio))
->>                       continue;
->> @@ -1427,9 +1434,30 @@ static int ov965x_configure_gpios(struct ov965x *ov965x,
->>                       return ret;
->>               v4l2_dbg(1, debug, &ov965x->sd, "set gpio %d to 1\n", gpio);
->>
->> -             gpio_set_value(gpio, 1);
->> +             gpio_set_value_cansleep(gpio, 1);
->>               gpio_export(gpio, 0);
->> -             ov965x->gpios[i] = gpio;
->> +             ov965x->gpios[i] = gpio_to_desc(gpio);
->> +     }
->> +
->> +     return 0;
->> +}
->> +
->> +static int ov965x_configure_gpios(struct ov965x *ov965x)
->> +{
->> +     struct device *dev = &ov965x->client->dev;
->> +
->> +     ov965x->gpios[GPIO_PWDN] = devm_gpiod_get_optional(dev, "powerdown",
->> +                                                     GPIOD_OUT_HIGH);
->> +     if (IS_ERR(ov965x->gpios[GPIO_PWDN])) {
->> +             dev_info(dev, "can't get %s GPIO\n", "powerdown");
->> +             return PTR_ERR(ov965x->gpios[GPIO_PWDN]);
->> +     }
->> +
->> +     ov965x->gpios[GPIO_RST] = devm_gpiod_get_optional(dev, "reset",
->> +                                                     GPIOD_OUT_HIGH);
->> +     if (IS_ERR(ov965x->gpios[GPIO_RST])) {
->> +             dev_info(dev, "can't get %s GPIO\n", "reset");
->> +             return PTR_ERR(ov965x->gpios[GPIO_RST]);
->>       }
->>
->>       return 0;
->> @@ -1443,7 +1471,10 @@ static int ov965x_detect_sensor(struct v4l2_subdev *sd)
->>       int ret;
->>
->>       mutex_lock(&ov965x->lock);
->> -     __ov965x_set_power(ov965x, 1);
->> +     ret = __ov965x_set_power(ov965x, 1);
->> +     if (ret)
->> +             goto out;
->> +
->>       msleep(25);
->>
->>       /* Check sensor revision */
->> @@ -1463,6 +1494,7 @@ static int ov965x_detect_sensor(struct v4l2_subdev *sd)
->>                       ret = -ENODEV;
->>               }
->>       }
->> +out:
->>       mutex_unlock(&ov965x->lock);
->>
->>       return ret;
->> @@ -1476,23 +1508,39 @@ static int ov965x_probe(struct i2c_client *client,
->>       struct ov965x *ov965x;
->>       int ret;
->>
->> -     if (!pdata) {
->> -             dev_err(&client->dev, "platform data not specified\n");
->> -             return -EINVAL;
->> -     }
->> -
->> -     if (pdata->mclk_frequency == 0) {
->> -             dev_err(&client->dev, "MCLK frequency not specified\n");
->> -             return -EINVAL;
->> -     }
->> -
->>       ov965x = devm_kzalloc(&client->dev, sizeof(*ov965x), GFP_KERNEL);
->>       if (!ov965x)
->>               return -ENOMEM;
->>
->> -     mutex_init(&ov965x->lock);
->
-> I would leave mutex initialization as first thing after the private data
-> structure allocation, is there a need to move it further?
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/usb/uvc/uvc_ctrl.c   |  6 ++---
+ drivers/media/usb/uvc/uvc_driver.c | 53 +++++++++++++++++++-------------------
+ drivers/media/usb/uvc/uvc_v4l2.c   | 12 ++++-----
+ drivers/media/usb/uvc/uvc_video.c  |  2 +-
+ 4 files changed, 37 insertions(+), 36 deletions(-)
 
-Yes, there is.  This enables to reduce several lines in clk and gpio
-initialization.
+diff --git a/drivers/media/usb/uvc/uvc_ctrl.c b/drivers/media/usb/uvc/uvc_ctrl.c
+index 723c517474fc..102594ec3e97 100644
+--- a/drivers/media/usb/uvc/uvc_ctrl.c
++++ b/drivers/media/usb/uvc/uvc_ctrl.c
+@@ -1019,10 +1019,10 @@ static int __uvc_query_v4l2_ctrl(struct uvc_video_chain *chain,
+ 	struct uvc_menu_info *menu;
+ 	unsigned int i;
+ 
+-	memset(v4l2_ctrl, 0, sizeof *v4l2_ctrl);
++	memset(v4l2_ctrl, 0, sizeof(*v4l2_ctrl));
+ 	v4l2_ctrl->id = mapping->id;
+ 	v4l2_ctrl->type = mapping->v4l2_type;
+-	strlcpy(v4l2_ctrl->name, mapping->name, sizeof v4l2_ctrl->name);
++	strlcpy(v4l2_ctrl->name, mapping->name, sizeof(v4l2_ctrl->name));
+ 	v4l2_ctrl->flags = 0;
+ 
+ 	if (!(ctrl->info.flags & UVC_CTRL_FLAG_GET_CUR))
+@@ -1182,7 +1182,7 @@ int uvc_query_v4l2_menu(struct uvc_video_chain *chain,
+ 		}
+ 	}
+ 
+-	strlcpy(query_menu->name, menu_info->name, sizeof query_menu->name);
++	strlcpy(query_menu->name, menu_info->name, sizeof(query_menu->name));
+ 
+ done:
+ 	mutex_unlock(&chain->ctrl_mutex);
+diff --git a/drivers/media/usb/uvc/uvc_driver.c b/drivers/media/usb/uvc/uvc_driver.c
+index 718c3fcde287..2469b49b2b30 100644
+--- a/drivers/media/usb/uvc/uvc_driver.c
++++ b/drivers/media/usb/uvc/uvc_driver.c
+@@ -274,7 +274,7 @@ void uvc_simplify_fraction(u32 *numerator, u32 *denominator,
+ 	u32 x, y, r;
+ 	unsigned int i, n;
+ 
+-	an = kmalloc(n_terms * sizeof *an, GFP_KERNEL);
++	an = kmalloc_array(n_terms, sizeof(*an), GFP_KERNEL);
+ 	if (an == NULL)
+ 		return;
+ 
+@@ -423,7 +423,7 @@ static int uvc_parse_format(struct uvc_device *dev,
+ 
+ 		if (fmtdesc != NULL) {
+ 			strlcpy(format->name, fmtdesc->name,
+-				sizeof format->name);
++				sizeof(format->name));
+ 			format->fcc = fmtdesc->fcc;
+ 		} else {
+ 			uvc_printk(KERN_INFO, "Unknown video format %pUl\n",
+@@ -466,7 +466,7 @@ static int uvc_parse_format(struct uvc_device *dev,
+ 			return -EINVAL;
+ 		}
+ 
+-		strlcpy(format->name, "MJPEG", sizeof format->name);
++		strlcpy(format->name, "MJPEG", sizeof(format->name));
+ 		format->fcc = V4L2_PIX_FMT_MJPEG;
+ 		format->flags = UVC_FMT_FLAG_COMPRESSED;
+ 		format->bpp = 0;
+@@ -484,13 +484,13 @@ static int uvc_parse_format(struct uvc_device *dev,
+ 
+ 		switch (buffer[8] & 0x7f) {
+ 		case 0:
+-			strlcpy(format->name, "SD-DV", sizeof format->name);
++			strlcpy(format->name, "SD-DV", sizeof(format->name));
+ 			break;
+ 		case 1:
+-			strlcpy(format->name, "SDL-DV", sizeof format->name);
++			strlcpy(format->name, "SDL-DV", sizeof(format->name));
+ 			break;
+ 		case 2:
+-			strlcpy(format->name, "HD-DV", sizeof format->name);
++			strlcpy(format->name, "HD-DV", sizeof(format->name));
+ 			break;
+ 		default:
+ 			uvc_trace(UVC_TRACE_DESCR, "device %d videostreaming "
+@@ -501,7 +501,7 @@ static int uvc_parse_format(struct uvc_device *dev,
+ 		}
+ 
+ 		strlcat(format->name, buffer[8] & (1 << 7) ? " 60Hz" : " 50Hz",
+-			sizeof format->name);
++			sizeof(format->name));
+ 
+ 		format->fcc = V4L2_PIX_FMT_DV;
+ 		format->flags = UVC_FMT_FLAG_COMPRESSED | UVC_FMT_FLAG_STREAM;
+@@ -510,7 +510,7 @@ static int uvc_parse_format(struct uvc_device *dev,
+ 
+ 		/* Create a dummy frame descriptor. */
+ 		frame = &format->frame[0];
+-		memset(&format->frame[0], 0, sizeof format->frame[0]);
++		memset(&format->frame[0], 0, sizeof(format->frame[0]));
+ 		frame->bFrameIntervalType = 1;
+ 		frame->dwDefaultFrameInterval = 1;
+ 		frame->dwFrameInterval = *intervals;
+@@ -677,7 +677,7 @@ static int uvc_parse_streaming(struct uvc_device *dev,
+ 		return -EINVAL;
+ 	}
+ 
+-	streaming = kzalloc(sizeof *streaming, GFP_KERNEL);
++	streaming = kzalloc(sizeof(*streaming), GFP_KERNEL);
+ 	if (streaming == NULL) {
+ 		usb_driver_release_interface(&uvc_driver.driver, intf);
+ 		return -EINVAL;
+@@ -827,8 +827,8 @@ static int uvc_parse_streaming(struct uvc_device *dev,
+ 		goto error;
+ 	}
+ 
+-	size = nformats * sizeof *format + nframes * sizeof *frame
+-	     + nintervals * sizeof *interval;
++	size = nformats * sizeof(*format) + nframes * sizeof(*frame)
++	     + nintervals * sizeof(*interval);
+ 	format = kzalloc(size, GFP_KERNEL);
+ 	if (format == NULL) {
+ 		ret = -ENOMEM;
+@@ -1002,7 +1002,7 @@ static int uvc_parse_vendor_control(struct uvc_device *dev,
+ 
+ 		if (buffer[24+p+2*n] != 0)
+ 			usb_string(udev, buffer[24+p+2*n], unit->name,
+-				   sizeof unit->name);
++				   sizeof(unit->name));
+ 		else
+ 			sprintf(unit->name, "Extension %u", buffer[3]);
+ 
+@@ -1101,7 +1101,7 @@ static int uvc_parse_standard_control(struct uvc_device *dev,
+ 
+ 		if (UVC_ENTITY_TYPE(term) == UVC_ITT_CAMERA) {
+ 			term->camera.bControlSize = n;
+-			term->camera.bmControls = (u8 *)term + sizeof *term;
++			term->camera.bmControls = (u8 *)term + sizeof(*term);
+ 			term->camera.wObjectiveFocalLengthMin =
+ 				get_unaligned_le16(&buffer[8]);
+ 			term->camera.wObjectiveFocalLengthMax =
+@@ -1112,17 +1112,17 @@ static int uvc_parse_standard_control(struct uvc_device *dev,
+ 		} else if (UVC_ENTITY_TYPE(term) ==
+ 			   UVC_ITT_MEDIA_TRANSPORT_INPUT) {
+ 			term->media.bControlSize = n;
+-			term->media.bmControls = (u8 *)term + sizeof *term;
++			term->media.bmControls = (u8 *)term + sizeof(*term);
+ 			term->media.bTransportModeSize = p;
+ 			term->media.bmTransportModes = (u8 *)term
+-						     + sizeof *term + n;
++						     + sizeof(*term) + n;
+ 			memcpy(term->media.bmControls, &buffer[9], n);
+ 			memcpy(term->media.bmTransportModes, &buffer[10+n], p);
+ 		}
+ 
+ 		if (buffer[7] != 0)
+ 			usb_string(udev, buffer[7], term->name,
+-				   sizeof term->name);
++				   sizeof(term->name));
+ 		else if (UVC_ENTITY_TYPE(term) == UVC_ITT_CAMERA)
+ 			sprintf(term->name, "Camera %u", buffer[3]);
+ 		else if (UVC_ENTITY_TYPE(term) == UVC_ITT_MEDIA_TRANSPORT_INPUT)
+@@ -1162,7 +1162,7 @@ static int uvc_parse_standard_control(struct uvc_device *dev,
+ 
+ 		if (buffer[8] != 0)
+ 			usb_string(udev, buffer[8], term->name,
+-				   sizeof term->name);
++				   sizeof(term->name));
+ 		else
+ 			sprintf(term->name, "Output %u", buffer[3]);
+ 
+@@ -1187,7 +1187,7 @@ static int uvc_parse_standard_control(struct uvc_device *dev,
+ 
+ 		if (buffer[5+p] != 0)
+ 			usb_string(udev, buffer[5+p], unit->name,
+-				   sizeof unit->name);
++				   sizeof(unit->name));
+ 		else
+ 			sprintf(unit->name, "Selector %u", buffer[3]);
+ 
+@@ -1213,14 +1213,14 @@ static int uvc_parse_standard_control(struct uvc_device *dev,
+ 		unit->processing.wMaxMultiplier =
+ 			get_unaligned_le16(&buffer[5]);
+ 		unit->processing.bControlSize = buffer[7];
+-		unit->processing.bmControls = (u8 *)unit + sizeof *unit;
++		unit->processing.bmControls = (u8 *)unit + sizeof(*unit);
+ 		memcpy(unit->processing.bmControls, &buffer[8], n);
+ 		if (dev->uvc_version >= 0x0110)
+ 			unit->processing.bmVideoStandards = buffer[9+n];
+ 
+ 		if (buffer[8+n] != 0)
+ 			usb_string(udev, buffer[8+n], unit->name,
+-				   sizeof unit->name);
++				   sizeof(unit->name));
+ 		else
+ 			sprintf(unit->name, "Processing %u", buffer[3]);
+ 
+@@ -1246,12 +1246,12 @@ static int uvc_parse_standard_control(struct uvc_device *dev,
+ 		unit->extension.bNumControls = buffer[20];
+ 		memcpy(unit->baSourceID, &buffer[22], p);
+ 		unit->extension.bControlSize = buffer[22+p];
+-		unit->extension.bmControls = (u8 *)unit + sizeof *unit;
++		unit->extension.bmControls = (u8 *)unit + sizeof(*unit);
+ 		memcpy(unit->extension.bmControls, &buffer[23+p], n);
+ 
+ 		if (buffer[23+p+n] != 0)
+ 			usb_string(udev, buffer[23+p+n], unit->name,
+-				   sizeof unit->name);
++				   sizeof(unit->name));
+ 		else
+ 			sprintf(unit->name, "Extension %u", buffer[3]);
+ 
+@@ -1936,7 +1936,7 @@ int uvc_register_video_device(struct uvc_device *dev,
+ 		break;
+ 	}
+ 
+-	strlcpy(vdev->name, dev->name, sizeof vdev->name);
++	strlcpy(vdev->name, dev->name, sizeof(vdev->name));
+ 
+ 	/*
+ 	 * Set the driver data before calling video_register_device, otherwise
+@@ -2070,7 +2070,8 @@ static int uvc_probe(struct usb_interface *intf,
+ 				udev->devpath);
+ 
+ 	/* Allocate memory for the device and initialize it. */
+-	if ((dev = kzalloc(sizeof *dev, GFP_KERNEL)) == NULL)
++	dev = kzalloc(sizeof(*dev), GFP_KERNEL);
++	if (dev == NULL)
+ 		return -ENOMEM;
+ 
+ 	INIT_LIST_HEAD(&dev->entities);
+@@ -2089,9 +2090,9 @@ static int uvc_probe(struct usb_interface *intf,
+ 		dev->meta_format = info->meta_format;
+ 
+ 	if (udev->product != NULL)
+-		strlcpy(dev->name, udev->product, sizeof dev->name);
++		strlcpy(dev->name, udev->product, sizeof(dev->name));
+ 	else
+-		snprintf(dev->name, sizeof dev->name,
++		snprintf(dev->name, sizeof(dev->name),
+ 			 "UVC Camera (%04x:%04x)",
+ 			 le16_to_cpu(udev->descriptor.idVendor),
+ 			 le16_to_cpu(udev->descriptor.idProduct));
+diff --git a/drivers/media/usb/uvc/uvc_v4l2.c b/drivers/media/usb/uvc/uvc_v4l2.c
+index c70091db9c0c..a8b51aabc70b 100644
+--- a/drivers/media/usb/uvc/uvc_v4l2.c
++++ b/drivers/media/usb/uvc/uvc_v4l2.c
+@@ -40,13 +40,13 @@ static int uvc_ioctl_ctrl_map(struct uvc_video_chain *chain,
+ 	unsigned int size;
+ 	int ret;
+ 
+-	map = kzalloc(sizeof *map, GFP_KERNEL);
++	map = kzalloc(sizeof(*map), GFP_KERNEL);
+ 	if (map == NULL)
+ 		return -ENOMEM;
+ 
+ 	map->id = xmap->id;
+-	memcpy(map->name, xmap->name, sizeof map->name);
+-	memcpy(map->entity, xmap->entity, sizeof map->entity);
++	memcpy(map->name, xmap->name, sizeof(map->name));
++	memcpy(map->entity, xmap->entity, sizeof(map->entity));
+ 	map->selector = xmap->selector;
+ 	map->size = xmap->size;
+ 	map->offset = xmap->offset;
+@@ -224,7 +224,7 @@ static int uvc_v4l2_try_format(struct uvc_streaming *stream,
+ 		(100000000/interval)%10);
+ 
+ 	/* Set the format index, frame index and frame interval. */
+-	memset(probe, 0, sizeof *probe);
++	memset(probe, 0, sizeof(*probe));
+ 	probe->bmHint = 1;	/* dwFrameInterval */
+ 	probe->bFormatIndex = format->index;
+ 	probe->bFrameIndex = frame->bFrameIndex;
+@@ -348,7 +348,7 @@ static int uvc_v4l2_get_streamparm(struct uvc_streaming *stream,
+ 	denominator = 10000000;
+ 	uvc_simplify_fraction(&numerator, &denominator, 8, 333);
+ 
+-	memset(parm, 0, sizeof *parm);
++	memset(parm, 0, sizeof(*parm));
+ 	parm->type = stream->type;
+ 
+ 	if (stream->type == V4L2_BUF_TYPE_VIDEO_CAPTURE) {
+@@ -526,7 +526,7 @@ static int uvc_v4l2_open(struct file *file)
+ 		return ret;
+ 
+ 	/* Create the device handle. */
+-	handle = kzalloc(sizeof *handle, GFP_KERNEL);
++	handle = kzalloc(sizeof(*handle), GFP_KERNEL);
+ 	if (handle == NULL) {
+ 		usb_autopm_put_interface(stream->dev->intf);
+ 		return -ENOMEM;
+diff --git a/drivers/media/usb/uvc/uvc_video.c b/drivers/media/usb/uvc/uvc_video.c
+index dfe13c55a067..2ddb1367e195 100644
+--- a/drivers/media/usb/uvc/uvc_video.c
++++ b/drivers/media/usb/uvc/uvc_video.c
+@@ -191,7 +191,7 @@ static int uvc_get_video_ctrl(struct uvc_streaming *stream,
+ 		uvc_warn_once(stream->dev, UVC_WARN_MINMAX, "UVC non "
+ 			"compliance - GET_MIN/MAX(PROBE) incorrectly "
+ 			"supported. Enabling workaround.\n");
+-		memset(ctrl, 0, sizeof *ctrl);
++		memset(ctrl, 0, sizeof(*ctrl));
+ 		ctrl->wCompQuality = le16_to_cpup((__le16 *)data);
+ 		ret = 0;
+ 		goto out;
+-- 
+Regards,
 
-For example,
-
-        if (IS_ERR(ov965x->clk)) {
-                ret = PTR_ERR(ov965x->clk);
-                goto err_mutex;
-        }
-
-vs.
-        if (IS_ERR(ov965x->clk))
-                return PTR_ERR(ov965x->clk);
-
->>       ov965x->client = client;
->> -     ov965x->mclk_frequency = pdata->mclk_frequency;
->> +
->> +     if (pdata) {
->> +             if (pdata->mclk_frequency == 0) {
->> +                     dev_err(&client->dev, "MCLK frequency not specified\n");
->> +                     return -EINVAL;
->> +             }
->> +             ov965x->mclk_frequency = pdata->mclk_frequency;
->> +
->> +             ret = ov965x_configure_gpios_pdata(ov965x, pdata);
->> +             if (ret < 0)
->> +                     return ret;
->> +     } else if (dev_fwnode(&client->dev)) {
->> +             ov965x->clk = devm_clk_get(&ov965x->client->dev, NULL);
->> +             if (IS_ERR(ov965x->clk))
->> +                     return PTR_ERR(ov965x->clk);
->> +             ov965x->mclk_frequency = clk_get_rate(ov965x->clk);
->> +
->> +             ret = ov965x_configure_gpios(ov965x);
->> +             if (ret < 0)
->> +                     return ret;
->> +     } else {
->> +             dev_err(&client->dev,
->> +                     "Neither platform data nor device property specified\n");
->> +
->> +             return -EINVAL;
->> +     }
->> +
->> +     mutex_init(&ov965x->lock);
->>
->>       sd = &ov965x->sd;
->>       v4l2_i2c_subdev_init(sd, client, &ov965x_subdev_ops);
->> @@ -1502,10 +1550,6 @@ static int ov965x_probe(struct i2c_client *client,
->>       sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE |
->>                    V4L2_SUBDEV_FL_HAS_EVENTS;
->>
->> -     ret = ov965x_configure_gpios(ov965x, pdata);
->> -     if (ret < 0)
->> -             goto err_mutex;
->> -
->>       ov965x->pad.flags = MEDIA_PAD_FL_SOURCE;
->>       sd->entity.function = MEDIA_ENT_F_CAM_SENSOR;
->>       ret = media_entity_pads_init(&sd->entity, 1, &ov965x->pad);
->> @@ -1561,9 +1605,19 @@ static const struct i2c_device_id ov965x_id[] = {
->>  };
->>  MODULE_DEVICE_TABLE(i2c, ov965x_id);
->>
->> +#if IS_ENABLED(CONFIG_OF)
->
-> Is there any advantage in using IS_ENABLED() rather than just
-> #ifdef CONFIG_OF ? of_match_ptr() is defined with just #idef CONFIG_OF/
-> #else/#endif. I would use simply #ifdef CONFIG_OF here.
-
-There is no difference between these in this context.
-
-I think it doesn't look too strange because ov2659, ov5647, and ov7670
-also do like this.
-
-> Otherwise looks good.
->
-> Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-
-Thanks for your review.
+Laurent Pinchart
