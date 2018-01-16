@@ -1,238 +1,270 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx08-00178001.pphosted.com ([91.207.212.93]:64741 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1752238AbeACJ6e (ORCPT
+Received: from relay3-d.mail.gandi.net ([217.70.183.195]:43735 "EHLO
+        relay3-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751645AbeAPODD (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 3 Jan 2018 04:58:34 -0500
-From: Hugues Fruchet <hugues.fruchet@st.com>
-To: Steve Longerbeam <slongerbeam@gmail.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        "Mauro Carvalho Chehab" <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>
-CC: <devicetree@vger.kernel.org>, <linux-media@vger.kernel.org>,
-        "Hugues Fruchet" <hugues.fruchet@st.com>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Subject: [PATCH v5 4/5] media: ov5640: add support of DVP parallel interface
-Date: Wed, 3 Jan 2018 10:57:31 +0100
-Message-ID: <1514973452-10464-5-git-send-email-hugues.fruchet@st.com>
-In-Reply-To: <1514973452-10464-1-git-send-email-hugues.fruchet@st.com>
-References: <1514973452-10464-1-git-send-email-hugues.fruchet@st.com>
+        Tue, 16 Jan 2018 09:03:03 -0500
+Date: Tue, 16 Jan 2018 15:02:41 +0100
+From: jacopo mondi <jacopo@jmondi.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        laurent.pinchart@ideasonboard.com, magnus.damm@gmail.com,
+        geert@glider.be, mchehab@kernel.org, festevam@gmail.com,
+        sakari.ailus@iki.fi, robh+dt@kernel.org, mark.rutland@arm.com,
+        pombredanne@nexb.com, linux-renesas-soc@vger.kernel.org,
+        linux-media@vger.kernel.org, linux-sh@vger.kernel.org,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v5 6/9] media: i2c: ov772x: Remove soc_camera dependencies
+Message-ID: <20180116140241.GA1943@w540>
+References: <1515765849-10345-1-git-send-email-jacopo+renesas@jmondi.org>
+ <1515765849-10345-7-git-send-email-jacopo+renesas@jmondi.org>
+ <d0249577-ebd5-aa4d-b017-c11fae9c612a@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <d0249577-ebd5-aa4d-b017-c11fae9c612a@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add support of DVP parallel mode in addition of
-existing MIPI CSI mode. The choice between two modes
-and configuration is made through device tree.
+Hi Hans,
 
-Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
----
- drivers/media/i2c/ov5640.c | 148 +++++++++++++++++++++++++++++++++++++++------
- 1 file changed, 130 insertions(+), 18 deletions(-)
+On Tue, Jan 16, 2018 at 11:08:17AM +0100, Hans Verkuil wrote:
+> On 01/12/2018 03:04 PM, Jacopo Mondi wrote:
+> > Remove soc_camera framework dependencies from ov772x sensor driver.
+> > - Handle clock and gpios
+> > - Register async subdevice
+> > - Remove soc_camera specific g/s_mbus_config operations
+> > - Change image format colorspace from JPEG to SRGB as the two use the
+> >   same colorspace information but JPEG makes assumptions on color
+> >   components quantization that do not apply to the sensor
+> > - Remove sizes crop from get_selection as driver can't scale
+> > - Add kernel doc to driver interface header file
+> > - Adjust build system
+> >
+> > This commit does not remove the original soc_camera based driver as long
+> > as other platforms depends on soc_camera-based CEU driver.
+> >
+> > Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+> > Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
-index 9f031f3..a44b680 100644
---- a/drivers/media/i2c/ov5640.c
-+++ b/drivers/media/i2c/ov5640.c
-@@ -34,13 +34,19 @@
- 
- #define OV5640_DEFAULT_SLAVE_ID 0x3c
- 
-+#define OV5640_REG_SYS_CTRL0		0x3008
- #define OV5640_REG_CHIP_ID		0x300a
-+#define OV5640_REG_IO_MIPI_CTRL00	0x300e
-+#define OV5640_REG_PAD_OUTPUT_ENABLE01	0x3017
-+#define OV5640_REG_PAD_OUTPUT_ENABLE02	0x3018
- #define OV5640_REG_PAD_OUTPUT00		0x3019
-+#define OV5640_REG_SYSTEM_CONTROL1	0x302e
- #define OV5640_REG_SC_PLL_CTRL0		0x3034
- #define OV5640_REG_SC_PLL_CTRL1		0x3035
- #define OV5640_REG_SC_PLL_CTRL2		0x3036
- #define OV5640_REG_SC_PLL_CTRL3		0x3037
- #define OV5640_REG_SLAVE_ID		0x3100
-+#define OV5640_REG_SCCB_SYS_CTRL1	0x3103
- #define OV5640_REG_SYS_ROOT_DIVIDER	0x3108
- #define OV5640_REG_AWB_R_GAIN		0x3400
- #define OV5640_REG_AWB_G_GAIN		0x3402
-@@ -70,6 +76,7 @@
- #define OV5640_REG_HZ5060_CTRL01	0x3c01
- #define OV5640_REG_SIGMADELTA_CTRL0C	0x3c0c
- #define OV5640_REG_FRAME_CTRL01		0x4202
-+#define OV5640_REG_POLARITY_CTRL00	0x4740
- #define OV5640_REG_MIPI_CTRL00		0x4800
- #define OV5640_REG_DEBUG_MODE		0x4814
- #define OV5640_REG_PRE_ISP_TEST_SET1	0x503d
-@@ -982,7 +989,111 @@ static int ov5640_get_gain(struct ov5640_dev *sensor)
- 	return gain & 0x3ff;
- }
- 
--static int ov5640_set_stream(struct ov5640_dev *sensor, bool on)
-+static int ov5640_set_stream_dvp(struct ov5640_dev *sensor, bool on)
-+{
-+	int ret;
-+	unsigned int flags = sensor->ep.bus.parallel.flags;
-+	u8 pclk_pol = 0;
-+	u8 hsync_pol = 0;
-+	u8 vsync_pol = 0;
-+
-+	/*
-+	 * Note about parallel port configuration.
-+	 *
-+	 * When configured in parallel mode, the OV5640 will
-+	 * output 10 bits data on DVP data lines [9:0].
-+	 * If only 8 bits data are wanted, the 8 bits data lines
-+	 * of the camera interface must be physically connected
-+	 * on the DVP data lines [9:2].
-+	 *
-+	 * Control lines polarity can be configured through
-+	 * devicetree endpoint control lines properties.
-+	 * If no endpoint control lines properties are set,
-+	 * polarity will be as below:
-+	 * - VSYNC:	active high
-+	 * - HREF:	active low
-+	 * - PCLK:	active low
-+	 */
-+
-+	if (on) {
-+		/*
-+		 * reset MIPI PCLK/SERCLK divider
-+		 *
-+		 * SC PLL CONTRL1 0
-+		 * - [3..0]:	MIPI PCLK/SERCLK divider
-+		 */
-+		ret = ov5640_mod_reg(sensor, OV5640_REG_SC_PLL_CTRL1, 0x0f, 0);
-+		if (ret)
-+			return ret;
-+
-+		/*
-+		 * configure parallel port control lines polarity
-+		 *
-+		 * POLARITY CTRL0
-+		 * - [5]:	PCLK polarity (0: active low, 1: active high)
-+		 * - [1]:	HREF polarity (0: active low, 1: active high)
-+		 * - [0]:	VSYNC polarity (mismatch here between
-+		 *		datasheet and hardware, 0 is active high
-+		 *		and 1 is active low...)
-+		 */
-+		if (flags & V4L2_MBUS_PCLK_SAMPLE_RISING)
-+			pclk_pol = 1;
-+		if (flags & V4L2_MBUS_HSYNC_ACTIVE_HIGH)
-+			hsync_pol = 1;
-+		if (flags & V4L2_MBUS_VSYNC_ACTIVE_LOW)
-+			vsync_pol = 1;
-+
-+		ret = ov5640_write_reg(sensor,
-+				       OV5640_REG_POLARITY_CTRL00,
-+				       (pclk_pol << 5) |
-+				       (hsync_pol << 1) |
-+				       vsync_pol);
-+
-+		if (ret)
-+			return ret;
-+	}
-+
-+	/*
-+	 * powerdown MIPI TX/RX PHY & disable MIPI
-+	 *
-+	 * MIPI CONTROL 00
-+	 * 4:	 PWDN PHY TX
-+	 * 3:	 PWDN PHY RX
-+	 * 2:	 MIPI enable
-+	 */
-+	ret = ov5640_write_reg(sensor,
-+			       OV5640_REG_IO_MIPI_CTRL00, on ? 0x18 : 0);
-+	if (ret)
-+		return ret;
-+
-+	/*
-+	 * enable VSYNC/HREF/PCLK DVP control lines
-+	 * & D[9:6] DVP data lines
-+	 *
-+	 * PAD OUTPUT ENABLE 01
-+	 * - 6:		VSYNC output enable
-+	 * - 5:		HREF output enable
-+	 * - 4:		PCLK output enable
-+	 * - [3:0]:	D[9:6] output enable
-+	 */
-+	ret = ov5640_write_reg(sensor,
-+			       OV5640_REG_PAD_OUTPUT_ENABLE01,
-+			       on ? 0x7f : 0);
-+	if (ret)
-+		return ret;
-+
-+	/*
-+	 * enable D[5:0] DVP data lines
-+	 *
-+	 * PAD OUTPUT ENABLE 02
-+	 * - [7:2]:	D[5:0] output enable
-+	 */
-+	return ov5640_write_reg(sensor,
-+				OV5640_REG_PAD_OUTPUT_ENABLE02,
-+				on ? 0xfc : 0);
-+}
-+
-+static int ov5640_set_stream_mipi(struct ov5640_dev *sensor, bool on)
- {
- 	int ret;
- 
-@@ -1604,17 +1715,19 @@ static int ov5640_set_power(struct ov5640_dev *sensor, bool on)
- 		if (ret)
- 			goto power_off;
- 
--		/*
--		 * start streaming briefly followed by stream off in
--		 * order to coax the clock lane into LP-11 state.
--		 */
--		ret = ov5640_set_stream(sensor, true);
--		if (ret)
--			goto power_off;
--		usleep_range(1000, 2000);
--		ret = ov5640_set_stream(sensor, false);
--		if (ret)
--			goto power_off;
-+		if (sensor->ep.bus_type == V4L2_MBUS_CSI2) {
-+			/*
-+			 * start streaming briefly followed by stream off in
-+			 * order to coax the clock lane into LP-11 state.
-+			 */
-+			ret = ov5640_set_stream_mipi(sensor, true);
-+			if (ret)
-+				goto power_off;
-+			usleep_range(1000, 2000);
-+			ret = ov5640_set_stream_mipi(sensor, false);
-+			if (ret)
-+				goto power_off;
-+		}
- 
- 		return 0;
- 	}
-@@ -2188,7 +2301,11 @@ static int ov5640_s_stream(struct v4l2_subdev *sd, int enable)
- 				goto out;
- 		}
- 
--		ret = ov5640_set_stream(sensor, enable);
-+		if (sensor->ep.bus_type == V4L2_MBUS_CSI2)
-+			ret = ov5640_set_stream_mipi(sensor, enable);
-+		else
-+			ret = ov5640_set_stream_dvp(sensor, enable);
-+
- 		if (!ret)
- 			sensor->streaming = enable;
- 	}
-@@ -2301,11 +2418,6 @@ static int ov5640_probe(struct i2c_client *client,
- 		return ret;
- 	}
- 
--	if (sensor->ep.bus_type != V4L2_MBUS_CSI2) {
--		dev_err(dev, "invalid bus type, must be MIPI CSI2\n");
--		return -EINVAL;
--	}
--
- 	/* get system clock (xclk) */
- 	sensor->xclk = devm_clk_get(dev, "xclk");
- 	if (IS_ERR(sensor->xclk)) {
--- 
-1.9.1
+[snip]
+
+> >  static const struct ov772x_win_size *ov772x_select_win(u32 width, u32 height)
+> > @@ -855,24 +910,21 @@ static int ov772x_get_selection(struct v4l2_subdev *sd,
+> >  		struct v4l2_subdev_pad_config *cfg,
+> >  		struct v4l2_subdev_selection *sel)
+> >  {
+> > +	struct ov772x_priv *priv = to_ov772x(sd);
+> > +
+> >  	if (sel->which != V4L2_SUBDEV_FORMAT_ACTIVE)
+> >  		return -EINVAL;
+> >
+> > -	sel->r.left = 0;
+> > -	sel->r.top = 0;
+>
+> Why are these two lines removed?
+>
+> >  	switch (sel->target) {
+> >  	case V4L2_SEL_TGT_CROP_BOUNDS:
+> >  	case V4L2_SEL_TGT_CROP_DEFAULT:
+> > -		sel->r.width = OV772X_MAX_WIDTH;
+> > -		sel->r.height = OV772X_MAX_HEIGHT;
+> > -		return 0;
+> >  	case V4L2_SEL_TGT_CROP:
+> > -		sel->r.width = VGA_WIDTH;
+> > -		sel->r.height = VGA_HEIGHT;
+> > -		return 0;
+> > -	default:
+> > -		return -EINVAL;
+>
+> Why is this default case removed?
+>
+
+Ooops. I have badly addressed your comment on v1.
+
+Will fix in v6.
+
+> > +		sel->r.width = priv->win->rect.width;
+> > +		sel->r.height = priv->win->rect.height;
+> > +		break;
+> >  	}
+> > +
+> > +	return 0;
+> >  }
+> >
+> >  static int ov772x_get_fmt(struct v4l2_subdev *sd,
+> > @@ -997,24 +1049,8 @@ static int ov772x_enum_mbus_code(struct v4l2_subdev *sd,
+> >  	return 0;
+> >  }
+> >
+> > -static int ov772x_g_mbus_config(struct v4l2_subdev *sd,
+> > -				struct v4l2_mbus_config *cfg)
+> > -{
+> > -	struct i2c_client *client = v4l2_get_subdevdata(sd);
+> > -	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
+> > -
+> > -	cfg->flags = V4L2_MBUS_PCLK_SAMPLE_RISING | V4L2_MBUS_MASTER |
+> > -		V4L2_MBUS_VSYNC_ACTIVE_HIGH | V4L2_MBUS_HSYNC_ACTIVE_HIGH |
+> > -		V4L2_MBUS_DATA_ACTIVE_HIGH;
+> > -	cfg->type = V4L2_MBUS_PARALLEL;
+> > -	cfg->flags = soc_camera_apply_board_flags(ssdd, cfg);
+> > -
+> > -	return 0;
+> > -}
+> > -
+> >  static const struct v4l2_subdev_video_ops ov772x_subdev_video_ops = {
+> >  	.s_stream	= ov772x_s_stream,
+> > -	.g_mbus_config	= ov772x_g_mbus_config,
+> >  };
+> >
+> >  static const struct v4l2_subdev_pad_ops ov772x_subdev_pad_ops = {
+> > @@ -1038,12 +1074,11 @@ static int ov772x_probe(struct i2c_client *client,
+> >  			const struct i2c_device_id *did)
+> >  {
+> >  	struct ov772x_priv	*priv;
+> > -	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
+> > -	struct i2c_adapter	*adapter = to_i2c_adapter(client->dev.parent);
+> > +	struct i2c_adapter	*adapter = client->adapter;
+> >  	int			ret;
+> >
+> > -	if (!ssdd || !ssdd->drv_priv) {
+> > -		dev_err(&client->dev, "OV772X: missing platform data!\n");
+> > +	if (!client->dev.platform_data) {
+> > +		dev_err(&client->dev, "Missing OV7725 platform data\n");
+>
+> Nitpick: I'd prefer lowercase in this string: ov7725. It also should be
+> ov772x.
+>
+> >  		return -EINVAL;
+> >  	}
+> >
+> > @@ -1059,7 +1094,7 @@ static int ov772x_probe(struct i2c_client *client,
+> >  	if (!priv)
+> >  		return -ENOMEM;
+> >
+> > -	priv->info = ssdd->drv_priv;
+> > +	priv->info = client->dev.platform_data;
+> >
+> >  	v4l2_i2c_subdev_init(&priv->subdev, client, &ov772x_subdev_ops);
+> >  	v4l2_ctrl_handler_init(&priv->hdl, 3);
+> > @@ -1073,22 +1108,42 @@ static int ov772x_probe(struct i2c_client *client,
+> >  	if (priv->hdl.error)
+> >  		return priv->hdl.error;
+> >
+> > -	priv->clk = v4l2_clk_get(&client->dev, "mclk");
+> > +	priv->clk = clk_get(&client->dev, "xclk");
+> >  	if (IS_ERR(priv->clk)) {
+> > +		dev_err(&client->dev, "Unable to get xclk clock\n");
+> >  		ret = PTR_ERR(priv->clk);
+> > -		goto eclkget;
+> > +		goto error_ctrl_free;
+> >  	}
+> >
+> > -	ret = ov772x_video_probe(priv);
+> > -	if (ret < 0) {
+> > -		v4l2_clk_put(priv->clk);
+> > -eclkget:
+> > -		v4l2_ctrl_handler_free(&priv->hdl);
+> > -	} else {
+> > -		priv->cfmt = &ov772x_cfmts[0];
+> > -		priv->win = &ov772x_win_sizes[0];
+> > +	priv->pwdn_gpio = gpiod_get_optional(&client->dev, "pwdn",
+> > +					     GPIOD_OUT_LOW);
+> > +	if (IS_ERR(priv->pwdn_gpio)) {
+> > +		dev_info(&client->dev, "Unable to get GPIO \"pwdn\"");
+> > +		ret = PTR_ERR(priv->pwdn_gpio);
+> > +		goto error_clk_put;
+> >  	}
+> >
+> > +	ret = ov772x_video_probe(priv);
+> > +	if (ret < 0)
+> > +		goto error_gpio_put;
+> > +
+> > +	priv->cfmt = &ov772x_cfmts[0];
+> > +	priv->win = &ov772x_win_sizes[0];
+> > +
+> > +	ret = v4l2_async_register_subdev(&priv->subdev);
+> > +	if (ret)
+> > +		goto error_gpio_put;
+> > +
+> > +	return 0;
+> > +
+> > +error_gpio_put:
+> > +	if (priv->pwdn_gpio)
+> > +		gpiod_put(priv->pwdn_gpio);
+> > +error_clk_put:
+> > +	clk_put(priv->clk);
+> > +error_ctrl_free:
+> > +	v4l2_ctrl_handler_free(&priv->hdl);
+> > +
+> >  	return ret;
+> >  }
+> >
+> > @@ -1096,7 +1151,9 @@ static int ov772x_remove(struct i2c_client *client)
+> >  {
+> >  	struct ov772x_priv *priv = to_ov772x(i2c_get_clientdata(client));
+> >
+> > -	v4l2_clk_put(priv->clk);
+> > +	clk_put(priv->clk);
+> > +	if (priv->pwdn_gpio)
+> > +		gpiod_put(priv->pwdn_gpio);
+> >  	v4l2_device_unregister_subdev(&priv->subdev);
+> >  	v4l2_ctrl_handler_free(&priv->hdl);
+> >  	return 0;
+> > @@ -1119,6 +1176,6 @@ static struct i2c_driver ov772x_i2c_driver = {
+> >
+> >  module_i2c_driver(ov772x_i2c_driver);
+> >
+> > -MODULE_DESCRIPTION("SoC Camera driver for ov772x");
+> > +MODULE_DESCRIPTION("V4L2 driver for OV772x image sensor");
+>
+> Ditto: lower case ov772x.
+
+Will change both. Thanks.
+
+>
+> >  MODULE_AUTHOR("Kuninori Morimoto");
+> >  MODULE_LICENSE("GPL v2");
+>
+> Hmm, shouldn't there be a struct of_device_id as well? So this can be
+> used in the device tree?
+>
+> I see this sensor was only tested with a non-dt platform. Is it possible
+> to test this sensor with the GR-Peach platform (which I gather uses the
+> device tree)?
+
+I don't have that sensor, I'm sorry. I have it on Migo-R which I'm
+accessing and developing on from remote.
+
+>
+> Making this driver DT compliant can be done as a follow-up patch.
+
+Adding DT compatibility would imply adding bindings etc.
+I can do it later and only compile-test, I assume.
+
+Thanks
+   j
+
+>
+> > diff --git a/include/media/i2c/ov772x.h b/include/media/i2c/ov772x.h
+> > index 00dbb7c..27d087b 100644
+> > --- a/include/media/i2c/ov772x.h
+> > +++ b/include/media/i2c/ov772x.h
+> > @@ -48,8 +48,10 @@ struct ov772x_edge_ctrl {
+> >  	.threshold = (t & OV772X_EDGE_THRESHOLD_MASK),	\
+> >  }
+> >
+> > -/*
+> > - * ov772x camera info
+> > +/**
+> > + * ov772x_camera_info -	ov772x driver interface structure
+> > + * @flags:		Sensor configuration flags
+> > + * @edgectrl:		Sensor edge control
+> >   */
+> >  struct ov772x_camera_info {
+> >  	unsigned long		flags;
+> >
+>
+> Regards,
+>
+> 	Hans
