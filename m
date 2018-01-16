@@ -1,178 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:58869 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754885AbeAIRmo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 9 Jan 2018 12:42:44 -0500
-Date: Tue, 9 Jan 2018 15:42:35 -0200
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Linus Torvalds <torvalds@linux-foundation.org>,
-        Peter Zijlstra <peterz@infradead.org>
-Cc: Alan Stern <stern@rowland.harvard.edu>,
-        Ingo Molnar <mingo@kernel.org>,
-        Josef Griebichler <griebichler.josef@gmx.at>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        USB list <linux-usb@vger.kernel.org>,
-        Eric Dumazet <edumazet@google.com>,
-        Rik van Riel <riel@redhat.com>,
-        Paolo Abeni <pabeni@redhat.com>,
-        Hannes Frederic Sowa <hannes@redhat.com>,
-        Jesper Dangaard Brouer <jbrouer@redhat.com>,
-        linux-kernel <linux-kernel@vger.kernel.org>,
-        netdev <netdev@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>,
-        LMML <linux-media@vger.kernel.org>,
-        David Miller <davem@davemloft.net>
-Subject: Re: dvb usb issues since kernel 4.9
-Message-ID: <20180109154235.2a42f0a0@vento.lan>
-In-Reply-To: <CA+55aFwuAojr7vAfiRO-2je-wDs7pu+avQZNhX_k9NN=D7_zVQ@mail.gmail.com>
-References: <CA+55aFx90oOU-3R8pCeM0ESTDYhmugD5znA9LrGj1zhazWBtcg@mail.gmail.com>
-        <Pine.LNX.4.44L0.1801081354450.1908-100000@iolanthe.rowland.org>
-        <CA+55aFwuAojr7vAfiRO-2je-wDs7pu+avQZNhX_k9NN=D7_zVQ@mail.gmail.com>
+Received: from mail-wr0-f196.google.com ([209.85.128.196]:45310 "EHLO
+        mail-wr0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750832AbeAPKO3 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 16 Jan 2018 05:14:29 -0500
+Received: by mail-wr0-f196.google.com with SMTP id 16so14581081wry.12
+        for <linux-media@vger.kernel.org>; Tue, 16 Jan 2018 02:14:28 -0800 (PST)
+Subject: Re: [PATCH 1/3] dma-buf: make returning the exclusive fence optional
+From: =?UTF-8?Q?Christian_K=c3=b6nig?= <ckoenig.leichtzumerken@gmail.com>
+To: daniel@ffwll.ch, sumit.semwal@linaro.org, gustavo@padovan.org,
+        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        linaro-mm-sig@lists.linaro.org
+References: <20180112094729.17491-1-christian.koenig@amd.com>
+Message-ID: <996ce95c-b04f-d32e-f32e-4226c60b4bf3@gmail.com>
+Date: Tue, 16 Jan 2018 11:14:26 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8BIT
+In-Reply-To: <20180112094729.17491-1-christian.koenig@amd.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 8bit
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 8 Jan 2018 11:51:04 -0800
-Linus Torvalds <torvalds@linux-foundation.org> escreveu:
+Ping? Daniel you requested the patch with its user.
 
-> On Mon, Jan 8, 2018 at 11:15 AM, Alan Stern <stern@rowland.harvard.edu> wrote:
-> >
-> > Both dwc2_hsotg and ehci-hcd use the tasklets embedded in the
-> > giveback_urb_bh member of struct usb_hcd.  See usb_hcd_giveback_urb()
-> > in drivers/usb/core/hcd.c; the calls are
-> >
-> >         else if (high_prio_bh)
-> >                 tasklet_hi_schedule(&bh->bh);
-> >         else
-> >                 tasklet_schedule(&bh->bh);
-> >
-> > As it turns out, high_prio_bh gets set for interrupt and isochronous
-> > URBs but not for bulk and control URBs.  The DVB driver in question
-> > uses bulk transfers.  
-> 
-> Ok, so we could try out something like the appended?
-> 
-> NOTE! I have not tested this at all. It LooksObvious(tm), but...
-> 
->                     Linus
+Would be nice when I can commit this cause we need it for debugging and 
+cleaning up a bunch of other things as well.
 
+Regards,
+Christian.
 
-
->  kernel/softirq.c | 12 ++++++++----
->  1 file changed, 8 insertions(+), 4 deletions(-)
-> 
-> diff --git a/kernel/softirq.c b/kernel/softirq.c
-> index 2f5e87f1bae2..97b080956fea 100644
-> --- a/kernel/softirq.c
-> +++ b/kernel/softirq.c
-> @@ -79,12 +79,16 @@ static void wakeup_softirqd(void)
->  
->  /*
->   * If ksoftirqd is scheduled, we do not want to process pending softirqs
-> - * right now. Let ksoftirqd handle this at its own rate, to get fairness.
-> + * right now. Let ksoftirqd handle this at its own rate, to get fairness,
-> + * unless we're doing some of the synchronous softirqs.
->   */
-> -static bool ksoftirqd_running(void)
-> +#define SOFTIRQ_NOW_MASK ((1 << HI_SOFTIRQ) | (1 << TASKLET_SOFTIRQ))
-> +static bool ksoftirqd_running(unsigned long pending)
->  {
->  	struct task_struct *tsk = __this_cpu_read(ksoftirqd);
->  
-> +	if (pending & SOFTIRQ_NOW_MASK)
-> +		return false;
->  	return tsk && (tsk->state == TASK_RUNNING);
->  }
->  
-> @@ -325,7 +329,7 @@ asmlinkage __visible void do_softirq(void)
->  
->  	pending = local_softirq_pending();
->  
-> -	if (pending && !ksoftirqd_running())
-> +	if (pending && !ksoftirqd_running(pending))
->  		do_softirq_own_stack();
->  
->  	local_irq_restore(flags);
-> @@ -352,7 +356,7 @@ void irq_enter(void)
->  
->  static inline void invoke_softirq(void)
->  {
-> -	if (ksoftirqd_running())
-> +	if (ksoftirqd_running(local_softirq_pending()))
->  		return;
->  
->  	if (!force_irqthreads) {
-
-
-Hi Linus,
-
-Patch makes sense to me, although I was not able to test it myself.
-
-I set a RPi3 machine here with vanilla Kernel 4.14.11 running a standard
-raspbian distribution (with elevator=deadline). Right now, I'm trying to
-reproduce the bug with dvbv5-zap. I may eventually do more tests on 
-some other slow machines.
-
-Usually, applications like tvheadend records just one channel. So, instead
-of a ~58 Mbits/s payload, it uses, typically, ~11 Mbits/s for a HD channel.
-This is usually filtered by hardware. Here, I'm forcing to record the
-entire TS, in order to make easier to reproduce the issue. So, I'm forcing
-a condition that it is usually worse than real usecases (at last for HD - I
-I don't have any DVB stream here with a 4K channel).
-
->From what I checked so far, with vanila upstream Kernel on RPi3, just
-receiving a DVB stream - or receiving it and writing to /dev/null works
-with or without your patch.
-
-The problem starts to happen when there are concurrency with writes.
-
-On my preliminar tests, writing to a file on an ext4 partition at a
-USB stick loses data up to the point to make it useless (1/4 of the data
-is lost!). However, writing to a class 10 microSD card is doable.
-
-If you're curious enough, this is what I'm doing (that are the results
-while using class 10 microSD card):
-
-$ FILE=/tmp/out.ts; for i in $(seq 1 6); do echo "step $i"; rm $FILE 2>/dev/null; dvbv5-zap -l universal -c ~/vivo-channels.conf NBR -o $FILE -P -t60 2>&1|grep -E "(buffer|received)"; du $FILE 2>/dev/null; done 
-step 1
-  Setting buffer length to 7250000
-buffer overrun
-buffer overrun
-buffer overrun
-buffer overrun
-buffer overrun
-buffer overrun
-buffer overrun
-received 347504652 bytes (5656 Kbytes/sec)
-339368	/tmp/out.ts
-step 2
-  Setting buffer length to 7250000
-buffer overrun
-received 408995880 bytes (6656 Kbytes/sec)
-399416	/tmp/out.ts
-step 3
-  Setting buffer length to 7250000
-received 412999716 bytes (6722 Kbytes/sec)
-403328	/tmp/out.ts
-step 4
-  Setting buffer length to 7250000
-buffer overrun
-received 415564788 bytes (6763 Kbytes/sec)
-405832	/tmp/out.ts
-step 5
-  Setting buffer length to 7250000
-received 412999716 bytes (6722 Kbytes/sec)
-403324	/tmp/out.ts
-step 6
-  Setting buffer length to 7250000
-received 408366080 bytes (6646 Kbytes/sec)
-398796	/tmp/out.ts
-
-My plan is to do more tests along this week, and try to tweak a little
-bit both userspace and kernelspace, in order to see if I can get better
-results.
-
-Thanks,
-Mauro
+Am 12.01.2018 um 10:47 schrieb Christian König:
+> Change reservation_object_get_fences_rcu to make the exclusive fence
+> pointer optional.
+>
+> If not specified the exclusive fence is put into the fence array as
+> well.
+>
+> This is helpful for a couple of cases where we need all fences in a
+> single array.
+>
+> Signed-off-by: Christian König <christian.koenig@amd.com>
+> ---
+>   drivers/dma-buf/reservation.c | 31 ++++++++++++++++++++++---------
+>   1 file changed, 22 insertions(+), 9 deletions(-)
+>
+> diff --git a/drivers/dma-buf/reservation.c b/drivers/dma-buf/reservation.c
+> index b759a569b7b8..461afa9febd4 100644
+> --- a/drivers/dma-buf/reservation.c
+> +++ b/drivers/dma-buf/reservation.c
+> @@ -374,8 +374,9 @@ EXPORT_SYMBOL(reservation_object_copy_fences);
+>    * @pshared: the array of shared fence ptrs returned (array is krealloc'd to
+>    * the required size, and must be freed by caller)
+>    *
+> - * RETURNS
+> - * Zero or -errno
+> + * Retrieve all fences from the reservation object. If the pointer for the
+> + * exclusive fence is not specified the fence is put into the array of the
+> + * shared fences as well. Returns either zero or -ENOMEM.
+>    */
+>   int reservation_object_get_fences_rcu(struct reservation_object *obj,
+>   				      struct dma_fence **pfence_excl,
+> @@ -389,8 +390,8 @@ int reservation_object_get_fences_rcu(struct reservation_object *obj,
+>   
+>   	do {
+>   		struct reservation_object_list *fobj;
+> -		unsigned seq;
+> -		unsigned int i;
+> +		unsigned int i, seq;
+> +		size_t sz = 0;
+>   
+>   		shared_count = i = 0;
+>   
+> @@ -402,9 +403,14 @@ int reservation_object_get_fences_rcu(struct reservation_object *obj,
+>   			goto unlock;
+>   
+>   		fobj = rcu_dereference(obj->fence);
+> -		if (fobj) {
+> +		if (fobj)
+> +			sz += sizeof(*shared) * fobj->shared_max;
+> +
+> +		if (!pfence_excl && fence_excl)
+> +			sz += sizeof(*shared);
+> +
+> +		if (sz) {
+>   			struct dma_fence **nshared;
+> -			size_t sz = sizeof(*shared) * fobj->shared_max;
+>   
+>   			nshared = krealloc(shared, sz,
+>   					   GFP_NOWAIT | __GFP_NOWARN);
+> @@ -420,13 +426,19 @@ int reservation_object_get_fences_rcu(struct reservation_object *obj,
+>   				break;
+>   			}
+>   			shared = nshared;
+> -			shared_count = fobj->shared_count;
+> -
+> +			shared_count = fobj ? fobj->shared_count : 0;
+>   			for (i = 0; i < shared_count; ++i) {
+>   				shared[i] = rcu_dereference(fobj->shared[i]);
+>   				if (!dma_fence_get_rcu(shared[i]))
+>   					break;
+>   			}
+> +
+> +			if (!pfence_excl && fence_excl) {
+> +				shared[i] = fence_excl;
+> +				fence_excl = NULL;
+> +				++i;
+> +				++shared_count;
+> +			}
+>   		}
+>   
+>   		if (i != shared_count || read_seqcount_retry(&obj->seq, seq)) {
+> @@ -448,7 +460,8 @@ int reservation_object_get_fences_rcu(struct reservation_object *obj,
+>   
+>   	*pshared_count = shared_count;
+>   	*pshared = shared;
+> -	*pfence_excl = fence_excl;
+> +	if (pfence_excl)
+> +		*pfence_excl = fence_excl;
+>   
+>   	return ret;
+>   }
