@@ -1,135 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from xff.cz ([195.181.215.36]:60872 "EHLO megous.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751682AbeADP16 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 4 Jan 2018 10:27:58 -0500
-Date: Thu, 4 Jan 2018 16:27:41 +0100
-From: =?utf-8?Q?Ond=C5=99ej?= Jirman <megous@megous.com>
-To: Maxime Ripard <maxime.ripard@free-electrons.com>
-Cc: Yong <yong.deng@magewell.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Chen-Yu Tsai <wens@csie.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Randy Dunlap <rdunlap@infradead.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Yannick Fertre <yannick.fertre@st.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Rick Chang <rick.chang@mediatek.com>,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-sunxi@googlegroups.com
-Subject: Re: [linux-sunxi] [PATCH v4 0/2] Initial Allwinner V3s CSI Support
-Message-ID: <20180104152741.m6bsno4vdh65ouw3@core.my.home>
-References: <1513935138-35223-1-git-send-email-yong.deng@magewell.com>
- <1513950408.841.81.camel@megous.com>
- <20171225111526.4663f997f5d6bfc6cf157f10@magewell.com>
- <20171225085802.lfyk4blmbqxq6r2m@core.my.home>
- <20180104140625.5gbeaj5vgetusjlf@flea.lan>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:36358 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1750964AbeAPPXJ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 16 Jan 2018 10:23:09 -0500
+Date: Tue, 16 Jan 2018 17:23:06 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Kieran Bingham <kieran.bingham@ideasonboard.com>
+Cc: linux-media@vger.kernel.org,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
+        niklas.soderlund@ragnatech.se,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        hans.verkuil@cisco.com, mchehab@kernel.org
+Subject: Re: [PATCH] v4l: async: Protect against double notifier regstrations
+Message-ID: <20180116152305.j7luryentsej42yq@valkosipuli.retiisi.org.uk>
+References: <1516114358-5292-1-git-send-email-kieran.bingham@ideasonboard.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20180104140625.5gbeaj5vgetusjlf@flea.lan>
+In-Reply-To: <1516114358-5292-1-git-send-email-kieran.bingham@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jan 04, 2018 at 03:06:25PM +0100, Maxime Ripard wrote:
-> On Mon, Dec 25, 2017 at 09:58:02AM +0100, Ondřej Jirman wrote:
-> > Hello,
-> > 
-> > On Mon, Dec 25, 2017 at 11:15:26AM +0800, Yong wrote:
-> > > Hi,
-> > > 
-> > > On Fri, 22 Dec 2017 14:46:48 +0100
-> > > Ondřej Jirman <megous@megous.com> wrote:
-> > > 
-> > > > Hello,
-> > > > 
-> > > > Yong Deng píše v Pá 22. 12. 2017 v 17:32 +0800:
-> > > > > 
-> > > > > Test input 0:
-> > > > > 
-> > > > >         Control ioctls:
-> > > > >                 test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK (Not Supported)
-> > > > >                 test VIDIOC_QUERYCTRL: OK (Not Supported)
-> > > > >                 test VIDIOC_G/S_CTRL: OK (Not Supported)
-> > > > >                 test VIDIOC_G/S/TRY_EXT_CTRLS: OK (Not Supported)
-> > > > >                 test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK (Not Supported)
-> > > > >                 test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
-> > > > >                 Standard Controls: 0 Private Controls: 0
-> > > > 
-> > > > I'm not sure if your driver passes control queries to the subdev. It
-> > > > did not originally, and I'm not sure you picked up the change from my
-> > > > version of the driver. "Not supported" here seems to indicate that it
-> > > > does not.
-> > > > 
-> > > > I'd be interested what's the recommended practice here. It sure helps
-> > > > with some apps that expect to be able to modify various input controls
-> > > > directly on the /dev/video# device. These are then supported out of the
-> > > > box.
-> > > > 
-> > > > It's a one-line change. See:
-> > > > 
-> > > > https://www.kernel.org/doc/html/latest/media/kapi/v4l2-controls.html#in
-> > > > heriting-controls
-> > > 
-> > > I think this is a feature and not affect the driver's main function.
-> > > I just focused on making the CSI main function to work properly in 
-> > > the initial version. Is this feature mandatory or most commonly used?
-> > 
-> > I grepped the platform/ code and it seems, that inheriting controls
-> > from subdevs is pretty common for input drivers. (there are varying
-> > approaches though, some inherit by hand in the link function, some
-> > just register and empty ctrl_handler on the v4l2_dev and leave the
-> > rest to the core).
-> > 
-> > Practically, I haven't found a common app that would allow me to enter
-> > both /dev/video0 and /dev/v4l-subdevX. I'm sure anyone can write one
-> > themselves, but it would be better if current controls were available
-> > at the /dev/video0 device automatically.
-> > 
-> > It's much simpler for the userspace apps than the alternative, which
-> > is trying to identify the correct subdev that is currently
-> > associated with the CSI driver at runtime, which is not exactly
-> > straightforward and requires much more code, than a few lines in
-> > the kernel, that are required to inherit controls:
+Hi Kieran,
+
+On Tue, Jan 16, 2018 at 02:52:58PM +0000, Kieran Bingham wrote:
+> From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
 > 
-> And it becomes much more complicated once you have the same controls
-> on the v4l2 device and subdevice, which is not that uncommon.
-
-Hi Maxime,
-
-I don't think you understand the issue. In your hypothetical situation, if the
-CSI device will have any controls in the future, the merging of controls from
-subdev will be done automatically anyway, it's not some optional feature.
-
-Also userspace will not get any more complicated than without my proposed change
-to the driver. It will be at most the same as without the change if any subdev
-controls are masked by the CSI device controls.
-
-This CSI driver has no controls anyway. All my change does is create an empty
-handler for future controls of the CSI driver, so that apps can depend on this
-merging behavior right now, and not wait until someone adds the first control
-to the CSI driver.
-
-regards,
-  o.j.
-
+> It can be easy to attempt to register the same notifier twice
+> in mis-handled error cases such as working with -EPROBE_DEFER.
 > 
-> Maxime
+> This results in odd kernel crashes where the notifier_list becomes
+> corrupted due to adding the same entry twice.
 > 
+> Protect against this so that a developer has some sense of the pending
+> failure.
 > 
+> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+> ---
+>  drivers/media/v4l2-core/v4l2-async.c | 14 ++++++++++++++
+>  1 file changed, 14 insertions(+)
 > 
-> -- 
-> Maxime Ripard, Free Electrons
-> Embedded Linux and Kernel engineering
-> http://free-electrons.com
+> diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+> index 2b08d03b251d..e8476f0755ca 100644
+> --- a/drivers/media/v4l2-core/v4l2-async.c
+> +++ b/drivers/media/v4l2-core/v4l2-async.c
+> @@ -374,6 +374,7 @@ static int __v4l2_async_notifier_register(struct v4l2_async_notifier *notifier)
+>  	struct device *dev =
+>  		notifier->v4l2_dev ? notifier->v4l2_dev->dev : NULL;
+>  	struct v4l2_async_subdev *asd;
+> +	struct v4l2_async_notifier *n;
+>  	int ret;
+>  	int i;
+>  
+> @@ -385,6 +386,19 @@ static int __v4l2_async_notifier_register(struct v4l2_async_notifier *notifier)
+>  
+>  	mutex_lock(&list_lock);
+>  
+> +	/*
+> +	 * Registering the same notifier can occur if a driver incorrectly
+> +	 * handles a -EPROBE_DEFER for example, and will break in a
+> +	 * confusing fashion with linked-list corruption.
+> +	 */
+
+This would seem fine in the commit message, and it's essentially there
+already. How about simply:
+
+	/* Avoid re-registering a notifier. */
+	
+You should actually perform the check before initialising the notifier's
+lists. Although things are likely in a quite bad shape already if this
+happens.
+
+> +	list_for_each_entry(n, &notifier_list, list) {
+> +		if (n == notifier) {
+
+if (WARN_ON(n == notifier)) {
+
+And drop the error message below?
+
+> +			dev_err(dev, "Notifier has already been registered\n");
+> +			ret = -EEXIST;
+> +			goto err_unlock;
+> +		}
+> +	}
+> +
+>  	for (i = 0; i < notifier->num_subdevs; i++) {
+>  		asd = notifier->subdevs[i];
+>  
+
+-- 
+Regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
