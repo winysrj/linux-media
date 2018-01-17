@@ -1,249 +1,169 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from out20-13.mail.aliyun.com ([115.124.20.13]:49785 "EHLO
-        out20-13.mail.aliyun.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751127AbeA2JSD (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:44238 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751963AbeAQIz0 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 29 Jan 2018 04:18:03 -0500
-From: Yong Deng <yong.deng@magewell.com>
-To: Maxime Ripard <maxime.ripard@free-electrons.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Chen-Yu Tsai <wens@csie.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        Randy Dunlap <rdunlap@infradead.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Yannick Fertre <yannick.fertre@st.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Rick Chang <rick.chang@mediatek.com>,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-sunxi@googlegroups.com, Yong Deng <yong.deng@magewell.com>
-Subject: [PATCH v7 0/2] Initial Allwinner V3s CSI Support
-Date: Mon, 29 Jan 2018 17:16:45 +0800
-Message-Id: <1517217405-17536-1-git-send-email-yong.deng@magewell.com>
+        Wed, 17 Jan 2018 03:55:26 -0500
+Date: Wed, 17 Jan 2018 10:55:22 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: jacopo mondi <jacopo@jmondi.org>
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        laurent.pinchart@ideasonboard.com, magnus.damm@gmail.com,
+        geert@glider.be, hverkuil@xs4all.nl, mchehab@kernel.org,
+        festevam@gmail.com, robh+dt@kernel.org, mark.rutland@arm.com,
+        pombredanne@nexb.com, linux-renesas-soc@vger.kernel.org,
+        linux-media@vger.kernel.org, linux-sh@vger.kernel.org,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v6 1/9] dt-bindings: media: Add Renesas CEU bindings
+Message-ID: <20180117085522.kfgt6re2rfq4qeun@valkosipuli.retiisi.org.uk>
+References: <1516139101-7835-1-git-send-email-jacopo+renesas@jmondi.org>
+ <1516139101-7835-2-git-send-email-jacopo+renesas@jmondi.org>
+ <20180117075958.ggnk4cmmkdah2am6@valkosipuli.retiisi.org.uk>
+ <20180117083553.GF24926@w540>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20180117083553.GF24926@w540>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patchset add initial support for Allwinner V3s CSI.
+On Wed, Jan 17, 2018 at 09:35:53AM +0100, jacopo mondi wrote:
+> Hi Sakari,
+>     it's the second series this week where I fail to handle BT.656
+> properly, sorry about this :)
 
-Allwinner V3s SoC features two CSI module. CSI0 is used for MIPI CSI-2
-interface and CSI1 is used for parallel interface. This is not
-documented in datasheet but by test and guess.
+No worries. I guess I forgot your reply. If the hardware doesn't support
+Bt.656 then the current definition is fine.
 
-This patchset implement a v4l2 framework driver and add a binding 
-documentation for it. 
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-Currently, the driver only support the parallel interface. And has been
-tested with a BT1120 signal which generating from FPGA. The following
-fetures are not support with this patchset:
-  - ISP 
-  - MIPI-CSI2
-  - Master clock for camera sensor
-  - Power regulator for the front end IC
-
-Changes in v7:
-  * Add 'depends on ARM' in Kconfig to avoid built with non-ARM arch.
-
-Changes in v6:
-  * Add Rob Herring's review tag.
-  * Fix a NULL pointer dereference by picking Maxime Ripard's patch.
-  * Add Maxime Ripard's test tag.
-
-Changes in v5:
-  * Using the new SPDX tags.
-  * Fix MODULE_LICENSE.
-  * Add many default cases and warning messages.
-  * Detail the parallel bus properties
-  * Fix some spelling and syntax mistakes.
-
-Changes in v4:
-  * Deal with the CSI 'INNER QUEUE'.
-    CSI will lookup the next dma buffer for next frame before the
-    the current frame done IRQ triggered. This is not documented
-    but reported by Ondřej Jirman.
-    The BSP code has workaround for this too. It skip to mark the
-    first buffer as frame done for VB2 and pass the second buffer
-    to CSI in the first frame done ISR call. Then in second frame
-    done ISR call, it mark the first buffer as frame done for VB2
-    and pass the third buffer to CSI. And so on. The bad thing is
-    that the first buffer will be written twice and the first frame
-    is dropped even the queued buffer is sufficient.
-    So, I make some improvement here. Pass the next buffer to CSI
-    just follow starting the CSI. In this case, the first frame
-    will be stored in first buffer, second frame in second buffer.
-    This mothed is used to avoid dropping the first frame, it
-    would also drop frame when lacking of queued buffer.
-  * Fix: using a wrong mbus_code when getting the supported formats
-  * Change all fourcc to pixformat
-  * Change some function names
-
-Changes in v3:
-  * Get rid of struct sun6i_csi_ops
-  * Move sun6i-csi to new directory drivers/media/platform/sunxi
-  * Merge sun6i_csi.c and sun6i_csi_v3s.c into sun6i_csi.c
-  * Use generic fwnode endpoints parser
-  * Only support a single subdev to make things simple
-  * Many complaintion fix
-
-Changes in v2: 
-  * Change sunxi-csi to sun6i-csi
-  * Rebase to media_tree master branch 
-
-Following is the 'v4l2-compliance -s -f' output, I have test this
-with both interlaced and progressive signal:
-
-# ./v4l2-compliance -s -f
-v4l2-compliance SHA   : 6049ea8bd64f9d78ef87ef0c2b3dc9b5de1ca4a1
-
-Driver Info:
-        Driver name   : sun6i-video
-        Card type     : sun6i-csi
-        Bus info      : platform:csi
-        Driver version: 4.15.0
-        Capabilities  : 0x84200001
-                Video Capture
-                Streaming
-                Extended Pix Format
-                Device Capabilities
-        Device Caps   : 0x04200001
-                Video Capture
-                Streaming
-                Extended Pix Format
-
-Compliance test for device /dev/video0 (not using libv4l2):
-
-Required ioctls:
-        test VIDIOC_QUERYCAP: OK
-
-Allow for multiple opens:
-        test second video open: OK
-        test VIDIOC_QUERYCAP: OK
-        test VIDIOC_G/S_PRIORITY: OK
-        test for unlimited opens: OK
-
-Debug ioctls:
-        test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
-        test VIDIOC_LOG_STATUS: OK (Not Supported)
-
-Input ioctls:
-        test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
-        test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-        test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
-        test VIDIOC_ENUMAUDIO: OK (Not Supported)
-        test VIDIOC_G/S/ENUMINPUT: OK
-        test VIDIOC_G/S_AUDIO: OK (Not Supported)
-        Inputs: 1 Audio Inputs: 0 Tuners: 0
-
-Output ioctls:
-        test VIDIOC_G/S_MODULATOR: OK (Not Supported)
-        test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-        test VIDIOC_ENUMAUDOUT: OK (Not Supported)
-        test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
-        test VIDIOC_G/S_AUDOUT: OK (Not Supported)
-        Outputs: 0 Audio Outputs: 0 Modulators: 0
-
-Input/Output configuration ioctls:
-        test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
-        test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
-        test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
-        test VIDIOC_G/S_EDID: OK (Not Supported)
-
-Test input 0:
-
-        Control ioctls:
-                test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK (Not Supported)
-                test VIDIOC_QUERYCTRL: OK (Not Supported)
-                test VIDIOC_G/S_CTRL: OK (Not Supported)
-                test VIDIOC_G/S/TRY_EXT_CTRLS: OK (Not Supported)
-                test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK (Not Supported)
-                test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
-                Standard Controls: 0 Private Controls: 0
-
-        Format ioctls:
-                test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
-                test VIDIOC_G/S_PARM: OK (Not Supported)
-                test VIDIOC_G_FBUF: OK (Not Supported)
-                test VIDIOC_G_FMT: OK
-                test VIDIOC_TRY_FMT: OK
-                test VIDIOC_S_FMT: OK
-                test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
-                test Cropping: OK (Not Supported)
-                test Composing: OK (Not Supported)
-                test Scaling: OK (Not Supported)
-
-        Codec ioctls:
-                test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
-                test VIDIOC_G_ENC_INDEX: OK (Not Supported)
-                test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
-
-        Buffer ioctls:
-                test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
-                test VIDIOC_EXPBUF: OK
-
-Test input 0:
-
-Streaming ioctls:
-        test read/write: OK (Not Supported)
-        test MMAP: OK                                     
-        test USERPTR: OK (Not Supported)
-        test DMABUF: Cannot test, specify --expbuf-device
-
-Stream using all formats:
-        test MMAP for Format HM12, Frame Size 1280x720:
-                Stride 1920, Field None: OK                                 
-        test MMAP for Format NV12, Frame Size 1280x720:
-                Stride 1920, Field None: OK                                 
-        test MMAP for Format NV21, Frame Size 1280x720:
-                Stride 1920, Field None: OK                                 
-        test MMAP for Format YU12, Frame Size 1280x720:
-                Stride 1920, Field None: OK                                 
-        test MMAP for Format YV12, Frame Size 1280x720:
-                Stride 1920, Field None: OK                                 
-        test MMAP for Format NV16, Frame Size 1280x720:
-                Stride 2560, Field None: OK                                 
-        test MMAP for Format NV61, Frame Size 1280x720:
-                Stride 2560, Field None: OK                                 
-        test MMAP for Format 422P, Frame Size 1280x720:
-                Stride 2560, Field None: OK                                 
-
-Total: 54, Succeeded: 54, Failed: 0, Warnings: 0
-
-Yong Deng (2):
-  dt-bindings: media: Add Allwinner V3s Camera Sensor Interface (CSI)
-  media: V3s: Add support for Allwinner CSI.
-
- .../devicetree/bindings/media/sun6i-csi.txt        |  59 ++
- MAINTAINERS                                        |   8 +
- drivers/media/platform/Kconfig                     |   1 +
- drivers/media/platform/Makefile                    |   2 +
- drivers/media/platform/sunxi/sun6i-csi/Kconfig     |  10 +
- drivers/media/platform/sunxi/sun6i-csi/Makefile    |   3 +
- drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.c | 908 +++++++++++++++++++++
- drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.h | 143 ++++
- .../media/platform/sunxi/sun6i-csi/sun6i_csi_reg.h | 196 +++++
- .../media/platform/sunxi/sun6i-csi/sun6i_video.c   | 753 +++++++++++++++++
- .../media/platform/sunxi/sun6i-csi/sun6i_video.h   |  53 ++
- 11 files changed, 2136 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/sun6i-csi.txt
- create mode 100644 drivers/media/platform/sunxi/sun6i-csi/Kconfig
- create mode 100644 drivers/media/platform/sunxi/sun6i-csi/Makefile
- create mode 100644 drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.c
- create mode 100644 drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.h
- create mode 100644 drivers/media/platform/sunxi/sun6i-csi/sun6i_csi_reg.h
- create mode 100644 drivers/media/platform/sunxi/sun6i-csi/sun6i_video.c
- create mode 100644 drivers/media/platform/sunxi/sun6i-csi/sun6i_video.h
+> 
+> On Wed, Jan 17, 2018 at 09:59:59AM +0200, Sakari Ailus wrote:
+> > Hi Jacopo,
+> >
+> > On Tue, Jan 16, 2018 at 10:44:53PM +0100, Jacopo Mondi wrote:
+> > > Add bindings documentation for Renesas Capture Engine Unit (CEU).
+> > >
+> > > Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+> > > Reviewed-by: Rob Herring <robh@kernel.org>
+> > > Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > > Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+> > > ---
+> > >  .../devicetree/bindings/media/renesas,ceu.txt      | 81 ++++++++++++++++++++++
+> > >  1 file changed, 81 insertions(+)
+> > >  create mode 100644 Documentation/devicetree/bindings/media/renesas,ceu.txt
+> > >
+> > > diff --git a/Documentation/devicetree/bindings/media/renesas,ceu.txt b/Documentation/devicetree/bindings/media/renesas,ceu.txt
+> > > new file mode 100644
+> > > index 0000000..590ee27
+> > > --- /dev/null
+> > > +++ b/Documentation/devicetree/bindings/media/renesas,ceu.txt
+> > > @@ -0,0 +1,81 @@
+> > > +Renesas Capture Engine Unit (CEU)
+> > > +----------------------------------------------
+> > > +
+> > > +The Capture Engine Unit is the image capture interface found in the Renesas
+> > > +SH Mobile and RZ SoCs.
+> > > +
+> > > +The interface supports a single parallel input with data bus width of 8 or 16
+> > > +bits.
+> > > +
+> > > +Required properties:
+> > > +- compatible: Shall be "renesas,r7s72100-ceu" for CEU units found in RZ/A1-H
+> > > +  and RZ/A1-M SoCs.
+> > > +- reg: Registers address base and size.
+> > > +- interrupts: The interrupt specifier.
+> > > +
+> > > +The CEU supports a single parallel input and should contain a single 'port'
+> > > +subnode with a single 'endpoint'. Connection to input devices are modeled
+> > > +according to the video interfaces OF bindings specified in:
+> > > +Documentation/devicetree/bindings/media/video-interfaces.txt
+> > > +
+> > > +Optional endpoint properties applicable to parallel input bus described in
+> > > +the above mentioned "video-interfaces.txt" file are supported.
+> > > +
+> > > +- hsync-active: Active state of the HSYNC signal, 0/1 for LOW/HIGH respectively.
+> > > +  If property is not present, default is active high.
+> > > +- vsync-active: Active state of the VSYNC signal, 0/1 for LOW/HIGH respectively.
+> > > +  If property is not present, default is active high.
+> >
+> > Does the hardware support Bt.656? If it does, you need to tell the
+> > difference between the parallel interface with default sync polarity and
+> > Bt.656 interfaces. With the above it's ambiguous.
+> 
+> No, it does not support BT.656.
+> 
+> I'm listing them as -required- endpoint properties. If they are not
+> specified the drivers fails during probe:
+> 
+>         renesas-ceu e8210000.ceu: Only parallel input supported.
+> 
+> Thanks
+>    j
+> 
+> >
+> > > +
+> > > +Example:
+> > > +
+> > > +The example describes the connection between the Capture Engine Unit and an
+> > > +OV7670 image sensor connected to i2c1 interface.
+> > > +
+> > > +ceu: ceu@e8210000 {
+> > > +	reg = <0xe8210000 0x209c>;
+> > > +	compatible = "renesas,r7s72100-ceu";
+> > > +	interrupts = <GIC_SPI 332 IRQ_TYPE_LEVEL_HIGH>;
+> > > +
+> > > +	pinctrl-names = "default";
+> > > +	pinctrl-0 = <&vio_pins>;
+> > > +
+> > > +	status = "okay";
+> > > +
+> > > +	port {
+> > > +		ceu_in: endpoint {
+> > > +			remote-endpoint = <&ov7670_out>;
+> > > +
+> > > +			hsync-active = <1>;
+> > > +			vsync-active = <0>;
+> > > +		};
+> > > +	};
+> > > +};
+> > > +
+> > > +i2c1: i2c@fcfee400 {
+> > > +	pinctrl-names = "default";
+> > > +	pinctrl-0 = <&i2c1_pins>;
+> > > +
+> > > +	status = "okay";
+> > > +
+> > > +	clock-frequency = <100000>;
+> > > +
+> > > +	ov7670: camera@21 {
+> > > +		compatible = "ovti,ov7670";
+> > > +		reg = <0x21>;
+> > > +
+> > > +		pinctrl-names = "default";
+> > > +		pinctrl-0 = <&vio_pins>;
+> > > +
+> > > +		reset-gpios = <&port3 11 GPIO_ACTIVE_LOW>;
+> > > +		powerdown-gpios = <&port3 12 GPIO_ACTIVE_HIGH>;
+> > > +
+> > > +		port {
+> > > +			ov7670_out: endpoint {
+> > > +				remote-endpoint = <&ceu_in>;
+> > > +
+> > > +				hsync-active = <1>;
+> > > +				vsync-active = <0>;
+> > > +			};
+> > > +		};
+> > > +	};
+> > > +};
+> > > --
+> > > 2.7.4
+> > >
+> >
+> > --
+> > Sakari Ailus
+> > e-mail: sakari.ailus@iki.fi
 
 -- 
-1.8.3.1
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
