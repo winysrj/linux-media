@@ -1,123 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay4-d.mail.gandi.net ([217.70.183.196]:41140 "EHLO
-        relay4-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750770AbeADQDi (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 4 Jan 2018 11:03:38 -0500
-From: Jacopo Mondi <jacopo+renesas@jmondi.org>
-To: laurent.pinchart@ideasonboard.com, magnus.damm@gmail.com,
-        geert@glider.be, mchehab@kernel.org, hverkuil@xs4all.nl,
-        festevam@gmail.com, sakari.ailus@iki.fi, robh+dt@kernel.org,
-        mark.rutland@arm.com
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-sh@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH v3 1/9] dt-bindings: media: Add Renesas CEU bindings
-Date: Thu,  4 Jan 2018 17:03:09 +0100
-Message-Id: <1515081797-17174-2-git-send-email-jacopo+renesas@jmondi.org>
-In-Reply-To: <1515081797-17174-1-git-send-email-jacopo+renesas@jmondi.org>
-References: <1515081797-17174-1-git-send-email-jacopo+renesas@jmondi.org>
+Received: from metis.ext.pengutronix.de ([85.220.165.71]:43057 "EHLO
+        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750888AbeAQJoS (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 17 Jan 2018 04:44:18 -0500
+Message-ID: <1516182255.11434.1.camel@pengutronix.de>
+Subject: Re: [RFT PATCH v3 4/6] uvcvideo: queue: Simplify spin-lock usage
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+        Olivier BRAUN <olivier.braun@stereolabs.com>,
+        Troy Kisky <troy.kisky@boundarydevices.com>
+Date: Wed, 17 Jan 2018 10:44:15 +0100
+In-Reply-To: <1566744.FFqUaHsn7F@avalon>
+References: <cover.30aaad9a6abac5e92d4a1a0e6634909d97cc54d8.1515748369.git-series.kieran.bingham@ideasonboard.com>
+         <9f83cda1d54615e068c20fcadf69a1f09ae50ec1.1515748369.git-series.kieran.bingham@ideasonboard.com>
+         <1566744.FFqUaHsn7F@avalon>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add bindings documentation for Renesas Capture Engine Unit (CEU).
+On Tue, 2018-01-16 at 19:23 +0200, Laurent Pinchart wrote:
+> Hi Kieran,
+> 
+> Thank you for the patch.
+> 
+> On Friday, 12 January 2018 11:19:26 EET Kieran Bingham wrote:
+> > Both uvc_start_streaming(), and uvc_stop_streaming() are called from
+> > userspace context. As such, they do not need to save the IRQ state, and
+> > can use spin_lock_irq() and spin_unlock_irq() respectively.
+> 
+> Note that userspace context isn't enough, the key part is that they're called 
+> with interrupts enabled. If they were called from userspace context but under 
+> a spin_lock_irq() you couldn't use spin_unlock_irq() in those functions.
+> 
+> > Signed-off-by: Kieran Bingham <kieran.bingham@ideasonboard.com>
+> > ---
+> >  drivers/media/usb/uvc/uvc_queue.c | 10 ++++------
+> >  1 file changed, 4 insertions(+), 6 deletions(-)
+> > 
+> > diff --git a/drivers/media/usb/uvc/uvc_queue.c
+> > b/drivers/media/usb/uvc/uvc_queue.c index 4a581d631525..ddac4d89a291 100644
+> > --- a/drivers/media/usb/uvc/uvc_queue.c
+> > +++ b/drivers/media/usb/uvc/uvc_queue.c
+> > @@ -158,7 +158,6 @@ static int uvc_start_streaming(struct vb2_queue *vq,
+> > unsigned int count) {
+> >  	struct uvc_video_queue *queue = vb2_get_drv_priv(vq);
+> >  	struct uvc_streaming *stream = uvc_queue_to_stream(queue);
+> > -	unsigned long flags;
+> >  	int ret;
+> > 
+> >  	queue->buf_used = 0;
+> > @@ -167,9 +166,9 @@ static int uvc_start_streaming(struct vb2_queue *vq,
+> > unsigned int count) if (ret == 0)
+> >  		return 0;
+> > 
+> > -	spin_lock_irqsave(&queue->irqlock, flags);
+> > +	spin_lock_irq(&queue->irqlock);
+> >  	uvc_queue_return_buffers(queue, UVC_BUF_STATE_QUEUED);
+> > -	spin_unlock_irqrestore(&queue->irqlock, flags);
+> > +	spin_unlock_irq(&queue->irqlock);
+> > 
+> >  	return ret;
+> >  }
+> > @@ -178,13 +177,12 @@ static void uvc_stop_streaming(struct vb2_queue *vq)
+> >  {
+> >  	struct uvc_video_queue *queue = vb2_get_drv_priv(vq);
+> >  	struct uvc_streaming *stream = uvc_queue_to_stream(queue);
+> > -	unsigned long flags;
+> > 
+> >  	uvc_video_enable(stream, 0);
+> > 
+> > -	spin_lock_irqsave(&queue->irqlock, flags);
+> > +	spin_lock_irq(&queue->irqlock);
+> >  	uvc_queue_return_buffers(queue, UVC_BUF_STATE_ERROR);
+> > -	spin_unlock_irqrestore(&queue->irqlock, flags);
+> > +	spin_unlock_irq(&queue->irqlock);
+> >  }
+> 
+> Please add a one-line comment above both functions to state
+> 
+> /* Must be called with interrupts enabled. */
 
-Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
----
- .../devicetree/bindings/media/renesas,ceu.txt      | 85 ++++++++++++++++++++++
- 1 file changed, 85 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/renesas,ceu.txt
+You could add lockdep_assert_irqs_enabled() as well.
 
-diff --git a/Documentation/devicetree/bindings/media/renesas,ceu.txt b/Documentation/devicetree/bindings/media/renesas,ceu.txt
-new file mode 100644
-index 0000000..a4f3c05
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/renesas,ceu.txt
-@@ -0,0 +1,85 @@
-+Renesas Capture Engine Unit (CEU)
-+----------------------------------------------
-+
-+The Capture Engine Unit is the image capture interface found in the Renesas
-+SH Mobile and RZ SoCs.
-+
-+The interface supports a single parallel input with data bus width of 8 or 16
-+bits.
-+
-+Required properties:
-+- compatible: Must be one of the following.
-+	- "renesas,r7s72100-ceu" for CEU units found in R7S72100 (RZ/A1) SoCs.
-+	- "renesas,ceu" as a generic fallback.
-+
-+       SH Mobile CPUs do not currently support OF, and they configure their
-+	CEU interfaces using platform data. The "compatible" list will be
-+	expanded once SH Mobile will be made OF-capable.
-+
-+- reg: Registers address base and size.
-+- interrupts: The interrupt specifier.
-+
-+The CEU supports a single parallel input and should contain a single 'port'
-+subnode with a single 'endpoint'. Connection to input devices are modeled
-+according to the video interfaces OF bindings specified in:
-+Documentation/devicetree/bindings/media/video-interfaces.txt
-+
-+Optional endpoint properties applicable to parallel input bus described in
-+the above mentioned "video-interfaces.txt" file are supported by this driver:
-+
-+- hsync-active: Active state of the HSYNC signal, 0/1 for LOW/HIGH respectively.
-+- vsync-active: Active state of the VSYNC signal, 0/1 for LOW/HIGH respectively.
-+
-+Example:
-+
-+The example describes the connection between the Capture Engine Unit and an
-+OV7670 image sensor connected to i2c1 interface.
-+
-+ceu: ceu@e8210000 {
-+	reg = <0xe8210000 0x209c>;
-+	compatible = "renesas,ceu";
-+	interrupts = <GIC_SPI 332 IRQ_TYPE_LEVEL_HIGH>;
-+
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&vio_pins>;
-+
-+	status = "okay";
-+
-+	port {
-+		ceu_in: endpoint {
-+			remote-endpoint = <&ov7670_out>;
-+
-+			hsync-active = <1>;
-+			vsync-active = <0>;
-+		};
-+	};
-+};
-+
-+i2c1: i2c@fcfee400 {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&i2c1_pins>;
-+
-+	status = "okay";
-+
-+	clock-frequency = <100000>;
-+
-+	ov7670: camera@21 {
-+		compatible = "ovti,ov7670";
-+		reg = <0x21>;
-+
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&vio_pins>;
-+
-+		reset-gpios = <&port3 11 GPIO_ACTIVE_LOW>;
-+		powerdown-gpios = <&port3 12 GPIO_ACTIVE_HIGH>;
-+
-+		port {
-+			ov7670_out: endpoint {
-+				remote-endpoint = <&ceu_in>;
-+
-+				hsync-active = <1>;
-+				vsync-active = <0>;
-+			};
-+		};
-+	};
-+};
---
-2.7.4
+> With this and the commit message updated,
+> 
+> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+regards
+Philipp
