@@ -1,80 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:41108 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S933380AbeAMKqc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sat, 13 Jan 2018 05:46:32 -0500
-Date: Sat, 13 Jan 2018 08:46:22 -0200
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Eric Dumazet <eric.dumazet@gmail.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>,
-        Eric Dumazet <edumazet@google.com>,
-        Josef Griebichler <griebichler.josef@gmx.at>,
-        Jesper Dangaard Brouer <jbrouer@redhat.com>,
-        Peter Zijlstra <peterz@infradead.org>,
-        Alan Stern <stern@rowland.harvard.edu>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        USB list <linux-usb@vger.kernel.org>,
-        Rik van Riel <riel@redhat.com>,
-        Paolo Abeni <pabeni@redhat.com>,
-        Hannes Frederic Sowa <hannes@redhat.com>,
-        linux-kernel <linux-kernel@vger.kernel.org>,
-        netdev <netdev@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>,
-        LMML <linux-media@vger.kernel.org>,
-        David Miller <davem@davemloft.net>,
-        Arnd Bergmann <arnd@arndb.de>
-Subject: Re: dvb usb issues since kernel 4.9
-Message-ID: <20180113084622.345a1223@vento.lan>
-In-Reply-To: <20180113070920.4453eafe@vento.lan>
-References: <20180107090336.03826df2@vento.lan>
-        <Pine.LNX.4.44L0.1801071010540.13425-100000@netrider.rowland.org>
-        <20180108074324.3c153189@vento.lan>
-        <trinity-c7ec7cbd-a186-4a2a-bcb6-cce8993d6a90-1515428770628@3c-app-gmx-bs32>
-        <20180108223109.66c91554@redhat.com>
-        <20180108214427.GT29822@worktop.programming.kicks-ass.net>
-        <20180108231656.3bbd1968@redhat.com>
-        <trinity-920967ce-ab0f-4535-8557-f82a7e667a79-1515516669310@3c-app-gmx-bs24>
-        <CANn89iJqRH4uzFJVKyPxc8dN38z319C1O18nTJ-CCidtuOH2+g@mail.gmail.com>
-        <CA+55aFzcoNEpnRp0R3fLYQKdfzS5mLj3z_v=1A1NfyrybQ__4A@mail.gmail.com>
-        <20180112191343.3083b70e@vento.lan>
-        <1515793726.3606.1.camel@gmail.com>
-        <20180113070920.4453eafe@vento.lan>
+Received: from mail-qk0-f193.google.com ([209.85.220.193]:34161 "EHLO
+        mail-qk0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752467AbeAQIAU (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 17 Jan 2018 03:00:20 -0500
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+In-Reply-To: <1516146473-18234-1-git-send-email-kieran.bingham@ideasonboard.com>
+References: <1516146473-18234-1-git-send-email-kieran.bingham@ideasonboard.com>
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Date: Wed, 17 Jan 2018 09:00:19 +0100
+Message-ID: <CAMuHMdUsCMqSG5kci9FhAfwvgxgXo5xy=JRtiQbYdESsmVYvPw@mail.gmail.com>
+Subject: Re: [PATCH v2] v4l: async: Protect against double notifier registrations
+To: Kieran Bingham <kieran.bingham@ideasonboard.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        =?UTF-8?Q?Niklas_S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Linux-Renesas <linux-renesas-soc@vger.kernel.org>,
+        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sat, 13 Jan 2018 07:09:20 -0200
-Mauro Carvalho Chehab <mchehab@s-opensource.com> escreveu:
+Hi Kieran,
 
-> Em Fri, 12 Jan 2018 13:48:46 -0800
-> Eric Dumazet <eric.dumazet@gmail.com> escreveu:
-> 
-> > On Fri, 2018-01-12 at 19:13 -0200, Mauro Carvalho Chehab wrote:
-> > > 
-> > > 
-> > > The .config file used to build the Kernel is at:
-> > > 	https://pastebin.com/wpZghann
-> > > 
-> > 
-> > Hi Mauro
-> > 
-> > Any chance you can try CONFIG_HZ_1000=y, CONFIG_HZ=1000 ?
+On Wed, Jan 17, 2018 at 12:47 AM, Kieran Bingham
+<kieran.bingham@ideasonboard.com> wrote:
+> From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+>
+> It can be easy to attempt to register the same notifier twice
+> in mis-handled error cases such as working with -EPROBE_DEFER.
+>
+> This results in odd kernel crashes where the notifier_list becomes
+> corrupted due to adding the same entry twice.
+>
+> Protect against this so that a developer has some sense of the pending
+> failure, and use a WARN_ON to identify the fault.
+>
+> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
 
-It actually made it a lot worse! without Linus patch (or reverting the
-softirq patch), on a 4 minutes of capture, it got all those errors:
+Thanks for your patch!
 
-Jan 13 10:41:41 rpi3 tvheadend[226]: TS: DVB-S Network/12130H/NBR: H264 @ #1911 Continuity counter error (total 1)
-Jan 13 10:41:42 rpi3 tvheadend[226]: TS: DVB-S Network/12130H/NBR: MPEG2AUDIO @ #1912 Continuity counter error (total 1)
-Jan 13 10:42:14 rpi3 tvheadend[226]: TS: DVB-S Network/12130H/NBR: H264 @ #1911 Continuity counter error (total 3)
-Jan 13 10:42:47 rpi3 tvheadend[226]: TS: DVB-S Network/12130H/NBR: H264 @ #1911 Continuity counter error (total 4)
-Jan 13 10:42:58 rpi3 tvheadend[226]: TS: DVB-S Network/12130H/NBR: H264 @ #1911 Continuity counter error (total 5)
-Jan 13 10:42:58 rpi3 tvheadend[226]: TS: DVB-S Network/12130H/NBR: MPEG2AUDIO @ #1912 Continuity counter error (total 2)
-Jan 13 10:43:34 rpi3 tvheadend[226]: TS: DVB-S Network/12130H/NBR: H264 @ #1911 Continuity counter error (total 9)
-Jan 13 10:43:37 rpi3 tvheadend[226]: TS: DVB-S Network/12130H/NBR: MPEG2AUDIO @ #1912 Continuity counter error (total 5)
-Jan 13 10:44:00 rpi3 tvheadend[226]: TS: DVB-S Network/12130H/NBR: H264 @ #1911 Continuity counter error (total 12)
-Jan 13 10:44:29 rpi3 tvheadend[226]: TS: DVB-S Network/12130H/NBR: H264 @ #1911 Continuity counter error (total 13)
+However, I have several comments:
+  1. Instead of walking notifier_list (O(n)), can't you just check if
+     notifier.list is part of a list or not (O(1))?
+  2. Isn't notifier usually (always?) allocated dynamically, so if will be a
+     different pointer after a previous -EPROBE_DEFER anyway?
+  3. If you enable CONFIG_DEBUG_LIST, it should scream, too.
 
-Thanks,
-Mauro
+> --- a/drivers/media/v4l2-core/v4l2-async.c
+> +++ b/drivers/media/v4l2-core/v4l2-async.c
+> @@ -374,17 +374,26 @@ static int __v4l2_async_notifier_register(struct v4l2_async_notifier *notifier)
+>         struct device *dev =
+>                 notifier->v4l2_dev ? notifier->v4l2_dev->dev : NULL;
+>         struct v4l2_async_subdev *asd;
+> +       struct v4l2_async_notifier *n;
+>         int ret;
+>         int i;
+>
+>         if (notifier->num_subdevs > V4L2_MAX_SUBDEVS)
+>                 return -EINVAL;
+>
+> +       mutex_lock(&list_lock);
+> +
+> +       /* Avoid re-registering a notifier. */
+> +       list_for_each_entry(n, &notifier_list, list) {
+> +               if (WARN_ON(n == notifier)) {
+> +                       ret = -EEXIST;
+> +                       goto err_unlock;
+> +               }
+> +       }
+> +
+>         INIT_LIST_HEAD(&notifier->waiting);
+>         INIT_LIST_HEAD(&notifier->done);
+>
+> -       mutex_lock(&list_lock);
+> -
+>         for (i = 0; i < notifier->num_subdevs; i++) {
+>                 asd = notifier->subdevs[i];
+
+Gr{oetje,eeting}s,
+
+                        Geert
+
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
