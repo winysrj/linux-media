@@ -1,77 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.free-electrons.com ([62.4.15.54]:33641 "EHLO
-        mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751548AbeASIQA (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 19 Jan 2018 03:16:00 -0500
-From: Maxime Ripard <maxime.ripard@free-electrons.com>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Rob Herring <robh+dt@kernel.org>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        Richard Sproul <sproul@cadence.com>,
-        Alan Douglas <adouglas@cadence.com>,
-        Steve Creaney <screaney@cadence.com>,
-        Thomas Petazzoni <thomas.petazzoni@free-electrons.com>,
-        Boris Brezillon <boris.brezillon@free-electrons.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Benoit Parrot <bparrot@ti.com>, nm@ti.com,
-        Simon Hatliff <hatliff@cadence.com>,
-        Maxime Ripard <maxime.ripard@free-electrons.com>
-Subject: [PATCH v2 0/2] media: v4l: Add support for the Cadence MIPI-CSI2 TX controller
-Date: Fri, 19 Jan 2018 09:15:45 +0100
-Message-Id: <20180119081547.22312-1-maxime.ripard@free-electrons.com>
+Received: from mout.gmx.net ([212.227.17.20]:62764 "EHLO mout.gmx.net"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752689AbeAREDM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 17 Jan 2018 23:03:12 -0500
+Received: from minime.bse ([77.22.132.34]) by mail.gmx.com (mrgmx102
+ [212.227.17.168]) with ESMTPSA (Nemesis) id 0LwGDy-1etHdY1oHW-017zlW for
+ <linux-media@vger.kernel.org>; Thu, 18 Jan 2018 05:03:10 +0100
+Date: Thu, 18 Jan 2018 05:03:08 +0100
+From: Daniel =?iso-8859-1?Q?Gl=F6ckner?= <daniel-gl@gmx.net>
+To: Florian Boor <florian.boor@kernelconcepts.de>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: MT9M131 on I.MX6DL CSI color issue
+Message-ID: <20180118040308.GA21998@minime.bse>
+References: <b704a2fb-efa1-a2f8-7af0-43d869c688eb@kernelconcepts.de>
+ <20180112105840.75260abb@crub>
+ <20180112110606.47499410@crub>
+ <929ef892-467b-dfd1-8ae0-0190263be38a@kernelconcepts.de>
+ <20180117103109.GA18072@minime.bse>
+ <ff51f6e2-270d-c881-4445-8dadf5d7db6f@kernelconcepts.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <ff51f6e2-270d-c881-4445-8dadf5d7db6f@kernelconcepts.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Wed, Jan 17, 2018 at 01:58:42PM +0100, Florian Boor wrote:
+> http://www.kernelconcepts.de/~florian/screenshot.png
+> 
+> Its not really obvious for me what is wrong but these wraparounds Philipp
+> mentioned are really nice to see within the bars.
 
-Here is an attempt at supporting the MIPI-CSI2 TX block from Cadence.
+The vertical lines tell me that videoparse format=5 is wrong. Since the
+U and V planes are so similar in the screenshot, it is most likely
+format 4 or 19.
 
-This IP block is able to receive 4 video streams and stream them over
-a MIPI-CSI2 link using up to 4 lanes. Those streams are basically the
-interfaces to controllers generating some video signals, like a camera
-or a pattern generator.
+But that does not explain the wraparounds. Can you rule out that the
+data lines have been connected in the wrong order?
 
-It is able to map input streams to CSI2 virtual channels and datatypes
-dynamically. The streaming devices choose their virtual channels
-through an additional signal that is transparent to the CSI2-TX. The
-datatypes however are yet another additional input signal, and can be
-mapped to any CSI2 datatypes.
+Best regards,
 
-Since v4l2 doesn't really allow for that setup at the moment, this
-preliminary version is a rather dumb one in order to start the
-discussion on how to address this properly.
-
-Let me know what you think!
-Maxime
-
-Changes from v1:
-  - Add a subdev notifier and start our downstream subdevice in
-    s_stream  
-  - Based the decision to enable the stream or not on the link state
-    instead of whether a format was being set on the pad
-  - Put the controller back in reset when stopping the pipeline
-  - Clarified the enpoints number in the DT binding
-  - Added a default format for the pads
-  - Added some missing const
-  - Added more explicit comments
-  - Rebased on 4.15
-
-Maxime Ripard (2):
-  dt-bindings: media: Add Cadence MIPI-CSI2 TX Device Tree bindings
-  v4l: cadence: Add Cadence MIPI-CSI2 TX driver
-
- .../devicetree/bindings/media/cdns,csi2tx.txt      |  98 ++++
- drivers/media/platform/cadence/Kconfig             |   6 +
- drivers/media/platform/cadence/Makefile            |   1 +
- drivers/media/platform/cadence/cdns-csi2tx.c       | 586 +++++++++++++++++++++
- 4 files changed, 691 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/cdns,csi2tx.txt
- create mode 100644 drivers/media/platform/cadence/cdns-csi2tx.c
-
--- 
-2.14.3
+  Daniel
