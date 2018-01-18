@@ -1,195 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from sub5.mail.dreamhost.com ([208.113.200.129]:35071 "EHLO
-        homiemail-a118.g.dreamhost.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751791AbeAIQik (ORCPT
+Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:54249 "EHLO
+        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1754978AbeARLWA (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 9 Jan 2018 11:38:40 -0500
-From: Brad Love <brad@nextdimension.cc>
-To: linux-media@vger.kernel.org
-Cc: Brad Love <brad@nextdimension.cc>
-Subject: [PATCH 1/2] cx231xx: Add support for Hauppauge HVR-935C
-Date: Tue,  9 Jan 2018 10:38:35 -0600
-Message-Id: <1515515916-32108-2-git-send-email-brad@nextdimension.cc>
-In-Reply-To: <1515515916-32108-1-git-send-email-brad@nextdimension.cc>
-References: <1515515916-32108-1-git-send-email-brad@nextdimension.cc>
+        Thu, 18 Jan 2018 06:22:00 -0500
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Michael Walz <m.walz@digitalendoscopy.de>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [RFC PATCH] v4l2-event/dev: wakeup pending events when unregistering
+Message-ID: <83e3318b-3f6e-7f27-6585-b5b69ddd9f65@xs4all.nl>
+Date: Thu, 18 Jan 2018 12:21:52 +0100
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-HVR-935C is hybrid PAL, DVB-C/T/T2 usb device.
+When the video device is unregistered any filehandles waiting on
+an event (i.e. in VIDIOC_DQEVENT) will never wake up.
 
-CX23102 + Si2168 + Si2157
+Wake them up and detect that the video device is unregistered in
+__v4l2_event_dequeue() and return -ENODEV in that case.
 
-Signed-off-by: Brad Love <brad@nextdimension.cc>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/usb/cx231xx/cx231xx-cards.c | 42 +++++++++++++++++
- drivers/media/usb/cx231xx/cx231xx-dvb.c   | 75 +++++++++++++++++++++++++++++++
- drivers/media/usb/cx231xx/cx231xx.h       |  1 +
- 3 files changed, 118 insertions(+)
+Note: this is a quick hack, just for events. We have the same problem
+with vb2 (waiting for a buffer) and cec (waiting for an event). Not sure if rc
+or dvb are also suffering from the same problem.
 
-diff --git a/drivers/media/usb/cx231xx/cx231xx-cards.c b/drivers/media/usb/cx231xx/cx231xx-cards.c
-index f9ec7fe..c2efbff 100644
---- a/drivers/media/usb/cx231xx/cx231xx-cards.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-cards.c
-@@ -922,6 +922,45 @@ struct cx231xx_board cx231xx_boards[] = {
- 			.gpio = NULL,
- 		} },
- 	},
-+	[CX231XX_BOARD_HAUPPAUGE_935C] = {
-+		.name = "Hauppauge WinTV-HVR-935C",
-+		.tuner_type = TUNER_ABSENT,
-+		.tuner_addr = 0x60,
-+		.tuner_gpio = RDE250_XCV_TUNER,
-+		.tuner_sif_gpio = 0x05,
-+		.tuner_scl_gpio = 0x1a,
-+		.tuner_sda_gpio = 0x1b,
-+		.decoder = CX231XX_AVDECODER,
-+		.output_mode = OUT_MODE_VIP11,
-+		.demod_xfer_mode = 0,
-+		.ctl_pin_status_mask = 0xFFFFFFC4,
-+		.agc_analog_digital_select_gpio = 0x0c,
-+		.gpio_pin_status_mask = 0x4001000,
-+		.tuner_i2c_master = I2C_1_MUX_3,
-+		.demod_i2c_master = I2C_1_MUX_3,
-+		.has_dvb = 1,
-+		.demod_addr = 0x64, /* 0xc8 >> 1 */
-+		.norm = V4L2_STD_PAL,
+I wonder if there is an easier way to wake up all fhs that are waiting for
+some event.
+
+Michael: most applications use non-blocking mode and poll/select to wait
+for something to happen. In such applications the poll/select will return
+when the device is unregistered and this problem does not occur.
+---
+diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
+index d5e0e536ef04..42574ccbd770 100644
+--- a/drivers/media/v4l2-core/v4l2-dev.c
++++ b/drivers/media/v4l2-core/v4l2-dev.c
+@@ -1017,6 +1017,9 @@ EXPORT_SYMBOL(__video_register_device);
+  */
+ void video_unregister_device(struct video_device *vdev)
+ {
++	unsigned long flags;
++	struct v4l2_fh *fh;
 +
-+		.input = {{
-+			.type = CX231XX_VMUX_TELEVISION,
-+			.vmux = CX231XX_VIN_3_1,
-+			.amux = CX231XX_AMUX_VIDEO,
-+			.gpio = NULL,
-+		}, {
-+			.type = CX231XX_VMUX_COMPOSITE1,
-+			.vmux = CX231XX_VIN_2_1,
-+			.amux = CX231XX_AMUX_LINE_IN,
-+			.gpio = NULL,
-+		}, {
-+			.type = CX231XX_VMUX_SVIDEO,
-+			.vmux = CX231XX_VIN_1_1 |
-+				(CX231XX_VIN_1_2 << 8) |
-+				CX25840_SVIDEO_ON,
-+			.amux = CX231XX_AMUX_LINE_IN,
-+			.gpio = NULL,
-+		} },
-+	},
- };
- const unsigned int cx231xx_bcount = ARRAY_SIZE(cx231xx_boards);
- 
-@@ -953,6 +992,8 @@ struct usb_device_id cx231xx_id_table[] = {
- 	 .driver_info = CX231XX_BOARD_HAUPPAUGE_EXETER},
- 	{USB_DEVICE(0x2040, 0xb123),
- 	 .driver_info = CX231XX_BOARD_HAUPPAUGE_955Q},
-+	{USB_DEVICE(0x2040, 0xb151),
-+	 .driver_info = CX231XX_BOARD_HAUPPAUGE_935C},
- 	{USB_DEVICE(0x2040, 0xb130),
- 	 .driver_info = CX231XX_BOARD_HAUPPAUGE_930C_HD_1113xx},
- 	{USB_DEVICE(0x2040, 0xb131),
-@@ -1211,6 +1252,7 @@ void cx231xx_card_setup(struct cx231xx *dev)
- 	case CX231XX_BOARD_HAUPPAUGE_930C_HD_1113xx:
- 	case CX231XX_BOARD_HAUPPAUGE_930C_HD_1114xx:
- 	case CX231XX_BOARD_HAUPPAUGE_955Q:
-+	case CX231XX_BOARD_HAUPPAUGE_935C:
- 		{
- 			struct eeprom {
- 				struct tveeprom tvee;
-diff --git a/drivers/media/usb/cx231xx/cx231xx-dvb.c b/drivers/media/usb/cx231xx/cx231xx-dvb.c
-index fb56540..2e6bb09 100644
---- a/drivers/media/usb/cx231xx/cx231xx-dvb.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-dvb.c
-@@ -1068,6 +1068,81 @@ static int dvb_init(struct cx231xx *dev)
- 			   &astrometa_t2hybrid_r820t_config);
- 		break;
- 	}
-+	case CX231XX_BOARD_HAUPPAUGE_935C:
-+	{
-+		struct i2c_client *client;
-+		struct i2c_adapter *adapter;
-+		struct i2c_board_info info = {};
-+		struct si2157_config si2157_config = {};
-+		struct si2168_config si2168_config = {};
+ 	/* Check if vdev was ever registered at all */
+ 	if (!vdev || !video_is_registered(vdev))
+ 		return;
+@@ -1027,6 +1030,12 @@ void video_unregister_device(struct video_device *vdev)
+ 	 */
+ 	clear_bit(V4L2_FL_REGISTERED, &vdev->flags);
+ 	mutex_unlock(&videodev_lock);
 +
-+		/* attach demodulator chip */
-+		si2168_config.ts_mode = SI2168_TS_SERIAL;
-+		si2168_config.fe = &dev->dvb->frontend;
-+		si2168_config.i2c_adapter = &adapter;
-+		si2168_config.ts_clock_inv = true;
++	spin_lock_irqsave(&vdev->fh_lock, flags);
++	list_for_each_entry(fh, &vdev->fh_list, list)
++		wake_up_all(&fh->wait);
++	spin_unlock_irqrestore(&vdev->fh_lock, flags);
 +
-+		strlcpy(info.type, "si2168", sizeof(info.type));
-+		info.addr = dev->board.demod_addr;
-+		info.platform_data = &si2168_config;
-+
-+		request_module(info.type);
-+		client = i2c_new_device(demod_i2c, &info);
-+		if (client == NULL || client->dev.driver == NULL) {
-+			result = -ENODEV;
-+			goto out_free;
-+		}
-+
-+		if (!try_module_get(client->dev.driver->owner)) {
-+			dev_err(dev->dev,
-+				"Failed to attach %s frontend.\n", info.type);
-+			i2c_unregister_device(client);
-+			result = -ENODEV;
-+			goto out_free;
-+		}
-+
-+		dvb->i2c_client_demod = client;
-+		dev->dvb->frontend->ops.i2c_gate_ctrl = NULL;
-+
-+		/* define general-purpose callback pointer */
-+		dvb->frontend->callback = cx231xx_tuner_callback;
-+
-+		/* attach tuner */
-+		si2157_config.fe = dev->dvb->frontend;
-+#ifdef CONFIG_MEDIA_CONTROLLER_DVB
-+		si2157_config.mdev = dev->media_dev;
-+#endif
-+		si2157_config.if_port = 1;
-+		si2157_config.inversion = true;
-+
-+		memset(&info, 0, sizeof(struct i2c_board_info));
-+		strlcpy(info.type, "si2157", I2C_NAME_SIZE);
-+		info.addr = dev->board.tuner_addr;
-+		info.platform_data = &si2157_config;
-+		request_module("si2157");
-+
-+		client = i2c_new_device(adapter, &info);
-+		if (client == NULL || client->dev.driver == NULL) {
-+			module_put(dvb->i2c_client_demod->dev.driver->owner);
-+			i2c_unregister_device(dvb->i2c_client_demod);
-+			result = -ENODEV;
-+			goto out_free;
-+		}
-+
-+		if (!try_module_get(client->dev.driver->owner)) {
-+			dev_err(dev->dev,
-+				"Failed to obtain %s tuner.\n",	info.type);
-+			i2c_unregister_device(client);
-+			module_put(dvb->i2c_client_demod->dev.driver->owner);
-+			i2c_unregister_device(dvb->i2c_client_demod);
-+			result = -ENODEV;
-+			goto out_free;
-+		}
-+
-+		dev->cx231xx_reset_analog_tuner = NULL;
-+		dev->dvb->i2c_client_tuner = client;
-+		break;
+ 	device_unregister(&vdev->dev);
+ }
+ EXPORT_SYMBOL(video_unregister_device);
+diff --git a/drivers/media/v4l2-core/v4l2-event.c b/drivers/media/v4l2-core/v4l2-event.c
+index 968c2eb08b5a..d04977cd1bfb 100644
+--- a/drivers/media/v4l2-core/v4l2-event.c
++++ b/drivers/media/v4l2-core/v4l2-event.c
+@@ -36,12 +36,17 @@ static int __v4l2_event_dequeue(struct v4l2_fh *fh, struct v4l2_event *event)
+ {
+ 	struct v4l2_kevent *kev;
+ 	unsigned long flags;
++	int ret = 0;
+
+ 	spin_lock_irqsave(&fh->vdev->fh_lock, flags);
+
++	if (!video_is_registered(fh->vdev)) {
++		ret = -ENODEV;
++		goto err;
 +	}
- 	default:
- 		dev_err(dev->dev,
- 			"%s/2: The frontend of your DVB/ATSC card isn't supported yet\n",
-diff --git a/drivers/media/usb/cx231xx/cx231xx.h b/drivers/media/usb/cx231xx/cx231xx.h
-index 65b039c..1493192 100644
---- a/drivers/media/usb/cx231xx/cx231xx.h
-+++ b/drivers/media/usb/cx231xx/cx231xx.h
-@@ -81,6 +81,7 @@
- #define CX231XX_BOARD_EVROMEDIA_FULL_HYBRID_FULLHD 23
- #define CX231XX_BOARD_ASTROMETA_T2HYBRID 24
- #define CX231XX_BOARD_THE_IMAGING_SOURCE_DFG_USB2_PRO 25
-+#define CX231XX_BOARD_HAUPPAUGE_935C 26
- 
- /* Limits minimum and default number of buffers */
- #define CX231XX_MIN_BUF                 4
--- 
-2.7.4
+ 	if (list_empty(&fh->available)) {
+-		spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
+-		return -ENOENT;
++		ret = -ENOENT;
++		goto err;
+ 	}
+
+ 	WARN_ON(fh->navailable == 0);
+@@ -54,10 +59,10 @@ static int __v4l2_event_dequeue(struct v4l2_fh *fh, struct v4l2_event *event)
+ 	*event = kev->event;
+ 	kev->sev->first = sev_pos(kev->sev, 1);
+ 	kev->sev->in_use--;
+-
++err:
+ 	spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
+
+-	return 0;
++	return ret;
+ }
+
+ int v4l2_event_dequeue(struct v4l2_fh *fh, struct v4l2_event *event,
