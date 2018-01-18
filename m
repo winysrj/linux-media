@@ -1,43 +1,945 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from sub5.mail.dreamhost.com ([208.113.200.129]:43171 "EHLO
-        homiemail-a82.g.dreamhost.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753442AbeAFAs0 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 5 Jan 2018 19:48:26 -0500
-From: Brad Love <brad@nextdimension.cc>
-To: linux-media@vger.kernel.org
-Cc: Brad Love <brad@nextdimension.cc>
-Subject: [PATCH 1/4] cx23885: Enable new Hauppauge PCIe ImpactVCBe variant
-Date: Fri,  5 Jan 2018 18:48:19 -0600
-Message-Id: <1515199702-16083-2-git-send-email-brad@nextdimension.cc>
-In-Reply-To: <1515199702-16083-1-git-send-email-brad@nextdimension.cc>
-References: <1515199702-16083-1-git-send-email-brad@nextdimension.cc>
+Received: from mail-bn3nam01on0129.outbound.protection.outlook.com ([104.47.33.129]:46567
+        "EHLO NAM01-BN3-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1754847AbeARIun (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 18 Jan 2018 03:50:43 -0500
+From: <Yasunari.Takiguchi@sony.com>
+To: <linux-kernel@vger.kernel.org>, <devicetree@vger.kernel.org>,
+        <linux-media@vger.kernel.org>
+CC: <tbird20d@gmail.com>, <frowand.list@gmail.com>,
+        <Yasunari.Takiguchi@sony.com>, <Masayuki.Yamamoto@sony.com>,
+        <Hideki.Nozawa@sony.com>, <Kota.Yonezawa@sony.com>,
+        <Toshihiko.Matsumoto@sony.com>, <Satoshi.C.Watanabe@sony.com>
+Subject: [PATCH v5 09/12] [media] cxd2880: Add DVB-T monitor functions
+Date: Thu, 18 Jan 2018 17:54:33 +0900
+Message-ID: <20180118085433.21647-1-Yasunari.Takiguchi@sony.com>
+In-Reply-To: <20180118084016.20689-1-Yasunari.Takiguchi@sony.com>
+References: <20180118084016.20689-1-Yasunari.Takiguchi@sony.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add ID of new card revision to driver list
+From: Yasunari Takiguchi <Yasunari.Takiguchi@sony.com>
 
-Analog PAL/NTSC capture.
+Provide monitor functions (DVB-T)
+for the Sony CXD2880 DVB-T2/T tuner + demodulator driver.
 
-Signed-off-by: Brad Love <brad@nextdimension.cc>
+Signed-off-by: Yasunari Takiguchi <Yasunari.Takiguchi@sony.com>
+Signed-off-by: Masayuki Yamamoto <Masayuki.Yamamoto@sony.com>
+Signed-off-by: Hideki Nozawa <Hideki.Nozawa@sony.com>
+Signed-off-by: Kota Yonezawa <Kota.Yonezawa@sony.com>
+Signed-off-by: Toshihiko Matsumoto <Toshihiko.Matsumoto@sony.com>
+Signed-off-by: Satoshi Watanabe <Satoshi.C.Watanabe@sony.com>
 ---
- drivers/media/pci/cx23885/cx23885-cards.c | 4 ++++
- 1 file changed, 4 insertions(+)
 
-diff --git a/drivers/media/pci/cx23885/cx23885-cards.c b/drivers/media/pci/cx23885/cx23885-cards.c
-index 3622521..c4b3123 100644
---- a/drivers/media/pci/cx23885/cx23885-cards.c
-+++ b/drivers/media/pci/cx23885/cx23885-cards.c
-@@ -1028,6 +1028,10 @@ struct cx23885_subid cx23885_subids[] = {
- 		.subdevice = 0x7133,
- 		.card      = CX23885_BOARD_HAUPPAUGE_IMPACTVCBE,
- 	}, {
-+		.subvendor = 0x0070,
-+		.subdevice = 0x7137,
-+		.card      = CX23885_BOARD_HAUPPAUGE_IMPACTVCBE,
-+	}, {
- 		.subvendor = 0x18ac,
- 		.subdevice = 0xdb98,
- 		.card      = CX23885_BOARD_DVICO_FUSIONHDTV_DVB_T_DUAL_EXP2,
+[Change list]
+Changes in V5
+   Using SPDX-License-Identifier
+   drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt_mon.c
+      -removed unnecessary if()        
+      -modified return error code
+      -removed unnecessary parentheses 
+      -modified for "Lines should not end with a '(' "
+      -removed unnecessary functions
+   drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt_mon.h
+      -removed unnecessary functions
+
+Changes in V4
+   #drivers/media/dvb-frontends/cxd2880/cxd2880_integ_dvbt.c
+      -cxd2880_integ_dvbt.c file was removed from V4.
+   #drivers/media/dvb-frontends/cxd2880/cxd2880_integ_dvbt.h
+      -cxd2880_integ_dvbt.h file was removed from V4.
+   drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt_mon.c
+      -removed unnecessary initialization at variable declaration
+      -removed unnecessary brace {}
+      -changed position of static const (to top part of the file)
+
+Changes in V3
+   drivers/media/dvb-frontends/cxd2880/cxd2880_integ_dvbt.c
+      -changed CXD2880_SLEEP to usleep_range
+      -chnaged cxd2880_atomic_set to atomic_set
+      -modified return code
+      -modified coding style of if() 
+   drivers/media/dvb-frontends/cxd2880/cxd2880_integ_dvbt.h
+      -modified return code
+   drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt_mon.c
+      -removed unnecessary cast
+      -changed cxd2880_math_log to intlog10
+      -changed hexadecimal code to lower case. 
+   drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt_mon.h
+      -modified return code
+
+ .../cxd2880/cxd2880_tnrdmd_dvbt_mon.c              | 775 +++++++++++++++++++++
+ .../cxd2880/cxd2880_tnrdmd_dvbt_mon.h              |  77 ++
+ 2 files changed, 852 insertions(+)
+ create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt_mon.c
+ create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt_mon.h
+
+diff --git a/drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt_mon.c b/drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt_mon.c
+new file mode 100644
+index 000000000000..78214a99a5df
+--- /dev/null
++++ b/drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt_mon.c
+@@ -0,0 +1,775 @@
++// SPDX-License-Identifier: GPL-2.0
++/*
++ * cxd2880_tnrdmd_dvbt_mon.c
++ * Sony CXD2880 DVB-T2/T tuner + demodulator driver
++ * DVB-T monitor functions
++ *
++ * Copyright (C) 2016, 2017, 2018 Sony Semiconductor Solutions Corporation
++ */
++
++#include "cxd2880_tnrdmd_mon.h"
++#include "cxd2880_tnrdmd_dvbt.h"
++#include "cxd2880_tnrdmd_dvbt_mon.h"
++
++#include "dvb_math.h"
++
++static const int ref_dbm_1000[3][5] = {
++	{-93000, -91000, -90000, -89000, -88000},
++	{-87000, -85000, -84000, -83000, -82000},
++	{-82000, -80000, -78000, -77000, -76000},
++};
++
++static int is_tps_locked(struct cxd2880_tnrdmd *tnr_dmd);
++
++int cxd2880_tnrdmd_dvbt_mon_sync_stat(struct cxd2880_tnrdmd
++				      *tnr_dmd, u8 *sync_stat,
++				      u8 *ts_lock_stat,
++				      u8 *unlock_detected)
++{
++	u8 rdata = 0x00;
++	int ret;
++
++	if (!tnr_dmd || !sync_stat || !ts_lock_stat || !unlock_detected)
++		return -EINVAL;
++
++	if (tnr_dmd->state != CXD2880_TNRDMD_STATE_ACTIVE)
++		return -EINVAL;
++	if (tnr_dmd->sys != CXD2880_DTV_SYS_DVBT)
++		return -EINVAL;
++
++	ret = tnr_dmd->io->write_reg(tnr_dmd->io,
++				     CXD2880_IO_TGT_DMD,
++				     0x00, 0x0d);
++	if (ret)
++		return ret;
++
++	ret = tnr_dmd->io->read_regs(tnr_dmd->io,
++				     CXD2880_IO_TGT_DMD,
++				     0x10, &rdata, 1);
++	if (ret)
++		return ret;
++
++	*unlock_detected = (rdata & 0x10) ? 1 : 0;
++	*sync_stat = rdata & 0x07;
++	*ts_lock_stat = (rdata & 0x20) ? 1 : 0;
++
++	if (*sync_stat == 0x07)
++		return -EAGAIN;
++
++	return ret;
++}
++
++int cxd2880_tnrdmd_dvbt_mon_sync_stat_sub(struct cxd2880_tnrdmd
++					  *tnr_dmd, u8 *sync_stat,
++					  u8 *unlock_detected)
++{
++	u8 ts_lock_stat = 0;
++
++	if (!tnr_dmd || !sync_stat || !unlock_detected)
++		return -EINVAL;
++
++	if (tnr_dmd->diver_mode != CXD2880_TNRDMD_DIVERMODE_MAIN)
++		return -EINVAL;
++
++	return cxd2880_tnrdmd_dvbt_mon_sync_stat(tnr_dmd->diver_sub,
++						 sync_stat,
++						 &ts_lock_stat,
++						 unlock_detected);
++}
++
++int cxd2880_tnrdmd_dvbt_mon_mode_guard(struct cxd2880_tnrdmd
++				       *tnr_dmd,
++				       enum cxd2880_dvbt_mode
++				       *mode,
++				       enum cxd2880_dvbt_guard
++				       *guard)
++{
++	u8 rdata = 0x00;
++	int ret;
++
++	if (!tnr_dmd || !mode || !guard)
++		return -EINVAL;
++
++	if (tnr_dmd->state != CXD2880_TNRDMD_STATE_ACTIVE)
++		return -EINVAL;
++
++	if (tnr_dmd->sys != CXD2880_DTV_SYS_DVBT)
++		return -EINVAL;
++
++	ret = slvt_freeze_reg(tnr_dmd);
++	if (ret)
++		return ret;
++
++	ret = is_tps_locked(tnr_dmd);
++	if (ret) {
++		slvt_unfreeze_reg(tnr_dmd);
++
++		if (tnr_dmd->diver_mode == CXD2880_TNRDMD_DIVERMODE_MAIN)
++			ret =
++			    cxd2880_tnrdmd_dvbt_mon_mode_guard(tnr_dmd->diver_sub,
++							       mode, guard);
++
++		return ret;
++	}
++
++	ret = tnr_dmd->io->write_reg(tnr_dmd->io,
++				     CXD2880_IO_TGT_DMD,
++				     0x00, 0x0d);
++	if (ret) {
++		slvt_unfreeze_reg(tnr_dmd);
++		return ret;
++	}
++
++	ret = tnr_dmd->io->read_regs(tnr_dmd->io,
++				     CXD2880_IO_TGT_DMD,
++				     0x1b, &rdata, 1);
++	if (ret) {
++		slvt_unfreeze_reg(tnr_dmd);
++		return ret;
++	}
++
++	slvt_unfreeze_reg(tnr_dmd);
++
++	*mode = (enum cxd2880_dvbt_mode)((rdata >> 2) & 0x03);
++	*guard = (enum cxd2880_dvbt_guard)(rdata & 0x03);
++
++	return ret;
++}
++
++int cxd2880_tnrdmd_dvbt_mon_carrier_offset(struct cxd2880_tnrdmd
++					   *tnr_dmd, int *offset)
++{
++	u8 rdata[4];
++	u32 ctl_val = 0;
++	int ret;
++
++	if (!tnr_dmd || !offset)
++		return -EINVAL;
++
++	if (tnr_dmd->state != CXD2880_TNRDMD_STATE_ACTIVE)
++		return -EINVAL;
++
++	if (tnr_dmd->sys != CXD2880_DTV_SYS_DVBT)
++		return -EINVAL;
++
++	ret = slvt_freeze_reg(tnr_dmd);
++	if (ret)
++		return ret;
++
++	ret = is_tps_locked(tnr_dmd);
++	if (ret) {
++		slvt_unfreeze_reg(tnr_dmd);
++		return ret;
++	}
++
++	ret = tnr_dmd->io->write_reg(tnr_dmd->io,
++				     CXD2880_IO_TGT_DMD,
++				     0x00, 0x0d);
++	if (ret) {
++		slvt_unfreeze_reg(tnr_dmd);
++		return ret;
++	}
++
++	ret = tnr_dmd->io->read_regs(tnr_dmd->io,
++				     CXD2880_IO_TGT_DMD,
++				     0x1d, rdata, 4);
++	if (ret) {
++		slvt_unfreeze_reg(tnr_dmd);
++		return ret;
++	}
++
++	slvt_unfreeze_reg(tnr_dmd);
++
++	ctl_val =
++	    ((rdata[0] & 0x1f) << 24) | (rdata[1] << 16) | (rdata[2] << 8) |
++	    (rdata[3]);
++	*offset = cxd2880_convert2s_complement(ctl_val, 29);
++	*offset = -1 * ((*offset) * tnr_dmd->bandwidth / 235);
++
++	return ret;
++}
++
++int cxd2880_tnrdmd_dvbt_mon_carrier_offset_sub(struct
++					       cxd2880_tnrdmd
++					       *tnr_dmd,
++					       int *offset)
++{
++	if (!tnr_dmd || !offset)
++		return -EINVAL;
++
++	if (tnr_dmd->diver_mode != CXD2880_TNRDMD_DIVERMODE_MAIN)
++		return -EINVAL;
++
++	return cxd2880_tnrdmd_dvbt_mon_carrier_offset(tnr_dmd->diver_sub,
++						      offset);
++}
++
++int cxd2880_tnrdmd_dvbt_mon_tps_info(struct cxd2880_tnrdmd
++				     *tnr_dmd,
++				     struct cxd2880_dvbt_tpsinfo
++				     *info)
++{
++	u8 rdata[7];
++	u8 cell_id_ok = 0;
++	int ret;
++
++	if (!tnr_dmd || !info)
++		return -EINVAL;
++
++	if (tnr_dmd->state != CXD2880_TNRDMD_STATE_ACTIVE)
++		return -EINVAL;
++
++	if (tnr_dmd->sys != CXD2880_DTV_SYS_DVBT)
++		return -EINVAL;
++
++	ret = slvt_freeze_reg(tnr_dmd);
++	if (ret)
++		return ret;
++
++	ret = is_tps_locked(tnr_dmd);
++	if (ret) {
++		slvt_unfreeze_reg(tnr_dmd);
++
++		if (tnr_dmd->diver_mode == CXD2880_TNRDMD_DIVERMODE_MAIN)
++			ret =
++			    cxd2880_tnrdmd_dvbt_mon_tps_info(tnr_dmd->diver_sub,
++							     info);
++
++		return ret;
++	}
++
++	ret = tnr_dmd->io->write_reg(tnr_dmd->io,
++				     CXD2880_IO_TGT_DMD,
++				     0x00, 0x0d);
++	if (ret) {
++		slvt_unfreeze_reg(tnr_dmd);
++		return ret;
++	}
++
++	ret = tnr_dmd->io->read_regs(tnr_dmd->io,
++				     CXD2880_IO_TGT_DMD,
++				     0x29, rdata, 7);
++	if (ret) {
++		slvt_unfreeze_reg(tnr_dmd);
++		return ret;
++	}
++
++	ret = tnr_dmd->io->write_reg(tnr_dmd->io,
++				     CXD2880_IO_TGT_DMD,
++				     0x00, 0x11);
++	if (ret) {
++		slvt_unfreeze_reg(tnr_dmd);
++		return ret;
++	}
++
++	ret = tnr_dmd->io->read_regs(tnr_dmd->io,
++				     CXD2880_IO_TGT_DMD,
++				     0xd5, &cell_id_ok, 1);
++	if (ret) {
++		slvt_unfreeze_reg(tnr_dmd);
++		return ret;
++	}
++
++	slvt_unfreeze_reg(tnr_dmd);
++
++	info->constellation =
++	    (enum cxd2880_dvbt_constellation)((rdata[0] >> 6) & 0x03);
++	info->hierarchy = (enum cxd2880_dvbt_hierarchy)((rdata[0] >> 3) & 0x07);
++	info->rate_hp = (enum cxd2880_dvbt_coderate)(rdata[0] & 0x07);
++	info->rate_lp = (enum cxd2880_dvbt_coderate)((rdata[1] >> 5) & 0x07);
++	info->guard = (enum cxd2880_dvbt_guard)((rdata[1] >> 3) & 0x03);
++	info->mode = (enum cxd2880_dvbt_mode)((rdata[1] >> 1) & 0x03);
++	info->fnum = (rdata[2] >> 6) & 0x03;
++	info->length_indicator = rdata[2] & 0x3f;
++	info->cell_id = (rdata[3] << 8) | rdata[4];
++	info->reserved_even = rdata[5] & 0x3f;
++	info->reserved_odd = rdata[6] & 0x3f;
++
++	info->cell_id_ok = cell_id_ok & 0x01;
++
++	return ret;
++}
++
++int cxd2880_tnrdmd_dvbt_mon_packet_error_number(struct
++						cxd2880_tnrdmd
++						*tnr_dmd,
++						u32 *pen)
++{
++	u8 rdata[3];
++	int ret;
++
++	if (!tnr_dmd || !pen)
++		return -EINVAL;
++
++	if (tnr_dmd->diver_mode == CXD2880_TNRDMD_DIVERMODE_SUB)
++		return -EINVAL;
++
++	if (tnr_dmd->state != CXD2880_TNRDMD_STATE_ACTIVE)
++		return -EINVAL;
++
++	if (tnr_dmd->sys != CXD2880_DTV_SYS_DVBT)
++		return -EINVAL;
++
++	ret = tnr_dmd->io->write_reg(tnr_dmd->io,
++				     CXD2880_IO_TGT_DMD,
++				     0x00, 0x0d);
++	if (ret)
++		return ret;
++
++	ret = tnr_dmd->io->read_regs(tnr_dmd->io,
++				     CXD2880_IO_TGT_DMD,
++				     0x26, rdata, 3);
++	if (ret)
++		return ret;
++
++	if (!(rdata[0] & 0x01))
++		return -EAGAIN;
++
++	*pen = (rdata[1] << 8) | rdata[2];
++
++	return ret;
++}
++
++int cxd2880_tnrdmd_dvbt_mon_spectrum_sense(struct cxd2880_tnrdmd
++					   *tnr_dmd,
++					    enum
++					    cxd2880_tnrdmd_spectrum_sense
++					    *sense)
++{
++	u8 data = 0;
++	int ret;
++
++	if (!tnr_dmd || !sense)
++		return -EINVAL;
++
++	if (tnr_dmd->state != CXD2880_TNRDMD_STATE_ACTIVE)
++		return -EINVAL;
++
++	if (tnr_dmd->sys != CXD2880_DTV_SYS_DVBT)
++		return -EINVAL;
++
++	ret = slvt_freeze_reg(tnr_dmd);
++	if (ret)
++		return ret;
++
++	ret = is_tps_locked(tnr_dmd);
++	if (ret) {
++		slvt_unfreeze_reg(tnr_dmd);
++
++		if (tnr_dmd->diver_mode == CXD2880_TNRDMD_DIVERMODE_MAIN)
++			ret = cxd2880_tnrdmd_dvbt_mon_spectrum_sense(tnr_dmd->diver_sub,
++								     sense);
++
++		return ret;
++	}
++
++	ret = tnr_dmd->io->write_reg(tnr_dmd->io,
++				     CXD2880_IO_TGT_DMD,
++				     0x00, 0x0d);
++	if (ret) {
++		slvt_unfreeze_reg(tnr_dmd);
++		return ret;
++	}
++
++	ret = tnr_dmd->io->read_regs(tnr_dmd->io,
++				     CXD2880_IO_TGT_DMD,
++				     0x1c, &data, sizeof(data));
++	if (ret) {
++		slvt_unfreeze_reg(tnr_dmd);
++		return ret;
++	}
++
++	slvt_unfreeze_reg(tnr_dmd);
++
++	*sense =
++	    (data & 0x01) ? CXD2880_TNRDMD_SPECTRUM_INV :
++	    CXD2880_TNRDMD_SPECTRUM_NORMAL;
++
++	return ret;
++}
++
++static int dvbt_read_snr_reg(struct cxd2880_tnrdmd *tnr_dmd,
++			     u16 *reg_value)
++{
++	u8 rdata[2];
++	int ret;
++
++	if (!tnr_dmd || !reg_value)
++		return -EINVAL;
++
++	ret = slvt_freeze_reg(tnr_dmd);
++	if (ret)
++		return ret;
++
++	ret = is_tps_locked(tnr_dmd);
++	if (ret) {
++		slvt_unfreeze_reg(tnr_dmd);
++		return ret;
++	}
++
++	ret = tnr_dmd->io->write_reg(tnr_dmd->io,
++				     CXD2880_IO_TGT_DMD,
++				     0x00, 0x0d);
++	if (ret) {
++		slvt_unfreeze_reg(tnr_dmd);
++		return ret;
++	}
++
++	ret = tnr_dmd->io->read_regs(tnr_dmd->io,
++				     CXD2880_IO_TGT_DMD,
++				     0x13, rdata, 2);
++	if (ret) {
++		slvt_unfreeze_reg(tnr_dmd);
++		return ret;
++	}
++
++	slvt_unfreeze_reg(tnr_dmd);
++
++	*reg_value = (rdata[0] << 8) | rdata[1];
++
++	return ret;
++}
++
++static int dvbt_calc_snr(struct cxd2880_tnrdmd *tnr_dmd,
++			 u32 reg_value, int *snr)
++{
++	if (!tnr_dmd || !snr)
++		return -EINVAL;
++
++	if (reg_value == 0)
++		return -EAGAIN;
++
++	if (reg_value > 4996)
++		reg_value = 4996;
++
++	*snr = intlog10(reg_value) - intlog10(5350 - reg_value);
++	*snr = (*snr + 839) / 1678 + 28500;
++
++	return 0;
++}
++
++int cxd2880_tnrdmd_dvbt_mon_snr(struct cxd2880_tnrdmd *tnr_dmd,
++				int *snr)
++{
++	u16 reg_value = 0;
++	int ret;
++
++	if (!tnr_dmd || !snr)
++		return -EINVAL;
++
++	*snr = -1000 * 1000;
++
++	if (tnr_dmd->diver_mode == CXD2880_TNRDMD_DIVERMODE_SUB)
++		return -EINVAL;
++
++	if (tnr_dmd->state != CXD2880_TNRDMD_STATE_ACTIVE)
++		return -EINVAL;
++
++	if (tnr_dmd->sys != CXD2880_DTV_SYS_DVBT)
++		return -EINVAL;
++
++	if (tnr_dmd->diver_mode == CXD2880_TNRDMD_DIVERMODE_SINGLE) {
++		ret = dvbt_read_snr_reg(tnr_dmd, &reg_value);
++		if (ret)
++			return ret;
++
++		ret = dvbt_calc_snr(tnr_dmd, reg_value, snr);
++	} else {
++		int snr_main = 0;
++		int snr_sub = 0;
++
++		ret =
++		    cxd2880_tnrdmd_dvbt_mon_snr_diver(tnr_dmd, snr, &snr_main,
++						      &snr_sub);
++	}
++
++	return ret;
++}
++
++int cxd2880_tnrdmd_dvbt_mon_snr_diver(struct cxd2880_tnrdmd
++				      *tnr_dmd, int *snr,
++				      int *snr_main, int *snr_sub)
++{
++	u16 reg_value = 0;
++	u32 reg_value_sum = 0;
++	int ret;
++
++	if (!tnr_dmd || !snr || !snr_main || !snr_sub)
++		return -EINVAL;
++
++	*snr = -1000 * 1000;
++	*snr_main = -1000 * 1000;
++	*snr_sub = -1000 * 1000;
++
++	if (tnr_dmd->diver_mode != CXD2880_TNRDMD_DIVERMODE_MAIN)
++		return -EINVAL;
++
++	if (tnr_dmd->state != CXD2880_TNRDMD_STATE_ACTIVE)
++		return -EINVAL;
++
++	if (tnr_dmd->sys != CXD2880_DTV_SYS_DVBT)
++		return -EINVAL;
++
++	ret = dvbt_read_snr_reg(tnr_dmd, &reg_value);
++	if (!ret) {
++		ret = dvbt_calc_snr(tnr_dmd, reg_value, snr_main);
++		if (ret)
++			reg_value = 0;
++	} else if (ret == -EAGAIN) {
++		reg_value = 0;
++	} else {
++		return ret;
++	}
++
++	reg_value_sum += reg_value;
++
++	ret = dvbt_read_snr_reg(tnr_dmd->diver_sub, &reg_value);
++	if (!ret) {
++		ret = dvbt_calc_snr(tnr_dmd->diver_sub, reg_value, snr_sub);
++		if (ret)
++			reg_value = 0;
++	} else if (ret == -EAGAIN) {
++		reg_value = 0;
++	} else {
++		return ret;
++	}
++
++	reg_value_sum += reg_value;
++
++	return dvbt_calc_snr(tnr_dmd, reg_value_sum, snr);
++}
++
++int cxd2880_tnrdmd_dvbt_mon_sampling_offset(struct cxd2880_tnrdmd
++					    *tnr_dmd, int *ppm)
++{
++	u8 ctl_val_reg[5];
++	u8 nominal_rate_reg[5];
++	u32 trl_ctl_val = 0;
++	u32 trcg_nominal_rate = 0;
++	int num;
++	int den;
++	s8 diff_upper = 0;
++	int ret;
++
++	if (!tnr_dmd || !ppm)
++		return -EINVAL;
++
++	if (tnr_dmd->state != CXD2880_TNRDMD_STATE_ACTIVE)
++		return -EINVAL;
++
++	if (tnr_dmd->sys != CXD2880_DTV_SYS_DVBT)
++		return -EINVAL;
++
++	ret = slvt_freeze_reg(tnr_dmd);
++	if (ret)
++		return ret;
++
++	ret = is_tps_locked(tnr_dmd);
++	if (ret) {
++		slvt_unfreeze_reg(tnr_dmd);
++		return ret;
++	}
++
++	ret = tnr_dmd->io->write_reg(tnr_dmd->io,
++				     CXD2880_IO_TGT_DMD,
++				     0x00, 0x0d);
++	if (ret) {
++		slvt_unfreeze_reg(tnr_dmd);
++		return ret;
++	}
++
++	ret = tnr_dmd->io->read_regs(tnr_dmd->io,
++				     CXD2880_IO_TGT_DMD,
++				     0x21, ctl_val_reg,
++				     sizeof(ctl_val_reg));
++	if (ret) {
++		slvt_unfreeze_reg(tnr_dmd);
++		return ret;
++	}
++
++	ret = tnr_dmd->io->write_reg(tnr_dmd->io,
++				     CXD2880_IO_TGT_DMD,
++				     0x00, 0x04);
++	if (ret) {
++		slvt_unfreeze_reg(tnr_dmd);
++		return ret;
++	}
++
++	ret = tnr_dmd->io->read_regs(tnr_dmd->io,
++				     CXD2880_IO_TGT_DMD,
++				     0x60, nominal_rate_reg,
++				     sizeof(nominal_rate_reg));
++	if (ret) {
++		slvt_unfreeze_reg(tnr_dmd);
++		return ret;
++	}
++
++	slvt_unfreeze_reg(tnr_dmd);
++
++	diff_upper =
++	    (ctl_val_reg[0] & 0x7f) - (nominal_rate_reg[0] & 0x7f);
++
++	if (diff_upper < -1 || diff_upper > 1)
++		return -EAGAIN;
++
++	trl_ctl_val = ctl_val_reg[1] << 24;
++	trl_ctl_val |= ctl_val_reg[2] << 16;
++	trl_ctl_val |= ctl_val_reg[3] << 8;
++	trl_ctl_val |= ctl_val_reg[4];
++
++	trcg_nominal_rate = nominal_rate_reg[1] << 24;
++	trcg_nominal_rate |= nominal_rate_reg[2] << 16;
++	trcg_nominal_rate |= nominal_rate_reg[3] << 8;
++	trcg_nominal_rate |= nominal_rate_reg[4];
++
++	trl_ctl_val >>= 1;
++	trcg_nominal_rate >>= 1;
++
++	if (diff_upper == 1)
++		num =
++		    (int)((trl_ctl_val + 0x80000000u) -
++			  trcg_nominal_rate);
++	else if (diff_upper == -1)
++		num =
++		    -(int)((trcg_nominal_rate + 0x80000000u) -
++			   trl_ctl_val);
++	else
++		num = (int)(trl_ctl_val - trcg_nominal_rate);
++
++	den = (nominal_rate_reg[0] & 0x7f) << 24;
++	den |= nominal_rate_reg[1] << 16;
++	den |= nominal_rate_reg[2] << 8;
++	den |= nominal_rate_reg[3];
++	den = (den + (390625 / 2)) / 390625;
++
++	den >>= 1;
++
++	if (num >= 0)
++		*ppm = (num + (den / 2)) / den;
++	else
++		*ppm = (num - (den / 2)) / den;
++
++	return ret;
++}
++
++int cxd2880_tnrdmd_dvbt_mon_sampling_offset_sub(struct
++						cxd2880_tnrdmd
++						*tnr_dmd, int *ppm)
++{
++	if (!tnr_dmd || !ppm)
++		return -EINVAL;
++
++	if (tnr_dmd->diver_mode != CXD2880_TNRDMD_DIVERMODE_MAIN)
++		return -EINVAL;
++
++	return cxd2880_tnrdmd_dvbt_mon_sampling_offset(tnr_dmd->diver_sub, ppm);
++}
++
++static int dvbt_calc_ssi(struct cxd2880_tnrdmd *tnr_dmd,
++			 int rf_lvl, u8 *ssi)
++{
++	struct cxd2880_dvbt_tpsinfo tps;
++	int prel;
++	int temp_ssi = 0;
++	int ret;
++
++	if (!tnr_dmd || !ssi)
++		return -EINVAL;
++
++	ret = cxd2880_tnrdmd_dvbt_mon_tps_info(tnr_dmd, &tps);
++	if (ret)
++		return ret;
++
++	if (tps.constellation >= CXD2880_DVBT_CONSTELLATION_RESERVED_3 ||
++	    tps.rate_hp >= CXD2880_DVBT_CODERATE_RESERVED_5)
++		return -EINVAL;
++
++	prel = rf_lvl - ref_dbm_1000[tps.constellation][tps.rate_hp];
++
++	if (prel < -15000)
++		temp_ssi = 0;
++	else if (prel < 0)
++		temp_ssi = ((2 * (prel + 15000)) + 1500) / 3000;
++	else if (prel < 20000)
++		temp_ssi = (((4 * prel) + 500) / 1000) + 10;
++	else if (prel < 35000)
++		temp_ssi = (((2 * (prel - 20000)) + 1500) / 3000) + 90;
++	else
++		temp_ssi = 100;
++
++	*ssi = (temp_ssi > 100) ? 100 : (u8)temp_ssi;
++
++	return ret;
++}
++
++int cxd2880_tnrdmd_dvbt_mon_ssi(struct cxd2880_tnrdmd *tnr_dmd,
++				u8 *ssi)
++{
++	int rf_lvl = 0;
++	int ret;
++
++	if (!tnr_dmd || !ssi)
++		return -EINVAL;
++
++	if (tnr_dmd->diver_mode == CXD2880_TNRDMD_DIVERMODE_SUB)
++		return -EINVAL;
++
++	if (tnr_dmd->state != CXD2880_TNRDMD_STATE_ACTIVE)
++		return -EINVAL;
++
++	if (tnr_dmd->sys != CXD2880_DTV_SYS_DVBT)
++		return -EINVAL;
++
++	ret = cxd2880_tnrdmd_mon_rf_lvl(tnr_dmd, &rf_lvl);
++	if (ret)
++		return ret;
++
++	return dvbt_calc_ssi(tnr_dmd, rf_lvl, ssi);
++}
++
++int cxd2880_tnrdmd_dvbt_mon_ssi_sub(struct cxd2880_tnrdmd *tnr_dmd,
++				    u8 *ssi)
++{
++	int rf_lvl = 0;
++	int ret;
++
++	if (!tnr_dmd || !ssi)
++		return -EINVAL;
++
++	if (tnr_dmd->diver_mode != CXD2880_TNRDMD_DIVERMODE_MAIN)
++		return -EINVAL;
++
++	if (tnr_dmd->state != CXD2880_TNRDMD_STATE_ACTIVE)
++		return -EINVAL;
++
++	if (tnr_dmd->sys != CXD2880_DTV_SYS_DVBT)
++		return -EINVAL;
++
++	ret = cxd2880_tnrdmd_mon_rf_lvl(tnr_dmd->diver_sub, &rf_lvl);
++	if (ret)
++		return ret;
++
++	return dvbt_calc_ssi(tnr_dmd, rf_lvl, ssi);
++}
++
++static int is_tps_locked(struct cxd2880_tnrdmd *tnr_dmd)
++{
++	u8 sync = 0;
++	u8 tslock = 0;
++	u8 early_unlock = 0;
++	int ret;
++
++	if (!tnr_dmd)
++		return -EINVAL;
++
++	ret =
++	    cxd2880_tnrdmd_dvbt_mon_sync_stat(tnr_dmd, &sync, &tslock,
++					      &early_unlock);
++	if (ret)
++		return ret;
++
++	if (sync != 6)
++		return -EAGAIN;
++
++	return 0;
++}
+diff --git a/drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt_mon.h b/drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt_mon.h
+new file mode 100644
+index 000000000000..f4c31725fa48
+--- /dev/null
++++ b/drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt_mon.h
+@@ -0,0 +1,77 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++/*
++ * cxd2880_tnrdmd_dvbt_mon.h
++ * Sony CXD2880 DVB-T2/T tuner + demodulator driver
++ * DVB-T monitor interface
++ *
++ * Copyright (C) 2016, 2017, 2018 Sony Semiconductor Solutions Corporation
++ */
++
++#ifndef CXD2880_TNRDMD_DVBT_MON_H
++#define CXD2880_TNRDMD_DVBT_MON_H
++
++#include "cxd2880_tnrdmd.h"
++#include "cxd2880_dvbt.h"
++
++int cxd2880_tnrdmd_dvbt_mon_sync_stat(struct cxd2880_tnrdmd
++				      *tnr_dmd, u8 *sync_stat,
++				      u8 *ts_lock_stat,
++				      u8 *unlock_detected);
++
++int cxd2880_tnrdmd_dvbt_mon_sync_stat_sub(struct cxd2880_tnrdmd
++					  *tnr_dmd, u8 *sync_stat,
++					  u8 *unlock_detected);
++
++int cxd2880_tnrdmd_dvbt_mon_mode_guard(struct cxd2880_tnrdmd
++				       *tnr_dmd,
++				       enum cxd2880_dvbt_mode
++				       *mode,
++				       enum cxd2880_dvbt_guard
++				       *guard);
++
++int cxd2880_tnrdmd_dvbt_mon_carrier_offset(struct cxd2880_tnrdmd
++					   *tnr_dmd, int *offset);
++
++int cxd2880_tnrdmd_dvbt_mon_carrier_offset_sub(struct
++					       cxd2880_tnrdmd
++					       *tnr_dmd,
++					       int *offset);
++
++int cxd2880_tnrdmd_dvbt_mon_tps_info(struct cxd2880_tnrdmd
++				     *tnr_dmd,
++				     struct cxd2880_dvbt_tpsinfo
++				     *info);
++
++int cxd2880_tnrdmd_dvbt_mon_packet_error_number(struct
++						cxd2880_tnrdmd
++						*tnr_dmd,
++						u32 *pen);
++
++int cxd2880_tnrdmd_dvbt_mon_spectrum_sense(struct cxd2880_tnrdmd
++					   *tnr_dmd,
++					   enum
++					   cxd2880_tnrdmd_spectrum_sense
++					   *sense);
++
++int cxd2880_tnrdmd_dvbt_mon_snr(struct cxd2880_tnrdmd *tnr_dmd,
++				int *snr);
++
++int cxd2880_tnrdmd_dvbt_mon_snr_diver(struct cxd2880_tnrdmd
++				      *tnr_dmd, int *snr,
++				      int *snr_main, int *snr_sub);
++
++int cxd2880_tnrdmd_dvbt_mon_sampling_offset(struct cxd2880_tnrdmd
++					    *tnr_dmd, int *ppm);
++
++int cxd2880_tnrdmd_dvbt_mon_sampling_offset_sub(struct
++						cxd2880_tnrdmd
++						*tnr_dmd,
++						int *ppm);
++
++int cxd2880_tnrdmd_dvbt_mon_ssi(struct cxd2880_tnrdmd *tnr_dmd,
++				u8 *ssi);
++
++int cxd2880_tnrdmd_dvbt_mon_ssi_sub(struct cxd2880_tnrdmd *tnr_dmd,
++				    u8 *ssi);
++
++#endif
 -- 
-2.7.4
+2.15.1
