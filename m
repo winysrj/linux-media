@@ -1,68 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bin-mail-out-05.binero.net ([195.74.38.228]:11035 "EHLO
-        bin-vsp-out-03.atm.binero.net" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751826AbeAYNJE (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 25 Jan 2018 08:09:04 -0500
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH v2] v4l2-dev.h: fix symbol collision in media_entity_to_video_device()
-Date: Thu, 25 Jan 2018 14:08:52 +0100
-Message-Id: <20180125130852.4779-1-niklas.soderlund+renesas@ragnatech.se>
+Received: from mail.kernel.org ([198.145.29.99]:39394 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753272AbeARAI7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 17 Jan 2018 19:08:59 -0500
+Date: Wed, 17 Jan 2018 18:08:56 -0600
+From: Bjorn Helgaas <helgaas@kernel.org>
+To: Christoph Hellwig <hch@lst.de>
+Cc: Bjorn Helgaas <bhelgaas@google.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Kong Lai <kong.lai@tundra.com>, linux-pci@vger.kernel.org,
+        linux-media@vger.kernel.org, netdev@vger.kernel.org,
+        linux-kernel@vger.kernel.org,
+        "David S. Miller" <davem@davemloft.net>
+Subject: Re: remove pci_dma_* abuses and workarounds V2
+Message-ID: <20180118000856.GE53542@bhelgaas-glaptop.roam.corp.google.com>
+References: <20180110180322.30186-1-hch@lst.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20180110180322.30186-1-hch@lst.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-A recent change to the media_entity_to_video_device() macro breaks some
-use-cases for the macro due to a symbol collision. Before the change
-this worked:
+[+cc David]
 
-    vdev = media_entity_to_video_device(link->sink->entity);
+On Wed, Jan 10, 2018 at 07:03:18PM +0100, Christoph Hellwig wrote:
+> Back before the dawn of time pci_dma_* with a NULL pci_dev argument
+> was used for all kinds of things, e.g. dma mapping for non-PCI
+> devices.  All this has been long removed, but it turns out we
+> still care for a NULL pci_dev in the wrappers, and we still have
+> two odd USB drivers that use pci_dma_alloc_consistent for allocating
+> memory while ignoring the dma_addr_t entirely, and a network driver
+> mixing the already wrong usage of dma_* with a NULL device with a
+> single call to pci_free_consistent.
+> 
+> This series switches the two usb drivers to use plain kzalloc, the
+> net driver to properly use the dma API and then removes the handling
+> of the NULL pci_dev in the pci_dma_* wrappers.
+> 
+> Changes since V1:
+>  - remove allocation failure printks
+>  - use kcalloc
+>  - fix tsi108_eth
+>  - improve changelogs
 
-While after the change it results in a compiler error "error: 'struct
-video_device' has no member named 'link'; did you mean 'lock'?". While
-the following still works after the change.
-
-    struct media_entity *entity = link->sink->entity;
-    vdev = media_entity_to_video_device(entity);
-
-Fix the collision by renaming the macro argument to '__entity'.
-
-Fixes: 69b925c5fc36d8f1 ("media: v4l2-dev.h: add kernel-doc to two macros")
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
----
- include/media/v4l2-dev.h | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
-
-* Changes from v1
-- Change argument name to '__entity' as suggested by Geert, Sakari and 
-  Mauro.
-- Added fixes tag.
-
-diff --git a/include/media/v4l2-dev.h b/include/media/v4l2-dev.h
-index 267fd2bed17bd3c1..322b8a9abb8dc45a 100644
---- a/include/media/v4l2-dev.h
-+++ b/include/media/v4l2-dev.h
-@@ -298,10 +298,10 @@ struct video_device
-  * media_entity_to_video_device - Returns a &struct video_device from
-  *	the &struct media_entity embedded on it.
-  *
-- * @entity: pointer to &struct media_entity
-+ * @__entity: pointer to &struct media_entity
-  */
--#define media_entity_to_video_device(entity) \
--	container_of(entity, struct video_device, entity)
-+#define media_entity_to_video_device(__entity) \
-+	container_of(__entity, struct video_device, entity)
- 
- /**
-  * to_video_device - Returns a &struct video_device from the
--- 
-2.15.1
+Applied to pci/dma for v4.16, thanks!
