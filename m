@@ -1,87 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f195.google.com ([209.85.216.195]:39852 "EHLO
-        mail-qt0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752969AbeALJBT (ORCPT
+Received: from mout.kundenserver.de ([217.72.192.75]:58462 "EHLO
+        mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932402AbeARNSk (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 12 Jan 2018 04:01:19 -0500
-MIME-Version: 1.0
-In-Reply-To: <4595365.GB5AfDQQ8V@avalon>
-References: <1515515131-13760-1-git-send-email-jacopo+renesas@jmondi.org>
- <1515515131-13760-4-git-send-email-jacopo+renesas@jmondi.org> <4595365.GB5AfDQQ8V@avalon>
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Date: Fri, 12 Jan 2018 10:01:18 +0100
-Message-ID: <CAMuHMdVCa=mXBLjUpqUgg90=Yqj0_r0cmB5UsOYJvdxw3HSsmw@mail.gmail.com>
-Subject: Re: [PATCH v4 3/9] v4l: platform: Add Renesas CEU driver
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        Magnus Damm <magnus.damm@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Fabio Estevam <festevam@gmail.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Linux-Renesas <linux-renesas-soc@vger.kernel.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux-sh list <linux-sh@vger.kernel.org>,
-        devicetree@vger.kernel.org,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+        Thu, 18 Jan 2018 08:18:40 -0500
+From: Arnd Bergmann <arnd@arndb.de>
+To: Wenyou Yang <wenyou.yang@microchip.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Songjun Wu <songjun.wu@microchip.com>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] media: i2c: ov7740: use gpio/consumer.h instead of gpio.h
+Date: Thu, 18 Jan 2018 14:18:12 +0100
+Message-Id: <20180118131828.944700-1-arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+When built on a platform without gpiolib support, we run into
+a couple of compile errors in ov7740, including:
 
-On Fri, Jan 12, 2018 at 12:12 AM, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
-> On Tuesday, 9 January 2018 18:25:25 EET Jacopo Mondi wrote:
->> Add driver for Renesas Capture Engine Unit (CEU).
->>
->> The CEU interface supports capturing 'data' (YUV422) and 'images'
->> (NV[12|21|16|61]).
->>
->> This driver aims to replace the soc_camera-based sh_mobile_ceu one.
->>
->> Tested with ov7670 camera sensor, providing YUYV_2X8 data on Renesas RZ
->> platform GR-Peach.
->>
->> Tested with ov7725 camera sensor on SH4 platform Migo-R.
->>
->> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
->> ---
->>  drivers/media/platform/Kconfig       |    9 +
->>  drivers/media/platform/Makefile      |    1 +
->>  drivers/media/platform/renesas-ceu.c | 1648
->> ++++++++++++++++++++++++++++++++++ 3 files changed, 1658 insertions(+)
->>  create mode 100644 drivers/media/platform/renesas-ceu.c
->
-> [snip]
->
->> diff --git a/drivers/media/platform/renesas-ceu.c
->> b/drivers/media/platform/renesas-ceu.c new file mode 100644
->> index 0000000..d261704
->> --- /dev/null
->> +++ b/drivers/media/platform/renesas-ceu.c
->> @@ -0,0 +1,1648 @@
->> +// SPDX-License-Identifier: GPL-2.0
->
-> It was recently brought to my attention that SPDX headers should use either
-> GPL-2.0-only or GPL-2.0-or-later, no the ambiguous GPL-2.0. Could you please
-> update all patches in this series ?
+drivers/media/i2c/ov7740.c: In function 'ov7740_set_power':
+drivers/media/i2c/ov7740.c:307:4: error: implicit declaration of function 'gpiod_direction_output'; did you mean 'gpio_direction_output'? [-Werror=implicit-function-declaration]
+    gpiod_direction_output(ov7740->pwdn_gpio, 0);
+drivers/media/i2c/ov7740.c:914:4: error: 'GPIOD_OUT_HIGH' undeclared (first use in this function); did you mean 'GPIOF_INIT_HIGH'?
 
-IMHO it's a bit premature to do that.
-As long as Documentation/process/license-rules.rst isn't updated, I wouldn't
-follow this change.
+Changing it to use the correct header file solves the problem.
 
-See also https://www.spinics.net/lists/linux-xfs/msg14536.html
+Fixes: 39c5c4471b8d ("media: i2c: Add the ov7740 image sensor driver")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+---
+ drivers/media/i2c/ov7740.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Gr{oetje,eeting}s,
-
-                        Geert
-
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+diff --git a/drivers/media/i2c/ov7740.c b/drivers/media/i2c/ov7740.c
+index 0308ba437bbb..0db107196d7a 100644
+--- a/drivers/media/i2c/ov7740.c
++++ b/drivers/media/i2c/ov7740.c
+@@ -3,7 +3,7 @@
+ 
+ #include <linux/clk.h>
+ #include <linux/delay.h>
+-#include <linux/gpio.h>
++#include <linux/gpio/consumer.h>
+ #include <linux/i2c.h>
+ #include <linux/module.h>
+ #include <linux/pm_runtime.h>
+-- 
+2.9.0
