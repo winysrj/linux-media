@@ -1,137 +1,184 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:42411 "EHLO
-        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751630AbeAJNqf (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 10 Jan 2018 08:46:35 -0500
-Received: by mail-wm0-f68.google.com with SMTP id b141so27092704wme.1
-        for <linux-media@vger.kernel.org>; Wed, 10 Jan 2018 05:46:34 -0800 (PST)
-Reply-To: christian.koenig@amd.com
-Subject: Re: [Linaro-mm-sig] [PATCH] dma-buf: make returning the exclusive
- fence optional
-To: Daniel Vetter <daniel@ffwll.ch>
-Cc: sumit.semwal@linaro.org, gustavo@padovan.org,
-        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        linaro-mm-sig@lists.linaro.org
-References: <20180110125341.3618-1-christian.koenig@amd.com>
- <20180110132127.GT13066@phenom.ffwll.local>
-From: =?UTF-8?Q?Christian_K=c3=b6nig?= <ckoenig.leichtzumerken@gmail.com>
-Message-ID: <7ec935dd-aa35-6793-de5e-67a0de790c90@gmail.com>
-Date: Wed, 10 Jan 2018 14:46:32 +0100
+Received: from mail-cys01nam02on0138.outbound.protection.outlook.com ([104.47.37.138]:62435
+        "EHLO NAM02-CY1-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1754996AbeARI4l (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 18 Jan 2018 03:56:41 -0500
+From: <Yasunari.Takiguchi@sony.com>
+To: <akpm@linux-foundation.org>, <linux-kernel@vger.kernel.org>,
+        <devicetree@vger.kernel.org>, <linux-media@vger.kernel.org>
+CC: <tbird20d@gmail.com>, <frowand.list@gmail.com>,
+        <Yasunari.Takiguchi@sony.com>, <Masayuki.Yamamoto@sony.com>,
+        <Hideki.Nozawa@sony.com>, <Kota.Yonezawa@sony.com>,
+        <Toshihiko.Matsumoto@sony.com>, <Satoshi.C.Watanabe@sony.com>
+Subject: [PATCH v5 12/12] [media] cxd2880: Add all Makefile, Kconfig files and Update MAINTAINERS file for the driver
+Date: Thu, 18 Jan 2018 17:59:42 +0900
+Message-ID: <20180118085942.21969-1-Yasunari.Takiguchi@sony.com>
+In-Reply-To: <20180118084016.20689-1-Yasunari.Takiguchi@sony.com>
+References: <20180118084016.20689-1-Yasunari.Takiguchi@sony.com>
 MIME-Version: 1.0
-In-Reply-To: <20180110132127.GT13066@phenom.ffwll.local>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
-Content-Language: en-US
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 10.01.2018 um 14:21 schrieb Daniel Vetter:
-> On Wed, Jan 10, 2018 at 01:53:41PM +0100, Christian König wrote:
->> Change reservation_object_get_fences_rcu to make the exclusive fence
->> pointer optional.
->>
->> If not specified the exclusive fence is put into the fence array as
->> well.
->>
->> This is helpful for a couple of cases where we need all fences in a
->> single array.
->>
->> Signed-off-by: Christian König <christian.koenig@amd.com>
-> Seeing the use-case for this would be a lot more interesting ...
+From: Yasunari Takiguchi <Yasunari.Takiguchi@sony.com>
 
-Yeah, sorry the use case is a 20 patches set on amd-gfx.
+This is the Makefile, Kconfig files of driver 
+and MAINTAINERS file update about the driver 
+for the Sony CXD2880 DVB-T2/T tuner + demodulator.
 
-Didn't wanted to post all those here as well.
+Signed-off-by: Yasunari Takiguchi <Yasunari.Takiguchi@sony.com>
+Signed-off-by: Masayuki Yamamoto <Masayuki.Yamamoto@sony.com>
+Signed-off-by: Hideki Nozawa <Hideki.Nozawa@sony.com>
+Signed-off-by: Kota Yonezawa <Kota.Yonezawa@sony.com>
+Signed-off-by: Toshihiko Matsumoto <Toshihiko.Matsumoto@sony.com>
+Signed-off-by: Satoshi Watanabe <Satoshi.C.Watanabe@sony.com>
+---
 
-Christian.
+[Change list]
+Changes in V5
+   drivers/media/dvb-frontends/cxd2880/Makefile
+       -Using SPDX-License-Identifier
+       -removed cxd2880_stopwatch_port.o
+   drivers/media/dvb-frontends/cxd2880/Kconfig
+       -Using SPDX-License-Identifier
 
-> -Daniel
->
->> ---
->>   drivers/dma-buf/reservation.c | 31 ++++++++++++++++++++++---------
->>   1 file changed, 22 insertions(+), 9 deletions(-)
->>
->> diff --git a/drivers/dma-buf/reservation.c b/drivers/dma-buf/reservation.c
->> index b759a569b7b8..461afa9febd4 100644
->> --- a/drivers/dma-buf/reservation.c
->> +++ b/drivers/dma-buf/reservation.c
->> @@ -374,8 +374,9 @@ EXPORT_SYMBOL(reservation_object_copy_fences);
->>    * @pshared: the array of shared fence ptrs returned (array is krealloc'd to
->>    * the required size, and must be freed by caller)
->>    *
->> - * RETURNS
->> - * Zero or -errno
->> + * Retrieve all fences from the reservation object. If the pointer for the
->> + * exclusive fence is not specified the fence is put into the array of the
->> + * shared fences as well. Returns either zero or -ENOMEM.
->>    */
->>   int reservation_object_get_fences_rcu(struct reservation_object *obj,
->>   				      struct dma_fence **pfence_excl,
->> @@ -389,8 +390,8 @@ int reservation_object_get_fences_rcu(struct reservation_object *obj,
->>   
->>   	do {
->>   		struct reservation_object_list *fobj;
->> -		unsigned seq;
->> -		unsigned int i;
->> +		unsigned int i, seq;
->> +		size_t sz = 0;
->>   
->>   		shared_count = i = 0;
->>   
->> @@ -402,9 +403,14 @@ int reservation_object_get_fences_rcu(struct reservation_object *obj,
->>   			goto unlock;
->>   
->>   		fobj = rcu_dereference(obj->fence);
->> -		if (fobj) {
->> +		if (fobj)
->> +			sz += sizeof(*shared) * fobj->shared_max;
->> +
->> +		if (!pfence_excl && fence_excl)
->> +			sz += sizeof(*shared);
->> +
->> +		if (sz) {
->>   			struct dma_fence **nshared;
->> -			size_t sz = sizeof(*shared) * fobj->shared_max;
->>   
->>   			nshared = krealloc(shared, sz,
->>   					   GFP_NOWAIT | __GFP_NOWARN);
->> @@ -420,13 +426,19 @@ int reservation_object_get_fences_rcu(struct reservation_object *obj,
->>   				break;
->>   			}
->>   			shared = nshared;
->> -			shared_count = fobj->shared_count;
->> -
->> +			shared_count = fobj ? fobj->shared_count : 0;
->>   			for (i = 0; i < shared_count; ++i) {
->>   				shared[i] = rcu_dereference(fobj->shared[i]);
->>   				if (!dma_fence_get_rcu(shared[i]))
->>   					break;
->>   			}
->> +
->> +			if (!pfence_excl && fence_excl) {
->> +				shared[i] = fence_excl;
->> +				fence_excl = NULL;
->> +				++i;
->> +				++shared_count;
->> +			}
->>   		}
->>   
->>   		if (i != shared_count || read_seqcount_retry(&obj->seq, seq)) {
->> @@ -448,7 +460,8 @@ int reservation_object_get_fences_rcu(struct reservation_object *obj,
->>   
->>   	*pshared_count = shared_count;
->>   	*pshared = shared;
->> -	*pfence_excl = fence_excl;
->> +	if (pfence_excl)
->> +		*pfence_excl = fence_excl;
->>   
->>   	return ret;
->>   }
->> -- 
->> 2.14.1
->>
->> _______________________________________________
->> Linaro-mm-sig mailing list
->> Linaro-mm-sig@lists.linaro.org
->> https://lists.linaro.org/mailman/listinfo/linaro-mm-sig
+Changes in V4
+   We put [PATCH v3 12/14], [PATCH v3 13/14] and [PATCH v3 14/14]
+   in [PATCH v4 12/12].
+   
+   drivers/media/dvb-frontends/cxd2880/Makefile
+      -removed cxd2880_integ_dvbt2.o and cxd2880_integ_dvbt.o 
+
+Changes in V3
+   drivers/media/dvb-frontends/cxd2880/Makefile
+      -removed cxd2880_math.o 
+
+ MAINTAINERS                                  |  9 +++++++++
+ drivers/media/dvb-frontends/Kconfig          |  2 ++
+ drivers/media/dvb-frontends/Makefile         |  1 +
+ drivers/media/dvb-frontends/cxd2880/Kconfig  |  8 ++++++++
+ drivers/media/dvb-frontends/cxd2880/Makefile | 19 +++++++++++++++++++
+ drivers/media/spi/Kconfig                    | 14 ++++++++++++++
+ drivers/media/spi/Makefile                   |  5 +++++
+ 7 files changed, 58 insertions(+)
+ create mode 100644 drivers/media/dvb-frontends/cxd2880/Kconfig
+ create mode 100644 drivers/media/dvb-frontends/cxd2880/Makefile
+
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 18994806e441..fcdbd7874ffb 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -8549,6 +8549,15 @@ T:	git git://linuxtv.org/media_tree.git
+ S:	Supported
+ F:	drivers/media/dvb-frontends/cxd2841er*
+ 
++MEDIA DRIVERS FOR CXD2880
++M:	Yasunari Takiguchi <Yasunari.Takiguchi@sony.com>
++L:	linux-media@vger.kernel.org
++W:	http://linuxtv.org/
++T:	git git://linuxtv.org/media_tree.git
++S:	Supported
++F:	drivers/media/dvb-frontends/cxd2880/*
++F:	drivers/media/spi/cxd2880*
++
+ MEDIA DRIVERS FOR DIGITAL DEVICES PCIE DEVICES
+ M:	Daniel Scheller <d.scheller.oss@gmail.com>
+ L:	linux-media@vger.kernel.org
+diff --git a/drivers/media/dvb-frontends/Kconfig b/drivers/media/dvb-frontends/Kconfig
+index d17722eb4456..7fb626c00a39 100644
+--- a/drivers/media/dvb-frontends/Kconfig
++++ b/drivers/media/dvb-frontends/Kconfig
+@@ -546,6 +546,8 @@ config DVB_GP8PSK_FE
+ 	depends on DVB_CORE
+ 	default DVB_USB_GP8PSK
+ 
++source "drivers/media/dvb-frontends/cxd2880/Kconfig"
++
+ comment "DVB-C (cable) frontends"
+ 	depends on DVB_CORE
+ 
+diff --git a/drivers/media/dvb-frontends/Makefile b/drivers/media/dvb-frontends/Makefile
+index d025eb373842..7c7aca05678a 100644
+--- a/drivers/media/dvb-frontends/Makefile
++++ b/drivers/media/dvb-frontends/Makefile
+@@ -130,3 +130,4 @@ obj-$(CONFIG_DVB_HORUS3A) += horus3a.o
+ obj-$(CONFIG_DVB_ASCOT2E) += ascot2e.o
+ obj-$(CONFIG_DVB_HELENE) += helene.o
+ obj-$(CONFIG_DVB_ZD1301_DEMOD) += zd1301_demod.o
++obj-$(CONFIG_DVB_CXD2880) += cxd2880/
+diff --git a/drivers/media/dvb-frontends/cxd2880/Kconfig b/drivers/media/dvb-frontends/cxd2880/Kconfig
+new file mode 100644
+index 000000000000..9d989676e800
+--- /dev/null
++++ b/drivers/media/dvb-frontends/cxd2880/Kconfig
+@@ -0,0 +1,8 @@
++# SPDX-License-Identifier: GPL-2.0
++
++config DVB_CXD2880
++	tristate "Sony CXD2880 DVB-T2/T tuner + demodulator"
++	depends on DVB_CORE && SPI
++	default m if !MEDIA_SUBDRV_AUTOSELECT
++	help
++	  Say Y when you want to support this frontend.
+\ No newline at end of file
+diff --git a/drivers/media/dvb-frontends/cxd2880/Makefile b/drivers/media/dvb-frontends/cxd2880/Makefile
+new file mode 100644
+index 000000000000..65a5d37f28cc
+--- /dev/null
++++ b/drivers/media/dvb-frontends/cxd2880/Makefile
+@@ -0,0 +1,19 @@
++# SPDX-License-Identifier: GPL-2.0
++
++cxd2880-objs := cxd2880_common.o \
++		cxd2880_devio_spi.o \
++		cxd2880_integ.o \
++		cxd2880_io.o \
++		cxd2880_spi_device.o \
++		cxd2880_tnrdmd.o \
++		cxd2880_tnrdmd_dvbt2.o \
++		cxd2880_tnrdmd_dvbt2_mon.o \
++		cxd2880_tnrdmd_dvbt.o \
++		cxd2880_tnrdmd_dvbt_mon.o\
++		cxd2880_tnrdmd_mon.o\
++		cxd2880_top.o
++
++obj-$(CONFIG_DVB_CXD2880) += cxd2880.o
++
++ccflags-y += -Idrivers/media/dvb-core
++ccflags-y += -Idrivers/media/dvb-frontends
+diff --git a/drivers/media/spi/Kconfig b/drivers/media/spi/Kconfig
+index a21f5a39a440..b07ac86fc53c 100644
+--- a/drivers/media/spi/Kconfig
++++ b/drivers/media/spi/Kconfig
+@@ -12,3 +12,17 @@ config VIDEO_GS1662
+ endmenu
+ 
+ endif
++
++if SPI
++menu "Media SPI Adapters"
++
++config CXD2880_SPI_DRV
++	tristate "Sony CXD2880 SPI support"
++	depends on DVB_CORE && SPI
++	default m if !MEDIA_SUBDRV_AUTOSELECT
++	help
++	  Choose if you would like to have SPI interface support for Sony CXD2880.
++
++endmenu
++
++endif
+diff --git a/drivers/media/spi/Makefile b/drivers/media/spi/Makefile
+index ea64013d16cc..9e536777a330 100644
+--- a/drivers/media/spi/Makefile
++++ b/drivers/media/spi/Makefile
+@@ -1 +1,6 @@
+ obj-$(CONFIG_VIDEO_GS1662) += gs1662.o
++obj-$(CONFIG_CXD2880_SPI_DRV) += cxd2880-spi.o
++
++ccflags-y += -Idrivers/media/dvb-core
++ccflags-y += -Idrivers/media/dvb-frontends
++ccflags-y += -Idrivers/media/dvb-frontends/cxd2880
+-- 
+2.15.1
