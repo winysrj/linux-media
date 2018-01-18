@@ -1,58 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:43484 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751505AbeA2VBU (ORCPT
+Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:54582 "EHLO
+        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S932601AbeARPNP (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 29 Jan 2018 16:01:20 -0500
-Date: Mon, 29 Jan 2018 23:01:18 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Daniel Mentz <danielmentz@google.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH 11/12] v4l2-compat-ioctl32.c: don't copy back the result
- for certain errors
-Message-ID: <20180129210118.icliqckuldp3jfwx@valkosipuli.retiisi.org.uk>
-References: <20180126124327.16653-1-hverkuil@xs4all.nl>
- <20180126124327.16653-12-hverkuil@xs4all.nl>
- <20180129095608.d3opjq5zkp72u43e@valkosipuli.retiisi.org.uk>
- <460b8543-8f5b-e5e6-9f4b-578b38695d60@xs4all.nl>
+        Thu, 18 Jan 2018 10:13:15 -0500
+Subject: Re: [RFC PATCH] v4l2-event/dev: wakeup pending events when
+ unregistering
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Michael Walz <m.walz@digitalendoscopy.de>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <83e3318b-3f6e-7f27-6585-b5b69ddd9f65@xs4all.nl>
+Message-ID: <8ea3ba15-102a-4d61-f7fb-e6ccd527a32d@xs4all.nl>
+Date: Thu, 18 Jan 2018 16:13:10 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <460b8543-8f5b-e5e6-9f4b-578b38695d60@xs4all.nl>
+In-Reply-To: <83e3318b-3f6e-7f27-6585-b5b69ddd9f65@xs4all.nl>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jan 29, 2018 at 11:02:56AM +0100, Hans Verkuil wrote:
-> On 01/29/2018 10:56 AM, Sakari Ailus wrote:
-> > Hi Hans,
-> > 
-> > On Fri, Jan 26, 2018 at 01:43:26PM +0100, Hans Verkuil wrote:
-> >> From: Hans Verkuil <hans.verkuil@cisco.com>
-> >>
-> >> Some ioctls need to copy back the result even if the ioctl returned
-> >> an error. However, don't do this for the error codes -ENOTTY, -EFAULT
-> >> and -ENOIOCTLCMD. It makes no sense in those cases.
-> >>
-> >> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> > 
-> > Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-> > 
-> > Shouldn't such a change be made to video_usercopy() as well? Doesn't need
-> > to be in this set though.
-> 
-> Good point. I'll add that for v2. This is not actually a bug as such, but
-> it's just weird to copy back results if the ioctl wasn't implemented at all.
-> 
-> I realize that I need to drop the -EFAULT check: if you call VIDIOC_G_EXT_CTRLS
-> with an incorrect userspace buffer for the payload, then the control framework
-> will set error_idx to the index of the control with the wrong buffer. So you do
-> need to copy back the data in case of -EFAULT.
-> 
-> I can also drop -ENOIOCTLCMD since video_usercopy() converts that to -ENOTTY.
+Hi Michael,
 
-Agreed.
+Only apply the change to v4l2_dev.c, ignore the changes to v4l2_event.
+I think it is sufficient to just apply that bit.
 
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+Regards,
+
+	Hans
+
+On 01/18/18 12:21, Hans Verkuil wrote:
+> When the video device is unregistered any filehandles waiting on
+> an event (i.e. in VIDIOC_DQEVENT) will never wake up.
+> 
+> Wake them up and detect that the video device is unregistered in
+> __v4l2_event_dequeue() and return -ENODEV in that case.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+> Note: this is a quick hack, just for events. We have the same problem
+> with vb2 (waiting for a buffer) and cec (waiting for an event). Not sure if rc
+> or dvb are also suffering from the same problem.
+> 
+> I wonder if there is an easier way to wake up all fhs that are waiting for
+> some event.
+> 
+> Michael: most applications use non-blocking mode and poll/select to wait
+> for something to happen. In such applications the poll/select will return
+> when the device is unregistered and this problem does not occur.
+> ---
+> diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
+> index d5e0e536ef04..42574ccbd770 100644
+> --- a/drivers/media/v4l2-core/v4l2-dev.c
+> +++ b/drivers/media/v4l2-core/v4l2-dev.c
+> @@ -1017,6 +1017,9 @@ EXPORT_SYMBOL(__video_register_device);
+>   */
+>  void video_unregister_device(struct video_device *vdev)
+>  {
+> +	unsigned long flags;
+> +	struct v4l2_fh *fh;
+> +
+>  	/* Check if vdev was ever registered at all */
+>  	if (!vdev || !video_is_registered(vdev))
+>  		return;
+> @@ -1027,6 +1030,12 @@ void video_unregister_device(struct video_device *vdev)
+>  	 */
+>  	clear_bit(V4L2_FL_REGISTERED, &vdev->flags);
+>  	mutex_unlock(&videodev_lock);
+> +
+> +	spin_lock_irqsave(&vdev->fh_lock, flags);
+> +	list_for_each_entry(fh, &vdev->fh_list, list)
+> +		wake_up_all(&fh->wait);
+> +	spin_unlock_irqrestore(&vdev->fh_lock, flags);
+> +
+>  	device_unregister(&vdev->dev);
+>  }
+>  EXPORT_SYMBOL(video_unregister_device);
+> diff --git a/drivers/media/v4l2-core/v4l2-event.c b/drivers/media/v4l2-core/v4l2-event.c
+> index 968c2eb08b5a..d04977cd1bfb 100644
+> --- a/drivers/media/v4l2-core/v4l2-event.c
+> +++ b/drivers/media/v4l2-core/v4l2-event.c
+> @@ -36,12 +36,17 @@ static int __v4l2_event_dequeue(struct v4l2_fh *fh, struct v4l2_event *event)
+>  {
+>  	struct v4l2_kevent *kev;
+>  	unsigned long flags;
+> +	int ret = 0;
+> 
+>  	spin_lock_irqsave(&fh->vdev->fh_lock, flags);
+> 
+> +	if (!video_is_registered(fh->vdev)) {
+> +		ret = -ENODEV;
+> +		goto err;
+> +	}
+>  	if (list_empty(&fh->available)) {
+> -		spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
+> -		return -ENOENT;
+> +		ret = -ENOENT;
+> +		goto err;
+>  	}
+> 
+>  	WARN_ON(fh->navailable == 0);
+> @@ -54,10 +59,10 @@ static int __v4l2_event_dequeue(struct v4l2_fh *fh, struct v4l2_event *event)
+>  	*event = kev->event;
+>  	kev->sev->first = sev_pos(kev->sev, 1);
+>  	kev->sev->in_use--;
+> -
+> +err:
+>  	spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
+> 
+> -	return 0;
+> +	return ret;
+>  }
+> 
+>  int v4l2_event_dequeue(struct v4l2_fh *fh, struct v4l2_event *event,
+> 
