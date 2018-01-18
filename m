@@ -1,94 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f195.google.com ([209.85.216.195]:44242 "EHLO
-        mail-qt0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S965312AbeAMAPO (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:40724 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S932191AbeARWbC (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 12 Jan 2018 19:15:14 -0500
+        Thu, 18 Jan 2018 17:31:02 -0500
+Date: Fri, 19 Jan 2018 00:30:59 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Shunqian Zheng <zhengsq@rock-chips.com>
+Cc: jacopo mondi <jacopo@jmondi.org>, mchehab@kernel.org,
+        robh+dt@kernel.org, mark.rutland@arm.com,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        ddl@rock-chips.com, tfiga@chromium.org
+Subject: Re: [PATCH v5 1/4] dt-bindings: media: Add bindings for OV5695
+Message-ID: <20180118223059.hzqlhs56cpfvff3w@valkosipuli.retiisi.org.uk>
+References: <1515549967-5302-1-git-send-email-zhengsq@rock-chips.com>
+ <1515549967-5302-2-git-send-email-zhengsq@rock-chips.com>
+ <20180110092010.GC6834@w540>
+ <807c4307-0617-788e-7129-039b33ce99d5@rock-chips.com>
 MIME-Version: 1.0
-In-Reply-To: <CA+55aFzNQ8CZ8iNcPXrCfyk=1edMiRGDA0fY0rd87BsFKBxgAw@mail.gmail.com>
-References: <151571798296.27429.7166552848688034184.stgit@dwillia2-desk3.amr.corp.intel.com>
- <CA+55aFzNQ8CZ8iNcPXrCfyk=1edMiRGDA0fY0rd87BsFKBxgAw@mail.gmail.com>
-From: Tony Luck <tony.luck@gmail.com>
-Date: Fri, 12 Jan 2018 16:15:12 -0800
-Message-ID: <CA+8MBb+H0FqciBw9nSO9L0fNQtiRvc_1TREitH9z89YxhtyFAQ@mail.gmail.com>
-Subject: Re: [PATCH v2 00/19] prevent bounds-check bypass via speculative execution
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Dan Williams <dan.j.williams@intel.com>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        kernel-hardening@lists.openwall.com,
-        Peter Zijlstra <peterz@infradead.org>,
-        Alan Cox <alan.cox@intel.com>,
-        Will Deacon <will.deacon@arm.com>,
-        Alexei Starovoitov <ast@kernel.org>,
-        Solomon Peachy <pizza@shaftnet.org>,
-        "H. Peter Anvin" <hpa@zytor.com>,
-        Christian Lamparter <chunkeey@googlemail.com>,
-        Elena Reshetova <elena.reshetova@intel.com>,
-        "linux-arch@vger.kernel.org" <linux-arch@vger.kernel.org>,
-        Andi Kleen <ak@linux.intel.com>,
-        "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>,
-        Linux SCSI List <linux-scsi@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>,
-        "the arch/x86 maintainers" <x86@kernel.org>,
-        Russell King <linux@armlinux.org.uk>,
-        Ingo Molnar <mingo@redhat.com>,
-        Catalin Marinas <catalin.marinas@arm.com>,
-        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Tom Lendacky <thomas.lendacky@amd.com>,
-        Kees Cook <keescook@chromium.org>, Jan Kara <jack@suse.com>,
-        Al Viro <viro@zeniv.linux.org.uk>, qla2xxx-upstream@qlogic.com,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Kalle Valo <kvalo@codeaurora.org>,
-        Alan Cox <alan@linux.intel.com>,
-        "Martin K. Petersen" <martin.petersen@oracle.com>,
-        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
-        Greg KH <gregkh@linuxfoundation.org>,
-        Linux Wireless List <linux-wireless@vger.kernel.org>,
-        "Eric W. Biederman" <ebiederm@xmission.com>,
-        Network Development <netdev@vger.kernel.org>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <807c4307-0617-788e-7129-039b33ce99d5@rock-chips.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jan 11, 2018 at 5:19 PM, Linus Torvalds
-<torvalds@linux-foundation.org> wrote:
-> Should the array access in entry_SYSCALL_64_fastpath be made to use
-> the masking approach?
+Hi Shunqian,
 
-That one has a bounds check for an inline constant.
+On Thu, Jan 11, 2018 at 02:44:33PM +0800, Shunqian Zheng wrote:
+> Hi Jacopo,
+> 
+> 
+> On 2018年01月10日 17:20, jacopo mondi wrote:
+> > Hi Shunqian,
+> > 
+> > On Wed, Jan 10, 2018 at 10:06:04AM +0800, Shunqian Zheng wrote:
+> > > Add device tree binding documentation for the OV5695 sensor.
+> > > 
+> > > Signed-off-by: Shunqian Zheng <zhengsq@rock-chips.com>
+> > > ---
+> > >   .../devicetree/bindings/media/i2c/ov5695.txt       | 41 ++++++++++++++++++++++
+> > >   1 file changed, 41 insertions(+)
+> > >   create mode 100644 Documentation/devicetree/bindings/media/i2c/ov5695.txt
+> > > 
+> > > diff --git a/Documentation/devicetree/bindings/media/i2c/ov5695.txt b/Documentation/devicetree/bindings/media/i2c/ov5695.txt
+> > > new file mode 100644
+> > > index 0000000..2f2f698
+> > > --- /dev/null
+> > > +++ b/Documentation/devicetree/bindings/media/i2c/ov5695.txt
+> > > @@ -0,0 +1,41 @@
+> > > +* Omnivision OV5695 MIPI CSI-2 sensor
+> > > +
+> > > +Required Properties:
+> > > +- compatible: shall be "ovti,ov5695"
+> > > +- clocks: reference to the xvclk input clock
+> > > +- clock-names: shall be "xvclk"
+> > > +- avdd-supply: Analog voltage supply, 2.8 volts
+> > > +- dovdd-supply: Digital I/O voltage supply, 1.8 volts
+> > > +- dvdd-supply: Digital core voltage supply, 1.2 volts
+> > > +- reset-gpios: Low active reset gpio
+> > > +
+> > > +The device node shall contain one 'port' child node with an
+> > > +'endpoint' subnode for its digital output video port,
+> > > +in accordance with the video interface bindings defined in
+> > > +Documentation/devicetree/bindings/media/video-interfaces.txt.
+> > > +The endpoint optional property 'data-lanes' shall be "<1 2>".
+> > What happens if the property is not present? What's the default?
+> I think it depends on how the video receiver deal with, 'data-lanes' is
+> optional as described in video-interfaces.txt,
+> but if somehow it used in DT, the value "<1 2>" is the right one.
 
-     cmpq    $__NR_syscall_max, %rax
+They're described as optional there as they may not be mandated for all
+devices --- they're only relevant for some.
 
-so should be safe.
+The data-lanes property also specifies the number of lanes. I guess you
+could say two is default. The device can likely be configured to just use
+one, even if the driver doesn't support it.
 
-The classic Spectre variant #1 code sequence is:
-
-int array_size;
-
-       if (x < array_size) {
-               something with array[x]
-       }
-
-which runs into problems because the array_size variable may not
-be in cache, and while the CPU core is waiting for the value it
-speculates inside the "if" body.
-
-The syscall entry is more like:
-
-#define ARRAY_SIZE 10
-
-     if (x < ARRAY_SIZE) {
-          something with array[x]
-     }
-
-Here there isn't any reason for speculation. The core has the
-value of 'x' in a register and the upper bound encoded into the
-"cmp" instruction.  Both are right there, no waiting, no speculation.
-
--Tony
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
