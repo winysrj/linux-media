@@ -1,127 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f194.google.com ([209.85.128.194]:41903 "EHLO
-        mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932562AbeALJre (ORCPT
+Received: from merlin.infradead.org ([205.233.59.134]:41906 "EHLO
+        merlin.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750724AbeARFAM (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 12 Jan 2018 04:47:34 -0500
-Received: by mail-wr0-f194.google.com with SMTP id o7so4768947wro.8
-        for <linux-media@vger.kernel.org>; Fri, 12 Jan 2018 01:47:33 -0800 (PST)
-From: "=?UTF-8?q?Christian=20K=C3=B6nig?="
-        <ckoenig.leichtzumerken@gmail.com>
-To: daniel@ffwll.ch, sumit.semwal@linaro.org, gustavo@padovan.org,
-        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        linaro-mm-sig@lists.linaro.org
-Subject: [PATCH 3/3] drm/amdgpu: always allocate a PASIDs for each VM v2
-Date: Fri, 12 Jan 2018 10:47:29 +0100
-Message-Id: <20180112094729.17491-3-christian.koenig@amd.com>
-In-Reply-To: <20180112094729.17491-1-christian.koenig@amd.com>
-References: <20180112094729.17491-1-christian.koenig@amd.com>
+        Thu, 18 Jan 2018 00:00:12 -0500
+Subject: Re: [RFT PATCH v3 0/6] Asynchronous UVC
+To: Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Olivier BRAUN <olivier.braun@stereolabs.com>,
+        Troy Kisky <troy.kisky@boundarydevices.com>
+References: <cover.30aaad9a6abac5e92d4a1a0e6634909d97cc54d8.1515748369.git-series.kieran.bingham@ideasonboard.com>
+From: Randy Dunlap <rdunlap@infradead.org>
+Message-ID: <d8a30e87-5b95-113f-9725-2d4deb682527@infradead.org>
+Date: Wed, 17 Jan 2018 20:59:54 -0800
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+In-Reply-To: <cover.30aaad9a6abac5e92d4a1a0e6634909d97cc54d8.1515748369.git-series.kieran.bingham@ideasonboard.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Start to always allocate a pasid for each VM.
+On 01/12/2018 01:19 AM, Kieran Bingham wrote:
+> The Linux UVC driver has long provided adequate performance capabilities for
+> web-cams and low data rate video devices in Linux while resolutions were low.
+> 
+> Modern USB cameras are now capable of high data rates thanks to USB3 with
+> 1080p, and even 4k capture resolutions supported.
+> 
+> Cameras such as the Stereolabs ZED (bulk transfers) or the Logitech BRIO
+> (isochronous transfers) can generate more data than an embedded ARM core is
+> able to process on a single core, resulting in frame loss.
+> 
+> A large part of this performance impact is from the requirement to
+> ‘memcpy’ frames out from URB packets to destination frames. This unfortunate
+> requirement is due to the UVC protocol allowing a variable length header, and
+> thus it is not possible to provide the target frame buffers directly.
+> 
+> Extra throughput is possible by moving the actual memcpy actions to a work
+> queue, and moving the memcpy out of interrupt context thus allowing work tasks
+> to be scheduled across multiple cores.
+> 
+> This series has been tested on both the ZED and BRIO cameras on arm64
+> platforms, however due to the intrinsic changes in the driver I would like to
+> see it tested with other devices and other platforms, so I'd appreciate if
+> anyone can test this on a range of USB cameras.
+> 
+> In particular, any iSight devices, or devices which use UVC to encode data
+> (output device) would certainly be great to be tested with these patches.
+> 
+> v2:
+>  - Fix race reported by Guennadi
+> 
+> v3:
+>  - Fix similar race reported by Laurent
+>  - Only queue work if required (encode/isight do not queue work)
+>  - Refactor/Rename variables for clarity
+> 
+> Kieran Bingham (6):
+>   uvcvideo: Refactor URB descriptors
+>   uvcvideo: Convert decode functions to use new context structure
+>   uvcvideo: Protect queue internals with helper
+>   uvcvideo: queue: Simplify spin-lock usage
+>   uvcvideo: queue: Support asynchronous buffer handling
+>   uvcvideo: Move decode processing to process context
+> 
+>  drivers/media/usb/uvc/uvc_isight.c |   4 +-
+>  drivers/media/usb/uvc/uvc_queue.c  | 114 +++++++++++++----
+>  drivers/media/usb/uvc/uvc_video.c  | 198 ++++++++++++++++++++++--------
+>  drivers/media/usb/uvc/uvcvideo.h   |  56 +++++++-
+>  4 files changed, 296 insertions(+), 76 deletions(-)
+> 
+> base-commit: 6f0e5fd39143a59c22d60e7befc4f33f22aeed2f
 
-v2: use dev_warn when we run out of PASIDs
+Hi,
 
-Signed-off-by: Christian König <christian.koenig@amd.com>
----
- drivers/gpu/drm/amd/amdgpu/amdgpu_kms.c | 43 ++++++++++++++++++++++-----------
- 1 file changed, 29 insertions(+), 14 deletions(-)
+Tested on x86_64, Linux 4.15-rc8 + these 9 patches, with 3 UVC webcams.
 
-diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu_kms.c b/drivers/gpu/drm/amd/amdgpu/amdgpu_kms.c
-index 5773a581761b..a108b30d8186 100644
---- a/drivers/gpu/drm/amd/amdgpu/amdgpu_kms.c
-+++ b/drivers/gpu/drm/amd/amdgpu/amdgpu_kms.c
-@@ -805,7 +805,7 @@ int amdgpu_driver_open_kms(struct drm_device *dev, struct drm_file *file_priv)
- {
- 	struct amdgpu_device *adev = dev->dev_private;
- 	struct amdgpu_fpriv *fpriv;
--	int r;
-+	int r, pasid;
- 
- 	file_priv->driver_priv = NULL;
- 
-@@ -819,28 +819,25 @@ int amdgpu_driver_open_kms(struct drm_device *dev, struct drm_file *file_priv)
- 		goto out_suspend;
- 	}
- 
--	r = amdgpu_vm_init(adev, &fpriv->vm,
--			   AMDGPU_VM_CONTEXT_GFX, 0);
--	if (r) {
--		kfree(fpriv);
--		goto out_suspend;
-+	pasid = amdgpu_pasid_alloc(16);
-+	if (pasid < 0) {
-+		dev_warn(adev->dev, "No more PASIDs available!");
-+		pasid = 0;
- 	}
-+	r = amdgpu_vm_init(adev, &fpriv->vm, AMDGPU_VM_CONTEXT_GFX, pasid);
-+	if (r)
-+		goto error_pasid;
- 
- 	fpriv->prt_va = amdgpu_vm_bo_add(adev, &fpriv->vm, NULL);
- 	if (!fpriv->prt_va) {
- 		r = -ENOMEM;
--		amdgpu_vm_fini(adev, &fpriv->vm);
--		kfree(fpriv);
--		goto out_suspend;
-+		goto error_vm;
- 	}
- 
- 	if (amdgpu_sriov_vf(adev)) {
- 		r = amdgpu_map_static_csa(adev, &fpriv->vm, &fpriv->csa_va);
--		if (r) {
--			amdgpu_vm_fini(adev, &fpriv->vm);
--			kfree(fpriv);
--			goto out_suspend;
--		}
-+		if (r)
-+			goto error_vm;
- 	}
- 
- 	mutex_init(&fpriv->bo_list_lock);
-@@ -849,6 +846,16 @@ int amdgpu_driver_open_kms(struct drm_device *dev, struct drm_file *file_priv)
- 	amdgpu_ctx_mgr_init(&fpriv->ctx_mgr);
- 
- 	file_priv->driver_priv = fpriv;
-+	goto out_suspend;
-+
-+error_vm:
-+	amdgpu_vm_fini(adev, &fpriv->vm);
-+
-+error_pasid:
-+	if (pasid)
-+		amdgpu_pasid_free(pasid);
-+
-+	kfree(fpriv);
- 
- out_suspend:
- 	pm_runtime_mark_last_busy(dev->dev);
-@@ -871,6 +878,8 @@ void amdgpu_driver_postclose_kms(struct drm_device *dev,
- 	struct amdgpu_device *adev = dev->dev_private;
- 	struct amdgpu_fpriv *fpriv = file_priv->driver_priv;
- 	struct amdgpu_bo_list *list;
-+	struct amdgpu_bo *pd;
-+	unsigned int pasid;
- 	int handle;
- 
- 	if (!fpriv)
-@@ -895,7 +904,13 @@ void amdgpu_driver_postclose_kms(struct drm_device *dev,
- 		amdgpu_bo_unreserve(adev->virt.csa_obj);
- 	}
- 
-+	pasid = fpriv->vm.pasid;
-+	pd = amdgpu_bo_ref(fpriv->vm.root.base.bo);
-+
- 	amdgpu_vm_fini(adev, &fpriv->vm);
-+	if (pasid)
-+		amdgpu_pasid_free_delayed(pd->tbo.resv, pasid);
-+	amdgpu_bo_unref(&pd);
- 
- 	idr_for_each_entry(&fpriv->bo_list_handles, list, handle)
- 		amdgpu_bo_list_free(list);
+1.
+usb 1-1.3: Product: Dynex 1.3MP Webcam
+usb 1-1.3: Manufacturer: Dynex
+uvcvideo: Found UVC 1.00 device Dynex 1.3MP Webcam (19ff:0102)
+
+2. uvcvideo: Found UVC 1.00 device 2SF001 (0bda:58f5)  (builtin on Toshiba laptop)
+
+3.
+usb 1-1.3: New USB device found, idVendor=0c45, idProduct=62c0
+usb 1-1.3: New USB device strings: Mfr=2, Product=1, SerialNumber=3
+usb 1-1.3: Product: USB 2.0 Camera
+usb 1-1.3: Manufacturer: Sonix Technology Co., Ltd.
+usb 1-1.3: SerialNumber: SN0001
+uvcvideo: Found UVC 1.00 device USB 2.0 Camera (0c45:62c0)
+
+
+BTW, qv4l2 was very useful for this.  Thanks, Hans.
+
+Tested-by: Randy Dunlap <rdunlap@infradead.org>
+
+
 -- 
-2.14.1
+~Randy
