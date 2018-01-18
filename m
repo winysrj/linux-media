@@ -1,155 +1,434 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:51366 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753152AbeADW1k (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 4 Jan 2018 17:27:40 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Jacopo Mondi <jacopo+renesas@jmondi.org>
-Cc: magnus.damm@gmail.com, geert@glider.be, mchehab@kernel.org,
-        hverkuil@xs4all.nl, festevam@gmail.com, sakari.ailus@iki.fi,
-        robh+dt@kernel.org, mark.rutland@arm.com,
-        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-sh@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v3 1/9] dt-bindings: media: Add Renesas CEU bindings
-Date: Fri, 05 Jan 2018 00:28:03 +0200
-Message-ID: <14433032.8RBNSVMmkm@avalon>
-In-Reply-To: <1515081797-17174-2-git-send-email-jacopo+renesas@jmondi.org>
-References: <1515081797-17174-1-git-send-email-jacopo+renesas@jmondi.org> <1515081797-17174-2-git-send-email-jacopo+renesas@jmondi.org>
+Received: from mail-sn1nam01on0092.outbound.protection.outlook.com ([104.47.32.92]:1377
+        "EHLO NAM01-SN1-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1754870AbeARIpH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 18 Jan 2018 03:45:07 -0500
+From: <Yasunari.Takiguchi@sony.com>
+To: <linux-kernel@vger.kernel.org>, <devicetree@vger.kernel.org>,
+        <linux-media@vger.kernel.org>
+CC: <tbird20d@gmail.com>, <frowand.list@gmail.com>,
+        <Yasunari.Takiguchi@sony.com>, <Masayuki.Yamamoto@sony.com>,
+        <Hideki.Nozawa@sony.com>, <Kota.Yonezawa@sony.com>,
+        <Toshihiko.Matsumoto@sony.com>, <Satoshi.C.Watanabe@sony.com>
+Subject: [PATCH v5 04/12] [media] cxd2880: Add spi device IO routines
+Date: Thu, 18 Jan 2018 17:48:58 +0900
+Message-ID: <20180118084858.21151-1-Yasunari.Takiguchi@sony.com>
+In-Reply-To: <20180118084016.20689-1-Yasunari.Takiguchi@sony.com>
+References: <20180118084016.20689-1-Yasunari.Takiguchi@sony.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jacopo,
+From: Yasunari Takiguchi <Yasunari.Takiguchi@sony.com>
 
-Thank you for the patch.
+Add functions for initializing, reading and writing to the SPI
+device for the Sony CXD2880 DVB-T2/T tuner + demodulator.
 
-On Thursday, 4 January 2018 18:03:09 EET Jacopo Mondi wrote:
-> Add bindings documentation for Renesas Capture Engine Unit (CEU).
-> 
-> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
-> ---
->  .../devicetree/bindings/media/renesas,ceu.txt      | 85 +++++++++++++++++++
->  1 file changed, 85 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/media/renesas,ceu.txt
-> 
-> diff --git a/Documentation/devicetree/bindings/media/renesas,ceu.txt
-> b/Documentation/devicetree/bindings/media/renesas,ceu.txt new file mode
-> 100644
-> index 0000000..a4f3c05
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/media/renesas,ceu.txt
-> @@ -0,0 +1,85 @@
-> +Renesas Capture Engine Unit (CEU)
-> +----------------------------------------------
-> +
-> +The Capture Engine Unit is the image capture interface found in the Renesas
-> +SH Mobile and RZ SoCs.
-> +
-> +The interface supports a single parallel input with data bus width of 8 or
-> 16
-> +bits.
-> +
-> +Required properties:
-> +- compatible: Must be one of the following.
-> +	- "renesas,r7s72100-ceu" for CEU units found in R7S72100 (RZ/A1) SoCs.
-> +	- "renesas,ceu" as a generic fallback.
+Signed-off-by: Yasunari Takiguchi <Yasunari.Takiguchi@sony.com>
+Signed-off-by: Masayuki Yamamoto <Masayuki.Yamamoto@sony.com>
+Signed-off-by: Hideki Nozawa <Hideki.Nozawa@sony.com>
+Signed-off-by: Kota Yonezawa <Kota.Yonezawa@sony.com>
+Signed-off-by: Toshihiko Matsumoto <Toshihiko.Matsumoto@sony.com>
+Signed-off-by: Satoshi Watanabe <Satoshi.C.Watanabe@sony.com>
+---
 
-As asked in my review of patch 3/9, what's your policy for compatible strings 
-? As far as I understand there's no generic CEU, as the SH4 and RZ versions 
-are not compatible. Should the "renesas,ceu" compatible string then be 
-replaced by "renesas,rz-ceu" ?
+[Change list]
+Changes in V5
+   Using SPDX-License-Identifier
+   drivers/media/dvb-frontends/cxd2880/cxd2880_devio_spi.c
+      -modified return error code
+      -removed unnecessary parentheses 
+   drivers/media/dvb-frontends/cxd2880/cxd2880_spi_device.c
+      -removed unnecessary parentheses
 
-> +       SH Mobile CPUs do not currently support OF, and they configure their
-> +	CEU interfaces using platform data. The "compatible" list will be
-> +	expanded once SH Mobile will be made OF-capable.
+Changes in V4
+   drivers/media/dvb-frontends/cxd2880/cxd2880_devio_spi.c
+      -removed unnecessary initialization at variable declaration
 
-The first sentence is out of scope, or at least its second half. I'd drop this 
-completely, or possibly capture it in the commit message.
+Changes in V3
+   drivers/media/dvb-frontends/cxd2880/cxd2880_devio_spi.c
+      -removed unnecessary cast
+      -changed cxd2880_memcpy to memcpy
+      -modified return code
+      -changed hexadecimal code to lower case. 
+   drivers/media/dvb-frontends/cxd2880/cxd2880_devio_spi.h
+      -modified return code
+   drivers/media/dvb-frontends/cxd2880/cxd2880_spi.h
+      -modified return code
+   drivers/media/dvb-frontends/cxd2880/cxd2880_spi_device.c
+      -removed unnecessary cast
+      -modified return code
+   drivers/media/dvb-frontends/cxd2880/cxd2880_spi_device.h
+      -modified return code
 
-> +- reg: Registers address base and size.
-> +- interrupts: The interrupt specifier.
-> +
-> +The CEU supports a single parallel input and should contain a single 'port'
-> +subnode with a single 'endpoint'. Connection to input devices are modeled
-> +according to the video interfaces OF bindings specified in:
-> +Documentation/devicetree/bindings/media/video-interfaces.txt
-> +
-> +Optional endpoint properties applicable to parallel input bus described in
-> +the above mentioned "video-interfaces.txt" file are supported by this
-> driver:
+ .../dvb-frontends/cxd2880/cxd2880_devio_spi.c      | 129 +++++++++++++++++++++
+ .../dvb-frontends/cxd2880/cxd2880_devio_spi.h      |  23 ++++
+ drivers/media/dvb-frontends/cxd2880/cxd2880_spi.h  |  34 ++++++
+ .../dvb-frontends/cxd2880/cxd2880_spi_device.c     | 113 ++++++++++++++++++
+ .../dvb-frontends/cxd2880/cxd2880_spi_device.h     |  26 +++++
+ 5 files changed, 325 insertions(+)
+ create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_devio_spi.c
+ create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_devio_spi.h
+ create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_spi.h
+ create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_spi_device.c
+ create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_spi_device.h
 
-I know it's hard to get rid of that habit, but drivers are out of scope for DT 
-bindings so they should not be mentioned. You should of course document the 
-properties, and explain whether they are mandatory and optional.
-
-> +
-> +- hsync-active: Active state of the HSYNC signal, 0/1 for LOW/HIGH
-> respectively.
-> +- vsync-active: Active state of the VSYNC signal, 0/1 for LOW/HIGH
-> respectively.
-> +
-> +Example:
-> +
-> +The example describes the connection between the Capture Engine Unit and an
-> +OV7670 image sensor connected to i2c1 interface.
-> +
-> +ceu: ceu@e8210000 {
-> +	reg = <0xe8210000 0x209c>;
-> +	compatible = "renesas,ceu";
-
-Don't forget to update this example when you'll address my comment about 
-compatible strings.
-
-> +	interrupts = <GIC_SPI 332 IRQ_TYPE_LEVEL_HIGH>;
-> +
-> +	pinctrl-names = "default";
-> +	pinctrl-0 = <&vio_pins>;
-> +
-> +	status = "okay";
-> +
-> +	port {
-> +		ceu_in: endpoint {
-> +			remote-endpoint = <&ov7670_out>;
-> +
-> +			hsync-active = <1>;
-> +			vsync-active = <0>;
-> +		};
-> +	};
-> +};
-> +
-> +i2c1: i2c@fcfee400 {
-> +	pinctrl-names = "default";
-> +	pinctrl-0 = <&i2c1_pins>;
-> +
-> +	status = "okay";
-> +
-> +	clock-frequency = <100000>;
-> +
-> +	ov7670: camera@21 {
-> +		compatible = "ovti,ov7670";
-> +		reg = <0x21>;
-> +
-> +		pinctrl-names = "default";
-> +		pinctrl-0 = <&vio_pins>;
-> +
-> +		reset-gpios = <&port3 11 GPIO_ACTIVE_LOW>;
-> +		powerdown-gpios = <&port3 12 GPIO_ACTIVE_HIGH>;
-> +
-> +		port {
-> +			ov7670_out: endpoint {
-> +				remote-endpoint = <&ceu_in>;
-> +
-> +				hsync-active = <1>;
-> +				vsync-active = <0>;
-> +			};
-> +		};
-> +	};
-> +};
-
+diff --git a/drivers/media/dvb-frontends/cxd2880/cxd2880_devio_spi.c b/drivers/media/dvb-frontends/cxd2880/cxd2880_devio_spi.c
+new file mode 100644
+index 000000000000..d2e37c95d748
+--- /dev/null
++++ b/drivers/media/dvb-frontends/cxd2880/cxd2880_devio_spi.c
+@@ -0,0 +1,129 @@
++// SPDX-License-Identifier: GPL-2.0
++/*
++ * cxd2880_devio_spi.c
++ * Sony CXD2880 DVB-T2/T tuner + demodulator driver
++ * I/O interface via SPI
++ *
++ * Copyright (C) 2016, 2017, 2018 Sony Semiconductor Solutions Corporation
++ */
++
++#include "cxd2880_devio_spi.h"
++
++#define BURST_WRITE_MAX 128
++
++static int cxd2880_io_spi_read_reg(struct cxd2880_io *io,
++				   enum cxd2880_io_tgt tgt,
++				   u8 sub_address, u8 *data,
++				   u32 size)
++{
++	int ret;
++	struct cxd2880_spi *spi = NULL;
++	u8 send_data[6];
++	u8 *read_data_top = data;
++
++	if (!io || !io->if_object || !data)
++		return -EINVAL;
++
++	if (sub_address + size > 0x100)
++		return -EINVAL;
++
++	spi = io->if_object;
++
++	if (tgt == CXD2880_IO_TGT_SYS)
++		send_data[0] = 0x0b;
++	else
++		send_data[0] = 0x0a;
++
++	send_data[3] = 0;
++	send_data[4] = 0;
++	send_data[5] = 0;
++
++	while (size > 0) {
++		send_data[1] = sub_address;
++		if (size > 255)
++			send_data[2] = 255;
++		else
++			send_data[2] = size;
++
++		ret =
++		    spi->write_read(spi, send_data, sizeof(send_data),
++				    read_data_top, send_data[2]);
++		if (ret)
++			return ret;
++
++		sub_address += send_data[2];
++		read_data_top += send_data[2];
++		size -= send_data[2];
++	}
++
++	return ret;
++}
++
++static int cxd2880_io_spi_write_reg(struct cxd2880_io *io,
++				    enum cxd2880_io_tgt tgt,
++				    u8 sub_address,
++				    const u8 *data, u32 size)
++{
++	int ret;
++	struct cxd2880_spi *spi = NULL;
++	u8 send_data[BURST_WRITE_MAX + 4];
++	const u8 *write_data_top = data;
++
++	if (!io || !io->if_object || !data)
++		return -EINVAL;
++
++	if (size > BURST_WRITE_MAX)
++		return -EINVAL;
++
++	if (sub_address + size > 0x100)
++		return -EINVAL;
++
++	spi = io->if_object;
++
++	if (tgt == CXD2880_IO_TGT_SYS)
++		send_data[0] = 0x0f;
++	else
++		send_data[0] = 0x0e;
++
++	while (size > 0) {
++		send_data[1] = sub_address;
++		if (size > 255)
++			send_data[2] = 255;
++		else
++			send_data[2] = size;
++
++		memcpy(&send_data[3], write_data_top, send_data[2]);
++
++		if (tgt == CXD2880_IO_TGT_SYS) {
++			send_data[3 + send_data[2]] = 0x00;
++			ret = spi->write(spi, send_data, send_data[2] + 4);
++		} else {
++			ret = spi->write(spi, send_data, send_data[2] + 3);
++		}
++		if (ret)
++			return ret;
++
++		sub_address += send_data[2];
++		write_data_top += send_data[2];
++		size -= send_data[2];
++	}
++
++	return ret;
++}
++
++int cxd2880_io_spi_create(struct cxd2880_io *io,
++			  struct cxd2880_spi *spi, u8 slave_select)
++{
++	if (!io || !spi)
++		return -EINVAL;
++
++	io->read_regs = cxd2880_io_spi_read_reg;
++	io->write_regs = cxd2880_io_spi_write_reg;
++	io->write_reg = cxd2880_io_common_write_one_reg;
++	io->if_object = spi;
++	io->i2c_address_sys = 0;
++	io->i2c_address_demod = 0;
++	io->slave_select = slave_select;
++
++	return 0;
++}
+diff --git a/drivers/media/dvb-frontends/cxd2880/cxd2880_devio_spi.h b/drivers/media/dvb-frontends/cxd2880/cxd2880_devio_spi.h
+new file mode 100644
+index 000000000000..27f7cb12fad4
+--- /dev/null
++++ b/drivers/media/dvb-frontends/cxd2880/cxd2880_devio_spi.h
+@@ -0,0 +1,23 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++/*
++ * cxd2880_devio_spi.h
++ * Sony CXD2880 DVB-T2/T tuner + demodulator driver
++ * I/O interface via SPI
++ *
++ * Copyright (C) 2016, 2017, 2018 Sony Semiconductor Solutions Corporation
++ */
++
++#ifndef CXD2880_DEVIO_SPI_H
++#define CXD2880_DEVIO_SPI_H
++
++#include "cxd2880_common.h"
++#include "cxd2880_io.h"
++#include "cxd2880_spi.h"
++
++#include "cxd2880_tnrdmd.h"
++
++int cxd2880_io_spi_create(struct cxd2880_io *io,
++			  struct cxd2880_spi *spi,
++			  u8 slave_select);
++
++#endif
+diff --git a/drivers/media/dvb-frontends/cxd2880/cxd2880_spi.h b/drivers/media/dvb-frontends/cxd2880/cxd2880_spi.h
+new file mode 100644
+index 000000000000..2be207461847
+--- /dev/null
++++ b/drivers/media/dvb-frontends/cxd2880/cxd2880_spi.h
+@@ -0,0 +1,34 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++/*
++ * cxd2880_spi.h
++ * Sony CXD2880 DVB-T2/T tuner + demodulator driver
++ * SPI access definitions
++ *
++ * Copyright (C) 2016, 2017, 2018 Sony Semiconductor Solutions Corporation
++ */
++
++#ifndef CXD2880_SPI_H
++#define CXD2880_SPI_H
++
++#include "cxd2880_common.h"
++
++enum cxd2880_spi_mode {
++	CXD2880_SPI_MODE_0,
++	CXD2880_SPI_MODE_1,
++	CXD2880_SPI_MODE_2,
++	CXD2880_SPI_MODE_3
++};
++
++struct cxd2880_spi {
++	int (*read)(struct cxd2880_spi *spi, u8 *data,
++		    u32 size);
++	int (*write)(struct cxd2880_spi *spi, const u8 *data,
++		     u32 size);
++	int (*write_read)(struct cxd2880_spi *spi,
++			  const u8 *tx_data, u32 tx_size,
++			  u8 *rx_data, u32 rx_size);
++	u32 flags;
++	void *user;
++};
++
++#endif
+diff --git a/drivers/media/dvb-frontends/cxd2880/cxd2880_spi_device.c b/drivers/media/dvb-frontends/cxd2880/cxd2880_spi_device.c
+new file mode 100644
+index 000000000000..b8cbaa8d7aff
+--- /dev/null
++++ b/drivers/media/dvb-frontends/cxd2880/cxd2880_spi_device.c
+@@ -0,0 +1,113 @@
++// SPDX-License-Identifier: GPL-2.0
++/*
++ * cxd2880_spi_device.c
++ * Sony CXD2880 DVB-T2/T tuner + demodulator driver
++ * SPI access functions
++ *
++ * Copyright (C) 2016, 2017, 2018 Sony Semiconductor Solutions Corporation
++ */
++
++#include <linux/spi/spi.h>
++
++#include "cxd2880_spi_device.h"
++
++static int cxd2880_spi_device_write(struct cxd2880_spi *spi,
++				    const u8 *data, u32 size)
++{
++	struct cxd2880_spi_device *spi_device = NULL;
++	struct spi_message msg;
++	struct spi_transfer tx;
++	int result = 0;
++
++	if (!spi || !spi->user || !data || size == 0)
++		return -EINVAL;
++
++	spi_device = spi->user;
++
++	memset(&tx, 0, sizeof(tx));
++	tx.tx_buf = data;
++	tx.len = size;
++
++	spi_message_init(&msg);
++	spi_message_add_tail(&tx, &msg);
++	result = spi_sync(spi_device->spi, &msg);
++
++	if (result < 0)
++		return -EIO;
++
++	return 0;
++}
++
++static int cxd2880_spi_device_write_read(struct cxd2880_spi *spi,
++					 const u8 *tx_data,
++					 u32 tx_size,
++					 u8 *rx_data,
++					 u32 rx_size)
++{
++	struct cxd2880_spi_device *spi_device = NULL;
++	int result = 0;
++
++	if (!spi || !spi->user || !tx_data ||
++	    !tx_size || !rx_data || !rx_size)
++		return -EINVAL;
++
++	spi_device = spi->user;
++
++	result = spi_write_then_read(spi_device->spi, tx_data,
++				     tx_size, rx_data, rx_size);
++	if (result < 0)
++		return -EIO;
++
++	return 0;
++}
++
++int
++cxd2880_spi_device_initialize(struct cxd2880_spi_device *spi_device,
++			      enum cxd2880_spi_mode mode,
++			      u32 speed_hz)
++{
++	int result = 0;
++	struct spi_device *spi = spi_device->spi;
++
++	switch (mode) {
++	case CXD2880_SPI_MODE_0:
++		spi->mode = SPI_MODE_0;
++		break;
++	case CXD2880_SPI_MODE_1:
++		spi->mode = SPI_MODE_1;
++		break;
++	case CXD2880_SPI_MODE_2:
++		spi->mode = SPI_MODE_2;
++		break;
++	case CXD2880_SPI_MODE_3:
++		spi->mode = SPI_MODE_3;
++		break;
++	default:
++		return -EINVAL;
++	}
++
++	spi->max_speed_hz = speed_hz;
++	spi->bits_per_word = 8;
++	result = spi_setup(spi);
++	if (result != 0) {
++		pr_err("spi_setup failed %d\n", result);
++		return -EINVAL;
++	}
++
++	return 0;
++}
++
++int cxd2880_spi_device_create_spi(struct cxd2880_spi *spi,
++				  struct cxd2880_spi_device *spi_device)
++{
++	if (!spi || !spi_device)
++		return -EINVAL;
++
++	spi->read = NULL;
++	spi->write = cxd2880_spi_device_write;
++	spi->write_read = cxd2880_spi_device_write_read;
++	spi->flags = 0;
++	spi->user = spi_device;
++
++	return 0;
++}
+diff --git a/drivers/media/dvb-frontends/cxd2880/cxd2880_spi_device.h b/drivers/media/dvb-frontends/cxd2880/cxd2880_spi_device.h
+new file mode 100644
+index 000000000000..05e3a03de3a3
+--- /dev/null
++++ b/drivers/media/dvb-frontends/cxd2880/cxd2880_spi_device.h
+@@ -0,0 +1,26 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++/*
++ * cxd2880_spi_device.h
++ * Sony CXD2880 DVB-T2/T tuner + demodulator driver
++ * SPI access interface
++ *
++ * Copyright (C) 2016, 2017, 2018 Sony Semiconductor Solutions Corporation
++ */
++
++#ifndef CXD2880_SPI_DEVICE_H
++#define CXD2880_SPI_DEVICE_H
++
++#include "cxd2880_spi.h"
++
++struct cxd2880_spi_device {
++	struct spi_device *spi;
++};
++
++int cxd2880_spi_device_initialize(struct cxd2880_spi_device *spi_device,
++				  enum cxd2880_spi_mode mode,
++				  u32 speedHz);
++
++int cxd2880_spi_device_create_spi(struct cxd2880_spi *spi,
++				  struct cxd2880_spi_device *spi_device);
++
++#endif /* CXD2880_SPI_DEVICE_H */
 -- 
-Regards,
-
-Laurent Pinchart
+2.15.1
