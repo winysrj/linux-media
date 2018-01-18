@@ -1,66 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga12.intel.com ([192.55.52.136]:50799 "EHLO mga12.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S935343AbeAORH5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 15 Jan 2018 12:07:57 -0500
-From: "Zhi, Yong" <yong.zhi@intel.com>
-To: Tomasz Figa <tfiga@chromium.org>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        "Mani, Rajmohan" <rajmohan.mani@intel.com>,
-        "Cao, Bingbu" <bingbu.cao@intel.com>
-Subject: RE: [PATCH 2/2] media: intel-ipu3: cio2: fix for wrong vb2buf state
- warnings
-Date: Mon, 15 Jan 2018 17:07:57 +0000
-Message-ID: <C193D76D23A22742993887E6D207B54D1AEB61AE@FMSMSX151.amr.corp.intel.com>
-References: <1515034637-3517-1-git-send-email-yong.zhi@intel.com>
- <1515034637-3517-2-git-send-email-yong.zhi@intel.com>
- <CAAFQd5AaOSQ_wcA_w5vBufVk5FfLPe6x9BnS=hcShv_asf3Cyw@mail.gmail.com>
-In-Reply-To: <CAAFQd5AaOSQ_wcA_w5vBufVk5FfLPe6x9BnS=hcShv_asf3Cyw@mail.gmail.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Received: from usa-sjc-mx-foss1.foss.arm.com ([217.140.101.70]:58562 "EHLO
+        foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750841AbeARRFm (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 18 Jan 2018 12:05:42 -0500
+Date: Thu, 18 Jan 2018 17:05:47 +0000
+From: Will Deacon <will.deacon@arm.com>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        kernel-hardening@lists.openwall.com,
+        Peter Zijlstra <peterz@infradead.org>,
+        Alan Cox <alan.cox@intel.com>,
+        Alexei Starovoitov <ast@kernel.org>,
+        Solomon Peachy <pizza@shaftnet.org>,
+        "H. Peter Anvin" <hpa@zytor.com>,
+        Christian Lamparter <chunkeey@googlemail.com>,
+        Elena Reshetova <elena.reshetova@intel.com>,
+        linux-arch@vger.kernel.org, Andi Kleen <ak@linux.intel.com>,
+        "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>,
+        Linux SCSI List <linux-scsi@vger.kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>,
+        the arch/x86 maintainers <x86@kernel.org>,
+        Russell King <linux@armlinux.org.uk>,
+        Ingo Molnar <mingo@redhat.com>,
+        Catalin Marinas <catalin.marinas@arm.com>,
+        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Tom Lendacky <thomas.lendacky@amd.com>,
+        Kees Cook <keescook@chromium.org>, Jan Kara <jack@suse.com>,
+        Al Viro <viro@zeniv.linux.org.uk>, qla2xxx-upstream@qlogic.com,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Kalle Valo <kvalo@codeaurora.org>,
+        Alan Cox <alan@linux.intel.com>,
+        "Martin K. Petersen" <martin.petersen@oracle.com>,
+        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
+        Greg KH <gregkh@linuxfoundation.org>,
+        Linux Wireless List <linux-wireless@vger.kernel.org>,
+        "Eric W. Biederman" <ebiederm@xmission.com>,
+        Network Development <netdev@vger.kernel.org>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH v2 00/19] prevent bounds-check bypass via speculative
+ execution
+Message-ID: <20180118170547.GF12394@arm.com>
+References: <151571798296.27429.7166552848688034184.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <CA+55aFzNQ8CZ8iNcPXrCfyk=1edMiRGDA0fY0rd87BsFKBxgAw@mail.gmail.com>
+ <CAPcyv4gPcV7MRumSJNz6nDw=HhKO4MK2QqKbj4uc_6APsSFr+g@mail.gmail.com>
+ <20180118131837.GA20783@arm.com>
+ <CAPcyv4gPLx74CAHGGrC3R-fgrh0vUmCbLNXZ0f7PTiKi0f+hCQ@mail.gmail.com>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAPcyv4gPLx74CAHGGrC3R-fgrh0vUmCbLNXZ0f7PTiKi0f+hCQ@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-SGksIFRvbWFzeiwNCg0KVGhhbmtzIGZvciByZXZpZXdpbmcgdGhlIHBhdGNoLg0KDQo+IC0tLS0t
-T3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+IEZyb206IFRvbWFzeiBGaWdhIFttYWlsdG86dGZpZ2FA
-Y2hyb21pdW0ub3JnXQ0KPiBTZW50OiBGcmlkYXksIEphbnVhcnkgMTIsIDIwMTggMTI6MTkgQU0N
-Cj4gVG86IFpoaSwgWW9uZyA8eW9uZy56aGlAaW50ZWwuY29tPg0KPiBDYzogTGludXggTWVkaWEg
-TWFpbGluZyBMaXN0IDxsaW51eC1tZWRpYUB2Z2VyLmtlcm5lbC5vcmc+OyBTYWthcmkgQWlsdXMN
-Cj4gPHNha2FyaS5haWx1c0BsaW51eC5pbnRlbC5jb20+OyBNYW5pLCBSYWptb2hhbg0KPiA8cmFq
-bW9oYW4ubWFuaUBpbnRlbC5jb20+OyBDYW8sIEJpbmdidSA8YmluZ2J1LmNhb0BpbnRlbC5jb20+
-DQo+IFN1YmplY3Q6IFJlOiBbUEFUQ0ggMi8yXSBtZWRpYTogaW50ZWwtaXB1MzogY2lvMjogZml4
-IGZvciB3cm9uZyB2YjJidWYgc3RhdGUNCj4gd2FybmluZ3MNCj4gDQo+IE9uIFRodSwgSmFuIDQs
-IDIwMTggYXQgMTE6NTcgQU0sIFlvbmcgWmhpIDx5b25nLnpoaUBpbnRlbC5jb20+IHdyb3RlOg0K
-PiA+IGNpbzIgZHJpdmVyIHNob3VsZCByZWxlYXNlIGJ1ZmZlciB3aXRoIFFVRVVFRCBzdGF0ZSB3
-aGVuIHN0YXJ0X3N0cmVhbQ0KPiA+IG9wIGZhaWxlZCwgd3JvbmcgYnVmZmVyIHN0YXRlIHdpbGwg
-Y2F1c2UgdmIyIGNvcmUgdGhyb3cgYSB3YXJuaW5nLg0KPiA+DQo+ID4gU2lnbmVkLW9mZi1ieTog
-WW9uZyBaaGkgPHlvbmcuemhpQGludGVsLmNvbT4NCj4gPiBTaWduZWQtb2ZmLWJ5OiBDYW8gQmlu
-ZyBCdSA8YmluZ2J1LmNhb0BpbnRlbC5jb20+DQo+ID4gLS0tDQo+ID4gIGRyaXZlcnMvbWVkaWEv
-cGNpL2ludGVsL2lwdTMvaXB1My1jaW8yLmMgfCA5ICsrKysrLS0tLQ0KPiA+ICAxIGZpbGUgY2hh
-bmdlZCwgNSBpbnNlcnRpb25zKCspLCA0IGRlbGV0aW9ucygtKQ0KPiA+DQo+ID4gZGlmZiAtLWdp
-dCBhL2RyaXZlcnMvbWVkaWEvcGNpL2ludGVsL2lwdTMvaXB1My1jaW8yLmMNCj4gPiBiL2RyaXZl
-cnMvbWVkaWEvcGNpL2ludGVsL2lwdTMvaXB1My1jaW8yLmMNCj4gPiBpbmRleCA5NDlmNDNkMjA2
-YWQuLjEwNmQwNDMwNjM3MiAxMDA2NDQNCj4gPiAtLS0gYS9kcml2ZXJzL21lZGlhL3BjaS9pbnRl
-bC9pcHUzL2lwdTMtY2lvMi5jDQo+ID4gKysrIGIvZHJpdmVycy9tZWRpYS9wY2kvaW50ZWwvaXB1
-My9pcHUzLWNpbzIuYw0KPiA+IEBAIC03ODUsNyArNzg1LDggQEAgc3RhdGljIGlycXJldHVybl90
-IGNpbzJfaXJxKGludCBpcnEsIHZvaWQNCj4gPiAqY2lvMl9wdHIpDQo+ID4NCj4gPiAgLyoqKioq
-KioqKioqKioqKiogVmlkZW9idWYyIGludGVyZmFjZSAqKioqKioqKioqKioqKioqLw0KPiA+DQo+
-ID4gLXN0YXRpYyB2b2lkIGNpbzJfdmIyX3JldHVybl9hbGxfYnVmZmVycyhzdHJ1Y3QgY2lvMl9x
-dWV1ZSAqcSkNCj4gPiArc3RhdGljIHZvaWQgY2lvMl92YjJfcmV0dXJuX2FsbF9idWZmZXJzKHN0
-cnVjdCBjaW8yX3F1ZXVlICpxLA0KPiA+ICsgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICBlbnVtIHZiMl9idWZmZXJfc3RhdGUgc3RhdGUpDQo+ID4gIHsNCj4gPiAgICAgICAg
-IHVuc2lnbmVkIGludCBpOw0KPiA+DQo+ID4gQEAgLTc5Myw3ICs3OTQsNyBAQCBzdGF0aWMgdm9p
-ZCBjaW8yX3ZiMl9yZXR1cm5fYWxsX2J1ZmZlcnMoc3RydWN0DQo+IGNpbzJfcXVldWUgKnEpDQo+
-ID4gICAgICAgICAgICAgICAgIGlmIChxLT5idWZzW2ldKSB7DQo+ID4gICAgICAgICAgICAgICAg
-ICAgICAgICAgYXRvbWljX2RlYygmcS0+YnVmc19xdWV1ZWQpOw0KPiA+ICAgICAgICAgICAgICAg
-ICAgICAgICAgIHZiMl9idWZmZXJfZG9uZSgmcS0+YnVmc1tpXS0+dmJiLnZiMl9idWYsDQo+ID4g
-LSAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIFZCMl9CVUZfU1RBVEVfRVJS
-T1IpOw0KPiA+ICsgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBzdGF0ZSk7
-DQo+IA0KPiBuaXQ6IERvZXMgaXQgcmVhbGx5IGV4Y2VlZCA4MCBjaGFyYWN0ZXJzIGFmdGVyIGZv
-bGRpbmcgaW50byBwcmV2aW91cyBsaW5lPw0KPiANCg0KVGhhbmtzIGZvciBjYXRjaGluZyB0aGlz
-LCBzZWVtcyB0aGlzIHBhdGNoIHdhcyBtZXJnZWQsIG1heSBJIGZpeCBpdCBpbiBmdXR1cmUgcGF0
-Y2g/DQoNCj4gV2l0aCB0aGUgbml0IGZpeGVkOg0KPiBSZXZpZXdlZC1ieTogVG9tYXN6IEZpZ2Eg
-PHRmaWdhQGNocm9taXVtLm9yZz4NCj4gDQo+IEJlc3QgcmVnYXJkcywNCj4gVG9tYXN6DQo=
+On Thu, Jan 18, 2018 at 08:58:08AM -0800, Dan Williams wrote:
+> On Thu, Jan 18, 2018 at 5:18 AM, Will Deacon <will.deacon@arm.com> wrote:
+> > On Thu, Jan 11, 2018 at 05:41:08PM -0800, Dan Williams wrote:
+> >> On Thu, Jan 11, 2018 at 5:19 PM, Linus Torvalds
+> >> <torvalds@linux-foundation.org> wrote:
+> >> > On Thu, Jan 11, 2018 at 4:46 PM, Dan Williams <dan.j.williams@intel.com> wrote:
+> >> >>
+> >> >> This series incorporates Mark Rutland's latest ARM changes and adds
+> >> >> the x86 specific implementation of 'ifence_array_ptr'. That ifence
+> >> >> based approach is provided as an opt-in fallback, but the default
+> >> >> mitigation, '__array_ptr', uses a 'mask' approach that removes
+> >> >> conditional branches instructions, and otherwise aims to redirect
+> >> >> speculation to use a NULL pointer rather than a user controlled value.
+> >> >
+> >> > Do you have any performance numbers and perhaps example code
+> >> > generation? Is this noticeable? Are there any microbenchmarks showing
+> >> > the difference between lfence use and the masking model?
+> >>
+> >> I don't have performance numbers, but here's a sample code generation
+> >> from __fcheck_files, where the 'and; lea; and' sequence is portion of
+> >> array_ptr() after the mask generation with 'sbb'.
+> >>
+> >>         fdp = array_ptr(fdt->fd, fd, fdt->max_fds);
+> >>      8e7:       8b 02                   mov    (%rdx),%eax
+> >>      8e9:       48 39 c7                cmp    %rax,%rdi
+> >>      8ec:       48 19 c9                sbb    %rcx,%rcx
+> >>      8ef:       48 8b 42 08             mov    0x8(%rdx),%rax
+> >>      8f3:       48 89 fe                mov    %rdi,%rsi
+> >>      8f6:       48 21 ce                and    %rcx,%rsi
+> >>      8f9:       48 8d 04 f0             lea    (%rax,%rsi,8),%rax
+> >>      8fd:       48 21 c8                and    %rcx,%rax
+> >>
+> >>
+> >> > Having both seems good for testing, but wouldn't we want to pick one in the end?
+> >>
+> >> I was thinking we'd keep it as a 'just in case' sort of thing, at
+> >> least until the 'probably safe' assumption of the 'mask' approach has
+> >> more time to settle out.
+> >
+> > From the arm64 side, the only concern I have (and this actually applies to
+> > our CSDB sequence as well) is the calculation of the array size by the
+> > caller. As Linus mentioned at the end of [1], if the determination of the
+> > size argument is based on a conditional branch, then masking doesn't help
+> > because you bound within the wrong range under speculation.
+> >
+> > We ran into this when trying to use masking to protect our uaccess routines
+> > where the conditional bound is either KERNEL_DS or USER_DS. It's possible
+> > that a prior conditional set_fs(KERNEL_DS) could defeat the masking and so
+> > we'd need to throw some heavy barriers in set_fs to make it robust.
+> 
+> At least in the conditional mask case near set_fs() usage the approach
+> we are taking is to use a barrier. I.e. the following guidance from
+> Linus:
+> 
+> "Basically, the rule is trivial: find all 'stac' users, and use address
+> masking if those users already integrate the limit check, and lfence
+> they don't."
+> 
+> ...which translates to narrow the pointer for get_user() and use a
+> barrier  for __get_user().
+
+Great, that matches my thinking re set_fs but I'm still worried about
+finding all the places where the bound is conditional for other users
+of the macro. Then again, finding the places that need this macro in the
+first place is tough enough so perhaps analysing the bound calculation
+doesn't make it much worse.
+
+Will
