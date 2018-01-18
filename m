@@ -1,83 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay4-d.mail.gandi.net ([217.70.183.196]:40108 "EHLO
-        relay4-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751021AbeACRhd (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 3 Jan 2018 12:37:33 -0500
-Date: Wed, 3 Jan 2018 18:37:26 +0100
-From: jacopo mondi <jacopo@jmondi.org>
-To: Fabio Estevam <festevam@gmail.com>
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Magnus Damm <magnus.damm@gmail.com>, geert@glider.be,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        linux-renesas-soc@vger.kernel.org,
-        linux-media <linux-media@vger.kernel.org>,
-        linux-sh@vger.kernel.org,
-        "open list:OPEN FIRMWARE AND FLATTENED DEVICE TREE BINDINGS"
-        <devicetree@vger.kernel.org>,
-        linux-kernel <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH v2 9/9] media: i2c: tw9910: Remove soc_camera dependencies
-Message-ID: <20180103173726.GH9493@w540>
-References: <1514469681-15602-1-git-send-email-jacopo+renesas@jmondi.org>
- <1514469681-15602-10-git-send-email-jacopo+renesas@jmondi.org>
- <CAOMZO5CjrXfzum7JgimGqvnM7kjMyZZdtpEhvYwO-DLnig=uMQ@mail.gmail.com>
- <20180103171347.GF9493@w540>
- <CAOMZO5Biwbwct_vBD3zXyFvFgW00JxVnFoDcQthARVLxdqPYhA@mail.gmail.com>
+Received: from mga05.intel.com ([192.55.52.43]:55366 "EHLO mga05.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750718AbeARWH5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 18 Jan 2018 17:07:57 -0500
+Date: Fri, 19 Jan 2018 00:07:53 +0200
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: Andy Yeh <andy.yeh@intel.com>
+Cc: linux-media@vger.kernel.org, tfiga@chromium.org
+Subject: Re: [PATCH v3] media: imx258: Add imx258 camera sensor driver
+Message-ID: <20180118220753.6gfkpauxibl3igfc@kekkonen.localdomain>
+References: <1516292705-12500-1-git-send-email-andy.yeh@intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <CAOMZO5Biwbwct_vBD3zXyFvFgW00JxVnFoDcQthARVLxdqPYhA@mail.gmail.com>
+In-Reply-To: <1516292705-12500-1-git-send-email-andy.yeh@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Fabio,
+Hi Andy,
 
-On Wed, Jan 03, 2018 at 03:27:53PM -0200, Fabio Estevam wrote:
-> Hi Jacopo,
->
-> On Wed, Jan 3, 2018 at 3:13 PM, jacopo mondi <jacopo@jmondi.org> wrote:
->
-> > That would be true if I would have declared the GPIO to be ACTIVE_LOW.
-> > See patch [5/9] in this series and search for "rstb". The GPIO (which
-> > is shared between two devices) is said to be active high...
->
-> Just looked at your patch 5/9 and it seems it only works because you
-> made two inversions :-)
->
-> Initially the rest GPIO was doing:
->
-> -       gpio_set_value(GPIO_PTT3, 0);
-> -       mdelay(10);
-> -       gpio_set_value(GPIO_PTT3, 1);
-> -       mdelay(10); /* wait to let chip come out of reset */
+On Fri, Jan 19, 2018 at 12:25:05AM +0800, Andy Yeh wrote:
+> Add a V4L2 sub-device driver for the Sony IMX258 image sensor.
+> This is a camera sensor using the I2C bus for control and the
+> CSI-2 bus for data.
+> 
+> Signed-off-by: Andy Yeh <andy.yeh@intel.com>
+> ---
 
-And that's what my driver code does :)
+Please specify in the future which version the differences are from.
 
->
-> So this is an active low reset.
->
+> - Update the streaming function to remove SW_STANDBY in the beginning.
+> - Adjust the delay time from 1ms to 12ms before set stream-on register.
+> - make clear and fix typo in comments.
 
-Indeed
+I'll apply the patch with the following diff. It wouldn't otherwise compile
+on the mainline kernel:
 
-> So you should have converted it to:
->
-> GPIO_LOOKUP("sh7722_pfc", GPIO_PTT3, "rstb", GPIO_ACTIVE_LOW),
->
-> and then in this patch you should do as I said earlier:
->
-> gpiod_set_value(priv->rstb_gpio, 1);
-> usleep_range(500, 1000);
-> gpiod_set_value(priv->rstb_gpio, 0);
+diff --git a/drivers/media/i2c/imx258.c b/drivers/media/i2c/imx258.c
+index 54f1a62e5703..a7e58bd23de7 100644
+--- a/drivers/media/i2c/imx258.c
++++ b/drivers/media/i2c/imx258.c
+@@ -1071,7 +1071,7 @@ static int imx258_probe(struct i2c_client *client)
+ 	/* Initialize subdev */
+ 	imx258->sd.internal_ops = &imx258_internal_ops;
+ 	imx258->sd.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+-	imx258->sd.entity.type = MEDIA_ENT_T_V4L2_SUBDEV_SENSOR;
++	imx258->sd.entity.function = MEDIA_ENT_F_CAM_SENSOR;
+ 
+ 	/* Initialize source pad */
+ 	imx258->pad.flags = MEDIA_PAD_FL_SOURCE;
 
-My point is that if I read the manual and I see an active low gpio (0
-is reset state) then the driver code uses it as and active high one (1
-is the reset state), that would be weird to me.
+-- 
+Regards,
 
-But maybe that's just me, and if that's common practice, I'll happly
-change this!
-
-Thanks
-   j
+Sakari Ailus
+sakari.ailus@linux.intel.com
