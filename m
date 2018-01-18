@@ -1,162 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:44807 "EHLO
-        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751969AbeAIMqw (ORCPT
+Received: from mail-ot0-f194.google.com ([74.125.82.194]:42849 "EHLO
+        mail-ot0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932691AbeARQ6K (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 9 Jan 2018 07:46:52 -0500
-Subject: Re: [PATCHv5 0/3] drm/i915: add DisplayPort CEC-Tunneling-over-AUX
- support
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Daniel Vetter <daniel.vetter@ffwll.ch>,
-        dri-devel@lists.freedesktop.org,
-        Carlos Santa <carlos.santa@intel.com>,
-        =?UTF-8?B?VmlsbGUgU3lyasOkbMOk?= <ville.syrjala@linux.intel.com>,
-        Sean Paul <seanpaul@chromium.org>
-References: <20171120114211.21825-1-hverkuil@xs4all.nl>
- <3f7a93ba-8a7d-c2bf-151a-b5b59a3c6fbd@xs4all.nl>
- <fd864450-0b0c-c867-c108-f51e788adec0@xs4all.nl>
-Message-ID: <b6ac8671-7b66-977e-1322-f31e08d76436@xs4all.nl>
-Date: Tue, 9 Jan 2018 13:46:44 +0100
+        Thu, 18 Jan 2018 11:58:10 -0500
+Received: by mail-ot0-f194.google.com with SMTP id s3so20666191otc.9
+        for <linux-media@vger.kernel.org>; Thu, 18 Jan 2018 08:58:10 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <fd864450-0b0c-c867-c108-f51e788adec0@xs4all.nl>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <20180118131837.GA20783@arm.com>
+References: <151571798296.27429.7166552848688034184.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <CA+55aFzNQ8CZ8iNcPXrCfyk=1edMiRGDA0fY0rd87BsFKBxgAw@mail.gmail.com>
+ <CAPcyv4gPcV7MRumSJNz6nDw=HhKO4MK2QqKbj4uc_6APsSFr+g@mail.gmail.com> <20180118131837.GA20783@arm.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Date: Thu, 18 Jan 2018 08:58:08 -0800
+Message-ID: <CAPcyv4gPLx74CAHGGrC3R-fgrh0vUmCbLNXZ0f7PTiKi0f+hCQ@mail.gmail.com>
+Subject: Re: [PATCH v2 00/19] prevent bounds-check bypass via speculative execution
+To: Will Deacon <will.deacon@arm.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        kernel-hardening@lists.openwall.com,
+        Peter Zijlstra <peterz@infradead.org>,
+        Alan Cox <alan.cox@intel.com>,
+        Alexei Starovoitov <ast@kernel.org>,
+        Solomon Peachy <pizza@shaftnet.org>,
+        "H. Peter Anvin" <hpa@zytor.com>,
+        Christian Lamparter <chunkeey@googlemail.com>,
+        Elena Reshetova <elena.reshetova@intel.com>,
+        linux-arch@vger.kernel.org, Andi Kleen <ak@linux.intel.com>,
+        "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>,
+        Linux SCSI List <linux-scsi@vger.kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>,
+        "the arch/x86 maintainers" <x86@kernel.org>,
+        Russell King <linux@armlinux.org.uk>,
+        Ingo Molnar <mingo@redhat.com>,
+        Catalin Marinas <catalin.marinas@arm.com>,
+        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Tom Lendacky <thomas.lendacky@amd.com>,
+        Kees Cook <keescook@chromium.org>, Jan Kara <jack@suse.com>,
+        Al Viro <viro@zeniv.linux.org.uk>, qla2xxx-upstream@qlogic.com,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Kalle Valo <kvalo@codeaurora.org>,
+        Alan Cox <alan@linux.intel.com>,
+        "Martin K. Petersen" <martin.petersen@oracle.com>,
+        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
+        Greg KH <gregkh@linuxfoundation.org>,
+        Linux Wireless List <linux-wireless@vger.kernel.org>,
+        "Eric W. Biederman" <ebiederm@xmission.com>,
+        Network Development <netdev@vger.kernel.org>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-First of all a Happy New Year for all of you!
+On Thu, Jan 18, 2018 at 5:18 AM, Will Deacon <will.deacon@arm.com> wrote:
+> Hi Dan, Linus,
+>
+> On Thu, Jan 11, 2018 at 05:41:08PM -0800, Dan Williams wrote:
+>> On Thu, Jan 11, 2018 at 5:19 PM, Linus Torvalds
+>> <torvalds@linux-foundation.org> wrote:
+>> > On Thu, Jan 11, 2018 at 4:46 PM, Dan Williams <dan.j.williams@intel.com> wrote:
+>> >>
+>> >> This series incorporates Mark Rutland's latest ARM changes and adds
+>> >> the x86 specific implementation of 'ifence_array_ptr'. That ifence
+>> >> based approach is provided as an opt-in fallback, but the default
+>> >> mitigation, '__array_ptr', uses a 'mask' approach that removes
+>> >> conditional branches instructions, and otherwise aims to redirect
+>> >> speculation to use a NULL pointer rather than a user controlled value.
+>> >
+>> > Do you have any performance numbers and perhaps example code
+>> > generation? Is this noticeable? Are there any microbenchmarks showing
+>> > the difference between lfence use and the masking model?
+>>
+>> I don't have performance numbers, but here's a sample code generation
+>> from __fcheck_files, where the 'and; lea; and' sequence is portion of
+>> array_ptr() after the mask generation with 'sbb'.
+>>
+>>         fdp = array_ptr(fdt->fd, fd, fdt->max_fds);
+>>      8e7:       8b 02                   mov    (%rdx),%eax
+>>      8e9:       48 39 c7                cmp    %rax,%rdi
+>>      8ec:       48 19 c9                sbb    %rcx,%rcx
+>>      8ef:       48 8b 42 08             mov    0x8(%rdx),%rax
+>>      8f3:       48 89 fe                mov    %rdi,%rsi
+>>      8f6:       48 21 ce                and    %rcx,%rsi
+>>      8f9:       48 8d 04 f0             lea    (%rax,%rsi,8),%rax
+>>      8fd:       48 21 c8                and    %rcx,%rax
+>>
+>>
+>> > Having both seems good for testing, but wouldn't we want to pick one in the end?
+>>
+>> I was thinking we'd keep it as a 'just in case' sort of thing, at
+>> least until the 'probably safe' assumption of the 'mask' approach has
+>> more time to settle out.
+>
+> From the arm64 side, the only concern I have (and this actually applies to
+> our CSDB sequence as well) is the calculation of the array size by the
+> caller. As Linus mentioned at the end of [1], if the determination of the
+> size argument is based on a conditional branch, then masking doesn't help
+> because you bound within the wrong range under speculation.
+>
+> We ran into this when trying to use masking to protect our uaccess routines
+> where the conditional bound is either KERNEL_DS or USER_DS. It's possible
+> that a prior conditional set_fs(KERNEL_DS) could defeat the masking and so
+> we'd need to throw some heavy barriers in set_fs to make it robust.
 
-And secondly: can this v5 patch series be reviewed/merged? It's been waiting
-for that for a very long time now...
+At least in the conditional mask case near set_fs() usage the approach
+we are taking is to use a barrier. I.e. the following guidance from
+Linus:
 
-Regards,
+"Basically, the rule is trivial: find all 'stac' users, and use address
+masking if those users already integrate the limit check, and lfence
+they don't."
 
-	Hans
-
-On 12/11/17 09:57, Hans Verkuil wrote:
-> Ping again. Added a CC to Ville whom I inexplicably forgot to add when
-> I sent the v5 patch series.
-> 
-> Regards,
-> 
-> 	Hans
-> 
-> On 01/12/17 08:23, Hans Verkuil wrote:
->> Ping!
->>
->> I really like to get this in for 4.16 so I can move forward with hooking
->> this up for nouveau/amd.
->>
->> Regards,
->>
->> 	Hans
->>
->> On 11/20/2017 12:42 PM, Hans Verkuil wrote:
->>> This patch series adds support for the DisplayPort CEC-Tunneling-over-AUX
->>> feature. This patch series is based on the 4.14 mainline release but applies
->>> as well to drm-next.
->>>
->>> This patch series has been tested with my NUC7i5BNK, a Samsung USB-C to 
->>> HDMI adapter and a Club 3D DisplayPort MST Hub + modified UpTab DP-to-HDMI
->>> adapter (where the CEC pin is wired up).
->>>
->>> Please note this comment at the start of drm_dp_cec.c:
->>>
->>> ----------------------------------------------------------------------
->>> Unfortunately it turns out that we have a chicken-and-egg situation
->>> here. Quite a few active (mini-)DP-to-HDMI or USB-C-to-HDMI adapters
->>> have a converter chip that supports CEC-Tunneling-over-AUX (usually the
->>> Parade PS176 or MegaChips MCDP2900), but they do not wire up the CEC pin,
->>> thus making CEC useless.
->>>
->>> Sadly there is no way for this driver to know this. What happens is
->>> that a /dev/cecX device is created that is isolated and unable to see
->>> any of the other CEC devices. Quite literally the CEC wire is cut
->>> (or in this case, never connected in the first place).
->>>
->>> I suspect that the reason so few adapters support this is that this
->>> tunneling protocol was never supported by any OS. So there was no
->>> easy way of testing it, and no incentive to correctly wire up the
->>> CEC pin.
->>>
->>> Hopefully by creating this driver it will be easier for vendors to
->>> finally fix their adapters and test the CEC functionality.
->>>
->>> I keep a list of known working adapters here:
->>>
->>> https://hverkuil.home.xs4all.nl/cec-status.txt
->>>
->>> Please mail me (hverkuil@xs4all.nl) if you find an adapter that works
->>> and is not yet listed there.
->>>
->>> Note that the current implementation does not support CEC over an MST hub.
->>> As far as I can see there is no mechanism defined in the DisplayPort
->>> standard to transport CEC interrupts over an MST device. It might be
->>> possible to do this through polling, but I have not been able to get that
->>> to work.
->>> ----------------------------------------------------------------------
->>>
->>> I really hope that this work will provide an incentive for vendors to
->>> finally connect the CEC pin. It's a shame that there are so few adapters
->>> that work (I found only two USB-C to HDMI adapters that work, and no
->>> (mini-)DP to HDMI adapters at all).
->>>
->>> Hopefully if this gets merged there will be an incentive for vendors
->>> to make adapters where this actually works. It is a very nice feature
->>> for HTPC boxes.
->>>
->>> The main reason why this v5 is delayed by 2 months is due to the fact
->>> that I needed some dedicated time to investigate what happens when an
->>> MST hub is in use. It turns out that this is not working. There is no
->>> mechanism defined in the DisplayPort standard to transport the CEC
->>> interrupt back up the MST chain. I was actually able to send a CEC
->>> message but the interrupt that tells when the transmit finished is
->>> unavailable.
->>>
->>> I attempted to implement this via polling, but I got weird errors
->>> and was not able to read the DP_DEVICE_SERVICE_IRQ_VECTOR_ESI1
->>> register. I decided to give up on this for now and just disable CEC
->>> for DP-to-HDMI adapters after an MST hub. I plan to revisit this
->>> later since it would be neat to make this work as well. Although it
->>> might not be possible at all.
->>>
->>> If anyone is interested, work-in-progress for this is here:
->>>
->>> https://git.linuxtv.org/hverkuil/media_tree.git/log/?h=dp-cec-mst
->>>
->>> Note that I removed the Tested-by tag from Carlos Santa due to the
->>> almost complete rework of the third patch. Carlos, can you test this again?
->>>
->>> Regards,
->>>
->>>         Hans
->>>
->>> Changes since v4:
->>>
->>> - Updated comment at the start of drm_dp_cec.c
->>> - Add edid pointer to drm_dp_cec_configure_adapter
->>> - Reworked the last patch (adding CEC to i915) based on Ville's comments
->>>   and my MST testing:
->>> 	- register/unregister CEC in intel_dp_connector_register/unregister
->>> 	- add comment and check if connector is registered in long_pulse
->>> 	- unregister CEC if an MST 'connector' is detected.
->>>
->>> _______________________________________________
->>> dri-devel mailing list
->>> dri-devel@lists.freedesktop.org
->>> https://lists.freedesktop.org/mailman/listinfo/dri-devel
->>>
->>
->> _______________________________________________
->> dri-devel mailing list
->> dri-devel@lists.freedesktop.org
->> https://lists.freedesktop.org/mailman/listinfo/dri-devel
->>
-> 
-> _______________________________________________
-> dri-devel mailing list
-> dri-devel@lists.freedesktop.org
-> https://lists.freedesktop.org/mailman/listinfo/dri-devel
-> 
+...which translates to narrow the pointer for get_user() and use a
+barrier  for __get_user().
