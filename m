@@ -1,101 +1,138 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f169.google.com ([209.85.216.169]:36624 "EHLO
-        mail-qt0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932794AbeARUBm (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:36481 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750767AbeARVlw (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 18 Jan 2018 15:01:42 -0500
-Received: by mail-qt0-f169.google.com with SMTP id z11so7473667qtm.3
-        for <linux-media@vger.kernel.org>; Thu, 18 Jan 2018 12:01:42 -0800 (PST)
-Received: from Constantine (pool-96-230-237-116.bstnma.fios.verizon.net. [96.230.237.116])
-        by smtp.gmail.com with ESMTPSA id j7sm4848813qth.31.2018.01.18.12.01.41
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
-        Thu, 18 Jan 2018 12:01:42 -0800 (PST)
-Date: Thu, 18 Jan 2018 15:01:07 -0500
-From: Douglas Fischer <fischerdouglasc@gmail.com>
-To: linux-media@vger.kernel.org
-Subject: [PATCH] media: radio: Tuning bugfix for si470x over i2c
-Message-ID: <20180118150107.5c7938f5@Constantine>
+        Thu, 18 Jan 2018 16:41:52 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Will Deacon <will.deacon@arm.com>
+Cc: Dan Williams <dan.j.williams@intel.com>,
+        Linus Torvalds <torvalds@linux-foundation.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        kernel-hardening@lists.openwall.com,
+        Peter Zijlstra <peterz@infradead.org>,
+        Alan Cox <alan.cox@intel.com>,
+        Alexei Starovoitov <ast@kernel.org>,
+        Solomon Peachy <pizza@shaftnet.org>,
+        "H. Peter Anvin" <hpa@zytor.com>,
+        Christian Lamparter <chunkeey@googlemail.com>,
+        Elena Reshetova <elena.reshetova@intel.com>,
+        linux-arch@vger.kernel.org, Andi Kleen <ak@linux.intel.com>,
+        "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>,
+        Linux SCSI List <linux-scsi@vger.kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>,
+        the arch/x86 maintainers <x86@kernel.org>,
+        Russell King <linux@armlinux.org.uk>,
+        Ingo Molnar <mingo@redhat.com>,
+        Catalin Marinas <catalin.marinas@arm.com>,
+        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Tom Lendacky <thomas.lendacky@amd.com>,
+        Kees Cook <keescook@chromium.org>, Jan Kara <jack@suse.com>,
+        Al Viro <viro@zeniv.linux.org.uk>, qla2xxx-upstream@qlogic.com,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Kalle Valo <kvalo@codeaurora.org>,
+        Alan Cox <alan@linux.intel.com>,
+        "Martin K. Petersen" <martin.petersen@oracle.com>,
+        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
+        Greg KH <gregkh@linuxfoundation.org>,
+        Linux Wireless List <linux-wireless@vger.kernel.org>,
+        "Eric W. Biederman" <ebiederm@xmission.com>,
+        Network Development <netdev@vger.kernel.org>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        "David S. Miller" <davem@davemloft.net>
+Subject: Re: [PATCH v2 00/19] prevent bounds-check bypass via speculative execution
+Date: Thu, 18 Jan 2018 23:41:57 +0200
+Message-ID: <1726114.TonTVukLyd@avalon>
+In-Reply-To: <20180118170547.GF12394@arm.com>
+References: <151571798296.27429.7166552848688034184.stgit@dwillia2-desk3.amr.corp.intel.com> <CAPcyv4gPLx74CAHGGrC3R-fgrh0vUmCbLNXZ0f7PTiKi0f+hCQ@mail.gmail.com> <20180118170547.GF12394@arm.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fixed si470x_set_channel() trying to tune before chip is turned
-on, which causes warnings in dmesg and when probing, makes driver
-wait for 3s for tuning timeout. This issue did not affect USB
-devices because they have a different probing sequence.
+Hi Will,
 
-Signed-off-by: Douglas Fischer <fischerdouglasc@gmail.com>
----
+On Thursday, 18 January 2018 19:05:47 EET Will Deacon wrote:
+> On Thu, Jan 18, 2018 at 08:58:08AM -0800, Dan Williams wrote:
+> > On Thu, Jan 18, 2018 at 5:18 AM, Will Deacon wrote:
+> >> On Thu, Jan 11, 2018 at 05:41:08PM -0800, Dan Williams wrote:
+> >>> On Thu, Jan 11, 2018 at 5:19 PM, Linus Torvalds wrote:
+> >>>> On Thu, Jan 11, 2018 at 4:46 PM, Dan Williams wrote:
+> >>>>> This series incorporates Mark Rutland's latest ARM changes and adds
+> >>>>> the x86 specific implementation of 'ifence_array_ptr'. That ifence
+> >>>>> based approach is provided as an opt-in fallback, but the default
+> >>>>> mitigation, '__array_ptr', uses a 'mask' approach that removes
+> >>>>> conditional branches instructions, and otherwise aims to redirect
+> >>>>> speculation to use a NULL pointer rather than a user controlled
+> >>>>> value.
+> >>>> 
+> >>>> Do you have any performance numbers and perhaps example code
+> >>>> generation? Is this noticeable? Are there any microbenchmarks showing
+> >>>> the difference between lfence use and the masking model?
+> >>> 
+> >>> I don't have performance numbers, but here's a sample code generation
+> >>> from __fcheck_files, where the 'and; lea; and' sequence is portion of
+> >>> array_ptr() after the mask generation with 'sbb'.
+> >>> 
+> >>>         fdp = array_ptr(fdt->fd, fd, fdt->max_fds);
+> >>>      
+> >>>      8e7:       8b 02                   mov    (%rdx),%eax
+> >>>      8e9:       48 39 c7                cmp    %rax,%rdi
+> >>>      8ec:       48 19 c9                sbb    %rcx,%rcx
+> >>>      8ef:       48 8b 42 08             mov    0x8(%rdx),%rax
+> >>>      8f3:       48 89 fe                mov    %rdi,%rsi
+> >>>      8f6:       48 21 ce                and    %rcx,%rsi
+> >>>      8f9:       48 8d 04 f0             lea    (%rax,%rsi,8),%rax
+> >>>      8fd:       48 21 c8                and    %rcx,%rax
+> >>>> 
+> >>>> Having both seems good for testing, but wouldn't we want to pick one
+> >>>> in the end?
+> >>> 
+> >>> I was thinking we'd keep it as a 'just in case' sort of thing, at
+> >>> least until the 'probably safe' assumption of the 'mask' approach has
+> >>> more time to settle out.
+> >> 
+> >> From the arm64 side, the only concern I have (and this actually applies
+> >> to our CSDB sequence as well) is the calculation of the array size by
+> >> the caller. As Linus mentioned at the end of [1], if the determination
+> >> of the size argument is based on a conditional branch, then masking
+> >> doesn't help because you bound within the wrong range under speculation.
+> >> 
+> >> We ran into this when trying to use masking to protect our uaccess
+> >> routines where the conditional bound is either KERNEL_DS or USER_DS.
+> >> It's possible that a prior conditional set_fs(KERNEL_DS) could defeat
+> >> the masking and so we'd need to throw some heavy barriers in set_fs to
+> >> make it robust.
+> > 
+> > At least in the conditional mask case near set_fs() usage the approach
+> > we are taking is to use a barrier. I.e. the following guidance from
+> > Linus:
+> > 
+> > "Basically, the rule is trivial: find all 'stac' users, and use address
+> > masking if those users already integrate the limit check, and lfence
+> > they don't."
+> > 
+> > ...which translates to narrow the pointer for get_user() and use a
+> > barrier  for __get_user().
+> 
+> Great, that matches my thinking re set_fs but I'm still worried about
+> finding all the places where the bound is conditional for other users
+> of the macro. Then again, finding the places that need this macro in the
+> first place is tough enough so perhaps analysing the bound calculation
+> doesn't make it much worse.
 
-diff -uprN linux.orig/drivers/media/radio/si470x/radio-si470x-common.c
-linux/drivers/media/radio/si470x/radio-si470x-common.c ---
-linux.orig/drivers/media/radio/si470x/radio-si470x-common.c
-2018-01-15 21:58:10.675620432 -0500 +++
-linux/drivers/media/radio/si470x/radio-si470x-common.c
-2018-01-16 17:04:59.706409128 -0500 @@ -207,29 +207,37 @@ static int
-si470x_set_chan(struct si470x unsigned long time_left; bool timed_out =
-false; 
--	/* start tuning */
--	radio->registers[CHANNEL] &= ~CHANNEL_CHAN;
--	radio->registers[CHANNEL] |= CHANNEL_TUNE | chan;
--	retval = si470x_set_register(radio, CHANNEL);
--	if (retval < 0)
--		goto done;
-+	retval = si470x_get_register(radio, POWERCFG);
-+	if (retval)
-+		return retval;
- 
--	/* wait till tune operation has completed */
--	reinit_completion(&radio->completion);
--	time_left = wait_for_completion_timeout(&radio->completion,
--
-msecs_to_jiffies(tune_timeout));
--	if (time_left == 0)
--		timed_out = true;
-+	if ( (radio->registers[POWERCFG] & POWERCFG_ENABLE) && 
-+		(radio->registers[POWERCFG] & POWERCFG_DMUTE) ) { 
- 
--	if ((radio->registers[STATUSRSSI] & STATUSRSSI_STC) == 0)
--		dev_warn(&radio->videodev.dev, "tune does not
-complete\n");
--	if (timed_out)
--		dev_warn(&radio->videodev.dev,
--			"tune timed out after %u ms\n", tune_timeout);
-+		/* start tuning */
-+		radio->registers[CHANNEL] &= ~CHANNEL_CHAN;
-+		radio->registers[CHANNEL] |= CHANNEL_TUNE | chan;
-+		retval = si470x_set_register(radio, CHANNEL);
-+		if (retval < 0)
-+			goto done;
- 
--	/* stop tuning */
--	radio->registers[CHANNEL] &= ~CHANNEL_TUNE;
--	retval = si470x_set_register(radio, CHANNEL);
-+		/* wait till tune operation has completed */
-+		reinit_completion(&radio->completion);
-+		time_left =
-wait_for_completion_timeout(&radio->completion,
-+
-msecs_to_jiffies(tune_timeout));
-+		if (time_left == 0)
-+			timed_out = true;
-+	
-+		if ((radio->registers[STATUSRSSI] & STATUSRSSI_STC) ==
-0)
-+			dev_warn(&radio->videodev.dev, "tune does not
-complete\n");
-+		if (timed_out)
-+			dev_warn(&radio->videodev.dev,
-+				"tune timed out after %u ms\n",
-tune_timeout);
-+	
-+		/* stop tuning */
-+		radio->registers[CHANNEL] &= ~CHANNEL_TUNE;
-+		retval = si470x_set_register(radio, CHANNEL);
-+	}
- 
- done:
- 	return retval;
+It might not now, but if the bound calculation changes later, I'm pretty sure 
+we'll forget to update the speculation barrier macro at least in some cases. 
+Without the help of static (or possibly dynamic) code analysis I think we're 
+bound to reintroduce problems over time, but that's true for finding places 
+where the barrier is needed, not just for barrier selection based on bound 
+calculation.
+
+-- 
+Regards,
+
+Laurent Pinchart
