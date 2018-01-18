@@ -1,108 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga06.intel.com ([134.134.136.31]:30992 "EHLO mga06.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1756169AbeAHJfr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 8 Jan 2018 04:35:47 -0500
-Date: Mon, 8 Jan 2018 11:35:13 +0200
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        Jacopo Mondi <jacopo@jmondi.org>,
-        "H . Nikolaus Schaller" <hns@goldelico.com>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Rob Herring <robh@kernel.org>,
-        Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Subject: Re: [PATCH v2 2/2] media: ov9650: add device tree binding
-Message-ID: <20180108093513.nvr2e7vbt7imai2p@paasikivi.fi.intel.com>
-References: <1515344064-23156-1-git-send-email-akinobu.mita@gmail.com>
- <1515344064-23156-3-git-send-email-akinobu.mita@gmail.com>
+Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:39641 "EHLO
+        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S932462AbeARNTX (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 18 Jan 2018 08:19:23 -0500
+Subject: Re: [Patch v6 02/12] [media] s5p-mfc: Adding initial support for MFC
+ v10.10
+To: Smitha T Murthy <smitha.t@samsung.com>,
+        Philippe Ombredanne <pombredanne@nexb.com>
+Cc: "moderated list:ARM/FREESCALE IMX / MXC ARM ARCHITECTURE"
+        <linux-arm-kernel@lists.infradead.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>, kyungmin.park@samsung.com,
+        kamil@wypas.org, jtp.park@samsung.com, a.hajda@samsung.com,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        pankaj.dubey@samsung.com, krzk@kernel.org,
+        m.szyprowski@samsung.com, s.nawrocki@samsung.com,
+        Rob Herring <robh+dt@kernel.org>,
+        "open list:OPEN FIRMWARE AND FLATTENED DEVICE TREE BINDINGS"
+        <devicetree@vger.kernel.org>
+References: <CGME20171208093637epcas1p217ea0e337333ebf6918bc0418753d2af@epcas1p2.samsung.com>
+ <1512724105-1778-1-git-send-email-smitha.t@samsung.com>
+ <1512724105-1778-3-git-send-email-smitha.t@samsung.com>
+ <CAOFm3uHyNt3k+_n3SvSP-BNFeEeu1CO6PpEbxs9JU0MxsHm=Jg@mail.gmail.com>
+ <1516278981.22129.12.camel@smitha-fedora>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <332f1f0e-bfa9-4102-6c0d-28cf13eeeaad@xs4all.nl>
+Date: Thu, 18 Jan 2018 14:19:09 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1515344064-23156-3-git-send-email-akinobu.mita@gmail.com>
+In-Reply-To: <1516278981.22129.12.camel@smitha-fedora>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Akinobu,
-
-Thanks for the update.
-
-On Mon, Jan 08, 2018 at 01:54:24AM +0900, Akinobu Mita wrote:
-> Now the ov9650 driver supports device tree probing.  So this adds a
-> device tree binding documentation.
+On 01/18/18 13:36, Smitha T Murthy wrote:
+> On Fri, 2017-12-08 at 14:25 +0100, Philippe Ombredanne wrote:
+>> Smitha,
+>>
+>> On Fri, Dec 8, 2017 at 10:08 AM, Smitha T Murthy <smitha.t@samsung.com> wrote:
+>>> Adding the support for MFC v10.10, with new register file and
+>>> necessary hw control, decoder, encoder and structural changes.
+>>>
+>>> CC: Rob Herring <robh+dt@kernel.org>
+>>> CC: devicetree@vger.kernel.org
+>>> Signed-off-by: Smitha T Murthy <smitha.t@samsung.com>
+>>> Reviewed-by: Andrzej Hajda <a.hajda@samsung.com>
+>>> Acked-by: Rob Herring <robh@kernel.org>
+>> []
+>>> --- /dev/null
+>>> +++ b/drivers/media/platform/s5p-mfc/regs-mfc-v10.h
+>>> @@ -0,0 +1,36 @@
+>>> +/*
+>>> + * Register definition file for Samsung MFC V10.x Interface (FIMV) driver
+>>> + *
+>>> + * Copyright (c) 2017 Samsung Electronics Co., Ltd.
+>>> + *     http://www.samsung.com/
+>>> + *
+>>> + * This program is free software; you can redistribute it and/or modify
+>>> + * it under the terms of the GNU General Public License version 2 as
+>>> + * published by the Free Software Foundation.
+>>> + */
+>>
+>> Have you considered using the new SPDX ids instead of this fine legalese? e.g.:
+>>
+>> // SPDX-License-Identifier: GPL-2.0
+>>
+>> This is much shorter and neater (unless you are a legalese lover of
+>> course!)  Check also Thomas doc patches and Linus comments on why he
+>> prefers the C++ comment style for these.
+>>
+>> And even better could be this more compact form? I am a big fan of the
+>> C++ style comments for these (and so is Linus)
+>>
+>> // SPDX-License-Identifier: GPL-2.0
+>> // Copyright (c) 2017 Samsung Electronics Co., Ltd.
+>> // Register definition file for Samsung MFC V10.x Interface (FIMV) driver
+>>
+>> You can also read this fine article from a fellow Samsung colleague
+>> [1]. And if you ever consider doing this for all Samsung's past,
+>> present and future contributions, you will have my deep gratitude
+>>
+>> [1] https://blogs.s-osg.org/linux-kernel-license-practices-revisited-spdx/
+>>
+> Ok I will change to the SPDX license in the next patch series for the
+> v10 register file. Correspondingly for the MFC driver's files I will
+> update the license as a separate patch and submit.
 > 
-> Cc: Jacopo Mondi <jacopo@jmondi.org>
-> Cc: H. Nikolaus Schaller <hns@goldelico.com>
-> Cc: Hugues Fruchet <hugues.fruchet@st.com>
-> Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
-> Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> Cc: Rob Herring <robh@kernel.org>
-> Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-> ---
-> * Changelog v2
-> - Split binding documentation, suggested by Rob Herring and Jacopo Mondi
-> - Improve the wording for compatible property in the binding documentation,
->   suggested by Jacopo Mondi
-> - Improve the description for the device node in the binding documentation,
->   suggested by Sakari Ailus
-> 
->  .../devicetree/bindings/media/i2c/ov9650.txt       | 36 ++++++++++++++++++++++
->  1 file changed, 36 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/media/i2c/ov9650.txt
-> 
-> diff --git a/Documentation/devicetree/bindings/media/i2c/ov9650.txt b/Documentation/devicetree/bindings/media/i2c/ov9650.txt
-> new file mode 100644
-> index 0000000..506dfc5
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/media/i2c/ov9650.txt
-> @@ -0,0 +1,36 @@
-> +* Omnivision OV9650/OV9652 CMOS sensor
-> +
-> +Required Properties:
-> +- compatible: shall be one of
-> +	"ovti,ov9650"
-> +	"ovti,ov9652"
-> +- clocks: reference to the xvclk input clock.
-> +
-> +Optional Properties:
-> +- reset-gpios: reference to the GPIO connected to the resetb pin, if any.
-> +  Active is high.
-> +- powerdown-gpios: reference to the GPIO connected to the pwdn pin, if any.
-> +  Active is high.
-> +
-> +The device node shall contain one 'port' child node with one child 'endpoint'
-> +subnode for its digital output video port, in accordance with the video
-> +interface bindings defined in Documentation/devicetree/bindings/media/
-> +video-interfaces.txt.
-> +
-> +Example:
-> +
-> +&i2c0 {
-> +	ov9650: camera@30 {
-> +		compatible = "ovti,ov9650";
-> +		reg = <0x30>;
-> +		reset-gpios = <&axi_gpio_0 0 GPIO_ACTIVE_HIGH>;
-> +		powerdown-gpios = <&axi_gpio_0 1 GPIO_ACTIVE_HIGH>;
-> +		clocks = <&xclk>;
-> +
-> +		port {
-> +			ov9650_0: endpoint {
-> +				remote-endpoint = <&vcap1_in0>;
-> +			};
-> +		};
-> +	};
-> +};
 
-I was going to say you're missing the MAINTAINERS entry for this newly
-added file but then I noticed that the entire driver is missing an entry.
-Still this file should have a MAINTAINERS entry added for it independently
-of that, in the same patch.
+Ah, I forgot about this series. I'll try to review it tomorrow or Monday.
 
-Cc Sylwester.
+Sorry about the delay,
 
--- 
-Kind regards,
-
-Sakari Ailus
-sakari.ailus@linux.intel.com
+	Hans
