@@ -1,82 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:59729 "EHLO gofer.mess.org"
+Received: from foss.arm.com ([217.140.101.70]:55256 "EHLO foss.arm.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750907AbeAEMC4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 5 Jan 2018 07:02:56 -0500
-Date: Fri, 5 Jan 2018 12:02:53 +0000
-From: Sean Young <sean@mess.org>
-To: Philipp Rossak <embed3d@gmail.com>
-Cc: mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
-        maxime.ripard@free-electrons.com, wens@csie.org,
-        linux@armlinux.org.uk, p.zabel@pengutronix.de,
-        andi.shyti@samsung.com, linux-media@vger.kernel.org,
-        devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-kernel@vger.kernel.org, linux-sunxi@googlegroups.com
-Subject: Re: [PATCH v3 0/6] arm: sunxi: IR support for A83T
-Message-ID: <20180105120253.zvwaz25scuk76bnt@gofer.mess.org>
-References: <20171219080747.4507-1-embed3d@gmail.com>
+        id S1756245AbeARNSc (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 18 Jan 2018 08:18:32 -0500
+Date: Thu, 18 Jan 2018 13:18:37 +0000
+From: Will Deacon <will.deacon@arm.com>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        kernel-hardening@lists.openwall.com,
+        Peter Zijlstra <peterz@infradead.org>,
+        Alan Cox <alan.cox@intel.com>,
+        Alexei Starovoitov <ast@kernel.org>,
+        Solomon Peachy <pizza@shaftnet.org>,
+        "H. Peter Anvin" <hpa@zytor.com>,
+        Christian Lamparter <chunkeey@googlemail.com>,
+        Elena Reshetova <elena.reshetova@intel.com>,
+        linux-arch@vger.kernel.org, Andi Kleen <ak@linux.intel.com>,
+        "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>,
+        Linux SCSI List <linux-scsi@vger.kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>,
+        the arch/x86 maintainers <x86@kernel.org>,
+        Russell King <linux@armlinux.org.uk>,
+        Ingo Molnar <mingo@redhat.com>,
+        Catalin Marinas <catalin.marinas@arm.com>,
+        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Tom Lendacky <thomas.lendacky@amd.com>,
+        Kees Cook <keescook@chromium.org>, Jan Kara <jack@suse.com>,
+        Al Viro <viro@zeniv.linux.org.uk>, qla2xxx-upstream@qlogic.com,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Kalle Valo <kvalo@codeaurora.org>,
+        Alan Cox <alan@linux.intel.com>,
+        "Martin K. Petersen" <martin.petersen@oracle.com>,
+        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
+        Greg KH <gregkh@linuxfoundation.org>,
+        Linux Wireless List <linux-wireless@vger.kernel.org>,
+        "Eric W. Biederman" <ebiederm@xmission.com>,
+        Network Development <netdev@vger.kernel.org>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH v2 00/19] prevent bounds-check bypass via speculative
+ execution
+Message-ID: <20180118131837.GA20783@arm.com>
+References: <151571798296.27429.7166552848688034184.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <CA+55aFzNQ8CZ8iNcPXrCfyk=1edMiRGDA0fY0rd87BsFKBxgAw@mail.gmail.com>
+ <CAPcyv4gPcV7MRumSJNz6nDw=HhKO4MK2QqKbj4uc_6APsSFr+g@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20171219080747.4507-1-embed3d@gmail.com>
+In-Reply-To: <CAPcyv4gPcV7MRumSJNz6nDw=HhKO4MK2QqKbj4uc_6APsSFr+g@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Dec 19, 2017 at 09:07:41AM +0100, Philipp Rossak wrote:
-> This patch series adds support for the sunxi A83T ir module and enhances 
-> the sunxi-ir driver. Right now the base clock frequency for the ir driver
-> is a hard coded define and is set to 8 MHz.
-> This works for the most common ir receivers. On the Sinovoip Bananapi M3 
-> the ir receiver needs, a 3 MHz base clock frequency to work without
-> problems with this driver.
-> 
-> This patch series adds support for an optinal property that makes it able
-> to override the default base clock frequency and enables the ir interface 
-> on the a83t and the Bananapi M3.
-> 
-> changes since v2:
-> * reorder cir pin (alphabetical)
-> * fix typo in documentation
-> 
-> changes since v1:
-> * fix typos, reword Documentation
-> * initialize 'b_clk_freq' to 'SUNXI_IR_BASE_CLK' & remove if statement
-> * change dev_info() to dev_dbg()
-> * change naming to cir* in dts/dtsi
-> * Added acked Ackedi-by to related patch
-> * use whole memory block instead of registers needed + fix for h3/h5
-> 
-> changes since rfc:
-> * The property is now optinal. If the property is not available in 
->   the dtb the driver uses the default base clock frequency.
-> * the driver prints out the the selected base clock frequency.
-> * changed devicetree property from base-clk-frequency to clock-frequency
-> 
-> Regards,
-> Philipp
-> 
-> 
-> Philipp Rossak (6):
->   media: rc: update sunxi-ir driver to get base clock frequency from
->     devicetree
->   media: dt: bindings: Update binding documentation for sunxi IR
->     controller
->   arm: dts: sun8i: a83t: Add the cir pin for the A83T
->   arm: dts: sun8i: a83t: Add support for the cir interface
->   arm: dts: sun8i: a83t: bananapi-m3: Enable IR controller
->   arm: dts: sun8i: h3-h8: ir register size should be the whole memory
->     block
+Hi Dan, Linus,
 
-I can take this series (through rc-core, i.e. linux-media), but I need an
-maintainer Acked-by: for the sun[x8]i dts changes (all four patches).
+On Thu, Jan 11, 2018 at 05:41:08PM -0800, Dan Williams wrote:
+> On Thu, Jan 11, 2018 at 5:19 PM, Linus Torvalds
+> <torvalds@linux-foundation.org> wrote:
+> > On Thu, Jan 11, 2018 at 4:46 PM, Dan Williams <dan.j.williams@intel.com> wrote:
+> >>
+> >> This series incorporates Mark Rutland's latest ARM changes and adds
+> >> the x86 specific implementation of 'ifence_array_ptr'. That ifence
+> >> based approach is provided as an opt-in fallback, but the default
+> >> mitigation, '__array_ptr', uses a 'mask' approach that removes
+> >> conditional branches instructions, and otherwise aims to redirect
+> >> speculation to use a NULL pointer rather than a user controlled value.
+> >
+> > Do you have any performance numbers and perhaps example code
+> > generation? Is this noticeable? Are there any microbenchmarks showing
+> > the difference between lfence use and the masking model?
+> 
+> I don't have performance numbers, but here's a sample code generation
+> from __fcheck_files, where the 'and; lea; and' sequence is portion of
+> array_ptr() after the mask generation with 'sbb'.
+> 
+>         fdp = array_ptr(fdt->fd, fd, fdt->max_fds);
+>      8e7:       8b 02                   mov    (%rdx),%eax
+>      8e9:       48 39 c7                cmp    %rax,%rdi
+>      8ec:       48 19 c9                sbb    %rcx,%rcx
+>      8ef:       48 8b 42 08             mov    0x8(%rdx),%rax
+>      8f3:       48 89 fe                mov    %rdi,%rsi
+>      8f6:       48 21 ce                and    %rcx,%rsi
+>      8f9:       48 8d 04 f0             lea    (%rax,%rsi,8),%rax
+>      8fd:       48 21 c8                and    %rcx,%rax
+> 
+> 
+> > Having both seems good for testing, but wouldn't we want to pick one in the end?
+> 
+> I was thinking we'd keep it as a 'just in case' sort of thing, at
+> least until the 'probably safe' assumption of the 'mask' approach has
+> more time to settle out.
 
->  Documentation/devicetree/bindings/media/sunxi-ir.txt |  3 +++
->  arch/arm/boot/dts/sun8i-a83t-bananapi-m3.dts         |  7 +++++++
->  arch/arm/boot/dts/sun8i-a83t.dtsi                    | 15 +++++++++++++++
->  arch/arm/boot/dts/sunxi-h3-h5.dtsi                   |  2 +-
->  drivers/media/rc/sunxi-cir.c                         | 19 +++++++++++--------
->  5 files changed, 37 insertions(+), 9 deletions(-)
+>From the arm64 side, the only concern I have (and this actually applies to
+our CSDB sequence as well) is the calculation of the array size by the
+caller. As Linus mentioned at the end of [1], if the determination of the
+size argument is based on a conditional branch, then masking doesn't help
+because you bound within the wrong range under speculation.
 
+We ran into this when trying to use masking to protect our uaccess routines
+where the conditional bound is either KERNEL_DS or USER_DS. It's possible
+that a prior conditional set_fs(KERNEL_DS) could defeat the masking and so
+we'd need to throw some heavy barriers in set_fs to make it robust.
 
-Thanks
-Sean
+The question then is whether or not we're likely to run into this elsewhere,
+and I don't have a good feel for that.
+
+Will
+
+[1] http://lkml.kernel.org/r/CA+55aFz0tsreoa=5Ud2noFCpng-dizLBhT9WU9asyhpLfjdcYA@mail.gmail.com
