@@ -1,85 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vk0-f65.google.com ([209.85.213.65]:39085 "EHLO
-        mail-vk0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752678AbeAJRc5 (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:40608 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1750718AbeARWX5 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 10 Jan 2018 12:32:57 -0500
-Received: by mail-vk0-f65.google.com with SMTP id n4so1766835vkd.6
-        for <linux-media@vger.kernel.org>; Wed, 10 Jan 2018 09:32:56 -0800 (PST)
+        Thu, 18 Jan 2018 17:23:57 -0500
+Date: Fri, 19 Jan 2018 00:23:54 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Jacopo Mondi <jacopo+renesas@jmondi.org>
+Cc: corbet@lwn.net, mchehab@kernel.org, robh+dt@kernel.org,
+        mark.rutland@arm.com, linux-media@vger.kernel.org,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v3 1/2] media: dt-bindings: Add OF properties to ov7670
+Message-ID: <20180118222354.wk74rl4x4ay4gnzc@valkosipuli.retiisi.org.uk>
+References: <1515779808-21420-1-git-send-email-jacopo+renesas@jmondi.org>
+ <1515779808-21420-2-git-send-email-jacopo+renesas@jmondi.org>
 MIME-Version: 1.0
-From: "Werner, Zachary" <werner@teralogics.com>
-Date: Wed, 10 Jan 2018 12:32:55 -0500
-Message-ID: <CAHJmb1dut9vKuOd9C_6NOsp2g85JNRmc35ZfjOFyPdUkod2UMA@mail.gmail.com>
-Subject: media_build modprobe issues with latest Centos7
-To: linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1515779808-21420-2-git-send-email-jacopo+renesas@jmondi.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I'm trying to build using the latest media_build and media_tree
-branches, but I'm getting an issue when running `modprobe -a cx23885`
-(from dmesg):
+On Fri, Jan 12, 2018 at 06:56:47PM +0100, Jacopo Mondi wrote:
+> Describe newly introduced OF properties for ov7670 image sensor.
+> The driver supports two standard properties to configure synchronism
+> signals polarities and one custom property already supported as
+> platform data options by the driver to suppress pixel clock during
+> horizontal blanking.
+> 
+> Re-phrase child nodes description while at there.
+> 
+> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+> ---
+>  Documentation/devicetree/bindings/media/i2c/ov7670.txt | 18 ++++++++++++++++--
+>  1 file changed, 16 insertions(+), 2 deletions(-)
+> 
+> diff --git a/Documentation/devicetree/bindings/media/i2c/ov7670.txt b/Documentation/devicetree/bindings/media/i2c/ov7670.txt
+> index 826b656..7c89ea5 100644
+> --- a/Documentation/devicetree/bindings/media/i2c/ov7670.txt
+> +++ b/Documentation/devicetree/bindings/media/i2c/ov7670.txt
+> @@ -9,14 +9,23 @@ Required Properties:
+>  - clocks: reference to the xclk input clock.
+>  - clock-names: should be "xclk".
+>  
+> +Required Endpoint Properties:
+> +- hsync-active: active state of the HSYNC signal, 0/1 for LOW/HIGH respectively.
+> +  Default is active high.
+> +- vsync-active: active state of the VSYNC signal, 0/1 for LOW/HIGH respectively.
+> +  Default is active high.
 
-[ 5373.246321] Linux video capture interface: v2.00
-[ 5373.257419] rc_core: loading out-of-tree module taints kernel.
-[ 5373.257452] rc_core: module verification failed: signature and/or
-required key missing - tainting kernel
-[ 5373.257939] rc_core: IR Remote Control driver registered, major 246
-[ 5373.257945] WARNING: You are using an experimental version of the
-media stack.
-        As the driver is backported to an older kernel, it doesn't offer
-        enough quality for its usage in production.
-        Use it with care.
-Latest git patches (needed if you report a bug to linux-media@vger.kernel.org):
-        e3ee691dbf24096ea51b3200946b11d68ce75361 media: ov5640: add
-support of RGB565 and YUYV formats
-        f22996db44e2db73b333de25a8939fef2bab9620 media: ov5640: add
-support of DVP parallel interface
-        495f014d313df677015ceedf6cec5feba1ac6570 media: dt-bindings:
-ov5640: refine CSI-2 and add parallel interface
-[ 5373.432275] videobuf2_v4l2: Unknown symbol vb2_buffer_in_use (err 0)
-[ 5373.432283] videobuf2_v4l2: Unknown symbol vb2_core_queue_init (err 0)
-[ 5373.432290] videobuf2_v4l2: Unknown symbol vb2_verify_memory_type (err 0)
-[ 5373.432297] videobuf2_v4l2: Unknown symbol vb2_core_reqbufs (err 0)
-[ 5373.432303] videobuf2_v4l2: Unknown symbol vb2_core_expbuf (err 0)
-[ 5373.432310] videobuf2_v4l2: Unknown symbol vb2_core_create_bufs (err 0)
-[ 5373.432321] videobuf2_v4l2: disagrees about version of symbol vb2_write
-[ 5373.432323] videobuf2_v4l2: Unknown symbol vb2_write (err -22)
-[ 5373.432330] videobuf2_v4l2: Unknown symbol vb2_core_queue_release (err 0)
-[ 5373.432343] videobuf2_v4l2: Unknown symbol vb2_core_prepare_buf (err 0)
-[ 5373.432344] videobuf2_v4l2: disagrees about version of symbol vb2_read
-[ 5373.432345] videobuf2_v4l2: Unknown symbol vb2_read (err -22)
-[ 5373.432351] videobuf2_v4l2: Unknown symbol vb2_core_poll (err 0)
-[ 5373.432357] videobuf2_v4l2: Unknown symbol vb2_core_streamon (err 0)
-[ 5373.432364] videobuf2_v4l2: Unknown symbol vb2_core_querybuf (err 0)
-[ 5373.432371] videobuf2_v4l2: Unknown symbol vb2_core_qbuf (err 0)
-[ 5373.432372] videobuf2_v4l2: disagrees about version of symbol vb2_mmap
-[ 5373.432373] videobuf2_v4l2: Unknown symbol vb2_mmap (err -22)
-[ 5373.432379] videobuf2_v4l2: Unknown symbol vb2_core_dqbuf (err 0)
-[ 5373.432386] videobuf2_v4l2: Unknown symbol vb2_core_streamoff (err 0)
+If the properties are required, you'll have no default value for them.
 
-`lsmod | grep v4l`:
+Other than that, looks good to me.
 
-v4l2_common            21263  1 cx2341x
-videodev              126499  3 cx2341x,v4l2_common,videobuf2_core
-i2c_core               40756  6
-drm,i2c_piix4,drm_kms_helper,v4l2_common,tveeprom,videodev
+> +
+>  Optional Properties:
+>  - reset-gpios: reference to the GPIO connected to the resetb pin, if any.
+>    Active is low.
+>  - powerdown-gpios: reference to the GPIO connected to the pwdn pin, if any.
+>    Active is high.
+> +- ov7670,pclk-hb-disable: a boolean property to suppress pixel clock output
+> +  signal during horizontal blankings.
+>  
+> -The device node must contain one 'port' child node for its digital output
+> -video port, in accordance with the video interface bindings defined in
+> +The device node must contain one 'port' child node with one 'endpoint' child
+> +sub-node for its digital output video port, in accordance with the video
+> +interface bindings defined in:
+>  Documentation/devicetree/bindings/media/video-interfaces.txt.
+>  
+>  Example:
+> @@ -34,8 +43,13 @@ Example:
+>  			assigned-clocks = <&pck0>;
+>  			assigned-clock-rates = <25000000>;
+>  
+> +			ov7670,pclk-hb-disable;
+> +
+>  			port {
+>  				ov7670_0: endpoint {
+> +					hsync-active = <0>;
+> +					vsync-active = <0>;
+> +
+>  					remote-endpoint = <&isi_0>;
+>  				};
+>  			};
+> -- 
+> 2.7.4
+> 
 
-I have verified that there are no other videobuf or v4l modules
-installed in the kernel modules directory, and reloading the modules
-and rebooting does not solve the issue.
-
-This was not an issue for kernel version `3.10.0-693`, but others
-since then have been building but not loading properly with similar
-issues. I'm currently using `3.10.0-693.11.6`.
-
-I have had to make a couple small patches to make the media_build work
-with Centos7. I have patched out from `backports.txt` the
-`v4.14_compiler_h.patch` and `add v3.16_wait_on_bit.patch` lines as
-the kernel appears to have fixed these issues. I have also removed the
-`__LINUX_COMPILER_TYPES_H` from `compiler-gcc.h` as it was causing an
-issue as well.
-
-Any ideas on how to solve this or any troubleshooting tips?
-
-Zach Werner (wernerz)
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
