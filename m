@@ -1,119 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:42498 "EHLO
-        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751775AbeAZMna (ORCPT
+Received: from sub5.mail.dreamhost.com ([208.113.200.129]:47303 "EHLO
+        homiemail-a123.g.dreamhost.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752403AbeARDK7 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 26 Jan 2018 07:43:30 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Daniel Mentz <danielmentz@google.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 09/12] v4l2-compat-ioctl32.c: copy clip list in put_v4l2_window32
-Date: Fri, 26 Jan 2018 13:43:24 +0100
-Message-Id: <20180126124327.16653-10-hverkuil@xs4all.nl>
-In-Reply-To: <20180126124327.16653-1-hverkuil@xs4all.nl>
-References: <20180126124327.16653-1-hverkuil@xs4all.nl>
+        Wed, 17 Jan 2018 22:10:59 -0500
+Subject: Re: [PATCH v2 1/2] si2168: Add spectrum inversion property
+To: Antti Palosaari <crope@iki.fi>, Brad Love <brad@nextdimension.cc>,
+        linux-media@vger.kernel.org
+References: <1516224756-1649-2-git-send-email-brad@nextdimension.cc>
+ <1516225967-21668-1-git-send-email-brad@nextdimension.cc>
+ <dbcea672-b748-0521-b9c1-6aac14b1deac@iki.fi>
+ <2e882928-5c1b-b9ad-96dc-bb41346a32b1@b-rad.cc>
+ <c044b327-eee7-31e1-df93-11e24f336961@nextdimension.cc>
+ <43f50e93-3060-c0cd-ea16-0b0a39c952c0@iki.fi>
+From: Brad Love <brad@nextdimension.cc>
+Message-ID: <d780be11-46af-7293-d80b-40a360d23323@nextdimension.cc>
+Date: Wed, 17 Jan 2018 21:10:58 -0600
+MIME-Version: 1.0
+In-Reply-To: <43f50e93-3060-c0cd-ea16-0b0a39c952c0@iki.fi>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
+Content-Language: en-GB
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
 
-put_v4l2_window32() didn't copy back the clip list to userspace.
-Drivers can update the clip rectangles, so this should be done.
+On 2018-01-17 20:36, Antti Palosaari wrote:
+> On 01/18/2018 03:58 AM, Brad Love wrote:
+>>
+>> On 2018-01-17 16:08, Brad Love wrote:
+>>> On 2018-01-17 16:02, Antti Palosaari wrote:
+>>>>
+>>>> On 01/17/2018 11:52 PM, Brad Love wrote:
+>>>>> Some tuners produce inverted spectrum, but the si2168 is not
+>>>>> currently set up to accept it. This adds an optional parameter
+>>>>> to set the frontend up to receive inverted spectrum.
+>>>>>
+>>>>> Parameter is optional and only boards who enable inversion
+>>>>> will utilize this.
+>>>>>
+>>>>> Signed-off-by: Brad Love <brad@nextdimension.cc>
+>>>>> ---
+>>>>> Changes since v1:
+>>>>> - Embarassing build failure due to missing declaration.
+>>>>>
+>>>>> =C2=A0=C2=A0 drivers/media/dvb-frontends/si2168.c | 3 +++
+>>>>> =C2=A0=C2=A0 drivers/media/dvb-frontends/si2168.h | 3 +++
+>>>>> =C2=A0=C2=A0 2 files changed, 6 insertions(+)
+>>>>>
+>>>>> diff --git a/drivers/media/dvb-frontends/si2168.c
+>>>>> b/drivers/media/dvb-frontends/si2168.c
+>>>>> index c041e79..048b815 100644
+>>>>> --- a/drivers/media/dvb-frontends/si2168.c
+>>>>> +++ b/drivers/media/dvb-frontends/si2168.c
+>>>>> @@ -213,6 +213,7 @@ static int si2168_set_frontend(struct
+>>>>> dvb_frontend *fe)
+>>>>> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 struct i2c_client *client =3D =
+fe->demodulator_priv;
+>>>>> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 struct si2168_dev *dev =3D i2c=
+_get_clientdata(client);
+>>>>> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0 struct dtv_frontend_properties=
+ *c =3D &fe->dtv_property_cache;
+>>>>> +=C2=A0=C2=A0=C2=A0 struct si2168_config *config =3D client->dev.pl=
+atform_data;
+>>>> hmmm, are you sure platform data pointer points is const? I usually
+>>>> tend to store all config information to device state. Then there is =
+no
+>>>> need to care if pointer is valid or not anymore.
+>>>>
+>>>> And inversion happens when those wires are cross-connected
+>>> It just dawned on me that the platform_data is stack allocated and
+>>> therefore not safe to access outside of probe. I will fix this
+>>> momentarily.
+>>>
+>>> I was informed by one of our hardware guys that the two models in pat=
+ch
+>>> 2/2 are inverted spectrum, so I guess they have wires
+>>> cross-connected. I
+>>> can verify this again to be sure.
+>>
+>>
+>> Hello Antti,
+>>
+>> I have confirmation. No 'cross-connected' / swapped differential pair
+>> polarities (if that's what you meant) on the IF pins. The si2157
+>> inverted spectrum output is configurable though, and Hauppauge
+>> have the tuner set up to output inverted. Sounds like it was a decisio=
+n
+>> based on interoperability with older demods.
+>
+> yeah, that was what I was thinking for. That board single tuner and
+> two demods which other demod does not support if spectrum inversion?
+>
+> If there is just si2168 and si2157, you can set both to invert or both
+> to non-invert - the end result is same.
+>
+> Antti
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 58 ++++++++++++++++++---------
- 1 file changed, 39 insertions(+), 19 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-index cf3d4bfcd132..6e3fbbde2c9c 100644
---- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-+++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-@@ -50,6 +50,11 @@ struct v4l2_window32 {
- 
- static int get_v4l2_window32(struct v4l2_window *kp, struct v4l2_window32 __user *up)
- {
-+	struct v4l2_clip32 __user *uclips;
-+	struct v4l2_clip __user *kclips;
-+	compat_caddr_t p;
-+	u32 n;
-+
- 	if (!access_ok(VERIFY_READ, up, sizeof(*up)) ||
- 	    copy_from_user(&kp->w, &up->w, sizeof(up->w)) ||
- 	    get_user(kp->field, &up->field) ||
-@@ -59,38 +64,53 @@ static int get_v4l2_window32(struct v4l2_window *kp, struct v4l2_window32 __user
- 		return -EFAULT;
- 	if (kp->clipcount > 2048)
- 		return -EINVAL;
--	if (kp->clipcount) {
--		struct v4l2_clip32 __user *uclips;
--		struct v4l2_clip __user *kclips;
--		int n = kp->clipcount;
--		compat_caddr_t p;
-+	if (!kp->clipcount) {
-+		kp->clips = NULL;
-+		return 0;
-+	}
- 
--		if (get_user(p, &up->clips))
-+	n = kp->clipcount;
-+	if (get_user(p, &up->clips))
-+		return -EFAULT;
-+	uclips = compat_ptr(p);
-+	kclips = compat_alloc_user_space(n * sizeof(*kclips));
-+	kp->clips = kclips;
-+	while (n--) {
-+		if (copy_in_user(&kclips->c, &uclips->c, sizeof(uclips->c)))
- 			return -EFAULT;
--		uclips = compat_ptr(p);
--		kclips = compat_alloc_user_space(n * sizeof(*kclips));
--		kp->clips = kclips;
--		while (--n >= 0) {
--			if (copy_in_user(&kclips->c, &uclips->c, sizeof(uclips->c)))
--				return -EFAULT;
--			if (put_user(n ? kclips + 1 : NULL, &kclips->next))
--				return -EFAULT;
--			uclips += 1;
--			kclips += 1;
--		}
--	} else
--		kp->clips = NULL;
-+		if (put_user(n ? kclips + 1 : NULL, &kclips->next))
-+			return -EFAULT;
-+		uclips++;
-+		kclips++;
-+	}
- 	return 0;
- }
- 
- static int put_v4l2_window32(struct v4l2_window *kp, struct v4l2_window32 __user *up)
- {
-+	struct v4l2_clip __user *kclips = kp->clips;
-+	struct v4l2_clip32 __user *uclips;
-+	int n = kp->clipcount;
-+	compat_caddr_t p;
-+
- 	if (copy_to_user(&up->w, &kp->w, sizeof(kp->w)) ||
- 	    put_user(kp->field, &up->field) ||
- 	    put_user(kp->chromakey, &up->chromakey) ||
- 	    put_user(kp->clipcount, &up->clipcount) ||
- 	    put_user(kp->global_alpha, &up->global_alpha))
- 		return -EFAULT;
-+	if (!kp->clipcount)
-+		return 0;
-+
-+	if (get_user(p, &up->clips))
-+		return -EFAULT;
-+	uclips = compat_ptr(p);
-+	while (n--) {
-+		if (copy_in_user(&uclips->c, &kclips->c, sizeof(uclips->c)))
-+			return -EFAULT;
-+		uclips++;
-+		kclips++;
-+	}
- 	return 0;
- }
- 
--- 
-2.15.1
+I will check on the HVR975 tomorrow, if it's affected as well I'll
+submit a patch. The lgdt3306a frontend is already set up for auto
+spectrum inversion, so it is able handle the si2157 in either config.
