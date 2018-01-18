@@ -1,51 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gateway21.websitewelcome.com ([192.185.46.109]:14681 "EHLO
-        gateway21.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751683AbeA3A4B (ORCPT
+Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:41681 "EHLO
+        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1755457AbeARKSK (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 29 Jan 2018 19:56:01 -0500
-Received: from cm14.websitewelcome.com (cm14.websitewelcome.com [100.42.49.7])
-        by gateway21.websitewelcome.com (Postfix) with ESMTP id C896E400D25C1
-        for <linux-media@vger.kernel.org>; Mon, 29 Jan 2018 18:33:19 -0600 (CST)
-Date: Mon, 29 Jan 2018 18:33:18 -0600
-From: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        "Gustavo A. R. Silva" <garsilva@embeddedor.com>
-Subject: [PATCH 8/8] platform: vivid-cec: fix potential integer overflow in
- vivid_cec_pin_adap_events
-Message-ID: <00eea53890802b679c138fc7f68a0f162261d95c.1517268668.git.gustavo@embeddedor.com>
-References: <cover.1517268667.git.gustavo@embeddedor.com>
+        Thu, 18 Jan 2018 05:18:10 -0500
+Subject: Re: V4L2 v4l2_event_dequeue blocks forever when USB/UVC disconnects
+To: Michael Walz <m.walz@digitalendoscopy.de>,
+        linux-media@vger.kernel.org
+References: <f31e8344-75fc-c636-8e0e-b41954465e29@digitalendoscopy.de>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <c1b2f8ed-c81a-3545-db28-8a0db57fdb8b@xs4all.nl>
+Date: Thu, 18 Jan 2018 11:18:01 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <cover.1517268667.git.gustavo@embeddedor.com>
+In-Reply-To: <f31e8344-75fc-c636-8e0e-b41954465e29@digitalendoscopy.de>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Cast len to const u64 in order to avoid a potential integer
-overflow. This variable is being used in a context that expects
-an expression of type const u64.
+Hi Michael,
 
-Addresses-Coverity-ID: 1454996 ("Unintentional integer overflow")
-Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
----
- drivers/media/platform/vivid/vivid-cec.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+On 01/18/18 10:57, Michael Walz wrote:
+> Hi there,
+> 
+> I am currently developing a USB/UVC camera and I think I discovered an 
+> issue in the V4L2 event system. In userland I have implemented a thread 
+> for the VIDIOC_DQEVENT ioctl, which blocks until there is a new event. 
+> This works perfectly until the camera is disconnected during operation:
+> 
+> 
+> In v4l2_event_dequeue() the thread is put to sleep with
+> 
+> wait_event_interruptible(fh->wait, fh->navailable != 0)
+> 
+> 
+> and woken up only from  __v4l2_event_queue_fh()
+> 
+> wake_up_all(&fh->wait);
+> 
+> 
+> So the event-dq-thread will only wake up when there is really a new 
+> event queued. It will not wake up when the event is unsubscribed in 
+> v4l2_event_unsubscribe() and it will also not wake up when 
+> video_unregister_device() and and consequently v4l2_fh_exit() is called.
+> 
+> In userland, when the device is disconnected while streaming video, 
+> VIDIOC_DQBUF and all other ioctls return with proper error codes, but 
+> VIDIOC_DQEVENT blocks until doomsday.
+> The only (dirty) workaround I found is sending a signal to the userland 
+> thread to force the wait_event_interruptible() to return.
+> 
+> I think this issue could be solved. I discovered that in videobuf2 a 
+> similar issue is solved by checking the flag q->streaming in
+> wait_event_interruptible() in __vb2_wait_for_done_vb(). In 
+> __vb2_queue_cancel() this flag is deasserted and all threads are woken 
+> up with wake_up_all.
+> I suggest that the problem could be solved by waking the 
+> event-dq-threads in v4l2_event_unsubscribe_all() or 
+> v4l2_event_unsubscribe() so that v4l2_event_dequeue() can return.
+> 
+> Problem is that I have almost no experience in kernel development. Can 
+> somebody with more knowledge in these matters please have a look at this 
+> issue and confirm or correct my observations?
 
-diff --git a/drivers/media/platform/vivid/vivid-cec.c b/drivers/media/platform/vivid/vivid-cec.c
-index b55d278..30240ab 100644
---- a/drivers/media/platform/vivid/vivid-cec.c
-+++ b/drivers/media/platform/vivid/vivid-cec.c
-@@ -83,7 +83,7 @@ static void vivid_cec_pin_adap_events(struct cec_adapter *adap, ktime_t ts,
- 	if (adap == NULL)
- 		return;
- 	ts = ktime_sub_us(ts, (CEC_TIM_START_BIT_TOTAL +
--			       len * 10 * CEC_TIM_DATA_BIT_TOTAL));
-+			       (const u64)len * 10 * CEC_TIM_DATA_BIT_TOTAL));
- 	cec_queue_pin_cec_event(adap, false, ts);
- 	ts = ktime_add_us(ts, CEC_TIM_START_BIT_LOW);
- 	cec_queue_pin_cec_event(adap, true, ts);
--- 
-2.7.4
+You're absolutely correct, this is a bug. There are two problems: the
+first is that v4l2_event_unsubscribe doesn't call wake_up_all, the
+second is that __v4l2_event_dequeue doesn't detect if the device was
+unplugged.
+
+Are you able to compile the kernel if I give you a patch to test?
+
+It should be a fairly easy fix.
+
+Regards,
+
+	Hans
