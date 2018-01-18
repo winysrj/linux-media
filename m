@@ -1,379 +1,1755 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay6-d.mail.gandi.net ([217.70.183.198]:46095 "EHLO
-        relay6-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752906AbeAZNuR (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 26 Jan 2018 08:50:17 -0500
-From: Jacopo Mondi <jacopo+renesas@jmondi.org>
-To: laurent.pinchart@ideasonboard.com, magnus.damm@gmail.com,
-        geert@glider.be, hverkuil@xs4all.nl, mchehab@kernel.org,
-        festevam@gmail.com, sakari.ailus@iki.fi, robh+dt@kernel.org,
-        mark.rutland@arm.com, pombredanne@nexb.com
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-sh@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH v7 8/9] media: i2c: tw9910: Remove soc_camera dependencies
-Date: Fri, 26 Jan 2018 14:48:44 +0100
-Message-Id: <1516974528-11120-13-git-send-email-jacopo+renesas@jmondi.org>
-In-Reply-To: <1516974528-11120-1-git-send-email-jacopo+renesas@jmondi.org>
-References: <1516974528-11120-1-git-send-email-jacopo+renesas@jmondi.org>
+Received: from mail-dm3nam03on0121.outbound.protection.outlook.com ([104.47.41.121]:3328
+        "EHLO NAM03-DM3-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1754920AbeARIwJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 18 Jan 2018 03:52:09 -0500
+From: <Yasunari.Takiguchi@sony.com>
+To: <linux-kernel@vger.kernel.org>, <devicetree@vger.kernel.org>,
+        <linux-media@vger.kernel.org>
+CC: <tbird20d@gmail.com>, <frowand.list@gmail.com>,
+        <Yasunari.Takiguchi@sony.com>, <Masayuki.Yamamoto@sony.com>,
+        <Hideki.Nozawa@sony.com>, <Kota.Yonezawa@sony.com>,
+        <Toshihiko.Matsumoto@sony.com>, <Satoshi.C.Watanabe@sony.com>
+Subject: [PATCH v5 10/12] [media] cxd2880: Add DVB-T2 control functions for the driver
+Date: Thu, 18 Jan 2018 17:55:32 +0900
+Message-ID: <20180118085532.21738-1-Yasunari.Takiguchi@sony.com>
+In-Reply-To: <20180118084016.20689-1-Yasunari.Takiguchi@sony.com>
+References: <20180118084016.20689-1-Yasunari.Takiguchi@sony.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Remove soc_camera framework dependencies from tw9910 sensor driver.
-- Handle clock and gpios
-- Register async subdevice
-- Remove soc_camera specific g/s_mbus_config operations
-- Add kernel doc to driver interface header file
-- Adjust build system
+From: Yasunari Takiguchi <Yasunari.Takiguchi@sony.com>
 
-This commit does not remove the original soc_camera based driver as long
-as other platforms depends on soc_camera-based CEU driver.
+Provide definitions, interfaces and functions needed for DVB-T2
+of the Sony CXD2880 DVB-T2/T tuner + demodulator driver.
 
-Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Yasunari Takiguchi <Yasunari.Takiguchi@sony.com>
+Signed-off-by: Masayuki Yamamoto <Masayuki.Yamamoto@sony.com>
+Signed-off-by: Hideki Nozawa <Hideki.Nozawa@sony.com>
+Signed-off-by: Kota Yonezawa <Kota.Yonezawa@sony.com>
+Signed-off-by: Toshihiko Matsumoto <Toshihiko.Matsumoto@sony.com>
+Signed-off-by: Satoshi Watanabe <Satoshi.C.Watanabe@sony.com>
 ---
- drivers/media/i2c/Kconfig  |   9 +++
- drivers/media/i2c/Makefile |   1 +
- drivers/media/i2c/tw9910.c | 162 ++++++++++++++++++++++++++++-----------------
- include/media/i2c/tw9910.h |   9 +++
- 4 files changed, 120 insertions(+), 61 deletions(-)
 
-diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
-index a61d7f4..804a1bf 100644
---- a/drivers/media/i2c/Kconfig
-+++ b/drivers/media/i2c/Kconfig
-@@ -423,6 +423,15 @@ config VIDEO_TW9906
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called tw9906.
- 
-+config VIDEO_TW9910
-+	tristate "Techwell TW9910 video decoder"
-+	depends on VIDEO_V4L2 && I2C
-+	---help---
-+	  Support for Techwell TW9910 NTSC/PAL/SECAM video decoder.
-+
-+	  To compile this driver as a module, choose M here: the
-+	  module will be called tw9910.
-+
- config VIDEO_VPX3220
- 	tristate "vpx3220a, vpx3216b & vpx3214c video decoders"
- 	depends on VIDEO_V4L2 && I2C
-diff --git a/drivers/media/i2c/Makefile b/drivers/media/i2c/Makefile
-index fb99293..e26544f 100644
---- a/drivers/media/i2c/Makefile
-+++ b/drivers/media/i2c/Makefile
-@@ -48,6 +48,7 @@ obj-$(CONFIG_VIDEO_TVP7002) += tvp7002.o
- obj-$(CONFIG_VIDEO_TW2804) += tw2804.o
- obj-$(CONFIG_VIDEO_TW9903) += tw9903.o
- obj-$(CONFIG_VIDEO_TW9906) += tw9906.o
-+obj-$(CONFIG_VIDEO_TW9910) += tw9910.o
- obj-$(CONFIG_VIDEO_CS3308) += cs3308.o
- obj-$(CONFIG_VIDEO_CS5345) += cs5345.o
- obj-$(CONFIG_VIDEO_CS53L32A) += cs53l32a.o
-diff --git a/drivers/media/i2c/tw9910.c b/drivers/media/i2c/tw9910.c
-index bdb5e0a..96792df 100644
---- a/drivers/media/i2c/tw9910.c
-+++ b/drivers/media/i2c/tw9910.c
-@@ -1,6 +1,9 @@
-+// SPDX-License-Identifier: GPL-2.0
- /*
-  * tw9910 Video Driver
-  *
-+ * Copyright (C) 2017 Jacopo Mondi <jacopo+renesas@jmondi.org>
+[Change list]
+Changes in V5
+   Using SPDX-License-Identifier
+   drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt2.c
+      -removed unnecessary if()        
+      -modified return error code
+      -removed unnecessary parentheses 
+
+Changes in V4
+   drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt2.c
+      -removed unnecessary initialization at variable declaration
+      -removed unnecessary brace {}
+      -modified how to write consecutive registers
+
+Changes in V3
+   drivers/media/dvb-frontends/cxd2880/cxd2880_dvbt2.h
+      -changed hexadecimal code to lower case. 
+   drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt2.c
+      -modified return code
+      -modified coding style of if() 
+      -changed hexadecimal code to lower case. 
+   drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt2.h
+      -modified return code
+
+ .../media/dvb-frontends/cxd2880/cxd2880_dvbt2.h    |  385 +++++++
+ .../dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt2.c   | 1217 ++++++++++++++++++++
+ .../dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt2.h   |   65 ++
+ 3 files changed, 1667 insertions(+)
+ create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_dvbt2.h
+ create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt2.c
+ create mode 100644 drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt2.h
+
+diff --git a/drivers/media/dvb-frontends/cxd2880/cxd2880_dvbt2.h b/drivers/media/dvb-frontends/cxd2880/cxd2880_dvbt2.h
+new file mode 100644
+index 000000000000..191047b158fe
+--- /dev/null
++++ b/drivers/media/dvb-frontends/cxd2880/cxd2880_dvbt2.h
+@@ -0,0 +1,385 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++/*
++ * cxd2880_dvbt2.h
++ * Sony CXD2880 DVB-T2/T tuner + demodulator driver
++ * DVB-T2 related definitions
 + *
-  * Copyright (C) 2008 Renesas Solutions Corp.
-  * Kuninori Morimoto <morimoto.kuninori@renesas.com>
-  *
-@@ -10,12 +13,10 @@
-  * Copyright 2006-7 Jonathan Corbet <corbet@lwn.net>
-  * Copyright (C) 2008 Magnus Damm
-  * Copyright (C) 2008, Guennadi Liakhovetski <kernel@pengutronix.de>
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License version 2 as
-- * published by the Free Software Foundation.
-  */
- 
-+#include <linux/clk.h>
-+#include <linux/gpio/consumer.h>
- #include <linux/init.h>
- #include <linux/module.h>
- #include <linux/i2c.h>
-@@ -25,9 +26,7 @@
- #include <linux/v4l2-mediabus.h>
- #include <linux/videodev2.h>
- 
--#include <media/soc_camera.h>
- #include <media/i2c/tw9910.h>
--#include <media/v4l2-clk.h>
- #include <media/v4l2-subdev.h>
- 
- #define GET_ID(val)  ((val & 0xF8) >> 3)
-@@ -228,8 +227,10 @@ struct tw9910_scale_ctrl {
- 
- struct tw9910_priv {
- 	struct v4l2_subdev		subdev;
--	struct v4l2_clk			*clk;
-+	struct clk			*clk;
- 	struct tw9910_video_info	*info;
-+	struct gpio_desc		*pdn_gpio;
-+	struct gpio_desc		*rstb_gpio;
- 	const struct tw9910_scale_ctrl	*scale;
- 	v4l2_std_id			norm;
- 	u32				revision;
-@@ -582,13 +583,66 @@ static int tw9910_s_register(struct v4l2_subdev *sd,
- }
- #endif
- 
-+static int tw9910_power_on(struct tw9910_priv *priv)
++ * Copyright (C) 2016, 2017, 2018 Sony Semiconductor Solutions Corporation
++ */
++
++#ifndef CXD2880_DVBT2_H
++#define CXD2880_DVBT2_H
++
++#include "cxd2880_common.h"
++
++enum cxd2880_dvbt2_profile {
++	CXD2880_DVBT2_PROFILE_BASE,
++	CXD2880_DVBT2_PROFILE_LITE,
++	CXD2880_DVBT2_PROFILE_ANY
++};
++
++enum cxd2880_dvbt2_version {
++	CXD2880_DVBT2_V111,
++	CXD2880_DVBT2_V121,
++	CXD2880_DVBT2_V131
++};
++
++enum cxd2880_dvbt2_s1 {
++	CXD2880_DVBT2_S1_BASE_SISO = 0x00,
++	CXD2880_DVBT2_S1_BASE_MISO = 0x01,
++	CXD2880_DVBT2_S1_NON_DVBT2 = 0x02,
++	CXD2880_DVBT2_S1_LITE_SISO = 0x03,
++	CXD2880_DVBT2_S1_LITE_MISO = 0x04,
++	CXD2880_DVBT2_S1_RSVD3 = 0x05,
++	CXD2880_DVBT2_S1_RSVD4 = 0x06,
++	CXD2880_DVBT2_S1_RSVD5 = 0x07,
++	CXD2880_DVBT2_S1_UNKNOWN = 0xff
++};
++
++enum cxd2880_dvbt2_base_s2 {
++	CXD2880_DVBT2_BASE_S2_M2K_G_ANY = 0x00,
++	CXD2880_DVBT2_BASE_S2_M8K_G_DVBT = 0x01,
++	CXD2880_DVBT2_BASE_S2_M4K_G_ANY = 0x02,
++	CXD2880_DVBT2_BASE_S2_M1K_G_ANY = 0x03,
++	CXD2880_DVBT2_BASE_S2_M16K_G_ANY = 0x04,
++	CXD2880_DVBT2_BASE_S2_M32K_G_DVBT = 0x05,
++	CXD2880_DVBT2_BASE_S2_M8K_G_DVBT2 = 0x06,
++	CXD2880_DVBT2_BASE_S2_M32K_G_DVBT2 = 0x07,
++	CXD2880_DVBT2_BASE_S2_UNKNOWN = 0xff
++};
++
++enum cxd2880_dvbt2_lite_s2 {
++	CXD2880_DVBT2_LITE_S2_M2K_G_ANY = 0x00,
++	CXD2880_DVBT2_LITE_S2_M8K_G_DVBT = 0x01,
++	CXD2880_DVBT2_LITE_S2_M4K_G_ANY = 0x02,
++	CXD2880_DVBT2_LITE_S2_M16K_G_DVBT2 = 0x03,
++	CXD2880_DVBT2_LITE_S2_M16K_G_DVBT = 0x04,
++	CXD2880_DVBT2_LITE_S2_RSVD1 = 0x05,
++	CXD2880_DVBT2_LITE_S2_M8K_G_DVBT2 = 0x06,
++	CXD2880_DVBT2_LITE_S2_RSVD2 = 0x07,
++	CXD2880_DVBT2_LITE_S2_UNKNOWN = 0xff
++};
++
++enum cxd2880_dvbt2_guard {
++	CXD2880_DVBT2_G1_32 = 0x00,
++	CXD2880_DVBT2_G1_16 = 0x01,
++	CXD2880_DVBT2_G1_8 = 0x02,
++	CXD2880_DVBT2_G1_4 = 0x03,
++	CXD2880_DVBT2_G1_128 = 0x04,
++	CXD2880_DVBT2_G19_128 = 0x05,
++	CXD2880_DVBT2_G19_256 = 0x06,
++	CXD2880_DVBT2_G_RSVD1 = 0x07,
++	CXD2880_DVBT2_G_UNKNOWN = 0xff
++};
++
++enum cxd2880_dvbt2_mode {
++	CXD2880_DVBT2_M2K = 0x00,
++	CXD2880_DVBT2_M8K = 0x01,
++	CXD2880_DVBT2_M4K = 0x02,
++	CXD2880_DVBT2_M1K = 0x03,
++	CXD2880_DVBT2_M16K = 0x04,
++	CXD2880_DVBT2_M32K = 0x05,
++	CXD2880_DVBT2_M_RSVD1 = 0x06,
++	CXD2880_DVBT2_M_RSVD2 = 0x07
++};
++
++enum cxd2880_dvbt2_bw {
++	CXD2880_DVBT2_BW_8 = 0x00,
++	CXD2880_DVBT2_BW_7 = 0x01,
++	CXD2880_DVBT2_BW_6 = 0x02,
++	CXD2880_DVBT2_BW_5 = 0x03,
++	CXD2880_DVBT2_BW_10 = 0x04,
++	CXD2880_DVBT2_BW_1_7 = 0x05,
++	CXD2880_DVBT2_BW_RSVD1 = 0x06,
++	CXD2880_DVBT2_BW_RSVD2 = 0x07,
++	CXD2880_DVBT2_BW_RSVD3 = 0x08,
++	CXD2880_DVBT2_BW_RSVD4 = 0x09,
++	CXD2880_DVBT2_BW_RSVD5 = 0x0a,
++	CXD2880_DVBT2_BW_RSVD6 = 0x0b,
++	CXD2880_DVBT2_BW_RSVD7 = 0x0c,
++	CXD2880_DVBT2_BW_RSVD8 = 0x0d,
++	CXD2880_DVBT2_BW_RSVD9 = 0x0e,
++	CXD2880_DVBT2_BW_RSVD10 = 0x0f,
++	CXD2880_DVBT2_BW_UNKNOWN = 0xff
++};
++
++enum cxd2880_dvbt2_l1pre_type {
++	CXD2880_DVBT2_L1PRE_TYPE_TS = 0x00,
++	CXD2880_DVBT2_L1PRE_TYPE_GS = 0x01,
++	CXD2880_DVBT2_L1PRE_TYPE_TS_GS = 0x02,
++	CXD2880_DVBT2_L1PRE_TYPE_RESERVED = 0x03,
++	CXD2880_DVBT2_L1PRE_TYPE_UNKNOWN = 0xff
++};
++
++enum cxd2880_dvbt2_papr {
++	CXD2880_DVBT2_PAPR_0 = 0x00,
++	CXD2880_DVBT2_PAPR_1 = 0x01,
++	CXD2880_DVBT2_PAPR_2 = 0x02,
++	CXD2880_DVBT2_PAPR_3 = 0x03,
++	CXD2880_DVBT2_PAPR_RSVD1 = 0x04,
++	CXD2880_DVBT2_PAPR_RSVD2 = 0x05,
++	CXD2880_DVBT2_PAPR_RSVD3 = 0x06,
++	CXD2880_DVBT2_PAPR_RSVD4 = 0x07,
++	CXD2880_DVBT2_PAPR_RSVD5 = 0x08,
++	CXD2880_DVBT2_PAPR_RSVD6 = 0x09,
++	CXD2880_DVBT2_PAPR_RSVD7 = 0x0a,
++	CXD2880_DVBT2_PAPR_RSVD8 = 0x0b,
++	CXD2880_DVBT2_PAPR_RSVD9 = 0x0c,
++	CXD2880_DVBT2_PAPR_RSVD10 = 0x0d,
++	CXD2880_DVBT2_PAPR_RSVD11 = 0x0e,
++	CXD2880_DVBT2_PAPR_RSVD12 = 0x0f,
++	CXD2880_DVBT2_PAPR_UNKNOWN = 0xff
++};
++
++enum cxd2880_dvbt2_l1post_constell {
++	CXD2880_DVBT2_L1POST_BPSK = 0x00,
++	CXD2880_DVBT2_L1POST_QPSK = 0x01,
++	CXD2880_DVBT2_L1POST_QAM16 = 0x02,
++	CXD2880_DVBT2_L1POST_QAM64 = 0x03,
++	CXD2880_DVBT2_L1POST_C_RSVD1 = 0x04,
++	CXD2880_DVBT2_L1POST_C_RSVD2 = 0x05,
++	CXD2880_DVBT2_L1POST_C_RSVD3 = 0x06,
++	CXD2880_DVBT2_L1POST_C_RSVD4 = 0x07,
++	CXD2880_DVBT2_L1POST_C_RSVD5 = 0x08,
++	CXD2880_DVBT2_L1POST_C_RSVD6 = 0x09,
++	CXD2880_DVBT2_L1POST_C_RSVD7 = 0x0a,
++	CXD2880_DVBT2_L1POST_C_RSVD8 = 0x0b,
++	CXD2880_DVBT2_L1POST_C_RSVD9 = 0x0c,
++	CXD2880_DVBT2_L1POST_C_RSVD10 = 0x0d,
++	CXD2880_DVBT2_L1POST_C_RSVD11 = 0x0e,
++	CXD2880_DVBT2_L1POST_C_RSVD12 = 0x0f,
++	CXD2880_DVBT2_L1POST_CONSTELL_UNKNOWN = 0xff
++};
++
++enum cxd2880_dvbt2_l1post_cr {
++	CXD2880_DVBT2_L1POST_R1_2 = 0x00,
++	CXD2880_DVBT2_L1POST_R_RSVD1 = 0x01,
++	CXD2880_DVBT2_L1POST_R_RSVD2 = 0x02,
++	CXD2880_DVBT2_L1POST_R_RSVD3 = 0x03,
++	CXD2880_DVBT2_L1POST_R_UNKNOWN = 0xff
++};
++
++enum cxd2880_dvbt2_l1post_fec_type {
++	CXD2880_DVBT2_L1POST_FEC_LDPC16K = 0x00,
++	CXD2880_DVBT2_L1POST_FEC_RSVD1 = 0x01,
++	CXD2880_DVBT2_L1POST_FEC_RSVD2 = 0x02,
++	CXD2880_DVBT2_L1POST_FEC_RSVD3 = 0x03,
++	CXD2880_DVBT2_L1POST_FEC_UNKNOWN = 0xff
++};
++
++enum cxd2880_dvbt2_pp {
++	CXD2880_DVBT2_PP1 = 0x00,
++	CXD2880_DVBT2_PP2 = 0x01,
++	CXD2880_DVBT2_PP3 = 0x02,
++	CXD2880_DVBT2_PP4 = 0x03,
++	CXD2880_DVBT2_PP5 = 0x04,
++	CXD2880_DVBT2_PP6 = 0x05,
++	CXD2880_DVBT2_PP7 = 0x06,
++	CXD2880_DVBT2_PP8 = 0x07,
++	CXD2880_DVBT2_PP_RSVD1 = 0x08,
++	CXD2880_DVBT2_PP_RSVD2 = 0x09,
++	CXD2880_DVBT2_PP_RSVD3 = 0x0a,
++	CXD2880_DVBT2_PP_RSVD4 = 0x0b,
++	CXD2880_DVBT2_PP_RSVD5 = 0x0c,
++	CXD2880_DVBT2_PP_RSVD6 = 0x0d,
++	CXD2880_DVBT2_PP_RSVD7 = 0x0e,
++	CXD2880_DVBT2_PP_RSVD8 = 0x0f,
++	CXD2880_DVBT2_PP_UNKNOWN = 0xff
++};
++
++enum cxd2880_dvbt2_plp_code_rate {
++	CXD2880_DVBT2_R1_2 = 0x00,
++	CXD2880_DVBT2_R3_5 = 0x01,
++	CXD2880_DVBT2_R2_3 = 0x02,
++	CXD2880_DVBT2_R3_4 = 0x03,
++	CXD2880_DVBT2_R4_5 = 0x04,
++	CXD2880_DVBT2_R5_6 = 0x05,
++	CXD2880_DVBT2_R1_3 = 0x06,
++	CXD2880_DVBT2_R2_5 = 0x07,
++	CXD2880_DVBT2_PLP_CR_UNKNOWN = 0xff
++};
++
++enum cxd2880_dvbt2_plp_constell {
++	CXD2880_DVBT2_QPSK = 0x00,
++	CXD2880_DVBT2_QAM16 = 0x01,
++	CXD2880_DVBT2_QAM64 = 0x02,
++	CXD2880_DVBT2_QAM256 = 0x03,
++	CXD2880_DVBT2_CON_RSVD1 = 0x04,
++	CXD2880_DVBT2_CON_RSVD2 = 0x05,
++	CXD2880_DVBT2_CON_RSVD3 = 0x06,
++	CXD2880_DVBT2_CON_RSVD4 = 0x07,
++	CXD2880_DVBT2_CONSTELL_UNKNOWN = 0xff
++};
++
++enum cxd2880_dvbt2_plp_type {
++	CXD2880_DVBT2_PLP_TYPE_COMMON = 0x00,
++	CXD2880_DVBT2_PLP_TYPE_DATA1 = 0x01,
++	CXD2880_DVBT2_PLP_TYPE_DATA2 = 0x02,
++	CXD2880_DVBT2_PLP_TYPE_RSVD1 = 0x03,
++	CXD2880_DVBT2_PLP_TYPE_RSVD2 = 0x04,
++	CXD2880_DVBT2_PLP_TYPE_RSVD3 = 0x05,
++	CXD2880_DVBT2_PLP_TYPE_RSVD4 = 0x06,
++	CXD2880_DVBT2_PLP_TYPE_RSVD5 = 0x07,
++	CXD2880_DVBT2_PLP_TYPE_UNKNOWN = 0xff
++};
++
++enum cxd2880_dvbt2_plp_payload {
++	CXD2880_DVBT2_PLP_PAYLOAD_GFPS = 0x00,
++	CXD2880_DVBT2_PLP_PAYLOAD_GCS = 0x01,
++	CXD2880_DVBT2_PLP_PAYLOAD_GSE = 0x02,
++	CXD2880_DVBT2_PLP_PAYLOAD_TS = 0x03,
++	CXD2880_DVBT2_PLP_PAYLOAD_RSVD1 = 0x04,
++	CXD2880_DVBT2_PLP_PAYLOAD_RSVD2 = 0x05,
++	CXD2880_DVBT2_PLP_PAYLOAD_RSVD3 = 0x06,
++	CXD2880_DVBT2_PLP_PAYLOAD_RSVD4 = 0x07,
++	CXD2880_DVBT2_PLP_PAYLOAD_RSVD5 = 0x08,
++	CXD2880_DVBT2_PLP_PAYLOAD_RSVD6 = 0x09,
++	CXD2880_DVBT2_PLP_PAYLOAD_RSVD7 = 0x0a,
++	CXD2880_DVBT2_PLP_PAYLOAD_RSVD8 = 0x0b,
++	CXD2880_DVBT2_PLP_PAYLOAD_RSVD9 = 0x0c,
++	CXD2880_DVBT2_PLP_PAYLOAD_RSVD10 = 0x0d,
++	CXD2880_DVBT2_PLP_PAYLOAD_RSVD11 = 0x0e,
++	CXD2880_DVBT2_PLP_PAYLOAD_RSVD12 = 0x0f,
++	CXD2880_DVBT2_PLP_PAYLOAD_RSVD13 = 0x10,
++	CXD2880_DVBT2_PLP_PAYLOAD_RSVD14 = 0x11,
++	CXD2880_DVBT2_PLP_PAYLOAD_RSVD15 = 0x12,
++	CXD2880_DVBT2_PLP_PAYLOAD_RSVD16 = 0x13,
++	CXD2880_DVBT2_PLP_PAYLOAD_RSVD17 = 0x14,
++	CXD2880_DVBT2_PLP_PAYLOAD_RSVD18 = 0x15,
++	CXD2880_DVBT2_PLP_PAYLOAD_RSVD19 = 0x16,
++	CXD2880_DVBT2_PLP_PAYLOAD_RSVD20 = 0x17,
++	CXD2880_DVBT2_PLP_PAYLOAD_RSVD21 = 0x18,
++	CXD2880_DVBT2_PLP_PAYLOAD_RSVD22 = 0x19,
++	CXD2880_DVBT2_PLP_PAYLOAD_RSVD23 = 0x1a,
++	CXD2880_DVBT2_PLP_PAYLOAD_RSVD24 = 0x1b,
++	CXD2880_DVBT2_PLP_PAYLOAD_RSVD25 = 0x1c,
++	CXD2880_DVBT2_PLP_PAYLOAD_RSVD26 = 0x1d,
++	CXD2880_DVBT2_PLP_PAYLOAD_RSVD27 = 0x1e,
++	CXD2880_DVBT2_PLP_PAYLOAD_RSVD28 = 0x1f,
++	CXD2880_DVBT2_PLP_PAYLOAD_UNKNOWN = 0xff
++};
++
++enum cxd2880_dvbt2_plp_fec {
++	CXD2880_DVBT2_FEC_LDPC_16K = 0x00,
++	CXD2880_DVBT2_FEC_LDPC_64K = 0x01,
++	CXD2880_DVBT2_FEC_RSVD1 = 0x02,
++	CXD2880_DVBT2_FEC_RSVD2 = 0x03,
++	CXD2880_DVBT2_FEC_UNKNOWN = 0xff
++};
++
++enum cxd2880_dvbt2_plp_mode {
++	CXD2880_DVBT2_PLP_MODE_NOTSPECIFIED = 0x00,
++	CXD2880_DVBT2_PLP_MODE_NM = 0x01,
++	CXD2880_DVBT2_PLP_MODE_HEM = 0x02,
++	CXD2880_DVBT2_PLP_MODE_RESERVED = 0x03,
++	CXD2880_DVBT2_PLP_MODE_UNKNOWN = 0xff
++};
++
++enum cxd2880_dvbt2_plp_btype {
++	CXD2880_DVBT2_PLP_COMMON,
++	CXD2880_DVBT2_PLP_DATA
++};
++
++enum cxd2880_dvbt2_stream {
++	CXD2880_DVBT2_STREAM_GENERIC_PACKETIZED = 0x00,
++	CXD2880_DVBT2_STREAM_GENERIC_CONTINUOUS = 0x01,
++	CXD2880_DVBT2_STREAM_GENERIC_ENCAPSULATED = 0x02,
++	CXD2880_DVBT2_STREAM_TRANSPORT = 0x03,
++	CXD2880_DVBT2_STREAM_UNKNOWN = 0xff
++};
++
++struct cxd2880_dvbt2_l1pre {
++	enum cxd2880_dvbt2_l1pre_type type;
++	u8 bw_ext;
++	enum cxd2880_dvbt2_s1 s1;
++	u8 s2;
++	u8 mixed;
++	enum cxd2880_dvbt2_mode fft_mode;
++	u8 l1_rep;
++	enum cxd2880_dvbt2_guard gi;
++	enum cxd2880_dvbt2_papr papr;
++	enum cxd2880_dvbt2_l1post_constell mod;
++	enum cxd2880_dvbt2_l1post_cr cr;
++	enum cxd2880_dvbt2_l1post_fec_type fec;
++	u32 l1_post_size;
++	u32 l1_post_info_size;
++	enum cxd2880_dvbt2_pp pp;
++	u8 tx_id_availability;
++	u16 cell_id;
++	u16 network_id;
++	u16 sys_id;
++	u8 num_frames;
++	u16 num_symbols;
++	u8 regen;
++	u8 post_ext;
++	u8 num_rf_freqs;
++	u8 rf_idx;
++	enum cxd2880_dvbt2_version t2_version;
++	u8 l1_post_scrambled;
++	u8 t2_base_lite;
++	u32 crc32;
++};
++
++struct cxd2880_dvbt2_plp {
++	u8 id;
++	enum cxd2880_dvbt2_plp_type type;
++	enum cxd2880_dvbt2_plp_payload payload;
++	u8 ff;
++	u8 first_rf_idx;
++	u8 first_frm_idx;
++	u8 group_id;
++	enum cxd2880_dvbt2_plp_constell constell;
++	enum cxd2880_dvbt2_plp_code_rate plp_cr;
++	u8 rot;
++	enum cxd2880_dvbt2_plp_fec fec;
++	u16 num_blocks_max;
++	u8 frm_int;
++	u8 til_len;
++	u8 til_type;
++	u8 in_band_a_flag;
++	u8 in_band_b_flag;
++	u16 rsvd;
++	enum cxd2880_dvbt2_plp_mode plp_mode;
++	u8 static_flag;
++	u8 static_padding_flag;
++};
++
++struct cxd2880_dvbt2_l1post {
++	u16 sub_slices_per_frame;
++	u8 num_plps;
++	u8 num_aux;
++	u8 aux_cfg_rfu;
++	u8 rf_idx;
++	u32 freq;
++	u8 fef_type;
++	u32 fef_length;
++	u8 fef_intvl;
++};
++
++struct cxd2880_dvbt2_ofdm {
++	u8 mixed;
++	u8 is_miso;
++	enum cxd2880_dvbt2_mode mode;
++	enum cxd2880_dvbt2_guard gi;
++	enum cxd2880_dvbt2_pp pp;
++	u8 bw_ext;
++	enum cxd2880_dvbt2_papr papr;
++	u16 num_symbols;
++};
++
++struct cxd2880_dvbt2_bbheader {
++	enum cxd2880_dvbt2_stream stream_input;
++	u8 is_single_input_stream;
++	u8 is_constant_coding_modulation;
++	u8 issy_indicator;
++	u8 null_packet_deletion;
++	u8 ext;
++	u8 input_stream_identifier;
++	u16 user_packet_length;
++	u16 data_field_length;
++	u8 sync_byte;
++	u32 issy;
++	enum cxd2880_dvbt2_plp_mode plp_mode;
++};
++
++#endif
+diff --git a/drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt2.c b/drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt2.c
+new file mode 100644
+index 000000000000..81903102b12f
+--- /dev/null
++++ b/drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt2.c
+@@ -0,0 +1,1217 @@
++// SPDX-License-Identifier: GPL-2.0
++/*
++ * cxd2880_tnrdmd_dvbt2.c
++ * Sony CXD2880 DVB-T2/T tuner + demodulator driver
++ * control functions for DVB-T2
++ *
++ * Copyright (C) 2016, 2017, 2018 Sony Semiconductor Solutions Corporation
++ */
++
++#include "dvb_frontend.h"
++
++#include "cxd2880_tnrdmd_dvbt2.h"
++#include "cxd2880_tnrdmd_dvbt2_mon.h"
++
++static const struct cxd2880_reg_value tune_dmd_setting_seq1[] = {
++	{0x00, 0x00}, {0x31, 0x02},
++};
++
++static const struct cxd2880_reg_value tune_dmd_setting_seq2[] = {
++	{0x00, 0x04}, {0x5d, 0x0b},
++};
++
++static int x_tune_dvbt2_demod_setting(struct cxd2880_tnrdmd
++				      *tnr_dmd,
++				      enum cxd2880_dtv_bandwidth
++				      bandwidth,
++				      enum cxd2880_tnrdmd_clockmode
++				      clk_mode)
 +{
-+	struct i2c_client *client = v4l2_get_subdevdata(&priv->subdev);
++	static const u8 tsif_settings[2] = { 0x01, 0x01 };
++	static const u8 init_settings[14] = {
++		0x07, 0x06, 0x01, 0xf0,	0x00, 0x00, 0x04, 0xb0, 0x00, 0x00,
++		0x09, 0x9c, 0x0e, 0x4c
++	};
++	static const u8 clk_mode_settings_a1[9] = {
++		0x52, 0x49, 0x2c, 0x51,	0x51, 0x3d, 0x15, 0x29, 0x0c
++	};
++
++	static const u8 clk_mode_settings_b1[9] = {
++		0x5d, 0x55, 0x32, 0x5c,	0x5c, 0x45, 0x17, 0x2e, 0x0d
++	};
++
++	static const u8 clk_mode_settings_c1[9] = {
++		0x60, 0x00, 0x34, 0x5e,	0x5e, 0x47, 0x18, 0x2f, 0x0e
++	};
++
++	static const u8 clk_mode_settings_a2[13] = {
++		0x04, 0xe7, 0x94, 0x92,	0x09, 0xcf, 0x7e, 0xd0, 0x49,
++		0xcd, 0xcd, 0x1f, 0x5b
++	};
++
++	static const u8 clk_mode_settings_b2[13] = {
++		0x05, 0x90, 0x27, 0x55,	0x0b, 0x20, 0x8f, 0xd6, 0xea,
++		0xc8, 0xc8, 0x23, 0x91
++	};
++
++	static const u8 clk_mode_settings_c2[13] = {
++		0x05, 0xb8, 0xd8, 0x00,	0x0b, 0x72, 0x93, 0xf3, 0x00,
++		0xcd, 0xcd, 0x24, 0x95
++	};
++
++	static const u8 clk_mode_settings_a3[5] = {
++		0x0b, 0x6a, 0xc9, 0x03, 0x33
++	};
++	static const u8 clk_mode_settings_b3[5] = {
++		0x01, 0x02, 0xe4, 0x03, 0x39
++	};
++	static const u8 clk_mode_settings_c3[5] = {
++		0x01, 0x02, 0xeb, 0x03, 0x3b
++	};
++
++	static const u8 gtdofst[2] = { 0x3f, 0xff };
++
++	static const u8 bw8_gtdofst_a[2] = { 0x19, 0xd2 };
++	static const u8 bw8_nomi_ac[6] = { 0x15, 0x00, 0x00, 0x00, 0x00, 0x00 };
++	static const u8 bw8_nomi_b[6] = { 0x14, 0x6a, 0xaa, 0xaa, 0xab, 0x00 };
++	static const u8 bw8_sst_a[2] = { 0x06, 0x2a };
++	static const u8 bw8_sst_b[2] = { 0x06, 0x29 };
++	static const u8 bw8_sst_c[2] = { 0x06, 0x28 };
++	static const u8 bw8_mrc_a[9] = {
++		0x28, 0x00, 0x50, 0x00, 0x60, 0x00, 0x00, 0x90, 0x00
++	};
++	static const u8 bw8_mrc_b[9] = {
++		0x2d, 0x5e, 0x5a, 0xbd, 0x6c, 0xe3, 0x00, 0xa3, 0x55
++	};
++	static const u8 bw8_mrc_c[9] = {
++		0x2e, 0xaa, 0x5d, 0x55, 0x70, 0x00, 0x00, 0xa8, 0x00
++	};
++
++	static const u8 bw7_nomi_ac[6] = { 0x18, 0x00, 0x00, 0x00, 0x00, 0x00 };
++	static const u8 bw7_nomi_b[6] = { 0x17, 0x55, 0x55, 0x55, 0x55, 0x00 };
++	static const u8 bw7_sst_a[2] = { 0x06, 0x23 };
++	static const u8 bw7_sst_b[2] = { 0x06, 0x22 };
++	static const u8 bw7_sst_c[2] = { 0x06, 0x21 };
++	static const u8 bw7_mrc_a[9] = {
++		0x2d, 0xb6, 0x5b, 0x6d,	0x6d, 0xb6, 0x00, 0xa4, 0x92
++	};
++	static const u8 bw7_mrc_b[9] = {
++		0x33, 0xda, 0x67, 0xb4,	0x7c, 0x71, 0x00, 0xba, 0xaa
++	};
++	static const u8 bw7_mrc_c[9] = {
++		0x35, 0x55, 0x6a, 0xaa,	0x80, 0x00, 0x00, 0xc0, 0x00
++	};
++
++	static const u8 bw6_nomi_ac[6] = { 0x1c, 0x00, 0x00, 0x00, 0x00, 0x00 };
++	static const u8 bw6_nomi_b[6] = { 0x1b, 0x38, 0xe3, 0x8e, 0x39, 0x00 };
++	static const u8 bw6_sst_a[2] = { 0x06, 0x1c };
++	static const u8 bw6_sst_b[2] = { 0x06, 0x1b };
++	static const u8 bw6_sst_c[2] = { 0x06, 0x1a };
++	static const u8 bw6_mrc_a[9] = {
++		0x35, 0x55, 0x6a, 0xaa, 0x80, 0x00, 0x00, 0xc0, 0x00
++	};
++	static const u8 bw6_mrc_b[9] = {
++		0x3c, 0x7e, 0x78, 0xfc,	0x91, 0x2f, 0x00, 0xd9, 0xc7
++	};
++	static const u8 bw6_mrc_c[9] = {
++		0x3e, 0x38, 0x7c, 0x71,	0x95, 0x55, 0x00, 0xdf, 0xff
++	};
++
++	static const u8 bw5_nomi_ac[6] = { 0x21, 0x99, 0x99, 0x99, 0x9a, 0x00 };
++	static const u8 bw5_nomi_b[6] = { 0x20, 0xaa, 0xaa, 0xaa, 0xab, 0x00 };
++	static const u8 bw5_sst_a[2] = { 0x06, 0x15 };
++	static const u8 bw5_sst_b[2] = { 0x06, 0x15 };
++	static const u8 bw5_sst_c[2] = { 0x06, 0x14 };
++	static const u8 bw5_mrc_a[9] = {
++		0x40, 0x00, 0x6a, 0xaa, 0x80, 0x00, 0x00, 0xe6, 0x66
++	};
++	static const u8 bw5_mrc_b[9] = {
++		0x48, 0x97, 0x78, 0xfc, 0x91, 0x2f, 0x01, 0x05, 0x55
++	};
++	static const u8 bw5_mrc_c[9] = {
++		0x4a, 0xaa, 0x7c, 0x71, 0x95, 0x55, 0x01, 0x0c, 0xcc
++	};
++
++	static const u8 bw1_7_nomi_a[6] = {
++		0x68, 0x0f, 0xa2, 0x32, 0xcf, 0x03
++	};
++	static const u8 bw1_7_nomi_c[6] = {
++		0x68, 0x0f, 0xa2, 0x32, 0xcf, 0x03
++	};
++	static const u8 bw1_7_nomi_b[6] = {
++		0x65, 0x2b, 0xa4, 0xcd, 0xd8, 0x03
++	};
++	static const u8 bw1_7_sst_a[2] = { 0x06, 0x0c };
++	static const u8 bw1_7_sst_b[2] = { 0x06, 0x0c };
++	static const u8 bw1_7_sst_c[2] = { 0x06, 0x0b };
++	static const u8 bw1_7_mrc_a[9] = {
++		0x40, 0x00, 0x6a, 0xaa,	0x80, 0x00, 0x02, 0xc9, 0x8f
++	};
++	static const u8 bw1_7_mrc_b[9] = {
++		0x48, 0x97, 0x78, 0xfc, 0x91, 0x2f, 0x03, 0x29, 0x5d
++	};
++	static const u8 bw1_7_mrc_c[9] = {
++		0x4a, 0xaa, 0x7c, 0x71,	0x95, 0x55, 0x03, 0x40, 0x7d
++	};
++
++	const u8 *data = NULL;
++	const u8 *data2 = NULL;
++	const u8 *data3 = NULL;
 +	int ret;
 +
-+	if (priv->clk) {
-+		ret = clk_prepare_enable(priv->clk);
++	if (!tnr_dmd)
++		return -EINVAL;
++
++	ret = cxd2880_io_write_multi_regs(tnr_dmd->io,
++					  CXD2880_IO_TGT_SYS,
++					  tune_dmd_setting_seq1,
++					  ARRAY_SIZE(tune_dmd_setting_seq1));
++	if (ret)
++		return ret;
++
++	ret = cxd2880_io_write_multi_regs(tnr_dmd->io,
++					  CXD2880_IO_TGT_DMD,
++					  tune_dmd_setting_seq2,
++					  ARRAY_SIZE(tune_dmd_setting_seq2));
++	if (ret)
++		return ret;
++
++	if (tnr_dmd->diver_mode != CXD2880_TNRDMD_DIVERMODE_SUB) {
++		ret = tnr_dmd->io->write_reg(tnr_dmd->io,
++					     CXD2880_IO_TGT_DMD,
++					     0x00, 0x00);
++		if (ret)
++			return ret;
++
++		ret = tnr_dmd->io->write_regs(tnr_dmd->io,
++					      CXD2880_IO_TGT_DMD,
++					      0xce, tsif_settings, 2);
 +		if (ret)
 +			return ret;
 +	}
 +
-+	if (priv->pdn_gpio) {
-+		gpiod_set_value(priv->pdn_gpio, 0);
-+		usleep_range(500, 1000);
-+	}
-+
-+	/*
-+	 * FIXME: The reset signal is connected to a shared GPIO on some
-+	 * platforms (namely the SuperH Migo-R). Until a framework becomes
-+	 * available to handle this cleanly, request the GPIO temporarily
-+	 * to avoid conflicts.
-+	 */
-+	priv->rstb_gpio = gpiod_get_optional(&client->dev, "rstb",
-+					     GPIOD_OUT_LOW);
-+	if (IS_ERR(priv->rstb_gpio)) {
-+		dev_info(&client->dev, "Unable to get GPIO \"rstb\"");
-+		return PTR_ERR(priv->rstb_gpio);
-+	}
-+
-+	if (priv->rstb_gpio) {
-+		gpiod_set_value(priv->rstb_gpio, 1);
-+		usleep_range(500, 1000);
-+		gpiod_set_value(priv->rstb_gpio, 0);
-+		usleep_range(500, 1000);
-+
-+		gpiod_put(priv->rstb_gpio);
-+	}
-+
-+	return 0;
-+}
-+
-+static int tw9910_power_off(struct tw9910_priv *priv)
-+{
-+	clk_disable_unprepare(priv->clk);
-+
-+	if (priv->pdn_gpio) {
-+		gpiod_set_value(priv->pdn_gpio, 1);
-+		usleep_range(500, 1000);
-+	}
-+
-+	return 0;
-+}
-+
- static int tw9910_s_power(struct v4l2_subdev *sd, int on)
- {
- 	struct i2c_client *client = v4l2_get_subdevdata(sd);
--	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
- 	struct tw9910_priv *priv = to_tw9910(client);
- 
--	return soc_camera_set_power(&client->dev, ssdd, priv->clk, on);
-+	return on ? tw9910_power_on(priv) :
-+		    tw9910_power_off(priv);
- }
- 
- static int tw9910_set_frame(struct v4l2_subdev *sd, u32 *width, u32 *height)
-@@ -614,7 +668,7 @@ static int tw9910_set_frame(struct v4l2_subdev *sd, u32 *width, u32 *height)
- 	 * set bus width
- 	 */
- 	val = 0x00;
--	if (SOCAM_DATAWIDTH_16 == priv->info->buswidth)
-+	if (priv->info->buswidth == 16)
- 		val = LEN;
- 
- 	ret = tw9910_mask_set(client, OPFORM, LEN, val);
-@@ -799,8 +853,7 @@ static int tw9910_video_probe(struct i2c_client *client)
- 	/*
- 	 * tw9910 only use 8 or 16 bit bus width
- 	 */
--	if (SOCAM_DATAWIDTH_16 != priv->info->buswidth &&
--	    SOCAM_DATAWIDTH_8  != priv->info->buswidth) {
-+	if (priv->info->buswidth != 16 && priv->info->buswidth != 8) {
- 		dev_err(&client->dev, "bus width error\n");
- 		return -ENODEV;
- 	}
-@@ -856,45 +909,6 @@ static int tw9910_enum_mbus_code(struct v4l2_subdev *sd,
- 	return 0;
- }
- 
--static int tw9910_g_mbus_config(struct v4l2_subdev *sd,
--				struct v4l2_mbus_config *cfg)
--{
--	struct i2c_client *client = v4l2_get_subdevdata(sd);
--	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
--
--	cfg->flags = V4L2_MBUS_PCLK_SAMPLE_RISING | V4L2_MBUS_MASTER |
--		V4L2_MBUS_VSYNC_ACTIVE_HIGH | V4L2_MBUS_VSYNC_ACTIVE_LOW |
--		V4L2_MBUS_HSYNC_ACTIVE_HIGH | V4L2_MBUS_HSYNC_ACTIVE_LOW |
--		V4L2_MBUS_DATA_ACTIVE_HIGH;
--	cfg->type = V4L2_MBUS_PARALLEL;
--	cfg->flags = soc_camera_apply_board_flags(ssdd, cfg);
--
--	return 0;
--}
--
--static int tw9910_s_mbus_config(struct v4l2_subdev *sd,
--				const struct v4l2_mbus_config *cfg)
--{
--	struct i2c_client *client = v4l2_get_subdevdata(sd);
--	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
--	u8 val = VSSL_VVALID | HSSL_DVALID;
--	unsigned long flags = soc_camera_apply_board_flags(ssdd, cfg);
--
--	/*
--	 * set OUTCTR1
--	 *
--	 * We use VVALID and DVALID signals to control VSYNC and HSYNC
--	 * outputs, in this mode their polarity is inverted.
--	 */
--	if (flags & V4L2_MBUS_HSYNC_ACTIVE_LOW)
--		val |= HSP_HI;
--
--	if (flags & V4L2_MBUS_VSYNC_ACTIVE_LOW)
--		val |= VSP_HI;
--
--	return i2c_smbus_write_byte_data(client, OUTCTR1, val);
--}
--
- static int tw9910_g_tvnorms(struct v4l2_subdev *sd, v4l2_std_id *norm)
- {
- 	*norm = V4L2_STD_NTSC | V4L2_STD_PAL;
-@@ -905,8 +919,6 @@ static const struct v4l2_subdev_video_ops tw9910_subdev_video_ops = {
- 	.s_std		= tw9910_s_std,
- 	.g_std		= tw9910_g_std,
- 	.s_stream	= tw9910_s_stream,
--	.g_mbus_config	= tw9910_g_mbus_config,
--	.s_mbus_config	= tw9910_s_mbus_config,
- 	.g_tvnorms	= tw9910_g_tvnorms,
- };
- 
-@@ -935,15 +947,14 @@ static int tw9910_probe(struct i2c_client *client,
- 	struct tw9910_video_info	*info;
- 	struct i2c_adapter		*adapter =
- 		to_i2c_adapter(client->dev.parent);
--	struct soc_camera_subdev_desc	*ssdd = soc_camera_i2c_to_desc(client);
- 	int ret;
- 
--	if (!ssdd || !ssdd->drv_priv) {
-+	if (!client->dev.platform_data) {
- 		dev_err(&client->dev, "TW9910: missing platform data!\n");
- 		return -EINVAL;
- 	}
- 
--	info = ssdd->drv_priv;
-+	info = client->dev.platform_data;
- 
- 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA)) {
- 		dev_err(&client->dev,
-@@ -959,13 +970,37 @@ static int tw9910_probe(struct i2c_client *client,
- 
- 	v4l2_i2c_subdev_init(&priv->subdev, client, &tw9910_subdev_ops);
- 
--	priv->clk = v4l2_clk_get(&client->dev, "mclk");
--	if (IS_ERR(priv->clk))
-+	priv->clk = clk_get(&client->dev, "xti");
-+	if (PTR_ERR(priv->clk) == -ENOENT) {
-+		priv->clk = NULL;
-+	} else if (IS_ERR(priv->clk)) {
-+		dev_err(&client->dev, "Unable to get xti clock\n");
- 		return PTR_ERR(priv->clk);
-+	}
-+
-+	priv->pdn_gpio = gpiod_get_optional(&client->dev, "pdn",
-+					    GPIOD_OUT_HIGH);
-+	if (IS_ERR(priv->pdn_gpio)) {
-+		dev_info(&client->dev, "Unable to get GPIO \"pdn\"");
-+		ret = PTR_ERR(priv->pdn_gpio);
-+		goto error_clk_put;
-+	}
- 
- 	ret = tw9910_video_probe(client);
- 	if (ret < 0)
--		v4l2_clk_put(priv->clk);
-+		goto error_gpio_put;
-+
-+	ret = v4l2_async_register_subdev(&priv->subdev);
++	ret = tnr_dmd->io->write_reg(tnr_dmd->io,
++				     CXD2880_IO_TGT_DMD,
++				     0x00, 0x20);
 +	if (ret)
-+		goto error_gpio_put;
++		return ret;
++
++	ret = tnr_dmd->io->write_reg(tnr_dmd->io,
++				     CXD2880_IO_TGT_DMD,
++				     0x8a, init_settings[0]);
++	if (ret)
++		return ret;
++
++	ret = tnr_dmd->io->write_reg(tnr_dmd->io,
++				     CXD2880_IO_TGT_DMD,
++				     0x90, init_settings[1]);
++	if (ret)
++		return ret;
++
++	ret = tnr_dmd->io->write_reg(tnr_dmd->io,
++				     CXD2880_IO_TGT_DMD,
++				     0x00, 0x25);
++	if (ret)
++		return ret;
++
++	ret = tnr_dmd->io->write_regs(tnr_dmd->io,
++				      CXD2880_IO_TGT_DMD,
++				      0xf0, &init_settings[2], 2);
++	if (ret)
++		return ret;
++
++	ret = tnr_dmd->io->write_reg(tnr_dmd->io,
++				     CXD2880_IO_TGT_DMD,
++				     0x00, 0x2a);
++	if (ret)
++		return ret;
++
++	ret = tnr_dmd->io->write_reg(tnr_dmd->io,
++				     CXD2880_IO_TGT_DMD,
++				     0xdc, init_settings[4]);
++	if (ret)
++		return ret;
++
++	ret = tnr_dmd->io->write_reg(tnr_dmd->io,
++				     CXD2880_IO_TGT_DMD,
++				     0xde, init_settings[5]);
++	if (ret)
++		return ret;
++
++	ret = tnr_dmd->io->write_reg(tnr_dmd->io,
++				     CXD2880_IO_TGT_DMD,
++				     0x00, 0x2d);
++	if (ret)
++		return ret;
++
++	ret = tnr_dmd->io->write_regs(tnr_dmd->io,
++				      CXD2880_IO_TGT_DMD,
++				      0x73, &init_settings[6], 4);
++	if (ret)
++		return ret;
++
++	ret = tnr_dmd->io->write_regs(tnr_dmd->io,
++				      CXD2880_IO_TGT_DMD,
++				      0x8f, &init_settings[10], 4);
++	if (ret)
++		return ret;
++
++	switch (clk_mode) {
++	case CXD2880_TNRDMD_CLOCKMODE_A:
++		data = clk_mode_settings_a1;
++		data2 = clk_mode_settings_a2;
++		data3 = clk_mode_settings_a3;
++		break;
++	case CXD2880_TNRDMD_CLOCKMODE_B:
++		data = clk_mode_settings_b1;
++		data2 = clk_mode_settings_b2;
++		data3 = clk_mode_settings_b3;
++		break;
++	case CXD2880_TNRDMD_CLOCKMODE_C:
++		data = clk_mode_settings_c1;
++		data2 = clk_mode_settings_c2;
++		data3 = clk_mode_settings_c3;
++		break;
++	default:
++		return -EINVAL;
++	}
++
++	ret = tnr_dmd->io->write_reg(tnr_dmd->io,
++				     CXD2880_IO_TGT_DMD,
++				     0x00, 0x04);
++	if (ret)
++		return ret;
++
++	ret = tnr_dmd->io->write_regs(tnr_dmd->io,
++				      CXD2880_IO_TGT_DMD,
++				      0x1d, &data[0], 3);
++	if (ret)
++		return ret;
++
++	ret = tnr_dmd->io->write_reg(tnr_dmd->io,
++				     CXD2880_IO_TGT_DMD,
++				     0x22, data[3]);
++	if (ret)
++		return ret;
++
++	ret = tnr_dmd->io->write_reg(tnr_dmd->io,
++				     CXD2880_IO_TGT_DMD,
++				     0x24, data[4]);
++	if (ret)
++		return ret;
++
++	ret = tnr_dmd->io->write_reg(tnr_dmd->io,
++				     CXD2880_IO_TGT_DMD,
++				     0x26, data[5]);
++	if (ret)
++		return ret;
++
++	ret = tnr_dmd->io->write_regs(tnr_dmd->io,
++				      CXD2880_IO_TGT_DMD,
++				      0x29, &data[6], 2);
++	if (ret)
++		return ret;
++
++	ret = tnr_dmd->io->write_reg(tnr_dmd->io,
++				     CXD2880_IO_TGT_DMD,
++				     0x2d, data[8]);
++	if (ret)
++		return ret;
++
++	if (tnr_dmd->diver_mode != CXD2880_TNRDMD_DIVERMODE_SUB) {
++		ret = tnr_dmd->io->write_regs(tnr_dmd->io,
++					      CXD2880_IO_TGT_DMD,
++					      0x2e, &data2[0], 6);
++		if (ret)
++			return ret;
++
++		ret = tnr_dmd->io->write_regs(tnr_dmd->io,
++					      CXD2880_IO_TGT_DMD,
++					      0x35, &data2[6], 7);
++		if (ret)
++			return ret;
++	}
++
++	ret = tnr_dmd->io->write_regs(tnr_dmd->io,
++				      CXD2880_IO_TGT_DMD,
++				      0x3c, &data3[0], 2);
++	if (ret)
++		return ret;
++
++	ret = tnr_dmd->io->write_regs(tnr_dmd->io,
++				      CXD2880_IO_TGT_DMD,
++				      0x56, &data3[2], 3);
++	if (ret)
++		return ret;
++
++	switch (bandwidth) {
++	case CXD2880_DTV_BW_8_MHZ:
++		switch (clk_mode) {
++		case CXD2880_TNRDMD_CLOCKMODE_A:
++		case CXD2880_TNRDMD_CLOCKMODE_C:
++			data = bw8_nomi_ac;
++			break;
++		case CXD2880_TNRDMD_CLOCKMODE_B:
++			data = bw8_nomi_b;
++			break;
++		default:
++			return -EINVAL;
++		}
++
++		ret = tnr_dmd->io->write_regs(tnr_dmd->io,
++					      CXD2880_IO_TGT_DMD,
++					      0x10, data, 6);
++		if (ret)
++			return ret;
++
++		ret = tnr_dmd->io->write_reg(tnr_dmd->io,
++					     CXD2880_IO_TGT_DMD,
++					     0x4a, 0x00);
++		if (ret)
++			return ret;
++
++		switch (clk_mode) {
++		case CXD2880_TNRDMD_CLOCKMODE_A:
++			data = bw8_gtdofst_a;
++			break;
++		case CXD2880_TNRDMD_CLOCKMODE_B:
++		case CXD2880_TNRDMD_CLOCKMODE_C:
++			data = gtdofst;
++			break;
++		default:
++			return -EINVAL;
++		}
++
++		ret = tnr_dmd->io->write_regs(tnr_dmd->io,
++					      CXD2880_IO_TGT_DMD,
++					      0x19, data, 2);
++		if (ret)
++			return ret;
++
++		switch (clk_mode) {
++		case CXD2880_TNRDMD_CLOCKMODE_A:
++			data = bw8_sst_a;
++			break;
++		case CXD2880_TNRDMD_CLOCKMODE_B:
++			data = bw8_sst_b;
++			break;
++		case CXD2880_TNRDMD_CLOCKMODE_C:
++			data = bw8_sst_c;
++			break;
++		default:
++			return -EINVAL;
++		}
++
++		ret = tnr_dmd->io->write_regs(tnr_dmd->io,
++					      CXD2880_IO_TGT_DMD,
++					      0x1b, data, 2);
++		if (ret)
++			return ret;
++
++		if (tnr_dmd->diver_mode == CXD2880_TNRDMD_DIVERMODE_MAIN) {
++			switch (clk_mode) {
++			case CXD2880_TNRDMD_CLOCKMODE_A:
++				data = bw8_mrc_a;
++				break;
++			case CXD2880_TNRDMD_CLOCKMODE_B:
++				data = bw8_mrc_b;
++				break;
++			case CXD2880_TNRDMD_CLOCKMODE_C:
++				data = bw8_mrc_c;
++				break;
++			default:
++				return -EINVAL;
++			}
++
++			ret = tnr_dmd->io->write_regs(tnr_dmd->io,
++						      CXD2880_IO_TGT_DMD,
++						      0x4b, data, 9);
++			if (ret)
++				return ret;
++		}
++		break;
++
++	case CXD2880_DTV_BW_7_MHZ:
++		switch (clk_mode) {
++		case CXD2880_TNRDMD_CLOCKMODE_A:
++		case CXD2880_TNRDMD_CLOCKMODE_C:
++			data = bw7_nomi_ac;
++			break;
++		case CXD2880_TNRDMD_CLOCKMODE_B:
++			data = bw7_nomi_b;
++			break;
++		default:
++			return -EINVAL;
++		}
++
++		ret = tnr_dmd->io->write_regs(tnr_dmd->io,
++					      CXD2880_IO_TGT_DMD,
++					      0x10, data, 6);
++		if (ret)
++			return ret;
++
++		ret = tnr_dmd->io->write_reg(tnr_dmd->io,
++					     CXD2880_IO_TGT_DMD,
++					     0x4a, 0x02);
++		if (ret)
++			return ret;
++
++		ret = tnr_dmd->io->write_regs(tnr_dmd->io,
++					      CXD2880_IO_TGT_DMD,
++					      0x19, gtdofst, 2);
++		if (ret)
++			return ret;
++
++		switch (clk_mode) {
++		case CXD2880_TNRDMD_CLOCKMODE_A:
++			data = bw7_sst_a;
++			break;
++		case CXD2880_TNRDMD_CLOCKMODE_B:
++			data = bw7_sst_b;
++			break;
++		case CXD2880_TNRDMD_CLOCKMODE_C:
++			data = bw7_sst_c;
++			break;
++		default:
++			return -EINVAL;
++		}
++
++		ret = tnr_dmd->io->write_regs(tnr_dmd->io,
++					      CXD2880_IO_TGT_DMD,
++					      0x1b, data, 2);
++		if (ret)
++			return ret;
++
++		if (tnr_dmd->diver_mode == CXD2880_TNRDMD_DIVERMODE_MAIN) {
++			switch (clk_mode) {
++			case CXD2880_TNRDMD_CLOCKMODE_A:
++				data = bw7_mrc_a;
++				break;
++			case CXD2880_TNRDMD_CLOCKMODE_B:
++				data = bw7_mrc_b;
++				break;
++			case CXD2880_TNRDMD_CLOCKMODE_C:
++				data = bw7_mrc_c;
++				break;
++			default:
++				return -EINVAL;
++			}
++
++			ret = tnr_dmd->io->write_regs(tnr_dmd->io,
++						      CXD2880_IO_TGT_DMD,
++						      0x4b, data, 9);
++			if (ret)
++				return ret;
++		}
++		break;
++
++	case CXD2880_DTV_BW_6_MHZ:
++		switch (clk_mode) {
++		case CXD2880_TNRDMD_CLOCKMODE_A:
++		case CXD2880_TNRDMD_CLOCKMODE_C:
++			data = bw6_nomi_ac;
++			break;
++		case CXD2880_TNRDMD_CLOCKMODE_B:
++			data = bw6_nomi_b;
++			break;
++		default:
++			return -EINVAL;
++		}
++
++		ret = tnr_dmd->io->write_regs(tnr_dmd->io,
++					      CXD2880_IO_TGT_DMD,
++					      0x10, data, 6);
++		if (ret)
++			return ret;
++
++		ret = tnr_dmd->io->write_reg(tnr_dmd->io,
++					     CXD2880_IO_TGT_DMD,
++					     0x4a, 0x04);
++		if (ret)
++			return ret;
++
++		ret = tnr_dmd->io->write_regs(tnr_dmd->io,
++					      CXD2880_IO_TGT_DMD,
++					      0x19, gtdofst, 2);
++		if (ret)
++			return ret;
++
++		switch (clk_mode) {
++		case CXD2880_TNRDMD_CLOCKMODE_A:
++			data = bw6_sst_a;
++			break;
++		case CXD2880_TNRDMD_CLOCKMODE_B:
++			data = bw6_sst_b;
++			break;
++		case CXD2880_TNRDMD_CLOCKMODE_C:
++			data = bw6_sst_c;
++			break;
++		default:
++			return -EINVAL;
++		}
++
++		ret = tnr_dmd->io->write_regs(tnr_dmd->io,
++					      CXD2880_IO_TGT_DMD,
++					      0x1b, data, 2);
++		if (ret)
++			return ret;
++
++		if (tnr_dmd->diver_mode == CXD2880_TNRDMD_DIVERMODE_MAIN) {
++			switch (clk_mode) {
++			case CXD2880_TNRDMD_CLOCKMODE_A:
++				data = bw6_mrc_a;
++				break;
++			case CXD2880_TNRDMD_CLOCKMODE_B:
++				data = bw6_mrc_b;
++				break;
++			case CXD2880_TNRDMD_CLOCKMODE_C:
++				data = bw6_mrc_c;
++				break;
++			default:
++				return -EINVAL;
++			}
++
++			ret = tnr_dmd->io->write_regs(tnr_dmd->io,
++						      CXD2880_IO_TGT_DMD,
++						      0x4b, data, 9);
++			if (ret)
++				return ret;
++		}
++		break;
++
++	case CXD2880_DTV_BW_5_MHZ:
++		switch (clk_mode) {
++		case CXD2880_TNRDMD_CLOCKMODE_A:
++		case CXD2880_TNRDMD_CLOCKMODE_C:
++			data = bw5_nomi_ac;
++			break;
++		case CXD2880_TNRDMD_CLOCKMODE_B:
++			data = bw5_nomi_b;
++			break;
++		default:
++			return -EINVAL;
++		}
++
++		ret = tnr_dmd->io->write_regs(tnr_dmd->io,
++					      CXD2880_IO_TGT_DMD,
++					      0x10, data, 6);
++		if (ret)
++			return ret;
++
++		ret = tnr_dmd->io->write_reg(tnr_dmd->io,
++					     CXD2880_IO_TGT_DMD,
++					     0x4a, 0x06);
++		if (ret)
++			return ret;
++
++		ret = tnr_dmd->io->write_regs(tnr_dmd->io,
++					      CXD2880_IO_TGT_DMD,
++					      0x19, gtdofst, 2);
++		if (ret)
++			return ret;
++
++		switch (clk_mode) {
++		case CXD2880_TNRDMD_CLOCKMODE_A:
++			data = bw5_sst_a;
++			break;
++		case CXD2880_TNRDMD_CLOCKMODE_B:
++			data = bw5_sst_b;
++			break;
++		case CXD2880_TNRDMD_CLOCKMODE_C:
++			data = bw5_sst_c;
++			break;
++		default:
++			return -EINVAL;
++		}
++
++		ret = tnr_dmd->io->write_regs(tnr_dmd->io,
++					      CXD2880_IO_TGT_DMD,
++					      0x1b, data, 2);
++		if (ret)
++			return ret;
++
++		if (tnr_dmd->diver_mode == CXD2880_TNRDMD_DIVERMODE_MAIN) {
++			switch (clk_mode) {
++			case CXD2880_TNRDMD_CLOCKMODE_A:
++				data = bw5_mrc_a;
++				break;
++			case CXD2880_TNRDMD_CLOCKMODE_B:
++				data = bw5_mrc_b;
++				break;
++			case CXD2880_TNRDMD_CLOCKMODE_C:
++				data = bw5_mrc_c;
++				break;
++			default:
++				return -EINVAL;
++			}
++
++			ret = tnr_dmd->io->write_regs(tnr_dmd->io,
++						      CXD2880_IO_TGT_DMD,
++						      0x4b, data, 9);
++			if (ret)
++				return ret;
++		}
++		break;
++
++	case CXD2880_DTV_BW_1_7_MHZ:
++
++		switch (clk_mode) {
++		case CXD2880_TNRDMD_CLOCKMODE_A:
++			data = bw1_7_nomi_a;
++			break;
++		case CXD2880_TNRDMD_CLOCKMODE_C:
++			data = bw1_7_nomi_c;
++			break;
++		case CXD2880_TNRDMD_CLOCKMODE_B:
++			data = bw1_7_nomi_b;
++			break;
++		default:
++			return -EINVAL;
++		}
++
++		ret = tnr_dmd->io->write_regs(tnr_dmd->io,
++					      CXD2880_IO_TGT_DMD,
++					      0x10, data, 6);
++		if (ret)
++			return ret;
++
++		ret = tnr_dmd->io->write_reg(tnr_dmd->io,
++					     CXD2880_IO_TGT_DMD,
++					     0x4a, 0x03);
++		if (ret)
++			return ret;
++
++		ret = tnr_dmd->io->write_regs(tnr_dmd->io,
++					      CXD2880_IO_TGT_DMD,
++					      0x19, gtdofst, 2);
++		if (ret)
++			return ret;
++
++		switch (clk_mode) {
++		case CXD2880_TNRDMD_CLOCKMODE_A:
++			data = bw1_7_sst_a;
++			break;
++		case CXD2880_TNRDMD_CLOCKMODE_B:
++			data = bw1_7_sst_b;
++			break;
++		case CXD2880_TNRDMD_CLOCKMODE_C:
++			data = bw1_7_sst_c;
++			break;
++		default:
++			return -EINVAL;
++		}
++
++		ret = tnr_dmd->io->write_regs(tnr_dmd->io,
++					      CXD2880_IO_TGT_DMD,
++					      0x1b, data, 2);
++		if (ret)
++			return ret;
++
++		if (tnr_dmd->diver_mode == CXD2880_TNRDMD_DIVERMODE_MAIN) {
++			switch (clk_mode) {
++			case CXD2880_TNRDMD_CLOCKMODE_A:
++				data = bw1_7_mrc_a;
++				break;
++			case CXD2880_TNRDMD_CLOCKMODE_B:
++				data = bw1_7_mrc_b;
++				break;
++			case CXD2880_TNRDMD_CLOCKMODE_C:
++				data = bw1_7_mrc_c;
++				break;
++			default:
++				return -EINVAL;
++			}
++
++			ret = tnr_dmd->io->write_regs(tnr_dmd->io,
++						      CXD2880_IO_TGT_DMD,
++						      0x4b, data, 9);
++			if (ret)
++				return ret;
++		}
++		break;
++
++	default:
++		return -EINVAL;
++	}
++
++	ret = tnr_dmd->io->write_reg(tnr_dmd->io,
++				     CXD2880_IO_TGT_DMD,
++				     0x00, 0x00);
++	if (ret)
++		return ret;
++
++	return tnr_dmd->io->write_reg(tnr_dmd->io,
++				      CXD2880_IO_TGT_DMD,
++				      0xfd, 0x01);
++}
++
++static int x_sleep_dvbt2_demod_setting(struct cxd2880_tnrdmd
++				       *tnr_dmd)
++{
++	static const u8 difint_clip[] = {
++		0, 1, 0, 2, 0, 4, 0, 8, 0, 16, 0, 32
++	};
++	int ret = 0;
++
++	if (!tnr_dmd)
++		return -EINVAL;
++
++	if (tnr_dmd->diver_mode == CXD2880_TNRDMD_DIVERMODE_MAIN) {
++		ret = tnr_dmd->io->write_reg(tnr_dmd->io,
++					     CXD2880_IO_TGT_DMD,
++					     0x00, 0x1d);
++		if (ret)
++			return ret;
++
++		ret = tnr_dmd->io->write_regs(tnr_dmd->io,
++					      CXD2880_IO_TGT_DMD,
++					      0x47, difint_clip, 12);
++	}
 +
 +	return ret;
++}
 +
-+error_gpio_put:
-+	if (priv->pdn_gpio)
-+		gpiod_put(priv->pdn_gpio);
-+error_clk_put:
-+	clk_put(priv->clk);
- 
- 	return ret;
- }
-@@ -973,7 +1008,12 @@ static int tw9910_probe(struct i2c_client *client,
- static int tw9910_remove(struct i2c_client *client)
- {
- 	struct tw9910_priv *priv = to_tw9910(client);
--	v4l2_clk_put(priv->clk);
++static int dvbt2_set_profile(struct cxd2880_tnrdmd *tnr_dmd,
++			     enum cxd2880_dvbt2_profile profile)
++{
++	u8 t2_mode_tune_mode = 0;
++	u8 seq_not2_dtime = 0;
++	u8 dtime1 = 0;
++	u8 dtime2 = 0;
++	int ret;
 +
-+	if (priv->pdn_gpio)
-+		gpiod_put(priv->pdn_gpio);
-+	clk_put(priv->clk);
-+	v4l2_device_unregister_subdev(&priv->subdev);
++	if (!tnr_dmd)
++		return -EINVAL;
 +
- 	return 0;
- }
- 
-@@ -994,6 +1034,6 @@ static struct i2c_driver tw9910_i2c_driver = {
- 
- module_i2c_driver(tw9910_i2c_driver);
- 
--MODULE_DESCRIPTION("SoC Camera driver for tw9910");
-+MODULE_DESCRIPTION("V4L2 driver for TW9910 video decoder");
- MODULE_AUTHOR("Kuninori Morimoto");
- MODULE_LICENSE("GPL v2");
-diff --git a/include/media/i2c/tw9910.h b/include/media/i2c/tw9910.h
-index 90bcf1f..bec8f7b 100644
---- a/include/media/i2c/tw9910.h
-+++ b/include/media/i2c/tw9910.h
-@@ -18,6 +18,9 @@
- 
- #include <media/soc_camera.h>
- 
-+/**
-+ * tw9910_mpout_pin - MPOUT (multi-purpose output) pin functions
++	switch (tnr_dmd->clk_mode) {
++	case CXD2880_TNRDMD_CLOCKMODE_A:
++		dtime1 = 0x27;
++		dtime2 = 0x0c;
++		break;
++	case CXD2880_TNRDMD_CLOCKMODE_B:
++		dtime1 = 0x2c;
++		dtime2 = 0x0d;
++		break;
++	case CXD2880_TNRDMD_CLOCKMODE_C:
++		dtime1 = 0x2e;
++		dtime2 = 0x0e;
++		break;
++	default:
++		return -EINVAL;
++	}
++
++	switch (profile) {
++	case CXD2880_DVBT2_PROFILE_BASE:
++		t2_mode_tune_mode = 0x01;
++		seq_not2_dtime = dtime2;
++		break;
++
++	case CXD2880_DVBT2_PROFILE_LITE:
++		t2_mode_tune_mode = 0x05;
++		seq_not2_dtime = dtime1;
++		break;
++
++	case CXD2880_DVBT2_PROFILE_ANY:
++		t2_mode_tune_mode = 0x00;
++		seq_not2_dtime = dtime1;
++		break;
++
++	default:
++		return -EINVAL;
++	}
++
++	ret = tnr_dmd->io->write_reg(tnr_dmd->io,
++				     CXD2880_IO_TGT_DMD,
++				     0x00, 0x2e);
++	if (ret)
++		return ret;
++
++	ret = tnr_dmd->io->write_reg(tnr_dmd->io,
++				     CXD2880_IO_TGT_DMD,
++				     0x10, t2_mode_tune_mode);
++	if (ret)
++		return ret;
++
++	ret = tnr_dmd->io->write_reg(tnr_dmd->io,
++				     CXD2880_IO_TGT_DMD,
++				     0x00, 0x04);
++	if (ret)
++		return ret;
++
++	return tnr_dmd->io->write_reg(tnr_dmd->io,
++				      CXD2880_IO_TGT_DMD,
++				      0x2c, seq_not2_dtime);
++}
++
++int cxd2880_tnrdmd_dvbt2_tune1(struct cxd2880_tnrdmd *tnr_dmd,
++			       struct cxd2880_dvbt2_tune_param
++			       *tune_param)
++{
++	int ret;
++
++	if (!tnr_dmd || !tune_param)
++		return -EINVAL;
++
++	if (tnr_dmd->diver_mode == CXD2880_TNRDMD_DIVERMODE_SUB)
++		return -EINVAL;
++
++	if (tnr_dmd->state != CXD2880_TNRDMD_STATE_SLEEP &&
++	    tnr_dmd->state != CXD2880_TNRDMD_STATE_ACTIVE)
++		return -EINVAL;
++
++	if (tnr_dmd->diver_mode == CXD2880_TNRDMD_DIVERMODE_MAIN &&
++	    tune_param->profile == CXD2880_DVBT2_PROFILE_ANY)
++		return -ENOTTY;
++
++	ret =
++	    cxd2880_tnrdmd_common_tune_setting1(tnr_dmd, CXD2880_DTV_SYS_DVBT2,
++						tune_param->center_freq_khz,
++						tune_param->bandwidth, 0, 0);
++	if (ret)
++		return ret;
++
++	ret =
++	    x_tune_dvbt2_demod_setting(tnr_dmd, tune_param->bandwidth,
++				       tnr_dmd->clk_mode);
++	if (ret)
++		return ret;
++
++	if (tnr_dmd->diver_mode == CXD2880_TNRDMD_DIVERMODE_MAIN) {
++		ret =
++		    x_tune_dvbt2_demod_setting(tnr_dmd->diver_sub,
++					       tune_param->bandwidth,
++					       tnr_dmd->diver_sub->clk_mode);
++		if (ret)
++			return ret;
++	}
++
++	ret = dvbt2_set_profile(tnr_dmd, tune_param->profile);
++	if (ret)
++		return ret;
++
++	if (tnr_dmd->diver_mode == CXD2880_TNRDMD_DIVERMODE_MAIN) {
++		ret =
++		    dvbt2_set_profile(tnr_dmd->diver_sub, tune_param->profile);
++		if (ret)
++			return ret;
++	}
++
++	if (tune_param->data_plp_id == CXD2880_DVBT2_TUNE_PARAM_PLPID_AUTO)
++		ret = cxd2880_tnrdmd_dvbt2_set_plp_cfg(tnr_dmd, 1, 0);
++	else
++		ret =
++		    cxd2880_tnrdmd_dvbt2_set_plp_cfg(tnr_dmd, 0,
++					     (u8)(tune_param->data_plp_id));
++
++	return ret;
++}
++
++int cxd2880_tnrdmd_dvbt2_tune2(struct cxd2880_tnrdmd *tnr_dmd,
++			       struct cxd2880_dvbt2_tune_param
++			       *tune_param)
++{
++	u8 en_fef_intmtnt_ctrl = 1;
++	int ret;
++
++	if (!tnr_dmd || !tune_param)
++		return -EINVAL;
++
++	if (tnr_dmd->diver_mode == CXD2880_TNRDMD_DIVERMODE_SUB)
++		return -EINVAL;
++
++	if (tnr_dmd->state != CXD2880_TNRDMD_STATE_SLEEP &&
++	    tnr_dmd->state != CXD2880_TNRDMD_STATE_ACTIVE)
++		return -EINVAL;
++
++	switch (tune_param->profile) {
++	case CXD2880_DVBT2_PROFILE_BASE:
++		en_fef_intmtnt_ctrl = tnr_dmd->en_fef_intmtnt_base;
++		break;
++	case CXD2880_DVBT2_PROFILE_LITE:
++		en_fef_intmtnt_ctrl = tnr_dmd->en_fef_intmtnt_lite;
++		break;
++	case CXD2880_DVBT2_PROFILE_ANY:
++		if (tnr_dmd->en_fef_intmtnt_base &&
++		    tnr_dmd->en_fef_intmtnt_lite)
++			en_fef_intmtnt_ctrl = 1;
++		else
++			en_fef_intmtnt_ctrl = 0;
++		break;
++	default:
++		return -EINVAL;
++	}
++
++	ret =
++	    cxd2880_tnrdmd_common_tune_setting2(tnr_dmd,
++						CXD2880_DTV_SYS_DVBT2,
++						en_fef_intmtnt_ctrl);
++	if (ret)
++		return ret;
++
++	tnr_dmd->state = CXD2880_TNRDMD_STATE_ACTIVE;
++	tnr_dmd->frequency_khz = tune_param->center_freq_khz;
++	tnr_dmd->sys = CXD2880_DTV_SYS_DVBT2;
++	tnr_dmd->bandwidth = tune_param->bandwidth;
++
++	if (tnr_dmd->diver_mode == CXD2880_TNRDMD_DIVERMODE_MAIN) {
++		tnr_dmd->diver_sub->state = CXD2880_TNRDMD_STATE_ACTIVE;
++		tnr_dmd->diver_sub->frequency_khz = tune_param->center_freq_khz;
++		tnr_dmd->diver_sub->sys = CXD2880_DTV_SYS_DVBT2;
++		tnr_dmd->diver_sub->bandwidth = tune_param->bandwidth;
++	}
++
++	return 0;
++}
++
++int cxd2880_tnrdmd_dvbt2_sleep_setting(struct cxd2880_tnrdmd
++				       *tnr_dmd)
++{
++	int ret;
++
++	if (!tnr_dmd)
++		return -EINVAL;
++
++	if (tnr_dmd->diver_mode == CXD2880_TNRDMD_DIVERMODE_SUB)
++		return -EINVAL;
++
++	if (tnr_dmd->state != CXD2880_TNRDMD_STATE_SLEEP &&
++	    tnr_dmd->state != CXD2880_TNRDMD_STATE_ACTIVE)
++		return -EINVAL;
++
++	ret = x_sleep_dvbt2_demod_setting(tnr_dmd);
++	if (ret)
++		return ret;
++
++	if (tnr_dmd->diver_mode == CXD2880_TNRDMD_DIVERMODE_MAIN)
++		ret = x_sleep_dvbt2_demod_setting(tnr_dmd->diver_sub);
++
++	return ret;
++}
++
++int cxd2880_tnrdmd_dvbt2_check_demod_lock(struct cxd2880_tnrdmd
++					  *tnr_dmd,
++					  enum
++					  cxd2880_tnrdmd_lock_result
++					  *lock)
++{
++	int ret;
++
++	u8 sync_stat = 0;
++	u8 ts_lock = 0;
++	u8 unlock_detected = 0;
++	u8 unlock_detected_sub = 0;
++
++	if (!tnr_dmd || !lock)
++		return -EINVAL;
++
++	if (tnr_dmd->diver_mode == CXD2880_TNRDMD_DIVERMODE_SUB)
++		return -EINVAL;
++
++	if (tnr_dmd->state != CXD2880_TNRDMD_STATE_ACTIVE)
++		return -EINVAL;
++
++	ret =
++	    cxd2880_tnrdmd_dvbt2_mon_sync_stat(tnr_dmd, &sync_stat, &ts_lock,
++					       &unlock_detected);
++	if (ret)
++		return ret;
++
++	if (tnr_dmd->diver_mode == CXD2880_TNRDMD_DIVERMODE_SINGLE) {
++		if (sync_stat == 6)
++			*lock = CXD2880_TNRDMD_LOCK_RESULT_LOCKED;
++		else if (unlock_detected)
++			*lock = CXD2880_TNRDMD_LOCK_RESULT_UNLOCKED;
++		else
++			*lock = CXD2880_TNRDMD_LOCK_RESULT_NOTDETECT;
++
++		return ret;
++	}
++
++	if (sync_stat == 6) {
++		*lock = CXD2880_TNRDMD_LOCK_RESULT_LOCKED;
++		return ret;
++	}
++
++	ret =
++	    cxd2880_tnrdmd_dvbt2_mon_sync_stat_sub(tnr_dmd, &sync_stat,
++						   &unlock_detected_sub);
++	if (ret)
++		return ret;
++
++	if (sync_stat == 6)
++		*lock = CXD2880_TNRDMD_LOCK_RESULT_LOCKED;
++	else if (unlock_detected && unlock_detected_sub)
++		*lock = CXD2880_TNRDMD_LOCK_RESULT_UNLOCKED;
++	else
++		*lock = CXD2880_TNRDMD_LOCK_RESULT_NOTDETECT;
++
++	return ret;
++}
++
++int cxd2880_tnrdmd_dvbt2_check_ts_lock(struct cxd2880_tnrdmd
++				       *tnr_dmd,
++				       enum
++				       cxd2880_tnrdmd_lock_result
++				       *lock)
++{
++	int ret;
++
++	u8 sync_stat = 0;
++	u8 ts_lock = 0;
++	u8 unlock_detected = 0;
++	u8 unlock_detected_sub = 0;
++
++	if (!tnr_dmd || !lock)
++		return -EINVAL;
++
++	if (tnr_dmd->diver_mode == CXD2880_TNRDMD_DIVERMODE_SUB)
++		return -EINVAL;
++
++	if (tnr_dmd->state != CXD2880_TNRDMD_STATE_ACTIVE)
++		return -EINVAL;
++
++	ret =
++	    cxd2880_tnrdmd_dvbt2_mon_sync_stat(tnr_dmd, &sync_stat, &ts_lock,
++					       &unlock_detected);
++	if (ret)
++		return ret;
++
++	if (tnr_dmd->diver_mode == CXD2880_TNRDMD_DIVERMODE_SINGLE) {
++		if (ts_lock)
++			*lock = CXD2880_TNRDMD_LOCK_RESULT_LOCKED;
++		else if (unlock_detected)
++			*lock = CXD2880_TNRDMD_LOCK_RESULT_UNLOCKED;
++		else
++			*lock = CXD2880_TNRDMD_LOCK_RESULT_NOTDETECT;
++
++		return ret;
++	}
++
++	if (ts_lock) {
++		*lock = CXD2880_TNRDMD_LOCK_RESULT_LOCKED;
++		return ret;
++	} else if (!unlock_detected) {
++		*lock = CXD2880_TNRDMD_LOCK_RESULT_NOTDETECT;
++		return ret;
++	}
++
++	ret =
++	    cxd2880_tnrdmd_dvbt2_mon_sync_stat_sub(tnr_dmd, &sync_stat,
++						   &unlock_detected_sub);
++	if (ret)
++		return ret;
++
++	if (unlock_detected && unlock_detected_sub)
++		*lock = CXD2880_TNRDMD_LOCK_RESULT_UNLOCKED;
++	else
++		*lock = CXD2880_TNRDMD_LOCK_RESULT_NOTDETECT;
++
++	return ret;
++}
++
++int cxd2880_tnrdmd_dvbt2_set_plp_cfg(struct cxd2880_tnrdmd
++				     *tnr_dmd, u8 auto_plp,
++				     u8 plp_id)
++{
++	int ret;
++
++	if (!tnr_dmd)
++		return -EINVAL;
++
++	if (tnr_dmd->diver_mode == CXD2880_TNRDMD_DIVERMODE_SUB)
++		return -EINVAL;
++
++	if (tnr_dmd->state != CXD2880_TNRDMD_STATE_SLEEP &&
++	    tnr_dmd->state != CXD2880_TNRDMD_STATE_ACTIVE)
++		return -EINVAL;
++
++	ret = tnr_dmd->io->write_reg(tnr_dmd->io,
++				     CXD2880_IO_TGT_DMD,
++				     0x00, 0x23);
++	if (ret)
++		return ret;
++
++	if (!auto_plp) {
++		ret = tnr_dmd->io->write_reg(tnr_dmd->io,
++					     CXD2880_IO_TGT_DMD,
++					     0xaf, plp_id);
++		if (ret)
++			return ret;
++	}
++
++	return tnr_dmd->io->write_reg(tnr_dmd->io,
++				      CXD2880_IO_TGT_DMD,
++				      0xad, auto_plp ? 0x00 : 0x01);
++}
++
++int cxd2880_tnrdmd_dvbt2_diver_fef_setting(struct cxd2880_tnrdmd
++					   *tnr_dmd)
++{
++	struct cxd2880_dvbt2_ofdm ofdm;
++	static const u8 data[] = { 0, 8, 0, 16, 0, 32, 0, 64, 0, 128, 1, 0};
++	int ret;
++
++	if (!tnr_dmd)
++		return -EINVAL;
++
++	if (tnr_dmd->diver_mode == CXD2880_TNRDMD_DIVERMODE_SUB)
++		return -EINVAL;
++
++	if (tnr_dmd->state != CXD2880_TNRDMD_STATE_ACTIVE)
++		return -EINVAL;
++
++	if (tnr_dmd->diver_mode == CXD2880_TNRDMD_DIVERMODE_SINGLE)
++		return 0;
++
++	ret = cxd2880_tnrdmd_dvbt2_mon_ofdm(tnr_dmd, &ofdm);
++	if (ret)
++		return ret;
++
++	if (!ofdm.mixed)
++		return 0;
++
++	ret = tnr_dmd->io->write_reg(tnr_dmd->io,
++				     CXD2880_IO_TGT_DMD,
++				     0x00, 0x1d);
++	if (ret)
++		return ret;
++
++	return tnr_dmd->io->write_regs(tnr_dmd->io,
++				       CXD2880_IO_TGT_DMD,
++				       0x47, data, 12);
++}
++
++int cxd2880_tnrdmd_dvbt2_check_l1post_valid(struct cxd2880_tnrdmd
++					    *tnr_dmd,
++					    u8 *l1_post_valid)
++{
++	int ret;
++
++	u8 data;
++
++	if (!tnr_dmd || !l1_post_valid)
++		return -EINVAL;
++
++	if (tnr_dmd->diver_mode == CXD2880_TNRDMD_DIVERMODE_SUB)
++		return -EINVAL;
++
++	if (tnr_dmd->state != CXD2880_TNRDMD_STATE_SLEEP &&
++	    tnr_dmd->state != CXD2880_TNRDMD_STATE_ACTIVE)
++		return -EINVAL;
++
++	ret = tnr_dmd->io->write_reg(tnr_dmd->io,
++				     CXD2880_IO_TGT_DMD,
++				     0x00, 0x0b);
++	if (ret)
++		return ret;
++
++	ret = tnr_dmd->io->read_regs(tnr_dmd->io,
++				     CXD2880_IO_TGT_DMD,
++				     0x86, &data, 1);
++	if (ret)
++		return ret;
++
++	*l1_post_valid = data & 0x01;
++
++	return ret;
++}
+diff --git a/drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt2.h b/drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt2.h
+new file mode 100644
+index 000000000000..7108e3540093
+--- /dev/null
++++ b/drivers/media/dvb-frontends/cxd2880/cxd2880_tnrdmd_dvbt2.h
+@@ -0,0 +1,65 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++/*
++ * cxd2880_tnrdmd_dvbt2.h
++ * Sony CXD2880 DVB-T2/T tuner + demodulator driver
++ * control interface for DVB-T2
++ *
++ * Copyright (C) 2016, 2017, 2018 Sony Semiconductor Solutions Corporation
 + */
- enum tw9910_mpout_pin {
- 	TW9910_MPO_VLOSS,
- 	TW9910_MPO_HLOCK,
-@@ -29,6 +32,12 @@ enum tw9910_mpout_pin {
- 	TW9910_MPO_RTCO,
- };
- 
-+/**
-+ * tw9910_video_info -	tw9910 driver interface structure
-+ * @buswidth:		Parallel data bus width (8 or 16).
-+ * @mpout:		Selected function of MPOUT (multi-purpose output) pin.
-+ *			See &enum tw9910_mpout_pin
-+ */
- struct tw9910_video_info {
- 	unsigned long		buswidth;
- 	enum tw9910_mpout_pin	mpout;
++
++#ifndef CXD2880_TNRDMD_DVBT2_H
++#define CXD2880_TNRDMD_DVBT2_H
++
++#include "cxd2880_common.h"
++#include "cxd2880_tnrdmd.h"
++
++enum cxd2880_tnrdmd_dvbt2_tune_info {
++	CXD2880_TNRDMD_DVBT2_TUNE_INFO_OK,
++	CXD2880_TNRDMD_DVBT2_TUNE_INFO_INVALID_PLP_ID
++};
++
++struct cxd2880_dvbt2_tune_param {
++	u32 center_freq_khz;
++	enum cxd2880_dtv_bandwidth bandwidth;
++	u16 data_plp_id;
++	enum cxd2880_dvbt2_profile profile;
++	enum cxd2880_tnrdmd_dvbt2_tune_info tune_info;
++};
++
++#define CXD2880_DVBT2_TUNE_PARAM_PLPID_AUTO  0xffff
++
++int cxd2880_tnrdmd_dvbt2_tune1(struct cxd2880_tnrdmd *tnr_dmd,
++			       struct cxd2880_dvbt2_tune_param
++			       *tune_param);
++
++int cxd2880_tnrdmd_dvbt2_tune2(struct cxd2880_tnrdmd *tnr_dmd,
++			       struct cxd2880_dvbt2_tune_param
++			       *tune_param);
++
++int cxd2880_tnrdmd_dvbt2_sleep_setting(struct cxd2880_tnrdmd
++				       *tnr_dmd);
++
++int cxd2880_tnrdmd_dvbt2_check_demod_lock(struct cxd2880_tnrdmd
++					  *tnr_dmd,
++					  enum
++					  cxd2880_tnrdmd_lock_result
++					  *lock);
++
++int cxd2880_tnrdmd_dvbt2_check_ts_lock(struct cxd2880_tnrdmd
++				       *tnr_dmd,
++				       enum
++				       cxd2880_tnrdmd_lock_result
++				       *lock);
++
++int cxd2880_tnrdmd_dvbt2_set_plp_cfg(struct cxd2880_tnrdmd
++				     *tnr_dmd, u8 auto_plp,
++				     u8 plp_id);
++
++int cxd2880_tnrdmd_dvbt2_diver_fef_setting(struct cxd2880_tnrdmd
++					   *tnr_dmd);
++
++int cxd2880_tnrdmd_dvbt2_check_l1post_valid(struct cxd2880_tnrdmd
++					    *tnr_dmd,
++					    u8 *l1_post_valid);
++
++#endif
 -- 
-2.7.4
+2.15.1
