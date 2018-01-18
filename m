@@ -1,137 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:53649 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752064AbeA1SAh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 28 Jan 2018 13:00:37 -0500
-From: Sean Young <sean@mess.org>
+Received: from mail-qt0-f195.google.com ([209.85.216.195]:43120 "EHLO
+        mail-qt0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932297AbeARUCf (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 18 Jan 2018 15:02:35 -0500
+Received: by mail-qt0-f195.google.com with SMTP id s3so33305357qtb.10
+        for <linux-media@vger.kernel.org>; Thu, 18 Jan 2018 12:02:34 -0800 (PST)
+Received: from Constantine (pool-96-230-237-116.bstnma.fios.verizon.net. [96.230.237.116])
+        by smtp.gmail.com with ESMTPSA id q32sm5392741qkq.71.2018.01.18.12.02.34
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
+        Thu, 18 Jan 2018 12:02:34 -0800 (PST)
+Date: Thu, 18 Jan 2018 15:01:59 -0500
+From: Douglas Fischer <fischerdouglasc@gmail.com>
 To: linux-media@vger.kernel.org
-Subject: [PATCH] media: rc: prev_ev is dead code, every call is a new edge
-Date: Sun, 28 Jan 2018 18:00:35 +0000
-Message-Id: <20180128180035.20879-1-sean@mess.org>
+Subject: [PATCH] media: radio: Critical v4l2 registration bugfix for si470x
+ over i2c
+Message-ID: <20180118150159.71943a1b@Constantine>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The raw kfifo should never contain successive pulse events or space
-events. If it did occur, The IR decoders would not be able to deal
-with this anyway. There is no need to check that a raw timing event
-is a transition: it always is.
+Added the call to v4l2_device_register() required to add a new radio
+device. Without this patch, it is impossible for the driver to load.
+This does not affect USB devices.
 
-Signed-off-by: Sean Young <sean@mess.org>
+Signed-off-by: Douglas Fischer <fischerdouglasc@gmail.com>
 ---
- drivers/media/rc/ir-mce_kbd-decoder.c | 6 ------
- drivers/media/rc/ir-rc5-decoder.c     | 3 ---
- drivers/media/rc/ir-rc6-decoder.c     | 9 +--------
- drivers/media/rc/rc-core-priv.h       | 6 ------
- drivers/media/rc/rc-ir-raw.c          | 1 -
- 5 files changed, 1 insertion(+), 24 deletions(-)
 
-diff --git a/drivers/media/rc/ir-mce_kbd-decoder.c b/drivers/media/rc/ir-mce_kbd-decoder.c
-index 2c3df02e05ff..fb318bdd6193 100644
---- a/drivers/media/rc/ir-mce_kbd-decoder.c
-+++ b/drivers/media/rc/ir-mce_kbd-decoder.c
-@@ -262,9 +262,6 @@ static int ir_mce_kbd_decode(struct rc_dev *dev, struct ir_raw_event ev)
- 		return 0;
- 
- 	case STATE_HEADER_BIT_END:
--		if (!is_transition(&ev, &dev->raw->prev_ev))
--			break;
+diff -uprN linux.orig/drivers/media/radio/si470x/radio-si470x-i2c.c
+linux/drivers/media/radio/si470x/radio-si470x-i2c.c ---
+linux.orig/drivers/media/radio/si470x/radio-si470x-i2c.c
+2018-01-15 21:58:10.675620432 -0500 +++
+linux/drivers/media/radio/si470x/radio-si470x-i2c.c	2018-01-16
+17:08:02.929734342 -0500 @@ -43,7 +43,6 @@ static const struct
+i2c_device_id si470x MODULE_DEVICE_TABLE(i2c, si470x_i2c_id); 
 -
- 		decrease_duration(&ev, MCIR2_BIT_END);
+ /**************************************************************************
+  * Module Parameters
+  **************************************************************************/
+@@ -362,8 +361,29 @@ static int si470x_i2c_probe(struct i2c_c
+ 	mutex_init(&radio->lock);
+ 	init_completion(&radio->completion);
  
- 		if (data->count != MCIR2_HEADER_NBITS) {
-@@ -301,9 +298,6 @@ static int ir_mce_kbd_decode(struct rc_dev *dev, struct ir_raw_event ev)
- 		return 0;
++	retval = v4l2_device_register(&client->dev, &radio->v4l2_dev);
++	if (retval < 0) {
++		dev_err(&client->dev, "couldn't register
+v4l2_device\n");
++		goto err_initial;
++	}
++
++	v4l2_ctrl_handler_init(&radio->hdl, 2);
++	v4l2_ctrl_new_std(&radio->hdl, &si470x_ctrl_ops,
++			V4L2_CID_AUDIO_MUTE, 0, 1, 1, 1);
++	v4l2_ctrl_new_std(&radio->hdl, &si470x_ctrl_ops,
++			V4L2_CID_AUDIO_VOLUME, 0, 15, 1, 15);
++	if (radio->hdl.error) {
++		retval = radio->hdl.error;
++		dev_err(&client->dev, "couldn't register control\n");
++		goto err_dev;
++	}
++
+ 	/* video device initialization */
+ 	radio->videodev = si470x_viddev_template;
++	radio->videodev.ctrl_handler =
+&radio->hdl;				// no?
++	radio->videodev.lock =
+&radio->lock;					// no?
++	radio->videodev.v4l2_dev = &radio->v4l2_dev;
++	radio->videodev.release = video_device_release_empty;
+ 	video_set_drvdata(&radio->videodev, radio);
  
- 	case STATE_BODY_BIT_END:
--		if (!is_transition(&ev, &dev->raw->prev_ev))
--			break;
--
- 		if (data->count == data->wanted_bits)
- 			data->state = STATE_FINISHED;
- 		else
-diff --git a/drivers/media/rc/ir-rc5-decoder.c b/drivers/media/rc/ir-rc5-decoder.c
-index 11a28f8772da..dd41d389f8d2 100644
---- a/drivers/media/rc/ir-rc5-decoder.c
-+++ b/drivers/media/rc/ir-rc5-decoder.c
-@@ -88,9 +88,6 @@ static int ir_rc5_decode(struct rc_dev *dev, struct ir_raw_event ev)
- 		return 0;
- 
- 	case STATE_BIT_END:
--		if (!is_transition(&ev, &dev->raw->prev_ev))
--			break;
--
- 		if (data->count == CHECK_RC5X_NBITS)
- 			data->state = STATE_CHECK_RC5X;
- 		else
-diff --git a/drivers/media/rc/ir-rc6-decoder.c b/drivers/media/rc/ir-rc6-decoder.c
-index 55bb19bbd4e9..3e3659c0875c 100644
---- a/drivers/media/rc/ir-rc6-decoder.c
-+++ b/drivers/media/rc/ir-rc6-decoder.c
-@@ -145,9 +145,6 @@ static int ir_rc6_decode(struct rc_dev *dev, struct ir_raw_event ev)
- 		return 0;
- 
- 	case STATE_HEADER_BIT_END:
--		if (!is_transition(&ev, &dev->raw->prev_ev))
--			break;
--
- 		if (data->count == RC6_HEADER_NBITS)
- 			data->state = STATE_TOGGLE_START;
- 		else
-@@ -165,8 +162,7 @@ static int ir_rc6_decode(struct rc_dev *dev, struct ir_raw_event ev)
- 		return 0;
- 
- 	case STATE_TOGGLE_END:
--		if (!is_transition(&ev, &dev->raw->prev_ev) ||
--		    !geq_margin(ev.duration, RC6_TOGGLE_END, RC6_UNIT / 2))
-+		if (!geq_margin(ev.duration, RC6_TOGGLE_END, RC6_UNIT / 2))
- 			break;
- 
- 		if (!(data->header & RC6_STARTBIT_MASK)) {
-@@ -210,9 +206,6 @@ static int ir_rc6_decode(struct rc_dev *dev, struct ir_raw_event ev)
- 		break;
- 
- 	case STATE_BODY_BIT_END:
--		if (!is_transition(&ev, &dev->raw->prev_ev))
--			break;
--
- 		if (data->count == data->wanted_bits)
- 			data->state = STATE_FINISHED;
- 		else
-diff --git a/drivers/media/rc/rc-core-priv.h b/drivers/media/rc/rc-core-priv.h
-index 458e9eb2d6a9..96a941aa2581 100644
---- a/drivers/media/rc/rc-core-priv.h
-+++ b/drivers/media/rc/rc-core-priv.h
-@@ -54,7 +54,6 @@ struct ir_raw_event_ctrl {
- 	struct timer_list edge_handle;
- 
- 	/* raw decoder state follows */
--	struct ir_raw_event prev_ev;
- 	struct ir_raw_event this_ev;
- 	struct nec_dec {
- 		int state;
-@@ -130,11 +129,6 @@ static inline bool eq_margin(unsigned d1, unsigned d2, unsigned margin)
- 	return ((d1 > (d2 - margin)) && (d1 < (d2 + margin)));
- }
- 
--static inline bool is_transition(struct ir_raw_event *x, struct ir_raw_event *y)
--{
--	return x->pulse != y->pulse;
--}
--
- static inline void decrease_duration(struct ir_raw_event *ev, unsigned duration)
- {
- 	if (duration > ev->duration)
-diff --git a/drivers/media/rc/rc-ir-raw.c b/drivers/media/rc/rc-ir-raw.c
-index 18504870b9f0..ea96df49f176 100644
---- a/drivers/media/rc/rc-ir-raw.c
-+++ b/drivers/media/rc/rc-ir-raw.c
-@@ -32,7 +32,6 @@ static int ir_raw_event_thread(void *data)
- 				    handler->protocols || !handler->protocols)
- 					handler->decode(raw->dev, ev);
- 			ir_lirc_raw_event(raw->dev, ev);
--			raw->prev_ev = ev;
- 		}
- 		mutex_unlock(&ir_raw_handler_lock);
- 
--- 
-2.14.3
+ 	/* power up : need 110ms */
+@@ -435,6 +455,8 @@ static int si470x_i2c_probe(struct i2c_c
+ 	return 0;
+ err_all:
+ 	free_irq(client->irq, radio);
++err_dev:
++	v4l2_device_unregister(&radio->v4l2_dev);
+ err_rds:
+ 	kfree(radio->buffer);
+ err_radio:
