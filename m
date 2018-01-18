@@ -1,75 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f65.google.com ([74.125.83.65]:42668 "EHLO
-        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932384AbeAHNgX (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 8 Jan 2018 08:36:23 -0500
-From: Shunqian Zheng <zhengsq@rock-chips.com>
-To: mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com
-Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        ddl@rock-chips.com, tfiga@chromium.org,
-        Shunqian Zheng <zhengsq@rock-chips.com>
-Subject: [PATCH v3 2/4] dt-bindings: media: Add bindings for OV5695
-Date: Mon,  8 Jan 2018 21:36:05 +0800
-Message-Id: <1515418567-14406-2-git-send-email-zhengsq@rock-chips.com>
-In-Reply-To: <1515418567-14406-1-git-send-email-zhengsq@rock-chips.com>
-References: <1515418567-14406-1-git-send-email-zhengsq@rock-chips.com>
+Received: from mail-qt0-f169.google.com ([209.85.216.169]:36624 "EHLO
+        mail-qt0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932794AbeARUBm (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 18 Jan 2018 15:01:42 -0500
+Received: by mail-qt0-f169.google.com with SMTP id z11so7473667qtm.3
+        for <linux-media@vger.kernel.org>; Thu, 18 Jan 2018 12:01:42 -0800 (PST)
+Received: from Constantine (pool-96-230-237-116.bstnma.fios.verizon.net. [96.230.237.116])
+        by smtp.gmail.com with ESMTPSA id j7sm4848813qth.31.2018.01.18.12.01.41
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-CHACHA20-POLY1305 bits=256/256);
+        Thu, 18 Jan 2018 12:01:42 -0800 (PST)
+Date: Thu, 18 Jan 2018 15:01:07 -0500
+From: Douglas Fischer <fischerdouglasc@gmail.com>
+To: linux-media@vger.kernel.org
+Subject: [PATCH] media: radio: Tuning bugfix for si470x over i2c
+Message-ID: <20180118150107.5c7938f5@Constantine>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add device tree binding documentation for the OV5695 sensor.
+Fixed si470x_set_channel() trying to tune before chip is turned
+on, which causes warnings in dmesg and when probing, makes driver
+wait for 3s for tuning timeout. This issue did not affect USB
+devices because they have a different probing sequence.
 
-Signed-off-by: Shunqian Zheng <zhengsq@rock-chips.com>
+Signed-off-by: Douglas Fischer <fischerdouglasc@gmail.com>
 ---
- .../devicetree/bindings/media/i2c/ov5695.txt       | 41 ++++++++++++++++++++++
- 1 file changed, 41 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/i2c/ov5695.txt
 
-diff --git a/Documentation/devicetree/bindings/media/i2c/ov5695.txt b/Documentation/devicetree/bindings/media/i2c/ov5695.txt
-new file mode 100644
-index 0000000..2f2f698
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/i2c/ov5695.txt
-@@ -0,0 +1,41 @@
-+* Omnivision OV5695 MIPI CSI-2 sensor
+diff -uprN linux.orig/drivers/media/radio/si470x/radio-si470x-common.c
+linux/drivers/media/radio/si470x/radio-si470x-common.c ---
+linux.orig/drivers/media/radio/si470x/radio-si470x-common.c
+2018-01-15 21:58:10.675620432 -0500 +++
+linux/drivers/media/radio/si470x/radio-si470x-common.c
+2018-01-16 17:04:59.706409128 -0500 @@ -207,29 +207,37 @@ static int
+si470x_set_chan(struct si470x unsigned long time_left; bool timed_out =
+false; 
+-	/* start tuning */
+-	radio->registers[CHANNEL] &= ~CHANNEL_CHAN;
+-	radio->registers[CHANNEL] |= CHANNEL_TUNE | chan;
+-	retval = si470x_set_register(radio, CHANNEL);
+-	if (retval < 0)
+-		goto done;
++	retval = si470x_get_register(radio, POWERCFG);
++	if (retval)
++		return retval;
+ 
+-	/* wait till tune operation has completed */
+-	reinit_completion(&radio->completion);
+-	time_left = wait_for_completion_timeout(&radio->completion,
+-
+msecs_to_jiffies(tune_timeout));
+-	if (time_left == 0)
+-		timed_out = true;
++	if ( (radio->registers[POWERCFG] & POWERCFG_ENABLE) && 
++		(radio->registers[POWERCFG] & POWERCFG_DMUTE) ) { 
+ 
+-	if ((radio->registers[STATUSRSSI] & STATUSRSSI_STC) == 0)
+-		dev_warn(&radio->videodev.dev, "tune does not
+complete\n");
+-	if (timed_out)
+-		dev_warn(&radio->videodev.dev,
+-			"tune timed out after %u ms\n", tune_timeout);
++		/* start tuning */
++		radio->registers[CHANNEL] &= ~CHANNEL_CHAN;
++		radio->registers[CHANNEL] |= CHANNEL_TUNE | chan;
++		retval = si470x_set_register(radio, CHANNEL);
++		if (retval < 0)
++			goto done;
+ 
+-	/* stop tuning */
+-	radio->registers[CHANNEL] &= ~CHANNEL_TUNE;
+-	retval = si470x_set_register(radio, CHANNEL);
++		/* wait till tune operation has completed */
++		reinit_completion(&radio->completion);
++		time_left =
+wait_for_completion_timeout(&radio->completion,
 +
-+Required Properties:
-+- compatible: shall be "ovti,ov5695"
-+- clocks: reference to the xvclk input clock
-+- clock-names: shall be "xvclk"
-+- avdd-supply: Analog voltage supply, 2.8 volts
-+- dovdd-supply: Digital I/O voltage supply, 1.8 volts
-+- dvdd-supply: Digital core voltage supply, 1.2 volts
-+- reset-gpios: Low active reset gpio
-+
-+The device node shall contain one 'port' child node with an
-+'endpoint' subnode for its digital output video port,
-+in accordance with the video interface bindings defined in
-+Documentation/devicetree/bindings/media/video-interfaces.txt.
-+The endpoint optional property 'data-lanes' shall be "<1 2>".
-+
-+Example:
-+&i2c7 {
-+	camera-sensor: ov5695@36 {
-+		compatible = "ovti,ov5695";
-+		reg = <0x36>;
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&clk_24m_cam>;
-+
-+		clocks = <&cru SCLK_TESTCLKOUT1>;
-+		clock-names = "xvclk";
-+
-+		avdd-supply = <&pp2800_cam>;
-+		dovdd-supply = <&pp1800>;
-+		dvdd-supply = <&pp1250_cam>;
-+		reset-gpios = <&gpio2 5 GPIO_ACTIVE_LOW>;
-+
-+		port {
-+			wcam_out: endpoint {
-+				remote-endpoint = <&mipi_in_wcam>;
-+				data-lanes = <1 2>;
-+			};
-+		};
-+	};
-+};
--- 
-1.9.1
+msecs_to_jiffies(tune_timeout));
++		if (time_left == 0)
++			timed_out = true;
++	
++		if ((radio->registers[STATUSRSSI] & STATUSRSSI_STC) ==
+0)
++			dev_warn(&radio->videodev.dev, "tune does not
+complete\n");
++		if (timed_out)
++			dev_warn(&radio->videodev.dev,
++				"tune timed out after %u ms\n",
+tune_timeout);
++	
++		/* stop tuning */
++		radio->registers[CHANNEL] &= ~CHANNEL_TUNE;
++		retval = si470x_set_register(radio, CHANNEL);
++	}
+ 
+ done:
+ 	return retval;
