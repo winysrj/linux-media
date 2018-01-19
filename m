@@ -1,139 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:43596 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1752467AbeAQIAI (ORCPT
+Received: from mail-wm0-f46.google.com ([74.125.82.46]:40060 "EHLO
+        mail-wm0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1755200AbeASPLN (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 17 Jan 2018 03:00:08 -0500
-Date: Wed, 17 Jan 2018 09:59:59 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Jacopo Mondi <jacopo+renesas@jmondi.org>
-Cc: laurent.pinchart@ideasonboard.com, magnus.damm@gmail.com,
-        geert@glider.be, hverkuil@xs4all.nl, mchehab@kernel.org,
-        festevam@gmail.com, robh+dt@kernel.org, mark.rutland@arm.com,
-        pombredanne@nexb.com, linux-renesas-soc@vger.kernel.org,
-        linux-media@vger.kernel.org, linux-sh@vger.kernel.org,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v6 1/9] dt-bindings: media: Add Renesas CEU bindings
-Message-ID: <20180117075958.ggnk4cmmkdah2am6@valkosipuli.retiisi.org.uk>
-References: <1516139101-7835-1-git-send-email-jacopo+renesas@jmondi.org>
- <1516139101-7835-2-git-send-email-jacopo+renesas@jmondi.org>
+        Fri, 19 Jan 2018 10:11:13 -0500
+Received: by mail-wm0-f46.google.com with SMTP id v123so4181952wmd.5
+        for <linux-media@vger.kernel.org>; Fri, 19 Jan 2018 07:11:12 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1516139101-7835-2-git-send-email-jacopo+renesas@jmondi.org>
+In-Reply-To: <5070ebf3-79a9-571e-d56c-cee41b51f191@gmail.com>
+References: <50e5ba3c-4e32-f2e4-7844-150eefdf71b5@web.de> <d693cf1b-de3d-5994-5ef0-eeb0e37065a3@web.de>
+ <20170827073040.6e96d79a@vento.lan> <e9d87f55-18fc-e57b-f9aa-a41c7f983b34@web.de>
+ <20170909181123.392cfbb0@vento.lan> <a44b8eb0-cdd5-aa28-ad30-68db0126b6f6@web.de>
+ <20170916125042.78c4abad@recife.lan> <fab215f8-29f3-1857-6f33-c45e78bb5e3c@web.de>
+ <7c17c0a1-1c98-1272-8430-4a194b658872@gmail.com> <20171127092408.20de0fe0@vento.lan>
+ <e2076533-5c33-f3be-b438-a1616f743a92@gmail.com> <20171202174922.34a6f9b9@vento.lan>
+ <ce4f25e6-7d75-2391-d685-35b50a0639bb@web.de> <335e279e-d498-135f-8077-770c77cf353b@gmail.com>
+ <5070ebf3-79a9-571e-d56c-cee41b51f191@gmail.com>
+From: Jemma Denson <jdenson@gmail.com>
+Date: Fri, 19 Jan 2018 15:11:11 +0000
+Message-ID: <CAObVMRvxT_=LmO-mJNPRewQq05PqMHpD83m1UBoK+QiBSwqUNw@mail.gmail.com>
+Subject: Re: SAA716x DVB driver
+To: =?UTF-8?Q?Tycho_L=C3=BCrsen?= <tycholursen@gmail.com>,
+        Soeren Moch <smoch@web.de>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Luis Alves <ljalvs@gmail.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jacopo,
+Hi Tycho,
 
-On Tue, Jan 16, 2018 at 10:44:53PM +0100, Jacopo Mondi wrote:
-> Add bindings documentation for Renesas Capture Engine Unit (CEU).
-> 
-> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
-> Reviewed-by: Rob Herring <robh@kernel.org>
-> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  .../devicetree/bindings/media/renesas,ceu.txt      | 81 ++++++++++++++++++++++
->  1 file changed, 81 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/media/renesas,ceu.txt
-> 
-> diff --git a/Documentation/devicetree/bindings/media/renesas,ceu.txt b/Documentation/devicetree/bindings/media/renesas,ceu.txt
-> new file mode 100644
-> index 0000000..590ee27
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/media/renesas,ceu.txt
-> @@ -0,0 +1,81 @@
-> +Renesas Capture Engine Unit (CEU)
-> +----------------------------------------------
-> +
-> +The Capture Engine Unit is the image capture interface found in the Renesas
-> +SH Mobile and RZ SoCs.
-> +
-> +The interface supports a single parallel input with data bus width of 8 or 16
-> +bits.
-> +
-> +Required properties:
-> +- compatible: Shall be "renesas,r7s72100-ceu" for CEU units found in RZ/A1-H
-> +  and RZ/A1-M SoCs.
-> +- reg: Registers address base and size.
-> +- interrupts: The interrupt specifier.
-> +
-> +The CEU supports a single parallel input and should contain a single 'port'
-> +subnode with a single 'endpoint'. Connection to input devices are modeled
-> +according to the video interfaces OF bindings specified in:
-> +Documentation/devicetree/bindings/media/video-interfaces.txt
-> +
-> +Optional endpoint properties applicable to parallel input bus described in
-> +the above mentioned "video-interfaces.txt" file are supported.
-> +
-> +- hsync-active: Active state of the HSYNC signal, 0/1 for LOW/HIGH respectively.
-> +  If property is not present, default is active high.
-> +- vsync-active: Active state of the VSYNC signal, 0/1 for LOW/HIGH respectively.
-> +  If property is not present, default is active high.
+On 19/01/18 13:59, Tycho L=C3=BCrsen wrote:
+> Hi Jemma,
+>
+> I'm with you: let's get merged at least something!
+>
+> Did you find  a maintainer for this driver?
+> I can do simple stuff like in my fork of Soeren Moch's repo, but thats
+> where it ends. I dont have the knowledge needed to maintain a driver.
 
-Does the hardware support Bt.656? If it does, you need to tell the
-difference between the parallel interface with default sync polarity and
-Bt.656 interfaces. With the above it's ambiguous.
+Not yet, but I can't really say I've been looking - unfortunately real
+life got in the way of anything over christmas. I'm not sure I do
+either, but it really depends on what's required. From what I can see
+from maintaining another driver then as long as the driver is working
+there's not a whole lot to do.
 
-> +
-> +Example:
-> +
-> +The example describes the connection between the Capture Engine Unit and an
-> +OV7670 image sensor connected to i2c1 interface.
-> +
-> +ceu: ceu@e8210000 {
-> +	reg = <0xe8210000 0x209c>;
-> +	compatible = "renesas,r7s72100-ceu";
-> +	interrupts = <GIC_SPI 332 IRQ_TYPE_LEVEL_HIGH>;
-> +
-> +	pinctrl-names = "default";
-> +	pinctrl-0 = <&vio_pins>;
-> +
-> +	status = "okay";
-> +
-> +	port {
-> +		ceu_in: endpoint {
-> +			remote-endpoint = <&ov7670_out>;
-> +
-> +			hsync-active = <1>;
-> +			vsync-active = <0>;
-> +		};
-> +	};
-> +};
-> +
-> +i2c1: i2c@fcfee400 {
-> +	pinctrl-names = "default";
-> +	pinctrl-0 = <&i2c1_pins>;
-> +
-> +	status = "okay";
-> +
-> +	clock-frequency = <100000>;
-> +
-> +	ov7670: camera@21 {
-> +		compatible = "ovti,ov7670";
-> +		reg = <0x21>;
-> +
-> +		pinctrl-names = "default";
-> +		pinctrl-0 = <&vio_pins>;
-> +
-> +		reset-gpios = <&port3 11 GPIO_ACTIVE_LOW>;
-> +		powerdown-gpios = <&port3 12 GPIO_ACTIVE_HIGH>;
-> +
-> +		port {
-> +			ov7670_out: endpoint {
-> +				remote-endpoint = <&ceu_in>;
-> +
-> +				hsync-active = <1>;
-> +				vsync-active = <0>;
-> +			};
-> +		};
-> +	};
-> +};
-> -- 
-> 2.7.4
-> 
+>
+> I think that your proposal to use a stripped version of Luis Alves
+> repo is a no go, since it contains a couple of demod/tuner drivers
+> that are not upstreamed yet. That complicates the upstreaming process
+> too much, I think.
 
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+Oh, I would have stripped it *right* down and removed every card except
+my TBS6280. The end result would probably be pretty close to Soeren's at
+that point anyway, so I was starting to think like what you've done and
+base it on that instead.
+
+> I used a stripped version of Soeren Moch's repo to prove its stability
+> instead, adding the drivers I need so I can test it. You can see what
+> I did at :
+> https://github.com/bas-t/linux-saa716x/commits/for-media-stripped
+>
+> This has been tested with linux 4.9.77, 4.14.14 and 4.15-rc8.
+> Works like a charm for me.
+>
+
+Looks like a good start, I'd be tempted to remove all the other cards
+though unless you have them available to test with. Keeps the submission
+simpler and less to worry about, they can be added back in later if
+someone has an itch to scratch (and hardware to test with!).
+
+I do have a few other tbs 716x cards available here at work so might be
+able to test some others out, but we're a bit busy at the moment so
+would have to be on my own time and there's not much of that available
+at the moment either :(
+
+
+Jemma.
