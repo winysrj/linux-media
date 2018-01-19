@@ -1,131 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx08-00178001.pphosted.com ([91.207.212.93]:27417 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1750848AbeAVQV1 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 22 Jan 2018 11:21:27 -0500
-From: Hugues FRUCHET <hugues.fruchet@st.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-CC: Steve Longerbeam <slongerbeam@gmail.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
+Received: from hermes.aosc.io ([199.195.250.187]:45249 "EHLO hermes.aosc.io"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752938AbeASVRc (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 19 Jan 2018 16:17:32 -0500
+From: Icenowy Zheng <icenowy@aosc.io>
+To: linux-arm-kernel@lists.infradead.org
+Cc: Rob Herring <robh@kernel.org>, Yong Deng <yong.deng@magewell.com>,
+        Mark Rutland <mark.rutland@arm.com>, megous@megous.com,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        linux-sunxi@googlegroups.com,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Rick Chang <rick.chang@mediatek.com>,
+        Chen-Yu Tsai <wens@csie.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "Benjamin Gaignard" <benjamin.gaignard@linaro.org>
-Subject: Re: [PATCH] media: ov5640: add JPEG support
-Date: Mon, 22 Jan 2018 16:21:00 +0000
-Message-ID: <c3bdffca-6ea1-9cbf-794e-ab9adedc965d@st.com>
-References: <1516617996-29499-1-git-send-email-hugues.fruchet@st.com>
- <20180122125250.znhs334o2irkey2h@valkosipuli.retiisi.org.uk>
-In-Reply-To: <20180122125250.znhs334o2irkey2h@valkosipuli.retiisi.org.uk>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-ID: <6B673CF9665BBE4B90EECFB8528A6B60@st.com>
-Content-Transfer-Encoding: base64
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Randy Dunlap <rdunlap@infradead.org>,
+        linux-kernel@vger.kernel.org,
+        Yannick Fertre <yannick.fertre@st.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Maxime Ripard <maxime.ripard@free-electrons.com>,
+        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
+        "David S. Miller" <davem@davemloft.net>
+Subject: Re: [PATCH v5 1/2] dt-bindings: media: Add Allwinner V3s Camera Sensor Interface (CSI)
+Date: Sat, 20 Jan 2018 05:17:25 +0800
+Message-ID: <2315959.AJds7mCBWN@ice-x220i>
+In-Reply-To: <20180119211409.ubysuyvhkmfotbdg@rob-hp-laptop>
+References: <1515639823-35782-1-git-send-email-yong.deng@magewell.com> <20180119211409.ubysuyvhkmfotbdg@rob-hp-laptop>
 MIME-Version: 1.0
+Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-SGkgU2FrYXJpLA0KVGhhbmtzIGZvciByZXZpZXdpbmcsDQoNCk9uIDAxLzIyLzIwMTggMDE6NTIg
-UE0sIFNha2FyaSBBaWx1cyB3cm90ZToNCj4gSGkgSHVndWVzLA0KPiANCj4gT24gTW9uLCBKYW4g
-MjIsIDIwMTggYXQgMTE6NDY6MzZBTSArMDEwMCwgSHVndWVzIEZydWNoZXQgd3JvdGU6DQo+PiBB
-ZGQgWVVWNDIyIGVuY29kZWQgSlBFRyBzdXBwb3J0Lg0KPj4NCj4+IFNpZ25lZC1vZmYtYnk6IEh1
-Z3VlcyBGcnVjaGV0IDxodWd1ZXMuZnJ1Y2hldEBzdC5jb20+DQo+PiAtLS0NCj4+ICAgZHJpdmVy
-cy9tZWRpYS9pMmMvb3Y1NjQwLmMgfCA4MiArKysrKysrKysrKysrKysrKysrKysrKysrKysrKysr
-KysrKysrKysrKysrKy0tDQo+PiAgIDEgZmlsZSBjaGFuZ2VkLCA4MCBpbnNlcnRpb25zKCspLCAy
-IGRlbGV0aW9ucygtKQ0KPj4NCj4+IGRpZmYgLS1naXQgYS9kcml2ZXJzL21lZGlhL2kyYy9vdjU2
-NDAuYyBiL2RyaXZlcnMvbWVkaWEvaTJjL292NTY0MC5jDQo+PiBpbmRleCBlMmRkMzUyLi5kYjlh
-ZWViIDEwMDY0NA0KPj4gLS0tIGEvZHJpdmVycy9tZWRpYS9pMmMvb3Y1NjQwLmMNCj4+ICsrKyBi
-L2RyaXZlcnMvbWVkaWEvaTJjL292NTY0MC5jDQo+PiBAQCAtMTgsNiArMTgsNyBAQA0KPj4gICAj
-aW5jbHVkZSA8bGludXgvaW5pdC5oPg0KPj4gICAjaW5jbHVkZSA8bGludXgvbW9kdWxlLmg+DQo+
-PiAgICNpbmNsdWRlIDxsaW51eC9vZl9kZXZpY2UuaD4NCj4+ICsjaW5jbHVkZSA8bGludXgvc2l6
-ZXMuaD4NCj4+ICAgI2luY2x1ZGUgPGxpbnV4L3NsYWIuaD4NCj4+ICAgI2luY2x1ZGUgPGxpbnV4
-L3R5cGVzLmg+DQo+PiAgICNpbmNsdWRlIDxsaW51eC9ncGlvL2NvbnN1bWVyLmg+DQo+PiBAQCAt
-MzQsNiArMzUsMTAgQEANCj4+ICAgDQo+PiAgICNkZWZpbmUgT1Y1NjQwX0RFRkFVTFRfU0xBVkVf
-SUQgMHgzYw0KPj4gICANCj4+ICsjZGVmaW5lIE9WNTY0MF9KUEVHX1NJWkVfTUFYICg1ICogU1pf
-MU0pDQo+PiArDQo+PiArI2RlZmluZSBPVjU2NDBfUkVHX1NZU19SRVNFVDAyCQkweDMwMDINCj4+
-ICsjZGVmaW5lIE9WNTY0MF9SRUdfU1lTX0NMT0NLX0VOQUJMRTAyCTB4MzAwNg0KPj4gICAjZGVm
-aW5lIE9WNTY0MF9SRUdfU1lTX0NUUkwwCQkweDMwMDgNCj4+ICAgI2RlZmluZSBPVjU2NDBfUkVH
-X0NISVBfSUQJCTB4MzAwYQ0KPj4gICAjZGVmaW5lIE9WNTY0MF9SRUdfSU9fTUlQSV9DVFJMMDAJ
-MHgzMDBlDQo+PiBAQCAtMTE0LDYgKzExOSw3IEBAIHN0cnVjdCBvdjU2NDBfcGl4Zm10IHsNCj4+
-ICAgfTsNCj4+ICAgDQo+PiAgIHN0YXRpYyBjb25zdCBzdHJ1Y3Qgb3Y1NjQwX3BpeGZtdCBvdjU2
-NDBfZm9ybWF0c1tdID0gew0KPj4gKwl7IE1FRElBX0JVU19GTVRfSlBFR18xWDgsIFY0TDJfQ09M
-T1JTUEFDRV9KUEVHLCB9LA0KPj4gICAJeyBNRURJQV9CVVNfRk1UX1VZVlk4XzJYOCwgVjRMMl9D
-T0xPUlNQQUNFX1NSR0IsIH0sDQo+PiAgIAl7IE1FRElBX0JVU19GTVRfWVVZVjhfMlg4LCBWNEwy
-X0NPTE9SU1BBQ0VfU1JHQiwgfSwNCj4+ICAgCXsgTUVESUFfQlVTX0ZNVF9SR0I1NjVfMlg4X0xF
-LCBWNEwyX0NPTE9SU1BBQ0VfU1JHQiwgfSwNCj4+IEBAIC0yMjAsNiArMjI2LDggQEAgc3RydWN0
-IG92NTY0MF9kZXYgew0KPj4gICANCj4+ICAgCWJvb2wgcGVuZGluZ19tb2RlX2NoYW5nZTsNCj4+
-ICAgCWJvb2wgc3RyZWFtaW5nOw0KPj4gKw0KPj4gKwl1bnNpZ25lZCBpbnQganBlZ19zaXplOw0K
-Pj4gICB9Ow0KPj4gICANCj4+ICAgc3RhdGljIGlubGluZSBzdHJ1Y3Qgb3Y1NjQwX2RldiAqdG9f
-b3Y1NjQwX2RldihzdHJ1Y3QgdjRsMl9zdWJkZXYgKnNkKQ0KPj4gQEAgLTE5MTAsMTEgKzE5MTgs
-NTEgQEAgc3RhdGljIGludCBvdjU2NDBfc2V0X2ZtdChzdHJ1Y3QgdjRsMl9zdWJkZXYgKnNkLA0K
-Pj4gICAJcmV0dXJuIHJldDsNCj4+ICAgfQ0KPj4gICANCj4+ICtzdGF0aWMgaW50IG92NTY0MF9n
-ZXRfZnJhbWVfZGVzYyhzdHJ1Y3QgdjRsMl9zdWJkZXYgKnNkLCB1bnNpZ25lZCBpbnQgcGFkLA0K
-Pj4gKwkJCQkgc3RydWN0IHY0bDJfbWJ1c19mcmFtZV9kZXNjICpmZCkNCj4+ICt7DQo+PiArCXN0
-cnVjdCBvdjU2NDBfZGV2ICpzZW5zb3IgPSB0b19vdjU2NDBfZGV2KHNkKTsNCj4+ICsNCj4+ICsJ
-aWYgKHBhZCAhPSAwIHx8ICFmZCkNCj4+ICsJCXJldHVybiAtRUlOVkFMOw0KPj4gKw0KPj4gKwlt
-dXRleF9sb2NrKCZzZW5zb3ItPmxvY2spOw0KPj4gKwlmZC0+ZW50cnlbMF0ubGVuZ3RoID0gc2Vu
-c29yLT5qcGVnX3NpemU7DQo+PiArCWZkLT5lbnRyeVswXS5waXhlbGNvZGUgPSBNRURJQV9CVVNf
-Rk1UX0pQRUdfMVg4Ow0KPiANCj4gVGhpcyBkb2Vzbid0IG5lZWQgdG8gYmUgc2VyaWFsaXNlZCBp
-LmUuIGNhbiBiZSBtb3ZlZCBiZWxvdyB3aGVyZSB0aGUgZmxhZ3MNCj4gYXJlIGFzc2lnbmVkLg0K
-PiANCg0KSXQgd2FzIGZvciAic2Vuc29yLT5qcGVnX3NpemUiIHByb3RlY3Rpb24sIHNob3VsZCBi
-ZToNCg0KbXV0ZXhfbG9jaygmc2Vuc29yLT5sb2NrKTsNCmZkLT5lbnRyeVswXS5sZW5ndGggPSBz
-ZW5zb3ItPmpwZWdfc2l6ZTsNCm11dGV4X3VubG9jaygmc2Vuc29yLT5sb2NrKTsNCg0KDQo+PiAr
-CW11dGV4X3VubG9jaygmc2Vuc29yLT5sb2NrKTsNCj4+ICsNCj4+ICsJZmQtPmVudHJ5WzBdLmZs
-YWdzID0gVjRMMl9NQlVTX0ZSQU1FX0RFU0NfRkxfTEVOX01BWDsNCj4+ICsJZmQtPm51bV9lbnRy
-aWVzID0gMTsNCj4+ICsNCj4+ICsJcmV0dXJuIDA7DQo+PiArfQ0KPj4gKw0KPj4gK3N0YXRpYyBp
-bnQgb3Y1NjQwX3NldF9mcmFtZV9kZXNjKHN0cnVjdCB2NGwyX3N1YmRldiAqc2QsIHVuc2lnbmVk
-IGludCBwYWQsDQo+PiArCQkJCSBzdHJ1Y3QgdjRsMl9tYnVzX2ZyYW1lX2Rlc2MgKmZkKQ0KPj4g
-K3sNCj4+ICsJc3RydWN0IG92NTY0MF9kZXYgKnNlbnNvciA9IHRvX292NTY0MF9kZXYoc2QpOw0K
-Pj4gKw0KPj4gKwlpZiAocGFkICE9IDAgfHwgIWZkKQ0KPj4gKwkJcmV0dXJuIC1FSU5WQUw7DQo+
-PiArDQo+PiArCWZkLT5lbnRyeVswXS5mbGFncyA9IFY0TDJfTUJVU19GUkFNRV9ERVNDX0ZMX0xF
-Tl9NQVg7DQo+PiArCWZkLT5udW1fZW50cmllcyA9IDE7DQo+PiArCWZkLT5lbnRyeVswXS5sZW5n
-dGggPSBjbGFtcF90KHUzMiwgZmQtPmVudHJ5WzBdLmxlbmd0aCwNCj4+ICsJCQkJICAgICAgc2Vu
-c29yLT5mbXQud2lkdGggKiBzZW5zb3ItPmZtdC5oZWlnaHQsDQo+PiArCQkJCSAgICAgIE9WNTY0
-MF9KUEVHX1NJWkVfTUFYKTsNCj4gDQo+IEFjY2VzcyB0byBzZW5zb3ItPmZtdC53aWR0aCBhbmQg
-LmhlaWdodCBuZWVkcyB0byBiZSBzZXJpYWxpc2VkOyBhY3F1aXJlDQo+IG11dGV4IGZpcnN0Pw0K
-DQpZZXMsIHNob3VsZCBiZToNCg0KbXV0ZXhfbG9jaygmc2Vuc29yLT5sb2NrKTsNCmZkLT5lbnRy
-eVswXS5sZW5ndGggPSBjbGFtcF90KHUzMiwgZmQtPmVudHJ5WzBdLmxlbmd0aCwNCgkJCSAgICAg
-IHNlbnNvci0+Zm10LndpZHRoICogc2Vuc29yLT5mbXQuaGVpZ2h0LA0KCQkJICAgICAgT1Y1NjQw
-X0pQRUdfU0laRV9NQVgpOw0Kc2Vuc29yLT5qcGVnX3NpemUgPSBmZC0+ZW50cnlbMF0ubGVuZ3Ro
-Ow0KbXV0ZXhfdW5sb2NrKCZzZW5zb3ItPmxvY2spOw0KDQo+IA0KPj4gKwltdXRleF9sb2NrKCZz
-ZW5zb3ItPmxvY2spOw0KPj4gKwlzZW5zb3ItPmpwZWdfc2l6ZSA9IGZkLT5lbnRyeVswXS5sZW5n
-dGg7DQo+PiArCW11dGV4X3VubG9jaygmc2Vuc29yLT5sb2NrKTsNCj4+ICsNCj4+ICsJcmV0dXJu
-IDA7DQo+PiArfQ0KPj4gKw0KPj4gICBzdGF0aWMgaW50IG92NTY0MF9zZXRfZnJhbWVmbXQoc3Ry
-dWN0IG92NTY0MF9kZXYgKnNlbnNvciwNCj4+ICAgCQkJICAgICAgIHN0cnVjdCB2NGwyX21idXNf
-ZnJhbWVmbXQgKmZvcm1hdCkNCj4+ICAgew0KPj4gICAJaW50IHJldCA9IDA7DQo+PiAgIAlib29s
-IGlzX3JnYiA9IGZhbHNlOw0KPj4gKwlib29sIGlzX2pwZWcgPSBmYWxzZTsNCj4+ICAgCXU4IHZh
-bDsNCj4+ICAgDQo+PiAgIAlzd2l0Y2ggKGZvcm1hdC0+Y29kZSkgew0KPj4gQEAgLTE5MzYsNiAr
-MTk4NCwxMSBAQCBzdGF0aWMgaW50IG92NTY0MF9zZXRfZnJhbWVmbXQoc3RydWN0IG92NTY0MF9k
-ZXYgKnNlbnNvciwNCj4+ICAgCQl2YWwgPSAweDYxOw0KPj4gICAJCWlzX3JnYiA9IHRydWU7DQo+
-PiAgIAkJYnJlYWs7DQo+PiArCWNhc2UgTUVESUFfQlVTX0ZNVF9KUEVHXzFYODoNCj4+ICsJCS8q
-IFlVVjQyMiwgWVVZViAqLw0KPj4gKwkJdmFsID0gMHgzMDsNCj4+ICsJCWlzX2pwZWcgPSB0cnVl
-Ow0KPj4gKwkJYnJlYWs7DQo+PiAgIAlkZWZhdWx0Og0KPj4gICAJCXJldHVybiAtRUlOVkFMOw0K
-Pj4gICAJfQ0KPj4gQEAgLTE5NDYsOCArMTk5OSwzMSBAQCBzdGF0aWMgaW50IG92NTY0MF9zZXRf
-ZnJhbWVmbXQoc3RydWN0IG92NTY0MF9kZXYgKnNlbnNvciwNCj4+ICAgCQlyZXR1cm4gcmV0Ow0K
-Pj4gICANCj4+ICAgCS8qIEZPUk1BVCBNVVggQ09OVFJPTDogSVNQIFlVViBvciBSR0IgKi8NCj4+
-IC0JcmV0dXJuIG92NTY0MF93cml0ZV9yZWcoc2Vuc29yLCBPVjU2NDBfUkVHX0lTUF9GT1JNQVRf
-TVVYX0NUUkwsDQo+PiAtCQkJCWlzX3JnYiA/IDB4MDEgOiAweDAwKTsNCj4+ICsJcmV0ID0gb3Y1
-NjQwX3dyaXRlX3JlZyhzZW5zb3IsIE9WNTY0MF9SRUdfSVNQX0ZPUk1BVF9NVVhfQ1RSTCwNCj4+
-ICsJCQkgICAgICAgaXNfcmdiID8gMHgwMSA6IDB4MDApOw0KPj4gKwlpZiAocmV0KQ0KPj4gKwkJ
-cmV0dXJuIHJldDsNCj4+ICsNCj4+ICsJaWYgKGlzX2pwZWcpIHsNCj4+ICsJCS8qIEVuYWJsZSBq
-cGVnICovDQo+PiArCQlyZXQgPSBvdjU2NDBfbW9kX3JlZyhzZW5zb3IsIE9WNTY0MF9SRUdfVElN
-SU5HX1RDX1JFRzIxLA0KPj4gKwkJCQkgICAgIEJJVCg1KSwgQklUKDUpKTsNCj4+ICsJCWlmIChy
-ZXQpDQo+PiArCQkJcmV0dXJuIHJldDsNCj4+ICsNCj4+ICsJCS8qIFJlbGF4IHJlc2V0IG9mIGFs
-bCBibG9ja3MgKi8NCj4+ICsJCXJldCA9IG92NTY0MF93cml0ZV9yZWcoc2Vuc29yLCBPVjU2NDBf
-UkVHX1NZU19SRVNFVDAyLCAweDAwKTsNCj4+ICsJCWlmIChyZXQpDQo+PiArCQkJcmV0dXJuIHJl
-dDsNCj4+ICsNCj4+ICsJCS8qIENsb2NrIGFsbCBibG9ja3MgKi8NCj4+ICsJCXJldCA9IG92NTY0
-MF93cml0ZV9yZWcoc2Vuc29yLCBPVjU2NDBfUkVHX1NZU19DTE9DS19FTkFCTEUwMiwNCj4+ICsJ
-CQkJICAgICAgIDB4RkYpOw0KPj4gKwkJaWYgKHJldCkNCj4+ICsJCQlyZXR1cm4gcmV0Ow0KPiAN
-Cj4gV2hhdCBpZiB5b3Ugc3dpdGNoIGJhY2sgdG8gbm9uLUpQRUcgb3V0cHV0IHdoaWxlIHRoZSBz
-ZW5zb3IgcmVtYWlucyBwb3dlcmVkDQo+IG9uPyBEb24ndCB5b3UgbmVlZCB0byByZXZlcnQgdGhl
-IHNldHRpbmdzIHRvIHdoYXQgdGhleSB3ZXJlIHByZXZpb3VzbHk/DQoNCkFncmVlLCBJIHdpbGwg
-cmV3b3JrIHRoaXMgY29kZS4NCg0KPiANCj4+ICsJfQ0KPj4gKw0KPj4gKwlyZXR1cm4gcmV0Ow0K
-Pj4gICB9DQo+PiAgIA0KPj4gICAvKg0KPj4gQEAgLTIzOTEsNiArMjQ2Nyw4IEBAIHN0YXRpYyBp
-bnQgb3Y1NjQwX3Nfc3RyZWFtKHN0cnVjdCB2NGwyX3N1YmRldiAqc2QsIGludCBlbmFibGUpDQo+
-PiAgIAkuc2V0X2ZtdCA9IG92NTY0MF9zZXRfZm10LA0KPj4gICAJLmVudW1fZnJhbWVfc2l6ZSA9
-IG92NTY0MF9lbnVtX2ZyYW1lX3NpemUsDQo+PiAgIAkuZW51bV9mcmFtZV9pbnRlcnZhbCA9IG92
-NTY0MF9lbnVtX2ZyYW1lX2ludGVydmFsLA0KPj4gKwkuZ2V0X2ZyYW1lX2Rlc2MJPSBvdjU2NDBf
-Z2V0X2ZyYW1lX2Rlc2MsDQo+PiArCS5zZXRfZnJhbWVfZGVzYwk9IG92NTY0MF9zZXRfZnJhbWVf
-ZGVzYywNCj4+ICAgfTsNCj4+ICAgDQo+PiAgIHN0YXRpYyBjb25zdCBzdHJ1Y3QgdjRsMl9zdWJk
-ZXZfb3BzIG92NTY0MF9zdWJkZXZfb3BzID0gew0KPiANCg0KQmVzdCByZWdhcmRzLA0KSHVndWVz
-Lg==
+在 2018年1月20日星期六 CST 上午5:14:09，Rob Herring 写道：
+> On Thu, Jan 11, 2018 at 11:03:43AM +0800, Yong Deng wrote:
+> > Add binding documentation for Allwinner V3s CSI.
+> > 
+> > Signed-off-by: Yong Deng <yong.deng@magewell.com>
+> > ---
+> > 
+> >  .../devicetree/bindings/media/sun6i-csi.txt        | 59
+> >  ++++++++++++++++++++++ 1 file changed, 59 insertions(+)
+> >  create mode 100644 Documentation/devicetree/bindings/media/sun6i-csi.txt
+> 
+> Reviewed-by: Rob Herring <robh@kernel.org>
+
+I think other subsystem's maintainer may expect a Acked-by from you here.
+
+Why do you use Reviewed-by here instead?
+
+> 
+> _______________________________________________
+> linux-arm-kernel mailing list
+> linux-arm-kernel@lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
