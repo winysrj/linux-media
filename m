@@ -1,45 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f195.google.com ([209.85.128.195]:38885 "EHLO
-        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751609AbeA2P6Z (ORCPT
+Received: from merlin.infradead.org ([205.233.59.134]:58668 "EHLO
+        merlin.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1756567AbeASWMc (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 29 Jan 2018 10:58:25 -0500
-From: Philipp Rossak <embed3d@gmail.com>
-To: mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
-        maxime.ripard@free-electrons.com, wens@csie.org,
-        linux@armlinux.org.uk, sean@mess.org, p.zabel@pengutronix.de,
-        andi.shyti@samsung.com
-Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-sunxi@googlegroups.com
-Subject: [PATCH v4 6/6] arm: dts: sun8i: h3-h8: ir register size should be the whole memory block
-Date: Mon, 29 Jan 2018 16:58:10 +0100
-Message-Id: <20180129155810.7867-7-embed3d@gmail.com>
-In-Reply-To: <20180129155810.7867-1-embed3d@gmail.com>
-References: <20180129155810.7867-1-embed3d@gmail.com>
+        Fri, 19 Jan 2018 17:12:32 -0500
+Subject: Re: [PATCH v6 0/9] Renesas Capture Engine Unit (CEU) V4L2 driver
+To: Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        laurent.pinchart@ideasonboard.com, magnus.damm@gmail.com,
+        geert@glider.be, hverkuil@xs4all.nl, mchehab@kernel.org,
+        festevam@gmail.com, sakari.ailus@iki.fi, robh+dt@kernel.org,
+        mark.rutland@arm.com, pombredanne@nexb.com
+Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-sh@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+References: <1516139101-7835-1-git-send-email-jacopo+renesas@jmondi.org>
+From: Randy Dunlap <rdunlap@infradead.org>
+Message-ID: <b26ef29e-0c26-6359-1205-735e6770eb10@infradead.org>
+Date: Fri, 19 Jan 2018 14:12:19 -0800
+MIME-Version: 1.0
+In-Reply-To: <1516139101-7835-1-git-send-email-jacopo+renesas@jmondi.org>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The size of the register should be the size of the whole memory block,
-not just the registers, that are needed.
+On 01/16/2018 01:44 PM, Jacopo Mondi wrote:
+> Hello,
+>    new version of CEU after Hans' review.
+> 
+> Added his Acked-by to most patches and closed review comments.
+> Running v4l2-compliance, I noticed a new failure introduced by the way I now
+> calculate the plane sizes in set/try_fmt.
 
-Signed-off-by: Philipp Rossak <embed3d@gmail.com>
+I would expect that you have already seen this, but I get a build error
+in renesas-ceu.c.  Here is a small patch for it.
+
 ---
- arch/arm/boot/dts/sunxi-h3-h5.dtsi | 2 +-
+From: Randy Dunlap <rdunlap@infradead.org>
+
+Fix build error (on x86 with COMPILE_TEST):
+
+../drivers/media/platform/renesas-ceu.c: In function 'ceu_parse_dt':
+../drivers/media/platform/renesas-ceu.c:1497:27: error: request for member 'fwnode' in something not a structure or union
+   ceu_sd->asd.match.fwnode.fwnode =
+
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+---
+ drivers/media/platform/renesas-ceu.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/arch/arm/boot/dts/sunxi-h3-h5.dtsi b/arch/arm/boot/dts/sunxi-h3-h5.dtsi
-index 8d40c00d64bb..a9caeda4a574 100644
---- a/arch/arm/boot/dts/sunxi-h3-h5.dtsi
-+++ b/arch/arm/boot/dts/sunxi-h3-h5.dtsi
-@@ -674,7 +674,7 @@
- 			clock-names = "apb", "ir";
- 			resets = <&r_ccu RST_APB0_IR>;
- 			interrupts = <GIC_SPI 37 IRQ_TYPE_LEVEL_HIGH>;
--			reg = <0x01f02000 0x40>;
-+			reg = <0x01f02000 0x400>;
- 			status = "disabled";
- 		};
+--- linux-next-20180119.orig/drivers/media/platform/renesas-ceu.c
++++ linux-next-20180119/drivers/media/platform/renesas-ceu.c
+@@ -1494,7 +1494,7 @@ static int ceu_parse_dt(struct ceu_devic
  
--- 
-2.11.0
+ 		ceu_sd->mbus_flags = fw_ep.bus.parallel.flags;
+ 		ceu_sd->asd.match_type = V4L2_ASYNC_MATCH_FWNODE;
+-		ceu_sd->asd.match.fwnode.fwnode =
++		ceu_sd->asd.match.fwnode =
+ 			fwnode_graph_get_remote_port_parent(
+ 					of_fwnode_handle(ep));
+ 
