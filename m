@@ -1,47 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay3-d.mail.gandi.net ([217.70.183.195]:34435 "EHLO
-        relay3-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752343AbeADJwo (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 4 Jan 2018 04:52:44 -0500
-From: Jacopo Mondi <jacopo+renesas@jmondi.org>
-To: corbet@lwn.net, mchehab@kernel.org, sakari.ailus@iki.fi,
-        robh+dt@kernel.org, mark.rutland@arm.com
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
+Received: from mail.free-electrons.com ([62.4.15.54]:33641 "EHLO
+        mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751548AbeASIQA (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 19 Jan 2018 03:16:00 -0500
+From: Maxime Ripard <maxime.ripard@free-electrons.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Rob Herring <robh+dt@kernel.org>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
         linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH v2 0/2] media: ov7670: Implement mbus configuration
-Date: Thu,  4 Jan 2018 10:52:31 +0100
-Message-Id: <1515059553-10219-1-git-send-email-jacopo+renesas@jmondi.org>
+        Richard Sproul <sproul@cadence.com>,
+        Alan Douglas <adouglas@cadence.com>,
+        Steve Creaney <screaney@cadence.com>,
+        Thomas Petazzoni <thomas.petazzoni@free-electrons.com>,
+        Boris Brezillon <boris.brezillon@free-electrons.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Benoit Parrot <bparrot@ti.com>, nm@ti.com,
+        Simon Hatliff <hatliff@cadence.com>,
+        Maxime Ripard <maxime.ripard@free-electrons.com>
+Subject: [PATCH v2 0/2] media: v4l: Add support for the Cadence MIPI-CSI2 TX controller
+Date: Fri, 19 Jan 2018 09:15:45 +0100
+Message-Id: <20180119081547.22312-1-maxime.ripard@free-electrons.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
-   this series adds mbus configuration properties to ov7670 sensor driver.
+Hi,
 
-I have sent v1 a few days ago and forgot to cc device tree people. Doing it
-now with bindings description and implementation split in 2 separate patches.
+Here is an attempt at supporting the MIPI-CSI2 TX block from Cadence.
 
-I have fixed Sakari's comment on v1, and I'm sending v2 out with support for
-"pll-bypass" custom property as it was in v1. If we decide it is not worth
-to make an OF property out of it, I will drop it in v3. Technically it is not
-even an mbus configuration option, so I'm fine dropping it eventually.
+This IP block is able to receive 4 video streams and stream them over
+a MIPI-CSI2 link using up to 4 lanes. Those streams are basically the
+interfaces to controllers generating some video signals, like a camera
+or a pattern generator.
 
-Thanks
-  j
+It is able to map input streams to CSI2 virtual channels and datatypes
+dynamically. The streaming devices choose their virtual channels
+through an additional signal that is transparent to the CSI2-TX. The
+datatypes however are yet another additional input signal, and can be
+mapped to any CSI2 datatypes.
 
-v1->v2:
-- Split bindings description and implementation
-- Addressed Sakari's comments on v1
-- Check for return values of register writes in set_fmt()
-- TODO: decide if "pll-bypass" should be an OF property.
+Since v4l2 doesn't really allow for that setup at the moment, this
+preliminary version is a rather dumb one in order to start the
+discussion on how to address this properly.
 
-Jacopo Mondi (2):
-  v4l2: i2c: ov7670: Implement OF mbus configuration
-  media: dt-bindings: Add OF properties to ov7670
+Let me know what you think!
+Maxime
 
- .../devicetree/bindings/media/i2c/ov7670.txt       |  14 +++
- drivers/media/i2c/ov7670.c                         | 124 ++++++++++++++++++---
- 2 files changed, 124 insertions(+), 14 deletions(-)
+Changes from v1:
+  - Add a subdev notifier and start our downstream subdevice in
+    s_stream  
+  - Based the decision to enable the stream or not on the link state
+    instead of whether a format was being set on the pad
+  - Put the controller back in reset when stopping the pipeline
+  - Clarified the enpoints number in the DT binding
+  - Added a default format for the pads
+  - Added some missing const
+  - Added more explicit comments
+  - Rebased on 4.15
 
---
-2.7.4
+Maxime Ripard (2):
+  dt-bindings: media: Add Cadence MIPI-CSI2 TX Device Tree bindings
+  v4l: cadence: Add Cadence MIPI-CSI2 TX driver
+
+ .../devicetree/bindings/media/cdns,csi2tx.txt      |  98 ++++
+ drivers/media/platform/cadence/Kconfig             |   6 +
+ drivers/media/platform/cadence/Makefile            |   1 +
+ drivers/media/platform/cadence/cdns-csi2tx.c       | 586 +++++++++++++++++++++
+ 4 files changed, 691 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/cdns,csi2tx.txt
+ create mode 100644 drivers/media/platform/cadence/cdns-csi2tx.c
+
+-- 
+2.14.3
