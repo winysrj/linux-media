@@ -1,65 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bin-mail-out-06.binero.net ([195.74.38.229]:49288 "EHLO
-        bin-vsp-out-03.atm.binero.net" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751619AbeA2Qfg (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:50446 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1755809AbeASRLD (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 29 Jan 2018 11:35:36 -0500
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH v10 16/30] rcar-vin: update bytesperline and sizeimage calculation
-Date: Mon, 29 Jan 2018 17:34:21 +0100
-Message-Id: <20180129163435.24936-17-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20180129163435.24936-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20180129163435.24936-1-niklas.soderlund+renesas@ragnatech.se>
+        Fri, 19 Jan 2018 12:11:03 -0500
+Date: Fri, 19 Jan 2018 19:11:00 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Peter Ujfalusi <peter.ujfalusi@ti.com>
+Cc: mchehab@kernel.org, arnd@arndb.de, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] media: v4l: omap_vout: vrfb: Use the wrapper for
+ prep_interleaved_dma()
+Message-ID: <20180119171059.p3o4pihea6hcrg7y@valkosipuli.retiisi.org.uk>
+References: <20180119133434.3587-1-peter.ujfalusi@ti.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20180119133434.3587-1-peter.ujfalusi@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Remove over complicated logic to calculate the value for bytesperline
-and sizeimage that was carried over from the soc_camera port. Update the
-calculations to match how other drivers are doing it.
+Hi, Peter! :-)
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
----
- drivers/media/platform/rcar-vin/rcar-v4l2.c | 11 ++---------
- 1 file changed, 2 insertions(+), 9 deletions(-)
+How do you do?
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-index 1169e6a279ecfb55..bca6e204a574772f 100644
---- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-+++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-@@ -118,10 +118,8 @@ static int rvin_format_align(struct rvin_dev *vin, struct v4l2_pix_format *pix)
- 	v4l_bound_align_image(&pix->width, 2, vin->info->max_width, walign,
- 			      &pix->height, 4, vin->info->max_height, 2, 0);
- 
--	pix->bytesperline = max_t(u32, pix->bytesperline,
--				  rvin_format_bytesperline(pix));
--	pix->sizeimage = max_t(u32, pix->sizeimage,
--			       rvin_format_sizeimage(pix));
-+	pix->bytesperline = rvin_format_bytesperline(pix);
-+	pix->sizeimage = rvin_format_sizeimage(pix);
- 
- 	if (vin->info->model == RCAR_M1 &&
- 	    pix->pixelformat == V4L2_PIX_FMT_XBGR32) {
-@@ -270,11 +268,6 @@ static int __rvin_try_format(struct rvin_dev *vin,
- 	if (pix->field == V4L2_FIELD_ANY)
- 		pix->field = vin->format.field;
- 
--
--	/* Always recalculate */
--	pix->bytesperline = 0;
--	pix->sizeimage = 0;
--
- 	/* Limit to source capabilities */
- 	ret = __rvin_try_format_source(vin, which, pix);
- 	if (ret)
+On Fri, Jan 19, 2018 at 03:34:34PM +0200, Peter Ujfalusi wrote:
+> Instead of directly accessing to dmadev->device_prep_interleaved_dma() use
+> the dmaengine_prep_interleaved_dma() wrapper instead.
+> 
+> Signed-off-by: Peter Ujfalusi <peter.ujfalusi@ti.com>
+
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+
 -- 
-2.16.1
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
