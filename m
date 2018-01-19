@@ -1,174 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f193.google.com ([209.85.192.193]:46715 "EHLO
-        mail-pf0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751814AbeAZGCr (ORCPT
+Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:45701 "EHLO
+        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750757AbeASEqx (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 26 Jan 2018 01:02:47 -0500
-Received: by mail-pf0-f193.google.com with SMTP id y5so7583743pff.13
-        for <linux-media@vger.kernel.org>; Thu, 25 Jan 2018 22:02:47 -0800 (PST)
-From: Alexandre Courbot <acourbot@chromium.org>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Pawel Osciak <posciak@chromium.org>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Gustavo Padovan <gustavo.padovan@collabora.com>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Alexandre Courbot <acourbot@chromium.org>
-Subject: [RFC PATCH 2/8] videodev2.h: Add request field to v4l2_buffer
-Date: Fri, 26 Jan 2018 15:02:10 +0900
-Message-Id: <20180126060216.147918-3-acourbot@chromium.org>
-In-Reply-To: <20180126060216.147918-1-acourbot@chromium.org>
-References: <20180126060216.147918-1-acourbot@chromium.org>
+        Thu, 18 Jan 2018 23:46:53 -0500
+Message-ID: <7514956ee8a8f775965895b5261bbca4@smtp-cloud8.xs4all.net>
+Date: Fri, 19 Jan 2018 05:46:49 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-When queuing buffers allow for passing the request ID that
-should be associated with this buffer.
+Results of the daily build of media_tree:
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-[acourbot@chromium.org: make request ID 32-bit]
-Signed-off-by: Alexandre Courbot <acourbot@chromium.org>
----
- drivers/media/usb/cpia2/cpia2_v4l.c           | 2 +-
- drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 7 ++++---
- drivers/media/v4l2-core/v4l2-ioctl.c          | 4 ++--
- drivers/media/v4l2-core/videobuf2-v4l2.c      | 3 ++-
- include/media/videobuf2-v4l2.h                | 2 ++
- include/uapi/linux/videodev2.h                | 3 ++-
- 6 files changed, 13 insertions(+), 8 deletions(-)
+date:			Fri Jan 19 05:00:15 CET 2018
+media-tree git hash:	e3ee691dbf24096ea51b3200946b11d68ce75361
+media_build git hash:	2bd1f1623fbadfdc1026712b3d55141ba164c403
+v4l-utils git hash:	7eadec47ff4db4a032612349c362f3337b29d485
+gcc version:		i686-linux-gcc (GCC) 7.1.0
+sparse version:		v0.5.0-3911-g6f737e1f
+smatch version:		v0.5.0-3911-g6f737e1f
+host hardware:		x86_64
+host os:		4.13.0-164
 
-diff --git a/drivers/media/usb/cpia2/cpia2_v4l.c b/drivers/media/usb/cpia2/cpia2_v4l.c
-index 3dedd83f0b19..7acb6807b306 100644
---- a/drivers/media/usb/cpia2/cpia2_v4l.c
-+++ b/drivers/media/usb/cpia2/cpia2_v4l.c
-@@ -948,7 +948,7 @@ static int cpia2_dqbuf(struct file *file, void *fh, struct v4l2_buffer *buf)
- 	buf->sequence = cam->buffers[buf->index].seq;
- 	buf->m.offset = cam->buffers[buf->index].data - cam->frame_buffer;
- 	buf->length = cam->frame_size;
--	buf->reserved2 = 0;
-+	buf->request_fd = 0;
- 	buf->reserved = 0;
- 	memset(&buf->timecode, 0, sizeof(buf->timecode));
- 
-diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-index 821f2aa299ae..7e4440950c76 100644
---- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-+++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-@@ -370,7 +370,7 @@ struct v4l2_buffer32 {
- 		__s32		fd;
- 	} m;
- 	__u32			length;
--	__u32			reserved2;
-+	__u32			request_fd;
- 	__u32			reserved;
- };
- 
-@@ -438,7 +438,8 @@ static int get_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
- 		get_user(kp->type, &up->type) ||
- 		get_user(kp->flags, &up->flags) ||
- 		get_user(kp->memory, &up->memory) ||
--		get_user(kp->length, &up->length))
-+		get_user(kp->length, &up->length) ||
-+		get_user(kp->request_fd, &up->request_fd))
- 			return -EFAULT;
- 
- 	if (V4L2_TYPE_IS_OUTPUT(kp->type))
-@@ -533,7 +534,7 @@ static int put_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
- 		put_user(kp->timestamp.tv_usec, &up->timestamp.tv_usec) ||
- 		copy_to_user(&up->timecode, &kp->timecode, sizeof(struct v4l2_timecode)) ||
- 		put_user(kp->sequence, &up->sequence) ||
--		put_user(kp->reserved2, &up->reserved2) ||
-+		put_user(kp->request_fd, &up->request_fd) ||
- 		put_user(kp->reserved, &up->reserved) ||
- 		put_user(kp->length, &up->length))
- 			return -EFAULT;
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index ec4ecd5aa8bf..fdd2f784c264 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -437,13 +437,13 @@ static void v4l_print_buffer(const void *arg, bool write_only)
- 	const struct v4l2_plane *plane;
- 	int i;
- 
--	pr_cont("%02ld:%02d:%02d.%08ld index=%d, type=%s, flags=0x%08x, field=%s, sequence=%d, memory=%s",
-+	pr_cont("%02ld:%02d:%02d.%08ld index=%d, type=%s, request_fd=%u, flags=0x%08x, field=%s, sequence=%d, memory=%s",
- 			p->timestamp.tv_sec / 3600,
- 			(int)(p->timestamp.tv_sec / 60) % 60,
- 			(int)(p->timestamp.tv_sec % 60),
- 			(long)p->timestamp.tv_usec,
- 			p->index,
--			prt_names(p->type, v4l2_type_names),
-+			prt_names(p->type, v4l2_type_names), p->request_fd,
- 			p->flags, prt_names(p->field, v4l2_field_names),
- 			p->sequence, prt_names(p->memory, v4l2_memory_names));
- 
-diff --git a/drivers/media/v4l2-core/videobuf2-v4l2.c b/drivers/media/v4l2-core/videobuf2-v4l2.c
-index 0c0669976bdc..0f8edbdebe30 100644
---- a/drivers/media/v4l2-core/videobuf2-v4l2.c
-+++ b/drivers/media/v4l2-core/videobuf2-v4l2.c
-@@ -203,7 +203,7 @@ static void __fill_v4l2_buffer(struct vb2_buffer *vb, void *pb)
- 	b->timestamp = ns_to_timeval(vb->timestamp);
- 	b->timecode = vbuf->timecode;
- 	b->sequence = vbuf->sequence;
--	b->reserved2 = 0;
-+	b->request_fd = vbuf->request_fd;
- 	b->reserved = 0;
- 
- 	if (q->is_multiplanar) {
-@@ -320,6 +320,7 @@ static int __fill_vb2_buffer(struct vb2_buffer *vb,
- 	}
- 	vb->timestamp = 0;
- 	vbuf->sequence = 0;
-+	vbuf->request_fd = b->request_fd;
- 
- 	if (V4L2_TYPE_IS_MULTIPLANAR(b->type)) {
- 		if (b->memory == VB2_MEMORY_USERPTR) {
-diff --git a/include/media/videobuf2-v4l2.h b/include/media/videobuf2-v4l2.h
-index 036127c54bbf..d7cf4c66db38 100644
---- a/include/media/videobuf2-v4l2.h
-+++ b/include/media/videobuf2-v4l2.h
-@@ -31,6 +31,7 @@
-  * @field:	enum v4l2_field; field order of the image in the buffer
-  * @timecode:	frame timecode
-  * @sequence:	sequence count of this frame
-+ * @request_fd:	fd of the request used by the buffer
-  *
-  * Should contain enough information to be able to cover all the fields
-  * of struct v4l2_buffer at videodev2.h
-@@ -42,6 +43,7 @@ struct vb2_v4l2_buffer {
- 	__u32			field;
- 	struct v4l2_timecode	timecode;
- 	__u32			sequence;
-+	__u32			request_fd;
- };
- 
- /*
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 1c095b5a99c5..89bd716c66a6 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -902,6 +902,7 @@ struct v4l2_plane {
-  * @length:	size in bytes of the buffer (NOT its payload) for single-plane
-  *		buffers (when type != *_MPLANE); number of elements in the
-  *		planes array for multi-plane buffers
-+ * @request_fd: fd of the request that this buffer should use
-  *
-  * Contains data exchanged by application and driver using one of the Streaming
-  * I/O methods.
-@@ -925,7 +926,7 @@ struct v4l2_buffer {
- 		__s32		fd;
- 	} m;
- 	__u32			length;
--	__u32			reserved2;
-+	__s32			request_fd;
- 	__u32			reserved;
- };
- 
--- 
-2.16.0.rc1.238.g530d649a79-goog
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: WARNINGS
+linux-3.11.1-i686: ERRORS
+linux-3.12.67-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.7-i686: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.18.7-i686: ERRORS
+linux-3.19-i686: ERRORS
+linux-4.0.9-i686: ERRORS
+linux-4.1.33-i686: ERRORS
+linux-4.2.8-i686: ERRORS
+linux-4.3.6-i686: ERRORS
+linux-4.4.22-i686: ERRORS
+linux-4.5.7-i686: ERRORS
+linux-4.6.7-i686: ERRORS
+linux-4.7.5-i686: ERRORS
+linux-4.8-i686: ERRORS
+linux-4.9.26-i686: ERRORS
+linux-4.10.14-i686: WARNINGS
+linux-4.11-i686: WARNINGS
+linux-4.12.1-i686: WARNINGS
+linux-4.13-i686: WARNINGS
+linux-4.14-i686: WARNINGS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.67-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.7-x86_64: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.7-x86_64: ERRORS
+linux-3.19-x86_64: ERRORS
+linux-4.0.9-x86_64: ERRORS
+linux-4.1.33-x86_64: ERRORS
+linux-4.2.8-x86_64: ERRORS
+linux-4.3.6-x86_64: ERRORS
+linux-4.4.22-x86_64: ERRORS
+linux-4.5.7-x86_64: ERRORS
+linux-4.6.7-x86_64: ERRORS
+linux-4.7.5-x86_64: ERRORS
+linux-4.8-x86_64: ERRORS
+linux-4.9.26-x86_64: ERRORS
+linux-4.10.14-x86_64: WARNINGS
+linux-4.11-x86_64: WARNINGS
+linux-4.12.1-x86_64: WARNINGS
+linux-4.13-x86_64: WARNINGS
+linux-4.14-x86_64: WARNINGS
+apps: OK
+spec-git: OK
+smatch: OK
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
