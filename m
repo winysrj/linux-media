@@ -1,247 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from sub5.mail.dreamhost.com ([208.113.200.129]:43177 "EHLO
-        homiemail-a82.g.dreamhost.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753444AbeAFAs0 (ORCPT
+Received: from mail.free-electrons.com ([62.4.15.54]:33519 "EHLO
+        mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753570AbeASIOP (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 5 Jan 2018 19:48:26 -0500
-From: Brad Love <brad@nextdimension.cc>
-To: linux-media@vger.kernel.org
-Cc: Brad Love <brad@nextdimension.cc>
-Subject: [PATCH 2/4] cx23885: Add support for Hauppauge PCIe HVR1265 K4
-Date: Fri,  5 Jan 2018 18:48:20 -0600
-Message-Id: <1515199702-16083-3-git-send-email-brad@nextdimension.cc>
-In-Reply-To: <1515199702-16083-1-git-send-email-brad@nextdimension.cc>
-References: <1515199702-16083-1-git-send-email-brad@nextdimension.cc>
+        Fri, 19 Jan 2018 03:14:15 -0500
+From: Maxime Ripard <maxime.ripard@free-electrons.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Rob Herring <robh+dt@kernel.org>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        Richard Sproul <sproul@cadence.com>,
+        Alan Douglas <adouglas@cadence.com>,
+        Steve Creaney <screaney@cadence.com>,
+        Thomas Petazzoni <thomas.petazzoni@free-electrons.com>,
+        Boris Brezillon <boris.brezillon@free-electrons.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Benoit Parrot <bparrot@ti.com>, nm@ti.com,
+        Simon Hatliff <hatliff@cadence.com>,
+        Maxime Ripard <maxime.ripard@free-electrons.com>
+Subject: [PATCH v5 0/2] media: v4l: Add support for the Cadence MIPI-CSI2 RX
+Date: Fri, 19 Jan 2018 09:13:55 +0100
+Message-Id: <20180119081357.20799-1-maxime.ripard@free-electrons.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add new PCIe board to driver list and board register/configure functions
+Hi,
 
-cx23885 + lgdt3306a + si2157 digital/analog
+Here is the fifth attempt at supporting the MIPI-CSI2 RX block from
+Cadence.
 
-Signed-off-by: Brad Love <brad@nextdimension.cc>
----
- drivers/media/pci/cx23885/cx23885-cards.c | 27 ++++++++++++++++++
- drivers/media/pci/cx23885/cx23885-dvb.c   | 46 +++++++++++++++++++++++++++++++
- drivers/media/pci/cx23885/cx23885-input.c |  3 ++
- drivers/media/pci/cx23885/cx23885-video.c |  5 +++-
- drivers/media/pci/cx23885/cx23885.h       |  1 +
- 5 files changed, 81 insertions(+), 1 deletion(-)
+This IP block is able to receive CSI data over up to 4 lanes, and
+split it to over 4 streams. Those streams are basically the interfaces
+to the video grabbers that will perform the capture.
 
-diff --git a/drivers/media/pci/cx23885/cx23885-cards.c b/drivers/media/pci/cx23885/cx23885-cards.c
-index c4b3123..fe42893 100644
---- a/drivers/media/pci/cx23885/cx23885-cards.c
-+++ b/drivers/media/pci/cx23885/cx23885-cards.c
-@@ -776,6 +776,11 @@ struct cx23885_board cx23885_boards[] = {
- 		.portb        = CX23885_MPEG_DVB,
- 		.portc        = CX23885_MPEG_DVB,
- 	},
-+	[CX23885_BOARD_HAUPPAUGE_HVR1265_K4] = {
-+		.name		= "Hauppauge WinTV-HVR-1265(161111)",
-+		.portc		= CX23885_MPEG_DVB,
-+		.force_bff	= 1,
-+	},
- };
- const unsigned int cx23885_bcount = ARRAY_SIZE(cx23885_boards);
- 
-@@ -1091,6 +1096,10 @@ struct cx23885_subid cx23885_subids[] = {
- 		.subvendor = 0x0070,
- 		.subdevice = 0x6b18,
- 		.card      = CX23885_BOARD_HAUPPAUGE_QUADHD_ATSC, /* Tuner Pair 2 */
-+	}, {
-+		.subvendor = 0x0070,
-+		.subdevice = 0x2a18,
-+		.card      = CX23885_BOARD_HAUPPAUGE_HVR1265_K4, /* Hauppauge WinTV HVR-1265 (Model 161xx1, Hybrid ATSC/QAM-B) */
- 	},
- };
- const unsigned int cx23885_idcount = ARRAY_SIZE(cx23885_subids);
-@@ -1291,6 +1300,9 @@ static void hauppauge_eeprom(struct cx23885_dev *dev, u8 *eeprom_data)
- 	case 150329:
- 		/* WinTV-HVR5525 (PCIe, DVB-S/S2, DVB-T/T2/C) */
- 		break;
-+	case 161111:
-+		/* WinTV-HVR-1265 K4 (PCIe, Analog/ATSC/QAM-B) */
-+		break;
- 	case 166100:
- 		/* WinTV-QuadHD (DVB) Tuner Pair 1 (PCIe, IR, half height,
- 		   DVB-T/T2/C, DVB-T/T2/C */
-@@ -1813,6 +1825,18 @@ void cx23885_gpio_setup(struct cx23885_dev *dev)
- 		 * card does not have any GPIO's connected to subcomponents.
- 		 */
- 		break;
-+	case CX23885_BOARD_HAUPPAUGE_HVR1265_K4:
-+		/*
-+		 * GPIO-08 TER1_RESN
-+		 * GPIO-09 TER2_RESN
-+		 */
-+		/* Put the parts into reset and back */
-+		cx23885_gpio_enable(dev, GPIO_8 | GPIO_9, 1);
-+		cx23885_gpio_clear(dev, GPIO_8 | GPIO_9);
-+		msleep(100);
-+		cx23885_gpio_set(dev, GPIO_8 | GPIO_9);
-+		msleep(100);
-+		break;
- 	}
- }
- 
-@@ -2058,6 +2082,7 @@ void cx23885_card_setup(struct cx23885_dev *dev)
- 	case CX23885_BOARD_HAUPPAUGE_STARBURST:
- 	case CX23885_BOARD_HAUPPAUGE_IMPACTVCBE:
- 	case CX23885_BOARD_HAUPPAUGE_HVR5525:
-+	case CX23885_BOARD_HAUPPAUGE_HVR1265_K4:
- 	case CX23885_BOARD_HAUPPAUGE_QUADHD_DVB:
- 	case CX23885_BOARD_HAUPPAUGE_QUADHD_ATSC:
- 		if (dev->i2c_bus[0].i2c_rc == 0)
-@@ -2205,6 +2230,7 @@ void cx23885_card_setup(struct cx23885_dev *dev)
- 		ts2->ts_clk_en_val = 0x1; /* Enable TS_CLK */
- 		ts2->src_sel_val   = CX23885_SRC_SEL_PARALLEL_MPEG_VIDEO;
- 		break;
-+	case CX23885_BOARD_HAUPPAUGE_HVR1265_K4:
- 	case CX23885_BOARD_HAUPPAUGE_QUADHD_DVB:
- 	case CX23885_BOARD_HAUPPAUGE_QUADHD_ATSC:
- 		ts1->gen_ctrl_val  = 0xc; /* Serial bus + punctured clock */
-@@ -2263,6 +2289,7 @@ void cx23885_card_setup(struct cx23885_dev *dev)
- 	case CX23885_BOARD_COMPRO_VIDEOMATE_E800:
- 	case CX23885_BOARD_HAUPPAUGE_HVR1255:
- 	case CX23885_BOARD_HAUPPAUGE_HVR1255_22111:
-+	case CX23885_BOARD_HAUPPAUGE_HVR1265_K4:
- 	case CX23885_BOARD_HAUPPAUGE_HVR1270:
- 	case CX23885_BOARD_HAUPPAUGE_HVR1850:
- 	case CX23885_BOARD_MYGICA_X8506:
-diff --git a/drivers/media/pci/cx23885/cx23885-dvb.c b/drivers/media/pci/cx23885/cx23885-dvb.c
-index 700422b..2b23636 100644
---- a/drivers/media/pci/cx23885/cx23885-dvb.c
-+++ b/drivers/media/pci/cx23885/cx23885-dvb.c
-@@ -930,6 +930,18 @@ static const struct m88ds3103_config hauppauge_hvr5525_m88ds3103_config = {
- 	.agc = 0x99,
- };
- 
-+static struct lgdt3306a_config hauppauge_hvr1265k4_config = {
-+	.i2c_addr               = 0x59,
-+	.qam_if_khz             = 4000,
-+	.vsb_if_khz             = 3250,
-+	.deny_i2c_rptr          = 1, /* Disabled */
-+	.spectral_inversion     = 0, /* Disabled */
-+	.mpeg_mode              = LGDT3306A_MPEG_SERIAL,
-+	.tpclk_edge             = LGDT3306A_TPCLK_RISING_EDGE,
-+	.tpvalid_polarity       = LGDT3306A_TP_VALID_HIGH,
-+	.xtalMHz                = 25, /* 24 or 25 */
-+};
-+
- static int netup_altera_fpga_rw(void *device, int flag, int data, int read)
- {
- 	struct cx23885_dev *dev = (struct cx23885_dev *)device;
-@@ -2490,7 +2502,41 @@ static int dvb_register(struct cx23885_tsport *port)
- 			break;
- 		}
- 		break;
-+	case CX23885_BOARD_HAUPPAUGE_HVR1265_K4:
-+		switch (port->nr) {
-+		/* port c - Terrestrial/cable */
-+		case 2:
-+			/* attach frontend */
-+			i2c_bus = &dev->i2c_bus[0];
-+			fe0->dvb.frontend = dvb_attach(lgdt3306a_attach,
-+					&hauppauge_hvr1265k4_config,
-+					&i2c_bus->i2c_adap);
-+			if (fe0->dvb.frontend == NULL)
-+				break;
- 
-+			/* attach tuner */
-+			memset(&si2157_config, 0, sizeof(si2157_config));
-+			si2157_config.fe = fe0->dvb.frontend;
-+			si2157_config.if_port = 1;
-+			si2157_config.inversion = 1;
-+			memset(&info, 0, sizeof(struct i2c_board_info));
-+			strlcpy(info.type, "si2157", I2C_NAME_SIZE);
-+			info.addr = 0x60;
-+			info.platform_data = &si2157_config;
-+			request_module("%s", info.type);
-+			client_tuner = i2c_new_device(&dev->i2c_bus[1].i2c_adap, &info);
-+			if (!client_tuner || !client_tuner->dev.driver)
-+				goto frontend_detach;
-+
-+			if (!try_module_get(client_tuner->dev.driver->owner)) {
-+				i2c_unregister_device(client_tuner);
-+				client_tuner = NULL;
-+				goto frontend_detach;
-+			}
-+			port->i2c_client_tuner = client_tuner;
-+			break;
-+		}
-+		break;
- 	default:
- 		pr_info("%s: The frontend of your DVB/ATSC card  isn't supported yet\n",
- 			dev->name);
-diff --git a/drivers/media/pci/cx23885/cx23885-input.c b/drivers/media/pci/cx23885/cx23885-input.c
-index 0f4e542..be49589 100644
---- a/drivers/media/pci/cx23885/cx23885-input.c
-+++ b/drivers/media/pci/cx23885/cx23885-input.c
-@@ -94,6 +94,7 @@ void cx23885_input_rx_work_handler(struct cx23885_dev *dev, u32 events)
- 	case CX23885_BOARD_DVBSKY_S950:
- 	case CX23885_BOARD_DVBSKY_S952:
- 	case CX23885_BOARD_DVBSKY_T982:
-+	case CX23885_BOARD_HAUPPAUGE_HVR1265_K4:
- 		/*
- 		 * The only boards we handle right now.  However other boards
- 		 * using the CX2388x integrated IR controller should be similar
-@@ -153,6 +154,7 @@ static int cx23885_input_ir_start(struct cx23885_dev *dev)
- 	case CX23885_BOARD_DVBSKY_S950:
- 	case CX23885_BOARD_DVBSKY_S952:
- 	case CX23885_BOARD_DVBSKY_T982:
-+	case CX23885_BOARD_HAUPPAUGE_HVR1265_K4:
- 		/*
- 		 * The IR controller on this board only returns pulse widths.
- 		 * Any other mode setting will fail to set up the device.
-@@ -283,6 +285,7 @@ int cx23885_input_init(struct cx23885_dev *dev)
- 	case CX23885_BOARD_HAUPPAUGE_HVR1850:
- 	case CX23885_BOARD_HAUPPAUGE_HVR1290:
- 	case CX23885_BOARD_HAUPPAUGE_HVR1250:
-+	case CX23885_BOARD_HAUPPAUGE_HVR1265_K4:
- 		/* Integrated CX2388[58] IR controller */
- 		allowed_protos = RC_PROTO_BIT_ALL_IR_DECODER;
- 		/* The grey Hauppauge RC-5 remote */
-diff --git a/drivers/media/pci/cx23885/cx23885-video.c b/drivers/media/pci/cx23885/cx23885-video.c
-index ecc580a..7e69693 100644
---- a/drivers/media/pci/cx23885/cx23885-video.c
-+++ b/drivers/media/pci/cx23885/cx23885-video.c
-@@ -263,6 +263,7 @@ static int cx23885_video_mux(struct cx23885_dev *dev, unsigned int input)
- 		(dev->board == CX23885_BOARD_HAUPPAUGE_IMPACTVCBE) ||
- 		(dev->board == CX23885_BOARD_HAUPPAUGE_HVR1255) ||
- 		(dev->board == CX23885_BOARD_HAUPPAUGE_HVR1255_22111) ||
-+		(dev->board == CX23885_BOARD_HAUPPAUGE_HVR1265_K4) ||
- 		(dev->board == CX23885_BOARD_HAUPPAUGE_HVR1850) ||
- 		(dev->board == CX23885_BOARD_MYGICA_X8507) ||
- 		(dev->board == CX23885_BOARD_AVERMEDIA_HC81R) ||
-@@ -993,7 +994,8 @@ static int cx23885_set_freq_via_ops(struct cx23885_dev *dev,
- 
- 	if ((dev->board == CX23885_BOARD_HAUPPAUGE_HVR1850) ||
- 	    (dev->board == CX23885_BOARD_HAUPPAUGE_HVR1255) ||
--	    (dev->board == CX23885_BOARD_HAUPPAUGE_HVR1255_22111))
-+	    (dev->board == CX23885_BOARD_HAUPPAUGE_HVR1255_22111) ||
-+	    (dev->board == CX23885_BOARD_HAUPPAUGE_HVR1265_K4))
- 		fe = &dev->ts1.analog_fe;
- 
- 	if (fe && fe->ops.tuner_ops.set_analog_params) {
-@@ -1022,6 +1024,7 @@ int cx23885_set_frequency(struct file *file, void *priv,
- 	switch (dev->board) {
- 	case CX23885_BOARD_HAUPPAUGE_HVR1255:
- 	case CX23885_BOARD_HAUPPAUGE_HVR1255_22111:
-+	case CX23885_BOARD_HAUPPAUGE_HVR1265_K4:
- 	case CX23885_BOARD_HAUPPAUGE_HVR1850:
- 		ret = cx23885_set_freq_via_ops(dev, f);
- 		break;
-diff --git a/drivers/media/pci/cx23885/cx23885.h b/drivers/media/pci/cx23885/cx23885.h
-index 6aab713..cfe3ced 100644
---- a/drivers/media/pci/cx23885/cx23885.h
-+++ b/drivers/media/pci/cx23885/cx23885.h
-@@ -107,6 +107,7 @@
- #define CX23885_BOARD_VIEWCAST_460E            55
- #define CX23885_BOARD_HAUPPAUGE_QUADHD_DVB     56
- #define CX23885_BOARD_HAUPPAUGE_QUADHD_ATSC    57
-+#define CX23885_BOARD_HAUPPAUGE_HVR1265_K4     58
- 
- #define GPIO_0 0x00000001
- #define GPIO_1 0x00000002
+It is able to map streams to both CSI datatypes and virtual channels,
+dynamically. This is unclear at this point what the right way to
+support it would be, so the driver only uses a static mapping between
+the virtual channels and streams, and ignores the data types.
+
+Let me know what you think!
+Maxime
+
+Changes from v4:
+  - Rebased on top of 4.15
+  - Fixed a lane mapping issue that prevented the CSI2-RX device to operate
+    properly.
+  - Reworded the output endpoints documentation in the binding
+
+Changes from v3:
+  - Removed stale printk
+  - Propagate start/stop functions error code to s_stream
+  - Renamed the DT bindings files
+  - Clarified the output ports wording in the DT binding doc
+  - Added a define for the maximum number of lanes
+  - Rebased on top of Sakari's serie
+  - Gathered tags based on the reviews
+
+Changes from v2:
+  - Added reference counting for the controller initialisation
+  - Fixed checkpatch warnings
+  - Moved the sensor initialisation after the DPHY configuration
+  - Renamed the sensor fields to source for consistency
+  - Defined some variables
+  - Renamed a few structures variables
+  - Added internal and external phy errors messages
+  - Reworked the binding slighty by making the external D-PHY optional
+  - Moved the notifier registration in the probe function
+  - Removed some clocks that are not system clocks
+  - Added clocks enabling where needed
+  - Added the code to remap the data lanes
+  - Changed the memory allocator for the non-devm function, and a
+    comment explaining why
+  - Reworked the binding wording
+
+Changes from v1:
+  - Amended the DT bindings as suggested by Rob
+  - Rebase on top of 4.13-rc1 and latest Niklas' serie iteration
+
+Maxime Ripard (2):
+  dt-bindings: media: Add Cadence MIPI-CSI2 RX Device Tree bindings
+  v4l: cadence: Add Cadence MIPI-CSI2 RX driver
+
+ .../devicetree/bindings/media/cdns,csi2rx.txt      | 100 +++++
+ drivers/media/platform/Kconfig                     |   1 +
+ drivers/media/platform/Makefile                    |   2 +
+ drivers/media/platform/cadence/Kconfig             |  12 +
+ drivers/media/platform/cadence/Makefile            |   1 +
+ drivers/media/platform/cadence/cdns-csi2rx.c       | 463 +++++++++++++++++++++
+ 6 files changed, 579 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/cdns,csi2rx.txt
+ create mode 100644 drivers/media/platform/cadence/Kconfig
+ create mode 100644 drivers/media/platform/cadence/Makefile
+ create mode 100644 drivers/media/platform/cadence/cdns-csi2rx.c
+
 -- 
-2.7.4
+2.14.3
