@@ -1,117 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from sub5.mail.dreamhost.com ([208.113.200.129]:55648 "EHLO
-        homiemail-a58.g.dreamhost.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753430AbeA3Tdf (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 30 Jan 2018 14:33:35 -0500
-Subject: Re: [PATCH 2/9] em28xx: Bulk transfer implementation fix
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Brad Love <brad@nextdimension.cc>
-Cc: linux-media@vger.kernel.org
-References: <1515110659-20145-1-git-send-email-brad@nextdimension.cc>
- <1515110659-20145-3-git-send-email-brad@nextdimension.cc>
- <20180130100750.06487d7a@vela.lan>
-From: Brad Love <brad@nextdimension.cc>
-Message-ID: <dd76929e-3d3e-d1da-c37e-9f370f32e020@nextdimension.cc>
-Date: Tue, 30 Jan 2018 13:33:34 -0600
+Received: from mga14.intel.com ([192.55.52.115]:1793 "EHLO mga14.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750785AbeASH3u (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 19 Jan 2018 02:29:50 -0500
+From: "Yeh, Andy" <andy.yeh@intel.com>
+To: Tomasz Figa <tfiga@chromium.org>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: RE: [PATCH v4] media: imx258: Add imx258 camera sensor driver
+Date: Fri, 19 Jan 2018 07:29:46 +0000
+Message-ID: <8E0971CCB6EA9D41AF58191A2D3978B61D4E49E8@PGSMSX111.gar.corp.intel.com>
+References: <1516333071-9766-1-git-send-email-andy.yeh@intel.com>
+ <CAAFQd5Aq4oX+-ux0r4SjyWAyRUA1DJ34mgBmcvuY6HpG9SJ++g@mail.gmail.com>
+In-Reply-To: <CAAFQd5Aq4oX+-ux0r4SjyWAyRUA1DJ34mgBmcvuY6HpG9SJ++g@mail.gmail.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 MIME-Version: 1.0
-In-Reply-To: <20180130100750.06487d7a@vela.lan>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Content-Language: en-GB
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-
-On 2018-01-30 06:07, Mauro Carvalho Chehab wrote:
-> Em Thu,  4 Jan 2018 18:04:12 -0600
-> Brad Love <brad@nextdimension.cc> escreveu:
->
->> Set appropriate bulk/ISOC transfer multiplier on capture start.
->> This sets ISOC transfer to 940 bytes (188 * 5)
->> This sets bulk transfer to 48128 bytes (188 * 256)
->>
->> The above values are maximum allowed according to Empia.
->>
->> Signed-off-by: Brad Love <brad@nextdimension.cc>
->> ---
->>  drivers/media/usb/em28xx/em28xx-core.c | 12 ++++++++++++
->>  1 file changed, 12 insertions(+)
->>
->> diff --git a/drivers/media/usb/em28xx/em28xx-core.c b/drivers/media/us=
-b/em28xx/em28xx-core.c
->> index ef38e56..67ed6a3 100644
->> --- a/drivers/media/usb/em28xx/em28xx-core.c
->> +++ b/drivers/media/usb/em28xx/em28xx-core.c
->> @@ -638,6 +638,18 @@ int em28xx_capture_start(struct em28xx *dev, int =
-start)
->>  	    dev->chip_id =3D=3D CHIP_ID_EM28174 ||
->>  	    dev->chip_id =3D=3D CHIP_ID_EM28178) {
->>  		/* The Transport Stream Enable Register moved in em2874 */
->> +		if (dev->dvb_xfer_bulk) {
->> +			/* Max Tx Size =3D 188 * 256 =3D 48128 - LCM(188,512) * 2 */
->> +			em28xx_write_reg(dev, (dev->ts =3D=3D PRIMARY_TS) ?
->> +					EM2874_R5D_TS1_PKT_SIZE :
->> +					EM2874_R5E_TS2_PKT_SIZE,
->> +					0xFF);
->> +		} else {
->> +			/* TS2 Maximum Transfer Size =3D 188 * 5 */
->> +			em28xx_write_reg(dev, (dev->ts =3D=3D PRIMARY_TS) ?
->> +					EM2874_R5D_TS1_PKT_SIZE :
->> +					EM2874_R5E_TS2_PKT_SIZE, 0x05);
->> +		}
-> Hmm... for ISOC, the USB descriptors inform the max transfer size, with=
-
-> are detected at probe time, on this part of em28xx_usb_probe:
->
-> 	if (size > dev->dvb_max_pkt_size_isoc) {
-> 		has_dvb =3D true; /* see NOTE (~) */
-> 		dev->dvb_ep_isoc =3D e->bEndpointAddress;
-> 		dev->dvb_max_pkt_size_isoc =3D size;
-> 		dev->dvb_alt_isoc =3D i;
-> 	}
->
-> If we're touching TS PKT size register, it should somehow be
-> aligned what's there. I mean, we should either do:
->
-> 			em28xx_write_reg(dev, (dev->ts =3D=3D PRIMARY_TS) ?
-> 					EM2874_R5D_TS1_PKT_SIZE :
-> 					EM2874_R5E_TS2_PKT_SIZE, dev->dvb_max_pkt_size_isoc / 188);
->
-> Or the other way around, setting dev->dvb_max_pkt_size_isoc after
-> writing to EM2874_R5D_TS1_PKT_SIZE or EM2874_R5E_TS2_PKT_SIZE.
->
-> Not sure what's more accurate here: the USB descriptors or the
-> contents of the TS size register. I doubt, I would stick with
-> the USB descriptor info.
->
-> Btw, I wander what happens if we write a bigger value than 5 to those
-> registers. Would it support a bigger transfer size than 940 for ISOCH?
->
->
->
-> Cheers,
-> Mauro
-
-Hi Mauro,
-
-On the one ISOC device I have here, the usb endpoint
-dvb_max_pkt_size_isoc is 940 during usb_probe and
-EM2874_R5D_TS1_PKT_SIZE returns 5 when queried in start_streaming. I
-just did a little checking and EM2874_R5D_TS1_PKT_SIZE accepted, and
-returned the value I wrote all the way up to 32. The device is DVB
-however, so I cannot test actual operation to see if it increases ISOC
-packet size at all. We're just going on what Empia said here for the
-maximum of 5.
-
-I agree that this is probably more correct to use (dvb_max_pkt_size_isoc
-/ 188) instead of a hardcoded 5. This at least would keep devices with
-other multipliers happy. Your second method of querying the multiplier
-before setting up the endpoint would require a re-organization of
-usb_probe to move em28xx_init_dev higher.
-
-I'll submit a v2 of this briefly.
-
-Cheers,
-
-Brad
+VGhhbmtzIFRvbWFzeiwNCg0KQWdyZWUgd2l0aCB5b3VyIHBvaW50LCBpZiBzbywgd2UgY291bGQg
+anVzdCBjaGFuZ2UgYXMgYmVsb3cgd2l0aCBhIHNpbXBsZSBjaGVjayBvZiBzdHJlYW1pbmcgZmxh
+Zy4NCkFuZCBmb3IgU2FrYXJpLCBkbyB5b3UgYWdyZWUgd2l0aCBUb21hc3oncyBjb21tZW50Pw0K
+DQpLaW5kbHkgcmV2aWV3IGFuZCBJIHdvdWxkIHNlbmQgdjUgd2l0aCB0aGUgY2hhbmdlLg0KDQpk
+aWZmIC0tZ2l0IGEvZHJpdmVycy9tZWRpYS9pMmMvaW14MjU4LmMgYi9kcml2ZXJzL21lZGlhL2ky
+Yy9pbXgyNTguYw0KaW5kZXggYTdlNThiZDIuLmNmMWM1ZWUgMTAwNjQ0DQotLS0gYS9kcml2ZXJz
+L21lZGlhL2kyYy9pbXgyNTguYw0KKysrIGIvZHJpdmVycy9tZWRpYS9pMmMvaW14MjU4LmMNCkBA
+IC01NjEsMTAgKzU2MSwxMyBAQCBzdGF0aWMgaW50IGlteDI1OF9zZXRfY3RybChzdHJ1Y3QgdjRs
+Ml9jdHJsICpjdHJsKQ0KDQogICAgICAgIC8qDQogICAgICAgICAqIEFwcGx5aW5nIFY0TDIgY29u
+dHJvbCB2YWx1ZSBvbmx5IGhhcHBlbnMNCi0gICAgICAgICogd2hlbiBwb3dlciBpcyB1cCBmb3Ig
+cXN0cmVhbWluZw0KKyAgICAgICAgKiB3aGVuIHN0cmVhbWluZyBmbGFnIGlzIG9uDQogICAgICAg
+ICAqLw0KLSAgICAgICBpZiAocG1fcnVudGltZV9nZXRfaWZfaW5fdXNlKCZjbGllbnQtPmRldikg
+PD0gMCkNCisgICAgICAgaWYgKGlteDI1OC0+c3RyZWFtaW5nID09IDApDQogICAgICAgICAgICAg
+ICAgcmV0dXJuIDA7DQoNCiAgICAgICAgc3dpdGNoIChjdHJsLT5pZCkgew0KICAgICAgICBjYXNl
+IFY0TDJfQ0lEX0FOQUxPR1VFX0dBSU46DQpAQCAtNTkwLDggKzU5Myw2IEBAIHN0YXRpYyBpbnQg
+aW14MjU4X3NldF9jdHJsKHN0cnVjdCB2NGwyX2N0cmwgKmN0cmwpDQogICAgICAgICAgICAgICAg
+YnJlYWs7DQogICAgICAgIH0NCg0KLSAgICAgICBwbV9ydW50aW1lX3B1dCgmY2xpZW50LT5kZXYp
+Ow0KLQ0KICAgICAgICByZXR1cm4gcmV0Ow0KIH0NCg0KDQpSZWdhcmRzLCBBbmR5DQoNCi0tLS0t
+T3JpZ2luYWwgTWVzc2FnZS0tLS0tDQpGcm9tOiBUb21hc3ogRmlnYSBbbWFpbHRvOnRmaWdhQGNo
+cm9taXVtLm9yZ10gDQpTZW50OiBGcmlkYXksIEphbnVhcnkgMTksIDIwMTggMTI6MTggUE0NClRv
+OiBZZWgsIEFuZHkgPGFuZHkueWVoQGludGVsLmNvbT4NCkNjOiBMaW51eCBNZWRpYSBNYWlsaW5n
+IExpc3QgPGxpbnV4LW1lZGlhQHZnZXIua2VybmVsLm9yZz47IFNha2FyaSBBaWx1cyA8c2FrYXJp
+LmFpbHVzQGxpbnV4LmludGVsLmNvbT4NClN1YmplY3Q6IFJlOiBbUEFUQ0ggdjRdIG1lZGlhOiBp
+bXgyNTg6IEFkZCBpbXgyNTggY2FtZXJhIHNlbnNvciBkcml2ZXINCg0KSGkgQW5keSwNCg0KVGhh
+bmtzIGZvciB0aGUgcGF0Y2guIFBsZWFzZSBzZWUgbXkgY29tbWVudHMgaW5saW5lLg0KDQpPbiBG
+cmksIEphbiAxOSwgMjAxOCBhdCAxMjozNyBQTSwgQW5keSBZZWggPGFuZHkueWVoQGludGVsLmNv
+bT4gd3JvdGU6DQo+IEFkZCBhIFY0TDIgc3ViLWRldmljZSBkcml2ZXIgZm9yIHRoZSBTb255IElN
+WDI1OCBpbWFnZSBzZW5zb3IuDQo+IFRoaXMgaXMgYSBjYW1lcmEgc2Vuc29yIHVzaW5nIHRoZSBJ
+MkMgYnVzIGZvciBjb250cm9sIGFuZCB0aGUNCj4gQ1NJLTIgYnVzIGZvciBkYXRhLg0KPg0KPiBT
+aWduZWQtb2ZmLWJ5OiBBbmR5IFllaCA8YW5keS55ZWhAaW50ZWwuY29tPg0KPiAtLS0NCj4gLSB2
+Mi0+djMNCj4gLS0gVXBkYXRlIHRoZSBzdHJlYW1pbmcgZnVuY3Rpb24gdG8gcmVtb3ZlIFNXX1NU
+QU5EQlkgaW4gdGhlIGJlZ2lubmluZy4NCj4gLS0gQWRqdXN0IHRoZSBkZWxheSB0aW1lIGZyb20g
+MW1zIHRvIDEybXMgYmVmb3JlIHNldCBzdHJlYW0tb24gcmVnaXN0ZXIuDQo+IC0gdjMtPnY0DQo+
+IC0tIGZpeCB0aGUgc2QuZW50aXR5IHRvIG1ha2UgY29kZSBiZSBjb21waWxlZCBvbiB0aGUgbWFp
+bmxpbmUga2VybmVsLg0KPiAtLSAiIC0gaW14MjU4LT5zZC5lbnRpdHkudHlwZSA9IE1FRElBX0VO
+VF9UX1Y0TDJfU1VCREVWX1NFTlNPUjsiDQo+IC0tICIgKyBpbXgyNTgtPnNkLmVudGl0eS5mdW5j
+dGlvbiA9IE1FRElBX0VOVF9GX0NBTV9TRU5TT1I7Ig0KPg0KPiAgTUFJTlRBSU5FUlMgICAgICAg
+ICAgICAgICAgfCAgICA3ICsNCj4gIGRyaXZlcnMvbWVkaWEvaTJjL0tjb25maWcgIHwgICAxMSAr
+DQo+ICBkcml2ZXJzL21lZGlhL2kyYy9NYWtlZmlsZSB8ICAgIDEgKw0KPiAgZHJpdmVycy9tZWRp
+YS9pMmMvaW14MjU4LmMgfCAxMTQ4IA0KPiArKysrKysrKysrKysrKysrKysrKysrKysrKysrKysr
+KysrKysrKysrKysrKw0KPiAgNCBmaWxlcyBjaGFuZ2VkLCAxMTY3IGluc2VydGlvbnMoKykNCj4g
+IGNyZWF0ZSBtb2RlIDEwMDY0NCBkcml2ZXJzL21lZGlhL2kyYy9pbXgyNTguYw0KW3NuaXBdDQo+
+ICtzdGF0aWMgaW50IGlteDI1OF9zZXRfY3RybChzdHJ1Y3QgdjRsMl9jdHJsICpjdHJsKSB7DQo+
+ICsgICAgICAgc3RydWN0IGlteDI1OCAqaW14MjU4ID0NCj4gKyAgICAgICAgICAgICAgIGNvbnRh
+aW5lcl9vZihjdHJsLT5oYW5kbGVyLCBzdHJ1Y3QgaW14MjU4LCBjdHJsX2hhbmRsZXIpOw0KPiAr
+ICAgICAgIHN0cnVjdCBpMmNfY2xpZW50ICpjbGllbnQgPSB2NGwyX2dldF9zdWJkZXZkYXRhKCZp
+bXgyNTgtPnNkKTsNCj4gKyAgICAgICBzNjQgbWF4Ow0KPiArICAgICAgIGludCByZXQgPSAwOw0K
+PiArDQo+ICsgICAgICAgLyogUHJvcGFnYXRlIGNoYW5nZSBvZiBjdXJyZW50IGNvbnRyb2wgdG8g
+YWxsIHJlbGF0ZWQgY29udHJvbHMgKi8NCj4gKyAgICAgICBpZiAoY3RybC0+aWQgPT0gVjRMMl9D
+SURfVkJMQU5LKSB7DQo+ICsgICAgICAgICAgICAgICAvKiBVcGRhdGUgbWF4IGV4cG9zdXJlIHdo
+aWxlIG1lZXRpbmcgZXhwZWN0ZWQgdmJsYW5raW5nICovDQo+ICsgICAgICAgICAgICAgICBtYXgg
+PSBpbXgyNTgtPmN1cl9tb2RlLT5oZWlnaHQgKyBjdHJsLT52YWwgLSA4Ow0KPiArICAgICAgICAg
+ICAgICAgX192NGwyX2N0cmxfbW9kaWZ5X3JhbmdlKGlteDI1OC0+ZXhwb3N1cmUsDQo+ICsgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgaW14MjU4LT5leHBvc3VyZS0+bWlu
+aW11bSwNCj4gKyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBtYXgsIGlt
+eDI1OC0+ZXhwb3N1cmUtPnN0ZXAsIG1heCk7DQo+ICsgICAgICAgfQ0KPiArDQo+ICsgICAgICAg
+LyoNCj4gKyAgICAgICAgKiBBcHBseWluZyBWNEwyIGNvbnRyb2wgdmFsdWUgb25seSBoYXBwZW5z
+DQo+ICsgICAgICAgICogd2hlbiBwb3dlciBpcyB1cCBmb3Igc3RyZWFtaW5nDQo+ICsgICAgICAg
+ICovDQo+ICsgICAgICAgaWYgKHBtX3J1bnRpbWVfZ2V0X2lmX2luX3VzZSgmY2xpZW50LT5kZXYp
+IDw9IDApDQo+ICsgICAgICAgICAgICAgICByZXR1cm4gMDsNCg0KVGhpcyB3b24ndCB3b3JrIGlm
+IHJ1bnRpbWUgUE0gaXMgbm90IGNvbXBpbGVkIGluIG9yIGlzIGRpc2FibGVkIGF0IHJ1bnRpbWUs
+IGkuZS4gcG1fcnVudGltZV9nZXRfaWZfaW5fdXNlKCkgcmV0dXJucyAtRUlOVkFMLg0KDQpCdXQg
+YWN0dWFsbHksIGRvIHdlIG5lZWQgdG8gY2FyZSBhYm91dCBydW50aW1lIFBNIGhlcmU/IENvdWxk
+IHdlIGp1c3QgcmV0dXJuIGVhcmx5IGlmIHdlJ3JlIG5vdCBzdHJlYW1pbmc/IFRoZW4gdGhlIGNv
+bnRyb2xzIHdvdWxkIGJlIGhhbmRsZWQgd2hlbiBzdHJlYW1pbmcgc3RhcnRzLCBzaW5jZSB3ZSBj
+YWxsDQpfX3Y0bDJfY3RybF9oYW5kbGVyX3NldHVwKCkgZnJvbSBfc3RhcnRfc3RyZWFtaW5nKCku
+DQoNCkJlc3QgcmVnYXJkcywNClRvbWFzeg0K
