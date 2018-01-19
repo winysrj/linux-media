@@ -1,1176 +1,1793 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:36949 "EHLO
-        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1757676AbeAHNy5 (ORCPT
+Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:60297 "EHLO
+        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1755325AbeASLUZ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 8 Jan 2018 08:54:57 -0500
-Subject: Re: [PATCH 02/11] media: videobuf2: Add new uAPI for DVB streaming
- I/O
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>
-Cc: Satendra Singh Thakur <satendra.t@samsung.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Seung-Woo Kim <sw0312.kim@samsung.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Geunyoung Kim <nenggun.kim@samsung.com>,
-        Philippe Ombredanne <pombredanne@nexb.com>,
-        Inki Dae <inki.dae@samsung.com>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Junghak Sung <jh1009.sung@samsung.com>,
-        devendra sharma <devendra.sharma9091@gmail.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-References: <cover.1513872637.git.mchehab@s-opensource.com>
- <6cb582dc945457e9626561b584d98cd053782481.1513872637.git.mchehab@s-opensource.com>
+        Fri, 19 Jan 2018 06:20:25 -0500
+Subject: Re: [PATCH v6 3/9] v4l: platform: Add Renesas CEU driver
+To: Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        laurent.pinchart@ideasonboard.com, magnus.damm@gmail.com,
+        geert@glider.be, mchehab@kernel.org, festevam@gmail.com,
+        sakari.ailus@iki.fi, robh+dt@kernel.org, mark.rutland@arm.com,
+        pombredanne@nexb.com
+Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-sh@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+References: <1516139101-7835-1-git-send-email-jacopo+renesas@jmondi.org>
+ <1516139101-7835-4-git-send-email-jacopo+renesas@jmondi.org>
 From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <f51752f2-a564-c828-7cce-5bd44222ea22@xs4all.nl>
-Date: Mon, 8 Jan 2018 14:54:51 +0100
+Message-ID: <d056343b-46be-436a-e316-0a588a182eb9@xs4all.nl>
+Date: Fri, 19 Jan 2018 12:20:19 +0100
 MIME-Version: 1.0
-In-Reply-To: <6cb582dc945457e9626561b584d98cd053782481.1513872637.git.mchehab@s-opensource.com>
+In-Reply-To: <1516139101-7835-4-git-send-email-jacopo+renesas@jmondi.org>
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Some more comments:
 
-Thanks for this patch series, nice to see this moving forward.
-
-Some comments below (note the wrong queue_setup code in particular since that
-relates to my comment about the '[PATCH v3] media: videobuf2-core: don't go out
-of the buffer range' patch).
-
-On 12/21/2017 05:18 PM, Mauro Carvalho Chehab wrote:
-> From: Satendra Singh Thakur <satendra.t@samsung.com>
+On 01/16/18 22:44, Jacopo Mondi wrote:
+> Add driver for Renesas Capture Engine Unit (CEU).
 > 
-> Adds a new uAPI for DVB to use streaming I/O which is implemented
-> based on videobuf2, using those new ioctls:
+> The CEU interface supports capturing 'data' (YUV422) and 'images'
+> (NV[12|21|16|61]).
 > 
-> - DMX_REQBUFS:  Request kernel to allocate buffers which count and size
-> 	        are dedicated by user.
-> - DMX_QUERYBUF: Get the buffer information like a memory offset which
-> 		will mmap() and be shared with user-space.
-> - DMX_EXPBUF:   Just for testing whether buffer-exporting success or not.
-> - DMX_QBUF:     Pass the buffer to kernel-space.
-> - DMX_DQBUF:    Get back the buffer which may contain TS data.
+> This driver aims to replace the soc_camera-based sh_mobile_ceu one.
 > 
-> Originally developed by: Junghak Sung <jh1009.sung@samsung.com>, as
-> seen at:
-> 	https://patchwork.linuxtv.org/patch/31613/
-> 	https://patchwork.kernel.org/patch/7334301/
+> Tested with ov7670 camera sensor, providing YUYV_2X8 data on Renesas RZ
+> platform GR-Peach.
 > 
-> The original patch was written before merging VB2-core functionalities
-> upstream. When such series was added, several adjustments were made,
-> fixing some issues with	V4L2, causing the original patch to be
-> non-trivially rebased.
+> Tested with ov7725 camera sensor on SH4 platform Migo-R.
 > 
-> After rebased, a few bugs in the patch were fixed. The patch was
-> also enhanced it and polling functionality got added.
-> 
-> The main changes over the original patch are:
-> 
-> dvb_vb2_fill_buffer():
-> 	- Set the size of the outgoing buffer after while loop using
-> 	  vb2_set_plane_payload;
-> 
-> 	- Added NULL check for source buffer as per normal convention
-> 	  of demux driver, this is called twice, first time with valid
-> 	  buffer second time with NULL pointer, if its not handled,
-
-its -> it's
-
-> 	  it will result in  crash
-> 
-> 	- Restricted spinlock for only list_* operations
-> 
-> dvb_vb2_init():
-> 	- Restricted q->io_modes to only VB2_MMAP as its the only
-> 	  supported mode
-> 
-> dvb_vb2_release():
-> 	- Replaced the && in if condiion with &, because otherwise
-
-condition
-
-> 	  it was always getting satisfied.
-> 
-> dvb_vb2_stream_off():
-> 	- Added list_del code for enqueud buffers upon stream off
-
-enqueued
-
-> 
-> dvb_vb2_poll():
-> 	- Added this new function in order to support polling
-> 
-> dvb_demux_poll() and dvb_dvr_poll()
-> 	- dvb_vb2_poll() is now called from these functions
-> 
-> - Ported this patch and latest videobuf2 to lower kernel versions and
->   tested auto scan.
-> 
-> [mchehab@s-opensource.com: checkpatch fixes]
-> Co-developed-by: Junghak Sung <jh1009.sung@samsung.com>
-> Signed-off-by: Junghak Sung <jh1009.sung@samsung.com>
-> Signed-off-by: Geunyoung Kim <nenggun.kim@samsung.com>
-> Acked-by: Seung-Woo Kim <sw0312.kim@samsung.com>
-> Acked-by: Inki Dae <inki.dae@samsung.com>
-> Signed-off-by: Satendra Singh Thakur <satendra.t@samsung.com>
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 > ---
->  drivers/media/dvb-core/Makefile  |   2 +-
->  drivers/media/dvb-core/dmxdev.c  | 196 +++++++++++++++---
->  drivers/media/dvb-core/dmxdev.h  |   4 +
->  drivers/media/dvb-core/dvb_vb2.c | 423 +++++++++++++++++++++++++++++++++++++++
->  drivers/media/dvb-core/dvb_vb2.h |  72 +++++++
->  include/uapi/linux/dvb/dmx.h     |  66 +++++-
->  6 files changed, 733 insertions(+), 30 deletions(-)
->  create mode 100644 drivers/media/dvb-core/dvb_vb2.c
->  create mode 100644 drivers/media/dvb-core/dvb_vb2.h
+>  drivers/media/platform/Kconfig       |    9 +
+>  drivers/media/platform/Makefile      |    1 +
+>  drivers/media/platform/renesas-ceu.c | 1659 ++++++++++++++++++++++++++++++++++
+>  3 files changed, 1669 insertions(+)
+>  create mode 100644 drivers/media/platform/renesas-ceu.c
 > 
-> diff --git a/drivers/media/dvb-core/Makefile b/drivers/media/dvb-core/Makefile
-> index 47e2e391bfb8..bbc65dfa0a8e 100644
-> --- a/drivers/media/dvb-core/Makefile
-> +++ b/drivers/media/dvb-core/Makefile
-> @@ -7,6 +7,6 @@ dvb-net-$(CONFIG_DVB_NET) := dvb_net.o
+> diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
+> index fd0c998..fe7bd26 100644
+> --- a/drivers/media/platform/Kconfig
+> +++ b/drivers/media/platform/Kconfig
+> @@ -144,6 +144,15 @@ config VIDEO_STM32_DCMI
+>  	  To compile this driver as a module, choose M here: the module
+>  	  will be called stm32-dcmi.
 >  
->  dvb-core-objs := dvbdev.o dmxdev.o dvb_demux.o		 	\
->  		 dvb_ca_en50221.o dvb_frontend.o 		\
-> -		 $(dvb-net-y) dvb_ringbuffer.o dvb_math.o
-> +		 $(dvb-net-y) dvb_ringbuffer.o dvb_vb2.o dvb_math.o
->  
->  obj-$(CONFIG_DVB_CORE) += dvb-core.o
-> diff --git a/drivers/media/dvb-core/dmxdev.c b/drivers/media/dvb-core/dmxdev.c
-> index 18e4230865be..4cbb9003a1ed 100644
-> --- a/drivers/media/dvb-core/dmxdev.c
-> +++ b/drivers/media/dvb-core/dmxdev.c
-> @@ -28,6 +28,7 @@
->  #include <linux/wait.h>
->  #include <linux/uaccess.h>
->  #include "dmxdev.h"
-> +#include "dvb_vb2.h"
->  
->  static int debug;
->  
-> @@ -138,14 +139,8 @@ static int dvb_dvr_open(struct inode *inode, struct file *file)
->  		return -ENODEV;
->  	}
->  
-> -	if ((file->f_flags & O_ACCMODE) == O_RDWR) {
-> -		if (!(dmxdev->capabilities & DMXDEV_CAP_DUPLEX)) {
-> -			mutex_unlock(&dmxdev->mutex);
-> -			return -EOPNOTSUPP;
-> -		}
-> -	}
-> -
-> -	if ((file->f_flags & O_ACCMODE) == O_RDONLY) {
-> +	if (((file->f_flags & O_ACCMODE) == O_RDONLY) ||
-> +	    ((file->f_flags & O_ACCMODE) == O_RDWR)) {
->  		void *mem;
->  
->  		if (!dvbdev->readers) {
-> @@ -158,6 +153,8 @@ static int dvb_dvr_open(struct inode *inode, struct file *file)
->  			return -ENOMEM;
->  		}
->  		dvb_ringbuffer_init(&dmxdev->dvr_buffer, mem, DVR_BUFFER_SIZE);
-> +		dvb_vb2_init(&dmxdev->dvr_vb2_ctx, "dvr",
-> +			     file->f_flags & O_NONBLOCK);
->  		dvbdev->readers--;
->  	}
->  
-> @@ -195,7 +192,11 @@ static int dvb_dvr_release(struct inode *inode, struct file *file)
->  		dmxdev->demux->connect_frontend(dmxdev->demux,
->  						dmxdev->dvr_orig_fe);
->  	}
-> -	if ((file->f_flags & O_ACCMODE) == O_RDONLY) {
-> +	if (((file->f_flags & O_ACCMODE) == O_RDONLY) ||
-> +	    ((file->f_flags & O_ACCMODE) == O_RDWR)) {
-> +		if (dvb_vb2_is_streaming(&dmxdev->dvr_vb2_ctx))
-> +			dvb_vb2_stream_off(&dmxdev->dvr_vb2_ctx);
-> +		dvb_vb2_release(&dmxdev->dvr_vb2_ctx);
->  		dvbdev->readers++;
->  		if (dmxdev->dvr_buffer.data) {
->  			void *mem = dmxdev->dvr_buffer.data;
-> @@ -360,8 +361,8 @@ static int dvb_dmxdev_section_callback(const u8 *buffer1, size_t buffer1_len,
->  {
->  	struct dmxdev_filter *dmxdevfilter = filter->priv;
->  	int ret;
-> -
-> -	if (dmxdevfilter->buffer.error) {
-> +	if (!dvb_vb2_is_streaming(&dmxdevfilter->vb2_ctx) &&
-> +	    dmxdevfilter->buffer.error) {
->  		wake_up(&dmxdevfilter->buffer.queue);
->  		return 0;
->  	}
-> @@ -372,11 +373,19 @@ static int dvb_dmxdev_section_callback(const u8 *buffer1, size_t buffer1_len,
->  	}
->  	del_timer(&dmxdevfilter->timer);
->  	dprintk("section callback %*ph\n", 6, buffer1);
-> -	ret = dvb_dmxdev_buffer_write(&dmxdevfilter->buffer, buffer1,
-> -				      buffer1_len);
-> -	if (ret == buffer1_len) {
-> -		ret = dvb_dmxdev_buffer_write(&dmxdevfilter->buffer, buffer2,
-> -					      buffer2_len);
-> +	if (dvb_vb2_is_streaming(&dmxdevfilter->vb2_ctx)) {
-> +		ret = dvb_vb2_fill_buffer(&dmxdevfilter->vb2_ctx,
-> +					  buffer1, buffer1_len);
-> +		if (ret == buffer1_len)
-> +			ret = dvb_vb2_fill_buffer(&dmxdevfilter->vb2_ctx,
-> +						  buffer2, buffer2_len);
-> +	} else {
-> +		ret = dvb_dmxdev_buffer_write(&dmxdevfilter->buffer,
-> +					      buffer1, buffer1_len);
-> +		if (ret == buffer1_len) {
-> +			ret = dvb_dmxdev_buffer_write(&dmxdevfilter->buffer,
-> +						      buffer2, buffer2_len);
-> +		}
->  	}
->  	if (ret < 0)
->  		dmxdevfilter->buffer.error = ret;
-> @@ -393,6 +402,7 @@ static int dvb_dmxdev_ts_callback(const u8 *buffer1, size_t buffer1_len,
->  {
->  	struct dmxdev_filter *dmxdevfilter = feed->priv;
->  	struct dvb_ringbuffer *buffer;
-> +	struct dvb_vb2_ctx *ctx;
->  	int ret;
->  
->  	spin_lock(&dmxdevfilter->dev->lock);
-> @@ -401,19 +411,30 @@ static int dvb_dmxdev_ts_callback(const u8 *buffer1, size_t buffer1_len,
->  		return 0;
->  	}
->  
-> -	if (dmxdevfilter->params.pes.output == DMX_OUT_TAP
-> -	    || dmxdevfilter->params.pes.output == DMX_OUT_TSDEMUX_TAP)
-> +	if (dmxdevfilter->params.pes.output == DMX_OUT_TAP ||
-> +	    dmxdevfilter->params.pes.output == DMX_OUT_TSDEMUX_TAP) {
->  		buffer = &dmxdevfilter->buffer;
-> -	else
-> +		ctx = &dmxdevfilter->vb2_ctx;
-> +	} else {
->  		buffer = &dmxdevfilter->dev->dvr_buffer;
-> -	if (buffer->error) {
-> -		spin_unlock(&dmxdevfilter->dev->lock);
-> -		wake_up(&buffer->queue);
-> -		return 0;
-> +		ctx = &dmxdevfilter->dev->dvr_vb2_ctx;
-> +	}
+> +config VIDEO_RENESAS_CEU
+> +	tristate "Renesas Capture Engine Unit (CEU) driver"
+> +	depends on VIDEO_DEV && VIDEO_V4L2 && HAS_DMA
+> +	depends on ARCH_SHMOBILE || ARCH_R7S72100 || COMPILE_TEST
+> +	select VIDEOBUF2_DMA_CONTIG
+> +	select V4L2_FWNODE
+> +	---help---
+> +	  This is a v4l2 driver for the Renesas CEU Interface
 > +
-> +	if (dvb_vb2_is_streaming(ctx)) {
-> +		ret = dvb_vb2_fill_buffer(ctx, buffer1, buffer1_len);
-> +		if (ret == buffer1_len)
-> +			ret = dvb_vb2_fill_buffer(ctx, buffer2, buffer2_len);
-> +	} else {
-> +		if (buffer->error) {
-> +			spin_unlock(&dmxdevfilter->dev->lock);
-> +			wake_up(&buffer->queue);
-> +			return 0;
-> +		}
-> +		ret = dvb_dmxdev_buffer_write(buffer, buffer1, buffer1_len);
-> +		if (ret == buffer1_len)
-> +			ret = dvb_dmxdev_buffer_write(buffer,
-> +						      buffer2, buffer2_len);
->  	}
-> -	ret = dvb_dmxdev_buffer_write(buffer, buffer1, buffer1_len);
-> -	if (ret == buffer1_len)
-> -		ret = dvb_dmxdev_buffer_write(buffer, buffer2, buffer2_len);
->  	if (ret < 0)
->  		buffer->error = ret;
->  	spin_unlock(&dmxdevfilter->dev->lock);
-> @@ -752,6 +773,8 @@ static int dvb_demux_open(struct inode *inode, struct file *file)
->  	file->private_data = dmxdevfilter;
+>  source "drivers/media/platform/soc_camera/Kconfig"
+>  source "drivers/media/platform/exynos4-is/Kconfig"
+>  source "drivers/media/platform/am437x/Kconfig"
+> diff --git a/drivers/media/platform/Makefile b/drivers/media/platform/Makefile
+> index 003b0bb..6580a6b 100644
+> --- a/drivers/media/platform/Makefile
+> +++ b/drivers/media/platform/Makefile
+> @@ -62,6 +62,7 @@ obj-$(CONFIG_VIDEO_SH_VOU)		+= sh_vou.o
+>  obj-$(CONFIG_SOC_CAMERA)		+= soc_camera/
 >  
->  	dvb_ringbuffer_init(&dmxdevfilter->buffer, NULL, 8192);
-> +	dvb_vb2_init(&dmxdevfilter->vb2_ctx, "demux_filter",
-> +		     file->f_flags & O_NONBLOCK);
->  	dmxdevfilter->type = DMXDEV_TYPE_NONE;
->  	dvb_dmxdev_filter_state_set(dmxdevfilter, DMXDEV_STATE_ALLOCATED);
->  	init_timer(&dmxdevfilter->timer);
-> @@ -767,6 +790,10 @@ static int dvb_dmxdev_filter_free(struct dmxdev *dmxdev,
->  {
->  	mutex_lock(&dmxdev->mutex);
->  	mutex_lock(&dmxdevfilter->mutex);
-> +	if (dvb_vb2_is_streaming(&dmxdevfilter->vb2_ctx))
-> +		dvb_vb2_stream_off(&dmxdevfilter->vb2_ctx);
-> +	dvb_vb2_release(&dmxdevfilter->vb2_ctx);
-> +
->  
->  	dvb_dmxdev_filter_stop(dmxdevfilter);
->  	dvb_dmxdev_filter_reset(dmxdevfilter);
-> @@ -1054,6 +1081,53 @@ static int dvb_demux_do_ioctl(struct file *file,
->  		mutex_unlock(&dmxdevfilter->mutex);
->  		break;
->  
-> +	case DMX_REQBUFS:
-> +		if (mutex_lock_interruptible(&dmxdevfilter->mutex)) {
-> +			mutex_unlock(&dmxdev->mutex);
-> +			return -ERESTARTSYS;
-> +		}
-> +		ret = dvb_vb2_reqbufs(&dmxdevfilter->vb2_ctx, parg);
-> +		mutex_unlock(&dmxdevfilter->mutex);
-> +		break;
-> +
-> +	case DMX_QUERYBUF:
-> +		if (mutex_lock_interruptible(&dmxdevfilter->mutex)) {
-> +			mutex_unlock(&dmxdev->mutex);
-> +			return -ERESTARTSYS;
-> +		}
-> +		ret = dvb_vb2_querybuf(&dmxdevfilter->vb2_ctx, parg);
-> +		mutex_unlock(&dmxdevfilter->mutex);
-> +		break;
-> +
-> +	case DMX_EXPBUF:
-> +		if (mutex_lock_interruptible(&dmxdevfilter->mutex)) {
-> +			mutex_unlock(&dmxdev->mutex);
-> +			return -ERESTARTSYS;
-> +		}
-> +		ret = dvb_vb2_expbuf(&dmxdevfilter->vb2_ctx, parg);
-> +		mutex_unlock(&dmxdevfilter->mutex);
-> +		break;
-> +
-> +	case DMX_QBUF:
-> +		if (mutex_lock_interruptible(&dmxdevfilter->mutex)) {
-> +			mutex_unlock(&dmxdev->mutex);
-> +			return -ERESTARTSYS;
-> +		}
-> +		ret = dvb_vb2_qbuf(&dmxdevfilter->vb2_ctx, parg);
-> +		if (ret == 0 && !dvb_vb2_is_streaming(&dmxdevfilter->vb2_ctx))
-> +			ret = dvb_vb2_stream_on(&dmxdevfilter->vb2_ctx);
-> +		mutex_unlock(&dmxdevfilter->mutex);
-> +		break;
-> +
-> +	case DMX_DQBUF:
-> +		if (mutex_lock_interruptible(&dmxdevfilter->mutex)) {
-> +			mutex_unlock(&dmxdev->mutex);
-> +			return -ERESTARTSYS;
-> +		}
-> +		ret = dvb_vb2_dqbuf(&dmxdevfilter->vb2_ctx, parg);
-> +		mutex_unlock(&dmxdevfilter->mutex);
-> +		break;
-> +
->  	default:
->  		ret = -EINVAL;
->  		break;
-> @@ -1075,6 +1149,8 @@ static unsigned int dvb_demux_poll(struct file *file, poll_table *wait)
->  
->  	if ((!dmxdevfilter) || dmxdevfilter->dev->exit)
->  		return POLLERR;
-> +	if (dvb_vb2_is_streaming(&dmxdevfilter->vb2_ctx))
-> +		return dvb_vb2_poll(&dmxdevfilter->vb2_ctx, file, wait);
->  
->  	poll_wait(file, &dmxdevfilter->buffer.queue, wait);
->  
-> @@ -1092,11 +1168,31 @@ static unsigned int dvb_demux_poll(struct file *file, poll_table *wait)
->  	return mask;
->  }
->  
-> +static int dvb_demux_mmap(struct file *file, struct vm_area_struct *vma)
-> +{
-> +	struct dmxdev_filter *dmxdevfilter = file->private_data;
-> +	struct dmxdev *dmxdev = dmxdevfilter->dev;
-> +	int ret;
-> +
-> +	if (mutex_lock_interruptible(&dmxdev->mutex))
-> +		return -ERESTARTSYS;
-> +
-> +	if (mutex_lock_interruptible(&dmxdevfilter->mutex)) {
-> +		mutex_unlock(&dmxdev->mutex);
-> +		return -ERESTARTSYS;
-> +	}
-> +	ret = dvb_vb2_mmap(&dmxdevfilter->vb2_ctx, vma);
-> +
-> +	mutex_unlock(&dmxdevfilter->mutex);
-> +	mutex_unlock(&dmxdev->mutex);
-> +
-> +	return ret;
-> +}
-
-Has this been tested with lockdep?
-
-See also the extensive commit log of patch f035eb4e976ef5a059e30bc91cfd310ff030a7d3.
-
-> +
->  static int dvb_demux_release(struct inode *inode, struct file *file)
->  {
->  	struct dmxdev_filter *dmxdevfilter = file->private_data;
->  	struct dmxdev *dmxdev = dmxdevfilter->dev;
-> -
->  	int ret;
->  
->  	ret = dvb_dmxdev_filter_free(dmxdev, dmxdevfilter);
-> @@ -1120,6 +1216,7 @@ static const struct file_operations dvb_demux_fops = {
->  	.release = dvb_demux_release,
->  	.poll = dvb_demux_poll,
->  	.llseek = default_llseek,
-> +	.mmap = dvb_demux_mmap,
->  };
->  
->  static const struct dvb_device dvbdev_demux = {
-> @@ -1148,6 +1245,28 @@ static int dvb_dvr_do_ioctl(struct file *file,
->  		ret = dvb_dvr_set_buffer_size(dmxdev, arg);
->  		break;
->  
-> +	case DMX_REQBUFS:
-> +		ret = dvb_vb2_reqbufs(&dmxdev->dvr_vb2_ctx, parg);
-> +		break;
-> +
-> +	case DMX_QUERYBUF:
-> +		ret = dvb_vb2_querybuf(&dmxdev->dvr_vb2_ctx, parg);
-> +		break;
-> +
-> +	case DMX_EXPBUF:
-> +		ret = dvb_vb2_expbuf(&dmxdev->dvr_vb2_ctx, parg);
-> +		break;
-> +
-> +	case DMX_QBUF:
-> +		ret = dvb_vb2_qbuf(&dmxdev->dvr_vb2_ctx, parg);
-> +		if (ret == 0 && !dvb_vb2_is_streaming(&dmxdev->dvr_vb2_ctx))
-> +			ret = dvb_vb2_stream_on(&dmxdev->dvr_vb2_ctx);
-> +		break;
-> +
-> +	case DMX_DQBUF:
-> +		ret = dvb_vb2_dqbuf(&dmxdev->dvr_vb2_ctx, parg);
-> +		break;
-> +
->  	default:
->  		ret = -EINVAL;
->  		break;
-> @@ -1172,10 +1291,13 @@ static unsigned int dvb_dvr_poll(struct file *file, poll_table *wait)
->  
->  	if (dmxdev->exit)
->  		return POLLERR;
-> +	if (dvb_vb2_is_streaming(&dmxdev->dvr_vb2_ctx))
-> +		return dvb_vb2_poll(&dmxdev->dvr_vb2_ctx, file, wait);
->  
->  	poll_wait(file, &dmxdev->dvr_buffer.queue, wait);
->  
-> -	if ((file->f_flags & O_ACCMODE) == O_RDONLY) {
-> +	if (((file->f_flags & O_ACCMODE) == O_RDONLY) ||
-> +	    ((file->f_flags & O_ACCMODE) == O_RDWR)) {
->  		if (dmxdev->dvr_buffer.error)
->  			mask |= (POLLIN | POLLRDNORM | POLLPRI | POLLERR);
->  
-> @@ -1187,6 +1309,23 @@ static unsigned int dvb_dvr_poll(struct file *file, poll_table *wait)
->  	return mask;
->  }
->  
-> +static int dvb_dvr_mmap(struct file *file, struct vm_area_struct *vma)
-> +{
-> +	struct dvb_device *dvbdev = file->private_data;
-> +	struct dmxdev *dmxdev = dvbdev->priv;
-> +	int ret;
-> +
-> +	if (dmxdev->exit)
-> +		return -ENODEV;
-> +
-> +	if (mutex_lock_interruptible(&dmxdev->mutex))
-> +		return -ERESTARTSYS;
-> +
-> +	ret = dvb_vb2_mmap(&dmxdev->dvr_vb2_ctx, vma);
-> +	mutex_unlock(&dmxdev->mutex);
-> +	return ret;
-> +}
-> +
->  static const struct file_operations dvb_dvr_fops = {
->  	.owner = THIS_MODULE,
->  	.read = dvb_dvr_read,
-> @@ -1196,6 +1335,7 @@ static const struct file_operations dvb_dvr_fops = {
->  	.release = dvb_dvr_release,
->  	.poll = dvb_dvr_poll,
->  	.llseek = default_llseek,
-> +	.mmap = dvb_dvr_mmap,
->  };
->  
->  static const struct dvb_device dvbdev_dvr = {
-> diff --git a/drivers/media/dvb-core/dmxdev.h b/drivers/media/dvb-core/dmxdev.h
-> index 054fd4eb6192..6b6aa80db22b 100644
-> --- a/drivers/media/dvb-core/dmxdev.h
-> +++ b/drivers/media/dvb-core/dmxdev.h
-> @@ -35,6 +35,7 @@
->  #include "dvbdev.h"
->  #include "demux.h"
->  #include "dvb_ringbuffer.h"
-> +#include "dvb_vb2.h"
->  
->  enum dmxdev_type {
->  	DMXDEV_TYPE_NONE,
-> @@ -77,6 +78,7 @@ struct dmxdev_filter {
->  	enum dmxdev_state state;
->  	struct dmxdev *dev;
->  	struct dvb_ringbuffer buffer;
-> +	struct dvb_vb2_ctx vb2_ctx;
->  
->  	struct mutex mutex;
->  
-> @@ -104,6 +106,8 @@ struct dmxdev {
->  	struct dvb_ringbuffer dvr_buffer;
->  #define DVR_BUFFER_SIZE (10*188*1024)
->  
-> +	struct dvb_vb2_ctx dvr_vb2_ctx;
-> +
->  	struct mutex mutex;
->  	spinlock_t lock;
->  };
-> diff --git a/drivers/media/dvb-core/dvb_vb2.c b/drivers/media/dvb-core/dvb_vb2.c
+>  obj-$(CONFIG_VIDEO_RCAR_DRIF)		+= rcar_drif.o
+> +obj-$(CONFIG_VIDEO_RENESAS_CEU)		+= renesas-ceu.o
+>  obj-$(CONFIG_VIDEO_RENESAS_FCP) 	+= rcar-fcp.o
+>  obj-$(CONFIG_VIDEO_RENESAS_FDP1)	+= rcar_fdp1.o
+>  obj-$(CONFIG_VIDEO_RENESAS_JPU) 	+= rcar_jpu.o
+> diff --git a/drivers/media/platform/renesas-ceu.c b/drivers/media/platform/renesas-ceu.c
 > new file mode 100644
-> index 000000000000..34193a4acc47
+> index 0000000..1b8f0ef
 > --- /dev/null
-> +++ b/drivers/media/dvb-core/dvb_vb2.c
-> @@ -0,0 +1,423 @@
+> +++ b/drivers/media/platform/renesas-ceu.c
+> @@ -0,0 +1,1659 @@
+> +// SPDX-License-Identifier: GPL-2.0
 > +/*
-> + * dvb-vb2.c - dvb-vb2
+> + * V4L2 Driver for Renesas Capture Engine Unit (CEU) interface
+> + * Copyright (C) 2017-2018 Jacopo Mondi <jacopo+renesas@jmondi.org>
 > + *
-> + * Copyright (C) 2015 Samsung Electronics
+> + * Based on soc-camera driver "soc_camera/sh_mobile_ceu_camera.c"
+> + * Copyright (C) 2008 Magnus Damm
 > + *
-> + * Author: jh1009.sung@samsung.com
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License as published by
-> + * the Free Software Foundation.
+> + * Based on V4L2 Driver for PXA camera host - "pxa_camera.c",
+> + * Copyright (C) 2006, Sascha Hauer, Pengutronix
+> + * Copyright (C) 2008, Guennadi Liakhovetski <kernel@pengutronix.de>
 > + */
 > +
+> +#include <linux/delay.h>
+> +#include <linux/device.h>
+> +#include <linux/dma-mapping.h>
 > +#include <linux/err.h>
+> +#include <linux/errno.h>
+> +#include <linux/interrupt.h>
+> +#include <linux/io.h>
 > +#include <linux/kernel.h>
-> +#include <linux/module.h>
 > +#include <linux/mm.h>
+> +#include <linux/module.h>
+> +#include <linux/of.h>
+> +#include <linux/of_device.h>
+> +#include <linux/of_graph.h>
+> +#include <linux/platform_device.h>
+> +#include <linux/pm_runtime.h>
+> +#include <linux/slab.h>
+> +#include <linux/time.h>
+> +#include <linux/videodev2.h>
 > +
-> +#include "dvbdev.h"
-> +#include "dvb_vb2.h"
+> +#include <media/v4l2-async.h>
+> +#include <media/v4l2-common.h>
+> +#include <media/v4l2-dev.h>
+> +#include <media/v4l2-device.h>
+> +#include <media/v4l2-fwnode.h>
+> +#include <media/v4l2-image-sizes.h>
+> +#include <media/v4l2-ioctl.h>
+> +#include <media/v4l2-mediabus.h>
+> +#include <media/videobuf2-dma-contig.h>
 > +
-> +static int vb2_debug;
-> +module_param(vb2_debug, int, 0644);
+> +#include <media/drv-intf/renesas-ceu.h>
 > +
-> +#define dprintk(level, fmt, arg...)					      \
-> +	do {								      \
-> +		if (vb2_debug >= level)					      \
-> +			pr_info("vb2: %s: " fmt, __func__, ## arg); \
-> +	} while (0)
+> +#define DRIVER_NAME	"renesas-ceu"
 > +
-> +static int _queue_setup(struct vb2_queue *vq,
-> +			unsigned int *nbuffers, unsigned int *nplanes,
-> +			unsigned int sizes[], struct device *alloc_devs[])
+> +/* CEU registers offsets and masks. */
+> +#define CEU_CAPSR	0x00 /* Capture start register			*/
+> +#define CEU_CAPCR	0x04 /* Capture control register		*/
+> +#define CEU_CAMCR	0x08 /* Capture interface control register	*/
+> +#define CEU_CAMOR	0x10 /* Capture interface offset register	*/
+> +#define CEU_CAPWR	0x14 /* Capture interface width register	*/
+> +#define CEU_CAIFR	0x18 /* Capture interface input format register */
+> +#define CEU_CRCNTR	0x28 /* CEU register control register		*/
+> +#define CEU_CRCMPR	0x2c /* CEU register forcible control register	*/
+> +#define CEU_CFLCR	0x30 /* Capture filter control register		*/
+> +#define CEU_CFSZR	0x34 /* Capture filter size clip register	*/
+> +#define CEU_CDWDR	0x38 /* Capture destination width register	*/
+> +#define CEU_CDAYR	0x3c /* Capture data address Y register		*/
+> +#define CEU_CDACR	0x40 /* Capture data address C register		*/
+> +#define CEU_CFWCR	0x5c /* Firewall operation control register	*/
+> +#define CEU_CDOCR	0x64 /* Capture data output control register	*/
+> +#define CEU_CEIER	0x70 /* Capture event interrupt enable register	*/
+> +#define CEU_CETCR	0x74 /* Capture event flag clear register	*/
+> +#define CEU_CSTSR	0x7c /* Capture status register			*/
+> +#define CEU_CSRTR	0x80 /* Capture software reset register		*/
+> +
+> +/* Data synchronous fetch mode. */
+> +#define CEU_CAMCR_JPEG			BIT(4)
+> +
+> +/* Input components ordering: CEU_CAMCR.DTARY field. */
+> +#define CEU_CAMCR_DTARY_8_UYVY		(0x00 << 8)
+> +#define CEU_CAMCR_DTARY_8_VYUY		(0x01 << 8)
+> +#define CEU_CAMCR_DTARY_8_YUYV		(0x02 << 8)
+> +#define CEU_CAMCR_DTARY_8_YVYU		(0x03 << 8)
+> +/* TODO: input components ordering for 16 bits input. */
+> +
+> +/* Bus transfer MTU. */
+> +#define CEU_CAPCR_BUS_WIDTH256		(0x3 << 20)
+> +
+> +/* Bus width configuration. */
+> +#define CEU_CAMCR_DTIF_16BITS		BIT(12)
+> +
+> +/* No downsampling to planar YUV420 in image fetch mode. */
+> +#define CEU_CDOCR_NO_DOWSAMPLE		BIT(4)
+> +
+> +/* Swap all input data in 8-bit, 16-bits and 32-bits units (Figure 46.45). */
+> +#define CEU_CDOCR_SWAP_ENDIANNESS	(7)
+> +
+> +/* Capture reset and enable bits. */
+> +#define CEU_CAPSR_CPKIL			BIT(16)
+> +#define CEU_CAPSR_CE			BIT(0)
+> +
+> +/* CEU operating flag bit. */
+> +#define CEU_CAPCR_CTNCP			BIT(16)
+> +#define CEU_CSTRST_CPTON		BIT(1)
+> +
+> +/* Platform specific IRQ source flags. */
+> +#define CEU_CETCR_ALL_IRQS_RZ		0x397f313
+> +#define CEU_CETCR_ALL_IRQS_SH4		0x3d7f313
+> +
+> +/* Prohibited register access interrupt bit. */
+> +#define CEU_CETCR_IGRW			BIT(4)
+> +/* One-frame capture end interrupt. */
+> +#define CEU_CEIER_CPE			BIT(0)
+> +/* VBP error. */
+> +#define CEU_CEIER_VBP			BIT(20)
+> +#define CEU_CEIER_MASK			(CEU_CEIER_CPE | CEU_CEIER_VBP)
+> +
+> +#define CEU_MAX_WIDTH	2560
+> +#define CEU_MAX_HEIGHT	1920
+> +#define CEU_W_MAX(w)	((w) < CEU_MAX_WIDTH ? (w) : CEU_MAX_WIDTH)
+> +#define CEU_H_MAX(h)	((h) < CEU_MAX_HEIGHT ? (h) : CEU_MAX_HEIGHT)
+> +
+> +/*
+> + * ceu_bus_fmt - describe a 8-bits yuyv format the sensor can produce
+> + *
+> + * @mbus_code: bus format code
+> + * @fmt_order: CEU_CAMCR.DTARY ordering of input components (Y, Cb, Cr)
+> + * @fmt_order_swap: swapped CEU_CAMCR.DTARY ordering of input components
+> + *		    (Y, Cr, Cb)
+> + * @swapped: does Cr appear before Cb?
+> + * @bps: number of bits sent over bus for each sample
+> + * @bpp: number of bits per pixels unit
+> + */
+> +struct ceu_mbus_fmt {
+> +	u32	mbus_code;
+> +	u32	fmt_order;
+> +	u32	fmt_order_swap;
+> +	bool	swapped;
+> +	u8	bps;
+> +	u8	bpp;
+> +};
+> +
+> +/*
+> + * ceu_buffer - Link vb2 buffer to the list of available buffers.
+> + */
+> +struct ceu_buffer {
+> +	struct vb2_v4l2_buffer vb;
+> +	struct list_head queue;
+> +};
+> +
+> +static inline struct ceu_buffer *vb2_to_ceu(struct vb2_v4l2_buffer *vbuf)
 > +{
-> +	struct dvb_vb2_ctx *ctx = vb2_get_drv_priv(vq);
+> +	return container_of(vbuf, struct ceu_buffer, vb);
+> +}
 > +
-> +	*nbuffers = ctx->buf_cnt;
-
-This is wrong and it is the reason for the kernel oops.
-
-*nbuffers has already been constrained to the correct buffer range but by
-assigning ctx->buf_cnt to it that is now all undone. You actually want to do
-this:
-
-	ctx->buf_cnt = *nbuffers;
-
-and drop the 'ctx->buf_cnt = req->count;' in dvb_vb2_reqbufs().
-
-> +	*nplanes = 1;
-> +	sizes[0] = ctx->buf_siz;
+> +/*
+> + * ceu_subdev - Wraps v4l2 sub-device and provides async subdevice.
+> + */
+> +struct ceu_subdev {
+> +	struct v4l2_subdev *v4l2_sd;
+> +	struct v4l2_async_subdev asd;
+> +
+> +	/* per-subdevice mbus configuration options */
+> +	unsigned int mbus_flags;
+> +	struct ceu_mbus_fmt mbus_fmt;
+> +};
+> +
+> +static struct ceu_subdev *to_ceu_subdev(struct v4l2_async_subdev *asd)
+> +{
+> +	return container_of(asd, struct ceu_subdev, asd);
+> +}
+> +
+> +/*
+> + * ceu_device - CEU device instance
+> + */
+> +struct ceu_device {
+> +	struct device		*dev;
+> +	struct video_device	vdev;
+> +	struct v4l2_device	v4l2_dev;
+> +
+> +	/* subdevices descriptors */
+> +	struct ceu_subdev	*subdevs;
+> +	/* the subdevice currently in use */
+> +	struct ceu_subdev	*sd;
+> +	unsigned int		sd_index;
+> +	unsigned int		num_sd;
+> +
+> +	/* platform specific mask with all IRQ sources flagged */
+> +	u32			irq_mask;
+> +
+> +	/* currently configured field and pixel format */
+> +	enum v4l2_field	field;
+> +	struct v4l2_pix_format_mplane v4l2_pix;
+> +
+> +	/* async subdev notification helpers */
+> +	struct v4l2_async_notifier notifier;
+> +	/* pointers to "struct ceu_subdevice -> asd" */
+> +	struct v4l2_async_subdev **asds;
+> +
+> +	/* vb2 queue, capture buffer list and active buffer pointer */
+> +	struct vb2_queue	vb2_vq;
+> +	struct list_head	capture;
+> +	struct vb2_v4l2_buffer	*active;
+> +	unsigned int		sequence;
+> +
+> +	/* mlock - lock access to interface reset and vb2 queue */
+> +	struct mutex	mlock;
+> +
+> +	/* lock - lock access to capture buffer queue and active buffer */
+> +	spinlock_t	lock;
+> +
+> +	/* base - CEU memory base address */
+> +	void __iomem	*base;
+> +};
+> +
+> +static inline struct ceu_device *v4l2_to_ceu(struct v4l2_device *v4l2_dev)
+> +{
+> +	return container_of(v4l2_dev, struct ceu_device, v4l2_dev);
+> +}
+> +
+> +/* --- CEU memory output formats --- */
+> +
+> +/*
+> + * ceu_fmt - describe a memory output format supported by CEU interface.
+> + *
+> + * @fourcc: memory layout fourcc format code
+> + * @bpp: number of bits for each pixel stored in memory
+> + */
+> +struct ceu_fmt {
+> +	u32	fourcc;
+> +	u32	bpp;
+> +};
+> +
+> +/*
+> + * ceu_format_list - List of supported memory output formats
+> + *
+> + * If sensor provides any YUYV bus format, all the following planar memory
+> + * formats are available thanks to CEU re-ordering and sub-sampling
+> + * capabilities.
+> + */
+> +static const struct ceu_fmt ceu_fmt_list[] = {
+> +	{
+> +		.fourcc	= V4L2_PIX_FMT_NV16,
+> +		.bpp	= 16,
+> +	},
+> +	{
+> +		.fourcc = V4L2_PIX_FMT_NV61,
+> +		.bpp	= 16,
+> +	},
+> +	{
+> +		.fourcc	= V4L2_PIX_FMT_NV12,
+> +		.bpp	= 12,
+> +	},
+> +	{
+> +		.fourcc	= V4L2_PIX_FMT_NV21,
+> +		.bpp	= 12,
+> +	},
+> +	{
+> +		.fourcc	= V4L2_PIX_FMT_YUYV,
+> +		.bpp	= 16,
+> +	},
+> +};
+> +
+> +static const struct ceu_fmt *get_ceu_fmt_from_fourcc(unsigned int fourcc)
+> +{
+> +	const struct ceu_fmt *fmt = &ceu_fmt_list[0];
+> +	unsigned int i;
+> +
+> +	for (i = 0; i < ARRAY_SIZE(ceu_fmt_list); i++, fmt++)
+> +		if (fmt->fourcc == fourcc)
+> +			return fmt;
+> +
+> +	return NULL;
+> +}
+> +
+> +static bool ceu_fmt_mplane(struct v4l2_pix_format_mplane *pix)
+> +{
+> +	switch (pix->pixelformat) {
+> +	case V4L2_PIX_FMT_YUYV:
+> +		return false;
+> +	case V4L2_PIX_FMT_NV16:
+> +	case V4L2_PIX_FMT_NV61:
+> +	case V4L2_PIX_FMT_NV12:
+> +	case V4L2_PIX_FMT_NV21:
+> +		return true;
+> +	default:
+> +		return false;
+> +	}
+> +}
+> +
+> +/* --- CEU HW operations --- */
+> +
+> +static void ceu_write(struct ceu_device *priv, unsigned int reg_offs, u32 data)
+> +{
+> +	iowrite32(data, priv->base + reg_offs);
+> +}
+> +
+> +static u32 ceu_read(struct ceu_device *priv, unsigned int reg_offs)
+> +{
+> +	return ioread32(priv->base + reg_offs);
+> +}
+> +
+> +/*
+> + * ceu_soft_reset() - Software reset the CEU interface.
+> + * @ceu_device: CEU device.
+> + *
+> + * Returns 0 for success, -EIO for error.
+> + */
+> +static int ceu_soft_reset(struct ceu_device *ceudev)
+> +{
+> +	unsigned int i;
+> +
+> +	ceu_write(ceudev, CEU_CAPSR, CEU_CAPSR_CPKIL);
+> +
+> +	for (i = 0; i < 100; i++) {
+> +		if (!(ceu_read(ceudev, CEU_CSTSR) & CEU_CSTRST_CPTON))
+> +			break;
+> +		udelay(1);
+> +	}
+> +
+> +	if (i == 100) {
+> +		dev_err(ceudev->dev, "soft reset time out\n");
+> +		return -EIO;
+> +	}
+> +
+> +	for (i = 0; i < 100; i++) {
+> +		if (!(ceu_read(ceudev, CEU_CAPSR) & CEU_CAPSR_CPKIL))
+> +			return 0;
+> +		udelay(1);
+> +	}
+> +
+> +	/* If we get here, CEU has not reset properly. */
+> +	return -EIO;
+> +}
+> +
+> +/* --- CEU Capture Operations --- */
+> +
+> +/*
+> + * ceu_hw_config() - Configure CEU interface registers.
+> + */
+> +static int ceu_hw_config(struct ceu_device *ceudev)
+> +{
+> +	u32 camcr, cdocr, cfzsr, cdwdr, capwr;
+> +	struct v4l2_pix_format_mplane *pix = &ceudev->v4l2_pix;
+> +	struct ceu_subdev *ceu_sd = ceudev->sd;
+> +	struct ceu_mbus_fmt *mbus_fmt = &ceu_sd->mbus_fmt;
+> +	unsigned int mbus_flags = ceu_sd->mbus_flags;
+> +
+> +	/* Start configuring CEU registers */
+> +	ceu_write(ceudev, CEU_CAIFR, 0);
+> +	ceu_write(ceudev, CEU_CFWCR, 0);
+> +	ceu_write(ceudev, CEU_CRCNTR, 0);
+> +	ceu_write(ceudev, CEU_CRCMPR, 0);
+> +
+> +	/* Set the frame capture period for both image capture and data sync. */
+> +	capwr = (pix->height << 16) | pix->width * mbus_fmt->bpp / 8;
 > +
 > +	/*
-> +	 * videobuf2-vmalloc allocator is context-less so no need to set
-> +	 * alloc_ctxs array.
+> +	 * Swap input data endianness by default.
+> +	 * In data fetch mode bytes are received in chunks of 8 bytes.
+> +	 * D0, D1, D2, D3, D4, D5, D6, D7 (D0 received first)
+> +	 * The data is however by default written to memory in reverse order:
+> +	 * D7, D6, D5, D4, D3, D2, D1, D0 (D7 written to lowest byte)
+> +	 *
+> +	 * Use CEU_CDOCR[2:0] to swap data ordering.
 > +	 */
+> +	cdocr = CEU_CDOCR_SWAP_ENDIANNESS;
 > +
-> +	dprintk(3, "[%s] count=%d, size=%d\n", ctx->name,
-> +		*nbuffers, sizes[0]);
+> +	/*
+> +	 * Configure CAMCR and CDOCR:
+> +	 * match input components ordering with memory output format and
+> +	 * handle downsampling to YUV420.
+> +	 *
+> +	 * If the memory output planar format is 'swapped' (Cr before Cb) and
+> +	 * input format is not, use the swapped version of CAMCR.DTARY.
+> +	 *
+> +	 * If the memory output planar format is not 'swapped' (Cb before Cr)
+> +	 * and input format is, use the swapped version of CAMCR.DTARY.
+> +	 *
+> +	 * CEU by default downsample to planar YUV420 (CDCOR[4] = 0).
+> +	 * If output is planar YUV422 set CDOCR[4] = 1
+> +	 *
+> +	 * No downsample for data fetch sync mode.
+> +	 */
+> +	switch (pix->pixelformat) {
+> +	/* Data fetch sync mode */
+> +	case V4L2_PIX_FMT_YUYV:
+> +		/* TODO: handle YUYV permutations through DTARY bits. */
+> +		camcr	= CEU_CAMCR_JPEG;
+> +		cdocr	|= CEU_CDOCR_NO_DOWSAMPLE;
+> +		cfzsr	= (pix->height << 16) | pix->width;
+> +		cdwdr	= pix->plane_fmt[0].bytesperline;
+> +		break;
 > +
-> +	return 0;
-> +}
+> +	/* Non-swapped planar image capture mode. */
+> +	case V4L2_PIX_FMT_NV16:
+> +		cdocr	|= CEU_CDOCR_NO_DOWSAMPLE;
+> +	case V4L2_PIX_FMT_NV12:
+> +		if (mbus_fmt->swapped)
+> +			camcr = mbus_fmt->fmt_order_swap;
+> +		else
+> +			camcr = mbus_fmt->fmt_order;
 > +
-> +static int _buffer_prepare(struct vb2_buffer *vb)
-> +{
-> +	struct dvb_vb2_ctx *ctx = vb2_get_drv_priv(vb->vb2_queue);
-> +	unsigned long size = ctx->buf_siz;
+> +		cfzsr	= (pix->height << 16) | pix->width;
+> +		cdwdr	= pix->width;
+> +		break;
 > +
-> +	if (vb2_plane_size(vb, 0) < size) {
-> +		dprintk(1, "[%s] data will not fit into plane (%lu < %lu)\n",
-> +			ctx->name, vb2_plane_size(vb, 0), size);
-> +		return -EINVAL;
+> +	/* Swapped planar image capture mode. */
+> +	case V4L2_PIX_FMT_NV61:
+> +		cdocr	|= CEU_CDOCR_NO_DOWSAMPLE;
+> +	case V4L2_PIX_FMT_NV21:
+> +		if (mbus_fmt->swapped)
+> +			camcr = mbus_fmt->fmt_order;
+> +		else
+> +			camcr = mbus_fmt->fmt_order_swap;
+> +
+> +		cfzsr	= (pix->height << 16) | pix->width;
+> +		cdwdr	= pix->width;
+> +		break;
 > +	}
 > +
-> +	vb2_set_plane_payload(vb, 0, size);
-> +	dprintk(3, "[%s]\n", ctx->name);
+> +	camcr |= mbus_flags & V4L2_MBUS_VSYNC_ACTIVE_LOW ? 1 << 1 : 0;
+> +	camcr |= mbus_flags & V4L2_MBUS_HSYNC_ACTIVE_LOW ? 1 << 0 : 0;
+> +
+> +	/* TODO: handle 16 bit bus width with DTIF bit in CAMCR */
+> +	ceu_write(ceudev, CEU_CAMCR, camcr);
+> +	ceu_write(ceudev, CEU_CDOCR, cdocr);
+> +	ceu_write(ceudev, CEU_CAPCR, CEU_CAPCR_BUS_WIDTH256);
+> +
+> +	/*
+> +	 * TODO: make CAMOR offsets configurable.
+> +	 * CAMOR wants to know the number of blanks between a VS/HS signal
+> +	 * and valid data. This value should actually come from the sensor...
+> +	 */
+> +	ceu_write(ceudev, CEU_CAMOR, 0);
+> +
+> +	/* TODO: 16 bit bus width require re-calculation of cdwdr and cfzsr */
+> +	ceu_write(ceudev, CEU_CAPWR, capwr);
+> +	ceu_write(ceudev, CEU_CFSZR, cfzsr);
+> +	ceu_write(ceudev, CEU_CDWDR, cdwdr);
 > +
 > +	return 0;
 > +}
-> +
-> +static void _buffer_queue(struct vb2_buffer *vb)
-> +{
-> +	struct dvb_vb2_ctx *ctx = vb2_get_drv_priv(vb->vb2_queue);
-> +	struct dvb_buffer *buf = container_of(vb, struct dvb_buffer, vb);
-> +	unsigned long flags = 0;
-> +
-> +	spin_lock_irqsave(&ctx->slock, flags);
-> +	list_add_tail(&buf->list, &ctx->dvb_q);
-> +	spin_unlock_irqrestore(&ctx->slock, flags);
-> +
-> +	dprintk(3, "[%s]\n", ctx->name);
-> +}
-> +
-> +static int _start_streaming(struct vb2_queue *vq, unsigned int count)
-> +{
-> +	struct dvb_vb2_ctx *ctx = vb2_get_drv_priv(vq);
-> +
-> +	dprintk(3, "[%s] count=%d\n", ctx->name, count);
-> +	return 0;
-> +}
-> +
-> +static void _stop_streaming(struct vb2_queue *vq)
-> +{
-> +	struct dvb_vb2_ctx *ctx = vb2_get_drv_priv(vq);
-> +
-> +	dprintk(3, "[%s]\n", ctx->name);
-> +}
-> +
-> +static void _dmxdev_lock(struct vb2_queue *vq)
-> +{
-> +	struct dvb_vb2_ctx *ctx = vb2_get_drv_priv(vq);
-> +
-> +	mutex_lock(&ctx->mutex);
-> +	dprintk(3, "[%s]\n", ctx->name);
-> +}
-> +
-> +static void _dmxdev_unlock(struct vb2_queue *vq)
-> +{
-> +	struct dvb_vb2_ctx *ctx = vb2_get_drv_priv(vq);
-> +
-> +	if (mutex_is_locked(&ctx->mutex))
-> +		mutex_unlock(&ctx->mutex);
-> +	dprintk(3, "[%s]\n", ctx->name);
-> +}
-> +
-> +static const struct vb2_ops dvb_vb2_qops = {
-> +	.queue_setup		= _queue_setup,
-> +	.buf_prepare		= _buffer_prepare,
-> +	.buf_queue		= _buffer_queue,
-> +	.start_streaming	= _start_streaming,
-> +	.stop_streaming		= _stop_streaming,
-> +	.wait_prepare		= _dmxdev_unlock,
-> +	.wait_finish		= _dmxdev_lock,
-> +};
-> +
-> +static void _fill_dmx_buffer(struct vb2_buffer *vb, void *pb)
-> +{
-> +	struct dvb_vb2_ctx *ctx = vb2_get_drv_priv(vb->vb2_queue);
-> +	struct dmx_buffer *b = pb;
-> +
-> +	b->index = vb->index;
-> +	b->length = vb->planes[0].length;
-> +	b->bytesused = vb->planes[0].bytesused;
-> +	b->offset = vb->planes[0].m.offset;
-> +	memset(b->reserved, 0, sizeof(b->reserved));
-> +	dprintk(3, "[%s]\n", ctx->name);
-> +}
-> +
-> +static int _fill_vb2_buffer(struct vb2_buffer *vb,
-> +			    const void *pb, struct vb2_plane *planes)
-> +{
-> +	struct dvb_vb2_ctx *ctx = vb2_get_drv_priv(vb->vb2_queue);
-> +
-> +	planes[0].bytesused = 0;
-> +	dprintk(3, "[%s]\n", ctx->name);
-> +
-> +	return 0;
-> +}
-> +
-> +static const struct vb2_buf_ops dvb_vb2_buf_ops = {
-> +	.fill_user_buffer	= _fill_dmx_buffer,
-> +	.fill_vb2_buffer	= _fill_vb2_buffer,
-> +};
 > +
 > +/*
-> + * Videobuf operations
+> + * ceu_capture() - Trigger start of a capture sequence.
+> + *
+> + * Program the CEU DMA registers with addresses where to transfer image data.
 > + */
-> +int dvb_vb2_init(struct dvb_vb2_ctx *ctx, const char *name, int nonblocking)
+> +static int ceu_capture(struct ceu_device *ceudev)
 > +{
-> +	struct vb2_queue *q = &ctx->vb_q;
-> +	int ret;
+> +	struct v4l2_pix_format_mplane *pix = &ceudev->v4l2_pix;
+> +	dma_addr_t phys_addr_top;
 > +
-> +	memset(ctx, 0, sizeof(struct dvb_vb2_ctx));
-> +	q->type = DVB_BUF_TYPE_CAPTURE;
-
-We don't support DVB_BUF_TYPE_OUTPUT? Shouldn't this information come from the
-driver?
-
-> +	/**capture type*/
-
-Why /** ?
-
-> +	q->is_output = 0;
-
-Can be dropped unless we support DVB_BUF_TYPE_OUTPUT.
-
-> +	/**only mmap is supported currently*/
-
-/** ?
-
-> +	q->io_modes = VB2_MMAP;
-> +	q->drv_priv = ctx;
-> +	q->buf_struct_size = sizeof(struct dvb_buffer);
-> +	q->min_buffers_needed = 1;
-> +	q->ops = &dvb_vb2_qops;
-> +	q->mem_ops = &vb2_vmalloc_memops;
-> +	q->buf_ops = &dvb_vb2_buf_ops;
-> +	q->num_buffers = 0;
-
-Not needed, is zeroed in the memset above.
-
-I'm also missing q->timestamp_flags: should be set to V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC.
-
-> +	ret = vb2_core_queue_init(q);
-> +	if (ret) {
-> +		ctx->state = DVB_VB2_STATE_NONE;
-> +		dprintk(1, "[%s] errno=%d\n", ctx->name, ret);
-> +		return ret;
+> +	phys_addr_top =
+> +		vb2_dma_contig_plane_dma_addr(&ceudev->active->vb2_buf, 0);
+> +	ceu_write(ceudev, CEU_CDAYR, phys_addr_top);
+> +
+> +	/* Ignore CbCr plane for non multi-planar image formats. */
+> +	if (ceu_fmt_mplane(pix)) {
+> +		phys_addr_top =
+> +			vb2_dma_contig_plane_dma_addr(&ceudev->active->vb2_buf,
+> +						      1);
+> +		ceu_write(ceudev, CEU_CDACR, phys_addr_top);
 > +	}
 > +
-> +	mutex_init(&ctx->mutex);
-> +	spin_lock_init(&ctx->slock);
-> +	INIT_LIST_HEAD(&ctx->dvb_q);
-> +
-> +	strncpy(ctx->name, name, DVB_VB2_NAME_MAX);
-
-I believe strlcpy is recommended.
-
-> +	ctx->nonblocking = nonblocking;
-> +	ctx->state = DVB_VB2_STATE_INIT;
-> +
-> +	dprintk(3, "[%s]\n", ctx->name);
+> +	/*
+> +	 * Trigger new capture start: once for each frame, as we work in
+> +	 * one-frame capture mode.
+> +	 */
+> +	ceu_write(ceudev, CEU_CAPSR, CEU_CAPSR_CE);
 > +
 > +	return 0;
 > +}
 > +
-> +int dvb_vb2_release(struct dvb_vb2_ctx *ctx)
+> +static irqreturn_t ceu_irq(int irq, void *data)
 > +{
-> +	struct vb2_queue *q = (struct vb2_queue *)&ctx->vb_q;
+> +	struct ceu_device *ceudev = data;
+> +	struct vb2_v4l2_buffer *vbuf;
+> +	struct ceu_buffer *buf;
+> +	u32 status;
 > +
-> +	if (ctx->state & DVB_VB2_STATE_INIT)
-> +		vb2_core_queue_release(q);
+> +	/* Clean interrupt status. */
+> +	status = ceu_read(ceudev, CEU_CETCR);
+> +	ceu_write(ceudev, CEU_CETCR, ~ceudev->irq_mask);
 > +
-> +	ctx->state = DVB_VB2_STATE_NONE;
-> +	dprintk(3, "[%s]\n", ctx->name);
+> +	/* Unexpected interrupt. */
+> +	if (!(status & CEU_CEIER_MASK))
+> +		return IRQ_NONE;
 > +
-> +	return 0;
-> +}
+> +	spin_lock(&ceudev->lock);
 > +
-> +int dvb_vb2_stream_on(struct dvb_vb2_ctx *ctx)
-> +{
-> +	struct vb2_queue *q = &ctx->vb_q;
-> +	int ret;
-> +
-> +	ret = vb2_core_streamon(q, q->type);
-> +	if (ret) {
-> +		ctx->state = DVB_VB2_STATE_NONE;
-> +		dprintk(1, "[%s] errno=%d\n", ctx->name, ret);
-> +		return ret;
+> +	/* Stale interrupt from a released buffer, ignore it. */
+> +	vbuf = ceudev->active;
+> +	if (!vbuf) {
+> +		spin_unlock(&ceudev->lock);
+> +		return IRQ_HANDLED;
 > +	}
-> +	ctx->state |= DVB_VB2_STATE_STREAMON;
-> +	dprintk(3, "[%s]\n", ctx->name);
 > +
-> +	return 0;
-> +}
-> +
-> +int dvb_vb2_stream_off(struct dvb_vb2_ctx *ctx)
-> +{
-> +	struct vb2_queue *q = (struct vb2_queue *)&ctx->vb_q;
-> +	int ret;
-> +	unsigned long flags = 0;
-> +
-> +	ctx->state &= ~DVB_VB2_STATE_STREAMON;
-> +	spin_lock_irqsave(&ctx->slock, flags);
-> +	while (!list_empty(&ctx->dvb_q)) {
-> +		struct dvb_buffer       *buf;
-> +
-> +		buf = list_entry(ctx->dvb_q.next,
-> +				 struct dvb_buffer, list);
-> +		list_del(&buf->list);
-> +		spin_unlock_irqrestore(&ctx->slock, flags);
-> +		vb2_buffer_done(&buf->vb, VB2_BUF_STATE_ERROR);
-> +		spin_lock_irqsave(&ctx->slock, flags);
+> +	/*
+> +	 * When a VBP interrupt occurs, no capture end interrupt will occur
+> +	 * and the image of that frame is not captured correctly.
+> +	 */
+> +	if (status & CEU_CEIER_VBP) {
+> +		dev_err(ceudev->dev, "VBP interrupt: abort capture\n");
+> +		goto error_irq_out;
 > +	}
-> +	spin_unlock_irqrestore(&ctx->slock, flags);
-> +	ret = vb2_core_streamoff(q, q->type);
-> +	if (ret) {
-> +		ctx->state = DVB_VB2_STATE_NONE;
-> +		dprintk(1, "[%s] errno=%d\n", ctx->name, ret);
-> +		return ret;
+> +
+> +	/* Prepare to return the 'previous' buffer. */
+> +	vbuf->vb2_buf.timestamp = ktime_get_ns();
+> +	vbuf->sequence = ceudev->sequence++;
+> +	vbuf->field = ceudev->field;
+> +
+> +	/* Prepare a new 'active' buffer and trigger a new capture. */
+> +	if (!list_empty(&ceudev->capture)) {
+> +		buf = list_first_entry(&ceudev->capture, struct ceu_buffer,
+> +				       queue);
+> +		list_del(&buf->queue);
+> +		ceudev->active = &buf->vb;
+> +
+> +		ceu_capture(ceudev);
 > +	}
-> +	dprintk(3, "[%s]\n", ctx->name);
 > +
-> +	return 0;
+> +	/* Return the 'previous' buffer. */
+> +	vb2_buffer_done(&vbuf->vb2_buf, VB2_BUF_STATE_DONE);
+> +
+> +	spin_unlock(&ceudev->lock);
+> +
+> +	return IRQ_HANDLED;
+> +
+> +error_irq_out:
+> +	/* Return the 'previous' buffer and all queued ones. */
+> +	vb2_buffer_done(&vbuf->vb2_buf, VB2_BUF_STATE_ERROR);
+> +
+> +	list_for_each_entry(buf, &ceudev->capture, queue)
+> +		vb2_buffer_done(&buf->vb.vb2_buf, VB2_BUF_STATE_ERROR);
+> +
+> +	spin_unlock(&ceudev->lock);
+> +
+> +	return IRQ_HANDLED;
 > +}
 > +
-> +int dvb_vb2_is_streaming(struct dvb_vb2_ctx *ctx)
-> +{
-> +	return (ctx->state & DVB_VB2_STATE_STREAMON);
-> +}
+> +/* --- CEU Videobuf2 operations --- */
 > +
-> +int dvb_vb2_fill_buffer(struct dvb_vb2_ctx *ctx,
-> +			const unsigned char *src, int len)
+> +static void ceu_update_plane_sizes(struct v4l2_plane_pix_format *plane,
+> +				   unsigned int bpl, unsigned int szimage)
 > +{
-> +	unsigned long flags = 0;
-> +	void *vbuf = NULL;
-> +	int todo = len;
-> +	unsigned char *psrc = (unsigned char *)src;
-> +	int ll = 0;
+> +	if (plane->bytesperline < bpl)
+> +		plane->bytesperline = bpl;
+> +	if (plane->sizeimage < szimage)
+> +		plane->sizeimage = szimage;
 
-'ll'? That's a bit vague as a variable name.
+As mentioned in your cover letter, you do need to check for invalid
+bytesperline values. The v4l2-compliance test is to see what happens
+when userspace gives insane values, so yes, drivers need to be able
+to handle that.
 
+plane->sizeimage is set by the driver, so drop the 'if' before the
+assignment.
+
+> +}
 > +
-> +	dprintk(3, "[%s] %d bytes are rcvd\n", ctx->name, len);
-> +	if (!src) {
-> +		dprintk(3, "[%s]:NULL pointer src\n", ctx->name);
-> +		/**normal case: This func is called twice from demux driver
-> +		 * once with valid src pointer, second time with NULL pointer
-> +		 */
+> +/*
+> + * ceu_calc_plane_sizes() - Fill per-plane 'struct v4l2_plane_pix_format'
+> + *			    information according to the currently configured
+> + *			    pixel format.
+> + * @ceu_device: CEU device.
+> + * @ceu_fmt: Active image format.
+> + * @pix: Pixel format information (store line width and image sizes)
+> + */
+> +static void ceu_calc_plane_sizes(struct ceu_device *ceudev,
+> +				 const struct ceu_fmt *ceu_fmt,
+> +				 struct v4l2_pix_format_mplane *pix)
+> +{
+> +	unsigned int bpl, szimage;
+> +
+> +	switch (pix->pixelformat) {
+> +	case V4L2_PIX_FMT_YUYV:
+> +		pix->num_planes	= 1;
+> +		bpl		= pix->width * ceu_fmt->bpp / 8;
+> +		szimage		= pix->height * bpl;
+> +		ceu_update_plane_sizes(&pix->plane_fmt[0], bpl, szimage);
+> +		break;
+> +
+> +	case V4L2_PIX_FMT_NV12:
+> +	case V4L2_PIX_FMT_NV21:
+> +		pix->num_planes	= 2;
+> +		bpl		= pix->width;
+> +		szimage		= pix->height * pix->width;
+> +		ceu_update_plane_sizes(&pix->plane_fmt[0], bpl, szimage);
+> +		ceu_update_plane_sizes(&pix->plane_fmt[1], bpl, szimage / 2);
+> +		break;
+> +
+> +	case V4L2_PIX_FMT_NV16:
+> +	case V4L2_PIX_FMT_NV61:
+> +	default:
+> +		pix->num_planes	= 2;
+> +		bpl		= pix->width;
+> +		szimage		= pix->height * pix->width;
+> +		ceu_update_plane_sizes(&pix->plane_fmt[0], bpl, szimage);
+> +		ceu_update_plane_sizes(&pix->plane_fmt[1], bpl, szimage);
+> +		break;
+> +	}
+> +}
+> +
+> +/*
+> + * ceu_vb2_setup() - is called to check whether the driver can accept the
+> + *		     requested number of buffers and to fill in plane sizes
+> + *		     for the current frame format, if required.
+> + */
+> +static int ceu_vb2_setup(struct vb2_queue *vq, unsigned int *count,
+> +			 unsigned int *num_planes, unsigned int sizes[],
+> +			 struct device *alloc_devs[])
+> +{
+> +	struct ceu_device *ceudev = vb2_get_drv_priv(vq);
+> +	struct v4l2_pix_format_mplane *pix = &ceudev->v4l2_pix;
+> +	unsigned int i;
+> +
+> +	/* num_planes is set: just check plane sizes. */
+> +	if (*num_planes) {
+> +		for (i = 0; i < pix->num_planes; i++)
+> +			if (sizes[i] < pix->plane_fmt[i].sizeimage)
+> +				return -EINVAL;
+> +
 > +		return 0;
 > +	}
-> +	while (todo) {
-> +		if (!ctx->buf) {
-> +			spin_lock_irqsave(&ctx->slock, flags);
-> +			if (list_empty(&ctx->dvb_q)) {
-> +				spin_unlock_irqrestore(&ctx->slock, flags);
-> +				dprintk(3, "[%s] Buffer overflow!!!\n",
-> +					ctx->name);
-> +				break;
-> +			}
 > +
-> +			ctx->buf = list_entry(ctx->dvb_q.next,
-> +					      struct dvb_buffer, list);
-> +			list_del(&ctx->buf->list);
-> +			spin_unlock_irqrestore(&ctx->slock, flags);
-> +			ctx->remain = vb2_plane_size(&ctx->buf->vb, 0);
-> +			ctx->offset = 0;
+> +	/* num_planes not set: called from REQBUFS, just set plane sizes. */
+> +	*num_planes = pix->num_planes;
+> +	for (i = 0; i < pix->num_planes; i++)
+> +		sizes[i] = pix->plane_fmt[i].sizeimage;
+> +
+> +	return 0;
+> +}
+> +
+> +static void ceu_vb2_queue(struct vb2_buffer *vb)
+> +{
+> +	struct ceu_device *ceudev = vb2_get_drv_priv(vb->vb2_queue);
+> +	struct vb2_v4l2_buffer *vbuf = to_vb2_v4l2_buffer(vb);
+> +	struct ceu_buffer *buf = vb2_to_ceu(vbuf);
+> +	unsigned long irqflags;
+> +
+> +	spin_lock_irqsave(&ceudev->lock, irqflags);
+> +	list_add_tail(&buf->queue, &ceudev->capture);
+> +	spin_unlock_irqrestore(&ceudev->lock, irqflags);
+> +}
+> +
+> +static int ceu_vb2_prepare(struct vb2_buffer *vb)
+> +{
+> +	struct ceu_device *ceudev = vb2_get_drv_priv(vb->vb2_queue);
+> +	struct v4l2_pix_format_mplane *pix = &ceudev->v4l2_pix;
+> +	unsigned int i;
+> +
+> +	for (i = 0; i < pix->num_planes; i++) {
+> +		if (vb2_plane_size(vb, i) < pix->plane_fmt[i].sizeimage) {
+> +			dev_err(ceudev->dev,
+> +				"Plane size too small (%lu < %u)\n",
+> +				vb2_plane_size(vb, i),
+> +				pix->plane_fmt[i].sizeimage);
+> +			return -EINVAL;
 > +		}
 > +
-> +		if (!dvb_vb2_is_streaming(ctx)) {
-> +			vb2_buffer_done(&ctx->buf->vb, VB2_BUF_STATE_ERROR);
-> +			ctx->buf = NULL;
+> +		vb2_set_plane_payload(vb, i, pix->plane_fmt[i].sizeimage);
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +static int ceu_start_streaming(struct vb2_queue *vq, unsigned int count)
+> +{
+> +	struct ceu_device *ceudev = vb2_get_drv_priv(vq);
+> +	struct v4l2_subdev *v4l2_sd = ceudev->sd->v4l2_sd;
+> +	struct ceu_buffer *buf;
+> +	unsigned long irqflags;
+> +	int ret;
+> +
+> +	/* Program the CEU interface according to the CEU image format. */
+> +	ret = ceu_hw_config(ceudev);
+> +	if (ret)
+> +		goto error_return_bufs;
+> +
+> +	ret = v4l2_subdev_call(v4l2_sd, video, s_stream, 1);
+> +	if (ret && ret != -ENOIOCTLCMD) {
+> +		dev_dbg(ceudev->dev,
+> +			"Subdevice failed to start streaming: %d\n", ret);
+> +		goto error_return_bufs;
+> +	}
+> +
+> +	spin_lock_irqsave(&ceudev->lock, irqflags);
+> +	ceudev->sequence = 0;
+> +
+> +	/* Grab the first available buffer and trigger the first capture. */
+> +	buf = list_first_entry(&ceudev->capture, struct ceu_buffer,
+> +			       queue);
+> +	if (!buf) {
+> +		spin_unlock_irqrestore(&ceudev->lock, irqflags);
+> +		dev_dbg(ceudev->dev,
+> +			"No buffer available for capture.\n");
+> +		goto error_stop_sensor;
+> +	}
+> +
+> +	list_del(&buf->queue);
+> +	ceudev->active = &buf->vb;
+> +
+> +	/* Clean and program interrupts for first capture. */
+> +	ceu_write(ceudev, CEU_CETCR, ~ceudev->irq_mask);
+> +	ceu_write(ceudev, CEU_CEIER, CEU_CEIER_MASK);
+> +
+> +	ceu_capture(ceudev);
+> +
+> +	spin_unlock_irqrestore(&ceudev->lock, irqflags);
+> +
+> +	return 0;
+> +
+> +error_stop_sensor:
+> +	v4l2_subdev_call(v4l2_sd, video, s_stream, 0);
+> +
+> +error_return_bufs:
+> +	spin_lock_irqsave(&ceudev->lock, irqflags);
+> +	list_for_each_entry(buf, &ceudev->capture, queue)
+> +		vb2_buffer_done(&ceudev->active->vb2_buf,
+> +				VB2_BUF_STATE_QUEUED);
+> +	ceudev->active = NULL;
+> +	spin_unlock_irqrestore(&ceudev->lock, irqflags);
+> +
+> +	return ret;
+> +}
+> +
+> +static void ceu_stop_streaming(struct vb2_queue *vq)
+> +{
+> +	struct ceu_device *ceudev = vb2_get_drv_priv(vq);
+> +	struct v4l2_subdev *v4l2_sd = ceudev->sd->v4l2_sd;
+> +	struct ceu_buffer *buf;
+> +	unsigned long irqflags;
+> +
+> +	/* Clean and disable interrupt sources. */
+> +	ceu_write(ceudev, CEU_CETCR,
+> +		  ceu_read(ceudev, CEU_CETCR) & ceudev->irq_mask);
+> +	ceu_write(ceudev, CEU_CEIER, CEU_CEIER_MASK);
+> +
+> +	v4l2_subdev_call(v4l2_sd, video, s_stream, 0);
+> +
+> +	spin_lock_irqsave(&ceudev->lock, irqflags);
+> +	if (ceudev->active) {
+> +		vb2_buffer_done(&ceudev->active->vb2_buf,
+> +				VB2_BUF_STATE_ERROR);
+> +		ceudev->active = NULL;
+> +	}
+> +
+> +	/* Release all queued buffers. */
+> +	list_for_each_entry(buf, &ceudev->capture, queue)
+> +		vb2_buffer_done(&buf->vb.vb2_buf, VB2_BUF_STATE_ERROR);
+> +	INIT_LIST_HEAD(&ceudev->capture);
+> +
+> +	spin_unlock_irqrestore(&ceudev->lock, irqflags);
+> +
+> +	ceu_soft_reset(ceudev);
+> +}
+> +
+> +static const struct vb2_ops ceu_vb2_ops = {
+> +	.queue_setup		= ceu_vb2_setup,
+> +	.buf_queue		= ceu_vb2_queue,
+> +	.buf_prepare		= ceu_vb2_prepare,
+> +	.wait_prepare		= vb2_ops_wait_prepare,
+> +	.wait_finish		= vb2_ops_wait_finish,
+> +	.start_streaming	= ceu_start_streaming,
+> +	.stop_streaming		= ceu_stop_streaming,
+> +};
+> +
+> +/* --- CEU image formats handling --- */
+> +
+> +/*
+> + * ceu_try_fmt() - test format on CEU and sensor
+> + * @ceudev: The CEU device.
+> + * @v4l2_fmt: format to test.
+> + *
+> + * Returns 0 for success, < 0 for errors.
+> + */
+> +static int ceu_try_fmt(struct ceu_device *ceudev, struct v4l2_format *v4l2_fmt)
+> +{
+> +	struct ceu_subdev *ceu_sd = ceudev->sd;
+> +	struct v4l2_pix_format_mplane *pix = &v4l2_fmt->fmt.pix_mp;
+> +	struct v4l2_subdev *v4l2_sd = ceu_sd->v4l2_sd;
+> +	struct v4l2_subdev_pad_config pad_cfg;
+> +	const struct ceu_fmt *ceu_fmt;
+> +	int ret;
+> +
+> +	struct v4l2_subdev_format sd_format = {
+> +		.which = V4L2_SUBDEV_FORMAT_TRY,
+> +	};
+> +
+> +	switch (pix->pixelformat) {
+> +	case V4L2_PIX_FMT_YUYV:
+> +	case V4L2_PIX_FMT_NV16:
+> +	case V4L2_PIX_FMT_NV61:
+> +	case V4L2_PIX_FMT_NV12:
+> +	case V4L2_PIX_FMT_NV21:
+> +		break;
+> +
+> +	default:
+> +		pix->pixelformat = V4L2_PIX_FMT_NV16;
+> +		break;
+> +	}
+> +
+> +	ceu_fmt = get_ceu_fmt_from_fourcc(pix->pixelformat);
+> +
+> +	/* CFSZR requires height and width to be 4-pixel aligned. */
+> +	v4l_bound_align_image(&pix->width, 2, CEU_MAX_WIDTH, 4,
+> +			      &pix->height, 4, CEU_MAX_HEIGHT, 4, 0);
+> +
+> +	/*
+> +	 * Set format on sensor sub device: bus format used to produce memory
+> +	 * format is selected at initialization time.
+> +	 */
+> +	v4l2_fill_mbus_format_mplane(&sd_format.format, pix);
+> +	ret = v4l2_subdev_call(v4l2_sd, pad, set_fmt, &pad_cfg, &sd_format);
+> +	if (ret)
+> +		return ret;
+> +
+> +	/* Apply size returned by sensor as the CEU can't scale. */
+> +	v4l2_fill_pix_format_mplane(pix, &sd_format.format);
+> +
+> +	/* Calculate per-plane sizes based on image format. */
+> +	ceu_calc_plane_sizes(ceudev, ceu_fmt, pix);
+> +
+> +	return 0;
+> +}
+> +
+> +/*
+> + * ceu_set_fmt() - Apply the supplied format to both sensor and CEU
+> + */
+> +static int ceu_set_fmt(struct ceu_device *ceudev, struct v4l2_format *v4l2_fmt)
+> +{
+> +	struct ceu_subdev *ceu_sd = ceudev->sd;
+> +	struct v4l2_subdev *v4l2_sd = ceu_sd->v4l2_sd;
+> +	int ret;
+> +
+> +	struct v4l2_subdev_format format = {
+> +		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
+> +	};
+> +
+> +	ret = ceu_try_fmt(ceudev, v4l2_fmt);
+> +	if (ret)
+> +		return ret;
+> +
+> +	v4l2_fill_mbus_format_mplane(&format.format, &v4l2_fmt->fmt.pix_mp);
+> +	ret = v4l2_subdev_call(v4l2_sd, pad, set_fmt, NULL, &format);
+> +	if (ret)
+> +		return ret;
+> +
+> +	ceudev->v4l2_pix = v4l2_fmt->fmt.pix_mp;
+> +
+> +	return 0;
+> +}
+> +
+> +/*
+> + * ceu_set_default_fmt() - Apply default NV16 memory output format with VGA
+> + *			   sizes.
+> + */
+> +static int ceu_set_default_fmt(struct ceu_device *ceudev)
+> +{
+> +	int ret;
+> +
+> +	struct v4l2_format v4l2_fmt = {
+> +		.type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE,
+> +		.fmt.pix_mp = {
+> +			.width		= VGA_WIDTH,
+> +			.height		= VGA_HEIGHT,
+> +			.field		= V4L2_FIELD_NONE,
+> +			.pixelformat	= V4L2_PIX_FMT_NV16,
+> +			.num_planes	= 2,
+> +			.plane_fmt	= {
+> +				[0]	= {
+> +					.sizeimage = VGA_WIDTH * VGA_HEIGHT * 2,
+> +					.bytesperline = VGA_WIDTH * 2,
+> +				},
+> +				[1]	= {
+> +					.sizeimage = VGA_WIDTH * VGA_HEIGHT * 2,
+> +					.bytesperline = VGA_WIDTH * 2,
+> +				},
+> +			},
+> +		},
+> +	};
+> +
+> +	ret = ceu_try_fmt(ceudev, &v4l2_fmt);
+> +	if (ret)
+> +		return ret;
+> +
+> +	ceudev->v4l2_pix = v4l2_fmt.fmt.pix_mp;
+> +
+> +	return 0;
+> +}
+> +
+> +/*
+> + * ceu_init_formats() - Query sensor for supported formats and initialize
+> + *			CEU supported format list
+> + *
+> + * Find out if sensor can produce a permutation of 8-bits YUYV bus format.
+> + * From a single 8-bits YUYV bus format the CEU can produce several memory
+> + * output formats:
+> + * - NV[12|21|16|61] through image fetch mode;
+> + * - YUYV422 if sensor provides YUYV422
+> + *
+> + * TODO: Other YUYV422 permutations through data fetch sync mode and DTARY
+> + * TODO: Binary data (eg. JPEG) and raw formats through data fetch sync mode
+> + */
+> +static int ceu_init_formats(struct ceu_device *ceudev)
+> +{
+> +	struct ceu_subdev *ceu_sd = ceudev->sd;
+> +	struct ceu_mbus_fmt *mbus_fmt = &ceu_sd->mbus_fmt;
+> +	struct v4l2_subdev *v4l2_sd = ceu_sd->v4l2_sd;
+> +	bool yuyv_bus_fmt = false;
+> +
+> +	struct v4l2_subdev_mbus_code_enum sd_mbus_fmt = {
+> +		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
+> +		.index = 0,
+> +	};
+> +
+> +	/* Find out if sensor can produce any permutation of 8-bits YUYV422. */
+> +	while (!yuyv_bus_fmt &&
+> +	       !v4l2_subdev_call(v4l2_sd, pad, enum_mbus_code,
+> +				 NULL, &sd_mbus_fmt)) {
+> +		switch (sd_mbus_fmt.code) {
+> +		case MEDIA_BUS_FMT_YUYV8_2X8:
+> +		case MEDIA_BUS_FMT_YVYU8_2X8:
+> +		case MEDIA_BUS_FMT_UYVY8_2X8:
+> +		case MEDIA_BUS_FMT_VYUY8_2X8:
+> +			yuyv_bus_fmt = true;
+> +			break;
+> +		default:
+> +			/*
+> +			 * Only support 8-bits YUYV bus formats at the moment;
+> +			 *
+> +			 * TODO: add support for binary formats (data sync
+> +			 * fetch mode).
+> +			 */
 > +			break;
 > +		}
 > +
-> +		/* Fill buffer */
-> +		ll = min(todo, ctx->remain);
-> +		vbuf = vb2_plane_vaddr(&ctx->buf->vb, 0);
-> +		memcpy(vbuf + ctx->offset, psrc, ll);
-> +		todo -= ll;
-> +		psrc += ll;
-> +
-> +		ctx->remain -= ll;
-> +		ctx->offset += ll;
-> +
-> +		if (ctx->remain == 0) {
-> +			vb2_buffer_done(&ctx->buf->vb, VB2_BUF_STATE_DONE);
-> +			ctx->buf = NULL;
-> +		}
+> +		sd_mbus_fmt.index++;
 > +	}
 > +
-> +	if (ctx->nonblocking && ctx->buf) {
-> +		vb2_set_plane_payload(&ctx->buf->vb, 0, ll);
-> +		vb2_buffer_done(&ctx->buf->vb, VB2_BUF_STATE_DONE);
-> +		ctx->buf = NULL;
+> +	if (!yuyv_bus_fmt)
+> +		return -ENXIO;
+> +
+> +	/*
+> +	 * Save the first encountered YUYV format as "mbus_fmt" and use it
+> +	 * to output all planar YUV422 and YUV420 (NV*) formats to memory as
+> +	 * well as for data synch fetch mode (YUYV - YVYU etc. ).
+> +	 */
+> +	mbus_fmt->mbus_code	= sd_mbus_fmt.code;
+> +	mbus_fmt->bps		= 8;
+> +
+> +	/* Annotate the selected bus format components ordering. */
+> +	switch (sd_mbus_fmt.code) {
+> +	case MEDIA_BUS_FMT_YUYV8_2X8:
+> +		mbus_fmt->fmt_order		= CEU_CAMCR_DTARY_8_YUYV;
+> +		mbus_fmt->fmt_order_swap	= CEU_CAMCR_DTARY_8_YVYU;
+> +		mbus_fmt->swapped		= false;
+> +		mbus_fmt->bpp			= 16;
+> +		break;
+> +
+> +	case MEDIA_BUS_FMT_YVYU8_2X8:
+> +		mbus_fmt->fmt_order		= CEU_CAMCR_DTARY_8_YVYU;
+> +		mbus_fmt->fmt_order_swap	= CEU_CAMCR_DTARY_8_YUYV;
+> +		mbus_fmt->swapped		= true;
+> +		mbus_fmt->bpp			= 16;
+> +		break;
+> +
+> +	case MEDIA_BUS_FMT_UYVY8_2X8:
+> +		mbus_fmt->fmt_order		= CEU_CAMCR_DTARY_8_UYVY;
+> +		mbus_fmt->fmt_order_swap	= CEU_CAMCR_DTARY_8_VYUY;
+> +		mbus_fmt->swapped		= false;
+> +		mbus_fmt->bpp			= 16;
+> +		break;
+> +
+> +	case MEDIA_BUS_FMT_VYUY8_2X8:
+> +		mbus_fmt->fmt_order		= CEU_CAMCR_DTARY_8_VYUY;
+> +		mbus_fmt->fmt_order_swap	= CEU_CAMCR_DTARY_8_UYVY;
+> +		mbus_fmt->swapped		= true;
+> +		mbus_fmt->bpp			= 16;
+> +		break;
 > +	}
 > +
-> +	if (todo)
-> +		dprintk(1, "[%s] %d bytes are dropped.\n", ctx->name, todo);
-> +	else
-> +		dprintk(3, "[%s]\n", ctx->name);
-> +
-> +	dprintk(3, "[%s] %d bytes are copied\n", ctx->name, len - todo);
-> +	return (len - todo);
-> +}
-> +
-> +int dvb_vb2_reqbufs(struct dvb_vb2_ctx *ctx, struct dmx_requestbuffers *req)
-> +{
-> +	int ret;
-> +
-> +	ctx->buf_siz = req->size;
-> +	ctx->buf_cnt = req->count;
-> +	ret = vb2_core_reqbufs(&ctx->vb_q, VB2_MEMORY_MMAP, &req->count);
-> +	if (ret) {
-> +		ctx->state = DVB_VB2_STATE_NONE;
-> +		dprintk(1, "[%s] count=%d size=%d errno=%d\n", ctx->name,
-> +			ctx->buf_cnt, ctx->buf_siz, ret);
-> +		return ret;
-> +	}
-> +	ctx->state |= DVB_VB2_STATE_REQBUFS;
-> +	dprintk(3, "[%s] count=%d size=%d\n", ctx->name,
-> +		ctx->buf_cnt, ctx->buf_siz);
+> +	ceudev->field = V4L2_FIELD_NONE;
 > +
 > +	return 0;
 > +}
 > +
-> +int dvb_vb2_querybuf(struct dvb_vb2_ctx *ctx, struct dmx_buffer *b)
-> +{
-> +	vb2_core_querybuf(&ctx->vb_q, b->index, b);
-> +	dprintk(3, "[%s] index=%d\n", ctx->name, b->index);
-> +	return 0;
-> +}
+> +/* --- Runtime PM Handlers --- */
 > +
-> +int dvb_vb2_expbuf(struct dvb_vb2_ctx *ctx, struct dmx_exportbuffer *exp)
-> +{
-> +	struct vb2_queue *q = &ctx->vb_q;
-> +	int ret;
-> +
-> +	ret = vb2_core_expbuf(&ctx->vb_q, &exp->fd, q->type, exp->index,
-> +			      0, exp->flags);
-> +	if (ret) {
-> +		dprintk(1, "[%s] index=%d errno=%d\n", ctx->name,
-> +			exp->index, ret);
-> +		return ret;
-> +	}
-> +	dprintk(3, "[%s] index=%d fd=%d\n", ctx->name, exp->index, exp->fd);
-> +
-> +	return 0;
-> +}
-> +
-> +int dvb_vb2_qbuf(struct dvb_vb2_ctx *ctx, struct dmx_buffer *b)
-> +{
-> +	int ret;
-> +
-> +	ret = vb2_core_qbuf(&ctx->vb_q, b->index, b);
-> +	if (ret) {
-> +		dprintk(1, "[%s] index=%d errno=%d\n", ctx->name,
-> +			b->index, ret);
-> +		return ret;
-> +	}
-> +	dprintk(5, "[%s] index=%d\n", ctx->name, b->index);
-> +
-> +	return 0;
-> +}
-> +
-> +int dvb_vb2_dqbuf(struct dvb_vb2_ctx *ctx, struct dmx_buffer *b)
-> +{
-> +	int ret;
-> +
-> +	ret = vb2_core_dqbuf(&ctx->vb_q, &b->index, b, ctx->nonblocking);
-> +	if (ret) {
-> +		dprintk(1, "[%s] errno=%d\n", ctx->name, ret);
-> +		return ret;
-> +	}
-> +	dprintk(5, "[%s] index=%d\n", ctx->name, b->index);
-> +
-> +	return 0;
-> +}
-> +
-> +int dvb_vb2_mmap(struct dvb_vb2_ctx *ctx, struct vm_area_struct *vma)
-> +{
-> +	int ret;
-> +
-> +	ret = vb2_mmap(&ctx->vb_q, vma);
-> +	if (ret) {
-> +		dprintk(1, "[%s] errno=%d\n", ctx->name, ret);
-> +		return ret;
-> +	}
-> +	dprintk(3, "[%s] ret=%d\n", ctx->name, ret);
-> +
-> +	return 0;
-> +}
-> +
-> +unsigned int dvb_vb2_poll(struct dvb_vb2_ctx *ctx, struct file *file,
-> +			  poll_table *wait)
-> +{
-> +	dprintk(3, "[%s]\n", ctx->name);
-> +	return vb2_core_poll(&ctx->vb_q, file, wait);
-> +}
-> +
-> diff --git a/drivers/media/dvb-core/dvb_vb2.h b/drivers/media/dvb-core/dvb_vb2.h
-> new file mode 100644
-> index 000000000000..d68653926d91
-> --- /dev/null
-> +++ b/drivers/media/dvb-core/dvb_vb2.h
-> @@ -0,0 +1,72 @@
 > +/*
-> + * dvb-vb2.h - DVB driver helper framework for streaming I/O
-> + *
-> + * Copyright (C) 2015 Samsung Electronics
-> + *
-> + * Author: jh1009.sung@samsung.com
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License as published by
-> + * the Free Software Foundation.
+> + * ceu_runtime_resume() - soft-reset the interface and turn sensor power on.
 > + */
+> +static int ceu_runtime_resume(struct device *dev)
+> +{
+> +	struct ceu_device *ceudev = dev_get_drvdata(dev);
+> +	struct v4l2_subdev *v4l2_sd = ceudev->sd->v4l2_sd;
 > +
-> +#ifndef _DVB_VB2_H
-> +#define _DVB_VB2_H
+> +	v4l2_subdev_call(v4l2_sd, core, s_power, 1);
 > +
-> +#include <linux/mutex.h>
-> +#include <linux/poll.h>
-> +#include <linux/dvb/dmx.h>
-> +#include <media/videobuf2-core.h>
-> +#include <media/videobuf2-dma-contig.h>
-> +#include <media/videobuf2-vmalloc.h>
+> +	ceu_soft_reset(ceudev);
 > +
-> +enum dvb_buf_type {
-> +	DVB_BUF_TYPE_CAPTURE        = 1,
-> +	DVB_BUF_TYPE_OUTPUT         = 2,
-> +};
+> +	return 0;
+> +}
 > +
-> +#define DVB_VB2_STATE_NONE (0x0)
-> +#define DVB_VB2_STATE_INIT (0x1)
-> +#define DVB_VB2_STATE_REQBUFS (0x2)
-> +#define DVB_VB2_STATE_STREAMON (0x4)
-> +
-> +#define DVB_VB2_NAME_MAX (20)
-> +
-> +struct dvb_buffer {
-> +	struct vb2_buffer	vb;
-> +	struct list_head	list;
-> +};
-> +
-> +struct dvb_vb2_ctx {
-> +	struct vb2_queue	vb_q;
-> +	struct mutex		mutex;
-> +	spinlock_t		slock;
-> +	struct list_head	dvb_q;
-> +	struct dvb_buffer	*buf;
-> +	int	offset;
-> +	int	remain;
-> +	int	state;
-> +	int	buf_siz;
-> +	int	buf_cnt;
-> +	int	nonblocking;
-> +	char	name[DVB_VB2_NAME_MAX + 1];
-> +};
-> +
-> +int dvb_vb2_init(struct dvb_vb2_ctx *ctx, const char *name, int non_blocking);
-> +int dvb_vb2_release(struct dvb_vb2_ctx *ctx);
-> +int dvb_vb2_stream_on(struct dvb_vb2_ctx *ctx);
-> +int dvb_vb2_stream_off(struct dvb_vb2_ctx *ctx);
-> +int dvb_vb2_is_streaming(struct dvb_vb2_ctx *ctx);
-> +int dvb_vb2_fill_buffer(struct dvb_vb2_ctx *ctx,
-> +			const unsigned char *src, int len);
-> +
-> +int dvb_vb2_reqbufs(struct dvb_vb2_ctx *ctx, struct dmx_requestbuffers *req);
-> +int dvb_vb2_querybuf(struct dvb_vb2_ctx *ctx, struct dmx_buffer *b);
-> +int dvb_vb2_expbuf(struct dvb_vb2_ctx *ctx, struct dmx_exportbuffer *exp);
-> +int dvb_vb2_qbuf(struct dvb_vb2_ctx *ctx, struct dmx_buffer *b);
-> +int dvb_vb2_dqbuf(struct dvb_vb2_ctx *ctx, struct dmx_buffer *b);
-> +int dvb_vb2_mmap(struct dvb_vb2_ctx *ctx, struct vm_area_struct *vma);
-> +unsigned int dvb_vb2_poll(struct dvb_vb2_ctx *ctx, struct file *file,
-> +			  poll_table *wait);
-> +
-> +#endif /* _DVB_VB2_H */
-> diff --git a/include/uapi/linux/dvb/dmx.h b/include/uapi/linux/dvb/dmx.h
-> index c10f1324b4ca..e212aa18ad78 100644
-> --- a/include/uapi/linux/dvb/dmx.h
-> +++ b/include/uapi/linux/dvb/dmx.h
-> @@ -211,6 +211,64 @@ struct dmx_stc {
->  	__u64 stc;
->  };
->  
-> +/**
-> + * struct dmx_buffer - dmx buffer info
-> + *
-> + * @index:	id number of the buffer
-> + * @bytesused:	number of bytes occupied by data in the buffer (payload);
-> + * @offset:	for buffers with memory == DMX_MEMORY_MMAP;
-> + *		offset from the start of the device memory for this plane,
-> + *		(or a "cookie" that should be passed to mmap() as offset)
-
-Since we only support MMAP this is always a 'cookie' in practice. So I think this
-should just be:
-
-	A "cookie" that should be passed to mmap() as offset.
-
-> + * @length:	size in bytes of the buffer
-> + *
-> + * Contains data exchanged by application and driver using one of the streaming
-> + * I/O methods.
+> +/*
+> + * ceu_runtime_suspend() - disable capture and interrupts and soft-reset.
+> + *			   Turn sensor power off.
 > + */
-> +struct dmx_buffer {
-> +	__u32			index;
-> +	__u32			bytesused;
-> +	__u32			offset;
+> +static int ceu_runtime_suspend(struct device *dev)
+> +{
+> +	struct ceu_device *ceudev = dev_get_drvdata(dev);
+> +	struct v4l2_subdev *v4l2_sd = ceudev->sd->v4l2_sd;
+> +
+> +	v4l2_subdev_call(v4l2_sd, core, s_power, 0);
+> +
+> +	ceu_write(ceudev, CEU_CEIER, 0);
+> +	ceu_soft_reset(ceudev);
+> +
+> +	return 0;
+> +}
+> +
+> +/* --- File Operations --- */
+> +
+> +static int ceu_open(struct file *file)
+> +{
+> +	struct ceu_device *ceudev = video_drvdata(file);
+> +	int ret;
+> +
+> +	ret = v4l2_fh_open(file);
+> +	if (ret)
+> +		return ret;
+> +
+> +	mutex_lock(&ceudev->mlock);
+> +	/* Causes soft-reset and sensor power on on first open */
+> +	pm_runtime_get_sync(ceudev->dev);
+> +	mutex_unlock(&ceudev->mlock);
+> +
+> +	return 0;
+> +}
+> +
+> +static int ceu_release(struct file *file)
+> +{
+> +	struct ceu_device *ceudev = video_drvdata(file);
+> +
+> +	vb2_fop_release(file);
+> +
+> +	mutex_lock(&ceudev->mlock);
+> +	/* Causes soft-reset and sensor power down on last close */
+> +	pm_runtime_put(ceudev->dev);
+> +	mutex_unlock(&ceudev->mlock);
+> +
+> +	return 0;
+> +}
+> +
+> +static const struct v4l2_file_operations ceu_fops = {
+> +	.owner			= THIS_MODULE,
+> +	.open			= ceu_open,
+> +	.release		= ceu_release,
+> +	.unlocked_ioctl		= video_ioctl2,
+> +	.mmap			= vb2_fop_mmap,
+> +	.poll			= vb2_fop_poll,
+> +};
+> +
+> +/* --- Video Device IOCTLs --- */
+> +
+> +static int ceu_querycap(struct file *file, void *priv,
+> +			struct v4l2_capability *cap)
+> +{
+> +	struct ceu_device *ceudev = video_drvdata(file);
+> +
+> +	strlcpy(cap->card, "Renesas CEU", sizeof(cap->card));
+> +	strlcpy(cap->driver, DRIVER_NAME, sizeof(cap->driver));
+> +	snprintf(cap->bus_info, sizeof(cap->bus_info),
+> +		 "platform:renesas-ceu-%s", dev_name(ceudev->dev));
+> +
+> +	return 0;
+> +}
+> +
+> +static int ceu_enum_fmt_vid_cap(struct file *file, void *priv,
+> +				struct v4l2_fmtdesc *f)
+> +{
+> +	const struct ceu_fmt *fmt;
+> +
+> +	if (f->index >= ARRAY_SIZE(ceu_fmt_list))
+> +		return -EINVAL;
+> +
+> +	fmt = &ceu_fmt_list[f->index];
+> +	f->pixelformat = fmt->fourcc;
+> +
+> +	return 0;
+> +}
+> +
+> +static int ceu_try_fmt_vid_cap(struct file *file, void *priv,
+> +			       struct v4l2_format *f)
+> +{
+> +	struct ceu_device *ceudev = video_drvdata(file);
+> +
+> +	return ceu_try_fmt(ceudev, f);
+> +}
+> +
+> +static int ceu_s_fmt_vid_cap(struct file *file, void *priv,
+> +			     struct v4l2_format *f)
+> +{
+> +	struct ceu_device *ceudev = video_drvdata(file);
+> +
+> +	if (vb2_is_streaming(&ceudev->vb2_vq))
+> +		return -EBUSY;
+> +
+> +	return ceu_set_fmt(ceudev, f);
+> +}
+> +
+> +static int ceu_g_fmt_vid_cap(struct file *file, void *priv,
+> +			     struct v4l2_format *f)
+> +{
+> +	struct ceu_device *ceudev = video_drvdata(file);
+> +
+> +	f->fmt.pix_mp = ceudev->v4l2_pix;
+> +
+> +	return 0;
+> +}
+> +
+> +static int ceu_enum_input(struct file *file, void *priv,
+> +			  struct v4l2_input *inp)
+> +{
+> +	struct ceu_device *ceudev = video_drvdata(file);
+> +	struct ceu_subdev *ceusd;
+> +
+> +	if (inp->index >= ceudev->num_sd)
+> +		return -EINVAL;
+> +
+> +	ceusd = &ceudev->subdevs[inp->index];
+> +
+> +	inp->type = V4L2_INPUT_TYPE_CAMERA;
+> +	inp->std = 0;
+> +	snprintf(inp->name, sizeof(inp->name), "Camera%u: %s",
+> +		 inp->index, ceusd->v4l2_sd->name);
+> +
+> +	return 0;
+> +}
+> +
+> +static int ceu_g_input(struct file *file, void *priv, unsigned int *i)
+> +{
+> +	struct ceu_device *ceudev = video_drvdata(file);
+> +
+> +	*i = ceudev->sd_index;
+> +
+> +	return 0;
+> +}
+> +
+> +static int ceu_s_input(struct file *file, void *priv, unsigned int i)
+> +{
+> +	struct ceu_device *ceudev = video_drvdata(file);
+> +	struct ceu_subdev *ceu_sd_old;
+> +	int ret;
+> +
+> +	if (i >= ceudev->num_sd)
+> +		return -EINVAL;
+> +
+> +	if (vb2_is_streaming(&ceudev->vb2_vq))
+> +		return -EBUSY;
+> +
+> +	if (i == ceudev->sd_index)
+> +		return 0;
+> +
+> +	ceu_sd_old = ceudev->sd;
+> +	ceudev->sd = &ceudev->subdevs[i];
+> +
+> +	/* Make sure we can generate output image formats. */
+> +	ret = ceu_init_formats(ceudev);
+> +	if (ret) {
+> +		ceudev->sd = ceu_sd_old;
+> +		return -EINVAL;
+> +	}
+> +
+> +	/* now that we're sure we can use the sensor, power off the old one. */
+> +	v4l2_subdev_call(ceu_sd_old->v4l2_sd, core, s_power, 0);
+> +	v4l2_subdev_call(ceudev->sd->v4l2_sd, core, s_power, 1);
+> +
+> +	ceudev->sd_index = i;
+> +
+> +	return 0;
+> +}
+> +
+> +static int ceu_g_parm(struct file *file, void *fh, struct v4l2_streamparm *a)
+> +{
+> +	struct ceu_device *ceudev = video_drvdata(file);
+> +
+> +	if (a->type != V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
+> +		return -EINVAL;
+> +
+> +	return v4l2_subdev_call(ceudev->sd->v4l2_sd, video, g_parm, a);
 
-I suggest making this a __u64: that way we can handle pointers as well in
-the future if we need them (as we do for the USERPTR case for V4L2).
+Look at this v4l2-compliance failure:
 
-Should this also be wrapped in a union? Useful when adding dmabuf support in the
-future.
+fail: v4l2-test-formats.cpp(1162): ret && node->has_frmintervals
 
-Do you think there is any use-case for multiplanar formats in the future?
-With perhaps meta data in a separate plane? Having to add support for this later
-has proven to be very painful, so we need to be as certain as possible that
-this isn't going to happen. Otherwise it's better to prepare for this right now.
+This is caused by the fact that the ov7670 driver has this code:
 
-> +	__u32			length;
-> +	__u32			reserved[4];
+static int ov7670_g_parm(struct v4l2_subdev *sd, struct v4l2_streamparm *parms)
+{
+        struct v4l2_captureparm *cp = &parms->parm.capture;
+        struct ov7670_info *info = to_state(sd);
 
-I do believe you need a memory field as well. It's only MMAP today, but in
-the future DMABUF will most likely be supported as well and you need to be
-able to tell what memory mode is being used.
+        if (parms->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
+                return -EINVAL;
+
+And parms->type is CAPTURE_MPLANE. Just drop this test from the ov7670 driver
+in the g/s_parm functions. It shouldn't test for that since a subdev driver
+knows nothing about buffer types.
+
+It might be a good idea to check if other subdevs to the same test.
+
+> +}
+> +
+> +static int ceu_s_parm(struct file *file, void *fh, struct v4l2_streamparm *a)
+> +{
+> +	struct ceu_device *ceudev = video_drvdata(file);
+> +
+> +	if (a->type != V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
+> +		return -EINVAL;
+> +
+> +	return v4l2_subdev_call(ceudev->sd->v4l2_sd, video, s_parm, a);
+> +}
+> +
+> +static int ceu_enum_framesizes(struct file *file, void *fh,
+> +			       struct v4l2_frmsizeenum *fsize)
+> +{
+> +	struct ceu_device *ceudev = video_drvdata(file);
+> +	struct ceu_subdev *ceu_sd = ceudev->sd;
+> +	const struct ceu_fmt *ceu_fmt;
+> +	struct v4l2_subdev *v4l2_sd = ceu_sd->v4l2_sd;
+> +	int ret;
+> +
+> +	struct v4l2_subdev_frame_size_enum fse = {
+> +		.code	= ceu_sd->mbus_fmt.mbus_code,
+> +		.index	= fsize->index,
+> +		.which	= V4L2_SUBDEV_FORMAT_ACTIVE,
+> +	};
+> +
+> +	/* Just check if user supplied pixel format is supported. */
+> +	ceu_fmt = get_ceu_fmt_from_fourcc(fsize->pixel_format);
+> +	if (!ceu_fmt)
+> +		return -EINVAL;
+> +
+> +	ret = v4l2_subdev_call(v4l2_sd, pad, enum_frame_size,
+> +			       NULL, &fse);
+> +	if (ret)
+> +		return ret;
+> +
+> +	fsize->type = V4L2_FRMSIZE_TYPE_DISCRETE;
+> +	fsize->discrete.width = CEU_W_MAX(fse.max_width);
+> +	fsize->discrete.height = CEU_H_MAX(fse.max_height);
+> +
+> +	return 0;
+> +}
+> +
+> +static int ceu_enum_frameintervals(struct file *file, void *fh,
+> +				   struct v4l2_frmivalenum *fival)
+> +{
+> +	struct ceu_device *ceudev = video_drvdata(file);
+> +	struct ceu_subdev *ceu_sd = ceudev->sd;
+> +	const struct ceu_fmt *ceu_fmt;
+> +	struct v4l2_subdev *v4l2_sd = ceu_sd->v4l2_sd;
+> +	int ret;
+> +
+> +	struct v4l2_subdev_frame_interval_enum fie = {
+> +		.code	= ceu_sd->mbus_fmt.mbus_code,
+> +		.index = fival->index,
+> +		.width = fival->width,
+> +		.height = fival->height,
+> +		.which = V4L2_SUBDEV_FORMAT_ACTIVE,
+> +	};
+> +
+> +	/* Just check if user supplied pixel format is supported. */
+> +	ceu_fmt = get_ceu_fmt_from_fourcc(fival->pixel_format);
+> +	if (!ceu_fmt)
+> +		return -EINVAL;
+> +
+> +	ret = v4l2_subdev_call(v4l2_sd, pad, enum_frame_interval, NULL,
+> +			       &fie);
+> +	if (ret)
+> +		return ret;
+> +
+> +	fival->type = V4L2_FRMIVAL_TYPE_DISCRETE;
+> +	fival->discrete = fie.interval;
+> +
+> +	return 0;
+> +}
+> +
+> +static const struct v4l2_ioctl_ops ceu_ioctl_ops = {
+> +	.vidioc_querycap		= ceu_querycap,
+> +
+> +	.vidioc_enum_fmt_vid_cap_mplane	= ceu_enum_fmt_vid_cap,
+> +	.vidioc_try_fmt_vid_cap_mplane	= ceu_try_fmt_vid_cap,
+> +	.vidioc_s_fmt_vid_cap_mplane	= ceu_s_fmt_vid_cap,
+> +	.vidioc_g_fmt_vid_cap_mplane	= ceu_g_fmt_vid_cap,
+> +
+> +	.vidioc_enum_input		= ceu_enum_input,
+> +	.vidioc_g_input			= ceu_g_input,
+> +	.vidioc_s_input			= ceu_s_input,
+> +
+> +	.vidioc_reqbufs			= vb2_ioctl_reqbufs,
+> +	.vidioc_querybuf		= vb2_ioctl_querybuf,
+> +	.vidioc_qbuf			= vb2_ioctl_qbuf,
+> +	.vidioc_expbuf			= vb2_ioctl_expbuf,
+> +	.vidioc_dqbuf			= vb2_ioctl_dqbuf,
+> +	.vidioc_create_bufs		= vb2_ioctl_create_bufs,
+> +	.vidioc_prepare_buf		= vb2_ioctl_prepare_buf,
+> +	.vidioc_streamon		= vb2_ioctl_streamon,
+> +	.vidioc_streamoff		= vb2_ioctl_streamoff,
+> +
+> +	.vidioc_g_parm			= ceu_g_parm,
+> +	.vidioc_s_parm			= ceu_s_parm,
+> +	.vidioc_enum_framesizes		= ceu_enum_framesizes,
+> +	.vidioc_enum_frameintervals	= ceu_enum_frameintervals,
+
+You're missing these ioctls:
+
+        .vidioc_log_status              = v4l2_ctrl_log_status,
+        .vidioc_subscribe_event         = v4l2_ctrl_subscribe_event,
+        .vidioc_unsubscribe_event       = v4l2_event_unsubscribe,
+
+These missing _event ops are the reason for this compliance failure:
+
+fail: v4l2-test-controls.cpp(782): subscribe event for control 'User Controls' failed
 
 > +};
 > +
-> +/**
-> + * struct dmx_requestbuffers - request dmx buffer information
-> + *
-> + * @count:	number of requested buffers,
-> + * @size:	size in bytes of the requested buffer
-> + *
-> + * Contains data used for requesting a dmx buffer.
-> + * All reserved fields must be set to zero.
+> +/*
+> + * ceu_vdev_release() - release CEU video device memory when last reference
+> + *			to this driver is closed
 > + */
-> +struct dmx_requestbuffers {
-> +	__u32			count;
-> +	__u32			size;
-> +	__u32			reserved[2];
-> +};
-
-Ditto: add a memory field.
-
-One thing that is a pain in V4L2 today is that there is no easy way to detect
-which streaming modes are supported. I think it would be a good idea to think
-what would be the best approach in DVB to expose that to userspace.
-
-The other comment is whether it might be a good idea to use create_bufs instead
-of reqbufs (or better, design an improved API).
-
-Due to historical reasons the V4L2 API to create/delete buffers is weird, and
-I think we can improve on that for DVB.
-
+> +static void ceu_vdev_release(struct video_device *vdev)
+> +{
+> +	struct ceu_device *ceudev = video_get_drvdata(vdev);
 > +
-> +/**
-> + * struct dmx_exportbuffer - export of dmx buffer as DMABUF file descriptor
+> +	kfree(ceudev);
+> +}
+> +
+> +static int ceu_notify_bound(struct v4l2_async_notifier *notifier,
+> +			    struct v4l2_subdev *v4l2_sd,
+> +			    struct v4l2_async_subdev *asd)
+> +{
+> +	struct v4l2_device *v4l2_dev = notifier->v4l2_dev;
+> +	struct ceu_device *ceudev = v4l2_to_ceu(v4l2_dev);
+> +	struct ceu_subdev *ceu_sd = to_ceu_subdev(asd);
+> +
+> +	ceu_sd->v4l2_sd = v4l2_sd;
+> +	ceudev->num_sd++;
+> +
+> +	return 0;
+> +}
+> +
+> +static int ceu_notify_complete(struct v4l2_async_notifier *notifier)
+> +{
+> +	struct v4l2_device *v4l2_dev = notifier->v4l2_dev;
+> +	struct ceu_device *ceudev = v4l2_to_ceu(v4l2_dev);
+> +	struct video_device *vdev = &ceudev->vdev;
+> +	struct vb2_queue *q = &ceudev->vb2_vq;
+> +	struct v4l2_subdev *v4l2_sd;
+> +	int ret;
+> +
+> +	/* Initialize vb2 queue. */
+> +	q->type			= V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
+> +	q->io_modes		= VB2_MMAP | VB2_DMABUF;
+> +	q->drv_priv		= ceudev;
+> +	q->ops			= &ceu_vb2_ops;
+> +	q->mem_ops		= &vb2_dma_contig_memops;
+> +	q->buf_struct_size	= sizeof(struct ceu_buffer);
+> +	q->timestamp_flags	= V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+> +	q->min_buffers_needed	= 2;
+> +	q->lock			= &ceudev->mlock;
+> +	q->dev			= ceudev->v4l2_dev.dev;
+> +
+> +	ret = vb2_queue_init(q);
+> +	if (ret)
+> +		return ret;
+> +
+> +	/*
+> +	 * Make sure at least one sensor is primary and use it to initialize
+> +	 * ceu formats.
+> +	 */
+> +	if (!ceudev->sd) {
+> +		ceudev->sd = &ceudev->subdevs[0];
+> +		ceudev->sd_index = 0;
+> +	}
+> +
+> +	v4l2_sd = ceudev->sd->v4l2_sd;
+> +
+> +	ret = ceu_init_formats(ceudev);
+> +	if (ret)
+> +		return ret;
+> +
+> +	ret = ceu_set_default_fmt(ceudev);
+> +	if (ret)
+> +		return ret;
+> +
+> +	/* Register the video device. */
+> +	strncpy(vdev->name, DRIVER_NAME, strlen(DRIVER_NAME));
+> +	vdev->v4l2_dev		= v4l2_dev;
+> +	vdev->lock		= &ceudev->mlock;
+> +	vdev->queue		= &ceudev->vb2_vq;
+> +	vdev->ctrl_handler	= v4l2_sd->ctrl_handler;
+> +	vdev->fops		= &ceu_fops;
+> +	vdev->ioctl_ops		= &ceu_ioctl_ops;
+> +	vdev->release		= ceu_vdev_release;
+> +	vdev->device_caps	= V4L2_CAP_VIDEO_CAPTURE_MPLANE |
+> +				  V4L2_CAP_STREAMING;
+> +	video_set_drvdata(vdev, ceudev);
+> +
+> +	ret = video_register_device(vdev, VFL_TYPE_GRABBER, -1);
+> +	if (ret < 0) {
+> +		v4l2_err(vdev->v4l2_dev,
+> +			 "video_register_device failed: %d\n", ret);
+> +		return ret;
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +static const struct v4l2_async_notifier_operations ceu_notify_ops = {
+> +	.bound		= ceu_notify_bound,
+> +	.complete	= ceu_notify_complete,
+> +};
+> +
+> +/*
+> + * ceu_init_async_subdevs() - Initialize CEU subdevices and async_subdevs in
+> + *			      ceu device. Both DT and platform data parsing use
+> + *			      this routine.
 > + *
-> + * @index:	id number of the buffer
-> + * @flags:	flags for newly created file, currently only O_CLOEXEC is
-> + *		supported, refer to manual of open syscall for more details
-> + * @fd:		file descriptor associated with DMABUF (set by driver)
-> + *
-> + * Contains data used for exporting a dmx buffer as DMABUF file descriptor.
-> + * The buffer is identified by a 'cookie' returned by DMX_QUERYBUF
-> + * (identical to the cookie used to mmap() the buffer to userspace). All
-> + * reserved fields must be set to zero. The field reserved0 is expected to
-> + * become a structure 'type' allowing an alternative layout of the structure
-> + * content. Therefore this field should not be used for any other extensions.
+> + * Returns 0 for success, -ENOMEM for failure.
 > + */
-> +struct dmx_exportbuffer {
-> +	__u32		index;
-> +	__u32		flags;
-> +	__s32		fd;
-> +	__u32		reserved[5];
+> +static int ceu_init_async_subdevs(struct ceu_device *ceudev, unsigned int n_sd)
+> +{
+> +	/* Reserve memory for 'n_sd' ceu_subdev descriptors. */
+> +	ceudev->subdevs = devm_kcalloc(ceudev->dev, n_sd,
+> +				       sizeof(*ceudev->subdevs), GFP_KERNEL);
+> +	if (!ceudev->subdevs)
+> +		return -ENOMEM;
+> +
+> +	/*
+> +	 * Reserve memory for 'n_sd' pointers to async_subdevices.
+> +	 * ceudev->asds members will point to &ceu_subdev.asd
+> +	 */
+> +	ceudev->asds = devm_kcalloc(ceudev->dev, n_sd,
+> +				    sizeof(*ceudev->asds), GFP_KERNEL);
+> +	if (!ceudev->asds)
+> +		return -ENOMEM;
+> +
+> +	ceudev->sd = NULL;
+> +	ceudev->sd_index = 0;
+> +	ceudev->num_sd = 0;
+> +
+> +	return 0;
+> +}
+> +
+> +/*
+> + * ceu_parse_platform_data() - Initialize async_subdevices using platform
+> + *			       device provided data.
+> + */
+> +static int ceu_parse_platform_data(struct ceu_device *ceudev,
+> +				   const struct ceu_platform_data *pdata)
+> +{
+> +	const struct ceu_async_subdev *async_sd;
+> +	struct ceu_subdev *ceu_sd;
+> +	unsigned int i;
+> +	int ret;
+> +
+> +	if (pdata->num_subdevs == 0)
+> +		return -ENODEV;
+> +
+> +	ret = ceu_init_async_subdevs(ceudev, pdata->num_subdevs);
+> +	if (ret)
+> +		return ret;
+> +
+> +	for (i = 0; i < pdata->num_subdevs; i++) {
+> +		/* Setup the ceu subdevice and the async subdevice. */
+> +		async_sd = &pdata->subdevs[i];
+> +		ceu_sd = &ceudev->subdevs[i];
+> +
+> +		INIT_LIST_HEAD(&ceu_sd->asd.list);
+> +
+> +		ceu_sd->mbus_flags	= async_sd->flags;
+> +		ceu_sd->asd.match_type	= V4L2_ASYNC_MATCH_I2C;
+> +		ceu_sd->asd.match.i2c.adapter_id = async_sd->i2c_adapter_id;
+> +		ceu_sd->asd.match.i2c.address = async_sd->i2c_address;
+> +
+> +		ceudev->asds[i] = &ceu_sd->asd;
+> +	}
+> +
+> +	return pdata->num_subdevs;
+> +}
+> +
+> +/*
+> + * ceu_parse_dt() - Initialize async_subdevs parsing device tree graph.
+> + */
+> +static int ceu_parse_dt(struct ceu_device *ceudev)
+> +{
+> +	struct device_node *of = ceudev->dev->of_node;
+> +	struct v4l2_fwnode_endpoint fw_ep;
+> +	struct ceu_subdev *ceu_sd;
+> +	struct device_node *ep;
+> +	unsigned int i;
+> +	int num_ep;
+> +	int ret;
+> +
+> +	num_ep = of_graph_get_endpoint_count(of);
+> +	if (!num_ep)
+> +		return -ENODEV;
+> +
+> +	ret = ceu_init_async_subdevs(ceudev, num_ep);
+> +	if (ret)
+> +		return ret;
+> +
+> +	for (i = 0; i < num_ep; i++) {
+> +		ep = of_graph_get_endpoint_by_regs(of, 0, i);
+> +		if (!ep) {
+> +			dev_err(ceudev->dev,
+> +				"No subdevice connected on endpoint %u.\n", i);
+> +			ret = -ENODEV;
+> +			goto error_put_node;
+> +		}
+> +
+> +		ret = v4l2_fwnode_endpoint_parse(of_fwnode_handle(ep), &fw_ep);
+> +		if (ret) {
+> +			dev_err(ceudev->dev,
+> +				"Unable to parse endpoint #%u.\n", i);
+> +			goto error_put_node;
+> +		}
+> +
+> +		if (fw_ep.bus_type != V4L2_MBUS_PARALLEL) {
+> +			dev_err(ceudev->dev,
+> +				"Only parallel input supported.\n");
+> +			ret = -EINVAL;
+> +			goto error_put_node;
+> +		}
+> +
+> +		/* Setup the ceu subdevice and the async subdevice. */
+> +		ceu_sd = &ceudev->subdevs[i];
+> +		INIT_LIST_HEAD(&ceu_sd->asd.list);
+> +
+> +		ceu_sd->mbus_flags = fw_ep.bus.parallel.flags;
+> +		ceu_sd->asd.match_type = V4L2_ASYNC_MATCH_FWNODE;
+> +		ceu_sd->asd.match.fwnode.fwnode =
+> +			fwnode_graph_get_remote_port_parent(
+> +					of_fwnode_handle(ep));
+> +
+> +		ceudev->asds[i] = &ceu_sd->asd;
+> +		of_node_put(ep);
+> +	}
+> +
+> +	return num_ep;
+> +
+> +error_put_node:
+> +	of_node_put(ep);
+> +	return ret;
+> +}
+> +
+> +/*
+> + * struct ceu_data - Platform specific CEU data
+> + * @irq_mask: CETCR mask with all interrupt sources enabled. The mask differs
+> + *	      between SH4 and RZ platforms.
+> + */
+> +struct ceu_data {
+> +	u32 irq_mask;
 > +};
 > +
->  #define DMX_START                _IO('o', 41)
->  #define DMX_STOP                 _IO('o', 42)
->  #define DMX_SET_FILTER           _IOW('o', 43, struct dmx_sct_filter_params)
-> @@ -231,4 +289,10 @@ typedef struct dmx_filter dmx_filter_t;
->  
->  #endif
->  
-> -#endif /* _UAPI_DVBDMX_H_ */
-> +#define DMX_REQBUFS              _IOWR('o', 60, struct dmx_requestbuffers)
-> +#define DMX_QUERYBUF             _IOWR('o', 61, struct dmx_buffer)
-> +#define DMX_EXPBUF               _IOWR('o', 62, struct dmx_exportbuffer)
-> +#define DMX_QBUF                 _IOWR('o', 63, struct dmx_buffer)
-> +#define DMX_DQBUF                _IOWR('o', 64, struct dmx_buffer)
+> +static const struct ceu_data ceu_data_rz = {
+> +	.irq_mask = CEU_CETCR_ALL_IRQS_RZ,
+> +};
 > +
-> +#endif /* _DVBDMX_H_ */
+> +static const struct ceu_data ceu_data_sh4 = {
+> +	.irq_mask = CEU_CETCR_ALL_IRQS_SH4,
+> +};
+> +
+> +#if IS_ENABLED(CONFIG_OF)
+> +static const struct of_device_id ceu_of_match[] = {
+> +	{ .compatible = "renesas,r7s72100-ceu", .data = &ceu_data_rz },
+> +	{ }
+> +};
+> +MODULE_DEVICE_TABLE(of, ceu_of_match);
+> +#endif
+> +
+> +static int ceu_probe(struct platform_device *pdev)
+> +{
+> +	struct device *dev = &pdev->dev;
+> +	const struct ceu_data *ceu_data;
+> +	struct ceu_device *ceudev;
+> +	struct resource *res;
+> +	unsigned int irq;
+> +	int num_subdevs;
+> +	int ret;
+> +
+> +	ceudev = kzalloc(sizeof(*ceudev), GFP_KERNEL);
+> +	if (!ceudev)
+> +		return -ENOMEM;
+> +
+> +	platform_set_drvdata(pdev, ceudev);
+> +	ceudev->dev = dev;
+> +
+> +	INIT_LIST_HEAD(&ceudev->capture);
+> +	spin_lock_init(&ceudev->lock);
+> +	mutex_init(&ceudev->mlock);
+> +
+> +	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+> +	ceudev->base = devm_ioremap_resource(dev, res);
+> +	if (IS_ERR(ceudev->base))
+> +		goto error_free_ceudev;
+> +
+> +	ret = platform_get_irq(pdev, 0);
+> +	if (ret < 0) {
+> +		dev_err(dev, "Failed to get irq: %d\n", ret);
+> +		goto error_free_ceudev;
+> +	}
+> +	irq = ret;
+> +
+> +	ret = devm_request_irq(dev, irq, ceu_irq,
+> +			       0, dev_name(dev), ceudev);
+> +	if (ret) {
+> +		dev_err(&pdev->dev, "Unable to request CEU interrupt.\n");
+> +		goto error_free_ceudev;
+> +	}
+> +
+> +	pm_runtime_enable(dev);
+> +
+> +	ret = v4l2_device_register(dev, &ceudev->v4l2_dev);
+> +	if (ret)
+> +		goto error_pm_disable;
+> +
+> +	if (IS_ENABLED(CONFIG_OF) && dev->of_node) {
+> +		ceu_data = of_match_device(ceu_of_match, dev)->data;
+> +		num_subdevs = ceu_parse_dt(ceudev);
+> +	} else if (dev->platform_data) {
+> +		/* Assume SH4 if booting with platform data. */
+> +		ceu_data = &ceu_data_sh4;
+> +		num_subdevs = ceu_parse_platform_data(ceudev,
+> +						      dev->platform_data);
+> +	} else {
+> +		num_subdevs = -EINVAL;
+> +	}
+> +
+> +	if (num_subdevs < 0) {
+> +		ret = num_subdevs;
+> +		goto error_v4l2_unregister;
+> +	}
+> +	ceudev->irq_mask = ceu_data->irq_mask;
+> +
+> +	ceudev->notifier.v4l2_dev	= &ceudev->v4l2_dev;
+> +	ceudev->notifier.subdevs	= ceudev->asds;
+> +	ceudev->notifier.num_subdevs	= num_subdevs;
+> +	ceudev->notifier.ops		= &ceu_notify_ops;
+> +	ret = v4l2_async_notifier_register(&ceudev->v4l2_dev,
+> +					   &ceudev->notifier);
+> +	if (ret)
+> +		goto error_v4l2_unregister;
+> +
+> +	dev_info(dev, "Renesas Capture Engine Unit %s\n", dev_name(dev));
+> +
+> +	return 0;
+> +
+> +error_v4l2_unregister:
+> +	v4l2_device_unregister(&ceudev->v4l2_dev);
+> +error_pm_disable:
+> +	pm_runtime_disable(dev);
+> +error_free_ceudev:
+> +	kfree(ceudev);
+> +
+> +	return ret;
+> +}
+> +
+> +static int ceu_remove(struct platform_device *pdev)
+> +{
+> +	struct ceu_device *ceudev = platform_get_drvdata(pdev);
+> +
+> +	pm_runtime_disable(ceudev->dev);
+> +
+> +	v4l2_async_notifier_unregister(&ceudev->notifier);
+> +
+> +	v4l2_device_unregister(&ceudev->v4l2_dev);
+> +
+> +	video_unregister_device(&ceudev->vdev);
+> +
+> +	return 0;
+> +}
+> +
+> +static const struct dev_pm_ops ceu_pm_ops = {
+> +	SET_RUNTIME_PM_OPS(ceu_runtime_suspend,
+> +			   ceu_runtime_resume,
+> +			   NULL)
+> +};
+> +
+> +static struct platform_driver ceu_driver = {
+> +	.driver		= {
+> +		.name	= DRIVER_NAME,
+> +		.pm	= &ceu_pm_ops,
+> +		.of_match_table = of_match_ptr(ceu_of_match),
+> +	},
+> +	.probe		= ceu_probe,
+> +	.remove		= ceu_remove,
+> +};
+> +
+> +module_platform_driver(ceu_driver);
+> +
+> +MODULE_DESCRIPTION("Renesas CEU camera driver");
+> +MODULE_AUTHOR("Jacopo Mondi <jacopo+renesas@jmondi.org>");
+> +MODULE_LICENSE("GPL v2");
 > 
 
 Regards,
