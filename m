@@ -1,61 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([91.232.154.25]:53791 "EHLO mail.kapsi.fi"
+Received: from mail.kernel.org ([198.145.29.99]:45194 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751210AbeAPTcO (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 16 Jan 2018 14:32:14 -0500
-Subject: Re: [PATCH 4/7] si2168: Add ts bus coontrol, turn off bus on sleep
-To: Brad Love <brad@nextdimension.cc>, linux-media@vger.kernel.org
-References: <1515773982-6411-1-git-send-email-brad@nextdimension.cc>
- <1515773982-6411-5-git-send-email-brad@nextdimension.cc>
- <ce8faa6a-0ffb-a432-e269-58486c857fea@iki.fi>
- <0770dc98-9153-e386-ca54-b7e4123b774d@nextdimension.cc>
-From: Antti Palosaari <crope@iki.fi>
-Message-ID: <3dbf6692-ea03-38d1-a6c0-3291cf48dbae@iki.fi>
-Date: Tue, 16 Jan 2018 21:32:12 +0200
+        id S1751200AbeASMLV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 19 Jan 2018 07:11:21 -0500
+Received: from mail-qt0-f172.google.com (mail-qt0-f172.google.com [209.85.216.172])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
+        (No client certificate requested)
+        by mail.kernel.org (Postfix) with ESMTPSA id 8854521719
+        for <linux-media@vger.kernel.org>; Fri, 19 Jan 2018 12:11:20 +0000 (UTC)
+Received: by mail-qt0-f172.google.com with SMTP id f4so3224718qtj.6
+        for <linux-media@vger.kernel.org>; Fri, 19 Jan 2018 04:11:20 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <0770dc98-9153-e386-ca54-b7e4123b774d@nextdimension.cc>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <1516196123-24327-1-git-send-email-pochun.lin@mediatek.com>
+References: <1516196123-24327-1-git-send-email-pochun.lin@mediatek.com>
+From: Josh Boyer <jwboyer@kernel.org>
+Date: Fri, 19 Jan 2018 07:11:19 -0500
+Message-ID: <CA+5PVA6np4ZCCxE6Qk9s7UpN3By-3g1sqSg90xrD7BVjKu8ubw@mail.gmail.com>
+Subject: Re: pull request: linux-firmware: Update Mediatek MT8173 VPU firmware
+To: pochun.lin@mediatek.com
+Cc: Linux Firmware <linux-firmware@kernel.org>,
+        linux-mediatek@lists.infradead.org,
+        linux-arm-kernel@lists.infradead.org,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        tiffany.lin@mediatek.com, eddie.huang@mediatek.com,
+        wuchengli@google.com, srv_heupstream@mediatek.com
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/16/2018 07:31 PM, Brad Love wrote:
-> 
-> On 2018-01-15 23:07, Antti Palosaari wrote:
->> Hello
->> And what is rationale here, is there some use case demod must be
->> active and ts set to tristate (disabled)? Just put demod sleep when
->> you don't use it.
->>
->> regards
->> Antti
-> 
-> Hello Antti,
-> 
-> Perhaps the .ts_bus_ctrl callback does not need to be included in ops,
-> but the function is necessary. The demod is already put to sleep when
-> not in use, but it leaves the ts bus open. The ts bus has no reason to
-> be open when the demod is put to sleep. Leaving the ts bus open during
-> sleep affects the other connected demod and nothing is received by it.
-> The lgdt3306a driver already tri states its ts bus when put to sleep,
-> the si2168 should as well.
+On Wed, Jan 17, 2018 at 8:35 AM,  <pochun.lin@mediatek.com> wrote:
+> The following changes since commit 65b1c68c63f974d72610db38dfae49861117cae2:
+>
+>   wl18xx: update firmware file 8.9.0.0.76 (2018-01-04 10:06:01 -0500)
+>
+> are available in the git repository at:
+>
+>   https://github.com/pochun-lin/linux_fw_vpu_v1.0.8.git v1.0.8
+>
+> for you to fetch changes up to e72c23c9ff2ceeb3509cb6441cc81f0227edf06d:
+>
+>   mediatek: update MT8173 VPU firmware to 1.0.8 (2018-01-17 20:19:56 +0800)
+>
+> ----------------------------------------------------------------
+> pochun.lin (1):
+>       mediatek: update MT8173 VPU firmware to 1.0.8
 
-Sounds possible, but unlikely as chip is firmware driven. When you put 
-chip to sleep you usually want set ts pins to tristate (also other 
-unused pins) in order to save energy. I haven't never tested it anyway 
-though, so it could be possible it leaves those pins to some other state 
-like random output at given time.
+Pulled and pushed out.  If the firmware is versioned, perhaps that
+version should be listed in the WHENCE file?  You might want to add
+that in a future patch.
 
-And if you cannot get stream from lgdt3306a, which is connected to same 
-bus, it really sounds like ts bus pins are left some state (cannot work 
-if same pin is driven high to other demod whilst other tries to drive it 
-low.
-
-Setting ts pins to tri-state during sleep should resolve your issue.
-
-
-regards
-Antti
--- 
-http://palosaari.fi/
+josh
