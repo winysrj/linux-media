@@ -1,99 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f65.google.com ([74.125.83.65]:41608 "EHLO
-        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753757AbeAaK0n (ORCPT
+Received: from mail-qt0-f182.google.com ([209.85.216.182]:33158 "EHLO
+        mail-qt0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1756447AbeATTTM (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 31 Jan 2018 05:26:43 -0500
-Received: by mail-pg0-f65.google.com with SMTP id 136so9678233pgd.8
-        for <linux-media@vger.kernel.org>; Wed, 31 Jan 2018 02:26:43 -0800 (PST)
-From: Alexandre Courbot <acourbot@chromium.org>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Pawel Osciak <posciak@chromium.org>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Gustavo Padovan <gustavo.padovan@collabora.com>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Alexandre Courbot <acourbot@chromium.org>
-Subject: [RFCv2 14/17] v4l2-ctrls: support requests in EXT_CTRLS ioctls
-Date: Wed, 31 Jan 2018 19:26:22 +0900
-Message-Id: <20180131102625.208021-5-acourbot@chromium.org>
-In-Reply-To: <20180131102625.208021-1-acourbot@chromium.org>
-References: <20180131102625.208021-1-acourbot@chromium.org>
+        Sat, 20 Jan 2018 14:19:12 -0500
+Received: by mail-qt0-f182.google.com with SMTP id d8so3173029qtm.0
+        for <linux-media@vger.kernel.org>; Sat, 20 Jan 2018 11:19:12 -0800 (PST)
+Date: Sat, 20 Jan 2018 14:18:31 -0500
+From: Douglas Fischer <fischerdouglasc@gmail.com>
+To: hverkuil@xs4all.nl, linux-media@vger.kernel.org
+Subject: [PATCH] media: radio: Critical interrupt bugfix for si470x over i2c
+Message-ID: <20180120141831.0b24b215@Constantine>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Read and use the request_fd field of struct v4l2_ext_controls to apply
-VIDIOC_G_EXT_CTRLS or VIDIOC_S_EXT_CTRLS to a request when asked by
-userspace.
+Fixed si470x_start() disabling the interrupt signal, causing tune
+operations to never complete. This does not affect USB radios
+because they poll the registers instead of using the IRQ line.
 
-Signed-off-by: Alexandre Courbot <acourbot@chromium.org>
+Signed-off-by: Douglas Fischer <fischerdouglasc@gmail.com>
 ---
- drivers/media/v4l2-core/v4l2-ioctl.c | 36 ++++++++++++++++++++++++++++++++++++
- 1 file changed, 36 insertions(+)
 
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index 3b44f1fe4f23..0b4c9024c96b 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -30,6 +30,7 @@
- #include <media/videobuf2-v4l2.h>
- #include <media/v4l2-mc.h>
- #include <media/media-request.h>
-+#include <media/v4l2-request.h>
- 
- #include <trace/events/v4l2.h>
- 
-@@ -2182,6 +2183,24 @@ static int v4l_g_ext_ctrls(const struct v4l2_ioctl_ops *ops,
- 		test_bit(V4L2_FL_USES_V4L2_FH, &vfd->flags) ? fh : NULL;
- 
- 	p->error_idx = p->count;
-+
-+	if (p->request_fd > 0) {
-+		struct media_request *req = NULL;
-+		struct media_request_entity_data *_data;
-+		struct media_request_v4l2_entity_data *data;
-+		int ret;
-+
-+		req = check_request(p->request_fd, file, fh, &_data);
-+		if (IS_ERR(req))
-+			return PTR_ERR(req);
-+		data = to_v4l2_entity_data(_data);
-+
-+		ret = v4l2_g_ext_ctrls(&data->ctrls, p);
-+
-+		media_request_put(req);
-+		return ret;
-+	}
-+
- 	if (vfh && vfh->ctrl_handler)
- 		return v4l2_g_ext_ctrls(vfh->ctrl_handler, p);
- 	if (vfd->ctrl_handler)
-@@ -2201,6 +2220,23 @@ static int v4l_s_ext_ctrls(const struct v4l2_ioctl_ops *ops,
- 		test_bit(V4L2_FL_USES_V4L2_FH, &vfd->flags) ? fh : NULL;
- 
- 	p->error_idx = p->count;
-+	if (p->request_fd > 0) {
-+		struct media_request *req = NULL;
-+		struct media_request_entity_data *_data;
-+		struct media_request_v4l2_entity_data *data;
-+		int ret;
-+
-+		req = check_request(p->request_fd, file, fh, &_data);
-+		if (IS_ERR(req))
-+			return PTR_ERR(req);
-+		data = to_v4l2_entity_data(_data);
-+
-+		ret = v4l2_s_ext_ctrls(vfh, &data->ctrls, p);
-+
-+		media_request_put(req);
-+		return ret;
-+	}
-+
- 	if (vfh && vfh->ctrl_handler)
- 		return v4l2_s_ext_ctrls(vfh, vfh->ctrl_handler, p);
- 	if (vfd->ctrl_handler)
--- 
-2.16.0.rc1.238.g530d649a79-goog
+diff -uprN linux.orig/drivers/media/radio/si470x/radio-si470x-common.c
+linux/drivers/media/radio/si470x/radio-si470x-common.c ---
+linux.orig/drivers/media/radio/si470x/radio-si470x-common.c
+2018-01-15 21:58:10.675620432 -0500 +++
+linux/drivers/media/radio/si470x/radio-si470x-common.c
+2018-01-16 16:54:23.699770645 -0500 @@ -377,8 +377,13 @@ int
+si470x_start(struct si470x_device *r goto done; /* sysconfig 1 */
+-	radio->registers[SYSCONFIG1] =
+-		(de << 11) & SYSCONFIG1_DE;		/* DE*/
++	radio->registers[SYSCONFIG1] |= SYSCONFIG1_RDSIEN;
++	radio->registers[SYSCONFIG1] |= SYSCONFIG1_STCIEN;
++	radio->registers[SYSCONFIG1] |= SYSCONFIG1_RDS;
++	radio->registers[SYSCONFIG1] &= ~SYSCONFIG1_GPIO2;
++	radio->registers[SYSCONFIG1] |= 0x1 << 2;
++	if (de)
++		radio->registers[SYSCONFIG1] |= SYSCONFIG1_DE;
+ 	retval = si470x_set_register(radio, SYSCONFIG1);
+ 	if (retval < 0)
+ 		goto done;
