@@ -1,134 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:58753 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750817AbeAUEq6 (ORCPT
+Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:43726 "EHLO
+        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751079AbeAUKSs (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 20 Jan 2018 23:46:58 -0500
-Message-ID: <f5493659cf931a1d43cfb85bf3810ac2@smtp-cloud7.xs4all.net>
-Date: Sun, 21 Jan 2018 05:46:55 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+        Sun, 21 Jan 2018 05:18:48 -0500
+Subject: Re: [PATCH v6 6/9] media: i2c: ov772x: Remove soc_camera dependencies
+To: jacopo mondi <jacopo@jmondi.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+References: <1516139101-7835-1-git-send-email-jacopo+renesas@jmondi.org>
+ <00f1dd19-6420-26ab-0529-a97f2b0de682@xs4all.nl>
+ <20180119111917.76wosrokgracbdrz@valkosipuli.retiisi.org.uk>
+ <2694661.NEH0HeGgLD@avalon> <20180121093117.GK24926@w540>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        magnus.damm@gmail.com, geert@glider.be, mchehab@kernel.org,
+        festevam@gmail.com, robh+dt@kernel.org, mark.rutland@arm.com,
+        pombredanne@nexb.com, linux-renesas-soc@vger.kernel.org,
+        linux-media@vger.kernel.org, linux-sh@vger.kernel.org,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <8fd4699c-0d51-6cd8-c915-45283b628062@xs4all.nl>
+Date: Sun, 21 Jan 2018 11:18:43 +0100
+MIME-Version: 1.0
+In-Reply-To: <20180121093117.GK24926@w540>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On 21/01/18 10:31, jacopo mondi wrote:
+> Hello Hans, Laurent, Sakari,
+> 
+> On Fri, Jan 19, 2018 at 02:23:21PM +0200, Laurent Pinchart wrote:
+>> Hello,
+>>
+>> On Friday, 19 January 2018 13:19:18 EET Sakari Ailus wrote:
+>>> On Fri, Jan 19, 2018 at 11:47:33AM +0100, Hans Verkuil wrote:
+>>>> On 01/19/18 11:24, Hans Verkuil wrote:
+>>>>> On 01/16/18 22:44, Jacopo Mondi wrote:
+>>>>>> Remove soc_camera framework dependencies from ov772x sensor driver.
+>>>>>> - Handle clock and gpios
+>>>>>> - Register async subdevice
+>>>>>> - Remove soc_camera specific g/s_mbus_config operations
+>>>>>> - Change image format colorspace from JPEG to SRGB as the two use the
+>>>>>>   same colorspace information but JPEG makes assumptions on color
+>>>>>>   components quantization that do not apply to the sensor
+>>>>>> - Remove sizes crop from get_selection as driver can't scale
+>>>>>> - Add kernel doc to driver interface header file
+>>>>>> - Adjust build system
+>>>>>>
+>>>>>> This commit does not remove the original soc_camera based driver as
+>>>>>> long as other platforms depends on soc_camera-based CEU driver.
+>>>>>>
+>>>>>> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+>>>>>> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+>>>>>
+>>>>> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+>>>>
+>>>> Un-acked.
+>>>>
+>>>> I just noticed that this sensor driver has no enum_frame_interval and
+>>>> g/s_parm support. How would a driver ever know the frame rate of the
+>>>> sensor without that?
+> 
+> Does it make any difference if I point out that this series hasn't
+> removed any of that code, and the driver was not supporting that
+> already? Or was it handled through soc_camera?
 
-Results of the daily build of media_tree:
+That last question is a good one. Can you check?
 
-date:			Sun Jan 21 05:00:15 CET 2018
-media-tree git hash:	e3ee691dbf24096ea51b3200946b11d68ce75361
-media_build git hash:	2bd1f1623fbadfdc1026712b3d55141ba164c403
-v4l-utils git hash:	7eadec47ff4db4a032612349c362f3337b29d485
-gcc version:		i686-linux-gcc (GCC) 7.1.0
-sparse version:		v0.5.0-3911-g6f737e1f
-smatch version:		v0.5.0-3911-g6f737e1f
-host hardware:		x86_64
-host os:		4.13.0-164
+There are two sh boards that use this sensor. Are you able to test on one
+of those boards?
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: ERRORS
-linux-3.12.67-i686: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: ERRORS
-linux-3.15.2-i686: ERRORS
-linux-3.16.7-i686: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.18.7-i686: ERRORS
-linux-3.19-i686: ERRORS
-linux-4.0.9-i686: ERRORS
-linux-4.1.33-i686: ERRORS
-linux-4.2.8-i686: ERRORS
-linux-4.3.6-i686: ERRORS
-linux-4.4.22-i686: ERRORS
-linux-4.5.7-i686: ERRORS
-linux-4.6.7-i686: ERRORS
-linux-4.7.5-i686: ERRORS
-linux-4.8-i686: ERRORS
-linux-4.9.26-i686: ERRORS
-linux-4.10.14-i686: WARNINGS
-linux-4.11-i686: WARNINGS
-linux-4.12.1-i686: WARNINGS
-linux-4.13-i686: WARNINGS
-linux-4.14-i686: WARNINGS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.67-x86_64: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-x86_64: ERRORS
-linux-3.15.2-x86_64: ERRORS
-linux-3.16.7-x86_64: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.7-x86_64: ERRORS
-linux-3.19-x86_64: ERRORS
-linux-4.0.9-x86_64: ERRORS
-linux-4.1.33-x86_64: ERRORS
-linux-4.2.8-x86_64: ERRORS
-linux-4.3.6-x86_64: ERRORS
-linux-4.4.22-x86_64: ERRORS
-linux-4.5.7-x86_64: ERRORS
-linux-4.6.7-x86_64: ERRORS
-linux-4.7.5-x86_64: ERRORS
-linux-4.8-x86_64: ERRORS
-linux-4.9.26-x86_64: ERRORS
-linux-4.10.14-x86_64: WARNINGS
-linux-4.11-x86_64: WARNINGS
-linux-4.12.1-x86_64: WARNINGS
-linux-4.13-x86_64: WARNINGS
-linux-4.14-x86_64: WARNINGS
-apps: OK
-spec-git: OK
-smatch: OK
+There is reversed engineered code for the ox772x here:
+drivers/media/usb/gspca/ov534.c
 
-Detailed results are available here:
+That appears to handle framerates.
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+I am very uncomfortable promoting this driver to drivers/media/i2c without
+having functioning frame interval handling. It could be as simple as a single
+fixed framerate, it doesn't have to be fancy. Without it it is basically
+unusable by applications since those typically expect support for this.
 
-Full logs are available here:
+Moving it to staging might be another option, with a TODO mentioning this
+missing feature.
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+> 
+>>>
+>>> s/_parm/_frame_interval/ ?
+>>>
+>>> We should have wrappers for this or rather to convert g/s_parm users to
+>>> g/s_frame_interval so drivers don't need to implement both.
+>>
+>> There are two ways to set the frame interval, either explicitly through the
+>> s_frame_interval operation, or implicitly through control of the pixel clock,
+>> horizontal blanking and vertical blanking (which in turn can be influenced by
+>> the exposure time).
+>>
+>> Having two ways to perform the same operation seems sub-optimal to me, but I
+>> could understand if they covered different use cases. As far as I know we
+>> don't document the use cases for those methods. What's your opinion on that ?
+>>
+> 
+> -If- I have to implement that in this series to have it accepted,
+> please let me know which one of the two is the preferred one :)
 
-The Media Infrastructure API from this daily build is here:
+g/s_frame_interval. The other is (I think) for highly specialized devices. For
+regular normal sensors I do not think it makes much sense. Certainly not for
+fairly old sensors like this one.
 
-http://www.xs4all.nl/~hverkuil/spec/index.html
+Regards,
+
+	Hans
