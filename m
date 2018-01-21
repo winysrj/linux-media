@@ -1,140 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([65.50.211.133]:34339 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752507AbeAJSDi (ORCPT
+Received: from mail-pf0-f195.google.com ([209.85.192.195]:45681 "EHLO
+        mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751124AbeAUPPk (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 10 Jan 2018 13:03:38 -0500
-From: Christoph Hellwig <hch@lst.de>
-To: Bjorn Helgaas <bhelgaas@google.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Kong Lai <kong.lai@tundra.com>, linux-pci@vger.kernel.org,
-        linux-media@vger.kernel.org, netdev@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH 4/4] PCI: Remove NULL device handling from PCI DMA API
-Date: Wed, 10 Jan 2018 19:03:22 +0100
-Message-Id: <20180110180322.30186-5-hch@lst.de>
-In-Reply-To: <20180110180322.30186-1-hch@lst.de>
-References: <20180110180322.30186-1-hch@lst.de>
+        Sun, 21 Jan 2018 10:15:40 -0500
+Received: by mail-pf0-f195.google.com with SMTP id a88so5089381pfe.12
+        for <linux-media@vger.kernel.org>; Sun, 21 Jan 2018 07:15:40 -0800 (PST)
+From: Akinobu Mita <akinobu.mita@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Akinobu Mita <akinobu.mita@gmail.com>,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        Jacopo Mondi <jacopo@jmondi.org>,
+        "H . Nikolaus Schaller" <hns@goldelico.com>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Rob Herring <robh@kernel.org>
+Subject: [PATCH v3 3/3] media: ov9650: add device tree binding
+Date: Mon, 22 Jan 2018 00:14:16 +0900
+Message-Id: <1516547656-3879-4-git-send-email-akinobu.mita@gmail.com>
+In-Reply-To: <1516547656-3879-1-git-send-email-akinobu.mita@gmail.com>
+References: <1516547656-3879-1-git-send-email-akinobu.mita@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Historically some ISA drivers used the old PCI DMA API with a NULL pdev
-argument, but these days this isn't used and not too useful due to the
-per-device DMA ops, so remove it.
+Now the ov9650 driver supports device tree probing.  So this adds a
+device tree binding documentation.
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
+Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: Jacopo Mondi <jacopo@jmondi.org>
+Cc: H. Nikolaus Schaller <hns@goldelico.com>
+Cc: Hugues Fruchet <hugues.fruchet@st.com>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Rob Herring <robh@kernel.org>
+Reviewed-by: Rob Herring <robh@kernel.org>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
 ---
- include/linux/pci-dma-compat.h | 27 +++++++++++++--------------
- 1 file changed, 13 insertions(+), 14 deletions(-)
+* Changelog v3
+- Add Reviewed-by: tag
+- Add F: line in MAINTAINERS
 
-diff --git a/include/linux/pci-dma-compat.h b/include/linux/pci-dma-compat.h
-index d1f9fdade1e0..0dd1a3f7b309 100644
---- a/include/linux/pci-dma-compat.h
-+++ b/include/linux/pci-dma-compat.h
-@@ -17,91 +17,90 @@ static inline void *
- pci_alloc_consistent(struct pci_dev *hwdev, size_t size,
- 		     dma_addr_t *dma_handle)
- {
--	return dma_alloc_coherent(hwdev == NULL ? NULL : &hwdev->dev, size, dma_handle, GFP_ATOMIC);
-+	return dma_alloc_coherent(&hwdev->dev, size, dma_handle, GFP_ATOMIC);
- }
+* Changelog v2
+- Split binding documentation, suggested by Rob Herring and Jacopo Mondi
+- Improve the wording for compatible property in the binding documentation,
+  suggested by Jacopo Mondi
+- Improve the description for the device node in the binding documentation,
+  suggested by Sakari Ailus
+
+ .../devicetree/bindings/media/i2c/ov9650.txt       | 36 ++++++++++++++++++++++
+ MAINTAINERS                                        |  1 +
+ 2 files changed, 37 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/ov9650.txt
+
+diff --git a/Documentation/devicetree/bindings/media/i2c/ov9650.txt b/Documentation/devicetree/bindings/media/i2c/ov9650.txt
+new file mode 100644
+index 0000000..506dfc5
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/i2c/ov9650.txt
+@@ -0,0 +1,36 @@
++* Omnivision OV9650/OV9652 CMOS sensor
++
++Required Properties:
++- compatible: shall be one of
++	"ovti,ov9650"
++	"ovti,ov9652"
++- clocks: reference to the xvclk input clock.
++
++Optional Properties:
++- reset-gpios: reference to the GPIO connected to the resetb pin, if any.
++  Active is high.
++- powerdown-gpios: reference to the GPIO connected to the pwdn pin, if any.
++  Active is high.
++
++The device node shall contain one 'port' child node with one child 'endpoint'
++subnode for its digital output video port, in accordance with the video
++interface bindings defined in Documentation/devicetree/bindings/media/
++video-interfaces.txt.
++
++Example:
++
++&i2c0 {
++	ov9650: camera@30 {
++		compatible = "ovti,ov9650";
++		reg = <0x30>;
++		reset-gpios = <&axi_gpio_0 0 GPIO_ACTIVE_HIGH>;
++		powerdown-gpios = <&axi_gpio_0 1 GPIO_ACTIVE_HIGH>;
++		clocks = <&xclk>;
++
++		port {
++			ov9650_0: endpoint {
++				remote-endpoint = <&vcap1_in0>;
++			};
++		};
++	};
++};
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 8924e39..876c0f9 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -10060,6 +10060,7 @@ L:	linux-media@vger.kernel.org
+ T:	git git://linuxtv.org/media_tree.git
+ S:	Maintained
+ F:	drivers/media/i2c/ov9650.c
++F:	Documentation/devicetree/bindings/media/i2c/ov9650.txt
  
- static inline void *
- pci_zalloc_consistent(struct pci_dev *hwdev, size_t size,
- 		      dma_addr_t *dma_handle)
- {
--	return dma_zalloc_coherent(hwdev == NULL ? NULL : &hwdev->dev,
--				   size, dma_handle, GFP_ATOMIC);
-+	return dma_zalloc_coherent(&hwdev->dev, size, dma_handle, GFP_ATOMIC);
- }
- 
- static inline void
- pci_free_consistent(struct pci_dev *hwdev, size_t size,
- 		    void *vaddr, dma_addr_t dma_handle)
- {
--	dma_free_coherent(hwdev == NULL ? NULL : &hwdev->dev, size, vaddr, dma_handle);
-+	dma_free_coherent(&hwdev->dev, size, vaddr, dma_handle);
- }
- 
- static inline dma_addr_t
- pci_map_single(struct pci_dev *hwdev, void *ptr, size_t size, int direction)
- {
--	return dma_map_single(hwdev == NULL ? NULL : &hwdev->dev, ptr, size, (enum dma_data_direction)direction);
-+	return dma_map_single(&hwdev->dev, ptr, size, (enum dma_data_direction)direction);
- }
- 
- static inline void
- pci_unmap_single(struct pci_dev *hwdev, dma_addr_t dma_addr,
- 		 size_t size, int direction)
- {
--	dma_unmap_single(hwdev == NULL ? NULL : &hwdev->dev, dma_addr, size, (enum dma_data_direction)direction);
-+	dma_unmap_single(&hwdev->dev, dma_addr, size, (enum dma_data_direction)direction);
- }
- 
- static inline dma_addr_t
- pci_map_page(struct pci_dev *hwdev, struct page *page,
- 	     unsigned long offset, size_t size, int direction)
- {
--	return dma_map_page(hwdev == NULL ? NULL : &hwdev->dev, page, offset, size, (enum dma_data_direction)direction);
-+	return dma_map_page(&hwdev->dev, page, offset, size, (enum dma_data_direction)direction);
- }
- 
- static inline void
- pci_unmap_page(struct pci_dev *hwdev, dma_addr_t dma_address,
- 	       size_t size, int direction)
- {
--	dma_unmap_page(hwdev == NULL ? NULL : &hwdev->dev, dma_address, size, (enum dma_data_direction)direction);
-+	dma_unmap_page(&hwdev->dev, dma_address, size, (enum dma_data_direction)direction);
- }
- 
- static inline int
- pci_map_sg(struct pci_dev *hwdev, struct scatterlist *sg,
- 	   int nents, int direction)
- {
--	return dma_map_sg(hwdev == NULL ? NULL : &hwdev->dev, sg, nents, (enum dma_data_direction)direction);
-+	return dma_map_sg(&hwdev->dev, sg, nents, (enum dma_data_direction)direction);
- }
- 
- static inline void
- pci_unmap_sg(struct pci_dev *hwdev, struct scatterlist *sg,
- 	     int nents, int direction)
- {
--	dma_unmap_sg(hwdev == NULL ? NULL : &hwdev->dev, sg, nents, (enum dma_data_direction)direction);
-+	dma_unmap_sg(&hwdev->dev, sg, nents, (enum dma_data_direction)direction);
- }
- 
- static inline void
- pci_dma_sync_single_for_cpu(struct pci_dev *hwdev, dma_addr_t dma_handle,
- 		    size_t size, int direction)
- {
--	dma_sync_single_for_cpu(hwdev == NULL ? NULL : &hwdev->dev, dma_handle, size, (enum dma_data_direction)direction);
-+	dma_sync_single_for_cpu(&hwdev->dev, dma_handle, size, (enum dma_data_direction)direction);
- }
- 
- static inline void
- pci_dma_sync_single_for_device(struct pci_dev *hwdev, dma_addr_t dma_handle,
- 		    size_t size, int direction)
- {
--	dma_sync_single_for_device(hwdev == NULL ? NULL : &hwdev->dev, dma_handle, size, (enum dma_data_direction)direction);
-+	dma_sync_single_for_device(&hwdev->dev, dma_handle, size, (enum dma_data_direction)direction);
- }
- 
- static inline void
- pci_dma_sync_sg_for_cpu(struct pci_dev *hwdev, struct scatterlist *sg,
- 		int nelems, int direction)
- {
--	dma_sync_sg_for_cpu(hwdev == NULL ? NULL : &hwdev->dev, sg, nelems, (enum dma_data_direction)direction);
-+	dma_sync_sg_for_cpu(&hwdev->dev, sg, nelems, (enum dma_data_direction)direction);
- }
- 
- static inline void
- pci_dma_sync_sg_for_device(struct pci_dev *hwdev, struct scatterlist *sg,
- 		int nelems, int direction)
- {
--	dma_sync_sg_for_device(hwdev == NULL ? NULL : &hwdev->dev, sg, nelems, (enum dma_data_direction)direction);
-+	dma_sync_sg_for_device(&hwdev->dev, sg, nelems, (enum dma_data_direction)direction);
- }
- 
- static inline int
+ ONENAND FLASH DRIVER
+ M:	Kyungmin Park <kyungmin.park@samsung.com>
 -- 
-2.14.2
+2.7.4
