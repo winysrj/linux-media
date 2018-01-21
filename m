@@ -1,100 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:50106 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753142AbeABLah (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 2 Jan 2018 06:30:37 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: tian.shu.qiu@intel.com, linux-media@vger.kernel.org,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Subject: Re: [PATCH] yavta: Add support for intel ipu3 specific raw formats
-Date: Tue, 02 Jan 2018 13:30:56 +0200
-Message-ID: <2845745.NrvWgOXSWb@avalon>
-In-Reply-To: <20180102111138.ohptdsm5nh3oihyu@valkosipuli.retiisi.org.uk>
-References: <1514862157-4584-1-git-send-email-tian.shu.qiu@intel.com> <20180102111138.ohptdsm5nh3oihyu@valkosipuli.retiisi.org.uk>
+Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:55581 "EHLO
+        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750822AbeAUKXP (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 21 Jan 2018 05:23:15 -0500
+Subject: Re: [PATCH v6 3/9] v4l: platform: Add Renesas CEU driver
+To: jacopo mondi <jacopo@jmondi.org>
+References: <1516139101-7835-1-git-send-email-jacopo+renesas@jmondi.org>
+ <1516139101-7835-4-git-send-email-jacopo+renesas@jmondi.org>
+ <d056343b-46be-436a-e316-0a588a182eb9@xs4all.nl>
+ <20180121095323.GL24926@w540>
+ <55c3ab66-0886-4b2b-6842-ac07fc9138f3@xs4all.nl>
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        laurent.pinchart@ideasonboard.com, magnus.damm@gmail.com,
+        geert@glider.be, mchehab@kernel.org, festevam@gmail.com,
+        sakari.ailus@iki.fi, robh+dt@kernel.org, mark.rutland@arm.com,
+        pombredanne@nexb.com, linux-renesas-soc@vger.kernel.org,
+        linux-media@vger.kernel.org, linux-sh@vger.kernel.org,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <e9623e9c-6444-2531-62c0-feed622c6e3b@xs4all.nl>
+Date: Sun, 21 Jan 2018 11:23:12 +0100
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <55c3ab66-0886-4b2b-6842-ac07fc9138f3@xs4all.nl>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
-
-On Tuesday, 2 January 2018 13:11:39 EET Sakari Ailus wrote:
-> On Tue, Jan 02, 2018 at 11:02:37AM +0800, tian.shu.qiu@intel.com wrote:
-> > From: Tianshu Qiu <tian.shu.qiu@intel.com>
-> > 
-> > Add support for these pixel formats:
-> > 
-> > V4L2_PIX_FMT_IPU3_SBGGR10
-> > V4L2_PIX_FMT_IPU3_SGBRG10
-> > V4L2_PIX_FMT_IPU3_SGRBG10
-> > V4L2_PIX_FMT_IPU3_SRGGB10
-> > 
-> > Signed-off-by: Tianshu Qiu <tian.shu.qiu@intel.com>
-> > ---
-> > 
-> >  include/linux/videodev2.h | 5 +++++
-> >  yavta.c                   | 4 ++++
-> >  2 files changed, 9 insertions(+)
-> > 
-> > diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-> > index b1e36ee553da..6f7cd9622ea8 100644
-> > --- a/include/linux/videodev2.h
-> > +++ b/include/linux/videodev2.h
-> > @@ -659,6 +659,11 @@ struct v4l2_pix_format {
-> > 
-> >  #define V4L2_PIX_FMT_MT21C    v4l2_fourcc('M', 'T', '2', '1') /* Mediatek
-> >  compressed block mode  */ #define V4L2_PIX_FMT_INZI     v4l2_fourcc('I',
-> >  'N', 'Z', 'I') /* Intel Planar Greyscale 10-bit and Depth 16-bit */> 
-> > +#define V4L2_PIX_FMT_IPU3_SBGGR10   v4l2_fourcc('i', 'p', '3', 'b') /*
-> > IPU3 packed 10-bit BGGR bayer */ +#define V4L2_PIX_FMT_IPU3_SGBRG10  
-> > v4l2_fourcc('i', 'p', '3', 'g') /* IPU3 packed 10-bit GBRG bayer */
-> > +#define V4L2_PIX_FMT_IPU3_SGRBG10   v4l2_fourcc('i', 'p', '3', 'G') /*
-> > IPU3 packed 10-bit GRBG bayer */ +#define V4L2_PIX_FMT_IPU3_SRGGB10  
-> > v4l2_fourcc('i', 'p', '3', 'r') /* IPU3 packed 10-bit RGGB bayer */ +
+On 21/01/18 11:21, Hans Verkuil wrote:
+> On 21/01/18 10:53, jacopo mondi wrote:
+>> Hi Hans,
+>>
+>> On Fri, Jan 19, 2018 at 12:20:19PM +0100, Hans Verkuil wrote:
+>>> static int ov7670_g_parm(struct v4l2_subdev *sd, struct v4l2_streamparm *parms)
+>>> {
+>>>         struct v4l2_captureparm *cp = &parms->parm.capture;
+>>>         struct ov7670_info *info = to_state(sd);
+>>>
+>>>         if (parms->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
+>>>                 return -EINVAL;
+>>>
+>>> And parms->type is CAPTURE_MPLANE. Just drop this test from the ov7670 driver
+>>> in the g/s_parm functions. It shouldn't test for that since a subdev driver
+>>> knows nothing about buffer types.
+>>>
+>>
+>> I will drop that test in an additional patch part of next iteration of this series,
 > 
-> Could you update the kernel headers in a separate patch? This should
-> include all headers as they're produced by make headers_install .
+> Replace g/s_parm by g/s_frame_interval. Consider g/s_parm for subdev drivers as
+> deprecated (I'm working on a patch series to replace all g/s_parm uses by
+> g/s_frame_interval).
 
-I was going to mention that :-)
+Take a look here:
 
-Take the most recent upstream kernel that contains the above formats (it can 
-be an -rc release if they're not in a stable kernel yet, but it has to come 
-from Linus' tree), run make headers_install, and update all the headers in 
-include/linux/. Then commit the result with a message similar to
+https://git.linuxtv.org/hverkuil/media_tree.git/log/?h=parm
 
-commit 2fb40d5f40e95e792f6d9f6fd57856697c9091c0
-Author: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Date:   Mon Oct 24 15:59:44 2016 +0300
+You probably want to use the patch 'v4l2-common: add g/s_parm helper functions'
+for the new ceu driver in your patch series. Feel free to add it.
 
-    Update headers from upstream kernel
-    
-    Upstream commit 3907fae86ebabd622bd8265285d5b612d5958948
-    
-    Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-> >  /* SDR formats - used only for Software Defined Radio devices */
-> >  #define V4L2_SDR_FMT_CU8          v4l2_fourcc('C', 'U', '0', '8') /* IQ
-> >  u8 */ #define V4L2_SDR_FMT_CU16LE       v4l2_fourcc('C', 'U', '1', '6')
-> >  /* IQ u16le */> 
-> > diff --git a/yavta.c b/yavta.c
-> > index afe96331a520..524e549efd08 100644
-> > --- a/yavta.c
-> > +++ b/yavta.c
-> > @@ -220,6 +220,10 @@ static struct v4l2_format_info {
-> >  	{ "SGBRG10P", V4L2_PIX_FMT_SGBRG10P, 1 },
-> >  	{ "SGRBG10P", V4L2_PIX_FMT_SGRBG10P, 1 },
-> >  	{ "SRGGB10P", V4L2_PIX_FMT_SRGGB10P, 1 },
-> > +	{ "IPU3_GRBG10", V4L2_PIX_FMT_IPU3_SGRBG10, 1 },
-> > +	{ "IPU3_RGGB10", V4L2_PIX_FMT_IPU3_SRGGB10, 1 },
-> > +	{ "IPU3_BGGR10", V4L2_PIX_FMT_IPU3_SBGGR10, 1 },
-> > +	{ "IPU3_GBRG10", V4L2_PIX_FMT_IPU3_SGBRG10, 1 },
-> >  	{ "SBGGR12", V4L2_PIX_FMT_SBGGR12, 1 },
-> >  	{ "SGBRG12", V4L2_PIX_FMT_SGBRG12, 1 },
-> >  	{ "SGRBG12", V4L2_PIX_FMT_SGRBG12, 1 },
-
--- 
 Regards,
 
-Laurent Pinchart
+	Hans
