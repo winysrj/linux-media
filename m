@@ -1,115 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.free-electrons.com ([62.4.15.54]:43111 "EHLO
-        mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754273AbeALIhv (ORCPT
+Received: from bombadil.infradead.org ([65.50.211.133]:56635 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750925AbeAUSFE (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 12 Jan 2018 03:37:51 -0500
-Date: Fri, 12 Jan 2018 09:37:49 +0100
-From: Maxime Ripard <maxime.ripard@free-electrons.com>
-To: Yong <yong.deng@magewell.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Chen-Yu Tsai <wens@csie.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Randy Dunlap <rdunlap@infradead.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Yannick Fertre <yannick.fertre@st.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Rick Chang <rick.chang@mediatek.com>,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-sunxi@googlegroups.com, megous@megous.com
-Subject: Re: [linux-sunxi] Re: [PATCH v5 2/2] media: V3s: Add support for
- Allwinner CSI.
-Message-ID: <20180112083749.syxtwiigxafxw4zq@flea.lan>
-References: <1515639966-35902-1-git-send-email-yong.deng@magewell.com>
- <20180111132844.mok7upqjycpx3bqm@flea.lan>
- <20180112095114.b2414fe44cff7bf7cf6f8822@magewell.com>
+        Sun, 21 Jan 2018 13:05:04 -0500
+Subject: Re: [PATCH v6 0/9] Renesas Capture Engine Unit (CEU) V4L2 driver
+To: jacopo mondi <jacopo@jmondi.org>
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        laurent.pinchart@ideasonboard.com, magnus.damm@gmail.com,
+        geert@glider.be, hverkuil@xs4all.nl, mchehab@kernel.org,
+        festevam@gmail.com, sakari.ailus@iki.fi, robh+dt@kernel.org,
+        mark.rutland@arm.com, pombredanne@nexb.com,
+        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-sh@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+References: <1516139101-7835-1-git-send-email-jacopo+renesas@jmondi.org>
+ <b26ef29e-0c26-6359-1205-735e6770eb10@infradead.org>
+ <20180121175445.GQ24926@w540>
+From: Randy Dunlap <rdunlap@infradead.org>
+Message-ID: <830114e9-c559-fc3a-05ac-938959c69999@infradead.org>
+Date: Sun, 21 Jan 2018 10:04:58 -0800
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="mzjxflidhun7f3lz"
-Content-Disposition: inline
-In-Reply-To: <20180112095114.b2414fe44cff7bf7cf6f8822@magewell.com>
+In-Reply-To: <20180121175445.GQ24926@w540>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On 01/21/2018 09:54 AM, jacopo mondi wrote:
+> Hi Randy,
+>    thanks for noticing,
+> 
+> On Fri, Jan 19, 2018 at 02:12:19PM -0800, Randy Dunlap wrote:
+>> On 01/16/2018 01:44 PM, Jacopo Mondi wrote:
+>>> Hello,
+>>>    new version of CEU after Hans' review.
+>>>
+>>> Added his Acked-by to most patches and closed review comments.
+>>> Running v4l2-compliance, I noticed a new failure introduced by the way I now
+>>> calculate the plane sizes in set/try_fmt.
+>>
+>> I would expect that you have already seen this, but I get a build error
+>> in renesas-ceu.c.  Here is a small patch for it.
+> 
+> Actually I did not.
+> The compile error has been introduced by this commit
+> 
+> commit 4e48afecd5ee3a394d228349fc1c33982e9fb557
+> Author: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+> Date:   Wed Sep 27 10:12:00 2017 -0400
+>         media: v4l2-async: simplify v4l2_async_subdev structure
+> 
+> Which is not in v4.15-rc8 on which I have based my work on.
+> 
+> As a general question, if I'm aiming to have my driver included in
+> next release, should I always base my work on linux-next or it depends
+> on sub-system/maintainers preferences?
 
---mzjxflidhun7f3lz
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+That's up to the subsystem maintainer, but usually you should make sure
+that it will apply to linux-next or to the subsystem's "-next" tree,
+whatever that is called.
 
-On Fri, Jan 12, 2018 at 09:51:14AM +0800, Yong wrote:
-> Hi Maxime,
->=20
-> On Thu, 11 Jan 2018 14:28:44 +0100
-> Maxime Ripard <maxime.ripard@free-electrons.com> wrote:
->=20
-> > Hi Yong,
-> >=20
-> > On Thu, Jan 11, 2018 at 11:06:06AM +0800, Yong Deng wrote:
-> > > Allwinner V3s SoC features two CSI module. CSI0 is used for MIPI CSI-2
-> > > interface and CSI1 is used for parallel interface. This is not
-> > > documented in datasheet but by test and guess.
-> > >=20
-> > > This patch implement a v4l2 framework driver for it.
-> > >=20
-> > > Currently, the driver only support the parallel interface. MIPI-CSI2,
-> > > ISP's support are not included in this patch.
-> > >=20
-> > > Signed-off-by: Yong Deng <yong.deng@magewell.com>
-> >=20
-> > I've needed this patch in order to fix a NULL pointer dereference:
-> > http://code.bulix.org/oz6gmb-257359?raw
-> >=20
-> > This is needed because while it's ok to have a NULL pointer to
-> > v4l2_subdev_pad_config when you call the subdev set_fmt with
-> > V4L2_SUBDEV_FORMAT_ACTIVE, it's not with V4L2_SUBDEV_FORMAT_TRY, and
-> > sensors will assume taht it's a valid pointer.
-> >=20
-> > Otherwise,
-> > Tested-by: Maxime Ripard <maxime.ripard@free-electrons.com>
->=20
-> I revisit some code of subdevs and you are right.
->=20
-> Squash your patch into my driver patch and add your Tested-by in
-> commit. Is it right?
+>>
+>> ---
+>> From: Randy Dunlap <rdunlap@infradead.org>
+>>
+>> Fix build error (on x86 with COMPILE_TEST):
+>>
+>> ../drivers/media/platform/renesas-ceu.c: In function 'ceu_parse_dt':
+>> ../drivers/media/platform/renesas-ceu.c:1497:27: error: request for member 'fwnode' in something not a structure or union
+>>    ceu_sd->asd.match.fwnode.fwnode =
+>>
+>> Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+>> ---
+>>  drivers/media/platform/renesas-ceu.c |    2 +-
+>>  1 file changed, 1 insertion(+), 1 deletion(-)
+>>
+>> --- linux-next-20180119.orig/drivers/media/platform/renesas-ceu.c
+>> +++ linux-next-20180119/drivers/media/platform/renesas-ceu.c
+>> @@ -1494,7 +1494,7 @@ static int ceu_parse_dt(struct ceu_devic
+>>
+>>  		ceu_sd->mbus_flags = fw_ep.bus.parallel.flags;
+>>  		ceu_sd->asd.match_type = V4L2_ASYNC_MATCH_FWNODE;
+>> -		ceu_sd->asd.match.fwnode.fwnode =
+>> +		ceu_sd->asd.match.fwnode =
+>>  			fwnode_graph_get_remote_port_parent(
+>>  					of_fwnode_handle(ep));
+>>
+>>
 
-Yep, that's perfect :)
 
-Maxime
-
---=20
-Maxime Ripard, Free Electrons
-Embedded Linux and Kernel engineering
-http://free-electrons.com
-
---mzjxflidhun7f3lz
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCAAdFiEE0VqZU19dR2zEVaqr0rTAlCFNr3QFAlpYc90ACgkQ0rTAlCFN
-r3T7pA//bfFwhPIWs/oOKJEc1kYHo4L7E14tSVm6nBiaCgEgn9kTTp+EHb8NaEmh
-9lKPHYKc0PDTJiLyD3+TvHqZSVBaTc7/ZMFyC7IiKJn9W64sGQYVALrQSm8K3hfN
-/Gocqb0rmLQ6qOOG3qWbpOMhmOXF7ohkggrkjCmRmvJK9OU3pPhf60z/1HzQa3EM
-4zZmUsuJsg0Q8MVmfAIR54QTnt/PWvzTldL5mkW949Lgvo/Nzc7B+VnA4473V6So
-xpRXLIhLGjoANf2Yw6bfkYxpc+bKllpCcde+xY5d2Wyq2QvOGmoYrpPidPxHMrL/
-gqHkyHO8xO/tE9btkMzHnB83oBDl5eJZApWxEYYQYp4EME6JT9/9zNOhr5tYO6ib
-RbZn+A+M0vIWHJCs9xlboLvy5/U0PqilJnKoDCptSFI3VuKD3rLvfPkycKtVSodR
-K6BAkv+EJYJ6UxL/HrZ5AZQcKVRO4IUnLMR52wv3ErCrYeGrqmJ14vBTnAOtd1YJ
-mBv9SxEJDKQSXlca9kM6E2u7SvklzD42CpVCHE5qWCXWcR1G0CUombO0k7alCV9w
-Amn7dJeG+WO0/mbv8aNVeZPg7rpwQ8SFXf0LEstcmEV+07KC7KpEVA8KYYYxVPsY
-CvDwK5WMIksqT8exWCZaDPnhwmqDUE3gjsHHnZex63aFK3bnM48=
-=w89n
------END PGP SIGNATURE-----
-
---mzjxflidhun7f3lz--
+-- 
+~Randy
