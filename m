@@ -1,100 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga04.intel.com ([192.55.52.120]:12372 "EHLO mga04.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752573AbeABLV7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 2 Jan 2018 06:21:59 -0500
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: linux-media@vger.kernel.org
-Cc: rajmonah.mani@intel.com
-Subject: [PATCH 2/2] dw9714: Remove client field in driver's struct
-Date: Tue,  2 Jan 2018 13:07:54 +0200
-Message-Id: <1514891274-19131-3-git-send-email-sakari.ailus@linux.intel.com>
-In-Reply-To: <1514891274-19131-1-git-send-email-sakari.ailus@linux.intel.com>
-References: <1514891274-19131-1-git-send-email-sakari.ailus@linux.intel.com>
+Received: from relay3-d.mail.gandi.net ([217.70.183.195]:45974 "EHLO
+        relay3-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750853AbeAUR3P (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 21 Jan 2018 12:29:15 -0500
+Date: Sun, 21 Jan 2018 18:29:07 +0100
+From: jacopo mondi <jacopo@jmondi.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        laurent.pinchart@ideasonboard.com, magnus.damm@gmail.com,
+        geert@glider.be, mchehab@kernel.org, festevam@gmail.com,
+        sakari.ailus@iki.fi, robh+dt@kernel.org, mark.rutland@arm.com,
+        pombredanne@nexb.com, linux-renesas-soc@vger.kernel.org,
+        linux-media@vger.kernel.org, linux-sh@vger.kernel.org,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v6 3/9] v4l: platform: Add Renesas CEU driver
+Message-ID: <20180121172907.GO24926@w540>
+References: <1516139101-7835-1-git-send-email-jacopo+renesas@jmondi.org>
+ <1516139101-7835-4-git-send-email-jacopo+renesas@jmondi.org>
+ <d056343b-46be-436a-e316-0a588a182eb9@xs4all.nl>
+ <20180121095323.GL24926@w540>
+ <55c3ab66-0886-4b2b-6842-ac07fc9138f3@xs4all.nl>
+ <e9623e9c-6444-2531-62c0-feed622c6e3b@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <e9623e9c-6444-2531-62c0-feed622c6e3b@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The client field in driver's struct is redundant. Remove it.
+Hi Hans,
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/i2c/dw9714.c | 19 +++++--------------
- 1 file changed, 5 insertions(+), 14 deletions(-)
+On Sun, Jan 21, 2018 at 11:23:12AM +0100, Hans Verkuil wrote:
+> On 21/01/18 11:21, Hans Verkuil wrote:
+> > On 21/01/18 10:53, jacopo mondi wrote:
+> >> Hi Hans,
+> >>
+> >> On Fri, Jan 19, 2018 at 12:20:19PM +0100, Hans Verkuil wrote:
+> >>> static int ov7670_g_parm(struct v4l2_subdev *sd, struct v4l2_streamparm *parms)
+> >>> {
+> >>>         struct v4l2_captureparm *cp = &parms->parm.capture;
+> >>>         struct ov7670_info *info = to_state(sd);
+> >>>
+> >>>         if (parms->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
+> >>>                 return -EINVAL;
+> >>>
+> >>> And parms->type is CAPTURE_MPLANE. Just drop this test from the ov7670 driver
+> >>> in the g/s_parm functions. It shouldn't test for that since a subdev driver
+> >>> knows nothing about buffer types.
+> >>>
+> >>
+> >> I will drop that test in an additional patch part of next iteration of this series,
+> >
+> > Replace g/s_parm by g/s_frame_interval. Consider g/s_parm for subdev drivers as
+> > deprecated (I'm working on a patch series to replace all g/s_parm uses by
+> > g/s_frame_interval).
+>
+> Take a look here:
+>
+> https://git.linuxtv.org/hverkuil/media_tree.git/log/?h=parm
+>
+> You probably want to use the patch 'v4l2-common: add g/s_parm helper functions'
+> for the new ceu driver in your patch series. Feel free to add it.
 
-diff --git a/drivers/media/i2c/dw9714.c b/drivers/media/i2c/dw9714.c
-index 7832210..57460da 100644
---- a/drivers/media/i2c/dw9714.c
-+++ b/drivers/media/i2c/dw9714.c
-@@ -42,7 +42,6 @@
- 
- /* dw9714 device structure */
- struct dw9714_device {
--	struct i2c_client *client;
- 	struct v4l2_ctrl_handler ctrls_vcm;
- 	struct v4l2_subdev sd;
- 	u16 current_val;
-@@ -73,7 +72,7 @@ static int dw9714_i2c_write(struct i2c_client *client, u16 data)
- 
- static int dw9714_t_focus_vcm(struct dw9714_device *dw9714_dev, u16 val)
- {
--	struct i2c_client *client = dw9714_dev->client;
-+	struct i2c_client *client = v4l2_get_subdevdata(&dw9714_dev->sd);
- 
- 	dw9714_dev->current_val = val;
- 
-@@ -96,13 +95,11 @@ static const struct v4l2_ctrl_ops dw9714_vcm_ctrl_ops = {
- 
- static int dw9714_open(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
- {
--	struct dw9714_device *dw9714_dev = sd_to_dw9714_vcm(sd);
--	struct device *dev = &dw9714_dev->client->dev;
- 	int rval;
- 
--	rval = pm_runtime_get_sync(dev);
-+	rval = pm_runtime_get_sync(sd->dev);
- 	if (rval < 0) {
--		pm_runtime_put_noidle(dev);
-+		pm_runtime_put_noidle(sd->dev);
- 		return rval;
- 	}
- 
-@@ -111,10 +108,7 @@ static int dw9714_open(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
- 
- static int dw9714_close(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
- {
--	struct dw9714_device *dw9714_dev = sd_to_dw9714_vcm(sd);
--	struct device *dev = &dw9714_dev->client->dev;
--
--	pm_runtime_put(dev);
-+	pm_runtime_put(sd->dev);
- 
- 	return 0;
- }
-@@ -137,7 +131,6 @@ static int dw9714_init_controls(struct dw9714_device *dev_vcm)
- {
- 	struct v4l2_ctrl_handler *hdl = &dev_vcm->ctrls_vcm;
- 	const struct v4l2_ctrl_ops *ops = &dw9714_vcm_ctrl_ops;
--	struct i2c_client *client = dev_vcm->client;
- 
- 	v4l2_ctrl_handler_init(hdl, 1);
- 
-@@ -145,7 +138,7 @@ static int dw9714_init_controls(struct dw9714_device *dev_vcm)
- 			  0, DW9714_MAX_FOCUS_POS, DW9714_FOCUS_STEPS, 0);
- 
- 	if (hdl->error)
--		dev_err(&client->dev, "%s fail error: 0x%x\n",
-+		dev_err(dev_vcm->sd.dev, "%s fail error: 0x%x\n",
- 			__func__, hdl->error);
- 	dev_vcm->sd.ctrl_handler = hdl;
- 	return hdl->error;
-@@ -161,8 +154,6 @@ static int dw9714_probe(struct i2c_client *client)
- 	if (dw9714_dev == NULL)
- 		return -ENOMEM;
- 
--	dw9714_dev->client = client;
--
- 	v4l2_i2c_subdev_init(&dw9714_dev->sd, client, &dw9714_ops);
- 	dw9714_dev->sd.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
- 	dw9714_dev->sd.internal_ops = &dw9714_int_ops;
--- 
-2.7.4
+Thanks, I have now re-based my series on top of your 'parm' branch,
+and now I have silenced those errors on bad frame interval.
+
+CEU g/s_parm now look like this:
+
+static int ceu_g_parm(struct file *file, void *fh, struct v4l2_streamparm *a)
+{
+	struct ceu_device *ceudev = video_drvdata(file);
+	int ret;
+
+	ret = v4l2_g_parm(V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE,
+			  ceudev->sd->v4l2_sd, a);
+	if (ret)
+		return ret;
+
+	a->parm.capture.readbuffers = 0;
+
+	return 0;
+}
+
+Very similar to what you've done on other platform drivers in this
+commit:
+https://git.linuxtv.org/hverkuil/media_tree.git/commit/?h=parm&id=a58956ef45cebaa5ce43a5f740fe04517b24a853
+
+I have a question though (please bear with me a little more :)
+I had to manually set a->parm.capture.readbuffers to 0 to silence the following
+error in v4l2_compliance (which I have now updated to the most recent
+remote HEAD):
+
+ fail: v4l2-test-formats.cpp(1114): cap->readbuffers
+                test VIDIOC_G/S_PARM: FAIL
+
+		fail_on_test(cap->readbuffers > VIDEO_MAX_FRAME);
+		if (!(node->g_caps() & V4L2_CAP_READWRITE))
+			fail_on_test(cap->readbuffers);
+		else if (node->g_caps() & V4L2_CAP_STREAMING)
+			fail_on_test(!cap->readbuffers);
+
+CEU does not support CAP_READWRITE, as it seems atmel-isc/isi do not, so
+v4l2-compliance wants to have readbuffers set to 0. I wonder why in
+the previously mentioned commit you didn't have to set readbuffers
+explicitly to 0 for atmel-isc/isi as I had to for CEU. Will v4l2-compliance
+fail if run on atmel-isc/isi with your commit, or am I missing something?
+
+Thanks
+   j
