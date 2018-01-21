@@ -1,494 +1,525 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga05.intel.com ([192.55.52.43]:22101 "EHLO mga05.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751112AbeAVQWe (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 22 Jan 2018 11:22:34 -0500
-From: Andy Yeh <andy.yeh@intel.com>
-To: linux-media@vger.kernel.org
-Cc: andy.yeh@intel.com, sakari.ailus@linux.intel.com,
-        tfiga@chromium.org
-Subject: [PATCH] media: dw9807: Add dw9807 vcm driver
-Date: Tue, 23 Jan 2018 00:24:57 +0800
-Message-Id: <1516638297-21989-1-git-send-email-andy.yeh@intel.com>
+Received: from relay3-d.mail.gandi.net ([217.70.183.195]:46407 "EHLO
+        relay3-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750928AbeAUJxd (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 21 Jan 2018 04:53:33 -0500
+Date: Sun, 21 Jan 2018 10:53:23 +0100
+From: jacopo mondi <jacopo@jmondi.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        laurent.pinchart@ideasonboard.com, magnus.damm@gmail.com,
+        geert@glider.be, mchehab@kernel.org, festevam@gmail.com,
+        sakari.ailus@iki.fi, robh+dt@kernel.org, mark.rutland@arm.com,
+        pombredanne@nexb.com, linux-renesas-soc@vger.kernel.org,
+        linux-media@vger.kernel.org, linux-sh@vger.kernel.org,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v6 3/9] v4l: platform: Add Renesas CEU driver
+Message-ID: <20180121095323.GL24926@w540>
+References: <1516139101-7835-1-git-send-email-jacopo+renesas@jmondi.org>
+ <1516139101-7835-4-git-send-email-jacopo+renesas@jmondi.org>
+ <d056343b-46be-436a-e316-0a588a182eb9@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <d056343b-46be-436a-e316-0a588a182eb9@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-DW9807 is a 10 bit DAC from Dongwoon, designed for linear
-control of voice coil motor.
+Hi Hans,
 
-This driver creates a V4L2 subdevice and
-provides control to set the desired focus.
+On Fri, Jan 19, 2018 at 12:20:19PM +0100, Hans Verkuil wrote:
+> Some more comments:
+>
 
-Signed-off-by: Andy Yeh <andy.yeh@intel.com>
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- .../bindings/media/i2c/dongwoon,dw9807.txt         |   9 +
- MAINTAINERS                                        |   7 +
- drivers/media/i2c/Kconfig                          |  10 +
- drivers/media/i2c/Makefile                         |   1 +
- drivers/media/i2c/dw9807.c                         | 387 +++++++++++++++++++++
- 5 files changed, 414 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/i2c/dongwoon,dw9807.txt
- create mode 100644 drivers/media/i2c/dw9807.c
+[snip]
 
-diff --git a/Documentation/devicetree/bindings/media/i2c/dongwoon,dw9807.txt b/Documentation/devicetree/bindings/media/i2c/dongwoon,dw9807.txt
-new file mode 100644
-index 0000000..1771cd0
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/i2c/dongwoon,dw9807.txt
-@@ -0,0 +1,9 @@
-+Dngwoon Anatech DW9807 voice coil lens driver
-+
-+DW9807 is a 10-bit DAC with current sink capability. It is intended for
-+controlling voice coil lenses.
-+
-+Mandatory properties:
-+
-+- compatible: "dongwoon,dw9807"
-+- reg: I2C slave address
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 9c9db44..32b536b 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -4377,6 +4377,13 @@ T:	git git://linuxtv.org/media_tree.git
- S:	Maintained
- F:	drivers/media/i2c/dw9714.c
- 
-+DONGWOON DW9807 LENS VOICE COIL DRIVER
-+M:	Sakari Ailus <sakari.ailus@linux.intel.com>
-+L:	linux-media@vger.kernel.org
-+T:	git git://linuxtv.org/media_tree.git
-+S:	Maintained
-+F:	drivers/media/i2c/dw9807.c
-+
- DOUBLETALK DRIVER
- M:	"James R. Van Zandt" <jrv@vanzandt.mv.com>
- L:	blinux-list@redhat.com
-diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
-index cabde37..bcd4bf1 100644
---- a/drivers/media/i2c/Kconfig
-+++ b/drivers/media/i2c/Kconfig
-@@ -325,6 +325,16 @@ config VIDEO_DW9714
- 	  capability. This is designed for linear control of
- 	  voice coil motors, controlled via I2C serial interface.
- 
-+config VIDEO_DW9807
-+	tristate "DW9807 lens voice coil support"
-+	depends on I2C && VIDEO_V4L2 && MEDIA_CONTROLLER
-+	depends on VIDEO_V4L2_SUBDEV_API
-+	---help---
-+	  This is a driver for the DW9807 camera lens voice coil.
-+	  DW9807 is a 10 bit DAC with 100mA output current sink
-+	  capability. This is designed for linear control of
-+	  voice coil motors, controlled via I2C serial interface.
-+
- config VIDEO_SAA7110
- 	tristate "Philips SAA7110 video decoder"
- 	depends on VIDEO_V4L2 && I2C
-diff --git a/drivers/media/i2c/Makefile b/drivers/media/i2c/Makefile
-index cf1e0f1..4bf7d00 100644
---- a/drivers/media/i2c/Makefile
-+++ b/drivers/media/i2c/Makefile
-@@ -23,6 +23,7 @@ obj-$(CONFIG_VIDEO_SAA7185) += saa7185.o
- obj-$(CONFIG_VIDEO_SAA6752HS) += saa6752hs.o
- obj-$(CONFIG_VIDEO_AD5820)  += ad5820.o
- obj-$(CONFIG_VIDEO_DW9714)  += dw9714.o
-+obj-$(CONFIG_VIDEO_DW9807)  += dw9807.o
- obj-$(CONFIG_VIDEO_ADV7170) += adv7170.o
- obj-$(CONFIG_VIDEO_ADV7175) += adv7175.o
- obj-$(CONFIG_VIDEO_ADV7180) += adv7180.o
-diff --git a/drivers/media/i2c/dw9807.c b/drivers/media/i2c/dw9807.c
-new file mode 100644
-index 0000000..f068771
---- /dev/null
-+++ b/drivers/media/i2c/dw9807.c
-@@ -0,0 +1,387 @@
-+/*
-+ * Copyright (c) 2017 Intel Corporation.
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License version
-+ * 2 as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ */
-+
-+#include <linux/acpi.h>
-+#include <linux/delay.h>
-+#include <linux/i2c.h>
-+#include <linux/module.h>
-+#include <linux/pm_runtime.h>
-+#include <media/v4l2-ctrls.h>
-+#include <media/v4l2-device.h>
-+
-+#define DW9807_NAME		"dw9807"
-+#define DW9807_MAX_FOCUS_POS	1023
-+/*
-+ * This sets the minimum granularity for the focus positions.
-+ * A value of 1 gives maximum accuracy for a desired focus position
-+ */
-+#define DW9807_FOCUS_STEPS	1
-+/*
-+ * This acts as the minimum granularity of lens movement.
-+ * Keep this value power of 2, so the control steps can be
-+ * uniformly adjusted for gradual lens movement, with desired
-+ * number of control steps.
-+ */
-+#define DW9807_CTRL_STEPS	16
-+#define DW9807_CTRL_DELAY_US	1000
-+
-+/*
-+ * DW9807 separates two registers to control the VCM position.
-+ * One for MSB value, another is LSB value.
-+ */
-+#define DW9807_CTL_ADDR 0x02
-+#define DW9807_MSB_ADDR 0x03
-+#define DW9807_LSB_ADDR 0x04
-+#define DW9807_STATUS_ADDR 0x05
-+#define DW9807_MODE_ADDR 0x06
-+#define DW9807_RESONANCE_ADDR 0x07
-+
-+#define MAX_RETRY 10
-+
-+/* dw9807 device structure */
-+struct dw9807_device {
-+	struct i2c_client *client;
-+	struct v4l2_ctrl_handler ctrls_vcm;
-+	struct v4l2_subdev sd;
-+	u16 current_val;
-+};
-+
-+static inline struct dw9807_device *to_dw9807_vcm(struct v4l2_ctrl *ctrl)
-+{
-+	return container_of(ctrl->handler, struct dw9807_device, ctrls_vcm);
-+}
-+
-+static inline struct dw9807_device *sd_to_dw9807_vcm(struct v4l2_subdev *subdev)
-+{
-+	return container_of(subdev, struct dw9807_device, sd);
-+}
-+
-+static int dw9807_i2c_check(struct i2c_client *client)
-+{
-+	int ret;
-+	int status_addr = DW9807_STATUS_ADDR;
-+	u8 status_result = 0x1;
-+
-+	ret = i2c_master_send(client, (const char *)&status_addr,
-+			sizeof(status_addr));
-+	if (ret != sizeof(status_addr)) {
-+		dev_err(&client->dev, "I2C write STATUS address fail ret = %d\n",
-+			ret);
-+		return -EIO;
-+	}
-+
-+	ret = i2c_master_recv(client, (char *)&status_result,
-+			sizeof(status_result));
-+	if (ret != sizeof(status_result)) {
-+		dev_err(&client->dev, "I2C read STATUS value fail ret=%d\n",
-+			ret);
-+		return -EIO;
-+	}
-+
-+	return status_result;
-+}
-+
-+static int dw9807_i2c_write(struct i2c_client *client, u16 data)
-+{
-+	int ret;
-+	u8 tx_lsb[2];
-+	u8 tx_msb[2];
-+	int retry = 0;
-+
-+	tx_lsb[0] = DW9807_LSB_ADDR;
-+	tx_lsb[1] = (u8)(data & 0xFF);
-+
-+	tx_msb[0] = DW9807_MSB_ADDR;
-+	tx_msb[1] = (u8)((data >> 8) & 0x03);
-+
-+	/* According to the datasheet, need to check the bus status before we */
-+	/* write VCM position. This ensure that we really write the value */
-+	/* into the register */
-+	while (dw9807_i2c_check(client) != 0) {
-+		if (MAX_RETRY == ++retry) {
-+			dev_err(&client->dev, "Cannot do the write operation because VCM is busy\n");
-+			return -EIO;
-+		}
-+		udelay(100);
-+	}
-+
-+	/* Write MSB value to register */
-+	ret = i2c_master_send(client, (const char *)&tx_msb, sizeof(tx_msb));
-+	if (ret != sizeof(tx_msb)) {
-+		dev_err(&client->dev, "I2C write MSB fail\n");
-+		return -EIO;
-+	}
-+
-+	retry = 0;
-+	while (dw9807_i2c_check(client) != 0) {
-+		if (MAX_RETRY == ++retry) {
-+			dev_err(&client->dev, "Cannot do the write operation because VCM is busy\n");
-+			return -EIO;
-+		}
-+		udelay(100);
-+	}
-+
-+	/* Write LSB value to register */
-+	ret = i2c_master_send(client, (const char *)&tx_lsb, sizeof(tx_lsb));
-+	if (ret != sizeof(tx_lsb)) {
-+		dev_err(&client->dev, "I2C write LSB fail\n");
-+		return -EIO;
-+	}
-+
-+	return 0;
-+}
-+
-+static int dw9807_t_focus_vcm(struct dw9807_device *dw9807_dev, u16 val)
-+{
-+	struct i2c_client *client = dw9807_dev->client;
-+
-+	dw9807_dev->current_val = val;
-+	return dw9807_i2c_write(client, val);
-+}
-+
-+static int dw9807_set_ctrl(struct v4l2_ctrl *ctrl)
-+{
-+	struct dw9807_device *dev_vcm = to_dw9807_vcm(ctrl);
-+
-+	if (ctrl->id == V4L2_CID_FOCUS_ABSOLUTE)
-+		return dw9807_t_focus_vcm(dev_vcm, ctrl->val);
-+
-+	return -EINVAL;
-+}
-+
-+static const struct v4l2_ctrl_ops dw9807_vcm_ctrl_ops = {
-+	.s_ctrl = dw9807_set_ctrl,
-+};
-+
-+static int dw9807_open(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
-+{
-+	struct dw9807_device *dw9807_dev = sd_to_dw9807_vcm(sd);
-+	struct device *dev = &dw9807_dev->client->dev;
-+	int rval;
-+
-+	rval = pm_runtime_get_sync(dev);
-+	if (rval < 0) {
-+		pm_runtime_put_noidle(dev);
-+		return rval;
-+	}
-+
-+	return 0;
-+}
-+
-+static int dw9807_close(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
-+{
-+	struct dw9807_device *dw9807_dev = sd_to_dw9807_vcm(sd);
-+	struct device *dev = &dw9807_dev->client->dev;
-+
-+	pm_runtime_put(dev);
-+
-+	return 0;
-+}
-+
-+static const struct v4l2_subdev_internal_ops dw9807_int_ops = {
-+	.open = dw9807_open,
-+	.close = dw9807_close,
-+};
-+
-+static const struct v4l2_subdev_ops dw9807_ops = { };
-+
-+static void dw9807_subdev_cleanup(struct dw9807_device *dw9807_dev)
-+{
-+	v4l2_async_unregister_subdev(&dw9807_dev->sd);
-+	v4l2_ctrl_handler_free(&dw9807_dev->ctrls_vcm);
-+	media_entity_cleanup(&dw9807_dev->sd.entity);
-+}
-+
-+static int dw9807_init_controls(struct dw9807_device *dev_vcm)
-+{
-+	struct v4l2_ctrl_handler *hdl = &dev_vcm->ctrls_vcm;
-+	const struct v4l2_ctrl_ops *ops = &dw9807_vcm_ctrl_ops;
-+	struct i2c_client *client = dev_vcm->client;
-+	int ret;
-+	u8 tx_data[2];
-+
-+	v4l2_ctrl_handler_init(hdl, 1);
-+
-+	v4l2_ctrl_new_std(hdl, ops, V4L2_CID_FOCUS_ABSOLUTE,
-+			  0, DW9807_MAX_FOCUS_POS, DW9807_FOCUS_STEPS, 0);
-+
-+	dev_vcm->sd.ctrl_handler = hdl;
-+	if (hdl->error) {
-+		dev_err(&client->dev, "%s fail error: 0x%x\n",
-+			__func__, hdl->error);
-+		return hdl->error;
-+	}
-+
-+	/* Once the v4l2 initial processes finished, performing the initial */
-+	/* settings for the vcm chip */
-+	/* Power down */
-+	tx_data[0] = DW9807_CTL_ADDR;
-+	tx_data[1] = 0x01;
-+
-+	ret = i2c_master_send(client, (const char *)&tx_data, sizeof(tx_data));
-+
-+	if (ret != sizeof(tx_data)) {
-+		dev_err(&client->dev, "I2C write CTL fail\n");
-+		return -EIO;
-+	}
-+
-+	/* Power on */
-+	tx_data[0] = DW9807_CTL_ADDR;
-+	tx_data[1] = 0x00;
-+
-+	ret = i2c_master_send(client, (const char *)&tx_data, sizeof(tx_data));
-+	if (ret != sizeof(tx_data)) {
-+		dev_err(&client->dev, "I2C write CTL fail\n");
-+		return -EIO;
-+	}
-+
-+	udelay(100);
-+	return 0;
-+}
-+
-+static int dw9807_probe(struct i2c_client *client)
-+{
-+	struct dw9807_device *dw9807_dev;
-+	int rval;
-+
-+	dw9807_dev = devm_kzalloc(&client->dev, sizeof(*dw9807_dev),
-+				  GFP_KERNEL);
-+	if (dw9807_dev == NULL)
-+		return -ENOMEM;
-+
-+	dw9807_dev->client = client;
-+
-+	v4l2_i2c_subdev_init(&dw9807_dev->sd, client, &dw9807_ops);
-+	dw9807_dev->sd.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
-+	dw9807_dev->sd.internal_ops = &dw9807_int_ops;
-+
-+	rval = dw9807_init_controls(dw9807_dev);
-+	if (rval)
-+		goto err_cleanup;
-+
-+	rval = media_entity_init(&dw9807_dev->sd.entity, 0, NULL, 0);
-+	if (rval < 0)
-+		goto err_cleanup;
-+
-+	dw9807_dev->sd.entity.type = MEDIA_ENT_T_V4L2_SUBDEV_LENS;
-+
-+	rval = v4l2_async_register_subdev(&dw9807_dev->sd);
-+	if (rval < 0)
-+		goto err_cleanup;
-+
-+	pm_runtime_set_active(&client->dev);
-+	pm_runtime_enable(&client->dev);
-+	pm_runtime_idle(&client->dev);
-+
-+	return 0;
-+
-+err_cleanup:
-+	dw9807_subdev_cleanup(dw9807_dev);
-+	dev_err(&client->dev, "Probe failed: %d\n", rval);
-+	return rval;
-+}
-+
-+static int dw9807_remove(struct i2c_client *client)
-+{
-+	struct v4l2_subdev *sd = i2c_get_clientdata(client);
-+	struct dw9807_device *dw9807_dev = sd_to_dw9807_vcm(sd);
-+
-+	pm_runtime_disable(&client->dev);
-+	pm_runtime_set_suspended(&client->dev);
-+
-+	dw9807_subdev_cleanup(dw9807_dev);
-+
-+	return 0;
-+}
-+
-+/*
-+ * This function sets the vcm position, so it consumes least current
-+ * The lens position is gradually moved in units of DW9807_CTRL_STEPS,
-+ * to make the movements smoothly.
-+ */
-+static int __maybe_unused dw9807_vcm_suspend(struct device *dev)
-+{
-+	struct i2c_client *client = to_i2c_client(dev);
-+	struct v4l2_subdev *sd = i2c_get_clientdata(client);
-+	struct dw9807_device *dw9807_dev = sd_to_dw9807_vcm(sd);
-+	int ret, val;
-+
-+	for (val = dw9807_dev->current_val & ~(DW9807_CTRL_STEPS - 1);
-+	     val >= 0; val -= DW9807_CTRL_STEPS) {
-+		ret = dw9807_i2c_write(client, val);
-+		if (ret)
-+			dev_err_once(dev, "%s I2C failure: %d", __func__, ret);
-+		usleep_range(DW9807_CTRL_DELAY_US, DW9807_CTRL_DELAY_US + 10);
-+	}
-+	return 0;
-+}
-+
-+/*
-+ * This function sets the vcm position to the value set by the user
-+ * through v4l2_ctrl_ops s_ctrl handler
-+ * The lens position is gradually moved in units of DW9807_CTRL_STEPS,
-+ * to make the movements smoothly.
-+ */
-+static int  __maybe_unused dw9807_vcm_resume(struct device *dev)
-+{
-+	struct i2c_client *client = to_i2c_client(dev);
-+	struct v4l2_subdev *sd = i2c_get_clientdata(client);
-+	struct dw9807_device *dw9807_dev = sd_to_dw9807_vcm(sd);
-+	int ret, val;
-+
-+	for (val = dw9807_dev->current_val % DW9807_CTRL_STEPS;
-+	     val < dw9807_dev->current_val + DW9807_CTRL_STEPS - 1;
-+	     val += DW9807_CTRL_STEPS) {
-+		ret = dw9807_i2c_write(client, val);
-+		if (ret)
-+			dev_err_ratelimited(dev, "%s I2C failure: %d",
-+						__func__, ret);
-+		usleep_range(DW9807_CTRL_DELAY_US, DW9807_CTRL_DELAY_US + 10);
-+	}
-+
-+	return 0;
-+}
-+
-+static const struct i2c_device_id dw9807_id_table[] = {
-+	{DW9807_NAME, 0},
-+	{}
-+};
-+
-+MODULE_DEVICE_TABLE(i2c, dw9807_id_table);
-+
-+static const struct of_device_id dw9807_of_table[] = {
-+	{ .compatible = "dongwoon,dw9807" },
-+	{ { 0 } }
-+};
-+MODULE_DEVICE_TABLE(of, dw9807_of_table);
-+
-+static const struct dev_pm_ops dw9807_pm_ops = {
-+	SET_SYSTEM_SLEEP_PM_OPS(dw9807_vcm_suspend, dw9807_vcm_resume)
-+	SET_RUNTIME_PM_OPS(dw9807_vcm_suspend, dw9807_vcm_resume, NULL)
-+};
-+
-+static struct i2c_driver dw9807_i2c_driver = {
-+	.driver = {
-+		.name = DW9807_NAME,
-+		.pm = &dw9807_pm_ops,
-+		.of_match_table = dw9807_of_table,
-+	},
-+	.probe_new = dw9807_probe,
-+	.remove = dw9807_remove,
-+	.id_table = dw9807_id_table,
-+};
-+
-+module_i2c_driver(dw9807_i2c_driver);
-+
-+MODULE_DESCRIPTION("DW9807 VCM driver");
-+MODULE_LICENSE("GPL v2");
--- 
-2.7.4
+> > +/* --- CEU Videobuf2 operations --- */
+> > +
+> > +static void ceu_update_plane_sizes(struct v4l2_plane_pix_format *plane,
+> > +				   unsigned int bpl, unsigned int szimage)
+> > +{
+> > +	if (plane->bytesperline < bpl)
+> > +		plane->bytesperline = bpl;
+> > +	if (plane->sizeimage < szimage)
+> > +		plane->sizeimage = szimage;
+>
+> As mentioned in your cover letter, you do need to check for invalid
+> bytesperline values. The v4l2-compliance test is to see what happens
+> when userspace gives insane values, so yes, drivers need to be able
+> to handle that.
+>
+> plane->sizeimage is set by the driver, so drop the 'if' before the
+> assignment.
+
+According to what suggested by you and Laurent I'll limit the h size
+to the maximum value supported by the HW (I didn't notice this limit was
+specified in the HW manual, and it's set to 8188 bytes).
+
+And I will set sizeimage unconditionally.
+
+> >
+
+[snip]
+
+> > +
+> > +static int ceu_g_parm(struct file *file, void *fh, struct v4l2_streamparm *a)
+> > +{
+> > +	struct ceu_device *ceudev = video_drvdata(file);
+> > +
+> > +	if (a->type != V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
+> > +		return -EINVAL;
+> > +
+> > +	return v4l2_subdev_call(ceudev->sd->v4l2_sd, video, g_parm, a);
+>
+> Look at this v4l2-compliance failure:
+>
+> fail: v4l2-test-formats.cpp(1162): ret && node->has_frmintervals
+>
+> This is caused by the fact that the ov7670 driver has this code:
+>
+> static int ov7670_g_parm(struct v4l2_subdev *sd, struct v4l2_streamparm *parms)
+> {
+>         struct v4l2_captureparm *cp = &parms->parm.capture;
+>         struct ov7670_info *info = to_state(sd);
+>
+>         if (parms->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
+>                 return -EINVAL;
+>
+> And parms->type is CAPTURE_MPLANE. Just drop this test from the ov7670 driver
+> in the g/s_parm functions. It shouldn't test for that since a subdev driver
+> knows nothing about buffer types.
+>
+
+I will drop that test in an additional patch part of next iteration of this series,
+
+> It might be a good idea to check if other subdevs to the same test.
+>
+> > +static const struct v4l2_ioctl_ops ceu_ioctl_ops = {
+> > +	.vidioc_querycap		= ceu_querycap,
+> > +
+> > +	.vidioc_enum_fmt_vid_cap_mplane	= ceu_enum_fmt_vid_cap,
+> > +	.vidioc_try_fmt_vid_cap_mplane	= ceu_try_fmt_vid_cap,
+> > +	.vidioc_s_fmt_vid_cap_mplane	= ceu_s_fmt_vid_cap,
+> > +	.vidioc_g_fmt_vid_cap_mplane	= ceu_g_fmt_vid_cap,
+> > +
+> > +	.vidioc_enum_input		= ceu_enum_input,
+> > +	.vidioc_g_input			= ceu_g_input,
+> > +	.vidioc_s_input			= ceu_s_input,
+> > +
+> > +	.vidioc_reqbufs			= vb2_ioctl_reqbufs,
+> > +	.vidioc_querybuf		= vb2_ioctl_querybuf,
+> > +	.vidioc_qbuf			= vb2_ioctl_qbuf,
+> > +	.vidioc_expbuf			= vb2_ioctl_expbuf,
+> > +	.vidioc_dqbuf			= vb2_ioctl_dqbuf,
+> > +	.vidioc_create_bufs		= vb2_ioctl_create_bufs,
+> > +	.vidioc_prepare_buf		= vb2_ioctl_prepare_buf,
+> > +	.vidioc_streamon		= vb2_ioctl_streamon,
+> > +	.vidioc_streamoff		= vb2_ioctl_streamoff,
+> > +
+> > +	.vidioc_g_parm			= ceu_g_parm,
+> > +	.vidioc_s_parm			= ceu_s_parm,
+> > +	.vidioc_enum_framesizes		= ceu_enum_framesizes,
+> > +	.vidioc_enum_frameintervals	= ceu_enum_frameintervals,
+>
+> You're missing these ioctls:
+>
+>         .vidioc_log_status              = v4l2_ctrl_log_status,
+>         .vidioc_subscribe_event         = v4l2_ctrl_subscribe_event,
+>         .vidioc_unsubscribe_event       = v4l2_event_unsubscribe,
+>
+> These missing _event ops are the reason for this compliance failure:
+>
+> fail: v4l2-test-controls.cpp(782): subscribe event for control 'User Controls' failed
+>
+
+Seems like they al comes almost for free! I will add them.
+
+Thanks
+   j
+
+> > +};
+> > +
+> > +/*
+> > + * ceu_vdev_release() - release CEU video device memory when last reference
+> > + *			to this driver is closed
+> > + */
+> > +static void ceu_vdev_release(struct video_device *vdev)
+> > +{
+> > +	struct ceu_device *ceudev = video_get_drvdata(vdev);
+> > +
+> > +	kfree(ceudev);
+> > +}
+> > +
+> > +static int ceu_notify_bound(struct v4l2_async_notifier *notifier,
+> > +			    struct v4l2_subdev *v4l2_sd,
+> > +			    struct v4l2_async_subdev *asd)
+> > +{
+> > +	struct v4l2_device *v4l2_dev = notifier->v4l2_dev;
+> > +	struct ceu_device *ceudev = v4l2_to_ceu(v4l2_dev);
+> > +	struct ceu_subdev *ceu_sd = to_ceu_subdev(asd);
+> > +
+> > +	ceu_sd->v4l2_sd = v4l2_sd;
+> > +	ceudev->num_sd++;
+> > +
+> > +	return 0;
+> > +}
+> > +
+> > +static int ceu_notify_complete(struct v4l2_async_notifier *notifier)
+> > +{
+> > +	struct v4l2_device *v4l2_dev = notifier->v4l2_dev;
+> > +	struct ceu_device *ceudev = v4l2_to_ceu(v4l2_dev);
+> > +	struct video_device *vdev = &ceudev->vdev;
+> > +	struct vb2_queue *q = &ceudev->vb2_vq;
+> > +	struct v4l2_subdev *v4l2_sd;
+> > +	int ret;
+> > +
+> > +	/* Initialize vb2 queue. */
+> > +	q->type			= V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
+> > +	q->io_modes		= VB2_MMAP | VB2_DMABUF;
+> > +	q->drv_priv		= ceudev;
+> > +	q->ops			= &ceu_vb2_ops;
+> > +	q->mem_ops		= &vb2_dma_contig_memops;
+> > +	q->buf_struct_size	= sizeof(struct ceu_buffer);
+> > +	q->timestamp_flags	= V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+> > +	q->min_buffers_needed	= 2;
+> > +	q->lock			= &ceudev->mlock;
+> > +	q->dev			= ceudev->v4l2_dev.dev;
+> > +
+> > +	ret = vb2_queue_init(q);
+> > +	if (ret)
+> > +		return ret;
+> > +
+> > +	/*
+> > +	 * Make sure at least one sensor is primary and use it to initialize
+> > +	 * ceu formats.
+> > +	 */
+> > +	if (!ceudev->sd) {
+> > +		ceudev->sd = &ceudev->subdevs[0];
+> > +		ceudev->sd_index = 0;
+> > +	}
+> > +
+> > +	v4l2_sd = ceudev->sd->v4l2_sd;
+> > +
+> > +	ret = ceu_init_formats(ceudev);
+> > +	if (ret)
+> > +		return ret;
+> > +
+> > +	ret = ceu_set_default_fmt(ceudev);
+> > +	if (ret)
+> > +		return ret;
+> > +
+> > +	/* Register the video device. */
+> > +	strncpy(vdev->name, DRIVER_NAME, strlen(DRIVER_NAME));
+> > +	vdev->v4l2_dev		= v4l2_dev;
+> > +	vdev->lock		= &ceudev->mlock;
+> > +	vdev->queue		= &ceudev->vb2_vq;
+> > +	vdev->ctrl_handler	= v4l2_sd->ctrl_handler;
+> > +	vdev->fops		= &ceu_fops;
+> > +	vdev->ioctl_ops		= &ceu_ioctl_ops;
+> > +	vdev->release		= ceu_vdev_release;
+> > +	vdev->device_caps	= V4L2_CAP_VIDEO_CAPTURE_MPLANE |
+> > +				  V4L2_CAP_STREAMING;
+> > +	video_set_drvdata(vdev, ceudev);
+> > +
+> > +	ret = video_register_device(vdev, VFL_TYPE_GRABBER, -1);
+> > +	if (ret < 0) {
+> > +		v4l2_err(vdev->v4l2_dev,
+> > +			 "video_register_device failed: %d\n", ret);
+> > +		return ret;
+> > +	}
+> > +
+> > +	return 0;
+> > +}
+> > +
+> > +static const struct v4l2_async_notifier_operations ceu_notify_ops = {
+> > +	.bound		= ceu_notify_bound,
+> > +	.complete	= ceu_notify_complete,
+> > +};
+> > +
+> > +/*
+> > + * ceu_init_async_subdevs() - Initialize CEU subdevices and async_subdevs in
+> > + *			      ceu device. Both DT and platform data parsing use
+> > + *			      this routine.
+> > + *
+> > + * Returns 0 for success, -ENOMEM for failure.
+> > + */
+> > +static int ceu_init_async_subdevs(struct ceu_device *ceudev, unsigned int n_sd)
+> > +{
+> > +	/* Reserve memory for 'n_sd' ceu_subdev descriptors. */
+> > +	ceudev->subdevs = devm_kcalloc(ceudev->dev, n_sd,
+> > +				       sizeof(*ceudev->subdevs), GFP_KERNEL);
+> > +	if (!ceudev->subdevs)
+> > +		return -ENOMEM;
+> > +
+> > +	/*
+> > +	 * Reserve memory for 'n_sd' pointers to async_subdevices.
+> > +	 * ceudev->asds members will point to &ceu_subdev.asd
+> > +	 */
+> > +	ceudev->asds = devm_kcalloc(ceudev->dev, n_sd,
+> > +				    sizeof(*ceudev->asds), GFP_KERNEL);
+> > +	if (!ceudev->asds)
+> > +		return -ENOMEM;
+> > +
+> > +	ceudev->sd = NULL;
+> > +	ceudev->sd_index = 0;
+> > +	ceudev->num_sd = 0;
+> > +
+> > +	return 0;
+> > +}
+> > +
+> > +/*
+> > + * ceu_parse_platform_data() - Initialize async_subdevices using platform
+> > + *			       device provided data.
+> > + */
+> > +static int ceu_parse_platform_data(struct ceu_device *ceudev,
+> > +				   const struct ceu_platform_data *pdata)
+> > +{
+> > +	const struct ceu_async_subdev *async_sd;
+> > +	struct ceu_subdev *ceu_sd;
+> > +	unsigned int i;
+> > +	int ret;
+> > +
+> > +	if (pdata->num_subdevs == 0)
+> > +		return -ENODEV;
+> > +
+> > +	ret = ceu_init_async_subdevs(ceudev, pdata->num_subdevs);
+> > +	if (ret)
+> > +		return ret;
+> > +
+> > +	for (i = 0; i < pdata->num_subdevs; i++) {
+> > +		/* Setup the ceu subdevice and the async subdevice. */
+> > +		async_sd = &pdata->subdevs[i];
+> > +		ceu_sd = &ceudev->subdevs[i];
+> > +
+> > +		INIT_LIST_HEAD(&ceu_sd->asd.list);
+> > +
+> > +		ceu_sd->mbus_flags	= async_sd->flags;
+> > +		ceu_sd->asd.match_type	= V4L2_ASYNC_MATCH_I2C;
+> > +		ceu_sd->asd.match.i2c.adapter_id = async_sd->i2c_adapter_id;
+> > +		ceu_sd->asd.match.i2c.address = async_sd->i2c_address;
+> > +
+> > +		ceudev->asds[i] = &ceu_sd->asd;
+> > +	}
+> > +
+> > +	return pdata->num_subdevs;
+> > +}
+> > +
+> > +/*
+> > + * ceu_parse_dt() - Initialize async_subdevs parsing device tree graph.
+> > + */
+> > +static int ceu_parse_dt(struct ceu_device *ceudev)
+> > +{
+> > +	struct device_node *of = ceudev->dev->of_node;
+> > +	struct v4l2_fwnode_endpoint fw_ep;
+> > +	struct ceu_subdev *ceu_sd;
+> > +	struct device_node *ep;
+> > +	unsigned int i;
+> > +	int num_ep;
+> > +	int ret;
+> > +
+> > +	num_ep = of_graph_get_endpoint_count(of);
+> > +	if (!num_ep)
+> > +		return -ENODEV;
+> > +
+> > +	ret = ceu_init_async_subdevs(ceudev, num_ep);
+> > +	if (ret)
+> > +		return ret;
+> > +
+> > +	for (i = 0; i < num_ep; i++) {
+> > +		ep = of_graph_get_endpoint_by_regs(of, 0, i);
+> > +		if (!ep) {
+> > +			dev_err(ceudev->dev,
+> > +				"No subdevice connected on endpoint %u.\n", i);
+> > +			ret = -ENODEV;
+> > +			goto error_put_node;
+> > +		}
+> > +
+> > +		ret = v4l2_fwnode_endpoint_parse(of_fwnode_handle(ep), &fw_ep);
+> > +		if (ret) {
+> > +			dev_err(ceudev->dev,
+> > +				"Unable to parse endpoint #%u.\n", i);
+> > +			goto error_put_node;
+> > +		}
+> > +
+> > +		if (fw_ep.bus_type != V4L2_MBUS_PARALLEL) {
+> > +			dev_err(ceudev->dev,
+> > +				"Only parallel input supported.\n");
+> > +			ret = -EINVAL;
+> > +			goto error_put_node;
+> > +		}
+> > +
+> > +		/* Setup the ceu subdevice and the async subdevice. */
+> > +		ceu_sd = &ceudev->subdevs[i];
+> > +		INIT_LIST_HEAD(&ceu_sd->asd.list);
+> > +
+> > +		ceu_sd->mbus_flags = fw_ep.bus.parallel.flags;
+> > +		ceu_sd->asd.match_type = V4L2_ASYNC_MATCH_FWNODE;
+> > +		ceu_sd->asd.match.fwnode.fwnode =
+> > +			fwnode_graph_get_remote_port_parent(
+> > +					of_fwnode_handle(ep));
+> > +
+> > +		ceudev->asds[i] = &ceu_sd->asd;
+> > +		of_node_put(ep);
+> > +	}
+> > +
+> > +	return num_ep;
+> > +
+> > +error_put_node:
+> > +	of_node_put(ep);
+> > +	return ret;
+> > +}
+> > +
+> > +/*
+> > + * struct ceu_data - Platform specific CEU data
+> > + * @irq_mask: CETCR mask with all interrupt sources enabled. The mask differs
+> > + *	      between SH4 and RZ platforms.
+> > + */
+> > +struct ceu_data {
+> > +	u32 irq_mask;
+> > +};
+> > +
+> > +static const struct ceu_data ceu_data_rz = {
+> > +	.irq_mask = CEU_CETCR_ALL_IRQS_RZ,
+> > +};
+> > +
+> > +static const struct ceu_data ceu_data_sh4 = {
+> > +	.irq_mask = CEU_CETCR_ALL_IRQS_SH4,
+> > +};
+> > +
+> > +#if IS_ENABLED(CONFIG_OF)
+> > +static const struct of_device_id ceu_of_match[] = {
+> > +	{ .compatible = "renesas,r7s72100-ceu", .data = &ceu_data_rz },
+> > +	{ }
+> > +};
+> > +MODULE_DEVICE_TABLE(of, ceu_of_match);
+> > +#endif
+> > +
+> > +static int ceu_probe(struct platform_device *pdev)
+> > +{
+> > +	struct device *dev = &pdev->dev;
+> > +	const struct ceu_data *ceu_data;
+> > +	struct ceu_device *ceudev;
+> > +	struct resource *res;
+> > +	unsigned int irq;
+> > +	int num_subdevs;
+> > +	int ret;
+> > +
+> > +	ceudev = kzalloc(sizeof(*ceudev), GFP_KERNEL);
+> > +	if (!ceudev)
+> > +		return -ENOMEM;
+> > +
+> > +	platform_set_drvdata(pdev, ceudev);
+> > +	ceudev->dev = dev;
+> > +
+> > +	INIT_LIST_HEAD(&ceudev->capture);
+> > +	spin_lock_init(&ceudev->lock);
+> > +	mutex_init(&ceudev->mlock);
+> > +
+> > +	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+> > +	ceudev->base = devm_ioremap_resource(dev, res);
+> > +	if (IS_ERR(ceudev->base))
+> > +		goto error_free_ceudev;
+> > +
+> > +	ret = platform_get_irq(pdev, 0);
+> > +	if (ret < 0) {
+> > +		dev_err(dev, "Failed to get irq: %d\n", ret);
+> > +		goto error_free_ceudev;
+> > +	}
+> > +	irq = ret;
+> > +
+> > +	ret = devm_request_irq(dev, irq, ceu_irq,
+> > +			       0, dev_name(dev), ceudev);
+> > +	if (ret) {
+> > +		dev_err(&pdev->dev, "Unable to request CEU interrupt.\n");
+> > +		goto error_free_ceudev;
+> > +	}
+> > +
+> > +	pm_runtime_enable(dev);
+> > +
+> > +	ret = v4l2_device_register(dev, &ceudev->v4l2_dev);
+> > +	if (ret)
+> > +		goto error_pm_disable;
+> > +
+> > +	if (IS_ENABLED(CONFIG_OF) && dev->of_node) {
+> > +		ceu_data = of_match_device(ceu_of_match, dev)->data;
+> > +		num_subdevs = ceu_parse_dt(ceudev);
+> > +	} else if (dev->platform_data) {
+> > +		/* Assume SH4 if booting with platform data. */
+> > +		ceu_data = &ceu_data_sh4;
+> > +		num_subdevs = ceu_parse_platform_data(ceudev,
+> > +						      dev->platform_data);
+> > +	} else {
+> > +		num_subdevs = -EINVAL;
+> > +	}
+> > +
+> > +	if (num_subdevs < 0) {
+> > +		ret = num_subdevs;
+> > +		goto error_v4l2_unregister;
+> > +	}
+> > +	ceudev->irq_mask = ceu_data->irq_mask;
+> > +
+> > +	ceudev->notifier.v4l2_dev	= &ceudev->v4l2_dev;
+> > +	ceudev->notifier.subdevs	= ceudev->asds;
+> > +	ceudev->notifier.num_subdevs	= num_subdevs;
+> > +	ceudev->notifier.ops		= &ceu_notify_ops;
+> > +	ret = v4l2_async_notifier_register(&ceudev->v4l2_dev,
+> > +					   &ceudev->notifier);
+> > +	if (ret)
+> > +		goto error_v4l2_unregister;
+> > +
+> > +	dev_info(dev, "Renesas Capture Engine Unit %s\n", dev_name(dev));
+> > +
+> > +	return 0;
+> > +
+> > +error_v4l2_unregister:
+> > +	v4l2_device_unregister(&ceudev->v4l2_dev);
+> > +error_pm_disable:
+> > +	pm_runtime_disable(dev);
+> > +error_free_ceudev:
+> > +	kfree(ceudev);
+> > +
+> > +	return ret;
+> > +}
+> > +
+> > +static int ceu_remove(struct platform_device *pdev)
+> > +{
+> > +	struct ceu_device *ceudev = platform_get_drvdata(pdev);
+> > +
+> > +	pm_runtime_disable(ceudev->dev);
+> > +
+> > +	v4l2_async_notifier_unregister(&ceudev->notifier);
+> > +
+> > +	v4l2_device_unregister(&ceudev->v4l2_dev);
+> > +
+> > +	video_unregister_device(&ceudev->vdev);
+> > +
+> > +	return 0;
+> > +}
+> > +
+> > +static const struct dev_pm_ops ceu_pm_ops = {
+> > +	SET_RUNTIME_PM_OPS(ceu_runtime_suspend,
+> > +			   ceu_runtime_resume,
+> > +			   NULL)
+> > +};
+> > +
+> > +static struct platform_driver ceu_driver = {
+> > +	.driver		= {
+> > +		.name	= DRIVER_NAME,
+> > +		.pm	= &ceu_pm_ops,
+> > +		.of_match_table = of_match_ptr(ceu_of_match),
+> > +	},
+> > +	.probe		= ceu_probe,
+> > +	.remove		= ceu_remove,
+> > +};
+> > +
+> > +module_platform_driver(ceu_driver);
+> > +
+> > +MODULE_DESCRIPTION("Renesas CEU camera driver");
+> > +MODULE_AUTHOR("Jacopo Mondi <jacopo+renesas@jmondi.org>");
+> > +MODULE_LICENSE("GPL v2");
+> >
+>
+> Regards,
+>
+> 	Hans
