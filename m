@@ -1,99 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f193.google.com ([209.85.220.193]:42619 "EHLO
-        mail-qk0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751195AbeAEAYY (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 4 Jan 2018 19:24:24 -0500
-Received: by mail-qk0-f193.google.com with SMTP id d202so4112819qkc.9
-        for <linux-media@vger.kernel.org>; Thu, 04 Jan 2018 16:24:23 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <1515110659-20145-6-git-send-email-brad@nextdimension.cc>
-References: <1515110659-20145-1-git-send-email-brad@nextdimension.cc> <1515110659-20145-6-git-send-email-brad@nextdimension.cc>
-From: Michael Ira Krufky <mkrufky@linuxtv.org>
-Date: Thu, 4 Jan 2018 19:24:22 -0500
-Message-ID: <CAOcJUbwsu7Nmr7=8KxMy8zFTgT+=fF3XH3v7Uy8cMPv4tweYaw@mail.gmail.com>
-Subject: Re: [PATCH 5/9] em28xx: Add Hauppauge SoloHD/DualHD bulk models
-To: Brad Love <brad@nextdimension.cc>
-Cc: linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:58753 "EHLO
+        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750817AbeAUEq6 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 20 Jan 2018 23:46:58 -0500
+Message-ID: <f5493659cf931a1d43cfb85bf3810ac2@smtp-cloud7.xs4all.net>
+Date: Sun, 21 Jan 2018 05:46:55 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jan 4, 2018 at 7:04 PM, Brad Love <brad@nextdimension.cc> wrote:
-> Add additional pids to driver list
->
-> Signed-off-by: Brad Love <brad@nextdimension.cc>
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-:+1
+Results of the daily build of media_tree:
 
-Reviewed-by: Michael Ira Krufky <mkrufky@linuxtv.org>
+date:			Sun Jan 21 05:00:15 CET 2018
+media-tree git hash:	e3ee691dbf24096ea51b3200946b11d68ce75361
+media_build git hash:	2bd1f1623fbadfdc1026712b3d55141ba164c403
+v4l-utils git hash:	7eadec47ff4db4a032612349c362f3337b29d485
+gcc version:		i686-linux-gcc (GCC) 7.1.0
+sparse version:		v0.5.0-3911-g6f737e1f
+smatch version:		v0.5.0-3911-g6f737e1f
+host hardware:		x86_64
+host os:		4.13.0-164
 
-> ---
->  drivers/media/usb/em28xx/em28xx-cards.c | 22 +++++++++++++++++-----
->  1 file changed, 17 insertions(+), 5 deletions(-)
->
-> diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
-> index 7f5d0b28..34c693a 100644
-> --- a/drivers/media/usb/em28xx/em28xx-cards.c
-> +++ b/drivers/media/usb/em28xx/em28xx-cards.c
-> @@ -507,8 +507,10 @@ static struct em28xx_reg_seq plex_px_bcud[] = {
->  };
->
->  /*
-> - * 2040:0265 Hauppauge WinTV-dualHD DVB
-> - * 2040:026d Hauppauge WinTV-dualHD ATSC/QAM
-> + * 2040:0265 Hauppauge WinTV-dualHD DVB Isoc
-> + * 2040:8265 Hauppauge WinTV-dualHD DVB Bulk
-> + * 2040:026d Hauppauge WinTV-dualHD ATSC/QAM Isoc
-> + * 2040:826d Hauppauge WinTV-dualHD ATSC/QAM Bulk
->   * reg 0x80/0x84:
->   * GPIO_0: Yellow LED tuner 1, 0=on, 1=off
->   * GPIO_1: Green LED tuner 1, 0=on, 1=off
-> @@ -2391,7 +2393,8 @@ struct em28xx_board em28xx_boards[] = {
->                 .has_dvb       = 1,
->         },
->         /*
-> -        * 2040:0265 Hauppauge WinTV-dualHD (DVB version).
-> +        * 2040:0265 Hauppauge WinTV-dualHD (DVB version) Isoc.
-> +        * 2040:8265 Hauppauge WinTV-dualHD (DVB version) Bulk.
->          * Empia EM28274, 2x Silicon Labs Si2168, 2x Silicon Labs Si2157
->          */
->         [EM28174_BOARD_HAUPPAUGE_WINTV_DUALHD_DVB] = {
-> @@ -2407,7 +2410,8 @@ struct em28xx_board em28xx_boards[] = {
->                 .leds          = hauppauge_dualhd_leds,
->         },
->         /*
-> -        * 2040:026d Hauppauge WinTV-dualHD (model 01595 - ATSC/QAM).
-> +        * 2040:026d Hauppauge WinTV-dualHD (model 01595 - ATSC/QAM) Isoc.
-> +        * 2040:826d Hauppauge WinTV-dualHD (model 01595 - ATSC/QAM) Bulk.
->          * Empia EM28274, 2x LG LGDT3306A, 2x Silicon Labs Si2157
->          */
->         [EM28174_BOARD_HAUPPAUGE_WINTV_DUALHD_01595] = {
-> @@ -2549,8 +2553,12 @@ struct usb_device_id em28xx_id_table[] = {
->                         .driver_info = EM2883_BOARD_HAUPPAUGE_WINTV_HVR_850 },
->         { USB_DEVICE(0x2040, 0x0265),
->                         .driver_info = EM28174_BOARD_HAUPPAUGE_WINTV_DUALHD_DVB },
-> +       { USB_DEVICE(0x2040, 0x8265),
-> +                       .driver_info = EM28174_BOARD_HAUPPAUGE_WINTV_DUALHD_DVB },
->         { USB_DEVICE(0x2040, 0x026d),
->                         .driver_info = EM28174_BOARD_HAUPPAUGE_WINTV_DUALHD_01595 },
-> +       { USB_DEVICE(0x2040, 0x826d),
-> +                       .driver_info = EM28174_BOARD_HAUPPAUGE_WINTV_DUALHD_01595 },
->         { USB_DEVICE(0x0438, 0xb002),
->                         .driver_info = EM2880_BOARD_AMD_ATI_TV_WONDER_HD_600 },
->         { USB_DEVICE(0x2001, 0xf112),
-> @@ -2611,7 +2619,11 @@ struct usb_device_id em28xx_id_table[] = {
->                         .driver_info = EM28178_BOARD_PCTV_461E },
->         { USB_DEVICE(0x2013, 0x025f),
->                         .driver_info = EM28178_BOARD_PCTV_292E },
-> -       { USB_DEVICE(0x2040, 0x0264), /* Hauppauge WinTV-soloHD */
-> +       { USB_DEVICE(0x2040, 0x0264), /* Hauppauge WinTV-soloHD Isoc */
-> +                       .driver_info = EM28178_BOARD_PCTV_292E },
-> +       { USB_DEVICE(0x2040, 0x8264), /* Hauppauge OEM Generic WinTV-soloHD Bulk */
-> +                       .driver_info = EM28178_BOARD_PCTV_292E },
-> +       { USB_DEVICE(0x2040, 0x8268), /* Hauppauge Retail WinTV-soloHD Bulk */
->                         .driver_info = EM28178_BOARD_PCTV_292E },
->         { USB_DEVICE(0x0413, 0x6f07),
->                         .driver_info = EM2861_BOARD_LEADTEK_VC100 },
-> --
-> 2.7.4
->
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: WARNINGS
+linux-3.11.1-i686: ERRORS
+linux-3.12.67-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.7-i686: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.18.7-i686: ERRORS
+linux-3.19-i686: ERRORS
+linux-4.0.9-i686: ERRORS
+linux-4.1.33-i686: ERRORS
+linux-4.2.8-i686: ERRORS
+linux-4.3.6-i686: ERRORS
+linux-4.4.22-i686: ERRORS
+linux-4.5.7-i686: ERRORS
+linux-4.6.7-i686: ERRORS
+linux-4.7.5-i686: ERRORS
+linux-4.8-i686: ERRORS
+linux-4.9.26-i686: ERRORS
+linux-4.10.14-i686: WARNINGS
+linux-4.11-i686: WARNINGS
+linux-4.12.1-i686: WARNINGS
+linux-4.13-i686: WARNINGS
+linux-4.14-i686: WARNINGS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.67-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.7-x86_64: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.7-x86_64: ERRORS
+linux-3.19-x86_64: ERRORS
+linux-4.0.9-x86_64: ERRORS
+linux-4.1.33-x86_64: ERRORS
+linux-4.2.8-x86_64: ERRORS
+linux-4.3.6-x86_64: ERRORS
+linux-4.4.22-x86_64: ERRORS
+linux-4.5.7-x86_64: ERRORS
+linux-4.6.7-x86_64: ERRORS
+linux-4.7.5-x86_64: ERRORS
+linux-4.8-x86_64: ERRORS
+linux-4.9.26-x86_64: ERRORS
+linux-4.10.14-x86_64: WARNINGS
+linux-4.11-x86_64: WARNINGS
+linux-4.12.1-x86_64: WARNINGS
+linux-4.13-x86_64: WARNINGS
+linux-4.14-x86_64: WARNINGS
+apps: OK
+spec-git: OK
+smatch: OK
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
