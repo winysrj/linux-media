@@ -1,130 +1,302 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.free-electrons.com ([62.4.15.54]:55889 "EHLO
-        mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751127AbeA2IZf (ORCPT
+Received: from mail-pg0-f67.google.com ([74.125.83.67]:40839 "EHLO
+        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751124AbeAUPPe (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 29 Jan 2018 03:25:35 -0500
-Date: Mon, 29 Jan 2018 09:25:33 +0100
-From: Maxime Ripard <maxime.ripard@free-electrons.com>
-To: Arnd Bergmann <arnd@arndb.de>,
-        Linus Walleij <linus.walleij@linaro.org>
-Cc: Yong Deng <yong.deng@magewell.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Chen-Yu Tsai <wens@csie.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Randy Dunlap <rdunlap@infradead.org>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Sun, 21 Jan 2018 10:15:34 -0500
+Received: by mail-pg0-f67.google.com with SMTP id g16so5089572pgn.7
+        for <linux-media@vger.kernel.org>; Sun, 21 Jan 2018 07:15:34 -0800 (PST)
+From: Akinobu Mita <akinobu.mita@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Akinobu Mita <akinobu.mita@gmail.com>,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        Jacopo Mondi <jacopo@jmondi.org>,
+        "H . Nikolaus Schaller" <hns@goldelico.com>,
         Hugues Fruchet <hugues.fruchet@st.com>,
-        Yannick Fertre <yannick.fertre@st.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
         Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Rick Chang <rick.chang@mediatek.com>,
-        linux-media@vger.kernel.org,
-        "open list:OPEN FIRMWARE AND FLATTENED DEVICE TREE BINDINGS"
-        <devicetree@vger.kernel.org>,
-        Linux ARM <linux-arm-kernel@lists.infradead.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        linux-sunxi <linux-sunxi@googlegroups.com>, megous@megous.com,
-        Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
-Subject: Re: [PATCH v6 2/2] media: V3s: Add support for Allwinner CSI.
-Message-ID: <20180129082533.6edmqgbauo6q5dgz@flea.lan>
-References: <1516695531-23349-1-git-send-email-yong.deng@magewell.com>
- <CACRpkdan52UB7HOyH1gnHWg4CDke_VQxAdq8cBgwUroibE59Ow@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="fd5monsbubmdi5cf"
-Content-Disposition: inline
-In-Reply-To: <CACRpkdan52UB7HOyH1gnHWg4CDke_VQxAdq8cBgwUroibE59Ow@mail.gmail.com>
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Rob Herring <robh@kernel.org>
+Subject: [PATCH v3 1/3] media: ov9650: support device tree probing
+Date: Mon, 22 Jan 2018 00:14:14 +0900
+Message-Id: <1516547656-3879-2-git-send-email-akinobu.mita@gmail.com>
+In-Reply-To: <1516547656-3879-1-git-send-email-akinobu.mita@gmail.com>
+References: <1516547656-3879-1-git-send-email-akinobu.mita@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+The ov9650 driver currently only supports legacy platform data probe.
+This change adds device tree probing.
 
---fd5monsbubmdi5cf
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+There has been an attempt to add device tree support for ov9650 driver
+by Hugues Fruchet as a part of the patchset that adds support of OV9655
+camera (http://www.spinics.net/lists/linux-media/msg117903.html), but
+it wasn't merged into mainline because creating a separate driver for
+OV9655 is preferred.
 
-Hi Linus,
+This is very similar to Hugues's patch, but not supporting new device.
 
-On Sat, Jan 27, 2018 at 05:14:26PM +0100, Linus Walleij wrote:
-> > +void sun6i_csi_update_buf_addr(struct sun6i_csi *csi, dma_addr_t addr)
-> > +{
-> > +       struct sun6i_csi_dev *sdev =3D sun6i_csi_to_dev(csi);
-> > +       /* transform physical address to bus address */
-> > +       dma_addr_t bus_addr =3D addr - PHYS_OFFSET;
->=20
-> I am sorry if this is an unjustified drive-by comment. Maybe you
-> have already investigate other ways to do this.
+Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: Jacopo Mondi <jacopo@jmondi.org>
+Cc: H. Nikolaus Schaller <hns@goldelico.com>
+Cc: Hugues Fruchet <hugues.fruchet@st.com>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: Rob Herring <robh@kernel.org>
+Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+---
+* Changelog v3
+- Add Reviewed-by: tag
 
-It's definitely not unjustified :)
+* Changelog v2
+- Split binding documentation, suggested by Rob Herring and Jacopo Mondi
+- Remove ov965x_gpio_set() helper and open-code it, suggested by Jacopo Mondi
+  and Sakari Ailus
+- Call clk_prepare_enable() in s_power callback instead of probe, suggested
+  by Sakari Ailus
+- Unify clk and gpio configuration in a single if-else block and, also add
+  a check either platform data or fwnode is actually specified, suggested
+  by Jacopo Mondi
+- Add CONFIG_OF guards, suggested by Jacopo Mondi
 
-> Accessing PHYS_OFFSET directly seems unintuitive and not good
-> practice.
->=20
-> But normally an dma_addr_t only comes from some function inside
-> <linux/dma-mapping.h> such as: dma_alloc_coherent() for a contigous
-> buffer which is coherent in physical memory, or from some buffer <=3D
-> 64KB that is switching ownership between device and CPU explicitly
-> with dma_map* or so. Did you check with Documentation/DMA-API.txt?
+ drivers/media/i2c/ov9650.c | 130 ++++++++++++++++++++++++++++++++-------------
+ 1 file changed, 92 insertions(+), 38 deletions(-)
 
-So, I've discussed this with Arnd a month ago or so, because I'm not
-really fond of the current approach but we haven't found better way to
-do it yet.
-
-The issue is that all the DMA accesses are done not through the main
-AXI bus, but through a separate bus dedicated for memory accesses,
-where the RAM is mapped at the address 0. So the CPU and DMA devices
-have a different mapping for the RAM.
-
-I guess we could address this by using the field dma_pfn_offset that
-seems to be used in similar situations. However, in DT systems, that
-field is filled only with the parent's node dma-ranges property. In
-our case, and since the DT parenthood is based on the "control" bus,
-and not the "data" bus, our parent node would be the AXI bus, and not
-the memory bus that enforce those constraints.
-
-And other devices doing DMA through regular DMA accesses won't have
-that mapping, so we definitely shouldn't enforce it for all the
-devices there, but only the one connected to the separate memory bus.
-
-tl; dr: the DT is not really an option to store that info.
-
-I suggested setting dma_pfn_offset at probe, but Arnd didn't seem too
-fond of that approach either at the time.
-
-So, well, I guess we could do better. We just have no idea how :)
-
-Maxime
-
---=20
-Maxime Ripard, Free Electrons
-Embedded Linux and Kernel engineering
-http://free-electrons.com
-
---fd5monsbubmdi5cf
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCAAdFiEE0VqZU19dR2zEVaqr0rTAlCFNr3QFAlpu2nwACgkQ0rTAlCFN
-r3SiZg//WZ1rRM2MJvlF8VFkItkJUIW+JrU3CDSFqQURVnmScYKATMSv10r+sJWK
-JU0vGokoByqEBjO4wOSCPhFrZ2LffXbdjn9N1OVJTzCBgxEY9SGO6i4wpQiJqGtH
-76R6wGZWaNCGBmo5Sgjiti2Qsx9au/j2lxdB1hvsWVjS/sOwtmDfer5cJyQlUewq
-zY1C3FH4ob55Of4QEzrkfrlf82JaxGuYI6xvrKjbq7i59xfqacwh7V4d+il2GGos
-lopCpQws6q7sT+Ho44wCronvLxHThgExWcxBDZtxivBAJKcWgwbzf6uxYnGi7VE4
-9WWMmadLNvylsJiMfLFwlHnUZq143c2oPvf5X0WiQsFIh9Yc8lj83PZ0QllHPiOs
-16Wb7lQ+Y8zijqz1A1FztWyRgvqgGO58dZlbzNvyQAg8JNPiwYF2OorU1lbZp5DM
-jn1dEUFM90x+ofMiGLbM3V7bxif4dX0MZMWbO0mda//wKEVhqRblwL9F7M5Y6nYA
-oUA8lF1aPz0urdIw6g/E6ptIUc/mt847LeyOQgeY9gQi7ujsdhTsZ9Xj0oYwRDhJ
-AYXQtvf6UZ/mN0Xol9TQtGgUmGN4aUiYMmADiw67lWuVkb7X08+1auGf7wrDuj4y
-ukylv/wMrJisyEdub2fdCge4THAoHBRiUg82pax6yPUaTfQNr/Y=
-=1pUN
------END PGP SIGNATURE-----
-
---fd5monsbubmdi5cf--
+diff --git a/drivers/media/i2c/ov9650.c b/drivers/media/i2c/ov9650.c
+index 69433e1..99a3eab 100644
+--- a/drivers/media/i2c/ov9650.c
++++ b/drivers/media/i2c/ov9650.c
+@@ -11,8 +11,10 @@
+  * it under the terms of the GNU General Public License version 2 as
+  * published by the Free Software Foundation.
+  */
++#include <linux/clk.h>
+ #include <linux/delay.h>
+ #include <linux/gpio.h>
++#include <linux/gpio/consumer.h>
+ #include <linux/i2c.h>
+ #include <linux/kernel.h>
+ #include <linux/media.h>
+@@ -249,9 +251,10 @@ struct ov965x {
+ 	struct v4l2_subdev sd;
+ 	struct media_pad pad;
+ 	enum v4l2_mbus_type bus_type;
+-	int gpios[NUM_GPIOS];
++	struct gpio_desc *gpios[NUM_GPIOS];
+ 	/* External master clock frequency */
+ 	unsigned long mclk_frequency;
++	struct clk *clk;
+ 
+ 	/* Protects the struct fields below */
+ 	struct mutex lock;
+@@ -513,24 +516,27 @@ static int ov965x_set_color_matrix(struct ov965x *ov965x)
+ 	return 0;
+ }
+ 
+-static void ov965x_gpio_set(int gpio, int val)
+-{
+-	if (gpio_is_valid(gpio))
+-		gpio_set_value(gpio, val);
+-}
+-
+-static void __ov965x_set_power(struct ov965x *ov965x, int on)
++static int __ov965x_set_power(struct ov965x *ov965x, int on)
+ {
+ 	if (on) {
+-		ov965x_gpio_set(ov965x->gpios[GPIO_PWDN], 0);
+-		ov965x_gpio_set(ov965x->gpios[GPIO_RST], 0);
++		int ret = clk_prepare_enable(ov965x->clk);
++
++		if (ret)
++			return ret;
++
++		gpiod_set_value_cansleep(ov965x->gpios[GPIO_PWDN], 0);
++		gpiod_set_value_cansleep(ov965x->gpios[GPIO_RST], 0);
+ 		msleep(25);
+ 	} else {
+-		ov965x_gpio_set(ov965x->gpios[GPIO_RST], 1);
+-		ov965x_gpio_set(ov965x->gpios[GPIO_PWDN], 1);
++		gpiod_set_value_cansleep(ov965x->gpios[GPIO_RST], 1);
++		gpiod_set_value_cansleep(ov965x->gpios[GPIO_PWDN], 1);
++
++		clk_disable_unprepare(ov965x->clk);
+ 	}
+ 
+ 	ov965x->streaming = 0;
++
++	return 0;
+ }
+ 
+ static int ov965x_s_power(struct v4l2_subdev *sd, int on)
+@@ -543,8 +549,8 @@ static int ov965x_s_power(struct v4l2_subdev *sd, int on)
+ 
+ 	mutex_lock(&ov965x->lock);
+ 	if (ov965x->power == !on) {
+-		__ov965x_set_power(ov965x, on);
+-		if (on) {
++		ret = __ov965x_set_power(ov965x, on);
++		if (!ret && on) {
+ 			ret = ov965x_write_array(client,
+ 						 ov965x_init_regs);
+ 			ov965x->apply_frame_fmt = 1;
+@@ -1408,16 +1414,17 @@ static const struct v4l2_subdev_ops ov965x_subdev_ops = {
+ /*
+  * Reset and power down GPIOs configuration
+  */
+-static int ov965x_configure_gpios(struct ov965x *ov965x,
+-				  const struct ov9650_platform_data *pdata)
++static int ov965x_configure_gpios_pdata(struct ov965x *ov965x,
++				const struct ov9650_platform_data *pdata)
+ {
+ 	int ret, i;
++	int gpios[NUM_GPIOS];
+ 
+-	ov965x->gpios[GPIO_PWDN] = pdata->gpio_pwdn;
+-	ov965x->gpios[GPIO_RST]  = pdata->gpio_reset;
++	gpios[GPIO_PWDN] = pdata->gpio_pwdn;
++	gpios[GPIO_RST]  = pdata->gpio_reset;
+ 
+ 	for (i = 0; i < ARRAY_SIZE(ov965x->gpios); i++) {
+-		int gpio = ov965x->gpios[i];
++		int gpio = gpios[i];
+ 
+ 		if (!gpio_is_valid(gpio))
+ 			continue;
+@@ -1427,9 +1434,30 @@ static int ov965x_configure_gpios(struct ov965x *ov965x,
+ 			return ret;
+ 		v4l2_dbg(1, debug, &ov965x->sd, "set gpio %d to 1\n", gpio);
+ 
+-		gpio_set_value(gpio, 1);
++		gpio_set_value_cansleep(gpio, 1);
+ 		gpio_export(gpio, 0);
+-		ov965x->gpios[i] = gpio;
++		ov965x->gpios[i] = gpio_to_desc(gpio);
++	}
++
++	return 0;
++}
++
++static int ov965x_configure_gpios(struct ov965x *ov965x)
++{
++	struct device *dev = &ov965x->client->dev;
++
++	ov965x->gpios[GPIO_PWDN] = devm_gpiod_get_optional(dev, "powerdown",
++							GPIOD_OUT_HIGH);
++	if (IS_ERR(ov965x->gpios[GPIO_PWDN])) {
++		dev_info(dev, "can't get %s GPIO\n", "powerdown");
++		return PTR_ERR(ov965x->gpios[GPIO_PWDN]);
++	}
++
++	ov965x->gpios[GPIO_RST] = devm_gpiod_get_optional(dev, "reset",
++							GPIOD_OUT_HIGH);
++	if (IS_ERR(ov965x->gpios[GPIO_RST])) {
++		dev_info(dev, "can't get %s GPIO\n", "reset");
++		return PTR_ERR(ov965x->gpios[GPIO_RST]);
+ 	}
+ 
+ 	return 0;
+@@ -1443,7 +1471,10 @@ static int ov965x_detect_sensor(struct v4l2_subdev *sd)
+ 	int ret;
+ 
+ 	mutex_lock(&ov965x->lock);
+-	__ov965x_set_power(ov965x, 1);
++	ret = __ov965x_set_power(ov965x, 1);
++	if (ret)
++		goto out;
++
+ 	msleep(25);
+ 
+ 	/* Check sensor revision */
+@@ -1463,6 +1494,7 @@ static int ov965x_detect_sensor(struct v4l2_subdev *sd)
+ 			ret = -ENODEV;
+ 		}
+ 	}
++out:
+ 	mutex_unlock(&ov965x->lock);
+ 
+ 	return ret;
+@@ -1476,23 +1508,39 @@ static int ov965x_probe(struct i2c_client *client,
+ 	struct ov965x *ov965x;
+ 	int ret;
+ 
+-	if (!pdata) {
+-		dev_err(&client->dev, "platform data not specified\n");
+-		return -EINVAL;
+-	}
+-
+-	if (pdata->mclk_frequency == 0) {
+-		dev_err(&client->dev, "MCLK frequency not specified\n");
+-		return -EINVAL;
+-	}
+-
+ 	ov965x = devm_kzalloc(&client->dev, sizeof(*ov965x), GFP_KERNEL);
+ 	if (!ov965x)
+ 		return -ENOMEM;
+ 
+-	mutex_init(&ov965x->lock);
+ 	ov965x->client = client;
+-	ov965x->mclk_frequency = pdata->mclk_frequency;
++
++	if (pdata) {
++		if (pdata->mclk_frequency == 0) {
++			dev_err(&client->dev, "MCLK frequency not specified\n");
++			return -EINVAL;
++		}
++		ov965x->mclk_frequency = pdata->mclk_frequency;
++
++		ret = ov965x_configure_gpios_pdata(ov965x, pdata);
++		if (ret < 0)
++			return ret;
++	} else if (dev_fwnode(&client->dev)) {
++		ov965x->clk = devm_clk_get(&ov965x->client->dev, NULL);
++		if (IS_ERR(ov965x->clk))
++			return PTR_ERR(ov965x->clk);
++		ov965x->mclk_frequency = clk_get_rate(ov965x->clk);
++
++		ret = ov965x_configure_gpios(ov965x);
++		if (ret < 0)
++			return ret;
++	} else {
++		dev_err(&client->dev,
++			"Neither platform data nor device property specified\n");
++
++		return -EINVAL;
++	}
++
++	mutex_init(&ov965x->lock);
+ 
+ 	sd = &ov965x->sd;
+ 	v4l2_i2c_subdev_init(sd, client, &ov965x_subdev_ops);
+@@ -1502,10 +1550,6 @@ static int ov965x_probe(struct i2c_client *client,
+ 	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE |
+ 		     V4L2_SUBDEV_FL_HAS_EVENTS;
+ 
+-	ret = ov965x_configure_gpios(ov965x, pdata);
+-	if (ret < 0)
+-		goto err_mutex;
+-
+ 	ov965x->pad.flags = MEDIA_PAD_FL_SOURCE;
+ 	sd->entity.function = MEDIA_ENT_F_CAM_SENSOR;
+ 	ret = media_entity_pads_init(&sd->entity, 1, &ov965x->pad);
+@@ -1561,9 +1605,19 @@ static const struct i2c_device_id ov965x_id[] = {
+ };
+ MODULE_DEVICE_TABLE(i2c, ov965x_id);
+ 
++#if IS_ENABLED(CONFIG_OF)
++static const struct of_device_id ov965x_of_match[] = {
++	{ .compatible = "ovti,ov9650", },
++	{ .compatible = "ovti,ov9652", },
++	{ /* sentinel */ }
++};
++MODULE_DEVICE_TABLE(of, ov965x_of_match);
++#endif
++
+ static struct i2c_driver ov965x_i2c_driver = {
+ 	.driver = {
+ 		.name	= DRIVER_NAME,
++		.of_match_table = of_match_ptr(ov965x_of_match),
+ 	},
+ 	.probe		= ov965x_probe,
+ 	.remove		= ov965x_remove,
+-- 
+2.7.4
