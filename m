@@ -1,235 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:60764 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751230AbeAENaX (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 5 Jan 2018 08:30:23 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Philipp Zabel <philipp.zabel@gmail.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH] media: uvcvideo: support multiple frame descriptors with the same dimensions
-Date: Fri, 05 Jan 2018 15:30:46 +0200
-Message-ID: <3663272.AjVBumhkVf@avalon>
-In-Reply-To: <20180104225129.9488-1-philipp.zabel@gmail.com>
-References: <20180104225129.9488-1-philipp.zabel@gmail.com>
+Received: from relay6-d.mail.gandi.net ([217.70.183.198]:54227 "EHLO
+        relay6-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750876AbeAUJb0 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 21 Jan 2018 04:31:26 -0500
+Date: Sun, 21 Jan 2018 10:31:17 +0100
+From: jacopo mondi <jacopo@jmondi.org>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        magnus.damm@gmail.com, geert@glider.be, mchehab@kernel.org,
+        festevam@gmail.com, robh+dt@kernel.org, mark.rutland@arm.com,
+        pombredanne@nexb.com, linux-renesas-soc@vger.kernel.org,
+        linux-media@vger.kernel.org, linux-sh@vger.kernel.org,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v6 6/9] media: i2c: ov772x: Remove soc_camera dependencies
+Message-ID: <20180121093117.GK24926@w540>
+References: <1516139101-7835-1-git-send-email-jacopo+renesas@jmondi.org>
+ <00f1dd19-6420-26ab-0529-a97f2b0de682@xs4all.nl>
+ <20180119111917.76wosrokgracbdrz@valkosipuli.retiisi.org.uk>
+ <2694661.NEH0HeGgLD@avalon>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <2694661.NEH0HeGgLD@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Philipp,
+Hello Hans, Laurent, Sakari,
 
-Thank you for the patch.
+On Fri, Jan 19, 2018 at 02:23:21PM +0200, Laurent Pinchart wrote:
+> Hello,
+>
+> On Friday, 19 January 2018 13:19:18 EET Sakari Ailus wrote:
+> > On Fri, Jan 19, 2018 at 11:47:33AM +0100, Hans Verkuil wrote:
+> > > On 01/19/18 11:24, Hans Verkuil wrote:
+> > >> On 01/16/18 22:44, Jacopo Mondi wrote:
+> > >>> Remove soc_camera framework dependencies from ov772x sensor driver.
+> > >>> - Handle clock and gpios
+> > >>> - Register async subdevice
+> > >>> - Remove soc_camera specific g/s_mbus_config operations
+> > >>> - Change image format colorspace from JPEG to SRGB as the two use the
+> > >>>   same colorspace information but JPEG makes assumptions on color
+> > >>>   components quantization that do not apply to the sensor
+> > >>> - Remove sizes crop from get_selection as driver can't scale
+> > >>> - Add kernel doc to driver interface header file
+> > >>> - Adjust build system
+> > >>>
+> > >>> This commit does not remove the original soc_camera based driver as
+> > >>> long as other platforms depends on soc_camera-based CEU driver.
+> > >>>
+> > >>> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+> > >>> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > >>
+> > >> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+> > >
+> > > Un-acked.
+> > >
+> > > I just noticed that this sensor driver has no enum_frame_interval and
+> > > g/s_parm support. How would a driver ever know the frame rate of the
+> > > sensor without that?
 
-On Friday, 5 January 2018 00:51:29 EET Philipp Zabel wrote:
-> The Microsoft HoloLens Sensors device has two separate frame descriptors
-> with the same dimensions, each with a single different frame interval:
-> 
->       VideoStreaming Interface Descriptor:
->         bLength                            30
->         bDescriptorType                    36
->         bDescriptorSubtype                  5 (FRAME_UNCOMPRESSED)
->         bFrameIndex                         1
->         bmCapabilities                   0x00
->           Still image unsupported
->         wWidth                           1280
->         wHeight                           481
->         dwMinBitRate                147763200
->         dwMaxBitRate                147763200
->         dwMaxVideoFrameBufferSize      615680
->         dwDefaultFrameInterval         333333
->         bFrameIntervalType                  1
->         dwFrameInterval( 0)            333333
->       VideoStreaming Interface Descriptor:
->         bLength                            30
->         bDescriptorType                    36
->         bDescriptorSubtype                  5 (FRAME_UNCOMPRESSED)
->         bFrameIndex                         2
->         bmCapabilities                   0x00
->           Still image unsupported
->         wWidth                           1280
->         wHeight                           481
->         dwMinBitRate                443289600
->         dwMaxBitRate                443289600
->         dwMaxVideoFrameBufferSize      615680
->         dwDefaultFrameInterval         111111
->         bFrameIntervalType                  1
->         dwFrameInterval( 0)            111111
-> 
-> Skip duplicate dimensions in enum_framesizes, let enum_frameintervals list
-> the intervals from both frame descriptors. Change set_streamparm to switch
-> to the correct frame index when changing the interval. This enables 90 fps
-> capture on a Lenovo Explorer Windows Mixed Reality headset.
-> 
-> Signed-off-by: Philipp Zabel <philipp.zabel@gmail.com>
-> ---
-> Changes since v1 [1]:
-> - Break out of frame size loop if maxd == 0 in uvc_v4l2_set_streamparm.
-> - Moved d and tmp variables in uvc_v4l2_set_streamparm into loop,
->   renamed tmp variable to tmp_ival.
-> - Changed i loop variables to unsigned int.
-> - Changed index variables to unsigned int.
-> - One line per variable declaration.
-> 
-> [1] https://patchwork.linuxtv.org/patch/46109/
-> ---
->  drivers/media/usb/uvc/uvc_v4l2.c | 71
-> +++++++++++++++++++++++++++++++--------- 1 file changed, 55 insertions(+),
-> 16 deletions(-)
-> 
-> diff --git a/drivers/media/usb/uvc/uvc_v4l2.c
-> b/drivers/media/usb/uvc/uvc_v4l2.c index f5ab8164bca5..d9ee400bf47c 100644
-> --- a/drivers/media/usb/uvc/uvc_v4l2.c
-> +++ b/drivers/media/usb/uvc/uvc_v4l2.c
-> @@ -373,7 +373,10 @@ static int uvc_v4l2_set_streamparm(struct uvc_streaming
-> *stream, {
->  	struct uvc_streaming_control probe;
->  	struct v4l2_fract timeperframe;
-> -	uint32_t interval;
-> +	struct uvc_format *format;
-> +	struct uvc_frame *frame;
-> +	__u32 interval, maxd;
-> +	unsigned int i;
->  	int ret;
-> 
->  	if (parm->type != stream->type)
-> @@ -396,9 +399,33 @@ static int uvc_v4l2_set_streamparm(struct uvc_streaming
-> *stream, return -EBUSY;
->  	}
-> 
-> +	format = stream->cur_format;
-> +	frame = stream->cur_frame;
->  	probe = stream->ctrl;
-> -	probe.dwFrameInterval =
-> -		uvc_try_frame_interval(stream->cur_frame, interval);
-> +	probe.dwFrameInterval = uvc_try_frame_interval(frame, interval);
-> +	maxd = abs((__s32)probe.dwFrameInterval - interval);
-> +
-> +	/* Try frames with matching size to find the best frame interval. */
-> +	for (i = 0; i < format->nframes && maxd != 0; i++) {
-> +		__u32 d, tmp_ival;
+Does it make any difference if I point out that this series hasn't
+removed any of that code, and the driver was not supporting that
+already? Or was it handled through soc_camera?
 
-How about ival instead of tmp_ival ?
+> >
+> > s/_parm/_frame_interval/ ?
+> >
+> > We should have wrappers for this or rather to convert g/s_parm users to
+> > g/s_frame_interval so drivers don't need to implement both.
+>
+> There are two ways to set the frame interval, either explicitly through the
+> s_frame_interval operation, or implicitly through control of the pixel clock,
+> horizontal blanking and vertical blanking (which in turn can be influenced by
+> the exposure time).
+>
+> Having two ways to perform the same operation seems sub-optimal to me, but I
+> could understand if they covered different use cases. As far as I know we
+> don't document the use cases for those methods. What's your opinion on that ?
+>
 
-Apart from that,
+-If- I have to implement that in this series to have it accepted,
+please let me know which one of the two is the preferred one :)
 
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Thanks
+   j
 
-If you're fine with the change there's no need to resubmit.
 
-> +
-> +		if (&format->frame[i] == stream->cur_frame)
-> +			continue;
-> +
-> +		if (format->frame[i].wWidth != stream->cur_frame->wWidth ||
-> +		    format->frame[i].wHeight != stream->cur_frame->wHeight)
-> +			continue;
-> +
-> +		tmp_ival = uvc_try_frame_interval(&format->frame[i], interval);
-> +		d = abs((__s32)tmp_ival - interval);
-> +		if (d >= maxd)
-> +			continue;
-> +
-> +		frame = &format->frame[i];
-> +		probe.bFrameIndex = frame->bFrameIndex;
-> +		probe.dwFrameInterval = tmp_ival;
-> +		maxd = d;
-> +	}
-> 
->  	/* Probe the device with the new settings. */
->  	ret = uvc_probe_video(stream, &probe);
-> @@ -408,6 +435,7 @@ static int uvc_v4l2_set_streamparm(struct uvc_streaming
-> *stream, }
-> 
->  	stream->ctrl = probe;
-> +	stream->cur_frame = frame;
->  	mutex_unlock(&stream->mutex);
-> 
->  	/* Return the actual frame period. */
-> @@ -1209,7 +1237,8 @@ static int uvc_ioctl_enum_framesizes(struct file
-> *file, void *fh, struct uvc_streaming *stream = handle->stream;
->  	struct uvc_format *format = NULL;
->  	struct uvc_frame *frame;
-> -	int i;
-> +	unsigned int index;
-> +	unsigned int i;
-> 
->  	/* Look for the given pixel format */
->  	for (i = 0; i < stream->nformats; i++) {
-> @@ -1221,10 +1250,20 @@ static int uvc_ioctl_enum_framesizes(struct file
-> *file, void *fh, if (format == NULL)
->  		return -EINVAL;
-> 
-> -	if (fsize->index >= format->nframes)
-> +	/* Skip duplicate frame sizes */
-> +	for (i = 0, index = 0; i < format->nframes; i++) {
-> +		if (i && frame->wWidth == format->frame[i].wWidth &&
-> +		    frame->wHeight == format->frame[i].wHeight)
-> +			continue;
-> +		frame = &format->frame[i];
-> +		if (index == fsize->index)
-> +			break;
-> +		index++;
-> +	}
-> +
-> +	if (i == format->nframes)
->  		return -EINVAL;
-> 
-> -	frame = &format->frame[fsize->index];
->  	fsize->type = V4L2_FRMSIZE_TYPE_DISCRETE;
->  	fsize->discrete.width = frame->wWidth;
->  	fsize->discrete.height = frame->wHeight;
-> @@ -1238,7 +1277,9 @@ static int uvc_ioctl_enum_frameintervals(struct file
-> *file, void *fh, struct uvc_streaming *stream = handle->stream;
->  	struct uvc_format *format = NULL;
->  	struct uvc_frame *frame = NULL;
-> -	int i;
-> +	unsigned int nintervals;
-> +	unsigned int index;
-> +	unsigned int i;
-> 
->  	/* Look for the given pixel format and frame size */
->  	for (i = 0; i < stream->nformats; i++) {
-> @@ -1250,30 +1291,28 @@ static int uvc_ioctl_enum_frameintervals(struct file
-> *file, void *fh, if (format == NULL)
->  		return -EINVAL;
-> 
-> +	index = fival->index;
->  	for (i = 0; i < format->nframes; i++) {
->  		if (format->frame[i].wWidth == fival->width &&
->  		    format->frame[i].wHeight == fival->height) {
->  			frame = &format->frame[i];
-> -			break;
-> +			nintervals = frame->bFrameIntervalType ?: 1;
-> +			if (index < nintervals)
-> +				break;
-> +			index -= nintervals;
->  		}
->  	}
-> -	if (frame == NULL)
-> +	if (i == format->nframes)
->  		return -EINVAL;
-> 
->  	if (frame->bFrameIntervalType) {
-> -		if (fival->index >= frame->bFrameIntervalType)
-> -			return -EINVAL;
-> -
->  		fival->type = V4L2_FRMIVAL_TYPE_DISCRETE;
->  		fival->discrete.numerator =
-> -			frame->dwFrameInterval[fival->index];
-> +			frame->dwFrameInterval[index];
->  		fival->discrete.denominator = 10000000;
->  		uvc_simplify_fraction(&fival->discrete.numerator,
->  			&fival->discrete.denominator, 8, 333);
->  	} else {
-> -		if (fival->index)
-> -			return -EINVAL;
-> -
->  		fival->type = V4L2_FRMIVAL_TYPE_STEPWISE;
->  		fival->stepwise.min.numerator = frame->dwFrameInterval[0];
->  		fival->stepwise.min.denominator = 10000000;
-
--- 
-Regards,
-
-Laurent Pinchart
+> --
+> Regards,
+>
+> Laurent Pinchart
+>
