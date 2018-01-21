@@ -1,134 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:51439 "EHLO
-        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750936AbeAAEjh (ORCPT
+Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:50729 "EHLO
+        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750953AbeAUKqu (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 31 Dec 2017 23:39:37 -0500
-Message-ID: <1d7951d4512c353a98b74b4592d8a70c@smtp-cloud9.xs4all.net>
-Date: Mon, 01 Jan 2018 05:39:34 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+        Sun, 21 Jan 2018 05:46:50 -0500
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: atomisp and g/s_parm
+Message-ID: <fdb4a3df-e7fa-9197-a64a-02be81b548bd@xs4all.nl>
+Date: Sun, 21 Jan 2018 11:46:46 +0100
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Sakari,
 
-Results of the daily build of media_tree:
+I looked a bit closer at how atomisp uses g/s_parm. They abuse the capturemode field
+to select video/preview/still modes on the sensor, which actually changes the list
+of supported resolutions.
 
-date:			Mon Jan  1 05:00:15 CET 2018
-media-tree git hash:	d0c8f6ad8b381dd572576ac50b9696d4d31142bb
-media_build git hash:	f709aa47e1577563a814e2558cd78b6d00639021
-v4l-utils git hash:	8aa401d119afaeb1b4fe4d2994789cd3e9396554
-gcc version:		i686-linux-gcc (GCC) 7.1.0
-sparse version:		v0.5.0-3911-g6f737e1f
-smatch version:		v0.5.0-3911-g6f737e1f
-host hardware:		x86_64
-host os:		4.13.0-164
+The following files use this:
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: ERRORS
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-blackfin-bf561: ERRORS
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: ERRORS
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: ERRORS
-linux-3.10.1-i686: ERRORS
-linux-3.11.1-i686: ERRORS
-linux-3.12.67-i686: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: ERRORS
-linux-3.15.2-i686: ERRORS
-linux-3.16.7-i686: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.18.7-i686: ERRORS
-linux-3.19-i686: ERRORS
-linux-4.0.9-i686: ERRORS
-linux-4.1.33-i686: ERRORS
-linux-4.2.8-i686: ERRORS
-linux-4.3.6-i686: ERRORS
-linux-4.4.22-i686: ERRORS
-linux-4.5.7-i686: ERRORS
-linux-4.6.7-i686: ERRORS
-linux-4.7.5-i686: ERRORS
-linux-4.8-i686: ERRORS
-linux-4.9.26-i686: ERRORS
-linux-4.10.14-i686: ERRORS
-linux-4.11-i686: OK
-linux-4.12.1-i686: OK
-linux-4.13-i686: OK
-linux-4.14-i686: OK
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: ERRORS
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.67-x86_64: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-x86_64: ERRORS
-linux-3.15.2-x86_64: ERRORS
-linux-3.16.7-x86_64: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.7-x86_64: ERRORS
-linux-3.19-x86_64: ERRORS
-linux-4.0.9-x86_64: ERRORS
-linux-4.1.33-x86_64: ERRORS
-linux-4.2.8-x86_64: ERRORS
-linux-4.3.6-x86_64: ERRORS
-linux-4.4.22-x86_64: ERRORS
-linux-4.5.7-x86_64: ERRORS
-linux-4.6.7-x86_64: ERRORS
-linux-4.7.5-x86_64: ERRORS
-linux-4.8-x86_64: ERRORS
-linux-4.9.26-x86_64: ERRORS
-linux-4.10.14-x86_64: ERRORS
-linux-4.11-x86_64: WARNINGS
-linux-4.12.1-x86_64: WARNINGS
-linux-4.13-x86_64: OK
-linux-4.14-x86_64: OK
-apps: OK
-spec-git: OK
-smatch: OK
+i2c/atomisp-gc0310.c
+i2c/atomisp-gc2235.c
+i2c/atomisp-ov2680.c
+i2c/atomisp-ov2722.c
+i2c/ov5693/atomisp-ov5693.c
+pci/atomisp2/atomisp_file.c
+pci/atomisp2/atomisp_tpg.c
 
-Detailed results are available here:
+The last two have a dummy g/s_parm implementation, so are easy to fix.
+The gc0310 and 0v2680 have identical resolution lists for all three modes, so
+the capturemode can just be ignored and these two drivers can be simplified.
 
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
+Looking at the higher level code it turns out that this atomisp driver appears
+to be in the middle of a conversion from using s_parm to a V4L2_CID_RUN_MODE
+control. If the control is present, then that will be used to set the mode,
+otherwise it falls back to s_parm.
 
-Full logs are available here:
+So the best solution would be if Intel can convert the remaining drivers from
+using s_parm to the new control and then drop all code that uses s_parm to do
+this, so g/s_parm is then only used to get/set the framerate.
 
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+Is this something you or a colleague can take on?
 
-The Media Infrastructure API from this daily build is here:
+Regards,
 
-http://www.xs4all.nl/~hverkuil/spec/index.html
+	Hans
