@@ -1,112 +1,178 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:37864 "EHLO
-        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753332AbeARLWo (ORCPT
+Received: from mx08-00178001.pphosted.com ([91.207.212.93]:61271 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1750848AbeAVKqt (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 18 Jan 2018 06:22:44 -0500
-Subject: Re: [RFC PATCH] v4l2-event/dev: wakeup pending events when
- unregistering
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Michael Walz <m.walz@digitalendoscopy.de>
-References: <83e3318b-3f6e-7f27-6585-b5b69ddd9f65@xs4all.nl>
-Message-ID: <05e3eea9-2e58-ca3b-715a-951eeec631b4@xs4all.nl>
-Date: Thu, 18 Jan 2018 12:22:39 +0100
+        Mon, 22 Jan 2018 05:46:49 -0500
+From: Hugues Fruchet <hugues.fruchet@st.com>
+To: Steve Longerbeam <slongerbeam@gmail.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        "Mauro Carvalho Chehab" <mchehab@kernel.org>
+CC: <linux-media@vger.kernel.org>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Subject: [PATCH] media: ov5640: add JPEG support
+Date: Mon, 22 Jan 2018 11:46:36 +0100
+Message-ID: <1516617996-29499-1-git-send-email-hugues.fruchet@st.com>
 MIME-Version: 1.0
-In-Reply-To: <83e3318b-3f6e-7f27-6585-b5b69ddd9f65@xs4all.nl>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/18/18 12:21, Hans Verkuil wrote:
-> When the video device is unregistered any filehandles waiting on
-> an event (i.e. in VIDIOC_DQEVENT) will never wake up.
-> 
-> Wake them up and detect that the video device is unregistered in
-> __v4l2_event_dequeue() and return -ENODEV in that case.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
-> Note: this is a quick hack, just for events. We have the same problem
-> with vb2 (waiting for a buffer) and cec (waiting for an event). Not sure if rc
-> or dvb are also suffering from the same problem.
-> 
-> I wonder if there is an easier way to wake up all fhs that are waiting for
-> some event.
-> 
-> Michael: most applications use non-blocking mode and poll/select to wait
-> for something to happen. In such applications the poll/select will return
-> when the device is unregistered and this problem does not occur.
+Add YUV422 encoded JPEG support.
 
-Forgot to mention: this has only been compile-tested.
+Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
+---
+ drivers/media/i2c/ov5640.c | 82 ++++++++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 80 insertions(+), 2 deletions(-)
 
-	Hans
-
-> ---
-> diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
-> index d5e0e536ef04..42574ccbd770 100644
-> --- a/drivers/media/v4l2-core/v4l2-dev.c
-> +++ b/drivers/media/v4l2-core/v4l2-dev.c
-> @@ -1017,6 +1017,9 @@ EXPORT_SYMBOL(__video_register_device);
->   */
->  void video_unregister_device(struct video_device *vdev)
->  {
-> +	unsigned long flags;
-> +	struct v4l2_fh *fh;
-> +
->  	/* Check if vdev was ever registered at all */
->  	if (!vdev || !video_is_registered(vdev))
->  		return;
-> @@ -1027,6 +1030,12 @@ void video_unregister_device(struct video_device *vdev)
->  	 */
->  	clear_bit(V4L2_FL_REGISTERED, &vdev->flags);
->  	mutex_unlock(&videodev_lock);
-> +
-> +	spin_lock_irqsave(&vdev->fh_lock, flags);
-> +	list_for_each_entry(fh, &vdev->fh_list, list)
-> +		wake_up_all(&fh->wait);
-> +	spin_unlock_irqrestore(&vdev->fh_lock, flags);
-> +
->  	device_unregister(&vdev->dev);
->  }
->  EXPORT_SYMBOL(video_unregister_device);
-> diff --git a/drivers/media/v4l2-core/v4l2-event.c b/drivers/media/v4l2-core/v4l2-event.c
-> index 968c2eb08b5a..d04977cd1bfb 100644
-> --- a/drivers/media/v4l2-core/v4l2-event.c
-> +++ b/drivers/media/v4l2-core/v4l2-event.c
-> @@ -36,12 +36,17 @@ static int __v4l2_event_dequeue(struct v4l2_fh *fh, struct v4l2_event *event)
->  {
->  	struct v4l2_kevent *kev;
->  	unsigned long flags;
-> +	int ret = 0;
-> 
->  	spin_lock_irqsave(&fh->vdev->fh_lock, flags);
-> 
-> +	if (!video_is_registered(fh->vdev)) {
-> +		ret = -ENODEV;
-> +		goto err;
-> +	}
->  	if (list_empty(&fh->available)) {
-> -		spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
-> -		return -ENOENT;
-> +		ret = -ENOENT;
-> +		goto err;
->  	}
-> 
->  	WARN_ON(fh->navailable == 0);
-> @@ -54,10 +59,10 @@ static int __v4l2_event_dequeue(struct v4l2_fh *fh, struct v4l2_event *event)
->  	*event = kev->event;
->  	kev->sev->first = sev_pos(kev->sev, 1);
->  	kev->sev->in_use--;
-> -
-> +err:
->  	spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
-> 
-> -	return 0;
-> +	return ret;
->  }
-> 
->  int v4l2_event_dequeue(struct v4l2_fh *fh, struct v4l2_event *event,
-> 
+diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
+index e2dd352..db9aeeb 100644
+--- a/drivers/media/i2c/ov5640.c
++++ b/drivers/media/i2c/ov5640.c
+@@ -18,6 +18,7 @@
+ #include <linux/init.h>
+ #include <linux/module.h>
+ #include <linux/of_device.h>
++#include <linux/sizes.h>
+ #include <linux/slab.h>
+ #include <linux/types.h>
+ #include <linux/gpio/consumer.h>
+@@ -34,6 +35,10 @@
+ 
+ #define OV5640_DEFAULT_SLAVE_ID 0x3c
+ 
++#define OV5640_JPEG_SIZE_MAX (5 * SZ_1M)
++
++#define OV5640_REG_SYS_RESET02		0x3002
++#define OV5640_REG_SYS_CLOCK_ENABLE02	0x3006
+ #define OV5640_REG_SYS_CTRL0		0x3008
+ #define OV5640_REG_CHIP_ID		0x300a
+ #define OV5640_REG_IO_MIPI_CTRL00	0x300e
+@@ -114,6 +119,7 @@ struct ov5640_pixfmt {
+ };
+ 
+ static const struct ov5640_pixfmt ov5640_formats[] = {
++	{ MEDIA_BUS_FMT_JPEG_1X8, V4L2_COLORSPACE_JPEG, },
+ 	{ MEDIA_BUS_FMT_UYVY8_2X8, V4L2_COLORSPACE_SRGB, },
+ 	{ MEDIA_BUS_FMT_YUYV8_2X8, V4L2_COLORSPACE_SRGB, },
+ 	{ MEDIA_BUS_FMT_RGB565_2X8_LE, V4L2_COLORSPACE_SRGB, },
+@@ -220,6 +226,8 @@ struct ov5640_dev {
+ 
+ 	bool pending_mode_change;
+ 	bool streaming;
++
++	unsigned int jpeg_size;
+ };
+ 
+ static inline struct ov5640_dev *to_ov5640_dev(struct v4l2_subdev *sd)
+@@ -1910,11 +1918,51 @@ static int ov5640_set_fmt(struct v4l2_subdev *sd,
+ 	return ret;
+ }
+ 
++static int ov5640_get_frame_desc(struct v4l2_subdev *sd, unsigned int pad,
++				 struct v4l2_mbus_frame_desc *fd)
++{
++	struct ov5640_dev *sensor = to_ov5640_dev(sd);
++
++	if (pad != 0 || !fd)
++		return -EINVAL;
++
++	mutex_lock(&sensor->lock);
++	fd->entry[0].length = sensor->jpeg_size;
++	fd->entry[0].pixelcode = MEDIA_BUS_FMT_JPEG_1X8;
++	mutex_unlock(&sensor->lock);
++
++	fd->entry[0].flags = V4L2_MBUS_FRAME_DESC_FL_LEN_MAX;
++	fd->num_entries = 1;
++
++	return 0;
++}
++
++static int ov5640_set_frame_desc(struct v4l2_subdev *sd, unsigned int pad,
++				 struct v4l2_mbus_frame_desc *fd)
++{
++	struct ov5640_dev *sensor = to_ov5640_dev(sd);
++
++	if (pad != 0 || !fd)
++		return -EINVAL;
++
++	fd->entry[0].flags = V4L2_MBUS_FRAME_DESC_FL_LEN_MAX;
++	fd->num_entries = 1;
++	fd->entry[0].length = clamp_t(u32, fd->entry[0].length,
++				      sensor->fmt.width * sensor->fmt.height,
++				      OV5640_JPEG_SIZE_MAX);
++	mutex_lock(&sensor->lock);
++	sensor->jpeg_size = fd->entry[0].length;
++	mutex_unlock(&sensor->lock);
++
++	return 0;
++}
++
+ static int ov5640_set_framefmt(struct ov5640_dev *sensor,
+ 			       struct v4l2_mbus_framefmt *format)
+ {
+ 	int ret = 0;
+ 	bool is_rgb = false;
++	bool is_jpeg = false;
+ 	u8 val;
+ 
+ 	switch (format->code) {
+@@ -1936,6 +1984,11 @@ static int ov5640_set_framefmt(struct ov5640_dev *sensor,
+ 		val = 0x61;
+ 		is_rgb = true;
+ 		break;
++	case MEDIA_BUS_FMT_JPEG_1X8:
++		/* YUV422, YUYV */
++		val = 0x30;
++		is_jpeg = true;
++		break;
+ 	default:
+ 		return -EINVAL;
+ 	}
+@@ -1946,8 +1999,31 @@ static int ov5640_set_framefmt(struct ov5640_dev *sensor,
+ 		return ret;
+ 
+ 	/* FORMAT MUX CONTROL: ISP YUV or RGB */
+-	return ov5640_write_reg(sensor, OV5640_REG_ISP_FORMAT_MUX_CTRL,
+-				is_rgb ? 0x01 : 0x00);
++	ret = ov5640_write_reg(sensor, OV5640_REG_ISP_FORMAT_MUX_CTRL,
++			       is_rgb ? 0x01 : 0x00);
++	if (ret)
++		return ret;
++
++	if (is_jpeg) {
++		/* Enable jpeg */
++		ret = ov5640_mod_reg(sensor, OV5640_REG_TIMING_TC_REG21,
++				     BIT(5), BIT(5));
++		if (ret)
++			return ret;
++
++		/* Relax reset of all blocks */
++		ret = ov5640_write_reg(sensor, OV5640_REG_SYS_RESET02, 0x00);
++		if (ret)
++			return ret;
++
++		/* Clock all blocks */
++		ret = ov5640_write_reg(sensor, OV5640_REG_SYS_CLOCK_ENABLE02,
++				       0xFF);
++		if (ret)
++			return ret;
++	}
++
++	return ret;
+ }
+ 
+ /*
+@@ -2391,6 +2467,8 @@ static int ov5640_s_stream(struct v4l2_subdev *sd, int enable)
+ 	.set_fmt = ov5640_set_fmt,
+ 	.enum_frame_size = ov5640_enum_frame_size,
+ 	.enum_frame_interval = ov5640_enum_frame_interval,
++	.get_frame_desc	= ov5640_get_frame_desc,
++	.set_frame_desc	= ov5640_set_frame_desc,
+ };
+ 
+ static const struct v4l2_subdev_ops ov5640_subdev_ops = {
+-- 
+1.9.1
