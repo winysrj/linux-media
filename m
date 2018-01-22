@@ -1,295 +1,321 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:35688 "EHLO
-        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751228AbeAPKhx (ORCPT
+Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:55175 "EHLO
+        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751070AbeAVLI6 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 16 Jan 2018 05:37:53 -0500
-Subject: Re: [RFC PATCH 5/9] media: vb2: add support for requests
-To: Alexandre Courbot <acourbot@chromium.org>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Pawel Osciak <posciak@chromium.org>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Gustavo Padovan <gustavo.padovan@collabora.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mon, 22 Jan 2018 06:08:58 -0500
+Subject: Re: [Patch v6 10/12] [media] v4l2: Add v4l2 control IDs for HEVC
+ encoder
+To: Smitha T Murthy <smitha.t@samsung.com>,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
         linux-kernel@vger.kernel.org
-References: <20171215075625.27028-1-acourbot@chromium.org>
- <20171215075625.27028-6-acourbot@chromium.org>
- <b23c9899-cc09-bc75-a29d-fc8185e0cc63@xs4all.nl>
- <CAPBb6MVsE0doJ5CeV3h-X5b=Nd-Fn3SOa_pcjDHBabA-H7KyMQ@mail.gmail.com>
- <08090730-a828-40f9-2cd6-0501655937af@xs4all.nl>
- <CAPBb6MWjtQZpqGQeiCHbta=O6j0Jd_THf4MJUuvUdZBuWHLo2Q@mail.gmail.com>
+References: <1512724105-1778-1-git-send-email-smitha.t@samsung.com>
+ <CGME20171208093702epcas2p32a30a9f624e06fb543f7dd757c805077@epcas2p3.samsung.com>
+ <1512724105-1778-11-git-send-email-smitha.t@samsung.com>
+Cc: kyungmin.park@samsung.com, kamil@wypas.org, jtp.park@samsung.com,
+        a.hajda@samsung.com, mchehab@kernel.org, pankaj.dubey@samsung.com,
+        krzk@kernel.org, m.szyprowski@samsung.com, s.nawrocki@samsung.com
 From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <3da94f7b-fb60-585d-1b9a-912d7a5555dc@xs4all.nl>
-Date: Tue, 16 Jan 2018 11:37:46 +0100
+Message-ID: <fde47fa9-9487-424f-7f3e-856d85db737e@xs4all.nl>
+Date: Mon, 22 Jan 2018 12:08:53 +0100
 MIME-Version: 1.0
-In-Reply-To: <CAPBb6MWjtQZpqGQeiCHbta=O6j0Jd_THf4MJUuvUdZBuWHLo2Q@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
+In-Reply-To: <1512724105-1778-11-git-send-email-smitha.t@samsung.com>
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/16/2018 10:39 AM, Alexandre Courbot wrote:
-> On Mon, Jan 15, 2018 at 6:07 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->> On 01/15/2018 09:24 AM, Alexandre Courbot wrote:
->>> On Fri, Jan 12, 2018 at 7:49 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->>>> On 12/15/17 08:56, Alexandre Courbot wrote:
->>>>> Add throttling support for buffers when requests are in use on a given
->>>>> queue. Buffers associated to a request are kept into the vb2 queue until
->>>>> the request becomes active, at which point all the buffers are passed to
->>>>> the driver. The queue can also signal that is has processed all of a
->>>>> request's buffers.
->>>>>
->>>>> Also add support for the request parameter when handling the QBUF ioctl.
->>>>>
->>>>> Signed-off-by: Alexandre Courbot <acourbot@chromium.org>
->>>>> ---
->>>>>  drivers/media/v4l2-core/videobuf2-core.c | 59 ++++++++++++++++++++++++++++----
->>>>>  drivers/media/v4l2-core/videobuf2-v4l2.c | 29 +++++++++++++++-
->>>>>  include/media/videobuf2-core.h           | 25 +++++++++++++-
->>>>>  3 files changed, 104 insertions(+), 9 deletions(-)
->>>>>
->>>>> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
->>>>> index cb115ba6a1d2..c01038b7962a 100644
->>>>> --- a/drivers/media/v4l2-core/videobuf2-core.c
->>>>> +++ b/drivers/media/v4l2-core/videobuf2-core.c
->>>>> @@ -898,6 +898,8 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
->>>>>                   state != VB2_BUF_STATE_REQUEUEING))
->>>>>               state = VB2_BUF_STATE_ERROR;
->>>>>
->>>>> +     WARN_ON(vb->request != q->cur_req);
->>>>
->>>> What's the reason for this WARN_ON? It's not immediately obvious to me.
->>>
->>> This is a safeguard against driver bugs: a buffer should not complete
->>> unless it is part of the request being currently processed.
->>>
->>>>
->>>>> +
->>>>>  #ifdef CONFIG_VIDEO_ADV_DEBUG
->>>>>       /*
->>>>>        * Although this is not a callback, it still does have to balance
->>>>> @@ -920,6 +922,13 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
->>>>>               /* Add the buffer to the done buffers list */
->>>>>               list_add_tail(&vb->done_entry, &q->done_list);
->>>>>               vb->state = state;
->>>>> +
->>>>> +             if (q->cur_req) {
->>>>> +                     WARN_ON(q->req_buf_cnt < 1);
->>>>> +
->>>>> +                     if (--q->req_buf_cnt == 0)
->>>>> +                             q->cur_req = NULL;
->>>>> +             }
->>>>>       }
->>>>>       atomic_dec(&q->owned_by_drv_count);
->>>>>       spin_unlock_irqrestore(&q->done_lock, flags);
->>>>> @@ -1298,6 +1307,16 @@ int vb2_core_prepare_buf(struct vb2_queue *q, unsigned int index, void *pb)
->>>>>  }
->>>>>  EXPORT_SYMBOL_GPL(vb2_core_prepare_buf);
->>>>>
->>>>> +static void vb2_queue_enqueue_current_buffers(struct vb2_queue *q)
->>>>> +{
->>>>> +     struct vb2_buffer *vb;
->>>>> +
->>>>> +     list_for_each_entry(vb, &q->queued_list, queued_entry) {
->>>>> +             if (vb->request == q->cur_req)
->>>>> +                     __enqueue_in_driver(vb);
->>>>> +     }
->>>>> +}
->>>>
->>>> I think this will clash big time with the v4l2 fence patch series...
->>>
->>> Indeed, but on the other hand I was not a big fan of going through the
->>> whole list. :) So I welcome the extra throttling introduced by the
->>> fence series.
->>
->> There is only throttling if fences are used by userspace. Otherwise there
->> is no change.
->>
->>>
->>>>
->>>>> +
->>>>>  /**
->>>>>   * vb2_start_streaming() - Attempt to start streaming.
->>>>>   * @q:               videobuf2 queue
->>>>> @@ -1318,8 +1337,7 @@ static int vb2_start_streaming(struct vb2_queue *q)
->>>>>        * If any buffers were queued before streamon,
->>>>>        * we can now pass them to driver for processing.
->>>>>        */
->>>>> -     list_for_each_entry(vb, &q->queued_list, queued_entry)
->>>>> -             __enqueue_in_driver(vb);
->>>>> +     vb2_queue_enqueue_current_buffers(q);
->>>>>
->>>>>       /* Tell the driver to start streaming */
->>>>>       q->start_streaming_called = 1;
->>>>> @@ -1361,7 +1379,8 @@ static int vb2_start_streaming(struct vb2_queue *q)
->>>>>       return ret;
->>>>>  }
->>>>>
->>>>> -int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb)
->>>>> +int vb2_core_qbuf(struct vb2_queue *q, unsigned int index,
->>>>> +               struct media_request *req, void *pb)
->>>>>  {
->>>>>       struct vb2_buffer *vb;
->>>>>       int ret;
->>>>> @@ -1392,6 +1411,7 @@ int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb)
->>>>>       q->queued_count++;
->>>>>       q->waiting_for_buffers = false;
->>>>>       vb->state = VB2_BUF_STATE_QUEUED;
->>>>> +     vb->request = req;
->>>>>
->>>>>       if (pb)
->>>>>               call_void_bufop(q, copy_timestamp, vb, pb);
->>>>> @@ -1401,8 +1421,11 @@ int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb)
->>>>>       /*
->>>>>        * If already streaming, give the buffer to driver for processing.
->>>>>        * If not, the buffer will be given to driver on next streamon.
->>>>> +      *
->>>>> +      * If using the request API, the buffer will be given to the driver
->>>>> +      * when the request becomes active.
->>>>>        */
->>>>> -     if (q->start_streaming_called)
->>>>> +     if (q->start_streaming_called && !req)
->>>>>               __enqueue_in_driver(vb);
->>>>>
->>>>>       /* Fill buffer information for the userspace */
->>>>> @@ -1427,6 +1450,28 @@ int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb)
->>>>>  }
->>>>>  EXPORT_SYMBOL_GPL(vb2_core_qbuf);
->>>>>
->>>>> +void vb2_queue_start_request(struct vb2_queue *q, struct media_request *req)
->>>>> +{
->>>>> +     struct vb2_buffer *vb;
->>>>> +
->>>>> +     q->req_buf_cnt = 0;
->>>>> +     list_for_each_entry(vb, &q->queued_list, queued_entry) {
->>>>> +             if (vb->request == req)
->>>>> +                     ++q->req_buf_cnt;
->>>>> +     }
->>>>> +
->>>>> +     /* only consider the request if we actually have buffers for it */
->>>>> +     if (q->req_buf_cnt == 0)
->>>>> +             return;
->>>>> +
->>>>> +     q->cur_req = req;
->>>>> +
->>>>> +     /* If not streaming yet, we will enqueue the buffers later */
->>>>> +     if (q->start_streaming_called)
->>>>> +             vb2_queue_enqueue_current_buffers(q);
->>>>
->>>> If I understand all this correctly, then you are queuing one request at a
->>>> time to the vb2_queue. I.e. all the buffers queued to the driver belong to
->>>> the same request (q->cur_req).
->>>
->>> That is correct.
->>>
->>>> But that might work for codecs, but not
->>>> for camera drivers: you will typically have multiple requests queued up in
->>>> the driver.
->>>
->>> Aren't requests supposed to be performed sequentially, even in the
->>> camera case? Passing a buffer to the driver means that we allow it to
->>> process it using its current settings ; if another request is
->>> currently active, wouldn't that become an issue?
->>
->> Drivers often need multiple buffers queued before they can start the DMA
->> engine (usually at least two buffers have to be queued, just do a
->> git grep min_buffers_needed drivers/media).
->>
->> In addition, sensors often have to be programmed one or two frames earlier
->> for a new setting to take effect for the required frame.
->>
->> In other words: drivers need to be able to look ahead and vb2 should just
->> queue buffers/requests as soon as they are ready.
+On 08/12/17 10:08, Smitha T Murthy wrote:
+> Add v4l2 controls for HEVC encoder
 > 
-> Cannot drivers simply peek into their vb2_queue if they need to look
-> ahead? My main concern here is that I would like to avoid having to
-> make individual drivers aware of requests as much as possible. With
-> the current design, drivers just need to care about unconditionally
-> processing all the buffers that are passed to them by vb2, and not
-> keeping it that way would complicate things.
-
-I'm not sure what the problem is. Once buffers are ready (i.e. not waiting
-for fences or unfinished requests) then they should be queued to the driver.
-At that time the driver can look at whatever associated request data the
-newly queued buffer has and program the hardware.
-
-Once a buffer is ready, just queue it up to the driver. Drivers should never
-look into buffers not explicitly queued to them. They don't need to either,
-since those buffers are not ready anyway.
-
-It's also a matter of who owns a buffer: that can be either userspace, vb2
-or the driver. Each 'owner' can only touch the buffers it owns and should
-never access buffers from other owners.
-
-> The issue of programming sensors ahead-of-time is more complex. As
-> always, it would probably be preferable to manage as much of this at
-> the framework level. I am not sure that a bulletproof solution exists
-> here, especially given the extra synchronization introduced by fences:
-> you may want to program a sensor two frames ahead, but what if the
-> frame in between has a non-yet signaled input fence? You could
-> potentially block and miss the timing. The solution here would be to
-> delay the processing of frame F-2 until the fence is signaled, or
-> introduce an empty "latency frame" once the fence signals to get the
-> timing right. Unless I am missing something, the ability to look into
-> the vb2_queue should be enough to achieve this.
-
-It is the responsibility of the application to make sure buffers aren't
-held up waiting for fences. That's no different to what happens today
-if the application cannot process buffers fast enough and the DMA engine
-is starved of buffers.
-
-Handling such complex scenarios is out-of-scope to the request API. The
-request framework should just hand over the buffers + request data to
-the driver as soon as it can, and that's it.
-
-We will probably want to provide helper functions for drivers to use
-to simplify such complex scenarios, but that's something for the future.
-
-Right now we just need to get core functionality right.
-
+> Signed-off-by: Smitha T Murthy <smitha.t@samsung.com>
+> Reviewed-by: Andrzej Hajda <a.hajda@samsung.com>
+> ---
+>  drivers/media/v4l2-core/v4l2-ctrls.c | 118 +++++++++++++++++++++++++++++++++++
+>  include/uapi/linux/v4l2-controls.h   |  92 ++++++++++++++++++++++++++-
+>  2 files changed, 209 insertions(+), 1 deletion(-)
 > 
->>
->>>
->>>>
->>>> In any case, I don't think the req_buf_cnt and cur_req fields belong in
->>>> vb2_queue.
->>>>
->>>> Another weird thing here is that it appears that you allow for multiple
->>>> buffers for the same device in the same request. I'm not sure that is
->>>> useful. For one, it will postpone the completion of the request until
->>>> all buffers are dequeued.
->>>
->>> s/dequeued/completed. A request is marked as completed as soon as all
->>> its buffers are marked as done, and can be polled before its buffers
->>> are dequeued by user-space.
->>>
->>> Do you suggest that we enforce a "one buffer per queue per request"
->>> rule? I cannot thing of any case where this would be a hard limiting
->>> factor (and it would certainly simplify the code), on the other hand
->>> it may slow things down a bit in the case where we want to e.g. take
->>> several shots in fast succession with the same parameters. But I have
->>> no evidence that the extra lag would be noticeable.
->>
->> This is something that should go into an RFC for discussion. My opinion
->> at this time is that you should stick with one buffer per queue per request.
->> This can always be relaxed in the future. For now it is better to keep
->> it simple.
-> 
-> The more I think about this idea, the more it looks like a good one.
-> It also answers the question "can we queue buffers not associated to a
-> request after we started using requests?". The answer would be yes:
-> such buffers would be processed immediately after the preceding
-> request completes, almost emulating the behavior of having several
-> buffers per request (with the exceptions that the request completes
-> earlier and with a different ending state, but this can be fixed by
-> associated another request without any control set to the last frame).
-> 
+> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+> index 4e53a86..3f98318 100644
+> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
+> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+> @@ -480,6 +480,56 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
+>  		NULL,
+>  	};
+>  
+> +	static const char * const hevc_profile[] = {
+> +		"Main",
+> +		"Main Still Picture",
+> +		NULL,
+> +	};
+> +	static const char * const hevc_level[] = {
+> +		"1",
+> +		"2",
+> +		"2.1",
+> +		"3",
+> +		"3.1",
+> +		"4",
+> +		"4.1",
+> +		"5",
+> +		"5.1",
+> +		"5.2",
+> +		"6",
+> +		"6.1",
+> +		"6.2",
+> +		NULL,
+> +	};
+> +	static const char * const hevc_hierarchial_coding_type[] = {
+> +		"B",
+> +		"P",
+> +		NULL,
+> +	};
+> +	static const char * const hevc_refresh_type[] = {
+> +		"None",
+> +		"CRA",
+> +		"IDR",
+> +		NULL,
+> +	};
+> +	static const char * const hevc_size_of_length_field[] = {
+> +		"0",
+> +		"1",
+> +		"2",
+> +		"4",
+> +		NULL,
+> +	};
+> +	static const char * const hevc_tier_flag[] = {
+> +		"Main",
+> +		"High",
+> +		NULL,
+> +	};
+> +	static const char * const hevc_loop_filter_mode[] = {
+> +		"Disabled",
+> +		"Enabled",
+> +		"Disabled at slice boundary",
+> +		"NULL",
+> +	};
+>  
+>  	switch (id) {
+>  	case V4L2_CID_MPEG_AUDIO_SAMPLING_FREQ:
+> @@ -575,6 +625,20 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
+>  		return dv_it_content_type;
+>  	case V4L2_CID_DETECT_MD_MODE:
+>  		return detect_md_mode;
+> +	case V4L2_CID_MPEG_VIDEO_HEVC_PROFILE:
+> +		return hevc_profile;
+> +	case V4L2_CID_MPEG_VIDEO_HEVC_LEVEL:
+> +		return hevc_level;
+> +	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_TYPE:
+> +		return hevc_hierarchial_coding_type;
+> +	case V4L2_CID_MPEG_VIDEO_HEVC_REFRESH_TYPE:
+> +		return hevc_refresh_type;
+> +	case V4L2_CID_MPEG_VIDEO_HEVC_SIZE_OF_LENGTH_FIELD:
+> +		return hevc_size_of_length_field;
+> +	case V4L2_CID_MPEG_VIDEO_HEVC_TIER_FLAG:
+> +		return hevc_tier_flag;
+> +	case V4L2_CID_MPEG_VIDEO_HEVC_LOOP_FILTER_MODE:
+> +		return hevc_loop_filter_mode;
+>  
+>  	default:
+>  		return NULL;
+> @@ -776,6 +840,53 @@ const char *v4l2_ctrl_get_name(u32 id)
+>  	case V4L2_CID_MPEG_VIDEO_VPX_P_FRAME_QP:		return "VPX P-Frame QP Value";
+>  	case V4L2_CID_MPEG_VIDEO_VPX_PROFILE:			return "VPX Profile";
+>  
+> +	/* HEVC controls */
+> +	case V4L2_CID_MPEG_VIDEO_HEVC_I_FRAME_QP:		return "HEVC I-Frame QP Value";
+> +	case V4L2_CID_MPEG_VIDEO_HEVC_P_FRAME_QP:		return "HEVC P-Frame QP Value";
+> +	case V4L2_CID_MPEG_VIDEO_HEVC_B_FRAME_QP:		return "HEVC B-Frame QP Value";
+> +	case V4L2_CID_MPEG_VIDEO_HEVC_MIN_QP:			return "HEVC Minimum QP Value";
+> +	case V4L2_CID_MPEG_VIDEO_HEVC_MAX_QP:			return "HEVC Maximum QP Value";
+> +	case V4L2_CID_MPEG_VIDEO_HEVC_PROFILE:			return "HEVC Profile";
+> +	case V4L2_CID_MPEG_VIDEO_HEVC_LEVEL:			return "HEVC Level";
+> +	case V4L2_CID_MPEG_VIDEO_HEVC_TIER_FLAG:		return "HEVC Tier Flag";
+> +	case V4L2_CID_MPEG_VIDEO_HEVC_FRAME_RATE_RESOLUTION:	return "HEVC Frame Rate Resolution";
+> +	case V4L2_CID_MPEG_VIDEO_HEVC_MAX_PARTITION_DEPTH:	return "HEVC Maximum Coding Unit Depth";
+> +	case V4L2_CID_MPEG_VIDEO_HEVC_REFRESH_TYPE:		return "HEVC Refresh Type";
+> +	case V4L2_CID_MPEG_VIDEO_HEVC_CONST_INTRA_PRED:		return "HEVC Constant Intra Prediction";
+> +	case V4L2_CID_MPEG_VIDEO_HEVC_LOSSLESS_CU:		return "HEVC Lossless Encoding";
+> +	case V4L2_CID_MPEG_VIDEO_HEVC_WAVEFRONT:		return "HEVC Wavefront";
+> +	case V4L2_CID_MPEG_VIDEO_HEVC_LOOP_FILTER_MODE:		return "HEVC Loop Filter";
+> +	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_QP:			return "HEVC QP Values";
+> +	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_TYPE:		return "HEVC Hierarchical Coding Type";
+> +	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_LAYER:	return "HEVC Hierarchical Coding Layer";
+> +	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L0_QP:	return "HEVC Hierarchical Lay 0 QP";
+> +	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L1_QP:	return "HEVC Hierarchical Lay 1 QP";
+> +	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L2_QP:	return "HEVC Hierarchical Lay 2 QP";
+> +	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L3_QP:	return "HEVC Hierarchical Lay 3 QP";
+> +	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L4_QP:	return "HEVC Hierarchical Lay 4 QP";
+> +	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L5_QP:	return "HEVC Hierarchical Lay 5 QP";
+> +	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L6_QP:	return "HEVC Hierarchical Lay 6 QP";
+> +	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L0_BR:	return "HEVC Hierarchical Lay 0 Bit Rate";
+> +	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L1_BR:	return "HEVC Hierarchical Lay 1 Bit Rate";
+> +	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L2_BR:	return "HEVC Hierarchical Lay 2 Bit Rate";
+> +	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L3_BR:	return "HEVC Hierarchical Lay 3 Bit Rate";
+> +	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L4_BR:	return "HEVC Hierarchical Lay 4 Bit Rate";
+> +	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L5_BR:	return "HEVC Hierarchical Lay 5 Bit Rate";
+> +	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L6_BR:	return "HEVC Hierarchical Lay 6 Bit Rate";
 
-It sounds reasonable, but, as always, the devil is in the details.
+These strings are too long by one character. Perhaps replace "Bit Rate" by "Bitrate"?
+
+> +	case V4L2_CID_MPEG_VIDEO_HEVC_GENERAL_PB:		return "HEVC General PB";
+> +	case V4L2_CID_MPEG_VIDEO_HEVC_TEMPORAL_ID:		return "HEVC Temporal ID";
+> +	case V4L2_CID_MPEG_VIDEO_HEVC_STRONG_SMOOTHING:		return "HEVC Strong Intra Smoothing";
+> +	case V4L2_CID_MPEG_VIDEO_HEVC_INTRA_PU_SPLIT:		return "HEVC Intra PU Split";
+> +	case V4L2_CID_MPEG_VIDEO_HEVC_TMV_PREDICTION:		return "HEVC TMV Prediction";
+> +	case V4L2_CID_MPEG_VIDEO_HEVC_MAX_NUM_MERGE_MV_MINUS1:	return "HEVC Max Number of Candidate MVs";
+
+Ditto. I suggest Number -> Num
+
+> +	case V4L2_CID_MPEG_VIDEO_HEVC_WITHOUT_STARTCODE:	return "HEVC ENC Without Startcode";
+> +	case V4L2_CID_MPEG_VIDEO_HEVC_REFRESH_PERIOD:		return "HEVC Num of I-Frame b/w 2 IDR";
+> +	case V4L2_CID_MPEG_VIDEO_HEVC_LF_BETA_OFFSET_DIV2:	return "HEVC Loop Filter Beta Offset";
+> +	case V4L2_CID_MPEG_VIDEO_HEVC_LF_TC_OFFSET_DIV2:	return "HEVC Loop Filter TC Offset";
+> +	case V4L2_CID_MPEG_VIDEO_HEVC_SIZE_OF_LENGTH_FIELD:	return "HEVC Size of Length Field";
+> +	case V4L2_CID_MPEG_VIDEO_REF_NUMBER_FOR_PFRAMES:	return "Reference Frames for a P-Frame";
+> +	case V4L2_CID_MPEG_VIDEO_PREPEND_SPSPPS_TO_IDR:		return "Prepend SPS and PPS to IDR";
+
+Just to confirm: all these new controls all refer to settings that are part of the
+HEVC standard, right? I.e. none of them are specific to the MFC implementation.
+
+I believe I asked this before for older versions of this series, but it's been
+a while, so I'd better check again.
+
+> +
+>  	/* CAMERA controls */
+>  	/* Keep the order of the 'case's the same as in v4l2-controls.h! */
+>  	case V4L2_CID_CAMERA_CLASS:		return "Camera Controls";
+> @@ -1069,6 +1180,13 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+>  	case V4L2_CID_TUNE_DEEMPHASIS:
+>  	case V4L2_CID_MPEG_VIDEO_VPX_GOLDEN_FRAME_SEL:
+>  	case V4L2_CID_DETECT_MD_MODE:
+> +	case V4L2_CID_MPEG_VIDEO_HEVC_PROFILE:
+> +	case V4L2_CID_MPEG_VIDEO_HEVC_LEVEL:
+> +	case V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_TYPE:
+> +	case V4L2_CID_MPEG_VIDEO_HEVC_REFRESH_TYPE:
+> +	case V4L2_CID_MPEG_VIDEO_HEVC_SIZE_OF_LENGTH_FIELD:
+> +	case V4L2_CID_MPEG_VIDEO_HEVC_TIER_FLAG:
+> +	case V4L2_CID_MPEG_VIDEO_HEVC_LOOP_FILTER_MODE:
+>  		*type = V4L2_CTRL_TYPE_MENU;
+>  		break;
+>  	case V4L2_CID_LINK_FREQ:
+> diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
+> index 31bfc68..a4b8489 100644
+> --- a/include/uapi/linux/v4l2-controls.h
+> +++ b/include/uapi/linux/v4l2-controls.h
+> @@ -588,6 +588,97 @@ enum v4l2_vp8_golden_frame_sel {
+>  #define V4L2_CID_MPEG_VIDEO_VPX_P_FRAME_QP		(V4L2_CID_MPEG_BASE+510)
+>  #define V4L2_CID_MPEG_VIDEO_VPX_PROFILE			(V4L2_CID_MPEG_BASE+511)
+>  
+> +/* CIDs for HEVC encoding. Number gaps are for compatibility */
+
+Not sure what you mean with "Number gaps are for compatibility". There are no gaps
+and since this is a new API, there are also no compatibility issues.
+
+> +
+> +#define V4L2_CID_MPEG_VIDEO_HEVC_MIN_QP		(V4L2_CID_MPEG_BASE + 512)
+
+Each new codec skips to a new range, so I would suggest to start counting at 600 instead of 512.
+
+> +#define V4L2_CID_MPEG_VIDEO_HEVC_MAX_QP		(V4L2_CID_MPEG_BASE + 513)
+> +#define V4L2_CID_MPEG_VIDEO_HEVC_I_FRAME_QP	(V4L2_CID_MPEG_BASE + 514)
+> +#define V4L2_CID_MPEG_VIDEO_HEVC_P_FRAME_QP	(V4L2_CID_MPEG_BASE + 515)
+> +#define V4L2_CID_MPEG_VIDEO_HEVC_B_FRAME_QP	(V4L2_CID_MPEG_BASE + 516)
+> +#define V4L2_CID_MPEG_VIDEO_HEVC_HIER_QP	(V4L2_CID_MPEG_BASE + 517)
+> +#define V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_TYPE (V4L2_CID_MPEG_BASE + 518)
+> +enum v4l2_mpeg_video_hevc_hier_coding_type {
+> +	V4L2_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_B	= 0,
+> +	V4L2_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_P	= 1,
+> +};
+> +#define V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_LAYER	(V4L2_CID_MPEG_BASE + 519)
+> +#define V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L0_QP	(V4L2_CID_MPEG_BASE + 520)
+> +#define V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L1_QP	(V4L2_CID_MPEG_BASE + 521)
+> +#define V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L2_QP	(V4L2_CID_MPEG_BASE + 522)
+> +#define V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L3_QP	(V4L2_CID_MPEG_BASE + 523)
+> +#define V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L4_QP	(V4L2_CID_MPEG_BASE + 524)
+> +#define V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L5_QP	(V4L2_CID_MPEG_BASE + 525)
+> +#define V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L6_QP	(V4L2_CID_MPEG_BASE + 526)
+> +#define V4L2_CID_MPEG_VIDEO_HEVC_PROFILE	(V4L2_CID_MPEG_BASE + 527)
+> +enum v4l2_mpeg_video_hevc_profile {
+> +	V4L2_MPEG_VIDEO_HEVC_PROFILE_MAIN = 0,
+> +	V4L2_MPEG_VIDEO_HEVC_PROFILE_MAIN_STILL_PICTURE = 1,
+> +};
+> +#define V4L2_CID_MPEG_VIDEO_HEVC_LEVEL		(V4L2_CID_MPEG_BASE + 528)
+> +enum v4l2_mpeg_video_hevc_level {
+> +	V4L2_MPEG_VIDEO_HEVC_LEVEL_1	= 0,
+> +	V4L2_MPEG_VIDEO_HEVC_LEVEL_2	= 1,
+> +	V4L2_MPEG_VIDEO_HEVC_LEVEL_2_1	= 2,
+> +	V4L2_MPEG_VIDEO_HEVC_LEVEL_3	= 3,
+> +	V4L2_MPEG_VIDEO_HEVC_LEVEL_3_1	= 4,
+> +	V4L2_MPEG_VIDEO_HEVC_LEVEL_4	= 5,
+> +	V4L2_MPEG_VIDEO_HEVC_LEVEL_4_1	= 6,
+> +	V4L2_MPEG_VIDEO_HEVC_LEVEL_5	= 7,
+> +	V4L2_MPEG_VIDEO_HEVC_LEVEL_5_1	= 8,
+> +	V4L2_MPEG_VIDEO_HEVC_LEVEL_5_2	= 9,
+> +	V4L2_MPEG_VIDEO_HEVC_LEVEL_6	= 10,
+> +	V4L2_MPEG_VIDEO_HEVC_LEVEL_6_1	= 11,
+> +	V4L2_MPEG_VIDEO_HEVC_LEVEL_6_2	= 12,
+> +};
+> +#define V4L2_CID_MPEG_VIDEO_HEVC_FRAME_RATE_RESOLUTION	(V4L2_CID_MPEG_BASE + 529)
+> +#define V4L2_CID_MPEG_VIDEO_HEVC_TIER_FLAG		(V4L2_CID_MPEG_BASE + 530)
+> +enum v4l2_mpeg_video_hevc_tier_flag {
+> +	V4L2_MPEG_VIDEO_HEVC_TIER_MAIN = 0,
+> +	V4L2_MPEG_VIDEO_HEVC_TIER_HIGH = 1,
+> +};
+> +#define V4L2_CID_MPEG_VIDEO_HEVC_MAX_PARTITION_DEPTH	(V4L2_CID_MPEG_BASE + 531)
+> +#define V4L2_CID_MPEG_VIDEO_HEVC_LOOP_FILTER_MODE	(V4L2_CID_MPEG_BASE + 532)
+> +enum v4l2_cid_mpeg_video_hevc_loop_filter_mode {
+> +	V4L2_MPEG_VIDEO_HEVC_LOOP_FILTER_MODE_DISABLED			 = 0,
+> +	V4L2_MPEG_VIDEO_HEVC_LOOP_FILTER_MODE_ENABLED			 = 1,
+> +	V4L2_MPEG_VIDEO_HEVC_LOOP_FILTER_MODE_DISABLED_AT_SLICE_BOUNDARY = 2,
+> +};
+> +#define V4L2_CID_MPEG_VIDEO_HEVC_LF_BETA_OFFSET_DIV2	(V4L2_CID_MPEG_BASE + 533)
+> +#define V4L2_CID_MPEG_VIDEO_HEVC_LF_TC_OFFSET_DIV2	(V4L2_CID_MPEG_BASE + 534)
+> +#define V4L2_CID_MPEG_VIDEO_HEVC_REFRESH_TYPE		(V4L2_CID_MPEG_BASE + 535)
+> +enum v4l2_cid_mpeg_video_hevc_refresh_type {
+> +	V4L2_MPEG_VIDEO_HEVC_REFRESH_NONE		= 0,
+> +	V4L2_MPEG_VIDEO_HEVC_REFRESH_CRA		= 1,
+> +	V4L2_MPEG_VIDEO_HEVC_REFRESH_IDR		= 2,
+> +};
+> +#define V4L2_CID_MPEG_VIDEO_HEVC_REFRESH_PERIOD		(V4L2_CID_MPEG_BASE + 536)
+> +#define V4L2_CID_MPEG_VIDEO_HEVC_LOSSLESS_CU		(V4L2_CID_MPEG_BASE + 537)
+> +#define V4L2_CID_MPEG_VIDEO_HEVC_CONST_INTRA_PRED	(V4L2_CID_MPEG_BASE + 538)
+> +#define V4L2_CID_MPEG_VIDEO_HEVC_WAVEFRONT		(V4L2_CID_MPEG_BASE + 539)
+> +#define V4L2_CID_MPEG_VIDEO_HEVC_GENERAL_PB		(V4L2_CID_MPEG_BASE + 540)
+> +#define V4L2_CID_MPEG_VIDEO_HEVC_TEMPORAL_ID		(V4L2_CID_MPEG_BASE + 541)
+> +#define V4L2_CID_MPEG_VIDEO_HEVC_STRONG_SMOOTHING	(V4L2_CID_MPEG_BASE + 542)
+> +#define V4L2_CID_MPEG_VIDEO_HEVC_MAX_NUM_MERGE_MV_MINUS1	(V4L2_CID_MPEG_BASE + 543)
+> +#define V4L2_CID_MPEG_VIDEO_HEVC_INTRA_PU_SPLIT		(V4L2_CID_MPEG_BASE + 544)
+> +#define V4L2_CID_MPEG_VIDEO_HEVC_TMV_PREDICTION		(V4L2_CID_MPEG_BASE + 545)
+> +#define V4L2_CID_MPEG_VIDEO_HEVC_WITHOUT_STARTCODE	(V4L2_CID_MPEG_BASE + 546)
+> +#define V4L2_CID_MPEG_VIDEO_HEVC_SIZE_OF_LENGTH_FIELD	(V4L2_CID_MPEG_BASE + 547)
+> +enum v4l2_cid_mpeg_video_hevc_size_of_length_field {
+> +	V4L2_MPEG_VIDEO_HEVC_SIZE_0		= 0,
+> +	V4L2_MPEG_VIDEO_HEVC_SIZE_1		= 1,
+> +	V4L2_MPEG_VIDEO_HEVC_SIZE_2		= 2,
+> +	V4L2_MPEG_VIDEO_HEVC_SIZE_4		= 3,
+> +};
+> +#define V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L0_BR	(V4L2_CID_MPEG_BASE + 548)
+> +#define V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L1_BR	(V4L2_CID_MPEG_BASE + 549)
+> +#define V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L2_BR	(V4L2_CID_MPEG_BASE + 550)
+> +#define V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L3_BR	(V4L2_CID_MPEG_BASE + 551)
+> +#define V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L4_BR	(V4L2_CID_MPEG_BASE + 552)
+> +#define V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L5_BR	(V4L2_CID_MPEG_BASE + 553)
+> +#define V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L6_BR	(V4L2_CID_MPEG_BASE + 554)
+> +#define V4L2_CID_MPEG_VIDEO_REF_NUMBER_FOR_PFRAMES	(V4L2_CID_MPEG_BASE + 555)
+> +#define V4L2_CID_MPEG_VIDEO_PREPEND_SPSPPS_TO_IDR	(V4L2_CID_MPEG_BASE + 556)
+> +
+>  /*  MPEG-class control IDs specific to the CX2341x driver as defined by V4L2 */
+>  #define V4L2_CID_MPEG_CX2341X_BASE 				(V4L2_CTRL_CLASS_MPEG | 0x1000)
+>  #define V4L2_CID_MPEG_CX2341X_VIDEO_SPATIAL_FILTER_MODE 	(V4L2_CID_MPEG_CX2341X_BASE+0)
+> @@ -656,7 +747,6 @@ enum v4l2_mpeg_mfc51_video_force_frame_type {
+>  #define V4L2_CID_MPEG_MFC51_VIDEO_H264_ADAPTIVE_RC_STATIC		(V4L2_CID_MPEG_MFC51_BASE+53)
+>  #define V4L2_CID_MPEG_MFC51_VIDEO_H264_NUM_REF_PIC_FOR_P		(V4L2_CID_MPEG_MFC51_BASE+54)
+>  
+> -
+>  /*  Camera class control IDs */
+>  
+>  #define V4L2_CID_CAMERA_CLASS_BASE 	(V4L2_CTRL_CLASS_CAMERA | 0x900)
+> 
 
 Regards,
 
