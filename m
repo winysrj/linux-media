@@ -1,78 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f67.google.com ([209.85.218.67]:34060 "EHLO
-        mail-oi0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751671AbeA3JYu (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 30 Jan 2018 04:24:50 -0500
+Received: from mga02.intel.com ([134.134.136.20]:43012 "EHLO mga02.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751030AbeAVJYR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 22 Jan 2018 04:24:17 -0500
+Date: Mon, 22 Jan 2018 11:24:14 +0200
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        andriy.shevchenko@linux.intel.com, alan@linux.intel.com
+Subject: Re: atomisp and g/s_parm
+Message-ID: <20180122092413.66mn6dcts7dixd26@paasikivi.fi.intel.com>
+References: <fdb4a3df-e7fa-9197-a64a-02be81b548bd@xs4all.nl>
+ <20180121224858.bmf32prgkqh5yht7@kekkonen.localdomain>
+ <5b344cd1-3bb5-290d-b07b-15ddbd6ef7c5@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <20180130075441.rqxzkwero6sdfak6@flea.lan>
-References: <1516695531-23349-1-git-send-email-yong.deng@magewell.com>
- <CACRpkdan52UB7HOyH1gnHWg4CDke_VQxAdq8cBgwUroibE59Ow@mail.gmail.com>
- <20180129082533.6edmqgbauo6q5dgz@flea.lan> <CACRpkdYAGwUjr2C-w5U+WuG48pZAOUcnxFjznLbdF6Lmy1uZuQ@mail.gmail.com>
- <CAK8P3a2HmPOTHAzqBnmim388pcWOE=fG50mG5HJifT=vzKOaTg@mail.gmail.com> <20180130075441.rqxzkwero6sdfak6@flea.lan>
-From: Arnd Bergmann <arnd@arndb.de>
-Date: Tue, 30 Jan 2018 10:24:48 +0100
-Message-ID: <CAK8P3a0QxQE=GM=SGPtT82=UreiqsgY6uMThvQ_woA3rjK0zjA@mail.gmail.com>
-Subject: Re: [PATCH v6 2/2] media: V3s: Add support for Allwinner CSI.
-To: Maxime Ripard <maxime.ripard@free-electrons.com>
-Cc: Linus Walleij <linus.walleij@linaro.org>,
-        Yong Deng <yong.deng@magewell.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Chen-Yu Tsai <wens@csie.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Randy Dunlap <rdunlap@infradead.org>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Yannick Fertre <yannick.fertre@st.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Rick Chang <rick.chang@mediatek.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        "open list:OPEN FIRMWARE AND FLATTENED DEVICE TREE BINDINGS"
-        <devicetree@vger.kernel.org>,
-        Linux ARM <linux-arm-kernel@lists.infradead.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        linux-sunxi <linux-sunxi@googlegroups.com>, megous@megous.com,
-        Thomas Petazzoni <thomas.petazzoni@free-electrons.com>,
-        Thierry Reding <thierry.reding@gmail.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <5b344cd1-3bb5-290d-b07b-15ddbd6ef7c5@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Jan 30, 2018 at 8:54 AM, Maxime Ripard
-<maxime.ripard@free-electrons.com> wrote:
-> On Mon, Jan 29, 2018 at 03:34:02PM +0100, Arnd Bergmann wrote:
->> On Mon, Jan 29, 2018 at 10:25 AM, Linus Walleij
->> <linus.walleij@linaro.org> wrote:
->> > On Mon, Jan 29, 2018 at 9:25 AM, Maxime Ripard
->> > <maxime.ripard@free-electrons.com> wrote:
->> >> On Sat, Jan 27, 2018 at 05:14:26PM +0100, Linus Walleij wrote:
+Hi Hans,
 
->>
->> At one point we had discussed adding a 'dma-masters' property that
->> lists all the buses on which a device can be a dma master, and
->> the respective properties of those masters (iommu, coherency,
->> offset, ...).
->>
->> IIRC at the time we decided that we could live without that complexity,
->> but perhaps we cannot.
->
-> Are you talking about this ?
-> https://elixir.free-electrons.com/linux/latest/source/Documentation/devicetree/bindings/dma/dma.txt#L41
->
-> It doesn't seem to be related to that issue to me. And in our
-> particular cases, all the devices are DMA masters, the RAM is just
-> mapped to another address.
+On Mon, Jan 22, 2018 at 10:19:13AM +0100, Hans Verkuil wrote:
+> On 21/01/18 23:48, Sakari Ailus wrote:
+> > Hi Hans,
+> > 
+> > On Sun, Jan 21, 2018 at 11:46:46AM +0100, Hans Verkuil wrote:
+> >> Hi Sakari,
+> >>
+> >> I looked a bit closer at how atomisp uses g/s_parm. They abuse the capturemode field
+> >> to select video/preview/still modes on the sensor, which actually changes the list
+> >> of supported resolutions.
+> >>
+> >> The following files use this:
+> >>
+> >> i2c/atomisp-gc0310.c
+> >> i2c/atomisp-gc2235.c
+> >> i2c/atomisp-ov2680.c
+> >> i2c/atomisp-ov2722.c
+> >> i2c/ov5693/atomisp-ov5693.c
+> >> pci/atomisp2/atomisp_file.c
+> >> pci/atomisp2/atomisp_tpg.c
+> >>
+> >> The last two have a dummy g/s_parm implementation, so are easy to fix.
+> >> The gc0310 and 0v2680 have identical resolution lists for all three modes, so
+> >> the capturemode can just be ignored and these two drivers can be simplified.
+> >>
+> >> Looking at the higher level code it turns out that this atomisp driver appears
+> >> to be in the middle of a conversion from using s_parm to a V4L2_CID_RUN_MODE
+> >> control. If the control is present, then that will be used to set the mode,
+> >> otherwise it falls back to s_parm.
+> >>
+> >> So the best solution would be if Intel can convert the remaining drivers from
+> >> using s_parm to the new control and then drop all code that uses s_parm to do
+> >> this, so g/s_parm is then only used to get/set the framerate.
+> >>
+> >> Is this something you or a colleague can take on?
+> > 
+> > I've stabbed the atomisp sensor drivers enough to remove the s_parm and
+> > g_parm usage there. This effectively removes the s_parm abuse, as there was
+> > nothing else it was being used for.
+> > 
+> > The patches are here; there are no changes to your patches in the branch
+> > you pointed me to:
+> > 
+> > <URL:https://git.linuxtv.org/sailus/media_tree.git/log/?h=sparm>
+> > 
+> > I've split dropping support for certain modes in the drivers into separate
+> > patch; it's easy to bring them back by just reverting the patch ("staging:
+> > atomisp: i2c: Disable non-preview configurations") or removing the ifdefs.
+> > I don't object merging this with the previous patch either.
+> > 
+> > What comes to the run mode control --- this logic should have always
+> > resided in user space; that control (and s_parm hack) is basically getting
+> > around lack of support for MC / V4L2 sub-device interface in the driver. So
+> > that control isn't the right solution either going forward.
+> > 
+> > Cc Andy and Alan.
+> > 
+> 
+> Looks good. Just one note: in atomisp_ioctl.c the atomisp_g_parm function still
+> abuses this API (setting capturemode) but more importantly, it never calls
+> g_frame_interval. The atomisp_s_parm function *does* call s_frame_interval.
+> 
+> So this is inconsistent. However, this was always there, so it's not something
+> that was introduced by these changes.
 
-No, that's not the one I was thinking of. The idea at the time was much
-more generic, and not limited to dma engines. I don't recall the details,
-but I think that Thierry was either involved or made the proposal at the
-time.
+There could be some value in bringing the sensor drivers as such out of
+staging, too; so implementing g_frame_interval is a good thing.
 
-       Arnd
+If you're fine with the additional patches, feel free to send to the list.
+
+-- 
+Regards,
+
+Sakari Ailus
+sakari.ailus@linux.intel.com
