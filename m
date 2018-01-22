@@ -1,95 +1,261 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx08-00178001.pphosted.com ([91.207.212.93]:20858 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S933428AbeAJPv2 (ORCPT
+Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:45549 "EHLO
+        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751149AbeAVMb3 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 10 Jan 2018 10:51:28 -0500
-From: Hugues FRUCHET <hugues.fruchet@st.com>
-To: Maxime Ripard <maxime.ripard@free-electrons.com>,
-        Yong Deng <yong.deng@magewell.com>
-CC: Steve Longerbeam <slongerbeam@gmail.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        "Mauro Carvalho Chehab" <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Subject: Re: [PATCH v5 0/5] Add OV5640 parallel interface and RGB565/YUYV
- support
-Date: Wed, 10 Jan 2018 15:51:07 +0000
-Message-ID: <2089de18-1f7f-6d6e-7aee-9dc424bca335@st.com>
-References: <1514973452-10464-1-git-send-email-hugues.fruchet@st.com>
- <20180108153811.5xrvbaekm6nxtoa6@flea>
- <3010811e-ed37-4489-6a9f-6cc835f41575@st.com>
- <20180110153724.l77zpdgxfbzkznuf@flea>
-In-Reply-To: <20180110153724.l77zpdgxfbzkznuf@flea>
-Content-Language: en-US
-Content-Type: text/plain; charset="Windows-1252"
-Content-ID: <52CC4E299894CD4FB392125D785121AE@st.com>
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+        Mon, 22 Jan 2018 07:31:29 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv2 5/9] staging: atomisp: i2c: Drop g_parm support in sensor drivers
+Date: Mon, 22 Jan 2018 13:31:21 +0100
+Message-Id: <20180122123125.24709-6-hverkuil@xs4all.nl>
+In-Reply-To: <20180122123125.24709-1-hverkuil@xs4all.nl>
+References: <20180122123125.24709-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Good news Maxime !
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-Have you seen that you can adapt the polarities through devicetree ?
+These drivers already support g_frame_interval. Therefore just dropping
+g_parm is enough.
 
-+                       /* Parallel bus endpoint */
-+                       ov5640_to_parallel: endpoint {
-[...]
-+                               hsync-active = <0>;
-+                               vsync-active = <0>;
-+                               pclk-sample = <1>;
-+                       };
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/staging/media/atomisp/i2c/atomisp-gc0310.c | 27 ----------------------
+ drivers/staging/media/atomisp/i2c/atomisp-gc2235.c | 27 ----------------------
+ drivers/staging/media/atomisp/i2c/atomisp-ov2680.c | 27 ----------------------
+ drivers/staging/media/atomisp/i2c/atomisp-ov2722.c | 27 ----------------------
+ .../media/atomisp/i2c/ov5693/atomisp-ov5693.c      | 27 ----------------------
+ 5 files changed, 135 deletions(-)
 
-Doing so you can adapt to your SoC/board setup easily.
-
-If you don't put those lines in devicetree, the ov5640 default init 
-sequence is used which set the polarity as defined in below comment:
-ov5640_set_stream_dvp()
-[...]
-+        * Control lines polarity can be configured through
-+        * devicetree endpoint control lines properties.
-+        * If no endpoint control lines properties are set,
-+        * polarity will be as below:
-+        * - VSYNC:     active high
-+        * - HREF:      active low
-+        * - PCLK:      active low
-+        */
-[...]
-
-
-Best regards,
-Hugues.
-
-On 01/10/2018 04:37 PM, Maxime Ripard wrote:
-> Hi Hugues,
-> 
-> On Mon, Jan 08, 2018 at 05:13:39PM +0000, Hugues FRUCHET wrote:
->> I'm using a ST board with OV5640 wired in parallel bus output in order
->> to interface to my STM32 DCMI parallel interface.
->> Perhaps could you describe your setup so I could help on understanding
->> the problem on your side. From my past experience with this sensor
->> module, you can first check hsync/vsync polarities, the datasheet is
->> buggy on VSYNC polarity as documented in patch 4/5.
-> 
-> It turns out that it was indeed a polarity issue.
-> 
-> It looks like that in order to operate properly, I need to setup the
-> opposite polarity on HSYNC and VSYNC on the interface. I looked at the
-> signals under a scope, and VSYNC is obviously inversed as you
-> described. HSYNC, I'm not so sure since the HBLANK period seems very
-> long, almost a line.
-> 
-> Since VSYNC at least looks correct, I'd be inclined to think that the
-> polarity is inversed on at least the SoC I'm using it on.
-> 
-> Yong, did you test the V3S CSI driver with a parallel interface? With
-> what sensor driver? Have you found some polarities issues like this?
-> 
-> Thanks!
-> Maxime
-> 
+diff --git a/drivers/staging/media/atomisp/i2c/atomisp-gc0310.c b/drivers/staging/media/atomisp/i2c/atomisp-gc0310.c
+index 572c9127c24d..93753cb96180 100644
+--- a/drivers/staging/media/atomisp/i2c/atomisp-gc0310.c
++++ b/drivers/staging/media/atomisp/i2c/atomisp-gc0310.c
+@@ -1204,32 +1204,6 @@ static int gc0310_s_config(struct v4l2_subdev *sd,
+ 	return ret;
+ }
+ 
+-static int gc0310_g_parm(struct v4l2_subdev *sd,
+-			struct v4l2_streamparm *param)
+-{
+-	struct gc0310_device *dev = to_gc0310_sensor(sd);
+-	struct i2c_client *client = v4l2_get_subdevdata(sd);
+-
+-	if (!param)
+-		return -EINVAL;
+-
+-	if (param->type != V4L2_BUF_TYPE_VIDEO_CAPTURE) {
+-		dev_err(&client->dev,  "unsupported buffer type.\n");
+-		return -EINVAL;
+-	}
+-
+-	memset(param, 0, sizeof(*param));
+-	param->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+-
+-	if (dev->fmt_idx >= 0 && dev->fmt_idx < N_RES) {
+-		param->parm.capture.capability = V4L2_CAP_TIMEPERFRAME;
+-		param->parm.capture.timeperframe.numerator = 1;
+-		param->parm.capture.timeperframe.denominator =
+-			gc0310_res[dev->fmt_idx].fps;
+-	}
+-	return 0;
+-}
+-
+ static int gc0310_g_frame_interval(struct v4l2_subdev *sd,
+ 				   struct v4l2_subdev_frame_interval *interval)
+ {
+@@ -1288,7 +1262,6 @@ static const struct v4l2_subdev_sensor_ops gc0310_sensor_ops = {
+ 
+ static const struct v4l2_subdev_video_ops gc0310_video_ops = {
+ 	.s_stream = gc0310_s_stream,
+-	.g_parm = gc0310_g_parm,
+ 	.g_frame_interval = gc0310_g_frame_interval,
+ };
+ 
+diff --git a/drivers/staging/media/atomisp/i2c/atomisp-gc2235.c b/drivers/staging/media/atomisp/i2c/atomisp-gc2235.c
+index 2bc179f3afe5..93f9c618f3d8 100644
+--- a/drivers/staging/media/atomisp/i2c/atomisp-gc2235.c
++++ b/drivers/staging/media/atomisp/i2c/atomisp-gc2235.c
+@@ -944,32 +944,6 @@ static int gc2235_s_config(struct v4l2_subdev *sd,
+ 	return ret;
+ }
+ 
+-static int gc2235_g_parm(struct v4l2_subdev *sd,
+-			struct v4l2_streamparm *param)
+-{
+-	struct gc2235_device *dev = to_gc2235_sensor(sd);
+-	struct i2c_client *client = v4l2_get_subdevdata(sd);
+-
+-	if (!param)
+-		return -EINVAL;
+-
+-	if (param->type != V4L2_BUF_TYPE_VIDEO_CAPTURE) {
+-		dev_err(&client->dev,  "unsupported buffer type.\n");
+-		return -EINVAL;
+-	}
+-
+-	memset(param, 0, sizeof(*param));
+-	param->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+-
+-	if (dev->fmt_idx >= 0 && dev->fmt_idx < N_RES) {
+-		param->parm.capture.capability = V4L2_CAP_TIMEPERFRAME;
+-		param->parm.capture.timeperframe.numerator = 1;
+-		param->parm.capture.timeperframe.denominator =
+-			gc2235_res[dev->fmt_idx].fps;
+-	}
+-	return 0;
+-}
+-
+ static int gc2235_g_frame_interval(struct v4l2_subdev *sd,
+ 				   struct v4l2_subdev_frame_interval *interval)
+ {
+@@ -1027,7 +1001,6 @@ static const struct v4l2_subdev_sensor_ops gc2235_sensor_ops = {
+ 
+ static const struct v4l2_subdev_video_ops gc2235_video_ops = {
+ 	.s_stream = gc2235_s_stream,
+-	.g_parm = gc2235_g_parm,
+ 	.g_frame_interval = gc2235_g_frame_interval,
+ };
+ 
+diff --git a/drivers/staging/media/atomisp/i2c/atomisp-ov2680.c b/drivers/staging/media/atomisp/i2c/atomisp-ov2680.c
+index e3e0fdd0c816..11412061c40e 100644
+--- a/drivers/staging/media/atomisp/i2c/atomisp-ov2680.c
++++ b/drivers/staging/media/atomisp/i2c/atomisp-ov2680.c
+@@ -1280,32 +1280,6 @@ static int ov2680_s_config(struct v4l2_subdev *sd,
+ 	return ret;
+ }
+ 
+-static int ov2680_g_parm(struct v4l2_subdev *sd,
+-			struct v4l2_streamparm *param)
+-{
+-	struct ov2680_device *dev = to_ov2680_sensor(sd);
+-	struct i2c_client *client = v4l2_get_subdevdata(sd);
+-
+-	if (!param)
+-		return -EINVAL;
+-
+-	if (param->type != V4L2_BUF_TYPE_VIDEO_CAPTURE) {
+-		dev_err(&client->dev,  "unsupported buffer type.\n");
+-		return -EINVAL;
+-	}
+-
+-	memset(param, 0, sizeof(*param));
+-	param->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+-
+-	if (dev->fmt_idx >= 0 && dev->fmt_idx < N_RES) {
+-		param->parm.capture.capability = V4L2_CAP_TIMEPERFRAME;
+-		param->parm.capture.timeperframe.numerator = 1;
+-		param->parm.capture.timeperframe.denominator =
+-			ov2680_res[dev->fmt_idx].fps;
+-	}
+-	return 0;
+-}
+-
+ static int ov2680_g_frame_interval(struct v4l2_subdev *sd,
+ 				   struct v4l2_subdev_frame_interval *interval)
+ {
+@@ -1359,7 +1333,6 @@ static int ov2680_g_skip_frames(struct v4l2_subdev *sd, u32 *frames)
+ 
+ static const struct v4l2_subdev_video_ops ov2680_video_ops = {
+ 	.s_stream = ov2680_s_stream,
+-	.g_parm = ov2680_g_parm,
+ 	.g_frame_interval = ov2680_g_frame_interval,
+ };
+ 
+diff --git a/drivers/staging/media/atomisp/i2c/atomisp-ov2722.c b/drivers/staging/media/atomisp/i2c/atomisp-ov2722.c
+index cd9f6433cd42..e59358ac89ce 100644
+--- a/drivers/staging/media/atomisp/i2c/atomisp-ov2722.c
++++ b/drivers/staging/media/atomisp/i2c/atomisp-ov2722.c
+@@ -1083,32 +1083,6 @@ static int ov2722_s_config(struct v4l2_subdev *sd,
+ 	return ret;
+ }
+ 
+-static int ov2722_g_parm(struct v4l2_subdev *sd,
+-			struct v4l2_streamparm *param)
+-{
+-	struct ov2722_device *dev = to_ov2722_sensor(sd);
+-	struct i2c_client *client = v4l2_get_subdevdata(sd);
+-
+-	if (!param)
+-		return -EINVAL;
+-
+-	if (param->type != V4L2_BUF_TYPE_VIDEO_CAPTURE) {
+-		dev_err(&client->dev,  "unsupported buffer type.\n");
+-		return -EINVAL;
+-	}
+-
+-	memset(param, 0, sizeof(*param));
+-	param->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+-
+-	if (dev->fmt_idx >= 0 && dev->fmt_idx < N_RES) {
+-		param->parm.capture.capability = V4L2_CAP_TIMEPERFRAME;
+-		param->parm.capture.timeperframe.numerator = 1;
+-		param->parm.capture.timeperframe.denominator =
+-			ov2722_res[dev->fmt_idx].fps;
+-	}
+-	return 0;
+-}
+-
+ static int ov2722_g_frame_interval(struct v4l2_subdev *sd,
+ 				   struct v4l2_subdev_frame_interval *interval)
+ {
+@@ -1167,7 +1141,6 @@ static const struct v4l2_subdev_sensor_ops ov2722_sensor_ops = {
+ 
+ static const struct v4l2_subdev_video_ops ov2722_video_ops = {
+ 	.s_stream = ov2722_s_stream,
+-	.g_parm = ov2722_g_parm,
+ 	.g_frame_interval = ov2722_g_frame_interval,
+ };
+ 
+diff --git a/drivers/staging/media/atomisp/i2c/ov5693/atomisp-ov5693.c b/drivers/staging/media/atomisp/i2c/ov5693/atomisp-ov5693.c
+index 7f594c7de76e..56f3cd0d8c23 100644
+--- a/drivers/staging/media/atomisp/i2c/ov5693/atomisp-ov5693.c
++++ b/drivers/staging/media/atomisp/i2c/ov5693/atomisp-ov5693.c
+@@ -1805,32 +1805,6 @@ static int ov5693_s_config(struct v4l2_subdev *sd,
+ 	return ret;
+ }
+ 
+-static int ov5693_g_parm(struct v4l2_subdev *sd,
+-			struct v4l2_streamparm *param)
+-{
+-	struct ov5693_device *dev = to_ov5693_sensor(sd);
+-	struct i2c_client *client = v4l2_get_subdevdata(sd);
+-
+-	if (!param)
+-		return -EINVAL;
+-
+-	if (param->type != V4L2_BUF_TYPE_VIDEO_CAPTURE) {
+-		dev_err(&client->dev,  "unsupported buffer type.\n");
+-		return -EINVAL;
+-	}
+-
+-	memset(param, 0, sizeof(*param));
+-	param->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+-
+-	if (dev->fmt_idx >= 0 && dev->fmt_idx < N_RES) {
+-		param->parm.capture.capability = V4L2_CAP_TIMEPERFRAME;
+-		param->parm.capture.timeperframe.numerator = 1;
+-		param->parm.capture.timeperframe.denominator =
+-			ov5693_res[dev->fmt_idx].fps;
+-	}
+-	return 0;
+-}
+-
+ static int ov5693_g_frame_interval(struct v4l2_subdev *sd,
+ 				   struct v4l2_subdev_frame_interval *interval)
+ {
+@@ -1873,7 +1847,6 @@ static int ov5693_enum_frame_size(struct v4l2_subdev *sd,
+ 
+ static const struct v4l2_subdev_video_ops ov5693_video_ops = {
+ 	.s_stream = ov5693_s_stream,
+-	.g_parm = ov5693_g_parm,
+ 	.g_frame_interval = ov5693_g_frame_interval,
+ };
+ 
+-- 
+2.15.1
