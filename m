@@ -1,99 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from esa5.microchip.iphmx.com ([216.71.150.166]:26824 "EHLO
-        esa5.microchip.iphmx.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932754AbeAJBwa (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 9 Jan 2018 20:52:30 -0500
-Subject: Re: [PATCH 1/2] MAINTAINERS: linux-media: update Microchip ISI and
- ISC entries
-To: Nicolas Ferre <nicolas.ferre@microchip.com>,
-        <linux-arm-kernel@lists.infradead.org>,
-        <linux-kernel@vger.kernel.org>,
-        Ludovic Desroches <ludovic.desroches@microchip.com>,
-        Boris BREZILLON <boris.brezillon@free-electrons.com>
-CC: <linux-media@vger.kernel.org>,
-        Alexandre Belloni <alexandre.belloni@free-electrons.com>,
-        <linux-mtd@lists.infradead.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Josh Wu <rainyfeeling@outlook.com>
-References: <eb6b3cbe8e48faee7e88eca0649e42cbde91ffa6.1515503733.git.nicolas.ferre@microchip.com>
-From: "Yang, Wenyou" <Wenyou.Yang@Microchip.com>
-Message-ID: <066d1016-51f6-75d5-c68c-00029b49b9c9@Microchip.com>
-Date: Wed, 10 Jan 2018 09:52:25 +0800
-MIME-Version: 1.0
-In-Reply-To: <eb6b3cbe8e48faee7e88eca0649e42cbde91ffa6.1515503733.git.nicolas.ferre@microchip.com>
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-Content-Language: en-US
+Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:34966 "EHLO
+        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751099AbeAVKTA (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 22 Jan 2018 05:19:00 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        Hans Verkuil <hansverk@cisco.com>
+Subject: [PATCH 8/9] v4l2-subdev.h: remove obsolete g/s_parm
+Date: Mon, 22 Jan 2018 11:18:56 +0100
+Message-Id: <20180122101857.51401-9-hverkuil@xs4all.nl>
+In-Reply-To: <20180122101857.51401-1-hverkuil@xs4all.nl>
+References: <20180122101857.51401-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: Hans Verkuil <hansverk@cisco.com>
 
+Signed-off-by: Hans Verkuil <hansverk@cisco.com>
+---
+ include/media/v4l2-subdev.h | 6 ------
+ 1 file changed, 6 deletions(-)
 
-On 2018/1/9 21:46, Nicolas Ferre wrote:
-> These two image capture interface drivers are now handled
-> by Wenyou Yang.
-> I benefit from this change to update the two entries by correcting the
-> binding documentation link for ISC and moving the ISI to the new
-> MICROCHIP / ATMEL location.
->
-> Signed-off-by: Nicolas Ferre <nicolas.ferre@microchip.com>
-Acked-by: Wenyou Yang <wenyou.yang@microchip.com>
-> ---
-> Hi,
->
-> Patch against next-20180109.
-> Note that I didn't find it useful to have several patches for these changes.
-> Tell me if you feel differently.
->
-> I would like to have the Ack from Ludovic and Wenyou obviously. I don't know if
-> Songjun can answer as he's not with Microchip anymore.
->
-> Best regards,
->    Nicolas
->
->   MAINTAINERS | 19 ++++++++++---------
->   1 file changed, 10 insertions(+), 9 deletions(-)
->
-> diff --git a/MAINTAINERS b/MAINTAINERS
-> index a7d10a2bb980..65c4b59b582f 100644
-> --- a/MAINTAINERS
-> +++ b/MAINTAINERS
-> @@ -2353,13 +2353,6 @@ L:	linux-i2c@vger.kernel.org
->   S:	Supported
->   F:	drivers/i2c/busses/i2c-at91.c
->   
-> -ATMEL ISI DRIVER
-> -M:	Ludovic Desroches <ludovic.desroches@microchip.com>
-> -L:	linux-media@vger.kernel.org
-> -S:	Supported
-> -F:	drivers/media/platform/atmel/atmel-isi.c
-> -F:	include/media/atmel-isi.h
-> -
->   ATMEL LCDFB DRIVER
->   M:	Nicolas Ferre <nicolas.ferre@microchip.com>
->   L:	linux-fbdev@vger.kernel.org
-> @@ -9102,12 +9095,20 @@ S:	Maintained
->   F:	drivers/crypto/atmel-ecc.*
->   
->   MICROCHIP / ATMEL ISC DRIVER
-> -M:	Songjun Wu <songjun.wu@microchip.com>
-> +M:	Wenyou Yang <wenyou.yang@microchip.com>
->   L:	linux-media@vger.kernel.org
->   S:	Supported
->   F:	drivers/media/platform/atmel/atmel-isc.c
->   F:	drivers/media/platform/atmel/atmel-isc-regs.h
-> -F:	devicetree/bindings/media/atmel-isc.txt
-> +F:	Documentation/devicetree/bindings/media/atmel-isc.txt
-> +
-> +MICROCHIP / ATMEL ISI DRIVER
-> +M:	Wenyou Yang <wenyou.yang@microchip.com>
-> +L:	linux-media@vger.kernel.org
-> +S:	Supported
-> +F:	drivers/media/platform/atmel/atmel-isi.c
-> +F:	include/media/atmel-isi.h
-> +F:	Documentation/devicetree/bindings/media/atmel-isi.txt
->   
->   MICROCHIP KSZ SERIES ETHERNET SWITCH DRIVER
->   M:	Woojung Huh <Woojung.Huh@microchip.com>
-Best Regards,
-Wenyou Yang
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index 980a86c08fce..457917e9237f 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -393,10 +393,6 @@ struct v4l2_mbus_frame_desc {
+  *
+  * @g_pixelaspect: callback to return the pixelaspect ratio.
+  *
+- * @g_parm: callback for VIDIOC_G_PARM() ioctl handler code.
+- *
+- * @s_parm: callback for VIDIOC_S_PARM() ioctl handler code.
+- *
+  * @g_frame_interval: callback for VIDIOC_SUBDEV_G_FRAME_INTERVAL()
+  *		      ioctl handler code.
+  *
+@@ -434,8 +430,6 @@ struct v4l2_subdev_video_ops {
+ 	int (*g_input_status)(struct v4l2_subdev *sd, u32 *status);
+ 	int (*s_stream)(struct v4l2_subdev *sd, int enable);
+ 	int (*g_pixelaspect)(struct v4l2_subdev *sd, struct v4l2_fract *aspect);
+-	int (*g_parm)(struct v4l2_subdev *sd, struct v4l2_streamparm *param);
+-	int (*s_parm)(struct v4l2_subdev *sd, struct v4l2_streamparm *param);
+ 	int (*g_frame_interval)(struct v4l2_subdev *sd,
+ 				struct v4l2_subdev_frame_interval *interval);
+ 	int (*s_frame_interval)(struct v4l2_subdev *sd,
+-- 
+2.15.1
