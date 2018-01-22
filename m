@@ -1,67 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx2.suse.de ([195.135.220.15]:38679 "EHLO mx2.suse.de"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1757769AbeAHO0A (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 8 Jan 2018 09:26:00 -0500
-From: Oliver Neukum <oneukum@suse.com>
-To: khoroshilov@ispras.ru, linux-kernel@vger.kernel.org,
-        linux-media@vger.kernel.org, mchehab@s-opensource.com
-Cc: Oliver Neukum <oneukum@suse.com>, stable@vger.kernel.org
-Subject: [PATCH] media: usbtv: prevent double free in error case
-Date: Mon,  8 Jan 2018 15:21:07 +0100
-Message-Id: <20180108142107.29045-1-oneukum@suse.com>
+Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:56302 "EHLO
+        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751041AbeAVKTA (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 22 Jan 2018 05:19:00 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 4/9] staging: atomisp: i2c: Disable non-preview configurations
+Date: Mon, 22 Jan 2018 11:18:52 +0100
+Message-Id: <20180122101857.51401-5-hverkuil@xs4all.nl>
+In-Reply-To: <20180122101857.51401-1-hverkuil@xs4all.nl>
+References: <20180122101857.51401-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Quoting the original report:
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-It looks like there is a double-free vulnerability in Linux usbtv driver on an error path of usbtv_probe function. When audio registration fails, usbtv_video_free function ends up freeing usbtv data structure, which gets freed the second time under usbtv_video_fail label.
+Disable configurations for non-preview modes until configuration selection
+is improved.
 
-usbtv_audio_fail:
-
-        usbtv_video_free(usbtv); =>
-
-           v4l2_device_put(&usbtv->v4l2_dev);
-
-              => v4l2_device_put
-
-                  => kref_put
-
-                      => v4l2_device_release
-
-  => usbtv_release (CALLBACK)
-
-                             => kfree(usbtv) (1st time)
-
-usbtv_video_fail:
-
-        usb_set_intfdata(intf, NULL);
-
-        usb_put_dev(usbtv->udev);
-
-        kfree(usbtv); (2nd time)
-
-So, as we have refcounting, use it
-
-Reported-by: Yavuz, Tuba <tuba@ece.ufl.edu>
-Signed-off-by: Oliver Neukum <oneukum@suse.com>
-CC: stable@vger.kernel.org
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/usb/usbtv/usbtv-core.c | 2 ++
- 1 file changed, 2 insertions(+)
+ drivers/staging/media/atomisp/i2c/gc2235.h        | 2 ++
+ drivers/staging/media/atomisp/i2c/ov2722.h        | 2 ++
+ drivers/staging/media/atomisp/i2c/ov5693/ov5693.h | 2 ++
+ 3 files changed, 6 insertions(+)
 
-diff --git a/drivers/media/usb/usbtv/usbtv-core.c b/drivers/media/usb/usbtv/usbtv-core.c
-index 127f8a0c098b..0c2e628e8723 100644
---- a/drivers/media/usb/usbtv/usbtv-core.c
-+++ b/drivers/media/usb/usbtv/usbtv-core.c
-@@ -112,6 +112,8 @@ static int usbtv_probe(struct usb_interface *intf,
- 	return 0;
+diff --git a/drivers/staging/media/atomisp/i2c/gc2235.h b/drivers/staging/media/atomisp/i2c/gc2235.h
+index 45a54fea5466..817c0068c1d3 100644
+--- a/drivers/staging/media/atomisp/i2c/gc2235.h
++++ b/drivers/staging/media/atomisp/i2c/gc2235.h
+@@ -574,6 +574,7 @@ static struct gc2235_resolution gc2235_res_preview[] = {
+ };
+ #define N_RES_PREVIEW (ARRAY_SIZE(gc2235_res_preview))
  
- usbtv_audio_fail:
-+	/* we must not free at this point */
-+	usb_get_dev(usbtv->udev);
- 	usbtv_video_free(usbtv);
++#if 0 /* Disable non-previes configurations for now */
+ static struct gc2235_resolution gc2235_res_still[] = {
+ 	{
+ 		.desc = "gc2235_1600_900_30fps",
+@@ -658,6 +659,7 @@ static struct gc2235_resolution gc2235_res_video[] = {
  
- usbtv_video_fail:
+ };
+ #define N_RES_VIDEO (ARRAY_SIZE(gc2235_res_video))
++#endif
+ 
+ static struct gc2235_resolution *gc2235_res = gc2235_res_preview;
+ static unsigned long N_RES = N_RES_PREVIEW;
+diff --git a/drivers/staging/media/atomisp/i2c/ov2722.h b/drivers/staging/media/atomisp/i2c/ov2722.h
+index d8a973d71699..f133439adfd5 100644
+--- a/drivers/staging/media/atomisp/i2c/ov2722.h
++++ b/drivers/staging/media/atomisp/i2c/ov2722.h
+@@ -1148,6 +1148,7 @@ struct ov2722_resolution ov2722_res_preview[] = {
+ };
+ #define N_RES_PREVIEW (ARRAY_SIZE(ov2722_res_preview))
+ 
++#if 0 /* Disable non-previes configurations for now */
+ struct ov2722_resolution ov2722_res_still[] = {
+ 	{
+ 		.desc = "ov2722_480P_30fps",
+@@ -1250,6 +1251,7 @@ struct ov2722_resolution ov2722_res_video[] = {
+ 	},
+ };
+ #define N_RES_VIDEO (ARRAY_SIZE(ov2722_res_video))
++#endif
+ 
+ static struct ov2722_resolution *ov2722_res = ov2722_res_preview;
+ static unsigned long N_RES = N_RES_PREVIEW;
+diff --git a/drivers/staging/media/atomisp/i2c/ov5693/ov5693.h b/drivers/staging/media/atomisp/i2c/ov5693/ov5693.h
+index 68cfcb4a6c3c..15a33dcd2d59 100644
+--- a/drivers/staging/media/atomisp/i2c/ov5693/ov5693.h
++++ b/drivers/staging/media/atomisp/i2c/ov5693/ov5693.h
+@@ -1147,6 +1147,7 @@ struct ov5693_resolution ov5693_res_preview[] = {
+ };
+ #define N_RES_PREVIEW (ARRAY_SIZE(ov5693_res_preview))
+ 
++#if 0 /* Disable non-previes configurations for now */
+ struct ov5693_resolution ov5693_res_still[] = {
+ 	{
+ 		.desc = "ov5693_736x496_30fps",
+@@ -1364,6 +1365,7 @@ struct ov5693_resolution ov5693_res_video[] = {
+ 	},
+ };
+ #define N_RES_VIDEO (ARRAY_SIZE(ov5693_res_video))
++#endif
+ 
+ static struct ov5693_resolution *ov5693_res = ov5693_res_preview;
+ static unsigned long N_RES = N_RES_PREVIEW;
 -- 
-2.13.6
+2.15.1
