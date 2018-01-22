@@ -1,303 +1,494 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay3-d.mail.gandi.net ([217.70.183.195]:38934 "EHLO
-        relay3-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750959AbeA3JsI (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 30 Jan 2018 04:48:08 -0500
-Date: Tue, 30 Jan 2018 10:47:51 +0100
-From: jacopo mondi <jacopo@jmondi.org>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>, magnus.damm@gmail.com,
-        geert@glider.be, hverkuil@xs4all.nl, mchehab@kernel.org,
-        festevam@gmail.com, sakari.ailus@iki.fi, robh+dt@kernel.org,
-        mark.rutland@arm.com, pombredanne@nexb.com,
-        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-sh@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v7 07/11] media: i2c: ov772x: Support frame interval
- handling
-Message-ID: <20180130092808.GA11063@w540>
-References: <1516974930-11713-1-git-send-email-jacopo+renesas@jmondi.org>
- <1516974930-11713-8-git-send-email-jacopo+renesas@jmondi.org>
- <1735356.2kmgrjUaxx@avalon>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <1735356.2kmgrjUaxx@avalon>
+Received: from mga05.intel.com ([192.55.52.43]:22101 "EHLO mga05.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751112AbeAVQWe (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 22 Jan 2018 11:22:34 -0500
+From: Andy Yeh <andy.yeh@intel.com>
+To: linux-media@vger.kernel.org
+Cc: andy.yeh@intel.com, sakari.ailus@linux.intel.com,
+        tfiga@chromium.org
+Subject: [PATCH] media: dw9807: Add dw9807 vcm driver
+Date: Tue, 23 Jan 2018 00:24:57 +0800
+Message-Id: <1516638297-21989-1-git-send-email-andy.yeh@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+DW9807 is a 10 bit DAC from Dongwoon, designed for linear
+control of voice coil motor.
 
-On Mon, Jan 29, 2018 at 01:01:01PM +0200, Laurent Pinchart wrote:
-> Hi Jacopo,
->
-> Thank you for the patch.
->
-> On Friday, 26 January 2018 15:55:26 EET Jacopo Mondi wrote:
-> > Add support to ov772x driver for frame intervals handling and enumeration.
-> > Tested with 10MHz and 24MHz input clock at VGA and QVGA resolutions for
-> > 10, 15 and 30 frame per second rates.
-> >
-> > Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
-> > ---
-> > drivers/media/i2c/ov772x.c | 315 +++++++++++++++++++++++++++++++++++++++++-
-> > 1 file changed, 310 insertions(+), 5 deletions(-)
-> >
-> > diff --git a/drivers/media/i2c/ov772x.c b/drivers/media/i2c/ov772x.c
-> > index 912b1b9..6d46748 100644
-> > --- a/drivers/media/i2c/ov772x.c
-> > +++ b/drivers/media/i2c/ov772x.c
-> > @@ -250,6 +250,7 @@
-> >  #define AEC_1p2         0x10	/*  01: 1/2  window */
-> >  #define AEC_1p4         0x20	/*  10: 1/4  window */
-> >  #define AEC_2p3         0x30	/*  11: Low 2/3 window */
-> > +#define COM4_RESERVED   0x01	/* Reserved value */
->
-> I'd write "Reserved bits", "Reserved value" makes it sound like it's the value
-> of the full register.
->
+This driver creates a V4L2 subdevice and
+provides control to set the desired focus.
 
-Ack
+Signed-off-by: Andy Yeh <andy.yeh@intel.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+ .../bindings/media/i2c/dongwoon,dw9807.txt         |   9 +
+ MAINTAINERS                                        |   7 +
+ drivers/media/i2c/Kconfig                          |  10 +
+ drivers/media/i2c/Makefile                         |   1 +
+ drivers/media/i2c/dw9807.c                         | 387 +++++++++++++++++++++
+ 5 files changed, 414 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/dongwoon,dw9807.txt
+ create mode 100644 drivers/media/i2c/dw9807.c
 
-> >  /* COM5 */
-> >  #define AFR_ON_OFF      0x80	/* Auto frame rate control ON/OFF selection
-> */
-> > @@ -267,6 +268,19 @@
-> >  				/* AEC max step control */
-> >  #define AEC_NO_LIMIT    0x01	/*   0 : AEC incease step has limit */
-> >  				/*   1 : No limit to AEC increase step */
-> > +/* CLKRC */
-> > +				/* Input clock divider register */
-> > +#define CLKRC_RESERVED  0x80	/* Reserved value */
-> > +#define CLKRC_BYPASS    0x40	/* Bypass input clock divider */
-> > +#define CLKRC_DIV2      0x01	/* Divide input clock by 2 */
-> > +#define CLKRC_DIV3      0x02	/* Divide input clock by 3 */
-> > +#define CLKRC_DIV4      0x03	/* Divide input clock by 4 */
-> > +#define CLKRC_DIV5      0x04	/* Divide input clock by 5 */
-> > +#define CLKRC_DIV6      0x05	/* Divide input clock by 6 */
-> > +#define CLKRC_DIV8      0x07	/* Divide input clock by 8 */
-> > +#define CLKRC_DIV10     0x09	/* Divide input clock by 10 */
-> > +#define CLKRC_DIV16     0x0f	/* Divide input clock by 16 */
-> > +#define CLKRC_DIV20     0x13	/* Divide input clock by 20 */
->
-> How about just
->
-> #define CLKRC_DIV(n)		((n) - 1)
->
-
-Ack again,
-
-> >  /* COM7 */
-> >  				/* SCCB Register Reset */
-> > @@ -373,6 +387,12 @@
-> >  #define VERSION(pid, ver) ((pid<<8)|(ver&0xFF))
-> >
-> >  /*
-> > + * Input clock frequencies
-> > + */
-> > +enum { OV772X_FIN_10MHz, OV772X_FIN_24MHz, OV772X_FIN_48MHz, OV772X_FIN_N,
-> > };
-> > +static unsigned int ov772x_fin_vals[] = { 10000000, 24000000, 48000000
-> > };
-> > +
-> > +/*
-> >   * struct
-> >   */
-> >
-> > @@ -391,6 +411,16 @@ struct ov772x_win_size {
-> >  	struct v4l2_rect	  rect;
-> >  };
-> >
-> > +struct ov772x_pclk_config {
-> > +	u8 com4;
-> > +	u8 clkrc;
-> > +};
-> > +
-> > +struct ov772x_frame_rate {
-> > +	unsigned int fps;
-> > +	const struct ov772x_pclk_config pclk[OV772X_FIN_N];
-> > +};
-> > +
-> >  struct ov772x_priv {
-> >  	struct v4l2_subdev                subdev;
-> >  	struct v4l2_ctrl_handler	  hdl;
-> > @@ -404,6 +434,7 @@ struct ov772x_priv {
-> >  	unsigned short                    flag_hflip:1;
-> >  	/* band_filter = COM8[5] ? 256 - BDBASE : 0 */
-> >  	unsigned short                    band_filter;
-> > +	unsigned int			  fps;
-> >  };
-> >
-> >  /*
-> > @@ -508,6 +539,154 @@ static const struct ov772x_win_size ov772x_win_sizes[]
-> > = { };
-> >
-> >  /*
-> > + * frame rate settings lists
-> > + */
-> > +unsigned int ov772x_frame_intervals[] = {10, 15, 30, 60};
-> > +#define OV772X_N_FRAME_INTERVALS ARRAY_SIZE(ov772x_frame_intervals)
-> > +
-> > +static const struct ov772x_frame_rate vga_frame_rates[] = {
-> > +	{	/* PCLK = 7,5 MHz */
-> > +		.fps		= 10,
-> > +		.pclk = {
-> > +			[OV772X_FIN_10MHz] = {
-> > +				.com4	= PLL_6x | COM4_RESERVED,
-> > +				.clkrc	= CLKRC_DIV8 | CLKRC_RESERVED,
-> > +			},
-> > +			[OV772X_FIN_24MHz] = {
-> > +				.com4	= PLL_BYPASS | COM4_RESERVED,
-> > +				.clkrc	= CLKRC_DIV3 | CLKRC_RESERVED,
-> > +			},
-> > +			[OV772X_FIN_48MHz] = {
-> > +				.com4	= PLL_BYPASS | COM4_RESERVED,
-> > +				.clkrc	= CLKRC_DIV6 | CLKRC_RESERVED,
-> > +			},
-> > +		},
-> > +	},
-> > +	{	/* PCLK = 12 MHz */
-> > +		.fps		= 15,
-> > +		.pclk = {
-> > +			[OV772X_FIN_10MHz]	= {
-> > +				.com4	= PLL_4x | COM4_RESERVED,
-> > +				.clkrc	= CLKRC_DIV3 | CLKRC_RESERVED,
-> > +			},
-> > +			[OV772X_FIN_24MHz]	= {
-> > +				.com4	= PLL_BYPASS | COM4_RESERVED,
-> > +				.clkrc	= CLKRC_DIV2 | CLKRC_RESERVED,
-> > +			},
-> > +			[OV772X_FIN_48MHz]	= {
-> > +				.com4	= PLL_BYPASS | COM4_RESERVED,
-> > +				.clkrc	= CLKRC_DIV4 | CLKRC_RESERVED,
-> > +			},
-> > +		},
-> > +	},
-> > +	{	/* PCLK = 24 MHz */
-> > +		.fps		= 30,
-> > +		.pclk = {
-> > +			[OV772X_FIN_10MHz]	= {
-> > +				.com4	= PLL_8x | COM4_RESERVED,
-> > +				.clkrc	= CLKRC_DIV3 | CLKRC_RESERVED,
-> > +			},
-> > +			[OV772X_FIN_24MHz]	= {
-> > +				.com4	= PLL_BYPASS | COM4_RESERVED,
-> > +				.clkrc	= CLKRC_BYPASS | CLKRC_RESERVED,
-> > +			},
-> > +			[OV772X_FIN_48MHz]	= {
-> > +				.com4	= PLL_BYPASS | COM4_RESERVED,
-> > +				.clkrc	= CLKRC_DIV2 | CLKRC_RESERVED,
-> > +			},
-> > +		},
-> > +	},
-> > +	{	/* PCLK = 48 MHz */
-> > +		.fps		= 60,
-> > +		.pclk = {
-> > +			[OV772X_FIN_10MHz]	= {
-> > +				.com4	= PLL_8x | COM4_RESERVED,
-> > +				.clkrc	= CLKRC_DIV2 | CLKRC_RESERVED,
-> > +			},
-> > +			[OV772X_FIN_24MHz]	= {
-> > +				.com4	= PLL_4x | COM4_RESERVED,
-> > +				.clkrc	= CLKRC_DIV2 | CLKRC_RESERVED,
-> > +			},
-> > +			[OV772X_FIN_48MHz]	= {
-> > +				.com4	= PLL_BYPASS | COM4_RESERVED,
-> > +				.clkrc	= CLKRC_BYPASS | CLKRC_RESERVED,
-> > +			},
-> > +		},
-> > +	},
-> > +};
-> > +
-> > +static const struct ov772x_frame_rate qvga_frame_rates[] = {
-> > +	{	/* PCLK = 3,2 MHz */
-> > +		.fps		= 10,
-> > +		.pclk = {
-> > +			[OV772X_FIN_10MHz] = {
-> > +				.com4	= PLL_6x | COM4_RESERVED,
-> > +				.clkrc	= CLKRC_DIV16 | CLKRC_RESERVED,
-> > +			},
-> > +			[OV772X_FIN_24MHz] = {
-> > +				.com4	= PLL_BYPASS | COM4_RESERVED,
-> > +				.clkrc	= CLKRC_DIV8 | CLKRC_RESERVED,
-> > +			},
-> > +			[OV772X_FIN_48MHz] = {
-> > +				.com4	= PLL_BYPASS | COM4_RESERVED,
-> > +				.clkrc	= CLKRC_DIV16 | CLKRC_RESERVED,
-> > +			},
-> > +		},
-> > +	},
-> > +	{	/* PCLK = 4,8 MHz */
-> > +		.fps		= 15,
-> > +		.pclk = {
-> > +			[OV772X_FIN_10MHz]	= {
-> > +				.com4	= PLL_BYPASS | COM4_RESERVED,
-> > +				.clkrc	= CLKRC_DIV2 | CLKRC_RESERVED,
-> > +			},
-> > +			[OV772X_FIN_24MHz]	= {
-> > +				.com4	= PLL_BYPASS | COM4_RESERVED,
-> > +				.clkrc	= CLKRC_DIV5 | CLKRC_RESERVED,
-> > +			},
-> > +			[OV772X_FIN_48MHz]	= {
-> > +				.com4	= PLL_BYPASS | COM4_RESERVED,
-> > +				.clkrc	= CLKRC_DIV10 | CLKRC_RESERVED,
-> > +			},
-> > +		},
-> > +	},
-> > +	{	/* PCLK = 9,6 MHz */
-> > +		.fps		= 30,
-> > +		.pclk = {
-> > +			[OV772X_FIN_10MHz]	= {
-> > +				.com4	= PLL_BYPASS | COM4_RESERVED,
-> > +				.clkrc	= CLKRC_BYPASS | CLKRC_RESERVED,
-> > +			},
-> > +			[OV772X_FIN_24MHz]	= {
-> > +				.com4	= PLL_4x | COM4_RESERVED,
-> > +				.clkrc	= CLKRC_DIV10 | CLKRC_RESERVED,
-> > +			},
-> > +			[OV772X_FIN_48MHz]	= {
-> > +				.com4	= PLL_4x | COM4_RESERVED,
-> > +				.clkrc	= CLKRC_DIV20 | CLKRC_RESERVED,
-> > +			},
-> > +		},
-> > +	},
-> > +	{	/* PCLK = 19 MHz */
-> > +		.fps		= 60,
-> > +		.pclk = {
-> > +			[OV772X_FIN_10MHz]	= {
-> > +				.com4	= PLL_4x | COM4_RESERVED,
-> > +				.clkrc	= CLKRC_DIV2 | CLKRC_RESERVED,
-> > +			},
-> > +			[OV772X_FIN_24MHz]	= {
-> > +				.com4	= PLL_6x | COM4_RESERVED,
-> > +				.clkrc	= CLKRC_DIV8 | CLKRC_RESERVED,
-> > +			},
-> > +			[OV772X_FIN_48MHz]	= {
-> > +				.com4	= PLL_6x | COM4_RESERVED,
-> > +				.clkrc	= CLKRC_DIV16 | CLKRC_RESERVED,
-> > +			},
-> > +		},
-> > +	},
-> > +};
-> > +
-> > +/*
-> >   * general function
-> >   */
->
-> I'm afraid I'll have to ask the obvious: could we replace this table with
-> dynamic computation ? You might be able to reuse the (probably badly named)
-> aptina-pll library from drivers/media/i2c/
->
-
-Mmmm, okay... I might be able to use the above mentioned library,
-but that's designed for a still simple but more complex PLL with 2
-dividers and one multiplier. I know I can model it to work on ov7720
-PLL using limits, but since I only have 4 possible PLL multipliers
-(1x, 2x, 4x, 8x) and a single divider it is simpler to test all 4 of
-them and see which one approximate the desired pixel clock.
-
-I will send v8 with this changed shortly.
-
-Thanks
-   j
+diff --git a/Documentation/devicetree/bindings/media/i2c/dongwoon,dw9807.txt b/Documentation/devicetree/bindings/media/i2c/dongwoon,dw9807.txt
+new file mode 100644
+index 0000000..1771cd0
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/i2c/dongwoon,dw9807.txt
+@@ -0,0 +1,9 @@
++Dngwoon Anatech DW9807 voice coil lens driver
++
++DW9807 is a 10-bit DAC with current sink capability. It is intended for
++controlling voice coil lenses.
++
++Mandatory properties:
++
++- compatible: "dongwoon,dw9807"
++- reg: I2C slave address
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 9c9db44..32b536b 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -4377,6 +4377,13 @@ T:	git git://linuxtv.org/media_tree.git
+ S:	Maintained
+ F:	drivers/media/i2c/dw9714.c
+ 
++DONGWOON DW9807 LENS VOICE COIL DRIVER
++M:	Sakari Ailus <sakari.ailus@linux.intel.com>
++L:	linux-media@vger.kernel.org
++T:	git git://linuxtv.org/media_tree.git
++S:	Maintained
++F:	drivers/media/i2c/dw9807.c
++
+ DOUBLETALK DRIVER
+ M:	"James R. Van Zandt" <jrv@vanzandt.mv.com>
+ L:	blinux-list@redhat.com
+diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
+index cabde37..bcd4bf1 100644
+--- a/drivers/media/i2c/Kconfig
++++ b/drivers/media/i2c/Kconfig
+@@ -325,6 +325,16 @@ config VIDEO_DW9714
+ 	  capability. This is designed for linear control of
+ 	  voice coil motors, controlled via I2C serial interface.
+ 
++config VIDEO_DW9807
++	tristate "DW9807 lens voice coil support"
++	depends on I2C && VIDEO_V4L2 && MEDIA_CONTROLLER
++	depends on VIDEO_V4L2_SUBDEV_API
++	---help---
++	  This is a driver for the DW9807 camera lens voice coil.
++	  DW9807 is a 10 bit DAC with 100mA output current sink
++	  capability. This is designed for linear control of
++	  voice coil motors, controlled via I2C serial interface.
++
+ config VIDEO_SAA7110
+ 	tristate "Philips SAA7110 video decoder"
+ 	depends on VIDEO_V4L2 && I2C
+diff --git a/drivers/media/i2c/Makefile b/drivers/media/i2c/Makefile
+index cf1e0f1..4bf7d00 100644
+--- a/drivers/media/i2c/Makefile
++++ b/drivers/media/i2c/Makefile
+@@ -23,6 +23,7 @@ obj-$(CONFIG_VIDEO_SAA7185) += saa7185.o
+ obj-$(CONFIG_VIDEO_SAA6752HS) += saa6752hs.o
+ obj-$(CONFIG_VIDEO_AD5820)  += ad5820.o
+ obj-$(CONFIG_VIDEO_DW9714)  += dw9714.o
++obj-$(CONFIG_VIDEO_DW9807)  += dw9807.o
+ obj-$(CONFIG_VIDEO_ADV7170) += adv7170.o
+ obj-$(CONFIG_VIDEO_ADV7175) += adv7175.o
+ obj-$(CONFIG_VIDEO_ADV7180) += adv7180.o
+diff --git a/drivers/media/i2c/dw9807.c b/drivers/media/i2c/dw9807.c
+new file mode 100644
+index 0000000..f068771
+--- /dev/null
++++ b/drivers/media/i2c/dw9807.c
+@@ -0,0 +1,387 @@
++/*
++ * Copyright (c) 2017 Intel Corporation.
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License version
++ * 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
++
++#include <linux/acpi.h>
++#include <linux/delay.h>
++#include <linux/i2c.h>
++#include <linux/module.h>
++#include <linux/pm_runtime.h>
++#include <media/v4l2-ctrls.h>
++#include <media/v4l2-device.h>
++
++#define DW9807_NAME		"dw9807"
++#define DW9807_MAX_FOCUS_POS	1023
++/*
++ * This sets the minimum granularity for the focus positions.
++ * A value of 1 gives maximum accuracy for a desired focus position
++ */
++#define DW9807_FOCUS_STEPS	1
++/*
++ * This acts as the minimum granularity of lens movement.
++ * Keep this value power of 2, so the control steps can be
++ * uniformly adjusted for gradual lens movement, with desired
++ * number of control steps.
++ */
++#define DW9807_CTRL_STEPS	16
++#define DW9807_CTRL_DELAY_US	1000
++
++/*
++ * DW9807 separates two registers to control the VCM position.
++ * One for MSB value, another is LSB value.
++ */
++#define DW9807_CTL_ADDR 0x02
++#define DW9807_MSB_ADDR 0x03
++#define DW9807_LSB_ADDR 0x04
++#define DW9807_STATUS_ADDR 0x05
++#define DW9807_MODE_ADDR 0x06
++#define DW9807_RESONANCE_ADDR 0x07
++
++#define MAX_RETRY 10
++
++/* dw9807 device structure */
++struct dw9807_device {
++	struct i2c_client *client;
++	struct v4l2_ctrl_handler ctrls_vcm;
++	struct v4l2_subdev sd;
++	u16 current_val;
++};
++
++static inline struct dw9807_device *to_dw9807_vcm(struct v4l2_ctrl *ctrl)
++{
++	return container_of(ctrl->handler, struct dw9807_device, ctrls_vcm);
++}
++
++static inline struct dw9807_device *sd_to_dw9807_vcm(struct v4l2_subdev *subdev)
++{
++	return container_of(subdev, struct dw9807_device, sd);
++}
++
++static int dw9807_i2c_check(struct i2c_client *client)
++{
++	int ret;
++	int status_addr = DW9807_STATUS_ADDR;
++	u8 status_result = 0x1;
++
++	ret = i2c_master_send(client, (const char *)&status_addr,
++			sizeof(status_addr));
++	if (ret != sizeof(status_addr)) {
++		dev_err(&client->dev, "I2C write STATUS address fail ret = %d\n",
++			ret);
++		return -EIO;
++	}
++
++	ret = i2c_master_recv(client, (char *)&status_result,
++			sizeof(status_result));
++	if (ret != sizeof(status_result)) {
++		dev_err(&client->dev, "I2C read STATUS value fail ret=%d\n",
++			ret);
++		return -EIO;
++	}
++
++	return status_result;
++}
++
++static int dw9807_i2c_write(struct i2c_client *client, u16 data)
++{
++	int ret;
++	u8 tx_lsb[2];
++	u8 tx_msb[2];
++	int retry = 0;
++
++	tx_lsb[0] = DW9807_LSB_ADDR;
++	tx_lsb[1] = (u8)(data & 0xFF);
++
++	tx_msb[0] = DW9807_MSB_ADDR;
++	tx_msb[1] = (u8)((data >> 8) & 0x03);
++
++	/* According to the datasheet, need to check the bus status before we */
++	/* write VCM position. This ensure that we really write the value */
++	/* into the register */
++	while (dw9807_i2c_check(client) != 0) {
++		if (MAX_RETRY == ++retry) {
++			dev_err(&client->dev, "Cannot do the write operation because VCM is busy\n");
++			return -EIO;
++		}
++		udelay(100);
++	}
++
++	/* Write MSB value to register */
++	ret = i2c_master_send(client, (const char *)&tx_msb, sizeof(tx_msb));
++	if (ret != sizeof(tx_msb)) {
++		dev_err(&client->dev, "I2C write MSB fail\n");
++		return -EIO;
++	}
++
++	retry = 0;
++	while (dw9807_i2c_check(client) != 0) {
++		if (MAX_RETRY == ++retry) {
++			dev_err(&client->dev, "Cannot do the write operation because VCM is busy\n");
++			return -EIO;
++		}
++		udelay(100);
++	}
++
++	/* Write LSB value to register */
++	ret = i2c_master_send(client, (const char *)&tx_lsb, sizeof(tx_lsb));
++	if (ret != sizeof(tx_lsb)) {
++		dev_err(&client->dev, "I2C write LSB fail\n");
++		return -EIO;
++	}
++
++	return 0;
++}
++
++static int dw9807_t_focus_vcm(struct dw9807_device *dw9807_dev, u16 val)
++{
++	struct i2c_client *client = dw9807_dev->client;
++
++	dw9807_dev->current_val = val;
++	return dw9807_i2c_write(client, val);
++}
++
++static int dw9807_set_ctrl(struct v4l2_ctrl *ctrl)
++{
++	struct dw9807_device *dev_vcm = to_dw9807_vcm(ctrl);
++
++	if (ctrl->id == V4L2_CID_FOCUS_ABSOLUTE)
++		return dw9807_t_focus_vcm(dev_vcm, ctrl->val);
++
++	return -EINVAL;
++}
++
++static const struct v4l2_ctrl_ops dw9807_vcm_ctrl_ops = {
++	.s_ctrl = dw9807_set_ctrl,
++};
++
++static int dw9807_open(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
++{
++	struct dw9807_device *dw9807_dev = sd_to_dw9807_vcm(sd);
++	struct device *dev = &dw9807_dev->client->dev;
++	int rval;
++
++	rval = pm_runtime_get_sync(dev);
++	if (rval < 0) {
++		pm_runtime_put_noidle(dev);
++		return rval;
++	}
++
++	return 0;
++}
++
++static int dw9807_close(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
++{
++	struct dw9807_device *dw9807_dev = sd_to_dw9807_vcm(sd);
++	struct device *dev = &dw9807_dev->client->dev;
++
++	pm_runtime_put(dev);
++
++	return 0;
++}
++
++static const struct v4l2_subdev_internal_ops dw9807_int_ops = {
++	.open = dw9807_open,
++	.close = dw9807_close,
++};
++
++static const struct v4l2_subdev_ops dw9807_ops = { };
++
++static void dw9807_subdev_cleanup(struct dw9807_device *dw9807_dev)
++{
++	v4l2_async_unregister_subdev(&dw9807_dev->sd);
++	v4l2_ctrl_handler_free(&dw9807_dev->ctrls_vcm);
++	media_entity_cleanup(&dw9807_dev->sd.entity);
++}
++
++static int dw9807_init_controls(struct dw9807_device *dev_vcm)
++{
++	struct v4l2_ctrl_handler *hdl = &dev_vcm->ctrls_vcm;
++	const struct v4l2_ctrl_ops *ops = &dw9807_vcm_ctrl_ops;
++	struct i2c_client *client = dev_vcm->client;
++	int ret;
++	u8 tx_data[2];
++
++	v4l2_ctrl_handler_init(hdl, 1);
++
++	v4l2_ctrl_new_std(hdl, ops, V4L2_CID_FOCUS_ABSOLUTE,
++			  0, DW9807_MAX_FOCUS_POS, DW9807_FOCUS_STEPS, 0);
++
++	dev_vcm->sd.ctrl_handler = hdl;
++	if (hdl->error) {
++		dev_err(&client->dev, "%s fail error: 0x%x\n",
++			__func__, hdl->error);
++		return hdl->error;
++	}
++
++	/* Once the v4l2 initial processes finished, performing the initial */
++	/* settings for the vcm chip */
++	/* Power down */
++	tx_data[0] = DW9807_CTL_ADDR;
++	tx_data[1] = 0x01;
++
++	ret = i2c_master_send(client, (const char *)&tx_data, sizeof(tx_data));
++
++	if (ret != sizeof(tx_data)) {
++		dev_err(&client->dev, "I2C write CTL fail\n");
++		return -EIO;
++	}
++
++	/* Power on */
++	tx_data[0] = DW9807_CTL_ADDR;
++	tx_data[1] = 0x00;
++
++	ret = i2c_master_send(client, (const char *)&tx_data, sizeof(tx_data));
++	if (ret != sizeof(tx_data)) {
++		dev_err(&client->dev, "I2C write CTL fail\n");
++		return -EIO;
++	}
++
++	udelay(100);
++	return 0;
++}
++
++static int dw9807_probe(struct i2c_client *client)
++{
++	struct dw9807_device *dw9807_dev;
++	int rval;
++
++	dw9807_dev = devm_kzalloc(&client->dev, sizeof(*dw9807_dev),
++				  GFP_KERNEL);
++	if (dw9807_dev == NULL)
++		return -ENOMEM;
++
++	dw9807_dev->client = client;
++
++	v4l2_i2c_subdev_init(&dw9807_dev->sd, client, &dw9807_ops);
++	dw9807_dev->sd.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
++	dw9807_dev->sd.internal_ops = &dw9807_int_ops;
++
++	rval = dw9807_init_controls(dw9807_dev);
++	if (rval)
++		goto err_cleanup;
++
++	rval = media_entity_init(&dw9807_dev->sd.entity, 0, NULL, 0);
++	if (rval < 0)
++		goto err_cleanup;
++
++	dw9807_dev->sd.entity.type = MEDIA_ENT_T_V4L2_SUBDEV_LENS;
++
++	rval = v4l2_async_register_subdev(&dw9807_dev->sd);
++	if (rval < 0)
++		goto err_cleanup;
++
++	pm_runtime_set_active(&client->dev);
++	pm_runtime_enable(&client->dev);
++	pm_runtime_idle(&client->dev);
++
++	return 0;
++
++err_cleanup:
++	dw9807_subdev_cleanup(dw9807_dev);
++	dev_err(&client->dev, "Probe failed: %d\n", rval);
++	return rval;
++}
++
++static int dw9807_remove(struct i2c_client *client)
++{
++	struct v4l2_subdev *sd = i2c_get_clientdata(client);
++	struct dw9807_device *dw9807_dev = sd_to_dw9807_vcm(sd);
++
++	pm_runtime_disable(&client->dev);
++	pm_runtime_set_suspended(&client->dev);
++
++	dw9807_subdev_cleanup(dw9807_dev);
++
++	return 0;
++}
++
++/*
++ * This function sets the vcm position, so it consumes least current
++ * The lens position is gradually moved in units of DW9807_CTRL_STEPS,
++ * to make the movements smoothly.
++ */
++static int __maybe_unused dw9807_vcm_suspend(struct device *dev)
++{
++	struct i2c_client *client = to_i2c_client(dev);
++	struct v4l2_subdev *sd = i2c_get_clientdata(client);
++	struct dw9807_device *dw9807_dev = sd_to_dw9807_vcm(sd);
++	int ret, val;
++
++	for (val = dw9807_dev->current_val & ~(DW9807_CTRL_STEPS - 1);
++	     val >= 0; val -= DW9807_CTRL_STEPS) {
++		ret = dw9807_i2c_write(client, val);
++		if (ret)
++			dev_err_once(dev, "%s I2C failure: %d", __func__, ret);
++		usleep_range(DW9807_CTRL_DELAY_US, DW9807_CTRL_DELAY_US + 10);
++	}
++	return 0;
++}
++
++/*
++ * This function sets the vcm position to the value set by the user
++ * through v4l2_ctrl_ops s_ctrl handler
++ * The lens position is gradually moved in units of DW9807_CTRL_STEPS,
++ * to make the movements smoothly.
++ */
++static int  __maybe_unused dw9807_vcm_resume(struct device *dev)
++{
++	struct i2c_client *client = to_i2c_client(dev);
++	struct v4l2_subdev *sd = i2c_get_clientdata(client);
++	struct dw9807_device *dw9807_dev = sd_to_dw9807_vcm(sd);
++	int ret, val;
++
++	for (val = dw9807_dev->current_val % DW9807_CTRL_STEPS;
++	     val < dw9807_dev->current_val + DW9807_CTRL_STEPS - 1;
++	     val += DW9807_CTRL_STEPS) {
++		ret = dw9807_i2c_write(client, val);
++		if (ret)
++			dev_err_ratelimited(dev, "%s I2C failure: %d",
++						__func__, ret);
++		usleep_range(DW9807_CTRL_DELAY_US, DW9807_CTRL_DELAY_US + 10);
++	}
++
++	return 0;
++}
++
++static const struct i2c_device_id dw9807_id_table[] = {
++	{DW9807_NAME, 0},
++	{}
++};
++
++MODULE_DEVICE_TABLE(i2c, dw9807_id_table);
++
++static const struct of_device_id dw9807_of_table[] = {
++	{ .compatible = "dongwoon,dw9807" },
++	{ { 0 } }
++};
++MODULE_DEVICE_TABLE(of, dw9807_of_table);
++
++static const struct dev_pm_ops dw9807_pm_ops = {
++	SET_SYSTEM_SLEEP_PM_OPS(dw9807_vcm_suspend, dw9807_vcm_resume)
++	SET_RUNTIME_PM_OPS(dw9807_vcm_suspend, dw9807_vcm_resume, NULL)
++};
++
++static struct i2c_driver dw9807_i2c_driver = {
++	.driver = {
++		.name = DW9807_NAME,
++		.pm = &dw9807_pm_ops,
++		.of_match_table = dw9807_of_table,
++	},
++	.probe_new = dw9807_probe,
++	.remove = dw9807_remove,
++	.id_table = dw9807_id_table,
++};
++
++module_i2c_driver(dw9807_i2c_driver);
++
++MODULE_DESCRIPTION("DW9807 VCM driver");
++MODULE_LICENSE("GPL v2");
+-- 
+2.7.4
