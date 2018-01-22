@@ -1,27 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.anw.at ([195.234.101.228]:40218 "EHLO mail.anw.at"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751243AbeABFLX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 2 Jan 2018 00:11:23 -0500
-Subject: Re: cron job: media_tree daily build: ERRORS
-To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-References: <152cfd2b6600921b859893dfb0d188fe@smtp-cloud8.xs4all.net>
-From: "Jasmin J." <jasmin@anw.at>
-Message-ID: <691466cd-8c3f-1f60-8328-35bbf314e502@anw.at>
-Date: Tue, 2 Jan 2018 06:11:12 +0000
-MIME-Version: 1.0
-In-Reply-To: <152cfd2b6600921b859893dfb0d188fe@smtp-cloud8.xs4all.net>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:49582 "EHLO
+        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751107AbeAVKTA (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 22 Jan 2018 05:19:00 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 9/9] vidioc-g-parm.rst: also allow _MPLANE buffer types
+Date: Mon, 22 Jan 2018 11:18:57 +0100
+Message-Id: <20180122101857.51401-10-hverkuil@xs4all.nl>
+In-Reply-To: <20180122101857.51401-1-hverkuil@xs4all.nl>
+References: <20180122101857.51401-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi!
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Maybe someone can apply:
-  https://patchwork.linuxtv.org/patch/46252/
+The specification mentions that type can be V4L2_BUF_TYPE_VIDEO_CAPTURE,
+but the v4l2 core implementation also allows the _MPLANE variant.
 
-BR,
-   Jasmin
+Document this.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ Documentation/media/uapi/v4l/vidioc-g-parm.rst | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/Documentation/media/uapi/v4l/vidioc-g-parm.rst b/Documentation/media/uapi/v4l/vidioc-g-parm.rst
+index 616a5ea3f8fa..a941526cfeb4 100644
+--- a/Documentation/media/uapi/v4l/vidioc-g-parm.rst
++++ b/Documentation/media/uapi/v4l/vidioc-g-parm.rst
+@@ -66,7 +66,7 @@ union holding separate parameters for input and output devices.
+       -
+       - The buffer (stream) type, same as struct
+ 	:c:type:`v4l2_format` ``type``, set by the
+-	application. See :c:type:`v4l2_buf_type`
++	application. See :c:type:`v4l2_buf_type`.
+     * - union
+       - ``parm``
+       -
+@@ -75,12 +75,12 @@ union holding separate parameters for input and output devices.
+       - struct :c:type:`v4l2_captureparm`
+       - ``capture``
+       - Parameters for capture devices, used when ``type`` is
+-	``V4L2_BUF_TYPE_VIDEO_CAPTURE``.
++	``V4L2_BUF_TYPE_VIDEO_CAPTURE`` or ``V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE``.
+     * -
+       - struct :c:type:`v4l2_outputparm`
+       - ``output``
+       - Parameters for output devices, used when ``type`` is
+-	``V4L2_BUF_TYPE_VIDEO_OUTPUT``.
++	``V4L2_BUF_TYPE_VIDEO_OUTPUT`` or ``V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE``.
+     * -
+       - __u8
+       - ``raw_data``\ [200]
+-- 
+2.15.1
