@@ -1,75 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f67.google.com ([74.125.83.67]:32978 "EHLO
-        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752769AbeAIOsl (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 9 Jan 2018 09:48:41 -0500
-From: Shunqian Zheng <zhengsq@rock-chips.com>
-To: mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com
-Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        ddl@rock-chips.com, tfiga@chromium.org,
-        Shunqian Zheng <zhengsq@rock-chips.com>
-Subject: [PATCH v4 1/5] dt-bindings: media: Add bindings for OV5695
-Date: Tue,  9 Jan 2018 22:48:20 +0800
-Message-Id: <1515509304-15941-2-git-send-email-zhengsq@rock-chips.com>
-In-Reply-To: <1515509304-15941-1-git-send-email-zhengsq@rock-chips.com>
-References: <1515509304-15941-1-git-send-email-zhengsq@rock-chips.com>
+Received: from mga06.intel.com ([134.134.136.31]:43062 "EHLO mga06.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751041AbeAVK0x (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 22 Jan 2018 05:26:53 -0500
+Date: Mon, 22 Jan 2018 12:26:50 +0200
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH 9/9] vidioc-g-parm.rst: also allow _MPLANE buffer types
+Message-ID: <20180122102650.xmwnxzq3vwwotduk@paasikivi.fi.intel.com>
+References: <20180122101857.51401-1-hverkuil@xs4all.nl>
+ <20180122101857.51401-10-hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20180122101857.51401-10-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add device tree binding documentation for the OV5695 sensor.
+Hi Hans,
 
-Signed-off-by: Shunqian Zheng <zhengsq@rock-chips.com>
----
- .../devicetree/bindings/media/i2c/ov5695.txt       | 41 ++++++++++++++++++++++
- 1 file changed, 41 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/i2c/ov5695.txt
+On Mon, Jan 22, 2018 at 11:18:57AM +0100, Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> The specification mentions that type can be V4L2_BUF_TYPE_VIDEO_CAPTURE,
+> but the v4l2 core implementation also allows the _MPLANE variant.
+> 
+> Document this.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  Documentation/media/uapi/v4l/vidioc-g-parm.rst | 6 +++---
+>  1 file changed, 3 insertions(+), 3 deletions(-)
+> 
+> diff --git a/Documentation/media/uapi/v4l/vidioc-g-parm.rst b/Documentation/media/uapi/v4l/vidioc-g-parm.rst
+> index 616a5ea3f8fa..a941526cfeb4 100644
+> --- a/Documentation/media/uapi/v4l/vidioc-g-parm.rst
+> +++ b/Documentation/media/uapi/v4l/vidioc-g-parm.rst
+> @@ -66,7 +66,7 @@ union holding separate parameters for input and output devices.
+>        -
+>        - The buffer (stream) type, same as struct
+>  	:c:type:`v4l2_format` ``type``, set by the
+> -	application. See :c:type:`v4l2_buf_type`
+> +	application. See :c:type:`v4l2_buf_type`.
+>      * - union
+>        - ``parm``
+>        -
+> @@ -75,12 +75,12 @@ union holding separate parameters for input and output devices.
+>        - struct :c:type:`v4l2_captureparm`
+>        - ``capture``
+>        - Parameters for capture devices, used when ``type`` is
+> -	``V4L2_BUF_TYPE_VIDEO_CAPTURE``.
+	``V4L2_BUF_TYPE_VIDEO_CAPTURE`` or ``V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE``.
 
-diff --git a/Documentation/devicetree/bindings/media/i2c/ov5695.txt b/Documentation/devicetree/bindings/media/i2c/ov5695.txt
-new file mode 100644
-index 0000000..2f2f698
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/i2c/ov5695.txt
-@@ -0,0 +1,41 @@
-+* Omnivision OV5695 MIPI CSI-2 sensor
-+
-+Required Properties:
-+- compatible: shall be "ovti,ov5695"
-+- clocks: reference to the xvclk input clock
-+- clock-names: shall be "xvclk"
-+- avdd-supply: Analog voltage supply, 2.8 volts
-+- dovdd-supply: Digital I/O voltage supply, 1.8 volts
-+- dvdd-supply: Digital core voltage supply, 1.2 volts
-+- reset-gpios: Low active reset gpio
-+
-+The device node shall contain one 'port' child node with an
-+'endpoint' subnode for its digital output video port,
-+in accordance with the video interface bindings defined in
-+Documentation/devicetree/bindings/media/video-interfaces.txt.
-+The endpoint optional property 'data-lanes' shall be "<1 2>".
-+
-+Example:
-+&i2c7 {
-+	camera-sensor: ov5695@36 {
-+		compatible = "ovti,ov5695";
-+		reg = <0x36>;
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&clk_24m_cam>;
-+
-+		clocks = <&cru SCLK_TESTCLKOUT1>;
-+		clock-names = "xvclk";
-+
-+		avdd-supply = <&pp2800_cam>;
-+		dovdd-supply = <&pp1800>;
-+		dvdd-supply = <&pp1250_cam>;
-+		reset-gpios = <&gpio2 5 GPIO_ACTIVE_LOW>;
-+
-+		port {
-+			wcam_out: endpoint {
-+				remote-endpoint = <&mipi_in_wcam>;
-+				data-lanes = <1 2>;
-+			};
-+		};
-+	};
-+};
+Wrap this one? It's over 80...
+
+>      * -
+>        - struct :c:type:`v4l2_outputparm`
+>        - ``output``
+>        - Parameters for output devices, used when ``type`` is
+> -	``V4L2_BUF_TYPE_VIDEO_OUTPUT``.
+> +	``V4L2_BUF_TYPE_VIDEO_OUTPUT`` or ``V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE``.
+>      * -
+>        - __u8
+>        - ``raw_data``\ [200]
+
 -- 
-1.9.1
+Sakari Ailus
+sakari.ailus@linux.intel.com
