@@ -1,45 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wr0-f194.google.com ([209.85.128.194]:33951 "EHLO
-        mail-wr0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752414AbeA3RrF (ORCPT
+Received: from mail-wr0-f193.google.com ([209.85.128.193]:45474 "EHLO
+        mail-wr0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751087AbeAVRNw (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 30 Jan 2018 12:47:05 -0500
-From: Philipp Rossak <embed3d@gmail.com>
-To: mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
-        maxime.ripard@free-electrons.com, wens@csie.org,
-        linux@armlinux.org.uk, sean@mess.org, p.zabel@pengutronix.de,
-        andi.shyti@samsung.com
-Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-sunxi@googlegroups.com
-Subject: [PATCH v5 6/6] arm: dts: sun8i: h3-h5: ir register size should be the whole memory block
-Date: Tue, 30 Jan 2018 18:46:56 +0100
-Message-Id: <20180130174656.10657-7-embed3d@gmail.com>
-In-Reply-To: <20180130174656.10657-1-embed3d@gmail.com>
-References: <20180130174656.10657-1-embed3d@gmail.com>
+        Mon, 22 Jan 2018 12:13:52 -0500
+Received: by mail-wr0-f193.google.com with SMTP id 16so9492241wry.12
+        for <linux-media@vger.kernel.org>; Mon, 22 Jan 2018 09:13:52 -0800 (PST)
+From: Daniel Scheller <d.scheller.oss@gmail.com>
+To: linux-media@vger.kernel.org, mchehab@kernel.org,
+        mchehab@s-opensource.com
+Cc: rascobie@slingshot.co.nz
+Subject: [PATCH v2 1/5] media: dvb_frontend: add FEC modes, S2X modulations and 64K transmission
+Date: Mon, 22 Jan 2018 18:13:42 +0100
+Message-Id: <20180122171346.822-2-d.scheller.oss@gmail.com>
+In-Reply-To: <20180122171346.822-1-d.scheller.oss@gmail.com>
+References: <20180122171346.822-1-d.scheller.oss@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The size of the register should be the size of the whole memory block,
-not just the registers, that are needed.
+From: Daniel Scheller <d.scheller@gmx.net>
 
-Signed-off-by: Philipp Rossak <embed3d@gmail.com>
+Add 1/4 and 1/3 FEC ratios, 64/128/256-APSK S2X modulations and 64K
+transmission mode. Update relevant doc items aswell.
+
+Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
 ---
- arch/arm/boot/dts/sunxi-h3-h5.dtsi | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/media/frontend.h.rst.exceptions |  6 ++++++
+ include/uapi/linux/dvb/frontend.h             | 13 +++++++++++++
+ 2 files changed, 19 insertions(+)
 
-diff --git a/arch/arm/boot/dts/sunxi-h3-h5.dtsi b/arch/arm/boot/dts/sunxi-h3-h5.dtsi
-index 7a83b15225c7..22f6e126b8df 100644
---- a/arch/arm/boot/dts/sunxi-h3-h5.dtsi
-+++ b/arch/arm/boot/dts/sunxi-h3-h5.dtsi
-@@ -712,7 +712,7 @@
- 			clock-names = "apb", "ir";
- 			resets = <&r_ccu RST_APB0_IR>;
- 			interrupts = <GIC_SPI 37 IRQ_TYPE_LEVEL_HIGH>;
--			reg = <0x01f02000 0x40>;
-+			reg = <0x01f02000 0x400>;
- 			status = "disabled";
- 		};
+diff --git a/Documentation/media/frontend.h.rst.exceptions b/Documentation/media/frontend.h.rst.exceptions
+index f7c4df620a52..ae1148be0a39 100644
+--- a/Documentation/media/frontend.h.rst.exceptions
++++ b/Documentation/media/frontend.h.rst.exceptions
+@@ -84,6 +84,9 @@ ignore symbol APSK_16
+ ignore symbol APSK_32
+ ignore symbol DQPSK
+ ignore symbol QAM_4_NR
++ignore symbol APSK_64
++ignore symbol APSK_128
++ignore symbol APSK_256
  
+ ignore symbol SEC_VOLTAGE_13
+ ignore symbol SEC_VOLTAGE_18
+@@ -117,6 +120,8 @@ ignore symbol FEC_AUTO
+ ignore symbol FEC_3_5
+ ignore symbol FEC_9_10
+ ignore symbol FEC_2_5
++ignore symbol FEC_1_4
++ignore symbol FEC_1_3
+ 
+ ignore symbol TRANSMISSION_MODE_AUTO
+ ignore symbol TRANSMISSION_MODE_1K
+@@ -129,6 +134,7 @@ ignore symbol TRANSMISSION_MODE_C1
+ ignore symbol TRANSMISSION_MODE_C3780
+ ignore symbol TRANSMISSION_MODE_2K
+ ignore symbol TRANSMISSION_MODE_8K
++ignore symbol TRANSMISSION_MODE_64K
+ 
+ ignore symbol GUARD_INTERVAL_AUTO
+ ignore symbol GUARD_INTERVAL_1_128
+diff --git a/include/uapi/linux/dvb/frontend.h b/include/uapi/linux/dvb/frontend.h
+index 4f9b4551c534..227268a657cd 100644
+--- a/include/uapi/linux/dvb/frontend.h
++++ b/include/uapi/linux/dvb/frontend.h
+@@ -296,6 +296,8 @@ enum fe_spectral_inversion {
+  * @FEC_3_5:  Forward Error Correction Code 3/5
+  * @FEC_9_10: Forward Error Correction Code 9/10
+  * @FEC_2_5:  Forward Error Correction Code 2/5
++ * @FEC_1_4:  Forward Error Correction Code 1/4
++ * @FEC_1_3:  Forward Error Correction Code 1/3
+  *
+  * Please note that not all FEC types are supported by a given standard.
+  */
+@@ -313,6 +315,8 @@ enum fe_code_rate {
+ 	FEC_3_5,
+ 	FEC_9_10,
+ 	FEC_2_5,
++	FEC_1_4,
++	FEC_1_3,
+ };
+ 
+ /**
+@@ -331,6 +335,9 @@ enum fe_code_rate {
+  * @APSK_32:	32-APSK modulation
+  * @DQPSK:	DQPSK modulation
+  * @QAM_4_NR:	4-QAM-NR modulation
++ * @APSK_64:	64-APSK modulation
++ * @APSK_128:	128-APSK modulation
++ * @APSK_256:	256-APSK modulation
+  *
+  * Please note that not all modulations are supported by a given standard.
+  *
+@@ -350,6 +357,9 @@ enum fe_modulation {
+ 	APSK_32,
+ 	DQPSK,
+ 	QAM_4_NR,
++	APSK_64,
++	APSK_128,
++	APSK_256,
+ };
+ 
+ /**
+@@ -374,6 +384,8 @@ enum fe_modulation {
+  *	Single Carrier (C=1) transmission mode (DTMB only)
+  * @TRANSMISSION_MODE_C3780:
+  *	Multi Carrier (C=3780) transmission mode (DTMB only)
++ * @TRANSMISSION_MODE_64K:
++ *	Transmission mode 64K
+  *
+  * Please note that not all transmission modes are supported by a given
+  * standard.
+@@ -388,6 +400,7 @@ enum fe_transmit_mode {
+ 	TRANSMISSION_MODE_32K,
+ 	TRANSMISSION_MODE_C1,
+ 	TRANSMISSION_MODE_C3780,
++	TRANSMISSION_MODE_64K,
+ };
+ 
+ /**
 -- 
-2.11.0
+2.13.6
