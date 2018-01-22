@@ -1,134 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:54806 "EHLO
-        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750823AbeAQEqx (ORCPT
+Received: from o1682455182.outbound-mail.sendgrid.net ([168.245.5.182]:43633
+        "EHLO o1682455182.outbound-mail.sendgrid.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750970AbeAVMtx (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 16 Jan 2018 23:46:53 -0500
-Message-ID: <f87c15fcd001375303bd0130dfe78384@smtp-cloud9.xs4all.net>
-Date: Wed, 17 Jan 2018 05:46:50 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+        Mon, 22 Jan 2018 07:49:53 -0500
+From: Kieran Bingham <kieran.bingham@ideasonboard.com>
+To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        linux-kernel@vger.kernel.org, linux-renesas-soc@vger.kernel.org
+Cc: Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>
+Subject: [PATCH 0/2] Add support for i2c_new_secondary_device
+Date: Mon, 22 Jan 2018 12:49:52 +0000 (UTC)
+Message-Id: <1516625389-6362-1-git-send-email-kieran.bingham@ideasonboard.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+content-transfer-encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
-
-Results of the daily build of media_tree:
-
-date:			Wed Jan 17 05:00:17 CET 2018
-media-tree git hash:	e3ee691dbf24096ea51b3200946b11d68ce75361
-media_build git hash:	2bd1f1623fbadfdc1026712b3d55141ba164c403
-v4l-utils git hash:	1ab08bca182738f934650fc53c60a7ddd4176b47
-gcc version:		i686-linux-gcc (GCC) 7.1.0
-sparse version:		v0.5.0-3911-g6f737e1f
-smatch version:		v0.5.0-3911-g6f737e1f
-host hardware:		x86_64
-host os:		4.13.0-164
-
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: ERRORS
-linux-3.12.67-i686: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: ERRORS
-linux-3.15.2-i686: ERRORS
-linux-3.16.7-i686: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.18.7-i686: ERRORS
-linux-3.19-i686: ERRORS
-linux-4.0.9-i686: ERRORS
-linux-4.1.33-i686: ERRORS
-linux-4.2.8-i686: ERRORS
-linux-4.3.6-i686: ERRORS
-linux-4.4.22-i686: ERRORS
-linux-4.5.7-i686: ERRORS
-linux-4.6.7-i686: ERRORS
-linux-4.7.5-i686: ERRORS
-linux-4.8-i686: ERRORS
-linux-4.9.26-i686: ERRORS
-linux-4.10.14-i686: WARNINGS
-linux-4.11-i686: WARNINGS
-linux-4.12.1-i686: WARNINGS
-linux-4.13-i686: WARNINGS
-linux-4.14-i686: WARNINGS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.67-x86_64: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-x86_64: ERRORS
-linux-3.15.2-x86_64: ERRORS
-linux-3.16.7-x86_64: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.7-x86_64: ERRORS
-linux-3.19-x86_64: ERRORS
-linux-4.0.9-x86_64: ERRORS
-linux-4.1.33-x86_64: ERRORS
-linux-4.2.8-x86_64: ERRORS
-linux-4.3.6-x86_64: ERRORS
-linux-4.4.22-x86_64: ERRORS
-linux-4.5.7-x86_64: ERRORS
-linux-4.6.7-x86_64: ERRORS
-linux-4.7.5-x86_64: ERRORS
-linux-4.8-x86_64: ERRORS
-linux-4.9.26-x86_64: ERRORS
-linux-4.10.14-x86_64: WARNINGS
-linux-4.11-x86_64: WARNINGS
-linux-4.12.1-x86_64: WARNINGS
-linux-4.13-x86_64: WARNINGS
-linux-4.14-x86_64: WARNINGS
-apps: OK
-spec-git: OK
-smatch: OK
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+Back in 2014, Jean-Michel provided patches [0] to implement a means of=0D
+describing software defined I2C addresses for devices through the DT nodes.=
+=0D
+=0D
+The patch to implement the function "i2c_new_secondary_device()" was integr=
+ated,=0D
+but the corresponding driver update didn't get applied.=0D
+=0D
+This short series re-bases Jean-Michel's patch to mainline for the ADV7604 =
+driver=0D
+in linux-media, and also provides a patch for the ADV7511 DRM Bridge driver=
+ taking=0D
+the same approach.=0D
+=0D
+This series allows us to define the I2C address allocations of these device=
+s in=0D
+the device tree for the Renesas D3 platform where these two devices reside =
+on=0D
+the same bus and conflict with each other presently..=0D
+=0D
+[0] https://lkml.org/lkml/2014/10/22/468=0D
+[1] https://lkml.org/lkml/2014/10/22/469=0D
+=0D
+Jean-Michel Hautbois (1):=0D
+  media: adv7604: Add support for i2c_new_secondary_device=0D
+=0D
+Kieran Bingham (1):=0D
+  drm: adv7511: Add support for i2c_new_secondary_device=0D
+=0D
+ .../bindings/display/bridge/adi,adv7511.txt        | 10 +++-=0D
+ .../devicetree/bindings/media/i2c/adv7604.txt      | 18 ++++++-=0D
+ drivers/gpu/drm/bridge/adv7511/adv7511.h           |  4 ++=0D
+ drivers/gpu/drm/bridge/adv7511/adv7511_drv.c       | 36 ++++++++-----=0D
+ drivers/media/i2c/adv7604.c                        | 60 ++++++++++++++----=
+----=0D
+ 5 files changed, 92 insertions(+), 36 deletions(-)=0D
+=0D
+-- =0D
+2.7.4=0D
