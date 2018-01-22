@@ -1,65 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-out-3.itc.rwth-aachen.de ([134.130.5.48]:36834 "EHLO
-        mail-out-3.itc.rwth-aachen.de" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S933099AbeAYDnC (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:52914 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751021AbeAVVZo (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 24 Jan 2018 22:43:02 -0500
-From: Stefan =?ISO-8859-1?Q?Br=FCns?= <stefan.bruens@rwth-aachen.de>
-To: <linux-media@vger.kernel.org>
-CC: Michael Krufky <mkrufky@linuxtv.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        <linux-kernel@vger.kernel.org>, Olli Salonen <olli.salonen@iki.fi>
-Subject: Re: [PATCH v1 0/2] Remove duplicate driver for MyGica T230C
-Date: Thu, 25 Jan 2018 04:42:46 +0100
-Message-ID: <1815413.bUCumXEykP@pebbles>
-In-Reply-To: <20180109233339.8147-1-stefan.bruens@rwth-aachen.de>
-References: <20180109233339.8147-1-stefan.bruens@rwth-aachen.de>
-MIME-Version: 1.0
-Content-Type: multipart/signed; boundary="nextPart1776030.ZtoRHm6gkv";
-        micalg=pgp-sha1; protocol="application/pgp-signature"
+        Mon, 22 Jan 2018 16:25:44 -0500
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: andy.yeh@intel.com
+Subject: [PATCH v3 1/1] imx258: Fix sparse warnings
+Date: Mon, 22 Jan 2018 23:25:42 +0200
+Message-Id: <20180122212542.26474-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---nextPart1776030.ZtoRHm6gkv
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset="iso-8859-1"
+Fix a few sparse warnings related to conversion between CPU and big
+endian. Also simplify the code in the process.
 
-On Wednesday, 10 January 2018 00:33:37 CET Stefan Br=FCns wrote:
-> In 2017-02, two drivers for the T230C where submitted, but until now
-> only the one based on the older dvb-usb/cxusb.c driver has been part
-> of the mainline kernel. As a dvb-usb-v2 driver is preferable, remove
-> the other driver.
->=20
-> The cxusb.c patch also contained an unrelated change for the T230,
-> i.e. a correction of the RC model. As this change apparently is
-> correct, restore it. This has not been tested due to lack of hardware.
->=20
->=20
-> Evgeny Plehov (1):
->   Revert "[media] dvb-usb-cxusb: Geniatech T230C support"
->=20
-> Stefan Br=FCns (1):
->   [media] cxusb: restore RC_MAP for MyGica T230
->=20
->  drivers/media/usb/dvb-usb/cxusb.c | 137
-> -------------------------------------- 1 file changed, 137 deletions(-)
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+since v2:
 
+- Count loop downwards, not up.
 
-Ping!
+ drivers/media/i2c/imx258.c | 23 +++++++++--------------
+ 1 file changed, 9 insertions(+), 14 deletions(-)
 
-=2D-=20
-Stefan Br=FCns  /  Bergstra=DFe 21  /  52062 Aachen
-home: +49 241 53809034     mobile: +49 151 50412019
---nextPart1776030.ZtoRHm6gkv
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part.
-Content-Transfer-Encoding: 7Bit
-
------BEGIN PGP SIGNATURE-----
-
-iF0EABECAB0WIQSwWRWIpJbl0W4DemNvf0o9jP6qUwUCWmlSNgAKCRBvf0o9jP6q
-U6ZzAKCJ935lTQpMb827Owymsgx4TBFXcwCfXubF/mzbAuccwgC6zWFEHPgA4tQ=
-=eAcf
------END PGP SIGNATURE-----
-
---nextPart1776030.ZtoRHm6gkv--
+diff --git a/drivers/media/i2c/imx258.c b/drivers/media/i2c/imx258.c
+index a7e58bd23de7..213429cca8b5 100644
+--- a/drivers/media/i2c/imx258.c
++++ b/drivers/media/i2c/imx258.c
+@@ -440,10 +440,10 @@ static int imx258_read_reg(struct imx258 *imx258, u16 reg, u32 len, u32 *val)
+ {
+ 	struct i2c_client *client = v4l2_get_subdevdata(&imx258->sd);
+ 	struct i2c_msg msgs[2];
++	__be16 reg_addr_be = cpu_to_be16(reg);
++	__be32 data_be = 0;
+ 	u8 *data_be_p;
+ 	int ret;
+-	u32 data_be = 0;
+-	u16 reg_addr_be = cpu_to_be16(reg);
+ 
+ 	if (len > 4)
+ 		return -EINVAL;
+@@ -474,24 +474,19 @@ static int imx258_read_reg(struct imx258 *imx258, u16 reg, u32 len, u32 *val)
+ static int imx258_write_reg(struct imx258 *imx258, u16 reg, u32 len, u32 val)
+ {
+ 	struct i2c_client *client = v4l2_get_subdevdata(&imx258->sd);
+-	int buf_i, val_i;
+-	u8 buf[6], *val_p;
++	u8 __buf[6], *buf = __buf;
++	int i;
+ 
+ 	if (len > 4)
+ 		return -EINVAL;
+ 
+-	buf[0] = reg >> 8;
+-	buf[1] = reg & 0xff;
++	*buf++ = reg >> 8;
++	*buf++ = reg & 0xff;
+ 
+-	val = cpu_to_be32(val);
+-	val_p = (u8 *)&val;
+-	buf_i = 2;
+-	val_i = 4 - len;
++	for (i = len - 1; i >= 0; i--)
++		*buf++ = (u8)(val >> (i << 3));
+ 
+-	while (val_i < 4)
+-		buf[buf_i++] = val_p[val_i++];
+-
+-	if (i2c_master_send(client, buf, len + 2) != len + 2)
++	if (i2c_master_send(client, __buf, len + 2) != len + 2)
+ 		return -EIO;
+ 
+ 	return 0;
+-- 
+2.11.0
