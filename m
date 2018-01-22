@@ -1,134 +1,261 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:34497 "EHLO
-        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S965415AbeAMEpt (ORCPT
+Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:60590 "EHLO
+        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751054AbeAVKTA (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 12 Jan 2018 23:45:49 -0500
-Message-ID: <31d88a93af22f9a78543555e07e11671@smtp-cloud9.xs4all.net>
-Date: Sat, 13 Jan 2018 05:45:47 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+        Mon, 22 Jan 2018 05:19:00 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 5/9] staging: atomisp: i2c: Drop g_parm support in sensor drivers
+Date: Mon, 22 Jan 2018 11:18:53 +0100
+Message-Id: <20180122101857.51401-6-hverkuil@xs4all.nl>
+In-Reply-To: <20180122101857.51401-1-hverkuil@xs4all.nl>
+References: <20180122101857.51401-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-Results of the daily build of media_tree:
+These drivers already support g_frame_interval. Therefore just dropping
+g_parm is enough.
 
-date:			Sat Jan 13 05:00:17 CET 2018
-media-tree git hash:	e3ee691dbf24096ea51b3200946b11d68ce75361
-media_build git hash:	46c9dc0a08499791cedfc7ee0df387e475f075a2
-v4l-utils git hash:	351eb68ac235f37f749a1c5d6ed2fae80e9dffe3
-gcc version:		i686-linux-gcc (GCC) 7.1.0
-sparse version:		v0.5.0-3911-g6f737e1f
-smatch version:		v0.5.0-3911-g6f737e1f
-host hardware:		x86_64
-host os:		4.13.0-164
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/staging/media/atomisp/i2c/atomisp-gc0310.c | 27 ----------------------
+ drivers/staging/media/atomisp/i2c/atomisp-gc2235.c | 27 ----------------------
+ drivers/staging/media/atomisp/i2c/atomisp-ov2680.c | 27 ----------------------
+ drivers/staging/media/atomisp/i2c/atomisp-ov2722.c | 27 ----------------------
+ .../media/atomisp/i2c/ov5693/atomisp-ov5693.c      | 27 ----------------------
+ 5 files changed, 135 deletions(-)
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: ERRORS
-linux-3.12.67-i686: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: ERRORS
-linux-3.15.2-i686: ERRORS
-linux-3.16.7-i686: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.18.7-i686: ERRORS
-linux-3.19-i686: ERRORS
-linux-4.0.9-i686: ERRORS
-linux-4.1.33-i686: ERRORS
-linux-4.2.8-i686: ERRORS
-linux-4.3.6-i686: ERRORS
-linux-4.4.22-i686: ERRORS
-linux-4.5.7-i686: ERRORS
-linux-4.6.7-i686: ERRORS
-linux-4.7.5-i686: ERRORS
-linux-4.8-i686: ERRORS
-linux-4.9.26-i686: ERRORS
-linux-4.10.14-i686: WARNINGS
-linux-4.11-i686: WARNINGS
-linux-4.12.1-i686: WARNINGS
-linux-4.13-i686: WARNINGS
-linux-4.14-i686: WARNINGS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.67-x86_64: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-x86_64: ERRORS
-linux-3.15.2-x86_64: ERRORS
-linux-3.16.7-x86_64: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.7-x86_64: ERRORS
-linux-3.19-x86_64: ERRORS
-linux-4.0.9-x86_64: ERRORS
-linux-4.1.33-x86_64: ERRORS
-linux-4.2.8-x86_64: ERRORS
-linux-4.3.6-x86_64: ERRORS
-linux-4.4.22-x86_64: ERRORS
-linux-4.5.7-x86_64: ERRORS
-linux-4.6.7-x86_64: ERRORS
-linux-4.7.5-x86_64: ERRORS
-linux-4.8-x86_64: ERRORS
-linux-4.9.26-x86_64: ERRORS
-linux-4.10.14-x86_64: WARNINGS
-linux-4.11-x86_64: WARNINGS
-linux-4.12.1-x86_64: WARNINGS
-linux-4.13-x86_64: WARNINGS
-linux-4.14-x86_64: WARNINGS
-apps: OK
-spec-git: OK
-smatch: OK
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+diff --git a/drivers/staging/media/atomisp/i2c/atomisp-gc0310.c b/drivers/staging/media/atomisp/i2c/atomisp-gc0310.c
+index 572c9127c24d..93753cb96180 100644
+--- a/drivers/staging/media/atomisp/i2c/atomisp-gc0310.c
++++ b/drivers/staging/media/atomisp/i2c/atomisp-gc0310.c
+@@ -1204,32 +1204,6 @@ static int gc0310_s_config(struct v4l2_subdev *sd,
+ 	return ret;
+ }
+ 
+-static int gc0310_g_parm(struct v4l2_subdev *sd,
+-			struct v4l2_streamparm *param)
+-{
+-	struct gc0310_device *dev = to_gc0310_sensor(sd);
+-	struct i2c_client *client = v4l2_get_subdevdata(sd);
+-
+-	if (!param)
+-		return -EINVAL;
+-
+-	if (param->type != V4L2_BUF_TYPE_VIDEO_CAPTURE) {
+-		dev_err(&client->dev,  "unsupported buffer type.\n");
+-		return -EINVAL;
+-	}
+-
+-	memset(param, 0, sizeof(*param));
+-	param->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+-
+-	if (dev->fmt_idx >= 0 && dev->fmt_idx < N_RES) {
+-		param->parm.capture.capability = V4L2_CAP_TIMEPERFRAME;
+-		param->parm.capture.timeperframe.numerator = 1;
+-		param->parm.capture.timeperframe.denominator =
+-			gc0310_res[dev->fmt_idx].fps;
+-	}
+-	return 0;
+-}
+-
+ static int gc0310_g_frame_interval(struct v4l2_subdev *sd,
+ 				   struct v4l2_subdev_frame_interval *interval)
+ {
+@@ -1288,7 +1262,6 @@ static const struct v4l2_subdev_sensor_ops gc0310_sensor_ops = {
+ 
+ static const struct v4l2_subdev_video_ops gc0310_video_ops = {
+ 	.s_stream = gc0310_s_stream,
+-	.g_parm = gc0310_g_parm,
+ 	.g_frame_interval = gc0310_g_frame_interval,
+ };
+ 
+diff --git a/drivers/staging/media/atomisp/i2c/atomisp-gc2235.c b/drivers/staging/media/atomisp/i2c/atomisp-gc2235.c
+index 2bc179f3afe5..93f9c618f3d8 100644
+--- a/drivers/staging/media/atomisp/i2c/atomisp-gc2235.c
++++ b/drivers/staging/media/atomisp/i2c/atomisp-gc2235.c
+@@ -944,32 +944,6 @@ static int gc2235_s_config(struct v4l2_subdev *sd,
+ 	return ret;
+ }
+ 
+-static int gc2235_g_parm(struct v4l2_subdev *sd,
+-			struct v4l2_streamparm *param)
+-{
+-	struct gc2235_device *dev = to_gc2235_sensor(sd);
+-	struct i2c_client *client = v4l2_get_subdevdata(sd);
+-
+-	if (!param)
+-		return -EINVAL;
+-
+-	if (param->type != V4L2_BUF_TYPE_VIDEO_CAPTURE) {
+-		dev_err(&client->dev,  "unsupported buffer type.\n");
+-		return -EINVAL;
+-	}
+-
+-	memset(param, 0, sizeof(*param));
+-	param->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+-
+-	if (dev->fmt_idx >= 0 && dev->fmt_idx < N_RES) {
+-		param->parm.capture.capability = V4L2_CAP_TIMEPERFRAME;
+-		param->parm.capture.timeperframe.numerator = 1;
+-		param->parm.capture.timeperframe.denominator =
+-			gc2235_res[dev->fmt_idx].fps;
+-	}
+-	return 0;
+-}
+-
+ static int gc2235_g_frame_interval(struct v4l2_subdev *sd,
+ 				   struct v4l2_subdev_frame_interval *interval)
+ {
+@@ -1027,7 +1001,6 @@ static const struct v4l2_subdev_sensor_ops gc2235_sensor_ops = {
+ 
+ static const struct v4l2_subdev_video_ops gc2235_video_ops = {
+ 	.s_stream = gc2235_s_stream,
+-	.g_parm = gc2235_g_parm,
+ 	.g_frame_interval = gc2235_g_frame_interval,
+ };
+ 
+diff --git a/drivers/staging/media/atomisp/i2c/atomisp-ov2680.c b/drivers/staging/media/atomisp/i2c/atomisp-ov2680.c
+index e3e0fdd0c816..11412061c40e 100644
+--- a/drivers/staging/media/atomisp/i2c/atomisp-ov2680.c
++++ b/drivers/staging/media/atomisp/i2c/atomisp-ov2680.c
+@@ -1280,32 +1280,6 @@ static int ov2680_s_config(struct v4l2_subdev *sd,
+ 	return ret;
+ }
+ 
+-static int ov2680_g_parm(struct v4l2_subdev *sd,
+-			struct v4l2_streamparm *param)
+-{
+-	struct ov2680_device *dev = to_ov2680_sensor(sd);
+-	struct i2c_client *client = v4l2_get_subdevdata(sd);
+-
+-	if (!param)
+-		return -EINVAL;
+-
+-	if (param->type != V4L2_BUF_TYPE_VIDEO_CAPTURE) {
+-		dev_err(&client->dev,  "unsupported buffer type.\n");
+-		return -EINVAL;
+-	}
+-
+-	memset(param, 0, sizeof(*param));
+-	param->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+-
+-	if (dev->fmt_idx >= 0 && dev->fmt_idx < N_RES) {
+-		param->parm.capture.capability = V4L2_CAP_TIMEPERFRAME;
+-		param->parm.capture.timeperframe.numerator = 1;
+-		param->parm.capture.timeperframe.denominator =
+-			ov2680_res[dev->fmt_idx].fps;
+-	}
+-	return 0;
+-}
+-
+ static int ov2680_g_frame_interval(struct v4l2_subdev *sd,
+ 				   struct v4l2_subdev_frame_interval *interval)
+ {
+@@ -1359,7 +1333,6 @@ static int ov2680_g_skip_frames(struct v4l2_subdev *sd, u32 *frames)
+ 
+ static const struct v4l2_subdev_video_ops ov2680_video_ops = {
+ 	.s_stream = ov2680_s_stream,
+-	.g_parm = ov2680_g_parm,
+ 	.g_frame_interval = ov2680_g_frame_interval,
+ };
+ 
+diff --git a/drivers/staging/media/atomisp/i2c/atomisp-ov2722.c b/drivers/staging/media/atomisp/i2c/atomisp-ov2722.c
+index cd9f6433cd42..e59358ac89ce 100644
+--- a/drivers/staging/media/atomisp/i2c/atomisp-ov2722.c
++++ b/drivers/staging/media/atomisp/i2c/atomisp-ov2722.c
+@@ -1083,32 +1083,6 @@ static int ov2722_s_config(struct v4l2_subdev *sd,
+ 	return ret;
+ }
+ 
+-static int ov2722_g_parm(struct v4l2_subdev *sd,
+-			struct v4l2_streamparm *param)
+-{
+-	struct ov2722_device *dev = to_ov2722_sensor(sd);
+-	struct i2c_client *client = v4l2_get_subdevdata(sd);
+-
+-	if (!param)
+-		return -EINVAL;
+-
+-	if (param->type != V4L2_BUF_TYPE_VIDEO_CAPTURE) {
+-		dev_err(&client->dev,  "unsupported buffer type.\n");
+-		return -EINVAL;
+-	}
+-
+-	memset(param, 0, sizeof(*param));
+-	param->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+-
+-	if (dev->fmt_idx >= 0 && dev->fmt_idx < N_RES) {
+-		param->parm.capture.capability = V4L2_CAP_TIMEPERFRAME;
+-		param->parm.capture.timeperframe.numerator = 1;
+-		param->parm.capture.timeperframe.denominator =
+-			ov2722_res[dev->fmt_idx].fps;
+-	}
+-	return 0;
+-}
+-
+ static int ov2722_g_frame_interval(struct v4l2_subdev *sd,
+ 				   struct v4l2_subdev_frame_interval *interval)
+ {
+@@ -1167,7 +1141,6 @@ static const struct v4l2_subdev_sensor_ops ov2722_sensor_ops = {
+ 
+ static const struct v4l2_subdev_video_ops ov2722_video_ops = {
+ 	.s_stream = ov2722_s_stream,
+-	.g_parm = ov2722_g_parm,
+ 	.g_frame_interval = ov2722_g_frame_interval,
+ };
+ 
+diff --git a/drivers/staging/media/atomisp/i2c/ov5693/atomisp-ov5693.c b/drivers/staging/media/atomisp/i2c/ov5693/atomisp-ov5693.c
+index 7f594c7de76e..56f3cd0d8c23 100644
+--- a/drivers/staging/media/atomisp/i2c/ov5693/atomisp-ov5693.c
++++ b/drivers/staging/media/atomisp/i2c/ov5693/atomisp-ov5693.c
+@@ -1805,32 +1805,6 @@ static int ov5693_s_config(struct v4l2_subdev *sd,
+ 	return ret;
+ }
+ 
+-static int ov5693_g_parm(struct v4l2_subdev *sd,
+-			struct v4l2_streamparm *param)
+-{
+-	struct ov5693_device *dev = to_ov5693_sensor(sd);
+-	struct i2c_client *client = v4l2_get_subdevdata(sd);
+-
+-	if (!param)
+-		return -EINVAL;
+-
+-	if (param->type != V4L2_BUF_TYPE_VIDEO_CAPTURE) {
+-		dev_err(&client->dev,  "unsupported buffer type.\n");
+-		return -EINVAL;
+-	}
+-
+-	memset(param, 0, sizeof(*param));
+-	param->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+-
+-	if (dev->fmt_idx >= 0 && dev->fmt_idx < N_RES) {
+-		param->parm.capture.capability = V4L2_CAP_TIMEPERFRAME;
+-		param->parm.capture.timeperframe.numerator = 1;
+-		param->parm.capture.timeperframe.denominator =
+-			ov5693_res[dev->fmt_idx].fps;
+-	}
+-	return 0;
+-}
+-
+ static int ov5693_g_frame_interval(struct v4l2_subdev *sd,
+ 				   struct v4l2_subdev_frame_interval *interval)
+ {
+@@ -1873,7 +1847,6 @@ static int ov5693_enum_frame_size(struct v4l2_subdev *sd,
+ 
+ static const struct v4l2_subdev_video_ops ov5693_video_ops = {
+ 	.s_stream = ov5693_s_stream,
+-	.g_parm = ov5693_g_parm,
+ 	.g_frame_interval = ov5693_g_frame_interval,
+ };
+ 
+-- 
+2.15.1
