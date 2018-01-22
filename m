@@ -1,41 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:33734 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1752486AbeADNIz (ORCPT
+Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:38585 "EHLO
+        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751167AbeAVMb3 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 4 Jan 2018 08:08:55 -0500
-Date: Thu, 4 Jan 2018 15:08:52 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH] media: don't use whitespaces for indentation
-Message-ID: <20180104130852.nfmae3fjxzrnja2q@valkosipuli.retiisi.org.uk>
-References: <4e866518d3a00d4dedad069151cd447f66bd9387.1515068806.git.mchehab@s-opensource.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <4e866518d3a00d4dedad069151cd447f66bd9387.1515068806.git.mchehab@s-opensource.com>
+        Mon, 22 Jan 2018 07:31:29 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv2 9/9] vidioc-g-parm.rst: also allow _MPLANE buffer types
+Date: Mon, 22 Jan 2018 13:31:25 +0100
+Message-Id: <20180122123125.24709-10-hverkuil@xs4all.nl>
+In-Reply-To: <20180122123125.24709-1-hverkuil@xs4all.nl>
+References: <20180122123125.24709-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-On Thu, Jan 04, 2018 at 07:27:48AM -0500, Mauro Carvalho Chehab wrote:
-> On several places, whitespaces are being used for indentation,
-> or even at the end of the line.
-> 
-> Fix them, by running a script that fix it inside drivers/media
-> and include/media.
+The specification mentions that type can be V4L2_BUF_TYPE_VIDEO_CAPTURE,
+but the v4l2 core implementation also allows the _MPLANE variant.
 
-What kind of a script?
+Document this.
 
-Could you also add includ/uapi/media to this?
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ Documentation/media/uapi/v4l/vidioc-g-parm.rst | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-Thanks.
-
+diff --git a/Documentation/media/uapi/v4l/vidioc-g-parm.rst b/Documentation/media/uapi/v4l/vidioc-g-parm.rst
+index 616a5ea3f8fa..e831fa5512f0 100644
+--- a/Documentation/media/uapi/v4l/vidioc-g-parm.rst
++++ b/Documentation/media/uapi/v4l/vidioc-g-parm.rst
+@@ -66,7 +66,7 @@ union holding separate parameters for input and output devices.
+       -
+       - The buffer (stream) type, same as struct
+ 	:c:type:`v4l2_format` ``type``, set by the
+-	application. See :c:type:`v4l2_buf_type`
++	application. See :c:type:`v4l2_buf_type`.
+     * - union
+       - ``parm``
+       -
+@@ -75,12 +75,13 @@ union holding separate parameters for input and output devices.
+       - struct :c:type:`v4l2_captureparm`
+       - ``capture``
+       - Parameters for capture devices, used when ``type`` is
+-	``V4L2_BUF_TYPE_VIDEO_CAPTURE``.
++	``V4L2_BUF_TYPE_VIDEO_CAPTURE`` or
++	``V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE``.
+     * -
+       - struct :c:type:`v4l2_outputparm`
+       - ``output``
+       - Parameters for output devices, used when ``type`` is
+-	``V4L2_BUF_TYPE_VIDEO_OUTPUT``.
++	``V4L2_BUF_TYPE_VIDEO_OUTPUT`` or ``V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE``.
+     * -
+       - __u8
+       - ``raw_data``\ [200]
 -- 
-Regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+2.15.1
