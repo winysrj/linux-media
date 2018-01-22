@@ -1,102 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:50594 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751411AbeA3LqX (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 30 Jan 2018 06:46:23 -0500
-Date: Tue, 30 Jan 2018 13:46:20 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Daniel Mentz <danielmentz@google.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>, stable@vger.kernel.org
-Subject: Re: [PATCHv2 13/13] v4l2-compat-ioctl32.c: refactor, fix security
- bug in compat ioctl32
-Message-ID: <20180130114619.v55lvnto3wxnhygt@valkosipuli.retiisi.org.uk>
-References: <20180130102701.13664-1-hverkuil@xs4all.nl>
- <20180130102701.13664-14-hverkuil@xs4all.nl>
+Received: from mga06.intel.com ([134.134.136.31]:37883 "EHLO mga06.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751161AbeAVInp (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 22 Jan 2018 03:43:45 -0500
+Date: Mon, 22 Jan 2018 10:43:43 +0200
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: "Yeh, Andy" <andy.yeh@intel.com>
+Cc: Tomasz Figa <tfiga@chromium.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH v4] media: imx258: Add imx258 camera sensor driver
+Message-ID: <20180122084342.72zvzfbwwgm7vhui@paasikivi.fi.intel.com>
+References: <1516333071-9766-1-git-send-email-andy.yeh@intel.com>
+ <CAAFQd5Aq4oX+-ux0r4SjyWAyRUA1DJ34mgBmcvuY6HpG9SJ++g@mail.gmail.com>
+ <8E0971CCB6EA9D41AF58191A2D3978B61D4E49E8@PGSMSX111.gar.corp.intel.com>
+ <20180119091732.x3qyex6lzev2sp2u@paasikivi.fi.intel.com>
+ <8E0971CCB6EA9D41AF58191A2D3978B61D4E66E1@PGSMSX111.gar.corp.intel.com>
+ <20180122083743.4lghsxgyahs2iw7g@paasikivi.fi.intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20180130102701.13664-14-hverkuil@xs4all.nl>
+In-Reply-To: <20180122083743.4lghsxgyahs2iw7g@paasikivi.fi.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+On Mon, Jan 22, 2018 at 10:37:43AM +0200, Sakari Ailus wrote:
+> Hi Andy,
+> 
+> On Mon, Jan 22, 2018 at 08:03:23AM +0000, Yeh, Andy wrote:
+> > Hi Sakari, Tomasz,
+> > 
+> > As below discussion that other drivers are with this pattern, I would prefer to defer to address the concern in later discussion with you and owners of other sensors.
+> > 
+> > Thanks a lot.
+> 
+> I thought of taking a look into the problem area and one sensor driver
+> which doesn't appear to have the problem in this respect is imx258. This is
+> because the v4l2_ctrl_handler_setup() isn't called in a runtime PM
+> callback, but through V4L2 sub-dev s_stream callback instead. The runtime
+> PM transition has already taken place by then. This isn't entirely optimal
+> but works. Other sensor drivers will still need to be fixed.
 
-Thanks for the update. Please see a few additional comments below.
-
-On Tue, Jan 30, 2018 at 11:27:01AM +0100, Hans Verkuil wrote:
-...
-> @@ -891,30 +1057,53 @@ static long do_video_ioctl(struct file *file, unsigned int cmd, unsigned long ar
->  	case VIDIOC_STREAMOFF:
->  	case VIDIOC_S_INPUT:
->  	case VIDIOC_S_OUTPUT:
-> -		err = get_user(karg.vi, (s32 __user *)up);
-> +		err = alloc_userspace(sizeof(unsigned int), 0, &up_native);
-> +		if (!err && assign_in_user((unsigned int __user *)up_native,
-> +					   (compat_uint_t __user *)up))
-> +			err = -EFAULT;
->  		compatible_arg = 0;
->  		break;
->  
->  	case VIDIOC_G_INPUT:
->  	case VIDIOC_G_OUTPUT:
-> +		err = alloc_userspace(sizeof(unsigned int), 0,
-> +				      &up_native);
-
-Fits on a single line.
-
->  		compatible_arg = 0;
->  		break;
->  
->  	case VIDIOC_G_EDID:
->  	case VIDIOC_S_EDID:
-> -		err = get_v4l2_edid32(&karg.v2edid, up);
-> +		err = alloc_userspace(sizeof(struct v4l2_edid), 0, &up_native);
-> +		if (!err)
-> +			err = get_v4l2_edid32(up_native, up);
->  		compatible_arg = 0;
->  		break;
->  
->  	case VIDIOC_G_FMT:
->  	case VIDIOC_S_FMT:
->  	case VIDIOC_TRY_FMT:
-> -		err = get_v4l2_format32(&karg.v2f, up);
-> +		err = bufsize_v4l2_format(up, &aux_space);
-> +		if (!err)
-> +			err = alloc_userspace(sizeof(struct v4l2_format),
-> +					      aux_space, &up_native);
-> +		if (!err) {
-> +			aux_buf = up_native + sizeof(struct v4l2_format);
-> +			err = get_v4l2_format32(up_native, up,
-> +						aux_buf, aux_space);
-> +		}
->  		compatible_arg = 0;
->  		break;
->  
->  	case VIDIOC_CREATE_BUFS:
-> -		err = get_v4l2_create32(&karg.v2crt, up);
-> +		err = bufsize_v4l2_create(up, &aux_space);
-> +		if (!err)
-> +			err = alloc_userspace(sizeof(struct v4l2_create_buffers),
-> +					    aux_space, &up_native);
-> +		if (!err) {
-> +			aux_buf = up_native + sizeof(struct v4l2_create_buffers);
-
-A few lines over 80 characters. It's not a lot but I see no reason to avoid
-wrapping them either.
-
-> +			err = get_v4l2_create32(up_native, up,
-> +						aux_buf, aux_space);
-> +		}
->  		compatible_arg = 0;
->  		break;
->  
-
-The above can be addressed later, right now this isn't a priority.
-
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+And by a quick check we seem to have no sensor drivers doing this after
+all... the v4l2_ctrl_handler_setup is called in the s_stream callback.
 
 -- 
 Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+sakari.ailus@linux.intel.com
