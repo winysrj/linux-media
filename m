@@ -1,91 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.free-electrons.com ([62.4.15.54]:33426 "EHLO
-        mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751712AbeA3Ik2 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 30 Jan 2018 03:40:28 -0500
-Date: Tue, 30 Jan 2018 09:40:16 +0100
-From: Maxime Ripard <maxime.ripard@free-electrons.com>
-To: Philipp Rossak <embed3d@gmail.com>
-Cc: mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
-        wens@csie.org, linux@armlinux.org.uk, sean@mess.org,
-        p.zabel@pengutronix.de, andi.shyti@samsung.com,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-sunxi@googlegroups.com
-Subject: Re: [PATCH v5 5/6] arm: dts: sun8i: a83t: bananapi-m3: Enable IR
- controller
-Message-ID: <20180130084016.4uyrd425qpzyiyql@flea.lan>
-References: <20180129155810.7867-1-embed3d@gmail.com>
- <20180129155810.7867-6-embed3d@gmail.com>
+Received: from mga14.intel.com ([192.55.52.115]:7521 "EHLO mga14.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751007AbeAVK7i (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 22 Jan 2018 05:59:38 -0500
+Date: Mon, 22 Jan 2018 12:59:33 +0200
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH 2/9] media: convert g/s_parm to g/s_frame_interval in
+ subdevs
+Message-ID: <20180122105933.uhfeqon5jnv22gbh@paasikivi.fi.intel.com>
+References: <20180122101857.51401-1-hverkuil@xs4all.nl>
+ <20180122101857.51401-3-hverkuil@xs4all.nl>
+ <20180122102644.4n5yv7z4y3a47n3z@paasikivi.fi.intel.com>
+ <9198b319-6821-0263-044e-3ccbc73c61f8@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="q22bqurpyklj4yxv"
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20180129155810.7867-6-embed3d@gmail.com>
+In-Reply-To: <9198b319-6821-0263-044e-3ccbc73c61f8@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Hans,
 
---q22bqurpyklj4yxv
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Mon, Jan 22, 2018 at 11:33:28AM +0100, Hans Verkuil wrote:
+> On 22/01/18 11:26, Sakari Ailus wrote:
+> > Hi Hans,
+> > 
+> > On Mon, Jan 22, 2018 at 11:18:50AM +0100, Hans Verkuil wrote:
+> >> From: Hans Verkuil <hans.verkuil@cisco.com>
+> >>
+> >> Convert all g/s_parm calls to g/s_frame_interval. This allows us
+> >> to remove the g/s_parm ops since those are a duplicate of
+> >> g/s_frame_interval.
+> >>
+> >> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> >> ---
+> >>  drivers/media/i2c/mt9v011.c                     | 29 +++++++++----------
+> >>  drivers/media/i2c/ov6650.c                      | 33 ++++++++++------------
+> >>  drivers/media/i2c/ov7670.c                      | 26 +++++++++--------
+> >>  drivers/media/i2c/ov7740.c                      | 29 ++++++++-----------
+> >>  drivers/media/i2c/tvp514x.c                     | 37 +++++++++++--------------
+> >>  drivers/media/i2c/vs6624.c                      | 29 ++++++++++---------
+> >>  drivers/media/platform/atmel/atmel-isc.c        | 10 ++-----
+> >>  drivers/media/platform/atmel/atmel-isi.c        | 12 ++------
+> >>  drivers/media/platform/blackfin/bfin_capture.c  | 14 +++-------
+> >>  drivers/media/platform/marvell-ccic/mcam-core.c | 12 ++++----
+> >>  drivers/media/platform/soc_camera/soc_camera.c  | 10 ++++---
+> >>  drivers/media/platform/via-camera.c             |  4 +--
+> >>  drivers/media/usb/em28xx/em28xx-video.c         | 36 ++++++++++++++++++++----
+> >>  13 files changed, 137 insertions(+), 144 deletions(-)
+> >>
+> >> diff --git a/drivers/media/i2c/mt9v011.c b/drivers/media/i2c/mt9v011.c
+> >> index 5e29064fae91..0e0bcc8b67ca 100644
+> >> --- a/drivers/media/i2c/mt9v011.c
+> >> +++ b/drivers/media/i2c/mt9v011.c
+> >> @@ -364,33 +364,30 @@ static int mt9v011_set_fmt(struct v4l2_subdev *sd,
+> >>  	return 0;
+> >>  }
+> >>  
+> >> -static int mt9v011_g_parm(struct v4l2_subdev *sd, struct v4l2_streamparm *parms)
+> >> +static int mt9v011_g_frame_interval(struct v4l2_subdev *sd,
+> >> +				    struct v4l2_subdev_frame_interval *ival)
+> >>  {
+> >> -	struct v4l2_captureparm *cp = &parms->parm.capture;
+> >> -
+> >> -	if (parms->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
+> >> +	if (ival->pad)
+> >>  		return -EINVAL;
+> > 
+> > The pad number checks are already present in v4l2-subdev.c. Do you think
+> > we'll need them in drivers as well?
+> > 
+> > It's true that another driver could mis-use this interface. In that case
+> > I'd introduce a wrapper to the op rather than introduce the check in every
+> > driver.
+> 
+> I'm not that keen on introducing wrappers for an op. I wouldn't actually know
+> how to implement that cleanly. Since the pad check is subdev driver specific,
+> and the overhead of a wrapper is almost certainly higher than just doing this
+> check I feel it is OK to do this.
 
-On Mon, Jan 29, 2018 at 04:58:09PM +0100, Philipp Rossak wrote:
-> The Bananapi M3 has an onboard IR receiver.
-> This enables the onboard IR receiver subnode.
-> Unlike the other IR receivers this one needs a base clock frequency
-> of 3000000 Hz (3 MHz), to be able to work.
->=20
-> Signed-off-by: Philipp Rossak <embed3d@gmail.com>
-> Acked-by: Chen-Yu Tsai <wens@csie.org>
-> ---
->  arch/arm/boot/dts/sun8i-a83t-bananapi-m3.dts | 7 +++++++
->  1 file changed, 7 insertions(+)
->=20
-> diff --git a/arch/arm/boot/dts/sun8i-a83t-bananapi-m3.dts b/arch/arm/boot=
-/dts/sun8i-a83t-bananapi-m3.dts
-> index 6550bf0e594b..ffc6445fd281 100644
-> --- a/arch/arm/boot/dts/sun8i-a83t-bananapi-m3.dts
-> +++ b/arch/arm/boot/dts/sun8i-a83t-bananapi-m3.dts
-> @@ -82,6 +82,13 @@
->  	};
->  };
-> =20
-> +&cir {
-> +	pinctrl-names =3D "default";
-> +	pinctrl-0 =3D <&cir_pins>;
+For a majority of drivers, the check is that the pad must be a valid
+pad in an entity. The case where the overhead could matter (it's just a
+single if) is when called through an IOCTL from the user space. And the
+subdevices' IOCTL handler already performs this check. The wrapper would
+simply extend the check to other drivers calling the op.
 
-If this is the only muxing option (like your node name suggests), you
-can put it directly in the DTSI to remove boilerplate from all the
-DTS.
+It's easy to miss such checks in drivers. We've had quite a few such cases
+in the past. Performing the check universally would make the framework more
+robust.
 
-Maxime
+What comes to this patchset, I'd omit the pad number check as other drivers
+don't do such checks either --- unless the check is more strict than what
+the interface allows.
 
---=20
-Maxime Ripard, Free Electrons
-Embedded Linux and Kernel engineering
-http://free-electrons.com
+> 
+> > 
+> >>  
+> >> -	memset(cp, 0, sizeof(struct v4l2_captureparm));
+> >> -	cp->capability = V4L2_CAP_TIMEPERFRAME;
+> >> +	memset(ival->reserved, 0, sizeof(ival->reserved));
+> >>  	calc_fps(sd,
+> >> -		 &cp->timeperframe.numerator,
+> >> -		 &cp->timeperframe.denominator);
+> >> +		 &ival->interval.numerator,
+> >> +		 &ival->interval.denominator);
+> >>  
+> >>  	return 0;
+> >>  }
+> 
+> Regards,
+> 
+> 	Hans
+> 
 
---q22bqurpyklj4yxv
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCAAdFiEE0VqZU19dR2zEVaqr0rTAlCFNr3QFAlpwL28ACgkQ0rTAlCFN
-r3T2bw/9FDXJX9fqsxvDAQ+/QTBJvEaexiIHZbqe1RLTQY4dXSAHocmLE1ZaJfXi
-GokcTKZQp2Uy7oLnGlP00V8Hp12CSu5nA6XFVNg2xZN4k9rpsm6DjYFE5xy5ks0A
-wv+b5dc9c4fouJYtP8xatYBcWXCRhxCFrmiMFNCefU7MLtu2r3Z6c8/adWxNhjI4
-tgSSPh2FRAPB8bjUZgHm0WPE+rYDK2yoVN/Cebnk0jl4I1EqLfcly95nFIcaiyBR
-y99A9wjuNSlLvl/e6c26ZZ04hjHMKu+iQyL/iNu/1kKG2pqnwnXIeYJQYGjNm6xm
-S104zJK92rYs9CWhItbxXAompsH3cce9dCtm+zPukEh8hjCRnGKxqnrCTrNltVBr
-/oq2emDXBtgz0iLrddzAuLP3LnYtUL0l5UbCqyZ7lvzXatVd3TxBHI9kFsN3FgkJ
-EA+nPZEYKyQlFWK3Q8c4IUAZNG0OlS9hhWaNeQx/N9I9QELlXO8CiJPUj0VsJcpZ
-EkxXJyy+0DE5NqI4L0BD4Qa9mPUe0d6/YtyksMcn7YAT25uEsgRSBdhWPD3MsrId
-iBy+PYjY0QMloHGRbul+gyznjGfjSxemrRmumXp1r56VbA1voVMCg+oOrRbM1nPH
-ZkeCBdfgCl94ggiaixQreHlJqYxl+d1jFspC0PR6jb1/yQUbuBM=
-=+1fN
------END PGP SIGNATURE-----
-
---q22bqurpyklj4yxv--
+-- 
+Sakari Ailus
+sakari.ailus@linux.intel.com
