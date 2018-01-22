@@ -1,93 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from regular1.263xmail.com ([211.150.99.130]:40068 "EHLO
-        regular1.263xmail.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932342AbeAKGop (ORCPT
+Received: from mx07-00178001.pphosted.com ([62.209.51.94]:12119 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750928AbeAVKHS (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 11 Jan 2018 01:44:45 -0500
-Reply-To: zhengsq@rock-chips.com
-Subject: Re: [PATCH v5 1/4] dt-bindings: media: Add bindings for OV5695
-To: jacopo mondi <jacopo@jmondi.org>
-Cc: mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        ddl@rock-chips.com, tfiga@chromium.org
-References: <1515549967-5302-1-git-send-email-zhengsq@rock-chips.com>
- <1515549967-5302-2-git-send-email-zhengsq@rock-chips.com>
- <20180110092010.GC6834@w540>
-From: Shunqian Zheng <zhengsq@rock-chips.com>
-Message-ID: <807c4307-0617-788e-7129-039b33ce99d5@rock-chips.com>
-Date: Thu, 11 Jan 2018 14:44:33 +0800
+        Mon, 22 Jan 2018 05:07:18 -0500
+From: Hugues Fruchet <hugues.fruchet@st.com>
+To: Steve Longerbeam <slongerbeam@gmail.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        "Mauro Carvalho Chehab" <mchehab@kernel.org>
+CC: <linux-media@vger.kernel.org>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Subject: [PATCH] media: ov5640: fix spurious streamon failures
+Date: Mon, 22 Jan 2018 11:06:40 +0100
+Message-ID: <1516615601-16276-1-git-send-email-hugues.fruchet@st.com>
 MIME-Version: 1.0
-In-Reply-To: <20180110092010.GC6834@w540>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
-Content-Language: en-US
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jacopo,
+Time to time, stream on is failing with a strange positive error.
+Error code is returned erroneously by ov5640_set_ctrl_exposure()
+due to ov5640_get_vts() return value wrongly treated as error.
+Fix this by forcing ret to 0 after ov5640_get_vts() success call,
+in order that ret is set to success for rest of code sequence.
 
+Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
+---
+ drivers/media/i2c/ov5640.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-On 2018年01月10日 17:20, jacopo mondi wrote:
-> Hi Shunqian,
->
-> On Wed, Jan 10, 2018 at 10:06:04AM +0800, Shunqian Zheng wrote:
->> Add device tree binding documentation for the OV5695 sensor.
->>
->> Signed-off-by: Shunqian Zheng <zhengsq@rock-chips.com>
->> ---
->>   .../devicetree/bindings/media/i2c/ov5695.txt       | 41 ++++++++++++++++++++++
->>   1 file changed, 41 insertions(+)
->>   create mode 100644 Documentation/devicetree/bindings/media/i2c/ov5695.txt
->>
->> diff --git a/Documentation/devicetree/bindings/media/i2c/ov5695.txt b/Documentation/devicetree/bindings/media/i2c/ov5695.txt
->> new file mode 100644
->> index 0000000..2f2f698
->> --- /dev/null
->> +++ b/Documentation/devicetree/bindings/media/i2c/ov5695.txt
->> @@ -0,0 +1,41 @@
->> +* Omnivision OV5695 MIPI CSI-2 sensor
->> +
->> +Required Properties:
->> +- compatible: shall be "ovti,ov5695"
->> +- clocks: reference to the xvclk input clock
->> +- clock-names: shall be "xvclk"
->> +- avdd-supply: Analog voltage supply, 2.8 volts
->> +- dovdd-supply: Digital I/O voltage supply, 1.8 volts
->> +- dvdd-supply: Digital core voltage supply, 1.2 volts
->> +- reset-gpios: Low active reset gpio
->> +
->> +The device node shall contain one 'port' child node with an
->> +'endpoint' subnode for its digital output video port,
->> +in accordance with the video interface bindings defined in
->> +Documentation/devicetree/bindings/media/video-interfaces.txt.
->> +The endpoint optional property 'data-lanes' shall be "<1 2>".
-> What happens if the property is not present? What's the default?
-I think it depends on how the video receiver deal with, 'data-lanes' is 
-optional as described in video-interfaces.txt,
-but if somehow it used in DT, the value "<1 2>" is the right one.
->
-> I would:
->
-> Required Properties:
-> - compatible: ..
-> ....
->
-> Option Endpoint Properties:
-> - data-lanes: ...
->
->> +
->> +Example:
->> +&i2c7 {
->> +	camera-sensor: ov5695@36 {
-> You have inverted the label with the node name which should be generic
->
->          ov5695: camera@36 {
->
->
->          }
-> Thanks
->     j
-Thank you very much~
-Shunqian
->
->
+diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
+index f017742..e2dd352 100644
+--- a/drivers/media/i2c/ov5640.c
++++ b/drivers/media/i2c/ov5640.c
+@@ -2057,6 +2057,7 @@ static int ov5640_set_ctrl_exposure(struct ov5640_dev *sensor, int exp)
+ 		if (ret < 0)
+ 			return ret;
+ 		max_exp += ret;
++		ret = 0;
+ 
+ 		if (ctrls->exposure->val < max_exp)
+ 			ret = ov5640_set_exposure(sensor, ctrls->exposure->val);
+-- 
+1.9.1
