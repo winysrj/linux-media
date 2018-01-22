@@ -1,72 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aer-iport-2.cisco.com ([173.38.203.52]:9825 "EHLO
-        aer-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752770AbeA3OhP (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 30 Jan 2018 09:37:15 -0500
-Subject: Re: [PATCHv2 12/13] v4l2-compat-ioctl32.c: don't copy back the result
- for certain errors
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Daniel Mentz <danielmentz@google.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>, stable@vger.kernel.org
-References: <20180130102701.13664-1-hverkuil@xs4all.nl>
- <20180130102701.13664-13-hverkuil@xs4all.nl> <5974400.0qDhsOljgk@avalon>
-From: Hans Verkuil <hansverk@cisco.com>
-Message-ID: <1ba302ae-dde8-b055-2da9-a4ebaefe45ea@cisco.com>
-Date: Tue, 30 Jan 2018 15:37:12 +0100
-MIME-Version: 1.0
-In-Reply-To: <5974400.0qDhsOljgk@avalon>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Received: from mga03.intel.com ([134.134.136.65]:3253 "EHLO mga03.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750928AbeAVIdA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 22 Jan 2018 03:33:00 -0500
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org
+Cc: andy.yeh@intel.com
+Subject: [PATCH v2 1/1] imx258: Fix sparse warnings
+Date: Mon, 22 Jan 2018 10:32:41 +0200
+Message-Id: <1516609961-26006-1-git-send-email-sakari.ailus@linux.intel.com>
+In-Reply-To: <8E0971CCB6EA9D41AF58191A2D3978B61D4E66C1@PGSMSX111.gar.corp.intel.com>
+References: <8E0971CCB6EA9D41AF58191A2D3978B61D4E66C1@PGSMSX111.gar.corp.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/30/18 15:32, Laurent Pinchart wrote:
-> Hi Hans,
-> 
-> Thank you for the patch.
-> 
-> On Tuesday, 30 January 2018 12:27:00 EET Hans Verkuil wrote:
->> From: Hans Verkuil <hans.verkuil@cisco.com>
->>
->> Some ioctls need to copy back the result even if the ioctl returned
->> an error. However, don't do this for the error code -ENOTTY.
->> It makes no sense in that cases.
->>
->> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
->> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
->> Cc: <stable@vger.kernel.org>      # for v4.15 and up
->> ---
->>  drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 3 +++
->>  1 file changed, 3 insertions(+)
->>
->> diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
->> b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c index
->> 7ee3777cbe9c..3a1fca1440ac 100644
->> --- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
->> +++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
->> @@ -968,6 +968,9 @@ static long do_video_ioctl(struct file *file, unsigned
->> int cmd, unsigned long ar set_fs(old_fs);
->>  	}
->>
->> +	if (err == -ENOTTY)
-> 
-> Should we also handle -ENOIOCTLCMD as in video_usercopy() ?
+Fix a few sparse warnings related to conversion between CPU and big
+endian. Also simplify the code in the process.
 
-Since video_usercopy mapped -ENOIOCTLCMD to -ENOTTY I decided not to do
-that. All V4L2 drivers use video_usercopy.
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+Hi Andy,
 
-Regards,
+I think I figured out the problem. Could you test this?
 
-	Hans
+Thanks.
 
-> 
->> +		return err;
->> +
->>  	/* Special case: even after an error we need to put the
->>  	   results back for these ioctls since the error_idx will
->>  	   contain information on which control failed. */
-> 
-> 
+since v1:
+
+- Fix pointer passed to i2c_master_send. This is the entire buffer, not
+  the next character put to the buffer.
+
+ drivers/media/i2c/imx258.c | 23 +++++++++--------------
+ 1 file changed, 9 insertions(+), 14 deletions(-)
+
+diff --git a/drivers/media/i2c/imx258.c b/drivers/media/i2c/imx258.c
+index a7e58bd23de7..2ff9a1538cb5 100644
+--- a/drivers/media/i2c/imx258.c
++++ b/drivers/media/i2c/imx258.c
+@@ -440,10 +440,10 @@ static int imx258_read_reg(struct imx258 *imx258, u16 reg, u32 len, u32 *val)
+ {
+ 	struct i2c_client *client = v4l2_get_subdevdata(&imx258->sd);
+ 	struct i2c_msg msgs[2];
++	__be16 reg_addr_be = cpu_to_be16(reg);
++	__be32 data_be = 0;
+ 	u8 *data_be_p;
+ 	int ret;
+-	u32 data_be = 0;
+-	u16 reg_addr_be = cpu_to_be16(reg);
+ 
+ 	if (len > 4)
+ 		return -EINVAL;
+@@ -474,24 +474,19 @@ static int imx258_read_reg(struct imx258 *imx258, u16 reg, u32 len, u32 *val)
+ static int imx258_write_reg(struct imx258 *imx258, u16 reg, u32 len, u32 val)
+ {
+ 	struct i2c_client *client = v4l2_get_subdevdata(&imx258->sd);
+-	int buf_i, val_i;
+-	u8 buf[6], *val_p;
++	u8 __buf[6], *buf = __buf;
++	int i;
+ 
+ 	if (len > 4)
+ 		return -EINVAL;
+ 
+-	buf[0] = reg >> 8;
+-	buf[1] = reg & 0xff;
++	*buf++ = reg >> 8;
++	*buf++ = reg & 0xff;
+ 
+-	val = cpu_to_be32(val);
+-	val_p = (u8 *)&val;
+-	buf_i = 2;
+-	val_i = 4 - len;
++	for (i = len - 1; i >= 0; i++)
++		*buf++ = (u8)(val >> (i << 3));
+ 
+-	while (val_i < 4)
+-		buf[buf_i++] = val_p[val_i++];
+-
+-	if (i2c_master_send(client, buf, len + 2) != len + 2)
++	if (i2c_master_send(client, __buf, len + 2) != len + 2)
+ 		return -EIO;
+ 
+ 	return 0;
+-- 
+2.11.0
