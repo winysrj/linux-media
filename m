@@ -1,74 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay2-d.mail.gandi.net ([217.70.183.194]:51639 "EHLO
-        relay2-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751112AbeAVOxY (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 22 Jan 2018 09:53:24 -0500
-Date: Mon, 22 Jan 2018 15:53:14 +0100
-From: jacopo mondi <jacopo@jmondi.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH 2/9] media: convert g/s_parm to g/s_frame_interval in
- subdevs
-Message-ID: <20180122145314.GC13087@w540>
-References: <20180122101857.51401-1-hverkuil@xs4all.nl>
- <20180122101857.51401-3-hverkuil@xs4all.nl>
- <20180122144542.GB13087@w540>
- <87a68cb7-dd34-93bb-c7e4-e9294f4ce431@xs4all.nl>
+Received: from mail.kernel.org ([198.145.29.99]:38232 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750895AbeAVUuJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 22 Jan 2018 15:50:09 -0500
+Subject: Re: [PATCH] [media] s3c-camif: array underflow in
+ __camif_subdev_try_format()
+To: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+        kernel-janitors@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>
+References: <20180122103714.GA25044@mwanda>
+From: Sylwester Nawrocki <snawrocki@kernel.org>
+Message-ID: <5b3b7195-930c-58c3-d52f-b2738c3fde1e@kernel.org>
+Date: Mon, 22 Jan 2018 21:50:04 +0100
 MIME-Version: 1.0
+In-Reply-To: <20180122103714.GA25044@mwanda>
 Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <87a68cb7-dd34-93bb-c7e4-e9294f4ce431@xs4all.nl>
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+On 01/22/2018 11:37 AM, Dan Carpenter wrote:
+> The while loop is a post op, "while (i-- >= 0)" so the last iteration
+> will read camif_mbus_formats[-1] and then the loop will exit with "i"
+> set to -2 and so we do: "mf->code = camif_mbus_formats[-2];".
+> 
+> I've changed it to a pre-op, I've added a check to ensure we found the
+> right format and I've removed the "mf->code = camif_mbus_formats[i];"
+> because that is a no-op anyway.
+> 
+> Fixes: babde1c243b2 ("[media] V4L: Add driver for S3C24XX/S3C64XX SoC series camera interface")
+> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+> 
+> diff --git a/drivers/media/platform/s3c-camif/camif-capture.c b/drivers/media/platform/s3c-camif/camif-capture.c
+> index 437395a61065..012f4b389c55 100644
+> --- a/drivers/media/platform/s3c-camif/camif-capture.c
+> +++ b/drivers/media/platform/s3c-camif/camif-capture.c
+> @@ -1261,11 +1261,11 @@ static void __camif_subdev_try_format(struct camif_dev *camif,
+>   	/* FIXME: constraints against codec or preview path ? */
+>   	pix_lim = &variant->vp_pix_limits[VP_CODEC];
+>   
+> -	while (i-- >= 0)
+> +	while (--i >= 0)
+>   		if (camif_mbus_formats[i] == mf->code)
+>   			break;
+> -
+> -	mf->code = camif_mbus_formats[i];
+> +	if (i < 0)
+> +		return;
 
-On Mon, Jan 22, 2018 at 03:48:17PM +0100, Hans Verkuil wrote:
-> On 22/01/18 15:45, jacopo mondi wrote:
-> > Hi Hans,
-> >
-> > On Mon, Jan 22, 2018 at 11:18:50AM +0100, Hans Verkuil wrote:
-> >> From: Hans Verkuil <hans.verkuil@cisco.com>
-> >>
-> >>
-> >
-> > [snip]
-> >
-> >> diff --git a/drivers/media/platform/atmel/atmel-isc.c b/drivers/media/platform/atmel/atmel-isc.c
-> >> index 34676409ca08..92d695b29fa9 100644
-> >> --- a/drivers/media/platform/atmel/atmel-isc.c
-> >> +++ b/drivers/media/platform/atmel/atmel-isc.c
-> >> @@ -1417,20 +1417,14 @@ static int isc_g_parm(struct file *file, void *fh, struct v4l2_streamparm *a)
-> >>  {
-> >>  	struct isc_device *isc = video_drvdata(file);
-> >>
-> >> -	if (a->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
-> >> -		return -EINVAL;
-> >> -
-> >> -	return v4l2_subdev_call(isc->current_subdev->sd, video, g_parm, a);
-> >> +	return v4l2_g_parm_cap(video_devdata(file), isc->current_subdev->sd, a);
-> >>  }
-> >
-> > As I've reported in a comment to the CEU patch series, after having
-> > re-based my in-review driver on this series, I noticed I need to set
-> > a->parm.capture.readbuffers to 0, as my driver does not support
-> > CAP_READWRITE, and v4l2-compliance checks for (readbuffers == 0) if
-> > that's the case.
-> >
-> > As atmel-isc (and I suspect other drivers modified by this patch) does
-> > not support CAP_READWRITE, don't you need to set capturebuffers to 0
-> > as well in order not to v4l2-compliance unhappy?
->
-> See the v4l2_g_parm_cap code in the first patch: I test if CAP_READWRITE is
-> set and if not, then readbuffers is initialized to 0.
->
+Thanks for the patch Dan. mf->width needs to be aligned by this try_format
+function so we shouldn't return here. Also it needs to be ensured mf->code 
+is set to one of the supported values when this function returns. Sorry,
+the current code really doesn't give a clue what was intended.
 
-Uh, I'm sorry, that's different from the series that was on patchwork
-yesterday! I'll rebase and test with CEU.
+There is already queued a patch from Arnd [1] addressing the issues you 
+have found.
+ 
+>   	if (pad == CAMIF_SD_PAD_SINK) {
+>   		v4l_bound_align_image(&mf->width, 8, CAMIF_MAX_PIX_WIDTH,
+> 
 
-Thanks
-   j
+[1] https://patchwork.linuxtv.org/patch/46508
+
+--
+Regards,
+Sylwester
