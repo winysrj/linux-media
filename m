@@ -1,128 +1,199 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f196.google.com ([209.85.216.196]:45762 "EHLO
-        mail-qt0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753332AbeASNnc (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:47900 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751108AbeAVMwx (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 19 Jan 2018 08:43:32 -0500
-Date: Fri, 19 Jan 2018 11:43:13 -0200
-From: Gustavo Padovan <gustavo@padovan.org>
-To: Alexandre Courbot <acourbot@chromium.org>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mon, 22 Jan 2018 07:52:53 -0500
+Date: Mon, 22 Jan 2018 14:52:51 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Hugues Fruchet <hugues.fruchet@st.com>
+Cc: Steve Longerbeam <slongerbeam@gmail.com>,
         Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        Pawel Osciak <pawel@osciak.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Brian Starkey <brian.starkey@arm.com>,
-        Thierry Escande <thierry.escande@collabora.com>,
-        linux-kernel@vger.kernel.org,
-        Gustavo Padovan <gustavo.padovan@collabora.com>
-Subject: Re: [PATCH v7 5/6] [media] vb2: add out-fence support to QBUF
-Message-ID: <20180119134313.GE9598@jade>
-References: <20180110160732.7722-1-gustavo@padovan.org>
- <20180110160732.7722-6-gustavo@padovan.org>
- <CAPBb6MU-83QXHht_gLciGzfZtNxJL_=Fj5h1yfwPEt3vSKHVXg@mail.gmail.com>
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Subject: Re: [PATCH] media: ov5640: add JPEG support
+Message-ID: <20180122125250.znhs334o2irkey2h@valkosipuli.retiisi.org.uk>
+References: <1516617996-29499-1-git-send-email-hugues.fruchet@st.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <CAPBb6MU-83QXHht_gLciGzfZtNxJL_=Fj5h1yfwPEt3vSKHVXg@mail.gmail.com>
+In-Reply-To: <1516617996-29499-1-git-send-email-hugues.fruchet@st.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2018-01-15 Alexandre Courbot <acourbot@chromium.org>:
+Hi Hugues,
 
-> On Thu, Jan 11, 2018 at 1:07 AM, Gustavo Padovan <gustavo@padovan.org> wrote:
-> >  /*
-> >   * vb2_start_streaming() - Attempt to start streaming.
-> >   * @q:         videobuf2 queue
-> > @@ -1489,18 +1562,16 @@ int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb,
-> >         if (vb->in_fence) {
-> >                 ret = dma_fence_add_callback(vb->in_fence, &vb->fence_cb,
-> >                                              vb2_qbuf_fence_cb);
-> > -               if (ret == -EINVAL) {
-> > +               /* is the fence signaled? */
-> > +               if (ret == -ENOENT) {
-> > +                       dma_fence_put(vb->in_fence);
-> > +                       vb->in_fence = NULL;
-> > +               } else if (ret) {
-> >                         spin_unlock_irqrestore(&vb->fence_cb_lock, flags);
-> >                         goto err;
-> > -               } else if (!ret) {
-> > -                       goto fill;
-> >                 }
-> > -
-> > -               dma_fence_put(vb->in_fence);
-> > -               vb->in_fence = NULL;
+On Mon, Jan 22, 2018 at 11:46:36AM +0100, Hugues Fruchet wrote:
+> Add YUV422 encoded JPEG support.
 > 
-> This chunk seems to deal with input fences, shouldn't it be part of
-> the previous patch instead of this one?
+> Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
+> ---
+>  drivers/media/i2c/ov5640.c | 82 ++++++++++++++++++++++++++++++++++++++++++++--
+>  1 file changed, 80 insertions(+), 2 deletions(-)
 > 
-> >
-> > -       if ((b->fence_fd != 0 && b->fence_fd != -1) &&
-> > -           !(b->flags & V4L2_BUF_FLAG_IN_FENCE)) {
-> > +       if (b->fence_fd > 0 && !(b->flags & V4L2_BUF_FLAG_IN_FENCE)) {
-> >                 dprintk(1, "%s: fence_fd set without IN_FENCE flag\n", opname);
-> >                 return -EINVAL;
-> >         }
-> >
-> > +       if (b->fence_fd == -1 && (b->flags & V4L2_BUF_FLAG_IN_FENCE)) {
-> > +               dprintk(1, "%s: IN_FENCE flag set but no fence_fd\n", opname);
-> > +               return -EINVAL;
-> > +       }
-> > +
-> 
-> Same here?
-> 
-> >         return __verify_planes_array(q->bufs[b->index], b);
-> >  }
-> >
-> > @@ -212,7 +216,12 @@ static void __fill_v4l2_buffer(struct vb2_buffer *vb, void *pb)
-> >         b->sequence = vbuf->sequence;
-> >         b->reserved = 0;
-> >
-> > -       b->fence_fd = 0;
-> > +       if (b->flags & V4L2_BUF_FLAG_OUT_FENCE) {
-> > +               b->fence_fd = vb->out_fence_fd;
-> > +       } else {
-> > +               b->fence_fd = 0;
-> > +       }
-> 
-> Sorry if this has already been discussed, but I don't remember the
-> outcome if it has.
-> 
-> I wonder if doing this here could not make out_fence_fd leak in
-> situations where we don't need/want it to. Let's take for instance a
-> multi-process user program. One process queues a buffer with an
-> OUT_FENCE and gets a valid fd in fence_fd upon return. Then the other
-> process performs a QUERYBUF and gets the same fence_fd - which is
-> invalid in its context. Would it not be preferable fill the out fence
-> information only when queuing buffers, since it is the only time where
-> we are guaranteed it will be usable by the caller?
-> 
-> Similarly, when a buffer is processed and user-space performs a DQBUF,
-> the V4L2_BUF_FLAG_OUT_FENCE will be set but fence_fd will be 0. Again,
-> limiting the return of out fence information to QBUF would prevent
-> this.
+> diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
+> index e2dd352..db9aeeb 100644
+> --- a/drivers/media/i2c/ov5640.c
+> +++ b/drivers/media/i2c/ov5640.c
+> @@ -18,6 +18,7 @@
+>  #include <linux/init.h>
+>  #include <linux/module.h>
+>  #include <linux/of_device.h>
+> +#include <linux/sizes.h>
+>  #include <linux/slab.h>
+>  #include <linux/types.h>
+>  #include <linux/gpio/consumer.h>
+> @@ -34,6 +35,10 @@
+>  
+>  #define OV5640_DEFAULT_SLAVE_ID 0x3c
+>  
+> +#define OV5640_JPEG_SIZE_MAX (5 * SZ_1M)
+> +
+> +#define OV5640_REG_SYS_RESET02		0x3002
+> +#define OV5640_REG_SYS_CLOCK_ENABLE02	0x3006
+>  #define OV5640_REG_SYS_CTRL0		0x3008
+>  #define OV5640_REG_CHIP_ID		0x300a
+>  #define OV5640_REG_IO_MIPI_CTRL00	0x300e
+> @@ -114,6 +119,7 @@ struct ov5640_pixfmt {
+>  };
+>  
+>  static const struct ov5640_pixfmt ov5640_formats[] = {
+> +	{ MEDIA_BUS_FMT_JPEG_1X8, V4L2_COLORSPACE_JPEG, },
+>  	{ MEDIA_BUS_FMT_UYVY8_2X8, V4L2_COLORSPACE_SRGB, },
+>  	{ MEDIA_BUS_FMT_YUYV8_2X8, V4L2_COLORSPACE_SRGB, },
+>  	{ MEDIA_BUS_FMT_RGB565_2X8_LE, V4L2_COLORSPACE_SRGB, },
+> @@ -220,6 +226,8 @@ struct ov5640_dev {
+>  
+>  	bool pending_mode_change;
+>  	bool streaming;
+> +
+> +	unsigned int jpeg_size;
+>  };
+>  
+>  static inline struct ov5640_dev *to_ov5640_dev(struct v4l2_subdev *sd)
+> @@ -1910,11 +1918,51 @@ static int ov5640_set_fmt(struct v4l2_subdev *sd,
+>  	return ret;
+>  }
+>  
+> +static int ov5640_get_frame_desc(struct v4l2_subdev *sd, unsigned int pad,
+> +				 struct v4l2_mbus_frame_desc *fd)
+> +{
+> +	struct ov5640_dev *sensor = to_ov5640_dev(sd);
+> +
+> +	if (pad != 0 || !fd)
+> +		return -EINVAL;
+> +
+> +	mutex_lock(&sensor->lock);
+> +	fd->entry[0].length = sensor->jpeg_size;
+> +	fd->entry[0].pixelcode = MEDIA_BUS_FMT_JPEG_1X8;
 
-Right. So in summary as this is something Hans commented on another
-e-mail in this thread.
+This doesn't need to be serialised i.e. can be moved below where the flags
+are assigned.
 
-Your proposal is to only return the out_fence fd number on QBUF, right?
-And DQBUF and QUERYBUF would only return -1 in the fence_fd field.
+> +	mutex_unlock(&sensor->lock);
+> +
+> +	fd->entry[0].flags = V4L2_MBUS_FRAME_DESC_FL_LEN_MAX;
+> +	fd->num_entries = 1;
+> +
+> +	return 0;
+> +}
+> +
+> +static int ov5640_set_frame_desc(struct v4l2_subdev *sd, unsigned int pad,
+> +				 struct v4l2_mbus_frame_desc *fd)
+> +{
+> +	struct ov5640_dev *sensor = to_ov5640_dev(sd);
+> +
+> +	if (pad != 0 || !fd)
+> +		return -EINVAL;
+> +
+> +	fd->entry[0].flags = V4L2_MBUS_FRAME_DESC_FL_LEN_MAX;
+> +	fd->num_entries = 1;
+> +	fd->entry[0].length = clamp_t(u32, fd->entry[0].length,
+> +				      sensor->fmt.width * sensor->fmt.height,
+> +				      OV5640_JPEG_SIZE_MAX);
 
-What I understood from Hans comment is that he is okay with sharing the
-fd in such cases and v4l2 already does that for dmabuf fds.
+Access to sensor->fmt.width and .height needs to be serialised; acquire
+mutex first?
 
-I believe sharing is okay, as it will be either the same process or a
-process we gave the device fd in the first place.
+> +	mutex_lock(&sensor->lock);
+> +	sensor->jpeg_size = fd->entry[0].length;
+> +	mutex_unlock(&sensor->lock);
+> +
+> +	return 0;
+> +}
+> +
+>  static int ov5640_set_framefmt(struct ov5640_dev *sensor,
+>  			       struct v4l2_mbus_framefmt *format)
+>  {
+>  	int ret = 0;
+>  	bool is_rgb = false;
+> +	bool is_jpeg = false;
+>  	u8 val;
+>  
+>  	switch (format->code) {
+> @@ -1936,6 +1984,11 @@ static int ov5640_set_framefmt(struct ov5640_dev *sensor,
+>  		val = 0x61;
+>  		is_rgb = true;
+>  		break;
+> +	case MEDIA_BUS_FMT_JPEG_1X8:
+> +		/* YUV422, YUYV */
+> +		val = 0x30;
+> +		is_jpeg = true;
+> +		break;
+>  	default:
+>  		return -EINVAL;
+>  	}
+> @@ -1946,8 +1999,31 @@ static int ov5640_set_framefmt(struct ov5640_dev *sensor,
+>  		return ret;
+>  
+>  	/* FORMAT MUX CONTROL: ISP YUV or RGB */
+> -	return ov5640_write_reg(sensor, OV5640_REG_ISP_FORMAT_MUX_CTRL,
+> -				is_rgb ? 0x01 : 0x00);
+> +	ret = ov5640_write_reg(sensor, OV5640_REG_ISP_FORMAT_MUX_CTRL,
+> +			       is_rgb ? 0x01 : 0x00);
+> +	if (ret)
+> +		return ret;
+> +
+> +	if (is_jpeg) {
+> +		/* Enable jpeg */
+> +		ret = ov5640_mod_reg(sensor, OV5640_REG_TIMING_TC_REG21,
+> +				     BIT(5), BIT(5));
+> +		if (ret)
+> +			return ret;
+> +
+> +		/* Relax reset of all blocks */
+> +		ret = ov5640_write_reg(sensor, OV5640_REG_SYS_RESET02, 0x00);
+> +		if (ret)
+> +			return ret;
+> +
+> +		/* Clock all blocks */
+> +		ret = ov5640_write_reg(sensor, OV5640_REG_SYS_CLOCK_ENABLE02,
+> +				       0xFF);
+> +		if (ret)
+> +			return ret;
 
-I'm not invested in any particular approach here. Thoughts?
+What if you switch back to non-JPEG output while the sensor remains powered
+on? Don't you need to revert the settings to what they were previously?
 
-> 
-> If we go that route, out_fence_fd could maybe become a local variable
-> of vb2_qbuf() instead of being a member of vb2_buffer, and would be
-> returned by vb2_setup_out_fence(). This would guarantee it does not
-> leak anywhere else.
+> +	}
+> +
+> +	return ret;
+>  }
+>  
+>  /*
+> @@ -2391,6 +2467,8 @@ static int ov5640_s_stream(struct v4l2_subdev *sd, int enable)
+>  	.set_fmt = ov5640_set_fmt,
+>  	.enum_frame_size = ov5640_enum_frame_size,
+>  	.enum_frame_interval = ov5640_enum_frame_interval,
+> +	.get_frame_desc	= ov5640_get_frame_desc,
+> +	.set_frame_desc	= ov5640_set_frame_desc,
+>  };
+>  
+>  static const struct v4l2_subdev_ops ov5640_subdev_ops = {
 
+-- 
+Regards,
 
-Gustavo
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
