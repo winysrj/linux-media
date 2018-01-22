@@ -1,48 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:55248 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751391AbeAYNQd (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 25 Jan 2018 08:16:33 -0500
-Date: Thu, 25 Jan 2018 15:16:30 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Niklas =?iso-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
-Subject: Re: [PATCH v2] v4l2-dev.h: fix symbol collision in
- media_entity_to_video_device()
-Message-ID: <20180125131630.jzxunfs427s7vc2r@valkosipuli.retiisi.org.uk>
-References: <20180125130852.4779-1-niklas.soderlund+renesas@ragnatech.se>
+Received: from mga06.intel.com ([134.134.136.31]:35385 "EHLO mga06.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750828AbeAVID1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 22 Jan 2018 03:03:27 -0500
+From: "Yeh, Andy" <andy.yeh@intel.com>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+CC: Tomasz Figa <tfiga@chromium.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: RE: [PATCH v4] media: imx258: Add imx258 camera sensor driver
+Date: Mon, 22 Jan 2018 08:03:23 +0000
+Message-ID: <8E0971CCB6EA9D41AF58191A2D3978B61D4E66E1@PGSMSX111.gar.corp.intel.com>
+References: <1516333071-9766-1-git-send-email-andy.yeh@intel.com>
+ <CAAFQd5Aq4oX+-ux0r4SjyWAyRUA1DJ34mgBmcvuY6HpG9SJ++g@mail.gmail.com>
+ <8E0971CCB6EA9D41AF58191A2D3978B61D4E49E8@PGSMSX111.gar.corp.intel.com>
+ <20180119091732.x3qyex6lzev2sp2u@paasikivi.fi.intel.com>
+In-Reply-To: <20180119091732.x3qyex6lzev2sp2u@paasikivi.fi.intel.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20180125130852.4779-1-niklas.soderlund+renesas@ragnatech.se>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jan 25, 2018 at 02:08:52PM +0100, Niklas Söderlund wrote:
-> A recent change to the media_entity_to_video_device() macro breaks some
-> use-cases for the macro due to a symbol collision. Before the change
-> this worked:
-> 
->     vdev = media_entity_to_video_device(link->sink->entity);
-> 
-> While after the change it results in a compiler error "error: 'struct
-> video_device' has no member named 'link'; did you mean 'lock'?". While
-> the following still works after the change.
-> 
->     struct media_entity *entity = link->sink->entity;
->     vdev = media_entity_to_video_device(entity);
-> 
-> Fix the collision by renaming the macro argument to '__entity'.
-> 
-> Fixes: 69b925c5fc36d8f1 ("media: v4l2-dev.h: add kernel-doc to two macros")
-> Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Hi Sakari, Tomasz,
 
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+As below discussion that other drivers are with this pattern, I would prefer to defer to address the concern in later discussion with you and owners of other sensors.
 
--- 
+Thanks a lot.
+
+Regards, Andy
+
+-----Original Message-----
+From: Sakari Ailus [mailto:sakari.ailus@linux.intel.com] 
+Sent: Friday, January 19, 2018 5:18 PM
+To: Yeh, Andy <andy.yeh@intel.com>
+Cc: Tomasz Figa <tfiga@chromium.org>; Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH v4] media: imx258: Add imx258 camera sensor driver
+
+Hi Andy,
+
+On Fri, Jan 19, 2018 at 07:29:46AM +0000, Yeh, Andy wrote:
+> Thanks Tomasz,
+> 
+> Agree with your point, if so, we could just change as below with a simple check of streaming flag.
+> And for Sakari, do you agree with Tomasz's comment?
+> 
+> Kindly review and I would send v5 with the change.
+> 
+> diff --git a/drivers/media/i2c/imx258.c b/drivers/media/i2c/imx258.c 
+> index a7e58bd2..cf1c5ee 100644
+> --- a/drivers/media/i2c/imx258.c
+> +++ b/drivers/media/i2c/imx258.c
+> @@ -561,10 +561,13 @@ static int imx258_set_ctrl(struct v4l2_ctrl 
+> *ctrl)
+> 
+>         /*
+>          * Applying V4L2 control value only happens
+> -        * when power is up for qstreaming
+> +        * when streaming flag is on
+>          */
+> -       if (pm_runtime_get_if_in_use(&client->dev) <= 0)
+> +       if (imx258->streaming == 0)
+
+This doesn't address the problem yet. I think we'll need one more field in the device specific struct to convey this to the driver. Please see the smiapp driver, and its use of "active" field.
+
+It's a little different implementation, you could well put the check here rather than the function performing the writes.
+
+This isn't a severe issue though, in practice it'll be unlikely to be noticed as it hasn't been noticed in some other drivers that use the same pattern. IMO this could be addressed later on, possibly together with other drivers with similar issues.
+
+>                 return 0;
+> 
+>         switch (ctrl->id) {
+>         case V4L2_CID_ANALOGUE_GAIN:
+> @@ -590,8 +593,6 @@ static int imx258_set_ctrl(struct v4l2_ctrl *ctrl)
+>                 break;
+>         }
+> 
+> -       pm_runtime_put(&client->dev);
+> -
+>         return ret;
+>  }
+
+--
+Kind regards,
+
 Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+sakari.ailus@linux.intel.com
