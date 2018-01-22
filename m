@@ -1,36 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([65.50.211.133]:37891 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751932AbeAJSD0 (ORCPT
+Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:57587 "EHLO
+        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751161AbeAVMb3 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 10 Jan 2018 13:03:26 -0500
-From: Christoph Hellwig <hch@lst.de>
-To: Bjorn Helgaas <bhelgaas@google.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Kong Lai <kong.lai@tundra.com>, linux-pci@vger.kernel.org,
-        linux-media@vger.kernel.org, netdev@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: remove pci_dma_* abuses and workarounds V2
-Date: Wed, 10 Jan 2018 19:03:18 +0100
-Message-Id: <20180110180322.30186-1-hch@lst.de>
+        Mon, 22 Jan 2018 07:31:29 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        Hans Verkuil <hansverk@cisco.com>
+Subject: [PATCHv2 8/9] v4l2-subdev.h: remove obsolete g/s_parm
+Date: Mon, 22 Jan 2018 13:31:24 +0100
+Message-Id: <20180122123125.24709-9-hverkuil@xs4all.nl>
+In-Reply-To: <20180122123125.24709-1-hverkuil@xs4all.nl>
+References: <20180122123125.24709-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Back before the dawn of time pci_dma_* with a NULL pci_dev argument
-was used for all kinds of things, e.g. dma mapping for non-PCI
-devices.  All this has been long removed, but it turns out we
-still care for a NULL pci_dev in the wrappers, and we still have
-two odd USB drivers that use pci_dma_alloc_consistent for allocating
-memory while ignoring the dma_addr_t entirely, and a network driver
-mixing the already wrong usage of dma_* with a NULL device with a
-single call to pci_free_consistent.
+From: Hans Verkuil <hansverk@cisco.com>
 
-This series switches the two usb drivers to use plain kzalloc, the
-net driver to properly use the dma API and then removes the handling
-of the NULL pci_dev in the pci_dma_* wrappers.
+Signed-off-by: Hans Verkuil <hansverk@cisco.com>
+---
+ include/media/v4l2-subdev.h | 6 ------
+ 1 file changed, 6 deletions(-)
 
-Changes since V1:
- - remove allocation failure printks
- - use kcalloc
- - fix tsi108_eth
- - improve changelogs
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index 980a86c08fce..457917e9237f 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -393,10 +393,6 @@ struct v4l2_mbus_frame_desc {
+  *
+  * @g_pixelaspect: callback to return the pixelaspect ratio.
+  *
+- * @g_parm: callback for VIDIOC_G_PARM() ioctl handler code.
+- *
+- * @s_parm: callback for VIDIOC_S_PARM() ioctl handler code.
+- *
+  * @g_frame_interval: callback for VIDIOC_SUBDEV_G_FRAME_INTERVAL()
+  *		      ioctl handler code.
+  *
+@@ -434,8 +430,6 @@ struct v4l2_subdev_video_ops {
+ 	int (*g_input_status)(struct v4l2_subdev *sd, u32 *status);
+ 	int (*s_stream)(struct v4l2_subdev *sd, int enable);
+ 	int (*g_pixelaspect)(struct v4l2_subdev *sd, struct v4l2_fract *aspect);
+-	int (*g_parm)(struct v4l2_subdev *sd, struct v4l2_streamparm *param);
+-	int (*s_parm)(struct v4l2_subdev *sd, struct v4l2_streamparm *param);
+ 	int (*g_frame_interval)(struct v4l2_subdev *sd,
+ 				struct v4l2_subdev_frame_interval *interval);
+ 	int (*s_frame_interval)(struct v4l2_subdev *sd,
+-- 
+2.15.1
