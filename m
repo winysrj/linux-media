@@ -1,62 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:50666 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751579AbeA3Lv7 (ORCPT
+Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:50736 "EHLO
+        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750890AbeAVKda (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 30 Jan 2018 06:51:59 -0500
-Date: Tue, 30 Jan 2018 13:51:57 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Daniel Mentz <danielmentz@google.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>, stable@vger.kernel.org
-Subject: Re: [PATCHv2 03/13] v4l2-ioctl.c: don't copy back the result for
- -ENOTTY
-Message-ID: <20180130115156.impfksxh2f7jzdps@valkosipuli.retiisi.org.uk>
-References: <20180130102701.13664-1-hverkuil@xs4all.nl>
- <20180130102701.13664-4-hverkuil@xs4all.nl>
+        Mon, 22 Jan 2018 05:33:30 -0500
+Subject: Re: [PATCH 2/9] media: convert g/s_parm to g/s_frame_interval in
+ subdevs
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+References: <20180122101857.51401-1-hverkuil@xs4all.nl>
+ <20180122101857.51401-3-hverkuil@xs4all.nl>
+ <20180122102644.4n5yv7z4y3a47n3z@paasikivi.fi.intel.com>
+Cc: linux-media@vger.kernel.org,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <9198b319-6821-0263-044e-3ccbc73c61f8@xs4all.nl>
+Date: Mon, 22 Jan 2018 11:33:28 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20180130102701.13664-4-hverkuil@xs4all.nl>
+In-Reply-To: <20180122102644.4n5yv7z4y3a47n3z@paasikivi.fi.intel.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Jan 30, 2018 at 11:26:51AM +0100, Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
+On 22/01/18 11:26, Sakari Ailus wrote:
+> Hi Hans,
 > 
-> If the ioctl returned -ENOTTY, then don't bother copying
-> back the result as there is no point.
+> On Mon, Jan 22, 2018 at 11:18:50AM +0100, Hans Verkuil wrote:
+>> From: Hans Verkuil <hans.verkuil@cisco.com>
+>>
+>> Convert all g/s_parm calls to g/s_frame_interval. This allows us
+>> to remove the g/s_parm ops since those are a duplicate of
+>> g/s_frame_interval.
+>>
+>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+>> ---
+>>  drivers/media/i2c/mt9v011.c                     | 29 +++++++++----------
+>>  drivers/media/i2c/ov6650.c                      | 33 ++++++++++------------
+>>  drivers/media/i2c/ov7670.c                      | 26 +++++++++--------
+>>  drivers/media/i2c/ov7740.c                      | 29 ++++++++-----------
+>>  drivers/media/i2c/tvp514x.c                     | 37 +++++++++++--------------
+>>  drivers/media/i2c/vs6624.c                      | 29 ++++++++++---------
+>>  drivers/media/platform/atmel/atmel-isc.c        | 10 ++-----
+>>  drivers/media/platform/atmel/atmel-isi.c        | 12 ++------
+>>  drivers/media/platform/blackfin/bfin_capture.c  | 14 +++-------
+>>  drivers/media/platform/marvell-ccic/mcam-core.c | 12 ++++----
+>>  drivers/media/platform/soc_camera/soc_camera.c  | 10 ++++---
+>>  drivers/media/platform/via-camera.c             |  4 +--
+>>  drivers/media/usb/em28xx/em28xx-video.c         | 36 ++++++++++++++++++++----
+>>  13 files changed, 137 insertions(+), 144 deletions(-)
+>>
+>> diff --git a/drivers/media/i2c/mt9v011.c b/drivers/media/i2c/mt9v011.c
+>> index 5e29064fae91..0e0bcc8b67ca 100644
+>> --- a/drivers/media/i2c/mt9v011.c
+>> +++ b/drivers/media/i2c/mt9v011.c
+>> @@ -364,33 +364,30 @@ static int mt9v011_set_fmt(struct v4l2_subdev *sd,
+>>  	return 0;
+>>  }
+>>  
+>> -static int mt9v011_g_parm(struct v4l2_subdev *sd, struct v4l2_streamparm *parms)
+>> +static int mt9v011_g_frame_interval(struct v4l2_subdev *sd,
+>> +				    struct v4l2_subdev_frame_interval *ival)
+>>  {
+>> -	struct v4l2_captureparm *cp = &parms->parm.capture;
+>> -
+>> -	if (parms->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
+>> +	if (ival->pad)
+>>  		return -EINVAL;
 > 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> Cc: <stable@vger.kernel.org>      # for v4.15 and up
+> The pad number checks are already present in v4l2-subdev.c. Do you think
+> we'll need them in drivers as well?
+> 
+> It's true that another driver could mis-use this interface. In that case
+> I'd introduce a wrapper to the op rather than introduce the check in every
+> driver.
 
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+I'm not that keen on introducing wrappers for an op. I wouldn't actually know
+how to implement that cleanly. Since the pad check is subdev driver specific,
+and the overhead of a wrapper is almost certainly higher than just doing this
+check I feel it is OK to do this.
 
-> ---
->  drivers/media/v4l2-core/v4l2-ioctl.c | 5 ++++-
->  1 file changed, 4 insertions(+), 1 deletion(-)
 > 
-> diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-> index c7f6b65d3ad7..260288ca4f55 100644
-> --- a/drivers/media/v4l2-core/v4l2-ioctl.c
-> +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-> @@ -2900,8 +2900,11 @@ video_usercopy(struct file *file, unsigned int cmd, unsigned long arg,
->  
->  	/* Handles IOCTL */
->  	err = func(file, cmd, parg);
-> -	if (err == -ENOIOCTLCMD)
-> +	if (err == -ENOTTY || err == -ENOIOCTLCMD) {
->  		err = -ENOTTY;
-> +		goto out;
-> +	}
-> +
->  	if (err == 0) {
->  		if (cmd == VIDIOC_DQBUF)
->  			trace_v4l2_dqbuf(video_devdata(file)->minor, parg);
-> -- 
-> 2.15.1
-> 
+>>  
+>> -	memset(cp, 0, sizeof(struct v4l2_captureparm));
+>> -	cp->capability = V4L2_CAP_TIMEPERFRAME;
+>> +	memset(ival->reserved, 0, sizeof(ival->reserved));
+>>  	calc_fps(sd,
+>> -		 &cp->timeperframe.numerator,
+>> -		 &cp->timeperframe.denominator);
+>> +		 &ival->interval.numerator,
+>> +		 &ival->interval.denominator);
+>>  
+>>  	return 0;
+>>  }
 
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+Regards,
+
+	Hans
