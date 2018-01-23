@@ -1,62 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:53630 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751268AbeACUdH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 3 Jan 2018 15:33:07 -0500
-From: Kieran Bingham <kbingham@kernel.org>
-To: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        laurent.pinchart@ideasonboard.com
-Cc: Olivier BRAUN <olivier.braun@stereolabs.com>,
-        kieran.bingham@ideasonboard.com
-Subject: [RFC/RFT PATCH 0/6] Asynchronous UVC
-Date: Wed,  3 Jan 2018 20:32:50 +0000
-Message-Id: <cover.67dff754d6d314373ac0a04777b3b1d785fc5dd4.1515010476.git-series.kieran.bingham@ideasonboard.com>
+Received: from mail-qt0-f193.google.com ([209.85.216.193]:34640 "EHLO
+        mail-qt0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751907AbeAWRb3 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 23 Jan 2018 12:31:29 -0500
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <1516718246-24746-1-git-send-email-clabbe@baylibre.com>
+References: <1516718246-24746-1-git-send-email-clabbe@baylibre.com>
+From: Andy Shevchenko <andy.shevchenko@gmail.com>
+Date: Tue, 23 Jan 2018 19:31:27 +0200
+Message-ID: <CAHp75Vf9aK3V=0+2ZPpA5K7ey2tR930ZFKt+e+FJxJvgPB54Vw@mail.gmail.com>
+Subject: Re: [PATCH] staging: media: remove unused VIDEO_ATOMISP_OV8858 kconfig
+To: Corentin Labbe <clabbe@baylibre.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        devel@driverdev.osuosl.org,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Kieran Bingham <kieran.bingham@ideasonboard.com>
+On Tue, Jan 23, 2018 at 4:37 PM, Corentin Labbe <clabbe@baylibre.com> wrote:
+> Nothing in kernel use VIDEO_ATOMISP_OV8858 since commit 3a81c7660f80 ("media: staging: atomisp: Remove IMX sensor support")
+> Lets remove this kconfig option.
 
-The Linux UVC driver has long provided adequate performance capabilities for
-web-cams and low data rate video devices in Linux while resolutions were low.
+First of all, I hardly understand how that change is related.
+Second, did you check Makefile?
+Third, the files are in the folder (for OV8858).
 
-Modern USB cameras are now capable of high data rates thanks to USB3 with
-1080p, and even 4k capture resolutions supported.
+Taking all above into account, it seems NACK, though regression might
+be made by renaming patch from Sakari (no, it's not).
+So, it looks like it was never enabled in the first place.
 
-Cameras such as the Stereolabs ZED or the Logitech Brio can generate more data
-than an embedded ARM core is able to process on a single core, resulting in
-frame loss.
+Anyway, do you have hardware to test? This is *most* important reason
+why to accept or decline a change to the driver.
 
-A large part of this performance impact is from the requirement to
-‘memcpy’ frames out from URB packets to destination frames. This unfortunate
-requirement is due to the UVC protocol allowing a variable length header, and
-thus it is not possible to provide the target frame buffers directly.
-
-Extra throughput is possible by moving the actual memcpy actions to a work
-queue, and moving the memcpy out of interrupt context and allowing work tasks
-to be scheduled across multiple cores.
-
-This series has been tested on both the ZED and Brio cameras on arm64
-platforms, however due to the intrinsic changes in the driver I would like to
-see it tested with other devices and other platforms, so I'd appreciate if
-anyone can test this on a range of USB cameras.
-
-Kieran Bingham (6):
-  uvcvideo: Refactor URB descriptors
-  uvcvideo: Convert decode functions to use new context structure
-  uvcvideo: Protect queue internals with helper
-  uvcvideo: queue: Simplify spin-lock usage
-  uvcvideo: queue: Support asynchronous buffer handling
-  uvcvideo: Move decode processing to process context
-
- drivers/media/usb/uvc/uvc_isight.c |   4 +-
- drivers/media/usb/uvc/uvc_queue.c  | 115 ++++++++++++++----
- drivers/media/usb/uvc/uvc_video.c  | 191 ++++++++++++++++++++++--------
- drivers/media/usb/uvc/uvcvideo.h   |  56 +++++++--
- 4 files changed, 289 insertions(+), 77 deletions(-)
-
-base-commit: 6f0e5fd39143a59c22d60e7befc4f33f22aeed2f
 -- 
-git-series 0.9.1
+With Best Regards,
+Andy Shevchenko
