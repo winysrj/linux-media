@@ -1,82 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from out20-99.mail.aliyun.com ([115.124.20.99]:47518 "EHLO
-        out20-99.mail.aliyun.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751564AbeA1CTs (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:59146 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751576AbeAWMwf (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 27 Jan 2018 21:19:48 -0500
-Date: Sun, 28 Jan 2018 10:19:03 +0800
-From: Yong <yong.deng@magewell.com>
-To: maxime.ripard@free-electrons.com
-Cc: kbuild test robot <lkp@intel.com>, kbuild-all@01.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Chen-Yu Tsai <wens@csie.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        Randy Dunlap <rdunlap@infradead.org>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Yannick Fertre <yannick.fertre@st.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Rick Chang <rick.chang@mediatek.com>,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-sunxi@googlegroups.com, megous@megous.com
-Subject: Re: [linux-sunxi] Re: [PATCH v6 2/2] media: V3s: Add support for
- Allwinner CSI.
-Message-Id: <20180128101903.fbaec083c787bda30aeb05ef@magewell.com>
-In-Reply-To: <20180126081000.hy7g57zp5dv6ug2g@flea.lan>
-References: <1516695531-23349-1-git-send-email-yong.deng@magewell.com>
-        <201801260759.RyNhDZz4%fengguang.wu@intel.com>
-        <20180126094658.aa70ed3f890464f6051e21e4@magewell.com>
-        <20180126110041.f89848325b9ecfb07df387ca@magewell.com>
-        <20180126081000.hy7g57zp5dv6ug2g@flea.lan>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+        Tue, 23 Jan 2018 07:52:35 -0500
+Date: Tue, 23 Jan 2018 14:52:33 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [GIT PULL for 4.16] CIO2 compiler warning fix
+Message-ID: <20180123125232.bswrswaxbyyu7vsq@valkosipuli.retiisi.org.uk>
+References: <20180109223517.lkj4opdpm64jpf5d@valkosipuli.retiisi.org.uk>
+ <20180123104008.25ebdef5@vela.lan>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20180123104008.25ebdef5@vela.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Maxime,
-
-On Fri, 26 Jan 2018 09:10:00 +0100
-Maxime Ripard <maxime.ripard@free-electrons.com> wrote:
-
-> On Fri, Jan 26, 2018 at 11:00:41AM +0800, Yong wrote:
-> > Hi Maxime,
-> > 
-> > On Fri, 26 Jan 2018 09:46:58 +0800
-> > Yong <yong.deng@magewell.com> wrote:
-> > 
-> > > Hi Maxime,
-> > > 
-> > > Do you have any experience in solving this problem?
-> > > It seems the PHYS_OFFSET maybe undeclared when the ARCH is not arm.
-> > 
-> > Got it.
-> > Should I add 'depends on ARM' in Kconfig?
+On Tue, Jan 23, 2018 at 10:40:13AM -0200, Mauro Carvalho Chehab wrote:
+> Em Wed, 10 Jan 2018 00:35:18 +0200
+> Sakari Ailus <sakari.ailus@iki.fi> escreveu:
 > 
-> Yes, or even better a depends on MACH_SUNXI :)
+> > Hi Mauro,
+> > 
+> > Here's compile warning fix for the Intel IPU3 CIO2 driver from Arnd.
+> > 
+> > Please pull.
+> > 
+> > 
+> > The following changes since commit e3ee691dbf24096ea51b3200946b11d68ce75361:
+> > 
+> >   media: ov5640: add support of RGB565 and YUYV formats (2018-01-05 12:54:14 -0500)
+> > 
+> > are available in the git repository at:
+> > 
+> >   ssh://linuxtv.org/git/sailus/media_tree.git ipu3
+> > 
+> > for you to fetch changes up to 0bf3352560b82c12380823f035f5fb2171683f23:
+> > 
+> >   media: intel-ipu3: cio2: mark more PM functions as __maybe_unused (2018-01-09 13:16:07 +0200)
+> > 
+> > ----------------------------------------------------------------
+> > Arnd Bergmann (1):
+> >       media: intel-ipu3: cio2: mark more PM functions as __maybe_unused
+> > 
+> >  drivers/media/pci/intel/ipu3/ipu3-cio2.c | 4 ++--
+> >  1 file changed, 2 insertions(+), 2 deletions(-)
+> 
+> I got more changes than mentioned above:
+> 
+> git pull logs
+> Updating e3ee691dbf24..8d677b031a4f
+> Fast-forward
+>  drivers/media/pci/intel/ipu3/ipu3-cio2.c | 9 ++++-----
+>  1 file changed, 4 insertions(+), 5 deletions(-)
+> 
+> Something wrong happened here.
 
-Do you mean ARCH_SUNXI?
+Oops. There was an additional patch but I forgot to replace the pull
+request. I'll do that now.
 
-ARCH_SUNXI is alreay there. In the early version, my Kconfig is like this:
-
-	depends on ARCH_SUNXI
-
-But Hans suggest me to change this to:
-
-	depends on ARCH_SUNXI || COMPILE_TEST
-
-to allow this driver to be compiled on e.g. Intel for compile testing.
-
-Should we get rid of COMPILE_TEST?
-
-Yong
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
