@@ -1,63 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from merlin.infradead.org ([205.233.59.134]:58668 "EHLO
-        merlin.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756567AbeASWMc (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 19 Jan 2018 17:12:32 -0500
-Subject: Re: [PATCH v6 0/9] Renesas Capture Engine Unit (CEU) V4L2 driver
-To: Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        laurent.pinchart@ideasonboard.com, magnus.damm@gmail.com,
-        geert@glider.be, hverkuil@xs4all.nl, mchehab@kernel.org,
-        festevam@gmail.com, sakari.ailus@iki.fi, robh+dt@kernel.org,
-        mark.rutland@arm.com, pombredanne@nexb.com
-Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-sh@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-References: <1516139101-7835-1-git-send-email-jacopo+renesas@jmondi.org>
-From: Randy Dunlap <rdunlap@infradead.org>
-Message-ID: <b26ef29e-0c26-6359-1205-735e6770eb10@infradead.org>
-Date: Fri, 19 Jan 2018 14:12:19 -0800
+Received: from osg.samsung.com ([64.30.133.232]:36670 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752141AbeAWNVe (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 23 Jan 2018 08:21:34 -0500
+Date: Tue, 23 Jan 2018 11:21:27 -0200
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [GIT PULL for 4.16] CIO2 compiler warning fix
+Message-ID: <20180123112127.6cd6fe24@vela.lan>
+In-Reply-To: <20180123125600.ifcsieuywln2bg6g@valkosipuli.retiisi.org.uk>
+References: <20180109223517.lkj4opdpm64jpf5d@valkosipuli.retiisi.org.uk>
+        <20180123104008.25ebdef5@vela.lan>
+        <20180123125600.ifcsieuywln2bg6g@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-In-Reply-To: <1516139101-7835-1-git-send-email-jacopo+renesas@jmondi.org>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/16/2018 01:44 PM, Jacopo Mondi wrote:
-> Hello,
->    new version of CEU after Hans' review.
+Em Tue, 23 Jan 2018 14:56:01 +0200
+Sakari Ailus <sakari.ailus@iki.fi> escreveu:
+
+> On Tue, Jan 23, 2018 at 10:40:13AM -0200, Mauro Carvalho Chehab wrote:
+> > Em Wed, 10 Jan 2018 00:35:18 +0200
+> > Sakari Ailus <sakari.ailus@iki.fi> escreveu:
+> >   
+> > > Hi Mauro,
+> > > 
+> > > Here's compile warning fix for the Intel IPU3 CIO2 driver from Arnd.
+> > > 
+> > > Please pull.
+> > > 
+> > > 
+> > > The following changes since commit e3ee691dbf24096ea51b3200946b11d68ce75361:
+> > > 
+> > >   media: ov5640: add support of RGB565 and YUYV formats (2018-01-05 12:54:14 -0500)
+> > > 
+> > > are available in the git repository at:
+> > > 
+> > >   ssh://linuxtv.org/git/sailus/media_tree.git ipu3
+> > > 
+> > > for you to fetch changes up to 0bf3352560b82c12380823f035f5fb2171683f23:
+> > > 
+> > >   media: intel-ipu3: cio2: mark more PM functions as __maybe_unused (2018-01-09 13:16:07 +0200)
+> > > 
+> > > ----------------------------------------------------------------
+> > > Arnd Bergmann (1):
+> > >       media: intel-ipu3: cio2: mark more PM functions as __maybe_unused
+> > > 
+> > >  drivers/media/pci/intel/ipu3/ipu3-cio2.c | 4 ++--
+> > >  1 file changed, 2 insertions(+), 2 deletions(-)  
+> > 
+> > I got more changes than mentioned above:
+> > 
+> > git pull logs
+> > Updating e3ee691dbf24..8d677b031a4f
+> > Fast-forward
+> >  drivers/media/pci/intel/ipu3/ipu3-cio2.c | 9 ++++-----
+> >  1 file changed, 4 insertions(+), 5 deletions(-)
+> > 
+> > Something wrong happened here.  
 > 
-> Added his Acked-by to most patches and closed review comments.
-> Running v4l2-compliance, I noticed a new failure introduced by the way I now
-> calculate the plane sizes in set/try_fmt.
+> Ah, this is an older CIO2 pull request I've already replaced in Patchwork.
+> The new one is here, sent on 19th:
+> 
+> <URL:https://patchwork.linuxtv.org/patch/46545/>
 
-I would expect that you have already seen this, but I get a build error
-in renesas-ceu.c.  Here is a small patch for it.
+Please always mark the older one as Superseded before sending a new
+pull request.
 
----
-From: Randy Dunlap <rdunlap@infradead.org>
+> 
 
-Fix build error (on x86 with COMPILE_TEST):
 
-../drivers/media/platform/renesas-ceu.c: In function 'ceu_parse_dt':
-../drivers/media/platform/renesas-ceu.c:1497:27: error: request for member 'fwnode' in something not a structure or union
-   ceu_sd->asd.match.fwnode.fwnode =
 
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
----
- drivers/media/platform/renesas-ceu.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- linux-next-20180119.orig/drivers/media/platform/renesas-ceu.c
-+++ linux-next-20180119/drivers/media/platform/renesas-ceu.c
-@@ -1494,7 +1494,7 @@ static int ceu_parse_dt(struct ceu_devic
- 
- 		ceu_sd->mbus_flags = fw_ep.bus.parallel.flags;
- 		ceu_sd->asd.match_type = V4L2_ASYNC_MATCH_FWNODE;
--		ceu_sd->asd.match.fwnode.fwnode =
-+		ceu_sd->asd.match.fwnode =
- 			fwnode_graph_get_remote_port_parent(
- 					of_fwnode_handle(ep));
- 
+Cheers,
+Mauro
