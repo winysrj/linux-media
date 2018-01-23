@@ -1,50 +1,192 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:48956 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752377AbeADS3Q (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 4 Jan 2018 13:29:16 -0500
-Date: Thu, 4 Jan 2018 16:29:09 -0200
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH] media: don't use whitespaces for indentation
-Message-ID: <20180104162909.66c0c455@recife.lan>
-In-Reply-To: <20180104130852.nfmae3fjxzrnja2q@valkosipuli.retiisi.org.uk>
-References: <4e866518d3a00d4dedad069151cd447f66bd9387.1515068806.git.mchehab@s-opensource.com>
-        <20180104130852.nfmae3fjxzrnja2q@valkosipuli.retiisi.org.uk>
+Received: from mx07-00178001.pphosted.com ([62.209.51.94]:39921 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752266AbeAWNXb (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 23 Jan 2018 08:23:31 -0500
+From: Hugues Fruchet <hugues.fruchet@st.com>
+To: Steve Longerbeam <slongerbeam@gmail.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        "Mauro Carvalho Chehab" <mchehab@kernel.org>
+CC: <linux-media@vger.kernel.org>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Subject: [PATCH v2] media: ov5640: add JPEG support
+Date: Tue, 23 Jan 2018 14:23:14 +0100
+Message-ID: <1516713794-3636-1-git-send-email-hugues.fruchet@st.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 4 Jan 2018 15:08:52 +0200
-Sakari Ailus <sakari.ailus@iki.fi> escreveu:
+Add YUV422 encoded JPEG support.
 
-> Hi Mauro,
-> 
-> On Thu, Jan 04, 2018 at 07:27:48AM -0500, Mauro Carvalho Chehab wrote:
-> > On several places, whitespaces are being used for indentation,
-> > or even at the end of the line.
-> > 
-> > Fix them, by running a script that fix it inside drivers/media
-> > and include/media.  
-> 
-> What kind of a script?
+Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
+---
+version 2:
+  - Revisit code as per Sakari suggestions:
+    - fix lock scheme
+    - fix switch back to non-JPEG output while sensor powered
+    See https://www.mail-archive.com/linux-media@vger.kernel.org/msg124979.html
 
-Just sent a patch series with the script, and addressing a bunch of
-other places where we have bad spacing.
+ drivers/media/i2c/ov5640.c | 90 ++++++++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 88 insertions(+), 2 deletions(-)
 
-> Could you also add includ/uapi/media to this?
-
-I added more places to it:
-
-$ rmspaces.pl  $(find drivers/media -type f) $(find include/media -type f) include/uapi/linux/videodev2.h include/uapi/linux/v4l2-* include/uapi/linux/dvb/*
-
-It is probably worth to run is also against staging/media. I'll do it in
-separate.
-
-
-Thanks,
-Mauro
+diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
+index e2dd352..faa4502 100644
+--- a/drivers/media/i2c/ov5640.c
++++ b/drivers/media/i2c/ov5640.c
+@@ -18,6 +18,7 @@
+ #include <linux/init.h>
+ #include <linux/module.h>
+ #include <linux/of_device.h>
++#include <linux/sizes.h>
+ #include <linux/slab.h>
+ #include <linux/types.h>
+ #include <linux/gpio/consumer.h>
+@@ -34,6 +35,10 @@
+ 
+ #define OV5640_DEFAULT_SLAVE_ID 0x3c
+ 
++#define OV5640_JPEG_SIZE_MAX (5 * SZ_1M)
++
++#define OV5640_REG_SYS_RESET02		0x3002
++#define OV5640_REG_SYS_CLOCK_ENABLE02	0x3006
+ #define OV5640_REG_SYS_CTRL0		0x3008
+ #define OV5640_REG_CHIP_ID		0x300a
+ #define OV5640_REG_IO_MIPI_CTRL00	0x300e
+@@ -114,6 +119,7 @@ struct ov5640_pixfmt {
+ };
+ 
+ static const struct ov5640_pixfmt ov5640_formats[] = {
++	{ MEDIA_BUS_FMT_JPEG_1X8, V4L2_COLORSPACE_JPEG, },
+ 	{ MEDIA_BUS_FMT_UYVY8_2X8, V4L2_COLORSPACE_SRGB, },
+ 	{ MEDIA_BUS_FMT_YUYV8_2X8, V4L2_COLORSPACE_SRGB, },
+ 	{ MEDIA_BUS_FMT_RGB565_2X8_LE, V4L2_COLORSPACE_SRGB, },
+@@ -220,6 +226,8 @@ struct ov5640_dev {
+ 
+ 	bool pending_mode_change;
+ 	bool streaming;
++
++	unsigned int jpeg_size;
+ };
+ 
+ static inline struct ov5640_dev *to_ov5640_dev(struct v4l2_subdev *sd)
+@@ -1910,11 +1918,50 @@ static int ov5640_set_fmt(struct v4l2_subdev *sd,
+ 	return ret;
+ }
+ 
++static int ov5640_get_frame_desc(struct v4l2_subdev *sd, unsigned int pad,
++				 struct v4l2_mbus_frame_desc *fd)
++{
++	struct ov5640_dev *sensor = to_ov5640_dev(sd);
++
++	if (pad != 0 || !fd)
++		return -EINVAL;
++
++	mutex_lock(&sensor->lock);
++	fd->entry[0].length = sensor->jpeg_size;
++	mutex_unlock(&sensor->lock);
++	fd->entry[0].pixelcode = MEDIA_BUS_FMT_JPEG_1X8;
++	fd->entry[0].flags = V4L2_MBUS_FRAME_DESC_FL_LEN_MAX;
++	fd->num_entries = 1;
++
++	return 0;
++}
++
++static int ov5640_set_frame_desc(struct v4l2_subdev *sd, unsigned int pad,
++				 struct v4l2_mbus_frame_desc *fd)
++{
++	struct ov5640_dev *sensor = to_ov5640_dev(sd);
++
++	if (pad != 0 || !fd)
++		return -EINVAL;
++
++	fd->entry[0].flags = V4L2_MBUS_FRAME_DESC_FL_LEN_MAX;
++	fd->num_entries = 1;
++	mutex_lock(&sensor->lock);
++	fd->entry[0].length = clamp_t(u32, fd->entry[0].length,
++				      sensor->fmt.width * sensor->fmt.height,
++				      OV5640_JPEG_SIZE_MAX);
++	sensor->jpeg_size = fd->entry[0].length;
++	mutex_unlock(&sensor->lock);
++
++	return 0;
++}
++
+ static int ov5640_set_framefmt(struct ov5640_dev *sensor,
+ 			       struct v4l2_mbus_framefmt *format)
+ {
+ 	int ret = 0;
+ 	bool is_rgb = false;
++	bool is_jpeg = false;
+ 	u8 val;
+ 
+ 	switch (format->code) {
+@@ -1936,6 +1983,11 @@ static int ov5640_set_framefmt(struct ov5640_dev *sensor,
+ 		val = 0x61;
+ 		is_rgb = true;
+ 		break;
++	case MEDIA_BUS_FMT_JPEG_1X8:
++		/* YUV422, YUYV */
++		val = 0x30;
++		is_jpeg = true;
++		break;
+ 	default:
+ 		return -EINVAL;
+ 	}
+@@ -1946,8 +1998,40 @@ static int ov5640_set_framefmt(struct ov5640_dev *sensor,
+ 		return ret;
+ 
+ 	/* FORMAT MUX CONTROL: ISP YUV or RGB */
+-	return ov5640_write_reg(sensor, OV5640_REG_ISP_FORMAT_MUX_CTRL,
+-				is_rgb ? 0x01 : 0x00);
++	ret = ov5640_write_reg(sensor, OV5640_REG_ISP_FORMAT_MUX_CTRL,
++			       is_rgb ? 0x01 : 0x00);
++	if (ret)
++		return ret;
++
++	/*
++	 * TIMING TC REG21:
++	 * - [5]:	JPEG enable
++	 */
++	ret = ov5640_mod_reg(sensor, OV5640_REG_TIMING_TC_REG21,
++			     BIT(5), is_jpeg ? BIT(5) : 0);
++	if (ret)
++		return ret;
++
++	/*
++	 * SYSTEM RESET02:
++	 * - [4]:	Reset JFIFO
++	 * - [3]:	Reset SFIFO
++	 * - [2]:	Reset JPEG
++	 */
++	ret = ov5640_mod_reg(sensor, OV5640_REG_SYS_RESET02,
++			     BIT(4) | BIT(3) | BIT(2),
++			     is_jpeg ? 0 : (BIT(4) | BIT(3) | BIT(2)));
++	if (ret)
++		return ret;
++
++	/*
++	 * CLOCK ENABLE02:
++	 * - [5]:	Enable JPEG 2x clock
++	 * - [3]:	Enable JPEG clock
++	 */
++	return ov5640_mod_reg(sensor, OV5640_REG_SYS_CLOCK_ENABLE02,
++			      BIT(5) | BIT(3),
++			      is_jpeg ? (BIT(5) | BIT(3)) : 0);
+ }
+ 
+ /*
+@@ -2391,6 +2475,8 @@ static int ov5640_s_stream(struct v4l2_subdev *sd, int enable)
+ 	.set_fmt = ov5640_set_fmt,
+ 	.enum_frame_size = ov5640_enum_frame_size,
+ 	.enum_frame_interval = ov5640_enum_frame_interval,
++	.get_frame_desc	= ov5640_get_frame_desc,
++	.set_frame_desc	= ov5640_set_frame_desc,
+ };
+ 
+ static const struct v4l2_subdev_ops ov5640_subdev_ops = {
+-- 
+1.9.1
