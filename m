@@ -1,603 +1,294 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fllnx209.ext.ti.com ([198.47.19.16]:65355 "EHLO
-        fllnx209.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751072AbeA2TKw (ORCPT
+Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:45694 "EHLO
+        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751863AbeAWOwg (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 29 Jan 2018 14:10:52 -0500
-Date: Mon, 29 Jan 2018 13:10:36 -0600
-From: Benoit Parrot <bparrot@ti.com>
-To: Maxime Ripard <maxime.ripard@free-electrons.com>
-CC: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Rob Herring <robh+dt@kernel.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        <linux-media@vger.kernel.org>, <devicetree@vger.kernel.org>,
-        Richard Sproul <sproul@cadence.com>,
-        Alan Douglas <adouglas@cadence.com>,
-        Steve Creaney <screaney@cadence.com>,
-        Thomas Petazzoni <thomas.petazzoni@free-electrons.com>,
-        Boris Brezillon <boris.brezillon@free-electrons.com>,
-        Niklas =?iso-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund@ragnatech.se>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>, <nm@ti.com>,
-        Simon Hatliff <hatliff@cadence.com>
-Subject: Re: [PATCH v5 2/2] v4l: cadence: Add Cadence MIPI-CSI2 RX driver
-Message-ID: <20180129191036.GE25980@ti.com>
-References: <20180119081357.20799-1-maxime.ripard@free-electrons.com>
- <20180119081357.20799-3-maxime.ripard@free-electrons.com>
+        Tue, 23 Jan 2018 09:52:36 -0500
+Subject: Re: [PATCHv2 2/9] media: convert g/s_parm to g/s_frame_interval in
+ subdevs
+To: jacopo mondi <jacopo@jmondi.org>
+References: <20180122123125.24709-1-hverkuil@xs4all.nl>
+ <20180122123125.24709-3-hverkuil@xs4all.nl> <20180123144742.GA17416@w540>
+Cc: linux-media@vger.kernel.org,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <b4de3a3c-1249-cd72-7ad1-ef920e622108@xs4all.nl>
+Date: Tue, 23 Jan 2018 15:52:33 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Disposition: inline
-In-Reply-To: <20180119081357.20799-3-maxime.ripard@free-electrons.com>
+In-Reply-To: <20180123144742.GA17416@w540>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Maxime,
-
-Thank you for the patch.
-
-Maxime Ripard <maxime.ripard@free-electrons.com> wrote on Fri [2018-Jan-19 09:13:57 +0100]:
-> The Cadence CSI-2 RX Controller is an hardware block meant to be used as a
-> bridge between a CSI-2 bus and pixel grabbers.
+On 23/01/18 15:47, jacopo mondi wrote:
+> Hi Hans,
 > 
-> It supports operating with internal or external D-PHY, with up to 4 lanes,
-> or without any D-PHY. The current code only supports the former case.
+> On Mon, Jan 22, 2018 at 01:31:18PM +0100, Hans Verkuil wrote:
+>> From: Hans Verkuil <hans.verkuil@cisco.com>
+>>
+>> --- a/drivers/media/platform/atmel/atmel-isi.c
+>> +++ b/drivers/media/platform/atmel/atmel-isi.c
+>> @@ -689,22 +689,14 @@ static int isi_g_parm(struct file *file, void *fh, struct v4l2_streamparm *a)
+>>  {
+>>  	struct atmel_isi *isi = video_drvdata(file);
+>>
+>> -	if (a->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
+>> -		return -EINVAL;
+>> -
+>> -	a->parm.capture.readbuffers = 2;
+>> -	return v4l2_subdev_call(isi->entity.subdev, video, g_parm, a);
+>> +	return v4l2_g_parm_cap(video_devdata(file), isi->entity.subdev, a);
+>>  }
+>>
+>>  static int isi_s_parm(struct file *file, void *fh, struct v4l2_streamparm *a)
+>>  {
+>>  	struct atmel_isi *isi = video_drvdata(file);
+>>
+>> -	if (a->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
+>> -		return -EINVAL;
 > 
-> It also support dynamic mapping of the CSI-2 virtual channels to the
-> associated pixel grabbers, but that isn't allowed at the moment either.
+> I've now tested the right version with CEU, and v4l2-compliance
+> reports:
 > 
-> Signed-off-by: Maxime Ripard <maxime.ripard@free-electrons.com>
-> ---
->  drivers/media/platform/Kconfig               |   1 +
->  drivers/media/platform/Makefile              |   2 +
->  drivers/media/platform/cadence/Kconfig       |  12 +
->  drivers/media/platform/cadence/Makefile      |   1 +
->  drivers/media/platform/cadence/cdns-csi2rx.c | 463 +++++++++++++++++++++++++++
->  5 files changed, 479 insertions(+)
->  create mode 100644 drivers/media/platform/cadence/Kconfig
->  create mode 100644 drivers/media/platform/cadence/Makefile
->  create mode 100644 drivers/media/platform/cadence/cdns-csi2rx.c
-> 
-> diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
-> index fd0c99859d6f..6e790a317fbc 100644
-> --- a/drivers/media/platform/Kconfig
-> +++ b/drivers/media/platform/Kconfig
-> @@ -26,6 +26,7 @@ config VIDEO_VIA_CAMERA
->  #
->  # Platform multimedia device configuration
->  #
-> +source "drivers/media/platform/cadence/Kconfig"
->  
->  source "drivers/media/platform/davinci/Kconfig"
->  
-> diff --git a/drivers/media/platform/Makefile b/drivers/media/platform/Makefile
-> index 003b0bb2cddf..1cd2984c55d1 100644
-> --- a/drivers/media/platform/Makefile
-> +++ b/drivers/media/platform/Makefile
-> @@ -3,6 +3,8 @@
->  # Makefile for the video capture/playback device drivers.
->  #
->  
-> +obj-$(CONFIG_VIDEO_CADENCE)		+= cadence/
-> +
->  obj-$(CONFIG_VIDEO_M32R_AR_M64278) += arv.o
->  
->  obj-$(CONFIG_VIDEO_VIA_CAMERA) += via-camera.o
-> diff --git a/drivers/media/platform/cadence/Kconfig b/drivers/media/platform/cadence/Kconfig
-> new file mode 100644
-> index 000000000000..d1b6bbb6a0eb
-> --- /dev/null
-> +++ b/drivers/media/platform/cadence/Kconfig
-> @@ -0,0 +1,12 @@
-> +config VIDEO_CADENCE
-> +	bool "Cadence Video Devices"
-> +
-> +if VIDEO_CADENCE
-> +
-> +config VIDEO_CADENCE_CSI2RX
-> +	tristate "Cadence MIPI-CSI2 RX Controller v1.3"
-> +	depends on MEDIA_CONTROLLER
-> +	depends on VIDEO_V4L2_SUBDEV_API
-> +	select V4L2_FWNODE
-> +
-> +endif
-> diff --git a/drivers/media/platform/cadence/Makefile b/drivers/media/platform/cadence/Makefile
-> new file mode 100644
-> index 000000000000..99a4086b7448
-> --- /dev/null
-> +++ b/drivers/media/platform/cadence/Makefile
-> @@ -0,0 +1 @@
-> +obj-$(CONFIG_VIDEO_CADENCE_CSI2RX)	+= cdns-csi2rx.o
-> diff --git a/drivers/media/platform/cadence/cdns-csi2rx.c b/drivers/media/platform/cadence/cdns-csi2rx.c
-> new file mode 100644
-> index 000000000000..ce042b9d403c
-> --- /dev/null
-> +++ b/drivers/media/platform/cadence/cdns-csi2rx.c
-> @@ -0,0 +1,463 @@
-> +/*
-> + * Driver for Cadence MIPI-CSI2 RX Controller v1.3
-> + *
-> + * Copyright (C) 2017 Cadence Design Systems Inc.
-> + *
-> + * This program is free software; you can redistribute  it and/or modify it
-> + * under  the terms of  the GNU General  Public License as published by the
-> + * Free Software Foundation;  either version 2 of the  License, or (at your
-> + * option) any later version.
+> fail: v4l2-test-formats.cpp(1218): Video Capture cap not set, but
+> G/S_PARM worked
 
-This being a new driver, it would probably make sense to replace the above
-license text with the appropriate SPDX license tag line.
-
-> + */
-> +
-> +#include <linux/atomic.h>
-> +#include <linux/clk.h>
-> +#include <linux/delay.h>
-> +#include <linux/io.h>
-> +#include <linux/module.h>
-> +#include <linux/of.h>
-> +#include <linux/of_graph.h>
-> +#include <linux/phy/phy.h>
-> +#include <linux/platform_device.h>
-> +#include <linux/slab.h>
-> +
-> +#include <media/v4l2-ctrls.h>
-> +#include <media/v4l2-device.h>
-> +#include <media/v4l2-fwnode.h>
-> +#include <media/v4l2-subdev.h>
-> +
-> +#define CSI2RX_DEVICE_CFG_REG			0x000
-> +
-> +#define CSI2RX_SOFT_RESET_REG			0x004
-> +#define CSI2RX_SOFT_RESET_PROTOCOL			BIT(1)
-> +#define CSI2RX_SOFT_RESET_FRONT				BIT(0)
-> +
-> +#define CSI2RX_STATIC_CFG_REG			0x008
-> +#define CSI2RX_STATIC_CFG_DLANE_MAP(llane, plane)	((plane) << (16 + (llane) * 4))
-> +#define CSI2RX_STATIC_CFG_LANES_MASK			GENMASK(11, 8)
-> +
-> +#define CSI2RX_STREAM_BASE(n)		(((n) + 1) * 0x100)
-> +
-> +#define CSI2RX_STREAM_CTRL_REG(n)		(CSI2RX_STREAM_BASE(n) + 0x000)
-> +#define CSI2RX_STREAM_CTRL_START			BIT(0)
-> +
-> +#define CSI2RX_STREAM_DATA_CFG_REG(n)		(CSI2RX_STREAM_BASE(n) + 0x008)
-> +#define CSI2RX_STREAM_DATA_CFG_EN_VC_SELECT		BIT(31)
-> +#define CSI2RX_STREAM_DATA_CFG_VC_SELECT(n)		BIT((n) + 16)
-> +
-> +#define CSI2RX_STREAM_CFG_REG(n)		(CSI2RX_STREAM_BASE(n) + 0x00c)
-> +#define CSI2RX_STREAM_CFG_FIFO_MODE_LARGE_BUF		(1 << 8)
-> +
-> +#define CSI2RX_LANES_MAX	4
-> +#define CSI2RX_STREAMS_MAX	4
-> +
-> +enum csi2rx_pads {
-> +	CSI2RX_PAD_SINK,
-> +	CSI2RX_PAD_SOURCE_STREAM0,
-> +	CSI2RX_PAD_SOURCE_STREAM1,
-> +	CSI2RX_PAD_SOURCE_STREAM2,
-> +	CSI2RX_PAD_SOURCE_STREAM3,
-> +	CSI2RX_PAD_MAX,
-> +};
-> +
-> +struct csi2rx_priv {
-> +	struct device			*dev;
-> +	atomic_t			count;
-> +
-> +	void __iomem			*base;
-> +	struct clk			*sys_clk;
-> +	struct clk			*p_clk;
-> +	struct clk			*pixel_clk[CSI2RX_STREAMS_MAX];
-> +	struct phy			*dphy;
-> +
-> +	u8				lanes[CSI2RX_LANES_MAX];
-> +	u8				num_lanes;
-> +	u8				max_lanes;
-> +	u8				max_streams;
-> +	bool				has_internal_dphy;
-> +
-> +	struct v4l2_subdev		subdev;
-> +	struct v4l2_async_notifier	notifier;
-> +	struct media_pad		pads[CSI2RX_PAD_MAX];
-> +
-> +	/* Remote source */
-> +	struct v4l2_async_subdev	asd;
-> +	struct v4l2_subdev		*source_subdev;
-> +	int				source_pad;
-> +};
-> +
-> +static inline
-> +struct csi2rx_priv *v4l2_subdev_to_csi2rx(struct v4l2_subdev *subdev)
-> +{
-> +	return container_of(subdev, struct csi2rx_priv, subdev);
-> +}
-> +
-> +static void csi2rx_reset(struct csi2rx_priv *csi2rx)
-> +{
-> +	writel(CSI2RX_SOFT_RESET_PROTOCOL | CSI2RX_SOFT_RESET_FRONT,
-> +	       csi2rx->base + CSI2RX_SOFT_RESET_REG);
-> +
-> +	usleep_range(10, 20);
-> +
-> +	writel(0, csi2rx->base + CSI2RX_SOFT_RESET_REG);
-> +}
-> +
-> +static int csi2rx_start(struct csi2rx_priv *csi2rx)
-> +{
-> +	unsigned int i;
-> +	u32 reg;
-> +	int ret;
-> +
-> +	/*
-> +	 * We're not the first users, there's no need to enable the
-> +	 * whole controller.
-> +	 */
-> +	if (atomic_inc_return(&csi2rx->count) > 1)
-> +		return 0;
-> +
-> +	clk_prepare_enable(csi2rx->p_clk);
-> +
-> +	csi2rx_reset(csi2rx);
-> +
-> +	reg = csi2rx->num_lanes << 8;
-> +	for (i = 0; i < csi2rx->num_lanes; i++)
-> +		reg |= CSI2RX_STATIC_CFG_DLANE_MAP(i, csi2rx->lanes[i]);
-> +
-> +	for (i = csi2rx->num_lanes; i < csi2rx->max_lanes; i++)
-> +		reg |= CSI2RX_STATIC_CFG_DLANE_MAP(i, i + 1);
-
-Not sure why the above init loop is needed, but at any rate it could
-cause lane number collision. As far as I can see the MIPI spec does
-not require data lane to be consecutive or starting at a specific
-physical lane number.
-
-Based on that the following DT node could be a valid configuration
-	csi2_cam0: endpoint {
-		clock-lanes = <0>;
-		data-lanes = <2 3>;
-		...
-	};
-
-> +
-> +	writel(reg, csi2rx->base + CSI2RX_STATIC_CFG_REG);
-> +
-> +	ret = v4l2_subdev_call(csi2rx->source_subdev, video, s_stream, true);
-> +	if (ret)
-> +		return ret;
-> +
-> +	/*
-> +	 * Create a static mapping between the CSI virtual channels
-> +	 * and the output stream.
-> +	 *
-> +	 * This should be enhanced, but v4l2 lacks the support for
-> +	 * changing that mapping dynamically.
-> +	 *
-> +	 * We also cannot enable and disable independant streams here,
-> +	 * hence the reference counting.
-> +	 */
-> +	for (i = 0; i < csi2rx->max_streams; i++) {
-> +		clk_prepare_enable(csi2rx->pixel_clk[i]);
-> +
-> +		writel(CSI2RX_STREAM_CFG_FIFO_MODE_LARGE_BUF,
-> +		       csi2rx->base + CSI2RX_STREAM_CFG_REG(i));
-> +
-> +		writel(CSI2RX_STREAM_DATA_CFG_EN_VC_SELECT |
-> +		       CSI2RX_STREAM_DATA_CFG_VC_SELECT(i),
-> +		       csi2rx->base + CSI2RX_STREAM_DATA_CFG_REG(i));
-> +
-> +		writel(CSI2RX_STREAM_CTRL_START,
-> +		       csi2rx->base + CSI2RX_STREAM_CTRL_REG(i));
-> +	}
-> +
-> +	clk_prepare_enable(csi2rx->sys_clk);
-> +
-> +	clk_disable_unprepare(csi2rx->p_clk);
-> +
-> +	return 0;
-> +}
-> +
-> +static int csi2rx_stop(struct csi2rx_priv *csi2rx)
-> +{
-> +	unsigned int i;
-> +
-> +	/*
-> +	 * Let the last user turn off the lights
-> +	 */
-> +	if (!atomic_dec_and_test(&csi2rx->count))
-> +		return 0;
-> +
-> +	clk_prepare_enable(csi2rx->p_clk);
-> +
-> +	for (i = 0; i < csi2rx->max_streams; i++) {
-> +		writel(0, csi2rx->base + CSI2RX_STREAM_CTRL_REG(i));
-> +
-> +		clk_disable_unprepare(csi2rx->pixel_clk[i]);
-> +	}
-> +
-> +	clk_disable_unprepare(csi2rx->p_clk);
-> +
-> +	return v4l2_subdev_call(csi2rx->source_subdev, video, s_stream, false);
-> +}
-> +
-> +static int csi2rx_s_stream(struct v4l2_subdev *sd, int enable)
-> +{
-> +	struct csi2rx_priv *csi2rx = v4l2_subdev_to_csi2rx(sd);
-> +	int ret;
-> +
-> +	if (enable)
-> +		ret = csi2rx_start(csi2rx);
-> +	else
-> +		ret = csi2rx_stop(csi2rx);
-> +
-> +	return ret;
-> +}
-> +
-> +static const struct v4l2_subdev_video_ops csi2rx_video_ops = {
-> +	.s_stream	= csi2rx_s_stream,
-> +};
-> +
-> +static const struct v4l2_subdev_ops csi2rx_subdev_ops = {
-> +	.video		= &csi2rx_video_ops,
-> +};
-> +
-> +static int csi2rx_async_bound(struct v4l2_async_notifier *notifier,
-> +			      struct v4l2_subdev *s_subdev,
-> +			      struct v4l2_async_subdev *asd)
-> +{
-> +	struct v4l2_subdev *subdev = notifier->sd;
-> +	struct csi2rx_priv *csi2rx = v4l2_subdev_to_csi2rx(subdev);
-> +
-> +	csi2rx->source_pad = media_entity_get_fwnode_pad(&s_subdev->entity,
-> +							 s_subdev->fwnode,
-> +							 MEDIA_PAD_FL_SOURCE);
-> +	if (csi2rx->source_pad < 0) {
-> +		dev_err(csi2rx->dev, "Couldn't find output pad for subdev %s\n",
-> +			s_subdev->name);
-> +		return csi2rx->source_pad;
-> +	}
-> +
-> +	csi2rx->source_subdev = s_subdev;
-> +
-> +	dev_dbg(csi2rx->dev, "Bound %s pad: %d\n", s_subdev->name,
-> +		csi2rx->source_pad);
-> +
-> +	return media_create_pad_link(&csi2rx->source_subdev->entity,
-> +				     csi2rx->source_pad,
-> +				     &csi2rx->subdev.entity, 0,
-> +				     MEDIA_LNK_FL_ENABLED |
-> +				     MEDIA_LNK_FL_IMMUTABLE);
-> +}
-> +
-> +static const struct v4l2_async_notifier_operations csi2rx_notifier_ops = {
-> +	.bound		= csi2rx_async_bound,
-> +};
-> +
-> +static int csi2rx_get_resources(struct csi2rx_priv *csi2rx,
-> +				struct platform_device *pdev)
-> +{
-> +	struct resource *res;
-> +	unsigned char i;
-> +	u32 reg;
-> +
-> +	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-> +	csi2rx->base = devm_ioremap_resource(&pdev->dev, res);
-> +	if (IS_ERR(csi2rx->base))
-> +		return PTR_ERR(csi2rx->base);
-> +
-> +	csi2rx->sys_clk = devm_clk_get(&pdev->dev, "sys_clk");
-> +	if (IS_ERR(csi2rx->sys_clk)) {
-> +		dev_err(&pdev->dev, "Couldn't get sys clock\n");
-> +		return PTR_ERR(csi2rx->sys_clk);
-> +	}
-> +
-> +	csi2rx->p_clk = devm_clk_get(&pdev->dev, "p_clk");
-> +	if (IS_ERR(csi2rx->p_clk)) {
-> +		dev_err(&pdev->dev, "Couldn't get P clock\n");
-> +		return PTR_ERR(csi2rx->p_clk);
-> +	}
-> +
-> +	csi2rx->dphy = devm_phy_optional_get(&pdev->dev, "dphy");
-> +	if (IS_ERR(csi2rx->dphy)) {
-> +		dev_err(&pdev->dev, "Couldn't get external D-PHY\n");
-> +		return PTR_ERR(csi2rx->dphy);
-> +	}
-> +
-> +	/*
-> +	 * FIXME: Once we'll have external D-PHY support, the check
-> +	 * will need to be removed.
-> +	 */
-> +	if (csi2rx->dphy) {
-> +		dev_err(&pdev->dev, "External D-PHY not supported yet\n");
-> +		return -EINVAL;
-> +	}
-> +
-> +	clk_prepare_enable(csi2rx->p_clk);
-> +	reg = readl(csi2rx->base + CSI2RX_DEVICE_CFG_REG);
-> +	clk_disable_unprepare(csi2rx->p_clk);
-> +
-> +	csi2rx->max_lanes = (reg & 7);
-> +	if (csi2rx->max_lanes > CSI2RX_LANES_MAX) {
-> +		dev_err(&pdev->dev, "Invalid number of lanes: %u\n",
-> +			csi2rx->max_lanes);
-> +		return -EINVAL;
-> +	}
-> +
-> +	csi2rx->max_streams = ((reg >> 4) & 7);
-> +	if (csi2rx->max_streams > CSI2RX_STREAMS_MAX) {
-> +		dev_err(&pdev->dev, "Invalid number of streams: %u\n",
-> +			csi2rx->max_streams);
-> +		return -EINVAL;
-> +	}
-> +
-> +	csi2rx->has_internal_dphy = (reg & BIT(3)) ? true : false;
-> +
-> +	/*
-> +	 * FIXME: Once we'll have internal D-PHY support, the check
-> +	 * will need to be removed.
-> +	 */
-> +	if (csi2rx->has_internal_dphy) {
-> +		dev_err(&pdev->dev, "Internal D-PHY not supported yet\n");
-> +		return -EINVAL;
-> +	}
-> +
-> +	for (i = 0; i < csi2rx->max_streams; i++) {
-> +		char clk_name[16];
-> +
-> +		snprintf(clk_name, sizeof(clk_name), "pixel_if%u_clk", i);
-> +		csi2rx->pixel_clk[i] = devm_clk_get(&pdev->dev, clk_name);
-> +		if (IS_ERR(csi2rx->pixel_clk[i])) {
-> +			dev_err(&pdev->dev, "Couldn't get clock %s\n", clk_name);
-> +			return PTR_ERR(csi2rx->pixel_clk[i]);
-> +		}
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +static int csi2rx_parse_dt(struct csi2rx_priv *csi2rx)
-> +{
-> +	struct v4l2_fwnode_endpoint v4l2_ep;
-> +	struct fwnode_handle *fwh;
-> +	struct device_node *ep;
-> +	int ret;
-> +
-> +	ep = of_graph_get_endpoint_by_regs(csi2rx->dev->of_node, 0, 0);
-> +	if (!ep)
-> +		return -EINVAL;
-> +
-> +	fwh = of_fwnode_handle(ep);
-> +	ret = v4l2_fwnode_endpoint_parse(fwh, &v4l2_ep);
-> +	if (ret) {
-> +		dev_err(csi2rx->dev, "Could not parse v4l2 endpoint\n");
-> +		of_node_put(ep);
-> +		return ret;
-> +	}
-> +
-> +	if (v4l2_ep.bus_type != V4L2_MBUS_CSI2) {
-> +		dev_err(csi2rx->dev, "Unsupported media bus type: 0x%x\n",
-> +			v4l2_ep.bus_type);
-> +		of_node_put(ep);
-> +		return -EINVAL;
-> +	}
-> +
-> +	memcpy(csi2rx->lanes, v4l2_ep.bus.mipi_csi2.data_lanes,
-> +	       sizeof(csi2rx->lanes));
-> +	csi2rx->num_lanes = v4l2_ep.bus.mipi_csi2.num_data_lanes;
-> +	if (csi2rx->num_lanes > csi2rx->max_lanes) {
-> +		dev_err(csi2rx->dev, "Unsupported number of data-lanes: %d\n",
-> +			csi2rx->num_lanes);
-> +		of_node_put(ep);
-> +		return -EINVAL;
-> +	}
-> +
-> +	csi2rx->asd.match.fwnode.fwnode = fwnode_graph_get_remote_port_parent(fwh);
-> +	csi2rx->asd.match_type = V4L2_ASYNC_MATCH_FWNODE;
-> +	of_node_put(ep);
-> +
-> +	csi2rx->notifier.subdevs = devm_kzalloc(csi2rx->dev,
-> +						sizeof(*csi2rx->notifier.subdevs),
-> +						GFP_KERNEL);
-> +	if (!csi2rx->notifier.subdevs)
-> +		return -ENOMEM;
-> +
-> +	csi2rx->notifier.subdevs[0] = &csi2rx->asd;
-> +	csi2rx->notifier.num_subdevs = 1;
-> +	csi2rx->notifier.ops = &csi2rx_notifier_ops;
-> +
-> +	return v4l2_async_subdev_notifier_register(&csi2rx->subdev,
-> +						   &csi2rx->notifier);
-> +}
-> +
-> +static int csi2rx_probe(struct platform_device *pdev)
-> +{
-> +	struct csi2rx_priv *csi2rx;
-> +	unsigned int i;
-> +	int ret;
-> +
-> +	/*
-> +	 * Since the v4l2_subdev structure is embedded in our
-> +	 * csi2rx_priv structure, and that the structure is exposed to
-> +	 * the user-space, we cannot just use the devm_variant
-> +	 * here. Indeed, that would lead to a use-after-free in a
-> +	 * open() - unbind - close() pattern.
-> +	 */
-> +	csi2rx = kzalloc(sizeof(*csi2rx), GFP_KERNEL);
-> +	if (!csi2rx)
-> +		return -ENOMEM;
-> +	platform_set_drvdata(pdev, csi2rx);
-> +	csi2rx->dev = &pdev->dev;
-> +
-> +	ret = csi2rx_get_resources(csi2rx, pdev);
-> +	if (ret)
-> +		goto err_free_priv;
-> +
-> +	ret = csi2rx_parse_dt(csi2rx);
-> +	if (ret)
-> +		goto err_free_priv;
-> +
-> +	csi2rx->subdev.owner = THIS_MODULE;
-> +	csi2rx->subdev.dev = &pdev->dev;
-> +	v4l2_subdev_init(&csi2rx->subdev, &csi2rx_subdev_ops);
-> +	v4l2_set_subdevdata(&csi2rx->subdev, &pdev->dev);
-> +	snprintf(csi2rx->subdev.name, V4L2_SUBDEV_NAME_SIZE, "%s.%s",
-> +		 KBUILD_MODNAME, dev_name(&pdev->dev));
-> +
-> +	/* Create our media pads */
-> +	csi2rx->subdev.entity.function = MEDIA_ENT_F_PROC_VIDEO_PIXEL_FORMATTER;
-> +	csi2rx->pads[CSI2RX_PAD_SINK].flags = MEDIA_PAD_FL_SINK;
-> +	for (i = CSI2RX_PAD_SOURCE_STREAM0; i < CSI2RX_PAD_MAX; i++)
-> +		csi2rx->pads[i].flags = MEDIA_PAD_FL_SOURCE;
-> +
-> +	ret = media_entity_pads_init(&csi2rx->subdev.entity, CSI2RX_PAD_MAX,
-> +				     csi2rx->pads);
-> +	if (ret)
-> +		goto err_free_priv;
-> +
-> +	ret = v4l2_async_register_subdev(&csi2rx->subdev);
-> +	if (ret < 0)
-> +		goto err_free_priv;
-> +
-> +	dev_info(&pdev->dev,
-> +		 "Probed CSI2RX with %u/%u lanes, %u streams, %s D-PHY\n",
-> +		 csi2rx->num_lanes, csi2rx->max_lanes, csi2rx->max_streams,
-> +		 csi2rx->has_internal_dphy ? "internal" : "no");
-> +
-> +	return 0;
-> +
-> +err_free_priv:
-> +	kfree(csi2rx);
-> +	return ret;
-> +}
-> +
-> +static int csi2rx_remove(struct platform_device *pdev)
-> +{
-> +	struct csi2rx_priv *csi2rx = platform_get_drvdata(pdev);
-> +
-> +	v4l2_async_unregister_subdev(&csi2rx->subdev);
-> +	kfree(csi2rx);
-> +
-> +	return 0;
-> +}
-> +
-> +static const struct of_device_id csi2rx_of_table[] = {
-> +	{ .compatible = "cdns,csi2rx" },
-> +	{ },
-> +};
-> +MODULE_DEVICE_TABLE(of, csi2rx_of_table);
-> +
-> +static struct platform_driver csi2rx_driver = {
-> +	.probe	= csi2rx_probe,
-> +	.remove	= csi2rx_remove,
-> +
-> +	.driver	= {
-> +		.name		= "cdns-csi2rx",
-> +		.of_match_table	= csi2rx_of_table,
-> +	},
-> +};
-> +module_platform_driver(csi2rx_driver);
-> -- 
-> 2.14.3
->
+Oops, that's a bug in v4l2-compliance. The public API for g/s_parm has
+been relaxed a bit by this patch in that we now allow both CAPTURE and
+CAPTURE_MPLANE. But v4l2-compliance hasn't been updated for that change
+yet.
 
 Regards,
-Benoit 
+
+	Hans
+
+> 
+> To get rid of this error I had to refuse V4L2_BUF_TYPE_VIDEO_CAPTURE
+> type in g/s_parm as my driver only supports VIDEO_CAPTURE_MPLANE type.
+> 
+> static int ceu_s_parm(struct file *file, void *fh, struct v4l2_streamparm *a)
+> {
+> 	struct ceu_device *ceudev = video_drvdata(file);
+> 
+> 	if (a->type != V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
+> 		return -EINVAL;
+> 
+> 	return v4l2_s_parm_cap(video_devdata(file), ceudev->sd->v4l2_sd, a);
+> }
+> 
+> To make sure the same error does not happen for atmel-isi/isc and other
+> platform drivers this patch modifies, I would keep the checks on
+> a->type you have removed here.
+> 
+> I now wonder if the following test in the newly added v4l2_g/s_parm_cap()
+> still makes sense if platform drivers have to check for the correct
+> buffer type anyhow (the same for the _cap name suffix)
+> 
+> int v4l2_g_parm_cap(struct video_device *vdev,
+>                 struct v4l2_subdev *sd, struct v4l2_streamparm *a)
+> {
+>         struct v4l2_subdev_frame_interval ival = { 0 };
+>         int ret;
+> 
+> 	if (a->type != V4L2_BUF_TYPE_VIDEO_CAPTURE &&
+> 	    a->type != V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
+> 		return -EINVAL;
+> 
+> Thanks
+>    j
+> 
+>> -
+>> -	a->parm.capture.readbuffers = 2;
+>> -	return v4l2_subdev_call(isi->entity.subdev, video, s_parm, a);
+>> +	return v4l2_s_parm_cap(video_devdata(file), isi->entity.subdev, a);
+>>  }
+>>
+>>  static int isi_enum_framesizes(struct file *file, void *fh,
+>> diff --git a/drivers/media/platform/blackfin/bfin_capture.c b/drivers/media/platform/blackfin/bfin_capture.c
+>> index 41f179117fb0..b7660b1000fd 100644
+>> --- a/drivers/media/platform/blackfin/bfin_capture.c
+>> +++ b/drivers/media/platform/blackfin/bfin_capture.c
+>> @@ -712,24 +712,18 @@ static int bcap_querycap(struct file *file, void  *priv,
+>>  	return 0;
+>>  }
+>>
+>> -static int bcap_g_parm(struct file *file, void *fh,
+>> -				struct v4l2_streamparm *a)
+>> +static int bcap_g_parm(struct file *file, void *fh, struct v4l2_streamparm *a)
+>>  {
+>>  	struct bcap_device *bcap_dev = video_drvdata(file);
+>>
+>> -	if (a->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
+>> -		return -EINVAL;
+>> -	return v4l2_subdev_call(bcap_dev->sd, video, g_parm, a);
+>> +	return v4l2_g_parm_cap(video_devdata(file), bcap_dev->sd, a);
+>>  }
+>>
+>> -static int bcap_s_parm(struct file *file, void *fh,
+>> -				struct v4l2_streamparm *a)
+>> +static int bcap_s_parm(struct file *file, void *fh, struct v4l2_streamparm *a)
+>>  {
+>>  	struct bcap_device *bcap_dev = video_drvdata(file);
+>>
+>> -	if (a->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
+>> -		return -EINVAL;
+>> -	return v4l2_subdev_call(bcap_dev->sd, video, s_parm, a);
+>> +	return v4l2_s_parm_cap(video_devdata(file), bcap_dev->sd, a);
+>>  }
+>>
+>>  static int bcap_log_status(struct file *file, void *priv)
+>> diff --git a/drivers/media/platform/marvell-ccic/mcam-core.c b/drivers/media/platform/marvell-ccic/mcam-core.c
+>> index 7b7250b1cff8..80670eeee142 100644
+>> --- a/drivers/media/platform/marvell-ccic/mcam-core.c
+>> +++ b/drivers/media/platform/marvell-ccic/mcam-core.c
+>> @@ -1443,24 +1443,24 @@ static int mcam_vidioc_s_input(struct file *filp, void *priv, unsigned int i)
+>>   * the level which controls the number of read buffers.
+>>   */
+>>  static int mcam_vidioc_g_parm(struct file *filp, void *priv,
+>> -		struct v4l2_streamparm *parms)
+>> +		struct v4l2_streamparm *a)
+>>  {
+>>  	struct mcam_camera *cam = video_drvdata(filp);
+>>  	int ret;
+>>
+>> -	ret = sensor_call(cam, video, g_parm, parms);
+>> -	parms->parm.capture.readbuffers = n_dma_bufs;
+>> +	ret = v4l2_g_parm_cap(video_devdata(filp), cam->sensor, a);
+>> +	a->parm.capture.readbuffers = n_dma_bufs;
+>>  	return ret;
+>>  }
+>>
+>>  static int mcam_vidioc_s_parm(struct file *filp, void *priv,
+>> -		struct v4l2_streamparm *parms)
+>> +		struct v4l2_streamparm *a)
+>>  {
+>>  	struct mcam_camera *cam = video_drvdata(filp);
+>>  	int ret;
+>>
+>> -	ret = sensor_call(cam, video, s_parm, parms);
+>> -	parms->parm.capture.readbuffers = n_dma_bufs;
+>> +	ret = v4l2_s_parm_cap(video_devdata(filp), cam->sensor, a);
+>> +	a->parm.capture.readbuffers = n_dma_bufs;
+>>  	return ret;
+>>  }
+>>
+>> diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
+>> index d13e2c5fb06f..1a9d4610045f 100644
+>> --- a/drivers/media/platform/soc_camera/soc_camera.c
+>> +++ b/drivers/media/platform/soc_camera/soc_camera.c
+>> @@ -1788,17 +1788,19 @@ static int default_s_selection(struct soc_camera_device *icd,
+>>  }
+>>
+>>  static int default_g_parm(struct soc_camera_device *icd,
+>> -			  struct v4l2_streamparm *parm)
+>> +			  struct v4l2_streamparm *a)
+>>  {
+>>  	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
+>> -	return v4l2_subdev_call(sd, video, g_parm, parm);
+>> +
+>> +	return v4l2_g_parm_cap(icd->vdev, sd, a);
+>>  }
+>>
+>>  static int default_s_parm(struct soc_camera_device *icd,
+>> -			  struct v4l2_streamparm *parm)
+>> +			  struct v4l2_streamparm *a)
+>>  {
+>>  	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
+>> -	return v4l2_subdev_call(sd, video, s_parm, parm);
+>> +
+>> +	return v4l2_s_parm_cap(icd->vdev, sd, a);
+>>  }
+>>
+>>  static int default_enum_framesizes(struct soc_camera_device *icd,
+>> diff --git a/drivers/media/platform/via-camera.c b/drivers/media/platform/via-camera.c
+>> index 805d4a8fc17e..c632279a4209 100644
+>> --- a/drivers/media/platform/via-camera.c
+>> +++ b/drivers/media/platform/via-camera.c
+>> @@ -1112,7 +1112,7 @@ static int viacam_g_parm(struct file *filp, void *priv,
+>>  	int ret;
+>>
+>>  	mutex_lock(&cam->lock);
+>> -	ret = sensor_call(cam, video, g_parm, parm);
+>> +	ret = v4l2_g_parm_cap(video_devdata(filp), cam->sensor, parm);
+>>  	mutex_unlock(&cam->lock);
+>>  	parm->parm.capture.readbuffers = cam->n_cap_bufs;
+>>  	return ret;
+>> @@ -1125,7 +1125,7 @@ static int viacam_s_parm(struct file *filp, void *priv,
+>>  	int ret;
+>>
+>>  	mutex_lock(&cam->lock);
+>> -	ret = sensor_call(cam, video, s_parm, parm);
+>> +	ret = v4l2_s_parm_cap(video_devdata(filp), cam->sensor, parm);
+>>  	mutex_unlock(&cam->lock);
+>>  	parm->parm.capture.readbuffers = cam->n_cap_bufs;
+>>  	return ret;
+>> diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
+>> index a2ba2d905952..2724e3b99af2 100644
+>> --- a/drivers/media/usb/em28xx/em28xx-video.c
+>> +++ b/drivers/media/usb/em28xx/em28xx-video.c
+>> @@ -1582,17 +1582,26 @@ static int vidioc_s_std(struct file *file, void *priv, v4l2_std_id norm)
+>>  static int vidioc_g_parm(struct file *file, void *priv,
+>>  			 struct v4l2_streamparm *p)
+>>  {
+>> +	struct v4l2_subdev_frame_interval ival = { 0 };
+>>  	struct em28xx      *dev  = video_drvdata(file);
+>>  	struct em28xx_v4l2 *v4l2 = dev->v4l2;
+>>  	int rc = 0;
+>>
+>> +	if (p->type != V4L2_BUF_TYPE_VIDEO_CAPTURE &&
+>> +	    p->type != V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
+>> +		return -EINVAL;
+>> +
+>>  	p->parm.capture.readbuffers = EM28XX_MIN_BUF;
+>> -	if (dev->board.is_webcam)
+>> +	p->parm.capture.capability = V4L2_CAP_TIMEPERFRAME;
+>> +	if (dev->board.is_webcam) {
+>>  		rc = v4l2_device_call_until_err(&v4l2->v4l2_dev, 0,
+>> -						video, g_parm, p);
+>> -	else
+>> +						video, g_frame_interval, &ival);
+>> +		if (!rc)
+>> +			p->parm.capture.timeperframe = ival.interval;
+>> +	} else {
+>>  		v4l2_video_std_frame_period(v4l2->norm,
+>>  					    &p->parm.capture.timeperframe);
+>> +	}
+>>
+>>  	return rc;
+>>  }
+>> @@ -1601,10 +1610,27 @@ static int vidioc_s_parm(struct file *file, void *priv,
+>>  			 struct v4l2_streamparm *p)
+>>  {
+>>  	struct em28xx *dev = video_drvdata(file);
+>> +	struct v4l2_subdev_frame_interval ival = {
+>> +		0,
+>> +		p->parm.capture.timeperframe
+>> +	};
+>> +	int rc = 0;
+>> +
+>> +	if (!dev->board.is_webcam)
+>> +		return -ENOTTY;
+>>
+>> +	if (p->type != V4L2_BUF_TYPE_VIDEO_CAPTURE &&
+>> +	    p->type != V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
+>> +		return -EINVAL;
+>> +
+>> +	memset(&p->parm, 0, sizeof(p->parm));
+>>  	p->parm.capture.readbuffers = EM28XX_MIN_BUF;
+>> -	return v4l2_device_call_until_err(&dev->v4l2->v4l2_dev,
+>> -					  0, video, s_parm, p);
+>> +	p->parm.capture.capability = V4L2_CAP_TIMEPERFRAME;
+>> +	rc = v4l2_device_call_until_err(&dev->v4l2->v4l2_dev, 0,
+>> +					video, s_frame_interval, &ival);
+>> +	if (!rc)
+>> +		p->parm.capture.timeperframe = ival.interval;
+>> +	return rc;
+>>  }
+>>
+>>  static int vidioc_enum_input(struct file *file, void *priv,
+>> --
+>> 2.15.1
+>>
