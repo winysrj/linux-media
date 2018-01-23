@@ -1,62 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx07-00178001.pphosted.com ([62.209.51.94]:8285 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S934907AbeAHRNx (ORCPT
+Received: from out20-3.mail.aliyun.com ([115.124.20.3]:53366 "EHLO
+        out20-3.mail.aliyun.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750934AbeAWIR0 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 8 Jan 2018 12:13:53 -0500
-From: Hugues FRUCHET <hugues.fruchet@st.com>
+        Tue, 23 Jan 2018 03:17:26 -0500
+From: Yong Deng <yong.deng@magewell.com>
 To: Maxime Ripard <maxime.ripard@free-electrons.com>
-CC: Steve Longerbeam <slongerbeam@gmail.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        "Mauro Carvalho Chehab" <mchehab@kernel.org>,
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
         Rob Herring <robh+dt@kernel.org>,
         Mark Rutland <mark.rutland@arm.com>,
-        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Subject: Re: [PATCH v5 0/5] Add OV5640 parallel interface and RGB565/YUYV
- support
-Date: Mon, 8 Jan 2018 17:13:39 +0000
-Message-ID: <3010811e-ed37-4489-6a9f-6cc835f41575@st.com>
-References: <1514973452-10464-1-git-send-email-hugues.fruchet@st.com>
- <20180108153811.5xrvbaekm6nxtoa6@flea>
-In-Reply-To: <20180108153811.5xrvbaekm6nxtoa6@flea>
-Content-Language: en-US
-Content-Type: text/plain; charset="Windows-1252"
-Content-ID: <F28FB6BF15967F4694CBD7C24E092B0F@st.com>
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+        Chen-Yu Tsai <wens@csie.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Linus Walleij <linus.walleij@linaro.org>,
+        Randy Dunlap <rdunlap@infradead.org>,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Yannick Fertre <yannick.fertre@st.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Rick Chang <rick.chang@mediatek.com>,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-sunxi@googlegroups.com, megous@megous.com,
+        Yong Deng <yong.deng@magewell.com>
+Subject: [PATCH v6 1/2] dt-bindings: media: Add Allwinner V3s Camera Sensor Interface (CSI)
+Date: Tue, 23 Jan 2018 16:16:17 +0800
+Message-Id: <1516695377-23262-1-git-send-email-yong.deng@magewell.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Maxime,
+Add binding documentation for Allwinner V3s CSI.
 
-I'm using a ST board with OV5640 wired in parallel bus output in order 
-to interface to my STM32 DCMI parallel interface.
-Perhaps could you describe your setup so I could help on understanding 
-the problem on your side. From my past experience with this sensor 
-module, you can first check hsync/vsync polarities, the datasheet is 
-buggy on VSYNC polarity as documented in patch 4/5.
+Reviewed-by: Rob Herring <robh@kernel.org>
+Signed-off-by: Yong Deng <yong.deng@magewell.com>
+---
+ .../devicetree/bindings/media/sun6i-csi.txt        | 59 ++++++++++++++++++++++
+ 1 file changed, 59 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/sun6i-csi.txt
 
-Best regards,
-Hugues.
-
-On 01/08/2018 04:38 PM, Maxime Ripard wrote:
-> Hi Hugues,
-> 
-> On Wed, Jan 03, 2018 at 10:57:27AM +0100, Hugues Fruchet wrote:
->> Enhance OV5640 CSI driver to support also DVP parallel interface.
->> Add RGB565 (LE & BE) and YUV422 YUYV format in addition to existing
->> YUV422 UYVY format.
->> Some other improvements on chip identifier check and removal
->> of warnings in powering phase around gpio handling.
-> 
-> I've been trying to use your patches on top of 4.14, but I cannot seem
-> to get any signal out of it.
-> 
-> What is your test setup and which commands are you running?
-> 
-> Thanks!
-> Maxime
-> 
+diff --git a/Documentation/devicetree/bindings/media/sun6i-csi.txt b/Documentation/devicetree/bindings/media/sun6i-csi.txt
+new file mode 100644
+index 0000000..2ff47a9
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/sun6i-csi.txt
+@@ -0,0 +1,59 @@
++Allwinner V3s Camera Sensor Interface
++-------------------------------------
++
++Allwinner V3s SoC features two CSI module. CSI0 is used for MIPI CSI-2
++interface and CSI1 is used for parallel interface.
++
++Required properties:
++  - compatible: value must be "allwinner,sun8i-v3s-csi"
++  - reg: base address and size of the memory-mapped region.
++  - interrupts: interrupt associated to this IP
++  - clocks: phandles to the clocks feeding the CSI
++    * bus: the CSI interface clock
++    * mod: the CSI module clock
++    * ram: the CSI DRAM clock
++  - clock-names: the clock names mentioned above
++  - resets: phandles to the reset line driving the CSI
++
++Each CSI node should contain one 'port' child node with one child 'endpoint'
++node, according to the bindings defined in
++Documentation/devicetree/bindings/media/video-interfaces.txt. As mentioned
++above, the endpoint's bus type should be MIPI CSI-2 for CSI0 and parallel or
++Bt656 for CSI1.
++
++Endpoint node properties for CSI1
++---------------------------------
++
++- remote-endpoint	: (required) a phandle to the bus receiver's endpoint
++			   node
++- bus-width:		: (required) must be 8, 10, 12 or 16
++- pclk-sample		: (optional) (default: sample on falling edge)
++- hsync-active		: (only required for parallel)
++- vsync-active		: (only required for parallel)
++
++Example:
++
++csi1: csi@1cb4000 {
++	compatible = "allwinner,sun8i-v3s-csi";
++	reg = <0x01cb4000 0x1000>;
++	interrupts = <GIC_SPI 84 IRQ_TYPE_LEVEL_HIGH>;
++	clocks = <&ccu CLK_BUS_CSI>,
++		 <&ccu CLK_CSI1_SCLK>,
++		 <&ccu CLK_DRAM_CSI>;
++	clock-names = "bus", "mod", "ram";
++	resets = <&ccu RST_BUS_CSI>;
++
++	port {
++		/* Parallel bus endpoint */
++		csi1_ep: endpoint {
++			remote-endpoint = <&adv7611_ep>;
++			bus-width = <16>;
++
++			/* If hsync-active/vsync-active are missing,
++			   embedded BT.656 sync is used */
++			hsync-active = <0>; /* Active low */
++			vsync-active = <0>; /* Active low */
++			pclk-sample = <1>;  /* Rising */
++		};
++	};
++};
+-- 
+1.8.3.1
