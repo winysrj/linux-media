@@ -1,42 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aserp2120.oracle.com ([141.146.126.78]:55858 "EHLO
-        aserp2120.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751391AbeAYNLS (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:58642 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751056AbeAWMEj (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 25 Jan 2018 08:11:18 -0500
-Date: Thu, 25 Jan 2018 16:10:56 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: Hans Verkuil <hansverk@cisco.com>
-Cc: Andrzej Hajda <a.hajda@samsung.com>, linux-media@vger.kernel.org,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [bug report] [media] s5p-mfc: use MFC_BUF_FLAG_EOS to identify
- last buffers in decoder capture queue
-Message-ID: <20180125131056.2wenwwmioztsylot@mwanda>
-References: <CGME20180123083259epcas3p1fb9a8b4e4ad34eb245fca67d4204cba4@epcas3p1.samsung.com>
- <20180123083245.GA10091@mwanda>
- <e30dedbc-68bc-fae8-ffb7-5cdea05f534d@samsung.com>
- <20180125122522.vdly5ketvkugq53h@mwanda>
- <b89f9cc1-8101-b7cb-6130-87facd37e404@cisco.com>
+        Tue, 23 Jan 2018 07:04:39 -0500
+Received: from valkosipuli.localdomain (valkosipuli.retiisi.org.uk [IPv6:2001:1bc8:1a6:d3d5::80:2])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by hillosipuli.retiisi.org.uk (Postfix) with ESMTPS id 3F90D600FB
+        for <linux-media@vger.kernel.org>; Tue, 23 Jan 2018 14:04:37 +0200 (EET)
+Received: from sakke by valkosipuli.localdomain with local (Exim 4.89)
+        (envelope-from <sakari.ailus@retiisi.org.uk>)
+        id 1edxJc-0007fi-MY
+        for linux-media@vger.kernel.org; Tue, 23 Jan 2018 14:04:36 +0200
+Date: Tue, 23 Jan 2018 14:04:36 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Subject: [PULL FOR 4.16] Sensor driver fixes
+Message-ID: <20180123120436.vln6k6pver65ziff@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <b89f9cc1-8101-b7cb-6130-87facd37e404@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jan 25, 2018 at 01:31:36PM +0100, Hans Verkuil wrote:
-> > Ah...  Hm.  Is it the call to vb2_core_dqbuf() which limits buf->index?
-> > I don't see a path from vb2_core_dqbuf() to vb2_qbuf() but I may have
-> > missed it.
-> 
-> The __fill_v4l2_buffer() function in videobuf2-v4l2.c is called by vb2_core_dqbuf().
-> And that __fill_v4l2_buffer() overwrited the index field: b->index = vb->index;
-> 
-> So after the vb2_dqbuf call the buf->index field is correct and bounded.
-> 
+Hi Mauro,
 
-Ah..  I get it.  Thanks.
+Here are sensor driver fixes for 4.16, on top of the master branch.
 
-regards,
-dan carpenter
+Please pull.
+
+
+The following changes since commit e3ee691dbf24096ea51b3200946b11d68ce75361:
+
+  media: ov5640: add support of RGB565 and YUYV formats (2018-01-05 12:54:14 -0500)
+
+are available in the git repository at:
+
+  ssh://linuxtv.org/git/sailus/media_tree.git fixes-4.16-1
+
+for you to fetch changes up to c308222e2056eda4e2ab03a2f925f783e4a1678c:
+
+  media: i2c: ov7740: use gpio/consumer.h instead of gpio.h (2018-01-23 13:53:16 +0200)
+
+----------------------------------------------------------------
+Arnd Bergmann (1):
+      media: i2c: ov7740: use gpio/consumer.h instead of gpio.h
+
+Hugues Fruchet (1):
+      media: ov5640: fix spurious streamon failures
+
+Sakari Ailus (1):
+      media: entity: Add a nop variant of media_entity_cleanup
+
+ drivers/media/i2c/mt9m111.c  | 2 --
+ drivers/media/i2c/ov2640.c   | 4 ----
+ drivers/media/i2c/ov2659.c   | 4 ----
+ drivers/media/i2c/ov5640.c   | 1 +
+ drivers/media/i2c/ov7670.c   | 4 ----
+ drivers/media/i2c/ov7740.c   | 4 +---
+ drivers/media/i2c/tvp514x.c  | 4 ----
+ include/media/media-entity.h | 6 +++++-
+ 8 files changed, 7 insertions(+), 22 deletions(-)
+
+-- 
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
