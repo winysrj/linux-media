@@ -1,373 +1,211 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f67.google.com ([74.125.83.67]:41607 "EHLO
-        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751845AbeAZGCu (ORCPT
+Received: from relay2-d.mail.gandi.net ([217.70.183.194]:60984 "EHLO
+        relay2-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S932606AbeAXJbR (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 26 Jan 2018 01:02:50 -0500
-Received: by mail-pg0-f67.google.com with SMTP id 136so6616784pgd.8
-        for <linux-media@vger.kernel.org>; Thu, 25 Jan 2018 22:02:50 -0800 (PST)
-From: Alexandre Courbot <acourbot@chromium.org>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Pawel Osciak <posciak@chromium.org>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Gustavo Padovan <gustavo.padovan@collabora.com>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Alexandre Courbot <acourbot@chromium.org>
-Subject: [RFC PATCH 3/8] media: videobuf2: add support for requests
-Date: Fri, 26 Jan 2018 15:02:11 +0900
-Message-Id: <20180126060216.147918-4-acourbot@chromium.org>
-In-Reply-To: <20180126060216.147918-1-acourbot@chromium.org>
-References: <20180126060216.147918-1-acourbot@chromium.org>
+        Wed, 24 Jan 2018 04:31:17 -0500
+From: Jacopo Mondi <jacopo+renesas@jmondi.org>
+To: corbet@lwn.net, mchehab@kernel.org, sakari.ailus@iki.fi,
+        robh+dt@kernel.org, mark.rutland@arm.com
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: [PATCH v4 2/2] v4l2: i2c: ov7670: Implement OF mbus configuration
+Date: Wed, 24 Jan 2018 10:30:50 +0100
+Message-Id: <1516786250-3750-3-git-send-email-jacopo+renesas@jmondi.org>
+In-Reply-To: <1516786250-3750-1-git-send-email-jacopo+renesas@jmondi.org>
+References: <1516786250-3750-1-git-send-email-jacopo+renesas@jmondi.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Make vb2 aware of requests. Drivers can specify whether a given queue
-can accept requests or not. Queues that accept requests will block on a
-buffer that is part of a request until that request is submitted.
+ov7670 driver supports two optional properties supplied through platform
+data, but currently does not support any standard video interface
+property.
 
-Signed-off-by: Alexandre Courbot <acourbot@chromium.org>
+Add support through OF parsing for 2 generic properties (vsync and hsync
+polarities) and for one custom property already supported through
+platform data to suppress pixel clock output during horizontal
+blanking.
+
+While at there, check return value of register writes in set_fmt
+function and rationalize spacings.
+
+Signal polarities and pixel clock blanking verified through scope and
+image capture.
+
+Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
 ---
- drivers/media/v4l2-core/videobuf2-core.c | 125 +++++++++++++++++++++++++++++--
- drivers/media/v4l2-core/videobuf2-v4l2.c |  28 ++++++-
- include/media/videobuf2-core.h           |  15 +++-
- 3 files changed, 160 insertions(+), 8 deletions(-)
+ drivers/media/i2c/ov7670.c | 98 +++++++++++++++++++++++++++++++++++++++-------
+ 1 file changed, 84 insertions(+), 14 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index cb115ba6a1d2..f6d013b141f1 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -26,6 +26,7 @@
+diff --git a/drivers/media/i2c/ov7670.c b/drivers/media/i2c/ov7670.c
+index 61c472e..80c822c 100644
+--- a/drivers/media/i2c/ov7670.c
++++ b/drivers/media/i2c/ov7670.c
+@@ -21,6 +21,7 @@
+ #include <linux/gpio/consumer.h>
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-ctrls.h>
++#include <media/v4l2-fwnode.h>
+ #include <media/v4l2-mediabus.h>
+ #include <media/v4l2-image-sizes.h>
+ #include <media/i2c/ov7670.h>
+@@ -242,6 +243,7 @@ struct ov7670_info {
+ 	struct clk *clk;
+ 	struct gpio_desc *resetb_gpio;
+ 	struct gpio_desc *pwdn_gpio;
++	unsigned int mbus_config;	/* Media bus configuration flags */
+ 	int min_width;			/* Filter out smaller sizes */
+ 	int min_height;			/* Filter out smaller sizes */
+ 	int clock_speed;		/* External clock speed (MHz) */
+@@ -1018,7 +1020,7 @@ static int ov7670_set_fmt(struct v4l2_subdev *sd,
+ #ifdef CONFIG_VIDEO_V4L2_SUBDEV_API
+ 	struct v4l2_mbus_framefmt *mbus_fmt;
+ #endif
+-	unsigned char com7;
++	unsigned char com7, com10 = 0;
+ 	int ret;
  
- #include <media/videobuf2-core.h>
- #include <media/v4l2-mc.h>
-+#include <media/media-request.h>
- 
- #include <trace/events/vb2.h>
- 
-@@ -922,6 +923,17 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
- 		vb->state = state;
+ 	if (format->pad)
+@@ -1038,7 +1040,6 @@ static int ov7670_set_fmt(struct v4l2_subdev *sd,
  	}
- 	atomic_dec(&q->owned_by_drv_count);
-+	if (vb->request) {
-+		struct media_request *req = vb->request;
-+
-+		if (atomic_dec_and_test(&req->buf_cpt))
-+			media_request_complete(vb->request);
-+
-+		/* release reference acquired during qbuf */
-+		vb->request = NULL;
-+		media_request_put(req);
-+	}
-+
- 	spin_unlock_irqrestore(&q->done_lock, flags);
  
- 	trace_vb2_buf_done(q, vb);
-@@ -1298,6 +1310,53 @@ int vb2_core_prepare_buf(struct vb2_queue *q, unsigned int index, void *pb)
- }
- EXPORT_SYMBOL_GPL(vb2_core_prepare_buf);
- 
-+/**
-+ * vb2_check_buf_req_status() - Validate request state of a buffer
-+ * @vb:		buffer to check
-+ *
-+ * Returns true if a buffer is ready to be passed to the driver request-wise.
-+ * This means that neither this buffer nor any previously-queued buffer is
-+ * associated to a request that is not yet submitted.
-+ *
-+ * If this function returns false, then the buffer shall not be passed to its
-+ * driver since the request state is not completely built yet. In that case,
-+ * this function will register a notifier to be called when the request is
-+ * submitted and the queue can be unblocked.
-+ *
-+ * This function must be called with req_lock held.
-+ */
-+static bool vb2_check_buf_req_status(struct vb2_buffer *vb)
-+{
-+	struct media_request *req = vb->request;
-+	struct vb2_queue *q = vb->vb2_queue;
-+	int ret = false;
-+
-+	mutex_lock(&q->req_lock);
-+
-+	if (!req) {
-+		ret = !q->waiting_req;
-+		goto done;
-+	}
-+
-+	mutex_lock(&req->lock);
-+	if (req->state == MEDIA_REQUEST_STATE_SUBMITTED) {
-+		mutex_unlock(&req->lock);
-+		ret = !q->waiting_req;
-+		goto done;
-+	}
-+
-+	if (!q->waiting_req) {
-+		q->waiting_req = true;
-+		atomic_notifier_chain_register(&req->submit_notif,
-+					       &q->req_blk);
-+	}
-+	mutex_unlock(&req->lock);
-+
-+done:
-+	mutex_unlock(&q->req_lock);
-+	return ret;
-+}
-+
- /**
-  * vb2_start_streaming() - Attempt to start streaming.
-  * @q:		videobuf2 queue
-@@ -1318,8 +1377,11 @@ static int vb2_start_streaming(struct vb2_queue *q)
- 	 * If any buffers were queued before streamon,
- 	 * we can now pass them to driver for processing.
+ 	ret = ov7670_try_fmt_internal(sd, &format->format, &ovfmt, &wsize);
+-
+ 	if (ret)
+ 		return ret;
+ 	/*
+@@ -1049,16 +1050,41 @@ static int ov7670_set_fmt(struct v4l2_subdev *sd,
  	 */
--	list_for_each_entry(vb, &q->queued_list, queued_entry)
-+	list_for_each_entry(vb, &q->queued_list, queued_entry) {
-+		if (!vb2_check_buf_req_status(vb))
-+			break;
- 		__enqueue_in_driver(vb);
+ 	com7 = ovfmt->regs[0].value;
+ 	com7 |= wsize->com7_bit;
+-	ov7670_write(sd, REG_COM7, com7);
++	ret = ov7670_write(sd, REG_COM7, com7);
++	if (ret)
++		return ret;
++
++	/*
++	 * Configure the media bus through COM10 register
++	 */
++	if (info->mbus_config & V4L2_MBUS_VSYNC_ACTIVE_LOW)
++		com10 |= COM10_VS_NEG;
++	if (info->mbus_config & V4L2_MBUS_HSYNC_ACTIVE_LOW)
++		com10 |= COM10_HREF_REV;
++	if (info->pclk_hb_disable)
++		com10 |= COM10_PCLK_HB;
++	ret = ov7670_write(sd, REG_COM10, com10);
++	if (ret)
++		return ret;
++
+ 	/*
+ 	 * Now write the rest of the array.  Also store start/stops
+ 	 */
+-	ov7670_write_array(sd, ovfmt->regs + 1);
+-	ov7670_set_hw(sd, wsize->hstart, wsize->hstop, wsize->vstart,
+-			wsize->vstop);
+-	ret = 0;
+-	if (wsize->regs)
++	ret = ov7670_write_array(sd, ovfmt->regs + 1);
++	if (ret)
++		return ret;
++
++	ret = ov7670_set_hw(sd, wsize->hstart, wsize->hstop, wsize->vstart,
++			    wsize->vstop);
++	if (ret)
++		return ret;
++
++	if (wsize->regs) {
+ 		ret = ov7670_write_array(sd, wsize->regs);
++		if (ret)
++			return ret;
 +	}
++
+ 	info->fmt = ovfmt;
  
- 	/* Tell the driver to start streaming */
- 	q->start_streaming_called = 1;
-@@ -1361,7 +1423,46 @@ static int vb2_start_streaming(struct vb2_queue *q)
- 	return ret;
+ 	/*
+@@ -1071,8 +1097,10 @@ static int ov7670_set_fmt(struct v4l2_subdev *sd,
+ 	 * to write it unconditionally, and that will make the frame
+ 	 * rate persistent too.
+ 	 */
+-	if (ret == 0)
+-		ret = ov7670_write(sd, REG_CLKRC, info->clkrc);
++	ret = ov7670_write(sd, REG_CLKRC, info->clkrc);
++	if (ret)
++		return ret;
++
+ 	return 0;
  }
  
--int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb)
-+/**
-+ * vb2_unblock_requests() - unblock a queue waiting for a request submission
-+ * @nb:		notifier block that has been registered
-+ * @action:	unused
-+ * @data:	request that has been submitted
-+ *
-+ * This is a callback function that is registered when
-+ * vb2_check_buf_req_status() returns false. It is invoked when the request
-+ * blocking the queue has been submitted. This means its buffers (and all
-+ * following valid buffers) can be passed to drivers.
+@@ -1698,6 +1726,45 @@ static int ov7670_init_gpio(struct i2c_client *client, struct ov7670_info *info)
+ 	return 0;
+ }
+ 
++/*
++ * ov7670_parse_dt() - Parse device tree to collect mbus configuration
++ *			properties
 + */
-+static int vb2_unblock_requests(struct notifier_block *nb, unsigned long action,
-+				void *data)
++static int ov7670_parse_dt(struct device *dev,
++			   struct ov7670_info *info)
 +{
-+	struct vb2_queue *q = container_of(nb, struct vb2_queue, req_blk);
-+	struct media_request *req = data;
-+	struct vb2_buffer *vb;
-+	bool found_request = false;
++	struct fwnode_handle *fwnode = dev_fwnode(dev);
++	struct v4l2_fwnode_endpoint bus_cfg;
++	struct fwnode_handle *ep;
++	int ret;
 +
-+	mutex_lock(&q->req_lock);
-+	atomic_notifier_chain_unregister(&req->submit_notif, &q->req_blk);
-+	q->waiting_req = false;
-+	mutex_unlock(&q->req_lock);
++	if (!fwnode)
++		return -EINVAL;
 +
-+	list_for_each_entry(vb, &q->queued_list, queued_entry) {
-+		/* All buffers before our request are already passed to the driver */
-+		if (!found_request && vb->request != req)
-+			continue;
-+		found_request = true;
++	info->pclk_hb_disable = false;
++	if (fwnode_property_present(fwnode, "ov7670,pclk-hb-disable"))
++		info->pclk_hb_disable = true;
 +
-+		if (!vb2_check_buf_req_status(vb))
-+			break;
-+		__enqueue_in_driver(vb);
++	ep = fwnode_graph_get_next_endpoint(fwnode, NULL);
++	if (!ep)
++		return -EINVAL;
++
++	ret = v4l2_fwnode_endpoint_parse(ep, &bus_cfg);
++	if (ret) {
++		fwnode_handle_put(ep);
++		return ret;
 +	}
++
++	if (bus_cfg.bus_type != V4L2_MBUS_PARALLEL) {
++		dev_err(dev, "Unsupported media bus type\n");
++		fwnode_handle_put(ep);
++		return ret;
++	}
++	info->mbus_config = bus_cfg.bus.parallel.flags;
 +
 +	return 0;
 +}
 +
-+int vb2_core_qbuf(struct vb2_queue *q, unsigned int index,
-+		  struct media_request *req, void *pb)
+ static int ov7670_probe(struct i2c_client *client,
+ 			const struct i2c_device_id *id)
  {
- 	struct vb2_buffer *vb;
- 	int ret;
-@@ -1398,11 +1499,21 @@ int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb)
+@@ -1718,7 +1785,13 @@ static int ov7670_probe(struct i2c_client *client,
+ #endif
  
- 	trace_vb2_qbuf(q, vb);
- 
-+	vb->request = req;
-+	if (req) {
-+		if (!q->allow_requests)
-+			return -EINVAL;
+ 	info->clock_speed = 30; /* default: a guess */
+-	if (client->dev.platform_data) {
 +
-+		/* make sure the request stays alive as long as we need */
-+		media_request_get(req);
-+		atomic_inc(&req->buf_cpt);
-+	}
++	if (dev_fwnode(&client->dev)) {
++		ret = ov7670_parse_dt(&client->dev, info);
++		if (ret)
++			return ret;
 +
- 	/*
- 	 * If already streaming, give the buffer to driver for processing.
- 	 * If not, the buffer will be given to driver on next streamon.
- 	 */
--	if (q->start_streaming_called)
-+	if (q->start_streaming_called && vb2_check_buf_req_status(vb))
- 		__enqueue_in_driver(vb);
++	} else if (client->dev.platform_data) {
+ 		struct ov7670_config *config = client->dev.platform_data;
  
- 	/* Fill buffer information for the userspace */
-@@ -1993,6 +2104,8 @@ int vb2_core_queue_init(struct vb2_queue *q)
- 	spin_lock_init(&q->done_lock);
- 	mutex_init(&q->mmap_lock);
- 	init_waitqueue_head(&q->done_wq);
-+	mutex_init(&q->req_lock);
-+	q->req_blk.notifier_call = vb2_unblock_requests;
+ 		/*
+@@ -1785,9 +1858,6 @@ static int ov7670_probe(struct i2c_client *client,
+ 	tpf.denominator = 30;
+ 	info->devtype->set_framerate(sd, &tpf);
  
- 	if (q->buf_struct_size == 0)
- 		q->buf_struct_size = sizeof(struct vb2_buffer);
-@@ -2242,7 +2355,7 @@ static int __vb2_init_fileio(struct vb2_queue *q, int read)
- 		 * Queue all buffers.
- 		 */
- 		for (i = 0; i < q->num_buffers; i++) {
--			ret = vb2_core_qbuf(q, i, NULL);
-+			ret = vb2_core_qbuf(q, i, NULL, NULL);
- 			if (ret)
- 				goto err_reqbufs;
- 			fileio->bufs[i].queued = 1;
-@@ -2421,7 +2534,7 @@ static size_t __vb2_perform_fileio(struct vb2_queue *q, char __user *data, size_
- 
- 		if (copy_timestamp)
- 			b->timestamp = ktime_get_ns();
--		ret = vb2_core_qbuf(q, index, NULL);
-+		ret = vb2_core_qbuf(q, index, NULL, NULL);
- 		dprintk(5, "vb2_dbuf result: %d\n", ret);
- 		if (ret)
- 			return ret;
-@@ -2524,7 +2637,7 @@ static int vb2_thread(void *data)
- 		if (copy_timestamp)
- 			vb->timestamp = ktime_get_ns();;
- 		if (!threadio->stop)
--			ret = vb2_core_qbuf(q, vb->index, NULL);
-+			ret = vb2_core_qbuf(q, vb->index, NULL, NULL);
- 		call_void_qop(q, wait_prepare, q);
- 		if (ret || threadio->stop)
- 			break;
-diff --git a/drivers/media/v4l2-core/videobuf2-v4l2.c b/drivers/media/v4l2-core/videobuf2-v4l2.c
-index 0f8edbdebe30..267fe2d669b2 100644
---- a/drivers/media/v4l2-core/videobuf2-v4l2.c
-+++ b/drivers/media/v4l2-core/videobuf2-v4l2.c
-@@ -30,6 +30,7 @@
- #include <media/v4l2-common.h>
- 
- #include <media/videobuf2-v4l2.h>
-+#include <media/media-request.h>
- 
- static int debug;
- module_param(debug, int, 0644);
-@@ -561,6 +562,7 @@ EXPORT_SYMBOL_GPL(vb2_create_bufs);
- 
- int vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
- {
-+	struct media_request *req = NULL;
- 	int ret;
- 
- 	if (vb2_fileio_is_active(q)) {
-@@ -568,8 +570,32 @@ int vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
- 		return -EBUSY;
- 	}
- 
-+	/*
-+	 * The caller should have validated that the request is valid,
-+	 * so we just need to look it up without further checking
-+	 */
-+	if (b->request_fd > 0) {
-+		req = media_request_get_from_fd(b->request_fd);
-+		if (!req)
-+			return -EINVAL;
-+
-+		mutex_lock(&req->lock);
-+		if (req->state != MEDIA_REQUEST_STATE_IDLE) {
-+			mutex_unlock(&req->lock);
-+			media_request_put(req);
-+			return -EINVAL;
-+		}
-+		mutex_unlock(&req->lock);
-+	}
-+
- 	ret = vb2_queue_or_prepare_buf(q, b, "qbuf");
--	return ret ? ret : vb2_core_qbuf(q, b->index, b);
-+	if (!ret)
-+		ret = vb2_core_qbuf(q, b->index, req, b);
-+
-+	if (req)
-+		media_request_put(req);
-+
-+	return ret;
- }
- EXPORT_SYMBOL_GPL(vb2_qbuf);
- 
-diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index ef9b64398c8c..7bb17c842ab4 100644
---- a/include/media/videobuf2-core.h
-+++ b/include/media/videobuf2-core.h
-@@ -237,6 +237,7 @@ struct vb2_queue;
-  *			on an internal driver queue
-  * @planes:		private per-plane information; do not change
-  * @timestamp:		frame timestamp in ns
-+ * @request:		request the buffer belongs to, if any
-  */
- struct vb2_buffer {
- 	struct vb2_queue	*vb2_queue;
-@@ -246,6 +247,7 @@ struct vb2_buffer {
- 	unsigned int		num_planes;
- 	struct vb2_plane	planes[VB2_MAX_PLANES];
- 	u64			timestamp;
-+	struct media_request	*request;
- 
- 	/* private: internal use only
- 	 *
-@@ -443,6 +445,7 @@ struct vb2_buf_ops {
-  * @quirk_poll_must_check_waiting_for_buffers: Return POLLERR at poll when QBUF
-  *              has not been called. This is a vb1 idiom that has been adopted
-  *              also by vb2.
-+ * @allow_requests:	whether requests are supported on this queue.
-  * @lock:	pointer to a mutex that protects the vb2_queue struct. The
-  *		driver can set this to a mutex to let the v4l2 core serialize
-  *		the queuing ioctls. If the driver wants to handle locking
-@@ -500,6 +503,9 @@ struct vb2_buf_ops {
-  *		when a buffer with the V4L2_BUF_FLAG_LAST is dequeued.
-  * @fileio:	file io emulator internal data, used only if emulator is active
-  * @threadio:	thread io internal data, used only if thread is active
-+ * @req_lock:	protects req_blk and waiting_req
-+ * @req_blk:	notifier to be called when waiting for a request to be submitted
-+ * @waiting_req:whether this queue is currently waiting on a request submission
-  */
- struct vb2_queue {
- 	unsigned int			type;
-@@ -511,6 +517,7 @@ struct vb2_queue {
- 	unsigned			fileio_write_immediately:1;
- 	unsigned			allow_zero_bytesused:1;
- 	unsigned		   quirk_poll_must_check_waiting_for_buffers:1;
-+	unsigned			allow_requests:1;
- 
- 	struct mutex			*lock;
- 	void				*owner;
-@@ -554,6 +561,10 @@ struct vb2_queue {
- 	struct vb2_fileio_data		*fileio;
- 	struct vb2_threadio_data	*threadio;
- 
-+	struct mutex			req_lock;
-+	struct notifier_block		req_blk;
-+	bool				waiting_req;
-+
- #ifdef CONFIG_VIDEO_ADV_DEBUG
- 	/*
- 	 * Counters for how often these queue-related ops are
-@@ -724,6 +735,7 @@ int vb2_core_prepare_buf(struct vb2_queue *q, unsigned int index, void *pb);
-  *
-  * @q:		videobuf2 queue
-  * @index:	id number of the buffer
-+ * @req:	request this buffer belongs to, if any
-  * @pb:		buffer structure passed from userspace to vidioc_qbuf handler
-  *		in driver
-  *
-@@ -740,7 +752,8 @@ int vb2_core_prepare_buf(struct vb2_queue *q, unsigned int index, void *pb);
-  * The return values from this function are intended to be directly returned
-  * from vidioc_qbuf handler in driver.
-  */
--int vb2_core_qbuf(struct vb2_queue *q, unsigned int index, void *pb);
-+int vb2_core_qbuf(struct vb2_queue *q, unsigned int index,
-+		  struct media_request *req, void *pb);
- 
- /**
-  * vb2_core_dqbuf() - Dequeue a buffer to the userspace
+-	if (info->pclk_hb_disable)
+-		ov7670_write(sd, REG_COM10, COM10_PCLK_HB);
+-
+ 	v4l2_ctrl_handler_init(&info->hdl, 10);
+ 	v4l2_ctrl_new_std(&info->hdl, &ov7670_ctrl_ops,
+ 			V4L2_CID_BRIGHTNESS, 0, 255, 1, 128);
 -- 
-2.16.0.rc1.238.g530d649a79-goog
+2.7.4
