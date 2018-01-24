@@ -1,61 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:51081 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751480AbeA2MuO (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 29 Jan 2018 07:50:14 -0500
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Ingo Molnar <mingo@kernel.org>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: [PATCH 1/2] media: dvb_demux: Better handle discontinuity errors
-Date: Mon, 29 Jan 2018 07:50:07 -0500
-Message-Id: <fed488b3956b6dc637bec6b5a0bc10d6435da9f5.1517230202.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+Received: from relmlor2.renesas.com ([210.160.252.172]:17936 "EHLO
+        relmlie1.idc.renesas.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S933988AbeAXRCO (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 24 Jan 2018 12:02:14 -0500
+From: Fabrizio Castro <fabrizio.castro@bp.renesas.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Rob Herring <robh+dt@kernel.org>
+CC: =?iso-8859-1?Q?Niklas_S=F6derlund?= <niklas.soderlund@ragnatech.se>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "linux-renesas-soc@vger.kernel.org"
+        <linux-renesas-soc@vger.kernel.org>,
+        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
+        Simon Horman <horms+renesas@verge.net.au>,
+        Geert Uytterhoeven <geert@linux-m68k.org>,
+        Chris Paterson <Chris.Paterson2@renesas.com>,
+        Biju Das <biju.das@bp.renesas.com>,
+        Mark Rutland <mark.rutland@arm.com>,
+        "Fabrizio Castro" <fabrizio.castro@bp.renesas.com>
+Subject: RE: [PATCH v2 1/4] dt-bindings: media: rcar_vin: Reverse SoC part
+ number list
+Date: Wed, 24 Jan 2018 17:02:10 +0000
+Message-ID: <SG2PR06MB0886F472B3CFDE5F2255AB8DC0E20@SG2PR06MB0886.apcprd06.prod.outlook.com>
+References: <1510856571-30281-1-git-send-email-fabrizio.castro@bp.renesas.com>
+ <1510856571-30281-2-git-send-email-fabrizio.castro@bp.renesas.com>
+In-Reply-To: <1510856571-30281-2-git-send-email-fabrizio.castro@bp.renesas.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Hello guys,
 
-When a packet discontinuity happens, it is not just the payload
-that was lost. The headers are lost too. So, the max size is not
-184 but, instead 188.
+I am sorry to bother you,  just wondering if this patch has any chance to e=
+nd up in v4.16?
 
-Also, while printing warnings, make a distinction between
-MPEG-TS indicated discontinuity and detected one.
+Thanks,
+Fabrizio
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/dvb-core/dvb_demux.c | 8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+> Subject: [PATCH v2 1/4] dt-bindings: media: rcar_vin: Reverse SoC part nu=
+mber list
+>
+> Change the sorting of the part numbers from descending to ascending to
+> match with other documentation.
+>
+> Signed-off-by: Fabrizio Castro <fabrizio.castro@bp.renesas.com>
+> Reviewed-by: Biju Das <biju.das@bp.renesas.com>
+> ---
+> v1->v2:
+> * new patch triggered by Geert's comment, see the below link for details:
+>   https://www.mail-archive.com/linux-media@vger.kernel.org/msg121992.html
+>
+>  Documentation/devicetree/bindings/media/rcar_vin.txt | 14 +++++++-------
+>  1 file changed, 7 insertions(+), 7 deletions(-)
+>
+> diff --git a/Documentation/devicetree/bindings/media/rcar_vin.txt b/Docum=
+entation/devicetree/bindings/media/rcar_vin.txt
+> index 6e4ef8c..98931f5 100644
+> --- a/Documentation/devicetree/bindings/media/rcar_vin.txt
+> +++ b/Documentation/devicetree/bindings/media/rcar_vin.txt
+> @@ -6,14 +6,14 @@ family of devices. The current blocks are always slaves=
+ and suppot one input
+>  channel which can be either RGB, YUYV or BT656.
+>
+>   - compatible: Must be one or more of the following
+> -   - "renesas,vin-r8a7795" for the R8A7795 device
+> -   - "renesas,vin-r8a7794" for the R8A7794 device
+> -   - "renesas,vin-r8a7793" for the R8A7793 device
+> -   - "renesas,vin-r8a7792" for the R8A7792 device
+> -   - "renesas,vin-r8a7791" for the R8A7791 device
+> -   - "renesas,vin-r8a7790" for the R8A7790 device
+> -   - "renesas,vin-r8a7779" for the R8A7779 device
+>     - "renesas,vin-r8a7778" for the R8A7778 device
+> +   - "renesas,vin-r8a7779" for the R8A7779 device
+> +   - "renesas,vin-r8a7790" for the R8A7790 device
+> +   - "renesas,vin-r8a7791" for the R8A7791 device
+> +   - "renesas,vin-r8a7792" for the R8A7792 device
+> +   - "renesas,vin-r8a7793" for the R8A7793 device
+> +   - "renesas,vin-r8a7794" for the R8A7794 device
+> +   - "renesas,vin-r8a7795" for the R8A7795 device
+>     - "renesas,rcar-gen2-vin" for a generic R-Car Gen2 compatible device.
+>     - "renesas,rcar-gen3-vin" for a generic R-Car Gen3 compatible device.
+>
+> --
+> 2.7.4
 
-diff --git a/drivers/media/dvb-core/dvb_demux.c b/drivers/media/dvb-core/dvb_demux.c
-index 5047a1f87050..1a6e2e61952a 100644
---- a/drivers/media/dvb-core/dvb_demux.c
-+++ b/drivers/media/dvb-core/dvb_demux.c
-@@ -310,8 +310,9 @@ static int dvb_dmx_swfilter_section_packet(struct dvb_demux_feed *feed,
- 
- 	if (!ccok || dc_i) {
- #ifdef CONFIG_DVB_DEMUX_SECTION_LOSS_LOG
--		dprintk("dvb_demux.c discontinuity detected %d bytes lost\n",
--			count);
-+		dprintk("discontinuity %s: %d bytes lost\n",
-+			!ccok ? "detected" : "indicated",
-+			count + 4);
- 		/*
- 		 * those bytes under sume circumstances will again be reported
- 		 * in the following dvb_dmx_swfilter_section_new
-@@ -320,6 +321,9 @@ static int dvb_dmx_swfilter_section_packet(struct dvb_demux_feed *feed,
- 		/*
- 		 * Discontinuity detected. Reset pusi_seen to
- 		 * stop feeding of suspicious data until next PUSI=1 arrives
-+		 *
-+		 * FIXME: does it make sense if the MPEG-TS is the one
-+		 *	reporting discontinuity?
- 		 */
- 		feed->pusi_seen = false;
- 		dvb_dmx_swfilter_section_new(feed);
--- 
-2.14.3
+
+
+
+Renesas Electronics Europe Ltd, Dukes Meadow, Millboard Road, Bourne End, B=
+uckinghamshire, SL8 5FH, UK. Registered in England & Wales under Registered=
+ No. 04586709.
