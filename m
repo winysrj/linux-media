@@ -1,98 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from sub5.mail.dreamhost.com ([208.113.200.129]:50233 "EHLO
-        homiemail-a123.g.dreamhost.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750750AbeAPWEh (ORCPT
+Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:58713 "EHLO
+        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S932123AbeAXE7s (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 16 Jan 2018 17:04:37 -0500
-Subject: Re: [PATCH 4/7] si2168: Add ts bus coontrol, turn off bus on sleep
-To: Antti Palosaari <crope@iki.fi>, Brad Love <brad@nextdimension.cc>,
-        linux-media@vger.kernel.org
-References: <1515773982-6411-1-git-send-email-brad@nextdimension.cc>
- <1515773982-6411-5-git-send-email-brad@nextdimension.cc>
- <ce8faa6a-0ffb-a432-e269-58486c857fea@iki.fi>
- <0770dc98-9153-e386-ca54-b7e4123b774d@nextdimension.cc>
- <3dbf6692-ea03-38d1-a6c0-3291cf48dbae@iki.fi>
- <491ebce5-cc46-5c1b-b223-f46d5f387285@nextdimension.cc>
- <a9eec965-e56b-fdf2-b030-779f1b5a71b0@iki.fi>
-From: Brad Love <brad@nextdimension.cc>
-Message-ID: <e5e36c6d-7027-098c-0757-d7fef12e1b1d@nextdimension.cc>
-Date: Tue, 16 Jan 2018 16:04:36 -0600
-MIME-Version: 1.0
-In-Reply-To: <a9eec965-e56b-fdf2-b030-779f1b5a71b0@iki.fi>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
-Content-Language: en-GB
+        Tue, 23 Jan 2018 23:59:48 -0500
+Message-ID: <5bce798073857ec5db03901db551c4a2@smtp-cloud7.xs4all.net>
+Date: Wed, 24 Jan 2018 05:59:45 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-On 2018-01-16 14:38, Antti Palosaari wrote:
-> On 01/16/2018 10:14 PM, Brad Love wrote:
->>
->> On 2018-01-16 13:32, Antti Palosaari wrote:
->>> On 01/16/2018 07:31 PM, Brad Love wrote:
->>>>
->>>> On 2018-01-15 23:07, Antti Palosaari wrote:
->>>>> Hello
->>>>> And what is rationale here, is there some use case demod must be
->>>>> active and ts set to tristate (disabled)? Just put demod sleep when=
+Results of the daily build of media_tree:
 
->>>>> you don't use it.
->>>>>
->>>>> regards
->>>>> Antti
->>>>
->>>> Hello Antti,
->>>>
->>>> Perhaps the .ts_bus_ctrl callback does not need to be included in op=
-s,
->>>> but the function is necessary. The demod is already put to sleep whe=
-n
->>>> not in use, but it leaves the ts bus open. The ts bus has no reason =
-to
->>>> be open when the demod is put to sleep. Leaving the ts bus open duri=
-ng
->>>> sleep affects the other connected demod and nothing is received by i=
-t.
->>>> The lgdt3306a driver already tri states its ts bus when put to sleep=
-,
->>>> the si2168 should as well.
->>>
->>> Sounds possible, but unlikely as chip is firmware driven. When you pu=
-t
->>> chip to sleep you usually want set ts pins to tristate (also other
->>> unused pins) in order to save energy. I haven't never tested it anywa=
-y
->>> though, so it could be possible it leaves those pins to some other
->>> state like random output at given time.
->>>
->>> And if you cannot get stream from lgdt3306a, which is connected to
->>> same bus, it really sounds like ts bus pins are left some state
->>> (cannot work if same pin is driven high to other demod whilst other
->>> tries to drive it low.
->>>
->>> Setting ts pins to tri-state during sleep should resolve your issue.
->>
->> Hello Antti,
->>
->> This patch fixes the issue I'm describing, hence why I submitted it. T=
-he
->> ts bus must be tristated before putting the chip to sleep for the othe=
-r
->> demod to get a stream.
->>
->
-> I can test tri-state using power meter on some day, but it may be so
-> small current that it cannot be seen usb power meter I use (YZXstudio,
-> very nice small power meter).
->
-> regards
-> Antti
->
+date:			Wed Jan 24 05:00:20 CET 2018
+media-tree git hash:	4852fdca8818972d0ea5b5ce7114da628f9954a4
+media_build git hash:	d17383327f00d45e6c07161876fb4f3d9d9358e1
+v4l-utils git hash:	c2cc9e17b1411865d40a0e7d3ab027204fc0cf19
+gcc version:		i686-linux-gcc (GCC) 7.1.0
+sparse version:		v0.5.0-3911-g6f737e1f
+smatch version:		v0.5.0-3911-g6f737e1f
+host hardware:		x86_64
+host os:		4.14.0-364
 
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: WARNINGS
+linux-3.11.1-i686: ERRORS
+linux-3.12.67-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.7-i686: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.18.7-i686: ERRORS
+linux-3.19-i686: ERRORS
+linux-4.0.9-i686: ERRORS
+linux-4.1.33-i686: ERRORS
+linux-4.2.8-i686: ERRORS
+linux-4.3.6-i686: ERRORS
+linux-4.4.22-i686: ERRORS
+linux-4.5.7-i686: ERRORS
+linux-4.6.7-i686: ERRORS
+linux-4.7.5-i686: ERRORS
+linux-4.8-i686: ERRORS
+linux-4.9.26-i686: ERRORS
+linux-4.10.14-i686: WARNINGS
+linux-4.11-i686: WARNINGS
+linux-4.12.1-i686: WARNINGS
+linux-4.13-i686: WARNINGS
+linux-4.14-i686: WARNINGS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.67-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.7-x86_64: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.7-x86_64: ERRORS
+linux-3.19-x86_64: ERRORS
+linux-4.0.9-x86_64: ERRORS
+linux-4.1.33-x86_64: ERRORS
+linux-4.2.8-x86_64: ERRORS
+linux-4.3.6-x86_64: ERRORS
+linux-4.4.22-x86_64: ERRORS
+linux-4.5.7-x86_64: ERRORS
+linux-4.6.7-x86_64: ERRORS
+linux-4.7.5-x86_64: ERRORS
+linux-4.8-x86_64: ERRORS
+linux-4.9.26-x86_64: ERRORS
+linux-4.10.14-x86_64: WARNINGS
+linux-4.11-x86_64: WARNINGS
+linux-4.12.1-x86_64: WARNINGS
+linux-4.13-x86_64: WARNINGS
+linux-4.14-x86_64: WARNINGS
+apps: WARNINGS
+spec-git: OK
+smatch: OK
 
-Nifty looking devices, one just fell into my shopping cart :)
+Detailed results are available here:
 
-Cheers,
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
 
-Brad
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
