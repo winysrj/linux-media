@@ -1,71 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:60137 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751329AbeACOVZ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 3 Jan 2018 09:21:25 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: mchehab@s-opensource.com
-Cc: linux-media@vger.kernel.org
-Subject: [GIT PULL FOR v4.16] uvcvideo changes
-Date: Wed, 03 Jan 2018 16:21:46 +0200
-Message-ID: <2334224.jSy5smKVkF@avalon>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:48428 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S932140AbeAXU6p (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 24 Jan 2018 15:58:45 -0500
+Date: Wed, 24 Jan 2018 22:58:41 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Jacopo Mondi <jacopo+renesas@jmondi.org>
+Cc: corbet@lwn.net, mchehab@kernel.org, robh+dt@kernel.org,
+        mark.rutland@arm.com, linux-media@vger.kernel.org,
+        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v4 0/2] media: ov7670: Implement mbus configuration
+Message-ID: <20180124205839.fvv5ria4kdkbhk6h@valkosipuli.retiisi.org.uk>
+References: <1516786250-3750-1-git-send-email-jacopo+renesas@jmondi.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1516786250-3750-1-git-send-email-jacopo+renesas@jmondi.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Hi Jacopo,
 
-The following changes since commit 9eb124fe796cbadd454c8f946d7051f4c3f4a251:
+On Wed, Jan 24, 2018 at 10:30:48AM +0100, Jacopo Mondi wrote:
+> Hello,
+>    4th round for this series, now based on Hans' 'parm' branch from
+> git://linuxtv.org/hverkuil/media_tree.git
+> 
+> I addressed Sakari's comments on bindings documentation and driver error path,
+> and I hope to get both driver and bindings acked to have this included in next
+> merge window.
 
-  Merge branch 'docs-next' of git://git.lwn.net/linux into patchwork 
-(2017-12-22 14:38:28 -0500)
-
-are available in the git repository at:
-
-  git://linuxtv.org/pinchartl/media.git uvc/next
-
-for you to fetch changes up to 0a108c817a45bd5215d041bc0ecfe1e13e8559a6:
-
-  uvcvideo: Add a quirk for Generalplus Technology Inc. 808 Camera (2017-12-28 
-17:50:27 +0200)
-
-----------------------------------------------------------------
-Arnd Bergmann (2):
-      uvcvideo: Use ktime_t for stats
-      uvcvideo: Use ktime_t for timestamps
-
-Guennadi Liakhovetski (3):
-      v4l: Add a UVC Metadata format
-      uvcvideo: Add extensible device information
-      uvcvideo: Add a metadata device node
-
-Laurent Pinchart (2):
-      uvcvideo: Factor out video device registration to a function
-      uvcvideo: Report V4L2 device caps through the video_device structure
-
-Neil Armstrong (1):
-      uvcvideo: Add a quirk for Generalplus Technology Inc. 808 Camera
-
- Documentation/media/uapi/v4l/meta-formats.rst    |   1 +
- Documentation/media/uapi/v4l/pixfmt-meta-uvc.rst |  51 +++++++
- drivers/media/usb/uvc/Makefile                   |   2 +-
- drivers/media/usb/uvc/uvc_driver.c               | 230 ++++++++++++++++------
- drivers/media/usb/uvc/uvc_isight.c               |   2 +-
- drivers/media/usb/uvc/uvc_metadata.c             | 179 ++++++++++++++++++++++
- drivers/media/usb/uvc/uvc_queue.c                |  44 +++++-
- drivers/media/usb/uvc/uvc_v4l2.c                 |   4 -
- drivers/media/usb/uvc/uvc_video.c                | 182 +++++++++++++++------
- drivers/media/usb/uvc/uvcvideo.h                 |  30 +++-
- drivers/media/v4l2-core/v4l2-ioctl.c             |   1 +
- include/uapi/linux/uvcvideo.h                    |  26 ++++
- include/uapi/linux/videodev2.h                   |   1 +
- 13 files changed, 618 insertions(+), 135 deletions(-)
- create mode 100644 Documentation/media/uapi/v4l/pixfmt-meta-uvc.rst
- create mode 100644 drivers/media/usb/uvc/uvc_metadata.c
+The patches seem fine to me, but before applying them I'd like to have Rob's
+ack on the DT changes.
 
 -- 
-Regards,
-
-Laurent Pinchart
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
