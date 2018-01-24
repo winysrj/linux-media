@@ -1,36 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:40896 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1753881AbeARWs5 (ORCPT
+Received: from mailout4.samsung.com ([203.254.224.34]:11621 "EHLO
+        mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S933392AbeAXLXn (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 18 Jan 2018 17:48:57 -0500
-Date: Fri, 19 Jan 2018 00:48:54 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Shunqian Zheng <zhengsq@rock-chips.com>
-Cc: mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        ddl@rock-chips.com, tfiga@chromium.org
-Subject: Re: [PATCH v6 4/4] media: ov2685: add support for OV2685 sensor
-Message-ID: <20180118224854.zd3nqnhsxbwzxw7g@valkosipuli.retiisi.org.uk>
-References: <1516094521-22708-1-git-send-email-zhengsq@rock-chips.com>
- <1516094521-22708-5-git-send-email-zhengsq@rock-chips.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1516094521-22708-5-git-send-email-zhengsq@rock-chips.com>
+        Wed, 24 Jan 2018 06:23:43 -0500
+From: Smitha T Murthy <smitha.t@samsung.com>
+To: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Cc: kyungmin.park@samsung.com, kamil@wypas.org, jtp.park@samsung.com,
+        a.hajda@samsung.com, mchehab@kernel.org, pankaj.dubey@samsung.com,
+        krzk@kernel.org, m.szyprowski@samsung.com, s.nawrocki@samsung.com,
+        Smitha T Murthy <smitha.t@samsung.com>
+Subject: [Patch v7 06/12] [media] v4l2-ioctl: add HEVC format description
+Date: Wed, 24 Jan 2018 16:29:38 +0530
+Message-id: <1516791584-7980-7-git-send-email-smitha.t@samsung.com>
+In-reply-to: <1516791584-7980-1-git-send-email-smitha.t@samsung.com>
+References: <1516791584-7980-1-git-send-email-smitha.t@samsung.com>
+        <CGME20180124112340epcas2p4051efc01bcc004b78ef4f5a9cd810303@epcas2p4.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Shunqian,
+HEVC is a video coding format
 
-On Tue, Jan 16, 2018 at 05:22:01PM +0800, Shunqian Zheng wrote:
-> +MODULE_DEVICE_TABLE(of, ov5695_of_match);
+Signed-off-by: Smitha T Murthy <smitha.t@samsung.com>
+Reviewed-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/v4l2-core/v4l2-ioctl.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-ov2685? How was this tested?
-
-I can fix that while applying if that's the only one that needs to be taken
-care of. At least it was the only one I found.
-
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index 7961499..8a3c6a8 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -1268,6 +1268,7 @@ static void v4l_fill_fmtdesc(struct v4l2_fmtdesc *fmt)
+ 		case V4L2_PIX_FMT_VC1_ANNEX_L:	descr = "VC-1 (SMPTE 412M Annex L)"; break;
+ 		case V4L2_PIX_FMT_VP8:		descr = "VP8"; break;
+ 		case V4L2_PIX_FMT_VP9:		descr = "VP9"; break;
++		case V4L2_PIX_FMT_HEVC:		descr = "HEVC"; break; /* aka H.265 */
+ 		case V4L2_PIX_FMT_CPIA1:	descr = "GSPCA CPiA YUV"; break;
+ 		case V4L2_PIX_FMT_WNVA:		descr = "WNVA"; break;
+ 		case V4L2_PIX_FMT_SN9C10X:	descr = "GSPCA SN9C10X"; break;
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+2.7.4
