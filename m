@@ -1,142 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay6-d.mail.gandi.net ([217.70.183.198]:49141 "EHLO
-        relay6-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751253AbeAOGzM (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:42042 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S932700AbeAXKSr (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 15 Jan 2018 01:55:12 -0500
-Date: Mon, 15 Jan 2018 07:55:03 +0100
-From: jacopo mondi <jacopo@jmondi.org>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        hverkuil@xs4all.nl
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>, magnus.damm@gmail.com,
-        geert@glider.be, mchehab@kernel.org, festevam@gmail.com,
-        sakari.ailus@iki.fi, robh+dt@kernel.org, mark.rutland@arm.com,
-        pombredanne@nexb.com, linux-renesas-soc@vger.kernel.org,
-        linux-media@vger.kernel.org, linux-sh@vger.kernel.org,
-        devicetree@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v5 0/9] Renesas Capture Engine Unit (CEU) V4L2 driver
-Message-ID: <20180115065503.GB8343@w540>
-References: <1515765849-10345-1-git-send-email-jacopo+renesas@jmondi.org>
- <3051373.PoZynrBGJV@avalon>
+        Wed, 24 Jan 2018 05:18:47 -0500
+Date: Wed, 24 Jan 2018 12:18:44 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Hugues Fruchet <hugues.fruchet@st.com>
+Cc: Steve Longerbeam <slongerbeam@gmail.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Subject: Re: [PATCH v2] media: ov5640: add JPEG support
+Message-ID: <20180124101844.a4oy3sc7g5xxlwqu@valkosipuli.retiisi.org.uk>
+References: <1516713794-3636-1-git-send-email-hugues.fruchet@st.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <3051373.PoZynrBGJV@avalon>
+In-Reply-To: <1516713794-3636-1-git-send-email-hugues.fruchet@st.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Hans,
+Hi Hugues,
 
-On Fri, Jan 12, 2018 at 04:27:50PM +0200, Laurent Pinchart wrote:
-> Hi Jacopo,
->
-> On Friday, 12 January 2018 16:04:00 EET Jacopo Mondi wrote:
-> > Hello,
-> >    (hopefully) last round for CEU driver.
-> >
-> > Changelog is quite thin, I have updated CEU driver MODULE_LICENSE to match
-> > SPDX identifier, added Rob's and Laurent's Reviewed-by tags to bindings, and
-> > made variables of "struct ceu_data" type static in the driver.
-> >
-> > All of the patches are now Reviewed/Acked. Time to have this series
-> > included?
->
-> Yes please !
->
-> Hans, could you pick this up ?
+On Tue, Jan 23, 2018 at 02:23:14PM +0100, Hugues Fruchet wrote:
+> +static int ov5640_get_frame_desc(struct v4l2_subdev *sd, unsigned int pad,
+> +				 struct v4l2_mbus_frame_desc *fd)
+> +{
+> +	struct ov5640_dev *sensor = to_ov5640_dev(sd);
+> +
+> +	if (pad != 0 || !fd)
+> +		return -EINVAL;
+> +
+> +	mutex_lock(&sensor->lock);
+> +	fd->entry[0].length = sensor->jpeg_size;
+> +	mutex_unlock(&sensor->lock);
+> +	fd->entry[0].pixelcode = MEDIA_BUS_FMT_JPEG_1X8;
+> +	fd->entry[0].flags = V4L2_MBUS_FRAME_DESC_FL_LEN_MAX;
+> +	fd->num_entries = 1;
 
-Hans, since this series contains changes for the SH architecture as
-well, and SH maintainers have prove to be somehow unreachable, could
-you please consider to have the whole series being merged thorough
-your tree?
+Missed this on the previous time --- the frame descriptor now describes the
+JPEG frame _only_. This needs to work for non-JPEG formats, too.
 
-Thanks
-   j
-
->
-> > v4->v5:
-> > - Added Rob's and Laurent's Reviewed-by tag to DT bindings
-> > - Change CEU driver module license to "GPL v2" to match SPDX identifier as
-> >   suggested by Philippe Ombredanne
-> > - Make struct ceu_data static as suggested by Laurent and add his
-> >   Reviewed-by to CEU driver.
-> >
-> > v3->v4:
-> > - Drop generic fallback compatible string "renesas,ceu"
-> > - Addressed Laurent's comments on [3/9]
-> >   - Fix error messages on irq get/request
-> >   - Do not leak ceudev if irq_get fails
-> >   - Make irq_mask a const field
-> >
-> > v2->v3:
-> > - Improved DT bindings removing standard properties (pinctrl- ones and
-> >   remote-endpoint) not specific to this driver and improved description of
-> >   compatible strings
-> > - Remove ov772x's xlkc_rate property and set clock rate in Migo-R board file
-> > - Made 'xclk' clock private to ov772x driver in Migo-R board file
-> > - Change 'rstb' GPIO active output level and changed ov772x and tw9910
-> > drivers accordingly as suggested by Fabio
-> > - Minor changes in CEU driver to address Laurent's comments
-> > - Moved Migo-R setup patch to the end of the series to silence 0-day bot
-> > - Renamed tw9910 clock to 'xti' as per video decoder manual
-> > - Changed all SPDX identifiers to GPL-2.0 from previous GPL-2.0+
-> >
-> > v1->v2:
-> >  - DT
-> >  -- Addressed Geert's comments and added clocks for CEU to mstp6 clock
-> > source -- Specified supported generic video iterfaces properties in
-> > dt-bindings and simplified example
-> >
-> >  - CEU driver
-> >  -- Re-worked interrupt handler, interrupt management, reset(*) and capture
-> >     start operation
-> >  -- Re-worked querycap/enum_input/enum_frameintervals to fix some
-> >     v4l2_compliance failures
-> >  -- Removed soc_camera legacy operations g/s_mbus_format
-> >  -- Update to new notifier implementation
-> >  -- Fixed several comments from Hans, Laurent and Sakari
-> >
-> >  - Migo-R
-> >  -- Register clocks and gpios for sensor drivers in Migo-R setup
-> >  -- Updated sensors (tw9910 and ov772x) drivers headers and drivers to close
-> > remarks from Hans and Laurent:
-> >  --- Removed platform callbacks and handle clocks and gpios from sensor
-> > drivers --- Remove g/s_mbus_config operations
-> >
-> > Jacopo Mondi (9):
-> >   dt-bindings: media: Add Renesas CEU bindings
-> >   include: media: Add Renesas CEU driver interface
-> >   v4l: platform: Add Renesas CEU driver
-> >   ARM: dts: r7s72100: Add Capture Engine Unit (CEU)
-> >   v4l: i2c: Copy ov772x soc_camera sensor driver
-> >   media: i2c: ov772x: Remove soc_camera dependencies
-> >   v4l: i2c: Copy tw9910 soc_camera sensor driver
-> >   media: i2c: tw9910: Remove soc_camera dependencies
-> >   arch: sh: migor: Use new renesas-ceu camera driver
-> >
-> >  .../devicetree/bindings/media/renesas,ceu.txt      |   81 +
-> >  arch/arm/boot/dts/r7s72100.dtsi                    |   15 +-
-> >  arch/sh/boards/mach-migor/setup.c                  |  225 ++-
-> >  arch/sh/kernel/cpu/sh4a/clock-sh7722.c             |    2 +-
-> >  drivers/media/i2c/Kconfig                          |   20 +
-> >  drivers/media/i2c/Makefile                         |    2 +
-> >  drivers/media/i2c/ov772x.c                         | 1181 ++++++++++++++
-> >  drivers/media/i2c/tw9910.c                         | 1039 ++++++++++++
-> >  drivers/media/platform/Kconfig                     |    9 +
-> >  drivers/media/platform/Makefile                    |    1 +
-> >  drivers/media/platform/renesas-ceu.c               | 1648 +++++++++++++++++
-> >  include/media/drv-intf/renesas-ceu.h               |   26 +
-> >  include/media/i2c/ov772x.h                         |    6 +-
-> >  include/media/i2c/tw9910.h                         |    9 +
-> >  14 files changed, 4133 insertions(+), 131 deletions(-)
-> >  create mode 100644 Documentation/devicetree/bindings/media/renesas,ceu.txt
-> >  create mode 100644 drivers/media/i2c/ov772x.c
-> >  create mode 100644 drivers/media/i2c/tw9910.c
-> >  create mode 100644 drivers/media/platform/renesas-ceu.c
-> >  create mode 100644 include/media/drv-intf/renesas-ceu.h
->
-> --
-> Regards,
->
-> Laurent Pinchart
->
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
