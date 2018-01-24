@@ -1,133 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relmlor2.renesas.com ([210.160.252.172]:46888 "EHLO
-        relmlie1.idc.renesas.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1754768AbeAILuL (ORCPT
+Received: from mail-ot0-f193.google.com ([74.125.82.193]:38182 "EHLO
+        mail-ot0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752450AbeAXIny (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 9 Jan 2018 06:50:11 -0500
-From: Fabrizio Castro <fabrizio.castro@bp.renesas.com>
-To: Hugues FRUCHET <hugues.fruchet@st.com>,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>
-CC: "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        "Benjamin Gaignard" <benjamin.gaignard@linaro.org>,
-        Maxime Ripard <maxime.ripard@free-electrons.com>
-Subject: RE: [PATCH v5 0/5] Add OV5640 parallel interface and RGB565/YUYV
- support
-Date: Tue, 9 Jan 2018 11:50:05 +0000
-Message-ID: <TY1PR06MB0895E8328AC5EB376C4556EEC0100@TY1PR06MB0895.apcprd06.prod.outlook.com>
-References: <1514973452-10464-1-git-send-email-hugues.fruchet@st.com>
- <TY1PR06MB0895C74B45AF75CEB9F7AA4BC0130@TY1PR06MB0895.apcprd06.prod.outlook.com>
- <a02789f0-d41c-7dfb-406c-fe29ccc0dc9e@st.com>
-In-Reply-To: <a02789f0-d41c-7dfb-406c-fe29ccc0dc9e@st.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+        Wed, 24 Jan 2018 03:43:54 -0500
 MIME-Version: 1.0
+In-Reply-To: <20180124081316.r75cr7yrcg3xhpw3@mwanda>
+References: <20180122103714.GA25044@mwanda> <5b3b7195-930c-58c3-d52f-b2738c3fde1e@kernel.org>
+ <20180124081316.r75cr7yrcg3xhpw3@mwanda>
+From: Arnd Bergmann <arnd@arndb.de>
+Date: Wed, 24 Jan 2018 09:43:52 +0100
+Message-ID: <CAK8P3a2Jms5tEaYi7=z2cg=AA__ftEott7_kRPtSE9YztAB3yQ@mail.gmail.com>
+Subject: Re: [PATCH] [media] s3c-camif: array underflow in __camif_subdev_try_format()
+To: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Sylwester Nawrocki <snawrocki@kernel.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        "moderated list:ARM/SAMSUNG EXYNOS ARM ARCHITECTURES"
+        <linux-samsung-soc@vger.kernel.org>,
+        kernel-janitors@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-SGVsbG8gSHVndWVzLA0KDQp0aGFuayB5b3UgZm9yIGdldHRpbmcgYmFjayB0byBtZSwgSSdsbCBs
-b29rIGludG8geW91ciBzdWdnZXN0aW9ucyBpbiB0aGUgbmV4dCBmZXcgZGF5cywgSSdsbCBnaXZl
-IHlvdSBhIGZlZWRiYWNrIGFzIHNvb24gYXMgSSBrbm93IG1vcmUuDQoNClRoYW5rcywNCkZhYg0K
-DQo+IFN1YmplY3Q6IFJlOiBbUEFUQ0ggdjUgMC81XSBBZGQgT1Y1NjQwIHBhcmFsbGVsIGludGVy
-ZmFjZSBhbmQgUkdCNTY1L1lVWVYgc3VwcG9ydA0KPg0KPiBIaSBGYWJyaXppbywNCj4NCj4gSGFw
-cHkgdG8gc2VlIHRoYXQgdGhpcyBwYXRjaCBzZXJpZXMgaXMgb2YgaW50ZXJlc3QgOykNCj4NCj4g
-QXMgeW91IGNhbiBzZWUgaW4gbWFpbCB0aHJlYWQsIE1heGltZSBSaXBhcmQgaXMgYWxzbyB0ZXN0
-aW5nIGl0Og0KPiBodHRwczovL3d3dy5tYWlsLWFyY2hpdmUuY29tL2xpbnV4LW1lZGlhQHZnZXIu
-a2VybmVsLm9yZy9tc2cxMjQzMjIuaHRtbA0KPg0KPiBGb3IgQlQ2NTYgc3VwcG9ydCwgaXQgd2Fz
-IG5vdCBpbml0aWFsbHkgcGxhbm5lZCBidXQgaXQgc2VlbXMNCj4gc3RyYWlnaHRmb3J3YXJkIHRv
-IGNvZGUgaXQsIGFuZCBhbnl3YXkgSSBoYXZlIHRvIGFkZCBKUEVHIHN1cHBvcnQsIHNvIEkNCj4g
-Y291bGQgYWRkIEJUNjU2IHN1cHBvcnQgaW4gbmV4dCBwYXRjaCBzZXJpZXMuDQo+DQo+IEZvciB5
-b3VyIHN5bXB0b20sIEkgd291bGQgc2F5IHNhbWUgYXMgSSBzYWlkIHRvIE1heGltZSwgY2hlY2sg
-Zmlyc3QgdGhlDQo+IHBvbGFyaXR5IG9mIHN5bmMgc2lnbmFscyAoaHlzbmMvdnlzbmMvcGNsaykg
-YmV0d2VlbiBJU1AgYW5kIE9WNTY0MC4NCj4gTm90ZSBhbHNvIHRoYXQgc2V2ZXJhbCBmcmFtZXMg
-YXJlIG5lZWRlZCB0byBnZXQgYSBub24tYmxhY2sgcGljdHVyZS4NCj4gWW91IGNhbiBhbHNvIHVz
-ZSB0aGUgY29sb3JiYXIgdGVzdCB0byB2YWxpZGF0ZSBidXMgY29ubmVjdGlvbiBiZXR3ZWVuDQo+
-IElTUCBhbmQgc2Vuc29yLg0KPg0KPiBIZXJlIGFyZSB0aGUgeWF2dGEgY29tbWFuZHMgdGhhdCBJ
-J20gY29tbW9ubHkgdXNpbmc6DQo+DQo+ICogZ3JhYiBRVkdBIFJHQjU2NSByYXcgZnJhbWUgKG5v
-dGUgdGhlIHNraXA9MTAgdG8gZ2V0IGEgY29ycmVjdCBpbWFnZSkNCj4geWF2dGEgLXMgMzIweDI0
-MCAtbiAzIC0tY2FwdHVyZT0xMyAtLXNraXA9MTAgLS1mb3JtYXQ9UkdCNTY1IC9kZXYvdmlkZW8w
-DQo+IC0tZmlsZT1ncmFiLTMyMHgyNDAtcmdiNTY1LSMucmF3DQo+DQo+ICogZ3JhYiBRVkdBIFlV
-ViBmcmFtZQ0KPiB5YXZ0YSAtcyAzMjB4MjQwIC1uIDMgLS1jYXB0dXJlPTEzIC0tc2tpcD0xMCAt
-LWZvcm1hdD1ZVVlWIC9kZXYvdmlkZW8wDQo+IC0tZmlsZT1ncmFiLTMyMHgyNDAteXV5di0jLnJh
-dw0KPg0KPiAqIGdyYWIgUVZHQSBjb2xvcmJhciBSR0I1NjUgcmF3IGZyYW1lDQo+IHlhdnRhIC1z
-IDMyMHgyNDAgLW4gMyAtdyAnMHgwMDlmMDkwMyAxJyAtLWNhcHR1cmU9MSAtLWZvcm1hdD1SR0I1
-NjUNCj4gL2Rldi92aWRlbzAgLS1maWxlPWdyYWItY29sb3JiYXItMzIweDI0MC1yZ2I1NjUtIy5y
-YXcNCj4NCj4gKiBkaXNhYmxlIGNvbG9yYmFycw0KPiB5YXZ0YSAtcyAzMjB4MjQwIC1uIDMgLXcg
-JzB4MDA5ZjA5MDMgMCcgL2Rldi92aWRlbzANCj4NCj4NCj4gSG9wZSB0aGlzIHdpbGwgaGVscCAh
-DQo+DQo+IEJlc3QgcmVnYXJkcywNCj4gSHVndWVzLg0KPg0KPiBPbiAwMS8wOC8yMDE4IDA5OjU0
-IFBNLCBGYWJyaXppbyBDYXN0cm8gd3JvdGU6DQo+ID4gSGVsbG8gSHVndWVzLA0KPiA+DQo+ID4g
-dGhhbmsgeW91IGZvciB0aGUgcGF0Y2ggc2VyaWVzLg0KPiA+IEkgYW0gaGF2aW5nIGEgZ28gd2l0
-aCB5b3VyIHBhdGNoZXMsIGFuZCBhbHRob3VnaCB0aGV5IHNlZW0gYWxyaWdodCwgSSBkb24ndCBz
-ZWVtIHRvIGJlIGFibGUgdG8gZ3JhYiBhIG5vbi1ibGFjayBwaWN0dXJlIG9uIHRoZSBpV2F2ZQ0K
-PiBpd2cyMGQgaW4gcGxhaW4gRFZQIG1vZGUsIGJ1dCBpZiBJIHN3aXRjaCB0byBCVDY1NiBqdXN0
-IGJ5IHNldHRpbmcgcmVnaXN0ZXIgMHg0NzMwIHRvIDB4MDEgKEkga25vdywgaXQncyBhIG5hc3R5
-IGhhY2suLi4pIEkgY2FuIGdldA0KPiBzb21ldGhpbmcgc2Vuc2libGUgb3V0Lg0KPiA+DQo+ID4g
-QXQgdGhlIG1vbWVudCB0aGVyZSBpcyBubyBwcm9wZXIgQlQ2NTYgc3VwcG9ydCBpbiB0aGUgZHJp
-dmVyLCBJIHdhcyB3b25kZXJpbmcgaWYgeW91IGhhdmUgYW55IHBsYW5zIHRvIGVuaGFuY2UgdGhl
-IG92NTY0MCBkcml2ZXIgYQ0KPiBsaXR0bGUgYml0IGZ1cnRoZXIgdG8gYWRkIHByb3BlciBCVDY1
-NiBzdXBwb3J0IGFzIGl0IG1heSBiZSBjb252ZW5pZW50Lg0KPiA+DQo+ID4gRG8geW91IGtub3cg
-aWYgc29tZW9uZSBlbHNlIHdhcyBhYmxlIHRvIGdldCBEVlAgdG8gd29yayBieSBtZWFucyBvZiB0
-aGlzIHBhdGNoIHNlcmllcyBvbiBhIG5vbi1TVE0zMiBwbGF0Zm9ybT8NCj4gPg0KPiA+IFRoYW5r
-cywNCj4gPiBGYWJyaXppbw0KPiA+DQo+ID4NCj4gPj4gU3ViamVjdDogW1BBVENIIHY1IDAvNV0g
-QWRkIE9WNTY0MCBwYXJhbGxlbCBpbnRlcmZhY2UgYW5kIFJHQjU2NS9ZVVlWIHN1cHBvcnQNCj4g
-Pj4NCj4gPj4gRW5oYW5jZSBPVjU2NDAgQ1NJIGRyaXZlciB0byBzdXBwb3J0IGFsc28gRFZQIHBh
-cmFsbGVsIGludGVyZmFjZS4NCj4gPj4gQWRkIFJHQjU2NSAoTEUgJiBCRSkgYW5kIFlVVjQyMiBZ
-VVlWIGZvcm1hdCBpbiBhZGRpdGlvbiB0byBleGlzdGluZw0KPiA+PiBZVVY0MjIgVVlWWSBmb3Jt
-YXQuDQo+ID4+IFNvbWUgb3RoZXIgaW1wcm92ZW1lbnRzIG9uIGNoaXAgaWRlbnRpZmllciBjaGVj
-ayBhbmQgcmVtb3ZhbA0KPiA+PiBvZiB3YXJuaW5ncyBpbiBwb3dlcmluZyBwaGFzZSBhcm91bmQg
-Z3BpbyBoYW5kbGluZy4NCj4gPj4NCj4gPj4gPT09PT09PT09PT0NCj4gPj4gPSBoaXN0b3J5ID0N
-Cj4gPj4gPT09PT09PT09PT0NCj4gPj4gdmVyc2lvbiA1Og0KPiA+PiAgICAtIFJlZmluZSBiaW5k
-aW5ncyBhcyBwZXIgU2FrYXJpIHN1Z2dlc3Rpb246DQo+ID4+ICAgICAgaHR0cHM6Ly93d3cubWFp
-bC1hcmNoaXZlLmNvbS9saW51eC1tZWRpYUB2Z2VyLmtlcm5lbC5vcmcvbXNnMTI0MDQ4Lmh0bWwN
-Cj4gPj4NCj4gPj4gdmVyc2lvbiA0Og0KPiA+PiAgICAtIFJlZmluZSBiaW5kaW5ncyBhcyBwZXIg
-U2FrYXJpIHN1Z2dlc3Rpb246DQo+ID4+ICAgICAgaHR0cHM6Ly93d3cubWFpbC1hcmNoaXZlLmNv
-bS9saW51eC1tZWRpYUB2Z2VyLmtlcm5lbC5vcmcvbXNnMTIzNjA5Lmh0bWwNCj4gPj4gICAgLSBQ
-YXJhbGxlbCBwb3J0IGNvbnRyb2wgbGluZXMgcG9sYXJpdHkgY2FuIG5vdyBiZSBjb25maWd1cmVk
-IHRocm91Z2gNCj4gPj4gICAgICBkZXZpY2V0cmVlDQo+ID4+DQo+ID4+IHZlcnNpb24gMzoNCj4g
-Pj4gICAgLSBNb3ZlIGNoaXAgaWRlbnRpZmllciBjaGVjayBhdCBwcm9iZSBhY2NvcmRpbmcgdG8g
-RmFiaW8gRXN0ZXZhbSBjb21tZW50Og0KPiA+PiAgICAgIGh0dHBzOi8vd3d3Lm1haWwtYXJjaGl2
-ZS5jb20vbGludXgtbWVkaWFAdmdlci5rZXJuZWwub3JnL21zZzEyMjU3NS5odG1sDQo+ID4+ICAg
-IC0gVXNlIDE2IGJpdHMgcmVnaXN0ZXIgcmVhZCBmb3IgdGhpcyBjaGVjayBhcyBwZXIgU3RldmUg
-TG9uZ2VyYmVhbSBjb21tZW50Og0KPiA+PiAgICAgIGh0dHBzOi8vd3d3Lm1haWwtYXJjaGl2ZS5j
-b20vbGludXgtbWVkaWFAdmdlci5rZXJuZWwub3JnL21zZzEyMjY5Mi5odG1sDQo+ID4+ICAgIC0g
-VXBkYXRlIGJpbmRpbmdzIHRvIGRvY3VtZW50IHBhcmFsbGVsIG1vZGUgc3VwcG9ydCBhcyBwZXIg
-RmFiaW8gRXN0ZXZhbSBjb21tZW50Og0KPiA+PiAgICAgIGh0dHBzOi8vd3d3Lm1haWwtYXJjaGl2
-ZS5jb20vbGludXgtbWVkaWFAdmdlci5rZXJuZWwub3JnL21zZzEyMjU3Ni5odG1sDQo+ID4+ICAg
-IC0gRW5hYmxlIHRoZSB3aG9sZSAxMCBiaXRzIHBhcmFsbGVsIG91dHB1dCBhbmQgZG9jdW1lbnQg
-OC8xMCBiaXRzIHN1cHBvcnQNCj4gPj4gICAgICBpbiBvdjU2NDBfc2V0X3N0cmVhbV9kdnAoKSB0
-byBhbnN3ZXIgdG8gU3RldmUgTG9uZ2VyYmVhbSBjb21tZW50Og0KPiA+PiAgICAgIGh0dHBzOi8v
-d3d3Lm1haWwtYXJjaGl2ZS5jb20vbGludXgtbWVkaWFAdmdlci5rZXJuZWwub3JnL21zZzEyMjY5
-My5odG1sDQo+ID4+DQo+ID4+IHZlcnNpb24gMjoNCj4gPj4gICAgLSBGaXggY29tbWVudHMgZnJv
-bSBTYWthcmkgQWlsdXM6DQo+ID4+ICAgICAgaHR0cHM6Ly93d3cubWFpbC1hcmNoaXZlLmNvbS9s
-aW51eC1tZWRpYUB2Z2VyLmtlcm5lbC5vcmcvbXNnMTIyMjU5Lmh0bWwNCj4gPj4gICAgLSBSZXZp
-c2l0IG92NTY0MF9zZXRfc3RyZWFtX2R2cCgpIHRvIG9ubHkgY29uZmlndXJlIERWUCBhdCBzdHJl
-YW1vbg0KPiA+PiAgICAtIFJldmlzaXQgb3Y1NjQwX3NldF9zdHJlYW1fZHZwKCkgaW1wbGVtZW50
-YXRpb24gd2l0aCBmZXdlciByZWdpc3RlciBzZXR0aW5ncw0KPiA+Pg0KPiA+PiB2ZXJzaW9uIDE6
-DQo+ID4+ICAgIC0gSW5pdGlhbCBzdWJtaXNzaW9uDQo+ID4+DQo+ID4+IEh1Z3VlcyBGcnVjaGV0
-ICg1KToNCj4gPj4gICAgbWVkaWE6IG92NTY0MDogc3dpdGNoIHRvIGdwaW9kX3NldF92YWx1ZV9j
-YW5zbGVlcCgpDQo+ID4+ICAgIG1lZGlhOiBvdjU2NDA6IGNoZWNrIGNoaXAgaWQNCj4gPj4gICAg
-bWVkaWE6IGR0LWJpbmRpbmdzOiBvdjU2NDA6IHJlZmluZSBDU0ktMiBhbmQgYWRkIHBhcmFsbGVs
-IGludGVyZmFjZQ0KPiA+PiAgICBtZWRpYTogb3Y1NjQwOiBhZGQgc3VwcG9ydCBvZiBEVlAgcGFy
-YWxsZWwgaW50ZXJmYWNlDQo+ID4+ICAgIG1lZGlhOiBvdjU2NDA6IGFkZCBzdXBwb3J0IG9mIFJH
-QjU2NSBhbmQgWVVZViBmb3JtYXRzDQo+ID4+DQo+ID4+ICAgLi4uL2RldmljZXRyZWUvYmluZGlu
-Z3MvbWVkaWEvaTJjL292NTY0MC50eHQgICAgICAgfCAgNDYgKystDQo+ID4+ICAgZHJpdmVycy9t
-ZWRpYS9pMmMvb3Y1NjQwLmMgICAgICAgICAgICAgICAgICAgICAgICAgfCAzMjUgKysrKysrKysr
-KysrKysrKysrLS0tDQo+ID4+ICAgMiBmaWxlcyBjaGFuZ2VkLCAzMjQgaW5zZXJ0aW9ucygrKSwg
-NDcgZGVsZXRpb25zKC0pDQo+ID4+DQo+ID4+IC0tDQo+ID4+IDEuOS4xDQo+ID4+DQo+ID4+IC0t
-DQo+ID4+IFRvIHVuc3Vic2NyaWJlIGZyb20gdGhpcyBsaXN0OiBzZW5kIHRoZSBsaW5lICJ1bnN1
-YnNjcmliZSBkZXZpY2V0cmVlIiBpbg0KPiA+PiB0aGUgYm9keSBvZiBhIG1lc3NhZ2UgdG8gbWFq
-b3Jkb21vQHZnZXIua2VybmVsLm9yZw0KPiA+PiBNb3JlIG1ham9yZG9tbyBpbmZvIGF0ICBodHRw
-Oi8vdmdlci5rZXJuZWwub3JnL21ham9yZG9tby1pbmZvLmh0bWwNCj4gPg0KPiA+DQo+ID4NCj4g
-PiBSZW5lc2FzIEVsZWN0cm9uaWNzIEV1cm9wZSBMdGQsIER1a2VzIE1lYWRvdywgTWlsbGJvYXJk
-IFJvYWQsIEJvdXJuZSBFbmQsIEJ1Y2tpbmdoYW1zaGlyZSwgU0w4IDVGSCwgVUsuIFJlZ2lzdGVy
-ZWQgaW4gRW5nbGFuZA0KPiAmIFdhbGVzIHVuZGVyIFJlZ2lzdGVyZWQgTm8uIDA0NTg2NzA5Lg0K
-PiA+DQoNCg0KDQpSZW5lc2FzIEVsZWN0cm9uaWNzIEV1cm9wZSBMdGQsIER1a2VzIE1lYWRvdywg
-TWlsbGJvYXJkIFJvYWQsIEJvdXJuZSBFbmQsIEJ1Y2tpbmdoYW1zaGlyZSwgU0w4IDVGSCwgVUsu
-IFJlZ2lzdGVyZWQgaW4gRW5nbGFuZCAmIFdhbGVzIHVuZGVyIFJlZ2lzdGVyZWQgTm8uIDA0NTg2
-NzA5Lg0K
+On Wed, Jan 24, 2018 at 9:13 AM, Dan Carpenter <dan.carpenter@oracle.com> wrote:
+> On Mon, Jan 22, 2018 at 09:50:04PM +0100, Sylwester Nawrocki wrote:
+>> On 01/22/2018 11:37 AM, Dan Carpenter wrote:
+
+> I happened to be looking at the same bugs but using Smatch.  Did you get
+> these two bugs as well?
+>
+> drivers/scsi/sym53c8xx_2/sym_hipd.c:549 sym_getsync() error: iterator underflow 'div_10M' (-1)-255
+> drivers/media/i2c/sr030pc30.c:522 try_fmt() error: iterator underflow 'sr030pc30_formats' (-1)-4
+
+I don't recall seeing those two, here is a list of array-bounds
+warnings I had in the past
+months, mostly while building with gcc-7.2:
+
+/git/arm-soc/arch/arm/mach-vexpress/spc.c:431:38: warning: array
+subscript is below array bounds [-Warray-bounds]
+/git/arm-soc/arch/x86/include/asm/string_32.h:70:16: error: array
+subscript is above array bounds [-Werror=array-bounds]
+/git/arm-soc/arch/x86/include/asm/uaccess_64.h:143:20: error: array
+subscript is above array bounds [-Werror=array-bounds]
+/git/arm-soc/drivers/cpufreq/arm_big_little.c:201:24: warning: array
+subscript is above array bounds [-Warray-bounds]
+/git/arm-soc/drivers/cpufreq/arm_big_little.c:325:16: warning: array
+subscript is above array bounds [-Warray-bounds]
+/git/arm-soc/drivers/cpufreq/arm_big_little.c:440:39: warning: array
+subscript is above array bounds [-Warray-bounds]
+/git/arm-soc/drivers/dma/sh/rcar-dmac.c:876:29: error: array subscript
+is above array bounds [-Werror=array-bounds]
+/git/arm-soc/drivers/isdn/hardware/eicon/message.c:11302:54: error:
+array subscript is above array bounds [-Werror=array-bounds]
+/git/arm-soc/drivers/net/ethernet/intel/igb/igb_ptp.c:367: error:
+array subscript is below array bounds
+/git/arm-soc/drivers/net/ethernet/intel/igb/igb_ptp.c:455: error:
+array subscript is below array bounds
+/git/arm-soc/drivers/scsi/qla2xxx/qla_gs.c:1398:7: error: array
+subscript is above array bounds [-Werror=array-bounds]
+/git/arm-soc/drivers/scsi/qla2xxx/qla_gs.c:2279:7: error: array
+subscript is above array bounds [-Werror=array-bounds]
+/git/arm-soc/drivers/scsi/sym53c416.c:565:58: error: array subscript
+is above array bounds [-Werror=array-bounds]
+/git/arm-soc/drivers/staging/lustre/lustre/ptlrpc/ptlrpcd.c:492:14:
+error: array subscript -1 is below array bounds of 'struct
+ptlrpcd_ctl[]' [-Werror=array-bounds]
+/git/arm-soc/fs/f2fs/segment.c:3044:5: error: array subscript is below
+array bounds [-Werror=array-bounds]
+/git/arm-soc/include/linux/compiler.h:253:20: error: array subscript
+is above array bounds [-Werror=array-bounds]
+/git/arm-soc/include/linux/dynamic_debug.h:86:20: warning: array
+subscript is above array bounds [-Warray-bounds]
+/git/arm-soc/include/sound/pcm.h:919:9: error: array subscript is
+above array bounds [-Werror=array-bounds]
+/git/arm-soc/kernel/bpf/verifier.c:4320:29: error: array subscript is
+above array bounds [-Werror=array-bounds]
+/git/arm-soc/kernel/rcu/tree.c:3332:13: warning: array subscript is
+above array bounds [-Warray-bounds]
+/git/arm-soc/net/ipv4/tcp_output.c:2129:40: error: array subscript is
+below array bounds [-Werror=array-bounds]
+/git/arm-soc/net/ipv4/tcp_output.c:2207:40: error: array subscript is
+below array bounds [-Werror=array-bounds]
+/git/arm-soc/net/rxrpc/ar-connection.c:589:16: warning: array
+subscript is above array bounds [-Warray-bounds]
+/git/arm-soc/sound/soc/sh/rcar/cmd.c:88:14: error: array subscript is
+below array bounds [-Werror=array-bounds]
+/git/arm-soc/sound/soc/sh/rcar/cmd.c:88: error: array subscript is
+below array bounds
+
+I've also opened two gcc bugs for warnings that appeared to be issued in error:
+
+https://gcc.gnu.org/bugzilla/show_bug.cgi?id=83312
+https://gcc.gnu.org/bugzilla/show_bug.cgi?id=81601
+
+I haven't built with gcc-8 in a while, should try that again now that
+PR83312 has been
+marked 'fixed'.
+
+       Arnd
