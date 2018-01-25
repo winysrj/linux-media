@@ -1,65 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:36250 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1754278AbeAKMne (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 11 Jan 2018 07:43:34 -0500
-Received: from valkosipuli.localdomain (valkosipuli.retiisi.org.uk [IPv6:2001:1bc8:1a6:d3d5::80:2])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by hillosipuli.retiisi.org.uk (Postfix) with ESMTPS id 3B74E60100
-        for <linux-media@vger.kernel.org>; Thu, 11 Jan 2018 14:43:32 +0200 (EET)
-Received: from sakke by valkosipuli.localdomain with local (Exim 4.89)
-        (envelope-from <sakari.ailus@retiisi.org.uk>)
-        id 1eZcCh-0005ac-Kl
-        for linux-media@vger.kernel.org; Thu, 11 Jan 2018 14:43:31 +0200
-Date: Thu, 11 Jan 2018 14:43:31 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Subject: [GIT PULL for 4.16] Print fwnode parsing results, add nop
- media_entity_cleanup
-Message-ID: <20180111124330.cgsvv5wugb527gl4@valkosipuli.retiisi.org.uk>
+Received: from mout.web.de ([212.227.15.14]:58114 "EHLO mout.web.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751106AbeAYT5D (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 25 Jan 2018 14:57:03 -0500
+From: Soeren Moch <smoch@web.de>
+Subject: Re: SAA716x DVB driver
+To: Jemma Denson <jdenson@gmail.com>,
+        =?UTF-8?Q?Tycho_L=c3=bcrsen?= <tycholursen@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Luis Alves <ljalvs@gmail.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Message-ID: <526637b0-7124-84eb-4ebc-689e83d96117@web.de>
+Date: Thu, 25 Jan 2018 20:56:58 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
+Content-Language: en-US
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Hi all,
 
-This pull request adds printing fwnode parsing debug information and a nop
-variant for media_entity_cleanup, which makes a little easier to write
-drivers that support operation with and without MC.
+I know anything about this driver. I'm still ready to maintain this, in
+fact I'm doing this for years.
+Why do you look for another maintainer instead of supporting my pull
+request? In the long lasting discussion about this there was not a
+single technical reason why this driver cannot be merged as is,
+especially in staging as first step to do the required cleanup.
 
-Please pull.
+Regards,
+Soeren
 
-The following changes since commit e3ee691dbf24096ea51b3200946b11d68ce75361:
-
-  media: ov5640: add support of RGB565 and YUYV formats (2018-01-05 12:54:14 -0500)
-
-are available in the git repository at:
-
-  ssh://linuxtv.org/git/sailus/media_tree.git for-4.16-3
-
-for you to fetch changes up to 5a7d72afcc70c9842a3738becec2d76bfbe2eeb4:
-
-  media: entity: Add a nop variant of media_entity_cleanup (2018-01-11 14:14:27 +0200)
-
-----------------------------------------------------------------
-Sakari Ailus (2):
-      v4l: fwnode: Add debug prints for V4L2 endpoint property parsing
-      media: entity: Add a nop variant of media_entity_cleanup
-
- drivers/media/i2c/mt9m111.c           |   2 -
- drivers/media/i2c/ov2640.c            |   4 --
- drivers/media/i2c/ov2659.c            |   4 --
- drivers/media/i2c/ov7670.c            |   4 --
- drivers/media/i2c/ov7740.c            |   2 -
- drivers/media/i2c/tvp514x.c           |   4 --
- drivers/media/v4l2-core/v4l2-fwnode.c | 101 +++++++++++++++++++++++++++-------
- include/media/media-entity.h          |   6 +-
- 8 files changed, 85 insertions(+), 42 deletions(-)
-
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+On 25.01.2018 18:08, Jemma Denson wrote:
+> Hi Tycho,
+>
+> On 20/01/18 15:49, Tycho Lürsen wrote:
+>> Right, but we still need a maintainer. Are you capable/willing to
+>> volunteer for the job?
+> If no-one else will then yes I can, but I can't claim to know these devices
+> inside out. It would really depend on what's required of a maintainer, I'm
+> struggling to find this documented anywhere.
+>
+> Cards I can't test with would really need someone to be able to add a
+> tested-by to verify they work.
+>
+>>>> I think that your proposal to use a stripped version of Luis Alves
+>>>> repo is a no go, since it contains a couple of demod/tuner drivers
+>>>> that are not upstreamed yet. That complicates the upstreaming process
+>>>> too much, I think.
+>>> Oh, I would have stripped it *right* down and removed every card except
+>>> my TBS6280. The end result would probably be pretty close to Soeren's at
+>>> that point anyway, so I was starting to think like what you've done and
+>>> base it on that instead.
+>> If you want, I can strip the driver down a lot more and ad back the
+>> drivers you need. Just tell me what it is you need.
+> As above, it's really just a case of making it maintainable. If someone
+> can step forward and ack for them working then they could be included
+> but if not then I think it's best dropping them until that happens.
+>
+>
+> Jemma.
