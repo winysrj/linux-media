@@ -1,116 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59336 "EHLO
-        mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756222AbeAIOrx (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 9 Jan 2018 09:47:53 -0500
-Date: Tue, 9 Jan 2018 15:47:54 +0100
-From: Greg KH <gregkh@linuxfoundation.org>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Dan Williams <dan.j.williams@intel.com>,
-        linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org,
-        alan@linux.intel.com, peterz@infradead.org, netdev@vger.kernel.org,
-        tglx@linutronix.de, Mauro Carvalho Chehab <mchehab@kernel.org>,
-        torvalds@linux-foundation.org,
-        Elena Reshetova <elena.reshetova@intel.com>,
-        linux-media@vger.kernel.org
-Subject: Re: [PATCH 07/18] [media] uvcvideo: prevent bounds-check bypass via
- speculative execution
-Message-ID: <20180109144754.GB13228@kroah.com>
-References: <151520099201.32271.4677179499894422956.stgit@dwillia2-desk3.amr.corp.intel.com>
- <7187306.jmXyF4vJKt@avalon>
- <20180109100410.GA11968@kroah.com>
- <2835808.JOrOUjDU6l@avalon>
+Received: from userp2130.oracle.com ([156.151.31.86]:34088 "EHLO
+        userp2130.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751759AbeAYMZv (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 25 Jan 2018 07:25:51 -0500
+Date: Thu, 25 Jan 2018 15:25:22 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: Andrzej Hajda <a.hajda@samsung.com>
+Cc: linux-media@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [bug report] [media] s5p-mfc: use MFC_BUF_FLAG_EOS to identify
+ last buffers in decoder capture queue
+Message-ID: <20180125122522.vdly5ketvkugq53h@mwanda>
+References: <CGME20180123083259epcas3p1fb9a8b4e4ad34eb245fca67d4204cba4@epcas3p1.samsung.com>
+ <20180123083245.GA10091@mwanda>
+ <e30dedbc-68bc-fae8-ffb7-5cdea05f534d@samsung.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <2835808.JOrOUjDU6l@avalon>
+In-Reply-To: <e30dedbc-68bc-fae8-ffb7-5cdea05f534d@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Jan 09, 2018 at 04:26:28PM +0200, Laurent Pinchart wrote:
-> Hi Greg,
+On Thu, Jan 25, 2018 at 10:58:45AM +0100, Andrzej Hajda wrote:
+> On 23.01.2018 09:32, Dan Carpenter wrote:
+> > Hello Andrzej Hajda,
+> >
+> > The patch 4d0b0ed63660: "[media] s5p-mfc: use MFC_BUF_FLAG_EOS to
+> > identify last buffers in decoder capture queue" from Oct 7, 2015,
+> > leads to the following static checker warning:
+> >
+> > 	drivers/media/platform/s5p-mfc/s5p_mfc_dec.c:658 vidioc_dqbuf()
+> > 	error: buffer overflow 'ctx->dst_bufs' 32 user_rl = '0-u32max'
+> >
+> > drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+> >    635  /* Dequeue a buffer */
+> >    636  static int vidioc_dqbuf(struct file *file, void *priv, struct v4l2_buffer *buf)
+> >    637  {
+> >    638          const struct v4l2_event ev = {
+> >    639                  .type = V4L2_EVENT_EOS
+> >    640          };
+> >    641          struct s5p_mfc_ctx *ctx = fh_to_ctx(priv);
+> >    642          int ret;
+> >    643  
+> >    644          if (ctx->state == MFCINST_ERROR) {
+> >    645                  mfc_err_limited("Call on DQBUF after unrecoverable error\n");
+> >    646                  return -EIO;
+> >    647          }
+> >    648  
+> >    649          switch (buf->type) {
+> >    650          case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
+> >    651                  return vb2_dqbuf(&ctx->vq_src, buf, file->f_flags & O_NONBLOCK);
+> >    652          case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
+> >    653                  ret = vb2_dqbuf(&ctx->vq_dst, buf, file->f_flags & O_NONBLOCK);
+> >    654                  if (ret)
+> >    655                          return ret;
+> >    656  
+> >    657                  if (ctx->state == MFCINST_FINISHED &&
+> >    658                      (ctx->dst_bufs[buf->index].flags & MFC_BUF_FLAG_EOS))
+> >                                            ^^^^^^^^^^
+> > Smatch is complaining that "buf->index" is not capped.  So far as I can
+> > see this is true.  I would have expected it to be checked in
+> > check_array_args() or video_usercopy() but I couldn't find the check.
 > 
-> On Tuesday, 9 January 2018 12:04:10 EET Greg KH wrote:
-> > On Tue, Jan 09, 2018 at 10:40:21AM +0200, Laurent Pinchart wrote:
-> > > On Saturday, 6 January 2018 11:40:26 EET Greg KH wrote:
-> > >> On Sat, Jan 06, 2018 at 10:09:07AM +0100, Greg KH wrote:
-> > >> 
-> > >> While I'm all for fixing this type of thing, I feel like we need to do
-> > >> something "else" for this as playing whack-a-mole for this pattern is
-> > >> going to be a never-ending battle for all drivers for forever.
-> > > 
-> > > That's my concern too, as even if we managed to find and fix all the
-> > > occurrences of the problematic patterns (and we won't), new ones will keep
-> > > being merged all the time.
-> > 
-> > And what about the millions of lines of out-of-tree drivers that we all
-> > rely on every day in our devices?  What about the distro kernels that
-> > add random new drivers?
+> I did not work in V4L2 area for long time, so I could be wrong, but I
+> hope the code is correct, below my explanation.
+> User provides only type, memory and reserved fields in buf, other fields
+> are filled by vb2_dqbuf (line 653) core function, ie index field is
+> copied from buffer which was queued by qbuf.
+> And vidioc_qbuf calls vb2_qbuf, which calls vb2_queue_or_prepare_buf,
+> which checks index bounds [1].
 > 
-> Of course, even though the out-of-tree drivers probably come with lots of 
-> security issues worse than this one.
-
-Sure, but I have worked with some teams that have used coverity to find
-and fix all of the reported bugs it founds.  So some companies are
-trying to fix their problems here, let's not make it impossible for them :)
-
-> > We need some sort of automated way to scan for this.
+> So I suppose this code is correct.
+> Btw, I have also looked at other drivers and it looks omap driver
+> handles it incorrectly, ie it uses index field provided by user -
+> possible memory leak. CC Hans and Mauro, since there is no driver
+> maintainer of OMAP.
 > 
-> Is there any initiative to implement such a scan in an open-source tool ?
-
-Sure, if you want to, but I have no such initiative...
-
-> We also need to educate developers. An automatic scanner could help there, but 
-> in the end the information has to spread to all our brains. It won't be easy, 
-> and is likely not fully feasible, but it's no different than how developers 
-> have to be educated about race conditions and locking for instance. It's a 
-> mind set.
-
-Agreed.
-
-> > Intel, any chance we can get your coverity rules?  Given that the date
-> > of this original patchset was from last August, has anyone looked at
-> > what is now in Linus's tree?  What about linux-next?  I just added 3
-> > brand-new driver subsystems to the kernel tree there, how do we know
-> > there isn't problems in them?
-> > 
-> > And what about all of the other ways user-data can be affected?  Again,
-> > as Peter pointed out, USB devices.  I want some chance to be able to at
-> > least audit the codebase we have to see if that path is an issue.
-> > Without any hint of how to do this in an automated manner, we are all
-> > in deep shit for forever.
+> Btw2, is it possible to check in smatch which fields of passed struct
+> given callback can read or fill ? For example here API restrict dqbuf
+> callback to read only three fields of buf, and fill the others.
 > 
-> Or at least until the hardware architecture evolves. Let's drop the x86 
-> instruction set, expose the µops, and have gcc handle the scheduling. Sure, it 
-> will mean recompiling everything for every x86 CPU model out there, but we 
-> have source-based distros to the rescue :-D
-
-Then we are back at the itanium mess, where all of the hardware issues
-were supposed be fixed by the compiler writers.  We all remember how
-well that worked out...
-
-> > >> Either we need some way to mark this data path to make it easy for tools
-> > >> like sparse to flag easily, or we need to catch the issue in the driver
-> > >> subsystems, which unfortunatly, would harm the drivers that don't have
-> > >> this type of issue (like here.)
-> > > 
-> > > But how would you do so ?
-> > 
-> > I do not know, it all depends on the access pattern, right?
+> [1]:
+> http://elixir.free-electrons.com/linux/latest/source/drivers/media/v4l2-core/videobuf2-v4l2.c#L165
+> [2]:
+> http://elixir.free-electrons.com/linux/latest/source/drivers/media/platform/omap/omap_vout.c#L1520
 > 
-> Any data coming from userspace could trigger such accesses. If we want 
-> complete coverage the only way I can think of is starting from syscalls and 
-> tainting data down the call stacks (__user could help to some extend), but 
-> we'll likely be drowned in false positives. I don't see how we could mark 
-> paths manually.
+> Regards
+> Andrzej
 
-I agree, which is why I want to see how someone did this work
-originally.  We have no idea as no one is telling us anything :(
+Smatch does track the feilds...  Smatch sees that buf->index is capped
+in vidioc_qbuf() but it still complains that buf->index gets set by the
+user in the ioctl and not checked before we use it vb2_dqbuf().  The
+call tree looks like this:
 
-How do we "know" that these are the only problem areas?  When was the
-last scan run?  On what tree?  And so on...
+--> video_usercopy()
+    Copies _IOC_SIZE(cmd) bytes to parg.  The _IOC_SIZE() is
+    sizeof(struct v4l2_buffer) so all the feilds are reset.  Smatch
+    doesn't track how many bytes the users controls, it just marks
+    everything in *parg as tainted but it doesn't matter in this case
+    since all the feilds are set.
+    video_usercopy() calls err = func(file, cmd, parg);
 
-thanks,
+    --> __video_do_ioctl()
+        calls info->u.func(ops, file, fh, arg);
 
-greg k-h
+        --> v4l_dqbuf()
+            calls ops->vidioc_dqbuf(file, fh, p);
+
+            --> vidioc_dqbuf()
+                uses unchecked buf->index
+
+Ah...  Hm.  Is it the call to vb2_core_dqbuf() which limits buf->index?
+I don't see a path from vb2_core_dqbuf() to vb2_qbuf() but I may have
+missed it.
+
+regards,
+dan carpenter
