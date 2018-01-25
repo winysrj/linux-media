@@ -1,136 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:36013 "EHLO
-        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751717AbeAaEq5 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 30 Jan 2018 23:46:57 -0500
-Message-ID: <061009d024e6619786b31baac28923d1@smtp-cloud8.xs4all.net>
-Date: Wed, 31 Jan 2018 05:46:55 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+Received: from mga03.intel.com ([134.134.136.65]:64251 "EHLO mga03.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750769AbeAYLzd (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 25 Jan 2018 06:55:33 -0500
+Date: Thu, 25 Jan 2018 13:55:29 +0200
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: jacopo mondi <jacopo@jmondi.org>
+Cc: Akinobu Mita <akinobu.mita@gmail.com>, linux-media@vger.kernel.org,
+        Sylwester Nawrocki <s.nawrocki@samsung.com>,
+        "H . Nikolaus Schaller" <hns@goldelico.com>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Rob Herring <robh@kernel.org>
+Subject: Re: [PATCH v3 0/3] media: ov9650: support device tree probing
+Message-ID: <20180125115529.lfarlhakoh4x4vc6@paasikivi.fi.intel.com>
+References: <1516547656-3879-1-git-send-email-akinobu.mita@gmail.com>
+ <20180121163314.GN24926@w540>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20180121163314.GN24926@w540>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On Sun, Jan 21, 2018 at 05:33:14PM +0100, jacopo mondi wrote:
+> Hello Akinobu,
+> 
+> On Mon, Jan 22, 2018 at 12:14:13AM +0900, Akinobu Mita wrote:
+> > This patchset adds device tree probing for ov9650 driver. This contains
+> > an actual driver change and a newly added binding documentation part.
+> >
+> > * Changelog v3
+> > - Add Reviewed-by: tags
+> > - Add MAINTAINERS entry
+> >
+> > * Changelog v2
+> > - Split binding documentation, suggested by Rob Herring and Jacopo Mondi
+> > - Improve the wording for compatible property in the binding documentation,
+> >   suggested by Jacopo Mondi
+> > - Improve the description for the device node in the binding documentation,
+> >   suggested by Sakari Ailus
+> > - Remove ov965x_gpio_set() helper and open-code it, suggested by Jacopo Mondi
+> >   and Sakari Ailus
+> > - Call clk_prepare_enable() in s_power callback instead of probe, suggested
+> >   by Sakari Ailus
+> > - Unify clk and gpio configuration in a single if-else block and, also add
+> >   a check either platform data or fwnode is actually specified, suggested
+> >   by Jacopo Mondi
+> > - Add CONFIG_OF guards, suggested by Jacopo Mondi
+> >
+> > Akinobu Mita (3):
+> >   media: ov9650: support device tree probing
+> >   media: MAINTAINERS: add entry for ov9650 driver
+> >   media: ov9650: add device tree binding
+> 
+> As you've closed my comments on v1/v2, for driver and device tree bindings:
+> 
+> Reviewed-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+> 
+> No need to resend just to add the tags, but in case you have to, please
+> add them.
 
-Results of the daily build of media_tree:
+Thanks, guys!
 
-date:			Wed Jan 31 05:00:21 CET 2018
-media-tree git hash:	a1dfb4c48cc1e64eeb7800a27c66a6f7e88d075a
-media_build git hash:	d17383327f00d45e6c07161876fb4f3d9d9358e1
-v4l-utils git hash:	c2cc9e17b1411865d40a0e7d3ab027204fc0cf19
-gcc version:		i686-linux-gcc (GCC) 7.1.0
-sparse version:		v0.5.0-3911-g6f737e1f
-smatch version:		v0.5.0-3911-g6f737e1f
-host hardware:		x86_64
-host os:		4.14.0-364
+Applied in order 2, 3 and 1 --- the DT changes come before driver changes.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: ERRORS
-linux-3.10.1-i686: ERRORS
-linux-3.11.1-i686: ERRORS
-linux-3.12.67-i686: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: ERRORS
-linux-3.15.2-i686: ERRORS
-linux-3.16.7-i686: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.18.7-i686: ERRORS
-linux-3.19-i686: ERRORS
-linux-4.0.9-i686: ERRORS
-linux-4.1.33-i686: ERRORS
-linux-4.2.8-i686: ERRORS
-linux-4.3.6-i686: ERRORS
-linux-4.4.22-i686: ERRORS
-linux-4.5.7-i686: ERRORS
-linux-4.6.7-i686: ERRORS
-linux-4.7.5-i686: ERRORS
-linux-4.8-i686: ERRORS
-linux-4.9.26-i686: ERRORS
-linux-4.10.14-i686: WARNINGS
-linux-4.11-i686: WARNINGS
-linux-4.12.1-i686: WARNINGS
-linux-4.13-i686: WARNINGS
-linux-4.14-i686: WARNINGS
-linux-4.15-i686: WARNINGS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: ERRORS
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.67-x86_64: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-x86_64: ERRORS
-linux-3.15.2-x86_64: ERRORS
-linux-3.16.7-x86_64: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.7-x86_64: ERRORS
-linux-3.19-x86_64: ERRORS
-linux-4.0.9-x86_64: ERRORS
-linux-4.1.33-x86_64: ERRORS
-linux-4.2.8-x86_64: ERRORS
-linux-4.3.6-x86_64: ERRORS
-linux-4.4.22-x86_64: ERRORS
-linux-4.5.7-x86_64: ERRORS
-linux-4.6.7-x86_64: ERRORS
-linux-4.7.5-x86_64: ERRORS
-linux-4.8-x86_64: ERRORS
-linux-4.9.26-x86_64: ERRORS
-linux-4.10.14-x86_64: WARNINGS
-linux-4.11-x86_64: WARNINGS
-linux-4.12.1-x86_64: WARNINGS
-linux-4.13-x86_64: WARNINGS
-linux-4.14-x86_64: WARNINGS
-linux-4.15-x86_64: WARNINGS
-apps: WARNINGS
-spec-git: OK
-smatch: OK
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+-- 
+Sakari Ailus
+sakari.ailus@linux.intel.com
