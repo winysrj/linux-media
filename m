@@ -1,177 +1,139 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:54154 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S933242AbeAHVYI (ORCPT
+Received: from mail-qt0-f195.google.com ([209.85.216.195]:34699 "EHLO
+        mail-qt0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751443AbeAYOje (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 8 Jan 2018 16:24:08 -0500
-Date: Mon, 8 Jan 2018 23:24:05 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-        hverkuil@xs4all.nl
-Subject: Re: [ANN] Meeting notes on naming meeting 2017-10-11/13
-Message-ID: <20180108212405.p7n4q2vwsw4goehl@valkosipuli.retiisi.org.uk>
-References: <20180108134720.urmfzleeeyvmxlff@valkosipuli.retiisi.org.uk>
- <20180108141752.04e1f2c0@vento.lan>
+        Thu, 25 Jan 2018 09:39:34 -0500
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20180108141752.04e1f2c0@vento.lan>
+In-Reply-To: <20180125141407.GH17416@w540>
+References: <1516879493-24637-1-git-send-email-jacopo+renesas@jmondi.org>
+ <CAMuHMdVZpAB+Xu4trs0Eaiygk1WD7DPzKr3ehF-kugB5Fbps2g@mail.gmail.com> <20180125141407.GH17416@w540>
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Date: Thu, 25 Jan 2018 15:39:32 +0100
+Message-ID: <CAMuHMdWi=s=9oAA5YdPrZA=RjnPfh2YBiPOGQXu1ksj2srxZfA@mail.gmail.com>
+Subject: Re: [PATCH] sh: clk: Relax clk rate match test
+To: jacopo mondi <jacopo@jmondi.org>
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        Magnus Damm <magnus.damm@gmail.com>,
+        Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Yoshinori Sato <ysato@users.sourceforge.jp>,
+        Rich Felker <dalias@libc.org>,
+        Linux-sh list <linux-sh@vger.kernel.org>,
+        Linux-Renesas <linux-renesas-soc@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        linux-clk <linux-clk@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Hi Jacopo,
 
-On Mon, Jan 08, 2018 at 02:17:52PM -0200, Mauro Carvalho Chehab wrote:
-> Em Mon, 8 Jan 2018 15:47:21 +0200
-> Sakari Ailus <sakari.ailus@iki.fi> escreveu:
-> 
-> > Hi folks,
-> > 
-> > Here are the meeting notes on the IRC meeting that took place 11th and 13th
-> > last October. The brief summary is below, the full log can be found here:
-> > 
-> > <URL:http://www.retiisi.org.uk/v4l2/notes/v4l2-naming-2017-10-11.txt>
-> > 
-> > Attendees:
-> > 
-> > 	Laurent Pinchart
-> > 	Mauro Chehab
-> > 	Hans Verkuil
-> > 	Lars-Peter Clausen
-> > 	Sylwester Nawrocki
-> > 	Sakari Ailus
+On Thu, Jan 25, 2018 at 3:14 PM, jacopo mondi <jacopo@jmondi.org> wrote:
+> On Thu, Jan 25, 2018 at 02:53:41PM +0100, Geert Uytterhoeven wrote:
+>> CC linux-clk (yes I know this is about the legacy SH clock framework, but
+>> the public API is/should be the same)
+>>
+>> On Thu, Jan 25, 2018 at 12:24 PM, Jacopo Mondi
+>> <jacopo+renesas@jmondi.org> wrote:
+>> > When asking for a clk rate to be set, the sh core clock matches only
+>> > exact rate values against the calculated frequency table entries. If the
+>> > rate does not match exactly the test fails, and the whole frequency
+>> > table is walked, resulting in selection of the last entry, corresponding to
+>> > the lowest available clock rate.
+>>
+>> IIUIC, the code does not select the last entry, but returns an error code,
+>> which is propagated all the way up?
+>>
+>> > Ie. when asking for a 10MHz clock rate on div6 clocks (ie. "video_clk" line),
+>> > the calculated clock frequency 10088572 Hz gets ignored, and the clock is
+>> > actually set to 5201920 Hz, which is the last available entry of the frequencies
+>> > table.
+>>
+>> Perhaps 5201920 is just the default (or old value)?
+>>
+>> > Relax the clock frequency match test, allowing selection of clock rates
+>> > immediately slower than the required one.
+>> >
+>> > Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+>> >
+>> > ---
+>> > Hello renesas lists,
+>> >
+>> > I'm now working on handling frame rate for the ov7720 image sensor to have that
+>> > driver accepted as part of v4l2. The sensor is installed on on Migo-R board.
+>> > In order to properly calculate pixel clock and the framerate I noticed the
+>> > clock signal fed to the sensor from the SH7722 chip was always the lowest
+>> > available one.
+>> >
+>> > This patch fixes the issues and allows me to properly select which clock
+>> > frequency supply to the sensor, which according to datasheet does not support
+>> > input clock frequencies slower than 10MHz (but works anyhow).
+>> >
+>> > As all patches for SH architecture I wonder where they should be picked up from,
+>> > as SH seems not maintained at the moment.
+>> >
+>> > Thanks
+>> >    j
+>> >
+>> > ---
+>> >  drivers/sh/clk/core.c | 9 ++++++---
+>> >  1 file changed, 6 insertions(+), 3 deletions(-)
+>> >
+>> > diff --git a/drivers/sh/clk/core.c b/drivers/sh/clk/core.c
+>> > index 92863e3..d2cb94c 100644
+>> > --- a/drivers/sh/clk/core.c
+>> > +++ b/drivers/sh/clk/core.c
+>> > @@ -198,9 +198,12 @@ int clk_rate_table_find(struct clk *clk,
+>> >  {
+>> >         struct cpufreq_frequency_table *pos;
+>> >
+>> > -       cpufreq_for_each_valid_entry(pos, freq_table)
+>> > -               if (pos->frequency == rate)
+>> > -                       return pos - freq_table;
+>> > +       cpufreq_for_each_valid_entry(pos, freq_table) {
+>> > +               if (pos->frequency > rate)
+>> > +                       continue;
+>>
+>> This assumes all frequency tables are sorted.
+>>
+>> Shouldn't you pick the closest frequency?
+>>
+>> However, that's what clk_rate_table_round() does, which is called from
+>> sh_clk_div_round_rate(), and thus already used as .round_rate:
+>>
+>>     static struct sh_clk_ops sh_clk_div_enable_clk_ops = {
+>>             .recalc         = sh_clk_div_recalc,
+>>             .set_rate       = sh_clk_div_set_rate,
+>>             .round_rate     = sh_clk_div_round_rate,
+>>             .enable         = sh_clk_div_enable,
+>>             .disable        = sh_clk_div_disable,
+>>     };
+>
+> Does this implies clock rates should be set using clk_round_rate() and
+> not clk_set_rate() if I understand this right?
 
-	^
-Missed Philipp Zabel from the above list in the original post.
+Not necessarily...
 
-> > 
-> > Notes:
-> > 
-> > - It was decided to call a group of multiple interconnected hardware
-> >   devices that that are designed to operate together as a "media hardware
-> >   complex". We haven't had a proper term for this in the past. Effectively
-> >   this means device that can be accessed through a given media device.
-> 
-> There is a note about that, though [1]:
-> 
-> [1] See https://linuxtv.org/irc/irclogger_log/v4l?date=2017-10-13,Fri&sel=288#l284
-> 
-> 
-> 	pH5	I agree that "complex" should not be used where the focus is not on it being comprised of multiple interconnected parts. 	[12:29]
-> 	sailus	I think that would mostly be only relevant when it comes to MC documentation, not V4L2.
-> 		With V4L2 you can use "hardware device" since the user space API does not show how the hardware actually looks like. 
-> 
-> My understanding is that we'll use "hardware device" on most cases,
-> using the new "media hardware complex" (mostly) for MC.
+Note that both cpg_div6_clock_round_rate() and cpg_div6_clock_set_rate()
+in the CCF implementation for DIV6 clocks use rounding.
 
-Yes, indeed.
+>> (clk_rate_table_find() is called from sh_clk_div_set_rate())
+>>
+>> Or are you supposed to ask for the exact clock rate? Where does the 10 MHz
+>> come from?
+>
+> From board initialization code, in order to provide a valid input
+> clock to OV7720 sensor.
 
-> 
-> > 
-> > - "Device", when it refers to a device node on a file system, shall be
-> >   replaced by "device node" in uAPI documentation if there's any ambiguity.
-> >   The same applies to "device" when it refers to hardware, i.e. "hardware
-> >   device". Further use of the "device" to refer either is fine as long as
-> >   there is no ambiguity of what it means.
-> > 
-> > - During the discussion on V4L2 sub-devices as V4L2 devices, the following
-> >   points were brought up:
-> > 
-> >   - V4L2 sub-device nodes are V4L2 device nodes in the following respects:
-> > 
-> >     - They share the same major number as V4L2 and they are implemented by
-> >       the V4L2 framework (as instantiated by drivers).
-> >     
-> >     - V4L2 sub-devices share some IOCTLs such as V4L2 controls with other
-> >       V4L2 device nodes.
-> >       
-> >     - They do share the "V4L2" in their name.
-> > 
-> >   - But there are some differences as well:
-> >   
-> >     - V4L2 sub-devices implement only a handful of IOCTLs, most of which
-> >       are uniformly implemented by all other V4L2 device node types (video,
-> >       radio, touch). E.g. QUERYCAP is not implemented for sub-devices
-> >       albeit there have been proposals to add this for unrelated reasons.
-> 
-> Although not explicitly said there, subdevs also have a set of ioctls that
-> are exclusive to it (like VIDIOC_SUBDEV_ENUM_MBUS_CODE). In other words,
-> as said there [2]:
-> 	"the subdev API is different than the V4L2 API"
+Gr{oetje,eeting}s,
 
-This is effectively the same than ENUM_FMT for video devices, just for the
-media bus code (bus vs. in-memory formats); two points below.
+                        Geert
 
-But yes, there are differences beyond concepts such as naming here.
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
 
-> 
-> [2] https://linuxtv.org/irc/irclogger_log/v4l?date=2017-10-13,Fri&sel=338#l334
-> 
-> >     
-> >     - Historically V4L2 sub-device documentation has been always outside
-> >       the main V4L2 documentation (section 1 in particular). This is
-> >       primarily a documentation issue though.
-> > 
-> >     - Some V4L2 sub-device IOCTLs have different arguments from the V4L2
-> >       IOCTLs due to e.g. the fact that sub-devices are a control only
-> >       interface dealing with media bus formats whereas V4L2 video device
-> >       nodes deal with in-memory V4L2 formats. 
-> > - Documentation-wise, there's a common need to refer to V4L2 device nodes
-> >   which are not sub-device nodes as the rest have quite a bit in common.
-> 
-> >   In
-> >   this case, they should be called "V4L2 video device node" or "V4L2 radio
-> >   device node", or "V4L2 video/radio device nodes". This technically does
-> >   not include touch device nodes.
-> 
-> Yes :-(
-> 
-> After reviewing this today (and the corresponding IRC logs), I'm not happy
-> anymore with "V4L2 video/radio device nodes", as it still exclude things
-> (touch devices, vbi, sdr, and now, V4L2 metadata).
-> 
-> My 2018 version 2.0 view is that we're still lacking a term that will
-> cover what we need.
-> 
-> So, going one step back, we should either:
-> 
-> 1) have a better name for: "all-but-subdev V4L2 device nodes" that will
->    cover all current cases plus any new one (like v4l2 metadata) that
->    will cover the cases where a "pure" V4L2 API is implemented and
->    can be used to refer such devnodes on all V4L2 documentation but at
->    Documentation/media/uapi/v4l/dev-subdev.rst;
-> 
-> or:
-> 
-> 2) exclude subdev device nodes from V4L2 "pure-API" class of device
->    nodes. E.g. something like:
-> 
-> 	Documentation/media/uapi/{v4l/dev-subdev.rst -> subdev/subdev.rst}
-> 
->    Dealing with subdev as separate part of the documentation, just like
->    we did with the media controller.
-> 
-> 
-> I still think that (2) is the better way, as we won't need to review
-> whatever name we use as we add other types of V4L devices.
-
-I prefer 1) as I feel that we'd be putting sub-device nodes into a separate
-section because we can't find a catchy term for "everything but sub-device
-nodes". They effectively are V4L2 device nodes, albeit with mostly
-different IOCTLs: V4L2 as a framework supports them, still they are not
-what V4L2 device nodes have traditionally been. Radio devices actually come
-closest: it's a control-only interface.
-
-Are there documentation sections where this term is used frequently?
-
-Let's see if we could figure out a better term. I can immediately think of:
-
-	V4L2 non-subdevice node
-	V4L2 unsub-device node
-
--- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
