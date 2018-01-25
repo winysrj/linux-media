@@ -1,98 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ot0-f196.google.com ([74.125.82.196]:34341 "EHLO
-        mail-ot0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1759168AbeAIToH (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 9 Jan 2018 14:44:07 -0500
-Received: by mail-ot0-f196.google.com with SMTP id p16so9690905otf.1
-        for <linux-media@vger.kernel.org>; Tue, 09 Jan 2018 11:44:07 -0800 (PST)
+Received: from aer-iport-3.cisco.com ([173.38.203.53]:25171 "EHLO
+        aer-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750937AbeAYKYK (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 25 Jan 2018 05:24:10 -0500
+Subject: Re: [bug report] [media] s5p-mfc: use MFC_BUF_FLAG_EOS to identify
+ last buffers in decoder capture queue
+To: Andrzej Hajda <a.hajda@samsung.com>,
+        Dan Carpenter <dan.carpenter@oracle.com>
+Cc: linux-media@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+References: <CGME20180123083259epcas3p1fb9a8b4e4ad34eb245fca67d4204cba4@epcas3p1.samsung.com>
+ <20180123083245.GA10091@mwanda>
+ <e30dedbc-68bc-fae8-ffb7-5cdea05f534d@samsung.com>
+From: Hans Verkuil <hansverk@cisco.com>
+Message-ID: <4012a45f-6848-4bb9-61cc-5be4529c5ddc@cisco.com>
+Date: Thu, 25 Jan 2018 11:14:29 +0100
 MIME-Version: 1.0
-In-Reply-To: <alpine.LRH.2.00.1801092017330.27010@gjva.wvxbf.pm>
-References: <151520099201.32271.4677179499894422956.stgit@dwillia2-desk3.amr.corp.intel.com>
- <alpine.LRH.2.00.1801092017330.27010@gjva.wvxbf.pm>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Tue, 9 Jan 2018 11:44:05 -0800
-Message-ID: <CAPcyv4gccDQYx9urpagnBo-TqNLoQ00gEoE7kp+JXNKsmFxcHw@mail.gmail.com>
-Subject: Re: [PATCH 00/18] prevent bounds-check bypass via speculative execution
-To: Jiri Kosina <jikos@kernel.org>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Peter Zijlstra <peterz@infradead.org>,
-        Alan Cox <alan.cox@intel.com>,
-        Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>,
-        Will Deacon <will.deacon@arm.com>,
-        Solomon Peachy <pizza@shaftnet.org>,
-        "H. Peter Anvin" <hpa@zytor.com>,
-        Christian Lamparter <chunkeey@googlemail.com>,
-        Elena Reshetova <elena.reshetova@intel.com>,
-        linux-arch@vger.kernel.org, Andi Kleen <ak@linux.intel.com>,
-        "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>,
-        linux-scsi <linux-scsi@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>, X86 ML <x86@kernel.org>,
-        Ingo Molnar <mingo@redhat.com>,
-        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
-        Zhang Rui <rui.zhang@intel.com>,
-        "Linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        Arnd Bergmann <arnd@arndb.de>, Jan Kara <jack@suse.com>,
-        Eduardo Valentin <edubezval@gmail.com>,
-        Al Viro <viro@zeniv.linux.org.uk>, qla2xxx-upstream@qlogic.com,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Arjan van de Ven <arjan@linux.intel.com>,
-        Kalle Valo <kvalo@codeaurora.org>,
-        Alan Cox <alan@linux.intel.com>,
-        "Martin K. Petersen" <martin.petersen@oracle.com>,
-        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
-        Greg KH <gregkh@linuxfoundation.org>,
-        linux-wireless@vger.kernel.org,
-        "Eric W. Biederman" <ebiederm@xmission.com>,
-        Netdev <netdev@vger.kernel.org>,
-        Linus Torvalds <torvalds@linux-foundation.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset="UTF-8"
+In-Reply-To: <e30dedbc-68bc-fae8-ffb7-5cdea05f534d@samsung.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Jan 9, 2018 at 11:34 AM, Jiri Kosina <jikos@kernel.org> wrote:
-> On Fri, 5 Jan 2018, Dan Williams wrote:
->
-> [ ... snip ... ]
->> Andi Kleen (1):
->>       x86, barrier: stop speculation for failed access_ok
+
+
+On 01/25/2018 10:58 AM, Andrzej Hajda wrote:
+> On 23.01.2018 09:32, Dan Carpenter wrote:
+>> Hello Andrzej Hajda,
 >>
->> Dan Williams (13):
->>       x86: implement nospec_barrier()
->>       [media] uvcvideo: prevent bounds-check bypass via speculative execution
->>       carl9170: prevent bounds-check bypass via speculative execution
->>       p54: prevent bounds-check bypass via speculative execution
->>       qla2xxx: prevent bounds-check bypass via speculative execution
->>       cw1200: prevent bounds-check bypass via speculative execution
->>       Thermal/int340x: prevent bounds-check bypass via speculative execution
->>       ipv6: prevent bounds-check bypass via speculative execution
->>       ipv4: prevent bounds-check bypass via speculative execution
->>       vfs, fdtable: prevent bounds-check bypass via speculative execution
->>       net: mpls: prevent bounds-check bypass via speculative execution
->>       udf: prevent bounds-check bypass via speculative execution
->>       userns: prevent bounds-check bypass via speculative execution
+>> The patch 4d0b0ed63660: "[media] s5p-mfc: use MFC_BUF_FLAG_EOS to
+>> identify last buffers in decoder capture queue" from Oct 7, 2015,
+>> leads to the following static checker warning:
 >>
->> Mark Rutland (4):
->>       asm-generic/barrier: add generic nospec helpers
->>       Documentation: document nospec helpers
->>       arm64: implement nospec_ptr()
->>       arm: implement nospec_ptr()
->
-> So considering the recent publication of [1], how come we all of a sudden
-> don't need the barriers in ___bpf_prog_run(), namely for LD_IMM_DW and
-> LDX_MEM_##SIZEOP, and something comparable for eBPF JIT?
->
-> Is this going to be handled in eBPF in some other way?
->
-> Without that in place, and considering Jann Horn's paper, it would seem
-> like PTI doesn't really lock it down fully, right?
+>> 	drivers/media/platform/s5p-mfc/s5p_mfc_dec.c:658 vidioc_dqbuf()
+>> 	error: buffer overflow 'ctx->dst_bufs' 32 user_rl = '0-u32max'
+>>
+>> drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+>>    635  /* Dequeue a buffer */
+>>    636  static int vidioc_dqbuf(struct file *file, void *priv, struct v4l2_buffer *buf)
+>>    637  {
+>>    638          const struct v4l2_event ev = {
+>>    639                  .type = V4L2_EVENT_EOS
+>>    640          };
+>>    641          struct s5p_mfc_ctx *ctx = fh_to_ctx(priv);
+>>    642          int ret;
+>>    643  
+>>    644          if (ctx->state == MFCINST_ERROR) {
+>>    645                  mfc_err_limited("Call on DQBUF after unrecoverable error\n");
+>>    646                  return -EIO;
+>>    647          }
+>>    648  
+>>    649          switch (buf->type) {
+>>    650          case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
+>>    651                  return vb2_dqbuf(&ctx->vq_src, buf, file->f_flags & O_NONBLOCK);
+>>    652          case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
+>>    653                  ret = vb2_dqbuf(&ctx->vq_dst, buf, file->f_flags & O_NONBLOCK);
+>>    654                  if (ret)
+>>    655                          return ret;
+>>    656  
+>>    657                  if (ctx->state == MFCINST_FINISHED &&
+>>    658                      (ctx->dst_bufs[buf->index].flags & MFC_BUF_FLAG_EOS))
+>>                                            ^^^^^^^^^^
+>> Smatch is complaining that "buf->index" is not capped.  So far as I can
+>> see this is true.  I would have expected it to be checked in
+>> check_array_args() or video_usercopy() but I couldn't find the check.
+> 
+> I did not work in V4L2 area for long time, so I could be wrong, but I
+> hope the code is correct, below my explanation.
+> User provides only type, memory and reserved fields in buf, other fields
+> are filled by vb2_dqbuf (line 653) core function, ie index field is
+> copied from buffer which was queued by qbuf.
+> And vidioc_qbuf calls vb2_qbuf, which calls vb2_queue_or_prepare_buf,
+> which checks index bounds [1].
+> 
+> So I suppose this code is correct.
+> Btw, I have also looked at other drivers and it looks omap driver
+> handles it incorrectly, ie it uses index field provided by user -
+> possible memory leak. CC Hans and Mauro, since there is no driver
+> maintainer of OMAP.
 
-Here is the latest (v3) bpf fix:
+Ouch, vidioc_dqbuf in drivers/media/platform/omap/omap_vout.c is really, really
+bad code. I'm not sure how it could ever work to be honest. For one, b->index
+should be returned by the driver, not set by userspace.
 
-https://patchwork.ozlabs.org/patch/856645/
+Luckily this driver is almost never used anymore.
 
-I currently have v2 on my 'nospec' branch and will move that to v3 for
-the next update, unless it goes upstream before then.
+Mauro, Laurent, I wonder if we just should use this reason to move this driver
+to staging for one kernel release and then delete it. Rather than trying to
+fix this crappy code.
+
+Regards,
+
+	Hans
+
+> 
+> Btw2, is it possible to check in smatch which fields of passed struct
+> given callback can read or fill ? For example here API restrict dqbuf
+> callback to read only three fields of buf, and fill the others.
+> 
+> [1]:
+> http://elixir.free-electrons.com/linux/latest/source/drivers/media/v4l2-core/videobuf2-v4l2.c#L165
+> [2]:
+> http://elixir.free-electrons.com/linux/latest/source/drivers/media/platform/omap/omap_vout.c#L1520
+> 
+> Regards
+> Andrzej
+>>
+>>    659                          v4l2_event_queue_fh(&ctx->fh, &ev);
+>>    660                  return 0;
+>>    661          default:
+>>    662                  return -EINVAL;
+>>    663          }
+>>    664  }
+>>
+>>
+>> regards,
+>> dan carpenter
+>>
+>>
+>>
+> 
