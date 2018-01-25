@@ -1,45 +1,147 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:48958 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1752856AbeACOaF (ORCPT
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:54445 "EHLO
+        mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751184AbeAYMqt (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 3 Jan 2018 09:30:05 -0500
-Date: Wed, 3 Jan 2018 16:30:01 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Shunqian Zheng <zhengsq@rock-chips.com>
-Cc: mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        ddl@rock-chips.com, tfiga@chromium.org
-Subject: Re: [PATCH v2 1/4] media: ov5695: add support for OV5695 sensor
-Message-ID: <20180103143000.527cgl5au43uvvw4@valkosipuli.retiisi.org.uk>
-References: <1514534905-21393-1-git-send-email-zhengsq@rock-chips.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1514534905-21393-1-git-send-email-zhengsq@rock-chips.com>
+        Thu, 25 Jan 2018 07:46:49 -0500
+MIME-version: 1.0
+Content-type: text/plain; charset="utf-8"
+Subject: Re: [bug report] [media] s5p-mfc: use MFC_BUF_FLAG_EOS to identify
+ last buffers in decoder capture queue
+To: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: linux-media@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+From: Andrzej Hajda <a.hajda@samsung.com>
+Message-id: <80105248-0245-ca3f-aa42-c8e431bf58d9@samsung.com>
+Date: Thu, 25 Jan 2018 13:46:43 +0100
+In-reply-to: <20180125122522.vdly5ketvkugq53h@mwanda>
+Content-transfer-encoding: 8bit
+Content-language: en-US
+References: <CGME20180123083259epcas3p1fb9a8b4e4ad34eb245fca67d4204cba4@epcas3p1.samsung.com>
+        <20180123083245.GA10091@mwanda>
+        <e30dedbc-68bc-fae8-ffb7-5cdea05f534d@samsung.com>
+        <20180125122522.vdly5ketvkugq53h@mwanda>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Dec 29, 2017 at 04:08:22PM +0800, Shunqian Zheng wrote:
-> This patch adds driver for Omnivision's ov5695 sensor,
-> the driver supports following features:
->  - supported resolutions
->    + 2592x1944 at 30fps
->    + 1920x1080 at 30fps
->    + 1296x972 at 60fps
->    + 1280x720 at 30fps
->    + 640x480 at 120fps
->  - test patterns
->  - manual exposure/gain(analog and digital) control
->  - vblank and hblank
->  - media controller
->  - runtime pm
-> 
-> Signed-off-by: Shunqian Zheng <zhengsq@rock-chips.com>
+On 25.01.2018 13:25, Dan Carpenter wrote:
+> On Thu, Jan 25, 2018 at 10:58:45AM +0100, Andrzej Hajda wrote:
+>> On 23.01.2018 09:32, Dan Carpenter wrote:
+>>> Hello Andrzej Hajda,
+>>>
+>>> The patch 4d0b0ed63660: "[media] s5p-mfc: use MFC_BUF_FLAG_EOS to
+>>> identify last buffers in decoder capture queue" from Oct 7, 2015,
+>>> leads to the following static checker warning:
+>>>
+>>> 	drivers/media/platform/s5p-mfc/s5p_mfc_dec.c:658 vidioc_dqbuf()
+>>> 	error: buffer overflow 'ctx->dst_bufs' 32 user_rl = '0-u32max'
+>>>
+>>> drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+>>>    635  /* Dequeue a buffer */
+>>>    636  static int vidioc_dqbuf(struct file *file, void *priv, struct v4l2_buffer *buf)
+>>>    637  {
+>>>    638          const struct v4l2_event ev = {
+>>>    639                  .type = V4L2_EVENT_EOS
+>>>    640          };
+>>>    641          struct s5p_mfc_ctx *ctx = fh_to_ctx(priv);
+>>>    642          int ret;
+>>>    643  
+>>>    644          if (ctx->state == MFCINST_ERROR) {
+>>>    645                  mfc_err_limited("Call on DQBUF after unrecoverable error\n");
+>>>    646                  return -EIO;
+>>>    647          }
+>>>    648  
+>>>    649          switch (buf->type) {
+>>>    650          case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
+>>>    651                  return vb2_dqbuf(&ctx->vq_src, buf, file->f_flags & O_NONBLOCK);
+>>>    652          case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
+>>>    653                  ret = vb2_dqbuf(&ctx->vq_dst, buf, file->f_flags & O_NONBLOCK);
+>>>    654                  if (ret)
+>>>    655                          return ret;
+>>>    656  
+>>>    657                  if (ctx->state == MFCINST_FINISHED &&
+>>>    658                      (ctx->dst_bufs[buf->index].flags & MFC_BUF_FLAG_EOS))
+>>>                                            ^^^^^^^^^^
+>>> Smatch is complaining that "buf->index" is not capped.  So far as I can
+>>> see this is true.  I would have expected it to be checked in
+>>> check_array_args() or video_usercopy() but I couldn't find the check.
+>> I did not work in V4L2 area for long time, so I could be wrong, but I
+>> hope the code is correct, below my explanation.
+>> User provides only type, memory and reserved fields in buf, other fields
+>> are filled by vb2_dqbuf (line 653) core function, ie index field is
+>> copied from buffer which was queued by qbuf.
+>> And vidioc_qbuf calls vb2_qbuf, which calls vb2_queue_or_prepare_buf,
+>> which checks index bounds [1].
+>>
+>> So I suppose this code is correct.
+>> Btw, I have also looked at other drivers and it looks omap driver
+>> handles it incorrectly, ie it uses index field provided by user -
+>> possible memory leak. CC Hans and Mauro, since there is no driver
+>> maintainer of OMAP.
+>>
+>> Btw2, is it possible to check in smatch which fields of passed struct
+>> given callback can read or fill ? For example here API restrict dqbuf
+>> callback to read only three fields of buf, and fill the others.
+>>
+>> [1]:
+>> http://elixir.free-electrons.com/linux/latest/source/drivers/media/v4l2-core/videobuf2-v4l2.c#L165
+>> [2]:
+>> http://elixir.free-electrons.com/linux/latest/source/drivers/media/platform/omap/omap_vout.c#L1520
+>>
+>> Regards
+>> Andrzej
+> Smatch does track the feilds...  Smatch sees that buf->index is capped
+> in vidioc_qbuf() but it still complains that buf->index gets set by the
+> user in the ioctl and not checked before we use it vb2_dqbuf().  The
+> call tree looks like this:
+>
+> --> video_usercopy()
+>     Copies _IOC_SIZE(cmd) bytes to parg.  The _IOC_SIZE() is
+>     sizeof(struct v4l2_buffer) so all the feilds are reset.  Smatch
+>     doesn't track how many bytes the users controls, it just marks
+>     everything in *parg as tainted but it doesn't matter in this case
+>     since all the feilds are set.
+>     video_usercopy() calls err = func(file, cmd, parg);
+>
+>     --> __video_do_ioctl()
+>         calls info->u.func(ops, file, fh, arg);
+>
+>         --> v4l_dqbuf()
+>             calls ops->vidioc_dqbuf(file, fh, p);
+>
+>             --> vidioc_dqbuf()
 
-The same comments I've given on the other driver mostly appear to apply
-this one as well.
+In our case s5p_mfc_dec.c:vidioc_dqbuf
 
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+>                 uses unchecked buf->index
+
+No, it uses only buf->type (it is correct usage), then calls
+vb2_dqbuf(which should fill index and other fields with proper values),
+and then uses .index.
+
+> Ah...  Hm.  Is it the call to vb2_core_dqbuf() which limits buf->index?
+
+No, buf->index is bound checked at buffer queuing:
+s5p_mfc_dec.c:vidioc_qbuf
+    vb2_qbuf
+        vb2_queue_or_prepare_buf
+
+> I don't see a path from vb2_core_dqbuf() to vb2_qbuf() but I may have
+> missed it.
+
+It is reverse:
+s5p_mfc_dec.c:vidioc_dqbuf
+    vb2_dqbuf
+        vb2_core_dqbuf
+
+Regards
+Andrzej
+
+>
+> regards,
+> dan carpenter
+>
+>
+>
+>
