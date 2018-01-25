@@ -1,153 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from hapkido.dreamhost.com ([66.33.216.122]:43546 "EHLO
-        hapkido.dreamhost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751252AbeAEAFT (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 4 Jan 2018 19:05:19 -0500
-Received: from homiemail-a116.g.dreamhost.com (sub5.mail.dreamhost.com [208.113.200.129])
-        by hapkido.dreamhost.com (Postfix) with ESMTP id 4845E89C95
-        for <linux-media@vger.kernel.org>; Thu,  4 Jan 2018 16:05:19 -0800 (PST)
-From: Brad Love <brad@nextdimension.cc>
-To: linux-media@vger.kernel.org
-Cc: Brad Love <brad@nextdimension.cc>
-Subject: [PATCH 9/9] lgdt3306a: Add QAM AUTO support
-Date: Thu,  4 Jan 2018 18:04:19 -0600
-Message-Id: <1515110659-20145-10-git-send-email-brad@nextdimension.cc>
-In-Reply-To: <1515110659-20145-1-git-send-email-brad@nextdimension.cc>
-References: <1515110659-20145-1-git-send-email-brad@nextdimension.cc>
+Received: from aer-iport-2.cisco.com ([173.38.203.52]:24083 "EHLO
+        aer-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751734AbeAYMbj (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 25 Jan 2018 07:31:39 -0500
+Subject: Re: [bug report] [media] s5p-mfc: use MFC_BUF_FLAG_EOS to identify
+ last buffers in decoder capture queue
+To: Dan Carpenter <dan.carpenter@oracle.com>,
+        Andrzej Hajda <a.hajda@samsung.com>
+Cc: linux-media@vger.kernel.org,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+References: <CGME20180123083259epcas3p1fb9a8b4e4ad34eb245fca67d4204cba4@epcas3p1.samsung.com>
+ <20180123083245.GA10091@mwanda>
+ <e30dedbc-68bc-fae8-ffb7-5cdea05f534d@samsung.com>
+ <20180125122522.vdly5ketvkugq53h@mwanda>
+From: Hans Verkuil <hansverk@cisco.com>
+Message-ID: <b89f9cc1-8101-b7cb-6130-87facd37e404@cisco.com>
+Date: Thu, 25 Jan 2018 13:31:36 +0100
+MIME-Version: 1.0
+In-Reply-To: <20180125122522.vdly5ketvkugq53h@mwanda>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As configured currently, modulation in the driver is set to auto detect,
-no matter what the user sets modulation to. This leads to both QAM64
-and QAM256 having the same effect. QAM AUTO is explicitly added here for
-compatibility with scanning software who can use AUTO instead of doing
-essentially the same scan twice.
-Also included is a module option to enforce a specific QAM modulation if
-desired. The true modulation is read before calculating the snr.
-Changes are backwards compatible with current behaviour.
 
-Signed-off-by: Brad Love <brad@nextdimension.cc>
----
- drivers/media/dvb-frontends/lgdt3306a.c | 42 ++++++++++++++++++++++++++-------
- 1 file changed, 33 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/media/dvb-frontends/lgdt3306a.c b/drivers/media/dvb-frontends/lgdt3306a.c
-index 2f540f1..111efb0 100644
---- a/drivers/media/dvb-frontends/lgdt3306a.c
-+++ b/drivers/media/dvb-frontends/lgdt3306a.c
-@@ -30,6 +30,17 @@ static int debug;
- module_param(debug, int, 0644);
- MODULE_PARM_DESC(debug, "set debug level (info=1, reg=2 (or-able))");
- 
-+/*
-+ * Older drivers treated QAM64 and QAM256 the same; that is the HW always
-+ * used "Auto" mode during detection.  Setting "forced_manual"=1 allows
-+ * the user to treat these modes as separate.  For backwards compatibility,
-+ * it's off by default.  QAM_AUTO can now be specified to achive that
-+ * effect even if "forced_manual"=1
-+ */
-+static int forced_manual;
-+module_param(forced_manual, int, 0644);
-+MODULE_PARM_DESC(forced_manual, "if set, QAM64 and QAM256 will only lock to modulation specified");
-+
- #define DBG_INFO 1
- #define DBG_REG  2
- #define DBG_DUMP 4 /* FGR - comment out to remove dump code */
-@@ -566,7 +577,12 @@ static int lgdt3306a_set_qam(struct lgdt3306a_state *state, int modulation)
- 	/* 3. : 64QAM/256QAM detection(manual, auto) */
- 	ret = lgdt3306a_read_reg(state, 0x0009, &val);
- 	val &= 0xfc;
--	val |= 0x02; /* STDOPDETCMODE[1:0]=1=Manual 2=Auto */
-+	/* Check for forced Manual modulation modes; otherwise always "auto" */
-+	if(forced_manual && (modulation != QAM_AUTO)){
-+		val |= 0x01; /* STDOPDETCMODE[1:0]= 1=Manual */
-+	} else {
-+		val |= 0x02; /* STDOPDETCMODE[1:0]= 2=Auto */
-+	}
- 	ret = lgdt3306a_write_reg(state, 0x0009, val);
- 	if (lg_chkerr(ret))
- 		goto fail;
-@@ -642,10 +658,9 @@ static int lgdt3306a_set_modulation(struct lgdt3306a_state *state,
- 		ret = lgdt3306a_set_vsb(state);
- 		break;
- 	case QAM_64:
--		ret = lgdt3306a_set_qam(state, QAM_64);
--		break;
- 	case QAM_256:
--		ret = lgdt3306a_set_qam(state, QAM_256);
-+	case QAM_AUTO:
-+		ret = lgdt3306a_set_qam(state, p->modulation);
- 		break;
- 	default:
- 		return -EINVAL;
-@@ -672,6 +687,7 @@ static int lgdt3306a_agc_setup(struct lgdt3306a_state *state,
- 		break;
- 	case QAM_64:
- 	case QAM_256:
-+	case QAM_AUTO:
- 		break;
- 	default:
- 		return -EINVAL;
-@@ -726,6 +742,7 @@ static int lgdt3306a_spectral_inversion(struct lgdt3306a_state *state,
- 		break;
- 	case QAM_64:
- 	case QAM_256:
-+	case QAM_AUTO:
- 		/* Auto ok for QAM */
- 		ret = lgdt3306a_set_inversion_auto(state, 1);
- 		break;
-@@ -749,6 +766,7 @@ static int lgdt3306a_set_if(struct lgdt3306a_state *state,
- 		break;
- 	case QAM_64:
- 	case QAM_256:
-+	case QAM_AUTO:
- 		if_freq_khz = state->cfg->qam_if_khz;
- 		break;
- 	default:
-@@ -1607,6 +1625,7 @@ static int lgdt3306a_read_status(struct dvb_frontend *fe,
- 		switch (state->current_modulation) {
- 		case QAM_256:
- 		case QAM_64:
-+		case QAM_AUTO:
- 			if (lgdt3306a_qam_lock_poll(state) == LG3306_LOCK) {
- 				*status |= FE_HAS_VITERBI;
- 				*status |= FE_HAS_SYNC;
-@@ -1650,6 +1669,7 @@ static int lgdt3306a_read_signal_strength(struct dvb_frontend *fe,
- 	 * Calculate some sort of "strength" from SNR
- 	 */
- 	struct lgdt3306a_state *state = fe->demodulator_priv;
-+	u8 val;
- 	u16 snr; /* snr_x10 */
- 	int ret;
- 	u32 ref_snr; /* snr*100 */
-@@ -1662,11 +1682,15 @@ static int lgdt3306a_read_signal_strength(struct dvb_frontend *fe,
- 		 ref_snr = 1600; /* 16dB */
- 		 break;
- 	case QAM_64:
--		 ref_snr = 2200; /* 22dB */
--		 break;
- 	case QAM_256:
--		 ref_snr = 2800; /* 28dB */
--		 break;
-+	case QAM_AUTO:
-+		/* need to know actual modulation to set proper SNR baseline */
-+		lgdt3306a_read_reg(state, 0x00a6, &val);
-+		if(val & 0x04)
-+			ref_snr = 2800; /* QAM-256 28dB */
-+		else
-+			ref_snr = 2200; /* QAM-64  22dB */
-+		break;
- 	default:
- 		return -EINVAL;
- 	}
-@@ -2136,7 +2160,7 @@ static const struct dvb_frontend_ops lgdt3306a_ops = {
- 		.frequency_min      = 54000000,
- 		.frequency_max      = 858000000,
- 		.frequency_stepsize = 62500,
--		.caps = FE_CAN_QAM_64 | FE_CAN_QAM_256 | FE_CAN_8VSB
-+		.caps = FE_CAN_QAM_AUTO | FE_CAN_QAM_64 | FE_CAN_QAM_256 | FE_CAN_8VSB
- 	},
- 	.i2c_gate_ctrl        = lgdt3306a_i2c_gate_ctrl,
- 	.init                 = lgdt3306a_init,
--- 
-2.7.4
+On 01/25/2018 01:25 PM, Dan Carpenter wrote:
+> On Thu, Jan 25, 2018 at 10:58:45AM +0100, Andrzej Hajda wrote:
+>> On 23.01.2018 09:32, Dan Carpenter wrote:
+>>> Hello Andrzej Hajda,
+>>>
+>>> The patch 4d0b0ed63660: "[media] s5p-mfc: use MFC_BUF_FLAG_EOS to
+>>> identify last buffers in decoder capture queue" from Oct 7, 2015,
+>>> leads to the following static checker warning:
+>>>
+>>> 	drivers/media/platform/s5p-mfc/s5p_mfc_dec.c:658 vidioc_dqbuf()
+>>> 	error: buffer overflow 'ctx->dst_bufs' 32 user_rl = '0-u32max'
+>>>
+>>> drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+>>>    635  /* Dequeue a buffer */
+>>>    636  static int vidioc_dqbuf(struct file *file, void *priv, struct v4l2_buffer *buf)
+>>>    637  {
+>>>    638          const struct v4l2_event ev = {
+>>>    639                  .type = V4L2_EVENT_EOS
+>>>    640          };
+>>>    641          struct s5p_mfc_ctx *ctx = fh_to_ctx(priv);
+>>>    642          int ret;
+>>>    643  
+>>>    644          if (ctx->state == MFCINST_ERROR) {
+>>>    645                  mfc_err_limited("Call on DQBUF after unrecoverable error\n");
+>>>    646                  return -EIO;
+>>>    647          }
+>>>    648  
+>>>    649          switch (buf->type) {
+>>>    650          case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
+>>>    651                  return vb2_dqbuf(&ctx->vq_src, buf, file->f_flags & O_NONBLOCK);
+>>>    652          case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
+>>>    653                  ret = vb2_dqbuf(&ctx->vq_dst, buf, file->f_flags & O_NONBLOCK);
+>>>    654                  if (ret)
+>>>    655                          return ret;
+>>>    656  
+>>>    657                  if (ctx->state == MFCINST_FINISHED &&
+>>>    658                      (ctx->dst_bufs[buf->index].flags & MFC_BUF_FLAG_EOS))
+>>>                                            ^^^^^^^^^^
+>>> Smatch is complaining that "buf->index" is not capped.  So far as I can
+>>> see this is true.  I would have expected it to be checked in
+>>> check_array_args() or video_usercopy() but I couldn't find the check.
+>>
+>> I did not work in V4L2 area for long time, so I could be wrong, but I
+>> hope the code is correct, below my explanation.
+>> User provides only type, memory and reserved fields in buf, other fields
+>> are filled by vb2_dqbuf (line 653) core function, ie index field is
+>> copied from buffer which was queued by qbuf.
+>> And vidioc_qbuf calls vb2_qbuf, which calls vb2_queue_or_prepare_buf,
+>> which checks index bounds [1].
+>>
+>> So I suppose this code is correct.
+>> Btw, I have also looked at other drivers and it looks omap driver
+>> handles it incorrectly, ie it uses index field provided by user -
+>> possible memory leak. CC Hans and Mauro, since there is no driver
+>> maintainer of OMAP.
+>>
+>> Btw2, is it possible to check in smatch which fields of passed struct
+>> given callback can read or fill ? For example here API restrict dqbuf
+>> callback to read only three fields of buf, and fill the others.
+>>
+>> [1]:
+>> http://elixir.free-electrons.com/linux/latest/source/drivers/media/v4l2-core/videobuf2-v4l2.c#L165
+>> [2]:
+>> http://elixir.free-electrons.com/linux/latest/source/drivers/media/platform/omap/omap_vout.c#L1520
+>>
+>> Regards
+>> Andrzej
+> 
+> Smatch does track the feilds...  Smatch sees that buf->index is capped
+> in vidioc_qbuf() but it still complains that buf->index gets set by the
+> user in the ioctl and not checked before we use it vb2_dqbuf().  The
+> call tree looks like this:
+> 
+> --> video_usercopy()
+>     Copies _IOC_SIZE(cmd) bytes to parg.  The _IOC_SIZE() is
+>     sizeof(struct v4l2_buffer) so all the feilds are reset.  Smatch
+>     doesn't track how many bytes the users controls, it just marks
+>     everything in *parg as tainted but it doesn't matter in this case
+>     since all the feilds are set.
+>     video_usercopy() calls err = func(file, cmd, parg);
+> 
+>     --> __video_do_ioctl()
+>         calls info->u.func(ops, file, fh, arg);
+> 
+>         --> v4l_dqbuf()
+>             calls ops->vidioc_dqbuf(file, fh, p);
+> 
+>             --> vidioc_dqbuf()
+>                 uses unchecked buf->index
+> 
+> Ah...  Hm.  Is it the call to vb2_core_dqbuf() which limits buf->index?
+> I don't see a path from vb2_core_dqbuf() to vb2_qbuf() but I may have
+> missed it.
+
+The __fill_v4l2_buffer() function in videobuf2-v4l2.c is called by vb2_core_dqbuf().
+And that __fill_v4l2_buffer() overwrited the index field: b->index = vb->index;
+
+So after the vb2_dqbuf call the buf->index field is correct and bounded.
+
+Regards,
+
+	Hans
