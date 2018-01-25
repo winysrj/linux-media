@@ -1,99 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from [134.134.136.24] ([134.134.136.24]:9980 "EHLO mga09.intel.com"
-        rhost-flags-FAIL-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1750798AbeAPEFK (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 15 Jan 2018 23:05:10 -0500
-From: "Cao, Bingbu" <bingbu.cao@intel.com>
-To: Tomasz Figa <tfiga@chromium.org>, "Zhi, Yong" <yong.zhi@intel.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        "Mani, Rajmohan" <rajmohan.mani@intel.com>
-Subject: RE: [PATCH 1/2] media: intel-ipu3: cio2: fix a crash with
- out-of-bounds access
-Date: Tue, 16 Jan 2018 04:05:05 +0000
-Message-ID: <EE45BB6704246A4E914B70E8B61FB42A14FE2F31@SHSMSX103.ccr.corp.intel.com>
-References: <1515034637-3517-1-git-send-email-yong.zhi@intel.com>
- <CAAFQd5AO4n4kge1dijXLK-Ckudd5wJnuRnNMef+H4W00G2mpwQ@mail.gmail.com>
- <C193D76D23A22742993887E6D207B54D1AEB6195@FMSMSX151.amr.corp.intel.com>
- <CAAFQd5AxKSphur-fqHWvK5DLhQfJ+x30UQKuEx3Xe9mjnWRh4g@mail.gmail.com>
-In-Reply-To: <CAAFQd5AxKSphur-fqHWvK5DLhQfJ+x30UQKuEx3Xe9mjnWRh4g@mail.gmail.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-MIME-Version: 1.0
+Received: from relay2-d.mail.gandi.net ([217.70.183.194]:38486 "EHLO
+        relay2-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750769AbeAYLZU (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 25 Jan 2018 06:25:20 -0500
+From: Jacopo Mondi <jacopo+renesas@jmondi.org>
+To: magnus.damm@gmail.com, kuninori.morimoto.gx@renesas.com,
+        geert@linux-m68k.org, laurent.pinchart@ideasonboard.com,
+        ysato@users.sourceforge.jp, dalias@libc.org
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>, linux-sh@vger.kernel.org,
+        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: [PATCH] sh: clk: Relax clk rate match test
+Date: Thu, 25 Jan 2018 12:24:53 +0100
+Message-Id: <1516879493-24637-1-git-send-email-jacopo+renesas@jmondi.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-SSB0aGluayBpZiBzZXQgdGhlIHBhZ2VzIGFzIHRoZSBESVZfUk9VTkRfVVAodmItPnBsYW5lc1sw
-XS5sZW5ndGgsIENJTzJfUEFHRV9TSVpFKSArIDEsIHRoZSAnIGlmICghcGFnZXMtLSknIGluIGxv
-b3AgaXMgbm90IGNvcnJlY3QuDQpzaG91bGQgYmUgJ2lmICghLS1wYWdlcyknLg0KVGhlIGxhc3Qg
-cGFnZSBmcm9tIHNnIGxpc3QgaXMgdGhlIGxhc3QgdmFsaWQgcGFnZS4NCg0KDQpfX19fX19fX19f
-X19fX19fX19fX19fX19fXw0KQlJzLA0KQ2FvLCBCaW5nYnUNCg0KDQoNCj4gLS0tLS1PcmlnaW5h
-bCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogVG9tYXN6IEZpZ2EgW21haWx0bzp0ZmlnYUBjaHJvbWl1
-bS5vcmddDQo+IFNlbnQ6IFR1ZXNkYXksIEphbnVhcnkgMTYsIDIwMTggMTA6NDAgQU0NCj4gVG86
-IFpoaSwgWW9uZyA8eW9uZy56aGlAaW50ZWwuY29tPg0KPiBDYzogTGludXggTWVkaWEgTWFpbGlu
-ZyBMaXN0IDxsaW51eC1tZWRpYUB2Z2VyLmtlcm5lbC5vcmc+OyBTYWthcmkgQWlsdXMNCj4gPHNh
-a2FyaS5haWx1c0BsaW51eC5pbnRlbC5jb20+OyBNYW5pLCBSYWptb2hhbiA8cmFqbW9oYW4ubWFu
-aUBpbnRlbC5jb20+Ow0KPiBDYW8sIEJpbmdidSA8YmluZ2J1LmNhb0BpbnRlbC5jb20+DQo+IFN1
-YmplY3Q6IFJlOiBbUEFUQ0ggMS8yXSBtZWRpYTogaW50ZWwtaXB1MzogY2lvMjogZml4IGEgY3Jh
-c2ggd2l0aCBvdXQtDQo+IG9mLWJvdW5kcyBhY2Nlc3MNCj4gDQo+IEhpIFlvbmcsDQo+IA0KPiBP
-biBUdWUsIEphbiAxNiwgMjAxOCBhdCAyOjA1IEFNLCBaaGksIFlvbmcgPHlvbmcuemhpQGludGVs
-LmNvbT4gd3JvdGU6DQo+ID4gSGksIFRvbWFzeiwNCj4gPg0KPiA+IFRoYW5rcyBmb3IgdGhlIHBh
-dGNoIHJldmlldy4NCj4gPg0KPiA+PiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiA+PiBG
-cm9tOiBUb21hc3ogRmlnYSBbbWFpbHRvOnRmaWdhQGNocm9taXVtLm9yZ10NCj4gPj4gU2VudDog
-RnJpZGF5LCBKYW51YXJ5IDEyLCAyMDE4IDEyOjE3IEFNDQo+ID4+IFRvOiBaaGksIFlvbmcgPHlv
-bmcuemhpQGludGVsLmNvbT4NCj4gPj4gQ2M6IExpbnV4IE1lZGlhIE1haWxpbmcgTGlzdCA8bGlu
-dXgtbWVkaWFAdmdlci5rZXJuZWwub3JnPjsgU2FrYXJpDQo+ID4+IEFpbHVzIDxzYWthcmkuYWls
-dXNAbGludXguaW50ZWwuY29tPjsgTWFuaSwgUmFqbW9oYW4NCj4gPj4gPHJham1vaGFuLm1hbmlA
-aW50ZWwuY29tPjsgQ2FvLCBCaW5nYnUgPGJpbmdidS5jYW9AaW50ZWwuY29tPg0KPiA+PiBTdWJq
-ZWN0OiBSZTogW1BBVENIIDEvMl0gbWVkaWE6IGludGVsLWlwdTM6IGNpbzI6IGZpeCBhIGNyYXNo
-IHdpdGgNCj4gPj4gb3V0LW9mLSBib3VuZHMgYWNjZXNzDQo+ID4+DQo+ID4+IE9uIFRodSwgSmFu
-IDQsIDIwMTggYXQgMTE6NTcgQU0sIFlvbmcgWmhpIDx5b25nLnpoaUBpbnRlbC5jb20+IHdyb3Rl
-Og0KPiA+PiA+IFdoZW4gZG1hYnVmIGlzIHVzZWQgZm9yIEJMT0IgdHlwZSBmcmFtZSwgdGhlIGZy
-YW1lIGJ1ZmZlcnMNCj4gPj4gPiBhbGxvY2F0ZWQgYnkgZ3JhbGxvYyB3aWxsIGhvbGQgbW9yZSBw
-YWdlcyB0aGFuIHRoZSB2YWxpZCBmcmFtZSBkYXRhDQo+ID4+ID4gZHVlIHRvIGhlaWdodCBhbGln
-bm1lbnQuDQo+ID4+ID4NCj4gPj4gPiBJbiB0aGlzIGNhc2UsIHRoZSBwYWdlIG51bWJlcnMgaW4g
-c2cgbGlzdCBjb3VsZCBleGNlZWQgdGhlIEZCUFQNCj4gPj4gPiB1cHBlciBsaW1pdCB2YWx1ZSAt
-IG1heF9sb3BzKDgpKjEwMjQgdG8gY2F1c2UgY3Jhc2guDQo+ID4+ID4NCj4gPj4gPiBMaW1pdCB0
-aGUgTE9QIGFjY2VzcyB0byB0aGUgdmFsaWQgZGF0YSBsZW5ndGggdG8gYXZvaWQgRkJQVA0KPiA+
-PiA+IHN1Yi1lbnRyaWVzIG92ZXJmbG93Lg0KPiA+PiA+DQo+ID4+ID4gU2lnbmVkLW9mZi1ieTog
-WW9uZyBaaGkgPHlvbmcuemhpQGludGVsLmNvbT4NCj4gPj4gPiBTaWduZWQtb2ZmLWJ5OiBDYW8g
-QmluZyBCdSA8YmluZ2J1LmNhb0BpbnRlbC5jb20+DQo+ID4+ID4gLS0tDQo+ID4+ID4gIGRyaXZl
-cnMvbWVkaWEvcGNpL2ludGVsL2lwdTMvaXB1My1jaW8yLmMgfCA3ICsrKysrLS0NCj4gPj4gPiAg
-MSBmaWxlIGNoYW5nZWQsIDUgaW5zZXJ0aW9ucygrKSwgMiBkZWxldGlvbnMoLSkNCj4gPj4gPg0K
-PiA+PiA+IGRpZmYgLS1naXQgYS9kcml2ZXJzL21lZGlhL3BjaS9pbnRlbC9pcHUzL2lwdTMtY2lv
-Mi5jDQo+ID4+ID4gYi9kcml2ZXJzL21lZGlhL3BjaS9pbnRlbC9pcHUzL2lwdTMtY2lvMi5jDQo+
-ID4+ID4gaW5kZXggOTQxY2FhOTg3ZGFiLi45NDlmNDNkMjA2YWQgMTAwNjQ0DQo+ID4+ID4gLS0t
-IGEvZHJpdmVycy9tZWRpYS9wY2kvaW50ZWwvaXB1My9pcHUzLWNpbzIuYw0KPiA+PiA+ICsrKyBi
-L2RyaXZlcnMvbWVkaWEvcGNpL2ludGVsL2lwdTMvaXB1My1jaW8yLmMNCj4gPj4gPiBAQCAtODM4
-LDggKzgzOCw5IEBAIHN0YXRpYyBpbnQgY2lvMl92YjJfYnVmX2luaXQoc3RydWN0IHZiMl9idWZm
-ZXINCj4gKnZiKQ0KPiA+PiA+ICAgICAgICAgICAgICAgICBjb250YWluZXJfb2YodmIsIHN0cnVj
-dCBjaW8yX2J1ZmZlciwgdmJiLnZiMl9idWYpOw0KPiA+PiA+ICAgICAgICAgc3RhdGljIGNvbnN0
-IHVuc2lnbmVkIGludCBlbnRyaWVzX3Blcl9wYWdlID0NCj4gPj4gPiAgICAgICAgICAgICAgICAg
-Q0lPMl9QQUdFX1NJWkUgLyBzaXplb2YodTMyKTsNCj4gPj4gPiAtICAgICAgIHVuc2lnbmVkIGlu
-dCBwYWdlcyA9IERJVl9ST1VORF9VUCh2Yi0+cGxhbmVzWzBdLmxlbmd0aCwNCj4gPj4gQ0lPMl9Q
-QUdFX1NJWkUpOw0KPiA+PiA+IC0gICAgICAgdW5zaWduZWQgaW50IGxvcHMgPSBESVZfUk9VTkRf
-VVAocGFnZXMgKyAxLA0KPiBlbnRyaWVzX3Blcl9wYWdlKTsNCj4gPj4gPiArICAgICAgIHVuc2ln
-bmVkIGludCBwYWdlcyA9IERJVl9ST1VORF9VUCh2Yi0+cGxhbmVzWzBdLmxlbmd0aCwNCj4gPj4g
-PiArICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBDSU8yX1BBR0VfU0la
-RSkgKyAxOw0KPiA+Pg0KPiA+PiBXaHkgKyAxPyBUaGlzIHdvdWxkIHN0aWxsIG92ZXJmbG93IHRo
-ZSBidWZmZXIsIHdvdWxkbid0IGl0Pw0KPiA+DQo+ID4gVGhlICJwYWdlcyIgdmFyaWFibGUgaXMg
-dXNlZCB0byBjYWxjdWxhdGUgbG9wcyB3aGljaCBoYXMgb25lIGV4dHJhDQo+IHBhZ2UgYXQgdGhl
-IGVuZCB0aGF0IHBvaW50cyB0byBkdW1teSBwYWdlLg0KPiA+DQo+ID4+DQo+ID4+ID4gKyAgICAg
-ICB1bnNpZ25lZCBpbnQgbG9wcyA9IERJVl9ST1VORF9VUChwYWdlcywgZW50cmllc19wZXJfcGFn
-ZSk7DQo+ID4+ID4gICAgICAgICBzdHJ1Y3Qgc2dfdGFibGUgKnNnOw0KPiA+PiA+ICAgICAgICAg
-c3RydWN0IHNnX3BhZ2VfaXRlciBzZ19pdGVyOw0KPiA+PiA+ICAgICAgICAgaW50IGksIGo7DQo+
-ID4+ID4gQEAgLTg2OSw2ICs4NzAsOCBAQCBzdGF0aWMgaW50IGNpbzJfdmIyX2J1Zl9pbml0KHN0
-cnVjdCB2YjJfYnVmZmVyDQo+ID4+ID4gKnZiKQ0KPiA+PiA+DQo+ID4+ID4gICAgICAgICBpID0g
-aiA9IDA7DQo+ID4+ID4gICAgICAgICBmb3JfZWFjaF9zZ19wYWdlKHNnLT5zZ2wsICZzZ19pdGVy
-LCBzZy0+bmVudHMsIDApIHsNCj4gPj4gPiArICAgICAgICAgICAgICAgaWYgKCFwYWdlcy0tKQ0K
-PiA+PiA+ICsgICAgICAgICAgICAgICAgICAgICAgIGJyZWFrOw0KPiA+Pg0KPiA+PiBPciBwZXJo
-YXBzIHdlIHNob3VsZCBjaGVjayBoZXJlIGZvciAocGFnZXMgPiAxKT8NCj4gPg0KPiA+IFRoaXMg
-aXMgc28gdGhhdCB0aGUgZW5kIG9mIGxvcCBpcyBzZXQgdG8gdGhlIGR1bW15X3BhZ2UuDQo+IA0K
-PiBIb3cgYWJvdXQgdGhpcyBzaW1wbGUgZXhhbXBsZToNCj4gDQo+IHZiLT5wbGFuZXNbMF0ubGVu
-Z3RoID0gMTAyMyAqIDQwOTYNCj4gcGFnZXMgPSAxMDIzICsgMSA9IDEwMjQNCj4gbG9wcyAgPSAx
-DQo+IA0KPiBJZiBzZy0+c2dsIGluY2x1ZGVzIG1vcmUgdGhhbiAxMDIzIHBhZ2VzLCB0aGUgZm9y
-X2VhY2hfc2dfcGFnZSgpIGxvb3ANCj4gd2lsbCBpdGVyYXRlIGZvciBwYWdlcyBmcm9tIDEwMjQg
-dG8gMSBpbmNsdXNpdmUgYW5kIGVuZHMgdXAgb3ZlcmZsb3dpbmcNCj4gdGhlIGR1bW15IHBhZ2Ug
-dG8gbmV4dCBsb3AgKGkgPT0gMSBhbmQgaiA9PSAwKSwgYnV0IHdlIG9ubHkgYWxsb2NhdGVkIDEN
-Cj4gbG9wLg0KPiANCj4gQmVzdCByZWdhcmRzLA0KPiBUb21hc3oNCg==
+When asking for a clk rate to be set, the sh core clock matches only
+exact rate values against the calculated frequency table entries. If the
+rate does not match exactly the test fails, and the whole frequency
+table is walked, resulting in selection of the last entry, corresponding to
+the lowest available clock rate.
+
+Ie. when asking for a 10MHz clock rate on div6 clocks (ie. "video_clk" line),
+the calculated clock frequency 10088572 Hz gets ignored, and the clock is
+actually set to 5201920 Hz, which is the last available entry of the frequencies
+table.
+
+Relax the clock frequency match test, allowing selection of clock rates
+immediately slower than the required one.
+
+Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+
+---
+Hello renesas lists,
+
+I'm now working on handling frame rate for the ov7720 image sensor to have that
+driver accepted as part of v4l2. The sensor is installed on on Migo-R board.
+In order to properly calculate pixel clock and the framerate I noticed the
+clock signal fed to the sensor from the SH7722 chip was always the lowest
+available one.
+
+This patch fixes the issues and allows me to properly select which clock
+frequency supply to the sensor, which according to datasheet does not support
+input clock frequencies slower than 10MHz (but works anyhow).
+
+As all patches for SH architecture I wonder where they should be picked up from,
+as SH seems not maintained at the moment.
+
+Thanks
+   j
+
+---
+ drivers/sh/clk/core.c | 9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/sh/clk/core.c b/drivers/sh/clk/core.c
+index 92863e3..d2cb94c 100644
+--- a/drivers/sh/clk/core.c
++++ b/drivers/sh/clk/core.c
+@@ -198,9 +198,12 @@ int clk_rate_table_find(struct clk *clk,
+ {
+ 	struct cpufreq_frequency_table *pos;
+
+-	cpufreq_for_each_valid_entry(pos, freq_table)
+-		if (pos->frequency == rate)
+-			return pos - freq_table;
++	cpufreq_for_each_valid_entry(pos, freq_table) {
++		if (pos->frequency > rate)
++			continue;
++
++		return pos - freq_table;
++	}
+
+ 	return -ENOENT;
+ }
+--
+2.7.4
