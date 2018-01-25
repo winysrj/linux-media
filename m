@@ -1,109 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:56375 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751001AbeABVBb (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 2 Jan 2018 16:01:31 -0500
-From: Sean Young <sean@mess.org>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 2/3] media: lirc: lirc daemon fails to detect raw IR device
-Date: Tue,  2 Jan 2018 21:01:28 +0000
-Message-Id: <20180102210129.7608-2-sean@mess.org>
-In-Reply-To: <20180102210129.7608-1-sean@mess.org>
-References: <20180102210129.7608-1-sean@mess.org>
+Received: from mail-qt0-f180.google.com ([209.85.216.180]:44272 "EHLO
+        mail-qt0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751255AbeAYH7h (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 25 Jan 2018 02:59:37 -0500
+MIME-Version: 1.0
+In-Reply-To: <20180125003430.18558-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20180125003430.18558-1-niklas.soderlund+renesas@ragnatech.se>
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Date: Thu, 25 Jan 2018 08:59:35 +0100
+Message-ID: <CAMuHMdVH8vHN3Q0zCKRn_KnfKf8P7yhqSSKjASp=u6qCZHzkNg@mail.gmail.com>
+Subject: Re: [PATCH] v4l2-dev.h: fix symbol collision in media_entity_to_video_device()
+To: =?UTF-8?Q?Niklas_S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux-Renesas <linux-renesas-soc@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Since commit 9b6192589be7 ("media: lirc: implement scancode sending"),
-and commit de142c324106 ("media: lirc: implement reading scancode")
-the lirc features ioctl for raw IR devices advertises two modes for
-sending and receiving.
+Hi Niklas,
 
-The lirc daemon now fails to detect a raw IR device, both for transmit
-and receive.
+On Thu, Jan 25, 2018 at 1:34 AM, Niklas S=C3=B6derlund
+<niklas.soderlund+renesas@ragnatech.se> wrote:
+> A recent change to the media_entity_to_video_device() macro breaks some
+> use-cases for the macro due to a symbol collision. Before the change
+> this worked:
+>
+>     vdev =3D media_entity_to_video_device(link->sink->entity);
+>
+> While after the change it results in a compiler error "error: 'struct
+> video_device' has no member named 'link'; did you mean 'lock'?". While
+> the following still works after the change.
+>
+>     struct media_entity *entity =3D link->sink->entity;
+>     vdev =3D media_entity_to_video_device(entity);
+>
+> Fix the collision by renaming the macro argument to 'media_entity'.
 
-To fix this, do not advertise the scancode mode in the lirc features
-for raw IR devices (however do keep it for scancode devices). The mode
-can still be used via the LIRC_SET_{REC,SEND}_MODE ioctl.
+Thanks!
+Given there also exists a "struct media_entity", using "_media_entity" seem=
+s
+safe to me.
 
-Signed-off-by: Sean Young <sean@mess.org>
----
- Documentation/media/uapi/rc/lirc-get-features.rst | 22 +++++++++++-----------
- drivers/media/rc/lirc_dev.c                       |  4 ++--
- 2 files changed, 13 insertions(+), 13 deletions(-)
+Gr{oetje,eeting}s,
 
-diff --git a/Documentation/media/uapi/rc/lirc-get-features.rst b/Documentation/media/uapi/rc/lirc-get-features.rst
-index 3ee44067de63..5b30921d0483 100644
---- a/Documentation/media/uapi/rc/lirc-get-features.rst
-+++ b/Documentation/media/uapi/rc/lirc-get-features.rst
-@@ -55,8 +55,11 @@ LIRC features
- 
- ``LIRC_CAN_REC_MODE2``
- 
--    The driver is capable of receiving using
--    :ref:`LIRC_MODE_MODE2 <lirc-mode-MODE2>`.
-+    This is raw IR driver for receiving. This means that
-+    :ref:`LIRC_MODE_MODE2 <lirc-mode-MODE2>` is used. This also implies
-+    that :ref:`LIRC_MODE_SCANCODE <lirc-mode-SCANCODE>` is also supported,
-+    as long as the kernel is recent enough. Use the
-+    :ref:`lirc_set_rec_mode` to switch modes.
- 
- .. _LIRC-CAN-REC-LIRCCODE:
- 
-@@ -68,9 +71,8 @@ LIRC features
- 
- ``LIRC_CAN_REC_SCANCODE``
- 
--    The driver is capable of receiving using
--    :ref:`LIRC_MODE_SCANCODE <lirc-mode-SCANCODE>`.
--
-+    This is a scancode driver for receiving. This means that
-+    :ref:`LIRC_MODE_SCANCODE <lirc-mode-SCANCODE>` is used.
- 
- .. _LIRC-CAN-SET-SEND-CARRIER:
- 
-@@ -164,7 +166,10 @@ LIRC features
- ``LIRC_CAN_SEND_PULSE``
- 
-     The driver supports sending (also called as IR blasting or IR TX) using
--    :ref:`LIRC_MODE_PULSE <lirc-mode-pulse>`.
-+    :ref:`LIRC_MODE_PULSE <lirc-mode-pulse>`. This implies that
-+    :ref:`LIRC_MODE_SCANCODE <lirc-mode-SCANCODE>` is also supported for
-+    transmit, as long as the kernel is recent enough. Use the
-+    :ref:`lirc_set_send_mode` to switch modes.
- 
- .. _LIRC-CAN-SEND-MODE2:
- 
-@@ -181,11 +186,6 @@ LIRC features
- 
- .. _LIRC-CAN-SEND-SCANCODE:
- 
--``LIRC_CAN_SEND_SCANCODE``
--
--    The driver supports sending (also called as IR blasting or IR TX) using
--    :ref:`LIRC_MODE_SCANCODE <lirc-mode-SCANCODE>`.
--
- 
- Return Value
- ============
-diff --git a/drivers/media/rc/lirc_dev.c b/drivers/media/rc/lirc_dev.c
-index c96543812040..ba2028986c5c 100644
---- a/drivers/media/rc/lirc_dev.c
-+++ b/drivers/media/rc/lirc_dev.c
-@@ -402,13 +402,13 @@ static long ir_lirc_ioctl(struct file *file, unsigned int cmd,
- 			val |= LIRC_CAN_REC_SCANCODE;
- 
- 		if (dev->driver_type == RC_DRIVER_IR_RAW) {
--			val |= LIRC_CAN_REC_MODE2 | LIRC_CAN_REC_SCANCODE;
-+			val |= LIRC_CAN_REC_MODE2;
- 			if (dev->rx_resolution)
- 				val |= LIRC_CAN_GET_REC_RESOLUTION;
- 		}
- 
- 		if (dev->tx_ir) {
--			val |= LIRC_CAN_SEND_PULSE | LIRC_CAN_SEND_SCANCODE;
-+			val |= LIRC_CAN_SEND_PULSE;
- 			if (dev->s_tx_mask)
- 				val |= LIRC_CAN_SET_TRANSMITTER_MASK;
- 			if (dev->s_tx_carrier)
--- 
-2.14.3
+                        Geert
+
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k=
+.org
+
+In personal conversations with technical people, I call myself a hacker. Bu=
+t
+when I'm talking to journalists I just say "programmer" or something like t=
+hat.
+                                -- Linus Torvalds
