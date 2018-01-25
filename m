@@ -1,90 +1,152 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:35776 "EHLO
-        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S932797AbeALMFM (ORCPT
+Received: from relay2-d.mail.gandi.net ([217.70.183.194]:60255 "EHLO
+        relay2-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751312AbeAYOOP (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 12 Jan 2018 07:05:12 -0500
-Subject: Re: [PATCH v7 2/6] [media] v4l: add 'unordered' flag to format
- description ioctl
-To: Gustavo Padovan <gustavo@padovan.org>, linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        Pawel Osciak <pawel@osciak.com>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Brian Starkey <brian.starkey@arm.com>,
-        Thierry Escande <thierry.escande@collabora.com>,
-        linux-kernel@vger.kernel.org,
-        Gustavo Padovan <gustavo.padovan@collabora.com>
-References: <20180110160732.7722-1-gustavo@padovan.org>
- <20180110160732.7722-3-gustavo@padovan.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <d53a9ec1-8e9c-c19f-768d-2783d7ea4a1c@xs4all.nl>
-Date: Fri, 12 Jan 2018 13:05:06 +0100
+        Thu, 25 Jan 2018 09:14:15 -0500
+Date: Thu, 25 Jan 2018 15:14:07 +0100
+From: jacopo mondi <jacopo@jmondi.org>
+To: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        Magnus Damm <magnus.damm@gmail.com>,
+        Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Yoshinori Sato <ysato@users.sourceforge.jp>,
+        Rich Felker <dalias@libc.org>,
+        Linux-sh list <linux-sh@vger.kernel.org>,
+        Linux-Renesas <linux-renesas-soc@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        linux-clk <linux-clk@vger.kernel.org>
+Subject: Re: [PATCH] sh: clk: Relax clk rate match test
+Message-ID: <20180125141407.GH17416@w540>
+References: <1516879493-24637-1-git-send-email-jacopo+renesas@jmondi.org>
+ <CAMuHMdVZpAB+Xu4trs0Eaiygk1WD7DPzKr3ehF-kugB5Fbps2g@mail.gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <20180110160732.7722-3-gustavo@padovan.org>
 Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+In-Reply-To: <CAMuHMdVZpAB+Xu4trs0Eaiygk1WD7DPzKr3ehF-kugB5Fbps2g@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/10/18 17:07, Gustavo Padovan wrote:
-> From: Gustavo Padovan <gustavo.padovan@collabora.com>
-> 
-> For explicit synchronization it important for userspace to know if the
-> format being used by the driver can deliver the buffers back to userspace
-> in the same order they were queued with QBUF.
-> 
-> Ordered streams fits nicely in a pipeline with DRM for example, where
-> ordered buffer are expected.
-> 
-> Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
-> ---
->  Documentation/media/uapi/v4l/vidioc-enum-fmt.rst | 3 +++
->  include/uapi/linux/videodev2.h                   | 1 +
->  2 files changed, 4 insertions(+)
-> 
-> diff --git a/Documentation/media/uapi/v4l/vidioc-enum-fmt.rst b/Documentation/media/uapi/v4l/vidioc-enum-fmt.rst
-> index 019c513df217..368115f44fc0 100644
-> --- a/Documentation/media/uapi/v4l/vidioc-enum-fmt.rst
-> +++ b/Documentation/media/uapi/v4l/vidioc-enum-fmt.rst
-> @@ -116,6 +116,9 @@ one until ``EINVAL`` is returned.
->        - This format is not native to the device but emulated through
->  	software (usually libv4l2), where possible try to use a native
->  	format instead for better performance.
-> +    * - ``V4L2_FMT_FLAG_UNORDERED``
-> +      - 0x0004
-> +      - This is a format that doesn't guarantee timely order of frames.
+Hi Geert,
 
-I'd rephrase this:
+On Thu, Jan 25, 2018 at 02:53:41PM +0100, Geert Uytterhoeven wrote:
+> Hi Jacopo,
+>
+> CC linux-clk (yes I know this is about the legacy SH clock framework, but
+> the public API is/should be the same)
+>
+> On Thu, Jan 25, 2018 at 12:24 PM, Jacopo Mondi
+> <jacopo+renesas@jmondi.org> wrote:
+> > When asking for a clk rate to be set, the sh core clock matches only
+> > exact rate values against the calculated frequency table entries. If the
+> > rate does not match exactly the test fails, and the whole frequency
+> > table is walked, resulting in selection of the last entry, corresponding to
+> > the lowest available clock rate.
+>
+> IIUIC, the code does not select the last entry, but returns an error code,
+> which is propagated all the way up?
+>
+> > Ie. when asking for a 10MHz clock rate on div6 clocks (ie. "video_clk" line),
+> > the calculated clock frequency 10088572 Hz gets ignored, and the clock is
+> > actually set to 5201920 Hz, which is the last available entry of the frequencies
+> > table.
+>
+> Perhaps 5201920 is just the default (or old value)?
+>
+> > Relax the clock frequency match test, allowing selection of clock rates
+> > immediately slower than the required one.
+> >
+> > Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+> >
+> > ---
+> > Hello renesas lists,
+> >
+> > I'm now working on handling frame rate for the ov7720 image sensor to have that
+> > driver accepted as part of v4l2. The sensor is installed on on Migo-R board.
+> > In order to properly calculate pixel clock and the framerate I noticed the
+> > clock signal fed to the sensor from the SH7722 chip was always the lowest
+> > available one.
+> >
+> > This patch fixes the issues and allows me to properly select which clock
+> > frequency supply to the sensor, which according to datasheet does not support
+> > input clock frequencies slower than 10MHz (but works anyhow).
+> >
+> > As all patches for SH architecture I wonder where they should be picked up from,
+> > as SH seems not maintained at the moment.
+> >
+> > Thanks
+> >    j
+> >
+> > ---
+> >  drivers/sh/clk/core.c | 9 ++++++---
+> >  1 file changed, 6 insertions(+), 3 deletions(-)
+> >
+> > diff --git a/drivers/sh/clk/core.c b/drivers/sh/clk/core.c
+> > index 92863e3..d2cb94c 100644
+> > --- a/drivers/sh/clk/core.c
+> > +++ b/drivers/sh/clk/core.c
+> > @@ -198,9 +198,12 @@ int clk_rate_table_find(struct clk *clk,
+> >  {
+> >         struct cpufreq_frequency_table *pos;
+> >
+> > -       cpufreq_for_each_valid_entry(pos, freq_table)
+> > -               if (pos->frequency == rate)
+> > -                       return pos - freq_table;
+> > +       cpufreq_for_each_valid_entry(pos, freq_table) {
+> > +               if (pos->frequency > rate)
+> > +                       continue;
+>
+> This assumes all frequency tables are sorted.
+>
+> Shouldn't you pick the closest frequency?
+>
+> However, that's what clk_rate_table_round() does, which is called from
+> sh_clk_div_round_rate(), and thus already used as .round_rate:
+>
+>     static struct sh_clk_ops sh_clk_div_enable_clk_ops = {
+>             .recalc         = sh_clk_div_recalc,
+>             .set_rate       = sh_clk_div_set_rate,
+>             .round_rate     = sh_clk_div_round_rate,
+>             .enable         = sh_clk_div_enable,
+>             .disable        = sh_clk_div_disable,
+>     };
 
-"This format doesn't guarantee ordered buffer handling. I.e. the order in
-which buffers are dequeued with VIDIOC_DQBUF may be different from the order
-in which they were queued with VIDIOC_QBUF."
+Does this implies clock rates should be set using clk_round_rate() and
+not clk_set_rate() if I understand this right?
 
-(Use proper links to VIDIOC_(D)QBUF)
+>
+> (clk_rate_table_find() is called from sh_clk_div_set_rate())
+>
+> Or are you supposed to ask for the exact clock rate? Where does the 10 MHz
+> come from?
+>
 
-I would also like to see an example of a driver that uses this. The cobalt
-driver is a candidate for this.
+>From board initialization code, in order to provide a valid input
+clock to OV7720 sensor.
 
-Regards,
+The 10MHz seems like a workaround put in place to remove some
+image quality issues, according to the comment:
+https://elixir.free-electrons.com/linux/v4.15-rc9/source/arch/sh/boards/mach-migor/setup.c#L311
 
-	Hans
+Thanks
+   j
 
->  
->  
->  Return Value
-> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-> index 982718965180..58894cfe9479 100644
-> --- a/include/uapi/linux/videodev2.h
-> +++ b/include/uapi/linux/videodev2.h
-> @@ -716,6 +716,7 @@ struct v4l2_fmtdesc {
->  
->  #define V4L2_FMT_FLAG_COMPRESSED 0x0001
->  #define V4L2_FMT_FLAG_EMULATED   0x0002
-> +#define V4L2_FMT_FLAG_UNORDERED  0x0004
->  
->  	/* Frame Size and frame rate enumeration */
->  /*
-> 
+> > +
+> > +               return pos - freq_table;
+> > +       }
+> >
+> >         return -ENOENT;
+> >  }
+>
+> Gr{oetje,eeting}s,
+>
+>                         Geert
+>
+> --
+> Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+>
+> In personal conversations with technical people, I call myself a hacker. But
+> when I'm talking to journalists I just say "programmer" or something like that.
+>                                 -- Linus Torvalds
