@@ -1,141 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:51342 "EHLO
-        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751885AbeAZMna (ORCPT
+Received: from relay4-d.mail.gandi.net ([217.70.183.196]:52901 "EHLO
+        relay4-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752188AbeAZNzx (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 26 Jan 2018 07:43:30 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Daniel Mentz <danielmentz@google.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 07/12] v4l2-compat-ioctl32.c: copy m.userptr in put_v4l2_plane32
-Date: Fri, 26 Jan 2018 13:43:22 +0100
-Message-Id: <20180126124327.16653-8-hverkuil@xs4all.nl>
-In-Reply-To: <20180126124327.16653-1-hverkuil@xs4all.nl>
-References: <20180126124327.16653-1-hverkuil@xs4all.nl>
+        Fri, 26 Jan 2018 08:55:53 -0500
+From: Jacopo Mondi <jacopo+renesas@jmondi.org>
+To: laurent.pinchart@ideasonboard.com, magnus.damm@gmail.com,
+        geert@glider.be, hverkuil@xs4all.nl, mchehab@kernel.org,
+        festevam@gmail.com, sakari.ailus@iki.fi, robh+dt@kernel.org,
+        mark.rutland@arm.com, pombredanne@nexb.com
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-sh@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: [PATCH v7 02/11] include: media: Add Renesas CEU driver interface
+Date: Fri, 26 Jan 2018 14:55:21 +0100
+Message-Id: <1516974930-11713-3-git-send-email-jacopo+renesas@jmondi.org>
+In-Reply-To: <1516974930-11713-1-git-send-email-jacopo+renesas@jmondi.org>
+References: <1516974930-11713-1-git-send-email-jacopo+renesas@jmondi.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Add renesas-ceu header file.
 
-The struct v4l2_plane32 should set m.userptr as well. The same
-happens in v4l2_buffer32 and v4l2-compliance tests for this.
+Do not remove the existing sh_mobile_ceu.h one as long as the original
+driver does not go away.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 47 ++++++++++++++++-----------
- 1 file changed, 28 insertions(+), 19 deletions(-)
+ include/media/drv-intf/renesas-ceu.h | 26 ++++++++++++++++++++++++++
+ 1 file changed, 26 insertions(+)
+ create mode 100644 include/media/drv-intf/renesas-ceu.h
 
-diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-index 809448d1b7db..da8a56818a18 100644
---- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-+++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-@@ -310,19 +310,24 @@ static int get_v4l2_plane32(struct v4l2_plane __user *up, struct v4l2_plane32 __
- 			 sizeof(up->data_offset)))
- 		return -EFAULT;
- 
--	if (memory == V4L2_MEMORY_USERPTR) {
-+	switch (memory) {
-+	case V4L2_MEMORY_MMAP:
-+	case V4L2_MEMORY_OVERLAY:
-+		if (copy_in_user(&up->m.mem_offset, &up32->m.mem_offset,
-+				 sizeof(up32->m.mem_offset)))
-+			return -EFAULT;
-+		break;
-+	case V4L2_MEMORY_USERPTR:
- 		if (get_user(p, &up32->m.userptr))
- 			return -EFAULT;
- 		up_pln = compat_ptr(p);
- 		if (put_user((unsigned long)up_pln, &up->m.userptr))
- 			return -EFAULT;
--	} else if (memory == V4L2_MEMORY_DMABUF) {
-+		break;
-+	case V4L2_MEMORY_DMABUF:
- 		if (copy_in_user(&up->m.fd, &up32->m.fd, sizeof(up32->m.fd)))
- 			return -EFAULT;
--	} else {
--		if (copy_in_user(&up->m.mem_offset, &up32->m.mem_offset,
--				 sizeof(up32->m.mem_offset)))
--			return -EFAULT;
-+		break;
- 	}
- 
- 	return 0;
-@@ -331,22 +336,32 @@ static int get_v4l2_plane32(struct v4l2_plane __user *up, struct v4l2_plane32 __
- static int put_v4l2_plane32(struct v4l2_plane __user *up, struct v4l2_plane32 __user *up32,
- 			    enum v4l2_memory memory)
- {
-+	unsigned long p;
+diff --git a/include/media/drv-intf/renesas-ceu.h b/include/media/drv-intf/renesas-ceu.h
+new file mode 100644
+index 0000000..52841d1
+--- /dev/null
++++ b/include/media/drv-intf/renesas-ceu.h
+@@ -0,0 +1,26 @@
++// SPDX-License-Identifier: GPL-2.0
++/*
++ * renesas-ceu.h - Renesas CEU driver interface
++ *
++ * Copyright 2017-2018 Jacopo Mondi <jacopo+renesas@jmondi.org>
++ */
 +
- 	if (copy_in_user(up32, up, 2 * sizeof(__u32)) ||
- 	    copy_in_user(&up32->data_offset, &up->data_offset,
- 			 sizeof(up->data_offset)))
- 		return -EFAULT;
- 
--	/* For MMAP, driver might've set up the offset, so copy it back.
--	 * USERPTR stays the same (was userspace-provided), so no copying. */
--	if (memory == V4L2_MEMORY_MMAP)
-+	switch (memory) {
-+	case V4L2_MEMORY_MMAP:
-+	case V4L2_MEMORY_OVERLAY:
- 		if (copy_in_user(&up32->m.mem_offset, &up->m.mem_offset,
- 				 sizeof(up->m.mem_offset)))
- 			return -EFAULT;
--	/* For DMABUF, driver might've set up the fd, so copy it back. */
--	if (memory == V4L2_MEMORY_DMABUF)
-+		break;
-+	case V4L2_MEMORY_USERPTR:
-+		if (get_user(p, &up->m.userptr) ||
-+		    put_user((compat_long_t)ptr_to_compat((__force void *)p),
-+			     &up32->m.userptr))
-+			return -EFAULT;
-+		break;
-+	case V4L2_MEMORY_DMABUF:
- 		if (copy_in_user(&up32->m.fd, &up->m.fd,
- 				 sizeof(up->m.fd)))
- 			return -EFAULT;
-+		break;
-+	}
- 
- 	return 0;
- }
-@@ -408,6 +423,7 @@ static int get_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
- 	} else {
- 		switch (kp->memory) {
- 		case V4L2_MEMORY_MMAP:
-+		case V4L2_MEMORY_OVERLAY:
- 			if (get_user(kp->m.offset, &up->m.offset))
- 				return -EFAULT;
- 			break;
-@@ -421,10 +437,6 @@ static int get_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
- 				kp->m.userptr = (unsigned long)compat_ptr(tmp);
- 			}
- 			break;
--		case V4L2_MEMORY_OVERLAY:
--			if (get_user(kp->m.offset, &up->m.offset))
--				return -EFAULT;
--			break;
- 		case V4L2_MEMORY_DMABUF:
- 			if (get_user(kp->m.fd, &up->m.fd))
- 				return -EFAULT;
-@@ -481,6 +493,7 @@ static int put_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
- 	} else {
- 		switch (kp->memory) {
- 		case V4L2_MEMORY_MMAP:
-+		case V4L2_MEMORY_OVERLAY:
- 			if (put_user(kp->m.offset, &up->m.offset))
- 				return -EFAULT;
- 			break;
-@@ -488,10 +501,6 @@ static int put_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
- 			if (put_user(kp->m.userptr, &up->m.userptr))
- 				return -EFAULT;
- 			break;
--		case V4L2_MEMORY_OVERLAY:
--			if (put_user(kp->m.offset, &up->m.offset))
--				return -EFAULT;
--			break;
- 		case V4L2_MEMORY_DMABUF:
- 			if (put_user(kp->m.fd, &up->m.fd))
- 				return -EFAULT;
++#ifndef __MEDIA_DRV_INTF_RENESAS_CEU_H__
++#define __MEDIA_DRV_INTF_RENESAS_CEU_H__
++
++#define CEU_MAX_SUBDEVS		2
++
++struct ceu_async_subdev {
++	unsigned long flags;
++	unsigned char bus_width;
++	unsigned char bus_shift;
++	unsigned int i2c_adapter_id;
++	unsigned int i2c_address;
++};
++
++struct ceu_platform_data {
++	unsigned int num_subdevs;
++	struct ceu_async_subdev subdevs[CEU_MAX_SUBDEVS];
++};
++
++#endif /* ___MEDIA_DRV_INTF_RENESAS_CEU_H__ */
 -- 
-2.15.1
+2.7.4
