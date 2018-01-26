@@ -1,51 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:54885 "EHLO
-        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751199AbeAPKLo (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:40080 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1753079AbeAZOna (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 16 Jan 2018 05:11:44 -0500
-Subject: Re: [PATCH v5 9/9] arch: sh: migor: Use new renesas-ceu camera driver
-To: Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        laurent.pinchart@ideasonboard.com, magnus.damm@gmail.com,
-        geert@glider.be, mchehab@kernel.org, festevam@gmail.com,
-        sakari.ailus@iki.fi, robh+dt@kernel.org, mark.rutland@arm.com,
-        pombredanne@nexb.com
-Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-sh@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-References: <1515765849-10345-1-git-send-email-jacopo+renesas@jmondi.org>
- <1515765849-10345-10-git-send-email-jacopo+renesas@jmondi.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <1c6f7b57-2d0c-50c2-add9-386fe1308adc@xs4all.nl>
-Date: Tue, 16 Jan 2018 11:11:38 +0100
+        Fri, 26 Jan 2018 09:43:30 -0500
+Date: Fri, 26 Jan 2018 16:43:28 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, Daniel Mentz <danielmentz@google.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH 01/12] vivid: fix module load error when enabling fb and
+ no_error_inj=1
+Message-ID: <20180126144328.bt5dq33jncrkx6kz@valkosipuli.retiisi.org.uk>
+References: <20180126124327.16653-1-hverkuil@xs4all.nl>
+ <20180126124327.16653-2-hverkuil@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <1515765849-10345-10-git-send-email-jacopo+renesas@jmondi.org>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20180126124327.16653-2-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/12/2018 03:04 PM, Jacopo Mondi wrote:
-> Migo-R platform uses sh_mobile_ceu camera driver, which is now being
-> replaced by a proper V4L2 camera driver named 'renesas-ceu'.
+On Fri, Jan 26, 2018 at 01:43:16PM +0100, Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
 > 
-> Move Migo-R platform to use the v4l2 renesas-ceu camera driver
-> interface and get rid of soc_camera defined components used to register
-> sensor drivers and of platform specific enable/disable routines.
+> If the framebuffer is enabled and error injection is disabled, then
+> creating the controls for the video output device would fail with an
+> error.
 > 
-> Register clock source and GPIOs for sensor drivers, so they can use
-> clock and gpio APIs.
+> This is because the Clear Framebuffer control uses the 'vivid control
+> class' and that control class isn't added if error injection is disabled.
 > 
-> Also, memory for CEU video buffers is now reserved with membocks APIs,
-> and need to be declared as dma_coherent during machine initialization to
-> remove that architecture specific part from CEU driver.
+> In addition, this control was added to e.g. vbi devices as well, which
+> makes no sense.
 > 
-> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
-> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Move this control to its own control handler and handle it correctly.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-Regards,
-
-        Hans
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
