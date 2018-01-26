@@ -1,167 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:46254 "EHLO
-        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1755993AbeAHO04 (ORCPT
+Received: from mail-ot0-f169.google.com ([74.125.82.169]:34051 "EHLO
+        mail-ot0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751907AbeAZHWu (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 8 Jan 2018 09:26:56 -0500
-Subject: Re: [PATCH 02/11] media: videobuf2: Add new uAPI for DVB streaming
- I/O
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>
-Cc: Satendra Singh Thakur <satendra.t@samsung.com>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        Seung-Woo Kim <sw0312.kim@samsung.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Geunyoung Kim <nenggun.kim@samsung.com>,
-        Philippe Ombredanne <pombredanne@nexb.com>,
-        Inki Dae <inki.dae@samsung.com>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Junghak Sung <jh1009.sung@samsung.com>,
-        devendra sharma <devendra.sharma9091@gmail.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-References: <cover.1513872637.git.mchehab@s-opensource.com>
- <6cb582dc945457e9626561b584d98cd053782481.1513872637.git.mchehab@s-opensource.com>
- <f51752f2-a564-c828-7cce-5bd44222ea22@xs4all.nl>
-Message-ID: <10d07ce3-d035-90b9-eac0-6d9786ae72de@xs4all.nl>
-Date: Mon, 8 Jan 2018 15:26:50 +0100
+        Fri, 26 Jan 2018 02:22:50 -0500
+Received: by mail-ot0-f169.google.com with SMTP id x15so9372436ote.1
+        for <linux-media@vger.kernel.org>; Thu, 25 Jan 2018 23:22:50 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <f51752f2-a564-c828-7cce-5bd44222ea22@xs4all.nl>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Reply-To: klaus.peterschuster@outlook.de
+From: Peter Schuster <femi.ageuh@gmail.com>
+Date: Fri, 26 Jan 2018 08:22:47 +0100
+Message-ID: <CACKcKZ-YTVoO8xO=VcRR-F_91T=fQ=MZa2wBTk_EaRT7GRz52Q@mail.gmail.com>
+Subject: =?UTF-8?Q?Darlehen_Geld_f=C3=BCr_Einzelpersonen_und_Fachleute_in_w?=
+        =?UTF-8?Q?eniger_als_72_Stunden?=
+To: undisclosed-recipients:;
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-A quick follow-up:
+Hallo,
 
-On 01/08/2018 02:54 PM, Hans Verkuil wrote:
->> +/*
->> + * Videobuf operations
->> + */
->> +int dvb_vb2_init(struct dvb_vb2_ctx *ctx, const char *name, int nonblocking)
->> +{
->> +	struct vb2_queue *q = &ctx->vb_q;
->> +	int ret;
->> +
->> +	memset(ctx, 0, sizeof(struct dvb_vb2_ctx));
->> +	q->type = DVB_BUF_TYPE_CAPTURE;
-> 
-> We don't support DVB_BUF_TYPE_OUTPUT? Shouldn't this information come from the
-> driver?
-> 
->> +	/**capture type*/
-> 
-> Why /** ?
-> 
->> +	q->is_output = 0;
-> 
-> Can be dropped unless we support DVB_BUF_TYPE_OUTPUT.
-> 
->> +	/**only mmap is supported currently*/
-> 
-> /** ?
-> 
->> +	q->io_modes = VB2_MMAP;
->> +	q->drv_priv = ctx;
->> +	q->buf_struct_size = sizeof(struct dvb_buffer);
->> +	q->min_buffers_needed = 1;
->> +	q->ops = &dvb_vb2_qops;
->> +	q->mem_ops = &vb2_vmalloc_memops;
->> +	q->buf_ops = &dvb_vb2_buf_ops;
->> +	q->num_buffers = 0;
-> 
-> Not needed, is zeroed in the memset above.
-> 
-> I'm also missing q->timestamp_flags: should be set to V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC.
+Sind Sie in einer schwierigen Situation, f=C3=BCr die Sie sich f=C3=BCr ein
+Darlehen suchen? Ben=C3=B6tigen Sie eine Finanzierung, um eine Schuld zu
+begleichen oder eine Aktivit=C3=A4t zu finanzieren? Haben Sie einen
+Verbraucherkredit, eine Hypothek, einen pers=C3=B6nlichen Kredit, eine
+Hypothek, Investition Darlehen, Schuldenkonsolidierung Darlehen oder
+andere braucht?
 
-Ignore this, see my comments later on.
+Ich bin ein einzelner Investor. I zur Verf=C3=BCgung stellen die Kredit
+kurz-, mittel- und langfristige. Ihr Finanzierungsbedingungen sind
+sehr einfach und meine Zinssatz betr=C3=A4gt 3% pro Jahr.
 
-> 
->> +	ret = vb2_core_queue_init(q);
->> +	if (ret) {
->> +		ctx->state = DVB_VB2_STATE_NONE;
->> +		dprintk(1, "[%s] errno=%d\n", ctx->name, ret);
->> +		return ret;
->> +	}
->> +
->> +	mutex_init(&ctx->mutex);
->> +	spin_lock_init(&ctx->slock);
->> +	INIT_LIST_HEAD(&ctx->dvb_q);
->> +
->> +	strncpy(ctx->name, name, DVB_VB2_NAME_MAX);
-> 
-> I believe strlcpy is recommended.
-> 
->> +	ctx->nonblocking = nonblocking;
->> +	ctx->state = DVB_VB2_STATE_INIT;
->> +
->> +	dprintk(3, "[%s]\n", ctx->name);
->> +
->> +	return 0;
->> +}
+F=C3=BCr alle Anfragen, bleibe ich zur Verf=C3=BCgung, um Ihre Fragen zu be=
+antworten.
 
-<snip>
+Danke, dass Sie mir per E-Mail an Sie von  :   klaus.peterschuster@outlook.=
+de
 
->> diff --git a/include/uapi/linux/dvb/dmx.h b/include/uapi/linux/dvb/dmx.h
->> index c10f1324b4ca..e212aa18ad78 100644
->> --- a/include/uapi/linux/dvb/dmx.h
->> +++ b/include/uapi/linux/dvb/dmx.h
->> @@ -211,6 +211,64 @@ struct dmx_stc {
->>  	__u64 stc;
->>  };
->>  
->> +/**
->> + * struct dmx_buffer - dmx buffer info
->> + *
->> + * @index:	id number of the buffer
->> + * @bytesused:	number of bytes occupied by data in the buffer (payload);
->> + * @offset:	for buffers with memory == DMX_MEMORY_MMAP;
->> + *		offset from the start of the device memory for this plane,
->> + *		(or a "cookie" that should be passed to mmap() as offset)
-> 
-> Since we only support MMAP this is always a 'cookie' in practice. So I think this
-> should just be:
-> 
-> 	A "cookie" that should be passed to mmap() as offset.
-> 
->> + * @length:	size in bytes of the buffer
->> + *
->> + * Contains data exchanged by application and driver using one of the streaming
->> + * I/O methods.
->> + */
->> +struct dmx_buffer {
->> +	__u32			index;
->> +	__u32			bytesused;
->> +	__u32			offset;
-> 
-> I suggest making this a __u64: that way we can handle pointers as well in
-> the future if we need them (as we do for the USERPTR case for V4L2).
-> 
-> Should this also be wrapped in a union? Useful when adding dmabuf support in the
-> future.
-> 
-> Do you think there is any use-case for multiplanar formats in the future?
-> With perhaps meta data in a separate plane? Having to add support for this later
-> has proven to be very painful, so we need to be as certain as possible that
-> this isn't going to happen. Otherwise it's better to prepare for this right now.
-> 
->> +	__u32			length;
->> +	__u32			reserved[4];
-> 
-> I do believe you need a memory field as well. It's only MMAP today, but in
-> the future DMABUF will most likely be supported as well and you need to be
-> able to tell what memory mode is being used.
-> 
->> +};
+Mit freundlichen Gr=C3=BC=C3=9Fen.
 
-There is no 'flags' field here. But without that you cannot check the buffer
-states, esp. the ERROR state. Or can that never happen?
+Peter Schuster
 
-Would a timestamp field be useful, if only for debugging?
-
-Regards,
-
-	Hans
+Financial Bank
+https://firstfinancialsa.com/de
