@@ -1,41 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f51.google.com ([209.85.218.51]:46439 "EHLO
-        mail-oi0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750764AbeAPRKM (ORCPT
+Received: from relay4-d.mail.gandi.net ([217.70.183.196]:40374 "EHLO
+        relay4-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752545AbeAZN4j (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 16 Jan 2018 12:10:12 -0500
-MIME-Version: 1.0
-In-Reply-To: <1517434.pRS3rpdWG0@avalon>
-References: <20171127132027.1734806-1-arnd@arndb.de> <20171127132027.1734806-5-arnd@arndb.de>
- <1517434.pRS3rpdWG0@avalon>
-From: Arnd Bergmann <arnd@arndb.de>
-Date: Tue, 16 Jan 2018 18:10:10 +0100
-Message-ID: <CAK8P3a0wscoLR7+VRQ9JC=5ffZWp_SLx=o-kdYvQK-S=6hM--A@mail.gmail.com>
-Subject: Re: [PATCH 5/8] [media] omap3isp: support 64-bit version of omap3isp_stat_data
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        y2038 Mailman List <y2038@lists.linaro.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Sakari Ailus <sakari.ailus@iki.fi>
-Content-Type: text/plain; charset="UTF-8"
+        Fri, 26 Jan 2018 08:56:39 -0500
+From: Jacopo Mondi <jacopo+renesas@jmondi.org>
+To: laurent.pinchart@ideasonboard.com, magnus.damm@gmail.com,
+        geert@glider.be, hverkuil@xs4all.nl, mchehab@kernel.org,
+        festevam@gmail.com, sakari.ailus@iki.fi, robh+dt@kernel.org,
+        mark.rutland@arm.com, pombredanne@nexb.com
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-sh@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: [PATCH v7 11/11] media: i2c: ov7670: Fully set mbus frame fmt
+Date: Fri, 26 Jan 2018 14:55:30 +0100
+Message-Id: <1516974930-11713-12-git-send-email-jacopo+renesas@jmondi.org>
+In-Reply-To: <1516974930-11713-1-git-send-email-jacopo+renesas@jmondi.org>
+References: <1516974930-11713-1-git-send-email-jacopo+renesas@jmondi.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Dec 5, 2017 at 1:41 AM, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
-> Hi Arnd,
->
-> Thank you for the patch.
->
-> I'll try to review this without too much delay. In the meantime, I'm CC'ing
-> Sakari Ailus who might be faster than me :-)
+The sensor driver sets mbus format colorspace information and sizes,
+but not ycbcr encoding, quantization and xfer function. When supplied
+with an badly initialized mbus frame format structure, those fields
+need to be set explicitly not to leave them uninitialized. This is
+tested by v4l2-compliance, which supplies a mbus format description
+structure and checks for all fields to be properly set.
 
-Hi Laurent and Sakari,
+Without this commit, v4l2-compliance fails when testing formats with:
+fail: v4l2-test-formats.cpp(335): ycbcr_enc >= 0xff
 
-I stumbled over this while cleaning out my backlog of patches. Any chance one
-of you can have a look at this one? It's not needed for the 4.16 merge window,
-but we do need it at some point and I would like to not see it again the next
-time I clean out my old patches ;-)
+Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+---
+ drivers/media/i2c/ov7670.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-      Arnd
+diff --git a/drivers/media/i2c/ov7670.c b/drivers/media/i2c/ov7670.c
+index 25b26d4..61c472e 100644
+--- a/drivers/media/i2c/ov7670.c
++++ b/drivers/media/i2c/ov7670.c
+@@ -996,6 +996,10 @@ static int ov7670_try_fmt_internal(struct v4l2_subdev *sd,
+ 	fmt->height = wsize->height;
+ 	fmt->colorspace = ov7670_formats[index].colorspace;
+ 
++	fmt->ycbcr_enc = V4L2_YCBCR_ENC_DEFAULT;
++	fmt->quantization = V4L2_QUANTIZATION_DEFAULT;
++	fmt->xfer_func = V4L2_XFER_FUNC_DEFAULT;
++
+ 	info->format = *fmt;
+ 
+ 	return 0;
+-- 
+2.7.4
