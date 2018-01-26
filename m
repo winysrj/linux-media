@@ -1,357 +1,220 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay2-d.mail.gandi.net ([217.70.183.194]:39361 "EHLO
-        relay2-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752219AbeAETBi (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 5 Jan 2018 14:01:38 -0500
-Date: Fri, 5 Jan 2018 20:01:29 +0100
-From: jacopo mondi <jacopo@jmondi.org>
-To: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: linux-media@vger.kernel.org,
-        "H . Nikolaus Schaller" <hns@goldelico.com>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Rob Herring <robh@kernel.org>
-Subject: Re: [PATCH] media: ov9650: support device tree probing
-Message-ID: <20180105190129.GL9493@w540>
-References: <1515174543-31121-1-git-send-email-akinobu.mita@gmail.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:40576 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751406AbeAZPUu (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 26 Jan 2018 10:20:50 -0500
+Date: Fri, 26 Jan 2018 17:20:47 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, Daniel Mentz <danielmentz@google.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH 05/12] v4l2-compat-ioctl32.c: move 'helper' functions to
+ __get/put_v4l2_format32
+Message-ID: <20180126152047.qoelntpxjptuf32a@valkosipuli.retiisi.org.uk>
+References: <20180126124327.16653-1-hverkuil@xs4all.nl>
+ <20180126124327.16653-6-hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <1515174543-31121-1-git-send-email-akinobu.mita@gmail.com>
+In-Reply-To: <20180126124327.16653-6-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Akinobu,
+Hi Hans,
 
-On Sat, Jan 06, 2018 at 02:49:03AM +0900, Akinobu Mita wrote:
-> The ov9650 driver currently only supports legacy platform data probe.
-> This change adds device tree probing.
->
-> There has been an attempt to add device tree support for ov9650 driver
-> by Hugues Fruchet as a part of the patchset that adds support of OV9655
-> camera (http://www.spinics.net/lists/linux-media/msg117903.html), but
-> it wasn't merged into mainline because creating a separate driver for
-> OV9655 is preferred.
->
-> This is very similar to Hugues's patch, but not supporting new device.
->
-> Cc: H. Nikolaus Schaller <hns@goldelico.com>
-> Cc: Hugues Fruchet <hugues.fruchet@st.com>
-> Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
-> Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-> Cc: Rob Herring <robh@kernel.org>
-> Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
+On Fri, Jan 26, 2018 at 01:43:20PM +0100, Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> These helper functions do not really help. Move the code to the
+> __get/put_v4l2_format32 functions.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 > ---
->  .../devicetree/bindings/media/i2c/ov9650.txt       |  35 +++++++
->  drivers/media/i2c/ov9650.c                         | 107 ++++++++++++++++-----
-
-I'm not sure if separating bindings patches from implementation is
-mandatory only for newly introduced bindings or this holds true also for
-changes to existing bindings.
-
-I think it's anyway good to separate them, and please CC devicetree ml
-
-
->  2 files changed, 117 insertions(+), 25 deletions(-)
->  create mode 100644 Documentation/devicetree/bindings/media/i2c/ov9650.txt
->
-> diff --git a/Documentation/devicetree/bindings/media/i2c/ov9650.txt b/Documentation/devicetree/bindings/media/i2c/ov9650.txt
-> new file mode 100644
-> index 0000000..aa5024d
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/media/i2c/ov9650.txt
-> @@ -0,0 +1,35 @@
-> +* Omnivision OV9650/OV9652 CMOS sensor
-> +
-> +Required Properties:
-> +- compatible: should be one of
-
-s/should/shall
-
-> +	"ovti,ov9650"
-> +	"ovti,ov9652"
-> +- clocks: reference to the xvclk input clock.
-> +
-> +Optional Properties:
-> +- reset-gpios: reference to the GPIO connected to the resetb pin, if any.
-> +  Active is high.
-> +- powerdown-gpios: reference to the GPIO connected to the pwdn pin, if any.
-> +  Active is high.
-> +
-> +The device node must contain one 'port' child node for its digital output
-> +video port, in accordance with the video interface bindings defined in
-> +Documentation/devicetree/bindings/media/video-interfaces.txt.
-> +
-> +Example:
-> +
-> +&i2c0 {
-> +	ov9650: camera@30 {
-> +		compatible = "ovti,ov9650";
-> +		reg = <0x30>;
-> +		reset-gpios = <&axi_gpio_0 0 GPIO_ACTIVE_HIGH>;
-> +		powerdown-gpios = <&axi_gpio_0 1 GPIO_ACTIVE_HIGH>;
-> +		clocks = <&xclk>;
-> +
-> +		port {
-> +			ov9650_0: endpoint {
-> +				remote-endpoint = <&vcap1_in0>;
-> +			};
-> +		};
-> +	};
-> +};
-> diff --git a/drivers/media/i2c/ov9650.c b/drivers/media/i2c/ov9650.c
-> index 69433e1..1affdc0 100644
-> --- a/drivers/media/i2c/ov9650.c
-> +++ b/drivers/media/i2c/ov9650.c
-> @@ -11,8 +11,10 @@
->   * it under the terms of the GNU General Public License version 2 as
->   * published by the Free Software Foundation.
->   */
-> +#include <linux/clk.h>
->  #include <linux/delay.h>
->  #include <linux/gpio.h>
-> +#include <linux/gpio/consumer.h>
->  #include <linux/i2c.h>
->  #include <linux/kernel.h>
->  #include <linux/media.h>
-> @@ -249,9 +251,10 @@ struct ov965x {
->  	struct v4l2_subdev sd;
->  	struct media_pad pad;
->  	enum v4l2_mbus_type bus_type;
-> -	int gpios[NUM_GPIOS];
-> +	struct gpio_desc *gpios[NUM_GPIOS];
->  	/* External master clock frequency */
->  	unsigned long mclk_frequency;
-> +	struct clk *clk;
->
->  	/* Protects the struct fields below */
->  	struct mutex lock;
-> @@ -513,10 +516,9 @@ static int ov965x_set_color_matrix(struct ov965x *ov965x)
+>  drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 124 +++++---------------------
+>  1 file changed, 24 insertions(+), 100 deletions(-)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+> index 83066b21b0b2..2dd9b42d5859 100644
+> --- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+> +++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+> @@ -92,92 +92,6 @@ static int put_v4l2_window32(struct v4l2_window *kp, struct v4l2_window32 __user
 >  	return 0;
 >  }
->
-> -static void ov965x_gpio_set(int gpio, int val)
-> +static void ov965x_gpio_set(struct gpio_desc *gpio, int val)
->  {
-> -	if (gpio_is_valid(gpio))
-> -		gpio_set_value(gpio, val);
-> +	gpiod_set_value_cansleep(gpio, val);
->  }
-
-I see this function being used in very few places, can you replace it
-with a call to 'gpiod_set_value_cansleep()' as that's the only thing
-it actually does?
-
->
->  static void __ov965x_set_power(struct ov965x *ov965x, int on)
-> @@ -1408,16 +1410,17 @@ static const struct v4l2_subdev_ops ov965x_subdev_ops = {
->  /*
->   * Reset and power down GPIOs configuration
->   */
-> -static int ov965x_configure_gpios(struct ov965x *ov965x,
-> -				  const struct ov9650_platform_data *pdata)
-> +static int ov965x_configure_gpios_pdata(struct ov965x *ov965x,
-> +				const struct ov9650_platform_data *pdata)
->  {
->  	int ret, i;
-> +	int gpios[NUM_GPIOS];
->
-> -	ov965x->gpios[GPIO_PWDN] = pdata->gpio_pwdn;
-> -	ov965x->gpios[GPIO_RST]  = pdata->gpio_reset;
-> +	gpios[GPIO_PWDN] = pdata->gpio_pwdn;
-> +	gpios[GPIO_RST]  = pdata->gpio_reset;
->
->  	for (i = 0; i < ARRAY_SIZE(ov965x->gpios); i++) {
-> -		int gpio = ov965x->gpios[i];
-> +		int gpio = gpios[i];
->
->  		if (!gpio_is_valid(gpio))
->  			continue;
-> @@ -1427,14 +1430,52 @@ static int ov965x_configure_gpios(struct ov965x *ov965x,
->  			return ret;
->  		v4l2_dbg(1, debug, &ov965x->sd, "set gpio %d to 1\n", gpio);
->
-> -		gpio_set_value(gpio, 1);
-> +		gpio_set_value_cansleep(gpio, 1);
->  		gpio_export(gpio, 0);
-> -		ov965x->gpios[i] = gpio;
-> +		ov965x->gpios[i] = gpio_to_desc(gpio);
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +static int ov965x_configure_gpios(struct ov965x *ov965x)
-> +{
-> +	struct device *dev = &ov965x->client->dev;
-> +
-> +	ov965x->gpios[GPIO_PWDN] = devm_gpiod_get_optional(dev, "powerdown",
-> +							GPIOD_OUT_HIGH);
-> +	if (IS_ERR(ov965x->gpios[GPIO_PWDN])) {
-> +		dev_info(dev, "can't get %s GPIO\n", "powerdown");
-> +		return PTR_ERR(ov965x->gpios[GPIO_PWDN]);
-> +	}
-> +
-> +	ov965x->gpios[GPIO_RST] = devm_gpiod_get_optional(dev, "reset",
-> +							GPIOD_OUT_HIGH);
-> +	if (IS_ERR(ov965x->gpios[GPIO_RST])) {
-> +		dev_info(dev, "can't get %s GPIO\n", "reset");
-> +		return PTR_ERR(ov965x->gpios[GPIO_RST]);
->  	}
->
->  	return 0;
->  }
->
-> +static int ov965x_configure_clk(struct ov965x *ov965x)
-> +{
-> +	int ret;
-> +
-> +	ov965x->clk = devm_clk_get(&ov965x->client->dev, NULL);
-> +	if (IS_ERR(ov965x->clk))
-> +		return PTR_ERR(ov965x->clk);
-> +
-> +	ret = clk_prepare_enable(ov965x->clk);
-> +	if (ret)
-> +		return ret;
-> +
-> +	ov965x->mclk_frequency = clk_get_rate(ov965x->clk);
-> +
-> +	return 0;
-> +}
-> +
->  static int ov965x_detect_sensor(struct v4l2_subdev *sd)
->  {
->  	struct i2c_client *client = v4l2_get_subdevdata(sd);
-> @@ -1476,23 +1517,25 @@ static int ov965x_probe(struct i2c_client *client,
->  	struct ov965x *ov965x;
->  	int ret;
->
-> -	if (!pdata) {
-> -		dev_err(&client->dev, "platform data not specified\n");
-> -		return -EINVAL;
-> -	}
+>  
+> -static inline int get_v4l2_pix_format(struct v4l2_pix_format *kp, struct v4l2_pix_format __user *up)
+> -{
+> -	if (copy_from_user(kp, up, sizeof(struct v4l2_pix_format)))
+> -		return -EFAULT;
+> -	return 0;
+> -}
 > -
-> -	if (pdata->mclk_frequency == 0) {
-> -		dev_err(&client->dev, "MCLK frequency not specified\n");
-> -		return -EINVAL;
-> -	}
+> -static inline int get_v4l2_pix_format_mplane(struct v4l2_pix_format_mplane *kp,
+> -					     struct v4l2_pix_format_mplane __user *up)
+> -{
+> -	if (copy_from_user(kp, up, sizeof(struct v4l2_pix_format_mplane)))
+> -		return -EFAULT;
+> -	return 0;
+> -}
 > -
->  	ov965x = devm_kzalloc(&client->dev, sizeof(*ov965x), GFP_KERNEL);
->  	if (!ov965x)
->  		return -ENOMEM;
->
->  	mutex_init(&ov965x->lock);
->  	ov965x->client = client;
-> -	ov965x->mclk_frequency = pdata->mclk_frequency;
-> +
-> +	if (pdata) {
-> +		ov965x->mclk_frequency = pdata->mclk_frequency;
-> +		if (ov965x->mclk_frequency == 0) {
-> +			dev_err(&client->dev, "MCLK frequency not specified\n");
-> +			ret = -EINVAL;
-> +			goto err_mutex;
-> +		}
-> +	} else {
-> +		ret = ov965x_configure_clk(ov965x);
-> +		if (ret)
-> +			goto err_mutex;
-> +	}
->
->  	sd = &ov965x->sd;
->  	v4l2_i2c_subdev_init(sd, client, &ov965x_subdev_ops);
-> @@ -1502,15 +1545,18 @@ static int ov965x_probe(struct i2c_client *client,
->  	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE |
->  		     V4L2_SUBDEV_FL_HAS_EVENTS;
->
-> -	ret = ov965x_configure_gpios(ov965x, pdata);
-> +	if (pdata)
-> +		ret = ov965x_configure_gpios_pdata(ov965x, pdata);
-> +	else
-> +		ret = ov965x_configure_gpios(ov965x);
+> -static inline int put_v4l2_pix_format(struct v4l2_pix_format *kp, struct v4l2_pix_format __user *up)
+> -{
+> -	if (copy_to_user(up, kp, sizeof(struct v4l2_pix_format)))
+> -		return -EFAULT;
+> -	return 0;
+> -}
+> -
+> -static inline int put_v4l2_pix_format_mplane(struct v4l2_pix_format_mplane *kp,
+> -					     struct v4l2_pix_format_mplane __user *up)
+> -{
+> -	if (copy_to_user(up, kp, sizeof(struct v4l2_pix_format_mplane)))
+> -		return -EFAULT;
+> -	return 0;
+> -}
+> -
+> -static inline int get_v4l2_vbi_format(struct v4l2_vbi_format *kp, struct v4l2_vbi_format __user *up)
+> -{
+> -	if (copy_from_user(kp, up, sizeof(struct v4l2_vbi_format)))
+> -		return -EFAULT;
+> -	return 0;
+> -}
+> -
+> -static inline int put_v4l2_vbi_format(struct v4l2_vbi_format *kp, struct v4l2_vbi_format __user *up)
+> -{
+> -	if (copy_to_user(up, kp, sizeof(struct v4l2_vbi_format)))
+> -		return -EFAULT;
+> -	return 0;
+> -}
+> -
+> -static inline int get_v4l2_sliced_vbi_format(struct v4l2_sliced_vbi_format *kp, struct v4l2_sliced_vbi_format __user *up)
+> -{
+> -	if (copy_from_user(kp, up, sizeof(struct v4l2_sliced_vbi_format)))
+> -		return -EFAULT;
+> -	return 0;
+> -}
+> -
+> -static inline int put_v4l2_sliced_vbi_format(struct v4l2_sliced_vbi_format *kp, struct v4l2_sliced_vbi_format __user *up)
+> -{
+> -	if (copy_to_user(up, kp, sizeof(struct v4l2_sliced_vbi_format)))
+> -		return -EFAULT;
+> -	return 0;
+> -}
+> -
+> -static inline int get_v4l2_sdr_format(struct v4l2_sdr_format *kp, struct v4l2_sdr_format __user *up)
+> -{
+> -	if (copy_from_user(kp, up, sizeof(struct v4l2_sdr_format)))
+> -		return -EFAULT;
+> -	return 0;
+> -}
+> -
+> -static inline int put_v4l2_sdr_format(struct v4l2_sdr_format *kp, struct v4l2_sdr_format __user *up)
+> -{
+> -	if (copy_to_user(up, kp, sizeof(struct v4l2_sdr_format)))
+> -		return -EFAULT;
+> -	return 0;
+> -}
+> -
+> -static inline int get_v4l2_meta_format(struct v4l2_meta_format *kp, struct v4l2_meta_format __user *up)
+> -{
+> -	if (copy_from_user(kp, up, sizeof(struct v4l2_meta_format)))
+> -		return -EFAULT;
+> -	return 0;
+> -}
+> -
+> -static inline int put_v4l2_meta_format(struct v4l2_meta_format *kp, struct v4l2_meta_format __user *up)
+> -{
+> -	if (copy_to_user(up, kp, sizeof(struct v4l2_meta_format)))
+> -		return -EFAULT;
+> -	return 0;
+> -}
+> -
+>  struct v4l2_format32 {
+>  	__u32	type;	/* enum v4l2_buf_type */
+>  	union {
+> @@ -217,25 +131,30 @@ static int __get_v4l2_format32(struct v4l2_format *kp, struct v4l2_format32 __us
+>  	switch (kp->type) {
+>  	case V4L2_BUF_TYPE_VIDEO_CAPTURE:
+>  	case V4L2_BUF_TYPE_VIDEO_OUTPUT:
+> -		return get_v4l2_pix_format(&kp->fmt.pix, &up->fmt.pix);
+> +		return copy_from_user(&kp->fmt.pix, &up->fmt.pix,
+> +				      sizeof(kp->fmt.pix)) ? -EFAULT : 0;
+>  	case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
+>  	case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
+> -		return get_v4l2_pix_format_mplane(&kp->fmt.pix_mp,
+> -						  &up->fmt.pix_mp);
+> +		return copy_from_user(&kp->fmt.pix_mp, &up->fmt.pix_mp,
+> +				      sizeof(kp->fmt.pix_mp)) ? -EFAULT : 0;
+>  	case V4L2_BUF_TYPE_VIDEO_OVERLAY:
+>  	case V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY:
+>  		return get_v4l2_window32(&kp->fmt.win, &up->fmt.win);
+>  	case V4L2_BUF_TYPE_VBI_CAPTURE:
+>  	case V4L2_BUF_TYPE_VBI_OUTPUT:
+> -		return get_v4l2_vbi_format(&kp->fmt.vbi, &up->fmt.vbi);
+> +		return copy_from_user(&kp->fmt.vbi, &up->fmt.vbi,
+> +				      sizeof(kp->fmt.vbi)) ? -EFAULT : 0;
+>  	case V4L2_BUF_TYPE_SLICED_VBI_CAPTURE:
+>  	case V4L2_BUF_TYPE_SLICED_VBI_OUTPUT:
+> -		return get_v4l2_sliced_vbi_format(&kp->fmt.sliced, &up->fmt.sliced);
+> +		return copy_from_user(&kp->fmt.sliced, &up->fmt.sliced,
+> +				      sizeof(kp->fmt.sliced)) ? -EFAULT : 0;
+>  	case V4L2_BUF_TYPE_SDR_CAPTURE:
+>  	case V4L2_BUF_TYPE_SDR_OUTPUT:
+> -		return get_v4l2_sdr_format(&kp->fmt.sdr, &up->fmt.sdr);
+> +		return copy_from_user(&kp->fmt.sdr, &up->fmt.sdr,
+> +				      sizeof(kp->fmt.sdr)) ? -EFAULT : 0;
+>  	case V4L2_BUF_TYPE_META_CAPTURE:
+> -		return get_v4l2_meta_format(&kp->fmt.meta, &up->fmt.meta);
+> +		return copy_from_user(&kp->fmt.meta, &up->fmt.meta,
+> +				      sizeof(kp->fmt.meta)) ? -EFAULT : 0;
+>  	default:
+>  		pr_info("compat_ioctl32: unexpected VIDIOC_FMT type %d\n",
+>  			kp->type);
+> @@ -266,25 +185,30 @@ static int __put_v4l2_format32(struct v4l2_format *kp, struct v4l2_format32 __us
+>  	switch (kp->type) {
+>  	case V4L2_BUF_TYPE_VIDEO_CAPTURE:
+>  	case V4L2_BUF_TYPE_VIDEO_OUTPUT:
+> -		return put_v4l2_pix_format(&kp->fmt.pix, &up->fmt.pix);
+> +		return copy_to_user(&up->fmt.pix, &kp->fmt.pix,
+> +				    sizeof(kp->fmt.pix)) ?  -EFAULT : 0;
 
-I would unify clk and gpio configuration in a single
+Two spaces after "?". Same below. Just one would be nice.
 
-if (pdata) {
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 
-} else {
+>  	case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
+>  	case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
+> -		return put_v4l2_pix_format_mplane(&kp->fmt.pix_mp,
+> -						  &up->fmt.pix_mp);
+> +		return copy_to_user(&up->fmt.pix_mp, &kp->fmt.pix_mp,
+> +				    sizeof(kp->fmt.pix_mp)) ?  -EFAULT : 0;
+>  	case V4L2_BUF_TYPE_VIDEO_OVERLAY:
+>  	case V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY:
+>  		return put_v4l2_window32(&kp->fmt.win, &up->fmt.win);
+>  	case V4L2_BUF_TYPE_VBI_CAPTURE:
+>  	case V4L2_BUF_TYPE_VBI_OUTPUT:
+> -		return put_v4l2_vbi_format(&kp->fmt.vbi, &up->fmt.vbi);
+> +		return copy_to_user(&up->fmt.vbi, &kp->fmt.vbi,
+> +				    sizeof(kp->fmt.vbi)) ?  -EFAULT : 0;
+>  	case V4L2_BUF_TYPE_SLICED_VBI_CAPTURE:
+>  	case V4L2_BUF_TYPE_SLICED_VBI_OUTPUT:
+> -		return put_v4l2_sliced_vbi_format(&kp->fmt.sliced, &up->fmt.sliced);
+> +		return copy_to_user(&up->fmt.sliced, &kp->fmt.sliced,
+> +				    sizeof(kp->fmt.sliced)) ?  -EFAULT : 0;
+>  	case V4L2_BUF_TYPE_SDR_CAPTURE:
+>  	case V4L2_BUF_TYPE_SDR_OUTPUT:
+> -		return put_v4l2_sdr_format(&kp->fmt.sdr, &up->fmt.sdr);
+> +		return copy_to_user(&up->fmt.sdr, &kp->fmt.sdr,
+> +				    sizeof(kp->fmt.sdr)) ?  -EFAULT : 0;
+>  	case V4L2_BUF_TYPE_META_CAPTURE:
+> -		return put_v4l2_meta_format(&kp->fmt.meta, &up->fmt.meta);
+> +		return copy_to_user(&up->fmt.meta, &kp->fmt.meta,
+> +				    sizeof(kp->fmt.meta)) ?  -EFAULT : 0;
+>  	default:
+>  		pr_info("compat_ioctl32: unexpected VIDIOC_FMT type %d\n",
+>  			kp->type);
 
-}
+-- 
+Regards,
 
-Not sure how it would look though. Up to you....
-
-Also, I would make sure one of pdata and fwnode is actually supported
-
-if (pdata) {
-
-} else if (dev_fwnode(&client->dev)) {
-
-} else {
-        dev_err(...);
-        ....
-}
-
->  	if (ret < 0)
-> -		goto err_mutex;
-> +		goto err_clk;
->
->  	ov965x->pad.flags = MEDIA_PAD_FL_SOURCE;
->  	sd->entity.function = MEDIA_ENT_F_CAM_SENSOR;
->  	ret = media_entity_pads_init(&sd->entity, 1, &ov965x->pad);
->  	if (ret < 0)
-> -		goto err_mutex;
-> +		goto err_clk;
->
->  	ret = ov965x_initialize_controls(ov965x);
->  	if (ret < 0)
-> @@ -1536,6 +1582,8 @@ static int ov965x_probe(struct i2c_client *client,
->  	v4l2_ctrl_handler_free(sd->ctrl_handler);
->  err_me:
->  	media_entity_cleanup(&sd->entity);
-> +err_clk:
-> +	clk_disable_unprepare(ov965x->clk);
->  err_mutex:
->  	mutex_destroy(&ov965x->lock);
->  	return ret;
-> @@ -1549,6 +1597,7 @@ static int ov965x_remove(struct i2c_client *client)
->  	v4l2_async_unregister_subdev(sd);
->  	v4l2_ctrl_handler_free(sd->ctrl_handler);
->  	media_entity_cleanup(&sd->entity);
-> +	clk_disable_unprepare(ov965x->clk);
->  	mutex_destroy(&ov965x->lock);
->
->  	return 0;
-> @@ -1561,9 +1610,17 @@ static const struct i2c_device_id ov965x_id[] = {
->  };
->  MODULE_DEVICE_TABLE(i2c, ov965x_id);
->
-> +static const struct of_device_id ov965x_of_match[] = {
-> +	{ .compatible = "ovti,ov9650", },
-> +	{ .compatible = "ovti,ov9652", },
-> +	{ /* sentinel */ }
-> +};
-> +MODULE_DEVICE_TABLE(of, ov965x_of_match);
-> +
-
-Please guard this with
-
-#if IS_ENABLED(CONFIG_OF)
-
-#endif
-
->  static struct i2c_driver ov965x_i2c_driver = {
->  	.driver = {
->  		.name	= DRIVER_NAME,
-> +		.of_match_table = ov965x_of_match,
-
-Same here.
-
-Thanks
-   j
-
->  	},
->  	.probe		= ov965x_probe,
->  	.remove		= ov965x_remove,
-> --
-> 2.7.4
->
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
