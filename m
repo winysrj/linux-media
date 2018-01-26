@@ -1,96 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f195.google.com ([209.85.216.195]:36311 "EHLO
-        mail-qt0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756447AbeATTTx (ORCPT
+Received: from mail-pg0-f67.google.com ([74.125.83.67]:38376 "EHLO
+        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751926AbeAZGDB (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 20 Jan 2018 14:19:53 -0500
-Received: by mail-qt0-f195.google.com with SMTP id z11so11783092qtm.3
-        for <linux-media@vger.kernel.org>; Sat, 20 Jan 2018 11:19:52 -0800 (PST)
-Date: Sat, 20 Jan 2018 14:19:14 -0500
-From: Douglas Fischer <fischerdouglasc@gmail.com>
-To: hverkuil@xs4all.nl, linux-media@vger.kernel.org
-Subject: [PATCH] media: radio: Tuning bugfix for si470x over i2c
-Message-ID: <20180120141914.233d6d00@Constantine>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+        Fri, 26 Jan 2018 01:03:01 -0500
+Received: by mail-pg0-f67.google.com with SMTP id y27so6617113pgc.5
+        for <linux-media@vger.kernel.org>; Thu, 25 Jan 2018 22:03:01 -0800 (PST)
+From: Alexandre Courbot <acourbot@chromium.org>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Pawel Osciak <posciak@chromium.org>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Tomasz Figa <tfiga@chromium.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Gustavo Padovan <gustavo.padovan@collabora.com>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Alexandre Courbot <acourbot@chromium.org>
+Subject: [RFC PATCH 7/8] media: vim2m: add media device
+Date: Fri, 26 Jan 2018 15:02:15 +0900
+Message-Id: <20180126060216.147918-8-acourbot@chromium.org>
+In-Reply-To: <20180126060216.147918-1-acourbot@chromium.org>
+References: <20180126060216.147918-1-acourbot@chromium.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fixed si470x_set_channel() trying to tune before chip is turned
-on, which causes warnings in dmesg and when probing, makes driver
-wait for 3s for tuning timeout. This issue did not affect USB
-devices because they have a different probing sequence.
+Request API requires a media node. Add one to the vim2m driver so we can
+use requests with it.
 
-Signed-off-by: Douglas Fischer <fischerdouglasc@gmail.com>
+Signed-off-by: Alexandre Courbot <acourbot@chromium.org>
 ---
+ drivers/media/platform/vim2m.c | 24 ++++++++++++++++++++++++
+ 1 file changed, 24 insertions(+)
 
-diff -uprN linux.orig/drivers/media/radio/si470x/radio-si470x-common.c
-linux/drivers/media/radio/si470x/radio-si470x-common.c ---
-linux.orig/drivers/media/radio/si470x/radio-si470x-common.c
-2018-01-15 21:58:10.675620432 -0500 +++
-linux/drivers/media/radio/si470x/radio-si470x-common.c
-2018-01-16 17:04:59.706409128 -0500 @@ -207,29 +207,37 @@ static int
-si470x_set_chan(struct si470x unsigned long time_left; bool timed_out =
-false; 
--	/* start tuning */
--	radio->registers[CHANNEL] &= ~CHANNEL_CHAN;
--	radio->registers[CHANNEL] |= CHANNEL_TUNE | chan;
--	retval = si470x_set_register(radio, CHANNEL);
--	if (retval < 0)
--		goto done;
-+	retval = si470x_get_register(radio, POWERCFG);
-+	if (retval)
-+		return retval;
+diff --git a/drivers/media/platform/vim2m.c b/drivers/media/platform/vim2m.c
+index b01fba020d5f..a32e8a7950eb 100644
+--- a/drivers/media/platform/vim2m.c
++++ b/drivers/media/platform/vim2m.c
+@@ -140,6 +140,9 @@ static struct vim2m_fmt *find_format(struct v4l2_format *f)
+ struct vim2m_dev {
+ 	struct v4l2_device	v4l2_dev;
+ 	struct video_device	vfd;
++#ifdef CONFIG_MEDIA_CONTROLLER
++	struct media_device	mdev;
++#endif
  
--	/* wait till tune operation has completed */
--	reinit_completion(&radio->completion);
--	time_left = wait_for_completion_timeout(&radio->completion,
--
-msecs_to_jiffies(tune_timeout));
--	if (time_left == 0)
--		timed_out = true;
-+	if ( (radio->registers[POWERCFG] & POWERCFG_ENABLE) && 
-+		(radio->registers[POWERCFG] & POWERCFG_DMUTE) ) { 
+ 	atomic_t		num_inst;
+ 	struct mutex		dev_mutex;
+@@ -1001,6 +1004,13 @@ static int vim2m_probe(struct platform_device *pdev)
  
--	if ((radio->registers[STATUSRSSI] & STATUSRSSI_STC) == 0)
--		dev_warn(&radio->videodev.dev, "tune does not
-complete\n");
--	if (timed_out)
--		dev_warn(&radio->videodev.dev,
--			"tune timed out after %u ms\n", tune_timeout);
-+		/* start tuning */
-+		radio->registers[CHANNEL] &= ~CHANNEL_CHAN;
-+		radio->registers[CHANNEL] |= CHANNEL_TUNE | chan;
-+		retval = si470x_set_register(radio, CHANNEL);
-+		if (retval < 0)
-+			goto done;
+ 	spin_lock_init(&dev->irqlock);
  
--	/* stop tuning */
--	radio->registers[CHANNEL] &= ~CHANNEL_TUNE;
--	retval = si470x_set_register(radio, CHANNEL);
-+		/* wait till tune operation has completed */
-+		reinit_completion(&radio->completion);
-+		time_left =
-wait_for_completion_timeout(&radio->completion,
++#ifdef CONFIG_MEDIA_CONTROLLER
++	dev->mdev.dev = &pdev->dev;
++	strlcpy(dev->mdev.model, "vim2m", sizeof(dev->mdev.model));
++	media_device_init(&dev->mdev);
++	dev->v4l2_dev.mdev = &dev->mdev;
++#endif
 +
-msecs_to_jiffies(tune_timeout));
-+		if (time_left == 0)
-+			timed_out = true;
-+	
-+		if ((radio->registers[STATUSRSSI] & STATUSRSSI_STC) ==
-0)
-+			dev_warn(&radio->videodev.dev, "tune does not
-complete\n");
-+		if (timed_out)
-+			dev_warn(&radio->videodev.dev,
-+				"tune timed out after %u ms\n",
-tune_timeout);
-+	
-+		/* stop tuning */
-+		radio->registers[CHANNEL] &= ~CHANNEL_TUNE;
-+		retval = si470x_set_register(radio, CHANNEL);
-+	}
+ 	ret = v4l2_device_register(&pdev->dev, &dev->v4l2_dev);
+ 	if (ret)
+ 		return ret;
+@@ -1034,6 +1044,13 @@ static int vim2m_probe(struct platform_device *pdev)
+ 		goto err_m2m;
+ 	}
  
- done:
- 	return retval;
++#ifdef CONFIG_MEDIA_CONTROLLER
++	/* Register the media device node */
++	ret = media_device_register(&dev->mdev);
++	if (ret)
++		goto err_m2m;
++#endif
++
+ 	return 0;
+ 
+ err_m2m:
+@@ -1050,6 +1067,13 @@ static int vim2m_remove(struct platform_device *pdev)
+ 	struct vim2m_dev *dev = platform_get_drvdata(pdev);
+ 
+ 	v4l2_info(&dev->v4l2_dev, "Removing " MEM2MEM_NAME);
++
++#ifdef CONFIG_MEDIA_CONTROLLER
++	if (media_devnode_is_registered(dev->mdev.devnode))
++		media_device_unregister(&dev->mdev);
++	media_device_cleanup(&dev->mdev);
++#endif
++
+ 	v4l2_m2m_release(dev->m2m_dev);
+ 	del_timer_sync(&dev->timer);
+ 	video_unregister_device(&dev->vfd);
+-- 
+2.16.0.rc1.238.g530d649a79-goog
