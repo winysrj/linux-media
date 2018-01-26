@@ -1,80 +1,193 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay3-d.mail.gandi.net ([217.70.183.195]:40146 "EHLO
-        relay3-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751078AbeACQYQ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 3 Jan 2018 11:24:16 -0500
-Date: Wed, 3 Jan 2018 17:24:05 +0100
-From: jacopo mondi <jacopo@jmondi.org>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>, magnus.damm@gmail.com,
-        geert@glider.be, mchehab@kernel.org, hverkuil@xs4all.nl,
-        robh+dt@kernel.org, mark.rutland@arm.com,
-        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-sh@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v2 7/9] media: i2c: ov772x: Remove soc_camera dependencies
-Message-ID: <20180103162405.GA6834@w540>
-References: <1514469681-15602-1-git-send-email-jacopo+renesas@jmondi.org>
- <5703631.yJ335LfYLI@avalon>
- <20180103154458.GD9493@w540>
- <2597640.1dqQloDucb@avalon>
+Received: from osg.samsung.com ([64.30.133.232]:61729 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751324AbeAZORt (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 26 Jan 2018 09:17:49 -0500
+Date: Fri, 26 Jan 2018 12:17:37 -0200
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>,
+        Ingo Molnar <mingo@kernel.org>,
+        Josef Griebichler <griebichler.josef@gmx.at>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        USB list <linux-usb@vger.kernel.org>,
+        Eric Dumazet <edumazet@google.com>,
+        Rik van Riel <riel@redhat.com>,
+        Paolo Abeni <pabeni@redhat.com>,
+        Hannes Frederic Sowa <hannes@redhat.com>,
+        Jesper Dangaard Brouer <jbrouer@redhat.com>,
+        linux-kernel <linux-kernel@vger.kernel.org>,
+        netdev <netdev@vger.kernel.org>,
+        Jonathan Corbet <corbet@lwn.net>,
+        LMML <linux-media@vger.kernel.org>,
+        Peter Zijlstra <peterz@infradead.org>,
+        David Miller <davem@davemloft.net>,
+        John Youn <johnyoun@synopsys.com>,
+        Felipe Balbi <balbi@kernel.org>,
+        Grigor Tovmasyan <Grigor.Tovmasyan@synopsys.com>
+Subject: Re: dvb usb issues since kernel 4.9
+Message-ID: <20180126121737.70710f02@vela.lan>
+In-Reply-To: <Pine.LNX.4.44L0.1801081354450.1908-100000@iolanthe.rowland.org>
+References: <CA+55aFx90oOU-3R8pCeM0ESTDYhmugD5znA9LrGj1zhazWBtcg@mail.gmail.com>
+        <Pine.LNX.4.44L0.1801081354450.1908-100000@iolanthe.rowland.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <2597640.1dqQloDucb@avalon>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Hi Alan,
 
-On Wed, Jan 03, 2018 at 05:49:55PM +0200, Laurent Pinchart wrote:
-> Hi Jacopo,
->
-> >
-> > DT based platforms won't have any info->xlkc_rate, so they should be
-> > fine. I wonder how could I set rate in board code, as I'm just
-> > registering an alias for the clock there...
->
-> Exactly as done by the current code, get the clock and set the rate :) You can
-> do that at initialization time, when you register the alias. Don't forget to
-> put the clock too.
+Em Mon, 8 Jan 2018 14:15:35 -0500 (EST)
+Alan Stern <stern@rowland.harvard.edu> escreveu:
 
-Interesting. I had no idea a clock rate is retained between get/put
-cycles. I'll set the rate in board code (and now that I'm looking at
-other SH boards code, it seems pretty common to do as a thing).
+> On Mon, 8 Jan 2018, Linus Torvalds wrote:
+> 
+> > Can somebody tell which softirq it is that dvb/usb cares about?  
+> 
+> I don't know about the DVB part.  The USB part is a little difficult to
+> analyze, mostly because the bug reports I've seen are mostly from
+> people running non-vanilla kernels. 
 
-Thanks
-   j
+I suspect that the main reason for people not using non-vanilla Kernels
+is that, among other bugs, the dwc2 upstream driver has serious troubles
+handling ISOCH traffic.
 
->
-> > >> +	if (priv->clk) {
-> > >> +		ret = clk_prepare_enable(priv->clk);
-> > >> +		if (ret)
-> > >> +			return ret;
-> > >> +	}
-> > >> +
-> > >> +	if (priv->pwdn_gpio) {
-> > >> +		gpiod_set_value(priv->pwdn_gpio, 1);
-> > >> +		usleep_range(500, 1000);
-> > >> +	}
-> > >> +
-> > >> +	/* Reset GPIOs are shared in some platforms. */
-> > >
-> > > I'd make this a FIXME comment as this is really a hack.
-> > >
-> > > 	/*
-> > > 	 * FIXME: The reset signal is connected to a shared GPIO on some
-> > > 	 * platforms (namely the SuperH Migo-R). Until a framework becomes
-> > > 	 * available to handle this cleanly, request the GPIO temporarily
-> > > 	 * only to avoid conflicts.
-> > > 	 */
-> > >
-> > > Same for the tw9910 driver.
-> >
-> > Ack.
->
-> --
-> Regards,
->
-> Laurent Pinchart
->
+Using Kernel 4.15-rc7 from this git tree:
+	https://git.linuxtv.org/mchehab/experimental.git/log/?h=softirq_fixup
+
+(e. g. with the softirq bug partially reverted with Linux patch, and
+ the DWC2 deferred probe fixed)
+
+With a PCTV 461e device, with uses em28xx driver + Montage frontend
+(with is the same used on dvbsky hardware - except for em28xx).
+
+This device doesn't support bulk for DVB, just ISOCH. The drivers work 
+fine on x86.
+
+Using a test signal at the bit rate of 56698,4 Kbits/s, that's what
+happens, when capturing less than one second of data:
+
+$ dvbv5-zap -c ~/dvb_channel.conf "tv brasil" -l universal -X 100 -m -t2dvbv5-zap -c ~/dvb_channel.conf "tv brasil" -l universal -X 100 -m -t2
+Using LNBf UNIVERSAL
+	Universal, Europe
+	Freqs     : 10800 to 11800 MHz, LO: 9750 MHz
+	Freqs     : 11600 to 12700 MHz, LO: 10600 MHz
+using demux 'dvb0.demux0'
+reading channels from file '/home/mchehab/dvb_channel.conf'
+tuning to 11468000 Hz
+       (0x00) Signal= -33.90dBm
+Lock   (0x1f) Signal= -33.90dBm C/N= 30.28dB postBER= 2.33x10^-6
+dvb_dev_set_bufsize: buffer set to 6160384
+  dvb_set_pesfilter to 0x2000
+354.08s: Starting capture
+354.73s: only read 59220 bytes
+354.73s: Stopping capture
+
+[  354.000827] dwc2 3f980000.usb: DWC OTG HCD EP DISABLE: bEndpointAddress=0x84, ep->hcpriv=116f41b2
+[  354.000859] dwc2 3f980000.usb: DWC OTG HCD EP RESET: bEndpointAddress=0x84
+[  354.010744] dwc2 3f980000.usb: --Host Channel 5 Interrupt: Frame Overrun--
+... (hundreds of thousands of Frame Overrun messages)
+[  354.660857] dwc2 3f980000.usb: --Host Channel 5 Interrupt: Frame Overrun--
+[  354.660935] dwc2 3f980000.usb: DWC OTG HCD URB Dequeue
+[  354.660959] dwc2 3f980000.usb: Called usb_hcd_giveback_urb()
+[  354.660966] dwc2 3f980000.usb:   urb->status = 0
+[  354.660992] dwc2 3f980000.usb: DWC OTG HCD URB Dequeue
+[  354.661001] dwc2 3f980000.usb: Called usb_hcd_giveback_urb()
+[  354.661008] dwc2 3f980000.usb:   urb->status = 0
+[  354.661054] dwc2 3f980000.usb: DWC OTG HCD URB Dequeue
+[  354.661065] dwc2 3f980000.usb: Called usb_hcd_giveback_urb()
+[  354.661072] dwc2 3f980000.usb:   urb->status = 0
+[  354.661107] dwc2 3f980000.usb: DWC OTG HCD URB Dequeue
+[  354.661120] dwc2 3f980000.usb: Called usb_hcd_giveback_urb()
+[  354.661127] dwc2 3f980000.usb:   urb->status = 0
+[  354.661146] dwc2 3f980000.usb: DWC OTG HCD URB Dequeue
+[  354.661158] dwc2 3f980000.usb: Called usb_hcd_giveback_urb()
+[  354.661165] dwc2 3f980000.usb:   urb->status = 0
+
+Kernel was compiled with:
+
+CONFIG_USB_DWC2=y
+CONFIG_USB_DWC2_HOST=y
+# CONFIG_USB_DWC2_PERIPHERAL is not set
+# CONFIG_USB_DWC2_DUAL_ROLE is not set
+# CONFIG_USB_DWC2_PCI is not set
+CONFIG_USB_DWC2_DEBUG=y
+# CONFIG_USB_DWC2_VERBOSE is not set
+# CONFIG_USB_DWC2_TRACK_MISSED_SOFS is not set
+CONFIG_USB_DWC2_DEBUG_PERIODIC=y
+
+As reference, that's the output of lsusb for the PCTV usb hardware:
+
+$ lsusb -v -d 2013:0258
+
+Bus 001 Device 005: ID 2013:0258 PCTV Systems 
+Couldn't open device, some information will be missing
+Device Descriptor:
+  bLength                18
+  bDescriptorType         1
+  bcdUSB               2.00
+  bDeviceClass            0 (Defined at Interface level)
+  bDeviceSubClass         0 
+  bDeviceProtocol         0 
+  bMaxPacketSize0        64
+  idVendor           0x2013 PCTV Systems
+  idProduct          0x0258 
+  bcdDevice            1.00
+  iManufacturer           3 
+  iProduct                1 
+  iSerial                 2 
+  bNumConfigurations      1
+  Configuration Descriptor:
+    bLength                 9
+    bDescriptorType         2
+    wTotalLength           41
+    bNumInterfaces          1
+    bConfigurationValue     1
+    iConfiguration          0 
+    bmAttributes         0x80
+      (Bus Powered)
+    MaxPower              500mA
+    Interface Descriptor:
+      bLength                 9
+      bDescriptorType         4
+      bInterfaceNumber        0
+      bAlternateSetting       0
+      bNumEndpoints           1
+      bInterfaceClass       255 Vendor Specific Class
+      bInterfaceSubClass      0 
+      bInterfaceProtocol      0 
+      iInterface              0 
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x84  EP 4 IN
+        bmAttributes            1
+          Transfer Type            Isochronous
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x0000  1x 0 bytes
+        bInterval               1
+    Interface Descriptor:
+      bLength                 9
+      bDescriptorType         4
+      bInterfaceNumber        0
+      bAlternateSetting       1
+      bNumEndpoints           1
+      bInterfaceClass       255 Vendor Specific Class
+      bInterfaceSubClass      0 
+      bInterfaceProtocol      0 
+      iInterface              0 
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x84  EP 4 IN
+        bmAttributes            1
+          Transfer Type            Isochronous
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x03ac  1x 940 bytes
+        bInterval               1
+
+Cheers,
+Mauro
