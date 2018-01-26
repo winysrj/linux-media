@@ -1,157 +1,379 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:34168 "EHLO
-        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S933182AbeALMUV (ORCPT
+Received: from relay6-d.mail.gandi.net ([217.70.183.198]:46095 "EHLO
+        relay6-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752906AbeAZNuR (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 12 Jan 2018 07:20:21 -0500
-Subject: Re: [PATCH v7 3/6] [media] vb2: add explicit fence user API
-To: Gustavo Padovan <gustavo@padovan.org>, linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        Pawel Osciak <pawel@osciak.com>,
-        Alexandre Courbot <acourbot@chromium.org>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Brian Starkey <brian.starkey@arm.com>,
-        Thierry Escande <thierry.escande@collabora.com>,
-        linux-kernel@vger.kernel.org,
-        Gustavo Padovan <gustavo.padovan@collabora.com>
-References: <20180110160732.7722-1-gustavo@padovan.org>
- <20180110160732.7722-4-gustavo@padovan.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <233bf4b3-b78a-ee8f-f589-9fbc6f52ed75@xs4all.nl>
-Date: Fri, 12 Jan 2018 13:20:16 +0100
-MIME-Version: 1.0
-In-Reply-To: <20180110160732.7722-4-gustavo@padovan.org>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+        Fri, 26 Jan 2018 08:50:17 -0500
+From: Jacopo Mondi <jacopo+renesas@jmondi.org>
+To: laurent.pinchart@ideasonboard.com, magnus.damm@gmail.com,
+        geert@glider.be, hverkuil@xs4all.nl, mchehab@kernel.org,
+        festevam@gmail.com, sakari.ailus@iki.fi, robh+dt@kernel.org,
+        mark.rutland@arm.com, pombredanne@nexb.com
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-sh@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: [PATCH v7 8/9] media: i2c: tw9910: Remove soc_camera dependencies
+Date: Fri, 26 Jan 2018 14:48:44 +0100
+Message-Id: <1516974528-11120-13-git-send-email-jacopo+renesas@jmondi.org>
+In-Reply-To: <1516974528-11120-1-git-send-email-jacopo+renesas@jmondi.org>
+References: <1516974528-11120-1-git-send-email-jacopo+renesas@jmondi.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/10/18 17:07, Gustavo Padovan wrote:
-> From: Gustavo Padovan <gustavo.padovan@collabora.com>
-> 
-> Turn the reserved2 field into fence_fd that we will use to send
-> an in-fence to the kernel and return an out-fence from the kernel to
-> userspace.
-> 
-> Two new flags were added, V4L2_BUF_FLAG_IN_FENCE, that should be used
-> when sending a fence to the kernel to be waited on, and
-> V4L2_BUF_FLAG_OUT_FENCE, to ask the kernel to give back an out-fence.
-> 
-> v5:
-> 	- keep using reserved2 field for cpia2
-> 	- set fence_fd to 0 for now, for compat with userspace(Mauro)
-> 
-> v4:
-> 	- make it a union with reserved2 and fence_fd (Hans Verkuil)
-> 
-> v3:
-> 	- make the out_fence refer to the current buffer (Hans Verkuil)
-> 
-> v2: add documentation
-> 
-> Signed-off-by: Gustavo Padovan <gustavo.padovan@collabora.com>
-> ---
->  Documentation/media/uapi/v4l/buffer.rst        | 15 +++++++++++++++
->  drivers/media/common/videobuf/videobuf2-v4l2.c |  2 +-
->  drivers/media/v4l2-core/v4l2-compat-ioctl32.c  |  4 ++--
->  include/uapi/linux/videodev2.h                 |  7 ++++++-
->  4 files changed, 24 insertions(+), 4 deletions(-)
-> 
-> diff --git a/Documentation/media/uapi/v4l/buffer.rst b/Documentation/media/uapi/v4l/buffer.rst
-> index ae6ee73f151c..eeefbd2547e7 100644
-> --- a/Documentation/media/uapi/v4l/buffer.rst
-> +++ b/Documentation/media/uapi/v4l/buffer.rst
-> @@ -648,6 +648,21 @@ Buffer Flags
->        - Start Of Exposure. The buffer timestamp has been taken when the
->  	exposure of the frame has begun. This is only valid for the
->  	``V4L2_BUF_TYPE_VIDEO_CAPTURE`` buffer type.
-> +    * .. _`V4L2-BUF-FLAG-IN-FENCE`:
-> +
-> +      - ``V4L2_BUF_FLAG_IN_FENCE``
-> +      - 0x00200000
-> +      - Ask V4L2 to wait on fence passed in ``fence_fd`` field. The buffer
-> +	won't be queued to the driver until the fence signals.
+Remove soc_camera framework dependencies from tw9910 sensor driver.
+- Handle clock and gpios
+- Register async subdevice
+- Remove soc_camera specific g/s_mbus_config operations
+- Add kernel doc to driver interface header file
+- Adjust build system
 
-I'd also add: "The order in which buffers are queued is guaranteed to be
-preserved, so any buffers queued after this buffer will also be blocked until this
-fence signals."
+This commit does not remove the original soc_camera based driver as long
+as other platforms depends on soc_camera-based CEU driver.
 
-Regards,
+Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/i2c/Kconfig  |   9 +++
+ drivers/media/i2c/Makefile |   1 +
+ drivers/media/i2c/tw9910.c | 162 ++++++++++++++++++++++++++++-----------------
+ include/media/i2c/tw9910.h |   9 +++
+ 4 files changed, 120 insertions(+), 61 deletions(-)
 
-	Hans
-
-> +
-> +    * .. _`V4L2-BUF-FLAG-OUT-FENCE`:
-> +
-> +      - ``V4L2_BUF_FLAG_OUT_FENCE``
-> +      - 0x00400000
-> +      - Request a fence to be attached to the buffer. The ``fence_fd``
-> +	field on
-> +	:ref:`VIDIOC_QBUF` is used as a return argument to send the out-fence
-> +	fd to userspace.
->  
->  
->  
-> diff --git a/drivers/media/common/videobuf/videobuf2-v4l2.c b/drivers/media/common/videobuf/videobuf2-v4l2.c
-> index fac3cd6f901d..d838524a459e 100644
-> --- a/drivers/media/common/videobuf/videobuf2-v4l2.c
-> +++ b/drivers/media/common/videobuf/videobuf2-v4l2.c
-> @@ -203,7 +203,7 @@ static void __fill_v4l2_buffer(struct vb2_buffer *vb, void *pb)
->  	b->timestamp = ns_to_timeval(vb->timestamp);
->  	b->timecode = vbuf->timecode;
->  	b->sequence = vbuf->sequence;
-> -	b->reserved2 = 0;
-> +	b->fence_fd = 0;
->  	b->reserved = 0;
->  
->  	if (q->is_multiplanar) {
-> diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-> index e48d59046086..a11a0a2bed47 100644
-> --- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-> +++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-> @@ -370,7 +370,7 @@ struct v4l2_buffer32 {
->  		__s32		fd;
->  	} m;
->  	__u32			length;
-> -	__u32			reserved2;
-> +	__s32			fence_fd;
->  	__u32			reserved;
->  };
->  
-> @@ -533,7 +533,7 @@ static int put_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
->  		put_user(kp->timestamp.tv_usec, &up->timestamp.tv_usec) ||
->  		copy_to_user(&up->timecode, &kp->timecode, sizeof(struct v4l2_timecode)) ||
->  		put_user(kp->sequence, &up->sequence) ||
-> -		put_user(kp->reserved2, &up->reserved2) ||
-> +		put_user(kp->fence_fd, &up->fence_fd) ||
->  		put_user(kp->reserved, &up->reserved) ||
->  		put_user(kp->length, &up->length))
->  			return -EFAULT;
-> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-> index 58894cfe9479..2d424aebdd1e 100644
-> --- a/include/uapi/linux/videodev2.h
-> +++ b/include/uapi/linux/videodev2.h
-> @@ -933,7 +933,10 @@ struct v4l2_buffer {
->  		__s32		fd;
->  	} m;
->  	__u32			length;
-> -	__u32			reserved2;
-> +	union {
-> +		__s32		fence_fd;
-> +		__u32		reserved2;
-> +	};
->  	__u32			reserved;
->  };
->  
-> @@ -970,6 +973,8 @@ struct v4l2_buffer {
->  #define V4L2_BUF_FLAG_TSTAMP_SRC_SOE		0x00010000
->  /* mem2mem encoder/decoder */
->  #define V4L2_BUF_FLAG_LAST			0x00100000
-> +#define V4L2_BUF_FLAG_IN_FENCE			0x00200000
-> +#define V4L2_BUF_FLAG_OUT_FENCE			0x00400000
->  
->  /**
->   * struct v4l2_exportbuffer - export of video buffer as DMABUF file descriptor
-> 
+diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
+index a61d7f4..804a1bf 100644
+--- a/drivers/media/i2c/Kconfig
++++ b/drivers/media/i2c/Kconfig
+@@ -423,6 +423,15 @@ config VIDEO_TW9906
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called tw9906.
+ 
++config VIDEO_TW9910
++	tristate "Techwell TW9910 video decoder"
++	depends on VIDEO_V4L2 && I2C
++	---help---
++	  Support for Techwell TW9910 NTSC/PAL/SECAM video decoder.
++
++	  To compile this driver as a module, choose M here: the
++	  module will be called tw9910.
++
+ config VIDEO_VPX3220
+ 	tristate "vpx3220a, vpx3216b & vpx3214c video decoders"
+ 	depends on VIDEO_V4L2 && I2C
+diff --git a/drivers/media/i2c/Makefile b/drivers/media/i2c/Makefile
+index fb99293..e26544f 100644
+--- a/drivers/media/i2c/Makefile
++++ b/drivers/media/i2c/Makefile
+@@ -48,6 +48,7 @@ obj-$(CONFIG_VIDEO_TVP7002) += tvp7002.o
+ obj-$(CONFIG_VIDEO_TW2804) += tw2804.o
+ obj-$(CONFIG_VIDEO_TW9903) += tw9903.o
+ obj-$(CONFIG_VIDEO_TW9906) += tw9906.o
++obj-$(CONFIG_VIDEO_TW9910) += tw9910.o
+ obj-$(CONFIG_VIDEO_CS3308) += cs3308.o
+ obj-$(CONFIG_VIDEO_CS5345) += cs5345.o
+ obj-$(CONFIG_VIDEO_CS53L32A) += cs53l32a.o
+diff --git a/drivers/media/i2c/tw9910.c b/drivers/media/i2c/tw9910.c
+index bdb5e0a..96792df 100644
+--- a/drivers/media/i2c/tw9910.c
++++ b/drivers/media/i2c/tw9910.c
+@@ -1,6 +1,9 @@
++// SPDX-License-Identifier: GPL-2.0
+ /*
+  * tw9910 Video Driver
+  *
++ * Copyright (C) 2017 Jacopo Mondi <jacopo+renesas@jmondi.org>
++ *
+  * Copyright (C) 2008 Renesas Solutions Corp.
+  * Kuninori Morimoto <morimoto.kuninori@renesas.com>
+  *
+@@ -10,12 +13,10 @@
+  * Copyright 2006-7 Jonathan Corbet <corbet@lwn.net>
+  * Copyright (C) 2008 Magnus Damm
+  * Copyright (C) 2008, Guennadi Liakhovetski <kernel@pengutronix.de>
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+  */
+ 
++#include <linux/clk.h>
++#include <linux/gpio/consumer.h>
+ #include <linux/init.h>
+ #include <linux/module.h>
+ #include <linux/i2c.h>
+@@ -25,9 +26,7 @@
+ #include <linux/v4l2-mediabus.h>
+ #include <linux/videodev2.h>
+ 
+-#include <media/soc_camera.h>
+ #include <media/i2c/tw9910.h>
+-#include <media/v4l2-clk.h>
+ #include <media/v4l2-subdev.h>
+ 
+ #define GET_ID(val)  ((val & 0xF8) >> 3)
+@@ -228,8 +227,10 @@ struct tw9910_scale_ctrl {
+ 
+ struct tw9910_priv {
+ 	struct v4l2_subdev		subdev;
+-	struct v4l2_clk			*clk;
++	struct clk			*clk;
+ 	struct tw9910_video_info	*info;
++	struct gpio_desc		*pdn_gpio;
++	struct gpio_desc		*rstb_gpio;
+ 	const struct tw9910_scale_ctrl	*scale;
+ 	v4l2_std_id			norm;
+ 	u32				revision;
+@@ -582,13 +583,66 @@ static int tw9910_s_register(struct v4l2_subdev *sd,
+ }
+ #endif
+ 
++static int tw9910_power_on(struct tw9910_priv *priv)
++{
++	struct i2c_client *client = v4l2_get_subdevdata(&priv->subdev);
++	int ret;
++
++	if (priv->clk) {
++		ret = clk_prepare_enable(priv->clk);
++		if (ret)
++			return ret;
++	}
++
++	if (priv->pdn_gpio) {
++		gpiod_set_value(priv->pdn_gpio, 0);
++		usleep_range(500, 1000);
++	}
++
++	/*
++	 * FIXME: The reset signal is connected to a shared GPIO on some
++	 * platforms (namely the SuperH Migo-R). Until a framework becomes
++	 * available to handle this cleanly, request the GPIO temporarily
++	 * to avoid conflicts.
++	 */
++	priv->rstb_gpio = gpiod_get_optional(&client->dev, "rstb",
++					     GPIOD_OUT_LOW);
++	if (IS_ERR(priv->rstb_gpio)) {
++		dev_info(&client->dev, "Unable to get GPIO \"rstb\"");
++		return PTR_ERR(priv->rstb_gpio);
++	}
++
++	if (priv->rstb_gpio) {
++		gpiod_set_value(priv->rstb_gpio, 1);
++		usleep_range(500, 1000);
++		gpiod_set_value(priv->rstb_gpio, 0);
++		usleep_range(500, 1000);
++
++		gpiod_put(priv->rstb_gpio);
++	}
++
++	return 0;
++}
++
++static int tw9910_power_off(struct tw9910_priv *priv)
++{
++	clk_disable_unprepare(priv->clk);
++
++	if (priv->pdn_gpio) {
++		gpiod_set_value(priv->pdn_gpio, 1);
++		usleep_range(500, 1000);
++	}
++
++	return 0;
++}
++
+ static int tw9910_s_power(struct v4l2_subdev *sd, int on)
+ {
+ 	struct i2c_client *client = v4l2_get_subdevdata(sd);
+-	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
+ 	struct tw9910_priv *priv = to_tw9910(client);
+ 
+-	return soc_camera_set_power(&client->dev, ssdd, priv->clk, on);
++	return on ? tw9910_power_on(priv) :
++		    tw9910_power_off(priv);
+ }
+ 
+ static int tw9910_set_frame(struct v4l2_subdev *sd, u32 *width, u32 *height)
+@@ -614,7 +668,7 @@ static int tw9910_set_frame(struct v4l2_subdev *sd, u32 *width, u32 *height)
+ 	 * set bus width
+ 	 */
+ 	val = 0x00;
+-	if (SOCAM_DATAWIDTH_16 == priv->info->buswidth)
++	if (priv->info->buswidth == 16)
+ 		val = LEN;
+ 
+ 	ret = tw9910_mask_set(client, OPFORM, LEN, val);
+@@ -799,8 +853,7 @@ static int tw9910_video_probe(struct i2c_client *client)
+ 	/*
+ 	 * tw9910 only use 8 or 16 bit bus width
+ 	 */
+-	if (SOCAM_DATAWIDTH_16 != priv->info->buswidth &&
+-	    SOCAM_DATAWIDTH_8  != priv->info->buswidth) {
++	if (priv->info->buswidth != 16 && priv->info->buswidth != 8) {
+ 		dev_err(&client->dev, "bus width error\n");
+ 		return -ENODEV;
+ 	}
+@@ -856,45 +909,6 @@ static int tw9910_enum_mbus_code(struct v4l2_subdev *sd,
+ 	return 0;
+ }
+ 
+-static int tw9910_g_mbus_config(struct v4l2_subdev *sd,
+-				struct v4l2_mbus_config *cfg)
+-{
+-	struct i2c_client *client = v4l2_get_subdevdata(sd);
+-	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
+-
+-	cfg->flags = V4L2_MBUS_PCLK_SAMPLE_RISING | V4L2_MBUS_MASTER |
+-		V4L2_MBUS_VSYNC_ACTIVE_HIGH | V4L2_MBUS_VSYNC_ACTIVE_LOW |
+-		V4L2_MBUS_HSYNC_ACTIVE_HIGH | V4L2_MBUS_HSYNC_ACTIVE_LOW |
+-		V4L2_MBUS_DATA_ACTIVE_HIGH;
+-	cfg->type = V4L2_MBUS_PARALLEL;
+-	cfg->flags = soc_camera_apply_board_flags(ssdd, cfg);
+-
+-	return 0;
+-}
+-
+-static int tw9910_s_mbus_config(struct v4l2_subdev *sd,
+-				const struct v4l2_mbus_config *cfg)
+-{
+-	struct i2c_client *client = v4l2_get_subdevdata(sd);
+-	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
+-	u8 val = VSSL_VVALID | HSSL_DVALID;
+-	unsigned long flags = soc_camera_apply_board_flags(ssdd, cfg);
+-
+-	/*
+-	 * set OUTCTR1
+-	 *
+-	 * We use VVALID and DVALID signals to control VSYNC and HSYNC
+-	 * outputs, in this mode their polarity is inverted.
+-	 */
+-	if (flags & V4L2_MBUS_HSYNC_ACTIVE_LOW)
+-		val |= HSP_HI;
+-
+-	if (flags & V4L2_MBUS_VSYNC_ACTIVE_LOW)
+-		val |= VSP_HI;
+-
+-	return i2c_smbus_write_byte_data(client, OUTCTR1, val);
+-}
+-
+ static int tw9910_g_tvnorms(struct v4l2_subdev *sd, v4l2_std_id *norm)
+ {
+ 	*norm = V4L2_STD_NTSC | V4L2_STD_PAL;
+@@ -905,8 +919,6 @@ static const struct v4l2_subdev_video_ops tw9910_subdev_video_ops = {
+ 	.s_std		= tw9910_s_std,
+ 	.g_std		= tw9910_g_std,
+ 	.s_stream	= tw9910_s_stream,
+-	.g_mbus_config	= tw9910_g_mbus_config,
+-	.s_mbus_config	= tw9910_s_mbus_config,
+ 	.g_tvnorms	= tw9910_g_tvnorms,
+ };
+ 
+@@ -935,15 +947,14 @@ static int tw9910_probe(struct i2c_client *client,
+ 	struct tw9910_video_info	*info;
+ 	struct i2c_adapter		*adapter =
+ 		to_i2c_adapter(client->dev.parent);
+-	struct soc_camera_subdev_desc	*ssdd = soc_camera_i2c_to_desc(client);
+ 	int ret;
+ 
+-	if (!ssdd || !ssdd->drv_priv) {
++	if (!client->dev.platform_data) {
+ 		dev_err(&client->dev, "TW9910: missing platform data!\n");
+ 		return -EINVAL;
+ 	}
+ 
+-	info = ssdd->drv_priv;
++	info = client->dev.platform_data;
+ 
+ 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA)) {
+ 		dev_err(&client->dev,
+@@ -959,13 +970,37 @@ static int tw9910_probe(struct i2c_client *client,
+ 
+ 	v4l2_i2c_subdev_init(&priv->subdev, client, &tw9910_subdev_ops);
+ 
+-	priv->clk = v4l2_clk_get(&client->dev, "mclk");
+-	if (IS_ERR(priv->clk))
++	priv->clk = clk_get(&client->dev, "xti");
++	if (PTR_ERR(priv->clk) == -ENOENT) {
++		priv->clk = NULL;
++	} else if (IS_ERR(priv->clk)) {
++		dev_err(&client->dev, "Unable to get xti clock\n");
+ 		return PTR_ERR(priv->clk);
++	}
++
++	priv->pdn_gpio = gpiod_get_optional(&client->dev, "pdn",
++					    GPIOD_OUT_HIGH);
++	if (IS_ERR(priv->pdn_gpio)) {
++		dev_info(&client->dev, "Unable to get GPIO \"pdn\"");
++		ret = PTR_ERR(priv->pdn_gpio);
++		goto error_clk_put;
++	}
+ 
+ 	ret = tw9910_video_probe(client);
+ 	if (ret < 0)
+-		v4l2_clk_put(priv->clk);
++		goto error_gpio_put;
++
++	ret = v4l2_async_register_subdev(&priv->subdev);
++	if (ret)
++		goto error_gpio_put;
++
++	return ret;
++
++error_gpio_put:
++	if (priv->pdn_gpio)
++		gpiod_put(priv->pdn_gpio);
++error_clk_put:
++	clk_put(priv->clk);
+ 
+ 	return ret;
+ }
+@@ -973,7 +1008,12 @@ static int tw9910_probe(struct i2c_client *client,
+ static int tw9910_remove(struct i2c_client *client)
+ {
+ 	struct tw9910_priv *priv = to_tw9910(client);
+-	v4l2_clk_put(priv->clk);
++
++	if (priv->pdn_gpio)
++		gpiod_put(priv->pdn_gpio);
++	clk_put(priv->clk);
++	v4l2_device_unregister_subdev(&priv->subdev);
++
+ 	return 0;
+ }
+ 
+@@ -994,6 +1034,6 @@ static struct i2c_driver tw9910_i2c_driver = {
+ 
+ module_i2c_driver(tw9910_i2c_driver);
+ 
+-MODULE_DESCRIPTION("SoC Camera driver for tw9910");
++MODULE_DESCRIPTION("V4L2 driver for TW9910 video decoder");
+ MODULE_AUTHOR("Kuninori Morimoto");
+ MODULE_LICENSE("GPL v2");
+diff --git a/include/media/i2c/tw9910.h b/include/media/i2c/tw9910.h
+index 90bcf1f..bec8f7b 100644
+--- a/include/media/i2c/tw9910.h
++++ b/include/media/i2c/tw9910.h
+@@ -18,6 +18,9 @@
+ 
+ #include <media/soc_camera.h>
+ 
++/**
++ * tw9910_mpout_pin - MPOUT (multi-purpose output) pin functions
++ */
+ enum tw9910_mpout_pin {
+ 	TW9910_MPO_VLOSS,
+ 	TW9910_MPO_HLOCK,
+@@ -29,6 +32,12 @@ enum tw9910_mpout_pin {
+ 	TW9910_MPO_RTCO,
+ };
+ 
++/**
++ * tw9910_video_info -	tw9910 driver interface structure
++ * @buswidth:		Parallel data bus width (8 or 16).
++ * @mpout:		Selected function of MPOUT (multi-purpose output) pin.
++ *			See &enum tw9910_mpout_pin
++ */
+ struct tw9910_video_info {
+ 	unsigned long		buswidth;
+ 	enum tw9910_mpout_pin	mpout;
+-- 
+2.7.4
