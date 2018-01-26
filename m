@@ -1,45 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from iolanthe.rowland.org ([192.131.102.54]:37294 "HELO
-        iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with SMTP id S1757097AbeAHQbM (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 8 Jan 2018 11:31:12 -0500
-Date: Mon, 8 Jan 2018 11:31:11 -0500 (EST)
-From: Alan Stern <stern@rowland.harvard.edu>
-To: Josef Griebichler <griebichler.josef@gmx.at>
-cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        <linux-usb@vger.kernel.org>, Eric Dumazet <edumazet@google.com>,
-        Rik van Riel <riel@redhat.com>,
-        Paolo Abeni <pabeni@redhat.com>,
-        Hannes Frederic Sowa <hannes@redhat.com>,
-        Jesper Dangaard Brouer <jbrouer@redhat.com>,
-        linux-kernel <linux-kernel@vger.kernel.org>,
-        netdev <netdev@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>,
-        LMML <linux-media@vger.kernel.org>,
-        Peter Zijlstra <peterz@infradead.org>,
-        David Miller <davem@davemloft.net>,
-        <torvalds@linux-foundation.org>
-Subject: Re: Aw: Re: dvb usb issues since kernel 4.9
-In-Reply-To: <trinity-c7ec7cbd-a186-4a2a-bcb6-cce8993d6a90-1515428770628@3c-app-gmx-bs32>
-Message-ID: <Pine.LNX.4.44L0.1801081130200.1908-100000@iolanthe.rowland.org>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from mail.ispras.ru ([83.149.199.45]:51188 "EHLO mail.ispras.ru"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751509AbeAZWK0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 26 Jan 2018 17:10:26 -0500
+From: Alexey Khoroshilov <khoroshilov@ispras.ru>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Sean Young <sean@mess.org>
+Cc: Alexey Khoroshilov <khoroshilov@ispras.ru>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        ldv-project@linuxtesting.org
+Subject: [PATCH] ir-hix5hd2: fix error handling of clk_prepare_enable()
+Date: Sat, 27 Jan 2018 01:10:17 +0300
+Message-Id: <1517004617-6742-1-git-send-email-khoroshilov@ispras.ru>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 8 Jan 2018, Josef Griebichler wrote:
+Return code of clk_prepare_enable() is ignored in many places.
+The patch adds error handling for all of them.
 
-> Hi Maro,
-> 
-> I tried your mentioned patch but unfortunately no real improvement for me.
-> dmesg http://ix.io/DOg
-> tvheadend service log http://ix.io/DOi
-> Errors during recording are still there.
-> Errors increase if there is additional tcp load on raspberry.
-> 
-> Unfortunately there's no usbmon or tshark on libreelec so I can't provide further logs.
+Found by Linux Driver Verification project (linuxtesting.org).
 
-Can you try running the same test on an x86_64 system?
+Signed-off-by: Alexey Khoroshilov <khoroshilov@ispras.ru>
+---
+ drivers/media/rc/ir-hix5hd2.c | 35 ++++++++++++++++++++++++++++-------
+ 1 file changed, 28 insertions(+), 7 deletions(-)
 
-Alan Stern
+diff --git a/drivers/media/rc/ir-hix5hd2.c b/drivers/media/rc/ir-hix5hd2.c
+index 0ce11c41dfae..700ab4c563d0 100644
+--- a/drivers/media/rc/ir-hix5hd2.c
++++ b/drivers/media/rc/ir-hix5hd2.c
+@@ -71,9 +71,10 @@ struct hix5hd2_ir_priv {
+ 	unsigned long		rate;
+ };
+ 
+-static void hix5hd2_ir_enable(struct hix5hd2_ir_priv *dev, bool on)
++static int hix5hd2_ir_enable(struct hix5hd2_ir_priv *dev, bool on)
+ {
+ 	u32 val;
++	int ret = 0;
+ 
+ 	if (dev->regmap) {
+ 		regmap_read(dev->regmap, IR_CLK, &val);
+@@ -87,10 +88,11 @@ static void hix5hd2_ir_enable(struct hix5hd2_ir_priv *dev, bool on)
+ 		regmap_write(dev->regmap, IR_CLK, val);
+ 	} else {
+ 		if (on)
+-			clk_prepare_enable(dev->clock);
++			ret = clk_prepare_enable(dev->clock);
+ 		else
+ 			clk_disable_unprepare(dev->clock);
+ 	}
++	return ret;
+ }
+ 
+ static int hix5hd2_ir_config(struct hix5hd2_ir_priv *priv)
+@@ -127,9 +129,18 @@ static int hix5hd2_ir_config(struct hix5hd2_ir_priv *priv)
+ static int hix5hd2_ir_open(struct rc_dev *rdev)
+ {
+ 	struct hix5hd2_ir_priv *priv = rdev->priv;
++	int ret;
++
++	ret = hix5hd2_ir_enable(priv, true);
++	if (ret)
++		return ret;
+ 
+-	hix5hd2_ir_enable(priv, true);
+-	return hix5hd2_ir_config(priv);
++	ret = hix5hd2_ir_config(priv);
++	if (ret) {
++		hix5hd2_ir_enable(priv, false);
++		return ret;
++	}
++	return 0;
+ }
+ 
+ static void hix5hd2_ir_close(struct rc_dev *rdev)
+@@ -239,7 +250,9 @@ static int hix5hd2_ir_probe(struct platform_device *pdev)
+ 		ret = PTR_ERR(priv->clock);
+ 		goto err;
+ 	}
+-	clk_prepare_enable(priv->clock);
++	ret = clk_prepare_enable(priv->clock);
++	if (ret)
++		goto err;
+ 	priv->rate = clk_get_rate(priv->clock);
+ 
+ 	rdev->allowed_protocols = RC_PROTO_BIT_ALL_IR_DECODER;
+@@ -309,9 +322,17 @@ static int hix5hd2_ir_suspend(struct device *dev)
+ static int hix5hd2_ir_resume(struct device *dev)
+ {
+ 	struct hix5hd2_ir_priv *priv = dev_get_drvdata(dev);
++	int ret;
+ 
+-	hix5hd2_ir_enable(priv, true);
+-	clk_prepare_enable(priv->clock);
++	ret = hix5hd2_ir_enable(priv, true);
++	if (ret)
++		return ret;
++
++	ret = clk_prepare_enable(priv->clock);
++	if (ret) {
++		hix5hd2_ir_enable(priv, false);
++		return ret;
++	}
+ 
+ 	writel_relaxed(0x01, priv->base + IR_ENABLE);
+ 	writel_relaxed(0x00, priv->base + IR_INTM);
+-- 
+2.7.4
