@@ -1,168 +1,174 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx08-00178001.pphosted.com ([91.207.212.93]:22993 "EHLO
-        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1752239AbeACJ6e (ORCPT
+Received: from mail-wr0-f195.google.com ([209.85.128.195]:38116 "EHLO
+        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751732AbeAZUOL (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 3 Jan 2018 04:58:34 -0500
-From: Hugues Fruchet <hugues.fruchet@st.com>
-To: Steve Longerbeam <slongerbeam@gmail.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        "Mauro Carvalho Chehab" <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>
-CC: <devicetree@vger.kernel.org>, <linux-media@vger.kernel.org>,
-        "Hugues Fruchet" <hugues.fruchet@st.com>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Subject: [PATCH v5 2/5] media: ov5640: check chip id
-Date: Wed, 3 Jan 2018 10:57:29 +0100
-Message-ID: <1514973452-10464-3-git-send-email-hugues.fruchet@st.com>
-In-Reply-To: <1514973452-10464-1-git-send-email-hugues.fruchet@st.com>
-References: <1514973452-10464-1-git-send-email-hugues.fruchet@st.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+        Fri, 26 Jan 2018 15:14:11 -0500
+Received: by mail-wr0-f195.google.com with SMTP id a1so1525496wri.5
+        for <linux-media@vger.kernel.org>; Fri, 26 Jan 2018 12:14:11 -0800 (PST)
+From: Corentin Labbe <clabbe@baylibre.com>
+To: mchehab@kernel.org
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+        Corentin Labbe <clabbe@baylibre.com>
+Subject: [PATCH] media: drx-j remove bsp_i2c.h
+Date: Fri, 26 Jan 2018 20:14:05 +0000
+Message-Id: <1516997645-13813-1-git-send-email-clabbe@baylibre.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Verify that chip identifier is correct when probing.
+bsp_i2c.h is unused since commit ffe7c4f92183 ("[media] drx-j: Get rid of drx39xyj/bsp_tuner.h")
+Remove it from tree.
 
-Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
+Signed-off-by: Corentin Labbe <clabbe@baylibre.com>
 ---
- drivers/media/i2c/ov5640.c | 95 ++++++++++++++++++++++++++++++++++++++--------
- 1 file changed, 79 insertions(+), 16 deletions(-)
+ drivers/media/dvb-frontends/drx39xyj/bsp_i2c.h | 139 -------------------------
+ 1 file changed, 139 deletions(-)
+ delete mode 100644 drivers/media/dvb-frontends/drx39xyj/bsp_i2c.h
 
-diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
-index 61071f5..9f031f3 100644
---- a/drivers/media/i2c/ov5640.c
-+++ b/drivers/media/i2c/ov5640.c
-@@ -1547,24 +1547,58 @@ static void ov5640_reset(struct ov5640_dev *sensor)
- 	usleep_range(5000, 10000);
- }
- 
--static int ov5640_set_power(struct ov5640_dev *sensor, bool on)
-+static int ov5640_set_power_on(struct ov5640_dev *sensor)
- {
--	int ret = 0;
-+	struct i2c_client *client = sensor->i2c_client;
-+	int ret;
- 
--	if (on) {
--		clk_prepare_enable(sensor->xclk);
-+	ret = clk_prepare_enable(sensor->xclk);
-+	if (ret) {
-+		dev_err(&client->dev, "%s: failed to enable clock\n",
-+			__func__);
-+		return ret;
-+	}
- 
--		ret = regulator_bulk_enable(OV5640_NUM_SUPPLIES,
--					    sensor->supplies);
--		if (ret)
--			goto xclk_off;
-+	ret = regulator_bulk_enable(OV5640_NUM_SUPPLIES,
-+				    sensor->supplies);
-+	if (ret) {
-+		dev_err(&client->dev, "%s: failed to enable regulators\n",
-+			__func__);
-+		goto xclk_off;
-+	}
-+
-+	ov5640_reset(sensor);
-+	ov5640_power(sensor, true);
-+
-+	ret = ov5640_init_slave_id(sensor);
-+	if (ret)
-+		goto power_off;
-+
-+	return 0;
-+
-+power_off:
-+	ov5640_power(sensor, false);
-+	regulator_bulk_disable(OV5640_NUM_SUPPLIES, sensor->supplies);
-+xclk_off:
-+	clk_disable_unprepare(sensor->xclk);
-+	return ret;
-+}
-+
-+static void ov5640_set_power_off(struct ov5640_dev *sensor)
-+{
-+	ov5640_power(sensor, false);
-+	regulator_bulk_disable(OV5640_NUM_SUPPLIES, sensor->supplies);
-+	clk_disable_unprepare(sensor->xclk);
-+}
- 
--		ov5640_reset(sensor);
--		ov5640_power(sensor, true);
-+static int ov5640_set_power(struct ov5640_dev *sensor, bool on)
-+{
-+	int ret = 0;
- 
--		ret = ov5640_init_slave_id(sensor);
-+	if (on) {
-+		ret = ov5640_set_power_on(sensor);
- 		if (ret)
--			goto power_off;
-+			return ret;
- 
- 		ret = ov5640_restore_mode(sensor);
- 		if (ret)
-@@ -1586,10 +1620,7 @@ static int ov5640_set_power(struct ov5640_dev *sensor, bool on)
- 	}
- 
- power_off:
--	ov5640_power(sensor, false);
--	regulator_bulk_disable(OV5640_NUM_SUPPLIES, sensor->supplies);
--xclk_off:
--	clk_disable_unprepare(sensor->xclk);
-+	ov5640_set_power_off(sensor);
- 	return ret;
- }
- 
-@@ -2202,6 +2233,34 @@ static int ov5640_get_regulators(struct ov5640_dev *sensor)
- 				       sensor->supplies);
- }
- 
-+static int ov5640_check_chip_id(struct ov5640_dev *sensor)
-+{
-+	struct i2c_client *client = sensor->i2c_client;
-+	int ret = 0;
-+	u16 chip_id;
-+
-+	ret = ov5640_set_power_on(sensor);
-+	if (ret)
-+		return ret;
-+
-+	ret = ov5640_read_reg16(sensor, OV5640_REG_CHIP_ID, &chip_id);
-+	if (ret) {
-+		dev_err(&client->dev, "%s: failed to read chip identifier\n",
-+			__func__);
-+		goto power_off;
-+	}
-+
-+	if (chip_id != 0x5640) {
-+		dev_err(&client->dev, "%s: wrong chip identifier, expected 0x5640, got 0x%x\n",
-+			__func__, chip_id);
-+		ret = -ENXIO;
-+	}
-+
-+power_off:
-+	ov5640_set_power_off(sensor);
-+	return ret;
-+}
-+
- static int ov5640_probe(struct i2c_client *client,
- 			const struct i2c_device_id *id)
- {
-@@ -2284,6 +2343,10 @@ static int ov5640_probe(struct i2c_client *client,
- 
- 	mutex_init(&sensor->lock);
- 
-+	ret = ov5640_check_chip_id(sensor);
-+	if (ret)
-+		goto entity_cleanup;
-+
- 	ret = ov5640_init_controls(sensor);
- 	if (ret)
- 		goto entity_cleanup;
+diff --git a/drivers/media/dvb-frontends/drx39xyj/bsp_i2c.h b/drivers/media/dvb-frontends/drx39xyj/bsp_i2c.h
+deleted file mode 100644
+index 2b3af247a1f1..000000000000
+--- a/drivers/media/dvb-frontends/drx39xyj/bsp_i2c.h
++++ /dev/null
+@@ -1,139 +0,0 @@
+-/*
+-  I2C API, implementation depends on board specifics
+-
+-  Copyright (c), 2004-2005,2007-2010 Trident Microsystems, Inc.
+-  All rights reserved.
+-
+-  Redistribution and use in source and binary forms, with or without
+-  modification, are permitted provided that the following conditions are met:
+-
+-  * Redistributions of source code must retain the above copyright notice,
+-    this list of conditions and the following disclaimer.
+-  * Redistributions in binary form must reproduce the above copyright notice,
+-    this list of conditions and the following disclaimer in the documentation
+-	and/or other materials provided with the distribution.
+-  * Neither the name of Trident Microsystems nor Hauppauge Computer Works
+-    nor the names of its contributors may be used to endorse or promote
+-	products derived from this software without specific prior written
+-	permission.
+-
+-  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+-  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+-  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+-  ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+-  LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+-  CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+-  SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+-  INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+-  CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+-  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+-  POSSIBILITY OF SUCH DAMAGE.
+-
+-  This module encapsulates I2C access.In some applications several devices
+-  share one I2C bus. If these devices have the same I2C address some kind
+-  off "switch" must be implemented to ensure error free communication with
+-  one device.  In case such a "switch" is used, the device ID can be used
+-  to implement control over this "switch".
+-*/
+-
+-#ifndef __BSPI2C_H__
+-#define __BSPI2C_H__
+-
+-#include "bsp_types.h"
+-
+-/*
+- * This structure contains the I2C address, the device ID and a user_data pointer.
+- * The user_data pointer can be used for application specific purposes.
+- */
+-struct i2c_device_addr {
+-	u16 i2c_addr;		/* The I2C address of the device. */
+-	u16 i2c_dev_id;		/* The device identifier. */
+-	void *user_data;		/* User data pointer */
+-};
+-
+-
+-/*
+-* \def IS_I2C_10BIT( addr )
+-* \brief Determine if I2C address 'addr' is a 10 bits address or not.
+-* \param addr The I2C address.
+-* \return int.
+-* \retval 0 if address is not a 10 bits I2C address.
+-* \retval 1 if address is a 10 bits I2C address.
+-*/
+-#define IS_I2C_10BIT(addr) \
+-	 (((addr) & 0xF8) == 0xF0)
+-
+-/*------------------------------------------------------------------------------
+-Exported FUNCTIONS
+-------------------------------------------------------------------------------*/
+-
+-/*
+-* \fn drxbsp_i2c_init()
+-* \brief Initialize I2C communication module.
+-* \return drx_status_t Return status.
+-* \retval 0 Initialization successful.
+-* \retval -EIO Initialization failed.
+-*/
+-	drx_status_t drxbsp_i2c_init(void);
+-
+-/*
+-* \fn drxbsp_i2c_term()
+-* \brief Terminate I2C communication module.
+-* \return drx_status_t Return status.
+-* \retval 0 Termination successful.
+-* \retval -EIO Termination failed.
+-*/
+-	drx_status_t drxbsp_i2c_term(void);
+-
+-/*
+-* \fn drx_status_t drxbsp_i2c_write_read( struct i2c_device_addr *w_dev_addr,
+-*                                       u16 w_count,
+-*                                       u8 *wData,
+-*                                       struct i2c_device_addr *r_dev_addr,
+-*                                       u16 r_count,
+-*                                       u8 *r_data)
+-* \brief Read and/or write count bytes from I2C bus, store them in data[].
+-* \param w_dev_addr The device i2c address and the device ID to write to
+-* \param w_count   The number of bytes to write
+-* \param wData    The array to write the data to
+-* \param r_dev_addr The device i2c address and the device ID to read from
+-* \param r_count   The number of bytes to read
+-* \param r_data    The array to read the data from
+-* \return drx_status_t Return status.
+-* \retval 0 Succes.
+-* \retval -EIO Failure.
+-* \retval -EINVAL Parameter 'wcount' is not zero but parameter
+-*                                       'wdata' contains NULL.
+-*                                       Idem for 'rcount' and 'rdata'.
+-*                                       Both w_dev_addr and r_dev_addr are NULL.
+-*
+-* This function must implement an atomic write and/or read action on the I2C bus
+-* No other process may use the I2C bus when this function is executing.
+-* The critical section of this function runs from and including the I2C
+-* write, up to and including the I2C read action.
+-*
+-* The device ID can be useful if several devices share an I2C address.
+-* It can be used to control a "switch" on the I2C bus to the correct device.
+-*/
+-	drx_status_t drxbsp_i2c_write_read(struct i2c_device_addr *w_dev_addr,
+-					 u16 w_count,
+-					 u8 *w_data,
+-					 struct i2c_device_addr *r_dev_addr,
+-					 u16 r_count, u8 *r_data);
+-
+-/*
+-* \fn drxbsp_i2c_error_text()
+-* \brief Returns a human readable error.
+-* Counter part of numerical drx_i2c_error_g.
+-*
+-* \return char* Pointer to human readable error text.
+-*/
+-	char *drxbsp_i2c_error_text(void);
+-
+-/*
+-* \var drx_i2c_error_g;
+-* \brief I2C specific error codes, platform dependent.
+-*/
+-	extern int drx_i2c_error_g;
+-
+-#endif				/* __BSPI2C_H__ */
 -- 
-1.9.1
+2.13.6
