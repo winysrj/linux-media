@@ -1,129 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.free-electrons.com ([62.4.15.54]:51656 "EHLO
-        mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933184AbeAKMka (ORCPT
+Received: from mail-qt0-f173.google.com ([209.85.216.173]:41547 "EHLO
+        mail-qt0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751620AbeAZVoi (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 11 Jan 2018 07:40:30 -0500
-Date: Thu, 11 Jan 2018 13:40:18 +0100
-From: Maxime Ripard <maxime.ripard@free-electrons.com>
-To: Yong <yong.deng@magewell.com>
-Cc: Hugues FRUCHET <hugues.fruchet@st.com>,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
+        Fri, 26 Jan 2018 16:44:38 -0500
+Received: by mail-qt0-f173.google.com with SMTP id i1so4858486qtj.8
+        for <linux-media@vger.kernel.org>; Fri, 26 Jan 2018 13:44:38 -0800 (PST)
+Message-ID: <1517003075.32074.29.camel@ndufresne.ca>
+Subject: Re: [RFC PATCH 6/8] v4l2: document the request API interface
+From: Nicolas Dufresne <nicolas@ndufresne.ca>
+To: Randy Dunlap <rdunlap@infradead.org>,
+        Alexandre Courbot <acourbot@chromium.org>,
         Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Subject: Re: [PATCH v5 0/5] Add OV5640 parallel interface and RGB565/YUYV
- support
-Message-ID: <20180111124018.azdzjeitjsyenmra@flea.lan>
-References: <1514973452-10464-1-git-send-email-hugues.fruchet@st.com>
- <20180108153811.5xrvbaekm6nxtoa6@flea>
- <3010811e-ed37-4489-6a9f-6cc835f41575@st.com>
- <20180110153724.l77zpdgxfbzkznuf@flea>
- <20180111091508.a0c9f630c6b4ef80178694fb@magewell.com>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="o7pqzwq2ylfpgigj"
-Content-Disposition: inline
-In-Reply-To: <20180111091508.a0c9f630c6b4ef80178694fb@magewell.com>
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Pawel Osciak <posciak@chromium.org>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Tomasz Figa <tfiga@chromium.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Gustavo Padovan <gustavo.padovan@collabora.com>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Date: Fri, 26 Jan 2018 16:44:35 -0500
+In-Reply-To: <98ccb2f3-156e-2f4e-4630-9d16d157d65b@infradead.org>
+References: <20180126060216.147918-1-acourbot@chromium.org>
+         <20180126060216.147918-7-acourbot@chromium.org>
+         <98ccb2f3-156e-2f4e-4630-9d16d157d65b@infradead.org>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Le vendredi 26 janvier 2018 à 12:40 -0800, Randy Dunlap a écrit :
+> > +Request API
+> > +===========
+> > +
+> > +The Request API has been designed to allow V4L2 to deal with
+> > requirements of
+> > +modern IPs (stateless codecs, MIPI cameras, ...) and APIs (Android
+> > Codec v2).
+> 
+> Hi,
+> Just a quick question:  What are IPs?
+> 
+> Not Internet Protocols. Hopefully not Intellectual Properties.
+> Maybe Intelligent Processors?
 
---o7pqzwq2ylfpgigj
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Stands for "Intellectual Property". Used like this, I believe it's a
+bit of a slang. It's also slightly pejorative as we often assume that
+self contained "IP Cores" are proprietary black box. But considering
+all the security issues that was found in these black boxes firmwares,
+it's kind of fair criticism.
 
-Hi Yong,
+Nicolas
 
-On Thu, Jan 11, 2018 at 09:15:08AM +0800, Yong wrote:
-> > On Mon, Jan 08, 2018 at 05:13:39PM +0000, Hugues FRUCHET wrote:
-> > > I'm using a ST board with OV5640 wired in parallel bus output in orde=
-r=20
-> > > to interface to my STM32 DCMI parallel interface.
-> > > Perhaps could you describe your setup so I could help on understandin=
-g=20
-> > > the problem on your side. From my past experience with this sensor=20
-> > > module, you can first check hsync/vsync polarities, the datasheet is=
-=20
-> > > buggy on VSYNC polarity as documented in patch 4/5.
-> >=20
-> > It turns out that it was indeed a polarity issue.
-> >=20
-> > It looks like that in order to operate properly, I need to setup the
-> > opposite polarity on HSYNC and VSYNC on the interface. I looked at the
-> > signals under a scope, and VSYNC is obviously inversed as you
-> > described. HSYNC, I'm not so sure since the HBLANK period seems very
-> > long, almost a line.
-> >=20
-> > Since VSYNC at least looks correct, I'd be inclined to think that the
-> > polarity is inversed on at least the SoC I'm using it on.
-> >=20
-> > Yong, did you test the V3S CSI driver with a parallel interface? With
-> > what sensor driver? Have you found some polarities issues like this?
->=20
-> Did you try it with Allwinner SoCs?
-
-Yes, on an H3. Looking at all the Allwinner datasheet I could get my
-hands on, they are all documented in the same way. However, I really
-start to wonder whether the polarity shouldn't be reversed.
-
-At least the fact that VSYNC is clearly active low on the
-oscilloscope, while I have to set it active high in the controller
-seems like a strong hint :)
-
-> No. I only tested with a BT1120 signal generated by FPGA or ADV7611. HSYNC
-> and VSYNC are not used.
-
-Ok, that's good to know :)
-
-> For V3s CSI driver, I will add the following to dt-bindings:
-> Endpoint node properties for CSI1
-> ---------------------------------
->=20
-> - remote-endpoint      : (required) a phandle to the bus receiver's endpo=
-int
->                           node
-> - bus-width:           : (required) must be 8, 10, 12 or 16
-> - pclk-sample          : (optional) (default: sample on falling edge)
-> - hsync-active         : (only required for parallel)
-> - vsync-active         : (only required for parallel)
->=20
-> You could try diffrent hsync-active/vsync-active values here.
-
-I did already, and the only combination that works is the one that is
-the inversed polarity on HSYNC and VSYNC than what the sensor setup.
-
-Maxime
-
---=20
-Maxime Ripard, Free Electrons
-Embedded Linux and Kernel engineering
-http://free-electrons.com
-
---o7pqzwq2ylfpgigj
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCAAdFiEE0VqZU19dR2zEVaqr0rTAlCFNr3QFAlpXWzEACgkQ0rTAlCFN
-r3TU4w//c8Z+ZjKAgyxrCMqg2nv171OpS9Ox1kjUop3YJ8X4NDaY83+I0kzmwsdo
-eElIRQSVSe1el1WtqU3CgHnQiO6OQZq0c4hYBAs6FBF1uP8BgAdD8IFbGFGXJP7p
-J45A472C80ZgatNmpmsnm7ADCThOlzs4PW37aWxftzcLqkKDox6HhWzwSGgq9W8i
-PZADkO96T0867spbNLRfwqlsS+Uk062KRYT82GUDhOvoyUEC+THnSlPYfxReqLH3
-TW0TIwVO2HIfP2w4mzuJfs8alRp5CZ3wAHkYcSkiOry87PZ3RYFk30wAucBhOVoL
-Cra/IIPyfRX8UEEnz6/oCuHi8L/Pd8rIGW2UdIXK2ut+SRoxaHQBkYZydGEx0MWR
-DP+YqD3eSS4yqv7er7j4+t8LPaDDZdp5EIXNKABWWhMCIeh9an11xwk8NUW4SSfc
-/suwroFxoHQ7h+87ucRqAejiwTsT+HJKIhyGMLLptuRL2rfMskiAdGtiCggdmkX/
-I7eNcUWyWM6Lm7HGPod5KT7lBPS2hgl8DmO4kXcJg9P1UeBQG8DTAW9tlKF/Dj1k
-IaAQ/PbCDThHvJ/8F1IYh2orywiC/5pXRc8qMGJhwM72aZ9bI1z/j+OcwsdH1n6U
-wVvN5lW5XKeSZ+ee5vwcAvz9yCtJCpkZUZy1YsCt2rDurDxOVPY=
-=XRAc
------END PGP SIGNATURE-----
-
---o7pqzwq2ylfpgigj--
+p.s. I'd propose to rephrase this in later version
