@@ -1,88 +1,149 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.free-electrons.com ([62.4.15.54]:42813 "EHLO
-        mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751682AbeAYK5c (ORCPT
+Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:55432 "EHLO
+        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751621AbeAZMna (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 25 Jan 2018 05:57:32 -0500
-Date: Thu, 25 Jan 2018 11:57:20 +0100
-From: Maxime Ripard <maxime.ripard@free-electrons.com>
-To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-Cc: dri-devel@lists.freedesktop.org,
-        Thomas Hellstrom <thellstrom@vmware.com>,
-        Joonas Lahtinen <joonas.lahtinen@linux.intel.com>,
-        Russell King <linux@armlinux.org.uk>,
-        linux-renesas-soc@vger.kernel.org, Ben Skeggs <bskeggs@redhat.com>,
-        Rodrigo Vivi <rodrigo.vivi@intel.com>,
-        Alexandru Gheorghe <Alexandru_Gheorghe@mentor.com>,
-        linux-media@vger.kernel.org
-Subject: Re: [PATCH/RFC 4/4] drm: rcar-du: Add support for color keying on
- Gen3
-Message-ID: <20180125105720.zey6c67jf23hlg6z@flea.lan>
-References: <20171217001724.1348-1-laurent.pinchart+renesas@ideasonboard.com>
- <20171217001724.1348-5-laurent.pinchart+renesas@ideasonboard.com>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="n4koyawtsohwbygi"
-Content-Disposition: inline
-In-Reply-To: <20171217001724.1348-5-laurent.pinchart+renesas@ideasonboard.com>
+        Fri, 26 Jan 2018 07:43:30 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Daniel Mentz <danielmentz@google.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 01/12] vivid: fix module load error when enabling fb and no_error_inj=1
+Date: Fri, 26 Jan 2018 13:43:16 +0100
+Message-Id: <20180126124327.16653-2-hverkuil@xs4all.nl>
+In-Reply-To: <20180126124327.16653-1-hverkuil@xs4all.nl>
+References: <20180126124327.16653-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
---n4koyawtsohwbygi
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+If the framebuffer is enabled and error injection is disabled, then
+creating the controls for the video output device would fail with an
+error.
 
-Hi,
+This is because the Clear Framebuffer control uses the 'vivid control
+class' and that control class isn't added if error injection is disabled.
 
-On Sun, Dec 17, 2017 at 02:17:24AM +0200, Laurent Pinchart wrote:
-> +static const struct drm_prop_enum_list colorkey_modes[] =3D {
-> +	{ 0, "disabled" },
-> +	{ 1, "source" },
-> +};
-> +
->  int rcar_du_vsp_init(struct rcar_du_vsp *vsp, struct device_node *np,
->  		     unsigned int crtcs)
->  {
-> @@ -441,6 +453,10 @@ int rcar_du_vsp_init(struct rcar_du_vsp *vsp, struct=
- device_node *np,
->  					   rcdu->props.alpha, 255);
->  		drm_plane_create_zpos_property(&plane->plane, 1, 1,
->  					       vsp->num_planes - 1);
-> +		drm_plane_create_colorkey_properties(&plane->plane,
-> +						     colorkey_modes,
-> +						     ARRAY_SIZE(colorkey_modes),
-> +						     true);
+In addition, this control was added to e.g. vbi devices as well, which
+makes no sense.
 
-You seem to define the same list in your enumeration between your
-patch 2 and this one. Can this be something made generic too?
+Move this control to its own control handler and handle it correctly.
 
-Maxime
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/platform/vivid/vivid-core.h  |  1 +
+ drivers/media/platform/vivid/vivid-ctrls.c | 35 +++++++++++++++++++++++++-----
+ 2 files changed, 30 insertions(+), 6 deletions(-)
 
---=20
-Maxime Ripard, Free Electrons
-Embedded Linux and Kernel engineering
-http://free-electrons.com
-
---n4koyawtsohwbygi
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCAAdFiEE0VqZU19dR2zEVaqr0rTAlCFNr3QFAlppuA8ACgkQ0rTAlCFN
-r3Qy+g/7B1jzNP8yUBb4/Yv05AF5kRfzAbVB01XaJWhUTXyK5L6gTrYD37N7YNES
-LMulrX77o/DwacUiGoOt8iHZ0MDNJHdTDHUornPXKq2sxE6WTPBgDP100U5Cu0i2
-On6clRVsqxpmKq5+hCs55Ux0OY9o6n+27tJ12Qsxi9f86qi1cFjkXmD/A2VDoiRm
-I8K8lk8xDfbWImTAHe6TeOIziIAscpzaoU3wkvFIsGZh7ZQwgO5JZTXxsd4klQlI
-UfrUrm5wxZ4m+mr+rLQjF1hjahgqmwZ+Jom01WZy+D/jSQu0TdzebnVn4YciQzdm
-3HNwgkhKUkYNvmpc1fCd2WBy/h2ozZM+qywwiW1oFaz4ldyDtaJryA9aTX9UMnPQ
-q8CzsWZo0FRU+WmDy2Fd1ODMShffeVul8pc/FHMlR3vZz9Deb/+sXGZurV1G0d4C
-r2Plotuh/YCHbzJ6UjGx1NKpMW5+TtnQeklHKUr35gc5CJMm/jspts5Gm4apAv3o
-MTc2jNtVLPfBumxODL/EKxC0LdSRHr7HJwMXprrrz510dXPnp46f3MNBG6ZS2BnZ
-8WvYlRAGeSoqOjV0cM78TxUYBzHa9jY6gDUgQtsTiUtXiA1T7s7NqUy5X4ReBgx4
-u9t+XvqZ9u9wA+DhykVXTJEOSNjtNmttVIB1dcl8gny+T3IvYIs=
-=gf5T
------END PGP SIGNATURE-----
-
---n4koyawtsohwbygi--
+diff --git a/drivers/media/platform/vivid/vivid-core.h b/drivers/media/platform/vivid/vivid-core.h
+index 50802e650750..c90e4a0ab94e 100644
+--- a/drivers/media/platform/vivid/vivid-core.h
++++ b/drivers/media/platform/vivid/vivid-core.h
+@@ -154,6 +154,7 @@ struct vivid_dev {
+ 	struct v4l2_ctrl_handler	ctrl_hdl_streaming;
+ 	struct v4l2_ctrl_handler	ctrl_hdl_sdtv_cap;
+ 	struct v4l2_ctrl_handler	ctrl_hdl_loop_cap;
++	struct v4l2_ctrl_handler	ctrl_hdl_fb;
+ 	struct video_device		vid_cap_dev;
+ 	struct v4l2_ctrl_handler	ctrl_hdl_vid_cap;
+ 	struct video_device		vid_out_dev;
+diff --git a/drivers/media/platform/vivid/vivid-ctrls.c b/drivers/media/platform/vivid/vivid-ctrls.c
+index 34731f71cc00..3f9d354827af 100644
+--- a/drivers/media/platform/vivid/vivid-ctrls.c
++++ b/drivers/media/platform/vivid/vivid-ctrls.c
+@@ -120,9 +120,6 @@ static int vivid_user_gen_s_ctrl(struct v4l2_ctrl *ctrl)
+ 		clear_bit(V4L2_FL_REGISTERED, &dev->radio_rx_dev.flags);
+ 		clear_bit(V4L2_FL_REGISTERED, &dev->radio_tx_dev.flags);
+ 		break;
+-	case VIVID_CID_CLEAR_FB:
+-		vivid_clear_fb(dev);
+-		break;
+ 	case VIVID_CID_BUTTON:
+ 		dev->button_pressed = 30;
+ 		break;
+@@ -274,8 +271,28 @@ static const struct v4l2_ctrl_config vivid_ctrl_disconnect = {
+ 	.type = V4L2_CTRL_TYPE_BUTTON,
+ };
+ 
++
++/* Framebuffer Controls */
++
++static int vivid_fb_s_ctrl(struct v4l2_ctrl *ctrl)
++{
++	struct vivid_dev *dev = container_of(ctrl->handler,
++					     struct vivid_dev, ctrl_hdl_fb);
++
++	switch (ctrl->id) {
++	case VIVID_CID_CLEAR_FB:
++		vivid_clear_fb(dev);
++		break;
++	}
++	return 0;
++}
++
++static const struct v4l2_ctrl_ops vivid_fb_ctrl_ops = {
++	.s_ctrl = vivid_fb_s_ctrl,
++};
++
+ static const struct v4l2_ctrl_config vivid_ctrl_clear_fb = {
+-	.ops = &vivid_user_gen_ctrl_ops,
++	.ops = &vivid_fb_ctrl_ops,
+ 	.id = VIVID_CID_CLEAR_FB,
+ 	.name = "Clear Framebuffer",
+ 	.type = V4L2_CTRL_TYPE_BUTTON,
+@@ -1357,6 +1374,7 @@ int vivid_create_controls(struct vivid_dev *dev, bool show_ccs_cap,
+ 	struct v4l2_ctrl_handler *hdl_streaming = &dev->ctrl_hdl_streaming;
+ 	struct v4l2_ctrl_handler *hdl_sdtv_cap = &dev->ctrl_hdl_sdtv_cap;
+ 	struct v4l2_ctrl_handler *hdl_loop_cap = &dev->ctrl_hdl_loop_cap;
++	struct v4l2_ctrl_handler *hdl_fb = &dev->ctrl_hdl_fb;
+ 	struct v4l2_ctrl_handler *hdl_vid_cap = &dev->ctrl_hdl_vid_cap;
+ 	struct v4l2_ctrl_handler *hdl_vid_out = &dev->ctrl_hdl_vid_out;
+ 	struct v4l2_ctrl_handler *hdl_vbi_cap = &dev->ctrl_hdl_vbi_cap;
+@@ -1384,10 +1402,12 @@ int vivid_create_controls(struct vivid_dev *dev, bool show_ccs_cap,
+ 	v4l2_ctrl_new_custom(hdl_sdtv_cap, &vivid_ctrl_class, NULL);
+ 	v4l2_ctrl_handler_init(hdl_loop_cap, 1);
+ 	v4l2_ctrl_new_custom(hdl_loop_cap, &vivid_ctrl_class, NULL);
++	v4l2_ctrl_handler_init(hdl_fb, 1);
++	v4l2_ctrl_new_custom(hdl_fb, &vivid_ctrl_class, NULL);
+ 	v4l2_ctrl_handler_init(hdl_vid_cap, 55);
+ 	v4l2_ctrl_new_custom(hdl_vid_cap, &vivid_ctrl_class, NULL);
+ 	v4l2_ctrl_handler_init(hdl_vid_out, 26);
+-	if (!no_error_inj)
++	if (!no_error_inj || dev->has_fb)
+ 		v4l2_ctrl_new_custom(hdl_vid_out, &vivid_ctrl_class, NULL);
+ 	v4l2_ctrl_handler_init(hdl_vbi_cap, 21);
+ 	v4l2_ctrl_new_custom(hdl_vbi_cap, &vivid_ctrl_class, NULL);
+@@ -1561,7 +1581,7 @@ int vivid_create_controls(struct vivid_dev *dev, bool show_ccs_cap,
+ 		v4l2_ctrl_new_custom(hdl_loop_cap, &vivid_ctrl_loop_video, NULL);
+ 
+ 	if (dev->has_fb)
+-		v4l2_ctrl_new_custom(hdl_user_gen, &vivid_ctrl_clear_fb, NULL);
++		v4l2_ctrl_new_custom(hdl_fb, &vivid_ctrl_clear_fb, NULL);
+ 
+ 	if (dev->has_radio_rx) {
+ 		v4l2_ctrl_new_custom(hdl_radio_rx, &vivid_ctrl_radio_hw_seek_mode, NULL);
+@@ -1658,6 +1678,7 @@ int vivid_create_controls(struct vivid_dev *dev, bool show_ccs_cap,
+ 		v4l2_ctrl_add_handler(hdl_vid_cap, hdl_streaming, NULL);
+ 		v4l2_ctrl_add_handler(hdl_vid_cap, hdl_sdtv_cap, NULL);
+ 		v4l2_ctrl_add_handler(hdl_vid_cap, hdl_loop_cap, NULL);
++		v4l2_ctrl_add_handler(hdl_vid_cap, hdl_fb, NULL);
+ 		if (hdl_vid_cap->error)
+ 			return hdl_vid_cap->error;
+ 		dev->vid_cap_dev.ctrl_handler = hdl_vid_cap;
+@@ -1666,6 +1687,7 @@ int vivid_create_controls(struct vivid_dev *dev, bool show_ccs_cap,
+ 		v4l2_ctrl_add_handler(hdl_vid_out, hdl_user_gen, NULL);
+ 		v4l2_ctrl_add_handler(hdl_vid_out, hdl_user_aud, NULL);
+ 		v4l2_ctrl_add_handler(hdl_vid_out, hdl_streaming, NULL);
++		v4l2_ctrl_add_handler(hdl_vid_out, hdl_fb, NULL);
+ 		if (hdl_vid_out->error)
+ 			return hdl_vid_out->error;
+ 		dev->vid_out_dev.ctrl_handler = hdl_vid_out;
+@@ -1725,4 +1747,5 @@ void vivid_free_controls(struct vivid_dev *dev)
+ 	v4l2_ctrl_handler_free(&dev->ctrl_hdl_streaming);
+ 	v4l2_ctrl_handler_free(&dev->ctrl_hdl_sdtv_cap);
+ 	v4l2_ctrl_handler_free(&dev->ctrl_hdl_loop_cap);
++	v4l2_ctrl_handler_free(&dev->ctrl_hdl_fb);
+ }
+-- 
+2.15.1
