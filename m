@@ -1,244 +1,332 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay4-d.mail.gandi.net ([217.70.183.196]:52887 "EHLO
-        relay4-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750941AbeAPVpb (ORCPT
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:34623 "EHLO
+        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751884AbeAZMna (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 16 Jan 2018 16:45:31 -0500
-From: Jacopo Mondi <jacopo+renesas@jmondi.org>
-To: laurent.pinchart@ideasonboard.com, magnus.damm@gmail.com,
-        geert@glider.be, hverkuil@xs4all.nl, mchehab@kernel.org,
-        festevam@gmail.com, sakari.ailus@iki.fi, robh+dt@kernel.org,
-        mark.rutland@arm.com, pombredanne@nexb.com
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-sh@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH v6 0/9] Renesas Capture Engine Unit (CEU) V4L2 driver
-Date: Tue, 16 Jan 2018 22:44:52 +0100
-Message-Id: <1516139101-7835-1-git-send-email-jacopo+renesas@jmondi.org>
+        Fri, 26 Jan 2018 07:43:30 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Daniel Mentz <danielmentz@google.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 06/12] v4l2-compat-ioctl32.c: avoid sizeof(type)
+Date: Fri, 26 Jan 2018 13:43:21 +0100
+Message-Id: <20180126124327.16653-7-hverkuil@xs4all.nl>
+In-Reply-To: <20180126124327.16653-1-hverkuil@xs4all.nl>
+References: <20180126124327.16653-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
-   new version of CEU after Hans' review.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Added his Acked-by to most patches and closed review comments.
-Running v4l2-compliance, I noticed a new failure introduced by the way I now
-calculate the plane sizes in set/try_fmt.
+Instead of doing sizeof(struct foo) use sizeof(*up). There even were
+cases where 4 * sizeof(__u32) was used instead of sizeof(kp->reserved),
+which is very dangerous when the size of the reserved array changes.
 
-This is the function used to update per-plane bytesperline and sizeimage:
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 77 ++++++++++++---------------
+ 1 file changed, 35 insertions(+), 42 deletions(-)
 
-static void ceu_update_plane_sizes(struct v4l2_plane_pix_format *plane,
-				   unsigned int bpl, unsigned int szimage)
-{
-	if (plane->bytesperline < bpl)
-		plane->bytesperline = bpl;
-	if (plane->sizeimage < szimage)
-		plane->sizeimage = szimage;
-}
-
-I'm seeing a failure as v4l2-compliance requires buffers with both bytesperline
-and sizeimage set to MAX_INT . Hans, is this expected from v4l2-compliance?
-How should I handle this, if that has to be handled by the single drivers?
-
-Apart from that, here it is the output of v4l2-compliance, with the last tests
-failing due to the above stated reason, and two errors in try/set format due to
-the fact the driver is not setting ycbcr encoding after it receives an invalid
-format. I would set those, but I'm not sure what it the correct value and not
-all mainline drivers do that.
-
--------------------------------------------------------------------------------
-v4l2-compliance SHA   : 1d3c611dee82090d9456730e24af368b51dcb4a9
-
-Driver Info:
-	Driver name   : renesas-ceu
-	Card type     : Renesas CEU e8210000.ceu
-	Bus info      : platform:renesas-ceu-e8210000.c
-	Driver version: 4.14.0
-	Capabilities  : 0x84201000
-		Video Capture Multiplanar
-		Streaming
-		Extended Pix Format
-		Device Capabilities
-	Device Caps   : 0x04201000
-		Video Capture Multiplanar
-		Streaming
-		Extended Pix Format
-
-Compliance test for device /dev/video0 (not using libv4l2):
-
-Required ioctls:
-	test VIDIOC_QUERYCAP: OK
-
-Allow for multiple opens:
-	test second video open: OK
-	test VIDIOC_QUERYCAP: OK
-	test VIDIOC_G/S_PRIORITY: OK
-	test for unlimited opens: OK
-
-Debug ioctls:
-	test VIDIOC_DBG_G/S_REGISTER: OK
-	test VIDIOC_LOG_STATUS: OK (Not Supported)
-
-Input ioctls:
-	test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
-	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-	test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
-	test VIDIOC_ENUMAUDIO: OK (Not Supported)
-	test VIDIOC_G/S/ENUMINPUT: OK
-	test VIDIOC_G/S_AUDIO: OK (Not Supported)
-	Inputs: 1 Audio Inputs: 0 Tuners: 0
-
-Output ioctls:
-	test VIDIOC_G/S_MODULATOR: OK (Not Supported)
-	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-	test VIDIOC_ENUMAUDOUT: OK (Not Supported)
-	test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
-	test VIDIOC_G/S_AUDOUT: OK (Not Supported)
-	Outputs: 0 Audio Outputs: 0 Modulators: 0
-
-Input/Output configuration ioctls:
-	test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
-	test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
-	test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
-	test VIDIOC_G/S_EDID: OK (Not Supported)
-
-Test input 0:
-
-	Control ioctls:
-		test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK
-		test VIDIOC_QUERYCTRL: OK
-		test VIDIOC_G/S_CTRL: OK
-		test VIDIOC_G/S/TRY_EXT_CTRLS: OK
-		fail: v4l2-test-controls.cpp(782): subscribe event for control 'User Controls' failed
-		test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: FAIL
-		test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
-		Standard Controls: 12 Private Controls: 0
-
-	Format ioctls:
-		test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
-		fail: v4l2-test-formats.cpp(1162): ret && node->has_frmintervals
-		test VIDIOC_G/S_PARM: FAIL
-		test VIDIOC_G_FBUF: OK (Not Supported)
-		test VIDIOC_G_FMT: OK
-		fail: v4l2-test-formats.cpp(335): ycbcr_enc >= 0xff
-		fail: v4l2-test-formats.cpp(451): testColorspace(pix_mp.pixelformat, pix_mp.colorspace, pix_mp.ycbcr_enc, pix_mp.quantization)
-		fail: v4l2-test-formats.cpp(736): Video Capture Multiplanar is valid, but TRY_FMT failed to return a format
-		test VIDIOC_TRY_FMT: FAIL
-		fail: v4l2-test-formats.cpp(335): ycbcr_enc >= 0xff
-		fail: v4l2-test-formats.cpp(451): testColorspace(pix_mp.pixelformat, pix_mp.colorspace, pix_mp.ycbcr_enc, pix_mp.quantization)
-		fail: v4l2-test-formats.cpp(996): Video Capture Multiplanar is valid, but no S_FMT was implemented
-		test VIDIOC_S_FMT: FAIL
-		test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
-		test Cropping: OK (Not Supported)
-		test Composing: OK (Not Supported)
-		test Scaling: OK (Not Supported)
-
-	Codec ioctls:
-		test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
-		test VIDIOC_G_ENC_INDEX: OK (Not Supported)
-		test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
-
-	Buffer ioctls:
-		test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
-		test VIDIOC_EXPBUF: OK
-
-Test input 0:
-
-
-Total: 43, Succeeded: 39, Failed: 4, Warnings: 0
--------------------------------------------------------------------------------
-
-Thanks
-   j
-
-v5->v6:
-- Add Hans' Acked-by to most patches
-- Fix a bad change in ov772x get_selection
-- Add .buf_prepare callack to CEU and verify plane sizes there
-- Remove VB2_USERPTR from supported io_modes in CEU driver
-- Remove read() fops in CEU driver
-
-v4->v5:
-- Added Rob's and Laurent's Reviewed-by tag to DT bindings
-- Change CEU driver module license to "GPL v2" to match SPDX identifier as
-  suggested by Philippe Ombredanne
-- Make struct ceu_data static as suggested by Laurent and add his
-  Reviewed-by to CEU driver.
-
-v3->v4:
-- Drop generic fallback compatible string "renesas,ceu"
-- Addressed Laurent's comments on [3/9]
-  - Fix error messages on irq get/request
-  - Do not leak ceudev if irq_get fails
-  - Make irq_mask a const field
-
-v2->v3:
-- Improved DT bindings removing standard properties (pinctrl- ones and
-  remote-endpoint) not specific to this driver and improved description of
-  compatible strings
-- Remove ov772x's xlkc_rate property and set clock rate in Migo-R board file
-- Made 'xclk' clock private to ov772x driver in Migo-R board file
-- Change 'rstb' GPIO active output level and changed ov772x and tw9910 drivers
-  accordingly as suggested by Fabio
-- Minor changes in CEU driver to address Laurent's comments
-- Moved Migo-R setup patch to the end of the series to silence 0-day bot
-- Renamed tw9910 clock to 'xti' as per video decoder manual
-- Changed all SPDX identifiers to GPL-2.0 from previous GPL-2.0+
-
-v1->v2:
- - DT
- -- Addressed Geert's comments and added clocks for CEU to mstp6 clock source
- -- Specified supported generic video iterfaces properties in dt-bindings and
-    simplified example
-
- - CEU driver
- -- Re-worked interrupt handler, interrupt management, reset(*) and capture
-    start operation
- -- Re-worked querycap/enum_input/enum_frameintervals to fix some
-    v4l2_compliance failures
- -- Removed soc_camera legacy operations g/s_mbus_format
- -- Update to new notifier implementation
- -- Fixed several comments from Hans, Laurent and Sakari
-
- - Migo-R
- -- Register clocks and gpios for sensor drivers in Migo-R setup
- -- Updated sensors (tw9910 and ov772x) drivers headers and drivers to close
-    remarks from Hans and Laurent:
- --- Removed platform callbacks and handle clocks and gpios from sensor drivers
- --- Remove g/s_mbus_config operations
-
-Jacopo Mondi (9):
-  dt-bindings: media: Add Renesas CEU bindings
-  include: media: Add Renesas CEU driver interface
-  v4l: platform: Add Renesas CEU driver
-  ARM: dts: r7s72100: Add Capture Engine Unit (CEU)
-  v4l: i2c: Copy ov772x soc_camera sensor driver
-  media: i2c: ov772x: Remove soc_camera dependencies
-  v4l: i2c: Copy tw9910 soc_camera sensor driver
-  media: i2c: tw9910: Remove soc_camera dependencies
-  arch: sh: migor: Use new renesas-ceu camera driver
-
- .../devicetree/bindings/media/renesas,ceu.txt      |   81 +
- arch/arm/boot/dts/r7s72100.dtsi                    |   15 +-
- arch/sh/boards/mach-migor/setup.c                  |  225 ++-
- arch/sh/kernel/cpu/sh4a/clock-sh7722.c             |    2 +-
- drivers/media/i2c/Kconfig                          |   20 +
- drivers/media/i2c/Makefile                         |    2 +
- drivers/media/i2c/ov772x.c                         | 1183 ++++++++++++++
- drivers/media/i2c/tw9910.c                         | 1039 ++++++++++++
- drivers/media/platform/Kconfig                     |    9 +
- drivers/media/platform/Makefile                    |    1 +
- drivers/media/platform/renesas-ceu.c               | 1659 ++++++++++++++++++++
- include/media/drv-intf/renesas-ceu.h               |   26 +
- include/media/i2c/ov772x.h                         |    6 +-
- include/media/i2c/tw9910.h                         |    9 +
- 14 files changed, 4146 insertions(+), 131 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/media/renesas,ceu.txt
- create mode 100644 drivers/media/i2c/ov772x.c
- create mode 100644 drivers/media/i2c/tw9910.c
- create mode 100644 drivers/media/platform/renesas-ceu.c
- create mode 100644 include/media/drv-intf/renesas-ceu.h
-
---
-2.7.4
+diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+index 2dd9b42d5859..809448d1b7db 100644
+--- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
++++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+@@ -48,7 +48,7 @@ struct v4l2_window32 {
+ 
+ static int get_v4l2_window32(struct v4l2_window *kp, struct v4l2_window32 __user *up)
+ {
+-	if (!access_ok(VERIFY_READ, up, sizeof(struct v4l2_window32)) ||
++	if (!access_ok(VERIFY_READ, up, sizeof(*up)) ||
+ 	    copy_from_user(&kp->w, &up->w, sizeof(up->w)) ||
+ 	    get_user(kp->field, &up->field) ||
+ 	    get_user(kp->chromakey, &up->chromakey) ||
+@@ -66,7 +66,7 @@ static int get_v4l2_window32(struct v4l2_window *kp, struct v4l2_window32 __user
+ 		if (get_user(p, &up->clips))
+ 			return -EFAULT;
+ 		uclips = compat_ptr(p);
+-		kclips = compat_alloc_user_space(n * sizeof(struct v4l2_clip));
++		kclips = compat_alloc_user_space(n * sizeof(*kclips));
+ 		kp->clips = kclips;
+ 		while (--n >= 0) {
+ 			if (copy_in_user(&kclips->c, &uclips->c, sizeof(uclips->c)))
+@@ -164,14 +164,14 @@ static int __get_v4l2_format32(struct v4l2_format *kp, struct v4l2_format32 __us
+ 
+ static int get_v4l2_format32(struct v4l2_format *kp, struct v4l2_format32 __user *up)
+ {
+-	if (!access_ok(VERIFY_READ, up, sizeof(struct v4l2_format32)))
++	if (!access_ok(VERIFY_READ, up, sizeof(*up)))
+ 		return -EFAULT;
+ 	return __get_v4l2_format32(kp, up);
+ }
+ 
+ static int get_v4l2_create32(struct v4l2_create_buffers *kp, struct v4l2_create_buffers32 __user *up)
+ {
+-	if (!access_ok(VERIFY_READ, up, sizeof(struct v4l2_create_buffers32)) ||
++	if (!access_ok(VERIFY_READ, up, sizeof(*up)) ||
+ 	    copy_from_user(kp, up, offsetof(struct v4l2_create_buffers32, format)))
+ 		return -EFAULT;
+ 	return __get_v4l2_format32(&kp->format, &up->format);
+@@ -218,14 +218,14 @@ static int __put_v4l2_format32(struct v4l2_format *kp, struct v4l2_format32 __us
+ 
+ static int put_v4l2_format32(struct v4l2_format *kp, struct v4l2_format32 __user *up)
+ {
+-	if (!access_ok(VERIFY_WRITE, up, sizeof(struct v4l2_format32)))
++	if (!access_ok(VERIFY_WRITE, up, sizeof(*up)))
+ 		return -EFAULT;
+ 	return __put_v4l2_format32(kp, up);
+ }
+ 
+ static int put_v4l2_create32(struct v4l2_create_buffers *kp, struct v4l2_create_buffers32 __user *up)
+ {
+-	if (!access_ok(VERIFY_WRITE, up, sizeof(struct v4l2_create_buffers32)) ||
++	if (!access_ok(VERIFY_WRITE, up, sizeof(*up)) ||
+ 	    copy_to_user(up, kp, offsetof(struct v4l2_create_buffers32, format)) ||
+ 	    copy_to_user(up->reserved, kp->reserved, sizeof(kp->reserved)))
+ 		return -EFAULT;
+@@ -244,7 +244,7 @@ struct v4l2_standard32 {
+ static int get_v4l2_standard32(struct v4l2_standard *kp, struct v4l2_standard32 __user *up)
+ {
+ 	/* other fields are not set by the user, nor used by the driver */
+-	if (!access_ok(VERIFY_READ, up, sizeof(struct v4l2_standard32)) ||
++	if (!access_ok(VERIFY_READ, up, sizeof(*up)) ||
+ 	    get_user(kp->index, &up->index))
+ 		return -EFAULT;
+ 	return 0;
+@@ -252,14 +252,14 @@ static int get_v4l2_standard32(struct v4l2_standard *kp, struct v4l2_standard32
+ 
+ static int put_v4l2_standard32(struct v4l2_standard *kp, struct v4l2_standard32 __user *up)
+ {
+-	if (!access_ok(VERIFY_WRITE, up, sizeof(struct v4l2_standard32)) ||
++	if (!access_ok(VERIFY_WRITE, up, sizeof(*up)) ||
+ 	    put_user(kp->index, &up->index) ||
+ 	    put_user(kp->id, &up->id) ||
+ 	    copy_to_user(up->name, kp->name, 24) ||
+ 	    copy_to_user(&up->frameperiod, &kp->frameperiod,
+ 			 sizeof(kp->frameperiod)) ||
+ 	    put_user(kp->framelines, &up->framelines) ||
+-	    copy_to_user(up->reserved, kp->reserved, 4 * sizeof(__u32)))
++	    copy_to_user(up->reserved, kp->reserved, sizeof(kp->reserved)))
+ 		return -EFAULT;
+ 	return 0;
+ }
+@@ -307,7 +307,7 @@ static int get_v4l2_plane32(struct v4l2_plane __user *up, struct v4l2_plane32 __
+ 
+ 	if (copy_in_user(up, up32, 2 * sizeof(__u32)) ||
+ 	    copy_in_user(&up->data_offset, &up32->data_offset,
+-			 sizeof(__u32)))
++			 sizeof(up->data_offset)))
+ 		return -EFAULT;
+ 
+ 	if (memory == V4L2_MEMORY_USERPTR) {
+@@ -317,11 +317,11 @@ static int get_v4l2_plane32(struct v4l2_plane __user *up, struct v4l2_plane32 __
+ 		if (put_user((unsigned long)up_pln, &up->m.userptr))
+ 			return -EFAULT;
+ 	} else if (memory == V4L2_MEMORY_DMABUF) {
+-		if (copy_in_user(&up->m.fd, &up32->m.fd, sizeof(int)))
++		if (copy_in_user(&up->m.fd, &up32->m.fd, sizeof(up32->m.fd)))
+ 			return -EFAULT;
+ 	} else {
+ 		if (copy_in_user(&up->m.mem_offset, &up32->m.mem_offset,
+-				 sizeof(__u32)))
++				 sizeof(up32->m.mem_offset)))
+ 			return -EFAULT;
+ 	}
+ 
+@@ -333,19 +333,19 @@ static int put_v4l2_plane32(struct v4l2_plane __user *up, struct v4l2_plane32 __
+ {
+ 	if (copy_in_user(up32, up, 2 * sizeof(__u32)) ||
+ 	    copy_in_user(&up32->data_offset, &up->data_offset,
+-			 sizeof(__u32)))
++			 sizeof(up->data_offset)))
+ 		return -EFAULT;
+ 
+ 	/* For MMAP, driver might've set up the offset, so copy it back.
+ 	 * USERPTR stays the same (was userspace-provided), so no copying. */
+ 	if (memory == V4L2_MEMORY_MMAP)
+ 		if (copy_in_user(&up32->m.mem_offset, &up->m.mem_offset,
+-				 sizeof(__u32)))
++				 sizeof(up->m.mem_offset)))
+ 			return -EFAULT;
+ 	/* For DMABUF, driver might've set up the fd, so copy it back. */
+ 	if (memory == V4L2_MEMORY_DMABUF)
+ 		if (copy_in_user(&up32->m.fd, &up->m.fd,
+-				 sizeof(int)))
++				 sizeof(up->m.fd)))
+ 			return -EFAULT;
+ 
+ 	return 0;
+@@ -358,7 +358,7 @@ static int get_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
+ 	compat_caddr_t p;
+ 	int ret;
+ 
+-	if (!access_ok(VERIFY_READ, up, sizeof(struct v4l2_buffer32)) ||
++	if (!access_ok(VERIFY_READ, up, sizeof(*up)) ||
+ 	    get_user(kp->index, &up->index) ||
+ 	    get_user(kp->type, &up->type) ||
+ 	    get_user(kp->flags, &up->flags) ||
+@@ -370,8 +370,7 @@ static int get_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
+ 		if (get_user(kp->bytesused, &up->bytesused) ||
+ 		    get_user(kp->field, &up->field) ||
+ 		    get_user(kp->timestamp.tv_sec, &up->timestamp.tv_sec) ||
+-		    get_user(kp->timestamp.tv_usec,
+-			     &up->timestamp.tv_usec))
++		    get_user(kp->timestamp.tv_usec, &up->timestamp.tv_usec))
+ 			return -EFAULT;
+ 
+ 	if (V4L2_TYPE_IS_MULTIPLANAR(kp->type)) {
+@@ -391,13 +390,12 @@ static int get_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
+ 
+ 		uplane32 = compat_ptr(p);
+ 		if (!access_ok(VERIFY_READ, uplane32,
+-			       kp->length * sizeof(struct v4l2_plane32)))
++			       kp->length * sizeof(*uplane32)))
+ 			return -EFAULT;
+ 
+ 		/* We don't really care if userspace decides to kill itself
+ 		 * by passing a very big num_planes value */
+-		uplane = compat_alloc_user_space(kp->length *
+-						 sizeof(struct v4l2_plane));
++		uplane = compat_alloc_user_space(kp->length * sizeof(*uplane));
+ 		kp->m.planes = (__force struct v4l2_plane *)uplane;
+ 
+ 		for (num_planes = 0; num_planes < kp->length; num_planes++) {
+@@ -445,7 +443,7 @@ static int put_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
+ 	int num_planes;
+ 	int ret;
+ 
+-	if (!access_ok(VERIFY_WRITE, up, sizeof(struct v4l2_buffer32)) ||
++	if (!access_ok(VERIFY_WRITE, up, sizeof(*up)) ||
+ 	    put_user(kp->index, &up->index) ||
+ 	    put_user(kp->type, &up->type) ||
+ 	    put_user(kp->flags, &up->flags) ||
+@@ -456,8 +454,7 @@ static int put_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
+ 	    put_user(kp->field, &up->field) ||
+ 	    put_user(kp->timestamp.tv_sec, &up->timestamp.tv_sec) ||
+ 	    put_user(kp->timestamp.tv_usec, &up->timestamp.tv_usec) ||
+-	    copy_to_user(&up->timecode, &kp->timecode,
+-			 sizeof(struct v4l2_timecode)) ||
++	    copy_to_user(&up->timecode, &kp->timecode, sizeof(kp->timecode)) ||
+ 	    put_user(kp->sequence, &up->sequence) ||
+ 	    put_user(kp->reserved2, &up->reserved2) ||
+ 	    put_user(kp->reserved, &up->reserved) ||
+@@ -525,7 +522,7 @@ static int get_v4l2_framebuffer32(struct v4l2_framebuffer *kp, struct v4l2_frame
+ {
+ 	u32 tmp;
+ 
+-	if (!access_ok(VERIFY_READ, up, sizeof(struct v4l2_framebuffer32)) ||
++	if (!access_ok(VERIFY_READ, up, sizeof(*up)) ||
+ 	    get_user(tmp, &up->base) ||
+ 	    get_user(kp->capability, &up->capability) ||
+ 	    get_user(kp->flags, &up->flags) ||
+@@ -539,7 +536,7 @@ static int put_v4l2_framebuffer32(struct v4l2_framebuffer *kp, struct v4l2_frame
+ {
+ 	u32 tmp = (u32)((unsigned long)kp->base);
+ 
+-	if (!access_ok(VERIFY_WRITE, up, sizeof(struct v4l2_framebuffer32)) ||
++	if (!access_ok(VERIFY_WRITE, up, sizeof(*up)) ||
+ 	    put_user(tmp, &up->base) ||
+ 	    put_user(kp->capability, &up->capability) ||
+ 	    put_user(kp->flags, &up->flags) ||
+@@ -564,14 +561,14 @@ struct v4l2_input32 {
+    Otherwise it is identical to the 32-bit version. */
+ static inline int get_v4l2_input32(struct v4l2_input *kp, struct v4l2_input32 __user *up)
+ {
+-	if (copy_from_user(kp, up, sizeof(struct v4l2_input32)))
++	if (copy_from_user(kp, up, sizeof(*up)))
+ 		return -EFAULT;
+ 	return 0;
+ }
+ 
+ static inline int put_v4l2_input32(struct v4l2_input *kp, struct v4l2_input32 __user *up)
+ {
+-	if (copy_to_user(up, kp, sizeof(struct v4l2_input32)))
++	if (copy_to_user(up, kp, sizeof(*up)))
+ 		return -EFAULT;
+ 	return 0;
+ }
+@@ -619,12 +616,11 @@ static int get_v4l2_ext_controls32(struct v4l2_ext_controls *kp, struct v4l2_ext
+ 	unsigned int n;
+ 	compat_caddr_t p;
+ 
+-	if (!access_ok(VERIFY_READ, up, sizeof(struct v4l2_ext_controls32)) ||
++	if (!access_ok(VERIFY_READ, up, sizeof(*up)) ||
+ 	    get_user(kp->which, &up->which) ||
+ 	    get_user(kp->count, &up->count) ||
+ 	    get_user(kp->error_idx, &up->error_idx) ||
+-	    copy_from_user(kp->reserved, up->reserved,
+-			   sizeof(kp->reserved)))
++	    copy_from_user(kp->reserved, up->reserved, sizeof(kp->reserved)))
+ 		return -EFAULT;
+ 	if (kp->count == 0) {
+ 		kp->controls = NULL;
+@@ -635,11 +631,9 @@ static int get_v4l2_ext_controls32(struct v4l2_ext_controls *kp, struct v4l2_ext
+ 	if (get_user(p, &up->controls))
+ 		return -EFAULT;
+ 	ucontrols = compat_ptr(p);
+-	if (!access_ok(VERIFY_READ, ucontrols,
+-		       kp->count * sizeof(struct v4l2_ext_control32)))
++	if (!access_ok(VERIFY_READ, ucontrols, kp->count * sizeof(*ucontrols)))
+ 		return -EFAULT;
+-	kcontrols = compat_alloc_user_space(kp->count *
+-					    sizeof(struct v4l2_ext_control));
++	kcontrols = compat_alloc_user_space(kp->count * sizeof(*kcontrols));
+ 	kp->controls = (__force struct v4l2_ext_control *)kcontrols;
+ 	for (n = 0; n < kp->count; n++) {
+ 		u32 id;
+@@ -671,7 +665,7 @@ static int put_v4l2_ext_controls32(struct v4l2_ext_controls *kp, struct v4l2_ext
+ 	int n = kp->count;
+ 	compat_caddr_t p;
+ 
+-	if (!access_ok(VERIFY_WRITE, up, sizeof(struct v4l2_ext_controls32)) ||
++	if (!access_ok(VERIFY_WRITE, up, sizeof(*up)) ||
+ 	    put_user(kp->which, &up->which) ||
+ 	    put_user(kp->count, &up->count) ||
+ 	    put_user(kp->error_idx, &up->error_idx) ||
+@@ -683,8 +677,7 @@ static int put_v4l2_ext_controls32(struct v4l2_ext_controls *kp, struct v4l2_ext
+ 	if (get_user(p, &up->controls))
+ 		return -EFAULT;
+ 	ucontrols = compat_ptr(p);
+-	if (!access_ok(VERIFY_WRITE, ucontrols,
+-		       n * sizeof(struct v4l2_ext_control32)))
++	if (!access_ok(VERIFY_WRITE, ucontrols, n * sizeof(*ucontrols)))
+ 		return -EFAULT;
+ 
+ 	while (--n >= 0) {
+@@ -721,7 +714,7 @@ struct v4l2_event32 {
+ 
+ static int put_v4l2_event32(struct v4l2_event *kp, struct v4l2_event32 __user *up)
+ {
+-	if (!access_ok(VERIFY_WRITE, up, sizeof(struct v4l2_event32)) ||
++	if (!access_ok(VERIFY_WRITE, up, sizeof(*up)) ||
+ 	    put_user(kp->type, &up->type) ||
+ 	    copy_to_user(&up->u, &kp->u, sizeof(kp->u)) ||
+ 	    put_user(kp->pending, &up->pending) ||
+@@ -729,7 +722,7 @@ static int put_v4l2_event32(struct v4l2_event *kp, struct v4l2_event32 __user *u
+ 	    put_user(kp->timestamp.tv_sec, &up->timestamp.tv_sec) ||
+ 	    put_user(kp->timestamp.tv_nsec, &up->timestamp.tv_nsec) ||
+ 	    put_user(kp->id, &up->id) ||
+-	    copy_to_user(up->reserved, kp->reserved, 8 * sizeof(__u32)))
++	    copy_to_user(up->reserved, kp->reserved, sizeof(kp->reserved)))
+ 		return -EFAULT;
+ 	return 0;
+ }
+@@ -746,7 +739,7 @@ static int get_v4l2_edid32(struct v4l2_edid *kp, struct v4l2_edid32 __user *up)
+ {
+ 	u32 tmp;
+ 
+-	if (!access_ok(VERIFY_READ, up, sizeof(struct v4l2_edid32)) ||
++	if (!access_ok(VERIFY_READ, up, sizeof(*up)) ||
+ 	    get_user(kp->pad, &up->pad) ||
+ 	    get_user(kp->start_block, &up->start_block) ||
+ 	    get_user(kp->blocks, &up->blocks) ||
+@@ -761,7 +754,7 @@ static int put_v4l2_edid32(struct v4l2_edid *kp, struct v4l2_edid32 __user *up)
+ {
+ 	u32 tmp = (u32)((unsigned long)kp->edid);
+ 
+-	if (!access_ok(VERIFY_WRITE, up, sizeof(struct v4l2_edid32)) ||
++	if (!access_ok(VERIFY_WRITE, up, sizeof(*up)) ||
+ 	    put_user(kp->pad, &up->pad) ||
+ 	    put_user(kp->start_block, &up->start_block) ||
+ 	    put_user(kp->blocks, &up->blocks) ||
+-- 
+2.15.1
