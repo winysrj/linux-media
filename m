@@ -1,83 +1,143 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.free-electrons.com ([62.4.15.54]:42769 "EHLO
-        mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751428AbeAYK4G (ORCPT
+Received: from mail-pf0-f196.google.com ([209.85.192.196]:41290 "EHLO
+        mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751812AbeAZGCx (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 25 Jan 2018 05:56:06 -0500
-Date: Thu, 25 Jan 2018 11:55:54 +0100
-From: Maxime Ripard <maxime.ripard@free-electrons.com>
-To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-Cc: dri-devel@lists.freedesktop.org,
-        Thomas Hellstrom <thellstrom@vmware.com>,
-        Joonas Lahtinen <joonas.lahtinen@linux.intel.com>,
-        Russell King <linux@armlinux.org.uk>,
-        linux-renesas-soc@vger.kernel.org, Ben Skeggs <bskeggs@redhat.com>,
-        Rodrigo Vivi <rodrigo.vivi@intel.com>,
-        Alexandru Gheorghe <Alexandru_Gheorghe@mentor.com>,
-        linux-media@vger.kernel.org
-Subject: Re: [PATCH/RFC 1/4] drm: Add colorkey properties
-Message-ID: <20180125105554.ytfpuob2ap7aewnm@flea.lan>
-References: <20171217001724.1348-1-laurent.pinchart+renesas@ideasonboard.com>
- <20171217001724.1348-2-laurent.pinchart+renesas@ideasonboard.com>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="6lk6enxvp5qwo73w"
-Content-Disposition: inline
-In-Reply-To: <20171217001724.1348-2-laurent.pinchart+renesas@ideasonboard.com>
+        Fri, 26 Jan 2018 01:02:53 -0500
+Received: by mail-pf0-f196.google.com with SMTP id c6so7588431pfi.8
+        for <linux-media@vger.kernel.org>; Thu, 25 Jan 2018 22:02:53 -0800 (PST)
+From: Alexandre Courbot <acourbot@chromium.org>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Pawel Osciak <posciak@chromium.org>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Tomasz Figa <tfiga@chromium.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Gustavo Padovan <gustavo.padovan@collabora.com>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Alexandre Courbot <acourbot@chromium.org>
+Subject: [RFC PATCH 4/8] media: vb2: add support for requests in QBUF ioctl
+Date: Fri, 26 Jan 2018 15:02:12 +0900
+Message-Id: <20180126060216.147918-5-acourbot@chromium.org>
+In-Reply-To: <20180126060216.147918-1-acourbot@chromium.org>
+References: <20180126060216.147918-1-acourbot@chromium.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Support the request argument of the QBUF ioctl.
 
---6lk6enxvp5qwo73w
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Alexandre Courbot <acourbot@chromium.org>
+---
+ drivers/media/v4l2-core/v4l2-ioctl.c | 79 +++++++++++++++++++++++++++++++++++-
+ 1 file changed, 78 insertions(+), 1 deletion(-)
 
-On Sun, Dec 17, 2017 at 02:17:21AM +0200, Laurent Pinchart wrote:
-> Color keying is the action of replacing pixels matching a given color
-> (or range of colors) with transparent pixels in an overlay when
-> performing blitting. Depending on the hardware capabilities, the
-> matching pixel can either become fully transparent, or gain a
-> programmable alpha value.
->=20
-> Color keying is found in a large number of devices whose capabilities
-> often differ, but they still have enough common features in range to
-> standardize color key properties. This commit adds four properties
-> related to color keying named colorkey.min, colorkey.max, colorkey.alpha
-> and colorkey.mode. Additional properties can be defined by drivers to
-> expose device-specific features.
->=20
-> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.co=
-m>
-
-Sorry for the delay,
-Reviewed-by: Maxime Ripard <maxime.ripard@free-electrons.com>
-
-Maxime
-
---=20
-Maxime Ripard, Free Electrons
-Embedded Linux and Kernel engineering
-http://free-electrons.com
-
---6lk6enxvp5qwo73w
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCAAdFiEE0VqZU19dR2zEVaqr0rTAlCFNr3QFAlppt7kACgkQ0rTAlCFN
-r3Q8rQ//cmqF0IWwUuok9EEW6whNO1C1kdRwWjGciopjyKaQlNoHww0e3jJbT6Ko
-KBL0EHuIK3GwLQw9VrAyQznsSE6CfNu9YwPZwzduU1j++zlX0Lu9uwXcudbXq6xm
-txxl0pDzX42d7Pumx+vlMxAJdbqAj4RWQBdgonqMmBhLKB6nv9y8HyDNipNoi7vb
-BOg/64Hb+7PVNfHzx1gwMgwM6s9fhPCLghIv23jE4Pb8rBbCtByBs5aIU9Izm5hs
-dY8TebtgQcVfNOwWYBzPlM13E6+kp8ZUDl29MLTfbMAUi8gEvzC4EgEM8BxehCxJ
-XOTeEGpxbgdJKVD3sDj/55/BQ6TKSXrLzSzlZ3Fc4KZfUxSj3qo/yMic5kfb64Qc
-Wp93vVZc0LWAoPEZ7v/1WV1kDV4XWlbPZl8NhdsC2kg02RY9UTa9vMxyWCN4HWJ2
-tlTUadIRtddRiKCD9TiXk4pHZDVRQOPhSZ5dyoB4UstAaF2e5ZBf7a6WnDmM8LrC
-WVpDBewrq35TxsaoPGI+q/0PvvOUvrFnAzOensK+qjJHKVrmtvyVMVOeTWI5wDJV
-X+Cn1okyk3cZcf8F73eczqhyhH7hrH5c3lEYg8YXYEEGNpYX1mIOqbnKuld+ZTrv
-dy7V739CCL8s9Gal9eKWjy7BLPpOi8+C72hUdWUP6ic6rf2Ajo4=
-=Jp3O
------END PGP SIGNATURE-----
-
---6lk6enxvp5qwo73w--
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index fdd2f784c264..66f2bda4a279 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -29,6 +29,7 @@
+ #include <media/v4l2-device.h>
+ #include <media/videobuf2-v4l2.h>
+ #include <media/v4l2-mc.h>
++#include <media/media-request.h>
+ 
+ #include <trace/events/v4l2.h>
+ 
+@@ -965,6 +966,67 @@ static int check_fmt(struct file *file, enum v4l2_buf_type type)
+ 	return -EINVAL;
+ }
+ 
++/*
++ * Validate that a given request can be used during an ioctl.
++ *
++ * When using the request API, request file descriptors must be matched against
++ * the actual request object. User-space can pass any file descriptor, so we
++ * need to make sure the call is valid before going further.
++ *
++ * This function looks up the request and associated data and performs the
++ * following sanity checks:
++ *
++ * * Make sure that the entity belongs to the media_device managing the passed
++ *   request,
++ * * Make sure that the entity data (if any) is associated to the current file
++ *   handler.
++ *
++ * This function returns a pointer to the valid request, or and error code in
++ * case of failure. When successful, a reference to the request is acquired and
++ * must be properly released by the caller.
++ */
++#ifdef CONFIG_MEDIA_CONTROLLER
++static struct media_request *
++check_request(int request, struct file *file, void *fh)
++{
++	struct media_request *req = NULL;
++	struct video_device *vfd = video_devdata(file);
++	struct v4l2_fh *vfh =
++		test_bit(V4L2_FL_USES_V4L2_FH, &vfd->flags) ? fh : NULL;
++	struct media_entity *entity = &vfd->entity;
++	struct media_request_entity_data *data;
++
++	if (!entity)
++		return ERR_PTR(-EINVAL);
++
++	req = media_request_get_from_fd(request);
++	if (!req)
++		return ERR_PTR(-EINVAL);
++
++	/* Validate that the entity belongs to the correct media_device */
++	if (vfd->v4l2_dev->mdev->req_mgr != req->mgr) {
++		media_request_put(req);
++		return ERR_PTR(-EINVAL);
++	}
++
++	/* Validate that the entity's data belongs to the correct fh */
++	data = media_request_get_entity_data(req, entity, vfh);
++	if (IS_ERR(data)) {
++		media_request_put(req);
++		return ERR_PTR(PTR_ERR(data));
++	}
++
++	return req;
++}
++#else /* CONFIG_MEDIA_CONTROLLER */
++static struct media_request *
++check_request(int request, struct file *file, void *fh)
++{
++	return ERR_PTR(-ENOSYS);
++}
++
++#endif /* CONFIG_MEDIA_CONTROLLER */
++
+ static void v4l_sanitize_format(struct v4l2_format *fmt)
+ {
+ 	unsigned int offset;
+@@ -1902,10 +1964,25 @@ static int v4l_querybuf(const struct v4l2_ioctl_ops *ops,
+ static int v4l_qbuf(const struct v4l2_ioctl_ops *ops,
+ 				struct file *file, void *fh, void *arg)
+ {
++	struct media_request *req = NULL;
+ 	struct v4l2_buffer *p = arg;
+ 	int ret = check_fmt(file, p->type);
+ 
+-	return ret ? ret : ops->vidioc_qbuf(file, fh, p);
++	if (ret)
++		return ret;
++
++	if (p->request_fd > 0) {
++		req = check_request(p->request_fd, file, fh);
++		if (IS_ERR(req))
++			return PTR_ERR(req);
++	}
++
++	ret = ops->vidioc_qbuf(file, fh, p);
++
++	if (req)
++		media_request_put(req);
++
++	return ret;
+ }
+ 
+ static int v4l_dqbuf(const struct v4l2_ioctl_ops *ops,
+-- 
+2.16.0.rc1.238.g530d649a79-goog
