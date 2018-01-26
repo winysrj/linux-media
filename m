@@ -1,377 +1,261 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay4-d.mail.gandi.net ([217.70.183.196]:58835 "EHLO
+Received: from relay4-d.mail.gandi.net ([217.70.183.196]:38858 "EHLO
         relay4-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753256AbeADQEI (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 4 Jan 2018 11:04:08 -0500
+        with ESMTP id S1752229AbeAZNzn (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 26 Jan 2018 08:55:43 -0500
 From: Jacopo Mondi <jacopo+renesas@jmondi.org>
 To: laurent.pinchart@ideasonboard.com, magnus.damm@gmail.com,
-        geert@glider.be, mchehab@kernel.org, hverkuil@xs4all.nl,
+        geert@glider.be, hverkuil@xs4all.nl, mchehab@kernel.org,
         festevam@gmail.com, sakari.ailus@iki.fi, robh+dt@kernel.org,
-        mark.rutland@arm.com
+        mark.rutland@arm.com, pombredanne@nexb.com
 Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
         linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
         linux-sh@vger.kernel.org, devicetree@vger.kernel.org,
         linux-kernel@vger.kernel.org
-Subject: [PATCH v3 8/9] media: i2c: tw9910: Remove soc_camera dependencies
-Date: Thu,  4 Jan 2018 17:03:16 +0100
-Message-Id: <1515081797-17174-9-git-send-email-jacopo+renesas@jmondi.org>
-In-Reply-To: <1515081797-17174-1-git-send-email-jacopo+renesas@jmondi.org>
-References: <1515081797-17174-1-git-send-email-jacopo+renesas@jmondi.org>
+Subject: [PATCH v7 00/11] Renesas Capture Engine Unit (CEU) V4L2 driver
+Date: Fri, 26 Jan 2018 14:55:19 +0100
+Message-Id: <1516974930-11713-1-git-send-email-jacopo+renesas@jmondi.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Remove soc_camera framework dependencies from tw9910 sensor driver.
-- Handle clock and gpios
-- Register async subdevice
-- Remove soc_camera specific g/s_mbus_config operations
-- Add kernel doc to driver interface header file
-- Adjust build system
+Hello,
+  7th round for CEU driver&friends.
 
-This commit does not remove the original soc_camera based driver as long
-as other platforms depends on soc_camera-based CEU driver.
+This series includes 2 new patches compared to v6 and it is now based on
+top of Hans' series:
+[PATCHv2 0/9] media: replace g/s_parm by g/s_frame_interval
+and makes use of newly introduced v4l2_g/s_parm_cap() functions from v4l2-common
+in CEU's g/s_parm() callbacks.
 
-Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/i2c/Kconfig  |   9 +++
- drivers/media/i2c/Makefile |   1 +
- drivers/media/i2c/tw9910.c | 162 ++++++++++++++++++++++++++++-----------------
- include/media/i2c/tw9910.h |   9 +++
- 4 files changed, 120 insertions(+), 61 deletions(-)
+A branch for testing is available at:
+git://jmondi.org/linux ceu/media-tree-parm/base
+with few patches for Migo-R and GR-Peach applied on top of Hans' media-tree/parm
+branch.
 
-diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
-index a61d7f4..804a1bf 100644
---- a/drivers/media/i2c/Kconfig
-+++ b/drivers/media/i2c/Kconfig
-@@ -423,6 +423,15 @@ config VIDEO_TW9906
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called tw9906.
- 
-+config VIDEO_TW9910
-+	tristate "Techwell TW9910 video decoder"
-+	depends on VIDEO_V4L2 && I2C
-+	---help---
-+	  Support for Techwell TW9910 NTSC/PAL/SECAM video decoder.
-+
-+	  To compile this driver as a module, choose M here: the
-+	  module will be called tw9910.
-+
- config VIDEO_VPX3220
- 	tristate "vpx3220a, vpx3216b & vpx3214c video decoders"
- 	depends on VIDEO_V4L2 && I2C
-diff --git a/drivers/media/i2c/Makefile b/drivers/media/i2c/Makefile
-index fb99293..e26544f 100644
---- a/drivers/media/i2c/Makefile
-+++ b/drivers/media/i2c/Makefile
-@@ -48,6 +48,7 @@ obj-$(CONFIG_VIDEO_TVP7002) += tvp7002.o
- obj-$(CONFIG_VIDEO_TW2804) += tw2804.o
- obj-$(CONFIG_VIDEO_TW9903) += tw9903.o
- obj-$(CONFIG_VIDEO_TW9906) += tw9906.o
-+obj-$(CONFIG_VIDEO_TW9910) += tw9910.o
- obj-$(CONFIG_VIDEO_CS3308) += cs3308.o
- obj-$(CONFIG_VIDEO_CS5345) += cs5345.o
- obj-$(CONFIG_VIDEO_CS53L32A) += cs53l32a.o
-diff --git a/drivers/media/i2c/tw9910.c b/drivers/media/i2c/tw9910.c
-index bdb5e0a..96792df 100644
---- a/drivers/media/i2c/tw9910.c
-+++ b/drivers/media/i2c/tw9910.c
-@@ -1,6 +1,9 @@
-+// SPDX-License-Identifier: GPL-2.0
- /*
-  * tw9910 Video Driver
-  *
-+ * Copyright (C) 2017 Jacopo Mondi <jacopo+renesas@jmondi.org>
-+ *
-  * Copyright (C) 2008 Renesas Solutions Corp.
-  * Kuninori Morimoto <morimoto.kuninori@renesas.com>
-  *
-@@ -10,12 +13,10 @@
-  * Copyright 2006-7 Jonathan Corbet <corbet@lwn.net>
-  * Copyright (C) 2008 Magnus Damm
-  * Copyright (C) 2008, Guennadi Liakhovetski <kernel@pengutronix.de>
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License version 2 as
-- * published by the Free Software Foundation.
-  */
- 
-+#include <linux/clk.h>
-+#include <linux/gpio/consumer.h>
- #include <linux/init.h>
- #include <linux/module.h>
- #include <linux/i2c.h>
-@@ -25,9 +26,7 @@
- #include <linux/v4l2-mediabus.h>
- #include <linux/videodev2.h>
- 
--#include <media/soc_camera.h>
- #include <media/i2c/tw9910.h>
--#include <media/v4l2-clk.h>
- #include <media/v4l2-subdev.h>
- 
- #define GET_ID(val)  ((val & 0xF8) >> 3)
-@@ -228,8 +227,10 @@ struct tw9910_scale_ctrl {
- 
- struct tw9910_priv {
- 	struct v4l2_subdev		subdev;
--	struct v4l2_clk			*clk;
-+	struct clk			*clk;
- 	struct tw9910_video_info	*info;
-+	struct gpio_desc		*pdn_gpio;
-+	struct gpio_desc		*rstb_gpio;
- 	const struct tw9910_scale_ctrl	*scale;
- 	v4l2_std_id			norm;
- 	u32				revision;
-@@ -582,13 +583,66 @@ static int tw9910_s_register(struct v4l2_subdev *sd,
- }
- #endif
- 
-+static int tw9910_power_on(struct tw9910_priv *priv)
-+{
-+	struct i2c_client *client = v4l2_get_subdevdata(&priv->subdev);
-+	int ret;
-+
-+	if (priv->clk) {
-+		ret = clk_prepare_enable(priv->clk);
-+		if (ret)
-+			return ret;
-+	}
-+
-+	if (priv->pdn_gpio) {
-+		gpiod_set_value(priv->pdn_gpio, 0);
-+		usleep_range(500, 1000);
-+	}
-+
-+	/*
-+	 * FIXME: The reset signal is connected to a shared GPIO on some
-+	 * platforms (namely the SuperH Migo-R). Until a framework becomes
-+	 * available to handle this cleanly, request the GPIO temporarily
-+	 * to avoid conflicts.
-+	 */
-+	priv->rstb_gpio = gpiod_get_optional(&client->dev, "rstb",
-+					     GPIOD_OUT_LOW);
-+	if (IS_ERR(priv->rstb_gpio)) {
-+		dev_info(&client->dev, "Unable to get GPIO \"rstb\"");
-+		return PTR_ERR(priv->rstb_gpio);
-+	}
-+
-+	if (priv->rstb_gpio) {
-+		gpiod_set_value(priv->rstb_gpio, 1);
-+		usleep_range(500, 1000);
-+		gpiod_set_value(priv->rstb_gpio, 0);
-+		usleep_range(500, 1000);
-+
-+		gpiod_put(priv->rstb_gpio);
-+	}
-+
-+	return 0;
-+}
-+
-+static int tw9910_power_off(struct tw9910_priv *priv)
-+{
-+	clk_disable_unprepare(priv->clk);
-+
-+	if (priv->pdn_gpio) {
-+		gpiod_set_value(priv->pdn_gpio, 1);
-+		usleep_range(500, 1000);
-+	}
-+
-+	return 0;
-+}
-+
- static int tw9910_s_power(struct v4l2_subdev *sd, int on)
- {
- 	struct i2c_client *client = v4l2_get_subdevdata(sd);
--	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
- 	struct tw9910_priv *priv = to_tw9910(client);
- 
--	return soc_camera_set_power(&client->dev, ssdd, priv->clk, on);
-+	return on ? tw9910_power_on(priv) :
-+		    tw9910_power_off(priv);
- }
- 
- static int tw9910_set_frame(struct v4l2_subdev *sd, u32 *width, u32 *height)
-@@ -614,7 +668,7 @@ static int tw9910_set_frame(struct v4l2_subdev *sd, u32 *width, u32 *height)
- 	 * set bus width
- 	 */
- 	val = 0x00;
--	if (SOCAM_DATAWIDTH_16 == priv->info->buswidth)
-+	if (priv->info->buswidth == 16)
- 		val = LEN;
- 
- 	ret = tw9910_mask_set(client, OPFORM, LEN, val);
-@@ -799,8 +853,7 @@ static int tw9910_video_probe(struct i2c_client *client)
- 	/*
- 	 * tw9910 only use 8 or 16 bit bus width
- 	 */
--	if (SOCAM_DATAWIDTH_16 != priv->info->buswidth &&
--	    SOCAM_DATAWIDTH_8  != priv->info->buswidth) {
-+	if (priv->info->buswidth != 16 && priv->info->buswidth != 8) {
- 		dev_err(&client->dev, "bus width error\n");
- 		return -ENODEV;
- 	}
-@@ -856,45 +909,6 @@ static int tw9910_enum_mbus_code(struct v4l2_subdev *sd,
- 	return 0;
- }
- 
--static int tw9910_g_mbus_config(struct v4l2_subdev *sd,
--				struct v4l2_mbus_config *cfg)
--{
--	struct i2c_client *client = v4l2_get_subdevdata(sd);
--	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
--
--	cfg->flags = V4L2_MBUS_PCLK_SAMPLE_RISING | V4L2_MBUS_MASTER |
--		V4L2_MBUS_VSYNC_ACTIVE_HIGH | V4L2_MBUS_VSYNC_ACTIVE_LOW |
--		V4L2_MBUS_HSYNC_ACTIVE_HIGH | V4L2_MBUS_HSYNC_ACTIVE_LOW |
--		V4L2_MBUS_DATA_ACTIVE_HIGH;
--	cfg->type = V4L2_MBUS_PARALLEL;
--	cfg->flags = soc_camera_apply_board_flags(ssdd, cfg);
--
--	return 0;
--}
--
--static int tw9910_s_mbus_config(struct v4l2_subdev *sd,
--				const struct v4l2_mbus_config *cfg)
--{
--	struct i2c_client *client = v4l2_get_subdevdata(sd);
--	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
--	u8 val = VSSL_VVALID | HSSL_DVALID;
--	unsigned long flags = soc_camera_apply_board_flags(ssdd, cfg);
--
--	/*
--	 * set OUTCTR1
--	 *
--	 * We use VVALID and DVALID signals to control VSYNC and HSYNC
--	 * outputs, in this mode their polarity is inverted.
--	 */
--	if (flags & V4L2_MBUS_HSYNC_ACTIVE_LOW)
--		val |= HSP_HI;
--
--	if (flags & V4L2_MBUS_VSYNC_ACTIVE_LOW)
--		val |= VSP_HI;
--
--	return i2c_smbus_write_byte_data(client, OUTCTR1, val);
--}
--
- static int tw9910_g_tvnorms(struct v4l2_subdev *sd, v4l2_std_id *norm)
- {
- 	*norm = V4L2_STD_NTSC | V4L2_STD_PAL;
-@@ -905,8 +919,6 @@ static const struct v4l2_subdev_video_ops tw9910_subdev_video_ops = {
- 	.s_std		= tw9910_s_std,
- 	.g_std		= tw9910_g_std,
- 	.s_stream	= tw9910_s_stream,
--	.g_mbus_config	= tw9910_g_mbus_config,
--	.s_mbus_config	= tw9910_s_mbus_config,
- 	.g_tvnorms	= tw9910_g_tvnorms,
- };
- 
-@@ -935,15 +947,14 @@ static int tw9910_probe(struct i2c_client *client,
- 	struct tw9910_video_info	*info;
- 	struct i2c_adapter		*adapter =
- 		to_i2c_adapter(client->dev.parent);
--	struct soc_camera_subdev_desc	*ssdd = soc_camera_i2c_to_desc(client);
- 	int ret;
- 
--	if (!ssdd || !ssdd->drv_priv) {
-+	if (!client->dev.platform_data) {
- 		dev_err(&client->dev, "TW9910: missing platform data!\n");
- 		return -EINVAL;
- 	}
- 
--	info = ssdd->drv_priv;
-+	info = client->dev.platform_data;
- 
- 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA)) {
- 		dev_err(&client->dev,
-@@ -959,13 +970,37 @@ static int tw9910_probe(struct i2c_client *client,
- 
- 	v4l2_i2c_subdev_init(&priv->subdev, client, &tw9910_subdev_ops);
- 
--	priv->clk = v4l2_clk_get(&client->dev, "mclk");
--	if (IS_ERR(priv->clk))
-+	priv->clk = clk_get(&client->dev, "xti");
-+	if (PTR_ERR(priv->clk) == -ENOENT) {
-+		priv->clk = NULL;
-+	} else if (IS_ERR(priv->clk)) {
-+		dev_err(&client->dev, "Unable to get xti clock\n");
- 		return PTR_ERR(priv->clk);
-+	}
-+
-+	priv->pdn_gpio = gpiod_get_optional(&client->dev, "pdn",
-+					    GPIOD_OUT_HIGH);
-+	if (IS_ERR(priv->pdn_gpio)) {
-+		dev_info(&client->dev, "Unable to get GPIO \"pdn\"");
-+		ret = PTR_ERR(priv->pdn_gpio);
-+		goto error_clk_put;
-+	}
- 
- 	ret = tw9910_video_probe(client);
- 	if (ret < 0)
--		v4l2_clk_put(priv->clk);
-+		goto error_gpio_put;
-+
-+	ret = v4l2_async_register_subdev(&priv->subdev);
-+	if (ret)
-+		goto error_gpio_put;
-+
-+	return ret;
-+
-+error_gpio_put:
-+	if (priv->pdn_gpio)
-+		gpiod_put(priv->pdn_gpio);
-+error_clk_put:
-+	clk_put(priv->clk);
- 
- 	return ret;
- }
-@@ -973,7 +1008,12 @@ static int tw9910_probe(struct i2c_client *client,
- static int tw9910_remove(struct i2c_client *client)
- {
- 	struct tw9910_priv *priv = to_tw9910(client);
--	v4l2_clk_put(priv->clk);
-+
-+	if (priv->pdn_gpio)
-+		gpiod_put(priv->pdn_gpio);
-+	clk_put(priv->clk);
-+	v4l2_device_unregister_subdev(&priv->subdev);
-+
- 	return 0;
- }
- 
-@@ -994,6 +1034,6 @@ static struct i2c_driver tw9910_i2c_driver = {
- 
- module_i2c_driver(tw9910_i2c_driver);
- 
--MODULE_DESCRIPTION("SoC Camera driver for tw9910");
-+MODULE_DESCRIPTION("V4L2 driver for TW9910 video decoder");
- MODULE_AUTHOR("Kuninori Morimoto");
- MODULE_LICENSE("GPL v2");
-diff --git a/include/media/i2c/tw9910.h b/include/media/i2c/tw9910.h
-index 90bcf1f..bec8f7b 100644
---- a/include/media/i2c/tw9910.h
-+++ b/include/media/i2c/tw9910.h
-@@ -18,6 +18,9 @@
- 
- #include <media/soc_camera.h>
- 
-+/**
-+ * tw9910_mpout_pin - MPOUT (multi-purpose output) pin functions
-+ */
- enum tw9910_mpout_pin {
- 	TW9910_MPO_VLOSS,
- 	TW9910_MPO_HLOCK,
-@@ -29,6 +32,12 @@ enum tw9910_mpout_pin {
- 	TW9910_MPO_RTCO,
- };
- 
-+/**
-+ * tw9910_video_info -	tw9910 driver interface structure
-+ * @buswidth:		Parallel data bus width (8 or 16).
-+ * @mpout:		Selected function of MPOUT (multi-purpose output) pin.
-+ *			See &enum tw9910_mpout_pin
-+ */
- struct tw9910_video_info {
- 	unsigned long		buswidth;
- 	enum tw9910_mpout_pin	mpout;
--- 
+The 2 new patches in the series:
+[11/11] has been added to silence a v4l2-compliance error, and modifies
+ov7670 driver to set all fields of 'struct v4l2_mbus_format' during set_format
+operation, including ycbcr_enc, quantization and xfer_func. As the patch commit
+reports, this suppresses the following v4l2-compliance error:
+fail: v4l2-test-formats.cpp(335): ycbcr_enc >= 0xff
+
+[7/11] has been required by Hans to add frame interval handling to ov772x
+driver. As this is quite a big change I kept it in a separate patch to ease
+review, it can eventually be squashed on [6/11] if accepted.
+
+If for TW9910 video decoder the same is required (frame interval handling) I'm
+in favour of moving that driver to staging as it was proposed for ov772x before
+this series.
+
+v4l2-compliance now reports a 0 error count:
+Total: 43, Succeeded: 43, Failed: 0, Warnings: 0
+
+Hans, you asked me to run v4l2-compliance with the -f option, I cannot do
+that on my tiny GR-Peach as with its limited available system memory it cannot
+allocate the number of requested buffers for that test. I can try to tweak that
+if necessary. I won't stress here why I cannot do that on Migo-R, long story
+short, I need a special compiler with DSP support to run anything but the little
+initramfs I have received for SH7722. I've been able to tweak yavta to work and
+test capture and frame rate handling with it, but v4l2-compliance is much more
+complex and I don't think I'll be able run it on that platform.
+
+Below, v4l2-compliance output:
+
+-------------------------------------------------------------------------------
+v4l2-compliance SHA   : 20b6624f4bb84353e690d897688fd7ac12d6a881
+
+Driver Info:
+	Driver name   : renesas-ceu
+	Card type     : Renesas CEU e8210000.ceu
+	Bus info      : platform:renesas-ceu-e8210000.c
+	Driver version: 4.15.0
+	Capabilities  : 0x84201000
+		Video Capture Multiplanar
+		Streaming
+		Extended Pix Format
+		Device Capabilities
+	Device Caps   : 0x04201000
+		Video Capture Multiplanar
+		Streaming
+		Extended Pix Format
+
+Compliance test for device /dev/video0 (not using libv4l2):
+
+Required ioctls:
+	test VIDIOC_QUERYCAP: OK
+
+Allow for multiple opens:
+	test second video open: OK
+	test VIDIOC_QUERYCAP: OK
+	test VIDIOC_G/S_PRIORITY: OK
+	test for unlimited opens: OK
+
+Debug ioctls:
+	test VIDIOC_DBG_G/S_REGISTER: OK
+	test VIDIOC_LOG_STATUS: OK (Not Supported)
+
+Input ioctls:
+	test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
+	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+	test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
+	test VIDIOC_ENUMAUDIO: OK (Not Supported)
+	test VIDIOC_G/S/ENUMINPUT: OK
+	test VIDIOC_G/S_AUDIO: OK (Not Supported)
+	Inputs: 1 Audio Inputs: 0 Tuners: 0
+
+Output ioctls:
+	test VIDIOC_G/S_MODULATOR: OK (Not Supported)
+	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+	test VIDIOC_ENUMAUDOUT: OK (Not Supported)
+	test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
+	test VIDIOC_G/S_AUDOUT: OK (Not Supported)
+	Outputs: 0 Audio Outputs: 0 Modulators: 0
+
+Input/Output configuration ioctls:
+	test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
+	test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
+	test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
+	test VIDIOC_G/S_EDID: OK (Not Supported)
+
+Test input 0:
+
+	Control ioctls:
+		test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK
+		test VIDIOC_QUERYCTRL: OK
+		test VIDIOC_G/S_CTRL: OK
+		test VIDIOC_G/S/TRY_EXT_CTRLS: OK
+		test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK
+		test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
+		Standard Controls: 12 Private Controls: 0
+
+	Format ioctls:
+		test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
+		fail: v4l2-test-formats.cpp(1162): ret && node->has_frmintervals
+		test VIDIOC_G/S_PARM: OK
+		test VIDIOC_G_FBUF: OK (Not Supported)
+		test VIDIOC_G_FMT: OK
+		test VIDIOC_TRY_FMT: OK
+		test VIDIOC_S_FMT: OK
+		test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
+		test Cropping: OK (Not Supported)
+		test Composing: OK (Not Supported)
+		test Scaling: OK (Not Supported)
+
+	Codec ioctls:
+		test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
+		test VIDIOC_G_ENC_INDEX: OK (Not Supported)
+		test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
+
+	Buffer ioctls:
+		test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
+		test VIDIOC_EXPBUF: OK
+
+Test input 0:
+
+
+Total: 43, Succeeded: 43, Failed: 0, Warnings: 0
+-------------------------------------------------------------------------------
+
+Thanks
+   j
+
+v6->v7:
+- Add patch to handle ycbr_enc and other fields of v4l2_mbus_format for ov7670
+- Add patch to handle frame interval for ov772x
+- Rebased on Hans' media-tree/parm branch with v4l2_g/s_parm_cap
+- Drop const modifier in CEU releated fields of Migo-R setup.c board file
+  to silence complier warnings.
+
+v5->v6:
+- Add Hans' Acked-by to most patches
+- Fix a bad change in ov772x get_selection
+- Add .buf_prepare callack to CEU and verify plane sizes there
+- Remove VB2_USERPTR from supported io_modes in CEU driver
+- Remove read() fops in CEU driver
+
+v4->v5:
+- Added Rob's and Laurent's Reviewed-by tag to DT bindings
+- Change CEU driver module license to "GPL v2" to match SPDX identifier as
+  suggested by Philippe Ombredanne
+- Make struct ceu_data static as suggested by Laurent and add his
+  Reviewed-by to CEU driver.
+
+v3->v4:
+- Drop generic fallback compatible string "renesas,ceu"
+- Addressed Laurent's comments on [3/9]
+  - Fix error messages on irq get/request
+  - Do not leak ceudev if irq_get fails
+  - Make irq_mask a const field
+
+v2->v3:
+- Improved DT bindings removing standard properties (pinctrl- ones and
+  remote-endpoint) not specific to this driver and improved description of
+  compatible strings
+- Remove ov772x's xlkc_rate property and set clock rate in Migo-R board file
+- Made 'xclk' clock private to ov772x driver in Migo-R board file
+- Change 'rstb' GPIO active output level and changed ov772x and tw9910 drivers
+  accordingly as suggested by Fabio
+- Minor changes in CEU driver to address Laurent's comments
+- Moved Migo-R setup patch to the end of the series to silence 0-day bot
+- Renamed tw9910 clock to 'xti' as per video decoder manual
+- Changed all SPDX identifiers to GPL-2.0 from previous GPL-2.0+
+
+v1->v2:
+ - DT
+ -- Addressed Geert's comments and added clocks for CEU to mstp6 clock source
+ -- Specified supported generic video iterfaces properties in dt-bindings and
+    simplified example
+
+ - CEU driver
+ -- Re-worked interrupt handler, interrupt management, reset(*) and capture
+    start operation
+ -- Re-worked querycap/enum_input/enum_frameintervals to fix some
+    v4l2_compliance failures
+ -- Removed soc_camera legacy operations g/s_mbus_format
+ -- Update to new notifier implementation
+ -- Fixed several comments from Hans, Laurent and Sakari
+
+ - Migo-R
+ -- Register clocks and gpios for sensor drivers in Migo-R setup
+ -- Updated sensors (tw9910 and ov772x) drivers headers and drivers to close
+    remarks from Hans and Laurent:
+ --- Removed platform callbacks and handle clocks and gpios from sensor drivers
+ --- Remove g/s_mbus_config operations
+Jacopo Mondi (11):
+  dt-bindings: media: Add Renesas CEU bindings
+  include: media: Add Renesas CEU driver interface
+  media: platform: Add Renesas CEU driver
+  ARM: dts: r7s72100: Add Capture Engine Unit (CEU)
+  media: i2c: Copy ov772x soc_camera sensor driver
+  media: i2c: ov772x: Remove soc_camera dependencies
+  media: i2c: ov772x: Support frame interval handling
+  media: i2c: Copy tw9910 soc_camera sensor driver
+  media: i2c: tw9910: Remove soc_camera dependencies
+  arch: sh: migor: Use new renesas-ceu camera driver
+  media: i2c: ov7670: Fully set mbus frame fmt
+
+ .../devicetree/bindings/media/renesas,ceu.txt      |   81 +
+ arch/arm/boot/dts/r7s72100.dtsi                    |   15 +-
+ arch/sh/boards/mach-migor/setup.c                  |  225 ++-
+ arch/sh/kernel/cpu/sh4a/clock-sh7722.c             |    2 +-
+ drivers/media/i2c/Kconfig                          |   20 +
+ drivers/media/i2c/Makefile                         |    2 +
+ drivers/media/i2c/ov7670.c                         |    4 +
+ drivers/media/i2c/ov772x.c                         | 1488 ++++++++++++++++++
+ drivers/media/i2c/tw9910.c                         | 1039 ++++++++++++
+ drivers/media/platform/Kconfig                     |    9 +
+ drivers/media/platform/Makefile                    |    1 +
+ drivers/media/platform/renesas-ceu.c               | 1661 ++++++++++++++++++++
+ include/media/drv-intf/renesas-ceu.h               |   26 +
+ include/media/i2c/ov772x.h                         |    6 +-
+ include/media/i2c/tw9910.h                         |    9 +
+ 15 files changed, 4457 insertions(+), 131 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/media/renesas,ceu.txt
+ create mode 100644 drivers/media/i2c/ov772x.c
+ create mode 100644 drivers/media/i2c/tw9910.c
+ create mode 100644 drivers/media/platform/renesas-ceu.c
+ create mode 100644 include/media/drv-intf/renesas-ceu.h
+
+--
 2.7.4
