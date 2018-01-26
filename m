@@ -1,76 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:52383 "EHLO
-        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S932796AbeAOMOf (ORCPT
+Received: from out20-63.mail.aliyun.com ([115.124.20.63]:36970 "EHLO
+        out20-63.mail.aliyun.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751174AbeAZDBJ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 15 Jan 2018 07:14:35 -0500
-Subject: Re: [PATCH v7 1/6] [media] vb2: add is_unordered callback for drivers
-To: Gustavo Padovan <gustavo@padovan.org>,
-        Alexandre Courbot <acourbot@chromium.org>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        Pawel Osciak <pawel@osciak.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Brian Starkey <brian.starkey@arm.com>,
-        Thierry Escande <thierry.escande@collabora.com>,
-        linux-kernel@vger.kernel.org,
-        Gustavo Padovan <gustavo.padovan@collabora.com>
-References: <20180110160732.7722-1-gustavo@padovan.org>
- <20180110160732.7722-2-gustavo@padovan.org>
- <CAPBb6MV6ErW-Z7n1aK55TxJNRDkt2SkWGEJiXkxrLmZ_GabJOA@mail.gmail.com>
- <20180115120111.GA9598@jade>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <373924ea-a35c-78f5-dd0c-e5f36623cb84@xs4all.nl>
-Date: Mon, 15 Jan 2018 13:14:28 +0100
-MIME-Version: 1.0
-In-Reply-To: <20180115120111.GA9598@jade>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
+        Thu, 25 Jan 2018 22:01:09 -0500
+Date: Fri, 26 Jan 2018 11:00:41 +0800
+From: Yong <yong.deng@magewell.com>
+To: Yong <yong.deng@magewell.com>
+Cc: kbuild test robot <lkp@intel.com>, kbuild-all@01.org,
+        Maxime Ripard <maxime.ripard@free-electrons.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Chen-Yu Tsai <wens@csie.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Linus Walleij <linus.walleij@linaro.org>,
+        Randy Dunlap <rdunlap@infradead.org>,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Yannick Fertre <yannick.fertre@st.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Rick Chang <rick.chang@mediatek.com>,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-sunxi@googlegroups.com, megous@megous.com
+Subject: Re: [PATCH v6 2/2] media: V3s: Add support for Allwinner CSI.
+Message-Id: <20180126110041.f89848325b9ecfb07df387ca@magewell.com>
+In-Reply-To: <20180126094658.aa70ed3f890464f6051e21e4@magewell.com>
+References: <1516695531-23349-1-git-send-email-yong.deng@magewell.com>
+        <201801260759.RyNhDZz4%fengguang.wu@intel.com>
+        <20180126094658.aa70ed3f890464f6051e21e4@magewell.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/15/2018 01:01 PM, Gustavo Padovan wrote:
-> 2018-01-15 Alexandre Courbot <acourbot@chromium.org>:
+Hi Maxime,
+
+On Fri, 26 Jan 2018 09:46:58 +0800
+Yong <yong.deng@magewell.com> wrote:
+
+> Hi Maxime,
 > 
->> On Thu, Jan 11, 2018 at 1:07 AM, Gustavo Padovan <gustavo@padovan.org> wrote:
->>> From: Gustavo Padovan <gustavo.padovan@collabora.com>
->>>
->>> Explicit synchronization benefits a lot from ordered queues, they fit
->>> better in a pipeline with DRM for example so create a opt-in way for
->>> drivers notify videobuf2 that the queue is unordered.
->>>
->>> Drivers don't need implement it if the queue is ordered.
->>
->> This is going to make user-space believe that *all* vb2 drivers use
->> ordered queues by default, at least until non-ordered drivers catch up
->> with this change. Wouldn't it be less dangerous to do the opposite
->> (make queues non-ordered by default)?
+> Do you have any experience in solving this problem?
+> It seems the PHYS_OFFSET maybe undeclared when the ARCH is not arm.
+
+Got it.
+Should I add 'depends on ARM' in Kconfig?
+
 > 
-> The rational behind this decision was because most formats/drivers are
-> ordered so only a small amount of drivers need to changed. I think this
-> was proposed by Hans on the Media Summit.
+> On Fri, 26 Jan 2018 08:04:18 +0800
+> kbuild test robot <lkp@intel.com> wrote:
 > 
-> I understand your concern. My question is how dangerous will it be. If
-> you are building a product you will make the changes in the driver if
-> they are not there yet, or if it is a distribution you'd never know
-> which driver/format you are using so you should be prepared for
-> everything.
+> > Hi Yong,
+> > 
+> > I love your patch! Yet something to improve:
+> > 
+> > [auto build test ERROR on linuxtv-media/master]
+> > [also build test ERROR on v4.15-rc9 next-20180119]
+> > [if your patch is applied to the wrong git tree, please drop us a note to help improve the system]
+> > 
+> > url:    https://github.com/0day-ci/linux/commits/Yong-Deng/dt-bindings-media-Add-Allwinner-V3s-Camera-Sensor-Interface-CSI/20180126-054511
+> > base:   git://linuxtv.org/media_tree.git master
+> > config: i386-allmodconfig (attached as .config)
+> > compiler: gcc-7 (Debian 7.2.0-12) 7.2.1 20171025
+> > reproduce:
+> >         # save the attached .config to linux build tree
+> >         make ARCH=i386 
+> > 
+> > All errors (new ones prefixed by >>):
+> > 
+> >    drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.c: In function 'sun6i_csi_update_buf_addr':
+> > >> drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.c:567:31: error: 'PHYS_OFFSET' undeclared (first use in this function); did you mean 'PAGE_OFFSET'?
+> >      dma_addr_t bus_addr = addr - PHYS_OFFSET;
+> >                                   ^~~~~~~~~~~
+> >                                   PAGE_OFFSET
+> >    drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.c:567:31: note: each undeclared identifier is reported only once for each function it appears in
+> > 
+> > vim +567 drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.c
+> > 
+> >    562	
+> >    563	void sun6i_csi_update_buf_addr(struct sun6i_csi *csi, dma_addr_t addr)
+> >    564	{
+> >    565		struct sun6i_csi_dev *sdev = sun6i_csi_to_dev(csi);
+> >    566		/* transform physical address to bus address */
+> >  > 567		dma_addr_t bus_addr = addr - PHYS_OFFSET;
+> >    568	
+> >    569		regmap_write(sdev->regmap, CSI_CH_F0_BUFA_REG,
+> >    570			     (bus_addr + sdev->planar_offset[0]) >> 2);
+> >    571		if (sdev->planar_offset[1] != -1)
+> >    572			regmap_write(sdev->regmap, CSI_CH_F1_BUFA_REG,
+> >    573				     (bus_addr + sdev->planar_offset[1]) >> 2);
+> >    574		if (sdev->planar_offset[2] != -1)
+> >    575			regmap_write(sdev->regmap, CSI_CH_F2_BUFA_REG,
+> >    576				     (bus_addr + sdev->planar_offset[2]) >> 2);
+> >    577	}
+> >    578	
+> > 
+> > ---
+> > 0-DAY kernel test infrastructure                Open Source Technology Center
+> > https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
 > 
-> AFAIK all Capture drivers are ordered and that is where I think fences
-> is most useful.
+> 
+> Thanks,
+> Yong
 
-Right. What could be done is to mark all codec drivers as unordered initially
-ask the driver authors to verify this. All capture drivers using vb2 and not
-using REQUEUE are ordered.
 
-One thing we haven't looked at is what to do with drivers that do not use vb2.
-Those won't support fences, but how will userspace know that fences are not
-supported? I'm not sure what the best method is for that.
-
-I am leaning towards a new capability since this has to be advertised clearly.
-
-Regards,
-
-	Hans
+Thanks,
+Yong
