@@ -1,164 +1,963 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from sub5.mail.dreamhost.com ([208.113.200.129]:43180 "EHLO
-        homiemail-a82.g.dreamhost.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1753445AbeAFAs0 (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:36024 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1752181AbeAZIjk (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 5 Jan 2018 19:48:26 -0500
-From: Brad Love <brad@nextdimension.cc>
-To: linux-media@vger.kernel.org
-Cc: Brad Love <brad@nextdimension.cc>
-Subject: [PATCH 3/4] cx23885: Add support for Hauppauge PCIe Starburst2
-Date: Fri,  5 Jan 2018 18:48:21 -0600
-Message-Id: <1515199702-16083-4-git-send-email-brad@nextdimension.cc>
-In-Reply-To: <1515199702-16083-1-git-send-email-brad@nextdimension.cc>
-References: <1515199702-16083-1-git-send-email-brad@nextdimension.cc>
+        Fri, 26 Jan 2018 03:39:40 -0500
+Date: Fri, 26 Jan 2018 10:39:36 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Alexandre Courbot <acourbot@chromium.org>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Pawel Osciak <posciak@chromium.org>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Tomasz Figa <tfiga@chromium.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Gustavo Padovan <gustavo.padovan@collabora.com>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [RFC PATCH 1/9] media: add request API core and UAPI
+Message-ID: <20180126083936.5qxacbdprm6j7pcc@valkosipuli.retiisi.org.uk>
+References: <20171215075625.27028-1-acourbot@chromium.org>
+ <20171215075625.27028-2-acourbot@chromium.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20171215075625.27028-2-acourbot@chromium.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add new PCIe DVB-S/S2.
-A single port Hauppauge HVR-5525
+Hi Alexandre,
 
-cx23885 + a8293 + m88rs6000t
+I remember it was discussed that the work after the V4L2 jobs API would
+continue from the existing request API patches. I see that at least the
+rather important support for events is missing in this version. Why was it
+left out?
 
-Signed-off-by: Brad Love <brad@nextdimension.cc>
----
- drivers/media/pci/cx23885/cx23885-cards.c | 11 +++++++++++
- drivers/media/pci/cx23885/cx23885-dvb.c   | 18 ++++++++++--------
- drivers/media/pci/cx23885/cx23885.h       |  1 +
- 3 files changed, 22 insertions(+), 8 deletions(-)
+I also see that variable size IOCTL argument support is no longer included.
 
-diff --git a/drivers/media/pci/cx23885/cx23885-cards.c b/drivers/media/pci/cx23885/cx23885-cards.c
-index fe42893..70f1047 100644
---- a/drivers/media/pci/cx23885/cx23885-cards.c
-+++ b/drivers/media/pci/cx23885/cx23885-cards.c
-@@ -781,6 +781,10 @@ struct cx23885_board cx23885_boards[] = {
- 		.portc		= CX23885_MPEG_DVB,
- 		.force_bff	= 1,
- 	},
-+	[CX23885_BOARD_HAUPPAUGE_STARBURST2] = {
-+		.name		= "Hauppauge WinTV-Starburst2",
-+		.portb		= CX23885_MPEG_DVB,
-+	},
- };
- const unsigned int cx23885_bcount = ARRAY_SIZE(cx23885_boards);
- 
-@@ -1100,6 +1104,10 @@ struct cx23885_subid cx23885_subids[] = {
- 		.subvendor = 0x0070,
- 		.subdevice = 0x2a18,
- 		.card      = CX23885_BOARD_HAUPPAUGE_HVR1265_K4, /* Hauppauge WinTV HVR-1265 (Model 161xx1, Hybrid ATSC/QAM-B) */
-+	}, {
-+		.subvendor = 0x0070,
-+		.subdevice = 0xf02a,
-+		.card      = CX23885_BOARD_HAUPPAUGE_STARBURST2,
- 	},
- };
- const unsigned int cx23885_idcount = ARRAY_SIZE(cx23885_subids);
-@@ -1796,6 +1804,7 @@ void cx23885_gpio_setup(struct cx23885_dev *dev)
- 	case CX23885_BOARD_HAUPPAUGE_HVR5525:
- 	case CX23885_BOARD_HAUPPAUGE_QUADHD_DVB:
- 	case CX23885_BOARD_HAUPPAUGE_QUADHD_ATSC:
-+	case CX23885_BOARD_HAUPPAUGE_STARBURST2:
- 		/*
- 		 * HVR5525 GPIO Details:
- 		 *  GPIO-00 IR_WIDE
-@@ -2083,6 +2092,7 @@ void cx23885_card_setup(struct cx23885_dev *dev)
- 	case CX23885_BOARD_HAUPPAUGE_IMPACTVCBE:
- 	case CX23885_BOARD_HAUPPAUGE_HVR5525:
- 	case CX23885_BOARD_HAUPPAUGE_HVR1265_K4:
-+	case CX23885_BOARD_HAUPPAUGE_STARBURST2:
- 	case CX23885_BOARD_HAUPPAUGE_QUADHD_DVB:
- 	case CX23885_BOARD_HAUPPAUGE_QUADHD_ATSC:
- 		if (dev->i2c_bus[0].i2c_rc == 0)
-@@ -2223,6 +2233,7 @@ void cx23885_card_setup(struct cx23885_dev *dev)
- 		ts2->src_sel_val   = CX23885_SRC_SEL_PARALLEL_MPEG_VIDEO;
- 		break;
- 	case CX23885_BOARD_HAUPPAUGE_HVR5525:
-+	case CX23885_BOARD_HAUPPAUGE_STARBURST2:
- 		ts1->gen_ctrl_val  = 0x5; /* Parallel */
- 		ts1->ts_clk_en_val = 0x1; /* Enable TS_CLK */
- 		ts1->src_sel_val   = CX23885_SRC_SEL_PARALLEL_MPEG_VIDEO;
-diff --git a/drivers/media/pci/cx23885/cx23885-dvb.c b/drivers/media/pci/cx23885/cx23885-dvb.c
-index 2b23636..260d843 100644
---- a/drivers/media/pci/cx23885/cx23885-dvb.c
-+++ b/drivers/media/pci/cx23885/cx23885-dvb.c
-@@ -1206,6 +1206,8 @@ static int dvb_register(struct cx23885_tsport *port)
- 	struct si2157_config si2157_config;
- 	struct ts2020_config ts2020_config;
- 	struct m88ds3103_platform_data m88ds3103_pdata;
-+	struct m88rs6000t_config m88rs6000t_config = {};
-+	struct a8293_platform_data a8293_pdata = {};
- 	struct i2c_board_info info;
- 	struct i2c_adapter *adapter;
- 	struct i2c_client *client_demod = NULL, *client_tuner = NULL;
-@@ -2229,9 +2231,10 @@ static int dvb_register(struct cx23885_tsport *port)
- 		}
- 		port->i2c_client_tuner = client_tuner;
- 		break;
--	case CX23885_BOARD_HAUPPAUGE_HVR5525: {
--		struct m88rs6000t_config m88rs6000t_config;
--		struct a8293_platform_data a8293_pdata = {};
-+	case CX23885_BOARD_HAUPPAUGE_STARBURST2:
-+	case CX23885_BOARD_HAUPPAUGE_HVR5525:
-+		i2c_bus = &dev->i2c_bus[0];
-+		i2c_bus2 = &dev->i2c_bus[1];
- 
- 		switch (port->nr) {
- 
-@@ -2240,7 +2243,7 @@ static int dvb_register(struct cx23885_tsport *port)
- 			/* attach frontend */
- 			fe0->dvb.frontend = dvb_attach(m88ds3103_attach,
- 					&hauppauge_hvr5525_m88ds3103_config,
--					&dev->i2c_bus[0].i2c_adap, &adapter);
-+					&i2c_bus->i2c_adap, &adapter);
- 			if (fe0->dvb.frontend == NULL)
- 				break;
- 
-@@ -2251,7 +2254,7 @@ static int dvb_register(struct cx23885_tsport *port)
- 			info.addr = 0x0b;
- 			info.platform_data = &a8293_pdata;
- 			request_module("a8293");
--			client_sec = i2c_new_device(&dev->i2c_bus[0].i2c_adap, &info);
-+			client_sec = i2c_new_device(&i2c_bus->i2c_adap, &info);
- 			if (!client_sec || !client_sec->dev.driver)
- 				goto frontend_detach;
- 			if (!try_module_get(client_sec->dev.driver->owner)) {
-@@ -2293,7 +2296,7 @@ static int dvb_register(struct cx23885_tsport *port)
- 			info.addr = 0x64;
- 			info.platform_data = &si2168_config;
- 			request_module("%s", info.type);
--			client_demod = i2c_new_device(&dev->i2c_bus[0].i2c_adap, &info);
-+			client_demod = i2c_new_device(&i2c_bus->i2c_adap, &info);
- 			if (!client_demod || !client_demod->dev.driver)
- 				goto frontend_detach;
- 			if (!try_module_get(client_demod->dev.driver->owner)) {
-@@ -2311,7 +2314,7 @@ static int dvb_register(struct cx23885_tsport *port)
- 			info.addr = 0x60;
- 			info.platform_data = &si2157_config;
- 			request_module("%s", info.type);
--			client_tuner = i2c_new_device(&dev->i2c_bus[1].i2c_adap, &info);
-+			client_tuner = i2c_new_device(&i2c_bus2->i2c_adap, &info);
- 			if (!client_tuner || !client_tuner->dev.driver) {
- 				module_put(client_demod->dev.driver->owner);
- 				i2c_unregister_device(client_demod);
-@@ -2329,7 +2332,6 @@ static int dvb_register(struct cx23885_tsport *port)
- 			break;
- 		}
- 		break;
--	}
- 	case CX23885_BOARD_HAUPPAUGE_QUADHD_DVB:
- 		switch (port->nr) {
- 		/* port b - Terrestrial/cable */
-diff --git a/drivers/media/pci/cx23885/cx23885.h b/drivers/media/pci/cx23885/cx23885.h
-index cfe3ced..6523fe3 100644
---- a/drivers/media/pci/cx23885/cx23885.h
-+++ b/drivers/media/pci/cx23885/cx23885.h
-@@ -108,6 +108,7 @@
- #define CX23885_BOARD_HAUPPAUGE_QUADHD_DVB     56
- #define CX23885_BOARD_HAUPPAUGE_QUADHD_ATSC    57
- #define CX23885_BOARD_HAUPPAUGE_HVR1265_K4     58
-+#define CX23885_BOARD_HAUPPAUGE_STARBURST2     59
- 
- #define GPIO_0 0x00000001
- #define GPIO_1 0x00000002
+On Fri, Dec 15, 2017 at 04:56:17PM +0900, Alexandre Courbot wrote:
+> The request API provides a way to group buffers and device parameters
+> into units of work to be queued and executed. This patch introduces the
+> UAPI and core framework.
+> 
+> This patch is based on the previous work by Laurent Pinchart. The core
+> has changed considerably, but the UAPI is mostly untouched.
+> 
+> Signed-off-by: Alexandre Courbot <acourbot@chromium.org>
+> ---
+>  drivers/media/Makefile               |   3 +-
+>  drivers/media/media-device.c         |   6 +
+>  drivers/media/media-request.c        | 390 +++++++++++++++++++++++++++++++++++
+>  drivers/media/v4l2-core/v4l2-ioctl.c |   2 +-
+>  include/media/media-device.h         |   3 +
+>  include/media/media-entity.h         |   6 +
+>  include/media/media-request.h        | 269 ++++++++++++++++++++++++
+>  include/uapi/linux/media.h           |  11 +
+>  8 files changed, 688 insertions(+), 2 deletions(-)
+>  create mode 100644 drivers/media/media-request.c
+>  create mode 100644 include/media/media-request.h
+> 
+> diff --git a/drivers/media/Makefile b/drivers/media/Makefile
+> index 594b462ddf0e..985d35ec6b29 100644
+> --- a/drivers/media/Makefile
+> +++ b/drivers/media/Makefile
+> @@ -3,7 +3,8 @@
+>  # Makefile for the kernel multimedia device drivers.
+>  #
+>  
+> -media-objs	:= media-device.o media-devnode.o media-entity.o
+> +media-objs	:= media-device.o media-devnode.o media-entity.o \
+> +		   media-request.o
+>  
+>  #
+>  # I2C drivers should come before other drivers, otherwise they'll fail
+> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+> index e79f72b8b858..045cec7d2de9 100644
+> --- a/drivers/media/media-device.c
+> +++ b/drivers/media/media-device.c
+> @@ -32,6 +32,7 @@
+>  #include <media/media-device.h>
+>  #include <media/media-devnode.h>
+>  #include <media/media-entity.h>
+> +#include <media/media-request.h>
+>  
+>  #ifdef CONFIG_MEDIA_CONTROLLER
+>  
+> @@ -407,6 +408,7 @@ static const struct media_ioctl_info ioctl_info[] = {
+>  	MEDIA_IOC(ENUM_LINKS, media_device_enum_links, MEDIA_IOC_FL_GRAPH_MUTEX),
+>  	MEDIA_IOC(SETUP_LINK, media_device_setup_link, MEDIA_IOC_FL_GRAPH_MUTEX),
+>  	MEDIA_IOC(G_TOPOLOGY, media_device_get_topology, MEDIA_IOC_FL_GRAPH_MUTEX),
+> +	MEDIA_IOC(REQUEST_CMD, media_device_request_cmd, 0),
+>  };
+>  
+>  static long media_device_ioctl(struct file *filp, unsigned int cmd,
+> @@ -688,6 +690,10 @@ EXPORT_SYMBOL_GPL(media_device_init);
+>  
+>  void media_device_cleanup(struct media_device *mdev)
+>  {
+> +	if (mdev->req_queue) {
+> +		mdev->req_queue->ops->release(mdev->req_queue);
+> +		mdev->req_queue = NULL;
+> +	}
+>  	ida_destroy(&mdev->entity_internal_idx);
+>  	mdev->entity_internal_idx_max = 0;
+>  	media_graph_walk_cleanup(&mdev->pm_count_walk);
+> diff --git a/drivers/media/media-request.c b/drivers/media/media-request.c
+> new file mode 100644
+> index 000000000000..15dc65ddfe41
+> --- /dev/null
+> +++ b/drivers/media/media-request.c
+> @@ -0,0 +1,390 @@
+> +/*
+> + * Request and request queue base management
+> + *
+> + * Copyright (C) 2017, The Chromium OS Authors.  All rights reserved.
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope that it will be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + * GNU General Public License for more details.
+> + */
+> +
+> +#include <linux/anon_inodes.h>
+> +#include <linux/media.h>
+> +#include <linux/fs.h>
+> +#include <linux/file.h>
+> +#include <linux/slab.h>
+> +#include <linux/list.h>
+> +
+> +#include <media/media-request.h>
+> +#include <media/media-device.h>
+
+Alphabetic order, please.
+
+> +
+> +const struct file_operations request_fops;
+> +
+> +void media_request_get(struct media_request *req)
+
+Please return the media request, too.
+
+> +{
+> +	kref_get(&req->kref);
+> +}
+> +EXPORT_SYMBOL_GPL(media_request_get);
+> +
+> +struct media_request *
+> +media_request_get_from_fd(int fd)
+> +{
+> +	struct file *f;
+> +	struct media_request *req;
+> +
+> +	f = fget(fd);
+> +	if (!f)
+> +		return NULL;
+> +
+> +	/* Not a request FD? */
+> +	if (f->f_op != &request_fops) {
+> +		fput(f);
+> +		return NULL;
+> +	}
+> +
+> +	req = f->private_data;
+> +	media_request_get(req);
+> +	fput(f);
+> +
+> +	return req;
+> +}
+> +EXPORT_SYMBOL_GPL(media_request_get_from_fd);
+> +
+> +static void media_request_release(struct kref *kref)
+> +{
+> +	struct media_request_entity_data *data, *next;
+> +	struct media_request *req =
+> +		container_of(kref, typeof(*req), kref);
+> +	struct media_device *mdev = req->queue->mdev;
+> +
+> +	dev_dbg(mdev->dev, "%s: releasing request %u\n", __func__, req->id);
+
+I'd leave out __func__. It doesn't provide any additional information here.
+
+> +
+> +	list_del(&req->list);
+
+You appear to have added a list of requests in the queue. You'll need to
+serialise access to that list unless you can otherwise prove you're doing
+this safely --- and that's not the case here.
+
+> +	list_for_each_entry_safe(data, next, &req->data, list) {
+> +		list_del(&data->list);
+> +		data->entity->req_ops->release_data(data);
+> +	}
+> +
+> +	req->queue->ops->req_free(req->queue, req);
+> +}
+> +
+> +void media_request_put(struct media_request *req)
+> +{
+
+How about checking req is non-NULL here?
+
+> +	kref_put(&req->kref, media_request_release);
+> +}
+> +EXPORT_SYMBOL_GPL(media_request_put);
+> +
+> +struct media_request_entity_data *
+> +media_request_get_entity_data(struct media_request *req,
+> +			      struct media_entity *entity, void *fh)
+
+This makes the assumption that request data is bound to entities. How does
+this work with links?
+
+I wonder if it should rather be bound to graph objects, or certain graph
+objects. Having a standard way to bind request specific information e.g. to
+entities is definitely worth having, though.
+
+V4L2 framework specific information would be needed across the media graph
+and it'd be good to store it in a non-driver specific way. What I think
+you'd need is an interface that allows storing information based on two
+keys --- the request and e.g. a pointer provided by the caller. The V4L2
+framework would have one key, e.g. a pointer to an empty struct defined
+somewhere in the V4L2 framework could be used for the purpose.
+
+Going forward, the entire media graph state will be subject to changing
+through requests. This includes link state, media bus and pixel formats,
+cropping and scaling configurations, everything. Let's not try to go there
+yet in this patchset, but what I'm asking is to keep the goal in mind when
+implementating the request API.
+
+> +{
+> +	struct media_request_queue *queue = req->queue;
+> +	struct media_request_entity_data *data;
+> +
+> +	media_request_queue_lock(queue);
+> +
+> +	/* First look whether we already have entity data */
+> +	list_for_each_entry(data, &req->data, list) {
+> +		if (data->entity == entity) {
+
+This is fine for now but something more efficient will be needed in the
+long run.
+
+> +			/*
+> +			 * If so, then the fh must match otherwise this means
+> +			 * we are trying to set the same entity through
+> +			 * different handles
+> +			 */
+
+What's the purpose of this? The request is identified by the file handle
+already.
+
+> +			if (data->fh != fh)
+> +				data = ERR_PTR(-EINVAL);
+> +			goto done;
+> +		}
+> +	}
+> +
+> +	/* No entity data found, let's create it */
+> +	data = entity->req_ops->alloc_data(req, entity);
+> +	if (IS_ERR(data))
+> +		goto done;
+> +	data->fh = fh;
+> +	data->entity = entity;
+> +	list_add_tail(&data->list, &req->data);
+> +
+> +done:
+> +	media_request_queue_unlock(queue);
+> +	return data;
+> +}
+> +EXPORT_SYMBOL_GPL(media_request_get_entity_data);
+> +
+> +static const char * const media_request_states[] __maybe_unused = {
+> +	"IDLE",
+> +	"QUEUED",
+> +	"COMPLETED",
+> +	"DELETED",
+> +};
+> +
+> +static const char *media_request_state(enum media_request_state state)
+> +{
+> +	return state < ARRAY_SIZE(media_request_states) ?
+> +		media_request_states[state] : "INVALID";
+> +}
+> +
+> +static int media_device_request_close(struct inode *inode, struct file *filp)
+> +{
+> +	struct media_request *req = filp->private_data;
+> +
+> +	if (req == NULL)
+> +		return 0;
+> +
+> +	media_request_put(req);
+> +
+> +	return 0;
+> +}
+> +
+> +static unsigned int media_request_poll(struct file *file, poll_table *wait)
+> +{
+> +	struct media_request *req = file->private_data;
+> +
+> +	poll_wait(file, &req->wait_queue, wait);
+> +
+> +	if (req->state == MEDIA_REQUEST_STATE_COMPLETE)
+> +		return POLLIN | POLLRDNORM;
+> +
+> +	return 0;
+> +}
+> +
+> +const struct file_operations request_fops = {
+> +	.owner = THIS_MODULE,
+> +	.poll = media_request_poll,
+> +	.release = media_device_request_close,
+> +};
+> +
+> +/*
+> + * Called when all the entities taking part in a request have completed their
+> + * part.
+> + *
+> + * The request queue mutex must be held when this function is called.
+> + */
+> +static void media_device_request_complete(struct media_request *req)
+> +{
+> +	struct media_request_queue *queue = req->queue;
+> +	struct media_device *mdev = queue->mdev;
+> +
+> +	if (WARN_ON(req->state != MEDIA_REQUEST_STATE_QUEUED)) {
+> +		dev_dbg(mdev->dev, "%s: can't complete %u, state %s\n",
+> +			__func__, req->id, media_request_state(req->state));
+> +		return;
+> +	}
+> +
+> +	req->state = MEDIA_REQUEST_STATE_COMPLETE;
+> +
+> +	wake_up_interruptible(&req->wait_queue);
+> +
+> +	queue->ops->req_complete(queue);
+> +
+> +	/* Release the reference acquired when we queued the request */
+> +	media_request_put(req);
+> +}
+> +
+> +void media_request_entity_complete(struct media_request_queue *queue,
+> +				   struct media_entity *entity)
+> +{
+> +	struct media_request_entity_data *data;
+> +	struct media_request *req;
+> +	bool completed = true;
+> +
+> +	media_request_queue_lock(queue);
+> +
+> +	req = queue->active_request;
+> +
+> +	list_for_each_entry(data, &req->data, list) {
+> +		if (data->entity == entity)
+> +			data->completed = true;
+> +
+> +		if (!data->completed)
+> +			completed = false;
+> +	}
+> +
+> +	/* All entities of the request have completed, request is done */
+> +	if (completed)
+> +		media_device_request_complete(req);
+> +
+> +	media_request_queue_unlock(queue);
+> +
+> +}
+> +EXPORT_SYMBOL_GPL(media_request_entity_complete);
+> +
+> +void media_request_queue_init(struct media_request_queue *queue,
+> +			      struct media_device *mdev,
+> +			      const struct media_request_queue_ops *ops)
+> +{
+> +	queue->mdev = mdev;
+> +	mutex_init(&queue->mutex);
+> +	INIT_LIST_HEAD(&queue->requests);
+> +	queue->ops = ops;
+> +}
+> +EXPORT_SYMBOL_GPL(media_request_queue_init);
+> +
+> +void media_request_queue_release(struct media_request_queue *queue)
+> +{
+> +	struct media_device *mdev = queue->mdev;
+> +
+> +	media_request_queue_lock(queue);
+> +
+> +	/* Just a sanity check - we should have no remaining requests */
+> +	while (!list_empty(&queue->requests)) {
+> +		struct media_request *req;
+> +
+> +		req = list_first_entry(&queue->requests, typeof(*req), list);
+> +		dev_warn(mdev->dev,
+> +			"%s: request %u still referenced, deleting forcibly!\n",
+> +			__func__, req->id);
+> +		media_request_release(&req->kref);
+> +	}
+> +
+> +	media_request_queue_unlock(queue);
+> +}
+> +EXPORT_SYMBOL_GPL(media_request_queue_release);
+> +
+> +/*
+> + * Process the MEDIA_REQ_CMD_ALLOC command
+> + */
+> +static int media_request_cmd_alloc(struct media_request_queue *queue,
+> +				   struct media_request_cmd *cmd)
+> +{
+> +	struct media_request *req;
+> +	int fd;
+> +
+> +	req = queue->ops->req_alloc(queue);
+> +	if (!req)
+> +		return -ENOMEM;
+> +
+> +	req->queue = queue;
+> +	req->state = MEDIA_REQUEST_STATE_IDLE;
+> +	kref_init(&req->kref);
+> +	INIT_LIST_HEAD(&req->data);
+> +	init_waitqueue_head(&req->wait_queue);
+> +
+> +	media_request_queue_lock(queue);
+> +	req->id = ++queue->req_id;
+> +	list_add_tail(&req->list, &queue->requests);
+> +	media_request_queue_unlock(queue);
+> +
+> +	fd = anon_inode_getfd("media_request", &request_fops, req, O_CLOEXEC);
+> +	if (fd < 0)
+> +		return fd;
+> +
+> +	cmd->fd = fd;
+> +
+> +	return 0;
+> +}
+> +
+> +/*
+> + * Process the MEDIA_REQ_CMD_QUEUE command
+> + */
+> +static int media_request_cmd_queue(struct media_request_queue *queue,
+> +				   struct media_request *req)
+> +{
+> +	int ret = 0;
+> +
+> +	media_request_queue_lock(queue);
+> +
+> +	if (req->state != MEDIA_REQUEST_STATE_IDLE) {
+> +		dev_dbg(queue->mdev->dev,
+> +			"%s: unable to queue request %u in state %s\n",
+> +			__func__, req->id, media_request_state(req->state));
+> +		media_request_queue_unlock(queue);
+> +		return -EINVAL;
+> +	}
+> +
+> +	req->state = MEDIA_REQUEST_STATE_QUEUED;
+> +	ret = queue->ops->req_queue(queue, req);
+
+Queueing a request will be a complex operation. Therefore I'd allow the
+driver to manage locking by itself.
+
+> +	if (ret) {
+> +		req->state = MEDIA_REQUEST_STATE_IDLE;
+> +		media_request_queue_unlock(queue);
+> +		dev_dbg(queue->mdev->dev, "%s: cannot queue %u\n", __func__,
+> +			req->id);
+> +		return ret;
+> +	}
+> +
+> +	media_request_queue_unlock(queue);
+> +
+> +	/* The queue holds a reference to the request */
+
+I'd put this differently. How about:
+
+	/*
+	 * Hold a reference to queued requests, to be put at request complete
+	 * time.
+	 */
+
+Or the comment omit altogether.
+
+> +	media_request_get(req);
+
+You have to do this before you release the lock above.
+
+> +
+> +	return 0;
+> +}
+> +
+> +static int media_request_cmd_reinit(struct media_request_queue *queue,
+> +				    struct media_request *req)
+
+I'd refrain from trying to implement recycling media requestsfor now . It
+can always be implemeted later on.
+
+> +{
+> +	struct media_request_entity_data *data, *next;
+> +
+> +	media_request_queue_lock(queue);
+> +
+> +	if (req->state == MEDIA_REQUEST_STATE_QUEUED) {
+> +		dev_dbg(queue->mdev->dev,
+> +			"%s: unable to reinit queued request %u\n", __func__,
+> +			req->id);
+> +		media_request_queue_unlock(queue);
+> +		return -EINVAL;
+> +	}
+> +
+> +	/* delete all entity data */
+> +	list_for_each_entry_safe(data, next, &req->data, list) {
+> +		list_del(&data->list);
+> +		data->entity->req_ops->release_data(data);
+> +	}
+> +
+> +	/* reinitialize request to idle state */
+> +	req->state = MEDIA_REQUEST_STATE_IDLE;
+> +
+> +	media_request_queue_unlock(queue);
+> +
+> +	return 0;
+> +}
+> +
+> +long media_device_request_cmd(struct media_device *mdev,
+> +			      struct media_request_cmd *cmd)
+> +{
+> +	struct media_request *req = NULL;
+> +	int ret;
+> +
+> +	if (!mdev->req_queue)
+> +		return -ENOTTY;
+> +
+> +	if (cmd->cmd != MEDIA_REQ_CMD_ALLOC) {
+> +		req = media_request_get_from_fd(cmd->fd);
+> +		if (IS_ERR(req))
+> +			return PTR_ERR(req);
+> +
+> +		/* requests must belong to this media device's queue */
+> +		if (req->queue != mdev->req_queue) {
+> +			media_request_put(req);
+> +			return -EINVAL;
+> +		}
+> +	}
+> +
+> +	switch (cmd->cmd) {
+> +	case MEDIA_REQ_CMD_ALLOC:
+> +		ret = media_request_cmd_alloc(mdev->req_queue, cmd);
+> +		break;
+> +
+> +	case MEDIA_REQ_CMD_QUEUE:
+> +		ret = media_request_cmd_queue(mdev->req_queue, req);
+> +		break;
+> +
+> +	case MEDIA_REQ_CMD_REINIT:
+> +		ret = media_request_cmd_reinit(mdev->req_queue, req);
+> +		break;
+> +
+> +	default:
+> +		ret = -EINVAL;
+> +		break;
+> +	}
+> +
+> +	if (req)
+> +		media_request_put(req);
+> +
+> +	return ret;
+> +}
+> diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+> index b60a6b0841d1..ec4ecd5aa8bf 100644
+> --- a/drivers/media/v4l2-core/v4l2-ioctl.c
+> +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+> @@ -867,7 +867,7 @@ static int check_ext_ctrls(struct v4l2_ext_controls *c, int allow_priv)
+>  	__u32 i;
+>  
+>  	/* zero the reserved fields */
+> -	c->reserved[0] = c->reserved[1] = 0;
+> +	c->reserved[0] = 0;
+>  	for (i = 0; i < c->count; i++)
+>  		c->controls[i].reserved2[0] = 0;
+>  
+> diff --git a/include/media/media-device.h b/include/media/media-device.h
+> index bcc6ec434f1f..3feaa02128d1 100644
+> --- a/include/media/media-device.h
+> +++ b/include/media/media-device.h
+> @@ -27,6 +27,7 @@
+>  
+>  struct ida;
+>  struct device;
+> +struct media_request_queue;
+>  
+>  /**
+>   * struct media_entity_notify - Media Entity Notify
+> @@ -158,6 +159,8 @@ struct media_device {
+>  	void (*disable_source)(struct media_entity *entity);
+>  
+>  	const struct media_device_ops *ops;
+> +
+> +	struct media_request_queue *req_queue;
+>  };
+>  
+>  /* We don't need to include pci.h or usb.h here */
+> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+> index 222d379960b7..bfb7a4565904 100644
+> --- a/include/media/media-entity.h
+> +++ b/include/media/media-entity.h
+> @@ -26,6 +26,9 @@
+>  #include <linux/list.h>
+>  #include <linux/media.h>
+>  
+> +struct media_request;
+> +struct media_request_entity_data;
+> +
+>  /* Enums used internally at the media controller to represent graphs */
+>  
+>  /**
+> @@ -193,6 +196,8 @@ struct media_entity_operations {
+>  			  const struct media_pad *local,
+>  			  const struct media_pad *remote, u32 flags);
+>  	int (*link_validate)(struct media_link *link);
+> +	int (*process_request)(struct media_request *req,
+> +			       struct media_request_entity_data *data);
+
+process_request remains unused here.
+
+>  };
+>  
+>  /**
+> @@ -275,6 +280,7 @@ struct media_entity {
+>  	struct list_head links;
+>  
+>  	const struct media_entity_operations *ops;
+> +	const struct media_request_entity_ops *req_ops;
+>  
+>  	int stream_count;
+>  	int use_count;
+> diff --git a/include/media/media-request.h b/include/media/media-request.h
+> new file mode 100644
+> index 000000000000..ead7fd8898c4
+> --- /dev/null
+> +++ b/include/media/media-request.h
+> @@ -0,0 +1,269 @@
+> +/*
+> + * Generic request queue.
+> + *
+> + * Copyright (C) 2017, The Chromium OS Authors.  All rights reserved.
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope that it will be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + * GNU General Public License for more details.
+> + */
+> +
+> +#ifndef _MEDIA_REQUEST_H
+> +#define _MEDIA_REQUEST_H
+> +
+> +#include <linux/kref.h>
+> +#include <linux/wait.h>
+> +#include <linux/list.h>
+
+Alphabetical order?
+
+> +
+> +struct media_device;
+> +struct media_request_queue;
+> +struct media_request_cmd;
+> +struct media_entity;
+> +struct media_request_entity_data;
+
+Here, too?
+
+> +
+> +#ifdef CONFIG_MEDIA_CONTROLLER
+> +
+> +enum media_request_state {
+> +	MEDIA_REQUEST_STATE_IDLE,
+> +	MEDIA_REQUEST_STATE_QUEUED,
+> +	MEDIA_REQUEST_STATE_COMPLETE,
+> +	MEDIA_REQUEST_STATE_DELETED,
+> +};
+> +
+> +/**
+> + * struct media_request - Media request base structure
+> + * @id:		request id, used internally for debugging
+> + * @queue:	request queue this request belongs to
+> + * @kref: 	reference count
+> + * @list: 	list entry in the media device requests list
+> + * @state:	current state of the request
+> + * @data:	per-entity data list
+> + * @wait_queue:	wait queue that signals once the request has completed
+> + */
+> +struct media_request {
+> +	u32 id;
+> +	struct media_request_queue *queue;
+> +	struct kref kref;
+> +	struct list_head list;
+> +	enum media_request_state state;
+> +	struct list_head data;
+> +	wait_queue_head_t wait_queue;
+> +};
+> +
+> +/**
+> + * media_request_get() - increment the reference counter of a request
+> + *
+> + * The calling context must call media_request_put() once it does not need
+> + * the reference to the request anymore.
+> + *
+> + * @req:	request to acquire a reference of
+> + */
+> +void media_request_get(struct media_request *req);
+> +
+> +/**
+> + * media_request_get_from_fd() - lookup request by fd and acquire a reference.
+> + *
+> + * Look a request up from its fd, acquire a reference and return a pointer to
+> + * the request. As for media_request_get(), media_request_put() must be called
+> + * once the reference is not used anymore.
+> + *
+> + * @req:	request to lookup and acquire.
+> + *
+> + */
+> +struct media_request *media_request_get_from_fd(int fd);
+> +
+> +/**
+> + * media_request_put() - decrement the reference counter of a request
+> + *
+> + * Mirror function of media_request_get() and media_request_get_from_fd(). Will
+> + * free the request if this was the last valid reference.
+> + *
+> + * @req:	request to release.
+> + */
+> +void media_request_put(struct media_request *req);
+> +
+> +/**
+> + * media_request_get_entity_data() - get per-entity data for a request
+> + * @req:	request to get entity data from
+> + * @entity:	entity to get data of
+> + * @fh:		cookie identifying the handle from which the entity is accessed
+> + *
+> + * Seach and return the entity data associated associated to the request. If no
+> + * such data exists, it is allocated as per the entity operations.
+> + *
+> + * The fh arguments serves as a cookie to make sure the same entity is not
+> + * accessed through different opened file handles. The same handle must be
+> + * passed to all calls of this function for the same entity. Failure to do so
+> + * will return an error.
+> + *
+> + * Returns the per-entity data, or an error code if a problem happened. -EINVAL
+> + * means that data for the entity already existed, but has been allocated under
+> + * a different cookie.
+> + */
+> +struct media_request_entity_data *
+> +media_request_get_entity_data(struct media_request *req,
+> +			      struct media_entity *entity, void *fh);
+> +
+> +
+> +/**
+> + * media_request_entity_complete() - to be invoked when an entity has completed
+> + *				     its part of the currently active request
+> + *
+> + * @queue:	request queue
+> + * @entity:	the entity that completed
+> + */
+> +void media_request_entity_complete(struct media_request_queue *queue,
+> +				   struct media_entity *entity);
+> +
+> +/**
+> + * struct media_request_queue_ops - request queue operations
+> + *
+> + * @release:	release all memory associated to the queue
+> + * @req_qlloc:	allocate a request for this queue
+> + * @req_free:	free a previously allocated request
+> + * @req_queue:	queue a request for execution
+> + * @req_complete: callback invoked when the active request has completed
+> + *
+> + */
+> +struct media_request_queue_ops {
+> +	void (*release)(struct media_request_queue *queue);
+> +	struct media_request *(*req_alloc)(struct media_request_queue *queue);
+> +	void (*req_free)(struct media_request_queue *queue,
+> +			 struct media_request *req);
+> +	int (*req_queue)(struct media_request_queue *queue,
+> +			 struct media_request *req);
+> +	void (*req_complete)(struct media_request_queue *queue);
+> +};
+> +
+> +/**
+> + * struct media_request_queue - queue of requests
+> + *
+> + * @mdev:	media_device that manages this queue
+> + * @ops:	implementation of the queue
+> + * @mutex:	protects requests, active_request, req_id, and all members of
+> + *		struct media_request
+> + * @active_request: request being currently run by this queue
+> + * @requests:	list of requests (not in any particular order) that this
+> + *		queue owns.
+> + * @req_id:	counter used to identify requests for debugging purposes
+> + */
+> +struct media_request_queue {
+> +	struct media_device *mdev;
+> +	const struct media_request_queue_ops *ops;
+> +
+> +	struct mutex mutex;
+
+Any particular reason for using a mutex? The request queue lock will need
+to be acquired from interrupts, too, so this should be changed to a
+spinlock.
+
+A media device, presumably, has a single request queue. I might just put
+the fields to struct media_device.
+
+> +	struct list_head requests;
+> +	struct media_request *active_request;
+> +	u32 req_id;
+> +};
+> +
+> +static inline void media_request_queue_lock(struct media_request_queue *queue)
+> +{
+> +	mutex_lock(&queue->mutex);
+> +}
+> +
+> +static inline void media_request_queue_unlock(struct media_request_queue *queue)
+> +{
+> +	mutex_unlock(&queue->mutex);
+> +}
+> +
+> +/**
+> + * media_request_queue_init() - initialize a request queue
+> + *
+> + * This function is to be called by request queue implementations to initialize
+> + * the base structure.
+> + *
+> + * @queue:	queue to initialize
+> + * @mdev:	media device owning this queue
+> + * @ops:	ops to be used with this queue
+> + */
+> +void media_request_queue_init(struct media_request_queue *queue,
+> +			      struct media_device *mdev,
+> +			      const struct media_request_queue_ops *ops);
+> +
+> +/**
+> + * media_request_queue_release() - release resources held by a request queue
+> + *
+> + * The caller is still responsible for freeing the memory held by the queue
+> + * structure itself.
+> + *
+> + * @queue:	queue to be released
+> + */
+> +void media_request_queue_release(struct media_request_queue *queue);
+> +
+> +/**
+> + * struct media_request_entity_data - per-entity request data
+> + *
+> + * Base structure used to store request state data. To be extended by actual
+> + * implementation.
+> + *
+> + * @entity:	entity this data belongs to
+> + * @fh:		subsystem-dependent. For V4L2, the v4l2_fh of the opened device
+> + * @list:	entry in media_request::data
+> + * @completed:	whether this entity has completed its part of the request
+> + */
+> +struct media_request_entity_data {
+> +	struct media_entity *entity;
+> +	void *fh;
+> +	struct list_head list;
+> +	bool completed;
+> +};
+> +
+> +/**
+> + * struct media_request_entity_ops - request-related entity operations
+> + *
+> + * All these operations are mandatory if the request API is to be used with
+> + * an entity.
+> + *
+> + * @alloc_data:		allocate request data for this entity
+> + * @release_data:	release previously allocated data
+> + * @apply_data:		apply the data to the entity prior to running a request
+> + *
+> + */
+> +struct media_request_entity_ops {
+> +	struct media_request_entity_data *(*alloc_data)
+> +		(struct media_request *req, struct media_entity *entity);
+> +	void (*release_data)(struct media_request_entity_data *data);
+> +	int (*apply_data)(struct media_request_entity_data *data);
+
+The media device already has an ops struct. How about putting these into
+that?
+
+> +};
+> +
+> +/**
+> + * media_device_request_cmd() - perform the REQUEST_CMD ioctl
+> + *
+> + * @mdev:	media device the ioctl has been called on
+> + * @cmd:	user-space request command structure
+> + */
+> +long media_device_request_cmd(struct media_device *mdev,
+> +			      struct media_request_cmd *cmd);
+> +
+> +#else /* CONFIG_MEDIA_CONTROLLER */
+> +
+> +static inline struct media_request *media_request_get_from_fd(int fd)
+> +{
+> +	return ERR_PTR(-ENOTSUPP);
+> +}
+> +
+> +static inline void media_request_put(struct media_request *req)
+> +{
+> +}
+> +
+> +static inline struct media_request *media_request_get_entity_data(
+> +					  struct media_request *req,
+> +					  struct media_entity *entity, void *fh)
+> +{
+> +	return ERR_PTR(-ENOTSUPP);
+> +}
+> +
+> +static inline void media_request_entity_complete(struct media_request *req,
+> +						 struct media_entity *entity)
+> +{
+> +}
+> +
+> +#endif /* CONFIG_MEDIA_CONTROLLER */
+> +
+> +#endif
+> diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+> index b9b9446095e9..247823ea0d1a 100644
+> --- a/include/uapi/linux/media.h
+> +++ b/include/uapi/linux/media.h
+> @@ -406,6 +406,16 @@ struct media_v2_topology {
+>  	__u64 ptr_links;
+>  } __attribute__ ((packed));
+>  
+> +#define MEDIA_REQ_CMD_ALLOC		0
+> +#define MEDIA_REQ_CMD_QUEUE		1
+> +#define MEDIA_REQ_CMD_REINIT		2
+> +
+> +struct media_request_cmd {
+> +	__u32 cmd;
+> +	__s32 fd;
+> +	__u32 flags;
+> +} __attribute__ ((packed));
+> +
+>  /* ioctls */
+>  
+>  #define MEDIA_IOC_DEVICE_INFO		_IOWR('|', 0x00, struct media_device_info)
+> @@ -413,5 +423,6 @@ struct media_v2_topology {
+>  #define MEDIA_IOC_ENUM_LINKS		_IOWR('|', 0x02, struct media_links_enum)
+>  #define MEDIA_IOC_SETUP_LINK		_IOWR('|', 0x03, struct media_link_desc)
+>  #define MEDIA_IOC_G_TOPOLOGY		_IOWR('|', 0x04, struct media_v2_topology) 
+> +#define MEDIA_IOC_REQUEST_CMD		_IOWR('|', 0x05, struct media_request_cmd)
+>  
+>  #endif /* __LINUX_MEDIA_H */
+
 -- 
-2.7.4
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
