@@ -1,171 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:41974 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750740AbeAMHdB (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 13 Jan 2018 02:33:01 -0500
-Subject: Re: [RFT PATCH v3 6/6] uvcvideo: Move decode processing to process
- context
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Olivier BRAUN <olivier.braun@stereolabs.com>,
-        Troy Kisky <troy.kisky@boundarydevices.com>
-References: <cover.30aaad9a6abac5e92d4a1a0e6634909d97cc54d8.1515748369.git-series.kieran.bingham@ideasonboard.com>
- <c857652f179fbc083a16029affefbde83a8932dc.1515748369.git-series.kieran.bingham@ideasonboard.com>
- <alpine.DEB.2.20.1801121025210.4338@axis700.grange>
-From: Kieran Bingham <kieran.bingham@ideasonboard.com>
-Message-ID: <d88ac9c7-bc9d-b656-fd0f-9f8a445276f8@ideasonboard.com>
-Date: Sat, 13 Jan 2018 07:32:57 +0000
+Received: from mga12.intel.com ([192.55.52.136]:63443 "EHLO mga12.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753144AbeA0QYm (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sat, 27 Jan 2018 11:24:42 -0500
+From: "Yeh, Andy" <andy.yeh@intel.com>
+To: Sakari Ailus <sakari.ailus@linux.intel.com>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: [PATCH v3 1/1] imx258: Fix sparse warnings
+Date: Sat, 27 Jan 2018 16:24:39 +0000
+Message-ID: <8E0971CCB6EA9D41AF58191A2D3978B61D4F3064@PGSMSX111.gar.corp.intel.com>
+References: <20180122212542.26474-1-sakari.ailus@linux.intel.com>
+In-Reply-To: <20180122212542.26474-1-sakari.ailus@linux.intel.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-In-Reply-To: <alpine.DEB.2.20.1801121025210.4338@axis700.grange>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
+Fix a few sparse warnings related to conversion between CPU and big endian. Also simplify the code in the process.
 
-Thanks for your review and time on this.
-I certainly appreciate the extra eyes here!
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Acked-by: Andy Yeh <andy.yeh@intel.com>
+---
+since v2:
 
-On 12/01/18 09:37, Guennadi Liakhovetski wrote:
-> Hi Kieran,
-> 
-> On Fri, 12 Jan 2018, Kieran Bingham wrote:
-> 
->> Newer high definition cameras, and cameras with multiple lenses such as
->> the range of stereo-vision cameras now available have ever increasing
->> data rates.
->>
->> The inclusion of a variable length packet header in URB packets mean
->> that we must memcpy the frame data out to our destination 'manually'.
->> This can result in data rates of up to 2 gigabits per second being
->> processed.
->>
->> To improve efficiency, and maximise throughput, handle the URB decode
->> processing through a work queue to move it from interrupt context, and
->> allow multiple processors to work on URBs in parallel.
->>
->> Signed-off-by: Kieran Bingham <kieran.bingham@ideasonboard.com>
->>
->> ---
->> v2:
->>  - Lock full critical section of usb_submit_urb()
->>
->> v3:
->>  - Fix race on submitting uvc_video_decode_data_work() to work queue.
->>  - Rename uvc_decode_op -> uvc_copy_op (Generic to encode/decode)
->>  - Rename decodes -> copy_operations
->>  - Don't queue work if there is no async task
->>  - obtain copy op structure directly in uvc_video_decode_data()
->>  - uvc_video_decode_data_work() -> uvc_video_copy_data_work()
->> ---
->>  drivers/media/usb/uvc/uvc_queue.c |  12 +++-
->>  drivers/media/usb/uvc/uvc_video.c | 116 +++++++++++++++++++++++++++----
->>  drivers/media/usb/uvc/uvcvideo.h  |  24 ++++++-
->>  3 files changed, 138 insertions(+), 14 deletions(-)
->>
->> diff --git a/drivers/media/usb/uvc/uvc_queue.c b/drivers/media/usb/uvc/uvc_queue.c
->> index 5a9987e547d3..598087eeb5c2 100644
->> --- a/drivers/media/usb/uvc/uvc_queue.c
->> +++ b/drivers/media/usb/uvc/uvc_queue.c
->> @@ -179,10 +179,22 @@ static void uvc_stop_streaming(struct vb2_queue *vq)
->>  	struct uvc_video_queue *queue = vb2_get_drv_priv(vq);
->>  	struct uvc_streaming *stream = uvc_queue_to_stream(queue);
->>  
->> +	/* Prevent new buffers coming in. */
->> +	spin_lock_irq(&queue->irqlock);
->> +	queue->flags |= UVC_QUEUE_STOPPING;
->> +	spin_unlock_irq(&queue->irqlock);
+- Count loop downwards, not up.
 
-Q_A: <label for below>
+ drivers/media/i2c/imx258.c | 23 +++++++++--------------
+ 1 file changed, 9 insertions(+), 14 deletions(-)
 
->> +
->> +	/*
->> +	 * All pending work should be completed before disabling the stream, as
->> +	 * all URBs will be free'd during uvc_video_enable(s, 0).
->> +	 */
->> +	flush_workqueue(stream->async_wq);
-> 
-> What if we manage to get one last URB here, then...
-
-
-That will be fine. queue->flags = UVC_QUEUE_STOPPING, and thus no more items can
-be added to the workqueue.
-
->> +
->>  	uvc_video_enable(stream, 0);
->>  
-
-Q_B: <label for below>
-
->>  	spin_lock_irq(&queue->irqlock);
->>  	uvc_queue_return_buffers(queue, UVC_BUF_STATE_ERROR);
->> +	queue->flags &= ~UVC_QUEUE_STOPPING;
->>  	spin_unlock_irq(&queue->irqlock);
->>  }
->>  
->> diff --git a/drivers/media/usb/uvc/uvc_video.c b/drivers/media/usb/uvc/uvc_video.c
->> index 3878bec3276e..fb6b5af17380 100644
->> --- a/drivers/media/usb/uvc/uvc_video.c
->> +++ b/drivers/media/usb/uvc/uvc_video.c
-> 
-> [snip]
-> 
->> +	/*
->> +	 * When the stream is stopped, all URBs are freed as part of the call to
->> +	 * uvc_stop_streaming() and must not be handled asynchronously. In that
->> +	 * event we can safely complete the packet work directly in this
->> +	 * context, without resubmitting the URB.
->> +	 */
->> +	spin_lock_irqsave(&queue->irqlock, flags);
->> +	if (!(queue->flags & UVC_QUEUE_STOPPING)) {
->> +		INIT_WORK(&uvc_urb->work, uvc_video_copy_data_work);
->> +		queue_work(stream->async_wq, &uvc_urb->work);
->> +	} else {
->> +		uvc_video_copy_packets(uvc_urb);
-> 
-> Can it not happen, that if the stream is currently being stopped, the 
-> queue has been flushed, possibly the previous URB or a couple of them 
-> don't get decoded, but you do decode this one, creating a corrupted frame? 
-> Wouldn't it be better to just drop this URB too?
-
-I don't think so.
-
-The only time that this uvc_video_copy_packets() can be called directly in this
-context is if UVC_QUEUE_STOPPING is set, *AND* we have the lock...
-Therefore we must be executing between points Q_A and Q_B above.
-
-The flush_workqueue() will ensure that all queued work is completed.
-
-By calling uvc_video_copy_packets() directly we are ensuring that this last
-packet is also completed. The headers have already been processed at this stage
-during the call to ->decode() - so all we are actually doing here is the async
-memcpy work which has already been promised by the header processing, and
-releasing the references on the vb2 buffers if applicable.
-
-Any buffers not fully completed will be returned marked and returned by the call
-to :
-
-  	uvc_queue_return_buffers(queue, UVC_BUF_STATE_ERROR);
-
-
-which happens *after* label Q_B:
-
+diff --git a/drivers/media/i2c/imx258.c b/drivers/media/i2c/imx258.c index a7e58bd23de7..213429cca8b5 100644
+--- a/drivers/media/i2c/imx258.c
++++ b/drivers/media/i2c/imx258.c
+@@ -440,10 +440,10 @@ static int imx258_read_reg(struct imx258 *imx258, u16 reg, u32 len, u32 *val)  {
+ 	struct i2c_client *client = v4l2_get_subdevdata(&imx258->sd);
+ 	struct i2c_msg msgs[2];
++	__be16 reg_addr_be = cpu_to_be16(reg);
++	__be32 data_be = 0;
+ 	u8 *data_be_p;
+ 	int ret;
+-	u32 data_be = 0;
+-	u16 reg_addr_be = cpu_to_be16(reg);
+ 
+ 	if (len > 4)
+ 		return -EINVAL;
+@@ -474,24 +474,19 @@ static int imx258_read_reg(struct imx258 *imx258, u16 reg, u32 len, u32 *val)  static int imx258_write_reg(struct imx258 *imx258, u16 reg, u32 len, u32 val)  {
+ 	struct i2c_client *client = v4l2_get_subdevdata(&imx258->sd);
+-	int buf_i, val_i;
+-	u8 buf[6], *val_p;
++	u8 __buf[6], *buf = __buf;
++	int i;
+ 
+ 	if (len > 4)
+ 		return -EINVAL;
+ 
+-	buf[0] = reg >> 8;
+-	buf[1] = reg & 0xff;
++	*buf++ = reg >> 8;
++	*buf++ = reg & 0xff;
+ 
+-	val = cpu_to_be32(val);
+-	val_p = (u8 *)&val;
+-	buf_i = 2;
+-	val_i = 4 - len;
++	for (i = len - 1; i >= 0; i--)
++		*buf++ = (u8)(val >> (i << 3));
+ 
+-	while (val_i < 4)
+-		buf[buf_i++] = val_p[val_i++];
+-
+-	if (i2c_master_send(client, buf, len + 2) != len + 2)
++	if (i2c_master_send(client, __buf, len + 2) != len + 2)
+ 		return -EIO;
+ 
+ 	return 0;
 --
-Regards
-
-Kieran
-
-> 
->>  	}
->> +	spin_unlock_irqrestore(&queue->irqlock, flags);
->>  }
->>  
->>  /*
-> 
-> Thanks
-> Guennadi
-> 
+2.11.0
