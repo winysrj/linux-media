@@ -1,68 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bin-mail-out-05.binero.net ([195.74.38.228]:38685 "EHLO
-        bin-vsp-out-03.atm.binero.net" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751204AbeA2QfM (ORCPT
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:40755 "EHLO
+        mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750959AbeA2P6T (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 29 Jan 2018 11:35:12 -0500
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH v10 03/30] rcar-vin: unregister video device on driver removal
-Date: Mon, 29 Jan 2018 17:34:08 +0100
-Message-Id: <20180129163435.24936-4-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20180129163435.24936-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20180129163435.24936-1-niklas.soderlund+renesas@ragnatech.se>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+        Mon, 29 Jan 2018 10:58:19 -0500
+From: Philipp Rossak <embed3d@gmail.com>
+To: mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
+        maxime.ripard@free-electrons.com, wens@csie.org,
+        linux@armlinux.org.uk, sean@mess.org, p.zabel@pengutronix.de,
+        andi.shyti@samsung.com
+Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-sunxi@googlegroups.com
+Subject: [PATCH v4 2/6] media: dt: bindings: Update binding documentation for sunxi IR controller
+Date: Mon, 29 Jan 2018 16:58:06 +0100
+Message-Id: <20180129155810.7867-3-embed3d@gmail.com>
+In-Reply-To: <20180129155810.7867-1-embed3d@gmail.com>
+References: <20180129155810.7867-1-embed3d@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If the video device was registered by the complete() callback it should
-be unregistered when a device is unbound from the driver. Protect from
-printing an uninitialized video device node name by adding a check in
-rvin_v4l2_unregister() to identify that the video device is registered.
+This patch updates documentation for Device-Tree bindings for sunxi IR
+controller and adds the new optional property for the base clock
+frequency.
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Philipp Rossak <embed3d@gmail.com>
+Acked-by: Maxime Ripard <maxime.ripard@free-electrons.com>
+Reviewed-by: Rob Herring <robh@kernel.org>
 ---
- drivers/media/platform/rcar-vin/rcar-core.c | 2 ++
- drivers/media/platform/rcar-vin/rcar-v4l2.c | 3 +++
- 2 files changed, 5 insertions(+)
+ Documentation/devicetree/bindings/media/sunxi-ir.txt | 3 +++
+ 1 file changed, 3 insertions(+)
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
-index 2bedf20abcf3ca07..47f06acde2e698f2 100644
---- a/drivers/media/platform/rcar-vin/rcar-core.c
-+++ b/drivers/media/platform/rcar-vin/rcar-core.c
-@@ -272,6 +272,8 @@ static int rcar_vin_remove(struct platform_device *pdev)
+diff --git a/Documentation/devicetree/bindings/media/sunxi-ir.txt b/Documentation/devicetree/bindings/media/sunxi-ir.txt
+index 91648c569b1e..278098987edb 100644
+--- a/Documentation/devicetree/bindings/media/sunxi-ir.txt
++++ b/Documentation/devicetree/bindings/media/sunxi-ir.txt
+@@ -11,6 +11,8 @@ Required properties:
+ Optional properties:
+ - linux,rc-map-name: see rc.txt file in the same directory.
+ - resets : phandle + reset specifier pair
++- clock-frequency  : IR Receiver clock frequency, in Hertz. Defaults to 8 MHz
++		     if missing.
  
- 	pm_runtime_disable(&pdev->dev);
+ Example:
  
-+	rvin_v4l2_unregister(vin);
-+
- 	v4l2_async_notifier_unregister(&vin->notifier);
- 	v4l2_async_notifier_cleanup(&vin->notifier);
- 
-diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-index 178aecc94962abe2..32a658214f48fa49 100644
---- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-+++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-@@ -841,6 +841,9 @@ static const struct v4l2_file_operations rvin_fops = {
- 
- void rvin_v4l2_unregister(struct rvin_dev *vin)
- {
-+	if (!video_is_registered(&vin->vdev))
-+		return;
-+
- 	v4l2_info(&vin->v4l2_dev, "Removing %s\n",
- 		  video_device_node_name(&vin->vdev));
- 
+@@ -18,6 +20,7 @@ ir0: ir@1c21800 {
+ 	compatible = "allwinner,sun4i-a10-ir";
+ 	clocks = <&apb0_gates 6>, <&ir0_clk>;
+ 	clock-names = "apb", "ir";
++	clock-frequency = <3000000>;
+ 	resets = <&apb0_rst 1>;
+ 	interrupts = <0 5 1>;
+ 	reg = <0x01C21800 0x40>;
 -- 
-2.16.1
+2.11.0
