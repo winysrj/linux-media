@@ -1,108 +1,159 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:41403 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751187AbeAPVHJ (ORCPT
+Received: from bin-mail-out-06.binero.net ([195.74.38.229]:35093 "EHLO
+        bin-vsp-out-03.atm.binero.net" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751611AbeA2Qff (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 16 Jan 2018 16:07:09 -0500
-Received: from avalon.bb.dnainternet.fi (dfj612ybrt5fhg77mgycy-3.rev.dnainternet.fi [IPv6:2001:14ba:21f5:5b00:2e86:4862:ef6a:2804])
-        by galahad.ideasonboard.com (Postfix) with ESMTPSA id 6BCDD20394
-        for <linux-media@vger.kernel.org>; Tue, 16 Jan 2018 22:06:16 +0100 (CET)
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 2/4] uvcvideo: Use kernel integer types
-Date: Tue, 16 Jan 2018 23:07:05 +0200
-Message-Id: <20180116210707.7727-3-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <20180116210707.7727-1-laurent.pinchart@ideasonboard.com>
-References: <20180116210707.7727-1-laurent.pinchart@ideasonboard.com>
+        Mon, 29 Jan 2018 11:35:35 -0500
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH v10 15/30] rcar-vin: break out format alignment and checking
+Date: Mon, 29 Jan 2018 17:34:20 +0100
+Message-Id: <20180129163435.24936-16-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20180129163435.24936-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20180129163435.24936-1-niklas.soderlund+renesas@ragnatech.se>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Replace the uint_{8,16,32} types with the corresponding native kernel
-types u{8,16,32}.
+Part of the format alignment and checking can be shared with the Gen3
+format handling. Break that part out to a separate function.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 ---
- drivers/media/usb/uvc/uvc_driver.c | 16 ++++++++--------
- drivers/media/usb/uvc/uvc_v4l2.c   |  2 +-
- drivers/media/usb/uvc/uvcvideo.h   |  4 ++--
- 3 files changed, 11 insertions(+), 11 deletions(-)
+ drivers/media/platform/rcar-vin/rcar-v4l2.c | 93 ++++++++++++++++-------------
+ 1 file changed, 50 insertions(+), 43 deletions(-)
 
-diff --git a/drivers/media/usb/uvc/uvc_driver.c b/drivers/media/usb/uvc/uvc_driver.c
-index fd387bf3f02d..56d906dd7044 100644
---- a/drivers/media/usb/uvc/uvc_driver.c
-+++ b/drivers/media/usb/uvc/uvc_driver.c
-@@ -267,11 +267,11 @@ static __u32 uvc_colorspace(const __u8 primaries)
-  * continued fraction decomposition. Using 8 and 333 for n_terms and threshold
-  * respectively seems to give nice results.
+diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+index c606942e59b5d934..1169e6a279ecfb55 100644
+--- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
++++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+@@ -86,6 +86,55 @@ static u32 rvin_format_sizeimage(struct v4l2_pix_format *pix)
+ 	return pix->bytesperline * pix->height;
+ }
+ 
++static int rvin_format_align(struct rvin_dev *vin, struct v4l2_pix_format *pix)
++{
++	u32 walign;
++
++	/* If requested format is not supported fallback to the default */
++	if (!rvin_format_from_pixel(pix->pixelformat)) {
++		vin_dbg(vin, "Format 0x%x not found, using default 0x%x\n",
++			pix->pixelformat, RVIN_DEFAULT_FORMAT);
++		pix->pixelformat = RVIN_DEFAULT_FORMAT;
++	}
++
++	/* Reject ALTERNATE  until support is added to the driver */
++	switch (pix->field) {
++	case V4L2_FIELD_TOP:
++	case V4L2_FIELD_BOTTOM:
++	case V4L2_FIELD_NONE:
++	case V4L2_FIELD_INTERLACED_TB:
++	case V4L2_FIELD_INTERLACED_BT:
++	case V4L2_FIELD_INTERLACED:
++		break;
++	default:
++		pix->field = V4L2_FIELD_NONE;
++		break;
++	}
++
++	/* HW limit width to a multiple of 32 (2^5) for NV16 else 2 (2^1) */
++	walign = vin->format.pixelformat == V4L2_PIX_FMT_NV16 ? 5 : 1;
++
++	/* Limit to VIN capabilities */
++	v4l_bound_align_image(&pix->width, 2, vin->info->max_width, walign,
++			      &pix->height, 4, vin->info->max_height, 2, 0);
++
++	pix->bytesperline = max_t(u32, pix->bytesperline,
++				  rvin_format_bytesperline(pix));
++	pix->sizeimage = max_t(u32, pix->sizeimage,
++			       rvin_format_sizeimage(pix));
++
++	if (vin->info->model == RCAR_M1 &&
++	    pix->pixelformat == V4L2_PIX_FMT_XBGR32) {
++		vin_err(vin, "pixel format XBGR32 not supported on M1\n");
++		return -EINVAL;
++	}
++
++	vin_dbg(vin, "Format %ux%u bpl: %d size: %d\n",
++		pix->width, pix->height, pix->bytesperline, pix->sizeimage);
++
++	return 0;
++}
++
+ /* -----------------------------------------------------------------------------
+  * V4L2
   */
--void uvc_simplify_fraction(uint32_t *numerator, uint32_t *denominator,
-+void uvc_simplify_fraction(u32 *numerator, u32 *denominator,
- 		unsigned int n_terms, unsigned int threshold)
+@@ -215,19 +264,12 @@ static int __rvin_try_format_source(struct rvin_dev *vin,
+ static int __rvin_try_format(struct rvin_dev *vin,
+ 			     u32 which, struct v4l2_pix_format *pix)
  {
--	uint32_t *an;
--	uint32_t x, y, r;
-+	u32 *an;
-+	u32 x, y, r;
- 	unsigned int i, n;
+-	u32 walign;
+ 	int ret;
  
- 	an = kmalloc(n_terms * sizeof *an, GFP_KERNEL);
-@@ -318,21 +318,21 @@ void uvc_simplify_fraction(uint32_t *numerator, uint32_t *denominator,
-  * to compute numerator / denominator * 10000000 using 32 bit fixed point
-  * arithmetic only.
-  */
--uint32_t uvc_fraction_to_interval(uint32_t numerator, uint32_t denominator)
-+u32 uvc_fraction_to_interval(u32 numerator, u32 denominator)
- {
--	uint32_t multiplier;
-+	u32 multiplier;
+ 	/* Keep current field if no specific one is asked for */
+ 	if (pix->field == V4L2_FIELD_ANY)
+ 		pix->field = vin->format.field;
  
- 	/* Saturate the result if the operation would overflow. */
- 	if (denominator == 0 ||
--	    numerator/denominator >= ((uint32_t)-1)/10000000)
--		return (uint32_t)-1;
-+	    numerator/denominator >= ((u32)-1)/10000000)
-+		return (u32)-1;
+-	/* If requested format is not supported fallback to the default */
+-	if (!rvin_format_from_pixel(pix->pixelformat)) {
+-		vin_dbg(vin, "Format 0x%x not found, using default 0x%x\n",
+-			pix->pixelformat, RVIN_DEFAULT_FORMAT);
+-		pix->pixelformat = RVIN_DEFAULT_FORMAT;
+-	}
  
- 	/* Divide both the denominator and the multiplier by two until
- 	 * numerator * multiplier doesn't overflow. If anyone knows a better
- 	 * algorithm please let me know.
- 	 */
- 	multiplier = 10000000;
--	while (numerator > ((uint32_t)-1)/multiplier) {
-+	while (numerator > ((u32)-1)/multiplier) {
- 		multiplier /= 2;
- 		denominator /= 2;
- 	}
-diff --git a/drivers/media/usb/uvc/uvc_v4l2.c b/drivers/media/usb/uvc/uvc_v4l2.c
-index e8db37937571..784796f9f2e1 100644
---- a/drivers/media/usb/uvc/uvc_v4l2.c
-+++ b/drivers/media/usb/uvc/uvc_v4l2.c
-@@ -336,7 +336,7 @@ static int uvc_v4l2_set_format(struct uvc_streaming *stream,
- static int uvc_v4l2_get_streamparm(struct uvc_streaming *stream,
- 		struct v4l2_streamparm *parm)
- {
--	uint32_t numerator, denominator;
-+	u32 numerator, denominator;
+ 	/* Always recalculate */
+ 	pix->bytesperline = 0;
+@@ -238,42 +280,7 @@ static int __rvin_try_format(struct rvin_dev *vin,
+ 	if (ret)
+ 		return ret;
  
- 	if (parm->type != stream->type)
- 		return -EINVAL;
-diff --git a/drivers/media/usb/uvc/uvcvideo.h b/drivers/media/usb/uvc/uvcvideo.h
-index aba0e74358bd..394c6dcdc85b 100644
---- a/drivers/media/usb/uvc/uvcvideo.h
-+++ b/drivers/media/usb/uvc/uvcvideo.h
-@@ -777,9 +777,9 @@ int uvc_xu_ctrl_query(struct uvc_video_chain *chain,
- 		      struct uvc_xu_control_query *xqry);
+-	/* Reject ALTERNATE  until support is added to the driver */
+-	switch (pix->field) {
+-	case V4L2_FIELD_TOP:
+-	case V4L2_FIELD_BOTTOM:
+-	case V4L2_FIELD_NONE:
+-	case V4L2_FIELD_INTERLACED_TB:
+-	case V4L2_FIELD_INTERLACED_BT:
+-	case V4L2_FIELD_INTERLACED:
+-		break;
+-	default:
+-		pix->field = V4L2_FIELD_NONE;
+-		break;
+-	}
+-
+-	/* HW limit width to a multiple of 32 (2^5) for NV16 else 2 (2^1) */
+-	walign = vin->format.pixelformat == V4L2_PIX_FMT_NV16 ? 5 : 1;
+-
+-	/* Limit to VIN capabilities */
+-	v4l_bound_align_image(&pix->width, 2, vin->info->max_width, walign,
+-			      &pix->height, 4, vin->info->max_height, 2, 0);
+-
+-	pix->bytesperline = max_t(u32, pix->bytesperline,
+-				  rvin_format_bytesperline(pix));
+-	pix->sizeimage = max_t(u32, pix->sizeimage,
+-			       rvin_format_sizeimage(pix));
+-
+-	if (vin->info->model == RCAR_M1 &&
+-	    pix->pixelformat == V4L2_PIX_FMT_XBGR32) {
+-		vin_err(vin, "pixel format XBGR32 not supported on M1\n");
+-		return -EINVAL;
+-	}
+-
+-	vin_dbg(vin, "Format %ux%u bpl: %d size: %d\n",
+-		pix->width, pix->height, pix->bytesperline, pix->sizeimage);
+-
+-	return 0;
++	return rvin_format_align(vin, pix);
+ }
  
- /* Utility functions */
--void uvc_simplify_fraction(uint32_t *numerator, uint32_t *denominator,
-+void uvc_simplify_fraction(u32 *numerator, u32 *denominator,
- 			   unsigned int n_terms, unsigned int threshold);
--uint32_t uvc_fraction_to_interval(uint32_t numerator, uint32_t denominator);
-+u32 uvc_fraction_to_interval(u32 numerator, u32 denominator);
- struct usb_host_endpoint *uvc_find_endpoint(struct usb_host_interface *alts,
- 					    __u8 epaddr);
- 
+ static int rvin_querycap(struct file *file, void *priv,
 -- 
-Regards,
-
-Laurent Pinchart
+2.16.1
