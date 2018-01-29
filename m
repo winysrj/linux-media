@@ -1,39 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:22297 "EHLO mga02.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751104AbeAVVYe (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 22 Jan 2018 16:24:34 -0500
-Date: Mon, 22 Jan 2018 23:24:29 +0200
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: "Yeh, Andy" <andy.yeh@intel.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [PATCH v2 1/1] imx258: Fix sparse warnings
-Message-ID: <20180122212428.5e4joc27ld5anmoe@kekkonen.localdomain>
-References: <8E0971CCB6EA9D41AF58191A2D3978B61D4E66C1@PGSMSX111.gar.corp.intel.com>
- <1516609961-26006-1-git-send-email-sakari.ailus@linux.intel.com>
- <8E0971CCB6EA9D41AF58191A2D3978B61D4E699C@PGSMSX111.gar.corp.intel.com>
+Received: from mail-qk0-f176.google.com ([209.85.220.176]:34424 "EHLO
+        mail-qk0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751256AbeA2NWe (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 29 Jan 2018 08:22:34 -0500
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <8E0971CCB6EA9D41AF58191A2D3978B61D4E699C@PGSMSX111.gar.corp.intel.com>
+In-Reply-To: <1517231511-2295-1-git-send-email-clabbe@baylibre.com>
+References: <1517231511-2295-1-git-send-email-clabbe@baylibre.com>
+From: Andy Shevchenko <andy.shevchenko@gmail.com>
+Date: Mon, 29 Jan 2018 15:22:33 +0200
+Message-ID: <CAHp75Vd_xmPvejjn71khk_-XcZQf=i2f0Xgn4Njq+bkju11_xg@mail.gmail.com>
+Subject: Re: [PATCH] staging: media: atomisp2: remove unused headers
+To: Corentin Labbe <clabbe@baylibre.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        devel@driverdev.osuosl.org,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Andy,
+On Mon, Jan 29, 2018 at 3:11 PM, Corentin Labbe <clabbe@baylibre.com> wrote:
+> All thoses headers are not used by any source files.
+> Lets just remove them.
 
-On Mon, Jan 22, 2018 at 03:19:00PM +0000, Yeh, Andy wrote:
-> Hi Sakari,
-> 
-> I made a minor fix. I2C write function works after the change.  Please kindly review soon then I would submit v5. 
-> 
-> 	*buf++ = reg >> 8;
-> 	*buf++ = reg & 0xff;
-> 
-> -	for (i = len - 1; i >= 0; i++)
-> +	for (i = len - 1; i >= 0; i--)
+How did you test this?
 
-Oops... it was untested all along. Thanks! I'll send v3.
+P.S. I like the patch, but since driver in a state of coma vigil, I'm
+afraid you may do something which shouldn't be done for working
+driver.
 
 -- 
-Sakari Ailus
-sakari.ailus@linux.intel.com
+With Best Regards,
+Andy Shevchenko
