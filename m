@@ -1,440 +1,257 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay6-d.mail.gandi.net ([217.70.183.198]:35718 "EHLO
-        relay6-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752777AbeAZNt7 (ORCPT
+Received: from vsp-unauthed02.binero.net ([195.74.38.227]:45658 "EHLO
+        bin-vsp-out-03.atm.binero.net" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751643AbeA2Qfl (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 26 Jan 2018 08:49:59 -0500
-From: Jacopo Mondi <jacopo+renesas@jmondi.org>
-To: laurent.pinchart@ideasonboard.com, magnus.damm@gmail.com,
-        geert@glider.be, hverkuil@xs4all.nl, mchehab@kernel.org,
-        festevam@gmail.com, sakari.ailus@iki.fi, robh+dt@kernel.org,
-        mark.rutland@arm.com, pombredanne@nexb.com
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-sh@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH v7 07/11] media: i2c: ov772x: Support frame interval handling
-Date: Fri, 26 Jan 2018 14:48:41 +0100
-Message-Id: <1516974528-11120-10-git-send-email-jacopo+renesas@jmondi.org>
-In-Reply-To: <1516974528-11120-1-git-send-email-jacopo+renesas@jmondi.org>
-References: <1516974528-11120-1-git-send-email-jacopo+renesas@jmondi.org>
+        Mon, 29 Jan 2018 11:35:41 -0500
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH v10 20/30] rcar-vin: use different v4l2 operations in media controller mode
+Date: Mon, 29 Jan 2018 17:34:25 +0100
+Message-Id: <20180129163435.24936-21-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20180129163435.24936-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20180129163435.24936-1-niklas.soderlund+renesas@ragnatech.se>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add support to ov772x driver for frame intervals handling and enumeration.
-Tested with 10MHz and 24MHz input clock at VGA and QVGA resolutions for
-10, 15 and 30 frame per second rates.
+When the driver runs in media controller mode it should not directly
+control the subdevice instead userspace will be responsible for
+configuring the pipeline. To be able to run in this mode a different set
+of v4l2 operations needs to be used.
 
-Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+Add a new set of v4l2 operations to support operation without directly
+interacting with the source subdevice.
+
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/i2c/ov772x.c | 315 ++++++++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 310 insertions(+), 5 deletions(-)
+ drivers/media/platform/rcar-vin/rcar-dma.c  |   3 +-
+ drivers/media/platform/rcar-vin/rcar-v4l2.c | 155 +++++++++++++++++++++++++++-
+ 2 files changed, 154 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/i2c/ov772x.c b/drivers/media/i2c/ov772x.c
-index 912b1b9..6d46748 100644
---- a/drivers/media/i2c/ov772x.c
-+++ b/drivers/media/i2c/ov772x.c
-@@ -250,6 +250,7 @@
- #define AEC_1p2         0x10	/*  01: 1/2  window */
- #define AEC_1p4         0x20	/*  10: 1/4  window */
- #define AEC_2p3         0x30	/*  11: Low 2/3 window */
-+#define COM4_RESERVED   0x01	/* Reserved value */
+diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
+index ae286742f15a3ab5..811d8f8638d21200 100644
+--- a/drivers/media/platform/rcar-vin/rcar-dma.c
++++ b/drivers/media/platform/rcar-vin/rcar-dma.c
+@@ -628,7 +628,8 @@ static int rvin_setup(struct rvin_dev *vin)
+ 		/* Default to TB */
+ 		vnmc = VNMC_IM_FULL;
+ 		/* Use BT if video standard can be read and is 60 Hz format */
+-		if (!v4l2_subdev_call(vin_to_source(vin), video, g_std, &std)) {
++		if (!vin->info->use_mc &&
++		    !v4l2_subdev_call(vin_to_source(vin), video, g_std, &std)) {
+ 			if (std & V4L2_STD_525_60)
+ 				vnmc = VNMC_IM_FULL | VNMC_FOC;
+ 		}
+diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+index f69ae76b3fda50c7..292e1f22a4be36c7 100644
+--- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
++++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+@@ -18,11 +18,14 @@
  
- /* COM5 */
- #define AFR_ON_OFF      0x80	/* Auto frame rate control ON/OFF selection */
-@@ -267,6 +268,19 @@
- 				/* AEC max step control */
- #define AEC_NO_LIMIT    0x01	/*   0 : AEC incease step has limit */
- 				/*   1 : No limit to AEC increase step */
-+/* CLKRC */
-+				/* Input clock divider register */
-+#define CLKRC_RESERVED  0x80	/* Reserved value */
-+#define CLKRC_BYPASS    0x40	/* Bypass input clock divider */
-+#define CLKRC_DIV2      0x01	/* Divide input clock by 2 */
-+#define CLKRC_DIV3      0x02	/* Divide input clock by 3 */
-+#define CLKRC_DIV4      0x03	/* Divide input clock by 4 */
-+#define CLKRC_DIV5      0x04	/* Divide input clock by 5 */
-+#define CLKRC_DIV6      0x05	/* Divide input clock by 6 */
-+#define CLKRC_DIV8      0x07	/* Divide input clock by 8 */
-+#define CLKRC_DIV10     0x09	/* Divide input clock by 10 */
-+#define CLKRC_DIV16     0x0f	/* Divide input clock by 16 */
-+#define CLKRC_DIV20     0x13	/* Divide input clock by 20 */
+ #include <media/v4l2-event.h>
+ #include <media/v4l2-ioctl.h>
++#include <media/v4l2-mc.h>
+ #include <media/v4l2-rect.h>
  
- /* COM7 */
- 				/* SCCB Register Reset */
-@@ -373,6 +387,12 @@
- #define VERSION(pid, ver) ((pid<<8)|(ver&0xFF))
+ #include "rcar-vin.h"
  
- /*
-+ * Input clock frequencies
-+ */
-+enum { OV772X_FIN_10MHz, OV772X_FIN_24MHz, OV772X_FIN_48MHz, OV772X_FIN_N, };
-+static unsigned int ov772x_fin_vals[] = { 10000000, 24000000, 48000000 };
-+
-+/*
-  * struct
-  */
+ #define RVIN_DEFAULT_FORMAT	V4L2_PIX_FMT_YUYV
++#define RVIN_DEFAULT_WIDTH	800
++#define RVIN_DEFAULT_HEIGHT	600
+ #define RVIN_DEFAULT_FIELD	V4L2_FIELD_NONE
+ #define RVIN_DEFAULT_COLORSPACE	V4L2_COLORSPACE_SRGB
  
-@@ -391,6 +411,16 @@ struct ov772x_win_size {
- 	struct v4l2_rect	  rect;
+@@ -698,6 +701,83 @@ static const struct v4l2_ioctl_ops rvin_ioctl_ops = {
+ 	.vidioc_unsubscribe_event	= v4l2_event_unsubscribe,
  };
  
-+struct ov772x_pclk_config {
-+	u8 com4;
-+	u8 clkrc;
-+};
-+
-+struct ov772x_frame_rate {
-+	unsigned int fps;
-+	const struct ov772x_pclk_config pclk[OV772X_FIN_N];
-+};
-+
- struct ov772x_priv {
- 	struct v4l2_subdev                subdev;
- 	struct v4l2_ctrl_handler	  hdl;
-@@ -404,6 +434,7 @@ struct ov772x_priv {
- 	unsigned short                    flag_hflip:1;
- 	/* band_filter = COM8[5] ? 256 - BDBASE : 0 */
- 	unsigned short                    band_filter;
-+	unsigned int			  fps;
- };
- 
- /*
-@@ -508,6 +539,154 @@ static const struct ov772x_win_size ov772x_win_sizes[] = {
- };
- 
- /*
-+ * frame rate settings lists
++/* -----------------------------------------------------------------------------
++ * V4L2 Media Controller
 + */
-+unsigned int ov772x_frame_intervals[] = {10, 15, 30, 60};
-+#define OV772X_N_FRAME_INTERVALS ARRAY_SIZE(ov772x_frame_intervals)
 +
-+static const struct ov772x_frame_rate vga_frame_rates[] = {
-+	{	/* PCLK = 7,5 MHz */
-+		.fps		= 10,
-+		.pclk = {
-+			[OV772X_FIN_10MHz] = {
-+				.com4	= PLL_6x | COM4_RESERVED,
-+				.clkrc	= CLKRC_DIV8 | CLKRC_RESERVED,
-+			},
-+			[OV772X_FIN_24MHz] = {
-+				.com4	= PLL_BYPASS | COM4_RESERVED,
-+				.clkrc	= CLKRC_DIV3 | CLKRC_RESERVED,
-+			},
-+			[OV772X_FIN_48MHz] = {
-+				.com4	= PLL_BYPASS | COM4_RESERVED,
-+				.clkrc	= CLKRC_DIV6 | CLKRC_RESERVED,
-+			},
-+		},
-+	},
-+	{	/* PCLK = 12 MHz */
-+		.fps		= 15,
-+		.pclk = {
-+			[OV772X_FIN_10MHz]	= {
-+				.com4	= PLL_4x | COM4_RESERVED,
-+				.clkrc	= CLKRC_DIV3 | CLKRC_RESERVED,
-+			},
-+			[OV772X_FIN_24MHz]	= {
-+				.com4	= PLL_BYPASS | COM4_RESERVED,
-+				.clkrc	= CLKRC_DIV2 | CLKRC_RESERVED,
-+			},
-+			[OV772X_FIN_48MHz]	= {
-+				.com4	= PLL_BYPASS | COM4_RESERVED,
-+				.clkrc	= CLKRC_DIV4 | CLKRC_RESERVED,
-+			},
-+		},
-+	},
-+	{	/* PCLK = 24 MHz */
-+		.fps		= 30,
-+		.pclk = {
-+			[OV772X_FIN_10MHz]	= {
-+				.com4	= PLL_8x | COM4_RESERVED,
-+				.clkrc	= CLKRC_DIV3 | CLKRC_RESERVED,
-+			},
-+			[OV772X_FIN_24MHz]	= {
-+				.com4	= PLL_BYPASS | COM4_RESERVED,
-+				.clkrc	= CLKRC_BYPASS | CLKRC_RESERVED,
-+			},
-+			[OV772X_FIN_48MHz]	= {
-+				.com4	= PLL_BYPASS | COM4_RESERVED,
-+				.clkrc	= CLKRC_DIV2 | CLKRC_RESERVED,
-+			},
-+		},
-+	},
-+	{	/* PCLK = 48 MHz */
-+		.fps		= 60,
-+		.pclk = {
-+			[OV772X_FIN_10MHz]	= {
-+				.com4	= PLL_8x | COM4_RESERVED,
-+				.clkrc	= CLKRC_DIV2 | CLKRC_RESERVED,
-+			},
-+			[OV772X_FIN_24MHz]	= {
-+				.com4	= PLL_4x | COM4_RESERVED,
-+				.clkrc	= CLKRC_DIV2 | CLKRC_RESERVED,
-+			},
-+			[OV772X_FIN_48MHz]	= {
-+				.com4	= PLL_BYPASS | COM4_RESERVED,
-+				.clkrc	= CLKRC_BYPASS | CLKRC_RESERVED,
-+			},
-+		},
-+	},
-+};
-+
-+static const struct ov772x_frame_rate qvga_frame_rates[] = {
-+	{	/* PCLK = 3,2 MHz */
-+		.fps		= 10,
-+		.pclk = {
-+			[OV772X_FIN_10MHz] = {
-+				.com4	= PLL_6x | COM4_RESERVED,
-+				.clkrc	= CLKRC_DIV16 | CLKRC_RESERVED,
-+			},
-+			[OV772X_FIN_24MHz] = {
-+				.com4	= PLL_BYPASS | COM4_RESERVED,
-+				.clkrc	= CLKRC_DIV8 | CLKRC_RESERVED,
-+			},
-+			[OV772X_FIN_48MHz] = {
-+				.com4	= PLL_BYPASS | COM4_RESERVED,
-+				.clkrc	= CLKRC_DIV16 | CLKRC_RESERVED,
-+			},
-+		},
-+	},
-+	{	/* PCLK = 4,8 MHz */
-+		.fps		= 15,
-+		.pclk = {
-+			[OV772X_FIN_10MHz]	= {
-+				.com4	= PLL_BYPASS | COM4_RESERVED,
-+				.clkrc	= CLKRC_DIV2 | CLKRC_RESERVED,
-+			},
-+			[OV772X_FIN_24MHz]	= {
-+				.com4	= PLL_BYPASS | COM4_RESERVED,
-+				.clkrc	= CLKRC_DIV5 | CLKRC_RESERVED,
-+			},
-+			[OV772X_FIN_48MHz]	= {
-+				.com4	= PLL_BYPASS | COM4_RESERVED,
-+				.clkrc	= CLKRC_DIV10 | CLKRC_RESERVED,
-+			},
-+		},
-+	},
-+	{	/* PCLK = 9,6 MHz */
-+		.fps		= 30,
-+		.pclk = {
-+			[OV772X_FIN_10MHz]	= {
-+				.com4	= PLL_BYPASS | COM4_RESERVED,
-+				.clkrc	= CLKRC_BYPASS | CLKRC_RESERVED,
-+			},
-+			[OV772X_FIN_24MHz]	= {
-+				.com4	= PLL_4x | COM4_RESERVED,
-+				.clkrc	= CLKRC_DIV10 | CLKRC_RESERVED,
-+			},
-+			[OV772X_FIN_48MHz]	= {
-+				.com4	= PLL_4x | COM4_RESERVED,
-+				.clkrc	= CLKRC_DIV20 | CLKRC_RESERVED,
-+			},
-+		},
-+	},
-+	{	/* PCLK = 19 MHz */
-+		.fps		= 60,
-+		.pclk = {
-+			[OV772X_FIN_10MHz]	= {
-+				.com4	= PLL_4x | COM4_RESERVED,
-+				.clkrc	= CLKRC_DIV2 | CLKRC_RESERVED,
-+			},
-+			[OV772X_FIN_24MHz]	= {
-+				.com4	= PLL_6x | COM4_RESERVED,
-+				.clkrc	= CLKRC_DIV8 | CLKRC_RESERVED,
-+			},
-+			[OV772X_FIN_48MHz]	= {
-+				.com4	= PLL_6x | COM4_RESERVED,
-+				.clkrc	= CLKRC_DIV16 | CLKRC_RESERVED,
-+			},
-+		},
-+	},
-+};
-+
-+/*
-  * general function
-  */
- 
-@@ -574,6 +753,102 @@ static int ov772x_s_stream(struct v4l2_subdev *sd, int enable)
- 	return 0;
- }
- 
-+/*
-+ * Approximate input clock frequency to the closes possible one used to
-+ * calculate pixel clock settings.
-+ */
-+static int ov772x_get_fin(struct ov772x_priv *priv)
++static int __rvin_mc_try_format(struct rvin_dev *vin,
++				struct v4l2_pix_format *pix)
 +{
-+	unsigned int clk_rate = clk_get_rate(priv->clk);
-+	unsigned int rate_prev = ~0L;
-+	unsigned int rate;
-+	unsigned int idx;
-+	unsigned int i;
++	if (pix->field == V4L2_FIELD_ANY)
++		pix->field = RVIN_DEFAULT_FIELD;
 +
-+	for (i = 0, idx = 0; i < OV772X_FIN_N; i++) {
-+		rate = abs(ov772x_fin_vals[i] - clk_rate);
-+		if (rate < rate_prev) {
-+			rate_prev = rate;
-+			idx = i;
-+		}
-+	}
-+
-+	return idx;
++	return rvin_format_align(vin, pix);
 +}
 +
-+static int ov772x_set_frame_rate(struct ov772x_priv *priv,
-+				 struct v4l2_fract *tpf, unsigned int fin,
-+				 const struct ov772x_win_size *win)
++static int rvin_mc_try_fmt_vid_cap(struct file *file, void *priv,
++				   struct v4l2_format *f)
 +{
-+	struct i2c_client *client = v4l2_get_subdevdata(&priv->subdev);
-+	unsigned int fps = tpf->denominator / tpf->numerator;
-+	const struct ov772x_frame_rate *frate;
-+	const struct ov772x_pclk_config *pclk;
-+	unsigned int rate_prev = ~0L;
-+	unsigned int rate;
-+	unsigned int idx;
-+	unsigned int i;
++	struct rvin_dev *vin = video_drvdata(file);
++
++	return __rvin_mc_try_format(vin, &f->fmt.pix);
++}
++
++static int rvin_mc_s_fmt_vid_cap(struct file *file, void *priv,
++				 struct v4l2_format *f)
++{
++	struct rvin_dev *vin = video_drvdata(file);
 +	int ret;
 +
-+	if (win->rect.width == VGA_WIDTH &&
-+	    win->rect.height == VGA_HEIGHT)
-+		frate = vga_frame_rates;
-+	else if (win->rect.width == QVGA_WIDTH &&
-+		 win->rect.height == QVGA_HEIGHT)
-+		frate = qvga_frame_rates;
-+	else
++	if (vb2_is_busy(&vin->queue))
++		return -EBUSY;
++
++	ret = __rvin_mc_try_format(vin, &f->fmt.pix);
++	if (ret)
++		return ret;
++
++	vin->format = f->fmt.pix;
++
++	return 0;
++}
++
++static int rvin_mc_enum_input(struct file *file, void *priv,
++			      struct v4l2_input *i)
++{
++	if (i->index != 0)
 +		return -EINVAL;
 +
-+	/* Approximate to the closest possible frame interval. */
-+	for (i = 0, idx = 0; i < OV772X_N_FRAME_INTERVALS; i++) {
-+		rate = abs(fps - frate[i].fps);
-+		if (rate < rate_prev) {
-+			idx = i;
-+			rate_prev = rate;
-+		}
++	i->type = V4L2_INPUT_TYPE_CAMERA;
++	strlcpy(i->name, "Camera", sizeof(i->name));
++
++	return 0;
++}
++
++static const struct v4l2_ioctl_ops rvin_mc_ioctl_ops = {
++	.vidioc_querycap		= rvin_querycap,
++	.vidioc_try_fmt_vid_cap		= rvin_mc_try_fmt_vid_cap,
++	.vidioc_g_fmt_vid_cap		= rvin_g_fmt_vid_cap,
++	.vidioc_s_fmt_vid_cap		= rvin_mc_s_fmt_vid_cap,
++	.vidioc_enum_fmt_vid_cap	= rvin_enum_fmt_vid_cap,
++
++	.vidioc_enum_input		= rvin_mc_enum_input,
++	.vidioc_g_input			= rvin_g_input,
++	.vidioc_s_input			= rvin_s_input,
++
++	.vidioc_reqbufs			= vb2_ioctl_reqbufs,
++	.vidioc_create_bufs		= vb2_ioctl_create_bufs,
++	.vidioc_querybuf		= vb2_ioctl_querybuf,
++	.vidioc_qbuf			= vb2_ioctl_qbuf,
++	.vidioc_dqbuf			= vb2_ioctl_dqbuf,
++	.vidioc_expbuf			= vb2_ioctl_expbuf,
++	.vidioc_prepare_buf		= vb2_ioctl_prepare_buf,
++	.vidioc_streamon		= vb2_ioctl_streamon,
++	.vidioc_streamoff		= vb2_ioctl_streamoff,
++
++	.vidioc_log_status		= v4l2_ctrl_log_status,
++	.vidioc_subscribe_event		= rvin_subscribe_event,
++	.vidioc_unsubscribe_event	= v4l2_event_unsubscribe,
++};
++
+ /* -----------------------------------------------------------------------------
+  * File Operations
+  */
+@@ -841,6 +921,60 @@ static const struct v4l2_file_operations rvin_fops = {
+ 	.read		= vb2_fop_read,
+ };
+ 
++/* -----------------------------------------------------------------------------
++ * Media controller file operations
++ */
++
++static int rvin_mc_open(struct file *file)
++{
++	struct rvin_dev *vin = video_drvdata(file);
++	int ret;
++
++	mutex_lock(&vin->lock);
++
++	file->private_data = vin;
++
++	ret = v4l2_fh_open(file);
++	if (ret)
++		goto unlock;
++
++	pm_runtime_get_sync(vin->dev);
++	v4l2_pipeline_pm_use(&vin->vdev.entity, 1);
++
++unlock:
++	mutex_unlock(&vin->lock);
++
++	return ret;
++}
++
++static int rvin_mc_release(struct file *file)
++{
++	struct rvin_dev *vin = video_drvdata(file);
++	int ret;
++
++	mutex_lock(&vin->lock);
++
++	/* the release helper will cleanup any on-going streaming */
++	ret = _vb2_fop_release(file, NULL);
++
++	v4l2_pipeline_pm_use(&vin->vdev.entity, 0);
++	pm_runtime_put(vin->dev);
++
++	mutex_unlock(&vin->lock);
++
++	return ret;
++}
++
++static const struct v4l2_file_operations rvin_mc_fops = {
++	.owner		= THIS_MODULE,
++	.unlocked_ioctl	= video_ioctl2,
++	.open		= rvin_mc_open,
++	.release	= rvin_mc_release,
++	.poll		= vb2_fop_poll,
++	.mmap		= vb2_fop_mmap,
++	.read		= vb2_fop_read,
++};
++
+ void rvin_v4l2_unregister(struct rvin_dev *vin)
+ {
+ 	if (!video_is_registered(&vin->vdev))
+@@ -876,18 +1010,33 @@ int rvin_v4l2_register(struct rvin_dev *vin)
+ 	vin->v4l2_dev.notify = rvin_notify;
+ 
+ 	/* video node */
+-	vdev->fops = &rvin_fops;
+ 	vdev->v4l2_dev = &vin->v4l2_dev;
+ 	vdev->queue = &vin->queue;
+ 	strlcpy(vdev->name, KBUILD_MODNAME, sizeof(vdev->name));
+ 	vdev->release = video_device_release_empty;
+-	vdev->ioctl_ops = &rvin_ioctl_ops;
+ 	vdev->lock = &vin->lock;
+ 	vdev->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING |
+ 		V4L2_CAP_READWRITE;
+ 
++	/* Set a default format */
+ 	vin->format.pixelformat	= RVIN_DEFAULT_FORMAT;
+-	rvin_reset_format(vin);
++	vin->format.width = RVIN_DEFAULT_WIDTH;
++	vin->format.height = RVIN_DEFAULT_HEIGHT;
++	vin->format.field = RVIN_DEFAULT_FIELD;
++	vin->format.colorspace = RVIN_DEFAULT_COLORSPACE;
++
++	if (vin->info->use_mc) {
++		vdev->fops = &rvin_mc_fops;
++		vdev->ioctl_ops = &rvin_mc_ioctl_ops;
++	} else {
++		vdev->fops = &rvin_fops;
++		vdev->ioctl_ops = &rvin_ioctl_ops;
++		rvin_reset_format(vin);
 +	}
 +
-+	pclk = &frate[idx].pclk[fin];
-+
-+	ret = ov772x_write(client, COM4, pclk->com4);
-+	if (ret < 0)
++	ret = rvin_format_align(vin, &vin->format);
++	if (ret)
 +		return ret;
-+
-+	ret = ov772x_write(client, CLKRC, pclk->clkrc);
-+	if (ret < 0)
-+		return ret;
-+
-+	tpf->numerator = 1;
-+	tpf->denominator = frate[idx].fps;
-+	priv->fps = tpf->denominator;
-+
-+	return 0;
-+}
-+
-+static int ov772x_g_frame_interval(struct v4l2_subdev *sd,
-+				   struct v4l2_subdev_frame_interval *ival)
-+{
-+	struct ov772x_priv *priv = to_ov772x(sd);
-+	struct v4l2_fract *tpf = &ival->interval;
-+
-+	memset(ival->reserved, 0, sizeof(ival->reserved));
-+	tpf->numerator = 1;
-+	tpf->denominator = priv->fps;
-+
-+	return 0;
-+}
-+
-+static int ov772x_s_frame_interval(struct v4l2_subdev *sd,
-+				   struct v4l2_subdev_frame_interval *ival)
-+{
-+	struct ov772x_priv *priv = to_ov772x(sd);
-+	struct v4l2_fract *tpf = &ival->interval;
-+
-+	memset(ival->reserved, 0, sizeof(ival->reserved));
-+
-+	return ov772x_set_frame_rate(priv, tpf,
-+				     ov772x_get_fin(priv), priv->win);
-+}
- static int ov772x_s_ctrl(struct v4l2_ctrl *ctrl)
- {
- 	struct ov772x_priv *priv = container_of(ctrl->handler,
-@@ -757,6 +1032,7 @@ static int ov772x_set_params(struct ov772x_priv *priv,
- 			     const struct ov772x_win_size *win)
- {
- 	struct i2c_client *client = v4l2_get_subdevdata(&priv->subdev);
-+	struct v4l2_fract tpf;
- 	int ret;
- 	u8  val;
  
-@@ -885,6 +1161,13 @@ static int ov772x_set_params(struct ov772x_priv *priv,
- 	if (ret < 0)
- 		goto ov772x_set_fmt_error;
- 
-+	/* COM4, CLKRC: Set pixel clock and framerate. */
-+	tpf.numerator = 1;
-+	tpf.denominator = priv->fps;
-+	ret = ov772x_set_frame_rate(priv, &tpf, ov772x_get_fin(priv), win);
-+	if (ret < 0)
-+		goto ov772x_set_fmt_error;
-+
- 	/*
- 	 * set COM8
- 	 */
-@@ -1040,6 +1323,24 @@ static const struct v4l2_subdev_core_ops ov772x_subdev_core_ops = {
- 	.s_power	= ov772x_s_power,
- };
- 
-+static int ov772x_enum_frame_interval(struct v4l2_subdev *sd,
-+				      struct v4l2_subdev_pad_config *cfg,
-+				      struct v4l2_subdev_frame_interval_enum *fie)
-+{
-+	if (fie->pad || fie->index >= OV772X_N_FRAME_INTERVALS)
-+		return -EINVAL;
-+
-+	if (fie->width != VGA_WIDTH && fie->width != QVGA_WIDTH)
-+		return -EINVAL;
-+	if (fie->height != VGA_HEIGHT && fie->height != QVGA_HEIGHT)
-+		return -EINVAL;
-+
-+	fie->interval.numerator = 1;
-+	fie->interval.denominator = ov772x_frame_intervals[fie->index];
-+
-+	return 0;
-+}
-+
- static int ov772x_enum_mbus_code(struct v4l2_subdev *sd,
- 		struct v4l2_subdev_pad_config *cfg,
- 		struct v4l2_subdev_mbus_code_enum *code)
-@@ -1052,14 +1353,17 @@ static int ov772x_enum_mbus_code(struct v4l2_subdev *sd,
- }
- 
- static const struct v4l2_subdev_video_ops ov772x_subdev_video_ops = {
--	.s_stream	= ov772x_s_stream,
-+	.s_stream		= ov772x_s_stream,
-+	.s_frame_interval	= ov772x_s_frame_interval,
-+	.g_frame_interval	= ov772x_g_frame_interval,
- };
- 
- static const struct v4l2_subdev_pad_ops ov772x_subdev_pad_ops = {
--	.enum_mbus_code = ov772x_enum_mbus_code,
--	.get_selection	= ov772x_get_selection,
--	.get_fmt	= ov772x_get_fmt,
--	.set_fmt	= ov772x_set_fmt,
-+	.enum_frame_interval	= ov772x_enum_frame_interval,
-+	.enum_mbus_code		= ov772x_enum_mbus_code,
-+	.get_selection		= ov772x_get_selection,
-+	.get_fmt		= ov772x_get_fmt,
-+	.set_fmt		= ov772x_set_fmt,
- };
- 
- static const struct v4l2_subdev_ops ov772x_subdev_ops = {
-@@ -1131,6 +1435,7 @@ static int ov772x_probe(struct i2c_client *client,
- 
- 	priv->cfmt = &ov772x_cfmts[0];
- 	priv->win = &ov772x_win_sizes[0];
-+	priv->fps = 15;
- 
- 	ret = v4l2_async_register_subdev(&priv->subdev);
- 	if (ret)
+ 	ret = video_register_device(&vin->vdev, VFL_TYPE_GRABBER, -1);
+ 	if (ret) {
 -- 
-2.7.4
+2.16.1
