@@ -1,66 +1,184 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([65.50.211.133]:44337 "EHLO
-        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1756463AbeAIUjw (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 9 Jan 2018 15:39:52 -0500
-From: Christoph Hellwig <hch@lst.de>
-To: Bjorn Helgaas <bhelgaas@google.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: linux-pci@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH 2/3] media/ttusb-dev: remove pci_zalloc_coherent abuse
-Date: Tue,  9 Jan 2018 21:39:38 +0100
-Message-Id: <20180109203939.5930-3-hch@lst.de>
-In-Reply-To: <20180109203939.5930-1-hch@lst.de>
-References: <20180109203939.5930-1-hch@lst.de>
+Received: from bin-mail-out-06.binero.net ([195.74.38.229]:2793 "EHLO
+        bin-vsp-out-03.atm.binero.net" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751435AbeA2QfQ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 29 Jan 2018 11:35:16 -0500
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH v10 05/30] rcar-vin: move model information to own struct
+Date: Mon, 29 Jan 2018 17:34:10 +0100
+Message-Id: <20180129163435.24936-6-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20180129163435.24936-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20180129163435.24936-1-niklas.soderlund+renesas@ragnatech.se>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Switch to a plain kzalloc instea of pci_zalloc_coherent to allocate
-memory for the USB DMA.
+When Gen3 support is added to the driver more than model ID will be
+different for the different SoCs. To avoid a lot of if statements in the
+code create a struct rvin_info to store this information.
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
+While we are at it rename the poorly chosen enum which contains the
+different model IDs from chip_id to model_id. Also sort the compatible
+string entries and make use of of_device_get_match_data() which will
+always work as the driver is DT only, so there's always a valid match.
+
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- drivers/media/usb/ttusb-dec/ttusb_dec.c | 13 +++----------
- 1 file changed, 3 insertions(+), 10 deletions(-)
+ drivers/media/platform/rcar-vin/rcar-core.c | 56 +++++++++++++++++++++--------
+ drivers/media/platform/rcar-vin/rcar-v4l2.c |  3 +-
+ drivers/media/platform/rcar-vin/rcar-vin.h  | 14 ++++++--
+ 3 files changed, 55 insertions(+), 18 deletions(-)
 
-diff --git a/drivers/media/usb/ttusb-dec/ttusb_dec.c b/drivers/media/usb/ttusb-dec/ttusb_dec.c
-index cdefb5dfbbdc..794ea8a78181 100644
---- a/drivers/media/usb/ttusb-dec/ttusb_dec.c
-+++ b/drivers/media/usb/ttusb-dec/ttusb_dec.c
-@@ -127,7 +127,6 @@ struct ttusb_dec {
- 	struct urb		*irq_urb;
- 	dma_addr_t		irq_dma_handle;
- 	void			*iso_buffer;
--	dma_addr_t		iso_dma_handle;
- 	struct urb		*iso_urb[ISO_BUF_COUNT];
- 	int			iso_stream_count;
- 	struct mutex		iso_mutex;
-@@ -1185,11 +1184,7 @@ static void ttusb_dec_free_iso_urbs(struct ttusb_dec *dec)
+diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
+index 663309ca9c04f208..d2b27ccff690cede 100644
+--- a/drivers/media/platform/rcar-vin/rcar-core.c
++++ b/drivers/media/platform/rcar-vin/rcar-core.c
+@@ -241,21 +241,53 @@ static int rvin_digital_graph_init(struct rvin_dev *vin)
+  * Platform Device Driver
+  */
  
- 	for (i = 0; i < ISO_BUF_COUNT; i++)
- 		usb_free_urb(dec->iso_urb[i]);
++static const struct rvin_info rcar_info_h1 = {
++	.model = RCAR_H1,
++};
++
++static const struct rvin_info rcar_info_m1 = {
++	.model = RCAR_M1,
++};
++
++static const struct rvin_info rcar_info_gen2 = {
++	.model = RCAR_GEN2,
++};
++
+ static const struct of_device_id rvin_of_id_table[] = {
+-	{ .compatible = "renesas,vin-r8a7794", .data = (void *)RCAR_GEN2 },
+-	{ .compatible = "renesas,vin-r8a7793", .data = (void *)RCAR_GEN2 },
+-	{ .compatible = "renesas,vin-r8a7791", .data = (void *)RCAR_GEN2 },
+-	{ .compatible = "renesas,vin-r8a7790", .data = (void *)RCAR_GEN2 },
+-	{ .compatible = "renesas,vin-r8a7779", .data = (void *)RCAR_H1 },
+-	{ .compatible = "renesas,vin-r8a7778", .data = (void *)RCAR_M1 },
+-	{ .compatible = "renesas,rcar-gen2-vin", .data = (void *)RCAR_GEN2 },
+-	{ },
++	{
++		.compatible = "renesas,vin-r8a7778",
++		.data = &rcar_info_m1,
++	},
++	{
++		.compatible = "renesas,vin-r8a7779",
++		.data = &rcar_info_h1,
++	},
++	{
++		.compatible = "renesas,vin-r8a7790",
++		.data = &rcar_info_gen2,
++	},
++	{
++		.compatible = "renesas,vin-r8a7791",
++		.data = &rcar_info_gen2,
++	},
++	{
++		.compatible = "renesas,vin-r8a7793",
++		.data = &rcar_info_gen2,
++	},
++	{
++		.compatible = "renesas,vin-r8a7794",
++		.data = &rcar_info_gen2,
++	},
++	{
++		.compatible = "renesas,rcar-gen2-vin",
++		.data = &rcar_info_gen2,
++	},
++	{ /* Sentinel */ },
+ };
+ MODULE_DEVICE_TABLE(of, rvin_of_id_table);
+ 
+ static int rcar_vin_probe(struct platform_device *pdev)
+ {
+-	const struct of_device_id *match;
+ 	struct rvin_dev *vin;
+ 	struct resource *mem;
+ 	int irq, ret;
+@@ -264,12 +296,8 @@ static int rcar_vin_probe(struct platform_device *pdev)
+ 	if (!vin)
+ 		return -ENOMEM;
+ 
+-	match = of_match_device(of_match_ptr(rvin_of_id_table), &pdev->dev);
+-	if (!match)
+-		return -ENODEV;
 -
--	pci_free_consistent(NULL,
--			    ISO_FRAME_SIZE * (FRAMES_PER_ISO_BUF *
--					      ISO_BUF_COUNT),
--			    dec->iso_buffer, dec->iso_dma_handle);
-+	kfree(dec->iso_buffer);
- }
+ 	vin->dev = &pdev->dev;
+-	vin->chip = (enum chip_id)match->data;
++	vin->info = of_device_get_match_data(&pdev->dev);
  
- static int ttusb_dec_alloc_iso_urbs(struct ttusb_dec *dec)
-@@ -1198,10 +1193,8 @@ static int ttusb_dec_alloc_iso_urbs(struct ttusb_dec *dec)
+ 	mem = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+ 	if (mem == NULL)
+diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+index 4a0610a6b4503501..0a035667c0b0e93f 100644
+--- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
++++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+@@ -266,7 +266,8 @@ static int __rvin_try_format(struct rvin_dev *vin,
+ 	pix->sizeimage = max_t(u32, pix->sizeimage,
+ 			       rvin_format_sizeimage(pix));
  
- 	dprintk("%s\n", __func__);
+-	if (vin->chip == RCAR_M1 && pix->pixelformat == V4L2_PIX_FMT_XBGR32) {
++	if (vin->info->model == RCAR_M1 &&
++	    pix->pixelformat == V4L2_PIX_FMT_XBGR32) {
+ 		vin_err(vin, "pixel format XBGR32 not supported on M1\n");
+ 		return -EINVAL;
+ 	}
+diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
+index 85cb7ec53d2b08b5..3f49d2f2d6b88471 100644
+--- a/drivers/media/platform/rcar-vin/rcar-vin.h
++++ b/drivers/media/platform/rcar-vin/rcar-vin.h
+@@ -29,7 +29,7 @@
+ /* Address alignment mask for HW buffers */
+ #define HW_BUFFER_MASK 0x7f
  
--	dec->iso_buffer = pci_zalloc_consistent(NULL,
--						ISO_FRAME_SIZE * (FRAMES_PER_ISO_BUF * ISO_BUF_COUNT),
--						&dec->iso_dma_handle);
--
-+	dec->iso_buffer = kzalloc(ISO_FRAME_SIZE *
-+			(FRAMES_PER_ISO_BUF * ISO_BUF_COUNT), GFP_KERNEL);
- 	if (!dec->iso_buffer) {
- 		dprintk("%s: pci_alloc_consistent - not enough memory\n",
- 			__func__);
+-enum chip_id {
++enum model_id {
+ 	RCAR_H1,
+ 	RCAR_M1,
+ 	RCAR_GEN2,
+@@ -88,11 +88,19 @@ struct rvin_graph_entity {
+ 	unsigned int sink_pad;
+ };
+ 
++/**
++ * struct rvin_info - Information about the particular VIN implementation
++ * @model:		VIN model
++ */
++struct rvin_info {
++	enum model_id model;
++};
++
+ /**
+  * struct rvin_dev - Renesas VIN device structure
+  * @dev:		(OF) device
+  * @base:		device I/O register space remapped to virtual memory
+- * @chip:		type of VIN chip
++ * @info:		info about VIN instance
+  *
+  * @vdev:		V4L2 video device associated with VIN
+  * @v4l2_dev:		V4L2 device
+@@ -120,7 +128,7 @@ struct rvin_graph_entity {
+ struct rvin_dev {
+ 	struct device *dev;
+ 	void __iomem *base;
+-	enum chip_id chip;
++	const struct rvin_info *info;
+ 
+ 	struct video_device vdev;
+ 	struct v4l2_device v4l2_dev;
 -- 
-2.14.2
+2.16.1
