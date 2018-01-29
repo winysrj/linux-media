@@ -1,48 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga06.intel.com ([134.134.136.31]:37883 "EHLO mga06.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751161AbeAVInp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 22 Jan 2018 03:43:45 -0500
-Date: Mon, 22 Jan 2018 10:43:43 +0200
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: "Yeh, Andy" <andy.yeh@intel.com>
-Cc: Tomasz Figa <tfiga@chromium.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH v4] media: imx258: Add imx258 camera sensor driver
-Message-ID: <20180122084342.72zvzfbwwgm7vhui@paasikivi.fi.intel.com>
-References: <1516333071-9766-1-git-send-email-andy.yeh@intel.com>
- <CAAFQd5Aq4oX+-ux0r4SjyWAyRUA1DJ34mgBmcvuY6HpG9SJ++g@mail.gmail.com>
- <8E0971CCB6EA9D41AF58191A2D3978B61D4E49E8@PGSMSX111.gar.corp.intel.com>
- <20180119091732.x3qyex6lzev2sp2u@paasikivi.fi.intel.com>
- <8E0971CCB6EA9D41AF58191A2D3978B61D4E66E1@PGSMSX111.gar.corp.intel.com>
- <20180122083743.4lghsxgyahs2iw7g@paasikivi.fi.intel.com>
+Received: from bin-mail-out-06.binero.net ([195.74.38.229]:1909 "EHLO
+        bin-vsp-out-03.atm.binero.net" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751630AbeA2Qfh (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 29 Jan 2018 11:35:37 -0500
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH v10 17/30] rcar-vin: update pixelformat check for M1
+Date: Mon, 29 Jan 2018 17:34:22 +0100
+Message-Id: <20180129163435.24936-18-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20180129163435.24936-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20180129163435.24936-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20180122083743.4lghsxgyahs2iw7g@paasikivi.fi.intel.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jan 22, 2018 at 10:37:43AM +0200, Sakari Ailus wrote:
-> Hi Andy,
-> 
-> On Mon, Jan 22, 2018 at 08:03:23AM +0000, Yeh, Andy wrote:
-> > Hi Sakari, Tomasz,
-> > 
-> > As below discussion that other drivers are with this pattern, I would prefer to defer to address the concern in later discussion with you and owners of other sensors.
-> > 
-> > Thanks a lot.
-> 
-> I thought of taking a look into the problem area and one sensor driver
-> which doesn't appear to have the problem in this respect is imx258. This is
-> because the v4l2_ctrl_handler_setup() isn't called in a runtime PM
-> callback, but through V4L2 sub-dev s_stream callback instead. The runtime
-> PM transition has already taken place by then. This isn't entirely optimal
-> but works. Other sensor drivers will still need to be fixed.
+If the pixelformat is not supported it should not fail but be set to
+something that works. While we are at it move the check together with
+other pixelformat checks of this function.
 
-And by a quick check we seem to have no sensor drivers doing this after
-all... the v4l2_ctrl_handler_setup is called in the s_stream callback.
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+---
+ drivers/media/platform/rcar-vin/rcar-v4l2.c | 10 ++++------
+ 1 file changed, 4 insertions(+), 6 deletions(-)
 
+diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+index bca6e204a574772f..841d62ca27e026d7 100644
+--- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
++++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+@@ -97,6 +97,10 @@ static int rvin_format_align(struct rvin_dev *vin, struct v4l2_pix_format *pix)
+ 		pix->pixelformat = RVIN_DEFAULT_FORMAT;
+ 	}
+ 
++	if (vin->info->model == RCAR_M1 &&
++	    pix->pixelformat == V4L2_PIX_FMT_XBGR32)
++		pix->pixelformat = RVIN_DEFAULT_FORMAT;
++
+ 	/* Reject ALTERNATE  until support is added to the driver */
+ 	switch (pix->field) {
+ 	case V4L2_FIELD_TOP:
+@@ -121,12 +125,6 @@ static int rvin_format_align(struct rvin_dev *vin, struct v4l2_pix_format *pix)
+ 	pix->bytesperline = rvin_format_bytesperline(pix);
+ 	pix->sizeimage = rvin_format_sizeimage(pix);
+ 
+-	if (vin->info->model == RCAR_M1 &&
+-	    pix->pixelformat == V4L2_PIX_FMT_XBGR32) {
+-		vin_err(vin, "pixel format XBGR32 not supported on M1\n");
+-		return -EINVAL;
+-	}
+-
+ 	vin_dbg(vin, "Format %ux%u bpl: %d size: %d\n",
+ 		pix->width, pix->height, pix->bytesperline, pix->sizeimage);
+ 
 -- 
-Sakari Ailus
-sakari.ailus@linux.intel.com
+2.16.1
