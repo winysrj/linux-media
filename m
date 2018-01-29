@@ -1,69 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:38232 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750895AbeAVUuJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 22 Jan 2018 15:50:09 -0500
-Subject: Re: [PATCH] [media] s3c-camif: array underflow in
- __camif_subdev_try_format()
-To: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-        kernel-janitors@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>
-References: <20180122103714.GA25044@mwanda>
-From: Sylwester Nawrocki <snawrocki@kernel.org>
-Message-ID: <5b3b7195-930c-58c3-d52f-b2738c3fde1e@kernel.org>
-Date: Mon, 22 Jan 2018 21:50:04 +0100
-MIME-Version: 1.0
-In-Reply-To: <20180122103714.GA25044@mwanda>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:33542 "EHLO
+        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750813AbeA2EsM (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sun, 28 Jan 2018 23:48:12 -0500
+Message-ID: <45f428a68ef25cf0c1a318ad733db992@smtp-cloud7.xs4all.net>
+Date: Mon, 29 Jan 2018 05:48:10 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/22/2018 11:37 AM, Dan Carpenter wrote:
-> The while loop is a post op, "while (i-- >= 0)" so the last iteration
-> will read camif_mbus_formats[-1] and then the loop will exit with "i"
-> set to -2 and so we do: "mf->code = camif_mbus_formats[-2];".
-> 
-> I've changed it to a pre-op, I've added a check to ensure we found the
-> right format and I've removed the "mf->code = camif_mbus_formats[i];"
-> because that is a no-op anyway.
-> 
-> Fixes: babde1c243b2 ("[media] V4L: Add driver for S3C24XX/S3C64XX SoC series camera interface")
-> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-> 
-> diff --git a/drivers/media/platform/s3c-camif/camif-capture.c b/drivers/media/platform/s3c-camif/camif-capture.c
-> index 437395a61065..012f4b389c55 100644
-> --- a/drivers/media/platform/s3c-camif/camif-capture.c
-> +++ b/drivers/media/platform/s3c-camif/camif-capture.c
-> @@ -1261,11 +1261,11 @@ static void __camif_subdev_try_format(struct camif_dev *camif,
->   	/* FIXME: constraints against codec or preview path ? */
->   	pix_lim = &variant->vp_pix_limits[VP_CODEC];
->   
-> -	while (i-- >= 0)
-> +	while (--i >= 0)
->   		if (camif_mbus_formats[i] == mf->code)
->   			break;
-> -
-> -	mf->code = camif_mbus_formats[i];
-> +	if (i < 0)
-> +		return;
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Thanks for the patch Dan. mf->width needs to be aligned by this try_format
-function so we shouldn't return here. Also it needs to be ensured mf->code 
-is set to one of the supported values when this function returns. Sorry,
-the current code really doesn't give a clue what was intended.
+Results of the daily build of media_tree:
 
-There is already queued a patch from Arnd [1] addressing the issues you 
-have found.
- 
->   	if (pad == CAMIF_SD_PAD_SINK) {
->   		v4l_bound_align_image(&mf->width, 8, CAMIF_MAX_PIX_WIDTH,
-> 
+date:			Mon Jan 29 05:00:16 CET 2018
+media-tree git hash:	4852fdca8818972d0ea5b5ce7114da628f9954a4
+media_build git hash:	d17383327f00d45e6c07161876fb4f3d9d9358e1
+v4l-utils git hash:	c2cc9e17b1411865d40a0e7d3ab027204fc0cf19
+gcc version:		i686-linux-gcc (GCC) 7.1.0
+sparse version:		v0.5.0-3911-g6f737e1f
+smatch version:		v0.5.0-3911-g6f737e1f
+host hardware:		x86_64
+host os:		4.14.0-364
 
-[1] https://patchwork.linuxtv.org/patch/46508
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: WARNINGS
+linux-3.10.1-i686: WARNINGS
+linux-3.11.1-i686: ERRORS
+linux-3.12.67-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.7-i686: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.18.7-i686: ERRORS
+linux-3.19-i686: ERRORS
+linux-4.0.9-i686: ERRORS
+linux-4.1.33-i686: ERRORS
+linux-4.2.8-i686: ERRORS
+linux-4.3.6-i686: ERRORS
+linux-4.4.22-i686: ERRORS
+linux-4.5.7-i686: ERRORS
+linux-4.6.7-i686: ERRORS
+linux-4.7.5-i686: ERRORS
+linux-4.8-i686: ERRORS
+linux-4.9.26-i686: ERRORS
+linux-4.10.14-i686: WARNINGS
+linux-4.11-i686: WARNINGS
+linux-4.12.1-i686: WARNINGS
+linux-4.13-i686: WARNINGS
+linux-4.14-i686: WARNINGS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: WARNINGS
+linux-3.10.1-x86_64: WARNINGS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.67-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.7-x86_64: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.7-x86_64: ERRORS
+linux-3.19-x86_64: ERRORS
+linux-4.0.9-x86_64: ERRORS
+linux-4.1.33-x86_64: ERRORS
+linux-4.2.8-x86_64: ERRORS
+linux-4.3.6-x86_64: ERRORS
+linux-4.4.22-x86_64: ERRORS
+linux-4.5.7-x86_64: ERRORS
+linux-4.6.7-x86_64: ERRORS
+linux-4.7.5-x86_64: ERRORS
+linux-4.8-x86_64: ERRORS
+linux-4.9.26-x86_64: ERRORS
+linux-4.10.14-x86_64: WARNINGS
+linux-4.11-x86_64: WARNINGS
+linux-4.12.1-x86_64: WARNINGS
+linux-4.13-x86_64: WARNINGS
+linux-4.14-x86_64: WARNINGS
+apps: WARNINGS
+spec-git: OK
+smatch: OK
 
---
-Regards,
-Sylwester
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
