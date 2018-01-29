@@ -1,73 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from vsp-unauthed02.binero.net ([195.74.38.227]:33821 "EHLO
-        bin-vsp-out-03.atm.binero.net" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S932302AbeAYAlY (ORCPT
+Received: from mail-oi0-f67.google.com ([209.85.218.67]:39626 "EHLO
+        mail-oi0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753727AbeA2UM4 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 24 Jan 2018 19:41:24 -0500
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH] v4l2-dev.h: fix symbol collision in media_entity_to_video_device()
-Date: Thu, 25 Jan 2018 01:34:30 +0100
-Message-Id: <20180125003430.18558-1-niklas.soderlund+renesas@ragnatech.se>
+        Mon, 29 Jan 2018 15:12:56 -0500
+Date: Mon, 29 Jan 2018 14:12:54 -0600
+From: Rob Herring <robh@kernel.org>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        linux-kernel@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>,
+        David Airlie <airlied@linux.ie>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Archit Taneja <architt@codeaurora.org>,
+        Andrzej Hajda <a.hajda@samsung.com>,
+        John Stultz <john.stultz@linaro.org>,
+        Mark Brown <broonie@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Lars-Peter Clausen <lars@metafoo.de>,
+        Daniel Vetter <daniel.vetter@ffwll.ch>,
+        Bhumika Goyal <bhumirks@gmail.com>,
+        Inki Dae <inki.dae@samsung.com>,
+        "open list:OPEN FIRMWARE AND FLATTENED DEVICE TREE BINDINGS"
+        <devicetree@vger.kernel.org>
+Subject: Re: [PATCH 2/2] drm: adv7511: Add support for
+ i2c_new_secondary_device
+Message-ID: <20180129201254.mqvwji4if5wl5r2n@rob-hp-laptop>
+References: <1516625389-6362-1-git-send-email-kieran.bingham@ideasonboard.com>
+ <1516625389-6362-3-git-send-email-kieran.bingham@ideasonboard.com>
+ <1650729.pzuqXiNcLL@avalon>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
+In-Reply-To: <1650729.pzuqXiNcLL@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-A recent change to the media_entity_to_video_device() macro breaks some
-use-cases for the macro due to a symbol collision. Before the change
-this worked:
+On Mon, Jan 29, 2018 at 12:26:00PM +0200, Laurent Pinchart wrote:
+> Hi Kieran,
+> 
+> Thank you for the patch.
+> 
+> On Monday, 22 January 2018 14:50:00 EET Kieran Bingham wrote:
+> > The ADV7511 has four 256-byte maps that can be accessed via the main I²C
+> > ports. Each map has it own I²C address and acts as a standard slave
+> > device on the I²C bus.
+> > 
+> > Allow a device tree node to override the default addresses so that
+> > address conflicts with other devices on the same bus may be resolved at
+> > the board description level.
+> > 
+> > Signed-off-by: Kieran Bingham <kieran.bingham@ideasonboard.com>
+> > ---
+> >  .../bindings/display/bridge/adi,adv7511.txt        | 10 +++++-
+> 
+> I don't mind personally, but device tree maintainers usually ask for DT 
+> bindings changes to be split to a separate patch.
 
-    vdev = media_entity_to_video_device(link->sink->entity);
+Or perfect bindings, then I won't ask to split it just for that 
+(usually).
 
-While after the change it results in a compiler error "error: 'struct
-video_device' has no member named 'link'; did you mean 'lock'?". While
-the following still works after the change.
-
-    struct media_entity *entity = link->sink->entity;
-    vdev = media_entity_to_video_device(entity);
-
-Fix the collision by renaming the macro argument to 'media_entity'.
-
-Signed-off-by: Niklas SÃ¶derlund <niklas.soderlund+renesas@ragnatech.se>
----
- include/media/v4l2-dev.h | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
-
-Hi Mauro,
-
-As the offending commit is not yet upstream and I'm not sure if the 
-commit ids in the media-tree are stable. If they are please attach the 
-following fixes tag.
-
-Fixes: 69b925c5fc36d8f1 ("media: v4l2-dev.h: add kernel-doc to two macros")
-
-Regards,
-// Niklas
-
-diff --git a/include/media/v4l2-dev.h b/include/media/v4l2-dev.h
-index 267fd2bed17bd3c1..f0fc1ebda47244b3 100644
---- a/include/media/v4l2-dev.h
-+++ b/include/media/v4l2-dev.h
-@@ -298,10 +298,10 @@ struct video_device
-  * media_entity_to_video_device - Returns a &struct video_device from
-  *	the &struct media_entity embedded on it.
-  *
-- * @entity: pointer to &struct media_entity
-+ * @media_entity: pointer to &struct media_entity
-  */
--#define media_entity_to_video_device(entity) \
--	container_of(entity, struct video_device, entity)
-+#define media_entity_to_video_device(media_entity) \
-+	container_of(media_entity, struct video_device, entity)
- 
- /**
-  * to_video_device - Returns a &struct video_device from the
--- 
-2.15.1
+> >  drivers/gpu/drm/bridge/adv7511/adv7511.h           |  4 +++
+> >  drivers/gpu/drm/bridge/adv7511/adv7511_drv.c       | 36 ++++++++++++-------
+> >  3 files changed, 37 insertions(+), 13 deletions(-)
