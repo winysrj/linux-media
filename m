@@ -1,203 +1,7397 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from o1678950229.outbound-mail.sendgrid.net ([167.89.50.229]:4244
-        "EHLO o1678950229.outbound-mail.sendgrid.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751096AbeAVMtz (ORCPT
+Received: from mail-wm0-f68.google.com ([74.125.82.68]:54610 "EHLO
+        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751740AbeA2NMD (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 22 Jan 2018 07:49:55 -0500
-From: Kieran Bingham <kieran.bingham@ideasonboard.com>
-To: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        linux-kernel@vger.kernel.org, linux-renesas-soc@vger.kernel.org
-Cc: Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        devicetree@vger.kernel.org (open list:OPEN FIRMWARE AND FLATTENED
-        DEVICE TREE BINDINGS)
-Subject: [PATCH 1/2] media: adv7604: Add support for i2c_new_secondary_device
-Date: Mon, 22 Jan 2018 12:49:54 +0000 (UTC)
-Message-Id: <1516625389-6362-2-git-send-email-kieran.bingham@ideasonboard.com>
-In-Reply-To: <1516625389-6362-1-git-send-email-kieran.bingham@ideasonboard.com>
-References: <1516625389-6362-1-git-send-email-kieran.bingham@ideasonboard.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-content-transfer-encoding: quoted-printable
+        Mon, 29 Jan 2018 08:12:03 -0500
+Received: by mail-wm0-f68.google.com with SMTP id i186so14130471wmi.4
+        for <linux-media@vger.kernel.org>; Mon, 29 Jan 2018 05:12:02 -0800 (PST)
+From: Corentin Labbe <clabbe@baylibre.com>
+To: gregkh@linuxfoundation.org, mchehab@kernel.org
+Cc: devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org,
+        linux-media@vger.kernel.org, Corentin Labbe <clabbe@baylibre.com>
+Subject: [PATCH] staging: media: atomisp2: remove unused headers
+Date: Mon, 29 Jan 2018 13:11:51 +0000
+Message-Id: <1517231511-2295-1-git-send-email-clabbe@baylibre.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>=0D
-=0D
-The ADV7604 has thirteen 256-byte maps that can be accessed via the main=0D
-I=C2=B2C ports. Each map has it own I=C2=B2C address and acts as a standard=
- slave=0D
-device on the I=C2=B2C bus.=0D
-=0D
-Allow a device tree node to override the default addresses so that=0D
-address conflicts with other devices on the same bus may be resolved at=0D
-the board description level.=0D
-=0D
-Signed-off-by: Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>=0D
-[Kieran: Re-adapted for mainline]=0D
-Signed-off-by: Kieran Bingham <kieran.bingham@ideasonboard.com>=0D
----=0D
-Based upon the original posting :=0D
-  https://lkml.org/lkml/2014/10/22/469=0D
----=0D
- .../devicetree/bindings/media/i2c/adv7604.txt      | 18 ++++++-=0D
- drivers/media/i2c/adv7604.c                        | 60 ++++++++++++++----=
-----=0D
- 2 files changed, 55 insertions(+), 23 deletions(-)=0D
-=0D
-diff --git a/Documentation/devicetree/bindings/media/i2c/adv7604.txt b/Docu=
-mentation/devicetree/bindings/media/i2c/adv7604.txt=0D
-index 9cbd92eb5d05..b64e313dcc66 100644=0D
---- a/Documentation/devicetree/bindings/media/i2c/adv7604.txt=0D
-+++ b/Documentation/devicetree/bindings/media/i2c/adv7604.txt=0D
-@@ -13,7 +13,11 @@ Required Properties:=0D
-     - "adi,adv7611" for the ADV7611=0D
-     - "adi,adv7612" for the ADV7612=0D
- =0D
--  - reg: I2C slave address=0D
-+  - reg: I2C slave addresses=0D
-+    The ADV76xx has up to thirteen 256-byte maps that can be accessed via =
-the=0D
-+    main I=C2=B2C ports. Each map has it own I=C2=B2C address and acts as =
-a standard=0D
-+    slave device on the I=C2=B2C bus. The main address is mandatory, other=
-s are=0D
-+    optional and revert to defaults if not specified.=0D
- =0D
-   - hpd-gpios: References to the GPIOs that control the HDMI hot-plug=0D
-     detection pins, one per HDMI input. The active flag indicates the GPIO=
-=0D
-@@ -35,6 +39,11 @@ Optional Properties:=0D
- =0D
-   - reset-gpios: Reference to the GPIO connected to the device's reset pin=
-.=0D
-   - default-input: Select which input is selected after reset.=0D
-+  - reg-names : Names of maps with programmable addresses.=0D
-+		It can contain any map needing a non-default address.=0D
-+		Possible maps names are :=0D
-+		  "main", "avlink", "cec", "infoframe", "esdp", "dpp", "afe",=0D
-+		  "rep", "edid", "hdmi", "test", "cp", "vdp"=0D
- =0D
- Optional Endpoint Properties:=0D
- =0D
-@@ -52,7 +61,12 @@ Example:=0D
- =0D
- 	hdmi_receiver@4c {=0D
- 		compatible =3D "adi,adv7611";=0D
--		reg =3D <0x4c>;=0D
-+		/*=0D
-+		 * The edid page will be accessible @ 0x66 on the i2c bus. All=0D
-+		 * other maps will retain their default addresses.=0D
-+		 */=0D
-+		reg =3D <0x4c 0x66>;=0D
-+		reg-names "main", "edid";=0D
- =0D
- 		reset-gpios =3D <&ioexp 0 GPIO_ACTIVE_LOW>;=0D
- 		hpd-gpios =3D <&ioexp 2 GPIO_ACTIVE_HIGH>;=0D
-diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c=0D
-index 1544920ec52d..c346b9a8fb57 100644=0D
---- a/drivers/media/i2c/adv7604.c=0D
-+++ b/drivers/media/i2c/adv7604.c=0D
-@@ -2734,6 +2734,27 @@ static const struct v4l2_ctrl_config adv76xx_ctrl_fr=
-ee_run_color =3D {=0D
- =0D
- /* -----------------------------------------------------------------------=
- */=0D
- =0D
-+struct adv76xx_register {=0D
-+	const char *name;=0D
-+	u8 default_addr;=0D
-+};=0D
-+=0D
-+static const struct adv76xx_register adv76xx_secondary_names[] =3D {=0D
-+	[ADV76XX_PAGE_IO] =3D { "main", 0x4c },=0D
-+	[ADV7604_PAGE_AVLINK] =3D { "avlink", 0x42 },=0D
-+	[ADV76XX_PAGE_CEC] =3D { "cec", 0x40 },=0D
-+	[ADV76XX_PAGE_INFOFRAME] =3D { "infoframe", 0x3e },=0D
-+	[ADV7604_PAGE_ESDP] =3D { "esdp", 0x38 },=0D
-+	[ADV7604_PAGE_DPP] =3D { "dpp", 0x3c },=0D
-+	[ADV76XX_PAGE_AFE] =3D { "afe", 0x26 },=0D
-+	[ADV76XX_PAGE_REP] =3D { "rep", 0x32 },=0D
-+	[ADV76XX_PAGE_EDID] =3D { "edid", 0x36 },=0D
-+	[ADV76XX_PAGE_HDMI] =3D { "hdmi", 0x34 },=0D
-+	[ADV76XX_PAGE_TEST] =3D { "test", 0x30 },=0D
-+	[ADV76XX_PAGE_CP] =3D { "cp", 0x22 },=0D
-+	[ADV7604_PAGE_VDP] =3D { "vdp", 0x24 },=0D
-+};=0D
-+=0D
- static int adv76xx_core_init(struct v4l2_subdev *sd)=0D
- {=0D
- 	struct adv76xx_state *state =3D to_state(sd);=0D
-@@ -2834,13 +2855,26 @@ static void adv76xx_unregister_clients(struct adv76=
-xx_state *state)=0D
- }=0D
- =0D
- static struct i2c_client *adv76xx_dummy_client(struct v4l2_subdev *sd,=0D
--							u8 addr, u8 io_reg)=0D
-+					       unsigned int i)=0D
- {=0D
- 	struct i2c_client *client =3D v4l2_get_subdevdata(sd);=0D
-+	struct adv76xx_state *state =3D to_state(sd);=0D
-+	struct adv76xx_platform_data *pdata =3D &state->pdata;=0D
-+	unsigned int io_reg =3D 0xf2 + i;=0D
-+	struct i2c_client *new_client;=0D
-+=0D
-+	if (pdata && pdata->i2c_addresses[i])=0D
-+		new_client =3D i2c_new_dummy(client->adapter,=0D
-+					   pdata->i2c_addresses[i]);=0D
-+	else=0D
-+		new_client =3D i2c_new_secondary_device(client,=0D
-+				adv76xx_secondary_names[i].name,=0D
-+				adv76xx_secondary_names[i].default_addr);=0D
- =0D
--	if (addr)=0D
--		io_write(sd, io_reg, addr << 1);=0D
--	return i2c_new_dummy(client->adapter, io_read(sd, io_reg) >> 1);=0D
-+	if (new_client)=0D
-+		io_write(sd, io_reg, new_client->addr << 1);=0D
-+=0D
-+	return new_client;=0D
- }=0D
- =0D
- static const struct adv76xx_reg_seq adv7604_recommended_settings_afe[] =3D=
- {=0D
-@@ -3115,20 +3149,6 @@ static int adv76xx_parse_dt(struct adv76xx_state *st=
-ate)=0D
- 	/* Disable the interrupt for now as no DT-based board uses it. */=0D
- 	state->pdata.int1_config =3D ADV76XX_INT1_CONFIG_DISABLED;=0D
- =0D
--	/* Use the default I2C addresses. */=0D
--	state->pdata.i2c_addresses[ADV7604_PAGE_AVLINK] =3D 0x42;=0D
--	state->pdata.i2c_addresses[ADV76XX_PAGE_CEC] =3D 0x40;=0D
--	state->pdata.i2c_addresses[ADV76XX_PAGE_INFOFRAME] =3D 0x3e;=0D
--	state->pdata.i2c_addresses[ADV7604_PAGE_ESDP] =3D 0x38;=0D
--	state->pdata.i2c_addresses[ADV7604_PAGE_DPP] =3D 0x3c;=0D
--	state->pdata.i2c_addresses[ADV76XX_PAGE_AFE] =3D 0x26;=0D
--	state->pdata.i2c_addresses[ADV76XX_PAGE_REP] =3D 0x32;=0D
--	state->pdata.i2c_addresses[ADV76XX_PAGE_EDID] =3D 0x36;=0D
--	state->pdata.i2c_addresses[ADV76XX_PAGE_HDMI] =3D 0x34;=0D
--	state->pdata.i2c_addresses[ADV76XX_PAGE_TEST] =3D 0x30;=0D
--	state->pdata.i2c_addresses[ADV76XX_PAGE_CP] =3D 0x22;=0D
--	state->pdata.i2c_addresses[ADV7604_PAGE_VDP] =3D 0x24;=0D
--=0D
- 	/* Hardcode the remaining platform data fields. */=0D
- 	state->pdata.disable_pwrdnb =3D 0;=0D
- 	state->pdata.disable_cable_det_rst =3D 0;=0D
-@@ -3478,9 +3498,7 @@ static int adv76xx_probe(struct i2c_client *client,=
-=0D
- 		if (!(BIT(i) & state->info->page_mask))=0D
- 			continue;=0D
- =0D
--		state->i2c_clients[i] =3D=0D
--			adv76xx_dummy_client(sd, state->pdata.i2c_addresses[i],=0D
--					     0xf2 + i);=0D
-+		state->i2c_clients[i] =3D adv76xx_dummy_client(sd, i);=0D
- 		if (!state->i2c_clients[i]) {=0D
- 			err =3D -ENOMEM;=0D
- 			v4l2_err(sd, "failed to create i2c client %u\n", i);=0D
--- =0D
-2.7.4=0D
+All thoses headers are not used by any source files.
+Lets just remove them.
+
+Signed-off-by: Corentin Labbe <clabbe@baylibre.com>
+---
+ .../media/atomisp/include/linux/vlv2_plat_clock.h  |   30 -
+ .../css2400/css_2400_system/hrt/gp_regs_defs.h     |   22 -
+ .../atomisp2/css2400/css_2400_system/hrt/sp_hrt.h  |   24 -
+ .../css_2401_csi2p_system/hrt/gp_regs_defs.h       |   22 -
+ .../css2400/css_2401_csi2p_system/hrt/sp_hrt.h     |   24 -
+ .../css2400/css_2401_system/hrt/gp_regs_defs.h     |   22 -
+ .../atomisp2/css2400/css_2401_system/hrt/sp_hrt.h  |   24 -
+ .../atomisp/pci/atomisp2/css2400/css_api_version.h |  673 -----------
+ .../host/hive_isp_css_ddr_hrt_modified.h           |  148 ---
+ .../host/hive_isp_css_hrt_modified.h               |   79 --
+ .../css2400/hive_isp_css_common/resource_global.h  |   35 -
+ .../css2400/hive_isp_css_common/xmem_global.h      |   20 -
+ .../atomisp2/css2400/hive_isp_css_include/bamem.h  |   46 -
+ .../css2400/hive_isp_css_include/bbb_config.h      |   27 -
+ .../css2400/hive_isp_css_include/cpu_mem_support.h |   59 -
+ .../hive_isp_css_include/host/isp2400_config.h     |   24 -
+ .../hive_isp_css_include/host/isp2500_config.h     |   29 -
+ .../hive_isp_css_include/host/isp2600_config.h     |   34 -
+ .../hive_isp_css_include/host/isp2601_config.h     |   70 --
+ .../css2400/hive_isp_css_include/host/isp_config.h |   24 -
+ .../css2400/hive_isp_css_include/host/isp_op1w.h   |  844 --------------
+ .../hive_isp_css_include/host/isp_op1w_types.h     |   54 -
+ .../css2400/hive_isp_css_include/host/isp_op2w.h   |  674 -----------
+ .../hive_isp_css_include/host/isp_op2w_types.h     |   49 -
+ .../hive_isp_css_include/host/isp_op_count.h       |  226 ----
+ .../hive_isp_css_include/host/osys_public.h        |   20 -
+ .../hive_isp_css_include/host/pipeline_public.h    |   18 -
+ .../hive_isp_css_include/host/ref_vector_func.h    | 1221 --------------------
+ .../host/ref_vector_func_types.h                   |  385 ------
+ .../atomisp2/css2400/hive_isp_css_include/mpmath.h |  329 ------
+ .../atomisp2/css2400/hive_isp_css_include/osys.h   |   47 -
+ .../css2400/hive_isp_css_include/stream_buffer.h   |   47 -
+ .../css2400/hive_isp_css_include/vector_func.h     |   38 -
+ .../css2400/hive_isp_css_include/vector_ops.h      |   31 -
+ .../atomisp2/css2400/hive_isp_css_include/xmem.h   |   46 -
+ .../css2400/hive_isp_css_shared/socket_global.h    |   53 -
+ .../hive_isp_css_shared/stream_buffer_global.h     |   26 -
+ .../css2400/isp/kernels/aa/aa_2/ia_css_aa2_state.h |   41 -
+ .../bayer_ls_1.0/ia_css_bayer_load_param.h         |   20 -
+ .../bayer_ls/bayer_ls_1.0/ia_css_bayer_ls_param.h  |   42 -
+ .../bayer_ls_1.0/ia_css_bayer_store_param.h        |   21 -
+ .../css2400/isp/kernels/bnlm/ia_css_bnlm_state.h   |   31 -
+ .../isp/kernels/cnr/cnr_1.0/ia_css_cnr_state.h     |   33 -
+ .../isp/kernels/cnr/cnr_2/ia_css_cnr_state.h       |   33 -
+ .../isp/kernels/dp/dp_1.0/ia_css_dp_state.h        |   36 -
+ .../css2400/isp/kernels/dpc2/ia_css_dpc2_state.h   |   30 -
+ .../isp/kernels/eed1_8/ia_css_eed1_8_state.h       |   40 -
+ .../io_ls/plane_io_ls/ia_css_plane_io_param.h      |   22 -
+ .../io_ls/plane_io_ls/ia_css_plane_io_types.h      |   30 -
+ .../io_ls/yuv420_io_ls/ia_css_yuv420_io_param.h    |   22 -
+ .../io_ls/yuv420_io_ls/ia_css_yuv420_io_types.h    |   22 -
+ .../ipu2_io_ls/plane_io_ls/ia_css_plane_io_param.h |   22 -
+ .../ipu2_io_ls/plane_io_ls/ia_css_plane_io_types.h |   30 -
+ .../yuv420_io_ls/ia_css_yuv420_io_param.h          |   22 -
+ .../yuv420_io_ls/ia_css_yuv420_io_types.h          |   22 -
+ .../isp/kernels/norm/norm_1.0/ia_css_norm_types.h  |   21 -
+ .../kernels/s3a_stat_ls/ia_css_s3a_stat_ls_param.h |   45 -
+ .../s3a_stat_ls/ia_css_s3a_stat_store_param.h      |   21 -
+ .../kernels/scale/scale_1.0/ia_css_scale_param.h   |   20 -
+ .../isp/kernels/sdis/common/ia_css_sdis_param.h    |   22 -
+ .../isp/kernels/sdis/sdis_1.0/ia_css_sdis_param.h  |   21 -
+ .../isp/kernels/sdis/sdis_2/ia_css_sdis_param.h    |   21 -
+ .../xnr/xnr_3.0/ia_css_xnr3_wrapper_param.h        |   20 -
+ .../yuv_ls/yuv_ls_1.0/ia_css_yuv_load_param.h      |   20 -
+ .../yuv_ls/yuv_ls_1.0/ia_css_yuv_ls_param.h        |   39 -
+ .../yuv_ls/yuv_ls_1.0/ia_css_yuv_store_param.h     |   21 -
+ .../css2400/isp/modes/interface/isp_exprs.h        |  286 -----
+ .../atomisp/pci/atomisp2/include/hmm/hmm_bo_dev.h  |  126 --
+ .../atomisp/pci/atomisp2/include/mmu/sh_mmu.h      |   72 --
+ 69 files changed, 6818 deletions(-)
+ delete mode 100644 drivers/staging/media/atomisp/include/linux/vlv2_plat_clock.h
+ delete mode 100644 drivers/staging/media/atomisp/pci/atomisp2/css2400/css_2400_system/hrt/gp_regs_defs.h
+ delete mode 100644 drivers/staging/media/atomisp/pci/atomisp2/css2400/css_2400_system/hrt/sp_hrt.h
+ delete mode 100644 drivers/staging/media/atomisp/pci/atomisp2/css2400/css_2401_csi2p_system/hrt/gp_regs_defs.h
+ delete mode 100644 drivers/staging/media/atomisp/pci/atomisp2/css2400/css_2401_csi2p_system/hrt/sp_hrt.h
+ delete mode 100644 drivers/staging/media/atomisp/pci/atomisp2/css2400/css_2401_system/hrt/gp_regs_defs.h
+ delete mode 100644 drivers/staging/media/atomisp/pci/atomisp2/css2400/css_2401_system/hrt/sp_hrt.h
+ delete mode 100644 drivers/staging/media/atomisp/pci/atomisp2/css2400/css_api_version.h
+ delete mode 100644 drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_common/host/hive_isp_css_ddr_hrt_modified.h
+ delete mode 100644 drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_common/host/hive_isp_css_hrt_modified.h
+ delete mode 100644 drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_common/resource_global.h
+ delete mode 100644 drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_common/xmem_global.h
+ delete mode 100644 drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/bamem.h
+ delete mode 100644 drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/bbb_config.h
+ delete mode 100644 drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/cpu_mem_support.h
+ delete mode 100644 drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/host/isp2400_config.h
+ delete mode 100644 drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/host/isp2500_config.h
+ delete mode 100644 drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/host/isp2600_config.h
+ delete mode 100644 drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/host/isp2601_config.h
+ delete mode 100644 drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/host/isp_config.h
+ delete mode 100644 drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/host/isp_op1w.h
+ delete mode 100644 drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/host/isp_op1w_types.h
+ delete mode 100644 drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/host/isp_op2w.h
+ delete mode 100644 drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/host/isp_op2w_types.h
+ delete mode 100644 drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/host/isp_op_count.h
+ delete mode 100644 drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/host/osys_public.h
+ delete mode 100644 drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/host/pipeline_public.h
+ delete mode 100644 drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/host/ref_vector_func.h
+ delete mode 100644 drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/host/ref_vector_func_types.h
+ delete mode 100644 drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/mpmath.h
+ delete mode 100644 drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/osys.h
+ delete mode 100644 drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/stream_buffer.h
+ delete mode 100644 drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/vector_func.h
+ delete mode 100644 drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/vector_ops.h
+ delete mode 100644 drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/xmem.h
+ delete mode 100644 drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_shared/socket_global.h
+ delete mode 100644 drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_shared/stream_buffer_global.h
+ delete mode 100644 drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/aa/aa_2/ia_css_aa2_state.h
+ delete mode 100644 drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/bayer_ls/bayer_ls_1.0/ia_css_bayer_load_param.h
+ delete mode 100644 drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/bayer_ls/bayer_ls_1.0/ia_css_bayer_ls_param.h
+ delete mode 100644 drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/bayer_ls/bayer_ls_1.0/ia_css_bayer_store_param.h
+ delete mode 100644 drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/bnlm/ia_css_bnlm_state.h
+ delete mode 100644 drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/cnr/cnr_1.0/ia_css_cnr_state.h
+ delete mode 100644 drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/cnr/cnr_2/ia_css_cnr_state.h
+ delete mode 100644 drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/dp/dp_1.0/ia_css_dp_state.h
+ delete mode 100644 drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/dpc2/ia_css_dpc2_state.h
+ delete mode 100644 drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/eed1_8/ia_css_eed1_8_state.h
+ delete mode 100644 drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/io_ls/plane_io_ls/ia_css_plane_io_param.h
+ delete mode 100644 drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/io_ls/plane_io_ls/ia_css_plane_io_types.h
+ delete mode 100644 drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/io_ls/yuv420_io_ls/ia_css_yuv420_io_param.h
+ delete mode 100644 drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/io_ls/yuv420_io_ls/ia_css_yuv420_io_types.h
+ delete mode 100644 drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/ipu2_io_ls/plane_io_ls/ia_css_plane_io_param.h
+ delete mode 100644 drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/ipu2_io_ls/plane_io_ls/ia_css_plane_io_types.h
+ delete mode 100644 drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/ipu2_io_ls/yuv420_io_ls/ia_css_yuv420_io_param.h
+ delete mode 100644 drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/ipu2_io_ls/yuv420_io_ls/ia_css_yuv420_io_types.h
+ delete mode 100644 drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/norm/norm_1.0/ia_css_norm_types.h
+ delete mode 100644 drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/s3a_stat_ls/ia_css_s3a_stat_ls_param.h
+ delete mode 100644 drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/s3a_stat_ls/ia_css_s3a_stat_store_param.h
+ delete mode 100644 drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/scale/scale_1.0/ia_css_scale_param.h
+ delete mode 100644 drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/sdis/common/ia_css_sdis_param.h
+ delete mode 100644 drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/sdis/sdis_1.0/ia_css_sdis_param.h
+ delete mode 100644 drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/sdis/sdis_2/ia_css_sdis_param.h
+ delete mode 100644 drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/xnr/xnr_3.0/ia_css_xnr3_wrapper_param.h
+ delete mode 100644 drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/yuv_ls/yuv_ls_1.0/ia_css_yuv_load_param.h
+ delete mode 100644 drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/yuv_ls/yuv_ls_1.0/ia_css_yuv_ls_param.h
+ delete mode 100644 drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/yuv_ls/yuv_ls_1.0/ia_css_yuv_store_param.h
+ delete mode 100644 drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/modes/interface/isp_exprs.h
+ delete mode 100644 drivers/staging/media/atomisp/pci/atomisp2/include/hmm/hmm_bo_dev.h
+ delete mode 100644 drivers/staging/media/atomisp/pci/atomisp2/include/mmu/sh_mmu.h
+
+diff --git a/drivers/staging/media/atomisp/include/linux/vlv2_plat_clock.h b/drivers/staging/media/atomisp/include/linux/vlv2_plat_clock.h
+deleted file mode 100644
+index ed709bdd6498..000000000000
+--- a/drivers/staging/media/atomisp/include/linux/vlv2_plat_clock.h
++++ /dev/null
+@@ -1,30 +0,0 @@
+-/*
+- * vlv2_plat_clock.h
+- *
+- * Copyright (C) 2013 Intel Corp
+- * Author: Asutosh Pathak <asutosh.pathak@intel.com>
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License as published by
+- * the Free Software Foundation; version 2 of the License.
+- *
+- * This program is distributed in the hope that it will be useful, but
+- * WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+- * General Public License for more details.
+- *
+- * You should have received a copy of the GNU General Public License along
+- * with this program; if not, write to the Free Software Foundation, Inc.,
+- * 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
+- */
+-
+-#ifndef __VLV2_PLAT_CLOCK_H
+-#define __VLV2_PLAT_CLOCK_H
+-
+-int vlv2_plat_set_clock_freq(int clock_num, int freq_type);
+-int vlv2_plat_get_clock_freq(int clock_num);
+-
+-int vlv2_plat_configure_clock(int clock_num, u32 conf);
+-int vlv2_plat_get_clock_status(int clock_num);
+-
+-#endif /* __VLV2_PLAT_CLOCK_H */
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/css_2400_system/hrt/gp_regs_defs.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/css_2400_system/hrt/gp_regs_defs.h
+deleted file mode 100644
+index 34e734f6648e..000000000000
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/css_2400_system/hrt/gp_regs_defs.h
++++ /dev/null
+@@ -1,22 +0,0 @@
+-/*
+- * Support for Intel Camera Imaging ISP subsystem.
+- * Copyright (c) 2015, Intel Corporation.
+- *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms and conditions of the GNU General Public License,
+- * version 2, as published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope it will be useful, but WITHOUT
+- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+- * more details.
+- */
+-
+-#ifndef _gp_regs_defs_h
+-#define _gp_regs_defs_h
+-
+-#define _HRT_GP_REGS_IS_FWD_REG_IDX 0
+-
+-#define _HRT_GP_REGS_REG_ALIGN 4
+-
+-#endif /* _gp_regs_defs_h */   
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/css_2400_system/hrt/sp_hrt.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/css_2400_system/hrt/sp_hrt.h
+deleted file mode 100644
+index 7ee4deba519a..000000000000
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/css_2400_system/hrt/sp_hrt.h
++++ /dev/null
+@@ -1,24 +0,0 @@
+-#ifndef ISP2401
+-/*
+- * Support for Intel Camera Imaging ISP subsystem.
+- * Copyright (c) 2015, Intel Corporation.
+- *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms and conditions of the GNU General Public License,
+- * version 2, as published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope it will be useful, but WITHOUT
+- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+- * more details.
+- */
+-
+-#ifndef _sp_hrt_h_
+-#define _sp_hrt_h_
+-
+-#define hrt_sp_dmem(cell) HRT_PROC_TYPE_PROP(cell, _dmem)
+-
+-#define hrt_sp_dmem_master_port_address(cell) hrt_mem_master_port_address(cell, hrt_sp_dmem(cell))
+-
+-#endif /* _sp_hrt_h_ */
+-#endif
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/css_2401_csi2p_system/hrt/gp_regs_defs.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/css_2401_csi2p_system/hrt/gp_regs_defs.h
+deleted file mode 100644
+index 34e734f6648e..000000000000
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/css_2401_csi2p_system/hrt/gp_regs_defs.h
++++ /dev/null
+@@ -1,22 +0,0 @@
+-/*
+- * Support for Intel Camera Imaging ISP subsystem.
+- * Copyright (c) 2015, Intel Corporation.
+- *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms and conditions of the GNU General Public License,
+- * version 2, as published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope it will be useful, but WITHOUT
+- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+- * more details.
+- */
+-
+-#ifndef _gp_regs_defs_h
+-#define _gp_regs_defs_h
+-
+-#define _HRT_GP_REGS_IS_FWD_REG_IDX 0
+-
+-#define _HRT_GP_REGS_REG_ALIGN 4
+-
+-#endif /* _gp_regs_defs_h */   
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/css_2401_csi2p_system/hrt/sp_hrt.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/css_2401_csi2p_system/hrt/sp_hrt.h
+deleted file mode 100644
+index 7ee4deba519a..000000000000
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/css_2401_csi2p_system/hrt/sp_hrt.h
++++ /dev/null
+@@ -1,24 +0,0 @@
+-#ifndef ISP2401
+-/*
+- * Support for Intel Camera Imaging ISP subsystem.
+- * Copyright (c) 2015, Intel Corporation.
+- *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms and conditions of the GNU General Public License,
+- * version 2, as published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope it will be useful, but WITHOUT
+- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+- * more details.
+- */
+-
+-#ifndef _sp_hrt_h_
+-#define _sp_hrt_h_
+-
+-#define hrt_sp_dmem(cell) HRT_PROC_TYPE_PROP(cell, _dmem)
+-
+-#define hrt_sp_dmem_master_port_address(cell) hrt_mem_master_port_address(cell, hrt_sp_dmem(cell))
+-
+-#endif /* _sp_hrt_h_ */
+-#endif
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/css_2401_system/hrt/gp_regs_defs.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/css_2401_system/hrt/gp_regs_defs.h
+deleted file mode 100644
+index 34e734f6648e..000000000000
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/css_2401_system/hrt/gp_regs_defs.h
++++ /dev/null
+@@ -1,22 +0,0 @@
+-/*
+- * Support for Intel Camera Imaging ISP subsystem.
+- * Copyright (c) 2015, Intel Corporation.
+- *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms and conditions of the GNU General Public License,
+- * version 2, as published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope it will be useful, but WITHOUT
+- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+- * more details.
+- */
+-
+-#ifndef _gp_regs_defs_h
+-#define _gp_regs_defs_h
+-
+-#define _HRT_GP_REGS_IS_FWD_REG_IDX 0
+-
+-#define _HRT_GP_REGS_REG_ALIGN 4
+-
+-#endif /* _gp_regs_defs_h */   
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/css_2401_system/hrt/sp_hrt.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/css_2401_system/hrt/sp_hrt.h
+deleted file mode 100644
+index 7ee4deba519a..000000000000
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/css_2401_system/hrt/sp_hrt.h
++++ /dev/null
+@@ -1,24 +0,0 @@
+-#ifndef ISP2401
+-/*
+- * Support for Intel Camera Imaging ISP subsystem.
+- * Copyright (c) 2015, Intel Corporation.
+- *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms and conditions of the GNU General Public License,
+- * version 2, as published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope it will be useful, but WITHOUT
+- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+- * more details.
+- */
+-
+-#ifndef _sp_hrt_h_
+-#define _sp_hrt_h_
+-
+-#define hrt_sp_dmem(cell) HRT_PROC_TYPE_PROP(cell, _dmem)
+-
+-#define hrt_sp_dmem_master_port_address(cell) hrt_mem_master_port_address(cell, hrt_sp_dmem(cell))
+-
+-#endif /* _sp_hrt_h_ */
+-#endif
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/css_api_version.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/css_api_version.h
+deleted file mode 100644
+index efcd6e1679e8..000000000000
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/css_api_version.h
++++ /dev/null
+@@ -1,673 +0,0 @@
+-/*
+-#ifndef ISP2401
+- * Support for Intel Camera Imaging ISP subsystem.
+- * Copyright (c) 2015, Intel Corporation.
+- *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms and conditions of the GNU General Public License,
+- * version 2, as published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope it will be useful, but WITHOUT
+- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+- * more details.
+- */
+-#else
+-Support for Intel Camera Imaging ISP subsystem.
+-Copyright (c) 2010 - 2015, Intel Corporation.
+-#endif
+-
+-#ifdef ISP2401
+-This program is free software; you can redistribute it and/or modify it
+-under the terms and conditions of the GNU General Public License,
+-version 2, as published by the Free Software Foundation.
+-
+-This program is distributed in the hope it will be useful, but WITHOUT
+-ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+-FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+-more details.
+-*/
+-#endif
+-#ifndef __CSS_API_VERSION_H
+-#define __CSS_API_VERSION_H
+-
+-/* @file
+- * CSS API version file. This file contains the version number of the CSS-API.
+- *
+- * This file is generated from a set of input files describing the CSS-API
+- * changes. Don't edit this file directly.
+- */
+-
+-
+-/**
+-
+-The version string has four dot-separated numbers, read left to right:
+-  The first two are the API version, and should not be changed.
+-  The third number is incremented by a CSS firmware developer when the
+-    API change is not backwards compatible.
+-  The fourth number is incremented by the a CSS firmware developer for
+-    every API change.
+-    It should be zeroed when the third number changes.
+-
+-*/
+-
+-#ifndef ISP2401
+-#define CSS_API_VERSION_STRING	"2.1.15.3"
+-#else
+-#define CSS_API_VERSION_STRING	"2.1.20.9"
+-#endif
+-
+-/*
+-Change log
+-
+-v2.0.1.0, initial version:
+-- added API versioning
+-
+-v2.0.1.1, activate CSS-API versioning:
+-- added description of major and minor version numbers
+-
+-v2.0.1.2, modified struct ia_css_frame_info:
+-- added new member ia_css_crop_info
+-
+-v2.0.1.3, added IA_CSS_ERR_NOT_SUPPORTED
+-
+-v2.1.0.0
+-- moved version number to 2.1.0.0
+-- created new files for refactoring the code
+-
+-v2.1.1.0, modified struct ia_css_pipe_config and struct ia_css_pipe_info and struct ia_css_pipe:
+-- use array to handle multiple output ports
+-
+-v2.1.1.1
+-- added api to lock/unlock of RAW Buffers to Support HALv3 Feature
+-
+-v2.1.1.2, modified struct ia_css_stream_config:
+-- to support multiple isys streams in one virtual channel, keep the old one for backward compatibility
+-
+-v2.1.2.0, modify ia_css_stream_config:
+-- add isys_config and input_config to support multiple isys stream within one virtual channel
+-
+-v2.1.2.1, add IA_CSS_STREAM_FORMAT_NUM
+-- add IA_CSS_STREAM_FORMAT_NUM definition to reflect the number of ia_css_stream_format enums
+-
+-v2.1.2.2, modified enum ia_css_stream_format
+-- Add 16bit YUV formats to ia_css_stream_format enum:
+-- IA_CSS_STREAM_FORMAT_YUV420_16 (directly after IA_CSS_STREAM_FORMAT_YUV420_10)
+-- IA_CSS_STREAM_FORMAT_YUV422_16 (directly after IA_CSS_STREAM_FORMAT_YUV422_10)
+-
+-v2.1.2.3
+-- added api to enable/disable digital zoom for capture pipe.
+-
+-v2.1.2.4, change CSS API to generate the shading table which should be directly sent to ISP:
+-- keep the old CSS API (which uses the conversion of the shading table in CSS) for backward compatibility
+-
+-v2.1.2.5
+-- Added SP frame time measurement (in ticks) and result is sent on a new member
+-- in ia_css_buffer.h.
+-
+-v2.1.2.6, add function ia_css_check_firmware_version()
+-- the function ia_css_check_firmware_version() returns true when the firmware version matches and returns false otherwise.
+-
+-v2.1.2.7
+-- rename dynamic_data_index to dynamic_queue_id in struct ia_css_frame.
+-- update IA_CSS_PIPE_MODE_NUM
+-
+-v2.1.2.8
+-- added flag for video full range
+-
+-v2.1.2.9
+-- add public parameters for xnr3 kernel
+-
+-v2.1.2.10
+-- add new interface to enable output mirroring
+-
+-v2.1.2.11, MIPI buffers optimization
+-- modified struct ia_css_mipi_buffer_config, added number of MIPI buffers needed for the stream
+-- backwards compatible, need another patch to remove legacy function and code
+-
+-v2.1.2.12
+-- create consolidated  firmware package for 2400, 2401, csi2p, bxtpoc
+-
+-v2.1.3.0
+-- rename ia_css_output_config.enable_mirror
+-- add new interface to enable vertical output flipping
+-
+-v2.1.3.1
+-- deprecated ia_css_rx_get_irq_info and ia_css_rx_clear_irq_info because both are hardcoded to work on CSI port 1.
+-- added new functions ia_css_rx_port_get_irq_info and ia_css_rx_port_clear_irq_info, both have a port ID as extra argument.
+-
+-v2.1.3.2
+-- reverted v2.1.3.0 change
+-
+-v2.1.3.3
+-- Added isys event queue.
+-- Renamed ia_css_dequeue_event to ia_css_dequeue_psys_event
+-- Made ia_css_dequeue_event deprecated
+-
+-v2.1.3.4
+-- added new interface to support ACC extension QoS feature.
+-- added IA_CSS_EVENT_TYPE_ACC_STAGE_COMPLETE.
+-
+-v2.1.3.5
+-- added tiled frame format IA_CSS_FRAME_FORMAT_NV12_TILEY
+-
+-v2.1.3.6
+-- added functions ia_css_host_data_allocate and ia_css_host_data_free
+-
+-v2.1.4.0, default pipe config change
+-- disable enable_dz param by default
+-
+-v2.1.5.0
+-- removed mix_range field from yuvp1_y_ee_nr_frng_public_config
+-
+-v2.1.5.1, exposure IDs per stream
+-- added MIN/MAX exposure ID macros
+-- made exposure ID sequence per-stream instead of global (across all streams)
+-
+-#ifdef ISP2401
+-v2.1.5.1, Add parameters to mmgr routines via a macro.
+-- Replaced mmgr funtions with macros to add caller func name + line #.
+-- This is done to help debug memory access issues, allocation issues, etc.
+-
+-#endif
+-v2.1.6.0, Interface for vertical output flip
+-- add new interface to enable vertical output flipping
+-- rename ia_css_output_config.enable_mirror
+-
+-#ifndef ISP2401
+-v2.1.6.1, Effective res on pipe
+-#else
+-v2.1.6.2 (2 changes parallel), Effective res on pipe
+-#endif
+-- Added input_effective_res to struct ia_css_pipe_config in ia_css_pipe_public.h.
+-
+-#ifndef ISP2401
+-v2.1.6.2, CSS-API version file generated from individual changes
+-#else
+-v2.1.6.3 (2 changes parallel), CSS-API version file generated from individual changes
+-#endif
+-- Avoid merge-conflicts by generating version file from individual CSS-API changes.
+-- Parallel CSS-API changes can map to the same version number after this change.
+-- Version numbers for a change could increase due to parallel changes being merged.
+-- The version number would not decrease for a change.
+-
+-#ifndef ISP2401
+-v2.1.6.5 (2 changes parallel), Add SP FW error event
+-#else
+-v2.1.6.6 (4 changes parallel), Add SP FW error event
+-#endif
+-- Added FW error event. This gets raised when the SP FW runs into an
+-- error situation from which it cannot recover.
+-
+-#ifndef ISP2401
+-v2.1.6.5 (2 changes parallel), expose bnr FF enable bits in bnr public API
+-#else
+-v2.1.6.6 (4 changes parallel), expose bnr FF enable bits in bnr public API
+-#endif
+-- Added ff enable bits to bnr_public_config_dn_detect_ctrl_config_t struct
+-
+-#ifndef ISP2401
+-v2.1.6.5 (2 changes parallel), ISP configuration per pipe 
+-#else
+-v2.1.6.6 (4 changes parallel), ISP configuration per pipe 
+-#endif
+-- Added ISP configuration per pipe support: p_isp_config field in
+-- struct ia_css_pipe_config and ia_css_pipe_set_isp_config_on_pipe
+-- and ia_css_pipe_set_isp_config functions
+-
+-#ifndef ISP2401
+-v2.1.7.0, removed css_version.h
+-#else
+-v2.1.7.0 (2 changes parallel), removed css_version.h
+-#endif
+-- Removed css_version.h that was used for versioning in manual (non-CI) releases.
+-
+-#ifndef ISP2401
+-v2.1.7.1, Add helpers (get and set) for ISP cfg per pipe
+-#else
+-v2.1.7.2 (2 changes parallel), Add helpers (get and set) for ISP cfg per pipe
+-#endif
+-- Add helpers (get and set) for ISP configuration per pipe
+-
+-#ifndef ISP2401
+-v2.1.7.2, Add feature to lock all RAW buffers
+-#else
+-v2.1.7.3 (2 changes parallel), Add feature to lock all RAW buffers
+-#endif
+-- This API change adds a boolean flag (lock_all) in the stream_config struct.
+-- If this flag is set to true, then all frames will be locked if locking is
+-- enabled. By default this flag is set to false.
+-- When this flag is false, then only buffers that are sent to the preview pipe
+-- will be locked. If continuous viewfinder is disabled, the flag should be set
+-- to true.
+-
+-#ifndef ISP2401
+-v2.1.8.0 (2 changes parallel), Various changes to support ACC configuration per pipe
+-#else
+-v2.1.8.0 (4 changes parallel), Various changes to support ACC configuration per pipe
+-#endif
+-- Add ia_css_pipe_get_isp_config()
+-- Remove ia_css_pipe_set_isp_config_on_pipe (duplicated
+-- by ia_css_pipe_set_isp_config)
+-- Add isp configuration as parameter for
+-- ia_css_pipe_set_isp_config
+-- Remove ia_css_pipe_isp_config_set()
+-- Remove ia_css_pipe_isp_config_get()
+-
+-#ifndef ISP2401
+-v2.1.8.2 (2 changes parallel), Added member num_invalid_frames to ia_css_pipe_info structure.
+-#else
+-v2.1.8.3 (4 changes parallel), Added member num_invalid_frames to ia_css_pipe_info structure.
+-#endif
+-- Added member num_invalid_frames to ia_css_pipe_info structure.
+-- This helps the driver make sure that the first valid output
+-- frame goes into the first user-supplied output buffer.
+-
+-#ifndef ISP2401
+-v2.1.8.4 (2 changes parallel), ISYS EOF timestamp for output buffers
+-#else
+-v2.1.8.5 (4 changes parallel), ISYS EOF timestamp for output buffers
+-#endif
+-- driver gets EOF timer to every out frame . ia_css_buffer modified to accomodate same.
+-
+-#ifndef ISP2401
+-v2.1.8.4 (4 changes parallel), display_config
+-#else
+-v2.1.8.5 (6 changes parallel), display_config
+-#endif
+-- Added formats- and output config parameters for configuration of the (optional) display output.
+-
+-#ifndef ISP2401
+-v2.1.8.4 (2 changes parallel), Adding zoom region parameters to CSS API
+-#else
+-v2.1.8.5 (4 changes parallel), Adding zoom region parameters to CSS API
+-#endif
+-- Adding ia_css_point and ia_css_region structures to css-api.
+-- Adding zoom_region(type ia_css_region) parameter to ia_css_dz_config structure.
+-- By using this user can do the zoom based on zoom region and
+-- the center of the zoom region is not restricted at the center of the input frame.
+-
+-#ifndef ISP2401
+-v2.1.8.6 (1 changes parallel), Add new ia_css_fw_warning type
+-#else
+-v2.1.8.7 (3 changes parallel), Add new ia_css_fw_warning type
+-#endif
+-- Add IA_CSS_FW_WARNING_TAG_EXP_ID_FAILED enum to ia_css_fw_warning type
+-- Extend sp_warning() with exp_id parameter
+-
+-#ifndef ISP2401
+-v2.1.8.6 (1 changes parallel), Add includes in GC, GC2 kernel interface files
+-#else
+-v2.1.8.7 (3 changes parallel), Add includes in GC, GC2 kernel interface files
+-#endif
+-- add ia_css_ctc_types.h includes in ia_css_gc_types.h and ia_css_gc2_types.h. Needed to get ia_css_vamem_type.
+-
+-#ifndef ISP2401
+-v2.1.9.0 (1 changes parallel), Introduce sp assert event.
+-#else
+-v2.1.9.0 (3 changes parallel), Introduce sp assert event.
+-#endif
+-- Add IA_CSS_EVENT_TYPE_FW_ASSERT. The FW sends the event in case an assert goes off.
+-
+-#ifndef ISP2401
+-v2.1.9.1 (1 changes parallel), Exclude driver part from ia_css_buffer.h as it is also used by SP
+-#else
+-v2.1.9.2 (3 changes parallel), Exclude driver part from ia_css_buffer.h as it is also used by SP
+-#endif
+-- Excluded driver part of the interface from SP/ISP code
+-- Driver I/F is not affected
+-
+-#ifndef ISP2401
+-v2.1.9.2, added IA_CSS_EVENT_TYPE_TIMER
+-#else
+-v2.1.9.3 (2 changes parallel), added IA_CSS_EVENT_TYPE_TIMER
+-#endif
+-- Added a new event called IA_CSS_EVENT_TYPE_TIMER
+-
+-#ifndef ISP2401
+-v2.1.10.0 (4 changes parallel), Add a flag "enable_dpc" to "struct ia_css_pipe_config"
+-#else
+-v2.1.10.0 (6 changes parallel), Add a flag "enable_dpc" to "struct ia_css_pipe_config"
+-#endif
+-- Add a flag "enable_dpc" to "struct ia_css_pipe_config"
+-
+-#ifndef ISP2401
+-v2.1.10.6 (6 changes parallel), change the pipe version type from integer to enum
+-#else
+-v2.1.10.8 (9 changes parallel), change the pipe version type from integer to enum
+-#endif
+-- add new enum to enumerate ISP pipe version
+-- change the pipe version type in pipe_config from integer to enum
+-
+-#ifndef ISP2401
+-v2.1.13.0 (8 changes parallel), Stop Support for Skycam B0
+-#else
+-v2.1.14.0 (12 changes parallel), Stop Support for Skycam B0
+-#endif
+-- Remove a few pre-processor defines for Skycam B0/C0 as support
+-
+-#ifndef ISP2401
+-v2.1.14.0 (24 changes parallel), change the pipe version type from integer to enum
+-#else
+-v2.1.15.0 (28 changes parallel), change the pipe version type from integer to enum
+-#endif
+-- remove the temporary workaround for backward compatability
+-
+-#ifndef ISP2401
+-v2.1.14.0 (13 changes parallel), expose_gamma_enable_option
+-#else
+-v2.1.15.0 (17 changes parallel), expose_gamma_enable_option
+-#endif
+-- added enable param to gamma_corr_public_config
+-- added documentation to rgbpp_public.h
+-
+-#ifndef ISP2401
+-v2.1.14.0 (12 changes parallel), Remove deprecated FW_ERROR event.
+-#else
+-v2.1.15.0 (16 changes parallel), Remove deprecated FW_ERROR event.
+-#endif
+-- Remove code for deprecated FW_ERROR event.
+-
+-#ifndef ISP2401
+-v2.1.14.3 (5 changes parallel), fix IEFD's puclic API types
+-#else
+-v2.1.15.5 (8 changes parallel), fix IEFD's puclic API types
+-#endif
+-- fix IEFD public API members types: rad_cu6_x1,rad_cu_unsharp_x1 & unsharp_amount
+-
+-#ifndef ISP2401
+-v2.1.14.3 (5 changes parallel), Add IA_CSS_FW_WARNING_FRAME_PARAM_MISMATCH
+-#else
+-v2.1.15.5 (8 changes parallel), Add IA_CSS_FW_WARNING_FRAME_PARAM_MISMATCH
+-#endif
+-- Add IA_CSS_FW_WARNING_FRAME_PARAM_MISMATCH enum to ia_css_fw_warning type
+-
+-#ifndef ISP2401
+-v2.1.14.4 (5 changes parallel), new API getter functions for gdc in buffer information
+-#else
+-v2.1.15.8 (11 changes parallel), add_flag_to_disable_continous_viewfinder
+-- add a new flag in stream_config to disable continuous viewfinder
+-- in ZSL use case.
+-
+-v2.1.16.0 (8 changes parallel), revert ia_css_skc_dvs_statistics field size change 
+-- Reverted field size change, change was not ready for driver yet.
+-
+-v2.1.17.0 (7 changes parallel), change CSS API to fix the shading correction off-center issue
+-- update the ia_css_shading_info structure in ia_css_types.h
+-
+-v2.1.17.0 (32 changes parallel), add_flag_to_disable_continous_viewfinder_part2
+-- remove the old interfaces
+-
+-v2.1.17.4 (8 changes parallel), Added public interface for setting the scaler LUT.
+-- Added the public struct to output system and modified the global config struct.
+-
+-v2.1.17.5 (7 changes parallel), Add parameters for new TNR3 component
+-- Add new parameters for new TNR3 component
+-
+-v2.1.17.6 (9 changes parallel), Update skycam DPC_MAX_NUMBER_OF_DP
+-- Automated tooling requires an API change request
+-- This change changes the implementation of #define DPC_MAX_NUMBER_OF_DP
+-- it now returns a different number
+-
+-v2.1.17.6 (8 changes parallel), Return an error when both DPC and BDS are enabled in a pipe config
+-- Return an error when both DPC and BDS are enabled in a pipe config
+-
+-v2.1.17.6 (9 changes parallel), new API getter functions for gdc in buffer information
+-#endif
+-- ia_css_pipe_get_dvs_filter() added
+-- ia_css_pipe_get_gdc_in_buffer_info() added
+-
+-#ifndef ISP2401
+-v2.1.14.5 (8 changes parallel), Update CNR2 ineffective values
+-#else
+-v2.1.17.7 (12 changes parallel), Update CNR2 ineffective values
+-#endif
+-- Fixed Incorrect ineffective values listed in ia_css_cnr_config
+-- Correct Ineffective value is 8191
+-
+-#ifndef ISP2401
+-v2.1.14.5 (8 changes parallel), af_roi_api
+-#else
+-v2.1.17.7 (12 changes parallel), af_roi_api
+-#endif
+-- added a new function to set AF ROI ia_css_set_af_roi
+-- added a new struct ia_css_s3a_roi_offset
+-
+-#ifndef ISP2401
+-v2.1.14.5 (8 changes parallel), remove x_y_end_from_ae_and_awb
+-#else
+-v2.1.17.7 (12 changes parallel), Enlarge AF AWB_FR stats buffers
+-- Enlarge AF and AWB_FR stats buffers to support max grid width per stripe as oppose to per frame
+-
+-v2.1.17.7 (12 changes parallel), remove x_y_end_from_ae_and_awb
+-#endif
+-- added a flag to prepare removal of x_end and y_end from ae grid public config
+-- added a flag to prepare removal of x_end and y_end from awb grid public config
+-
+-#ifndef ISP2401
+-v2.1.14.5 (4 changes parallel), Added public interface for setting the scaler LUT.
+-- Added the public struct to output system and modified the global config struct.
+-#else
+-v2.1.17.8 (5 changes parallel)
+-- added input_yuv , input_raw to ia_css_binary_info.enable 
+-- struct, these attributes were always there but not saved
+-- in the binary_info struct
+-#endif
+-
+-#ifndef ISP2401
+-v2.1.14.6 (8 changes parallel), add_flag_to_disable_continous_viewfinder
+-- add a new flag in stream_config to disable continuous viewfinder
+-- in ZSL use case.
+-#else
+-v2.1.17.9 (6 changes parallel), cleanup_awb_ae_rgb_integration_flags
+-- this change only cleans up an approved api CR see wikis below
+-#endif
+-
+-#ifndef ISP2401
+-v2.1.14.6 (8 changes parallel), Enlarge AF AWB_FR stats buffers
+-- Enlarge AF and AWB_FR stats buffers to support max grid width per stripe as oppose to per frame
+-#else
+-v2.1.17.10 (6 changes parallel), output_system_input_resolution
+-- adedd gdc_output_system_in_resolution to pipe config struct
+-#endif
+-
+-#ifndef ISP2401
+-v2.1.14.8 (6 changes parallel), pipe config option for vf output bci mode downscaling
+-#else
+-v2.1.17.10 (5 changes parallel), Per pipe DPC configuration is added to ia_css_isp_parameters
+-- Per pipe DPC configuration is added to ia_css_isp_parameters 
+-
+-v2.1.17.10 (10 changes parallel), pipe config option for vf output bci mode downscaling
+-#endif
+-- vf downscaling using yuv_scale binary.
+-
+-#ifndef ISP2401
+-v2.1.14.10 (7 changes parallel), Add scale mode GDC V2 LUT to CSS API
+-#else
+-v2.1.17.12 (11 changes parallel), Add scale mode GDC V2 LUT to CSS API
+-#endif
+-- Allow client to set global LUT for gdc v2 (First step in this change. See wiki page for more details)
+-
+-#ifndef ISP2401
+-v2.1.14.10 (8 changes parallel), Include added to type-support.h.
+-#else
+-v2.1.17.12 (12 changes parallel), Include added to type-support.h.
+-#endif
+-- Include of hive/cell_support.h was added to type-support.h, in order to
+-- have access to define HAVE_STDINT.
+-
+-#ifndef ISP2401
+-v2.1.14.11 (7 changes parallel), Pipe configuration to enable BLI mode downscaling for
+-#else
+-v2.1.17.13 (11 changes parallel), Pipe configuration to enable BLI mode downscaling for
+-#endif
+-- BLI mode downscaling for capture post-processing
+-
+-#ifndef ISP2401
+-v2.1.14.14 (9 changes parallel), Fix copyright headers (no functional change)
+-#else
+-v2.1.17.15 (8 changes parallel), Add copyright headers to css files
+-- Add copyright headers to css API files
+-
+-v2.1.17.15 (8 changes parallel), add copyright header to include files
+-- add copyright header to include files
+-
+-v2.1.17.15 (8 changes parallel), add copyright header to isp files
+-- add copyright header to isp files
+-
+-v2.1.17.15 (8 changes parallel), add copyright header to refactored code
+-- add copyright header to refactored code
+-- (base, camera, runtime directories)
+-
+-v2.1.17.16 (13 changes parallel), Fix copyright headers (no functional change)
+-#endif
+-- No functional change; only fixes copyright headers
+-
+-#ifndef ISP2401
+-v2.1.14.14 (6 changes parallel), Remove continuous mode special case handling in ia_css_pipe_set_isp_config
+-#else
+-v2.1.17.16 (10 changes parallel), Remove continuous mode special case handling in ia_css_pipe_set_isp_config
+-#endif
+-- For continuous mode isp_config was being send to all pipes,
+-- even though API ia_css_pipe_set_isp_config is for single pipe
+-- Removed incorrect case
+-
+-#ifndef ISP2401
+-v2.1.14.14 (6 changes parallel), DVS statistics grid produced by accelerator
+-#else
+-v2.1.17.16 (5 changes parallel), Added documentation to formats_config header file
+-- Added description of ranges for full-range flag
+-
+-v2.1.17.16 (10 changes parallel), DVS statistics grid produced by accelerator
+-#endif
+-- Add DVS statistics produced by accelerator grid to pipe info
+-- Add ia_css_pipe_has_dvs_stats function
+-
+-#ifndef ISP2401
+-v2.1.14.15 (7 changes parallel), cont_remove_x_y_end_from_ae_and_awb
+-#else
+-v2.1.17.17 (5 changes parallel), Provide the CSS interface to select the luma only binaries
+-- Add a flag "enable_luma_only" to "struct ia_css_pipe_config"
+-
+-v2.1.17.17 (11 changes parallel), cont_remove_x_y_end_from_ae_and_awb
+-#endif
+-- this patch doesn't introduce any new api change, it only fixes a recent
+-- api merged change (#31938) , in order to have success CI i had to upload an api change request
+-
+-#ifndef ISP2401
+-v2.1.14.17 (6 changes parallel), Add XNR3 blending strength to kernel interface
+-- Added a blending strength field to the XNR3 kernel interface to add
+-- support for blending.
+-#else
+-v2.1.17.17 (10 changes parallel), GAC state dump for debug
+-- added ia_css_dump_gac_state function
+-
+-v2.1.17.18 (23 changes parallel), output_format_nv12_16
+-- added new output fromat nv12_16
+-#endif
+-
+-#ifndef ISP2401
+-v2.1.14.18 (22 changes parallel), eliminate two_pixels_per_clock field
+-#else
+-v2.1.17.18 (4 changes parallel), Remove author details from SKC src code
+-- remove author details from skc src code
+-
+-v2.1.17.19 (26 changes parallel), eliminate two_pixels_per_clock field
+-#endif
+-- remove obsolete field two_pixels_per_clock
+-
+-#ifndef ISP2401
+-v2.1.14.19 (3 changes parallel), Fix copyright headers (no functional change)
+-#else
+-v2.1.17.20 (7 changes parallel), Fix copyright headers (no functional change)
+-#endif
+-- No functional change; only fixes copyright headers
+-
+-#ifndef ISP2401
+-v2.1.14.21 (3 changes parallel), ia_css_skc_dvs_statistics field size change
+-- ia_css_skc_dvs_statistics field size change
+-#else
+-v2.1.17.20 (11 changes parallel), Add XNR3 blending strength to kernel interface
+-- Added a blending strength field to the XNR3 kernel interface to add
+-- support for blending.
+-#endif
+-
+-#ifndef ISP2401
+-v2.1.15.0 (3 changes parallel), revert ia_css_skc_dvs_statistics field size change 
+-- Reverted field size change, change was not ready for driver yet.
+-#else
+-v2.1.17.21 (24 changes parallel), Add N_CSS_PRBS_IDS and N_CSS_TPG_IDS
+-- Add N_CSS_PRBS_IDS to reflect the number of ia_css_prbs_id enum
+-- Add N_CSS_TPG_IDS to reflect the number of ia_css_tpg_id enum
+-#endif
+-
+-#ifndef ISP2401
+-v2.1.15.2 (3 changes parallel), Return an error when both DPC and BDS are enabled in a pipe config
+-- Return an error when both DPC and BDS are enabled in a pipe config
+-#else
+-v2.1.17.23 (8 changes parallel), ia_css_skc_dvs_statistics field size change
+-- ia_css_skc_dvs_statistics field size change
+-#endif
+-
+-#ifndef ISP2401
+-v2.1.15.3 (2 changes parallel), Update skycam DPC_MAX_NUMBER_OF_DP
+-- Automated tooling requires an API change request
+-- This change changes the implementation of #define DPC_MAX_NUMBER_OF_DP
+-- it now returns a different number
+-#else
+-v2.1.19.0 (6 changes parallel)
+-- Added code to calculate input_res using the Windows specification of binning
+-#endif
+-
+-#ifndef ISP2401
+-v2.1.15.3 (18 changes parallel), output_format_nv12_16
+-- added new output fromat nv12_16
+-#else
+-v2.1.20.0 (7 changes parallel), Add interface to select TNR enabled binaries
+-- Add a bool "enable_tnr" to "struct ia_css_pipe_config"
+-
+-v2.1.20.0 (6 changes parallel), OSYS & GDC Debug dump function addition
+-- add GDC state dump function
+-- add OSYS state dump function
+-
+-v2.1.20.4 (7 changes parallel), Add ref_buf_select parameter for TNR3 to kernel interface
+-- Added a ref_buf_select parameter to the TNR3 kernel interface to add
+-- support for multiple reference buffers.
+-
+-v2.1.20.4 (6 changes parallel), DVS MAX grid dimensions to cover maximal resolution
+-- rename DVS_TABLE_HEIGHT/WIDTH to MAX_DVS_COORDS_TABLE_HEIGHT/WIDTH
+-- modify value of the above macros to cover max resolution
+-
+-v2.1.20.5 (54 changes parallel), add input feeder calculations getter
+-- add input_feeder_config public struct
+-- add get_input_feeder_config getter
+-
+-v2.1.20.5 (4 changes parallel), Enable runtime updating mapped args for QoS extension pipe
+-- added ia_css_pipe_update_qos_ext_mapped_arg()
+-
+-v2.1.20.7 (77 changes parallel), Add parameters to CPU routines via a macro.
+-- Replaced CPU memory allocation functions with macros to add caller func name + line number.
+-- This is done to help debug memory access issues, allocation issues, etc.
+-- Changed API: only ia_css_env.h
+-
+-v2.1.20.7 (2 changes parallel), Frame format override
+-- Added a function call to the pipe interface for overriding
+-- the frame format as set in the pipe.
+-- This is an optional interface that can be used under
+-- some strict conditions.
+-
+-v2.1.20.7 (2 changes parallel), Output_system_in_res Information
+-- Output_system_in_res_info field added to pipe_info struct 
+-
+-v2.1.20.8, Temprarily disable memory debug features for SVOS.
+-- Temporary commented out the additions to allow SKC testing till root cause found
+-- Changed files ia_css_env.h and sh_css.c.
+-
+-v2.1.20.9, Enable ISP 2.7 naming
+-- Add IA_CSS_PIPE_VERSION_2_7 to enum ia_css_pipe_version
+-- Add #define SH_CSS_ISP_PIPE_VERSION_2_7 4
+-#endif
+-
+-*/
+-
+-#endif /*__CSS_API_VERSION_H*/
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_common/host/hive_isp_css_ddr_hrt_modified.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_common/host/hive_isp_css_ddr_hrt_modified.h
+deleted file mode 100644
+index 39785aa21459..000000000000
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_common/host/hive_isp_css_ddr_hrt_modified.h
++++ /dev/null
+@@ -1,148 +0,0 @@
+-/*
+- * Support for Intel Camera Imaging ISP subsystem.
+- * Copyright (c) 2010-2015, Intel Corporation.
+- *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms and conditions of the GNU General Public License,
+- * version 2, as published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope it will be useful, but WITHOUT
+- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+- * more details.
+- */
+-
+-#ifndef _hive_isp_css_ddr_hrt_modified_h_
+-#define _hive_isp_css_ddr_hrt_modified_h_
+-
+-#include <hmm_64/hmm.h>
+-
+-/* This function reads an image from DDR and stores it in the img_buf array
+-   that has been allocated by the caller.
+-   The specifics of how the pixels are stored into DDR by the DMA are taken
+-   into account (bits padded to a width of 256, depending on the number of
+-   elements per ddr word).
+-   The DMA specific parameters give to this function (elems_per_xword and sign_extend)
+-   should correspond to those given to the DMA engine.
+-   The address is a virtual address which will be translated to a physical address before
+-   data is loaded from or stored to that address.
+-
+-   The return value is 0 in case of success and 1 in case of failure.
+- */
+-unsigned int
+-hrt_isp_css_read_image_from_ddr(
+-    unsigned short *img_buf,
+-    unsigned int width,
+-    unsigned int height,
+-    unsigned int elems_per_xword,
+-    unsigned int sign_extend,
+-    hmm_ptr virt_addr);
+-
+-/* This function writes an image to DDR, keeping the same aspects into account as the read_image function
+-   above. */
+-unsigned int
+-hrt_isp_css_write_image_to_ddr(
+-    const unsigned short *img_buf,
+-    unsigned int width,
+-    unsigned int height,
+-    unsigned int elems_per_xword,
+-    unsigned int sign_extend,
+-    hmm_ptr virt_addr);
+-
+-/* return the size in bytes of an image (frame or plane). */
+-unsigned int
+-hrt_isp_css_sizeof_image_in_ddr(
+-    unsigned int width,
+-    unsigned int height,
+-    unsigned int bits_per_element);
+-
+-unsigned int
+-hrt_isp_css_stride_of_image_in_ddr(
+-    unsigned int width,
+-    unsigned int bits_per_element);
+-
+-hmm_ptr
+-hrt_isp_css_alloc_image_in_ddr(
+-    unsigned int width,
+-    unsigned int height,
+-    unsigned int elems_per_xword);
+-
+-hmm_ptr
+-hrt_isp_css_calloc_image_in_ddr(
+-    unsigned int width,
+-    unsigned int height,
+-    unsigned int elems_per_xword);
+-
+-#ifndef HIVE_ISP_NO_GDC
+-#include "gdc_v2_defs.h"
+-
+-hmm_ptr
+-hrt_isp_css_alloc_gdc_lut_in_ddr(void);
+-
+-void
+-hrt_isp_css_write_gdc_lut_to_ddr(
+-    short values[4][HRT_GDC_N],
+-    hmm_ptr virt_addr);
+-#endif
+-
+-#ifdef _HIVE_ISP_CSS_FPGA_SYSTEM
+-hmm_ptr
+-hrt_isp_css_alloc_image_for_display(
+-    unsigned int width,
+-    unsigned int height,
+-    unsigned int elems_per_xword);
+-
+-hmm_ptr
+-hrt_isp_css_calloc_image_for_display(
+-    unsigned int width,
+-    unsigned int height,
+-    unsigned int elems_per_xword);
+-#endif
+-
+-/* New set of functions, these do not require the elems_per_xword, but use bits_per_element instead,
+-   this way the user does not need to know about the width of a DDR word. */
+-unsigned int
+-hrt_isp_css_read_unsigned(
+-    unsigned short *target,
+-    unsigned int width,
+-    unsigned int height,
+-    unsigned int source_bits_per_element,
+-    hmm_ptr source);
+-
+-unsigned int
+-hrt_isp_css_read_signed(
+-    short *target,
+-    unsigned int width,
+-    unsigned int height,
+-    unsigned int source_bits_per_element,
+-    hmm_ptr source);
+-
+-unsigned int 
+-hrt_isp_css_write_unsigned(
+-    const unsigned short *source,
+-    unsigned int width,
+-    unsigned int height,
+-    unsigned int target_bits_per_element,
+-    hmm_ptr target);
+-
+-unsigned int 
+-hrt_isp_css_write_signed(
+-    const short *source,
+-    unsigned int width,
+-    unsigned int height,
+-    unsigned int target_bits_per_element,
+-    hmm_ptr target);
+-
+-hmm_ptr
+-hrt_isp_css_alloc(
+-    unsigned int width,
+-    unsigned int height,
+-    unsigned int bits_per_element);
+-
+-hmm_ptr
+-hrt_isp_css_calloc(
+-    unsigned int width,
+-    unsigned int height,
+-    unsigned int bits_per_element);
+-
+-#endif /* _hive_isp_css_ddr_hrt_modified_h_ */
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_common/host/hive_isp_css_hrt_modified.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_common/host/hive_isp_css_hrt_modified.h
+deleted file mode 100644
+index 342553d10e08..000000000000
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_common/host/hive_isp_css_hrt_modified.h
++++ /dev/null
+@@ -1,79 +0,0 @@
+-/*
+- * Support for Intel Camera Imaging ISP subsystem.
+- * Copyright (c) 2010-2015, Intel Corporation.
+- *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms and conditions of the GNU General Public License,
+- * version 2, as published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope it will be useful, but WITHOUT
+- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+- * more details.
+- */
+-
+-#ifndef _hive_isp_css_hrt_h
+-#define _hive_isp_css_hrt_h
+-
+-#include "system_types.h"
+-
+-#include "hive_isp_css_host_ids_hrt.h"
+-#include "hive_isp_css_defs.h"
+-
+-#ifdef HRT_ISP_CSS_CUSTOM_HOST
+-#ifndef HRT_USE_VIR_ADDRS
+-#define HRT_USE_VIR_ADDRS
+-#endif
+-/*#include "hive_isp_css_custom_host_hrt.h"*/
+-#endif
+-
+-#include <gpio_block.h>
+-#include <gp_regs.h>
+-#include <gp_timer_hrt.h>
+-  #include <css_receiver_2400_hrt.h>
+-//  #include <isp2400_mamoiada_params.h>
+-//  #include <isp2400_support.h>
+-  /* insert idle signal clearing and setting around hrt_main */
+-  #if !defined(HRT_HW) || defined(HRT_ISP_CSS_INSERT_IDLE_SIGNAL)
+-    #define hrt_main _hrt_isp_css_main
+-  #endif
+-  #ifdef _HIVE_ISP_CSS_SPECMAN_SYSTEM
+-    #include "hive_isp_css_2400_specman_system.h"
+-  #else
+-#if defined(IS_ISP_2400_MAMOIADA_SYSTEM)
+-    #include "hive_isp_css_2400_system.h"
+-#elif defined(IS_ISP_2401_MAMOIADA_SYSTEM)
+-    #include "hive_isp_css_2401_system.h"
+-#else
+-#error "hive_isp_css_hrt_modified.h: SYSTEM must be one of {2400_MAMOIADA_SYSTEM, 2401_MAMOIADA_SYSTEM}"
+-#endif
+-  #endif
+-#include <sp_hrt.h>
+-#include <input_system_hrt.h>
+-#include <input_selector_hrt.h>
+-#include <sig_monitor_hrt.h>
+-
+-#include "hive_isp_css_sdram_wakeup_hrt.h"
+-#include "hive_isp_css_idle_signal_hrt.h"
+-#include "hive_isp_css_sp_hrt.h"
+-#include "hive_isp_css_isp_hrt.h"
+-#include "hive_isp_css_streaming_to_mipi_hrt.h"
+-#include "hive_isp_css_testbench_hrt.h"
+-#include "hive_isp_css_streaming_monitors_hrt.h"
+-#include "hive_isp_css_gp_regs_hrt.h"
+-#if defined(IS_ISP_2400_MAMOIADA_SYSTEM)
+-#include "hive_isp_css_irq_hrt.h"
+-#elif defined(IS_ISP_2401_MAMOIADA_SYSTEM)
+-#include "hive_isp_css_2401_irq_hrt.h"
+-#else
+-#error "hive_isp_css_hrt_modified.h: SYSTEM must be one of {2400_MAMOIADA_SYSTEM, 2401_MAMOIADA_SYSTEM}"
+-#endif
+-
+-#include "hive_isp_css_stream_switch_hrt.h"
+-
+-#include "hive_isp_css_ddr_hrt_modified.h"
+-#include "hive_isp_css_dma_set_hrt.h"
+-
+-#define HIVE_ISP_CSS_NO_STREAM_SWITCH 1
+-
+-#endif /* _hive_isp_css_hrt_h */
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_common/resource_global.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_common/resource_global.h
+deleted file mode 100644
+index 01c915c033a9..000000000000
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_common/resource_global.h
++++ /dev/null
+@@ -1,35 +0,0 @@
+-/*
+- * Support for Intel Camera Imaging ISP subsystem.
+- * Copyright (c) 2015, Intel Corporation.
+- *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms and conditions of the GNU General Public License,
+- * version 2, as published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope it will be useful, but WITHOUT
+- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+- * more details.
+- */
+-
+-#ifndef __RESOURCE_GLOBAL_H_INCLUDED__
+-#define __RESOURCE_GLOBAL_H_INCLUDED__
+-
+-#define IS_RESOURCE_VERSION_1
+-
+-typedef enum {
+-	DMA_CHANNEL_RESOURCE_TYPE,
+-	IRQ_CHANNEL_RESOURCE_TYPE,
+-	MEM_SECTION_RESOURCE_TYPE,
+-	N_RESOURCE_TYPE
+-} resource_type_ID_t;
+-
+-typedef enum {
+-	PERMANENT_RESOURCE_RESERVATION,
+-	PERSISTENT_RESOURCE_RESERVATION,
+-	DEDICTATED_RESOURCE_RESERVATION,
+-	SHARED_RESOURCE_RESERVATION,
+-	N_RESOURCE_RESERVATION
+-} resource_reservation_t;
+-
+-#endif /* __RESOURCE_GLOBAL_H_INCLUDED__ */
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_common/xmem_global.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_common/xmem_global.h
+deleted file mode 100644
+index 1d3a43abe55d..000000000000
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_common/xmem_global.h
++++ /dev/null
+@@ -1,20 +0,0 @@
+-/*
+- * Support for Intel Camera Imaging ISP subsystem.
+- * Copyright (c) 2015, Intel Corporation.
+- *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms and conditions of the GNU General Public License,
+- * version 2, as published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope it will be useful, but WITHOUT
+- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+- * more details.
+- */
+-
+-#ifndef __XMEM_GLOBAL_H_INCLUDED__
+-#define __XMEM_GLOBAL_H_INCLUDED__
+-
+-#include "isp.h"
+-
+-#endif /* __XMEM_GLOBAL_H_INCLUDED__ */
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/bamem.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/bamem.h
+deleted file mode 100644
+index 6928965cf513..000000000000
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/bamem.h
++++ /dev/null
+@@ -1,46 +0,0 @@
+-/*
+- * Support for Intel Camera Imaging ISP subsystem.
+- * Copyright (c) 2015, Intel Corporation.
+- *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms and conditions of the GNU General Public License,
+- * version 2, as published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope it will be useful, but WITHOUT
+- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+- * more details.
+- */
+-
+-#ifndef __BAMEM_H_INCLUDED__
+-#define __BAMEM_H_INCLUDED__
+-
+-/*
+- * This file is included on every cell {SP,ISP,host} and on every system
+- * that uses the BAMEM device. It defines the API to DLI bridge
+- *
+- * System and cell specific interfaces and inline code are included
+- * conditionally through Makefile path settings.
+- *
+- *  - .        system and cell agnostic interfaces, constants and identifiers
+- *	- public:  system agnostic, cell specific interfaces
+- *	- private: system dependent, cell specific interfaces & inline implementations
+- *	- global:  system specific constants and identifiers
+- *	- local:   system and cell specific constants and identifiers
+- */
+-
+-
+-#include "system_local.h"
+-#include "bamem_local.h"
+-
+-#ifndef __INLINE_BAMEM__
+-#define STORAGE_CLASS_BAMEM_H extern
+-#define STORAGE_CLASS_BAMEM_C
+-#include "bamem_public.h"
+-#else  /* __INLINE_BAMEM__ */
+-#define STORAGE_CLASS_BAMEM_H static inline
+-#define STORAGE_CLASS_BAMEM_C static inline
+-#include "bamem_private.h"
+-#endif /* __INLINE_BAMEM__ */
+-
+-#endif /* __BAMEM_H_INCLUDED__ */
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/bbb_config.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/bbb_config.h
+deleted file mode 100644
+index 18bc5ef3d0bf..000000000000
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/bbb_config.h
++++ /dev/null
+@@ -1,27 +0,0 @@
+-/*
+- * Support for Intel Camera Imaging ISP subsystem.
+- * Copyright (c) 2015, Intel Corporation.
+- *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms and conditions of the GNU General Public License,
+- * version 2, as published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope it will be useful, but WITHOUT
+- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+- * more details.
+- */
+-
+-#ifndef __BBB_CONFIG_H_INCLUDED__
+-#define __BBB_CONFIG_H_INCLUDED__
+-/* This header contains BBB defines common to ISP and host */
+-
+-#define BFA_MAX_KWAY                (49)
+-#define BFA_RW_LUT_SIZE             (7)
+-
+-#define SAD3x3_IN_SHIFT      (2) /* input right shift value for SAD3x3 */
+-#define SAD3x3_OUT_SHIFT     (2) /* output right shift value for SAD3x3 */
+-
+-/* XCU and BMA related defines shared between host and ISP
+- * also need to be moved here */
+-#endif /* __BBB_CONFIG_H_INCLUDED__ */
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/cpu_mem_support.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/cpu_mem_support.h
+deleted file mode 100644
+index 6d014fafb713..000000000000
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/cpu_mem_support.h
++++ /dev/null
+@@ -1,59 +0,0 @@
+-/*
+- * Support for Intel Camera Imaging ISP subsystem.
+- * Copyright (c) 2015, Intel Corporation.
+- *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms and conditions of the GNU General Public License,
+- * version 2, as published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope it will be useful, but WITHOUT
+- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+- * more details.
+- */
+-
+-#ifndef __CPU_MEM_SUPPORT_H_INCLUDED__
+-#define __CPU_MEM_SUPPORT_H_INCLUDED__
+-
+-#if defined (__KERNEL__)
+-#include <linux/string.h> /* memset */
+-#else
+-#include <string.h> /* memset */
+-#endif
+-
+-#include "sh_css_internal.h" /* sh_css_malloc and sh_css_free */
+-
+-static inline void*
+-ia_css_cpu_mem_alloc(unsigned int size)
+-{
+-	return sh_css_malloc(size);
+-}
+-
+-static inline void*
+-ia_css_cpu_mem_copy(void* dst, const void* src, unsigned int size)
+-{
+-	if(!src || !dst)
+-		return NULL;
+-
+-	return memcpy(dst, src, size);
+-}
+-
+-static inline void*
+-ia_css_cpu_mem_set_zero(void* dst, unsigned int size)
+-{
+-	if(!dst)
+-		return NULL;
+-
+-	return memset(dst, 0, size);
+-}
+-
+-static inline void
+-ia_css_cpu_mem_free(void* ptr)
+-{
+-	if(!ptr)
+-		return;
+-
+-	sh_css_free(ptr);
+-}
+-
+-#endif /* __CPU_MEM_SUPPORT_H_INCLUDED__ */
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/host/isp2400_config.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/host/isp2400_config.h
+deleted file mode 100644
+index ab3391716c82..000000000000
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/host/isp2400_config.h
++++ /dev/null
+@@ -1,24 +0,0 @@
+-/*
+- * Support for Intel Camera Imaging ISP subsystem.
+- * Copyright (c) 2015, Intel Corporation.
+- *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms and conditions of the GNU General Public License,
+- * version 2, as published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope it will be useful, but WITHOUT
+- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+- * more details.
+- */
+-
+-#ifndef __ISP2400_CONFIG_H_INCLUDED__
+-#define __ISP2400_CONFIG_H_INCLUDED__
+-
+-#define NUM_BITS 14
+-#define NUM_SLICE_ELEMS 4
+-#define ROUNDMODE           ROUND_NEAREST_EVEN
+-#define MAX_SHIFT_1W        (NUM_BITS-1)   /* Max number of bits a 1w input can be shifted */
+-#define MAX_SHIFT_2W        (2*NUM_BITS-1) /* Max number of bits a 2w input can be shifted */
+-
+-#endif /* __ISP2400_CONFIG_H_INCLUDED__ */
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/host/isp2500_config.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/host/isp2500_config.h
+deleted file mode 100644
+index 4fae856f5a23..000000000000
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/host/isp2500_config.h
++++ /dev/null
+@@ -1,29 +0,0 @@
+-/*
+- * Support for Intel Camera Imaging ISP subsystem.
+- * Copyright (c) 2015, Intel Corporation.
+- *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms and conditions of the GNU General Public License,
+- * version 2, as published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope it will be useful, but WITHOUT
+- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+- * more details.
+- */
+-
+-#ifndef __ISP2500_CONFIG_H_INCLUDED__
+-#define __ISP2500_CONFIG_H_INCLUDED__
+-
+-#define NUM_BITS            12
+-#define NUM_SLICE_ELEMS     4
+-#define ROUNDMODE           ROUND_NEAREST_EVEN
+-#define MAX_SHIFT_1W        (NUM_BITS-1)   /* Max number of bits a 1w input can be shifted */
+-#define MAX_SHIFT_2W        (2*NUM_BITS-1) /* Max number of bits a 2w input can be shifted */
+-
+-
+-#define HAS_div_unit
+-
+-#define HAS_vec_sub
+-
+-#endif /* __ISP2500_CONFIG_H_INCLUDED__ */
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/host/isp2600_config.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/host/isp2600_config.h
+deleted file mode 100644
+index 6086be8cb0d3..000000000000
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/host/isp2600_config.h
++++ /dev/null
+@@ -1,34 +0,0 @@
+-/*
+- * Support for Intel Camera Imaging ISP subsystem.
+- * Copyright (c) 2015, Intel Corporation.
+- *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms and conditions of the GNU General Public License,
+- * version 2, as published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope it will be useful, but WITHOUT
+- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+- * more details.
+- */
+-
+-#ifndef __ISP2600_CONFIG_H_INCLUDED__
+-#define __ISP2600_CONFIG_H_INCLUDED__
+-
+-
+-#define NUM_BITS 16
+-
+-
+-#define NUM_SLICE_ELEMS 8
+-#define ROUNDMODE           ROUND_NEAREST_EVEN
+-#define MAX_SHIFT_1W        (NUM_BITS-1)   /* Max number of bits a 1w input can be shifted */
+-#define MAX_SHIFT_2W        (2*NUM_BITS-1) /* Max number of bits a 2w input can be shifted */
+-#define ISP_NWAY		32 /* Number of elements in a vector in ISP 2600 */
+-
+-#define HAS_div_unit
+-#define HAS_1w_sqrt_u_unit
+-#define HAS_2w_sqrt_u_unit
+-
+-#define HAS_vec_sub
+-
+-#endif /* __ISP2600_CONFIG_H_INCLUDED__ */
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/host/isp2601_config.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/host/isp2601_config.h
+deleted file mode 100644
+index beceefa24ca0..000000000000
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/host/isp2601_config.h
++++ /dev/null
+@@ -1,70 +0,0 @@
+-#ifndef ISP2401
+-/*
+- * Support for Intel Camera Imaging ISP subsystem.
+- * Copyright (c) 2015, Intel Corporation.
+- *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms and conditions of the GNU General Public License,
+- * version 2, as published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope it will be useful, but WITHOUT
+- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+- * more details.
+- */
+-
+-#ifndef __ISP2601_CONFIG_H_INCLUDED__
+-#define __ISP2601_CONFIG_H_INCLUDED__
+-
+-#define NUM_BITS 16
+-#define ISP_VEC_ELEMBITS NUM_BITS
+-#define ISP_NWAY		32
+-#define NUM_SLICE_ELEMS 4
+-#define ROUNDMODE           ROUND_NEAREST_EVEN
+-#define MAX_SHIFT_1W        (NUM_BITS-1)   /* Max number of bits a 1w input can be shifted */
+-#define MAX_SHIFT_2W        (2*NUM_BITS-1) /* Max number of bits a 2w input can be shifted */
+-
+-#define HAS_div_unit
+-#define HAS_bfa_unit
+-#define HAS_1w_sqrt_u_unit
+-#define HAS_2w_sqrt_u_unit
+-
+-#define HAS_vec_sub
+-
+-/* Bit widths and element widths defined in HW implementation of BFA */
+-#define BFA_THRESHOLD_BIT_CNT       (8)
+-#define BFA_THRESHOLD_MASK          ((1<<BFA_THRESHOLD_BIT_CNT)-1)
+-#define BFA_SW_BIT_CNT              (7)
+-#define BFA_SW_MASK                 ((1<<BFA_SW_BIT_CNT)-1)
+-
+-#define BFA_RW_BIT_CNT              (7)
+-#define BFA_RW_MASK                 ((1<<BFA_RW_BIT_CNT)-1)
+-#define BFA_RW_SLOPE_BIT_POS        (8)
+-#define BFA_RW_SLOPE_BIT_SHIFT      (5)
+-
+-#define BFA_RW_IDX_BIT_CNT          (3)
+-#define BFA_RW_FRAC_BIT_CNT         (5)
+-#define BFA_RW_LUT0_FRAC_START_BIT  (0)
+-#define BFA_RW_LUT0_FRAC_END_BIT    (BFA_RW_LUT0_FRAC_START_BIT+BFA_RW_FRAC_BIT_CNT-1) /* 4 */
+-#define BFA_RW_LUT1_FRAC_START_BIT  (2)
+-#define BFA_RW_LUT1_FRAC_END_BIT    (BFA_RW_LUT1_FRAC_START_BIT+BFA_RW_FRAC_BIT_CNT-1) /* 6 */
+-/* LUT IDX end bit computation, start+idx_bit_cnt-2, one -1 comes as we count
+- * bits from 0, another -1 comes as we use 2 lut table, so idx_bit_cnt is one
+- * bit more */
+-#define BFA_RW_LUT0_IDX_START_BIT   (BFA_RW_LUT0_FRAC_END_BIT+1) /* 5 */
+-#define BFA_RW_LUT0_IDX_END_BIT     (BFA_RW_LUT0_IDX_START_BIT+BFA_RW_IDX_BIT_CNT-2) /* 6 */
+-#define BFA_RW_LUT1_IDX_START_BIT   (BFA_RW_LUT1_FRAC_END_BIT + 1) /* 7 */
+-#define BFA_RW_LUT1_IDX_END_BIT     (BFA_RW_LUT1_IDX_START_BIT+BFA_RW_IDX_BIT_CNT-2) /* 8 */
+-#define BFA_RW_LUT_THRESHOLD        (1<<(BFA_RW_LUT1_IDX_END_BIT-1)) /* 0x80 : next bit after lut1 end is set */
+-#define BFA_RW_LUT1_IDX_OFFSET      ((1<<(BFA_RW_IDX_BIT_CNT-1))-1) /* 3 */
+-
+-#define BFA_CP_MASK                 (0xFFFFFF80)
+-#define BFA_SUBABS_SHIFT            (6)
+-#define BFA_SUBABS_BIT_CNT          (8)
+-#define BFA_SUBABS_MAX              ((1<<BFA_SUBABS_BIT_CNT)-1)
+-#define BFA_SUBABSSAT_BIT_CNT       (9)
+-#define BFA_SUBABSSAT_MAX           ((1<<BFA_SUBABSSAT_BIT_CNT)-1)
+-#define BFA_WEIGHT_SHIFT            (6)
+-
+-#endif /* __ISP2601_CONFIG_H_INCLUDED__ */
+-#endif
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/host/isp_config.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/host/isp_config.h
+deleted file mode 100644
+index 80506f2419a8..000000000000
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/host/isp_config.h
++++ /dev/null
+@@ -1,24 +0,0 @@
+-/*
+- * Support for Intel Camera Imaging ISP subsystem.
+- * Copyright (c) 2015, Intel Corporation.
+- *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms and conditions of the GNU General Public License,
+- * version 2, as published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope it will be useful, but WITHOUT
+- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+- * more details.
+- */
+-
+-#ifndef __ISP_CONFIG_H_INCLUDED__
+-#define __ISP_CONFIG_H_INCLUDED__
+-
+-#if defined(ISP2400) || defined(ISP2401)
+-#include "isp2400_config.h"
+-#else
+-#error "Please define a core {ISP2400, ISP2401}"
+-#endif
+-
+-#endif /* __ISP_CONFIG_H_INCLUDED__ */
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/host/isp_op1w.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/host/isp_op1w.h
+deleted file mode 100644
+index 0d978e5911c0..000000000000
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/host/isp_op1w.h
++++ /dev/null
+@@ -1,844 +0,0 @@
+-/*
+- * Support for Intel Camera Imaging ISP subsystem.
+- * Copyright (c) 2015, Intel Corporation.
+- *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms and conditions of the GNU General Public License,
+- * version 2, as published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope it will be useful, but WITHOUT
+- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+- * more details.
+- */
+-
+-#ifndef __ISP_OP1W_H_INCLUDED__
+-#define __ISP_OP1W_H_INCLUDED__
+-
+-/*
+- * This file is part of the Multi-precision vector operations exstension package.
+- */
+-
+-/*
+- * Single-precision vector operations
+- */
+-
+-/*
+- * Prerequisites:
+- *
+- */
+-
+-#ifdef INLINE_ISP_OP1W
+-#define STORAGE_CLASS_ISP_OP1W_FUNC_H static inline
+-#define STORAGE_CLASS_ISP_OP1W_DATA_H static inline_DATA
+-#else /* INLINE_ISP_OP1W */
+-#define STORAGE_CLASS_ISP_OP1W_FUNC_H extern
+-#define STORAGE_CLASS_ISP_OP1W_DATA_H extern_DATA
+-#endif  /* INLINE_ISP_OP1W */
+-
+-/*
+- * Single-precision data type specification
+- */
+-
+-#include "isp_op1w_types.h"
+-#include "isp_op2w_types.h" // for doubling operations.
+-
+-/*
+- * Single-precision prototype specification
+- */
+-
+-/* Arithmetic */
+-
+-/* @brief bitwise AND
+- *
+- * @param[in] _a	first argument
+- * @param[in] _b	second argument
+- *
+- * @return		bitwise and of both input arguments
+- *
+- * This function will calculate the bitwise and.
+- * result = _a & _b
+- */
+-STORAGE_CLASS_ISP_OP1W_FUNC_H tvector1w OP_1w_and(
+-    const tvector1w     _a,
+-    const tvector1w     _b);
+-
+-/* @brief bitwise OR
+- *
+- * @param[in] _a	first argument
+- * @param[in] _b	second argument
+- *
+- * @return		bitwise or of both input arguments
+- *
+- * This function will calculate the bitwise or.
+- * result = _a | _b
+- */
+-STORAGE_CLASS_ISP_OP1W_FUNC_H tvector1w OP_1w_or(
+-    const tvector1w     _a,
+-    const tvector1w     _b);
+-
+-/* @brief bitwise XOR
+- *
+- * @param[in] _a	first argument
+- * @param[in] _b	second argument
+- *
+- * @return		bitwise xor of both input arguments
+- *
+- * This function will calculate the bitwise xor.
+- * result = _a ^ _b
+- */
+-STORAGE_CLASS_ISP_OP1W_FUNC_H tvector1w OP_1w_xor(
+-    const tvector1w     _a,
+-    const tvector1w     _b);
+-
+-/* @brief bitwise inverse
+- *
+- * @param[in] _a	first argument
+- *
+- * @return		bitwise inverse of both input arguments
+- *
+- * This function will calculate the bitwise inverse.
+- * result = ~_a
+- */
+-STORAGE_CLASS_ISP_OP1W_FUNC_H tvector1w OP_1w_inv(
+-    const tvector1w     _a);
+-
+-/* Additive */
+-
+-/* @brief addition
+- *
+- * @param[in] _a	first argument
+- * @param[in] _b	second argument
+- *
+- * @return		sum of both input arguments
+- *
+- * This function will calculate the sum of the input arguments.
+- * in case of overflow it will wrap around.
+- * result = _a + _b
+- */
+-STORAGE_CLASS_ISP_OP1W_FUNC_H tvector1w OP_1w_add(
+-    const tvector1w     _a,
+-    const tvector1w     _b);
+-
+-/* @brief subtraction
+- *
+- * @param[in] _a	first argument
+- * @param[in] _b	second argument
+- *
+- * @return		_b subtracted from _a.
+- *
+- * This function will subtract _b from _a.
+- * in case of overflow it will wrap around.
+- * result = _a - _b
+- */
+-STORAGE_CLASS_ISP_OP1W_FUNC_H tvector1w OP_1w_sub(
+-    const tvector1w     _a,
+-    const tvector1w     _b);
+-
+-/* @brief saturated addition
+- *
+- * @param[in] _a	first argument
+- * @param[in] _b	second argument
+- *
+- * @return		saturated sum of both input arguments
+- *
+- * This function will calculate the sum of the input arguments.
+- * in case of overflow it will saturate.
+- * result = CLIP(_a + _b, MIN_RANGE, MAX_RANGE);
+- */
+-STORAGE_CLASS_ISP_OP1W_FUNC_H tvector1w OP_1w_addsat(
+-    const tvector1w     _a,
+-    const tvector1w     _b);
+-
+-/* @brief saturated subtraction
+- *
+- * @param[in] _a	first argument
+- * @param[in] _b	second argument
+- *
+- * @return		saturated subtraction of both input arguments
+- *
+- * This function will subtract _b from _a.
+- * in case of overflow it will saturate.
+- * result = CLIP(_a - _b, MIN_RANGE, MAX_RANGE);
+- */
+-STORAGE_CLASS_ISP_OP1W_FUNC_H tvector1w OP_1w_subsat(
+-    const tvector1w     _a,
+-    const tvector1w     _b);
+-
+-#ifdef ISP2401
+-/* @brief Unsigned saturated subtraction
+- *
+- * @param[in] _a	first argument
+- * @param[in] _b	second argument
+- *
+- * @return		saturated subtraction of both input arguments
+- *
+- * This function will subtract _b from _a.
+- * in case of overflow it will saturate.
+- * result = CLIP(_a - _b, 0, MAX_RANGE);
+- */
+-STORAGE_CLASS_ISP_OP1W_FUNC_H tvector1w_unsigned OP_1w_subsat_u(
+-    const tvector1w_unsigned _a,
+-    const tvector1w_unsigned _b);
+-
+-#endif
+-/* @brief subtraction with shift right and rounding
+- *
+- * @param[in] _a	first argument
+- * @param[in] _b	second argument
+- *
+- * @return		(a - b) >> 1
+- *
+- * This function subtracts _b from _a and right shifts
+- * the result by 1 bit with rounding.
+- * No overflow can occur.
+- * result = (_a - _b) >> 1
+- *
+- * Note: This function will be deprecated due to
+- * the naming confusion and it will be replaced
+- * by "OP_1w_subhalfrnd".
+- */
+-STORAGE_CLASS_ISP_OP1W_FUNC_H tvector1w OP_1w_subasr1(
+-    const tvector1w     _a,
+-    const tvector1w     _b);
+-
+-/* @brief Subtraction with shift right and rounding
+- *
+- * @param[in] _a	first operand
+- * @param[in] _b	second operand
+- *
+- * @return		(_a - _b) >> 1
+- *
+- * This function subtracts _b from _a and right shifts
+- * the result by 1 bit with rounding.
+- * No overflow can occur.
+- */
+-STORAGE_CLASS_ISP_OP1W_FUNC_H tvector1w OP_1w_subhalfrnd(
+-    const tvector1w	_a,
+-    const tvector1w	_b);
+-
+-/* @brief Subtraction with shift right and no rounding
+- *
+- * @param[in] _a	first operand
+- * @param[in] _b	second operand
+- *
+- * @return		(_a - _b) >> 1
+- *
+- * This function subtracts _b from _a and right shifts
+- * the result by 1 bit without rounding (i.e. truncation).
+- * No overflow can occur.
+- */
+-STORAGE_CLASS_ISP_OP1W_FUNC_H tvector1w OP_1w_subhalf(
+-    const tvector1w	_a,
+-    const tvector1w	_b);
+-
+-
+-/* @brief saturated absolute value
+- *
+- * @param[in] _a	input
+- *
+- * @return		saturated absolute value of the input
+- *
+- * This function will calculate the saturated absolute value of the input.
+- * in case of overflow it will saturate.
+- * if (_a > 0) return _a;<br>
+- * else return CLIP(-_a, MIN_RANGE, MAX_RANGE);<br>
+- */
+-STORAGE_CLASS_ISP_OP1W_FUNC_H tvector1w OP_1w_abs(
+-    const tvector1w     _a);
+-
+-/* @brief saturated absolute difference
+- *
+- * @param[in] _a	first argument
+- * @param[in] _b	second argument
+- *
+- * @return		sat(abs(a-b));
+- *
+- * This function will calculate the saturated absolute value
+- * of the saturated difference of both inputs.
+- * result = sat(abs(sat(_a - _b)));
+- */
+-STORAGE_CLASS_ISP_OP1W_FUNC_H tvector1w OP_1w_subabssat(
+-    const tvector1w     _a,
+-    const tvector1w     _b);
+-
+-/* Multiplicative */
+-
+-/* @brief doubling multiply
+- *
+- * @param[in] _a	first argument
+- * @param[in] _b	second argument
+- *
+- * @return		product of _a and _b
+- *
+- * This function will calculate the product
+- * of the input arguments and returns a double
+- * precision result.
+- * No overflow can occur.
+- * result = _a * _b;
+- */
+-STORAGE_CLASS_ISP_OP1W_FUNC_H tvector2w OP_1w_muld(
+-    const tvector1w     _a,
+-    const tvector1w     _b);
+-
+-/* @brief integer multiply
+- *
+- * @param[in] _a	first argument
+- * @param[in] _b	second argument
+- *
+- * @return		product of _a and _b
+- *
+- * This function will calculate the product
+- * of the input arguments and returns the LSB
+- * aligned single precision result.
+- * In case of overflow it will wrap around.
+- * result = _a * _b;
+- */
+-STORAGE_CLASS_ISP_OP1W_FUNC_H tvector1w OP_1w_mul(
+-    const tvector1w     _a,
+-    const tvector1w     _b);
+-
+-/* @brief fractional saturating multiply
+- *
+- * @param[in] _a	first argument
+- * @param[in] _b	second argument
+- *
+- * @return		saturated product of _a and _b
+- *
+- * This function will calculate the fixed point
+- * product of the input arguments
+- * and returns a single precision result.
+- * In case of overflow it will saturate.
+- * FP_UNITY * FP_UNITY => FP_UNITY.
+- * result = CLIP(_a * _b >> (NUM_BITS-1), MIN_RANGE, MAX_RANGE);
+- */
+-STORAGE_CLASS_ISP_OP1W_FUNC_H tvector1w OP_1w_qmul(
+-    const tvector1w     _a,
+-    const tvector1w     _b);
+-
+-/* @brief fractional saturating multiply with rounding
+- *
+- * @param[in] _a	first argument
+- * @param[in] _b	second argument
+- *
+- * @return		product of _a and _b
+- *
+- * This function will calculate the fixed point
+- * product of the input arguments
+- * and returns a single precision result.
+- * FP_UNITY * FP_UNITY => FP_UNITY.
+- * Depending on the rounding mode of the core
+- * it will round to nearest or to nearest even.
+- * result = CLIP(_a * _b >> (NUM_BITS-1), MIN_RANGE, MAX_RANGE);
+- */
+-STORAGE_CLASS_ISP_OP1W_FUNC_H tvector1w OP_1w_qrmul(
+-    const tvector1w     _a,
+-    const tvector1w     _b);
+-
+-/* Comparative */
+-
+-/* @brief equal
+- *
+- * @param[in] _a	first argument
+- * @param[in] _b	second argument
+- *
+- * @return		_a == _b
+- *
+- * This function will return true if both inputs
+- * are equal, and false if not equal.
+- */
+-STORAGE_CLASS_ISP_OP1W_FUNC_H tflags OP_1w_eq(
+-    const tvector1w     _a,
+-    const tvector1w     _b);
+-
+-/* @brief not equal
+- *
+- * @param[in] _a	first argument
+- * @param[in] _b	second argument
+- *
+- * @return		_a != _b
+- *
+- * This function will return false if both inputs
+- * are equal, and true if not equal.
+- */
+-STORAGE_CLASS_ISP_OP1W_FUNC_H tflags OP_1w_ne(
+-    const tvector1w     _a,
+-    const tvector1w     _b);
+-
+-/* @brief less or equal
+- *
+- * @param[in] _a	first argument
+- * @param[in] _b	second argument
+- *
+- * @return		_a <= _b
+- *
+- * This function will return true if _a is smaller
+- * or equal than _b.
+- */
+-STORAGE_CLASS_ISP_OP1W_FUNC_H tflags OP_1w_le(
+-    const tvector1w     _a,
+-    const tvector1w     _b);
+-
+-/* @brief less then
+- *
+- * @param[in] _a	first argument
+- * @param[in] _b	second argument
+- *
+- * @return		_a < _b
+- *
+- * This function will return true if _a is smaller
+- * than _b.
+- */
+-STORAGE_CLASS_ISP_OP1W_FUNC_H tflags OP_1w_lt(
+-    const tvector1w     _a,
+-    const tvector1w     _b);
+-
+-/* @brief greater or equal
+- *
+- * @param[in] _a	first argument
+- * @param[in] _b	second argument
+- *
+- * @return		_a >= _b
+- *
+- * This function will return true if _a is greater
+- * or equal than _b.
+- */
+-STORAGE_CLASS_ISP_OP1W_FUNC_H tflags OP_1w_ge(
+-    const tvector1w     _a,
+-    const tvector1w     _b);
+-
+-/* @brief greater than
+- *
+- * @param[in] _a	first argument
+- * @param[in] _b	second argument
+- *
+- * @return		_a > _b
+- *
+- * This function will return true if _a is greater
+- * than _b.
+- */
+-STORAGE_CLASS_ISP_OP1W_FUNC_H tflags OP_1w_gt(
+-    const tvector1w     _a,
+-    const tvector1w     _b);
+-
+-/* Shift */
+-
+-/* @brief aritmetic shift right
+- *
+- * @param[in] _a	input
+- * @param[in] _b	shift amount
+- *
+- * @return		_a >> _b
+- *
+- * This function will shift _a with _b bits to the right,
+- * preserving the sign bit.
+- * It asserts 0 <= _b <= MAX_SHIFT_1W.
+- *
+- * The operation count for this function assumes that
+- * the shift amount is a cloned scalar input.
+- */
+-STORAGE_CLASS_ISP_OP1W_FUNC_H tvector1w OP_1w_asr(
+-    const tvector1w     _a,
+-    const tvector1w     _b);
+-
+-/* @brief aritmetic shift right with rounding
+- *
+- * @param[in] _a	input
+- * @param[in] _b	shift amount
+- *
+- * @return		_a >> _b
+- *
+- * If _b < NUM_BITS, this function will shift _a with _b bits to the right,
+- * preserving the sign bit, and depending on the rounding mode of the core
+- * it will round to nearest or to nearest even.
+- * If _b >= NUM_BITS, this function will return 0.
+- * It asserts 0 <= _b <= MAX_SHIFT_1W.
+- * The operation count for this function assumes that
+- * the shift amount is a cloned scalar input.
+- */
+-STORAGE_CLASS_ISP_OP1W_FUNC_H tvector1w OP_1w_asrrnd(
+-    const tvector1w     _a,
+-    const tvector1w     _b);
+-
+-/* @brief saturating arithmetic shift left
+- *
+- * @param[in] _a	input
+- * @param[in] _b	shift amount
+- *
+- * @return		_a << _b
+- *
+- * If _b < MAX_BITDEPTH, this function will shift _a with _b bits to the left,
+- * saturating at MIN_RANGE/MAX_RANGE in case of overflow.
+- * If _b >= MAX_BITDEPTH, this function will return MIN_RANGE if _a < 0,
+- * MAX_RANGE if _a > 0, 0 if _a == 0.
+- * (with MAX_BITDEPTH=64)
+- * It asserts 0 <= _b <= MAX_SHIFT_1W.
+- * The operation count for this function assumes that
+- * the shift amount is a cloned scalar input.
+- */
+-STORAGE_CLASS_ISP_OP1W_FUNC_H tvector1w OP_1w_asl(
+-    const tvector1w     _a,
+-    const tvector1w     _b);
+-
+-/* @brief saturating aritmetic shift left
+- *
+- * @param[in] _a	input
+- * @param[in] _b	shift amount
+- *
+- * @return		_a << _b
+- *
+- * This function is identical to OP_1w_asl( )
+- */
+-STORAGE_CLASS_ISP_OP1W_FUNC_H tvector1w OP_1w_aslsat(
+-    const tvector1w     _a,
+-    const tvector1w     _b);
+-
+-/* @brief logical shift left
+- *
+- * @param[in] _a	input
+- * @param[in] _b	shift amount
+- *
+- * @return		_a << _b
+- *
+- * This function will shift _a with _b bits to the left.
+- * It will insert zeroes on the right.
+- * It asserts 0 <= _b <= MAX_SHIFT_1W.
+- * The operation count for this function assumes that
+- * the shift amount is a cloned scalar input.
+- */
+-STORAGE_CLASS_ISP_OP1W_FUNC_H tvector1w OP_1w_lsl(
+-    const tvector1w     _a,
+-    const tvector1w     _b);
+-
+-/* @brief logical shift right
+- *
+- * @param[in] _a	input
+- * @param[in] _b	shift amount
+- *
+- * @return		_a >> _b
+- *
+- * This function will shift _a with _b bits to the right.
+- * It will insert zeroes on the left.
+- * It asserts 0 <= _b <= MAX_SHIFT_1W.
+- * The operation count for this function assumes that
+- * the shift amount is a cloned scalar input.
+- */
+-STORAGE_CLASS_ISP_OP1W_FUNC_H tvector1w OP_1w_lsr(
+-    const tvector1w     _a,
+-    const tvector1w     _b);
+-
+-#ifdef ISP2401
+-/* @brief bidirectional saturating arithmetic shift
+- *
+- * @param[in] _a	input
+- * @param[in] _b	shift amount
+- *
+- * @return		_a << |_b| if _b is positive
+- *			_a >> |_b| if _b is negative
+- *
+- * If _b > 0, this function will shift _a with _b bits to the left,
+- * saturating at MIN_RANGE/MAX_RANGE in case of overflow.
+- * if _b < 0, this function will shift _a with _b bits to the right.
+- * It asserts -MAX_SHIFT_1W <= _b <= MAX_SHIFT_1W.
+- * If _b = 0, it returns _a.
+- */
+-STORAGE_CLASS_ISP_OP1W_FUNC_H tvector1w OP_1w_ashift_sat(
+-    const tvector1w     _a,
+-    const tvector1w     _b);
+-
+-/* @brief bidirectional non-saturating arithmetic shift
+- *
+- * @param[in] _a	input
+- * @param[in] _b	shift amount
+- *
+- * @return		_a << |_b| if _b is positive
+- *			_a >> |_b| if _b is negative
+- *
+- * If _b > 0, this function will shift _a with _b bits to the left,
+- * no saturation is performed in case of overflow.
+- * if _b < 0, this function will shift _a with _b bits to the right.
+- * It asserts -MAX_SHIFT_1W <= _b <= MAX_SHIFT_1W.
+- * If _b = 0, it returns _a.
+- */
+-STORAGE_CLASS_ISP_OP1W_FUNC_H tvector1w OP_1w_ashift(
+-    const tvector1w     _a,
+-    const tvector1w     _b);
+-
+-
+-/* @brief bidirectional logical shift
+- *
+- * @param[in] _a	input
+- * @param[in] _b	shift amount
+- *
+- * @return		_a << |_b| if _b is positive
+- *			_a >> |_b| if _b is negative
+- *
+- * This function will shift _a with _b bits to the left if _b is positive.
+- * This function will shift _a with _b bits to the right if _b is negative.
+- * It asserts -MAX_SHIFT_1W <= _b <= MAX_SHIFT_1W.
+- * It inserts zeros on the left or right depending on the shift direction: 
+- * right or left.
+- * The operation count for this function assumes that
+- * the shift amount is a cloned scalar input.
+- */
+-STORAGE_CLASS_ISP_OP1W_FUNC_H tvector1w OP_1w_lshift(
+-    const tvector1w     _a,
+-    const tvector1w     _b);
+-
+-#endif
+-/* Cast */
+-
+-/* @brief Cast from int to 1w
+- *
+- * @param[in] _a	input
+- *
+- * @return		_a
+- *
+- * This function casts the input from integer type to
+- * single precision. It asserts there is no overflow.
+- *
+- */
+-STORAGE_CLASS_ISP_OP1W_FUNC_H tvector1w OP_int_cast_to_1w(
+-    const int           _a);
+-
+-/* @brief Cast from 1w to int
+- *
+- * @param[in] _a	input
+- *
+- * @return		_a
+- *
+- * This function casts the input from single precision type to
+- * integer, preserving value and sign.
+- *
+- */
+-STORAGE_CLASS_ISP_OP1W_FUNC_H int OP_1w_cast_to_int(
+-    const tvector1w      _a);
+-
+-/* @brief Cast from 1w to 2w
+- *
+- * @param[in] _a	input
+- *
+- * @return		_a
+- *
+- * This function casts the input from single precision type to
+- * double precision, preserving value and sign.
+- *
+- */
+-STORAGE_CLASS_ISP_OP1W_FUNC_H tvector2w OP_1w_cast_to_2w(
+-    const tvector1w     _a);
+-
+-/* @brief Cast from 2w to 1w
+- *
+- * @param[in] _a	input
+- *
+- * @return		_a
+- *
+- * This function casts the input from double precision type to
+- * single precision. In case of overflow it will wrap around.
+- *
+- */
+-STORAGE_CLASS_ISP_OP1W_FUNC_H tvector1w OP_2w_cast_to_1w(
+-    const tvector2w    _a);
+-
+-
+-/* @brief Cast from 2w to 1w with saturation
+- *
+- * @param[in] _a	input
+- *
+- * @return		_a
+- *
+- * This function casts the input from double precision type to
+- * single precision after saturating it to the range of single
+- * precision.
+- *
+- */
+-STORAGE_CLASS_ISP_OP1W_FUNC_H tvector1w OP_2w_sat_cast_to_1w(
+-    const tvector2w    _a);
+-
+-/* clipping */
+-
+-/* @brief Clip asymmetrical
+- *
+- * @param[in] _a	first argument
+- * @param[in] _b	second argument
+- *
+- * @return		_a clipped between ~_b and b
+- *
+- * This function will clip the first argument between
+- * (-_b - 1) and _b.
+- * It asserts _b >= 0.
+- *
+- */
+-STORAGE_CLASS_ISP_OP1W_FUNC_H tvector1w OP_1w_clip_asym(
+-    const tvector1w     _a,
+-    const tvector1w     _b);
+-
+-/* @brief Clip zero
+- *
+- * @param[in] _a	first argument
+- * @param[in] _b	second argument
+- *
+- * @return		_a clipped beteween 0 and _b
+- *
+- * This function will clip the first argument between
+- * zero and _b.
+- * It asserts _b >= 0.
+- *
+- */
+-STORAGE_CLASS_ISP_OP1W_FUNC_H tvector1w OP_1w_clipz(
+-    const tvector1w     _a,
+-    const tvector1w     _b);
+-
+-/* division */
+-
+-/* @brief Truncated division
+- *
+- * @param[in] _a	first argument
+- * @param[in] _b	second argument
+- *
+- * @return		trunc( _a / _b )
+- *
+- * This function will divide the first argument by
+- * the second argument, with rounding toward 0.
+- * If _b == 0 and _a <  0, the function will return MIN_RANGE.
+- * If _b == 0 and _a == 0, the function will return 0.
+- * If _b == 0 and _a >  0, the function will return MAX_RANGE.
+- */
+-STORAGE_CLASS_ISP_OP1W_FUNC_H tvector1w OP_1w_div(
+-    const tvector1w     _a,
+-    const tvector1w     _b);
+-
+-/* @brief Fractional saturating divide
+- *
+- * @param[in] _a	first argument
+- * @param[in] _b	second argument
+- *
+- * @return		_a / _b
+- *
+- * This function will perform fixed point division of
+- * the first argument by the second argument, with rounding toward 0.
+- * In case of overflow it will saturate.
+- * If _b == 0 and _a <  0, the function will return MIN_RANGE.
+- * If _b == 0 and _a == 0, the function will return 0.
+- * If _b == 0 and _a >  0, the function will return MAX_RANGE.
+- */
+-STORAGE_CLASS_ISP_OP1W_FUNC_H tvector1w OP_1w_qdiv(
+-    const tvector1w     _a,
+-    const tvector1w     _b);
+-
+-/* @brief Modulo
+- *
+- * @param[in] _a	first argument
+- * @param[in] _b	second argument
+- *
+- * @return		_a % _b
+- *
+- * This function will return the remainder r = _a - _b * trunc( _a / _b ),
+- * Note that the sign of the remainder is always equal to the sign of _a.
+- * If _b == 0 the function will return _a.
+- */
+-STORAGE_CLASS_ISP_OP1W_FUNC_H tvector1w OP_1w_mod(
+-    const tvector1w     _a,
+-    const tvector1w     _b);
+-
+-/* @brief Unsigned integer Square root
+- *
+- * @param[in] _a	input
+- *
+- * @return		Integer square root of _a
+- *
+- * This function will calculate the Integer square root of _a
+- */
+-STORAGE_CLASS_ISP_OP1W_FUNC_H tvector1w_unsigned OP_1w_sqrt_u(
+-	const tvector1w_unsigned     _a);
+-
+-/* Miscellaneous */
+-
+-/* @brief Multiplexer
+- *
+- * @param[in] _a	first argument
+- * @param[in] _b	second argument
+- * @param[in] _c	condition
+- *
+- * @return		_c ? _a : _b
+- *
+- * This function will return _a if the condition _c
+- * is true and _b otherwise.
+- */
+-STORAGE_CLASS_ISP_OP1W_FUNC_H tvector1w OP_1w_mux(
+-    const tvector1w     _a,
+-    const tvector1w     _b,
+-    const tflags           _c);
+-
+-/* @brief Average without rounding
+- *
+- * @param[in] _a	first operand
+- * @param[in] _b	second operand
+- *
+- * @return		(_a + _b) >> 1
+- *
+- * This function will add _a and _b, and right shift
+- * the result by one without rounding. No overflow
+- * will occur because addition is performed in the
+- * proper precision.
+- */
+-STORAGE_CLASS_ISP_OP1W_FUNC_H tvector1w  OP_1w_avg(
+-    const tvector1w     _a,
+-    const tvector1w     _b);
+-
+-/* @brief Average with rounding
+- *
+- * @param[in] _a	first argument
+- * @param[in] _b	second argument
+- *
+- * @return		(_a + _b) >> 1
+- *
+- * This function will add _a and _b at full precision,
+- * and right shift with rounding the result with 1 bit.
+- * Depending on the rounding mode of the core
+- * it will round to nearest or to nearest even.
+- */
+-STORAGE_CLASS_ISP_OP1W_FUNC_H tvector1w OP_1w_avgrnd(
+-    const tvector1w     _a,
+-    const tvector1w     _b);
+-
+-/* @brief Minimum
+- *
+- * @param[in] _a	first argument
+- * @param[in] _b	second argument
+- *
+- * @return		(_a < _b) ? _a : _b;
+- *
+- * This function will return the smallest of both
+- * input arguments.
+- */
+-STORAGE_CLASS_ISP_OP1W_FUNC_H tvector1w OP_1w_min(
+-    const tvector1w     _a,
+-    const tvector1w     _b);
+-
+-/* @brief Maximum
+- *
+- * @param[in] _a	first argument
+- * @param[in] _b	second argument
+- *
+- * @return		(_a > _b) ? _a : _b;
+- *
+- * This function will return the largest of both
+- * input arguments.
+- */
+-STORAGE_CLASS_ISP_OP1W_FUNC_H tvector1w OP_1w_max(
+-    const tvector1w     _a,
+-    const tvector1w     _b);
+-
+-#ifndef INLINE_ISP_OP1W
+-#define STORAGE_CLASS_ISP_OP1W_FUNC_C
+-#define STORAGE_CLASS_ISP_OP1W_DATA_C const
+-#else /* INLINE_ISP_OP1W */
+-#define STORAGE_CLASS_ISP_OP1W_FUNC_C STORAGE_CLASS_ISP_OP1W_FUNC_H
+-#define STORAGE_CLASS_ISP_OP1W_DATA_C STORAGE_CLASS_ISP_OP1W_DATA_H
+-#include "isp_op1w.c"
+-#define ISP_OP1W_INLINED
+-#endif  /* INLINE_ISP_OP1W */
+-
+-#endif /* __ISP_OP1W_H_INCLUDED__ */
+-
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/host/isp_op1w_types.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/host/isp_op1w_types.h
+deleted file mode 100644
+index c81e587509a1..000000000000
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/host/isp_op1w_types.h
++++ /dev/null
+@@ -1,54 +0,0 @@
+-/*
+- * Support for Intel Camera Imaging ISP subsystem.
+- * Copyright (c) 2015, Intel Corporation.
+- *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms and conditions of the GNU General Public License,
+- * version 2, as published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope it will be useful, but WITHOUT
+- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+- * more details.
+- */
+-
+-#ifndef __ISP_OP1W_TYPES_H_INCLUDED__
+-#define __ISP_OP1W_TYPES_H_INCLUDED__
+-
+-/*
+- * This file is part of the Multi-precision vector operations exstension package.
+- */
+- 
+-/* 
+- * Single-precision vector operations
+- */
+- 
+-/*  
+- * Prerequisites:
+- *
+- */
+-
+-#include "mpmath.h"
+-
+-/*
+- * Single-precision data type specification
+- */
+-
+-
+-typedef mpsdata_t       tvector1w;
+-typedef mpsdata_t       tscalar1w;
+-typedef spsdata_t       tflags;
+-typedef mpudata_t       tvector1w_unsigned;
+-typedef mpsdata_t       tscalar1w_weight;
+-typedef mpsdata_t       tvector1w_signed_positive;
+-typedef mpsdata_t       tvector1w_weight;
+-#ifdef ISP2401
+-typedef bool            tscalar_bool;
+-#endif
+-
+-typedef  struct {
+-  tvector1w       d;
+-  tflags        f;
+-} tvector1w_tflags1w;
+-
+-#endif /* __ISP_OP1W_TYPES_H_INCLUDED__ */
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/host/isp_op2w.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/host/isp_op2w.h
+deleted file mode 100644
+index 7575d260b837..000000000000
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/host/isp_op2w.h
++++ /dev/null
+@@ -1,674 +0,0 @@
+-/*
+- * Support for Intel Camera Imaging ISP subsystem.
+- * Copyright (c) 2015, Intel Corporation.
+- *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms and conditions of the GNU General Public License,
+- * version 2, as published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope it will be useful, but WITHOUT
+- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+- * more details.
+- */
+-
+-#ifndef __ISP_OP2W_H_INCLUDED__
+-#define __ISP_OP2W_H_INCLUDED__
+-
+-/*
+- * This file is part of the Multi-precision vector operations exstension package.
+- */
+-
+-/*
+- * Double-precision vector operations
+- */
+-
+-/*
+- * Prerequisites:
+- *
+- */
+-
+-#ifdef INLINE_ISP_OP2W
+-#define STORAGE_CLASS_ISP_OP2W_FUNC_H static inline
+-#define STORAGE_CLASS_ISP_OP2W_DATA_H static inline_DATA
+-#else /* INLINE_ISP_OP2W */
+-#define STORAGE_CLASS_ISP_OP2W_FUNC_H extern
+-#define STORAGE_CLASS_ISP_OP2W_DATA_H extern_DATA
+-#endif  /* INLINE_ISP_OP2W */
+-
+-/*
+- * Double-precision data type specification
+- */
+-
+-#include "isp_op2w_types.h"
+-
+-/*
+- * Double-precision prototype specification
+- */
+-
+-/* Arithmetic */
+-
+-/* @brief bitwise AND
+- *
+- * @param[in] _a	first argument
+- * @param[in] _b	second argument
+- *
+- * @return		bitwise and of both input arguments
+- *
+- * This function will calculate the bitwise and.
+- * result = _a & _b
+- */
+-STORAGE_CLASS_ISP_OP2W_FUNC_H tvector2w OP_2w_and(
+-    const tvector2w     _a,
+-    const tvector2w     _b);
+-
+-/* @brief bitwise OR
+- *
+- * @param[in] _a	first argument
+- * @param[in] _b	second argument
+- *
+- * @return		bitwise or of both input arguments
+- *
+- * This function will calculate the bitwise or.
+- * result = _a | _b
+- */
+-STORAGE_CLASS_ISP_OP2W_FUNC_H tvector2w OP_2w_or(
+-    const tvector2w     _a,
+-    const tvector2w     _b);
+-
+-/* @brief bitwise XOR
+- *
+- * @param[in] _a	first argument
+- * @param[in] _b	second argument
+- *
+- * @return		bitwise xor of both input arguments
+- *
+- * This function will calculate the bitwise xor.
+- * result = _a ^ _b
+- */
+-STORAGE_CLASS_ISP_OP2W_FUNC_H tvector2w OP_2w_xor(
+-    const tvector2w     _a,
+-    const tvector2w     _b);
+-
+-/* @brief bitwise inverse
+- *
+- * @param[in] _a	first argument
+- *
+- * @return		bitwise inverse of both input arguments
+- *
+- * This function will calculate the bitwise inverse.
+- * result = ~_a
+- */
+-STORAGE_CLASS_ISP_OP2W_FUNC_H tvector2w OP_2w_inv(
+-    const tvector2w     _a);
+-
+-/* Additive */
+-
+-/* @brief addition
+- *
+- * @param[in] _a	first argument
+- * @param[in] _b	second argument
+- *
+- * @return		sum of both input arguments
+- *
+- * This function will calculate the sum of the input arguments.
+- * in case of overflow it will wrap around.
+- * result = _a + _b
+- */
+-STORAGE_CLASS_ISP_OP2W_FUNC_H tvector2w OP_2w_add(
+-    const tvector2w     _a,
+-    const tvector2w     _b);
+-
+-/* @brief subtraction
+- *
+- * @param[in] _a	first argument
+- * @param[in] _b	second argument
+- *
+- * @return		_b subtracted from _a.
+- *
+- * This function will subtract _b from _a.
+- * in case of overflow it will wrap around.
+- * result = _a - _b
+- */
+-STORAGE_CLASS_ISP_OP2W_FUNC_H tvector2w OP_2w_sub(
+-    const tvector2w     _a,
+-    const tvector2w     _b);
+-
+-/* @brief saturated addition
+- *
+- * @param[in] _a	first argument
+- * @param[in] _b	second argument
+- *
+- * @return		saturated sum of both input arguments
+- *
+- * This function will calculate the sum of the input arguments.
+- * in case of overflow it will saturate
+- * result = CLIP(_a + _b, MIN_RANGE, MAX_RANGE);
+- */
+-STORAGE_CLASS_ISP_OP2W_FUNC_H tvector2w OP_2w_addsat(
+-    const tvector2w     _a,
+-    const tvector2w     _b);
+-
+-/* @brief saturated subtraction
+- *
+- * @param[in] _a	first argument
+- * @param[in] _b	second argument
+- *
+- * @return		saturated subtraction of both input arguments
+- *
+- * This function will subtract _b from _a.
+- * in case of overflow it will saturate
+- * result = CLIP(_a - _b, MIN_RANGE, MAX_RANGE);
+- */
+-STORAGE_CLASS_ISP_OP2W_FUNC_H tvector2w OP_2w_subsat(
+-    const tvector2w     _a,
+-    const tvector2w     _b);
+-
+-/* @brief subtraction with shift right and rounding
+- *
+- * @param[in] _a	first argument
+- * @param[in] _b	second argument
+- *
+- * @return		(a - b) >> 1
+- *
+- * This function subtracts _b from _a and right shifts
+- * the result by 1 bit with rounding.
+- * No overflow can occur.
+- * result = (_a - _b) >> 1
+- *
+- * Note: This function will be deprecated due to
+- * the naming confusion and it will be replaced
+- * by "OP_2w_subhalfrnd".
+- */
+-STORAGE_CLASS_ISP_OP2W_FUNC_H tvector2w OP_2w_subasr1(
+-    const tvector2w     _a,
+-    const tvector2w     _b);
+-
+-/* @brief Subtraction with shift right and rounding
+- *
+- * @param[in] _a	first operand
+- * @param[in] _b	second operand
+- *
+- * @return		(_a - _b) >> 1
+- *
+- * This function subtracts _b from _a and right shifts
+- * the result by 1 bit with rounding.
+- * No overflow can occur.
+- */
+-STORAGE_CLASS_ISP_OP2W_FUNC_H tvector2w OP_2w_subhalfrnd(
+-    const tvector2w	_a,
+-    const tvector2w	_b);
+-
+-/* @brief Subtraction with shift right and no rounding
+- *
+- * @param[in] _a	first operand
+- * @param[in] _b	second operand
+- *
+- * @return		(_a - _b) >> 1
+- *
+- * This function subtracts _b from _a and right shifts
+- * the result by 1 bit without rounding (i.e. truncation).
+- * No overflow can occur.
+- */
+-STORAGE_CLASS_ISP_OP2W_FUNC_H tvector2w OP_2w_subhalf(
+-    const tvector2w	_a,
+-    const tvector2w	_b);
+-
+-/* @brief saturated absolute value
+- *
+- * @param[in] _a	input
+- *
+- * @return		saturated absolute value of the input
+- *
+- * This function will calculate the saturated absolute value of the input.
+- * In case of overflow it will saturate.
+- * if (_a > 0) return _a;<br>
+- * else return CLIP(-_a, MIN_RANGE, MAX_RANGE);<br>
+- */
+-STORAGE_CLASS_ISP_OP2W_FUNC_H tvector2w OP_2w_abs(
+-    const tvector2w     _a);
+-
+-/* @brief saturated absolute difference
+- *
+- * @param[in] _a	first argument
+- * @param[in] _b	second argument
+- *
+- * @return		sat(abs(sat(a-b)));
+- *
+- * This function will calculate the saturated absolute value
+- * of the saturated difference of both inputs.
+- * result = sat(abs(sat(_a - _b)));
+- */
+-STORAGE_CLASS_ISP_OP2W_FUNC_H tvector2w OP_2w_subabssat(
+-    const tvector2w     _a,
+-    const tvector2w     _b);
+-
+-/* Multiplicative */
+-
+-/* @brief integer multiply
+- *
+- * @param[in] _a	first argument
+- * @param[in] _b	second argument
+- *
+- * @return		product of _a and _b
+- *
+- * This function will calculate the product
+- * of the input arguments and returns the LSB
+- * aligned double precision result.
+- * In case of overflow it will wrap around.
+- * result = _a * _b;
+- */
+-STORAGE_CLASS_ISP_OP2W_FUNC_H tvector2w OP_2w_mul(
+-    const tvector2w     _a,
+-    const tvector2w     _b);
+-
+-/* @brief fractional saturating multiply
+- *
+- * @param[in] _a	first argument
+- * @param[in] _b	second argument
+- *
+- * @return		saturated product of _a and _b
+- *
+- * This function will calculate the fixed point
+- * product of the input arguments
+- * and returns a double precision result.
+- * In case of overflow it will saturate.
+- * result =((_a * _b) << 1) >> (2*NUM_BITS);
+- */
+-STORAGE_CLASS_ISP_OP2W_FUNC_H tvector2w OP_2w_qmul(
+-    const tvector2w     _a,
+-    const tvector2w     _b);
+-
+-/* @brief fractional saturating multiply with rounding
+- *
+- * @param[in] _a	first argument
+- * @param[in] _b	second argument
+- *
+- * @return		product of _a and _b
+- *
+- * This function will calculate the fixed point
+- * product of the input arguments
+- * and returns a double precision result.
+- * Depending on the rounding mode of the core
+- * it will round to nearest or to nearest even.
+- * In case of overflow it will saturate.
+- * result = ((_a * _b) << 1) >> (2*NUM_BITS);
+- */
+-
+-STORAGE_CLASS_ISP_OP2W_FUNC_H tvector2w OP_2w_qrmul(
+-    const tvector2w     _a,
+-    const tvector2w     _b);
+-
+-/* Comparative */
+-
+-/* @brief equal
+- *
+- * @param[in] _a	first argument
+- * @param[in] _b	second argument
+- *
+- * @return		_a == _b
+- *
+- * This function will return true if both inputs
+- * are equal, and false if not equal.
+- */
+-STORAGE_CLASS_ISP_OP2W_FUNC_H tflags OP_2w_eq(
+-    const tvector2w     _a,
+-    const tvector2w     _b);
+-
+-/* @brief not equal
+- *
+- * @param[in] _a	first argument
+- * @param[in] _b	second argument
+- *
+- * @return		_a != _b
+- *
+- * This function will return false if both inputs
+- * are equal, and true if not equal.
+- */
+-STORAGE_CLASS_ISP_OP2W_FUNC_H tflags OP_2w_ne(
+-    const tvector2w     _a,
+-    const tvector2w     _b);
+-
+-/* @brief less or equal
+- *
+- * @param[in] _a	first argument
+- * @param[in] _b	second argument
+- *
+- * @return		_a <= _b
+- *
+- * This function will return true if _a is smaller
+- * or equal than _b.
+- */
+-STORAGE_CLASS_ISP_OP2W_FUNC_H tflags OP_2w_le(
+-    const tvector2w     _a,
+-    const tvector2w     _b);
+-
+-/* @brief less then
+- *
+- * @param[in] _a	first argument
+- * @param[in] _b	second argument
+- *
+- * @return		_a < _b
+- *
+- * This function will return true if _a is smaller
+- * than _b.
+- */
+-STORAGE_CLASS_ISP_OP2W_FUNC_H tflags OP_2w_lt(
+-    const tvector2w     _a,
+-    const tvector2w     _b);
+-
+-/* @brief greater or equal
+- *
+- * @param[in] _a	first argument
+- * @param[in] _b	second argument
+- *
+- * @return		_a >= _b
+- *
+- * This function will return true if _a is greater
+- * or equal than _b.
+- */
+-STORAGE_CLASS_ISP_OP2W_FUNC_H tflags OP_2w_ge(
+-    const tvector2w     _a,
+-    const tvector2w     _b);
+-
+-/* @brief greater than
+- *
+- * @param[in] _a	first argument
+- * @param[in] _b	second argument
+- *
+- * @return		_a > _b
+- *
+- * This function will return true if _a is greater
+- * than _b.
+- */
+-STORAGE_CLASS_ISP_OP2W_FUNC_H tflags OP_2w_gt(
+-    const tvector2w     _a,
+-    const tvector2w     _b);
+-
+-/* Shift */
+-
+-/* @brief aritmetic shift right
+- *
+- * @param[in] _a	input
+- * @param[in] _b	shift amount
+- *
+- * @return		_a >> _b
+- *
+- * This function will shift _a with _b bits to the right,
+- * preserving the sign bit.
+- * It asserts 0 <= _b <= MAX_SHIFT_2W.
+- * The operation count for this function assumes that
+- * the shift amount is a cloned scalar input.
+- */
+-STORAGE_CLASS_ISP_OP2W_FUNC_H tvector2w OP_2w_asr(
+-    const tvector2w     _a,
+-    const tvector2w     _b);
+-
+-/* @brief aritmetic shift right with rounding
+- *
+- * @param[in] _a	input
+- * @param[in] _b	shift amount
+- *
+- * @return		_a >> _b
+- *
+- * If _b < 2*NUM_BITS, this function will shift _a with _b bits to the right,
+- * preserving the sign bit, and depending on the rounding mode of the core
+- * it will round to nearest or to nearest even.
+- * If _b >= 2*NUM_BITS, this function will return 0.
+- * It asserts 0 <= _b <= MAX_SHIFT_2W.
+- * The operation count for this function assumes that
+- * the shift amount is a cloned scalar input.
+- */
+-STORAGE_CLASS_ISP_OP2W_FUNC_H tvector2w OP_2w_asrrnd(
+-    const tvector2w     _a,
+-    const tvector2w     _b);
+-
+-/* @brief saturating aritmetic shift left
+- *
+- * @param[in] _a	input
+- * @param[in] _b	shift amount
+- *
+- * @return		_a << _b
+- *
+- * If _b < MAX_BITDEPTH, this function will shift _a with _b bits to the left,
+- * saturating at MIN_RANGE/MAX_RANGE in case of overflow.
+- * If _b >= MAX_BITDEPTH, this function will return MIN_RANGE if _a < 0,
+- * MAX_RANGE if _a > 0, 0 if _a == 0.
+- * (with MAX_BITDEPTH=64)
+- * It asserts 0 <= _b <= MAX_SHIFT_2W.
+- * The operation count for this function assumes that
+- * the shift amount is a cloned scalar input.
+- */
+-STORAGE_CLASS_ISP_OP2W_FUNC_H tvector2w OP_2w_asl(
+-    const tvector2w     _a,
+-    const tvector2w     _b);
+-
+-/* @brief saturating aritmetic shift left
+- *
+- * @param[in] _a	input
+- * @param[in] _b	shift amount
+- *
+- * @return		_a << _b
+- *
+- * This function is identical to OP_2w_asl( )
+- */
+-STORAGE_CLASS_ISP_OP2W_FUNC_H tvector2w OP_2w_aslsat(
+-    const tvector2w     _a,
+-    const tvector2w     _b);
+-
+-/* @brief logical shift left
+- *
+- * @param[in] _a	input
+- * @param[in] _b	shift amount
+- *
+- * @return		_a << _b
+- *
+- * This function will shift _a with _b bits to the left.
+- * It will insert zeroes on the right.
+- * It asserts 0 <= _b <= MAX_SHIFT_2W.
+- * The operation count for this function assumes that
+- * the shift amount is a cloned scalar input.
+- */
+-STORAGE_CLASS_ISP_OP2W_FUNC_H tvector2w OP_2w_lsl(
+-    const tvector2w     _a,
+-    const tvector2w     _b);
+-
+-/* @brief logical shift right
+- *
+- * @param[in] _a	input
+- * @param[in] _b	shift amount
+- *
+- * @return		_a >> _b
+- *
+- * This function will shift _a with _b bits to the right.
+- * It will insert zeroes on the left.
+- * It asserts 0 <= _b <= MAX_SHIFT_2W.
+- * The operation count for this function assumes that
+- * the shift amount is a cloned scalar input.
+- */
+-STORAGE_CLASS_ISP_OP2W_FUNC_H tvector2w OP_2w_lsr(
+-    const tvector2w     _a,
+-    const tvector2w     _b);
+-
+-/* clipping */
+-
+-/* @brief Clip asymmetrical
+- *
+- * @param[in] _a	first argument
+- * @param[in] _b	second argument
+- *
+- * @return		_a clipped between ~_b and b
+- *
+- * This function will clip the first argument between
+- * (-_b - 1) and _b.
+- * It asserts _b >= 0.
+- */
+-STORAGE_CLASS_ISP_OP2W_FUNC_H tvector2w OP_2w_clip_asym(
+-    const tvector2w     _a,
+-    const tvector2w     _b);
+-
+-/* @brief Clip zero
+- *
+- * @param[in] _a	first argument
+- * @param[in] _b	second argument
+- *
+- * @return		_a clipped beteween 0 and _b
+- *
+- * This function will clip the first argument between
+- * zero and _b.
+- * It asserts _b >= 0.
+- */
+-STORAGE_CLASS_ISP_OP2W_FUNC_H tvector2w OP_2w_clipz(
+-    const tvector2w     _a,
+-    const tvector2w     _b);
+-
+-/* division */
+-
+-/* @brief Truncated division
+- *
+- * @param[in] _a	first argument
+- * @param[in] _b	second argument
+- *
+- * @return		trunc( _a / _b )
+- *
+- * This function will divide the first argument by
+- * the second argument, with rounding toward 0.
+- * If _b == 0 and _a <  0, the function will return MIN_RANGE.
+- * If _b == 0 and _a == 0, the function will return 0.
+- * If _b == 0 and _a >  0, the function will return MAX_RANGE.
+- */
+-STORAGE_CLASS_ISP_OP2W_FUNC_H tvector2w OP_2w_div(
+-    const tvector2w     _a,
+-    const tvector2w     _b);
+-
+-/* @brief Saturating truncated division
+- *
+- * @param[in] _a	first argument
+- * @param[in] _b	second argument
+- *
+- * @return		CLIP( trunc( _a / _b ), MIN_RANGE1w, MAX_RANGE1w )
+- *
+- * This function will divide the first argument by
+- * the second argument, with rounding toward 0, and
+- * saturate the result to the range of single precision.
+- * If _b == 0 and _a <  0, the function will return MIN_RANGE.
+- * If _b == 0 and _a == 0, the function will return 0.
+- * If _b == 0 and _a >  0, the function will return MAX_RANGE.
+- */
+-STORAGE_CLASS_ISP_OP2W_FUNC_H tvector1w OP_2w_divh(
+-    const tvector2w     _a,
+-    const tvector1w     _b);
+-
+-/* @brief Modulo
+- *
+- * @param[in] _a	first argument
+- * @param[in] _b	second argument
+- *
+- * @return		n/a
+- *
+- * This function has not yet been implemented.
+- */
+-STORAGE_CLASS_ISP_OP2W_FUNC_H tvector2w OP_2w_mod(
+-    const tvector2w     _a,
+-    const tvector2w     _b);
+-
+-/* @brief Unsigned Integer Square root
+- *
+- * @param[in] _a	input
+- *
+- * @return		square root of _a
+- *
+- * This function will calculate the unsigned integer square root of _a
+- */
+-STORAGE_CLASS_ISP_OP2W_FUNC_H tvector1w_unsigned OP_2w_sqrt_u(
+-	const tvector2w_unsigned     _a);
+-
+-/* Miscellaneous */
+-
+-/* @brief Multiplexer
+- *
+- * @param[in] _a	first argument
+- * @param[in] _b	second argument
+- * @param[in] _c	condition
+- *
+- * @return		_c ? _a : _b
+- *
+- * This function will return _a if the condition _c
+- * is true and _b otherwise.
+- */
+-STORAGE_CLASS_ISP_OP2W_FUNC_H tvector2w OP_2w_mux(
+-    const tvector2w     _a,
+-    const tvector2w     _b,
+-    const tflags           _c);
+-
+-/* @brief Average without rounding
+- *
+- * @param[in] _a	first operand
+- * @param[in] _b	second operand
+- *
+- * @return		(_a + _b) >> 1
+- *
+- * This function will add _a and _b, and right shift
+- * the result by one without rounding. No overflow
+- * will occur because addition is performed in the
+- * proper precision.
+- */
+-STORAGE_CLASS_ISP_OP2W_FUNC_H tvector2w  OP_2w_avg(
+-    const tvector2w     _a,
+-    const tvector2w     _b);
+-
+-/* @brief Average with rounding
+- *
+- * @param[in] _a	first argument
+- * @param[in] _b	second argument
+- *
+- * @return		(_a + _b) >> 1
+- *
+- * This function will add _a and _b at full precision,
+- * and right shift with rounding the result with 1 bit.
+- * Depending on the rounding mode of the core
+- * it will round to nearest or to nearest even.
+- */
+-STORAGE_CLASS_ISP_OP2W_FUNC_H tvector2w OP_2w_avgrnd(
+-    const tvector2w     _a,
+-    const tvector2w     _b);
+-
+-/* @brief Minimum
+- *
+- * @param[in] _a	first argument
+- * @param[in] _b	second argument
+- *
+- * @return		(_a < _b) ? _a : _b;
+- *
+- * This function will return the smallest of both
+- * input arguments.
+- */
+-STORAGE_CLASS_ISP_OP2W_FUNC_H tvector2w OP_2w_min(
+-    const tvector2w     _a,
+-    const tvector2w     _b);
+-
+-/* @brief Maximum
+- *
+- * @param[in] _a	first argument
+- * @param[in] _b	second argument
+- *
+- * @return		(_a > _b) ? _a : _b;
+- *
+- * This function will return the largest of both
+- * input arguments.
+- */
+-STORAGE_CLASS_ISP_OP2W_FUNC_H tvector2w OP_2w_max(
+-    const tvector2w     _a,
+-    const tvector2w     _b);
+-
+-#ifndef INLINE_ISP_OP2W
+-#define STORAGE_CLASS_ISP_OP2W_FUNC_C
+-#define STORAGE_CLASS_ISP_OP2W_DATA_C const
+-#else /* INLINE_ISP_OP2W */
+-#define STORAGE_CLASS_ISP_OP2W_FUNC_C STORAGE_CLASS_ISP_OP2W_FUNC_H
+-#define STORAGE_CLASS_ISP_OP2W_DATA_C STORAGE_CLASS_ISP_OP2W_DATA_H
+-#include "isp_op2w.c"
+-#define ISP_OP2W_INLINED
+-#endif  /* INLINE_ISP_OP2W */
+-
+-#endif /* __ISP_OP2W_H_INCLUDED__ */
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/host/isp_op2w_types.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/host/isp_op2w_types.h
+deleted file mode 100644
+index 7e86083a8a33..000000000000
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/host/isp_op2w_types.h
++++ /dev/null
+@@ -1,49 +0,0 @@
+-/*
+- * Support for Intel Camera Imaging ISP subsystem.
+- * Copyright (c) 2015, Intel Corporation.
+- *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms and conditions of the GNU General Public License,
+- * version 2, as published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope it will be useful, but WITHOUT
+- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+- * more details.
+- */
+-
+-#ifndef __ISP_OP2W_TYPES_H_INCLUDED__
+-#define __ISP_OP2W_TYPES_H_INCLUDED__
+-
+-/*
+- * This file is part of the Multi-precision vector operations exstension package.
+- */
+-
+-/*
+- * Double-precision vector operations
+- */
+-
+-/*
+- * Prerequisites:
+- *
+- */
+-#include "mpmath.h"
+-#include "isp_op1w_types.h"
+-
+-/*
+- * Single-precision data type specification
+- */
+-
+-
+-typedef mpsdata_t       tvector2w;
+-typedef mpsdata_t       tscalar2w;
+-typedef mpsdata_t       tvector2w_signed_positive;
+-typedef mpudata_t       tvector2w_unsigned;
+-
+-
+-typedef struct {
+-  tvector2w       d;
+-  tflags        f;
+-} tvector2w_tflags;
+-
+-#endif /* __ISP_OP2W_TYPES_H_INCLUDED__ */
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/host/isp_op_count.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/host/isp_op_count.h
+deleted file mode 100644
+index 8e7b48d026b0..000000000000
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/host/isp_op_count.h
++++ /dev/null
+@@ -1,226 +0,0 @@
+-/*
+- * Support for Intel Camera Imaging ISP subsystem.
+- * Copyright (c) 2015, Intel Corporation.
+- *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms and conditions of the GNU General Public License,
+- * version 2, as published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope it will be useful, but WITHOUT
+- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+- * more details.
+- */
+-
+-#ifndef __ISP_OP_COUNT_H_INCLUDED__
+-#define __ISP_OP_COUNT_H_INCLUDED__
+-
+-#include <stdio.h>
+-
+-typedef struct {
+-	long long bbb_cnt;   /* number of bbb      */
+-	int bbb_op;    /* operations per bbb */
+-	long long total_cnt; /* bbb_cnt * bbb_op   */
+-} bbb_stat_t;
+-
+-typedef enum {
+-	bbb_func_OP_1w_and,
+-	bbb_func_OP_1w_or,
+-	bbb_func_OP_1w_xor,
+-	bbb_func_OP_1w_inv,
+-	bbb_func_OP_1w_add,
+-	bbb_func_OP_1w_sub,
+-	bbb_func_OP_1w_addsat,
+-	bbb_func_OP_1w_subsat,
+-	bbb_func_OP_1w_subasr1,
+-	bbb_func_OP_1w_subhalf,
+-	bbb_func_OP_1w_subhalfrnd,
+-	bbb_func_OP_1w_abs,
+-	bbb_func_OP_1w_subabssat,
+-#ifdef ISP2401
+-	bbb_func_OP_1w_subsat_u,
+-#endif
+-	bbb_func_OP_1w_muld,
+-	bbb_func_OP_1w_mul,
+-	bbb_func_OP_1w_qmul,
+-	bbb_func_OP_1w_qrmul,
+-	bbb_func_OP_1w_eq,
+-	bbb_func_OP_1w_ne,
+-	bbb_func_OP_1w_le,
+-	bbb_func_OP_1w_lt,
+-	bbb_func_OP_1w_ge,
+-	bbb_func_OP_1w_gt,
+-	bbb_func_OP_1w_asr,
+-	bbb_func_OP_1w_asrrnd,
+-	bbb_func_OP_1w_asl,
+-	bbb_func_OP_1w_aslsat,
+-	bbb_func_OP_1w_lsl,
+-	bbb_func_OP_1w_lsr,
+-#ifdef ISP2401
+-	bbb_func_OP_1w_ashift,
+-	bbb_func_OP_1w_lshift,
+-#endif
+-	bbb_func_OP_int_cast_to_1w ,
+-	bbb_func_OP_1w_cast_to_int ,
+-	bbb_func_OP_1w_cast_to_2w ,
+-	bbb_func_OP_2w_cast_to_1w ,
+-	bbb_func_OP_2w_sat_cast_to_1w ,
+-	bbb_func_OP_1w_clip_asym,
+-	bbb_func_OP_1w_clipz,
+-	bbb_func_OP_1w_div,
+-	bbb_func_OP_1w_qdiv,
+-	bbb_func_OP_1w_mod,
+-	bbb_func_OP_1w_sqrt_u,
+-	bbb_func_OP_1w_mux,
+-	bbb_func_OP_1w_avg,
+-	bbb_func_OP_1w_avgrnd,
+-	bbb_func_OP_1w_min,
+-	bbb_func_OP_1w_max,
+-	bbb_func_OP_2w_and,
+-	bbb_func_OP_2w_or,
+-	bbb_func_OP_2w_xor,
+-	bbb_func_OP_2w_inv,
+-	bbb_func_OP_2w_add,
+-	bbb_func_OP_2w_sub,
+-	bbb_func_OP_2w_addsat,
+-	bbb_func_OP_2w_subsat,
+-	bbb_func_OP_2w_subasr1,
+-	bbb_func_OP_2w_subhalf,
+-	bbb_func_OP_2w_subhalfrnd,
+-	bbb_func_OP_2w_abs,
+-	bbb_func_OP_2w_subabssat,
+-	bbb_func_OP_2w_mul,
+-	bbb_func_OP_2w_qmul,
+-	bbb_func_OP_2w_qrmul,
+-	bbb_func_OP_2w_eq,
+-	bbb_func_OP_2w_ne,
+-	bbb_func_OP_2w_le,
+-	bbb_func_OP_2w_lt,
+-	bbb_func_OP_2w_ge,
+-	bbb_func_OP_2w_gt,
+-	bbb_func_OP_2w_asr,
+-	bbb_func_OP_2w_asrrnd,
+-	bbb_func_OP_2w_asl,
+-	bbb_func_OP_2w_aslsat,
+-	bbb_func_OP_2w_lsl,
+-	bbb_func_OP_2w_lsr,
+-	bbb_func_OP_2w_clip_asym,
+-	bbb_func_OP_2w_clipz,
+-	bbb_func_OP_2w_div,
+-	bbb_func_OP_2w_divh,
+-	bbb_func_OP_2w_mod,
+-	bbb_func_OP_2w_sqrt_u,
+-	bbb_func_OP_2w_mux,
+-	bbb_func_OP_2w_avg,
+-	bbb_func_OP_2w_avgrnd,
+-	bbb_func_OP_2w_min,
+-	bbb_func_OP_2w_max,
+-	bbb_func_OP_1w_mul_realigning,
+-#ifdef ISP2401
+-	bbb_func_OP_1w_imax32,
+-	bbb_func_OP_1w_imaxidx32,
+-	bbb_func_OP_1w_cond_add,
+-#endif
+-
+-	bbb_func_num_functions
+-} bbb_functions_t;
+-
+-typedef enum {
+-	core_func_OP_and,
+-	core_func_OP_or,
+-	core_func_OP_xor,
+-	core_func_OP_inv,
+-	core_func_OP_add,
+-	core_func_OP_sub,
+-	core_func_OP_addsat,
+-	core_func_OP_subsat,
+-	core_func_OP_subasr1,
+-	core_func_OP_abs,
+-	core_func_OP_subabssat,
+-#ifdef ISP2401
+-	core_func_OP_subsat_u,
+-#endif
+-	core_func_OP_muld,
+-	core_func_OP_mul,
+-	core_func_OP_qrmul,
+-	core_func_OP_eq,
+-	core_func_OP_ne,
+-	core_func_OP_le,
+-	core_func_OP_lt,
+-	core_func_OP_ge,
+-	core_func_OP_gt,
+-	core_func_OP_asr,
+-	core_func_OP_asl,
+-	core_func_OP_asrrnd,
+-	core_func_OP_lsl,
+-	core_func_OP_lslsat,
+-	core_func_OP_lsr,
+-	core_func_OP_lsrrnd,
+-	core_func_OP_clip_asym,
+-	core_func_OP_clipz,
+-	core_func_OP_div,
+-	core_func_OP_mod,
+-	core_func_OP_sqrt,
+-	core_func_OP_mux,
+-	core_func_OP_avgrnd,
+-	core_func_OP_min,
+-	core_func_OP_max,
+-
+-	core_func_num_functions
+-
+-} core_functions_t;
+-
+-/* inc_bbb_count() can be used for building blocks that are implemented with one operation
+-   inc_bbb_count_ext() will be used in case the operation count is not known or greater than one.
+-
+-   For some operations there is a difference in operation count for the cloned version and the
+-   not cloned version. this difference is not vissible on the reference code side.
+-   We could add a min and max operation count for those operations, and keep track of those counts
+-   separately. That way in the report the impact can be seen. */
+-
+-#ifdef DISABLE_OPCNT
+-#define inc_bbb_count(func)
+-#define inc_bbb_count_ext(func, cnt)
+-#define enable_bbb_count()
+-#define disable_bbb_count()
+-#else
+-#define inc_bbb_count(func) _inc_bbb_count(func)
+-#define inc_bbb_count_ext(func, cnt) _inc_bbb_count_ext(func, cnt)
+-#define enable_bbb_count() _enable_bbb_count()
+-#define disable_bbb_count() _disable_bbb_count()
+-#endif
+-
+-void
+-inc_core_count_n(
+-	core_functions_t func,
+-	unsigned n);
+-
+-void
+-_enable_bbb_count(void);
+-
+-void
+-_disable_bbb_count(void);
+-
+-void
+-_inc_bbb_count(
+-	bbb_functions_t func);
+-
+-void
+-_inc_bbb_count_ext(
+-	bbb_functions_t func,
+-	int op_count);
+-
+-void
+-bbb_func_reset_count(void);
+-
+-void
+-bbb_func_print_totals(
+-	FILE  * fp,
+-	unsigned non_zero_only);
+-
+-void
+-core_func_print_totals(
+-	FILE* fp,
+-	unsigned non_zero_only);
+-
+-#endif
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/host/osys_public.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/host/osys_public.h
+deleted file mode 100644
+index 8695e3c01fa6..000000000000
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/host/osys_public.h
++++ /dev/null
+@@ -1,20 +0,0 @@
+-/*
+- * Support for Intel Camera Imaging ISP subsystem.
+- * Copyright (c) 2015, Intel Corporation.
+- *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms and conditions of the GNU General Public License,
+- * version 2, as published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope it will be useful, but WITHOUT
+- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+- * more details.
+- */
+-
+-#ifndef __OSYS_PUBLIC_H_INCLUDED__
+-#define __OSYS_PUBLIC_H_INCLUDED__
+-
+-#include "system_types.h"
+-
+-#endif /* __OSYS_PUBLIC_H_INCLUDED__ */
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/host/pipeline_public.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/host/pipeline_public.h
+deleted file mode 100644
+index 32cea582b4c4..000000000000
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/host/pipeline_public.h
++++ /dev/null
+@@ -1,18 +0,0 @@
+-/*
+- * Support for Intel Camera Imaging ISP subsystem.
+- * Copyright (c) 2015, Intel Corporation.
+- *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms and conditions of the GNU General Public License,
+- * version 2, as published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope it will be useful, but WITHOUT
+- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+- * more details.
+- */
+-
+-#ifndef __PIPELINE_PUBLIC_H_INCLUDED__
+-#define __PIPELINE_PUBLIC_H_INCLUDED__
+-
+-#endif /* __PIPELINE_PUBLIC_H_INCLUDED__ */
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/host/ref_vector_func.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/host/ref_vector_func.h
+deleted file mode 100644
+index c1638c06407d..000000000000
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/host/ref_vector_func.h
++++ /dev/null
+@@ -1,1221 +0,0 @@
+-/*
+- * Support for Intel Camera Imaging ISP subsystem.
+- * Copyright (c) 2015, Intel Corporation.
+- *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms and conditions of the GNU General Public License,
+- * version 2, as published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope it will be useful, but WITHOUT
+- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+- * more details.
+- */
+-
+-#ifndef _REF_VECTOR_FUNC_H_INCLUDED_
+-#define _REF_VECTOR_FUNC_H_INCLUDED_
+-
+-
+-#ifdef INLINE_VECTOR_FUNC
+-#define STORAGE_CLASS_REF_VECTOR_FUNC_H static inline
+-#define STORAGE_CLASS_REF_VECTOR_DATA_H static inline_DATA
+-#else /* INLINE_VECTOR_FUNC */
+-#define STORAGE_CLASS_REF_VECTOR_FUNC_H extern
+-#define STORAGE_CLASS_REF_VECTOR_DATA_H extern_DATA
+-#endif  /* INLINE_VECTOR_FUNC */
+-
+-
+-#include "ref_vector_func_types.h"
+-
+-/* @brief Doubling multiply accumulate with saturation
+- *
+- * @param[in] acc accumulator
+- * @param[in] a multiply input
+- * @param[in] b multiply input
+-  *
+- * @return		acc + (a*b)
+- *
+- * This function will do a doubling multiply ont
+- * inputs a and b, and will add the result to acc.
+- * in case of an overflow of acc, it will saturate.
+- */
+-STORAGE_CLASS_REF_VECTOR_FUNC_H tvector2w OP_1w_maccd_sat(
+-	tvector2w acc,
+-	tvector1w a,
+-	tvector1w b );
+-
+-/* @brief Doubling multiply accumulate
+- *
+- * @param[in] acc accumulator
+- * @param[in] a multiply input
+- * @param[in] b multiply input
+-  *
+- * @return		acc + (a*b)
+- *
+- * This function will do a doubling multiply ont
+- * inputs a and b, and will add the result to acc.
+- * in case of overflow it will not saturate but wrap around.
+- */
+-STORAGE_CLASS_REF_VECTOR_FUNC_H tvector2w OP_1w_maccd(
+-	tvector2w acc,
+-	tvector1w a,
+-	tvector1w b );
+-
+-/* @brief Re-aligning multiply
+- *
+- * @param[in] a multiply input
+- * @param[in] b multiply input
+- * @param[in] shift shift amount
+- *
+- * @return		(a*b)>>shift
+- *
+- * This function will multiply a with b, followed by a right
+- * shift with rounding. the result is saturated and casted
+- * to single precision.
+- */
+-STORAGE_CLASS_REF_VECTOR_FUNC_H tvector1w OP_1w_mul_realigning(
+-	tvector1w a,
+-	tvector1w b,
+-	tscalar1w shift );
+-
+-/* @brief Leading bit index
+- *
+- * @param[in] a 	input
+- *
+- * @return		index of the leading bit of each element
+- *
+- * This function finds the index of leading one (set) bit of the
+- * input. The index starts with 0 for the LSB and can go upto
+- * ISP_VEC_ELEMBITS-1 for the MSB. For an input equal to zero,
+- * the returned index is -1.
+- */
+-STORAGE_CLASS_REF_VECTOR_FUNC_H tvector1w OP_1w_lod(
+-		tvector1w a);
+-
+-/* @brief Config Unit Input Processing
+- *
+- * @param[in] a 	    input
+- * @param[in] input_scale   input scaling factor
+- * @param[in] input_offset  input offset factor
+- *
+- * @return		    scaled & offset added input	clamped to MAXVALUE
+- *
+- * As part of input processing for piecewise linear estimation config unit,
+- * this function will perform scaling followed by adding offset and
+- * then clamping to the MAX InputValue
+- * It asserts -MAX_SHIFT_1W <= input_scale <= MAX_SHIFT_1W, and
+- * -MAX_SHIFT_1W <= input_offset <= MAX_SHIFT_1W
+- */
+-STORAGE_CLASS_REF_VECTOR_FUNC_H tvector1w OP_1w_input_scaling_offset_clamping(
+-	tvector1w a,
+-	tscalar1w_5bit_signed input_scale,
+-	tscalar1w_5bit_signed input_offset);
+-
+-/* @brief Config Unit Output Processing
+- *
+- * @param[in] a 	     output
+- * @param[in] output_scale   output scaling factor
+- *
+- * @return		     scaled & clamped output value
+- *
+- * As part of output processing for piecewise linear estimation config unit,
+- * This function will perform scaling and then clamping to output
+- * MAX value.
+- * It asserts -MAX_SHIFT_1W <= output_scale <= MAX_SHIFT_1W
+- */
+-STORAGE_CLASS_REF_VECTOR_FUNC_H tvector1w OP_1w_output_scaling_clamping(
+-	tvector1w a,
+-	tscalar1w_5bit_signed output_scale);
+-
+-/* @brief Config Unit Piecewiselinear estimation
+- *
+- * @param[in] a 	          input
+- * @param[in] config_points   config parameter structure
+- *
+- * @return		     	   piecewise linear estimated output
+- *
+- * Given a set of N points {(x1,y1),()x2,y2), ....,(xn,yn)}, to find
+- * the functional value at an arbitrary point around the input set,
+- * this function will perform input processing followed by piecewise
+- * linear estimation and then output processing to yield the final value.
+- */
+-STORAGE_CLASS_REF_VECTOR_FUNC_H tvector1w OP_1w_piecewise_estimation(
+-	tvector1w a,
+-	ref_config_points config_points);
+-
+-/* @brief Fast Config Unit
+- *
+- * @param[in] x 		input
+- * @param[in] init_vectors	LUT data structure
+- *
+- * @return	piecewise linear estimated output
+- * This block gets an input x and a set of input configuration points stored in a look-up
+- * table of 32 elements. First, the x input is clipped to be within the range [x1, xn+1].
+- * Then, it computes the interval in which the input lies. Finally, the output is computed
+- * by performing linear interpolation based on the interval properties (i.e. x_prev, slope,
+- * and offset). This block assumes that the points are equally spaced and that the interval
+- * size is a power of 2.
+- **/
+-STORAGE_CLASS_REF_VECTOR_FUNC_H  tvector1w OP_1w_XCU(
+-	tvector1w x,
+-	xcu_ref_init_vectors init_vectors);
+-
+-
+-/* @brief LXCU
+- *
+- * @param[in] x 		input
+- * @param[in] init_vectors 	LUT data structure
+- *
+- * @return   logarithmic piecewise linear estimated output.
+- * This block gets an input x and a set of input configuration points stored in a look-up
+- * table of 32 elements. It computes the interval in which the input lies.
+- * Then output is computed by performing linear interpolation based on the interval
+- * properties (i.e. x_prev, slope, * and offset).
+- * This BBB assumes spacing x-coordinates of "init vectors" increase exponentially as
+- * shown below.
+- * interval size :   2^0    2^1      2^2    2^3
+- * x-coordinates: x0<--->x1<---->x2<---->x3<---->
+- **/
+-STORAGE_CLASS_REF_VECTOR_FUNC_H tvector1w OP_1w_LXCU(
+-	tvector1w x,
+-	xcu_ref_init_vectors init_vectors);
+-
+-/* @brief Coring
+- *
+- * @param[in] coring_vec   Amount of coring based on brightness level
+- * @param[in] filt_input   Vector of input pixels on which Coring is applied
+- * @param[in] m_CnrCoring0 Coring Level0
+- *
+- * @return                 vector of filtered pixels after coring is applied
+- *
+- * This function will perform adaptive coring based on brightness level to
+- * remove noise
+- */
+-STORAGE_CLASS_REF_VECTOR_FUNC_H tvector1w coring(
+-	tvector1w coring_vec,
+-	tvector1w filt_input,
+-	tscalar1w m_CnrCoring0 );
+-
+-/* @brief Normalised FIR with coefficients [3,4,1]
+- *
+- * @param[in] m	1x3 matrix with pixels
+- *
+- * @return		filtered output
+- *
+- * This function will calculate the
+- * Normalised FIR with coefficients [3,4,1],
+- *-5dB at Fs/2, -90 degree phase shift (quarter pixel)
+- */
+-STORAGE_CLASS_REF_VECTOR_FUNC_H tvector1w fir1x3m_5dB_m90_nrm (
+-	const s_1w_1x3_matrix		m);
+-
+-/* @brief Normalised FIR with coefficients [1,4,3]
+- *
+- * @param[in] m	1x3 matrix with pixels
+- *
+- * @return		filtered output
+- *
+- * This function will calculate the
+- * Normalised FIR with coefficients [1,4,3],
+- *-5dB at Fs/2, +90 degree phase shift (quarter pixel)
+- */
+-STORAGE_CLASS_REF_VECTOR_FUNC_H tvector1w fir1x3m_5dB_p90_nrm (
+-	const s_1w_1x3_matrix		m);
+-
+-/* @brief Normalised FIR with coefficients [1,2,1]
+- *
+- * @param[in] m	1x3 matrix with pixels
+- *
+- * @return		filtered output
+- *
+- * This function will calculate the
+- * Normalised FIR with coefficients [1,2,1], -6dB at Fs/2
+- */
+-STORAGE_CLASS_REF_VECTOR_FUNC_H tvector1w fir1x3m_6dB_nrm (
+-	const s_1w_1x3_matrix		m);
+-
+-/* @brief Normalised FIR with coefficients [13,16,3]
+- *
+- * @param[in] m	1x3 matrix with pixels
+- *
+- * @return		filtered output
+- *
+- * This function will calculate the
+- * Normalised FIR with coefficients [13,16,3],
+- */
+-STORAGE_CLASS_REF_VECTOR_FUNC_H tvector1w fir1x3m_6dB_nrm_ph0 (
+-	const s_1w_1x3_matrix		m);
+-
+-/* @brief Normalised FIR with coefficients [9,16,7]
+- *
+- * @param[in] m	1x3 matrix with pixels
+- *
+- * @return		filtered output
+- *
+- * This function will calculate the
+- * Normalised FIR with coefficients [9,16,7],
+- */
+-STORAGE_CLASS_REF_VECTOR_FUNC_H tvector1w fir1x3m_6dB_nrm_ph1 (
+-	const s_1w_1x3_matrix		m);
+-
+-/* @brief Normalised FIR with coefficients [5,16,11]
+- *
+- * @param[in] m	1x3 matrix with pixels
+- *
+- * @return		filtered output
+- *
+- * This function will calculate the
+- * Normalised FIR with coefficients [5,16,11],
+- */
+-STORAGE_CLASS_REF_VECTOR_FUNC_H tvector1w fir1x3m_6dB_nrm_ph2 (
+-	const s_1w_1x3_matrix		m);
+-
+-/* @brief Normalised FIR with coefficients [1,16,15]
+- *
+- * @param[in] m	1x3 matrix with pixels
+- *
+- * @return		filtered output
+- *
+- * This function will calculate the
+- * Normalised FIR with coefficients [1,16,15],
+- */
+-STORAGE_CLASS_REF_VECTOR_FUNC_H tvector1w fir1x3m_6dB_nrm_ph3 (
+-	const s_1w_1x3_matrix		m);
+-
+-/* @brief Normalised FIR with programable phase shift
+- *
+- * @param[in] m	1x3 matrix with pixels
+- * @param[in] coeff	phase shift
+- *
+- * @return		filtered output
+- *
+- * This function will calculate the
+- * Normalised FIR with coefficients [8-coeff,16,8+coeff],
+- */
+-STORAGE_CLASS_REF_VECTOR_FUNC_H tvector1w fir1x3m_6dB_nrm_calc_coeff (
+-	const s_1w_1x3_matrix		m, tscalar1w_3bit coeff);
+-
+-/* @brief 3 tap FIR with coefficients [1,1,1]
+- *
+- * @param[in] m	1x3 matrix with pixels
+- *
+- * @return		filtered output
+- *
+- * This function will calculate the
+- * FIR with coefficients [1,1,1], -9dB at Fs/2 normalized with factor 1/2
+- */
+-STORAGE_CLASS_REF_VECTOR_FUNC_H tvector1w fir1x3m_9dB_nrm (
+-	const s_1w_1x3_matrix		m);
+-
+-#ifdef ISP2401
+-/* @brief      symmetric 3 tap FIR acts as LPF or BSF
+- *
+- * @param[in] m 1x3 matrix with pixels
+- * @param[in] k filter coefficient shift
+- * @param[in] bsf_flag 1 for BSF and 0 for LPF
+- *
+- * @return    filtered output
+- *
+- * This function performs variable coefficient symmetric 3 tap filter which can
+- * be either used as Low Pass Filter or Band Stop Filter.
+- * Symmetric 3tap tap filter with DC gain 1 has filter coefficients [a, 1-2a, a]
+- * For LPF 'a' can be approximated as (1 - 2^(-k))/4, k = 0, 1, 2, ...
+- * and filter output can be approximated as:
+- * out_LPF = ((v00 + v02) - ((v00 + v02) >> k) + (2 * (v01 + (v01 >> k)))) >> 2
+- * For BSF 'a' can be approximated as (1 + 2^(-k))/4, k = 0, 1, 2, ...
+- * and filter output can be approximated as:
+- * out_BSF = ((v00 + v02) + ((v00 + v02) >> k) + (2 * (v01 - (v01 >> k)))) >> 2
+- * For a given filter coefficient shift 'k' and bsf_flag this function
+- * behaves either as LPF or BSF.
+- * All computation is done using 1w arithmetic and implementation does not use
+- * any multiplication.
+- */
+-STORAGE_CLASS_REF_VECTOR_FUNC_H tvector1w
+-sym_fir1x3m_lpf_bsf(s_1w_1x3_matrix m,
+-		    tscalar1w k,
+-		    tscalar_bool bsf_flag);
+-#endif
+-
+-/* @brief Normalised 2D FIR with coefficients  [1;2;1] * [1,2,1]
+- *
+- * @param[in] m	3x3 matrix with pixels
+- *
+- * @return		filtered output
+- *
+- * This function will calculate the
+- * Normalised FIR with coefficients  [1;2;1] * [1,2,1]
+- * Unity gain filter through repeated scaling and rounding
+- *	- 6 rotate operations per output
+- *	- 8 vector operations per output
+- * _______
+- *   14 total operations
+- */
+-STORAGE_CLASS_REF_VECTOR_FUNC_H tvector1w fir3x3m_6dB_nrm (
+-	const s_1w_3x3_matrix		m);
+-
+-/* @brief Normalised 2D FIR with coefficients  [1;1;1] * [1,1,1]
+- *
+- * @param[in] m	3x3 matrix with pixels
+- *
+- * @return		filtered output
+- *
+- * This function will calculate the
+- * Normalised FIR with coefficients [1;1;1] * [1,1,1]
+- *
+- * (near) Unity gain filter through repeated scaling and rounding
+- *	- 6 rotate operations per output
+- *	- 8 vector operations per output
+- * _______
+- *   14 operations
+- */
+-STORAGE_CLASS_REF_VECTOR_FUNC_H tvector1w fir3x3m_9dB_nrm (
+-	const s_1w_3x3_matrix		m);
+-
+-/* @brief Normalised dual output 2D FIR with coefficients  [1;2;1] * [1,2,1]
+- *
+- * @param[in] m	4x3 matrix with pixels
+- *
+- * @return		two filtered outputs (2x1 matrix)
+- *
+- * This function will calculate the
+- * Normalised FIR with coefficients  [1;2;1] * [1,2,1]
+- * and produce two outputs (vertical)
+- * Unity gain filter through repeated scaling and rounding
+- * compute two outputs per call to re-use common intermediates
+- *	- 4 rotate operations per output
+- *	- 6 vector operations per output (alternative possible, but in this
+- *	    form it's not obvious to re-use variables)
+- * _______
+- *   10 total operations
+- */
+- STORAGE_CLASS_REF_VECTOR_FUNC_H s_1w_2x1_matrix fir3x3m_6dB_out2x1_nrm (
+-	const s_1w_4x3_matrix		m);
+-
+-/* @brief Normalised dual output 2D FIR with coefficients [1;1;1] * [1,1,1]
+- *
+- * @param[in] m	4x3 matrix with pixels
+- *
+- * @return		two filtered outputs (2x1 matrix)
+- *
+- * This function will calculate the
+- * Normalised FIR with coefficients [1;1;1] * [1,1,1]
+- * and produce two outputs (vertical)
+- * (near) Unity gain filter through repeated scaling and rounding
+- * compute two outputs per call to re-use common intermediates
+- *	- 4 rotate operations per output
+- *	- 7 vector operations per output (alternative possible, but in this
+- *	    form it's not obvious to re-use variables)
+- * _______
+- *   11 total operations
+- */
+-STORAGE_CLASS_REF_VECTOR_FUNC_H s_1w_2x1_matrix fir3x3m_9dB_out2x1_nrm (
+-	const s_1w_4x3_matrix		m);
+-
+-/* @brief Normalised 2D FIR 5x5
+- *
+- * @param[in] m	5x5 matrix with pixels
+- *
+- * @return		filtered output
+- *
+- * This function will calculate the
+- * Normalised FIR with coefficients [1;1;1] * [1;2;1] * [1,2,1] * [1,1,1]
+- * and produce a filtered output
+- * (near) Unity gain filter through repeated scaling and rounding
+- *	- 20 rotate operations per output
+- *	- 28 vector operations per output
+- * _______
+- *   48 total operations
+-*/
+-STORAGE_CLASS_REF_VECTOR_FUNC_H tvector1w fir5x5m_15dB_nrm (
+-	const s_1w_5x5_matrix	m);
+-
+-/* @brief Normalised FIR 1x5
+- *
+- * @param[in] m	1x5 matrix with pixels
+- *
+- * @return		filtered output
+- *
+- * This function will calculate the
+- * Normalised FIR with coefficients [1,2,1] * [1,1,1] = [1,4,6,4,1]
+- * and produce a filtered output
+- * (near) Unity gain filter through repeated scaling and rounding
+- *	- 4 rotate operations per output
+- *	- 5 vector operations per output
+- * _______
+- *   9 total operations
+-*/
+-STORAGE_CLASS_REF_VECTOR_FUNC_H tvector1w fir1x5m_12dB_nrm (
+-	const s_1w_1x5_matrix m);
+-
+-/* @brief Normalised 2D FIR 5x5
+- *
+- * @param[in] m	5x5 matrix with pixels
+- *
+- * @return		filtered output
+- *
+- * This function will calculate the
+- * Normalised FIR with coefficients [1;2;1] * [1;2;1] * [1,2,1] * [1,2,1]
+- * and produce a filtered output
+- * (near) Unity gain filter through repeated scaling and rounding
+- *	- 20 rotate operations per output
+- *	- 30 vector operations per output
+- * _______
+- *   50 total operations
+-*/
+-STORAGE_CLASS_REF_VECTOR_FUNC_H tvector1w fir5x5m_12dB_nrm (
+-	const s_1w_5x5_matrix m);
+-
+-/* @brief Approximate averaging FIR 1x5
+- *
+- * @param[in] m	1x5 matrix with pixels
+- *
+- * @return		filtered output
+- *
+- * This function will produce filtered output by
+- * applying the filter coefficients (1/8) * [1,1,1,1,1]
+- * _______
+- *   5 vector operations
+-*/
+-STORAGE_CLASS_REF_VECTOR_FUNC_H tvector1w fir1x5m_box (
+-	s_1w_1x5_matrix m);
+-
+-/* @brief Approximate averaging FIR 1x9
+- *
+- * @param[in] m	1x9 matrix with pixels
+- *
+- * @return		filtered output
+- *
+- * This function will produce filtered output by
+- * applying the filter coefficients (1/16) * [1,1,1,1,1,1,1,1,1]
+- * _______
+- *   9 vector operations
+-*/
+-STORAGE_CLASS_REF_VECTOR_FUNC_H tvector1w fir1x9m_box (
+-	s_1w_1x9_matrix m);
+-
+-/* @brief Approximate averaging FIR 1x11
+- *
+- * @param[in] m	1x11 matrix with pixels
+- *
+- * @return		filtered output
+- *
+- * This function will produce filtered output by
+- * applying the filter coefficients (1/16) * [1,1,1,1,1,1,1,1,1,1,1]
+- * _______
+- *   12 vector operations
+-*/
+-STORAGE_CLASS_REF_VECTOR_FUNC_H tvector1w fir1x11m_box (
+-	s_1w_1x11_matrix m);
+-
+-/* @brief Symmetric 7 tap filter with normalization
+- *
+- *  @param[in] in 1x7 matrix with pixels
+- *  @param[in] coeff 1x4 matrix with coefficients
+- *  @param[in] out_shift output pixel shift value for normalization
+- *
+- *  @return symmetric 7 tap filter output
+- *
+- * This function performs symmetric 7 tap filter over input pixels.
+- * Filter sum is normalized by shifting out_shift bits.
+- * Filter sum: p0*c3 + p1*c2 + p2*c1 + p3*c0 + p4*c1 + p5*c2 + p6*c3
+- * is implemented as: (p0 + p6)*c3 + (p1 + p5)*c2 + (p2 + p4)*c1 + p3*c0 to
+- * reduce multiplication.
+- * Input pixels should to be scaled, otherwise overflow is possible during
+- * addition
+-*/
+-STORAGE_CLASS_REF_VECTOR_FUNC_H tvector1w
+-fir1x7m_sym_nrm(s_1w_1x7_matrix in,
+-		s_1w_1x4_matrix coeff,
+-		tvector1w out_shift);
+-
+-/* @brief Symmetric 7 tap filter with normalization at input side
+- *
+- *  @param[in] in 1x7 matrix with pixels
+- *  @param[in] coeff 1x4 matrix with coefficients
+- *
+- *  @return symmetric 7 tap filter output
+- *
+- * This function performs symmetric 7 tap filter over input pixels.
+- * Filter sum: p0*c3 + p1*c2 + p2*c1 + p3*c0 + p4*c1 + p5*c2 + p6*c3
+- *          = (p0 + p6)*c3 + (p1 + p5)*c2 + (p2 + p4)*c1 + p3*c0
+- * Input pixels and coefficients are in Qn format, where n =
+- * ISP_VEC_ELEMBITS - 1 (ie Q15 for Broxton)
+- * To avoid double precision arithmetic input pixel sum and final sum is
+- * implemented using avgrnd and coefficient multiplication using qrmul.
+- * Final result is in Qm format where m = ISP_VEC_ELEMBITS - 2 (ie Q14 for
+- * Broxton)
+-*/
+-STORAGE_CLASS_REF_VECTOR_FUNC_H tvector1w
+-fir1x7m_sym_innrm_approx(s_1w_1x7_matrix in,
+-			 s_1w_1x4_matrix coeff);
+-
+-/* @brief Symmetric 7 tap filter with normalization at output side
+- *
+- *  @param[in] in 1x7 matrix with pixels
+- *  @param[in] coeff 1x4 matrix with coefficients
+- *
+- *  @return symmetric 7 tap filter output
+- *
+- * This function performs symmetric 7 tap filter over input pixels.
+- * Filter sum: p0*c3 + p1*c2 + p2*c1 + p3*c0 + p4*c1 + p5*c2 + p6*c3
+- *          = (p0 + p6)*c3 + (p1 + p5)*c2 + (p2 + p4)*c1 + p3*c0
+- * Input pixels are in Qn and coefficients are in Qm format, where n =
+- * ISP_VEC_ELEMBITS - 2 and m = ISP_VEC_ELEMBITS - 1 (ie Q14 and Q15
+- * respectively for Broxton)
+- * To avoid double precision arithmetic input pixel sum and final sum is
+- * implemented using addsat and coefficient multiplication using qrmul.
+- * Final sum is left shifted by 2 and saturated to produce result is Qm format
+- * (ie Q15 for Broxton)
+-*/
+-STORAGE_CLASS_REF_VECTOR_FUNC_H tvector1w
+-fir1x7m_sym_outnrm_approx(s_1w_1x7_matrix in,
+-			 s_1w_1x4_matrix coeff);
+-
+-/* @brief 4 tap filter with normalization
+- *
+- *  @param[in] in 1x4 matrix with pixels
+- *  @param[in] coeff 1x4 matrix with coefficients
+- *  @param[in] out_shift output pixel shift value for normalization
+- *
+- *  @return 4 tap filter output
+- *
+- * This function performs 4 tap filter over input pixels.
+- * Filter sum is normalized by shifting out_shift bits.
+- * Filter sum: p0*c0 + p1*c1 + p2*c2 + p3*c3
+-*/
+-STORAGE_CLASS_REF_VECTOR_FUNC_H tvector1w
+-fir1x4m_nrm(s_1w_1x4_matrix in,
+-		s_1w_1x4_matrix coeff,
+-		tvector1w out_shift);
+-
+-/* @brief 4 tap filter with normalization for half pixel interpolation
+- *
+- *  @param[in] in 1x4 matrix with pixels
+- *
+- *  @return 4 tap filter output with filter tap [-1 9 9 -1]/16
+- *
+- * This function performs 4 tap filter over input pixels.
+- * Filter sum: -p0 + 9*p1 + 9*p2 - p3
+- * This filter implementation is completely free from multiplication and double
+- * precision arithmetic.
+- * Typical usage of this filter is to half pixel interpolation of Bezier
+- * surface
+- * */
+-STORAGE_CLASS_REF_VECTOR_FUNC_H tvector1w
+-fir1x4m_bicubic_bezier_half(s_1w_1x4_matrix in);
+-
+-/* @brief 4 tap filter with normalization for quarter pixel interpolation
+- *
+- *  @param[in] in 1x4 matrix with pixels
+- *  @param[in] coeff 1x4 matrix with coefficients
+- *
+- *  @return 4 tap filter output
+- *
+- * This function performs 4 tap filter over input pixels.
+- * Filter sum: p0*c0 + p1*c1 + p2*c2 + p3*c3
+- * To avoid double precision arithmetic we implemented multiplication using
+- * qrmul and addition using avgrnd. Coefficients( c0 to c3) formats are assumed
+- * to be: Qm, Qn, Qo, Qm, where m = n + 2 and o = n + 1.
+- * Typical usage of this filter is to quarter pixel interpolation of Bezier
+- * surface with filter coefficients:[-9 111 29 -3]/128. For which coefficient
+- * values should be: [-9216/2^17  28416/2^15  1484/2^16 -3072/2^17] for
+- * ISP_VEC_ELEMBITS = 16.
+-*/
+-STORAGE_CLASS_REF_VECTOR_FUNC_H tvector1w
+-fir1x4m_bicubic_bezier_quarter(s_1w_1x4_matrix in,
+-			s_1w_1x4_matrix coeff);
+-
+-
+-/* @brief Symmetric 3 tap filter with normalization
+- *
+- *  @param[in] in 1x3 matrix with pixels
+- *  @param[in] coeff 1x2 matrix with coefficients
+- *  @param[in] out_shift output pixel shift value for normalization
+- *
+- *  @return symmetric 3 tap filter output
+- *
+- * This function performs symmetric 3 tap filter input pixels.
+- * Filter sum is normalized by shifting out_shift bits.
+- * Filter sum: p0*c1 + p1*c0 + p2*c1
+- * is implemented as: (p0 + p2)*c1 + p1*c0 to reduce multiplication.
+- * Input pixels should to be scaled, otherwise overflow is possible during
+- * addition
+-*/
+-STORAGE_CLASS_REF_VECTOR_FUNC_H tvector1w
+-fir1x3m_sym_nrm(s_1w_1x3_matrix in,
+-		s_1w_1x2_matrix coeff,
+-		tvector1w out_shift);
+-
+-/* @brief Symmetric 3 tap filter with normalization
+- *
+- *  @param[in] in 1x3 matrix with pixels
+- *  @param[in] coeff 1x2 matrix with coefficients
+- *
+- *  @return symmetric 3 tap filter output
+- *
+- * This function performs symmetric 3 tap filter over input pixels.
+- * Filter sum: p0*c1 + p1*c0 + p2*c1 = (p0 + p2)*c1 + p1*c0
+- * Input pixels are in Qn and coefficient c0 is in Qm and c1 is in Qn format,
+- * where n = ISP_VEC_ELEMBITS - 1 and m = ISP_VEC_ELEMBITS - 2 ( ie Q15 and Q14
+- * respectively for Broxton)
+- * To avoid double precision arithmetic input pixel sum is implemented using
+- * avgrnd, coefficient multiplication using qrmul and final sum using addsat
+- * Final sum is Qm format (ie Q14 for Broxton)
+-*/
+-STORAGE_CLASS_REF_VECTOR_FUNC_H tvector1w
+-fir1x3m_sym_nrm_approx(s_1w_1x3_matrix in,
+-		       s_1w_1x2_matrix coeff);
+-
+-/* @brief Mean of 1x3 matrix
+- *
+- *  @param[in] m 1x3 matrix with pixels
+- *
+- *  @return mean of 1x3 matrix
+- *
+- * This function calculates the mean of 1x3 pixels,
+- * with a factor of 4/3.
+-*/
+-STORAGE_CLASS_REF_VECTOR_FUNC_H tvector1w mean1x3m(
+-	s_1w_1x3_matrix m);
+-
+-/* @brief Mean of 3x3 matrix
+- *
+- *  @param[in] m 3x3 matrix with pixels
+- *
+- *  @return mean of 3x3 matrix
+- *
+- * This function calculates the mean of 3x3 pixels,
+- * with a factor of 16/9.
+-*/
+-STORAGE_CLASS_REF_VECTOR_FUNC_H tvector1w mean3x3m(
+-	s_1w_3x3_matrix m);
+-
+-/* @brief Mean of 1x4 matrix
+- *
+- *  @param[in] m 1x4 matrix with pixels
+- *
+- *  @return mean of 1x4 matrix
+- *
+- * This function calculates the mean of 1x4 pixels
+-*/
+-STORAGE_CLASS_REF_VECTOR_FUNC_H tvector1w mean1x4m(
+-	s_1w_1x4_matrix m);
+-
+-/* @brief Mean of 4x4 matrix
+- *
+- *  @param[in] m 4x4 matrix with pixels
+- *
+- *  @return mean of 4x4 matrix
+- *
+- * This function calculates the mean of 4x4 matrix with pixels
+-*/
+-STORAGE_CLASS_REF_VECTOR_FUNC_H tvector1w mean4x4m(
+-	s_1w_4x4_matrix m);
+-
+-/* @brief Mean of 2x3 matrix
+- *
+- *  @param[in] m 2x3 matrix with pixels
+- *
+- *  @return mean of 2x3 matrix
+- *
+- * This function calculates the mean of 2x3 matrix with pixels
+- * with a factor of 8/6.
+-*/
+-STORAGE_CLASS_REF_VECTOR_FUNC_H tvector1w mean2x3m(
+-	s_1w_2x3_matrix m);
+-
+-/* @brief Mean of 1x5 matrix
+- *
+- *  @param[in] m 1x5 matrix with pixels
+- *
+- *  @return mean of 1x5 matrix
+- *
+- * This function calculates the mean of 1x5 matrix with pixels
+- * with a factor of 8/5.
+-*/
+-STORAGE_CLASS_REF_VECTOR_FUNC_H tvector1w mean1x5m(s_1w_1x5_matrix m);
+-
+-/* @brief Mean of 1x6 matrix
+- *
+- *  @param[in] m 1x6 matrix with pixels
+- *
+- *  @return mean of 1x6 matrix
+- *
+- * This function calculates the mean of 1x6 matrix with pixels
+- * with a factor of 8/6.
+-*/
+-STORAGE_CLASS_REF_VECTOR_FUNC_H tvector1w mean1x6m(
+-	s_1w_1x6_matrix m);
+-
+-/* @brief Mean of 5x5 matrix
+- *
+- *  @param[in] m 5x5 matrix with pixels
+- *
+- *  @return mean of 5x5 matrix
+- *
+- * This function calculates the mean of 5x5 matrix with pixels
+- * with a factor of 32/25.
+-*/
+-STORAGE_CLASS_REF_VECTOR_FUNC_H tvector1w mean5x5m(
+-	s_1w_5x5_matrix m);
+-
+-/* @brief Mean of 6x6 matrix
+- *
+- *  @param[in] m 6x6 matrix with pixels
+- *
+- *  @return mean of 6x6 matrix
+- *
+- * This function calculates the mean of 6x6 matrix with pixels
+- * with a factor of 64/36.
+-*/
+-STORAGE_CLASS_REF_VECTOR_FUNC_H tvector1w mean6x6m(
+-	s_1w_6x6_matrix m);
+-
+-/* @brief Minimum of 4x4 matrix
+- *
+- *  @param[in] m 4x4 matrix with pixels
+- *
+- *  @return minimum of 4x4 matrix
+- *
+- * This function calculates the  minimum of
+- * 4x4 matrix with pixels.
+-*/
+-STORAGE_CLASS_REF_VECTOR_FUNC_H tvector1w min4x4m(
+-	s_1w_4x4_matrix m);
+-
+-/* @brief Maximum of 4x4 matrix
+- *
+- *  @param[in] m 4x4 matrix with pixels
+- *
+- *  @return maximum of 4x4 matrix
+- *
+- * This function calculates the  maximum of
+- * 4x4 matrix with pixels.
+-*/
+-STORAGE_CLASS_REF_VECTOR_FUNC_H tvector1w max4x4m(
+-	s_1w_4x4_matrix m);
+-
+-/* @brief SAD between two 3x3 matrices
+- *
+- *  @param[in] a 3x3 matrix with pixels
+- *
+- *  @param[in] b 3x3 matrix with pixels
+- *
+- *  @return 3x3 matrix SAD
+- *
+- * This function calculates the sum of absolute difference between two matrices.
+- * Both input pixels and SAD are normalized by a factor of SAD3x3_IN_SHIFT and
+- * SAD3x3_OUT_SHIFT respectively.
+- * Computed SAD is 1/(2 ^ (SAD3x3_IN_SHIFT + SAD3x3_OUT_SHIFT)) ie 1/16 factor
+- * of original SAD and it's more precise than sad3x3m()
+-*/
+-STORAGE_CLASS_REF_VECTOR_FUNC_H tvector1w sad3x3m_precise(
+-	s_1w_3x3_matrix a,
+-	s_1w_3x3_matrix b);
+-
+-/* @brief SAD between two 3x3 matrices
+- *
+- *  @param[in] a 3x3 matrix with pixels
+- *
+- *  @param[in] b 3x3 matrix with pixels
+- *
+- *  @return 3x3 matrix SAD
+- *
+- * This function calculates the sum of absolute difference between two matrices.
+- * This version saves cycles by avoiding input normalization and wide vector
+- * operation during sum computation
+- * Input pixel differences are computed by absolute of rounded, halved
+- * subtraction. Normalized sum is computed by rounded averages.
+- * Computed SAD is (1/2)*(1/16) = 1/32 factor of original SAD. Factor 1/2 comes
+- * from input halving operation and factor 1/16 comes from mean operation
+-*/
+-STORAGE_CLASS_REF_VECTOR_FUNC_H tvector1w sad3x3m(
+-	s_1w_3x3_matrix a,
+-	s_1w_3x3_matrix b);
+-
+-/* @brief SAD between two 5x5 matrices
+- *
+- *  @param[in] a 5x5 matrix with pixels
+- *
+- *  @param[in] b 5x5 matrix with pixels
+- *
+- *  @return 5x5 matrix SAD
+- *
+- * Computed SAD is = 1/32 factor of original SAD.
+-*/
+-STORAGE_CLASS_REF_VECTOR_FUNC_H tvector1w sad5x5m(
+-	s_1w_5x5_matrix a,
+-	s_1w_5x5_matrix b);
+-
+-/* @brief Absolute gradient between two sets of 1x5 matrices
+- *
+- *  @param[in] m0 first set of 1x5 matrix with pixels
+- *  @param[in] m1 second set of 1x5 matrix with pixels
+- *
+- *  @return absolute gradient between two 1x5 matrices
+- *
+- * This function computes mean of two input 1x5 matrices and returns
+- * absolute difference between two mean values.
+- */
+-STORAGE_CLASS_REF_VECTOR_FUNC_H tvector1w
+-absgrad1x5m(s_1w_1x5_matrix m0, s_1w_1x5_matrix m1);
+-
+-/* @brief Bi-linear Interpolation optimized(approximate)
+- *
+- * @param[in] a input0
+- * @param[in] b input1
+- * @param[in] c cloned weight factor
+-  *
+- * @return		(a-b)*c + b
+- *
+- * This function will do bi-linear Interpolation on
+- * inputs a and b using constant weight factor c
+- *
+- * Inputs a,b are assumed in S1.15 format
+- * Weight factor has to be in range [0,1] and is assumed to be in S2.14 format
+- *
+- * The bilinear interpolation equation is (a*c) + b*(1-c),
+- * But this is implemented as (a-b)*c + b for optimization
+- */
+-STORAGE_CLASS_REF_VECTOR_FUNC_H tvector1w OP_1w_bilinear_interpol_approx_c(
+-	tvector1w a,
+-	tvector1w b,
+-	tscalar1w_weight c);
+-
+-/* @brief Bi-linear Interpolation optimized(approximate)
+- *
+- * @param[in] a input0
+- * @param[in] b input1
+- * @param[in] c weight factor
+-  *
+- * @return		(a-b)*c + b
+- *
+- * This function will do bi-linear Interpolation on
+- * inputs a and b using weight factor c
+- *
+- * Inputs a,b are assumed in S1.15 format
+- * Weight factor has to be in range [0,1] and is assumed to be in S2.14 format
+- *
+- * The bilinear interpolation equation is (a*c) + b*(1-c),
+- * But this is implemented as (a-b)*c + b for optimization
+- */
+-STORAGE_CLASS_REF_VECTOR_FUNC_H tvector1w OP_1w_bilinear_interpol_approx(
+-	tvector1w a,
+-	tvector1w b,
+-	tvector1w_weight c);
+-
+-/* @brief Bi-linear Interpolation
+- *
+- * @param[in] a input0
+- * @param[in] b input1
+- * @param[in] c weight factor
+-  *
+- * @return		(a*c) + b*(1-c)
+- *
+- * This function will do bi-linear Interpolation on
+- * inputs a and b using weight factor c
+- *
+- * Inputs a,b are assumed in S1.15 format
+- * Weight factor has to be in range [0,1] and is assumed to be in S2.14 format
+- *
+- * The bilinear interpolation equation is (a*c) + b*(1-c),
+- */
+-STORAGE_CLASS_REF_VECTOR_FUNC_H tvector1w OP_1w_bilinear_interpol(
+-	tvector1w a,
+-	tvector1w b,
+-	tscalar1w_weight c);
+-
+-/* @brief Generic Block Matching Algorithm
+- * @param[in] search_window pointer to input search window of 16x16 pixels
+- * @param[in] ref_block pointer to input reference block of 8x8 pixels, where N<=M
+- * @param[in] output pointer to output sads
+- * @param[in] search_sz search size for SAD computation
+- * @param[in] ref_sz block size
+- * @param[in] pixel_shift pixel shift to search the data
+- * @param[in] search_block_sz search window block size
+- * @param[in] shift shift value, with which the output is shifted right
+- *
+- * @return   0 when the computation is successful.
+-
+- * * This function compares the reference block with a block of size NxN in the search
+- * window. Sum of absolute differences for each pixel in the reference block and the
+- * corresponding pixel in the search block. Whole search window os traversed with the
+- * reference block with the given pixel shift.
+- *
+- */
+-STORAGE_CLASS_REF_VECTOR_FUNC_H int generic_block_matching_algorithm(
+-	tscalar1w **search_window,
+-	tscalar1w **ref_block,
+-	tscalar1w *output,
+-	int search_sz,
+-	int ref_sz,
+-	int pixel_shift,
+-	int search_block_sz,
+-	tscalar1w_4bit_bma_shift shift);
+-
+-#ifndef ISP2401
+-/* @brief OP_1w_asp_bma_16_1_32way
+-#else
+-/* @brief OP_1w_asp_bma_16_1_32way_nomask
+-#endif
+- *
+- * @param[in] search_area input search window of 16x16 pixels
+- * @param[in] input_block input reference block of 8x8 pixels, where N<=M
+- * @param[in] shift shift value, with which the output is shifted right
+- *
+- * @return   81 SADs for all the search blocks.
+-
+- * This function compares the reference block with a block of size 8x8 pixels in the
+- * search window of 16x16 pixels. Sum of absolute differences for each pixel in the
+- * reference block and the corresponding pixel in the search block is calculated.
+- * Whole search window is traversed with the reference block with the pixel shift of 1
+- * pixels. The output is right shifted with the given shift value. The shift value is
+- * a 4 bit value.
+- *
+- */
+-
+-#ifndef ISP2401
+-STORAGE_CLASS_REF_VECTOR_FUNC_H bma_output_16_1 OP_1w_asp_bma_16_1_32way(
+-#else
+-STORAGE_CLASS_REF_VECTOR_FUNC_H bma_output_16_1 OP_1w_asp_bma_16_1_32way_nomask(
+-#endif
+-	bma_16x16_search_window search_area,
+-	ref_block_8x8 input_block,
+-	tscalar1w_4bit_bma_shift shift);
+-
+-#ifndef ISP2401
+-/* @brief OP_1w_asp_bma_16_2_32way
+-#else
+-/* @brief OP_1w_asp_bma_16_2_32way_nomask
+-#endif
+- *
+- * @param[in] search_area input search window of 16x16 pixels
+- * @param[in] input_block input reference block of 8x8 pixels, where N<=M
+- * @param[in] shift shift value, with which the output is shifted right
+- *
+- * @return   25 SADs for all the search blocks.
+- * This function compares the reference block with a block of size 8x8 in the search
+- * window of 16x61. Sum of absolute differences for each pixel in the reference block
+- * and the corresponding pixel in the search block is computed. Whole search window is
+- * traversed with the reference block with the given pixel shift of 2 pixels. The output
+- * is right shifted with the given shift value. The shift value is a 4 bit value.
+- *
+- */
+-
+-#ifndef ISP2401
+-STORAGE_CLASS_REF_VECTOR_FUNC_H bma_output_16_2 OP_1w_asp_bma_16_2_32way(
+-#else
+-STORAGE_CLASS_REF_VECTOR_FUNC_H bma_output_16_2 OP_1w_asp_bma_16_2_32way_nomask(
+-#endif
+-	bma_16x16_search_window search_area,
+-	ref_block_8x8 input_block,
+-	tscalar1w_4bit_bma_shift shift);
+-#ifndef ISP2401
+-/* @brief OP_1w_asp_bma_14_1_32way
+-#else
+-/* @brief OP_1w_asp_bma_14_1_32way_nomask
+-#endif
+- *
+- * @param[in] search_area input search block of 16x16 pixels with search window of 14x14 pixels
+- * @param[in] input_block input reference block of 8x8 pixels, where N<=M
+- * @param[in] shift shift value, with which the output is shifted right
+- *
+- * @return   49 SADs for all the search blocks.
+- * This function compares the reference block with a block of size 8x8 in the search
+- * window of 14x14. Sum of absolute differences for each pixel in the reference block
+- * and the corresponding pixel in the search block. Whole search window is traversed
+- * with the reference block with 2 pixel shift. The output is right shifted with the
+- * given shift value. The shift value is a 4 bit value. Input is always a 16x16 block
+- * but the search window is 14x14, with last 2 pixels of row and column are not used
+- * for computation.
+- *
+- */
+-
+-#ifndef ISP2401
+-STORAGE_CLASS_REF_VECTOR_FUNC_H bma_output_14_1 OP_1w_asp_bma_14_1_32way(
+-#else
+-STORAGE_CLASS_REF_VECTOR_FUNC_H bma_output_14_1 OP_1w_asp_bma_14_1_32way_nomask(
+-#endif
+-	bma_16x16_search_window search_area,
+-	ref_block_8x8 input_block,
+-	tscalar1w_4bit_bma_shift shift);
+-
+-#ifndef ISP2401
+-/* @brief OP_1w_asp_bma_14_2_32way
+-#else
+-/* @brief OP_1w_asp_bma_14_2_32way_nomask
+-#endif
+- *
+- * @param[in] search_area input search block of 16x16 pixels with search window of 14x14 pixels
+- * @param[in] input_block input reference block of 8x8 pixels, where N<=M
+- * @param[in] shift shift value, with which the output is shifted right
+- *
+- * @return   16 SADs for all the search blocks.
+- * This function compares the reference block with a block of size 8x8 in the search
+- * window of 14x14. Sum of absolute differences for each pixel in the reference block
+- * and the corresponding pixel in the search block. Whole search window is traversed
+- * with the reference block with 2 pixels shift. The output is right shifted with the
+- * given shift value. The shift value is a 4 bit value.
+- *
+- */
+-
+-#ifndef ISP2401
+-STORAGE_CLASS_REF_VECTOR_FUNC_H bma_output_14_2 OP_1w_asp_bma_14_2_32way(
+-#else
+-STORAGE_CLASS_REF_VECTOR_FUNC_H bma_output_14_2 OP_1w_asp_bma_14_2_32way_nomask(
+-#endif
+-	bma_16x16_search_window search_area,
+-	ref_block_8x8 input_block,
+-	tscalar1w_4bit_bma_shift shift);
+-
+-#ifdef ISP2401
+-/* @brief multiplex addition and passing
+- *
+- *  @param[in] _a first pixel
+- *  @param[in] _b second pixel
+- *  @param[in] _c condition flag
+- *
+- *  @return (_a + _b) if condition flag is true
+- *	    _a if condition flag is false
+- *
+- * This function does multiplex addition depending on the input condition flag
+- */
+-STORAGE_CLASS_REF_VECTOR_FUNC_H tvector1w OP_1w_cond_add(
+-	tvector1w _a,
+-	tvector1w _b,
+-	tflags _c);
+-
+-#endif
+-#ifdef HAS_bfa_unit
+-/* @brief OP_1w_single_bfa_7x7
+- *
+- * @param[in] weights - spatial and range weight lut
+- * @param[in] threshold - threshold plane, for range weight scaling
+- * @param[in] central_pix - central pixel plane
+- * @param[in] src_plane - src pixel plane
+- *
+- * @return   Bilateral filter output
+- *
+- * This function implements, 7x7 single bilateral filter.
+- * Output = {sum(pixel * weight), sum(weight)}
+- * Where sum is summation over 7x7 block set.
+- * weight = spatial weight * range weight
+- * spatial weights are loaded from spatial_weight_lut depending on src pixel
+- * position in the 7x7 block
+- * range weights are computed by table look up from range_weight_lut depending
+- * on scaled absolute difference between src and central pixels.
+- * threshold is used as scaling factor. range_weight_lut consists of
+- * BFA_RW_LUT_SIZE numbers of LUT entries to model any distribution function.
+- * Piecewise linear approximation technique is used to compute range weight
+- * It computes absolute difference between central pixel and 61 src pixels.
+- */
+-STORAGE_CLASS_REF_VECTOR_FUNC_H bfa_7x7_output OP_1w_single_bfa_7x7(
+-	bfa_weights weights,
+-	tvector1w threshold,
+-	tvector1w central_pix,
+-	s_1w_7x7_matrix src_plane);
+-
+-/* @brief OP_1w_joint_bfa_7x7
+- *
+- * @param[in] weights - spatial and range weight lut
+- * @param[in] threshold0 - 1st threshold plane, for range weight scaling
+- * @param[in] central_pix0 - 1st central pixel plane
+- * @param[in] src0_plane - 1st pixel plane
+- * @param[in] threshold1 - 2nd threshold plane, for range weight scaling
+- * @param[in] central_pix1 - 2nd central pixel plane
+- * @param[in] src1_plane - 2nd pixel plane
+- *
+- * @return   Joint bilateral filter output
+- *
+- * This function implements, 7x7 joint bilateral filter.
+- * Output = {sum(pixel * weight), sum(weight)}
+- * Where sum is summation over 7x7 block set.
+- * weight = spatial weight * range weight
+- * spatial weights are loaded from spatial_weight_lut depending on src pixel
+- * position in the 7x7 block
+- * range weights are computed by table look up from range_weight_lut depending
+- * on sum of scaled absolute difference between central pixel and two src pixel
+- * planes. threshold is used as scaling factor. range_weight_lut consists of
+- * BFA_RW_LUT_SIZE numbers of LUT entries to model any distribution function.
+- * Piecewise linear approximation technique is used to compute range weight
+- * It computes absolute difference between central pixel and 61 src pixels.
+- */
+-STORAGE_CLASS_REF_VECTOR_FUNC_H bfa_7x7_output OP_1w_joint_bfa_7x7(
+-	bfa_weights weights,
+-	tvector1w threshold0,
+-	tvector1w central_pix0,
+-	s_1w_7x7_matrix src0_plane,
+-	tvector1w threshold1,
+-	tvector1w central_pix1,
+-	s_1w_7x7_matrix src1_plane);
+-
+-/* @brief bbb_bfa_gen_spatial_weight_lut
+- *
+- * @param[in] in - 7x7 matrix of spatial weights
+- * @param[in] out - generated LUT
+- *
+- * @return   None
+- *
+- * This function implements, creates spatial weight look up table used
+- * for bilaterl filter instruction.
+- */
+-STORAGE_CLASS_REF_VECTOR_FUNC_H void bbb_bfa_gen_spatial_weight_lut(
+-	s_1w_7x7_matrix in,
+-	tvector1w out[BFA_MAX_KWAY]);
+-
+-/* @brief bbb_bfa_gen_range_weight_lut
+- *
+- * @param[in] in - input range weight,
+- * @param[in] out - generated LUT
+- *
+- * @return   None
+- *
+- * This function implements, creates range weight look up table used
+- * for bilaterl filter instruction.
+- * 8 unsigned 7b weights are represented in 7 16bits LUT
+- * LUT formation is done as follows:
+- * higher 8 bit: Point(N) = Point(N+1) - Point(N)
+- * lower 8 bit: Point(N) = Point(N)
+- * Weight function can be any monotonic decreasing function for x >= 0
+- */
+-STORAGE_CLASS_REF_VECTOR_FUNC_H void bbb_bfa_gen_range_weight_lut(
+-	tvector1w in[BFA_RW_LUT_SIZE+1],
+-	tvector1w out[BFA_RW_LUT_SIZE]);
+-#endif
+-
+-#ifdef ISP2401
+-/* @brief OP_1w_imax32
+- *
+- * @param[in] src - structure that holds an array of 32 elements.
+- *
+- * @return  maximum element among input array.
+- *
+- *This function gets maximum element from an array of 32 elements.
+- */
+-STORAGE_CLASS_REF_VECTOR_FUNC_H int OP_1w_imax32(
+-	imax32_ref_in_vector src);
+-
+-/* @brief OP_1w_imaxidx32
+- *
+- * @param[in] src - structure that holds a vector of elements.
+- *
+- * @return  index of first element with maximum value among array.
+- *
+- * This function gets index of first element with maximum value
+- * from 32 elements.
+- */
+-STORAGE_CLASS_REF_VECTOR_FUNC_H int OP_1w_imaxidx32(
+-	imax32_ref_in_vector src);
+-
+-#endif
+-#ifndef INLINE_VECTOR_FUNC
+-#define STORAGE_CLASS_REF_VECTOR_FUNC_C
+-#define STORAGE_CLASS_REF_VECTOR_DATA_C const
+-#else /* INLINE_VECTOR_FUNC */
+-#define STORAGE_CLASS_REF_VECTOR_FUNC_C STORAGE_CLASS_REF_VECTOR_FUNC_H
+-#define STORAGE_CLASS_REF_VECTOR_DATA_C STORAGE_CLASS_REF_VECTOR_DATA_H
+-#include "ref_vector_func.c"
+-#define VECTOR_FUNC_INLINED
+-#endif  /* INLINE_VECTOR_FUNC */
+-
+-#endif /*_REF_VECTOR_FUNC_H_INCLUDED_*/
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/host/ref_vector_func_types.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/host/ref_vector_func_types.h
+deleted file mode 100644
+index 4dd05eba852e..000000000000
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/host/ref_vector_func_types.h
++++ /dev/null
+@@ -1,385 +0,0 @@
+-/*
+- * Support for Intel Camera Imaging ISP subsystem.
+- * Copyright (c) 2015, Intel Corporation.
+- *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms and conditions of the GNU General Public License,
+- * version 2, as published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope it will be useful, but WITHOUT
+- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+- * more details.
+- */
+-
+-#ifndef __REF_VECTOR_FUNC_TYPES_H_INCLUDED__
+-#define __REF_VECTOR_FUNC_TYPES_H_INCLUDED__
+-
+-
+-/*
+- * Prerequisites:
+- *
+- */
+-#include "mpmath.h"
+-#include "bbb_config.h"
+-#include "isp_op1w_types.h"
+-#include "isp_op2w_types.h"
+-
+-/* Defines for the Config Unit */
+-#define MAX_CONFIG_POINTS 5
+-#define INPUT_OFFSET_FACTOR 10
+-#define INPUT_SCALE_FACTOR 10
+-#define OUTPUT_SCALE_FACTOR 10
+-#define SLOPE_A_RESOLUTION 10
+-#define CONFIG_UNIT_LUT_SIZE_32 32 /*XCU works for ISP_NWAY = 32 */
+-#define LXCU_LUT_SIZE      16
+-#ifdef ISP2401
+-#define IMAX32_ELEM_SIZE   32
+-#endif
+-
+-#define ONE_IN_Q14 (1<<(NUM_BITS-2))
+-#define Q29_TO_Q15_SHIFT_VAL (NUM_BITS-2)
+-#define Q28_TO_Q15_SHIFT_VAL (NUM_BITS-3)
+-#define MAX_ELEM(width_in_bits) ((1<<(width_in_bits))-1)
+-
+-/* Block matching algorithm related data */
+-/* NUM_OF_SADS = ((SEARCH_AREA_HEIGHT - REF_BLOCK_HEIGHT)/PIXEL_SHIFT + 1)* \
+-					((SEARCH_AREA_WIDTH - REF_BLOCK_WIDTH)/PIXEL_SHIFT + 1) */
+-
+-#define SADS(sw_h,sw_w, ref_h, ref_w, p_sh) (((sw_h - ref_h)/p_sh + 1)*((sw_w - ref_w)/p_sh + 1))
+-#define SADS_16x16_1	SADS(16, 16, 8, 8, 1)
+-#define SADS_16x16_2	SADS(16, 16, 8, 8, 2)
+-#define SADS_14x14_1	SADS(14, 14, 8, 8, 1)
+-#define SADS_14x14_2	SADS(14, 14, 8, 8, 2)
+-
+-#define BMA_OUTPUT_MATRIX_DIM(sw_h, ref_h, p_sh)	((sw_h - ref_h)/p_sh + 1)
+-#define BMA_OUT_16x16_2_32		BMA_OUTPUT_MATRIX_DIM(16, 8, 2)
+-#define BMA_OUT_14x14_2_32		BMA_OUTPUT_MATRIX_DIM(14, 8, 2)
+-#define BMA_OUT_16x16_1_32 		BMA_OUTPUT_MATRIX_DIM(16, 8, 1)
+-#define BMA_OUT_14x14_1_32 		BMA_OUTPUT_MATRIX_DIM(14, 8, 1)
+-#define BMA_SEARCH_BLOCK_SZ_16 	16
+-#define BMA_REF_BLOCK_SZ_8    	8
+-#define PIXEL_SHIFT_2         	2
+-#define PIXEL_SHIFT_1         	1
+-#define BMA_SEARCH_WIN_SZ_16  	16
+-#define BMA_SEARCH_WIN_SZ_14  	14
+-
+-
+-/*
+- * Struct type specification
+- */
+-
+-typedef unsigned short tscalar1w_3bit;       /* tscalar1w in interval [0, 2^3)                       */
+-typedef short tscalar1w_5bit_signed;         /* tscalar1w in interval [-2^(5-1), 2^(5-1))            */
+-typedef unsigned short tscalar1w_5bit;       /* tscalar1w in interval [0, 2^5)                       */
+-typedef short tscalar1w_range1wbit;          /* tscalar1w in interval [-NUM_BITS, NUM_BITS]          */
+-typedef short tscalar1w_unsigned_range1wbit; /* tscalar1w in interval [0, NUM_BITS]                  */
+-typedef unsigned short tvector_8bit;		/* 8 bit positive number */
+-typedef unsigned short tvector_5bit;
+-typedef unsigned short tvector_4bit;
+-typedef unsigned short tscalar1w_16bit;
+-typedef unsigned short tscalar1w_4bit_bma_shift;
+-
+-typedef struct {
+-  tvector1w     v0  ;
+-  tvector1w     v1 ;
+-} s_1w_2x1_matrix;
+-
+-#define S_1W_2X1_MATRIX_DEFAULT ((s_1w_2x1_matrix)\
+-	{ 0, 0 })
+-
+-typedef struct {
+-	tvector1w v00;
+-	tvector1w v01;
+-} s_1w_1x2_matrix;
+-
+-#define S_1W_1X2_MATRIX_DEFAULT ((s_1w_1x2_matrix)\
+-	{ 0, 0 })
+-
+-typedef struct {
+-  tvector1w     v00  ;
+-  tvector1w     v01 ;
+-  tvector1w     v02 ;
+-} s_1w_1x3_matrix;
+-
+-#define S_1W_1X3_MATRIX_DEFAULT ((s_1w_1x3_matrix)\
+-	{ 0, 0, 0, })
+-
+-typedef struct {
+-  tvector1w v00; tvector1w v01; tvector1w v02;
+-  tvector1w v10; tvector1w v11; tvector1w v12;
+-} s_1w_2x3_matrix;
+-
+-#define S_1W_2X3_MATRIX_DEFAULT ((s_1w_2x3_matrix)\
+-	{ 0, 0, 0, \
+-	  0, 0, 0 })
+-
+-typedef struct {
+-  tvector1w     v00  ; tvector1w     v01 ; tvector1w     v02  ;
+-  tvector1w     v10  ; tvector1w     v11 ; tvector1w     v12  ;
+-  tvector1w     v20  ; tvector1w     v21 ; tvector1w     v22  ;
+-} s_1w_3x3_matrix;
+-
+-#define S_1W_3X3_MATRIX_DEFAULT ((s_1w_3x3_matrix)\
+-	{ 0, 0, 0, \
+-	  0, 0, 0, \
+-	  0, 0, 0 })
+-
+-typedef struct {
+-  tvector1w     v00  ; tvector1w     v01 ; tvector1w     v02  ;
+-  tvector1w     v10  ; tvector1w     v11 ; tvector1w     v12  ;
+-  tvector1w     v20  ; tvector1w     v21 ; tvector1w     v22  ;
+-  tvector1w     v30  ; tvector1w     v31 ; tvector1w     v32  ;
+-} s_1w_4x3_matrix;
+-
+-#define S_1W_4X3_MATRIX_DEFAULT ((s_1w_4x3_matrix)\
+-	{ 0, 0, 0, \
+-	  0, 0, 0, \
+-	  0, 0, 0, \
+-	  0, 0, 0 })
+-
+-typedef struct {
+-  tvector1w     v00 ;
+-  tvector1w     v01 ;
+-  tvector1w     v02 ;
+-  tvector1w     v03 ;
+-  tvector1w     v04 ;
+-} s_1w_1x5_matrix;
+-
+-#define S_1W_1X5_MATRIX_DEFAULT ((s_1w_1x5_matrix)\
+-	{ 0, 0, 0, 0, 0 })
+-
+-typedef struct {
+-  tvector1w     v00  ; tvector1w     v01 ; tvector1w     v02  ; tvector1w     v03 ; tvector1w     v04  ;
+-  tvector1w     v10  ; tvector1w     v11 ; tvector1w     v12  ; tvector1w     v13 ; tvector1w     v14  ;
+-  tvector1w     v20  ; tvector1w     v21 ; tvector1w     v22  ; tvector1w     v23 ; tvector1w     v24  ;
+-  tvector1w     v30  ; tvector1w     v31 ; tvector1w     v32  ; tvector1w     v33 ; tvector1w     v34  ;
+-  tvector1w     v40  ; tvector1w     v41 ; tvector1w     v42  ; tvector1w     v43 ; tvector1w     v44  ;
+-} s_1w_5x5_matrix;
+-
+-#define S_1W_5X5_MATRIX_DEFAULT ((s_1w_5x5_matrix)\
+-	{ 0, 0, 0, 0, 0, \
+-	  0, 0, 0, 0, 0, \
+-	  0, 0, 0, 0, 0, \
+-	  0, 0, 0, 0, 0, \
+-	  0, 0, 0, 0, 0 })
+-#ifndef ISP2401
+-	
+-#else
+-
+-#endif
+-typedef struct {
+-	tvector1w v00;
+-	tvector1w v01;
+-	tvector1w v02;
+-	tvector1w v03;
+-	tvector1w v04;
+-	tvector1w v05;
+-	tvector1w v06;
+-} s_1w_1x7_matrix;
+-
+-#define S_1W_1X7_MATRIX_DEFAULT ((s_1w_1x7_matrix)\
+-	{ 0, 0, 0, 0, 0, 0, 0 })
+-
+-typedef struct {
+-	tvector1w v00;
+-	tvector1w v01;
+-	tvector1w v02;
+-	tvector1w v03;
+-	tvector1w v04;
+-	tvector1w v05;
+-	tvector1w v06;
+-	tvector1w v07;
+-	tvector1w v08;
+-} s_1w_1x9_matrix;
+-
+-#define S_1W_1X9_MATRIX_DEFAULT ((s_1w_1x9_matrix)\
+-	{ 0, 0, 0, 0, 0, 0, 0, 0, 0 })
+-
+-typedef struct {
+-	tvector1w v00;
+-	tvector1w v01;
+-	tvector1w v02;
+-	tvector1w v03;
+-} s_1w_1x4_matrix;
+-
+-#define S_1W_1X4_MATRIX ((s_1w_1x4_matrix)\
+-	{ 0, 0, 0, 0 })
+-
+-typedef struct {
+-	tvector1w v00; tvector1w v01; tvector1w v02; tvector1w v03;
+-	tvector1w v10; tvector1w v11; tvector1w v12; tvector1w v13;
+-	tvector1w v20; tvector1w v21; tvector1w v22; tvector1w v23;
+-	tvector1w v30; tvector1w v31; tvector1w v32; tvector1w v33;
+-} s_1w_4x4_matrix;
+-
+-#define S_1W_4X4_MATRIX_DEFAULT ((s_1w_4x4_matrix)\
+-	{ 0, 0, 0, 0, \
+-	  0, 0, 0, 0, \
+-	  0, 0, 0, 0, \
+-	  0, 0, 0, 0 })
+-
+-typedef struct {
+-	tvector1w v00;
+-	tvector1w v01;
+-	tvector1w v02;
+-	tvector1w v03;
+-	tvector1w v04;
+-	tvector1w v05;
+-} s_1w_1x6_matrix;
+-
+-#define S_1W_1X6_MATRIX_DEFAULT ((s_1w_1x6_matrix)\
+-	{ 0, 0, 0, 0, 0, 0 })
+-
+-typedef struct {
+-	tvector1w v00; tvector1w v01; tvector1w v02; tvector1w v03; tvector1w v04; tvector1w v05;
+-	tvector1w v10; tvector1w v11; tvector1w v12; tvector1w v13; tvector1w v14; tvector1w v15;
+-	tvector1w v20; tvector1w v21; tvector1w v22; tvector1w v23; tvector1w v24; tvector1w v25;
+-	tvector1w v30; tvector1w v31; tvector1w v32; tvector1w v33; tvector1w v34; tvector1w v35;
+-	tvector1w v40; tvector1w v41; tvector1w v42; tvector1w v43; tvector1w v44; tvector1w v45;
+-	tvector1w v50; tvector1w v51; tvector1w v52; tvector1w v53; tvector1w v54; tvector1w v55;
+-} s_1w_6x6_matrix;
+-
+-#define S_1W_6X6_MATRIX_DEFAULT ((s_1w_6x6_matrix)\
+-	{ 0, 0, 0, 0, 0, 0, \
+-	  0, 0, 0, 0, 0, 0, \
+-	  0, 0, 0, 0, 0, 0, \
+-	  0, 0, 0, 0, 0, 0, \
+-	  0, 0, 0, 0, 0, 0, \
+-	  0, 0, 0, 0, 0, 0 })
+-
+-typedef struct {
+-	tvector1w v00; tvector1w v01; tvector1w v02; tvector1w v03; tvector1w v04;
+-	tvector1w v05; tvector1w v06; tvector1w v07; tvector1w v08;
+-	tvector1w v10; tvector1w v11; tvector1w v12; tvector1w v13; tvector1w v14;
+-	tvector1w v15; tvector1w v16; tvector1w v17; tvector1w v18;
+-	tvector1w v20; tvector1w v21; tvector1w v22; tvector1w v23; tvector1w v24;
+-	tvector1w v25; tvector1w v26; tvector1w v27; tvector1w v28;
+-	tvector1w v30; tvector1w v31; tvector1w v32; tvector1w v33; tvector1w v34;
+-	tvector1w v35; tvector1w v36; tvector1w v37; tvector1w v38;
+-	tvector1w v40; tvector1w v41; tvector1w v42; tvector1w v43; tvector1w v44;
+-	tvector1w v45; tvector1w v46; tvector1w v47; tvector1w v48;
+-	tvector1w v50; tvector1w v51; tvector1w v52; tvector1w v53; tvector1w v54;
+-	tvector1w v55; tvector1w v56; tvector1w v57; tvector1w v58;
+-	tvector1w v60; tvector1w v61; tvector1w v62; tvector1w v63; tvector1w v64;
+-	tvector1w v65; tvector1w v66; tvector1w v67; tvector1w v68;
+-	tvector1w v70; tvector1w v71; tvector1w v72; tvector1w v73; tvector1w v74;
+-	tvector1w v75; tvector1w v76; tvector1w v77; tvector1w v78;
+-	tvector1w v80; tvector1w v81; tvector1w v82; tvector1w v83; tvector1w v84;
+-	tvector1w v85; tvector1w v86; tvector1w v87; tvector1w v88;
+-} s_1w_9x9_matrix;
+-
+-#define S_1W_9X9_MATRIX_DEFAULT ((s_1w_9x9_matrix)\
+-	{ 0, 0, 0, 0, 0, 0, 0, 0, 0, \
+-	  0, 0, 0, 0, 0, 0, 0, 0, 0, \
+-	  0, 0, 0, 0, 0, 0, 0, 0, 0, \
+-	  0, 0, 0, 0, 0, 0, 0, 0, 0, \
+-	  0, 0, 0, 0, 0, 0, 0, 0, 0, \
+-	  0, 0, 0, 0, 0, 0, 0, 0, 0, \
+-	  0, 0, 0, 0, 0, 0, 0, 0, 0, \
+-	  0, 0, 0, 0, 0, 0, 0, 0, 0, \
+-	  0, 0, 0, 0, 0, 0, 0, 0, 0 })
+-
+-typedef struct {
+-	tvector1w v00; tvector1w v01; tvector1w v02; tvector1w v03; tvector1w v04;
+-	tvector1w v05; tvector1w v06;
+-	tvector1w v10; tvector1w v11; tvector1w v12; tvector1w v13; tvector1w v14;
+-	tvector1w v15; tvector1w v16;
+-	tvector1w v20; tvector1w v21; tvector1w v22; tvector1w v23; tvector1w v24;
+-	tvector1w v25; tvector1w v26;
+-	tvector1w v30; tvector1w v31; tvector1w v32; tvector1w v33; tvector1w v34;
+-	tvector1w v35; tvector1w v36;
+-	tvector1w v40; tvector1w v41; tvector1w v42; tvector1w v43; tvector1w v44;
+-	tvector1w v45; tvector1w v46;
+-	tvector1w v50; tvector1w v51; tvector1w v52; tvector1w v53; tvector1w v54;
+-	tvector1w v55; tvector1w v56;
+-	tvector1w v60; tvector1w v61; tvector1w v62; tvector1w v63; tvector1w v64;
+-	tvector1w v65; tvector1w v66;
+-} s_1w_7x7_matrix;
+-
+-#define S_1W_7X7_MATRIX_DEFAULT ((s_1w_7x7_matrix)\
+-	{ 0, 0, 0, 0, 0, 0, 0, \
+-	  0, 0, 0, 0, 0, 0, 0, \
+-	  0, 0, 0, 0, 0, 0, 0, \
+-	  0, 0, 0, 0, 0, 0, 0, \
+-	  0, 0, 0, 0, 0, 0, 0, \
+-	  0, 0, 0, 0, 0, 0, 0, \
+-	  0, 0, 0, 0, 0, 0, 0 })
+-
+-typedef struct {
+-	tvector1w v0_0;
+-	tvector1w v0_1;
+-	tvector1w v0_2;
+-	tvector1w v0_3;
+-	tvector1w v0_4;
+-	tvector1w v0_5;
+-	tvector1w v0_6;
+-	tvector1w v0_7;
+-	tvector1w v0_8;
+-	tvector1w v0_9;
+-	tvector1w v0_10;
+-} s_1w_1x11_matrix;
+-
+-#define S_1W_1X11_MATRIX_DEFAULT ((s_1w_1x11_matrix)\
+-	{ 0, 0, 0, 0, 0, 0, 0, 0, 0 })
+-
+-typedef struct {
+-	tvector1w x_cord[MAX_CONFIG_POINTS];
+-	tvector1w slope[MAX_CONFIG_POINTS-1];
+-	tvector1w y_offset[MAX_CONFIG_POINTS-1];
+-} ref_config_points;
+-
+-typedef struct {
+-	tscalar1w_range1wbit slope_vec[CONFIG_UNIT_LUT_SIZE_32];
+-	tscalar1w_range1wbit offset_vec[CONFIG_UNIT_LUT_SIZE_32];
+-	tscalar1w_16bit x_cord_vec[CONFIG_UNIT_LUT_SIZE_32];
+-	tscalar1w_16bit x_cord_max;
+-	tscalar1w_5bit exponent;
+-	tscalar1w_5bit slope_resolution;
+-} xcu_ref_init_vectors;
+-
+-typedef struct {
+-#ifdef ISP2401
+-	tvector1w elem[IMAX32_ELEM_SIZE];
+-} imax32_ref_in_vector;
+-
+-typedef struct {
+-#endif
+-	tscalar1w search[BMA_SEARCH_BLOCK_SZ_16][BMA_SEARCH_BLOCK_SZ_16];
+-} bma_16x16_search_window;
+-
+-typedef struct {
+-	tscalar1w ref[BMA_REF_BLOCK_SZ_8][BMA_REF_BLOCK_SZ_8];
+-} ref_block_8x8;
+-
+-typedef struct {
+-	tscalar1w sads[SADS_16x16_1];
+-} bma_output_16_1;
+-
+-typedef struct {
+-	tscalar1w sads[SADS_16x16_2];
+-} bma_output_16_2;
+-
+-typedef struct {
+-	tscalar1w sads[SADS_14x14_2];
+-} bma_output_14_2;
+-
+-typedef struct {
+-	tscalar1w sads[SADS_14x14_1];
+-} bma_output_14_1;
+-
+-typedef struct {
+-	tvector1w spatial_weight_lut[BFA_MAX_KWAY]; /* spatial weight LUT */
+-	/* range weight LUT, (BFA_RW_LUT_SIZE + 1) numbers of LUT values are compressed in BFA_RW_LUT_SIZE buffer.
+-	 * range_weight_lut[k] = packed(drop[k], range_weight[k])
+-	 * where, drop[k] = range_weight[k+1] - range_weight[k]
+-	 * pack(msb, lsb): two 8bits numbers packed in one 16bits number */
+-	tvector1w range_weight_lut[BFA_RW_LUT_SIZE];
+-} bfa_weights;
+-
+-/* Return type for BFA BBBs */
+-typedef struct {
+-	tvector2w sop; /* weighted sum of pixels */
+-	tvector1w sow; /* sum of weights */
+-} bfa_7x7_output;
+-#endif /* __REF_VECTOR_FUNC_TYPES_H_INCLUDED__ */
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/mpmath.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/mpmath.h
+deleted file mode 100644
+index cd938375e02e..000000000000
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/mpmath.h
++++ /dev/null
+@@ -1,329 +0,0 @@
+-/*
+- * Support for Intel Camera Imaging ISP subsystem.
+- * Copyright (c) 2015, Intel Corporation.
+- *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms and conditions of the GNU General Public License,
+- * version 2, as published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope it will be useful, but WITHOUT
+- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+- * more details.
+- */
+-
+-#ifndef __MPMATH_H_INCLUDED__
+-#define __MPMATH_H_INCLUDED__
+-
+-
+-#ifdef INLINE_MPMATH
+-#define STORAGE_CLASS_MPMATH_FUNC_H static inline
+-#define STORAGE_CLASS_MPMATH_DATA_H static inline_DATA
+-#else /* INLINE_MPMATH */
+-#define STORAGE_CLASS_MPMATH_FUNC_H extern
+-#define STORAGE_CLASS_MPMATH_DATA_H extern_DATA
+-#endif  /* INLINE_MPMATH */
+-
+-#include <type_support.h>
+-
+-/*
+- * Implementation limits
+- */
+-#define MIN_BITDEPTH            1
+-#define MAX_BITDEPTH            64
+-
+-#define ROUND_NEAREST_EVEN  0
+-#define ROUND_NEAREST       1
+-
+-/*
+- * The MP types
+- *
+- * "vector lane data" is scalar. With "scalar data" for limited range shift and address values
+- */
+-typedef unsigned long long      mpudata_t;   /* Type of reference MP scalar / vector lane data; unsigned */
+-typedef long long               mpsdata_t;   /* Type of reference MP scalar / vector lane data; signed */
+-typedef unsigned short          spudata_t;   /* Type of reference SP scalar / vector lane data; unsigned */
+-typedef short                   spsdata_t;   /* Type of reference SP scalar / vector lane data; signed */
+-typedef unsigned short          bitdepth_t;
+-
+-typedef enum {
+-    mp_zero_ID,
+-    mp_one_ID,
+-    mp_mone_ID,
+-    mp_smin_ID,
+-    mp_smax_ID,
+-    mp_umin_ID,
+-    mp_umax_ID,
+-    N_mp_const_ID
+-} mp_const_ID_t;
+-
+-#ifdef ISP2401
+-/* _isValidMpudata is for internal use by mpmath and bbb's.
+- * isValidMpudata is for external use by functions on top.
+- */
+-#ifndef ENABLE_VALID_MP_DATA_CHECK
+-#define _isValidMpsdata(data,bitdepth) (1)
+-#define _isValidMpudata(data,bitdepth) (1)
+-#else
+-#define _isValidMpsdata(data,bitdepth) isValidMpsdata(data,bitdepth)
+-#define _isValidMpudata(data,bitdepth) isValidMpsdata(data,bitdepth)
+-
+-#endif
+-#endif
+-STORAGE_CLASS_MPMATH_FUNC_H bool isValidMpsdata(
+-    const mpsdata_t             data,
+-    const bitdepth_t            bitdepth);
+-
+-STORAGE_CLASS_MPMATH_FUNC_H bool isValidMpudata(
+-    const mpudata_t             data,
+-    const bitdepth_t            bitdepth);
+-
+-STORAGE_CLASS_MPMATH_FUNC_H mpsdata_t mp_castd (
+-    const mpsdata_t             in0,
+-    const bitdepth_t            bitdepth);
+-
+-STORAGE_CLASS_MPMATH_FUNC_H mpsdata_t mp_casth (
+-    const mpsdata_t             in0,
+-    const bitdepth_t            bitdepth);
+-
+-STORAGE_CLASS_MPMATH_FUNC_H mpsdata_t mp_scasth (
+-    const mpsdata_t             in0,
+-    const bitdepth_t            bitdepth);
+-
+-STORAGE_CLASS_MPMATH_FUNC_H mpsdata_t mp_qcastd (
+-    const mpsdata_t             in0,
+-    const bitdepth_t            bitdepth);
+-
+-STORAGE_CLASS_MPMATH_FUNC_H mpsdata_t mp_qcasth (
+-    const mpsdata_t             in0,
+-    const bitdepth_t            bitdepth);
+-
+-STORAGE_CLASS_MPMATH_FUNC_H mpsdata_t mp_qrcasth (
+-    const mpsdata_t             in0,
+-    const bitdepth_t            bitdepth);
+-
+-STORAGE_CLASS_MPMATH_FUNC_H mpsdata_t mp_abs (
+-    const mpsdata_t             in0,
+-    const bitdepth_t            bitdepth);
+-
+-STORAGE_CLASS_MPMATH_FUNC_H mpsdata_t mp_limit (
+-    const mpsdata_t             bnd_low,
+-    const mpsdata_t             in0,
+-    const mpsdata_t             bnd_high,
+-    const bitdepth_t            bitdepth);
+-
+-STORAGE_CLASS_MPMATH_FUNC_H mpsdata_t mp_max (
+-    const mpsdata_t             in0,
+-    const mpsdata_t             in1,
+-    const bitdepth_t            bitdepth);
+-
+-STORAGE_CLASS_MPMATH_FUNC_H mpsdata_t mp_min (
+-    const mpsdata_t             in0,
+-    const mpsdata_t             in1,
+-    const bitdepth_t            bitdepth);
+-
+-STORAGE_CLASS_MPMATH_FUNC_H mpsdata_t mp_mux (
+-    const spudata_t             sel,
+-    const mpsdata_t             in0,
+-    const mpsdata_t             in1,
+-    const bitdepth_t            bitdepth);
+-
+-STORAGE_CLASS_MPMATH_FUNC_H mpsdata_t mp_rmux (
+-    const spudata_t             sel,
+-    const mpsdata_t             in0,
+-    const mpsdata_t             in1,
+-    const bitdepth_t            bitdepth);
+-
+-STORAGE_CLASS_MPMATH_FUNC_H mpsdata_t mp_add (
+-    const mpsdata_t             in0,
+-    const mpsdata_t             in1,
+-    const bitdepth_t            bitdepth);
+-
+-STORAGE_CLASS_MPMATH_FUNC_H mpsdata_t mp_sadd (
+-    const mpsdata_t             in0,
+-    const mpsdata_t             in1,
+-    const bitdepth_t            bitdepth);
+-
+-STORAGE_CLASS_MPMATH_FUNC_H mpsdata_t mp_sub (
+-    const mpsdata_t             in0,
+-    const mpsdata_t             in1,
+-    const bitdepth_t            bitdepth);
+-
+-STORAGE_CLASS_MPMATH_FUNC_H mpsdata_t mp_ssub (
+-    const mpsdata_t             in0,
+-    const mpsdata_t             in1,
+-    const bitdepth_t            bitdepth);
+-
+-STORAGE_CLASS_MPMATH_FUNC_H mpsdata_t mp_addasr1 (
+-    const mpsdata_t             in0,
+-    const mpsdata_t             in1,
+-    const bitdepth_t            bitdepth);
+-
+-STORAGE_CLASS_MPMATH_FUNC_H mpsdata_t mp_subasr1 (
+-    const mpsdata_t             in0,
+-    const mpsdata_t             in1,
+-    const bitdepth_t            bitdepth);
+-
+-STORAGE_CLASS_MPMATH_FUNC_H mpsdata_t mp_lsr (
+-    const mpsdata_t             in0,
+-    const spsdata_t             shft,
+-    const bitdepth_t            bitdepth);
+-
+-STORAGE_CLASS_MPMATH_FUNC_H mpsdata_t mp_asr (
+-    const mpsdata_t             in0,
+-    const spsdata_t             shft,
+-    const bitdepth_t            bitdepth);
+-
+-STORAGE_CLASS_MPMATH_FUNC_H mpsdata_t mp_rasr (
+-    const mpsdata_t             in0,
+-    const spsdata_t             shft,
+-    const bitdepth_t            bitdepth);
+-
+-/* "mp_rasr_u()" is implemented by "mp_rasr()" */
+-STORAGE_CLASS_MPMATH_FUNC_H mpudata_t mp_rasr_u (
+-    const mpudata_t             in0,
+-    const spsdata_t             shft,
+-    const bitdepth_t            bitdepth);
+-
+-STORAGE_CLASS_MPMATH_FUNC_H mpsdata_t mp_lsl (
+-    const mpsdata_t             in0,
+-    const spsdata_t             shft,
+-    const bitdepth_t            bitdepth);
+-
+-STORAGE_CLASS_MPMATH_FUNC_H mpsdata_t mp_asl (
+-    const mpsdata_t             in0,
+-    const spsdata_t             shft,
+-    const bitdepth_t            bitdepth);
+-
+-STORAGE_CLASS_MPMATH_FUNC_H mpsdata_t mp_muld (
+-    const mpsdata_t             in0,
+-    const mpsdata_t             in1,
+-    const bitdepth_t            bitdepth);
+-
+-STORAGE_CLASS_MPMATH_FUNC_H mpsdata_t mp_mul (
+-    const mpsdata_t             in0,
+-    const mpsdata_t             in1,
+-    const bitdepth_t            bitdepth);
+-
+-STORAGE_CLASS_MPMATH_FUNC_H mpsdata_t mp_qmul (
+-    const mpsdata_t             in0,
+-    const mpsdata_t             in1,
+-    const bitdepth_t            bitdepth);
+-
+-STORAGE_CLASS_MPMATH_FUNC_H mpsdata_t mp_qrmul (
+-    const mpsdata_t             in0,
+-    const mpsdata_t             in1,
+-    const bitdepth_t            bitdepth);
+-
+-STORAGE_CLASS_MPMATH_FUNC_H mpsdata_t mp_qdiv (
+-    const mpsdata_t             in0,
+-    const mpsdata_t             in1,
+-    const bitdepth_t            bitdepth);
+-
+-STORAGE_CLASS_MPMATH_FUNC_H mpsdata_t mp_qdivh (
+-    const mpsdata_t             in0,
+-    const mpsdata_t             in1,
+-    const bitdepth_t            bitdepth);
+-
+-STORAGE_CLASS_MPMATH_FUNC_H mpsdata_t mp_div (
+-    const mpsdata_t             in0,
+-    const mpsdata_t             in1,
+-    const bitdepth_t            bitdepth);
+-
+-STORAGE_CLASS_MPMATH_FUNC_H mpsdata_t mp_divh (
+-    const mpsdata_t             in0,
+-    const mpsdata_t             in1,
+-    const bitdepth_t            bitdepth);
+-
+-STORAGE_CLASS_MPMATH_FUNC_H mpsdata_t mp_and (
+-    const mpsdata_t             in0,
+-    const mpsdata_t             in1,
+-    const bitdepth_t            bitdepth);
+-
+-STORAGE_CLASS_MPMATH_FUNC_H mpsdata_t mp_compl (
+-    const mpsdata_t             in0,
+-    const bitdepth_t            bitdepth);
+-
+-STORAGE_CLASS_MPMATH_FUNC_H mpsdata_t mp_or (
+-    const mpsdata_t             in0,
+-    const mpsdata_t             in1,
+-    const bitdepth_t            bitdepth);
+-
+-STORAGE_CLASS_MPMATH_FUNC_H mpsdata_t mp_xor (
+-    const mpsdata_t             in0,
+-    const mpsdata_t             in1,
+-    const bitdepth_t            bitdepth);
+-
+-STORAGE_CLASS_MPMATH_FUNC_H spudata_t mp_isEQ (
+-    const mpsdata_t             in0,
+-    const mpsdata_t             in1,
+-    const bitdepth_t            bitdepth);
+-
+-STORAGE_CLASS_MPMATH_FUNC_H spudata_t mp_isNE (
+-    const mpsdata_t             in0,
+-    const mpsdata_t             in1,
+-    const bitdepth_t            bitdepth);
+-
+-STORAGE_CLASS_MPMATH_FUNC_H spudata_t mp_isGT (
+-    const mpsdata_t             in0,
+-    const mpsdata_t             in1,
+-    const bitdepth_t            bitdepth);
+-
+-STORAGE_CLASS_MPMATH_FUNC_H spudata_t mp_isGE (
+-    const mpsdata_t             in0,
+-    const mpsdata_t             in1,
+-    const bitdepth_t            bitdepth);
+-
+-STORAGE_CLASS_MPMATH_FUNC_H spudata_t mp_isLT (
+-    const mpsdata_t             in0,
+-    const mpsdata_t             in1,
+-    const bitdepth_t            bitdepth);
+-
+-STORAGE_CLASS_MPMATH_FUNC_H spudata_t mp_isLE (
+-    const mpsdata_t             in0,
+-    const mpsdata_t             in1,
+-    const bitdepth_t            bitdepth);
+-
+-STORAGE_CLASS_MPMATH_FUNC_H spudata_t mp_isEQZ (
+-    const mpsdata_t             in0,
+-    const bitdepth_t            bitdepth);
+-
+-STORAGE_CLASS_MPMATH_FUNC_H spudata_t mp_isNEZ (
+-    const mpsdata_t             in0,
+-    const bitdepth_t            bitdepth);
+-
+-STORAGE_CLASS_MPMATH_FUNC_H spudata_t mp_isGTZ (
+-    const mpsdata_t             in0,
+-    const bitdepth_t            bitdepth);
+-
+-STORAGE_CLASS_MPMATH_FUNC_H spudata_t mp_isGEZ (
+-    const mpsdata_t             in0,
+-    const bitdepth_t            bitdepth);
+-
+-STORAGE_CLASS_MPMATH_FUNC_H spudata_t mp_isLTZ (
+-    const mpsdata_t             in0,
+-    const bitdepth_t            bitdepth);
+-
+-STORAGE_CLASS_MPMATH_FUNC_H spudata_t mp_isLEZ (
+-    const mpsdata_t             in0,
+-    const bitdepth_t            bitdepth);
+-
+-STORAGE_CLASS_MPMATH_FUNC_H mpsdata_t mp_const (
+-    const mp_const_ID_t         ID,
+-    const bitdepth_t            bitdepth);
+-
+-STORAGE_CLASS_MPMATH_FUNC_H mpudata_t mp_sqrt_u(
+-	const mpudata_t     in0,
+-	const bitdepth_t    bitdepth);
+-
+-#ifndef INLINE_MPMATH
+-#define STORAGE_CLASS_MPMATH_FUNC_C 
+-#define STORAGE_CLASS_MPMATH_DATA_C const
+-#else /* INLINE_MPMATH */
+-#define STORAGE_CLASS_MPMATH_FUNC_C STORAGE_CLASS_MPMATH_FUNC_H
+-#define STORAGE_CLASS_MPMATH_DATA_C STORAGE_CLASS_MPMATH_DATA_H
+-#include "mpmath.c"
+-#define MPMATH_INLINED
+-#endif  /* INLINE_MPMATH */
+-
+-#endif /* __MPMATH_H_INCLUDED__ */
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/osys.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/osys.h
+deleted file mode 100644
+index a607242c5f1a..000000000000
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/osys.h
++++ /dev/null
+@@ -1,47 +0,0 @@
+-/*
+- * Support for Intel Camera Imaging ISP subsystem.
+- * Copyright (c) 2015, Intel Corporation.
+- *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms and conditions of the GNU General Public License,
+- * version 2, as published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope it will be useful, but WITHOUT
+- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+- * more details.
+- */
+-
+-#ifndef __OSYS_H_INCLUDED__
+-#define __OSYS_H_INCLUDED__
+-
+-/*
+- * This file is included on every cell {SP,ISP,host} and on every system
+- * that uses the OSYS device. It defines the API to DLI bridge
+- *
+- * System and cell specific interfaces and inline code are included
+- * conditionally through Makefile path settings.
+- *
+- *  - .        system and cell agnostic interfaces, constants and identifiers
+- *	- public:  system agnostic, cell specific interfaces
+- *	- private: system dependent, cell specific interfaces & inline implementations
+- *	- global:  system specific constants and identifiers
+- *	- local:   system and cell specific constants and identifiers
+- *
+- */
+-
+-
+-#include "system_local.h"
+-#include "osys_local.h"
+-
+-#ifndef __INLINE_OSYS__
+-#define STORAGE_CLASS_OSYS_H extern
+-#define STORAGE_CLASS_OSYS_C
+-#include "osys_public.h"
+-#else  /* __INLINE_OSYS__ */
+-#define STORAGE_CLASS_OSYS_H static inline
+-#define STORAGE_CLASS_OSYS_C static inline
+-#include "osys_private.h"
+-#endif /* __INLINE_OSYS__ */
+-
+-#endif /* __OSYS_H_INCLUDED__ */
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/stream_buffer.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/stream_buffer.h
+deleted file mode 100644
+index 53d535e4f2ae..000000000000
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/stream_buffer.h
++++ /dev/null
+@@ -1,47 +0,0 @@
+-/*
+- * Support for Intel Camera Imaging ISP subsystem.
+- * Copyright (c) 2015, Intel Corporation.
+- *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms and conditions of the GNU General Public License,
+- * version 2, as published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope it will be useful, but WITHOUT
+- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+- * more details.
+- */
+-
+-#ifndef __STREAM_BUFFER_H_INCLUDED__
+-#define __STREAM_BUFFER_H_INCLUDED__
+-
+-/*
+- * This file is included on every cell {SP,ISP,host} and on every system
+- * that uses the DMA device. It defines the API to DLI bridge
+- *
+- * System and cell specific interfaces and inline code are included
+- * conditionally through Makefile path settings.
+- *
+- *  - .        system and cell agnostic interfaces, constants and identifiers
+- *	- public:  system agnostic, cell specific interfaces
+- *	- private: system dependent, cell specific interfaces & inline implementations
+- *	- global:  system specific constants and identifiers
+- *	- local:   system and cell specific constants and identifiers
+- *
+- */
+-
+-
+-#include "system_local.h"
+-#include "stream_buffer_local.h"
+-
+-#ifndef __INLINE_STREAM_BUFFER__
+-#define STORAGE_CLASS_STREAM_BUFFER_H extern
+-#define STORAGE_CLASS_STREAM_BUFFER_C
+-#include "stream_buffer_public.h"
+-#else  /* __INLINE_STREAM_BUFFER__ */
+-#define STORAGE_CLASS_STREAM_BUFFER_H static inline
+-#define STORAGE_CLASS_STREAM_BUFFER_C static inline
+-#include "stream_buffer_private.h"
+-#endif /* __INLINE_STREAM_BUFFER__ */
+-
+-#endif /* __STREAM_BUFFER_H_INCLUDED__ */
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/vector_func.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/vector_func.h
+deleted file mode 100644
+index 5368b9062897..000000000000
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/vector_func.h
++++ /dev/null
+@@ -1,38 +0,0 @@
+-/*
+- * Support for Intel Camera Imaging ISP subsystem.
+- * Copyright (c) 2015, Intel Corporation.
+- *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms and conditions of the GNU General Public License,
+- * version 2, as published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope it will be useful, but WITHOUT
+- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+- * more details.
+- */
+-
+-#ifndef __VECTOR_FUNC_H_INCLUDED__
+-#define __VECTOR_FUNC_H_INCLUDED__
+-
+-
+-/* TODO: Later filters will be moved to types directory,
+- * and we should only include matrix_MxN types */
+-#include "filters/filters_1.0/filter_2x2.h"
+-#include "filters/filters_1.0/filter_3x3.h"
+-#include "filters/filters_1.0/filter_4x4.h"
+-#include "filters/filters_1.0/filter_5x5.h"
+-
+-#include "vector_func_local.h"
+-
+-#ifndef __INLINE_VECTOR_FUNC__
+-#define STORAGE_CLASS_VECTOR_FUNC_H extern
+-#define STORAGE_CLASS_VECTOR_FUNC_C 
+-#include "vector_func_public.h"
+-#else  /* __INLINE_VECTOR_FUNC__ */
+-#define STORAGE_CLASS_VECTOR_FUNC_H static inline
+-#define STORAGE_CLASS_VECTOR_FUNC_C static inline
+-#include "vector_func_private.h"
+-#endif /* __INLINE_VECTOR_FUNC__ */
+-
+-#endif /* __VECTOR_FUNC_H_INCLUDED__ */
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/vector_ops.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/vector_ops.h
+deleted file mode 100644
+index 4923f2d5518b..000000000000
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/vector_ops.h
++++ /dev/null
+@@ -1,31 +0,0 @@
+-/*
+- * Support for Intel Camera Imaging ISP subsystem.
+- * Copyright (c) 2015, Intel Corporation.
+- *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms and conditions of the GNU General Public License,
+- * version 2, as published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope it will be useful, but WITHOUT
+- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+- * more details.
+- */
+-
+-#ifndef __VECTOR_OPS_H_INCLUDED__
+-#define __VECTOR_OPS_H_INCLUDED__
+-
+-
+-#include "vector_ops_local.h"
+-
+-#ifndef __INLINE_VECTOR_OPS__
+-#define STORAGE_CLASS_VECTOR_OPS_H extern
+-#define STORAGE_CLASS_VECTOR_OPS_C
+-#include "vector_ops_public.h"
+-#else  /* __INLINE_VECTOR_OPS__ */
+-#define STORAGE_CLASS_VECTOR_OPS_H static inline
+-#define STORAGE_CLASS_VECTOR_OPS_C static inline
+-#include "vector_ops_private.h"
+-#endif /* __INLINE_VECTOR_OPS__ */
+-
+-#endif /* __VECTOR_OPS_H_INCLUDED__ */
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/xmem.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/xmem.h
+deleted file mode 100644
+index 13083fe55141..000000000000
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_include/xmem.h
++++ /dev/null
+@@ -1,46 +0,0 @@
+-/*
+- * Support for Intel Camera Imaging ISP subsystem.
+- * Copyright (c) 2015, Intel Corporation.
+- *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms and conditions of the GNU General Public License,
+- * version 2, as published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope it will be useful, but WITHOUT
+- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+- * more details.
+- */
+-
+-#ifndef __XMEM_H_INCLUDED__
+-#define __XMEM_H_INCLUDED__
+-
+-/*
+- * This file is included on every cell {SP,ISP,host} and on every system
+- * that uses the XMEM device. It defines the API to DLI bridge
+- *
+- * System and cell specific interfaces and inline code are included
+- * conditionally through Makefile path settings.
+- *
+- *  - .        system and cell agnostic interfaces, constants and identifiers
+- *	- public:  system agnostic, cell specific interfaces
+- *	- private: system dependent, cell specific interfaces & inline implementations
+- *	- global:  system specific constants and identifiers
+- *	- local:   system and cell specific constants and identifiers
+- */
+-
+-
+-#include "system_local.h"
+-#include "xmem_local.h"
+-
+-#ifndef __INLINE_XMEM__
+-#define STORAGE_CLASS_XMEM_H extern
+-#define STORAGE_CLASS_XMEM_C 
+-#include "xmem_public.h"
+-#else  /* __INLINE_XMEM__ */
+-#define STORAGE_CLASS_XMEM_H static inline
+-#define STORAGE_CLASS_XMEM_C static inline
+-#include "xmem_private.h"
+-#endif /* __INLINE_XMEM__ */
+-
+-#endif /* __XMEM_H_INCLUDED__ */
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_shared/socket_global.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_shared/socket_global.h
+deleted file mode 100644
+index 2b7025e90250..000000000000
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_shared/socket_global.h
++++ /dev/null
+@@ -1,53 +0,0 @@
+-/*
+- * Support for Intel Camera Imaging ISP subsystem.
+- * Copyright (c) 2015, Intel Corporation.
+- *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms and conditions of the GNU General Public License,
+- * version 2, as published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope it will be useful, but WITHOUT
+- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+- * more details.
+- */
+-
+-#ifndef __SOCKET_GLOBAL_H_INCLUDED__
+-#define __SOCKET_GLOBAL_H_INCLUDED__
+-
+-#include "stream_buffer.h"
+-
+-/* define the socket port direction */
+-typedef enum {
+-	SOCKET_PORT_DIRECTION_NULL,
+-	SOCKET_PORT_DIRECTION_IN,
+-	SOCKET_PORT_DIRECTION_OUT
+-} socket_port_direction_t;
+-
+-/* pointer to the port's callout function */
+-typedef void (*socket_port_callout_fp)(void);
+-typedef struct socket_port_s socket_port_t;
+-typedef struct socket_s socket_t;
+-
+-/* data structure of the socket port */
+-struct socket_port_s {
+-	unsigned				channel;	/* the port entity */
+-	socket_port_direction_t direction;	/* the port direction */
+-	socket_port_callout_fp	callout;	/* the port callout function */
+-
+-	socket_t				*socket;	/* point to the socket */
+-
+-	struct {
+-		unsigned data;
+-	} buf;								/* the buffer at the port */
+-};
+-
+-/* data structure of the socket */
+-struct socket_s {
+-	socket_port_t	*in;	/* the in-direction port */
+-	socket_port_t	*out;	/* the out-direction port */
+-	stream_buffer_t	buf;	/* the buffer between in-ports and out-ports */
+-};
+-
+-#endif /* __SOCKET_GLOBAL_H_INCLUDED__ */
+-
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_shared/stream_buffer_global.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_shared/stream_buffer_global.h
+deleted file mode 100644
+index b9664b9608dc..000000000000
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/hive_isp_css_shared/stream_buffer_global.h
++++ /dev/null
+@@ -1,26 +0,0 @@
+-/*
+- * Support for Intel Camera Imaging ISP subsystem.
+- * Copyright (c) 2015, Intel Corporation.
+- *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms and conditions of the GNU General Public License,
+- * version 2, as published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope it will be useful, but WITHOUT
+- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+- * more details.
+- */
+-
+-#ifndef __STREAM_BUFFER_GLOBAL_H_INCLUDED__
+-#define __STREAM_BUFFER_GLOBAL_H_INCLUDED__
+-
+-typedef struct stream_buffer_s stream_buffer_t;
+-struct stream_buffer_s {
+-	unsigned	base;
+-	unsigned	limit;
+-	unsigned	top;
+-};
+-
+-#endif /* __STREAM_BUFFER_GLOBAL_H_INCLUDED__ */
+-
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/aa/aa_2/ia_css_aa2_state.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/aa/aa_2/ia_css_aa2_state.h
+deleted file mode 100644
+index cc404018b112..000000000000
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/aa/aa_2/ia_css_aa2_state.h
++++ /dev/null
+@@ -1,41 +0,0 @@
+-/*
+- * Support for Intel Camera Imaging ISP subsystem.
+- * Copyright (c) 2015, Intel Corporation.
+- *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms and conditions of the GNU General Public License,
+- * version 2, as published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope it will be useful, but WITHOUT
+- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+- * more details.
+- */
+-
+-#ifndef __IA_CSS_AA2_STATE_H
+-#define __IA_CSS_AA2_STATE_H
+-
+-#include "type_support.h"
+-#include "vmem.h" /* for VMEM_ARRAY*/
+-
+-/* Denotes the maximum number of pixels per line that can be processed:
+-* MAX_AA_VECTORS_PER_LINE  = maximum_line_width / ISP_NWAY */
+-#ifndef MAX_AA_VECTORS_PER_LINE
+-#error Please define MAX_AA_VECTORS_PER_LINE.
+-#endif
+-
+-/* This uses 2 history lines for both y, u and v*/
+-#define AA_STATE_Y_BUFFER_HEIGHT	2
+-#define AA_STATE_UV_BUFFER_HEIGHT	2
+-#define AA_STATE_Y_BUFFER_WIDTH		MAX_AA_VECTORS_PER_LINE
+-/* The number of u and v elements is half y due to yuv420 downsampling. */
+-#define AA_STATE_UV_BUFFER_WIDTH	(AA_STATE_Y_BUFFER_WIDTH/2)
+-
+-
+-struct ia_css_isp_aa_vmem_state {
+-	VMEM_ARRAY(y[AA_STATE_Y_BUFFER_HEIGHT], AA_STATE_Y_BUFFER_WIDTH*ISP_NWAY);
+-	VMEM_ARRAY(u[AA_STATE_UV_BUFFER_HEIGHT], AA_STATE_UV_BUFFER_WIDTH*ISP_NWAY);
+-	VMEM_ARRAY(v[AA_STATE_UV_BUFFER_HEIGHT], AA_STATE_UV_BUFFER_WIDTH*ISP_NWAY);
+-};
+-
+-#endif /* __IA_CSS_AA2_STATE_H */
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/bayer_ls/bayer_ls_1.0/ia_css_bayer_load_param.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/bayer_ls/bayer_ls_1.0/ia_css_bayer_load_param.h
+deleted file mode 100644
+index 8e1f300bcd39..000000000000
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/bayer_ls/bayer_ls_1.0/ia_css_bayer_load_param.h
++++ /dev/null
+@@ -1,20 +0,0 @@
+-/*
+- * Support for Intel Camera Imaging ISP subsystem.
+- * Copyright (c) 2015, Intel Corporation.
+- *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms and conditions of the GNU General Public License,
+- * version 2, as published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope it will be useful, but WITHOUT
+- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+- * more details.
+- */
+-
+-#ifndef __IA_CSS_BAYER_LOAD_PARAM_H
+-#define __IA_CSS_BAYER_LOAD_PARAM_H
+-
+-#include "ia_css_bayer_ls_param.h"
+-
+-#endif /* __IA_CSS_BAYER_LOAD_PARAM_H */
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/bayer_ls/bayer_ls_1.0/ia_css_bayer_ls_param.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/bayer_ls/bayer_ls_1.0/ia_css_bayer_ls_param.h
+deleted file mode 100644
+index a0d355454aa3..000000000000
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/bayer_ls/bayer_ls_1.0/ia_css_bayer_ls_param.h
++++ /dev/null
+@@ -1,42 +0,0 @@
+-/*
+- * Support for Intel Camera Imaging ISP subsystem.
+- * Copyright (c) 2015, Intel Corporation.
+- *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms and conditions of the GNU General Public License,
+- * version 2, as published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope it will be useful, but WITHOUT
+- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+- * more details.
+- */
+-
+-#ifndef __IA_CSS_BAYER_LS_PARAM_H
+-#define __IA_CSS_BAYER_LS_PARAM_H
+-
+-#include "type_support.h"
+-#ifndef ISP2401
+-
+-#define NUM_BAYER_LS 2
+-#define BAYER_IDX_GR 0
+-#define BAYER_IDX_R 1
+-#define BAYER_IDX_B 2
+-#define BAYER_IDX_GB 3
+-#define BAYER_QUAD_WIDTH 2
+-#define BAYER_QUAD_HEIGHT 2
+-#define NOF_BAYER_VECTORS 4
+-
+-/* bayer load/store */
+-struct sh_css_isp_bayer_ls_isp_config {
+-	uint32_t base_address[NUM_BAYER_LS];
+-	uint32_t width[NUM_BAYER_LS];
+-	uint32_t height[NUM_BAYER_LS];
+-	uint32_t stride[NUM_BAYER_LS];
+-};
+-
+-#else
+-#include "../../io_ls/common/ia_css_common_io_types.h"
+-#endif
+-
+-#endif /* __IA_CSS_BAYER_LS_PARAM_H */
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/bayer_ls/bayer_ls_1.0/ia_css_bayer_store_param.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/bayer_ls/bayer_ls_1.0/ia_css_bayer_store_param.h
+deleted file mode 100644
+index f330be80efa6..000000000000
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/bayer_ls/bayer_ls_1.0/ia_css_bayer_store_param.h
++++ /dev/null
+@@ -1,21 +0,0 @@
+-/*
+- * Support for Intel Camera Imaging ISP subsystem.
+- * Copyright (c) 2015, Intel Corporation.
+- *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms and conditions of the GNU General Public License,
+- * version 2, as published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope it will be useful, but WITHOUT
+- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+- * more details.
+- */
+-
+-#ifndef __IA_CSS_BAYER_STORE_PARAM_H
+-#define __IA_CSS_BAYER_STORE_PARAM_H
+-
+-#include "ia_css_bayer_ls_param.h"
+-
+-
+-#endif /* __IA_CSS_BAYER_STORE_PARAM_H */
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/bnlm/ia_css_bnlm_state.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/bnlm/ia_css_bnlm_state.h
+deleted file mode 100644
+index 79cce0e40e82..000000000000
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/bnlm/ia_css_bnlm_state.h
++++ /dev/null
+@@ -1,31 +0,0 @@
+-/*
+- * Support for Intel Camera Imaging ISP subsystem.
+- * Copyright (c) 2015, Intel Corporation.
+- *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms and conditions of the GNU General Public License,
+- * version 2, as published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope it will be useful, but WITHOUT
+- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+- * more details.
+- */
+-
+-#ifndef __IA_CSS_BNLM_STATE_H
+-#define __IA_CSS_BNLM_STATE_H
+-
+-
+-#include "type_support.h"
+-#include "vmem.h" /* for VMEM_ARRAY*/
+-#include "bnlm.isp.h"
+-
+-struct bnlm_vmem_state {
+-	/* State buffers required for BNLM */
+-	VMEM_ARRAY(buf[BNLM_STATE_BUF_HEIGHT], BNLM_STATE_BUF_WIDTH*ISP_NWAY);
+-};
+-
+-
+-
+-#endif /* __IA_CSS_BNLM_STATE_H */
+-
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/cnr/cnr_1.0/ia_css_cnr_state.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/cnr/cnr_1.0/ia_css_cnr_state.h
+deleted file mode 100644
+index 795fba76bb20..000000000000
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/cnr/cnr_1.0/ia_css_cnr_state.h
++++ /dev/null
+@@ -1,33 +0,0 @@
+-/*
+- * Support for Intel Camera Imaging ISP subsystem.
+- * Copyright (c) 2015, Intel Corporation.
+- *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms and conditions of the GNU General Public License,
+- * version 2, as published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope it will be useful, but WITHOUT
+- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+- * more details.
+- */
+-
+-#ifndef __IA_CSS_CNR_STATE_H
+-#define __IA_CSS_CNR_STATE_H
+-
+-#include "type_support.h"
+-
+-#include "vmem.h"
+-
+-typedef struct
+-{
+-  VMEM_ARRAY(u, ISP_NWAY);
+-  VMEM_ARRAY(v, ISP_NWAY);
+-} s_cnr_buf;
+-
+-/* CNR (color noise reduction) */
+-struct sh_css_isp_cnr_vmem_state {
+-	s_cnr_buf cnr_buf[2][MAX_VECTORS_PER_BUF_LINE/2];
+-};
+-
+-#endif /* __IA_CSS_CNR_STATE_H */
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/cnr/cnr_2/ia_css_cnr_state.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/cnr/cnr_2/ia_css_cnr_state.h
+deleted file mode 100644
+index e533e2fa8cd5..000000000000
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/cnr/cnr_2/ia_css_cnr_state.h
++++ /dev/null
+@@ -1,33 +0,0 @@
+-/*
+- * Support for Intel Camera Imaging ISP subsystem.
+- * Copyright (c) 2015, Intel Corporation.
+- *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms and conditions of the GNU General Public License,
+- * version 2, as published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope it will be useful, but WITHOUT
+- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+- * more details.
+- */
+-
+-#ifndef __IA_CSS_CNR2_STATE_H
+-#define __IA_CSS_CNR2_STATE_H
+-
+-#include "type_support.h"
+-#include "vmem.h"
+-
+-typedef struct
+-{
+-  VMEM_ARRAY(y, (MAX_VECTORS_PER_BUF_LINE/2)*ISP_NWAY);
+-  VMEM_ARRAY(u, (MAX_VECTORS_PER_BUF_LINE/2)*ISP_NWAY);
+-  VMEM_ARRAY(v, (MAX_VECTORS_PER_BUF_LINE/2)*ISP_NWAY);
+-} s_cnr_buf;
+-
+-/* CNR (color noise reduction) */
+-struct sh_css_isp_cnr_vmem_state {
+-	s_cnr_buf cnr_buf;
+-};
+-
+-#endif /* __IA_CSS_CNR2_STATE_H */
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/dp/dp_1.0/ia_css_dp_state.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/dp/dp_1.0/ia_css_dp_state.h
+deleted file mode 100644
+index f832b3697908..000000000000
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/dp/dp_1.0/ia_css_dp_state.h
++++ /dev/null
+@@ -1,36 +0,0 @@
+-/*
+- * Support for Intel Camera Imaging ISP subsystem.
+- * Copyright (c) 2015, Intel Corporation.
+- *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms and conditions of the GNU General Public License,
+- * version 2, as published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope it will be useful, but WITHOUT
+- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+- * more details.
+- */
+-
+-#ifndef __IA_CSS_DP_STATE_H
+-#define __IA_CSS_DP_STATE_H
+-
+-#include "type_support.h"
+-
+-#include "vmem.h"
+-#ifndef ISP2401
+-#if NEED_BDS_OTHER_THAN_1_00
+-#else
+-#if ENABLE_FIXED_BAYER_DS
+-#endif
+-#define MAX_VECTORS_PER_DP_LINE MAX_VECTORS_PER_BUF_INPUT_LINE
+-#else
+-#define MAX_VECTORS_PER_DP_LINE MAX_VECTORS_PER_BUF_LINE
+-#endif
+-
+-/* DP (Defect Pixel Correction) */
+-struct sh_css_isp_dp_vmem_state {
+-	VMEM_ARRAY(dp_buf[4], MAX_VECTORS_PER_DP_LINE*ISP_NWAY);
+-};
+-
+-#endif /* __IA_CSS_DP_STATE_H */
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/dpc2/ia_css_dpc2_state.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/dpc2/ia_css_dpc2_state.h
+deleted file mode 100644
+index cbf1e81e83a6..000000000000
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/dpc2/ia_css_dpc2_state.h
++++ /dev/null
+@@ -1,30 +0,0 @@
+-/*
+- * Support for Intel Camera Imaging ISP subsystem.
+- * Copyright (c) 2015, Intel Corporation.
+- *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms and conditions of the GNU General Public License,
+- * version 2, as published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope it will be useful, but WITHOUT
+- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+- * more details.
+- */
+-
+-#ifndef __IA_CSS_DPC2_STATE_H
+-#define __IA_CSS_DPC2_STATE_H
+-
+-#include "type_support.h"
+-#include "vmem.h" /* for VMEM_ARRAY*/
+-
+-#include "ia_css_dpc2_param.h"
+-
+-struct sh_css_isp_dpc2_vmem_state {
+-	VMEM_ARRAY(dpc2_input_lines[DPC2_STATE_INPUT_BUFFER_HEIGHT], DPC2_STATE_INPUT_BUFFER_WIDTH*ISP_NWAY);
+-	VMEM_ARRAY(dpc2_local_deviations[DPC2_STATE_LOCAL_DEVIATION_BUFFER_HEIGHT], DPC2_STATE_LOCAL_DEVIATION_BUFFER_WIDTH*ISP_NWAY);
+-	VMEM_ARRAY(dpc2_second_min[DPC2_STATE_SECOND_MINMAX_BUFFER_HEIGHT], DPC2_STATE_SECOND_MINMAX_BUFFER_WIDTH*ISP_NWAY);
+-	VMEM_ARRAY(dpc2_second_max[DPC2_STATE_SECOND_MINMAX_BUFFER_HEIGHT], DPC2_STATE_SECOND_MINMAX_BUFFER_WIDTH*ISP_NWAY);
+-};
+-
+-#endif /* __IA_CSS_DPC2_STATE_H */
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/eed1_8/ia_css_eed1_8_state.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/eed1_8/ia_css_eed1_8_state.h
+deleted file mode 100644
+index 47e451b15044..000000000000
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/eed1_8/ia_css_eed1_8_state.h
++++ /dev/null
+@@ -1,40 +0,0 @@
+-/*
+- * Support for Intel Camera Imaging ISP subsystem.
+- * Copyright (c) 2015, Intel Corporation.
+- *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms and conditions of the GNU General Public License,
+- * version 2, as published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope it will be useful, but WITHOUT
+- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+- * more details.
+- */
+-
+-#ifndef __IA_CSS_EED1_8_STATE_H
+-#define __IA_CSS_EED1_8_STATE_H
+-
+-#include "type_support.h"
+-#include "vmem.h" /* for VMEM_ARRAY*/
+-
+-#include "ia_css_eed1_8_param.h"
+-
+-struct eed1_8_vmem_state {
+-	VMEM_ARRAY(eed1_8_input_lines[EED1_8_STATE_INPUT_BUFFER_HEIGHT], EED1_8_STATE_INPUT_BUFFER_WIDTH*ISP_NWAY);
+-	VMEM_ARRAY(eed1_8_LD_H[EED1_8_STATE_LD_H_HEIGHT], EED1_8_STATE_LD_H_WIDTH*ISP_NWAY);
+-	VMEM_ARRAY(eed1_8_LD_V[EED1_8_STATE_LD_V_HEIGHT], EED1_8_STATE_LD_V_WIDTH*ISP_NWAY);
+-	VMEM_ARRAY(eed1_8_D_Hr[EED1_8_STATE_D_HR_HEIGHT], EED1_8_STATE_D_HR_WIDTH*ISP_NWAY);
+-	VMEM_ARRAY(eed1_8_D_Hb[EED1_8_STATE_D_HB_HEIGHT], EED1_8_STATE_D_HB_WIDTH*ISP_NWAY);
+-	VMEM_ARRAY(eed1_8_D_Vr[EED1_8_STATE_D_VR_HEIGHT], EED1_8_STATE_D_VR_WIDTH*ISP_NWAY);
+-	VMEM_ARRAY(eed1_8_D_Vb[EED1_8_STATE_D_VB_HEIGHT], EED1_8_STATE_D_VB_WIDTH*ISP_NWAY);
+-	VMEM_ARRAY(eed1_8_rb_zipped[EED1_8_STATE_RB_ZIPPED_HEIGHT], EED1_8_STATE_RB_ZIPPED_WIDTH*ISP_NWAY);
+-#if EED1_8_FC_ENABLE_MEDIAN
+-	VMEM_ARRAY(eed1_8_Yc[EED1_8_STATE_YC_HEIGHT], EED1_8_STATE_YC_WIDTH*ISP_NWAY);
+-	VMEM_ARRAY(eed1_8_Cg[EED1_8_STATE_CG_HEIGHT], EED1_8_STATE_CG_WIDTH*ISP_NWAY);
+-	VMEM_ARRAY(eed1_8_Co[EED1_8_STATE_CO_HEIGHT], EED1_8_STATE_CO_WIDTH*ISP_NWAY);
+-	VMEM_ARRAY(eed1_8_AbsK[EED1_8_STATE_ABSK_HEIGHT], EED1_8_STATE_ABSK_WIDTH*ISP_NWAY);
+-#endif
+-};
+-
+-#endif /* __IA_CSS_EED1_8_STATE_H */
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/io_ls/plane_io_ls/ia_css_plane_io_param.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/io_ls/plane_io_ls/ia_css_plane_io_param.h
+deleted file mode 100644
+index 213ef3b385aa..000000000000
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/io_ls/plane_io_ls/ia_css_plane_io_param.h
++++ /dev/null
+@@ -1,22 +0,0 @@
+-#ifndef ISP2401
+-/*
+- * Support for Intel Camera Imaging ISP subsystem.
+- * Copyright (c) 2015, Intel Corporation.
+- *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms and conditions of the GNU General Public License,
+- * version 2, as published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope it will be useful, but WITHOUT
+- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+- * more details.
+- */
+-
+-#ifndef __IA_CSS_PLANE_IO_PARAM_H
+-#define __IA_CSS_PLANE_IO_PARAM_H
+-
+-#include "../common/ia_css_common_io_param.h"
+-
+-#endif /* __IA_CSS_PLANE_IO_PARAM_H */
+-#endif
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/io_ls/plane_io_ls/ia_css_plane_io_types.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/io_ls/plane_io_ls/ia_css_plane_io_types.h
+deleted file mode 100644
+index d635741505e2..000000000000
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/io_ls/plane_io_ls/ia_css_plane_io_types.h
++++ /dev/null
+@@ -1,30 +0,0 @@
+-#ifndef ISP2401
+-/*
+- * Support for Intel Camera Imaging ISP subsystem.
+- * Copyright (c) 2015, Intel Corporation.
+- *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms and conditions of the GNU General Public License,
+- * version 2, as published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope it will be useful, but WITHOUT
+- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+- * more details.
+- */
+-
+-#ifndef __IA_CSS_PLANE_IO_TYPES_H
+-#define __IA_CSS_PLANE_IO_TYPES_H
+-
+-#include "../common/ia_css_common_io_types.h"
+-
+-#define PLANE_IO_LS_NUM_PLANES       3
+-
+-struct ia_css_plane_io_config {
+-	struct ia_css_common_io_config get_plane_io_config[PLANE_IO_LS_NUM_PLANES];
+-	struct ia_css_common_io_config put_plane_io_config[PLANE_IO_LS_NUM_PLANES];
+-};
+-
+-#endif /* __IA_CSS_PLANE_IO_TYPES_H */
+-
+-#endif
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/io_ls/yuv420_io_ls/ia_css_yuv420_io_param.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/io_ls/yuv420_io_ls/ia_css_yuv420_io_param.h
+deleted file mode 100644
+index 52450a9a55a1..000000000000
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/io_ls/yuv420_io_ls/ia_css_yuv420_io_param.h
++++ /dev/null
+@@ -1,22 +0,0 @@
+-#ifndef ISP2401
+-/*
+- * Support for Intel Camera Imaging ISP subsystem.
+- * Copyright (c) 2015, Intel Corporation.
+- *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms and conditions of the GNU General Public License,
+- * version 2, as published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope it will be useful, but WITHOUT
+- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+- * more details.
+- */
+-
+-#ifndef __IA_CSS_YUV420_IO_PARAM
+-#define __IA_CSS_YUV420_IO_PARAM
+-
+-#include "../common/ia_css_common_io_param.h"
+-
+-#endif
+-#endif
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/io_ls/yuv420_io_ls/ia_css_yuv420_io_types.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/io_ls/yuv420_io_ls/ia_css_yuv420_io_types.h
+deleted file mode 100644
+index 99ec1143b214..000000000000
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/io_ls/yuv420_io_ls/ia_css_yuv420_io_types.h
++++ /dev/null
+@@ -1,22 +0,0 @@
+-#ifndef ISP2401
+-/*
+- * Support for Intel Camera Imaging ISP subsystem.
+- * Copyright (c) 2015, Intel Corporation.
+- *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms and conditions of the GNU General Public License,
+- * version 2, as published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope it will be useful, but WITHOUT
+- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+- * more details.
+- */
+-
+-#ifndef __IA_CSS_YUV420_IO_TYPES
+-#define __IA_CSS_YUV420_IO_TYPES
+-
+-#include "../common/ia_css_common_io_types.h"
+-
+-#endif
+-#endif
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/ipu2_io_ls/plane_io_ls/ia_css_plane_io_param.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/ipu2_io_ls/plane_io_ls/ia_css_plane_io_param.h
+deleted file mode 100644
+index 881b7e5236dc..000000000000
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/ipu2_io_ls/plane_io_ls/ia_css_plane_io_param.h
++++ /dev/null
+@@ -1,22 +0,0 @@
+-#ifdef ISP2401
+-/**
+-Support for Intel Camera Imaging ISP subsystem.
+-Copyright (c) 2010 - 2015, Intel Corporation.
+-
+-This program is free software; you can redistribute it and/or modify it
+-under the terms and conditions of the GNU General Public License,
+-version 2, as published by the Free Software Foundation.
+-
+-This program is distributed in the hope it will be useful, but WITHOUT
+-ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+-FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+-more details.
+-*/
+-
+-#ifndef __IA_CSS_PLANE_IO_PARAM_H
+-#define __IA_CSS_PLANE_IO_PARAM_H
+-
+-#include "../common/ia_css_common_io_param.h"
+-
+-#endif /* __IA_CSS_PLANE_IO_PARAM_H */
+-#endif
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/ipu2_io_ls/plane_io_ls/ia_css_plane_io_types.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/ipu2_io_ls/plane_io_ls/ia_css_plane_io_types.h
+deleted file mode 100644
+index f4b9e8de3d8e..000000000000
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/ipu2_io_ls/plane_io_ls/ia_css_plane_io_types.h
++++ /dev/null
+@@ -1,30 +0,0 @@
+-#ifdef ISP2401
+-/**
+-Support for Intel Camera Imaging ISP subsystem.
+-Copyright (c) 2010 - 2015, Intel Corporation.
+-
+-This program is free software; you can redistribute it and/or modify it
+-under the terms and conditions of the GNU General Public License,
+-version 2, as published by the Free Software Foundation.
+-
+-This program is distributed in the hope it will be useful, but WITHOUT
+-ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+-FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+-more details.
+-*/
+-
+-#ifndef __IA_CSS_PLANE_IO_TYPES_H
+-#define __IA_CSS_PLANE_IO_TYPES_H
+-
+-#include "../common/ia_css_common_io_types.h"
+-
+-#define PLANE_IO_LS_NUM_PLANES       3
+-
+-struct ia_css_plane_io_config {
+-	struct ia_css_common_io_config get_plane_io_config[PLANE_IO_LS_NUM_PLANES];
+-	struct ia_css_common_io_config put_plane_io_config[PLANE_IO_LS_NUM_PLANES];
+-};
+-
+-#endif /* __IA_CSS_PLANE_IO_TYPES_H */
+-
+-#endif
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/ipu2_io_ls/yuv420_io_ls/ia_css_yuv420_io_param.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/ipu2_io_ls/yuv420_io_ls/ia_css_yuv420_io_param.h
+deleted file mode 100644
+index 86184b545fed..000000000000
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/ipu2_io_ls/yuv420_io_ls/ia_css_yuv420_io_param.h
++++ /dev/null
+@@ -1,22 +0,0 @@
+-#ifdef ISP2401
+-/**
+-Support for Intel Camera Imaging ISP subsystem.
+-Copyright (c) 2010 - 2015, Intel Corporation.
+-
+-This program is free software; you can redistribute it and/or modify it
+-under the terms and conditions of the GNU General Public License,
+-version 2, as published by the Free Software Foundation.
+-
+-This program is distributed in the hope it will be useful, but WITHOUT
+-ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+-FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+-more details.
+-*/
+-
+-#ifndef __IA_CSS_YUV420_IO_PARAM
+-#define __IA_CSS_YUV420_IO_PARAM
+-
+-#include "../common/ia_css_common_io_param.h"
+-
+-#endif
+-#endif
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/ipu2_io_ls/yuv420_io_ls/ia_css_yuv420_io_types.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/ipu2_io_ls/yuv420_io_ls/ia_css_yuv420_io_types.h
+deleted file mode 100644
+index ad750f530013..000000000000
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/ipu2_io_ls/yuv420_io_ls/ia_css_yuv420_io_types.h
++++ /dev/null
+@@ -1,22 +0,0 @@
+-#ifdef ISP2401
+-/**
+-Support for Intel Camera Imaging ISP subsystem.
+-Copyright (c) 2010 - 2015, Intel Corporation.
+-
+-This program is free software; you can redistribute it and/or modify it
+-under the terms and conditions of the GNU General Public License,
+-version 2, as published by the Free Software Foundation.
+-
+-This program is distributed in the hope it will be useful, but WITHOUT
+-ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+-FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+-more details.
+-*/
+-
+-#ifndef __IA_CSS_YUV420_IO_TYPES
+-#define __IA_CSS_YUV420_IO_TYPES
+-
+-#include "../common/ia_css_common_io_types.h"
+-
+-#endif
+-#endif
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/norm/norm_1.0/ia_css_norm_types.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/norm/norm_1.0/ia_css_norm_types.h
+deleted file mode 100644
+index 5581bddf9f9b..000000000000
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/norm/norm_1.0/ia_css_norm_types.h
++++ /dev/null
+@@ -1,21 +0,0 @@
+-/*
+- * Support for Intel Camera Imaging ISP subsystem.
+- * Copyright (c) 2015, Intel Corporation.
+- *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms and conditions of the GNU General Public License,
+- * version 2, as published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope it will be useful, but WITHOUT
+- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+- * more details.
+- */
+-
+-#ifndef __IA_CSS_NORM_TYPES_H
+-#define __IA_CSS_NORM_TYPES_H
+-
+-
+-#endif /* __IA_CSS_NORM_TYPES_H */
+-
+-
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/s3a_stat_ls/ia_css_s3a_stat_ls_param.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/s3a_stat_ls/ia_css_s3a_stat_ls_param.h
+deleted file mode 100644
+index 9aa019539f47..000000000000
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/s3a_stat_ls/ia_css_s3a_stat_ls_param.h
++++ /dev/null
+@@ -1,45 +0,0 @@
+-/*
+- * Support for Intel Camera Imaging ISP subsystem.
+- * Copyright (c) 2015, Intel Corporation.
+- *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms and conditions of the GNU General Public License,
+- * version 2, as published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope it will be useful, but WITHOUT
+- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+- * more details.
+- */
+-
+-#ifndef __IA_CSS_S3A_STAT_LS_PARAM_H
+-#define __IA_CSS_S3A_STAT_LS_PARAM_H
+-
+-#include "type_support.h"
+-#ifdef ISP2401
+-#include "../../io_ls/common/ia_css_common_io_types.h"
+-#endif
+-
+-#define NUM_S3A_LS 1
+-
+-/* s3a statistics store */
+-#ifdef ISP2401
+-struct ia_css_s3a_stat_ls_configuration {
+-	uint32_t s3a_grid_size_log2;
+-};
+-
+-#endif
+-struct sh_css_isp_s3a_stat_ls_isp_config {
+-#ifndef ISP2401
+-	uint32_t base_address[NUM_S3A_LS];
+-	uint32_t width[NUM_S3A_LS];
+-	uint32_t height[NUM_S3A_LS];
+-	uint32_t stride[NUM_S3A_LS];
+-#endif
+-	uint32_t s3a_grid_size_log2[NUM_S3A_LS];
+-};
+-
+-#ifndef ISP2401
+-
+-#endif
+-#endif /* __IA_CSS_S3A_STAT_LS_PARAM_H */
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/s3a_stat_ls/ia_css_s3a_stat_store_param.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/s3a_stat_ls/ia_css_s3a_stat_store_param.h
+deleted file mode 100644
+index 676b42d364e8..000000000000
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/s3a_stat_ls/ia_css_s3a_stat_store_param.h
++++ /dev/null
+@@ -1,21 +0,0 @@
+-/*
+- * Support for Intel Camera Imaging ISP subsystem.
+- * Copyright (c) 2015, Intel Corporation.
+- *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms and conditions of the GNU General Public License,
+- * version 2, as published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope it will be useful, but WITHOUT
+- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+- * more details.
+- */
+-
+-#ifndef __IA_CSS_S3A_STAT_STORE_PARAM_H
+-#define __IA_CSS_S3A_STAT_STORE_PARAM_H
+-
+-#include "ia_css_s3a_stat_ls_param.h"
+-
+-
+-#endif /* __IA_CSS_S3A_STAT_STORE_PARAM_H */
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/scale/scale_1.0/ia_css_scale_param.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/scale/scale_1.0/ia_css_scale_param.h
+deleted file mode 100644
+index fd19f008ff91..000000000000
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/scale/scale_1.0/ia_css_scale_param.h
++++ /dev/null
+@@ -1,20 +0,0 @@
+-/*
+- * Support for Intel Camera Imaging ISP subsystem.
+- * Copyright (c) 2015, Intel Corporation.
+- *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms and conditions of the GNU General Public License,
+- * version 2, as published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope it will be useful, but WITHOUT
+- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+- * more details.
+- */
+-
+-#ifndef _IA_CSS_SCALE_PARAM_H
+-#define _IA_CSS_SCALE_PARAM_H
+-
+-#include "uds/uds_1.0/ia_css_uds_param.h"
+-
+-#endif /* _IA_CSS_SCALE_PARAM_H */
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/sdis/common/ia_css_sdis_param.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/sdis/common/ia_css_sdis_param.h
+deleted file mode 100644
+index 586cc4315c1f..000000000000
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/sdis/common/ia_css_sdis_param.h
++++ /dev/null
+@@ -1,22 +0,0 @@
+-/*
+- * Support for Intel Camera Imaging ISP subsystem.
+- * Copyright (c) 2015, Intel Corporation.
+- *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms and conditions of the GNU General Public License,
+- * version 2, as published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope it will be useful, but WITHOUT
+- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+- * more details.
+- */
+-
+-#ifndef __IA_CSS_SDIS_PARAM_COMMON_H
+-#define __IA_CSS_SDIS_PARAM_COMMON_H
+-
+-
+-#include "sdis/common/ia_css_sdis_common.host.h"
+-
+-#endif /* __IA_CSS_SDIS_PARAM_COMMON_H */
+-
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/sdis/sdis_1.0/ia_css_sdis_param.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/sdis/sdis_1.0/ia_css_sdis_param.h
+deleted file mode 100644
+index 2dd8696802d0..000000000000
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/sdis/sdis_1.0/ia_css_sdis_param.h
++++ /dev/null
+@@ -1,21 +0,0 @@
+-/*
+- * Support for Intel Camera Imaging ISP subsystem.
+- * Copyright (c) 2015, Intel Corporation.
+- *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms and conditions of the GNU General Public License,
+- * version 2, as published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope it will be useful, but WITHOUT
+- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+- * more details.
+- */
+-
+-#ifndef __IA_CSS_SDIS_PARAM_H
+-#define __IA_CSS_SDIS_PARAM_H
+-
+-#include "sdis.isp.h"
+-
+-#endif /* __IA_CSS_SDIS_PARAM_H */
+-
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/sdis/sdis_2/ia_css_sdis_param.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/sdis/sdis_2/ia_css_sdis_param.h
+deleted file mode 100644
+index cea352e45713..000000000000
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/sdis/sdis_2/ia_css_sdis_param.h
++++ /dev/null
+@@ -1,21 +0,0 @@
+-/*
+- * Support for Intel Camera Imaging ISP subsystem.
+- * Copyright (c) 2015, Intel Corporation.
+- *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms and conditions of the GNU General Public License,
+- * version 2, as published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope it will be useful, but WITHOUT
+- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+- * more details.
+- */
+-
+-#ifndef __IA_CSS_SDIS2_PARAM_H
+-#define __IA_CSS_SDIS2_PARAM_H
+-
+-#include "sdis.isp.h"
+-
+-#endif /* __IA_CSS_SDIS2_PARAM_H */
+-
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/xnr/xnr_3.0/ia_css_xnr3_wrapper_param.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/xnr/xnr_3.0/ia_css_xnr3_wrapper_param.h
+deleted file mode 100644
+index 1a98555fd5d9..000000000000
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/xnr/xnr_3.0/ia_css_xnr3_wrapper_param.h
++++ /dev/null
+@@ -1,20 +0,0 @@
+-/*
+- * Support for Intel Camera Imaging ISP subsystem.
+- * Copyright (c) 2015, Intel Corporation.
+- *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms and conditions of the GNU General Public License,
+- * version 2, as published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope it will be useful, but WITHOUT
+- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+- * more details.
+- */
+-
+-#ifndef __IA_CSS_XNR3_WRAPPER_PARAM_H
+-#define __IA_CSS_XNR3_WRAPPER_PARAM_H
+-
+-#include "ia_css_xnr3_param.h"
+-
+-#endif
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/yuv_ls/yuv_ls_1.0/ia_css_yuv_load_param.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/yuv_ls/yuv_ls_1.0/ia_css_yuv_load_param.h
+deleted file mode 100644
+index 400c6790cbf5..000000000000
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/yuv_ls/yuv_ls_1.0/ia_css_yuv_load_param.h
++++ /dev/null
+@@ -1,20 +0,0 @@
+-/*
+- * Support for Intel Camera Imaging ISP subsystem.
+- * Copyright (c) 2015, Intel Corporation.
+- *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms and conditions of the GNU General Public License,
+- * version 2, as published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope it will be useful, but WITHOUT
+- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+- * more details.
+- */
+-
+-#ifndef __IA_CSS_YUV_LOAD_PARAM_H
+-#define __IA_CSS_YUV_LOAD_PARAM_H
+-
+-#include "ia_css_yuv_ls_param.h"
+-
+-#endif /* __IA_CSS_YUV_LOAD_PARAM_H */
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/yuv_ls/yuv_ls_1.0/ia_css_yuv_ls_param.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/yuv_ls/yuv_ls_1.0/ia_css_yuv_ls_param.h
+deleted file mode 100644
+index c9ff0cb2493a..000000000000
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/yuv_ls/yuv_ls_1.0/ia_css_yuv_ls_param.h
++++ /dev/null
+@@ -1,39 +0,0 @@
+-/*
+- * Support for Intel Camera Imaging ISP subsystem.
+- * Copyright (c) 2015, Intel Corporation.
+- *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms and conditions of the GNU General Public License,
+- * version 2, as published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope it will be useful, but WITHOUT
+- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+- * more details.
+- */
+-
+-#ifndef __IA_CSS_YUV_LS_PARAM_H
+-#define __IA_CSS_YUV_LS_PARAM_H
+-
+-#include "type_support.h"
+-#ifndef ISP2401
+-
+-/* The number of load/store kernels in a pipeline can be greater than one.
+- * A kernel can consume more than one input or can produce more
+- * than one output.
+- */
+-#define NUM_YUV_LS 2
+-
+-/* YUV load/store */
+-struct sh_css_isp_yuv_ls_isp_config {
+-	unsigned base_address[NUM_YUV_LS];
+-	unsigned width[NUM_YUV_LS];
+-	unsigned height[NUM_YUV_LS];
+-	unsigned stride[NUM_YUV_LS];
+-};
+-
+-#else
+-#include "../../io_ls/common/ia_css_common_io_types.h"
+-#endif
+-
+-#endif /* __IA_CSS_YUV_LS_PARAM_H */
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/yuv_ls/yuv_ls_1.0/ia_css_yuv_store_param.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/yuv_ls/yuv_ls_1.0/ia_css_yuv_store_param.h
+deleted file mode 100644
+index 69c474ea1ffd..000000000000
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/kernels/yuv_ls/yuv_ls_1.0/ia_css_yuv_store_param.h
++++ /dev/null
+@@ -1,21 +0,0 @@
+-/*
+- * Support for Intel Camera Imaging ISP subsystem.
+- * Copyright (c) 2015, Intel Corporation.
+- *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms and conditions of the GNU General Public License,
+- * version 2, as published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope it will be useful, but WITHOUT
+- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+- * more details.
+- */
+-
+-#ifndef __IA_CSS_YUV_STORE_PARAM_H
+-#define __IA_CSS_YUV_STORE_PARAM_H
+-
+-#include "ia_css_yuv_ls_param.h"
+-
+-
+-#endif /* __IA_CSS_YUV_STORE_PARAM_H */
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/modes/interface/isp_exprs.h b/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/modes/interface/isp_exprs.h
+deleted file mode 100644
+index e625ba62cc15..000000000000
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/isp/modes/interface/isp_exprs.h
++++ /dev/null
+@@ -1,286 +0,0 @@
+-#ifndef ISP2401
+-/*
+- * Support for Intel Camera Imaging ISP subsystem.
+- * Copyright (c) 2015, Intel Corporation.
+- *
+- * This program is free software; you can redistribute it and/or modify it
+- * under the terms and conditions of the GNU General Public License,
+- * version 2, as published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope it will be useful, but WITHOUT
+- * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+- * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+- * more details.
+- */
+-#else
+-/**
+-Support for Intel Camera Imaging ISP subsystem.
+-Copyright (c) 2010 - 2015, Intel Corporation.
+-
+-This program is free software; you can redistribute it and/or modify it
+-under the terms and conditions of the GNU General Public License,
+-version 2, as published by the Free Software Foundation.
+-
+-This program is distributed in the hope it will be useful, but WITHOUT
+-ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+-FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+-more details.
+-*/
+-#endif
+-
+-#ifndef _COMMON_ISP_EXPRS_H_
+-#define _COMMON_ISP_EXPRS_H_
+-
+-/* Binary independent pre-processor expressions */
+-
+-#include "sh_css_defs.h"
+-#include "isp_const.h"
+-
+-#ifdef __HOST
+-#error "isp_exprs.h: Do not include on HOST, contains ISP specific defines"
+-#endif
+-
+-#ifndef __ISP
+-#if defined(MODE)
+-#define MODE aap
+-#error "isp_exprs.h: is mode independent, but MODE is set"
+-#endif
+-#if defined(VARIABLE_RESOLUTION)
+-#define VARIABLE_RESOLUTION noot
+-#error "isp_exprs.h: is mode independent, but VARIABLE_RESOLUTION is set"
+-#endif
+-#if defined(DECI_FACTOR_LOG2)
+-#define DECI_FACTOR_LOG2 mies
+-#error "isp_exprs.h: is mode independent, but DECI_FACTOR_LOG2 is set"
+-#endif
+-#endif
+-
+-#define LOG_VECTOR_STEP        _ISP_LOG_VECTOR_STEP(MODE)
+-/* should be even and multiple of vf downscaling */
+-#define ISP_OUTPUT_CHUNK_LOG_FACTOR (MAX_VF_LOG_DOWNSCALE<=1 ? LOG_VECTOR_STEP : \
+-					umax(VF_LOG_DOWNSCALE, LOG_VECTOR_STEP))
+-
+-#define CEIL_DIV_CHUNKS(n,c)    ((c) == 1 ? (n) \
+-		  		          : CEIL_SHIFT(CEIL_DIV((n), (c)), ISP_OUTPUT_CHUNK_LOG_FACTOR)<<ISP_OUTPUT_CHUNK_LOG_FACTOR)
+-
+-
+-#define ISP_VARIABLE_INPUT     (ISP_INPUT == IA_CSS_BINARY_INPUT_VARIABLE)
+-
+-/* Binary independent versions, see isp_defs.h for binary dependent ones */
+-#ifndef __ISP 
+-#define IMAGEFORMAT_IS_RAW(fmt)			((fmt) == IA_CSS_FRAME_FORMAT_RAW)
+-
+-#define IMAGEFORMAT_IS_RAW_INTERLEAVED(fmt) 	((fmt) == IA_CSS_FRAME_FORMAT_RAW)
+-
+-#define IMAGEFORMAT_IS_RGB(fmt) 		((fmt) == IA_CSS_FRAME_FORMAT_RGBA888 || (fmt) == IA_CSS_FRAME_FORMAT_PLANAR_RGB888 || \
+-						 (fmt) == IA_CSS_FRAME_FORMAT_RGB565)
+-
+-#define IMAGEFORMAT_IS_RGB_INTERLEAVED(fmt) 	((fmt) == IA_CSS_FRAME_FORMAT_RGBA888 || (fmt) == IA_CSS_FRAME_FORMAT_RGB565)
+-
+-#define IMAGEFORMAT_UV_INTERLEAVED(fmt) 	((fmt) == IA_CSS_FRAME_FORMAT_NV11    || \
+-						 (fmt) == IA_CSS_FRAME_FORMAT_NV12    || (fmt) == IA_CSS_FRAME_FORMAT_NV21 || \
+-						 (fmt) == IA_CSS_FRAME_FORMAT_NV16    || (fmt) == IA_CSS_FRAME_FORMAT_NV61 || \
+-						 (fmt) == IA_CSS_FRAME_FORMAT_UYVY    || (fmt) == IA_CSS_FRAME_FORMAT_YUYV || \
+-						 (fmt) == IA_CSS_FRAME_FORMAT_NV12_16 || (fmt) == IA_CSS_FRAME_FORMAT_NV12_TILEY)
+-
+-#define IMAGEFORMAT_YUV_INTERLEAVED(fmt)	((fmt) == IA_CSS_FRAME_FORMAT_UYVY    || (fmt) == IA_CSS_FRAME_FORMAT_YUYV)
+-
+-#define IMAGEFORMAT_INTERLEAVED(fmt)		(IMAGEFORMAT_UV_INTERLEAVED(fmt) || IMAGEFORMAT_IS_RGB_INTERLEAVED(fmt))
+-
+-#define IMAGEFORMAT_SUB_SAMPL_420(fmt)		((fmt) == IA_CSS_FRAME_FORMAT_YUV420 || (fmt) == IA_CSS_FRAME_FORMAT_YV12 || \
+-						 (fmt) == IA_CSS_FRAME_FORMAT_NV12   || (fmt) == IA_CSS_FRAME_FORMAT_NV21 || \
+-						 (fmt) == IA_CSS_FRAME_FORMAT_NV12_16 || (fmt) == IA_CSS_FRAME_FORMAT_NV12TILEY)
+-
+-#define IMAGEFORMAT_SUB_SAMPL_422(fmt)		((fmt) == IA_CSS_FRAME_FORMAT_YUV422 || (fmt) == IA_CSS_FRAME_FORMAT_YV16 || \
+-						 (fmt) == IA_CSS_FRAME_FORMAT_NV16   || (fmt) == IA_CSS_FRAME_FORMAT_NV61)
+-
+-#define IMAGEFORMAT_SUB_SAMPL_444(fmt) 		((fmt) == IA_CSS_FRAME_FORMAT_YUV444)
+-
+-#define IMAGEFORMAT_UV_SWAPPED(fmt)		((fmt) == IA_CSS_FRAME_FORMAT_NV21 || (fmt) == IA_CSS_FRAME_FORMAT_NV61)
+-
+-#define IMAGEFORMAT_IS_RGBA(fmt)		((fmt) == IA_CSS_FRAME_FORMAT_RGBA888)
+-
+-#define IMAGEFORMAT_IS_NV11(fmt)		((fmt) == IA_CSS_FRAME_FORMAT_NV11)
+-
+-#define IMAGEFORMAT_IS_16BIT(fmt)               ((fmt) == IA_CSS_FRAME_FORMAT_YUV420_16 || (fmt) == IA_CSS_FRAME_FORMAT_NV12_16 || (fmt) == IA_CSS_FRAME_FORMAT_YUV422_16)
+-
+-#endif
+-
+-
+-/******** GDCAC settings *******/
+-#define GDCAC_BPP			ISP_VEC_ELEMBITS  /* We use 14 bits per pixel component for the GDCAC mode */
+-#define GDC_INPUT_BLOCK_WIDTH		2 /* Two vectors are needed */
+-#define GDC_OUTPUT_BLOCK_WIDTH		1 /* One vector is produced */
+-
+-#if ISP_VEC_NELEMS == 16
+-/* For 16*16 output block, the distortion fits in 13.312 lines __ALWAYS__ */
+-#define GDC_INPUT_BLOCK_HEIGHT		14
+-#elif ISP_VEC_NELEMS == 64
+-/* For 64*64 output block, the distortion fits in 47.    lines __ALWAYS__ */
+-#define GDC_INPUT_BLOCK_HEIGHT		48
+-#endif
+-/*******************************/
+-
+-
+-#define ENABLE_HUP ((isp_input_width  - isp_envelope_width)  < isp_output_width)
+-#define ENABLE_VUP ((isp_input_height - isp_envelope_height) < isp_output_height)
+-
+-#define ISP_INPUT_WIDTH  (ENABLE_DS | ENABLE_HUP ? isp_input_width  : ISP_INTERNAL_WIDTH)
+-#define ISP_INPUT_HEIGHT (ENABLE_DS | ENABLE_VUP ? isp_input_height : isp_internal_height)
+-
+-#define DECI_FACTOR_LOG2 (ISP_FIXED_S3A_DECI_LOG ? ISP_FIXED_S3A_DECI_LOG : isp_deci_log_factor)
+-
+-#define ISP_S3ATBL_WIDTH \
+-  _ISP_S3ATBL_ISP_WIDTH(_ISP_S3A_ELEMS_ISP_WIDTH((ENABLE_HUP ? ISP_INTERNAL_WIDTH : ISP_INPUT_WIDTH), ISP_LEFT_CROPPING), \
+-    DECI_FACTOR_LOG2)
+-#define S3ATBL_WIDTH_BYTES   (sizeof(struct ia_css_3a_output) * ISP_S3ATBL_WIDTH)
+-#define S3ATBL_WIDTH_SHORTS  (S3ATBL_WIDTH_BYTES / sizeof(short))
+-
+-/* should be even?? */
+-#define ISP_UV_OUTPUT_CHUNK_VECS   	CEIL_DIV(ISP_OUTPUT_CHUNK_VECS, 2)
+-
+-
+-#if defined(__ISP) || defined(INIT_VARS)
+-
+-#define ISP_USE_IF	(ISP_INPUT == IA_CSS_BINARY_INPUT_MEMORY ? 0 : \
+-	       	         ISP_INPUT == IA_CSS_BINARY_INPUT_SENSOR ? 1 : \
+-	                 isp_online)
+-
+-#define ISP_DVS_ENVELOPE_WIDTH  0
+-#define ISP_DVS_ENVELOPE_HEIGHT 0
+-
+-#define _ISP_INPUT_WIDTH_VECS	_ISP_VECS(ISP_INPUT_WIDTH)
+-
+-#if !defined(__ISP) || (VARIABLE_RESOLUTION && !__HOST)
+-#define ISP_INPUT_WIDTH_VECS	isp_vectors_per_input_line
+-#else
+-#define ISP_INPUT_WIDTH_VECS	_ISP_INPUT_WIDTH_VECS
+-#endif
+-
+-#if !defined(__ISP) || VARIABLE_RESOLUTION
+-#define ISP_INTERNAL_WIDTH_VECS		isp_vectors_per_line
+-#else
+-#define ISP_INTERNAL_WIDTH_VECS		_ISP_INTERNAL_WIDTH_VECS
+-#endif
+-
+-#define _ISP_INTERNAL_HEIGHT	__ISP_INTERNAL_HEIGHT(isp_output_height, ISP_TOP_CROPPING, ISP_DVS_ENVELOPE_HEIGHT)
+-
+-#define ISP_INTERNAL_HEIGHT	isp_internal_height
+-
+-#define _ISP_INTERNAL_WIDTH	__ISP_INTERNAL_WIDTH(ISP_OUTPUT_WIDTH, ISP_DVS_ENVELOPE_WIDTH, \
+-			     			     ISP_LEFT_CROPPING, MODE, ISP_C_SUBSAMPLING, \
+-						     OUTPUT_NUM_CHUNKS, ISP_PIPELINING)
+-
+-#define ISP_UV_INTERNAL_WIDTH	(ISP_INTERNAL_WIDTH / 2)
+-#define ISP_UV_INTERNAL_HEIGHT	(ISP_INTERNAL_HEIGHT / 2)
+-
+-#define _ISP_INTERNAL_WIDTH_VECS	(_ISP_INTERNAL_WIDTH / ISP_VEC_NELEMS)
+-#define _ISP_UV_INTERNAL_WIDTH_VECS	CEIL_DIV(ISP_UV_INTERNAL_WIDTH, ISP_VEC_NELEMS)
+-
+-#define ISP_VF_OUTPUT_WIDTH		_ISP_VF_OUTPUT_WIDTH(ISP_VF_OUTPUT_WIDTH_VECS)
+-#define ISP_VF_OUTPUT_HEIGHT		_ISP_VF_OUTPUT_HEIGHT(isp_output_height, VF_LOG_DOWNSCALE)
+-
+-#if defined (__ISP) && !VARIABLE_RESOLUTION
+-#define ISP_INTERNAL_WIDTH         _ISP_INTERNAL_WIDTH
+-#define ISP_VF_OUTPUT_WIDTH_VECS   _ISP_VF_OUTPUT_WIDTH_VECS
+-#else
+-#define ISP_INTERNAL_WIDTH         (VARIABLE_RESOLUTION ? isp_internal_width : _ISP_INTERNAL_WIDTH)
+-#define ISP_VF_OUTPUT_WIDTH_VECS   (VARIABLE_RESOLUTION ? isp_vf_output_width_vecs : _ISP_VF_OUTPUT_WIDTH_VECS)
+-#endif
+-
+-#if defined(__ISP) && !VARIABLE_RESOLUTION
+-#define ISP_OUTPUT_WIDTH        ISP_MAX_OUTPUT_WIDTH
+-#define VF_LOG_DOWNSCALE        MAX_VF_LOG_DOWNSCALE
+-#else
+-#define ISP_OUTPUT_WIDTH        isp_output_width
+-#define VF_LOG_DOWNSCALE        isp_vf_downscale_bits
+-#endif
+-
+-#if !defined(__ISP) || VARIABLE_RESOLUTION
+-#define _ISP_MAX_VF_OUTPUT_WIDTH	__ISP_MAX_VF_OUTPUT_WIDTH(2*SH_CSS_MAX_VF_WIDTH, ISP_LEFT_CROPPING)
+-#elif defined(MODE) && MODE == IA_CSS_BINARY_MODE_PRIMARY && ISP_OUTPUT_WIDTH > 3328
+-/* Because of vmem issues, should be fixed later */
+-#define _ISP_MAX_VF_OUTPUT_WIDTH	(SH_CSS_MAX_VF_WIDTH - 2*ISP_VEC_NELEMS + (ISP_LEFT_CROPPING ? 2 * ISP_VEC_NELEMS : 0))
+-#else
+-#define _ISP_MAX_VF_OUTPUT_WIDTH	(ISP_VF_OUTPUT_WIDTH + (ISP_LEFT_CROPPING ? (2 >> VF_LOG_DOWNSCALE) * ISP_VEC_NELEMS : 0))
+-#endif
+-
+-#define ISP_MAX_VF_OUTPUT_VECS 		CEIL_DIV(_ISP_MAX_VF_OUTPUT_WIDTH, ISP_VEC_NELEMS)
+-
+-
+-
+-#define ISP_MIN_STRIPE_WIDTH (ISP_PIPELINING * (1<<_ISP_LOG_VECTOR_STEP(MODE)))
+-
+-/******* STRIPING-RELATED MACROS *******/
+-#define NO_STRIPING (ISP_NUM_STRIPES == 1)
+-
+-#define ISP_OUTPUT_CHUNK_VECS \
+-	(NO_STRIPING 	? CEIL_DIV_CHUNKS(ISP_OUTPUT_VECS_EXTRA_CROP, OUTPUT_NUM_CHUNKS) \
+-				: ISP_IO_STRIPE_WIDTH_VECS(ISP_OUTPUT_VECS_EXTRA_CROP, ISP_LEFT_PADDING_VECS, ISP_NUM_STRIPES, ISP_MIN_STRIPE_WIDTH) )
+-
+-#define VECTORS_PER_LINE \
+-	(NO_STRIPING 	? ISP_INTERNAL_WIDTH_VECS \
+-				: ISP_IO_STRIPE_WIDTH_VECS(ISP_INTERNAL_WIDTH_VECS, ISP_LEFT_PADDING_VECS, ISP_NUM_STRIPES, ISP_MIN_STRIPE_WIDTH) )
+-
+-#define VECTORS_PER_INPUT_LINE \
+-	(NO_STRIPING 	? ISP_INPUT_WIDTH_VECS \
+-				: ISP_IO_STRIPE_WIDTH_VECS(ISP_INPUT_WIDTH_VECS, ISP_LEFT_PADDING_VECS, ISP_NUM_STRIPES, ISP_MIN_STRIPE_WIDTH)+_ISP_EXTRA_PADDING_VECS)
+-
+-
+-#define ISP_MAX_VF_OUTPUT_STRIPE_VECS \
+-	(NO_STRIPING 	? ISP_MAX_VF_OUTPUT_VECS \
+-				: CEIL_MUL(CEIL_DIV(ISP_MAX_VF_OUTPUT_VECS, ISP_NUM_STRIPES), 2))
+-#define _ISP_VF_OUTPUT_WIDTH_VECS \
+-	(NO_STRIPING 	? __ISP_VF_OUTPUT_WIDTH_VECS(ISP_OUTPUT_WIDTH, VF_LOG_DOWNSCALE) \
+-				: __ISP_VF_OUTPUT_WIDTH_VECS(CEIL_DIV(ISP_OUTPUT_WIDTH, ISP_NUM_STRIPES), VF_LOG_DOWNSCALE))
+-
+-#define ISP_IO_STRIPE_WIDTH_VECS(width, padding, num_stripes, min_stripe) \
+-	MAX(CEIL_MUL(padding + CEIL_DIV(width-padding, num_stripes) \
+-		   , 2) \
+-	  , min_stripe)
+-////////// INPUT & INTERNAL
+-/* should be even */
+-#define INPUT_NUM_CHUNKS	OUTPUT_NUM_CHUNKS
+-
+-#define INPUT_VECTORS_PER_CHUNK	CEIL_DIV_CHUNKS(VECTORS_PER_INPUT_LINE, INPUT_NUM_CHUNKS)
+-
+-/* only for ISP code, will be removed: */
+-#define VECTORS_PER_FULL_LINE         	ISP_INTERNAL_WIDTH_VECS
+-#define VECTORS_PER_INPUT_FULL_LINE   	ISP_INPUT_WIDTH_VECS
+-
+-////////// OUTPUT
+-/* should at least even and also multiple of vf scaling */
+-#define ISP_OUTPUT_VECS_EXTRA_CROP	CEIL_DIV(ISP_OUTPUT_WIDTH_EXTRA_CROP, ISP_VEC_NELEMS)
+-
+-/* Output is decoupled from input */
+-#define ISP_OUTPUT_WIDTH_EXTRA_CROP	CEIL_MUL(CEIL_MUL((ENABLE_DVS_ENVELOPE ? ISP_OUTPUT_WIDTH : ISP_INTERNAL_WIDTH), 2*ISP_VEC_NELEMS), \
+-		 				ISP_C_SUBSAMPLING * OUTPUT_NUM_CHUNKS *  HIVE_ISP_DDR_WORD_BYTES)
+-
+-#define ISP_MAX_VF_OUTPUT_CHUNK_VECS \
+-        (NO_CHUNKING ? ISP_MAX_VF_OUTPUT_STRIPE_VECS \
+-                                : 2*CEIL_DIV(ISP_MAX_VF_OUTPUT_STRIPE_VECS, 2*OUTPUT_NUM_CHUNKS))
+-
+-#define OUTPUT_VECTORS_PER_CHUNK	CEIL_DIV_CHUNKS(VECTORS_PER_LINE,OUTPUT_NUM_CHUNKS)
+-
+-/* should be even?? */
+-#define OUTPUT_C_VECTORS_PER_CHUNK  	CEIL_DIV(OUTPUT_VECTORS_PER_CHUNK, 2)
+-
+-#ifndef ISP2401
+-/**** SCTBL defs *******/
+-#define ISP_SCTBL_HEIGHT \
+-	_ISP_SCTBL_HEIGHT(ISP_INPUT_HEIGHT, DECI_FACTOR_LOG2)
+-
+-#endif
+-/**** UDS defs *********/
+-#define UDS_DMACH_STRIDE_B_IN_Y           (( ISP_INTERNAL_WIDTH   /BITS8_ELEMENTS_PER_XMEM_ADDR)*HIVE_ISP_DDR_WORD_BYTES)
+-#define UDS_DMACH_STRIDE_B_IN_C           (((ISP_INTERNAL_WIDTH/2)/BITS8_ELEMENTS_PER_XMEM_ADDR)*HIVE_ISP_DDR_WORD_BYTES)
+-
+-#else /* defined(__ISP) || defined(INIT_VARS) */
+-
+-#define ISP_INTERNAL_WIDTH         isp_internal_width
+-#define ISP_INTERNAL_HEIGHT        isp_internal_height
+-
+-#endif /* defined(__ISP) || defined(INIT_VARS) */
+-
+-#endif /* _COMMON_ISP_EXPRS_H_ */
+-
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/include/hmm/hmm_bo_dev.h b/drivers/staging/media/atomisp/pci/atomisp2/include/hmm/hmm_bo_dev.h
+deleted file mode 100644
+index 9e51a657ece4..000000000000
+--- a/drivers/staging/media/atomisp/pci/atomisp2/include/hmm/hmm_bo_dev.h
++++ /dev/null
+@@ -1,126 +0,0 @@
+-/*
+- * Support for Medifield PNW Camera Imaging ISP subsystem.
+- *
+- * Copyright (c) 2010 Intel Corporation. All Rights Reserved.
+- *
+- * Copyright (c) 2010 Silicon Hive www.siliconhive.com.
+- *
+- * This program is free software; you can redistribute it and/or
+- * modify it under the terms of the GNU General Public License version
+- * 2 as published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope that it will be useful,
+- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- * GNU General Public License for more details.
+- *
+- *
+- */
+-
+-#ifndef	__HMM_BO_DEV_H__
+-#define	__HMM_BO_DEV_H__
+-
+-#include <linux/kernel.h>
+-#include <linux/slab.h>
+-#include <linux/list.h>
+-#include <linux/spinlock.h>
+-#include <linux/mutex.h>
+-#include "mmu/isp_mmu.h"
+-#include "hmm/hmm_common.h"
+-#include "hmm/hmm_vm.h"
+-#include "ia_css_types.h"
+-
+-#define	check_bodev_null_return(bdev, exp)	\
+-		check_null_return(bdev, exp, \
+-			"NULL hmm_bo_device.\n")
+-
+-#define	check_bodev_null_return_void(bdev)	\
+-		check_null_return_void(bdev, \
+-			"NULL hmm_bo_device.\n")
+-
+-#define	HMM_BO_DEVICE_INITED	0x1
+-
+-#define	HMM_BO_CACHE_SIZE	2
+-
+-
+-struct hmm_buffer_object;
+-
+-struct hmm_bo_device {
+-	/* isp_mmu provides lock itself */
+-	struct isp_mmu		mmu;
+-
+-	/* hmm_vm provides lock itself */
+-	struct hmm_vm		vaddr_space;
+-
+-	struct list_head	free_bo_list;
+-	struct list_head	active_bo_list;
+-
+-	/* list lock is used to protect both of the buffer object lists */
+-	spinlock_t		list_lock;
+-#ifdef CONFIG_ION
+-	struct ion_client	*iclient;
+-#endif
+-	int			flag;
+-};
+-
+-int hmm_bo_device_init(struct hmm_bo_device *bdev,
+-		       struct isp_mmu_client *mmu_driver,
+-		       unsigned int vaddr_start, unsigned int size);
+-
+-/*
+- * clean up all hmm_bo_device related things.
+- */
+-void hmm_bo_device_exit(struct hmm_bo_device *bdev);
+-
+-/*
+- * whether the bo device is inited or not.
+- */
+-int hmm_bo_device_inited(struct hmm_bo_device *bdev);
+-
+-/*
+- * find the buffer object with virtual address vaddr.
+- * return NULL if no such buffer object found.
+- */
+-struct hmm_buffer_object *hmm_bo_device_search_start(
+-		struct hmm_bo_device *bdev, ia_css_ptr vaddr);
+-
+-/*
+- * find the buffer object with virtual address vaddr.
+- * return NULL if no such buffer object found.
+- */
+-struct hmm_buffer_object *hmm_bo_device_search_in_range(
+-		struct hmm_bo_device *bdev, ia_css_ptr vaddr);
+-
+-/*
+- * find the buffer object with kernel virtual address vaddr.
+- * return NULL if no such buffer object found.
+- */
+-struct hmm_buffer_object *hmm_bo_device_search_vmap_start(
+-		struct hmm_bo_device *bdev, const void *vaddr);
+-
+-/*
+- * find a buffer object with pgnr pages from free_bo_list and
+- * activate it (remove from free_bo_list and add to
+- * active_bo_list)
+- *
+- * return NULL if no such buffer object found.
+- */
+-struct hmm_buffer_object *hmm_bo_device_get_bo(
+-		struct hmm_bo_device *bdev, unsigned int pgnr);
+-
+-/*
+- * destroy all buffer objects in the free_bo_list.
+- */
+-void hmm_bo_device_destroy_free_bo_list(struct hmm_bo_device *bdev);
+-/*
+- * destroy buffer object with start virtual address vaddr.
+- */
+-void hmm_bo_device_destroy_free_bo_addr(struct hmm_bo_device *bdev,
+-		ia_css_ptr vaddr);
+-/*
+- * destroy all buffer objects with pgnr pages.
+- */
+-void hmm_bo_device_destroy_free_bo_size(struct hmm_bo_device *bdev,
+-		unsigned int pgnr);
+-
+-#endif
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/include/mmu/sh_mmu.h b/drivers/staging/media/atomisp/pci/atomisp2/include/mmu/sh_mmu.h
+deleted file mode 100644
+index 031c0398bf65..000000000000
+--- a/drivers/staging/media/atomisp/pci/atomisp2/include/mmu/sh_mmu.h
++++ /dev/null
+@@ -1,72 +0,0 @@
+-/*
+- * Support for Medifield PNW Camera Imaging ISP subsystem.
+- *
+- * Copyright (c) 2010 Intel Corporation. All Rights Reserved.
+- *
+- * Copyright (c) 2010 Silicon Hive www.siliconhive.com.
+- *
+- * This program is free software; you can redistribute it and/or
+- * modify it under the terms of the GNU General Public License version
+- * 2 as published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope that it will be useful,
+- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- * GNU General Public License for more details.
+- *
+- *
+- */
+-#ifndef	SH_MMU_H_
+-#define	SH_MMU_H_
+-
+-
+-#include <sh_css.h>
+-
+-#include "mmu/isp_mmu.h"
+-
+-
+-/*
+- * include SH header file here
+- */
+-
+-/*
+- * set page directory base address (physical address).
+- *
+- * must be provided.
+- */
+-static int sh_set_pd_base(struct isp_mmu *mmu,
+-		unsigned int phys)
+-{
+-	sh_css_mmu_set_page_table_base_address((void *)phys);
+-	return 0;
+-}
+-
+-/*
+- * callback to flush tlb.
+- *
+- * tlb_flush_range will at least flush TLBs containing
+- * address mapping from addr to addr + size.
+- *
+- * tlb_flush_all will flush all TLBs.
+- *
+- * tlb_flush_all is must be provided. if tlb_flush_range is
+- * not valid, it will set to tlb_flush_all by default.
+- */
+-static void sh_tlb_flush(struct isp_mmu *mmu)
+-{
+-	sh_css_mmu_invalidate_cache();
+-}
+-
+-static struct isp_mmu_driver sh_mmu_driver = {
+-	.name = "Silicon Hive ISP3000 MMU",
+-	.pte_valid_mask = 0x1,
+-	.set_pd_base = sh_set_pd_base,
+-	.tlb_flush_all = sh_tlb_flush,
+-};
+-
+-#define	ISP_VM_START	0x0
+-#define	ISP_VM_SIZE	(1 << 30)	/* 1G address space */
+-#define	ISP_PTR_NULL	NULL
+-
+-#endif /* SH_MMU_H_ */
+-
+-- 
+2.13.6
