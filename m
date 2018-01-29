@@ -1,58 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:59794 "EHLO
-        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753376AbeAFQDc (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sat, 6 Jan 2018 11:03:32 -0500
-From: Colin King <colin.king@canonical.com>
-To: Kyungmin Park <kyungmin.park@samsung.com>,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Kukjin Kim <kgene@kernel.org>,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-        linux-samsung-soc@vger.kernel.org
-Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH] [media] exynos4-is: make array 'cmd' static, shrinks object size
-Date: Sat,  6 Jan 2018 16:03:27 +0000
-Message-Id: <20180106160327.17961-1-colin.king@canonical.com>
+Received: from vsp-unauthed02.binero.net ([195.74.38.227]:57102 "EHLO
+        bin-vsp-out-03.atm.binero.net" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751777AbeA2QgE (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 29 Jan 2018 11:36:04 -0500
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH v10 30/30] rcar-vin: enable support for r8a77970
+Date: Mon, 29 Jan 2018 17:34:35 +0100
+Message-Id: <20180129163435.24936-31-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20180129163435.24936-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20180129163435.24936-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Colin Ian King <colin.king@canonical.com>
+Add the SoC specific information for Renesas r8a77970.
 
-Don't populate the const read-only array 'cmd' on the stack but instead
-make it static. Makes the object code smaller by 38 bytes:
-
-Before:
-   text	   data	    bss	    dec	    hex	filename
-   4950	    868	      0	   5818	   16ba	fimc-is-regs.o
-
-After:
-   text	   data	    bss	    dec	    hex	filename
-   4824	    956	      0	   5780	   1694	fimc-is-regs.o
-
-(gcc version 7.2.0 x86_64)
-
-Signed-off-by: Colin Ian King <colin.king@canonical.com>
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
 ---
- drivers/media/platform/exynos4-is/fimc-is-regs.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/platform/rcar-vin/rcar-core.c | 23 +++++++++++++++++++++++
+ 1 file changed, 23 insertions(+)
 
-diff --git a/drivers/media/platform/exynos4-is/fimc-is-regs.c b/drivers/media/platform/exynos4-is/fimc-is-regs.c
-index cfe4406a83ff..e0e291066037 100644
---- a/drivers/media/platform/exynos4-is/fimc-is-regs.c
-+++ b/drivers/media/platform/exynos4-is/fimc-is-regs.c
-@@ -159,7 +159,7 @@ void fimc_is_hw_load_setfile(struct fimc_is *is)
+diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
+index 2305fedd293db241..496b7d2189d73d37 100644
+--- a/drivers/media/platform/rcar-vin/rcar-core.c
++++ b/drivers/media/platform/rcar-vin/rcar-core.c
+@@ -954,6 +954,25 @@ static const struct rvin_info rcar_info_r8a7796 = {
+ 	.routes = rcar_info_r8a7796_routes,
+ };
  
- int fimc_is_hw_change_mode(struct fimc_is *is)
- {
--	const u8 cmd[] = {
-+	static const u8 cmd[] = {
- 		HIC_PREVIEW_STILL, HIC_PREVIEW_VIDEO,
- 		HIC_CAPTURE_STILL, HIC_CAPTURE_VIDEO,
- 	};
++static const struct rvin_group_route _rcar_info_r8a77970_routes[] = {
++	{ .vin = 0, .csi = RVIN_CSI40, .chan = 0, .mask = BIT(0) | BIT(3) },
++	{ .vin = 1, .csi = RVIN_CSI40, .chan = 0, .mask = BIT(2) },
++	{ .vin = 1, .csi = RVIN_CSI40, .chan = 1, .mask = BIT(3) },
++	{ .vin = 2, .csi = RVIN_CSI40, .chan = 0, .mask = BIT(1) },
++	{ .vin = 2, .csi = RVIN_CSI40, .chan = 2, .mask = BIT(3) },
++	{ .vin = 3, .csi = RVIN_CSI40, .chan = 1, .mask = BIT(0) },
++	{ .vin = 3, .csi = RVIN_CSI40, .chan = 3, .mask = BIT(3) },
++	{ /* Sentinel */ }
++};
++
++static const struct rvin_info rcar_info_r8a77970 = {
++	.model = RCAR_GEN3,
++	.use_mc = true,
++	.max_width = 4096,
++	.max_height = 4096,
++	.routes = _rcar_info_r8a77970_routes,
++};
++
+ static const struct of_device_id rvin_of_id_table[] = {
+ 	{
+ 		.compatible = "renesas,vin-r8a7778",
+@@ -991,6 +1010,10 @@ static const struct of_device_id rvin_of_id_table[] = {
+ 		.compatible = "renesas,vin-r8a7796",
+ 		.data = &rcar_info_r8a7796,
+ 	},
++	{
++		.compatible = "renesas,vin-r8a77970",
++		.data = &rcar_info_r8a77970,
++	},
+ 	{ /* Sentinel */ },
+ };
+ MODULE_DEVICE_TABLE(of, rvin_of_id_table);
 -- 
-2.15.1
+2.16.1
