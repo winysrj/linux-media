@@ -1,134 +1,459 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:9675 "EHLO mga01.intel.com"
+Received: from mga06.intel.com ([134.134.136.31]:1754 "EHLO mga06.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750945AbeAVIGQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 22 Jan 2018 03:06:16 -0500
-From: "Yeh, Andy" <andy.yeh@intel.com>
-To: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: RE: [PATCH 1/1] imx258: Fix sparse warnings
-Date: Mon, 22 Jan 2018 08:00:23 +0000
-Message-ID: <8E0971CCB6EA9D41AF58191A2D3978B61D4E66C1@PGSMSX111.gar.corp.intel.com>
-References: <20180119092327.26731-1-sakari.ailus@linux.intel.com>
-In-Reply-To: <20180119092327.26731-1-sakari.ailus@linux.intel.com>
-Content-Language: en-US
-Content-Type: multipart/mixed;
-        boundary="_002_8E0971CCB6EA9D41AF58191A2D3978B61D4E66C1PGSMSX111garcor_"
+        id S1751574AbeA2WKF (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 29 Jan 2018 17:10:05 -0500
+Date: Tue, 30 Jan 2018 00:10:01 +0200
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: Andy Yeh <andy.yeh@intel.com>
+Cc: linux-media@vger.kernel.org, tfiga@chromium.org,
+        Alan Chiang <alanx.chiang@intel.com>
+Subject: Re: [PATCH v4] media: dw9807: Add dw9807 vcm driver
+Message-ID: <20180129221001.fdsb7p7vpklnqi42@kekkonen.localdomain>
+References: <1517244779-20201-1-git-send-email-andy.yeh@intel.com>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1517244779-20201-1-git-send-email-andy.yeh@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---_002_8E0971CCB6EA9D41AF58191A2D3978B61D4E66C1PGSMSX111garcor_
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+Hi Andy and Alan,
 
-Hi Sakari,
+Thanks for the update.
 
-I verified the patch multiple times but the code cannot work.=20
+A number of patches you've sent lately have arrived twice in slightly
+different form. If that happens, could you reply and tell which one is the
+right one, please?
 
+Please see my comments below.
 
-Regards, Andy
+On Tue, Jan 30, 2018 at 12:52:59AM +0800, Andy Yeh wrote:
+> From: Alan Chiang <alanx.chiang@intel.com>
+> 
+> DW9807 is a 10 bit DAC from Dongwoon, designed for linear
+> control of voice coil motor.
+> 
+> This driver creates a V4L2 subdevice and
+> provides control to set the desired focus.
+> 
+> Signed-off-by: Andy Yeh <andy.yeh@intel.com>
+> ---
+> since v1:
+> - changed author.
+> since v2:
+> - addressed outstanding comments.
+> - enabled sequential write to update 2 registers in a single transaction.
+> since v3:
+> - addressed comments for v3.
+> - Remove redundant codes and declar some variables as constant variable.
+> - separate DT binding to another patch
+> 
+>  MAINTAINERS                |   7 +
+>  drivers/media/i2c/Kconfig  |  10 ++
+>  drivers/media/i2c/Makefile |   1 +
+>  drivers/media/i2c/dw9807.c | 319 +++++++++++++++++++++++++++++++++++++++++++++
+>  4 files changed, 337 insertions(+)
+>  create mode 100644 drivers/media/i2c/dw9807.c
+> 
+> diff --git a/MAINTAINERS b/MAINTAINERS
+> index 845fc25..a339bb5 100644
+> --- a/MAINTAINERS
+> +++ b/MAINTAINERS
+> @@ -4385,6 +4385,13 @@ T:	git git://linuxtv.org/media_tree.git
+>  S:	Maintained
+>  F:	drivers/media/i2c/dw9714.c
+>  
+> +DONGWOON DW9807 LENS VOICE COIL DRIVER
+> +M:	Sakari Ailus <sakari.ailus@linux.intel.com>
+> +L:	linux-media@vger.kernel.org
+> +T:	git git://linuxtv.org/media_tree.git
+> +S:	Maintained
+> +F:	drivers/media/i2c/dw9807.c
+> +
+>  DOUBLETALK DRIVER
+>  M:	"James R. Van Zandt" <jrv@vanzandt.mv.com>
+>  L:	blinux-list@redhat.com
+> diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
+> index cb5d7ff..fd01842 100644
+> --- a/drivers/media/i2c/Kconfig
+> +++ b/drivers/media/i2c/Kconfig
+> @@ -325,6 +325,16 @@ config VIDEO_DW9714
+>  	  capability. This is designed for linear control of
+>  	  voice coil motors, controlled via I2C serial interface.
+>  
+> +config VIDEO_DW9807
+> +	tristate "DW9807 lens voice coil support"
+> +	depends on I2C && VIDEO_V4L2 && MEDIA_CONTROLLER
+> +	depends on VIDEO_V4L2_SUBDEV_API
+> +	---help---
+> +	  This is a driver for the DW9807 camera lens voice coil.
+> +	  DW9807 is a 10 bit DAC with 100mA output current sink
+> +	  capability. This is designed for linear control of
+> +	  voice coil motors, controlled via I2C serial interface.
+> +
+>  config VIDEO_SAA7110
+>  	tristate "Philips SAA7110 video decoder"
+>  	depends on VIDEO_V4L2 && I2C
+> diff --git a/drivers/media/i2c/Makefile b/drivers/media/i2c/Makefile
+> index 548a9ef..1b62639 100644
+> --- a/drivers/media/i2c/Makefile
+> +++ b/drivers/media/i2c/Makefile
+> @@ -23,6 +23,7 @@ obj-$(CONFIG_VIDEO_SAA7185) += saa7185.o
+>  obj-$(CONFIG_VIDEO_SAA6752HS) += saa6752hs.o
+>  obj-$(CONFIG_VIDEO_AD5820)  += ad5820.o
+>  obj-$(CONFIG_VIDEO_DW9714)  += dw9714.o
+> +obj-$(CONFIG_VIDEO_DW9807)  += dw9807.o
+>  obj-$(CONFIG_VIDEO_ADV7170) += adv7170.o
+>  obj-$(CONFIG_VIDEO_ADV7175) += adv7175.o
+>  obj-$(CONFIG_VIDEO_ADV7180) += adv7180.o
+> diff --git a/drivers/media/i2c/dw9807.c b/drivers/media/i2c/dw9807.c
+> new file mode 100644
+> index 0000000..607e3ac
+> --- /dev/null
+> +++ b/drivers/media/i2c/dw9807.c
+> @@ -0,0 +1,319 @@
+> +// Copyright (C) 2018 Intel Corporation
+> +// SPDX-License-Identifier: GPL-2.0
+> +
+> +#include <linux/acpi.h>
+> +#include <linux/delay.h>
+> +#include <linux/i2c.h>
+> +#include <linux/module.h>
+> +#include <linux/pm_runtime.h>
+> +#include <media/v4l2-ctrls.h>
+> +#include <media/v4l2-device.h>
+> +
+> +#define DW9807_NAME		"dw9807"
+> +#define DW9807_MAX_FOCUS_POS	1023
+> +/*
+> + * This sets the minimum granularity for the focus positions.
+> + * A value of 1 gives maximum accuracy for a desired focus position
+> + */
+> +#define DW9807_FOCUS_STEPS	1
+> +/*
+> + * This acts as the minimum granularity of lens movement.
+> + * Keep this value power of 2, so the control steps can be
+> + * uniformly adjusted for gradual lens movement, with desired
+> + * number of control steps.
+> + */
+> +#define DW9807_CTRL_STEPS	16
+> +#define DW9807_CTRL_DELAY_US	1000
+> +
+> +#define DW9807_CTL_ADDR		0x02
+> +/*
+> + * DW9807 separates two registers to control the VCM position.
+> + * One for MSB value, another is LSB value.
+> + */
+> +#define DW9807_MSB_ADDR		0x03
+> +#define DW9807_LSB_ADDR		0x04
+> +#define DW9807_STATUS_ADDR	0x05
+> +#define DW9807_MODE_ADDR	0x06
+> +#define DW9807_RESONANCE_ADDR	0x07
+> +
+> +#define MAX_RETRY		10
+> +
+> +struct dw9807_device {
+> +	struct v4l2_ctrl_handler ctrls_vcm;
+> +	struct v4l2_subdev sd;
+> +	u16 current_val;
+> +};
+> +
+> +static inline struct dw9807_device *sd_to_dw9807_vcm(struct v4l2_subdev *subdev)
+> +{
+> +	return container_of(subdev, struct dw9807_device, sd);
+> +}
+> +
+> +static int dw9807_i2c_check(struct i2c_client *client)
+> +{
+> +	const char status_addr = DW9807_STATUS_ADDR;
+> +	char status_result = 0x1;
+> +	int ret;
+> +
+> +	ret = i2c_master_send(client, (const char *)&status_addr, sizeof(status_addr));
+> +	if (ret != sizeof(status_addr)) {
+> +		dev_err(&client->dev, "I2C write STATUS address fail ret = %d\n",
+> +			ret);
+> +		return -EIO;
+> +	}
+> +
+> +	ret = i2c_master_recv(client, (char *)&status_result, sizeof(status_result));
+> +	if (ret != sizeof(status_result)) {
+> +		dev_err(&client->dev, "I2C read STATUS value fail ret=%d\n",
+> +			ret);
+> +		return -EIO;
+> +	}
+> +
+> +	return status_result;
+> +}
+> +
+> +static int dw9807_set_dac(struct i2c_client *client, u16 data)
+> +{
+> +	int ret, retry = 0;
+> +	const char tx_data[3] = {DW9807_MSB_ADDR, (char)((data >> 8) & 0x03), (char)(data & 0xFF)};
 
------Original Message-----
-From: Sakari Ailus [mailto:sakari.ailus@linux.intel.com]=20
-Sent: Friday, January 19, 2018 5:23 PM
-To: linux-media@vger.kernel.org
-Cc: Yeh, Andy <andy.yeh@intel.com>
-Subject: [PATCH 1/1] imx258: Fix sparse warnings
+Please remove the typecast, you won't need that.
 
-Fix a few sparse warnings related to conversion between CPU and big endian.=
- Also simplify the code in the process.
+And also split the line, it's over 80 characters.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
-Hi Andy,
+ret and retry would be better declared after tx_data (return values,
+temporary and loop variables generally go last).
 
-There were a few issues Sparse found in the imx258 driver. Could you test t=
-he patch, please?
+> +
+> +	/*
+> +	 * According to the datasheet, need to check the bus status before we
+> +	 * write VCM position. This ensure that we really write the value
+> +	 * into the register
+> +	 */
+> +	while (dw9807_i2c_check(client) != 0) {
+> +		if (MAX_RETRY == ++retry) {
+> +			dev_err(&client->dev, "Cannot do the write operation because VCM is busy\n");
+> +			return -EIO;
+> +		}
+> +		usleep_range(DW9807_CTRL_DELAY_US, DW9807_CTRL_DELAY_US + 10);
+> +	}
+> +
+> +	/* Write VCM position to registers */
+> +	ret = i2c_master_send(client, (const char *)&tx_data, sizeof(tx_data));
 
- drivers/media/i2c/imx258.c | 21 ++++++++-------------
- 1 file changed, 8 insertions(+), 13 deletions(-)
+No need for typecast here either.
 
-diff --git a/drivers/media/i2c/imx258.c b/drivers/media/i2c/imx258.c index =
-a7e58bd23de7..b73c25ae8725 100644
---- a/drivers/media/i2c/imx258.c
-+++ b/drivers/media/i2c/imx258.c
-@@ -440,10 +440,10 @@ static int imx258_read_reg(struct imx258 *imx258, u16=
- reg, u32 len, u32 *val)  {
- 	struct i2c_client *client =3D v4l2_get_subdevdata(&imx258->sd);
- 	struct i2c_msg msgs[2];
-+	__be16 reg_addr_be =3D cpu_to_be16(reg);
-+	__be32 data_be =3D 0;
- 	u8 *data_be_p;
- 	int ret;
--	u32 data_be =3D 0;
--	u16 reg_addr_be =3D cpu_to_be16(reg);
-=20
- 	if (len > 4)
- 		return -EINVAL;
-@@ -474,22 +474,17 @@ static int imx258_read_reg(struct imx258 *imx258, u16=
- reg, u32 len, u32 *val)  static int imx258_write_reg(struct imx258 *imx258=
-, u16 reg, u32 len, u32 val)  {
- 	struct i2c_client *client =3D v4l2_get_subdevdata(&imx258->sd);
--	int buf_i, val_i;
--	u8 buf[6], *val_p;
-+	u8 __buf[6], *buf =3D __buf;
-+	int i;
-=20
- 	if (len > 4)
- 		return -EINVAL;
-=20
--	buf[0] =3D reg >> 8;
--	buf[1] =3D reg & 0xff;
-+	*buf++ =3D reg >> 8;
-+	*buf++ =3D reg & 0xff;
-=20
--	val =3D cpu_to_be32(val);
--	val_p =3D (u8 *)&val;
--	buf_i =3D 2;
--	val_i =3D 4 - len;
--
--	while (val_i < 4)
--		buf[buf_i++] =3D val_p[val_i++];
-+	for (i =3D len - 1; i >=3D 0; i++)
-+		*buf++ =3D (u8)(val >> (i << 3));
-=20
- 	if (i2c_master_send(client, buf, len + 2) !=3D len + 2)
- 		return -EIO;
---
-2.11.0
+> +	if (ret != sizeof(tx_data)) {
+> +		dev_err(&client->dev, "I2C write MSB fail\n");
+> +		return -EIO;
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +static int dw9807_set_ctrl(struct v4l2_ctrl *ctrl)
+> +{
+> +	struct dw9807_device *dev_vcm = container_of(ctrl->handler, struct dw9807_device, ctrls_vcm);
+> +
+> +	if (ctrl->id == V4L2_CID_FOCUS_ABSOLUTE) {
+> +		struct i2c_client *client = v4l2_get_subdevdata(&dev_vcm->sd);
+> +
+> +		dev_vcm->current_val = ctrl->val;
+> +		return dw9807_set_dac(client, ctrl->val);
+> +	}
+> +
+> +	return -EINVAL;
+> +}
+> +
+> +static const struct v4l2_ctrl_ops dw9807_vcm_ctrl_ops = {
+> +	.s_ctrl = dw9807_set_ctrl,
+> +};
+> +
+> +static int dw9807_open(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
+> +{
+> +	int rval;
+> +
+> +	rval = pm_runtime_get_sync(sd->dev);
+> +	if (rval < 0) {
+> +		pm_runtime_put_noidle(sd->dev);
+> +		return rval;
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +static int dw9807_close(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
+> +{
+> +	pm_runtime_put(sd->dev);
+> +
+> +	return 0;
+> +}
+> +
+> +static const struct v4l2_subdev_internal_ops dw9807_int_ops = {
+> +	.open = dw9807_open,
+> +	.close = dw9807_close,
+> +};
+> +
+> +static const struct v4l2_subdev_ops dw9807_ops = { };
+> +
+> +static void dw9807_subdev_cleanup(struct dw9807_device *dw9807_dev)
+> +{
+> +	v4l2_async_unregister_subdev(&dw9807_dev->sd);
+> +	v4l2_ctrl_handler_free(&dw9807_dev->ctrls_vcm);
+> +	media_entity_cleanup(&dw9807_dev->sd.entity);
+> +}
+> +
+> +static int dw9807_init_controls(struct dw9807_device *dev_vcm)
+> +{
+> +	struct v4l2_ctrl_handler *hdl = &dev_vcm->ctrls_vcm;
+> +	const struct v4l2_ctrl_ops *ops = &dw9807_vcm_ctrl_ops;
+> +	struct i2c_client *client = v4l2_get_subdevdata(&dev_vcm->sd);;
+> +
+> +	v4l2_ctrl_handler_init(hdl, 1);
+> +
+> +	v4l2_ctrl_new_std(hdl, ops, V4L2_CID_FOCUS_ABSOLUTE,
+> +			  0, DW9807_MAX_FOCUS_POS, DW9807_FOCUS_STEPS, 0);
+> +
+> +	dev_vcm->sd.ctrl_handler = hdl;
+> +	if (hdl->error) {
+> +		dev_err(&client->dev, "%s fail error: 0x%x\n",
+> +			__func__, hdl->error);
+> +		return hdl->error;
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +static int dw9807_probe(struct i2c_client *client)
+> +{
+> +	struct dw9807_device *dw9807_dev;
+> +	int rval;
+> +
+> +	dw9807_dev = devm_kzalloc(&client->dev, sizeof(*dw9807_dev),
+> +				  GFP_KERNEL);
+> +	if (dw9807_dev == NULL)
+> +		return -ENOMEM;
+> +
+> +	v4l2_i2c_subdev_init(&dw9807_dev->sd, client, &dw9807_ops);
+> +	dw9807_dev->sd.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+> +	dw9807_dev->sd.internal_ops = &dw9807_int_ops;
+> +
+> +	rval = dw9807_init_controls(dw9807_dev);
+> +	if (rval)
+> +		goto err_cleanup;
+> +
+> +	rval = media_entity_pads_init(&dw9807_dev->sd.entity, 0, NULL);
+> +	if (rval < 0)
+> +		goto err_cleanup;
+> +
+> +	dw9807_dev->sd.entity.function = MEDIA_ENT_F_LENS;
+> +
+> +	rval = v4l2_async_register_subdev(&dw9807_dev->sd);
+> +	if (rval < 0)
+> +		goto err_cleanup;
+> +
+> +	pm_runtime_set_active(&client->dev);
+> +	pm_runtime_enable(&client->dev);
+> +	pm_runtime_idle(&client->dev);
+> +
+> +	return 0;
+> +
+> +err_cleanup:
+> +	dw9807_subdev_cleanup(dw9807_dev);
+> +	return rval;
+> +}
+> +
+> +static int dw9807_remove(struct i2c_client *client)
+> +{
+> +	struct v4l2_subdev *sd = i2c_get_clientdata(client);
+> +	struct dw9807_device *dw9807_dev = sd_to_dw9807_vcm(sd);
+> +
+> +	pm_runtime_disable(&client->dev);
+> +	pm_runtime_set_suspended(&client->dev);
+> +
+> +	dw9807_subdev_cleanup(dw9807_dev);
+> +
+> +	return 0;
+> +}
+> +
+> +/*
+> + * This function sets the vcm position, so it consumes least current
+> + * The lens position is gradually moved in units of DW9807_CTRL_STEPS,
+> + * to make the movements smoothly.
+> + */
+> +static int __maybe_unused dw9807_vcm_suspend(struct device *dev)
+> +{
+> +	struct i2c_client *client = to_i2c_client(dev);
+> +	struct v4l2_subdev *sd = i2c_get_clientdata(client);
+> +	struct dw9807_device *dw9807_dev = sd_to_dw9807_vcm(sd);
+> +	int ret, val;
+> +	const char tx_data[2] = { DW9807_CTL_ADDR, 0x01};
+						       ^ space here
 
+tx_data should precede ret and val.
 
---_002_8E0971CCB6EA9D41AF58191A2D3978B61D4E66C1PGSMSX111garcor_
-Content-Type: application/octet-stream; name="sakari_new.diff"
-Content-Description: sakari_new.diff
-Content-Disposition: attachment; filename="sakari_new.diff"; size=1283;
-	creation-date="Mon, 22 Jan 2018 07:56:50 GMT";
-	modification-date="Mon, 22 Jan 2018 07:56:50 GMT"
-Content-Transfer-Encoding: base64
+> +
+> +	for (val = dw9807_dev->current_val & ~(DW9807_CTRL_STEPS - 1);
+> +	     val >= 0; val -= DW9807_CTRL_STEPS) {
+> +		ret = dw9807_set_dac(client, val);
+> +		if (ret)
+> +			dev_err_once(dev, "%s I2C failure: %d", __func__, ret);
+> +		usleep_range(DW9807_CTRL_DELAY_US, DW9807_CTRL_DELAY_US + 10);
+> +	}
+> +
+> +	/* Power down */
+> +	ret = i2c_master_send(client, (const char *)&tx_data, sizeof(tx_data));
 
-ZGlmZiAtLWdpdCBhL2RyaXZlcnMvbWVkaWEvaTJjL2lteDI1OC5jIGIvZHJpdmVycy9tZWRpYS9p
-MmMvaW14MjU4LmMKaW5kZXggMzYwYzI1YTM2ZWJmLi5jYmY4Y2ViNzIwMGQgMTAwNzU1Ci0tLSBh
-L2RyaXZlcnMvbWVkaWEvaTJjL2lteDI1OC5jCisrKyBiL2RyaXZlcnMvbWVkaWEvaTJjL2lteDI1
-OC5jCkBAIC00NjQsMTAgKzQ2NCwxMCBAQCBzdGF0aWMgaW50IGlteDI1OF9yZWFkX3JlZyhzdHJ1
-Y3QgaW14MjU4ICppbXgyNTgsIHUxNiByZWcsIHUzMiBsZW4sIHUzMiAqdmFsKQogewogCXN0cnVj
-dCBpMmNfY2xpZW50ICpjbGllbnQgPSB2NGwyX2dldF9zdWJkZXZkYXRhKCZpbXgyNTgtPnNkKTsK
-IAlzdHJ1Y3QgaTJjX21zZyBtc2dzWzJdOworCV9fYmUxNiByZWdfYWRkcl9iZSA9IGNwdV90b19i
-ZTE2KHJlZyk7CisJX19iZTMyIGRhdGFfYmUgPSAwOwogCXU4ICpkYXRhX2JlX3A7CiAJaW50IHJl
-dDsKLQl1MzIgZGF0YV9iZSA9IDA7Ci0JdTE2IHJlZ19hZGRyX2JlID0gY3B1X3RvX2JlMTYocmVn
-KTsKIAogCWlmIChsZW4gPiA0KQogCQlyZXR1cm4gLUVJTlZBTDsKQEAgLTQ5OCwyMiArNDk4LDE4
-IEBAIHN0YXRpYyBpbnQgaW14MjU4X3JlYWRfcmVnKHN0cnVjdCBpbXgyNTggKmlteDI1OCwgdTE2
-IHJlZywgdTMyIGxlbiwgdTMyICp2YWwpCiBzdGF0aWMgaW50IGlteDI1OF93cml0ZV9yZWcoc3Ry
-dWN0IGlteDI1OCAqaW14MjU4LCB1MTYgcmVnLCB1MzIgbGVuLCB1MzIgdmFsKQogewogCXN0cnVj
-dCBpMmNfY2xpZW50ICpjbGllbnQgPSB2NGwyX2dldF9zdWJkZXZkYXRhKCZpbXgyNTgtPnNkKTsK
-LQlpbnQgYnVmX2ksIHZhbF9pOwotCXU4IGJ1Zls2XSwgKnZhbF9wOworCXU4IF9fYnVmWzZdLCAq
-YnVmID0gX19idWY7CisJaW50IGk7CiAKIAlpZiAobGVuID4gNCkKIAkJcmV0dXJuIC1FSU5WQUw7
-CiAKLQlidWZbMF0gPSByZWcgPj4gODsKLQlidWZbMV0gPSByZWcgJiAweGZmOworCSpidWYrKyA9
-IHJlZyA+PiA4OworCSpidWYrKyA9IHJlZyAmIDB4ZmY7CiAKLQl2YWwgPSBjcHVfdG9fYmUzMih2
-YWwpOwotCXZhbF9wID0gKHU4ICopJnZhbDsKLQlidWZfaSA9IDI7Ci0JdmFsX2kgPSA0IC0gbGVu
-OwogCi0Jd2hpbGUgKHZhbF9pIDwgNCkKLQkJYnVmW2J1Zl9pKytdID0gdmFsX3BbdmFsX2krK107
-CisJZm9yIChpID0gbGVuIC0gMTsgaSA+PSAwOyBpKyspCisJCSpidWYrKyA9ICh1OCkodmFsID4+
-IChpIDw8IDMpKTsKIAogCWlmIChpMmNfbWFzdGVyX3NlbmQoY2xpZW50LCBidWYsIGxlbiArIDIp
-ICE9IGxlbiArIDIpCiAJCXJldHVybiAtRUlPOwo=
+Please remove typecast here.
 
---_002_8E0971CCB6EA9D41AF58191A2D3978B61D4E66C1PGSMSX111garcor_--
+Both this and the above comment apply to corresponding resume function
+below.
+
+> +
+> +	if (ret != sizeof(tx_data)) {
+> +		dev_err(&client->dev, "I2C write CTL fail\n");
+> +		return -EIO;
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +/*
+> + * This function sets the vcm position to the value set by the user
+> + * through v4l2_ctrl_ops s_ctrl handler
+> + * The lens position is gradually moved in units of DW9807_CTRL_STEPS,
+> + * to make the movements smoothly.
+> + */
+> +static int  __maybe_unused dw9807_vcm_resume(struct device *dev)
+> +{
+> +	struct i2c_client *client = to_i2c_client(dev);
+> +	struct v4l2_subdev *sd = i2c_get_clientdata(client);
+> +	struct dw9807_device *dw9807_dev = sd_to_dw9807_vcm(sd);
+> +	int ret, val;
+> +	const char tx_data[2] = { DW9807_CTL_ADDR, 0x00};
+> +
+> +	/* Power on */
+> +	ret = i2c_master_send(client, (const char *)&tx_data, sizeof(tx_data));
+> +	if (ret != sizeof(tx_data)) {
+> +		dev_err(&client->dev, "I2C write CTL fail\n");
+> +		return -EIO;
+> +	}
+> +
+> +	for (val = dw9807_dev->current_val % DW9807_CTRL_STEPS;
+> +	     val < dw9807_dev->current_val + DW9807_CTRL_STEPS - 1;
+> +	     val += DW9807_CTRL_STEPS) {
+> +		ret = dw9807_set_dac(client, val);
+> +		if (ret)
+> +			dev_err_ratelimited(dev, "%s I2C failure: %d",
+> +						__func__, ret);
+> +		usleep_range(DW9807_CTRL_DELAY_US, DW9807_CTRL_DELAY_US + 10);
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +static const struct of_device_id dw9807_of_table[] = {
+> +	{ .compatible = "dongwoon,dw9807" },
+> +	{ { 0 } }
+> +};
+> +MODULE_DEVICE_TABLE(of, dw9807_of_table);
+> +
+> +static const struct dev_pm_ops dw9807_pm_ops = {
+> +	SET_SYSTEM_SLEEP_PM_OPS(dw9807_vcm_suspend, dw9807_vcm_resume)
+> +	SET_RUNTIME_PM_OPS(dw9807_vcm_suspend, dw9807_vcm_resume, NULL)
+> +};
+> +
+> +static struct i2c_driver dw9807_i2c_driver = {
+> +	.driver = {
+> +		.name = DW9807_NAME,
+> +		.pm = &dw9807_pm_ops,
+> +		.of_match_table = dw9807_of_table,
+> +	},
+> +	.probe_new = dw9807_probe,
+> +	.remove = dw9807_remove,
+> +};
+> +
+> +module_i2c_driver(dw9807_i2c_driver);
+> +
+> +MODULE_AUTHOR("Chiang, Alan <alanx.chiang@intel.com>");
+> +MODULE_DESCRIPTION("DW9807 VCM driver");
+> +MODULE_LICENSE("GPL v2");
+
+-- 
+Sakari Ailus
+sakari.ailus@linux.intel.com
