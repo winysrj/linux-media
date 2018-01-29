@@ -1,95 +1,205 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.free-electrons.com ([62.4.15.54]:58410 "EHLO
-        mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751861AbeAZIKM (ORCPT
+Received: from bin-mail-out-06.binero.net ([195.74.38.229]:7331 "EHLO
+        bin-vsp-out-03.atm.binero.net" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751737AbeA2Qfy (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 26 Jan 2018 03:10:12 -0500
-Date: Fri, 26 Jan 2018 09:10:00 +0100
-From: Maxime Ripard <maxime.ripard@free-electrons.com>
-To: Yong <yong.deng@magewell.com>
-Cc: kbuild test robot <lkp@intel.com>, kbuild-all@01.org,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Chen-Yu Tsai <wens@csie.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        Randy Dunlap <rdunlap@infradead.org>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Yannick Fertre <yannick.fertre@st.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Rick Chang <rick.chang@mediatek.com>,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-sunxi@googlegroups.com, megous@megous.com
-Subject: Re: [PATCH v6 2/2] media: V3s: Add support for Allwinner CSI.
-Message-ID: <20180126081000.hy7g57zp5dv6ug2g@flea.lan>
-References: <1516695531-23349-1-git-send-email-yong.deng@magewell.com>
- <201801260759.RyNhDZz4%fengguang.wu@intel.com>
- <20180126094658.aa70ed3f890464f6051e21e4@magewell.com>
- <20180126110041.f89848325b9ecfb07df387ca@magewell.com>
+        Mon, 29 Jan 2018 11:35:54 -0500
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH v10 26/30] rcar-vin: add link notify for Gen3
+Date: Mon, 29 Jan 2018 17:34:31 +0100
+Message-Id: <20180129163435.24936-27-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20180129163435.24936-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20180129163435.24936-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="pcpp5ezbpwxtdyok"
-Content-Disposition: inline
-In-Reply-To: <20180126110041.f89848325b9ecfb07df387ca@magewell.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Add the ability to process media device link change request. Link
+enabling is a bit complicated on Gen3, whether or not it's possible to
+enable a link depends on what other links already are enabled. On Gen3
+the 8 VINs are split into two subgroup's (VIN0-3 and VIN4-7) and from a
+routing perspective these two groups are independent of each other.
+Each subgroup's routing is controlled by the subgroup VIN master
+instance (VIN0 and VIN4).
 
---pcpp5ezbpwxtdyok
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+There are a limited number of possible route setups available for each
+subgroup and the configuration of each setup is dictated by the
+hardware. On H3 for example there are 6 possible route setups for each
+subgroup to choose from.
 
-On Fri, Jan 26, 2018 at 11:00:41AM +0800, Yong wrote:
-> Hi Maxime,
->=20
-> On Fri, 26 Jan 2018 09:46:58 +0800
-> Yong <yong.deng@magewell.com> wrote:
->=20
-> > Hi Maxime,
-> >=20
-> > Do you have any experience in solving this problem?
-> > It seems the PHYS_OFFSET maybe undeclared when the ARCH is not arm.
->=20
-> Got it.
-> Should I add 'depends on ARM' in Kconfig?
+This leads to the media device link notification code being rather large
+since it will find the best routing configuration to try and accommodate
+as many links as possible. When it's not possible to enable a new link
+due to hardware constrains the link_notifier callback will return
+-EMLINK.
 
-Yes, or even better a depends on MACH_SUNXI :)
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+---
+ drivers/media/platform/rcar-vin/rcar-core.c | 129 ++++++++++++++++++++++++++++
+ 1 file changed, 129 insertions(+)
 
-Maxime
-
---=20
-Maxime Ripard, Free Electrons
-Embedded Linux and Kernel engineering
-http://free-electrons.com
-
---pcpp5ezbpwxtdyok
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCAAdFiEE0VqZU19dR2zEVaqr0rTAlCFNr3QFAlpq4lcACgkQ0rTAlCFN
-r3QGmRAAhe2KBCEElFXdDNTvfXHIKAFj9SzsVR+pZziHsYVHDEycLIMEwBtclWtP
-YE7rzQUVyZJ0Jq4Z1blR7tSHkuhKeKdR6CbuuZNhA0GRyQSPkbxz4c0K4z8zOzJi
-roFdOLJ9AfZF4jTZ0pEof0AIIxJiMlxRjySilsHVJZ7lMYY7ztjfzKK7vQ64jCmR
-o6aBGZ7xC1/F8GaihZMk4d2Uoil8HCVuN8UoJlNITo5W64krM81KuhPUoj8AiF4P
-DcVIQ0KMVC4sz8PhNFMo+kfJA8DQ2VQpeV4pMc8mJef9vaIigg1rT8ZuY2FCs2IU
-P3Tx02jxR7SZKPbS4heX17LeXyYvVKlBHSX256oo6CKQ3bQGNlZ30E2LnJb5XeCm
-hsVg8F34DSvUpZPwwJbB5Jv/rDRnrQqxtHDF5PoMRDEkMLJoOUmFfBEOh4l6x2w4
-uq0FHKFo2rlGeBCPCZPxWzZXkoiB/kgpzRpDneBTDPkY5Ml7m0ro6XLKkHXdDOrc
-TS7tdRczD/Iu/mNuNPe+km5NhXedje8+CiRSpid1RoTdoh9i7HLqtYWveAeVHwvS
-lNumk5v3F4/q5DAf8wxzNlNeHZAJVZ0oZIGpfeJHKfP0z8r5MMMMGIuNtyHi4JNh
-Er2zgxzFRbTibE9xpbiRUqmcGq12w43CdjsLruUsySx3KjgsHzw=
-=yjb1
------END PGP SIGNATURE-----
-
---pcpp5ezbpwxtdyok--
+diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
+index f08277a0dc11f477..7ceff0de40078580 100644
+--- a/drivers/media/platform/rcar-vin/rcar-core.c
++++ b/drivers/media/platform/rcar-vin/rcar-core.c
+@@ -24,6 +24,7 @@
+ 
+ #include <media/v4l2-async.h>
+ #include <media/v4l2-fwnode.h>
++#include <media/v4l2-mc.h>
+ 
+ #include "rcar-vin.h"
+ 
+@@ -44,6 +45,133 @@
+  */
+ #define rvin_group_id_to_master(vin) ((vin) < 4 ? 0 : 4)
+ 
++/* -----------------------------------------------------------------------------
++ * Media Controller link notification
++ */
++
++/* group lock should be held when calling this function */
++static int rvin_group_entity_to_csi_id(struct rvin_group *group,
++					struct media_entity *entity)
++{
++	struct v4l2_subdev *sd;
++	int i;
++
++	if (!is_media_entity_v4l2_subdev(entity))
++		return -ENODEV;
++
++	sd = media_entity_to_v4l2_subdev(entity);
++
++	for (i = 0; i < RVIN_CSI_MAX; i++)
++		if (group->csi[i].subdev == sd)
++			return i;
++
++	return -ENODEV;
++}
++
++static unsigned int rvin_group_get_mask(struct rvin_dev *vin,
++					enum rvin_csi_id csi_id,
++					unsigned char chan)
++{
++	const struct rvin_group_route *route;
++	unsigned int mask = 0;
++
++	for (route = vin->info->routes; route->mask; route++) {
++		if (route->vin == vin->id &&
++		    route->csi == csi_id &&
++		    route->chan == chan) {
++			vin_dbg(vin, "Adding route: vin: %d csi: %d chan: %d\n",
++				route->vin, route->csi, route->chan);
++			mask |= route->mask;
++		}
++	}
++
++	return mask;
++}
++
++static int rvin_group_link_notify(struct media_link *link, u32 flags,
++				  unsigned int notification)
++{
++	struct rvin_group *group = container_of(link->graph_obj.mdev,
++						struct rvin_group, mdev);
++	unsigned int i, master_id, chan, mask_new, mask = ~0;
++	struct media_entity *entity;
++	struct video_device *vdev;
++	struct media_pad *csi_pad;
++	struct rvin_dev *vin = NULL;
++	int csi_id, ret;
++
++	ret = v4l2_pipeline_link_notify(link, flags, notification);
++	if (ret)
++		return ret;
++
++	/* Only care about link enablement for VIN nodes */
++	if (!(flags & MEDIA_LNK_FL_ENABLED) ||
++	    !is_media_entity_v4l2_video_device(link->sink->entity))
++		return 0;
++
++	/* If any entity are in use don't allow link changes */
++	media_device_for_each_entity(entity, &group->mdev)
++		if (entity->use_count)
++			return -EBUSY;
++
++	mutex_lock(&group->lock);
++
++	/* Find VIN and its master for which the link */
++	entity = link->sink->entity;
++	vdev = media_entity_to_video_device(entity);
++	for (i = 0; i < RCAR_VIN_NUM; i++) {
++		if (group->vin[i] && &group->vin[i]->vdev == vdev) {
++			vin = group->vin[i];
++			master_id = rvin_group_id_to_master(vin->id);
++			break;
++		}
++	}
++	if (WARN_ON(!vin || !group->vin[master_id])) {
++		ret = -ENODEV;
++		goto out;
++	}
++
++	/* Build a mask for already enabled links */
++	for (i = master_id; i < master_id + 4; i++) {
++		if (!group->vin[i])
++			continue;
++
++		/* Get remote CSI-2, if any */
++		csi_pad = media_entity_remote_pad(
++				&group->vin[i]->vdev.entity.pads[0]);
++		if (!csi_pad)
++			continue;
++
++		csi_id = rvin_group_entity_to_csi_id(group, csi_pad->entity);
++		chan = rvin_group_csi_pad_to_chan(csi_pad->index);
++
++		mask &= rvin_group_get_mask(group->vin[i], csi_id, chan);
++	}
++
++	/* Add the new link to the existing mask and check if it works */
++	csi_id = rvin_group_entity_to_csi_id(group, link->source->entity);
++	chan = rvin_group_csi_pad_to_chan(link->source->index);
++	mask_new = mask & rvin_group_get_mask(vin, csi_id, chan);
++
++	vin_dbg(vin, "Try link change mask: 0x%x new: 0x%x\n", mask, mask_new);
++
++	if (!mask_new) {
++		ret = -EMLINK;
++		goto out;
++	}
++
++	/* New valid CHSEL found, set the new value */
++	rvin_set_channel_routing(group->vin[master_id], __ffs(mask_new));
++out:
++	mutex_unlock(&group->lock);
++
++	return ret;
++}
++
++static const struct media_device_ops rvin_media_ops = {
++	.link_notify = rvin_group_link_notify,
++};
++
+ /* -----------------------------------------------------------------------------
+  * Gen3 CSI2 Group Allocator
+  */
+@@ -85,6 +213,7 @@ static int rvin_group_init(struct rvin_group *group, struct rvin_dev *vin)
+ 	vin_dbg(vin, "found %u enabled VIN's in DT", group->count);
+ 
+ 	mdev->dev = vin->dev;
++	mdev->ops = &rvin_media_ops;
+ 
+ 	match = of_match_node(vin->dev->driver->of_match_table,
+ 			      vin->dev->of_node);
+-- 
+2.16.1
