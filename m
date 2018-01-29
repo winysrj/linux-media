@@ -1,49 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga04.intel.com ([192.55.52.120]:4388 "EHLO mga04.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751868AbeADDs5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 3 Jan 2018 22:48:57 -0500
-From: tian.shu.qiu@intel.com
-To: linux-media@vger.kernel.org
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Qiu@vger.kernel.org, Tianshu <tian.shu.qiu@intel.com>
-Subject: [MAIN PATCH v1 2/2] Add support for intel ipu3 specific raw formats
-Date: Thu,  4 Jan 2018 11:48:13 +0800
-Message-Id: <1515037693-29631-3-git-send-email-tian.shu.qiu@intel.com>
-In-Reply-To: <1515037693-29631-1-git-send-email-tian.shu.qiu@intel.com>
-References: <1515037693-29631-1-git-send-email-tian.shu.qiu@intel.com>
+Received: from mail-ot0-f193.google.com ([74.125.82.193]:33875 "EHLO
+        mail-ot0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753287AbeA2UJY (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 29 Jan 2018 15:09:24 -0500
+Date: Mon, 29 Jan 2018 14:09:23 -0600
+From: Rob Herring <robh@kernel.org>
+To: Kieran Bingham <kieran.bingham@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        linux-kernel@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>,
+        David Airlie <airlied@linux.ie>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Archit Taneja <architt@codeaurora.org>,
+        Andrzej Hajda <a.hajda@samsung.com>,
+        Laurent Pinchart <Laurent.pinchart@ideasonboard.com>,
+        John Stultz <john.stultz@linaro.org>,
+        Mark Brown <broonie@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Lars-Peter Clausen <lars@metafoo.de>,
+        Daniel Vetter <daniel.vetter@ffwll.ch>,
+        Bhumika Goyal <bhumirks@gmail.com>,
+        Inki Dae <inki.dae@samsung.com>,
+        "open list:OPEN FIRMWARE AND FLATTENED DEVICE TREE BINDINGS"
+        <devicetree@vger.kernel.org>
+Subject: Re: [PATCH 2/2] drm: adv7511: Add support for
+ i2c_new_secondary_device
+Message-ID: <20180129200923.dp5maqyfh2v3wlnd@rob-hp-laptop>
+References: <1516625389-6362-1-git-send-email-kieran.bingham@ideasonboard.com>
+ <1516625389-6362-3-git-send-email-kieran.bingham@ideasonboard.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <1516625389-6362-3-git-send-email-kieran.bingham@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Tianshu Qiu <tian.shu.qiu@intel.com>
+On Mon, Jan 22, 2018 at 12:50:01PM +0000, Kieran Bingham wrote:
+> The ADV7511 has four 256-byte maps that can be accessed via the main I²C
+> ports. Each map has it own I²C address and acts as a standard slave
+> device on the I²C bus.
+> 
+> Allow a device tree node to override the default addresses so that
+> address conflicts with other devices on the same bus may be resolved at
+> the board description level.
+> 
+> Signed-off-by: Kieran Bingham <kieran.bingham@ideasonboard.com>
+> ---
+>  .../bindings/display/bridge/adi,adv7511.txt        | 10 +++++-
 
-Add support for these pixel formats:
+Reviewed-by: Rob Herring <robh@kernel.org>
 
-V4L2_PIX_FMT_IPU3_SBGGR10
-V4L2_PIX_FMT_IPU3_SGBRG10
-V4L2_PIX_FMT_IPU3_SGRBG10
-V4L2_PIX_FMT_IPU3_SRGGB10
-
-Signed-off-by: Tianshu Qiu <tian.shu.qiu@intel.com>
----
- yavta.c | 4 ++++
- 1 file changed, 4 insertions(+)
-
-diff --git a/yavta.c b/yavta.c
-index afe96331a520..524e549efd08 100644
---- a/yavta.c
-+++ b/yavta.c
-@@ -220,6 +220,10 @@ static struct v4l2_format_info {
- 	{ "SGBRG10P", V4L2_PIX_FMT_SGBRG10P, 1 },
- 	{ "SGRBG10P", V4L2_PIX_FMT_SGRBG10P, 1 },
- 	{ "SRGGB10P", V4L2_PIX_FMT_SRGGB10P, 1 },
-+	{ "IPU3_GRBG10", V4L2_PIX_FMT_IPU3_SGRBG10, 1 },
-+	{ "IPU3_RGGB10", V4L2_PIX_FMT_IPU3_SRGGB10, 1 },
-+	{ "IPU3_BGGR10", V4L2_PIX_FMT_IPU3_SBGGR10, 1 },
-+	{ "IPU3_GBRG10", V4L2_PIX_FMT_IPU3_SGBRG10, 1 },
- 	{ "SBGGR12", V4L2_PIX_FMT_SBGGR12, 1 },
- 	{ "SGBRG12", V4L2_PIX_FMT_SGBRG12, 1 },
- 	{ "SGRBG12", V4L2_PIX_FMT_SGRBG12, 1 },
--- 
-2.7.4
+>  drivers/gpu/drm/bridge/adv7511/adv7511.h           |  4 +++
+>  drivers/gpu/drm/bridge/adv7511/adv7511_drv.c       | 36 ++++++++++++++--------
+>  3 files changed, 37 insertions(+), 13 deletions(-)
