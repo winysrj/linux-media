@@ -1,94 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:45954 "EHLO mga14.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750817AbeAPPoH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 16 Jan 2018 10:44:07 -0500
-Date: Tue, 16 Jan 2018 17:44:03 +0200
-From: Sakari Ailus <sakari.ailus@linux.intel.com>
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] [v2] media: s3c-camif: fix out-of-bounds array access
-Message-ID: <20180116154403.muqorw74ggyhz7ze@paasikivi.fi.intel.com>
-References: <20180116153105.3523235-1-arnd@arndb.de>
+Received: from mail-ot0-f193.google.com ([74.125.82.193]:35794 "EHLO
+        mail-ot0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751273AbeA2XM6 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 29 Jan 2018 18:12:58 -0500
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20180116153105.3523235-1-arnd@arndb.de>
+In-Reply-To: <c86097d7-dade-01e5-3826-3f22f9ca4b4f@infradead.org>
+References: <1517217696-17816-1-git-send-email-yong.deng@magewell.com> <c86097d7-dade-01e5-3826-3f22f9ca4b4f@infradead.org>
+From: Arnd Bergmann <arnd@arndb.de>
+Date: Tue, 30 Jan 2018 00:12:56 +0100
+Message-ID: <CAK8P3a1W2VC3CEUvPLKoE7FGU1Osm53YQ-F892wqNekn-h8m1A@mail.gmail.com>
+Subject: Re: [PATCH v7 2/2] media: V3s: Add support for Allwinner CSI.
+To: Randy Dunlap <rdunlap@infradead.org>
+Cc: Yong Deng <yong.deng@magewell.com>,
+        Maxime Ripard <maxime.ripard@free-electrons.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Chen-Yu Tsai <wens@csie.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Linus Walleij <linus.walleij@linaro.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Yannick Fertre <yannick.fertre@st.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Rick Chang <rick.chang@mediatek.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        DTML <devicetree@vger.kernel.org>,
+        Linux ARM <linux-arm-kernel@lists.infradead.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        linux-sunxi <linux-sunxi@googlegroups.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Arnd,
+On Mon, Jan 29, 2018 at 10:49 PM, Randy Dunlap <rdunlap@infradead.org> wrote:
+> On 01/29/2018 01:21 AM, Yong Deng wrote:
+>> Allwinner V3s SoC features two CSI module. CSI0 is used for MIPI CSI-2
+>> interface and CSI1 is used for parallel interface. This is not
+>> documented in datasheet but by test and guess.
+>>
+>> This patch implement a v4l2 framework driver for it.
+>>
+>> Currently, the driver only support the parallel interface. MIPI-CSI2,
+>> ISP's support are not included in this patch.
+>>
+>> Tested-by: Maxime Ripard <maxime.ripard@free-electrons.com>
+>> Signed-off-by: Yong Deng <yong.deng@magewell.com>
+>> ---
+>
+>
+> A previous version (I think v6) had a build error with the use of
+> PHYS_OFFSET, so Kconfig was modified to depend on ARM and ARCH_SUNXI
+> (one of which seems to be overkill).  As is here, the COMPILE_TEST piece is
+> meaningless for all arches except ARM.  If you care enough for COMPILE_TEST
+> (and I would), then you could make COMPILE_TEST useful on any arch by
+> removing the "depends on ARM" (the ARCH_SUNXI takes care of that) and by
+> having an alternate value for PHYS_OFFSET, like so:
+>
+> +#if defined(CONFIG_COMPILE_TEST) && !defined(PHYS_OFFSET)
+> +#define PHYS_OFFSET    0
+> +#endif
+>
+> With those 2 changes, the driver builds for me on x86_64.
 
-Thanks for the patch. Please see my comments below.
+I think the PHYS_OFFSET really has to get removed from the driver, it's
+wrong on ARM as well.
 
-On Tue, Jan 16, 2018 at 04:30:46PM +0100, Arnd Bergmann wrote:
-> While experimenting with older compiler versions, I ran
-> into a warning that no longer shows up on gcc-4.8 or newer:
-> 
-> drivers/media/platform/s3c-camif/camif-capture.c: In function '__camif_subdev_try_format':
-> drivers/media/platform/s3c-camif/camif-capture.c:1265:25: error: array subscript is below array bounds
-> 
-> This is an off-by-one bug, leading to an access before the start of the
-> array, while newer compilers silently assume this undefined behavior
-> cannot happen and leave the loop at index 0 if no other entry matches.
-> 
-> As Sylvester explains, we actually need to ensure that the
-> value is within the range, so this reworks the loop to be
-> easier to parse correctly, and an additional check to fall
-> back on the first format value for any unexpected input.
-> 
-> I found an existing gcc bug for it and added a reduced version
-> of the function there.
-> 
-> Link: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=69249#c3
-> Fixes: babde1c243b2 ("[media] V4L: Add driver for S3C24XX/S3C64XX SoC series camera interface")
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-> ---
-> v2: rework logic rather than removing it.
-> ---
->  drivers/media/platform/s3c-camif/camif-capture.c | 7 +++++--
->  1 file changed, 5 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/media/platform/s3c-camif/camif-capture.c b/drivers/media/platform/s3c-camif/camif-capture.c
-> index 437395a61065..002609be1400 100644
-> --- a/drivers/media/platform/s3c-camif/camif-capture.c
-> +++ b/drivers/media/platform/s3c-camif/camif-capture.c
-> @@ -1256,15 +1256,18 @@ static void __camif_subdev_try_format(struct camif_dev *camif,
->  {
->  	const struct s3c_camif_variant *variant = camif->variant;
->  	const struct vp_pix_limits *pix_lim;
-> -	int i = ARRAY_SIZE(camif_mbus_formats);
-> +	int i;
->  
->  	/* FIXME: constraints against codec or preview path ? */
->  	pix_lim = &variant->vp_pix_limits[VP_CODEC];
->  
-> -	while (i-- >= 0)
-> +	for (i = 0; i < ARRAY_SIZE(camif_mbus_formats); i++)
-
-Yeah, that loop was odd...
-
->  		if (camif_mbus_formats[i] == mf->code)
->  			break;
->  
-> +	if (i == ARRAY_SIZE(camif_mbus_formats))
-> +		mf->code = camif_mbus_formats[0];
-> +
-
-Either else here so that the line below is executed only if the condition
-is false, or assign i = 0 above. Otherwise you'll end up with a different
-off-by-one bug. :-)
-
-i could be unsigned int, too. It'd be nicer that way actually.
-
->  	mf->code = camif_mbus_formats[i];
-
--- 
-Regards,
-
-Sakari Ailus
-sakari.ailus@linux.intel.com
+      Arnd
