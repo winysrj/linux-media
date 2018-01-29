@@ -1,114 +1,152 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:44336 "EHLO
-        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933907AbeAJMxq (ORCPT
+Received: from bin-mail-out-05.binero.net ([195.74.38.228]:51667 "EHLO
+        bin-vsp-out-03.atm.binero.net" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751391AbeA2QfV (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 10 Jan 2018 07:53:46 -0500
-Received: by mail-wm0-f68.google.com with SMTP id t8so26570753wmc.3
-        for <linux-media@vger.kernel.org>; Wed, 10 Jan 2018 04:53:45 -0800 (PST)
-From: "=?UTF-8?q?Christian=20K=C3=B6nig?="
-        <ckoenig.leichtzumerken@gmail.com>
-To: sumit.semwal@linaro.org, gustavo@padovan.org,
-        linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        linaro-mm-sig@lists.linaro.org
-Subject: [PATCH] dma-buf: make returning the exclusive fence optional
-Date: Wed, 10 Jan 2018 13:53:41 +0100
-Message-Id: <20180110125341.3618-1-christian.koenig@amd.com>
+        Mon, 29 Jan 2018 11:35:21 -0500
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH v10 08/30] rcar-vin: all Gen2 boards can scale simplify logic
+Date: Mon, 29 Jan 2018 17:34:13 +0100
+Message-Id: <20180129163435.24936-9-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20180129163435.24936-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20180129163435.24936-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Change reservation_object_get_fences_rcu to make the exclusive fence
-pointer optional.
+The logic to preserve the requested format width and height are too
+complex and come from a premature optimization for Gen3. All Gen2 SoC
+can scale and the Gen3 implementation will not use these functions at
+all so simply preserve the width and height when interacting with the
+subdevice much like the field is preserved simplifies the logic quite a
+bit.
 
-If not specified the exclusive fence is put into the fence array as
-well.
-
-This is helpful for a couple of cases where we need all fences in a
-single array.
-
-Signed-off-by: Christian König <christian.koenig@amd.com>
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- drivers/dma-buf/reservation.c | 31 ++++++++++++++++++++++---------
- 1 file changed, 22 insertions(+), 9 deletions(-)
+ drivers/media/platform/rcar-vin/rcar-dma.c  |  8 --------
+ drivers/media/platform/rcar-vin/rcar-v4l2.c | 25 +++++++++++--------------
+ drivers/media/platform/rcar-vin/rcar-vin.h  |  2 --
+ 3 files changed, 11 insertions(+), 24 deletions(-)
 
-diff --git a/drivers/dma-buf/reservation.c b/drivers/dma-buf/reservation.c
-index b759a569b7b8..461afa9febd4 100644
---- a/drivers/dma-buf/reservation.c
-+++ b/drivers/dma-buf/reservation.c
-@@ -374,8 +374,9 @@ EXPORT_SYMBOL(reservation_object_copy_fences);
-  * @pshared: the array of shared fence ptrs returned (array is krealloc'd to
-  * the required size, and must be freed by caller)
-  *
-- * RETURNS
-- * Zero or -errno
-+ * Retrieve all fences from the reservation object. If the pointer for the
-+ * exclusive fence is not specified the fence is put into the array of the
-+ * shared fences as well. Returns either zero or -ENOMEM.
-  */
- int reservation_object_get_fences_rcu(struct reservation_object *obj,
- 				      struct dma_fence **pfence_excl,
-@@ -389,8 +390,8 @@ int reservation_object_get_fences_rcu(struct reservation_object *obj,
- 
- 	do {
- 		struct reservation_object_list *fobj;
--		unsigned seq;
--		unsigned int i;
-+		unsigned int i, seq;
-+		size_t sz = 0;
- 
- 		shared_count = i = 0;
- 
-@@ -402,9 +403,14 @@ int reservation_object_get_fences_rcu(struct reservation_object *obj,
- 			goto unlock;
- 
- 		fobj = rcu_dereference(obj->fence);
--		if (fobj) {
-+		if (fobj)
-+			sz += sizeof(*shared) * fobj->shared_max;
-+
-+		if (!pfence_excl && fence_excl)
-+			sz += sizeof(*shared);
-+
-+		if (sz) {
- 			struct dma_fence **nshared;
--			size_t sz = sizeof(*shared) * fobj->shared_max;
- 
- 			nshared = krealloc(shared, sz,
- 					   GFP_NOWAIT | __GFP_NOWARN);
-@@ -420,13 +426,19 @@ int reservation_object_get_fences_rcu(struct reservation_object *obj,
- 				break;
- 			}
- 			shared = nshared;
--			shared_count = fobj->shared_count;
--
-+			shared_count = fobj ? fobj->shared_count : 0;
- 			for (i = 0; i < shared_count; ++i) {
- 				shared[i] = rcu_dereference(fobj->shared[i]);
- 				if (!dma_fence_get_rcu(shared[i]))
- 					break;
- 			}
-+
-+			if (!pfence_excl && fence_excl) {
-+				shared[i] = fence_excl;
-+				fence_excl = NULL;
-+				++i;
-+				++shared_count;
-+			}
- 		}
- 
- 		if (i != shared_count || read_seqcount_retry(&obj->seq, seq)) {
-@@ -448,7 +460,8 @@ int reservation_object_get_fences_rcu(struct reservation_object *obj,
- 
- 	*pshared_count = shared_count;
- 	*pshared = shared;
--	*pfence_excl = fence_excl;
-+	if (pfence_excl)
-+		*pfence_excl = fence_excl;
- 
- 	return ret;
+diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
+index a7cda3922cb74baa..fd14be20a6604d7a 100644
+--- a/drivers/media/platform/rcar-vin/rcar-dma.c
++++ b/drivers/media/platform/rcar-vin/rcar-dma.c
+@@ -585,14 +585,6 @@ void rvin_crop_scale_comp(struct rvin_dev *vin)
+ 		0, 0);
  }
+ 
+-void rvin_scale_try(struct rvin_dev *vin, struct v4l2_pix_format *pix,
+-		    u32 width, u32 height)
+-{
+-	/* All VIN channels on Gen2 have scalers */
+-	pix->width = width;
+-	pix->height = height;
+-}
+-
+ /* -----------------------------------------------------------------------------
+  * Hardware setup
+  */
+diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+index 8805d7911a761019..c2265324c7c96308 100644
+--- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
++++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+@@ -166,6 +166,7 @@ static int __rvin_try_format_source(struct rvin_dev *vin,
+ 		.which = which,
+ 	};
+ 	enum v4l2_field field;
++	u32 width, height;
+ 	int ret;
+ 
+ 	sd = vin_to_source(vin);
+@@ -178,7 +179,10 @@ static int __rvin_try_format_source(struct rvin_dev *vin,
+ 
+ 	format.pad = vin->digital->source_pad;
+ 
++	/* Allow the video device to override field and to scale */
+ 	field = pix->field;
++	width = pix->width;
++	height = pix->height;
+ 
+ 	ret = v4l2_subdev_call(sd, pad, set_fmt, pad_cfg, &format);
+ 	if (ret < 0 && ret != -ENOIOCTLCMD)
+@@ -186,11 +190,13 @@ static int __rvin_try_format_source(struct rvin_dev *vin,
+ 
+ 	v4l2_fill_pix_format(pix, &format.format);
+ 
+-	pix->field = field;
+-
+ 	source->width = pix->width;
+ 	source->height = pix->height;
+ 
++	pix->field = field;
++	pix->width = width;
++	pix->height = height;
++
+ 	vin_dbg(vin, "Source resolution: %ux%u\n", source->width,
+ 		source->height);
+ 
+@@ -204,13 +210,9 @@ static int __rvin_try_format(struct rvin_dev *vin,
+ 			     struct v4l2_pix_format *pix,
+ 			     struct rvin_source_fmt *source)
+ {
+-	u32 rwidth, rheight, walign;
++	u32 walign;
+ 	int ret;
+ 
+-	/* Requested */
+-	rwidth = pix->width;
+-	rheight = pix->height;
+-
+ 	/* Keep current field if no specific one is asked for */
+ 	if (pix->field == V4L2_FIELD_ANY)
+ 		pix->field = vin->format.field;
+@@ -248,10 +250,6 @@ static int __rvin_try_format(struct rvin_dev *vin,
+ 		break;
+ 	}
+ 
+-	/* If source can't match format try if VIN can scale */
+-	if (source->width != rwidth || source->height != rheight)
+-		rvin_scale_try(vin, pix, rwidth, rheight);
+-
+ 	/* HW limit width to a multiple of 32 (2^5) for NV16 else 2 (2^1) */
+ 	walign = vin->format.pixelformat == V4L2_PIX_FMT_NV16 ? 5 : 1;
+ 
+@@ -270,9 +268,8 @@ static int __rvin_try_format(struct rvin_dev *vin,
+ 		return -EINVAL;
+ 	}
+ 
+-	vin_dbg(vin, "Requested %ux%u Got %ux%u bpl: %d size: %d\n",
+-		rwidth, rheight, pix->width, pix->height,
+-		pix->bytesperline, pix->sizeimage);
++	vin_dbg(vin, "Format %ux%u bpl: %d size: %d\n",
++		pix->width, pix->height, pix->bytesperline, pix->sizeimage);
+ 
+ 	return 0;
+ }
+diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h b/drivers/media/platform/rcar-vin/rcar-vin.h
+index f195d174eeacda10..8daba9db0e927a49 100644
+--- a/drivers/media/platform/rcar-vin/rcar-vin.h
++++ b/drivers/media/platform/rcar-vin/rcar-vin.h
+@@ -175,8 +175,6 @@ void rvin_v4l2_unregister(struct rvin_dev *vin);
+ const struct rvin_video_format *rvin_format_from_pixel(u32 pixelformat);
+ 
+ /* Cropping, composing and scaling */
+-void rvin_scale_try(struct rvin_dev *vin, struct v4l2_pix_format *pix,
+-		    u32 width, u32 height);
+ void rvin_crop_scale_comp(struct rvin_dev *vin);
+ 
+ #endif
 -- 
-2.14.1
+2.16.1
