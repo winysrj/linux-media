@@ -1,147 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59364 "EHLO
-        mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752520AbeAGJJQ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sun, 7 Jan 2018 04:09:16 -0500
-Date: Sun, 7 Jan 2018 10:09:18 +0100
-From: Greg KH <gregkh@linuxfoundation.org>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        linux-arch@vger.kernel.org, Alan Cox <alan@linux.intel.com>,
-        Peter Zijlstra <peterz@infradead.org>,
-        Netdev <netdev@vger.kernel.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Linus Torvalds <torvalds@linux-foundation.org>,
-        Elena Reshetova <elena.reshetova@intel.com>,
-        "Linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        dsj@fb.com
-Subject: Re: [PATCH 07/18] [media] uvcvideo: prevent bounds-check bypass via
- speculative execution
-Message-ID: <20180107090918.GA29329@kroah.com>
-References: <151520099201.32271.4677179499894422956.stgit@dwillia2-desk3.amr.corp.intel.com>
- <151520103240.32271.14706852449205864676.stgit@dwillia2-desk3.amr.corp.intel.com>
- <20180106090907.GG4380@kroah.com>
- <20180106094026.GA11525@kroah.com>
- <CAPcyv4je-agqvmNSJf7v-1VBOrfhOvcs_qASNPJiBzgTt70dPA@mail.gmail.com>
+Received: from bin-mail-out-05.binero.net ([195.74.38.228]:38685 "EHLO
+        bin-vsp-out-03.atm.binero.net" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751204AbeA2QfM (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 29 Jan 2018 11:35:12 -0500
+From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
+        Kieran Bingham <kieran.bingham@ideasonboard.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
+        <niklas.soderlund+renesas@ragnatech.se>
+Subject: [PATCH v10 03/30] rcar-vin: unregister video device on driver removal
+Date: Mon, 29 Jan 2018 17:34:08 +0100
+Message-Id: <20180129163435.24936-4-niklas.soderlund+renesas@ragnatech.se>
+In-Reply-To: <20180129163435.24936-1-niklas.soderlund+renesas@ragnatech.se>
+References: <20180129163435.24936-1-niklas.soderlund+renesas@ragnatech.se>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAPcyv4je-agqvmNSJf7v-1VBOrfhOvcs_qASNPJiBzgTt70dPA@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Jan 06, 2018 at 09:41:17AM -0800, Dan Williams wrote:
-> On Sat, Jan 6, 2018 at 1:40 AM, Greg KH <gregkh@linuxfoundation.org> wrote:
-> > On Sat, Jan 06, 2018 at 10:09:07AM +0100, Greg KH wrote:
-> >> On Fri, Jan 05, 2018 at 05:10:32PM -0800, Dan Williams wrote:
-> >> > Static analysis reports that 'index' may be a user controlled value that
-> >> > is used as a data dependency to read 'pin' from the
-> >> > 'selector->baSourceID' array. In order to avoid potential leaks of
-> >> > kernel memory values, block speculative execution of the instruction
-> >> > stream that could issue reads based on an invalid value of 'pin'.
-> >> >
-> >> > Based on an original patch by Elena Reshetova.
-> >> >
-> >> > Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> >> > Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
-> >> > Cc: linux-media@vger.kernel.org
-> >> > Signed-off-by: Elena Reshetova <elena.reshetova@intel.com>
-> >> > Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-> >> > ---
-> >> >  drivers/media/usb/uvc/uvc_v4l2.c |    7 +++++--
-> >> >  1 file changed, 5 insertions(+), 2 deletions(-)
-> >> >
-> >> > diff --git a/drivers/media/usb/uvc/uvc_v4l2.c b/drivers/media/usb/uvc/uvc_v4l2.c
-> >> > index 3e7e283a44a8..7442626dc20e 100644
-> >> > --- a/drivers/media/usb/uvc/uvc_v4l2.c
-> >> > +++ b/drivers/media/usb/uvc/uvc_v4l2.c
-> >> > @@ -22,6 +22,7 @@
-> >> >  #include <linux/mm.h>
-> >> >  #include <linux/wait.h>
-> >> >  #include <linux/atomic.h>
-> >> > +#include <linux/compiler.h>
-> >> >
-> >> >  #include <media/v4l2-common.h>
-> >> >  #include <media/v4l2-ctrls.h>
-> >> > @@ -810,6 +811,7 @@ static int uvc_ioctl_enum_input(struct file *file, void *fh,
-> >> >     struct uvc_entity *iterm = NULL;
-> >> >     u32 index = input->index;
-> >> >     int pin = 0;
-> >> > +   __u8 *elem;
-> >> >
-> >> >     if (selector == NULL ||
-> >> >         (chain->dev->quirks & UVC_QUIRK_IGNORE_SELECTOR_UNIT)) {
-> >> > @@ -820,8 +822,9 @@ static int uvc_ioctl_enum_input(struct file *file, void *fh,
-> >> >                             break;
-> >> >             }
-> >> >             pin = iterm->id;
-> >> > -   } else if (index < selector->bNrInPins) {
-> >> > -           pin = selector->baSourceID[index];
-> >> > +   } else if ((elem = nospec_array_ptr(selector->baSourceID, index,
-> >> > +                                   selector->bNrInPins))) {
-> >> > +           pin = *elem;
-> >>
-> >> I dug through this before, and I couldn't find where index came from
-> >> userspace, I think seeing the coverity rule would be nice.
-> >
-> > Ok, I take it back, this looks correct.  Ugh, the v4l ioctl api is
-> > crazy complex (rightfully so), it's amazing that coverity could navigate
-> > that whole thing :)
-> >
-> > While I'm all for fixing this type of thing, I feel like we need to do
-> > something "else" for this as playing whack-a-mole for this pattern is
-> > going to be a never-ending battle for all drivers for forever.  Either
-> > we need some way to mark this data path to make it easy for tools like
-> > sparse to flag easily, or we need to catch the issue in the driver
-> > subsystems, which unfortunatly, would harm the drivers that don't have
-> > this type of issue (like here.)
-> >
-> > I'm guessing that other operating systems, which don't have the luxury
-> > of auditing all of their drivers are going for the "big hammer in the
-> > subsystem" type of fix, right?
-> >
-> > I don't have a good answer for this, but if there was some better way to
-> > rewrite these types of patterns to just prevent the need for the
-> > nospec_array_ptr() type thing, that might be the best overall for
-> > everyone.  Much like ebpf did with their changes.  That way a simple
-> > coccinelle rule would be able to catch the pattern and rewrite it.
-> >
-> > Or am I just dreaming?
-> 
-> At least on the coccinelle front you're dreaming. Julia already took a
-> look and said:
-> 
-> "I don't think Coccinelle would be good for doing this (ie
-> implementing taint analysis) because the dataflow is too complicated."
+If the video device was registered by the complete() callback it should
+be unregistered when a device is unbound from the driver. Protect from
+printing an uninitialized video device node name by adding a check in
+rvin_v4l2_unregister() to identify that the video device is registered.
 
-Sorry for the confusion, no, I don't mean the "taint tracking", I mean
-the generic pattern of "speculative out of bounds access" that we are
-fixing here.
+Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+Reviewed-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/platform/rcar-vin/rcar-core.c | 2 ++
+ drivers/media/platform/rcar-vin/rcar-v4l2.c | 3 +++
+ 2 files changed, 5 insertions(+)
 
-Yes, as you mentioned before, there are tons of false-positives in the
-tree, as to find the real problems you have to show that userspace
-controls the access index.  But if we have a generic pattern that can
-rewrite that type of logic into one where it does not matter at all
-(i.e. like the ebpf proposed changes), then it would not be an issue if
-they are false or not, we just rewrite them all to be safe.
-
-We need to find some way not only to fix these issues now (like you are
-doing with this series), but to prevent them from every coming back into
-the codebase again.  It's that second part that we need to keep in the
-back of our minds here, while doing the first portion of this work.
-
-> Perhaps the Coverity instance Dave mentioned at Ksummit 2012 has a
-> role to play here?
-
-We have a coverity instance that all kernel developers have access to
-(just sign up and we grant it.)  We have at least one person working
-full time on fixing up errors that this instance reports.  So if we
-could get those rules added (which is why I asked for them), it would be
-a great first line of defense to prevent the "adding new problems" issue
-from happening right now for the 4.16-rc1 merge window.
-
-thanks,
-
-greg k-h
+diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
+index 2bedf20abcf3ca07..47f06acde2e698f2 100644
+--- a/drivers/media/platform/rcar-vin/rcar-core.c
++++ b/drivers/media/platform/rcar-vin/rcar-core.c
+@@ -272,6 +272,8 @@ static int rcar_vin_remove(struct platform_device *pdev)
+ 
+ 	pm_runtime_disable(&pdev->dev);
+ 
++	rvin_v4l2_unregister(vin);
++
+ 	v4l2_async_notifier_unregister(&vin->notifier);
+ 	v4l2_async_notifier_cleanup(&vin->notifier);
+ 
+diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+index 178aecc94962abe2..32a658214f48fa49 100644
+--- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
++++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
+@@ -841,6 +841,9 @@ static const struct v4l2_file_operations rvin_fops = {
+ 
+ void rvin_v4l2_unregister(struct rvin_dev *vin)
+ {
++	if (!video_is_registered(&vin->vdev))
++		return;
++
+ 	v4l2_info(&vin->v4l2_dev, "Removing %s\n",
+ 		  video_device_node_name(&vin->vdev));
+ 
+-- 
+2.16.1
