@@ -1,77 +1,249 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from sub5.mail.dreamhost.com ([208.113.200.129]:41143 "EHLO
-        homiemail-a121.g.dreamhost.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751196AbeAEBeR (ORCPT
+Received: from out20-13.mail.aliyun.com ([115.124.20.13]:49785 "EHLO
+        out20-13.mail.aliyun.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751127AbeA2JSD (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 4 Jan 2018 20:34:17 -0500
-Subject: Re: [PATCH 8/9] lgdt3306a: QAM streaming improvement
-To: Michael Ira Krufky <mkrufky@linuxtv.org>
-Cc: linux-media <linux-media@vger.kernel.org>
-References: <1515110659-20145-1-git-send-email-brad@nextdimension.cc>
- <1515110659-20145-9-git-send-email-brad@nextdimension.cc>
- <CAOcJUbwi5s_TUpw1Jx9qt8ugh9bRTv5SBrWbSpKoAY5j8moWqg@mail.gmail.com>
-From: Brad Love <brad@nextdimension.cc>
-Message-ID: <a6527c51-f6fc-53d9-27a3-632ccc06a5d0@nextdimension.cc>
-Date: Thu, 4 Jan 2018 19:34:16 -0600
+        Mon, 29 Jan 2018 04:18:03 -0500
+From: Yong Deng <yong.deng@magewell.com>
+To: Maxime Ripard <maxime.ripard@free-electrons.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Chen-Yu Tsai <wens@csie.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Linus Walleij <linus.walleij@linaro.org>,
+        Randy Dunlap <rdunlap@infradead.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Yannick Fertre <yannick.fertre@st.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Rick Chang <rick.chang@mediatek.com>,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-sunxi@googlegroups.com, Yong Deng <yong.deng@magewell.com>
+Subject: [PATCH v7 0/2] Initial Allwinner V3s CSI Support
+Date: Mon, 29 Jan 2018 17:16:45 +0800
+Message-Id: <1517217405-17536-1-git-send-email-yong.deng@magewell.com>
 MIME-Version: 1.0
-In-Reply-To: <CAOcJUbwi5s_TUpw1Jx9qt8ugh9bRTv5SBrWbSpKoAY5j8moWqg@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Content-Language: en-GB
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+This patchset add initial support for Allwinner V3s CSI.
 
+Allwinner V3s SoC features two CSI module. CSI0 is used for MIPI CSI-2
+interface and CSI1 is used for parallel interface. This is not
+documented in datasheet but by test and guess.
 
-On 2018-01-04 18:26, Michael Ira Krufky wrote:
-> On Thu, Jan 4, 2018 at 7:04 PM, Brad Love <brad@nextdimension.cc> wrote:
->> Add some register updates required for stable viewing
->> on Cablevision in NY. Does not adversely affect other providers.
->>
->> Signed-off-by: Brad Love <brad@nextdimension.cc>
->> ---
->>  drivers/media/dvb-frontends/lgdt3306a.c | 22 ++++++++++++++++++++++
->>  1 file changed, 22 insertions(+)
->>
->> diff --git a/drivers/media/dvb-frontends/lgdt3306a.c b/drivers/media/dvb-frontends/lgdt3306a.c
->> index d2477ed..2f540f1 100644
->> --- a/drivers/media/dvb-frontends/lgdt3306a.c
->> +++ b/drivers/media/dvb-frontends/lgdt3306a.c
->> @@ -598,6 +598,28 @@ static int lgdt3306a_set_qam(struct lgdt3306a_state *state, int modulation)
->>         if (lg_chkerr(ret))
->>                 goto fail;
->>
->> +       /* 5.1 V0.36 SRDCHKALWAYS : For better QAM detection */
->> +       ret = lgdt3306a_read_reg(state, 0x000A, &val);
->> +       val &= 0xFD;
->> +       val |= 0x02;
->> +       ret = lgdt3306a_write_reg(state, 0x000A, val);
->> +       if (lg_chkerr(ret))
->> +               goto fail;
->> +
->> +       /* 5.2 V0.36 Control of "no signal" detector function */
->> +       ret = lgdt3306a_read_reg(state, 0x2849, &val);
->> +       val &= 0xDF;
->> +       ret = lgdt3306a_write_reg(state, 0x2849, val);
->> +       if (lg_chkerr(ret))
->> +               goto fail;
->> +
->> +       /* 5.3 Fix for Blonder Tongue HDE-2H-QAM and AQM modulators */
->> +       ret = lgdt3306a_read_reg(state, 0x302B, &val);
->> +       val &= 0x7F;  /* SELFSYNCFINDEN_CQS=0; disable auto reset */
->> +       ret = lgdt3306a_write_reg(state, 0x302B, val);
->> +       if (lg_chkerr(ret))
->> +               goto fail;
->> +
->>         /* 6. Reset */
->>         ret = lgdt3306a_soft_reset(state);
->>         if (lg_chkerr(ret))
-> Brad,
->
-> The change looks good, but can you resubmit this using lowercase hex?
->
-> Cheers,
->
-> Michael Ira Krufky
+This patchset implement a v4l2 framework driver and add a binding 
+documentation for it. 
 
-Done, v2 submitted.
+Currently, the driver only support the parallel interface. And has been
+tested with a BT1120 signal which generating from FPGA. The following
+fetures are not support with this patchset:
+  - ISP 
+  - MIPI-CSI2
+  - Master clock for camera sensor
+  - Power regulator for the front end IC
+
+Changes in v7:
+  * Add 'depends on ARM' in Kconfig to avoid built with non-ARM arch.
+
+Changes in v6:
+  * Add Rob Herring's review tag.
+  * Fix a NULL pointer dereference by picking Maxime Ripard's patch.
+  * Add Maxime Ripard's test tag.
+
+Changes in v5:
+  * Using the new SPDX tags.
+  * Fix MODULE_LICENSE.
+  * Add many default cases and warning messages.
+  * Detail the parallel bus properties
+  * Fix some spelling and syntax mistakes.
+
+Changes in v4:
+  * Deal with the CSI 'INNER QUEUE'.
+    CSI will lookup the next dma buffer for next frame before the
+    the current frame done IRQ triggered. This is not documented
+    but reported by Ondřej Jirman.
+    The BSP code has workaround for this too. It skip to mark the
+    first buffer as frame done for VB2 and pass the second buffer
+    to CSI in the first frame done ISR call. Then in second frame
+    done ISR call, it mark the first buffer as frame done for VB2
+    and pass the third buffer to CSI. And so on. The bad thing is
+    that the first buffer will be written twice and the first frame
+    is dropped even the queued buffer is sufficient.
+    So, I make some improvement here. Pass the next buffer to CSI
+    just follow starting the CSI. In this case, the first frame
+    will be stored in first buffer, second frame in second buffer.
+    This mothed is used to avoid dropping the first frame, it
+    would also drop frame when lacking of queued buffer.
+  * Fix: using a wrong mbus_code when getting the supported formats
+  * Change all fourcc to pixformat
+  * Change some function names
+
+Changes in v3:
+  * Get rid of struct sun6i_csi_ops
+  * Move sun6i-csi to new directory drivers/media/platform/sunxi
+  * Merge sun6i_csi.c and sun6i_csi_v3s.c into sun6i_csi.c
+  * Use generic fwnode endpoints parser
+  * Only support a single subdev to make things simple
+  * Many complaintion fix
+
+Changes in v2: 
+  * Change sunxi-csi to sun6i-csi
+  * Rebase to media_tree master branch 
+
+Following is the 'v4l2-compliance -s -f' output, I have test this
+with both interlaced and progressive signal:
+
+# ./v4l2-compliance -s -f
+v4l2-compliance SHA   : 6049ea8bd64f9d78ef87ef0c2b3dc9b5de1ca4a1
+
+Driver Info:
+        Driver name   : sun6i-video
+        Card type     : sun6i-csi
+        Bus info      : platform:csi
+        Driver version: 4.15.0
+        Capabilities  : 0x84200001
+                Video Capture
+                Streaming
+                Extended Pix Format
+                Device Capabilities
+        Device Caps   : 0x04200001
+                Video Capture
+                Streaming
+                Extended Pix Format
+
+Compliance test for device /dev/video0 (not using libv4l2):
+
+Required ioctls:
+        test VIDIOC_QUERYCAP: OK
+
+Allow for multiple opens:
+        test second video open: OK
+        test VIDIOC_QUERYCAP: OK
+        test VIDIOC_G/S_PRIORITY: OK
+        test for unlimited opens: OK
+
+Debug ioctls:
+        test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
+        test VIDIOC_LOG_STATUS: OK (Not Supported)
+
+Input ioctls:
+        test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
+        test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+        test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
+        test VIDIOC_ENUMAUDIO: OK (Not Supported)
+        test VIDIOC_G/S/ENUMINPUT: OK
+        test VIDIOC_G/S_AUDIO: OK (Not Supported)
+        Inputs: 1 Audio Inputs: 0 Tuners: 0
+
+Output ioctls:
+        test VIDIOC_G/S_MODULATOR: OK (Not Supported)
+        test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+        test VIDIOC_ENUMAUDOUT: OK (Not Supported)
+        test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
+        test VIDIOC_G/S_AUDOUT: OK (Not Supported)
+        Outputs: 0 Audio Outputs: 0 Modulators: 0
+
+Input/Output configuration ioctls:
+        test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
+        test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
+        test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
+        test VIDIOC_G/S_EDID: OK (Not Supported)
+
+Test input 0:
+
+        Control ioctls:
+                test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK (Not Supported)
+                test VIDIOC_QUERYCTRL: OK (Not Supported)
+                test VIDIOC_G/S_CTRL: OK (Not Supported)
+                test VIDIOC_G/S/TRY_EXT_CTRLS: OK (Not Supported)
+                test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK (Not Supported)
+                test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
+                Standard Controls: 0 Private Controls: 0
+
+        Format ioctls:
+                test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
+                test VIDIOC_G/S_PARM: OK (Not Supported)
+                test VIDIOC_G_FBUF: OK (Not Supported)
+                test VIDIOC_G_FMT: OK
+                test VIDIOC_TRY_FMT: OK
+                test VIDIOC_S_FMT: OK
+                test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
+                test Cropping: OK (Not Supported)
+                test Composing: OK (Not Supported)
+                test Scaling: OK (Not Supported)
+
+        Codec ioctls:
+                test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
+                test VIDIOC_G_ENC_INDEX: OK (Not Supported)
+                test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
+
+        Buffer ioctls:
+                test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
+                test VIDIOC_EXPBUF: OK
+
+Test input 0:
+
+Streaming ioctls:
+        test read/write: OK (Not Supported)
+        test MMAP: OK                                     
+        test USERPTR: OK (Not Supported)
+        test DMABUF: Cannot test, specify --expbuf-device
+
+Stream using all formats:
+        test MMAP for Format HM12, Frame Size 1280x720:
+                Stride 1920, Field None: OK                                 
+        test MMAP for Format NV12, Frame Size 1280x720:
+                Stride 1920, Field None: OK                                 
+        test MMAP for Format NV21, Frame Size 1280x720:
+                Stride 1920, Field None: OK                                 
+        test MMAP for Format YU12, Frame Size 1280x720:
+                Stride 1920, Field None: OK                                 
+        test MMAP for Format YV12, Frame Size 1280x720:
+                Stride 1920, Field None: OK                                 
+        test MMAP for Format NV16, Frame Size 1280x720:
+                Stride 2560, Field None: OK                                 
+        test MMAP for Format NV61, Frame Size 1280x720:
+                Stride 2560, Field None: OK                                 
+        test MMAP for Format 422P, Frame Size 1280x720:
+                Stride 2560, Field None: OK                                 
+
+Total: 54, Succeeded: 54, Failed: 0, Warnings: 0
+
+Yong Deng (2):
+  dt-bindings: media: Add Allwinner V3s Camera Sensor Interface (CSI)
+  media: V3s: Add support for Allwinner CSI.
+
+ .../devicetree/bindings/media/sun6i-csi.txt        |  59 ++
+ MAINTAINERS                                        |   8 +
+ drivers/media/platform/Kconfig                     |   1 +
+ drivers/media/platform/Makefile                    |   2 +
+ drivers/media/platform/sunxi/sun6i-csi/Kconfig     |  10 +
+ drivers/media/platform/sunxi/sun6i-csi/Makefile    |   3 +
+ drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.c | 908 +++++++++++++++++++++
+ drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.h | 143 ++++
+ .../media/platform/sunxi/sun6i-csi/sun6i_csi_reg.h | 196 +++++
+ .../media/platform/sunxi/sun6i-csi/sun6i_video.c   | 753 +++++++++++++++++
+ .../media/platform/sunxi/sun6i-csi/sun6i_video.h   |  53 ++
+ 11 files changed, 2136 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/sun6i-csi.txt
+ create mode 100644 drivers/media/platform/sunxi/sun6i-csi/Kconfig
+ create mode 100644 drivers/media/platform/sunxi/sun6i-csi/Makefile
+ create mode 100644 drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.c
+ create mode 100644 drivers/media/platform/sunxi/sun6i-csi/sun6i_csi.h
+ create mode 100644 drivers/media/platform/sunxi/sun6i-csi/sun6i_csi_reg.h
+ create mode 100644 drivers/media/platform/sunxi/sun6i-csi/sun6i_video.c
+ create mode 100644 drivers/media/platform/sunxi/sun6i-csi/sun6i_video.h
+
+-- 
+1.8.3.1
