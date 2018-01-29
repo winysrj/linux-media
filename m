@@ -1,82 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f175.google.com ([209.85.216.175]:45722 "EHLO
-        mail-qt0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751483AbeAOR4N (ORCPT
+Received: from mail-oi0-f66.google.com ([209.85.218.66]:38202 "EHLO
+        mail-oi0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753039AbeA2UIP (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 15 Jan 2018 12:56:13 -0500
-Date: Mon, 15 Jan 2018 15:55:54 -0200
-From: Gustavo Padovan <gustavo@padovan.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Alexandre Courbot <acourbot@chromium.org>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@osg.samsung.com>,
-        Shuah Khan <shuahkh@osg.samsung.com>,
-        Pawel Osciak <pawel@osciak.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        Brian Starkey <brian.starkey@arm.com>,
-        Thierry Escande <thierry.escande@collabora.com>,
-        linux-kernel@vger.kernel.org,
-        Gustavo Padovan <gustavo.padovan@collabora.com>
-Subject: Re: [PATCH v7 1/6] [media] vb2: add is_unordered callback for drivers
-Message-ID: <20180115175554.GB9598@jade>
-References: <20180110160732.7722-1-gustavo@padovan.org>
- <20180110160732.7722-2-gustavo@padovan.org>
- <CAPBb6MV6ErW-Z7n1aK55TxJNRDkt2SkWGEJiXkxrLmZ_GabJOA@mail.gmail.com>
- <20180115120111.GA9598@jade>
- <373924ea-a35c-78f5-dd0c-e5f36623cb84@xs4all.nl>
+        Mon, 29 Jan 2018 15:08:15 -0500
+Date: Mon, 29 Jan 2018 14:08:13 -0600
+From: Rob Herring <robh@kernel.org>
+To: Kieran Bingham <kieran.bingham@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+        linux-kernel@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        "open list:OPEN FIRMWARE AND FLATTENED DEVICE TREE BINDINGS"
+        <devicetree@vger.kernel.org>
+Subject: Re: [PATCH 1/2] media: adv7604: Add support for
+ i2c_new_secondary_device
+Message-ID: <20180129200813.ifaz2bkkxshiodga@rob-hp-laptop>
+References: <1516625389-6362-1-git-send-email-kieran.bingham@ideasonboard.com>
+ <1516625389-6362-2-git-send-email-kieran.bingham@ideasonboard.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
-In-Reply-To: <373924ea-a35c-78f5-dd0c-e5f36623cb84@xs4all.nl>
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <1516625389-6362-2-git-send-email-kieran.bingham@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2018-01-15 Hans Verkuil <hverkuil@xs4all.nl>:
-
-> On 01/15/2018 01:01 PM, Gustavo Padovan wrote:
-> > 2018-01-15 Alexandre Courbot <acourbot@chromium.org>:
-> > 
-> >> On Thu, Jan 11, 2018 at 1:07 AM, Gustavo Padovan <gustavo@padovan.org> wrote:
-> >>> From: Gustavo Padovan <gustavo.padovan@collabora.com>
-> >>>
-> >>> Explicit synchronization benefits a lot from ordered queues, they fit
-> >>> better in a pipeline with DRM for example so create a opt-in way for
-> >>> drivers notify videobuf2 that the queue is unordered.
-> >>>
-> >>> Drivers don't need implement it if the queue is ordered.
-> >>
-> >> This is going to make user-space believe that *all* vb2 drivers use
-> >> ordered queues by default, at least until non-ordered drivers catch up
-> >> with this change. Wouldn't it be less dangerous to do the opposite
-> >> (make queues non-ordered by default)?
-> > 
-> > The rational behind this decision was because most formats/drivers are
-> > ordered so only a small amount of drivers need to changed. I think this
-> > was proposed by Hans on the Media Summit.
-> > 
-> > I understand your concern. My question is how dangerous will it be. If
-> > you are building a product you will make the changes in the driver if
-> > they are not there yet, or if it is a distribution you'd never know
-> > which driver/format you are using so you should be prepared for
-> > everything.
-> > 
-> > AFAIK all Capture drivers are ordered and that is where I think fences
-> > is most useful.
+On Mon, Jan 22, 2018 at 12:49:56PM +0000, Kieran Bingham wrote:
+> From: Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>
 > 
-> Right. What could be done is to mark all codec drivers as unordered initially
-> ask the driver authors to verify this. All capture drivers using vb2 and not
-> using REQUEUE are ordered.
-
-That is a good way out.
-
+> The ADV7604 has thirteen 256-byte maps that can be accessed via the main
+> I²C ports. Each map has it own I²C address and acts as a standard slave
+> device on the I²C bus.
 > 
-> One thing we haven't looked at is what to do with drivers that do not use vb2.
-> Those won't support fences, but how will userspace know that fences are not
-> supported? I'm not sure what the best method is for that.
+> Allow a device tree node to override the default addresses so that
+> address conflicts with other devices on the same bus may be resolved at
+> the board description level.
 > 
-> I am leaning towards a new capability since this has to be advertised clearly.
+> Signed-off-by: Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>
+> [Kieran: Re-adapted for mainline]
+> Signed-off-by: Kieran Bingham <kieran.bingham@ideasonboard.com>
+> ---
+> Based upon the original posting :
+>   https://lkml.org/lkml/2014/10/22/469
+> ---
+>  .../devicetree/bindings/media/i2c/adv7604.txt      | 18 ++++++-
 
-The capability flag makes sense to me, I'll incorporate it as part of my
-next patchset.
+Reviewed-by: Rob Herring <robh@kernel.org>
 
-Gustavo
+In the future, please split bindings to separate patch.
+
+>  drivers/media/i2c/adv7604.c                        | 60 ++++++++++++++--------
+>  2 files changed, 55 insertions(+), 23 deletions(-)
