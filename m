@@ -1,81 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail2-relais-roc.national.inria.fr ([192.134.164.83]:42496 "EHLO
-        mail2-relais-roc.national.inria.fr" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752599AbeABKgK (ORCPT
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:54397 "EHLO
+        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751378AbeA2P6W (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 2 Jan 2018 05:36:10 -0500
-Date: Tue, 2 Jan 2018 11:36:05 +0100 (CET)
-From: Julia Lawall <julia.lawall@lip6.fr>
-To: Dan Carpenter <dan.carpenter@oracle.com>
-cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        kernel-janitors@vger.kernel.org, Alan Cox <alan@linux.intel.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        linux-media@vger.kernel.org,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        devel@driverdev.osuosl.org, Kristian Beilke <beilke@posteo.de>
-Subject: Re: [PATCH v1 05/10] staging: atomisp: Remove non-ACPI leftovers
-In-Reply-To: <20180102102644.km2lb65ehesphso7@mwanda>
-Message-ID: <alpine.DEB.2.20.1801021135000.24055@hadrien>
-References: <20171219205957.10933-1-andriy.shevchenko@linux.intel.com> <20171219205957.10933-5-andriy.shevchenko@linux.intel.com> <20171220053828.5wphhl6oc2sl3su5@mwanda> <alpine.DEB.2.20.1712201127240.13140@hadrien>
- <20180102102644.km2lb65ehesphso7@mwanda>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+        Mon, 29 Jan 2018 10:58:22 -0500
+From: Philipp Rossak <embed3d@gmail.com>
+To: mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
+        maxime.ripard@free-electrons.com, wens@csie.org,
+        linux@armlinux.org.uk, sean@mess.org, p.zabel@pengutronix.de,
+        andi.shyti@samsung.com
+Cc: linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-sunxi@googlegroups.com
+Subject: [PATCH v4 4/6] arm: dts: sun8i: a83t: Add support for the cir interface
+Date: Mon, 29 Jan 2018 16:58:08 +0100
+Message-Id: <20180129155810.7867-5-embed3d@gmail.com>
+In-Reply-To: <20180129155810.7867-1-embed3d@gmail.com>
+References: <20180129155810.7867-1-embed3d@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+The cir interface is like on the H3 located at 0x01f02000 and is exactly
+the same. This patch adds support for the ir interface on the A83T.
 
+Signed-off-by: Philipp Rossak <embed3d@gmail.com>
+---
+ arch/arm/boot/dts/sun8i-a83t.dtsi | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-On Tue, 2 Jan 2018, Dan Carpenter wrote:
-
-> On Wed, Dec 20, 2017 at 11:30:01AM +0100, Julia Lawall wrote:
-> >
-> >
-> > On Wed, 20 Dec 2017, Dan Carpenter wrote:
-> >
-> > > On Tue, Dec 19, 2017 at 10:59:52PM +0200, Andy Shevchenko wrote:
-> > > > @@ -914,9 +904,7 @@ static int lm3554_probe(struct i2c_client *client)
-> > > >  		dev_err(&client->dev, "gpio request/direction_output fail");
-> > > >  		goto fail2;
-> > > >  	}
-> > > > -	if (ACPI_HANDLE(&client->dev))
-> > > > -		err = atomisp_register_i2c_module(&flash->sd, NULL, LED_FLASH);
-> > > > -	return 0;
-> > > > +	return atomisp_register_i2c_module(&flash->sd, NULL, LED_FLASH);
-> > > >  fail2:
-> > > >  	media_entity_cleanup(&flash->sd.entity);
-> > > >  	v4l2_ctrl_handler_free(&flash->ctrl_handler);
-> > >
-> > > Actually every place where we directly return a function call is wrong
-> > > and needs error handling added.  I've been meaning to write a Smatch
-> > > check for this because it's a common anti-pattern we don't check the
-> > > last function call for errors.
-> > >
-> > > Someone could probably do the same in Coccinelle if they want.
-> >
-> > I'm not sure what you are suggesting.  Is every case of return f(...);
-> > for any f wrong?  Or is it a particular function that is of concern?  Or
-> > would it be that every function call that has error handling somewhere
-> > should have error handling everywhere?  Or is it related to what seems to
-> > be the problem in the above code that err is initialized but nothing
-> > happens to it?
-> >
->
-> I was just thinking that it's a common pattern to treat the last
-> function call differently and one mistake I often see looks like this:
->
-> 	ret = frob();
-> 	if (ret) {
-> 		cleanup();
-> 		return ret;
-> 	}
->
-> 	return another_function();
->
-> No error handling for the last function call.
-
-OK, I see.  When there was error handling code along the way, a direct
-return of a function that could fail needs error handling code too.
-
-Thanks for the clarification,
-
-julia
+diff --git a/arch/arm/boot/dts/sun8i-a83t.dtsi b/arch/arm/boot/dts/sun8i-a83t.dtsi
+index 06e96db7c41a..ddc0d592107f 100644
+--- a/arch/arm/boot/dts/sun8i-a83t.dtsi
++++ b/arch/arm/boot/dts/sun8i-a83t.dtsi
+@@ -605,6 +605,16 @@
+ 			#reset-cells = <1>;
+ 		};
+ 
++		cir: cir@01f02000 {
++			compatible = "allwinner,sun5i-a13-ir";
++			clocks = <&r_ccu CLK_APB0_IR>, <&r_ccu CLK_IR>;
++			clock-names = "apb", "ir";
++			resets = <&r_ccu RST_APB0_IR>;
++			interrupts = <GIC_SPI 37 IRQ_TYPE_LEVEL_HIGH>;
++			reg = <0x01f02000 0x400>;
++			status = "disabled";
++		};
++
+ 		r_pio: pinctrl@1f02c00 {
+ 			compatible = "allwinner,sun8i-a83t-r-pinctrl";
+ 			reg = <0x01f02c00 0x400>;
+-- 
+2.11.0
