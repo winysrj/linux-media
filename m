@@ -1,60 +1,143 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from iolanthe.rowland.org ([192.131.102.54]:38412 "HELO
-        iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with SMTP id S1756430AbeAHTPg (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Mon, 8 Jan 2018 14:15:36 -0500
-Date: Mon, 8 Jan 2018 14:15:35 -0500 (EST)
-From: Alan Stern <stern@rowland.harvard.edu>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-cc: Ingo Molnar <mingo@kernel.org>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Josef Griebichler <griebichler.josef@gmx.at>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        USB list <linux-usb@vger.kernel.org>,
-        Eric Dumazet <edumazet@google.com>,
-        Rik van Riel <riel@redhat.com>,
-        Paolo Abeni <pabeni@redhat.com>,
-        Hannes Frederic Sowa <hannes@redhat.com>,
-        Jesper Dangaard Brouer <jbrouer@redhat.com>,
-        linux-kernel <linux-kernel@vger.kernel.org>,
-        netdev <netdev@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>,
-        LMML <linux-media@vger.kernel.org>,
-        Peter Zijlstra <peterz@infradead.org>,
-        David Miller <davem@davemloft.net>
-Subject: Re: dvb usb issues since kernel 4.9
-In-Reply-To: <CA+55aFx90oOU-3R8pCeM0ESTDYhmugD5znA9LrGj1zhazWBtcg@mail.gmail.com>
-Message-ID: <Pine.LNX.4.44L0.1801081354450.1908-100000@iolanthe.rowland.org>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:40004 "EHLO
+        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751779AbeA3K1I (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 30 Jan 2018 05:27:08 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Daniel Mentz <danielmentz@google.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>, stable@vger.kernel.org
+Subject: [PATCHv2 08/13] v4l2-compat-ioctl32.c: copy m.userptr in put_v4l2_plane32
+Date: Tue, 30 Jan 2018 11:26:56 +0100
+Message-Id: <20180130102701.13664-9-hverkuil@xs4all.nl>
+In-Reply-To: <20180130102701.13664-1-hverkuil@xs4all.nl>
+References: <20180130102701.13664-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 8 Jan 2018, Linus Torvalds wrote:
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-> Can somebody tell which softirq it is that dvb/usb cares about?
+The struct v4l2_plane32 should set m.userptr as well. The same
+happens in v4l2_buffer32 and v4l2-compliance tests for this.
 
-I don't know about the DVB part.  The USB part is a little difficult to
-analyze, mostly because the bug reports I've seen are mostly from
-people running non-vanilla kernels.  For example, Josef is using a
-Raspberry Pi 3B with a non-standard USB host controller driver:
-dwc_otg_hcd is built into raspbian in place of the normal dwc2_hsotg
-driver.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: <stable@vger.kernel.org>      # for v4.15 and up
+---
+ drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 47 ++++++++++++++++-----------
+ 1 file changed, 28 insertions(+), 19 deletions(-)
 
-Both dwc2_hsotg and ehci-hcd use the tasklets embedded in the 
-giveback_urb_bh member of struct usb_hcd.  See usb_hcd_giveback_urb() 
-in drivers/usb/core/hcd.c; the calls are
-
-        else if (high_prio_bh)
-                tasklet_hi_schedule(&bh->bh);
-        else
-                tasklet_schedule(&bh->bh);
-
-As it turns out, high_prio_bh gets set for interrupt and isochronous
-URBs but not for bulk and control URBs.  The DVB driver in question
-uses bulk transfers.
-
-xhci-hcd, on the other hand, does not use these tasklets (it doesn't
-set the HCD_BH bit in the hc_driver's .flags member).
-
-Alan Stern
+diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+index 6c70705a48bc..7dff9b4aeb19 100644
+--- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
++++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+@@ -310,19 +310,24 @@ static int get_v4l2_plane32(struct v4l2_plane __user *up, struct v4l2_plane32 __
+ 			 sizeof(up->data_offset)))
+ 		return -EFAULT;
+ 
+-	if (memory == V4L2_MEMORY_USERPTR) {
++	switch (memory) {
++	case V4L2_MEMORY_MMAP:
++	case V4L2_MEMORY_OVERLAY:
++		if (copy_in_user(&up->m.mem_offset, &up32->m.mem_offset,
++				 sizeof(up32->m.mem_offset)))
++			return -EFAULT;
++		break;
++	case V4L2_MEMORY_USERPTR:
+ 		if (get_user(p, &up32->m.userptr))
+ 			return -EFAULT;
+ 		up_pln = compat_ptr(p);
+ 		if (put_user((unsigned long)up_pln, &up->m.userptr))
+ 			return -EFAULT;
+-	} else if (memory == V4L2_MEMORY_DMABUF) {
++		break;
++	case V4L2_MEMORY_DMABUF:
+ 		if (copy_in_user(&up->m.fd, &up32->m.fd, sizeof(up32->m.fd)))
+ 			return -EFAULT;
+-	} else {
+-		if (copy_in_user(&up->m.mem_offset, &up32->m.mem_offset,
+-				 sizeof(up32->m.mem_offset)))
+-			return -EFAULT;
++		break;
+ 	}
+ 
+ 	return 0;
+@@ -331,22 +336,32 @@ static int get_v4l2_plane32(struct v4l2_plane __user *up, struct v4l2_plane32 __
+ static int put_v4l2_plane32(struct v4l2_plane __user *up, struct v4l2_plane32 __user *up32,
+ 			    enum v4l2_memory memory)
+ {
++	unsigned long p;
++
+ 	if (copy_in_user(up32, up, 2 * sizeof(__u32)) ||
+ 	    copy_in_user(&up32->data_offset, &up->data_offset,
+ 			 sizeof(up->data_offset)))
+ 		return -EFAULT;
+ 
+-	/* For MMAP, driver might've set up the offset, so copy it back.
+-	 * USERPTR stays the same (was userspace-provided), so no copying. */
+-	if (memory == V4L2_MEMORY_MMAP)
++	switch (memory) {
++	case V4L2_MEMORY_MMAP:
++	case V4L2_MEMORY_OVERLAY:
+ 		if (copy_in_user(&up32->m.mem_offset, &up->m.mem_offset,
+ 				 sizeof(up->m.mem_offset)))
+ 			return -EFAULT;
+-	/* For DMABUF, driver might've set up the fd, so copy it back. */
+-	if (memory == V4L2_MEMORY_DMABUF)
++		break;
++	case V4L2_MEMORY_USERPTR:
++		if (get_user(p, &up->m.userptr) ||
++		    put_user((compat_ulong_t)ptr_to_compat((__force void *)p),
++			     &up32->m.userptr))
++			return -EFAULT;
++		break;
++	case V4L2_MEMORY_DMABUF:
+ 		if (copy_in_user(&up32->m.fd, &up->m.fd,
+ 				 sizeof(up->m.fd)))
+ 			return -EFAULT;
++		break;
++	}
+ 
+ 	return 0;
+ }
+@@ -408,6 +423,7 @@ static int get_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
+ 	} else {
+ 		switch (kp->memory) {
+ 		case V4L2_MEMORY_MMAP:
++		case V4L2_MEMORY_OVERLAY:
+ 			if (get_user(kp->m.offset, &up->m.offset))
+ 				return -EFAULT;
+ 			break;
+@@ -421,10 +437,6 @@ static int get_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
+ 				kp->m.userptr = (unsigned long)compat_ptr(tmp);
+ 			}
+ 			break;
+-		case V4L2_MEMORY_OVERLAY:
+-			if (get_user(kp->m.offset, &up->m.offset))
+-				return -EFAULT;
+-			break;
+ 		case V4L2_MEMORY_DMABUF:
+ 			if (get_user(kp->m.fd, &up->m.fd))
+ 				return -EFAULT;
+@@ -481,6 +493,7 @@ static int put_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
+ 	} else {
+ 		switch (kp->memory) {
+ 		case V4L2_MEMORY_MMAP:
++		case V4L2_MEMORY_OVERLAY:
+ 			if (put_user(kp->m.offset, &up->m.offset))
+ 				return -EFAULT;
+ 			break;
+@@ -488,10 +501,6 @@ static int put_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
+ 			if (put_user(kp->m.userptr, &up->m.userptr))
+ 				return -EFAULT;
+ 			break;
+-		case V4L2_MEMORY_OVERLAY:
+-			if (put_user(kp->m.offset, &up->m.offset))
+-				return -EFAULT;
+-			break;
+ 		case V4L2_MEMORY_DMABUF:
+ 			if (put_user(kp->m.fd, &up->m.fd))
+ 				return -EFAULT;
+-- 
+2.15.1
