@@ -1,63 +1,151 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernelconcepts.de ([188.40.83.200]:59672 "EHLO
-        mail.kernelconcepts.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753050AbeAQM6o (ORCPT
+Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:42052 "EHLO
+        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751765AbeA3K1G (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 17 Jan 2018 07:58:44 -0500
-Received: from [217.146.132.69] (helo=[192.168.2.34])
-        by mail.kernelconcepts.de with esmtpsa (TLS1.2:ECDHE_RSA_AES_128_GCM_SHA256:128)
-        (Exim 4.84_2)
-        (envelope-from <florian.boor@kernelconcepts.de>)
-        id 1ebnIg-00049t-Pa
-        for linux-media@vger.kernel.org; Wed, 17 Jan 2018 13:58:42 +0100
-Subject: Re: MT9M131 on I.MX6DL CSI color issue
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <b704a2fb-efa1-a2f8-7af0-43d869c688eb@kernelconcepts.de>
- <20180112105840.75260abb@crub> <20180112110606.47499410@crub>
- <929ef892-467b-dfd1-8ae0-0190263be38a@kernelconcepts.de>
- <20180117103109.GA18072@minime.bse>
-From: Florian Boor <florian.boor@kernelconcepts.de>
-Message-ID: <ff51f6e2-270d-c881-4445-8dadf5d7db6f@kernelconcepts.de>
-Date: Wed, 17 Jan 2018 13:58:42 +0100
-MIME-Version: 1.0
-In-Reply-To: <20180117103109.GA18072@minime.bse>
-Content-Type: text/plain; charset=utf-8
-Content-Language: de-AT
-Content-Transfer-Encoding: 8bit
+        Tue, 30 Jan 2018 05:27:06 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Daniel Mentz <danielmentz@google.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>, stable@vger.kernel.org
+Subject: [PATCHv2 01/13] vivid: fix module load error when enabling fb and no_error_inj=1
+Date: Tue, 30 Jan 2018 11:26:49 +0100
+Message-Id: <20180130102701.13664-2-hverkuil@xs4all.nl>
+In-Reply-To: <20180130102701.13664-1-hverkuil@xs4all.nl>
+References: <20180130102701.13664-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-On 17.01.2018 11:31, Daniel Glöckner wrote:
-> May I suggest that you capture something of known colors, by pointing
-> the camera at a monitor displaying this?:
-> http://www.avsforum.com/photopost/data/2224298/0/04/04d8edc6_8bit_full_grad_color.png
-> 
-> The colors will of course be off by a bit, but it should still be
-> possible to guess how the RGB primaries were mangled.
+If the framebuffer is enabled and error injection is disabled, then
+creating the controls for the video output device would fail with an
+error.
 
-yes that's a good idea. The result with original and camera view side by side
-looks like this:
+This is because the Clear Framebuffer control uses the 'vivid control
+class' and that control class isn't added if error injection is disabled.
 
-http://www.kernelconcepts.de/~florian/screenshot.png
+In addition, this control was added to e.g. vbi devices as well, which
+makes no sense.
 
-Its not really obvious for me what is wrong but these wraparounds Philipp
-mentioned are really nice to see within the bars.
+Move this control to its own control handler and handle it correctly.
 
-Greetings
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: <stable@vger.kernel.org>      # for v4.15 and up
+---
+ drivers/media/platform/vivid/vivid-core.h  |  1 +
+ drivers/media/platform/vivid/vivid-ctrls.c | 35 +++++++++++++++++++++++++-----
+ 2 files changed, 30 insertions(+), 6 deletions(-)
 
-Florian
-
+diff --git a/drivers/media/platform/vivid/vivid-core.h b/drivers/media/platform/vivid/vivid-core.h
+index 50802e650750..c90e4a0ab94e 100644
+--- a/drivers/media/platform/vivid/vivid-core.h
++++ b/drivers/media/platform/vivid/vivid-core.h
+@@ -154,6 +154,7 @@ struct vivid_dev {
+ 	struct v4l2_ctrl_handler	ctrl_hdl_streaming;
+ 	struct v4l2_ctrl_handler	ctrl_hdl_sdtv_cap;
+ 	struct v4l2_ctrl_handler	ctrl_hdl_loop_cap;
++	struct v4l2_ctrl_handler	ctrl_hdl_fb;
+ 	struct video_device		vid_cap_dev;
+ 	struct v4l2_ctrl_handler	ctrl_hdl_vid_cap;
+ 	struct video_device		vid_out_dev;
+diff --git a/drivers/media/platform/vivid/vivid-ctrls.c b/drivers/media/platform/vivid/vivid-ctrls.c
+index 34731f71cc00..3f9d354827af 100644
+--- a/drivers/media/platform/vivid/vivid-ctrls.c
++++ b/drivers/media/platform/vivid/vivid-ctrls.c
+@@ -120,9 +120,6 @@ static int vivid_user_gen_s_ctrl(struct v4l2_ctrl *ctrl)
+ 		clear_bit(V4L2_FL_REGISTERED, &dev->radio_rx_dev.flags);
+ 		clear_bit(V4L2_FL_REGISTERED, &dev->radio_tx_dev.flags);
+ 		break;
+-	case VIVID_CID_CLEAR_FB:
+-		vivid_clear_fb(dev);
+-		break;
+ 	case VIVID_CID_BUTTON:
+ 		dev->button_pressed = 30;
+ 		break;
+@@ -274,8 +271,28 @@ static const struct v4l2_ctrl_config vivid_ctrl_disconnect = {
+ 	.type = V4L2_CTRL_TYPE_BUTTON,
+ };
+ 
++
++/* Framebuffer Controls */
++
++static int vivid_fb_s_ctrl(struct v4l2_ctrl *ctrl)
++{
++	struct vivid_dev *dev = container_of(ctrl->handler,
++					     struct vivid_dev, ctrl_hdl_fb);
++
++	switch (ctrl->id) {
++	case VIVID_CID_CLEAR_FB:
++		vivid_clear_fb(dev);
++		break;
++	}
++	return 0;
++}
++
++static const struct v4l2_ctrl_ops vivid_fb_ctrl_ops = {
++	.s_ctrl = vivid_fb_s_ctrl,
++};
++
+ static const struct v4l2_ctrl_config vivid_ctrl_clear_fb = {
+-	.ops = &vivid_user_gen_ctrl_ops,
++	.ops = &vivid_fb_ctrl_ops,
+ 	.id = VIVID_CID_CLEAR_FB,
+ 	.name = "Clear Framebuffer",
+ 	.type = V4L2_CTRL_TYPE_BUTTON,
+@@ -1357,6 +1374,7 @@ int vivid_create_controls(struct vivid_dev *dev, bool show_ccs_cap,
+ 	struct v4l2_ctrl_handler *hdl_streaming = &dev->ctrl_hdl_streaming;
+ 	struct v4l2_ctrl_handler *hdl_sdtv_cap = &dev->ctrl_hdl_sdtv_cap;
+ 	struct v4l2_ctrl_handler *hdl_loop_cap = &dev->ctrl_hdl_loop_cap;
++	struct v4l2_ctrl_handler *hdl_fb = &dev->ctrl_hdl_fb;
+ 	struct v4l2_ctrl_handler *hdl_vid_cap = &dev->ctrl_hdl_vid_cap;
+ 	struct v4l2_ctrl_handler *hdl_vid_out = &dev->ctrl_hdl_vid_out;
+ 	struct v4l2_ctrl_handler *hdl_vbi_cap = &dev->ctrl_hdl_vbi_cap;
+@@ -1384,10 +1402,12 @@ int vivid_create_controls(struct vivid_dev *dev, bool show_ccs_cap,
+ 	v4l2_ctrl_new_custom(hdl_sdtv_cap, &vivid_ctrl_class, NULL);
+ 	v4l2_ctrl_handler_init(hdl_loop_cap, 1);
+ 	v4l2_ctrl_new_custom(hdl_loop_cap, &vivid_ctrl_class, NULL);
++	v4l2_ctrl_handler_init(hdl_fb, 1);
++	v4l2_ctrl_new_custom(hdl_fb, &vivid_ctrl_class, NULL);
+ 	v4l2_ctrl_handler_init(hdl_vid_cap, 55);
+ 	v4l2_ctrl_new_custom(hdl_vid_cap, &vivid_ctrl_class, NULL);
+ 	v4l2_ctrl_handler_init(hdl_vid_out, 26);
+-	if (!no_error_inj)
++	if (!no_error_inj || dev->has_fb)
+ 		v4l2_ctrl_new_custom(hdl_vid_out, &vivid_ctrl_class, NULL);
+ 	v4l2_ctrl_handler_init(hdl_vbi_cap, 21);
+ 	v4l2_ctrl_new_custom(hdl_vbi_cap, &vivid_ctrl_class, NULL);
+@@ -1561,7 +1581,7 @@ int vivid_create_controls(struct vivid_dev *dev, bool show_ccs_cap,
+ 		v4l2_ctrl_new_custom(hdl_loop_cap, &vivid_ctrl_loop_video, NULL);
+ 
+ 	if (dev->has_fb)
+-		v4l2_ctrl_new_custom(hdl_user_gen, &vivid_ctrl_clear_fb, NULL);
++		v4l2_ctrl_new_custom(hdl_fb, &vivid_ctrl_clear_fb, NULL);
+ 
+ 	if (dev->has_radio_rx) {
+ 		v4l2_ctrl_new_custom(hdl_radio_rx, &vivid_ctrl_radio_hw_seek_mode, NULL);
+@@ -1658,6 +1678,7 @@ int vivid_create_controls(struct vivid_dev *dev, bool show_ccs_cap,
+ 		v4l2_ctrl_add_handler(hdl_vid_cap, hdl_streaming, NULL);
+ 		v4l2_ctrl_add_handler(hdl_vid_cap, hdl_sdtv_cap, NULL);
+ 		v4l2_ctrl_add_handler(hdl_vid_cap, hdl_loop_cap, NULL);
++		v4l2_ctrl_add_handler(hdl_vid_cap, hdl_fb, NULL);
+ 		if (hdl_vid_cap->error)
+ 			return hdl_vid_cap->error;
+ 		dev->vid_cap_dev.ctrl_handler = hdl_vid_cap;
+@@ -1666,6 +1687,7 @@ int vivid_create_controls(struct vivid_dev *dev, bool show_ccs_cap,
+ 		v4l2_ctrl_add_handler(hdl_vid_out, hdl_user_gen, NULL);
+ 		v4l2_ctrl_add_handler(hdl_vid_out, hdl_user_aud, NULL);
+ 		v4l2_ctrl_add_handler(hdl_vid_out, hdl_streaming, NULL);
++		v4l2_ctrl_add_handler(hdl_vid_out, hdl_fb, NULL);
+ 		if (hdl_vid_out->error)
+ 			return hdl_vid_out->error;
+ 		dev->vid_out_dev.ctrl_handler = hdl_vid_out;
+@@ -1725,4 +1747,5 @@ void vivid_free_controls(struct vivid_dev *dev)
+ 	v4l2_ctrl_handler_free(&dev->ctrl_hdl_streaming);
+ 	v4l2_ctrl_handler_free(&dev->ctrl_hdl_sdtv_cap);
+ 	v4l2_ctrl_handler_free(&dev->ctrl_hdl_loop_cap);
++	v4l2_ctrl_handler_free(&dev->ctrl_hdl_fb);
+ }
 -- 
-The dream of yesterday                  Florian Boor
-is the hope of today                    Tel: +49 271-771091-15
-and the reality of tomorrow.		Fax: +49 271-338857-29
-[Robert Hutchings Goddard, 1904]        florian.boor@kernelconcepts.de
-                                        http://www.kernelconcepts.de/en
-
-kernel concepts GmbH
-Hauptstraße 16
-D-57074 Siegen
-Geschäftsführer: Ole Reinhardt
-HR Siegen, HR B 9613
+2.15.1
