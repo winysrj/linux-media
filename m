@@ -1,63 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from sub5.mail.dreamhost.com ([208.113.200.129]:41070 "EHLO
-        homiemail-a121.g.dreamhost.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751100AbeAEBbN (ORCPT
+Received: from relay4-d.mail.gandi.net ([217.70.183.196]:60548 "EHLO
+        relay4-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752067AbeA3J76 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 4 Jan 2018 20:31:13 -0500
-From: Brad Love <brad@nextdimension.cc>
-To: linux-media@vger.kernel.org
-Cc: Brad Love <brad@nextdimension.cc>
-Subject: [PATCH v2 8/9] lgdt3306a: QAM streaming improvement
-Date: Thu,  4 Jan 2018 19:30:24 -0600
-Message-Id: <1515115824-5295-1-git-send-email-brad@nextdimension.cc>
-In-Reply-To: <1515110659-20145-9-git-send-email-brad@nextdimension.cc>
-References: <1515110659-20145-9-git-send-email-brad@nextdimension.cc>
+        Tue, 30 Jan 2018 04:59:58 -0500
+From: Jacopo Mondi <jacopo+renesas@jmondi.org>
+To: laurent.pinchart@ideasonboard.com, magnus.damm@gmail.com,
+        geert@glider.be, hverkuil@xs4all.nl, mchehab@kernel.org,
+        festevam@gmail.com, sakari.ailus@iki.fi, robh+dt@kernel.org,
+        mark.rutland@arm.com, pombredanne@nexb.com
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-sh@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: [PATCH v8 11/11] media: i2c: ov7670: Fully set mbus frame fmt
+Date: Tue, 30 Jan 2018 10:58:22 +0100
+Message-Id: <1517306302-27957-12-git-send-email-jacopo+renesas@jmondi.org>
+In-Reply-To: <1517306302-27957-1-git-send-email-jacopo+renesas@jmondi.org>
+References: <1517306302-27957-1-git-send-email-jacopo+renesas@jmondi.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add some register updates required for stable viewing
-on Cablevision in NY. Does not adversely affect other providers.
+The sensor driver sets mbus format colorspace information and sizes,
+but not ycbcr encoding, quantization and xfer function. When supplied
+with an badly initialized mbus frame format structure, those fields
+need to be set explicitly not to leave them uninitialized. This is
+tested by v4l2-compliance, which supplies a mbus format description
+structure and checks for all fields to be properly set.
 
-Changes since v1:
-- Change upper case hex to lower case.
+Without this commit, v4l2-compliance fails when testing formats with:
+fail: v4l2-test-formats.cpp(335): ycbcr_enc >= 0xff
 
-Signed-off-by: Brad Love <brad@nextdimension.cc>
+Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
 ---
- drivers/media/dvb-frontends/lgdt3306a.c | 22 ++++++++++++++++++++++
- 1 file changed, 22 insertions(+)
+ drivers/media/i2c/ov7670.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff --git a/drivers/media/dvb-frontends/lgdt3306a.c b/drivers/media/dvb-frontends/lgdt3306a.c
-index d2477ed..2f540f1 100644
---- a/drivers/media/dvb-frontends/lgdt3306a.c
-+++ b/drivers/media/dvb-frontends/lgdt3306a.c
-@@ -598,6 +598,28 @@ static int lgdt3306a_set_qam(struct lgdt3306a_state *state, int modulation)
- 	if (lg_chkerr(ret))
- 		goto fail;
+diff --git a/drivers/media/i2c/ov7670.c b/drivers/media/i2c/ov7670.c
+index 25b26d4..61c472e 100644
+--- a/drivers/media/i2c/ov7670.c
++++ b/drivers/media/i2c/ov7670.c
+@@ -996,6 +996,10 @@ static int ov7670_try_fmt_internal(struct v4l2_subdev *sd,
+ 	fmt->height = wsize->height;
+ 	fmt->colorspace = ov7670_formats[index].colorspace;
  
-+	/* 5.1 V0.36 SRDCHKALWAYS : For better QAM detection */
-+	ret = lgdt3306a_read_reg(state, 0x000a, &val);
-+	val &= 0xfd;
-+	val |= 0x02;
-+	ret = lgdt3306a_write_reg(state, 0x000a, val);
-+	if (lg_chkerr(ret))
-+		goto fail;
++	fmt->ycbcr_enc = V4L2_YCBCR_ENC_DEFAULT;
++	fmt->quantization = V4L2_QUANTIZATION_DEFAULT;
++	fmt->xfer_func = V4L2_XFER_FUNC_DEFAULT;
 +
-+	/* 5.2 V0.36 Control of "no signal" detector function */
-+	ret = lgdt3306a_read_reg(state, 0x2849, &val);
-+	val &= 0xdf;
-+	ret = lgdt3306a_write_reg(state, 0x2849, val);
-+	if (lg_chkerr(ret))
-+		goto fail;
-+
-+	/* 5.3 Fix for Blonder Tongue HDE-2H-QAM and AQM modulators */
-+	ret = lgdt3306a_read_reg(state, 0x302b, &val);
-+	val &= 0x7f;  /* SELFSYNCFINDEN_CQS=0; disable auto reset */
-+	ret = lgdt3306a_write_reg(state, 0x302b, val);
-+	if (lg_chkerr(ret))
-+		goto fail;
-+
- 	/* 6. Reset */
- 	ret = lgdt3306a_soft_reset(state);
- 	if (lg_chkerr(ret))
+ 	info->format = *fmt;
+ 
+ 	return 0;
 -- 
 2.7.4
