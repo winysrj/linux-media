@@ -1,134 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:42394 "EHLO
-        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S932342AbeAIEpm (ORCPT
+Received: from gateway34.websitewelcome.com ([192.185.150.114]:42307 "EHLO
+        gateway34.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752035AbeA3Axp (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 8 Jan 2018 23:45:42 -0500
-Message-ID: <0ebcdba1396fb17b767559fa7cec2761@smtp-cloud9.xs4all.net>
-Date: Tue, 09 Jan 2018 05:45:39 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+        Mon, 29 Jan 2018 19:53:45 -0500
+Received: from cm14.websitewelcome.com (cm14.websitewelcome.com [100.42.49.7])
+        by gateway34.websitewelcome.com (Postfix) with ESMTP id 22FDC1E0CA3
+        for <linux-media@vger.kernel.org>; Mon, 29 Jan 2018 18:30:07 -0600 (CST)
+Date: Mon, 29 Jan 2018 18:30:03 -0600
+From: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
+To: linux-media@vger.kernel.org, linux-rockchip@lists.infradead.org,
+        lnux-arm-kernel@lists.infradead.org, inux-kernel@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Jacob chen <jacob2.chen@rock-chips.com>,
+        Heiko Stuebner <heiko@sntech.de>,
+        Antti Palosaari <crope@iki.fi>,
+        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
+        "Gustavo A. R. Silva" <garsilva@embeddedor.com>
+Subject: [PATCH 0/8] fix potential integer overflows
+Message-ID: <cover.1517268667.git.gustavo@embeddedor.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+This patchset aims to fix potential integer overflows reported
+by Coverity.
 
-Results of the daily build of media_tree:
+In all cases the potential overflowing expressions are evaluated
+using 32-bit arithmetic before being used in contexts that expect
+a 64-bit arithmetic. So a cast to the proper type was added to each
+of those expressions in order to avoid any potential integer overflow.
 
-date:			Tue Jan  9 05:00:16 CET 2018
-media-tree git hash:	e3ee691dbf24096ea51b3200946b11d68ce75361
-media_build git hash:	46c9dc0a08499791cedfc7ee0df387e475f075a2
-v4l-utils git hash:	8aa401d119afaeb1b4fe4d2994789cd3e9396554
-gcc version:		i686-linux-gcc (GCC) 7.1.0
-sparse version:		v0.5.0-3911-g6f737e1f
-smatch version:		v0.5.0-3911-g6f737e1f
-host hardware:		x86_64
-host os:		4.13.0-164
+This also gives the compiler complete information about the proper
+arithmetic for each expression and improves code quality.
 
-linux-git-arm-at91: ERRORS
-linux-git-arm-davinci: OK
-linux-git-arm-multi: ERRORS
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-blackfin-bf561: ERRORS
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: ERRORS
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: WARNINGS
-linux-3.10.1-i686: WARNINGS
-linux-3.11.1-i686: ERRORS
-linux-3.12.67-i686: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.14.9-i686: ERRORS
-linux-3.15.2-i686: ERRORS
-linux-3.16.7-i686: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.18.7-i686: ERRORS
-linux-3.19-i686: ERRORS
-linux-4.0.9-i686: ERRORS
-linux-4.1.33-i686: ERRORS
-linux-4.2.8-i686: ERRORS
-linux-4.3.6-i686: ERRORS
-linux-4.4.22-i686: ERRORS
-linux-4.5.7-i686: ERRORS
-linux-4.6.7-i686: ERRORS
-linux-4.7.5-i686: ERRORS
-linux-4.8-i686: ERRORS
-linux-4.9.26-i686: ERRORS
-linux-4.10.14-i686: WARNINGS
-linux-4.11-i686: WARNINGS
-linux-4.12.1-i686: WARNINGS
-linux-4.13-i686: WARNINGS
-linux-4.14-i686: WARNINGS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.67-x86_64: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-x86_64: ERRORS
-linux-3.15.2-x86_64: ERRORS
-linux-3.16.7-x86_64: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.7-x86_64: ERRORS
-linux-3.19-x86_64: ERRORS
-linux-4.0.9-x86_64: ERRORS
-linux-4.1.33-x86_64: ERRORS
-linux-4.2.8-x86_64: ERRORS
-linux-4.3.6-x86_64: ERRORS
-linux-4.4.22-x86_64: ERRORS
-linux-4.5.7-x86_64: ERRORS
-linux-4.6.7-x86_64: ERRORS
-linux-4.7.5-x86_64: ERRORS
-linux-4.8-x86_64: ERRORS
-linux-4.9.26-x86_64: ERRORS
-linux-4.10.14-x86_64: WARNINGS
-linux-4.11-x86_64: WARNINGS
-linux-4.12.1-x86_64: WARNINGS
-linux-4.13-x86_64: WARNINGS
-linux-4.14-x86_64: WARNINGS
-apps: OK
-spec-git: OK
-smatch: OK
+Addresses the following Coverity IDs reported as
+"Unintentional integer overflow" issues:
 
-Detailed results are available here:
+200604, 1056807, 1056808, 1271223,
+1324146, 1392628, 1392630, 1446589,
+1454996, 1458347.
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+Thank you
 
-Full logs are available here:
+Gustavo A. R. Silva (8):
+  rtl2832: fix potential integer overflow
+  dvb-frontends: ves1820: fix potential integer overflow
+  i2c: max2175: fix potential integer overflow in max2175_set_nco_freq
+  i2c: ov9650: fix potential integer overflow in
+    __ov965x_set_frame_interval
+  pci: cx88-input: fix potential integer overflow
+  rockchip/rga: fix potential integer overflow in rga_buf_map
+  platform: sh_veu: fix potential integer overflow in
+    sh_veu_colour_offset
+  platform: vivid-cec: fix potential integer overflow in
+    vivid_cec_pin_adap_events
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+ drivers/media/dvb-frontends/rtl2832.c         | 4 ++--
+ drivers/media/dvb-frontends/ves1820.c         | 2 +-
+ drivers/media/i2c/max2175.c                   | 2 +-
+ drivers/media/i2c/ov9650.c                    | 2 +-
+ drivers/media/pci/cx88/cx88-input.c           | 4 ++--
+ drivers/media/platform/rockchip/rga/rga-buf.c | 2 +-
+ drivers/media/platform/sh_veu.c               | 4 ++--
+ drivers/media/platform/vivid/vivid-cec.c      | 2 +-
+ 8 files changed, 11 insertions(+), 11 deletions(-)
 
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+-- 
+2.7.4
