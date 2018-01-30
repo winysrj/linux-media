@@ -1,128 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from usa-sjc-mx-foss1.foss.arm.com ([217.140.101.70]:58562 "EHLO
-        foss.arm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750841AbeARRFm (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 18 Jan 2018 12:05:42 -0500
-Date: Thu, 18 Jan 2018 17:05:47 +0000
-From: Will Deacon <will.deacon@arm.com>
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        kernel-hardening@lists.openwall.com,
-        Peter Zijlstra <peterz@infradead.org>,
-        Alan Cox <alan.cox@intel.com>,
-        Alexei Starovoitov <ast@kernel.org>,
-        Solomon Peachy <pizza@shaftnet.org>,
-        "H. Peter Anvin" <hpa@zytor.com>,
-        Christian Lamparter <chunkeey@googlemail.com>,
-        Elena Reshetova <elena.reshetova@intel.com>,
-        linux-arch@vger.kernel.org, Andi Kleen <ak@linux.intel.com>,
-        "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>,
-        Linux SCSI List <linux-scsi@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>,
-        the arch/x86 maintainers <x86@kernel.org>,
-        Russell King <linux@armlinux.org.uk>,
-        Ingo Molnar <mingo@redhat.com>,
-        Catalin Marinas <catalin.marinas@arm.com>,
-        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Tom Lendacky <thomas.lendacky@amd.com>,
-        Kees Cook <keescook@chromium.org>, Jan Kara <jack@suse.com>,
-        Al Viro <viro@zeniv.linux.org.uk>, qla2xxx-upstream@qlogic.com,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Kalle Valo <kvalo@codeaurora.org>,
-        Alan Cox <alan@linux.intel.com>,
-        "Martin K. Petersen" <martin.petersen@oracle.com>,
-        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
-        Greg KH <gregkh@linuxfoundation.org>,
-        Linux Wireless List <linux-wireless@vger.kernel.org>,
-        "Eric W. Biederman" <ebiederm@xmission.com>,
-        Network Development <netdev@vger.kernel.org>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH v2 00/19] prevent bounds-check bypass via speculative
- execution
-Message-ID: <20180118170547.GF12394@arm.com>
-References: <151571798296.27429.7166552848688034184.stgit@dwillia2-desk3.amr.corp.intel.com>
- <CA+55aFzNQ8CZ8iNcPXrCfyk=1edMiRGDA0fY0rd87BsFKBxgAw@mail.gmail.com>
- <CAPcyv4gPcV7MRumSJNz6nDw=HhKO4MK2QqKbj4uc_6APsSFr+g@mail.gmail.com>
- <20180118131837.GA20783@arm.com>
- <CAPcyv4gPLx74CAHGGrC3R-fgrh0vUmCbLNXZ0f7PTiKi0f+hCQ@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAPcyv4gPLx74CAHGGrC3R-fgrh0vUmCbLNXZ0f7PTiKi0f+hCQ@mail.gmail.com>
+Received: from relay4-d.mail.gandi.net ([217.70.183.196]:54111 "EHLO
+        relay4-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751562AbeA3J6s (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 30 Jan 2018 04:58:48 -0500
+From: Jacopo Mondi <jacopo+renesas@jmondi.org>
+To: laurent.pinchart@ideasonboard.com, magnus.damm@gmail.com,
+        geert@glider.be, hverkuil@xs4all.nl, mchehab@kernel.org,
+        festevam@gmail.com, sakari.ailus@iki.fi, robh+dt@kernel.org,
+        mark.rutland@arm.com, pombredanne@nexb.com
+Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
+        linux-sh@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Subject: [PATCH v8 01/11] dt-bindings: media: Add Renesas CEU bindings
+Date: Tue, 30 Jan 2018 10:58:12 +0100
+Message-Id: <1517306302-27957-2-git-send-email-jacopo+renesas@jmondi.org>
+In-Reply-To: <1517306302-27957-1-git-send-email-jacopo+renesas@jmondi.org>
+References: <1517306302-27957-1-git-send-email-jacopo+renesas@jmondi.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jan 18, 2018 at 08:58:08AM -0800, Dan Williams wrote:
-> On Thu, Jan 18, 2018 at 5:18 AM, Will Deacon <will.deacon@arm.com> wrote:
-> > On Thu, Jan 11, 2018 at 05:41:08PM -0800, Dan Williams wrote:
-> >> On Thu, Jan 11, 2018 at 5:19 PM, Linus Torvalds
-> >> <torvalds@linux-foundation.org> wrote:
-> >> > On Thu, Jan 11, 2018 at 4:46 PM, Dan Williams <dan.j.williams@intel.com> wrote:
-> >> >>
-> >> >> This series incorporates Mark Rutland's latest ARM changes and adds
-> >> >> the x86 specific implementation of 'ifence_array_ptr'. That ifence
-> >> >> based approach is provided as an opt-in fallback, but the default
-> >> >> mitigation, '__array_ptr', uses a 'mask' approach that removes
-> >> >> conditional branches instructions, and otherwise aims to redirect
-> >> >> speculation to use a NULL pointer rather than a user controlled value.
-> >> >
-> >> > Do you have any performance numbers and perhaps example code
-> >> > generation? Is this noticeable? Are there any microbenchmarks showing
-> >> > the difference between lfence use and the masking model?
-> >>
-> >> I don't have performance numbers, but here's a sample code generation
-> >> from __fcheck_files, where the 'and; lea; and' sequence is portion of
-> >> array_ptr() after the mask generation with 'sbb'.
-> >>
-> >>         fdp = array_ptr(fdt->fd, fd, fdt->max_fds);
-> >>      8e7:       8b 02                   mov    (%rdx),%eax
-> >>      8e9:       48 39 c7                cmp    %rax,%rdi
-> >>      8ec:       48 19 c9                sbb    %rcx,%rcx
-> >>      8ef:       48 8b 42 08             mov    0x8(%rdx),%rax
-> >>      8f3:       48 89 fe                mov    %rdi,%rsi
-> >>      8f6:       48 21 ce                and    %rcx,%rsi
-> >>      8f9:       48 8d 04 f0             lea    (%rax,%rsi,8),%rax
-> >>      8fd:       48 21 c8                and    %rcx,%rax
-> >>
-> >>
-> >> > Having both seems good for testing, but wouldn't we want to pick one in the end?
-> >>
-> >> I was thinking we'd keep it as a 'just in case' sort of thing, at
-> >> least until the 'probably safe' assumption of the 'mask' approach has
-> >> more time to settle out.
-> >
-> > From the arm64 side, the only concern I have (and this actually applies to
-> > our CSDB sequence as well) is the calculation of the array size by the
-> > caller. As Linus mentioned at the end of [1], if the determination of the
-> > size argument is based on a conditional branch, then masking doesn't help
-> > because you bound within the wrong range under speculation.
-> >
-> > We ran into this when trying to use masking to protect our uaccess routines
-> > where the conditional bound is either KERNEL_DS or USER_DS. It's possible
-> > that a prior conditional set_fs(KERNEL_DS) could defeat the masking and so
-> > we'd need to throw some heavy barriers in set_fs to make it robust.
-> 
-> At least in the conditional mask case near set_fs() usage the approach
-> we are taking is to use a barrier. I.e. the following guidance from
-> Linus:
-> 
-> "Basically, the rule is trivial: find all 'stac' users, and use address
-> masking if those users already integrate the limit check, and lfence
-> they don't."
-> 
-> ...which translates to narrow the pointer for get_user() and use a
-> barrier  for __get_user().
+Add bindings documentation for Renesas Capture Engine Unit (CEU).
 
-Great, that matches my thinking re set_fs but I'm still worried about
-finding all the places where the bound is conditional for other users
-of the macro. Then again, finding the places that need this macro in the
-first place is tough enough so perhaps analysing the bound calculation
-doesn't make it much worse.
+Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+Reviewed-by: Rob Herring <robh@kernel.org>
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ .../devicetree/bindings/media/renesas,ceu.txt      | 81 ++++++++++++++++++++++
+ 1 file changed, 81 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/renesas,ceu.txt
 
-Will
+diff --git a/Documentation/devicetree/bindings/media/renesas,ceu.txt b/Documentation/devicetree/bindings/media/renesas,ceu.txt
+new file mode 100644
+index 0000000..3fc66df
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/renesas,ceu.txt
+@@ -0,0 +1,81 @@
++Renesas Capture Engine Unit (CEU)
++----------------------------------------------
++
++The Capture Engine Unit is the image capture interface found in the Renesas
++SH Mobile and RZ SoCs.
++
++The interface supports a single parallel input with data bus width of 8 or 16
++bits.
++
++Required properties:
++- compatible: Shall be "renesas,r7s72100-ceu" for CEU units found in RZ/A1H
++  and RZ/A1M SoCs.
++- reg: Registers address base and size.
++- interrupts: The interrupt specifier.
++
++The CEU supports a single parallel input and should contain a single 'port'
++subnode with a single 'endpoint'. Connection to input devices are modeled
++according to the video interfaces OF bindings specified in:
++Documentation/devicetree/bindings/media/video-interfaces.txt
++
++Optional endpoint properties applicable to parallel input bus described in
++the above mentioned "video-interfaces.txt" file are supported.
++
++- hsync-active: Active state of the HSYNC signal, 0/1 for LOW/HIGH respectively.
++  If property is not present, default is active high.
++- vsync-active: Active state of the VSYNC signal, 0/1 for LOW/HIGH respectively.
++  If property is not present, default is active high.
++
++Example:
++
++The example describes the connection between the Capture Engine Unit and an
++OV7670 image sensor connected to i2c1 interface.
++
++ceu: ceu@e8210000 {
++	reg = <0xe8210000 0x209c>;
++	compatible = "renesas,r7s72100-ceu";
++	interrupts = <GIC_SPI 332 IRQ_TYPE_LEVEL_HIGH>;
++
++	pinctrl-names = "default";
++	pinctrl-0 = <&vio_pins>;
++
++	status = "okay";
++
++	port {
++		ceu_in: endpoint {
++			remote-endpoint = <&ov7670_out>;
++
++			hsync-active = <1>;
++			vsync-active = <0>;
++		};
++	};
++};
++
++i2c1: i2c@fcfee400 {
++	pinctrl-names = "default";
++	pinctrl-0 = <&i2c1_pins>;
++
++	status = "okay";
++
++	clock-frequency = <100000>;
++
++	ov7670: camera@21 {
++		compatible = "ovti,ov7670";
++		reg = <0x21>;
++
++		pinctrl-names = "default";
++		pinctrl-0 = <&vio_pins>;
++
++		reset-gpios = <&port3 11 GPIO_ACTIVE_LOW>;
++		powerdown-gpios = <&port3 12 GPIO_ACTIVE_HIGH>;
++
++		port {
++			ov7670_out: endpoint {
++				remote-endpoint = <&ceu_in>;
++
++				hsync-active = <1>;
++				vsync-active = <0>;
++			};
++		};
++	};
++};
+-- 
+2.7.4
