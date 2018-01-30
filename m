@@ -1,137 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:35214 "EHLO mga03.intel.com"
+Received: from mga17.intel.com ([192.55.52.151]:7196 "EHLO mga17.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751174AbeAYWTX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 25 Jan 2018 17:19:23 -0500
-From: Andi Kleen <andi@firstfloor.org>
-To: akpm@linux-foundation.org
-Cc: mchehab@kernel.org, sean@mess.org, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org, Andi Kleen <ak@linux.intel.com>
-Subject: [PATCH] Don't mark IR decoders default y
-Date: Thu, 25 Jan 2018 14:19:08 -0800
-Message-Id: <20180125221908.18022-1-andi@firstfloor.org>
+        id S1751711AbeA3Mp2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 30 Jan 2018 07:45:28 -0500
+Date: Tue, 30 Jan 2018 14:45:23 +0200
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: "Rapolu, Chiranjeevi" <chiranjeevi.rapolu@intel.com>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "tfiga@chromium.org" <tfiga@chromium.org>,
+        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
+        "Qiu, Tian Shu" <tian.shu.qiu@intel.com>,
+        "Yeh, Andy" <andy.yeh@intel.com>,
+        "Mani, Rajmohan" <rajmohan.mani@intel.com>,
+        "Yang, Hyungwoo" <hyungwoo.yang@intel.com>
+Subject: Re: [PATCH v1] media: ov13858: Avoid possible null first frame
+Message-ID: <20180130124523.m5sikm3gvrktcnuh@kekkonen.localdomain>
+References: <1516854879-15029-1-git-send-email-chiranjeevi.rapolu@intel.com>
+ <20180125102958.dxky4qrzv5ags6av@paasikivi.fi.intel.com>
+ <8408A4B5C50F354EA5F62D9FC805153D2C53637E@ORSMSX115.amr.corp.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <8408A4B5C50F354EA5F62D9FC805153D2C53637E@ORSMSX115.amr.corp.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Andi Kleen <ak@linux.intel.com>
+On Thu, Jan 25, 2018 at 05:36:44PM +0000, Rapolu, Chiranjeevi wrote:
+> Hi Sakari,
+> 
+> >I'll apply this now, however I see that most of the registers in the
+> > four modes are the same. In the future it'd be good to separate the
+> > parts that are common in all of them (to be written in sensor power-on)
+> > to make this (slightly) more maintainable.
+> 
+> Thanks for the review. Makes sense. Not sure how it impacts because the
+> sequence of writes will be different, need thorough testing to confirm
+> nothing is broken.
 
-I usually update my config with make oldconfig and pressing return,
-trusting that whoever updates Kconfig sets sensible defaults.
+Yeah, that's a fair consideration. Most registers still have no side
+effects apart of streaming control or such.
 
-But my recent kernels  ended up with all kinds of IR decoders
-built in that are not used by anything because they are all
-marked with default y.
-
-default y should only be set for something that prevents
-booting on common systems, never for some random weirdo
-driver feature like this.
-
-Remove all the "default y" in drivers/media/rc/Kconfig
-
-Signed-off-by: Andi Kleen <ak@linux.intel.com>
----
- drivers/media/rc/Kconfig | 12 ------------
- 1 file changed, 12 deletions(-)
-
-diff --git a/drivers/media/rc/Kconfig b/drivers/media/rc/Kconfig
-index afb3456d4e20..0994371275a7 100644
---- a/drivers/media/rc/Kconfig
-+++ b/drivers/media/rc/Kconfig
-@@ -19,7 +19,6 @@ source "drivers/media/rc/keymaps/Kconfig"
- menuconfig RC_DECODERS
-         bool "Remote controller decoders"
- 	depends on RC_CORE
--	default y
- 
- if RC_DECODERS
- config LIRC
-@@ -37,7 +36,6 @@ config IR_LIRC_CODEC
- 	tristate "Enable IR to LIRC bridge"
- 	depends on RC_CORE
- 	depends on LIRC
--	default y
- 
- 	---help---
- 	   Enable this option to pass raw IR to and from userspace via
-@@ -48,7 +46,6 @@ config IR_NEC_DECODER
- 	tristate "Enable IR raw decoder for the NEC protocol"
- 	depends on RC_CORE
- 	select BITREVERSE
--	default y
- 
- 	---help---
- 	   Enable this option if you have IR with NEC protocol, and
-@@ -58,7 +55,6 @@ config IR_RC5_DECODER
- 	tristate "Enable IR raw decoder for the RC-5 protocol"
- 	depends on RC_CORE
- 	select BITREVERSE
--	default y
- 
- 	---help---
- 	   Enable this option if you have IR with RC-5 protocol, and
-@@ -68,7 +64,6 @@ config IR_RC6_DECODER
- 	tristate "Enable IR raw decoder for the RC6 protocol"
- 	depends on RC_CORE
- 	select BITREVERSE
--	default y
- 
- 	---help---
- 	   Enable this option if you have an infrared remote control which
-@@ -78,7 +73,6 @@ config IR_JVC_DECODER
- 	tristate "Enable IR raw decoder for the JVC protocol"
- 	depends on RC_CORE
- 	select BITREVERSE
--	default y
- 
- 	---help---
- 	   Enable this option if you have an infrared remote control which
-@@ -88,7 +82,6 @@ config IR_SONY_DECODER
- 	tristate "Enable IR raw decoder for the Sony protocol"
- 	depends on RC_CORE
- 	select BITREVERSE
--	default y
- 
- 	---help---
- 	   Enable this option if you have an infrared remote control which
-@@ -97,7 +90,6 @@ config IR_SONY_DECODER
- config IR_SANYO_DECODER
- 	tristate "Enable IR raw decoder for the Sanyo protocol"
- 	depends on RC_CORE
--	default y
- 
- 	---help---
- 	   Enable this option if you have an infrared remote control which
-@@ -107,7 +99,6 @@ config IR_SANYO_DECODER
- config IR_SHARP_DECODER
- 	tristate "Enable IR raw decoder for the Sharp protocol"
- 	depends on RC_CORE
--	default y
- 
- 	---help---
- 	   Enable this option if you have an infrared remote control which
-@@ -118,7 +109,6 @@ config IR_MCE_KBD_DECODER
- 	tristate "Enable IR raw decoder for the MCE keyboard/mouse protocol"
- 	depends on RC_CORE
- 	select BITREVERSE
--	default y
- 
- 	---help---
- 	   Enable this option if you have a Microsoft Remote Keyboard for
-@@ -129,7 +119,6 @@ config IR_XMP_DECODER
- 	tristate "Enable IR raw decoder for the XMP protocol"
- 	depends on RC_CORE
- 	select BITREVERSE
--	default y
- 
- 	---help---
- 	   Enable this option if you have IR with XMP protocol, and
-@@ -459,7 +448,6 @@ config IR_SERIAL
- 
- config IR_SERIAL_TRANSMITTER
- 	bool "Serial Port Transmitter"
--	default y
- 	depends on IR_SERIAL
- 	---help---
- 	   Serial Port Transmitter support
 -- 
-2.14.3
+Sakari Ailus
+sakari.ailus@linux.intel.com
