@@ -1,212 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f42.google.com ([74.125.82.42]:34820 "EHLO
-        mail-wm0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752263AbeADR5e (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 4 Jan 2018 12:57:34 -0500
-Received: by mail-wm0-f42.google.com with SMTP id a79so4852057wma.0
-        for <linux-media@vger.kernel.org>; Thu, 04 Jan 2018 09:57:33 -0800 (PST)
+Received: from mail-qt0-f195.google.com ([209.85.216.195]:39883 "EHLO
+        mail-qt0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751530AbeA3J7U (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 30 Jan 2018 04:59:20 -0500
+Date: Tue, 30 Jan 2018 10:59:16 +0100
+From: Thierry Reding <thierry.reding@gmail.com>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Maxime Ripard <maxime.ripard@free-electrons.com>,
+        Linus Walleij <linus.walleij@linaro.org>,
+        Yong Deng <yong.deng@magewell.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Chen-Yu Tsai <wens@csie.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Randy Dunlap <rdunlap@infradead.org>,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Yannick Fertre <yannick.fertre@st.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Rick Chang <rick.chang@mediatek.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        "open list:OPEN FIRMWARE AND FLATTENED DEVICE TREE BINDINGS"
+        <devicetree@vger.kernel.org>,
+        Linux ARM <linux-arm-kernel@lists.infradead.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        linux-sunxi <linux-sunxi@googlegroups.com>, megous@megous.com,
+        Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
+Subject: Re: [PATCH v6 2/2] media: V3s: Add support for Allwinner CSI.
+Message-ID: <20180130095916.GA23047@ulmo>
+References: <1516695531-23349-1-git-send-email-yong.deng@magewell.com>
+ <CACRpkdan52UB7HOyH1gnHWg4CDke_VQxAdq8cBgwUroibE59Ow@mail.gmail.com>
+ <20180129082533.6edmqgbauo6q5dgz@flea.lan>
+ <CACRpkdYAGwUjr2C-w5U+WuG48pZAOUcnxFjznLbdF6Lmy1uZuQ@mail.gmail.com>
+ <CAK8P3a2HmPOTHAzqBnmim388pcWOE=fG50mG5HJifT=vzKOaTg@mail.gmail.com>
+ <20180130075441.rqxzkwero6sdfak6@flea.lan>
+ <CAK8P3a0QxQE=GM=SGPtT82=UreiqsgY6uMThvQ_woA3rjK0zjA@mail.gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <76a1cd63-7338-7f23-6228-5dc4db276b23@gmail.com>
-References: <CAJ+vNU1mRdxbfhEJY+n+U75cWW_op1Z+AzHOG=To8ooPzt9SJA@mail.gmail.com>
- <76a1cd63-7338-7f23-6228-5dc4db276b23@gmail.com>
-From: Tim Harvey <tharvey@gateworks.com>
-Date: Thu, 4 Jan 2018 09:57:31 -0800
-Message-ID: <CAJ+vNU1EivRc3t2JUvB-bdahm2HXukGNjQSG7BJ3ekO+9-ErSg@mail.gmail.com>
-Subject: Re: IMX6 interlaced capture
-To: Steve Longerbeam <slongerbeam@gmail.com>
-Cc: Hans Verkuil <hansverk@cisco.com>,
-        linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="xHFwDpU9dbj6ez1V"
+Content-Disposition: inline
+In-Reply-To: <CAK8P3a0QxQE=GM=SGPtT82=UreiqsgY6uMThvQ_woA3rjK0zjA@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Jan 2, 2018 at 6:00 PM, Steve Longerbeam <slongerbeam@gmail.com> wrote:
-> Hi Tim,
->
-> Happy New Year! And pardon the delay.
->
->
-> On 12/28/2017 01:56 PM, Tim Harvey wrote:
->>
->> Steve/Hans,
->>
->> I'm trying to get interlaced capture working with the TDA1997x driver
->> I've been working on which is connected to an IMX6 CSI.
->>
->> The particular board I'm currently testing on is an IMX6Q which has
->> both a TDA19971 HDMI receiver as well as an ADV7180 analog video
->> decoder. The media-ctl topology for this board can be found at
->> http://dev.gateworks.com/docs/linux/media/imx6q-gw54xx-media.png.
->>
->> For adv7180 everything appears to be working as expected:
->> - media-ctl --get-v4l2 '"adv7180 2-0020":0' shows:
->> [fmt:UYVY8_2X8/720x480 field:interlaced colorspace:smpte170m]
->> - he following captures/streams from the adv7180 using the vdic to
->> de-interlace:
->> media-ctl --link "adv7180 2-0020":0 -> "ipu2_csi1_mux":1[1]
->> media-ctl --link "ipu2_csi1_mux":2 -> "ipu2_csi1":0[1]
->> media-ctl --link "ipu2_csi1":1 -> "ipu2_vdic":0[1]
->> media-ctl --link "ipu2_vdic":2 -> "ipu2_ic_prp":0[1]
->> media-ctl --link "ipu2_ic_prp":2 -> "ipu2_ic_prpvf":0[1]
->> media-ctl --link "ipu2_ic_prpvf":1 -> "ipu2_ic_prpvf capture":0[1]
->> media-ctl --set-v4l2 'adv7180 2-0020':0 [fmt:UYVY2X8/720x480]
->> media-ctl --set-v4l2 'ipu2_csi1_mux':2 [fmt:UYVY2X8/720x480
->> field:interlaced]
->> media-ctl --set-v4l2 'ipu2_csi1':1 [fmt:UYVY2X8/720x480 field:interlaced]
->> media-ctl --set-v4l2 'ipu2_vdic':2 [fmt:UYVY2X8/720x480 field:interlaced]
->> media-ctl --set-v4l2 'ipu2_ic_prp':2 [fmt:UYVY2X8/720x480 field:none]
->> media-ctl --set-v4l2 'ipu2_ic_prpvf':1 [fmt:UYVY2X8/720x480 field:none]
->> v4l2-ctl -d /dev/video3
->> --set-fmt-video=width=720,height=480,pixelformat=UYVY
->> # capture 1 frame
->> v4l2-ctl -d /dev/video1 --stream-mmap --stream-skip=1
->> --stream-to=/tmp/x.raw --stream-count=1
->> # stream jpeg/rtp
->> gst-launch-1.0 v4l2src device=/dev/video3 !
->>    "video/x-raw,width=720,height=480,format=UYVY" !
->>     jpegenc ! rtpjpegpay ! udpsink host=$SERVER port=5000"
->>
->> For the tda1997x I'm trying to do something similar:
->> - media-ctl --get-v4l2 '"tda19971 2-0048":0' shows:
->> [fmt:UYVY8_1X16/1920x1080 field:alternate colorspace:srgb]
->> ^^^^ still not sure V4L2_FIELD_ALTERNATE/SRGB returned from tda1997x
->> get_fmt is correct
->> - I setup the pipeline with:
->> media-ctl --link "tda19971 2-0048":0 -> "ipu1_csi0_mux":1[1]
->> media-ctl --link "ipu1_csi0_mux":2 -> "ipu1_csi0":0[1]
->> media-ctl --link "ipu1_csi0":1 -> "ipu1_vdic":0[1]
->> media-ctl --link "ipu1_vdic":2 -> "ipu1_ic_prp":0[1]
->> media-ctl --link "ipu1_ic_prp":2 -> "ipu1_ic_prpvf":0[1]
->> media-ctl --link "ipu1_ic_prpvf":1 -> "ipu1_ic_prpvf capture":0[1]
->> media-ctl --set-v4l2 'tda19971 2-0048':0[fmt:UYVY8_1X16/1920x1080]
->> media-ctl --set-v4l2 'ipu1_csi0_mux':2[fmt:UYVY8_1X16/1920x1080
->> field:alternate]
->> media-ctl --set-v4l2 'ipu1_csi0':1[fmt:UYVY8_1X16/1920x1080
->> field:alternate]
->> media-ctl --set-v4l2 'ipu1_vdic':2[fmt:UYVY8_1X16/1920x1080
->> field:alternate]
->> media-ctl --set-v4l2 'ipu1_ic_prp':2[fmt:UYVY8_1X16/1920x1080 field:none]
->> media-ctl --set-v4l2 'ipu1_ic_prpvf':1[fmt:UYVY8_1X16/1920x1080
->> field:none]
->> v4l2-ctl -d /dev/video1
->> --set-fmt-video=width=1920,height=1080,pixelformat=UYVY
->> v4l2-ctl -d /dev/v4l-subdev1 --set-dv-bt-timings=query
->> v4l2-ctl -d /dev/video1 --stream-mmap --stream-skip=1
->> --stream-to=/tmp/x.raw --stream-count=1
->> ipu1_csi0: bayer/16-bit parallel buses must go to IDMAC pad
->> ipu1_ic_prpvf: pipeline start failed with -22
->> VIDIOC_STREAMON: failed: Invalid argument
->
 
-Steve,
+--xHFwDpU9dbj6ez1V
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Thanks for the help.
+On Tue, Jan 30, 2018 at 10:24:48AM +0100, Arnd Bergmann wrote:
+> On Tue, Jan 30, 2018 at 8:54 AM, Maxime Ripard
+> <maxime.ripard@free-electrons.com> wrote:
+> > On Mon, Jan 29, 2018 at 03:34:02PM +0100, Arnd Bergmann wrote:
+> >> On Mon, Jan 29, 2018 at 10:25 AM, Linus Walleij
+> >> <linus.walleij@linaro.org> wrote:
+> >> > On Mon, Jan 29, 2018 at 9:25 AM, Maxime Ripard
+> >> > <maxime.ripard@free-electrons.com> wrote:
+> >> >> On Sat, Jan 27, 2018 at 05:14:26PM +0100, Linus Walleij wrote:
+>=20
+> >>
+> >> At one point we had discussed adding a 'dma-masters' property that
+> >> lists all the buses on which a device can be a dma master, and
+> >> the respective properties of those masters (iommu, coherency,
+> >> offset, ...).
+> >>
+> >> IIRC at the time we decided that we could live without that complexity,
+> >> but perhaps we cannot.
+> >
+> > Are you talking about this ?
+> > https://elixir.free-electrons.com/linux/latest/source/Documentation/dev=
+icetree/bindings/dma/dma.txt#L41
+> >
+> > It doesn't seem to be related to that issue to me. And in our
+> > particular cases, all the devices are DMA masters, the RAM is just
+> > mapped to another address.
+>=20
+> No, that's not the one I was thinking of. The idea at the time was much
+> more generic, and not limited to dma engines. I don't recall the details,
+> but I think that Thierry was either involved or made the proposal at the
+> time.
 
->
-> Right, according to the i.MX6 reference manual, if the CSI muxes
-> are receiving from the parallel bus input with width >= 16 bits,
-> that data can't be passed to the IC. It never really made much sense
-> to me, and I can't remember if I ever tried it, maybe not, because
-> I don't have such hardware.
+Yeah, I vaguely remember discussing something like this before. A quick
+search through my inbox yielded these two threads, mostly related to
+IOMMU but I think there were some mentions about dma-ranges and so on as
+well. I'll have to dig deeper into those threads to refresh my memories,
+but I won't get around to it until later today.
 
-hmmm... that's not good. I may have to dig into what's being done in
-my 3.14 kernel with the Freescale capture driver where I can capture
-1080p60 fine with my tda1997x driver there.
+If someone wants to read up on this in the meantime, here are the links:
 
->
-> Try this hack as an experiment: modify is_parallel_16bit_bus() in
-> imx-media-csi.c to simply return false, and see if the above pipeline
-> works.
+	https://lkml.org/lkml/2014/4/27/346
+	http://lists.infradead.org/pipermail/linux-arm-kernel/2014-May/257200.html
 
-I'm currently on 4.15-rc1 which doesn't have a
-'is_parallel_16bit_bus()' but if I comment out the check we are
-talking about in csi_link_validate as such:
+=46rom a quick glance the issue of dma-ranges was something that we hand-
+waved at the time.
 
---- a/drivers/staging/media/imx/imx-media-csi.c
-+++ b/drivers/staging/media/imx/imx-media-csi.c
-@@ -999,6 +999,7 @@ static int csi_link_validate(struct v4l2_subdev *sd,
-        is_csi2 = (sensor_ep->bus_type == V4L2_MBUS_CSI2);
-        incc = priv->cc[CSI_SINK_PAD];
+Thierry
 
-+/*
-        if (priv->dest != IPU_CSI_DEST_IDMAC &&
-            (incc->bayer || (!is_csi2 &&
-                             sensor_ep->bus.parallel.bus_width >= 16))) {
-@@ -1007,6 +1008,7 @@ static int csi_link_validate(struct v4l2_subdev *sd,
-                ret = -EINVAL;
-                goto out;
-        }
-+*/
+--xHFwDpU9dbj6ez1V
+Content-Type: application/pgp-signature; name="signature.asc"
 
-        if (is_csi2) {
-                int vc_num = 0;
+-----BEGIN PGP SIGNATURE-----
 
-I get a pipeline start failure for ipu1_ic_prpvf:
+iQIzBAABCAAdFiEEiOrDCAFJzPfAjcif3SOs138+s6EFAlpwQfIACgkQ3SOs138+
+s6Fh7g/8DFGL0MzPPU8t/wdZQbRgTyDjYLOX2sBH8WYUFlkqDLocFVs58lSMZpiU
+xD6/muWOblNt9BJX7yd3zcPM4S/sNVTv7VsafkJZ1ssjPRLDwy/WTL2wAwIhOv5t
+iQUUYFgG8q8YRCaG+xYiDW+1PCA21P8xl57OgfOc7MaqHKwy2Z7Dnq3rE8LUSiBP
+IZDynIHOMSZRKskwbvdXgCRM56faA81pwYPX+B04kmcVap4ellQ+aYq/t6uDRlpA
+wmKWxWnCQsrAgpBKBTqARXMFo0XXUo7lzcYsj5AKZFAZZ6uU/DvZm6SryEirr6vh
+dW7NPB4KUYJ9OjmtI9S0UGCr80bQRSAetJK1aXbb6qEsS8eu31lB0747a5fG5GU9
+6qoqgrg3aM1rPGIagmDHi0bRdxPUUA9syHBMpURfQO4rm0L9O8trafsDdjwVssyC
+1NJPftbx0O2HFLzNcyrUw8X3OKlHpkUOizboXehzgqCWrpPS9VQvXwEGSQSGDGXC
+X36KBDP1W+8pLvm1Hw+YeWBGouFaL1FVYkNFUJb1BaoDXRYa3tPY0WE7576kHSqd
+3BdHBvMBGDDBN++TV1n3mTutufaAH4uqr9IXRupYSJnofBi+oxjfePbOZoXRti96
+nM86zevzm19fe1ZZ1ZhFTWFNov4Om2nfaBw6FkNBoRjml62PPyc=
+=UHHc
+-----END PGP SIGNATURE-----
 
-root@ventana:~# v4l2-ctl -d /dev/video1 --stream-mmap --stream-skip=1
---stream-to=/tmp/x.raw --stream-count=1
-[  909.993353] tda1997x 2-0048: tda1997x_get_pad_format
-[  909.998342] tda1997x 2-0048: tda1997x_fill_format
-^^^^ my tda1997x driver debug messages
-[  910.004483] ipu1_ic_prpvf: pipeline start failed with -32
-VIDIOC_STREAMON: failed: Broken pipe
-
->
->> - if I try to use the idmac for deinterlace I configure the pipeline with:
->> media-ctl --link "tda19971 2-0048":0 -> "ipu1_csi0_mux":1[1]
->> media-ctl --link "ipu1_csi0_mux":2 -> "ipu1_csi0":0[1]
->> media-ctl --link "ipu1_csi0":1 -> "ipu1_ic_prp":0[1]
->> media-ctl --link "ipu1_ic_prp":2 -> "ipu1_ic_prpvf":0[1]
->> media-ctl --link "ipu1_ic_prpvf":1 -> "ipu1_ic_prpvf capture":0[1]
->> media-ctl --set-v4l2 'tda19971 2-0048':0[fmt:UYVY8_1X16/1920x1080]
->> media-ctl --set-v4l2 'ipu1_csi0_mux':2[fmt:UYVY8_1X16/1920x1080
->> field:alternate]
->> media-ctl --set-v4l2 'ipu1_csi0':1[fmt:UYVY8_1X16/1920x1080
->> field:alternate]
->> media-ctl --set-v4l2 'ipu1_ic_prp':2[fmt:UYVY8_1X16/1920x1080
->> field:alternate]
->> media-ctl --set-v4l2 'ipu1_ic_prpvf':1[fmt:UYVY8_1X16/1920x1080
->> field:none]
->> v4l2-ctl -d /dev/video1
->> --set-fmt-video=width=1920,height=1080,pixelformat=UYVY
->> v4l2-ctl -d /dev/v4l-subdev1 --set-dv-bt-timings=query
->> v4l2-ctl -d /dev/video1 --stream-mmap --stream-to=/tmp/x.raw
->> --stream-count=1
->> ipu1_csi0: bayer/16-bit parallel buses must go to IDMAC pad
->> ipu1_ic_prpvf: pipeline start failed with -22
->> VIDIOC_STREAMON: failed: Invalid argument
->
->
-> For idmac de-interlace (interweaving w/o motion compensation), you
-> don't need to use the Image Converter paths (and the IC is not required
-> here because I don't see any scaling or colorspace conversion in your
-> pipeline). Send directly to the "ipu1_csi0 capture" device node. Try this,
-> which doesn't need the hack I mentioned above:
->
-> media-ctl --link "tda19971 2-0048":0 -> "ipu1_csi0_mux":1[1]
-> media-ctl --link "ipu1_csi0_mux":2 -> "ipu1_csi0":0[1]
-> media-ctl --link "ipu1_csi0":2 -> "ipu1_csi0 capture":0[1]
->
-> media-ctl --set-v4l2 'tda19971 2-0048':0[fmt:UYVY8_1X16/1920x1080]
-> media-ctl --set-v4l2 'ipu1_csi0_mux':2[fmt:UYVY8_1X16/1920x1080
-> field:alternate]
-> media-ctl --set-v4l2 'ipu1_csi0':2[fmt:UYVY8_1X16/1920x1080 field:none
->
-> v4l2-ctl -d /dev/video4
-> --set-fmt-video=width=1920,height=1080,pixelformat=UYVY
-> v4l2-ctl -d /dev/v4l-subdev1 --set-dv-bt-timings=query
-> v4l2-ctl -d /dev/video4 --stream-mmap --stream-to=/tmp/x.raw
-> --stream-count=1
->
-
-This produced a 4147200 byte frame
-(http://dev.gateworks.com/docs/linux/media/x.raw) yet I couldn't seem
-to convert it with 'convert -size 1920x1080 -depth 16'.
-
-If I stream with gstreamer (gst-launch-1.0 v4l2src device=/dev/video4
-! video/x-raw,width=1920,height=1080,format=UYVY ! jpegenc !
-rtpjpegpay ! udpsink host=172.24.20.19 port=5000) I see both top/bot
-frames within the same image whereas a non-interlaced source looks
-fine. Perhaps my gstreamer config is wrong?
-
-Tim
+--xHFwDpU9dbj6ez1V--
