@@ -1,174 +1,195 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pegase1.c-s.fr ([93.17.236.30]:41892 "EHLO pegase1.c-s.fr"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751615AbeADIGB (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 4 Jan 2018 03:06:01 -0500
-Subject: Re: [PATCH v3 00/27] kill devm_ioremap_nocache
-To: Yisheng Xie <xieyisheng1@huawei.com>,
-        Greg KH <gregkh@linuxfoundation.org>
-Cc: linux-kernel@vger.kernel.org, ysxie@foxmail.com,
-        ulf.hansson@linaro.org, linux-mmc@vger.kernel.org,
-        boris.brezillon@free-electrons.com, richard@nod.at,
-        marek.vasut@gmail.com, cyrille.pitchen@wedev4u.fr,
-        linux-mtd@lists.infradead.org, alsa-devel@alsa-project.org,
-        wim@iguana.be, linux@roeck-us.net, linux-watchdog@vger.kernel.org,
-        b.zolnierkie@samsung.com, linux-fbdev@vger.kernel.org,
-        linus.walleij@linaro.org, linux-gpio@vger.kernel.org,
-        ralf@linux-mips.org, linux-mips@linux-mips.org,
-        lgirdwood@gmail.com, broonie@kernel.org, tglx@linutronix.de,
-        jason@lakedaemon.net, marc.zyngier@arm.com, arnd@arndb.de,
-        andriy.shevchenko@linux.intel.com,
-        industrypack-devel@lists.sourceforge.net, wg@grandegger.com,
-        mkl@pengutronix.de, linux-can@vger.kernel.org, mchehab@kernel.org,
-        linux-media@vger.kernel.org, a.zummo@towertech.it,
-        alexandre.belloni@free-electrons.com, linux-rtc@vger.kernel.org,
-        daniel.vetter@intel.com, jani.nikula@linux.intel.com,
-        seanpaul@chromium.org, airlied@linux.ie,
-        dri-devel@lists.freedesktop.org, kvalo@codeaurora.org,
-        linux-wireless@vger.kernel.org, linux-spi@vger.kernel.org,
-        tj@kernel.org, linux-ide@vger.kernel.org, bhelgaas@google.com,
-        linux-pci@vger.kernel.org, devel@driverdev.osuosl.org,
-        dvhart@infradead.org, andy@infradead.org,
-        platform-driver-x86@vger.kernel.org, jakub.kicinski@netronome.com,
-        davem@davemloft.net, nios2-dev@lists.rocketboards.org,
-        netdev@vger.kernel.org, vinod.koul@intel.com,
-        dan.j.williams@intel.com, dmaengine@vger.kernel.org,
-        jslaby@suse.com
-References: <1514026525-32538-1-git-send-email-xieyisheng1@huawei.com>
- <20171223134831.GB10103@kroah.com>
- <b8ff7f17-7f2c-f220-9833-7ae5bd7343d5@c-s.fr>
- <8dd19411-5b06-0aa4-fd0e-e5b112c25dcb@huawei.com>
-From: Christophe LEROY <christophe.leroy@c-s.fr>
-Message-ID: <1eb206ed-95e9-5839-485d-0e549ff3f505@c-s.fr>
-Date: Thu, 4 Jan 2018 09:05:45 +0100
+Received: from mail-it0-f42.google.com ([209.85.214.42]:33625 "EHLO
+        mail-it0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752401AbeA3Gbs (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 30 Jan 2018 01:31:48 -0500
+Received: by mail-it0-f42.google.com with SMTP id u12so1560310ite.0
+        for <linux-media@vger.kernel.org>; Mon, 29 Jan 2018 22:31:48 -0800 (PST)
+Received: from mail-io0-f182.google.com (mail-io0-f182.google.com. [209.85.223.182])
+        by smtp.gmail.com with ESMTPSA id a13sm7011387itj.33.2018.01.29.22.31.46
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Mon, 29 Jan 2018 22:31:46 -0800 (PST)
+Received: by mail-io0-f182.google.com with SMTP id c17so10241022iod.1
+        for <linux-media@vger.kernel.org>; Mon, 29 Jan 2018 22:31:46 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <8dd19411-5b06-0aa4-fd0e-e5b112c25dcb@huawei.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: fr
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <ced425a2-8b66-05c6-367d-46a0a40b1873@xs4all.nl>
+References: <20180126060216.147918-1-acourbot@chromium.org> <ced425a2-8b66-05c6-367d-46a0a40b1873@xs4all.nl>
+From: Alexandre Courbot <acourbot@chromium.org>
+Date: Tue, 30 Jan 2018 15:31:25 +0900
+Message-ID: <CAPBb6MU5Ph=_rH_TOQi5mstujAPMTWqC_1d-8_TcuGx25sOJvg@mail.gmail.com>
+Subject: Re: [RFC PATCH 0/8] [media] Request API, take three
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Pawel Osciak <posciak@chromium.org>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Tomasz Figa <tfiga@chromium.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Gustavo Padovan <gustavo.padovan@collabora.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Hans,
 
+On Mon, Jan 29, 2018 at 8:21 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> On 01/26/2018 07:02 AM, Alexandre Courbot wrote:
+>> Howdy. Here is your bi-weekly request API redesign! ;)
+>>
+>> Again, this is a simple version that only implements the flow of requests,
+>> without applying controls. The intent is to get an agreement on a base to work
+>> on, since the previous versions went straight back to the redesign board.
+>>
+>> Highlights of this version:
+>>
+>> * As requested by Hans, request-bound buffers are now passed earlier to drivers,
+>> as early as the request itself is submitted. Doing it earlier is not be useful
+>> since the driver would not know the state of the request, and thus cannot do
+>> anything with the buffer. Drivers are now responsible for applying request
+>> parameters themselves.
+>>
+>> * As a consequence, there is no such thing as a "request queue" anymore. The
+>> flow of buffers decides the order in which requests are processed. Individual
+>> devices of the same pipeline can implement synchronization if needed, but this
+>> is beyond this first version.
+>>
+>> * VB2 code is still a bit shady. Some of it will interfere with the fences
+>> series, so I am waiting for the latter to land to do it properly.
+>>
+>> * Requests that are not yet submitted effectively act as fences on the buffers
+>> they own, resulting in the buffer queue being blocked until the request is
+>> submitted. An alternate design would be to only block the
+>> not-submitted-request's buffer and let further buffers pass before it, but since
+>> buffer order is becoming increasingly important I have decided to just block the
+>> queue. This is open to discussion though.
+>
+> I don't think we should mess with the order.
 
-Le 25/12/2017 à 02:34, Yisheng Xie a écrit :
-> 
-> 
-> On 2017/12/24 17:05, christophe leroy wrote:
->>
->>
->> Le 23/12/2017 à 14:48, Greg KH a écrit :
->>> On Sat, Dec 23, 2017 at 06:55:25PM +0800, Yisheng Xie wrote:
->>>> Hi all,
->>>>
->>>> When I tried to use devm_ioremap function and review related code, I found
->>>> devm_ioremap and devm_ioremap_nocache is almost the same with each other,
->>>> except one use ioremap while the other use ioremap_nocache.
->>>
->>> For all arches?  Really?  Look at MIPS, and x86, they have different
->>> functions.
->>>
->>>> While ioremap's
->>>> default function is ioremap_nocache, so devm_ioremap_nocache also have the
->>>> same function with devm_ioremap, which can just be killed to reduce the size
->>>> of devres.o(from 20304 bytes to 18992 bytes in my compile environment).
->>>>
->>>> I have posted two versions, which use macro instead of function for
->>>> devm_ioremap_nocache[1] or devm_ioremap[2]. And Greg suggest me to kill
->>>> devm_ioremap_nocache for no need to keep a macro around for the duplicate
->>>> thing. So here comes v3 and please help to review.
->>>
->>> I don't think this can be done, what am I missing?  These functions are
->>> not identical, sorry for missing that before.
->>
->> devm_ioremap() and devm_ioremap_nocache() are quite similar, both use devm_ioremap_release() for the release, why not just defining:
->>
->> static void __iomem *__devm_ioremap(struct device *dev, resource_size_t offset,
->>                 resource_size_t size, bool nocache)
->> {
->> [...]
->>      if (nocache)
->>          addr = ioremap_nocache(offset, size);
->>      else
->>          addr = ioremap(offset, size);
->> [...]
->> }
->>
->> then in include/linux/io.h
->>
->> static inline void __iomem *devm_ioremap(struct device *dev, resource_size_t offset,
->>                 resource_size_t size)
->> {return __devm_ioremap(dev, offset, size, false);}
->>
->> static inline void __iomem *devm_ioremap_nocache(struct device *dev, resource_size_t offset,
->>                     resource_size_t size);
->> {return __devm_ioremap(dev, offset, size, true);}
-> 
-> Yeah, this seems good to me, right now we have devm_ioremap, devm_ioremap_wc, devm_ioremap_nocache
-> May be we can use an enum like:
-> typedef enum {
-> 	DEVM_IOREMAP = 0,
-> 	DEVM_IOREMAP_NOCACHE,
-> 	DEVM_IOREMAP_WC,
-> } devm_ioremap_type;
-> 
-> static inline void __iomem *devm_ioremap(struct device *dev, resource_size_t offset,
->                  resource_size_t size)
->   {return __devm_ioremap(dev, offset, size, DEVM_IOREMAP);}
-> 
->   static inline void __iomem *devm_ioremap_nocache(struct device *dev, resource_size_t offset,
->                      resource_size_t size);
->   {return __devm_ioremap(dev, offset, size, DEVM_IOREMAP_NOCACHE);}
-> 
->   static inline void __iomem *devm_ioremap_wc(struct device *dev, resource_size_t offset,
->                      resource_size_t size);
->   {return __devm_ioremap(dev, offset, size, DEVM_IOREMAP_WC);}
-> 
->   static void __iomem *__devm_ioremap(struct device *dev, resource_size_t offset,
->                  resource_size_t size, devm_ioremap_type type)
->   {
->       void __iomem **ptr, *addr = NULL;
->   [...]
->       switch (type){
->       case DEVM_IOREMAP:
->           addr = ioremap(offset, size);
->           break;
->       case DEVM_IOREMAP_NOCACHE:
->           addr = ioremap_nocache(offset, size);
->           break;
->       case DEVM_IOREMAP_WC:
->           addr = ioremap_wc(offset, size);
->           break;
->       }
->   [...]
->   }
+Agreed, let's keep it that way then.
 
+>
+>>
+>> * Documentation! Also described usecases for codec and simple (i.e. not part of
+>> a complex pipeline) capture device.
+>
+> I'll concentrate on reviewing that.
+>
+>>
+>> Still remaining to do:
+>>
+>> * As pointed out by Hans on the previous revision, do not assume that drivers
+>> using v4l2_fh have a per-handle state. I have not yet found a good way to
+>> differenciate both usages.
+>
+> I suspect we need to add a flag or something for this.
 
-That looks good to me, will you submit a v4 ?
+I hope we don't need to, let's see if I can find a pattern...
 
-Christophe
+>
+>> * Integrate Hans' patchset for control handling: as said above, this is futile
+>> unless we can agree on the basic design, which I hope we can do this time.
+>> Chrome OS needs this really badly now and will have to move forward no matter
+>> what, so I hope this will be considered good enough for a common base of work.
+>
+> I am not sure there is any reason to not move forward with the control handling.
+> You need this anyway IMHO, regardless of any public API considerations.
 
-> 
-> Thanks
-> Yisheng
-> 
+Only reasons are my lazyness and because I wanted to focus on the
+request flow first. But you're right. I have a version with your
+control framework changes integrated (they worked on the first attempt
+btw! :)), let me create a clean patchset from this and send another
+RFC.
+
+>
+>> A few thoughts/questions that emerged when writing this patchset:
 >>
->> Christophe
->>
->>>
->>> thanks,
->>>
->>> greg k-h
->>> -- 
->>> To unsubscribe from this list: send the line "unsubscribe linux-watchdog" in
->>> the body of a message to majordomo@vger.kernel.org
->>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>>
->>
->> ---
->> L'absence de virus dans ce courrier électronique a été vérifiée par le logiciel antivirus Avast.
->> https://www.avast.com/antivirus
->>
->>
->> .
->>
+>> * Since requests are exposed as file descriptors, we could easily move the
+>> MEDIA_REQ_CMD_SUBMIT and MEDIA_REQ_CMD_REININT commands as ioctls on the
+>> requests themselves, instead of having to perform them on the media device that
+>> provided the request in the first place. That would add a bit more flexibility
+>> if/when passing requests around and means the media device only needs to handle
+>> MEDIA_REQ_CMD_ALLOC. Conceptually speaking, this seems to make sense to me.
+>> Any comment for/against that?
+>
+> Makes sense IMHO.
+
+Glad to hear it, that was my preferred design. :)
+
+>
+>> * For the codec usecase, I have experimented a bit marking CAPTURE buffers with
+>> the request FD that produced them (vim2m acts that way). This seems to work
+>> well, however FDs are process-local and could be closed before the CAPTURE
+>> buffer is dequeued, rendering that information less meaningful, if not
+>> dangerous.
+>
+> I don't follow this. Once the fd is passed to the kernel its refcount should be
+> increased so the data it represents won't be released if userspace closes the fd.
+
+The refcount of the request is increased. The refcount of the FD is
+not, since it is only a userspace reference to the request.
+
+>
+> Obviously if userspace closes the fd it cannot do anything with it anymore, but
+> it shouldn't be 'dangerous' AFAICT.
+
+It userspace later gets that closed FD back from a DQBUF call, and
+decides to use it again, then we would have a problem. I agree that it
+is userspace responsibility to be careful here, but making things
+foolproof never hurts.
+
+>
+>> Wouldn't it be better/safer to use a global request ID for
+>> such information instead? That ID would be returned upon MEDIA_REQ_CMD_ALLOC so
+>> user-space knows which request ID a FD refers to.
+>
+> I think it is not a good idea to have both an fd and an ID to refer to the
+> same object. That's going to be very confusing I think.
+
+IDs would not refer to the object, they would just be a way to
+identify it. FDs would be the actual reference.
+
+If we drop the idea of returning request FDs to userspace after the
+initial allocation (which is the only time we can be sure that a
+returned FD is valid), then this is not a problem anymore, but I think
+it may be useful to mark CAPTURE buffers with the request that
+generated them.
+
+>
+>> * Using the media node to provide requests makes absolute sense for complex
+>> camera devices, but is tedious for codec devices which work on one node and
+>> require to protect request/media related code with #ifdef
+>> CONFIG_MEDIA_CONTROLLER.
+>
+> Why? They would now depend on MEDIA_CONTROLLER (i.e. they won't appear in the
+> menuconfig unless MEDIA_CONTROLLER is set). No need for an #ifdef.
+
+Ah, if we make them depend on MEDIA_CONTROLLER, then indeed. But do we
+want to do this for e.g. vim2m and vivid?
+
+>
+>  For these devices, the sole role of the media node is
+>> to produce the request, and that's it (since request submission could be moved
+>> to the request FD as explained above). That's a modest use that hardly justifies
+>> bringing in the whole media framework IMHO. With a bit of extra abstraction, it
+>> should be possible to decouple the base requests from the media controller
+>> altogether, and propose two kinds of requests implementations: one simpler
+>> implementation that works directly with a single V4L2 node (useful for codecs),
+>> and another one that works on a media node and can control all its entities
+>> (good for camera). This would allow codecs to use the request API without
+>> forcing the media controller, and would considerably simplify the use-case. Any
+>> objection to that? IIRC the earlier design documents mentioned this possibility.
+>
+> I think this is an interesting idea, but I would postpone making a decision on
+> this until later. We need this MC support regardless, so let's start off with that.
+>
+> Once that's working we can discuss if we should or should not create a shortcut
+> for codecs. Trying to decide this now would only confuse the process.
+
+Sounds good, as long as we make a decision before merging.
+
+Thanks,
+Alex.
