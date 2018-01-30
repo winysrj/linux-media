@@ -1,81 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay2-d.mail.gandi.net ([217.70.183.194]:41473 "EHLO
-        relay2-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751165AbeAJJUP (ORCPT
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:48042 "EHLO
+        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751812AbeA3K1J (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 10 Jan 2018 04:20:15 -0500
-Date: Wed, 10 Jan 2018 10:20:10 +0100
-From: jacopo mondi <jacopo@jmondi.org>
-To: Shunqian Zheng <zhengsq@rock-chips.com>
-Cc: mchehab@kernel.org, robh+dt@kernel.org, mark.rutland@arm.com,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        ddl@rock-chips.com, tfiga@chromium.org
-Subject: Re: [PATCH v5 1/4] dt-bindings: media: Add bindings for OV5695
-Message-ID: <20180110092010.GC6834@w540>
-References: <1515549967-5302-1-git-send-email-zhengsq@rock-chips.com>
- <1515549967-5302-2-git-send-email-zhengsq@rock-chips.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <1515549967-5302-2-git-send-email-zhengsq@rock-chips.com>
+        Tue, 30 Jan 2018 05:27:09 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Daniel Mentz <danielmentz@google.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>, stable@vger.kernel.org
+Subject: [PATCHv2 12/13] v4l2-compat-ioctl32.c: don't copy back the result for certain errors
+Date: Tue, 30 Jan 2018 11:27:00 +0100
+Message-Id: <20180130102701.13664-13-hverkuil@xs4all.nl>
+In-Reply-To: <20180130102701.13664-1-hverkuil@xs4all.nl>
+References: <20180130102701.13664-1-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Shunqian,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-On Wed, Jan 10, 2018 at 10:06:04AM +0800, Shunqian Zheng wrote:
-> Add device tree binding documentation for the OV5695 sensor.
->
-> Signed-off-by: Shunqian Zheng <zhengsq@rock-chips.com>
-> ---
->  .../devicetree/bindings/media/i2c/ov5695.txt       | 41 ++++++++++++++++++++++
->  1 file changed, 41 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/media/i2c/ov5695.txt
->
-> diff --git a/Documentation/devicetree/bindings/media/i2c/ov5695.txt b/Documentation/devicetree/bindings/media/i2c/ov5695.txt
-> new file mode 100644
-> index 0000000..2f2f698
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/media/i2c/ov5695.txt
-> @@ -0,0 +1,41 @@
-> +* Omnivision OV5695 MIPI CSI-2 sensor
-> +
-> +Required Properties:
-> +- compatible: shall be "ovti,ov5695"
-> +- clocks: reference to the xvclk input clock
-> +- clock-names: shall be "xvclk"
-> +- avdd-supply: Analog voltage supply, 2.8 volts
-> +- dovdd-supply: Digital I/O voltage supply, 1.8 volts
-> +- dvdd-supply: Digital core voltage supply, 1.2 volts
-> +- reset-gpios: Low active reset gpio
-> +
-> +The device node shall contain one 'port' child node with an
-> +'endpoint' subnode for its digital output video port,
-> +in accordance with the video interface bindings defined in
-> +Documentation/devicetree/bindings/media/video-interfaces.txt.
-> +The endpoint optional property 'data-lanes' shall be "<1 2>".
+Some ioctls need to copy back the result even if the ioctl returned
+an error. However, don't do this for the error code -ENOTTY.
+It makes no sense in that cases.
 
-What happens if the property is not present? What's the default?
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: <stable@vger.kernel.org>      # for v4.15 and up
+---
+ drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-I would:
-
-Required Properties:
-- compatible: ..
-....
-
-Option Endpoint Properties:
-- data-lanes: ...
-
-> +
-> +Example:
-> +&i2c7 {
-> +	camera-sensor: ov5695@36 {
-
-You have inverted the label with the node name which should be generic
-
-        ov5695: camera@36 {
-
-
-        }
-Thanks
-   j
+diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+index 7ee3777cbe9c..3a1fca1440ac 100644
+--- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
++++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+@@ -968,6 +968,9 @@ static long do_video_ioctl(struct file *file, unsigned int cmd, unsigned long ar
+ 		set_fs(old_fs);
+ 	}
+ 
++	if (err == -ENOTTY)
++		return err;
++
+ 	/* Special case: even after an error we need to put the
+ 	   results back for these ioctls since the error_idx will
+ 	   contain information on which control failed. */
+-- 
+2.15.1
