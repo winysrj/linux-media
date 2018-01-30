@@ -1,55 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:34747 "EHLO
-        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751298AbeA2Njn (ORCPT
+Received: from gateway31.websitewelcome.com ([192.185.144.29]:27862 "EHLO
+        gateway31.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751448AbeA3Axl (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 29 Jan 2018 08:39:43 -0500
-Subject: Re: [Patch v7 12/12] Documention: v4l: Documentation for HEVC CIDs
-To: Smitha T Murthy <smitha.t@samsung.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org, kyungmin.park@samsung.com,
-        kamil@wypas.org, jtp.park@samsung.com, a.hajda@samsung.com,
-        mchehab@kernel.org, pankaj.dubey@samsung.com, krzk@kernel.org,
-        m.szyprowski@samsung.com, s.nawrocki@samsung.com
-References: <1516791584-7980-1-git-send-email-smitha.t@samsung.com>
- <CGME20180124112406epcas2p3820cea581731825c7ad72ebbb1ca060c@epcas2p3.samsung.com>
- <1516791584-7980-13-git-send-email-smitha.t@samsung.com>
- <127cfd7f-113f-6724-297c-6f3c3746a8ff@xs4all.nl>
- <1517229778.29374.9.camel@smitha-fedora>
- <f1ea8bcc-30b9-06b5-b815-e76fecc22a8a@xs4all.nl>
- <1517231702.29374.13.camel@smitha-fedora>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <3a746ca1-728f-f32f-a4b9-df99f2784c2b@xs4all.nl>
-Date: Mon, 29 Jan 2018 14:39:38 +0100
+        Mon, 29 Jan 2018 19:53:41 -0500
+Received: from cm12.websitewelcome.com (cm12.websitewelcome.com [100.42.49.8])
+        by gateway31.websitewelcome.com (Postfix) with ESMTP id AF8E62F978
+        for <linux-media@vger.kernel.org>; Mon, 29 Jan 2018 18:32:49 -0600 (CST)
+Date: Mon, 29 Jan 2018 18:32:47 -0600
+From: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
+To: Jacob chen <jacob2.chen@rock-chips.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Heiko Stuebner <heiko@sntech.de>
+Cc: linux-media@vger.kernel.org, linux-rockchip@lists.infradead.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        "Gustavo A. R. Silva" <garsilva@embeddedor.com>
+Subject: [PATCH 6/8] rockchip/rga: fix potential integer overflow in
+ rga_buf_map
+Message-ID: <715937d1ae955d5e5d531ef93d503177865f4083.1517268668.git.gustavo@embeddedor.com>
+References: <cover.1517268667.git.gustavo@embeddedor.com>
 MIME-Version: 1.0
-In-Reply-To: <1517231702.29374.13.camel@smitha-fedora>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <cover.1517268667.git.gustavo@embeddedor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/29/2018 02:15 PM, Smitha T Murthy wrote:
->>>>
->>> The values set in V4L2_CID_MPEG_VIDEO_HEVC_MIN_QP and
->>> V4L2_CID_MPEG_VIDEO_HEVC_MAX_QP will give the limits for the L0-L6 QP
->>> values that can be set.
->>
->> OK. If you can clarify this in the documentation, then I can Ack this.
->>
->> Note: if userspace changes MIN_QP or MAX_QP, then the driver should call
->> v4l2_ctrl_modify_range() to update the ranges of the controls that are
->> impacted by QP range changes. I'm not sure if that's done at the moment.
->>
->> Regards,
->>
->> 	Hans
->>
->>
-> I can mention for all these controls range as
-> [V4L2_CID_MPEG_VIDEO_HEVC_MIN_QP, V4L2_CID_MPEG_VIDEO_HEVC_MAX_QP].
-> Will this be ok?
+Cast p to dma_addr_t in order to avoid a potential integer overflow.
+This variable is being used in a context that expects an expression
+of type dma_addr_t (u64).
 
-Yes, that sounds good.
+Addresses-Coverity-ID: 1458347 ("Unintentional integer overflow")
+Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
+---
+ drivers/media/platform/rockchip/rga/rga-buf.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-	Hans
+diff --git a/drivers/media/platform/rockchip/rga/rga-buf.c b/drivers/media/platform/rockchip/rga/rga-buf.c
+index 49cacc7..3dd29b2 100644
+--- a/drivers/media/platform/rockchip/rga/rga-buf.c
++++ b/drivers/media/platform/rockchip/rga/rga-buf.c
+@@ -140,7 +140,7 @@ void rga_buf_map(struct vb2_buffer *vb)
+ 		address = sg_phys(sgl);
+ 
+ 		for (p = 0; p < len; p++) {
+-			dma_addr_t phys = address + (p << PAGE_SHIFT);
++			dma_addr_t phys = address + ((dma_addr_t)p << PAGE_SHIFT);
+ 
+ 			pages[mapped_size + p] = phys;
+ 		}
+-- 
+2.7.4
