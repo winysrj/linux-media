@@ -1,75 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from vsp-unauthed02.binero.net ([195.74.38.227]:57102 "EHLO
-        bin-vsp-out-03.atm.binero.net" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751777AbeA2QgE (ORCPT
+Received: from galahad.ideasonboard.com ([185.26.127.97]:45448 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751433AbeA3Olf (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 29 Jan 2018 11:36:04 -0500
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH v10 30/30] rcar-vin: enable support for r8a77970
-Date: Mon, 29 Jan 2018 17:34:35 +0100
-Message-Id: <20180129163435.24936-31-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20180129163435.24936-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20180129163435.24936-1-niklas.soderlund+renesas@ragnatech.se>
+        Tue, 30 Jan 2018 09:41:35 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, Daniel Mentz <danielmentz@google.com>
+Subject: Re: [PATCHv2 00/13] v4l2-compat-ioctl32.c: remove set_fs(KERNEL_DS)
+Date: Tue, 30 Jan 2018 16:41:50 +0200
+Message-ID: <2040102.b8zQ4JN7km@avalon>
+In-Reply-To: <20180130102701.13664-1-hverkuil@xs4all.nl>
+References: <20180130102701.13664-1-hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add the SoC specific information for Renesas r8a77970.
+Hi Hans,
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
----
- drivers/media/platform/rcar-vin/rcar-core.c | 23 +++++++++++++++++++++++
- 1 file changed, 23 insertions(+)
+Thank you for the patches.
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-core.c b/drivers/media/platform/rcar-vin/rcar-core.c
-index 2305fedd293db241..496b7d2189d73d37 100644
---- a/drivers/media/platform/rcar-vin/rcar-core.c
-+++ b/drivers/media/platform/rcar-vin/rcar-core.c
-@@ -954,6 +954,25 @@ static const struct rvin_info rcar_info_r8a7796 = {
- 	.routes = rcar_info_r8a7796_routes,
- };
- 
-+static const struct rvin_group_route _rcar_info_r8a77970_routes[] = {
-+	{ .vin = 0, .csi = RVIN_CSI40, .chan = 0, .mask = BIT(0) | BIT(3) },
-+	{ .vin = 1, .csi = RVIN_CSI40, .chan = 0, .mask = BIT(2) },
-+	{ .vin = 1, .csi = RVIN_CSI40, .chan = 1, .mask = BIT(3) },
-+	{ .vin = 2, .csi = RVIN_CSI40, .chan = 0, .mask = BIT(1) },
-+	{ .vin = 2, .csi = RVIN_CSI40, .chan = 2, .mask = BIT(3) },
-+	{ .vin = 3, .csi = RVIN_CSI40, .chan = 1, .mask = BIT(0) },
-+	{ .vin = 3, .csi = RVIN_CSI40, .chan = 3, .mask = BIT(3) },
-+	{ /* Sentinel */ }
-+};
-+
-+static const struct rvin_info rcar_info_r8a77970 = {
-+	.model = RCAR_GEN3,
-+	.use_mc = true,
-+	.max_width = 4096,
-+	.max_height = 4096,
-+	.routes = _rcar_info_r8a77970_routes,
-+};
-+
- static const struct of_device_id rvin_of_id_table[] = {
- 	{
- 		.compatible = "renesas,vin-r8a7778",
-@@ -991,6 +1010,10 @@ static const struct of_device_id rvin_of_id_table[] = {
- 		.compatible = "renesas,vin-r8a7796",
- 		.data = &rcar_info_r8a7796,
- 	},
-+	{
-+		.compatible = "renesas,vin-r8a77970",
-+		.data = &rcar_info_r8a77970,
-+	},
- 	{ /* Sentinel */ },
- };
- MODULE_DEVICE_TABLE(of, rvin_of_id_table);
+For patches 01/13 to 08/13 and 10/13 to 12/13,
+
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+On Tuesday, 30 January 2018 12:26:48 EET Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> This patch series fixes a number of bugs and culminates in the removal
+> of the set_fs(KERNEL_DS) call in v4l2-compat-ioctl32.c.
+> 
+> See
+> http://people.canonical.com/~ubuntu-security/cve/2017/CVE-2017-13166.html
+> for why this set_fs call is a bad idea.
+> 
+> In order to test this I used vivid and a 32-bit v4l2-compliance. The
+> advantage of vivid is that it implements almost all ioctls, and those
+> are all tested by v4l2-compliance. This ensures good test coverage.
+> 
+> Since I had to track down all failures that v4l2-compliance reported
+> in order to verify whether those were introduced by the final patch
+> or if those were pre-existing bugs, this series starts off with fixes
+> for bugs that v4l2-compliance found, mostly in v4l2-compat-ioctl32.c.
+> It is clear that v4l2-compat-ioctl32.c doesn't receive a lot of
+> testing.
+> 
+> There are also three patches that just clean up v4l2-compat-ioctl32.c
+> in order to simplify the final patch:
+> 
+>   v4l2-compat-ioctl32.c: fix the indentation
+>   v4l2-compat-ioctl32.c: move 'helper' functions to __get/put_v4l2_format32
+>   v4l2-compat-ioctl32.c: avoid sizeof(type)
+> 
+> No functional changes are introduced in these three patches.
+> 
+> Note the "fix ctrl_is_pointer" patch: we've discussed this in the past,
+> but now I really had to fix this.
+> 
+> It would be really nice if the next time someone finds a security risk
+> in V4L2 core code they would contact the V4L2 maintainers. We only heard
+> about this last week, while all the information about this CVE has been
+> out there for 6 months or so.
+> 
+> Backporting this will be a bit of a nightmare since v4l2-compat-ioctl32.c
+> changes frequently, so assuming we'll only backport this to lts kernels
+> then for each lts the patch series needs to be adapted. But let's get
+> this upstream first before looking at that.
+> 
+> Please review!
+> 
+> Regards,
+> 
+> 	Hans
+> 
+> Changes since v1:
+> - Incorporated all Sakari's comments
+> - Added the 'v4l2-ioctl.c: don't copy back the result for -ENOTTY' patch
+>   (suggested by Sakari).
+> - Added back the "Reported-by" tag for the last patch.
+> - Added "Co-Developed-by" tag for the last patch.
+> - Added "Cc: <stable@vger.kernel.org>      # for v4.15 and up" tags to
+>   this series.
+> 
+> Note: I prefer to backport the whole series to older kernels. Although it
+> is just the last patch that is the real fix, it is very hard to verify
+> without using v4l2-compliance and vivid. And that requires the other fixes.
+> 
+> Daniel Mentz (1):
+>   v4l2-compat-ioctl32.c: refactor, fix security bug in compat ioctl32
+> 
+> Hans Verkuil (12):
+>   vivid: fix module load error when enabling fb and no_error_inj=1
+>   v4l2-ioctl.c: use check_fmt for enum/g/s/try_fmt
+>   v4l2-ioctl.c: don't copy back the result for -ENOTTY
+>   v4l2-compat-ioctl32.c: add missing VIDIOC_PREPARE_BUF
+>   v4l2-compat-ioctl32.c: fix the indentation
+>   v4l2-compat-ioctl32.c: move 'helper' functions to
+>     __get/put_v4l2_format32
+>   v4l2-compat-ioctl32.c: avoid sizeof(type)
+>   v4l2-compat-ioctl32.c: copy m.userptr in put_v4l2_plane32
+>   v4l2-compat-ioctl32.c: fix ctrl_is_pointer
+>   v4l2-compat-ioctl32.c: copy clip list in put_v4l2_window32
+>   v4l2-compat-ioctl32.c: drop pr_info for unknown buffer type
+>   v4l2-compat-ioctl32.c: don't copy back the result for certain errors
+> 
+>  drivers/media/platform/vivid/vivid-core.h     |    1 +
+>  drivers/media/platform/vivid/vivid-ctrls.c    |   35 +-
+>  drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 1033
+> +++++++++++++++---------- drivers/media/v4l2-core/v4l2-ioctl.c          | 
+> 145 ++--
+>  4 files changed, 696 insertions(+), 518 deletions(-)
+
+
 -- 
-2.16.1
+Regards,
+
+Laurent Pinchart
