@@ -1,69 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay2-d.mail.gandi.net ([217.70.183.194]:54279 "EHLO
-        relay2-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933915AbeALOEi (ORCPT
+Received: from mail-qk0-f173.google.com ([209.85.220.173]:42531 "EHLO
+        mail-qk0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752186AbeA3Bo5 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 12 Jan 2018 09:04:38 -0500
-From: Jacopo Mondi <jacopo+renesas@jmondi.org>
-To: laurent.pinchart@ideasonboard.com, magnus.damm@gmail.com,
-        geert@glider.be, mchehab@kernel.org, hverkuil@xs4all.nl,
-        festevam@gmail.com, sakari.ailus@iki.fi, robh+dt@kernel.org,
-        mark.rutland@arm.com, pombredanne@nexb.com
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-sh@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH v5 2/9] include: media: Add Renesas CEU driver interface
-Date: Fri, 12 Jan 2018 15:04:02 +0100
-Message-Id: <1515765849-10345-3-git-send-email-jacopo+renesas@jmondi.org>
-In-Reply-To: <1515765849-10345-1-git-send-email-jacopo+renesas@jmondi.org>
-References: <1515765849-10345-1-git-send-email-jacopo+renesas@jmondi.org>
+        Mon, 29 Jan 2018 20:44:57 -0500
+Received: by mail-qk0-f173.google.com with SMTP id k201so8203092qke.9
+        for <linux-media@vger.kernel.org>; Mon, 29 Jan 2018 17:44:57 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <20180128222319.wx2fl6pzzezezv5v@kekkonen.localdomain>
+References: <CAGoCfixnHv-b3CbjqXLkFuK0J+_ejFnGRyxNJoywxuqQKBr_=Q@mail.gmail.com>
+ <20180128222319.wx2fl6pzzezezv5v@kekkonen.localdomain>
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+Date: Mon, 29 Jan 2018 20:44:43 -0500
+Message-ID: <CAGoCfiwFAPeTMpgKdy99UgXiigot0nwkLKZ2w9COft-nZ8tGkg@mail.gmail.com>
+Subject: Re: Regression in VB2 alloc prepare/finish balancing with em28xx/au0828
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add renesas-ceu header file.
+Hello Sakari,
 
-Do not remove the existing sh_mobile_ceu.h one as long as the original
-driver does not go away.
+Thanks for taking the time to investigate.  See comments inline.
 
-Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- include/media/drv-intf/renesas-ceu.h | 26 ++++++++++++++++++++++++++
- 1 file changed, 26 insertions(+)
- create mode 100644 include/media/drv-intf/renesas-ceu.h
+On Sun, Jan 28, 2018 at 5:23 PM, Sakari Ailus
+<sakari.ailus@linux.intel.com> wrote:
+> Hi Devin,
+>
+> On Sun, Jan 28, 2018 at 09:12:44AM -0500, Devin Heitmueller wrote:
+>> Hello all,
+>>
+>> I recently updated to the latest kernel, and I am seeing the following
+>> dumped to dmesg with both au0828 and em28xx based devices whenever I
+>> exit tvtime (my kernel is compiled with CONFIG_VIDEO_ADV_DEBUG=y by
+>> default):
+>
+> Thanks for reporting this. Would you be able to provide the full dmesg,
+> with VB2 debug parameter set to 2?
 
-diff --git a/include/media/drv-intf/renesas-ceu.h b/include/media/drv-intf/renesas-ceu.h
-new file mode 100644
-index 0000000..52841d1
---- /dev/null
-+++ b/include/media/drv-intf/renesas-ceu.h
-@@ -0,0 +1,26 @@
-+// SPDX-License-Identifier: GPL-2.0
-+/*
-+ * renesas-ceu.h - Renesas CEU driver interface
-+ *
-+ * Copyright 2017-2018 Jacopo Mondi <jacopo+renesas@jmondi.org>
-+ */
-+
-+#ifndef __MEDIA_DRV_INTF_RENESAS_CEU_H__
-+#define __MEDIA_DRV_INTF_RENESAS_CEU_H__
-+
-+#define CEU_MAX_SUBDEVS		2
-+
-+struct ceu_async_subdev {
-+	unsigned long flags;
-+	unsigned char bus_width;
-+	unsigned char bus_shift;
-+	unsigned int i2c_adapter_id;
-+	unsigned int i2c_address;
-+};
-+
-+struct ceu_platform_data {
-+	unsigned int num_subdevs;
-+	struct ceu_async_subdev subdevs[CEU_MAX_SUBDEVS];
-+};
-+
-+#endif /* ___MEDIA_DRV_INTF_RENESAS_CEU_H__ */
+Output can be found at https://pastebin.com/nXS7MTJH
+
+> I can't immediately see how you'd get this, well, without triggering a
+> kernel warning or two. The code is pretty complex though.
+
+If this is something I screwed up when I did the VB2 port for em28xx
+several years ago, point me in the right direction and I'll see what I
+can do.  However given we're seeing it with multiple drivers, this
+feels like some subtle issue inside videobuf2.
+
+Devin
+
 -- 
-2.7.4
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
