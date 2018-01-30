@@ -1,103 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernelconcepts.de ([188.40.83.200]:55788 "EHLO
-        mail.kernelconcepts.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933608AbeAOOlx (ORCPT
+Received: from mail.free-electrons.com ([62.4.15.54]:45565 "EHLO
+        mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752799AbeA3Pl3 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 15 Jan 2018 09:41:53 -0500
-Subject: Re: MT9M131 on I.MX6DL CSI color issue
-To: Philipp Zabel <p.zabel@pengutronix.de>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <b704a2fb-efa1-a2f8-7af0-43d869c688eb@kernelconcepts.de>
- <1516020546.10524.4.camel@pengutronix.de>
-From: Florian Boor <florian.boor@kernelconcepts.de>
-Message-ID: <5a532d44-0395-4ffc-ba41-988d62385e2e@kernelconcepts.de>
-Date: Mon, 15 Jan 2018 15:41:50 +0100
+        Tue, 30 Jan 2018 10:41:29 -0500
+Date: Tue, 30 Jan 2018 16:41:26 +0100
+From: Maxime Ripard <maxime.ripard@free-electrons.com>
+To: Benoit Parrot <bparrot@ti.com>, Simon Hatliff <hatliff@cadence.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        Richard Sproul <sproul@cadence.com>,
+        Alan Douglas <adouglas@cadence.com>,
+        Steve Creaney <screaney@cadence.com>,
+        Thomas Petazzoni <thomas.petazzoni@free-electrons.com>,
+        Boris Brezillon <boris.brezillon@free-electrons.com>,
+        Niklas =?iso-8859-1?Q?S=F6derlund?=
+        <niklas.soderlund@ragnatech.se>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>, nm@ti.com
+Subject: Re: [PATCH v5 2/2] v4l: cadence: Add Cadence MIPI-CSI2 RX driver
+Message-ID: <20180130154126.keytdulix5imq6b3@flea.lan>
+References: <20180119081357.20799-1-maxime.ripard@free-electrons.com>
+ <20180119081357.20799-3-maxime.ripard@free-electrons.com>
+ <20180129191036.GE25980@ti.com>
 MIME-Version: 1.0
-In-Reply-To: <1516020546.10524.4.camel@pengutronix.de>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="pkhuki3st7u2jpzf"
+Content-Disposition: inline
+In-Reply-To: <20180129191036.GE25980@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Philipp,
 
-On 15.01.2018 13:49, Philipp Zabel wrote:
-> media-ctl propagates video formats downstream, can you try reversing the
-> order?
+--pkhuki3st7u2jpzf
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-I did but it does not make a difference.
+Hi Benoit,
 
-> Also, while the external format is UYVY2X8, internally the IPU only
-> supports AYUV32, so the last call should be 
-> 
-> media-ctl -d /dev/media0 -v -V "'ipu1_csi0':2 [fmt:AYUV32/${GEOM} field:none]"
-> not that it should make a visible difference.
-> And setting a format on 'ipu1_csi0 capture' is not necessary.
+On Mon, Jan 29, 2018 at 01:10:36PM -0600, Benoit Parrot wrote:
+> > +	reg =3D csi2rx->num_lanes << 8;
+> > +	for (i =3D 0; i < csi2rx->num_lanes; i++)
+> > +		reg |=3D CSI2RX_STATIC_CFG_DLANE_MAP(i, csi2rx->lanes[i]);
+> > +
+> > +	for (i =3D csi2rx->num_lanes; i < csi2rx->max_lanes; i++)
+> > +		reg |=3D CSI2RX_STATIC_CFG_DLANE_MAP(i, i + 1);
+>=20
+> Not sure why the above init loop is needed, but at any rate it could
+> cause lane number collision. As far as I can see the MIPI spec does
+> not require data lane to be consecutive or starting at a specific
+> physical lane number.
 
-Changed this as well. What I do now is the following:
+I should probably add a comment there, but the hardware needs the data
+lanes to have a mapping even though they are not in use. This was
+addressing this behaviour but...
 
-SF="UYVY2X8"
-IF="AYUV32"
-GEOM="1280x1024"
+> Based on that the following DT node could be a valid configuration
+> 	csi2_cam0: endpoint {
+> 		clock-lanes =3D <0>;
+> 		data-lanes =3D <2 3>;
+> 		...
+> 	};
 
-media-ctl -r
-media-ctl -l "'mt9m111 2-0048':0 -> 'ipu1_csi0_mux':4[1]"
-media-ctl -l "'ipu1_csi0_mux':5 -> 'ipu1_csi0':0[1]"
-media-ctl -l "'ipu1_csi0':2 -> 'ipu1_csi0 capture':0[1]"
+I obviously overlooked a few corner cases :)
 
-media-ctl -d /dev/media0 -v -V "'mt9m111 2-0048':0 [fmt:${SF}/${GEOM} field: none]"
-media-ctl -d /dev/media0 -v -V "'ipu1_csi0_mux':4 [fmt:${SF}/${GEOM} field: none]"
-media-ctl -d /dev/media0 -v -V "'ipu1_csi0_mux':5 [fmt:${SF}/${GEOM} field: none]"
-media-ctl -d /dev/media0 -v -V "'ipu1_csi0':2 [fmt:${IF}/${GEOM} field:none]"
+Since the lanes are not in use, I'm not sure we have to worry about
+lanes collision. Simon, would it cause any trouble if we map to lanes
+to the same physical lane?
 
+Thanks!
+maxime
 
-> The new picture looks a little like there is 10-bit sensor data and only
-> the lower 8-bit arrive in memory, given the number of wraparounds.
+--=20
+Maxime Ripard, Free Electrons
+Embedded Linux and Kernel engineering
+http://free-electrons.com
 
-I will take a look at the sensor configuration. Maybe there is some issue or a
-difference among all th MT9M1x1 semsors the driver does not support.
+--pkhuki3st7u2jpzf
+Content-Type: application/pgp-signature; name="signature.asc"
 
-> Can you show the output of "media-ctl -p" (or "media-ctl --get-v4l2" for
-> each pad in the pipeline)?
+-----BEGIN PGP SIGNATURE-----
 
-> media-ctl --get-v4l2 "'mt9m111 2-0048':0"
-                [fmt:UYVY2X8/1280x1024 field:none]
-                 crop.bounds:(26,8)/1280x1024
-                 crop:(26,8)/1280x1024]
-> media-ctl --get-v4l2 "'ipu1_csi0_mux':4"
-                [fmt:UYVY2X8/1280x1024 field:none]
-> media-ctl --get-v4l2 "'ipu1_csi0_mux':5"
-                [fmt:UYVY2X8/1280x1024 field:none]
-> media-ctl --get-v4l2 "'ipu1_csi0':0"
-                [fmt:UYVY2X8/1280x1024 field:none
-                 crop.bounds:(0,0)/1280x1024
-                 crop:(0,0)/1280x1024
-                 compose.bounds:(0,0)/1280x1024
-                 compose:(0,0)/1280x1024]
-> media-ctl --get-v4l2 "'ipu1_csi0':2"
-                [fmt:AYUV32/1280x1024 field:none]
+iQIzBAABCAAdFiEE0VqZU19dR2zEVaqr0rTAlCFNr3QFAlpwkiYACgkQ0rTAlCFN
+r3REZA//anq9dIomRL4bguGYU/PMo8r+BeTm3KPx+geLhyqmwnsHjni51KthdVlE
+U+G2FOlAXiVUFO04oFffSppALiSeUhGcVzghVLa2SAKydGimWfDg5QHJAWwzge73
+Fp9mvdDqowAKikd38PhqDEImrfD858MOeiEn9QYm9C3jL0dJliuSFxq04+BMW743
+tEor9L4Jyl62ZrDfTT85jQNfmqe1qdSq9KGGiIx/SbeyAbKog/Ghym2XcwWBC/s7
+KpxXOf6wcL4IbkaukI78SjYFzvZ+z+wXXJMUULTEjv/Q0TqXbrV61X5kGCydYNxU
+EkeoHIaUdHd9BJxdM0LqGEts9uhBcJwQaklNwwRFY+JlWl14iR5oEOt7m+JVB/g+
+Gnfs2TogM27X9FlEpezuemHOALtorUlaDiShuCsLDtxPE5lwxaq+G+xlYnekfX8p
+DNsFhWpZp/otC9iGJ58LPfuppNeZaZ6lQ5xV2pbKVmgdBeCfk8nsVp/zfKha0QDE
+OhS5I4tjPfo8pbl0XeFTIRx+fURzTibAoSU8v2oJZSOaxYR7Lo+NRRXpxT6vfAy6
+wn5W0lDoOBFT+QQdjx7fBTZuwDtbQFKPDHCWRR94M2eJ+rJOpvl08luBrC21nsJR
+ZZSshZyoVnNpvb9qaAL8dGraEktAOrrXG9cFYDgXWCo4zs4ZxrM=
+=CWmJ
+-----END PGP SIGNATURE-----
 
-I uploaded the complete topology output from media-ctrl -p as well [1].
-
-Greetings
-
-Florian
-
-
-[1] http://www.kernelconcepts.de/~florian/media-ctl-topology.txt
-
-
-
--- 
-The dream of yesterday                  Florian Boor
-is the hope of today                    Tel: +49 271-771091-15
-and the reality of tomorrow.		Fax: +49 271-338857-29
-[Robert Hutchings Goddard, 1904]        florian.boor@kernelconcepts.de
-                                        http://www.kernelconcepts.de/en
-
-kernel concepts GmbH
-Hauptstraße 16
-D-57074 Siegen
-Geschäftsführer: Ole Reinhardt
-HR Siegen, HR B 9613
+--pkhuki3st7u2jpzf--
