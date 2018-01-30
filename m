@@ -1,110 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from out20-86.mail.aliyun.com ([115.124.20.86]:60276 "EHLO
-        out20-86.mail.aliyun.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753817AbeAKDEy (ORCPT
+Received: from mail.kernelconcepts.de ([188.40.83.200]:41181 "EHLO
+        mail.kernelconcepts.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751883AbeA3RNQ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 10 Jan 2018 22:04:54 -0500
-From: Yong Deng <yong.deng@magewell.com>
-To: Maxime Ripard <maxime.ripard@free-electrons.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Chen-Yu Tsai <wens@csie.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Randy Dunlap <rdunlap@infradead.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Yannick Fertre <yannick.fertre@st.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Rick Chang <rick.chang@mediatek.com>,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-sunxi@googlegroups.com, megous@megous.com,
-        Yong Deng <yong.deng@magewell.com>
-Subject: [PATCH v5 1/2] dt-bindings: media: Add Allwinner V3s Camera Sensor Interface (CSI)
-Date: Thu, 11 Jan 2018 11:03:43 +0800
-Message-Id: <1515639823-35782-1-git-send-email-yong.deng@magewell.com>
+        Tue, 30 Jan 2018 12:13:16 -0500
+Received: from [217.146.132.69] (helo=[192.168.2.34])
+        by mail.kernelconcepts.de with esmtpsa (TLS1.2:ECDHE_RSA_AES_128_GCM_SHA256:128)
+        (Exim 4.84_2)
+        (envelope-from <florian.boor@kernelconcepts.de>)
+        id 1egZT9-0004gu-5H
+        for linux-media@vger.kernel.org; Tue, 30 Jan 2018 18:13:15 +0100
+Subject: Re: MT9M131 on I.MX6DL CSI color issue
+From: Florian Boor <florian.boor@kernelconcepts.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <b704a2fb-efa1-a2f8-7af0-43d869c688eb@kernelconcepts.de>
+ <20180112105840.75260abb@crub> <20180112110606.47499410@crub>
+ <929ef892-467b-dfd1-8ae0-0190263be38a@kernelconcepts.de>
+ <20180117103109.GA18072@minime.bse>
+ <ff51f6e2-270d-c881-4445-8dadf5d7db6f@kernelconcepts.de>
+ <20180118040308.GA21998@minime.bse>
+ <4407aea6-4a7e-a637-40ae-3b25f43b81e5@kernelconcepts.de>
+ <20180120150204.GA17833@minime.bse>
+ <474c1392-6a31-277e-02f0-b1d3a93cfe65@kernelconcepts.de>
+Message-ID: <b37ea727-29fd-e1d5-08e0-8835ff991547@kernelconcepts.de>
+Date: Tue, 30 Jan 2018 18:13:13 +0100
+MIME-Version: 1.0
+In-Reply-To: <474c1392-6a31-277e-02f0-b1d3a93cfe65@kernelconcepts.de>
+Content-Type: text/plain; charset=utf-8
+Content-Language: de-AT
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add binding documentation for Allwinner V3s CSI.
+Hello all,
 
-Signed-off-by: Yong Deng <yong.deng@magewell.com>
----
- .../devicetree/bindings/media/sun6i-csi.txt        | 59 ++++++++++++++++++++++
- 1 file changed, 59 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/sun6i-csi.txt
+On 22.01.2018 15:52, Florian Boor wrote:
+>> Have you ever tried to capture images in one of the RGB formats?
+> Not so far but I just tried. The JPEG compressor does not seem to like it but I
+> can import the raw frame as ARGB into i.e. ImageJ and what I get is a RGB image
+> with quite a lot of overflows and wrong colors. It looks pretty much broken like
+> I would expect it to look missing the upper bits.
 
-diff --git a/Documentation/devicetree/bindings/media/sun6i-csi.txt b/Documentation/devicetree/bindings/media/sun6i-csi.txt
-new file mode 100644
-index 0000000..2ff47a9
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/sun6i-csi.txt
-@@ -0,0 +1,59 @@
-+Allwinner V3s Camera Sensor Interface
-+-------------------------------------
-+
-+Allwinner V3s SoC features two CSI module. CSI0 is used for MIPI CSI-2
-+interface and CSI1 is used for parallel interface.
-+
-+Required properties:
-+  - compatible: value must be "allwinner,sun8i-v3s-csi"
-+  - reg: base address and size of the memory-mapped region.
-+  - interrupts: interrupt associated to this IP
-+  - clocks: phandles to the clocks feeding the CSI
-+    * bus: the CSI interface clock
-+    * mod: the CSI module clock
-+    * ram: the CSI DRAM clock
-+  - clock-names: the clock names mentioned above
-+  - resets: phandles to the reset line driving the CSI
-+
-+Each CSI node should contain one 'port' child node with one child 'endpoint'
-+node, according to the bindings defined in
-+Documentation/devicetree/bindings/media/video-interfaces.txt. As mentioned
-+above, the endpoint's bus type should be MIPI CSI-2 for CSI0 and parallel or
-+Bt656 for CSI1.
-+
-+Endpoint node properties for CSI1
-+---------------------------------
-+
-+- remote-endpoint	: (required) a phandle to the bus receiver's endpoint
-+			   node
-+- bus-width:		: (required) must be 8, 10, 12 or 16
-+- pclk-sample		: (optional) (default: sample on falling edge)
-+- hsync-active		: (only required for parallel)
-+- vsync-active		: (only required for parallel)
-+
-+Example:
-+
-+csi1: csi@1cb4000 {
-+	compatible = "allwinner,sun8i-v3s-csi";
-+	reg = <0x01cb4000 0x1000>;
-+	interrupts = <GIC_SPI 84 IRQ_TYPE_LEVEL_HIGH>;
-+	clocks = <&ccu CLK_BUS_CSI>,
-+		 <&ccu CLK_CSI1_SCLK>,
-+		 <&ccu CLK_DRAM_CSI>;
-+	clock-names = "bus", "mod", "ram";
-+	resets = <&ccu RST_BUS_CSI>;
-+
-+	port {
-+		/* Parallel bus endpoint */
-+		csi1_ep: endpoint {
-+			remote-endpoint = <&adv7611_ep>;
-+			bus-width = <16>;
-+
-+			/* If hsync-active/vsync-active are missing,
-+			   embedded BT.656 sync is used */
-+			hsync-active = <0>; /* Active low */
-+			vsync-active = <0>; /* Active low */
-+			pclk-sample = <1>;  /* Rising */
-+		};
-+	};
-+};
+RGB seems to be complicated. I did not find a working setup.
+
+> I'll see if I can fix the hardware now :-)
+
+But fixing the hardware almost got it right. The last remaining issue was the
+pixel clock that required inverting. Now the images from the camera look
+correct. (I'm currently testing with YUYV2X8 configuration and videoparse
+"format=4" setting.)
+
+Many thanks for all the help!
+
+Greetings
+
+Florian
+
 -- 
-1.8.3.1
+The dream of yesterday                  Florian Boor
+is the hope of today                    Tel: +49(0) 271-771091-15
+and the reality of tomorrow.		Fax: +49(0) 271-338857-29
+[Robert Hutchings Goddard, 1904]        florian.boor@kernelconcepts.de
+                                        http://www.kernelconcepts.de/en
+
+kernel concepts GmbH
+Hauptstraße 16
+D-57074 Siegen
+Geschäftsführer: Ole Reinhardt
+HR Siegen, HR B 9613
