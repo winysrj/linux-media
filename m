@@ -1,121 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.15.15]:57177 "EHLO mout.gmx.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754403AbeALJin (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 12 Jan 2018 04:38:43 -0500
-Date: Fri, 12 Jan 2018 10:37:54 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Kieran Bingham <kieran.bingham@ideasonboard.com>
-cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Olivier BRAUN <olivier.braun@stereolabs.com>,
-        Troy Kisky <troy.kisky@boundarydevices.com>
-Subject: Re: [RFT PATCH v3 6/6] uvcvideo: Move decode processing to process
- context
-In-Reply-To: <c857652f179fbc083a16029affefbde83a8932dc.1515748369.git-series.kieran.bingham@ideasonboard.com>
-Message-ID: <alpine.DEB.2.20.1801121025210.4338@axis700.grange>
-References: <cover.30aaad9a6abac5e92d4a1a0e6634909d97cc54d8.1515748369.git-series.kieran.bingham@ideasonboard.com> <c857652f179fbc083a16029affefbde83a8932dc.1515748369.git-series.kieran.bingham@ideasonboard.com>
-MIME-Version: 1.0
+Received: from out20-73.mail.aliyun.com ([115.124.20.73]:42463 "EHLO
+        out20-73.mail.aliyun.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752076AbeA3Csx (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 29 Jan 2018 21:48:53 -0500
+Date: Tue, 30 Jan 2018 10:48:33 +0800
+From: Yong <yong.deng@magewell.com>
+To: Randy Dunlap <rdunlap@infradead.org>
+Cc: Maxime Ripard <maxime.ripard@free-electrons.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Chen-Yu Tsai <wens@csie.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Linus Walleij <linus.walleij@linaro.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Yannick Fertre <yannick.fertre@st.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Rick Chang <rick.chang@mediatek.com>,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-sunxi@googlegroups.com
+Subject: Re: [PATCH v7 2/2] media: V3s: Add support for Allwinner CSI.
+Message-Id: <20180130104833.a06e44c558c7ddc6b38e20b3@magewell.com>
+In-Reply-To: <c86097d7-dade-01e5-3826-3f22f9ca4b4f@infradead.org>
+References: <1517217696-17816-1-git-send-email-yong.deng@magewell.com>
+        <c86097d7-dade-01e5-3826-3f22f9ca4b4f@infradead.org>
+Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Kieran,
+Hi,
 
-On Fri, 12 Jan 2018, Kieran Bingham wrote:
+On Mon, 29 Jan 2018 13:49:14 -0800
+Randy Dunlap <rdunlap@infradead.org> wrote:
 
-> Newer high definition cameras, and cameras with multiple lenses such as
-> the range of stereo-vision cameras now available have ever increasing
-> data rates.
+> On 01/29/2018 01:21 AM, Yong Deng wrote:
+> > Allwinner V3s SoC features two CSI module. CSI0 is used for MIPI CSI-2
+> > interface and CSI1 is used for parallel interface. This is not
+> > documented in datasheet but by test and guess.
+> > 
+> > This patch implement a v4l2 framework driver for it.
+> > 
+> > Currently, the driver only support the parallel interface. MIPI-CSI2,
+> > ISP's support are not included in this patch.
+> > 
+> > Tested-by: Maxime Ripard <maxime.ripard@free-electrons.com>
+> > Signed-off-by: Yong Deng <yong.deng@magewell.com>
+> > ---
 > 
-> The inclusion of a variable length packet header in URB packets mean
-> that we must memcpy the frame data out to our destination 'manually'.
-> This can result in data rates of up to 2 gigabits per second being
-> processed.
 > 
-> To improve efficiency, and maximise throughput, handle the URB decode
-> processing through a work queue to move it from interrupt context, and
-> allow multiple processors to work on URBs in parallel.
+> A previous version (I think v6) had a build error with the use of
+> PHYS_OFFSET, so Kconfig was modified to depend on ARM and ARCH_SUNXI
+> (one of which seems to be overkill).  As is here, the COMPILE_TEST piece is
+> meaningless for all arches except ARM.  If you care enough for COMPILE_TEST
+> (and I would), then you could make COMPILE_TEST useful on any arch by
+> removing the "depends on ARM" (the ARCH_SUNXI takes care of that) and by
+> having an alternate value for PHYS_OFFSET, like so:
 > 
-> Signed-off-by: Kieran Bingham <kieran.bingham@ideasonboard.com>
+> +#if defined(CONFIG_COMPILE_TEST) && !defined(PHYS_OFFSET)
+> +#define PHYS_OFFSET	0
+> +#endif
 > 
-> ---
-> v2:
->  - Lock full critical section of usb_submit_urb()
+> With those 2 changes, the driver builds for me on x86_64.
+
+I have considered this method.
+But it's so sick to put these code in dirver (for my own). I mean 
+this is meaningless for the driver itself and make people confused.
+
+I grepped the driver/ code and I found many drivers writing Kconfig
+like this. For example:
+ARM && COMPILE_TEST
+MIPS && COMPILE_TEST
+PPC64 && COMPILE_TEST
+
+BTW, for my own, I do not care about COMPILE_TEST.
+
 > 
-> v3:
->  - Fix race on submitting uvc_video_decode_data_work() to work queue.
->  - Rename uvc_decode_op -> uvc_copy_op (Generic to encode/decode)
->  - Rename decodes -> copy_operations
->  - Don't queue work if there is no async task
->  - obtain copy op structure directly in uvc_video_decode_data()
->  - uvc_video_decode_data_work() -> uvc_video_copy_data_work()
-> ---
->  drivers/media/usb/uvc/uvc_queue.c |  12 +++-
->  drivers/media/usb/uvc/uvc_video.c | 116 +++++++++++++++++++++++++++----
->  drivers/media/usb/uvc/uvcvideo.h  |  24 ++++++-
->  3 files changed, 138 insertions(+), 14 deletions(-)
+> > diff --git a/drivers/media/platform/sunxi/sun6i-csi/Kconfig b/drivers/media/platform/sunxi/sun6i-csi/Kconfig
+> > new file mode 100644
+> > index 0000000..f80c965
+> > --- /dev/null
+> > +++ b/drivers/media/platform/sunxi/sun6i-csi/Kconfig
+> > @@ -0,0 +1,10 @@
+> > +config VIDEO_SUN6I_CSI
+> > +	tristate "Allwinner V3s Camera Sensor Interface driver"
+> > +	depends on ARM
+> > +	depends on VIDEO_V4L2 && COMMON_CLK && VIDEO_V4L2_SUBDEV_API && HAS_DMA
+> > +	depends on ARCH_SUNXI || COMPILE_TEST
+> > +	select VIDEOBUF2_DMA_CONTIG
+> > +	select REGMAP_MMIO
+> > +	select V4L2_FWNODE
+> > +	---help---
+> > +	   Support for the Allwinner Camera Sensor Interface Controller on V3s.
 > 
-> diff --git a/drivers/media/usb/uvc/uvc_queue.c b/drivers/media/usb/uvc/uvc_queue.c
-> index 5a9987e547d3..598087eeb5c2 100644
-> --- a/drivers/media/usb/uvc/uvc_queue.c
-> +++ b/drivers/media/usb/uvc/uvc_queue.c
-> @@ -179,10 +179,22 @@ static void uvc_stop_streaming(struct vb2_queue *vq)
->  	struct uvc_video_queue *queue = vb2_get_drv_priv(vq);
->  	struct uvc_streaming *stream = uvc_queue_to_stream(queue);
->  
-> +	/* Prevent new buffers coming in. */
-> +	spin_lock_irq(&queue->irqlock);
-> +	queue->flags |= UVC_QUEUE_STOPPING;
-> +	spin_unlock_irq(&queue->irqlock);
-> +
-> +	/*
-> +	 * All pending work should be completed before disabling the stream, as
-> +	 * all URBs will be free'd during uvc_video_enable(s, 0).
-> +	 */
-> +	flush_workqueue(stream->async_wq);
+> thanks,
+> -- 
+> ~Randy
 
-What if we manage to get one last URB here, then...
 
-> +
->  	uvc_video_enable(stream, 0);
->  
->  	spin_lock_irq(&queue->irqlock);
->  	uvc_queue_return_buffers(queue, UVC_BUF_STATE_ERROR);
-> +	queue->flags &= ~UVC_QUEUE_STOPPING;
->  	spin_unlock_irq(&queue->irqlock);
->  }
->  
-> diff --git a/drivers/media/usb/uvc/uvc_video.c b/drivers/media/usb/uvc/uvc_video.c
-> index 3878bec3276e..fb6b5af17380 100644
-> --- a/drivers/media/usb/uvc/uvc_video.c
-> +++ b/drivers/media/usb/uvc/uvc_video.c
-
-[snip]
-
-> +	/*
-> +	 * When the stream is stopped, all URBs are freed as part of the call to
-> +	 * uvc_stop_streaming() and must not be handled asynchronously. In that
-> +	 * event we can safely complete the packet work directly in this
-> +	 * context, without resubmitting the URB.
-> +	 */
-> +	spin_lock_irqsave(&queue->irqlock, flags);
-> +	if (!(queue->flags & UVC_QUEUE_STOPPING)) {
-> +		INIT_WORK(&uvc_urb->work, uvc_video_copy_data_work);
-> +		queue_work(stream->async_wq, &uvc_urb->work);
-> +	} else {
-> +		uvc_video_copy_packets(uvc_urb);
-
-Can it not happen, that if the stream is currently being stopped, the 
-queue has been flushed, possibly the previous URB or a couple of them 
-don't get decoded, but you do decode this one, creating a corrupted frame? 
-Wouldn't it be better to just drop this URB too?
-
->  	}
-> +	spin_unlock_irqrestore(&queue->irqlock, flags);
->  }
->  
->  /*
-
-Thanks
-Guennadi
+Thanks,
+Yong
