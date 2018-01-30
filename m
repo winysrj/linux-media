@@ -1,53 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:47157 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932430AbeAJQgG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 10 Jan 2018 11:36:06 -0500
-From: Shuah Khan <shuahkh@osg.samsung.com>
-To: mchehab@kernel.org, shuah@kernel.org, sakari.ailus@linux.intel.com,
-        laurent.pinchart@ideasonboard.com
-Cc: Shuah Khan <shuahkh@osg.samsung.com>, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH] media: v4l2-core: v4l2-mc: Add SPDX license identifier
-Date: Wed, 10 Jan 2018 09:35:36 -0700
-Message-Id: <20180110163540.8396-2-shuahkh@osg.samsung.com>
-In-Reply-To: <20180110163540.8396-1-shuahkh@osg.samsung.com>
-References: <20180110163540.8396-1-shuahkh@osg.samsung.com>
+Received: from gateway21.websitewelcome.com ([192.185.46.109]:14681 "EHLO
+        gateway21.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751683AbeA3A4B (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 29 Jan 2018 19:56:01 -0500
+Received: from cm14.websitewelcome.com (cm14.websitewelcome.com [100.42.49.7])
+        by gateway21.websitewelcome.com (Postfix) with ESMTP id C896E400D25C1
+        for <linux-media@vger.kernel.org>; Mon, 29 Jan 2018 18:33:19 -0600 (CST)
+Date: Mon, 29 Jan 2018 18:33:18 -0600
+From: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        "Gustavo A. R. Silva" <garsilva@embeddedor.com>
+Subject: [PATCH 8/8] platform: vivid-cec: fix potential integer overflow in
+ vivid_cec_pin_adap_events
+Message-ID: <00eea53890802b679c138fc7f68a0f162261d95c.1517268668.git.gustavo@embeddedor.com>
+References: <cover.1517268667.git.gustavo@embeddedor.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <cover.1517268667.git.gustavo@embeddedor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Replace GPL license statement with SPDX GPL-2.0 license identifier.
+Cast len to const u64 in order to avoid a potential integer
+overflow. This variable is being used in a context that expects
+an expression of type const u64.
 
-Signed-off-by: Shuah Khan <shuahkh@osg.samsung.com>
+Addresses-Coverity-ID: 1454996 ("Unintentional integer overflow")
+Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
 ---
- drivers/media/v4l2-core/v4l2-mc.c | 11 +----------
- 1 file changed, 1 insertion(+), 10 deletions(-)
+ drivers/media/platform/vivid/vivid-cec.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-mc.c b/drivers/media/v4l2-core/v4l2-mc.c
-index 303980b71aae..1297132acd4e 100644
---- a/drivers/media/v4l2-core/v4l2-mc.c
-+++ b/drivers/media/v4l2-core/v4l2-mc.c
-@@ -1,3 +1,4 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
- /*
-  * Media Controller ancillary functions
-  *
-@@ -5,16 +6,6 @@
-  * Copyright (C) 2016 Shuah Khan <shuahkh@osg.samsung.com>
-  * Copyright (C) 2006-2010 Nokia Corporation
-  * Copyright (c) 2016 Intel Corporation.
-- *
-- *  This program is free software; you can redistribute it and/or modify
-- *  it under the terms of the GNU General Public License as published by
-- *  the Free Software Foundation; either version 2 of the License, or
-- *  (at your option) any later version.
-- *
-- *  This program is distributed in the hope that it will be useful,
-- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
-- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-- *  GNU General Public License for more details.
-  */
- 
- #include <linux/module.h>
+diff --git a/drivers/media/platform/vivid/vivid-cec.c b/drivers/media/platform/vivid/vivid-cec.c
+index b55d278..30240ab 100644
+--- a/drivers/media/platform/vivid/vivid-cec.c
++++ b/drivers/media/platform/vivid/vivid-cec.c
+@@ -83,7 +83,7 @@ static void vivid_cec_pin_adap_events(struct cec_adapter *adap, ktime_t ts,
+ 	if (adap == NULL)
+ 		return;
+ 	ts = ktime_sub_us(ts, (CEC_TIM_START_BIT_TOTAL +
+-			       len * 10 * CEC_TIM_DATA_BIT_TOTAL));
++			       (const u64)len * 10 * CEC_TIM_DATA_BIT_TOTAL));
+ 	cec_queue_pin_cec_event(adap, false, ts);
+ 	ts = ktime_add_us(ts, CEC_TIM_START_BIT_LOW);
+ 	cec_queue_pin_cec_event(adap, true, ts);
 -- 
-2.14.1
+2.7.4
