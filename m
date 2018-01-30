@@ -1,472 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:34441 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751116AbeAVMPp (ORCPT
+Received: from aer-iport-4.cisco.com ([173.38.203.54]:58809 "EHLO
+        aer-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751360AbeA3MCt (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 22 Jan 2018 07:15:45 -0500
-Subject: Re: [Patch v6 12/12] Documention: v4l: Documentation for HEVC CIDs
-To: Smitha T Murthy <smitha.t@samsung.com>,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-References: <1512724105-1778-1-git-send-email-smitha.t@samsung.com>
- <CGME20171208093706epcas2p3925ed3e53fff97365dbeb536ae8d4a0d@epcas2p3.samsung.com>
- <1512724105-1778-13-git-send-email-smitha.t@samsung.com>
-Cc: kyungmin.park@samsung.com, kamil@wypas.org, jtp.park@samsung.com,
-        a.hajda@samsung.com, mchehab@kernel.org, pankaj.dubey@samsung.com,
-        krzk@kernel.org, m.szyprowski@samsung.com, s.nawrocki@samsung.com
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <04b809a6-57c1-97c9-d445-da6b462b6c39@xs4all.nl>
-Date: Mon, 22 Jan 2018 13:15:42 +0100
+        Tue, 30 Jan 2018 07:02:49 -0500
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Daniel Mentz <danielmentz@google.com>
+From: Hans Verkuil <hansverk@cisco.com>
+Subject: [GIT PULL FOR v4.16] v4l2-compat-ioctl32.c: remove set_fs(KERNEL_DS)
+Message-ID: <bb60dfc8-097c-71ee-098d-02db67c63a8f@cisco.com>
+Date: Tue, 30 Jan 2018 13:02:46 +0100
 MIME-Version: 1.0
-In-Reply-To: <1512724105-1778-13-git-send-email-smitha.t@samsung.com>
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 08/12/17 10:08, Smitha T Murthy wrote:
-> Added V4l2 controls for HEVC encoder
-> 
-> Signed-off-by: Smitha T Murthy <smitha.t@samsung.com>
-> ---
->  Documentation/media/uapi/v4l/extended-controls.rst | 395 +++++++++++++++++++++
->  1 file changed, 395 insertions(+)
-> 
-> diff --git a/Documentation/media/uapi/v4l/extended-controls.rst b/Documentation/media/uapi/v4l/extended-controls.rst
-> index a3e81c1..3c92763 100644
-> --- a/Documentation/media/uapi/v4l/extended-controls.rst
-> +++ b/Documentation/media/uapi/v4l/extended-controls.rst
-> @@ -1960,6 +1960,401 @@ enum v4l2_vp8_golden_frame_sel -
->      1, 2 and 3 corresponding to encoder profiles 0, 1, 2 and 3.
->  
->  
-> +High Efficiency Video Coding (HEVC/H.265) Control Reference
-> +-----------------------------------------------------------
-> +
-> +The HEVC/H.265 controls include controls for encoding parameters of HEVC/H.265
-> +video codec.
-> +
-> +
-> +.. _hevc-control-id:
-> +
-> +HEVC/H.265 Control IDs
-> +^^^^^^^^^^^^^^^^^^^^^^
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_MIN_QP (integer)``
-> +    Minimum quantization parameter for HEVC.
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_MAX_QP (integer)``
-> +    Maximum quantization parameter for HEVC.
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_I_FRAME_QP (integer)``
-> +    Quantization parameter for an I frame for HEVC.
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_P_FRAME_QP (integer)``
-> +    Quantization parameter for a P frame for HEVC.
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_B_FRAME_QP (integer)``
-> +    Quantization parameter for a B frame for HEVC.
+This patch series fixes a number of bugs and culminates in the removal
+of the set_fs(KERNEL_DS) call in v4l2-compat-ioctl32.c.
 
-I assume these values all have to be in the range MIN_QP to MAX_QP?
-If so, then this should be documented I think.
+See http://people.canonical.com/~ubuntu-security/cve/2017/CVE-2017-13166.html
+for why this set_fs call is a bad idea.
 
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_HIER_QP (boolean)``
-> +    HIERARCHICAL_QP allows host to specify the quantization parameter values
+In order to test this I used vivid and a 32-bit v4l2-compliance. The
+advantage of vivid is that it implements almost all ioctls, and those
+are all tested by v4l2-compliance. This ensures good test coverage.
 
-host -> the host
+Since I had to track down all failures that v4l2-compliance reported
+in order to verify whether those were introduced by the final patch
+or if those were pre-existing bugs, this series starts off with fixes
+for bugs that v4l2-compliance found, mostly in v4l2-compat-ioctl32.c.
+It is clear that v4l2-compat-ioctl32.c doesn't receive a lot of
+testing.
 
-> +    for each temporal layer through HIERARCHICAL_QP_LAYER. This is valid only
-> +    if HIERARCHICAL_CODING_LAYER is greater than 1. Setting the control value
-> +    to 1 enables setting of the QP values for the layers.
-> +
-> +.. _v4l2-hevc-hier-coding-type:
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_TYPE``
-> +    (enum)
-> +
-> +enum v4l2_mpeg_video_hevc_hier_coding_type -
-> +    Selects the hierarchical coding type for encoding. Possible values are:
-> +
-> +.. raw:: latex
-> +
-> +    \begin{adjustbox}{width=\columnwidth}
-> +
-> +.. tabularcolumns:: |p{11.0cm}|p{10.0cm}|
-> +
-> +.. flat-table::
-> +    :header-rows:  0
-> +    :stub-columns: 0
-> +
-> +    * - ``V4L2_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_B``
-> +      - Use the B frame for hierarchical coding.
-> +    * - ``V4L2_MPEG_VIDEO_HEVC_HIERARCHICAL_CODING_P``
-> +      - Use the P frame for hierarchical coding.
-> +
-> +.. raw:: latex
-> +
-> +    \end{adjustbox}
-> +
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_LAYER (integer)``
-> +    Selects the hierarchical coding layer. In normal encoding
-> +    (non-hierarchial coding), it should be zero. Possible values are 0 ~ 6.
+There are also three patches that just clean up v4l2-compat-ioctl32.c
+in order to simplify the final patch:
 
-Use - instead of ~. Or just say: [0, 6]
+  v4l2-compat-ioctl32.c: fix the indentation
+  v4l2-compat-ioctl32.c: move 'helper' functions to __get/put_v4l2_format32
+  v4l2-compat-ioctl32.c: avoid sizeof(type)
 
-> +    0 indicates HIERARCHICAL CODING LAYER 0, 1 indicates HIERARCHICAL CODING
-> +    LAYER 1 and so on.
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L0_QP (integer)``
-> +    Indicates quantization parameter for hierarchical coding layer 0.
-> +    For HEVC it can have a value of 0-51.
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L1_QP (integer)``
-> +    Indicates quantization parameter for hierarchical coding layer 1.
-> +    For HEVC it can have a value of 0-51.
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L2_QP (integer)``
-> +    Indicates quantization parameter for hierarchical coding layer 2.
-> +    For HEVC it can have a value of 0-51.
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L3_QP (integer)``
-> +    Indicates quantization parameter for hierarchical coding layer 3.
-> +    For HEVC it can have a value of 0-51.
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L4_QP (integer)``
-> +    Indicates quantization parameter for hierarchical coding layer 4.
-> +    For HEVC it can have a value of 0-51.
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L5_QP (integer)``
-> +    Indicates quantization parameter for hierarchical coding layer 5.
-> +    For HEVC it can have a value of 0-51.
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L6_QP (integer)``
-> +    Indicates quantization parameter for hierarchical coding layer 6.
-> +    For HEVC it can have a value of 0-51.
+No functional changes are introduced in these three patches.
 
-How do these controls relate to MIN_QP and MAX_QP?
+Note the "fix ctrl_is_pointer" patch: we've discussed this in the past,
+but now I really had to fix this.
 
-> +
-> +.. _v4l2-hevc-profile:
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_PROFILE``
-> +    (enum)
-> +
-> +enum v4l2_mpeg_video_hevc_profile -
-> +    Select the desired profile for HEVC encoder.
-> +
-> +.. raw:: latex
-> +
-> +    \begin{adjustbox}{width=\columnwidth}
-> +
-> +.. tabularcolumns:: |p{11.0cm}|p{10.0cm}|
-> +
-> +.. flat-table::
-> +    :header-rows:  0
-> +    :stub-columns: 0
-> +
-> +    * - ``V4L2_MPEG_VIDEO_HEVC_PROFILE_MAIN``
-> +      - Main profile.
-> +    * - ``V4L2_MPEG_VIDEO_HEVC_PROFILE_MAIN10``
-> +      - Main 10 profile.
-> +    * - ``V4L2_MPEG_VIDEO_HEVC_PROFILE_MAIN_STILL_PICTURE``
-> +      - Main still picture profile.
-> +
-> +.. raw:: latex
-> +
-> +    \end{adjustbox}
-> +
-> +
-> +.. _v4l2-hevc-level:
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_LEVEL``
-> +    (enum)
-> +
-> +enum v4l2_mpeg_video_hevc_level -
-> +    Selects the desired level for HEVC encoder.
-> +
-> +.. raw:: latex
-> +
-> +    \begin{adjustbox}{width=\columnwidth}
-> +
-> +.. tabularcolumns:: |p{11.0cm}|p{10.0cm}|
-> +
-> +.. flat-table::
-> +    :header-rows:  0
-> +    :stub-columns: 0
-> +
-> +    * - ``V4L2_MPEG_VIDEO_HEVC_LEVEL_1``
-> +      - Level 1.0
-> +    * - ``V4L2_MPEG_VIDEO_HEVC_LEVEL_2``
-> +      - Level 2.0
-> +    * - ``V4L2_MPEG_VIDEO_HEVC_LEVEL_2_1``
-> +      - Level 2.1
-> +    * - ``V4L2_MPEG_VIDEO_HEVC_LEVEL_3``
-> +      - Level 3.0
-> +    * - ``V4L2_MPEG_VIDEO_HEVC_LEVEL_3_1``
-> +      - Level 3.1
-> +    * - ``V4L2_MPEG_VIDEO_HEVC_LEVEL_4``
-> +      - Level 4.0
-> +    * - ``V4L2_MPEG_VIDEO_HEVC_LEVEL_4_1``
-> +      - Level 4.1
-> +    * - ``V4L2_MPEG_VIDEO_HEVC_LEVEL_5``
-> +      - Level 5.0
-> +    * - ``V4L2_MPEG_VIDEO_HEVC_LEVEL_5_1``
-> +      - Level 5.1
-> +    * - ``V4L2_MPEG_VIDEO_HEVC_LEVEL_5_2``
-> +      - Level 5.2
-> +    * - ``V4L2_MPEG_VIDEO_HEVC_LEVEL_6``
-> +      - Level 6.0
-> +    * - ``V4L2_MPEG_VIDEO_HEVC_LEVEL_6_1``
-> +      - Level 6.1
-> +    * - ``V4L2_MPEG_VIDEO_HEVC_LEVEL_6_2``
-> +      - Level 6.2
-> +
-> +.. raw:: latex
-> +
-> +    \end{adjustbox}
-> +
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_FRAME_RATE_RESOLUTION (integer)``
-> +    Indicates the number of evenly spaced subintervals, called ticks, within
-> +    one second. This is a 16 bit unsigned integer and has a maximum value up to
-> +    0xffff and a minimum value of 1.
-> +
-> +.. _v4l2-hevc-tier-flag:
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_TIER_FLAG``
-> +    (enum)
-> +
-> +enum v4l2_mpeg_video_hevc_tier_flag -
-> +    TIER_FLAG specifies tiers information of the HEVC encoded picture. Tier
-> +    were made to deal with applications that differ in terms of maximum bit
-> +    rate. Setting the flag to 0 selects HEVC tier_flag as Main tier and setting
-> +    this flag to 1 indicates High tier. High tier is for applications requiring
-> +    high bit rates.
+It would be really nice if the next time someone finds a security risk
+in V4L2 core code they would contact the V4L2 maintainers. We only heard
+about this last week, while all the information about this CVE has been
+out there for several months or so.
 
-Should this perhaps be a bool instead of an enum? Assuming this represents a
-single bit. I'm not saying enum is wrong, I just wondered what makes the most
-sense.
+Backporting this will be a bit of a nightmare since v4l2-compat-ioctl32.c
+changes frequently, so assuming we'll only backport this to lts kernels
+then for each lts the patch series needs to be adapted. But let's get
+this upstream first before looking at that.
 
-> +
-> +.. raw:: latex
-> +
-> +    \begin{adjustbox}{width=\columnwidth}
-> +
-> +.. tabularcolumns:: |p{11.0cm}|p{10.0cm}|
-> +
-> +.. flat-table::
-> +    :header-rows:  0
-> +    :stub-columns: 0
-> +
-> +    * - ``V4L2_MPEG_VIDEO_HEVC_TIER_MAIN``
-> +      - Main tier.
-> +    * - ``V4L2_MPEG_VIDEO_HEVC_TIER_HIGH``
-> +      - High tier.
-> +
-> +.. raw:: latex
-> +
-> +    \end{adjustbox}
-> +
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_MAX_PARTITION_DEPTH (integer)``
-> +    Selects HEVC maximum coding unit depth.
-> +
-> +.. _v4l2-hevc-loop-filter-mode:
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_LOOP_FILTER_MODE``
-> +    (enum)
-> +
-> +enum v4l2_mpeg_video_hevc_loop_filter_mode -
-> +    Loop filter mode for HEVC encoder. Possible values are:
-> +
-> +.. raw:: latex
-> +
-> +    \begin{adjustbox}{width=\columnwidth}
-> +
-> +.. tabularcolumns:: |p{11.0cm}|p{10.0cm}|
-> +
-> +.. flat-table::
-> +    :header-rows:  0
-> +    :stub-columns: 0
-> +
-> +    * - ``V4L2_MPEG_VIDEO_HEVC_LOOP_FILTER_MODE_DISABLED``
-> +      - Loop filter is disabled.
-> +    * - ``V4L2_MPEG_VIDEO_HEVC_LOOP_FILTER_MODE_ENABLED``
-> +      - Loop filter is enabled.
-> +    * - ``V4L2_MPEG_VIDEO_HEVC_LOOP_FILTER_MODE_DISABLED_AT_SLICE_BOUNDARY``
-> +      - Loop filter is disabled at the slice boundary.
-> +
-> +.. raw:: latex
-> +
-> +    \end{adjustbox}
-> +
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_LF_BETA_OFFSET_DIV2 (integer)``
-> +    Selects HEVC loop filter beta offset. The valid range is [-6, +6].
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_LF_TC_OFFSET_DIV2 (integer)``
-> +    Selects HEVC loop filter tc offset. The valid range is [-6, +6].
-> +
-> +.. _v4l2-hevc-refresh-type:
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_REFRESH_TYPE``
-> +    (enum)
-> +
-> +enum v4l2_mpeg_video_hevc_hier_refresh_type -
-> +    Selects refresh type for HEVC encoder.
-> +    Host has to specify the period into
-> +    V4L2_CID_MPEG_VIDEO_HEVC_REFRESH_PERIOD.
-> +
-> +.. raw:: latex
-> +
-> +    \begin{adjustbox}{width=\columnwidth}
-> +
-> +.. tabularcolumns:: |p{11.0cm}|p{10.0cm}|
-> +
-> +.. flat-table::
-> +    :header-rows:  0
-> +    :stub-columns: 0
-> +
-> +    * - ``V4L2_MPEG_VIDEO_HEVC_REFRESH_NONE``
-> +      - Use the B frame for hierarchical coding.
-> +    * - ``V4L2_MPEG_VIDEO_HEVC_REFRESH_CRA``
-> +      - Use CRA (Clean Random Access Unit) picture encoding.
-> +    * - ``V4L2_MPEG_VIDEO_HEVC_REFRESH_IDR``
-> +      - Use IDR picture encoding.
-
-Can you add the full name for IDR in brackets, just as you did for CRA?
-
-> +
-> +.. raw:: latex
-> +
-> +    \end{adjustbox}
-> +
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_REFRESH_PERIOD (integer)``
-> +    Selects the refresh period for HEVC encoder.
-> +    This specifies the number of I pictures between two CRA/IDR pictures.
-> +    This is valid only if REFRESH_TYPE is not 0.
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_LOSSLESS_CU (boolean)``
-> +    Indicates HEVC lossless encoding. Setting it to 0 disables lossless
-> +    encoding. Setting it to 1 enables lossless encoding.
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_CONST_INTRA_PRED (boolean)``
-> +    Indicates constant intra prediction for HEVC encoder. Specifies the
-> +    constrained intra prediction in which intra largest coding unit (LCU)
-> +    prediction is performed by using residual data and decoded samples of
-> +    neighboring intra LCU only. Setting the value to 1 enables constant intra
-> +    prediction and setting the value to 0 disables constant inta prediction.
-
-inta -> intra
-
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_WAVEFRONT (boolean)``
-> +    Indicates wavefront parallel processing for HEVC encoder. Setting it to 0
-> +    disables the feature and setting it to 1 enables the wavefront parallel
-> +    processing.
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_GENERAL_PB (boolean)``
-> +    Setting the value to 1 enables combination of P and B frame for HEVC
-> +    encoder.
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_TEMPORAL_ID (boolean)``
-> +    Indicates temporal identifier for HEVC encoder which is enabled by
-> +    setting the value to 1.
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_STRONG_SMOOTHING (boolean)``
-> +    Indicates bi-linear interpolation is conditionally used in the intra
-> +    prediction filtering process in the CVS when set to 1. Indicates bi-linear
-> +    interpolation is not used in the CVS when set to 0.
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_MAX_NUM_MERGE_MV_MINUS1 (integer)``
-> +    Indicates maximum number of merge candidate motion vectors.
-> +    Values are from zero to four.
-
-Use number 0 and 4 instead of text.
-
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_TMV_PREDICTION (boolean)``
-> +    Indicates temporal motion vector prediction for HEVC encoder. Setting it to
-> +    1 enables the prediction. Setting it to 0 disables the prediction.
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_WITHOUT_STARTCODE (boolean)``
-> +    Specifies if HEVC generates a stream with a size of the length field
-> +    instead of start code pattern. The size of the length field is configurable
-> +    through the V4L2_CID_MPEG_VIDEO_HEVC_SIZE_OF_LENGTH_FIELD control. Setting
-> +    the value to 0 disables encoding without startcode pattern. Setting the
-> +    value to 1 will enables encoding without startcode pattern.
-> +
-> +.. _v4l2-hevc-size-of-length-field:
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_SIZE_OF_LENGTH_FIELD``
-> +(enum)
-> +
-> +enum v4l2_mpeg_video_hevc_size_of_length_field -
-> +    Indicates the size of length field.
-> +    This is valid when encoding WITHOUT_STARTCODE_ENABLE is enabled.
-> +
-> +.. raw:: latex
-> +
-> +    \begin{adjustbox}{width=\columnwidth}
-> +
-> +.. tabularcolumns:: |p{11.0cm}|p{10.0cm}|
-> +
-> +.. flat-table::
-> +    :header-rows:  0
-> +    :stub-columns: 0
-> +
-> +    * - ``V4L2_MPEG_VIDEO_HEVC_SIZE_0``
-> +      - Generate start code pattern (Normal).
-> +    * - ``V4L2_MPEG_VIDEO_HEVC_SIZE_1``
-> +      - Generate size of length field instead of start code pattern and length is 1.
-> +    * - ``V4L2_MPEG_VIDEO_HEVC_SIZE_2``
-> +      - Generate size of length field instead of start code pattern and length is 2.
-> +    * - ``V4L2_MPEG_VIDEO_HEVC_SIZE_4``
-> +      - Generate size of length field instead of start code pattern and length is 4.
-> +
-> +.. raw:: latex
-> +
-> +    \end{adjustbox}
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L0_BR (integer)``
-> +    Indicates bit rate for hierarchical coding layer 0 for HEVC encoder.
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L1_BR (integer)``
-> +    Indicates bit rate for hierarchical coding layer 1 for HEVC encoder.
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L2_BR (integer)``
-> +    Indicates bit rate for hierarchical coding layer 2 for HEVC encoder.
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L3_BR (integer)``
-> +    Indicates bit rate for hierarchical coding layer 3 for HEVC encoder.
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L4_BR (integer)``
-> +    Indicates bit rate for hierarchical coding layer 4 for HEVC encoder.
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L5_BR (integer)``
-> +    Indicates bit rate for hierarchical coding layer 5 for HEVC encoder.
-> +
-> +``V4L2_CID_MPEG_VIDEO_HEVC_HIER_CODING_L6_BR (integer)``
-> +    Indicates bit rate for hierarchical coding layer 6 for HEVC encoder.
-> +
-> +``V4L2_CID_MPEG_VIDEO_REF_NUMBER_FOR_PFRAMES (integer)``
-> +    Selects number of P reference pictures required for HEVC encoder.
-> +    P-Frame can use 1 or 2 frames for reference.
-> +
-> +``V4L2_CID_MPEG_VIDEO_PREPEND_SPSPPS_TO_IDR (integer)``
-> +    Indicates whether to generate SPS and PPS at every IDR. Setting it to 0
-> +    disables generating SPS and PPS at every IDR. Setting it to one enables
-> +    generating SPS and PPS at every IDR.
-> +
-> +
->  .. _camera-controls:
->  
->  Camera Control Reference
-> 
+This pull request has Cc's to stable to get this in for 4.15 (it should
+apply cleanly for 4.15).
 
 Regards,
 
 	Hans
+
+Changes since v2:
+- Add remaining Acks from Sakari
+- Fix two whitespace issues in v4l2-compat-ioctl32.c
+- Added 'Fixes' tag.
+
+Changes since v1:
+- Incorporated all Sakari's comments
+- Added the 'v4l2-ioctl.c: don't copy back the result for -ENOTTY' patch
+  (suggested by Sakari).
+- Added back the "Reported-by" tag for the last patch.
+- Added "Co-Developed-by" tag for the last patch.
+- Added "Cc: <stable@vger.kernel.org>      # for v4.15 and up" tags to
+  this series.
+
+
+The following changes since commit 4852fdca8818972d0ea5b5ce7114da628f9954a4:
+
+  media: i2c: ov7740: use gpio/consumer.h instead of gpio.h (2018-01-23 08:13:02 -0500)
+
+are available in the git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git compatcve2
+
+for you to fetch changes up to 74e1562a58f58be57b0e75f744aa9b2e5b32a3f3:
+
+  v4l2-compat-ioctl32.c: refactor, fix security bug in compat ioctl32 (2018-01-30 12:55:20 +0100)
+
+----------------------------------------------------------------
+Daniel Mentz (1):
+      v4l2-compat-ioctl32.c: refactor, fix security bug in compat ioctl32
+
+Hans Verkuil (12):
+      vivid: fix module load error when enabling fb and no_error_inj=1
+      v4l2-ioctl.c: use check_fmt for enum/g/s/try_fmt
+      v4l2-ioctl.c: don't copy back the result for -ENOTTY
+      v4l2-compat-ioctl32.c: add missing VIDIOC_PREPARE_BUF
+      v4l2-compat-ioctl32.c: fix the indentation
+      v4l2-compat-ioctl32.c: move 'helper' functions to __get/put_v4l2_format32
+      v4l2-compat-ioctl32.c: avoid sizeof(type)
+      v4l2-compat-ioctl32.c: copy m.userptr in put_v4l2_plane32
+      v4l2-compat-ioctl32.c: fix ctrl_is_pointer
+      v4l2-compat-ioctl32.c: copy clip list in put_v4l2_window32
+      v4l2-compat-ioctl32.c: drop pr_info for unknown buffer type
+      v4l2-compat-ioctl32.c: don't copy back the result for certain errors
+
+ drivers/media/platform/vivid/vivid-core.h     |    1 +
+ drivers/media/platform/vivid/vivid-ctrls.c    |   35 ++-
+ drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 1032 ++++++++++++++++++++++++++++++++++++-------------------------
+ drivers/media/v4l2-core/v4l2-ioctl.c          |  145 ++++-----
+ 4 files changed, 695 insertions(+), 518 deletions(-)
