@@ -1,114 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:39628 "EHLO
-        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750841AbeARMhr (ORCPT
+Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:53391 "EHLO
+        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751273AbeA3Lx4 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 18 Jan 2018 07:37:47 -0500
-Subject: Re: [RFC PATCH] v4l2-event/dev: wakeup pending events when
- unregistering
+        Tue, 30 Jan 2018 06:53:56 -0500
+Subject: Re: [PATCHv2 13/13] v4l2-compat-ioctl32.c: refactor, fix security bug
+ in compat ioctl32
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org, Daniel Mentz <danielmentz@google.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>, stable@vger.kernel.org
+References: <20180130102701.13664-1-hverkuil@xs4all.nl>
+ <20180130102701.13664-14-hverkuil@xs4all.nl>
+ <20180130114619.v55lvnto3wxnhygt@valkosipuli.retiisi.org.uk>
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Michael Walz <m.walz@digitalendoscopy.de>
-References: <83e3318b-3f6e-7f27-6585-b5b69ddd9f65@xs4all.nl>
-Message-ID: <2a468331-a586-eb99-0e6a-6e3245a517f8@xs4all.nl>
-Date: Thu, 18 Jan 2018 13:37:32 +0100
+Message-ID: <ae433de5-cd6c-74d0-9ca4-e59d2e8e2a13@xs4all.nl>
+Date: Tue, 30 Jan 2018 12:53:51 +0100
 MIME-Version: 1.0
-In-Reply-To: <83e3318b-3f6e-7f27-6585-b5b69ddd9f65@xs4all.nl>
+In-Reply-To: <20180130114619.v55lvnto3wxnhygt@valkosipuli.retiisi.org.uk>
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/18/18 12:21, Hans Verkuil wrote:
-> When the video device is unregistered any filehandles waiting on
-> an event (i.e. in VIDIOC_DQEVENT) will never wake up.
+On 01/30/18 12:46, Sakari Ailus wrote:
+> Hi Hans,
 > 
-> Wake them up and detect that the video device is unregistered in
-> __v4l2_event_dequeue() and return -ENODEV in that case.
+> Thanks for the update. Please see a few additional comments below.
 > 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> On Tue, Jan 30, 2018 at 11:27:01AM +0100, Hans Verkuil wrote:
+> ...
+>> @@ -891,30 +1057,53 @@ static long do_video_ioctl(struct file *file, unsigned int cmd, unsigned long ar
+>>  	case VIDIOC_STREAMOFF:
+>>  	case VIDIOC_S_INPUT:
+>>  	case VIDIOC_S_OUTPUT:
+>> -		err = get_user(karg.vi, (s32 __user *)up);
+>> +		err = alloc_userspace(sizeof(unsigned int), 0, &up_native);
+>> +		if (!err && assign_in_user((unsigned int __user *)up_native,
+>> +					   (compat_uint_t __user *)up))
+>> +			err = -EFAULT;
+>>  		compatible_arg = 0;
+>>  		break;
+>>  
+>>  	case VIDIOC_G_INPUT:
+>>  	case VIDIOC_G_OUTPUT:
+>> +		err = alloc_userspace(sizeof(unsigned int), 0,
+>> +				      &up_native);
+> 
+> Fits on a single line.
 
-Ignore this patch, it's wrong (or incomplete to be precise).
+Changed.
 
-Regards,
+> 
+>>  		compatible_arg = 0;
+>>  		break;
+>>  
+>>  	case VIDIOC_G_EDID:
+>>  	case VIDIOC_S_EDID:
+>> -		err = get_v4l2_edid32(&karg.v2edid, up);
+>> +		err = alloc_userspace(sizeof(struct v4l2_edid), 0, &up_native);
+>> +		if (!err)
+>> +			err = get_v4l2_edid32(up_native, up);
+>>  		compatible_arg = 0;
+>>  		break;
+>>  
+>>  	case VIDIOC_G_FMT:
+>>  	case VIDIOC_S_FMT:
+>>  	case VIDIOC_TRY_FMT:
+>> -		err = get_v4l2_format32(&karg.v2f, up);
+>> +		err = bufsize_v4l2_format(up, &aux_space);
+>> +		if (!err)
+>> +			err = alloc_userspace(sizeof(struct v4l2_format),
+>> +					      aux_space, &up_native);
+>> +		if (!err) {
+>> +			aux_buf = up_native + sizeof(struct v4l2_format);
+>> +			err = get_v4l2_format32(up_native, up,
+>> +						aux_buf, aux_space);
+>> +		}
+>>  		compatible_arg = 0;
+>>  		break;
+>>  
+>>  	case VIDIOC_CREATE_BUFS:
+>> -		err = get_v4l2_create32(&karg.v2crt, up);
+>> +		err = bufsize_v4l2_create(up, &aux_space);
+>> +		if (!err)
+>> +			err = alloc_userspace(sizeof(struct v4l2_create_buffers),
+>> +					    aux_space, &up_native);
+>> +		if (!err) {
+>> +			aux_buf = up_native + sizeof(struct v4l2_create_buffers);
+> 
+> A few lines over 80 characters. It's not a lot but I see no reason to avoid
+> wrapping them either.
+
+I'm not changing this. It looks really ugly if I split it up.
+
+> 
+>> +			err = get_v4l2_create32(up_native, up,
+>> +						aux_buf, aux_space);
+>> +		}
+>>  		compatible_arg = 0;
+>>  		break;
+>>  
+> 
+> The above can be addressed later, right now this isn't a priority.
+> 
+> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> 
+
+Thanks!
 
 	Hans
-
-> ---
-> Note: this is a quick hack, just for events. We have the same problem
-> with vb2 (waiting for a buffer) and cec (waiting for an event). Not sure if rc
-> or dvb are also suffering from the same problem.
-> 
-> I wonder if there is an easier way to wake up all fhs that are waiting for
-> some event.
-> 
-> Michael: most applications use non-blocking mode and poll/select to wait
-> for something to happen. In such applications the poll/select will return
-> when the device is unregistered and this problem does not occur.
-> ---
-> diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
-> index d5e0e536ef04..42574ccbd770 100644
-> --- a/drivers/media/v4l2-core/v4l2-dev.c
-> +++ b/drivers/media/v4l2-core/v4l2-dev.c
-> @@ -1017,6 +1017,9 @@ EXPORT_SYMBOL(__video_register_device);
->   */
->  void video_unregister_device(struct video_device *vdev)
->  {
-> +	unsigned long flags;
-> +	struct v4l2_fh *fh;
-> +
->  	/* Check if vdev was ever registered at all */
->  	if (!vdev || !video_is_registered(vdev))
->  		return;
-> @@ -1027,6 +1030,12 @@ void video_unregister_device(struct video_device *vdev)
->  	 */
->  	clear_bit(V4L2_FL_REGISTERED, &vdev->flags);
->  	mutex_unlock(&videodev_lock);
-> +
-> +	spin_lock_irqsave(&vdev->fh_lock, flags);
-> +	list_for_each_entry(fh, &vdev->fh_list, list)
-> +		wake_up_all(&fh->wait);
-> +	spin_unlock_irqrestore(&vdev->fh_lock, flags);
-> +
->  	device_unregister(&vdev->dev);
->  }
->  EXPORT_SYMBOL(video_unregister_device);
-> diff --git a/drivers/media/v4l2-core/v4l2-event.c b/drivers/media/v4l2-core/v4l2-event.c
-> index 968c2eb08b5a..d04977cd1bfb 100644
-> --- a/drivers/media/v4l2-core/v4l2-event.c
-> +++ b/drivers/media/v4l2-core/v4l2-event.c
-> @@ -36,12 +36,17 @@ static int __v4l2_event_dequeue(struct v4l2_fh *fh, struct v4l2_event *event)
->  {
->  	struct v4l2_kevent *kev;
->  	unsigned long flags;
-> +	int ret = 0;
-> 
->  	spin_lock_irqsave(&fh->vdev->fh_lock, flags);
-> 
-> +	if (!video_is_registered(fh->vdev)) {
-> +		ret = -ENODEV;
-> +		goto err;
-> +	}
->  	if (list_empty(&fh->available)) {
-> -		spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
-> -		return -ENOENT;
-> +		ret = -ENOENT;
-> +		goto err;
->  	}
-> 
->  	WARN_ON(fh->navailable == 0);
-> @@ -54,10 +59,10 @@ static int __v4l2_event_dequeue(struct v4l2_fh *fh, struct v4l2_event *event)
->  	*event = kev->event;
->  	kev->sev->first = sev_pos(kev->sev, 1);
->  	kev->sev->in_use--;
-> -
-> +err:
->  	spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
-> 
-> -	return 0;
-> +	return ret;
->  }
-> 
->  int v4l2_event_dequeue(struct v4l2_fh *fh, struct v4l2_event *event,
-> 
