@@ -1,46 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:63178 "EHLO mga14.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750757AbeASG1s (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Fri, 19 Jan 2018 01:27:48 -0500
-From: Yong Zhi <yong.zhi@intel.com>
-To: linux-media@vger.kernel.org, sakari.ailus@linux.intel.com
-Cc: rajmohan.mani@intel.com, tfiga@chromium.org,
-        Yong Zhi <yong.zhi@intel.com>,
-        Cao Bing Bu <bingbu.cao@intel.com>
-Subject: [PATCH] media: intel-ipu3: cio2: fixup off-by-one bug in cio2_vb2_buf_init
-Date: Fri, 19 Jan 2018 00:27:34 -0600
-Message-Id: <1516343254-14297-1-git-send-email-yong.zhi@intel.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:45395 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752267AbeA3OcG (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 30 Jan 2018 09:32:06 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, Daniel Mentz <danielmentz@google.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>, stable@vger.kernel.org
+Subject: Re: [PATCHv2 12/13] v4l2-compat-ioctl32.c: don't copy back the result for certain errors
+Date: Tue, 30 Jan 2018 16:32:22 +0200
+Message-ID: <5974400.0qDhsOljgk@avalon>
+In-Reply-To: <20180130102701.13664-13-hverkuil@xs4all.nl>
+References: <20180130102701.13664-1-hverkuil@xs4all.nl> <20180130102701.13664-13-hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-With "pages" initialized to vb length + 1 pages, the condition
-check if(!pages--) will break at one more page than intended,
-this can result in out-of-bound access to b->lop[i][j] when setting
-the last dummy page.
+Hi Hans,
 
-Fix: commit c7cbef1fdb54 ("media: intel-ipu3: cio2: fix a crash with out-of-bounds access")
-Signed-off-by: Yong Zhi <yong.zhi@intel.com>
-Signed-off-by: Cao Bing Bu <bingbu.cao@intel.com>
----
- drivers/media/pci/intel/ipu3/ipu3-cio2.c | 5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+Thank you for the patch.
 
-diff --git a/drivers/media/pci/intel/ipu3/ipu3-cio2.c b/drivers/media/pci/intel/ipu3/ipu3-cio2.c
-index 9db752a7f363..8c9f8f56f5df 100644
---- a/drivers/media/pci/intel/ipu3/ipu3-cio2.c
-+++ b/drivers/media/pci/intel/ipu3/ipu3-cio2.c
-@@ -839,9 +839,8 @@ static int cio2_vb2_buf_init(struct vb2_buffer *vb)
- 		container_of(vb, struct cio2_buffer, vbb.vb2_buf);
- 	static const unsigned int entries_per_page =
- 		CIO2_PAGE_SIZE / sizeof(u32);
--	unsigned int pages = DIV_ROUND_UP(vb->planes[0].length,
--					  CIO2_PAGE_SIZE) + 1;
--	unsigned int lops = DIV_ROUND_UP(pages, entries_per_page);
-+	unsigned int pages = DIV_ROUND_UP(vb->planes[0].length, CIO2_PAGE_SIZE);
-+	unsigned int lops = DIV_ROUND_UP(pages + 1, entries_per_page);
- 	struct sg_table *sg;
- 	struct sg_page_iter sg_iter;
- 	int i, j;
+On Tuesday, 30 January 2018 12:27:00 EET Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> Some ioctls need to copy back the result even if the ioctl returned
+> an error. However, don't do this for the error code -ENOTTY.
+> It makes no sense in that cases.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> Cc: <stable@vger.kernel.org>      # for v4.15 and up
+> ---
+>  drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 3 +++
+>  1 file changed, 3 insertions(+)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+> b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c index
+> 7ee3777cbe9c..3a1fca1440ac 100644
+> --- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+> +++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+> @@ -968,6 +968,9 @@ static long do_video_ioctl(struct file *file, unsigned
+> int cmd, unsigned long ar set_fs(old_fs);
+>  	}
+> 
+> +	if (err == -ENOTTY)
+
+Should we also handle -ENOIOCTLCMD as in video_usercopy() ?
+
+> +		return err;
+> +
+>  	/* Special case: even after an error we need to put the
+>  	   results back for these ioctls since the error_idx will
+>  	   contain information on which control failed. */
+
+
 -- 
-2.7.4
+Regards,
+
+Laurent Pinchart
