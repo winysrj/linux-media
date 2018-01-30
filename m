@@ -1,257 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from vsp-unauthed02.binero.net ([195.74.38.227]:45658 "EHLO
-        bin-vsp-out-03.atm.binero.net" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1751643AbeA2Qfl (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:50594 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751411AbeA3LqX (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 29 Jan 2018 11:35:41 -0500
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH v10 20/30] rcar-vin: use different v4l2 operations in media controller mode
-Date: Mon, 29 Jan 2018 17:34:25 +0100
-Message-Id: <20180129163435.24936-21-niklas.soderlund+renesas@ragnatech.se>
-In-Reply-To: <20180129163435.24936-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20180129163435.24936-1-niklas.soderlund+renesas@ragnatech.se>
+        Tue, 30 Jan 2018 06:46:23 -0500
+Date: Tue, 30 Jan 2018 13:46:20 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, Daniel Mentz <danielmentz@google.com>,
+        Hans Verkuil <hans.verkuil@cisco.com>, stable@vger.kernel.org
+Subject: Re: [PATCHv2 13/13] v4l2-compat-ioctl32.c: refactor, fix security
+ bug in compat ioctl32
+Message-ID: <20180130114619.v55lvnto3wxnhygt@valkosipuli.retiisi.org.uk>
+References: <20180130102701.13664-1-hverkuil@xs4all.nl>
+ <20180130102701.13664-14-hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20180130102701.13664-14-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When the driver runs in media controller mode it should not directly
-control the subdevice instead userspace will be responsible for
-configuring the pipeline. To be able to run in this mode a different set
-of v4l2 operations needs to be used.
+Hi Hans,
 
-Add a new set of v4l2 operations to support operation without directly
-interacting with the source subdevice.
+Thanks for the update. Please see a few additional comments below.
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
-Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/platform/rcar-vin/rcar-dma.c  |   3 +-
- drivers/media/platform/rcar-vin/rcar-v4l2.c | 155 +++++++++++++++++++++++++++-
- 2 files changed, 154 insertions(+), 4 deletions(-)
+On Tue, Jan 30, 2018 at 11:27:01AM +0100, Hans Verkuil wrote:
+...
+> @@ -891,30 +1057,53 @@ static long do_video_ioctl(struct file *file, unsigned int cmd, unsigned long ar
+>  	case VIDIOC_STREAMOFF:
+>  	case VIDIOC_S_INPUT:
+>  	case VIDIOC_S_OUTPUT:
+> -		err = get_user(karg.vi, (s32 __user *)up);
+> +		err = alloc_userspace(sizeof(unsigned int), 0, &up_native);
+> +		if (!err && assign_in_user((unsigned int __user *)up_native,
+> +					   (compat_uint_t __user *)up))
+> +			err = -EFAULT;
+>  		compatible_arg = 0;
+>  		break;
+>  
+>  	case VIDIOC_G_INPUT:
+>  	case VIDIOC_G_OUTPUT:
+> +		err = alloc_userspace(sizeof(unsigned int), 0,
+> +				      &up_native);
 
-diff --git a/drivers/media/platform/rcar-vin/rcar-dma.c b/drivers/media/platform/rcar-vin/rcar-dma.c
-index ae286742f15a3ab5..811d8f8638d21200 100644
---- a/drivers/media/platform/rcar-vin/rcar-dma.c
-+++ b/drivers/media/platform/rcar-vin/rcar-dma.c
-@@ -628,7 +628,8 @@ static int rvin_setup(struct rvin_dev *vin)
- 		/* Default to TB */
- 		vnmc = VNMC_IM_FULL;
- 		/* Use BT if video standard can be read and is 60 Hz format */
--		if (!v4l2_subdev_call(vin_to_source(vin), video, g_std, &std)) {
-+		if (!vin->info->use_mc &&
-+		    !v4l2_subdev_call(vin_to_source(vin), video, g_std, &std)) {
- 			if (std & V4L2_STD_525_60)
- 				vnmc = VNMC_IM_FULL | VNMC_FOC;
- 		}
-diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-index f69ae76b3fda50c7..292e1f22a4be36c7 100644
---- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-+++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-@@ -18,11 +18,14 @@
- 
- #include <media/v4l2-event.h>
- #include <media/v4l2-ioctl.h>
-+#include <media/v4l2-mc.h>
- #include <media/v4l2-rect.h>
- 
- #include "rcar-vin.h"
- 
- #define RVIN_DEFAULT_FORMAT	V4L2_PIX_FMT_YUYV
-+#define RVIN_DEFAULT_WIDTH	800
-+#define RVIN_DEFAULT_HEIGHT	600
- #define RVIN_DEFAULT_FIELD	V4L2_FIELD_NONE
- #define RVIN_DEFAULT_COLORSPACE	V4L2_COLORSPACE_SRGB
- 
-@@ -698,6 +701,83 @@ static const struct v4l2_ioctl_ops rvin_ioctl_ops = {
- 	.vidioc_unsubscribe_event	= v4l2_event_unsubscribe,
- };
- 
-+/* -----------------------------------------------------------------------------
-+ * V4L2 Media Controller
-+ */
-+
-+static int __rvin_mc_try_format(struct rvin_dev *vin,
-+				struct v4l2_pix_format *pix)
-+{
-+	if (pix->field == V4L2_FIELD_ANY)
-+		pix->field = RVIN_DEFAULT_FIELD;
-+
-+	return rvin_format_align(vin, pix);
-+}
-+
-+static int rvin_mc_try_fmt_vid_cap(struct file *file, void *priv,
-+				   struct v4l2_format *f)
-+{
-+	struct rvin_dev *vin = video_drvdata(file);
-+
-+	return __rvin_mc_try_format(vin, &f->fmt.pix);
-+}
-+
-+static int rvin_mc_s_fmt_vid_cap(struct file *file, void *priv,
-+				 struct v4l2_format *f)
-+{
-+	struct rvin_dev *vin = video_drvdata(file);
-+	int ret;
-+
-+	if (vb2_is_busy(&vin->queue))
-+		return -EBUSY;
-+
-+	ret = __rvin_mc_try_format(vin, &f->fmt.pix);
-+	if (ret)
-+		return ret;
-+
-+	vin->format = f->fmt.pix;
-+
-+	return 0;
-+}
-+
-+static int rvin_mc_enum_input(struct file *file, void *priv,
-+			      struct v4l2_input *i)
-+{
-+	if (i->index != 0)
-+		return -EINVAL;
-+
-+	i->type = V4L2_INPUT_TYPE_CAMERA;
-+	strlcpy(i->name, "Camera", sizeof(i->name));
-+
-+	return 0;
-+}
-+
-+static const struct v4l2_ioctl_ops rvin_mc_ioctl_ops = {
-+	.vidioc_querycap		= rvin_querycap,
-+	.vidioc_try_fmt_vid_cap		= rvin_mc_try_fmt_vid_cap,
-+	.vidioc_g_fmt_vid_cap		= rvin_g_fmt_vid_cap,
-+	.vidioc_s_fmt_vid_cap		= rvin_mc_s_fmt_vid_cap,
-+	.vidioc_enum_fmt_vid_cap	= rvin_enum_fmt_vid_cap,
-+
-+	.vidioc_enum_input		= rvin_mc_enum_input,
-+	.vidioc_g_input			= rvin_g_input,
-+	.vidioc_s_input			= rvin_s_input,
-+
-+	.vidioc_reqbufs			= vb2_ioctl_reqbufs,
-+	.vidioc_create_bufs		= vb2_ioctl_create_bufs,
-+	.vidioc_querybuf		= vb2_ioctl_querybuf,
-+	.vidioc_qbuf			= vb2_ioctl_qbuf,
-+	.vidioc_dqbuf			= vb2_ioctl_dqbuf,
-+	.vidioc_expbuf			= vb2_ioctl_expbuf,
-+	.vidioc_prepare_buf		= vb2_ioctl_prepare_buf,
-+	.vidioc_streamon		= vb2_ioctl_streamon,
-+	.vidioc_streamoff		= vb2_ioctl_streamoff,
-+
-+	.vidioc_log_status		= v4l2_ctrl_log_status,
-+	.vidioc_subscribe_event		= rvin_subscribe_event,
-+	.vidioc_unsubscribe_event	= v4l2_event_unsubscribe,
-+};
-+
- /* -----------------------------------------------------------------------------
-  * File Operations
-  */
-@@ -841,6 +921,60 @@ static const struct v4l2_file_operations rvin_fops = {
- 	.read		= vb2_fop_read,
- };
- 
-+/* -----------------------------------------------------------------------------
-+ * Media controller file operations
-+ */
-+
-+static int rvin_mc_open(struct file *file)
-+{
-+	struct rvin_dev *vin = video_drvdata(file);
-+	int ret;
-+
-+	mutex_lock(&vin->lock);
-+
-+	file->private_data = vin;
-+
-+	ret = v4l2_fh_open(file);
-+	if (ret)
-+		goto unlock;
-+
-+	pm_runtime_get_sync(vin->dev);
-+	v4l2_pipeline_pm_use(&vin->vdev.entity, 1);
-+
-+unlock:
-+	mutex_unlock(&vin->lock);
-+
-+	return ret;
-+}
-+
-+static int rvin_mc_release(struct file *file)
-+{
-+	struct rvin_dev *vin = video_drvdata(file);
-+	int ret;
-+
-+	mutex_lock(&vin->lock);
-+
-+	/* the release helper will cleanup any on-going streaming */
-+	ret = _vb2_fop_release(file, NULL);
-+
-+	v4l2_pipeline_pm_use(&vin->vdev.entity, 0);
-+	pm_runtime_put(vin->dev);
-+
-+	mutex_unlock(&vin->lock);
-+
-+	return ret;
-+}
-+
-+static const struct v4l2_file_operations rvin_mc_fops = {
-+	.owner		= THIS_MODULE,
-+	.unlocked_ioctl	= video_ioctl2,
-+	.open		= rvin_mc_open,
-+	.release	= rvin_mc_release,
-+	.poll		= vb2_fop_poll,
-+	.mmap		= vb2_fop_mmap,
-+	.read		= vb2_fop_read,
-+};
-+
- void rvin_v4l2_unregister(struct rvin_dev *vin)
- {
- 	if (!video_is_registered(&vin->vdev))
-@@ -876,18 +1010,33 @@ int rvin_v4l2_register(struct rvin_dev *vin)
- 	vin->v4l2_dev.notify = rvin_notify;
- 
- 	/* video node */
--	vdev->fops = &rvin_fops;
- 	vdev->v4l2_dev = &vin->v4l2_dev;
- 	vdev->queue = &vin->queue;
- 	strlcpy(vdev->name, KBUILD_MODNAME, sizeof(vdev->name));
- 	vdev->release = video_device_release_empty;
--	vdev->ioctl_ops = &rvin_ioctl_ops;
- 	vdev->lock = &vin->lock;
- 	vdev->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING |
- 		V4L2_CAP_READWRITE;
- 
-+	/* Set a default format */
- 	vin->format.pixelformat	= RVIN_DEFAULT_FORMAT;
--	rvin_reset_format(vin);
-+	vin->format.width = RVIN_DEFAULT_WIDTH;
-+	vin->format.height = RVIN_DEFAULT_HEIGHT;
-+	vin->format.field = RVIN_DEFAULT_FIELD;
-+	vin->format.colorspace = RVIN_DEFAULT_COLORSPACE;
-+
-+	if (vin->info->use_mc) {
-+		vdev->fops = &rvin_mc_fops;
-+		vdev->ioctl_ops = &rvin_mc_ioctl_ops;
-+	} else {
-+		vdev->fops = &rvin_fops;
-+		vdev->ioctl_ops = &rvin_ioctl_ops;
-+		rvin_reset_format(vin);
-+	}
-+
-+	ret = rvin_format_align(vin, &vin->format);
-+	if (ret)
-+		return ret;
- 
- 	ret = video_register_device(&vin->vdev, VFL_TYPE_GRABBER, -1);
- 	if (ret) {
+Fits on a single line.
+
+>  		compatible_arg = 0;
+>  		break;
+>  
+>  	case VIDIOC_G_EDID:
+>  	case VIDIOC_S_EDID:
+> -		err = get_v4l2_edid32(&karg.v2edid, up);
+> +		err = alloc_userspace(sizeof(struct v4l2_edid), 0, &up_native);
+> +		if (!err)
+> +			err = get_v4l2_edid32(up_native, up);
+>  		compatible_arg = 0;
+>  		break;
+>  
+>  	case VIDIOC_G_FMT:
+>  	case VIDIOC_S_FMT:
+>  	case VIDIOC_TRY_FMT:
+> -		err = get_v4l2_format32(&karg.v2f, up);
+> +		err = bufsize_v4l2_format(up, &aux_space);
+> +		if (!err)
+> +			err = alloc_userspace(sizeof(struct v4l2_format),
+> +					      aux_space, &up_native);
+> +		if (!err) {
+> +			aux_buf = up_native + sizeof(struct v4l2_format);
+> +			err = get_v4l2_format32(up_native, up,
+> +						aux_buf, aux_space);
+> +		}
+>  		compatible_arg = 0;
+>  		break;
+>  
+>  	case VIDIOC_CREATE_BUFS:
+> -		err = get_v4l2_create32(&karg.v2crt, up);
+> +		err = bufsize_v4l2_create(up, &aux_space);
+> +		if (!err)
+> +			err = alloc_userspace(sizeof(struct v4l2_create_buffers),
+> +					    aux_space, &up_native);
+> +		if (!err) {
+> +			aux_buf = up_native + sizeof(struct v4l2_create_buffers);
+
+A few lines over 80 characters. It's not a lot but I see no reason to avoid
+wrapping them either.
+
+> +			err = get_v4l2_create32(up_native, up,
+> +						aux_buf, aux_space);
+> +		}
+>  		compatible_arg = 0;
+>  		break;
+>  
+
+The above can be addressed later, right now this isn't a priority.
+
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+
 -- 
-2.16.1
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
