@@ -1,70 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay4-d.mail.gandi.net ([217.70.183.196]:48853 "EHLO
-        relay4-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751850AbeA3J6x (ORCPT
+Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:40621 "EHLO
+        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751219AbeA3LQB (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 30 Jan 2018 04:58:53 -0500
-From: Jacopo Mondi <jacopo+renesas@jmondi.org>
-To: laurent.pinchart@ideasonboard.com, magnus.damm@gmail.com,
-        geert@glider.be, hverkuil@xs4all.nl, mchehab@kernel.org,
-        festevam@gmail.com, sakari.ailus@iki.fi, robh+dt@kernel.org,
-        mark.rutland@arm.com, pombredanne@nexb.com
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-sh@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH v8 02/11] include: media: Add Renesas CEU driver interface
-Date: Tue, 30 Jan 2018 10:58:13 +0100
-Message-Id: <1517306302-27957-3-git-send-email-jacopo+renesas@jmondi.org>
-In-Reply-To: <1517306302-27957-1-git-send-email-jacopo+renesas@jmondi.org>
-References: <1517306302-27957-1-git-send-email-jacopo+renesas@jmondi.org>
+        Tue, 30 Jan 2018 06:16:01 -0500
+Subject: Re: [PATCH 8/8] platform: vivid-cec: fix potential integer overflow
+ in vivid_cec_pin_adap_events
+To: "Gustavo A. R. Silva" <garsilva@embeddedor.com>
+Cc: "Gustavo A. R. Silva" <gustavo@embeddedor.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+References: <cover.1517268667.git.gustavo@embeddedor.com>
+ <00eea53890802b679c138fc7f68a0f162261d95c.1517268668.git.gustavo@embeddedor.com>
+ <2e1afa55-d214-f932-4ba7-2e21f6a2cd3d@xs4all.nl>
+ <20180130025141.Horde.h4aoQSwrqdPlpFtSKtB9DuS@gator4166.hostgator.com>
+ <43652014-30af-1e4b-c0a9-c23f9633fb2f@xs4all.nl>
+ <20180130045545.Horde.1SSKgcFKaDeoUtmczJ8SRH1@gator4166.hostgator.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <3efaaf36-8edb-d899-b89d-902ba1bc63a6@xs4all.nl>
+Date: Tue, 30 Jan 2018 12:15:55 +0100
+MIME-Version: 1.0
+In-Reply-To: <20180130045545.Horde.1SSKgcFKaDeoUtmczJ8SRH1@gator4166.hostgator.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add renesas-ceu header file.
+On 01/30/18 11:55, Gustavo A. R. Silva wrote:
+> 
+> Quoting Hans Verkuil <hverkuil@xs4all.nl>:
+> 
+>> On 01/30/2018 09:51 AM, Gustavo A. R. Silva wrote:
+>>> Hi Hans,
+>>>
+>>> Quoting Hans Verkuil <hverkuil@xs4all.nl>:
+>>>
+>>>> Hi Gustavo,
+>>>>
+>>>> On 01/30/2018 01:33 AM, Gustavo A. R. Silva wrote:
+>>>>> Cast len to const u64 in order to avoid a potential integer
+>>>>> overflow. This variable is being used in a context that expects
+>>>>> an expression of type const u64.
+>>>>>
+>>>>> Addresses-Coverity-ID: 1454996 ("Unintentional integer overflow")
+>>>>> Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
+>>>>> ---
+>>>>>  drivers/media/platform/vivid/vivid-cec.c | 2 +-
+>>>>>  1 file changed, 1 insertion(+), 1 deletion(-)
+>>>>>
+>>>>> diff --git a/drivers/media/platform/vivid/vivid-cec.c
+>>>>> b/drivers/media/platform/vivid/vivid-cec.c
+>>>>> index b55d278..30240ab 100644
+>>>>> --- a/drivers/media/platform/vivid/vivid-cec.c
+>>>>> +++ b/drivers/media/platform/vivid/vivid-cec.c
+>>>>> @@ -83,7 +83,7 @@ static void vivid_cec_pin_adap_events(struct
+>>>>> cec_adapter *adap, ktime_t ts,
+>>>>>  	if (adap == NULL)
+>>>>>  		return;
+>>>>>  	ts = ktime_sub_us(ts, (CEC_TIM_START_BIT_TOTAL +
+>>>>> -			       len * 10 * CEC_TIM_DATA_BIT_TOTAL));
+>>>>> +			       (const u64)len * 10 * CEC_TIM_DATA_BIT_TOTAL));
+>>>>
+>>>> This makes no sense. Certainly the const part is pointless. And given that
+>>>> len is always <= 16 there definitely is no overflow.
+>>>>
+>>>
+>>> Yeah, I understand your point and I know there is no chance of an
+>>> overflow in this particular case.
+>>>
+>>>> I don't really want this cast in the code.
+>>>>
+>>>> Sorry,
+>>>>
+>>>
+>>> I'm working through all the Linux kernel Coverity reports, and I
+>>> thought of sending a patch for this because IMHO it doesn't hurt to
+>>> give the compiler complete information about the arithmetic in which
+>>> an expression is intended to be evaluated.
+>>>
+>>> I agree that the _const_ part is a bit odd. What do you think about
+>>> the cast to u64 alone?
+>>
+>> What happens if you do: ((u64)CEC_TIM_START_BIT_TOTAL +
+>>
+>> I think that forces everything else in the expression to be evaluated
+>> as u64.
+>>
+> 
+> Well, in this case the operator precedence takes place and the  
+> expression len * 10 * CEC_TIM_DATA_BIT_TOTAL is computed first. So the  
+> issue remains the same.
+> 
+> I can switch the expressions as follows:
+> 
+> (u64)len * 10 * CEC_TIM_DATA_BIT_TOTAL + CEC_TIM_START_BIT_TOTAL
 
-Do not remove the existing sh_mobile_ceu.h one as long as the original
-driver does not go away.
+What about:
 
-Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- include/media/drv-intf/renesas-ceu.h | 26 ++++++++++++++++++++++++++
- 1 file changed, 26 insertions(+)
- create mode 100644 include/media/drv-intf/renesas-ceu.h
+10ULL * len * ...
 
-diff --git a/include/media/drv-intf/renesas-ceu.h b/include/media/drv-intf/renesas-ceu.h
-new file mode 100644
-index 0000000..52841d1
---- /dev/null
-+++ b/include/media/drv-intf/renesas-ceu.h
-@@ -0,0 +1,26 @@
-+// SPDX-License-Identifier: GPL-2.0
-+/*
-+ * renesas-ceu.h - Renesas CEU driver interface
-+ *
-+ * Copyright 2017-2018 Jacopo Mondi <jacopo+renesas@jmondi.org>
-+ */
-+
-+#ifndef __MEDIA_DRV_INTF_RENESAS_CEU_H__
-+#define __MEDIA_DRV_INTF_RENESAS_CEU_H__
-+
-+#define CEU_MAX_SUBDEVS		2
-+
-+struct ceu_async_subdev {
-+	unsigned long flags;
-+	unsigned char bus_width;
-+	unsigned char bus_shift;
-+	unsigned int i2c_adapter_id;
-+	unsigned int i2c_address;
-+};
-+
-+struct ceu_platform_data {
-+	unsigned int num_subdevs;
-+	struct ceu_async_subdev subdevs[CEU_MAX_SUBDEVS];
-+};
-+
-+#endif /* ___MEDIA_DRV_INTF_RENESAS_CEU_H__ */
--- 
-2.7.4
+> 
+> and avoid the cast in the middle.
+> 
+> What do you think?
+
+My problem is that (u64)len suggests that there is some problem with len
+specifically, which isn't true.
+
+> 
+>> It definitely needs a comment that this fixes a bogus Coverity report.
+>>
+> 
+> I actually added the following line to the message changelog:
+> Addresses-Coverity-ID: 1454996 ("Unintentional integer overflow")
+
+That needs to be in the source, otherwise someone will remove the
+cast (or ULL) at some time in the future since it isn't clear why
+it is done. And nobody reads commit logs from X years back :-)
+
+> 
+> Certainly, I've run across multiple false positives as in this case,  
+> but I have also fixed many actual bugs thanks to the Coverity reports.  
+> So I think in general it is valuable to take a look into these  
+> reports, either if they spot actual bugs or promote code correctness.
+
+Regards,
+
+	Hans
