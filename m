@@ -1,75 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:33026 "EHLO
-        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1755473AbeASLo7 (ORCPT
+Received: from mail-pg0-f65.google.com ([74.125.83.65]:41608 "EHLO
+        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753757AbeAaK0n (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 19 Jan 2018 06:44:59 -0500
-Subject: Re: [PATCH v6 6/9] media: i2c: ov772x: Remove soc_camera dependencies
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        laurent.pinchart@ideasonboard.com, magnus.damm@gmail.com,
-        geert@glider.be, mchehab@kernel.org, festevam@gmail.com,
-        robh+dt@kernel.org, mark.rutland@arm.com, pombredanne@nexb.com,
-        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-sh@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-References: <1516139101-7835-1-git-send-email-jacopo+renesas@jmondi.org>
- <1516139101-7835-7-git-send-email-jacopo+renesas@jmondi.org>
- <d67c21e5-2488-977b-39d8-561048409209@xs4all.nl>
- <00f1dd19-6420-26ab-0529-a97f2b0de682@xs4all.nl>
- <20180119111917.76wosrokgracbdrz@valkosipuli.retiisi.org.uk>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <b65e50c0-d6d1-5340-0fe4-34aae662cf60@xs4all.nl>
-Date: Fri, 19 Jan 2018 12:44:53 +0100
-MIME-Version: 1.0
-In-Reply-To: <20180119111917.76wosrokgracbdrz@valkosipuli.retiisi.org.uk>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+        Wed, 31 Jan 2018 05:26:43 -0500
+Received: by mail-pg0-f65.google.com with SMTP id 136so9678233pgd.8
+        for <linux-media@vger.kernel.org>; Wed, 31 Jan 2018 02:26:43 -0800 (PST)
+From: Alexandre Courbot <acourbot@chromium.org>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Pawel Osciak <posciak@chromium.org>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Tomasz Figa <tfiga@chromium.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Gustavo Padovan <gustavo.padovan@collabora.com>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Alexandre Courbot <acourbot@chromium.org>
+Subject: [RFCv2 14/17] v4l2-ctrls: support requests in EXT_CTRLS ioctls
+Date: Wed, 31 Jan 2018 19:26:22 +0900
+Message-Id: <20180131102625.208021-5-acourbot@chromium.org>
+In-Reply-To: <20180131102625.208021-1-acourbot@chromium.org>
+References: <20180131102625.208021-1-acourbot@chromium.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/19/18 12:19, Sakari Ailus wrote:
-> Hi Hans,
-> 
-> On Fri, Jan 19, 2018 at 11:47:33AM +0100, Hans Verkuil wrote:
->> On 01/19/18 11:24, Hans Verkuil wrote:
->>> On 01/16/18 22:44, Jacopo Mondi wrote:
->>>> Remove soc_camera framework dependencies from ov772x sensor driver.
->>>> - Handle clock and gpios
->>>> - Register async subdevice
->>>> - Remove soc_camera specific g/s_mbus_config operations
->>>> - Change image format colorspace from JPEG to SRGB as the two use the
->>>>   same colorspace information but JPEG makes assumptions on color
->>>>   components quantization that do not apply to the sensor
->>>> - Remove sizes crop from get_selection as driver can't scale
->>>> - Add kernel doc to driver interface header file
->>>> - Adjust build system
->>>>
->>>> This commit does not remove the original soc_camera based driver as long
->>>> as other platforms depends on soc_camera-based CEU driver.
->>>>
->>>> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
->>>> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
->>>
->>> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
->>
->> Un-acked.
->>
->> I just noticed that this sensor driver has no enum_frame_interval and
->> g/s_parm support. How would a driver ever know the frame rate of the
->> sensor without that?
-> 
-> s/_parm/_frame_interval/ ?
+Read and use the request_fd field of struct v4l2_ext_controls to apply
+VIDIOC_G_EXT_CTRLS or VIDIOC_S_EXT_CTRLS to a request when asked by
+userspace.
 
-Yes.
+Signed-off-by: Alexandre Courbot <acourbot@chromium.org>
+---
+ drivers/media/v4l2-core/v4l2-ioctl.c | 36 ++++++++++++++++++++++++++++++++++++
+ 1 file changed, 36 insertions(+)
 
-> 
-> We should have wrappers for this or rather to convert g/s_parm users to
-> g/s_frame_interval so drivers don't need to implement both.
-
-We should convert them. I wonder why we didn't?
-
-Regards,
-
-	Hans
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index 3b44f1fe4f23..0b4c9024c96b 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -30,6 +30,7 @@
+ #include <media/videobuf2-v4l2.h>
+ #include <media/v4l2-mc.h>
+ #include <media/media-request.h>
++#include <media/v4l2-request.h>
+ 
+ #include <trace/events/v4l2.h>
+ 
+@@ -2182,6 +2183,24 @@ static int v4l_g_ext_ctrls(const struct v4l2_ioctl_ops *ops,
+ 		test_bit(V4L2_FL_USES_V4L2_FH, &vfd->flags) ? fh : NULL;
+ 
+ 	p->error_idx = p->count;
++
++	if (p->request_fd > 0) {
++		struct media_request *req = NULL;
++		struct media_request_entity_data *_data;
++		struct media_request_v4l2_entity_data *data;
++		int ret;
++
++		req = check_request(p->request_fd, file, fh, &_data);
++		if (IS_ERR(req))
++			return PTR_ERR(req);
++		data = to_v4l2_entity_data(_data);
++
++		ret = v4l2_g_ext_ctrls(&data->ctrls, p);
++
++		media_request_put(req);
++		return ret;
++	}
++
+ 	if (vfh && vfh->ctrl_handler)
+ 		return v4l2_g_ext_ctrls(vfh->ctrl_handler, p);
+ 	if (vfd->ctrl_handler)
+@@ -2201,6 +2220,23 @@ static int v4l_s_ext_ctrls(const struct v4l2_ioctl_ops *ops,
+ 		test_bit(V4L2_FL_USES_V4L2_FH, &vfd->flags) ? fh : NULL;
+ 
+ 	p->error_idx = p->count;
++	if (p->request_fd > 0) {
++		struct media_request *req = NULL;
++		struct media_request_entity_data *_data;
++		struct media_request_v4l2_entity_data *data;
++		int ret;
++
++		req = check_request(p->request_fd, file, fh, &_data);
++		if (IS_ERR(req))
++			return PTR_ERR(req);
++		data = to_v4l2_entity_data(_data);
++
++		ret = v4l2_s_ext_ctrls(vfh, &data->ctrls, p);
++
++		media_request_put(req);
++		return ret;
++	}
++
+ 	if (vfh && vfh->ctrl_handler)
+ 		return v4l2_s_ext_ctrls(vfh, vfh->ctrl_handler, p);
+ 	if (vfd->ctrl_handler)
+-- 
+2.16.0.rc1.238.g530d649a79-goog
