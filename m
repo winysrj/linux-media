@@ -1,85 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.free-electrons.com ([62.4.15.54]:60453 "EHLO
-        mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751421AbeA2KYu (ORCPT
+Received: from youngberry.canonical.com ([91.189.89.112]:52134 "EHLO
+        youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752543AbeAaRdK (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 29 Jan 2018 05:24:50 -0500
-Date: Mon, 29 Jan 2018 11:24:38 +0100
-From: Maxime Ripard <maxime.ripard@free-electrons.com>
-To: Yong Deng <yong.deng@magewell.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Chen-Yu Tsai <wens@csie.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        Randy Dunlap <rdunlap@infradead.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Hugues Fruchet <hugues.fruchet@st.com>,
-        Yannick Fertre <yannick.fertre@st.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Arnd Bergmann <arnd@arndb.de>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Rick Chang <rick.chang@mediatek.com>,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-sunxi@googlegroups.com
-Subject: Re: [PATCH v7 1/2] dt-bindings: media: Add Allwinner V3s Camera
- Sensor Interface (CSI)
-Message-ID: <20180129102438.rbvs5sra2dkls5db@flea.lan>
-References: <1517217533-17657-1-git-send-email-yong.deng@magewell.com>
+        Wed, 31 Jan 2018 12:33:10 -0500
+From: Colin King <colin.king@canonical.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org
+Cc: kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] media: cx25821: prevent out-of-bounds read on array card
+Date: Wed, 31 Jan 2018 17:33:09 +0000
+Message-Id: <20180131173309.16377-1-colin.king@canonical.com>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="y4ynwjeeptoz3nac"
-Content-Disposition: inline
-In-Reply-To: <1517217533-17657-1-git-send-email-yong.deng@magewell.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: Colin Ian King <colin.king@canonical.com>
 
---y4ynwjeeptoz3nac
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Currently an out of range dev->nr is detected by just reporting the
+issue and later on an out-of-bounds read on array card occurs because
+of this. Fix this by checking the upper range of dev->nr with the size
+of array card (removes the hard coded size), move this check earlier
+and also exit with the error -ENOSYS to avoid the later out-of-bounds
+array read.
 
-On Mon, Jan 29, 2018 at 05:18:53PM +0800, Yong Deng wrote:
-> Add binding documentation for Allwinner V3s CSI.
->=20
-> Reviewed-by: Rob Herring <robh@kernel.org>
-> Signed-off-by: Yong Deng <yong.deng@magewell.com>
+Detected by CoverityScan, CID#711191 ("Out-of-bounds-read")
 
-Acked-by: Maxime Ripard <maxime.ripard@free-electrons.com>
+Fixes: commit 02b20b0b4cde ("V4L/DVB (12730): Add conexant cx25821 driver")
+Signed-off-by: Colin Ian King <colin.king@canonical.com>
+---
+ drivers/media/pci/cx25821/cx25821-core.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-Thanks!
-Maxime
-
---=20
-Maxime Ripard, Free Electrons
-Embedded Linux and Kernel engineering
-http://free-electrons.com
-
---y4ynwjeeptoz3nac
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCAAdFiEE0VqZU19dR2zEVaqr0rTAlCFNr3QFAlpu9mUACgkQ0rTAlCFN
-r3TgLBAAl+G2NubyGcThwfQiBwEWVCNvtIHF8i+Zpge44T3kTiCSnB/m6erMT8bc
-6g1LAG1t9kdlTsUh83d8X7Pckmxl0TFZUeHgYqC9b1C1cJ/+3p+kzU5HohExnDX+
-gTE4G+q2Jq0hsCGAEyzNaoMKSm8VxiOi5Tfb/GytaCQyWNmibwI8n6//LMpkBuuB
-9+/yTDVHCGweVAPVHX0oLb4VzlAV02dPX8yz6iFHy6+NsNlIEL6Neg1xFqmHdS42
-QIYGPlGPxvYirDIthOLsalHG3DYasdKSDRjauLcD+yeYBTSraESAzDH+XZBA9ntB
-mqUdAtgIERnFEqyrzs6NSCk2lwlllfTwW4oB/O1K4IrYsB4eHWpbKXgPk6tgkloK
-+ZHrr9Zg0LDiWZzKxRQkB/SpWbwtmlTBYNc/6EUkDr/z4WPX6hm2hsy3FN0/4lrz
-uJlEBLrPAGC1AZO1E2r8ZOwBrDjAMSgXqv94HTxaUbWuGcRWEj0ueRmQs3ff80f1
-dXp9xoj+bCuAAtPstOxKpF8n6jrl4zStkxrafzO+hH3KAmwxFmP9toz8nJE154w9
-6DolhaYPLQFbAtnFxoHN5FbhVv6wiIiNSB/vkpBoGF8h2xU3ILvAV5wFk91UXKSM
-IzPbmB/uhdvwo/0+8miynpoXiuoCDehsp99CTKIcg1CnQzoFoqQ=
-=utR4
------END PGP SIGNATURE-----
-
---y4ynwjeeptoz3nac--
+diff --git a/drivers/media/pci/cx25821/cx25821-core.c b/drivers/media/pci/cx25821/cx25821-core.c
+index 04aa4a68a0ae..c1184e73cb2d 100644
+--- a/drivers/media/pci/cx25821/cx25821-core.c
++++ b/drivers/media/pci/cx25821/cx25821-core.c
+@@ -867,6 +867,10 @@ static int cx25821_dev_setup(struct cx25821_dev *dev)
+ 	dev->nr = ++cx25821_devcount;
+ 	sprintf(dev->name, "cx25821[%d]", dev->nr);
+ 
++	if (dev->nr >= ARRAY_SIZE(card)) {
++		CX25821_INFO("dev->nr >= %ld", ARRAY_SIZE(card));
++		return -ENODEV;
++	}
+ 	if (dev->pci->device != 0x8210) {
+ 		pr_info("%s(): Exiting. Incorrect Hardware device = 0x%02x\n",
+ 			__func__, dev->pci->device);
+@@ -882,9 +886,6 @@ static int cx25821_dev_setup(struct cx25821_dev *dev)
+ 		dev->channels[i].sram_channels = &cx25821_sram_channels[i];
+ 	}
+ 
+-	if (dev->nr > 1)
+-		CX25821_INFO("dev->nr > 1!");
+-
+ 	/* board config */
+ 	dev->board = 1;		/* card[dev->nr]; */
+ 	dev->_max_num_decoders = MAX_DECODERS;
+-- 
+2.15.1
