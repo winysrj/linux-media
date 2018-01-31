@@ -1,92 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.free-electrons.com ([62.4.15.54]:51629 "EHLO
-        mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933184AbeAKMhX (ORCPT
+Received: from mail-pf0-f195.google.com ([209.85.192.195]:42888 "EHLO
+        mail-pf0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753356AbeAaKZ2 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 11 Jan 2018 07:37:23 -0500
-Date: Thu, 11 Jan 2018 13:37:11 +0100
-From: Maxime Ripard <maxime.ripard@free-electrons.com>
-To: Hugues FRUCHET <hugues.fruchet@st.com>
-Cc: Yong Deng <yong.deng@magewell.com>,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
+        Wed, 31 Jan 2018 05:25:28 -0500
+Received: by mail-pf0-f195.google.com with SMTP id b25so12136482pfd.9
+        for <linux-media@vger.kernel.org>; Wed, 31 Jan 2018 02:25:27 -0800 (PST)
+From: Alexandre Courbot <acourbot@chromium.org>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
         Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>,
-        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Subject: Re: [PATCH v5 0/5] Add OV5640 parallel interface and RGB565/YUYV
- support
-Message-ID: <20180111123711.snz5skdpydudxnhh@flea.lan>
-References: <1514973452-10464-1-git-send-email-hugues.fruchet@st.com>
- <20180108153811.5xrvbaekm6nxtoa6@flea>
- <3010811e-ed37-4489-6a9f-6cc835f41575@st.com>
- <20180110153724.l77zpdgxfbzkznuf@flea>
- <2089de18-1f7f-6d6e-7aee-9dc424bca335@st.com>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="hc743kok26txqmh7"
-Content-Disposition: inline
-In-Reply-To: <2089de18-1f7f-6d6e-7aee-9dc424bca335@st.com>
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Pawel Osciak <posciak@chromium.org>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Tomasz Figa <tfiga@chromium.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Gustavo Padovan <gustavo.padovan@collabora.com>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Alexandre Courbot <acourbot@chromium.org>
+Subject: [RFCv2 09/17] v4l2-ctrls: use ref in helper instead of ctrl
+Date: Wed, 31 Jan 2018 19:24:27 +0900
+Message-Id: <20180131102427.207721-10-acourbot@chromium.org>
+In-Reply-To: <20180131102427.207721-1-acourbot@chromium.org>
+References: <20180131102427.207721-1-acourbot@chromium.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
---hc743kok26txqmh7
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+The next patch needs the reference to a control instead of the
+control itself, so change struct v4l2_ctrl_helper accordingly.
 
-Hi Hugues,
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Alexandre Courbot <acourbot@chromium.org>
+---
+ drivers/media/v4l2-core/v4l2-ctrls.c | 18 +++++++++---------
+ 1 file changed, 9 insertions(+), 9 deletions(-)
 
-On Wed, Jan 10, 2018 at 03:51:07PM +0000, Hugues FRUCHET wrote:
-> Good news Maxime !
->=20
-> Have you seen that you can adapt the polarities through devicetree ?
->=20
-> +                       /* Parallel bus endpoint */
-> +                       ov5640_to_parallel: endpoint {
-> [...]
-> +                               hsync-active =3D <0>;
-> +                               vsync-active =3D <0>;
-> +                               pclk-sample =3D <1>;
-> +                       };
-
-It's what I did, with the polarity infos on both side of the
-endpoints.
-Here it is:
-http://code.bulix.org/4vgchd-257344?raw
-
-You can see that the polarity are inverted on both sides of the link,
-which seems weird :)
-
-Maxime
-
---=20
-Maxime Ripard, Free Electrons
-Embedded Linux and Kernel engineering
-http://free-electrons.com
-
---hc743kok26txqmh7
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCAAdFiEE0VqZU19dR2zEVaqr0rTAlCFNr3QFAlpXWnYACgkQ0rTAlCFN
-r3TbPA//duIqNjy4gPvRJTuwfkg9UQhNUEORR+KUius89+FtObU8qAtov5+Oi7B9
-vDnjBkJzaJUMPwAVY4P2rYff/lTH65sJf6z6B8HB8GDxssnSOWu3y279p/cf8Rtg
-NGPZoBTmszrg07mE9iZV5bT9p5vuqdZlyk+rXXKx85jmkh8ewqyd7O0W50MrooY5
-oYEzFByGuAbQesQlSq0lTsyB9IlZXiAQUI8JUig2exDeyMawZCiU68l1GAG0VnGw
-QP+WjVXPSn8riU9yNp0BKUI+UT3/nc0VrskcCndiPKtjaI0LnaM1Bx8jywbuI666
-boCWS3m8czJkjkQDOVlv/i82ArwUlb05VJvBZejy3bhVjWTkai17ced5b8E9HuKR
-NhEt3hC6bRhvjbHuothK4CQy6jJPXuHvoI/8vpnvoWVbBCRSCa5csNgaBnNbiDa5
-E1Z42Om5tvl/Z+OfmaU7/dqjwEzwTXxRCFRRsAPI7xTClVMmDOMkEhR1l3eaEh2W
-XGgap4HdWKEoP7g/iR6uoFsn+qQJNMNhhLpCVZjawQLN4l3VD7mvCG5piTeYMVFS
-OswM0MrbLQV5DKWCdHsr0AL2Au2uAFNgE2D5j/aDFsiaodNt3CR50a0DxQpVwpNQ
-jAWUHhEC6RNxswoTKVmi7lO9tolTIUSM7kAuuknpt/jjhv2qzhc=
-=W/+J
------END PGP SIGNATURE-----
-
---hc743kok26txqmh7--
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index ca4c320f64c9..0fa20c89ece1 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -37,8 +37,8 @@
+ struct v4l2_ctrl_helper {
+ 	/* Pointer to the control reference of the master control */
+ 	struct v4l2_ctrl_ref *mref;
+-	/* The control corresponding to the v4l2_ext_control ID field. */
+-	struct v4l2_ctrl *ctrl;
++	/* The control ref corresponding to the v4l2_ext_control ID field. */
++	struct v4l2_ctrl_ref *ref;
+ 	/* v4l2_ext_control index of the next control belonging to the
+ 	   same cluster, or 0 if there isn't any. */
+ 	u32 next;
+@@ -2852,6 +2852,7 @@ static int prepare_ext_ctrls(struct v4l2_ctrl_handler *hdl,
+ 		ref = find_ref_lock(hdl, id);
+ 		if (ref == NULL)
+ 			return -EINVAL;
++		h->ref = ref;
+ 		ctrl = ref->ctrl;
+ 		if (ctrl->flags & V4L2_CTRL_FLAG_DISABLED)
+ 			return -EINVAL;
+@@ -2874,7 +2875,6 @@ static int prepare_ext_ctrls(struct v4l2_ctrl_handler *hdl,
+ 		}
+ 		/* Store the ref to the master control of the cluster */
+ 		h->mref = ref;
+-		h->ctrl = ctrl;
+ 		/* Initially set next to 0, meaning that there is no other
+ 		   control in this helper array belonging to the same
+ 		   cluster */
+@@ -2959,7 +2959,7 @@ int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct v4l2_ext_controls *cs
+ 	cs->error_idx = cs->count;
+ 
+ 	for (i = 0; !ret && i < cs->count; i++)
+-		if (helpers[i].ctrl->flags & V4L2_CTRL_FLAG_WRITE_ONLY)
++		if (helpers[i].ref->ctrl->flags & V4L2_CTRL_FLAG_WRITE_ONLY)
+ 			ret = -EACCES;
+ 
+ 	for (i = 0; !ret && i < cs->count; i++) {
+@@ -2994,7 +2994,7 @@ int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct v4l2_ext_controls *cs
+ 
+ 			do {
+ 				ret = ctrl_to_user(cs->controls + idx,
+-						   helpers[idx].ctrl);
++						   helpers[idx].ref->ctrl);
+ 				idx = helpers[idx].next;
+ 			} while (!ret && idx);
+ 		}
+@@ -3133,7 +3133,7 @@ static int validate_ctrls(struct v4l2_ext_controls *cs,
+ 
+ 	cs->error_idx = cs->count;
+ 	for (i = 0; i < cs->count; i++) {
+-		struct v4l2_ctrl *ctrl = helpers[i].ctrl;
++		struct v4l2_ctrl *ctrl = helpers[i].ref->ctrl;
+ 		union v4l2_ctrl_ptr p_new;
+ 
+ 		cs->error_idx = i;
+@@ -3245,7 +3245,7 @@ static int try_set_ext_ctrls(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
+ 			do {
+ 				/* Check if the auto control is part of the
+ 				   list, and remember the new value. */
+-				if (helpers[tmp_idx].ctrl == master)
++				if (helpers[tmp_idx].ref->ctrl == master)
+ 					new_auto_val = cs->controls[tmp_idx].value;
+ 				tmp_idx = helpers[tmp_idx].next;
+ 			} while (tmp_idx);
+@@ -3258,7 +3258,7 @@ static int try_set_ext_ctrls(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
+ 		/* Copy the new caller-supplied control values.
+ 		   user_to_new() sets 'is_new' to 1. */
+ 		do {
+-			struct v4l2_ctrl *ctrl = helpers[idx].ctrl;
++			struct v4l2_ctrl *ctrl = helpers[idx].ref->ctrl;
+ 
+ 			ret = user_to_new(cs->controls + idx, ctrl);
+ 			if (!ret && ctrl->is_ptr)
+@@ -3274,7 +3274,7 @@ static int try_set_ext_ctrls(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
+ 			idx = i;
+ 			do {
+ 				ret = new_to_user(cs->controls + idx,
+-						helpers[idx].ctrl);
++						helpers[idx].ref->ctrl);
+ 				idx = helpers[idx].next;
+ 			} while (!ret && idx);
+ 		}
+-- 
+2.16.0.rc1.238.g530d649a79-goog
