@@ -1,78 +1,180 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([85.220.165.71]:40571 "EHLO
-        metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S966526AbeAONFf (ORCPT
+Received: from mail-oi0-f68.google.com ([209.85.218.68]:45676 "EHLO
+        mail-oi0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751521AbeAaJhj (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 15 Jan 2018 08:05:35 -0500
-Message-ID: <1516020546.10524.4.camel@pengutronix.de>
-Subject: Re: MT9M131 on I.MX6DL CSI color issue
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Florian Boor <florian.boor@kernelconcepts.de>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Date: Mon, 15 Jan 2018 13:49:06 +0100
-In-Reply-To: <b704a2fb-efa1-a2f8-7af0-43d869c688eb@kernelconcepts.de>
-References: <b704a2fb-efa1-a2f8-7af0-43d869c688eb@kernelconcepts.de>
+        Wed, 31 Jan 2018 04:37:39 -0500
+MIME-Version: 1.0
+In-Reply-To: <20180131072910.ajp3jc5dmetsjtf2@flea.lan>
+References: <1516695531-23349-1-git-send-email-yong.deng@magewell.com>
+ <CACRpkdan52UB7HOyH1gnHWg4CDke_VQxAdq8cBgwUroibE59Ow@mail.gmail.com>
+ <20180129082533.6edmqgbauo6q5dgz@flea.lan> <CACRpkdYAGwUjr2C-w5U+WuG48pZAOUcnxFjznLbdF6Lmy1uZuQ@mail.gmail.com>
+ <CAK8P3a2HmPOTHAzqBnmim388pcWOE=fG50mG5HJifT=vzKOaTg@mail.gmail.com>
+ <20180130075441.rqxzkwero6sdfak6@flea.lan> <CAK8P3a0QxQE=GM=SGPtT82=UreiqsgY6uMThvQ_woA3rjK0zjA@mail.gmail.com>
+ <20180130095916.GA23047@ulmo> <20180130100150.GB23047@ulmo> <20180131072910.ajp3jc5dmetsjtf2@flea.lan>
+From: Arnd Bergmann <arnd@arndb.de>
+Date: Wed, 31 Jan 2018 10:37:37 +0100
+Message-ID: <CAK8P3a0X2bpLjKE6xKehG1junZoG1N_DjepOBQ+SZetKf6sgfA@mail.gmail.com>
+Subject: Re: [PATCH v6 2/2] media: V3s: Add support for Allwinner CSI.
+To: Maxime Ripard <maxime.ripard@free-electrons.com>
+Cc: Thierry Reding <thierry.reding@gmail.com>,
+        Dave Martin <dave.martin@arm.com>,
+        Linus Walleij <linus.walleij@linaro.org>,
+        Yong Deng <yong.deng@magewell.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Chen-Yu Tsai <wens@csie.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Randy Dunlap <rdunlap@infradead.org>,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Yannick Fertre <yannick.fertre@st.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Rick Chang <rick.chang@mediatek.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        "open list:OPEN FIRMWARE AND FLATTENED DEVICE TREE BINDINGS"
+        <devicetree@vger.kernel.org>,
+        Linux ARM <linux-arm-kernel@lists.infradead.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        linux-sunxi <linux-sunxi@googlegroups.com>, megous@megous.com,
+        Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
 Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Florian,
+On Wed, Jan 31, 2018 at 8:29 AM, Maxime Ripard
+<maxime.ripard@free-electrons.com> wrote:
+> Hi Thierry,
+>
+> On Tue, Jan 30, 2018 at 11:01:50AM +0100, Thierry Reding wrote:
+>> On Tue, Jan 30, 2018 at 10:59:16AM +0100, Thierry Reding wrote:
+>> > On Tue, Jan 30, 2018 at 10:24:48AM +0100, Arnd Bergmann wrote:
+>> > > On Tue, Jan 30, 2018 at 8:54 AM, Maxime Ripard
+>> > > <maxime.ripard@free-electrons.com> wrote:
+>> > > > On Mon, Jan 29, 2018 at 03:34:02PM +0100, Arnd Bergmann wrote:
+>> > > >> On Mon, Jan 29, 2018 at 10:25 AM, Linus Walleij
+>> > > >> <linus.walleij@linaro.org> wrote:
+>> > > >> > On Mon, Jan 29, 2018 at 9:25 AM, Maxime Ripard
+>> > > >> > <maxime.ripard@free-electrons.com> wrote:
+>> > > >> >> On Sat, Jan 27, 2018 at 05:14:26PM +0100, Linus Walleij wrote:
+>> > >
+>> > > >>
+>> > > >> At one point we had discussed adding a 'dma-masters' property that
+>> > > >> lists all the buses on which a device can be a dma master, and
+>> > > >> the respective properties of those masters (iommu, coherency,
+>> > > >> offset, ...).
+>> > > >>
+>> > > >> IIRC at the time we decided that we could live without that complexity,
+>> > > >> but perhaps we cannot.
+>> > > >
+>> > > > Are you talking about this ?
+>> > > > https://elixir.free-electrons.com/linux/latest/source/Documentation/devicetree/bindings/dma/dma.txt#L41
+>> > > >
+>> > > > It doesn't seem to be related to that issue to me. And in our
+>> > > > particular cases, all the devices are DMA masters, the RAM is just
+>> > > > mapped to another address.
+>> > >
+>> > > No, that's not the one I was thinking of. The idea at the time was much
+>> > > more generic, and not limited to dma engines. I don't recall the details,
+>> > > but I think that Thierry was either involved or made the proposal at the
+>> > > time.
+>> >
+>> > Yeah, I vaguely remember discussing something like this before. A quick
+>> > search through my inbox yielded these two threads, mostly related to
+>> > IOMMU but I think there were some mentions about dma-ranges and so on as
+>> > well. I'll have to dig deeper into those threads to refresh my memories,
+>> > but I won't get around to it until later today.
+>> >
+>> > If someone wants to read up on this in the meantime, here are the links:
+>> >
+>> >     https://lkml.org/lkml/2014/4/27/346
+>> >     http://lists.infradead.org/pipermail/linux-arm-kernel/2014-May/257200.html
+>> >
+>> > From a quick glance the issue of dma-ranges was something that we hand-
+>> > waved at the time.
+>>
+>> Also found this, which seems to be relevant as well:
+>>
+>>       http://lists.infradead.org/pipermail/linux-arm-kernel/2014-May/252715.html
+>>
+>> Adding Dave.
+>
+> Thanks for the pointers, I started to read through it.
+>
+> I guess we have to come up with two solutions here: a short term one
+> to address the users we already have in the kernel properly, and a
+> long term one where we could use that discussion as a starting point.
+>
+> For the short term one, could we just set the device dma_pfn_offset to
+> PHYS_OFFSET at probe time, and use our dma_addr_t directly later on,
+> or would this also cause some issues?
 
-On Fri, 2018-01-12 at 01:16 +0100, Florian Boor wrote:
-> Hello all,
-> 
-> I have a Phytec VM-009 camera based on MT9M131 connected to CSI0 of a I.MX6DL
-> based board running mainline 4.13.0 + custom devicetree. Its using the parallel
-> interface, 8 bit bus width on pins 12 to 19.
-> 
-> Basically it works pretty well apart from the really strange colors. I guess its
-> some YUV vs. RGB issue or similar. Here [1] is an example generated with the
-> following command.
-> 
-> gst-launch v4l2src device=/dev/video4 num-buffers=1 ! jpegenc ! filesink
-> location=capture1.jpeg
-> 
-> Apart from the colors everything is fine.
-> I'm pretty sure I have not seen such an effect before - what might be wrong here?
-> 
-> The current setup looks like this:
-> 
-> IF=UYVY2X8
-> GEOM="1280x1024"
-> media-ctl -l "'mt9m111 2-0048':0 -> 'ipu1_csi0_mux':4[1]"
-> media-ctl -l "'ipu1_csi0_mux':5 -> 'ipu1_csi0':0[1]"
-> media-ctl -l "'ipu1_csi0':2 -> 'ipu1_csi0 capture':0[1]"
-> 
-> media-ctl -d /dev/media0 -v -V "'ipu1_csi0':2 [fmt:${IF}/${GEOM} field:none]"
-> media-ctl -d /dev/media0 -v -V "'ipu1_csi0 capture':0 [fmt:${IF}/${GEOM}
-> field:none]"
-> media-ctl -d /dev/media0 -v -V "'ipu1_csi0_mux':4 [fmt:${IF}/${GEOM} field: none]"
-> media-ctl -d /dev/media0 -v -V "'ipu1_csi0_mux':5 [fmt:${IF}/${GEOM} field: none]"
-> media-ctl -d /dev/media0 -v -V "'mt9m111 2-0048':0 [fmt:${IF}/${GEOM} field: none]"
+That would certainly be an improvement over the current version,
+it keeps the hack more localized. That's fine with me. Note that both
+PHYS_OFFSET and dma_pfn_offset have architecture specific
+meanings and they could in theory change, so ideally we'd do that
+fixup somewhere in arch/arm/mach-sunxi/ at boot time before the
+driver gets probed, but this wouldn't work on arm64 if we need it
+there too.
 
-media-ctl propagates video formats downstream, can you try reversing the
-order?
-Also, while the external format is UYVY2X8, internally the IPU only
-supports AYUV32, so the last call should be 
+> For the long term plan, from what I read from the discussion, it's
+> mostly centered around IOMMU indeed, and we don't have that. What we
+> would actually need is to break the assumption that the DMA "parent"
+> bus is the DT node's parent bus.
+>
+> And I guess this could be done quite easily by adding a dma-parent
+> property with a phandle to the bus controller, that would have a
+> dma-ranges property of its own with the proper mapping described
+> there. It should be simple enough to support, but is there anything
+> that could prevent something like that to work properly (such as
+> preventing further IOMMU-related developments that were described in
+> those mail threads).
 
-media-ctl -d /dev/media0 -v -V "'ipu1_csi0':2 [fmt:AYUV32/${GEOM} field:none]"
+I've thought about it a little bit now. A dma-parent property would nicely
+solve two problems:
 
-not that it should make a difference.
-And setting a format on 'ipu1_csi0 capture' is not necessary.
+- a device on a memory mapped control bus that is a bus master on
+  a different bus. This is the case we are talking about here AFAICT
 
-The new picture looks a little like there is 10-bit sensor data and only
-the lower 8-bit arrive in memory, given the number of wraparounds.
+- a device that is on a different kind of bus (i2c, spi, usb, ...) but also
+  happens to be a dma master on another bus. I suspect we have
+  some of these today and they work by accident because we set the
+  dma_mask and dma_map_ops quite liberally in the DT probe code,
+  but it really shouldn't work according to our bindings. We may also
+  have drivers that work around the issue by forcing the correct dma
+  mask and map_ops today, which makes them work but is rather
+  fragile.
 
-Can you show the output of "media-ctl -p" (or "media-ctl --get-v4l2" for
-each pad in the pipeline)?
+I can think of a couple of other problems that may or may not be
+relevant in the future that would require a more complex solution:
 
-media-ctl --get-v4l2 "'mt9m111 2-0048':0"
-media-ctl --get-v4l2 "'ipu1_csi0_mux':4"
-media-ctl --get-v4l2 "'ipu1_csi0_mux':5"
-media-ctl --get-v4l2 "'ipu1_csi0':0"
-media-ctl --get-v4l2 "'ipu1_csi0':2"
+- a device that is a bus master on more than one bus, e.g. a
+  DMA engine that can copy between the CPU address space and
+  another memory controller that is not visible to the CPU
 
-regards
-Philipp
+- a device that is connected to main memory both through an IOMMU
+  and directly through its parent bus, and the device itself is in
+  control over which of the two it uses (usually the IOMMU would
+  contol whether a device is bypassing translation)
+
+- a device that has a single DMA address space with some form
+  of non-linear mapping to one or more parent buses. Some of these
+  can be expressed using the parent's dma-ranges properties, but
+  our code currently only looks at the first entry in dma-ranges.
+
+Another problem is the interaction with the dma-ranges and iommu
+properties. I have not found any real problems here, but we certainly
+need to be careful to define what happens in all combinations and
+make sure that we document it well in the bindings and have those
+reviewed by the affected parties, at least the ARM and PowerPC
+architecture folks as well as the Nvidia and Renesas platform
+maintainers, which in my experience have the most complex DMA
+hardware.
+
+       Arnd
