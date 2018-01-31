@@ -1,332 +1,214 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:34623 "EHLO
-        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751884AbeAZMna (ORCPT
+Received: from mx07-00178001.pphosted.com ([62.209.51.94]:30385 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S932067AbeAaPlQ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 26 Jan 2018 07:43:30 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Daniel Mentz <danielmentz@google.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 06/12] v4l2-compat-ioctl32.c: avoid sizeof(type)
-Date: Fri, 26 Jan 2018 13:43:21 +0100
-Message-Id: <20180126124327.16653-7-hverkuil@xs4all.nl>
-In-Reply-To: <20180126124327.16653-1-hverkuil@xs4all.nl>
-References: <20180126124327.16653-1-hverkuil@xs4all.nl>
+        Wed, 31 Jan 2018 10:41:16 -0500
+From: Hugues FRUCHET <hugues.fruchet@st.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+CC: Steve Longerbeam <slongerbeam@gmail.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "Benjamin Gaignard" <benjamin.gaignard@linaro.org>
+Subject: Re: [PATCH] media: ov5640: various typo & style fixes
+Date: Wed, 31 Jan 2018 15:41:07 +0000
+Message-ID: <cc7708b2-a21d-8e7f-b558-f9e0de7b1baa@st.com>
+References: <1517397729-12758-1-git-send-email-hugues.fruchet@st.com>
+ <20180131142305.6hbdf2xjyn4ay3ij@valkosipuli.retiisi.org.uk>
+ <68469dfd-f2d6-88a5-3a71-d731fa4896b2@st.com>
+In-Reply-To: <68469dfd-f2d6-88a5-3a71-d731fa4896b2@st.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="utf-8"
+Content-ID: <01A5BAAA0C646946AE8558A1633CE8F0@st.com>
+Content-Transfer-Encoding: base64
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
-
-Instead of doing sizeof(struct foo) use sizeof(*up). There even were
-cases where 4 * sizeof(__u32) was used instead of sizeof(kp->reserved),
-which is very dangerous when the size of the reserved array changes.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 77 ++++++++++++---------------
- 1 file changed, 35 insertions(+), 42 deletions(-)
-
-diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-index 2dd9b42d5859..809448d1b7db 100644
---- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-+++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-@@ -48,7 +48,7 @@ struct v4l2_window32 {
- 
- static int get_v4l2_window32(struct v4l2_window *kp, struct v4l2_window32 __user *up)
- {
--	if (!access_ok(VERIFY_READ, up, sizeof(struct v4l2_window32)) ||
-+	if (!access_ok(VERIFY_READ, up, sizeof(*up)) ||
- 	    copy_from_user(&kp->w, &up->w, sizeof(up->w)) ||
- 	    get_user(kp->field, &up->field) ||
- 	    get_user(kp->chromakey, &up->chromakey) ||
-@@ -66,7 +66,7 @@ static int get_v4l2_window32(struct v4l2_window *kp, struct v4l2_window32 __user
- 		if (get_user(p, &up->clips))
- 			return -EFAULT;
- 		uclips = compat_ptr(p);
--		kclips = compat_alloc_user_space(n * sizeof(struct v4l2_clip));
-+		kclips = compat_alloc_user_space(n * sizeof(*kclips));
- 		kp->clips = kclips;
- 		while (--n >= 0) {
- 			if (copy_in_user(&kclips->c, &uclips->c, sizeof(uclips->c)))
-@@ -164,14 +164,14 @@ static int __get_v4l2_format32(struct v4l2_format *kp, struct v4l2_format32 __us
- 
- static int get_v4l2_format32(struct v4l2_format *kp, struct v4l2_format32 __user *up)
- {
--	if (!access_ok(VERIFY_READ, up, sizeof(struct v4l2_format32)))
-+	if (!access_ok(VERIFY_READ, up, sizeof(*up)))
- 		return -EFAULT;
- 	return __get_v4l2_format32(kp, up);
- }
- 
- static int get_v4l2_create32(struct v4l2_create_buffers *kp, struct v4l2_create_buffers32 __user *up)
- {
--	if (!access_ok(VERIFY_READ, up, sizeof(struct v4l2_create_buffers32)) ||
-+	if (!access_ok(VERIFY_READ, up, sizeof(*up)) ||
- 	    copy_from_user(kp, up, offsetof(struct v4l2_create_buffers32, format)))
- 		return -EFAULT;
- 	return __get_v4l2_format32(&kp->format, &up->format);
-@@ -218,14 +218,14 @@ static int __put_v4l2_format32(struct v4l2_format *kp, struct v4l2_format32 __us
- 
- static int put_v4l2_format32(struct v4l2_format *kp, struct v4l2_format32 __user *up)
- {
--	if (!access_ok(VERIFY_WRITE, up, sizeof(struct v4l2_format32)))
-+	if (!access_ok(VERIFY_WRITE, up, sizeof(*up)))
- 		return -EFAULT;
- 	return __put_v4l2_format32(kp, up);
- }
- 
- static int put_v4l2_create32(struct v4l2_create_buffers *kp, struct v4l2_create_buffers32 __user *up)
- {
--	if (!access_ok(VERIFY_WRITE, up, sizeof(struct v4l2_create_buffers32)) ||
-+	if (!access_ok(VERIFY_WRITE, up, sizeof(*up)) ||
- 	    copy_to_user(up, kp, offsetof(struct v4l2_create_buffers32, format)) ||
- 	    copy_to_user(up->reserved, kp->reserved, sizeof(kp->reserved)))
- 		return -EFAULT;
-@@ -244,7 +244,7 @@ struct v4l2_standard32 {
- static int get_v4l2_standard32(struct v4l2_standard *kp, struct v4l2_standard32 __user *up)
- {
- 	/* other fields are not set by the user, nor used by the driver */
--	if (!access_ok(VERIFY_READ, up, sizeof(struct v4l2_standard32)) ||
-+	if (!access_ok(VERIFY_READ, up, sizeof(*up)) ||
- 	    get_user(kp->index, &up->index))
- 		return -EFAULT;
- 	return 0;
-@@ -252,14 +252,14 @@ static int get_v4l2_standard32(struct v4l2_standard *kp, struct v4l2_standard32
- 
- static int put_v4l2_standard32(struct v4l2_standard *kp, struct v4l2_standard32 __user *up)
- {
--	if (!access_ok(VERIFY_WRITE, up, sizeof(struct v4l2_standard32)) ||
-+	if (!access_ok(VERIFY_WRITE, up, sizeof(*up)) ||
- 	    put_user(kp->index, &up->index) ||
- 	    put_user(kp->id, &up->id) ||
- 	    copy_to_user(up->name, kp->name, 24) ||
- 	    copy_to_user(&up->frameperiod, &kp->frameperiod,
- 			 sizeof(kp->frameperiod)) ||
- 	    put_user(kp->framelines, &up->framelines) ||
--	    copy_to_user(up->reserved, kp->reserved, 4 * sizeof(__u32)))
-+	    copy_to_user(up->reserved, kp->reserved, sizeof(kp->reserved)))
- 		return -EFAULT;
- 	return 0;
- }
-@@ -307,7 +307,7 @@ static int get_v4l2_plane32(struct v4l2_plane __user *up, struct v4l2_plane32 __
- 
- 	if (copy_in_user(up, up32, 2 * sizeof(__u32)) ||
- 	    copy_in_user(&up->data_offset, &up32->data_offset,
--			 sizeof(__u32)))
-+			 sizeof(up->data_offset)))
- 		return -EFAULT;
- 
- 	if (memory == V4L2_MEMORY_USERPTR) {
-@@ -317,11 +317,11 @@ static int get_v4l2_plane32(struct v4l2_plane __user *up, struct v4l2_plane32 __
- 		if (put_user((unsigned long)up_pln, &up->m.userptr))
- 			return -EFAULT;
- 	} else if (memory == V4L2_MEMORY_DMABUF) {
--		if (copy_in_user(&up->m.fd, &up32->m.fd, sizeof(int)))
-+		if (copy_in_user(&up->m.fd, &up32->m.fd, sizeof(up32->m.fd)))
- 			return -EFAULT;
- 	} else {
- 		if (copy_in_user(&up->m.mem_offset, &up32->m.mem_offset,
--				 sizeof(__u32)))
-+				 sizeof(up32->m.mem_offset)))
- 			return -EFAULT;
- 	}
- 
-@@ -333,19 +333,19 @@ static int put_v4l2_plane32(struct v4l2_plane __user *up, struct v4l2_plane32 __
- {
- 	if (copy_in_user(up32, up, 2 * sizeof(__u32)) ||
- 	    copy_in_user(&up32->data_offset, &up->data_offset,
--			 sizeof(__u32)))
-+			 sizeof(up->data_offset)))
- 		return -EFAULT;
- 
- 	/* For MMAP, driver might've set up the offset, so copy it back.
- 	 * USERPTR stays the same (was userspace-provided), so no copying. */
- 	if (memory == V4L2_MEMORY_MMAP)
- 		if (copy_in_user(&up32->m.mem_offset, &up->m.mem_offset,
--				 sizeof(__u32)))
-+				 sizeof(up->m.mem_offset)))
- 			return -EFAULT;
- 	/* For DMABUF, driver might've set up the fd, so copy it back. */
- 	if (memory == V4L2_MEMORY_DMABUF)
- 		if (copy_in_user(&up32->m.fd, &up->m.fd,
--				 sizeof(int)))
-+				 sizeof(up->m.fd)))
- 			return -EFAULT;
- 
- 	return 0;
-@@ -358,7 +358,7 @@ static int get_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
- 	compat_caddr_t p;
- 	int ret;
- 
--	if (!access_ok(VERIFY_READ, up, sizeof(struct v4l2_buffer32)) ||
-+	if (!access_ok(VERIFY_READ, up, sizeof(*up)) ||
- 	    get_user(kp->index, &up->index) ||
- 	    get_user(kp->type, &up->type) ||
- 	    get_user(kp->flags, &up->flags) ||
-@@ -370,8 +370,7 @@ static int get_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
- 		if (get_user(kp->bytesused, &up->bytesused) ||
- 		    get_user(kp->field, &up->field) ||
- 		    get_user(kp->timestamp.tv_sec, &up->timestamp.tv_sec) ||
--		    get_user(kp->timestamp.tv_usec,
--			     &up->timestamp.tv_usec))
-+		    get_user(kp->timestamp.tv_usec, &up->timestamp.tv_usec))
- 			return -EFAULT;
- 
- 	if (V4L2_TYPE_IS_MULTIPLANAR(kp->type)) {
-@@ -391,13 +390,12 @@ static int get_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
- 
- 		uplane32 = compat_ptr(p);
- 		if (!access_ok(VERIFY_READ, uplane32,
--			       kp->length * sizeof(struct v4l2_plane32)))
-+			       kp->length * sizeof(*uplane32)))
- 			return -EFAULT;
- 
- 		/* We don't really care if userspace decides to kill itself
- 		 * by passing a very big num_planes value */
--		uplane = compat_alloc_user_space(kp->length *
--						 sizeof(struct v4l2_plane));
-+		uplane = compat_alloc_user_space(kp->length * sizeof(*uplane));
- 		kp->m.planes = (__force struct v4l2_plane *)uplane;
- 
- 		for (num_planes = 0; num_planes < kp->length; num_planes++) {
-@@ -445,7 +443,7 @@ static int put_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
- 	int num_planes;
- 	int ret;
- 
--	if (!access_ok(VERIFY_WRITE, up, sizeof(struct v4l2_buffer32)) ||
-+	if (!access_ok(VERIFY_WRITE, up, sizeof(*up)) ||
- 	    put_user(kp->index, &up->index) ||
- 	    put_user(kp->type, &up->type) ||
- 	    put_user(kp->flags, &up->flags) ||
-@@ -456,8 +454,7 @@ static int put_v4l2_buffer32(struct v4l2_buffer *kp, struct v4l2_buffer32 __user
- 	    put_user(kp->field, &up->field) ||
- 	    put_user(kp->timestamp.tv_sec, &up->timestamp.tv_sec) ||
- 	    put_user(kp->timestamp.tv_usec, &up->timestamp.tv_usec) ||
--	    copy_to_user(&up->timecode, &kp->timecode,
--			 sizeof(struct v4l2_timecode)) ||
-+	    copy_to_user(&up->timecode, &kp->timecode, sizeof(kp->timecode)) ||
- 	    put_user(kp->sequence, &up->sequence) ||
- 	    put_user(kp->reserved2, &up->reserved2) ||
- 	    put_user(kp->reserved, &up->reserved) ||
-@@ -525,7 +522,7 @@ static int get_v4l2_framebuffer32(struct v4l2_framebuffer *kp, struct v4l2_frame
- {
- 	u32 tmp;
- 
--	if (!access_ok(VERIFY_READ, up, sizeof(struct v4l2_framebuffer32)) ||
-+	if (!access_ok(VERIFY_READ, up, sizeof(*up)) ||
- 	    get_user(tmp, &up->base) ||
- 	    get_user(kp->capability, &up->capability) ||
- 	    get_user(kp->flags, &up->flags) ||
-@@ -539,7 +536,7 @@ static int put_v4l2_framebuffer32(struct v4l2_framebuffer *kp, struct v4l2_frame
- {
- 	u32 tmp = (u32)((unsigned long)kp->base);
- 
--	if (!access_ok(VERIFY_WRITE, up, sizeof(struct v4l2_framebuffer32)) ||
-+	if (!access_ok(VERIFY_WRITE, up, sizeof(*up)) ||
- 	    put_user(tmp, &up->base) ||
- 	    put_user(kp->capability, &up->capability) ||
- 	    put_user(kp->flags, &up->flags) ||
-@@ -564,14 +561,14 @@ struct v4l2_input32 {
-    Otherwise it is identical to the 32-bit version. */
- static inline int get_v4l2_input32(struct v4l2_input *kp, struct v4l2_input32 __user *up)
- {
--	if (copy_from_user(kp, up, sizeof(struct v4l2_input32)))
-+	if (copy_from_user(kp, up, sizeof(*up)))
- 		return -EFAULT;
- 	return 0;
- }
- 
- static inline int put_v4l2_input32(struct v4l2_input *kp, struct v4l2_input32 __user *up)
- {
--	if (copy_to_user(up, kp, sizeof(struct v4l2_input32)))
-+	if (copy_to_user(up, kp, sizeof(*up)))
- 		return -EFAULT;
- 	return 0;
- }
-@@ -619,12 +616,11 @@ static int get_v4l2_ext_controls32(struct v4l2_ext_controls *kp, struct v4l2_ext
- 	unsigned int n;
- 	compat_caddr_t p;
- 
--	if (!access_ok(VERIFY_READ, up, sizeof(struct v4l2_ext_controls32)) ||
-+	if (!access_ok(VERIFY_READ, up, sizeof(*up)) ||
- 	    get_user(kp->which, &up->which) ||
- 	    get_user(kp->count, &up->count) ||
- 	    get_user(kp->error_idx, &up->error_idx) ||
--	    copy_from_user(kp->reserved, up->reserved,
--			   sizeof(kp->reserved)))
-+	    copy_from_user(kp->reserved, up->reserved, sizeof(kp->reserved)))
- 		return -EFAULT;
- 	if (kp->count == 0) {
- 		kp->controls = NULL;
-@@ -635,11 +631,9 @@ static int get_v4l2_ext_controls32(struct v4l2_ext_controls *kp, struct v4l2_ext
- 	if (get_user(p, &up->controls))
- 		return -EFAULT;
- 	ucontrols = compat_ptr(p);
--	if (!access_ok(VERIFY_READ, ucontrols,
--		       kp->count * sizeof(struct v4l2_ext_control32)))
-+	if (!access_ok(VERIFY_READ, ucontrols, kp->count * sizeof(*ucontrols)))
- 		return -EFAULT;
--	kcontrols = compat_alloc_user_space(kp->count *
--					    sizeof(struct v4l2_ext_control));
-+	kcontrols = compat_alloc_user_space(kp->count * sizeof(*kcontrols));
- 	kp->controls = (__force struct v4l2_ext_control *)kcontrols;
- 	for (n = 0; n < kp->count; n++) {
- 		u32 id;
-@@ -671,7 +665,7 @@ static int put_v4l2_ext_controls32(struct v4l2_ext_controls *kp, struct v4l2_ext
- 	int n = kp->count;
- 	compat_caddr_t p;
- 
--	if (!access_ok(VERIFY_WRITE, up, sizeof(struct v4l2_ext_controls32)) ||
-+	if (!access_ok(VERIFY_WRITE, up, sizeof(*up)) ||
- 	    put_user(kp->which, &up->which) ||
- 	    put_user(kp->count, &up->count) ||
- 	    put_user(kp->error_idx, &up->error_idx) ||
-@@ -683,8 +677,7 @@ static int put_v4l2_ext_controls32(struct v4l2_ext_controls *kp, struct v4l2_ext
- 	if (get_user(p, &up->controls))
- 		return -EFAULT;
- 	ucontrols = compat_ptr(p);
--	if (!access_ok(VERIFY_WRITE, ucontrols,
--		       n * sizeof(struct v4l2_ext_control32)))
-+	if (!access_ok(VERIFY_WRITE, ucontrols, n * sizeof(*ucontrols)))
- 		return -EFAULT;
- 
- 	while (--n >= 0) {
-@@ -721,7 +714,7 @@ struct v4l2_event32 {
- 
- static int put_v4l2_event32(struct v4l2_event *kp, struct v4l2_event32 __user *up)
- {
--	if (!access_ok(VERIFY_WRITE, up, sizeof(struct v4l2_event32)) ||
-+	if (!access_ok(VERIFY_WRITE, up, sizeof(*up)) ||
- 	    put_user(kp->type, &up->type) ||
- 	    copy_to_user(&up->u, &kp->u, sizeof(kp->u)) ||
- 	    put_user(kp->pending, &up->pending) ||
-@@ -729,7 +722,7 @@ static int put_v4l2_event32(struct v4l2_event *kp, struct v4l2_event32 __user *u
- 	    put_user(kp->timestamp.tv_sec, &up->timestamp.tv_sec) ||
- 	    put_user(kp->timestamp.tv_nsec, &up->timestamp.tv_nsec) ||
- 	    put_user(kp->id, &up->id) ||
--	    copy_to_user(up->reserved, kp->reserved, 8 * sizeof(__u32)))
-+	    copy_to_user(up->reserved, kp->reserved, sizeof(kp->reserved)))
- 		return -EFAULT;
- 	return 0;
- }
-@@ -746,7 +739,7 @@ static int get_v4l2_edid32(struct v4l2_edid *kp, struct v4l2_edid32 __user *up)
- {
- 	u32 tmp;
- 
--	if (!access_ok(VERIFY_READ, up, sizeof(struct v4l2_edid32)) ||
-+	if (!access_ok(VERIFY_READ, up, sizeof(*up)) ||
- 	    get_user(kp->pad, &up->pad) ||
- 	    get_user(kp->start_block, &up->start_block) ||
- 	    get_user(kp->blocks, &up->blocks) ||
-@@ -761,7 +754,7 @@ static int put_v4l2_edid32(struct v4l2_edid *kp, struct v4l2_edid32 __user *up)
- {
- 	u32 tmp = (u32)((unsigned long)kp->edid);
- 
--	if (!access_ok(VERIFY_WRITE, up, sizeof(struct v4l2_edid32)) ||
-+	if (!access_ok(VERIFY_WRITE, up, sizeof(*up)) ||
- 	    put_user(kp->pad, &up->pad) ||
- 	    put_user(kp->start_block, &up->start_block) ||
- 	    put_user(kp->blocks, &up->blocks) ||
--- 
-2.15.1
+Q29tbWVudCBhZGRlZCBhYm91dCBtb2R1bGVfcGFyYW0oKQ0KDQpPbiAwMS8zMS8yMDE4IDAzOjI5
+IFBNLCBIdWd1ZXMgRnJ1Y2hldCB3cm90ZToNCj4gWSdyZSB3ZWxjb21lLCBjaGFuZ2VzIHlvdSBw
+b2ludGVkIG91dCBhcmUgZGV0ZWN0ZWQgYnkgY2hlY2twYXRjaCANCj4gKC0tc3RyaWN0KSwgc2Vl
+IGJlbG93Og0KPiANCj4gT24gMDEvMzEvMjAxOCAwMzoyMyBQTSwgU2FrYXJpIEFpbHVzIHdyb3Rl
+Og0KPj4gSGkgSHVndWVzLA0KPj4NCj4+IFRoYW5rcyBmb3IgdGhlIHBhdGNoLiBJdCdzIG5pY2Ug
+dG8gc2VlIGNsZWFudXBzLCB0b28hIDotKQ0KPj4NCj4+IEEgZmV3IGNvbW1lbnRzIGJlbG93LiBB
+cGFydCB0aG9zZSB0aGlzIHNlZW1zIGdvb2QgdG8gbWUuDQo+Pg0KPj4gT24gV2VkLCBKYW4gMzEs
+IDIwMTggYXQgMTI6MjI6MDlQTSArMDEwMCwgSHVndWVzIEZydWNoZXQgd3JvdGU6DQo+Pj4gVmFy
+aW91cyB0eXBvICYgc3R5bGUgZml4ZXMgZWl0aGVyIGRldGVjdGVkIGJ5IGNvZGUNCj4+PiByZXZp
+ZXcgb3IgY2hlY2twYXRjaC4NCj4+Pg0KPj4+IFNpZ25lZC1vZmYtYnk6IEh1Z3VlcyBGcnVjaGV0
+IDxodWd1ZXMuZnJ1Y2hldEBzdC5jb20+DQo+Pj4gLS0tDQo+Pj4gwqAgZHJpdmVycy9tZWRpYS9p
+MmMvb3Y1NjQwLmMgfCA1MiANCj4+PiArKysrKysrKysrKysrKysrKysrKysrKy0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tDQo+Pj4gwqAgMSBmaWxlIGNoYW5nZWQsIDI2IGluc2VydGlvbnMoKyksIDI2
+IGRlbGV0aW9ucygtKQ0KPj4+DQo+Pj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvbWVkaWEvaTJjL292
+NTY0MC5jIGIvZHJpdmVycy9tZWRpYS9pMmMvb3Y1NjQwLmMNCj4+PiBpbmRleCA4ODJhN2MzLi45
+Y2NlYjVmIDEwMDY0NA0KPj4+IC0tLSBhL2RyaXZlcnMvbWVkaWEvaTJjL292NTY0MC5jDQo+Pj4g
+KysrIGIvZHJpdmVycy9tZWRpYS9pMmMvb3Y1NjQwLmMNCj4+PiBAQCAtMTQsMTQgKzE0LDE0IEBA
+DQo+Pj4gwqAgI2luY2x1ZGUgPGxpbnV4L2N0eXBlLmg+DQo+Pj4gwqAgI2luY2x1ZGUgPGxpbnV4
+L2RlbGF5Lmg+DQo+Pj4gwqAgI2luY2x1ZGUgPGxpbnV4L2RldmljZS5oPg0KPj4+ICsjaW5jbHVk
+ZSA8bGludXgvZ3Bpby9jb25zdW1lci5oPg0KPj4+IMKgICNpbmNsdWRlIDxsaW51eC9pMmMuaD4N
+Cj4+PiDCoCAjaW5jbHVkZSA8bGludXgvaW5pdC5oPg0KPj4+IMKgICNpbmNsdWRlIDxsaW51eC9t
+b2R1bGUuaD4NCj4+PiDCoCAjaW5jbHVkZSA8bGludXgvb2ZfZGV2aWNlLmg+DQo+Pj4gKyNpbmNs
+dWRlIDxsaW51eC9yZWd1bGF0b3IvY29uc3VtZXIuaD4NCj4+PiDCoCAjaW5jbHVkZSA8bGludXgv
+c2xhYi5oPg0KPj4+IMKgICNpbmNsdWRlIDxsaW51eC90eXBlcy5oPg0KPj4+IC0jaW5jbHVkZSA8
+bGludXgvZ3Bpby9jb25zdW1lci5oPg0KPj4+IC0jaW5jbHVkZSA8bGludXgvcmVndWxhdG9yL2Nv
+bnN1bWVyLmg+DQo+Pj4gwqAgI2luY2x1ZGUgPG1lZGlhL3Y0bDItYXN5bmMuaD4NCj4+PiDCoCAj
+aW5jbHVkZSA8bWVkaWEvdjRsMi1jdHJscy5oPg0KPj4+IMKgICNpbmNsdWRlIDxtZWRpYS92NGwy
+LWRldmljZS5oPg0KPj4+IEBAIC0xMjgsNyArMTI4LDcgQEAgc3RydWN0IG92NTY0MF9waXhmbXQg
+ew0KPj4+IMKgwqAgKiB0byBzZXQgdGhlIE1JUEkgQ1NJLTIgdmlydHVhbCBjaGFubmVsLg0KPj4+
+IMKgwqAgKi8NCj4+PiDCoCBzdGF0aWMgdW5zaWduZWQgaW50IHZpcnR1YWxfY2hhbm5lbDsNCj4+
+PiAtbW9kdWxlX3BhcmFtKHZpcnR1YWxfY2hhbm5lbCwgaW50LCAwKTsNCj4+PiArbW9kdWxlX3Bh
+cmFtKHZpcnR1YWxfY2hhbm5lbCwgaW50LCAwMDAwKTsNCj4+DQo+PiBXaHk/DQo+ICQgc2NyaXB0
+cy9jaGVja3BhdGNoLnBsIC1mIGRyaXZlcnMvbWVkaWEvaTJjL292NTY0MC5jDQo+IEVSUk9SOiBV
+c2UgNCBkaWdpdCBvY3RhbCAoMDc3Nykgbm90IGRlY2ltYWwgcGVybWlzc2lvbnMNCj4gIzEzMTog
+RklMRTogZHJpdmVycy9tZWRpYS9pMmMvb3Y1NjQwLmM6MTMxOg0KPiArbW9kdWxlX3BhcmFtKHZp
+cnR1YWxfY2hhbm5lbCwgaW50LCAwKTsNCj4gDQo+IA0KSGVyZSBJIGZlZWwgdGhhdCB0aGVyZSB3
+YXMgYSBtaXN1bmRlcnN0YW5kaW5nIG9uIG1vZHVsZV9wYXJhbSgpIGxhc3QgDQphcmd1bWVudCB0
+cmVhdGVkIGFzIGluaXRpYWwgdmFsdWUgKDApLCBpbiBvcmRlciB0byBmaXggYm90aCANCmluaXRp
+YWxpemF0aW9uIHRvIDAgYW5kIHBlcm1pc3Npb24gSSB3b3VsZCBzdWdnZXN0Og0KDQpzdGF0aWMg
+dW5zaWduZWQgaW50IHZpcnR1YWxfY2hhbm5lbCA9IDA7DQptb2R1bGVfcGFyYW0odmlydHVhbF9j
+aGFubmVsLCBpbnQsIDA2NDQpOw0KDQoNCj4+DQo+Pj4gwqAgTU9EVUxFX1BBUk1fREVTQyh2aXJ0
+dWFsX2NoYW5uZWwsDQo+Pj4gwqDCoMKgwqDCoMKgwqDCoMKgwqAgIk1JUEkgQ1NJLTIgdmlydHVh
+bCBjaGFubmVsICgwLi4zKSwgZGVmYXVsdCAwIik7DQo+Pj4gQEAgLTEzOSw3ICsxMzksNyBAQCBz
+dHJ1Y3Qgb3Y1NjQwX3BpeGZtdCB7DQo+Pj4gwqAgLyogcmVndWxhdG9yIHN1cHBsaWVzICovDQo+
+Pj4gwqAgc3RhdGljIGNvbnN0IGNoYXIgKiBjb25zdCBvdjU2NDBfc3VwcGx5X25hbWVbXSA9IHsN
+Cj4+PiAtwqDCoMKgICJET1ZERCIsIC8qIERpZ2l0YWwgSS9PICgxLjhWKSBzdXBwcGx5ICovDQo+
+Pj4gK8KgwqDCoCAiRE9WREQiLCAvKiBEaWdpdGFsIEkvTyAoMS44Vikgc3VwcGx5ICovDQo+Pj4g
+wqDCoMKgwqDCoCAiRFZERCIswqAgLyogRGlnaXRhbCBDb3JlICgxLjVWKSBzdXBwbHkgKi8NCj4+
+PiDCoMKgwqDCoMKgICJBVkREIizCoCAvKiBBbmFsb2cgKDIuOFYpIHN1cHBseSAqLw0KPj4+IMKg
+IH07DQo+Pj4gQEAgLTI0NSw3ICsyNDUsNiBAQCBzdGF0aWMgaW5saW5lIHN0cnVjdCB2NGwyX3N1
+YmRldiANCj4+PiAqY3RybF90b19zZChzdHJ1Y3QgdjRsMl9jdHJsICpjdHJsKQ0KPj4+IMKgwqAg
+Ki8NCj4+PiDCoCBzdGF0aWMgY29uc3Qgc3RydWN0IHJlZ192YWx1ZSBvdjU2NDBfaW5pdF9zZXR0
+aW5nXzMwZnBzX1ZHQVtdID0gew0KPj4+IC0NCj4+PiDCoMKgwqDCoMKgIHsweDMxMDMsIDB4MTEs
+IDAsIDB9LCB7MHgzMDA4LCAweDgyLCAwLCA1fSwgezB4MzAwOCwgMHg0MiwgMCwgMH0sDQo+Pj4g
+wqDCoMKgwqDCoCB7MHgzMTAzLCAweDAzLCAwLCAwfSwgezB4MzAxNywgMHgwMCwgMCwgMH0sIHsw
+eDMwMTgsIDB4MDAsIDAsIDB9LA0KPj4+IMKgwqDCoMKgwqAgezB4MzAzNCwgMHgxOCwgMCwgMH0s
+IHsweDMwMzUsIDB4MTQsIDAsIDB9LCB7MHgzMDM2LCAweDM4LCAwLCAwfSwNCj4+PiBAQCAtMzM0
+LDcgKzMzMyw2IEBAIHN0YXRpYyBpbmxpbmUgc3RydWN0IHY0bDJfc3ViZGV2IA0KPj4+ICpjdHJs
+X3RvX3NkKHN0cnVjdCB2NGwyX2N0cmwgKmN0cmwpDQo+Pj4gwqAgfTsNCj4+PiDCoCBzdGF0aWMg
+Y29uc3Qgc3RydWN0IHJlZ192YWx1ZSBvdjU2NDBfc2V0dGluZ18zMGZwc19WR0FfNjQwXzQ4MFtd
+ID0gew0KPj4+IC0NCj4+PiDCoMKgwqDCoMKgIHsweDMwMzUsIDB4MTQsIDAsIDB9LCB7MHgzMDM2
+LCAweDM4LCAwLCAwfSwgezB4M2MwNywgMHgwOCwgMCwgMH0sDQo+Pj4gwqDCoMKgwqDCoCB7MHgz
+YzA5LCAweDFjLCAwLCAwfSwgezB4M2MwYSwgMHg5YywgMCwgMH0sIHsweDNjMGIsIDB4NDAsIDAs
+IDB9LA0KPj4+IMKgwqDCoMKgwqAgezB4MzgyMCwgMHg0MSwgMCwgMH0sIHsweDM4MjEsIDB4MDcs
+IDAsIDB9LCB7MHgzODE0LCAweDMxLCAwLCAwfSwNCj4+PiBAQCAtMzc3LDcgKzM3NSw2IEBAIHN0
+YXRpYyBpbmxpbmUgc3RydWN0IHY0bDJfc3ViZGV2IA0KPj4+ICpjdHJsX3RvX3NkKHN0cnVjdCB2
+NGwyX2N0cmwgKmN0cmwpDQo+Pj4gwqAgfTsNCj4+PiDCoCBzdGF0aWMgY29uc3Qgc3RydWN0IHJl
+Z192YWx1ZSBvdjU2NDBfc2V0dGluZ18zMGZwc19YR0FfMTAyNF83NjhbXSA9IHsNCj4+PiAtDQo+
+Pj4gwqDCoMKgwqDCoCB7MHgzMDM1LCAweDE0LCAwLCAwfSwgezB4MzAzNiwgMHgzOCwgMCwgMH0s
+IHsweDNjMDcsIDB4MDgsIDAsIDB9LA0KPj4+IMKgwqDCoMKgwqAgezB4M2MwOSwgMHgxYywgMCwg
+MH0sIHsweDNjMGEsIDB4OWMsIDAsIDB9LCB7MHgzYzBiLCAweDQwLCAwLCAwfSwNCj4+PiDCoMKg
+wqDCoMKgIHsweDM4MjAsIDB4NDEsIDAsIDB9LCB7MHgzODIxLCAweDA3LCAwLCAwfSwgezB4Mzgx
+NCwgMHgzMSwgMCwgMH0sDQo+Pj4gQEAgLTQ4NCw2ICs0ODEsNyBAQCBzdGF0aWMgaW5saW5lIHN0
+cnVjdCB2NGwyX3N1YmRldiANCj4+PiAqY3RybF90b19zZChzdHJ1Y3QgdjRsMl9jdHJsICpjdHJs
+KQ0KPj4+IMKgwqDCoMKgwqAgezB4NDQwNywgMHgwNCwgMCwgMH0sIHsweDQ2MGIsIDB4MzUsIDAs
+IDB9LCB7MHg0NjBjLCAweDIyLCAwLCAwfSwNCj4+PiDCoMKgwqDCoMKgIHsweDM4MjQsIDB4MDIs
+IDAsIDB9LCB7MHg1MDAxLCAweGEzLCAwLCAwfSwNCj4+PiDCoCB9Ow0KPj4+ICsNCj4+PiDCoCBz
+dGF0aWMgY29uc3Qgc3RydWN0IHJlZ192YWx1ZSBvdjU2NDBfc2V0dGluZ18xNWZwc19RQ0lGXzE3
+Nl8xNDRbXSA9IHsNCj4+PiDCoMKgwqDCoMKgIHsweDMwMzUsIDB4MjIsIDAsIDB9LCB7MHgzMDM2
+LCAweDM4LCAwLCAwfSwgezB4M2MwNywgMHgwOCwgMCwgMH0sDQo+Pj4gwqDCoMKgwqDCoCB7MHgz
+YzA5LCAweDFjLCAwLCAwfSwgezB4M2MwYSwgMHg5YywgMCwgMH0sIHsweDNjMGIsIDB4NDAsIDAs
+IDB9LA0KPj4+IEBAIC04NDAsNyArODM4LDcgQEAgc3RhdGljIGludCBvdjU2NDBfd3JpdGVfcmVn
+KHN0cnVjdCBvdjU2NDBfZGV2IA0KPj4+ICpzZW5zb3IsIHUxNiByZWcsIHU4IHZhbCkNCj4+PiDC
+oMKgwqDCoMKgIHJldCA9IGkyY190cmFuc2ZlcihjbGllbnQtPmFkYXB0ZXIsICZtc2csIDEpOw0K
+Pj4+IMKgwqDCoMKgwqAgaWYgKHJldCA8IDApIHsNCj4+PiDCoMKgwqDCoMKgwqDCoMKgwqAgdjRs
+Ml9lcnIoJnNlbnNvci0+c2QsICIlczogZXJyb3I6IHJlZz0leCwgdmFsPSV4XG4iLA0KPj4+IC3C
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgIF9fZnVuY19fLCByZWcsIHZhbCk7DQo+Pj4gK8KgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoCBfX2Z1bmNfXywgcmVnLCB2YWwpOw0KPj4+IMKgwqDCoMKgwqDCoMKg
+wqDCoCByZXR1cm4gcmV0Ow0KPj4+IMKgwqDCoMKgwqAgfQ0KPj4+IEBAIC04ODYsNyArODg0LDcg
+QEAgc3RhdGljIGludCBvdjU2NDBfcmVhZF9yZWcxNihzdHJ1Y3Qgb3Y1NjQwX2RldiANCj4+PiAq
+c2Vuc29yLCB1MTYgcmVnLCB1MTYgKnZhbCkNCj4+PiDCoMKgwqDCoMKgIHJldCA9IG92NTY0MF9y
+ZWFkX3JlZyhzZW5zb3IsIHJlZywgJmhpKTsNCj4+PiDCoMKgwqDCoMKgIGlmIChyZXQpDQo+Pj4g
+wqDCoMKgwqDCoMKgwqDCoMKgIHJldHVybiByZXQ7DQo+Pj4gLcKgwqDCoCByZXQgPSBvdjU2NDBf
+cmVhZF9yZWcoc2Vuc29yLCByZWcrMSwgJmxvKTsNCj4+PiArwqDCoMKgIHJldCA9IG92NTY0MF9y
+ZWFkX3JlZyhzZW5zb3IsIHJlZyArIDEsICZsbyk7DQo+Pj4gwqDCoMKgwqDCoCBpZiAocmV0KQ0K
+Pj4+IMKgwqDCoMKgwqDCoMKgwqDCoCByZXR1cm4gcmV0Ow0KPj4+IEBAIC05NDcsNyArOTQ1LDcg
+QEAgc3RhdGljIGludCBvdjU2NDBfbG9hZF9yZWdzKHN0cnVjdCBvdjU2NDBfZGV2IA0KPj4+ICpz
+ZW5zb3IsDQo+Pj4gwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqAgYnJlYWs7DQo+Pj4gwqDCoMKg
+wqDCoMKgwqDCoMKgIGlmIChkZWxheV9tcykNCj4+PiAtwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCB1
+c2xlZXBfcmFuZ2UoMTAwMCpkZWxheV9tcywgMTAwMCpkZWxheV9tcysxMDApOw0KPj4+ICvCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgIHVzbGVlcF9yYW5nZSgxMDAwICogZGVsYXlfbXMsIDEwMDAgKiBk
+ZWxheV9tcyArIDEwMCk7DQo+Pj4gwqDCoMKgwqDCoCB9DQo+Pj4gwqDCoMKgwqDCoCByZXR1cm4g
+cmV0Ow0KPj4+IEBAIC0xMjg5LDcgKzEyODcsNiBAQCBzdGF0aWMgaW50IG92NTY0MF9zZXRfYmFu
+ZGluZ2ZpbHRlcihzdHJ1Y3QgDQo+Pj4gb3Y1NjQwX2RldiAqc2Vuc29yKQ0KPj4+IMKgwqDCoMKg
+wqDCoMKgwqDCoCByZXR1cm4gcmV0Ow0KPj4+IMKgwqDCoMKgwqAgcHJldl92dHMgPSByZXQ7DQo+
+Pj4gLQ0KPj4+IMKgwqDCoMKgwqAgLyogY2FsY3VsYXRlIGJhbmRpbmcgZmlsdGVyICovDQo+Pj4g
+wqDCoMKgwqDCoCAvKiA2MEh6ICovDQo+Pj4gwqDCoMKgwqDCoCBiYW5kX3N0ZXA2MCA9IHNlbnNv
+ci0+cHJldl9zeXNjbGsgKiAxMDAgLyBzZW5zb3ItPnByZXZfaHRzICogDQo+Pj4gMTAwIC8gMTIw
+Ow0KPj4+IEBAIC0xNDA1LDggKzE0MDIsOCBAQCBzdGF0aWMgaW50IG92NTY0MF9zZXRfdmlydHVh
+bF9jaGFubmVsKHN0cnVjdCANCj4+PiBvdjU2NDBfZGV2ICpzZW5zb3IpDQo+Pj4gwqDCoCAqIHNl
+bnNvciBjaGFuZ2VzIGJldHdlZW4gc2NhbGluZyBhbmQgc3Vic2FtcGxpbmcsIGdvIHRocm91Z2gN
+Cj4+PiDCoMKgICogZXhwb3N1cmUgY2FsY3VsYXRpb24NCj4+PiDCoMKgICovDQo+Pj4gLXN0YXRp
+YyBpbnQgb3Y1NjQwX3NldF9tb2RlX2V4cG9zdXJlX2NhbGMoDQo+Pj4gLcKgwqDCoCBzdHJ1Y3Qg
+b3Y1NjQwX2RldiAqc2Vuc29yLCBjb25zdCBzdHJ1Y3Qgb3Y1NjQwX21vZGVfaW5mbyAqbW9kZSkN
+Cj4+PiArc3RhdGljIGludCBvdjU2NDBfc2V0X21vZGVfZXhwb3N1cmVfY2FsYyhzdHJ1Y3Qgb3Y1
+NjQwX2RldiAqc2Vuc29yLA0KPj4+ICvCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgIGNvbnN0IHN0cnVjdCBvdjU2NDBfbW9kZV9pbmZvICptb2RlKQ0KPj4+IMKgIHsNCj4+
+PiDCoMKgwqDCoMKgIHUzMiBwcmV2X3NodXR0ZXIsIHByZXZfZ2FpbjE2Ow0KPj4+IMKgwqDCoMKg
+wqAgdTMyIGNhcF9zaHV0dGVyLCBjYXBfZ2FpbjE2Ow0KPj4+IEBAIC0xNDE2LDcgKzE0MTMsNyBA
+QCBzdGF0aWMgaW50IG92NTY0MF9zZXRfbW9kZV9leHBvc3VyZV9jYWxjKA0KPj4+IMKgwqDCoMKg
+wqAgdTggYXZlcmFnZTsNCj4+PiDCoMKgwqDCoMKgIGludCByZXQ7DQo+Pj4gLcKgwqDCoCBpZiAo
+bW9kZS0+cmVnX2RhdGEgPT0gTlVMTCkNCj4+PiArwqDCoMKgIGlmICghbW9kZS0+cmVnX2RhdGEp
+DQo+Pj4gwqDCoMKgwqDCoMKgwqDCoMKgIHJldHVybiAtRUlOVkFMOw0KPj4+IMKgwqDCoMKgwqAg
+LyogcmVhZCBwcmV2aWV3IHNodXR0ZXIgKi8NCj4+PiBAQCAtMTU3MCw3ICsxNTY3LDcgQEAgc3Rh
+dGljIGludCBvdjU2NDBfc2V0X21vZGVfZGlyZWN0KHN0cnVjdCANCj4+PiBvdjU2NDBfZGV2ICpz
+ZW5zb3IsDQo+Pj4gwqAgew0KPj4+IMKgwqDCoMKgwqAgaW50IHJldDsNCj4+PiAtwqDCoMKgIGlm
+IChtb2RlLT5yZWdfZGF0YSA9PSBOVUxMKQ0KPj4+ICvCoMKgwqAgaWYgKCFtb2RlLT5yZWdfZGF0
+YSkNCj4+PiDCoMKgwqDCoMKgwqDCoMKgwqAgcmV0dXJuIC1FSU5WQUw7DQo+Pj4gwqDCoMKgwqDC
+oCAvKiBXcml0ZSBjYXB0dXJlIHNldHRpbmcgKi8NCj4+PiBAQCAtMjExNyw3ICsyMTE0LDggQEAg
+c3RhdGljIGludCBvdjU2NDBfc2V0X2N0cmxfZ2FpbihzdHJ1Y3QgDQo+Pj4gb3Y1NjQwX2RldiAq
+c2Vuc29yLCBpbnQgYXV0b19nYWluKQ0KPj4+IMKgwqDCoMKgwqAgaWYgKGN0cmxzLT5hdXRvX2dh
+aW4tPmlzX25ldykgew0KPj4+IMKgwqDCoMKgwqDCoMKgwqDCoCByZXQgPSBvdjU2NDBfbW9kX3Jl
+ZyhzZW5zb3IsIE9WNTY0MF9SRUdfQUVDX1BLX01BTlVBTCwNCj4+PiAtwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCBCSVQoMSksIGN0cmxzLT5hdXRvX2dhaW4tPnZhbCA/
+IDAgOiBCSVQoMSkpOw0KPj4+ICvCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgIEJJVCgxKSwNCj4+PiArwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oCBjdHJscy0+YXV0b19nYWluLT52YWwgPyAwIDogQklUKDEpKTsNCj4+PiDCoMKgwqDCoMKgwqDC
+oMKgwqAgaWYgKHJldCkNCj4+PiDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCByZXR1cm4gcmV0
+Ow0KPj4+IMKgwqDCoMKgwqAgfQ0KPj4+IEBAIC0yMjk3LDE4ICsyMjk1LDIwIEBAIHN0YXRpYyBp
+bnQgb3Y1NjQwX2VudW1fZnJhbWVfc2l6ZShzdHJ1Y3QgDQo+Pj4gdjRsMl9zdWJkZXYgKnNkLA0K
+Pj4+IMKgwqDCoMKgwqAgaWYgKGZzZS0+aW5kZXggPj0gT1Y1NjQwX05VTV9NT0RFUykNCj4+PiDC
+oMKgwqDCoMKgwqDCoMKgwqAgcmV0dXJuIC1FSU5WQUw7DQo+Pj4gLcKgwqDCoCBmc2UtPm1pbl93
+aWR0aCA9IGZzZS0+bWF4X3dpZHRoID0NCj4+PiArwqDCoMKgIGZzZS0+bWluX3dpZHRoID0NCj4+
+PiDCoMKgwqDCoMKgwqDCoMKgwqAgb3Y1NjQwX21vZGVfZGF0YVswXVtmc2UtPmluZGV4XS53aWR0
+aDsNCj4+PiAtwqDCoMKgIGZzZS0+bWluX2hlaWdodCA9IGZzZS0+bWF4X2hlaWdodCA9DQo+Pj4g
+K8KgwqDCoCBmc2UtPm1heF93aWR0aCA9IGZzZS0+bWluX3dpZHRoOw0KPj4+ICvCoMKgwqAgZnNl
+LT5taW5faGVpZ2h0ID0NCj4+PiDCoMKgwqDCoMKgwqDCoMKgwqAgb3Y1NjQwX21vZGVfZGF0YVsw
+XVtmc2UtPmluZGV4XS5oZWlnaHQ7DQo+Pj4gK8KgwqDCoCBmc2UtPm1heF9oZWlnaHQgPSBmc2Ut
+Pm1pbl9oZWlnaHQ7DQo+Pj4gwqDCoMKgwqDCoCByZXR1cm4gMDsNCj4+PiDCoCB9DQo+Pj4gLXN0
+YXRpYyBpbnQgb3Y1NjQwX2VudW1fZnJhbWVfaW50ZXJ2YWwoDQo+Pj4gLcKgwqDCoCBzdHJ1Y3Qg
+djRsMl9zdWJkZXYgKnNkLA0KPj4+IC3CoMKgwqAgc3RydWN0IHY0bDJfc3ViZGV2X3BhZF9jb25m
+aWcgKmNmZywNCj4+PiAtwqDCoMKgIHN0cnVjdCB2NGwyX3N1YmRldl9mcmFtZV9pbnRlcnZhbF9l
+bnVtICpmaWUpDQo+IENIRUNLOiBMaW5lcyBzaG91bGQgbm90IGVuZCB3aXRoIGEgJygnDQo+ICMy
+MzA5OiBGSUxFOiBkcml2ZXJzL21lZGlhL2kyYy9vdjU2NDAuYzoyMzA5Og0KPiArc3RhdGljIGlu
+dCBvdjU2NDBfZW51bV9mcmFtZV9pbnRlcnZhbCgNCj4gDQo+Pj4gK3N0YXRpYyBpbnQgb3Y1NjQw
+X2VudW1fZnJhbWVfaW50ZXJ2YWwNCj4+PiArwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+IChzdHJ1Y3QgdjRsMl9zdWJkZXYgKnNkLA0KPj4+ICvCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoCBzdHJ1Y3QgdjRsMl9zdWJkZXZfcGFkX2NvbmZpZyAqY2ZnLA0KPj4+ICvCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCBzdHJ1Y3QgdjRsMl9zdWJkZXZfZnJhbWVfaW50ZXJ2
+YWxfZW51bSAqZmllKQ0KPiANCj4+PiDCoCB7DQo+Pj4gwqDCoMKgwqDCoCBzdHJ1Y3Qgb3Y1NjQw
+X2RldiAqc2Vuc29yID0gdG9fb3Y1NjQwX2RldihzZCk7DQo+Pj4gwqDCoMKgwqDCoCBzdHJ1Y3Qg
+djRsMl9mcmFjdCB0cGY7DQo+Pj4gQEAgLTIzNzYsOCArMjM3Niw4IEBAIHN0YXRpYyBpbnQgb3Y1
+NjQwX3NfZnJhbWVfaW50ZXJ2YWwoc3RydWN0IA0KPj4+IHY0bDJfc3ViZGV2ICpzZCwNCj4+PiDC
+oCB9DQo+Pj4gwqAgc3RhdGljIGludCBvdjU2NDBfZW51bV9tYnVzX2NvZGUoc3RydWN0IHY0bDJf
+c3ViZGV2ICpzZCwNCj4+PiAtwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoCBzdHJ1
+Y3QgdjRsMl9zdWJkZXZfcGFkX2NvbmZpZyAqY2ZnLA0KPj4+IC3CoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgIHN0cnVjdCB2NGwyX3N1YmRldl9tYnVzX2NvZGVfZW51bSAqY29kZSkN
+Cj4+PiArwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqAgc3RydWN0IHY0bDJfc3ViZGV2
+X3BhZF9jb25maWcgKmNmZywNCj4+PiArwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqAg
+c3RydWN0IHY0bDJfc3ViZGV2X21idXNfY29kZV9lbnVtICpjb2RlKQ0KPj4+IMKgIHsNCj4+PiDC
+oMKgwqDCoMKgIGlmIChjb2RlLT5wYWQgIT0gMCkNCj4+PiDCoMKgwqDCoMKgwqDCoMKgwqAgcmV0
+dXJuIC1FSU5WQUw7DQo+Pj4gQEAgLTI1MDksOCArMjUwOSw4IEBAIHN0YXRpYyBpbnQgb3Y1NjQw
+X3Byb2JlKHN0cnVjdCBpMmNfY2xpZW50ICpjbGllbnQsDQo+Pj4gwqDCoMKgwqDCoCBzZW5zb3It
+PmFlX3RhcmdldCA9IDUyOw0KPj4+IC3CoMKgwqAgZW5kcG9pbnQgPSBmd25vZGVfZ3JhcGhfZ2V0
+X25leHRfZW5kcG9pbnQoDQo+Pj4gLcKgwqDCoMKgwqDCoMKgIG9mX2Z3bm9kZV9oYW5kbGUoY2xp
+ZW50LT5kZXYub2Zfbm9kZSksIE5VTEwpOw0KPj4+ICvCoMKgwqAgZW5kcG9pbnQgPSBmd25vZGVf
+Z3JhcGhfZ2V0X25leHRfZW5kcG9pbnQNCj4+PiArwqDCoMKgwqDCoMKgwqAgKG9mX2Z3bm9kZV9o
+YW5kbGUoY2xpZW50LT5kZXYub2Zfbm9kZSksIE5VTEwpOw0KPj4NCj4+IEhtbS4gVGhpcyBsb29r
+cyB3ZWlyZCB0byBtZS4gSXNuJ3QgdGhlIGNoYW5nZSByYXRoZXIgYWdhaW5zdCB0aGUgY29tbW9u
+DQo+PiBwcmFjdGljZXM/IFRoZSBzYW1lIG9uIG92NTY0MF9lbnVtX2ZyYW1lX2ludGVydmFsIHBy
+b3RvdHlwZSBjaGFuZ2UuDQo+Pg0KPiBDSEVDSzogTGluZXMgc2hvdWxkIG5vdCBlbmQgd2l0aCBh
+ICcoJw0KPiAjMjUxMzogRklMRTogZHJpdmVycy9tZWRpYS9pMmMvb3Y1NjQwLmM6MjUxMzoNCj4g
+K8KgwqDCoCBlbmRwb2ludCA9IGZ3bm9kZV9ncmFwaF9nZXRfbmV4dF9lbmRwb2ludCgNCj4gDQo+
+IA0KPj4+IMKgwqDCoMKgwqAgaWYgKCFlbmRwb2ludCkgew0KPj4+IMKgwqDCoMKgwqDCoMKgwqDC
+oCBkZXZfZXJyKGRldiwgImVuZHBvaW50IG5vZGUgbm90IGZvdW5kXG4iKTsNCj4+PiDCoMKgwqDC
+oMKgwqDCoMKgwqAgcmV0dXJuIC1FSU5WQUw7DQo+Pg==
