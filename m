@@ -1,97 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f67.google.com ([209.85.218.67]:36689 "EHLO
-        mail-oi0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751560AbeAFThE (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sat, 6 Jan 2018 14:37:04 -0500
-Received: by mail-oi0-f67.google.com with SMTP id j14so5137938oih.3
-        for <linux-media@vger.kernel.org>; Sat, 06 Jan 2018 11:37:04 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <151520099201.32271.4677179499894422956.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <151520099201.32271.4677179499894422956.stgit@dwillia2-desk3.amr.corp.intel.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Sat, 6 Jan 2018 11:37:03 -0800
-Message-ID: <CAPcyv4gQbo+Bvf89QVL=mJrRy+id=sj3hiNePS=o_aAZv6hu0w@mail.gmail.com>
-Subject: Re: [PATCH 00/18] prevent bounds-check bypass via speculative execution
-To: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Cc: Mark Rutland <mark.rutland@arm.com>,
-        Peter Zijlstra <peterz@infradead.org>,
-        Alan Cox <alan.cox@intel.com>,
-        Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>,
-        Will Deacon <will.deacon@arm.com>,
-        Solomon Peachy <pizza@shaftnet.org>,
-        "H. Peter Anvin" <hpa@zytor.com>,
-        Christian Lamparter <chunkeey@googlemail.com>,
-        Elena Reshetova <elena.reshetova@intel.com>,
-        linux-arch@vger.kernel.org, Andi Kleen <ak@linux.intel.com>,
-        "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>,
-        linux-scsi <linux-scsi@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>, X86 ML <x86@kernel.org>,
-        Ingo Molnar <mingo@redhat.com>,
-        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
-        Zhang Rui <rui.zhang@intel.com>,
-        "Linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        Arnd Bergmann <arnd@arndb.de>, Jan Kara <jack@suse.com>,
-        Eduardo Valentin <edubezval@gmail.com>,
-        Al Viro <viro@zeniv.linux.org.uk>, qla2xxx-upstream@qlogic.com,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Arjan van de Ven <arjan@linux.intel.com>,
-        Kalle Valo <kvalo@codeaurora.org>,
-        Alan Cox <alan@linux.intel.com>,
-        "Martin K. Petersen" <martin.petersen@oracle.com>,
-        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
-        Greg KH <gregkh@linuxfoundation.org>,
-        linux-wireless@vger.kernel.org,
-        "Eric W. Biederman" <ebiederm@xmission.com>,
-        Netdev <netdev@vger.kernel.org>,
-        Linus Torvalds <torvalds@linux-foundation.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset="UTF-8"
+Received: from mail-pg0-f68.google.com ([74.125.83.68]:33622 "EHLO
+        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751619AbeAaKZB (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 31 Jan 2018 05:25:01 -0500
+Received: by mail-pg0-f68.google.com with SMTP id u1so9690658pgr.0
+        for <linux-media@vger.kernel.org>; Wed, 31 Jan 2018 02:25:01 -0800 (PST)
+From: Alexandre Courbot <acourbot@chromium.org>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Pawel Osciak <posciak@chromium.org>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Tomasz Figa <tfiga@chromium.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Gustavo Padovan <gustavo.padovan@collabora.com>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Alexandre Courbot <acourbot@chromium.org>
+Subject: [RFCv2 00/17] Request API, take three
+Date: Wed, 31 Jan 2018 19:24:18 +0900
+Message-Id: <20180131102427.207721-1-acourbot@chromium.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Jan 5, 2018 at 5:09 PM, Dan Williams <dan.j.williams@intel.com> wrote:
-> Quoting Mark's original RFC:
->
-> "Recently, Google Project Zero discovered several classes of attack
-> against speculative execution. One of these, known as variant-1, allows
-> explicit bounds checks to be bypassed under speculation, providing an
-> arbitrary read gadget. Further details can be found on the GPZ blog [1]
-> and the Documentation patch in this series."
->
-> This series incorporates Mark Rutland's latest api and adds the x86
-> specific implementation of nospec_barrier. The
-> nospec_{array_ptr,ptr,barrier} helpers are then combined with a kernel
-> wide analysis performed by Elena Reshetova to address static analysis
-> reports where speculative execution on a userspace controlled value
-> could bypass a bounds check. The patches address a precondition for the
-> attack discussed in the Spectre paper [2].
->
-> A consideration worth noting for reviewing these patches is to weigh the
-> dramatic cost of being wrong about whether a given report is exploitable
-> vs the overhead nospec_{array_ptr,ptr} may introduce. In other words,
-> lets make the bar for applying these patches be "can you prove that the
-> bounds check bypass is *not* exploitable". Consider that the Spectre
-> paper reports one example of a speculation window being ~180 cycles.
->
-> Note that there is also a proposal from Linus, array_access [3], that
-> attempts to quash speculative execution past a bounds check without
-> introducing an lfence instruction. That may be a future optimization
-> possibility that is compatible with this api, but it would appear to
-> need guarantees from the compiler that it is not clear the kernel can
-> rely on at this point. It is also not clear that it would be a
-> significant performance win vs lfence.
->
-> These patches also will also be available via the 'nospec' git branch
-> here:
->
->     git://git.kernel.org/pub/scm/linux/kernel/git/djbw/linux nospec
+This is a quickly-put together revision that includes and uses Hans' work to
+use v4l2_ctrl_handler as the request state holder for V4L2 devices. Although
+minor fixes have also been applied, there are still a few comments from the
+previous revision that are left unaddressed. I wanted to give Hans something
+to play with before he forgets what he had in mind for controls. ;)
 
-It appears that git.kernel.org has not mirrored out the new branch. In
-the meantime here's an alternative location:
+Changelog since v1:
+* Integrate Hans control framework patches so S_EXT_CTRLS and G_EXT_CTRLS now
+  work with requests
+* Only allow one buffer at a time for a given request in the buffer queue
+* Applied comments related to documentation and document control ioctls
+* Minor small fixes
 
-    https://github.com/djbw/linux.git nospec
+I have also updated the very basic program that demonstrates the use of the
+request API on vim2m:
 
-If there are updates to these patches they will appear in nospec-v2,
-nospec-v3, etc... branches.
+https://gist.github.com/Gnurou/dbc3776ed97ea7d4ce6041ea15eb0438
+
+It does not do much, but gives a practical idea of how requests should be used.
+
+Alexandre Courbot (9):
+  media: add request API core and UAPI
+  media: videobuf2: add support for requests
+  media: vb2: add support for requests in QBUF ioctl
+  v4l2: add request API support
+  videodev2.h: add request_fd field to v4l2_ext_controls
+  v4l2-ctrls: support requests in EXT_CTRLS ioctls
+  v4l2: document the request API interface
+  media: vim2m: add media device
+  media: vim2m: add request support
+
+Hans Verkuil (7):
+  videodev2.h: Add request_fd field to v4l2_buffer
+  v4l2-ctrls: v4l2_ctrl_add_handler: add from_other_dev
+  v4l2-ctrls: prepare internal structs for request API
+  v4l2-ctrls: add core request API
+  v4l2-ctrls: use ref in helper instead of ctrl
+  v4l2-ctrls: support g/s_ext_ctrls for requests
+  v4l2-ctrls: add v4l2_ctrl_request_setup
+
+Laurent Pinchart (1):
+  media: Document the media request API
+
+ Documentation/media/uapi/mediactl/media-funcs.rst  |   1 +
+ .../media/uapi/mediactl/media-ioc-request-cmd.rst  | 141 ++++++++++
+ Documentation/media/uapi/v4l/buffer.rst            |  10 +-
+ Documentation/media/uapi/v4l/common.rst            |   1 +
+ Documentation/media/uapi/v4l/request-api.rst       | 236 ++++++++++++++++
+ .../media/uapi/v4l/vidioc-g-ext-ctrls.rst          |  16 +-
+ Documentation/media/uapi/v4l/vidioc-qbuf.rst       |  21 ++
+ drivers/media/Makefile                             |   3 +-
+ drivers/media/dvb-frontends/rtl2832_sdr.c          |   5 +-
+ drivers/media/media-device.c                       |   7 +
+ drivers/media/media-request-mgr.c                  | 105 +++++++
+ drivers/media/media-request.c                      | 311 +++++++++++++++++++++
+ drivers/media/pci/bt8xx/bttv-driver.c              |   2 +-
+ drivers/media/pci/cx23885/cx23885-417.c            |   2 +-
+ drivers/media/pci/cx88/cx88-blackbird.c            |   2 +-
+ drivers/media/pci/cx88/cx88-video.c                |   2 +-
+ drivers/media/pci/saa7134/saa7134-empress.c        |   4 +-
+ drivers/media/pci/saa7134/saa7134-video.c          |   2 +-
+ drivers/media/platform/exynos4-is/fimc-capture.c   |   2 +-
+ drivers/media/platform/rcar-vin/rcar-v4l2.c        |   3 +-
+ drivers/media/platform/rcar_drif.c                 |   2 +-
+ drivers/media/platform/soc_camera/soc_camera.c     |   3 +-
+ drivers/media/platform/vim2m.c                     |  79 ++++++
+ drivers/media/platform/vivid/vivid-ctrls.c         |  42 +--
+ drivers/media/usb/cpia2/cpia2_v4l.c                |   2 +-
+ drivers/media/usb/cx231xx/cx231xx-417.c            |   2 +-
+ drivers/media/usb/cx231xx/cx231xx-video.c          |   4 +-
+ drivers/media/usb/msi2500/msi2500.c                |   2 +-
+ drivers/media/usb/tm6000/tm6000-video.c            |   2 +-
+ drivers/media/v4l2-core/Makefile                   |   2 +-
+ drivers/media/v4l2-core/v4l2-compat-ioctl32.c      |   7 +-
+ drivers/media/v4l2-core/v4l2-ctrls.c               | 238 ++++++++++++++--
+ drivers/media/v4l2-core/v4l2-device.c              |   3 +-
+ drivers/media/v4l2-core/v4l2-ioctl.c               | 125 ++++++++-
+ drivers/media/v4l2-core/v4l2-request.c             |  54 ++++
+ drivers/media/v4l2-core/videobuf2-core.c           | 133 ++++++++-
+ drivers/media/v4l2-core/videobuf2-v4l2.c           |  31 +-
+ drivers/staging/media/imx/imx-media-dev.c          |   2 +-
+ drivers/staging/media/imx/imx-media-fim.c          |   2 +-
+ include/media/media-device.h                       |   3 +
+ include/media/media-entity.h                       |   9 +
+ include/media/media-request-mgr.h                  |  73 +++++
+ include/media/media-request.h                      | 186 ++++++++++++
+ include/media/v4l2-ctrls.h                         |  17 +-
+ include/media/v4l2-request.h                       |  34 +++
+ include/media/videobuf2-core.h                     |  15 +-
+ include/media/videobuf2-v4l2.h                     |   2 +
+ include/uapi/linux/media.h                         |  10 +
+ include/uapi/linux/videodev2.h                     |   6 +-
+ 49 files changed, 1881 insertions(+), 85 deletions(-)
+ create mode 100644 Documentation/media/uapi/mediactl/media-ioc-request-cmd.rst
+ create mode 100644 Documentation/media/uapi/v4l/request-api.rst
+ create mode 100644 drivers/media/media-request-mgr.c
+ create mode 100644 drivers/media/media-request.c
+ create mode 100644 drivers/media/v4l2-core/v4l2-request.c
+ create mode 100644 include/media/media-request-mgr.h
+ create mode 100644 include/media/media-request.h
+ create mode 100644 include/media/v4l2-request.h
+
+-- 
+2.16.0.rc1.238.g530d649a79-goog
