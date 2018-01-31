@@ -1,195 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-it0-f42.google.com ([209.85.214.42]:33625 "EHLO
-        mail-it0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752401AbeA3Gbs (ORCPT
+Received: from mx07-00178001.pphosted.com ([62.209.51.94]:44624 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751834AbeAaJIf (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 30 Jan 2018 01:31:48 -0500
-Received: by mail-it0-f42.google.com with SMTP id u12so1560310ite.0
-        for <linux-media@vger.kernel.org>; Mon, 29 Jan 2018 22:31:48 -0800 (PST)
-Received: from mail-io0-f182.google.com (mail-io0-f182.google.com. [209.85.223.182])
-        by smtp.gmail.com with ESMTPSA id a13sm7011387itj.33.2018.01.29.22.31.46
-        for <linux-media@vger.kernel.org>
-        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Mon, 29 Jan 2018 22:31:46 -0800 (PST)
-Received: by mail-io0-f182.google.com with SMTP id c17so10241022iod.1
-        for <linux-media@vger.kernel.org>; Mon, 29 Jan 2018 22:31:46 -0800 (PST)
+        Wed, 31 Jan 2018 04:08:35 -0500
+From: Hugues Fruchet <hugues.fruchet@st.com>
+To: Steve Longerbeam <slongerbeam@gmail.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        "Mauro Carvalho Chehab" <mchehab@kernel.org>
+CC: <linux-media@vger.kernel.org>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Subject: [PATCH v3] media: ov5640: add JPEG support
+Date: Wed, 31 Jan 2018 10:08:10 +0100
+Message-ID: <1517389690-3138-1-git-send-email-hugues.fruchet@st.com>
 MIME-Version: 1.0
-In-Reply-To: <ced425a2-8b66-05c6-367d-46a0a40b1873@xs4all.nl>
-References: <20180126060216.147918-1-acourbot@chromium.org> <ced425a2-8b66-05c6-367d-46a0a40b1873@xs4all.nl>
-From: Alexandre Courbot <acourbot@chromium.org>
-Date: Tue, 30 Jan 2018 15:31:25 +0900
-Message-ID: <CAPBb6MU5Ph=_rH_TOQi5mstujAPMTWqC_1d-8_TcuGx25sOJvg@mail.gmail.com>
-Subject: Re: [RFC PATCH 0/8] [media] Request API, take three
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Pawel Osciak <posciak@chromium.org>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Gustavo Padovan <gustavo.padovan@collabora.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Add YUV422 encoded JPEG support.
 
-On Mon, Jan 29, 2018 at 8:21 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> On 01/26/2018 07:02 AM, Alexandre Courbot wrote:
->> Howdy. Here is your bi-weekly request API redesign! ;)
->>
->> Again, this is a simple version that only implements the flow of requests,
->> without applying controls. The intent is to get an agreement on a base to work
->> on, since the previous versions went straight back to the redesign board.
->>
->> Highlights of this version:
->>
->> * As requested by Hans, request-bound buffers are now passed earlier to drivers,
->> as early as the request itself is submitted. Doing it earlier is not be useful
->> since the driver would not know the state of the request, and thus cannot do
->> anything with the buffer. Drivers are now responsible for applying request
->> parameters themselves.
->>
->> * As a consequence, there is no such thing as a "request queue" anymore. The
->> flow of buffers decides the order in which requests are processed. Individual
->> devices of the same pipeline can implement synchronization if needed, but this
->> is beyond this first version.
->>
->> * VB2 code is still a bit shady. Some of it will interfere with the fences
->> series, so I am waiting for the latter to land to do it properly.
->>
->> * Requests that are not yet submitted effectively act as fences on the buffers
->> they own, resulting in the buffer queue being blocked until the request is
->> submitted. An alternate design would be to only block the
->> not-submitted-request's buffer and let further buffers pass before it, but since
->> buffer order is becoming increasingly important I have decided to just block the
->> queue. This is open to discussion though.
->
-> I don't think we should mess with the order.
+Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
+---
+version 2:
+  - Revisit code as per Sakari suggestions:
+    - fix lock scheme
+    - fix switch back to non-JPEG output while sensor powered
+    See https://www.mail-archive.com/linux-media@vger.kernel.org/msg124979.html
 
-Agreed, let's keep it that way then.
+version 3:
+  - After discussion with Sakari, drop get/set_frame_desc
+    code for JPEG max length estimation, ISP side will
+    allocate buffer on WxH basis, no special information
+    is needed to be conveyed from sensor to ISP.
 
->
->>
->> * Documentation! Also described usecases for codec and simple (i.e. not part of
->> a complex pipeline) capture device.
->
-> I'll concentrate on reviewing that.
->
->>
->> Still remaining to do:
->>
->> * As pointed out by Hans on the previous revision, do not assume that drivers
->> using v4l2_fh have a per-handle state. I have not yet found a good way to
->> differenciate both usages.
->
-> I suspect we need to add a flag or something for this.
+ drivers/media/i2c/ov5640.c | 45 +++++++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 43 insertions(+), 2 deletions(-)
 
-I hope we don't need to, let's see if I can find a pattern...
-
->
->> * Integrate Hans' patchset for control handling: as said above, this is futile
->> unless we can agree on the basic design, which I hope we can do this time.
->> Chrome OS needs this really badly now and will have to move forward no matter
->> what, so I hope this will be considered good enough for a common base of work.
->
-> I am not sure there is any reason to not move forward with the control handling.
-> You need this anyway IMHO, regardless of any public API considerations.
-
-Only reasons are my lazyness and because I wanted to focus on the
-request flow first. But you're right. I have a version with your
-control framework changes integrated (they worked on the first attempt
-btw! :)), let me create a clean patchset from this and send another
-RFC.
-
->
->> A few thoughts/questions that emerged when writing this patchset:
->>
->> * Since requests are exposed as file descriptors, we could easily move the
->> MEDIA_REQ_CMD_SUBMIT and MEDIA_REQ_CMD_REININT commands as ioctls on the
->> requests themselves, instead of having to perform them on the media device that
->> provided the request in the first place. That would add a bit more flexibility
->> if/when passing requests around and means the media device only needs to handle
->> MEDIA_REQ_CMD_ALLOC. Conceptually speaking, this seems to make sense to me.
->> Any comment for/against that?
->
-> Makes sense IMHO.
-
-Glad to hear it, that was my preferred design. :)
-
->
->> * For the codec usecase, I have experimented a bit marking CAPTURE buffers with
->> the request FD that produced them (vim2m acts that way). This seems to work
->> well, however FDs are process-local and could be closed before the CAPTURE
->> buffer is dequeued, rendering that information less meaningful, if not
->> dangerous.
->
-> I don't follow this. Once the fd is passed to the kernel its refcount should be
-> increased so the data it represents won't be released if userspace closes the fd.
-
-The refcount of the request is increased. The refcount of the FD is
-not, since it is only a userspace reference to the request.
-
->
-> Obviously if userspace closes the fd it cannot do anything with it anymore, but
-> it shouldn't be 'dangerous' AFAICT.
-
-It userspace later gets that closed FD back from a DQBUF call, and
-decides to use it again, then we would have a problem. I agree that it
-is userspace responsibility to be careful here, but making things
-foolproof never hurts.
-
->
->> Wouldn't it be better/safer to use a global request ID for
->> such information instead? That ID would be returned upon MEDIA_REQ_CMD_ALLOC so
->> user-space knows which request ID a FD refers to.
->
-> I think it is not a good idea to have both an fd and an ID to refer to the
-> same object. That's going to be very confusing I think.
-
-IDs would not refer to the object, they would just be a way to
-identify it. FDs would be the actual reference.
-
-If we drop the idea of returning request FDs to userspace after the
-initial allocation (which is the only time we can be sure that a
-returned FD is valid), then this is not a problem anymore, but I think
-it may be useful to mark CAPTURE buffers with the request that
-generated them.
-
->
->> * Using the media node to provide requests makes absolute sense for complex
->> camera devices, but is tedious for codec devices which work on one node and
->> require to protect request/media related code with #ifdef
->> CONFIG_MEDIA_CONTROLLER.
->
-> Why? They would now depend on MEDIA_CONTROLLER (i.e. they won't appear in the
-> menuconfig unless MEDIA_CONTROLLER is set). No need for an #ifdef.
-
-Ah, if we make them depend on MEDIA_CONTROLLER, then indeed. But do we
-want to do this for e.g. vim2m and vivid?
-
->
->  For these devices, the sole role of the media node is
->> to produce the request, and that's it (since request submission could be moved
->> to the request FD as explained above). That's a modest use that hardly justifies
->> bringing in the whole media framework IMHO. With a bit of extra abstraction, it
->> should be possible to decouple the base requests from the media controller
->> altogether, and propose two kinds of requests implementations: one simpler
->> implementation that works directly with a single V4L2 node (useful for codecs),
->> and another one that works on a media node and can control all its entities
->> (good for camera). This would allow codecs to use the request API without
->> forcing the media controller, and would considerably simplify the use-case. Any
->> objection to that? IIRC the earlier design documents mentioned this possibility.
->
-> I think this is an interesting idea, but I would postpone making a decision on
-> this until later. We need this MC support regardless, so let's start off with that.
->
-> Once that's working we can discuss if we should or should not create a shortcut
-> for codecs. Trying to decide this now would only confuse the process.
-
-Sounds good, as long as we make a decision before merging.
-
-Thanks,
-Alex.
+diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
+index e2dd352..99a5902 100644
+--- a/drivers/media/i2c/ov5640.c
++++ b/drivers/media/i2c/ov5640.c
+@@ -34,6 +34,8 @@
+ 
+ #define OV5640_DEFAULT_SLAVE_ID 0x3c
+ 
++#define OV5640_REG_SYS_RESET02		0x3002
++#define OV5640_REG_SYS_CLOCK_ENABLE02	0x3006
+ #define OV5640_REG_SYS_CTRL0		0x3008
+ #define OV5640_REG_CHIP_ID		0x300a
+ #define OV5640_REG_IO_MIPI_CTRL00	0x300e
+@@ -114,6 +116,7 @@ struct ov5640_pixfmt {
+ };
+ 
+ static const struct ov5640_pixfmt ov5640_formats[] = {
++	{ MEDIA_BUS_FMT_JPEG_1X8, V4L2_COLORSPACE_JPEG, },
+ 	{ MEDIA_BUS_FMT_UYVY8_2X8, V4L2_COLORSPACE_SRGB, },
+ 	{ MEDIA_BUS_FMT_YUYV8_2X8, V4L2_COLORSPACE_SRGB, },
+ 	{ MEDIA_BUS_FMT_RGB565_2X8_LE, V4L2_COLORSPACE_SRGB, },
+@@ -1915,6 +1918,7 @@ static int ov5640_set_framefmt(struct ov5640_dev *sensor,
+ {
+ 	int ret = 0;
+ 	bool is_rgb = false;
++	bool is_jpeg = false;
+ 	u8 val;
+ 
+ 	switch (format->code) {
+@@ -1936,6 +1940,11 @@ static int ov5640_set_framefmt(struct ov5640_dev *sensor,
+ 		val = 0x61;
+ 		is_rgb = true;
+ 		break;
++	case MEDIA_BUS_FMT_JPEG_1X8:
++		/* YUV422, YUYV */
++		val = 0x30;
++		is_jpeg = true;
++		break;
+ 	default:
+ 		return -EINVAL;
+ 	}
+@@ -1946,8 +1955,40 @@ static int ov5640_set_framefmt(struct ov5640_dev *sensor,
+ 		return ret;
+ 
+ 	/* FORMAT MUX CONTROL: ISP YUV or RGB */
+-	return ov5640_write_reg(sensor, OV5640_REG_ISP_FORMAT_MUX_CTRL,
+-				is_rgb ? 0x01 : 0x00);
++	ret = ov5640_write_reg(sensor, OV5640_REG_ISP_FORMAT_MUX_CTRL,
++			       is_rgb ? 0x01 : 0x00);
++	if (ret)
++		return ret;
++
++	/*
++	 * TIMING TC REG21:
++	 * - [5]:	JPEG enable
++	 */
++	ret = ov5640_mod_reg(sensor, OV5640_REG_TIMING_TC_REG21,
++			     BIT(5), is_jpeg ? BIT(5) : 0);
++	if (ret)
++		return ret;
++
++	/*
++	 * SYSTEM RESET02:
++	 * - [4]:	Reset JFIFO
++	 * - [3]:	Reset SFIFO
++	 * - [2]:	Reset JPEG
++	 */
++	ret = ov5640_mod_reg(sensor, OV5640_REG_SYS_RESET02,
++			     BIT(4) | BIT(3) | BIT(2),
++			     is_jpeg ? 0 : (BIT(4) | BIT(3) | BIT(2)));
++	if (ret)
++		return ret;
++
++	/*
++	 * CLOCK ENABLE02:
++	 * - [5]:	Enable JPEG 2x clock
++	 * - [3]:	Enable JPEG clock
++	 */
++	return ov5640_mod_reg(sensor, OV5640_REG_SYS_CLOCK_ENABLE02,
++			      BIT(5) | BIT(3),
++			      is_jpeg ? (BIT(5) | BIT(3)) : 0);
+ }
+ 
+ /*
+-- 
+1.9.1
