@@ -1,393 +1,246 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay2-d.mail.gandi.net ([217.70.183.194]:51597 "EHLO
-        relay2-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751800AbeAaMsZ (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:36346 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1752469AbeAaOXI (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 31 Jan 2018 07:48:25 -0500
-Date: Wed, 31 Jan 2018 13:47:59 +0100
-From: jacopo mondi <jacopo@jmondi.org>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>, magnus.damm@gmail.com,
-        geert@glider.be, hverkuil@xs4all.nl, mchehab@kernel.org,
-        festevam@gmail.com, sakari.ailus@iki.fi, robh+dt@kernel.org,
-        mark.rutland@arm.com, pombredanne@nexb.com,
-        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-sh@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v8 07/11] media: i2c: ov772x: Support frame interval
- handling
-Message-ID: <20180131124759.GA30675@w540>
-References: <1517306302-27957-1-git-send-email-jacopo+renesas@jmondi.org>
- <1517306302-27957-8-git-send-email-jacopo+renesas@jmondi.org>
- <34502970.Ll86D7ehED@avalon>
+        Wed, 31 Jan 2018 09:23:08 -0500
+Date: Wed, 31 Jan 2018 16:23:05 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Hugues Fruchet <hugues.fruchet@st.com>
+Cc: Steve Longerbeam <slongerbeam@gmail.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Subject: Re: [PATCH] media: ov5640: various typo & style fixes
+Message-ID: <20180131142305.6hbdf2xjyn4ay3ij@valkosipuli.retiisi.org.uk>
+References: <1517397729-12758-1-git-send-email-hugues.fruchet@st.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <34502970.Ll86D7ehED@avalon>
+In-Reply-To: <1517397729-12758-1-git-send-email-hugues.fruchet@st.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
-    thanks for review
+Hi Hugues,
 
-Resuming here the brief conversation on #v4l with you and Hans...
+Thanks for the patch. It's nice to see cleanups, too! :-)
 
-On Wed, Jan 31, 2018 at 12:34:59PM +0200, Laurent Pinchart wrote:
-> Hi Jacopo,
->
-> Thank you for the patch.
->
-> On Tuesday, 30 January 2018 11:58:18 EET Jacopo Mondi wrote:
-> > Add support to ov772x driver for frame intervals handling and enumeration.
-> > Tested with 10MHz and 24MHz input clock at VGA and QVGA resolutions for
-> > 10, 15 and 30 frame per second rates.
-> >
-> > Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
-> > ---
-> >  drivers/media/i2c/ov772x.c | 210 ++++++++++++++++++++++++++++++++++++++----
-> >  1 file changed, 193 insertions(+), 17 deletions(-)
-> >
-> > diff --git a/drivers/media/i2c/ov772x.c b/drivers/media/i2c/ov772x.c
-> > index 23106d7..28de254 100644
-> > --- a/drivers/media/i2c/ov772x.c
-> > +++ b/drivers/media/i2c/ov772x.c
->
-> [snip]
->
-> > @@ -373,6 +378,19 @@
-> >  #define VERSION(pid, ver) ((pid<<8)|(ver&0xFF))
-> >
-> >  /*
-> > + * Frame size (including blanking lines)
-> > + */
-> > +#define VGA_FRAME_SIZE		(510 * 748)
-> > +#define QVGA_FRAME_SIZE		(278 * 576)
->
-> Those two macros are not used, you can drop them.
->
-> > +/*
-> > + * Input clock frequencies
-> > + */
-> > +static const u8 ov772x_com4_vals[] = { PLL_BYPASS, PLL_4x, PLL_6x, PLL_8x
-> > };
-> > +static const unsigned int ov772x_pll_mult[] = { 1, 4, 6, 8 };
-> > +#define OV772X_PLL_N_MULT ARRAY_SIZE(ov772x_pll_mult)
->
-> I think it would be clearer if you used ARRAY_SIZE(ov772x_pll_mult) directly
-> in the code.
->
-> Maybe nitpicking a bit, but I wouldgroup the com4 values and multipliers in a
-> structure:
->
-> static const struct {
-> 	unsigned int mult;
-> 	u8 com4;
-> } ov772x_pll_mult[] = {
-> 	{ 1, PLL_BYPASS },
-> 	{ 4, PLL_4x },
-> 	{ 6, PLL_6x },
-> 	{ 8, PLL_8x },
-> };
->
-> That ensures that the two arrays stay in sync as there's only one array left.
->
-> > +/*
-> >   * struct
-> >   */
-> >
-> > @@ -388,6 +406,7 @@ struct ov772x_color_format {
-> >  struct ov772x_win_size {
-> >  	char                     *name;
-> >  	unsigned char             com7_bit;
-> > +	unsigned int		  sizeimage;
-> >  	struct v4l2_rect	  rect;
-> >  };
-> >
-> > @@ -404,6 +423,7 @@ struct ov772x_priv {
-> >  	unsigned short                    flag_hflip:1;
-> >  	/* band_filter = COM8[5] ? 256 - BDBASE : 0 */
-> >  	unsigned short                    band_filter;
-> > +	unsigned int			  fps;
-> >  };
-> >
-> >  /*
-> > @@ -487,27 +507,35 @@ static const struct ov772x_color_format ov772x_cfmts[]
-> > = {
-> >
-> >  static const struct ov772x_win_size ov772x_win_sizes[] = {
-> >  	{
-> > -		.name     = "VGA",
-> > -		.com7_bit = SLCT_VGA,
-> > +		.name		= "VGA",
-> > +		.com7_bit	= SLCT_VGA,
-> > +		.sizeimage	= 381480,
->
-> I'd write this 510 * 748.
->
-> >  		.rect = {
-> > -			.left = 140,
-> > -			.top = 14,
-> > -			.width = VGA_WIDTH,
-> > -			.height = VGA_HEIGHT,
-> > +			.left	= 140,
-> > +			.top	= 14,
-> > +			.width	= VGA_WIDTH,
-> > +			.height	= VGA_HEIGHT,
-> >  		},
-> >  	}, {
-> > -		.name     = "QVGA",
-> > -		.com7_bit = SLCT_QVGA,
-> > +		.name		= "QVGA",
-> > +		.com7_bit	= SLCT_QVGA,
-> > +		.sizeimage	= 160128,
->
-> And this 278 * 576. It makes the value less magic.
->
-> >  		.rect = {
-> > -			.left = 252,
-> > -			.top = 6,
-> > -			.width = QVGA_WIDTH,
-> > -			.height = QVGA_HEIGHT,
-> > +			.left	= 252,
-> > +			.top	= 6,
-> > +			.width	= QVGA_WIDTH,
-> > +			.height	= QVGA_HEIGHT,
-> >  		},
-> >  	},
-> >  };
-> >
-> >  /*
-> > + * frame rate settings lists
-> > + */
-> > +unsigned int ov772x_frame_intervals[] = { 5, 10, 15, 20, 30, 60 };
-> > +#define OV772X_N_FRAME_INTERVALS ARRAY_SIZE(ov772x_frame_intervals)
-> > +
-> > +/*
-> >   * general function
-> >   */
-> >
-> > @@ -574,6 +602,124 @@ static int ov772x_s_stream(struct v4l2_subdev *sd, int
-> > enable) return 0;
-> >  }
-> >
-> > +static int ov772x_set_frame_rate(struct ov772x_priv *priv,
-> > +				 struct v4l2_fract *tpf,
-> > +				 const struct ov772x_color_format *cfmt,
-> > +				 const struct ov772x_win_size *win)
-> > +{
-> > +	struct i2c_client *client = v4l2_get_subdevdata(&priv->subdev);
-> > +	unsigned int fps = tpf->denominator / tpf->numerator;
->
-> tpf->numerator could be 0.
->
-> > +	unsigned int fin = clk_get_rate(priv->clk);
->
-> Clock rates are unsigned long.
->
-> > +	unsigned int rate_prev;
-> > +	unsigned int fsize;
-> > +	unsigned int pclk;
-> > +	unsigned int rate;
-> > +	unsigned int idx;
-> > +	unsigned int i;
-> > +	u8 clkrc = 0;
-> > +	u8 com4 = 0;
-> > +	int ret;
-> > +
-> > +	/* Approximate to the closest supported frame interval. */
-> > +	rate_prev = ~0L;
-> > +	for (i = 0, idx = 0; i < OV772X_N_FRAME_INTERVALS; i++) {
-> > +		rate = abs(fps - ov772x_frame_intervals[i]);
-> > +		if (rate < rate_prev) {
-> > +			idx = i;
-> > +			rate_prev = rate;
->
-> I'd call the rate_prev and rate variables best_diff and diff respectively.
->
-> > +		}
-> > +	}
-> > +	fps = ov772x_frame_intervals[idx];
-> > +
-> > +	/* Use image size (with blankings) to calculate desired pixel clock. */
-> > +	if ((cfmt->com7 & OFMT_RGB) == OFMT_RGB ||
-> > +	    (cfmt->com7 & OFMT_YUV) == OFMT_YUV)
-> > +		fsize = win->sizeimage * 2;
-> > +	else if ((cfmt->com7 & OFMT_BRAW) == OFMT_BRAW)
->
-> I think all these should test (cfmt->com7 & OFMT_MASK) == ...
->
-> > +		fsize = win->sizeimage;
-> > +
-> > +	pclk = fps * fsize;
-> > +
-> > +	/*
-> > +	 * Pixel clock generation circuit is pretty simple:
-> > +	 *
-> > +	 * Fin -> [ / CLKRC_div] -> [ * PLL_mult] -> pclk
-> > +	 *
-> > +	 * Try to approximate the desired pixel clock testing all available
-> > +	 * PLL multipliers (1x, 4x, 6x, 8x) and calculate corresponding
-> > +	 * divisor with:
-> > +	 *
-> > +	 * div = PLL_mult * Fin / pclk
-> > +	 *
-> > +	 * and re-calculate the pixel clock using it:
-> > +	 *
-> > +	 * pclk = Fin * PLL_mult / CLKRC_div
-> > +	 *
-> > +	 * Choose the PLL_mult and CLKRC_div pair that gives a pixel clock
-> > +	 * closer to the desired one.
-> > +	 *
-> > +	 * The desired pixel clock is calculated using a known frame size
-> > +	 * (blanking included) and FPS.
-> > +	 */
-> > +	rate_prev = ~0L;
-> > +	for (i = 0; i < OV772X_PLL_N_MULT; i++) {
-> > +		unsigned int pll_mult = ov772x_pll_mult[i];
-> > +		unsigned int pll_out = pll_mult * fin;
-> > +		unsigned int t_pclk;
-> > +		unsigned int div;
-> > +
-> > +		if (pll_out < pclk)
-> > +			continue;
-> > +
-> > +		div = DIV_ROUND_CLOSEST(pll_out, pclk);
-> > +		t_pclk = DIV_ROUND_CLOSEST((fin * pll_mult), div);
->
-> No need for the inner parentheses.
->
-> > +		rate = abs(pclk - t_pclk);
-> > +		if (rate < rate_prev) {
-> > +			rate_prev = rate;
-> > +			clkrc = CLKRC_DIV(div);
-> > +			com4 = ov772x_com4_vals[i];
-> > +		}
-> > +	}
-> > +
-> > +	ret = ov772x_write(client, COM4, com4 | COM4_RESERVED);
-> > +	if (ret < 0)
-> > +		return ret;
-> > +
-> > +	ret = ov772x_write(client, CLKRC, clkrc | CLKRC_RESERVED);
-> > +	if (ret < 0)
-> > +		return ret;
-> > +
-> > +	tpf->numerator = 1;
-> > +	tpf->denominator = fps;
-> > +	priv->fps = tpf->denominator;
-> > +
-> > +	return 0;
-> > +}
-> > +
-> > +static int ov772x_g_frame_interval(struct v4l2_subdev *sd,
-> > +				   struct v4l2_subdev_frame_interval *ival)
-> > +{
-> > +	struct ov772x_priv *priv = to_ov772x(sd);
-> > +	struct v4l2_fract *tpf = &ival->interval;
-> > +
-> > +	memset(ival->reserved, 0, sizeof(ival->reserved));
-> > +	tpf->numerator = 1;
-> > +	tpf->denominator = priv->fps;
-> > +
-> > +	return 0;
-> > +}
-> > +
-> > +static int ov772x_s_frame_interval(struct v4l2_subdev *sd,
-> > +				   struct v4l2_subdev_frame_interval *ival)
-> > +{
-> > +	struct ov772x_priv *priv = to_ov772x(sd);
-> > +	struct v4l2_fract *tpf = &ival->interval;
-> > +
-> > +	memset(ival->reserved, 0, sizeof(ival->reserved));
-> > +
-> > +	return ov772x_set_frame_rate(priv, tpf, priv->cfmt, priv->win);
-> > +}
-> > +
-> >  static int ov772x_s_ctrl(struct v4l2_ctrl *ctrl)
-> >  {
-> >  	struct ov772x_priv *priv = container_of(ctrl->handler,
-> > @@ -757,6 +903,7 @@ static int ov772x_set_params(struct ov772x_priv *priv,
-> >  			     const struct ov772x_win_size *win)
-> >  {
-> >  	struct i2c_client *client = v4l2_get_subdevdata(&priv->subdev);
-> > +	struct v4l2_fract tpf;
-> >  	int ret;
-> >  	u8  val;
-> >
-> > @@ -885,6 +1032,13 @@ static int ov772x_set_params(struct ov772x_priv *priv,
-> > if (ret < 0)
-> >  		goto ov772x_set_fmt_error;
-> >
-> > +	/* COM4, CLKRC: Set pixel clock and framerate. */
-> > +	tpf.numerator = 1;
-> > +	tpf.denominator = priv->fps;
-> > +	ret = ov772x_set_frame_rate(priv, &tpf, cfmt, win);
-> > +	if (ret < 0)
-> > +		goto ov772x_set_fmt_error;
-> > +
-> >  	/*
-> >  	 * set COM8
-> >  	 */
-> > @@ -1043,6 +1197,24 @@ static const struct v4l2_subdev_core_ops
-> > ov772x_subdev_core_ops = { .s_power	= ov772x_s_power,
-> >  };
-> >
-> > +static int ov772x_enum_frame_interval(struct v4l2_subdev *sd,
-> > +				      struct v4l2_subdev_pad_config *cfg,
-> > +				      struct v4l2_subdev_frame_interval_enum *fie)
-> > +{
-> > +	if (fie->pad || fie->index >= OV772X_N_FRAME_INTERVALS)
-> > +		return -EINVAL;
-> > +
-> > +	if (fie->width != VGA_WIDTH && fie->width != QVGA_WIDTH)
-> > +		return -EINVAL;
-> > +	if (fie->height != VGA_HEIGHT && fie->height != QVGA_HEIGHT)
-> > +		return -EINVAL;
-> > +
-> > +	fie->interval.numerator = 1;
-> > +	fie->interval.denominator = ov772x_frame_intervals[fie->index];
-> > +
-> > +	return 0;
-> > +}
->
-> The more I think about it, the more I believe that the subdev frame interval
-> enumeration operation is nonsense. This particular sensor is not restricted to
-> a fixed list of frame intervals. Sensors should really expose the pixel clock
-> and blanking as controls, and higher level parameters such as frame intervals
-> should then be handled by the bridge driver.
+A few comments below. Apart those this seems good to me.
 
-I thought the same while implementing this, exposing a limited set of
-discrete values is limiting when the hw and the driver actually
-support a continuous range of possible values.
+On Wed, Jan 31, 2018 at 12:22:09PM +0100, Hugues Fruchet wrote:
+> Various typo & style fixes either detected by code
+> review or checkpatch.
+> 
+> Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
+> ---
+>  drivers/media/i2c/ov5640.c | 52 +++++++++++++++++++++++-----------------------
+>  1 file changed, 26 insertions(+), 26 deletions(-)
+> 
+> diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
+> index 882a7c3..9cceb5f 100644
+> --- a/drivers/media/i2c/ov5640.c
+> +++ b/drivers/media/i2c/ov5640.c
+> @@ -14,14 +14,14 @@
+>  #include <linux/ctype.h>
+>  #include <linux/delay.h>
+>  #include <linux/device.h>
+> +#include <linux/gpio/consumer.h>
+>  #include <linux/i2c.h>
+>  #include <linux/init.h>
+>  #include <linux/module.h>
+>  #include <linux/of_device.h>
+> +#include <linux/regulator/consumer.h>
+>  #include <linux/slab.h>
+>  #include <linux/types.h>
+> -#include <linux/gpio/consumer.h>
+> -#include <linux/regulator/consumer.h>
+>  #include <media/v4l2-async.h>
+>  #include <media/v4l2-ctrls.h>
+>  #include <media/v4l2-device.h>
+> @@ -128,7 +128,7 @@ struct ov5640_pixfmt {
+>   * to set the MIPI CSI-2 virtual channel.
+>   */
+>  static unsigned int virtual_channel;
+> -module_param(virtual_channel, int, 0);
+> +module_param(virtual_channel, int, 0000);
 
-But I agree with Hans (of course, it makes things easier for me :) that if
-that's what the API offers right now, we should not hold back this
-series waiting for a better one to be available.
+Why?
 
-I'm happy to keep discussing this if I can help in some way, but I
-think it's outside the scope of this patch.
+>  MODULE_PARM_DESC(virtual_channel,
+>  		 "MIPI CSI-2 virtual channel (0..3), default 0");
+>  
+> @@ -139,7 +139,7 @@ struct ov5640_pixfmt {
+>  
+>  /* regulator supplies */
+>  static const char * const ov5640_supply_name[] = {
+> -	"DOVDD", /* Digital I/O (1.8V) suppply */
+> +	"DOVDD", /* Digital I/O (1.8V) supply */
+>  	"DVDD",  /* Digital Core (1.5V) supply */
+>  	"AVDD",  /* Analog (2.8V) supply */
+>  };
+> @@ -245,7 +245,6 @@ static inline struct v4l2_subdev *ctrl_to_sd(struct v4l2_ctrl *ctrl)
+>   */
+>  
+>  static const struct reg_value ov5640_init_setting_30fps_VGA[] = {
+> -
+>  	{0x3103, 0x11, 0, 0}, {0x3008, 0x82, 0, 5}, {0x3008, 0x42, 0, 0},
+>  	{0x3103, 0x03, 0, 0}, {0x3017, 0x00, 0, 0}, {0x3018, 0x00, 0, 0},
+>  	{0x3034, 0x18, 0, 0}, {0x3035, 0x14, 0, 0}, {0x3036, 0x38, 0, 0},
+> @@ -334,7 +333,6 @@ static inline struct v4l2_subdev *ctrl_to_sd(struct v4l2_ctrl *ctrl)
+>  };
+>  
+>  static const struct reg_value ov5640_setting_30fps_VGA_640_480[] = {
+> -
+>  	{0x3035, 0x14, 0, 0}, {0x3036, 0x38, 0, 0}, {0x3c07, 0x08, 0, 0},
+>  	{0x3c09, 0x1c, 0, 0}, {0x3c0a, 0x9c, 0, 0}, {0x3c0b, 0x40, 0, 0},
+>  	{0x3820, 0x41, 0, 0}, {0x3821, 0x07, 0, 0}, {0x3814, 0x31, 0, 0},
+> @@ -377,7 +375,6 @@ static inline struct v4l2_subdev *ctrl_to_sd(struct v4l2_ctrl *ctrl)
+>  };
+>  
+>  static const struct reg_value ov5640_setting_30fps_XGA_1024_768[] = {
+> -
+>  	{0x3035, 0x14, 0, 0}, {0x3036, 0x38, 0, 0}, {0x3c07, 0x08, 0, 0},
+>  	{0x3c09, 0x1c, 0, 0}, {0x3c0a, 0x9c, 0, 0}, {0x3c0b, 0x40, 0, 0},
+>  	{0x3820, 0x41, 0, 0}, {0x3821, 0x07, 0, 0}, {0x3814, 0x31, 0, 0},
+> @@ -484,6 +481,7 @@ static inline struct v4l2_subdev *ctrl_to_sd(struct v4l2_ctrl *ctrl)
+>  	{0x4407, 0x04, 0, 0}, {0x460b, 0x35, 0, 0}, {0x460c, 0x22, 0, 0},
+>  	{0x3824, 0x02, 0, 0}, {0x5001, 0xa3, 0, 0},
+>  };
+> +
+>  static const struct reg_value ov5640_setting_15fps_QCIF_176_144[] = {
+>  	{0x3035, 0x22, 0, 0}, {0x3036, 0x38, 0, 0}, {0x3c07, 0x08, 0, 0},
+>  	{0x3c09, 0x1c, 0, 0}, {0x3c0a, 0x9c, 0, 0}, {0x3c0b, 0x40, 0, 0},
+> @@ -840,7 +838,7 @@ static int ov5640_write_reg(struct ov5640_dev *sensor, u16 reg, u8 val)
+>  	ret = i2c_transfer(client->adapter, &msg, 1);
+>  	if (ret < 0) {
+>  		v4l2_err(&sensor->sd, "%s: error: reg=%x, val=%x\n",
+> -			__func__, reg, val);
+> +			 __func__, reg, val);
+>  		return ret;
+>  	}
+>  
+> @@ -886,7 +884,7 @@ static int ov5640_read_reg16(struct ov5640_dev *sensor, u16 reg, u16 *val)
+>  	ret = ov5640_read_reg(sensor, reg, &hi);
+>  	if (ret)
+>  		return ret;
+> -	ret = ov5640_read_reg(sensor, reg+1, &lo);
+> +	ret = ov5640_read_reg(sensor, reg + 1, &lo);
+>  	if (ret)
+>  		return ret;
+>  
+> @@ -947,7 +945,7 @@ static int ov5640_load_regs(struct ov5640_dev *sensor,
+>  			break;
+>  
+>  		if (delay_ms)
+> -			usleep_range(1000*delay_ms, 1000*delay_ms+100);
+> +			usleep_range(1000 * delay_ms, 1000 * delay_ms + 100);
+>  	}
+>  
+>  	return ret;
+> @@ -1289,7 +1287,6 @@ static int ov5640_set_bandingfilter(struct ov5640_dev *sensor)
+>  		return ret;
+>  	prev_vts = ret;
+>  
+> -
+>  	/* calculate banding filter */
+>  	/* 60Hz */
+>  	band_step60 = sensor->prev_sysclk * 100 / sensor->prev_hts * 100 / 120;
+> @@ -1405,8 +1402,8 @@ static int ov5640_set_virtual_channel(struct ov5640_dev *sensor)
+>   * sensor changes between scaling and subsampling, go through
+>   * exposure calculation
+>   */
+> -static int ov5640_set_mode_exposure_calc(
+> -	struct ov5640_dev *sensor, const struct ov5640_mode_info *mode)
+> +static int ov5640_set_mode_exposure_calc(struct ov5640_dev *sensor,
+> +					 const struct ov5640_mode_info *mode)
+>  {
+>  	u32 prev_shutter, prev_gain16;
+>  	u32 cap_shutter, cap_gain16;
+> @@ -1416,7 +1413,7 @@ static int ov5640_set_mode_exposure_calc(
+>  	u8 average;
+>  	int ret;
+>  
+> -	if (mode->reg_data == NULL)
+> +	if (!mode->reg_data)
+>  		return -EINVAL;
+>  
+>  	/* read preview shutter */
+> @@ -1570,7 +1567,7 @@ static int ov5640_set_mode_direct(struct ov5640_dev *sensor,
+>  {
+>  	int ret;
+>  
+> -	if (mode->reg_data == NULL)
+> +	if (!mode->reg_data)
+>  		return -EINVAL;
+>  
+>  	/* Write capture setting */
+> @@ -2117,7 +2114,8 @@ static int ov5640_set_ctrl_gain(struct ov5640_dev *sensor, int auto_gain)
+>  
+>  	if (ctrls->auto_gain->is_new) {
+>  		ret = ov5640_mod_reg(sensor, OV5640_REG_AEC_PK_MANUAL,
+> -				     BIT(1), ctrls->auto_gain->val ? 0 : BIT(1));
+> +				     BIT(1),
+> +				     ctrls->auto_gain->val ? 0 : BIT(1));
+>  		if (ret)
+>  			return ret;
+>  	}
+> @@ -2297,18 +2295,20 @@ static int ov5640_enum_frame_size(struct v4l2_subdev *sd,
+>  	if (fse->index >= OV5640_NUM_MODES)
+>  		return -EINVAL;
+>  
+> -	fse->min_width = fse->max_width =
+> +	fse->min_width =
+>  		ov5640_mode_data[0][fse->index].width;
+> -	fse->min_height = fse->max_height =
+> +	fse->max_width = fse->min_width;
+> +	fse->min_height =
+>  		ov5640_mode_data[0][fse->index].height;
+> +	fse->max_height = fse->min_height;
+>  
+>  	return 0;
+>  }
+>  
+> -static int ov5640_enum_frame_interval(
+> -	struct v4l2_subdev *sd,
+> -	struct v4l2_subdev_pad_config *cfg,
+> -	struct v4l2_subdev_frame_interval_enum *fie)
+> +static int ov5640_enum_frame_interval
+> +				(struct v4l2_subdev *sd,
+> +				 struct v4l2_subdev_pad_config *cfg,
+> +				 struct v4l2_subdev_frame_interval_enum *fie)
+>  {
+>  	struct ov5640_dev *sensor = to_ov5640_dev(sd);
+>  	struct v4l2_fract tpf;
+> @@ -2376,8 +2376,8 @@ static int ov5640_s_frame_interval(struct v4l2_subdev *sd,
+>  }
+>  
+>  static int ov5640_enum_mbus_code(struct v4l2_subdev *sd,
+> -				  struct v4l2_subdev_pad_config *cfg,
+> -				  struct v4l2_subdev_mbus_code_enum *code)
+> +				 struct v4l2_subdev_pad_config *cfg,
+> +				 struct v4l2_subdev_mbus_code_enum *code)
+>  {
+>  	if (code->pad != 0)
+>  		return -EINVAL;
+> @@ -2509,8 +2509,8 @@ static int ov5640_probe(struct i2c_client *client,
+>  
+>  	sensor->ae_target = 52;
+>  
+> -	endpoint = fwnode_graph_get_next_endpoint(
+> -		of_fwnode_handle(client->dev.of_node), NULL);
+> +	endpoint = fwnode_graph_get_next_endpoint
+> +		(of_fwnode_handle(client->dev.of_node), NULL);
 
->
-> I won't nack this patch due to this as I want to see this series merged, so
-> with the above small issues fixed you have my
+Hmm. This looks weird to me. Isn't the change rather against the common
+practices? The same on ov5640_enum_frame_interval prototype change.
 
-Thanks.
+>  	if (!endpoint) {
+>  		dev_err(dev, "endpoint node not found\n");
+>  		return -EINVAL;
 
-I then would like to discuss the CEU driver behavior when no
-enum_frame_interval subdev operation is available, I will reply to my
-own patch on this.
+-- 
+Regards,
 
-Thanks
-   j
-
-
->
-> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
->
-> but we're going in the wrong direction.
->
-> --
-> Regards,
->
-> Laurent Pinchart
->
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
