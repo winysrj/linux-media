@@ -1,47 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:59618 "EHLO
-        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751211AbeAPKL1 (ORCPT
+Received: from mx08-00178001.pphosted.com ([91.207.212.93]:32980 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1751890AbeAaLTz (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 16 Jan 2018 05:11:27 -0500
-Subject: Re: [PATCH v5 8/9] media: i2c: tw9910: Remove soc_camera dependencies
-To: Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        laurent.pinchart@ideasonboard.com, magnus.damm@gmail.com,
-        geert@glider.be, mchehab@kernel.org, festevam@gmail.com,
-        sakari.ailus@iki.fi, robh+dt@kernel.org, mark.rutland@arm.com,
-        pombredanne@nexb.com
-Cc: linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-sh@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-References: <1515765849-10345-1-git-send-email-jacopo+renesas@jmondi.org>
- <1515765849-10345-9-git-send-email-jacopo+renesas@jmondi.org>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <3f68d8a1-b7e7-54bd-6906-37dfe7da450c@xs4all.nl>
-Date: Tue, 16 Jan 2018 11:11:22 +0100
+        Wed, 31 Jan 2018 06:19:55 -0500
+From: Hugues Fruchet <hugues.fruchet@st.com>
+To: Steve Longerbeam <slongerbeam@gmail.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        "Mauro Carvalho Chehab" <mchehab@kernel.org>
+CC: <linux-media@vger.kernel.org>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Subject: [PATCH] media: ov5640: add error trace in case of i2c read failure
+Date: Wed, 31 Jan 2018 12:19:24 +0100
+Message-ID: <1517397564-12335-1-git-send-email-hugues.fruchet@st.com>
 MIME-Version: 1.0
-In-Reply-To: <1515765849-10345-9-git-send-email-jacopo+renesas@jmondi.org>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/12/2018 03:04 PM, Jacopo Mondi wrote:
-> Remove soc_camera framework dependencies from tw9910 sensor driver.
-> - Handle clock and gpios
-> - Register async subdevice
-> - Remove soc_camera specific g/s_mbus_config operations
-> - Add kernel doc to driver interface header file
-> - Adjust build system
-> 
-> This commit does not remove the original soc_camera based driver as long
-> as other platforms depends on soc_camera-based CEU driver.
-> 
-> Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
-> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Add an error trace in ov5640_read_reg() in case of i2c_transfer()
+failure.
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
+---
+ drivers/media/i2c/ov5640.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-Regards,
-
-        Hans
+diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
+index 99a5902..882a7c3 100644
+--- a/drivers/media/i2c/ov5640.c
++++ b/drivers/media/i2c/ov5640.c
+@@ -868,8 +868,11 @@ static int ov5640_read_reg(struct ov5640_dev *sensor, u16 reg, u8 *val)
+ 	msg[1].len = 1;
+ 
+ 	ret = i2c_transfer(client->adapter, msg, 2);
+-	if (ret < 0)
++	if (ret < 0) {
++		v4l2_err(&sensor->sd, "%s: error: reg=%x\n",
++			 __func__, reg);
+ 		return ret;
++	}
+ 
+ 	*val = buf[0];
+ 	return 0;
+-- 
+1.9.1
