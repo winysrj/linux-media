@@ -1,165 +1,227 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:49985 "EHLO
-        mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S933410AbeAXLXs (ORCPT
+Received: from mail-pf0-f196.google.com ([209.85.192.196]:46853 "EHLO
+        mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751677AbeAaEg2 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 24 Jan 2018 06:23:48 -0500
-From: Smitha T Murthy <smitha.t@samsung.com>
-To: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Cc: kyungmin.park@samsung.com, kamil@wypas.org, jtp.park@samsung.com,
-        a.hajda@samsung.com, mchehab@kernel.org, pankaj.dubey@samsung.com,
-        krzk@kernel.org, m.szyprowski@samsung.com, s.nawrocki@samsung.com,
-        Smitha T Murthy <smitha.t@samsung.com>
-Subject: [Patch v7 08/12] [media] s5p-mfc: Add support for HEVC decoder
-Date: Wed, 24 Jan 2018 16:29:40 +0530
-Message-id: <1516791584-7980-9-git-send-email-smitha.t@samsung.com>
-In-reply-to: <1516791584-7980-1-git-send-email-smitha.t@samsung.com>
-References: <1516791584-7980-1-git-send-email-smitha.t@samsung.com>
-        <CGME20180124112346epcas2p39eec7e548f87fe5db5f48c547704a10d@epcas2p3.samsung.com>
+        Tue, 30 Jan 2018 23:36:28 -0500
+Received: by mail-pf0-f196.google.com with SMTP id y5so11384156pff.13
+        for <linux-media@vger.kernel.org>; Tue, 30 Jan 2018 20:36:28 -0800 (PST)
+From: Tim Harvey <tharvey@gateworks.com>
+To: linux-media@vger.kernel.org, alsa-devel@alsa-project.org
+Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        shawnguo@kernel.org, Steve Longerbeam <slongerbeam@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Hans Verkuil <hansverk@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH v7 1/6] v4l2-dv-timings: add v4l2_hdmi_colorimetry()
+Date: Tue, 30 Jan 2018 20:36:09 -0800
+Message-Id: <1517373374-12041-2-git-send-email-tharvey@gateworks.com>
+In-Reply-To: <1517373374-12041-1-git-send-email-tharvey@gateworks.com>
+References: <1517373374-12041-1-git-send-email-tharvey@gateworks.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add support for codec definition and corresponding buffer
-requirements for HEVC decoder.
+From: Hans Verkuil <hverkuil@xs4all.nl>
 
-Signed-off-by: Smitha T Murthy <smitha.t@samsung.com>
-Reviewed-by: Andrzej Hajda <a.hajda@samsung.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Add the v4l2_hdmi_colorimetry() function so we have a single function
+that determines the colorspace, YCbCr encoding, quantization range and
+transfer function from the InfoFrame data.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Tim Harvey <tharvey@gateworks.com>
 ---
- drivers/media/platform/s5p-mfc/regs-mfc-v10.h   |  1 +
- drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c |  3 +++
- drivers/media/platform/s5p-mfc/s5p_mfc_common.h |  1 +
- drivers/media/platform/s5p-mfc/s5p_mfc_dec.c    |  7 +++++++
- drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c | 17 +++++++++++++++--
- drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h |  3 +++
- 6 files changed, 30 insertions(+), 2 deletions(-)
+ drivers/media/v4l2-core/v4l2-dv-timings.c | 141 ++++++++++++++++++++++++++++++
+ include/media/v4l2-dv-timings.h           |  21 +++++
+ 2 files changed, 162 insertions(+)
 
-diff --git a/drivers/media/platform/s5p-mfc/regs-mfc-v10.h b/drivers/media/platform/s5p-mfc/regs-mfc-v10.h
-index 7b28313..d905468 100644
---- a/drivers/media/platform/s5p-mfc/regs-mfc-v10.h
-+++ b/drivers/media/platform/s5p-mfc/regs-mfc-v10.h
-@@ -32,6 +32,7 @@
- #define MFC_NUM_PORTS_V10	1
+diff --git a/drivers/media/v4l2-core/v4l2-dv-timings.c b/drivers/media/v4l2-core/v4l2-dv-timings.c
+index 5c8c49d..4d01d52 100644
+--- a/drivers/media/v4l2-core/v4l2-dv-timings.c
++++ b/drivers/media/v4l2-core/v4l2-dv-timings.c
+@@ -27,6 +27,7 @@
+ #include <linux/v4l2-dv-timings.h>
+ #include <media/v4l2-dv-timings.h>
+ #include <linux/math64.h>
++#include <linux/hdmi.h>
  
- /* MFCv10 codec defines*/
-+#define S5P_FIMV_CODEC_HEVC_DEC		17
- #define S5P_FIMV_CODEC_HEVC_ENC         26
- 
- /* Encoder buffer size for MFC v10.0 */
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c b/drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c
-index b1b1491..76eca67 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c
-@@ -101,6 +101,9 @@ static int s5p_mfc_open_inst_cmd_v6(struct s5p_mfc_ctx *ctx)
- 	case S5P_MFC_CODEC_VP8_DEC:
- 		codec_type = S5P_FIMV_CODEC_VP8_DEC_V6;
- 		break;
-+	case S5P_MFC_CODEC_HEVC_DEC:
-+		codec_type = S5P_FIMV_CODEC_HEVC_DEC;
-+		break;
- 	case S5P_MFC_CODEC_H264_ENC:
- 		codec_type = S5P_FIMV_CODEC_H264_ENC_V6;
- 		break;
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-index babc1cc..702e136 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-@@ -72,6 +72,7 @@
- #define S5P_MFC_CODEC_H263_DEC		5
- #define S5P_MFC_CODEC_VC1RCV_DEC	6
- #define S5P_MFC_CODEC_VP8_DEC		7
-+#define S5P_MFC_CODEC_HEVC_DEC		17
- 
- #define S5P_MFC_CODEC_H264_ENC		20
- #define S5P_MFC_CODEC_H264_MVC_ENC	21
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-index 81de3029..4749355 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-@@ -144,6 +144,13 @@ static struct s5p_mfc_fmt formats[] = {
- 		.num_planes	= 1,
- 		.versions	= MFC_V6PLUS_BITS,
- 	},
-+	{
-+		.fourcc		= V4L2_PIX_FMT_HEVC,
-+		.codec_mode	= S5P_FIMV_CODEC_HEVC_DEC,
-+		.type		= MFC_FMT_DEC,
-+		.num_planes	= 1,
-+		.versions	= MFC_V10_BIT,
-+	},
- };
- 
- #define NUM_FORMATS ARRAY_SIZE(formats)
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-index 55ccccb..8c47294 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-@@ -220,6 +220,12 @@ static int s5p_mfc_alloc_codec_buffers_v6(struct s5p_mfc_ctx *ctx)
- 				S5P_FIMV_SCRATCH_BUFFER_ALIGN_V6);
- 		ctx->bank1.size = ctx->scratch_buf_size;
- 		break;
-+	case S5P_MFC_CODEC_HEVC_DEC:
-+		mfc_debug(2, "Use min scratch buffer size\n");
-+		ctx->bank1.size =
-+			ctx->scratch_buf_size +
-+			(ctx->mv_count * ctx->mv_size);
-+		break;
- 	case S5P_MFC_CODEC_H264_ENC:
- 		if (IS_MFCV10(dev)) {
- 			mfc_debug(2, "Use min scratch buffer size\n");
-@@ -321,6 +327,7 @@ static int s5p_mfc_alloc_instance_buffer_v6(struct s5p_mfc_ctx *ctx)
- 	switch (ctx->codec_mode) {
- 	case S5P_MFC_CODEC_H264_DEC:
- 	case S5P_MFC_CODEC_H264_MVC_DEC:
-+	case S5P_MFC_CODEC_HEVC_DEC:
- 		ctx->ctx.size = buf_size->h264_dec_ctx;
- 		break;
- 	case S5P_MFC_CODEC_MPEG4_DEC:
-@@ -434,6 +441,10 @@ static void s5p_mfc_dec_calc_dpb_size_v6(struct s5p_mfc_ctx *ctx)
- 			ctx->mv_size = S5P_MFC_DEC_MV_SIZE_V6(ctx->img_width,
- 					ctx->img_height);
- 		}
-+	} else if (ctx->codec_mode == S5P_MFC_CODEC_HEVC_DEC) {
-+		ctx->mv_size = s5p_mfc_dec_hevc_mv_size(ctx->img_width,
-+				ctx->img_height);
-+		ctx->mv_size = ALIGN(ctx->mv_size, 32);
- 	} else {
- 		ctx->mv_size = 0;
- 	}
-@@ -515,7 +526,8 @@ static int s5p_mfc_set_dec_frame_buffer_v6(struct s5p_mfc_ctx *ctx)
- 	buf_size1 -= ctx->scratch_buf_size;
- 
- 	if (ctx->codec_mode == S5P_FIMV_CODEC_H264_DEC ||
--			ctx->codec_mode == S5P_FIMV_CODEC_H264_MVC_DEC){
-+			ctx->codec_mode == S5P_FIMV_CODEC_H264_MVC_DEC ||
-+			ctx->codec_mode == S5P_FIMV_CODEC_HEVC_DEC) {
- 		writel(ctx->mv_size, mfc_regs->d_mv_buffer_size);
- 		writel(ctx->mv_count, mfc_regs->d_num_mv);
- 	}
-@@ -538,7 +550,8 @@ static int s5p_mfc_set_dec_frame_buffer_v6(struct s5p_mfc_ctx *ctx)
- 				mfc_regs->d_second_plane_dpb + i * 4);
- 	}
- 	if (ctx->codec_mode == S5P_MFC_CODEC_H264_DEC ||
--			ctx->codec_mode == S5P_MFC_CODEC_H264_MVC_DEC) {
-+			ctx->codec_mode == S5P_MFC_CODEC_H264_MVC_DEC ||
-+			ctx->codec_mode == S5P_MFC_CODEC_HEVC_DEC) {
- 		for (i = 0; i < ctx->mv_count; i++) {
- 			/* To test alignment */
- 			align_gap = buf_addr1;
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h
-index b18f5b7..f6cb703 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h
-@@ -29,6 +29,9 @@
- #define S5P_MFC_LCU_WIDTH(x_size)	DIV_ROUND_UP(x_size, 32)
- #define S5P_MFC_LCU_HEIGHT(y_size)	DIV_ROUND_UP(y_size, 32)
- 
-+#define s5p_mfc_dec_hevc_mv_size(x, y) \
-+	(DIV_ROUND_UP(x, 64) * DIV_ROUND_UP(y, 64) * 256 + 512)
+ MODULE_AUTHOR("Hans Verkuil");
+ MODULE_DESCRIPTION("V4L2 DV Timings Helper Functions");
+@@ -814,3 +815,143 @@ struct v4l2_fract v4l2_calc_aspect_ratio(u8 hor_landscape, u8 vert_portrait)
+ 	return aspect;
+ }
+ EXPORT_SYMBOL_GPL(v4l2_calc_aspect_ratio);
 +
- /* Definition */
- #define ENC_MULTI_SLICE_MB_MAX		((1 << 30) - 1)
- #define ENC_MULTI_SLICE_BIT_MIN		2800
++/** v4l2_hdmi_rx_colorimetry - determine HDMI colorimetry information
++ *	based on various InfoFrames.
++ * @avi - the AVI InfoFrame
++ * @hdmi - the HDMI Vendor InfoFrame, may be NULL
++ * @height - the frame height
++ *
++ * Determines the HDMI colorimetry information, i.e. how the HDMI
++ * pixel color data should be interpreted.
++ *
++ * Note that some of the newer features (DCI-P3, HDR) are not yet
++ * implemented: the hdmi.h header needs to be updated to the HDMI 2.0
++ * and CTA-861-G standards.
++ */
++struct v4l2_hdmi_colorimetry
++v4l2_hdmi_rx_colorimetry(const struct hdmi_avi_infoframe *avi,
++			 const struct hdmi_vendor_infoframe *hdmi,
++			 unsigned int height)
++{
++	struct v4l2_hdmi_colorimetry c = {
++		V4L2_COLORSPACE_SRGB,
++		V4L2_YCBCR_ENC_DEFAULT,
++		V4L2_QUANTIZATION_FULL_RANGE,
++		V4L2_XFER_FUNC_SRGB
++	};
++	bool is_ce = avi->video_code || (hdmi && hdmi->vic);
++	bool is_sdtv = height <= 576;
++	bool default_is_lim_range_rgb = avi->video_code > 1;
++
++	switch (avi->colorspace) {
++	case HDMI_COLORSPACE_RGB:
++		/* RGB pixel encoding */
++		switch (avi->colorimetry) {
++		case HDMI_COLORIMETRY_EXTENDED:
++			switch (avi->extended_colorimetry) {
++			case HDMI_EXTENDED_COLORIMETRY_ADOBE_RGB:
++				c.colorspace = V4L2_COLORSPACE_ADOBERGB;
++				c.xfer_func = V4L2_XFER_FUNC_ADOBERGB;
++				break;
++			case HDMI_EXTENDED_COLORIMETRY_BT2020:
++				c.colorspace = V4L2_COLORSPACE_BT2020;
++				c.xfer_func = V4L2_XFER_FUNC_709;
++				break;
++			default:
++				break;
++			}
++			break;
++		default:
++			break;
++		}
++		switch (avi->quantization_range) {
++		case HDMI_QUANTIZATION_RANGE_LIMITED:
++			c.quantization = V4L2_QUANTIZATION_LIM_RANGE;
++			break;
++		case HDMI_QUANTIZATION_RANGE_FULL:
++			break;
++		default:
++			if (default_is_lim_range_rgb)
++				c.quantization = V4L2_QUANTIZATION_LIM_RANGE;
++			break;
++		}
++		break;
++
++	default:
++		/* YCbCr pixel encoding */
++		c.quantization = V4L2_QUANTIZATION_LIM_RANGE;
++		switch (avi->colorimetry) {
++		case HDMI_COLORIMETRY_NONE:
++			if (!is_ce)
++				break;
++			if (is_sdtv) {
++				c.colorspace = V4L2_COLORSPACE_SMPTE170M;
++				c.ycbcr_enc = V4L2_YCBCR_ENC_601;
++			} else {
++				c.colorspace = V4L2_COLORSPACE_REC709;
++				c.ycbcr_enc = V4L2_YCBCR_ENC_709;
++			}
++			c.xfer_func = V4L2_XFER_FUNC_709;
++			break;
++		case HDMI_COLORIMETRY_ITU_601:
++			c.colorspace = V4L2_COLORSPACE_SMPTE170M;
++			c.ycbcr_enc = V4L2_YCBCR_ENC_601;
++			c.xfer_func = V4L2_XFER_FUNC_709;
++			break;
++		case HDMI_COLORIMETRY_ITU_709:
++			c.colorspace = V4L2_COLORSPACE_REC709;
++			c.ycbcr_enc = V4L2_YCBCR_ENC_709;
++			c.xfer_func = V4L2_XFER_FUNC_709;
++			break;
++		case HDMI_COLORIMETRY_EXTENDED:
++			switch (avi->extended_colorimetry) {
++			case HDMI_EXTENDED_COLORIMETRY_XV_YCC_601:
++				c.colorspace = V4L2_COLORSPACE_REC709;
++				c.ycbcr_enc = V4L2_YCBCR_ENC_XV709;
++				c.xfer_func = V4L2_XFER_FUNC_709;
++				break;
++			case HDMI_EXTENDED_COLORIMETRY_XV_YCC_709:
++				c.colorspace = V4L2_COLORSPACE_REC709;
++				c.ycbcr_enc = V4L2_YCBCR_ENC_XV601;
++				c.xfer_func = V4L2_XFER_FUNC_709;
++				break;
++			case HDMI_EXTENDED_COLORIMETRY_S_YCC_601:
++				c.colorspace = V4L2_COLORSPACE_SRGB;
++				c.ycbcr_enc = V4L2_YCBCR_ENC_601;
++				c.xfer_func = V4L2_XFER_FUNC_SRGB;
++				break;
++			case HDMI_EXTENDED_COLORIMETRY_ADOBE_YCC_601:
++				c.colorspace = V4L2_COLORSPACE_ADOBERGB;
++				c.ycbcr_enc = V4L2_YCBCR_ENC_601;
++				c.xfer_func = V4L2_XFER_FUNC_ADOBERGB;
++				break;
++			case HDMI_EXTENDED_COLORIMETRY_BT2020:
++				c.colorspace = V4L2_COLORSPACE_BT2020;
++				c.ycbcr_enc = V4L2_YCBCR_ENC_BT2020;
++				c.xfer_func = V4L2_XFER_FUNC_709;
++				break;
++			case HDMI_EXTENDED_COLORIMETRY_BT2020_CONST_LUM:
++				c.colorspace = V4L2_COLORSPACE_BT2020;
++				c.ycbcr_enc = V4L2_YCBCR_ENC_BT2020_CONST_LUM;
++				c.xfer_func = V4L2_XFER_FUNC_709;
++				break;
++			default: /* fall back to ITU_709 */
++				c.colorspace = V4L2_COLORSPACE_REC709;
++				c.ycbcr_enc = V4L2_YCBCR_ENC_709;
++				c.xfer_func = V4L2_XFER_FUNC_709;
++				break;
++			}
++			break;
++		default:
++			break;
++		}
++		/*
++		 * YCC Quantization Range signaling is more-or-less broken,
++		 * let's just ignore this.
++		 */
++		break;
++	}
++	return c;
++}
++EXPORT_SYMBOL_GPL(v4l2_hdmi_rx_colorimetry);
+diff --git a/include/media/v4l2-dv-timings.h b/include/media/v4l2-dv-timings.h
+index 61a1889..835aef7 100644
+--- a/include/media/v4l2-dv-timings.h
++++ b/include/media/v4l2-dv-timings.h
+@@ -223,5 +223,26 @@ static inline  bool can_reduce_fps(struct v4l2_bt_timings *bt)
+ 	return false;
+ }
+ 
++/**
++ * struct v4l2_hdmi_rx_colorimetry - describes the HDMI colorimetry information
++ * @colorspace:		enum v4l2_colorspace, the colorspace
++ * @ycbcr_enc:		enum v4l2_ycbcr_encoding, Y'CbCr encoding
++ * @quantization:	enum v4l2_quantization, colorspace quantization
++ * @xfer_func:		enum v4l2_xfer_func, colorspace transfer function
++ */
++struct v4l2_hdmi_colorimetry {
++	enum v4l2_colorspace colorspace;
++	enum v4l2_ycbcr_encoding ycbcr_enc;
++	enum v4l2_quantization quantization;
++	enum v4l2_xfer_func xfer_func;
++};
++
++struct hdmi_avi_infoframe;
++struct hdmi_vendor_infoframe;
++
++struct v4l2_hdmi_colorimetry
++v4l2_hdmi_rx_colorimetry(const struct hdmi_avi_infoframe *avi,
++			 const struct hdmi_vendor_infoframe *hdmi,
++			 unsigned int height);
+ 
+ #endif
 -- 
 2.7.4
