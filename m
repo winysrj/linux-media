@@ -1,52 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:34966 "EHLO
-        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751099AbeAVKTA (ORCPT
+Received: from mx07-00178001.pphosted.com ([62.209.51.94]:56624 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751187AbeAaMqq (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 22 Jan 2018 05:19:00 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        Hans Verkuil <hansverk@cisco.com>
-Subject: [PATCH 8/9] v4l2-subdev.h: remove obsolete g/s_parm
-Date: Mon, 22 Jan 2018 11:18:56 +0100
-Message-Id: <20180122101857.51401-9-hverkuil@xs4all.nl>
-In-Reply-To: <20180122101857.51401-1-hverkuil@xs4all.nl>
-References: <20180122101857.51401-1-hverkuil@xs4all.nl>
+        Wed, 31 Jan 2018 07:46:46 -0500
+From: Hugues Fruchet <hugues.fruchet@st.com>
+To: Steve Longerbeam <slongerbeam@gmail.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        "Mauro Carvalho Chehab" <mchehab@kernel.org>
+CC: <linux-media@vger.kernel.org>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Subject: [PATCH v2] media: ov5640: add error trace in case of i2c read failure
+Date: Wed, 31 Jan 2018 13:46:17 +0100
+Message-ID: <1517402777-18729-1-git-send-email-hugues.fruchet@st.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hansverk@cisco.com>
+Add an error trace in ov5640_read_reg() in case of i2c_transfer()
+failure.
+Uniformize error traces using dev_err instead v4l2_err.
 
-Signed-off-by: Hans Verkuil <hansverk@cisco.com>
+Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
 ---
- include/media/v4l2-subdev.h | 6 ------
- 1 file changed, 6 deletions(-)
+version 2:
+  - Uniformize error traces using dev_err instead v4l2_err
+    as per Sakari's review comment.
 
-diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-index 980a86c08fce..457917e9237f 100644
---- a/include/media/v4l2-subdev.h
-+++ b/include/media/v4l2-subdev.h
-@@ -393,10 +393,6 @@ struct v4l2_mbus_frame_desc {
-  *
-  * @g_pixelaspect: callback to return the pixelaspect ratio.
-  *
-- * @g_parm: callback for VIDIOC_G_PARM() ioctl handler code.
-- *
-- * @s_parm: callback for VIDIOC_S_PARM() ioctl handler code.
-- *
-  * @g_frame_interval: callback for VIDIOC_SUBDEV_G_FRAME_INTERVAL()
-  *		      ioctl handler code.
-  *
-@@ -434,8 +430,6 @@ struct v4l2_subdev_video_ops {
- 	int (*g_input_status)(struct v4l2_subdev *sd, u32 *status);
- 	int (*s_stream)(struct v4l2_subdev *sd, int enable);
- 	int (*g_pixelaspect)(struct v4l2_subdev *sd, struct v4l2_fract *aspect);
--	int (*g_parm)(struct v4l2_subdev *sd, struct v4l2_streamparm *param);
--	int (*s_parm)(struct v4l2_subdev *sd, struct v4l2_streamparm *param);
- 	int (*g_frame_interval)(struct v4l2_subdev *sd,
- 				struct v4l2_subdev_frame_interval *interval);
- 	int (*s_frame_interval)(struct v4l2_subdev *sd,
+ drivers/media/i2c/ov5640.c | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
+index 99a5902..6f18460 100644
+--- a/drivers/media/i2c/ov5640.c
++++ b/drivers/media/i2c/ov5640.c
+@@ -839,7 +839,7 @@ static int ov5640_write_reg(struct ov5640_dev *sensor, u16 reg, u8 val)
+ 
+ 	ret = i2c_transfer(client->adapter, &msg, 1);
+ 	if (ret < 0) {
+-		v4l2_err(&sensor->sd, "%s: error: reg=%x, val=%x\n",
++		dev_err(&client->dev, "%s: error: reg=%x, val=%x\n",
+ 			__func__, reg, val);
+ 		return ret;
+ 	}
+@@ -868,8 +868,11 @@ static int ov5640_read_reg(struct ov5640_dev *sensor, u16 reg, u8 *val)
+ 	msg[1].len = 1;
+ 
+ 	ret = i2c_transfer(client->adapter, msg, 2);
+-	if (ret < 0)
++	if (ret < 0) {
++		dev_err(&client->dev, "%s: error: reg=%x\n",
++			__func__, reg);
+ 		return ret;
++	}
+ 
+ 	*val = buf[0];
+ 	return 0;
 -- 
-2.15.1
+1.9.1
