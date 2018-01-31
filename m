@@ -1,103 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f67.google.com ([209.85.218.67]:42247 "EHLO
-        mail-oi0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752802AbeAFUHa (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Sat, 6 Jan 2018 15:07:30 -0500
-Received: by mail-oi0-f67.google.com with SMTP id o64so5144562oia.9
-        for <linux-media@vger.kernel.org>; Sat, 06 Jan 2018 12:07:30 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <CAPcyv4gQbo+Bvf89QVL=mJrRy+id=sj3hiNePS=o_aAZv6hu0w@mail.gmail.com>
-References: <151520099201.32271.4677179499894422956.stgit@dwillia2-desk3.amr.corp.intel.com>
- <CAPcyv4gQbo+Bvf89QVL=mJrRy+id=sj3hiNePS=o_aAZv6hu0w@mail.gmail.com>
-From: Dan Williams <dan.j.williams@intel.com>
-Date: Sat, 6 Jan 2018 12:07:29 -0800
-Message-ID: <CAPcyv4hjhC+sUS5w33N0KbrCM-zv2AoVYNYdb7vBzHh0tPs1DQ@mail.gmail.com>
-Subject: Re: [PATCH 00/18] prevent bounds-check bypass via speculative execution
-To: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Cc: Mark Rutland <mark.rutland@arm.com>,
-        Peter Zijlstra <peterz@infradead.org>,
-        Alan Cox <alan.cox@intel.com>,
-        Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>,
-        Will Deacon <will.deacon@arm.com>,
-        Solomon Peachy <pizza@shaftnet.org>,
-        "H. Peter Anvin" <hpa@zytor.com>,
-        Christian Lamparter <chunkeey@googlemail.com>,
-        Elena Reshetova <elena.reshetova@intel.com>,
-        linux-arch@vger.kernel.org, Andi Kleen <ak@linux.intel.com>,
-        "James E.J. Bottomley" <jejb@linux.vnet.ibm.com>,
-        linux-scsi <linux-scsi@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>, X86 ML <x86@kernel.org>,
-        Ingo Molnar <mingo@redhat.com>,
-        Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
-        Zhang Rui <rui.zhang@intel.com>,
-        "Linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-        Arnd Bergmann <arnd@arndb.de>, Jan Kara <jack@suse.com>,
-        Eduardo Valentin <edubezval@gmail.com>,
-        Al Viro <viro@zeniv.linux.org.uk>, qla2xxx-upstream@qlogic.com,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Arjan van de Ven <arjan@linux.intel.com>,
-        Kalle Valo <kvalo@codeaurora.org>,
-        Alan Cox <alan@linux.intel.com>,
-        "Martin K. Petersen" <martin.petersen@oracle.com>,
-        Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
-        Greg KH <gregkh@linuxfoundation.org>,
-        linux-wireless@vger.kernel.org,
-        "Eric W. Biederman" <ebiederm@xmission.com>,
-        Netdev <netdev@vger.kernel.org>,
-        Linus Torvalds <torvalds@linux-foundation.org>,
+Received: from mail.free-electrons.com ([62.4.15.54]:35442 "EHLO
+        mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752910AbeAaHm3 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 31 Jan 2018 02:42:29 -0500
+Date: Wed, 31 Jan 2018 08:42:12 +0100
+From: Maxime Ripard <maxime.ripard@free-electrons.com>
+To: Liviu Dudau <liviu@dudau.co.uk>
+Cc: Yong <yong.deng@magewell.com>, kbuild test robot <lkp@intel.com>,
+        kbuild-all@01.org, Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Rob Herring <robh+dt@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Chen-Yu Tsai <wens@csie.org>,
         "David S. Miller" <davem@davemloft.net>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset="UTF-8"
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Linus Walleij <linus.walleij@linaro.org>,
+        Randy Dunlap <rdunlap@infradead.org>,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Yannick Fertre <yannick.fertre@st.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Rick Chang <rick.chang@mediatek.com>,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+        linux-sunxi@googlegroups.com, megous@megous.com
+Subject: Re: [linux-sunxi] Re: [PATCH v6 2/2] media: V3s: Add support for
+ Allwinner CSI.
+Message-ID: <20180131074212.7hvb3nqkt22h2chg@flea.lan>
+References: <1516695531-23349-1-git-send-email-yong.deng@magewell.com>
+ <201801260759.RyNhDZz4%fengguang.wu@intel.com>
+ <20180126094658.aa70ed3f890464f6051e21e4@magewell.com>
+ <20180126110041.f89848325b9ecfb07df387ca@magewell.com>
+ <20180131030807.GA19945@bart.dudau.co.uk>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="x2ob3palwahja4lz"
+Content-Disposition: inline
+In-Reply-To: <20180131030807.GA19945@bart.dudau.co.uk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Jan 6, 2018 at 11:37 AM, Dan Williams <dan.j.williams@intel.com> wrote:
-> On Fri, Jan 5, 2018 at 5:09 PM, Dan Williams <dan.j.williams@intel.com> wrote:
->> Quoting Mark's original RFC:
->>
->> "Recently, Google Project Zero discovered several classes of attack
->> against speculative execution. One of these, known as variant-1, allows
->> explicit bounds checks to be bypassed under speculation, providing an
->> arbitrary read gadget. Further details can be found on the GPZ blog [1]
->> and the Documentation patch in this series."
->>
->> This series incorporates Mark Rutland's latest api and adds the x86
->> specific implementation of nospec_barrier. The
->> nospec_{array_ptr,ptr,barrier} helpers are then combined with a kernel
->> wide analysis performed by Elena Reshetova to address static analysis
->> reports where speculative execution on a userspace controlled value
->> could bypass a bounds check. The patches address a precondition for the
->> attack discussed in the Spectre paper [2].
->>
->> A consideration worth noting for reviewing these patches is to weigh the
->> dramatic cost of being wrong about whether a given report is exploitable
->> vs the overhead nospec_{array_ptr,ptr} may introduce. In other words,
->> lets make the bar for applying these patches be "can you prove that the
->> bounds check bypass is *not* exploitable". Consider that the Spectre
->> paper reports one example of a speculation window being ~180 cycles.
->>
->> Note that there is also a proposal from Linus, array_access [3], that
->> attempts to quash speculative execution past a bounds check without
->> introducing an lfence instruction. That may be a future optimization
->> possibility that is compatible with this api, but it would appear to
->> need guarantees from the compiler that it is not clear the kernel can
->> rely on at this point. It is also not clear that it would be a
->> significant performance win vs lfence.
->>
->> These patches also will also be available via the 'nospec' git branch
->> here:
->>
->>     git://git.kernel.org/pub/scm/linux/kernel/git/djbw/linux nospec
->
-> It appears that git.kernel.org has not mirrored out the new branch. In
-> the meantime here's an alternative location:
->
->     https://github.com/djbw/linux.git nospec
->
-> If there are updates to these patches they will appear in nospec-v2,
-> nospec-v3, etc... branches.
 
-For completeness I appended the bpf fix [1] to the git branch.
+--x2ob3palwahja4lz
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-https://lwn.net/Articles/743288/
+Hi Liviu,
+
+On Wed, Jan 31, 2018 at 03:08:08AM +0000, Liviu Dudau wrote:
+> On Fri, Jan 26, 2018 at 11:00:41AM +0800, Yong wrote:
+> > Hi Maxime,
+> >=20
+> > On Fri, 26 Jan 2018 09:46:58 +0800
+> > Yong <yong.deng@magewell.com> wrote:
+> >=20
+> > > Hi Maxime,
+> > >=20
+> > > Do you have any experience in solving this problem?
+> > > It seems the PHYS_OFFSET maybe undeclared when the ARCH is not arm.
+> >=20
+> > Got it.
+> > Should I add 'depends on ARM' in Kconfig?
+>=20
+> No, I don't think you should do that, you should fix the code.
+>=20
+> The dma_addr_t addr that you've got is ideally coming from dma_alloc_cohe=
+rent(),
+> in which case the addr is already "suitable" for use by the device (becau=
+se the
+> bus where the device is attached to does all the address translations).
+
+Like we're discussing in that other part of the thread with Thierry
+and Arnd, things are slightly more complicated than that :)
+
+In our case, the bus where the device is attached will not do the
+address translations, and shouldn't.
+
+> If you apply PHYS_OFFSET forcefully to it you might get unexpected
+> results.
+
+Out of curiosity, what would be these unexpected results?
+
+Thanks!
+Maxime
+
+--=20
+Maxime Ripard, Free Electrons
+Embedded Linux and Kernel engineering
+http://free-electrons.com
+
+--x2ob3palwahja4lz
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCAAdFiEE0VqZU19dR2zEVaqr0rTAlCFNr3QFAlpxc1MACgkQ0rTAlCFN
+r3R/Lw//ZA3imZaVQtgX/SzMgCsYQ8fcq/wOXFqNPVp8Du/Ce8QRO1Wu/rl6FU5q
+LfeYJtMMz+/0rEN7HjX76gjJZ7t3w1aPL1rFIL5bwWeFmYjSVEup0BSCOmbO4NSu
+Q1nPxal3Af/6JMp5upBb8oU0CDv+V8fQ1ca3BaTmX1doab87bgFtRE5qTCeXk/uF
+PFtSGL3xbtdnwmCi4HCGk93VSxxF8dfzwmJ1CyBZCJEHF0wxAU/VkGpz7ngZR3x4
+9WgPk7Rf9kXrSHdhluihy8aJd/A+91iE9ObzjzmYrsZ5dGjbDzPXQ6N2YsMtOxsL
+RD9hwmG06X44jDzL28ArnBDKTZn4VgC6k258cDymK0vxmxmz+maAXpqT+AK2ckH9
+3rzOK2EHE8bYVGSIWV9Jd/rCIGa4V6sR58YrAjaI9vlYdQtogKgd/S65a6Tr2oah
+fzc3AHy4OJFhYWECCBAB4uUIMvuUYbnLHsBfPBFoecCUUdup+x2YCeEhv7Q82VKq
+Cr7iYX9Q8Hy8ThOoCi6MXyhiy3RfL5zUMExNQfLfObGc57op0frLbXYfJ3C56jdu
+ZW+YfV/h/5OpMUkpIF5QpOGw1aqIxMUi5MJUUkCIJa/u+q3CwHfnC1Sgq8lmrjjK
+z0Enny5NG2Ni0DN5D1mLWnUQUZ2/2EcjSg8GcUWWm7dNLT/NSB4=
+=4Z7h
+-----END PGP SIGNATURE-----
+
+--x2ob3palwahja4lz--
