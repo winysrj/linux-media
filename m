@@ -1,115 +1,201 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aer-iport-4.cisco.com ([173.38.203.54]:58809 "EHLO
-        aer-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751360AbeA3MCt (ORCPT
+Received: from mail-pg0-f68.google.com ([74.125.83.68]:39623 "EHLO
+        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753147AbeAaKZQ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 30 Jan 2018 07:02:49 -0500
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Daniel Mentz <danielmentz@google.com>
-From: Hans Verkuil <hansverk@cisco.com>
-Subject: [GIT PULL FOR v4.16] v4l2-compat-ioctl32.c: remove set_fs(KERNEL_DS)
-Message-ID: <bb60dfc8-097c-71ee-098d-02db67c63a8f@cisco.com>
-Date: Tue, 30 Jan 2018 13:02:46 +0100
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+        Wed, 31 Jan 2018 05:25:16 -0500
+Received: by mail-pg0-f68.google.com with SMTP id w17so9676907pgv.6
+        for <linux-media@vger.kernel.org>; Wed, 31 Jan 2018 02:25:16 -0800 (PST)
+From: Alexandre Courbot <acourbot@chromium.org>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Pawel Osciak <posciak@chromium.org>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Tomasz Figa <tfiga@chromium.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Gustavo Padovan <gustavo.padovan@collabora.com>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+        Alexandre Courbot <acourbot@chromium.org>
+Subject: [RFCv2 05/17] media: Document the media request API
+Date: Wed, 31 Jan 2018 19:24:23 +0900
+Message-Id: <20180131102427.207721-6-acourbot@chromium.org>
+In-Reply-To: <20180131102427.207721-1-acourbot@chromium.org>
+References: <20180131102427.207721-1-acourbot@chromium.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch series fixes a number of bugs and culminates in the removal
-of the set_fs(KERNEL_DS) call in v4l2-compat-ioctl32.c.
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 
-See http://people.canonical.com/~ubuntu-security/cve/2017/CVE-2017-13166.html
-for why this set_fs call is a bad idea.
+The media request API is made of a new ioctl to implement request
+management. Document it.
 
-In order to test this I used vivid and a 32-bit v4l2-compliance. The
-advantage of vivid is that it implements almost all ioctls, and those
-are all tested by v4l2-compliance. This ensures good test coverage.
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+[acourbot@chromium.org: adapt for newest API]
+Signed-off-by: Alexandre Courbot <acourbot@chromium.org>
+---
+ Documentation/media/uapi/mediactl/media-funcs.rst  |   1 +
+ .../media/uapi/mediactl/media-ioc-request-cmd.rst  | 141 +++++++++++++++++++++
+ 2 files changed, 142 insertions(+)
+ create mode 100644 Documentation/media/uapi/mediactl/media-ioc-request-cmd.rst
 
-Since I had to track down all failures that v4l2-compliance reported
-in order to verify whether those were introduced by the final patch
-or if those were pre-existing bugs, this series starts off with fixes
-for bugs that v4l2-compliance found, mostly in v4l2-compat-ioctl32.c.
-It is clear that v4l2-compat-ioctl32.c doesn't receive a lot of
-testing.
-
-There are also three patches that just clean up v4l2-compat-ioctl32.c
-in order to simplify the final patch:
-
-  v4l2-compat-ioctl32.c: fix the indentation
-  v4l2-compat-ioctl32.c: move 'helper' functions to __get/put_v4l2_format32
-  v4l2-compat-ioctl32.c: avoid sizeof(type)
-
-No functional changes are introduced in these three patches.
-
-Note the "fix ctrl_is_pointer" patch: we've discussed this in the past,
-but now I really had to fix this.
-
-It would be really nice if the next time someone finds a security risk
-in V4L2 core code they would contact the V4L2 maintainers. We only heard
-about this last week, while all the information about this CVE has been
-out there for several months or so.
-
-Backporting this will be a bit of a nightmare since v4l2-compat-ioctl32.c
-changes frequently, so assuming we'll only backport this to lts kernels
-then for each lts the patch series needs to be adapted. But let's get
-this upstream first before looking at that.
-
-This pull request has Cc's to stable to get this in for 4.15 (it should
-apply cleanly for 4.15).
-
-Regards,
-
-	Hans
-
-Changes since v2:
-- Add remaining Acks from Sakari
-- Fix two whitespace issues in v4l2-compat-ioctl32.c
-- Added 'Fixes' tag.
-
-Changes since v1:
-- Incorporated all Sakari's comments
-- Added the 'v4l2-ioctl.c: don't copy back the result for -ENOTTY' patch
-  (suggested by Sakari).
-- Added back the "Reported-by" tag for the last patch.
-- Added "Co-Developed-by" tag for the last patch.
-- Added "Cc: <stable@vger.kernel.org>      # for v4.15 and up" tags to
-  this series.
-
-
-The following changes since commit 4852fdca8818972d0ea5b5ce7114da628f9954a4:
-
-  media: i2c: ov7740: use gpio/consumer.h instead of gpio.h (2018-01-23 08:13:02 -0500)
-
-are available in the git repository at:
-
-  git://linuxtv.org/hverkuil/media_tree.git compatcve2
-
-for you to fetch changes up to 74e1562a58f58be57b0e75f744aa9b2e5b32a3f3:
-
-  v4l2-compat-ioctl32.c: refactor, fix security bug in compat ioctl32 (2018-01-30 12:55:20 +0100)
-
-----------------------------------------------------------------
-Daniel Mentz (1):
-      v4l2-compat-ioctl32.c: refactor, fix security bug in compat ioctl32
-
-Hans Verkuil (12):
-      vivid: fix module load error when enabling fb and no_error_inj=1
-      v4l2-ioctl.c: use check_fmt for enum/g/s/try_fmt
-      v4l2-ioctl.c: don't copy back the result for -ENOTTY
-      v4l2-compat-ioctl32.c: add missing VIDIOC_PREPARE_BUF
-      v4l2-compat-ioctl32.c: fix the indentation
-      v4l2-compat-ioctl32.c: move 'helper' functions to __get/put_v4l2_format32
-      v4l2-compat-ioctl32.c: avoid sizeof(type)
-      v4l2-compat-ioctl32.c: copy m.userptr in put_v4l2_plane32
-      v4l2-compat-ioctl32.c: fix ctrl_is_pointer
-      v4l2-compat-ioctl32.c: copy clip list in put_v4l2_window32
-      v4l2-compat-ioctl32.c: drop pr_info for unknown buffer type
-      v4l2-compat-ioctl32.c: don't copy back the result for certain errors
-
- drivers/media/platform/vivid/vivid-core.h     |    1 +
- drivers/media/platform/vivid/vivid-ctrls.c    |   35 ++-
- drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 1032 ++++++++++++++++++++++++++++++++++++-------------------------
- drivers/media/v4l2-core/v4l2-ioctl.c          |  145 ++++-----
- 4 files changed, 695 insertions(+), 518 deletions(-)
+diff --git a/Documentation/media/uapi/mediactl/media-funcs.rst b/Documentation/media/uapi/mediactl/media-funcs.rst
+index 076856501cdb..e3a45d82ffcb 100644
+--- a/Documentation/media/uapi/mediactl/media-funcs.rst
++++ b/Documentation/media/uapi/mediactl/media-funcs.rst
+@@ -15,4 +15,5 @@ Function Reference
+     media-ioc-g-topology
+     media-ioc-enum-entities
+     media-ioc-enum-links
++    media-ioc-request-cmd
+     media-ioc-setup-link
+diff --git a/Documentation/media/uapi/mediactl/media-ioc-request-cmd.rst b/Documentation/media/uapi/mediactl/media-ioc-request-cmd.rst
+new file mode 100644
+index 000000000000..723b422afcce
+--- /dev/null
++++ b/Documentation/media/uapi/mediactl/media-ioc-request-cmd.rst
+@@ -0,0 +1,141 @@
++.. -*- coding: utf-8; mode: rst -*-
++
++.. _media_ioc_request_cmd:
++
++***************************
++ioctl MEDIA_IOC_REQUEST_CMD
++***************************
++
++Name
++====
++
++MEDIA_IOC_REQUEST_CMD - Manage media device requests
++
++
++Synopsis
++========
++
++.. c:function:: int ioctl( int fd, MEDIA_IOC_REQUEST_CMD, struct media_request_cmd *argp )
++    :name: MEDIA_IOC_REQUEST_CMD
++
++
++Arguments
++=========
++
++``fd``
++    File descriptor returned by :ref:`open() <media-func-open>`.
++
++``argp``
++
++
++Description
++===========
++
++The MEDIA_IOC_REQUEST_CMD ioctl allow applications to manage media device
++requests. A request is an object that can group media device configuration
++parameters, including subsystem-specific parameters, in order to apply all the
++parameters atomically. Applications are responsible for allocating and
++deleting requests, filling them with configuration parameters submitting them.
++
++Request operations are performed by calling the MEDIA_IOC_REQUEST_CMD ioctl
++with a pointer to a struct :c:type:`media_request_cmd` with the cmd field set
++to the appropriate command. :ref:`media-request-command` lists the commands
++supported by the ioctl.
++
++The struct :c:type:`media_request_cmd` request field contains the file
++descriptorof the request on which the command operates. For the
++``MEDIA_REQ_CMD_ALLOC`` command the field is set to zero by applications and
++filled by the driver. For all other commands the field is set by applications
++and left untouched by the driver.
++
++To allocate a new request applications use the ``MEDIA_REQ_CMD_ALLOC``
++command. The driver will allocate a new request and return its FD in the
++request field. After allocation, the request is "empty", which means that it
++does not hold any state of its own, and that the hardware's state will not be
++affected by it unless it is passed as argument to V4L2 or media controller
++commands.
++
++Requests are reference-counted. A newly allocated request is referenced
++by the returned file descriptor, and can be later referenced by
++subsystem-specific operations. Requests will thus be automatically deleted
++when they're not longer used after the returned file descriptor is closed.
++
++If a request isn't needed applications can delete it by calling ``close()``
++on it. The driver will drop the file handle reference. The request will not
++be usable through the MEDIA_IOC_REQUEST_CMD ioctl anymore, but will only be
++deleted when the last reference is released. If no other reference exists when
++``close()`` is invoked the request will be deleted immediately.
++
++After creating a request applications should fill it with configuration
++parameters. This is performed through subsystem-specific request APIs outside
++the scope of the media controller API. See the appropriate subsystem APIs for
++more information, including how they interact with the MEDIA_IOC_REQUEST_CMD
++ioctl.
++
++Once a request contains all the desired configuration parameters it can be
++submitted using the ``MEDIA_REQ_CMD_SUBMIT`` command. This will let the
++buffers queued for the request be passed to their respective drivers, which
++will then apply the request's parameters before processing them.
++
++Once a request has been queued applications are not allowed to modify its
++configuration parameters until the request has been fully processed. Any
++attempt to do so will result in the related subsystem API returning an error.
++The application that submitted the request can wait for its completion by
++polling on the request's file descriptor.
++
++Once a request has completed, it can be reused. The ``MEDIA_REQ_CMD_REINIT``
++command will bring it back to its initial state, so it can be prepared and
++submitted again.
++
++.. c:type:: media_request_cmd
++
++.. flat-table:: struct media_request_cmd
++    :header-rows:  0
++    :stub-columns: 0
++    :widths: 1 2 8
++
++    * - __u32
++      - ``cmd``
++      - Command, set by the application. See below for the list of supported
++        commands.
++    * - __u32
++      - ``fd``
++      - Request FD, set by the driver for the MEDIA_REQ_CMD_ALLOC command and
++        by the application for all other commands.
++
++
++.. _media-request-command:
++
++.. cssclass:: longtable
++
++.. flat-table:: Media request commands
++    :header-rows:  0
++    :stub-columns: 0
++
++    * .. _MEDIA-REQ-CMD-ALLOC:
++
++      - ``MEDIA_REQ_CMD_ALLOC``
++      - Allocate a new request.
++    * .. _MEDIA-REQ-CMD-SUBMIT:
++
++      - ``MEDIA_REQ_CMD_SUBMIT``
++      - Submit a request to be processed.
++    * .. _MEDIA-REQ-CMD-QUEUE:
++
++      - ``MEDIA_REQ_CMD_REINIT``
++      - Reinitializes a completed request.
++
++
++Return Value
++============
++
++On success 0 is returned, on error -1 and the ``errno`` variable is set
++appropriately. The generic error codes are described at the
++:ref:`Generic Error Codes <gen-errors>` chapter.
++
++EINVAL
++    The struct :c:type:`media_request_cmd` specifies an invalid command or
++    references a non-existing request.
++
++ENOSYS
++    Request API is not available on this device.
+-- 
+2.16.0.rc1.238.g530d649a79-goog
