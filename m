@@ -1,82 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oi0-f65.google.com ([209.85.218.65]:41463 "EHLO
-        mail-oi0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751598AbeBRUrj (ORCPT
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:54182 "EHLO
+        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751960AbeBASmi (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 18 Feb 2018 15:47:39 -0500
+        Thu, 1 Feb 2018 13:42:38 -0500
+Subject: Re: Regression in VB2 alloc prepare/finish balancing with
+ em28xx/au0828
+To: Devin Heitmueller <dheitmueller@kernellabs.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <CAGoCfixnHv-b3CbjqXLkFuK0J+_ejFnGRyxNJoywxuqQKBr_=Q@mail.gmail.com>
+ <20180128222319.wx2fl6pzzezezv5v@kekkonen.localdomain>
+ <CAGoCfiwFAPeTMpgKdy99UgXiigot0nwkLKZ2w9COft-nZ8tGkg@mail.gmail.com>
+ <CAGoCfiy_r7Xp6O9oRO0Vg4d6dx3Ko4OYOdcveYyebjF-E3cW9w@mail.gmail.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <9a34e434-7df7-b93b-7c2d-3718307b670c@xs4all.nl>
+Date: Thu, 1 Feb 2018 19:42:30 +0100
 MIME-Version: 1.0
-In-Reply-To: <20180216162730.GG6359@atomide.com>
-References: <CAJs94EZhV7-3Ra5zqZNfz07xu2n1xeHQLV3BQpOPqPp+0YydGw@mail.gmail.com>
- <20180216162730.GG6359@atomide.com>
-From: "Matwey V. Kornilov" <matwey@sai.msu.ru>
-Date: Sun, 18 Feb 2018 23:47:18 +0300
-Message-ID: <CAJs94EZEiiVcWUTFAVthko46AhdJf=LnZTiggNg4xKT4uH3tmQ@mail.gmail.com>
-Subject: Re: [BUG] musb: broken isochronous transfer at TI AM335x platform
-To: Tony Lindgren <tony@atomide.com>
-Cc: linux-usb@vger.kernel.org, Bin Liu <b-liu@ti.com>,
-        Greg KH <gregkh@linuxfoundation.org>, hverkuil@xs4all.nl,
-        linux-media@vger.kernel.org, linux@armlinux.org.uk
-Content-Type: text/plain; charset="UTF-8"
+In-Reply-To: <CAGoCfiy_r7Xp6O9oRO0Vg4d6dx3Ko4OYOdcveYyebjF-E3cW9w@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2018-02-16 19:27 GMT+03:00 Tony Lindgren <tony@atomide.com>:
-> * Matwey V. Kornilov <matwey@sai.msu.ru> [180215 17:55]:
->>     [        ]   7.219456 d=  0.000997 [181.0 +  3.667] [  3] IN   : 4.5
->>     [    T   ]   7.219459 d=  0.000003 [181.0 +  7.083] [800] DATA0: 53 da ...
->>     [        ]   7.220456 d=  0.000997 [182   +  3.667] [  3] IN   : 4.5
->>     [    T   ]   7.220459 d=  0.000003 [182   +  7.000] [800] DATA0: 13 36 ...
->>     [        ]   7.222456 d=  0.001997 [184   +  3.667] [  3] IN   : 4.5
->>     [        ]   7.222459 d=  0.000003 [184   +  7.000] [  3] DATA0: 00 00
->>     [        ]   7.223456 d=  0.000997 [185.0 +  3.667] [  3] IN   : 4.5
->>     [        ]   7.223459 d=  0.000003 [185.0 +  7.000] [  3] DATA0: 00 00
+On 02/01/2018 07:19 PM, Devin Heitmueller wrote:
+> Hi Sakari, Hans,
+> 
+> Do either of you have any thoughts on whether I'm actually leaking any
+> resources, or whether this is just a warning that doesn't have any
+> practical implication since I'm tearing down the videobuf2 queue?
+> 
+> I don't really care about the embedded use case - do you see any
+> reason where at least for my local tree I cannot simply revert this
+> patch until a real solution is found?
+
+Drivers that use videobuf2-vmalloc are not affected by this since that
+doesn't implement the prepare/finish mem_ops.
+
+dma-contig and dma-sg are affected and syncing to/from device/cpu will
+be unbalanced, which could lead to corrupt frames. Although I think that
+given the situation that triggers this it is unlikely to be a real issue.
+
+In any case, em28xx/au0828 are OK.
+
+Regards,
+
+	Hans
+
+> 
+> Cheers,
+> 
+> Devin
+> 
+> On Mon, Jan 29, 2018 at 8:44 PM, Devin Heitmueller
+> <dheitmueller@kernellabs.com> wrote:
+>> Hello Sakari,
 >>
->> Please note, that the time moment "7.221456" has missed IN request
->> packet which must be sent out every 1ms in this low-speed USB case.
->> Then, all incoming packets became empty ones. Such moments coincide
->> with frame discarding in pwc driver.
->
-> Well sounds like you may be able to fix it since you have a test
-> case for it :)
-
-Well, I am not an USB expert and I need some guidance and advice to
-find acceptable solution. No doubts I could implement and test it, but
-I would like to spend time for something known to be useful.
-
->
->> Even though IN sending is usually handled by USB host hardware, it is
->> not fully true for MUSB. Every IN is triggered by musb kernel driver
->> (see MUSB_RXCSR_H_REQPKT usage in musb_host_packet_rx() and
->> musb_ep_program()) since auto IN is not used. Rather complicated logic
->> is incorporated to decide whether IN packet has to be sent. First,
->> musb_host_packet_rx() handles IN sending when current URB is not
->> completed (i.e. current URB has another packet which has to be
->> received next). Second, musb_advance_schedule() (via musb_start_urb())
->> handles the case when current URB is completed but there is another
->> URB pending. It seems that there is a hardware logic to fire IN packet
->> in a way to have exactly 1ms between two consequent INs. So,
->> MUSB_RXCSR_H_REQPKT is considered as IN requesting flag.
->
-> Yeah this is a known issue with musb, there is not much ISO support
-> currently really. The regression should be fixed though.
->
-> Sorry I don't have much ideas on how to improve things here. One
-> way might be to attempt to split the large musb functions into
-> smaller functions and see if that then allows finer grained control.
->
-> Just to try to come up with some new ideas.. Maybe there's some way
-> to swap the hardware EP config dynamically and have some packets
-> mostly preconfigured and waiting to be triggered?
->
-> Regards,
->
-> Tony
->
-
-
-
--- 
-With best regards,
-Matwey V. Kornilov.
-Sternberg Astronomical Institute, Lomonosov Moscow State University, Russia
-119234, Moscow, Universitetsky pr-k 13, +7 (495) 9392382
+>> Thanks for taking the time to investigate.  See comments inline.
+>>
+>> On Sun, Jan 28, 2018 at 5:23 PM, Sakari Ailus
+>> <sakari.ailus@linux.intel.com> wrote:
+>>> Hi Devin,
+>>>
+>>> On Sun, Jan 28, 2018 at 09:12:44AM -0500, Devin Heitmueller wrote:
+>>>> Hello all,
+>>>>
+>>>> I recently updated to the latest kernel, and I am seeing the following
+>>>> dumped to dmesg with both au0828 and em28xx based devices whenever I
+>>>> exit tvtime (my kernel is compiled with CONFIG_VIDEO_ADV_DEBUG=y by
+>>>> default):
+>>>
+>>> Thanks for reporting this. Would you be able to provide the full dmesg,
+>>> with VB2 debug parameter set to 2?
+>>
+>> Output can be found at https://pastebin.com/nXS7MTJH
+>>
+>>> I can't immediately see how you'd get this, well, without triggering a
+>>> kernel warning or two. The code is pretty complex though.
+>>
+>> If this is something I screwed up when I did the VB2 port for em28xx
+>> several years ago, point me in the right direction and I'll see what I
+>> can do.  However given we're seeing it with multiple drivers, this
+>> feels like some subtle issue inside videobuf2.
+>>
+>> Devin
+>>
+>> --
+>> Devin J. Heitmueller - Kernel Labs
+>> http://www.kernellabs.com
+> 
+> 
+> 
