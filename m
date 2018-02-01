@@ -1,139 +1,230 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:37900 "EHLO
-        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752187AbeBFKdS (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 6 Feb 2018 05:33:18 -0500
-Subject: Re: media_device.c question: can this workaround be removed?
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <f4e9e722-9c73-e27c-967f-33c7e76de0d5@xs4all.nl>
- <20180205115954.j7e5npbwuyfgl5il@valkosipuli.retiisi.org.uk>
- <2291cc25-50fd-90cc-8948-6def4acc73a3@xs4all.nl>
- <20180205143039.uhlxala2vc4diysp@valkosipuli.retiisi.org.uk>
- <10d299e0-4edf-75dc-56f1-3acfb6ed719b@xs4all.nl>
- <20180205143228.728d0e73@vento.lan>
- <20180205214838.uu6n4if5bnl6ch4k@valkosipuli.retiisi.org.uk>
- <20180206081526.079a63be@vento.lan>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <ce4ea267-12ff-1174-068f-25a597b0b7d0@xs4all.nl>
-Date: Tue, 6 Feb 2018 11:33:11 +0100
+Received: from foss.arm.com ([217.140.101.70]:52216 "EHLO foss.arm.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751602AbeBAQbx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Thu, 1 Feb 2018 11:31:53 -0500
+Subject: Re: [PATCH v6 2/2] media: V3s: Add support for Allwinner CSI.
+To: Arnd Bergmann <arnd@arndb.de>,
+        Maxime Ripard <maxime.ripard@free-electrons.com>
+Cc: Mark Rutland <mark.rutland@arm.com>, megous@megous.com,
+        Linus Walleij <linus.walleij@linaro.org>,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        linux-sunxi <linux-sunxi@googlegroups.com>,
+        Thierry Reding <thierry.reding@gmail.com>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Rick Chang <rick.chang@mediatek.com>,
+        Chen-Yu Tsai <wens@csie.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Dave Martin <dave.martin@arm.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        "open list:OPEN FIRMWARE AND FLATTENED DEVICE TREE BINDINGS"
+        <devicetree@vger.kernel.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Rob Herring <robh+dt@kernel.org>,
+        Yong Deng <yong.deng@magewell.com>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Linux ARM <linux-arm-kernel@lists.infradead.org>,
+        Thomas Petazzoni <thomas.petazzoni@free-electrons.com>,
+        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+        Randy Dunlap <rdunlap@infradead.org>,
+        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+        Yannick Fertre <yannick.fertre@st.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
+        "David S. Miller" <davem@davemloft.net>
+References: <1516695531-23349-1-git-send-email-yong.deng@magewell.com>
+ <CACRpkdan52UB7HOyH1gnHWg4CDke_VQxAdq8cBgwUroibE59Ow@mail.gmail.com>
+ <20180129082533.6edmqgbauo6q5dgz@flea.lan>
+ <CACRpkdYAGwUjr2C-w5U+WuG48pZAOUcnxFjznLbdF6Lmy1uZuQ@mail.gmail.com>
+ <CAK8P3a2HmPOTHAzqBnmim388pcWOE=fG50mG5HJifT=vzKOaTg@mail.gmail.com>
+ <20180130075441.rqxzkwero6sdfak6@flea.lan>
+ <CAK8P3a0QxQE=GM=SGPtT82=UreiqsgY6uMThvQ_woA3rjK0zjA@mail.gmail.com>
+ <20180130095916.GA23047@ulmo> <20180130100150.GB23047@ulmo>
+ <20180131072910.ajp3jc5dmetsjtf2@flea.lan>
+ <CAK8P3a0X2bpLjKE6xKehG1junZoG1N_DjepOBQ+SZetKf6sgfA@mail.gmail.com>
+From: Robin Murphy <robin.murphy@arm.com>
+Message-ID: <01c5498c-ac0a-7d2c-c804-3e8ea15839c4@arm.com>
+Date: Thu, 1 Feb 2018 16:31:46 +0000
 MIME-Version: 1.0
-In-Reply-To: <20180206081526.079a63be@vento.lan>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
+In-Reply-To: <CAK8P3a0X2bpLjKE6xKehG1junZoG1N_DjepOBQ+SZetKf6sgfA@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-GB
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/06/18 11:15, Mauro Carvalho Chehab wrote:
-> Em Mon, 5 Feb 2018 23:48:38 +0200
-> Sakari Ailus <sakari.ailus@iki.fi> escreveu:
-> 
->> Hi Mauro and Hans,
-> 
->>> Adding pad index to new API is trivial, as your RFC patch pointed.
+On 31/01/18 09:37, Arnd Bergmann wrote:
+> On Wed, Jan 31, 2018 at 8:29 AM, Maxime Ripard
+> <maxime.ripard@free-electrons.com> wrote:
+>> Hi Thierry,
+>>
+>> On Tue, Jan 30, 2018 at 11:01:50AM +0100, Thierry Reding wrote:
+>>> On Tue, Jan 30, 2018 at 10:59:16AM +0100, Thierry Reding wrote:
+>>>> On Tue, Jan 30, 2018 at 10:24:48AM +0100, Arnd Bergmann wrote:
+>>>>> On Tue, Jan 30, 2018 at 8:54 AM, Maxime Ripard
+>>>>> <maxime.ripard@free-electrons.com> wrote:
+>>>>>> On Mon, Jan 29, 2018 at 03:34:02PM +0100, Arnd Bergmann wrote:
+>>>>>>> On Mon, Jan 29, 2018 at 10:25 AM, Linus Walleij
+>>>>>>> <linus.walleij@linaro.org> wrote:
+>>>>>>>> On Mon, Jan 29, 2018 at 9:25 AM, Maxime Ripard
+>>>>>>>> <maxime.ripard@free-electrons.com> wrote:
+>>>>>>>>> On Sat, Jan 27, 2018 at 05:14:26PM +0100, Linus Walleij wrote:
+>>>>>
+>>>>>>>
+>>>>>>> At one point we had discussed adding a 'dma-masters' property that
+>>>>>>> lists all the buses on which a device can be a dma master, and
+>>>>>>> the respective properties of those masters (iommu, coherency,
+>>>>>>> offset, ...).
+>>>>>>>
+>>>>>>> IIRC at the time we decided that we could live without that complexity,
+>>>>>>> but perhaps we cannot.
+>>>>>>
+>>>>>> Are you talking about this ?
+>>>>>> https://elixir.free-electrons.com/linux/latest/source/Documentation/devicetree/bindings/dma/dma.txt#L41
+>>>>>>
+>>>>>> It doesn't seem to be related to that issue to me. And in our
+>>>>>> particular cases, all the devices are DMA masters, the RAM is just
+>>>>>> mapped to another address.
+>>>>>
+>>>>> No, that's not the one I was thinking of. The idea at the time was much
+>>>>> more generic, and not limited to dma engines. I don't recall the details,
+>>>>> but I think that Thierry was either involved or made the proposal at the
+>>>>> time.
+>>>>
+>>>> Yeah, I vaguely remember discussing something like this before. A quick
+>>>> search through my inbox yielded these two threads, mostly related to
+>>>> IOMMU but I think there were some mentions about dma-ranges and so on as
+>>>> well. I'll have to dig deeper into those threads to refresh my memories,
+>>>> but I won't get around to it until later today.
+>>>>
+>>>> If someone wants to read up on this in the meantime, here are the links:
+>>>>
+>>>>      https://lkml.org/lkml/2014/4/27/346
+>>>>      http://lists.infradead.org/pipermail/linux-arm-kernel/2014-May/257200.html
+>>>>
+>>>>  From a quick glance the issue of dma-ranges was something that we hand-
+>>>> waved at the time.
 >>>
->>> Changing media-ctl to fully use the new ioctl is not trivial, as it
->>> was written on a non-portable way, very dependent on the kernel API
->>> specifics[1]. I suspect that it is a lot more easier to add support
->>> for MEDIA_IOC_SETUP_LINK to mc_nextgen_test and rename it to
->>> media-ctl[2].  
->>
->> libmediactl (which media-ctl uses) was intended to be the user space
->> library for MC. Perhaps analogous to libv4l on V4L2.
->>
->> It builds an internal state from what it queries from the kernel, it
->> shouldn't be *that* difficult to change it. The API can be changed, too,
->> it's not exported as a library from v4l-utils.
-> 
-> Yes, I saw that at the time I tried to add support for G_TOPOLOGY
-> on it. Have you ever seen the contrib/test/mc_nextgen_test.c code?
-> 
-> It was written in a way that its code could easily be changed into
-> a library to store/retrieve the topology.
-> 
-> It uses only 3 functions to get topology:
-> 
-> mc_open() - opens device and allocs an struct
-> media_get_topology() - implements support for G_TOPOLOGY
-> mc_close() - closes devide and frees allocated data
-> 
-> And provides other functions to show the retrieved data:
-> 
-> 	media_show_graphviz()
-> 	media_show_entities()
-> 	media_show_interfaces()
-> 	media_show_links()
-> 
-> It is not a library, but it shouldn't be hard to convert into one,
-> copying the relevant parts of mc_open(), media_get_topology() 
-> and mc_close() into libmediactl, and removing/changing a few
-> prints there in order to match the way libmediactl works.
-> 
-> The big challenge with libmediactl is that it is too bound to the
-> API v1. For example, extending the logic there to support links
-> between entities and interfaces would be a challenge, and won't
-> be too efficient.
-> 
-> So, IMHO, it is easier to get the data model and the retrieve function
-> from mc_nextgen_test and use it as basis for V2-compliant version of
-> libmediactl. All it needs (from MC API PoV) is to add support for
-> setting links. As it uses the data provided by G_TOPOLOGY, if we add
-> new fields there, it will automatically be stored inside its data
-> model, as there's no abstraction layer.
-> 
-> With regards to the subdev API part of libmediactl, that probably doesn't
-> need to be touched (or if it needs, it would likely be just binding stuff
-> with the new data model).
-> 
->>
+>>> Also found this, which seems to be relevant as well:
 >>>
->>> [1] I tried it before working at contrib/test/mc_nextgen_test.c. The
->>> internal data model used by media-ctl library was just a clone of the
->>> model returned by the ioctls. Even a minimal change on the way ioctls 
->>> return things (even adding new entity types) is enough to break it.  
+>>>        http://lists.infradead.org/pipermail/linux-arm-kernel/2014-May/252715.html
+>>>
+>>> Adding Dave.
 >>
->> The entity type is only used for informational purposes AFAIK. Otherwise
->> it'll just say "unknown".
+>> Thanks for the pointers, I started to read through it.
 >>
->> Don't forget that media-ctl also supports most of V4L2 sub-device API.
-> 
-> Yes, but that part likely doesn't require changes - of if it requires,
-> it would probably be minimal ones.
-> 
->>> Nah, Let's not touch the old ioctls. Instead, we should stick
->>> with the new API and convert (or replace) existing applications to
->>> use it, as the old ioctl set can't even represent the interfaces.  
+>> I guess we have to come up with two solutions here: a short term one
+>> to address the users we already have in the kernel properly, and a
+>> long term one where we could use that discussion as a starting point.
 >>
->> MC v2 would need better support for pad information, as well as flags. At
->> least. I haven't decided yet what to think of this.
+>> For the short term one, could we just set the device dma_pfn_offset to
+>> PHYS_OFFSET at probe time, and use our dma_addr_t directly later on,
+>> or would this also cause some issues?
 > 
-> While we don't have a properties API, let's add what's needed for
-> media-ctl to work. If flags are needed, let's add it.
+> That would certainly be an improvement over the current version,
+> it keeps the hack more localized. That's fine with me. Note that both
+> PHYS_OFFSET and dma_pfn_offset have architecture specific
+> meanings and they could in theory change, so ideally we'd do that
+> fixup somewhere in arch/arm/mach-sunxi/ at boot time before the
+> driver gets probed, but this wouldn't work on arm64 if we need it
+> there too.
 
-Unless there are objections, then I would like to work on this.
+dma_pfn_offset certainly *shouldn't* be architecture-specific; it's just 
+historically not been used consistently everywhere. That should now be 
+addressed by Christoph's big dma_direct_ops cleanup (now merged) which 
+fills in the places it was being missed in generic code. From quickly 
+skimming this thread, it sounds like that is really should be sufficient 
+for this particular hardware - if all its DMA goes through an 
+interconnect which makes RAM appear at 0, then you give it "dma-ranges = 
+<0 PHYS_OFFSET size>;" and things should 'just work' provided the DMA 
+API is otherwise being used correctly.
 
-I have this in mind:
+If different devices have differing DMA master address maps (such that 
+you can't just place a single dma-ranges on your "soc" node) then the 
+trick is to wrap them in intermediate "simple-bus" nodes with a 
+straight-though "ranges;" and the appropriate "dma-ranges = ...". Yes, 
+it's a bit of a bodge, but then pretending AXI/APB interconnects are 
+buses in the sense that DT assumes is already a bit of a bodge.
 
-Once the merge window is closed and we're open again for pull requests
-I would like to first get the basic fixes (zeroing reserved fields, etc.)
-and ideally the cleaned up media.h merged (the current media.h is unreadable!)
+>> For the long term plan, from what I read from the discussion, it's
+>> mostly centered around IOMMU indeed, and we don't have that. What we
+>> would actually need is to break the assumption that the DMA "parent"
+>> bus is the DT node's parent bus.
+>>
+>> And I guess this could be done quite easily by adding a dma-parent
+>> property with a phandle to the bus controller, that would have a
+>> dma-ranges property of its own with the proper mapping described
+>> there. It should be simple enough to support, but is there anything
+>> that could prevent something like that to work properly (such as
+>> preventing further IOMMU-related developments that were described in
+>> those mail threads).
+> 
+> I've thought about it a little bit now. A dma-parent property would nicely
+> solve two problems:
+> 
+> - a device on a memory mapped control bus that is a bus master on
+>    a different bus. This is the case we are talking about here AFAICT
+> 
+> - a device that is on a different kind of bus (i2c, spi, usb, ...) but also
+>    happens to be a dma master on another bus. I suspect we have
+>    some of these today and they work by accident because we set the
+>    dma_mask and dma_map_ops quite liberally in the DT probe code,
+>    but it really shouldn't work according to our bindings. We may also
+>    have drivers that work around the issue by forcing the correct dma
+>    mask and map_ops today, which makes them work but is rather
+>    fragile.
 
-The next step would be to add pad index and type support to G_TOPOLOGY.
-I still would like to add function support to the old API, it's trivial
-and it really helps testing. We'll discuss that separately.
+Note that I recently started tightening this area up (see d89e2378a97f), 
+precisely because doing DMA configuration for things that shouldn't be 
+DMA masters turned out to be messing with legitimate devices in 
+conjunction with other unpleasant and fiddly circumstances elsewhere.
 
-Then work on improving media-ctl. I think media-ctl and mc_nextgen_test
-should be merged so we are left with a single media-ctl utility.
+> I can think of a couple of other problems that may or may not be
+> relevant in the future that would require a more complex solution:
+> 
+> - a device that is a bus master on more than one bus, e.g. a
+>    DMA engine that can copy between the CPU address space and
+>    another memory controller that is not visible to the CPU
 
-Three things are remaining after that: a S_TOPOLOGY (or however it will
-be names) call, properties and connector support. But at least we then
-have a solid base to continue working from. For the record, I have no
-plans to work on S_TOPOLOGY or properties, but I might tackle connector
-support. I want to add MC support to CEC and I probably will need this.
+Those definitely exist - e.g. as best I understand it the crypto SRAMs 
+on Marvell Armada XP parts which we describe as "mmio-sram" are not 
+actually CPU-accessible, and only the CESA DMA engine can move data 
+between them and main memory.
 
-Regards,
+> - a device that is connected to main memory both through an IOMMU
+>    and directly through its parent bus, and the device itself is in
+>    control over which of the two it uses (usually the IOMMU would
+>    contol whether a device is bypassing translation)
 
-	Hans
+*shudder*
+
+> - a device that has a single DMA address space with some form
+>    of non-linear mapping to one or more parent buses. Some of these
+>    can be expressed using the parent's dma-ranges properties, but
+>    our code currently only looks at the first entry in dma-ranges.
+
+That's definitely a thing, too. In fact the TI Keystone platform which 
+begat our current of_dma_get_range() implementation is like that; we 
+just only describe the offset upper half of the DMA address map where 
+dma-coherent RAM lives, not the bottom 2GB of peripherals which is the 
+same as the CPU view. See also the madness of the brcmstb PCIe patches 
+elsewhere on this list.
+
+> Another problem is the interaction with the dma-ranges and iommu
+> properties. I have not found any real problems here, but we certainly
+> need to be careful to define what happens in all combinations and
+> make sure that we document it well in the bindings and have those
+> reviewed by the affected parties, at least the ARM and PowerPC
+> architecture folks as well as the Nvidia and Renesas platform
+> maintainers, which in my experience have the most complex DMA
+> hardware.
+I hold out hope that we never see DMA offsets mixed with IOMMUs (because 
+thankfully it doesn't make much sense from a hardware perspective), but 
+we certainly do want the size aspect of dma-ranges to describe cases 
+where there are fewer than expected address bits wired between the 
+device master interface and IOMMU slave interface. There's a fairly 
+long-standing issue with that being a bit broken which is hurting at 
+least one platform I know about.
+
+Robin.
