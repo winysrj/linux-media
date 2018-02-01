@@ -1,123 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay4-d.mail.gandi.net ([217.70.183.196]:35224 "EHLO
+Received: from relay4-d.mail.gandi.net ([217.70.183.196]:53091 "EHLO
         relay4-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753870AbeBURsW (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 21 Feb 2018 12:48:22 -0500
-From: Jacopo Mondi <jacopo+renesas@jmondi.org>
-To: laurent.pinchart@ideasonboard.com, magnus.damm@gmail.com,
-        geert@glider.be, hverkuil@xs4all.nl, mchehab@kernel.org,
-        festevam@gmail.com, sakari.ailus@iki.fi, robh+dt@kernel.org,
-        mark.rutland@arm.com, pombredanne@nexb.com
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-sh@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH v10 01/10] dt-bindings: media: Add Renesas CEU bindings
-Date: Wed, 21 Feb 2018 18:47:55 +0100
-Message-Id: <1519235284-32286-2-git-send-email-jacopo+renesas@jmondi.org>
-In-Reply-To: <1519235284-32286-1-git-send-email-jacopo+renesas@jmondi.org>
-References: <1519235284-32286-1-git-send-email-jacopo+renesas@jmondi.org>
+        with ESMTP id S1752375AbeBAQ46 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 1 Feb 2018 11:56:58 -0500
+Date: Thu, 1 Feb 2018 17:56:44 +0100
+From: jacopo mondi <jacopo@jmondi.org>
+To: Hugues Fruchet <hugues.fruchet@st.com>
+Cc: Steve Longerbeam <slongerbeam@gmail.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Subject: Re: [PATCH] media: ov5640: fix virtual_channel parameter permissions
+Message-ID: <20180201165644.GA17660@w540>
+References: <1517491054-12048-1-git-send-email-hugues.fruchet@st.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <1517491054-12048-1-git-send-email-hugues.fruchet@st.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add bindings documentation for Renesas Capture Engine Unit (CEU).
+Hi Hugues,
 
-Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
-Reviewed-by: Rob Herring <robh@kernel.org>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- .../devicetree/bindings/media/renesas,ceu.txt      | 81 ++++++++++++++++++++++
- 1 file changed, 81 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/renesas,ceu.txt
+On Thu, Feb 01, 2018 at 02:17:34PM +0100, Hugues Fruchet wrote:
+> Fix module_param(virtual_channel) permissions.
+> This problem was detected by checkpatch:
+> $ scripts/checkpatch.pl -f drivers/media/i2c/ov5640.c
+> ERROR: Use 4 digit octal (0777) not decimal permissions
+> #131: FILE: drivers/media/i2c/ov5640.c:131:
+> +module_param(virtual_channel, int, 0);
+>
+> Also explicitly set initial value to 0 for default value
+> and add an error trace in case of virtual_channel not in
+> the valid range of values.
+>
+> Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
+> ---
+>  drivers/media/i2c/ov5640.c | 10 +++++++---
+>  1 file changed, 7 insertions(+), 3 deletions(-)
+>
+> diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
+> index 696a28b..906f202 100644
+> --- a/drivers/media/i2c/ov5640.c
+> +++ b/drivers/media/i2c/ov5640.c
+> @@ -127,8 +127,8 @@ struct ov5640_pixfmt {
+>   * FIXME: remove this when a subdev API becomes available
+>   * to set the MIPI CSI-2 virtual channel.
+>   */
+> -static unsigned int virtual_channel;
+> -module_param(virtual_channel, int, 0);
+> +static unsigned int virtual_channel = 0;
+> +module_param(virtual_channel, int, 0444);
 
-diff --git a/Documentation/devicetree/bindings/media/renesas,ceu.txt b/Documentation/devicetree/bindings/media/renesas,ceu.txt
-new file mode 100644
-index 0000000..3fc66df
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/renesas,ceu.txt
-@@ -0,0 +1,81 @@
-+Renesas Capture Engine Unit (CEU)
-+----------------------------------------------
-+
-+The Capture Engine Unit is the image capture interface found in the Renesas
-+SH Mobile and RZ SoCs.
-+
-+The interface supports a single parallel input with data bus width of 8 or 16
-+bits.
-+
-+Required properties:
-+- compatible: Shall be "renesas,r7s72100-ceu" for CEU units found in RZ/A1H
-+  and RZ/A1M SoCs.
-+- reg: Registers address base and size.
-+- interrupts: The interrupt specifier.
-+
-+The CEU supports a single parallel input and should contain a single 'port'
-+subnode with a single 'endpoint'. Connection to input devices are modeled
-+according to the video interfaces OF bindings specified in:
-+Documentation/devicetree/bindings/media/video-interfaces.txt
-+
-+Optional endpoint properties applicable to parallel input bus described in
-+the above mentioned "video-interfaces.txt" file are supported.
-+
-+- hsync-active: Active state of the HSYNC signal, 0/1 for LOW/HIGH respectively.
-+  If property is not present, default is active high.
-+- vsync-active: Active state of the VSYNC signal, 0/1 for LOW/HIGH respectively.
-+  If property is not present, default is active high.
-+
-+Example:
-+
-+The example describes the connection between the Capture Engine Unit and an
-+OV7670 image sensor connected to i2c1 interface.
-+
-+ceu: ceu@e8210000 {
-+	reg = <0xe8210000 0x209c>;
-+	compatible = "renesas,r7s72100-ceu";
-+	interrupts = <GIC_SPI 332 IRQ_TYPE_LEVEL_HIGH>;
-+
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&vio_pins>;
-+
-+	status = "okay";
-+
-+	port {
-+		ceu_in: endpoint {
-+			remote-endpoint = <&ov7670_out>;
-+
-+			hsync-active = <1>;
-+			vsync-active = <0>;
-+		};
-+	};
-+};
-+
-+i2c1: i2c@fcfee400 {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&i2c1_pins>;
-+
-+	status = "okay";
-+
-+	clock-frequency = <100000>;
-+
-+	ov7670: camera@21 {
-+		compatible = "ovti,ov7670";
-+		reg = <0x21>;
-+
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&vio_pins>;
-+
-+		reset-gpios = <&port3 11 GPIO_ACTIVE_LOW>;
-+		powerdown-gpios = <&port3 12 GPIO_ACTIVE_HIGH>;
-+
-+		port {
-+			ov7670_out: endpoint {
-+				remote-endpoint = <&ceu_in>;
-+
-+				hsync-active = <1>;
-+				vsync-active = <0>;
-+			};
-+		};
-+	};
-+};
--- 
-2.7.4
+Parameter type is unsigned int, please use uint here.
+As also checkpatch reports, it is not necessary to initialize static
+variables to 0.
+
+>  MODULE_PARM_DESC(virtual_channel,
+>  		 "MIPI CSI-2 virtual channel (0..3), default 0");
+>
+> @@ -1358,11 +1358,15 @@ static int ov5640_binning_on(struct ov5640_dev *sensor)
+>
+>  static int ov5640_set_virtual_channel(struct ov5640_dev *sensor)
+>  {
+> +	struct i2c_client *client = sensor->i2c_client;
+>  	u8 temp, channel = virtual_channel;
+>  	int ret;
+>
+> -	if (channel > 3)
+> +	if (channel > 3) {
+> +		dev_err(&client->dev, "%s: wrong virtual_channel parameter value, expected (0..3), got %d\n",
+
+I understand you don't want to break error messages to 80 columns to
+ease grep for errors, but you can break the line after "client->dev"
+to make this less painful for the eyes.
+
+Thanks
+   j
+
+> +			__func__, channel);
+>  		return -EINVAL;
+> +	}
+>
+>  	ret = ov5640_read_reg(sensor, OV5640_REG_DEBUG_MODE, &temp);
+>  	if (ret)
+> --
+> 1.9.1
+>
