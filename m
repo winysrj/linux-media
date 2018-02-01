@@ -1,57 +1,223 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:45962 "EHLO
-        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S1752486AbeBSLKD (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 19 Feb 2018 06:10:03 -0500
-Received: from valkosipuli.localdomain (valkosipuli.retiisi.org.uk [IPv6:2001:1bc8:1a6:d3d5::80:2])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by hillosipuli.retiisi.org.uk (Postfix) with ESMTPS id 50E276010B
-        for <linux-media@vger.kernel.org>; Mon, 19 Feb 2018 13:10:02 +0200 (EET)
-Received: from sakke by valkosipuli.localdomain with local (Exim 4.89)
-        (envelope-from <sakari.ailus@retiisi.org.uk>)
-        id 1enjKb-0004Fq-Sw
-        for linux-media@vger.kernel.org; Mon, 19 Feb 2018 13:10:01 +0200
-Date: Mon, 19 Feb 2018 13:10:01 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Subject: [GIT PULL for 4.17] IPU3 CIO2 patches
-Message-ID: <20180219111001.7xfm74uwwww42qtd@valkosipuli.retiisi.org.uk>
+Received: from bombadil.infradead.org ([65.50.211.133]:52059 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752015AbeBASOs (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Thu, 1 Feb 2018 13:14:48 -0500
+Subject: Re: [RFCv2 05/17] media: Document the media request API
+To: Alexandre Courbot <acourbot@chromium.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Pawel Osciak <posciak@chromium.org>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Tomasz Figa <tfiga@chromium.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Gustavo Padovan <gustavo.padovan@collabora.com>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+References: <20180131102427.207721-1-acourbot@chromium.org>
+ <20180131102427.207721-6-acourbot@chromium.org>
+From: Randy Dunlap <rdunlap@infradead.org>
+Message-ID: <d23317ee-af0d-3fe8-cbfb-cff01f9d82b8@infradead.org>
+Date: Thu, 1 Feb 2018 10:14:41 -0800
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+In-Reply-To: <20180131102427.207721-6-acourbot@chromium.org>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+On 01/31/2018 02:24 AM, Alexandre Courbot wrote:
+> From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+> 
+> The media request API is made of a new ioctl to implement request
+> management. Document it.
+> 
+> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+> [acourbot@chromium.org: adapt for newest API]
+> Signed-off-by: Alexandre Courbot <acourbot@chromium.org>
+> ---
+>  Documentation/media/uapi/mediactl/media-funcs.rst  |   1 +
+>  .../media/uapi/mediactl/media-ioc-request-cmd.rst  | 141 +++++++++++++++++++++
+>  2 files changed, 142 insertions(+)
+>  create mode 100644 Documentation/media/uapi/mediactl/media-ioc-request-cmd.rst
+> 
+> diff --git a/Documentation/media/uapi/mediactl/media-funcs.rst b/Documentation/media/uapi/mediactl/media-funcs.rst
+> index 076856501cdb..e3a45d82ffcb 100644
+> --- a/Documentation/media/uapi/mediactl/media-funcs.rst
+> +++ b/Documentation/media/uapi/mediactl/media-funcs.rst
+> @@ -15,4 +15,5 @@ Function Reference
+>      media-ioc-g-topology
+>      media-ioc-enum-entities
+>      media-ioc-enum-links
+> +    media-ioc-request-cmd
+>      media-ioc-setup-link
+> diff --git a/Documentation/media/uapi/mediactl/media-ioc-request-cmd.rst b/Documentation/media/uapi/mediactl/media-ioc-request-cmd.rst
+> new file mode 100644
+> index 000000000000..723b422afcce
+> --- /dev/null
+> +++ b/Documentation/media/uapi/mediactl/media-ioc-request-cmd.rst
+> @@ -0,0 +1,141 @@
+> +.. -*- coding: utf-8; mode: rst -*-
+> +
+> +.. _media_ioc_request_cmd:
+> +
+> +***************************
+> +ioctl MEDIA_IOC_REQUEST_CMD
+> +***************************
+> +
+> +Name
+> +====
+> +
+> +MEDIA_IOC_REQUEST_CMD - Manage media device requests
+> +
+> +
+> +Synopsis
+> +========
+> +
+> +.. c:function:: int ioctl( int fd, MEDIA_IOC_REQUEST_CMD, struct media_request_cmd *argp )
+> +    :name: MEDIA_IOC_REQUEST_CMD
+> +
+> +
+> +Arguments
+> +=========
+> +
+> +``fd``
+> +    File descriptor returned by :ref:`open() <media-func-open>`.
+> +
+> +``argp``
+> +
+> +
+> +Description
+> +===========
+> +
+> +The MEDIA_IOC_REQUEST_CMD ioctl allow applications to manage media device
 
-Here's a bugfix and a switch for the SPDX tags for IPU3 CIO2 driver.
+                                   allows
 
-Please pull.
+> +requests. A request is an object that can group media device configuration
+> +parameters, including subsystem-specific parameters, in order to apply all the
+> +parameters atomically. Applications are responsible for allocating and
+> +deleting requests, filling them with configuration parameters submitting them.
 
+                                                                and submitting them.
 
-The following changes since commit 29422737017b866d4a51014cc7522fa3a99e8852:
+> +
+> +Request operations are performed by calling the MEDIA_IOC_REQUEST_CMD ioctl
+> +with a pointer to a struct :c:type:`media_request_cmd` with the cmd field set
+> +to the appropriate command. :ref:`media-request-command` lists the commands
+> +supported by the ioctl.
+> +
+> +The struct :c:type:`media_request_cmd` request field contains the file
+> +descriptorof the request on which the command operates. For the
 
-  media: rc: get start time just before calling driver tx (2018-02-14 14:17:21 -0500)
+   descriptor of
 
-are available in the git repository at:
+> +``MEDIA_REQ_CMD_ALLOC`` command the field is set to zero by applications and
+> +filled by the driver. For all other commands the field is set by applications
+> +and left untouched by the driver.
+> +
+> +To allocate a new request applications use the ``MEDIA_REQ_CMD_ALLOC``
+> +command. The driver will allocate a new request and return its FD in the
+> +request field. After allocation, the request is "empty", which means that it
+> +does not hold any state of its own, and that the hardware's state will not be
+> +affected by it unless it is passed as argument to V4L2 or media controller
+> +commands.
+> +
+> +Requests are reference-counted. A newly allocated request is referenced
+> +by the returned file descriptor, and can be later referenced by
+> +subsystem-specific operations. Requests will thus be automatically deleted
+> +when they're not longer used after the returned file descriptor is closed.
 
-  ssh://linuxtv.org/git/sailus/media_tree.git ipu3
+                 no longer
 
-for you to fetch changes up to 0df935a6d4b6f82de5b8f7e993cd192975171ea7:
+> +
+> +If a request isn't needed applications can delete it by calling ``close()``
+> +on it. The driver will drop the file handle reference. The request will not
+> +be usable through the MEDIA_IOC_REQUEST_CMD ioctl anymore, but will only be
+> +deleted when the last reference is released. If no other reference exists when
+> +``close()`` is invoked the request will be deleted immediately.
+> +
+> +After creating a request applications should fill it with configuration
+> +parameters. This is performed through subsystem-specific request APIs outside
+> +the scope of the media controller API. See the appropriate subsystem APIs for
+> +more information, including how they interact with the MEDIA_IOC_REQUEST_CMD
+> +ioctl.
+> +
+> +Once a request contains all the desired configuration parameters it can be
+> +submitted using the ``MEDIA_REQ_CMD_SUBMIT`` command. This will let the
+> +buffers queued for the request be passed to their respective drivers, which
+> +will then apply the request's parameters before processing them.
+> +
+> +Once a request has been queued applications are not allowed to modify its
+> +configuration parameters until the request has been fully processed. Any
+> +attempt to do so will result in the related subsystem API returning an error.
+> +The application that submitted the request can wait for its completion by
+> +polling on the request's file descriptor.
+> +
+> +Once a request has completed, it can be reused. The ``MEDIA_REQ_CMD_REINIT``
+> +command will bring it back to its initial state, so it can be prepared and
+> +submitted again.
+> +
+> +.. c:type:: media_request_cmd
+> +
+> +.. flat-table:: struct media_request_cmd
+> +    :header-rows:  0
+> +    :stub-columns: 0
+> +    :widths: 1 2 8
+> +
+> +    * - __u32
+> +      - ``cmd``
+> +      - Command, set by the application. See below for the list of supported
+> +        commands.
+> +    * - __u32
+> +      - ``fd``
+> +      - Request FD, set by the driver for the MEDIA_REQ_CMD_ALLOC command and
+> +        by the application for all other commands.
+> +
+> +
+> +.. _media-request-command:
+> +
+> +.. cssclass:: longtable
+> +
+> +.. flat-table:: Media request commands
+> +    :header-rows:  0
+> +    :stub-columns: 0
+> +
+> +    * .. _MEDIA-REQ-CMD-ALLOC:
+> +
+> +      - ``MEDIA_REQ_CMD_ALLOC``
+> +      - Allocate a new request.
+> +    * .. _MEDIA-REQ-CMD-SUBMIT:
+> +
+> +      - ``MEDIA_REQ_CMD_SUBMIT``
+> +      - Submit a request to be processed.
+> +    * .. _MEDIA-REQ-CMD-QUEUE:
+> +
+> +      - ``MEDIA_REQ_CMD_REINIT``
+> +      - Reinitializes a completed request.
 
-  media: intel-ipu3: cio2: Use SPDX license headers (2018-02-19 10:31:37 +0200)
+           Reinitialize
+to be consistent with other entries above.
 
-----------------------------------------------------------------
-Yong Zhi (2):
-      media: intel-ipu3: cio2: Disable and sync irq before stream off
-      media: intel-ipu3: cio2: Use SPDX license headers
+> +
+> +
+> +Return Value
+> +============
+> +
+> +On success 0 is returned, on error -1 and the ``errno`` variable is set
+> +appropriately. The generic error codes are described at the
+> +:ref:`Generic Error Codes <gen-errors>` chapter.
+> +
+> +EINVAL
+> +    The struct :c:type:`media_request_cmd` specifies an invalid command or
+> +    references a non-existing request.
+> +
+> +ENOSYS
+> +    Request API is not available on this device.
+> 
 
- drivers/media/pci/intel/ipu3/ipu3-cio2.c | 16 ++++++----------
- drivers/media/pci/intel/ipu3/ipu3-cio2.h | 14 ++------------
- 2 files changed, 8 insertions(+), 22 deletions(-)
 
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi
+~Randy
