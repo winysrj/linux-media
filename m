@@ -1,56 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-co1nam03on0055.outbound.protection.outlook.com ([104.47.40.55]:37536
-        "EHLO NAM03-CO1-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1750767AbeBGW3z (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 7 Feb 2018 17:29:55 -0500
-From: Satish Kumar Nagireddy <satish.nagireddy.nagireddy@xilinx.com>
-To: <linux-media@vger.kernel.org>, <laurent.pinchart@ideasonboard.com>,
-        <michal.simek@xilinx.com>, <hyun.kwon@xilinx.com>
-CC: Satish Kumar Nagireddy <satishna@xilinx.com>
-Subject: [PATCH 2/8] media: xilinx: vip: Add the pixel format for RGB24
-Date: Wed, 7 Feb 2018 14:29:32 -0800
-Message-ID: <1518042578-22771-3-git-send-email-satishna@xilinx.com>
-In-Reply-To: <1518042578-22771-1-git-send-email-satishna@xilinx.com>
-References: <1518042578-22771-1-git-send-email-satishna@xilinx.com>
+Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:42572 "EHLO
+        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751119AbeBAHT6 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Thu, 1 Feb 2018 02:19:58 -0500
+Subject: Re: [PATCH v6 4/6] media: i2c: Add TDA1997x HDMI receiver driver
+To: Tim Harvey <tharvey@gateworks.com>
+Cc: linux-media <linux-media@vger.kernel.org>,
+        alsa-devel@alsa-project.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org, Shawn Guo <shawnguo@kernel.org>,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Hans Verkuil <hansverk@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+References: <1514491789-8697-1-git-send-email-tharvey@gateworks.com>
+ <1514491789-8697-5-git-send-email-tharvey@gateworks.com>
+ <1e65ee61-f282-4b53-dd03-68a89a91da8e@xs4all.nl>
+ <CAJ+vNU1ysHuzqOnL4sf3hFZrU5kyGnQ0dFkRObVjCa=NyLsJug@mail.gmail.com>
+ <517f8b12-e10e-1e8d-6d98-26f5fefe62b8@xs4all.nl>
+ <CAJ+vNU1xnnmNZW5zmT8+0HfT3Xfg6zfdrbC8vFNH4wuah5AVTA@mail.gmail.com>
+ <fa8cc2d1-b7ea-343e-5b5a-ba5f60b9c5d9@xs4all.nl>
+ <83695d60-5052-14ba-4f7b-23f153a05a85@xs4all.nl>
+ <CAJ+vNU3DJ2xNEKoi1-div80hKkzsm+pFYtzJDUn+seXAVq8jCQ@mail.gmail.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <a2e873da-adf2-e4aa-71d6-d1c9c2671d41@xs4all.nl>
+Date: Thu, 1 Feb 2018 08:19:53 +0100
 MIME-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+In-Reply-To: <CAJ+vNU3DJ2xNEKoi1-div80hKkzsm+pFYtzJDUn+seXAVq8jCQ@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hyun Kwon <hyun.kwon@xilinx.com>
+On 02/01/2018 05:47 AM, Tim Harvey wrote:
+> Hans,
+> 
+> You forgot to include v4l2-ctl-selection.cpp in your patch.
 
-The pixel format for RGB24 is missing, and the driver
-always falls back to YUYV as no format descriptor matches
-with RGB24 fourcc. The pixel format is added to RGB24
-format descriptor so that user can use the format.
+You mean v4l2-ctl-subdev.cpp :-)
 
-Signed-off-by: Satish Kumar Nagireddy <satishna@xilinx.com>
----
- drivers/media/platform/xilinx/xilinx-vip.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Anyway, I plan on committing this to v4l2-ctl soon. I'll let you know
+when that's done.
 
-diff --git a/drivers/media/platform/xilinx/xilinx-vip.c b/drivers/media/pla=
-tform/xilinx/xilinx-vip.c
-index 3112591..d306f44 100644
---- a/drivers/media/platform/xilinx/xilinx-vip.c
-+++ b/drivers/media/platform/xilinx/xilinx-vip.c
-@@ -32,7 +32,7 @@ static const struct xvip_video_format xvip_video_formats[=
-] =3D {
-        { XVIP_VF_YUV_444, 8, NULL, MEDIA_BUS_FMT_VUY8_1X24,
-          3, V4L2_PIX_FMT_YUV444, "4:4:4, packed, YUYV" },
-        { XVIP_VF_RBG, 8, NULL, MEDIA_BUS_FMT_RBG888_1X24,
--         3, 0, NULL },
-+         3, V4L2_PIX_FMT_RGB24, "24-bit RGB" },
-        { XVIP_VF_MONO_SENSOR, 8, "mono", MEDIA_BUS_FMT_Y8_1X8,
-          1, V4L2_PIX_FMT_GREY, "Greyscale 8-bit" },
-        { XVIP_VF_MONO_SENSOR, 8, "rggb", MEDIA_BUS_FMT_SRGGB8_1X8,
---
-2.7.4
+I added support for almost all subdev ioctls to v4l2-ctl.
 
-This email and any attachments are intended for the sole use of the named r=
-ecipient(s) and contain(s) confidential information that may be proprietary=
-, privileged or copyrighted under applicable law. If you are not the intend=
-ed recipient, do not read, copy, or forward this email message or any attac=
-hments. Delete this email message and any attachments immediately.
+Regards,
+
+	Hans
