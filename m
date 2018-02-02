@@ -1,149 +1,136 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f68.google.com ([209.85.215.68]:45141 "EHLO
-        mail-lf0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751542AbeBWIZ7 (ORCPT
+Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:48541 "EHLO
+        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751530AbeBBEqe (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 23 Feb 2018 03:25:59 -0500
-Received: by mail-lf0-f68.google.com with SMTP id x196so11195263lfd.12
-        for <linux-media@vger.kernel.org>; Fri, 23 Feb 2018 00:25:59 -0800 (PST)
-Date: Fri, 23 Feb 2018 09:25:56 +0100
-From: Niklas =?iso-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund@ragnatech.se>
-To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>
-Subject: Re: [PATCH v2] v4l: vsp1: Print the correct blending unit name in
- debug messages
-Message-ID: <20180223082556.GE6373@bigcity.dyn.berto.se>
-References: <20180222205226.3099-1-laurent.pinchart+renesas@ideasonboard.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20180222205226.3099-1-laurent.pinchart+renesas@ideasonboard.com>
+        Thu, 1 Feb 2018 23:46:34 -0500
+Message-ID: <7361756f953af4279fae97f9ed4e5659@smtp-cloud8.xs4all.net>
+Date: Fri, 02 Feb 2018 05:46:32 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Thanks for your patch.
+Results of the daily build of media_tree:
 
-On 2018-02-22 22:52:26 +0200, Laurent Pinchart wrote:
-> The DRM pipelines can use either the BRU or the BRS for blending. Make
-> sure the right name is used in debugging messages to avoid confusion.
-> 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+date:			Fri Feb  2 05:00:25 CET 2018
+media-tree git hash:	273caa260035c03d89ad63d72d8cd3d9e5c5e3f1
+media_build git hash:	d17383327f00d45e6c07161876fb4f3d9d9358e1
+v4l-utils git hash:	aa287ca25393cf8bcb05d2679ccbe340a798d344
+gcc version:		i686-linux-gcc (GCC) 7.1.0
+sparse version:		v0.5.0-3911-g6f737e1f
+smatch version:		v0.5.0-3911-g6f737e1f
+host hardware:		x86_64
+host os:		4.14.0-364
 
-Reviewed-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12.67-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.7-i686: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.18.7-i686: ERRORS
+linux-3.19-i686: ERRORS
+linux-4.0.9-i686: ERRORS
+linux-4.1.33-i686: ERRORS
+linux-4.2.8-i686: ERRORS
+linux-4.3.6-i686: ERRORS
+linux-4.4.22-i686: ERRORS
+linux-4.5.7-i686: ERRORS
+linux-4.6.7-i686: ERRORS
+linux-4.7.5-i686: ERRORS
+linux-4.8-i686: ERRORS
+linux-4.9.26-i686: ERRORS
+linux-4.10.14-i686: WARNINGS
+linux-4.11-i686: WARNINGS
+linux-4.12.1-i686: WARNINGS
+linux-4.13-i686: WARNINGS
+linux-4.14-i686: WARNINGS
+linux-4.15-i686: WARNINGS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.67-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.7-x86_64: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.7-x86_64: ERRORS
+linux-3.19-x86_64: ERRORS
+linux-4.0.9-x86_64: ERRORS
+linux-4.1.33-x86_64: ERRORS
+linux-4.2.8-x86_64: ERRORS
+linux-4.3.6-x86_64: ERRORS
+linux-4.4.22-x86_64: ERRORS
+linux-4.5.7-x86_64: ERRORS
+linux-4.6.7-x86_64: ERRORS
+linux-4.7.5-x86_64: ERRORS
+linux-4.8-x86_64: ERRORS
+linux-4.9.26-x86_64: ERRORS
+linux-4.10.14-x86_64: WARNINGS
+linux-4.11-x86_64: WARNINGS
+linux-4.12.1-x86_64: WARNINGS
+linux-4.13-x86_64: WARNINGS
+linux-4.14-x86_64: WARNINGS
+linux-4.15-x86_64: WARNINGS
+apps: WARNINGS
+spec-git: OK
+smatch: OK
 
-> ---
-> Changes since v1:
-> 
-> - Create a macro to get the right entity name instead of duplicating the
->   same code all over the driver
-> ---
->  drivers/media/platform/vsp1/vsp1_drm.c | 21 ++++++++-------------
->  1 file changed, 8 insertions(+), 13 deletions(-)
-> 
-> diff --git a/drivers/media/platform/vsp1/vsp1_drm.c b/drivers/media/platform/vsp1/vsp1_drm.c
-> index ac85942162c1..b8fee1834253 100644
-> --- a/drivers/media/platform/vsp1/vsp1_drm.c
-> +++ b/drivers/media/platform/vsp1/vsp1_drm.c
-> @@ -27,6 +27,7 @@
->  #include "vsp1_pipe.h"
->  #include "vsp1_rwpf.h"
->  
-> +#define BRU_NAME(e)	(e)->type == VSP1_ENTITY_BRU ? "BRU" : "BRS"
->  
->  /* -----------------------------------------------------------------------------
->   * Interrupt Handling
-> @@ -88,7 +89,6 @@ int vsp1_du_setup_lif(struct device *dev, unsigned int pipe_index,
->  	struct vsp1_entity *next;
->  	struct vsp1_dl_list *dl;
->  	struct v4l2_subdev_format format;
-> -	const char *bru_name;
->  	unsigned long flags;
->  	unsigned int i;
->  	int ret;
-> @@ -99,7 +99,6 @@ int vsp1_du_setup_lif(struct device *dev, unsigned int pipe_index,
->  	drm_pipe = &vsp1->drm->pipe[pipe_index];
->  	pipe = &drm_pipe->pipe;
->  	bru = to_bru(&pipe->bru->subdev);
-> -	bru_name = pipe->bru->type == VSP1_ENTITY_BRU ? "BRU" : "BRS";
->  
->  	if (!cfg) {
->  		/*
-> @@ -165,7 +164,7 @@ int vsp1_du_setup_lif(struct device *dev, unsigned int pipe_index,
->  
->  		dev_dbg(vsp1->dev, "%s: set format %ux%u (%x) on %s pad %u\n",
->  			__func__, format.format.width, format.format.height,
-> -			format.format.code, bru_name, i);
-> +			format.format.code, BRU_NAME(pipe->bru), i);
->  	}
->  
->  	format.pad = pipe->bru->source_pad;
-> @@ -181,7 +180,7 @@ int vsp1_du_setup_lif(struct device *dev, unsigned int pipe_index,
->  
->  	dev_dbg(vsp1->dev, "%s: set format %ux%u (%x) on %s pad %u\n",
->  		__func__, format.format.width, format.format.height,
-> -		format.format.code, bru_name, i);
-> +		format.format.code, BRU_NAME(pipe->bru), i);
->  
->  	format.pad = RWPF_PAD_SINK;
->  	ret = v4l2_subdev_call(&pipe->output->entity.subdev, pad, set_fmt, NULL,
-> @@ -473,9 +472,9 @@ static int vsp1_du_setup_rpf_pipe(struct vsp1_device *vsp1,
->  	if (ret < 0)
->  		return ret;
->  
-> -	dev_dbg(vsp1->dev, "%s: set format %ux%u (%x) on BRU pad %u\n",
-> +	dev_dbg(vsp1->dev, "%s: set format %ux%u (%x) on %s pad %u\n",
->  		__func__, format.format.width, format.format.height,
-> -		format.format.code, format.pad);
-> +		format.format.code, BRU_NAME(pipe->bru), format.pad);
->  
->  	sel.pad = bru_input;
->  	sel.target = V4L2_SEL_TGT_COMPOSE;
-> @@ -486,10 +485,9 @@ static int vsp1_du_setup_rpf_pipe(struct vsp1_device *vsp1,
->  	if (ret < 0)
->  		return ret;
->  
-> -	dev_dbg(vsp1->dev,
-> -		"%s: set selection (%u,%u)/%ux%u on BRU pad %u\n",
-> +	dev_dbg(vsp1->dev, "%s: set selection (%u,%u)/%ux%u on %s pad %u\n",
->  		__func__, sel.r.left, sel.r.top, sel.r.width, sel.r.height,
-> -		sel.pad);
-> +		BRU_NAME(pipe->bru), sel.pad);
->  
->  	return 0;
->  }
-> @@ -514,12 +512,9 @@ void vsp1_du_atomic_flush(struct device *dev, unsigned int pipe_index)
->  	struct vsp1_entity *entity;
->  	struct vsp1_entity *next;
->  	struct vsp1_dl_list *dl;
-> -	const char *bru_name;
->  	unsigned int i;
->  	int ret;
->  
-> -	bru_name = pipe->bru->type == VSP1_ENTITY_BRU ? "BRU" : "BRS";
-> -
->  	/* Prepare the display list. */
->  	dl = vsp1_dl_list_get(pipe->output->dlm);
->  
-> @@ -570,7 +565,7 @@ void vsp1_du_atomic_flush(struct device *dev, unsigned int pipe_index)
->  		rpf->entity.sink_pad = i;
->  
->  		dev_dbg(vsp1->dev, "%s: connecting RPF.%u to %s:%u\n",
-> -			__func__, rpf->entity.index, bru_name, i);
-> +			__func__, rpf->entity.index, BRU_NAME(pipe->bru), i);
->  
->  		ret = vsp1_du_setup_rpf_pipe(vsp1, pipe, rpf, i);
->  		if (ret < 0)
-> -- 
-> Regards,
-> 
-> Laurent Pinchart
-> 
+Detailed results are available here:
 
--- 
-Regards,
-Niklas Söderlund
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/index.html
