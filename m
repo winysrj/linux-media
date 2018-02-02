@@ -1,140 +1,285 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:37047 "EHLO
-        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751482AbeBYEn5 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 24 Feb 2018 23:43:57 -0500
-Message-ID: <72c56441ad17451ce563b9df3670fff7@smtp-cloud9.xs4all.net>
-Date: Sun, 25 Feb 2018 05:43:48 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
+Received: from mailout1.samsung.com ([203.254.224.24]:44316 "EHLO
+        mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751767AbeBBMuD (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 2 Feb 2018 07:50:03 -0500
+From: Smitha T Murthy <smitha.t@samsung.com>
+To: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Cc: kyungmin.park@samsung.com, kamil@wypas.org, jtp.park@samsung.com,
+        a.hajda@samsung.com, mchehab@kernel.org, pankaj.dubey@samsung.com,
+        krzk@kernel.org, m.szyprowski@samsung.com, s.nawrocki@samsung.com,
+        Smitha T Murthy <smitha.t@samsung.com>
+Subject: [Patch v8 03/12] [media] s5p-mfc: Use min scratch buffer size as
+ provided by F/W
+Date: Fri, 02 Feb 2018 17:55:39 +0530
+Message-id: <1517574348-22111-4-git-send-email-smitha.t@samsung.com>
+In-reply-to: <1517574348-22111-1-git-send-email-smitha.t@samsung.com>
+References: <1517574348-22111-1-git-send-email-smitha.t@samsung.com>
+        <CGME20180202124959epcas1p4549075c36dc15a2313daaf3da730ecbc@epcas1p4.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+After MFC v8.0, mfc f/w lets the driver know how much scratch buffer
+size is required for decoder. If mfc f/w has the functionality,
+E_MIN_SCRATCH_BUFFER_SIZE, driver can know how much scratch buffer size
+is required for encoder too.
 
-Results of the daily build of media_tree:
+Signed-off-by: Smitha T Murthy <smitha.t@samsung.com>
+Reviewed-by: Andrzej Hajda <a.hajda@samsung.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/platform/s5p-mfc/regs-mfc-v8.h    |  2 +
+ drivers/media/platform/s5p-mfc/s5p_mfc.c        |  2 +
+ drivers/media/platform/s5p-mfc/s5p_mfc_common.h |  1 +
+ drivers/media/platform/s5p-mfc/s5p_mfc_enc.c    |  5 ++
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr.h    |  4 ++
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c | 68 ++++++++++++++++++-------
+ 6 files changed, 65 insertions(+), 17 deletions(-)
 
-date:			Sun Feb 25 05:00:11 CET 2018
-media-tree git hash:	a7bc5773cd166032e35e343dfb6067a93d8402d1
-media_build git hash:	a9ea3d056e5ce50d37dd6129126f776c3a8ec2d7
-v4l-utils git hash:	ef45319c1686088a46325db4dbfaffcdbcacf862
-gcc version:		i686-linux-gcc (GCC) 7.3.0
-sparse version:		v0.5.0-3994-g45eb2282
-smatch version:		v0.5.0-3994-g45eb2282
-host hardware:		x86_64
-host os:		4.14.0-3-amd64
-
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.98-i686: WARNINGS
-linux-3.2.98-x86_64: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-i686: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-i686: WARNINGS
-linux-3.11.1-x86_64: WARNINGS
-linux-3.12.67-i686: WARNINGS
-linux-3.12.67-x86_64: WARNINGS
-linux-3.13.11-i686: WARNINGS
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16.53-i686: WARNINGS
-linux-3.16.53-x86_64: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.93-i686: WARNINGS
-linux-3.18.93-x86_64: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0.9-i686: WARNINGS
-linux-4.0.9-x86_64: WARNINGS
-linux-4.1.49-i686: WARNINGS
-linux-4.1.49-x86_64: WARNINGS
-linux-4.2.8-i686: WARNINGS
-linux-4.2.8-x86_64: WARNINGS
-linux-4.3.6-i686: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.115-i686: OK
-linux-4.4.115-x86_64: OK
-linux-4.5.7-i686: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-i686: OK
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-i686: OK
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-i686: OK
-linux-4.8-x86_64: WARNINGS
-linux-4.9.80-i686: OK
-linux-4.9.80-x86_64: OK
-linux-4.10.14-i686: OK
-linux-4.10.14-x86_64: WARNINGS
-linux-4.11-i686: OK
-linux-4.11-x86_64: WARNINGS
-linux-4.12.1-i686: OK
-linux-4.12.1-x86_64: WARNINGS
-linux-4.13-i686: OK
-linux-4.13-x86_64: OK
-linux-4.14.17-i686: OK
-linux-4.14.17-x86_64: OK
-linux-4.15.2-i686: OK
-linux-4.15.2-x86_64: OK
-linux-4.16-rc1-i686: OK
-linux-4.16-rc1-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse: WARNINGS
-smatch: OK
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+diff --git a/drivers/media/platform/s5p-mfc/regs-mfc-v8.h b/drivers/media/platform/s5p-mfc/regs-mfc-v8.h
+index 75f5f75..bd639ae 100644
+--- a/drivers/media/platform/s5p-mfc/regs-mfc-v8.h
++++ b/drivers/media/platform/s5p-mfc/regs-mfc-v8.h
+@@ -17,6 +17,7 @@
+ 
+ /* Additional registers for v8 */
+ #define S5P_FIMV_D_MVC_NUM_VIEWS_V8		0xf104
++#define S5P_FIMV_D_MIN_SCRATCH_BUFFER_SIZE_V8	0xf108
+ #define S5P_FIMV_D_FIRST_PLANE_DPB_SIZE_V8	0xf144
+ #define S5P_FIMV_D_SECOND_PLANE_DPB_SIZE_V8	0xf148
+ #define S5P_FIMV_D_MV_BUFFER_SIZE_V8		0xf150
+@@ -84,6 +85,7 @@
+ 
+ #define S5P_FIMV_E_VBV_BUFFER_SIZE_V8		0xf78c
+ #define S5P_FIMV_E_VBV_INIT_DELAY_V8		0xf790
++#define S5P_FIMV_E_MIN_SCRATCH_BUFFER_SIZE_V8   0xf894
+ 
+ #define S5P_FIMV_E_ASPECT_RATIO_V8		0xfb4c
+ #define S5P_FIMV_E_EXTENDED_SAR_V8		0xfb50
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+index afa5ce5..461635c 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+@@ -526,6 +526,8 @@ static void s5p_mfc_handle_seq_done(struct s5p_mfc_ctx *ctx,
+ 				dev);
+ 		ctx->mv_count = s5p_mfc_hw_call(dev->mfc_ops, get_mv_count,
+ 				dev);
++		ctx->scratch_buf_size = s5p_mfc_hw_call(dev->mfc_ops,
++						get_min_scratch_buf_size, dev);
+ 		if (ctx->img_width == 0 || ctx->img_height == 0)
+ 			ctx->state = MFCINST_ERROR;
+ 		else
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
+index c4f0968..babc1cc 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
+@@ -716,6 +716,7 @@ void s5p_mfc_cleanup_queue(struct list_head *lh, struct vb2_queue *vq);
+ #define IS_MFCV7_PLUS(dev)	(dev->variant->version >= 0x70 ? 1 : 0)
+ #define IS_MFCV8_PLUS(dev)	(dev->variant->version >= 0x80 ? 1 : 0)
+ #define IS_MFCV10(dev)		(dev->variant->version >= 0xA0 ? 1 : 0)
++#define FW_HAS_E_MIN_SCRATCH_BUF(dev) (IS_MFCV10(dev))
+ 
+ #define MFC_V5_BIT	BIT(0)
+ #define MFC_V6_BIT	BIT(1)
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
+index 9a21e8c..a846a4d 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
+@@ -813,6 +813,11 @@ static int enc_post_seq_start(struct s5p_mfc_ctx *ctx)
+ 				get_enc_dpb_count, dev);
+ 		if (ctx->pb_count < enc_pb_count)
+ 			ctx->pb_count = enc_pb_count;
++		if (FW_HAS_E_MIN_SCRATCH_BUF(dev)) {
++			ctx->scratch_buf_size = s5p_mfc_hw_call(dev->mfc_ops,
++					get_e_min_scratch_buf_size, dev);
++			ctx->bank1.size += ctx->scratch_buf_size;
++		}
+ 		ctx->state = MFCINST_HEAD_PRODUCED;
+ 	}
+ 
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr.h b/drivers/media/platform/s5p-mfc/s5p_mfc_opr.h
+index 16d553f..e7a2d46 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr.h
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr.h
+@@ -169,6 +169,7 @@ struct s5p_mfc_regs {
+ 	void __iomem *d_decoded_third_addr;/* only v7 */
+ 	void __iomem *d_used_dpb_flag_upper;/* v7 and v8 */
+ 	void __iomem *d_used_dpb_flag_lower;/* v7 and v8 */
++	void __iomem *d_min_scratch_buffer_size; /* v10 */
+ 
+ 	/* encoder registers */
+ 	void __iomem *e_frame_width;
+@@ -268,6 +269,7 @@ struct s5p_mfc_regs {
+ 	void __iomem *e_vp8_hierarchical_qp_layer0;/* v7 and v8 */
+ 	void __iomem *e_vp8_hierarchical_qp_layer1;/* v7 and v8 */
+ 	void __iomem *e_vp8_hierarchical_qp_layer2;/* v7 and v8 */
++	void __iomem *e_min_scratch_buffer_size; /* v10 */
+ };
+ 
+ struct s5p_mfc_hw_ops {
+@@ -311,6 +313,8 @@ struct s5p_mfc_hw_ops {
+ 	unsigned int (*get_pic_type_bot)(struct s5p_mfc_ctx *ctx);
+ 	unsigned int (*get_crop_info_h)(struct s5p_mfc_ctx *ctx);
+ 	unsigned int (*get_crop_info_v)(struct s5p_mfc_ctx *ctx);
++	int (*get_min_scratch_buf_size)(struct s5p_mfc_dev *dev);
++	int (*get_e_min_scratch_buf_size)(struct s5p_mfc_dev *dev);
+ };
+ 
+ void s5p_mfc_init_hw_ops(struct s5p_mfc_dev *dev);
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
+index 2041d81..7f17857 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
+@@ -110,7 +110,9 @@ static int s5p_mfc_alloc_codec_buffers_v6(struct s5p_mfc_ctx *ctx)
+ 	switch (ctx->codec_mode) {
+ 	case S5P_MFC_CODEC_H264_DEC:
+ 	case S5P_MFC_CODEC_H264_MVC_DEC:
+-		if (IS_MFCV8_PLUS(dev))
++		if (IS_MFCV10(dev))
++			mfc_debug(2, "Use min scratch buffer size\n");
++		else if (IS_MFCV8_PLUS(dev))
+ 			ctx->scratch_buf_size =
+ 				S5P_FIMV_SCRATCH_BUF_SIZE_H264_DEC_V8(
+ 					mb_width,
+@@ -127,7 +129,9 @@ static int s5p_mfc_alloc_codec_buffers_v6(struct s5p_mfc_ctx *ctx)
+ 			(ctx->mv_count * ctx->mv_size);
+ 		break;
+ 	case S5P_MFC_CODEC_MPEG4_DEC:
+-		if (IS_MFCV7_PLUS(dev)) {
++		if (IS_MFCV10(dev))
++			mfc_debug(2, "Use min scratch buffer size\n");
++		else if (IS_MFCV7_PLUS(dev)) {
+ 			ctx->scratch_buf_size =
+ 				S5P_FIMV_SCRATCH_BUF_SIZE_MPEG4_DEC_V7(
+ 						mb_width,
+@@ -145,10 +149,14 @@ static int s5p_mfc_alloc_codec_buffers_v6(struct s5p_mfc_ctx *ctx)
+ 		break;
+ 	case S5P_MFC_CODEC_VC1RCV_DEC:
+ 	case S5P_MFC_CODEC_VC1_DEC:
+-		ctx->scratch_buf_size =
+-			S5P_FIMV_SCRATCH_BUF_SIZE_VC1_DEC_V6(
+-					mb_width,
+-					mb_height);
++		if (IS_MFCV10(dev))
++			mfc_debug(2, "Use min scratch buffer size\n");
++		else
++			ctx->scratch_buf_size =
++				S5P_FIMV_SCRATCH_BUF_SIZE_VC1_DEC_V6(
++						mb_width,
++						mb_height);
++
+ 		ctx->scratch_buf_size = ALIGN(ctx->scratch_buf_size,
+ 				S5P_FIMV_SCRATCH_BUFFER_ALIGN_V6);
+ 		ctx->bank1.size = ctx->scratch_buf_size;
+@@ -158,16 +166,21 @@ static int s5p_mfc_alloc_codec_buffers_v6(struct s5p_mfc_ctx *ctx)
+ 		ctx->bank2.size = 0;
+ 		break;
+ 	case S5P_MFC_CODEC_H263_DEC:
+-		ctx->scratch_buf_size =
+-			S5P_FIMV_SCRATCH_BUF_SIZE_H263_DEC_V6(
+-					mb_width,
+-					mb_height);
++		if (IS_MFCV10(dev))
++			mfc_debug(2, "Use min scratch buffer size\n");
++		else
++			ctx->scratch_buf_size =
++				S5P_FIMV_SCRATCH_BUF_SIZE_H263_DEC_V6(
++						mb_width,
++						mb_height);
+ 		ctx->scratch_buf_size = ALIGN(ctx->scratch_buf_size,
+ 				S5P_FIMV_SCRATCH_BUFFER_ALIGN_V6);
+ 		ctx->bank1.size = ctx->scratch_buf_size;
+ 		break;
+ 	case S5P_MFC_CODEC_VP8_DEC:
+-		if (IS_MFCV8_PLUS(dev))
++		if (IS_MFCV10(dev))
++			mfc_debug(2, "Use min scratch buffer size\n");
++		else if (IS_MFCV8_PLUS(dev))
+ 			ctx->scratch_buf_size =
+ 				S5P_FIMV_SCRATCH_BUF_SIZE_VP8_DEC_V8(
+ 						mb_width,
+@@ -182,7 +195,9 @@ static int s5p_mfc_alloc_codec_buffers_v6(struct s5p_mfc_ctx *ctx)
+ 		ctx->bank1.size = ctx->scratch_buf_size;
+ 		break;
+ 	case S5P_MFC_CODEC_H264_ENC:
+-		if (IS_MFCV8_PLUS(dev))
++		if (IS_MFCV10(dev)) {
++			mfc_debug(2, "Use min scratch buffer size\n");
++		} else if (IS_MFCV8_PLUS(dev))
+ 			ctx->scratch_buf_size =
+ 				S5P_FIMV_SCRATCH_BUF_SIZE_H264_ENC_V8(
+ 					mb_width,
+@@ -202,10 +217,13 @@ static int s5p_mfc_alloc_codec_buffers_v6(struct s5p_mfc_ctx *ctx)
+ 		break;
+ 	case S5P_MFC_CODEC_MPEG4_ENC:
+ 	case S5P_MFC_CODEC_H263_ENC:
+-		ctx->scratch_buf_size =
+-			S5P_FIMV_SCRATCH_BUF_SIZE_MPEG4_ENC_V6(
+-					mb_width,
+-					mb_height);
++		if (IS_MFCV10(dev)) {
++			mfc_debug(2, "Use min scratch buffer size\n");
++		} else
++			ctx->scratch_buf_size =
++				S5P_FIMV_SCRATCH_BUF_SIZE_MPEG4_ENC_V6(
++						mb_width,
++						mb_height);
+ 		ctx->scratch_buf_size = ALIGN(ctx->scratch_buf_size,
+ 				S5P_FIMV_SCRATCH_BUFFER_ALIGN_V6);
+ 		ctx->bank1.size =
+@@ -215,7 +233,9 @@ static int s5p_mfc_alloc_codec_buffers_v6(struct s5p_mfc_ctx *ctx)
+ 		ctx->bank2.size = 0;
+ 		break;
+ 	case S5P_MFC_CODEC_VP8_ENC:
+-		if (IS_MFCV8_PLUS(dev))
++		if (IS_MFCV10(dev)) {
++			mfc_debug(2, "Use min scratch buffer size\n");
++		} else if (IS_MFCV8_PLUS(dev))
+ 			ctx->scratch_buf_size =
+ 				S5P_FIMV_SCRATCH_BUF_SIZE_VP8_ENC_V8(
+ 					mb_width,
+@@ -1900,6 +1920,16 @@ static int s5p_mfc_get_mv_count_v6(struct s5p_mfc_dev *dev)
+ 	return readl(dev->mfc_regs->d_min_num_mv);
+ }
+ 
++static int s5p_mfc_get_min_scratch_buf_size(struct s5p_mfc_dev *dev)
++{
++	return readl(dev->mfc_regs->d_min_scratch_buffer_size);
++}
++
++static int s5p_mfc_get_e_min_scratch_buf_size(struct s5p_mfc_dev *dev)
++{
++	return readl(dev->mfc_regs->e_min_scratch_buffer_size);
++}
++
+ static int s5p_mfc_get_inst_no_v6(struct s5p_mfc_dev *dev)
+ {
+ 	return readl(dev->mfc_regs->ret_instance_id);
+@@ -2158,6 +2188,7 @@ const struct s5p_mfc_regs *s5p_mfc_init_regs_v6_plus(struct s5p_mfc_dev *dev)
+ 	R(d_ret_picture_tag_bot, S5P_FIMV_D_RET_PICTURE_TAG_BOT_V8);
+ 	R(d_display_crop_info1, S5P_FIMV_D_DISPLAY_CROP_INFO1_V8);
+ 	R(d_display_crop_info2, S5P_FIMV_D_DISPLAY_CROP_INFO2_V8);
++	R(d_min_scratch_buffer_size, S5P_FIMV_D_MIN_SCRATCH_BUFFER_SIZE_V8);
+ 
+ 	/* encoder registers */
+ 	R(e_padding_ctrl, S5P_FIMV_E_PADDING_CTRL_V8);
+@@ -2173,6 +2204,7 @@ const struct s5p_mfc_regs *s5p_mfc_init_regs_v6_plus(struct s5p_mfc_dev *dev)
+ 	R(e_aspect_ratio, S5P_FIMV_E_ASPECT_RATIO_V8);
+ 	R(e_extended_sar, S5P_FIMV_E_EXTENDED_SAR_V8);
+ 	R(e_h264_options, S5P_FIMV_E_H264_OPTIONS_V8);
++	R(e_min_scratch_buffer_size, S5P_FIMV_E_MIN_SCRATCH_BUFFER_SIZE_V8);
+ 
+ done:
+ 	return &mfc_regs;
+@@ -2221,6 +2253,8 @@ static struct s5p_mfc_hw_ops s5p_mfc_ops_v6 = {
+ 	.get_pic_type_bot = s5p_mfc_get_pic_type_bot_v6,
+ 	.get_crop_info_h = s5p_mfc_get_crop_info_h_v6,
+ 	.get_crop_info_v = s5p_mfc_get_crop_info_v_v6,
++	.get_min_scratch_buf_size = s5p_mfc_get_min_scratch_buf_size,
++	.get_e_min_scratch_buf_size = s5p_mfc_get_e_min_scratch_buf_size,
+ };
+ 
+ struct s5p_mfc_hw_ops *s5p_mfc_init_hw_ops_v6(void)
+-- 
+2.7.4
