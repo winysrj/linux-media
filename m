@@ -1,140 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:44610 "EHLO
-        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751073AbeBREnZ (ORCPT
+Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:41687 "EHLO
+        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751629AbeBBOJY (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sat, 17 Feb 2018 23:43:25 -0500
-Message-ID: <112c966a4a8c05d4c0264cc5fb00dd1f@smtp-cloud8.xs4all.net>
-Date: Sun, 18 Feb 2018 05:43:22 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
+        Fri, 2 Feb 2018 09:09:24 -0500
+Subject: Re: [Patch v8 11/12] [media] s5p-mfc: Add support for HEVC encoder
+To: Smitha T Murthy <smitha.t@samsung.com>,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Cc: kyungmin.park@samsung.com, kamil@wypas.org, jtp.park@samsung.com,
+        a.hajda@samsung.com, mchehab@kernel.org, pankaj.dubey@samsung.com,
+        krzk@kernel.org, m.szyprowski@samsung.com, s.nawrocki@samsung.com
+References: <1517574348-22111-1-git-send-email-smitha.t@samsung.com>
+ <CGME20180202125018epcas1p31771ade936e0290e579b8e0805f3f0a1@epcas1p3.samsung.com>
+ <1517574348-22111-12-git-send-email-smitha.t@samsung.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <37e3531b-b677-9d3c-e954-25d8f989e774@xs4all.nl>
+Date: Fri, 2 Feb 2018 15:09:19 +0100
+MIME-Version: 1.0
+In-Reply-To: <1517574348-22111-12-git-send-email-smitha.t@samsung.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On 02/02/18 13:25, Smitha T Murthy wrote:
+> Add HEVC encoder support and necessary registers, V4L2 CIDs,
+> and hevc encoder parameters
+> 
+> Signed-off-by: Smitha T Murthy <smitha.t@samsung.com>
+> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-Results of the daily build of media_tree:
+Not quite, one last comment:
 
-date:			Sun Feb 18 05:00:11 CET 2018
-media-tree git hash:	29422737017b866d4a51014cc7522fa3a99e8852
-media_build git hash:	d144cfe4b3c37ece55ae27778c99765d4943c4fa
-v4l-utils git hash:	432d9ebfcea65337647fd4e458f76b0417ea1c2f
-gcc version:		i686-linux-gcc (GCC) 7.3.0
-sparse version:		v0.5.0-3994-g45eb2282
-smatch version:		v0.5.0-3994-g45eb2282
-host hardware:		x86_64
-host os:		4.14.0-3-amd64
+> ---
+>  drivers/media/platform/s5p-mfc/regs-mfc-v10.h   |  28 +-
+>  drivers/media/platform/s5p-mfc/s5p_mfc.c        |   1 +
+>  drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c |   3 +
+>  drivers/media/platform/s5p-mfc/s5p_mfc_common.h |  54 ++-
+>  drivers/media/platform/s5p-mfc/s5p_mfc_enc.c    | 536 ++++++++++++++++++++++++
+>  drivers/media/platform/s5p-mfc/s5p_mfc_opr.h    |   8 +
+>  drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c | 182 ++++++++
+>  drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h |   8 +
+>  8 files changed, 818 insertions(+), 2 deletions(-)
+> 
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.98-i686: WARNINGS
-linux-3.2.98-x86_64: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-linux-3.10.1-i686: WARNINGS
-linux-3.10.1-x86_64: WARNINGS
-linux-3.11.1-i686: WARNINGS
-linux-3.11.1-x86_64: WARNINGS
-linux-3.12.67-i686: WARNINGS
-linux-3.12.67-x86_64: WARNINGS
-linux-3.13.11-i686: WARNINGS
-linux-3.13.11-x86_64: WARNINGS
-linux-3.14.9-i686: WARNINGS
-linux-3.14.9-x86_64: WARNINGS
-linux-3.15.2-i686: WARNINGS
-linux-3.15.2-x86_64: WARNINGS
-linux-3.16.53-i686: WARNINGS
-linux-3.16.53-x86_64: WARNINGS
-linux-3.17.8-i686: WARNINGS
-linux-3.17.8-x86_64: WARNINGS
-linux-3.18.93-i686: WARNINGS
-linux-3.18.93-x86_64: WARNINGS
-linux-3.19-i686: WARNINGS
-linux-3.19-x86_64: WARNINGS
-linux-4.0.9-i686: WARNINGS
-linux-4.0.9-x86_64: WARNINGS
-linux-4.1.49-i686: WARNINGS
-linux-4.1.49-x86_64: WARNINGS
-linux-4.2.8-i686: WARNINGS
-linux-4.2.8-x86_64: WARNINGS
-linux-4.3.6-i686: WARNINGS
-linux-4.3.6-x86_64: WARNINGS
-linux-4.4.115-i686: OK
-linux-4.4.115-x86_64: OK
-linux-4.5.7-i686: WARNINGS
-linux-4.5.7-x86_64: WARNINGS
-linux-4.6.7-i686: OK
-linux-4.6.7-x86_64: WARNINGS
-linux-4.7.5-i686: OK
-linux-4.7.5-x86_64: WARNINGS
-linux-4.8-i686: OK
-linux-4.8-x86_64: WARNINGS
-linux-4.9.80-i686: OK
-linux-4.9.80-x86_64: OK
-linux-4.10.14-i686: OK
-linux-4.10.14-x86_64: WARNINGS
-linux-4.11-i686: OK
-linux-4.11-x86_64: WARNINGS
-linux-4.12.1-i686: OK
-linux-4.12.1-x86_64: WARNINGS
-linux-4.13-i686: OK
-linux-4.13-x86_64: OK
-linux-4.14.17-i686: OK
-linux-4.14.17-x86_64: OK
-linux-4.15.2-i686: OK
-linux-4.15.2-x86_64: OK
-linux-4.16-rc1-i686: OK
-linux-4.16-rc1-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse: WARNINGS
-smatch: OK
+<snip>
 
-Detailed results are available here:
+>  static inline int vui_sar_idc(enum v4l2_mpeg_video_h264_vui_sar_idc sar)
+>  {
+>  	static unsigned int t[V4L2_MPEG_VIDEO_H264_VUI_SAR_IDC_EXTENDED + 1] = {
+> @@ -1635,6 +2024,153 @@ static int s5p_mfc_enc_s_ctrl(struct v4l2_ctrl *ctrl)
+>  	case V4L2_CID_MPEG_VIDEO_VPX_PROFILE:
+>  		p->codec.vp8.profile = ctrl->val;
+>  		break;
+> +	case V4L2_CID_MPEG_VIDEO_HEVC_I_FRAME_QP:
+> +		p->codec.hevc.rc_frame_qp = ctrl->val;
+> +		break;
+> +	case V4L2_CID_MPEG_VIDEO_HEVC_P_FRAME_QP:
+> +		p->codec.hevc.rc_p_frame_qp = ctrl->val;
+> +		break;
+> +	case V4L2_CID_MPEG_VIDEO_HEVC_B_FRAME_QP:
+> +		p->codec.hevc.rc_b_frame_qp = ctrl->val;
+> +		break;
+> +	case V4L2_CID_MPEG_VIDEO_HEVC_FRAME_RATE_RESOLUTION:
+> +		p->codec.hevc.rc_framerate = ctrl->val;
+> +		break;
+> +	case V4L2_CID_MPEG_VIDEO_HEVC_MIN_QP:
+> +		p->codec.hevc.rc_min_qp = ctrl->val;
+> +		break;
+> +	case V4L2_CID_MPEG_VIDEO_HEVC_MAX_QP:
+> +		p->codec.hevc.rc_max_qp = ctrl->val;
+> +		break;
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+When you change this, you should call __v4l2_ctrl_modify_range to modify the
+range of the controls that depend on this.
 
-Full logs are available here:
+You can make a patch '13/12' for this or post a v9 for this patch. I would like to
+see this implemented. It's one of those things that never gets implemented if you
+don't address this now.
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+It shouldn't be difficult to do.
 
-The Media Infrastructure API from this daily build is here:
+Regards,
 
-http://www.xs4all.nl/~hverkuil/spec/index.html
+	Hans
