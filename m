@@ -1,125 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:49920 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S965313AbeBMTr0 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 13 Feb 2018 14:47:26 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Niklas =?ISO-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>
-Subject: Re: [PATCH v10 21/30] rcar-vin: prepare for media controller mode initialization
-Date: Tue, 13 Feb 2018 21:47:57 +0200
-Message-ID: <1559027.XcBvLPVQMx@avalon>
-In-Reply-To: <20180129163435.24936-22-niklas.soderlund+renesas@ragnatech.se>
-References: <20180129163435.24936-1-niklas.soderlund+renesas@ragnatech.se> <20180129163435.24936-22-niklas.soderlund+renesas@ragnatech.se>
+Received: from mail-qk0-f181.google.com ([209.85.220.181]:42292 "EHLO
+        mail-qk0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751589AbeBBN51 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 2 Feb 2018 08:57:27 -0500
+Received: by mail-qk0-f181.google.com with SMTP id f68so3667268qke.9
+        for <linux-media@vger.kernel.org>; Fri, 02 Feb 2018 05:57:27 -0800 (PST)
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset="iso-8859-1"
+In-Reply-To: <20180202100859.4004-1-sakari.ailus@linux.intel.com>
+References: <20180202100859.4004-1-sakari.ailus@linux.intel.com>
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+Date: Fri, 2 Feb 2018 08:57:26 -0500
+Message-ID: <CAGoCfixma+h4nHkroeKd+Mw+cxhhQ_mAZ8X7w6UXmy0a8VOi9A@mail.gmail.com>
+Subject: Re: [PATCH 1/1] vb2: core: Finish buffers at the end of the stream
+To: Sakari Ailus <sakari.ailus@linux.intel.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Niklas,
+Hello Sakari,
 
-Thank you for the patch.
+Thanks for proposing this patch.  I'll give it a try this weekend.
 
-On Monday, 29 January 2018 18:34:26 EET Niklas S=F6derlund wrote:
-> Prepare for media controller by calling a different initialization then
-> for when running in device centric mode. Add trivial configuration of
-
-s/then for when/than when/
-
-> the mbus and creation of the media pad for the video device entity.
->=20
-> While we are at it clearly mark the digital device centric notifier
-> functions with a comment.
->=20
-> Signed-off-by: Niklas S=F6derlund <niklas.soderlund+renesas@ragnatech.se>
-> Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
-
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-> ---
->  drivers/media/platform/rcar-vin/rcar-core.c | 20 ++++++++++++++++++--
->  drivers/media/platform/rcar-vin/rcar-vin.h  |  4 ++++
->  2 files changed, 22 insertions(+), 2 deletions(-)
->=20
-> diff --git a/drivers/media/platform/rcar-vin/rcar-core.c
-> b/drivers/media/platform/rcar-vin/rcar-core.c index
-> 64034c96f384b3ed..0c6960756c33f86c 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-core.c
-> +++ b/drivers/media/platform/rcar-vin/rcar-core.c
-> @@ -46,6 +46,10 @@ static int rvin_find_pad(struct v4l2_subdev *sd, int
-> direction) return -EINVAL;
->  }
->=20
-> +/* ---------------------------------------------------------------------=
-=2D--
-> + * Digital async notifier
-> + */
-> +
->  /* The vin lock shuld be held when calling the subdevice attach and deta=
-ch
-> */ static int rvin_digital_subdevice_attach(struct rvin_dev *vin,
->  					 struct v4l2_subdev *subdev)
-> @@ -237,6 +241,16 @@ static int rvin_digital_graph_init(struct rvin_dev
-> *vin) return 0;
->  }
->=20
-> +static int rvin_mc_init(struct rvin_dev *vin)
-> +{
-> +	/* All our sources are CSI-2 */
-> +	vin->mbus_cfg.type =3D V4L2_MBUS_CSI2;
-> +	vin->mbus_cfg.flags =3D 0;
-> +
-> +	vin->pad.flags =3D MEDIA_PAD_FL_SINK;
-> +	return media_entity_pads_init(&vin->vdev.entity, 1, &vin->pad);
-> +}
-> +
->  /* ---------------------------------------------------------------------=
-=2D--
->   * Platform Device Driver
->   */
-> @@ -325,8 +339,10 @@ static int rcar_vin_probe(struct platform_device *pd=
-ev)
-> return ret;
->=20
->  	platform_set_drvdata(pdev, vin);
-> -
-> -	ret =3D rvin_digital_graph_init(vin);
-> +	if (vin->info->use_mc)
-> +		ret =3D rvin_mc_init(vin);
-> +	else
-> +		ret =3D rvin_digital_graph_init(vin);
->  	if (ret < 0)
->  		goto error;
->=20
-> diff --git a/drivers/media/platform/rcar-vin/rcar-vin.h
-> b/drivers/media/platform/rcar-vin/rcar-vin.h index
-> 64476bc5c8abc6d0..4caef7193db09c5b 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-vin.h
-> +++ b/drivers/media/platform/rcar-vin/rcar-vin.h
-> @@ -101,6 +101,8 @@ struct rvin_info {
->   * @notifier:		V4L2 asynchronous subdevs notifier
->   * @digital:		entity in the DT for local digital subdevice
->   *
-> + * @pad:		media pad for the video device entity
-> + *
->   * @lock:		protects @queue
->   * @queue:		vb2 buffers queue
->   *
-> @@ -130,6 +132,8 @@ struct rvin_dev {
->  	struct v4l2_async_notifier notifier;
->  	struct rvin_graph_entity *digital;
->=20
-> +	struct media_pad pad;
-> +
->  	struct mutex lock;
->  	struct vb2_queue queue;
-
-=2D-=20
 Regards,
 
-Laurent Pinchart
+Devin
+
+On Fri, Feb 2, 2018 at 5:08 AM, Sakari Ailus
+<sakari.ailus@linux.intel.com> wrote:
+> If buffers were prepared or queued and the buffers were released without
+> starting the queue, the finish mem op (corresponding to the prepare mem
+> op) was never called to the buffers.
+>
+> Before commit a136f59c0a1f there was no need to do this as in such a case
+> the prepare mem op had not been called yet. Address the problem by
+> explicitly calling finish mem op when the queue is stopped if the buffer
+> is in either prepared or queued state.
+>
+> Fixes: a136f59c0a1f ("[media] vb2: Move buffer cache synchronisation to prepare from queue")
+> Cc: stable@vger.kernel.org # for v4.13 and up
+> Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+> ---
+> Hi Devin,
+>
+> Could you check whether this will resolve the problem you've found?
+>
+> Thanks.
+>
+>  drivers/media/common/videobuf2/videobuf2-core.c | 9 +++++++++
+>  1 file changed, 9 insertions(+)
+>
+> diff --git a/drivers/media/common/videobuf2/videobuf2-core.c b/drivers/media/common/videobuf2/videobuf2-core.c
+> index f7109f827f6e..52a7c1d0a79a 100644
+> --- a/drivers/media/common/videobuf2/videobuf2-core.c
+> +++ b/drivers/media/common/videobuf2/videobuf2-core.c
+> @@ -1696,6 +1696,15 @@ static void __vb2_queue_cancel(struct vb2_queue *q)
+>         for (i = 0; i < q->num_buffers; ++i) {
+>                 struct vb2_buffer *vb = q->bufs[i];
+>
+> +               if (vb->state == VB2_BUF_STATE_PREPARED ||
+> +                   vb->state == VB2_BUF_STATE_QUEUED) {
+> +                       unsigned int plane;
+> +
+> +                       for (plane = 0; plane < vb->num_planes; ++plane)
+> +                               call_void_memop(vb, finish,
+> +                                               vb->planes[plane].mem_priv);
+> +               }
+> +
+>                 if (vb->state != VB2_BUF_STATE_DEQUEUED) {
+>                         vb->state = VB2_BUF_STATE_PREPARED;
+>                         call_void_vb_qop(vb, buf_finish, vb);
+> --
+> 2.11.0
+>
+
+
+
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
