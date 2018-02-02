@@ -1,112 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f67.google.com ([74.125.82.67]:55173 "EHLO
-        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751480AbeBXSzr (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 24 Feb 2018 13:55:47 -0500
-Received: by mail-wm0-f67.google.com with SMTP id z81so10441417wmb.4
-        for <linux-media@vger.kernel.org>; Sat, 24 Feb 2018 10:55:46 -0800 (PST)
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: linux-media@vger.kernel.org, mchehab@kernel.org,
-        mchehab@s-opensource.com
-Subject: [PATCH 09/12] [media] ngene: check for CXD2099AR presence before attaching
-Date: Sat, 24 Feb 2018 19:55:31 +0100
-Message-Id: <20180224185534.13792-10-d.scheller.oss@gmail.com>
-In-Reply-To: <20180224185534.13792-1-d.scheller.oss@gmail.com>
-References: <20180224185534.13792-1-d.scheller.oss@gmail.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:59728 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751017AbeBBLb7 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 2 Feb 2018 06:31:59 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: "Jasmin J." <jasmin@anw.at>
+Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
+        mchehab@s-opensource.com, arnd@arndb.de
+Subject: Re: [PATCH] media: uvcvideo: Fixed ktime_t to ns conversion
+Date: Fri, 02 Feb 2018 13:32:19 +0200
+Message-ID: <1778442.ouJt2D3mk7@avalon>
+In-Reply-To: <1515925303-5160-1-git-send-email-jasmin@anw.at>
+References: <1515925303-5160-1-git-send-email-jasmin@anw.at>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Daniel Scheller <d.scheller@gmx.net>
+Hi Jasmin,
 
-Currently, if there's no CXD2099AR attached to any expansion connector of
-the ngene hardware, it will complain with this on every module load:
+Thank you for the patch.
 
-    cxd2099 1-0040: No CXD2099AR detected at 0x40
-    cxd2099: probe of 1-0040 failed with error -5
-    ngene 0000:02:00.0: CXD2099AR attach failed
+On Sunday, 14 January 2018 12:21:43 EET Jasmin J. wrote:
+> From: Jasmin Jessich <jasmin@anw.at>
+> 
+> Commit 828ee8c71950 ("media: uvcvideo: Use ktime_t for timestamps")
+> changed to use ktime_t for timestamps. Older Kernels use a struct for
+> ktime_t, which requires the conversion function ktime_to_ns to be used on
+> some places. With this patch it will compile now also for older Kernel
+> versions.
+> 
+> Signed-off-by: Jasmin Jessich <jasmin@anw.at>
 
-This happens due to the logic assuming such hardware is always there and
-blindly tries to attach the cxd2099 I2C driver. Rather add a probe
-function (in ngene-cards.c with a prototype in ngene.h) to check for
-the existence of such hardware before probing, and don't try further if
-no CXD2099 was found.
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
----
- drivers/media/pci/ngene/ngene-cards.c | 19 +++++++++++++++++++
- drivers/media/pci/ngene/ngene-core.c  | 14 ++++++++++++++
- drivers/media/pci/ngene/ngene.h       |  3 +++
- 3 files changed, 36 insertions(+)
+and taken into my tree for v4.17.
 
-diff --git a/drivers/media/pci/ngene/ngene-cards.c b/drivers/media/pci/ngene/ngene-cards.c
-index dff55c7c9f86..d603d0af703e 100644
---- a/drivers/media/pci/ngene/ngene-cards.c
-+++ b/drivers/media/pci/ngene/ngene-cards.c
-@@ -505,6 +505,25 @@ static int port_has_stv0367(struct i2c_adapter *i2c)
- 	return 1;
- }
- 
-+int ngene_port_has_cxd2099(struct i2c_adapter *i2c, u8 *type)
-+{
-+	u8 val;
-+	u8 probe[4] = { 0xe0, 0x00, 0x00, 0x00 }, data[4];
-+	struct i2c_msg msgs[2] = {{ .addr = 0x40,  .flags = 0,
-+				    .buf  = probe, .len   = 4 },
-+				  { .addr = 0x40,  .flags = I2C_M_RD,
-+				    .buf  = data,  .len   = 4 } };
-+	val = i2c_transfer(i2c, msgs, 2);
-+	if (val != 2)
-+		return 0;
-+
-+	if (data[0] == 0x02 && data[1] == 0x2b && data[3] == 0x43)
-+		*type = 2;
-+	else
-+		*type = 1;
-+	return 1;
-+}
-+
- static int demod_attach_drxk(struct ngene_channel *chan,
- 			     struct i2c_adapter *i2c)
- {
-diff --git a/drivers/media/pci/ngene/ngene-core.c b/drivers/media/pci/ngene/ngene-core.c
-index 526d0adfa427..f69a8fc1ec2a 100644
---- a/drivers/media/pci/ngene/ngene-core.c
-+++ b/drivers/media/pci/ngene/ngene-core.c
-@@ -1589,6 +1589,20 @@ static void cxd_attach(struct ngene *dev)
- 		.addr = 0x40,
- 		.platform_data = &cxd_cfg,
- 	};
-+	int ret;
-+	u8 type;
-+
-+	/* check for CXD2099AR presence before attaching */
-+	ret = ngene_port_has_cxd2099(&dev->channel[0].i2c_adapter, &type);
-+	if (!ret) {
-+		dev_dbg(pdev, "No CXD2099AR found\n");
-+		return;
-+	}
-+
-+	if (type != 1) {
-+		dev_warn(pdev, "CXD2099AR is uninitialized!\n");
-+		return;
-+	}
- 
- 	cxd_cfg.en = &ci->en;
- 
-diff --git a/drivers/media/pci/ngene/ngene.h b/drivers/media/pci/ngene/ngene.h
-index 72195f6552b3..66d8eaa28549 100644
---- a/drivers/media/pci/ngene/ngene.h
-+++ b/drivers/media/pci/ngene/ngene.h
-@@ -909,6 +909,9 @@ int ngene_command_gpio_set(struct ngene *dev, u8 select, u8 level);
- void set_transfer(struct ngene_channel *chan, int state);
- void FillTSBuffer(void *Buffer, int Length, u32 Flags);
- 
-+/* Provided by ngene-cards.c */
-+int ngene_port_has_cxd2099(struct i2c_adapter *i2c, u8 *type);
-+
- /* Provided by ngene-i2c.c */
- int ngene_i2c_init(struct ngene *dev, int dev_nr);
- 
+> ---
+>  drivers/media/usb/uvc/uvc_video.c | 5 +++--
+>  1 file changed, 3 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/media/usb/uvc/uvc_video.c
+> b/drivers/media/usb/uvc/uvc_video.c index 5441553..1670aeb 100644
+> --- a/drivers/media/usb/uvc/uvc_video.c
+> +++ b/drivers/media/usb/uvc/uvc_video.c
+> @@ -1009,7 +1009,7 @@ static int uvc_video_decode_start(struct uvc_streaming
+> *stream,
+> 
+>  		buf->buf.field = V4L2_FIELD_NONE;
+>  		buf->buf.sequence = stream->sequence;
+> -		buf->buf.vb2_buf.timestamp = uvc_video_get_time();
+> +		buf->buf.vb2_buf.timestamp = ktime_to_ns(uvc_video_get_time());
+> 
+>  		/* TODO: Handle PTS and SCR. */
+>  		buf->state = UVC_BUF_STATE_ACTIVE;
+> @@ -1191,7 +1191,8 @@ static void uvc_video_decode_meta(struct uvc_streaming
+> *stream,
+> 
+>  	uvc_trace(UVC_TRACE_FRAME,
+>  		  "%s(): t-sys %lluns, SOF %u, len %u, flags 0x%x, PTS %u, STC %u frame
+> SOF %u\n", -		  __func__, time, meta->sof, meta->length, meta->flags,
+> +		  __func__, ktime_to_ns(time), meta->sof, meta->length,
+> +		  meta->flags,
+>  		  has_pts ? *(u32 *)meta->buf : 0,
+>  		  has_scr ? *(u32 *)scr : 0,
+>  		  has_scr ? *(u32 *)(scr + 4) & 0x7ff : 0);
+
+
 -- 
-2.16.1
+Regards,
+
+Laurent Pinchart
