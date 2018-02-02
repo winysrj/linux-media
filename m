@@ -1,141 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:42904 "EHLO
-        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751629AbeBTMvi (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 20 Feb 2018 07:51:38 -0500
-Subject: Re: cron job: media_tree daily build: ABI WARNING
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-References: <d222ec09358ef8e0bbd883e55d5b3e3a@smtp-cloud8.xs4all.net>
-Message-ID: <fba976c4-28ed-555c-ed83-278f52757c28@xs4all.nl>
-Date: Tue, 20 Feb 2018 13:51:32 +0100
-MIME-Version: 1.0
-In-Reply-To: <d222ec09358ef8e0bbd883e55d5b3e3a@smtp-cloud8.xs4all.net>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Received: from mailout3.samsung.com ([203.254.224.33]:24724 "EHLO
+        mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751594AbeBBMuI (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Fri, 2 Feb 2018 07:50:08 -0500
+From: Smitha T Murthy <smitha.t@samsung.com>
+To: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        linux-kernel@vger.kernel.org
+Cc: kyungmin.park@samsung.com, kamil@wypas.org, jtp.park@samsung.com,
+        a.hajda@samsung.com, mchehab@kernel.org, pankaj.dubey@samsung.com,
+        krzk@kernel.org, m.szyprowski@samsung.com, s.nawrocki@samsung.com,
+        Smitha T Murthy <smitha.t@samsung.com>
+Subject: [Patch v8 06/12] [media] v4l2-ioctl: add HEVC format description
+Date: Fri, 02 Feb 2018 17:55:42 +0530
+Message-id: <1517574348-22111-7-git-send-email-smitha.t@samsung.com>
+In-reply-to: <1517574348-22111-1-git-send-email-smitha.t@samsung.com>
+References: <1517574348-22111-1-git-send-email-smitha.t@samsung.com>
+        <CGME20180202125006epcas1p13a8617e0ba18fde93d1eca712a398a2e@epcas1p1.samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/20/18 05:44, Hans Verkuil wrote:
-> This message is generated daily by a cron job that builds media_tree for
-> the kernels and architectures in the list below.
-> 
-> Results of the daily build of media_tree:
-> 
-> date:			Tue Feb 20 05:00:11 CET 2018
-> media-tree git hash:	29422737017b866d4a51014cc7522fa3a99e8852
-> media_build git hash:	d144cfe4b3c37ece55ae27778c99765d4943c4fa
-> v4l-utils git hash:	4665ab1fbab1ddaa5696bc3f5865ec6fc83eaf84
-> gcc version:		i686-linux-gcc (GCC) 7.3.0
-> sparse version:		v0.5.0-3994-g45eb2282
-> smatch version:		v0.5.0-3994-g45eb2282
-> host hardware:		x86_64
-> host os:		4.14.0-3-amd64
-> 
-> linux-git-arm-at91: OK
-> linux-git-arm-davinci: OK
-> linux-git-arm-multi: OK
-> linux-git-arm-pxa: OK
-> linux-git-arm-stm32: OK
-> linux-git-arm64: OK
-> linux-git-blackfin-bf561: OK
-> linux-git-i686: OK
-> linux-git-m32r: OK
-> linux-git-mips: OK
-> linux-git-powerpc64: OK
-> linux-git-sh: OK
-> linux-git-x86_64: OK
-> linux-2.6.36.4-i686: WARNINGS
-> linux-2.6.36.4-x86_64: WARNINGS
-> linux-2.6.37.6-i686: WARNINGS
-> linux-2.6.37.6-x86_64: WARNINGS
-> linux-2.6.38.8-i686: WARNINGS
-> linux-2.6.38.8-x86_64: WARNINGS
-> linux-2.6.39.4-i686: WARNINGS
-> linux-2.6.39.4-x86_64: WARNINGS
-> linux-3.0.60-i686: WARNINGS
-> linux-3.0.60-x86_64: WARNINGS
-> linux-3.1.10-i686: WARNINGS
-> linux-3.1.10-x86_64: WARNINGS
-> linux-3.2.98-i686: WARNINGS
-> linux-3.2.98-x86_64: WARNINGS
-> linux-3.3.8-i686: WARNINGS
-> linux-3.3.8-x86_64: WARNINGS
-> linux-3.4.27-i686: WARNINGS
-> linux-3.4.27-x86_64: WARNINGS
-> linux-3.5.7-i686: WARNINGS
-> linux-3.5.7-x86_64: WARNINGS
-> linux-3.6.11-i686: WARNINGS
-> linux-3.6.11-x86_64: WARNINGS
-> linux-3.7.4-i686: WARNINGS
-> linux-3.7.4-x86_64: WARNINGS
-> linux-3.8-i686: WARNINGS
-> linux-3.8-x86_64: WARNINGS
-> linux-3.9.2-i686: WARNINGS
-> linux-3.9.2-x86_64: WARNINGS
-> linux-3.10.1-i686: WARNINGS
-> linux-3.10.1-x86_64: WARNINGS
-> linux-3.11.1-i686: WARNINGS
-> linux-3.11.1-x86_64: WARNINGS
-> linux-3.12.67-i686: WARNINGS
-> linux-3.12.67-x86_64: WARNINGS
-> linux-3.13.11-i686: WARNINGS
-> linux-3.13.11-x86_64: WARNINGS
-> linux-3.14.9-i686: WARNINGS
-> linux-3.14.9-x86_64: WARNINGS
-> linux-3.15.2-i686: WARNINGS
-> linux-3.15.2-x86_64: WARNINGS
-> linux-3.16.53-i686: WARNINGS
-> linux-3.16.53-x86_64: WARNINGS
-> linux-3.17.8-i686: WARNINGS
-> linux-3.17.8-x86_64: WARNINGS
-> linux-3.18.93-i686: WARNINGS
-> linux-3.18.93-x86_64: WARNINGS
-> linux-3.19-i686: WARNINGS
-> linux-3.19-x86_64: WARNINGS
-> linux-4.0.9-i686: WARNINGS
-> linux-4.0.9-x86_64: WARNINGS
-> linux-4.1.49-i686: WARNINGS
-> linux-4.1.49-x86_64: WARNINGS
-> linux-4.2.8-i686: WARNINGS
-> linux-4.2.8-x86_64: WARNINGS
-> linux-4.3.6-i686: WARNINGS
-> linux-4.3.6-x86_64: WARNINGS
-> linux-4.4.115-i686: OK
-> linux-4.4.115-x86_64: OK
-> linux-4.5.7-i686: WARNINGS
-> linux-4.5.7-x86_64: WARNINGS
-> linux-4.6.7-i686: OK
-> linux-4.6.7-x86_64: WARNINGS
-> linux-4.7.5-i686: OK
-> linux-4.7.5-x86_64: WARNINGS
-> linux-4.8-i686: OK
-> linux-4.8-x86_64: WARNINGS
-> linux-4.9.80-i686: OK
-> linux-4.9.80-x86_64: OK
-> linux-4.10.14-i686: OK
-> linux-4.10.14-x86_64: WARNINGS
-> linux-4.11-i686: OK
-> linux-4.11-x86_64: WARNINGS
-> linux-4.12.1-i686: OK
-> linux-4.12.1-x86_64: WARNINGS
-> linux-4.13-i686: OK
-> linux-4.13-x86_64: OK
-> linux-4.14.17-i686: OK
-> linux-4.14.17-x86_64: OK
-> linux-4.15.2-i686: OK
-> linux-4.15.2-x86_64: OK
-> linux-4.16-rc1-i686: OK
-> linux-4.16-rc1-x86_64: OK
-> apps: WARNINGS
-> spec-git: OK
-> ABI WARNING: change for blackfin-bf561
+HEVC is a video coding format
 
-Ignore this. There are some issues with the blackfin-bf561 debugging output
-and I'm looking at it.
+Signed-off-by: Smitha T Murthy <smitha.t@samsung.com>
+Reviewed-by: Stanimir Varbanov <stanimir.varbanov@linaro.org>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/v4l2-core/v4l2-ioctl.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-Regards,
-
-	Hans
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index 7961499..8a3c6a8 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -1268,6 +1268,7 @@ static void v4l_fill_fmtdesc(struct v4l2_fmtdesc *fmt)
+ 		case V4L2_PIX_FMT_VC1_ANNEX_L:	descr = "VC-1 (SMPTE 412M Annex L)"; break;
+ 		case V4L2_PIX_FMT_VP8:		descr = "VP8"; break;
+ 		case V4L2_PIX_FMT_VP9:		descr = "VP9"; break;
++		case V4L2_PIX_FMT_HEVC:		descr = "HEVC"; break; /* aka H.265 */
+ 		case V4L2_PIX_FMT_CPIA1:	descr = "GSPCA CPiA YUV"; break;
+ 		case V4L2_PIX_FMT_WNVA:		descr = "WNVA"; break;
+ 		case V4L2_PIX_FMT_SN9C10X:	descr = "GSPCA SN9C10X"; break;
+-- 
+2.7.4
