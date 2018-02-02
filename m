@@ -1,168 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:51037 "EHLO
-        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751029AbeBQJH3 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 17 Feb 2018 04:07:29 -0500
-Subject: Re: cron job: media_tree daily build: ABI WARNING
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-References: <eccfb4b685be954455dbff6653f71f73@smtp-cloud8.xs4all.net>
-Message-ID: <2df7b138-c06c-94b7-ec8e-4cf0ebcb6fc5@xs4all.nl>
-Date: Sat, 17 Feb 2018 10:07:24 +0100
+Received: from mout.web.de ([212.227.15.14]:54898 "EHLO mout.web.de"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751544AbeBBMar (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Fri, 2 Feb 2018 07:30:47 -0500
+Subject: Re: Adjustments for a lot of function implementations
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
+Cc: Julia Lawall <julia.lawall@lip6.fr>, Jan Kara <jack@suse.cz>,
+        Lorenzo Stoakes <lstoakes@gmail.com>,
+        Michal Hocko <mhocko@suse.com>,
+        Muralidharan Karicheri <mkaricheri@gmail.com>,
+        LKML <linux-kernel@vger.kernel.org>
+References: <f9dc652b-4fca-37aa-0b72-8c9e6a828da9@users.sourceforge.net>
+ <356f75b2-d303-7f10-b76c-95e2f686bd3c@xs4all.nl>
+ <14619198-bebe-d215-5324-a14fbc2103fb@users.sourceforge.net>
+ <alpine.DEB.2.20.1710301745530.2160@hadrien>
+ <ebf37d57-38c6-b3de-5a66-dbb1c13fd63a@xs4all.nl>
+ <049aa1b4-6291-ec24-1ffb-77ae8d1cdb63@users.sourceforge.net>
+ <804550a6-1096-12f1-a0ec-1ccd6bcc191e@xs4all.nl>
+ <f082b1ae-1be4-440a-6a81-68446c67243e@users.sourceforge.net>
+ <ca67319a-622b-e35e-dfb5-045dd04b4deb@xs4all.nl>
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+Message-ID: <4772aced-f43a-f4f4-c593-b42c7b862a37@users.sourceforge.net>
+Date: Fri, 2 Feb 2018 13:30:30 +0100
 MIME-Version: 1.0
-In-Reply-To: <eccfb4b685be954455dbff6653f71f73@smtp-cloud8.xs4all.net>
+In-Reply-To: <ca67319a-622b-e35e-dfb5-045dd04b4deb@xs4all.nl>
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/17/2018 05:50 AM, Hans Verkuil wrote:
-> This message is generated daily by a cron job that builds media_tree for
-> the kernels and architectures in the list below.
-> 
-> Results of the daily build of media_tree:
-> 
-> date:			Sat Feb 17 05:00:13 CET 2018
-> media-tree git hash:	29422737017b866d4a51014cc7522fa3a99e8852
-> media_build git hash:	d144cfe4b3c37ece55ae27778c99765d4943c4fa
-> v4l-utils git hash:	432d9ebfcea65337647fd4e458f76b0417ea1c2f
-> gcc version:		i686-linux-gcc (GCC) 7.3.0
-> sparse version:		v0.5.0-3994-g45eb2282
-> smatch version:		v0.5.0-3994-g45eb2282
-> host hardware:		x86_64
-> host os:		4.14.0-3-amd64
-> 
-> linux-git-arm-at91: OK
-> linux-git-arm-davinci: OK
-> linux-git-arm-multi: OK
-> linux-git-arm-pxa: OK
-> linux-git-arm-stm32: OK
-> linux-git-arm64: OK
-> linux-git-blackfin-bf561: OK
-> linux-git-i686: OK
-> linux-git-m32r: OK
-> linux-git-mips: OK
-> linux-git-powerpc64: OK
-> linux-git-sh: OK
-> linux-git-x86_64: OK
-> linux-2.6.36.4-i686: WARNINGS
-> linux-2.6.36.4-x86_64: WARNINGS
-> linux-2.6.37.6-i686: WARNINGS
-> linux-2.6.37.6-x86_64: WARNINGS
-> linux-2.6.38.8-i686: WARNINGS
-> linux-2.6.38.8-x86_64: WARNINGS
-> linux-2.6.39.4-i686: WARNINGS
-> linux-2.6.39.4-x86_64: WARNINGS
-> linux-3.0.60-i686: WARNINGS
-> linux-3.0.60-x86_64: WARNINGS
-> linux-3.1.10-i686: WARNINGS
-> linux-3.1.10-x86_64: WARNINGS
-> linux-3.2.98-i686: WARNINGS
-> linux-3.2.98-x86_64: WARNINGS
-> linux-3.3.8-i686: WARNINGS
-> linux-3.3.8-x86_64: WARNINGS
-> linux-3.4.27-i686: WARNINGS
-> linux-3.4.27-x86_64: WARNINGS
-> linux-3.5.7-i686: WARNINGS
-> linux-3.5.7-x86_64: WARNINGS
-> linux-3.6.11-i686: WARNINGS
-> linux-3.6.11-x86_64: WARNINGS
-> linux-3.7.4-i686: WARNINGS
-> linux-3.7.4-x86_64: WARNINGS
-> linux-3.8-i686: WARNINGS
-> linux-3.8-x86_64: WARNINGS
-> linux-3.9.2-i686: WARNINGS
-> linux-3.9.2-x86_64: WARNINGS
-> linux-3.10.1-i686: WARNINGS
-> linux-3.10.1-x86_64: WARNINGS
-> linux-3.11.1-i686: WARNINGS
-> linux-3.11.1-x86_64: WARNINGS
-> linux-3.12.67-i686: WARNINGS
-> linux-3.12.67-x86_64: WARNINGS
-> linux-3.13.11-i686: WARNINGS
-> linux-3.13.11-x86_64: WARNINGS
-> linux-3.14.9-i686: WARNINGS
-> linux-3.14.9-x86_64: WARNINGS
-> linux-3.15.2-i686: WARNINGS
-> linux-3.15.2-x86_64: WARNINGS
-> linux-3.16.53-i686: WARNINGS
-> linux-3.16.53-x86_64: WARNINGS
-> linux-3.17.8-i686: WARNINGS
-> linux-3.17.8-x86_64: WARNINGS
-> linux-3.18.93-i686: WARNINGS
-> linux-3.18.93-x86_64: WARNINGS
-> linux-3.19-i686: WARNINGS
-> linux-3.19-x86_64: WARNINGS
-> linux-4.0.9-i686: WARNINGS
-> linux-4.0.9-x86_64: WARNINGS
-> linux-4.1.49-i686: WARNINGS
-> linux-4.1.49-x86_64: WARNINGS
-> linux-4.2.8-i686: WARNINGS
-> linux-4.2.8-x86_64: WARNINGS
-> linux-4.3.6-i686: WARNINGS
-> linux-4.3.6-x86_64: WARNINGS
-> linux-4.4.115-i686: OK
-> linux-4.4.115-x86_64: OK
-> linux-4.5.7-i686: WARNINGS
-> linux-4.5.7-x86_64: WARNINGS
-> linux-4.6.7-i686: OK
-> linux-4.6.7-x86_64: WARNINGS
-> linux-4.7.5-i686: OK
-> linux-4.7.5-x86_64: WARNINGS
-> linux-4.8-i686: OK
-> linux-4.8-x86_64: WARNINGS
-> linux-4.9.80-i686: OK
-> linux-4.9.80-x86_64: OK
-> linux-4.10.14-i686: OK
-> linux-4.10.14-x86_64: WARNINGS
-> linux-4.11-i686: OK
-> linux-4.11-x86_64: WARNINGS
-> linux-4.12.1-i686: OK
-> linux-4.12.1-x86_64: WARNINGS
-> linux-4.13-i686: OK
-> linux-4.13-x86_64: OK
-> linux-4.14.17-i686: OK
-> linux-4.14.17-x86_64: OK
-> linux-4.15.2-i686: OK
-> linux-4.15.2-x86_64: OK
-> linux-4.16-rc1-i686: OK
-> linux-4.16-rc1-x86_64: OK
-> apps: WARNINGS
-> spec-git: OK
-> ABI WARNING: change for arm-at91
-> ABI WARNING: change for arm-davinci
-> ABI WARNING: change for arm-multi
-> ABI WARNING: change for arm-pxa
-> ABI WARNING: change for arm-stm32
-> ABI WARNING: change for arm64
-> ABI WARNING: change for i686
-> ABI WARNING: change for m32r
-> ABI WARNING: change for mips
-> ABI WARNING: change for powerpc64
-> ABI WARNING: change for sh
-> ABI WARNING: change for x86_64
+> One last time: either post per-driver patches with all the cleanups for a driver
+> in a single patch,
 
-Ignore these warnings, I switched to a new ABI checker and it still needed
-a bit of tweaking. Hopefully this will be gone tomorrow.
+I preferred to offer source code adjustments according to specific transformation
+patterns mostly for each software module separately (also in small patch series).
+
+
+> or a per-directory patch (drivers/media/pci, usb, etc) doing the same cleanup
+> for all drivers in that directory.
+
+I am curious if bigger patch packages would be easier to get accepted.
+
+Or would you get frightened still by any other change combination?
+
+
+
+> I prefer the first approach,
+
+We have got different preferences for a safe patch granularity.
+
+
+> but it's up to you.
+
+I imagine that there are more development factors involved.
+
+
+> We don't have the time to wade through dozens of one-liner cleanup patches.
+
+It is usual that integration of update suggestions will take some time.
+How would the situation change if I would dare to regroup possible update steps?
+
+
+> I don't understand what is so difficult about this.
+
+There are communication difficulties to consider since your terse information
+from your conference meeting.
+
+If you would insist on patch squashing, would you dare to use a development tool
+like “quilt fold” also on your own once more?
 
 Regards,
-
-	Hans
-
-> sparse: WARNINGS
-> smatch: OK
-> 
-> Detailed results are available here:
-> 
-> http://www.xs4all.nl/~hverkuil/logs/Saturday.log
-> 
-> Full logs are available here:
-> 
-> http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
-> 
-> The Media Infrastructure API from this daily build is here:
-> 
-> http://www.xs4all.nl/~hverkuil/spec/index.html
-> 
+Markus
