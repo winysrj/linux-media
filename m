@@ -1,118 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:34809 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S965378AbeBMRe6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 13 Feb 2018 12:34:58 -0500
-Date: Tue, 13 Feb 2018 17:34:56 +0000
-From: Sean Young <sean@mess.org>
-To: Miguel Ojeda <miguel.ojeda.sandonis@gmail.com>
-Cc: linux-media@vger.kernel.org, Willy Tarreau <w@1wt.eu>,
-        Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: Re: [PATCH 3/5] =?iso-8859-1?Q?auxdisplay?=
- =?iso-8859-1?Q?=3A_charlcd=3A_add_escape_sequence_for_brightness_on_NEC_?=
- =?iso-8859-1?Q?=B5PD16314?=
-Message-ID: <20180213173455.u5taldxobrjpd67h@gofer.mess.org>
-References: <cover.1516008708.git.sean@mess.org>
- <259fa00659be126f371ecfa4d75a7830107c3eea.1516008708.git.sean@mess.org>
- <CANiq72krrK7S36atHbJNVirJXvtv8-C3OqiKGx7c=L+FzWeenw@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <CANiq72krrK7S36atHbJNVirJXvtv8-C3OqiKGx7c=L+FzWeenw@mail.gmail.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:55926 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1750799AbeBBKJC (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Fri, 2 Feb 2018 05:09:02 -0500
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: linux-media@vger.kernel.org,
+        Devin Heitmueller <dheitmueller@kernellabs.com>
+Cc: hverkuil@xs4all.nl
+Subject: [PATCH 1/1] vb2: core: Finish buffers at the end of the stream
+Date: Fri,  2 Feb 2018 12:08:59 +0200
+Message-Id: <20180202100859.4004-1-sakari.ailus@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Feb 12, 2018 at 12:56:58PM +0100, Miguel Ojeda wrote:
-> On Mon, Jan 15, 2018 at 10:58 AM, Sean Young <sean@mess.org> wrote:
-> > The NEC µPD16314 can alter the the brightness of the LCD. Make it possible
-> > to set this via escape sequence Y0 - Y3. B and R were already taken, so
-> > I picked Y for luminance.
-> >
-> > Signed-off-by: Sean Young <sean@mess.org>
-> 
-> CC'ing Willy and Geert.
-> 
-> > ---
-> >  drivers/auxdisplay/charlcd.c | 20 ++++++++++++++++++--
-> >  1 file changed, 18 insertions(+), 2 deletions(-)
-> >
-> > diff --git a/drivers/auxdisplay/charlcd.c b/drivers/auxdisplay/charlcd.c
-> > index a16c72779722..7a671ad959d1 100644
-> > --- a/drivers/auxdisplay/charlcd.c
-> > +++ b/drivers/auxdisplay/charlcd.c
-> > @@ -39,6 +39,8 @@
-> >  #define LCD_FLAG_F             0x0020  /* Large font mode */
-> >  #define LCD_FLAG_N             0x0040  /* 2-rows mode */
-> >  #define LCD_FLAG_L             0x0080  /* Backlight enabled */
-> > +#define LCD_BRIGHTNESS_MASK    0x0300  /* Brightness */
-> > +#define LCD_BRIGHTNESS_SHIFT   8
-> 
-> Not sure about the name (since the brightness is also used in
-> priv->flags). By the way, should we start using the bitops.h stuff
-> (e.g. BIT(9) | BIT(8), GENMASK(9, 8)...) in new code? Not sure how
-> widespread they are.
+If buffers were prepared or queued and the buffers were released without
+starting the queue, the finish mem op (corresponding to the prepare mem
+op) was never called to the buffers.
 
-The brightness is not really a flag, maybe it belongs in a separate field;
-we could use bit fields in order to waste less space.
+Before commit a136f59c0a1f there was no need to do this as in such a case
+the prepare mem op had not been called yet. Address the problem by
+explicitly calling finish mem op when the queue is stopped if the buffer
+is in either prepared or queued state.
 
-BIT() would be nicer and is more idiomatic by current standards.
+Fixes: a136f59c0a1f ("[media] vb2: Move buffer cache synchronisation to prepare from queue")
+Cc: stable@vger.kernel.org # for v4.13 and up
+Signed-off-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+---
+Hi Devin,
 
-Note that x, y and flags are currently unsigned long, they could be u8.
+Could you check whether this will resolve the problem you've found?
 
-> 
-> >
-> >  /* LCD commands */
-> >  #define LCD_CMD_DISPLAY_CLEAR  0x01    /* Clear entire display */
-> > @@ -490,6 +492,17 @@ static inline int handle_lcd_special_code(struct charlcd *lcd)
-> >                 charlcd_gotoxy(lcd);
-> >                 processed = 1;
-> >                 break;
-> > +       case 'Y':       /* brightness (luma) */
-> > +               switch (esc[1]) {
-> > +               case '0':       /* 25% */
-> > +               case '1':       /* 50% */
-> > +               case '2':       /* 75% */
-> > +               case '3':       /* 100% */
-> > +                       priv->flags = (priv->flags & ~(LCD_BRIGHTNESS_MASK)) |
-> > +                               (('3' - esc[1]) << LCD_BRIGHTNESS_SHIFT);
-> > +                       processed =  1;
-> > +                       break;
-> > +               }
-> >         }
-> >
-> >         /* TODO: This indent party here got ugly, clean it! */
-> > @@ -507,12 +520,15 @@ static inline int handle_lcd_special_code(struct charlcd *lcd)
-> >                         ((priv->flags & LCD_FLAG_C) ? LCD_CMD_CURSOR_ON : 0) |
-> >                         ((priv->flags & LCD_FLAG_B) ? LCD_CMD_BLINK_ON : 0));
-> >         /* check whether one of F,N flags was changed */
-> 
-> Should we add "or brightness" to the comment?
+Thanks.
 
-Indeed we should.
+ drivers/media/common/videobuf2/videobuf2-core.c | 9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-> 
-> > -       else if ((oldflags ^ priv->flags) & (LCD_FLAG_F | LCD_FLAG_N))
-> > +       else if ((oldflags ^ priv->flags) & (LCD_FLAG_F | LCD_FLAG_N |
-> > +                                            LCD_BRIGHTNESS_MASK))
-> >                 lcd->ops->write_cmd(lcd,
-> >                         LCD_CMD_FUNCTION_SET |
-> >                         ((lcd->ifwidth == 8) ? LCD_CMD_DATA_LEN_8BITS : 0) |
-> >                         ((priv->flags & LCD_FLAG_F) ? LCD_CMD_FONT_5X10_DOTS : 0) |
-> > -                       ((priv->flags & LCD_FLAG_N) ? LCD_CMD_TWO_LINES : 0));
-> > +                       ((priv->flags & LCD_FLAG_N) ? LCD_CMD_TWO_LINES : 0) |
-> > +                       ((priv->flags & LCD_BRIGHTNESS_MASK) >>
-> > +                                                       LCD_BRIGHTNESS_SHIFT));
-> >         /* check whether L flag was changed */
-> >         else if ((oldflags ^ priv->flags) & LCD_FLAG_L)
-> >                 charlcd_backlight(lcd, !!(priv->flags & LCD_FLAG_L));
-> > --
-> > 2.14.3
-> >
-
-I've discovered an issue in my sasem driver, I'll send out a new version
-of these patch series once that is resolved.
-
-Thanks,
-
-Sean
+diff --git a/drivers/media/common/videobuf2/videobuf2-core.c b/drivers/media/common/videobuf2/videobuf2-core.c
+index f7109f827f6e..52a7c1d0a79a 100644
+--- a/drivers/media/common/videobuf2/videobuf2-core.c
++++ b/drivers/media/common/videobuf2/videobuf2-core.c
+@@ -1696,6 +1696,15 @@ static void __vb2_queue_cancel(struct vb2_queue *q)
+ 	for (i = 0; i < q->num_buffers; ++i) {
+ 		struct vb2_buffer *vb = q->bufs[i];
+ 
++		if (vb->state == VB2_BUF_STATE_PREPARED ||
++		    vb->state == VB2_BUF_STATE_QUEUED) {
++			unsigned int plane;
++
++			for (plane = 0; plane < vb->num_planes; ++plane)
++				call_void_memop(vb, finish,
++						vb->planes[plane].mem_priv);
++		}
++
+ 		if (vb->state != VB2_BUF_STATE_DEQUEUED) {
+ 			vb->state = VB2_BUF_STATE_PREPARED;
+ 			call_void_vb_qop(vb, buf_finish, vb);
+-- 
+2.11.0
