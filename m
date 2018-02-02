@@ -1,60 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:36009 "EHLO
-        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1750863AbeBIMUp (ORCPT
+Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:43664 "EHLO
+        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751709AbeBBNF2 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 9 Feb 2018 07:20:45 -0500
-Subject: Re: [PATCHv2 11/15] media-device.c: zero reserved field
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-References: <20180208083655.32248-1-hverkuil@xs4all.nl>
- <20180208083655.32248-12-hverkuil@xs4all.nl>
- <20180209121700.67gibke64bgcewkn@valkosipuli.retiisi.org.uk>
+        Fri, 2 Feb 2018 08:05:28 -0500
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Helen Koike <helen.koike@collabora.com>
 From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <8203381a-c3f1-d836-4ed1-54874ac7845e@xs4all.nl>
-Date: Fri, 9 Feb 2018 13:20:41 +0100
+Subject: [PATCH] v4l2-subdev: without controls return -ENOTTY
+Message-ID: <6fce05be-3e9e-5c0e-eb55-efc73c978ab7@xs4all.nl>
+Date: Fri, 2 Feb 2018 14:05:23 +0100
 MIME-Version: 1.0
-In-Reply-To: <20180209121700.67gibke64bgcewkn@valkosipuli.retiisi.org.uk>
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/09/18 13:17, Sakari Ailus wrote:
-> On Thu, Feb 08, 2018 at 09:36:51AM +0100, Hans Verkuil wrote:
->> MEDIA_IOC_SETUP_LINK didn't zero the reserved field of the media_link_desc
->> struct. Do so in media_device_setup_link().
->>
->> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
->> ---
->>  drivers/media/media-device.c | 2 ++
->>  1 file changed, 2 insertions(+)
->>
->> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
->> index e79f72b8b858..afbf23a19e16 100644
->> --- a/drivers/media/media-device.c
->> +++ b/drivers/media/media-device.c
->> @@ -218,6 +218,8 @@ static long media_device_setup_link(struct media_device *mdev,
->>  	if (link == NULL)
->>  		return -EINVAL;
->>  
->> +	memset(linkd->reserved, 0, sizeof(linkd->reserved));
->> +
-> 
-> Doesn't media_device_enum_links() need the same for its reserved field?
+If the subdev did not define any controls, then return -ENOTTY if
+userspace attempts to call these ioctls.
 
-enum_links() already zeroes this (actually the whole media_link_desc struct is zeroed).
+The control framework functions will return -EINVAL, not -ENOTTY if
+vfh->ctrl_handler is NULL.
 
-Regards,
+Several of these framework functions are also called directly from
+drivers, so I don't want to change the error code there.
 
-	Hans
+Found with vimc and v4l2-compliance.
 
-> 
->>  	/* Setup the link on both entities. */
->>  	return __media_entity_setup_link(link, linkd->flags);
->>  }
->> -- 
->> 2.15.1
->>
-> 
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
+index 43fefa73e0a3..be7a19272614 100644
+--- a/drivers/media/v4l2-core/v4l2-subdev.c
++++ b/drivers/media/v4l2-core/v4l2-subdev.c
+@@ -187,27 +187,43 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
+
+ 	switch (cmd) {
+ 	case VIDIOC_QUERYCTRL:
++		if (!vfh->ctrl_handler)
++			return -ENOTTY;
+ 		return v4l2_queryctrl(vfh->ctrl_handler, arg);
+
+ 	case VIDIOC_QUERY_EXT_CTRL:
++		if (!vfh->ctrl_handler)
++			return -ENOTTY;
+ 		return v4l2_query_ext_ctrl(vfh->ctrl_handler, arg);
+
+ 	case VIDIOC_QUERYMENU:
++		if (!vfh->ctrl_handler)
++			return -ENOTTY;
+ 		return v4l2_querymenu(vfh->ctrl_handler, arg);
+
+ 	case VIDIOC_G_CTRL:
++		if (!vfh->ctrl_handler)
++			return -ENOTTY;
+ 		return v4l2_g_ctrl(vfh->ctrl_handler, arg);
+
+ 	case VIDIOC_S_CTRL:
++		if (!vfh->ctrl_handler)
++			return -ENOTTY;
+ 		return v4l2_s_ctrl(vfh, vfh->ctrl_handler, arg);
+
+ 	case VIDIOC_G_EXT_CTRLS:
++		if (!vfh->ctrl_handler)
++			return -ENOTTY;
+ 		return v4l2_g_ext_ctrls(vfh->ctrl_handler, arg);
+
+ 	case VIDIOC_S_EXT_CTRLS:
++		if (!vfh->ctrl_handler)
++			return -ENOTTY;
+ 		return v4l2_s_ext_ctrls(vfh, vfh->ctrl_handler, arg);
+
+ 	case VIDIOC_TRY_EXT_CTRLS:
++		if (!vfh->ctrl_handler)
++			return -ENOTTY;
+ 		return v4l2_try_ext_ctrls(vfh->ctrl_handler, arg);
+
+ 	case VIDIOC_DQEVENT:
