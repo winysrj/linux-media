@@ -1,41 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:39128 "EHLO
-        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752539AbeBSKiN (ORCPT
+Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:33881 "EHLO
+        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751638AbeBCNSU (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 19 Feb 2018 05:38:13 -0500
+        Sat, 3 Feb 2018 08:18:20 -0500
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv3 07/15] media-ioc-g-topology.rst: fix interface-to-entity link description
-Date: Mon, 19 Feb 2018 11:37:58 +0100
-Message-Id: <20180219103806.17032-8-hverkuil@xs4all.nl>
-In-Reply-To: <20180219103806.17032-1-hverkuil@xs4all.nl>
-References: <20180219103806.17032-1-hverkuil@xs4all.nl>
+Subject: [PATCHv2] v4l2-ctrls.h: fix wrong copy-and-paste comment
+Message-ID: <60d1388f-5e34-72bd-851c-8e33f9dfe3c1@xs4all.nl>
+Date: Sat, 3 Feb 2018 14:18:14 +0100
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The source_id and sink_id descriptions were the same for interface-to-entity
-links. The source_id is the interface ID, not the entity ID. Fix this.
+The __v4l2_ctrl_modify_range is the unlocked variant, so the comment about
+taking a lock is obviously wrong.
 
 Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
 ---
- Documentation/media/uapi/mediactl/media-ioc-g-topology.rst | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/Documentation/media/uapi/mediactl/media-ioc-g-topology.rst b/Documentation/media/uapi/mediactl/media-ioc-g-topology.rst
-index 997e6b17440d..870a6c0d1f7a 100644
---- a/Documentation/media/uapi/mediactl/media-ioc-g-topology.rst
-+++ b/Documentation/media/uapi/mediactl/media-ioc-g-topology.rst
-@@ -334,7 +334,7 @@ desired arrays with the media graph elements.
- 
-        -  On pad to pad links: unique ID for the source pad.
- 
--	  On interface to entity links: unique ID for the entity.
-+	  On interface to entity links: unique ID for the interface.
- 
-     -  .. row 3
- 
--- 
-2.16.1
+Change since v1: replace the comment with something better instead of deleting it.
+---
+diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
+index 5253b5471897..1e599f10c893 100644
+--- a/include/media/v4l2-ctrls.h
++++ b/include/media/v4l2-ctrls.h
+@@ -761,8 +761,8 @@ void v4l2_ctrl_grab(struct v4l2_ctrl *ctrl, bool grabbed);
+  * An error is returned if one of the range arguments is invalid for this
+  * control type.
+  *
+- * This function assumes that the control handler is not locked and will
+- * take the lock itself.
++ * The caller is responsible for acquiring the control handler mutex on behalf
++ * of __v4l2_ctrl_modify_range().
+  */
+ int __v4l2_ctrl_modify_range(struct v4l2_ctrl *ctrl,
+ 			     s64 min, s64 max, u64 step, s64 def);
