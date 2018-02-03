@@ -1,137 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay2-d.mail.gandi.net ([217.70.183.194]:55309 "EHLO
-        relay2-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S932692AbeBVO0z (ORCPT
+Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:38375 "EHLO
+        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753504AbeBCS0M (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 22 Feb 2018 09:26:55 -0500
-Date: Thu, 22 Feb 2018 15:26:35 +0100
-From: jacopo mondi <jacopo@jmondi.org>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>, magnus.damm@gmail.com,
-        geert@glider.be, hverkuil@xs4all.nl, mchehab@kernel.org,
-        festevam@gmail.com, sakari.ailus@iki.fi, robh+dt@kernel.org,
-        mark.rutland@arm.com, pombredanne@nexb.com,
-        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-sh@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v9 11/11] media: i2c: ov7670: Fully set mbus frame fmt
-Message-ID: <20180222142635.GN7203@w540>
-References: <1519059584-30844-1-git-send-email-jacopo+renesas@jmondi.org>
- <2864762.IPlziE6Y0S@avalon>
- <20180222123600.GM7203@w540>
- <4525290.Vz7vJ24K7t@avalon>
+        Sat, 3 Feb 2018 13:26:12 -0500
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [RFC PATCH] media-ioc-enum-entities/links.rst: document reserved
+ fields
+Message-ID: <3cc66f67-6de7-ae83-5b6c-6eed5d1e075b@xs4all.nl>
+Date: Sat, 3 Feb 2018 19:26:07 +0100
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <4525290.Vz7vJ24K7t@avalon>
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+These structures have reserved fields that were never documented.
 
-On Thu, Feb 22, 2018 at 02:47:06PM +0200, Laurent Pinchart wrote:
-> Hi Jacopo,
->
-> On Thursday, 22 February 2018 14:36:00 EET jacopo mondi wrote:
-> > On Thu, Feb 22, 2018 at 02:14:53PM +0200, Laurent Pinchart wrote:
-> > > On Thursday, 22 February 2018 14:04:12 EET jacopo mondi wrote:
-> > >> On Wed, Feb 21, 2018 at 10:28:06PM +0200, Laurent Pinchart wrote:
-> > >>> On Tuesday, 20 February 2018 10:58:57 EET jacopo mondi wrote:
->
-> [snip]
->
-> > >>>> This actually makes me wonder if those informations (ycbcb_enc,
-> > >>>> quantization and xfer_func) shouldn't actually be part of the
-> > >>>> supported format list... I blindly added those default fields in the
-> > >>>> try_fmt function, but I doubt they applies to all supported formats.
-> > >>>>
-> > >>>> Eg. the sensor supports YUYV as well as 2 RGB encodings (RGB444 and
-> > >>>> RGB 565) and 1 raw format (BGGR). I now have a question here:
-> > >>>>
-> > >>>> 1) ycbcr_enc transforms non-linear R'G'B' to Y'CbCr: does this
-> > >>>> applies to RGB and raw formats? I don't think so, and what value is
-> > >>>> the correct one for the ycbcr_enc field in this case? I assume
-> > >>>> xfer_func and quantization applies to all formats instead..
-> > >>>
-> > >>> There's no encoding for RGB formats if I understand things correctly,
-> > >>> so I'd set ycbcr_enc to V4L2_YCBCR_ENC_DEFAULT. The transfer function
-> > >>> and the quantization apply to all formats, but I'd be surprised to find
-> > >>> a sensor outputting limited range for RGB.
-> > >>
-> > >> Ack, we got the same understanding for RGB formats. I wonder if for
-> > >> those formats we wouldn't need a V4L2_YCBCR_ENC_NONE or similar...
-> > >
-> > > That, or explicitly documenting that when the format is not YUV the field
-> > > should be set by both drivers and applications to V4L2_YCBCR_ENC_DEFAULT
-> > > when written and ignored when read.
-> >
-> > Well, if no encoding is performed because the color encoding scheme is
-> > RGB, the colorspace does anyway define an encoding method, so it seems
-> > to me the latter is more appropriate (use DEFAULT and ignore when read).
-> >
-> > That's anyway just my opinion, but I could send a patch for
-> > documentation and see what feedback it gets.
-> >
-> > >>> Have you been able to check whether the sensor outputs limited range
-> > >>> of full range YUV ? If it outputs full range you can hardcode
-> > >>> quantization to V4L2_QUANTIZATION_FULL_RANGE for all formats.
-> > >>
-> > >> In YUYV mode, I see values > 0xf0 ( > 240, which is the max value for
-> > >> CbCr samples in limited quantization range), so I assume quantization
-> > >> is full range.
-> > >
-> > > It should be, yes. What's the minimum and maximum values you get ?
-> >
-> > From a white surface:
-> > min = 0x39
-> > max = 0xfc
-> >
-> > From a black surface:
-> > min = 0x00 (with 62 occurrences)
-> > max = 0x8b
-> >
-> > I guess that's indeed full range quantization
->
-> Could you check Y and UV separately ?
->
-> #!/usr/bin/python
->
-> import sys
->
-> def main(argv):
->     if len(argv) != 2:
->         print('Usage: %s <file>' % argv[0])
->         return 1
->
->     data = open(argv[1], 'rb').read()
->
->     y_min = 255
->     y_max = 0
->     uv_min = 255
->     uv_max = 0
->
->     for i in range(len(data) // 2):
->         y = data[2*i]
->         uv = data[2*i]
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+The kernel correctly zeroes these, but should we require that userspace also
+does this? I think it may be too late for that, in that case the description
+will have to change to: "Drivers set the array to zero.".
 
-uv = data[2*i+1]
+Regards,
 
->
->         y_min = min(y_min, y)
->         y_max = max(y_max, y)
->         uv_min = min(uv_min, uv)
->         uv_max = max(uv_max, uv)
->
->     print('Y [%u, %u] UV [%u, %u]' % (y_min, y_max, uv_min, uv_max))
->     return 0
->
-> if __name__ == '__main__':
->     sys.exit(main(sys.argv))
->
+	Hans
+---
+diff --git a/Documentation/media/uapi/mediactl/media-ioc-enum-entities.rst b/Documentation/media/uapi/mediactl/media-ioc-enum-entities.rst
+index b59ce149efb5..45e76e5bc1ea 100644
+--- a/Documentation/media/uapi/mediactl/media-ioc-enum-entities.rst
++++ b/Documentation/media/uapi/mediactl/media-ioc-enum-entities.rst
+@@ -144,10 +144,21 @@ id's until they get an error.
+
+     -  .. row 9
+
+-       -  union
++       -  __u32
++
++       -  ``reserved[4]``
++
++       -
++       -
++       -  Reserved for future extensions. Drivers and applications must set
++          the array to zero.
+
+     -  .. row 10
+
++       -  union
++
++    -  .. row 11
++
+        -
+        -  struct
+
+@@ -156,7 +167,7 @@ id's until they get an error.
+        -
+        -  Valid for (sub-)devices that create a single device node.
+
+-    -  .. row 11
++    -  .. row 12
+
+        -
+        -
+@@ -166,7 +177,7 @@ id's until they get an error.
+
+        -  Device node major number.
+
+-    -  .. row 12
++    -  .. row 13
+
+        -
+        -
+@@ -176,7 +187,7 @@ id's until they get an error.
+
+        -  Device node minor number.
+
+-    -  .. row 13
++    -  .. row 14
+
+        -
+        -  __u8
+diff --git a/Documentation/media/uapi/mediactl/media-ioc-enum-links.rst b/Documentation/media/uapi/mediactl/media-ioc-enum-links.rst
+index d05be16ffaf6..256168b3c3be 100644
+--- a/Documentation/media/uapi/mediactl/media-ioc-enum-links.rst
++++ b/Documentation/media/uapi/mediactl/media-ioc-enum-links.rst
+@@ -125,6 +125,15 @@ returned during the enumeration process.
+
+        -  Pad flags, see :ref:`media-pad-flag` for more details.
+
++    -  .. row 4
++
++       -  __u32
++
++       -  ``reserved[2]``
++
++       -  Reserved for future extensions. Drivers and applications must set
++          the array to zero.
++
 
 
-White image:
-Y [57, 252] UV [105, 145]
+ .. c:type:: media_link_desc
+@@ -161,6 +170,15 @@ returned during the enumeration process.
 
-Black image:
-Y [0, 32] UV [116, 139]
+        -  Link flags, see :ref:`media-link-flag` for more details.
+
++    -  .. row 4
++
++       -  __u32
++
++       -  ``reserved[4]``
++
++       -  Reserved for future extensions. Drivers and applications must set
++          the array to zero.
++
+
+ Return Value
+ ============
