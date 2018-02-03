@@ -1,44 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from butterbrot.org ([176.9.106.16]:44006 "EHLO butterbrot.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753630AbeBGNAo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 7 Feb 2018 08:00:44 -0500
-From: Florian Echtler <floe@butterbrot.org>
-To: hverkuil@xs4all.nl, linux-media@vger.kernel.org
-Cc: linux-input@vger.kernel.org, modin@yuri.at,
-        Florian Echtler <floe@butterbrot.org>
-Subject: [PATCH 1/4] add missing blob structure field for tag id
-Date: Wed,  7 Feb 2018 14:00:35 +0100
-Message-Id: <1518008438-26603-2-git-send-email-floe@butterbrot.org>
-In-Reply-To: <1518008438-26603-1-git-send-email-floe@butterbrot.org>
-References: <1518008438-26603-1-git-send-email-floe@butterbrot.org>
+Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:53797 "EHLO
+        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753215AbeBCTSn (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 3 Feb 2018 14:18:43 -0500
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH] media-ioc-g-topology.rst: fix interface-to-entity link
+ description
+Message-ID: <2447b7c8-b707-e98a-db92-fb55a1894f6c@xs4all.nl>
+Date: Sat, 3 Feb 2018 20:18:38 +0100
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The SUR40 can recognize specific printed patterns directly in hardware;
-this information (i.e. the pattern id) is present but currently unused
-in the blob structure.
+The source_id and sink_id descriptions were the same for interface-to-entity
+links. The source_id is the interface ID, not the entity ID. Fix this.
 
-Signed-off-by: Florian Echtler <floe@butterbrot.org>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/input/touchscreen/sur40.c | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+diff --git a/Documentation/media/uapi/mediactl/media-ioc-g-topology.rst b/Documentation/media/uapi/mediactl/media-ioc-g-topology.rst
+index 997e6b17440d..870a6c0d1f7a 100644
+--- a/Documentation/media/uapi/mediactl/media-ioc-g-topology.rst
++++ b/Documentation/media/uapi/mediactl/media-ioc-g-topology.rst
+@@ -334,7 +334,7 @@ desired arrays with the media graph elements.
 
-diff --git a/drivers/input/touchscreen/sur40.c b/drivers/input/touchscreen/sur40.c
-index f16f835..8375b06 100644
---- a/drivers/input/touchscreen/sur40.c
-+++ b/drivers/input/touchscreen/sur40.c
-@@ -81,7 +81,10 @@ struct sur40_blob {
- 
- 	__le32 area;       /* size in pixels/pressure (?) */
- 
--	u8 padding[32];
-+	u8 padding[24];
-+
-+	__le32 tag_id;     /* valid when type == 0x04 (SUR40_TAG) */
-+	__le32 unknown;
- 
- } __packed;
- 
--- 
-2.7.4
+        -  On pad to pad links: unique ID for the source pad.
+
+-	  On interface to entity links: unique ID for the entity.
++	  On interface to entity links: unique ID for the interface.
+
+     -  .. row 3
