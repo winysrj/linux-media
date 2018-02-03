@@ -1,77 +1,187 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:58699 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1030501AbeBNVcI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 14 Feb 2018 16:32:08 -0500
-Date: Wed, 14 Feb 2018 21:32:07 +0000
-From: Sean Young <sean@mess.org>
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [GIT PULL FOR v4.17] rc changes
-Message-ID: <20180214213207.axrs6k3cl6tevb2h@gofer.mess.org>
-References: <20180212200318.cxnxro2vsqauexqz@gofer.mess.org>
- <20180214164448.32a4c989@vento.lan>
+Received: from lb1-smtp-cloud7.xs4all.net ([194.109.24.24]:50506 "EHLO
+        lb1-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753169AbeBCSGG (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Sat, 3 Feb 2018 13:06:06 -0500
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [RFC PATCH] media: document and zero reservedX fields in
+ media_v2_topology
+Message-ID: <c1037baa-b278-03aa-e6f2-a9e35971ae3f@xs4all.nl>
+Date: Sat, 3 Feb 2018 19:06:01 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20180214164448.32a4c989@vento.lan>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+The MEDIA_IOC_G_TOPOLOGY documentation didn't document the reservedX fields.
+Related to that was that the documented type of the num_* fields was also
+wrong.
 
-On Wed, Feb 14, 2018 at 04:44:48PM -0200, Mauro Carvalho Chehab wrote:
-> Hi Sean,
-> 
-> Em Mon, 12 Feb 2018 20:03:18 +0000
-> Sean Young <sean@mess.org> escreveu:
-> 
-> > Hi Mauro,
-> > 
-> > Just very minor changes this time (other stuff is not ready yet). I would
-> > really appreciate if you could cast an extra critical eye on the commit 
-> > "no need to check for transitions", just to be sure it is the right change.
-> 
-> Did you send all patches in separate? This is important to allow us
-> to comment on an specific issue inside a patch...
+The reservedX fields were not set to 0, that is now also fixed.
 
-All the patches were emailed to linux-media, some of them on the same day
-as the pull request. Maybe I should wait longer. The patch below was sent
-out on the 28th of January.
+Found with v4l2-compliance.
 
-> >       media: rc: no need to check for transitions
-> 
-> I don't remember the exact reason for that, but, as far as I
-> remember, on a few devices, a pulse (or space) event could be
-> broken into two consecutive events of the same type, e. g.,
-> a pulse with a 125 ms could be broken into two pulses, like
-> one with 100 ms and the other with 25 ms.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+I think that the kernel should set these reserved fields to 0. What is
+less clear is if userspace should set them to 0 as well. I think there are
+very few users of this ioctl, so I have documented this as "Applications
+and drivers shall set this to 0.".
 
-If that is the case, then the IR decoders could not deal with this anyway.
-For example, the first state transition rc6 is:
+However, it may be to late to make that change to the spec. In that case
+it will become "Drivers shall set this to 0.".
 
-	if (!eq_margin(ev.duration, RC6_PREFIX_PULSE, RC6_UNIT))
+Comments?
 
-So if ev.duration is not the complete duration, then decoding will fail;
-I tried to explain in the commit message that if this was the case, then
-decoding would not work so the check was unnecessary.
+	Hans
+---
+diff --git a/Documentation/media/uapi/mediactl/media-ioc-g-topology.rst b/Documentation/media/uapi/mediactl/media-ioc-g-topology.rst
+index 997e6b17440d..cd44153199ac 100644
+--- a/Documentation/media/uapi/mediactl/media-ioc-g-topology.rst
++++ b/Documentation/media/uapi/mediactl/media-ioc-g-topology.rst
+@@ -68,7 +68,7 @@ desired arrays with the media graph elements.
 
-> That's said, I'm not sure if the current implementation are
-> adding the timings for both pulses into a single one.
+     -  .. row 2
 
-That depends on whether the driver uses ir_raw_event_store() or
-ir_raw_event_store_with_filter(). The latter exists precisely for this
-reason.
+-       -  __u64
++       -  __u32
 
-> For now, I'll keep this patch out of the merge.
+        -  ``num_entities``
 
-Ok. So in summary, I think:
+@@ -76,6 +76,14 @@ desired arrays with the media graph elements.
 
-1. Any driver which produces consequentive pulse events is broken
-   and should be fixed;
-2. The IR decoders cannot deal with consequentive pulses and the current
-   prev_ev code does not help with this (possibly in very special
-   cases).
+     -  .. row 3
 
++       -  __u32
++
++       -  ``reserved1``
++
++       -  Applications and drivers shall set this to 0.
++
++    -  .. row 4
++
+        -  __u64
 
-Sean
+        -  ``ptr_entities``
+@@ -85,15 +93,23 @@ desired arrays with the media graph elements.
+ 	  the ioctl won't store the entities. It will just update
+ 	  ``num_entities``
+
+-    -  .. row 4
++    -  .. row 5
+
+-       -  __u64
++       -  __u32
+
+        -  ``num_interfaces``
+
+        -  Number of interfaces in the graph
+
+-    -  .. row 5
++    -  .. row 6
++
++       -  __u32
++
++       -  ``reserved2``
++
++       -  Applications and drivers shall set this to 0.
++
++    -  .. row 7
+
+        -  __u64
+
+@@ -104,15 +120,23 @@ desired arrays with the media graph elements.
+ 	  the ioctl won't store the interfaces. It will just update
+ 	  ``num_interfaces``
+
+-    -  .. row 6
++    -  .. row 8
+
+-       -  __u64
++       -  __u32
+
+        -  ``num_pads``
+
+        -  Total number of pads in the graph
+
+-    -  .. row 7
++    -  .. row 9
++
++       -  __u32
++
++       -  ``reserved3``
++
++       -  Applications and drivers shall set this to 0.
++
++    -  .. row 10
+
+        -  __u64
+
+@@ -122,15 +146,23 @@ desired arrays with the media graph elements.
+ 	  converted to a 64-bits integer. It can be zero. if zero, the ioctl
+ 	  won't store the pads. It will just update ``num_pads``
+
+-    -  .. row 8
++    -  .. row 11
+
+-       -  __u64
++       -  __u32
+
+        -  ``num_links``
+
+        -  Total number of data and interface links in the graph
+
+-    -  .. row 9
++    -  .. row 12
++
++       -  __u32
++
++       -  ``reserved4``
++
++       -  Applications and drivers shall set this to 0.
++
++    -  .. row 13
+
+        -  __u64
+
+diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+index e79f72b8b858..5b8bf62cd1de 100644
+--- a/drivers/media/media-device.c
++++ b/drivers/media/media-device.c
+@@ -263,6 +263,7 @@ static long media_device_get_topology(struct media_device *mdev,
+ 		uentity++;
+ 	}
+ 	topo->num_entities = i;
++	topo->reserved1 = 0;
+
+ 	/* Get interfaces and number of interfaces */
+ 	i = 0;
+@@ -298,6 +299,7 @@ static long media_device_get_topology(struct media_device *mdev,
+ 		uintf++;
+ 	}
+ 	topo->num_interfaces = i;
++	topo->reserved2 = 0;
+
+ 	/* Get pads and number of pads */
+ 	i = 0;
+@@ -324,6 +326,7 @@ static long media_device_get_topology(struct media_device *mdev,
+ 		upad++;
+ 	}
+ 	topo->num_pads = i;
++	topo->reserved3 = 0;
+
+ 	/* Get links and number of links */
+ 	i = 0;
+@@ -355,6 +358,7 @@ static long media_device_get_topology(struct media_device *mdev,
+ 		ulink++;
+ 	}
+ 	topo->num_links = i;
++	topo->reserved4 = 0;
+
+ 	return ret;
+ }
