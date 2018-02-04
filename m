@@ -1,132 +1,136 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:42051 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934801AbeBMMJx (ORCPT
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:36933 "EHLO
+        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750744AbeBDEqa (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 13 Feb 2018 07:09:53 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Kieran Bingham <kbingham@kernel.org>
-Cc: linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-        linux-kernel@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>,
-        Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
-        Lars-Peter Clausen <lars@metafoo.de>,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
-        David Airlie <airlied@linux.ie>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        John Stultz <john.stultz@linaro.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Mark Brown <broonie@kernel.org>,
-        Archit Taneja <architt@codeaurora.org>,
-        "open list:OPEN FIRMWARE AND FLATTENED DEVICE TREE BINDINGS"
-        <devicetree@vger.kernel.org>
-Subject: Re: [PATCH v3 2/5] dt-bindings: adv7511: Add support for i2c_new_secondary_device
-Date: Tue, 13 Feb 2018 14:10:23 +0200
-Message-ID: <138061694.kW5LlSP0Rd@avalon>
-In-Reply-To: <1518473273-6333-3-git-send-email-kbingham@kernel.org>
-References: <1518473273-6333-1-git-send-email-kbingham@kernel.org> <1518473273-6333-3-git-send-email-kbingham@kernel.org>
-MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset="iso-8859-1"
+        Sat, 3 Feb 2018 23:46:30 -0500
+Message-ID: <18d263d2e5b4d9ac4a9684e4e1d8db6b@smtp-cloud9.xs4all.net>
+Date: Sun, 04 Feb 2018 05:46:28 +0100
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Kieran,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Thank you for the patch.
+Results of the daily build of media_tree:
 
-On Tuesday, 13 February 2018 00:07:50 EET Kieran Bingham wrote:
-> From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
->=20
-> The ADV7511 has four 256-byte maps that can be accessed via the main I=B2C
-> ports. Each map has it own I=B2C address and acts as a standard slave
-> device on the I=B2C bus.
->=20
-> Extend the device tree node bindings to be able to override the default
-> addresses so that address conflicts with other devices on the same bus
-> may be resolved at the board description level.
->=20
-> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-> Reviewed-by: Rob Herring <robh@kernel.org>
+date:			Sun Feb  4 05:00:16 CET 2018
+media-tree git hash:	273caa260035c03d89ad63d72d8cd3d9e5c5e3f1
+media_build git hash:	d17383327f00d45e6c07161876fb4f3d9d9358e1
+v4l-utils git hash:	ff5ed3c00f84eccbefb73d1b3b85e5dd92734ae3
+gcc version:		i686-linux-gcc (GCC) 7.1.0
+sparse version:		v0.5.0-3911-g6f737e1f
+smatch version:		v0.5.0-3911-g6f737e1f
+host hardware:		x86_64
+host os:		4.14.0-364
 
-Same comment as for 1/5 about the subject line.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-multi: OK
+linux-git-arm-pxa: OK
+linux-git-arm-stm32: OK
+linux-git-blackfin-bf561: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: ERRORS
+linux-3.10.1-i686: ERRORS
+linux-3.11.1-i686: ERRORS
+linux-3.12.67-i686: ERRORS
+linux-3.13.11-i686: ERRORS
+linux-3.14.9-i686: ERRORS
+linux-3.15.2-i686: ERRORS
+linux-3.16.7-i686: ERRORS
+linux-3.17.8-i686: ERRORS
+linux-3.18.7-i686: ERRORS
+linux-3.19-i686: ERRORS
+linux-4.0.9-i686: ERRORS
+linux-4.1.33-i686: ERRORS
+linux-4.2.8-i686: ERRORS
+linux-4.3.6-i686: ERRORS
+linux-4.4.22-i686: ERRORS
+linux-4.5.7-i686: ERRORS
+linux-4.6.7-i686: ERRORS
+linux-4.7.5-i686: ERRORS
+linux-4.8-i686: ERRORS
+linux-4.9.26-i686: ERRORS
+linux-4.10.14-i686: WARNINGS
+linux-4.11-i686: WARNINGS
+linux-4.12.1-i686: WARNINGS
+linux-4.13-i686: WARNINGS
+linux-4.14-i686: WARNINGS
+linux-4.15-i686: WARNINGS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: ERRORS
+linux-3.10.1-x86_64: ERRORS
+linux-3.11.1-x86_64: ERRORS
+linux-3.12.67-x86_64: ERRORS
+linux-3.13.11-x86_64: ERRORS
+linux-3.14.9-x86_64: ERRORS
+linux-3.15.2-x86_64: ERRORS
+linux-3.16.7-x86_64: ERRORS
+linux-3.17.8-x86_64: ERRORS
+linux-3.18.7-x86_64: ERRORS
+linux-3.19-x86_64: ERRORS
+linux-4.0.9-x86_64: ERRORS
+linux-4.1.33-x86_64: ERRORS
+linux-4.2.8-x86_64: ERRORS
+linux-4.3.6-x86_64: ERRORS
+linux-4.4.22-x86_64: ERRORS
+linux-4.5.7-x86_64: ERRORS
+linux-4.6.7-x86_64: ERRORS
+linux-4.7.5-x86_64: ERRORS
+linux-4.8-x86_64: ERRORS
+linux-4.9.26-x86_64: ERRORS
+linux-4.10.14-x86_64: WARNINGS
+linux-4.11-x86_64: WARNINGS
+linux-4.12.1-x86_64: WARNINGS
+linux-4.13-x86_64: WARNINGS
+linux-4.14-x86_64: WARNINGS
+linux-4.15-x86_64: WARNINGS
+apps: WARNINGS
+spec-git: OK
+smatch: OK
 
-> ---
-> v2:
->  - Fixed up reg: property description to account for multiple optional
->    addresses.
->  - Minor reword to commit message to account for DT only change
->  - Collected Robs RB tag
->=20
-> v3:
->  - Split map register addresses into individual declarations.
->=20
->  .../devicetree/bindings/display/bridge/adi,adv7511.txt | 18 ++++++++++++=
-+--
->  1 file changed, 16 insertions(+), 2 deletions(-)
->=20
-> diff --git
-> a/Documentation/devicetree/bindings/display/bridge/adi,adv7511.txt
-> b/Documentation/devicetree/bindings/display/bridge/adi,adv7511.txt index
-> 0047b1394c70..3f85c351dd39 100644
-> --- a/Documentation/devicetree/bindings/display/bridge/adi,adv7511.txt
-> +++ b/Documentation/devicetree/bindings/display/bridge/adi,adv7511.txt
-> @@ -14,7 +14,13 @@ Required properties:
->  		"adi,adv7513"
->  		"adi,adv7533"
->=20
-> -- reg: I2C slave address
-> +- reg: I2C slave addresses
-> +  The ADV7511 internal registers are split into four pages exposed throu=
-gh
-> +  different I2C addresses, creating four register maps. Each map has it =
-own
-> +  I2C address and acts as a standard slave device on the I=B2C bus. The =
-main
-> +  address is mandatory, others are optional and revert to defaults if not
-> +  specified.
+Detailed results are available here:
 
-Nitpicking again, you're mixing I2C and I=B2C.
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
 
-> +
->=20
->  The ADV7511 supports a large number of input data formats that differ by
-> their color depth, color format, clock mode, bit justification and random
-> @@ -70,6 +76,9 @@ Optional properties:
->    rather than generate its own timings for HDMI output.
->  - clocks: from common clock binding: reference to the CEC clock.
->  - clock-names: from common clock binding: must be "cec".
-> +- reg-names : Names of maps with programmable addresses.
-> +	It can contain any map needing a non-default address.
-> +	Possible maps names are : "main", "edid", "cec", "packet"
->=20
->  Required nodes:
->=20
-> @@ -88,7 +97,12 @@ Example
->=20
->  	adv7511w: hdmi@39 {
->  		compatible =3D "adi,adv7511w";
-> -		reg =3D <39>;
-> +		/*
-> +		 * The EDID page will be accessible on address 0x66 on the i2c
+Full logs are available here:
 
-And now you're using lowercase :-)
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
 
-> +		 * bus. All other maps continue to use their default addresses.
-> +		 */
-> +		reg =3D <0x39>, <0x66>;
-> +		reg-names =3D "main", "edid";
->  		interrupt-parent =3D <&gpio3>;
->  		interrupts =3D <29 IRQ_TYPE_EDGE_FALLING>;
->  		clocks =3D <&cec_clock>;
+The Media Infrastructure API from this daily build is here:
 
-With these fixed (or not, up to you),
-
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-=2D-=20
-Regards,
-
-Laurent Pinchart
+http://www.xs4all.nl/~hverkuil/spec/index.html
