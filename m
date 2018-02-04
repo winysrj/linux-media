@@ -1,150 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.free-electrons.com ([62.4.15.54]:51012 "EHLO
-        mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1754031AbeBGO0r (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Feb 2018 09:26:47 -0500
-From: Maxime Ripard <maxime.ripard@bootlin.com>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Rob Herring <robh+dt@kernel.org>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        Richard Sproul <sproul@cadence.com>,
-        Alan Douglas <adouglas@cadence.com>,
-        Steve Creaney <screaney@cadence.com>,
-        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
-        Boris Brezillon <boris.brezillon@bootlin.com>,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Benoit Parrot <bparrot@ti.com>, nm@ti.com,
-        Simon Hatliff <hatliff@cadence.com>,
-        Maxime Ripard <maxime.ripard@bootlin.com>
-Subject: [PATCH v3 1/2] dt-bindings: media: Add Cadence MIPI-CSI2 TX Device Tree bindings
-Date: Wed,  7 Feb 2018 15:26:42 +0100
-Message-Id: <20180207142643.15746-2-maxime.ripard@bootlin.com>
-In-Reply-To: <20180207142643.15746-1-maxime.ripard@bootlin.com>
-References: <20180207142643.15746-1-maxime.ripard@bootlin.com>
+Received: from galahad.ideasonboard.com ([185.26.127.97]:49679 "EHLO
+        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751768AbeBDNN2 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sun, 4 Feb 2018 08:13:28 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Subject: Re: MEDIA_IOC_G_TOPOLOGY and pad indices
+Date: Sun, 04 Feb 2018 15:13:52 +0200
+Message-ID: <2979437.fEFkWIelBg@avalon>
+In-Reply-To: <336b3d54-6c59-d6eb-8fd8-e0a9677c7f5f@xs4all.nl>
+References: <336b3d54-6c59-d6eb-8fd8-e0a9677c7f5f@xs4all.nl>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The Cadence MIPI-CSI2 TX controller is a CSI2 bridge that supports up to 4
-video streams and can output on up to 4 CSI-2 lanes, depending on the
-hardware implementation.
+Hi Hans,
 
-It can operate with an external D-PHY, an internal one or no D-PHY at all
-in some configurations.
+On Sunday, 4 February 2018 15:06:42 EET Hans Verkuil wrote:
+> Hi Mauro,
+> 
+> I'm working on adding proper compliance tests for the MC but I think
+> something is missing in the G_TOPOLOGY ioctl w.r.t. pads.
+> 
+> In several v4l-subdev ioctls you need to pass the pad. There the pad is an
+> index for the corresponding entity. I.e. an entity has 3 pads, so the pad
+> argument is [0-2].
+> 
+> The G_TOPOLOGY ioctl returns a pad ID, which is > 0x01000000. I can't use
+> that in the v4l-subdev ioctls, so how do I translate that to a pad index in
+> my application?
+> 
+> It seems to be a missing feature in the API. I assume this information is
+> available in the core, so then I would add a field to struct media_v2_pad
+> with the pad index for the entity.
+> 
+> Next time we add new public API features I want to see compliance tests
+> before accepting it. It's much too easy to overlook something, either in
+> the design or in a driver or in the documentation, so this is really,
+> really needed IMHO.
 
-Acked-by: Rob Herring <robh@kernel.org>
-Signed-off-by: Maxime Ripard <maxime.ripard@bootlin.com>
----
- .../devicetree/bindings/media/cdns,csi2tx.txt      | 98 ++++++++++++++++++++++
- 1 file changed, 98 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/cdns,csi2tx.txt
+I agree with you, and would even like to go one step beyond by requiring an 
+implementation in a real use case, not just in a compliance or test tool.
 
-diff --git a/Documentation/devicetree/bindings/media/cdns,csi2tx.txt b/Documentation/devicetree/bindings/media/cdns,csi2tx.txt
-new file mode 100644
-index 000000000000..acbbd625a75f
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/cdns,csi2tx.txt
-@@ -0,0 +1,98 @@
-+Cadence MIPI-CSI2 TX controller
-+===============================
-+
-+The Cadence MIPI-CSI2 TX controller is a CSI-2 bridge supporting up to
-+4 CSI lanes in output, and up to 4 different pixel streams in input.
-+
-+Required properties:
-+  - compatible: must be set to "cdns,csi2tx"
-+  - reg: base address and size of the memory mapped region
-+  - clocks: phandles to the clocks driving the controller
-+  - clock-names: must contain:
-+    * esc_clk: escape mode clock
-+    * p_clk: register bank clock
-+    * pixel_if[0-3]_clk: pixel stream output clock, one for each stream
-+                         implemented in hardware, between 0 and 3
-+
-+Optional properties
-+  - phys: phandle to the D-PHY. If it is set, phy-names need to be set
-+  - phy-names: must contain dphy
-+
-+Required subnodes:
-+  - ports: A ports node with one port child node per device input and output
-+           port, in accordance with the video interface bindings defined in
-+           Documentation/devicetree/bindings/media/video-interfaces.txt. The
-+           port nodes numbered as follows.
-+
-+           Port Description
-+           -----------------------------
-+           0    CSI-2 output
-+           1    Stream 0 input
-+           2    Stream 1 input
-+           3    Stream 2 input
-+           4    Stream 3 input
-+
-+           The stream input port nodes are optional if they are not
-+           connected to anything at the hardware level or implemented
-+           in the design. Since there is only one endpoint per port,
-+           the endpoints are not numbered.
-+
-+Example:
-+
-+csi2tx: csi-bridge@0d0e1000 {
-+	compatible = "cdns,csi2tx";
-+	reg = <0x0d0e1000 0x1000>;
-+	clocks = <&byteclock>, <&byteclock>,
-+		 <&coreclock>, <&coreclock>,
-+		 <&coreclock>, <&coreclock>;
-+	clock-names = "p_clk", "esc_clk",
-+		      "pixel_if0_clk", "pixel_if1_clk",
-+		      "pixel_if2_clk", "pixel_if3_clk";
-+
-+	ports {
-+		#address-cells = <1>;
-+		#size-cells = <0>;
-+
-+		port@0 {
-+			reg = <0>;
-+
-+			csi2tx_out: endpoint {
-+				remote-endpoint = <&remote_in>;
-+				clock-lanes = <0>;
-+				data-lanes = <1 2>;
-+			};
-+		};
-+
-+		port@1 {
-+			reg = <1>;
-+
-+			csi2tx_in_stream0: endpoint {
-+				remote-endpoint = <&stream0_out>;
-+			};
-+		};
-+
-+		port@2 {
-+			reg = <2>;
-+
-+			csi2tx_in_stream1: endpoint {
-+				remote-endpoint = <&stream1_out>;
-+			};
-+		};
-+
-+		port@3 {
-+			reg = <3>;
-+
-+			csi2tx_in_stream2: endpoint {
-+				remote-endpoint = <&stream2_out>;
-+			};
-+		};
-+
-+		port@4 {
-+			reg = <4>;
-+
-+			csi2tx_in_stream3: endpoint {
-+				remote-endpoint = <&stream3_out>;
-+			};
-+		};
-+	};
-+};
+On the topic of the G_TOPOLOGY API, it's pretty clear it was merged too 
+hastily. We could try to fix it, but given all the issues we haven't solved 
+yet, I believe a new version of the API would be better.
+
 -- 
-2.14.3
+Regards,
+
+Laurent Pinchart
