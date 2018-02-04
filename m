@@ -1,166 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:54324 "EHLO
+Received: from galahad.ideasonboard.com ([185.26.127.97]:49753 "EHLO
         galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751797AbeBZVou (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 26 Feb 2018 16:44:50 -0500
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org, linux-renesas-soc@vger.kernel.org,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>
-Subject: [PATCH 06/15] v4l: vsp1: Share duplicated DRM pipeline configuration code
-Date: Mon, 26 Feb 2018 23:45:07 +0200
-Message-Id: <20180226214516.11559-7-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <20180226214516.11559-1-laurent.pinchart+renesas@ideasonboard.com>
-References: <20180226214516.11559-1-laurent.pinchart+renesas@ideasonboard.com>
+        with ESMTP id S1750868AbeBDN1A (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sun, 4 Feb 2018 08:27:00 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: "Jasmin J." <jasmin@anw.at>
+Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
+        mchehab@s-opensource.com, arnd@arndb.de
+Subject: Re: [PATCH] media: uvcvideo: Fixed ktime_t to ns conversion
+Date: Sun, 04 Feb 2018 15:27:24 +0200
+Message-ID: <2251976.ODMGCFTTdz@avalon>
+In-Reply-To: <f2e313c8-6013-bd1b-09da-8fa4fc12814e@anw.at>
+References: <1515925303-5160-1-git-send-email-jasmin@anw.at> <1778442.ouJt2D3mk7@avalon> <f2e313c8-6013-bd1b-09da-8fa4fc12814e@anw.at>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Move the duplicated DRM pipeline configuration code to a function and
-call it from vsp1_du_setup_lif() and vsp1_du_atomic_flush().
+Hi Jasmin,
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
----
- drivers/media/platform/vsp1/vsp1_drm.c | 95 +++++++++++++++-------------------
- 1 file changed, 43 insertions(+), 52 deletions(-)
+On Sunday, 4 February 2018 12:37:08 EET Jasmin J. wrote:
+> Hi Laurent!
+> 
+> > Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> 
+> THX!
+> Don't forget the "Acked-by: Arnd Bergmann <arnd@arndb.de>" (see Patchwork:
+> https://patchwork.linuxtv.org/patch/46464 ).
 
-diff --git a/drivers/media/platform/vsp1/vsp1_drm.c b/drivers/media/platform/vsp1/vsp1_drm.c
-index e210917fdc3f..9a043a915c0b 100644
---- a/drivers/media/platform/vsp1/vsp1_drm.c
-+++ b/drivers/media/platform/vsp1/vsp1_drm.c
-@@ -42,6 +42,47 @@ static void vsp1_du_pipeline_frame_end(struct vsp1_pipeline *pipe,
- 		drm_pipe->du_complete(drm_pipe->du_private, completed);
- }
- 
-+/* -----------------------------------------------------------------------------
-+ * Pipeline Configuration
-+ */
-+
-+/* Configure all entities in the pipeline. */
-+static void vsp1_du_pipeline_configure(struct vsp1_pipeline *pipe)
-+{
-+	struct vsp1_entity *entity;
-+	struct vsp1_entity *next;
-+	struct vsp1_dl_list *dl;
-+
-+	dl = vsp1_dl_list_get(pipe->output->dlm);
-+
-+	list_for_each_entry_safe(entity, next, &pipe->entities, list_pipe) {
-+		/* Disconnect unused RPFs from the pipeline. */
-+		if (entity->type == VSP1_ENTITY_RPF &&
-+		    !pipe->inputs[entity->index]) {
-+			vsp1_dl_list_write(dl, entity->route->reg,
-+					   VI6_DPR_NODE_UNUSED);
-+
-+			entity->pipe = NULL;
-+			list_del(&entity->list_pipe);
-+
-+			continue;
-+		}
-+
-+		vsp1_entity_route_setup(entity, pipe, dl);
-+
-+		if (entity->ops->configure) {
-+			entity->ops->configure(entity, pipe, dl,
-+					       VSP1_ENTITY_PARAMS_INIT);
-+			entity->ops->configure(entity, pipe, dl,
-+					       VSP1_ENTITY_PARAMS_RUNTIME);
-+			entity->ops->configure(entity, pipe, dl,
-+					       VSP1_ENTITY_PARAMS_PARTITION);
-+		}
-+	}
-+
-+	vsp1_dl_list_commit(dl);
-+}
-+
- /* -----------------------------------------------------------------------------
-  * DU Driver API
-  */
-@@ -85,9 +126,6 @@ int vsp1_du_setup_lif(struct device *dev, unsigned int pipe_index,
- 	struct vsp1_drm_pipeline *drm_pipe;
- 	struct vsp1_pipeline *pipe;
- 	struct vsp1_bru *bru;
--	struct vsp1_entity *entity;
--	struct vsp1_entity *next;
--	struct vsp1_dl_list *dl;
- 	struct v4l2_subdev_format format;
- 	unsigned long flags;
- 	unsigned int i;
-@@ -239,22 +277,7 @@ int vsp1_du_setup_lif(struct device *dev, unsigned int pipe_index,
- 	vsp1_write(vsp1, VI6_DISP_IRQ_ENB, 0);
- 
- 	/* Configure all entities in the pipeline. */
--	dl = vsp1_dl_list_get(pipe->output->dlm);
--
--	list_for_each_entry_safe(entity, next, &pipe->entities, list_pipe) {
--		vsp1_entity_route_setup(entity, pipe, dl);
--
--		if (entity->ops->configure) {
--			entity->ops->configure(entity, pipe, dl,
--					       VSP1_ENTITY_PARAMS_INIT);
--			entity->ops->configure(entity, pipe, dl,
--					       VSP1_ENTITY_PARAMS_RUNTIME);
--			entity->ops->configure(entity, pipe, dl,
--					       VSP1_ENTITY_PARAMS_PARTITION);
--		}
--	}
--
--	vsp1_dl_list_commit(dl);
-+	vsp1_du_pipeline_configure(pipe);
- 
- 	/* Start the pipeline. */
- 	spin_lock_irqsave(&pipe->irqlock, flags);
-@@ -490,15 +513,9 @@ void vsp1_du_atomic_flush(struct device *dev, unsigned int pipe_index)
- 	struct vsp1_pipeline *pipe = &drm_pipe->pipe;
- 	struct vsp1_rwpf *inputs[VSP1_MAX_RPF] = { NULL, };
- 	struct vsp1_bru *bru = to_bru(&pipe->bru->subdev);
--	struct vsp1_entity *entity;
--	struct vsp1_entity *next;
--	struct vsp1_dl_list *dl;
- 	unsigned int i;
- 	int ret;
- 
--	/* Prepare the display list. */
--	dl = vsp1_dl_list_get(pipe->output->dlm);
--
- 	/* Count the number of enabled inputs and sort them by Z-order. */
- 	pipe->num_inputs = 0;
- 
-@@ -557,33 +574,7 @@ void vsp1_du_atomic_flush(struct device *dev, unsigned int pipe_index)
- 				__func__, rpf->entity.index);
- 	}
- 
--	/* Configure all entities in the pipeline. */
--	list_for_each_entry_safe(entity, next, &pipe->entities, list_pipe) {
--		/* Disconnect unused RPFs from the pipeline. */
--		if (entity->type == VSP1_ENTITY_RPF &&
--		    !pipe->inputs[entity->index]) {
--			vsp1_dl_list_write(dl, entity->route->reg,
--					   VI6_DPR_NODE_UNUSED);
--
--			entity->pipe = NULL;
--			list_del(&entity->list_pipe);
--
--			continue;
--		}
--
--		vsp1_entity_route_setup(entity, pipe, dl);
--
--		if (entity->ops->configure) {
--			entity->ops->configure(entity, pipe, dl,
--					       VSP1_ENTITY_PARAMS_INIT);
--			entity->ops->configure(entity, pipe, dl,
--					       VSP1_ENTITY_PARAMS_RUNTIME);
--			entity->ops->configure(entity, pipe, dl,
--					       VSP1_ENTITY_PARAMS_PARTITION);
--		}
--	}
--
--	vsp1_dl_list_commit(dl);
-+	vsp1_du_pipeline_configure(pipe);
- }
- EXPORT_SYMBOL_GPL(vsp1_du_atomic_flush);
- 
+Sure.
+
+> > and taken into my tree for v4.17.
+> 
+> When will this merged to the media-tree trunk?
+> In another month or earlier?
+
+As Hans explained, the v4.16 merge window is open. It should close in a week, 
+and I'll then send a pull request to Mauro.
+
+> This issue was overlooked when merging the change from Arnd in the first
+> place. This broke the Kernel build for older Kernels more than two months
+> ago! I fixed that in my holidays expecting this gets merged soon and now
+> the build is still broken because of this problem.
+
+I had missed this patch as I wasn't CC'ed, until you pinged me directly. 
+Please try to CC me when submitting uvcvideo patches in the future, otherwise 
+there's a high chance I won't see them.
+
+> In the past Mauro merged those simple fixes soon and now it seems nobody
+> cares about building for older Kernels (it's broken for more than two months
+> now!). I mostly try to fix such issues in a short time frame (even on
+> vacation), but then it gets lost ... . Sorry, but this is frustrating!
+> 
+> We don't talk about a nice to have fix but a essential fix to get the media
+> build system working again. Such patches need to get merged as early as
+> possible in my opinion, especially when someone else sent already an
+> "Acked-by" (THX to Arnd).
+> 
+> I could have made this as a patch in the Build system also, but this would
+> be the wrong place, but then Hans would have merged it already and I could
+> look into the other build problems.
+
+Strictly speaking, building the media subsystem on older kernels is a job of 
+the media build system. In general I would thus ask for the fix to be merged 
+in media-build.git. In this specific case, as the mainline code uses both u64 
+and ktime_t types, I'm fine with merging your patch to use explicit conversion 
+functions in mainline even if the two types are now equivalent. However, as 
+this doesn't fix a bug in the mainline kernel, I don't think this patch is a 
+candidate for stable releases, and should thus get merged in v4.17. It can 
+also be included in media-build.git in order to build kernels that currently 
+fail.
+
 -- 
 Regards,
 
