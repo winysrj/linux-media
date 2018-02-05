@@ -1,86 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:44889 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S965444AbeBMRHu (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 13 Feb 2018 12:07:50 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Niklas =?ISO-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-        linux-renesas-soc@vger.kernel.org, tomoharu.fukawa.eb@renesas.com,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>
-Subject: Re: [PATCH v10 18/30] rcar-vin: add check for colorspace
-Date: Tue, 13 Feb 2018 19:08:21 +0200
-Message-ID: <5427648.X2M1hoBuUV@avalon>
-In-Reply-To: <20180129163435.24936-19-niklas.soderlund+renesas@ragnatech.se>
-References: <20180129163435.24936-1-niklas.soderlund+renesas@ragnatech.se> <20180129163435.24936-19-niklas.soderlund+renesas@ragnatech.se>
+Received: from osg.samsung.com ([64.30.133.232]:63620 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752582AbeBERd5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 5 Feb 2018 12:33:57 -0500
+Date: Mon, 5 Feb 2018 15:33:45 -0200
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Tim Harvey <tharvey@gateworks.com>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: Please help test the new v4l-subdev support in v4l2-compliance
+Message-ID: <20180205153345.155fdca6@vento.lan>
+In-Reply-To: <e7db77c5-282a-eb4f-5a37-a4b3859e9b35@xs4all.nl>
+References: <be1babc7-ed0b-8853-19e8-43b20a6f4c17@xs4all.nl>
+        <CAJ+vNU12FEWf6+FUdsYjJhjxZbiBmjR6RurNc4W-xC-ZsMTp+A@mail.gmail.com>
+        <20180205143729.12783826@vento.lan>
+        <20180205145457.6c083894@vento.lan>
+        <f7e62d1c-ae5f-2131-9331-2cb70c3a9749@xs4all.nl>
+        <e7db77c5-282a-eb4f-5a37-a4b3859e9b35@xs4all.nl>
 MIME-Version: 1.0
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset="iso-8859-1"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Niklas,
+Em Mon, 5 Feb 2018 18:01:34 +0100
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-Thank you for the patch.
+> On 02/05/2018 05:59 PM, Hans Verkuil wrote:
+> > On 02/05/2018 05:55 PM, Mauro Carvalho Chehab wrote:  
+> >> Em Mon, 5 Feb 2018 14:37:29 -0200
+> >> Mauro Carvalho Chehab <mchehab@kernel.org> escreveu:
+> >>  
+> >>> Em Mon, 5 Feb 2018 08:21:54 -0800
+> >>> Tim Harvey <tharvey@gateworks.com> escreveu:
+> >>>  
+> >>>> Hans,
+> >>>>
+> >>>> I'm failing compile (of master 4ee9911) with:
+> >>>>
+> >>>>   CXX      v4l2_compliance-media-info.o
+> >>>> media-info.cpp: In function ‘media_type media_detect_type(const char*)’:
+> >>>> media-info.cpp:79:39: error: no matching function for call to
+> >>>> ‘std::basic_ifstream<char>::basic_ifstream(std::__cxx11::string&)’
+> >>>>   std::ifstream uevent_file(uevent_path);
+> >>>>                                        ^    
+> >>>
+> >>> Btw, while on it, a few days ago, I noticed several class warnings when
+> >>> building v4l-utils on Raspbian, saying that it was using some features
+> >>> that future versions of gcc would stop using at qv4l2. See enclosed.
+> >>>
+> >>> I didn't have time to look on them.  
+> >>
+> >> FYI, it still happens with today's upstream's version:
+> >>
+> >> 	4ee99116d0ec (HEAD, origin/master, origin/HEAD) v4l2-ctl: improve the fps calculation when streaming
+> >>
+> >> $ gcc --version
+> >> gcc (Raspbian 6.3.0-18+rpi1) 6.3.0 20170516
+> >> Copyright (C) 2016 Free Software Foundation, Inc.
+> >> This is free software; see the source for copying conditions.  There is NO
+> >> warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+> > 
+> > My guess is that it is a bogus message from gcc 6.
+> > 
+> > Regards,
+> > 
+> > 	Hans
+> >   
+> 
+> See: https://gcc.gnu.org/ml/gcc/2017-05/msg00073.html
+> 
+> Nothing to worry about.
 
-On Monday, 29 January 2018 18:34:23 EET Niklas S=F6derlund wrote:
-> Add a check to ensure the colorspace from user-space is good. On Gen2 it
-> works without this change as the sensor sets the colorspace but on Gen3
-> this can fail if the colorspace provided by the user is not good. The
-> values to check for comes from v4l2-compliance sources which is the tool
-> that found this error. If this check is not preformed v4l2-compliance
+Hmm... as suggested there, it could be worth to add -Wno-psabi at qv4l2
+Makefile if arch is arm[1], in order to avoid those warnings there.
 
-s/preformed/performed/
+[1] from what's said at https://gcc.gnu.org/gcc-7/changes.html, this is
+due to a bug on gcc 5 for ARM.
 
-> fails when it tests colorspace.
->=20
-> Signed-off-by: Niklas S=F6derlund <niklas.soderlund+renesas@ragnatech.se>
-> ---
->  drivers/media/platform/rcar-vin/rcar-v4l2.c | 5 +++++
->  1 file changed, 5 insertions(+)
->=20
-> diff --git a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> b/drivers/media/platform/rcar-vin/rcar-v4l2.c index
-> 841d62ca27e026d7..6403650aff22a2ed 100644
-> --- a/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> +++ b/drivers/media/platform/rcar-vin/rcar-v4l2.c
-> @@ -23,6 +23,7 @@
->  #include "rcar-vin.h"
->=20
->  #define RVIN_DEFAULT_FORMAT	V4L2_PIX_FMT_YUYV
-> +#define RVIN_DEFAULT_COLORSPACE	V4L2_COLORSPACE_SRGB
->=20
->  /* ---------------------------------------------------------------------=
-=2D--
->   * Format Conversions
-> @@ -115,6 +116,10 @@ static int rvin_format_align(struct rvin_dev *vin,
-> struct v4l2_pix_format *pix) break;
->  	}
->=20
-> +	/* Check that colorspace is reasonable */
-> +	if (!pix->colorspace || pix->colorspace >=3D 0xff)
+> 
+> 	Hans
 
-I'd write the first check as
 
-	pix->colorspace =3D=3D V4L2_COLORSPACE_DEFAULT
 
-=46or the second check I don't think 0xff is a meaningful value. We current=
-ly=20
-have 12 colorspaces defined. If we want to be future-proof I'd add a=20
-V4L2_COLORSPACE_MAX entry to enum v4l2_colorspace and use that for the chec=
-k.=20
-Alternatively you could use V4L2_COLORSPACE_DCI_P3 but the driver would nee=
-d=20
-to be updated when new colorspaces get added.
-
-> +		pix->colorspace =3D RVIN_DEFAULT_COLORSPACE;
-> +
->  	/* HW limit width to a multiple of 32 (2^5) for NV16 else 2 (2^1) */
->  	walign =3D vin->format.pixelformat =3D=3D V4L2_PIX_FMT_NV16 ? 5 : 1;
-
-=2D-=20
-Regards,
-
-Laurent Pinchart
+Thanks,
+Mauro
