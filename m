@@ -1,44 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from butterbrot.org ([176.9.106.16]:48466 "EHLO butterbrot.org"
+Received: from sauhun.de ([88.99.104.3]:34223 "EHLO pokefinder.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1750847AbeBHIo2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 8 Feb 2018 03:44:28 -0500
-From: Florian Echtler <floe@butterbrot.org>
-To: hverkuil@xs4all.nl, linux-media@vger.kernel.org
-Cc: linux-input@vger.kernel.org, modin@yuri.at,
-        Florian Echtler <floe@butterbrot.org>
-Subject: [PATCH 1/4] add missing blob structure field for tag id
-Date: Thu,  8 Feb 2018 09:43:03 +0100
-Message-Id: <1518079386-4647-2-git-send-email-floe@butterbrot.org>
-In-Reply-To: <1518079386-4647-1-git-send-email-floe@butterbrot.org>
-References: <1518079386-4647-1-git-send-email-floe@butterbrot.org>
+        id S1751015AbeBEUKZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 5 Feb 2018 15:10:25 -0500
+From: Wolfram Sang <wsa+renesas@sang-engineering.com>
+To: linux-kernel@vger.kernel.org
+Cc: Dan Carpenter <dan.carpenter@oracle.com>,
+        linux-renesas-soc@vger.kernel.org,
+        Wolfram Sang <wsa+renesas@sang-engineering.com>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org
+Subject: [PATCH 1/4] v4l: vsp1: fix mask creation for MULT_ALPHA_RATIO
+Date: Mon,  5 Feb 2018 21:09:58 +0100
+Message-Id: <20180205201002.23621-2-wsa+renesas@sang-engineering.com>
+In-Reply-To: <20180205201002.23621-1-wsa+renesas@sang-engineering.com>
+References: <20180205201002.23621-1-wsa+renesas@sang-engineering.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The SUR40 can recognize specific printed patterns directly in hardware;
-this information (i.e. the pattern id) is present but currently unused
-in the blob structure.
+Due to a typo, the mask was destroyed by a comparison instead of a bit
+shift. No regression since the mask has not been used yet.
 
-Signed-off-by: Florian Echtler <floe@butterbrot.org>
+Signed-off-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
 ---
- drivers/input/touchscreen/sur40.c | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+Only build tested. To be applied individually per subsystem.
 
-diff --git a/drivers/input/touchscreen/sur40.c b/drivers/input/touchscreen/sur40.c
-index f16f835..8375b06 100644
---- a/drivers/input/touchscreen/sur40.c
-+++ b/drivers/input/touchscreen/sur40.c
-@@ -81,7 +81,10 @@ struct sur40_blob {
+ drivers/media/platform/vsp1/vsp1_regs.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/media/platform/vsp1/vsp1_regs.h b/drivers/media/platform/vsp1/vsp1_regs.h
+index 26c4ffad2f4656..b1912c83a1dae2 100644
+--- a/drivers/media/platform/vsp1/vsp1_regs.h
++++ b/drivers/media/platform/vsp1/vsp1_regs.h
+@@ -225,7 +225,7 @@
+ #define VI6_RPF_MULT_ALPHA_P_MMD_RATIO	(1 << 8)
+ #define VI6_RPF_MULT_ALPHA_P_MMD_IMAGE	(2 << 8)
+ #define VI6_RPF_MULT_ALPHA_P_MMD_BOTH	(3 << 8)
+-#define VI6_RPF_MULT_ALPHA_RATIO_MASK	(0xff < 0)
++#define VI6_RPF_MULT_ALPHA_RATIO_MASK	(0xff << 0)
+ #define VI6_RPF_MULT_ALPHA_RATIO_SHIFT	0
  
- 	__le32 area;       /* size in pixels/pressure (?) */
- 
--	u8 padding[32];
-+	u8 padding[24];
-+
-+	__le32 tag_id;     /* valid when type == 0x04 (SUR40_TAG) */
-+	__le32 unknown;
- 
- } __packed;
- 
+ /* -----------------------------------------------------------------------------
 -- 
-2.7.4
+2.11.0
