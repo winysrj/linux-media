@@ -1,483 +1,538 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga06.intel.com ([134.134.136.31]:35601 "EHLO mga06.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752633AbeBSPvU (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 19 Feb 2018 10:51:20 -0500
-From: Andy Yeh <andy.yeh@intel.com>
-To: linux-media@vger.kernel.org
-Cc: andy.yeh@intel.com, sakari.ailus@linux.intel.com, tfiga@google.com,
-        devicetree@vger.kernel.org, Alan Chiang <alanx.chiang@intel.com>
-Subject: [RESEND PATCH 0/2] DW9807 DT binding and driver patches
-Date: Mon, 19 Feb 2018 23:18:06 +0800
-Message-Id: <1519053486-26689-1-git-send-email-andy.yeh@intel.com>
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:45577 "EHLO
+        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752271AbeBELTF (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 5 Feb 2018 06:19:05 -0500
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [RFC PATCH] media.h: reorganize header to make it easier to
+ understand
+Message-ID: <2d219650-ff28-76c4-0f21-40c2aad28cbe@xs4all.nl>
+Date: Mon, 5 Feb 2018 12:19:00 +0100
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Alan Chiang <alanx.chiang@intel.com>
+The media.h public header is very messy. It mixes legacy and 'new' defines
+and it is not easy to figure out what should and what shouldn't be used. It
+also contains confusing comment that are either out of date or completely
+uninteresting for anyone that needs to use this header.
 
-Hi Sakari and Tomasz,
+The patch groups all entity functions together, including the 'old' defines
+based on the old range base. The reader just wants to know about the available
+functions and doesn't care about what range is used.
 
-The two patches are the DT binding and driver for DW9807 VCM controller.
+All legacy defines are moved to the end of the header, so it is easier to
+locate them and just ignore them.
 
-Alan Chiang (2):
-  media: dw9807: Add dw9807 vcm driver
-  media: dt-bindings: Add bindings for Dongwoon DW9807 voice coil
+The legacy structs in the struct media_entity_desc are put under
+#if !defined(__KERNEL__) to prevent the kernel from using them, and this is
+also a much more effective signal to the reader that they shouldn't be used
+compared to the old method of relying on '#if 1' followed by a comment.
 
- .../bindings/media/i2c/dongwoon,dw9807.txt         |   9 +
- MAINTAINERS                                        |   7 +
- drivers/media/i2c/Kconfig                          |  10 +
- drivers/media/i2c/Makefile                         |   1 +
- drivers/media/i2c/dw9807.c                         | 320 +++++++++++++++++++++
- 5 files changed, 347 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/i2c/dongwoon,dw9807.txt
- create mode 100644 drivers/media/i2c/dw9807.c
+The unused MEDIA_INTF_T_ALSA_* defines are also moved to the end of the header
+in the legacy area. They are also dropped from intf_type() in media-entity.c.
 
--- 
-2.7.4
+All defines are also aligned at the same tab making the header easier to read.
 
->From 9de9f85bbd980fd873c38388cbfbd196ff84a84e Mon Sep 17 00:00:00 2001
-From: Alan Chiang <alanx.chiang@intel.com>
-Date: Tue, 30 Jan 2018 00:28:48 +0800
-Subject: [RESEND PATCH 1/2] media: dt-bindings: Add bindings for Dongwoon DW9807
- voice coil
-
-Dongwoon DW9807 is a voice coil lens driver.
-
-Also add a vendor prefix for Dongwoon for one did not exist previously.
-
-Signed-off-by: Andy Yeh <andy.yeh@intel.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- Documentation/devicetree/bindings/media/i2c/dongwoon,dw9807.txt | 9 +++++++++
- 1 file changed, 9 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/i2c/dongwoon,dw9807.txt
+diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+index f7c6d64e6031..3498551e618e 100644
+--- a/drivers/media/media-entity.c
++++ b/drivers/media/media-entity.c
+@@ -64,22 +64,6 @@ static inline const char *intf_type(struct media_interface *intf)
+ 		return "v4l-swradio";
+ 	case MEDIA_INTF_T_V4L_TOUCH:
+ 		return "v4l-touch";
+-	case MEDIA_INTF_T_ALSA_PCM_CAPTURE:
+-		return "alsa-pcm-capture";
+-	case MEDIA_INTF_T_ALSA_PCM_PLAYBACK:
+-		return "alsa-pcm-playback";
+-	case MEDIA_INTF_T_ALSA_CONTROL:
+-		return "alsa-control";
+-	case MEDIA_INTF_T_ALSA_COMPRESS:
+-		return "alsa-compress";
+-	case MEDIA_INTF_T_ALSA_RAWMIDI:
+-		return "alsa-rawmidi";
+-	case MEDIA_INTF_T_ALSA_HWDEP:
+-		return "alsa-hwdep";
+-	case MEDIA_INTF_T_ALSA_SEQUENCER:
+-		return "alsa-sequencer";
+-	case MEDIA_INTF_T_ALSA_TIMER:
+-		return "alsa-timer";
+ 	default:
+ 		return "unknown-intf";
+ 	}
+diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+index b9b9446095e9..febe28054579 100644
+--- a/include/uapi/linux/media.h
++++ b/include/uapi/linux/media.h
+@@ -15,10 +15,6 @@
+  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  * GNU General Public License for more details.
+- *
+- * You should have received a copy of the GNU General Public License
+- * along with this program; if not, write to the Free Software
+- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+  */
 
-diff --git a/Documentation/devicetree/bindings/media/i2c/dongwoon,dw9807.txt b/Documentation/devicetree/bindings/media/i2c/dongwoon,dw9807.txt
-new file mode 100644
-index 0000000..0a1a860
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/i2c/dongwoon,dw9807.txt
-@@ -0,0 +1,9 @@
-+Dongwoon Anatech DW9807 voice coil lens driver
-+
-+DW9807 is a 10-bit DAC with current sink capability. It is intended for
-+controlling voice coil lenses.
-+
-+Mandatory properties:
-+
-+- compatible: "dongwoon,dw9807"
-+- reg: I2C slave address
--- 
-2.7.4
+ #ifndef __LINUX_MEDIA_H
+@@ -42,108 +38,65 @@ struct media_device_info {
+ 	__u32 reserved[31];
+ };
 
->From 7d84b8eb85989fd55a07f132059a4c56d3131d11 Mon Sep 17 00:00:00 2001
-From: Alan Chiang <alanx.chiang@intel.com>
-Date: Tue, 23 Jan 2018 00:12:25 +0800
-Subject: [RESEND PATCH v5 2/2] media: dw9807: Add dw9807 vcm driver
+-#define MEDIA_ENT_ID_FLAG_NEXT		(1 << 31)
+-
+-/*
+- * Initial value to be used when a new entity is created
+- * Drivers should change it to something useful
+- */
+-#define MEDIA_ENT_F_UNKNOWN	0x00000000
+-
+ /*
+  * Base number ranges for entity functions
+  *
+- * NOTE: those ranges and entity function number are phased just to
+- * make it easier to maintain this file. Userspace should not rely on
+- * the ranges to identify a group of function types, as newer
+- * functions can be added with any name within the full u32 range.
++ * NOTE: Userspace should not rely on these ranges to identify a group
++ * of function types, as newer functions can be added with any name within
++ * the full u32 range.
++ *
++ * Some older functions use the MEDIA_ENT_F_OLD_*_BASE range. Do not
++ * changes this, this is for backwards compatibility. When adding new
++ * functions always use MEDIA_ENT_F_BASE.
+  */
+-#define MEDIA_ENT_F_BASE		0x00000000
+-#define MEDIA_ENT_F_OLD_BASE		0x00010000
+-#define MEDIA_ENT_F_OLD_SUBDEV_BASE	0x00020000
++#define MEDIA_ENT_F_BASE			0x00000000
++#define MEDIA_ENT_F_OLD_BASE			0x00010000
++#define MEDIA_ENT_F_OLD_SUBDEV_BASE		0x00020000
 
-DW9807 is a 10 bit DAC from Dongwoon, designed for linear
-control of voice coil motor.
+ /*
+- * DVB entities
++ * Initial value to be used when a new entity is created
++ * Drivers should change it to something useful.
+  */
+-#define MEDIA_ENT_F_DTV_DEMOD		(MEDIA_ENT_F_BASE + 0x00001)
+-#define MEDIA_ENT_F_TS_DEMUX		(MEDIA_ENT_F_BASE + 0x00002)
+-#define MEDIA_ENT_F_DTV_CA		(MEDIA_ENT_F_BASE + 0x00003)
+-#define MEDIA_ENT_F_DTV_NET_DECAP	(MEDIA_ENT_F_BASE + 0x00004)
++#define MEDIA_ENT_F_UNKNOWN			MEDIA_ENT_F_BASE
 
-This driver creates a V4L2 subdevice and
-provides control to set the desired focus.
+ /*
+- * I/O entities
++ * Subdevs are initialized with MEDIA_ENT_F_V4L2_SUBDEV_UNKNOWN in order
++ * to preserve backward compatibility. Drivers must change to the proper
++ * subdev type before registering the entity.
+  */
+-#define MEDIA_ENT_F_IO_DTV		(MEDIA_ENT_F_BASE + 0x01001)
+-#define MEDIA_ENT_F_IO_VBI		(MEDIA_ENT_F_BASE + 0x01002)
+-#define MEDIA_ENT_F_IO_SWRADIO		(MEDIA_ENT_F_BASE + 0x01003)
++#define MEDIA_ENT_F_V4L2_SUBDEV_UNKNOWN		MEDIA_ENT_F_OLD_SUBDEV_BASE
 
-Signed-off-by: Andy Yeh <andy.yeh@intel.com>
----
-since v1:
-- changed author.
-since v2:
-- addressed outstanding comments.
-- enabled sequential write to update 2 registers in a single transaction.
-since v3:
-- addressed comments for v3.
-- Remove redundant codes and declar some variables as constant variable.
-- separate DT binding to another patch
-since v4:
-- Remove unnecessary typecast
-- Put the temporary and loop variables in the end of the declaration
+ /*
+- * Analog TV IF-PLL decoders
+- *
+- * It is a responsibility of the master/bridge drivers to create links
+- * for MEDIA_ENT_F_IF_VID_DECODER and MEDIA_ENT_F_IF_AUD_DECODER.
++ * DVB entity functions
+  */
+-#define MEDIA_ENT_F_IF_VID_DECODER	(MEDIA_ENT_F_BASE + 0x02001)
+-#define MEDIA_ENT_F_IF_AUD_DECODER	(MEDIA_ENT_F_BASE + 0x02002)
++#define MEDIA_ENT_F_DTV_DEMOD			(MEDIA_ENT_F_BASE + 0x00001)
++#define MEDIA_ENT_F_TS_DEMUX			(MEDIA_ENT_F_BASE + 0x00002)
++#define MEDIA_ENT_F_DTV_CA			(MEDIA_ENT_F_BASE + 0x00003)
++#define MEDIA_ENT_F_DTV_NET_DECAP		(MEDIA_ENT_F_BASE + 0x00004)
 
- MAINTAINERS                |   7 +
- drivers/media/i2c/Kconfig  |  10 ++
- drivers/media/i2c/Makefile |   1 +
- drivers/media/i2c/dw9807.c | 320 +++++++++++++++++++++++++++++++++++++++++++++
- 4 files changed, 338 insertions(+)
- create mode 100644 drivers/media/i2c/dw9807.c
+ /*
+- * Audio Entity Functions
++ * I/O entity functions
+  */
+-#define MEDIA_ENT_F_AUDIO_CAPTURE	(MEDIA_ENT_F_BASE + 0x03001)
+-#define MEDIA_ENT_F_AUDIO_PLAYBACK	(MEDIA_ENT_F_BASE + 0x03002)
+-#define MEDIA_ENT_F_AUDIO_MIXER		(MEDIA_ENT_F_BASE + 0x03003)
++#define MEDIA_ENT_F_IO_V4L  			(MEDIA_ENT_F_OLD_BASE + 1)
++#define MEDIA_ENT_F_IO_DTV			(MEDIA_ENT_F_BASE + 0x01001)
++#define MEDIA_ENT_F_IO_VBI			(MEDIA_ENT_F_BASE + 0x01002)
++#define MEDIA_ENT_F_IO_SWRADIO			(MEDIA_ENT_F_BASE + 0x01003)
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 845fc25..a339bb5 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -4385,6 +4385,13 @@ T:	git git://linuxtv.org/media_tree.git
- S:	Maintained
- F:	drivers/media/i2c/dw9714.c
- 
-+DONGWOON DW9807 LENS VOICE COIL DRIVER
-+M:	Sakari Ailus <sakari.ailus@linux.intel.com>
-+L:	linux-media@vger.kernel.org
-+T:	git git://linuxtv.org/media_tree.git
-+S:	Maintained
-+F:	drivers/media/i2c/dw9807.c
-+
- DOUBLETALK DRIVER
- M:	"James R. Van Zandt" <jrv@vanzandt.mv.com>
- L:	blinux-list@redhat.com
-diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
-index cb5d7ff..fd01842 100644
---- a/drivers/media/i2c/Kconfig
-+++ b/drivers/media/i2c/Kconfig
-@@ -325,6 +325,16 @@ config VIDEO_DW9714
- 	  capability. This is designed for linear control of
- 	  voice coil motors, controlled via I2C serial interface.
- 
-+config VIDEO_DW9807
-+	tristate "DW9807 lens voice coil support"
-+	depends on I2C && VIDEO_V4L2 && MEDIA_CONTROLLER
-+	depends on VIDEO_V4L2_SUBDEV_API
-+	---help---
-+	  This is a driver for the DW9807 camera lens voice coil.
-+	  DW9807 is a 10 bit DAC with 100mA output current sink
-+	  capability. This is designed for linear control of
-+	  voice coil motors, controlled via I2C serial interface.
-+
- config VIDEO_SAA7110
- 	tristate "Philips SAA7110 video decoder"
- 	depends on VIDEO_V4L2 && I2C
-diff --git a/drivers/media/i2c/Makefile b/drivers/media/i2c/Makefile
-index 548a9ef..1b62639 100644
---- a/drivers/media/i2c/Makefile
-+++ b/drivers/media/i2c/Makefile
-@@ -23,6 +23,7 @@ obj-$(CONFIG_VIDEO_SAA7185) += saa7185.o
- obj-$(CONFIG_VIDEO_SAA6752HS) += saa6752hs.o
- obj-$(CONFIG_VIDEO_AD5820)  += ad5820.o
- obj-$(CONFIG_VIDEO_DW9714)  += dw9714.o
-+obj-$(CONFIG_VIDEO_DW9807)  += dw9807.o
- obj-$(CONFIG_VIDEO_ADV7170) += adv7170.o
- obj-$(CONFIG_VIDEO_ADV7175) += adv7175.o
- obj-$(CONFIG_VIDEO_ADV7180) += adv7180.o
-diff --git a/drivers/media/i2c/dw9807.c b/drivers/media/i2c/dw9807.c
-new file mode 100644
-index 0000000..95626e9
---- /dev/null
-+++ b/drivers/media/i2c/dw9807.c
-@@ -0,0 +1,320 @@
-+// Copyright (C) 2018 Intel Corporation
-+// SPDX-License-Identifier: GPL-2.0
-+
-+#include <linux/acpi.h>
-+#include <linux/delay.h>
-+#include <linux/i2c.h>
-+#include <linux/module.h>
-+#include <linux/pm_runtime.h>
-+#include <media/v4l2-ctrls.h>
-+#include <media/v4l2-device.h>
-+
-+#define DW9807_NAME		"dw9807"
-+#define DW9807_MAX_FOCUS_POS	1023
+ /*
+- * Processing entities
++ * Sensor functions
+  */
+-#define MEDIA_ENT_F_PROC_VIDEO_COMPOSER		(MEDIA_ENT_F_BASE + 0x4001)
+-#define MEDIA_ENT_F_PROC_VIDEO_PIXEL_FORMATTER	(MEDIA_ENT_F_BASE + 0x4002)
+-#define MEDIA_ENT_F_PROC_VIDEO_PIXEL_ENC_CONV	(MEDIA_ENT_F_BASE + 0x4003)
+-#define MEDIA_ENT_F_PROC_VIDEO_LUT		(MEDIA_ENT_F_BASE + 0x4004)
+-#define MEDIA_ENT_F_PROC_VIDEO_SCALER		(MEDIA_ENT_F_BASE + 0x4005)
+-#define MEDIA_ENT_F_PROC_VIDEO_STATISTICS	(MEDIA_ENT_F_BASE + 0x4006)
++#define MEDIA_ENT_F_CAM_SENSOR			(MEDIA_ENT_F_OLD_SUBDEV_BASE + 1)
++#define MEDIA_ENT_F_FLASH			(MEDIA_ENT_F_OLD_SUBDEV_BASE + 2)
++#define MEDIA_ENT_F_LENS			(MEDIA_ENT_F_OLD_SUBDEV_BASE + 3)
+
+ /*
+- * Switch and bridge entitites
++ * Analog video decoder functions
+  */
+-#define MEDIA_ENT_F_VID_MUX			(MEDIA_ENT_F_BASE + 0x5001)
+-#define MEDIA_ENT_F_VID_IF_BRIDGE		(MEDIA_ENT_F_BASE + 0x5002)
++#define MEDIA_ENT_F_ATV_DECODER			(MEDIA_ENT_F_OLD_SUBDEV_BASE + 4)
+
+ /*
+- * Connectors
+- */
+-/* It is a responsibility of the entity drivers to add connectors and links */
+-#ifdef __KERNEL__
+-	/*
+-	 * For now, it should not be used in userspace, as some
+-	 * definitions may change
+-	 */
+-
+-#define MEDIA_ENT_F_CONN_RF		(MEDIA_ENT_F_BASE + 0x30001)
+-#define MEDIA_ENT_F_CONN_SVIDEO		(MEDIA_ENT_F_BASE + 0x30002)
+-#define MEDIA_ENT_F_CONN_COMPOSITE	(MEDIA_ENT_F_BASE + 0x30003)
+-
+-#endif
+-
+-/*
+- * Don't touch on those. The ranges MEDIA_ENT_F_OLD_BASE and
+- * MEDIA_ENT_F_OLD_SUBDEV_BASE are kept to keep backward compatibility
+- * with the legacy v1 API.The number range is out of range by purpose:
+- * several previously reserved numbers got excluded from this range.
++ * Digital TV, analog TV, radio and/or software defined radio tuner functions.
+  *
+- * Subdevs are initialized with MEDIA_ENT_T_V4L2_SUBDEV_UNKNOWN,
+- * in order to preserve backward compatibility.
+- * Drivers must change to the proper subdev type before
+- * registering the entity.
+- */
+-
+-#define MEDIA_ENT_F_IO_V4L  		(MEDIA_ENT_F_OLD_BASE + 1)
+-
+-#define MEDIA_ENT_F_CAM_SENSOR		(MEDIA_ENT_F_OLD_SUBDEV_BASE + 1)
+-#define MEDIA_ENT_F_FLASH		(MEDIA_ENT_F_OLD_SUBDEV_BASE + 2)
+-#define MEDIA_ENT_F_LENS		(MEDIA_ENT_F_OLD_SUBDEV_BASE + 3)
+-#define MEDIA_ENT_F_ATV_DECODER		(MEDIA_ENT_F_OLD_SUBDEV_BASE + 4)
+-/*
+  * It is a responsibility of the master/bridge drivers to add connectors
+  * and links for MEDIA_ENT_F_TUNER. Please notice that some old tuners
+  * may require the usage of separate I2C chips to decode analog TV signals,
+@@ -151,49 +104,46 @@ struct media_device_info {
+  * On such cases, the IF-PLL staging is mapped via one or two entities:
+  * MEDIA_ENT_F_IF_VID_DECODER and/or MEDIA_ENT_F_IF_AUD_DECODER.
+  */
+-#define MEDIA_ENT_F_TUNER		(MEDIA_ENT_F_OLD_SUBDEV_BASE + 5)
++#define MEDIA_ENT_F_TUNER			(MEDIA_ENT_F_OLD_SUBDEV_BASE + 5)
+
+-#define MEDIA_ENT_F_V4L2_SUBDEV_UNKNOWN	MEDIA_ENT_F_OLD_SUBDEV_BASE
 +/*
-+ * This sets the minimum granularity for the focus positions.
-+ * A value of 1 gives maximum accuracy for a desired focus position
++ * Analog TV IF-PLL decoder functions
++ *
++ * It is a responsibility of the master/bridge drivers to create links
++ * for MEDIA_ENT_F_IF_VID_DECODER and MEDIA_ENT_F_IF_AUD_DECODER.
 + */
-+#define DW9807_FOCUS_STEPS	1
++#define MEDIA_ENT_F_IF_VID_DECODER		(MEDIA_ENT_F_BASE + 0x02001)
++#define MEDIA_ENT_F_IF_AUD_DECODER		(MEDIA_ENT_F_BASE + 0x02002)
+
+-#if !defined(__KERNEL__) || defined(__NEED_MEDIA_LEGACY_API)
 +/*
-+ * This acts as the minimum granularity of lens movement.
-+ * Keep this value power of 2, so the control steps can be
-+ * uniformly adjusted for gradual lens movement, with desired
-+ * number of control steps.
++ * Audio entity functions
 + */
-+#define DW9807_CTRL_STEPS	16
-+#define DW9807_CTRL_DELAY_US	1000
-+
-+#define DW9807_CTL_ADDR		0x02
++#define MEDIA_ENT_F_AUDIO_CAPTURE		(MEDIA_ENT_F_BASE + 0x03001)
++#define MEDIA_ENT_F_AUDIO_PLAYBACK		(MEDIA_ENT_F_BASE + 0x03002)
++#define MEDIA_ENT_F_AUDIO_MIXER			(MEDIA_ENT_F_BASE + 0x03003)
+
+ /*
+- * Legacy symbols used to avoid userspace compilation breakages
+- *
+- * Those symbols map the entity function into types and should be
+- * used only on legacy programs for legacy hardware. Don't rely
+- * on those for MEDIA_IOC_G_TOPOLOGY.
++ * Processing entity functions
+  */
+-#define MEDIA_ENT_TYPE_SHIFT		16
+-#define MEDIA_ENT_TYPE_MASK		0x00ff0000
+-#define MEDIA_ENT_SUBTYPE_MASK		0x0000ffff
+-
+-/* End of the old subdev reserved numberspace */
+-#define MEDIA_ENT_T_DEVNODE_UNKNOWN	(MEDIA_ENT_T_DEVNODE | \
+-					 MEDIA_ENT_SUBTYPE_MASK)
+-
+-#define MEDIA_ENT_T_DEVNODE		MEDIA_ENT_F_OLD_BASE
+-#define MEDIA_ENT_T_DEVNODE_V4L		MEDIA_ENT_F_IO_V4L
+-#define MEDIA_ENT_T_DEVNODE_FB		(MEDIA_ENT_T_DEVNODE + 2)
+-#define MEDIA_ENT_T_DEVNODE_ALSA	(MEDIA_ENT_T_DEVNODE + 3)
+-#define MEDIA_ENT_T_DEVNODE_DVB		(MEDIA_ENT_T_DEVNODE + 4)
+-
+-#define MEDIA_ENT_T_UNKNOWN		MEDIA_ENT_F_UNKNOWN
+-#define MEDIA_ENT_T_V4L2_VIDEO		MEDIA_ENT_F_IO_V4L
+-#define MEDIA_ENT_T_V4L2_SUBDEV		MEDIA_ENT_F_V4L2_SUBDEV_UNKNOWN
+-#define MEDIA_ENT_T_V4L2_SUBDEV_SENSOR	MEDIA_ENT_F_CAM_SENSOR
+-#define MEDIA_ENT_T_V4L2_SUBDEV_FLASH	MEDIA_ENT_F_FLASH
+-#define MEDIA_ENT_T_V4L2_SUBDEV_LENS	MEDIA_ENT_F_LENS
+-#define MEDIA_ENT_T_V4L2_SUBDEV_DECODER	MEDIA_ENT_F_ATV_DECODER
+-#define MEDIA_ENT_T_V4L2_SUBDEV_TUNER	MEDIA_ENT_F_TUNER
++#define MEDIA_ENT_F_PROC_VIDEO_COMPOSER		(MEDIA_ENT_F_BASE + 0x4001)
++#define MEDIA_ENT_F_PROC_VIDEO_PIXEL_FORMATTER	(MEDIA_ENT_F_BASE + 0x4002)
++#define MEDIA_ENT_F_PROC_VIDEO_PIXEL_ENC_CONV	(MEDIA_ENT_F_BASE + 0x4003)
++#define MEDIA_ENT_F_PROC_VIDEO_LUT		(MEDIA_ENT_F_BASE + 0x4004)
++#define MEDIA_ENT_F_PROC_VIDEO_SCALER		(MEDIA_ENT_F_BASE + 0x4005)
++#define MEDIA_ENT_F_PROC_VIDEO_STATISTICS	(MEDIA_ENT_F_BASE + 0x4006)
+
+-/* Obsolete symbol for media_version, no longer used in the kernel */
+-#define MEDIA_API_VERSION		KERNEL_VERSION(0, 1, 0)
+-#endif
 +/*
-+ * DW9807 separates two registers to control the VCM position.
-+ * One for MSB value, another is LSB value.
++ * Switch and bridge entity functions
 + */
-+#define DW9807_MSB_ADDR		0x03
-+#define DW9807_LSB_ADDR		0x04
-+#define DW9807_STATUS_ADDR	0x05
-+#define DW9807_MODE_ADDR	0x06
-+#define DW9807_RESONANCE_ADDR	0x07
++#define MEDIA_ENT_F_VID_MUX			(MEDIA_ENT_F_BASE + 0x5001)
++#define MEDIA_ENT_F_VID_IF_BRIDGE		(MEDIA_ENT_F_BASE + 0x5002)
+
+ /* Entity flags */
+-#define MEDIA_ENT_FL_DEFAULT		(1 << 0)
+-#define MEDIA_ENT_FL_CONNECTOR		(1 << 1)
++#define MEDIA_ENT_FL_DEFAULT			(1 << 0)
++#define MEDIA_ENT_FL_CONNECTOR			(1 << 1)
 +
-+#define MAX_RETRY		10
++/* OR with the entity id value to find the next entity */
++#define MEDIA_ENT_ID_FLAG_NEXT			(1 << 31)
+
+ struct media_entity_desc {
+ 	__u32 id;
+@@ -214,7 +164,7 @@ struct media_entity_desc {
+ 			__u32 minor;
+ 		} dev;
+
+-#if 1
++#if !defined(__KERNEL__)
+ 		/*
+ 		 * TODO: this shouldn't have been added without
+ 		 * actual drivers that use this. When the first real driver
+@@ -225,24 +175,17 @@ struct media_entity_desc {
+ 		 * contain the subdevice information. In addition, struct dev
+ 		 * can only refer to a single device, and not to multiple (e.g.
+ 		 * pcm and mixer devices).
+-		 *
+-		 * So for now mark this as a to do.
+ 		 */
+ 		struct {
+ 			__u32 card;
+ 			__u32 device;
+ 			__u32 subdevice;
+ 		} alsa;
+-#endif
+
+-#if 1
+ 		/*
+ 		 * DEPRECATED: previous node specifications. Kept just to
+-		 * avoid breaking compilation, but media_entity_desc.dev
+-		 * should be used instead. In particular, alsa and dvb
+-		 * fields below are wrong: for all devnodes, there should
+-		 * be just major/minor inside the struct, as this is enough
+-		 * to represent any devnode, no matter what type.
++		 * avoid breaking compilation. Use media_entity_desc.dev
++		 * instead.
+ 		 */
+ 		struct {
+ 			__u32 major;
+@@ -261,9 +204,9 @@ struct media_entity_desc {
+ 	};
+ };
+
+-#define MEDIA_PAD_FL_SINK		(1 << 0)
+-#define MEDIA_PAD_FL_SOURCE		(1 << 1)
+-#define MEDIA_PAD_FL_MUST_CONNECT	(1 << 2)
++#define MEDIA_PAD_FL_SINK			(1 << 0)
++#define MEDIA_PAD_FL_SOURCE			(1 << 1)
++#define MEDIA_PAD_FL_MUST_CONNECT		(1 << 2)
+
+ struct media_pad_desc {
+ 	__u32 entity;		/* entity ID */
+@@ -272,13 +215,13 @@ struct media_pad_desc {
+ 	__u32 reserved[2];
+ };
+
+-#define MEDIA_LNK_FL_ENABLED		(1 << 0)
+-#define MEDIA_LNK_FL_IMMUTABLE		(1 << 1)
+-#define MEDIA_LNK_FL_DYNAMIC		(1 << 2)
++#define MEDIA_LNK_FL_ENABLED			(1 << 0)
++#define MEDIA_LNK_FL_IMMUTABLE			(1 << 1)
++#define MEDIA_LNK_FL_DYNAMIC			(1 << 2)
+
+-#define MEDIA_LNK_FL_LINK_TYPE		(0xf << 28)
+-#  define MEDIA_LNK_FL_DATA_LINK	(0 << 28)
+-#  define MEDIA_LNK_FL_INTERFACE_LINK	(1 << 28)
++#define MEDIA_LNK_FL_LINK_TYPE			(0xf << 28)
++#  define MEDIA_LNK_FL_DATA_LINK		(0 << 28)
++#  define MEDIA_LNK_FL_INTERFACE_LINK		(1 << 28)
+
+ struct media_link_desc {
+ 	struct media_pad_desc source;
+@@ -298,57 +241,47 @@ struct media_links_enum {
+
+ /* Interface type ranges */
+
+-#define MEDIA_INTF_T_DVB_BASE	0x00000100
+-#define MEDIA_INTF_T_V4L_BASE	0x00000200
+-#define MEDIA_INTF_T_ALSA_BASE	0x00000300
++#define MEDIA_INTF_T_DVB_BASE			0x00000100
++#define MEDIA_INTF_T_V4L_BASE			0x00000200
+
+ /* Interface types */
+
+-#define MEDIA_INTF_T_DVB_FE    	(MEDIA_INTF_T_DVB_BASE)
+-#define MEDIA_INTF_T_DVB_DEMUX  (MEDIA_INTF_T_DVB_BASE + 1)
+-#define MEDIA_INTF_T_DVB_DVR    (MEDIA_INTF_T_DVB_BASE + 2)
+-#define MEDIA_INTF_T_DVB_CA     (MEDIA_INTF_T_DVB_BASE + 3)
+-#define MEDIA_INTF_T_DVB_NET    (MEDIA_INTF_T_DVB_BASE + 4)
+-
+-#define MEDIA_INTF_T_V4L_VIDEO  (MEDIA_INTF_T_V4L_BASE)
+-#define MEDIA_INTF_T_V4L_VBI    (MEDIA_INTF_T_V4L_BASE + 1)
+-#define MEDIA_INTF_T_V4L_RADIO  (MEDIA_INTF_T_V4L_BASE + 2)
+-#define MEDIA_INTF_T_V4L_SUBDEV (MEDIA_INTF_T_V4L_BASE + 3)
+-#define MEDIA_INTF_T_V4L_SWRADIO (MEDIA_INTF_T_V4L_BASE + 4)
+-#define MEDIA_INTF_T_V4L_TOUCH	(MEDIA_INTF_T_V4L_BASE + 5)
+-
+-#define MEDIA_INTF_T_ALSA_PCM_CAPTURE   (MEDIA_INTF_T_ALSA_BASE)
+-#define MEDIA_INTF_T_ALSA_PCM_PLAYBACK  (MEDIA_INTF_T_ALSA_BASE + 1)
+-#define MEDIA_INTF_T_ALSA_CONTROL       (MEDIA_INTF_T_ALSA_BASE + 2)
+-#define MEDIA_INTF_T_ALSA_COMPRESS      (MEDIA_INTF_T_ALSA_BASE + 3)
+-#define MEDIA_INTF_T_ALSA_RAWMIDI       (MEDIA_INTF_T_ALSA_BASE + 4)
+-#define MEDIA_INTF_T_ALSA_HWDEP         (MEDIA_INTF_T_ALSA_BASE + 5)
+-#define MEDIA_INTF_T_ALSA_SEQUENCER     (MEDIA_INTF_T_ALSA_BASE + 6)
+-#define MEDIA_INTF_T_ALSA_TIMER         (MEDIA_INTF_T_ALSA_BASE + 7)
++#define MEDIA_INTF_T_DVB_FE    			(MEDIA_INTF_T_DVB_BASE)
++#define MEDIA_INTF_T_DVB_DEMUX  		(MEDIA_INTF_T_DVB_BASE + 1)
++#define MEDIA_INTF_T_DVB_DVR    		(MEDIA_INTF_T_DVB_BASE + 2)
++#define MEDIA_INTF_T_DVB_CA     		(MEDIA_INTF_T_DVB_BASE + 3)
++#define MEDIA_INTF_T_DVB_NET    		(MEDIA_INTF_T_DVB_BASE + 4)
 +
-+struct dw9807_device {
-+	struct v4l2_ctrl_handler ctrls_vcm;
-+	struct v4l2_subdev sd;
-+	u16 current_val;
-+};
++#define MEDIA_INTF_T_V4L_VIDEO  		(MEDIA_INTF_T_V4L_BASE)
++#define MEDIA_INTF_T_V4L_VBI    		(MEDIA_INTF_T_V4L_BASE + 1)
++#define MEDIA_INTF_T_V4L_RADIO  		(MEDIA_INTF_T_V4L_BASE + 2)
++#define MEDIA_INTF_T_V4L_SUBDEV 		(MEDIA_INTF_T_V4L_BASE + 3)
++#define MEDIA_INTF_T_V4L_SWRADIO 		(MEDIA_INTF_T_V4L_BASE + 4)
++#define MEDIA_INTF_T_V4L_TOUCH			(MEDIA_INTF_T_V4L_BASE + 5)
 +
-+static inline struct dw9807_device *sd_to_dw9807_vcm(struct v4l2_subdev *subdev)
-+{
-+	return container_of(subdev, struct dw9807_device, sd);
-+}
-+
-+static int dw9807_i2c_check(struct i2c_client *client)
-+{
-+	const char status_addr = DW9807_STATUS_ADDR;
-+	char status_result = 0x1;
-+	int ret;
-+
-+	ret = i2c_master_send(client, (const char *)&status_addr, sizeof(status_addr));
-+	if (ret != sizeof(status_addr)) {
-+		dev_err(&client->dev, "I2C write STATUS address fail ret = %d\n",
-+			ret);
-+		return -EIO;
-+	}
-+
-+	ret = i2c_master_recv(client, (char *)&status_result, sizeof(status_result));
-+	if (ret != sizeof(status_result)) {
-+		dev_err(&client->dev, "I2C read STATUS value fail ret=%d\n",
-+			ret);
-+		return -EIO;
-+	}
-+
-+	return status_result;
-+}
-+
-+static int dw9807_set_dac(struct i2c_client *client, u16 data)
-+{
-+	const char tx_data[3] = {
-+		DW9807_MSB_ADDR, ((data >> 8) & 0x03), (data & 0xFF) };
-+	int ret, retry = 0;
-+
-+	/*
-+	 * According to the datasheet, need to check the bus status before we
-+	 * write VCM position. This ensure that we really write the value
-+	 * into the register
-+	 */
-+	while (dw9807_i2c_check(client) != 0) {
-+		if (MAX_RETRY == ++retry) {
-+			dev_err(&client->dev, "Cannot do the write operation because VCM is busy\n");
-+			return -EIO;
-+		}
-+		usleep_range(DW9807_CTRL_DELAY_US, DW9807_CTRL_DELAY_US + 10);
-+	}
-+
-+	/* Write VCM position to registers */
-+	ret = i2c_master_send(client, tx_data, sizeof(tx_data));
-+	if (ret != sizeof(tx_data)) {
-+		dev_err(&client->dev, "I2C write MSB fail\n");
-+		return -EIO;
-+	}
-+
-+	return 0;
-+}
-+
-+static int dw9807_set_ctrl(struct v4l2_ctrl *ctrl)
-+{
-+	struct dw9807_device *dev_vcm = container_of(ctrl->handler, struct dw9807_device, ctrls_vcm);
-+
-+	if (ctrl->id == V4L2_CID_FOCUS_ABSOLUTE) {
-+		struct i2c_client *client = v4l2_get_subdevdata(&dev_vcm->sd);
-+
-+		dev_vcm->current_val = ctrl->val;
-+		return dw9807_set_dac(client, ctrl->val);
-+	}
-+
-+	return -EINVAL;
-+}
-+
-+static const struct v4l2_ctrl_ops dw9807_vcm_ctrl_ops = {
-+	.s_ctrl = dw9807_set_ctrl,
-+};
-+
-+static int dw9807_open(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
-+{
-+	int rval;
-+
-+	rval = pm_runtime_get_sync(sd->dev);
-+	if (rval < 0) {
-+		pm_runtime_put_noidle(sd->dev);
-+		return rval;
-+	}
-+
-+	return 0;
-+}
-+
-+static int dw9807_close(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
-+{
-+	pm_runtime_put(sd->dev);
-+
-+	return 0;
-+}
-+
-+static const struct v4l2_subdev_internal_ops dw9807_int_ops = {
-+	.open = dw9807_open,
-+	.close = dw9807_close,
-+};
-+
-+static const struct v4l2_subdev_ops dw9807_ops = { };
-+
-+static void dw9807_subdev_cleanup(struct dw9807_device *dw9807_dev)
-+{
-+	v4l2_async_unregister_subdev(&dw9807_dev->sd);
-+	v4l2_ctrl_handler_free(&dw9807_dev->ctrls_vcm);
-+	media_entity_cleanup(&dw9807_dev->sd.entity);
-+}
-+
-+static int dw9807_init_controls(struct dw9807_device *dev_vcm)
-+{
-+	struct v4l2_ctrl_handler *hdl = &dev_vcm->ctrls_vcm;
-+	const struct v4l2_ctrl_ops *ops = &dw9807_vcm_ctrl_ops;
-+	struct i2c_client *client = v4l2_get_subdevdata(&dev_vcm->sd);
-+
-+	v4l2_ctrl_handler_init(hdl, 1);
-+
-+	v4l2_ctrl_new_std(hdl, ops, V4L2_CID_FOCUS_ABSOLUTE,
-+			  0, DW9807_MAX_FOCUS_POS, DW9807_FOCUS_STEPS, 0);
-+
-+	dev_vcm->sd.ctrl_handler = hdl;
-+	if (hdl->error) {
-+		dev_err(&client->dev, "%s fail error: 0x%x\n",
-+			__func__, hdl->error);
-+		return hdl->error;
-+	}
-+
-+	return 0;
-+}
-+
-+static int dw9807_probe(struct i2c_client *client)
-+{
-+	struct dw9807_device *dw9807_dev;
-+	int rval;
-+
-+	dw9807_dev = devm_kzalloc(&client->dev, sizeof(*dw9807_dev),
-+				  GFP_KERNEL);
-+	if (dw9807_dev == NULL)
-+		return -ENOMEM;
-+
-+	v4l2_i2c_subdev_init(&dw9807_dev->sd, client, &dw9807_ops);
-+	dw9807_dev->sd.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
-+	dw9807_dev->sd.internal_ops = &dw9807_int_ops;
-+
-+	rval = dw9807_init_controls(dw9807_dev);
-+	if (rval)
-+		goto err_cleanup;
-+
-+	rval = media_entity_pads_init(&dw9807_dev->sd.entity, 0, NULL);
-+	if (rval < 0)
-+		goto err_cleanup;
-+
-+	dw9807_dev->sd.entity.function = MEDIA_ENT_F_LENS;
-+
-+	rval = v4l2_async_register_subdev(&dw9807_dev->sd);
-+	if (rval < 0)
-+		goto err_cleanup;
-+
-+	pm_runtime_set_active(&client->dev);
-+	pm_runtime_enable(&client->dev);
-+	pm_runtime_idle(&client->dev);
-+
-+	return 0;
-+
-+err_cleanup:
-+	dw9807_subdev_cleanup(dw9807_dev);
-+	return rval;
-+}
-+
-+static int dw9807_remove(struct i2c_client *client)
-+{
-+	struct v4l2_subdev *sd = i2c_get_clientdata(client);
-+	struct dw9807_device *dw9807_dev = sd_to_dw9807_vcm(sd);
-+
-+	pm_runtime_disable(&client->dev);
-+	pm_runtime_set_suspended(&client->dev);
-+
-+	dw9807_subdev_cleanup(dw9807_dev);
-+
-+	return 0;
-+}
-+
-+/*
-+ * This function sets the vcm position, so it consumes least current
-+ * The lens position is gradually moved in units of DW9807_CTRL_STEPS,
-+ * to make the movements smoothly.
-+ */
-+static int __maybe_unused dw9807_vcm_suspend(struct device *dev)
-+{
-+	struct i2c_client *client = to_i2c_client(dev);
-+	struct v4l2_subdev *sd = i2c_get_clientdata(client);
-+	struct dw9807_device *dw9807_dev = sd_to_dw9807_vcm(sd);
-+	const char tx_data[2] = { DW9807_CTL_ADDR, 0x01 };
-+	int ret, val;
-+
-+	for (val = dw9807_dev->current_val & ~(DW9807_CTRL_STEPS - 1);
-+	     val >= 0; val -= DW9807_CTRL_STEPS) {
-+		ret = dw9807_set_dac(client, val);
-+		if (ret)
-+			dev_err_once(dev, "%s I2C failure: %d", __func__, ret);
-+		usleep_range(DW9807_CTRL_DELAY_US, DW9807_CTRL_DELAY_US + 10);
-+	}
-+
-+	/* Power down */
-+	ret = i2c_master_send(client, tx_data, sizeof(tx_data));
-+
-+	if (ret != sizeof(tx_data)) {
-+		dev_err(&client->dev, "I2C write CTL fail\n");
-+		return -EIO;
-+	}
-+
-+	return 0;
-+}
++#if defined(__KERNEL__)
+
+ /*
+- * MC next gen API definitions
++ * Connector functions
+  *
+- * NOTE: The declarations below are close to the MC RFC for the Media
+- *	 Controller, the next generation. Yet, there are a few adjustments
+- *	 to do, as we want to be able to have a functional API before
+- *	 the MC properties change. Those will be properly marked below.
+- *	 Please also notice that I removed "num_pads", "num_links",
+- *	 from the proposal, as a proper userspace application will likely
+- *	 use lists for pads/links, just as we intend to do in Kernelspace.
+- *	 The API definition should be freed from fields that are bound to
+- *	 some specific data structure.
++ * For now these should not be used in userspace, as some definitions may
++ * change.
+  *
+- * FIXME: Currently, I opted to name the new types as "media_v2", as this
+- *	  won't cause any conflict with the Kernelspace namespace, nor with
+- *	  the previous kAPI media_*_desc namespace. This can be changed
+- *	  later, before the adding this API upstream.
++ * It is the responsibility of the entity drivers to add connectors and links.
+  */
++#define MEDIA_ENT_F_CONN_RF			(MEDIA_ENT_F_BASE + 0x30001)
++#define MEDIA_ENT_F_CONN_SVIDEO			(MEDIA_ENT_F_BASE + 0x30002)
++#define MEDIA_ENT_F_CONN_COMPOSITE		(MEDIA_ENT_F_BASE + 0x30003)
+
++#endif
 +
 +/*
-+ * This function sets the vcm position to the value set by the user
-+ * through v4l2_ctrl_ops s_ctrl handler
-+ * The lens position is gradually moved in units of DW9807_CTRL_STEPS,
-+ * to make the movements smoothly.
++ * MC next gen API definitions
 + */
-+static int  __maybe_unused dw9807_vcm_resume(struct device *dev)
-+{
-+	struct i2c_client *client = to_i2c_client(dev);
-+	struct v4l2_subdev *sd = i2c_get_clientdata(client);
-+	struct dw9807_device *dw9807_dev = sd_to_dw9807_vcm(sd);
-+	const char tx_data[2] = { DW9807_CTL_ADDR, 0x00 };
-+	int ret, val;
+
+ struct media_v2_entity {
+ 	__u32 id;
+-	char name[64];		/* FIXME: move to a property? (RFC says so) */
++	char name[64];
+ 	__u32 function;		/* Main function of the entity */
+ 	__u32 reserved[6];
+ } __attribute__ ((packed));
+@@ -406,12 +339,66 @@ struct media_v2_topology {
+ 	__u64 ptr_links;
+ } __attribute__ ((packed));
+
 +
-+	/* Power on */
-+	ret = i2c_master_send(client, tx_data, sizeof(tx_data));
-+	if (ret != sizeof(tx_data)) {
-+		dev_err(&client->dev, "I2C write CTL fail\n");
-+		return -EIO;
-+	}
+ /* ioctls */
+
+-#define MEDIA_IOC_DEVICE_INFO		_IOWR('|', 0x00, struct media_device_info)
+-#define MEDIA_IOC_ENUM_ENTITIES		_IOWR('|', 0x01, struct media_entity_desc)
+-#define MEDIA_IOC_ENUM_LINKS		_IOWR('|', 0x02, struct media_links_enum)
+-#define MEDIA_IOC_SETUP_LINK		_IOWR('|', 0x03, struct media_link_desc)
+-#define MEDIA_IOC_G_TOPOLOGY		_IOWR('|', 0x04, struct media_v2_topology)
++#define MEDIA_IOC_DEVICE_INFO	_IOWR('|', 0x00, struct media_device_info)
++#define MEDIA_IOC_ENUM_ENTITIES	_IOWR('|', 0x01, struct media_entity_desc)
++#define MEDIA_IOC_ENUM_LINKS	_IOWR('|', 0x02, struct media_links_enum)
++#define MEDIA_IOC_SETUP_LINK	_IOWR('|', 0x03, struct media_link_desc)
++#define MEDIA_IOC_G_TOPOLOGY	_IOWR('|', 0x04, struct media_v2_topology)
 +
-+	for (val = dw9807_dev->current_val % DW9807_CTRL_STEPS;
-+	     val < dw9807_dev->current_val + DW9807_CTRL_STEPS - 1;
-+	     val += DW9807_CTRL_STEPS) {
-+		ret = dw9807_set_dac(client, val);
-+		if (ret)
-+			dev_err_ratelimited(dev, "%s I2C failure: %d",
-+						__func__, ret);
-+		usleep_range(DW9807_CTRL_DELAY_US, DW9807_CTRL_DELAY_US + 10);
-+	}
 +
-+	return 0;
-+}
++#if !defined(__KERNEL__) || defined(__NEED_MEDIA_LEGACY_API)
 +
-+static const struct of_device_id dw9807_of_table[] = {
-+	{ .compatible = "dongwoon,dw9807" },
-+	{ { 0 } }
-+};
-+MODULE_DEVICE_TABLE(of, dw9807_of_table);
++/*
++ * Legacy symbols used to avoid userspace compilation breakages.
++ * Do not use any of this in new applications!
++ *
++ * Those symbols map the entity function into types and should be
++ * used only on legacy programs for legacy hardware. Don't rely
++ * on those for MEDIA_IOC_G_TOPOLOGY.
++ */
++#define MEDIA_ENT_TYPE_SHIFT			16
++#define MEDIA_ENT_TYPE_MASK			0x00ff0000
++#define MEDIA_ENT_SUBTYPE_MASK			0x0000ffff
 +
-+static const struct dev_pm_ops dw9807_pm_ops = {
-+	SET_SYSTEM_SLEEP_PM_OPS(dw9807_vcm_suspend, dw9807_vcm_resume)
-+	SET_RUNTIME_PM_OPS(dw9807_vcm_suspend, dw9807_vcm_resume, NULL)
-+};
++#define MEDIA_ENT_T_DEVNODE_UNKNOWN		(MEDIA_ENT_F_OLD_BASE | \
++						 MEDIA_ENT_SUBTYPE_MASK)
 +
-+static struct i2c_driver dw9807_i2c_driver = {
-+	.driver = {
-+		.name = DW9807_NAME,
-+		.pm = &dw9807_pm_ops,
-+		.of_match_table = dw9807_of_table,
-+	},
-+	.probe_new = dw9807_probe,
-+	.remove = dw9807_remove,
-+};
++#define MEDIA_ENT_T_DEVNODE			MEDIA_ENT_F_OLD_BASE
++#define MEDIA_ENT_T_DEVNODE_V4L			MEDIA_ENT_F_IO_V4L
++#define MEDIA_ENT_T_DEVNODE_FB			(MEDIA_ENT_F_OLD_BASE + 2)
++#define MEDIA_ENT_T_DEVNODE_ALSA		(MEDIA_ENT_F_OLD_BASE + 3)
++#define MEDIA_ENT_T_DEVNODE_DVB			(MEDIA_ENT_F_OLD_BASE + 4)
 +
-+module_i2c_driver(dw9807_i2c_driver);
++#define MEDIA_ENT_T_UNKNOWN			MEDIA_ENT_F_UNKNOWN
++#define MEDIA_ENT_T_V4L2_VIDEO			MEDIA_ENT_F_IO_V4L
++#define MEDIA_ENT_T_V4L2_SUBDEV			MEDIA_ENT_F_V4L2_SUBDEV_UNKNOWN
++#define MEDIA_ENT_T_V4L2_SUBDEV_SENSOR		MEDIA_ENT_F_CAM_SENSOR
++#define MEDIA_ENT_T_V4L2_SUBDEV_FLASH		MEDIA_ENT_F_FLASH
++#define MEDIA_ENT_T_V4L2_SUBDEV_LENS		MEDIA_ENT_F_LENS
++#define MEDIA_ENT_T_V4L2_SUBDEV_DECODER		MEDIA_ENT_F_ATV_DECODER
++#define MEDIA_ENT_T_V4L2_SUBDEV_TUNER		MEDIA_ENT_F_TUNER
 +
-+MODULE_AUTHOR("Chiang, Alan <alanx.chiang@intel.com>");
-+MODULE_DESCRIPTION("DW9807 VCM driver");
-+MODULE_LICENSE("GPL v2");
--- 
-2.7.4
++/*
++ * There is still no ALSA support in the media controller. These
++ * defines should not have been added and we leave them here only
++ * in case some application tries to use these defines.
++ */
++#define MEDIA_INTF_T_ALSA_BASE			0x00000300
++#define MEDIA_INTF_T_ALSA_PCM_CAPTURE   	(MEDIA_INTF_T_ALSA_BASE)
++#define MEDIA_INTF_T_ALSA_PCM_PLAYBACK  	(MEDIA_INTF_T_ALSA_BASE + 1)
++#define MEDIA_INTF_T_ALSA_CONTROL       	(MEDIA_INTF_T_ALSA_BASE + 2)
++#define MEDIA_INTF_T_ALSA_COMPRESS      	(MEDIA_INTF_T_ALSA_BASE + 3)
++#define MEDIA_INTF_T_ALSA_RAWMIDI       	(MEDIA_INTF_T_ALSA_BASE + 4)
++#define MEDIA_INTF_T_ALSA_HWDEP         	(MEDIA_INTF_T_ALSA_BASE + 5)
++#define MEDIA_INTF_T_ALSA_SEQUENCER     	(MEDIA_INTF_T_ALSA_BASE + 6)
++#define MEDIA_INTF_T_ALSA_TIMER         	(MEDIA_INTF_T_ALSA_BASE + 7)
++
++/* Obsolete symbol for media_version, no longer used in the kernel */
++#define MEDIA_API_VERSION			KERNEL_VERSION(0, 1, 0)
++
++#endif
+
+ #endif /* __LINUX_MEDIA_H */
