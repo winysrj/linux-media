@@ -1,168 +1,349 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:47639 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752180AbeB0Hcg (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 27 Feb 2018 02:32:36 -0500
-Subject: Re: [PATCH v2] Staging: bcm2048: Fix function argument alignment in
- radio-bcm2048.c.
-To: Quytelda Kahja <quytelda@tamalin.org>
-Cc: Greg KH <gregkh@linuxfoundation.org>,
-        Dan Carpenter <dan.carpenter@oracle.com>,
-        hans.verkuil@cisco.com, linux-media@vger.kernel.org,
-        devel@driverdev.osuosl.org, linux-kernel@vger.kernel.org
-References: <20180219072550.hz4vpomsaz2ajrnm@mwanda>
- <20180220065304.8943-1-quytelda@tamalin.org>
- <cb62e915-eb9c-9252-1f0a-cc85c8ea3530@xs4all.nl>
- <CAFLvi2357U3HAt3mXDdNdZs4QA9mqWntTny4XyvtSfV2hu1dmA@mail.gmail.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <7c9787b2-bad3-21d9-f726-e171d9af940d@xs4all.nl>
-Date: Tue, 27 Feb 2018 08:32:30 +0100
+Received: from bombadil.infradead.org ([65.50.211.133]:35755 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752914AbeBEONU (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 5 Feb 2018 09:13:20 -0500
+Date: Mon, 5 Feb 2018 12:13:15 -0200
+From: Mauro Carvalho Chehab <mchehab@kernel.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: Re: MEDIA_IOC_G_TOPOLOGY and pad indices
+Message-ID: <20180205121315.2726f5f5@vento.lan>
+In-Reply-To: <d61ea1a1-4799-25dd-9866-c25ef689e5ce@xs4all.nl>
+References: <336b3d54-6c59-d6eb-8fd8-e0a9677c7f5f@xs4all.nl>
+        <20180205085130.2b48dcd4@vento.lan>
+        <9bea912a-0093-1b08-97b4-5377169e6e3a@xs4all.nl>
+        <20180205111751.719d9888@vento.lan>
+        <d61ea1a1-4799-25dd-9866-c25ef689e5ce@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <CAFLvi2357U3HAt3mXDdNdZs4QA9mqWntTny4XyvtSfV2hu1dmA@mail.gmail.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/27/2018 02:53 AM, Quytelda Kahja wrote:
-> Hans,
+Em Mon, 5 Feb 2018 14:47:51 +0100
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+
+> On 02/05/2018 02:17 PM, Mauro Carvalho Chehab wrote:
+> > Em Mon, 5 Feb 2018 12:55:21 +0100
+> > Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> >   
+> >> On 02/05/2018 12:15 PM, Mauro Carvalho Chehab wrote:  
+> >>> Hi Hans,
+> >>>
+> >>> Em Sun, 4 Feb 2018 14:06:42 +0100
+> >>> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> >>>     
+> >>>> Hi Mauro,
+> >>>>
+> >>>> I'm working on adding proper compliance tests for the MC but I think something
+> >>>> is missing in the G_TOPOLOGY ioctl w.r.t. pads.
+> >>>>
+> >>>> In several v4l-subdev ioctls you need to pass the pad. There the pad is an index
+> >>>> for the corresponding entity. I.e. an entity has 3 pads, so the pad argument is
+> >>>> [0-2].
+> >>>>
+> >>>> The G_TOPOLOGY ioctl returns a pad ID, which is > 0x01000000. I can't use that
+> >>>> in the v4l-subdev ioctls, so how do I translate that to a pad index in my application?
+> >>>>
+> >>>> It seems to be a missing feature in the API. I assume this information is available
+> >>>> in the core, so then I would add a field to struct media_v2_pad with the pad index
+> >>>> for the entity.    
+> >>>
+> >>> No, this was designed this way by purpose, back in 2015, when this was
+> >>> discussed at the first MC workshop. It was a consensus on that time that
+> >>> parameters like PAD index, PAD name, etc should be implemented via the
+> >>> properties API, as proposed by Sakari [1]. We also had a few discussions 
+> >>> about that on both IRC and ML.
+> >>>
+> >>> [1] See: https://linuxtv.org/news.php?entry=2015-08-17.mchehab
+> >>>
+> >>> 	3.3 Action items
+> >>> 	...
+> >>> 	media_properties: RFC userspace API: Sakari
+> >>>
+> >>> Unfortunately, Sakari never found the time to send us a patch series
+> >>> implementing a properties API, even as RFC.
+> >>>
+> >>> One of the other missing features is to add a new version for setting
+> >>> links (I guess we called it as S_LINKS_V2 at the meetings there).
+> >>> The hole idea is to provide a way to setup the entire pipeline using
+> >>> a single ioctl, on an atomic way.
+> >>>
+> >>> The big problem with pad indexes happen on entities that have PADs with
+> >>> different types of signal input or output, like for example a TV tuner.
+> >>>
+> >>> On almost all PC consumers hardware supported by the Kernel, the same
+> >>> PCI/USB ID may come with different types of hardware. This may also
+> >>> happen with embedded TV sets, as, depending on the market is is
+> >>> sold, the same product may come with a different tuner.
+> >>>
+> >>> A "classic" TV tuner usually has those types of output signals:
+> >>>
+> >>> 	- analog TV luminance IF;
+> >>> 	- analog TV chrominance IF [1];
+> >>> 	- digital TV OFDM IF;
+> >>> 	- audio IF;
+> >>>
+> >>> [1] As both luminance and chrominance should go to the same TV
+> >>>     demod, in practice, we can group both signals together on a
+> >>>     single pad.
+> >>>
+> >>> More modern tuners also have an audio demod integrated, meaning that
+> >>> they also have another PAD:
+> >>> 	- digital mono or stereo audio.
+> >>>
+> >>> At the simplest possible scenario, let's say that we have a TV device
+> >>> has those entities (among others), each with a single PAD input:
+> >>>
+> >>> 	- entity #0: a TV tuner;
+> >>> 	- entity #1: an audio demod;
+> >>> 	- entity #2: an analog TV demod;
+> >>> 	- entity #3: a digital TV demod.
+> >>>
+> >>> And the TV tuner has 4 output pads:
+> >>>
+> >>> 	- pad #0 -> analog TV luminance/chrominance;
+> >>> 	- pad #1 -> digital TV IF;
+> >>> 	- pad #2 -> audio IF;
+> >>> 	- pad #3 -> digital audio.
+> >>>
+> >>> There, pad #0 can only be connected to entity #2. You cannot
+> >>> connect any other pad to entity #2. The same apply to every other
+> >>> TV tuner output PAD.
+> >>>
+> >>> In this specific scenario, entity #1 can only be connected to pad #2,
+> >>> and pad #3 can't be connected anywhere, as, on this model opted to
+> >>> have a separate audio demod, and didn't wired the digital audio output.
+> >>> Yet, the subdev has it.
+> >>>
+> >>> Another TV set may have different pad numbers - placing them even on a
+> >>> different order, and opting to use the audio demod tuner, wiring the
+> >>> digital audio output.
+> >>>
+> >>> Currently, there's no way for an userspace application to know what pads
+> >>> can be linked to each entity, as there's no way to tell userspace what
+> >>> kind of signal each pad supports.
+> >>>
+> >>> In any case, the Kernel should either detect the tuner model or know
+> >>> it (via a different DT entry), but userspace need such information,
+> >>> in order to be able to properly set the pipelines.
+> >>>
+> >>> So, what we really need here is passing an optional set of properties
+> >>> to userspace in order to allow it to do the right thing.    
+> >>
+> >> I fail to see the problem. Entities have pads. Pads have both a unique
+> >> ID and an index within the entity pad list. I.e. the pad ID and the
+> >> (entity ID + pad index) tuple both uniquely identify the pad.
+> >>
+> >> Whether a pad is connected to anything or what type it is is unrelated
+> >> to this. Passing the pad index of an unconnected pad to e.g. SUBDEV_S_FMT
+> >> will just result in an error. All I need is to be able to obtain the
+> >> pad index so I can call SUBDEV_S_FMT at all!  
+> > 
+> > The problem is not at S_FMT. It happens before that: How an userspace 
+> > application will know what pad index or pad ID should be used to set the
+> > pipeline?
+> > 
+> > I mean, how it will know that tuner #0 pad #0 should be connected to
+> > entity #0 (an analog TV decoder) or to entity #2 (an audio decoder)?
+> > It has to know if pad #0 contains analog TV signals or audio signals.
+> > The API doesn't provide such information, and adding a pad index
+> > won't solve it.
+> > 
+> > Ok, there is an obvious solution: it could hardcode pad indexes and pad IDs
+> > per each hardware model it needs to work with (and the Kernel version, as
+> > PAD order and even number of pads may change on future versions), but 
+> > that defeats the purpose of having any topology API: if the application
+> > already knows what to expect for a given hardware on a given Kernel version,
+> > it could just setup the links without even querying about the topology.
+> > 
+> > But, if we want apps to rely on G_TOPOLOGY, it should describe the pads
+> > in a way that apps can use the information provided there.
+> > 
+> > On devices with multiple inputs, if *all* inputs receive the same kind
+> > of signal, just a pad index is enough. The same applies to devices
+> > that have multiple outputs: if *all* outputs have the same type, a
+> > pad index is enough to allow setting the pipelines via
+> > MEDIA_IOC_SETUP_LINK (or a new PAD ID-based atomic setup links ioctl,
+> > as discussed in the past).  
 > 
-> Thank you very much for your input on the patch; however this patch
-> has already been applied to the staging tree.  Additionally:
+> And that is the case with the current set of drivers that use the MC
+> and subdevs. They all have the same pad type (i.e. a video stream).
 
-I have no record of this being applied through linux-media. Did someone
-else pick this up? Greg perhaps?
+On upstream, yes.
 
->> What coding style problem? You should give a short description of
->> what you are fixing.
-> The subject of the patch (which becomes the subject of the email when
-> using `git format-patch`) describes the change more fully: "Staging:
-> bcm2048: Fix function argument alignment in radio-bcm2048.c".  It's a
-> really trivial patch, so there's not too much to say.  That extra
-> comment is just redundant, I suppose.
+> > However, on the general case, apps can only call MEDIA_IOC_SETUP_LINK
+> > (or an equivalent pad-id based ioctl) when they know what signal types
+> > each pad contains.
+> > 
+> > On other words, a pad index is one important information for devices 
+> > with multiple pad inputs or outputs, but it works fine only if all 
+> > inputs receive the same type of signals, and all pad outputs produce
+> > the same type of signals.
+> >   
+> >>
+> >> I actually like G_TOPOLOGY, it's nice. But it just does not give all the
+> >> information needed.  
+> > 
+> > Agreed.
+> >   
+> >>> Yet, I agree with you: we should not wait anymore for a properties API,
+> >>> as it seems unlikely that we'll add support for it anytime soon.
+> >>>
+> >>> So, let's add two fields there:
+> >>> 	- pad index number;    
+> >>
+> >> So should I also add a flag to signal that the pad index is set?   
+> > 
+> > A flag won't solve. If userspace doesn't know if it is running on
+> > a new Kernel with a G_TOPOLOGY with new flags, it won't expect a
+> > flags there.  
+> 
+> ???
+> 
+> Currently there is no pad index returned, so there are no applications
+> that try to use it :-)
 
-Usually you just show the warnings that gcc or sparse or whatever
-produced.
+Yes, but that's what your RFC patch is adding :-)
+
+> Anyway, the idea of using media_version has merit. So instead of a flag
+> we can do something like this:
+> 
+> #define MEDIA_PAD_HAS_INDEX(media_version) ((media_version) >= KERNEL_VERSION(a, b, c))
+> 
+> where a,b,c is the kernel version that added the index field.
+> 
+> And the documentation will say that you need to check with this macro if the
+> index information is available.
+> 
+> It has the nice advantage of being able to bail out early on. And it works
+> with media_build.
+
+That works. Ack for that.
+
+> >   
+> >> Since
+> >> current and past kernels never set this. Obviously none of the current
+> >> applications using G_TOPOLOGY would use a pad index because there isn't
+> >> one. It would only be a problem for new applications that switch to
+> >> G_TOPOLOGY, use subdevs and assume that the kernel that is used supports
+> >> the pad index. I'm not sure if this warrants a new pad flag though.  
+> > 
+> > Perhaps it is time to write an ioctl that would allow setting the
+> > pipelines via pad ID and allow setting multiple links at once on
+> > an atomic way.  
+> 
+> One thing at a time. Let's make the current API consistent first before
+> adding new stuff.
+
+Ok.
 
 > 
->> Just drop this change: it will replace one warning (non-aligned) with
->> another (> 80 cols).
-> Breaking the 80 character line limit is arguably excusable for this
-> code because of the 36 character function name and 30 character
-> constant name; additionally, it has been said that the 80 character
-> line limit will probably be increased in the future since we run
-> modern machines that aren't limited to 80 character terminals anymore,
-> so this warning may soon be irrelevant anyway.
+> >   
+> >>  
+> >>> 	- pad type.
+> >>>
+> >>> In order to make things easy, I guess the best would be to use a string
+> >>> for the pad type, and fill it only for entities where it is relevant
+> >>> (like TV tuners and demods).    
+> >>
+> >> struct media_v2_pad {
+> >>         __u32 id;
+> >>         __u32 entity_id;
+> >>         __u32 flags;
+> >>         __u32 reserved[5];
+> >> } __attribute__ ((packed));
+> >>
+> >> This does not easily lend itself to a string.  
+> > 
+> > Yes. The original idea were to add it via properties API as an
+> > string. That's why we didn't add extra space there to store strings.
+> > 
+> > We could get 32 bits or 64 bits there to be used as an index pointer to a
+> > strings type, stored at the end of G_TOPOLOGY data output, but not sure 
+> > if I like this idea.
+> >   
+> >> A pad type u16 would be easy to add though.  
+> > 
+> > Due to alignment issues, I would prefer to make it u32, although
+> > u16 is probably more than enough.  
+> 
+> Well, you'd get this:
+> 
+> 	__u16 index;
+> 	__u16 type;
+> 
+> That's why I used u16.
 
-I know people who would be very annoyed if the 80 char limit is lifted.
-
-Anyway, in the end you look at whether a patch is worth it or not,
-and this part isn't.
-
-But if it is already applied by someone then this is all moot.
-
-Regards,
-
-	Hans
+Works for me.
 
 > 
-> Thank you,
-> Quytelda Kahja
+> >   
+> >> That said, adding a pad type is a completely separate issue
+> >> and needs an RFC or something to define this. If there such an RFC was posted
+> >> in the past, can you provide a link to refresh my memory?  
+> > 
+> > We had some discussions in the past, but we didn't come with a RFC.
+> > 
+> > For our current needs, I'd say we just need a handful set of types:
+> > 
+> > #define MEDIA_PAD_TYPE_DEFAULT		0
+> > #define MEDIA_PAD_TYPE_ANALOG_IF	1
+> > #define MEDIA_PAD_TYPE_AUDIO_IF		2
+> > #define MEDIA_PAD_TYPE_DIGITAL_TV_IF	3
+> > #define MEDIA_PAD_TYPE_DIGITAL_AUDIO	4
+> > 
+> > Values different than zero would be used only when not all inputs
+> > or not all outputs would have the same type. Whey they're all the
+> > same, it would use MEDIA_PAD_TYPE_DEFAULT.  
 > 
-> On Mon, Feb 26, 2018 at 5:51 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->> On 02/20/2018 07:53 AM, Quytelda Kahja wrote:
->>> Fix a coding style problem.
->>
->> What coding style problem? You should give a short description of
->> what you are fixing.
->>
->>>
->>> Signed-off-by: Quytelda Kahja <quytelda@tamalin.org>
->>> ---
->>> This is the patch without the unnecessary fixes for line length.
->>>
->>>  drivers/staging/media/bcm2048/radio-bcm2048.c | 22 +++++++++++-----------
->>>  1 file changed, 11 insertions(+), 11 deletions(-)
->>>
->>> diff --git a/drivers/staging/media/bcm2048/radio-bcm2048.c b/drivers/staging/media/bcm2048/radio-bcm2048.c
->>> index 06d1920150da..f38a4f2acdde 100644
->>> --- a/drivers/staging/media/bcm2048/radio-bcm2048.c
->>> +++ b/drivers/staging/media/bcm2048/radio-bcm2048.c
->>> @@ -1864,7 +1864,7 @@ static int bcm2048_probe(struct bcm2048_device *bdev)
->>>               goto unlock;
->>>
->>>       err = bcm2048_set_fm_search_rssi_threshold(bdev,
->>> -                                     BCM2048_DEFAULT_RSSI_THRESHOLD);
->>> +                                                BCM2048_DEFAULT_RSSI_THRESHOLD);
->>>       if (err < 0)
->>>               goto unlock;
->>>
->>
->> Just drop this change: it will replace one warning (non-aligned) with
->> another (> 80 cols).
->>
->> This code is fine as it is.
->>
->> Regards,
->>
->>         Hans
->>
->>> @@ -1942,9 +1942,9 @@ static irqreturn_t bcm2048_handler(int irq, void *dev)
->>>   */
->>>  #define property_write(prop, type, mask, check)                              \
->>>  static ssize_t bcm2048_##prop##_write(struct device *dev,            \
->>> -                                     struct device_attribute *attr,  \
->>> -                                     const char *buf,                \
->>> -                                     size_t count)                   \
->>> +                                   struct device_attribute *attr,    \
->>> +                                   const char *buf,                  \
->>> +                                   size_t count)                     \
->>>  {                                                                    \
->>>       struct bcm2048_device *bdev = dev_get_drvdata(dev);             \
->>>       type value;                                                     \
->>> @@ -1966,8 +1966,8 @@ static ssize_t bcm2048_##prop##_write(struct device *dev,               \
->>>
->>>  #define property_read(prop, mask)                                    \
->>>  static ssize_t bcm2048_##prop##_read(struct device *dev,             \
->>> -                                     struct device_attribute *attr,  \
->>> -                                     char *buf)                      \
->>> +                                  struct device_attribute *attr,     \
->>> +                                  char *buf)                         \
->>>  {                                                                    \
->>>       struct bcm2048_device *bdev = dev_get_drvdata(dev);             \
->>>       int value;                                                      \
->>> @@ -1985,8 +1985,8 @@ static ssize_t bcm2048_##prop##_read(struct device *dev,                \
->>>
->>>  #define property_signed_read(prop, size, mask)                               \
->>>  static ssize_t bcm2048_##prop##_read(struct device *dev,             \
->>> -                                     struct device_attribute *attr,  \
->>> -                                     char *buf)                      \
->>> +                                  struct device_attribute *attr,     \
->>> +                                  char *buf)                         \
->>>  {                                                                    \
->>>       struct bcm2048_device *bdev = dev_get_drvdata(dev);             \
->>>       size value;                                                     \
->>> @@ -2005,8 +2005,8 @@ property_read(prop, mask)                                               \
->>>
->>>  #define property_str_read(prop, size)                                        \
->>>  static ssize_t bcm2048_##prop##_read(struct device *dev,             \
->>> -                                     struct device_attribute *attr,  \
->>> -                                     char *buf)                      \
->>> +                                  struct device_attribute *attr,     \
->>> +                                  char *buf)                         \
->>>  {                                                                    \
->>>       struct bcm2048_device *bdev = dev_get_drvdata(dev);             \
->>>       int count;                                                      \
->>> @@ -2175,7 +2175,7 @@ static int bcm2048_fops_release(struct file *file)
->>>  }
->>>
->>>  static __poll_t bcm2048_fops_poll(struct file *file,
->>> -                                   struct poll_table_struct *pts)
->>> +                               struct poll_table_struct *pts)
->>>  {
->>>       struct bcm2048_device *bdev = video_drvdata(file);
->>>       __poll_t retval = 0;
->>>
->>
+> A quick question: how is this done today in the absence of pad types? Hard-coded?
+> Or are we not using this at all?
+
+Something like the above is actually required currently, even inside
+the Kernel. What we did so far was a very ugly hack at
+include/media/v4l2-mc.h. For devices where different types were supported,
+we added enums, like:
+
+	enum tuner_pad_index {
+		TUNER_PAD_RF_INPUT,
+		TUNER_PAD_OUTPUT,
+		TUNER_PAD_AUD_OUT,
+		TUNER_NUM_PADS
+	};
+
+and doing some ugly hacks to ensure that pad[0] will always be
+used for video RF output.
+
+Once we have a per-pad type, we can get rid of all of them for good.
+
+> I would also be inclined to use PAD_TYPE_MEDIA_BUS instead of DEFAULT.
+> All pads today used in V4L2 stream media bus data according to
+> include/uapi/linux/media-bus-format.h. This also nicely indicates that
+> the VIDIOC_SUBDEV_ENUM_MBUS_CODE ioctl must be present for that pad.
+
+PAD_TYPE_MEDIA_BUS sounds very nice to me.
+
+> I also would start counting at 1, not 0. It makes it easier to detect
+> drivers that do not implement this correctly (well, it will probably be
+> set by the core as the default pad type, but still).
+
+Works for me.
+
+> > I would use just a single PAD and a single type (MEDIA_PAD_TYPE_ANALOG_IF)
+> > for the cases where a tuner provides Y and C signals, as they're always
+> > grouped altogether when a tuner is connected to an analog TV demod.
+> > 
+> > It shouldn't be hard to add support for it at the existing subdevs.  
+> 
+> Right.
+> 
+> 	Hans
+
+
+
+Thanks,
+Mauro
