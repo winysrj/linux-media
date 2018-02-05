@@ -1,112 +1,553 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from [31.36.214.240] ([31.36.214.240]:37134 "EHLO
-        val.bonstra.fr.eu.org" rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org
-        with ESMTP id S1751416AbeBXSeT (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 24 Feb 2018 13:34:19 -0500
-From: Hugo Grostabussiat <bonstra@bonstra.fr.eu.org>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org
-Cc: Hugo Grostabussiat <bonstra@bonstra.fr.eu.org>
-Subject: [PATCH 2/2] usbtv: Add SECAM support
-Date: Sat, 24 Feb 2018 19:24:19 +0100
-Message-Id: <20180224182419.15670-3-bonstra@bonstra.fr.eu.org>
-In-Reply-To: <20180224182419.15670-1-bonstra@bonstra.fr.eu.org>
-References: <20180224182419.15670-1-bonstra@bonstra.fr.eu.org>
+Received: from bombadil.infradead.org ([65.50.211.133]:41805 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753136AbeBEQhh (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 5 Feb 2018 11:37:37 -0500
+Date: Mon, 5 Feb 2018 14:37:29 -0200
+From: Mauro Carvalho Chehab <mchehab@kernel.org>
+To: Tim Harvey <tharvey@gateworks.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: Please help test the new v4l-subdev support in v4l2-compliance
+Message-ID: <20180205143729.12783826@vento.lan>
+In-Reply-To: <CAJ+vNU12FEWf6+FUdsYjJhjxZbiBmjR6RurNc4W-xC-ZsMTp+A@mail.gmail.com>
+References: <be1babc7-ed0b-8853-19e8-43b20a6f4c17@xs4all.nl>
+        <CAJ+vNU12FEWf6+FUdsYjJhjxZbiBmjR6RurNc4W-xC-ZsMTp+A@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add support for the SECAM norm, using the "AVSECAM" decoder configuration
-sequence found in Windows driver's .INF file.
+Em Mon, 5 Feb 2018 08:21:54 -0800
+Tim Harvey <tharvey@gateworks.com> escreveu:
 
-For reference, the "AVSECAM" sequence in the .INF file is:
-0x04,0x73,0xDC,0x72,0xA2,0x90,0x35,0x01,0x30,0x04,0x08,0x2D,0x28,0x08,
-0x02,0x69,0x16,0x35,0x21,0x16,0x36
+> Hans,
+>=20
+> I'm failing compile (of master 4ee9911) with:
+>=20
+>   CXX      v4l2_compliance-media-info.o
+> media-info.cpp: In function =E2=80=98media_type media_detect_type(const c=
+har*)=E2=80=99:
+> media-info.cpp:79:39: error: no matching function for call to
+> =E2=80=98std::basic_ifstream<char>::basic_ifstream(std::__cxx11::string&)=
+=E2=80=99
+>   std::ifstream uevent_file(uevent_path);
+>                                        ^
 
-Signed-off-by: Hugo Grostabussiat <bonstra@bonstra.fr.eu.org>
----
- drivers/media/usb/usbtv/usbtv-video.c | 34 +++++++++++++++++++++++++++++++++-
- drivers/media/usb/usbtv/usbtv.h       |  2 +-
- 2 files changed, 34 insertions(+), 2 deletions(-)
+Btw, while on it, a few days ago, I noticed several class warnings when
+building v4l-utils on Raspbian, saying that it was using some features
+that future versions of gcc would stop using at qv4l2. See enclosed.
 
-diff --git a/drivers/media/usb/usbtv/usbtv-video.c b/drivers/media/usb/usbtv/usbtv-video.c
-index 52d06b30fabb..7dd4f25203db 100644
---- a/drivers/media/usb/usbtv/usbtv-video.c
-+++ b/drivers/media/usb/usbtv/usbtv-video.c
-@@ -57,6 +57,11 @@ static struct usbtv_norm_params norm_params[] = {
- 		.norm = V4L2_STD_PAL,
- 		.cap_width = 720,
- 		.cap_height = 576,
-+	},
-+	{
-+		.norm = V4L2_STD_SECAM,
-+		.cap_width = 720,
-+		.cap_height = 576,
- 	}
- };
- 
-@@ -177,6 +182,30 @@ static int usbtv_select_norm(struct usbtv *usbtv, v4l2_std_id norm)
- 		{ USBTV_BASE + 0x0267, 0x0005 }
- 	};
- 
-+	static const u16 secam[][2] = {
-+		{ USBTV_BASE + 0x0003, 0x0004 },
-+		{ USBTV_BASE + 0x001a, 0x0073 },
-+		{ USBTV_BASE + 0x0100, 0x00dc },
-+		{ USBTV_BASE + 0x010e, 0x0072 },
-+		{ USBTV_BASE + 0x010f, 0x00a2 },
-+		{ USBTV_BASE + 0x0112, 0x0090 },
-+		{ USBTV_BASE + 0x0115, 0x0035 },
-+		{ USBTV_BASE + 0x0117, 0x0001 },
-+		{ USBTV_BASE + 0x0118, 0x0030 },
-+		{ USBTV_BASE + 0x012d, 0x0004 },
-+		{ USBTV_BASE + 0x012f, 0x0008 },
-+		{ USBTV_BASE + 0x0220, 0x002d },
-+		{ USBTV_BASE + 0x0225, 0x0028 },
-+		{ USBTV_BASE + 0x024e, 0x0008 },
-+		{ USBTV_BASE + 0x024f, 0x0002 },
-+		{ USBTV_BASE + 0x0254, 0x0069 },
-+		{ USBTV_BASE + 0x025a, 0x0016 },
-+		{ USBTV_BASE + 0x025b, 0x0035 },
-+		{ USBTV_BASE + 0x0263, 0x0021 },
-+		{ USBTV_BASE + 0x0266, 0x0016 },
-+		{ USBTV_BASE + 0x0267, 0x0036 }
-+	};
-+
- 	ret = usbtv_configure_for_norm(usbtv, norm);
- 
- 	if (!ret) {
-@@ -184,6 +213,8 @@ static int usbtv_select_norm(struct usbtv *usbtv, v4l2_std_id norm)
- 			ret = usbtv_set_regs(usbtv, ntsc, ARRAY_SIZE(ntsc));
- 		else if (norm & V4L2_STD_PAL)
- 			ret = usbtv_set_regs(usbtv, pal, ARRAY_SIZE(pal));
-+		else if (norm & V4L2_STD_SECAM)
-+			ret = usbtv_set_regs(usbtv, secam, ARRAY_SIZE(secam));
- 	}
- 
- 	return ret;
-@@ -595,7 +626,8 @@ static int usbtv_s_std(struct file *file, void *priv, v4l2_std_id norm)
- 	int ret = -EINVAL;
- 	struct usbtv *usbtv = video_drvdata(file);
- 
--	if ((norm & V4L2_STD_525_60) || (norm & V4L2_STD_PAL))
-+	if ((norm & V4L2_STD_525_60) || (norm & V4L2_STD_PAL) ||
-+			(norm & V4L2_STD_SECAM))
- 		ret = usbtv_select_norm(usbtv, norm);
- 
- 	return ret;
-diff --git a/drivers/media/usb/usbtv/usbtv.h b/drivers/media/usb/usbtv/usbtv.h
-index 0231e449877e..77a368e90fd0 100644
---- a/drivers/media/usb/usbtv/usbtv.h
-+++ b/drivers/media/usb/usbtv/usbtv.h
-@@ -68,7 +68,7 @@
- #define USBTV_ODD(chunk)	((be32_to_cpu(chunk[0]) & 0x0000f000) >> 15)
- #define USBTV_CHUNK_NO(chunk)	(be32_to_cpu(chunk[0]) & 0x00000fff)
- 
--#define USBTV_TV_STD  (V4L2_STD_525_60 | V4L2_STD_PAL)
-+#define USBTV_TV_STD  (V4L2_STD_525_60 | V4L2_STD_PAL | V4L2_STD_SECAM)
- 
- /* parameters for supported TV norms */
- struct usbtv_norm_params {
--- 
-2.16.2
+I didn't have time to look on them.
+
+Thanks,
+Mauro
+
+In file included from /usr/include/c++/6/map:60:0,
+                 from /usr/include/arm-linux-gnueabihf/qt5/QtCore/qmetatype=
+.h:57,
+                 from /usr/include/arm-linux-gnueabihf/qt5/QtCore/qobject.h=
+:54,
+                 from /usr/include/arm-linux-gnueabihf/qt5/QtWidgets/qwidge=
+t.h:44,
+                 from /usr/include/arm-linux-gnueabihf/qt5/QtWidgets/qmainw=
+indow.h:43,
+                 from /usr/include/arm-linux-gnueabihf/qt5/QtWidgets/QMainW=
+indow:1,
+                 from qv4l2.h:25,
+                 from ctrl-tab.cpp:20:
+/usr/include/c++/6/bits/stl_tree.h: In member function =E2=80=98std::pair<s=
+td::_Rb_tree_node_base*, std::_Rb_tree_node_base*> std::_Rb_tree<_Key, _Val=
+, _KeyOfValue, _Compare, _Alloc>::_M_get_insert_hint_unique_pos(std::_Rb_tr=
+ee<_Key, _Val, _KeyOfValue, _Compare, _Alloc>::const_iterator, const key_ty=
+pe&) [with _Key =3D unsigned int; _Val =3D std::pair<const unsigned int, v4=
+l2_query_ext_ctrl>; _KeyOfValue =3D std::_Select1st<std::pair<const unsigne=
+d int, v4l2_query_ext_ctrl> >; _Compare =3D std::less<unsigned int>; _Alloc=
+ =3D std::allocator<std::pair<const unsigned int, v4l2_query_ext_ctrl> >]=
+=E2=80=99:
+/usr/include/c++/6/bits/stl_tree.h:1928:5: note: parameter passing for argu=
+ment of type =E2=80=98std::_Rb_tree<unsigned int, std::pair<const unsigned =
+int, v4l2_query_ext_ctrl>, std::_Select1st<std::pair<const unsigned int, v4=
+l2_query_ext_ctrl> >, std::less<unsigned int>, std::allocator<std::pair<con=
+st unsigned int, v4l2_query_ext_ctrl> > >::const_iterator {aka std::_Rb_tre=
+e_const_iterator<std::pair<const unsigned int, v4l2_query_ext_ctrl> >}=E2=
+=80=99 will change in GCC 7.1
+     _Rb_tree<_Key, _Val, _KeyOfValue, _Compare, _Alloc>::
+     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/usr/include/c++/6/bits/stl_tree.h: In function =E2=80=98std::_Rb_tree<_Key=
+, _Val, _KeyOfValue, _Compare, _Alloc>::iterator std::_Rb_tree<_Key, _Val, =
+_KeyOfValue, _Compare, _Alloc>::_M_emplace_hint_unique(std::_Rb_tree<_Key, =
+_Val, _KeyOfValue, _Compare, _Alloc>::const_iterator, _Args&& ...) [with _A=
+rgs =3D {const std::piecewise_construct_t&, std::tuple<const unsigned int&>=
+, std::tuple<>}; _Key =3D unsigned int; _Val =3D std::pair<const unsigned i=
+nt, v4l2_query_ext_ctrl>; _KeyOfValue =3D std::_Select1st<std::pair<const u=
+nsigned int, v4l2_query_ext_ctrl> >; _Compare =3D std::less<unsigned int>; =
+_Alloc =3D std::allocator<std::pair<const unsigned int, v4l2_query_ext_ctrl=
+> >]=E2=80=99:
+/usr/include/c++/6/bits/stl_tree.h:2193:7: note: parameter passing for argu=
+ment of type =E2=80=98std::_Rb_tree<unsigned int, std::pair<const unsigned =
+int, v4l2_query_ext_ctrl>, std::_Select1st<std::pair<const unsigned int, v4=
+l2_query_ext_ctrl> >, std::less<unsigned int>, std::allocator<std::pair<con=
+st unsigned int, v4l2_query_ext_ctrl> > >::const_iterator {aka std::_Rb_tre=
+e_const_iterator<std::pair<const unsigned int, v4l2_query_ext_ctrl> >}=E2=
+=80=99 will change in GCC 7.1
+       _Rb_tree<_Key, _Val, _KeyOfValue, _Compare, _Alloc>::
+       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from /usr/include/c++/6/map:61:0,
+                 from /usr/include/arm-linux-gnueabihf/qt5/QtCore/qmetatype=
+.h:57,
+                 from /usr/include/arm-linux-gnueabihf/qt5/QtCore/qobject.h=
+:54,
+                 from /usr/include/arm-linux-gnueabihf/qt5/QtWidgets/qwidge=
+t.h:44,
+                 from /usr/include/arm-linux-gnueabihf/qt5/QtWidgets/qmainw=
+indow.h:43,
+                 from /usr/include/arm-linux-gnueabihf/qt5/QtWidgets/QMainW=
+indow:1,
+                 from qv4l2.h:25,
+                 from ctrl-tab.cpp:20:
+/usr/include/c++/6/bits/stl_map.h: In member function =E2=80=98void Applica=
+tionWindow::setWhat(QWidget*, unsigned int, const QString&)=E2=80=99:
+/usr/include/c++/6/bits/stl_map.h:483:4: note: parameter passing for argume=
+nt of type =E2=80=98std::_Rb_tree<unsigned int, std::pair<const unsigned in=
+t, v4l2_query_ext_ctrl>, std::_Select1st<std::pair<const unsigned int, v4l2=
+_query_ext_ctrl> >, std::less<unsigned int>, std::allocator<std::pair<const=
+ unsigned int, v4l2_query_ext_ctrl> > >::const_iterator {aka std::_Rb_tree_=
+const_iterator<std::pair<const unsigned int, v4l2_query_ext_ctrl> >}=E2=80=
+=99 will change in GCC 7.1
+    __i =3D _M_t._M_emplace_hint_unique(__i, std::piecewise_construct,
+    ^~~
+/usr/include/c++/6/bits/stl_map.h: In member function =E2=80=98void Applica=
+tionWindow::setWhat(QWidget*, unsigned int, long long int)=E2=80=99:
+/usr/include/c++/6/bits/stl_map.h:483:4: note: parameter passing for argume=
+nt of type =E2=80=98std::_Rb_tree<unsigned int, std::pair<const unsigned in=
+t, v4l2_query_ext_ctrl>, std::_Select1st<std::pair<const unsigned int, v4l2=
+_query_ext_ctrl> >, std::less<unsigned int>, std::allocator<std::pair<const=
+ unsigned int, v4l2_query_ext_ctrl> > >::const_iterator {aka std::_Rb_tree_=
+const_iterator<std::pair<const unsigned int, v4l2_query_ext_ctrl> >}=E2=80=
+=99 will change in GCC 7.1
+    __i =3D _M_t._M_emplace_hint_unique(__i, std::piecewise_construct,
+    ^~~
+In file included from /usr/include/c++/6/map:60:0,
+                 from /usr/include/arm-linux-gnueabihf/qt5/QtCore/qmetatype=
+.h:57,
+                 from /usr/include/arm-linux-gnueabihf/qt5/QtCore/qobject.h=
+:54,
+                 from /usr/include/arm-linux-gnueabihf/qt5/QtWidgets/qwidge=
+t.h:44,
+                 from /usr/include/arm-linux-gnueabihf/qt5/QtWidgets/qmainw=
+indow.h:43,
+                 from /usr/include/arm-linux-gnueabihf/qt5/QtWidgets/QMainW=
+indow:1,
+                 from qv4l2.h:25,
+                 from ctrl-tab.cpp:20:
+/usr/include/c++/6/bits/stl_tree.h: In function =E2=80=98std::_Rb_tree<_Key=
+, _Val, _KeyOfValue, _Compare, _Alloc>::iterator std::_Rb_tree<_Key, _Val, =
+_KeyOfValue, _Compare, _Alloc>::_M_emplace_hint_unique(std::_Rb_tree<_Key, =
+_Val, _KeyOfValue, _Compare, _Alloc>::const_iterator, _Args&& ...) [with _A=
+rgs =3D {const std::piecewise_construct_t&, std::tuple<unsigned int&&>, std=
+::tuple<>}; _Key =3D unsigned int; _Val =3D std::pair<const unsigned int, v=
+4l2_query_ext_ctrl>; _KeyOfValue =3D std::_Select1st<std::pair<const unsign=
+ed int, v4l2_query_ext_ctrl> >; _Compare =3D std::less<unsigned int>; _Allo=
+c =3D std::allocator<std::pair<const unsigned int, v4l2_query_ext_ctrl> >]=
+=E2=80=99:
+/usr/include/c++/6/bits/stl_tree.h:2193:7: note: parameter passing for argu=
+ment of type =E2=80=98std::_Rb_tree<unsigned int, std::pair<const unsigned =
+int, v4l2_query_ext_ctrl>, std::_Select1st<std::pair<const unsigned int, v4=
+l2_query_ext_ctrl> >, std::less<unsigned int>, std::allocator<std::pair<con=
+st unsigned int, v4l2_query_ext_ctrl> > >::const_iterator {aka std::_Rb_tre=
+e_const_iterator<std::pair<const unsigned int, v4l2_query_ext_ctrl> >}=E2=
+=80=99 will change in GCC 7.1
+       _Rb_tree<_Key, _Val, _KeyOfValue, _Compare, _Alloc>::
+       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+In file included from /usr/include/c++/6/map:61:0,
+                 from /usr/include/arm-linux-gnueabihf/qt5/QtCore/qmetatype=
+.h:57,
+                 from /usr/include/arm-linux-gnueabihf/qt5/QtCore/qobject.h=
+:54,
+                 from /usr/include/arm-linux-gnueabihf/qt5/QtWidgets/qwidge=
+t.h:44,
+                 from /usr/include/arm-linux-gnueabihf/qt5/QtWidgets/qmainw=
+indow.h:43,
+                 from /usr/include/arm-linux-gnueabihf/qt5/QtWidgets/QMainW=
+indow:1,
+                 from qv4l2.h:25,
+                 from ctrl-tab.cpp:20:
+/usr/include/c++/6/bits/stl_map.h: In member function =E2=80=98void Applica=
+tionWindow::setVal64(unsigned int, long long int)=E2=80=99:
+/usr/include/c++/6/bits/stl_map.h:483:4: note: parameter passing for argume=
+nt of type =E2=80=98std::_Rb_tree<unsigned int, std::pair<const unsigned in=
+t, v4l2_query_ext_ctrl>, std::_Select1st<std::pair<const unsigned int, v4l2=
+_query_ext_ctrl> >, std::less<unsigned int>, std::allocator<std::pair<const=
+ unsigned int, v4l2_query_ext_ctrl> > >::const_iterator {aka std::_Rb_tree_=
+const_iterator<std::pair<const unsigned int, v4l2_query_ext_ctrl> >}=E2=80=
+=99 will change in GCC 7.1
+    __i =3D _M_t._M_emplace_hint_unique(__i, std::piecewise_construct,
+    ^~~
+/usr/include/c++/6/bits/stl_map.h: In member function =E2=80=98long long in=
+t ApplicationWindow::getVal64(unsigned int)=E2=80=99:
+/usr/include/c++/6/bits/stl_map.h:483:4: note: parameter passing for argume=
+nt of type =E2=80=98std::_Rb_tree<unsigned int, std::pair<const unsigned in=
+t, v4l2_query_ext_ctrl>, std::_Select1st<std::pair<const unsigned int, v4l2=
+_query_ext_ctrl> >, std::less<unsigned int>, std::allocator<std::pair<const=
+ unsigned int, v4l2_query_ext_ctrl> > >::const_iterator {aka std::_Rb_tree_=
+const_iterator<std::pair<const unsigned int, v4l2_query_ext_ctrl> >}=E2=80=
+=99 will change in GCC 7.1
+    __i =3D _M_t._M_emplace_hint_unique(__i, std::piecewise_construct,
+    ^~~
+/usr/include/c++/6/bits/stl_map.h: In member function =E2=80=98void Applica=
+tionWindow::setString(unsigned int, const QString&)=E2=80=99:
+/usr/include/c++/6/bits/stl_map.h:483:4: note: parameter passing for argume=
+nt of type =E2=80=98std::_Rb_tree<unsigned int, std::pair<const unsigned in=
+t, v4l2_query_ext_ctrl>, std::_Select1st<std::pair<const unsigned int, v4l2=
+_query_ext_ctrl> >, std::less<unsigned int>, std::allocator<std::pair<const=
+ unsigned int, v4l2_query_ext_ctrl> > >::const_iterator {aka std::_Rb_tree_=
+const_iterator<std::pair<const unsigned int, v4l2_query_ext_ctrl> >}=E2=80=
+=99 will change in GCC 7.1
+    __i =3D _M_t._M_emplace_hint_unique(__i, std::piecewise_construct,
+    ^~~
+/usr/include/c++/6/bits/stl_map.h: In member function =E2=80=98QString Appl=
+icationWindow::getString(unsigned int)=E2=80=99:
+/usr/include/c++/6/bits/stl_map.h:483:4: note: parameter passing for argume=
+nt of type =E2=80=98std::_Rb_tree<unsigned int, std::pair<const unsigned in=
+t, v4l2_query_ext_ctrl>, std::_Select1st<std::pair<const unsigned int, v4l2=
+_query_ext_ctrl> >, std::less<unsigned int>, std::allocator<std::pair<const=
+ unsigned int, v4l2_query_ext_ctrl> > >::const_iterator {aka std::_Rb_tree_=
+const_iterator<std::pair<const unsigned int, v4l2_query_ext_ctrl> >}=E2=80=
+=99 will change in GCC 7.1
+    __i =3D _M_t._M_emplace_hint_unique(__i, std::piecewise_construct,
+    ^~~
+/usr/include/c++/6/bits/stl_map.h: In member function =E2=80=98int Applicat=
+ionWindow::getVal(unsigned int)=E2=80=99:
+/usr/include/c++/6/bits/stl_map.h:483:4: note: parameter passing for argume=
+nt of type =E2=80=98std::_Rb_tree<unsigned int, std::pair<const unsigned in=
+t, v4l2_query_ext_ctrl>, std::_Select1st<std::pair<const unsigned int, v4l2=
+_query_ext_ctrl> >, std::less<unsigned int>, std::allocator<std::pair<const=
+ unsigned int, v4l2_query_ext_ctrl> > >::const_iterator {aka std::_Rb_tree_=
+const_iterator<std::pair<const unsigned int, v4l2_query_ext_ctrl> >}=E2=80=
+=99 will change in GCC 7.1
+    __i =3D _M_t._M_emplace_hint_unique(__i, std::piecewise_construct,
+    ^~~
+/usr/include/c++/6/bits/stl_map.h: In member function =E2=80=98void Applica=
+tionWindow::setVal(unsigned int, int)=E2=80=99:
+/usr/include/c++/6/bits/stl_map.h:483:4: note: parameter passing for argume=
+nt of type =E2=80=98std::_Rb_tree<unsigned int, std::pair<const unsigned in=
+t, v4l2_query_ext_ctrl>, std::_Select1st<std::pair<const unsigned int, v4l2=
+_query_ext_ctrl> >, std::less<unsigned int>, std::allocator<std::pair<const=
+ unsigned int, v4l2_query_ext_ctrl> > >::const_iterator {aka std::_Rb_tree_=
+const_iterator<std::pair<const unsigned int, v4l2_query_ext_ctrl> >}=E2=80=
+=99 will change in GCC 7.1
+    __i =3D _M_t._M_emplace_hint_unique(__i, std::piecewise_construct,
+    ^~~
+/usr/include/c++/6/bits/stl_map.h: In member function =E2=80=98void Applica=
+tionWindow::refresh(unsigned int)=E2=80=99:
+/usr/include/c++/6/bits/stl_map.h:483:4: note: parameter passing for argume=
+nt of type =E2=80=98std::_Rb_tree<unsigned int, std::pair<const unsigned in=
+t, v4l2_query_ext_ctrl>, std::_Select1st<std::pair<const unsigned int, v4l2=
+_query_ext_ctrl> >, std::less<unsigned int>, std::allocator<std::pair<const=
+ unsigned int, v4l2_query_ext_ctrl> > >::const_iterator {aka std::_Rb_tree_=
+const_iterator<std::pair<const unsigned int, v4l2_query_ext_ctrl> >}=E2=80=
+=99 will change in GCC 7.1
+    __i =3D _M_t._M_emplace_hint_unique(__i, std::piecewise_construct,
+    ^~~
+/usr/include/c++/6/bits/stl_map.h:483:4: note: parameter passing for argume=
+nt of type =E2=80=98std::_Rb_tree<unsigned int, std::pair<const unsigned in=
+t, v4l2_query_ext_ctrl>, std::_Select1st<std::pair<const unsigned int, v4l2=
+_query_ext_ctrl> >, std::less<unsigned int>, std::allocator<std::pair<const=
+ unsigned int, v4l2_query_ext_ctrl> > >::const_iterator {aka std::_Rb_tree_=
+const_iterator<std::pair<const unsigned int, v4l2_query_ext_ctrl> >}=E2=80=
+=99 will change in GCC 7.1
+    __i =3D _M_t._M_emplace_hint_unique(__i, std::piecewise_construct,
+    ^~~
+/usr/include/c++/6/bits/stl_map.h:483:4: note: parameter passing for argume=
+nt of type =E2=80=98std::_Rb_tree<unsigned int, std::pair<const unsigned in=
+t, v4l2_query_ext_ctrl>, std::_Select1st<std::pair<const unsigned int, v4l2=
+_query_ext_ctrl> >, std::less<unsigned int>, std::allocator<std::pair<const=
+ unsigned int, v4l2_query_ext_ctrl> > >::const_iterator {aka std::_Rb_tree_=
+const_iterator<std::pair<const unsigned int, v4l2_query_ext_ctrl> >}=E2=80=
+=99 will change in GCC 7.1
+    __i =3D _M_t._M_emplace_hint_unique(__i, std::piecewise_construct,
+    ^~~
+/usr/include/c++/6/bits/stl_map.h:483:4: note: parameter passing for argume=
+nt of type =E2=80=98std::_Rb_tree<unsigned int, std::pair<const unsigned in=
+t, v4l2_query_ext_ctrl>, std::_Select1st<std::pair<const unsigned int, v4l2=
+_query_ext_ctrl> >, std::less<unsigned int>, std::allocator<std::pair<const=
+ unsigned int, v4l2_query_ext_ctrl> > >::const_iterator {aka std::_Rb_tree_=
+const_iterator<std::pair<const unsigned int, v4l2_query_ext_ctrl> >}=E2=80=
+=99 will change in GCC 7.1
+    __i =3D _M_t._M_emplace_hint_unique(__i, std::piecewise_construct,
+    ^~~
+/usr/include/c++/6/bits/stl_map.h:483:4: note: parameter passing for argume=
+nt of type =E2=80=98std::_Rb_tree<unsigned int, std::pair<const unsigned in=
+t, v4l2_query_ext_ctrl>, std::_Select1st<std::pair<const unsigned int, v4l2=
+_query_ext_ctrl> >, std::less<unsigned int>, std::allocator<std::pair<const=
+ unsigned int, v4l2_query_ext_ctrl> > >::const_iterator {aka std::_Rb_tree_=
+const_iterator<std::pair<const unsigned int, v4l2_query_ext_ctrl> >}=E2=80=
+=99 will change in GCC 7.1
+    __i =3D _M_t._M_emplace_hint_unique(__i, std::piecewise_construct,
+    ^~~
+/usr/include/c++/6/bits/stl_map.h:483:4: note: parameter passing for argume=
+nt of type =E2=80=98std::_Rb_tree<unsigned int, std::pair<const unsigned in=
+t, v4l2_query_ext_ctrl>, std::_Select1st<std::pair<const unsigned int, v4l2=
+_query_ext_ctrl> >, std::less<unsigned int>, std::allocator<std::pair<const=
+ unsigned int, v4l2_query_ext_ctrl> > >::const_iterator {aka std::_Rb_tree_=
+const_iterator<std::pair<const unsigned int, v4l2_query_ext_ctrl> >}=E2=80=
+=99 will change in GCC 7.1
+    __i =3D _M_t._M_emplace_hint_unique(__i, std::piecewise_construct,
+    ^~~
+/usr/include/c++/6/bits/stl_map.h:483:4: note: parameter passing for argume=
+nt of type =E2=80=98std::_Rb_tree<unsigned int, std::pair<const unsigned in=
+t, v4l2_query_ext_ctrl>, std::_Select1st<std::pair<const unsigned int, v4l2=
+_query_ext_ctrl> >, std::less<unsigned int>, std::allocator<std::pair<const=
+ unsigned int, v4l2_query_ext_ctrl> > >::const_iterator {aka std::_Rb_tree_=
+const_iterator<std::pair<const unsigned int, v4l2_query_ext_ctrl> >}=E2=80=
+=99 will change in GCC 7.1
+    __i =3D _M_t._M_emplace_hint_unique(__i, std::piecewise_construct,
+    ^~~
+/usr/include/c++/6/bits/stl_map.h:483:4: note: parameter passing for argume=
+nt of type =E2=80=98std::_Rb_tree<unsigned int, std::pair<const unsigned in=
+t, v4l2_query_ext_ctrl>, std::_Select1st<std::pair<const unsigned int, v4l2=
+_query_ext_ctrl> >, std::less<unsigned int>, std::allocator<std::pair<const=
+ unsigned int, v4l2_query_ext_ctrl> > >::const_iterator {aka std::_Rb_tree_=
+const_iterator<std::pair<const unsigned int, v4l2_query_ext_ctrl> >}=E2=80=
+=99 will change in GCC 7.1
+    __i =3D _M_t._M_emplace_hint_unique(__i, std::piecewise_construct,
+    ^~~
+/usr/include/c++/6/bits/stl_map.h: In member function =E2=80=98void Applica=
+tionWindow::updateCtrl(unsigned int)=E2=80=99:
+/usr/include/c++/6/bits/stl_map.h:483:4: note: parameter passing for argume=
+nt of type =E2=80=98std::_Rb_tree<unsigned int, std::pair<const unsigned in=
+t, v4l2_query_ext_ctrl>, std::_Select1st<std::pair<const unsigned int, v4l2=
+_query_ext_ctrl> >, std::less<unsigned int>, std::allocator<std::pair<const=
+ unsigned int, v4l2_query_ext_ctrl> > >::const_iterator {aka std::_Rb_tree_=
+const_iterator<std::pair<const unsigned int, v4l2_query_ext_ctrl> >}=E2=80=
+=99 will change in GCC 7.1
+    __i =3D _M_t._M_emplace_hint_unique(__i, std::piecewise_construct,
+    ^~~
+/usr/include/c++/6/bits/stl_map.h:483:4: note: parameter passing for argume=
+nt of type =E2=80=98std::_Rb_tree<unsigned int, std::pair<const unsigned in=
+t, v4l2_query_ext_ctrl>, std::_Select1st<std::pair<const unsigned int, v4l2=
+_query_ext_ctrl> >, std::less<unsigned int>, std::allocator<std::pair<const=
+ unsigned int, v4l2_query_ext_ctrl> > >::const_iterator {aka std::_Rb_tree_=
+const_iterator<std::pair<const unsigned int, v4l2_query_ext_ctrl> >}=E2=80=
+=99 will change in GCC 7.1
+    __i =3D _M_t._M_emplace_hint_unique(__i, std::piecewise_construct,
+    ^~~
+/usr/include/c++/6/bits/stl_map.h:483:4: note: parameter passing for argume=
+nt of type =E2=80=98std::_Rb_tree<unsigned int, std::pair<const unsigned in=
+t, v4l2_query_ext_ctrl>, std::_Select1st<std::pair<const unsigned int, v4l2=
+_query_ext_ctrl> >, std::less<unsigned int>, std::allocator<std::pair<const=
+ unsigned int, v4l2_query_ext_ctrl> > >::const_iterator {aka std::_Rb_tree_=
+const_iterator<std::pair<const unsigned int, v4l2_query_ext_ctrl> >}=E2=80=
+=99 will change in GCC 7.1
+    __i =3D _M_t._M_emplace_hint_unique(__i, std::piecewise_construct,
+    ^~~
+/usr/include/c++/6/bits/stl_map.h:483:4: note: parameter passing for argume=
+nt of type =E2=80=98std::_Rb_tree<unsigned int, std::pair<const unsigned in=
+t, v4l2_query_ext_ctrl>, std::_Select1st<std::pair<const unsigned int, v4l2=
+_query_ext_ctrl> >, std::less<unsigned int>, std::allocator<std::pair<const=
+ unsigned int, v4l2_query_ext_ctrl> > >::const_iterator {aka std::_Rb_tree_=
+const_iterator<std::pair<const unsigned int, v4l2_query_ext_ctrl> >}=E2=80=
+=99 will change in GCC 7.1
+    __i =3D _M_t._M_emplace_hint_unique(__i, std::piecewise_construct,
+    ^~~
+/usr/include/c++/6/bits/stl_map.h:483:4: note: parameter passing for argume=
+nt of type =E2=80=98std::_Rb_tree<unsigned int, std::pair<const unsigned in=
+t, v4l2_query_ext_ctrl>, std::_Select1st<std::pair<const unsigned int, v4l2=
+_query_ext_ctrl> >, std::less<unsigned int>, std::allocator<std::pair<const=
+ unsigned int, v4l2_query_ext_ctrl> > >::const_iterator {aka std::_Rb_tree_=
+const_iterator<std::pair<const unsigned int, v4l2_query_ext_ctrl> >}=E2=80=
+=99 will change in GCC 7.1
+    __i =3D _M_t._M_emplace_hint_unique(__i, std::piecewise_construct,
+    ^~~
+/usr/include/c++/6/bits/stl_map.h:483:4: note: parameter passing for argume=
+nt of type =E2=80=98std::_Rb_tree<unsigned int, std::pair<const unsigned in=
+t, v4l2_query_ext_ctrl>, std::_Select1st<std::pair<const unsigned int, v4l2=
+_query_ext_ctrl> >, std::less<unsigned int>, std::allocator<std::pair<const=
+ unsigned int, v4l2_query_ext_ctrl> > >::const_iterator {aka std::_Rb_tree_=
+const_iterator<std::pair<const unsigned int, v4l2_query_ext_ctrl> >}=E2=80=
+=99 will change in GCC 7.1
+    __i =3D _M_t._M_emplace_hint_unique(__i, std::piecewise_construct,
+    ^~~
+/usr/include/c++/6/bits/stl_map.h:483:4: note: parameter passing for argume=
+nt of type =E2=80=98std::_Rb_tree<unsigned int, std::pair<const unsigned in=
+t, v4l2_query_ext_ctrl>, std::_Select1st<std::pair<const unsigned int, v4l2=
+_query_ext_ctrl> >, std::less<unsigned int>, std::allocator<std::pair<const=
+ unsigned int, v4l2_query_ext_ctrl> > >::const_iterator {aka std::_Rb_tree_=
+const_iterator<std::pair<const unsigned int, v4l2_query_ext_ctrl> >}=E2=80=
+=99 will change in GCC 7.1
+    __i =3D _M_t._M_emplace_hint_unique(__i, std::piecewise_construct,
+    ^~~
+/usr/include/c++/6/bits/stl_map.h: In member function =E2=80=98void Applica=
+tionWindow::setDefaults(unsigned int)=E2=80=99:
+/usr/include/c++/6/bits/stl_map.h:483:4: note: parameter passing for argume=
+nt of type =E2=80=98std::_Rb_tree<unsigned int, std::pair<const unsigned in=
+t, v4l2_query_ext_ctrl>, std::_Select1st<std::pair<const unsigned int, v4l2=
+_query_ext_ctrl> >, std::less<unsigned int>, std::allocator<std::pair<const=
+ unsigned int, v4l2_query_ext_ctrl> > >::const_iterator {aka std::_Rb_tree_=
+const_iterator<std::pair<const unsigned int, v4l2_query_ext_ctrl> >}=E2=80=
+=99 will change in GCC 7.1
+    __i =3D _M_t._M_emplace_hint_unique(__i, std::piecewise_construct,
+    ^~~
+/usr/include/c++/6/bits/stl_map.h:483:4: note: parameter passing for argume=
+nt of type =E2=80=98std::_Rb_tree<unsigned int, std::pair<const unsigned in=
+t, v4l2_query_ext_ctrl>, std::_Select1st<std::pair<const unsigned int, v4l2=
+_query_ext_ctrl> >, std::less<unsigned int>, std::allocator<std::pair<const=
+ unsigned int, v4l2_query_ext_ctrl> > >::const_iterator {aka std::_Rb_tree_=
+const_iterator<std::pair<const unsigned int, v4l2_query_ext_ctrl> >}=E2=80=
+=99 will change in GCC 7.1
+    __i =3D _M_t._M_emplace_hint_unique(__i, std::piecewise_construct,
+    ^~~
+/usr/include/c++/6/bits/stl_map.h:483:4: note: parameter passing for argume=
+nt of type =E2=80=98std::_Rb_tree<unsigned int, std::pair<const unsigned in=
+t, v4l2_query_ext_ctrl>, std::_Select1st<std::pair<const unsigned int, v4l2=
+_query_ext_ctrl> >, std::less<unsigned int>, std::allocator<std::pair<const=
+ unsigned int, v4l2_query_ext_ctrl> > >::const_iterator {aka std::_Rb_tree_=
+const_iterator<std::pair<const unsigned int, v4l2_query_ext_ctrl> >}=E2=80=
+=99 will change in GCC 7.1
+    __i =3D _M_t._M_emplace_hint_unique(__i, std::piecewise_construct,
+    ^~~
+/usr/include/c++/6/bits/stl_map.h:483:4: note: parameter passing for argume=
+nt of type =E2=80=98std::_Rb_tree<unsigned int, std::pair<const unsigned in=
+t, v4l2_query_ext_ctrl>, std::_Select1st<std::pair<const unsigned int, v4l2=
+_query_ext_ctrl> >, std::less<unsigned int>, std::allocator<std::pair<const=
+ unsigned int, v4l2_query_ext_ctrl> > >::const_iterator {aka std::_Rb_tree_=
+const_iterator<std::pair<const unsigned int, v4l2_query_ext_ctrl> >}=E2=80=
+=99 will change in GCC 7.1
+    __i =3D _M_t._M_emplace_hint_unique(__i, std::piecewise_construct,
+    ^~~
+/usr/include/c++/6/bits/stl_map.h:483:4: note: parameter passing for argume=
+nt of type =E2=80=98std::_Rb_tree<unsigned int, std::pair<const unsigned in=
+t, v4l2_query_ext_ctrl>, std::_Select1st<std::pair<const unsigned int, v4l2=
+_query_ext_ctrl> >, std::less<unsigned int>, std::allocator<std::pair<const=
+ unsigned int, v4l2_query_ext_ctrl> > >::const_iterator {aka std::_Rb_tree_=
+const_iterator<std::pair<const unsigned int, v4l2_query_ext_ctrl> >}=E2=80=
+=99 will change in GCC 7.1
+    __i =3D _M_t._M_emplace_hint_unique(__i, std::piecewise_construct,
+    ^~~
+/usr/include/c++/6/bits/stl_map.h:483:4: note: parameter passing for argume=
+nt of type =E2=80=98std::_Rb_tree<unsigned int, std::pair<const unsigned in=
+t, v4l2_query_ext_ctrl>, std::_Select1st<std::pair<const unsigned int, v4l2=
+_query_ext_ctrl> >, std::less<unsigned int>, std::allocator<std::pair<const=
+ unsigned int, v4l2_query_ext_ctrl> > >::const_iterator {aka std::_Rb_tree_=
+const_iterator<std::pair<const unsigned int, v4l2_query_ext_ctrl> >}=E2=80=
+=99 will change in GCC 7.1
+    __i =3D _M_t._M_emplace_hint_unique(__i, std::piecewise_construct,
+    ^~~
+/usr/include/c++/6/bits/stl_map.h:483:4: note: parameter passing for argume=
+nt of type =E2=80=98std::_Rb_tree<unsigned int, std::pair<const unsigned in=
+t, v4l2_query_ext_ctrl>, std::_Select1st<std::pair<const unsigned int, v4l2=
+_query_ext_ctrl> >, std::less<unsigned int>, std::allocator<std::pair<const=
+ unsigned int, v4l2_query_ext_ctrl> > >::const_iterator {aka std::_Rb_tree_=
+const_iterator<std::pair<const unsigned int, v4l2_query_ext_ctrl> >}=E2=80=
+=99 will change in GCC 7.1
+    __i =3D _M_t._M_emplace_hint_unique(__i, std::piecewise_construct,
+    ^~~
+/usr/include/c++/6/bits/stl_map.h: In member function =E2=80=98void Applica=
+tionWindow::ctrlAction(int)=E2=80=99:
+/usr/include/c++/6/bits/stl_map.h:502:4: note: parameter passing for argume=
+nt of type =E2=80=98std::_Rb_tree<unsigned int, std::pair<const unsigned in=
+t, v4l2_query_ext_ctrl>, std::_Select1st<std::pair<const unsigned int, v4l2=
+_query_ext_ctrl> >, std::less<unsigned int>, std::allocator<std::pair<const=
+ unsigned int, v4l2_query_ext_ctrl> > >::const_iterator {aka std::_Rb_tree_=
+const_iterator<std::pair<const unsigned int, v4l2_query_ext_ctrl> >}=E2=80=
+=99 will change in GCC 7.1
+    __i =3D _M_t._M_emplace_hint_unique(__i, std::piecewise_construct,
+    ^~~
+/usr/include/c++/6/bits/stl_map.h:483:4: note: parameter passing for argume=
+nt of type =E2=80=98std::_Rb_tree<unsigned int, std::pair<const unsigned in=
+t, v4l2_query_ext_ctrl>, std::_Select1st<std::pair<const unsigned int, v4l2=
+_query_ext_ctrl> >, std::less<unsigned int>, std::allocator<std::pair<const=
+ unsigned int, v4l2_query_ext_ctrl> > >::const_iterator {aka std::_Rb_tree_=
+const_iterator<std::pair<const unsigned int, v4l2_query_ext_ctrl> >}=E2=80=
+=99 will change in GCC 7.1
+    __i =3D _M_t._M_emplace_hint_unique(__i, std::piecewise_construct,
+    ^~~
+/usr/include/c++/6/bits/stl_map.h:483:4: note: parameter passing for argume=
+nt of type =E2=80=98std::_Rb_tree<unsigned int, std::pair<const unsigned in=
+t, v4l2_query_ext_ctrl>, std::_Select1st<std::pair<const unsigned int, v4l2=
+_query_ext_ctrl> >, std::less<unsigned int>, std::allocator<std::pair<const=
+ unsigned int, v4l2_query_ext_ctrl> > >::const_iterator {aka std::_Rb_tree_=
+const_iterator<std::pair<const unsigned int, v4l2_query_ext_ctrl> >}=E2=80=
+=99 will change in GCC 7.1
+    __i =3D _M_t._M_emplace_hint_unique(__i, std::piecewise_construct,
+    ^~~
+/usr/include/c++/6/bits/stl_map.h:483:4: note: parameter passing for argume=
+nt of type =E2=80=98std::_Rb_tree<unsigned int, std::pair<const unsigned in=
+t, v4l2_query_ext_ctrl>, std::_Select1st<std::pair<const unsigned int, v4l2=
+_query_ext_ctrl> >, std::less<unsigned int>, std::allocator<std::pair<const=
+ unsigned int, v4l2_query_ext_ctrl> > >::const_iterator {aka std::_Rb_tree_=
+const_iterator<std::pair<const unsigned int, v4l2_query_ext_ctrl> >}=E2=80=
+=99 will change in GCC 7.1
+    __i =3D _M_t._M_emplace_hint_unique(__i, std::piecewise_construct,
+    ^~~
+/usr/include/c++/6/bits/stl_map.h:483:4: note: parameter passing for argume=
+nt of type =E2=80=98std::_Rb_tree<unsigned int, std::pair<const unsigned in=
+t, v4l2_query_ext_ctrl>, std::_Select1st<std::pair<const unsigned int, v4l2=
+_query_ext_ctrl> >, std::less<unsigned int>, std::allocator<std::pair<const=
+ unsigned int, v4l2_query_ext_ctrl> > >::const_iterator {aka std::_Rb_tree_=
+const_iterator<std::pair<const unsigned int, v4l2_query_ext_ctrl> >}=E2=80=
+=99 will change in GCC 7.1
+    __i =3D _M_t._M_emplace_hint_unique(__i, std::piecewise_construct,
+    ^~~
+/usr/include/c++/6/bits/stl_map.h: In member function =E2=80=98void Applica=
+tionWindow::updateCtrlRange(unsigned int, __s32)=E2=80=99:
+/usr/include/c++/6/bits/stl_map.h:483:4: note: parameter passing for argume=
+nt of type =E2=80=98std::_Rb_tree<unsigned int, std::pair<const unsigned in=
+t, v4l2_query_ext_ctrl>, std::_Select1st<std::pair<const unsigned int, v4l2=
+_query_ext_ctrl> >, std::less<unsigned int>, std::allocator<std::pair<const=
+ unsigned int, v4l2_query_ext_ctrl> > >::const_iterator {aka std::_Rb_tree_=
+const_iterator<std::pair<const unsigned int, v4l2_query_ext_ctrl> >}=E2=80=
+=99 will change in GCC 7.1
+    __i =3D _M_t._M_emplace_hint_unique(__i, std::piecewise_construct,
+    ^~~
+/usr/include/c++/6/bits/stl_map.h: In member function =E2=80=98void Applica=
+tionWindow::addTabs(int)=E2=80=99:
+/usr/include/c++/6/bits/stl_map.h:483:4: note: parameter passing for argume=
+nt of type =E2=80=98std::_Rb_tree<unsigned int, std::pair<const unsigned in=
+t, v4l2_query_ext_ctrl>, std::_Select1st<std::pair<const unsigned int, v4l2=
+_query_ext_ctrl> >, std::less<unsigned int>, std::allocator<std::pair<const=
+ unsigned int, v4l2_query_ext_ctrl> > >::const_iterator {aka std::_Rb_tree_=
+const_iterator<std::pair<const unsigned int, v4l2_query_ext_ctrl> >}=E2=80=
+=99 will change in GCC 7.1
+    __i =3D _M_t._M_emplace_hint_unique(__i, std::piecewise_construct,
+    ^~~
+/usr/include/c++/6/bits/stl_map.h:483:4: note: parameter passing for argume=
+nt of type =E2=80=98std::_Rb_tree<unsigned int, std::pair<const unsigned in=
+t, v4l2_query_ext_ctrl>, std::_Select1st<std::pair<const unsigned int, v4l2=
+_query_ext_ctrl> >, std::less<unsigned int>, std::allocator<std::pair<const=
+ unsigned int, v4l2_query_ext_ctrl> > >::const_iterator {aka std::_Rb_tree_=
+const_iterator<std::pair<const unsigned int, v4l2_query_ext_ctrl> >}=E2=80=
+=99 will change in GCC 7.1
+    __i =3D _M_t._M_emplace_hint_unique(__i, std::piecewise_construct,
+    ^~~
+/usr/include/c++/6/bits/stl_map.h:483:4: note: parameter passing for argume=
+nt of type =E2=80=98std::_Rb_tree<unsigned int, std::pair<const unsigned in=
+t, v4l2_query_ext_ctrl>, std::_Select1st<std::pair<const unsigned int, v4l2=
+_query_ext_ctrl> >, std::less<unsigned int>, std::allocator<std::pair<const=
+ unsigned int, v4l2_query_ext_ctrl> > >::const_iterator {aka std::_Rb_tree_=
+const_iterator<std::pair<const unsigned int, v4l2_query_ext_ctrl> >}=E2=80=
+=99 will change in GCC 7.1
+    __i =3D _M_t._M_emplace_hint_unique(__i, std::piecewise_construct,
+    ^~~
+/usr/include/c++/6/bits/stl_map.h:502:4: note: parameter passing for argume=
+nt of type =E2=80=98std::_Rb_tree<unsigned int, std::pair<const unsigned in=
+t, v4l2_query_ext_ctrl>, std::_Select1st<std::pair<const unsigned int, v4l2=
+_query_ext_ctrl> >, std::less<unsigned int>, std::allocator<std::pair<const=
+ unsigned int, v4l2_query_ext_ctrl> > >::const_iterator {aka std::_Rb_tree_=
+const_iterator<std::pair<const unsigned int, v4l2_query_ext_ctrl> >}=E2=80=
+=99 will change in GCC 7.1
+    __i =3D _M_t._M_emplace_hint_unique(__i, std::piecewise_construct,
+    ^~~
+/usr/include/c++/6/bits/stl_map.h:502:4: note: parameter passing for argume=
+nt of type =E2=80=98std::_Rb_tree<unsigned int, std::pair<const unsigned in=
+t, v4l2_query_ext_ctrl>, std::_Select1st<std::pair<const unsigned int, v4l2=
+_query_ext_ctrl> >, std::less<unsigned int>, std::allocator<std::pair<const=
+ unsigned int, v4l2_query_ext_ctrl> > >::const_iterator {aka std::_Rb_tree_=
+const_iterator<std::pair<const unsigned int, v4l2_query_ext_ctrl> >}=E2=80=
+=99 will change in GCC 7.1
+    __i =3D _M_t._M_emplace_hint_unique(__i, std::piecewise_construct,
+    ^~~
