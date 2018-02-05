@@ -1,132 +1,176 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f44.google.com ([74.125.83.44]:38596 "EHLO
-        mail-pg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751402AbeBWSW7 (ORCPT
+Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:36962 "EHLO
+        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752843AbeBEOyd (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 23 Feb 2018 13:22:59 -0500
-Received: by mail-pg0-f44.google.com with SMTP id l24so3661192pgc.5
-        for <linux-media@vger.kernel.org>; Fri, 23 Feb 2018 10:22:59 -0800 (PST)
-Subject: Re: [PATCH 01/13] media: v4l2-fwnode: Let parse_endpoint callback
- decide if no remote is error
-To: Philipp Zabel <p.zabel@pengutronix.de>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Yong Zhi <yong.zhi@intel.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        niklas.soderlund@ragnatech.se, Sebastian Reichel <sre@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        linux-media@vger.kernel.org
-References: <1519263589-19647-1-git-send-email-steve_longerbeam@mentor.com>
- <3283028.CgXzGkPyKt@avalon> <1519379812.7712.1.camel@pengutronix.de>
- <2571855.0gglA1aPyk@avalon> <1519384577.7712.4.camel@pengutronix.de>
-From: Steve Longerbeam <slongerbeam@gmail.com>
-Message-ID: <9c938a67-ab51-440b-65f5-26c03176cb8c@gmail.com>
-Date: Fri, 23 Feb 2018 10:22:56 -0800
+        Mon, 5 Feb 2018 09:54:33 -0500
+Subject: Re: [PATCH 4/5] add V4L2 control functions
+To: Florian Echtler <floe@butterbrot.org>, linux-media@vger.kernel.org
+Cc: linux-input@vger.kernel.org, modin@yuri.at
+References: <1517840981-12280-1-git-send-email-floe@butterbrot.org>
+ <1517840981-12280-5-git-send-email-floe@butterbrot.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <4835be2b-238c-bb27-e9e5-98642ae76733@xs4all.nl>
+Date: Mon, 5 Feb 2018 15:54:27 +0100
 MIME-Version: 1.0
-In-Reply-To: <1519384577.7712.4.camel@pengutronix.de>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <1517840981-12280-5-git-send-email-floe@butterbrot.org>
+Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+On 02/05/2018 03:29 PM, Florian Echtler wrote:
+> Signed-off-by: Florian Echtler <floe@butterbrot.org>
+> ---
+>  drivers/input/touchscreen/sur40.c | 114 ++++++++++++++++++++++++++++++++++++++
+>  1 file changed, 114 insertions(+)
+> 
+> diff --git a/drivers/input/touchscreen/sur40.c b/drivers/input/touchscreen/sur40.c
+> index 63c7264b..c4b7cf1 100644
+> --- a/drivers/input/touchscreen/sur40.c
+> +++ b/drivers/input/touchscreen/sur40.c
+> @@ -953,6 +953,119 @@ static int sur40_vidioc_g_fmt(struct file *file, void *priv,
+>  	return 0;
+>  }
+>  
+> +
+> +static int sur40_vidioc_queryctrl(struct file *file, void *fh,
+> +			       struct v4l2_queryctrl *qc)
+> +{
+> +
+> +	switch (qc->id) {
+> +	case V4L2_CID_BRIGHTNESS:
+> +		qc->flags = 0;
+> +		sprintf(qc->name, "Brightness");
+> +		qc->type = V4L2_CTRL_TYPE_INTEGER;
+> +		qc->minimum = SUR40_BRIGHTNESS_MIN;
+> +		qc->default_value = SUR40_BRIGHTNESS_DEF;
+> +		qc->maximum = SUR40_BRIGHTNESS_MAX;
+> +		qc->step = 8;
+> +		return 0;
+> +	case V4L2_CID_CONTRAST:
+> +		qc->flags = 0;
+> +		sprintf(qc->name, "Contrast");
+> +		qc->type = V4L2_CTRL_TYPE_INTEGER;
+> +		qc->minimum = SUR40_CONTRAST_MIN;
+> +		qc->default_value = SUR40_CONTRAST_DEF;
+> +		qc->maximum = SUR40_CONTRAST_MAX;
+> +		qc->step = 1;
+> +		return 0;
+> +	case V4L2_CID_GAIN:
+> +		qc->flags = 0;
+> +		sprintf(qc->name, "Gain");
+> +		qc->type = V4L2_CTRL_TYPE_INTEGER;
+> +		qc->minimum = SUR40_GAIN_MIN;
+> +		qc->default_value = SUR40_GAIN_DEF;
+> +		qc->maximum = SUR40_GAIN_MAX;
+> +		qc->step = 1;
+> +		return 0;
+> +	case V4L2_CID_BACKLIGHT_COMPENSATION:
+> +		qc->flags = 0;
+> +		sprintf(qc->name, "Preprocessor");
+> +		qc->type = V4L2_CTRL_TYPE_INTEGER;
+> +		qc->minimum = SUR40_BACKLIGHT_MIN;
+> +		qc->default_value = SUR40_BACKLIGHT_DEF;
+> +		qc->maximum = SUR40_BACKLIGHT_MAX;
+> +		qc->step = 1;
+> +		return 0;
+> +	default:
+> +		qc->flags = V4L2_CTRL_FLAG_DISABLED;
+> +		return -EINVAL;
+> +	}
+> +}
+> +
+> +static int sur40_vidioc_g_ctrl(struct file *file, void *fh,
+> +			    struct v4l2_control *ctrl)
+> +{
+> +
+> +	switch (ctrl->id) {
+> +	case V4L2_CID_BRIGHTNESS:
+> +		ctrl->value = sur40_v4l2_brightness;
+> +		return 0;
+> +	case V4L2_CID_CONTRAST:
+> +		ctrl->value = sur40_v4l2_contrast;
+> +		return 0;
+> +	case V4L2_CID_GAIN:
+> +		ctrl->value = sur40_v4l2_gain;
+> +		return 0;
+> +	case V4L2_CID_BACKLIGHT_COMPENSATION:
+> +		ctrl->value = sur40_v4l2_backlight;
+> +		return 0;
+> +	default:
+> +		return -EINVAL;
+> +	}
+> +}
+> +
+> +static int sur40_vidioc_s_ctrl(struct file *file, void *fh,
+> +			    struct v4l2_control *ctrl)
+> +{
+> +	u8 value = 0;
+> +	struct sur40_state *sur40 = video_drvdata(file);
+> +
+> +	switch (ctrl->id) {
+> +	case V4L2_CID_BRIGHTNESS:
+> +		sur40_v4l2_brightness = ctrl->value;
+> +		if (sur40_v4l2_brightness < SUR40_BRIGHTNESS_MIN)
+> +			sur40_v4l2_brightness = SUR40_BRIGHTNESS_MIN;
+> +		else if (sur40_v4l2_brightness > SUR40_BRIGHTNESS_MAX)
+> +			sur40_v4l2_brightness = SUR40_BRIGHTNESS_MAX;
+> +		sur40_set_irlevel(sur40, sur40_v4l2_brightness);
+> +		return 0;
+> +	case V4L2_CID_CONTRAST:
+> +		sur40_v4l2_contrast = ctrl->value;
+> +		if (sur40_v4l2_contrast < SUR40_CONTRAST_MIN)
+> +			sur40_v4l2_contrast = SUR40_CONTRAST_MIN;
+> +		else if (sur40_v4l2_contrast > SUR40_CONTRAST_MAX)
+> +			sur40_v4l2_contrast = SUR40_CONTRAST_MAX;
+> +		value = (sur40_v4l2_contrast << 4) + sur40_v4l2_gain;
+> +		sur40_set_vsvideo(sur40, value);
+> +		return 0;
+> +	case V4L2_CID_GAIN:
+> +		sur40_v4l2_gain = ctrl->value;
+> +		if (sur40_v4l2_gain < SUR40_GAIN_MIN)
+> +			sur40_v4l2_gain = SUR40_GAIN_MIN;
+> +		else if (sur40_v4l2_gain > SUR40_GAIN_MAX)
+> +			sur40_v4l2_gain = SUR40_GAIN_MAX;
+> +		value = (sur40_v4l2_contrast << 4) + sur40_v4l2_gain;
+> +		sur40_set_vsvideo(sur40, value);
+> +		return 0;
+> +	case V4L2_CID_BACKLIGHT_COMPENSATION:
+> +		sur40_v4l2_backlight = ctrl->value;
+> +		sur40_set_preprocessor(sur40, sur40_v4l2_backlight);
+> +		return 0;
+> +	default:
+> +		return -EINVAL;
+> +	}
+> +}
+> +
+> +
+>  static int sur40_ioctl_parm(struct file *file, void *priv,
+>  			    struct v4l2_streamparm *p)
+>  {
+> @@ -1071,6 +1181,10 @@ static const struct v4l2_ioctl_ops sur40_video_ioctl_ops = {
+>  	.vidioc_g_input		= sur40_vidioc_g_input,
+>  	.vidioc_s_input		= sur40_vidioc_s_input,
+>  
+> +	.vidioc_queryctrl	= sur40_vidioc_queryctrl,
+> +	.vidioc_g_ctrl		= sur40_vidioc_g_ctrl,
+> +	.vidioc_s_ctrl		= sur40_vidioc_s_ctrl,
+> +
+>  	.vidioc_reqbufs		= vb2_ioctl_reqbufs,
+>  	.vidioc_create_bufs	= vb2_ioctl_create_bufs,
+>  	.vidioc_querybuf	= vb2_ioctl_querybuf,
+> 
 
+Sorry, but this is very wrong. Use the control framework instead. See
+https://hverkuil.home.xs4all.nl/spec/kapi/v4l2-controls.html and pretty much all
+media drivers (with the exception of uvc). See for example this driver:
+drivers/media/pci/tw68/tw68-video.c (randomly chosen).
 
-On 02/23/2018 03:16 AM, Philipp Zabel wrote:
-> Hi Laurent,
->
-> On Fri, 2018-02-23 at 12:05 +0200, Laurent Pinchart wrote:
->> Hi Philipp,
->>
->> On Friday, 23 February 2018 11:56:52 EET Philipp Zabel wrote:
->>> On Fri, 2018-02-23 at 11:29 +0200, Laurent Pinchart wrote:
->>>> On Thursday, 22 February 2018 03:39:37 EET Steve Longerbeam wrote:
->>>>> For some subdevices, a fwnode endpoint that has no connection to a
->>>>> remote endpoint may not be an error. Let the parse_endpoint callback
->>>> make that decision in v4l2_async_notifier_fwnode_parse_endpoint(). If
->>>>> the callback indicates that is not an error, skip adding the asd to the
->>>>> notifier and return 0.
->>>>>
->>>>> For the current users of v4l2_async_notifier_parse_fwnode_endpoints()
->>>>> (omap3isp, rcar-vin, intel-ipu3), return -EINVAL in the callback for
->>>>> unavailable remote fwnodes to maintain the previous behavior.
->>>> I'm not sure this should be a per-driver decision.
->>>>
->>>> Generally speaking, if an endpoint node has no remote-endpoint property,
->>>> the endpoint node is not needed. I've always considered such an endpoint
->>>> node as invalid. The OF graphs DT bindings are however not clear on this
->>>> subject.
->>> Documentation/devicetree/bindings/graph.txt says:
->>>
->>>    Each endpoint should contain a 'remote-endpoint' phandle property
->>>    that points to the corresponding endpoint in the port of the remote
->>>    device.
->>>
->>> ("should", not "must").
->> The DT bindings documentation has historically used "should" to mean "must" in
->> many places :-( That was a big mistake.
-> Maybe I could have worded that better? The intention was to let "should"
-> be read as a strong suggestion, like "it is recommended", but not as a
-> requirement.
->
->>> Later, the remote-node property explicitly lists the remote-endpoint
->>> property as optional.
->> I've seen that too, and that's why I mentioned that the documentation isn't
->> clear on the subject.
-> Do you have a suggestion how to improve the documentation? I thought
-> listing the remote-endpoint property under a header called "Optional
-> endpoint properties" was pretty clear.
->
->> This could also be achieved by adding the endpoints in the board DT files. See
->> for instance the hdmi@fead0000 node in arch/arm64/boot/dts/renesas/
->> r8a7795.dtsi and how it gets extended in arch/arm64/boot/dts/renesas/r8a7795-
->> salvator-x.dts. On the other hand, I also have empty endpoints in the
->> display@feb00000 node of arch/arm64/boot/dts/renesas/r8a7795.dtsi.
-> Right, that would be possible.
+It actually makes life a lot easier for you as you don't have to perform any
+range checks and all control ioctls are automatically supported for you.
 
-Yes, I think this is doable in the specific case of the video mux device.
+Regards,
 
-For example on the i.MX6 SabreAuto reference boards, only the parallel
-bus mux input is connected to a device (to adv7180). The MIPI CSI-2 mux
-input is left unconnected.
-
-So probably the right approach is to not define any endpoint nodes under the
-unused mux input ports.
-
-The video-mux driver will need to be modified to enumerate ports, instead of
-endpoints, to determine its number of mux inputs.
-
-I will start looking into this change for v2.
-
-The trick would be to do this while still remaining compatible with old
-DTB's in the wild with unconnected endpoints. Unfortunately that might
-not be possible, unless we were to let v4l2-core ignore empty endpoints.
-
-
->
->> I think we should first decide what we want to do going forward (allowing for
->> empty endpoints or not), clarify the documentation, and then update the code.
->> In any case I don't think it should be a per-device decision.
-> There are device trees in the wild that have those empty endpoints, so I
-> don't think retroactively declaring the remote-endpoint property
-> required is a good idea.
->
-> Is there any driver that currently benefits from throwing an error on
-> empty endpoints in any way? I'd prefer to just let the core ignore empty
-> endpoints for all drivers.
-
-I tend to agree that, given the fuzziness of the DT binding docs regarding
-unconnected endpoints, v4l2-core should ignore them.
-
-In v2 I can modify this patch to ignore empty endpoints without error and
-continue with endpoint parsing rather than pass the empty endpoint to the
-caller's parse_endpoint callback.
-
-Or this patch can be dropped altogether. It won't be needed for i.MX6 after
-making the change described above, but again if this patch is dropped it 
-will
-break b/w compatibility with old i.MX6 DTB's.
-
-
-Steve
+	Hans
