@@ -1,51 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.anw.at ([195.234.101.228]:47947 "EHLO mail.anw.at"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751797AbeBDWpl (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 4 Feb 2018 17:45:41 -0500
-Subject: Re: [PATCH] media: uvcvideo: Fixed ktime_t to ns conversion
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, mchehab@s-opensource.com,
-        arnd@arndb.de
-References: <1515925303-5160-1-git-send-email-jasmin@anw.at>
- <1778442.ouJt2D3mk7@avalon> <f2e313c8-6013-bd1b-09da-8fa4fc12814e@anw.at>
- <e67396cf-c048-b915-d998-306fe44f7186@xs4all.nl>
-From: "Jasmin J." <jasmin@anw.at>
-Message-ID: <b70bdd87-0c1c-da98-e2dc-00bf29014973@anw.at>
-Date: Sun, 4 Feb 2018 23:45:34 +0100
+Received: from bombadil.infradead.org ([65.50.211.133]:37241 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752673AbeBENeV (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 5 Feb 2018 08:34:21 -0500
+Date: Mon, 5 Feb 2018 11:34:14 -0200
+From: Mauro Carvalho Chehab <mchehab@kernel.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>
+Subject: Re: MEDIA_IOC_G_TOPOLOGY and pad indices
+Message-ID: <20180205113414.23672fa3@vento.lan>
+In-Reply-To: <09719881-31dc-b5c4-2fd4-5baed30806f8@xs4all.nl>
+References: <336b3d54-6c59-d6eb-8fd8-e0a9677c7f5f@xs4all.nl>
+        <20180205085130.2b48dcd4@vento.lan>
+        <09719881-31dc-b5c4-2fd4-5baed30806f8@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <e67396cf-c048-b915-d998-306fe44f7186@xs4all.nl>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-ZA
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi!
+Em Mon, 5 Feb 2018 12:38:29 +0100
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-> We're waiting for the end of the 4.16 merge window.
-Ahh, this is the reason for the delay.
+> On 02/05/2018 12:15 PM, Mauro Carvalho Chehab wrote:
+> > Hi Hans,
+> > 
+> > Em Sun, 4 Feb 2018 14:06:42 +0100
+> > Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> >   
+> >> Hi Mauro,
+> >>
+> >> I'm working on adding proper compliance tests for the MC but I think something
+> >> is missing in the G_TOPOLOGY ioctl w.r.t. pads.
+> >>
+> >> In several v4l-subdev ioctls you need to pass the pad. There the pad is an index
+> >> for the corresponding entity. I.e. an entity has 3 pads, so the pad argument is
+> >> [0-2].
+> >>
+> >> The G_TOPOLOGY ioctl returns a pad ID, which is > 0x01000000. I can't use that
+> >> in the v4l-subdev ioctls, so how do I translate that to a pad index in my application?
+> >>
+> >> It seems to be a missing feature in the API. I assume this information is available
+> >> in the core, so then I would add a field to struct media_v2_pad with the pad index
+> >> for the entity.  
+> > 
+> > No, this was designed this way by purpose, back in 2015, when this was
+> > discussed at the first MC workshop. It was a consensus on that time that
+> > parameters like PAD index, PAD name, etc should be implemented via the
+> > properties API, as proposed by Sakari [1]. We also had a few discussions 
+> > about that on both IRC and ML.  
+> 
+> I'll read up on this and reply to this later.
+> 
+> <snip>
+> 
+> >> Next time we add new public API features I want to see compliance tests before
+> >> accepting it. It's much too easy to overlook something, either in the design or
+> >> in a driver or in the documentation, so this is really, really needed IMHO.  
+> > 
+> > We added a test tool for G_TOPOLOGY on that time.
+> > 
+> > I doubt that writing test/compliance tools in advance will solve all API
+> > gaps. The thing is that new features will take some time to be used on
+> > real apps. Some things are only visible when real apps start using the
+> > new API features.  
+> 
+> This is no excuse whatsoever NOT to write compliance tests. Sure, they will
+> never find everything, but for sure they find a LOT! Especially all the
+> little stupid things that can make something unusable for certain use-cases.
 
-> For me that meant that I simply did (and still don't) have time to look at
-> fixing the media_build.
-No problem, I do it when I have time ;)
+I agree that either a compliance or a test app is important.
 
-> The media_build is also broken worse than usual AFAIK, so it isn't a quick fix
-> I can do in between other jobs.
-I will look into that, when I fixed the current problem in uvcvideo
-temporarily.
+> And equally important, driver developers can use it to check that they didn't
+> forget anything.
+> 
+> A media-ctl/v4l2-ctl/whatever utility is no substitute for proper compliance
+> testing. The media API is complex because video is complex. It is impossible
+> to review code and catch all the little mistakes, but compliance tests can
+> go far in verifying driver code and also catching core code regressions.
+> 
+> I have yet to see a new driver that didn't fail at least one v4l2-compliance
+> test, and I very much doubt that existing subdev/media drivers would do any
+> different.
+> 
+> It would be very interesting if you would test it as well on DVB devices.
+> You should be able to run v4l2-compliance on the media device. There may
+> well be bugs in the tests for DVB devices. But that might also be caused
+> by incomplete documentation in the spec.
 
-> I'm OK to take a patch and then revert it later when the real fix has been merged.
-So ... just sent a patch for media_build.
+I can surely do some tests on DVB devices too. Please remind me after a
+couple of weeks. I'm very busy this week, and usually the first week
+after a merge window is also a busy one.
 
-> BTW, if you are interested then I would be more than happy to hand over media_build
-> maintenance to you.
-I am not sure if I know enough to completely do this. But I can be a substitute
-and continue what I did the last month. This means I would prefer that you keep
-the head of media_build and I do the work.
-But I would need write access to the media_build GIT tree. Please contact me
-off list for details.
 
-BR,
-   Jasmin
+Regards,
+Mauro
