@@ -1,104 +1,162 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:56182 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1032526AbeBNQrI (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 14 Feb 2018 11:47:08 -0500
-Subject: Re: [PATCHv2 1/9] v4l2-common: create v4l2_g/s_parm_cap helpers
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: linux-media@vger.kernel.org,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-References: <20180122123125.24709-1-hverkuil@xs4all.nl>
- <20180122123125.24709-2-hverkuil@xs4all.nl>
- <20180214135018.356ee06d@vento.lan>
- <dc7bebaa-48e8-1cbc-7a87-c3f35deebda9@xs4all.nl>
- <20180214143531.3643cc4e@vento.lan>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <9e430611-c504-4033-9b82-b298f2566ff1@xs4all.nl>
-Date: Wed, 14 Feb 2018 17:47:07 +0100
+Received: from osg.samsung.com ([64.30.133.232]:49659 "EHLO osg.samsung.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753136AbeBEQci (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 5 Feb 2018 11:32:38 -0500
+Date: Mon, 5 Feb 2018 14:32:28 -0200
+From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: media_device.c question: can this workaround be removed?
+Message-ID: <20180205143228.728d0e73@vento.lan>
+In-Reply-To: <10d299e0-4edf-75dc-56f1-3acfb6ed719b@xs4all.nl>
+References: <f4e9e722-9c73-e27c-967f-33c7e76de0d5@xs4all.nl>
+        <20180205115954.j7e5npbwuyfgl5il@valkosipuli.retiisi.org.uk>
+        <2291cc25-50fd-90cc-8948-6def4acc73a3@xs4all.nl>
+        <20180205143039.uhlxala2vc4diysp@valkosipuli.retiisi.org.uk>
+        <10d299e0-4edf-75dc-56f1-3acfb6ed719b@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <20180214143531.3643cc4e@vento.lan>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 14/02/18 17:35, Mauro Carvalho Chehab wrote:
-> Em Wed, 14 Feb 2018 17:23:51 +0100
-> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-> 
->> On 14/02/18 16:50, Mauro Carvalho Chehab wrote:
->>> Em Mon, 22 Jan 2018 13:31:17 +0100
->>> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
->>>   
->>>> From: Hans Verkuil <hans.verkuil@cisco.com>
->>>>
->>>> Create helpers to handle VIDIOC_G/S_PARM by querying the
->>>> g/s_frame_interval v4l2_subdev ops.
->>>>
->>>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
->>>> ---
->>>>  drivers/media/v4l2-core/v4l2-common.c | 48 +++++++++++++++++++++++++++++++++++
->>>>  include/media/v4l2-common.h           | 26 +++++++++++++++++++
->>>>  2 files changed, 74 insertions(+)
->>>>
->>>> diff --git a/drivers/media/v4l2-core/v4l2-common.c b/drivers/media/v4l2-core/v4l2-common.c
->>>> index 8650ad92b64d..96c1b31de9e3 100644
->>>> --- a/drivers/media/v4l2-core/v4l2-common.c
->>>> +++ b/drivers/media/v4l2-core/v4l2-common.c
->>>> @@ -392,3 +392,51 @@ void v4l2_get_timestamp(struct timeval *tv)
->>>>  	tv->tv_usec = ts.tv_nsec / NSEC_PER_USEC;
->>>>  }
->>>>  EXPORT_SYMBOL_GPL(v4l2_get_timestamp);
->>>> +
->>>> +int v4l2_g_parm_cap(struct video_device *vdev,
->>>> +		    struct v4l2_subdev *sd, struct v4l2_streamparm *a)
->>>> +{
->>>> +	struct v4l2_subdev_frame_interval ival = { 0 };
->>>> +	int ret;
->>>> +
->>>> +	if (a->type != V4L2_BUF_TYPE_VIDEO_CAPTURE &&
->>>> +	    a->type != V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
->>>> +		return -EINVAL;
->>>> +
->>>> +	if (vdev->device_caps & V4L2_CAP_READWRITE)
->>>> +		a->parm.capture.readbuffers = 2;  
->>>
->>> Hmm... why don't you also initialize readbuffers otherwise?  
->>
->> It's specifically for read(). If read() is not supported, then this
->> is meaningless and should just stay 0. v4l2-compliance checks for this.
-> 
-> Well, API states that:
-> 
-> "When an application requests zero buffers, drivers should just return the current setting rather than the minimum or an error code."
-> 
-> So, something should zero it, if not used and type is capture or
-> capture_mplane.
+Em Mon, 5 Feb 2018 16:19:28 +0100
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-All fields after the type field are zeroed by the core in v4l2-ioctl.c:
-
-        IOCTL_INFO_FNC(VIDIOC_G_PARM, v4l_g_parm, v4l_print_streamparm, INFO_FL_CLEAR(v4l2_streamparm, type)),
-
+> On 02/05/2018 03:30 PM, Sakari Ailus wrote:
+> > Hi Hans,
+> > 
+> > On Mon, Feb 05, 2018 at 01:30:04PM +0100, Hans Verkuil wrote:  
+> >> On 02/05/2018 12:59 PM, Sakari Ailus wrote:  
+> >>> Hi Hans,
+> >>>
+> >>> On Mon, Feb 05, 2018 at 11:26:47AM +0100, Hans Verkuil wrote:  
+> >>>> The function media_device_enum_entities() has this workaround:
+> >>>>
+> >>>>         /*
+> >>>>          * Workaround for a bug at media-ctl <= v1.10 that makes it to
+> >>>>          * do the wrong thing if the entity function doesn't belong to
+> >>>>          * either MEDIA_ENT_F_OLD_BASE or MEDIA_ENT_F_OLD_SUBDEV_BASE
+> >>>>          * Ranges.
+> >>>>          *
+> >>>>          * Non-subdevices are expected to be at the MEDIA_ENT_F_OLD_BASE,
+> >>>>          * or, otherwise, will be silently ignored by media-ctl when
+> >>>>          * printing the graphviz diagram. So, map them into the devnode
+> >>>>          * old range.
+> >>>>          */
+> >>>>         if (ent->function < MEDIA_ENT_F_OLD_BASE ||
+> >>>>             ent->function > MEDIA_ENT_F_TUNER) {
+> >>>>                 if (is_media_entity_v4l2_subdev(ent))
+> >>>>                         entd->type = MEDIA_ENT_F_V4L2_SUBDEV_UNKNOWN;
+> >>>>                 else if (ent->function != MEDIA_ENT_F_IO_V4L)
+> >>>>                         entd->type = MEDIA_ENT_T_DEVNODE_UNKNOWN;
+> >>>>         }
+> >>>>
+> >>>> But this means that the entity type returned by ENUM_ENTITIES just overwrites
+> >>>> perfectly fine types by bogus values and thus the returned value differs
+> >>>> from that returned by G_TOPOLOGY.
+> >>>>
+> >>>> Can we please, please remove this workaround? I have no idea why a workaround
+> >>>> for media-ctl of all things ever made it in the kernel.  
+> >>>
+> >>> The entity types were replaced by entity functions back in 2015 with the
+> >>> big Media controller reshuffle. While I agree functions are better for
+> >>> describing entities than types (and those types had Linux specific
+> >>> interfaces in them), the new function-based API still may support a single
+> >>> value, i.e. a single function per device.
+> >>>
+> >>> This also created two different name spaces for describing entities: the
+> >>> old types used by the MC API and the new functions used by MC v2 API.
+> >>>
+> >>> This doesn't go well with the fact that, as you noticed, the pad
+> >>> information is not available through MC v2 API. The pad information is
+> >>> required by the user space so software continues to use the original MC
+> >>> API.
+> >>>
+> >>> I don't think there's a way to avoid maintaining two name spaces (types and
+> >>> functions) without breaking at least one of the APIs.  
+> >>
+> >> The comment specifically claims that this workaround is for media-ctl and
+> >> it suggests that it is fixed after v1.10. Is that comment bogus? I can't
+> >> really tell which commit fixed media-ctl. Does anyone know?
+> >>
+> >> As far as I can tell the function defines have been chosen in such a way that
+> >> they will equally well work with the old name space. There should be no
+> >> problem there whatsoever and media-ctl should switch to use the new defines.  
+> > 
+> > The old interface (type) was centered around the uAPI for the entity.
+> > That's no longer the case for functions. The entity type
+> > (MEDIA_ENT_TYPE_MASK) tells the uAPI which affects the interpretation of
+> > the dev union in struct media_entity_struct as well as the interface that
+> > device node implements. With the new function field that's no longer the
+> > case.
+> > 
+> > Also, the new MC v2 API makes a separation between the entity function and
+> > the uAPI (interface) which was lacking in the old API.
+> >   
+> >>
+> >> We now have a broken ENUM_ENTITIES ioctl (it rudely overwrites VBI/DVB/etc types)
+> >> and a broken G_TOPOLOGY ioctl (no pad index).
+> >>
+> >> This sucks. Let's fix both so that they at least report consistent information.  
+> > 
+> > The existing user space may assume that the type field of the entity
+> > conveys that the entity does provide a V4L2 sub-device interface if that's
+> > the case actually.
+> > 
+> > This is what media-ctl does and I presume if existing user space checks for
+> > the type field, it may well have similar checks: it was how the API was
+> > defined. Therefore it's not entirely accurate to say that only media-ctl
+> > has this "bug", I'd generally assume programs that use MC (v1) API do this.
+> > 
+> > You could argue about the merits (or lack of them) of the old API, no
+> > disagrement there.  
 > 
->> The 'readbuffers' field is completely outdated and once this is in
->> the next step is to see if we can come up with something better. I hate
->> G/S_PARM.
+> The old API is already broken. E.g. using MEDIA_ENT_F_PROC_VIDEO_SCALER in
+> vimc/vimc-scaler.c (instead of the current - and bogus - MEDIA_ENT_F_ATV_DECODER)
+> gives me this with media-ctl:
 > 
-> Yes, it is a weird ioctl, but I'm not yet convinced that we should
-> increase API complexity by adding newer ioctls due to that.
+> - entity 21: Scaler (2 pads, 4 links)
+>              type V4L2 subdev subtype Unknown flags 0
+>              device node name /dev/v4l-subdev5
+>         pad0: Sink
+>                 [fmt:RGB888_1X24/640x480 field:none]
+>                 <- "Debayer A":1 [ENABLED]
+>                 <- "Debayer B":1 []
+>                 <- "RGB/YUV Input":0 []
+>         pad1: Source
+>                 [fmt:RGB888_1X24/1920x1440 field:none]
+>                 -> "RGB/YUV Capture":0 [ENABLED,IMMUTABLE]  
 > 
-> Instead, I would just get rid of .g_parm/.s_parm callbacks, implementing
-> a better kAPI, without bothering adding more complexity to uAPI.
+> Useless. We now have an old API that gives us pad indices but not the
+> function, and a new API that gives us the function but not the pad index.
 
-I will probably do that as a second step anyway. We can discuss the pros and
-cons of adding a new ioctl after that. I rather like the VIDIOC_SUBDEV_G/S_FRAME_INTERVAL
-ioctls. Simple and to the point. It's really what you would expect as an
-end-user.
+Adding pad index to new API is trivial, as your RFC patch pointed.
 
-Regards,
+Changing media-ctl to fully use the new ioctl is not trivial, as it
+was written on a non-portable way, very dependent on the kernel API
+specifics[1]. I suspect that it is a lot more easier to add support
+for MEDIA_IOC_SETUP_LINK to mc_nextgen_test and rename it to
+media-ctl[2].
 
-	Hans
+[1] I tried it before working at contrib/test/mc_nextgen_test.c. The
+internal data model used by media-ctl library was just a clone of the
+model returned by the ioctls. Even a minimal change on the way ioctls 
+return things (even adding new entity types) is enough to break it.
+
+[2] It would be possible, however, to make media-ctl to use 
+G_TOPOLOGY, ignoring new features that can't be represented using
+the old ioctls and providing fallback to entity functions in order
+to represent media types. It won't be too much elegant though.
+
+> How about adding a 'function' field to struct media_entity_desc
+> and fill that? Keep the type for backwards compatibility.
+
+Nah, Let's not touch the old ioctls. Instead, we should stick
+with the new API and convert (or replace) existing applications to
+use it, as the old ioctl set can't even represent the interfaces.
+
+Thanks,
+Mauro
