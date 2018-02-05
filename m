@@ -1,121 +1,152 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:44206 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1161403AbeBNRxV (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 14 Feb 2018 12:53:21 -0500
-Date: Wed, 14 Feb 2018 15:53:14 -0200
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Jani Nikula <jani.nikula@linux.intel.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Jonathan Corbet <corbet@lwn.net>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Linux Doc Mailing List <linux-doc@vger.kernel.org>,
-        "chris\@chris-wilson.co.uk" <chris@chris-wilson.co.uk>
-Subject: Re: [PATCH v4 16/18] scripts: kernel-doc: improve nested logic to
- handle multiple identifiers
-Message-ID: <20180214155314.1be00577@vento.lan>
-In-Reply-To: <874lmjlfmg.fsf@intel.com>
-References: <cover.1513599193.git.mchehab@s-opensource.com>
-        <b89b7c5400afd8c03d88ccccd2b5edd3625a1997.1513599193.git.mchehab@s-opensource.com>
-        <874lmjlfmg.fsf@intel.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:56606 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1752924AbeBEOam (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 5 Feb 2018 09:30:42 -0500
+Date: Mon, 5 Feb 2018 16:30:39 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: media_device.c question: can this workaround be removed?
+Message-ID: <20180205143039.uhlxala2vc4diysp@valkosipuli.retiisi.org.uk>
+References: <f4e9e722-9c73-e27c-967f-33c7e76de0d5@xs4all.nl>
+ <20180205115954.j7e5npbwuyfgl5il@valkosipuli.retiisi.org.uk>
+ <2291cc25-50fd-90cc-8948-6def4acc73a3@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <2291cc25-50fd-90cc-8948-6def4acc73a3@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 14 Feb 2018 18:07:03 +0200
-Jani Nikula <jani.nikula@linux.intel.com> escreveu:
+Hi Hans,
 
-> On Mon, 18 Dec 2017, Mauro Carvalho Chehab <mchehab@s-opensource.com> wrote:
-> > It is possible to use nested structs like:
-> >
-> > struct {
-> > 	struct {
-> > 		void *arg1;
-> > 	} st1, st2, *st3, st4;
-> > };
-> >
-> > Handling it requires to split each parameter. Change the logic
-> > to allow such definitions.
-> >
-> > In order to test the new nested logic, the following file
-> > was used to test  
+On Mon, Feb 05, 2018 at 01:30:04PM +0100, Hans Verkuil wrote:
+> On 02/05/2018 12:59 PM, Sakari Ailus wrote:
+> > Hi Hans,
+> > 
+> > On Mon, Feb 05, 2018 at 11:26:47AM +0100, Hans Verkuil wrote:
+> >> The function media_device_enum_entities() has this workaround:
+> >>
+> >>         /*
+> >>          * Workaround for a bug at media-ctl <= v1.10 that makes it to
+> >>          * do the wrong thing if the entity function doesn't belong to
+> >>          * either MEDIA_ENT_F_OLD_BASE or MEDIA_ENT_F_OLD_SUBDEV_BASE
+> >>          * Ranges.
+> >>          *
+> >>          * Non-subdevices are expected to be at the MEDIA_ENT_F_OLD_BASE,
+> >>          * or, otherwise, will be silently ignored by media-ctl when
+> >>          * printing the graphviz diagram. So, map them into the devnode
+> >>          * old range.
+> >>          */
+> >>         if (ent->function < MEDIA_ENT_F_OLD_BASE ||
+> >>             ent->function > MEDIA_ENT_F_TUNER) {
+> >>                 if (is_media_entity_v4l2_subdev(ent))
+> >>                         entd->type = MEDIA_ENT_F_V4L2_SUBDEV_UNKNOWN;
+> >>                 else if (ent->function != MEDIA_ENT_F_IO_V4L)
+> >>                         entd->type = MEDIA_ENT_T_DEVNODE_UNKNOWN;
+> >>         }
+> >>
+> >> But this means that the entity type returned by ENUM_ENTITIES just overwrites
+> >> perfectly fine types by bogus values and thus the returned value differs
+> >> from that returned by G_TOPOLOGY.
+> >>
+> >> Can we please, please remove this workaround? I have no idea why a workaround
+> >> for media-ctl of all things ever made it in the kernel.
+> > 
+> > The entity types were replaced by entity functions back in 2015 with the
+> > big Media controller reshuffle. While I agree functions are better for
+> > describing entities than types (and those types had Linux specific
+> > interfaces in them), the new function-based API still may support a single
+> > value, i.e. a single function per device.
+> > 
+> > This also created two different name spaces for describing entities: the
+> > old types used by the MC API and the new functions used by MC v2 API.
+> > 
+> > This doesn't go well with the fact that, as you noticed, the pad
+> > information is not available through MC v2 API. The pad information is
+> > required by the user space so software continues to use the original MC
+> > API.
+> > 
+> > I don't think there's a way to avoid maintaining two name spaces (types and
+> > functions) without breaking at least one of the APIs.
 > 
-> Hi Mauro, resurrecting an old thread...
+> The comment specifically claims that this workaround is for media-ctl and
+> it suggests that it is fixed after v1.10. Is that comment bogus? I can't
+> really tell which commit fixed media-ctl. Does anyone know?
 > 
-> So this was a great improvement to documenting nested structs. However,
-> it looks like it only supports describing the nested structs at the top
-> level comment, and fails for inline documentation comments.
+> As far as I can tell the function defines have been chosen in such a way that
+> they will equally well work with the old name space. There should be no
+> problem there whatsoever and media-ctl should switch to use the new defines.
 
-True. I didn't consider inline comments when I wrote the patch.
-We don't use inline doc tags at media. IMO, a single description block
-on the top works better, but yeah, it would be very good if it would
-support nested structs to also have inlined comments.
+The old interface (type) was centered around the uAPI for the entity.
+That's no longer the case for functions. The entity type
+(MEDIA_ENT_TYPE_MASK) tells the uAPI which affects the interpretation of
+the dev union in struct media_entity_struct as well as the interface that
+device node implements. With the new function field that's no longer the
+case.
 
-Yet, on a quick hack:
+Also, the new MC v2 API makes a separation between the entity function and
+the uAPI (interface) which was lacking in the old API.
 
-diff --git a/scripts/kernel-doc b/scripts/kernel-doc
-index fee8952037b1..e2d5cadd8d0b 100755
---- a/scripts/kernel-doc
-+++ b/scripts/kernel-doc
-@@ -1009,6 +1009,8 @@ sub dump_struct($$) {
- 	$declaration_name = $2;
- 	my $members = $3;
- 
-+print "members: $members\n";
-+
- 	# ignore members marked private:
- 	$members =~ s/\/\*\s*private:.*?\/\*\s*public:.*?\*\///gosi;
- 	$members =~ s/\/\*\s*private:.*//gosi;
+> 
+> We now have a broken ENUM_ENTITIES ioctl (it rudely overwrites VBI/DVB/etc types)
+> and a broken G_TOPOLOGY ioctl (no pad index).
+> 
+> This sucks. Let's fix both so that they at least report consistent information.
 
-produce:
+The existing user space may assume that the type field of the entity
+conveys that the entity does provide a V4L2 sub-device interface if that's
+the case actually.
 
-	$ scripts/kernel-doc -none drivers/gpu/drm/i915/intel_dpio_phy.c
-	members:  bool dual_channel; enum dpio_phy rcomp_phy; int reset_delay; u32 pwron_mask; struct { enum port port; }  channel[2]; 
-	drivers/gpu/drm/i915/intel_dpio_phy.c:154: warning: Function parameter or member 'channel.port' not described in 'bxt_ddi_phy_info'
+This is what media-ctl does and I presume if existing user space checks for
+the type field, it may well have similar checks: it was how the API was
+defined. Therefore it's not entirely accurate to say that only media-ctl
+has this "bug", I'd generally assume programs that use MC (v1) API do this.
 
-So, dump_struct() already receives the struct sanitizes without any comments
-inside.
+You could argue about the merits (or lack of them) of the old API, no
+disagrement there.
 
-There is a simple fix, though. Make inline comments to accept a dot:
+> 
+> > 
+> >>
+> >> I'm adding media support to the vivid driver and because of this media-ctl -p
+> >> gives me this:
+> >>
+> >> Device topology
+> >> - entity 1: vivid-000-vid-cap (1 pad, 0 link)
+> >>             type Node subtype V4L flags 0
+> >>             device node name /dev/video0
+> >>         pad0: Source
+> >>
+> >> - entity 5: vivid-000-vid-out (1 pad, 0 link)
+> >>             type Node subtype V4L flags 0
+> >>             device node name /dev/video1
+> >>         pad0: Sink
+> >>
+> >> - entity 9: vivid-000-vbi-cap (1 pad, 0 link)
+> >>             type Unknown subtype Unknown flags 0
+> >>         pad0: Source
+> >>
+> >> - entity 13: vivid-000-vbi-out (1 pad, 0 link)
+> >>              type Unknown subtype Unknown flags 0
+> >>         pad0: Sink
+> >>
+> >> - entity 17: vivid-000-sdr-cap (1 pad, 0 link)
+> >>              type Unknown subtype Unknown flags 0
+> >>         pad0: Source
+> > 
+> > It may be that there's no corresponding type for certain functions.
+> 
+> 'type' can be interpreted as 'function'. All possible legacy type/subtype
+> combinations map to a unique function. It's how the spec defines this as well.
+> But it is subverted by this awful workaround.
+> 
+> Regards,
+> 
+> 	Hans
 
-diff --git a/scripts/kernel-doc b/scripts/kernel-doc
-index fee8952037b1..06d7f3f2c094 100755
---- a/scripts/kernel-doc
-+++ b/scripts/kernel-doc
-@@ -363,7 +363,7 @@ my $doc_sect = $doc_com .
- my $doc_content = $doc_com_body . '(.*)';
- my $doc_block = $doc_com . 'DOC:\s*(.*)?';
- my $doc_inline_start = '^\s*/\*\*\s*$';
--my $doc_inline_sect = '\s*\*\s*(@[\w\s]+):(.*)';
-+my $doc_inline_sect = '\s*\*\s*(@\s*[\w][\w\.]*\s*):(.*)';
- my $doc_inline_end = '^\s*\*/\s*$';
- my $doc_inline_oneline = '^\s*/\*\*\s*(@[\w\s]+):\s*(.*)\s*\*/\s*$';
- my $export_symbol = '^\s*EXPORT_SYMBOL(_GPL)?\s*\(\s*(\w+)\s*\)\s*;';
-
-That requires a small change at the inline parameters, though:
-
-diff --git a/drivers/gpu/drm/i915/intel_dpio_phy.c b/drivers/gpu/drm/i915/intel_dpio_phy.c
-index 76473e9836c6..c8e9e44e5981 100644
---- a/drivers/gpu/drm/i915/intel_dpio_phy.c
-+++ b/drivers/gpu/drm/i915/intel_dpio_phy.c
-@@ -147,7 +147,7 @@ struct bxt_ddi_phy_info {
- 	 */
- 	struct {
- 		/**
--		 * @port: which port maps to this channel.
-+		 * @channel.port: which port maps to this channel.
- 		 */
- 		enum port port;
- 	} channel[2];
-
-The alternative would be a way more complex: to teach the code with
-starts at:
-
-	If ($inline_doc_state == STATE_INLINE_NAME && /$doc_inline_sect/o) {
-
-About how to handle with inlined structs/enums at inlined comments.
-
-Thanks,
-Mauro
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
