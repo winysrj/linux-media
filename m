@@ -1,83 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f195.google.com ([209.85.216.195]:39862 "EHLO
-        mail-qt0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751441AbeBLUoD (ORCPT
+Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:33406 "EHLO
+        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752013AbeBEV3q (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 12 Feb 2018 15:44:03 -0500
-Received: by mail-qt0-f195.google.com with SMTP id f4so1155497qtj.6
-        for <linux-media@vger.kernel.org>; Mon, 12 Feb 2018 12:44:03 -0800 (PST)
+        Mon, 5 Feb 2018 16:29:46 -0500
+Subject: Re: [PATCH v2 8/8] platform: vivid-cec: use 64-bit arithmetic instead
+ of 32-bit
+To: "Gustavo A. R. Silva" <gustavo@embeddedor.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        "Gustavo A. R. Silva" <garsilva@embeddedor.com>
+References: <cover.1517856716.git.gustavo@embeddedor.com>
+ <cca3c728f123d714dc8e4ed87510aeb2e2d63db6.1517856716.git.gustavo@embeddedor.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <dc931d9d-8cbd-bbd2-0199-b1846e41f274@xs4all.nl>
+Date: Mon, 5 Feb 2018 22:29:41 +0100
 MIME-Version: 1.0
-In-Reply-To: <cdfa0d36f2f2d306e0824205b4fca0b685991ee9.1516008708.git.sean@mess.org>
-References: <cover.1516008708.git.sean@mess.org> <cdfa0d36f2f2d306e0824205b4fca0b685991ee9.1516008708.git.sean@mess.org>
-From: Miguel Ojeda <miguel.ojeda.sandonis@gmail.com>
-Date: Mon, 12 Feb 2018 21:44:02 +0100
-Message-ID: <CANiq72kfqf+nhioH7nGPPsFh9PU7NsGLy+8bD7oXNiLCWx6ZeQ@mail.gmail.com>
-Subject: Re: [PATCH 2/5] auxdisplay: charlcd: add flush function
-To: Sean Young <sean@mess.org>, Arnd Bergmann <arnd@arndb.de>,
-        Greg KH <gregkh@linuxfoundation.org>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+In-Reply-To: <cca3c728f123d714dc8e4ed87510aeb2e2d63db6.1517856716.git.gustavo@embeddedor.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jan 15, 2018 at 10:58 AM, Sean Young <sean@mess.org> wrote:
-> The Sasem Remote Controller has an LCD, which is connnected via usb.
-> Multiple write reg or write data commands can be combined into one usb
-> packet.
->
-> The latency of usb is such that if we send commands one by one, we get
-> very obvious tearing on the LCD.
->
-> By adding a flush function, we can buffer all commands until either
-> the usb packet is full or the lcd changes are complete.
->
-> Signed-off-by: Sean Young <sean@mess.org>
+On 02/05/2018 09:36 PM, Gustavo A. R. Silva wrote:
+> Add suffix ULL to constant 10 in order to give the compiler complete
+> information about the proper arithmetic to use. Notice that this
+> constant is used in a context that expects an expression of type
+> u64 (64 bits, unsigned).
+> 
+> The expression len * 10 * CEC_TIM_DATA_BIT_TOTAL is currently being
+> evaluated using 32-bit arithmetic.
+> 
+> Also, remove unnecessary parentheses and add a code comment to make it
+> clear what is the reason of the code change.
+> 
+> Addresses-Coverity-ID: 1454996
+> Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
 > ---
->  drivers/auxdisplay/charlcd.c | 6 ++++++
+> Changes in v2:
+>  - Update subject and changelog to better reflect the proposed code changes.
+>  - Add suffix ULL to constant instead of casting a variable.
+>  - Remove unncessary parentheses.
 
-Cc'ing Arnd and Greg since this touches include/misc as well.
+unncessary -> unnecessary
 
-Miguel
-
->  include/misc/charlcd.h       | 1 +
->  2 files changed, 7 insertions(+)
->
-> diff --git a/drivers/auxdisplay/charlcd.c b/drivers/auxdisplay/charlcd.c
-> index 45ec5ce697c4..a16c72779722 100644
-> --- a/drivers/auxdisplay/charlcd.c
-> +++ b/drivers/auxdisplay/charlcd.c
-> @@ -642,6 +642,9 @@ static ssize_t charlcd_write(struct file *file, const char __user *buf,
->                 charlcd_write_char(the_charlcd, c);
->         }
->
-> +       if (the_charlcd->ops->flush)
-> +               the_charlcd->ops->flush(the_charlcd);
+>  - Add code comment.
+> 
+>  drivers/media/platform/vivid/vivid-cec.c | 11 +++++++++--
+>  1 file changed, 9 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/media/platform/vivid/vivid-cec.c b/drivers/media/platform/vivid/vivid-cec.c
+> index b55d278..614787b 100644
+> --- a/drivers/media/platform/vivid/vivid-cec.c
+> +++ b/drivers/media/platform/vivid/vivid-cec.c
+> @@ -82,8 +82,15 @@ static void vivid_cec_pin_adap_events(struct cec_adapter *adap, ktime_t ts,
+>  
+>  	if (adap == NULL)
+>  		return;
+> -	ts = ktime_sub_us(ts, (CEC_TIM_START_BIT_TOTAL +
+> -			       len * 10 * CEC_TIM_DATA_BIT_TOTAL));
 > +
->         return tmp - buf;
->  }
->
-> @@ -703,6 +706,9 @@ static void charlcd_puts(struct charlcd *lcd, const char *s)
->
->                 charlcd_write_char(lcd, *tmp);
->         }
-> +
-> +       if (lcd->ops->flush)
-> +               lcd->ops->flush(lcd);
->  }
->
->  /* initialize the LCD driver */
-> diff --git a/include/misc/charlcd.h b/include/misc/charlcd.h
-> index 23f61850f363..ff8fd456018e 100644
-> --- a/include/misc/charlcd.h
-> +++ b/include/misc/charlcd.h
-> @@ -32,6 +32,7 @@ struct charlcd_ops {
->         void (*write_cmd_raw4)(struct charlcd *lcd, int cmd);   /* 4-bit only */
->         void (*clear_fast)(struct charlcd *lcd);
->         void (*backlight)(struct charlcd *lcd, int on);
-> +       void (*flush)(struct charlcd *lcd);
->  };
->
->  struct charlcd *charlcd_alloc(unsigned int drvdata_size);
-> --
-> 2.14.3
->
+> +	/*
+> +	 * Suffix ULL on constant 10 makes the expression
+> +	 * CEC_TIM_START_BIT_TOTAL + 10ULL * len * CEC_TIM_DATA_BIT_TOTAL
+> +	 * be evaluated using 64-bit unsigned arithmetic (u64), which
+> +	 * is what ktime_sub_us expects as second argument.
+> +	 */
+
+That's not really the comment that I was looking for. It still doesn't
+explain *why* this is needed at all. How about something like this:
+
+/*
+ * Add the ULL suffix to the constant 10 to work around a false Coverity
+ * "Unintentional integer overflow" warning. Coverity isn't smart enough
+ * to understand that len is always <= 16, so there is no chance of an
+ * integer overflow.
+ */
+
+Regards,
+
+	Hans
+
+> +	ts = ktime_sub_us(ts, CEC_TIM_START_BIT_TOTAL +
+> +			       10ULL * len * CEC_TIM_DATA_BIT_TOTAL);
+>  	cec_queue_pin_cec_event(adap, false, ts);
+>  	ts = ktime_add_us(ts, CEC_TIM_START_BIT_LOW);
+>  	cec_queue_pin_cec_event(adap, true, ts);
+> 
