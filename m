@@ -1,57 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f193.google.com ([209.85.220.193]:45127 "EHLO
-        mail-qk0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751835AbeBFIUp (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Tue, 6 Feb 2018 03:20:45 -0500
-MIME-Version: 1.0
-In-Reply-To: <20180205201002.23621-1-wsa+renesas@sang-engineering.com>
-References: <20180205201002.23621-1-wsa+renesas@sang-engineering.com>
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Date: Tue, 6 Feb 2018 09:20:43 +0100
-Message-ID: <CAMuHMdWnV17DCxr71k6n3w+5jPtQmeuPugr58xadq9U_qchJnQ@mail.gmail.com>
-Subject: Re: [PATCH 0/4] tree-wide: fix comparison to bitshift when dealing
- with a mask
-To: Wolfram Sang <wsa+renesas@sang-engineering.com>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Dan Carpenter <dan.carpenter@oracle.com>,
-        Linux-Renesas <linux-renesas-soc@vger.kernel.org>,
-        DRI Development <dri-devel@lists.freedesktop.org>,
+Received: from gateway33.websitewelcome.com ([192.185.146.78]:39034 "EHLO
+        gateway33.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751617AbeBEUuN (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 5 Feb 2018 15:50:13 -0500
+Received: from cm14.websitewelcome.com (cm14.websitewelcome.com [100.42.49.7])
+        by gateway33.websitewelcome.com (Postfix) with ESMTP id 256A61674C
+        for <linux-media@vger.kernel.org>; Mon,  5 Feb 2018 14:27:38 -0600 (CST)
+Date: Mon, 5 Feb 2018 14:27:37 -0600
+From: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
+To: Jacob chen <jacob2.chen@rock-chips.com>,
+        Heiko Stuebner <heiko@sntech.de>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
         linux-arm-kernel@lists.infradead.org,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        linux-samsung-soc@vger.kernel.org, netdev <netdev@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+        linux-rockchip@lists.infradead.org,
+        "Gustavo A. R. Silva" <garsilva@embeddedor.com>
+Subject: [PATCH v2 6/8] rockchip/rga: use 64-bit arithmetic instead of 32-bit
+Message-ID: <94fd0993cde02e18ee5d7f54707f8ce0d0341a0c.1517856716.git.gustavo@embeddedor.com>
+References: <cover.1517856716.git.gustavo@embeddedor.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <cover.1517856716.git.gustavo@embeddedor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Wolfram,
+Cast p to dma_addr_t in order to avoid a potential integer overflow.
+This variable is being used in a context that expects an expression
+of type dma_addr_t (u64).
 
-On Mon, Feb 5, 2018 at 9:09 PM, Wolfram Sang
-<wsa+renesas@sang-engineering.com> wrote:
-> In one Renesas driver, I found a typo which turned an intended bit shift ('<<')
-> into a comparison ('<'). Because this is a subtle issue, I looked tree wide for
-> similar patterns. This small patch series is the outcome.
->
-> Buildbot and checkpatch are happy. Only compile-tested. To be applied
-> individually per sub-system, I think. I'd think only the net: amd: patch needs
-> to be conisdered for stable, but I leave this to people who actually know this
-> driver.
->
-> CCing Dan. Maybe he has an idea how to add a test to smatch? In my setup, only
-> cppcheck reported a 'coding style' issue with a low prio.
+The expression p << PAGE_SHIFT is currently being evaluated
+using 32-bit arithmetic.
 
-I found two more using "git grep 'define.*0x[0-9a-f]* < '":
+Addresses-Coverity-ID: 1458347
+Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
+---
+Changes in v2:
+ - Update subject and changelog to better reflect the proposed code change.
 
-drivers/net/can/m_can/m_can.c:#define RXFC_FWM_MASK     (0x7f < RXFC_FWM_SHIFT)
-drivers/usb/gadget/udc/goku_udc.h:#define INT_EPnNAK(n)
-(0x00100 < (n))         /* 0 < n < 4 */
+ drivers/media/platform/rockchip/rga/rga-buf.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-Gr{oetje,eeting}s,
-
-                        Geert
-
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+diff --git a/drivers/media/platform/rockchip/rga/rga-buf.c b/drivers/media/platform/rockchip/rga/rga-buf.c
+index 49cacc7..a43b57a 100644
+--- a/drivers/media/platform/rockchip/rga/rga-buf.c
++++ b/drivers/media/platform/rockchip/rga/rga-buf.c
+@@ -140,7 +140,8 @@ void rga_buf_map(struct vb2_buffer *vb)
+ 		address = sg_phys(sgl);
+ 
+ 		for (p = 0; p < len; p++) {
+-			dma_addr_t phys = address + (p << PAGE_SHIFT);
++			dma_addr_t phys = address +
++					  ((dma_addr_t)p << PAGE_SHIFT);
+ 
+ 			pages[mapped_size + p] = phys;
+ 		}
+-- 
+2.7.4
