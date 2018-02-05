@@ -1,60 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-cys01nam02on0076.outbound.protection.outlook.com ([104.47.37.76]:24158
-        "EHLO NAM02-CY1-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1750987AbeBGW3z (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 7 Feb 2018 17:29:55 -0500
-From: Satish Kumar Nagireddy <satish.nagireddy.nagireddy@xilinx.com>
-To: <linux-media@vger.kernel.org>, <laurent.pinchart@ideasonboard.com>,
-        <michal.simek@xilinx.com>, <hyun.kwon@xilinx.com>
-CC: Radhey Shyam Pandey <radhey.shyam.pandey@xilinx.com>,
-        Satish Kumar Nagireddy <satishna@xilinx.com>
-Subject: [PATCH 1/8] v4l: xilinx: dma: Remove colorspace check in xvip_dma_verify_format
-Date: Wed, 7 Feb 2018 14:29:31 -0800
-Message-ID: <1518042578-22771-2-git-send-email-satishna@xilinx.com>
-In-Reply-To: <1518042578-22771-1-git-send-email-satishna@xilinx.com>
-References: <1518042578-22771-1-git-send-email-satishna@xilinx.com>
+Received: from gateway30.websitewelcome.com ([192.185.149.4]:15227 "EHLO
+        gateway30.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750949AbeBEUI1 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 5 Feb 2018 15:08:27 -0500
+Received: from cm14.websitewelcome.com (cm14.websitewelcome.com [100.42.49.7])
+        by gateway30.websitewelcome.com (Postfix) with ESMTP id 5862511AD3
+        for <linux-media@vger.kernel.org>; Mon,  5 Feb 2018 14:08:27 -0600 (CST)
+Date: Mon, 5 Feb 2018 14:08:26 -0600
+From: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        "Gustavo A. R. Silva" <garsilva@embeddedor.com>
+Subject: [PATCH v2 4/8] i2c: ov9650: use 64-bit arithmetic instead of 32-bit
+Message-ID: <6f6fd607cf3428d6ab115f1deaa82c4963b170f1.1517856716.git.gustavo@embeddedor.com>
+References: <cover.1517856716.git.gustavo@embeddedor.com>
 MIME-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <cover.1517856716.git.gustavo@embeddedor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Radhey Shyam Pandey <radhey.shyam.pandey@xilinx.com>
+Add suffix ULL to constants 10000 and 1000000 in order to give the
+compiler complete information about the proper arithmetic to use.
+Notice that these constants are used in contexts that expect
+expressions of type u64 (64 bits, unsigned).
 
-In current implementation driver only checks the colorspace
-between the last subdev in the pipeline and the connected video node,
-the pipeline could be configured with wrong colorspace information
-until the very end. It thus makes little sense to check the
-colorspace only at the video node. So check can be dropped until
-we find a better solution to carry colorspace information
-through pipelines and to userspace.
+The following expressions:
 
-Signed-off-by: Satish Kumar Nagireddy <satishna@xilinx.com>
+(u64)(fi->interval.numerator * 10000)
+(u64)(iv->interval.numerator * 10000)
+fiv->interval.numerator * 1000000 / fiv->interval.denominator
+
+are currently being evaluated using 32-bit arithmetic.
+
+Notice that those casts to u64 for the first two expressions are only
+effective after such expressions are evaluated using 32-bit arithmetic,
+which leads to potential integer overflows. So based on those casts, it
+seems that the original intention of the code is to actually use 64-bit
+arithmetic instead of 32-bit.
+
+Also, notice that once the suffix ULL is added to the constants, the
+outer casts to u64 are no longer needed.
+
+Addresses-Coverity-ID: 1324146 ("Unintentional integer overflow")
+Fixes: 84a15ded76ec ("[media] V4L: Add driver for OV9650/52 image sensors")
+Fixes: 79211c8ed19c ("remove abs64()")
+Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
 ---
- drivers/media/platform/xilinx/xilinx-dma.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+Changes in v2:
+ - Update subject and changelog to better reflect the proposed code changes.
+ - Add suffix ULL to constants instead of casting variables.
+ - Remove unnecessary casts to u64 as part of the code change.
+ - Extend the same code change to other similar expressions.
 
-diff --git a/drivers/media/platform/xilinx/xilinx-dma.c b/drivers/media/pla=
-tform/xilinx/xilinx-dma.c
-index 522cdfd..cb20ada 100644
---- a/drivers/media/platform/xilinx/xilinx-dma.c
-+++ b/drivers/media/platform/xilinx/xilinx-dma.c
-@@ -75,8 +75,7 @@ static int xvip_dma_verify_format(struct xvip_dma *dma)
+ drivers/media/i2c/ov9650.c | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-        if (dma->fmtinfo->code !=3D fmt.format.code ||
-            dma->format.height !=3D fmt.format.height ||
--           dma->format.width !=3D fmt.format.width ||
--           dma->format.colorspace !=3D fmt.format.colorspace)
-+           dma->format.width !=3D fmt.format.width)
-                return -EINVAL;
-
-        return 0;
---
+diff --git a/drivers/media/i2c/ov9650.c b/drivers/media/i2c/ov9650.c
+index e519f27..e716e98 100644
+--- a/drivers/media/i2c/ov9650.c
++++ b/drivers/media/i2c/ov9650.c
+@@ -1130,7 +1130,7 @@ static int __ov965x_set_frame_interval(struct ov965x *ov965x,
+ 	if (fi->interval.denominator == 0)
+ 		return -EINVAL;
+ 
+-	req_int = (u64)(fi->interval.numerator * 10000) /
++	req_int = fi->interval.numerator * 10000ULL /
+ 		fi->interval.denominator;
+ 
+ 	for (i = 0; i < ARRAY_SIZE(ov965x_intervals); i++) {
+@@ -1139,7 +1139,7 @@ static int __ov965x_set_frame_interval(struct ov965x *ov965x,
+ 		if (mbus_fmt->width != iv->size.width ||
+ 		    mbus_fmt->height != iv->size.height)
+ 			continue;
+-		err = abs((u64)(iv->interval.numerator * 10000) /
++		err = abs(iv->interval.numerator * 10000ULL /
+ 			    iv->interval.denominator - req_int);
+ 		if (err < min_err) {
+ 			fiv = iv;
+@@ -1148,8 +1148,9 @@ static int __ov965x_set_frame_interval(struct ov965x *ov965x,
+ 	}
+ 	ov965x->fiv = fiv;
+ 
+-	v4l2_dbg(1, debug, &ov965x->sd, "Changed frame interval to %u us\n",
+-		 fiv->interval.numerator * 1000000 / fiv->interval.denominator);
++	v4l2_dbg(1, debug, &ov965x->sd, "Changed frame interval to %llu us\n",
++		 fiv->interval.numerator * 1000000ULL /
++		 fiv->interval.denominator);
+ 
+ 	return 0;
+ }
+-- 
 2.7.4
-
-This email and any attachments are intended for the sole use of the named r=
-ecipient(s) and contain(s) confidential information that may be proprietary=
-, privileged or copyrighted under applicable law. If you are not the intend=
-ed recipient, do not read, copy, or forward this email message or any attac=
-hments. Delete this email message and any attachments immediately.
