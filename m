@@ -1,77 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from userp2120.oracle.com ([156.151.31.85]:51414 "EHLO
-        userp2120.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752142AbeBSOdC (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 19 Feb 2018 09:33:02 -0500
-Date: Mon, 19 Feb 2018 17:27:52 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: mchehab@kernel.org
-Cc: linux-media@vger.kernel.org
-Subject: [bug report] V4L/DVB (3420): Added iocls to configure VBI on tvp5150
-Message-ID: <20180219142751.GA10113@mwanda>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Received: from butterbrot.org ([176.9.106.16]:41566 "EHLO butterbrot.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752935AbeBEOhb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 5 Feb 2018 09:37:31 -0500
+From: Florian Echtler <floe@butterbrot.org>
+To: linux-media@vger.kernel.org, hverkuil@xs4all.nl
+Cc: linux-input@vger.kernel.org, modin@yuri.at,
+        Florian Echtler <floe@butterbrot.org>
+Subject: [PATCH 3/5] add video control register handlers
+Date: Mon,  5 Feb 2018 15:29:39 +0100
+Message-Id: <1517840981-12280-4-git-send-email-floe@butterbrot.org>
+In-Reply-To: <1517840981-12280-1-git-send-email-floe@butterbrot.org>
+References: <1517840981-12280-1-git-send-email-floe@butterbrot.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-[ This is obviously ancient code.  It's probably fine.  I've just been
-  going through all array overflow warnings recently.  - dan ]
+Signed-off-by: Florian Echtler <floe@butterbrot.org>
+---
+ drivers/input/touchscreen/sur40.c | 70 +++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 70 insertions(+)
 
-Hello Mauro Carvalho Chehab,
-
-The patch 12db56071b47: "V4L/DVB (3420): Added iocls to configure VBI
-on tvp5150" from Jan 23, 2006, leads to the following static checker
-warning:
-
-	drivers/media/i2c/tvp5150.c:730 tvp5150_get_vbi()
-	error: buffer overflow 'regs' 5 <= 14
-
-drivers/media/i2c/tvp5150.c
-   699  static int tvp5150_get_vbi(struct v4l2_subdev *sd,
-   700                          const struct i2c_vbi_ram_value *regs, int line)
-   701  {
-   702          struct tvp5150 *decoder = to_tvp5150(sd);
-   703          v4l2_std_id std = decoder->norm;
-   704          u8 reg;
-   705          int pos, type = 0;
-   706          int i, ret = 0;
-   707  
-   708          if (std == V4L2_STD_ALL) {
-   709                  dev_err(sd->dev, "VBI can't be configured without knowing number of lines\n");
-   710                  return 0;
-   711          } else if (std & V4L2_STD_625_50) {
-   712                  /* Don't follow NTSC Line number convension */
-   713                  line += 3;
-   714          }
-   715  
-   716          if (line < 6 || line > 27)
-   717                  return 0;
-   718  
-   719          reg = ((line - 6) << 1) + TVP5150_LINE_MODE_INI;
-   720  
-   721          for (i = 0; i <= 1; i++) {
-   722                  ret = tvp5150_read(sd, reg + i);
-   723                  if (ret < 0) {
-   724                          dev_err(sd->dev, "%s: failed with error = %d\n",
-   725                                   __func__, ret);
-   726                          return 0;
-   727                  }
-   728                  pos = ret & 0x0f;
-   729                  if (pos < 0x0f)
-                            ^^^^^^^^^^
-Smatch thinks this implies pos can be 0-14.
-
-   730                          type |= regs[pos].type.vbi_type;
-                                        ^^^^^^^^^
-This array only has 5 elements.
-
-   731          }
-   732  
-   733          return type;
-   734  }
-
-
-regards,
-dan carpenter
+diff --git a/drivers/input/touchscreen/sur40.c b/drivers/input/touchscreen/sur40.c
+index 0dbb004..63c7264b 100644
+--- a/drivers/input/touchscreen/sur40.c
++++ b/drivers/input/touchscreen/sur40.c
+@@ -247,6 +255,80 @@ static int sur40_command(struct sur40_state *dev,
+ 			       0x00, index, buffer, size, 1000);
+ }
+ 
++/* poke a byte in the panel register space */
++static int sur40_poke(struct sur40_state *dev, u8 offset, u8 value)
++{
++	int result;
++	u8 index = 0x96; // 0xae for permanent write
++
++	result = usb_control_msg(dev->usbdev, usb_sndctrlpipe(dev->usbdev, 0),
++		SUR40_POKE, USB_TYPE_VENDOR | USB_RECIP_DEVICE | USB_DIR_OUT,
++		0x32, index, NULL, 0, 1000);
++	if (result < 0)
++		goto error;
++	msleep(5);
++
++	result = usb_control_msg(dev->usbdev, usb_sndctrlpipe(dev->usbdev, 0),
++		SUR40_POKE, USB_TYPE_VENDOR | USB_RECIP_DEVICE | USB_DIR_OUT,
++		0x72, offset, NULL, 0, 1000);
++	if (result < 0)
++		goto error;
++	msleep(5);
++
++	result = usb_control_msg(dev->usbdev, usb_sndctrlpipe(dev->usbdev, 0),
++		SUR40_POKE, USB_TYPE_VENDOR | USB_RECIP_DEVICE | USB_DIR_OUT,
++		0xb2, value, NULL, 0, 1000);
++	if (result < 0)
++		goto error;
++	msleep(5);
++
++error:
++	return result;
++}
++
++static int sur40_set_preprocessor(struct sur40_state *dev, u8 value)
++{
++	u8 setting_07[2] = { 0x01, 0x00 };
++	u8 setting_17[2] = { 0x85, 0x80 };
++	int result;
++
++	if (value > 1)
++		return -ERANGE;
++
++	result = usb_control_msg(dev->usbdev, usb_sndctrlpipe(dev->usbdev, 0),
++		SUR40_POKE, USB_TYPE_VENDOR | USB_RECIP_DEVICE | USB_DIR_OUT,
++		0x07, setting_07[value], NULL, 0, 1000);
++	if (result < 0)
++		goto error;
++	msleep(5);
++
++	result = usb_control_msg(dev->usbdev, usb_sndctrlpipe(dev->usbdev, 0),
++		SUR40_POKE, USB_TYPE_VENDOR | USB_RECIP_DEVICE | USB_DIR_OUT,
++		0x17, setting_17[value], NULL, 0, 1000);
++	if (result < 0)
++		goto error;
++	msleep(5);
++
++error:
++	return result;
++}
++
++static void sur40_set_vsvideo(struct sur40_state *handle, u8 value)
++{
++	int i;
++
++	for (i = 0; i < 4; i++)
++		sur40_poke(handle, 0x1c+i, value);
++}
++
++static void sur40_set_irlevel(struct sur40_state *handle, u8 value)
++{
++	int i;
++
++	for (i = 0; i < 8; i++)
++		sur40_poke(handle, 0x08+(2*i), value);
++}
++
+ /* Initialization routine, called from sur40_open */
+ static int sur40_init(struct sur40_state *dev)
+ {
+-- 
+2.7.4
