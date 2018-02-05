@@ -1,201 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:53485 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1032588AbeBNQeS (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 14 Feb 2018 11:34:18 -0500
-Subject: Re: [PATCHv2 2/9] media: convert g/s_parm to g/s_frame_interval in
- subdevs
-To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: linux-media@vger.kernel.org,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>
-References: <20180122123125.24709-1-hverkuil@xs4all.nl>
- <20180122123125.24709-3-hverkuil@xs4all.nl>
- <20180214140257.1bfd266f@vento.lan>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <959ca281-d231-0202-a0dc-89605a8270bb@xs4all.nl>
-Date: Wed, 14 Feb 2018 17:34:17 +0100
-MIME-Version: 1.0
-In-Reply-To: <20180214140257.1bfd266f@vento.lan>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Received: from mail-lf0-f66.google.com ([209.85.215.66]:42198 "EHLO
+        mail-lf0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752556AbeBEBZW (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Sun, 4 Feb 2018 20:25:22 -0500
+From: Ulf Magnusson <ulfalizer@gmail.com>
+To: linux-kernel@vger.kernel.org
+Cc: linux-kbuild@vger.kernel.org, tfiga@chromium.org,
+        paul.burton@mips.com, m.szyprowski@samsung.com,
+        egtvedt@samfundet.no, linus.walleij@linaro.org,
+        vgupta@synopsys.com, mgorman@techsingularity.net, hch@lst.de,
+        mina86@mina86.com, robh@kernel.org, sboyd@codeaurora.org,
+        paulus@ozlabs.org, will.deacon@arm.com, tony@atomide.com,
+        npiggin@gmail.com, yamada.masahiro@socionext.com,
+        Ulf Magnusson <ulfalizer@gmail.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
+        Peter Griffin <peter.griffin@linaro.org>,
+        Arnd Bergmann <arnd@arndb.de>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
+        linux-media@vger.kernel.org
+Subject: [PATCH 17/20] media: sec: Remove PLAT_S5P dependency
+Date: Mon,  5 Feb 2018 02:21:29 +0100
+Message-Id: <20180205012146.23981-18-ulfalizer@gmail.com>
+In-Reply-To: <20180205012146.23981-1-ulfalizer@gmail.com>
+References: <20180205012146.23981-1-ulfalizer@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 14/02/18 17:03, Mauro Carvalho Chehab wrote:
-> Em Mon, 22 Jan 2018 13:31:18 +0100
-> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-> 
->> From: Hans Verkuil <hans.verkuil@cisco.com>
->>
->> Convert all g/s_parm calls to g/s_frame_interval. This allows us
->> to remove the g/s_parm ops since those are a duplicate of
->> g/s_frame_interval.
->>
->> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
->> ---
->>  drivers/media/i2c/mt9v011.c                     | 31 +++++++-------------
->>  drivers/media/i2c/ov6650.c                      | 35 +++++++++-------------
->>  drivers/media/i2c/ov7670.c                      | 24 +++++++--------
->>  drivers/media/i2c/ov7740.c                      | 31 +++++++-------------
->>  drivers/media/i2c/tvp514x.c                     | 39 +++++++++----------------
->>  drivers/media/i2c/vs6624.c                      | 29 +++++++-----------
->>  drivers/media/platform/atmel/atmel-isc.c        | 10 ++-----
->>  drivers/media/platform/atmel/atmel-isi.c        | 12 ++------
->>  drivers/media/platform/blackfin/bfin_capture.c  | 14 +++------
->>  drivers/media/platform/marvell-ccic/mcam-core.c | 12 ++++----
->>  drivers/media/platform/soc_camera/soc_camera.c  | 10 ++++---
->>  drivers/media/platform/via-camera.c             |  4 +--
->>  drivers/media/usb/em28xx/em28xx-video.c         | 36 +++++++++++++++++++----
->>  13 files changed, 122 insertions(+), 165 deletions(-)
->>
->> diff --git a/drivers/media/i2c/mt9v011.c b/drivers/media/i2c/mt9v011.c
->> index 5e29064fae91..3e23c5b0de1f 100644
->> --- a/drivers/media/i2c/mt9v011.c
->> +++ b/drivers/media/i2c/mt9v011.c
->> @@ -364,33 +364,24 @@ static int mt9v011_set_fmt(struct v4l2_subdev *sd,
->>  	return 0;
->>  }
->>  
->> -static int mt9v011_g_parm(struct v4l2_subdev *sd, struct v4l2_streamparm *parms)
->> +static int mt9v011_g_frame_interval(struct v4l2_subdev *sd,
->> +				    struct v4l2_subdev_frame_interval *ival)
->>  {
->> -	struct v4l2_captureparm *cp = &parms->parm.capture;
->> -
->> -	if (parms->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
->> -		return -EINVAL;
->> -
->> -	memset(cp, 0, sizeof(struct v4l2_captureparm));
->> -	cp->capability = V4L2_CAP_TIMEPERFRAME;
->> +	memset(ival->reserved, 0, sizeof(ival->reserved));
-> 
-> Hmm.. why to repeat memset everywhere? If the hole idea is to stop abusing,
-> the best would be to do, instead:
+The PLAT_S5P symbol was removed in commit d78c16ccde96 ("ARM: SAMSUNG:
+Remove remaining legacy code").
 
-g_frame_interval is called by bridge drivers through the subdev ops. So that
-path doesn't go through subdev_do_ioctl(). So it doesn't help putting it in
-v4l2-subdev.c.
+Remove the PLAT_S5P dependency from VIDEO_SAMSUNG_S5P_CEC.
 
-That doesn't mean it shouldn't be there as well. I believe my MC patch series
-actually adds the memset in subdev_do_ioctl.
+Discovered with the
+https://github.com/ulfalizer/Kconfiglib/blob/master/examples/list_undefined.py
+script.
 
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
-> index c5639817db34..b18b418c080f 100644
-> --- a/drivers/media/v4l2-core/v4l2-subdev.c
-> +++ b/drivers/media/v4l2-core/v4l2-subdev.c
-> @@ -350,6 +350,7 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
->  		if (fi->pad >= sd->entity.num_pads)
->  			return -EINVAL;
->  
-> +		memset(fi->reserved, 0, sizeof(ival->reserved));
->  		return v4l2_subdev_call(sd, video, g_frame_interval, arg);
->  	}
->  
-> (same applies to s_frame_interval).
-> 
-> 
->>  	calc_fps(sd,
->> -		 &cp->timeperframe.numerator,
->> -		 &cp->timeperframe.denominator);
->> +		 &ival->interval.numerator,
->> +		 &ival->interval.denominator);
->>  
->>  	return 0;
->>  }
->>  
->> -static int mt9v011_s_parm(struct v4l2_subdev *sd, struct v4l2_streamparm *parms)
->> +static int mt9v011_s_frame_interval(struct v4l2_subdev *sd,
->> +				    struct v4l2_subdev_frame_interval *ival)
->>  {
->> -	struct v4l2_captureparm *cp = &parms->parm.capture;
->> -	struct v4l2_fract *tpf = &cp->timeperframe;
->> +	struct v4l2_fract *tpf = &ival->interval;
->>  	u16 speed;
->>  
->> -	if (parms->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
->> -		return -EINVAL;
->> -	if (cp->extendedmode != 0)
->> -		return -EINVAL;
->> -
-> 
-> Hmm... why are you removing those sanity checks everywhere?
-> The core doesn't do it.
-> 
-> All the above comments also apply to the other files modified by
-> this patch.
+Signed-off-by: Ulf Magnusson <ulfalizer@gmail.com>
+---
+ drivers/media/platform/Kconfig | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-struct v4l2_subdev_frame_interval has neither type nor extendedmode.
-
-The check for type is done in the v4l2_g/s_parm_cap helpers instead.
-And extendedmode is always set to 0.
-
-> 
->> +	memset(ival->reserved, 0, sizeof(ival->reserved));
->>  	speed = calc_speed(sd, tpf->numerator, tpf->denominator);
->>  
->>  	mt9v011_write(sd, R0A_MT9V011_CLK_SPEED, speed);
->> @@ -469,8 +460,8 @@ static const struct v4l2_subdev_core_ops mt9v011_core_ops = {
->>  };
->>  
->>  static const struct v4l2_subdev_video_ops mt9v011_video_ops = {
->> -	.g_parm = mt9v011_g_parm,
->> -	.s_parm = mt9v011_s_parm,
->> +	.g_frame_interval = mt9v011_g_frame_interval,
->> +	.s_frame_interval = mt9v011_s_frame_interval,
->>  };
->>  
->>  static const struct v4l2_subdev_pad_ops mt9v011_pad_ops = {
->> diff --git a/drivers/media/i2c/ov6650.c b/drivers/media/i2c/ov6650.c
->> index 8975d16b2b24..3f962dae7534 100644
->> --- a/drivers/media/i2c/ov6650.c
->> +++ b/drivers/media/i2c/ov6650.c
->> @@ -201,7 +201,7 @@ struct ov6650 {
->>  	struct v4l2_rect	rect;		/* sensor cropping window */
->>  	unsigned long		pclk_limit;	/* from host */
->>  	unsigned long		pclk_max;	/* from resolution and format */
->> -	struct v4l2_fract	tpf;		/* as requested with s_parm */
->> +	struct v4l2_fract	tpf;		/* as requested with s_frame_interval */
->>  	u32 code;
->>  	enum v4l2_colorspace	colorspace;
->>  };
->> @@ -723,42 +723,33 @@ static int ov6650_enum_mbus_code(struct v4l2_subdev *sd,
->>  	return 0;
->>  }
->>  
->> -static int ov6650_g_parm(struct v4l2_subdev *sd, struct v4l2_streamparm *parms)
->> +static int ov6650_g_frame_interval(struct v4l2_subdev *sd,
->> +				   struct v4l2_subdev_frame_interval *ival)
->>  {
->>  	struct i2c_client *client = v4l2_get_subdevdata(sd);
->>  	struct ov6650 *priv = to_ov6650(client);
->> -	struct v4l2_captureparm *cp = &parms->parm.capture;
->>  
->> -	if (parms->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
->> -		return -EINVAL;
->> -
->> -	memset(cp, 0, sizeof(*cp));
->> -	cp->capability = V4L2_CAP_TIMEPERFRAME;
->> -	cp->timeperframe.numerator = GET_CLKRC_DIV(to_clkrc(&priv->tpf,
->> +	memset(ival->reserved, 0, sizeof(ival->reserved));
->> +	ival->interval.numerator = GET_CLKRC_DIV(to_clkrc(&priv->tpf,
->>  			priv->pclk_limit, priv->pclk_max));
->> -	cp->timeperframe.denominator = FRAME_RATE_MAX;
->> +	ival->interval.denominator = FRAME_RATE_MAX;
->>  
->>  	dev_dbg(&client->dev, "Frame interval: %u/%u s\n",
->> -		cp->timeperframe.numerator, cp->timeperframe.denominator);
->> +		ival->interval.numerator, ival->interval.denominator);
-> 
-> Hmm... not sure if a debug is needed here. Yet, if this is needed, 
-> IMHO, it would make mroe sense to move it to the core.
-
-The core doesn't see this if this subdev op is called from a bridge driver.
-
-Regards,
-
-	Hans
+diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
+index 614fbef08ddc..8b4cd02e2938 100644
+--- a/drivers/media/platform/Kconfig
++++ b/drivers/media/platform/Kconfig
+@@ -582,7 +582,7 @@ config CEC_GPIO
+ 
+ config VIDEO_SAMSUNG_S5P_CEC
+        tristate "Samsung S5P CEC driver"
+-       depends on PLAT_S5P || ARCH_EXYNOS || COMPILE_TEST
++       depends on ARCH_EXYNOS || COMPILE_TEST
+        select CEC_CORE
+        select CEC_NOTIFIER
+        ---help---
+-- 
+2.14.1
