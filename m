@@ -1,58 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-sn1nam01on0072.outbound.protection.outlook.com ([104.47.32.72]:43584
-        "EHLO NAM01-SN1-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1753412AbeBOGmJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 15 Feb 2018 01:42:09 -0500
-From: Satish Kumar Nagireddy <satish.nagireddy.nagireddy@xilinx.com>
-To: <linux-media@vger.kernel.org>, <laurent.pinchart@ideasonboard.com>,
-        <michal.simek@xilinx.com>, <hyun.kwon@xilinx.com>
-CC: Radhey Shyam Pandey <radhey.shyam.pandey@xilinx.com>,
-        Satish Kumar Nagireddy <satishna@xilinx.com>
-Subject: [PATCH v3 1/9] v4l: xilinx: dma: Remove colorspace check in xvip_dma_verify_format
-Date: Wed, 14 Feb 2018 22:41:53 -0800
-Message-ID: <1518676913-19380-1-git-send-email-satishna@xilinx.com>
+Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:46194 "EHLO
+        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752582AbeBERBj (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 5 Feb 2018 12:01:39 -0500
+Subject: Re: Please help test the new v4l-subdev support in v4l2-compliance
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Tim Harvey <tharvey@gateworks.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+References: <be1babc7-ed0b-8853-19e8-43b20a6f4c17@xs4all.nl>
+ <CAJ+vNU12FEWf6+FUdsYjJhjxZbiBmjR6RurNc4W-xC-ZsMTp+A@mail.gmail.com>
+ <20180205143729.12783826@vento.lan> <20180205145457.6c083894@vento.lan>
+ <f7e62d1c-ae5f-2131-9331-2cb70c3a9749@xs4all.nl>
+Message-ID: <e7db77c5-282a-eb4f-5a37-a4b3859e9b35@xs4all.nl>
+Date: Mon, 5 Feb 2018 18:01:34 +0100
 MIME-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+In-Reply-To: <f7e62d1c-ae5f-2131-9331-2cb70c3a9749@xs4all.nl>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Radhey Shyam Pandey <radhey.shyam.pandey@xilinx.com>
+On 02/05/2018 05:59 PM, Hans Verkuil wrote:
+> On 02/05/2018 05:55 PM, Mauro Carvalho Chehab wrote:
+>> Em Mon, 5 Feb 2018 14:37:29 -0200
+>> Mauro Carvalho Chehab <mchehab@kernel.org> escreveu:
+>>
+>>> Em Mon, 5 Feb 2018 08:21:54 -0800
+>>> Tim Harvey <tharvey@gateworks.com> escreveu:
+>>>
+>>>> Hans,
+>>>>
+>>>> I'm failing compile (of master 4ee9911) with:
+>>>>
+>>>>   CXX      v4l2_compliance-media-info.o
+>>>> media-info.cpp: In function ‘media_type media_detect_type(const char*)’:
+>>>> media-info.cpp:79:39: error: no matching function for call to
+>>>> ‘std::basic_ifstream<char>::basic_ifstream(std::__cxx11::string&)’
+>>>>   std::ifstream uevent_file(uevent_path);
+>>>>                                        ^  
+>>>
+>>> Btw, while on it, a few days ago, I noticed several class warnings when
+>>> building v4l-utils on Raspbian, saying that it was using some features
+>>> that future versions of gcc would stop using at qv4l2. See enclosed.
+>>>
+>>> I didn't have time to look on them.
+>>
+>> FYI, it still happens with today's upstream's version:
+>>
+>> 	4ee99116d0ec (HEAD, origin/master, origin/HEAD) v4l2-ctl: improve the fps calculation when streaming
+>>
+>> $ gcc --version
+>> gcc (Raspbian 6.3.0-18+rpi1) 6.3.0 20170516
+>> Copyright (C) 2016 Free Software Foundation, Inc.
+>> This is free software; see the source for copying conditions.  There is NO
+>> warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+> 
+> My guess is that it is a bogus message from gcc 6.
+> 
+> Regards,
+> 
+> 	Hans
+> 
 
-In current implementation driver only checks the colorspace
-between the last subdev in the pipeline and the connected video node,
-the pipeline could be configured with wrong colorspace information
-until the very end. It thus makes little sense to check the
-colorspace only at the video node. So check can be dropped until
-we find a better solution to carry colorspace information
-through pipelines and to userspace.
+See: https://gcc.gnu.org/ml/gcc/2017-05/msg00073.html
 
-Signed-off-by: Satish Kumar Nagireddy <satishna@xilinx.com>
----
- drivers/media/platform/xilinx/xilinx-dma.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+Nothing to worry about.
 
-diff --git a/drivers/media/platform/xilinx/xilinx-dma.c b/drivers/media/pla=
-tform/xilinx/xilinx-dma.c
-index 522cdfd..cb20ada 100644
---- a/drivers/media/platform/xilinx/xilinx-dma.c
-+++ b/drivers/media/platform/xilinx/xilinx-dma.c
-@@ -75,8 +75,7 @@ static int xvip_dma_verify_format(struct xvip_dma *dma)
-
-        if (dma->fmtinfo->code !=3D fmt.format.code ||
-            dma->format.height !=3D fmt.format.height ||
--           dma->format.width !=3D fmt.format.width ||
--           dma->format.colorspace !=3D fmt.format.colorspace)
-+           dma->format.width !=3D fmt.format.width)
-                return -EINVAL;
-
-        return 0;
---
-2.7.4
-
-This email and any attachments are intended for the sole use of the named r=
-ecipient(s) and contain(s) confidential information that may be proprietary=
-, privileged or copyrighted under applicable law. If you are not the intend=
-ed recipient, do not read, copy, or forward this email message or any attac=
-hments. Delete this email message and any attachments immediately.
+	Hans
