@@ -1,51 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f193.google.com ([209.85.220.193]:42457 "EHLO
-        mail-qk0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753114AbeBIXLf (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 9 Feb 2018 18:11:35 -0500
-Received: by mail-qk0-f193.google.com with SMTP id c185so4570540qkg.9
-        for <linux-media@vger.kernel.org>; Fri, 09 Feb 2018 15:11:35 -0800 (PST)
-From: Fabio Estevam <festevam@gmail.com>
-To: mchehab@kernel.org
-Cc: slongerbeam@gmail.com, gregkh@linuxfoundation.org,
-        linux-media@vger.kernel.org, ian.arkver.dev@gmail.com,
-        hans.verkuil@cisco.com, p.zabel@pengutronix.de,
-        Fabio Estevam <fabio.estevam@nxp.com>
-Subject: [PATCH v2] media: imx-media-internal-sd: Use empty initializer
-Date: Fri,  9 Feb 2018 21:11:16 -0200
-Message-Id: <1518217876-7037-1-git-send-email-festevam@gmail.com>
+Received: from mga12.intel.com ([192.55.52.136]:36238 "EHLO mga12.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752317AbeBEMYE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 5 Feb 2018 07:24:04 -0500
+Date: Mon, 5 Feb 2018 14:24:01 +0200
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: Andy Yeh <andy.yeh@intel.com>
+Cc: linux-media@vger.kernel.org, tfiga@chromium.org,
+        Alan Chiang <alanx.chiang@intel.com>,
+        devicetree@vger.kernel.org
+Subject: Re: [PATCH 2/2] media: dt-bindings: Add bindings for Dongwoon DW9807
+ voice coil
+Message-ID: <20180205122401.o5od2vfgvqiqqwgs@paasikivi.fi.intel.com>
+References: <1517500092-12121-1-git-send-email-andy.yeh@intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1517500092-12121-1-git-send-email-andy.yeh@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Fabio Estevam <fabio.estevam@nxp.com>
+Hi Andy,
 
-When building with W=1 the following warning shows up:
+On Thu, Feb 01, 2018 at 11:48:12PM +0800, Andy Yeh wrote:
+> From: Alan Chiang <alanx.chiang@intel.com>
+> 
+> Dongwoon DW9807 is a voice coil lens driver.
+> 
+> Also add a vendor prefix for Dongwoon for one did not exist previously.
+> 
+> Signed-off-by: Andy Yeh <andy.yeh@intel.com>
 
-drivers/staging/media/imx/imx-media-internal-sd.c:274:49: warning: Using plain integer as NULL pointer
+Could you send DT binding patches to the devicetree list as well, please?
 
-Fix this problem by using an empty initializer, which guarantees that all
-struct members are zero-cleared.
+I'm cc'ing the DT list this time.
 
-Signed-off-by: Fabio Estevam <fabio.estevam@nxp.com>
----
-Changes since v1:
-- Use empty initializer insted of memset() - Ian
+> ---
+>  Documentation/devicetree/bindings/media/i2c/dongwoon,dw9807.txt | 9 +++++++++
+>  1 file changed, 9 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/media/i2c/dongwoon,dw9807.txt
+> 
+> diff --git a/Documentation/devicetree/bindings/media/i2c/dongwoon,dw9807.txt b/Documentation/devicetree/bindings/media/i2c/dongwoon,dw9807.txt
+> new file mode 100644
+> index 0000000..0a1a860
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/media/i2c/dongwoon,dw9807.txt
+> @@ -0,0 +1,9 @@
+> +Dongwoon Anatech DW9807 voice coil lens driver
+> +
+> +DW9807 is a 10-bit DAC with current sink capability. It is intended for
+> +controlling voice coil lenses.
+> +
+> +Mandatory properties:
+> +
+> +- compatible: "dongwoon,dw9807"
+> +- reg: I2C slave address
+> -- 
+> 2.7.4
+> 
 
- drivers/staging/media/imx/imx-media-internal-sd.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/staging/media/imx/imx-media-internal-sd.c b/drivers/staging/media/imx/imx-media-internal-sd.c
-index 70833fe..daf66c2 100644
---- a/drivers/staging/media/imx/imx-media-internal-sd.c
-+++ b/drivers/staging/media/imx/imx-media-internal-sd.c
-@@ -271,7 +271,7 @@ static int add_internal_subdev(struct imx_media_dev *imxmd,
- 			       int ipu_id)
- {
- 	struct imx_media_internal_sd_platformdata pdata;
--	struct platform_device_info pdevinfo = {0};
-+	struct platform_device_info pdevinfo = {};
- 	struct platform_device *pdev;
- 
- 	pdata.grp_id = isd->id->grp_id;
 -- 
-2.7.4
+Sakari Ailus
+sakari.ailus@linux.intel.com
