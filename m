@@ -1,52 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay4-d.mail.gandi.net ([217.70.183.196]:49546 "EHLO
-        relay4-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752798AbeB0Pkk (ORCPT
+Received: from gateway32.websitewelcome.com ([192.185.145.171]:36524 "EHLO
+        gateway32.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751175AbeBEUGX (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 27 Feb 2018 10:40:40 -0500
-From: Jacopo Mondi <jacopo+renesas@jmondi.org>
-To: mchehab@s-opensource.com, laurent.pinchart@ideasonboard.com,
-        hans.verkuil@cisco.com, g.liakhovetski@gmx.de, bhumirks@gmail.com
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        linux-media@vger.kernel.org
-Subject: [PATCH 00/13] media: ov772x/tw9910 cleanup
-Date: Tue, 27 Feb 2018 16:40:17 +0100
-Message-Id: <1519746030-15407-1-git-send-email-jacopo+renesas@jmondi.org>
+        Mon, 5 Feb 2018 15:06:23 -0500
+Received: from cm16.websitewelcome.com (cm16.websitewelcome.com [100.42.49.19])
+        by gateway32.websitewelcome.com (Postfix) with ESMTP id 52CC39FA0
+        for <linux-media@vger.kernel.org>; Mon,  5 Feb 2018 14:06:22 -0600 (CST)
+Date: Mon, 5 Feb 2018 14:06:18 -0600
+From: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
+To: linux-media@vger.kernel.org, linux-rockchip@lists.infradead.org,
+        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Jacob chen <jacob2.chen@rock-chips.com>,
+        Heiko Stuebner <heiko@sntech.de>,
+        Antti Palosaari <crope@iki.fi>,
+        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
+        "Gustavo A. R. Silva" <garsilva@embeddedor.com>
+Subject: [PATCH v2 0/8] use 64-bit arithmetic instead of 32-bit
+Message-ID: <cover.1517856716.git.gustavo@embeddedor.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
-  as you have started cleaning up those two drivers as they've been now
-moved away from soc_camera I have added a few style fixes for both of them
-on top of your two patches:
+Add suffix LL and ULL to various constants in order to give the compiler
+complete information about the proper arithmetic to use. Such constants
+are used in contexts that expect expressions of type u64 (64 bits, unsigned)
+and s64 (64 bits, signed).
 
-commit ae24b8a1d5f9 ("media: tw9910: solve coding style issues")
-commit 2d595d14fe8b ("media: ov772x: fix whitespace issues")
+The mentioned expressions are currently being evaluated using 32-bit
+arithmetic, wich is some cases can lead to unintentional integer
+overflows.
 
-checkpatch now returns no error apart from a > 80 columns in ov772x I did not
-break for sake of readability.
+This patchset addresses the following Coverity IDs:
+CIDs: 200604, 1056807, 1056808, 1271223, 1324146
+CIDs: 1392628, 1392630, 1446589, 1454996, 1458347
 
-Thanks
-   j
+Thank you
 
-Jacopo Mondi (13):
-  media: tw9910: Fix parameter alignment issue
-  media: tw9910: Empty line before end-of-function return
-  media: tw9910: Align function parameters
-  media: tw9910: Re-order variables declaration
-  media: tw9910: Re-organize in-code comments
-  media: tw9910: Mixed style fixes
-  media: tw9910: Sort includes alphabetically
-  media: tw9910: Replace msleep(1) with usleep_range
-  media: ov772x: Align function parameters
-  media: ov772x: Re-organize in-code comments
-  media: ov772x: Empty line before end-of-function return
-  media: ov772x: Re-order variables declaration
-  media: ov772x: Replace msleep(1) with usleep_range
+Changes in v2:
+ - Update subject and changelog to better reflect the proposed code changes.
+ - Add suffix ULL and LL to constants instead of casting variables.
+ - Extend the proposed code changes to other similar cases that had not
+   previously been considered in v1 of this patchset.
 
- drivers/media/i2c/ov772x.c |  63 +++++++++++++---------------
- drivers/media/i2c/tw9910.c | 101 ++++++++++++++++++++-------------------------
- 2 files changed, 72 insertions(+), 92 deletions(-)
+Gustavo A. R. Silva (8):
+  rtl2832: use 64-bit arithmetic instead of 32-bit in
+    rtl2832_set_frontend
+  dvb-frontends: ves1820: use 64-bit arithmetic instead of 32-bit
+  i2c: max2175: use 64-bit arithmetic instead of 32-bit
+  i2c: ov9650: use 64-bit arithmetic instead of 32-bit
+  pci: cx88-input: use 64-bit arithmetic instead of 32-bit
+  rockchip/rga: use 64-bit arithmetic instead of 32-bit
+  platform: sh_veu: use 64-bit arithmetic instead of 32-bit
+  platform: vivid-cec: use 64-bit arithmetic instead of 32-bit
 
---
+ drivers/media/dvb-frontends/rtl2832.c         |  4 ++--
+ drivers/media/dvb-frontends/ves1820.c         |  2 +-
+ drivers/media/i2c/max2175.c                   |  2 +-
+ drivers/media/i2c/ov9650.c                    |  9 +++++----
+ drivers/media/pci/cx88/cx88-input.c           |  4 ++--
+ drivers/media/platform/rockchip/rga/rga-buf.c |  3 ++-
+ drivers/media/platform/sh_veu.c               |  4 ++--
+ drivers/media/platform/vivid/vivid-cec.c      | 11 +++++++++--
+ 8 files changed, 24 insertions(+), 15 deletions(-)
+
+-- 
 2.7.4
