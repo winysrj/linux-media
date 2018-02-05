@@ -1,112 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bn3nam01on0082.outbound.protection.outlook.com ([104.47.33.82]:51740
-        "EHLO NAM01-BN3-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1754829AbeBOGmw (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 15 Feb 2018 01:42:52 -0500
-From: Satish Kumar Nagireddy <satish.nagireddy.nagireddy@xilinx.com>
-To: <linux-media@vger.kernel.org>, <laurent.pinchart@ideasonboard.com>,
-        <michal.simek@xilinx.com>, <hyun.kwon@xilinx.com>
-CC: Satish Kumar Nagireddy <satishna@xilinx.com>
-Subject: [PATCH v3 6/9] v4l: xilinx: dma: Update video format descriptor
-Date: Wed, 14 Feb 2018 22:42:36 -0800
-Message-ID: <1518676956-19618-1-git-send-email-satishna@xilinx.com>
+Received: from mail-it0-f47.google.com ([209.85.214.47]:36033 "EHLO
+        mail-it0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750962AbeBEIxi (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 5 Feb 2018 03:53:38 -0500
+Received: by mail-it0-f47.google.com with SMTP id n206so15036171itg.1
+        for <linux-media@vger.kernel.org>; Mon, 05 Feb 2018 00:53:38 -0800 (PST)
+Received: from mail-io0-f178.google.com (mail-io0-f178.google.com. [209.85.223.178])
+        by smtp.gmail.com with ESMTPSA id k75sm5043359iod.27.2018.02.05.00.53.37
+        for <linux-media@vger.kernel.org>
+        (version=TLS1_2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
+        Mon, 05 Feb 2018 00:53:37 -0800 (PST)
+Received: by mail-io0-f178.google.com with SMTP id f4so29471206ioh.8
+        for <linux-media@vger.kernel.org>; Mon, 05 Feb 2018 00:53:37 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+In-Reply-To: <fb69d8ed-6318-3970-0e2e-873749720689@xs4all.nl>
+References: <fb69d8ed-6318-3970-0e2e-873749720689@xs4all.nl>
+From: Alexandre Courbot <acourbot@chromium.org>
+Date: Mon, 5 Feb 2018 17:53:16 +0900
+Message-ID: <CAPBb6MV==Bb-1b=gJm-er6J=9vHzDTuvMykJXWFv9N2GPCxF8A@mail.gmail.com>
+Subject: Re: Compliance tests for new public API features
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Gustavo Padovan <gustavo@padovan.org>,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch updates video format descriptor to help information
-viz., number of planes per color format and chroma sub sampling
-factors.
+Hi Hans,
 
-This commit adds the various 8-bit and 10-bit that are supported
-to the table queried by drivers.
+On Sun, Feb 4, 2018 at 10:30 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> Hi Gustavo, Alexandre,
+>
+> As you may have seen I have been extending the v4l2-compliance utility with tests
+> for v4l-subdevX and mediaX devices. In the process of doing that I promptly
+> found a bunch of bugs. Mostly little things that are easy to fix, but much
+> harder to find without proper tests.
+>
+> You are both working on new API additions and I want to give a heads-up that
+> I want to have patches for v4l2-compliance that test the new additions to a
+> reasonable extent.
+>
+> I say 'reasonable' because I suspect that e.g. in-fence support might be hard
+> to test. But out-fences can definitely be tested and for in-fences you can
+> at minimum test what happens when you give it an invalid file descriptor.
+>
+> For the request API is it obviously too early to start writing tests, but
+> as the API crystallizes you may consider starting to work on it.
+>
+> I've decided to be more strict about this based on my experiences. I'm more
+> than happy to assist and give advice, especially since this is a bit of a late
+> notice, particularly for Gustavo.
+>
+> But every time we skip this step it bites us in the ass later on.
+>
+> It is also highly recommended to add fence/request support to the vivid and
+> vim2m drivers. It makes it much easier to find regressions in the API due to
+> future changes since you don't need 'real' hardware for these drivers.
+>
+> Again my apologies for the late notice, but it is better to make these tests
+> now while you are working on the new feature, rather than doing it much later
+> and finding all sorts of gremlins in the API.
 
-Signed-off-by: Satish Kumar Nagireddy <satishna@xilinx.com>
----
- drivers/media/platform/xilinx/xilinx-vip.c | 18 ++++++++++--------
- drivers/media/platform/xilinx/xilinx-vip.h | 11 ++++++++++-
- 2 files changed, 20 insertions(+), 9 deletions(-)
+I completely agree with your reasoning and will consider updating
+v4l2-compliance as soon as we have something stable on the user-facing
+side (which hopefully should be close by now).
 
-diff --git a/drivers/media/platform/xilinx/xilinx-vip.c b/drivers/media/pla=
-tform/xilinx/xilinx-vip.c
-index d306f44..51b7ef6 100644
---- a/drivers/media/platform/xilinx/xilinx-vip.c
-+++ b/drivers/media/platform/xilinx/xilinx-vip.c
-@@ -27,22 +27,24 @@
-  */
-
- static const struct xvip_video_format xvip_video_formats[] =3D {
-+       { XVIP_VF_YUV_420, 10, NULL, MEDIA_BUS_FMT_VYYUYY8_1X24,
-+         1, 15, V4L2_PIX_FMT_XV15M, 2, 2, 1, 2, "4:2:0, 10-bit 2-plane non=
--cont" },
-        { XVIP_VF_YUV_422, 8, NULL, MEDIA_BUS_FMT_UYVY8_1X16,
--         2, V4L2_PIX_FMT_YUYV, "4:2:2, packed, YUYV" },
-+         2, 16, V4L2_PIX_FMT_YUYV, 1, 1, 2, 1, "4:2:2, packed, YUYV" },
-        { XVIP_VF_YUV_444, 8, NULL, MEDIA_BUS_FMT_VUY8_1X24,
--         3, V4L2_PIX_FMT_YUV444, "4:4:4, packed, YUYV" },
-+         3, 24, V4L2_PIX_FMT_VUY24, 1, 1, 1, 1, "4:4:4, packed, YUYV" },
-        { XVIP_VF_RBG, 8, NULL, MEDIA_BUS_FMT_RBG888_1X24,
--         3, V4L2_PIX_FMT_RGB24, "24-bit RGB" },
-+         3, 24, V4L2_PIX_FMT_RGB24, 1, 1, 1, 1, "24-bit RGB" },
-        { XVIP_VF_MONO_SENSOR, 8, "mono", MEDIA_BUS_FMT_Y8_1X8,
--         1, V4L2_PIX_FMT_GREY, "Greyscale 8-bit" },
-+         1, 8, V4L2_PIX_FMT_GREY, 1, 1, 1, 1, "Greyscale 8-bit" },
-        { XVIP_VF_MONO_SENSOR, 8, "rggb", MEDIA_BUS_FMT_SRGGB8_1X8,
--         1, V4L2_PIX_FMT_SGRBG8, "Bayer 8-bit RGGB" },
-+         1, 8, V4L2_PIX_FMT_SGRBG8, 1, 1, 1, 1, "Bayer 8-bit RGGB" },
-        { XVIP_VF_MONO_SENSOR, 8, "grbg", MEDIA_BUS_FMT_SGRBG8_1X8,
--         1, V4L2_PIX_FMT_SGRBG8, "Bayer 8-bit GRBG" },
-+         1, 8, V4L2_PIX_FMT_SGRBG8, 1, 1, 1, 1, "Bayer 8-bit GRBG" },
-        { XVIP_VF_MONO_SENSOR, 8, "gbrg", MEDIA_BUS_FMT_SGBRG8_1X8,
--         1, V4L2_PIX_FMT_SGBRG8, "Bayer 8-bit GBRG" },
-+         1, 8, V4L2_PIX_FMT_SGBRG8, 1, 1, 1, 1, "Bayer 8-bit GBRG" },
-        { XVIP_VF_MONO_SENSOR, 8, "bggr", MEDIA_BUS_FMT_SBGGR8_1X8,
--         1, V4L2_PIX_FMT_SBGGR8, "Bayer 8-bit BGGR" },
-+         1, 8, V4L2_PIX_FMT_SBGGR8, 1, 1, 1, 1, "Bayer 8-bit BGGR" },
- };
-
- /**
-diff --git a/drivers/media/platform/xilinx/xilinx-vip.h b/drivers/media/pla=
-tform/xilinx/xilinx-vip.h
-index 42fee20..006dcf77 100644
---- a/drivers/media/platform/xilinx/xilinx-vip.h
-+++ b/drivers/media/platform/xilinx/xilinx-vip.h
-@@ -109,8 +109,12 @@ struct xvip_device {
-  * @width: AXI4 format width in bits per component
-  * @pattern: CFA pattern for Mono/Sensor formats
-  * @code: media bus format code
-- * @bpp: bytes per pixel (when stored in memory)
-+ * @bpl_factor: Bytes per line factor
-  * @fourcc: V4L2 pixel format FCC identifier
-+ * @num_planes: number of planes w.r.t. color format
-+ * @buffers: number of buffers per format
-+ * @hsub: Horizontal sampling factor of Chroma
-+ * @vsub: Vertical sampling factor of Chroma
-  * @description: format description, suitable for userspace
-  */
- struct xvip_video_format {
-@@ -118,8 +122,13 @@ struct xvip_video_format {
-        unsigned int width;
-        const char *pattern;
-        unsigned int code;
-+       unsigned int bpl_factor;
-        unsigned int bpp;
-        u32 fourcc;
-+       u8 num_planes;
-+       u8 buffers;
-+       u8 hsub;
-+       u8 vsub;
-        const char *description;
- };
-
---
-2.7.4
-
-This email and any attachments are intended for the sole use of the named r=
-ecipient(s) and contain(s) confidential information that may be proprietary=
-, privileged or copyrighted under applicable law. If you are not the intend=
-ed recipient, do not read, copy, or forward this email message or any attac=
-hments. Delete this email message and any attachments immediately.
+Alex.
