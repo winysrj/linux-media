@@ -1,46 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay4-d.mail.gandi.net ([217.70.183.196]:50156 "EHLO
-        relay4-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752961AbeBVJrv (ORCPT
+Received: from gateway30.websitewelcome.com ([192.185.149.4]:36502 "EHLO
+        gateway30.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1750949AbeBEUIG (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 22 Feb 2018 04:47:51 -0500
-From: Jacopo Mondi <jacopo+renesas@jmondi.org>
-To: hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
-        magnus.damm@gmail.com, geert@glider.be, mchehab@kernel.org
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org
-Subject: [PATCH 3/3] MAINTAINERS: Add entry for Techwell TW9910
-Date: Thu, 22 Feb 2018 10:47:19 +0100
-Message-Id: <1519292839-7028-4-git-send-email-jacopo+renesas@jmondi.org>
-In-Reply-To: <1519292839-7028-1-git-send-email-jacopo+renesas@jmondi.org>
-References: <1519292839-7028-1-git-send-email-jacopo+renesas@jmondi.org>
+        Mon, 5 Feb 2018 15:08:06 -0500
+Received: from cm15.websitewelcome.com (cm15.websitewelcome.com [100.42.49.9])
+        by gateway30.websitewelcome.com (Postfix) with ESMTP id 10208D305
+        for <linux-media@vger.kernel.org>; Mon,  5 Feb 2018 14:08:06 -0600 (CST)
+Date: Mon, 5 Feb 2018 14:08:04 -0600
+From: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
+To: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        "Gustavo A. R. Silva" <garsilva@embeddedor.com>
+Subject: [PATCH v2 3/8] i2c: max2175: use 64-bit arithmetic instead of 32-bit
+Message-ID: <fdeffeff7451f52fd903e4773c6b10fe21f707e4.1517856716.git.gustavo@embeddedor.com>
+References: <cover.1517856716.git.gustavo@embeddedor.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <cover.1517856716.git.gustavo@embeddedor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add entry for Techwell TW9910 video decoder. The driver is currently
-orphaned.
+Add suffix LL to constant 2 in order to give the compiler complete
+information about the proper arithmetic to use. Notice that this
+constant is used in a context that expects an expression of type
+s64 (64 bits, signed).
 
-Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+The expression 2 * (clock_rate - abs_nco_freq) is currently being
+evaluated using 32-bit arithmetic.
+
+Addresses-Coverity-ID: 1446589
+Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
 ---
- MAINTAINERS | 6 ++++++
- 1 file changed, 6 insertions(+)
+Changes in v2:
+ - Update subject and changelog to better reflect the proposed code changes.
+ - Add suffix LL to constant instead of casting a variable.
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 64b8cd4..da1a88d 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -13391,6 +13391,12 @@ L:	linux-media@vger.kernel.org
- S:	Maintained
- F:	drivers/media/rc/ttusbir.c
- 
-+TECHWELL TW9910 VIDEO DECODER
-+L:	linux-media@vger.kernel.org
-+S:	Orphan
-+F:	drivers/media/i2c/tw9910.c
-+F:	include/media/i2c/tw9910.h
-+
- TEE SUBSYSTEM
- M:	Jens Wiklander <jens.wiklander@linaro.org>
- S:	Maintained
+ drivers/media/i2c/max2175.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/media/i2c/max2175.c b/drivers/media/i2c/max2175.c
+index 2f1966b..87cba15 100644
+--- a/drivers/media/i2c/max2175.c
++++ b/drivers/media/i2c/max2175.c
+@@ -643,7 +643,7 @@ static int max2175_set_nco_freq(struct max2175 *ctx, s32 nco_freq)
+ 	if (abs_nco_freq < clock_rate / 2) {
+ 		nco_val_desired = 2 * nco_freq;
+ 	} else {
+-		nco_val_desired = 2 * (clock_rate - abs_nco_freq);
++		nco_val_desired = 2LL * (clock_rate - abs_nco_freq);
+ 		if (nco_freq < 0)
+ 			nco_val_desired = -nco_val_desired;
+ 	}
 -- 
 2.7.4
