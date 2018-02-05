@@ -1,87 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:53760 "EHLO
-        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751670AbeBYRHB (ORCPT
+Received: from gateway31.websitewelcome.com ([192.185.143.5]:48588 "EHLO
+        gateway31.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751923AbeBEVAJ (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Sun, 25 Feb 2018 12:07:01 -0500
-Received: by mail-wm0-f68.google.com with SMTP id t74so13277005wme.3
-        for <linux-media@vger.kernel.org>; Sun, 25 Feb 2018 09:07:00 -0800 (PST)
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: linux-media@vger.kernel.org, mchehab@kernel.org,
-        mchehab@s-opensource.com
-Subject: [PATCH] [media] ngene: add proper polling to the dvbdev_ci file ops
-Date: Sun, 25 Feb 2018 18:06:56 +0100
-Message-Id: <20180225170656.10358-1-d.scheller.oss@gmail.com>
+        Mon, 5 Feb 2018 16:00:09 -0500
+Received: from cm15.websitewelcome.com (cm15.websitewelcome.com [100.42.49.9])
+        by gateway31.websitewelcome.com (Postfix) with ESMTP id 7710114811
+        for <linux-media@vger.kernel.org>; Mon,  5 Feb 2018 14:36:50 -0600 (CST)
+Date: Mon, 5 Feb 2018 14:36:49 -0600
+From: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        "Gustavo A. R. Silva" <garsilva@embeddedor.com>
+Subject: [PATCH v2 8/8] platform: vivid-cec: use 64-bit arithmetic instead of
+ 32-bit
+Message-ID: <cca3c728f123d714dc8e4ed87510aeb2e2d63db6.1517856716.git.gustavo@embeddedor.com>
+References: <cover.1517856716.git.gustavo@embeddedor.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <cover.1517856716.git.gustavo@embeddedor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Daniel Scheller <d.scheller@gmx.net>
+Add suffix ULL to constant 10 in order to give the compiler complete
+information about the proper arithmetic to use. Notice that this
+constant is used in a context that expects an expression of type
+u64 (64 bits, unsigned).
 
-Implement the poll callback for the dvbdev_ci file ops. The ts_poll()
-function queries the DVB ring buffers for available data and space, and
-reports this as appropriate. Also, set the dvb_device readers, writers
-and users to proper values (one reader, one writer, two users).
+The expression len * 10 * CEC_TIM_DATA_BIT_TOTAL is currently being
+evaluated using 32-bit arithmetic.
 
-This fixes the raw CI TS transport in conjunction with TVheadend's
-DDCI functionality.
+Also, remove unnecessary parentheses and add a code comment to make it
+clear what is the reason of the code change.
 
-Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+Addresses-Coverity-ID: 1454996
+Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
 ---
-This patch was committed ontop of the ngene hardware/tsfix series, so it
-might conflict if that series isn't applied beforehand (I honestly didn't
-test that).
+Changes in v2:
+ - Update subject and changelog to better reflect the proposed code changes.
+ - Add suffix ULL to constant instead of casting a variable.
+ - Remove unncessary parentheses.
+ - Add code comment.
 
- drivers/media/pci/ngene/ngene-dvb.c | 29 ++++++++++++++++++++++++++---
- 1 file changed, 26 insertions(+), 3 deletions(-)
+ drivers/media/platform/vivid/vivid-cec.c | 11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/pci/ngene/ngene-dvb.c b/drivers/media/pci/ngene/ngene-dvb.c
-index 0f9759a4d124..2df641e05fca 100644
---- a/drivers/media/pci/ngene/ngene-dvb.c
-+++ b/drivers/media/pci/ngene/ngene-dvb.c
-@@ -87,18 +87,41 @@ static ssize_t ts_read(struct file *file, char __user *buf,
- 	return count;
- }
+diff --git a/drivers/media/platform/vivid/vivid-cec.c b/drivers/media/platform/vivid/vivid-cec.c
+index b55d278..614787b 100644
+--- a/drivers/media/platform/vivid/vivid-cec.c
++++ b/drivers/media/platform/vivid/vivid-cec.c
+@@ -82,8 +82,15 @@ static void vivid_cec_pin_adap_events(struct cec_adapter *adap, ktime_t ts,
  
-+static __poll_t ts_poll(struct file *file, poll_table *wait)
-+{
-+	struct dvb_device *dvbdev = file->private_data;
-+	struct ngene_channel *chan = dvbdev->priv;
-+	struct ngene *dev = chan->dev;
-+	struct dvb_ringbuffer *rbuf = &dev->tsin_rbuf;
-+	struct dvb_ringbuffer *wbuf = &dev->tsout_rbuf;
-+	__poll_t mask = 0;
+ 	if (adap == NULL)
+ 		return;
+-	ts = ktime_sub_us(ts, (CEC_TIM_START_BIT_TOTAL +
+-			       len * 10 * CEC_TIM_DATA_BIT_TOTAL));
 +
-+	poll_wait(file, &rbuf->queue, wait);
-+	poll_wait(file, &wbuf->queue, wait);
-+
-+	if (!dvb_ringbuffer_empty(rbuf))
-+		mask |= EPOLLIN | EPOLLRDNORM;
-+	if (dvb_ringbuffer_free(wbuf) >= 188)
-+		mask |= EPOLLOUT | EPOLLWRNORM;
-+
-+	return mask;
-+}
-+
- static const struct file_operations ci_fops = {
- 	.owner   = THIS_MODULE,
- 	.read    = ts_read,
- 	.write   = ts_write,
- 	.open    = dvb_generic_open,
- 	.release = dvb_generic_release,
-+	.poll    = ts_poll,
-+	.mmap    = NULL,
- };
- 
- struct dvb_device ngene_dvbdev_ci = {
--	.readers = -1,
--	.writers = -1,
--	.users   = -1,
-+	.priv    = NULL,
-+	.readers = 1,
-+	.writers = 1,
-+	.users   = 2,
- 	.fops    = &ci_fops,
- };
- 
++	/*
++	 * Suffix ULL on constant 10 makes the expression
++	 * CEC_TIM_START_BIT_TOTAL + 10ULL * len * CEC_TIM_DATA_BIT_TOTAL
++	 * be evaluated using 64-bit unsigned arithmetic (u64), which
++	 * is what ktime_sub_us expects as second argument.
++	 */
++	ts = ktime_sub_us(ts, CEC_TIM_START_BIT_TOTAL +
++			       10ULL * len * CEC_TIM_DATA_BIT_TOTAL);
+ 	cec_queue_pin_cec_event(adap, false, ts);
+ 	ts = ktime_add_us(ts, CEC_TIM_START_BIT_LOW);
+ 	cec_queue_pin_cec_event(adap, true, ts);
 -- 
-2.16.1
+2.7.4
