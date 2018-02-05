@@ -1,86 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f66.google.com ([74.125.82.66]:55869 "EHLO
-        mail-wm0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751399AbeBXSzl (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 24 Feb 2018 13:55:41 -0500
-Received: by mail-wm0-f66.google.com with SMTP id q83so10484361wme.5
-        for <linux-media@vger.kernel.org>; Sat, 24 Feb 2018 10:55:40 -0800 (PST)
-From: Daniel Scheller <d.scheller.oss@gmail.com>
-To: linux-media@vger.kernel.org, mchehab@kernel.org,
-        mchehab@s-opensource.com
-Subject: [PATCH 03/12] [media] ngene: use defines to identify the demod_type
-Date: Sat, 24 Feb 2018 19:55:25 +0100
-Message-Id: <20180224185534.13792-4-d.scheller.oss@gmail.com>
-In-Reply-To: <20180224185534.13792-1-d.scheller.oss@gmail.com>
-References: <20180224185534.13792-1-d.scheller.oss@gmail.com>
+Received: from mail.kernel.org ([198.145.29.99]:33404 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752294AbeBECbG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Sun, 4 Feb 2018 21:31:06 -0500
+From: Masami Hiramatsu <mhiramat@kernel.org>
+To: Pawel Osciak <pawel@osciak.com>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Kyungmin Park <kyungmin.park@samsung.com>
+Cc: mhiramat@kernel.org, Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        orito.takao@socionext.com
+Subject: [PATCH] [BUGFIX] media: vb2: Fix videobuf2 to map correct area
+Date: Mon,  5 Feb 2018 11:30:41 +0900
+Message-Id: <151779784111.20697.5012233804870630070.stgit@devbox>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Daniel Scheller <d.scheller@gmx.net>
+Fixes vb2_vmalloc_get_userptr() to ioremap correct area.
+Since the current code does ioremap the page address, if the offset > 0,
+it does not do ioremap the last page and results in kernel panic.
 
-Make it more clear which demod_type is used for which hardware by having
-defines for the possible demod_type values. With that, change the
-demod_type evaluation in tuner_attach_probe() to a switch-case instead
-of an if() for each possible value.
+This fixes to pass the page address + offset to ioremap so that ioremap
+can map correct area. Also, this uses __pfn_to_phys() to get the physical
+address of given PFN.
 
-Signed-off-by: Daniel Scheller <d.scheller@gmx.net>
+Signed-off-by: Masami Hiramatsu <mhiramat@kernel.org>
+Reported-by: Takao Orito <orito.takao@socionext.com>
 ---
- drivers/media/pci/ngene/ngene-cards.c | 11 +++++++----
- drivers/media/pci/ngene/ngene.h       |  3 +++
- 2 files changed, 10 insertions(+), 4 deletions(-)
+ drivers/media/v4l2-core/videobuf2-vmalloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/pci/ngene/ngene-cards.c b/drivers/media/pci/ngene/ngene-cards.c
-index 16666de8cbee..065b83ee569b 100644
---- a/drivers/media/pci/ngene/ngene-cards.c
-+++ b/drivers/media/pci/ngene/ngene-cards.c
-@@ -123,10 +123,13 @@ static int tuner_attach_tda18271(struct ngene_channel *chan)
- 
- static int tuner_attach_probe(struct ngene_channel *chan)
- {
--	if (chan->demod_type == 0)
-+	switch (chan->demod_type) {
-+	case DEMOD_TYPE_STV090X:
- 		return tuner_attach_stv6110(chan);
--	if (chan->demod_type == 1)
-+	case DEMOD_TYPE_DRXK:
- 		return tuner_attach_tda18271(chan);
-+	}
-+
- 	return -EINVAL;
- }
- 
-@@ -251,7 +254,7 @@ static int cineS2_probe(struct ngene_channel *chan)
- 		i2c = &chan->dev->channel[1].i2c_adapter;
- 
- 	if (port_has_stv0900(i2c, chan->number)) {
--		chan->demod_type = 0;
-+		chan->demod_type = DEMOD_TYPE_STV090X;
- 		fe_conf = chan->dev->card_info->fe_config[chan->number];
- 		/* demod found, attach it */
- 		rc = demod_attach_stv0900(chan);
-@@ -280,7 +283,7 @@ static int cineS2_probe(struct ngene_channel *chan)
- 			return -EIO;
- 		}
- 	} else if (port_has_drxk(i2c, chan->number^2)) {
--		chan->demod_type = 1;
-+		chan->demod_type = DEMOD_TYPE_DRXK;
- 		demod_attach_drxk(chan, i2c);
+diff --git a/drivers/media/v4l2-core/videobuf2-vmalloc.c b/drivers/media/v4l2-core/videobuf2-vmalloc.c
+index 3a7c80cd1a17..896f2f378b40 100644
+--- a/drivers/media/v4l2-core/videobuf2-vmalloc.c
++++ b/drivers/media/v4l2-core/videobuf2-vmalloc.c
+@@ -106,7 +106,7 @@ static void *vb2_vmalloc_get_userptr(struct device *dev, unsigned long vaddr,
+ 			if (nums[i-1] + 1 != nums[i])
+ 				goto fail_map;
+ 		buf->vaddr = (__force void *)
+-				ioremap_nocache(nums[0] << PAGE_SHIFT, size);
++			ioremap_nocache(__pfn_to_phys(nums[0]) + offset, size);
  	} else {
- 		dev_err(pdev, "No demod found on chan %d\n", chan->number);
-diff --git a/drivers/media/pci/ngene/ngene.h b/drivers/media/pci/ngene/ngene.h
-index caf8602c7459..9724701a3274 100644
---- a/drivers/media/pci/ngene/ngene.h
-+++ b/drivers/media/pci/ngene/ngene.h
-@@ -51,6 +51,9 @@
- #define VIDEO_CAP_MPEG4 512
- #endif
- 
-+#define DEMOD_TYPE_STV090X	0
-+#define DEMOD_TYPE_DRXK		1
-+
- enum STREAM {
- 	STREAM_VIDEOIN1 = 0,        /* ITU656 or TS Input */
- 	STREAM_VIDEOIN2,
--- 
-2.16.1
+ 		buf->vaddr = vm_map_ram(frame_vector_pages(vec), n_pages, -1,
+ 					PAGE_KERNEL);
