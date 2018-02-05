@@ -1,655 +1,428 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:36789 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S932306AbeBLPCN (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 12 Feb 2018 10:02:13 -0500
-From: Sean Young <sean@mess.org>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 1/5] media: rc: replace IR_dprintk() with dev_dbg in IR decoders
-Date: Mon, 12 Feb 2018 15:02:07 +0000
-Message-Id: <20180212150211.28355-1-sean@mess.org>
+Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:35228 "EHLO
+        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751705AbeBELUn (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Mon, 5 Feb 2018 06:20:43 -0500
+Subject: Re: [RFC PATCH] media.h: reorganize header to make it easier to
+ understand
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <2d219650-ff28-76c4-0f21-40c2aad28cbe@xs4all.nl>
+Message-ID: <5b61c6ea-e864-6adb-8cd0-51d16d9b9223@xs4all.nl>
+Date: Mon, 5 Feb 2018 12:20:37 +0100
+MIME-Version: 1.0
+In-Reply-To: <2d219650-ff28-76c4-0f21-40c2aad28cbe@xs4all.nl>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use dev_dbg() rather than custom debug function.
+Since this patch is hard to read, here is the 'post-patch' header:
 
-Signed-off-by: Sean Young <sean@mess.org>
----
- drivers/media/rc/ir-jvc-decoder.c     | 14 ++++----
- drivers/media/rc/ir-mce_kbd-decoder.c | 60 ++++++++++++++++++-----------------
- drivers/media/rc/ir-nec-decoder.c     | 20 ++++++------
- drivers/media/rc/ir-rc5-decoder.c     | 12 +++----
- drivers/media/rc/ir-rc6-decoder.c     | 26 +++++++--------
- drivers/media/rc/ir-sanyo-decoder.c   | 18 +++++------
- drivers/media/rc/ir-sharp-decoder.c   | 17 +++++-----
- drivers/media/rc/ir-sony-decoder.c    | 14 ++++----
- drivers/media/rc/ir-xmp-decoder.c     | 29 +++++++++--------
- 9 files changed, 106 insertions(+), 104 deletions(-)
+------------------------ cut here --------------------------
+/* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note */
+/*
+ * Multimedia device API
+ *
+ * Copyright (C) 2010 Nokia Corporation
+ *
+ * Contacts: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+ *	     Sakari Ailus <sakari.ailus@iki.fi>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 as
+ * published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ */
 
-diff --git a/drivers/media/rc/ir-jvc-decoder.c b/drivers/media/rc/ir-jvc-decoder.c
-index c03c776cfa54..8cb68ae43282 100644
---- a/drivers/media/rc/ir-jvc-decoder.c
-+++ b/drivers/media/rc/ir-jvc-decoder.c
-@@ -56,8 +56,8 @@ static int ir_jvc_decode(struct rc_dev *dev, struct ir_raw_event ev)
- 	if (!geq_margin(ev.duration, JVC_UNIT, JVC_UNIT / 2))
- 		goto out;
- 
--	IR_dprintk(2, "JVC decode started at state %d (%uus %s)\n",
--		   data->state, TO_US(ev.duration), TO_STR(ev.pulse));
-+	dev_dbg(&dev->dev, "JVC decode started at state %d (%uus %s)\n",
-+		data->state, TO_US(ev.duration), TO_STR(ev.pulse));
- 
- again:
- 	switch (data->state) {
-@@ -136,15 +136,15 @@ static int ir_jvc_decode(struct rc_dev *dev, struct ir_raw_event ev)
- 			u32 scancode;
- 			scancode = (bitrev8((data->bits >> 8) & 0xff) << 8) |
- 				   (bitrev8((data->bits >> 0) & 0xff) << 0);
--			IR_dprintk(1, "JVC scancode 0x%04x\n", scancode);
-+			dev_dbg(&dev->dev, "JVC scancode 0x%04x\n", scancode);
- 			rc_keydown(dev, RC_PROTO_JVC, scancode, data->toggle);
- 			data->first = false;
- 			data->old_bits = data->bits;
- 		} else if (data->bits == data->old_bits) {
--			IR_dprintk(1, "JVC repeat\n");
-+			dev_dbg(&dev->dev, "JVC repeat\n");
- 			rc_repeat(dev);
- 		} else {
--			IR_dprintk(1, "JVC invalid repeat msg\n");
-+			dev_dbg(&dev->dev, "JVC invalid repeat msg\n");
- 			break;
- 		}
- 
-@@ -164,8 +164,8 @@ static int ir_jvc_decode(struct rc_dev *dev, struct ir_raw_event ev)
- 	}
- 
- out:
--	IR_dprintk(1, "JVC decode failed at state %d (%uus %s)\n",
--		   data->state, TO_US(ev.duration), TO_STR(ev.pulse));
-+	dev_dbg(&dev->dev, "JVC decode failed at state %d (%uus %s)\n",
-+		data->state, TO_US(ev.duration), TO_STR(ev.pulse));
- 	data->state = STATE_INACTIVE;
- 	return -EINVAL;
- }
-diff --git a/drivers/media/rc/ir-mce_kbd-decoder.c b/drivers/media/rc/ir-mce_kbd-decoder.c
-index fb318bdd6193..3df7c61c9e6c 100644
---- a/drivers/media/rc/ir-mce_kbd-decoder.c
-+++ b/drivers/media/rc/ir-mce_kbd-decoder.c
-@@ -117,19 +117,19 @@ static unsigned char kbd_keycodes[256] = {
- 
- static void mce_kbd_rx_timeout(struct timer_list *t)
- {
--	struct mce_kbd_dec *mce_kbd = from_timer(mce_kbd, t, rx_timeout);
--	int i;
-+	struct ir_raw_event_ctrl *raw = from_timer(raw, t, mce_kbd.rx_timeout);
- 	unsigned char maskcode;
-+	int i;
- 
--	IR_dprintk(2, "timer callback clearing all keys\n");
-+	dev_dbg(&raw->dev->dev, "timer callback clearing all keys\n");
- 
- 	for (i = 0; i < 7; i++) {
- 		maskcode = kbd_keycodes[MCIR2_MASK_KEYS_START + i];
--		input_report_key(mce_kbd->idev, maskcode, 0);
-+		input_report_key(raw->mce_kbd.idev, maskcode, 0);
- 	}
- 
- 	for (i = 0; i < MCIR2_MASK_KEYS_START; i++)
--		input_report_key(mce_kbd->idev, kbd_keycodes[i], 0);
-+		input_report_key(raw->mce_kbd.idev, kbd_keycodes[i], 0);
- }
- 
- static enum mce_kbd_mode mce_kbd_mode(struct mce_kbd_dec *data)
-@@ -144,16 +144,16 @@ static enum mce_kbd_mode mce_kbd_mode(struct mce_kbd_dec *data)
- 	}
- }
- 
--static void ir_mce_kbd_process_keyboard_data(struct input_dev *idev,
--					     u32 scancode)
-+static void ir_mce_kbd_process_keyboard_data(struct rc_dev *dev, u32 scancode)
- {
-+	struct mce_kbd_dec *data = &dev->raw->mce_kbd;
- 	u8 keydata   = (scancode >> 8) & 0xff;
- 	u8 shiftmask = scancode & 0xff;
- 	unsigned char keycode, maskcode;
- 	int i, keystate;
- 
--	IR_dprintk(1, "keyboard: keydata = 0x%02x, shiftmask = 0x%02x\n",
--		   keydata, shiftmask);
-+	dev_dbg(&dev->dev, "keyboard: keydata = 0x%02x, shiftmask = 0x%02x\n",
-+		keydata, shiftmask);
- 
- 	for (i = 0; i < 7; i++) {
- 		maskcode = kbd_keycodes[MCIR2_MASK_KEYS_START + i];
-@@ -161,20 +161,21 @@ static void ir_mce_kbd_process_keyboard_data(struct input_dev *idev,
- 			keystate = 1;
- 		else
- 			keystate = 0;
--		input_report_key(idev, maskcode, keystate);
-+		input_report_key(data->idev, maskcode, keystate);
- 	}
- 
- 	if (keydata) {
- 		keycode = kbd_keycodes[keydata];
--		input_report_key(idev, keycode, 1);
-+		input_report_key(data->idev, keycode, 1);
- 	} else {
- 		for (i = 0; i < MCIR2_MASK_KEYS_START; i++)
--			input_report_key(idev, kbd_keycodes[i], 0);
-+			input_report_key(data->idev, kbd_keycodes[i], 0);
- 	}
- }
- 
--static void ir_mce_kbd_process_mouse_data(struct input_dev *idev, u32 scancode)
-+static void ir_mce_kbd_process_mouse_data(struct rc_dev *dev, u32 scancode)
- {
-+	struct mce_kbd_dec *data = &dev->raw->mce_kbd;
- 	/* raw mouse coordinates */
- 	u8 xdata = (scancode >> 7) & 0x7f;
- 	u8 ydata = (scancode >> 14) & 0x7f;
-@@ -193,14 +194,14 @@ static void ir_mce_kbd_process_mouse_data(struct input_dev *idev, u32 scancode)
- 	else
- 		y = ydata;
- 
--	IR_dprintk(1, "mouse: x = %d, y = %d, btns = %s%s\n",
--		   x, y, left ? "L" : "", right ? "R" : "");
-+	dev_dbg(&dev->dev, "mouse: x = %d, y = %d, btns = %s%s\n",
-+		x, y, left ? "L" : "", right ? "R" : "");
- 
--	input_report_rel(idev, REL_X, x);
--	input_report_rel(idev, REL_Y, y);
-+	input_report_rel(data->idev, REL_X, x);
-+	input_report_rel(data->idev, REL_Y, y);
- 
--	input_report_key(idev, BTN_LEFT, left);
--	input_report_key(idev, BTN_RIGHT, right);
-+	input_report_key(data->idev, BTN_LEFT, left);
-+	input_report_key(data->idev, BTN_RIGHT, right);
- }
- 
- /**
-@@ -227,8 +228,8 @@ static int ir_mce_kbd_decode(struct rc_dev *dev, struct ir_raw_event ev)
- 		goto out;
- 
- again:
--	IR_dprintk(2, "started at state %i (%uus %s)\n",
--		   data->state, TO_US(ev.duration), TO_STR(ev.pulse));
-+	dev_dbg(&dev->dev, "started at state %i (%uus %s)\n",
-+		data->state, TO_US(ev.duration), TO_STR(ev.pulse));
- 
- 	if (!geq_margin(ev.duration, MCIR2_UNIT, MCIR2_UNIT / 2))
- 		return 0;
-@@ -277,7 +278,7 @@ static int ir_mce_kbd_decode(struct rc_dev *dev, struct ir_raw_event ev)
- 			data->wanted_bits = MCIR2_MOUSE_NBITS;
- 			break;
- 		default:
--			IR_dprintk(1, "not keyboard or mouse data\n");
-+			dev_dbg(&dev->dev, "not keyboard or mouse data\n");
- 			goto out;
- 		}
- 
-@@ -313,25 +314,26 @@ static int ir_mce_kbd_decode(struct rc_dev *dev, struct ir_raw_event ev)
- 		switch (data->wanted_bits) {
- 		case MCIR2_KEYBOARD_NBITS:
- 			scancode = data->body & 0xffff;
--			IR_dprintk(1, "keyboard data 0x%08x\n", data->body);
-+			dev_dbg(&dev->dev, "keyboard data 0x%08x\n",
-+				data->body);
- 			if (dev->timeout)
- 				delay = usecs_to_jiffies(dev->timeout / 1000);
- 			else
- 				delay = msecs_to_jiffies(100);
- 			mod_timer(&data->rx_timeout, jiffies + delay);
- 			/* Pass data to keyboard buffer parser */
--			ir_mce_kbd_process_keyboard_data(data->idev, scancode);
-+			ir_mce_kbd_process_keyboard_data(dev, scancode);
- 			lsc.rc_proto = RC_PROTO_MCIR2_KBD;
- 			break;
- 		case MCIR2_MOUSE_NBITS:
- 			scancode = data->body & 0x1fffff;
--			IR_dprintk(1, "mouse data 0x%06x\n", scancode);
-+			dev_dbg(&dev->dev, "mouse data 0x%06x\n", scancode);
- 			/* Pass data to mouse buffer parser */
--			ir_mce_kbd_process_mouse_data(data->idev, scancode);
-+			ir_mce_kbd_process_mouse_data(dev, scancode);
- 			lsc.rc_proto = RC_PROTO_MCIR2_MSE;
- 			break;
- 		default:
--			IR_dprintk(1, "not keyboard or mouse data\n");
-+			dev_dbg(&dev->dev, "not keyboard or mouse data\n");
- 			goto out;
- 		}
- 
-@@ -344,8 +346,8 @@ static int ir_mce_kbd_decode(struct rc_dev *dev, struct ir_raw_event ev)
- 	}
- 
- out:
--	IR_dprintk(1, "failed at state %i (%uus %s)\n",
--		   data->state, TO_US(ev.duration), TO_STR(ev.pulse));
-+	dev_dbg(&dev->dev, "failed at state %i (%uus %s)\n",
-+		data->state, TO_US(ev.duration), TO_STR(ev.pulse));
- 	data->state = STATE_INACTIVE;
- 	input_sync(data->idev);
- 	return -EINVAL;
-diff --git a/drivers/media/rc/ir-nec-decoder.c b/drivers/media/rc/ir-nec-decoder.c
-index 31d7bafe7bda..21647b809e6f 100644
---- a/drivers/media/rc/ir-nec-decoder.c
-+++ b/drivers/media/rc/ir-nec-decoder.c
-@@ -49,8 +49,8 @@ static int ir_nec_decode(struct rc_dev *dev, struct ir_raw_event ev)
- 		return 0;
- 	}
- 
--	IR_dprintk(2, "NEC decode started at state %d (%uus %s)\n",
--		   data->state, TO_US(ev.duration), TO_STR(ev.pulse));
-+	dev_dbg(&dev->dev, "NEC decode started at state %d (%uus %s)\n",
-+		data->state, TO_US(ev.duration), TO_STR(ev.pulse));
- 
- 	switch (data->state) {
- 
-@@ -99,13 +99,11 @@ static int ir_nec_decode(struct rc_dev *dev, struct ir_raw_event ev)
- 			break;
- 
- 		if (data->necx_repeat && data->count == NECX_REPEAT_BITS &&
--			geq_margin(ev.duration,
--			NEC_TRAILER_SPACE, NEC_UNIT / 2)) {
--				IR_dprintk(1, "Repeat last key\n");
--				rc_repeat(dev);
--				data->state = STATE_INACTIVE;
--				return 0;
--
-+		    geq_margin(ev.duration, NEC_TRAILER_SPACE, NEC_UNIT / 2)) {
-+			dev_dbg(&dev->dev, "Repeat last key\n");
-+			rc_repeat(dev);
-+			data->state = STATE_INACTIVE;
-+			return 0;
- 		} else if (data->count > NECX_REPEAT_BITS)
- 			data->necx_repeat = false;
- 
-@@ -164,8 +162,8 @@ static int ir_nec_decode(struct rc_dev *dev, struct ir_raw_event ev)
- 		return 0;
- 	}
- 
--	IR_dprintk(1, "NEC decode failed at count %d state %d (%uus %s)\n",
--		   data->count, data->state, TO_US(ev.duration), TO_STR(ev.pulse));
-+	dev_dbg(&dev->dev, "NEC decode failed at count %d state %d (%uus %s)\n",
-+		data->count, data->state, TO_US(ev.duration), TO_STR(ev.pulse));
- 	data->state = STATE_INACTIVE;
- 	return -EINVAL;
- }
-diff --git a/drivers/media/rc/ir-rc5-decoder.c b/drivers/media/rc/ir-rc5-decoder.c
-index dd41d389f8d2..b305ef20cc11 100644
---- a/drivers/media/rc/ir-rc5-decoder.c
-+++ b/drivers/media/rc/ir-rc5-decoder.c
-@@ -54,8 +54,8 @@ static int ir_rc5_decode(struct rc_dev *dev, struct ir_raw_event ev)
- 		goto out;
- 
- again:
--	IR_dprintk(2, "RC5(x/sz) decode started at state %i (%uus %s)\n",
--		   data->state, TO_US(ev.duration), TO_STR(ev.pulse));
-+	dev_dbg(&dev->dev, "RC5(x/sz) decode started at state %i (%uus %s)\n",
-+		data->state, TO_US(ev.duration), TO_STR(ev.pulse));
- 
- 	if (!geq_margin(ev.duration, RC5_UNIT, RC5_UNIT / 2))
- 		return 0;
-@@ -154,8 +154,8 @@ static int ir_rc5_decode(struct rc_dev *dev, struct ir_raw_event ev)
- 		} else
- 			break;
- 
--		IR_dprintk(1, "RC5(x/sz) scancode 0x%06x (p: %u, t: %u)\n",
--			   scancode, protocol, toggle);
-+		dev_dbg(&dev->dev, "RC5(x/sz) scancode 0x%06x (p: %u, t: %u)\n",
-+			scancode, protocol, toggle);
- 
- 		rc_keydown(dev, protocol, scancode, toggle);
- 		data->state = STATE_INACTIVE;
-@@ -163,8 +163,8 @@ static int ir_rc5_decode(struct rc_dev *dev, struct ir_raw_event ev)
- 	}
- 
- out:
--	IR_dprintk(1, "RC5(x/sz) decode failed at state %i count %d (%uus %s)\n",
--		   data->state, data->count, TO_US(ev.duration), TO_STR(ev.pulse));
-+	dev_dbg(&dev->dev, "RC5(x/sz) decode failed at state %i count %d (%uus %s)\n",
-+		data->state, data->count, TO_US(ev.duration), TO_STR(ev.pulse));
- 	data->state = STATE_INACTIVE;
- 	return -EINVAL;
- }
-diff --git a/drivers/media/rc/ir-rc6-decoder.c b/drivers/media/rc/ir-rc6-decoder.c
-index 3e3659c0875c..625fa0a008bd 100644
---- a/drivers/media/rc/ir-rc6-decoder.c
-+++ b/drivers/media/rc/ir-rc6-decoder.c
-@@ -100,8 +100,8 @@ static int ir_rc6_decode(struct rc_dev *dev, struct ir_raw_event ev)
- 		goto out;
- 
- again:
--	IR_dprintk(2, "RC6 decode started at state %i (%uus %s)\n",
--		   data->state, TO_US(ev.duration), TO_STR(ev.pulse));
-+	dev_dbg(&dev->dev, "RC6 decode started at state %i (%uus %s)\n",
-+		data->state, TO_US(ev.duration), TO_STR(ev.pulse));
- 
- 	if (!geq_margin(ev.duration, RC6_UNIT, RC6_UNIT / 2))
- 		return 0;
-@@ -166,7 +166,7 @@ static int ir_rc6_decode(struct rc_dev *dev, struct ir_raw_event ev)
- 			break;
- 
- 		if (!(data->header & RC6_STARTBIT_MASK)) {
--			IR_dprintk(1, "RC6 invalid start bit\n");
-+			dev_dbg(&dev->dev, "RC6 invalid start bit\n");
- 			break;
- 		}
- 
-@@ -183,7 +183,7 @@ static int ir_rc6_decode(struct rc_dev *dev, struct ir_raw_event ev)
- 			data->wanted_bits = RC6_6A_NBITS;
- 			break;
- 		default:
--			IR_dprintk(1, "RC6 unknown mode\n");
-+			dev_dbg(&dev->dev, "RC6 unknown mode\n");
- 			goto out;
- 		}
- 		goto again;
-@@ -223,13 +223,13 @@ static int ir_rc6_decode(struct rc_dev *dev, struct ir_raw_event ev)
- 			scancode = data->body;
- 			toggle = data->toggle;
- 			protocol = RC_PROTO_RC6_0;
--			IR_dprintk(1, "RC6(0) scancode 0x%04x (toggle: %u)\n",
--				   scancode, toggle);
-+			dev_dbg(&dev->dev, "RC6(0) scancode 0x%04x (toggle: %u)\n",
-+				scancode, toggle);
- 			break;
- 
- 		case RC6_MODE_6A:
- 			if (data->count > CHAR_BIT * sizeof data->body) {
--				IR_dprintk(1, "RC6 too many (%u) data bits\n",
-+				dev_dbg(&dev->dev, "RC6 too many (%u) data bits\n",
- 					data->count);
- 				goto out;
- 			}
-@@ -255,15 +255,15 @@ static int ir_rc6_decode(struct rc_dev *dev, struct ir_raw_event ev)
- 				}
- 				break;
- 			default:
--				IR_dprintk(1, "RC6(6A) unsupported length\n");
-+				dev_dbg(&dev->dev, "RC6(6A) unsupported length\n");
- 				goto out;
- 			}
- 
--			IR_dprintk(1, "RC6(6A) proto 0x%04x, scancode 0x%08x (toggle: %u)\n",
--				   protocol, scancode, toggle);
-+			dev_dbg(&dev->dev, "RC6(6A) proto 0x%04x, scancode 0x%08x (toggle: %u)\n",
-+				protocol, scancode, toggle);
- 			break;
- 		default:
--			IR_dprintk(1, "RC6 unknown mode\n");
-+			dev_dbg(&dev->dev, "RC6 unknown mode\n");
- 			goto out;
- 		}
- 
-@@ -273,8 +273,8 @@ static int ir_rc6_decode(struct rc_dev *dev, struct ir_raw_event ev)
- 	}
- 
- out:
--	IR_dprintk(1, "RC6 decode failed at state %i (%uus %s)\n",
--		   data->state, TO_US(ev.duration), TO_STR(ev.pulse));
-+	dev_dbg(&dev->dev, "RC6 decode failed at state %i (%uus %s)\n",
-+		data->state, TO_US(ev.duration), TO_STR(ev.pulse));
- 	data->state = STATE_INACTIVE;
- 	return -EINVAL;
- }
-diff --git a/drivers/media/rc/ir-sanyo-decoder.c b/drivers/media/rc/ir-sanyo-decoder.c
-index ded39cdfc6ef..4efe6db5376a 100644
---- a/drivers/media/rc/ir-sanyo-decoder.c
-+++ b/drivers/media/rc/ir-sanyo-decoder.c
-@@ -52,14 +52,14 @@ static int ir_sanyo_decode(struct rc_dev *dev, struct ir_raw_event ev)
- 
- 	if (!is_timing_event(ev)) {
- 		if (ev.reset) {
--			IR_dprintk(1, "SANYO event reset received. reset to state 0\n");
-+			dev_dbg(&dev->dev, "SANYO event reset received. reset to state 0\n");
- 			data->state = STATE_INACTIVE;
- 		}
- 		return 0;
- 	}
- 
--	IR_dprintk(2, "SANYO decode started at state %d (%uus %s)\n",
--		   data->state, TO_US(ev.duration), TO_STR(ev.pulse));
-+	dev_dbg(&dev->dev, "SANYO decode started at state %d (%uus %s)\n",
-+		data->state, TO_US(ev.duration), TO_STR(ev.pulse));
- 
- 	switch (data->state) {
- 
-@@ -102,7 +102,7 @@ static int ir_sanyo_decode(struct rc_dev *dev, struct ir_raw_event ev)
- 
- 		if (!data->count && geq_margin(ev.duration, SANYO_REPEAT_SPACE, SANYO_UNIT / 2)) {
- 			rc_repeat(dev);
--			IR_dprintk(1, "SANYO repeat last key\n");
-+			dev_dbg(&dev->dev, "SANYO repeat last key\n");
- 			data->state = STATE_INACTIVE;
- 			return 0;
- 		}
-@@ -144,21 +144,21 @@ static int ir_sanyo_decode(struct rc_dev *dev, struct ir_raw_event ev)
- 		not_command = bitrev8((data->bits >>  0) & 0xff);
- 
- 		if ((command ^ not_command) != 0xff) {
--			IR_dprintk(1, "SANYO checksum error: received 0x%08Lx\n",
--				   data->bits);
-+			dev_dbg(&dev->dev, "SANYO checksum error: received 0x%08llx\n",
-+				data->bits);
- 			data->state = STATE_INACTIVE;
- 			return 0;
- 		}
- 
- 		scancode = address << 8 | command;
--		IR_dprintk(1, "SANYO scancode: 0x%06x\n", scancode);
-+		dev_dbg(&dev->dev, "SANYO scancode: 0x%06x\n", scancode);
- 		rc_keydown(dev, RC_PROTO_SANYO, scancode, 0);
- 		data->state = STATE_INACTIVE;
- 		return 0;
- 	}
- 
--	IR_dprintk(1, "SANYO decode failed at count %d state %d (%uus %s)\n",
--		   data->count, data->state, TO_US(ev.duration), TO_STR(ev.pulse));
-+	dev_dbg(&dev->dev, "SANYO decode failed at count %d state %d (%uus %s)\n",
-+		data->count, data->state, TO_US(ev.duration), TO_STR(ev.pulse));
- 	data->state = STATE_INACTIVE;
- 	return -EINVAL;
- }
-diff --git a/drivers/media/rc/ir-sharp-decoder.c b/drivers/media/rc/ir-sharp-decoder.c
-index df296991906c..6a38c50566a4 100644
---- a/drivers/media/rc/ir-sharp-decoder.c
-+++ b/drivers/media/rc/ir-sharp-decoder.c
-@@ -54,8 +54,8 @@ static int ir_sharp_decode(struct rc_dev *dev, struct ir_raw_event ev)
- 		return 0;
- 	}
- 
--	IR_dprintk(2, "Sharp decode started at state %d (%uus %s)\n",
--		   data->state, TO_US(ev.duration), TO_STR(ev.pulse));
-+	dev_dbg(&dev->dev, "Sharp decode started at state %d (%uus %s)\n",
-+		data->state, TO_US(ev.duration), TO_STR(ev.pulse));
- 
- 	switch (data->state) {
- 
-@@ -149,9 +149,9 @@ static int ir_sharp_decode(struct rc_dev *dev, struct ir_raw_event ev)
- 		msg = (data->bits >> 15) & 0x7fff;
- 		echo = data->bits & 0x7fff;
- 		if ((msg ^ echo) != 0x3ff) {
--			IR_dprintk(1,
--				   "Sharp checksum error: received 0x%04x, 0x%04x\n",
--				   msg, echo);
-+			dev_dbg(&dev->dev,
-+				"Sharp checksum error: received 0x%04x, 0x%04x\n",
-+				msg, echo);
- 			break;
- 		}
- 
-@@ -159,16 +159,15 @@ static int ir_sharp_decode(struct rc_dev *dev, struct ir_raw_event ev)
- 		command = bitrev8((msg >> 2) & 0xff);
- 
- 		scancode = address << 8 | command;
--		IR_dprintk(1, "Sharp scancode 0x%04x\n", scancode);
-+		dev_dbg(&dev->dev, "Sharp scancode 0x%04x\n", scancode);
- 
- 		rc_keydown(dev, RC_PROTO_SHARP, scancode, 0);
- 		data->state = STATE_INACTIVE;
- 		return 0;
- 	}
- 
--	IR_dprintk(1, "Sharp decode failed at count %d state %d (%uus %s)\n",
--		   data->count, data->state, TO_US(ev.duration),
--		   TO_STR(ev.pulse));
-+	dev_dbg(&dev->dev, "Sharp decode failed at count %d state %d (%uus %s)\n",
-+		data->count, data->state, TO_US(ev.duration), TO_STR(ev.pulse));
- 	data->state = STATE_INACTIVE;
- 	return -EINVAL;
- }
-diff --git a/drivers/media/rc/ir-sony-decoder.c b/drivers/media/rc/ir-sony-decoder.c
-index e4bcff21c025..6764ec9de646 100644
---- a/drivers/media/rc/ir-sony-decoder.c
-+++ b/drivers/media/rc/ir-sony-decoder.c
-@@ -55,8 +55,8 @@ static int ir_sony_decode(struct rc_dev *dev, struct ir_raw_event ev)
- 	if (!geq_margin(ev.duration, SONY_UNIT, SONY_UNIT / 2))
- 		goto out;
- 
--	IR_dprintk(2, "Sony decode started at state %d (%uus %s)\n",
--		   data->state, TO_US(ev.duration), TO_STR(ev.pulse));
-+	dev_dbg(&dev->dev, "Sony decode started at state %d (%uus %s)\n",
-+		data->state, TO_US(ev.duration), TO_STR(ev.pulse));
- 
- 	switch (data->state) {
- 
-@@ -148,19 +148,21 @@ static int ir_sony_decode(struct rc_dev *dev, struct ir_raw_event ev)
- 			protocol = RC_PROTO_SONY20;
- 			break;
- 		default:
--			IR_dprintk(1, "Sony invalid bitcount %u\n", data->count);
-+			dev_dbg(&dev->dev, "Sony invalid bitcount %u\n",
-+				data->count);
- 			goto out;
- 		}
- 
- 		scancode = device << 16 | subdevice << 8 | function;
--		IR_dprintk(1, "Sony(%u) scancode 0x%05x\n", data->count, scancode);
-+		dev_dbg(&dev->dev, "Sony(%u) scancode 0x%05x\n", data->count,
-+			scancode);
- 		rc_keydown(dev, protocol, scancode, 0);
- 		goto finish_state_machine;
- 	}
- 
- out:
--	IR_dprintk(1, "Sony decode failed at state %d (%uus %s)\n",
--		   data->state, TO_US(ev.duration), TO_STR(ev.pulse));
-+	dev_dbg(&dev->dev, "Sony decode failed at state %d (%uus %s)\n",
-+		data->state, TO_US(ev.duration), TO_STR(ev.pulse));
- 	data->state = STATE_INACTIVE;
- 	return -EINVAL;
- 
-diff --git a/drivers/media/rc/ir-xmp-decoder.c b/drivers/media/rc/ir-xmp-decoder.c
-index 712bc6d76e92..58b47af1a763 100644
---- a/drivers/media/rc/ir-xmp-decoder.c
-+++ b/drivers/media/rc/ir-xmp-decoder.c
-@@ -49,8 +49,8 @@ static int ir_xmp_decode(struct rc_dev *dev, struct ir_raw_event ev)
- 		return 0;
- 	}
- 
--	IR_dprintk(2, "XMP decode started at state %d %d (%uus %s)\n",
--		   data->state, data->count, TO_US(ev.duration), TO_STR(ev.pulse));
-+	dev_dbg(&dev->dev, "XMP decode started at state %d %d (%uus %s)\n",
-+		data->state, data->count, TO_US(ev.duration), TO_STR(ev.pulse));
- 
- 	switch (data->state) {
- 
-@@ -85,7 +85,7 @@ static int ir_xmp_decode(struct rc_dev *dev, struct ir_raw_event ev)
- 			u32 scancode;
- 
- 			if (data->count != 16) {
--				IR_dprintk(2, "received TRAILER period at index %d: %u\n",
-+				dev_dbg(&dev->dev, "received TRAILER period at index %d: %u\n",
- 					data->count, ev.duration);
- 				data->state = STATE_INACTIVE;
- 				return -EINVAL;
-@@ -99,7 +99,8 @@ static int ir_xmp_decode(struct rc_dev *dev, struct ir_raw_event ev)
- 			 */
- 			divider = (n[3] - XMP_NIBBLE_PREFIX) / 15 - 2000;
- 			if (divider < 50) {
--				IR_dprintk(2, "divider to small %d.\n", divider);
-+				dev_dbg(&dev->dev, "divider to small %d.\n",
-+					divider);
- 				data->state = STATE_INACTIVE;
- 				return -EINVAL;
- 			}
-@@ -113,7 +114,7 @@ static int ir_xmp_decode(struct rc_dev *dev, struct ir_raw_event ev)
- 				n[12] + n[13] + n[14] + n[15]) % 16;
- 
- 			if (sum1 != 15 || sum2 != 15) {
--				IR_dprintk(2, "checksum errors sum1=0x%X sum2=0x%X\n",
-+				dev_dbg(&dev->dev, "checksum errors sum1=0x%X sum2=0x%X\n",
- 					sum1, sum2);
- 				data->state = STATE_INACTIVE;
- 				return -EINVAL;
-@@ -127,24 +128,24 @@ static int ir_xmp_decode(struct rc_dev *dev, struct ir_raw_event ev)
- 			obc1 = n[12] << 4 | n[13];
- 			obc2 = n[14] << 4 | n[15];
- 			if (subaddr != subaddr2) {
--				IR_dprintk(2, "subaddress nibbles mismatch 0x%02X != 0x%02X\n",
-+				dev_dbg(&dev->dev, "subaddress nibbles mismatch 0x%02X != 0x%02X\n",
- 					subaddr, subaddr2);
- 				data->state = STATE_INACTIVE;
- 				return -EINVAL;
- 			}
- 			if (oem != 0x44)
--				IR_dprintk(1, "Warning: OEM nibbles 0x%02X. Expected 0x44\n",
-+				dev_dbg(&dev->dev, "Warning: OEM nibbles 0x%02X. Expected 0x44\n",
- 					oem);
- 
- 			scancode = addr << 24 | subaddr << 16 |
- 				   obc1 << 8 | obc2;
--			IR_dprintk(1, "XMP scancode 0x%06x\n", scancode);
-+			dev_dbg(&dev->dev, "XMP scancode 0x%06x\n", scancode);
- 
- 			if (toggle == 0) {
- 				rc_keydown(dev, RC_PROTO_XMP, scancode, 0);
- 			} else {
- 				rc_repeat(dev);
--				IR_dprintk(1, "Repeat last key\n");
-+				dev_dbg(&dev->dev, "Repeat last key\n");
- 			}
- 			data->state = STATE_INACTIVE;
- 
-@@ -153,7 +154,7 @@ static int ir_xmp_decode(struct rc_dev *dev, struct ir_raw_event ev)
- 		} else if (geq_margin(ev.duration, XMP_HALFFRAME_SPACE, XMP_NIBBLE_PREFIX)) {
- 			/* Expect 8 or 16 nibble pulses. 16 in case of 'final' frame */
- 			if (data->count == 16) {
--				IR_dprintk(2, "received half frame pulse at index %d. Probably a final frame key-up event: %u\n",
-+				dev_dbg(&dev->dev, "received half frame pulse at index %d. Probably a final frame key-up event: %u\n",
- 					data->count, ev.duration);
- 				/*
- 				 * TODO: for now go back to half frame position
-@@ -164,7 +165,7 @@ static int ir_xmp_decode(struct rc_dev *dev, struct ir_raw_event ev)
- 			}
- 
- 			else if (data->count != 8)
--				IR_dprintk(2, "received half frame pulse at index %d: %u\n",
-+				dev_dbg(&dev->dev, "received half frame pulse at index %d: %u\n",
- 					data->count, ev.duration);
- 			data->state = STATE_LEADER_PULSE;
- 
-@@ -173,7 +174,7 @@ static int ir_xmp_decode(struct rc_dev *dev, struct ir_raw_event ev)
- 		} else if (geq_margin(ev.duration, XMP_NIBBLE_PREFIX, XMP_UNIT)) {
- 			/* store nibble raw data, decode after trailer */
- 			if (data->count == 16) {
--				IR_dprintk(2, "to many pulses (%d) ignoring: %u\n",
-+				dev_dbg(&dev->dev, "to many pulses (%d) ignoring: %u\n",
- 					data->count, ev.duration);
- 				data->state = STATE_INACTIVE;
- 				return -EINVAL;
-@@ -189,8 +190,8 @@ static int ir_xmp_decode(struct rc_dev *dev, struct ir_raw_event ev)
- 		break;
- 	}
- 
--	IR_dprintk(1, "XMP decode failed at count %d state %d (%uus %s)\n",
--		   data->count, data->state, TO_US(ev.duration), TO_STR(ev.pulse));
-+	dev_dbg(&dev->dev, "XMP decode failed at count %d state %d (%uus %s)\n",
-+		data->count, data->state, TO_US(ev.duration), TO_STR(ev.pulse));
- 	data->state = STATE_INACTIVE;
- 	return -EINVAL;
- }
--- 
-2.14.3
+#ifndef __LINUX_MEDIA_H
+#define __LINUX_MEDIA_H
+
+#ifndef __KERNEL__
+#include <stdint.h>
+#endif
+#include <linux/ioctl.h>
+#include <linux/types.h>
+#include <linux/version.h>
+
+struct media_device_info {
+	char driver[16];
+	char model[32];
+	char serial[40];
+	char bus_info[32];
+	__u32 media_version;
+	__u32 hw_revision;
+	__u32 driver_version;
+	__u32 reserved[31];
+};
+
+/*
+ * Base number ranges for entity functions
+ *
+ * NOTE: Userspace should not rely on these ranges to identify a group
+ * of function types, as newer functions can be added with any name within
+ * the full u32 range.
+ *
+ * Some older functions use the MEDIA_ENT_F_OLD_*_BASE range. Do not
+ * changes this, this is for backwards compatibility. When adding new
+ * functions always use MEDIA_ENT_F_BASE.
+ */
+#define MEDIA_ENT_F_BASE			0x00000000
+#define MEDIA_ENT_F_OLD_BASE			0x00010000
+#define MEDIA_ENT_F_OLD_SUBDEV_BASE		0x00020000
+
+/*
+ * Initial value to be used when a new entity is created
+ * Drivers should change it to something useful.
+ */
+#define MEDIA_ENT_F_UNKNOWN			MEDIA_ENT_F_BASE
+
+/*
+ * Subdevs are initialized with MEDIA_ENT_F_V4L2_SUBDEV_UNKNOWN in order
+ * to preserve backward compatibility. Drivers must change to the proper
+ * subdev type before registering the entity.
+ */
+#define MEDIA_ENT_F_V4L2_SUBDEV_UNKNOWN		MEDIA_ENT_F_OLD_SUBDEV_BASE
+
+/*
+ * DVB entity functions
+ */
+#define MEDIA_ENT_F_DTV_DEMOD			(MEDIA_ENT_F_BASE + 0x00001)
+#define MEDIA_ENT_F_TS_DEMUX			(MEDIA_ENT_F_BASE + 0x00002)
+#define MEDIA_ENT_F_DTV_CA			(MEDIA_ENT_F_BASE + 0x00003)
+#define MEDIA_ENT_F_DTV_NET_DECAP		(MEDIA_ENT_F_BASE + 0x00004)
+
+/*
+ * I/O entity functions
+ */
+#define MEDIA_ENT_F_IO_V4L  			(MEDIA_ENT_F_OLD_BASE + 1)
+#define MEDIA_ENT_F_IO_DTV			(MEDIA_ENT_F_BASE + 0x01001)
+#define MEDIA_ENT_F_IO_VBI			(MEDIA_ENT_F_BASE + 0x01002)
+#define MEDIA_ENT_F_IO_SWRADIO			(MEDIA_ENT_F_BASE + 0x01003)
+
+/*
+ * Sensor functions
+ */
+#define MEDIA_ENT_F_CAM_SENSOR			(MEDIA_ENT_F_OLD_SUBDEV_BASE + 1)
+#define MEDIA_ENT_F_FLASH			(MEDIA_ENT_F_OLD_SUBDEV_BASE + 2)
+#define MEDIA_ENT_F_LENS			(MEDIA_ENT_F_OLD_SUBDEV_BASE + 3)
+
+/*
+ * Analog video decoder functions
+ */
+#define MEDIA_ENT_F_ATV_DECODER			(MEDIA_ENT_F_OLD_SUBDEV_BASE + 4)
+
+/*
+ * Digital TV, analog TV, radio and/or software defined radio tuner functions.
+ *
+ * It is a responsibility of the master/bridge drivers to add connectors
+ * and links for MEDIA_ENT_F_TUNER. Please notice that some old tuners
+ * may require the usage of separate I2C chips to decode analog TV signals,
+ * when the master/bridge chipset doesn't have its own TV standard decoder.
+ * On such cases, the IF-PLL staging is mapped via one or two entities:
+ * MEDIA_ENT_F_IF_VID_DECODER and/or MEDIA_ENT_F_IF_AUD_DECODER.
+ */
+#define MEDIA_ENT_F_TUNER			(MEDIA_ENT_F_OLD_SUBDEV_BASE + 5)
+
+/*
+ * Analog TV IF-PLL decoder functions
+ *
+ * It is a responsibility of the master/bridge drivers to create links
+ * for MEDIA_ENT_F_IF_VID_DECODER and MEDIA_ENT_F_IF_AUD_DECODER.
+ */
+#define MEDIA_ENT_F_IF_VID_DECODER		(MEDIA_ENT_F_BASE + 0x02001)
+#define MEDIA_ENT_F_IF_AUD_DECODER		(MEDIA_ENT_F_BASE + 0x02002)
+
+/*
+ * Audio entity functions
+ */
+#define MEDIA_ENT_F_AUDIO_CAPTURE		(MEDIA_ENT_F_BASE + 0x03001)
+#define MEDIA_ENT_F_AUDIO_PLAYBACK		(MEDIA_ENT_F_BASE + 0x03002)
+#define MEDIA_ENT_F_AUDIO_MIXER			(MEDIA_ENT_F_BASE + 0x03003)
+
+/*
+ * Processing entity functions
+ */
+#define MEDIA_ENT_F_PROC_VIDEO_COMPOSER		(MEDIA_ENT_F_BASE + 0x4001)
+#define MEDIA_ENT_F_PROC_VIDEO_PIXEL_FORMATTER	(MEDIA_ENT_F_BASE + 0x4002)
+#define MEDIA_ENT_F_PROC_VIDEO_PIXEL_ENC_CONV	(MEDIA_ENT_F_BASE + 0x4003)
+#define MEDIA_ENT_F_PROC_VIDEO_LUT		(MEDIA_ENT_F_BASE + 0x4004)
+#define MEDIA_ENT_F_PROC_VIDEO_SCALER		(MEDIA_ENT_F_BASE + 0x4005)
+#define MEDIA_ENT_F_PROC_VIDEO_STATISTICS	(MEDIA_ENT_F_BASE + 0x4006)
+
+/*
+ * Switch and bridge entity functions
+ */
+#define MEDIA_ENT_F_VID_MUX			(MEDIA_ENT_F_BASE + 0x5001)
+#define MEDIA_ENT_F_VID_IF_BRIDGE		(MEDIA_ENT_F_BASE + 0x5002)
+
+/* Entity flags */
+#define MEDIA_ENT_FL_DEFAULT			(1 << 0)
+#define MEDIA_ENT_FL_CONNECTOR			(1 << 1)
+
+/* OR with the entity id value to find the next entity */
+#define MEDIA_ENT_ID_FLAG_NEXT			(1 << 31)
+
+struct media_entity_desc {
+	__u32 id;
+	char name[32];
+	__u32 type;
+	__u32 revision;
+	__u32 flags;
+	__u32 group_id;
+	__u16 pads;
+	__u16 links;
+
+	__u32 reserved[4];
+
+	union {
+		/* Node specifications */
+		struct {
+			__u32 major;
+			__u32 minor;
+		} dev;
+
+#if !defined(__KERNEL__)
+		/*
+		 * TODO: this shouldn't have been added without
+		 * actual drivers that use this. When the first real driver
+		 * appears that sets this information, special attention
+		 * should be given whether this information is 1) enough, and
+		 * 2) can deal with udev rules that rename devices. The struct
+		 * dev would not be sufficient for this since that does not
+		 * contain the subdevice information. In addition, struct dev
+		 * can only refer to a single device, and not to multiple (e.g.
+		 * pcm and mixer devices).
+		 */
+		struct {
+			__u32 card;
+			__u32 device;
+			__u32 subdevice;
+		} alsa;
+
+		/*
+		 * DEPRECATED: previous node specifications. Kept just to
+		 * avoid breaking compilation. Use media_entity_desc.dev
+		 * instead.
+		 */
+		struct {
+			__u32 major;
+			__u32 minor;
+		} v4l;
+		struct {
+			__u32 major;
+			__u32 minor;
+		} fb;
+		int dvb;
+#endif
+
+		/* Sub-device specifications */
+		/* Nothing needed yet */
+		__u8 raw[184];
+	};
+};
+
+#define MEDIA_PAD_FL_SINK			(1 << 0)
+#define MEDIA_PAD_FL_SOURCE			(1 << 1)
+#define MEDIA_PAD_FL_MUST_CONNECT		(1 << 2)
+
+struct media_pad_desc {
+	__u32 entity;		/* entity ID */
+	__u16 index;		/* pad index */
+	__u32 flags;		/* pad flags */
+	__u32 reserved[2];
+};
+
+#define MEDIA_LNK_FL_ENABLED			(1 << 0)
+#define MEDIA_LNK_FL_IMMUTABLE			(1 << 1)
+#define MEDIA_LNK_FL_DYNAMIC			(1 << 2)
+
+#define MEDIA_LNK_FL_LINK_TYPE			(0xf << 28)
+#  define MEDIA_LNK_FL_DATA_LINK		(0 << 28)
+#  define MEDIA_LNK_FL_INTERFACE_LINK		(1 << 28)
+
+struct media_link_desc {
+	struct media_pad_desc source;
+	struct media_pad_desc sink;
+	__u32 flags;
+	__u32 reserved[2];
+};
+
+struct media_links_enum {
+	__u32 entity;
+	/* Should have enough room for pads elements */
+	struct media_pad_desc __user *pads;
+	/* Should have enough room for links elements */
+	struct media_link_desc __user *links;
+	__u32 reserved[4];
+};
+
+/* Interface type ranges */
+
+#define MEDIA_INTF_T_DVB_BASE			0x00000100
+#define MEDIA_INTF_T_V4L_BASE			0x00000200
+
+/* Interface types */
+
+#define MEDIA_INTF_T_DVB_FE    			(MEDIA_INTF_T_DVB_BASE)
+#define MEDIA_INTF_T_DVB_DEMUX  		(MEDIA_INTF_T_DVB_BASE + 1)
+#define MEDIA_INTF_T_DVB_DVR    		(MEDIA_INTF_T_DVB_BASE + 2)
+#define MEDIA_INTF_T_DVB_CA     		(MEDIA_INTF_T_DVB_BASE + 3)
+#define MEDIA_INTF_T_DVB_NET    		(MEDIA_INTF_T_DVB_BASE + 4)
+
+#define MEDIA_INTF_T_V4L_VIDEO  		(MEDIA_INTF_T_V4L_BASE)
+#define MEDIA_INTF_T_V4L_VBI    		(MEDIA_INTF_T_V4L_BASE + 1)
+#define MEDIA_INTF_T_V4L_RADIO  		(MEDIA_INTF_T_V4L_BASE + 2)
+#define MEDIA_INTF_T_V4L_SUBDEV 		(MEDIA_INTF_T_V4L_BASE + 3)
+#define MEDIA_INTF_T_V4L_SWRADIO 		(MEDIA_INTF_T_V4L_BASE + 4)
+#define MEDIA_INTF_T_V4L_TOUCH			(MEDIA_INTF_T_V4L_BASE + 5)
+
+#if defined(__KERNEL__)
+
+/*
+ * Connector functions
+ *
+ * For now these should not be used in userspace, as some definitions may
+ * change.
+ *
+ * It is the responsibility of the entity drivers to add connectors and links.
+ */
+#define MEDIA_ENT_F_CONN_RF			(MEDIA_ENT_F_BASE + 0x30001)
+#define MEDIA_ENT_F_CONN_SVIDEO			(MEDIA_ENT_F_BASE + 0x30002)
+#define MEDIA_ENT_F_CONN_COMPOSITE		(MEDIA_ENT_F_BASE + 0x30003)
+
+#endif
+
+/*
+ * MC next gen API definitions
+ */
+
+struct media_v2_entity {
+	__u32 id;
+	char name[64];
+	__u32 function;		/* Main function of the entity */
+	__u32 reserved[6];
+} __attribute__ ((packed));
+
+/* Should match the specific fields at media_intf_devnode */
+struct media_v2_intf_devnode {
+	__u32 major;
+	__u32 minor;
+} __attribute__ ((packed));
+
+struct media_v2_interface {
+	__u32 id;
+	__u32 intf_type;
+	__u32 flags;
+	__u32 reserved[9];
+
+	union {
+		struct media_v2_intf_devnode devnode;
+		__u32 raw[16];
+	};
+} __attribute__ ((packed));
+
+struct media_v2_pad {
+	__u32 id;
+	__u32 entity_id;
+	__u32 flags;
+	__u32 reserved[5];
+} __attribute__ ((packed));
+
+struct media_v2_link {
+	__u32 id;
+	__u32 source_id;
+	__u32 sink_id;
+	__u32 flags;
+	__u32 reserved[6];
+} __attribute__ ((packed));
+
+struct media_v2_topology {
+	__u64 topology_version;
+
+	__u32 num_entities;
+	__u32 reserved1;
+	__u64 ptr_entities;
+
+	__u32 num_interfaces;
+	__u32 reserved2;
+	__u64 ptr_interfaces;
+
+	__u32 num_pads;
+	__u32 reserved3;
+	__u64 ptr_pads;
+
+	__u32 num_links;
+	__u32 reserved4;
+	__u64 ptr_links;
+} __attribute__ ((packed));
+
+
+/* ioctls */
+
+#define MEDIA_IOC_DEVICE_INFO	_IOWR('|', 0x00, struct media_device_info)
+#define MEDIA_IOC_ENUM_ENTITIES	_IOWR('|', 0x01, struct media_entity_desc)
+#define MEDIA_IOC_ENUM_LINKS	_IOWR('|', 0x02, struct media_links_enum)
+#define MEDIA_IOC_SETUP_LINK	_IOWR('|', 0x03, struct media_link_desc)
+#define MEDIA_IOC_G_TOPOLOGY	_IOWR('|', 0x04, struct media_v2_topology)
+
+
+#if !defined(__KERNEL__) || defined(__NEED_MEDIA_LEGACY_API)
+
+/*
+ * Legacy symbols used to avoid userspace compilation breakages.
+ * Do not use any of this in new applications!
+ *
+ * Those symbols map the entity function into types and should be
+ * used only on legacy programs for legacy hardware. Don't rely
+ * on those for MEDIA_IOC_G_TOPOLOGY.
+ */
+#define MEDIA_ENT_TYPE_SHIFT			16
+#define MEDIA_ENT_TYPE_MASK			0x00ff0000
+#define MEDIA_ENT_SUBTYPE_MASK			0x0000ffff
+
+#define MEDIA_ENT_T_DEVNODE_UNKNOWN		(MEDIA_ENT_F_OLD_BASE | \
+						 MEDIA_ENT_SUBTYPE_MASK)
+
+#define MEDIA_ENT_T_DEVNODE			MEDIA_ENT_F_OLD_BASE
+#define MEDIA_ENT_T_DEVNODE_V4L			MEDIA_ENT_F_IO_V4L
+#define MEDIA_ENT_T_DEVNODE_FB			(MEDIA_ENT_F_OLD_BASE + 2)
+#define MEDIA_ENT_T_DEVNODE_ALSA		(MEDIA_ENT_F_OLD_BASE + 3)
+#define MEDIA_ENT_T_DEVNODE_DVB			(MEDIA_ENT_F_OLD_BASE + 4)
+
+#define MEDIA_ENT_T_UNKNOWN			MEDIA_ENT_F_UNKNOWN
+#define MEDIA_ENT_T_V4L2_VIDEO			MEDIA_ENT_F_IO_V4L
+#define MEDIA_ENT_T_V4L2_SUBDEV			MEDIA_ENT_F_V4L2_SUBDEV_UNKNOWN
+#define MEDIA_ENT_T_V4L2_SUBDEV_SENSOR		MEDIA_ENT_F_CAM_SENSOR
+#define MEDIA_ENT_T_V4L2_SUBDEV_FLASH		MEDIA_ENT_F_FLASH
+#define MEDIA_ENT_T_V4L2_SUBDEV_LENS		MEDIA_ENT_F_LENS
+#define MEDIA_ENT_T_V4L2_SUBDEV_DECODER		MEDIA_ENT_F_ATV_DECODER
+#define MEDIA_ENT_T_V4L2_SUBDEV_TUNER		MEDIA_ENT_F_TUNER
+
+/*
+ * There is still no ALSA support in the media controller. These
+ * defines should not have been added and we leave them here only
+ * in case some application tries to use these defines.
+ */
+#define MEDIA_INTF_T_ALSA_BASE			0x00000300
+#define MEDIA_INTF_T_ALSA_PCM_CAPTURE   	(MEDIA_INTF_T_ALSA_BASE)
+#define MEDIA_INTF_T_ALSA_PCM_PLAYBACK  	(MEDIA_INTF_T_ALSA_BASE + 1)
+#define MEDIA_INTF_T_ALSA_CONTROL       	(MEDIA_INTF_T_ALSA_BASE + 2)
+#define MEDIA_INTF_T_ALSA_COMPRESS      	(MEDIA_INTF_T_ALSA_BASE + 3)
+#define MEDIA_INTF_T_ALSA_RAWMIDI       	(MEDIA_INTF_T_ALSA_BASE + 4)
+#define MEDIA_INTF_T_ALSA_HWDEP         	(MEDIA_INTF_T_ALSA_BASE + 5)
+#define MEDIA_INTF_T_ALSA_SEQUENCER     	(MEDIA_INTF_T_ALSA_BASE + 6)
+#define MEDIA_INTF_T_ALSA_TIMER         	(MEDIA_INTF_T_ALSA_BASE + 7)
+
+/* Obsolete symbol for media_version, no longer used in the kernel */
+#define MEDIA_API_VERSION			KERNEL_VERSION(0, 1, 0)
+
+#endif
+
+#endif /* __LINUX_MEDIA_H */
