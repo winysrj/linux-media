@@ -1,40 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:64378 "EHLO osg.samsung.com"
+Received: from butterbrot.org ([176.9.106.16]:43461 "EHLO butterbrot.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751530AbeBZNkQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 26 Feb 2018 08:40:16 -0500
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Wenyou Yang <wenyou.yang@microchip.com>
-Subject: [PATCH 1/3] media: ov7740: remove an unused var
-Date: Mon, 26 Feb 2018 08:40:08 -0500
-Message-Id: <00d9da502565e97fcca3805eec98db6df3594ec0.1519652405.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+        id S1752291AbeBEVgy (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 5 Feb 2018 16:36:54 -0500
+Date: Mon, 5 Feb 2018 22:36:53 +0100 (CET)
+From: Florian Echtler <floe@butterbrot.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+cc: linux-media@vger.kernel.org, linux-input@vger.kernel.org,
+        modin@yuri.at
+Subject: Re: [PATCH 4/5] add V4L2 control functions
+In-Reply-To: <4835be2b-238c-bb27-e9e5-98642ae76733@xs4all.nl>
+Message-ID: <alpine.DEB.2.10.1802052234090.18874@butterbrot>
+References: <1517840981-12280-1-git-send-email-floe@butterbrot.org> <1517840981-12280-5-git-send-email-floe@butterbrot.org> <4835be2b-238c-bb27-e9e5-98642ae76733@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fix this warning regression:
-   drivers/media/i2c/ov7740.c: warning: variable 'ret' set but not used [-Wunused-but-set-variable]:  => 276:6
+Hello Hans,
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/i2c/ov7740.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+On Mon, 5 Feb 2018, Hans Verkuil wrote:
+> On 02/05/2018 03:29 PM, Florian Echtler wrote:
+>> +
+>> +static int sur40_vidioc_queryctrl(struct file *file, void *fh,
+>> +			       struct v4l2_queryctrl *qc)
+>
+> Sorry, but this is very wrong. Use the control framework instead. See
+> https://hverkuil.home.xs4all.nl/spec/kapi/v4l2-controls.html and pretty much all
+> media drivers (with the exception of uvc). See for example this driver:
+> drivers/media/pci/tw68/tw68-video.c (randomly chosen).
+>
+> It actually makes life a lot easier for you as you don't have to perform any
+> range checks and all control ioctls are automatically supported for you.
 
-diff --git a/drivers/media/i2c/ov7740.c b/drivers/media/i2c/ov7740.c
-index e1a44a18d9a8..01f578785e79 100644
---- a/drivers/media/i2c/ov7740.c
-+++ b/drivers/media/i2c/ov7740.c
-@@ -279,7 +279,7 @@ static int ov7740_get_register(struct v4l2_subdev *sd,
- 	reg->val = val;
- 	reg->size = 1;
- 
--	return 0;
-+	return ret;
- }
- 
- static int ov7740_set_register(struct v4l2_subdev *sd,
+thanks for the quick reply, I wasn't aware of that framework at all :-) 
+Will certainly use it.
+
+What's the earliest kernel version this is supported on, in case we want 
+to backport this for our standalone module, too?
+
+Best regards, Florian
 -- 
-2.14.3
+"_Nothing_ brightens up my morning. Coffee simply provides a shade of
+grey just above the pitch-black of the infinite depths of the _abyss_."
