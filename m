@@ -1,64 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:34415 "EHLO
-        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S967355AbeBNLwl (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 14 Feb 2018 06:52:41 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: stable@vger.kernel.org
-Cc: linux-media@vger.kernel.org
-Subject: [PATCH for v4.4 00/14] v4l2-compat-ioctl32.c: remove set_fs(KERNEL_DS)
-Date: Wed, 14 Feb 2018 12:52:26 +0100
-Message-Id: <20180214115240.27650-1-hverkuil@xs4all.nl>
+Received: from mail-wm0-f67.google.com ([74.125.82.67]:52210 "EHLO
+        mail-wm0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752324AbeBENP4 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Mon, 5 Feb 2018 08:15:56 -0500
+Received: by mail-wm0-f67.google.com with SMTP id r71so26193152wmd.1
+        for <linux-media@vger.kernel.org>; Mon, 05 Feb 2018 05:15:55 -0800 (PST)
+From: Alona <al.solnts@gmail.com>
+To: alan@linux.intel.com, linux-media@vger.kernel.org
+Cc: rfried@qti.qualcomm.com, Alona Solntseva <al.solnts@gmail.com>
+Subject: [PATCH] drivers: staging: media: atomisp: pci: atomisp2: css2400: fix misspellings
+Date: Mon,  5 Feb 2018 15:14:52 +0200
+Message-Id: <1517836492-4272-1-git-send-email-al.solnts@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+From: Alona Solntseva <al.solnts@gmail.com>
 
-This patch series fixes a number of bugs and culminates in the removal
-of the set_fs(KERNEL_DS) call in v4l2-compat-ioctl32.c.
+Misspelled words are fixed in several places.
 
-This was tested with a VM running 4.4, the vivid driver (since that
-emulates almost all V4L2 ioctls that need to pass through v4l2-compat-ioctl32.c)
-and a 32-bit v4l2-compliance utility since that exercises almost all ioctls
-as well. Combined this gives good test coverage.
+Signed-off-by: Alona Solntseva <al.solnts@gmail.com>
+---
+ .../staging/media/atomisp/pci/atomisp2/css2400/sh_css.c  | 16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
-Most of the v4l2-compat-ioctl32.c do cleanups and fix subtle issues that
-v4l2-compliance complained about. The purpose is to 1) make it easy to
-verify that the final patch didn't introduce errors by first eliminating
-errors caused by other known bugs, and 2) keep the final patch at least
-somewhat readable.
-
-Regards,
-
-	Hans
-
-Daniel Mentz (2):
-  media: v4l2-compat-ioctl32: Copy v4l2_window->global_alpha
-  media: v4l2-compat-ioctl32.c: refactor compat ioctl32 logic
-
-Hans Verkuil (11):
-  media: v4l2-ioctl.c: don't copy back the result for -ENOTTY
-  media: v4l2-compat-ioctl32.c: add missing VIDIOC_PREPARE_BUF
-  media: v4l2-compat-ioctl32.c: fix the indentation
-  media: v4l2-compat-ioctl32.c: move 'helper' functions to
-    __get/put_v4l2_format32
-  media: v4l2-compat-ioctl32.c: avoid sizeof(type)
-  media: v4l2-compat-ioctl32.c: copy m.userptr in put_v4l2_plane32
-  media: v4l2-compat-ioctl32.c: fix ctrl_is_pointer
-  media: v4l2-compat-ioctl32.c: make ctrl_is_pointer work for subdevs
-  media: v4l2-compat-ioctl32.c: copy clip list in put_v4l2_window32
-  media: v4l2-compat-ioctl32.c: drop pr_info for unknown buffer type
-  media: v4l2-compat-ioctl32.c: don't copy back the result for certain
-    errors
-
-Ricardo Ribalda Delgado (1):
-  vb2: V4L2_BUF_FLAG_DONE is set after DQBUF
-
- drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 1023 +++++++++++++++----------
- drivers/media/v4l2-core/v4l2-ioctl.c          |    5 +-
- drivers/media/v4l2-core/videobuf2-v4l2.c      |    6 +
- 3 files changed, 624 insertions(+), 410 deletions(-)
-
+diff --git a/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css.c b/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css.c
+index 322bb3d..de712fa 100644
+--- a/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css.c
++++ b/drivers/staging/media/atomisp/pci/atomisp2/css2400/sh_css.c
+@@ -194,7 +194,7 @@ sh_css_pipe_start(struct ia_css_stream *stream);
+  * @param[in] stream	Point to the target "ia_css_stream" instance.
+  *
+  * @return
+- * - IA_CSS_SUCCESS, if the "stop" requests have been sucessfully sent out.
++ * - IA_CSS_SUCCESS, if the "stop" requests have been successfully sent out.
+  * - CSS error code, otherwise.
+  *
+  *
+@@ -1054,7 +1054,7 @@ sh_css_config_input_network(struct ia_css_stream *stream)
+ 		if (stream->last_pipe->config.mode == IA_CSS_PIPE_MODE_CAPTURE) {
+ 			/*
+ 			 * We need to poll the ISYS HW in capture_indication itself
+-			 * for "non-continous" capture usecase for getting accurate
++			 * for "non-continuous" capture usecase for getting accurate
+ 			 * isys frame capture timestamps.
+ 			 * This is because the capturepipe propcessing takes longer
+ 			 * to execute than the input system frame capture.
+@@ -3657,7 +3657,7 @@ static enum ia_css_err create_host_video_pipeline(struct ia_css_pipe *pipe)
+ 		in_frame = me->stages->args.out_frame[0];
+ 	} else if (pipe->stream->config.continuous) {
+ #ifdef USE_INPUT_SYSTEM_VERSION_2401
+-		/* When continous is enabled, configure in_frame with the
++		/* When continuous is enabled, configure in_frame with the
+ 		 * last pipe, which is the copy pipe.
+ 		 */
+ 		in_frame = pipe->stream->last_pipe->continuous_frames[0];
+@@ -3854,7 +3854,7 @@ create_host_preview_pipeline(struct ia_css_pipe *pipe)
+ 	 * - Direct Sensor Mode Online Preview
+ 	 * - Buffered Sensor Mode Online Preview
+ 	 * - Direct Sensor Mode Continuous Preview
+-	 * - Buffered Sensor Mode Continous Preview
++	 * - Buffered Sensor Mode Continuous Preview
+ 	 */
+ 	sensor = (pipe->stream->config.mode == IA_CSS_INPUT_MODE_SENSOR);
+ 	buffered_sensor = (pipe->stream->config.mode == IA_CSS_INPUT_MODE_BUFFERED_SENSOR);
+@@ -4715,7 +4715,7 @@ ia_css_dequeue_psys_event(struct ia_css_event *event)
+ 			event->timer_subcode = payload[2];
+ 		}
+ 		/* It's a non timer event. So clear first half of the timer event data.
+-		* If the second part of the TIMER event is not recieved, we discard
++		* If the second part of the TIMER event is not received, we discard
+ 		* the first half of the timer data and process the non timer event without
+ 		* affecting the flow. So the non timer event falls through
+ 		* the code. */
+@@ -7610,7 +7610,7 @@ create_host_yuvpp_pipeline(struct ia_css_pipe *pipe)
+ 	 * except for the following:
+ 	 * - Direct Sensor Mode Online Capture
+ 	 * - Direct Sensor Mode Continuous Capture
+-	 * - Buffered Sensor Mode Continous Capture
++	 * - Buffered Sensor Mode Continuous Capture
+ 	 */
+ 	sensor = pipe->stream->config.mode == IA_CSS_INPUT_MODE_SENSOR;
+ 	buffered_sensor = pipe->stream->config.mode == IA_CSS_INPUT_MODE_BUFFERED_SENSOR;
+@@ -7950,7 +7950,7 @@ create_host_regular_capture_pipeline(struct ia_css_pipe *pipe)
+ 	 * - Direct Sensor Mode Online Capture
+ 	 * - Direct Sensor Mode Online Capture
+ 	 * - Direct Sensor Mode Continuous Capture
+-	 * - Buffered Sensor Mode Continous Capture
++	 * - Buffered Sensor Mode Continuous Capture
+ 	 */
+ 	sensor = (pipe->stream->config.mode == IA_CSS_INPUT_MODE_SENSOR);
+ 	buffered_sensor = (pipe->stream->config.mode == IA_CSS_INPUT_MODE_BUFFERED_SENSOR);
+@@ -8915,7 +8915,7 @@ ia_css_pipe_create(const struct ia_css_pipe_config *config,
+ 	err = ia_css_pipe_create_extra(config, NULL, pipe);
+ 
+ 	if(err == IA_CSS_SUCCESS) {
+-		IA_CSS_LOG("pipe created successfuly = %p", *pipe);
++		IA_CSS_LOG("pipe created successfully = %p", *pipe);
+ 	}
+ 
+ 	IA_CSS_LEAVE_ERR_PRIVATE(err);
 -- 
-2.15.1
+2.7.4
