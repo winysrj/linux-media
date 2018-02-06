@@ -1,124 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb2-smtp-cloud9.xs4all.net ([194.109.24.26]:47638 "EHLO
-        lb2-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S967532AbeBNLsc (ORCPT
+Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:53802 "EHLO
+        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753156AbeBFVJ3 (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 14 Feb 2018 06:48:32 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: stable@vger.kernel.org
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
+        Tue, 6 Feb 2018 16:09:29 -0500
+Subject: Re: [PATCH v8 5/7] media: i2c: Add TDA1997x HDMI receiver driver
+To: Tim Harvey <tharvey@gateworks.com>
+Cc: linux-media <linux-media@vger.kernel.org>,
+        alsa-devel@alsa-project.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org, Shawn Guo <shawnguo@kernel.org>,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Hans Verkuil <hansverk@cisco.com>,
         Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: [PATCH for v4.9 10/13] media: v4l2-compat-ioctl32.c: copy clip list in put_v4l2_window32
-Date: Wed, 14 Feb 2018 12:48:27 +0100
-Message-Id: <20180214114830.27171-11-hverkuil@xs4all.nl>
-In-Reply-To: <20180214114830.27171-1-hverkuil@xs4all.nl>
-References: <20180214114830.27171-1-hverkuil@xs4all.nl>
+References: <1517948874-21681-1-git-send-email-tharvey@gateworks.com>
+ <1517948874-21681-6-git-send-email-tharvey@gateworks.com>
+ <3630ba30-eb18-0829-7b0c-f0a786232969@xs4all.nl>
+ <CAJ+vNU1SWma59YwvRO7jDAu2=ndgSU6CgYtKs0792+oqDAEtrQ@mail.gmail.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <1ff2a81e-04f7-02eb-6ba2-70227665839b@xs4all.nl>
+Date: Tue, 6 Feb 2018 22:09:24 +0100
+MIME-Version: 1.0
+In-Reply-To: <CAJ+vNU1SWma59YwvRO7jDAu2=ndgSU6CgYtKs0792+oqDAEtrQ@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On 02/06/2018 10:03 PM, Tim Harvey wrote:
+> On Tue, Feb 6, 2018 at 12:38 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>> On 02/06/2018 09:27 PM, Tim Harvey wrote:
+>>> Add support for the TDA1997x HDMI receivers.
+>>>
+>>> Cc: Hans Verkuil <hverkuil@xs4all.nl>
+>>> Signed-off-by: Tim Harvey <tharvey@gateworks.com>
+>>> ---
+>>
+>> <snip>
+>>
+>>> +static int tda1997x_get_dv_timings_cap(struct v4l2_subdev *sd,
+>>> +                                    struct v4l2_dv_timings_cap *cap)
+>>> +{
+>>> +     if (cap->pad != TDA1997X_PAD_SOURCE)
+>>> +             return -EINVAL;
+>>> +
+>>> +     *cap = tda1997x_dv_timings_cap;
+>>> +     return 0;
+>>> +}
+>>> +
+>>> +static int tda1997x_enum_dv_timings(struct v4l2_subdev *sd,
+>>> +                                 struct v4l2_enum_dv_timings *timings)
+>>> +{
+>>> +     if (timings->pad != TDA1997X_PAD_SOURCE)
+>>> +             return -EINVAL;
+>>> +
+>>> +     return v4l2_enum_dv_timings_cap(timings, &tda1997x_dv_timings_cap,
+>>> +                                     NULL, NULL);
+>>> +}
+>>
+>> You shouldn't need this pad test: it's done in the v4l2-subdev.c core code
+>> already. But please double-check :-)
+>>
+> 
+> oh right - forgot to check that. Yes, v4l2-subdev.c has pad bounds
+> checking on all ops I use so I can remove them.
+> 
+>> Can you post the output of the v4l2-compliance test? I'm curious to see it.
+> 
+> it's in the cover letter (should I move it to the driver patch for
+> subsequent submittals?)
 
-commit a751be5b142ef6bcbbb96d9899516f4d9c8d0ef4 upstream.
+Ah, it was all the way down after the MC topology. That's why I missed it.
 
-put_v4l2_window32() didn't copy back the clip list to userspace.
-Drivers can update the clip rectangles, so this should be done.
+> 
+>>
+>> Can you also try to run v4l2-compliance -m /dev/mediaX? That also tests
+>> whether the right entity types are set (note: testing for that should
+>> also happen in the subdev compliance test, but I haven't done that yet).
+>>
+> 
+> root@ventana:~# v4l2-compliance -m0
+> v4l2-compliance SHA   : b2f8f9049056eb6f9e028927dacb2c715a062df8
+> Media Driver Info:
+>         Driver name      : imx-media
+>         Model            : imx-media
+>         Serial           :
+>         Bus info         :
+>         Media version    : 4.15.0
+>         Hardware revision: 0x00000000 (0)
+>         Driver version   : 4.15.0
+> 
+> Compliance test for device /dev/media0:
+> 
+> Required ioctls:
+>         test MEDIA_IOC_DEVICE_INFO: OK
+> 
+> Allow for multiple opens:
+>         test second /dev/media0 open: OK
+>         test MEDIA_IOC_DEVICE_INFO: OK
+>         test for unlimited opens: OK
+> 
+> Media Controller ioctls:
+>                 fail: v4l2-test-media.cpp(141): ent.function ==
+> MEDIA_ENT_F_V4L2_SUBDEV_UNKNOWN
+>         test MEDIA_IOC_G_TOPOLOGY: FAIL
+>                 fail: v4l2-test-media.cpp(256):
+> v2_entities_set.find(ent.id) == v2_entities_set.end()
+>         test MEDIA_IOC_ENUM_ENTITIES/LINKS: FAIL
+>         test MEDIA_IOC_SETUP_LINK: OK
+> 
+> Total: 7, Succeeded: 5, Failed: 2, Warnings: 0
+> 
+> foiled again!
+> 
+> Is something missing after v4l2_i2c_subdev_init() or is this perhaps
+> something missing in the imx media drivers?
+> 
+>         v4l2_i2c_subdev_init(sd, client, &tda1997x_subdev_ops);
+>         snprintf(sd->name, sizeof(sd->name), "%s %d-%04x",
+>                  id->name, i2c_adapter_id(client->adapter),
+>                  client->addr);
+>         sd->flags = V4L2_SUBDEV_FL_HAS_DEVNODE | V4L2_SUBDEV_FL_HAS_EVENTS;
+>         sd->entity.ops = &tda1997x_media_ops;
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 59 ++++++++++++++++++---------
- 1 file changed, 40 insertions(+), 19 deletions(-)
+Yeah, I was afraid of that. Anyway, I saw some issues in the subdev compliance.
+I'll reply to the cover letter about that.
 
-diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-index c32feb94b3e5..3b5f3c8956f2 100644
---- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-+++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-@@ -50,6 +50,11 @@ struct v4l2_window32 {
- 
- static int get_v4l2_window32(struct v4l2_window *kp, struct v4l2_window32 __user *up)
- {
-+	struct v4l2_clip32 __user *uclips;
-+	struct v4l2_clip __user *kclips;
-+	compat_caddr_t p;
-+	u32 n;
-+
- 	if (!access_ok(VERIFY_READ, up, sizeof(*up)) ||
- 	    copy_from_user(&kp->w, &up->w, sizeof(up->w)) ||
- 	    get_user(kp->field, &up->field) ||
-@@ -59,38 +64,54 @@ static int get_v4l2_window32(struct v4l2_window *kp, struct v4l2_window32 __user
- 		return -EFAULT;
- 	if (kp->clipcount > 2048)
- 		return -EINVAL;
--	if (kp->clipcount) {
--		struct v4l2_clip32 __user *uclips;
--		struct v4l2_clip __user *kclips;
--		int n = kp->clipcount;
--		compat_caddr_t p;
-+	if (!kp->clipcount) {
-+		kp->clips = NULL;
-+		return 0;
-+	}
- 
--		if (get_user(p, &up->clips))
-+	n = kp->clipcount;
-+	if (get_user(p, &up->clips))
-+		return -EFAULT;
-+	uclips = compat_ptr(p);
-+	kclips = compat_alloc_user_space(n * sizeof(*kclips));
-+	kp->clips = kclips;
-+	while (n--) {
-+		if (copy_in_user(&kclips->c, &uclips->c, sizeof(uclips->c)))
- 			return -EFAULT;
--		uclips = compat_ptr(p);
--		kclips = compat_alloc_user_space(n * sizeof(*kclips));
--		kp->clips = kclips;
--		while (--n >= 0) {
--			if (copy_in_user(&kclips->c, &uclips->c, sizeof(uclips->c)))
--				return -EFAULT;
--			if (put_user(n ? kclips + 1 : NULL, &kclips->next))
--				return -EFAULT;
--			uclips += 1;
--			kclips += 1;
--		}
--	} else
--		kp->clips = NULL;
-+		if (put_user(n ? kclips + 1 : NULL, &kclips->next))
-+			return -EFAULT;
-+		uclips++;
-+		kclips++;
-+	}
- 	return 0;
- }
- 
- static int put_v4l2_window32(struct v4l2_window *kp, struct v4l2_window32 __user *up)
- {
-+	struct v4l2_clip __user *kclips = kp->clips;
-+	struct v4l2_clip32 __user *uclips;
-+	u32 n = kp->clipcount;
-+	compat_caddr_t p;
-+
- 	if (copy_to_user(&up->w, &kp->w, sizeof(kp->w)) ||
- 	    put_user(kp->field, &up->field) ||
- 	    put_user(kp->chromakey, &up->chromakey) ||
- 	    put_user(kp->clipcount, &up->clipcount) ||
- 	    put_user(kp->global_alpha, &up->global_alpha))
- 		return -EFAULT;
-+
-+	if (!kp->clipcount)
-+		return 0;
-+
-+	if (get_user(p, &up->clips))
-+		return -EFAULT;
-+	uclips = compat_ptr(p);
-+	while (n--) {
-+		if (copy_in_user(&uclips->c, &kclips->c, sizeof(uclips->c)))
-+			return -EFAULT;
-+		uclips++;
-+		kclips++;
-+	}
- 	return 0;
- }
- 
--- 
-2.15.1
+Regards,
+
+	Hans
