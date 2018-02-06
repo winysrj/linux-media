@@ -1,54 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-sn1nam01on0070.outbound.protection.outlook.com ([104.47.32.70]:25376
-        "EHLO NAM01-SN1-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1752172AbeBIBVf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 8 Feb 2018 20:21:35 -0500
-From: Satish Kumar Nagireddy <satish.nagireddy.nagireddy@xilinx.com>
-To: <linux-media@vger.kernel.org>, <laurent.pinchart@ideasonboard.com>,
-        <michal.simek@xilinx.com>, <hyun.kwon@xilinx.com>
-CC: Satish Kumar Nagireddy <satishna@xilinx.com>
-Subject: [PATCH v2 2/9] media: xilinx: vip: Add the pixel format for RGB24
-Date: Thu, 8 Feb 2018 17:21:19 -0800
-Message-ID: <1518139279-21633-1-git-send-email-satishna@xilinx.com>
-MIME-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+Received: from mout.gmx.net ([212.227.15.19]:55846 "EHLO mout.gmx.net"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753245AbeBFUeZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 6 Feb 2018 15:34:25 -0500
+Received: from localhost.localdomain ([188.110.57.104]) by mail.gmx.com
+ (mrgmx003 [212.227.17.190]) with ESMTPSA (Nemesis) id
+ 0MFdDB-1eXM7O2zsz-00Eckd for <linux-media@vger.kernel.org>; Tue, 06 Feb 2018
+ 21:34:23 +0100
+From: Peter Seiderer <ps.report@gmx.net>
+To: linux-media@vger.kernel.org
+Subject: [PATCH] keytable: fix EVIOCSCLOCKID related compile failure
+Date: Tue,  6 Feb 2018 21:34:23 +0100
+Message-Id: <20180206203423.13776-1-ps.report@gmx.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hyun Kwon <hyun.kwon@xilinx.com>
+Fixes:
 
-The pixel format for RGB24 is missing, and the driver
-always falls back to YUYV as no format descriptor matches
-with RGB24 fourcc. The pixel format is added to RGB24
-format descriptor so that user can use the format.
+  keytable.c: In function 'test_event':
+  keytable.c:1351:12: error: 'EVIOCSCLOCKID' undeclared (first use in this function)
+    ioctl(fd, EVIOCSCLOCKID, &mode);
+              ^~~~~~~~~~~~~
 
-Signed-off-by: Satish Kumar Nagireddy <satishna@xilinx.com>
+Signed-off-by: Peter Seiderer <ps.report@gmx.net>
 ---
- drivers/media/platform/xilinx/xilinx-vip.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ utils/keytable/keytable.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff --git a/drivers/media/platform/xilinx/xilinx-vip.c b/drivers/media/pla=
-tform/xilinx/xilinx-vip.c
-index 3112591..d306f44 100644
---- a/drivers/media/platform/xilinx/xilinx-vip.c
-+++ b/drivers/media/platform/xilinx/xilinx-vip.c
-@@ -32,7 +32,7 @@ static const struct xvip_video_format xvip_video_formats[=
-] =3D {
-        { XVIP_VF_YUV_444, 8, NULL, MEDIA_BUS_FMT_VUY8_1X24,
-          3, V4L2_PIX_FMT_YUV444, "4:4:4, packed, YUYV" },
-        { XVIP_VF_RBG, 8, NULL, MEDIA_BUS_FMT_RBG888_1X24,
--         3, 0, NULL },
-+         3, V4L2_PIX_FMT_RGB24, "24-bit RGB" },
-        { XVIP_VF_MONO_SENSOR, 8, "mono", MEDIA_BUS_FMT_Y8_1X8,
-          1, V4L2_PIX_FMT_GREY, "Greyscale 8-bit" },
-        { XVIP_VF_MONO_SENSOR, 8, "rggb", MEDIA_BUS_FMT_SRGGB8_1X8,
---
-2.7.4
-
-This email and any attachments are intended for the sole use of the named r=
-ecipient(s) and contain(s) confidential information that may be proprietary=
-, privileged or copyrighted under applicable law. If you are not the intend=
-ed recipient, do not read, copy, or forward this email message or any attac=
-hments. Delete this email message and any attachments immediately.
+diff --git a/utils/keytable/keytable.c b/utils/keytable/keytable.c
+index 34a1522e..925eab00 100644
+--- a/utils/keytable/keytable.c
++++ b/utils/keytable/keytable.c
+@@ -55,6 +55,10 @@ struct input_keymap_entry_v2 {
+ 	u_int8_t  scancode[32];
+ };
+ 
++#ifndef EVIOCSCLOCKID
++#define EVIOCSCLOCKID		_IOW('E', 0xa0, int)
++#endif
++
+ #ifndef EVIOCGKEYCODE_V2
+ #define EVIOCGKEYCODE_V2	_IOR('E', 0x04, struct input_keymap_entry_v2)
+ #define EVIOCSKEYCODE_V2	_IOW('E', 0x04, struct input_keymap_entry_v2)
+-- 
+2.16.1
