@@ -1,44 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from butterbrot.org ([176.9.106.16]:59779 "EHLO butterbrot.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754043AbeBFVB4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 6 Feb 2018 16:01:56 -0500
-From: Florian Echtler <floe@butterbrot.org>
-To: hverkuil@xs4all.nl, linux-media@vger.kernel.org
-Cc: linux-input@vger.kernel.org, modin@yuri.at,
-        Florian Echtler <floe@butterbrot.org>
-Subject: [PATCH 1/5] add missing blob structure field for tag id
-Date: Tue,  6 Feb 2018 22:01:41 +0100
-Message-Id: <1517950905-5015-2-git-send-email-floe@butterbrot.org>
-In-Reply-To: <1517950905-5015-1-git-send-email-floe@butterbrot.org>
-References: <1517950905-5015-1-git-send-email-floe@butterbrot.org>
+Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:34085 "EHLO
+        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752566AbeBFM4B (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 6 Feb 2018 07:56:01 -0500
+Subject: Re: [PATCH v5 02/16] media: doc: add document for rkisp1 meta buffer
+ format
+To: Shunqian Zheng <zhengsq@rock-chips.com>,
+        linux-rockchip@lists.infradead.org, linux-media@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        mchehab@kernel.org, sakari.ailus@linux.intel.com,
+        hans.verkuil@cisco.com, tfiga@chromium.org,
+        laurent.pinchart@ideasonboard.com, zyc@rock-chips.com,
+        eddie.cai.linux@gmail.com, jeffy.chen@rock-chips.com,
+        allon.huang@rock-chips.com, devicetree@vger.kernel.org,
+        heiko@sntech.de, robh+dt@kernel.org, Joao.Pinto@synopsys.com,
+        Luis.Oliveira@synopsys.com, Jose.Abreu@synopsys.com,
+        jacob2.chen@rock-chips.com, Jacob Chen <jacob-chen@rock-chips.com>
+References: <1514533978-20408-1-git-send-email-zhengsq@rock-chips.com>
+ <1514533978-20408-3-git-send-email-zhengsq@rock-chips.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <5286472f-81c9-0093-ded1-0031c5ce8e43@xs4all.nl>
+Date: Tue, 6 Feb 2018 13:55:54 +0100
+MIME-Version: 1.0
+In-Reply-To: <1514533978-20408-3-git-send-email-zhengsq@rock-chips.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The SUR40 can recognize specific printed patterns directly in hardware;
-this information (i.e. the pattern id) is present but currently unused
-in the blob structure.
+On 12/29/17 08:52, Shunqian Zheng wrote:
+> From: Jacob Chen <jacob2.chen@rock-chips.com>
+> 
+> This commit add docuemnt for rkisp1 meta buffer format
+> 
+> Signed-off-by: Jacob Chen <jacob-chen@rock-chips.com>
+> ---
+>  Documentation/media/uapi/v4l/meta-formats.rst          |  2 ++
+>  .../media/uapi/v4l/pixfmt-meta-rkisp1-params.rst       | 17 +++++++++++++++++
+>  .../media/uapi/v4l/pixfmt-meta-rkisp1-stat.rst         | 18 ++++++++++++++++++
+>  3 files changed, 37 insertions(+)
+>  create mode 100644 Documentation/media/uapi/v4l/pixfmt-meta-rkisp1-params.rst
+>  create mode 100644 Documentation/media/uapi/v4l/pixfmt-meta-rkisp1-stat.rst
+> 
+> diff --git a/Documentation/media/uapi/v4l/meta-formats.rst b/Documentation/media/uapi/v4l/meta-formats.rst
+> index 01e24e3..1b82814 100644
+> --- a/Documentation/media/uapi/v4l/meta-formats.rst
+> +++ b/Documentation/media/uapi/v4l/meta-formats.rst
+> @@ -14,3 +14,5 @@ These formats are used for the :ref:`metadata` interface only.
+>  
+>      pixfmt-meta-vsp1-hgo
+>      pixfmt-meta-vsp1-hgt
+> +    pixfmt-meta-rkisp1-params
+> +    pixfmt-meta-rkisp1-stat
+> diff --git a/Documentation/media/uapi/v4l/pixfmt-meta-rkisp1-params.rst b/Documentation/media/uapi/v4l/pixfmt-meta-rkisp1-params.rst
+> new file mode 100644
+> index 0000000..ed344d4
+> --- /dev/null
+> +++ b/Documentation/media/uapi/v4l/pixfmt-meta-rkisp1-params.rst
+> @@ -0,0 +1,17 @@
+> +.. -*- coding: utf-8; mode: rst -*-
+> +
+> +.. _v4l2-meta-fmt-rkisp1-params:
+> +
+> +*******************************
+> +V4L2_META_FMT_RK_ISP1_PARAMS
+> +*******************************
+> +
+> +Rockchip ISP1 Parameters Data
+> +
+> +Description
+> +===========
+> +
+> +This format describes input parameters for the Rockchip ISP1.
+> +
+> +The data use c-struct :c:type:`rkisp1_isp_params_cfg`, which is defined in
 
-Signed-off-by: Florian Echtler <floe@butterbrot.org>
----
- drivers/input/touchscreen/sur40.c | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+The data use -> It uses
 
-diff --git a/drivers/input/touchscreen/sur40.c b/drivers/input/touchscreen/sur40.c
-index f16f835..8375b06 100644
---- a/drivers/input/touchscreen/sur40.c
-+++ b/drivers/input/touchscreen/sur40.c
-@@ -81,7 +81,10 @@ struct sur40_blob {
- 
- 	__le32 area;       /* size in pixels/pressure (?) */
- 
--	u8 padding[32];
-+	u8 padding[24];
-+
-+	__le32 tag_id;     /* valid when type == 0x04 (SUR40_TAG) */
-+	__le32 unknown;
- 
- } __packed;
- 
--- 
-2.7.4
+> +the ``linux/rkisp1-config.h`` header file, See it for details.
+
+See -> see
+
+> diff --git a/Documentation/media/uapi/v4l/pixfmt-meta-rkisp1-stat.rst b/Documentation/media/uapi/v4l/pixfmt-meta-rkisp1-stat.rst
+> new file mode 100644
+> index 0000000..5ecc403
+> --- /dev/null
+> +++ b/Documentation/media/uapi/v4l/pixfmt-meta-rkisp1-stat.rst
+> @@ -0,0 +1,18 @@
+> +.. -*- coding: utf-8; mode: rst -*-
+> +
+> +.. _v4l2-meta-fmt-rkisp1-stat:
+> +
+> +*******************************
+> +V4L2_META_FMT_RK_ISP1_STAT_3A
+> +*******************************
+> +
+> +Rockchip ISP1 Statistics Data
+> +
+> +Description
+> +===========
+> +
+> +This format describes image color statistics information generated by the Rockchip
+> +ISP1.
+> +
+> +The data use c-struct :c:type:`rkisp1_stat_buffer`, which is defined in
+
+The data use -> It uses
+
+> +the ``linux/cifisp_stat.h`` header file, See it for details.
+> 
+
+See -> see
+
+After those trivial changes you can add my:
+
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+
+Thanks!
+
+	Hans
