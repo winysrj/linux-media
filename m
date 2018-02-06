@@ -1,69 +1,32 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f194.google.com ([209.85.216.194]:39312 "EHLO
-        mail-qt0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752857AbeBVJSF (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 22 Feb 2018 04:18:05 -0500
+Received: from mail-io0-f171.google.com ([209.85.223.171]:42685 "EHLO
+        mail-io0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753388AbeBFWYm (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 6 Feb 2018 17:24:42 -0500
 MIME-Version: 1.0
-In-Reply-To: <20180221232108.10139-1-niklas.soderlund+renesas@ragnatech.se>
-References: <20180221232108.10139-1-niklas.soderlund+renesas@ragnatech.se>
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Date: Thu, 22 Feb 2018 10:18:03 +0100
-Message-ID: <CAMuHMdUny0_mFgNOUd-Gw2G_UxUvpsjm0qOEc3gJ53s04LfuFA@mail.gmail.com>
-Subject: Re: [PATCH] i2c: adv748x: afe: fix sparse warning
-To: =?UTF-8?Q?Niklas_S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Cc: Kieran Bingham <kieran.bingham@ideasonboard.com>,
+In-Reply-To: <20180207091643.6b71df0a@canb.auug.org.au>
+References: <20180206091130.75c0f1ae@vento.lan> <20180207091643.6b71df0a@canb.auug.org.au>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Date: Tue, 6 Feb 2018 14:24:41 -0800
+Message-ID: <CA+55aFwUGSP+GpiPf=PSftpmQ4gnrbgvQG-h0jj6HKoiQ=cJTA@mail.gmail.com>
+Subject: Re: [GIT PULL for v4.16-rc1] media updates
+To: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Andrew Morton <akpm@linux-foundation.org>,
         Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Linux-Renesas <linux-renesas-soc@vger.kernel.org>
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Niklas,
-
-On Thu, Feb 22, 2018 at 12:21 AM, Niklas S=C3=B6derlund
-<niklas.soderlund+renesas@ragnatech.se> wrote:
-> This fixes the following sparse warning:
+On Tue, Feb 6, 2018 at 2:16 PM, Stephen Rothwell <sfr@canb.auug.org.au> wrote:
+>>      See: https://lkml.org/lkml/2018/1/1/547
 >
-> drivers/media/i2c/adv748x/adv748x-afe.c:294:34:    expected unsigned int =
-[usertype] *signal
-> drivers/media/i2c/adv748x/adv748x-afe.c:294:34:    got int *<noident>
-> drivers/media/i2c/adv748x/adv748x-afe.c:294:34: warning: incorrect type i=
-n argument 2 (different signedness)
->
-> Signed-off-by: Niklas S=C3=B6derlund <niklas.soderlund+renesas@ragnatech.=
-se>
-> ---
->  drivers/media/i2c/adv748x/adv748x-afe.c | 3 ++-
->  1 file changed, 2 insertions(+), 1 deletion(-)
->
-> diff --git a/drivers/media/i2c/adv748x/adv748x-afe.c b/drivers/media/i2c/=
-adv748x/adv748x-afe.c
-> index 5188178588c9067d..39a9996d0db08c31 100644
-> --- a/drivers/media/i2c/adv748x/adv748x-afe.c
-> +++ b/drivers/media/i2c/adv748x/adv748x-afe.c
-> @@ -275,7 +275,8 @@ static int adv748x_afe_s_stream(struct v4l2_subdev *s=
-d, int enable)
->  {
->         struct adv748x_afe *afe =3D adv748x_sd_to_afe(sd);
->         struct adv748x_state *state =3D adv748x_afe_to_state(afe);
-> -       int ret, signal =3D V4L2_IN_ST_NO_SIGNAL;
-> +       unsigned int signal =3D V4L2_IN_ST_NO_SIGNAL;
+> Looks like you missed this when doing the merge :-(
 
-u32, as adv748x_afe_status() takes an u32 signal pointer?
+Gaah. I noticed the actual conflicts, and then didn't actually notice
+that there had been some other __poll_t noise too.
 
-Gr{oetje,eeting}s,
+Will apply your patch.
 
-                        Geert
-
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k=
-.org
-
-In personal conversations with technical people, I call myself a hacker. Bu=
-t
-when I'm talking to journalists I just say "programmer" or something like t=
-hat.
-                                -- Linus Torvalds
+           Linus
