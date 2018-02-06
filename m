@@ -1,36 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:51414 "EHLO
-        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751034AbeBINZv (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Fri, 9 Feb 2018 08:25:51 -0500
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH] media-device: zero reserved media_links_enum field
-Message-ID: <1ad7443b-db60-c140-3ab8-f1a865f26db8@xs4all.nl>
-Date: Fri, 9 Feb 2018 14:25:44 +0100
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Received: from mga12.intel.com ([192.55.52.136]:15150 "EHLO mga12.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752132AbeBFEUG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Mon, 5 Feb 2018 23:20:06 -0500
+From: Yong Zhi <yong.zhi@intel.com>
+To: linux-media@vger.kernel.org, sakari.ailus@linux.intel.com
+Cc: jian.xu.zheng@intel.com, rajmohan.mani@intel.com,
+        Yong Zhi <yong.zhi@intel.com>
+Subject: [PATCH] media: intel-ipu3: cio2: Use SPDX license headers
+Date: Mon,  5 Feb 2018 20:19:53 -0800
+Message-Id: <1517890793-9360-1-git-send-email-yong.zhi@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Zero the reserved field of struct media_links_enum.
+Adopt SPDX license headers and update year to 2018.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Reported-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Signed-off-by: Yong Zhi <yong.zhi@intel.com>
 ---
-diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-index afbf23a19e16..7af6fadd206d 100644
---- a/drivers/media/media-device.c
-+++ b/drivers/media/media-device.c
-@@ -155,6 +155,8 @@ static long media_device_enum_links(struct media_device *mdev,
- 	if (entity == NULL)
- 		return -EINVAL;
+ drivers/media/pci/intel/ipu3/ipu3-cio2.c | 12 ++----------
+ drivers/media/pci/intel/ipu3/ipu3-cio2.h | 14 ++------------
+ 2 files changed, 4 insertions(+), 22 deletions(-)
 
-+	memset(links->reserved, 0, sizeof(links->reserved));
-+
- 	if (links->pads) {
- 		unsigned int p;
+diff --git a/drivers/media/pci/intel/ipu3/ipu3-cio2.c b/drivers/media/pci/intel/ipu3/ipu3-cio2.c
+index 6c4444b..725973f 100644
+--- a/drivers/media/pci/intel/ipu3/ipu3-cio2.c
++++ b/drivers/media/pci/intel/ipu3/ipu3-cio2.c
+@@ -1,14 +1,6 @@
++// SPDX-License-Identifier: GPL-2.0
+ /*
+- * Copyright (c) 2017 Intel Corporation.
+- *
+- * This program is free software; you can redistribute it and/or
+- * modify it under the terms of the GNU General Public License version
+- * 2 as published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope that it will be useful,
+- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- * GNU General Public License for more details.
++ * Copyright (C) 2018 Intel Corporation
+  *
+  * Based partially on Intel IPU4 driver written by
+  *  Sakari Ailus <sakari.ailus@linux.intel.com>
+diff --git a/drivers/media/pci/intel/ipu3/ipu3-cio2.h b/drivers/media/pci/intel/ipu3/ipu3-cio2.h
+index 78a5799..6a11051 100644
+--- a/drivers/media/pci/intel/ipu3/ipu3-cio2.h
++++ b/drivers/media/pci/intel/ipu3/ipu3-cio2.h
+@@ -1,15 +1,5 @@
+-/*
+- * Copyright (c) 2017 Intel Corporation.
+- *
+- * This program is free software; you can redistribute it and/or
+- * modify it under the terms of the GNU General Public License version
+- * 2 as published by the Free Software Foundation.
+- *
+- * This program is distributed in the hope that it will be useful,
+- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- * GNU General Public License for more details.
+- */
++/* SPDX-License-Identifier: GPL-2.0 */
++/* Copyright (C) 2018 Intel Corporation */
+ 
+ #ifndef __IPU3_CIO2_H
+ #define __IPU3_CIO2_H
+-- 
+1.9.1
