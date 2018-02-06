@@ -1,78 +1,151 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f196.google.com ([209.85.216.196]:40703 "EHLO
-        mail-qt0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751200AbeBLRaR (ORCPT
+Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:50431 "EHLO
+        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753296AbeBFV0U (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Mon, 12 Feb 2018 12:30:17 -0500
-Received: by mail-qt0-f196.google.com with SMTP id c19so468927qtm.7
-        for <linux-media@vger.kernel.org>; Mon, 12 Feb 2018 09:30:17 -0800 (PST)
+        Tue, 6 Feb 2018 16:26:20 -0500
+Subject: Re: [PATCH 4/5] register control handlers using V4L2 control
+ framework
+To: Florian Echtler <floe@butterbrot.org>, linux-media@vger.kernel.org
+Cc: linux-input@vger.kernel.org, modin@yuri.at
+References: <1517950905-5015-1-git-send-email-floe@butterbrot.org>
+ <1517950905-5015-5-git-send-email-floe@butterbrot.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <26d18caf-631b-f78f-6fcb-dfdcdb46420f@xs4all.nl>
+Date: Tue, 6 Feb 2018 22:26:14 +0100
 MIME-Version: 1.0
-In-Reply-To: <CAMuHMdVXWQ4JzFAy52-o7CcyO2pz-f7eF0q2kYWvE8kJL_Q_Bw@mail.gmail.com>
-References: <cover.1516008708.git.sean@mess.org> <0cb9a05c09295bcad4dd914ee44806ac6c244cbd.1516008708.git.sean@mess.org>
- <CANiq72nNX1aRZEfzLBZxfPC7CVk0ts6Q_5o8a9_9B0DWSzj4-A@mail.gmail.com> <CAMuHMdVXWQ4JzFAy52-o7CcyO2pz-f7eF0q2kYWvE8kJL_Q_Bw@mail.gmail.com>
-From: Miguel Ojeda <miguel.ojeda.sandonis@gmail.com>
-Date: Mon, 12 Feb 2018 18:30:16 +0100
-Message-ID: <CANiq72ny6ySP9kdL8GY9TRwA+MSxMpwxBk0cDZuEpy36w+srkA@mail.gmail.com>
-Subject: Re: [PATCH 1/5] auxdisplay: charlcd: no need to call charlcd_gotoxy()
- if nothing changes
-To: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Sean Young <sean@mess.org>, Willy Tarreau <w@1wt.eu>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+In-Reply-To: <1517950905-5015-5-git-send-email-floe@butterbrot.org>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Feb 12, 2018 at 2:59 PM, Geert Uytterhoeven
-<geert@linux-m68k.org> wrote:
-> On Mon, Feb 12, 2018 at 2:42 PM, Miguel Ojeda
-> <miguel.ojeda.sandonis@gmail.com> wrote:
->> On Mon, Jan 15, 2018 at 10:58 AM, Sean Young <sean@mess.org> wrote:
->>> If the line extends beyond the width to the screen, nothing changes. The
->>> existing code will call charlcd_gotoxy every time for this case.
->>>
->>> Signed-off-by: Sean Young <sean@mess.org>
->>> ---
->>>  drivers/auxdisplay/charlcd.c | 7 ++++---
->>>  1 file changed, 4 insertions(+), 3 deletions(-)
->>>
->>> diff --git a/drivers/auxdisplay/charlcd.c b/drivers/auxdisplay/charlcd.c
->>> index 642afd88870b..45ec5ce697c4 100644
->>> --- a/drivers/auxdisplay/charlcd.c
->>> +++ b/drivers/auxdisplay/charlcd.c
->>> @@ -192,10 +192,11 @@ static void charlcd_print(struct charlcd *lcd, char c)
->>>                         c = lcd->char_conv[(unsigned char)c];
->>>                 lcd->ops->write_data(lcd, c);
->>>                 priv->addr.x++;
->>> +
->>> +               /* prevents the cursor from wrapping onto the next line */
->>> +               if (priv->addr.x == lcd->bwidth)
->>> +                       charlcd_gotoxy(lcd);
->>>         }
->>> -       /* prevents the cursor from wrapping onto the next line */
->>> -       if (priv->addr.x == lcd->bwidth)
->>> -               charlcd_gotoxy(lcd);
->>>  }
->>>
->>
->> Willy, Geert: is this fine with you? Seems fine: charlcd_write_char()
->> right now does an unconditional write_cmd() when writing a normal
->> character; so unless some HW requires the command for some reason even
->> if there is nothing changed, we can skip it.
->
-> Reviewed-by: Geert Uytterhoeven <geert@linux-m68k.org>
->
+On 02/06/2018 10:01 PM, Florian Echtler wrote:
+> This patch registers four standard control handlers using the corresponding
+> V4L2 framework.
+> 
+> Signed-off-by: Florian Echtler <floe@butterbrot.org>
+> ---
+>  drivers/input/touchscreen/sur40.c | 51 +++++++++++++++++++++++++++++++++++++++
+>  1 file changed, 51 insertions(+)
+> 
+> diff --git a/drivers/input/touchscreen/sur40.c b/drivers/input/touchscreen/sur40.c
+> index 7f6461d..66ef7e6 100644
+> --- a/drivers/input/touchscreen/sur40.c
+> +++ b/drivers/input/touchscreen/sur40.c
+> @@ -38,6 +38,7 @@
+>  #include <media/v4l2-device.h>
+>  #include <media/v4l2-dev.h>
+>  #include <media/v4l2-ioctl.h>
+> +#include <media/v4l2-ctrls.h>
+>  #include <media/videobuf2-v4l2.h>
+>  #include <media/videobuf2-dma-sg.h>
+>  
+> @@ -198,6 +199,7 @@ struct sur40_state {
+>  	struct video_device vdev;
+>  	struct mutex lock;
+>  	struct v4l2_pix_format pix_fmt;
+> +	struct v4l2_ctrl_handler ctrls;
 
-Thanks a lot, picking it up then.
+This is normally called 'hdl' or 'ctrl_handler'.
 
-Miguel
+>  
+>  	struct vb2_queue queue;
+>  	struct list_head buf_list;
+> @@ -207,6 +209,7 @@ struct sur40_state {
+>  	struct sur40_data *bulk_in_buffer;
+>  	size_t bulk_in_size;
+>  	u8 bulk_in_epaddr;
+> +	u8 vsvideo;
+>  
+>  	char phys[64];
+>  };
+> @@ -220,6 +223,11 @@ struct sur40_buffer {
+>  static const struct video_device sur40_video_device;
+>  static const struct vb2_queue sur40_queue;
+>  static void sur40_process_video(struct sur40_state *sur40);
+> +static int sur40_s_ctrl(struct v4l2_ctrl *ctrl);
+> +
+> +static const struct v4l2_ctrl_ops sur40_ctrl_ops = {
+> +	.s_ctrl = sur40_s_ctrl,
+> +};
+>  
+>  /*
+>   * Note: an earlier, non-public version of this driver used USB_RECIP_ENDPOINT
+> @@ -722,6 +730,23 @@ static int sur40_probe(struct usb_interface *interface,
+>  	sur40->vdev.queue = &sur40->queue;
+>  	video_set_drvdata(&sur40->vdev, sur40);
+>  
+> +	/* initialize the control handler for 4 controls */
+> +	v4l2_ctrl_handler_init(&sur40->ctrls, 4);
+> +	sur40->v4l2.ctrl_handler = &sur40->ctrls;
+> +
+> +	v4l2_ctrl_new_std(&sur40->ctrls, &sur40_ctrl_ops, V4L2_CID_BRIGHTNESS,
+> +	  SUR40_BRIGHTNESS_MIN, SUR40_BRIGHTNESS_MAX, 1, SUR40_BRIGHTNESS_DEF);
+> +
+> +	v4l2_ctrl_new_std(&sur40->ctrls, &sur40_ctrl_ops, V4L2_CID_CONTRAST,
+> +	  SUR40_CONTRAST_MIN, SUR40_CONTRAST_MAX, 1, SUR40_CONTRAST_DEF);
+> +
+> +	v4l2_ctrl_new_std(&sur40->ctrls, &sur40_ctrl_ops, V4L2_CID_GAIN,
+> +	  SUR40_GAIN_MIN, SUR40_GAIN_MAX, 1, SUR40_GAIN_DEF);
+> +
+> +	v4l2_ctrl_new_std(&sur40->ctrls, &sur40_ctrl_ops,
+> +	  V4L2_CID_BACKLIGHT_COMPENSATION, SUR40_BACKLIGHT_MIN,
+> +	  SUR40_BACKLIGHT_MAX, 1, SUR40_BACKLIGHT_DEF);
 
-> Gr{oetje,eeting}s,
->
->                         Geert
->
-> --
-> Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
->
-> In personal conversations with technical people, I call myself a hacker. But
-> when I'm talking to journalists I just say "programmer" or something like that.
->                                 -- Linus Torvalds
+You need to check if the creation succeeded:
+
+	if (ctrls->error) {
+		v4l2_ctrl_handler_free(ctrls);
+		// exit
+	}
+> +
+>  	error = video_register_device(&sur40->vdev, VFL_TYPE_TOUCH, -1);
+>  	if (error) {
+>  		dev_err(&interface->dev,
+> @@ -754,6 +779,7 @@ static void sur40_disconnect(struct usb_interface *interface)
+>  {
+>  	struct sur40_state *sur40 = usb_get_intfdata(interface);
+>  
+> +	v4l2_ctrl_handler_free(&sur40->ctrls);
+>  	video_unregister_device(&sur40->vdev);
+>  	v4l2_device_unregister(&sur40->v4l2);
+>  
+> @@ -947,6 +973,31 @@ static int sur40_vidioc_g_fmt(struct file *file, void *priv,
+>  	return 0;
+>  }
+>  
+> +static int sur40_s_ctrl(struct v4l2_ctrl *ctrl)
+> +{
+> +	struct sur40_state *sur40  = container_of(ctrl->handler,
+> +	  struct sur40_state, ctrls);
+> +	u8 value = sur40->vsvideo;
+> +
+> +	switch (ctrl->id) {
+> +	case V4L2_CID_BRIGHTNESS:
+> +		sur40_set_irlevel(sur40, ctrl->val);
+> +		break;
+> +	case V4L2_CID_CONTRAST:
+> +		value = (value & 0x0F) | (ctrl->val << 4);
+> +		sur40_set_vsvideo(sur40, value);
+> +		break;
+> +	case V4L2_CID_GAIN:
+> +		value = (value & 0xF0) | (ctrl->val);
+> +		sur40_set_vsvideo(sur40, value);
+> +		break;
+> +	case V4L2_CID_BACKLIGHT_COMPENSATION:
+> +		sur40_set_preprocessor(sur40, ctrl->val);
+> +		break;
+> +	}
+> +	return 0;
+> +}
+> +
+>  static int sur40_ioctl_parm(struct file *file, void *priv,
+>  			    struct v4l2_streamparm *p)
+>  {
+> 
+
+Looks good otherwise.
+
+	Hans
