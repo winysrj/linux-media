@@ -1,73 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wm0-f68.google.com ([74.125.82.68]:50641 "EHLO
-        mail-wm0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750993AbeBIVRW (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 9 Feb 2018 16:17:22 -0500
-Received: by mail-wm0-f68.google.com with SMTP id f71so17650242wmf.0
-        for <linux-media@vger.kernel.org>; Fri, 09 Feb 2018 13:17:22 -0800 (PST)
-Subject: Re: [PATCH] media: imx-media-internal-sd: Use memset to clear
- pdevinfo struct
-To: Fabio Estevam <fabio.estevam@nxp.com>, mchehab@kernel.org
-Cc: slongerbeam@gmail.com, p.zabel@pengutronix.de,
-        hans.verkuil@cisco.com, linux-media@vger.kernel.org,
-        gregkh@linuxfoundation.org, festevam@gmail.com
-References: <20180209163640.8759-1-fabio.estevam@nxp.com>
-From: Ian Arkver <ian.arkver.dev@gmail.com>
-Message-ID: <afdf4f21-538d-fbe1-b300-8bfa944b6754@gmail.com>
-Date: Fri, 9 Feb 2018 21:17:19 +0000
-MIME-Version: 1.0
-In-Reply-To: <20180209163640.8759-1-fabio.estevam@nxp.com>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-GB
-Content-Transfer-Encoding: 7bit
+Received: from butterbrot.org ([176.9.106.16]:59779 "EHLO butterbrot.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1754043AbeBFVB4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 6 Feb 2018 16:01:56 -0500
+From: Florian Echtler <floe@butterbrot.org>
+To: hverkuil@xs4all.nl, linux-media@vger.kernel.org
+Cc: linux-input@vger.kernel.org, modin@yuri.at,
+        Florian Echtler <floe@butterbrot.org>
+Subject: [PATCH 1/5] add missing blob structure field for tag id
+Date: Tue,  6 Feb 2018 22:01:41 +0100
+Message-Id: <1517950905-5015-2-git-send-email-floe@butterbrot.org>
+In-Reply-To: <1517950905-5015-1-git-send-email-floe@butterbrot.org>
+References: <1517950905-5015-1-git-send-email-floe@butterbrot.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09/02/18 16:36, Fabio Estevam wrote:
-> When building with W=1 the following warning shows up:
-> 
-> drivers/staging/media/imx/imx-media-internal-sd.c:274:49: warning: Using plain integer as NULL pointer
-> 
-> Fix this problem by using memset() to clear the pdevinfo structure.
+The SUR40 can recognize specific printed patterns directly in hardware;
+this information (i.e. the pattern id) is present but currently unused
+in the blob structure.
 
-Hi Fabio,
+Signed-off-by: Florian Echtler <floe@butterbrot.org>
+---
+ drivers/input/touchscreen/sur40.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-I thought initializers were preferred to memset. I think the problem 
-here is the first element of the struct is a pointer. Maybe this would 
-be better?
-
-struct platform_device_info pdevinfo = {NULL};
-
-I see similar patches, for example:
-https://patchwork.kernel.org/patch/10095129/
-
-Regards,
-IanJ
-> 
-> Signed-off-by: Fabio Estevam <fabio.estevam@nxp.com>
-> ---
->   drivers/staging/media/imx/imx-media-internal-sd.c | 3 ++-
->   1 file changed, 2 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/staging/media/imx/imx-media-internal-sd.c b/drivers/staging/media/imx/imx-media-internal-sd.c
-> index 70833fe503b5..377c20863b76 100644
-> --- a/drivers/staging/media/imx/imx-media-internal-sd.c
-> +++ b/drivers/staging/media/imx/imx-media-internal-sd.c
-> @@ -271,7 +271,7 @@ static int add_internal_subdev(struct imx_media_dev *imxmd,
->   			       int ipu_id)
->   {
->   	struct imx_media_internal_sd_platformdata pdata;
-> -	struct platform_device_info pdevinfo = {0};
-> +	struct platform_device_info pdevinfo;
->   	struct platform_device *pdev;
->   
->   	pdata.grp_id = isd->id->grp_id;
-> @@ -283,6 +283,7 @@ static int add_internal_subdev(struct imx_media_dev *imxmd,
->   	imx_media_grp_id_to_sd_name(pdata.sd_name, sizeof(pdata.sd_name),
->   				    pdata.grp_id, ipu_id);
->   
-> +	memset(&pdevinfo, 0, sizeof(pdevinfo));
->   	pdevinfo.name = isd->id->name;
->   	pdevinfo.id = ipu_id * num_isd + isd->id->index;
->   	pdevinfo.parent = imxmd->md.dev;
-> 
+diff --git a/drivers/input/touchscreen/sur40.c b/drivers/input/touchscreen/sur40.c
+index f16f835..8375b06 100644
+--- a/drivers/input/touchscreen/sur40.c
++++ b/drivers/input/touchscreen/sur40.c
+@@ -81,7 +81,10 @@ struct sur40_blob {
+ 
+ 	__le32 area;       /* size in pixels/pressure (?) */
+ 
+-	u8 padding[32];
++	u8 padding[24];
++
++	__le32 tag_id;     /* valid when type == 0x04 (SUR40_TAG) */
++	__le32 unknown;
+ 
+ } __packed;
+ 
+-- 
+2.7.4
