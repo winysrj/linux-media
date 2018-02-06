@@ -1,74 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail2-relais-roc.national.inria.fr ([192.134.164.83]:47665 "EHLO
-        mail2-relais-roc.national.inria.fr" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752246AbeBFNQJ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 6 Feb 2018 08:16:09 -0500
-Date: Tue, 6 Feb 2018 14:15:51 +0100 (CET)
-From: Julia Lawall <julia.lawall@lip6.fr>
-To: Dan Carpenter <dan.carpenter@oracle.com>
-cc: Wolfram Sang <wsa+renesas@sang-engineering.com>,
-        linux-kernel@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        dri-devel@lists.freedesktop.org,
-        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        linux-samsung-soc@vger.kernel.org, netdev@vger.kernel.org
-Subject: Re: [PATCH 0/4] tree-wide: fix comparison to bitshift when dealing
- with a mask
-In-Reply-To: <20180206131044.oso33fvv553trrd7@mwanda>
-Message-ID: <alpine.DEB.2.20.1802061414340.3306@hadrien>
-References: <20180205201002.23621-1-wsa+renesas@sang-engineering.com> <20180206131044.oso33fvv553trrd7@mwanda>
+Received: from mout.gmx.net ([212.227.15.18]:57355 "EHLO mout.gmx.net"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752039AbeBFHfJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 6 Feb 2018 02:35:09 -0500
+Date: Tue, 6 Feb 2018 08:35:02 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [PATCH 0/2 v6] uvcvideo: asynchronous controls
+In-Reply-To: <1513179293-17324-1-git-send-email-guennadi.liakhovetski@intel.com>
+Message-ID: <alpine.DEB.2.20.1802060834340.5889@axis700.grange>
+References: <1513179293-17324-1-git-send-email-guennadi.liakhovetski@intel.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Laurent,
 
+Any update on this?
 
-On Tue, 6 Feb 2018, Dan Carpenter wrote:
+Thanks
+Guennadi
 
-> On Mon, Feb 05, 2018 at 09:09:57PM +0100, Wolfram Sang wrote:
-> > In one Renesas driver, I found a typo which turned an intended bit shift ('<<')
-> > into a comparison ('<'). Because this is a subtle issue, I looked tree wide for
-> > similar patterns. This small patch series is the outcome.
-> >
-> > Buildbot and checkpatch are happy. Only compile-tested. To be applied
-> > individually per sub-system, I think. I'd think only the net: amd: patch needs
-> > to be conisdered for stable, but I leave this to people who actually know this
-> > driver.
-> >
-> > CCing Dan. Maybe he has an idea how to add a test to smatch? In my setup, only
-> > cppcheck reported a 'coding style' issue with a low prio.
-> >
->
-> Most of these are inside macros so it makes it complicated for Smatch
-> to warn about them.  It might be easier in Coccinelle.  Julia the bugs
-> look like this:
->
-> -			reissue_mask |= 0xffff < 4;
-> +			reissue_mask |= 0xffff << 4;
+On Wed, 13 Dec 2017, Guennadi Liakhovetski wrote:
 
-Thanks.  I'll take a look.  Do you have an example of the macro issue
-handy?
-
-julia
-
->
-> regards,
-> dan carpenter
->
-> > Wolfram Sang (4):
-> >   v4l: vsp1: fix mask creation for MULT_ALPHA_RATIO
-> >   drm/exynos: fix comparison to bitshift when dealing with a mask
-> >   v4l: dvb-frontends: stb0899: fix comparison to bitshift when dealing
-> >     with a mask
-> >   net: amd-xgbe: fix comparison to bitshift when dealing with a mask
-> >
-> >  drivers/gpu/drm/exynos/regs-fimc.h        | 2 +-
-> >  drivers/media/dvb-frontends/stb0899_reg.h | 8 ++++----
-> >  drivers/media/platform/vsp1/vsp1_regs.h   | 2 +-
-> >  drivers/net/ethernet/amd/xgbe/xgbe-drv.c  | 2 +-
-> >  4 files changed, 7 insertions(+), 7 deletions(-)
-> >
-> > --
-> > 2.11.0
->
+> This is an update of the two patches, adding asynchronous control
+> support to the uvcvideo driver. If a control is sent, while the camera
+> is still processing an earlier control, it will generate a protocol
+> STALL condition on the control pipe.
+> 
+> Thanks
+> Guennadi
+> 
+> Guennadi Liakhovetski (2):
+>   uvcvideo: send a control event when a Control Change interrupt arrives
+>   uvcvideo: handle control pipe protocol STALLs
+> 
+>  drivers/media/usb/uvc/uvc_ctrl.c   | 166 +++++++++++++++++++++++++++++++++----
+>  drivers/media/usb/uvc/uvc_status.c | 111 ++++++++++++++++++++++---
+>  drivers/media/usb/uvc/uvc_v4l2.c   |   4 +-
+>  drivers/media/usb/uvc/uvc_video.c  |  59 +++++++++++--
+>  drivers/media/usb/uvc/uvcvideo.h   |  15 +++-
+>  include/uapi/linux/uvcvideo.h      |   2 +
+>  6 files changed, 322 insertions(+), 35 deletions(-)
+> 
+> -- 
+> 1.9.3
+> 
