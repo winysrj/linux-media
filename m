@@ -1,44 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:51513 "EHLO
-        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752010AbeBHIhB (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Thu, 8 Feb 2018 03:37:01 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv2 03/15] v4l2-ioctl.c: fix VIDIOC_DV_TIMINGS_CAP: don't clear pad
-Date: Thu,  8 Feb 2018 09:36:43 +0100
-Message-Id: <20180208083655.32248-4-hverkuil@xs4all.nl>
-In-Reply-To: <20180208083655.32248-1-hverkuil@xs4all.nl>
-References: <20180208083655.32248-1-hverkuil@xs4all.nl>
+Received: from mail-wm0-f54.google.com ([74.125.82.54]:51321 "EHLO
+        mail-wm0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753056AbeBFSsF (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 6 Feb 2018 13:48:05 -0500
+Received: by mail-wm0-f54.google.com with SMTP id r71so5724970wmd.1
+        for <linux-media@vger.kernel.org>; Tue, 06 Feb 2018 10:48:04 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <c1f94f39-8f20-8503-9619-3108190d77c6@xs4all.nl>
+References: <be1babc7-ed0b-8853-19e8-43b20a6f4c17@xs4all.nl>
+ <CAJ+vNU1erjHtttuctgR=xd_XmhvxzyuhqdmyfOLKFVaiVf=ufg@mail.gmail.com> <c1f94f39-8f20-8503-9619-3108190d77c6@xs4all.nl>
+From: Tim Harvey <tharvey@gateworks.com>
+Date: Tue, 6 Feb 2018 10:48:03 -0800
+Message-ID: <CAJ+vNU15Q2C3mC4DjHKhX+56w-o-U4nOqndZwg6ncC2SCAaUhw@mail.gmail.com>
+Subject: Re: Please help test the new v4l-subdev support in v4l2-compliance
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The pad field should be passed on to the subdev driver, but it is cleared in
-v4l2-ioctl.c so the subdev driver always sees a 0 pad.
+On Mon, Feb 5, 2018 at 11:34 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> On 02/06/2018 08:16 AM, Tim Harvey wrote:
+>> On Sat, Feb 3, 2018 at 7:56 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+<snip>
+>>
+>> With regards to the 3 failures:
+>>
+>> 1. test VIDIOC_G/S_EDID: FAIL
+>> This is a valid catch where I was returning -EINVAL when the caller
+>> was simply querying the edid - I've fixed it in my driver
+>>
+>> 2. test VIDIOC_DV_TIMINGS_CAP: FAIL
+>> fail: v4l2-test-io-config.cpp(375): doioctl(node,
+>> VIDIOC_DV_TIMINGS_CAP, &timingscap) != EINVAL
+>> fail: v4l2-test-io-config.cpp(392): EDID check failed for source pad 0.
+>>
+>> It looks like the purpose of the test is to do an ioctl with an
+>> invalid pad setting to ensure -EINVAL is returned. However by the time
+>> the VIDIOC_DV_TIMINGS_CAP ioctl used here gets routed to a
+>
+> No, VIDIOC_SUBDEV_DV_TIMINGS_CAP == VIDIOC_DV_TIMINGS_CAP, i.e. the
+> v4l-subdev API reuses the same ioctl as is used in the 'main' V4L2 API.
+> See include/uapi/linux/v4l2-subdev.h at the end for a list of 'alias'
+> ioctls.
 
-Found with v4l2-compliance.
+Ah... thanks - I realized that was happening somehow but couldn't see how :)
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Reported-by: Tim Harvey <tharvey@gateworks.com>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
----
- drivers/media/v4l2-core/v4l2-ioctl.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> Looking at v7 your tda1997x_get_dv_timings_cap() function doesn't check
+> for a valid pad field. Same for tda1997x_enum_dv_timings().
 
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index 260288ca4f55..f697c235f698 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -2611,7 +2611,7 @@ static struct v4l2_ioctl_info v4l2_ioctls[] = {
- 	IOCTL_INFO_FNC(VIDIOC_PREPARE_BUF, v4l_prepare_buf, v4l_print_buffer, INFO_FL_QUEUE),
- 	IOCTL_INFO_STD(VIDIOC_ENUM_DV_TIMINGS, vidioc_enum_dv_timings, v4l_print_enum_dv_timings, INFO_FL_CLEAR(v4l2_enum_dv_timings, pad)),
- 	IOCTL_INFO_STD(VIDIOC_QUERY_DV_TIMINGS, vidioc_query_dv_timings, v4l_print_dv_timings, INFO_FL_ALWAYS_COPY),
--	IOCTL_INFO_STD(VIDIOC_DV_TIMINGS_CAP, vidioc_dv_timings_cap, v4l_print_dv_timings_cap, INFO_FL_CLEAR(v4l2_dv_timings_cap, type)),
-+	IOCTL_INFO_STD(VIDIOC_DV_TIMINGS_CAP, vidioc_dv_timings_cap, v4l_print_dv_timings_cap, INFO_FL_CLEAR(v4l2_dv_timings_cap, pad)),
- 	IOCTL_INFO_FNC(VIDIOC_ENUM_FREQ_BANDS, v4l_enum_freq_bands, v4l_print_freq_band, 0),
- 	IOCTL_INFO_FNC(VIDIOC_DBG_G_CHIP_INFO, v4l_dbg_g_chip_info, v4l_print_dbg_chip_info, INFO_FL_CLEAR(v4l2_dbg_chip_info, match)),
- 	IOCTL_INFO_FNC(VIDIOC_QUERY_EXT_CTRL, v4l_query_ext_ctrl, v4l_print_query_ext_ctrl, INFO_FL_CTRL | INFO_FL_CLEAR(v4l2_query_ext_ctrl, id)),
--- 
-2.15.1
+Right - I noticed this right off as well - I've added pad validation
+but that didn't resolve the failure.
+
+The test failing is:
+
+        memset(&timingscap, 0, sizeof(timingscap));
+        timingscap.pad = node->is_subdev() ? node->entity.pads : 1;
+^^^^ this sets pad=node->entity.pads=1 which is invalid
+        fail_on_test(doioctl(node, VIDIOC_DV_TIMINGS_CAP, &timingscap)
+!= EINVAL);
+^^^^ tda1997x_get_dv_timings_cap() gets called with cap->pad = 0 which
+is valid to returns 0. I don't understand how the userspace pad=1 get
+changed to pad=0 in my handler.
+
+>
+>> VIDIOC_SUBDEV_DV_TIMINGS_CAP the pad is changed to 0 which is valid.
+>> I'm not following what's going on here.
+>>
+>> 3. test Try VIDIOC_SUBDEV_G/S_FMT: FAIL
+>> fail: v4l2-test-subdevs.cpp(303): fmt.code == 0 || fmt.code == ~0U
+>> fail: v4l2-test-subdevs.cpp(342): checkMBusFrameFmt(node, fmt.format)
+>>
+>> This is reporting that a VIDIOC_SUBDEV_G_FMT with
+>> which=V4L2_SUBDEV_FORMAT_TRY returns format->code = 0. The following
+>> is my set_format:
+>>
+>> static int tda1997x_get_format(struct v4l2_subdev *sd,
+>>                                struct v4l2_subdev_pad_config *cfg,
+>>                                struct v4l2_subdev_format *format)
+>> {
+>>         struct tda1997x_state *state = to_state(sd);
+>>
+>>         v4l_dbg(1, debug, state->client, "%s pad=%d which=%d\n",
+>>                 __func__, format->pad, format->which);
+>>         if (format->pad != TDA1997X_PAD_SOURCE)
+>>                 return -EINVAL;
+>>
+>>         tda1997x_fill_format(state, &format->format);
+>>
+>>         if (format->which == V4L2_SUBDEV_FORMAT_TRY) {
+>>                 struct v4l2_mbus_framefmt *fmt;
+>>
+>>                 fmt = v4l2_subdev_get_try_format(sd, cfg, format->pad);
+>>                 format->format.code = fmt->code;
+>>         } else {
+>>                 format->format.code = state->mbus_code;
+>>         }
+>>
+>>         return 0;
+>> }
+>>
+>> I don't at all understand the V4L2_SUBDEV_FORMAT_TRY logic here which
+>> I took from other subdev drivers as boilerplate. Is the test valid?
+>
+> The test is valid, this really shouldn't return a 0 code. But I am not
+> sure what the right logic is. I'll need to do some digging myself.
+
+I got lost in the v4l2_subdev_get_try_format implementation but closer
+inspection shows me that v4l2_subdev_get_try_format returns the
+try_fmt field of the v4l2_subdev_pad_config used for storing subdev
+pad info. What I'm missing is how that struct/field gets initialized?
+Do I need to implement an init_cfg op?
+
+Regards,
+
+Tim
