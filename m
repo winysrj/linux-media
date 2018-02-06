@@ -1,63 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:47140 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751831AbeB0WKx (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 27 Feb 2018 17:10:53 -0500
+Received: from gateway22.websitewelcome.com ([192.185.47.129]:27790 "EHLO
+        gateway22.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752962AbeBFQvU (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 6 Feb 2018 11:51:20 -0500
+Received: from cm10.websitewelcome.com (cm10.websitewelcome.com [100.42.49.4])
+        by gateway22.websitewelcome.com (Postfix) with ESMTP id CDFE91A35A
+        for <linux-media@vger.kernel.org>; Tue,  6 Feb 2018 10:51:19 -0600 (CST)
+Date: Tue, 6 Feb 2018 10:51:18 -0600
+From: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
+To: Jacob chen <jacob2.chen@rock-chips.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Heiko Stuebner <heiko@sntech.de>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-arm-kernel@lists.infradead.org,
+        linux-rockchip@lists.infradead.org,
+        "Gustavo A. R. Silva" <garsilva@embeddedor.com>
+Subject: [PATCH v3 6/8] rockchip/rga: use 64-bit arithmetic instead of 32-bit
+Message-ID: <94fd0993cde02e18ee5d7f54707f8ce0d0341a0c.1517929336.git.gustavo@embeddedor.com>
+References: <cover.1517929336.git.gustavo@embeddedor.com>
 MIME-Version: 1.0
-In-Reply-To: <1519402422-9595-3-git-send-email-andy.yeh@intel.com>
-References: <1519402422-9595-1-git-send-email-andy.yeh@intel.com> <1519402422-9595-3-git-send-email-andy.yeh@intel.com>
-From: Rob Herring <robh@kernel.org>
-Date: Tue, 27 Feb 2018 16:10:31 -0600
-Message-ID: <CAL_JsqKd8dxF1eSkST1GyKCS_bkzALv2aGHC9TXHWfnrxx33SQ@mail.gmail.com>
-Subject: Re: [v5 2/2] media: dt-bindings: Add bindings for Dongwoon DW9807
- voice coil
-To: Andy Yeh <andy.yeh@intel.com>
-Cc: linux-media@vger.kernel.org,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Tomasz Figa <tfiga@google.com>, devicetree@vger.kernel.org,
-        Alan Chiang <alanx.chiang@intel.com>
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <cover.1517929336.git.gustavo@embeddedor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Feb 23, 2018 at 10:13 AM, Andy Yeh <andy.yeh@intel.com> wrote:
-> From: Alan Chiang <alanx.chiang@intel.com>
->
-> Dongwoon DW9807 is a voice coil lens driver.
->
-> Also add a vendor prefix for Dongwoon for one did not exist previously.
+Cast p to dma_addr_t in order to avoid a potential integer overflow.
+This variable is being used in a context that expects an expression
+of type dma_addr_t (u64).
 
-Where's that?
+The expression p << PAGE_SHIFT is currently being evaluated
+using 32-bit arithmetic.
 
->
-> Signed-off-by: Andy Yeh <andy.yeh@intel.com>
-> ---
->  Documentation/devicetree/bindings/media/i2c/dongwoon,dw9807.txt | 9 +++++++++
+Addresses-Coverity-ID: 1458347 ("Unintentional integer overflow")
+Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
+---
+Changes in v2:
+ - Update subject and changelog to better reflect the proposed code change.
 
-DACs generally go in bindings/iio/dac/
+Changes in v3:
+ - Mention the specific Coverity report in the commit message.
 
->  1 file changed, 9 insertions(+)
->  create mode 100644 Documentation/devicetree/bindings/media/i2c/dongwoon,dw9807.txt
->
-> diff --git a/Documentation/devicetree/bindings/media/i2c/dongwoon,dw9807.txt b/Documentation/devicetree/bindings/media/i2c/dongwoon,dw9807.txt
-> new file mode 100644
-> index 0000000..0a1a860
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/media/i2c/dongwoon,dw9807.txt
-> @@ -0,0 +1,9 @@
-> +Dongwoon Anatech DW9807 voice coil lens driver
-> +
-> +DW9807 is a 10-bit DAC with current sink capability. It is intended for
-> +controlling voice coil lenses.
-> +
-> +Mandatory properties:
-> +
-> +- compatible: "dongwoon,dw9807"
-> +- reg: I2C slave address
-> --
-> 2.7.4
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe devicetree" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ drivers/media/platform/rockchip/rga/rga-buf.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/media/platform/rockchip/rga/rga-buf.c b/drivers/media/platform/rockchip/rga/rga-buf.c
+index 49cacc7..a43b57a 100644
+--- a/drivers/media/platform/rockchip/rga/rga-buf.c
++++ b/drivers/media/platform/rockchip/rga/rga-buf.c
+@@ -140,7 +140,8 @@ void rga_buf_map(struct vb2_buffer *vb)
+ 		address = sg_phys(sgl);
+ 
+ 		for (p = 0; p < len; p++) {
+-			dma_addr_t phys = address + (p << PAGE_SHIFT);
++			dma_addr_t phys = address +
++					  ((dma_addr_t)p << PAGE_SHIFT);
+ 
+ 			pages[mapped_size + p] = phys;
+ 		}
+-- 
+2.7.4
