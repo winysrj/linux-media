@@ -1,67 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:54328 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751518AbeBZVot (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 26 Feb 2018 16:44:49 -0500
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org, linux-renesas-soc@vger.kernel.org,
-        Kieran Bingham <kieran.bingham@ideasonboard.com>
-Subject: [PATCH 05/15] v4l: vsp1: Use vsp1_entity.pipe to check if entity belongs to a pipeline
-Date: Mon, 26 Feb 2018 23:45:06 +0200
-Message-Id: <20180226214516.11559-6-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <20180226214516.11559-1-laurent.pinchart+renesas@ideasonboard.com>
-References: <20180226214516.11559-1-laurent.pinchart+renesas@ideasonboard.com>
+Received: from butterbrot.org ([176.9.106.16]:59782 "EHLO butterbrot.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1754046AbeBFVB4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 6 Feb 2018 16:01:56 -0500
+From: Florian Echtler <floe@butterbrot.org>
+To: hverkuil@xs4all.nl, linux-media@vger.kernel.org
+Cc: linux-input@vger.kernel.org, modin@yuri.at,
+        Florian Echtler <floe@butterbrot.org>
+Subject: [PATCH 2/5] add control definitions
+Date: Tue,  6 Feb 2018 22:01:42 +0100
+Message-Id: <1517950905-5015-3-git-send-email-floe@butterbrot.org>
+In-Reply-To: <1517950905-5015-1-git-send-email-floe@butterbrot.org>
+References: <1517950905-5015-1-git-send-email-floe@butterbrot.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The DRM pipeline handling code uses the entity's pipe list head to check
-whether the entity is already included in a pipeline. This method is a
-bit fragile in the sense that it uses list_empty() on a list_head that
-is a list member. Replace it by a simpler check for the entity pipe
-pointer.
+This patch adds parameter definitions for the four userspace controls that
+the SUR40 can currently provide.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Signed-off-by: Florian Echtler <floe@butterbrot.org>
 ---
- drivers/media/platform/vsp1/vsp1_drm.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/input/touchscreen/sur40.c | 17 +++++++++++++++++
+ 1 file changed, 17 insertions(+)
 
-diff --git a/drivers/media/platform/vsp1/vsp1_drm.c b/drivers/media/platform/vsp1/vsp1_drm.c
-index a7ad85ab0b08..e210917fdc3f 100644
---- a/drivers/media/platform/vsp1/vsp1_drm.c
-+++ b/drivers/media/platform/vsp1/vsp1_drm.c
-@@ -119,9 +119,9 @@ int vsp1_du_setup_lif(struct device *dev, unsigned int pipe_index,
- 			 * Remove the RPF from the pipe and the list of BRU
- 			 * inputs.
- 			 */
--			WARN_ON(list_empty(&rpf->entity.list_pipe));
-+			WARN_ON(!rpf->entity.pipe);
- 			rpf->entity.pipe = NULL;
--			list_del_init(&rpf->entity.list_pipe);
-+			list_del(&rpf->entity.list_pipe);
- 			pipe->inputs[i] = NULL;
+diff --git a/drivers/input/touchscreen/sur40.c b/drivers/input/touchscreen/sur40.c
+index 8375b06..3af63415 100644
+--- a/drivers/input/touchscreen/sur40.c
++++ b/drivers/input/touchscreen/sur40.c
+@@ -149,6 +149,23 @@ struct sur40_image_header {
+ #define SUR40_TOUCH	0x02
+ #define SUR40_TAG	0x04
  
- 			bru->inputs[rpf->bru_input].rpf = NULL;
-@@ -537,7 +537,7 @@ void vsp1_du_atomic_flush(struct device *dev, unsigned int pipe_index)
- 			continue;
- 		}
- 
--		if (list_empty(&rpf->entity.list_pipe)) {
-+		if (!rpf->entity.pipe) {
- 			rpf->entity.pipe = pipe;
- 			list_add_tail(&rpf->entity.list_pipe, &pipe->entities);
- 		}
-@@ -566,7 +566,7 @@ void vsp1_du_atomic_flush(struct device *dev, unsigned int pipe_index)
- 					   VI6_DPR_NODE_UNUSED);
- 
- 			entity->pipe = NULL;
--			list_del_init(&entity->list_pipe);
-+			list_del(&entity->list_pipe);
- 
- 			continue;
- 		}
++/* video controls */
++#define SUR40_BRIGHTNESS_MAX 0xFF
++#define SUR40_BRIGHTNESS_MIN 0x00
++#define SUR40_BRIGHTNESS_DEF 0xFF
++
++#define SUR40_CONTRAST_MAX 0x0F
++#define SUR40_CONTRAST_MIN 0x00
++#define SUR40_CONTRAST_DEF 0x0A
++
++#define SUR40_GAIN_MAX 0x09
++#define SUR40_GAIN_MIN 0x00
++#define SUR40_GAIN_DEF 0x08
++
++#define SUR40_BACKLIGHT_MAX 0x01
++#define SUR40_BACKLIGHT_MIN 0x00
++#define SUR40_BACKLIGHT_DEF 0x01
++
+ static const struct v4l2_pix_format sur40_pix_format[] = {
+ 	{
+ 		.pixelformat = V4L2_TCH_FMT_TU08,
 -- 
-Regards,
-
-Laurent Pinchart
+2.7.4
