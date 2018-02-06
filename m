@@ -1,412 +1,516 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:24673 "EHLO
-        mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751651AbeBBMt7 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 2 Feb 2018 07:49:59 -0500
-From: Smitha T Murthy <smitha.t@samsung.com>
-To: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Cc: kyungmin.park@samsung.com, kamil@wypas.org, jtp.park@samsung.com,
-        a.hajda@samsung.com, mchehab@kernel.org, pankaj.dubey@samsung.com,
-        krzk@kernel.org, m.szyprowski@samsung.com, s.nawrocki@samsung.com,
-        Smitha T Murthy <smitha.t@samsung.com>,
-        Rob Herring <robh+dt@kernel.org>, devicetree@vger.kernel.org
-Subject: [Patch v8 02/12] [media] s5p-mfc: Adding initial support for MFC
- v10.10
-Date: Fri, 02 Feb 2018 17:55:38 +0530
-Message-id: <1517574348-22111-3-git-send-email-smitha.t@samsung.com>
-In-reply-to: <1517574348-22111-1-git-send-email-smitha.t@samsung.com>
-References: <1517574348-22111-1-git-send-email-smitha.t@samsung.com>
-        <CGME20180202124957epcas1p113a37a3e452574ca8e5233caf04e18a1@epcas1p1.samsung.com>
+Received: from mail-pf0-f193.google.com ([209.85.192.193]:45362 "EHLO
+        mail-pf0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752720AbeBFU2K (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 6 Feb 2018 15:28:10 -0500
+Received: by mail-pf0-f193.google.com with SMTP id w83so1128241pfi.12
+        for <linux-media@vger.kernel.org>; Tue, 06 Feb 2018 12:28:10 -0800 (PST)
+From: Tim Harvey <tharvey@gateworks.com>
+To: linux-media@vger.kernel.org, alsa-devel@alsa-project.org
+Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        shawnguo@kernel.org, Steve Longerbeam <slongerbeam@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Hans Verkuil <hansverk@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Subject: [PATCH v8 0/7] TDA1997x HDMI video reciver
+Date: Tue,  6 Feb 2018 12:27:47 -0800
+Message-Id: <1517948874-21681-1-git-send-email-tharvey@gateworks.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Adding the support for MFC v10.10, with new register file and
-necessary hw control, decoder, encoder and structural changes.
+This is a v4l2 subdev driver supporting the TDA1997x HDMI video receiver.
 
-CC: Rob Herring <robh+dt@kernel.org>
-CC: devicetree@vger.kernel.org
-Signed-off-by: Smitha T Murthy <smitha.t@samsung.com>
-Reviewed-by: Andrzej Hajda <a.hajda@samsung.com>
-Acked-by: Rob Herring <robh@kernel.org>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- .../devicetree/bindings/media/s5p-mfc.txt          |  1 +
- drivers/media/platform/s5p-mfc/regs-mfc-v10.h      | 35 ++++++++++++++++++++++
- drivers/media/platform/s5p-mfc/s5p_mfc.c           | 25 ++++++++++++++++
- drivers/media/platform/s5p-mfc/s5p_mfc_common.h    |  9 +++++-
- drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c      |  4 +++
- drivers/media/platform/s5p-mfc/s5p_mfc_dec.c       | 32 ++++++++------------
- drivers/media/platform/s5p-mfc/s5p_mfc_enc.c       | 16 ++++------
- drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c    |  9 ++++--
- drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h    |  2 ++
- 9 files changed, 100 insertions(+), 33 deletions(-)
- create mode 100644 drivers/media/platform/s5p-mfc/regs-mfc-v10.h
+I've tested this on a Gateworks GW54xx/GW551x with an IMX6Q/IMX6DL which
+uses the TDA19971 with 16bits connected to the IMX6 CSI and single-lane
+I2S audio providing 2-channel audio.
 
-diff --git a/Documentation/devicetree/bindings/media/s5p-mfc.txt b/Documentation/devicetree/bindings/media/s5p-mfc.txt
-index d3404b5..aa54c81 100644
---- a/Documentation/devicetree/bindings/media/s5p-mfc.txt
-+++ b/Documentation/devicetree/bindings/media/s5p-mfc.txt
-@@ -13,6 +13,7 @@ Required properties:
- 	(c) "samsung,mfc-v7" for MFC v7 present in Exynos5420 SoC
- 	(d) "samsung,mfc-v8" for MFC v8 present in Exynos5800 SoC
- 	(e) "samsung,exynos5433-mfc" for MFC v8 present in Exynos5433 SoC
-+	(f) "samsung,mfc-v10" for MFC v10 present in Exynos7880 SoC
- 
-   - reg : Physical base address of the IP registers and length of memory
- 	  mapped region.
-diff --git a/drivers/media/platform/s5p-mfc/regs-mfc-v10.h b/drivers/media/platform/s5p-mfc/regs-mfc-v10.h
-new file mode 100644
-index 0000000..4422a75
---- /dev/null
-+++ b/drivers/media/platform/s5p-mfc/regs-mfc-v10.h
-@@ -0,0 +1,35 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+/*
-+ *
-+ * Copyright (c) 2017 Samsung Electronics Co., Ltd.
-+ *     http://www.samsung.com/
-+ *
-+ * Register definition file for Samsung MFC V10.x Interface (FIMV) driver
-+ *
-+ */
-+
-+#ifndef _REGS_MFC_V10_H
-+#define _REGS_MFC_V10_H
-+
-+#include <linux/sizes.h>
-+#include "regs-mfc-v8.h"
-+
-+/* MFCv10 register definitions*/
-+#define S5P_FIMV_MFC_CLOCK_OFF_V10			0x7120
-+#define S5P_FIMV_MFC_STATE_V10				0x7124
-+
-+/* MFCv10 Context buffer sizes */
-+#define MFC_CTX_BUF_SIZE_V10		(30 * SZ_1K)
-+#define MFC_H264_DEC_CTX_BUF_SIZE_V10	(2 * SZ_1M)
-+#define MFC_OTHER_DEC_CTX_BUF_SIZE_V10	(20 * SZ_1K)
-+#define MFC_H264_ENC_CTX_BUF_SIZE_V10	(100 * SZ_1K)
-+#define MFC_OTHER_ENC_CTX_BUF_SIZE_V10	(15 * SZ_1K)
-+
-+/* MFCv10 variant defines */
-+#define MAX_FW_SIZE_V10		(SZ_1M)
-+#define MAX_CPB_SIZE_V10	(3 * SZ_1M)
-+#define MFC_VERSION_V10		0xA0
-+#define MFC_NUM_PORTS_V10	1
-+
-+#endif /*_REGS_MFC_V10_H*/
-+
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-index 68ed001..afa5ce5 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-@@ -1612,6 +1612,28 @@ static struct s5p_mfc_variant mfc_drvdata_v8_5433 = {
- 	.num_clocks	= 3,
- };
- 
-+static struct s5p_mfc_buf_size_v6 mfc_buf_size_v10 = {
-+	.dev_ctx        = MFC_CTX_BUF_SIZE_V10,
-+	.h264_dec_ctx   = MFC_H264_DEC_CTX_BUF_SIZE_V10,
-+	.other_dec_ctx  = MFC_OTHER_DEC_CTX_BUF_SIZE_V10,
-+	.h264_enc_ctx   = MFC_H264_ENC_CTX_BUF_SIZE_V10,
-+	.other_enc_ctx  = MFC_OTHER_ENC_CTX_BUF_SIZE_V10,
-+};
-+
-+static struct s5p_mfc_buf_size buf_size_v10 = {
-+	.fw     = MAX_FW_SIZE_V10,
-+	.cpb    = MAX_CPB_SIZE_V10,
-+	.priv   = &mfc_buf_size_v10,
-+};
-+
-+static struct s5p_mfc_variant mfc_drvdata_v10 = {
-+	.version        = MFC_VERSION_V10,
-+	.version_bit    = MFC_V10_BIT,
-+	.port_num       = MFC_NUM_PORTS_V10,
-+	.buf_size       = &buf_size_v10,
-+	.fw_name[0]     = "s5p-mfc-v10.fw",
-+};
-+
- static const struct of_device_id exynos_mfc_match[] = {
- 	{
- 		.compatible = "samsung,mfc-v5",
-@@ -1628,6 +1650,9 @@ static const struct of_device_id exynos_mfc_match[] = {
- 	}, {
- 		.compatible = "samsung,exynos5433-mfc",
- 		.data = &mfc_drvdata_v8_5433,
-+	}, {
-+		.compatible = "samsung,mfc-v10",
-+		.data = &mfc_drvdata_v10,
- 	},
- 	{},
- };
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-index 91090fc..c4f0968 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-@@ -23,7 +23,7 @@
- #include <media/v4l2-ioctl.h>
- #include <media/videobuf2-v4l2.h>
- #include "regs-mfc.h"
--#include "regs-mfc-v8.h"
-+#include "regs-mfc-v10.h"
- 
- #define S5P_MFC_NAME		"s5p-mfc"
- 
-@@ -715,11 +715,18 @@ void s5p_mfc_cleanup_queue(struct list_head *lh, struct vb2_queue *vq);
- #define IS_MFCV6_PLUS(dev)	(dev->variant->version >= 0x60 ? 1 : 0)
- #define IS_MFCV7_PLUS(dev)	(dev->variant->version >= 0x70 ? 1 : 0)
- #define IS_MFCV8_PLUS(dev)	(dev->variant->version >= 0x80 ? 1 : 0)
-+#define IS_MFCV10(dev)		(dev->variant->version >= 0xA0 ? 1 : 0)
- 
- #define MFC_V5_BIT	BIT(0)
- #define MFC_V6_BIT	BIT(1)
- #define MFC_V7_BIT	BIT(2)
- #define MFC_V8_BIT	BIT(3)
-+#define MFC_V10_BIT	BIT(5)
- 
-+#define MFC_V5PLUS_BITS		(MFC_V5_BIT | MFC_V6_BIT | MFC_V7_BIT | \
-+					MFC_V8_BIT | MFC_V10_BIT)
-+#define MFC_V6PLUS_BITS		(MFC_V6_BIT | MFC_V7_BIT | MFC_V8_BIT | \
-+					MFC_V10_BIT)
-+#define MFC_V7PLUS_BITS		(MFC_V7_BIT | MFC_V8_BIT | MFC_V10_BIT)
- 
- #endif /* S5P_MFC_COMMON_H_ */
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c b/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
-index a1c729c..76405f5 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
-@@ -239,6 +239,10 @@ int s5p_mfc_init_hw(struct s5p_mfc_dev *dev)
- 	}
- 	else
- 		mfc_write(dev, 0x3ff, S5P_FIMV_SW_RESET);
-+
-+	if (IS_MFCV10(dev))
-+		mfc_write(dev, 0x0, S5P_FIMV_MFC_CLOCK_OFF_V10);
-+
- 	mfc_debug(2, "Will now wait for completion of firmware transfer\n");
- 	if (s5p_mfc_wait_for_done_dev(dev, S5P_MFC_R2H_CMD_FW_STATUS_RET)) {
- 		mfc_err("Failed to load firmware\n");
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-index 42e9351..81de3029 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-@@ -54,7 +54,7 @@ static struct s5p_mfc_fmt formats[] = {
- 		.codec_mode	= S5P_MFC_CODEC_NONE,
- 		.type		= MFC_FMT_RAW,
- 		.num_planes	= 2,
--		.versions	= MFC_V6_BIT | MFC_V7_BIT | MFC_V8_BIT,
-+		.versions	= MFC_V6PLUS_BITS,
- 	},
- 	{
- 		.name		= "4:2:0 2 Planes Y/CrCb",
-@@ -62,7 +62,7 @@ static struct s5p_mfc_fmt formats[] = {
- 		.codec_mode	= S5P_MFC_CODEC_NONE,
- 		.type		= MFC_FMT_RAW,
- 		.num_planes	= 2,
--		.versions	= MFC_V6_BIT | MFC_V7_BIT | MFC_V8_BIT,
-+		.versions	= MFC_V6PLUS_BITS,
- 	},
- 	{
- 		.name		= "H264 Encoded Stream",
-@@ -70,8 +70,7 @@ static struct s5p_mfc_fmt formats[] = {
- 		.codec_mode	= S5P_MFC_CODEC_H264_DEC,
- 		.type		= MFC_FMT_DEC,
- 		.num_planes	= 1,
--		.versions	= MFC_V5_BIT | MFC_V6_BIT | MFC_V7_BIT |
--								MFC_V8_BIT,
-+		.versions	= MFC_V5PLUS_BITS,
- 	},
- 	{
- 		.name		= "H264/MVC Encoded Stream",
-@@ -79,7 +78,7 @@ static struct s5p_mfc_fmt formats[] = {
- 		.codec_mode	= S5P_MFC_CODEC_H264_MVC_DEC,
- 		.type		= MFC_FMT_DEC,
- 		.num_planes	= 1,
--		.versions	= MFC_V6_BIT | MFC_V7_BIT | MFC_V8_BIT,
-+		.versions	= MFC_V6PLUS_BITS,
- 	},
- 	{
- 		.name		= "H263 Encoded Stream",
-@@ -87,8 +86,7 @@ static struct s5p_mfc_fmt formats[] = {
- 		.codec_mode	= S5P_MFC_CODEC_H263_DEC,
- 		.type		= MFC_FMT_DEC,
- 		.num_planes	= 1,
--		.versions	= MFC_V5_BIT | MFC_V6_BIT | MFC_V7_BIT |
--								MFC_V8_BIT,
-+		.versions	= MFC_V5PLUS_BITS,
- 	},
- 	{
- 		.name		= "MPEG1 Encoded Stream",
-@@ -96,8 +94,7 @@ static struct s5p_mfc_fmt formats[] = {
- 		.codec_mode	= S5P_MFC_CODEC_MPEG2_DEC,
- 		.type		= MFC_FMT_DEC,
- 		.num_planes	= 1,
--		.versions	= MFC_V5_BIT | MFC_V6_BIT | MFC_V7_BIT |
--								MFC_V8_BIT,
-+		.versions	= MFC_V5PLUS_BITS,
- 	},
- 	{
- 		.name		= "MPEG2 Encoded Stream",
-@@ -105,8 +102,7 @@ static struct s5p_mfc_fmt formats[] = {
- 		.codec_mode	= S5P_MFC_CODEC_MPEG2_DEC,
- 		.type		= MFC_FMT_DEC,
- 		.num_planes	= 1,
--		.versions	= MFC_V5_BIT | MFC_V6_BIT | MFC_V7_BIT |
--								MFC_V8_BIT,
-+		.versions	= MFC_V5PLUS_BITS,
- 	},
- 	{
- 		.name		= "MPEG4 Encoded Stream",
-@@ -114,8 +110,7 @@ static struct s5p_mfc_fmt formats[] = {
- 		.codec_mode	= S5P_MFC_CODEC_MPEG4_DEC,
- 		.type		= MFC_FMT_DEC,
- 		.num_planes	= 1,
--		.versions	= MFC_V5_BIT | MFC_V6_BIT | MFC_V7_BIT |
--								MFC_V8_BIT,
-+		.versions	= MFC_V5PLUS_BITS,
- 	},
- 	{
- 		.name		= "XviD Encoded Stream",
-@@ -123,8 +118,7 @@ static struct s5p_mfc_fmt formats[] = {
- 		.codec_mode	= S5P_MFC_CODEC_MPEG4_DEC,
- 		.type		= MFC_FMT_DEC,
- 		.num_planes	= 1,
--		.versions	= MFC_V5_BIT | MFC_V6_BIT | MFC_V7_BIT |
--								MFC_V8_BIT,
-+		.versions	= MFC_V5PLUS_BITS,
- 	},
- 	{
- 		.name		= "VC1 Encoded Stream",
-@@ -132,8 +126,7 @@ static struct s5p_mfc_fmt formats[] = {
- 		.codec_mode	= S5P_MFC_CODEC_VC1_DEC,
- 		.type		= MFC_FMT_DEC,
- 		.num_planes	= 1,
--		.versions	= MFC_V5_BIT | MFC_V6_BIT | MFC_V7_BIT |
--								MFC_V8_BIT,
-+		.versions	= MFC_V5PLUS_BITS,
- 	},
- 	{
- 		.name		= "VC1 RCV Encoded Stream",
-@@ -141,8 +134,7 @@ static struct s5p_mfc_fmt formats[] = {
- 		.codec_mode	= S5P_MFC_CODEC_VC1RCV_DEC,
- 		.type		= MFC_FMT_DEC,
- 		.num_planes	= 1,
--		.versions	= MFC_V5_BIT | MFC_V6_BIT | MFC_V7_BIT |
--								MFC_V8_BIT,
-+		.versions	= MFC_V5PLUS_BITS,
- 	},
- 	{
- 		.name		= "VP8 Encoded Stream",
-@@ -150,7 +142,7 @@ static struct s5p_mfc_fmt formats[] = {
- 		.codec_mode	= S5P_MFC_CODEC_VP8_DEC,
- 		.type		= MFC_FMT_DEC,
- 		.num_planes	= 1,
--		.versions	= MFC_V6_BIT | MFC_V7_BIT | MFC_V8_BIT,
-+		.versions	= MFC_V6PLUS_BITS,
- 	},
- };
- 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-index 0d5d465..9a21e8c 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-@@ -57,8 +57,7 @@ static struct s5p_mfc_fmt formats[] = {
- 		.codec_mode	= S5P_MFC_CODEC_NONE,
- 		.type		= MFC_FMT_RAW,
- 		.num_planes	= 2,
--		.versions	= MFC_V5_BIT | MFC_V6_BIT | MFC_V7_BIT |
--								MFC_V8_BIT,
-+		.versions	= MFC_V5PLUS_BITS,
- 	},
- 	{
- 		.name		= "4:2:0 2 Planes Y/CrCb",
-@@ -66,7 +65,7 @@ static struct s5p_mfc_fmt formats[] = {
- 		.codec_mode	= S5P_MFC_CODEC_NONE,
- 		.type		= MFC_FMT_RAW,
- 		.num_planes	= 2,
--		.versions	= MFC_V6_BIT | MFC_V7_BIT | MFC_V8_BIT,
-+		.versions	= MFC_V6PLUS_BITS,
- 	},
- 	{
- 		.name		= "H264 Encoded Stream",
-@@ -74,8 +73,7 @@ static struct s5p_mfc_fmt formats[] = {
- 		.codec_mode	= S5P_MFC_CODEC_H264_ENC,
- 		.type		= MFC_FMT_ENC,
- 		.num_planes	= 1,
--		.versions	= MFC_V5_BIT | MFC_V6_BIT | MFC_V7_BIT |
--								MFC_V8_BIT,
-+		.versions	= MFC_V5PLUS_BITS,
- 	},
- 	{
- 		.name		= "MPEG4 Encoded Stream",
-@@ -83,8 +81,7 @@ static struct s5p_mfc_fmt formats[] = {
- 		.codec_mode	= S5P_MFC_CODEC_MPEG4_ENC,
- 		.type		= MFC_FMT_ENC,
- 		.num_planes	= 1,
--		.versions	= MFC_V5_BIT | MFC_V6_BIT | MFC_V7_BIT |
--								MFC_V8_BIT,
-+		.versions	= MFC_V5PLUS_BITS,
- 	},
- 	{
- 		.name		= "H263 Encoded Stream",
-@@ -92,8 +89,7 @@ static struct s5p_mfc_fmt formats[] = {
- 		.codec_mode	= S5P_MFC_CODEC_H263_ENC,
- 		.type		= MFC_FMT_ENC,
- 		.num_planes	= 1,
--		.versions	= MFC_V5_BIT | MFC_V6_BIT | MFC_V7_BIT |
--								MFC_V8_BIT,
-+		.versions	= MFC_V5PLUS_BITS,
- 	},
- 	{
- 		.name		= "VP8 Encoded Stream",
-@@ -101,7 +97,7 @@ static struct s5p_mfc_fmt formats[] = {
- 		.codec_mode	= S5P_MFC_CODEC_VP8_ENC,
- 		.type		= MFC_FMT_ENC,
- 		.num_planes	= 1,
--		.versions	= MFC_V7_BIT | MFC_V8_BIT,
-+		.versions	= MFC_V7PLUS_BITS,
- 	},
- };
- 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-index fe14479..2041d81 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-@@ -356,6 +356,7 @@ static int calc_plane(int width, int height)
- 
- static void s5p_mfc_dec_calc_dpb_size_v6(struct s5p_mfc_ctx *ctx)
- {
-+	struct s5p_mfc_dev *dev = ctx->dev;
- 	ctx->buf_width = ALIGN(ctx->img_width, S5P_FIMV_NV12MT_HALIGN_V6);
- 	ctx->buf_height = ALIGN(ctx->img_height, S5P_FIMV_NV12MT_VALIGN_V6);
- 	mfc_debug(2, "SEQ Done: Movie dimensions %dx%d,\n"
-@@ -372,8 +373,12 @@ static void s5p_mfc_dec_calc_dpb_size_v6(struct s5p_mfc_ctx *ctx)
- 
- 	if (ctx->codec_mode == S5P_MFC_CODEC_H264_DEC ||
- 			ctx->codec_mode == S5P_MFC_CODEC_H264_MVC_DEC) {
--		ctx->mv_size = S5P_MFC_DEC_MV_SIZE_V6(ctx->img_width,
--				ctx->img_height);
-+		if (IS_MFCV10(dev))
-+			ctx->mv_size = S5P_MFC_DEC_MV_SIZE_V10(ctx->img_width,
-+					ctx->img_height);
-+		else
-+			ctx->mv_size = S5P_MFC_DEC_MV_SIZE_V6(ctx->img_width,
-+					ctx->img_height);
- 		ctx->mv_size = ALIGN(ctx->mv_size, 16);
- 	} else {
- 		ctx->mv_size = 0;
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h
-index 8055848..021b8db 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.h
-@@ -24,6 +24,8 @@
- #define MB_HEIGHT(y_size)		DIV_ROUND_UP(y_size, 16)
- #define S5P_MFC_DEC_MV_SIZE_V6(x, y)	(MB_WIDTH(x) * \
- 					(((MB_HEIGHT(y)+1)/2)*2) * 64 + 128)
-+#define S5P_MFC_DEC_MV_SIZE_V10(x, y)	(MB_WIDTH(x) * \
-+					(((MB_HEIGHT(y)+1)/2)*2) * 64 + 512)
- 
- /* Definition */
- #define ENC_MULTI_SLICE_MB_MAX		((1 << 30) - 1)
+For this configuration I've tested both 16bit YUV422 and 8bit
+BT656 parallel video bus modes.
+
+While the driver should support the TDA1993 I do not have one for testing.
+
+Further potential development efforts include:
+ - CEC support
+ - HDCP support
+ - TDA19972 support (2 inputs)
+
+Media graphs can be found at http://dev.gateworks.com/docs/linux/media
+
+History:
+v8:
+ - support full range of input modes based on timings_cap
+ - add patch to fix clearing pad for VIDIOC_DV_TIMIGINGS
+ - fix available formats for tda19971 bt656 bus width >12
+ - fix set_format (compliance)
+ - fixed get/set edid (compliance)
+ - add init_cfg to setup default pad config (compliance)
+ - added missing pad checks to get_dv_timings_cap/enum_dv_timings (compliance)
+ - fix alignment of if statement and whitespace in comment (Hans)
+ - move regs to tda1997x_regs.h to clean up (Hans)
+ - add define and sanity check for num of mbus_codes (Hans)
+
+v7:
+ - fix interlaced mode
+ - support no AVI infoframe (ie DVI) (Hans)
+ - add support for multiple output formats (Hans)
+
+v6:
+ - tda1997x: fix return on regulator enablei in tda1997x_set_power() (Fabio)
+ - tda1997x: fix colorspace handling (Hans)
+ - bindings: added Robs's ack (Rob)
+ - replace copyright with SPDX tag (Philippe)
+
+v5:
+ - added v4l2_hdmi_colorimetry() patch from Hans to series
+ - bindings: added Sakari's ack
+ - tda1997x: uppercase string constants
+ - tda1997x: use v4l2_hdmi_rx_coloriemtry to fill format
+ - tda1997x: fix V4L2_CID_DV_RX_RGB_RANGE
+ - tda1997x: fix interlaced mode format
+ - dts: remove leading 0 from unit address
+ - dts: add newline between property list and child node
+ - dts: added missing audmux in GW551x dts
+
+v4:
+ - move include/dt-bindings/media/tda1997x.h to bindings patch
+ - clarify port node details in bindings
+ - fix typos
+ - fix default quant range for VGA
+ - fix quant range handling and conv matrix
+ - add additional standards and capabilities to timings_cap
+
+v3:
+ - fix typo in dt bindings
+ - added dt bindings for GW551x
+ - use V4L2_DV_BT_FRAME_WIDTH/HEIGHT macros
+ - fixed missing break
+ - use only hdmi_infoframe_log for infoframe logging
+ - simplify tda1997x_s_stream error handling
+ - add delayed work proc to handle hotplug enable/disable
+ - fix set_edid (disable HPD before writing, enable after)
+ - remove enabling edid by default
+ - initialize timings
+ - take quant range into account in colorspace conversion
+ - remove vendor/product tracking (we provide this in log_status via
+   infoframes)
+ - add v4l_controls
+ - add more detail to log_status
+ - calculate vhref generator timings
+ - timing detection fixes (rounding errors, hswidth errors)
+ - rename configure_input/configure_conv functions
+
+v2:
+ - encorporate feedback into dt bindings
+ - change audio dt bindings
+ - implement dv timings enum/cap
+ - remove deprecated g_mbus_config op
+ - fix dv_query_timings
+ - add EDID get/set handling
+ - remove max-pixel-rate support
+ - add audio codec DAI support
+ - added media-ctl and v4l2-compliance details
+
+v1:
+ - initial RFC
+
+Media device topology:
+# media-ctl -d /dev/media0 -p
+Media controller API version 4.13.0
+
+Media device information
+------------------------
+driver          imx-media
+model           imx-media
+serial          
+bus info        
+hw revision     0x0
+driver version  4.13.0
+
+Device topology
+- entity 1: adv7180 2-0020 (1 pad, 1 link)
+            type V4L2 subdev subtype Unknown flags 20004
+            device node name /dev/v4l-subdev0
+	pad0: Source
+		[fmt:UYVY8_2X8/720x480 field:interlaced colorspace:smpte170m]
+		-> "ipu2_csi1_mux":1 []
+
+- entity 3: tda19971 2-0048 (1 pad, 1 link)
+            type V4L2 subdev subtype Unknown flags 0
+            device node name /dev/v4l-subdev1
+	pad0: Source
+		[fmt:UYVY8_1X16/640x480 field:none colorspace:srgb]
+		[dv.caps:BT.656/1120 min:640x480@13000000 max:1920x1080@165000000 stds:CEA-861,DMT caps:progressive]
+		[dv.detect:BT.656/1120 640x480p59 (800x525) stds:CEA-861,DMT flags:has-cea861-vic]
+		[dv.current:BT.656/1120 1920x1080p60 (2200x1125) stds:CEA-861,DMT flags:can-reduce-fps,CE-video,has-cea861-vic]
+		-> "ipu1_csi0_mux":1 []
+
+- entity 5: ipu1_vdic (3 pads, 3 links)
+            type V4L2 subdev subtype Unknown flags 0
+            device node name /dev/v4l-subdev2
+	pad0: Sink
+		[fmt:AYUV8_1X32/640x480@1/30 field:none colorspace:smpte170m xfer:709 ycbcr:601 quantization:lim-range]
+		<- "ipu1_csi0":1 []
+		<- "ipu1_csi1":1 []
+	pad1: Sink
+		[fmt:UYVY8_2X8/640x480@1/30 field:none colorspace:smpte170m xfer:709 ycbcr:601 quantization:lim-range]
+	pad2: Source
+		[fmt:AYUV8_1X32/640x480@1/60 field:none colorspace:smpte170m xfer:709 ycbcr:601 quantization:lim-range]
+		-> "ipu1_ic_prp":0 []
+
+- entity 9: ipu2_vdic (3 pads, 3 links)
+            type V4L2 subdev subtype Unknown flags 0
+            device node name /dev/v4l-subdev3
+	pad0: Sink
+		[fmt:AYUV8_1X32/640x480@1/30 field:none colorspace:smpte170m xfer:709 ycbcr:601 quantization:lim-range]
+		<- "ipu2_csi0":1 []
+		<- "ipu2_csi1":1 []
+	pad1: Sink
+		[fmt:UYVY8_2X8/640x480@1/30 field:none colorspace:smpte170m xfer:709 ycbcr:601 quantization:lim-range]
+	pad2: Source
+		[fmt:AYUV8_1X32/640x480@1/60 field:none colorspace:smpte170m xfer:709 ycbcr:601 quantization:lim-range]
+		-> "ipu2_ic_prp":0 []
+
+- entity 13: ipu1_ic_prp (3 pads, 5 links)
+             type V4L2 subdev subtype Unknown flags 0
+             device node name /dev/v4l-subdev4
+	pad0: Sink
+		[fmt:AYUV8_1X32/640x480@1/30 field:none colorspace:smpte170m xfer:709 ycbcr:601 quantization:lim-range]
+		<- "ipu1_vdic":2 []
+		<- "ipu1_csi0":1 []
+		<- "ipu1_csi1":1 []
+	pad1: Source
+		[fmt:AYUV8_1X32/640x480@1/30 field:none colorspace:smpte170m xfer:709 ycbcr:601 quantization:lim-range]
+		-> "ipu1_ic_prpenc":0 []
+	pad2: Source
+		[fmt:AYUV8_1X32/640x480@1/30 field:none colorspace:smpte170m xfer:709 ycbcr:601 quantization:lim-range]
+		-> "ipu1_ic_prpvf":0 []
+
+- entity 17: ipu1_ic_prpenc (2 pads, 2 links)
+             type V4L2 subdev subtype Unknown flags 0
+             device node name /dev/v4l-subdev5
+	pad0: Sink
+		[fmt:AYUV8_1X32/640x480@1/30 field:none colorspace:smpte170m xfer:709 ycbcr:601 quantization:lim-range]
+		<- "ipu1_ic_prp":1 []
+	pad1: Source
+		[fmt:AYUV8_1X32/640x480@1/30 field:none colorspace:smpte170m xfer:709 ycbcr:601 quantization:lim-range]
+		-> "ipu1_ic_prpenc capture":0 []
+
+- entity 20: ipu1_ic_prpenc capture (1 pad, 1 link)
+             type Node subtype V4L flags 0
+             device node name /dev/video0
+	pad0: Sink
+		<- "ipu1_ic_prpenc":1 []
+
+- entity 26: ipu1_ic_prpvf (2 pads, 2 links)
+             type V4L2 subdev subtype Unknown flags 0
+             device node name /dev/v4l-subdev6
+	pad0: Sink
+		[fmt:AYUV8_1X32/640x480@1/30 field:none colorspace:smpte170m xfer:709 ycbcr:601 quantization:lim-range]
+		<- "ipu1_ic_prp":2 []
+	pad1: Source
+		[fmt:AYUV8_1X32/640x480@1/30 field:none colorspace:smpte170m xfer:709 ycbcr:601 quantization:lim-range]
+		-> "ipu1_ic_prpvf capture":0 []
+
+- entity 29: ipu1_ic_prpvf capture (1 pad, 1 link)
+             type Node subtype V4L flags 0
+             device node name /dev/video1
+	pad0: Sink
+		<- "ipu1_ic_prpvf":1 []
+
+- entity 35: ipu2_ic_prp (3 pads, 5 links)
+             type V4L2 subdev subtype Unknown flags 0
+             device node name /dev/v4l-subdev7
+	pad0: Sink
+		[fmt:AYUV8_1X32/640x480@1/30 field:none colorspace:smpte170m xfer:709 ycbcr:601 quantization:lim-range]
+		<- "ipu2_vdic":2 []
+		<- "ipu2_csi0":1 []
+		<- "ipu2_csi1":1 []
+	pad1: Source
+		[fmt:AYUV8_1X32/640x480@1/30 field:none colorspace:smpte170m xfer:709 ycbcr:601 quantization:lim-range]
+		-> "ipu2_ic_prpenc":0 []
+	pad2: Source
+		[fmt:AYUV8_1X32/640x480@1/30 field:none colorspace:smpte170m xfer:709 ycbcr:601 quantization:lim-range]
+		-> "ipu2_ic_prpvf":0 []
+
+- entity 39: ipu2_ic_prpenc (2 pads, 2 links)
+             type V4L2 subdev subtype Unknown flags 0
+             device node name /dev/v4l-subdev8
+	pad0: Sink
+		[fmt:AYUV8_1X32/640x480@1/30 field:none colorspace:smpte170m xfer:709 ycbcr:601 quantization:lim-range]
+		<- "ipu2_ic_prp":1 []
+	pad1: Source
+		[fmt:AYUV8_1X32/640x480@1/30 field:none colorspace:smpte170m xfer:709 ycbcr:601 quantization:lim-range]
+		-> "ipu2_ic_prpenc capture":0 []
+
+- entity 42: ipu2_ic_prpenc capture (1 pad, 1 link)
+             type Node subtype V4L flags 0
+             device node name /dev/video2
+	pad0: Sink
+		<- "ipu2_ic_prpenc":1 []
+
+- entity 48: ipu2_ic_prpvf (2 pads, 2 links)
+             type V4L2 subdev subtype Unknown flags 0
+             device node name /dev/v4l-subdev9
+	pad0: Sink
+		[fmt:AYUV8_1X32/640x480@1/30 field:none colorspace:smpte170m xfer:709 ycbcr:601 quantization:lim-range]
+		<- "ipu2_ic_prp":2 []
+	pad1: Source
+		[fmt:AYUV8_1X32/640x480@1/30 field:none colorspace:smpte170m xfer:709 ycbcr:601 quantization:lim-range]
+		-> "ipu2_ic_prpvf capture":0 []
+
+- entity 51: ipu2_ic_prpvf capture (1 pad, 1 link)
+             type Node subtype V4L flags 0
+             device node name /dev/video3
+	pad0: Sink
+		<- "ipu2_ic_prpvf":1 []
+
+- entity 57: ipu1_csi0 (3 pads, 4 links)
+             type V4L2 subdev subtype Unknown flags 0
+             device node name /dev/v4l-subdev10
+	pad0: Sink
+		[fmt:UYVY8_2X8/640x480@1/30 field:none colorspace:smpte170m xfer:709 ycbcr:601 quantization:lim-range
+		 crop.bounds:(0,0)/640x480
+		 crop:(0,0)/640x480
+		 compose.bounds:(0,0)/640x480
+		 compose:(0,0)/640x480]
+		<- "ipu1_csi0_mux":2 []
+	pad1: Source
+		[fmt:AYUV8_1X32/640x480@1/30 field:none colorspace:smpte170m xfer:709 ycbcr:601 quantization:lim-range]
+		-> "ipu1_ic_prp":0 []
+		-> "ipu1_vdic":0 []
+	pad2: Source
+		[fmt:AYUV8_1X32/640x480@1/30 field:none colorspace:smpte170m xfer:709 ycbcr:601 quantization:lim-range]
+		-> "ipu1_csi0 capture":0 []
+
+- entity 61: ipu1_csi0 capture (1 pad, 1 link)
+             type Node subtype V4L flags 0
+             device node name /dev/video4
+	pad0: Sink
+		<- "ipu1_csi0":2 []
+
+- entity 67: ipu1_csi1 (3 pads, 3 links)
+             type V4L2 subdev subtype Unknown flags 0
+             device node name /dev/v4l-subdev11
+	pad0: Sink
+		[fmt:UYVY8_2X8/640x480@1/30 field:none colorspace:smpte170m xfer:709 ycbcr:601 quantization:lim-range
+		 crop.bounds:(0,0)/640x480
+		 crop:(0,0)/640x480
+		 compose.bounds:(0,0)/640x480
+		 compose:(0,0)/640x480]
+	pad1: Source
+		[fmt:AYUV8_1X32/640x480@1/30 field:none colorspace:smpte170m xfer:709 ycbcr:601 quantization:lim-range]
+		-> "ipu1_ic_prp":0 []
+		-> "ipu1_vdic":0 []
+	pad2: Source
+		[fmt:AYUV8_1X32/640x480@1/30 field:none colorspace:smpte170m xfer:709 ycbcr:601 quantization:lim-range]
+		-> "ipu1_csi1 capture":0 []
+
+- entity 71: ipu1_csi1 capture (1 pad, 1 link)
+             type Node subtype V4L flags 0
+             device node name /dev/video5
+	pad0: Sink
+		<- "ipu1_csi1":2 []
+
+- entity 77: ipu2_csi0 (3 pads, 3 links)
+             type V4L2 subdev subtype Unknown flags 0
+             device node name /dev/v4l-subdev12
+	pad0: Sink
+		[fmt:UYVY8_2X8/640x480@1/30 field:none colorspace:smpte170m xfer:709 ycbcr:601 quantization:lim-range
+		 crop.bounds:(0,0)/640x480
+		 crop:(0,0)/640x480
+		 compose.bounds:(0,0)/640x480
+		 compose:(0,0)/640x480]
+	pad1: Source
+		[fmt:AYUV8_1X32/640x480@1/30 field:none colorspace:smpte170m xfer:709 ycbcr:601 quantization:lim-range]
+		-> "ipu2_ic_prp":0 []
+		-> "ipu2_vdic":0 []
+	pad2: Source
+		[fmt:AYUV8_1X32/640x480@1/30 field:none colorspace:smpte170m xfer:709 ycbcr:601 quantization:lim-range]
+		-> "ipu2_csi0 capture":0 []
+
+- entity 81: ipu2_csi0 capture (1 pad, 1 link)
+             type Node subtype V4L flags 0
+             device node name /dev/video6
+	pad0: Sink
+		<- "ipu2_csi0":2 []
+
+- entity 87: ipu2_csi1 (3 pads, 4 links)
+             type V4L2 subdev subtype Unknown flags 0
+             device node name /dev/v4l-subdev13
+	pad0: Sink
+		[fmt:UYVY8_2X8/640x480@1/30 field:none colorspace:smpte170m xfer:709 ycbcr:601 quantization:lim-range
+		 crop.bounds:(0,0)/640x480
+		 crop:(0,0)/640x480
+		 compose.bounds:(0,0)/640x480
+		 compose:(0,0)/640x480]
+		<- "ipu2_csi1_mux":2 []
+	pad1: Source
+		[fmt:AYUV8_1X32/640x480@1/30 field:none colorspace:smpte170m xfer:709 ycbcr:601 quantization:lim-range]
+		-> "ipu2_ic_prp":0 []
+		-> "ipu2_vdic":0 []
+	pad2: Source
+		[fmt:AYUV8_1X32/640x480@1/30 field:none colorspace:smpte170m xfer:709 ycbcr:601 quantization:lim-range]
+		-> "ipu2_csi1 capture":0 []
+
+- entity 91: ipu2_csi1 capture (1 pad, 1 link)
+             type Node subtype V4L flags 0
+             device node name /dev/video7
+	pad0: Sink
+		<- "ipu2_csi1":2 []
+
+- entity 97: ipu1_csi0_mux (3 pads, 2 links)
+             type V4L2 subdev subtype Unknown flags 0
+             device node name /dev/v4l-subdev14
+	pad0: Sink
+		[fmt:unknown/0x0]
+	pad1: Sink
+		[fmt:unknown/0x0]
+		<- "tda19971 2-0048":0 []
+	pad2: Source
+		[fmt:unknown/0x0]
+		-> "ipu1_csi0":0 []
+
+- entity 101: ipu2_csi1_mux (3 pads, 2 links)
+              type V4L2 subdev subtype Unknown flags 0
+              device node name /dev/v4l-subdev15
+	pad0: Sink
+		[fmt:unknown/0x0]
+	pad1: Sink
+		[fmt:unknown/0x0]
+		<- "adv7180 2-0020":0 []
+	pad2: Source
+		[fmt:unknown/0x0]
+		-> "ipu2_csi1":0 []
+
+
+v4l2-compliance test results:
+ - with the following kernel patches:
+   v4l2-subdev: clear reserved fields
+ . v4l2-subdev: without controls return -ENOTTY
+
+v4l2-compliance SHA   : b2f8f9049056eb6f9e028927dacb2c715a062df8
+Media Driver Info:
+	Driver name      : imx-media
+	Model            : imx-media
+	Serial           : 
+	Bus info         : 
+	Media version    : 4.15.0
+	Hardware revision: 0x00000000 (0)
+	Driver version   : 4.15.0
+Interface Info:
+	ID               : 0x0300008f
+	Type             : V4L Sub-Device
+Entity Info:
+	ID               : 0x00000003 (3)
+	Name             : tda19971 2-0048
+	Function         : Unknown
+	Pad 0x01000004   : Source
+	  Link 0x0200006f: to remote pad 0x1000063 of entity 'ipu1_csi0_mux': Data
+
+Compliance test for device /dev/v4l-subdev1:
+
+Allow for multiple opens:
+	test second /dev/v4l-subdev1 open: OK
+	test for unlimited opens: OK
+
+Debug ioctls:
+	test VIDIOC_LOG_STATUS: OK
+
+Input ioctls:
+	test VIDIOC_G/S_TUNER/ENUM_FREQ_BANDS: OK (Not Supported)
+	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+	test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
+	test VIDIOC_ENUMAUDIO: OK (Not Supported)
+	test VIDIOC_G/S/ENUMINPUT: OK (Not Supported)
+	test VIDIOC_G/S_AUDIO: OK (Not Supported)
+	Inputs: 0 Audio Inputs: 0 Tuners: 0
+
+Output ioctls:
+	test VIDIOC_G/S_MODULATOR: OK (Not Supported)
+	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+	test VIDIOC_ENUMAUDOUT: OK (Not Supported)
+	test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
+	test VIDIOC_G/S_AUDOUT: OK (Not Supported)
+	Outputs: 0 Audio Outputs: 0 Modulators: 0
+
+Input/Output configuration ioctls:
+	test VIDIOC_ENUM/G/S/QUERY_STD: OK (Not Supported)
+	test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK
+	test VIDIOC_DV_TIMINGS_CAP: OK
+	test VIDIOC_G/S_EDID: OK
+
+Sub-Device ioctls (Source Pad 0):
+	test Try VIDIOC_SUBDEV_ENUM_MBUS_CODE/FRAME_SIZE/FRAME_INTERVAL: OK
+	test Try VIDIOC_SUBDEV_G/S_FMT: OK
+	test Try VIDIOC_SUBDEV_G/S_SELECTION/CROP: OK (Not Supported)
+	test Active VIDIOC_SUBDEV_ENUM_MBUS_CODE/FRAME_SIZE/FRAME_INTERVAL: OK
+	test Active VIDIOC_SUBDEV_G/S_FMT: OK
+	test Active VIDIOC_SUBDEV_G/S_SELECTION/CROP: OK (Not Supported)
+	test VIDIOC_SUBDEV_G/S_FRAME_INTERVAL: OK (Not Supported)
+
+Control ioctls:
+	test VIDIOC_QUERY_EXT_CTRL/QUERYMENU: OK (Not Supported)
+	test VIDIOC_QUERYCTRL: OK (Not Supported)
+	test VIDIOC_G/S_CTRL: OK (Not Supported)
+	test VIDIOC_G/S/TRY_EXT_CTRLS: OK (Not Supported)
+	test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK (Not Supported)
+	test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
+	Standard Controls: 0 Private Controls: 0
+
+Format ioctls:
+	test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK (Not Supported)
+	test VIDIOC_G/S_PARM: OK (Not Supported)
+	test VIDIOC_G_FBUF: OK (Not Supported)
+	test VIDIOC_G_FMT: OK (Not Supported)
+	test VIDIOC_TRY_FMT: OK (Not Supported)
+	test VIDIOC_S_FMT: OK (Not Supported)
+	test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
+	test Cropping: OK (Not Supported)
+	test Composing: OK (Not Supported)
+	test Scaling: OK (Not Supported)
+
+Codec ioctls:
+	test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
+	test VIDIOC_G_ENC_INDEX: OK (Not Supported)
+	test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
+
+Buffer ioctls:
+	test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK (Not Supported)
+	test VIDIOC_EXPBUF: OK (Not Supported)
+
+Total: 46, Succeeded: 46, Failed: 0, Warnings: 0
+
+Hans Verkuil (1):
+  v4l2-dv-timings: add v4l2_hdmi_colorimetry()
+
+Tim Harvey (6):
+  media: v4l-ioctl: fix clearing pad for VIDIOC_DV_TIMIGNS_CAP
+  MAINTAINERS: add entry for NXP TDA1997x driver
+  media: dt-bindings: Add bindings for TDA1997X
+  media: i2c: Add TDA1997x HDMI receiver driver
+  ARM: dts: imx: Add TDA19971 HDMI Receiver to GW54xx
+  ARM: dts: imx: Add TDA19971 HDMI Receiver to GW551x
+
+ .../devicetree/bindings/media/i2c/tda1997x.txt     |  179 ++
+ MAINTAINERS                                        |    8 +
+ arch/arm/boot/dts/imx6q-gw54xx.dts                 |  105 +
+ arch/arm/boot/dts/imx6qdl-gw54xx.dtsi              |   29 +-
+ arch/arm/boot/dts/imx6qdl-gw551x.dtsi              |  138 +
+ drivers/media/i2c/Kconfig                          |    9 +
+ drivers/media/i2c/Makefile                         |    1 +
+ drivers/media/i2c/tda1997x.c                       | 2845 ++++++++++++++++++++
+ drivers/media/i2c/tda1997x_regs.h                  |  641 +++++
+ drivers/media/v4l2-core/v4l2-dv-timings.c          |  141 +
+ drivers/media/v4l2-core/v4l2-ioctl.c               |    2 +-
+ include/dt-bindings/media/tda1997x.h               |   74 +
+ include/media/i2c/tda1997x.h                       |   42 +
+ include/media/v4l2-dv-timings.h                    |   21 +
+ 14 files changed, 4231 insertions(+), 4 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/tda1997x.txt
+ create mode 100644 drivers/media/i2c/tda1997x.c
+ create mode 100644 drivers/media/i2c/tda1997x_regs.h
+ create mode 100644 include/dt-bindings/media/tda1997x.h
+ create mode 100644 include/media/i2c/tda1997x.h
+
 -- 
 2.7.4
