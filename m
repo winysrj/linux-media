@@ -1,105 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pf0-f196.google.com ([209.85.192.196]:37712 "EHLO
-        mail-pf0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751756AbeBVBkU (ORCPT
+Received: from mx08-00178001.pphosted.com ([91.207.212.93]:25291 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1752016AbeBFNYh (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 21 Feb 2018 20:40:20 -0500
-Received: by mail-pf0-f196.google.com with SMTP id s24so1459917pfm.4
-        for <linux-media@vger.kernel.org>; Wed, 21 Feb 2018 17:40:20 -0800 (PST)
-From: Steve Longerbeam <slongerbeam@gmail.com>
-To: Yong Zhi <yong.zhi@intel.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        niklas.soderlund@ragnatech.se, Sebastian Reichel <sre@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>
-Cc: linux-media@vger.kernel.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>
-Subject: [PATCH 11/13] media: staging/imx: Rename root notifier
-Date: Wed, 21 Feb 2018 17:39:47 -0800
-Message-Id: <1519263589-19647-12-git-send-email-steve_longerbeam@mentor.com>
-In-Reply-To: <1519263589-19647-1-git-send-email-steve_longerbeam@mentor.com>
-References: <1519263589-19647-1-git-send-email-steve_longerbeam@mentor.com>
+        Tue, 6 Feb 2018 08:24:37 -0500
+From: Hugues Fruchet <hugues.fruchet@st.com>
+To: Steve Longerbeam <slongerbeam@gmail.com>,
+        Sakari Ailus <sakari.ailus@iki.fi>,
+        Jacopo Mondi <jacopo@jmondi.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+CC: <linux-media@vger.kernel.org>,
+        Hugues Fruchet <hugues.fruchet@st.com>,
+        Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Subject: [PATCH v2] media: ov5640: fix virtual_channel parameter permissions
+Date: Tue, 6 Feb 2018 14:24:09 +0100
+Message-ID: <1517923449-7596-1-git-send-email-hugues.fruchet@st.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Rename the imx-media root async notifier from "subdev_notifier" to
-simply "notifier", so as not to confuse it with true subdev notifiers.
-No functional changes.
+Fix module_param(virtual_channel) permissions.
+This problem was detected by checkpatch:
+$ scripts/checkpatch.pl -f drivers/media/i2c/ov5640.c
+ERROR: Use 4 digit octal (0777) not decimal permissions
+#131: FILE: drivers/media/i2c/ov5640.c:131:
++module_param(virtual_channel, int, 0);
 
-Signed-off-by: Steve Longerbeam <steve_longerbeam@mentor.com>
+Also add an error trace in case of virtual_channel not in
+the valid range of values.
+
+Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
 ---
- drivers/staging/media/imx/imx-media-dev.c | 14 +++++++-------
- drivers/staging/media/imx/imx-media.h     |  2 +-
- 2 files changed, 8 insertions(+), 8 deletions(-)
+version 2:
+  - Fix code as per Jacopo Mondi suggestions:
+    - int to uint
+    - no need to set global to 0
+    - shorten error trace
+    See https://www.mail-archive.com/linux-media@vger.kernel.org/msg125474.html
+ drivers/media/i2c/ov5640.c | 9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/staging/media/imx/imx-media-dev.c b/drivers/staging/media/imx/imx-media-dev.c
-index 4d00ed3..dd4702a 100644
---- a/drivers/staging/media/imx/imx-media-dev.c
-+++ b/drivers/staging/media/imx/imx-media-dev.c
-@@ -29,7 +29,7 @@
+diff --git a/drivers/media/i2c/ov5640.c b/drivers/media/i2c/ov5640.c
+index 696a28b..3e7b43c 100644
+--- a/drivers/media/i2c/ov5640.c
++++ b/drivers/media/i2c/ov5640.c
+@@ -128,7 +128,7 @@ struct ov5640_pixfmt {
+  * to set the MIPI CSI-2 virtual channel.
+  */
+ static unsigned int virtual_channel;
+-module_param(virtual_channel, int, 0);
++module_param(virtual_channel, uint, 0444);
+ MODULE_PARM_DESC(virtual_channel,
+ 		 "MIPI CSI-2 virtual channel (0..3), default 0");
  
- static inline struct imx_media_dev *notifier2dev(struct v4l2_async_notifier *n)
+@@ -1358,11 +1358,16 @@ static int ov5640_binning_on(struct ov5640_dev *sensor)
+ 
+ static int ov5640_set_virtual_channel(struct ov5640_dev *sensor)
  {
--	return container_of(n, struct imx_media_dev, subdev_notifier);
-+	return container_of(n, struct imx_media_dev, notifier);
- }
++	struct i2c_client *client = sensor->i2c_client;
+ 	u8 temp, channel = virtual_channel;
+ 	int ret;
  
- /*
-@@ -113,7 +113,7 @@ int imx_media_add_async_subdev(struct imx_media_dev *imxmd,
+-	if (channel > 3)
++	if (channel > 3) {
++		dev_err(&client->dev,
++			"%s: wrong virtual_channel parameter, expected (0..3), got %d\n",
++			__func__, channel);
+ 		return -EINVAL;
++	}
  
- 	list_add_tail(&imxasd->list, &imxmd->asd_list);
- 
--	imxmd->subdev_notifier.num_subdevs++;
-+	imxmd->notifier.num_subdevs++;
- 
- 	dev_dbg(imxmd->md.dev, "%s: added %s, match type %s\n",
- 		__func__, np ? np->name : devname, np ? "FWNODE" : "DEVNAME");
-@@ -532,7 +532,7 @@ static int imx_media_probe(struct platform_device *pdev)
- 		goto unreg_dev;
- 	}
- 
--	num_subdevs = imxmd->subdev_notifier.num_subdevs;
-+	num_subdevs = imxmd->notifier.num_subdevs;
- 
- 	/* no subdevs? just bail */
- 	if (num_subdevs == 0) {
-@@ -552,10 +552,10 @@ static int imx_media_probe(struct platform_device *pdev)
- 		subdevs[i++] = &imxasd->asd;
- 
- 	/* prepare the async subdev notifier and register it */
--	imxmd->subdev_notifier.subdevs = subdevs;
--	imxmd->subdev_notifier.ops = &imx_media_subdev_ops;
-+	imxmd->notifier.subdevs = subdevs;
-+	imxmd->notifier.ops = &imx_media_subdev_ops;
- 	ret = v4l2_async_notifier_register(&imxmd->v4l2_dev,
--					   &imxmd->subdev_notifier);
-+					   &imxmd->notifier);
- 	if (ret) {
- 		v4l2_err(&imxmd->v4l2_dev,
- 			 "v4l2_async_notifier_register failed with %d\n", ret);
-@@ -580,7 +580,7 @@ static int imx_media_remove(struct platform_device *pdev)
- 
- 	v4l2_info(&imxmd->v4l2_dev, "Removing imx-media\n");
- 
--	v4l2_async_notifier_unregister(&imxmd->subdev_notifier);
-+	v4l2_async_notifier_unregister(&imxmd->notifier);
- 	imx_media_remove_internal_subdevs(imxmd);
- 	v4l2_device_unregister(&imxmd->v4l2_dev);
- 	media_device_unregister(&imxmd->md);
-diff --git a/drivers/staging/media/imx/imx-media.h b/drivers/staging/media/imx/imx-media.h
-index 2fd6dfd..44931fe 100644
---- a/drivers/staging/media/imx/imx-media.h
-+++ b/drivers/staging/media/imx/imx-media.h
-@@ -148,7 +148,7 @@ struct imx_media_dev {
- 
- 	/* for async subdev registration */
- 	struct list_head asd_list;
--	struct v4l2_async_notifier subdev_notifier;
-+	struct v4l2_async_notifier notifier;
- };
- 
- enum codespace_sel {
+ 	ret = ov5640_read_reg(sensor, OV5640_REG_DEBUG_MODE, &temp);
+ 	if (ret)
 -- 
-2.7.4
+1.9.1
