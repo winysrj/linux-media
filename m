@@ -1,151 +1,144 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:58800 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751367AbeB0Jw6 (ORCPT
+Received: from lb2-smtp-cloud7.xs4all.net ([194.109.24.28]:43284 "EHLO
+        lb2-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752514AbeBFTGE (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 27 Feb 2018 04:52:58 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        Yong Zhi <yong.zhi@intel.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        niklas.soderlund@ragnatech.se, Sebastian Reichel <sre@kernel.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        linux-media@vger.kernel.org,
-        Steve Longerbeam <steve_longerbeam@mentor.com>,
-        devicetree@vger.kernel.org
-Subject: Re: [PATCH 01/13] media: v4l2-fwnode: Let parse_endpoint callback decide if no remote is error
-Date: Tue, 27 Feb 2018 11:53:46 +0200
-Message-ID: <1977520.QzcRFRQSMO@avalon>
-In-Reply-To: <1519722784.3402.12.camel@pengutronix.de>
-References: <1519263589-19647-1-git-send-email-steve_longerbeam@mentor.com> <20180223124741.d4l4vjahe6beqe65@paasikivi.fi.intel.com> <1519722784.3402.12.camel@pengutronix.de>
+        Tue, 6 Feb 2018 14:06:04 -0500
+Subject: Re: Please help test the new v4l-subdev support in v4l2-compliance
+To: Tim Harvey <tharvey@gateworks.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+        Jacopo Mondi <jacopo+renesas@jmondi.org>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+References: <be1babc7-ed0b-8853-19e8-43b20a6f4c17@xs4all.nl>
+ <CAJ+vNU1erjHtttuctgR=xd_XmhvxzyuhqdmyfOLKFVaiVf=ufg@mail.gmail.com>
+ <c1f94f39-8f20-8503-9619-3108190d77c6@xs4all.nl>
+ <CAJ+vNU15Q2C3mC4DjHKhX+56w-o-U4nOqndZwg6ncC2SCAaUhw@mail.gmail.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <9fd654a6-086a-bb00-b84f-383580e18fee@xs4all.nl>
+Date: Tue, 6 Feb 2018 20:05:57 +0100
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <CAJ+vNU15Q2C3mC4DjHKhX+56w-o-U4nOqndZwg6ncC2SCAaUhw@mail.gmail.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Philipp,
+On 02/06/2018 07:48 PM, Tim Harvey wrote:
+> On Mon, Feb 5, 2018 at 11:34 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>> On 02/06/2018 08:16 AM, Tim Harvey wrote:
+>>> On Sat, Feb 3, 2018 at 7:56 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> <snip>
+>>>
+>>> With regards to the 3 failures:
+>>>
+>>> 1. test VIDIOC_G/S_EDID: FAIL
+>>> This is a valid catch where I was returning -EINVAL when the caller
+>>> was simply querying the edid - I've fixed it in my driver
+>>>
+>>> 2. test VIDIOC_DV_TIMINGS_CAP: FAIL
+>>> fail: v4l2-test-io-config.cpp(375): doioctl(node,
+>>> VIDIOC_DV_TIMINGS_CAP, &timingscap) != EINVAL
+>>> fail: v4l2-test-io-config.cpp(392): EDID check failed for source pad 0.
+>>>
+>>> It looks like the purpose of the test is to do an ioctl with an
+>>> invalid pad setting to ensure -EINVAL is returned. However by the time
+>>> the VIDIOC_DV_TIMINGS_CAP ioctl used here gets routed to a
+>>
+>> No, VIDIOC_SUBDEV_DV_TIMINGS_CAP == VIDIOC_DV_TIMINGS_CAP, i.e. the
+>> v4l-subdev API reuses the same ioctl as is used in the 'main' V4L2 API.
+>> See include/uapi/linux/v4l2-subdev.h at the end for a list of 'alias'
+>> ioctls.
+> 
+> Ah... thanks - I realized that was happening somehow but couldn't see how :)
+> 
+>>
+>> Looking at v7 your tda1997x_get_dv_timings_cap() function doesn't check
+>> for a valid pad field. Same for tda1997x_enum_dv_timings().
+> 
+> Right - I noticed this right off as well - I've added pad validation
+> but that didn't resolve the failure.
+> 
+> The test failing is:
+> 
+>         memset(&timingscap, 0, sizeof(timingscap));
+>         timingscap.pad = node->is_subdev() ? node->entity.pads : 1;
+> ^^^^ this sets pad=node->entity.pads=1 which is invalid
+>         fail_on_test(doioctl(node, VIDIOC_DV_TIMINGS_CAP, &timingscap)
+> != EINVAL);
+> ^^^^ tda1997x_get_dv_timings_cap() gets called with cap->pad = 0 which
+> is valid to returns 0. I don't understand how the userspace pad=1 get
+> changed to pad=0 in my handler.
 
-On Tuesday, 27 February 2018 11:13:04 EET Philipp Zabel wrote:
-> On Fri, 2018-02-23 at 14:47 +0200, Sakari Ailus wrote:
-> > On Fri, Feb 23, 2018 at 12:16:17PM +0100, Philipp Zabel wrote:
-> >> On Fri, 2018-02-23 at 12:05 +0200, Laurent Pinchart wrote:
-> >>> On Friday, 23 February 2018 11:56:52 EET Philipp Zabel wrote:
-> >>>> On Fri, 2018-02-23 at 11:29 +0200, Laurent Pinchart wrote:
-> >>>>> On Thursday, 22 February 2018 03:39:37 EET Steve Longerbeam wrote:
-> >>>>>> For some subdevices, a fwnode endpoint that has no connection to
-> >>>>>> a remote endpoint may not be an error. Let the parse_endpoint
-> >>>>>> callback
-> >>>>> 
-> >>>>> make that decision in v4l2_async_notifier_fwnode_parse_endpoint().
-> >>>>> If
-> >>>>> 
-> >>>>>> the callback indicates that is not an error, skip adding the asd
-> >>>>>> to the notifier and return 0.
-> >>>>>> 
-> >>>>>> For the current users of v4l2_async_notifier_parse_fwnode_endpoints()
-> >>>>>> (omap3isp, rcar-vin, intel-ipu3), return -EINVAL in the callback
-> >>>>>> for unavailable remote fwnodes to maintain the previous behavior.
-> >>>>> 
-> >>>>> I'm not sure this should be a per-driver decision.
-> >>>>> 
-> >>>>> Generally speaking, if an endpoint node has no remote-endpoint
-> >>>>> property, the endpoint node is not needed. I've always considered such
-> >>>>> an endpoint node as invalid. The OF graphs DT bindings are however not
-> >>>>> clear on this subject.
-> >>>> 
-> >>>> Documentation/devicetree/bindings/graph.txt says:
-> >>>>   Each endpoint should contain a 'remote-endpoint' phandle property
-> >>>>   that points to the corresponding endpoint in the port of the
-> >>>>   remote device.
-> >>>> 
-> >>>> ("should", not "must").
-> >>> 
-> >>> The DT bindings documentation has historically used "should" to mean
-> >>> "must" in many places :-( That was a big mistake.
-> >> 
-> >> Maybe I could have worded that better? The intention was to let "should"
-> >> be read as a strong suggestion, like "it is recommended", but not as a
-> >> requirement.
-> > 
-> > Is there a reason for have an endpoint without a remote-endpoint property?
-> 
-> It allows to slightly reduce boilerplate in board device trees at the
-> cost of empty endpoint nodes included from the dtsi in board DTs that
-> don't use them.
-> 
-> > The problem with should (in general when it is used when the intention is
-> > "shall") is that it lets the developer to write broken DT source that is
-> > still conforming to the spec.
-> > 
-> > I don't have a strong preference to change should to shall in this
-> > particular case now but I would have used "shall" to begin with.
-> 
-> I used "should" on purpose, but I'd be fine with giving up on it when
-> all current users of this loophole are transitioned away from it:
-> 
->   git grep -A1 "endpoint {" arch/ | grep -B1 "};"
-> 
-> I'm very much against enforcing a required remote-endpoint property in
-> core DT parsing code, though.
+Actually, you don't need to test the pad in the driver, I just looked at
+the code in v4l2-core/v4l2-subdev.c and the pad is tested there already.
 
-Just to make it clear, I'm fine with making the property either optional or 
-mandatory, but I would like the rule to be global, not per-bindings. When the 
-OF graphs bindings were developed we reasoned that there was no use for empty 
-endpoints and that they should thus be forbidden. Now, if we have good use 
-cases for empty endpoints, I don't object them.
+And I just found why it is cleared: it's a bug in v4l2-ioctl.c.
 
-Regardless of what we decide I agree that we need to support existing device 
-trees and must thus not reject empty endpoints as invalid. We could, however, 
-if we decide to forbid empty endpoints, print a warning to encourage DT 
-authors to fix the problem.
+Look up VIDIOC_DV_TIMINGS_CAP in the big table and change this:
 
-> >>>> Later, the remote-node property explicitly lists the remote-endpoint
-> >>>> property as optional.
-> >>> 
-> >>> I've seen that too, and that's why I mentioned that the documentation
-> >>> isn't clear on the subject.
-> >> 
-> >> Do you have a suggestion how to improve the documentation? I thought
-> >> listing the remote-endpoint property under a header called "Optional
-> >> endpoint properties" was pretty clear.
-> >> 
-> >>> This could also be achieved by adding the endpoints in the board DT
-> >>> files. See for instance the hdmi@fead0000 node in
-> >>> arch/arm64/boot/dts/renesas/ r8a7795.dtsi and how it gets extended in
-> >>> arch/arm64/boot/dts/renesas/r8a7795- salvator-x.dts. On the other
-> >>> hand, I also have empty endpoints in the display@feb00000 node of
-> >>> arch/arm64/boot/dts/renesas/r8a7795.dtsi.
-> >> 
-> >> Right, that would be possible.
-> >> 
-> >>> I think we should first decide what we want to do going forward
-> >>> (allowing for empty endpoints or not), clarify the documentation, and
-> >>> then update the code. In any case I don't think it should be a
-> >>> per-device decision.
-> >> 
-> >> There are device trees in the wild that have those empty endpoints, so I
-> >> don't think retroactively declaring the remote-endpoint property
-> >> required is a good idea.
-> > 
-> > You could IMO, but the kernel (and existing drivers) would still need to
-> > work with DT binaries without those bits. And leave comments in the code
-> > why it's there.
-> > 
-> >> Is there any driver that currently benefits from throwing an error on
-> >> empty endpoints in any way? I'd prefer to just let the core ignore empty
-> >> endpoints for all drivers.
-> > 
-> > Not necessarily, but it's overhead in parsing the DT as well as in the
-> > DT source and in the DT binary.
+	INFO_FL_CLEAR(v4l2_dv_timings_cap, type)
+
+to this:
+
+	INFO_FL_CLEAR(v4l2_dv_timings_cap, pad)
+
+We never noticed this because we never tested this for subdevs. And that's
+why you write compliance tests!
+
 > 
-> True. I suppose whether or not that is enough reason to change the
-> wording in the existing of-graph bindings is something to be decided on
-> the devicetree list (in Cc).
+>>
+>>> VIDIOC_SUBDEV_DV_TIMINGS_CAP the pad is changed to 0 which is valid.
+>>> I'm not following what's going on here.
+>>>
+>>> 3. test Try VIDIOC_SUBDEV_G/S_FMT: FAIL
+>>> fail: v4l2-test-subdevs.cpp(303): fmt.code == 0 || fmt.code == ~0U
+>>> fail: v4l2-test-subdevs.cpp(342): checkMBusFrameFmt(node, fmt.format)
+>>>
+>>> This is reporting that a VIDIOC_SUBDEV_G_FMT with
+>>> which=V4L2_SUBDEV_FORMAT_TRY returns format->code = 0. The following
+>>> is my set_format:
+>>>
+>>> static int tda1997x_get_format(struct v4l2_subdev *sd,
+>>>                                struct v4l2_subdev_pad_config *cfg,
+>>>                                struct v4l2_subdev_format *format)
+>>> {
+>>>         struct tda1997x_state *state = to_state(sd);
+>>>
+>>>         v4l_dbg(1, debug, state->client, "%s pad=%d which=%d\n",
+>>>                 __func__, format->pad, format->which);
+>>>         if (format->pad != TDA1997X_PAD_SOURCE)
+>>>                 return -EINVAL;
+>>>
+>>>         tda1997x_fill_format(state, &format->format);
+>>>
+>>>         if (format->which == V4L2_SUBDEV_FORMAT_TRY) {
+>>>                 struct v4l2_mbus_framefmt *fmt;
+>>>
+>>>                 fmt = v4l2_subdev_get_try_format(sd, cfg, format->pad);
+>>>                 format->format.code = fmt->code;
+>>>         } else {
+>>>                 format->format.code = state->mbus_code;
+>>>         }
+>>>
+>>>         return 0;
+>>> }
+>>>
+>>> I don't at all understand the V4L2_SUBDEV_FORMAT_TRY logic here which
+>>> I took from other subdev drivers as boilerplate. Is the test valid?
+>>
+>> The test is valid, this really shouldn't return a 0 code. But I am not
+>> sure what the right logic is. I'll need to do some digging myself.
+> 
+> I got lost in the v4l2_subdev_get_try_format implementation but closer
+> inspection shows me that v4l2_subdev_get_try_format returns the
+> try_fmt field of the v4l2_subdev_pad_config used for storing subdev
+> pad info. What I'm missing is how that struct/field gets initialized?
+> Do I need to implement an init_cfg op?
 
--- 
+See my review of v7.
+
 Regards,
 
-Laurent Pinchart
+	Hans
