@@ -1,186 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud9.xs4all.net ([194.109.24.30]:41063 "EHLO
-        lb3-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S967534AbeBNL7j (ORCPT
+Received: from lb2-smtp-cloud8.xs4all.net ([194.109.24.25]:46776 "EHLO
+        lb2-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753147AbeBFUib (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 14 Feb 2018 06:59:39 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: stable@vger.kernel.org
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
+        Tue, 6 Feb 2018 15:38:31 -0500
+Subject: Re: [PATCH v8 5/7] media: i2c: Add TDA1997x HDMI receiver driver
+To: Tim Harvey <tharvey@gateworks.com>, linux-media@vger.kernel.org,
+        alsa-devel@alsa-project.org
+Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        shawnguo@kernel.org, Steve Longerbeam <slongerbeam@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Hans Verkuil <hansverk@cisco.com>,
         Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: [PATCH for v3.16 06/14] media: v4l2-compat-ioctl32.c: move 'helper' functions to __get/put_v4l2_format32
-Date: Wed, 14 Feb 2018 12:59:30 +0100
-Message-Id: <20180214115938.28296-7-hverkuil@xs4all.nl>
-In-Reply-To: <20180214115938.28296-1-hverkuil@xs4all.nl>
-References: <20180214115938.28296-1-hverkuil@xs4all.nl>
+References: <1517948874-21681-1-git-send-email-tharvey@gateworks.com>
+ <1517948874-21681-6-git-send-email-tharvey@gateworks.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <3630ba30-eb18-0829-7b0c-f0a786232969@xs4all.nl>
+Date: Tue, 6 Feb 2018 21:38:24 +0100
+MIME-Version: 1.0
+In-Reply-To: <1517948874-21681-6-git-send-email-tharvey@gateworks.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On 02/06/2018 09:27 PM, Tim Harvey wrote:
+> Add support for the TDA1997x HDMI receivers.
+> 
+> Cc: Hans Verkuil <hverkuil@xs4all.nl>
+> Signed-off-by: Tim Harvey <tharvey@gateworks.com>
+> ---
 
-commit 486c521510c44a04cd756a9267e7d1e271c8a4ba upstream.
+<snip>
 
-These helper functions do not really help. Move the code to the
-__get/put_v4l2_format32 functions.
+> +static int tda1997x_get_dv_timings_cap(struct v4l2_subdev *sd,
+> +				       struct v4l2_dv_timings_cap *cap)
+> +{
+> +	if (cap->pad != TDA1997X_PAD_SOURCE)
+> +		return -EINVAL;
+> +
+> +	*cap = tda1997x_dv_timings_cap;
+> +	return 0;
+> +}
+> +
+> +static int tda1997x_enum_dv_timings(struct v4l2_subdev *sd,
+> +				    struct v4l2_enum_dv_timings *timings)
+> +{
+> +	if (timings->pad != TDA1997X_PAD_SOURCE)
+> +		return -EINVAL;
+> +
+> +	return v4l2_enum_dv_timings_cap(timings, &tda1997x_dv_timings_cap,
+> +					NULL, NULL);
+> +}
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 92 ++++++---------------------
- 1 file changed, 20 insertions(+), 72 deletions(-)
+You shouldn't need this pad test: it's done in the v4l2-subdev.c core code
+already. But please double-check :-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-index a3e62cf3acaa..f76ed4ee7df9 100644
---- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-+++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-@@ -89,64 +89,6 @@ static int put_v4l2_window32(struct v4l2_window *kp, struct v4l2_window32 __user
- 	return 0;
- }
- 
--static inline int get_v4l2_pix_format(struct v4l2_pix_format *kp, struct v4l2_pix_format __user *up)
--{
--	if (copy_from_user(kp, up, sizeof(struct v4l2_pix_format)))
--		return -EFAULT;
--	return 0;
--}
--
--static inline int get_v4l2_pix_format_mplane(struct v4l2_pix_format_mplane *kp,
--					     struct v4l2_pix_format_mplane __user *up)
--{
--	if (copy_from_user(kp, up, sizeof(struct v4l2_pix_format_mplane)))
--		return -EFAULT;
--	return 0;
--}
--
--static inline int put_v4l2_pix_format(struct v4l2_pix_format *kp, struct v4l2_pix_format __user *up)
--{
--	if (copy_to_user(up, kp, sizeof(struct v4l2_pix_format)))
--		return -EFAULT;
--	return 0;
--}
--
--static inline int put_v4l2_pix_format_mplane(struct v4l2_pix_format_mplane *kp,
--					     struct v4l2_pix_format_mplane __user *up)
--{
--	if (copy_to_user(up, kp, sizeof(struct v4l2_pix_format_mplane)))
--		return -EFAULT;
--	return 0;
--}
--
--static inline int get_v4l2_vbi_format(struct v4l2_vbi_format *kp, struct v4l2_vbi_format __user *up)
--{
--	if (copy_from_user(kp, up, sizeof(struct v4l2_vbi_format)))
--		return -EFAULT;
--	return 0;
--}
--
--static inline int put_v4l2_vbi_format(struct v4l2_vbi_format *kp, struct v4l2_vbi_format __user *up)
--{
--	if (copy_to_user(up, kp, sizeof(struct v4l2_vbi_format)))
--		return -EFAULT;
--	return 0;
--}
--
--static inline int get_v4l2_sliced_vbi_format(struct v4l2_sliced_vbi_format *kp, struct v4l2_sliced_vbi_format __user *up)
--{
--	if (copy_from_user(kp, up, sizeof(struct v4l2_sliced_vbi_format)))
--		return -EFAULT;
--	return 0;
--}
--
--static inline int put_v4l2_sliced_vbi_format(struct v4l2_sliced_vbi_format *kp, struct v4l2_sliced_vbi_format __user *up)
--{
--	if (copy_to_user(up, kp, sizeof(struct v4l2_sliced_vbi_format)))
--		return -EFAULT;
--	return 0;
--}
--
- struct v4l2_format32 {
- 	__u32	type;	/* enum v4l2_buf_type */
- 	union {
-@@ -184,20 +126,23 @@ static int __get_v4l2_format32(struct v4l2_format *kp, struct v4l2_format32 __us
- 	switch (kp->type) {
- 	case V4L2_BUF_TYPE_VIDEO_CAPTURE:
- 	case V4L2_BUF_TYPE_VIDEO_OUTPUT:
--		return get_v4l2_pix_format(&kp->fmt.pix, &up->fmt.pix);
-+		return copy_from_user(&kp->fmt.pix, &up->fmt.pix,
-+				      sizeof(kp->fmt.pix)) ? -EFAULT : 0;
- 	case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
- 	case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
--		return get_v4l2_pix_format_mplane(&kp->fmt.pix_mp,
--						  &up->fmt.pix_mp);
-+		return copy_from_user(&kp->fmt.pix_mp, &up->fmt.pix_mp,
-+				      sizeof(kp->fmt.pix_mp)) ? -EFAULT : 0;
- 	case V4L2_BUF_TYPE_VIDEO_OVERLAY:
- 	case V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY:
- 		return get_v4l2_window32(&kp->fmt.win, &up->fmt.win);
- 	case V4L2_BUF_TYPE_VBI_CAPTURE:
- 	case V4L2_BUF_TYPE_VBI_OUTPUT:
--		return get_v4l2_vbi_format(&kp->fmt.vbi, &up->fmt.vbi);
-+		return copy_from_user(&kp->fmt.vbi, &up->fmt.vbi,
-+				      sizeof(kp->fmt.vbi)) ? -EFAULT : 0;
- 	case V4L2_BUF_TYPE_SLICED_VBI_CAPTURE:
- 	case V4L2_BUF_TYPE_SLICED_VBI_OUTPUT:
--		return get_v4l2_sliced_vbi_format(&kp->fmt.sliced, &up->fmt.sliced);
-+		return copy_from_user(&kp->fmt.sliced, &up->fmt.sliced,
-+				      sizeof(kp->fmt.sliced)) ? -EFAULT : 0;
- 	default:
- 		printk(KERN_INFO "compat_ioctl32: unexpected VIDIOC_FMT type %d\n",
- 		       kp->type);
-@@ -225,20 +170,23 @@ static int __put_v4l2_format32(struct v4l2_format *kp, struct v4l2_format32 __us
- 	switch (kp->type) {
- 	case V4L2_BUF_TYPE_VIDEO_CAPTURE:
- 	case V4L2_BUF_TYPE_VIDEO_OUTPUT:
--		return put_v4l2_pix_format(&kp->fmt.pix, &up->fmt.pix);
-+		return copy_to_user(&up->fmt.pix, &kp->fmt.pix,
-+				    sizeof(kp->fmt.pix)) ?  -EFAULT : 0;
- 	case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
- 	case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
--		return put_v4l2_pix_format_mplane(&kp->fmt.pix_mp,
--						  &up->fmt.pix_mp);
-+		return copy_to_user(&up->fmt.pix_mp, &kp->fmt.pix_mp,
-+				    sizeof(kp->fmt.pix_mp)) ?  -EFAULT : 0;
- 	case V4L2_BUF_TYPE_VIDEO_OVERLAY:
- 	case V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY:
- 		return put_v4l2_window32(&kp->fmt.win, &up->fmt.win);
- 	case V4L2_BUF_TYPE_VBI_CAPTURE:
- 	case V4L2_BUF_TYPE_VBI_OUTPUT:
--		return put_v4l2_vbi_format(&kp->fmt.vbi, &up->fmt.vbi);
-+		return copy_to_user(&up->fmt.vbi, &kp->fmt.vbi,
-+				    sizeof(kp->fmt.vbi)) ?  -EFAULT : 0;
- 	case V4L2_BUF_TYPE_SLICED_VBI_CAPTURE:
- 	case V4L2_BUF_TYPE_SLICED_VBI_OUTPUT:
--		return put_v4l2_sliced_vbi_format(&kp->fmt.sliced, &up->fmt.sliced);
-+		return copy_to_user(&up->fmt.sliced, &kp->fmt.sliced,
-+				    sizeof(kp->fmt.sliced)) ?  -EFAULT : 0;
- 	default:
- 		printk(KERN_INFO "compat_ioctl32: unexpected VIDIOC_FMT type %d\n",
- 		       kp->type);
-@@ -545,10 +493,10 @@ static int get_v4l2_framebuffer32(struct v4l2_framebuffer *kp, struct v4l2_frame
- 	if (!access_ok(VERIFY_READ, up, sizeof(struct v4l2_framebuffer32)) ||
- 	    get_user(tmp, &up->base) ||
- 	    get_user(kp->capability, &up->capability) ||
--	    get_user(kp->flags, &up->flags))
-+	    get_user(kp->flags, &up->flags) ||
-+	    copy_from_user(&kp->fmt, &up->fmt, sizeof(up->fmt)))
- 		return -EFAULT;
- 	kp->base = compat_ptr(tmp);
--	get_v4l2_pix_format(&kp->fmt, &up->fmt);
- 	return 0;
- }
- 
-@@ -559,9 +507,9 @@ static int put_v4l2_framebuffer32(struct v4l2_framebuffer *kp, struct v4l2_frame
- 	if (!access_ok(VERIFY_WRITE, up, sizeof(struct v4l2_framebuffer32)) ||
- 	    put_user(tmp, &up->base) ||
- 	    put_user(kp->capability, &up->capability) ||
--	    put_user(kp->flags, &up->flags))
-+	    put_user(kp->flags, &up->flags) ||
-+	    copy_to_user(&up->fmt, &kp->fmt, sizeof(up->fmt)))
- 		return -EFAULT;
--	put_v4l2_pix_format(&kp->fmt, &up->fmt);
- 	return 0;
- }
- 
--- 
-2.15.1
+Can you post the output of the v4l2-compliance test? I'm curious to see it.
+
+Can you also try to run v4l2-compliance -m /dev/mediaX? That also tests
+whether the right entity types are set (note: testing for that should
+also happen in the subdev compliance test, but I haven't done that yet).
+
+Regards,
+
+	Hans
