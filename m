@@ -1,77 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from butterbrot.org ([176.9.106.16]:53661 "EHLO butterbrot.org"
+Received: from sauhun.de ([88.99.104.3]:38002 "EHLO pokefinder.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1754676AbeBNMJ2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 14 Feb 2018 07:09:28 -0500
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-From: Florian Echtler <floe@butterbrot.org>
-Subject: exposing a large-ish calibration table through V4L2?
-Message-ID: <3b8e61f5-df31-8556-c9d1-2ab06c76bfab@butterbrot.org>
-Date: Wed, 14 Feb 2018 13:09:23 +0100
+        id S1751624AbeBFN5y (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 6 Feb 2018 08:57:54 -0500
+Date: Tue, 6 Feb 2018 14:57:51 +0100
+From: Wolfram Sang <wsa@the-dreams.de>
+To: Julia Lawall <julia.lawall@lip6.fr>
+Cc: Dan Carpenter <dan.carpenter@oracle.com>,
+        Wolfram Sang <wsa+renesas@sang-engineering.com>,
+        linux-kernel@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        dri-devel@lists.freedesktop.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        linux-samsung-soc@vger.kernel.org, netdev@vger.kernel.org
+Subject: Re: [PATCH 0/4] tree-wide: fix comparison to bitshift when dealing
+ with a mask
+Message-ID: <20180206135751.o7z7sxs3xtm5kbag@ninjato>
+References: <20180205201002.23621-1-wsa+renesas@sang-engineering.com>
+ <20180206131044.oso33fvv553trrd7@mwanda>
+ <alpine.DEB.2.20.1802061414340.3306@hadrien>
+ <20180206132335.luut6em3kut7f7ej@mwanda>
+ <alpine.DEB.2.20.1802061439110.3306@hadrien>
+ <20180206135310.deiaz55xemc26xn4@ninjato>
+ <alpine.DEB.2.20.1802061453440.3306@hadrien>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
- protocol="application/pgp-signature";
- boundary="O8X53DF9c2aF0YdWJ6r2wBVBHErWCeINK"
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="mahk6tikjhx33ffa"
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.20.1802061453440.3306@hadrien>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
---O8X53DF9c2aF0YdWJ6r2wBVBHErWCeINK
-Content-Type: multipart/mixed; boundary="nuxa4ros5W4E19HUFHyIPI6UbvCRItRs8";
- protected-headers="v1"
-From: Florian Echtler <floe@butterbrot.org>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
- Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <3b8e61f5-df31-8556-c9d1-2ab06c76bfab@butterbrot.org>
-Subject: exposing a large-ish calibration table through V4L2?
 
---nuxa4ros5W4E19HUFHyIPI6UbvCRItRs8
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-GB
-Content-Transfer-Encoding: quoted-printable
-
-Hello Hans,
-
-I've picked up work on the sur40 driver again recently. There is one majo=
-r
-feature left that is currently unsupported by the Linux driver, which is =
-the
-hardware-based calibration.
-
-The internal device memory contains a table with two bytes for each senso=
-r pixel
-(i.e. 960x540x2 =3D 1036800 bytes) that basically provide individual blac=
-k and
-white levels per-pixel that are used in preprocessing. The table can eith=
-er be
-set externally, or the sensor can be covered with a black/white surface a=
-nd a
-custom command triggers an internal calibration.
-
-AFAICT the usual V4L2 controls are unsuitable for this sort of data; do y=
-ou have
-any suggestions on how to approach this? Maybe something like a custom IO=
-CTL?
-
-Best regards, Florian
---=20
-SENT FROM MY DEC VT50 TERMINAL
+--mahk6tikjhx33ffa
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
 
---nuxa4ros5W4E19HUFHyIPI6UbvCRItRs8--
+> I did that too but got no results.  Perhaps right shifting constants is
+> pretty uncommon.  I can put that in the complete rule though.
 
---O8X53DF9c2aF0YdWJ6r2wBVBHErWCeINK
+Please do. Even if rare, we would want this bug pointed out, right? :)
+
+
+--mahk6tikjhx33ffa
 Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
 
-iEYEARECAAYFAlqEJvMACgkQ7CzyshGvatj3EQCfW5ir1HaoU9+5UTuBFM+Xo+CY
-PSIAoNoV7oH1Ymjf7iBqC0J7s+mrnPRs
-=5nyF
+iQIzBAABCAAdFiEEOZGx6rniZ1Gk92RdFA3kzBSgKbYFAlp5tF8ACgkQFA3kzBSg
+Kbaulg//Uy+7N6z27n0M2XlhBexh66B4hi11mW+Iajq+i8SUCUOOByD4uW//bBTb
+JuPWFvFlhQXZ+PyegluGubEH8k/pLeLU30NAKgGsy4+/p32PRFaJ/L91RtZw9Cv+
+r6yK2nnVIrkrWNV2xzT6sWDItCmejBpa6AyziTHFfyMNggc4keI7/AovCVxDgFTi
+BKws/o6zU9/jDJosdWrxHU3e0qmDhgYCWUP7atQKReksZdpFqLqSrW3SyjSAR4xa
+ZNLGwx/O8tCFUDrRrvUschbt38ou/QMJY7+4vF2lYTu3/hRKWBjIty8XbxU3N0i0
+A6W/vtEn9dyj+IPSkQHklgKmg3boCAbkCq1RK17R0bzkkUgODbZYdyIvx3SsTtjF
+v/6LpnVIZTauPlhDMjpwOQyAj3qXUdlvx7h2Fw/BZhYbN+LLGTYHzCNTtiJ1r3aP
+VlESEFJ5ogRYSX5q6NJGgDt0rhOxWCLSWaqG0t0w7+10Z0fDnglV+hdEp50Y/UTt
+A8wwLFu1q0pf35+DZJVzRuDeMeWQKEhrYd8XQRMEekU6x3cCD8afCGlrnXBmMIMF
+qhP+Xuba6Bi5rkKYOhDuKuLPYt+LNW6oXfnuNJfnje07SbMMkUU8EeUiBBUIVGNi
+eBiMpVD5lUZz9lzCOqF03aqq7H4ACLUwG9efHTdeewL/moEGIAw=
+=QEjS
 -----END PGP SIGNATURE-----
 
---O8X53DF9c2aF0YdWJ6r2wBVBHErWCeINK--
+--mahk6tikjhx33ffa--
