@@ -1,53 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gofer.mess.org ([88.97.38.141]:47023 "EHLO gofer.mess.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751566AbeBROwI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Sun, 18 Feb 2018 09:52:08 -0500
-From: Sean Young <sean@mess.org>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 1/2] media: rc: no need to announce major number
-Date: Sun, 18 Feb 2018 14:52:05 +0000
-Message-Id: <20180218145206.20800-1-sean@mess.org>
+Received: from userp2130.oracle.com ([156.151.31.86]:37572 "EHLO
+        userp2130.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751319AbeBFN7z (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 6 Feb 2018 08:59:55 -0500
+Date: Tue, 6 Feb 2018 16:59:23 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: Julia Lawall <julia.lawall@lip6.fr>
+Cc: Wolfram Sang <wsa+renesas@sang-engineering.com>,
+        linux-kernel@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        dri-devel@lists.freedesktop.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        linux-samsung-soc@vger.kernel.org, netdev@vger.kernel.org
+Subject: Re: [PATCH 0/4] tree-wide: fix comparison to bitshift when dealing
+ with a mask
+Message-ID: <20180206135923.3zthazmsapuzfxra@mwanda>
+References: <20180205201002.23621-1-wsa+renesas@sang-engineering.com>
+ <20180206131044.oso33fvv553trrd7@mwanda>
+ <alpine.DEB.2.20.1802061414340.3306@hadrien>
+ <20180206132335.luut6em3kut7f7ej@mwanda>
+ <alpine.DEB.2.20.1802061439110.3306@hadrien>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.20.1802061439110.3306@hadrien>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Since commit a60d64b15c20 ("media: lirc: lirc interface should not be
-a raw decoder"), the message in the documentation is incorrect as the
-module name is rc_core, not lirc_dev. Since the message is not useful,
-just make the message debug and remove it from the documentation.
+That found 4 that I think Wolfram's grep missed.
 
-Signed-off-by: Sean Young <sean@mess.org>
----
- Documentation/media/uapi/rc/lirc-dev-intro.rst | 1 -
- drivers/media/rc/lirc_dev.c                    | 4 ++--
- 2 files changed, 2 insertions(+), 3 deletions(-)
+ arch/um/drivers/vector_user.h             |    2 --
+ drivers/gpu/drm/mxsfb/mxsfb_regs.h        |    2 --
+ drivers/video/fbdev/mxsfb.c               |    2 --
+ include/drm/drm_scdc_helper.h             |    3 ---
 
-diff --git a/Documentation/media/uapi/rc/lirc-dev-intro.rst b/Documentation/media/uapi/rc/lirc-dev-intro.rst
-index 3a74fec66d69..698e4f80270e 100644
---- a/Documentation/media/uapi/rc/lirc-dev-intro.rst
-+++ b/Documentation/media/uapi/rc/lirc-dev-intro.rst
-@@ -18,7 +18,6 @@ Example dmesg output upon a driver registering w/LIRC:
- .. code-block:: none
- 
-     $ dmesg |grep lirc_dev
--    lirc_dev: IR Remote Control driver registered, major 248
-     rc rc0: lirc_dev: driver mceusb registered at minor = 0
- 
- What you should see for a chardev:
-diff --git a/drivers/media/rc/lirc_dev.c b/drivers/media/rc/lirc_dev.c
-index da3b5c095a59..24e9fbb80e81 100644
---- a/drivers/media/rc/lirc_dev.c
-+++ b/drivers/media/rc/lirc_dev.c
-@@ -804,8 +804,8 @@ int __init lirc_dev_init(void)
- 		return retval;
- 	}
- 
--	pr_info("IR Remote Control driver registered, major %d\n",
--						MAJOR(lirc_base_dev));
-+	pr_debug("IR Remote Control driver registered, major %d\n",
-+		 MAJOR(lirc_base_dev));
- 
- 	return 0;
- }
--- 
-2.14.3
+But it didn't find the two bugs that Geert found where the right side
+wasn't a number literal.
+
+drivers/net/can/m_can/m_can.c:#define RXFC_FWM_MASK     (0x7f < RXFC_FWM_SHIFT)
+drivers/usb/gadget/udc/goku_udc.h:#define INT_EPnNAK(n) (0x00100 < (n))         /* 0 < n < 4 */
+
+regards,
+dan carpenter
