@@ -1,130 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ptmx.org ([178.63.28.110]:57968 "EHLO ptmx.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1030210AbeBNNSc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 14 Feb 2018 08:18:32 -0500
-Received: from [10.1.14.248] (vpn.streamunlimited.com [91.114.0.140])
-        by ptmx.org (Postfix) with ESMTPSA id 389AD58B43
-        for <linux-media@vger.kernel.org>; Wed, 14 Feb 2018 14:09:24 +0100 (CET)
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-From: Carlos Rafael Giani <dv@pseudoterminal.org>
-Subject: media: v4l: alsa: Associating V4L2 and ALSA devices coming from the
- same device (a webcam for example)
-Message-ID: <91c7585c-43f3-feb0-279a-5efdcb27dc7b@pseudoterminal.org>
-Date: Wed, 14 Feb 2018 14:09:22 +0100
+Received: from gateway20.websitewelcome.com ([192.185.69.18]:19927 "EHLO
+        gateway20.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753040AbeBFQw0 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Tue, 6 Feb 2018 11:52:26 -0500
+Received: from cm12.websitewelcome.com (cm12.websitewelcome.com [100.42.49.8])
+        by gateway20.websitewelcome.com (Postfix) with ESMTP id C5003400FEE79
+        for <linux-media@vger.kernel.org>; Tue,  6 Feb 2018 10:52:25 -0600 (CST)
+Date: Tue, 6 Feb 2018 10:52:24 -0600
+From: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        "Gustavo A. R. Silva" <garsilva@embeddedor.com>
+Subject: [PATCH v3 7/8] platform: sh_veu: use 64-bit arithmetic instead of
+ 32-bit
+Message-ID: <502e55a2fd44a61126b639d581c8fa7447eb0e72.1517929336.git.gustavo@embeddedor.com>
+References: <cover.1517929336.git.gustavo@embeddedor.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 8bit
-Content-Language: en-US
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <cover.1517929336.git.gustavo@embeddedor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I have an application that allows for recording audio/video from input 
-devices. I now want to add to it the ability to autodetect plugged-in 
-USB webcams via udev. The problem is that audio and video are handled 
-separately, by a video4linux and an ALSA device. The goal is to discover 
-the ALSA device name and the Video4Linux device node that are associated 
-(that is, belonging to the same camera input feed).
+Cast left and top to dma_addr_t in order to give the compiler complete
+information about the proper arithmetic to use. Notice that these
+variables are being used in contexts that expect expressions of
+type dma_addr_t (64 bit, unsigned).
 
-Surprisingly, there does not seem to be any interface in V4L2 for this, 
-so I had to resort to looking at the udev properties. I came up with a 
-very dirty hack that accomplishes what I want. I pasted it below.
+Such expressions are currently being evaluated using 32-bit arithmetic.
 
-This code relies on the ID_USB_INTERFACES property to associate the V4L2 
-and ALSA devices, which may or may not be fragile. Furthermore, it 
-traverses directories in /sys/ . I use libgudev here.
+Also, move the expression (((dma_addr_t)left * veu->vfmt_out.fmt->depth) >> 3)
+at the end in order to avoid a line wrapping checkpatch.pl warning.
 
-I now ask the mailing list if there is an easier way to do this. Note 
-that I cannot rely on tools like the gst device monitor. It would also 
-be preferable to not have to rely on specific udev rules, though I will 
-add them if it is truly necessary.
+Addresses-Coverity-ID: 1056807 ("Unintentional integer overflow")
+Addresses-Coverity-ID: 1056808 ("Unintentional integer overflow")
+Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
+---
+Changes in v2:
+ - Update subject and changelog to better reflect the proposed code changes.
+ - Move the expression (((dma_addr_t)left * veu->vfmt_out.fmt->depth) >> 3)
+   at the end in order to avoid a line wrapping checkpatch.pl warning.
 
-Also, I found it difficult to get a meaningful label that I can present 
-the user. The V4L2 properties produced fairly useless labels (something 
-like "UVC camera (xxxx:yyyy)"). What produced the best results was the 
-ID_MODEL_FROM_DATABASE - but this is a property of the ALSA devices.
+Changes in v3:
+ - Mention the specific Coverity reports in the commit message.
 
-So, anybody has a better idea how to accomplish this?
+ drivers/media/platform/sh_veu.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-
-The hacky code:
-
-     std::regex 
-sndcard_regex(".*/sound/card[[:digit:]]+/controlC[[:digit:]]+$");
-     std::regex pcmc_regex("pcmC([[:digit:]]+)D([[:digit:]]+)c");
-
-     void process_added_device(GUdevDevice *p_added_device)
-     {
-         gchar const *bus_cstr = 
-g_udev_device_get_property(p_added_device, "ID_BUS");
-         if (g_strcmp0(bus_cstr, "usb") != 0)
-             return;
-
-         gchar const *path_cstr = 
-g_udev_device_get_sysfs_path(p_added_device);
-         gchar const *subsystem_cstr = 
-g_udev_device_get_property(p_added_device, "SUBSYSTEM");
-         gchar const *usb_interfaces_cstr = 
-g_udev_device_get_property(p_added_device, "ID_USB_INTERFACES");
-
-         std::string id = std::string("usbif_") + usb_interfaces_cstr;
-
-         capture_device new_capture_device;
-         new_capture_device.m_is_hdmi_device = false;
-         new_capture_device.m_label = id; // initially use the ID as 
-label, as fallback if no other label can be found
-         new_capture_device.m_id = id;
-
-         auto &id_view = m_entries.get < id_tag > ();
-         auto iter = id_view.find(id);
-         if (iter != id_view.end()) // check if an entry exists already; 
-if so, retrieve it
-         {
-             new_capture_device = *iter;
-             // remove the device from the boost multi-index container. 
-we'll reinsert a modified version later.
-             id_view.erase(iter);
-         }
-
-         if (g_strcmp0(subsystem_cstr, "video4linux") == 0)
-         {
-             gchar const *devnode_cstr = 
-g_udev_device_get_device_file(p_added_device);
-             new_capture_device.m_v4l2_device = devnode_cstr;
-         }
-         else if (g_strcmp0(subsystem_cstr, "sound") == 0)
-         {
-             gchar const *model_from_db = 
-g_udev_device_get_property(p_added_device, "ID_MODEL_FROM_DATABASE");
-             if (model_from_db != nullptr)
-                 new_capture_device.m_label = model_from_db;
-
-             std::smatch base_match;
-             std::string path_str = path_cstr;
-             if (std::regex_match(path_str, base_match, sndcard_regex)) 
-// check if this sound device path is one to an ALSA control device
-             {
-                 boost::filesystem::path path = path_str;
-                 path = path.parent_path();
-                 boost::system::error_code ec;
-                 boost::filesystem::directory_iterator dir_iter(path, ec);
-                 if (ec)
-                     return;
-
-                 // search the parent directory for a PCM capture device
-                 boost::filesystem::directory_iterator end_dir_iter;
-                 for (; dir_iter != end_dir_iter; ++dir_iter)
-                 {
-                     std::smatch pcm_match;
-                     if 
-(std::regex_match(dir_iter->path().filename().string(), pcm_match, 
-pcmc_regex))
-                         new_capture_device.m_alsa_device = 
-std::string("plughw:") + std::string(pcm_match[1]) + "," + 
-std::string(pcm_match[2]);
-                 }
-             }
-         }
-
-         id_view.emplace(new_capture_device);
-     }
+diff --git a/drivers/media/platform/sh_veu.c b/drivers/media/platform/sh_veu.c
+index 976ea0b..1a0cde0 100644
+--- a/drivers/media/platform/sh_veu.c
++++ b/drivers/media/platform/sh_veu.c
+@@ -520,8 +520,8 @@ static void sh_veu_colour_offset(struct sh_veu_dev *veu, struct sh_veu_vfmt *vfm
+ 	/* dst_left and dst_top validity will be verified in CROP / COMPOSE */
+ 	unsigned int left = vfmt->frame.left & ~0x03;
+ 	unsigned int top = vfmt->frame.top;
+-	dma_addr_t offset = ((left * veu->vfmt_out.fmt->depth) >> 3) +
+-		top * veu->vfmt_out.bytesperline;
++	dma_addr_t offset = (dma_addr_t)top * veu->vfmt_out.bytesperline +
++			(((dma_addr_t)left * veu->vfmt_out.fmt->depth) >> 3);
+ 	unsigned int y_line;
+ 
+ 	vfmt->offset_y = offset;
+-- 
+2.7.4
