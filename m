@@ -1,60 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f68.google.com ([209.85.215.68]:40745 "EHLO
-        mail-lf0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750744AbeBVSek (ORCPT
+Received: from gateway20.websitewelcome.com ([192.185.69.18]:22479 "EHLO
+        gateway20.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752286AbeBFQtH (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 22 Feb 2018 13:34:40 -0500
-Received: by mail-lf0-f68.google.com with SMTP id 37so8778892lfs.7
-        for <linux-media@vger.kernel.org>; Thu, 22 Feb 2018 10:34:40 -0800 (PST)
-Subject: Re: [PATCH v4] v4l: vsp1: Fix video output on R8A77970
-To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-        linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org
-References: <11341738.DVmQoThvsb@avalon>
- <20180222163200.3900-1-laurent.pinchart+renesas@ideasonboard.com>
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Message-ID: <1b9689ae-487e-312f-a881-b97f140cb6a2@cogentembedded.com>
-Date: Thu, 22 Feb 2018 21:34:37 +0300
+        Tue, 6 Feb 2018 11:49:07 -0500
+Received: from cm13.websitewelcome.com (cm13.websitewelcome.com [100.42.49.6])
+        by gateway20.websitewelcome.com (Postfix) with ESMTP id B08FB40138B76
+        for <linux-media@vger.kernel.org>; Tue,  6 Feb 2018 10:49:05 -0600 (CST)
+Date: Tue, 6 Feb 2018 10:49:04 -0600
+From: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        "Gustavo A. R. Silva" <garsilva@embeddedor.com>
+Subject: [PATCH v3 5/8] pci: cx88-input: use 64-bit arithmetic instead of
+ 32-bit
+Message-ID: <9db3fe5d4564caf97acb5bee69e92727ada4a633.1517929336.git.gustavo@embeddedor.com>
+References: <cover.1517929336.git.gustavo@embeddedor.com>
 MIME-Version: 1.0
-In-Reply-To: <20180222163200.3900-1-laurent.pinchart+renesas@ideasonboard.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-MW
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <cover.1517929336.git.gustavo@embeddedor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/22/2018 07:32 PM, Laurent Pinchart wrote:
+Add suffix LL to constant 1000000 in order to give the compiler
+complete information about the proper arithmetic to use. Notice
+that this constant is used in a context that expects an expression
+of type ktime_t (64 bits, signed).
 
-> From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-> 
-> Commit d455b45f8393 ("v4l: vsp1: Add support for new VSP2-BS, VSP2-DL,
-> and VSP2-D instances") added support for the VSP2-D found in the R-Car
-> V3M (R8A77970) but the video output that VSP2-D sends to DU has a greenish
-> garbage-like line repeated every 8 screen rows. It turns out that R-Car
-> V3M has the LIF0 buffer attribute register that you need to set to a non-
-> default value in order to get rid of the output artifacts.
-> 
-> Based on the original (and large) patch by Daisuke Matsushita
-> <daisuke.matsushita.ns@hitachi.com>.
-> 
-> Fixes: d455b45f8393 ("v4l: vsp1: Add support for new VSP2-BS, VSP2-DL and VSP2-D instances")
-> Signed-off-by: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-> Reviewed-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-> [Removed braces, added VI6_IP_VERSION_MASK to improve readabiliy]
-> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+The expression ir->polling * 1000000 is currently being evaluated
+using 32-bit arithmetic.
 
-[...]
-> diff --git a/drivers/media/platform/vsp1/vsp1_regs.h b/drivers/media/platform/vsp1/vsp1_regs.h
-> index b1912c83a1da..dae0c1901297 100644
-> --- a/drivers/media/platform/vsp1/vsp1_regs.h
-> +++ b/drivers/media/platform/vsp1/vsp1_regs.h
-[...]
-> @@ -705,6 +710,7 @@
->   */
->  
->  #define VI6_IP_VERSION			0x3f00
-> +#define VI6_IP_VERSION_MASK		(0xffff << 0)
+Addresses-Coverity-ID: 1392628 ("Unintentional integer overflow")
+Addresses-Coverity-ID: 1392630 ("Unintentional integer overflow")
+Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
+---
+Changes in v2:
+ - Update subject and changelog to better reflect the proposed code changes.
+ - Add suffix LL to constant instead of casting a variable.
 
-   Perhaps (VI6_IP_VERSION_MODEL_MASK | VI6_IP_VERSION_SOC_MASK) would be clearer?
+Changes in v3:
+ - Mention the specific Coverity reports in the commit message.
 
-MBR, Sergei
+ drivers/media/pci/cx88/cx88-input.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/media/pci/cx88/cx88-input.c b/drivers/media/pci/cx88/cx88-input.c
+index 4e9953e..6f4e692 100644
+--- a/drivers/media/pci/cx88/cx88-input.c
++++ b/drivers/media/pci/cx88/cx88-input.c
+@@ -180,7 +180,7 @@ static enum hrtimer_restart cx88_ir_work(struct hrtimer *timer)
+ 	struct cx88_IR *ir = container_of(timer, struct cx88_IR, timer);
+ 
+ 	cx88_ir_handle_key(ir);
+-	missed = hrtimer_forward_now(&ir->timer, ir->polling * 1000000);
++	missed = hrtimer_forward_now(&ir->timer, ir->polling * 1000000LL);
+ 	if (missed > 1)
+ 		ir_dprintk("Missed ticks %ld\n", missed - 1);
+ 
+@@ -200,7 +200,7 @@ static int __cx88_ir_start(void *priv)
+ 	if (ir->polling) {
+ 		hrtimer_init(&ir->timer, CLOCK_MONOTONIC, HRTIMER_MODE_REL);
+ 		ir->timer.function = cx88_ir_work;
+-		hrtimer_start(&ir->timer, ir->polling * 1000000,
++		hrtimer_start(&ir->timer, ir->polling * 1000000LL,
+ 			      HRTIMER_MODE_REL);
+ 	}
+ 	if (ir->sampling) {
+-- 
+2.7.4
