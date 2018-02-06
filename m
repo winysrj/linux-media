@@ -1,66 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bin-mail-out-06.binero.net ([195.74.38.229]:39109 "EHLO
-        bin-vsp-out-01.atm.binero.net" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S967159AbeBNKg5 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 14 Feb 2018 05:36:57 -0500
-From: =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Sakari Ailus <sakari.ailus@iki.fi>, linux-media@vger.kernel.org
-Cc: linux-renesas-soc@vger.kernel.org,
-        =?UTF-8?q?Niklas=20S=C3=B6derlund?=
-        <niklas.soderlund+renesas@ragnatech.se>
-Subject: [PATCH v2] videodev2.h: add helper to validate colorspace
-Date: Wed, 14 Feb 2018 11:36:43 +0100
-Message-Id: <20180214103643.8245-1-niklas.soderlund+renesas@ragnatech.se>
+Received: from sauhun.de ([88.99.104.3]:36726 "EHLO pokefinder.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1752155AbeBFI3A (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 6 Feb 2018 03:29:00 -0500
+Date: Tue, 6 Feb 2018 09:28:56 +0100
+From: Wolfram Sang <wsa@the-dreams.de>
+To: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Wolfram Sang <wsa+renesas@sang-engineering.com>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Dan Carpenter <dan.carpenter@oracle.com>,
+        Linux-Renesas <linux-renesas-soc@vger.kernel.org>,
+        DRI Development <dri-devel@lists.freedesktop.org>,
+        linux-arm-kernel@lists.infradead.org,
+        Linux Media Mailing List <linux-media@vger.kernel.org>,
+        linux-samsung-soc@vger.kernel.org, netdev <netdev@vger.kernel.org>
+Subject: Re: [PATCH 0/4] tree-wide: fix comparison to bitshift when dealing
+ with a mask
+Message-ID: <20180206082856.qx4pj7of36yytetc@ninjato>
+References: <20180205201002.23621-1-wsa+renesas@sang-engineering.com>
+ <CAMuHMdWnV17DCxr71k6n3w+5jPtQmeuPugr58xadq9U_qchJnQ@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="i7fjmlnpcylye3br"
+Content-Disposition: inline
+In-Reply-To: <CAMuHMdWnV17DCxr71k6n3w+5jPtQmeuPugr58xadq9U_qchJnQ@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There is no way for drivers to validate a colorspace value, which could
-be provided by user-space by VIDIOC_S_FMT for example. Add a helper to
-validate that the colorspace value is part of enum v4l2_colorspace.
 
-Signed-off-by: Niklas Söderlund <niklas.soderlund+renesas@ragnatech.se>
----
- include/uapi/linux/videodev2.h | 4 ++++
- 1 file changed, 4 insertions(+)
+--i7fjmlnpcylye3br
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Hi,
 
-I hope this is the correct header to add this helper to. I think it's
-since if it's in uapi not only can v4l2 drivers use it but tools like
-v4l-compliance gets access to it and can be updated to use this instead
-of the hard-coded check of just < 0xff as it was last time I checked.
+> I found two more using "git grep 'define.*0x[0-9a-f]* < '":
 
-* Changes since v1
-- Cast colorspace to u32 as suggested by Sakari and only check the upper 
-  boundary to address a potential issue brought up by Laurent if the 
-  data type tested is u32 which is not uncommon:
+I added '[0-9]\+' at the end of the regex to reduce the number of false
+positives...
 
-    enum.c:30:16: warning: comparison of unsigned expression >= 0 is always true
-    [-Wtype-limits]
-      return V4L2_COLORSPACE_IS_VALID(colorspace);
+> drivers/net/can/m_can/m_can.c:#define RXFC_FWM_MASK     (0x7f < RXFC_FWM_SHIFT)
+> drivers/usb/gadget/udc/goku_udc.h:#define INT_EPnNAK(n)
+> (0x00100 < (n))         /* 0 < n < 4 */
 
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 9827189651801e12..1f27c0f4187cbded 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -238,6 +238,10 @@ enum v4l2_colorspace {
- 	V4L2_COLORSPACE_DCI_P3        = 12,
- };
- 
-+/* Determine if a colorspace is defined in enum v4l2_colorspace */
-+#define V4L2_COLORSPACE_IS_VALID(colorspace)		\
-+	((u32)(colorspace) <= V4L2_COLORSPACE_DCI_P3)
-+
- /*
-  * Determine how COLORSPACE_DEFAULT should map to a proper colorspace.
-  * This depends on whether this is a SDTV image (use SMPTE 170M), an
--- 
-2.16.1
+... but you found those two true positives in there. Nice, thanks!
+
+
+--i7fjmlnpcylye3br
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCAAdFiEEOZGx6rniZ1Gk92RdFA3kzBSgKbYFAlp5Z0QACgkQFA3kzBSg
+KbbYSA//brJm3Wk+jt6LxTyCknABbUX/AufrL2WXLokJ0ZmBYFIXcLww7cpJsl87
+xpIkpfJmefWYgLTI3pqDWKZmAFKSV3r4auXeGTfGcZs+TceknU4GubxM75Swq0v9
+1hXwREddK/RO5nnpfIER8oubrmZgCmHF6Z9ZrLOAOvXDaIbsxkLDnVXtxi3Xkii3
+JvQ6tEer53ghJsLUj+PFN28yxgcBbQScisgr0Help/yEld++jf9nyAf02Ktccn9D
+HPpXfqOrIgE9XYplI4dl0dDUYM6wV7yOPvj4cQSTDRLX2Qf1iZ9sNVdkAAXFRSia
+9YlmKE9+Zc0rcCrIjkbmFz+RDwYiT1/2UmxjPUvvPJskXqbdw6DBYEkcEqs/Xy7G
+Api/nktPfnbyT2f17k7kTWKh5YK5ZQfuf4WGTC/Nf54a2k8lASZrFyMqigxq1YXA
+DW5ypA/mqS+jZTi9R8FaZNz+oVn5HCMts2aDrATJ7+u2RaqzlN+rHk2qoa7AVEQW
+4pRelcKxktnxIQWr1N/KH7EX4ktREprBRPAQH6O6CG/pIO+t9uILs0+ba21tt/Uf
+fFgoM+xBO/SO9R43kcYKq5uNs57KYI/Y9qyMln4ae4MmsDDRx3XM/6EoSJa5Q+Yu
+bpSI8U7C1v1elUOudk8RqPy7eWn2x7ufHBApRBkFZNvsqb/4CzY=
+=7Gs7
+-----END PGP SIGNATURE-----
+
+--i7fjmlnpcylye3br--
