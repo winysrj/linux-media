@@ -1,140 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb3-smtp-cloud7.xs4all.net ([194.109.24.31]:42511 "EHLO
-        lb3-smtp-cloud7.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751501AbeB0EgR (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 26 Feb 2018 23:36:17 -0500
-Message-ID: <0c7bd0574001566d9696a905ba30a026@smtp-cloud7.xs4all.net>
-Date: Tue, 27 Feb 2018 05:36:06 +0100
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
+Received: from userp2120.oracle.com ([156.151.31.85]:50458 "EHLO
+        userp2120.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1752847AbeBFNMA (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 6 Feb 2018 08:12:00 -0500
+Date: Tue, 6 Feb 2018 16:10:44 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: Wolfram Sang <wsa+renesas@sang-engineering.com>,
+        Julia Lawall <Julia.Lawall@lip6.fr>
+Cc: linux-kernel@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        dri-devel@lists.freedesktop.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        linux-samsung-soc@vger.kernel.org, netdev@vger.kernel.org
+Subject: Re: [PATCH 0/4] tree-wide: fix comparison to bitshift when dealing
+ with a mask
+Message-ID: <20180206131044.oso33fvv553trrd7@mwanda>
+References: <20180205201002.23621-1-wsa+renesas@sang-engineering.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20180205201002.23621-1-wsa+renesas@sang-engineering.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On Mon, Feb 05, 2018 at 09:09:57PM +0100, Wolfram Sang wrote:
+> In one Renesas driver, I found a typo which turned an intended bit shift ('<<')
+> into a comparison ('<'). Because this is a subtle issue, I looked tree wide for
+> similar patterns. This small patch series is the outcome.
+> 
+> Buildbot and checkpatch are happy. Only compile-tested. To be applied
+> individually per sub-system, I think. I'd think only the net: amd: patch needs
+> to be conisdered for stable, but I leave this to people who actually know this
+> driver.
+> 
+> CCing Dan. Maybe he has an idea how to add a test to smatch? In my setup, only
+> cppcheck reported a 'coding style' issue with a low prio.
+> 
 
-Results of the daily build of media_tree:
+Most of these are inside macros so it makes it complicated for Smatch
+to warn about them.  It might be easier in Coccinelle.  Julia the bugs
+look like this:
 
-date:			Tue Feb 27 05:00:15 CET 2018
-media-tree git hash:	15ea2df9143729a2b722d4ca2b52cfa14a819d8e
-media_build git hash:	a9ea3d056e5ce50d37dd6129126f776c3a8ec2d7
-v4l-utils git hash:	a6185c9b96c101e45aec80fccaa471febbd09b30
-gcc version:		i686-linux-gcc (GCC) 7.3.0
-sparse version:		v0.5.0-3994-g45eb2282
-smatch version:		v0.5.0-3994-g45eb2282
-host hardware:		x86_64
-host os:		4.14.0-3-amd64
+-			reissue_mask |= 0xffff < 4;
++			reissue_mask |= 0xffff << 4;
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-multi: OK
-linux-git-arm-pxa: OK
-linux-git-arm-stm32: OK
-linux-git-arm64: OK
-linux-git-blackfin-bf561: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.98-i686: ERRORS
-linux-3.2.98-x86_64: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-i686: ERRORS
-linux-3.9.2-x86_64: ERRORS
-linux-3.10.1-i686: ERRORS
-linux-3.10.1-x86_64: ERRORS
-linux-3.11.1-i686: ERRORS
-linux-3.11.1-x86_64: ERRORS
-linux-3.12.67-i686: ERRORS
-linux-3.12.67-x86_64: ERRORS
-linux-3.13.11-i686: ERRORS
-linux-3.13.11-x86_64: ERRORS
-linux-3.14.9-i686: ERRORS
-linux-3.14.9-x86_64: ERRORS
-linux-3.15.2-i686: ERRORS
-linux-3.15.2-x86_64: ERRORS
-linux-3.16.53-i686: ERRORS
-linux-3.16.53-x86_64: ERRORS
-linux-3.17.8-i686: ERRORS
-linux-3.17.8-x86_64: ERRORS
-linux-3.18.93-i686: ERRORS
-linux-3.18.93-x86_64: ERRORS
-linux-3.19-i686: ERRORS
-linux-3.19-x86_64: ERRORS
-linux-4.0.9-i686: ERRORS
-linux-4.0.9-x86_64: ERRORS
-linux-4.1.49-i686: ERRORS
-linux-4.1.49-x86_64: ERRORS
-linux-4.2.8-i686: ERRORS
-linux-4.2.8-x86_64: ERRORS
-linux-4.3.6-i686: ERRORS
-linux-4.3.6-x86_64: ERRORS
-linux-4.4.115-i686: ERRORS
-linux-4.4.115-x86_64: ERRORS
-linux-4.5.7-i686: ERRORS
-linux-4.5.7-x86_64: ERRORS
-linux-4.6.7-i686: ERRORS
-linux-4.6.7-x86_64: ERRORS
-linux-4.7.5-i686: ERRORS
-linux-4.7.5-x86_64: ERRORS
-linux-4.8-i686: ERRORS
-linux-4.8-x86_64: ERRORS
-linux-4.9.80-i686: ERRORS
-linux-4.9.80-x86_64: ERRORS
-linux-4.10.14-i686: OK
-linux-4.10.14-x86_64: WARNINGS
-linux-4.11-i686: OK
-linux-4.11-x86_64: WARNINGS
-linux-4.12.1-i686: OK
-linux-4.12.1-x86_64: WARNINGS
-linux-4.13-i686: OK
-linux-4.13-x86_64: OK
-linux-4.14.17-i686: OK
-linux-4.14.17-x86_64: OK
-linux-4.15.2-i686: OK
-linux-4.15.2-x86_64: OK
-linux-4.16-rc1-i686: OK
-linux-4.16-rc1-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse: WARNINGS
-smatch: OK
+regards,
+dan carpenter
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/index.html
+> Wolfram Sang (4):
+>   v4l: vsp1: fix mask creation for MULT_ALPHA_RATIO
+>   drm/exynos: fix comparison to bitshift when dealing with a mask
+>   v4l: dvb-frontends: stb0899: fix comparison to bitshift when dealing
+>     with a mask
+>   net: amd-xgbe: fix comparison to bitshift when dealing with a mask
+> 
+>  drivers/gpu/drm/exynos/regs-fimc.h        | 2 +-
+>  drivers/media/dvb-frontends/stb0899_reg.h | 8 ++++----
+>  drivers/media/platform/vsp1/vsp1_regs.h   | 2 +-
+>  drivers/net/ethernet/amd/xgbe/xgbe-drv.c  | 2 +-
+>  4 files changed, 7 insertions(+), 7 deletions(-)
+> 
+> -- 
+> 2.11.0
