@@ -1,1159 +1,1044 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:44486 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934797AbeB1Uw7 (ORCPT
+Received: from lb1-smtp-cloud8.xs4all.net ([194.109.24.21]:49214 "EHLO
+        lb1-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1751624AbeBFN4a (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Wed, 28 Feb 2018 15:52:59 -0500
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
-Cc: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Subject: [PATCH v6 7/9] v4l: vsp1: Adapt entities to configure into a body
-Date: Wed, 28 Feb 2018 20:52:41 +0000
-Message-Id: <a6ce3334e63d4509a933a3e4fcc0fe543cf8b820.1519850924.git-series.kieran.bingham+renesas@ideasonboard.com>
-In-Reply-To: <cover.d841c9354585c652c97473ace29c877b9395e83b.1519850924.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.d841c9354585c652c97473ace29c877b9395e83b.1519850924.git-series.kieran.bingham+renesas@ideasonboard.com>
-In-Reply-To: <cover.d841c9354585c652c97473ace29c877b9395e83b.1519850924.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.d841c9354585c652c97473ace29c877b9395e83b.1519850924.git-series.kieran.bingham+renesas@ideasonboard.com>
+        Tue, 6 Feb 2018 08:56:30 -0500
+Subject: Re: [PATCH v5 09/16] media: rkisp1: add rockchip isp1 core driver
+To: Shunqian Zheng <zhengsq@rock-chips.com>,
+        linux-rockchip@lists.infradead.org, linux-media@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+        mchehab@kernel.org, sakari.ailus@linux.intel.com,
+        hans.verkuil@cisco.com, tfiga@chromium.org,
+        laurent.pinchart@ideasonboard.com, zyc@rock-chips.com,
+        eddie.cai.linux@gmail.com, jeffy.chen@rock-chips.com,
+        allon.huang@rock-chips.com, devicetree@vger.kernel.org,
+        heiko@sntech.de, robh+dt@kernel.org, Joao.Pinto@synopsys.com,
+        Luis.Oliveira@synopsys.com, Jose.Abreu@synopsys.com,
+        jacob2.chen@rock-chips.com, Jacob Chen <cc@rock-chips.com>
+References: <1514533978-20408-1-git-send-email-zhengsq@rock-chips.com>
+ <1514533978-20408-10-git-send-email-zhengsq@rock-chips.com>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <5b8cf5ab-153d-0c57-9691-d0cf25316fa1@xs4all.nl>
+Date: Tue, 6 Feb 2018 14:56:24 +0100
+MIME-Version: 1.0
+In-Reply-To: <1514533978-20408-10-git-send-email-zhengsq@rock-chips.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Currently the entities store their configurations into a display list.
-Adapt this such that the code can be configured into a body directly,
-allowing greater flexibility and control of the content.
+On 12/29/17 08:52, Shunqian Zheng wrote:
+> From: Jacob Chen <jacob2.chen@rock-chips.com>
+> 
+> Add the core driver for rockchip isp1.
+> 
+> Signed-off-by: Jacob Chen <jacob2.chen@rock-chips.com>
+> Signed-off-by: Shunqian Zheng <zhengsq@rock-chips.com>
+> Signed-off-by: Yichong Zhong <zyc@rock-chips.com>
+> Signed-off-by: Jacob Chen <cc@rock-chips.com>
+> Signed-off-by: Eddie Cai <eddie.cai.linux@gmail.com>
+> Signed-off-by: Jeffy Chen <jeffy.chen@rock-chips.com>
+> Signed-off-by: Allon Huang <allon.huang@rock-chips.com>
+> Signed-off-by: Tomasz Figa <tfiga@chromium.org>
+> ---
+>  drivers/media/platform/Kconfig                |  10 +
+>  drivers/media/platform/Makefile               |   1 +
+>  drivers/media/platform/rockchip/isp1/Makefile |   8 +
+>  drivers/media/platform/rockchip/isp1/common.h | 137 ++++++
+>  drivers/media/platform/rockchip/isp1/dev.c    | 653 ++++++++++++++++++++++++++
+>  drivers/media/platform/rockchip/isp1/dev.h    | 120 +++++
+>  6 files changed, 929 insertions(+)
+>  create mode 100644 drivers/media/platform/rockchip/isp1/Makefile
+>  create mode 100644 drivers/media/platform/rockchip/isp1/common.h
+>  create mode 100644 drivers/media/platform/rockchip/isp1/dev.c
+>  create mode 100644 drivers/media/platform/rockchip/isp1/dev.h
+> 
+> diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
+> index fd0c998..062fffc 100644
+> --- a/drivers/media/platform/Kconfig
+> +++ b/drivers/media/platform/Kconfig
+> @@ -117,6 +117,16 @@ config VIDEO_QCOM_CAMSS
+>  	select VIDEOBUF2_DMA_SG
+>  	select V4L2_FWNODE
+>  
+> +config VIDEO_ROCKCHIP_ISP1
+> +	tristate "Rockchip Image Signal Processing v1 Unit driver"
+> +	depends on VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
+> +	depends on ARCH_ROCKCHIP || COMPILE_TEST
+> +	select VIDEOBUF2_DMA_CONTIG
+> +	select V4L2_FWNODE
+> +	default n
+> +	---help---
+> +	  Support for ISP1 on the rockchip SoC.
+> +
+>  config VIDEO_S3C_CAMIF
+>  	tristate "Samsung S3C24XX/S3C64XX SoC Camera Interface driver"
+>  	depends on VIDEO_V4L2 && I2C && VIDEO_V4L2_SUBDEV_API
+> diff --git a/drivers/media/platform/Makefile b/drivers/media/platform/Makefile
+> index 003b0bb..d235908 100644
+> --- a/drivers/media/platform/Makefile
+> +++ b/drivers/media/platform/Makefile
+> @@ -67,6 +67,7 @@ obj-$(CONFIG_VIDEO_RENESAS_FDP1)	+= rcar_fdp1.o
+>  obj-$(CONFIG_VIDEO_RENESAS_JPU) 	+= rcar_jpu.o
+>  obj-$(CONFIG_VIDEO_RENESAS_VSP1)	+= vsp1/
+>  
+> +obj-$(CONFIG_VIDEO_ROCKCHIP_ISP1)	+= rockchip/isp1/
+>  obj-$(CONFIG_VIDEO_ROCKCHIP_RGA)	+= rockchip/rga/
+>  
+>  obj-y	+= omap/
+> diff --git a/drivers/media/platform/rockchip/isp1/Makefile b/drivers/media/platform/rockchip/isp1/Makefile
+> new file mode 100644
+> index 0000000..18af648
+> --- /dev/null
+> +++ b/drivers/media/platform/rockchip/isp1/Makefile
+> @@ -0,0 +1,8 @@
+> +obj-$(CONFIG_VIDEO_ROCKCHIP_ISP1) += 	video_rkisp1.o
+> +video_rkisp1-objs 	   += 	rkisp1.o \
+> +				dev.o \
+> +				regs.o \
+> +				isp_stats.o \
+> +				isp_params.o \
+> +				mipi_dphy_sy.o \
+> +				capture.o
+> diff --git a/drivers/media/platform/rockchip/isp1/common.h b/drivers/media/platform/rockchip/isp1/common.h
+> new file mode 100644
+> index 0000000..1adfb90
+> --- /dev/null
+> +++ b/drivers/media/platform/rockchip/isp1/common.h
+> @@ -0,0 +1,137 @@
+> +/*
+> + * Rockchip isp1 driver
+> + *
+> + * Copyright (C) 2017 Rockchip Electronics Co., Ltd.
+> + *
+> + * This software is available to you under a choice of one of two
+> + * licenses.  You may choose to be licensed under the terms of the GNU
+> + * General Public License (GPL) Version 2, available from the file
+> + * COPYING in the main directory of this source tree, or the
+> + * OpenIB.org BSD license below:
+> + *
+> + *     Redistribution and use in source and binary forms, with or
+> + *     without modification, are permitted provided that the following
+> + *     conditions are met:
+> + *
+> + *      - Redistributions of source code must retain the above
+> + *        copyright notice, this list of conditions and the following
+> + *        disclaimer.
+> + *
+> + *      - Redistributions in binary form must reproduce the above
+> + *        copyright notice, this list of conditions and the following
+> + *        disclaimer in the documentation and/or other materials
+> + *        provided with the distribution.
+> + *
+> + * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+> + * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+> + * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+> + * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+> + * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+> + * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+> + * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+> + * SOFTWARE.
+> + */
+> +
+> +#ifndef _RKISP1_COMMON_H
+> +#define _RKISP1_COMMON_H
+> +
+> +#include <linux/mutex.h>
+> +#include <media/media-device.h>
+> +#include <media/media-entity.h>
+> +#include <media/v4l2-ctrls.h>
+> +#include <media/v4l2-device.h>
+> +#include <media/videobuf2-v4l2.h>
+> +
+> +#define RKISP1_DEFAULT_WIDTH		800
+> +#define RKISP1_DEFAULT_HEIGHT		600
+> +
+> +#define RKISP1_MAX_STREAM		2
+> +#define RKISP1_STREAM_SP		0
+> +#define RKISP1_STREAM_MP		1
+> +
+> +#define RKISP1_PLANE_Y			0
+> +#define RKISP1_PLANE_CB			1
+> +#define RKISP1_PLANE_CR			2
+> +
+> +enum rkisp1_sd_type {
+> +	RKISP1_SD_SENSOR,
+> +	RKISP1_SD_PHY_CSI,
+> +	RKISP1_SD_VCM,
+> +	RKISP1_SD_FLASH,
+> +	RKISP1_SD_MAX,
+> +};
+> +
+> +/* One structure per video node */
+> +struct rkisp1_vdev_node {
+> +	struct vb2_queue buf_queue;
+> +	/* vfd lock */
+> +	struct mutex vlock;
+> +	struct video_device vdev;
+> +	struct media_pad pad;
+> +};
+> +
+> +enum rkisp1_fmt_pix_type {
+> +	FMT_YUV,
+> +	FMT_RGB,
+> +	FMT_BAYER,
+> +	FMT_JPEG,
+> +	FMT_MAX
+> +};
+> +
+> +enum rkisp1_fmt_raw_pat_type {
+> +	RAW_RGGB = 0,
+> +	RAW_GRBG,
+> +	RAW_GBRG,
+> +	RAW_BGGR,
+> +};
+> +
+> +enum rkisp1_state {
+> +	/* path not yet opened: */
+> +	RKISP1_STATE_DISABLED,
+> +	/* path opened and configured, ready for streaming: */
+> +	RKISP1_STATE_READY,
+> +	/* path is streaming: */
+> +	RKISP1_STATE_STREAMING
+> +};
+> +
+> +struct rkisp1_buffer {
+> +	struct vb2_v4l2_buffer vb;
+> +	struct list_head queue;
+> +	union {
+> +		u32 buff_addr[VIDEO_MAX_PLANES];
+> +		void *vaddr[VIDEO_MAX_PLANES];
+> +	};
+> +};
+> +
+> +struct rkisp1_dummy_buffer {
+> +	void *vaddr;
+> +	dma_addr_t dma_addr;
+> +	u32 size;
+> +};
+> +
+> +extern int rkisp1_debug;
+> +
+> +static inline
+> +struct rkisp1_vdev_node *vdev_to_node(struct video_device *vdev)
+> +{
+> +	return container_of(vdev, struct rkisp1_vdev_node, vdev);
+> +}
+> +
+> +static inline struct rkisp1_vdev_node *queue_to_node(struct vb2_queue *q)
+> +{
+> +	return container_of(q, struct rkisp1_vdev_node, buf_queue);
+> +}
+> +
+> +static inline struct rkisp1_buffer *to_rkisp1_buffer(struct vb2_v4l2_buffer *vb)
+> +{
+> +	return container_of(vb, struct rkisp1_buffer, vb);
+> +}
+> +
+> +static inline struct vb2_queue *to_vb2_queue(struct file *file)
+> +{
+> +	struct rkisp1_vdev_node *vnode = video_drvdata(file);
+> +
+> +	return &vnode->buf_queue;
+> +}
+> +
+> +#endif /* _RKISP1_COMMON_H */
+> diff --git a/drivers/media/platform/rockchip/isp1/dev.c b/drivers/media/platform/rockchip/isp1/dev.c
+> new file mode 100644
+> index 0000000..248751c
+> --- /dev/null
+> +++ b/drivers/media/platform/rockchip/isp1/dev.c
+> @@ -0,0 +1,653 @@
+> +/*
+> + * Rockchip isp1 driver
+> + *
+> + * Copyright (C) 2017 Rockchip Electronics Co., Ltd.
+> + *
+> + * This software is available to you under a choice of one of two
+> + * licenses.  You may choose to be licensed under the terms of the GNU
+> + * General Public License (GPL) Version 2, available from the file
+> + * COPYING in the main directory of this source tree, or the
+> + * OpenIB.org BSD license below:
+> + *
+> + *     Redistribution and use in source and binary forms, with or
+> + *     without modification, are permitted provided that the following
+> + *     conditions are met:
+> + *
+> + *      - Redistributions of source code must retain the above
+> + *        copyright notice, this list of conditions and the following
+> + *        disclaimer.
+> + *
+> + *      - Redistributions in binary form must reproduce the above
+> + *        copyright notice, this list of conditions and the following
+> + *        disclaimer in the documentation and/or other materials
+> + *        provided with the distribution.
+> + *
+> + * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+> + * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+> + * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+> + * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+> + * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+> + * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+> + * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+> + * SOFTWARE.
+> + */
+> +
+> +#include <linux/clk.h>
+> +#include <linux/interrupt.h>
+> +#include <linux/module.h>
+> +#include <linux/of.h>
+> +#include <linux/of_graph.h>
+> +#include <linux/of_platform.h>
+> +#include <linux/pm_runtime.h>
+> +#include <linux/pinctrl/consumer.h>
+> +#include "common.h"
+> +#include "regs.h"
+> +
+> +struct isp_match_data {
+> +	const char * const *clks;
+> +	int size;
+> +};
+> +
+> +int rkisp1_debug;
+> +module_param_named(debug, rkisp1_debug, int, 0644);
+> +MODULE_PARM_DESC(debug, "Debug level (0-1)");
+> +
+> +/**************************** pipeline operations *****************************/
+> +
+> +static int __isp_pipeline_prepare(struct rkisp1_pipeline *p,
+> +				  struct media_entity *me)
+> +{
+> +	struct rkisp1_device *dev = container_of(p, struct rkisp1_device, pipe);
+> +	struct v4l2_subdev *sd;
+> +	int i;
+> +
+> +	p->num_subdevs = 0;
+> +	memset(p->subdevs, 0, sizeof(p->subdevs));
+> +
+> +	while (1) {
+> +		struct media_pad *pad = NULL;
+> +
+> +		/* Find remote source pad */
+> +		for (i = 0; i < me->num_pads; i++) {
+> +			struct media_pad *spad = &me->pads[i];
+> +
+> +			if (!(spad->flags & MEDIA_PAD_FL_SINK))
+> +				continue;
+> +			pad = media_entity_remote_pad(spad);
+> +			if (pad)
+> +				break;
+> +		}
+> +
+> +		if (!pad)
+> +			break;
+> +
+> +		sd = media_entity_to_v4l2_subdev(pad->entity);
+> +		if (sd != &dev->isp_sdev.sd)
+> +			p->subdevs[p->num_subdevs++] = sd;
+> +
+> +		me = &sd->entity;
+> +		if (me->num_pads == 1)
+> +			break;
+> +	}
+> +	return 0;
+> +}
+> +
+> +static int __subdev_set_power(struct v4l2_subdev *sd, int on)
+> +{
+> +	int ret;
+> +
+> +	if (!sd)
+> +		return -ENXIO;
+> +
+> +	ret = v4l2_subdev_call(sd, core, s_power, on);
+> +
+> +	return ret != -ENOIOCTLCMD ? ret : 0;
+> +}
+> +
+> +static int __isp_pipeline_s_power(struct rkisp1_pipeline *p, bool on)
+> +{
+> +	struct rkisp1_device *dev = container_of(p, struct rkisp1_device, pipe);
+> +	int i, ret;
+> +
+> +	if (on) {
+> +		__subdev_set_power(&dev->isp_sdev.sd, true);
+> +
+> +		for (i = p->num_subdevs - 1; i >= 0; --i) {
+> +			ret = __subdev_set_power(p->subdevs[i], true);
+> +			if (ret < 0 && ret != -ENXIO)
+> +				goto err_power_off;
+> +		}
+> +	} else {
+> +		for (i = 0; i < p->num_subdevs; ++i)
+> +			__subdev_set_power(p->subdevs[i], false);
+> +
+> +		__subdev_set_power(&dev->isp_sdev.sd, false);
+> +	}
+> +
+> +	return 0;
+> +
+> +err_power_off:
+> +	for (++i; i < p->num_subdevs; ++i)
+> +		__subdev_set_power(p->subdevs[i], false);
+> +	__subdev_set_power(&dev->isp_sdev.sd, true);
+> +	return ret;
+> +}
+> +
+> +static int rkisp1_pipeline_open(struct rkisp1_pipeline *p,
+> +				struct media_entity *me,
+> +				bool prepare)
+> +{
+> +	int ret;
+> +
+> +	if (WARN_ON(!p || !me))
+> +		return -EINVAL;
+> +	if (atomic_inc_return(&p->power_cnt) > 1)
+> +		return 0;
+> +
+> +	/* go through media graphic and get subdevs */
+> +	if (prepare)
+> +		__isp_pipeline_prepare(p, me);
+> +
+> +	if (!p->num_subdevs)
+> +		return -EINVAL;
+> +
+> +	ret = __isp_pipeline_s_power(p, 1);
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	return 0;
+> +}
+> +
+> +static int rkisp1_pipeline_close(struct rkisp1_pipeline *p)
+> +{
+> +	int ret;
+> +
+> +	if (atomic_dec_return(&p->power_cnt) > 0)
+> +		return 0;
+> +	ret = __isp_pipeline_s_power(p, 0);
+> +
+> +	return ret == -ENXIO ? 0 : ret;
+> +}
+> +
+> +/*
+> + * stream-on order: isp_subdev, mipi dphy, sensor
+> + * stream-off order: mipi dphy, sensor, isp_subdev
+> + */
+> +static int rkisp1_pipeline_set_stream(struct rkisp1_pipeline *p, bool on)
+> +{
+> +	struct rkisp1_device *dev = container_of(p, struct rkisp1_device, pipe);
+> +	int i, ret;
+> +
+> +	if ((on && atomic_inc_return(&p->stream_cnt) > 1) ||
+> +	    (!on && atomic_dec_return(&p->stream_cnt) > 0))
+> +		return 0;
+> +
+> +	if (on)
+> +		v4l2_subdev_call(&dev->isp_sdev.sd, video, s_stream, true);
+> +
+> +	/* phy -> sensor */
+> +	for (i = 0; i < p->num_subdevs; ++i) {
+> +		ret = v4l2_subdev_call(p->subdevs[i], video, s_stream, on);
+> +		if (on && ret < 0 && ret != -ENOIOCTLCMD && ret != -ENODEV)
+> +			goto err_stream_off;
+> +	}
+> +
+> +	if (!on)
+> +		v4l2_subdev_call(&dev->isp_sdev.sd, video, s_stream, false);
+> +
+> +	return 0;
+> +
+> +err_stream_off:
+> +	for (--i; i >= 0; --i)
+> +		v4l2_subdev_call(p->subdevs[i], video, s_stream, false);
+> +	v4l2_subdev_call(&dev->isp_sdev.sd, video, s_stream, false);
+> +	return ret;
+> +}
+> +
+> +/***************************** media controller *******************************/
+> +/* See http://opensource.rock-chips.com/wiki_Rockchip-isp1 for Topology */
+> +
+> +static int rkisp1_create_links(struct rkisp1_device *dev)
+> +{
+> +	struct media_entity *source, *sink;
+> +	unsigned int flags, s, pad;
+> +	int ret;
+> +
+> +	/* sensor links(or mipi-phy) */
+> +	for (s = 0; s < dev->num_sensors; ++s) {
+> +		struct rkisp1_sensor_info *sensor = &dev->sensors[s];
+> +
+> +		for (pad = 0; pad < sensor->sd->entity.num_pads; pad++)
+> +			if (sensor->sd->entity.pads[pad].flags &
+> +				MEDIA_PAD_FL_SOURCE)
+> +				break;
+> +
+> +		if (pad == sensor->sd->entity.num_pads) {
+> +			dev_err(dev->dev,
+> +				"failed to find src pad for %s\n",
+> +				sensor->sd->name);
+> +
+> +			return -ENXIO;
+> +		}
+> +
+> +		ret = media_create_pad_link(
+> +				&sensor->sd->entity, pad,
+> +				&dev->isp_sdev.sd.entity,
+> +				RKISP1_ISP_PAD_SINK + s,
+> +				s ? 0 : MEDIA_LNK_FL_ENABLED);
+> +		if (ret) {
+> +			dev_err(dev->dev,
+> +				"failed to create link for %s\n",
+> +				sensor->sd->name);
+> +			return ret;
+> +		}
+> +	}
+> +
+> +	/* params links */
+> +	source = &dev->params_vdev.vnode.vdev.entity;
+> +	sink = &dev->isp_sdev.sd.entity;
+> +	flags = MEDIA_LNK_FL_ENABLED;
+> +	ret = media_create_pad_link(source, 0, sink,
+> +				       RKISP1_ISP_PAD_SINK_PARAMS, flags);
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	/* create isp internal links */
+> +	/* SP links */
+> +	source = &dev->isp_sdev.sd.entity;
+> +	sink = &dev->stream[RKISP1_STREAM_SP].vnode.vdev.entity;
+> +	ret = media_create_pad_link(source, RKISP1_ISP_PAD_SOURCE_PATH,
+> +				       sink, 0, flags);
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	/* MP links */
+> +	source = &dev->isp_sdev.sd.entity;
+> +	sink = &dev->stream[RKISP1_STREAM_MP].vnode.vdev.entity;
+> +	ret = media_create_pad_link(source, RKISP1_ISP_PAD_SOURCE_PATH,
+> +				       sink, 0, flags);
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	/* 3A stats links */
+> +	source = &dev->isp_sdev.sd.entity;
+> +	sink = &dev->stats_vdev.vnode.vdev.entity;
+> +	return media_create_pad_link(source, RKISP1_ISP_PAD_SOURCE_STATS,
+> +					sink, 0, flags);
+> +}
+> +
+> +static int subdev_notifier_complete(struct v4l2_async_notifier *notifier)
+> +{
+> +	struct rkisp1_device *dev;
+> +	int ret;
+> +
+> +	dev = container_of(notifier, struct rkisp1_device, notifier);
+> +
+> +	mutex_lock(&dev->media_dev.graph_mutex);
+> +	ret = rkisp1_create_links(dev);
+> +	if (ret < 0)
+> +		goto unlock;
+> +	ret = v4l2_device_register_subdev_nodes(&dev->v4l2_dev);
+> +	if (ret < 0)
+> +		goto unlock;
+> +
+> +	v4l2_info(&dev->v4l2_dev, "Async subdev notifier completed\n");
+> +
+> +unlock:
+> +	mutex_unlock(&dev->media_dev.graph_mutex);
+> +	return ret;
+> +}
+> +
+> +struct rkisp1_async_subdev {
+> +	struct v4l2_async_subdev asd;
+> +	struct v4l2_mbus_config mbus;
+> +};
+> +
+> +static int subdev_notifier_bound(struct v4l2_async_notifier *notifier,
+> +				 struct v4l2_subdev *subdev,
+> +				 struct v4l2_async_subdev *asd)
+> +{
+> +	struct rkisp1_device *isp_dev = container_of(notifier,
+> +					struct rkisp1_device, notifier);
+> +	struct rkisp1_async_subdev *s_asd = container_of(asd,
+> +					struct rkisp1_async_subdev, asd);
+> +
+> +	if (isp_dev->num_sensors == ARRAY_SIZE(isp_dev->sensors))
+> +		return -EBUSY;
+> +
+> +	isp_dev->sensors[isp_dev->num_sensors].mbus = s_asd->mbus;
+> +	isp_dev->sensors[isp_dev->num_sensors].sd = subdev;
+> +	++isp_dev->num_sensors;
+> +
+> +	v4l2_dbg(1, rkisp1_debug, subdev, "Async registered subdev\n");
+> +
+> +	return 0;
+> +}
+> +
+> +static int rkisp1_fwnode_parse(struct device *dev,
+> +			       struct v4l2_fwnode_endpoint *vep,
+> +			       struct v4l2_async_subdev *asd)
+> +{
+> +	struct rkisp1_async_subdev *rk_asd =
+> +			container_of(asd, struct rkisp1_async_subdev, asd);
+> +	struct v4l2_fwnode_bus_parallel *bus = &vep->bus.parallel;
+> +
+> +	/*
+> +	 * MIPI sensor is linked with a mipi dphy and its media bus config can
+> +	 * not be get in here
+> +	 */
+> +	if (vep->bus_type != V4L2_MBUS_BT656 &&
+> +		vep->bus_type != V4L2_MBUS_PARALLEL)
+> +		return 0;
+> +
+> +	rk_asd->mbus.flags = bus->flags;
+> +	rk_asd->mbus.type = vep->bus_type;
+> +
+> +	return 0;
+> +}
+> +
+> +static const struct v4l2_async_notifier_operations subdev_notifier_ops = {
+> +	.bound = subdev_notifier_bound,
+> +	.complete = subdev_notifier_complete,
+> +};
+> +
+> +static int isp_subdev_notifier(struct rkisp1_device *isp_dev)
+> +{
+> +	struct v4l2_async_notifier *ntf = &isp_dev->notifier;
+> +	struct device *dev = isp_dev->dev;
+> +	int ret;
+> +
+> +	ret = v4l2_async_notifier_parse_fwnode_endpoints(
+> +		dev, ntf, sizeof(struct rkisp1_async_subdev),
+> +		rkisp1_fwnode_parse);
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	if (!ntf->num_subdevs)
+> +		return -ENODEV;	/* no endpoint */
+> +
+> +	ntf->ops = &subdev_notifier_ops;
+> +
+> +	return v4l2_async_notifier_register(&isp_dev->v4l2_dev, ntf);
+> +}
+> +
+> +/***************************** platform deive *******************************/
+> +
+> +static int rkisp1_register_platform_subdevs(struct rkisp1_device *dev)
+> +{
+> +	int ret;
+> +
+> +	ret = rkisp1_register_isp_subdev(dev, &dev->v4l2_dev);
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	ret = rkisp1_register_stream_vdevs(dev);
+> +	if (ret < 0)
+> +		goto err_unreg_isp_subdev;
+> +
+> +	ret = rkisp1_register_stats_vdev(&dev->stats_vdev, &dev->v4l2_dev, dev);
+> +	if (ret < 0)
+> +		goto err_unreg_stream_vdev;
+> +
+> +	ret = rkisp1_register_params_vdev(&dev->params_vdev, &dev->v4l2_dev,
+> +					  dev);
+> +	if (ret < 0)
+> +		goto err_unreg_stats_vdev;
+> +
+> +	ret = isp_subdev_notifier(dev);
+> +	if (ret < 0) {
+> +		v4l2_err(&dev->v4l2_dev,
+> +			 "Failed to register subdev notifier(%d)\n", ret);
+> +		goto err_unreg_params_vdev;
+> +	}
+> +
+> +	return 0;
+> +err_unreg_params_vdev:
+> +	rkisp1_unregister_params_vdev(&dev->params_vdev);
+> +err_unreg_stats_vdev:
+> +	rkisp1_unregister_stats_vdev(&dev->stats_vdev);
+> +err_unreg_stream_vdev:
+> +	rkisp1_unregister_stream_vdevs(dev);
+> +err_unreg_isp_subdev:
+> +	rkisp1_unregister_isp_subdev(dev);
+> +	return ret;
+> +}
+> +
+> +static const char * const rk3399_isp_clks[] = {
+> +	"clk_isp",
+> +	"aclk_isp",
+> +	"hclk_isp",
+> +	"aclk_isp_wrap",
+> +	"hclk_isp_wrap",
+> +};
+> +
+> +static const char * const rk3288_isp_clks[] = {
+> +	"clk_isp",
+> +	"aclk_isp",
+> +	"hclk_isp",
+> +	"pclk_isp_in",
+> +	"sclk_isp_jpe",
+> +};
+> +
+> +static const struct isp_match_data rk3288_isp_clk_data = {
+> +	.clks = rk3288_isp_clks,
+> +	.size = ARRAY_SIZE(rk3288_isp_clks),
+> +};
+> +
+> +static const struct isp_match_data rk3399_isp_clk_data = {
+> +	.clks = rk3399_isp_clks,
+> +	.size = ARRAY_SIZE(rk3399_isp_clks),
+> +};
+> +
+> +static const struct of_device_id rkisp1_plat_of_match[] = {
+> +	{
+> +		.compatible = "rockchip,rk3288-cif-isp",
+> +		.data = &rk3288_isp_clk_data,
+> +	}, {
+> +		.compatible = "rockchip,rk3399-cif-isp",
+> +		.data = &rk3399_isp_clk_data,
+> +	},
+> +	{},
+> +};
+> +
+> +static irqreturn_t rkisp1_irq_handler(int irq, void *ctx)
+> +{
+> +	struct device *dev = ctx;
+> +	struct rkisp1_device *rkisp1_dev = dev_get_drvdata(dev);
+> +	void __iomem *base = rkisp1_dev->base_addr;
+> +	unsigned int mis_val, i;
+> +
+> +	mis_val = readl(rkisp1_dev->base_addr + CIF_ISP_MIS);
+> +	if (mis_val)
+> +		rkisp1_isp_isr(mis_val, rkisp1_dev);
+> +
+> +	mis_val = readl(rkisp1_dev->base_addr + CIF_MIPI_MIS);
+> +	if (mis_val)
+> +		rkisp1_mipi_isr(mis_val, rkisp1_dev);
+> +
+> +	for (i = 0; i < RKISP1_MAX_STREAM; ++i) {
+> +		struct rkisp1_stream *stream = &rkisp1_dev->stream[i];
+> +
+> +		if (stream->ops->is_frame_end_int_masked(base))
+> +			rkisp1_mi_isr(stream);
+> +	}
+> +
+> +	return IRQ_HANDLED;
+> +}
+> +
+> +static void rkisp1_disable_sys_clk(struct rkisp1_device *rkisp1_dev)
+> +{
+> +	int i;
+> +
+> +	for (i = rkisp1_dev->clk_size - 1; i >= 0; i--)
+> +		clk_disable_unprepare(rkisp1_dev->clks[i]);
+> +}
+> +
+> +static int rkisp1_enable_sys_clk(struct rkisp1_device *rkisp1_dev)
+> +{
+> +	int i, ret = -EINVAL;
+> +
+> +	for (i = 0; i < rkisp1_dev->clk_size; i++) {
+> +		ret = clk_prepare_enable(rkisp1_dev->clks[i]);
+> +		if (ret < 0)
+> +			goto err;
+> +	}
+> +	return 0;
+> +err:
+> +	for (--i; i >= 0; --i)
+> +		clk_disable_unprepare(rkisp1_dev->clks[i]);
+> +	return ret;
+> +}
+> +
+> +static int rkisp1_plat_probe(struct platform_device *pdev)
+> +{
+> +	const struct of_device_id *match;
+> +	struct device_node *node = pdev->dev.of_node;
+> +	struct device *dev = &pdev->dev;
+> +	struct v4l2_device *v4l2_dev;
+> +	struct rkisp1_device *isp_dev;
+> +	const struct isp_match_data *clk_data;
+> +
+> +	struct resource *res;
+> +	int i, ret, irq;
+> +
+> +	match = of_match_node(rkisp1_plat_of_match, node);
+> +	isp_dev = devm_kzalloc(dev, sizeof(*isp_dev), GFP_KERNEL);
+> +	if (!isp_dev)
+> +		return -ENOMEM;
+> +
+> +	dev_set_drvdata(dev, isp_dev);
+> +	isp_dev->dev = dev;
+> +
+> +	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+> +	isp_dev->base_addr = devm_ioremap_resource(dev, res);
+> +	if (IS_ERR(isp_dev->base_addr))
+> +		return PTR_ERR(isp_dev->base_addr);
+> +
+> +	irq = platform_get_irq(pdev, 0);
+> +	if (irq < 0)
+> +		return irq;
+> +
+> +	ret = devm_request_irq(dev, irq, rkisp1_irq_handler, IRQF_SHARED,
+> +			       dev_driver_string(dev), dev);
+> +	if (ret < 0) {
+> +		dev_err(dev, "request irq failed: %d\n", ret);
+> +		return ret;
+> +	}
+> +
+> +	isp_dev->irq = irq;
+> +	clk_data = match->data;
+> +	for (i = 0; i < clk_data->size; i++) {
+> +		struct clk *clk = devm_clk_get(dev, clk_data->clks[i]);
+> +
+> +		if (IS_ERR(clk)) {
+> +			dev_err(dev, "failed to get %s\n", clk_data->clks[i]);
+> +			return PTR_ERR(clk);
+> +		}
+> +		isp_dev->clks[i] = clk;
+> +	}
+> +	isp_dev->clk_size = clk_data->size;
+> +
+> +	atomic_set(&isp_dev->pipe.power_cnt, 0);
+> +	atomic_set(&isp_dev->pipe.stream_cnt, 0);
+> +	isp_dev->pipe.open = rkisp1_pipeline_open;
+> +	isp_dev->pipe.close = rkisp1_pipeline_close;
+> +	isp_dev->pipe.set_stream = rkisp1_pipeline_set_stream;
+> +
+> +	rkisp1_stream_init(isp_dev, RKISP1_STREAM_SP);
+> +	rkisp1_stream_init(isp_dev, RKISP1_STREAM_MP);
+> +
+> +	strlcpy(isp_dev->media_dev.model, "rkisp1",
+> +		sizeof(isp_dev->media_dev.model));
+> +	isp_dev->media_dev.dev = &pdev->dev;
+> +	media_device_init(&isp_dev->media_dev);
+> +
+> +	v4l2_dev = &isp_dev->v4l2_dev;
+> +	v4l2_dev->mdev = &isp_dev->media_dev;
+> +	strlcpy(v4l2_dev->name, "rkisp1", sizeof(v4l2_dev->name));
+> +	v4l2_ctrl_handler_init(&isp_dev->ctrl_handler, 5);
+> +	v4l2_dev->ctrl_handler = &isp_dev->ctrl_handler;
+> +
+> +	ret = v4l2_device_register(isp_dev->dev, &isp_dev->v4l2_dev);
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	ret = media_device_register(&isp_dev->media_dev);
+> +	if (ret < 0) {
+> +		v4l2_err(v4l2_dev, "Failed to register media device: %d\n",
+> +			 ret);
+> +		goto err_unreg_v4l2_dev;
+> +	}
+> +
+> +	/* create & register platefom subdev (from of_node) */
+> +	ret = rkisp1_register_platform_subdevs(isp_dev);
+> +	if (ret < 0)
+> +		goto err_unreg_media_dev;
+> +
+> +	pm_runtime_enable(&pdev->dev);
+> +
+> +	return 0;
+> +
+> +err_unreg_media_dev:
+> +	media_device_unregister(&isp_dev->media_dev);
+> +err_unreg_v4l2_dev:
+> +	v4l2_device_unregister(&isp_dev->v4l2_dev);
+> +	return ret;
+> +}
+> +
+> +static int rkisp1_plat_remove(struct platform_device *pdev)
+> +{
+> +	struct rkisp1_device *isp_dev = platform_get_drvdata(pdev);
+> +
+> +	pm_runtime_disable(&pdev->dev);
+> +	media_device_unregister(&isp_dev->media_dev);
+> +	v4l2_device_unregister(&isp_dev->v4l2_dev);
+> +	rkisp1_unregister_params_vdev(&isp_dev->params_vdev);
+> +	rkisp1_unregister_stats_vdev(&isp_dev->stats_vdev);
+> +	rkisp1_unregister_stream_vdevs(isp_dev);
+> +	rkisp1_unregister_isp_subdev(isp_dev);
+> +
+> +	return 0;
+> +}
+> +
+> +static int __maybe_unused rkisp1_runtime_suspend(struct device *dev)
+> +{
+> +	struct rkisp1_device *isp_dev = dev_get_drvdata(dev);
+> +
+> +	rkisp1_disable_sys_clk(isp_dev);
+> +	return pinctrl_pm_select_sleep_state(dev);
+> +}
+> +
+> +static int __maybe_unused rkisp1_runtime_resume(struct device *dev)
+> +{
+> +	struct rkisp1_device *isp_dev = dev_get_drvdata(dev);
+> +	int ret;
+> +
+> +	ret = pinctrl_pm_select_default_state(dev);
+> +	if (ret < 0)
+> +		return ret;
+> +	rkisp1_enable_sys_clk(isp_dev);
+> +
+> +	return 0;
+> +}
+> +
+> +static const struct dev_pm_ops rkisp1_plat_pm_ops = {
+> +	SET_SYSTEM_SLEEP_PM_OPS(pm_runtime_force_suspend,
+> +				pm_runtime_force_resume)
+> +	SET_RUNTIME_PM_OPS(rkisp1_runtime_suspend, rkisp1_runtime_resume, NULL)
+> +};
+> +
+> +static struct platform_driver rkisp1_plat_drv = {
+> +	.driver = {
+> +		   .name = DRIVER_NAME,
+> +		   .of_match_table = of_match_ptr(rkisp1_plat_of_match),
+> +		   .pm = &rkisp1_plat_pm_ops,
+> +	},
+> +	.probe = rkisp1_plat_probe,
+> +	.remove = rkisp1_plat_remove,
+> +};
+> +
+> +module_platform_driver(rkisp1_plat_drv);
+> +MODULE_AUTHOR("Rockchip Camera/ISP team");
+> +MODULE_DESCRIPTION("Rockchip ISP1 platform driver");
+> +MODULE_LICENSE("Dual BSD/GPL");
+> diff --git a/drivers/media/platform/rockchip/isp1/dev.h b/drivers/media/platform/rockchip/isp1/dev.h
+> new file mode 100644
+> index 0000000..f28cde3
+> --- /dev/null
+> +++ b/drivers/media/platform/rockchip/isp1/dev.h
+> @@ -0,0 +1,120 @@
+> +/*
+> + * Rockchip isp1 driver
+> + *
+> + * Copyright (C) 2017 Rockchip Electronics Co., Ltd.
+> + *
+> + * This software is available to you under a choice of one of two
+> + * licenses.  You may choose to be licensed under the terms of the GNU
+> + * General Public License (GPL) Version 2, available from the file
+> + * COPYING in the main directory of this source tree, or the
+> + * OpenIB.org BSD license below:
+> + *
+> + *     Redistribution and use in source and binary forms, with or
+> + *     without modification, are permitted provided that the following
+> + *     conditions are met:
+> + *
+> + *      - Redistributions of source code must retain the above
+> + *        copyright notice, this list of conditions and the following
+> + *        disclaimer.
+> + *
+> + *      - Redistributions in binary form must reproduce the above
+> + *        copyright notice, this list of conditions and the following
+> + *        disclaimer in the documentation and/or other materials
+> + *        provided with the distribution.
+> + *
+> + * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+> + * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+> + * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+> + * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+> + * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+> + * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+> + * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+> + * SOFTWARE.
+> + */
+> +
+> +#ifndef _RKISP1_DEV_H
+> +#define _RKISP1_DEV_H
+> +
+> +#include "capture.h"
+> +#include "rkisp1.h"
+> +#include "isp_params.h"
+> +#include "isp_stats.h"
+> +
+> +#define DRIVER_NAME "rkisp1"
+> +#define ISP_VDEV_NAME DRIVER_NAME  "_ispdev"
+> +#define SP_VDEV_NAME DRIVER_NAME   "_selfpath"
+> +#define MP_VDEV_NAME DRIVER_NAME   "_mainpath"
+> +#define DMA_VDEV_NAME DRIVER_NAME  "_dmapath"
+> +
+> +#define GRP_ID_SENSOR			BIT(0)
+> +#define GRP_ID_MIPIPHY			BIT(1)
+> +#define GRP_ID_ISP			BIT(2)
+> +#define GRP_ID_ISP_MP			BIT(3)
+> +#define GRP_ID_ISP_SP			BIT(4)
+> +
+> +#define RKISP1_MAX_BUS_CLK	8
+> +#define RKISP1_MAX_SENSOR	2
+> +#define RKISP1_MAX_PIPELINE	4
+> +
+> +/*
+> + * struct rkisp1_pipeline - An ISP hardware pipeline
+> + *
+> + * Capture device call other devices via pipeline
+> + *
+> + * @num_subdevs: number of linked subdevs
+> + * @power_cnt: pipeline power count
+> + * @stream_cnt: stream power count
+> + */
+> +struct rkisp1_pipeline {
+> +	struct media_pipeline pipe;
+> +	int num_subdevs;
+> +	atomic_t power_cnt;
+> +	atomic_t stream_cnt;
+> +	struct v4l2_subdev *subdevs[RKISP1_MAX_PIPELINE];
+> +	int (*open)(struct rkisp1_pipeline *p,
+> +		    struct media_entity *me, bool prepare);
+> +	int (*close)(struct rkisp1_pipeline *p);
+> +	int (*set_stream)(struct rkisp1_pipeline *p, bool on);
+> +};
+> +
+> +/*
+> + * struct rkisp1_sensor_info - Sensor infomations
 
-All users of vsp1_dl_list_write() are removed in this process, thus it
-too is removed.
+infomations -> information
 
-A helper, vsp1_dl_list_get_body0() is provided to access the internal body0
-from the display list.
+> + * @mbus: media bus configuration
+> + */
+> +struct rkisp1_sensor_info {
+> +	struct v4l2_subdev *sd;
+> +	struct v4l2_mbus_config mbus;
 
-Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+As mentioned before, this is dubious. I'll discuss this with Thomas on
+irc tomorrow.
 
----
+> +};
+> +
+> +/*
+> + * struct rkisp1_device - ISP platform device
+> + * @base_addr: base register address
+> + * @active_sensor: sensor in-use, set when streaming on
+> + * @isp_sdev: ISP sub-device
+> + * @rkisp1_stream: capture video device
+> + * @stats_vdev: ISP statistics output device
+> + * @params_vdev: ISP input parameters device
+> + */
+> +struct rkisp1_device {
+> +	void __iomem *base_addr;
+> +	int irq;
+> +	struct device *dev;
+> +	struct clk *clks[RKISP1_MAX_BUS_CLK];
+> +	int clk_size;
+> +	struct v4l2_device v4l2_dev;
+> +	struct v4l2_ctrl_handler ctrl_handler;
+> +	struct media_device media_dev;
+> +	struct v4l2_async_notifier notifier;
+> +	struct v4l2_subdev *subdevs[RKISP1_SD_MAX];
+> +	struct rkisp1_sensor_info *active_sensor;
+> +	struct rkisp1_sensor_info sensors[RKISP1_MAX_SENSOR];
+> +	int num_sensors;
+> +	struct rkisp1_isp_subdev isp_sdev;
+> +	struct rkisp1_stream stream[RKISP1_MAX_STREAM];
+> +	struct rkisp1_isp_stats_vdev stats_vdev;
+> +	struct rkisp1_isp_params_vdev params_vdev;
+> +	struct rkisp1_pipeline pipe;
+> +	struct vb2_alloc_ctx *alloc_ctx;
+> +};
+> +
+> +#endif
+> 
 
-v4:
- - Rename vsp1_dl_list_get_body() to vsp1_dl_list_get_body0()
-   The similarities between vsp1_dl_list_get_body and
-   vsp1_dl_list_body_get() were too close
+Regards,
 
- - body0 could be removed later when the default body is no longer
-   needed.
-
-v5:
- - Support DRM/UIF changes
-
-v6:
- - Remove DRM/UIF changes
-
- drivers/media/platform/vsp1/vsp1_bru.c    | 22 ++++++------
- drivers/media/platform/vsp1/vsp1_clu.c    | 22 ++++++------
- drivers/media/platform/vsp1/vsp1_dl.c     | 12 ++-----
- drivers/media/platform/vsp1/vsp1_dl.h     |  2 +-
- drivers/media/platform/vsp1/vsp1_drm.c    | 22 +++++++-----
- drivers/media/platform/vsp1/vsp1_entity.c | 16 ++++-----
- drivers/media/platform/vsp1/vsp1_entity.h | 12 ++++---
- drivers/media/platform/vsp1/vsp1_hgo.c    | 16 ++++-----
- drivers/media/platform/vsp1/vsp1_hgt.c    | 18 +++++-----
- drivers/media/platform/vsp1/vsp1_hsit.c   | 10 +++---
- drivers/media/platform/vsp1/vsp1_lif.c    | 15 ++++----
- drivers/media/platform/vsp1/vsp1_lut.c    | 21 ++++++------
- drivers/media/platform/vsp1/vsp1_pipe.c   |  4 +-
- drivers/media/platform/vsp1/vsp1_pipe.h   |  3 +-
- drivers/media/platform/vsp1/vsp1_rpf.c    | 43 +++++++++++-------------
- drivers/media/platform/vsp1/vsp1_sru.c    | 14 ++++----
- drivers/media/platform/vsp1/vsp1_uds.c    | 24 +++++++------
- drivers/media/platform/vsp1/vsp1_uds.h    |  2 +-
- drivers/media/platform/vsp1/vsp1_video.c  | 11 ++++--
- drivers/media/platform/vsp1/vsp1_wpf.c    | 42 ++++++++++++-----------
- 20 files changed, 174 insertions(+), 157 deletions(-)
-
-diff --git a/drivers/media/platform/vsp1/vsp1_bru.c b/drivers/media/platform/vsp1/vsp1_bru.c
-index b9ff96f76b3e..60d449d7b135 100644
---- a/drivers/media/platform/vsp1/vsp1_bru.c
-+++ b/drivers/media/platform/vsp1/vsp1_bru.c
-@@ -30,10 +30,10 @@
-  * Device Access
-  */
- 
--static inline void vsp1_bru_write(struct vsp1_bru *bru, struct vsp1_dl_list *dl,
--				  u32 reg, u32 data)
-+static inline void vsp1_bru_write(struct vsp1_bru *bru,
-+				  struct vsp1_dl_body *dlb, u32 reg, u32 data)
- {
--	vsp1_dl_list_write(dl, bru->base + reg, data);
-+	vsp1_dl_body_write(dlb, bru->base + reg, data);
- }
- 
- /* -----------------------------------------------------------------------------
-@@ -287,7 +287,7 @@ static const struct v4l2_subdev_ops bru_ops = {
- 
- static void bru_prepare(struct vsp1_entity *entity,
- 			struct vsp1_pipeline *pipe,
--			struct vsp1_dl_list *dl)
-+			struct vsp1_dl_body *dlb)
- {
- 	struct vsp1_bru *bru = to_bru(&entity->subdev);
- 	struct v4l2_mbus_framefmt *format;
-@@ -309,7 +309,7 @@ static void bru_prepare(struct vsp1_entity *entity,
- 	 * format at the pipeline output is premultiplied.
- 	 */
- 	flags = pipe->output ? pipe->output->format.flags : 0;
--	vsp1_bru_write(bru, dl, VI6_BRU_INCTRL,
-+	vsp1_bru_write(bru, dlb, VI6_BRU_INCTRL,
- 		       flags & V4L2_PIX_FMT_FLAG_PREMUL_ALPHA ?
- 		       0 : VI6_BRU_INCTRL_NRM);
- 
-@@ -317,12 +317,12 @@ static void bru_prepare(struct vsp1_entity *entity,
- 	 * Set the background position to cover the whole output image and
- 	 * configure its color.
- 	 */
--	vsp1_bru_write(bru, dl, VI6_BRU_VIRRPF_SIZE,
-+	vsp1_bru_write(bru, dlb, VI6_BRU_VIRRPF_SIZE,
- 		       (format->width << VI6_BRU_VIRRPF_SIZE_HSIZE_SHIFT) |
- 		       (format->height << VI6_BRU_VIRRPF_SIZE_VSIZE_SHIFT));
--	vsp1_bru_write(bru, dl, VI6_BRU_VIRRPF_LOC, 0);
-+	vsp1_bru_write(bru, dlb, VI6_BRU_VIRRPF_LOC, 0);
- 
--	vsp1_bru_write(bru, dl, VI6_BRU_VIRRPF_COL, bru->bgcolor |
-+	vsp1_bru_write(bru, dlb, VI6_BRU_VIRRPF_COL, bru->bgcolor |
- 		       (0xff << VI6_BRU_VIRRPF_COL_A_SHIFT));
- 
- 	/*
-@@ -332,7 +332,7 @@ static void bru_prepare(struct vsp1_entity *entity,
- 	 * unit.
- 	 */
- 	if (entity->type == VSP1_ENTITY_BRU)
--		vsp1_bru_write(bru, dl, VI6_BRU_ROP,
-+		vsp1_bru_write(bru, dlb, VI6_BRU_ROP,
- 			       VI6_BRU_ROP_DSTSEL_BRUIN(1) |
- 			       VI6_BRU_ROP_CROP(VI6_ROP_NOP) |
- 			       VI6_BRU_ROP_AROP(VI6_ROP_NOP));
-@@ -374,7 +374,7 @@ static void bru_prepare(struct vsp1_entity *entity,
- 		if (!(entity->type == VSP1_ENTITY_BRU && i == 1))
- 			ctrl |= VI6_BRU_CTRL_SRCSEL_BRUIN(i);
- 
--		vsp1_bru_write(bru, dl, VI6_BRU_CTRL(i), ctrl);
-+		vsp1_bru_write(bru, dlb, VI6_BRU_CTRL(i), ctrl);
- 
- 		/*
- 		 * Harcode the blending formula to
-@@ -389,7 +389,7 @@ static void bru_prepare(struct vsp1_entity *entity,
- 		 *
- 		 * otherwise.
- 		 */
--		vsp1_bru_write(bru, dl, VI6_BRU_BLD(i),
-+		vsp1_bru_write(bru, dlb, VI6_BRU_BLD(i),
- 			       VI6_BRU_BLD_CCMDX_255_SRC_A |
- 			       (premultiplied ? VI6_BRU_BLD_CCMDY_COEFY :
- 						VI6_BRU_BLD_CCMDY_SRC_A) |
-diff --git a/drivers/media/platform/vsp1/vsp1_clu.c b/drivers/media/platform/vsp1/vsp1_clu.c
-index be4d7e493746..742fe4dd7032 100644
---- a/drivers/media/platform/vsp1/vsp1_clu.c
-+++ b/drivers/media/platform/vsp1/vsp1_clu.c
-@@ -29,10 +29,10 @@
-  * Device Access
-  */
- 
--static inline void vsp1_clu_write(struct vsp1_clu *clu, struct vsp1_dl_list *dl,
--				  u32 reg, u32 data)
-+static inline void vsp1_clu_write(struct vsp1_clu *clu,
-+				  struct vsp1_dl_body *dlb, u32 reg, u32 data)
- {
--	vsp1_dl_list_write(dl, reg, data);
-+	vsp1_dl_body_write(dlb, reg, data);
- }
- 
- /* -----------------------------------------------------------------------------
-@@ -215,7 +215,7 @@ static const struct v4l2_subdev_ops clu_ops = {
-  */
- static void clu_prepare(struct vsp1_entity *entity,
- 			struct vsp1_pipeline *pipe,
--			struct vsp1_dl_list *dl)
-+			struct vsp1_dl_body *dlb)
- {
- 	struct vsp1_clu *clu = to_clu(&entity->subdev);
- 
-@@ -234,14 +234,14 @@ static void clu_prepare(struct vsp1_entity *entity,
- static void clu_configure(struct vsp1_entity *entity,
- 			  struct vsp1_pipeline *pipe,
- 			  struct vsp1_dl_list *dl,
-+			  struct vsp1_dl_body *dlb,
- 			  unsigned int partition)
- {
- 	struct vsp1_clu *clu = to_clu(&entity->subdev);
--	struct vsp1_dl_body *dlb;
-+	struct vsp1_dl_body *clu_dlb;
- 	unsigned long flags;
- 	u32 ctrl = VI6_CLU_CTRL_AAI | VI6_CLU_CTRL_MVS | VI6_CLU_CTRL_EN;
- 
--
- 	if (partition == 0) {
- 		/* 2D mode can only be used with the YCbCr pixel encoding. */
- 		if (clu->mode == V4L2_CID_VSP1_CLU_MODE_2D && clu->yuv_mode)
-@@ -249,18 +249,18 @@ static void clu_configure(struct vsp1_entity *entity,
- 			     |  VI6_CLU_CTRL_OS0_2D | VI6_CLU_CTRL_OS1_2D
- 			     |  VI6_CLU_CTRL_OS2_2D | VI6_CLU_CTRL_M2D;
- 
--		vsp1_clu_write(clu, dl, VI6_CLU_CTRL, ctrl);
-+		vsp1_clu_write(clu, dlb, VI6_CLU_CTRL, ctrl);
- 
- 		spin_lock_irqsave(&clu->lock, flags);
--		dlb = clu->clu;
-+		clu_dlb = clu->clu;
- 		clu->clu = NULL;
- 		spin_unlock_irqrestore(&clu->lock, flags);
- 
--		if (dlb) {
--			vsp1_dl_list_add_body(dl, dlb);
-+		if (clu_dlb) {
-+			vsp1_dl_list_add_body(dl, clu_dlb);
- 
- 			/* release our local reference */
--			vsp1_dl_body_put(dlb);
-+			vsp1_dl_body_put(clu_dlb);
- 		}
- 	}
- }
-diff --git a/drivers/media/platform/vsp1/vsp1_dl.c b/drivers/media/platform/vsp1/vsp1_dl.c
-index 0f87e0bb21c1..a762e840d147 100644
---- a/drivers/media/platform/vsp1/vsp1_dl.c
-+++ b/drivers/media/platform/vsp1/vsp1_dl.c
-@@ -449,17 +449,15 @@ void vsp1_dl_list_put(struct vsp1_dl_list *dl)
- }
- 
- /**
-- * vsp1_dl_list_write - Write a register to the display list
-+ * vsp1_dl_list_get_body0 - Obtain the default body for the display list
-  * @dl: The display list
-- * @reg: The register address
-- * @data: The register value
-  *
-- * Write the given register and value to the display list. Up to 256 registers
-- * can be written per display list.
-+ * Obtain a pointer to the internal display list body allowing this to be passed
-+ * directly to configure operations.
-  */
--void vsp1_dl_list_write(struct vsp1_dl_list *dl, u32 reg, u32 data)
-+struct vsp1_dl_body *vsp1_dl_list_get_body0(struct vsp1_dl_list *dl)
- {
--	vsp1_dl_body_write(dl->body0, reg, data);
-+	return dl->body0;
- }
- 
- /**
-diff --git a/drivers/media/platform/vsp1/vsp1_dl.h b/drivers/media/platform/vsp1/vsp1_dl.h
-index 4f67b2b955b9..577fe4b122dd 100644
---- a/drivers/media/platform/vsp1/vsp1_dl.h
-+++ b/drivers/media/platform/vsp1/vsp1_dl.h
-@@ -32,7 +32,7 @@ bool vsp1_dlm_irq_frame_end(struct vsp1_dl_manager *dlm);
- 
- struct vsp1_dl_list *vsp1_dl_list_get(struct vsp1_dl_manager *dlm);
- void vsp1_dl_list_put(struct vsp1_dl_list *dl);
--void vsp1_dl_list_write(struct vsp1_dl_list *dl, u32 reg, u32 data);
-+struct vsp1_dl_body *vsp1_dl_list_get_body0(struct vsp1_dl_list *dl);
- void vsp1_dl_list_commit(struct vsp1_dl_list *dl);
- 
- struct vsp1_dl_body_pool *
-diff --git a/drivers/media/platform/vsp1/vsp1_drm.c b/drivers/media/platform/vsp1/vsp1_drm.c
-index ef9a64a616ef..7c766fe48a07 100644
---- a/drivers/media/platform/vsp1/vsp1_drm.c
-+++ b/drivers/media/platform/vsp1/vsp1_drm.c
-@@ -88,6 +88,7 @@ int vsp1_du_setup_lif(struct device *dev, unsigned int pipe_index,
- 	struct vsp1_entity *entity;
- 	struct vsp1_entity *next;
- 	struct vsp1_dl_list *dl;
-+	struct vsp1_dl_body *dlb;
- 	struct v4l2_subdev_format format;
- 	unsigned long flags;
- 	unsigned int i;
-@@ -255,12 +256,13 @@ int vsp1_du_setup_lif(struct device *dev, unsigned int pipe_index,
- 
- 	/* Configure all entities in the pipeline. */
- 	dl = vsp1_dl_list_get(pipe->output->dlm);
-+	dlb = vsp1_dl_list_get_body0(dl);
- 
- 	list_for_each_entry_safe(entity, next, &pipe->entities, list_pipe) {
--		vsp1_entity_route_setup(entity, pipe, dl);
-+		vsp1_entity_route_setup(entity, pipe, dlb);
- 
--		vsp1_entity_prepare(entity, pipe, dl);
--		vsp1_entity_configure(entity, pipe, dl, 0);
-+		vsp1_entity_prepare(entity, pipe, dlb);
-+		vsp1_entity_configure(entity, pipe, dl, dlb, 0);
- 	}
- 
- 	vsp1_dl_list_commit(dl);
-@@ -506,12 +508,16 @@ void vsp1_du_atomic_flush(struct device *dev, unsigned int pipe_index)
- 	struct vsp1_entity *entity;
- 	struct vsp1_entity *next;
- 	struct vsp1_dl_list *dl;
-+	struct vsp1_dl_body *dlb;
- 	unsigned int i;
- 	int ret;
- 
- 	/* Prepare the display list. */
- 	dl = vsp1_dl_list_get(pipe->output->dlm);
- 
-+	/* Retrieve the default DLB from the list */
-+	dlb = vsp1_dl_list_get_body0(dl);
-+
- 	/* Count the number of enabled inputs and sort them by Z-order. */
- 	pipe->num_inputs = 0;
- 
-@@ -573,17 +579,17 @@ void vsp1_du_atomic_flush(struct device *dev, unsigned int pipe_index)
- 		/* Disconnect unused RPFs from the pipeline. */
- 		if (entity->type == VSP1_ENTITY_RPF &&
- 		    !pipe->inputs[entity->index]) {
--			vsp1_dl_list_write(dl, entity->route->reg,
--					   VI6_DPR_NODE_UNUSED);
-+			vsp1_dl_body_write(dlb, entity->route->reg,
-+					       VI6_DPR_NODE_UNUSED);
- 
- 			list_del_init(&entity->list_pipe);
- 
- 			continue;
- 		}
- 
--		vsp1_entity_route_setup(entity, pipe, dl);
--		vsp1_entity_prepare(entity, pipe, dl);
--		vsp1_entity_configure(entity, pipe, dl, 0);
-+		vsp1_entity_route_setup(entity, pipe, dlb);
-+		vsp1_entity_prepare(entity, pipe, dlb);
-+		vsp1_entity_configure(entity, pipe, dl, dlb, 0);
- 	}
- 
- 	vsp1_dl_list_commit(dl);
-diff --git a/drivers/media/platform/vsp1/vsp1_entity.c b/drivers/media/platform/vsp1/vsp1_entity.c
-index 76f240f005af..c9383ff3b069 100644
---- a/drivers/media/platform/vsp1/vsp1_entity.c
-+++ b/drivers/media/platform/vsp1/vsp1_entity.c
-@@ -26,7 +26,7 @@
- 
- void vsp1_entity_route_setup(struct vsp1_entity *entity,
- 			     struct vsp1_pipeline *pipe,
--			     struct vsp1_dl_list *dl)
-+			     struct vsp1_dl_body *dlb)
- {
- 	struct vsp1_entity *source;
- 	u32 route;
-@@ -42,7 +42,7 @@ void vsp1_entity_route_setup(struct vsp1_entity *entity,
- 		smppt = (pipe->output->entity.index << VI6_DPR_SMPPT_TGW_SHIFT)
- 		      | (source->route->output << VI6_DPR_SMPPT_PT_SHIFT);
- 
--		vsp1_dl_list_write(dl, VI6_DPR_HGO_SMPPT, smppt);
-+		vsp1_dl_body_write(dlb, VI6_DPR_HGO_SMPPT, smppt);
- 		return;
- 	} else if (entity->type == VSP1_ENTITY_HGT) {
- 		u32 smppt;
-@@ -55,7 +55,7 @@ void vsp1_entity_route_setup(struct vsp1_entity *entity,
- 		smppt = (pipe->output->entity.index << VI6_DPR_SMPPT_TGW_SHIFT)
- 		      | (source->route->output << VI6_DPR_SMPPT_PT_SHIFT);
- 
--		vsp1_dl_list_write(dl, VI6_DPR_HGT_SMPPT, smppt);
-+		vsp1_dl_body_write(dlb, VI6_DPR_HGT_SMPPT, smppt);
- 		return;
- 	}
- 
-@@ -70,22 +70,22 @@ void vsp1_entity_route_setup(struct vsp1_entity *entity,
- 	 */
- 	if (source->type == VSP1_ENTITY_BRS)
- 		route |= VI6_DPR_ROUTE_BRSSEL;
--	vsp1_dl_list_write(dl, source->route->reg, route);
-+	vsp1_dl_body_write(dlb, source->route->reg, route);
- }
- 
- void vsp1_entity_prepare(struct vsp1_entity *entity, struct vsp1_pipeline *pipe,
--			 struct vsp1_dl_list *dl)
-+			 struct vsp1_dl_body *dlb)
- {
- 	if (entity->ops->prepare)
--		entity->ops->prepare(entity, pipe, dl);
-+		entity->ops->prepare(entity, pipe, dlb);
- }
- 
- void vsp1_entity_configure(struct vsp1_entity *entity,
- 			   struct vsp1_pipeline *pipe, struct vsp1_dl_list *dl,
--			   unsigned int partition)
-+			   struct vsp1_dl_body *dlb, unsigned int partition)
- {
- 	if (entity->ops->configure)
--		entity->ops->configure(entity, pipe, dl, partition);
-+		entity->ops->configure(entity, pipe, dl, dlb, partition);
- }
- 
- /* -----------------------------------------------------------------------------
-diff --git a/drivers/media/platform/vsp1/vsp1_entity.h b/drivers/media/platform/vsp1/vsp1_entity.h
-index 2f33e343ccc6..4eb8afd7e402 100644
---- a/drivers/media/platform/vsp1/vsp1_entity.h
-+++ b/drivers/media/platform/vsp1/vsp1_entity.h
-@@ -19,6 +19,7 @@
- #include <media/v4l2-subdev.h>
- 
- struct vsp1_device;
-+struct vsp1_dl_body;
- struct vsp1_dl_list;
- struct vsp1_pipeline;
- struct vsp1_partition;
-@@ -80,9 +81,10 @@ struct vsp1_route {
- struct vsp1_entity_operations {
- 	void (*destroy)(struct vsp1_entity *);
- 	void (*prepare)(struct vsp1_entity *, struct vsp1_pipeline *,
--			struct vsp1_dl_list *);
-+			struct vsp1_dl_body *);
- 	void (*configure)(struct vsp1_entity *, struct vsp1_pipeline *,
--			  struct vsp1_dl_list *, unsigned int partition);
-+			  struct vsp1_dl_list *, struct vsp1_dl_body *,
-+			  unsigned int partition);
- 	unsigned int (*max_width)(struct vsp1_entity *, struct vsp1_pipeline *);
- 	void (*partition)(struct vsp1_entity *, struct vsp1_pipeline *,
- 			  struct vsp1_partition *, unsigned int,
-@@ -147,12 +149,12 @@ int vsp1_entity_init_cfg(struct v4l2_subdev *subdev,
- 
- void vsp1_entity_route_setup(struct vsp1_entity *entity,
- 			     struct vsp1_pipeline *pipe,
--			     struct vsp1_dl_list *dl);
-+			     struct vsp1_dl_body *dlb);
- void vsp1_entity_prepare(struct vsp1_entity *entity, struct vsp1_pipeline *pipe,
--			 struct vsp1_dl_list *dl);
-+			 struct vsp1_dl_body *dlb);
- void vsp1_entity_configure(struct vsp1_entity *entity,
- 			   struct vsp1_pipeline *pipe, struct vsp1_dl_list *dl,
--			   unsigned int partition);
-+			   struct vsp1_dl_body *dlb, unsigned int partition);
- 
- struct media_pad *vsp1_entity_remote_pad(struct media_pad *pad);
- 
-diff --git a/drivers/media/platform/vsp1/vsp1_hgo.c b/drivers/media/platform/vsp1/vsp1_hgo.c
-index 5705ba67dbc8..6d07e0e2a60c 100644
---- a/drivers/media/platform/vsp1/vsp1_hgo.c
-+++ b/drivers/media/platform/vsp1/vsp1_hgo.c
-@@ -32,10 +32,10 @@ static inline u32 vsp1_hgo_read(struct vsp1_hgo *hgo, u32 reg)
- 	return vsp1_read(hgo->histo.entity.vsp1, reg);
- }
- 
--static inline void vsp1_hgo_write(struct vsp1_hgo *hgo, struct vsp1_dl_list *dl,
--				  u32 reg, u32 data)
-+static inline void vsp1_hgo_write(struct vsp1_hgo *hgo,
-+				  struct vsp1_dl_body *dlb, u32 reg, u32 data)
- {
--	vsp1_dl_list_write(dl, reg, data);
-+	vsp1_dl_body_write(dlb, reg, data);
- }
- 
- /* -----------------------------------------------------------------------------
-@@ -135,7 +135,7 @@ static const struct v4l2_ctrl_config hgo_num_bins_control = {
- 
- static void hgo_prepare(struct vsp1_entity *entity,
- 			struct vsp1_pipeline *pipe,
--			struct vsp1_dl_list *dl)
-+			struct vsp1_dl_body *dlb)
- {
- 	struct vsp1_hgo *hgo = to_hgo(&entity->subdev);
- 	struct v4l2_rect *compose;
-@@ -149,12 +149,12 @@ static void hgo_prepare(struct vsp1_entity *entity,
- 						HISTO_PAD_SINK,
- 						V4L2_SEL_TGT_COMPOSE);
- 
--	vsp1_hgo_write(hgo, dl, VI6_HGO_REGRST, VI6_HGO_REGRST_RCLEA);
-+	vsp1_hgo_write(hgo, dlb, VI6_HGO_REGRST, VI6_HGO_REGRST_RCLEA);
- 
--	vsp1_hgo_write(hgo, dl, VI6_HGO_OFFSET,
-+	vsp1_hgo_write(hgo, dlb, VI6_HGO_OFFSET,
- 		       (crop->left << VI6_HGO_OFFSET_HOFFSET_SHIFT) |
- 		       (crop->top << VI6_HGO_OFFSET_VOFFSET_SHIFT));
--	vsp1_hgo_write(hgo, dl, VI6_HGO_SIZE,
-+	vsp1_hgo_write(hgo, dlb, VI6_HGO_SIZE,
- 		       (crop->width << VI6_HGO_SIZE_HSIZE_SHIFT) |
- 		       (crop->height << VI6_HGO_SIZE_VSIZE_SHIFT));
- 
-@@ -166,7 +166,7 @@ static void hgo_prepare(struct vsp1_entity *entity,
- 
- 	hratio = crop->width * 2 / compose->width / 3;
- 	vratio = crop->height * 2 / compose->height / 3;
--	vsp1_hgo_write(hgo, dl, VI6_HGO_MODE,
-+	vsp1_hgo_write(hgo, dlb, VI6_HGO_MODE,
- 		       (hgo->num_bins == 256 ? VI6_HGO_MODE_STEP : 0) |
- 		       (hgo->max_rgb ? VI6_HGO_MODE_MAXRGB : 0) |
- 		       (hratio << VI6_HGO_MODE_HRATIO_SHIFT) |
-diff --git a/drivers/media/platform/vsp1/vsp1_hgt.c b/drivers/media/platform/vsp1/vsp1_hgt.c
-index bdd1247e090f..b0614b1e033c 100644
---- a/drivers/media/platform/vsp1/vsp1_hgt.c
-+++ b/drivers/media/platform/vsp1/vsp1_hgt.c
-@@ -32,10 +32,10 @@ static inline u32 vsp1_hgt_read(struct vsp1_hgt *hgt, u32 reg)
- 	return vsp1_read(hgt->histo.entity.vsp1, reg);
- }
- 
--static inline void vsp1_hgt_write(struct vsp1_hgt *hgt, struct vsp1_dl_list *dl,
--				  u32 reg, u32 data)
-+static inline void vsp1_hgt_write(struct vsp1_hgt *hgt,
-+				  struct vsp1_dl_body *dlb, u32 reg, u32 data)
- {
--	vsp1_dl_list_write(dl, reg, data);
-+	vsp1_dl_body_write(dlb, reg, data);
- }
- 
- /* -----------------------------------------------------------------------------
-@@ -131,7 +131,7 @@ static const struct v4l2_ctrl_config hgt_hue_areas = {
- 
- static void hgt_prepare(struct vsp1_entity *entity,
- 			struct vsp1_pipeline *pipe,
--			struct vsp1_dl_list *dl)
-+			struct vsp1_dl_body *dlb)
- {
- 	struct vsp1_hgt *hgt = to_hgt(&entity->subdev);
- 	struct v4l2_rect *compose;
-@@ -148,12 +148,12 @@ static void hgt_prepare(struct vsp1_entity *entity,
- 						HISTO_PAD_SINK,
- 						V4L2_SEL_TGT_COMPOSE);
- 
--	vsp1_hgt_write(hgt, dl, VI6_HGT_REGRST, VI6_HGT_REGRST_RCLEA);
-+	vsp1_hgt_write(hgt, dlb, VI6_HGT_REGRST, VI6_HGT_REGRST_RCLEA);
- 
--	vsp1_hgt_write(hgt, dl, VI6_HGT_OFFSET,
-+	vsp1_hgt_write(hgt, dlb, VI6_HGT_OFFSET,
- 		       (crop->left << VI6_HGT_OFFSET_HOFFSET_SHIFT) |
- 		       (crop->top << VI6_HGT_OFFSET_VOFFSET_SHIFT));
--	vsp1_hgt_write(hgt, dl, VI6_HGT_SIZE,
-+	vsp1_hgt_write(hgt, dlb, VI6_HGT_SIZE,
- 		       (crop->width << VI6_HGT_SIZE_HSIZE_SHIFT) |
- 		       (crop->height << VI6_HGT_SIZE_VSIZE_SHIFT));
- 
-@@ -161,7 +161,7 @@ static void hgt_prepare(struct vsp1_entity *entity,
- 	for (i = 0; i < HGT_NUM_HUE_AREAS; ++i) {
- 		lower = hgt->hue_areas[i*2 + 0];
- 		upper = hgt->hue_areas[i*2 + 1];
--		vsp1_hgt_write(hgt, dl, VI6_HGT_HUE_AREA(i),
-+		vsp1_hgt_write(hgt, dlb, VI6_HGT_HUE_AREA(i),
- 			       (lower << VI6_HGT_HUE_AREA_LOWER_SHIFT) |
- 			       (upper << VI6_HGT_HUE_AREA_UPPER_SHIFT));
- 	}
-@@ -169,7 +169,7 @@ static void hgt_prepare(struct vsp1_entity *entity,
- 
- 	hratio = crop->width * 2 / compose->width / 3;
- 	vratio = crop->height * 2 / compose->height / 3;
--	vsp1_hgt_write(hgt, dl, VI6_HGT_MODE,
-+	vsp1_hgt_write(hgt, dlb, VI6_HGT_MODE,
- 		       (hratio << VI6_HGT_MODE_HRATIO_SHIFT) |
- 		       (vratio << VI6_HGT_MODE_VRATIO_SHIFT));
- }
-diff --git a/drivers/media/platform/vsp1/vsp1_hsit.c b/drivers/media/platform/vsp1/vsp1_hsit.c
-index cf96ce2c6da9..d5b454db4f96 100644
---- a/drivers/media/platform/vsp1/vsp1_hsit.c
-+++ b/drivers/media/platform/vsp1/vsp1_hsit.c
-@@ -28,9 +28,9 @@
-  */
- 
- static inline void vsp1_hsit_write(struct vsp1_hsit *hsit,
--				   struct vsp1_dl_list *dl, u32 reg, u32 data)
-+				   struct vsp1_dl_body *dlb, u32 reg, u32 data)
- {
--	vsp1_dl_list_write(dl, reg, data);
-+	vsp1_dl_body_write(dlb, reg, data);
- }
- 
- /* -----------------------------------------------------------------------------
-@@ -133,14 +133,14 @@ static const struct v4l2_subdev_ops hsit_ops = {
- 
- static void hsit_prepare(struct vsp1_entity *entity,
- 			 struct vsp1_pipeline *pipe,
--			 struct vsp1_dl_list *dl)
-+			 struct vsp1_dl_body *dlb)
- {
- 	struct vsp1_hsit *hsit = to_hsit(&entity->subdev);
- 
- 	if (hsit->inverse)
--		vsp1_hsit_write(hsit, dl, VI6_HSI_CTRL, VI6_HSI_CTRL_EN);
-+		vsp1_hsit_write(hsit, dlb, VI6_HSI_CTRL, VI6_HSI_CTRL_EN);
- 	else
--		vsp1_hsit_write(hsit, dl, VI6_HST_CTRL, VI6_HST_CTRL_EN);
-+		vsp1_hsit_write(hsit, dlb, VI6_HST_CTRL, VI6_HST_CTRL_EN);
- }
- 
- static const struct vsp1_entity_operations hsit_entity_ops = {
-diff --git a/drivers/media/platform/vsp1/vsp1_lif.c b/drivers/media/platform/vsp1/vsp1_lif.c
-index 7c6391090844..201922bafb6f 100644
---- a/drivers/media/platform/vsp1/vsp1_lif.c
-+++ b/drivers/media/platform/vsp1/vsp1_lif.c
-@@ -27,10 +27,11 @@
-  * Device Access
-  */
- 
--static inline void vsp1_lif_write(struct vsp1_lif *lif, struct vsp1_dl_list *dl,
--				  u32 reg, u32 data)
-+static inline void vsp1_lif_write(struct vsp1_lif *lif,
-+				  struct vsp1_dl_body *dlb, u32 reg, u32 data)
- {
--	vsp1_dl_list_write(dl, reg + lif->entity.index * VI6_LIF_OFFSET, data);
-+	vsp1_dl_body_write(dlb, reg + lif->entity.index * VI6_LIF_OFFSET,
-+			       data);
- }
- 
- /* -----------------------------------------------------------------------------
-@@ -130,7 +131,7 @@ static const struct v4l2_subdev_ops lif_ops = {
- 
- static void lif_prepare(struct vsp1_entity *entity,
- 			struct vsp1_pipeline *pipe,
--			struct vsp1_dl_list *dl)
-+			struct vsp1_dl_body *dlb)
- {
- 	const struct v4l2_mbus_framefmt *format;
- 	struct vsp1_lif *lif = to_lif(&entity->subdev);
-@@ -143,11 +144,11 @@ static void lif_prepare(struct vsp1_entity *entity,
- 
- 	obth = min(obth, (format->width + 1) / 2 * format->height - 4);
- 
--	vsp1_lif_write(lif, dl, VI6_LIF_CSBTH,
-+	vsp1_lif_write(lif, dlb, VI6_LIF_CSBTH,
- 			(hbth << VI6_LIF_CSBTH_HBTH_SHIFT) |
- 			(lbth << VI6_LIF_CSBTH_LBTH_SHIFT));
- 
--	vsp1_lif_write(lif, dl, VI6_LIF_CTRL,
-+	vsp1_lif_write(lif, dlb, VI6_LIF_CTRL,
- 			(obth << VI6_LIF_CTRL_OBTH_SHIFT) |
- 			(format->code == 0 ? VI6_LIF_CTRL_CFMT : 0) |
- 			VI6_LIF_CTRL_REQSEL | VI6_LIF_CTRL_LIF_EN);
-@@ -160,7 +161,7 @@ static void lif_prepare(struct vsp1_entity *entity,
- 	 */
- 	if ((entity->vsp1->version & VI6_IP_VERSION_MASK) ==
- 	    (VI6_IP_VERSION_MODEL_VSPD_V3 | VI6_IP_VERSION_SOC_V3M))
--		vsp1_lif_write(lif, dl, VI6_LIF_LBA,
-+		vsp1_lif_write(lif, dlb, VI6_LIF_LBA,
- 			       VI6_LIF_LBA_LBA0 |
- 			       (1536 << VI6_LIF_LBA_LBA1_SHIFT));
- }
-diff --git a/drivers/media/platform/vsp1/vsp1_lut.c b/drivers/media/platform/vsp1/vsp1_lut.c
-index 33bfaa1df994..58922ebe7ff8 100644
---- a/drivers/media/platform/vsp1/vsp1_lut.c
-+++ b/drivers/media/platform/vsp1/vsp1_lut.c
-@@ -29,10 +29,10 @@
-  * Device Access
-  */
- 
--static inline void vsp1_lut_write(struct vsp1_lut *lut, struct vsp1_dl_list *dl,
--				  u32 reg, u32 data)
-+static inline void vsp1_lut_write(struct vsp1_lut *lut,
-+				  struct vsp1_dl_body *dlb, u32 reg, u32 data)
- {
--	vsp1_dl_list_write(dl, reg, data);
-+	vsp1_dl_body_write(dlb, reg, data);
- }
- 
- /* -----------------------------------------------------------------------------
-@@ -192,33 +192,34 @@ static const struct v4l2_subdev_ops lut_ops = {
- 
- static void lut_prepare(struct vsp1_entity *entity,
- 			struct vsp1_pipeline *pipe,
--			struct vsp1_dl_list *dl)
-+			struct vsp1_dl_body *dlb)
- {
- 	struct vsp1_lut *lut = to_lut(&entity->subdev);
- 
--	vsp1_lut_write(lut, dl, VI6_LUT_CTRL, VI6_LUT_CTRL_EN);
-+	vsp1_lut_write(lut, dlb, VI6_LUT_CTRL, VI6_LUT_CTRL_EN);
- }
- 
- static void lut_configure(struct vsp1_entity *entity,
- 			  struct vsp1_pipeline *pipe,
- 			  struct vsp1_dl_list *dl,
-+			  struct vsp1_dl_body *dlb,
- 			  unsigned int partition)
- {
- 	struct vsp1_lut *lut = to_lut(&entity->subdev);
--	struct vsp1_dl_body *dlb;
-+	struct vsp1_dl_body *lut_dlb;
- 	unsigned long flags;
- 
- 	if (partition == 0) {
- 		spin_lock_irqsave(&lut->lock, flags);
--		dlb = lut->lut;
-+		lut_dlb = lut->lut;
- 		lut->lut = NULL;
- 		spin_unlock_irqrestore(&lut->lock, flags);
- 
--		if (dlb) {
--			vsp1_dl_list_add_body(dl, dlb);
-+		if (lut_dlb) {
-+			vsp1_dl_list_add_body(dl, lut_dlb);
- 
- 			/* release our local reference */
--			vsp1_dl_body_put(dlb);
-+			vsp1_dl_body_put(lut_dlb);
- 		}
- 	}
- }
-diff --git a/drivers/media/platform/vsp1/vsp1_pipe.c b/drivers/media/platform/vsp1/vsp1_pipe.c
-index 44944ac86d9b..5012643583b6 100644
---- a/drivers/media/platform/vsp1/vsp1_pipe.c
-+++ b/drivers/media/platform/vsp1/vsp1_pipe.c
-@@ -367,7 +367,7 @@ void vsp1_pipeline_frame_end(struct vsp1_pipeline *pipe)
-  * from the input RPF alpha.
-  */
- void vsp1_pipeline_propagate_alpha(struct vsp1_pipeline *pipe,
--				   struct vsp1_dl_list *dl, unsigned int alpha)
-+				   struct vsp1_dl_body *dlb, unsigned int alpha)
- {
- 	if (!pipe->uds)
- 		return;
-@@ -380,7 +380,7 @@ void vsp1_pipeline_propagate_alpha(struct vsp1_pipeline *pipe,
- 	    pipe->uds_input->type == VSP1_ENTITY_BRS)
- 		alpha = 255;
- 
--	vsp1_uds_set_alpha(pipe->uds, dl, alpha);
-+	vsp1_uds_set_alpha(pipe->uds, dlb, alpha);
- }
- 
- /*
-diff --git a/drivers/media/platform/vsp1/vsp1_pipe.h b/drivers/media/platform/vsp1/vsp1_pipe.h
-index dfff9b5685fe..90d29492b9b9 100644
---- a/drivers/media/platform/vsp1/vsp1_pipe.h
-+++ b/drivers/media/platform/vsp1/vsp1_pipe.h
-@@ -161,7 +161,8 @@ bool vsp1_pipeline_ready(struct vsp1_pipeline *pipe);
- void vsp1_pipeline_frame_end(struct vsp1_pipeline *pipe);
- 
- void vsp1_pipeline_propagate_alpha(struct vsp1_pipeline *pipe,
--				   struct vsp1_dl_list *dl, unsigned int alpha);
-+				   struct vsp1_dl_body *dlb,
-+				   unsigned int alpha);
- 
- void vsp1_pipeline_propagate_partition(struct vsp1_pipeline *pipe,
- 				       struct vsp1_partition *partition,
-diff --git a/drivers/media/platform/vsp1/vsp1_rpf.c b/drivers/media/platform/vsp1/vsp1_rpf.c
-index 87a47997a086..79fd86f1b9da 100644
---- a/drivers/media/platform/vsp1/vsp1_rpf.c
-+++ b/drivers/media/platform/vsp1/vsp1_rpf.c
-@@ -29,9 +29,10 @@
-  */
- 
- static inline void vsp1_rpf_write(struct vsp1_rwpf *rpf,
--				  struct vsp1_dl_list *dl, u32 reg, u32 data)
-+				  struct vsp1_dl_body *dlb, u32 reg, u32 data)
- {
--	vsp1_dl_list_write(dl, reg + rpf->entity.index * VI6_RPF_OFFSET, data);
-+	vsp1_dl_body_write(dlb, reg + rpf->entity.index * VI6_RPF_OFFSET,
-+			       data);
- }
- 
- /* -----------------------------------------------------------------------------
-@@ -48,7 +49,7 @@ static const struct v4l2_subdev_ops rpf_ops = {
- 
- static void rpf_prepare(struct vsp1_entity *entity,
- 			struct vsp1_pipeline *pipe,
--			struct vsp1_dl_list *dl)
-+			struct vsp1_dl_body *dlb)
- {
- 	struct vsp1_rwpf *rpf = to_rwpf(&entity->subdev);
- 	const struct vsp1_format_info *fmtinfo = rpf->fmtinfo;
-@@ -67,7 +68,7 @@ static void rpf_prepare(struct vsp1_entity *entity,
- 		pstride |= format->plane_fmt[1].bytesperline
- 			<< VI6_RPF_SRCM_PSTRIDE_C_SHIFT;
- 
--	vsp1_rpf_write(rpf, dl, VI6_RPF_SRCM_PSTRIDE, pstride);
-+	vsp1_rpf_write(rpf, dlb, VI6_RPF_SRCM_PSTRIDE, pstride);
- 
- 	/* Format */
- 	sink_format = vsp1_entity_get_pad_format(&rpf->entity,
-@@ -88,8 +89,8 @@ static void rpf_prepare(struct vsp1_entity *entity,
- 	if (sink_format->code != source_format->code)
- 		infmt |= VI6_RPF_INFMT_CSC;
- 
--	vsp1_rpf_write(rpf, dl, VI6_RPF_INFMT, infmt);
--	vsp1_rpf_write(rpf, dl, VI6_RPF_DSWAP, fmtinfo->swap);
-+	vsp1_rpf_write(rpf, dlb, VI6_RPF_INFMT, infmt);
-+	vsp1_rpf_write(rpf, dlb, VI6_RPF_DSWAP, fmtinfo->swap);
- 
- 	/* Output location */
- 	if (pipe->bru) {
-@@ -103,7 +104,7 @@ static void rpf_prepare(struct vsp1_entity *entity,
- 		top = compose->top;
- 	}
- 
--	vsp1_rpf_write(rpf, dl, VI6_RPF_LOC,
-+	vsp1_rpf_write(rpf, dlb, VI6_RPF_LOC,
- 		       (left << VI6_RPF_LOC_HCOORD_SHIFT) |
- 		       (top << VI6_RPF_LOC_VCOORD_SHIFT));
- 
-@@ -130,7 +131,7 @@ static void rpf_prepare(struct vsp1_entity *entity,
- 	 *
- 	 * In all cases, disable color keying.
- 	 */
--	vsp1_rpf_write(rpf, dl, VI6_RPF_ALPH_SEL, VI6_RPF_ALPH_SEL_AEXT_EXT |
-+	vsp1_rpf_write(rpf, dlb, VI6_RPF_ALPH_SEL, VI6_RPF_ALPH_SEL_AEXT_EXT |
- 		       (fmtinfo->alpha ? VI6_RPF_ALPH_SEL_ASEL_PACKED
- 				       : VI6_RPF_ALPH_SEL_ASEL_FIXED));
- 
-@@ -167,15 +168,14 @@ static void rpf_prepare(struct vsp1_entity *entity,
- 		rpf->mult_alpha = mult;
- 	}
- 
--	vsp1_rpf_write(rpf, dl, VI6_RPF_MSK_CTRL, 0);
--	vsp1_rpf_write(rpf, dl, VI6_RPF_CKEY_CTRL, 0);
-+	vsp1_rpf_write(rpf, dlb, VI6_RPF_MSK_CTRL, 0);
-+	vsp1_rpf_write(rpf, dlb, VI6_RPF_CKEY_CTRL, 0);
- 
- }
- 
- static void rpf_configure(struct vsp1_entity *entity,
--			  struct vsp1_pipeline *pipe,
--			  struct vsp1_dl_list *dl,
--			  unsigned int partition)
-+			  struct vsp1_pipeline *pipe, struct vsp1_dl_list *dl,
-+			  struct vsp1_dl_body *dlb, unsigned int partition)
- {
- 	struct vsp1_rwpf *rpf = to_rwpf(&entity->subdev);
- 	struct vsp1_rwpf_memory mem = rpf->mem;
-@@ -185,15 +185,14 @@ static void rpf_configure(struct vsp1_entity *entity,
- 	struct v4l2_rect crop;
- 
- 	if (partition == 0) {
--		vsp1_rpf_write(rpf, dl, VI6_RPF_VRTCOL_SET,
-+		vsp1_rpf_write(rpf, dlb, VI6_RPF_VRTCOL_SET,
- 			       rpf->alpha << VI6_RPF_VRTCOL_SET_LAYA_SHIFT);
--		vsp1_rpf_write(rpf, dl, VI6_RPF_MULT_ALPHA, rpf->mult_alpha |
-+		vsp1_rpf_write(rpf, dlb, VI6_RPF_MULT_ALPHA, rpf->mult_alpha |
- 			       (rpf->alpha << VI6_RPF_MULT_ALPHA_RATIO_SHIFT));
- 
--		vsp1_pipeline_propagate_alpha(pipe, dl, rpf->alpha);
-+		vsp1_pipeline_propagate_alpha(pipe, dlb, rpf->alpha);
- 	}
- 
--
- 	/*
- 	 * Source size and crop offsets.
- 	 *
-@@ -219,10 +218,10 @@ static void rpf_configure(struct vsp1_entity *entity,
- 		crop.left += pipe->partition->rpf.left;
- 	}
- 
--	vsp1_rpf_write(rpf, dl, VI6_RPF_SRC_BSIZE,
-+	vsp1_rpf_write(rpf, dlb, VI6_RPF_SRC_BSIZE,
- 		       (crop.width << VI6_RPF_SRC_BSIZE_BHSIZE_SHIFT) |
- 		       (crop.height << VI6_RPF_SRC_BSIZE_BVSIZE_SHIFT));
--	vsp1_rpf_write(rpf, dl, VI6_RPF_SRC_ESIZE,
-+	vsp1_rpf_write(rpf, dlb, VI6_RPF_SRC_ESIZE,
- 		       (crop.width << VI6_RPF_SRC_ESIZE_EHSIZE_SHIFT) |
- 		       (crop.height << VI6_RPF_SRC_ESIZE_EVSIZE_SHIFT));
- 
-@@ -247,9 +246,9 @@ static void rpf_configure(struct vsp1_entity *entity,
- 	    fmtinfo->swap_uv)
- 		swap(mem.addr[1], mem.addr[2]);
- 
--	vsp1_rpf_write(rpf, dl, VI6_RPF_SRCM_ADDR_Y, mem.addr[0]);
--	vsp1_rpf_write(rpf, dl, VI6_RPF_SRCM_ADDR_C0, mem.addr[1]);
--	vsp1_rpf_write(rpf, dl, VI6_RPF_SRCM_ADDR_C1, mem.addr[2]);
-+	vsp1_rpf_write(rpf, dlb, VI6_RPF_SRCM_ADDR_Y, mem.addr[0]);
-+	vsp1_rpf_write(rpf, dlb, VI6_RPF_SRCM_ADDR_C0, mem.addr[1]);
-+	vsp1_rpf_write(rpf, dlb, VI6_RPF_SRCM_ADDR_C1, mem.addr[2]);
- }
- 
- static void rpf_partition(struct vsp1_entity *entity,
-diff --git a/drivers/media/platform/vsp1/vsp1_sru.c b/drivers/media/platform/vsp1/vsp1_sru.c
-index 0a24bc59bc2f..1f938b6d6d45 100644
---- a/drivers/media/platform/vsp1/vsp1_sru.c
-+++ b/drivers/media/platform/vsp1/vsp1_sru.c
-@@ -28,10 +28,10 @@
-  * Device Access
-  */
- 
--static inline void vsp1_sru_write(struct vsp1_sru *sru, struct vsp1_dl_list *dl,
--				  u32 reg, u32 data)
-+static inline void vsp1_sru_write(struct vsp1_sru *sru,
-+				  struct vsp1_dl_body *dlb, u32 reg, u32 data)
- {
--	vsp1_dl_list_write(dl, reg, data);
-+	vsp1_dl_body_write(dlb, reg, data);
- }
- 
- /* -----------------------------------------------------------------------------
-@@ -273,7 +273,7 @@ static const struct v4l2_subdev_ops sru_ops = {
- 
- static void sru_prepare(struct vsp1_entity *entity,
- 			struct vsp1_pipeline *pipe,
--			struct vsp1_dl_list *dl)
-+			struct vsp1_dl_body *dlb)
- {
- 	const struct vsp1_sru_param *param;
- 	struct vsp1_sru *sru = to_sru(&entity->subdev);
-@@ -299,9 +299,9 @@ static void sru_prepare(struct vsp1_entity *entity,
- 
- 	ctrl0 |= param->ctrl0;
- 
--	vsp1_sru_write(sru, dl, VI6_SRU_CTRL0, ctrl0);
--	vsp1_sru_write(sru, dl, VI6_SRU_CTRL1, VI6_SRU_CTRL1_PARAM5);
--	vsp1_sru_write(sru, dl, VI6_SRU_CTRL2, param->ctrl2);
-+	vsp1_sru_write(sru, dlb, VI6_SRU_CTRL0, ctrl0);
-+	vsp1_sru_write(sru, dlb, VI6_SRU_CTRL1, VI6_SRU_CTRL1_PARAM5);
-+	vsp1_sru_write(sru, dlb, VI6_SRU_CTRL2, param->ctrl2);
- }
- 
- static unsigned int sru_max_width(struct vsp1_entity *entity,
-diff --git a/drivers/media/platform/vsp1/vsp1_uds.c b/drivers/media/platform/vsp1/vsp1_uds.c
-index 84be962a33b1..7afcb2ae30a5 100644
---- a/drivers/media/platform/vsp1/vsp1_uds.c
-+++ b/drivers/media/platform/vsp1/vsp1_uds.c
-@@ -31,22 +31,23 @@
-  * Device Access
-  */
- 
--static inline void vsp1_uds_write(struct vsp1_uds *uds, struct vsp1_dl_list *dl,
--				  u32 reg, u32 data)
-+static inline void vsp1_uds_write(struct vsp1_uds *uds,
-+				  struct vsp1_dl_body *dlb, u32 reg, u32 data)
- {
--	vsp1_dl_list_write(dl, reg + uds->entity.index * VI6_UDS_OFFSET, data);
-+	vsp1_dl_body_write(dlb, reg + uds->entity.index * VI6_UDS_OFFSET,
-+			       data);
- }
- 
- /* -----------------------------------------------------------------------------
-  * Scaling Computation
-  */
- 
--void vsp1_uds_set_alpha(struct vsp1_entity *entity, struct vsp1_dl_list *dl,
-+void vsp1_uds_set_alpha(struct vsp1_entity *entity, struct vsp1_dl_body *dlb,
- 			unsigned int alpha)
- {
- 	struct vsp1_uds *uds = to_uds(&entity->subdev);
- 
--	vsp1_uds_write(uds, dl, VI6_UDS_ALPVAL,
-+	vsp1_uds_write(uds, dlb, VI6_UDS_ALPVAL,
- 		       alpha << VI6_UDS_ALPVAL_VAL0_SHIFT);
- }
- 
-@@ -261,7 +262,7 @@ static const struct v4l2_subdev_ops uds_ops = {
- 
- static void uds_prepare(struct vsp1_entity *entity,
- 			struct vsp1_pipeline *pipe,
--			struct vsp1_dl_list *dl)
-+			struct vsp1_dl_body *dlb)
- {
- 	struct vsp1_uds *uds = to_uds(&entity->subdev);
- 	const struct v4l2_mbus_framefmt *output;
-@@ -290,18 +291,18 @@ static void uds_prepare(struct vsp1_entity *entity,
- 	else
- 		multitap = true;
- 
--	vsp1_uds_write(uds, dl, VI6_UDS_CTRL,
-+	vsp1_uds_write(uds, dlb, VI6_UDS_CTRL,
- 		       (uds->scale_alpha ? VI6_UDS_CTRL_AON : 0) |
- 		       (multitap ? VI6_UDS_CTRL_BC : 0));
- 
--	vsp1_uds_write(uds, dl, VI6_UDS_PASS_BWIDTH,
-+	vsp1_uds_write(uds, dlb, VI6_UDS_PASS_BWIDTH,
- 		       (uds_passband_width(hscale)
- 				<< VI6_UDS_PASS_BWIDTH_H_SHIFT) |
- 		       (uds_passband_width(vscale)
- 				<< VI6_UDS_PASS_BWIDTH_V_SHIFT));
- 
- 	/* Set the scaling ratios. */
--	vsp1_uds_write(uds, dl, VI6_UDS_SCALE,
-+	vsp1_uds_write(uds, dlb, VI6_UDS_SCALE,
- 		       (hscale << VI6_UDS_SCALE_HFRAC_SHIFT) |
- 		       (vscale << VI6_UDS_SCALE_VFRAC_SHIFT));
- }
-@@ -309,6 +310,7 @@ static void uds_prepare(struct vsp1_entity *entity,
- static void uds_configure(struct vsp1_entity *entity,
- 			  struct vsp1_pipeline *pipe,
- 			  struct vsp1_dl_list *dl,
-+			  struct vsp1_dl_body *dlb,
- 			  unsigned int pindex)
- {
- 	struct vsp1_uds *uds = to_uds(&entity->subdev);
-@@ -319,13 +321,13 @@ static void uds_configure(struct vsp1_entity *entity,
- 					    UDS_PAD_SOURCE);
- 
- 	/* Input size clipping */
--	vsp1_uds_write(uds, dl, VI6_UDS_HSZCLIP, VI6_UDS_HSZCLIP_HCEN |
-+	vsp1_uds_write(uds, dlb, VI6_UDS_HSZCLIP, VI6_UDS_HSZCLIP_HCEN |
- 		       (0 << VI6_UDS_HSZCLIP_HCL_OFST_SHIFT) |
- 		       (partition->uds_sink.width
- 				<< VI6_UDS_HSZCLIP_HCL_SIZE_SHIFT));
- 
- 	/* Output size clipping */
--	vsp1_uds_write(uds, dl, VI6_UDS_CLIP_SIZE,
-+	vsp1_uds_write(uds, dlb, VI6_UDS_CLIP_SIZE,
- 		       (partition->uds_source.width
- 				<< VI6_UDS_CLIP_SIZE_HSIZE_SHIFT) |
- 		       (output->height
-diff --git a/drivers/media/platform/vsp1/vsp1_uds.h b/drivers/media/platform/vsp1/vsp1_uds.h
-index 7bf3cdcffc65..d99997f3b28d 100644
---- a/drivers/media/platform/vsp1/vsp1_uds.h
-+++ b/drivers/media/platform/vsp1/vsp1_uds.h
-@@ -35,7 +35,7 @@ static inline struct vsp1_uds *to_uds(struct v4l2_subdev *subdev)
- 
- struct vsp1_uds *vsp1_uds_create(struct vsp1_device *vsp1, unsigned int index);
- 
--void vsp1_uds_set_alpha(struct vsp1_entity *uds, struct vsp1_dl_list *dl,
-+void vsp1_uds_set_alpha(struct vsp1_entity *uds, struct vsp1_dl_body *dlb,
- 			unsigned int alpha);
- 
- #endif /* __VSP1_UDS_H__ */
-diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
-index bd5403f24dda..9c9dcb7daecf 100644
---- a/drivers/media/platform/vsp1/vsp1_video.c
-+++ b/drivers/media/platform/vsp1/vsp1_video.c
-@@ -383,11 +383,12 @@ static void vsp1_video_pipeline_run_partition(struct vsp1_pipeline *pipe,
- 					      unsigned int partition)
- {
- 	struct vsp1_entity *entity;
-+	struct vsp1_dl_body *dlb = vsp1_dl_list_get_body0(dl);
- 
- 	pipe->partition = &pipe->part_table[partition];
- 
- 	list_for_each_entry(entity, &pipe->entities, list_pipe)
--		vsp1_entity_configure(entity, pipe, dl, partition);
-+		vsp1_entity_configure(entity, pipe, dl, dlb, partition);
- }
- 
- static void vsp1_video_pipeline_run(struct vsp1_pipeline *pipe)
-@@ -790,6 +791,7 @@ static void vsp1_video_buffer_queue(struct vb2_buffer *vb)
- static int vsp1_video_setup_pipeline(struct vsp1_pipeline *pipe)
- {
- 	struct vsp1_entity *entity;
-+	struct vsp1_dl_body *dlb;
- 	int ret;
- 
- 	/* Determine this pipelines sizes for image partitioning support. */
-@@ -802,6 +804,9 @@ static int vsp1_video_setup_pipeline(struct vsp1_pipeline *pipe)
- 	if (!pipe->dl)
- 		return -ENOMEM;
- 
-+	/* Retrieve the default DLB from the list */
-+	dlb = vsp1_dl_list_get_body0(pipe->dl);
-+
- 	if (pipe->uds) {
- 		struct vsp1_uds *uds = to_uds(&pipe->uds->subdev);
- 
-@@ -824,8 +829,8 @@ static int vsp1_video_setup_pipeline(struct vsp1_pipeline *pipe)
- 	}
- 
- 	list_for_each_entry(entity, &pipe->entities, list_pipe) {
--		vsp1_entity_route_setup(entity, pipe, pipe->dl);
--		vsp1_entity_prepare(entity, pipe, pipe->dl);
-+		vsp1_entity_route_setup(entity, pipe, dlb);
-+		vsp1_entity_prepare(entity, pipe, dlb);
- 	}
- 
- 	return 0;
-diff --git a/drivers/media/platform/vsp1/vsp1_wpf.c b/drivers/media/platform/vsp1/vsp1_wpf.c
-index d6dd7e783d27..2b5c006ecb54 100644
---- a/drivers/media/platform/vsp1/vsp1_wpf.c
-+++ b/drivers/media/platform/vsp1/vsp1_wpf.c
-@@ -31,9 +31,10 @@
-  */
- 
- static inline void vsp1_wpf_write(struct vsp1_rwpf *wpf,
--				  struct vsp1_dl_list *dl, u32 reg, u32 data)
-+				  struct vsp1_dl_body *dlb, u32 reg, u32 data)
- {
--	vsp1_dl_list_write(dl, reg + wpf->entity.index * VI6_WPF_OFFSET, data);
-+	vsp1_dl_body_write(dlb, reg + wpf->entity.index * VI6_WPF_OFFSET,
-+			       data);
- }
- 
- /* -----------------------------------------------------------------------------
-@@ -238,7 +239,7 @@ static void vsp1_wpf_destroy(struct vsp1_entity *entity)
- 
- static void wpf_prepare(struct vsp1_entity *entity,
- 			struct vsp1_pipeline *pipe,
--			struct vsp1_dl_list *dl)
-+			struct vsp1_dl_body *dlb)
- {
- 	struct vsp1_rwpf *wpf = to_rwpf(&entity->subdev);
- 	struct vsp1_device *vsp1 = wpf->entity.vsp1;
-@@ -272,17 +273,17 @@ static void wpf_prepare(struct vsp1_entity *entity,
- 			outfmt |= VI6_WPF_OUTFMT_SPUVS;
- 
- 		/* Destination stride and byte swapping. */
--		vsp1_wpf_write(wpf, dl, VI6_WPF_DSTM_STRIDE_Y,
-+		vsp1_wpf_write(wpf, dlb, VI6_WPF_DSTM_STRIDE_Y,
- 			       format->plane_fmt[0].bytesperline);
- 		if (format->num_planes > 1)
--			vsp1_wpf_write(wpf, dl, VI6_WPF_DSTM_STRIDE_C,
-+			vsp1_wpf_write(wpf, dlb, VI6_WPF_DSTM_STRIDE_C,
- 				       format->plane_fmt[1].bytesperline);
- 
--		vsp1_wpf_write(wpf, dl, VI6_WPF_DSWAP, fmtinfo->swap);
-+		vsp1_wpf_write(wpf, dlb, VI6_WPF_DSWAP, fmtinfo->swap);
- 
- 		if (vsp1->info->features & VSP1_HAS_WPF_HFLIP &&
- 		    wpf->entity.index == 0)
--			vsp1_wpf_write(wpf, dl, VI6_WPF_ROT_CTRL,
-+			vsp1_wpf_write(wpf, dlb, VI6_WPF_ROT_CTRL,
- 				       VI6_WPF_ROT_CTRL_LN16 |
- 				       (256 << VI6_WPF_ROT_CTRL_LMEM_WD_SHIFT));
- 	}
-@@ -292,10 +293,10 @@ static void wpf_prepare(struct vsp1_entity *entity,
- 
- 	wpf->outfmt = outfmt;
- 
--	vsp1_dl_list_write(dl, VI6_DPR_WPF_FPORCH(wpf->entity.index),
--			   VI6_DPR_WPF_FPORCH_FP_WPFN);
-+	vsp1_dl_body_write(dlb, VI6_DPR_WPF_FPORCH(wpf->entity.index),
-+			       VI6_DPR_WPF_FPORCH_FP_WPFN);
- 
--	vsp1_dl_list_write(dl, VI6_WPF_WRBCK_CTRL, 0);
-+	vsp1_dl_body_write(dlb, VI6_WPF_WRBCK_CTRL, 0);
- 
- 	/*
- 	 * Sources. If the pipeline has a single input and BRU is not used,
-@@ -319,17 +320,18 @@ static void wpf_prepare(struct vsp1_entity *entity,
- 			? VI6_WPF_SRCRPF_VIRACT_MST
- 			: VI6_WPF_SRCRPF_VIRACT2_MST;
- 
--	vsp1_wpf_write(wpf, dl, VI6_WPF_SRCRPF, srcrpf);
-+	vsp1_wpf_write(wpf, dlb, VI6_WPF_SRCRPF, srcrpf);
- 
- 	/* Enable interrupts */
--	vsp1_dl_list_write(dl, VI6_WPF_IRQ_STA(wpf->entity.index), 0);
--	vsp1_dl_list_write(dl, VI6_WPF_IRQ_ENB(wpf->entity.index),
--			   VI6_WFP_IRQ_ENB_DFEE);
-+	vsp1_dl_body_write(dlb, VI6_WPF_IRQ_STA(wpf->entity.index), 0);
-+	vsp1_dl_body_write(dlb, VI6_WPF_IRQ_ENB(wpf->entity.index),
-+			       VI6_WFP_IRQ_ENB_DFEE);
- }
- 
- static void wpf_configure(struct vsp1_entity *entity,
- 			  struct vsp1_pipeline *pipe,
- 			  struct vsp1_dl_list *dl,
-+			  struct vsp1_dl_body *dlb,
- 			  unsigned int partition)
- {
- 	struct vsp1_rwpf *wpf = to_rwpf(&entity->subdev);
-@@ -363,7 +365,7 @@ static void wpf_configure(struct vsp1_entity *entity,
- 		if (wpf->flip.active & BIT(WPF_CTRL_HFLIP))
- 			outfmt |= VI6_WPF_OUTFMT_HFLP;
- 
--		vsp1_wpf_write(wpf, dl, VI6_WPF_OUTFMT, outfmt);
-+		vsp1_wpf_write(wpf, dlb, VI6_WPF_OUTFMT, outfmt);
- 	}
- 
- 	sink_format = vsp1_entity_get_pad_format(&wpf->entity,
-@@ -379,10 +381,10 @@ static void wpf_configure(struct vsp1_entity *entity,
- 	if (pipe->partitions > 1)
- 		width = pipe->partition->wpf.width;
- 
--	vsp1_wpf_write(wpf, dl, VI6_WPF_HSZCLIP, VI6_WPF_SZCLIP_EN |
-+	vsp1_wpf_write(wpf, dlb, VI6_WPF_HSZCLIP, VI6_WPF_SZCLIP_EN |
- 		       (0 << VI6_WPF_SZCLIP_OFST_SHIFT) |
- 		       (width << VI6_WPF_SZCLIP_SIZE_SHIFT));
--	vsp1_wpf_write(wpf, dl, VI6_WPF_VSZCLIP, VI6_WPF_SZCLIP_EN |
-+	vsp1_wpf_write(wpf, dlb, VI6_WPF_VSZCLIP, VI6_WPF_SZCLIP_EN |
- 		       (0 << VI6_WPF_SZCLIP_OFST_SHIFT) |
- 		       (height << VI6_WPF_SZCLIP_SIZE_SHIFT));
- 
-@@ -474,9 +476,9 @@ static void wpf_configure(struct vsp1_entity *entity,
- 	    fmtinfo->swap_uv)
- 		swap(mem.addr[1], mem.addr[2]);
- 
--	vsp1_wpf_write(wpf, dl, VI6_WPF_DSTM_ADDR_Y, mem.addr[0]);
--	vsp1_wpf_write(wpf, dl, VI6_WPF_DSTM_ADDR_C0, mem.addr[1]);
--	vsp1_wpf_write(wpf, dl, VI6_WPF_DSTM_ADDR_C1, mem.addr[2]);
-+	vsp1_wpf_write(wpf, dlb, VI6_WPF_DSTM_ADDR_Y, mem.addr[0]);
-+	vsp1_wpf_write(wpf, dlb, VI6_WPF_DSTM_ADDR_C0, mem.addr[1]);
-+	vsp1_wpf_write(wpf, dlb, VI6_WPF_DSTM_ADDR_C1, mem.addr[2]);
- }
- 
- static unsigned int wpf_max_width(struct vsp1_entity *entity,
--- 
-git-series 0.9.1
+	Hans
