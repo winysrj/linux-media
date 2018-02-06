@@ -1,87 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f194.google.com ([209.85.220.194]:32849 "EHLO
-        mail-qk0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1750805AbeBWM0L (ORCPT
+Received: from gateway24.websitewelcome.com ([192.185.50.66]:27593 "EHLO
+        gateway24.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1752286AbeBFRKK (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 23 Feb 2018 07:26:11 -0500
+        Tue, 6 Feb 2018 12:10:10 -0500
+Received: from cm14.websitewelcome.com (cm14.websitewelcome.com [100.42.49.7])
+        by gateway24.websitewelcome.com (Postfix) with ESMTP id 12F85E9AD5
+        for <linux-media@vger.kernel.org>; Tue,  6 Feb 2018 10:47:39 -0600 (CST)
+Date: Tue, 6 Feb 2018 10:47:37 -0600
+From: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
+To: Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        "Gustavo A. R. Silva" <garsilva@embeddedor.com>
+Subject: [PATCH v3 3/8] i2c: max2175: use 64-bit arithmetic instead of 32-bit
+Message-ID: <fdeffeff7451f52fd903e4773c6b10fe21f707e4.1517929336.git.gustavo@embeddedor.com>
+References: <cover.1517929336.git.gustavo@embeddedor.com>
 MIME-Version: 1.0
-In-Reply-To: <20180223110207.GA14446@saruman>
-References: <20180221233825.10024-1-jhogan@kernel.org> <CAK8P3a3CuNn-dSE33mhEZ9-iM7NOE3Y4AiJzpmF6ob5wrMuZpg@mail.gmail.com>
- <20180223110207.GA14446@saruman>
-From: Arnd Bergmann <arnd@arndb.de>
-Date: Fri, 23 Feb 2018 13:26:09 +0100
-Message-ID: <CAK8P3a12RKQvcmnPRHcDkDKq+uMWP79SuRdDz3_vi9YRM==GVw@mail.gmail.com>
-Subject: Re: [PATCH 00/13] Remove metag architecture
-To: James Hogan <jhogan@kernel.org>
-Cc: "open list:METAG ARCHITECTURE" <linux-metag@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Guenter Roeck <linux@roeck-us.net>,
-        Jonathan Corbet <corbet@lwn.net>,
-        Steven Rostedt <rostedt@goodmis.org>,
-        Ingo Molnar <mingo@redhat.com>,
-        Peter Zijlstra <peterz@infradead.org>,
-        Arnaldo Carvalho de Melo <acme@kernel.org>,
-        Alexander Shishkin <alexander.shishkin@linux.intel.com>,
-        Jiri Olsa <jolsa@redhat.com>,
-        Namhyung Kim <namhyung@kernel.org>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Jason Cooper <jason@lakedaemon.net>,
-        Marc Zyngier <marc.zyngier@arm.com>,
-        Daniel Lezcano <daniel.lezcano@linaro.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Jiri Slaby <jslaby@suse.com>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        Wim Van Sebroeck <wim@linux-watchdog.org>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Wolfram Sang <wsa@the-dreams.de>,
-        "open list:DOCUMENTATION" <linux-doc@vger.kernel.org>,
-        Linux-MM <linux-mm@kvack.org>, linux-gpio@vger.kernel.org,
-        linux-watchdog@vger.kernel.org,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        linux-i2c@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <cover.1517929336.git.gustavo@embeddedor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Feb 23, 2018 at 12:02 PM, James Hogan <jhogan@kernel.org> wrote:
-> On Fri, Feb 23, 2018 at 11:26:58AM +0100, Arnd Bergmann wrote:
->> On Thu, Feb 22, 2018 at 12:38 AM, James Hogan <jhogan@kernel.org> wrote:
->> > So lets call it a day and drop the Meta architecture port from the
->> > kernel. RIP Meta.
->>
->> Since I brought up the architecture removal independently, I could
->> pick this up into a git tree that also has the removal of some of the
->> other architectures.
->>
->> I see your tree is part of linux-next, so you could also just put it
->> in there and send a pull request at the merge window if you prefer.
->>
->> The only real reason I see for a shared git tree would be to avoid
->> conflicts when we touch the same Kconfig files or #ifdefs in driver,
->> but Meta only appears in
->>
->> config FRAME_POINTER
->>         bool "Compile the kernel with frame pointers"
->>         depends on DEBUG_KERNEL && \
->>                 (CRIS || M68K || FRV || UML || \
->>                  SUPERH || BLACKFIN || MN10300 || METAG) || \
->>                 ARCH_WANT_FRAME_POINTERS
->>
->> and
->>
->> include/trace/events/mmflags.h:#elif defined(CONFIG_PARISC) ||
->> defined(CONFIG_METAG) || defined(CONFIG_IA64)
->>
->> so there is little risk.
->
-> I'm happy to put v2 in linux-next now (only patch 4 has changed, I just
-> sent an updated version), and send you a pull request early next week so
-> you can take it from there. The patches can't be directly applied with
-> git-am anyway thanks to the -D option to make them more concise.
->
-> Sound okay?
+Add suffix LL to constant 2 in order to give the compiler complete
+information about the proper arithmetic to use. Notice that this
+constant is used in a context that expects an expression of type
+s64 (64 bits, signed).
 
-Yes, sounds good, thanks!
+The expression 2 * (clock_rate - abs_nco_freq) is currently being
+evaluated using 32-bit arithmetic.
 
-       Arnd
+Addresses-Coverity-ID: 1446589 ("Unintentional integer overflow")
+Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
+---
+Changes in v2:
+ - Update subject and changelog to better reflect the proposed code changes.
+ - Add suffix LL to constant instead of casting a variable.
+
+Changes in v3:
+ - Mention the specific Coverity report in the commit message.
+
+ drivers/media/i2c/max2175.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/media/i2c/max2175.c b/drivers/media/i2c/max2175.c
+index 2f1966b..87cba15 100644
+--- a/drivers/media/i2c/max2175.c
++++ b/drivers/media/i2c/max2175.c
+@@ -643,7 +643,7 @@ static int max2175_set_nco_freq(struct max2175 *ctx, s32 nco_freq)
+ 	if (abs_nco_freq < clock_rate / 2) {
+ 		nco_val_desired = 2 * nco_freq;
+ 	} else {
+-		nco_val_desired = 2 * (clock_rate - abs_nco_freq);
++		nco_val_desired = 2LL * (clock_rate - abs_nco_freq);
+ 		if (nco_freq < 0)
+ 			nco_val_desired = -nco_val_desired;
+ 	}
+-- 
+2.7.4
