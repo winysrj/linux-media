@@ -1,79 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:56983 "EHLO
-        mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753002AbeBSPpG (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 19 Feb 2018 10:45:06 -0500
-From: Maciej Purski <m.purski@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org,
-        dri-devel@lists.freedesktop.org, linux-kernel@vger.kernel.org,
-        linux-clk@vger.kernel.org
-Cc: Michael Turquette <mturquette@baylibre.com>,
-        Stephen Boyd <sboyd@kernel.org>,
-        Inki Dae <inki.dae@samsung.com>,
-        Joonyoung Shim <jy0922.shim@samsung.com>,
-        Seung-Woo Kim <sw0312.kim@samsung.com>,
-        Kyungmin Park <kyungmin.park@samsung.com>,
-        David Airlie <airlied@linux.ie>, Kukjin Kim <kgene@kernel.org>,
-        Krzysztof Kozlowski <krzk@kernel.org>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
-        Jacek Anaszewski <jacek.anaszewski@gmail.com>,
-        Kamil Debski <kamil@wypas.org>,
-        Jeongtae Park <jtp.park@samsung.com>,
-        Andrzej Hajda <a.hajda@samsung.com>,
-        Russell King <linux@armlinux.org.uk>,
-        Sylwester Nawrocki <s.nawrocki@samsung.com>,
-        Thibault Saunier <thibault.saunier@osg.samsung.com>,
-        Javier Martinez Canillas <javier@osg.samsung.com>,
-        Hans Verkuil <hansverk@cisco.com>,
-        Hoegeun Kwon <hoegeun.kwon@samsung.com>,
-        Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Maciej Purski <m.purski@samsung.com>
-Subject: [PATCH 0/8] Use clk bulk API in exynos5433 drivers
-Date: Mon, 19 Feb 2018 16:43:58 +0100
-Message-id: <1519055046-2399-1-git-send-email-m.purski@samsung.com>
-References: <CGME20180219154456eucas1p178a82b3bb643028dc7c99ccca9c6eaca@eucas1p1.samsung.com>
+Received: from sauhun.de ([88.99.104.3]:37952 "EHLO pokefinder.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750990AbeBFNxM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 6 Feb 2018 08:53:12 -0500
+Date: Tue, 6 Feb 2018 14:53:10 +0100
+From: Wolfram Sang <wsa@the-dreams.de>
+To: Julia Lawall <julia.lawall@lip6.fr>
+Cc: Dan Carpenter <dan.carpenter@oracle.com>,
+        Wolfram Sang <wsa+renesas@sang-engineering.com>,
+        linux-kernel@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
+        dri-devel@lists.freedesktop.org,
+        linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+        linux-samsung-soc@vger.kernel.org, netdev@vger.kernel.org
+Subject: Re: [PATCH 0/4] tree-wide: fix comparison to bitshift when dealing
+ with a mask
+Message-ID: <20180206135310.deiaz55xemc26xn4@ninjato>
+References: <20180205201002.23621-1-wsa+renesas@sang-engineering.com>
+ <20180206131044.oso33fvv553trrd7@mwanda>
+ <alpine.DEB.2.20.1802061414340.3306@hadrien>
+ <20180206132335.luut6em3kut7f7ej@mwanda>
+ <alpine.DEB.2.20.1802061439110.3306@hadrien>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha256;
+        protocol="application/pgp-signature"; boundary="nv4vdnzmkzj6i6tc"
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.20.1802061439110.3306@hadrien>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
 
-the main goal of this patchset is to simplify clk management code in
-exynos5433 drivers by using clk bulk API. In order to achieve that,
-patch #1 adds a new function to clk core, which dynamically allocates
-clk_bulk_data array and fills its id fields.
+--nv4vdnzmkzj6i6tc
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Best regards,
+Hi Julia,
 
-Maciej Purski
+> and got the results below.  I can make a version for the kernel shortly.
 
-Maciej Purski (8):
-  clk: Add clk_bulk_alloc functions
-  media: s5p-jpeg: Use bulk clk API
-  drm/exynos/decon: Use clk bulk API
-  drm/exynos/dsi: Use clk bulk API
-  drm/exynos: mic: Use clk bulk API
-  drm/exynos/hdmi: Use clk bulk API
-  [media] exynos-gsc: Use clk bulk API
-  [media] s5p-mfc: Use clk bulk API
+It should probably take care of right-shifting, too?
 
- drivers/clk/clk-bulk.c                          | 16 +++++
- drivers/clk/clk-devres.c                        | 37 +++++++++--
- drivers/gpu/drm/exynos/exynos5433_drm_decon.c   | 50 +++++----------
- drivers/gpu/drm/exynos/exynos_drm_dsi.c         | 68 +++++++++-----------
- drivers/gpu/drm/exynos/exynos_drm_mic.c         | 44 +++++--------
- drivers/gpu/drm/exynos/exynos_hdmi.c            | 85 ++++++++-----------------
- drivers/media/platform/exynos-gsc/gsc-core.c    | 55 ++++++----------
- drivers/media/platform/exynos-gsc/gsc-core.h    |  2 +-
- drivers/media/platform/s5p-jpeg/jpeg-core.c     | 45 ++++++-------
- drivers/media/platform/s5p-jpeg/jpeg-core.h     |  2 +-
- drivers/media/platform/s5p-mfc/s5p_mfc_common.h |  6 +-
- drivers/media/platform/s5p-mfc/s5p_mfc_pm.c     | 41 +++++-------
- include/linux/clk.h                             | 64 +++++++++++++++++++
- 13 files changed, 263 insertions(+), 252 deletions(-)
+Thanks,
 
--- 
-2.7.4
+   Wolfram
+
+
+--nv4vdnzmkzj6i6tc
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAABCAAdFiEEOZGx6rniZ1Gk92RdFA3kzBSgKbYFAlp5s0IACgkQFA3kzBSg
+KbZnMhAAtcrOwmDhNVIvu1qLxCpz0Xl6aCJJhY0/KEasBtIo5m/FnhexSgHvEEob
+O1I2LBjvA4zVL97MC/HFwVQswap8pi9UiGitOE/eq1rKeUa6htla/YLFEXKCesAx
+hj/W26/hc755ZjIzo5uQN9/sno6YV2E9nVeEvW+9mtnWyglwek1cT6Lhd1Oaqt3N
+c86qDxwPgSAiu20rwkb6HSVoRDFGzLYJXgnlgKajQorK05iIkosiUvwOYVj8pjR7
+JvygMZBIE4Qo3jjVCyDZ7rWiWWUdjV3Suk54TPuttPOEzcyyFMy72lWyP6liN9CD
+qVRLx7q8eRtOJux+rrm/HwlRjL+rFFTq2mplbhZPDsW2Pzwj/KjSqdXSQa1DGael
+uAREsa2dfWTtrXasUfvsFYNIIdeaFuCvjXzLP0QTQG52NG/80Lr+/NzDuIXKz573
+xo4IgwA3WLGPcglZRjDpYyjyHxjY2gx4aV+qoMo8Pjyz+hqeggUb2mMRHDJ1p60+
+4DxF+TjefKuwBhcZ4UQOAOo2rU8Cm0ToJDx5fw1swge9KL9H9QO71MT7zW6k43+U
+9XLN5z7ZUXqO+7fH11tUuU3n/WLvMXwHiRkIP8gbX0Xavyyc1C5EecFpw3r9Uwqr
+4uXuZVvNkUYWddXemoLVnzIGJf8jC3onir7DqXfg53T8QMVqjZE=
+=yQRN
+-----END PGP SIGNATURE-----
+
+--nv4vdnzmkzj6i6tc--
