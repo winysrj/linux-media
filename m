@@ -1,125 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-by2nam01on0085.outbound.protection.outlook.com ([104.47.34.85]:39808
-        "EHLO NAM01-BY2-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1752056AbeBIBVe (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 8 Feb 2018 20:21:34 -0500
-From: Satish Kumar Nagireddy <satish.nagireddy.nagireddy@xilinx.com>
-To: <linux-media@vger.kernel.org>, <laurent.pinchart@ideasonboard.com>,
-        <michal.simek@xilinx.com>, <hyun.kwon@xilinx.com>
-CC: Jeffrey Mouroux <jmouroux@xilinx.com>,
-        Satish Kumar Nagireddy <satishna@xilinx.com>
-Subject: [PATCH v2 3/9] uapi: media: New fourcc codes needed by Xilinx Video IP
-Date: Thu, 8 Feb 2018 17:21:26 -0800
-Message-ID: <1518139286-21676-1-git-send-email-satishna@xilinx.com>
-MIME-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+Received: from butterbrot.org ([176.9.106.16]:59785 "EHLO butterbrot.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1754047AbeBFVB4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Tue, 6 Feb 2018 16:01:56 -0500
+From: Florian Echtler <floe@butterbrot.org>
+To: hverkuil@xs4all.nl, linux-media@vger.kernel.org
+Cc: linux-input@vger.kernel.org, modin@yuri.at,
+        Florian Echtler <floe@butterbrot.org>
+Subject: [PATCH 3/5] add panel register access functions
+Date: Tue,  6 Feb 2018 22:01:43 +0100
+Message-Id: <1517950905-5015-4-git-send-email-floe@butterbrot.org>
+In-Reply-To: <1517950905-5015-1-git-send-email-floe@butterbrot.org>
+References: <1517950905-5015-1-git-send-email-floe@butterbrot.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Jeffrey Mouroux <jmouroux@xilinx.com>
+These functions provide write access to the internal LCD panel registers
+which also control the sensor. They can be used to disable the
+preprocessor, set the illumination brightness, and adjust gain/contrast
+(which are stored together in one register internally called "vsvideo").
 
-The Xilinx Video Framebuffer DMA IP supports video memory formats
-that are not represented in the current V4L2 fourcc library. This
-patch adds those missing fourcc codes. This includes both new
-8-bit and 10-bit pixel formats.
-
-Signed-off-by: Satish Kumar Nagireddy <satishna@xilinx.com>
+Signed-off-by: Florian Echtler <floe@butterbrot.org>
 ---
- include/uapi/linux/videodev2.h | 11 +++++++++++
- 1 file changed, 11 insertions(+)
+ drivers/input/touchscreen/sur40.c | 71 +++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 71 insertions(+)
 
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.=
-h
-index 9827189..9fa4313c 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -509,7 +509,10 @@ struct v4l2_pix_format {
- #define V4L2_PIX_FMT_XBGR32  v4l2_fourcc('X', 'R', '2', '4') /* 32  BGRX-8=
--8-8-8  */
- #define V4L2_PIX_FMT_RGB32   v4l2_fourcc('R', 'G', 'B', '4') /* 32  RGB-8-=
-8-8-8   */
- #define V4L2_PIX_FMT_ARGB32  v4l2_fourcc('B', 'A', '2', '4') /* 32  ARGB-8=
--8-8-8  */
-+#define V4L2_PIX_FMT_BGRA32  v4l2_fourcc('A', 'B', 'G', 'R') /* 32  ABGR-8=
--8-8-8  */
- #define V4L2_PIX_FMT_XRGB32  v4l2_fourcc('B', 'X', '2', '4') /* 32  XRGB-8=
--8-8-8  */
-+#define V4L2_PIX_FMT_BGRX32  v4l2_fourcc('X', 'B', 'G', 'R') /* 32  XBGR-8=
--8-8-8 */
-+#define V4L2_PIX_FMT_XBGR30  v4l2_fourcc('R', 'X', '3', '0') /* 32  XBGR-2=
--10-10-10 */
-
- /* Grey formats */
- #define V4L2_PIX_FMT_GREY    v4l2_fourcc('G', 'R', 'E', 'Y') /*  8  Greysc=
-ale     */
-@@ -537,12 +540,16 @@ struct v4l2_pix_format {
- #define V4L2_PIX_FMT_VYUY    v4l2_fourcc('V', 'Y', 'U', 'Y') /* 16  YUV 4:=
-2:2     */
- #define V4L2_PIX_FMT_Y41P    v4l2_fourcc('Y', '4', '1', 'P') /* 12  YUV 4:=
-1:1     */
- #define V4L2_PIX_FMT_YUV444  v4l2_fourcc('Y', '4', '4', '4') /* 16  xxxxyy=
-yy uuuuvvvv */
-+#define V4L2_PIX_FMT_XVUY32  v4l2_fourcc('X', 'V', '3', '2') /* 32  XVUY 8=
-:8:8:8 */
-+#define V4L2_PIX_FMT_AVUY32  v4l2_fourcc('A', 'V', '3', '2') /* 32  AVUY 8=
-:8:8:8 */
-+#define V4L2_PIX_FMT_VUY24   v4l2_fourcc('V', 'U', '2', '4') /* 24  VUY 8:=
-8:8 */
- #define V4L2_PIX_FMT_YUV555  v4l2_fourcc('Y', 'U', 'V', 'O') /* 16  YUV-5-=
-5-5     */
- #define V4L2_PIX_FMT_YUV565  v4l2_fourcc('Y', 'U', 'V', 'P') /* 16  YUV-5-=
-6-5     */
- #define V4L2_PIX_FMT_YUV32   v4l2_fourcc('Y', 'U', 'V', '4') /* 32  YUV-8-=
-8-8-8   */
- #define V4L2_PIX_FMT_HI240   v4l2_fourcc('H', 'I', '2', '4') /*  8  8-bit =
-color   */
- #define V4L2_PIX_FMT_HM12    v4l2_fourcc('H', 'M', '1', '2') /*  8  YUV 4:=
-2:0 16x16 macroblocks */
- #define V4L2_PIX_FMT_M420    v4l2_fourcc('M', '4', '2', '0') /* 12  YUV 4:=
-2:0 2 lines y, 1 line uv interleaved */
-+#define V4L2_PIX_FMT_XVUY10  v4l2_fourcc('X', 'Y', '1', '0') /* 32  XVUY 2=
--10-10-10 */
-
- /* two planes -- one Y, one Cr + Cb interleaved  */
- #define V4L2_PIX_FMT_NV12    v4l2_fourcc('N', 'V', '1', '2') /* 12  Y/CbCr=
- 4:2:0  */
-@@ -551,6 +558,8 @@ struct v4l2_pix_format {
- #define V4L2_PIX_FMT_NV61    v4l2_fourcc('N', 'V', '6', '1') /* 16  Y/CrCb=
- 4:2:2  */
- #define V4L2_PIX_FMT_NV24    v4l2_fourcc('N', 'V', '2', '4') /* 24  Y/CbCr=
- 4:4:4  */
- #define V4L2_PIX_FMT_NV42    v4l2_fourcc('N', 'V', '4', '2') /* 24  Y/CrCb=
- 4:4:4  */
-+#define V4L2_PIX_FMT_XV20    v4l2_fourcc('X', 'V', '2', '0') /* 32  XY/UV =
-4:2:2 10-bit */
-+#define V4L2_PIX_FMT_XV15    v4l2_fourcc('X', 'V', '1', '5') /* 32  XY/UV =
-4:2:0 10-bit */
-
- /* two non contiguous planes - one Y, one Cr + Cb interleaved  */
- #define V4L2_PIX_FMT_NV12M   v4l2_fourcc('N', 'M', '1', '2') /* 12  Y/CbCr=
- 4:2:0  */
-@@ -558,6 +567,8 @@ struct v4l2_pix_format {
- #define V4L2_PIX_FMT_NV16M   v4l2_fourcc('N', 'M', '1', '6') /* 16  Y/CbCr=
- 4:2:2  */
- #define V4L2_PIX_FMT_NV61M   v4l2_fourcc('N', 'M', '6', '1') /* 16  Y/CrCb=
- 4:2:2  */
- #define V4L2_PIX_FMT_NV12MT  v4l2_fourcc('T', 'M', '1', '2') /* 12  Y/CbCr=
- 4:2:0 64x32 macroblocks */
-+#define V4L2_PIX_FMT_XV20M   v4l2_fourcc('X', 'M', '2', '0') /* 32  XY/UV =
-4:2:2 10-bit */
-+#define V4L2_PIX_FMT_XV15M   v4l2_fourcc('X', 'M', '1', '5') /* 32  XY/UV =
-4:2:0 10-bit */
- #define V4L2_PIX_FMT_NV12MT_16X16 v4l2_fourcc('V', 'M', '1', '2') /* 12  Y=
-/CbCr 4:2:0 16x16 macroblocks */
-
- /* three planes - Y Cb, Cr */
---
+diff --git a/drivers/input/touchscreen/sur40.c b/drivers/input/touchscreen/sur40.c
+index 3af63415..7f6461d 100644
+--- a/drivers/input/touchscreen/sur40.c
++++ b/drivers/input/touchscreen/sur40.c
+@@ -240,6 +240,81 @@ static int sur40_command(struct sur40_state *dev,
+ 			       0x00, index, buffer, size, 1000);
+ }
+ 
++/* poke a byte in the panel register space */
++static int sur40_poke(struct sur40_state *dev, u8 offset, u8 value)
++{
++	int result;
++	u8 index = 0x96; // 0xae for permanent write
++
++	result = usb_control_msg(dev->usbdev, usb_sndctrlpipe(dev->usbdev, 0),
++		SUR40_POKE, USB_TYPE_VENDOR | USB_RECIP_DEVICE | USB_DIR_OUT,
++		0x32, index, NULL, 0, 1000);
++	if (result < 0)
++		goto error;
++	msleep(5);
++
++	result = usb_control_msg(dev->usbdev, usb_sndctrlpipe(dev->usbdev, 0),
++		SUR40_POKE, USB_TYPE_VENDOR | USB_RECIP_DEVICE | USB_DIR_OUT,
++		0x72, offset, NULL, 0, 1000);
++	if (result < 0)
++		goto error;
++	msleep(5);
++
++	result = usb_control_msg(dev->usbdev, usb_sndctrlpipe(dev->usbdev, 0),
++		SUR40_POKE, USB_TYPE_VENDOR | USB_RECIP_DEVICE | USB_DIR_OUT,
++		0xb2, value, NULL, 0, 1000);
++	if (result < 0)
++		goto error;
++	msleep(5);
++
++error:
++	return result;
++}
++
++static int sur40_set_preprocessor(struct sur40_state *dev, u8 value)
++{
++	u8 setting_07[2] = { 0x01, 0x00 };
++	u8 setting_17[2] = { 0x85, 0x80 };
++	int result;
++
++	if (value > 1)
++		return -ERANGE;
++
++	result = usb_control_msg(dev->usbdev, usb_sndctrlpipe(dev->usbdev, 0),
++		SUR40_POKE, USB_TYPE_VENDOR | USB_RECIP_DEVICE | USB_DIR_OUT,
++		0x07, setting_07[value], NULL, 0, 1000);
++	if (result < 0)
++		goto error;
++	msleep(5);
++
++	result = usb_control_msg(dev->usbdev, usb_sndctrlpipe(dev->usbdev, 0),
++		SUR40_POKE, USB_TYPE_VENDOR | USB_RECIP_DEVICE | USB_DIR_OUT,
++		0x17, setting_17[value], NULL, 0, 1000);
++	if (result < 0)
++		goto error;
++	msleep(5);
++
++error:
++	return result;
++}
++
++static void sur40_set_vsvideo(struct sur40_state *handle, u8 value)
++{
++	int i;
++
++	for (i = 0; i < 4; i++)
++		sur40_poke(handle, 0x1c+i, value);
++	handle->vsvideo = value;
++}
++
++static void sur40_set_irlevel(struct sur40_state *handle, u8 value)
++{
++	int i;
++
++	for (i = 0; i < 8; i++)
++		sur40_poke(handle, 0x08+(2*i), value);
++}
++
+ /* Initialization routine, called from sur40_open */
+ static int sur40_init(struct sur40_state *dev)
+ {
+-- 
 2.7.4
-
-This email and any attachments are intended for the sole use of the named r=
-ecipient(s) and contain(s) confidential information that may be proprietary=
-, privileged or copyrighted under applicable law. If you are not the intend=
-ed recipient, do not read, copy, or forward this email message or any attac=
-hments. Delete this email message and any attachments immediately.
