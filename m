@@ -1,101 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:42266 "EHLO mail.kernel.org"
+Received: from mga06.intel.com ([134.134.136.31]:55255 "EHLO mga06.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S965350AbeBMRtG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 13 Feb 2018 12:49:06 -0500
-From: Kieran Bingham <kbingham@kernel.org>
-To: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-        dri-devel@lists.freedesktop.org, linux-renesas-soc@vger.kernel.org
-Cc: Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        Jean-Michel Hautbois <jean-michel.hautbois@vodalys.com>,
-        Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
-        Lars-Peter Clausen <lars@metafoo.de>,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Subject: [PATCH v4 2/5] dt-bindings: adv7511: Extend bindings to allow specifying slave map addresses
-Date: Tue, 13 Feb 2018 17:48:54 +0000
-Message-Id: <1518544137-2742-3-git-send-email-kbingham@kernel.org>
-In-Reply-To: <1518544137-2742-1-git-send-email-kbingham@kernel.org>
-References: <1518544137-2742-1-git-send-email-kbingham@kernel.org>
+        id S1754103AbeBGNrf (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 7 Feb 2018 08:47:35 -0500
+Date: Wed, 7 Feb 2018 15:47:32 +0200
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: Andy Yeh <andy.yeh@intel.com>
+Cc: linux-media@vger.kernel.org, tfiga@chromium.org,
+        Jason Chen <jasonx.z.chen@intel.com>,
+        Alan Chiang <alanx.chiang@intel.com>
+Subject: Re: [PATCH v5] media: imx258: Add imx258 camera sensor driver
+Message-ID: <20180207134731.n6zziksk2mcsqzor@paasikivi.fi.intel.com>
+References: <1516903135-23136-1-git-send-email-andy.yeh@intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1516903135-23136-1-git-send-email-andy.yeh@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+Hi Andy,
 
-The ADV7511 has four 256-byte maps that can be accessed via the main I2C
-ports. Each map has it own I2C address and acts as a standard slave
-device on the I2C bus.
+Thanks for the update.
 
-Extend the device tree node bindings to be able to override the default
-addresses so that address conflicts with other devices on the same bus
-may be resolved at the board description level.
+On Fri, Jan 26, 2018 at 01:58:55AM +0800, Andy Yeh wrote:
+> Add a V4L2 sub-device driver for the Sony IMX258 image sensor.
+> This is a camera sensor using the I2C bus for control and the
+> CSI-2 bus for data.
+> 
+> Signed-off-by: Andy Yeh <andy.yeh@intel.com>
+> Signed-off-by: Jason Chen <jasonx.z.chen@intel.com>
+> Signed-off-by: Alan Chiang <alanx.chiang@intel.com>
+> ---
+> since v2:
+> -- Update the streaming function to remove SW_STANDBY in the beginning.
+> -- Adjust the delay time from 1ms to 12ms before set stream-on register.
+> since v3:
+> -- fix the sd.entity to make code be compiled on the mainline kernel.
+> since v4:
+> -- Enabled AG, DG, and Exposure time control correctly.
 
-Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Reviewed-by: Rob Herring <robh@kernel.org>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
-v2:
- - Fixed up reg: property description to account for multiple optional
-   addresses.
- - Minor reword to commit message to account for DT only change
- - Collected Robs RB tag
+This patch seems to include also DIGITAL_GAIN control support but also the
+removal of the VBLANK control from s_ctrl callback. Is there still an
+intent to support the VBLANK control?
 
-v3:
- - Split map register addresses into individual declarations.
+Also registers are written one octet at a time rather than two, which could
+lead to sensor using settings that are only half-updated (does the
+datasheet say this is safe?). Is there a reason for this?
 
-v4:
- - Update commit title
- - Collect Laurent's RB tag
- - Fix nitpickings
- - Normalise I2C usage (I²C is harder to grep for)
+Seems fine otherwise to me.
 
- .../devicetree/bindings/display/bridge/adi,adv7511.txt | 18 ++++++++++++++++--
- 1 file changed, 16 insertions(+), 2 deletions(-)
-
-diff --git a/Documentation/devicetree/bindings/display/bridge/adi,adv7511.txt b/Documentation/devicetree/bindings/display/bridge/adi,adv7511.txt
-index 0047b1394c70..2c887536258c 100644
---- a/Documentation/devicetree/bindings/display/bridge/adi,adv7511.txt
-+++ b/Documentation/devicetree/bindings/display/bridge/adi,adv7511.txt
-@@ -14,7 +14,13 @@ Required properties:
- 		"adi,adv7513"
- 		"adi,adv7533"
- 
--- reg: I2C slave address
-+- reg: I2C slave addresses
-+  The ADV7511 internal registers are split into four pages exposed through
-+  different I2C addresses, creating four register maps. Each map has it own
-+  I2C address and acts as a standard slave device on the I2C bus. The main
-+  address is mandatory, others are optional and revert to defaults if not
-+  specified.
-+
- 
- The ADV7511 supports a large number of input data formats that differ by their
- color depth, color format, clock mode, bit justification and random
-@@ -70,6 +76,9 @@ Optional properties:
-   rather than generate its own timings for HDMI output.
- - clocks: from common clock binding: reference to the CEC clock.
- - clock-names: from common clock binding: must be "cec".
-+- reg-names : Names of maps with programmable addresses.
-+	It can contain any map needing a non-default address.
-+	Possible maps names are : "main", "edid", "cec", "packet"
- 
- Required nodes:
- 
-@@ -88,7 +97,12 @@ Example
- 
- 	adv7511w: hdmi@39 {
- 		compatible = "adi,adv7511w";
--		reg = <39>;
-+		/*
-+		 * The EDID page will be accessible on address 0x66 on the I2C
-+		 * bus. All other maps continue to use their default addresses.
-+		 */
-+		reg = <0x39>, <0x66>;
-+		reg-names = "main", "edid";
- 		interrupt-parent = <&gpio3>;
- 		interrupts = <29 IRQ_TYPE_EDGE_FALLING>;
- 		clocks = <&cec_clock>;
 -- 
-2.7.4
+Kind regards,
+
+Sakari Ailus
+sakari.ailus@linux.intel.com
