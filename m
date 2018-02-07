@@ -1,102 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qk0-f196.google.com ([209.85.220.196]:34308 "EHLO
-        mail-qk0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751651AbeBWK1A (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:59104 "EHLO
+        hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+        by vger.kernel.org with ESMTP id S1750736AbeBGV7t (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Fri, 23 Feb 2018 05:27:00 -0500
+        Wed, 7 Feb 2018 16:59:49 -0500
+Date: Wed, 7 Feb 2018 23:59:46 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        "Gustavo A. R. Silva" <garsilva@embeddedor.com>
+Subject: Re: [PATCH v3 4/8] i2c: ov9650: use 64-bit arithmetic instead of
+ 32-bit
+Message-ID: <20180207215944.quwowjy52dclk7uc@valkosipuli.retiisi.org.uk>
+References: <cover.1517929336.git.gustavo@embeddedor.com>
+ <6f6fd607cf3428d6ab115f1deaa82c4963b170f1.1517929336.git.gustavo@embeddedor.com>
 MIME-Version: 1.0
-In-Reply-To: <20180221233825.10024-1-jhogan@kernel.org>
-References: <20180221233825.10024-1-jhogan@kernel.org>
-From: Arnd Bergmann <arnd@arndb.de>
-Date: Fri, 23 Feb 2018 11:26:58 +0100
-Message-ID: <CAK8P3a3CuNn-dSE33mhEZ9-iM7NOE3Y4AiJzpmF6ob5wrMuZpg@mail.gmail.com>
-Subject: Re: [PATCH 00/13] Remove metag architecture
-To: James Hogan <jhogan@kernel.org>
-Cc: linux-metag@vger.kernel.org,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Guenter Roeck <linux@roeck-us.net>,
-        Jonathan Corbet <corbet@lwn.net>,
-        Steven Rostedt <rostedt@goodmis.org>,
-        Ingo Molnar <mingo@redhat.com>,
-        Peter Zijlstra <peterz@infradead.org>,
-        Arnaldo Carvalho de Melo <acme@kernel.org>,
-        Alexander Shishkin <alexander.shishkin@linux.intel.com>,
-        Jiri Olsa <jolsa@redhat.com>,
-        Namhyung Kim <namhyung@kernel.org>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Jason Cooper <jason@lakedaemon.net>,
-        Marc Zyngier <marc.zyngier@arm.com>,
-        Daniel Lezcano <daniel.lezcano@linaro.org>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Jiri Slaby <jslaby@suse.com>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        Wim Van Sebroeck <wim@linux-watchdog.org>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Wolfram Sang <wsa@the-dreams.de>,
-        "open list:DOCUMENTATION" <linux-doc@vger.kernel.org>,
-        Linux-MM <linux-mm@kvack.org>, linux-gpio@vger.kernel.org,
-        linux-watchdog@vger.kernel.org,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        linux-i2c@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <6f6fd607cf3428d6ab115f1deaa82c4963b170f1.1517929336.git.gustavo@embeddedor.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Feb 22, 2018 at 12:38 AM, James Hogan <jhogan@kernel.org> wrote:
-> These patches remove the metag architecture and tightly dependent
-> drivers from the kernel. With the 4.16 kernel the ancient gcc 4.2.4
-> based metag toolchain we have been using is hitting compiler bugs, so
-> now seems a good time to drop it altogether.
->
-> Quoting from patch 1:
->
-> The earliest Meta architecture port of Linux I have a record of was an
-> import of a Meta port of Linux v2.4.1 in February 2004, which was worked
-> on significantly over the next few years by Graham Whaley, Will Newton,
-> Matt Fleming, myself and others.
->
-> Eventually the port was merged into mainline in v3.9 in March 2013, not
-> long after Imagination Technologies bought MIPS Technologies and shifted
-> its CPU focus over to the MIPS architecture.
->
-> As a result, though the port was maintained for a while, kept on life
-> support for a while longer, and useful for testing a few specific
-> drivers for which I don't have ready access to the equivalent MIPS
-> hardware, it is now essentially dead with no users.
->
-> It is also stuck using an out-of-tree toolchain based on GCC 4.2.4 which
-> is no longer maintained, now struggles to build modern kernels due to
-> toolchain bugs, and doesn't itself build with a modern GCC. The latest
-> buildroot port is still using an old uClibc snapshot which is no longer
-> served, and the latest uClibc doesn't build with GCC 4.2.4.
->
-> So lets call it a day and drop the Meta architecture port from the
-> kernel. RIP Meta.
+Hi Gustavo,
 
-Since I brought up the architecture removal independently, I could
-pick this up into a git tree that also has the removal of some of the
-other architectures.
+On Tue, Feb 06, 2018 at 10:47:50AM -0600, Gustavo A. R. Silva wrote:
+> Add suffix ULL to constants 10000 and 1000000 in order to give the
+> compiler complete information about the proper arithmetic to use.
+> Notice that these constants are used in contexts that expect
+> expressions of type u64 (64 bits, unsigned).
+> 
+> The following expressions:
+> 
+> (u64)(fi->interval.numerator * 10000)
+> (u64)(iv->interval.numerator * 10000)
+> fiv->interval.numerator * 1000000 / fiv->interval.denominator
+> 
+> are currently being evaluated using 32-bit arithmetic.
+> 
+> Notice that those casts to u64 for the first two expressions are only
+> effective after such expressions are evaluated using 32-bit arithmetic,
+> which leads to potential integer overflows. So based on those casts, it
+> seems that the original intention of the code is to actually use 64-bit
+> arithmetic instead of 32-bit.
+> 
+> Also, notice that once the suffix ULL is added to the constants, the
+> outer casts to u64 are no longer needed.
+> 
+> Addresses-Coverity-ID: 1324146 ("Unintentional integer overflow")
+> Fixes: 84a15ded76ec ("[media] V4L: Add driver for OV9650/52 image sensors")
+> Fixes: 79211c8ed19c ("remove abs64()")
+> Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
+> ---
+> Changes in v2:
+>  - Update subject and changelog to better reflect the proposed code changes.
+>  - Add suffix ULL to constants instead of casting variables.
+>  - Remove unnecessary casts to u64 as part of the code change.
+>  - Extend the same code change to other similar expressions.
+> 
+> Changes in v3:
+>  - None.
+> 
+>  drivers/media/i2c/ov9650.c | 9 +++++----
+>  1 file changed, 5 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/media/i2c/ov9650.c b/drivers/media/i2c/ov9650.c
+> index e519f27..e716e98 100644
+> --- a/drivers/media/i2c/ov9650.c
+> +++ b/drivers/media/i2c/ov9650.c
+> @@ -1130,7 +1130,7 @@ static int __ov965x_set_frame_interval(struct ov965x *ov965x,
+>  	if (fi->interval.denominator == 0)
+>  		return -EINVAL;
+>  
+> -	req_int = (u64)(fi->interval.numerator * 10000) /
+> +	req_int = fi->interval.numerator * 10000ULL /
+>  		fi->interval.denominator;
 
-I see your tree is part of linux-next, so you could also just put it
-in there and send a pull request at the merge window if you prefer.
+This has been addressed by your earlier patch "i2c: ov9650: fix potential integer overflow in
+__ov965x_set_frame_interval" I tweaked a little. It's not in media tree
+master yet.
 
-The only real reason I see for a shared git tree would be to avoid
-conflicts when we touch the same Kconfig files or #ifdefs in driver,
-but Meta only appears in
+>  
+>  	for (i = 0; i < ARRAY_SIZE(ov965x_intervals); i++) {
+> @@ -1139,7 +1139,7 @@ static int __ov965x_set_frame_interval(struct ov965x *ov965x,
+>  		if (mbus_fmt->width != iv->size.width ||
+>  		    mbus_fmt->height != iv->size.height)
+>  			continue;
+> -		err = abs((u64)(iv->interval.numerator * 10000) /
+> +		err = abs(iv->interval.numerator * 10000ULL /
 
-config FRAME_POINTER
-        bool "Compile the kernel with frame pointers"
-        depends on DEBUG_KERNEL && \
-                (CRIS || M68K || FRV || UML || \
-                 SUPERH || BLACKFIN || MN10300 || METAG) || \
-                ARCH_WANT_FRAME_POINTERS
+This and the chunk below won't work on e.g. 32-bit ARM. do_div(), please.
 
-and
+>  			    iv->interval.denominator - req_int);
+>  		if (err < min_err) {
+>  			fiv = iv;
+> @@ -1148,8 +1148,9 @@ static int __ov965x_set_frame_interval(struct ov965x *ov965x,
+>  	}
+>  	ov965x->fiv = fiv;
+>  
+> -	v4l2_dbg(1, debug, &ov965x->sd, "Changed frame interval to %u us\n",
+> -		 fiv->interval.numerator * 1000000 / fiv->interval.denominator);
+> +	v4l2_dbg(1, debug, &ov965x->sd, "Changed frame interval to %llu us\n",
+> +		 fiv->interval.numerator * 1000000ULL /
+> +		 fiv->interval.denominator);
+>  
+>  	return 0;
+>  }
 
-include/trace/events/mmflags.h:#elif defined(CONFIG_PARISC) ||
-defined(CONFIG_METAG) || defined(CONFIG_IA64)
+-- 
+Regards,
 
-so there is little risk.
-
-      Arnd
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi
