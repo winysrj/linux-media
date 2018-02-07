@@ -1,136 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gateway20.websitewelcome.com ([192.185.62.46]:41314 "EHLO
-        gateway20.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1423426AbeBOQfI (ORCPT
+Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:59975 "EHLO
+        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753846AbeBGNUg (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Thu, 15 Feb 2018 11:35:08 -0500
-Received: from cm11.websitewelcome.com (cm11.websitewelcome.com [100.42.49.5])
-        by gateway20.websitewelcome.com (Postfix) with ESMTP id 61D4140136EBA
-        for <linux-media@vger.kernel.org>; Thu, 15 Feb 2018 10:12:48 -0600 (CST)
-Subject: Re: [PATCH v3 4/8] i2c: ov9650: use 64-bit arithmetic instead of
- 32-bit
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-        Sakari Ailus <sakari.ailus@iki.fi>,
-        "Gustavo A. R. Silva" <gustavo@embeddedor.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-References: <cover.1517929336.git.gustavo@embeddedor.com>
- <6f6fd607cf3428d6ab115f1deaa82c4963b170f1.1517929336.git.gustavo@embeddedor.com>
- <20180207215944.quwowjy52dclk7uc@valkosipuli.retiisi.org.uk>
- <3518830f-180c-2bf0-1319-eb4af8cc556f@embeddedor.com>
- <16032bbb-5063-4f94-bebd-3f512bed8199@xs4all.nl>
-From: "Gustavo A. R. Silva" <garsilva@embeddedor.com>
-Message-ID: <46ae5358-0f35-55f2-b324-17d211a24aa1@embeddedor.com>
-Date: Thu, 15 Feb 2018 10:12:46 -0600
+        Wed, 7 Feb 2018 08:20:36 -0500
+Subject: Re: [PATCH 2/4] add default settings and module parameters for video
+ controls
+To: Florian Echtler <floe@butterbrot.org>, linux-media@vger.kernel.org
+Cc: linux-input@vger.kernel.org, modin@yuri.at
+References: <1518008438-26603-1-git-send-email-floe@butterbrot.org>
+ <1518008438-26603-3-git-send-email-floe@butterbrot.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <40460636-1de2-c280-fe23-ec93f27242ed@xs4all.nl>
+Date: Wed, 7 Feb 2018 14:20:30 +0100
 MIME-Version: 1.0
-In-Reply-To: <16032bbb-5063-4f94-bebd-3f512bed8199@xs4all.nl>
-Content-Type: text/plain; charset=utf-8; format=flowed
+In-Reply-To: <1518008438-26603-3-git-send-email-floe@butterbrot.org>
+Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-
-
-On 02/15/2018 07:52 AM, Hans Verkuil wrote:
-> On 08/02/18 17:39, Gustavo A. R. Silva wrote:
->> Hi Sakari,
->>
->> On 02/07/2018 03:59 PM, Sakari Ailus wrote:
->>> Hi Gustavo,
->>>
->>> On Tue, Feb 06, 2018 at 10:47:50AM -0600, Gustavo A. R. Silva wrote:
->>>> Add suffix ULL to constants 10000 and 1000000 in order to give the
->>>> compiler complete information about the proper arithmetic to use.
->>>> Notice that these constants are used in contexts that expect
->>>> expressions of type u64 (64 bits, unsigned).
->>>>
->>>> The following expressions:
->>>>
->>>> (u64)(fi->interval.numerator * 10000)
->>>> (u64)(iv->interval.numerator * 10000)
->>>> fiv->interval.numerator * 1000000 / fiv->interval.denominator
->>>>
->>>> are currently being evaluated using 32-bit arithmetic.
->>>>
->>>> Notice that those casts to u64 for the first two expressions are only
->>>> effective after such expressions are evaluated using 32-bit arithmetic,
->>>> which leads to potential integer overflows. So based on those casts, it
->>>> seems that the original intention of the code is to actually use 64-bit
->>>> arithmetic instead of 32-bit.
->>>>
->>>> Also, notice that once the suffix ULL is added to the constants, the
->>>> outer casts to u64 are no longer needed.
->>>>
->>>> Addresses-Coverity-ID: 1324146 ("Unintentional integer overflow")
->>>> Fixes: 84a15ded76ec ("[media] V4L: Add driver for OV9650/52 image sensors")
->>>> Fixes: 79211c8ed19c ("remove abs64()")
->>>> Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
->>>> ---
->>>> Changes in v2:
->>>>    - Update subject and changelog to better reflect the proposed code changes.
->>>>    - Add suffix ULL to constants instead of casting variables.
->>>>    - Remove unnecessary casts to u64 as part of the code change.
->>>>    - Extend the same code change to other similar expressions.
->>>>
->>>> Changes in v3:
->>>>    - None.
->>>>
->>>>    drivers/media/i2c/ov9650.c | 9 +++++----
->>>>    1 file changed, 5 insertions(+), 4 deletions(-)
->>>>
->>>> diff --git a/drivers/media/i2c/ov9650.c b/drivers/media/i2c/ov9650.c
->>>> index e519f27..e716e98 100644
->>>> --- a/drivers/media/i2c/ov9650.c
->>>> +++ b/drivers/media/i2c/ov9650.c
->>>> @@ -1130,7 +1130,7 @@ static int __ov965x_set_frame_interval(struct ov965x *ov965x,
->>>>        if (fi->interval.denominator == 0)
->>>>            return -EINVAL;
->>>>    -    req_int = (u64)(fi->interval.numerator * 10000) /
->>>> +    req_int = fi->interval.numerator * 10000ULL /
->>>>            fi->interval.denominator;
->>>
->>> This has been addressed by your earlier patch "i2c: ov9650: fix potential integer overflow in
->>> __ov965x_set_frame_interval" I tweaked a little. It's not in media tree
->>> master yet.
->>>
->>
->> Yeah. Actually this patch is supposed to be an improved version of the one you mention. That is why this is version 3.
->>
->> Also, I wonder if the same issue you mention below regarding 32-bit ARM applies in this case too?
->>
->>>>          for (i = 0; i < ARRAY_SIZE(ov965x_intervals); i++) {
->>>> @@ -1139,7 +1139,7 @@ static int __ov965x_set_frame_interval(struct ov965x *ov965x,
->>>>            if (mbus_fmt->width != iv->size.width ||
->>>>                mbus_fmt->height != iv->size.height)
->>>>                continue;
->>>> -        err = abs((u64)(iv->interval.numerator * 10000) /
->>>> +        err = abs(iv->interval.numerator * 10000ULL /
->>>
->>> This and the chunk below won't work on e.g. 32-bit ARM. do_div(), please.
->>>
->>
->> Thanks for pointing this out.
->>
->>>>                    iv->interval.denominator - req_int);
->>>>            if (err < min_err) {
->>>>                fiv = iv;
->>>> @@ -1148,8 +1148,9 @@ static int __ov965x_set_frame_interval(struct ov965x *ov965x,
->>>>        }
->>>>        ov965x->fiv = fiv;
->>>>    -    v4l2_dbg(1, debug, &ov965x->sd, "Changed frame interval to %u us\n",
->>>> -         fiv->interval.numerator * 1000000 / fiv->interval.denominator);
->>>> +    v4l2_dbg(1, debug, &ov965x->sd, "Changed frame interval to %llu us\n",
->>>> +         fiv->interval.numerator * 1000000ULL /
->>>> +         fiv->interval.denominator);
->>
->> I wonder if do_div should be used for the code above?
+On 02/07/18 14:00, Florian Echtler wrote:
+> This patch adds parameter definitions and module parameters for the four
+> userspace controls that the SUR40 can currently provide.
 > 
-> Yes, do_div should be used.
->
+> Signed-off-by: Florian Echtler <floe@butterbrot.org>
+> ---
+>  drivers/input/touchscreen/sur40.c | 28 ++++++++++++++++++++++++++++
+>  1 file changed, 28 insertions(+)
+> 
+> diff --git a/drivers/input/touchscreen/sur40.c b/drivers/input/touchscreen/sur40.c
+> index 8375b06..8a5b031 100644
+> --- a/drivers/input/touchscreen/sur40.c
+> +++ b/drivers/input/touchscreen/sur40.c
+> @@ -149,6 +149,34 @@ struct sur40_image_header {
+>  #define SUR40_TOUCH	0x02
+>  #define SUR40_TAG	0x04
+>  
+> +/* video controls */
+> +#define SUR40_BRIGHTNESS_MAX 0xFF
+> +#define SUR40_BRIGHTNESS_MIN 0x00
+> +#define SUR40_BRIGHTNESS_DEF 0xFF
+> +
+> +#define SUR40_CONTRAST_MAX 0x0F
+> +#define SUR40_CONTRAST_MIN 0x00
+> +#define SUR40_CONTRAST_DEF 0x0A
 
-I got it.
+It's kernel style to use lowercase hex values.
 
-Thanks, Hans.
---
-Gustavo
+> +
+> +#define SUR40_GAIN_MAX 0x09
+> +#define SUR40_GAIN_MIN 0x00
+> +#define SUR40_GAIN_DEF 0x08
+> +
+> +#define SUR40_BACKLIGHT_MAX 0x01
+> +#define SUR40_BACKLIGHT_MIN 0x00
+> +#define SUR40_BACKLIGHT_DEF 0x01
+> +
+> +/* module parameters */
+> +static uint brightness = SUR40_BRIGHTNESS_DEF;
+> +module_param(brightness, uint, 0644);
+> +MODULE_PARM_DESC(brightness, "set initial brightness");
+
+No range in the param description? I think you can do some macro magic so you
+can use the MIN/MAX defines in the string.
+
+Regards,
+
+	Hans
+
+> +static uint contrast = SUR40_CONTRAST_DEF;
+> +module_param(contrast, uint, 0644);
+> +MODULE_PARM_DESC(contrast, "set initial contrast");
+> +static uint gain = SUR40_GAIN_DEF;
+> +module_param(gain, uint, 0644);
+> +MODULE_PARM_DESC(gain, "set initial gain");
+> +
+>  static const struct v4l2_pix_format sur40_pix_format[] = {
+>  	{
+>  		.pixelformat = V4L2_TCH_FMT_TU08,
+> 
