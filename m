@@ -1,98 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:45854 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S966589AbeBOLQY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 15 Feb 2018 06:16:24 -0500
-Date: Thu, 15 Feb 2018 09:16:18 -0200
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-To: Sean Young <sean@mess.org>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [GIT PULL FOR v4.17] rc changes
-Message-ID: <20180215091618.2db36d39@vento.lan>
-In-Reply-To: <20180214213207.axrs6k3cl6tevb2h@gofer.mess.org>
-References: <20180212200318.cxnxro2vsqauexqz@gofer.mess.org>
-        <20180214164448.32a4c989@vento.lan>
-        <20180214213207.axrs6k3cl6tevb2h@gofer.mess.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail-pg0-f67.google.com ([74.125.83.67]:45825 "EHLO
+        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1751558AbeBGBsc (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 6 Feb 2018 20:48:32 -0500
+Received: by mail-pg0-f67.google.com with SMTP id m136so1867418pga.12
+        for <linux-media@vger.kernel.org>; Tue, 06 Feb 2018 17:48:31 -0800 (PST)
+From: Alexandre Courbot <acourbot@chromium.org>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Pawel Osciak <posciak@chromium.org>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Tomasz Figa <tfiga@chromium.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Gustavo Padovan <gustavo.padovan@collabora.com>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Alexandre Courbot <acourbot@chromium.org>
+Subject: [RFCv3 00/17] Request API, take three
+Date: Wed,  7 Feb 2018 10:48:04 +0900
+Message-Id: <20180207014821.164536-1-acourbot@chromium.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 14 Feb 2018 21:32:07 +0000
-Sean Young <sean@mess.org> escreveu:
+As discussed yesterday, here is a rebase on the media master branch. A
+few minor fixes for typos have also slept in, but otherwise this is
+equivalent to v2. I expect to have the buffer queueing behavior fixed in
+the next version.
 
-> Hi Mauro,
-> 
-> On Wed, Feb 14, 2018 at 04:44:48PM -0200, Mauro Carvalho Chehab wrote:
-> > Hi Sean,
-> > 
-> > Em Mon, 12 Feb 2018 20:03:18 +0000
-> > Sean Young <sean@mess.org> escreveu:
-> >   
-> > > Hi Mauro,
-> > > 
-> > > Just very minor changes this time (other stuff is not ready yet). I would
-> > > really appreciate if you could cast an extra critical eye on the commit 
-> > > "no need to check for transitions", just to be sure it is the right change.  
-> > 
-> > Did you send all patches in separate? This is important to allow us
-> > to comment on an specific issue inside a patch...  
-> 
-> All the patches were emailed to linux-media, some of them on the same day
-> as the pull request. Maybe I should wait longer. The patch below was sent
-> out on the 28th of January.
-> 
-> > >       media: rc: no need to check for transitions  
+Alexandre Courbot (9):
+  media: add request API core and UAPI
+  media: videobuf2: add support for requests
+  media: vb2: add support for requests in QBUF ioctl
+  v4l2: add request API support
+  videodev2.h: add request_fd field to v4l2_ext_controls
+  v4l2-ctrls: support requests in EXT_CTRLS ioctls
+  v4l2: document the request API interface
+  media: vim2m: add media device
+  media: vim2m: add request support
 
-No need to wait longer. Yet, it seems that I lost the above patch, as I
-couldn't find anything on my email with the above subject.
+Hans Verkuil (7):
+  videodev2.h: Add request_fd field to v4l2_buffer
+  v4l2-ctrls: v4l2_ctrl_add_handler: add from_other_dev
+  v4l2-ctrls: prepare internal structs for request API
+  v4l2-ctrls: add core request API
+  v4l2-ctrls: use ref in helper instead of ctrl
+  v4l2-ctrls: support g/s_ext_ctrls for requests
+  v4l2-ctrls: add v4l2_ctrl_request_setup
 
-Perhaps the e-mail got lost somehow on my inbox.
+Laurent Pinchart (1):
+  media: Document the media request API
 
-> > 
-> > I don't remember the exact reason for that, but, as far as I
-> > remember, on a few devices, a pulse (or space) event could be
-> > broken into two consecutive events of the same type, e. g.,
-> > a pulse with a 125 ms could be broken into two pulses, like
-> > one with 100 ms and the other with 25 ms.  
-> 
-> If that is the case, then the IR decoders could not deal with this anyway.
-> For example, the first state transition rc6 is:
-> 
-> 	if (!eq_margin(ev.duration, RC6_PREFIX_PULSE, RC6_UNIT))
-> 
-> So if ev.duration is not the complete duration, then decoding will fail;
-> I tried to explain in the commit message that if this was the case, then
-> decoding would not work so the check was unnecessary.
-> 
-> > That's said, I'm not sure if the current implementation are
-> > adding the timings for both pulses into a single one.  
-> 
-> That depends on whether the driver uses ir_raw_event_store() or
-> ir_raw_event_store_with_filter(). The latter exists precisely for this
-> reason.
+ Documentation/media/uapi/mediactl/media-funcs.rst  |   1 +
+ .../media/uapi/mediactl/media-ioc-request-cmd.rst  | 142 ++++++++++
+ Documentation/media/uapi/v4l/buffer.rst            |  10 +-
+ Documentation/media/uapi/v4l/common.rst            |   1 +
+ Documentation/media/uapi/v4l/request-api.rst       | 236 ++++++++++++++++
+ .../media/uapi/v4l/vidioc-g-ext-ctrls.rst          |  16 +-
+ Documentation/media/uapi/v4l/vidioc-qbuf.rst       |  21 ++
+ drivers/media/Makefile                             |   3 +-
+ drivers/media/common/videobuf2/videobuf2-core.c    | 133 ++++++++-
+ drivers/media/common/videobuf2/videobuf2-v4l2.c    |  31 +-
+ drivers/media/dvb-frontends/rtl2832_sdr.c          |   5 +-
+ drivers/media/media-device.c                       |   7 +
+ drivers/media/media-request-mgr.c                  | 105 +++++++
+ drivers/media/media-request.c                      | 311 +++++++++++++++++++++
+ drivers/media/pci/bt8xx/bttv-driver.c              |   2 +-
+ drivers/media/pci/cx23885/cx23885-417.c            |   2 +-
+ drivers/media/pci/cx88/cx88-blackbird.c            |   2 +-
+ drivers/media/pci/cx88/cx88-video.c                |   2 +-
+ drivers/media/pci/saa7134/saa7134-empress.c        |   4 +-
+ drivers/media/pci/saa7134/saa7134-video.c          |   2 +-
+ drivers/media/platform/exynos4-is/fimc-capture.c   |   2 +-
+ drivers/media/platform/rcar-vin/rcar-v4l2.c        |   3 +-
+ drivers/media/platform/rcar_drif.c                 |   2 +-
+ drivers/media/platform/soc_camera/soc_camera.c     |   3 +-
+ drivers/media/platform/vim2m.c                     |  79 ++++++
+ drivers/media/platform/vivid/vivid-ctrls.c         |  46 +--
+ drivers/media/usb/cpia2/cpia2_v4l.c                |   2 +-
+ drivers/media/usb/cx231xx/cx231xx-417.c            |   2 +-
+ drivers/media/usb/cx231xx/cx231xx-video.c          |   4 +-
+ drivers/media/usb/msi2500/msi2500.c                |   2 +-
+ drivers/media/usb/tm6000/tm6000-video.c            |   2 +-
+ drivers/media/v4l2-core/Makefile                   |   2 +-
+ drivers/media/v4l2-core/v4l2-compat-ioctl32.c      |   9 +-
+ drivers/media/v4l2-core/v4l2-ctrls.c               | 238 ++++++++++++++--
+ drivers/media/v4l2-core/v4l2-device.c              |   3 +-
+ drivers/media/v4l2-core/v4l2-ioctl.c               | 125 ++++++++-
+ drivers/media/v4l2-core/v4l2-request.c             |  54 ++++
+ drivers/staging/media/imx/imx-media-dev.c          |   2 +-
+ drivers/staging/media/imx/imx-media-fim.c          |   2 +-
+ include/media/media-device.h                       |   3 +
+ include/media/media-entity.h                       |   9 +
+ include/media/media-request-mgr.h                  |  73 +++++
+ include/media/media-request.h                      | 186 ++++++++++++
+ include/media/v4l2-ctrls.h                         |  17 +-
+ include/media/v4l2-request.h                       |  34 +++
+ include/media/videobuf2-core.h                     |  15 +-
+ include/media/videobuf2-v4l2.h                     |   2 +
+ include/uapi/linux/media.h                         |  10 +
+ include/uapi/linux/videodev2.h                     |   6 +-
+ 49 files changed, 1886 insertions(+), 87 deletions(-)
+ create mode 100644 Documentation/media/uapi/mediactl/media-ioc-request-cmd.rst
+ create mode 100644 Documentation/media/uapi/v4l/request-api.rst
+ create mode 100644 drivers/media/media-request-mgr.c
+ create mode 100644 drivers/media/media-request.c
+ create mode 100644 drivers/media/v4l2-core/v4l2-request.c
+ create mode 100644 include/media/media-request-mgr.h
+ create mode 100644 include/media/media-request.h
+ create mode 100644 include/media/v4l2-request.h
 
-OK.
-
-> 
-> > For now, I'll keep this patch out of the merge.  
-> 
-> Ok. So in summary, I think:
-> 
-> 1. Any driver which produces consequentive pulse events is broken
->    and should be fixed;
-
-Agreed.
-
-> 2. The IR decoders cannot deal with consequentive pulses and the current
->    prev_ev code does not help with this (possibly in very special
->    cases).
-
-Ok. Yet, maybe it would worth to produce a warning if this happen, and
-reset the state machine, as it would help to identify problems at
-the driver or at the hardware.
-
-
-Thanks,
-Mauro
+-- 
+2.16.0.rc1.238.g530d649a79-goog
