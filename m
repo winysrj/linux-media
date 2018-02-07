@@ -1,53 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.99]:54794 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751835AbeBFICs (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 6 Feb 2018 03:02:48 -0500
-From: Masami Hiramatsu <mhiramat@kernel.org>
-To: Pawel Osciak <pawel@osciak.com>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Kyungmin Park <kyungmin.park@samsung.com>
-Cc: mhiramat@kernel.org, Mauro Carvalho Chehab <mchehab@kernel.org>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        orito.takao@socionext.com,
-        Fumihiro ATSUMI <atsumi@infinitegra.co.jp>
-Subject: [PATCH v2] media: vb2: Fix videobuf2 to map correct area
-Date: Tue,  6 Feb 2018 17:02:23 +0900
-Message-Id: <151790414344.19507.15297848847845554616.stgit@devbox>
+Received: from mail-co1nam03on0055.outbound.protection.outlook.com ([104.47.40.55]:37536
+        "EHLO NAM03-CO1-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1751986AbeBGW36 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 7 Feb 2018 17:29:58 -0500
+From: Satish Kumar Nagireddy <satish.nagireddy.nagireddy@xilinx.com>
+To: <linux-media@vger.kernel.org>, <laurent.pinchart@ideasonboard.com>,
+        <michal.simek@xilinx.com>, <hyun.kwon@xilinx.com>
+CC: Rohit Athavale <rohit.athavale@xilinx.com>,
+        Satish Kumar Nagireddy <satishna@xilinx.com>
+Subject: [PATCH 4/8] media-bus: uapi: Add YCrCb 420 media bus format
+Date: Wed, 7 Feb 2018 14:29:34 -0800
+Message-ID: <1518042578-22771-5-git-send-email-satishna@xilinx.com>
+In-Reply-To: <1518042578-22771-1-git-send-email-satishna@xilinx.com>
+References: <1518042578-22771-1-git-send-email-satishna@xilinx.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fixes vb2_vmalloc_get_userptr() to ioremap correct area.
-Since the current code does ioremap the page address, if the offset > 0,
-it does not do ioremap the last page and results in kernel panic.
+From: Rohit Athavale <rohit.athavale@xilinx.com>
 
-This fixes to pass the size + offset to ioremap so that ioremap
-can map correct area. Also, this uses __pfn_to_phys() to get the physical
-address of given PFN.
+This commit adds a YUV 420 media bus format. Currently, one
+doesn't exist. VYYUYY8_1X24 does not describe the way the pixels are
+sent over the bus, but is an approximation.
 
-Signed-off-by: Masami Hiramatsu <mhiramat@kernel.org>
-Reported-by: Takao Orito <orito.takao@socionext.com>
-Reported-by: Fumihiro ATSUMI <atsumi@infinitegra.co.jp>
+Signed-off-by: Satish Kumar Nagireddy <satishna@xilinx.com>
 ---
-  Chanegs in v2:
-   - Fix to pass size + offset instead of changing address.
----
- drivers/media/v4l2-core/videobuf2-vmalloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/uapi/linux/media-bus-format.h | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/v4l2-core/videobuf2-vmalloc.c b/drivers/media/v4l2-core/videobuf2-vmalloc.c
-index 3a7c80cd1a17..359fb9804d16 100644
---- a/drivers/media/v4l2-core/videobuf2-vmalloc.c
-+++ b/drivers/media/v4l2-core/videobuf2-vmalloc.c
-@@ -106,7 +106,7 @@ static void *vb2_vmalloc_get_userptr(struct device *dev, unsigned long vaddr,
- 			if (nums[i-1] + 1 != nums[i])
- 				goto fail_map;
- 		buf->vaddr = (__force void *)
--				ioremap_nocache(nums[0] << PAGE_SHIFT, size);
-+			ioremap_nocache(__pfn_to_phys(nums[0]), size + offset);
- 	} else {
- 		buf->vaddr = vm_map_ram(frame_vector_pages(vec), n_pages, -1,
- 					PAGE_KERNEL);
+diff --git a/include/uapi/linux/media-bus-format.h b/include/uapi/linux/med=
+ia-bus-format.h
+index 9e35117..0297e19 100644
+--- a/include/uapi/linux/media-bus-format.h
++++ b/include/uapi/linux/media-bus-format.h
+@@ -62,7 +62,7 @@
+ #define MEDIA_BUS_FMT_RGB121212_1X36           0x1019
+ #define MEDIA_BUS_FMT_RGB161616_1X48           0x101a
+
+-/* YUV (including grey) - next is      0x202c */
++/* YUV (including grey) - next is      0x202d */
+ #define MEDIA_BUS_FMT_Y8_1X8                   0x2001
+ #define MEDIA_BUS_FMT_UV8_1X8                  0x2015
+ #define MEDIA_BUS_FMT_UYVY8_1_5X8              0x2002
+@@ -106,6 +106,7 @@
+ #define MEDIA_BUS_FMT_YUV12_1X36               0x2029
+ #define MEDIA_BUS_FMT_YUV16_1X48               0x202a
+ #define MEDIA_BUS_FMT_UYYVYY16_0_5X48          0x202b
++#define MEDIA_BUS_FMT_VYYUYY8_1X24              0x202c
+
+ /* Bayer - next is     0x3021 */
+ #define MEDIA_BUS_FMT_SBGGR8_1X8               0x3001
+--
+2.7.4
+
+This email and any attachments are intended for the sole use of the named r=
+ecipient(s) and contain(s) confidential information that may be proprietary=
+, privileged or copyrighted under applicable law. If you are not the intend=
+ed recipient, do not read, copy, or forward this email message or any attac=
+hments. Delete this email message and any attachments immediately.
