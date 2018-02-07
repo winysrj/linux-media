@@ -1,70 +1,159 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from osg.samsung.com ([64.30.133.232]:40974 "EHLO osg.samsung.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1751530AbeBZNkR (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Mon, 26 Feb 2018 08:40:17 -0500
-From: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>,
-        Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Mauro Carvalho Chehab <mchehab@infradead.org>,
-        Steve Longerbeam <slongerbeam@gmail.com>,
-        Philipp Zabel <p.zabel@pengutronix.de>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        devel@driverdev.osuosl.org
-Subject: [PATCH 3/3] media: imx: Don't initialize vars that won't be used
-Date: Mon, 26 Feb 2018 08:40:10 -0500
-Message-Id: <52e17089d1850774d2ef583cdef2b060b84fca8c.1519652405.git.mchehab@s-opensource.com>
-In-Reply-To: <00d9da502565e97fcca3805eec98db6df3594ec0.1519652405.git.mchehab@s-opensource.com>
-References: <00d9da502565e97fcca3805eec98db6df3594ec0.1519652405.git.mchehab@s-opensource.com>
-In-Reply-To: <00d9da502565e97fcca3805eec98db6df3594ec0.1519652405.git.mchehab@s-opensource.com>
-References: <00d9da502565e97fcca3805eec98db6df3594ec0.1519652405.git.mchehab@s-opensource.com>
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+Received: from lb3-smtp-cloud8.xs4all.net ([194.109.24.29]:54266 "EHLO
+        lb3-smtp-cloud8.xs4all.net" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753696AbeBGNWz (ORCPT
+        <rfc822;linux-media@vger.kernel.org>);
+        Wed, 7 Feb 2018 08:22:55 -0500
+Subject: Re: [PATCH 4/4] add video control handlers using V4L2 control
+ framework
+To: Florian Echtler <floe@butterbrot.org>, linux-media@vger.kernel.org
+Cc: linux-input@vger.kernel.org, modin@yuri.at
+References: <1518008438-26603-1-git-send-email-floe@butterbrot.org>
+ <1518008438-26603-5-git-send-email-floe@butterbrot.org>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Message-ID: <aba77562-d4fc-b1e1-81a4-25316c953338@xs4all.nl>
+Date: Wed, 7 Feb 2018 14:22:50 +0100
+MIME-Version: 1.0
+In-Reply-To: <1518008438-26603-5-git-send-email-floe@butterbrot.org>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As reported by gcc:
+On 02/07/18 14:00, Florian Echtler wrote:
+> This patch registers four standard control handlers using the corresponding
+> V4L2 framework.
+> 
+> Signed-off-by: Florian Echtler <floe@butterbrot.org>
+> ---
+>  drivers/input/touchscreen/sur40.c | 64 +++++++++++++++++++++++++++++++++++++++
+>  1 file changed, 64 insertions(+)
+> 
+> diff --git a/drivers/input/touchscreen/sur40.c b/drivers/input/touchscreen/sur40.c
+> index d6fa25e..b92325b 100644
+> --- a/drivers/input/touchscreen/sur40.c
+> +++ b/drivers/input/touchscreen/sur40.c
+> @@ -38,6 +38,7 @@
+>  #include <media/v4l2-device.h>
+>  #include <media/v4l2-dev.h>
+>  #include <media/v4l2-ioctl.h>
+> +#include <media/v4l2-ctrls.h>
+>  #include <media/videobuf2-v4l2.h>
+>  #include <media/videobuf2-dma-sg.h>
+>  
+> @@ -209,6 +210,7 @@ struct sur40_state {
+>  	struct video_device vdev;
+>  	struct mutex lock;
+>  	struct v4l2_pix_format pix_fmt;
+> +	struct v4l2_ctrl_handler ctrls;
 
-  + drivers/staging/media/imx/imx-media-csi.c: warning: variable 'input_fi' set but not used [-Wunused-but-set-variable]:  => 671:33
-  + drivers/staging/media/imx/imx-media-csi.c: warning: variable 'pinctrl' set but not used [-Wunused-but-set-variable]:  => 1742:18
+Please rename this to either hdl or ctrl_handler. 'ctrls' is confusing.
 
-input_fi is not used, so just remove it.
+>  
+>  	struct vb2_queue queue;
+>  	struct list_head buf_list;
+> @@ -218,6 +220,7 @@ struct sur40_state {
+>  	struct sur40_data *bulk_in_buffer;
+>  	size_t bulk_in_size;
+>  	u8 bulk_in_epaddr;
+> +	u8 vsvideo;
+>  
+>  	char phys[64];
+>  };
+> @@ -231,6 +234,11 @@ struct sur40_buffer {
+>  static const struct video_device sur40_video_device;
+>  static const struct vb2_queue sur40_queue;
+>  static void sur40_process_video(struct sur40_state *sur40);
+> +static int sur40_s_ctrl(struct v4l2_ctrl *ctrl);
+> +
+> +static const struct v4l2_ctrl_ops sur40_ctrl_ops = {
+> +	.s_ctrl = sur40_s_ctrl,
+> +};
+>  
+>  /*
+>   * Note: an earlier, non-public version of this driver used USB_RECIP_ENDPOINT
+> @@ -737,6 +745,36 @@ static int sur40_probe(struct usb_interface *interface,
+>  	sur40->vdev.queue = &sur40->queue;
+>  	video_set_drvdata(&sur40->vdev, sur40);
+>  
+> +	/* initialize the control handler for 4 controls */
+> +	v4l2_ctrl_handler_init(&sur40->ctrls, 4);
+> +	sur40->v4l2.ctrl_handler = &sur40->ctrls;
+> +	sur40->vsvideo = (SUR40_CONTRAST_DEF << 4) | SUR40_GAIN_DEF;
+> +
+> +	v4l2_ctrl_new_std(&sur40->ctrls, &sur40_ctrl_ops, V4L2_CID_BRIGHTNESS,
+> +	  SUR40_BRIGHTNESS_MIN, SUR40_BRIGHTNESS_MAX, 1, clamp(brightness,
+> +	  (uint)SUR40_BRIGHTNESS_MIN, (uint)SUR40_BRIGHTNESS_MAX));
+> +
+> +	v4l2_ctrl_new_std(&sur40->ctrls, &sur40_ctrl_ops, V4L2_CID_CONTRAST,
+> +	  SUR40_CONTRAST_MIN, SUR40_CONTRAST_MAX, 1, clamp(contrast,
+> +	  (uint)SUR40_CONTRAST_MIN, (uint)SUR40_CONTRAST_MAX));
+> +
+> +	v4l2_ctrl_new_std(&sur40->ctrls, &sur40_ctrl_ops, V4L2_CID_GAIN,
+> +	  SUR40_GAIN_MIN, SUR40_GAIN_MAX, 1, clamp(gain,
+> +	  (uint)SUR40_GAIN_MIN, (uint)SUR40_GAIN_MAX));
+> +
+> +	v4l2_ctrl_new_std(&sur40->ctrls, &sur40_ctrl_ops,
+> +	  V4L2_CID_BACKLIGHT_COMPENSATION, SUR40_BACKLIGHT_MIN,
+> +	  SUR40_BACKLIGHT_MAX, 1, SUR40_BACKLIGHT_DEF);
+> +
+> +	v4l2_ctrl_handler_setup(&sur40->ctrls);
+> +
+> +	if (sur40->ctrls.error) {
+> +		dev_err(&interface->dev,
+> +			"Unable to register video controls.");
+> +		v4l2_ctrl_handler_free(&sur40->ctrls);
+> +		goto err_unreg_v4l2;
+> +	}
+> +
+>  	error = video_register_device(&sur40->vdev, VFL_TYPE_TOUCH, -1);
+>  	if (error) {
+>  		dev_err(&interface->dev,
+> @@ -769,6 +807,7 @@ static void sur40_disconnect(struct usb_interface *interface)
+>  {
+>  	struct sur40_state *sur40 = usb_get_intfdata(interface);
+>  
+> +	v4l2_ctrl_handler_free(&sur40->ctrls);
+>  	video_unregister_device(&sur40->vdev);
+>  	v4l2_device_unregister(&sur40->v4l2);
+>  
+> @@ -962,6 +1001,31 @@ static int sur40_vidioc_g_fmt(struct file *file, void *priv,
+>  	return 0;
+>  }
+>  
+> +static int sur40_s_ctrl(struct v4l2_ctrl *ctrl)
+> +{
+> +	struct sur40_state *sur40  = container_of(ctrl->handler,
+> +	  struct sur40_state, ctrls);
+> +	u8 value = sur40->vsvideo;
+> +
+> +	switch (ctrl->id) {
+> +	case V4L2_CID_BRIGHTNESS:
+> +		sur40_set_irlevel(sur40, ctrl->val);
+> +		break;
+> +	case V4L2_CID_CONTRAST:
+> +		value = (value & 0x0F) | (ctrl->val << 4);
+> +		sur40_set_vsvideo(sur40, value);
+> +		break;
+> +	case V4L2_CID_GAIN:
+> +		value = (value & 0xF0) | (ctrl->val);
+> +		sur40_set_vsvideo(sur40, value);
+> +		break;
+> +	case V4L2_CID_BACKLIGHT_COMPENSATION:
+> +		sur40_set_preprocessor(sur40, ctrl->val);
+> +		break;
+> +	}
+> +	return 0;
+> +}
+> +
+>  static int sur40_ioctl_parm(struct file *file, void *priv,
+>  			    struct v4l2_streamparm *p)
+>  {
+> 
 
-However, pinctrl should be used, as it devm_pinctrl_get_select_default()
-is declared with attribute warn_unused_result. What's missing there
-is an error handling code, in case it fails. Add it.
+Looks good otherwise.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@s-opensource.com>
----
- drivers/staging/media/imx/imx-media-csi.c | 7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+Regards,
 
-diff --git a/drivers/staging/media/imx/imx-media-csi.c b/drivers/staging/media/imx/imx-media-csi.c
-index eb7be5093a9d..49b57466e88d 100644
---- a/drivers/staging/media/imx/imx-media-csi.c
-+++ b/drivers/staging/media/imx/imx-media-csi.c
-@@ -668,11 +668,10 @@ static int csi_setup(struct csi_priv *priv)
- 
- static int csi_start(struct csi_priv *priv)
- {
--	struct v4l2_fract *output_fi, *input_fi;
-+	struct v4l2_fract *output_fi;
- 	int ret;
- 
- 	output_fi = &priv->frame_interval[priv->active_output_pad];
--	input_fi = &priv->frame_interval[CSI_SINK_PAD];
- 
- 	if (priv->dest == IPU_CSI_DEST_IDMAC) {
- 		ret = csi_idmac_start(priv);
-@@ -1797,6 +1796,10 @@ static int imx_csi_probe(struct platform_device *pdev)
- 	 */
- 	priv->dev->of_node = pdata->of_node;
- 	pinctrl = devm_pinctrl_get_select_default(priv->dev);
-+	if (IS_ERR(pinctrl)) {
-+		ret = PTR_ERR(priv->vdev);
-+		goto free;
-+	}
- 
- 	ret = v4l2_async_register_subdev(&priv->sd);
- 	if (ret)
--- 
-2.14.3
+	Hans
