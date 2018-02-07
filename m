@@ -1,78 +1,155 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qt0-f170.google.com ([209.85.216.170]:46643 "EHLO
-        mail-qt0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752402AbeBASTU (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Thu, 1 Feb 2018 13:19:20 -0500
-Received: by mail-qt0-f170.google.com with SMTP id o35so27601165qtj.13
-        for <linux-media@vger.kernel.org>; Thu, 01 Feb 2018 10:19:19 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <CAGoCfiwFAPeTMpgKdy99UgXiigot0nwkLKZ2w9COft-nZ8tGkg@mail.gmail.com>
-References: <CAGoCfixnHv-b3CbjqXLkFuK0J+_ejFnGRyxNJoywxuqQKBr_=Q@mail.gmail.com>
- <20180128222319.wx2fl6pzzezezv5v@kekkonen.localdomain> <CAGoCfiwFAPeTMpgKdy99UgXiigot0nwkLKZ2w9COft-nZ8tGkg@mail.gmail.com>
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-Date: Thu, 1 Feb 2018 13:19:18 -0500
-Message-ID: <CAGoCfiy_r7Xp6O9oRO0Vg4d6dx3Ko4OYOdcveYyebjF-E3cW9w@mail.gmail.com>
-Subject: Re: Regression in VB2 alloc prepare/finish balancing with em28xx/au0828
-To: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>
-Content-Type: text/plain; charset="UTF-8"
+Received: from mail.free-electrons.com ([62.4.15.54]:50947 "EHLO
+        mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754008AbeBGOYn (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Feb 2018 09:24:43 -0500
+From: Maxime Ripard <maxime.ripard@bootlin.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Rob Herring <robh+dt@kernel.org>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        Richard Sproul <sproul@cadence.com>,
+        Alan Douglas <adouglas@cadence.com>,
+        Steve Creaney <screaney@cadence.com>,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+        Boris Brezillon <boris.brezillon@bootlin.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Benoit Parrot <bparrot@ti.com>, nm@ti.com,
+        Simon Hatliff <hatliff@cadence.com>,
+        Maxime Ripard <maxime.ripard@bootlin.com>
+Subject: [PATCH v6 1/2] dt-bindings: media: Add Cadence MIPI-CSI2 RX Device Tree bindings
+Date: Wed,  7 Feb 2018 15:24:36 +0100
+Message-Id: <20180207142437.14553-2-maxime.ripard@bootlin.com>
+In-Reply-To: <20180207142437.14553-1-maxime.ripard@bootlin.com>
+References: <20180207142437.14553-1-maxime.ripard@bootlin.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari, Hans,
+The Cadence MIPI-CSI2 RX controller is a CSI2RX bridge that supports up to
+4 CSI-2 lanes, and can route the frames to up to 4 streams, depending on
+the hardware implementation.
 
-Do either of you have any thoughts on whether I'm actually leaking any
-resources, or whether this is just a warning that doesn't have any
-practical implication since I'm tearing down the videobuf2 queue?
+It can operate with an external D-PHY, an internal one or no D-PHY at all
+in some configurations.
 
-I don't really care about the embedded use case - do you see any
-reason where at least for my local tree I cannot simply revert this
-patch until a real solution is found?
+Acked-by: Rob Herring <robh@kernel.org>
+Acked-by: Benoit Parrot <bparrot@ti.com>
+Acked-by: Sakari Ailus <sakari.ailus@linux.intel.com>
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Maxime Ripard <maxime.ripard@bootlin.com>
+---
+ .../devicetree/bindings/media/cdns,csi2rx.txt      | 100 +++++++++++++++++++++
+ 1 file changed, 100 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/cdns,csi2rx.txt
 
-Cheers,
-
-Devin
-
-On Mon, Jan 29, 2018 at 8:44 PM, Devin Heitmueller
-<dheitmueller@kernellabs.com> wrote:
-> Hello Sakari,
->
-> Thanks for taking the time to investigate.  See comments inline.
->
-> On Sun, Jan 28, 2018 at 5:23 PM, Sakari Ailus
-> <sakari.ailus@linux.intel.com> wrote:
->> Hi Devin,
->>
->> On Sun, Jan 28, 2018 at 09:12:44AM -0500, Devin Heitmueller wrote:
->>> Hello all,
->>>
->>> I recently updated to the latest kernel, and I am seeing the following
->>> dumped to dmesg with both au0828 and em28xx based devices whenever I
->>> exit tvtime (my kernel is compiled with CONFIG_VIDEO_ADV_DEBUG=y by
->>> default):
->>
->> Thanks for reporting this. Would you be able to provide the full dmesg,
->> with VB2 debug parameter set to 2?
->
-> Output can be found at https://pastebin.com/nXS7MTJH
->
->> I can't immediately see how you'd get this, well, without triggering a
->> kernel warning or two. The code is pretty complex though.
->
-> If this is something I screwed up when I did the VB2 port for em28xx
-> several years ago, point me in the right direction and I'll see what I
-> can do.  However given we're seeing it with multiple drivers, this
-> feels like some subtle issue inside videobuf2.
->
-> Devin
->
-> --
-> Devin J. Heitmueller - Kernel Labs
-> http://www.kernellabs.com
-
-
-
+diff --git a/Documentation/devicetree/bindings/media/cdns,csi2rx.txt b/Documentation/devicetree/bindings/media/cdns,csi2rx.txt
+new file mode 100644
+index 000000000000..56d51902b2eb
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/cdns,csi2rx.txt
+@@ -0,0 +1,100 @@
++Cadence MIPI-CSI2 RX controller
++===============================
++
++The Cadence MIPI-CSI2 RX controller is a CSI-2 bridge supporting up to 4 CSI
++lanes in input, and 4 different pixel streams in output.
++
++Required properties:
++  - compatible: must be set to "cdns,csi2rx" and an SoC-specific compatible
++  - reg: base address and size of the memory mapped region
++  - clocks: phandles to the clocks driving the controller
++  - clock-names: must contain:
++    * sys_clk: main clock
++    * p_clk: register bank clock
++    * pixel_if[0-3]_clk: pixel stream output clock, one for each stream
++                         implemented in hardware, between 0 and 3
++
++Optional properties:
++  - phys: phandle to the external D-PHY, phy-names must be provided
++  - phy-names: must contain dphy, if the implementation uses an
++               external D-PHY
++
++Required subnodes:
++  - ports: A ports node with one port child node per device input and output
++           port, in accordance with the video interface bindings defined in
++           Documentation/devicetree/bindings/media/video-interfaces.txt. The
++           port nodes numbered as follows.
++
++           Port Description
++           -----------------------------
++           0    CSI-2 input
++           1    Stream 0 output
++           2    Stream 1 output
++           3    Stream 2 output
++           4    Stream 3 output
++
++           The stream output port nodes are optional if they are not
++           connected to anything at the hardware level or implemented
++           in the design.Since there is only one endpoint per port,
++           the endpoints are not numbered.
++
++
++Example:
++
++csi2rx: csi-bridge@0d060000 {
++	compatible = "cdns,csi2rx";
++	reg = <0x0d060000 0x1000>;
++	clocks = <&byteclock>, <&byteclock>
++		 <&coreclock>, <&coreclock>,
++		 <&coreclock>, <&coreclock>;
++	clock-names = "sys_clk", "p_clk",
++		      "pixel_if0_clk", "pixel_if1_clk",
++		      "pixel_if2_clk", "pixel_if3_clk";
++
++	ports {
++		#address-cells = <1>;
++		#size-cells = <0>;
++
++		port@0 {
++			reg = <0>;
++
++			csi2rx_in_sensor: endpoint {
++				remote-endpoint = <&sensor_out_csi2rx>;
++				clock-lanes = <0>;
++				data-lanes = <1 2>;
++			};
++		};
++
++		port@1 {
++			reg = <1>;
++
++			csi2rx_out_grabber0: endpoint {
++				remote-endpoint = <&grabber0_in_csi2rx>;
++			};
++		};
++
++		port@2 {
++			reg = <2>;
++
++			csi2rx_out_grabber1: endpoint {
++				remote-endpoint = <&grabber1_in_csi2rx>;
++			};
++		};
++
++		port@3 {
++			reg = <3>;
++
++			csi2rx_out_grabber2: endpoint {
++				remote-endpoint = <&grabber2_in_csi2rx>;
++			};
++		};
++
++		port@4 {
++			reg = <4>;
++
++			csi2rx_out_grabber3: endpoint {
++				remote-endpoint = <&grabber3_in_csi2rx>;
++			};
++		};
++	};
++};
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+2.14.3
