@@ -1,88 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.bootlin.com ([62.4.15.54]:44472 "EHLO mail.bootlin.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1752175AbeB0HZ1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Tue, 27 Feb 2018 02:25:27 -0500
-Date: Tue, 27 Feb 2018 08:25:24 +0100
-From: Maxime Ripard <maxime.ripard@bootlin.com>
-To: Yong Deng <yong.deng@magewell.com>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Rob Herring <robh+dt@kernel.org>,
-        Mark Rutland <mark.rutland@arm.com>,
-        Chen-Yu Tsai <wens@csie.org>,
-        "David S. Miller" <davem@davemloft.net>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        Linus Walleij <linus.walleij@linaro.org>,
-        Randy Dunlap <rdunlap@infradead.org>,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Stanimir Varbanov <stanimir.varbanov@linaro.org>,
-        Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-        Arnd Bergmann <arnd@arndb.de>,
+Received: from bombadil.infradead.org ([65.50.211.133]:40171 "EHLO
+        bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754189AbeBGBWw (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 6 Feb 2018 20:22:52 -0500
+Subject: Re: [PATCH v8 1/7] v4l2-dv-timings: add v4l2_hdmi_colorimetry()
+To: Tim Harvey <tharvey@gateworks.com>, linux-media@vger.kernel.org,
+        alsa-devel@alsa-project.org
+Cc: devicetree@vger.kernel.org, linux-kernel@vger.kernel.org,
+        shawnguo@kernel.org, Steve Longerbeam <slongerbeam@gmail.com>,
         Philipp Zabel <p.zabel@pengutronix.de>,
-        Ramesh Shanmugasundaram <ramesh.shanmugasundaram@bp.renesas.com>,
-        Yannick Fertre <yannick.fertre@st.com>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Todor Tomov <todor.tomov@linaro.org>,
-        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-        linux-sunxi@googlegroups.com
-Subject: Re: [PATCH v8 2/2] media: V3s: Add support for Allwinner CSI.
-Message-ID: <20180227072524.5pjoxoo4yowfw43v@flea>
-References: <1519697566-32600-1-git-send-email-yong.deng@magewell.com>
+        Hans Verkuil <hansverk@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Hans Verkuil <hans.verkuil@cisco.com>
+References: <1517948874-21681-1-git-send-email-tharvey@gateworks.com>
+ <1517948874-21681-2-git-send-email-tharvey@gateworks.com>
+From: Randy Dunlap <rdunlap@infradead.org>
+Message-ID: <c1dc5de9-e81d-b9bd-b587-1a94de96f97c@infradead.org>
+Date: Tue, 6 Feb 2018 17:22:40 -0800
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-        protocol="application/pgp-signature"; boundary="fkl5txttwye7c5om"
-Content-Disposition: inline
-In-Reply-To: <1519697566-32600-1-git-send-email-yong.deng@magewell.com>
+In-Reply-To: <1517948874-21681-2-git-send-email-tharvey@gateworks.com>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On 02/06/2018 12:27 PM, Tim Harvey wrote:
+> From: Hans Verkuil <hverkuil@xs4all.nl>
+> 
+> Add the v4l2_hdmi_colorimetry() function so we have a single function
+> that determines the colorspace, YCbCr encoding, quantization range and
+> transfer function from the InfoFrame data.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> Signed-off-by: Tim Harvey <tharvey@gateworks.com>
+> ---
+>  drivers/media/v4l2-core/v4l2-dv-timings.c | 141 ++++++++++++++++++++++++++++++
+>  include/media/v4l2-dv-timings.h           |  21 +++++
+>  2 files changed, 162 insertions(+)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-dv-timings.c b/drivers/media/v4l2-core/v4l2-dv-timings.c
+> index 930f9c5..0182d3d 100644
+> --- a/drivers/media/v4l2-core/v4l2-dv-timings.c
+> +++ b/drivers/media/v4l2-core/v4l2-dv-timings.c
+> @@ -27,6 +27,7 @@
+>  #include <linux/v4l2-dv-timings.h>
+>  #include <media/v4l2-dv-timings.h>
+>  #include <linux/math64.h>
+> +#include <linux/hdmi.h>
+>  
+>  MODULE_AUTHOR("Hans Verkuil");
+>  MODULE_DESCRIPTION("V4L2 DV Timings Helper Functions");
+> @@ -814,3 +815,143 @@ struct v4l2_fract v4l2_calc_aspect_ratio(u8 hor_landscape, u8 vert_portrait)
+>  	return aspect;
+>  }
+>  EXPORT_SYMBOL_GPL(v4l2_calc_aspect_ratio);
+> +
+> +/** v4l2_hdmi_rx_colorimetry - determine HDMI colorimetry information
+> + *	based on various InfoFrames.
+> + * @avi - the AVI InfoFrame
+> + * @hdmi - the HDMI Vendor InfoFrame, may be NULL
+> + * @height - the frame height
 
---fkl5txttwye7c5om
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+kernel-doc format for function parameters is like:
 
-On Tue, Feb 27, 2018 at 10:12:46AM +0800, Yong Deng wrote:
-> Allwinner V3s SoC features two CSI module. CSI0 is used for MIPI CSI-2
-> interface and CSI1 is used for parallel interface. This is not
-> documented in datasheet but by test and guess.
->=20
-> This patch implement a v4l2 framework driver for it.
->=20
-> Currently, the driver only support the parallel interface. MIPI-CSI2,
-> ISP's support are not included in this patch.
->=20
-> Tested-by: Maxime Ripard <maxime.ripard@free-electrons.com>
-> Signed-off-by: Yong Deng <yong.deng@magewell.com>
+ * @avi: the AVI InfoFrame
 
-Reviewed-by: Maxime Ripard <maxime.ripard@bootlin.com>
+etc.
 
-Maxime
+> + *
+> + * Determines the HDMI colorimetry information, i.e. how the HDMI
+> + * pixel color data should be interpreted.
+> + *
+> + * Note that some of the newer features (DCI-P3, HDR) are not yet
+> + * implemented: the hdmi.h header needs to be updated to the HDMI 2.0
+> + * and CTA-861-G standards.
+> + */
+> +struct v4l2_hdmi_colorimetry
+> +v4l2_hdmi_rx_colorimetry(const struct hdmi_avi_infoframe *avi,
+> +			 const struct hdmi_vendor_infoframe *hdmi,
+> +			 unsigned int height)
+> +{
 
---=20
-Maxime Ripard, Bootlin (formerly Free Electrons)
-Embedded Linux and Kernel engineering
-https://bootlin.com
 
---fkl5txttwye7c5om
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-
-iQIzBAABCAAdFiEE0VqZU19dR2zEVaqr0rTAlCFNr3QFAlqVB+MACgkQ0rTAlCFN
-r3SN/g//bxWocMt6hu3dxRXkZ1oj77FTZkLTsoNzIlcd1zh+buI3HHSoWYilOeVU
-zLJj0nokWoF9FRuryNqiDXFjhOiRqLb3mgvu6HRRWVuQ7xwr1X3IN1ntG8aSy+5m
-zy5xCT89S24QkcZNalZ0YKCM/qs2i12AXw6LMLFdoABeNz9WygFI3tch1qIX/CwT
-IFQVh8ATY0RlYp275+A2OjzB5GSqbIeyMKjaPjWkIVP8iV3KkcuXvIjfMmnqm5Ok
-HvMDJopDYu+95krEEeue82nhFzMSa4npAdu7Vxq2cNS88txV6zj/3dURt7CWk/v6
-B/X2kKU3jH4HZ40BeNeuulSQdmSIlIPZEpYruiqimvurxqNKAQqBOnsiRGU+WWBh
-9HRhhB7/8rSkZj5Dq/Xbrm/4zP1+lAYDL7nHgQeuFBIdosvvQYbzwhnnrbBIN/oU
-qcwIrsjnz9wxzh5QbIMlEIXKLJBpFgmotgbc+A/QqUWzidoYp26JJScFeXcI68H7
-oNW3O3XMdP8q3Q3O8YyWklhHMvEFvo8UBiqf4Fo6J1cYwMxPnL8N/yFQwzNuxyLJ
-1j1tSxAepyrSHj6nvCq+HYMjmbODLCzxlS9Rk86PTM5vNAxNo6bQKxT+HVauwHfd
-JprB6jgC6mCJaqCugHCB+H14H8KdOdSOsL9f3UpfRoEkf5bgYJ8=
-=Kft4
------END PGP SIGNATURE-----
-
---fkl5txttwye7c5om--
+thanks,
+-- 
+~Randy
