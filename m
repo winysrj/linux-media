@@ -1,137 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f67.google.com ([74.125.83.67]:39764 "EHLO
-        mail-pg0-f67.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751193AbeBJP3D (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Sat, 10 Feb 2018 10:29:03 -0500
-Received: by mail-pg0-f67.google.com with SMTP id w17so5253199pgv.6
-        for <linux-media@vger.kernel.org>; Sat, 10 Feb 2018 07:29:03 -0800 (PST)
-From: Akinobu Mita <akinobu.mita@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: Akinobu Mita <akinobu.mita@gmail.com>,
+Received: from mail.free-electrons.com ([62.4.15.54]:50933 "EHLO
+        mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753923AbeBGOYm (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Feb 2018 09:24:42 -0500
+From: Maxime Ripard <maxime.ripard@bootlin.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Rob Herring <robh+dt@kernel.org>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        Richard Sproul <sproul@cadence.com>,
+        Alan Douglas <adouglas@cadence.com>,
+        Steve Creaney <screaney@cadence.com>,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+        Boris Brezillon <boris.brezillon@bootlin.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
         Sakari Ailus <sakari.ailus@linux.intel.com>,
-        Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Subject: [PATCH 2/2] media: ov2640: make s_ctrl() work in power-down mode
-Date: Sun, 11 Feb 2018 00:28:38 +0900
-Message-Id: <1518276518-14034-3-git-send-email-akinobu.mita@gmail.com>
-In-Reply-To: <1518276518-14034-1-git-send-email-akinobu.mita@gmail.com>
-References: <1518276518-14034-1-git-send-email-akinobu.mita@gmail.com>
+        Benoit Parrot <bparrot@ti.com>, nm@ti.com,
+        Simon Hatliff <hatliff@cadence.com>,
+        Maxime Ripard <maxime.ripard@bootlin.com>
+Subject: [PATCH v6 0/2] media: v4l: Add support for the Cadence MIPI-CSI2 RX
+Date: Wed,  7 Feb 2018 15:24:35 +0100
+Message-Id: <20180207142437.14553-1-maxime.ripard@bootlin.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The s_ctrl() operation can be called when the device is placed into
-power down mode.  Then, applying controls to H/W should be postponed at
-this time.  Instead the controls will be restored when the streaming is
-started.
+Hi,
 
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: Mauro Carvalho Chehab <mchehab@s-opensource.com>
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
----
- drivers/media/i2c/ov2640.c | 43 ++++++++++++++++++++++++++++++++++++-------
- 1 file changed, 36 insertions(+), 7 deletions(-)
+Here is the sixth attempt at supporting the MIPI-CSI2 RX block from
+Cadence.
 
-diff --git a/drivers/media/i2c/ov2640.c b/drivers/media/i2c/ov2640.c
-index 68a356d..beb7220 100644
---- a/drivers/media/i2c/ov2640.c
-+++ b/drivers/media/i2c/ov2640.c
-@@ -308,8 +308,9 @@ struct ov2640_priv {
- 	struct gpio_desc *resetb_gpio;
- 	struct gpio_desc *pwdn_gpio;
- 
--	struct mutex lock; /* lock to protect streaming */
-+	struct mutex lock; /* lock to protect streaming and power_count */
- 	bool streaming;
-+	int power_count;
- };
- 
- /*
-@@ -712,9 +713,20 @@ static int ov2640_s_ctrl(struct v4l2_ctrl *ctrl)
- 	struct v4l2_subdev *sd =
- 		&container_of(ctrl->handler, struct ov2640_priv, hdl)->subdev;
- 	struct i2c_client  *client = v4l2_get_subdevdata(sd);
-+	struct ov2640_priv *priv = to_ov2640(client);
- 	u8 val;
- 	int ret;
- 
-+	/* v4l2_ctrl_lock() locks our own mutex */
-+
-+	/*
-+	 * If the device is not powered up by the host driver, do not apply any
-+	 * controls to H/W at this time. Instead the controls will be restored
-+	 * when the streaming is started.
-+	 */
-+	if (!priv->power_count)
-+		return 0;
-+
- 	ret = i2c_smbus_write_byte_data(client, BANK_SEL, BANK_SEL_SENS);
- 	if (ret < 0)
- 		return ret;
-@@ -766,12 +778,9 @@ static int ov2640_s_register(struct v4l2_subdev *sd,
- }
- #endif
- 
--static int ov2640_s_power(struct v4l2_subdev *sd, int on)
-+static void ov2640_set_power(struct ov2640_priv *priv, int on)
- {
- #ifdef CONFIG_GPIOLIB
--	struct i2c_client *client = v4l2_get_subdevdata(sd);
--	struct ov2640_priv *priv = to_ov2640(client);
--
- 	if (priv->pwdn_gpio)
- 		gpiod_direction_output(priv->pwdn_gpio, !on);
- 	if (on && priv->resetb_gpio) {
-@@ -781,6 +790,25 @@ static int ov2640_s_power(struct v4l2_subdev *sd, int on)
- 		gpiod_set_value(priv->resetb_gpio, 0);
- 	}
- #endif
-+}
-+
-+static int ov2640_s_power(struct v4l2_subdev *sd, int on)
-+{
-+	struct i2c_client *client = v4l2_get_subdevdata(sd);
-+	struct ov2640_priv *priv = to_ov2640(client);
-+
-+	mutex_lock(&priv->lock);
-+
-+	/*
-+	 * If the power count is modified from 0 to != 0 or from != 0 to 0,
-+	 * update the power state.
-+	 */
-+	if (priv->power_count == !on)
-+		ov2640_set_power(priv, on);
-+	priv->power_count += on ? 1 : -1;
-+	WARN_ON(priv->power_count < 0);
-+	mutex_unlock(&priv->lock);
-+
- 	return 0;
- }
- 
-@@ -1005,6 +1033,8 @@ static int ov2640_s_stream(struct v4l2_subdev *sd, int on)
- 		if (on) {
- 			ret = ov2640_set_params(client, priv->win,
- 						priv->cfmt_code);
-+			if (!ret)
-+				ret = __v4l2_ctrl_handler_setup(&priv->hdl);
- 		}
- 	}
- 	if (!ret)
-@@ -1049,8 +1079,6 @@ static int ov2640_video_probe(struct i2c_client *client)
- 		 "%s Product ID %0x:%0x Manufacturer ID %x:%x\n",
- 		 devname, pid, ver, midh, midl);
- 
--	ret = v4l2_ctrl_handler_setup(&priv->hdl);
--
- done:
- 	ov2640_s_power(&priv->subdev, 0);
- 	return ret;
-@@ -1158,6 +1186,7 @@ static int ov2640_probe(struct i2c_client *client,
- 	priv->subdev.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
- 	mutex_init(&priv->lock);
- 	v4l2_ctrl_handler_init(&priv->hdl, 2);
-+	priv->hdl.lock = &priv->lock;
- 	v4l2_ctrl_new_std(&priv->hdl, &ov2640_ctrl_ops,
- 			V4L2_CID_VFLIP, 0, 1, 1, 0);
- 	v4l2_ctrl_new_std(&priv->hdl, &ov2640_ctrl_ops,
+This IP block is able to receive CSI data over up to 4 lanes, and
+split it to over 4 streams. Those streams are basically the interfaces
+to the video grabbers that will perform the capture.
+
+It is able to map streams to both CSI datatypes and virtual channels,
+dynamically. This is unclear at this point what the right way to
+support it would be, so the driver only uses a static mapping between
+the virtual channels and streams, and ignores the data types.
+
+Let me know what you think!
+Maxime
+
+Changes from v5:
+  - Use SPDX license header
+  - Fix the lane mapping logic and map unused logical lanes only to unused
+    physical lanes. Added a comment to explain why.
+
+Changes from v4:
+  - Rebased on top of 4.15
+  - Fixed a lane mapping issue that prevented the CSI2-RX device to operate
+    properly.
+  - Reworded the output endpoints documentation in the binding
+
+Changes from v3:
+  - Removed stale printk
+  - Propagate start/stop functions error code to s_stream
+  - Renamed the DT bindings files
+  - Clarified the output ports wording in the DT binding doc
+  - Added a define for the maximum number of lanes
+  - Rebased on top of Sakari's serie
+  - Gathered tags based on the reviews
+
+Changes from v2:
+  - Added reference counting for the controller initialisation
+  - Fixed checkpatch warnings
+  - Moved the sensor initialisation after the DPHY configuration
+  - Renamed the sensor fields to source for consistency
+  - Defined some variables
+  - Renamed a few structures variables
+  - Added internal and external phy errors messages
+  - Reworked the binding slighty by making the external D-PHY optional
+  - Moved the notifier registration in the probe function
+  - Removed some clocks that are not system clocks
+  - Added clocks enabling where needed
+  - Added the code to remap the data lanes
+  - Changed the memory allocator for the non-devm function, and a
+    comment explaining why
+  - Reworked the binding wording
+
+Changes from v1:
+  - Amended the DT bindings as suggested by Rob
+  - Rebase on top of 4.13-rc1 and latest Niklas' serie iteration
+
+Maxime Ripard (2):
+  dt-bindings: media: Add Cadence MIPI-CSI2 RX Device Tree bindings
+  v4l: cadence: Add Cadence MIPI-CSI2 RX driver
+
+ .../devicetree/bindings/media/cdns,csi2rx.txt      | 100 +++++
+ drivers/media/platform/Kconfig                     |   1 +
+ drivers/media/platform/Makefile                    |   2 +
+ drivers/media/platform/cadence/Kconfig             |  12 +
+ drivers/media/platform/cadence/Makefile            |   1 +
+ drivers/media/platform/cadence/cdns-csi2rx.c       | 472 +++++++++++++++++++++
+ 6 files changed, 588 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/cdns,csi2rx.txt
+ create mode 100644 drivers/media/platform/cadence/Kconfig
+ create mode 100644 drivers/media/platform/cadence/Makefile
+ create mode 100644 drivers/media/platform/cadence/cdns-csi2rx.c
+
 -- 
-2.7.4
+2.14.3
