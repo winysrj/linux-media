@@ -1,66 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-sn1nam02on0044.outbound.protection.outlook.com ([104.47.36.44]:51232
-        "EHLO NAM02-SN1-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1753412AbeBOGl7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 15 Feb 2018 01:41:59 -0500
-From: Satish Kumar Nagireddy <satish.nagireddy.nagireddy@xilinx.com>
-To: <linux-media@vger.kernel.org>, <laurent.pinchart@ideasonboard.com>,
-        <michal.simek@xilinx.com>, <hyun.kwon@xilinx.com>
-CC: Satish Kumar Nagireddy <satishna@xilinx.com>
-Subject: [PATCH v3 0/9] Add support for multi-planar formats and 10 bit formats 
-Date: Wed, 14 Feb 2018 22:41:43 -0800
-Message-ID: <1518676903-19329-1-git-send-email-satishna@xilinx.com>
+Received: from butterbrot.org ([176.9.106.16]:34350 "EHLO butterbrot.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753156AbeBGIYW (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 7 Feb 2018 03:24:22 -0500
+Subject: Re: [PATCH 1/5] add missing blob structure field for tag id
+To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: linux-input@vger.kernel.org, modin@yuri.at
+References: <1517950905-5015-1-git-send-email-floe@butterbrot.org>
+ <1517950905-5015-2-git-send-email-floe@butterbrot.org>
+ <3219b5c2-2497-25a5-a22f-2f0f874692fe@xs4all.nl>
+From: Florian Echtler <floe@butterbrot.org>
+Message-ID: <bc0b894a-11b9-7d92-32ff-60e17d6f2064@butterbrot.org>
+Date: Wed, 7 Feb 2018 09:24:18 +0100
 MIME-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+In-Reply-To: <3219b5c2-2497-25a5-a22f-2f0f874692fe@xs4all.nl>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+ protocol="application/pgp-signature";
+ boundary="i4EjCm5dZZNTItDN7Cd71OrV0DU5aFCa5"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
- The patches are for xilinx v4l. The patcheset enable support to handle mul=
-tiplanar
- formats and 10 bit formats. The implemenation has handling of single plane=
- formats
- too for backward compatibility of some existing applications.
+This is an OpenPGP/MIME signed message (RFC 4880 and 3156)
+--i4EjCm5dZZNTItDN7Cd71OrV0DU5aFCa5
+Content-Type: multipart/mixed; boundary="2NoiEIStjZYgGOZe5v9di3L7gAoKSj6py";
+ protected-headers="v1"
+From: Florian Echtler <floe@butterbrot.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Cc: linux-input@vger.kernel.org, modin@yuri.at
+Message-ID: <bc0b894a-11b9-7d92-32ff-60e17d6f2064@butterbrot.org>
+Subject: Re: [PATCH 1/5] add missing blob structure field for tag id
+References: <1517950905-5015-1-git-send-email-floe@butterbrot.org>
+ <1517950905-5015-2-git-send-email-floe@butterbrot.org>
+ <3219b5c2-2497-25a5-a22f-2f0f874692fe@xs4all.nl>
+In-Reply-To: <3219b5c2-2497-25a5-a22f-2f0f874692fe@xs4all.nl>
 
- Some patches are included as dependencies and are intended to sync downstr=
-eam with
- upstream as well.
+--2NoiEIStjZYgGOZe5v9di3L7gAoKSj6py
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-GB
+Content-Transfer-Encoding: quoted-printable
 
-Hyun Kwon (1):
-  media: xilinx: vip: Add the pixel format for RGB24
+On 06.02.2018 22:22, Hans Verkuil wrote:
+> On 02/06/2018 10:01 PM, Florian Echtler wrote:
+>> The SUR40 can recognize specific printed patterns directly in hardware=
+;
+>> this information (i.e. the pattern id) is present but currently unused=
 
-Jeffrey Mouroux (1):
-  uapi: media: New fourcc codes needed by Xilinx Video IP
+>> in the blob structure.
+>>
+>> =20
+>>  	__le32 area;       /* size in pixels/pressure (?) */
+>> =20
+>> -	u8 padding[32];
+>> +	u8 padding[24];
+>> +
+>> +	__le32 tag_id;     /* valid when type =3D=3D 0x04 (SUR40_TAG) */
+>> +	__le32 unknown;
+>> =20
+>>  } __packed;
+>> =20
+> Usually new fields are added before the padding, not after.
+>=20
+> Unless there is a good reason for this I'd change this.
 
-Radhey Shyam Pandey (1):
-  v4l: xilinx: dma: Remove colorspace check in xvip_dma_verify_format
+This is how the hardware sends it, so there's little choice in how to arr=
+ange
+the fields...
 
-Rohit Athavale (1):
-  media-bus: uapi: Add YCrCb 420 media bus format
+Best regards, Florian
+--=20
+SENT FROM MY DEC VT50 TERMINAL
 
-Satish Kumar Nagireddy (5):
-  [media] Add documentation for YUV420 bus format
-  v4l: xilinx: dma: Update video format descriptor
-  v4l: xilinx: dma: Add multi-planar support
-  v4l: xilinx: dma: Add scaling and padding factor functions
-  v4l: xilinx: dma: Get scaling and padding factor to calculate DMA params
 
- drivers/media/platform/xilinx/xilinx-dma.c  | 365 ++++++++++++++++++++++++=
-----
- drivers/media/platform/xilinx/xilinx-dma.h  |   2 +-
- drivers/media/platform/xilinx/xilinx-vip.c  |  61 ++++-
- drivers/media/platform/xilinx/xilinx-vip.h  |  13 +-
- drivers/media/platform/xilinx/xilinx-vipp.c |  22 +-
- include/uapi/linux/media-bus-format.h       |   3 +-
- include/uapi/linux/videodev2.h              |  11 +
- 7 files changed, 409 insertions(+), 68 deletions(-)
+--2NoiEIStjZYgGOZe5v9di3L7gAoKSj6py--
 
---
-2.7.4
+--i4EjCm5dZZNTItDN7Cd71OrV0DU5aFCa5
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
 
-This email and any attachments are intended for the sole use of the named r=
-ecipient(s) and contain(s) confidential information that may be proprietary=
-, privileged or copyrighted under applicable law. If you are not the intend=
-ed recipient, do not read, copy, or forward this email message or any attac=
-hments. Delete this email message and any attachments immediately.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iEYEARECAAYFAlp6t7IACgkQ7CzyshGvatgT2QCghB/IsdRUVCgrf5kNeeOg12c2
+StcAniEsVLFnalF7tpG3dGrHnQayCWyH
+=HKQ7
+-----END PGP SIGNATURE-----
+
+--i4EjCm5dZZNTItDN7Cd71OrV0DU5aFCa5--
