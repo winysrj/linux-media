@@ -1,121 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud9.xs4all.net ([194.109.24.22]:39319 "EHLO
-        lb1-smtp-cloud9.xs4all.net" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1752494AbeBEMaJ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 5 Feb 2018 07:30:09 -0500
-Subject: Re: media_device.c question: can this workaround be removed?
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <f4e9e722-9c73-e27c-967f-33c7e76de0d5@xs4all.nl>
- <20180205115954.j7e5npbwuyfgl5il@valkosipuli.retiisi.org.uk>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Message-ID: <2291cc25-50fd-90cc-8948-6def4acc73a3@xs4all.nl>
-Date: Mon, 5 Feb 2018 13:30:04 +0100
-MIME-Version: 1.0
-In-Reply-To: <20180205115954.j7e5npbwuyfgl5il@valkosipuli.retiisi.org.uk>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+Received: from mail-pl0-f65.google.com ([209.85.160.65]:37546 "EHLO
+        mail-pl0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753251AbeBGBs6 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 6 Feb 2018 20:48:58 -0500
+Received: by mail-pl0-f65.google.com with SMTP id ay8so2482562plb.4
+        for <linux-media@vger.kernel.org>; Tue, 06 Feb 2018 17:48:58 -0800 (PST)
+From: Alexandre Courbot <acourbot@chromium.org>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Pawel Osciak <posciak@chromium.org>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Tomasz Figa <tfiga@chromium.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Gustavo Padovan <gustavo.padovan@collabora.com>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Alexandre Courbot <acourbot@chromium.org>
+Subject: [RFCv3 09/17] v4l2-ctrls: use ref in helper instead of ctrl
+Date: Wed,  7 Feb 2018 10:48:13 +0900
+Message-Id: <20180207014821.164536-10-acourbot@chromium.org>
+In-Reply-To: <20180207014821.164536-1-acourbot@chromium.org>
+References: <20180207014821.164536-1-acourbot@chromium.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/05/2018 12:59 PM, Sakari Ailus wrote:
-> Hi Hans,
-> 
-> On Mon, Feb 05, 2018 at 11:26:47AM +0100, Hans Verkuil wrote:
->> The function media_device_enum_entities() has this workaround:
->>
->>         /*
->>          * Workaround for a bug at media-ctl <= v1.10 that makes it to
->>          * do the wrong thing if the entity function doesn't belong to
->>          * either MEDIA_ENT_F_OLD_BASE or MEDIA_ENT_F_OLD_SUBDEV_BASE
->>          * Ranges.
->>          *
->>          * Non-subdevices are expected to be at the MEDIA_ENT_F_OLD_BASE,
->>          * or, otherwise, will be silently ignored by media-ctl when
->>          * printing the graphviz diagram. So, map them into the devnode
->>          * old range.
->>          */
->>         if (ent->function < MEDIA_ENT_F_OLD_BASE ||
->>             ent->function > MEDIA_ENT_F_TUNER) {
->>                 if (is_media_entity_v4l2_subdev(ent))
->>                         entd->type = MEDIA_ENT_F_V4L2_SUBDEV_UNKNOWN;
->>                 else if (ent->function != MEDIA_ENT_F_IO_V4L)
->>                         entd->type = MEDIA_ENT_T_DEVNODE_UNKNOWN;
->>         }
->>
->> But this means that the entity type returned by ENUM_ENTITIES just overwrites
->> perfectly fine types by bogus values and thus the returned value differs
->> from that returned by G_TOPOLOGY.
->>
->> Can we please, please remove this workaround? I have no idea why a workaround
->> for media-ctl of all things ever made it in the kernel.
-> 
-> The entity types were replaced by entity functions back in 2015 with the
-> big Media controller reshuffle. While I agree functions are better for
-> describing entities than types (and those types had Linux specific
-> interfaces in them), the new function-based API still may support a single
-> value, i.e. a single function per device.
-> 
-> This also created two different name spaces for describing entities: the
-> old types used by the MC API and the new functions used by MC v2 API.
-> 
-> This doesn't go well with the fact that, as you noticed, the pad
-> information is not available through MC v2 API. The pad information is
-> required by the user space so software continues to use the original MC
-> API.
-> 
-> I don't think there's a way to avoid maintaining two name spaces (types and
-> functions) without breaking at least one of the APIs.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-The comment specifically claims that this workaround is for media-ctl and
-it suggests that it is fixed after v1.10. Is that comment bogus? I can't
-really tell which commit fixed media-ctl. Does anyone know?
+The next patch needs the reference to a control instead of the
+control itself, so change struct v4l2_ctrl_helper accordingly.
 
-As far as I can tell the function defines have been chosen in such a way that
-they will equally well work with the old name space. There should be no
-problem there whatsoever and media-ctl should switch to use the new defines.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Alexandre Courbot <acourbot@chromium.org>
+---
+ drivers/media/v4l2-core/v4l2-ctrls.c | 18 +++++++++---------
+ 1 file changed, 9 insertions(+), 9 deletions(-)
 
-We now have a broken ENUM_ENTITIES ioctl (it rudely overwrites VBI/DVB/etc types)
-and a broken G_TOPOLOGY ioctl (no pad index).
-
-This sucks. Let's fix both so that they at least report consistent information.
-
-> 
->>
->> I'm adding media support to the vivid driver and because of this media-ctl -p
->> gives me this:
->>
->> Device topology
->> - entity 1: vivid-000-vid-cap (1 pad, 0 link)
->>             type Node subtype V4L flags 0
->>             device node name /dev/video0
->>         pad0: Source
->>
->> - entity 5: vivid-000-vid-out (1 pad, 0 link)
->>             type Node subtype V4L flags 0
->>             device node name /dev/video1
->>         pad0: Sink
->>
->> - entity 9: vivid-000-vbi-cap (1 pad, 0 link)
->>             type Unknown subtype Unknown flags 0
->>         pad0: Source
->>
->> - entity 13: vivid-000-vbi-out (1 pad, 0 link)
->>              type Unknown subtype Unknown flags 0
->>         pad0: Sink
->>
->> - entity 17: vivid-000-sdr-cap (1 pad, 0 link)
->>              type Unknown subtype Unknown flags 0
->>         pad0: Source
-> 
-> It may be that there's no corresponding type for certain functions.
-
-'type' can be interpreted as 'function'. All possible legacy type/subtype
-combinations map to a unique function. It's how the spec defines this as well.
-But it is subverted by this awful workaround.
-
-Regards,
-
-	Hans
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index c692a6d925c6..9090a49eef91 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -37,8 +37,8 @@
+ struct v4l2_ctrl_helper {
+ 	/* Pointer to the control reference of the master control */
+ 	struct v4l2_ctrl_ref *mref;
+-	/* The control corresponding to the v4l2_ext_control ID field. */
+-	struct v4l2_ctrl *ctrl;
++	/* The control ref corresponding to the v4l2_ext_control ID field. */
++	struct v4l2_ctrl_ref *ref;
+ 	/* v4l2_ext_control index of the next control belonging to the
+ 	   same cluster, or 0 if there isn't any. */
+ 	u32 next;
+@@ -2856,6 +2856,7 @@ static int prepare_ext_ctrls(struct v4l2_ctrl_handler *hdl,
+ 		ref = find_ref_lock(hdl, id);
+ 		if (ref == NULL)
+ 			return -EINVAL;
++		h->ref = ref;
+ 		ctrl = ref->ctrl;
+ 		if (ctrl->flags & V4L2_CTRL_FLAG_DISABLED)
+ 			return -EINVAL;
+@@ -2878,7 +2879,6 @@ static int prepare_ext_ctrls(struct v4l2_ctrl_handler *hdl,
+ 		}
+ 		/* Store the ref to the master control of the cluster */
+ 		h->mref = ref;
+-		h->ctrl = ctrl;
+ 		/* Initially set next to 0, meaning that there is no other
+ 		   control in this helper array belonging to the same
+ 		   cluster */
+@@ -2963,7 +2963,7 @@ int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct v4l2_ext_controls *cs
+ 	cs->error_idx = cs->count;
+ 
+ 	for (i = 0; !ret && i < cs->count; i++)
+-		if (helpers[i].ctrl->flags & V4L2_CTRL_FLAG_WRITE_ONLY)
++		if (helpers[i].ref->ctrl->flags & V4L2_CTRL_FLAG_WRITE_ONLY)
+ 			ret = -EACCES;
+ 
+ 	for (i = 0; !ret && i < cs->count; i++) {
+@@ -2998,7 +2998,7 @@ int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct v4l2_ext_controls *cs
+ 
+ 			do {
+ 				ret = ctrl_to_user(cs->controls + idx,
+-						   helpers[idx].ctrl);
++						   helpers[idx].ref->ctrl);
+ 				idx = helpers[idx].next;
+ 			} while (!ret && idx);
+ 		}
+@@ -3137,7 +3137,7 @@ static int validate_ctrls(struct v4l2_ext_controls *cs,
+ 
+ 	cs->error_idx = cs->count;
+ 	for (i = 0; i < cs->count; i++) {
+-		struct v4l2_ctrl *ctrl = helpers[i].ctrl;
++		struct v4l2_ctrl *ctrl = helpers[i].ref->ctrl;
+ 		union v4l2_ctrl_ptr p_new;
+ 
+ 		cs->error_idx = i;
+@@ -3249,7 +3249,7 @@ static int try_set_ext_ctrls(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
+ 			do {
+ 				/* Check if the auto control is part of the
+ 				   list, and remember the new value. */
+-				if (helpers[tmp_idx].ctrl == master)
++				if (helpers[tmp_idx].ref->ctrl == master)
+ 					new_auto_val = cs->controls[tmp_idx].value;
+ 				tmp_idx = helpers[tmp_idx].next;
+ 			} while (tmp_idx);
+@@ -3262,7 +3262,7 @@ static int try_set_ext_ctrls(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
+ 		/* Copy the new caller-supplied control values.
+ 		   user_to_new() sets 'is_new' to 1. */
+ 		do {
+-			struct v4l2_ctrl *ctrl = helpers[idx].ctrl;
++			struct v4l2_ctrl *ctrl = helpers[idx].ref->ctrl;
+ 
+ 			ret = user_to_new(cs->controls + idx, ctrl);
+ 			if (!ret && ctrl->is_ptr)
+@@ -3278,7 +3278,7 @@ static int try_set_ext_ctrls(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
+ 			idx = i;
+ 			do {
+ 				ret = new_to_user(cs->controls + idx,
+-						helpers[idx].ctrl);
++						helpers[idx].ref->ctrl);
+ 				idx = helpers[idx].next;
+ 			} while (!ret && idx);
+ 		}
+-- 
+2.16.0.rc1.238.g530d649a79-goog
