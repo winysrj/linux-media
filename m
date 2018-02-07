@@ -1,73 +1,150 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gateway31.websitewelcome.com ([192.185.143.5]:48588 "EHLO
-        gateway31.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S1751923AbeBEVAJ (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 5 Feb 2018 16:00:09 -0500
-Received: from cm15.websitewelcome.com (cm15.websitewelcome.com [100.42.49.9])
-        by gateway31.websitewelcome.com (Postfix) with ESMTP id 7710114811
-        for <linux-media@vger.kernel.org>; Mon,  5 Feb 2018 14:36:50 -0600 (CST)
-Date: Mon, 5 Feb 2018 14:36:49 -0600
-From: "Gustavo A. R. Silva" <gustavo@embeddedor.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        "Gustavo A. R. Silva" <garsilva@embeddedor.com>
-Subject: [PATCH v2 8/8] platform: vivid-cec: use 64-bit arithmetic instead of
- 32-bit
-Message-ID: <cca3c728f123d714dc8e4ed87510aeb2e2d63db6.1517856716.git.gustavo@embeddedor.com>
-References: <cover.1517856716.git.gustavo@embeddedor.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <cover.1517856716.git.gustavo@embeddedor.com>
+Received: from mail.free-electrons.com ([62.4.15.54]:51012 "EHLO
+        mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1754031AbeBGO0r (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Feb 2018 09:26:47 -0500
+From: Maxime Ripard <maxime.ripard@bootlin.com>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Mark Rutland <mark.rutland@arm.com>,
+        Rob Herring <robh+dt@kernel.org>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        linux-media@vger.kernel.org, devicetree@vger.kernel.org,
+        Richard Sproul <sproul@cadence.com>,
+        Alan Douglas <adouglas@cadence.com>,
+        Steve Creaney <screaney@cadence.com>,
+        Thomas Petazzoni <thomas.petazzoni@bootlin.com>,
+        Boris Brezillon <boris.brezillon@bootlin.com>,
+        =?UTF-8?q?Niklas=20S=C3=B6derlund?= <niklas.soderlund@ragnatech.se>,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Benoit Parrot <bparrot@ti.com>, nm@ti.com,
+        Simon Hatliff <hatliff@cadence.com>,
+        Maxime Ripard <maxime.ripard@bootlin.com>
+Subject: [PATCH v3 1/2] dt-bindings: media: Add Cadence MIPI-CSI2 TX Device Tree bindings
+Date: Wed,  7 Feb 2018 15:26:42 +0100
+Message-Id: <20180207142643.15746-2-maxime.ripard@bootlin.com>
+In-Reply-To: <20180207142643.15746-1-maxime.ripard@bootlin.com>
+References: <20180207142643.15746-1-maxime.ripard@bootlin.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add suffix ULL to constant 10 in order to give the compiler complete
-information about the proper arithmetic to use. Notice that this
-constant is used in a context that expects an expression of type
-u64 (64 bits, unsigned).
+The Cadence MIPI-CSI2 TX controller is a CSI2 bridge that supports up to 4
+video streams and can output on up to 4 CSI-2 lanes, depending on the
+hardware implementation.
 
-The expression len * 10 * CEC_TIM_DATA_BIT_TOTAL is currently being
-evaluated using 32-bit arithmetic.
+It can operate with an external D-PHY, an internal one or no D-PHY at all
+in some configurations.
 
-Also, remove unnecessary parentheses and add a code comment to make it
-clear what is the reason of the code change.
-
-Addresses-Coverity-ID: 1454996
-Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
+Acked-by: Rob Herring <robh@kernel.org>
+Signed-off-by: Maxime Ripard <maxime.ripard@bootlin.com>
 ---
-Changes in v2:
- - Update subject and changelog to better reflect the proposed code changes.
- - Add suffix ULL to constant instead of casting a variable.
- - Remove unncessary parentheses.
- - Add code comment.
+ .../devicetree/bindings/media/cdns,csi2tx.txt      | 98 ++++++++++++++++++++++
+ 1 file changed, 98 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/cdns,csi2tx.txt
 
- drivers/media/platform/vivid/vivid-cec.c | 11 +++++++++--
- 1 file changed, 9 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/media/platform/vivid/vivid-cec.c b/drivers/media/platform/vivid/vivid-cec.c
-index b55d278..614787b 100644
---- a/drivers/media/platform/vivid/vivid-cec.c
-+++ b/drivers/media/platform/vivid/vivid-cec.c
-@@ -82,8 +82,15 @@ static void vivid_cec_pin_adap_events(struct cec_adapter *adap, ktime_t ts,
- 
- 	if (adap == NULL)
- 		return;
--	ts = ktime_sub_us(ts, (CEC_TIM_START_BIT_TOTAL +
--			       len * 10 * CEC_TIM_DATA_BIT_TOTAL));
+diff --git a/Documentation/devicetree/bindings/media/cdns,csi2tx.txt b/Documentation/devicetree/bindings/media/cdns,csi2tx.txt
+new file mode 100644
+index 000000000000..acbbd625a75f
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/cdns,csi2tx.txt
+@@ -0,0 +1,98 @@
++Cadence MIPI-CSI2 TX controller
++===============================
 +
-+	/*
-+	 * Suffix ULL on constant 10 makes the expression
-+	 * CEC_TIM_START_BIT_TOTAL + 10ULL * len * CEC_TIM_DATA_BIT_TOTAL
-+	 * be evaluated using 64-bit unsigned arithmetic (u64), which
-+	 * is what ktime_sub_us expects as second argument.
-+	 */
-+	ts = ktime_sub_us(ts, CEC_TIM_START_BIT_TOTAL +
-+			       10ULL * len * CEC_TIM_DATA_BIT_TOTAL);
- 	cec_queue_pin_cec_event(adap, false, ts);
- 	ts = ktime_add_us(ts, CEC_TIM_START_BIT_LOW);
- 	cec_queue_pin_cec_event(adap, true, ts);
++The Cadence MIPI-CSI2 TX controller is a CSI-2 bridge supporting up to
++4 CSI lanes in output, and up to 4 different pixel streams in input.
++
++Required properties:
++  - compatible: must be set to "cdns,csi2tx"
++  - reg: base address and size of the memory mapped region
++  - clocks: phandles to the clocks driving the controller
++  - clock-names: must contain:
++    * esc_clk: escape mode clock
++    * p_clk: register bank clock
++    * pixel_if[0-3]_clk: pixel stream output clock, one for each stream
++                         implemented in hardware, between 0 and 3
++
++Optional properties
++  - phys: phandle to the D-PHY. If it is set, phy-names need to be set
++  - phy-names: must contain dphy
++
++Required subnodes:
++  - ports: A ports node with one port child node per device input and output
++           port, in accordance with the video interface bindings defined in
++           Documentation/devicetree/bindings/media/video-interfaces.txt. The
++           port nodes numbered as follows.
++
++           Port Description
++           -----------------------------
++           0    CSI-2 output
++           1    Stream 0 input
++           2    Stream 1 input
++           3    Stream 2 input
++           4    Stream 3 input
++
++           The stream input port nodes are optional if they are not
++           connected to anything at the hardware level or implemented
++           in the design. Since there is only one endpoint per port,
++           the endpoints are not numbered.
++
++Example:
++
++csi2tx: csi-bridge@0d0e1000 {
++	compatible = "cdns,csi2tx";
++	reg = <0x0d0e1000 0x1000>;
++	clocks = <&byteclock>, <&byteclock>,
++		 <&coreclock>, <&coreclock>,
++		 <&coreclock>, <&coreclock>;
++	clock-names = "p_clk", "esc_clk",
++		      "pixel_if0_clk", "pixel_if1_clk",
++		      "pixel_if2_clk", "pixel_if3_clk";
++
++	ports {
++		#address-cells = <1>;
++		#size-cells = <0>;
++
++		port@0 {
++			reg = <0>;
++
++			csi2tx_out: endpoint {
++				remote-endpoint = <&remote_in>;
++				clock-lanes = <0>;
++				data-lanes = <1 2>;
++			};
++		};
++
++		port@1 {
++			reg = <1>;
++
++			csi2tx_in_stream0: endpoint {
++				remote-endpoint = <&stream0_out>;
++			};
++		};
++
++		port@2 {
++			reg = <2>;
++
++			csi2tx_in_stream1: endpoint {
++				remote-endpoint = <&stream1_out>;
++			};
++		};
++
++		port@3 {
++			reg = <3>;
++
++			csi2tx_in_stream2: endpoint {
++				remote-endpoint = <&stream2_out>;
++			};
++		};
++
++		port@4 {
++			reg = <4>;
++
++			csi2tx_in_stream3: endpoint {
++				remote-endpoint = <&stream3_out>;
++			};
++		};
++	};
++};
 -- 
-2.7.4
+2.14.3
