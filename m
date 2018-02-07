@@ -1,87 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pg0-f68.google.com ([74.125.83.68]:37433 "EHLO
-        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751155AbeBTEou (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 19 Feb 2018 23:44:50 -0500
-Received: by mail-pg0-f68.google.com with SMTP id o1so6704308pgn.4
-        for <linux-media@vger.kernel.org>; Mon, 19 Feb 2018 20:44:50 -0800 (PST)
-From: Alexandre Courbot <acourbot@chromium.org>
-To: Mauro Carvalho Chehab <mchehab@kernel.org>,
-        Hans Verkuil <hverkuil@xs4all.nl>,
-        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        Pawel Osciak <posciak@chromium.org>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Tomasz Figa <tfiga@chromium.org>,
-        Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: Gustavo Padovan <gustavo.padovan@collabora.com>,
-        linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-        Hans Verkuil <hans.verkuil@cisco.com>,
-        Alexandre Courbot <acourbot@chromium.org>
-Subject: [RFCv4 03/21] v4l2-ctrls: prepare internal structs for request API
-Date: Tue, 20 Feb 2018 13:44:07 +0900
-Message-Id: <20180220044425.169493-4-acourbot@chromium.org>
-In-Reply-To: <20180220044425.169493-1-acourbot@chromium.org>
-References: <20180220044425.169493-1-acourbot@chromium.org>
+Received: from butterbrot.org ([176.9.106.16]:44009 "EHLO butterbrot.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753956AbeBGNAo (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 7 Feb 2018 08:00:44 -0500
+From: Florian Echtler <floe@butterbrot.org>
+To: hverkuil@xs4all.nl, linux-media@vger.kernel.org
+Cc: linux-input@vger.kernel.org, modin@yuri.at,
+        Florian Echtler <floe@butterbrot.org>
+Subject: [PATCH 2/4] add default settings and module parameters for video controls
+Date: Wed,  7 Feb 2018 14:00:36 +0100
+Message-Id: <1518008438-26603-3-git-send-email-floe@butterbrot.org>
+In-Reply-To: <1518008438-26603-1-git-send-email-floe@butterbrot.org>
+References: <1518008438-26603-1-git-send-email-floe@butterbrot.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+This patch adds parameter definitions and module parameters for the four
+userspace controls that the SUR40 can currently provide.
 
-Add a refcount and is_request bool to struct v4l2_ctrl_handler:
-this is used to refcount a handler that represents a request.
-
-Add a p_req field to struct v4l2_ctrl_ref that will store the
-request value.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Signed-off-by: Alexandre Courbot <acourbot@chromium.org>
+Signed-off-by: Florian Echtler <floe@butterbrot.org>
 ---
- drivers/media/v4l2-core/v4l2-ctrls.c | 1 +
- include/media/v4l2-ctrls.h           | 4 ++++
- 2 files changed, 5 insertions(+)
+ drivers/input/touchscreen/sur40.c | 28 ++++++++++++++++++++++++++++
+ 1 file changed, 28 insertions(+)
 
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index 5c705f5dde9b..eac70598635d 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -1761,6 +1761,7 @@ int v4l2_ctrl_handler_init_class(struct v4l2_ctrl_handler *hdl,
- 				      sizeof(hdl->buckets[0]),
- 				      GFP_KERNEL | __GFP_ZERO);
- 	hdl->error = hdl->buckets ? 0 : -ENOMEM;
-+	hdl->is_request = false;
- 	return hdl->error;
- }
- EXPORT_SYMBOL(v4l2_ctrl_handler_init_class);
-diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
-index 96f5c63c12d0..bcabbf8a44b5 100644
---- a/include/media/v4l2-ctrls.h
-+++ b/include/media/v4l2-ctrls.h
-@@ -18,6 +18,7 @@
- #define _V4L2_CTRLS_H
+diff --git a/drivers/input/touchscreen/sur40.c b/drivers/input/touchscreen/sur40.c
+index 8375b06..8a5b031 100644
+--- a/drivers/input/touchscreen/sur40.c
++++ b/drivers/input/touchscreen/sur40.c
+@@ -149,6 +149,34 @@ struct sur40_image_header {
+ #define SUR40_TOUCH	0x02
+ #define SUR40_TAG	0x04
  
- #include <linux/list.h>
-+#include <linux/kref.h>
- #include <linux/mutex.h>
- #include <linux/videodev2.h>
- 
-@@ -257,6 +258,7 @@ struct v4l2_ctrl_ref {
- 	struct v4l2_ctrl_ref *next;
- 	struct v4l2_ctrl *ctrl;
- 	struct v4l2_ctrl_helper *helper;
-+	union v4l2_ctrl_ptr p_req;
- 	bool from_other_dev;
- };
- 
-@@ -292,7 +294,9 @@ struct v4l2_ctrl_handler {
- 	v4l2_ctrl_notify_fnc notify;
- 	void *notify_priv;
- 	u16 nr_of_buckets;
-+	bool is_request;
- 	int error;
-+	struct kref ref;
- };
- 
- /**
++/* video controls */
++#define SUR40_BRIGHTNESS_MAX 0xFF
++#define SUR40_BRIGHTNESS_MIN 0x00
++#define SUR40_BRIGHTNESS_DEF 0xFF
++
++#define SUR40_CONTRAST_MAX 0x0F
++#define SUR40_CONTRAST_MIN 0x00
++#define SUR40_CONTRAST_DEF 0x0A
++
++#define SUR40_GAIN_MAX 0x09
++#define SUR40_GAIN_MIN 0x00
++#define SUR40_GAIN_DEF 0x08
++
++#define SUR40_BACKLIGHT_MAX 0x01
++#define SUR40_BACKLIGHT_MIN 0x00
++#define SUR40_BACKLIGHT_DEF 0x01
++
++/* module parameters */
++static uint brightness = SUR40_BRIGHTNESS_DEF;
++module_param(brightness, uint, 0644);
++MODULE_PARM_DESC(brightness, "set initial brightness");
++static uint contrast = SUR40_CONTRAST_DEF;
++module_param(contrast, uint, 0644);
++MODULE_PARM_DESC(contrast, "set initial contrast");
++static uint gain = SUR40_GAIN_DEF;
++module_param(gain, uint, 0644);
++MODULE_PARM_DESC(gain, "set initial gain");
++
+ static const struct v4l2_pix_format sur40_pix_format[] = {
+ 	{
+ 		.pixelformat = V4L2_TCH_FMT_TU08,
 -- 
-2.16.1.291.g4437f3f132-goog
+2.7.4
