@@ -1,58 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pl0-f66.google.com ([209.85.160.66]:45038 "EHLO
-        mail-pl0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1751004AbeB0GLm (ORCPT
+Received: from mx07-00178001.pphosted.com ([62.209.51.94]:8561 "EHLO
+        mx07-00178001.pphosted.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1753733AbeBGRmM (ORCPT
         <rfc822;linux-media@vger.kernel.org>);
-        Tue, 27 Feb 2018 01:11:42 -0500
-Received: by mail-pl0-f66.google.com with SMTP id w21so10813058plp.11
-        for <linux-media@vger.kernel.org>; Mon, 26 Feb 2018 22:11:42 -0800 (PST)
-From: Matt Ranostay <matt.ranostay@konsulko.com>
-To: linux-media@vger.kernel.org
-Cc: Matt Ranostay <matt.ranostay@konsulko.com>,
-        Rob Herring <robh@kernel.org>, devicetree@vger.kernel.org
-Subject: [PATCH v4 1/2] media: dt-bindings: Add bindings for panasonic,amg88xx
-Date: Mon, 26 Feb 2018 22:11:35 -0800
-Message-Id: <20180227061136.5532-2-matt.ranostay@konsulko.com>
-In-Reply-To: <20180227061136.5532-1-matt.ranostay@konsulko.com>
-References: <20180227061136.5532-1-matt.ranostay@konsulko.com>
+        Wed, 7 Feb 2018 12:42:12 -0500
+From: Hugues Fruchet <hugues.fruchet@st.com>
+To: Maxime Coquelin <mcoquelin.stm32@gmail.com>,
+        Alexandre Torgue <alexandre.torgue@st.com>,
+        Mauro Carvalho Chehab <mchehab@kernel.org>,
+        "Hans Verkuil" <hverkuil@xs4all.nl>
+CC: <devicetree@vger.kernel.org>,
+        <linux-arm-kernel@lists.infradead.org>,
+        <linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
+        "Benjamin Gaignard" <benjamin.gaignard@linaro.org>,
+        Yannick Fertre <yannick.fertre@st.com>,
+        Hugues Fruchet <hugues.fruchet@st.com>
+Subject: [PATCH] media: stm32-dcmi: rework overrun/error case
+Date: Wed, 7 Feb 2018 18:41:46 +0100
+Message-ID: <1518025306-3386-1-git-send-email-hugues.fruchet@st.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Define the device tree bindings for the panasonic,amg88xx i2c
-video driver.
+Do not stop/restart dma on overrun or errors.
+Dma will be restarted on current frame transfer
+completion. Frame transfer completion is ensured
+even if overrun or error occurs by DCMI continuous
+capture mode which restarts data transfer at next
+frame sync.
+Do no warn on overrun while in irq thread, this slows down
+system and lead to more overrun errors. Use a counter
+instead and log errors at stop streaming.
 
-Cc: Rob Herring <robh@kernel.org>
-Cc: devicetree@vger.kernel.org
-Signed-off-by: Matt Ranostay <matt.ranostay@konsulko.com>
+Signed-off-by: Hugues Fruchet <hugues.fruchet@st.com>
 ---
- .../bindings/media/i2c/panasonic,amg88xx.txt          | 19 +++++++++++++++++++
- 1 file changed, 19 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/i2c/panasonic,amg88xx.txt
+ drivers/media/platform/stm32/stm32-dcmi.c | 30 ++++++++++++------------------
+ 1 file changed, 12 insertions(+), 18 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/media/i2c/panasonic,amg88xx.txt b/Documentation/devicetree/bindings/media/i2c/panasonic,amg88xx.txt
-new file mode 100644
-index 000000000000..4a3181a3dd7e
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/i2c/panasonic,amg88xx.txt
-@@ -0,0 +1,19 @@
-+* Panasonic AMG88xx
+diff --git a/drivers/media/platform/stm32/stm32-dcmi.c b/drivers/media/platform/stm32/stm32-dcmi.c
+index 4a75756..ab555d4 100644
+--- a/drivers/media/platform/stm32/stm32-dcmi.c
++++ b/drivers/media/platform/stm32/stm32-dcmi.c
+@@ -160,6 +160,7 @@ struct stm32_dcmi {
+ 	dma_cookie_t			dma_cookie;
+ 	u32				misr;
+ 	int				errors_count;
++	int				overrun_count;
+ 	int				buffers_count;
+ };
+ 
+@@ -373,23 +374,9 @@ static irqreturn_t dcmi_irq_thread(int irq, void *arg)
+ 	}
+ 
+ 	if ((dcmi->misr & IT_OVR) || (dcmi->misr & IT_ERR)) {
+-		/*
+-		 * An overflow or an error has been detected,
+-		 * stop current DMA transfert & restart it
+-		 */
+-		dev_warn(dcmi->dev, "%s: Overflow or error detected\n",
+-			 __func__);
+-
+ 		dcmi->errors_count++;
+-		dev_dbg(dcmi->dev, "Restarting capture after DCMI error\n");
+-
+-		spin_unlock_irq(&dcmi->irqlock);
+-		dmaengine_terminate_all(dcmi->dma_chan);
+-
+-		if (dcmi_start_capture(dcmi))
+-			dev_err(dcmi->dev, "%s: Cannot restart capture on overflow or error\n",
+-				__func__);
+-		return IRQ_HANDLED;
++		if (dcmi->misr & IT_OVR)
++			dcmi->overrun_count++;
+ 	}
+ 
+ 	spin_unlock_irq(&dcmi->irqlock);
+@@ -574,6 +561,7 @@ static int dcmi_start_streaming(struct vb2_queue *vq, unsigned int count)
+ 
+ 	dcmi->sequence = 0;
+ 	dcmi->errors_count = 0;
++	dcmi->overrun_count = 0;
+ 	dcmi->buffers_count = 0;
+ 	dcmi->active = NULL;
+ 
+@@ -684,8 +672,14 @@ static void dcmi_stop_streaming(struct vb2_queue *vq)
+ 
+ 	clk_disable(dcmi->mclk);
+ 
+-	dev_dbg(dcmi->dev, "Stop streaming, errors=%d buffers=%d\n",
+-		dcmi->errors_count, dcmi->buffers_count);
++	if (dcmi->errors_count)
++		dev_warn(dcmi->dev, "Some errors found while streaming: errors=%d (overrun=%d), buffers=%d\n",
++			 dcmi->errors_count, dcmi->overrun_count,
++			 dcmi->buffers_count);
++	dev_dbg(dcmi->dev, "Stop streaming, errors=%d (overrun=%d), buffers=%d\n",
++		dcmi->errors_count, dcmi->overrun_count,
++		dcmi->buffers_count);
 +
-+The Panasonic family of AMG88xx Grid-Eye sensors allow recording
-+8x8 10Hz video which consists of thermal datapoints
-+
-+Required Properties:
-+ - compatible : Must be "panasonic,amg88xx"
-+ - reg : i2c address of the device
-+
-+Example:
-+
-+	i2c0@1c22000 {
-+		...
-+		amg88xx@69 {
-+			compatible = "panasonic,amg88xx";
-+			reg = <0x69>;
-+		};
-+		...
-+	};
+ }
+ 
+ static const struct vb2_ops dcmi_video_qops = {
 -- 
-2.14.1
+1.9.1
