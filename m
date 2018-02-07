@@ -1,148 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from galahad.ideasonboard.com ([185.26.127.97]:44486 "EHLO
-        galahad.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S934787AbeB1Uw5 (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Wed, 28 Feb 2018 15:52:57 -0500
-From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org
-Cc: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
-Subject: [PATCH v6 5/9] v4l: vsp1: Use reference counting for bodies
-Date: Wed, 28 Feb 2018 20:52:39 +0000
-Message-Id: <8b3cf639ae2df9d1dba4a72e20618f463cf118cb.1519850924.git-series.kieran.bingham+renesas@ideasonboard.com>
-In-Reply-To: <cover.d841c9354585c652c97473ace29c877b9395e83b.1519850924.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.d841c9354585c652c97473ace29c877b9395e83b.1519850924.git-series.kieran.bingham+renesas@ideasonboard.com>
-In-Reply-To: <cover.d841c9354585c652c97473ace29c877b9395e83b.1519850924.git-series.kieran.bingham+renesas@ideasonboard.com>
-References: <cover.d841c9354585c652c97473ace29c877b9395e83b.1519850924.git-series.kieran.bingham+renesas@ideasonboard.com>
+Received: from mga01.intel.com ([192.55.52.88]:20330 "EHLO mga01.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1750729AbeBGXCc (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 7 Feb 2018 18:02:32 -0500
+From: "Mani, Rajmohan" <rajmohan.mani@intel.com>
+To: Mauro Carvalho Chehab <mchehab@s-opensource.com>
+CC: "Zhi, Yong" <yong.zhi@intel.com>,
+        "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+        "sakari.ailus@linux.intel.com" <sakari.ailus@linux.intel.com>,
+        "Zheng, Jian Xu" <jian.xu.zheng@intel.com>,
+        "Toivonen, Tuukka" <tuukka.toivonen@intel.com>,
+        "Hu, Jerry W" <jerry.w.hu@intel.com>,
+        "arnd@arndb.de" <arnd@arndb.de>, "hch@lst.de" <hch@lst.de>,
+        "robin.murphy@arm.com" <robin.murphy@arm.com>,
+        "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>
+Subject: RE: [PATCH v4 00/12] Intel IPU3 ImgU patchset
+Date: Wed, 7 Feb 2018 23:02:31 +0000
+Message-ID: <6F87890CF0F5204F892DEA1EF0D77A59730022A9@FMSMSX114.amr.corp.intel.com>
+References: <1508298408-25822-1-git-send-email-yong.zhi@intel.com>
+        <6F87890CF0F5204F892DEA1EF0D77A5972FD4195@FMSMSX114.amr.corp.intel.com>
+ <20171220115744.591a12e2@vento.lan>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Extend the display list body with a reference count, allowing bodies to
-be kept as long as a reference is maintained. This provides the ability
-to keep a cached copy of bodies which will not change, so that they can
-be re-applied to multiple display lists.
+Hi Mauro,
 
-Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+> -----Original Message-----
+> From: Mani, Rajmohan
+> Sent: Tuesday, December 26, 2017 2:31 PM
+> To: 'Mauro Carvalho Chehab' <mchehab@s-opensource.com>
+> Cc: Zhi, Yong <yong.zhi@intel.com>; linux-media@vger.kernel.org;
+> sakari.ailus@linux.intel.com; Zheng, Jian Xu <jian.xu.zheng@intel.com>;
+> Toivonen, Tuukka <tuukka.toivonen@intel.com>; Hu, Jerry W
+> <jerry.w.hu@intel.com>; arnd@arndb.de; hch@lst.de;
+> robin.murphy@arm.com; iommu@lists.linux-foundation.org
+> Subject: RE: [PATCH v4 00/12] Intel IPU3 ImgU patchset
+> 
+> Hi Mauro,
+> 
+> > -----Original Message-----
+> > From: Mauro Carvalho Chehab [mailto:mchehab@s-opensource.com]
+> > Sent: Wednesday, December 20, 2017 5:58 AM
+> > To: Mani, Rajmohan <rajmohan.mani@intel.com>
+> > Cc: Zhi, Yong <yong.zhi@intel.com>; linux-media@vger.kernel.org;
+> > sakari.ailus@linux.intel.com; Zheng, Jian Xu
+> > <jian.xu.zheng@intel.com>; Toivonen, Tuukka
+> > <tuukka.toivonen@intel.com>; Hu, Jerry W <jerry.w.hu@intel.com>;
+> > arnd@arndb.de; hch@lst.de; robin.murphy@arm.com;
+> > iommu@lists.linux-foundation.org
+> > Subject: Re: [PATCH v4 00/12] Intel IPU3 ImgU patchset
+> >
+> > Hi,
+> >
+> > Em Fri, 17 Nov 2017 02:58:56 +0000
+> > "Mani, Rajmohan" <rajmohan.mani@intel.com> escreveu:
+> >
+> > > Here is an update on the IPU3 documentation that we are currently
+> > > working
+> > on.
+> > >
+> > > Image processing in IPU3 relies on the following.
+> > >
+> > > 1) HW configuration to enable ISP and
+> > > 2) setting customer specific 3A Tuning / Algorithm Parameters to
+> > > achieve
+> > desired image quality.
+> > >
+> > > We intend to provide documentation on ImgU driver programming
+> > > interface
+> > to help users of this driver to configure and enable ISP HW to meet
+> > their needs.  This documentation will include details on complete V4L2
+> > Kernel driver interface and IO-Control parameters, except for the ISP
+> > internal algorithm and its parameters (which is Intel proprietary IP).
+> >
+> > Sakari asked me to take a look on this thread, specifically on this
+> > email. I took a look on the other e-mails from this thread that are
+> > discussing about this IP block.
+> >
+> > I understand that Intel wants to keep their internal 3A algorithm
+> > protected, just like other vendors protect their own algos. It was
+> > never a requirement to open whatever algorithm are used inside a
+> > hardware (or firmware). The only requirement is that firmwares should
+> > be licensed with redistribution permission, ideally merged at linux-firmware
+> git tree.
+> >
+> > Yet, what I don't understand is why Intel also wants to also protect
+> > the interface for such 3A hardware/firmware algorithm. The parameters
+> > that are passed from an userspace application to Intel ISP logic
+> > doesn't contain the algorithm itself. What's the issue of documenting
+> > the meaning of each parameter?
+> >
+> 
+> Thanks for looking into this.
+> 
+> To achieve improved image quality using IPU3, 3A (Auto White balance, Auto
+> Focus and Auto Exposure) Tuning parameters specific to a given camera sensor
+> module, are converted to Intel ISP algorithm parameters in user space camera
+> HAL using AIC (Automatic ISP Configuration) library.
+> 
+> As a unique design of Intel ISP, it exposes very detailed algorithm parameters
+> (~ 10000 parameters) to configure ISP's image processing algorithm per each
+> image fame in runtime. Typical Camera SW developers (including those at
+> Intel) are not expected to fully understand and directly set these parameters to
+> configure the ISP algorithm blocks. Due to the above, a user space AIC library
+> (in binary form) is provided to generate ISP Algorithm specific parameters, for a
+> given set of 3A tuning parameters. It significantly reduces the efforts of SW
+> development in ISP HW configuration.
+> 
+> On the other hand, the ISP algorithm details could be deduced readily through
+> these detailed parameters by other ISP experts outside Intel. This is the reason
+> that we want to keep these parameter definitions as Intel proprietary IP.
+> 
+> We are fully aware of your concerns on how to enable open source developers
+> to use Intel ISP through up-streamed Kernel Driver. Internally, we are working
+> on the license for this AIC library release now (as Hans said NDA license is not
+> acceptable). We believe this will be more efficient way to help open source
+> developers.
+> 
+> This AIC library release would be a binary-only release. This AIC library does not
+> use any kernel uAPIs directly. The user space Camera HAL that uses kernel
+> uAPIs is available at
+> https://chromium.googlesource.com/chromiumos/platform/arc-
+> camera/+/master
+> 
 
----
-This could be squashed into the body update code, but it's not a
-straightforward squash as the refcounts will affect both:
-  v4l: vsp1: Provide a body pool
-and
-  v4l: vsp1: Convert display lists to use new body pool
-therefore, I have kept this separate to prevent breaking bisectability
-of the vsp-tests.
+Just pinging to know your thoughts on this.
 
-v3:
- - 's/fragment/body/'
-
-v4:
- - Fix up reference handling comments.
-
- drivers/media/platform/vsp1/vsp1_clu.c |  7 ++++++-
- drivers/media/platform/vsp1/vsp1_dl.c  | 15 ++++++++++++++-
- drivers/media/platform/vsp1/vsp1_lut.c |  7 ++++++-
- 3 files changed, 26 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/media/platform/vsp1/vsp1_clu.c b/drivers/media/platform/vsp1/vsp1_clu.c
-index 2018144470c5..b2a39a6ef7e4 100644
---- a/drivers/media/platform/vsp1/vsp1_clu.c
-+++ b/drivers/media/platform/vsp1/vsp1_clu.c
-@@ -257,8 +257,13 @@ static void clu_configure(struct vsp1_entity *entity,
- 		clu->clu = NULL;
- 		spin_unlock_irqrestore(&clu->lock, flags);
- 
--		if (dlb)
-+		if (dlb) {
- 			vsp1_dl_list_add_body(dl, dlb);
-+
-+			/* release our local reference */
-+			vsp1_dl_body_put(dlb);
-+		}
-+
- 		break;
- 	}
- }
-diff --git a/drivers/media/platform/vsp1/vsp1_dl.c b/drivers/media/platform/vsp1/vsp1_dl.c
-index a069c8456666..0f87e0bb21c1 100644
---- a/drivers/media/platform/vsp1/vsp1_dl.c
-+++ b/drivers/media/platform/vsp1/vsp1_dl.c
-@@ -14,6 +14,7 @@
- #include <linux/device.h>
- #include <linux/dma-mapping.h>
- #include <linux/gfp.h>
-+#include <linux/refcount.h>
- #include <linux/slab.h>
- #include <linux/workqueue.h>
- 
-@@ -58,6 +59,8 @@ struct vsp1_dl_body {
- 	struct list_head list;
- 	struct list_head free;
- 
-+	refcount_t refcnt;
-+
- 	struct vsp1_dl_body_pool *pool;
- 	struct vsp1_device *vsp1;
- 
-@@ -259,6 +262,7 @@ struct vsp1_dl_body *vsp1_dl_body_get(struct vsp1_dl_body_pool *pool)
- 	if (!list_empty(&pool->free)) {
- 		dlb = list_first_entry(&pool->free, struct vsp1_dl_body, free);
- 		list_del(&dlb->free);
-+		refcount_set(&dlb->refcnt, 1);
- 	}
- 
- 	spin_unlock_irqrestore(&pool->lock, flags);
-@@ -279,6 +283,9 @@ void vsp1_dl_body_put(struct vsp1_dl_body *dlb)
- 	if (!dlb)
- 		return;
- 
-+	if (!refcount_dec_and_test(&dlb->refcnt))
-+		return;
-+
- 	dlb->num_entries = 0;
- 
- 	spin_lock_irqsave(&dlb->pool->lock, flags);
-@@ -465,7 +472,11 @@ void vsp1_dl_list_write(struct vsp1_dl_list *dl, u32 reg, u32 data)
-  * in the order in which bodies are added.
-  *
-  * Adding a body to a display list passes ownership of the body to the list. The
-- * caller must not touch the body after this call.
-+ * caller retains its reference to the fragment when adding it to the display
-+ * list, but is not allowed to add new entries to the body.
-+ *
-+ * The reference must be explicitly released by a call to vsp1_dl_body_put()
-+ * when the body isn't needed anymore.
-  *
-  * Additional bodies are only usable for display lists in header mode.
-  * Attempting to add a body to a header-less display list will return an error.
-@@ -477,6 +488,8 @@ int vsp1_dl_list_add_body(struct vsp1_dl_list *dl,
- 	if (dl->dlm->mode != VSP1_DL_MODE_HEADER)
- 		return -EINVAL;
- 
-+	refcount_inc(&dlb->refcnt);
-+
- 	list_add_tail(&dlb->list, &dl->bodies);
- 	return 0;
- }
-diff --git a/drivers/media/platform/vsp1/vsp1_lut.c b/drivers/media/platform/vsp1/vsp1_lut.c
-index 262cb72139d6..77cf7137a0f2 100644
---- a/drivers/media/platform/vsp1/vsp1_lut.c
-+++ b/drivers/media/platform/vsp1/vsp1_lut.c
-@@ -213,8 +213,13 @@ static void lut_configure(struct vsp1_entity *entity,
- 		lut->lut = NULL;
- 		spin_unlock_irqrestore(&lut->lock, flags);
- 
--		if (dlb)
-+		if (dlb) {
- 			vsp1_dl_list_add_body(dl, dlb);
-+
-+			/* release our local reference */
-+			vsp1_dl_body_put(dlb);
-+		}
-+
- 		break;
- 	}
- }
--- 
-git-series 0.9.1
+Thanks
+Raj
