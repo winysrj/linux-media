@@ -1,51 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay4-d.mail.gandi.net ([217.70.183.196]:53322 "EHLO
-        relay4-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753163AbeB0Pky (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Tue, 27 Feb 2018 10:40:54 -0500
-From: Jacopo Mondi <jacopo+renesas@jmondi.org>
-To: mchehab@s-opensource.com, laurent.pinchart@ideasonboard.com,
-        hans.verkuil@cisco.com, g.liakhovetski@gmx.de, bhumirks@gmail.com
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        linux-media@vger.kernel.org
-Subject: [PATCH 06/13] media: tw9910: Mixed style fixes
-Date: Tue, 27 Feb 2018 16:40:23 +0100
-Message-Id: <1519746030-15407-7-git-send-email-jacopo+renesas@jmondi.org>
-In-Reply-To: <1519746030-15407-1-git-send-email-jacopo+renesas@jmondi.org>
-References: <1519746030-15407-1-git-send-email-jacopo+renesas@jmondi.org>
+Received: from mail-pg0-f68.google.com ([74.125.83.68]:41661 "EHLO
+        mail-pg0-f68.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753092AbeBGBtJ (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 6 Feb 2018 20:49:09 -0500
+Received: by mail-pg0-f68.google.com with SMTP id 141so1879706pgd.8
+        for <linux-media@vger.kernel.org>; Tue, 06 Feb 2018 17:49:09 -0800 (PST)
+From: Alexandre Courbot <acourbot@chromium.org>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Pawel Osciak <posciak@chromium.org>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Tomasz Figa <tfiga@chromium.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Gustavo Padovan <gustavo.padovan@collabora.com>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Alexandre Courbot <acourbot@chromium.org>
+Subject: [RFCv3 13/17] videodev2.h: add request_fd field to v4l2_ext_controls
+Date: Wed,  7 Feb 2018 10:48:17 +0900
+Message-Id: <20180207014821.164536-14-acourbot@chromium.org>
+In-Reply-To: <20180207014821.164536-1-acourbot@chromium.org>
+References: <20180207014821.164536-1-acourbot@chromium.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Two minor style fixes, align function parameter and remove un-necessary
-spaces.
+Allow to specify a request to be used with the S_EXT_CTRLS and
+G_EXT_CTRLS operations.
 
-Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
+Signed-off-by: Alexandre Courbot <acourbot@chromium.org>
 ---
- drivers/media/i2c/tw9910.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/uapi/linux/videodev2.h | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/i2c/tw9910.c b/drivers/media/i2c/tw9910.c
-index f082f6d..f9b75c1 100644
---- a/drivers/media/i2c/tw9910.c
-+++ b/drivers/media/i2c/tw9910.c
-@@ -445,7 +445,7 @@ static const struct tw9910_scale_ctrl *tw9910_select_norm(v4l2_std_id norm,
- 
- 	for (i = 0; i < size; i++) {
- 		tmp = abs(width - scale[i].width) +
--			abs(height - scale[i].height);
-+			  abs(height - scale[i].height);
- 		if (tmp < diff) {
- 			diff = tmp;
- 			ret = scale + i;
-@@ -953,7 +953,7 @@ static int tw9910_probe(struct i2c_client *client,
- 	if (!priv)
- 		return -ENOMEM;
- 
--	priv->info   = info;
-+	priv->info = info;
- 
- 	v4l2_i2c_subdev_init(&priv->subdev, client, &tw9910_subdev_ops);
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 4fd46ae8fad5..91cfe0cbd5c5 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -1592,7 +1592,8 @@ struct v4l2_ext_controls {
+ 	};
+ 	__u32 count;
+ 	__u32 error_idx;
+-	__u32 reserved[2];
++	__s32 request_fd;
++	__u32 reserved[1];
+ 	struct v4l2_ext_control *controls;
+ };
  
 -- 
-2.7.4
+2.16.0.rc1.238.g530d649a79-goog
