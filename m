@@ -1,123 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay2-d.mail.gandi.net ([217.70.183.194]:35584 "EHLO
-        relay2-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753138AbeBSRGk (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 19 Feb 2018 12:06:40 -0500
-From: Jacopo Mondi <jacopo+renesas@jmondi.org>
-To: laurent.pinchart@ideasonboard.com, magnus.damm@gmail.com,
-        geert@glider.be, hverkuil@xs4all.nl, mchehab@kernel.org,
-        festevam@gmail.com, sakari.ailus@iki.fi, robh+dt@kernel.org,
-        mark.rutland@arm.com, pombredanne@nexb.com
-Cc: Jacopo Mondi <jacopo+renesas@jmondi.org>,
-        linux-renesas-soc@vger.kernel.org, linux-media@vger.kernel.org,
-        linux-sh@vger.kernel.org, devicetree@vger.kernel.org,
-        linux-kernel@vger.kernel.org
-Subject: [PATCH v9 01/11] dt-bindings: media: Add Renesas CEU bindings
-Date: Mon, 19 Feb 2018 17:59:34 +0100
-Message-Id: <1519059584-30844-2-git-send-email-jacopo+renesas@jmondi.org>
-In-Reply-To: <1519059584-30844-1-git-send-email-jacopo+renesas@jmondi.org>
-References: <1519059584-30844-1-git-send-email-jacopo+renesas@jmondi.org>
+Received: from mail-pg0-f65.google.com ([74.125.83.65]:45846 "EHLO
+        mail-pg0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1753010AbeBGBsw (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Tue, 6 Feb 2018 20:48:52 -0500
+Received: by mail-pg0-f65.google.com with SMTP id m136so1867749pga.12
+        for <linux-media@vger.kernel.org>; Tue, 06 Feb 2018 17:48:52 -0800 (PST)
+From: Alexandre Courbot <acourbot@chromium.org>
+To: Mauro Carvalho Chehab <mchehab@kernel.org>,
+        Hans Verkuil <hverkuil@xs4all.nl>,
+        Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+        Pawel Osciak <posciak@chromium.org>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Tomasz Figa <tfiga@chromium.org>,
+        Sakari Ailus <sakari.ailus@linux.intel.com>,
+        Gustavo Padovan <gustavo.padovan@collabora.com>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+        Hans Verkuil <hans.verkuil@cisco.com>,
+        Alexandre Courbot <acourbot@chromium.org>
+Subject: [RFCv3 07/17] v4l2-ctrls: prepare internal structs for request API
+Date: Wed,  7 Feb 2018 10:48:11 +0900
+Message-Id: <20180207014821.164536-8-acourbot@chromium.org>
+In-Reply-To: <20180207014821.164536-1-acourbot@chromium.org>
+References: <20180207014821.164536-1-acourbot@chromium.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add bindings documentation for Renesas Capture Engine Unit (CEU).
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Jacopo Mondi <jacopo+renesas@jmondi.org>
-Reviewed-by: Rob Herring <robh@kernel.org>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Add a refcount and is_request bool to struct v4l2_ctrl_handler:
+this is used to refcount a handler that represents a request.
+
+Add a p_req field to struct v4l2_ctrl_ref that will store the
+request value.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Alexandre Courbot <acourbot@chromium.org>
 ---
- .../devicetree/bindings/media/renesas,ceu.txt      | 81 ++++++++++++++++++++++
- 1 file changed, 81 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/renesas,ceu.txt
+ drivers/media/v4l2-core/v4l2-ctrls.c | 1 +
+ include/media/v4l2-ctrls.h           | 4 ++++
+ 2 files changed, 5 insertions(+)
 
-diff --git a/Documentation/devicetree/bindings/media/renesas,ceu.txt b/Documentation/devicetree/bindings/media/renesas,ceu.txt
-new file mode 100644
-index 0000000..3fc66df
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/renesas,ceu.txt
-@@ -0,0 +1,81 @@
-+Renesas Capture Engine Unit (CEU)
-+----------------------------------------------
-+
-+The Capture Engine Unit is the image capture interface found in the Renesas
-+SH Mobile and RZ SoCs.
-+
-+The interface supports a single parallel input with data bus width of 8 or 16
-+bits.
-+
-+Required properties:
-+- compatible: Shall be "renesas,r7s72100-ceu" for CEU units found in RZ/A1H
-+  and RZ/A1M SoCs.
-+- reg: Registers address base and size.
-+- interrupts: The interrupt specifier.
-+
-+The CEU supports a single parallel input and should contain a single 'port'
-+subnode with a single 'endpoint'. Connection to input devices are modeled
-+according to the video interfaces OF bindings specified in:
-+Documentation/devicetree/bindings/media/video-interfaces.txt
-+
-+Optional endpoint properties applicable to parallel input bus described in
-+the above mentioned "video-interfaces.txt" file are supported.
-+
-+- hsync-active: Active state of the HSYNC signal, 0/1 for LOW/HIGH respectively.
-+  If property is not present, default is active high.
-+- vsync-active: Active state of the VSYNC signal, 0/1 for LOW/HIGH respectively.
-+  If property is not present, default is active high.
-+
-+Example:
-+
-+The example describes the connection between the Capture Engine Unit and an
-+OV7670 image sensor connected to i2c1 interface.
-+
-+ceu: ceu@e8210000 {
-+	reg = <0xe8210000 0x209c>;
-+	compatible = "renesas,r7s72100-ceu";
-+	interrupts = <GIC_SPI 332 IRQ_TYPE_LEVEL_HIGH>;
-+
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&vio_pins>;
-+
-+	status = "okay";
-+
-+	port {
-+		ceu_in: endpoint {
-+			remote-endpoint = <&ov7670_out>;
-+
-+			hsync-active = <1>;
-+			vsync-active = <0>;
-+		};
-+	};
-+};
-+
-+i2c1: i2c@fcfee400 {
-+	pinctrl-names = "default";
-+	pinctrl-0 = <&i2c1_pins>;
-+
-+	status = "okay";
-+
-+	clock-frequency = <100000>;
-+
-+	ov7670: camera@21 {
-+		compatible = "ovti,ov7670";
-+		reg = <0x21>;
-+
-+		pinctrl-names = "default";
-+		pinctrl-0 = <&vio_pins>;
-+
-+		reset-gpios = <&port3 11 GPIO_ACTIVE_LOW>;
-+		powerdown-gpios = <&port3 12 GPIO_ACTIVE_HIGH>;
-+
-+		port {
-+			ov7670_out: endpoint {
-+				remote-endpoint = <&ceu_in>;
-+
-+				hsync-active = <1>;
-+				vsync-active = <0>;
-+			};
-+		};
-+	};
-+};
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index 2e58381444d1..1ff8fc59fff5 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -1761,6 +1761,7 @@ int v4l2_ctrl_handler_init_class(struct v4l2_ctrl_handler *hdl,
+ 				      sizeof(hdl->buckets[0]),
+ 				      GFP_KERNEL | __GFP_ZERO);
+ 	hdl->error = hdl->buckets ? 0 : -ENOMEM;
++	hdl->is_request = false;
+ 	return hdl->error;
+ }
+ EXPORT_SYMBOL(v4l2_ctrl_handler_init_class);
+diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
+index a4750a8090e3..22b6be78057f 100644
+--- a/include/media/v4l2-ctrls.h
++++ b/include/media/v4l2-ctrls.h
+@@ -18,6 +18,7 @@
+ #define _V4L2_CTRLS_H
+ 
+ #include <linux/list.h>
++#include <linux/kref.h>
+ #include <linux/mutex.h>
+ #include <linux/videodev2.h>
+ 
+@@ -257,6 +258,7 @@ struct v4l2_ctrl_ref {
+ 	struct v4l2_ctrl_ref *next;
+ 	struct v4l2_ctrl *ctrl;
+ 	struct v4l2_ctrl_helper *helper;
++	union v4l2_ctrl_ptr p_req;
+ 	bool from_other_dev;
+ };
+ 
+@@ -292,7 +294,9 @@ struct v4l2_ctrl_handler {
+ 	v4l2_ctrl_notify_fnc notify;
+ 	void *notify_priv;
+ 	u16 nr_of_buckets;
++	bool is_request;
+ 	int error;
++	struct kref ref;
+ };
+ 
+ /**
 -- 
-2.7.4
+2.16.0.rc1.238.g530d649a79-goog
