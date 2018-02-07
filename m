@@ -1,187 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lf0-f66.google.com ([209.85.215.66]:34615 "EHLO
-        mail-lf0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1752021AbeBIPjT (ORCPT
-        <rfc822;linux-media@vger.kernel.org>); Fri, 9 Feb 2018 10:39:19 -0500
-Received: by mail-lf0-f66.google.com with SMTP id k19so11795646lfj.1
-        for <linux-media@vger.kernel.org>; Fri, 09 Feb 2018 07:39:18 -0800 (PST)
-Date: Fri, 9 Feb 2018 16:39:15 +0100
-From: Niklas =?iso-8859-1?Q?S=F6derlund?=
-        <niklas.soderlund@ragnatech.se>
-To: Kieran Bingham <kbingham@kernel.org>
-Cc: Kieran Bingham <kieran.bingham@ideasonboard.com>,
-        linux-media@vger.kernel.org, linux-renesas-soc@vger.kernel.org,
-        Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>,
-        Mauro Carvalho Chehab <mchehab@kernel.org>,
-        open list <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH 1/2] media: i2c: adv748x: Simplify regmap configuration
-Message-ID: <20180209153915.GE7666@bigcity.dyn.berto.se>
-References: <1518024886-842-1-git-send-email-kbingham@kernel.org>
- <1518024886-842-2-git-send-email-kbingham@kernel.org>
+Received: from mga07.intel.com ([134.134.136.100]:53270 "EHLO mga07.intel.com"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1751319AbeBGWgI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 7 Feb 2018 17:36:08 -0500
+Date: Thu, 8 Feb 2018 00:36:05 +0200
+From: Sakari Ailus <sakari.ailus@linux.intel.com>
+To: Yong Zhi <yong.zhi@intel.com>
+Cc: linux-media@vger.kernel.org, jian.xu.zheng@intel.com,
+        rajmohan.mani@intel.com
+Subject: Re: [PATCH] media: intel-ipu3: cio2: Use SPDX license headers
+Message-ID: <20180207223605.jhun55osbpxmnzpz@kekkonen.localdomain>
+References: <1517890793-9360-1-git-send-email-yong.zhi@intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <1518024886-842-2-git-send-email-kbingham@kernel.org>
+In-Reply-To: <1517890793-9360-1-git-send-email-yong.zhi@intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Kieran,
+Hi Yong,
 
-Thanks for your patch.
+Thanks for the patch.
 
-On 2018-02-07 17:34:45 +0000, Kieran Bingham wrote:
-> From: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+On Mon, Feb 05, 2018 at 08:19:53PM -0800, Yong Zhi wrote:
+> Adopt SPDX license headers and update year to 2018.
 > 
-> The ADV748x has identical map configurations for each register map. The
-> duplication of each map can be simplified using a helper macro such that
-> each map is represented on a single line.
-> 
-> Define ADV748X_REGMAP_CONF for this purpose and un-define after it's
-> use.
-> 
-> Signed-off-by: Kieran Bingham <kieran.bingham+renesas@ideasonboard.com>
+> Signed-off-by: Yong Zhi <yong.zhi@intel.com>
 > ---
->  drivers/media/i2c/adv748x/adv748x-core.c | 111 ++++++-------------------------
->  1 file changed, 22 insertions(+), 89 deletions(-)
+>  drivers/media/pci/intel/ipu3/ipu3-cio2.c | 12 ++----------
+>  drivers/media/pci/intel/ipu3/ipu3-cio2.h | 14 ++------------
+>  2 files changed, 4 insertions(+), 22 deletions(-)
 > 
-> diff --git a/drivers/media/i2c/adv748x/adv748x-core.c b/drivers/media/i2c/adv748x/adv748x-core.c
-> index fd92c9e4b519..71c69b816db2 100644
-> --- a/drivers/media/i2c/adv748x/adv748x-core.c
-> +++ b/drivers/media/i2c/adv748x/adv748x-core.c
-> @@ -35,98 +35,31 @@
->   * Register manipulation
->   */
->  
-> -static const struct regmap_config adv748x_regmap_cnf[] = {
-> -	{
-> -		.name			= "io",
-> -		.reg_bits		= 8,
-> -		.val_bits		= 8,
-> -
-> -		.max_register		= 0xff,
-> -		.cache_type		= REGCACHE_NONE,
-> -	},
-> -	{
-> -		.name			= "dpll",
-> -		.reg_bits		= 8,
-> -		.val_bits		= 8,
-> -
-> -		.max_register		= 0xff,
-> -		.cache_type		= REGCACHE_NONE,
-> -	},
-> -	{
-> -		.name			= "cp",
-> -		.reg_bits		= 8,
-> -		.val_bits		= 8,
-> -
-> -		.max_register		= 0xff,
-> -		.cache_type		= REGCACHE_NONE,
-> -	},
-> -	{
-> -		.name			= "hdmi",
-> -		.reg_bits		= 8,
-> -		.val_bits		= 8,
-> -
-> -		.max_register		= 0xff,
-> -		.cache_type		= REGCACHE_NONE,
-> -	},
-> -	{
-> -		.name			= "edid",
-> -		.reg_bits		= 8,
-> -		.val_bits		= 8,
-> -
-> -		.max_register		= 0xff,
-> -		.cache_type		= REGCACHE_NONE,
-> -	},
-> -	{
-> -		.name			= "repeater",
-> -		.reg_bits		= 8,
-> -		.val_bits		= 8,
-> -
-> -		.max_register		= 0xff,
-> -		.cache_type		= REGCACHE_NONE,
-> -	},
-> -	{
-> -		.name			= "infoframe",
-> -		.reg_bits		= 8,
-> -		.val_bits		= 8,
-> -
-> -		.max_register		= 0xff,
-> -		.cache_type		= REGCACHE_NONE,
-> -	},
-> -	{
-> -		.name			= "cec",
-> -		.reg_bits		= 8,
-> -		.val_bits		= 8,
-> -
-> -		.max_register		= 0xff,
-> -		.cache_type		= REGCACHE_NONE,
-> -	},
-> -	{
-> -		.name			= "sdp",
-> -		.reg_bits		= 8,
-> -		.val_bits		= 8,
-> -
-> -		.max_register		= 0xff,
-> -		.cache_type		= REGCACHE_NONE,
-> -	},
-> -
-> -	{
-> -		.name			= "txb",
-> -		.reg_bits		= 8,
-> -		.val_bits		= 8,
-> -
-> -		.max_register		= 0xff,
-> -		.cache_type		= REGCACHE_NONE,
-> -	},
-> -	{
-> -		.name			= "txa",
-> -		.reg_bits		= 8,
-> -		.val_bits		= 8,
-> +#define ADV748X_REGMAP_CONF(n) \
-> +{ \
-> +	.name = n, \
-> +	.reg_bits = 8, \
-> +	.val_bits = 8, \
-> +	.max_register = 0xff, \
-> +	.cache_type = REGCACHE_NONE, \
-> +}
->  
-> -		.max_register		= 0xff,
-> -		.cache_type		= REGCACHE_NONE,
-> -	},
-> +static const struct regmap_config adv748x_regmap_cnf[] = {
-> +	ADV748X_REGMAP_CONF("io"),
-> +	ADV748X_REGMAP_CONF("dpll"),
-> +	ADV748X_REGMAP_CONF("cp"),
-> +	ADV748X_REGMAP_CONF("hdmi"),
-> +	ADV748X_REGMAP_CONF("edid"),
-> +	ADV748X_REGMAP_CONF("repeater"),
-> +	ADV748X_REGMAP_CONF("infoframe"),
-> +	ADV748X_REGMAP_CONF("cec"),
-> +	ADV748X_REGMAP_CONF("sdp"),
-> +	ADV748X_REGMAP_CONF("txa"),
-> +	ADV748X_REGMAP_CONF("txb"),
->  };
->  
-> +#undef ADV748X_REGMAP_CONF
-> +
+> diff --git a/drivers/media/pci/intel/ipu3/ipu3-cio2.c b/drivers/media/pci/intel/ipu3/ipu3-cio2.c
+> index 6c4444b..725973f 100644
+> --- a/drivers/media/pci/intel/ipu3/ipu3-cio2.c
+> +++ b/drivers/media/pci/intel/ipu3/ipu3-cio2.c
+> @@ -1,14 +1,6 @@
+> +// SPDX-License-Identifier: GPL-2.0
+>  /*
+> - * Copyright (c) 2017 Intel Corporation.
+> - *
+> - * This program is free software; you can redistribute it and/or
+> - * modify it under the terms of the GNU General Public License version
+> - * 2 as published by the Free Software Foundation.
+> - *
+> - * This program is distributed in the hope that it will be useful,
+> - * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> - * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> - * GNU General Public License for more details.
+> + * Copyright (C) 2018 Intel Corporation
+>   *
+>   * Based partially on Intel IPU4 driver written by
+>   *  Sakari Ailus <sakari.ailus@linux.intel.com>
+> diff --git a/drivers/media/pci/intel/ipu3/ipu3-cio2.h b/drivers/media/pci/intel/ipu3/ipu3-cio2.h
+> index 78a5799..6a11051 100644
+> --- a/drivers/media/pci/intel/ipu3/ipu3-cio2.h
+> +++ b/drivers/media/pci/intel/ipu3/ipu3-cio2.h
+> @@ -1,15 +1,5 @@
+> -/*
+> - * Copyright (c) 2017 Intel Corporation.
+> - *
+> - * This program is free software; you can redistribute it and/or
+> - * modify it under the terms of the GNU General Public License version
+> - * 2 as published by the Free Software Foundation.
+> - *
+> - * This program is distributed in the hope that it will be useful,
+> - * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> - * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> - * GNU General Public License for more details.
+> - */
+> +/* SPDX-License-Identifier: GPL-2.0 */
+> +/* Copyright (C) 2018 Intel Corporation */
 
-Why is this macro undefined here? It have a rather limited scope as it's 
-only local to this C file and it have a good prefix of ADV748X_ so 
-conflicts are highly unlikely. Is there something I'm missing?
+Should this be:
 
-Is it really customary to undefine helper macros like this once they are 
-used to populate the structure?
+/* Copyright (C) 2017 -- 2018 Intel Corporation */
 
->  static int adv748x_configure_regmap(struct adv748x_state *state, int region)
->  {
->  	int err;
+?
+
+Same for the one above.
+
+>  
+>  #ifndef __IPU3_CIO2_H
+>  #define __IPU3_CIO2_H
 > -- 
-> 2.7.4
+> 1.9.1
 > 
 
 -- 
-Regards,
-Niklas Söderlund
+Sakari Ailus
+sakari.ailus@linux.intel.com
