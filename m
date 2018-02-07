@@ -1,86 +1,150 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:53090 "EHLO
-        atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1753452AbeBSTEq (ORCPT
-        <rfc822;linux-media@vger.kernel.org>);
-        Mon, 19 Feb 2018 14:04:46 -0500
-Date: Mon, 19 Feb 2018 20:04:42 +0100
-From: Pavel Machek <pavel@ucw.cz>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>, pali.rohar@gmail.com,
-        sre@kernel.org, kernel list <linux-kernel@vger.kernel.org>,
-        linux-arm-kernel <linux-arm-kernel@lists.infradead.org>,
-        linux-omap@vger.kernel.org, tony@atomide.com, khilman@kernel.org,
-        aaro.koskinen@iki.fi, ivo.g.dimitrov.75@gmail.com,
-        patrikbachan@gmail.com, serge@hallyn.com, abcloriens@gmail.com,
-        clayton@craftyguy.net, martijn@brixit.nl,
-        Filip =?utf-8?Q?Matijevi=C4=87?= <filip.matijevic.pz@gmail.com>,
-        laurent.pinchart@ideasonboard.com, linux-media@vger.kernel.org
-Subject: next-20180219: camera problems on n900
-Message-ID: <20180219181715.GA19366@amd>
-References: <20171227210543.GA19719@amd>
- <20171227211718.favif66afztygfje@kekkonen.localdomain>
- <20171228202453.GA20142@amd>
- <20171229093855.hz44vpssb5mufzop@valkosipuli.retiisi.org.uk>
+Received: from mail-wr0-f195.google.com ([209.85.128.195]:43116 "EHLO
+        mail-wr0-f195.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1750726AbeBGWF0 (ORCPT
+        <rfc822;linux-media@vger.kernel.org>); Wed, 7 Feb 2018 17:05:26 -0500
+Received: by mail-wr0-f195.google.com with SMTP id b52so2684746wrd.10
+        for <linux-media@vger.kernel.org>; Wed, 07 Feb 2018 14:05:25 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-        protocol="application/pgp-signature"; boundary="NklN7DEeGtkPCoo3"
-Content-Disposition: inline
-In-Reply-To: <20171229093855.hz44vpssb5mufzop@valkosipuli.retiisi.org.uk>
+In-Reply-To: <7cf38465-7a79-5d81-a995-9acfbacf5023@xs4all.nl>
+References: <1517948874-21681-1-git-send-email-tharvey@gateworks.com>
+ <c7771c44-a9ff-0207-38f6-28bcc06ccdee@xs4all.nl> <CAJ+vNU1oiM0Y0rO-DHi57nVOqnw60A7pn_1=h5b46-BrY7_p2Q@mail.gmail.com>
+ <605fd4a8-43ab-c566-57b6-abb1c9f8f0f8@xs4all.nl> <7cf38465-7a79-5d81-a995-9acfbacf5023@xs4all.nl>
+From: Tim Harvey <tharvey@gateworks.com>
+Date: Wed, 7 Feb 2018 14:05:24 -0800
+Message-ID: <CAJ+vNU014FJZsb44YnidE3fFiqeB6o8A7kvGinJWu7=yq3_dhA@mail.gmail.com>
+Subject: Re: [PATCH v8 0/7] TDA1997x HDMI video reciver
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media <linux-media@vger.kernel.org>,
+        alsa-devel@alsa-project.org, devicetree@vger.kernel.org,
+        linux-kernel@vger.kernel.org, Shawn Guo <shawnguo@kernel.org>,
+        Steve Longerbeam <slongerbeam@gmail.com>,
+        Philipp Zabel <p.zabel@pengutronix.de>,
+        Hans Verkuil <hansverk@cisco.com>,
+        Mauro Carvalho Chehab <mchehab@s-opensource.com>
+Content-Type: text/plain; charset="UTF-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Wed, Feb 7, 2018 at 1:09 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> On 02/07/18 09:22, Hans Verkuil wrote:
+>> On 02/07/2018 12:29 AM, Tim Harvey wrote:
+>>> Media Controller ioctls:
+>>>                 fail: v4l2-test-media.cpp(141): ent.function ==
+>>> MEDIA_ENT_F_V4L2_SUBDEV_UNKNOWN
+>>
+>> Weird, this shouldn't happen. I'll look into this a bit more.
+>
+> Can you run 'mc_nextgen_test -e -i' and post the output?
+>
+> It's found in contrib/test.
+>
 
---NklN7DEeGtkPCoo3
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+root@ventana:~# ./v4l-utils/contrib/test/mc_nextgen_test -e -i
+Device: imx-media (driver imx-media)
+Bus:
+version: 0
+number of entities: 24
+number of interfaces: 24
+number of pads: 48
+number of links: 50
+entity entity#1: 'unknown entity type' adv7180 2-0020, 1 pad(s), 1 source(s)
+entity entity#3: 'unknown entity type' tda19971 2-0048, 1 pad(s), 1 source(s)
+entity entity#5: 'unknown entity type' ipu1_vdic, 3 pad(s), 2 sink(s),
+1 source(s)
+entity entity#9: 'unknown entity type' ipu2_vdic, 3 pad(s), 2 sink(s),
+1 source(s)
+entity entity#13: 'unknown entity type' ipu1_ic_prp, 3 pad(s), 1
+sink(s), 2 source(s)
+entity entity#17: 'unknown entity type' ipu1_ic_prpenc, 2 pad(s), 1
+sink(s), 1 source(s)
+entity entity#20: 'V4L I/O' ipu1_ic_prpenc capture, 1 pad(s), 1 sink(s)
+entity entity#26: 'unknown entity type' ipu1_ic_prpvf, 2 pad(s), 1
+sink(s), 1 source(s)
+entity entity#29: 'V4L I/O' ipu1_ic_prpvf capture, 1 pad(s), 1 sink(s)
+entity entity#35: 'unknown entity type' ipu2_ic_prp, 3 pad(s), 1
+sink(s), 2 source(s)
+entity entity#39: 'unknown entity type' ipu2_ic_prpenc, 2 pad(s), 1
+sink(s), 1 source(s)
+entity entity#42: 'V4L I/O' ipu2_ic_prpenc capture, 1 pad(s), 1 sink(s)
+entity entity#48: 'unknown entity type' ipu2_ic_prpvf, 2 pad(s), 1
+sink(s), 1 source(s)
+entity entity#51: 'V4L I/O' ipu2_ic_prpvf capture, 1 pad(s), 1 sink(s)
+entity entity#57: 'unknown entity type' ipu1_csi0, 3 pad(s), 1
+sink(s), 2 source(s)
+entity entity#61: 'V4L I/O' ipu1_csi0 capture, 1 pad(s), 1 sink(s)
+entity entity#67: 'unknown entity type' ipu1_csi1, 3 pad(s), 1
+sink(s), 2 source(s)
+entity entity#71: 'V4L I/O' ipu1_csi1 capture, 1 pad(s), 1 sink(s)
+entity entity#77: 'unknown entity type' ipu2_csi0, 3 pad(s), 1
+sink(s), 2 source(s)
+entity entity#81: 'V4L I/O' ipu2_csi0 capture, 1 pad(s), 1 sink(s)
+entity entity#87: 'unknown entity type' ipu2_csi1, 3 pad(s), 1
+sink(s), 2 source(s)
+entity entity#91: 'V4L I/O' ipu2_csi1 capture, 1 pad(s), 1 sink(s)
+entity entity#97: 'unknown entity type' ipu1_csi0_mux, 3 pad(s), 2
+sink(s), 1 source(s)
+entity entity#101: 'unknown entity type' ipu2_csi1_mux, 3 pad(s), 2
+sink(s), 1 source(s)
+interface intf_devnode#21: video /dev/video0
+interface intf_devnode#30: video /dev/video1
+interface intf_devnode#43: video /dev/video2
+interface intf_devnode#52: video /dev/video3
+interface intf_devnode#62: video /dev/video4
+interface intf_devnode#72: video /dev/video5
+interface intf_devnode#82: video /dev/video6
+interface intf_devnode#92: video /dev/video7
+interface intf_devnode#141: v4l2-subdev /dev/v4l-subdev0
+interface intf_devnode#143: v4l2-subdev /dev/v4l-subdev1
+interface intf_devnode#145: v4l2-subdev /dev/v4l-subdev2
+interface intf_devnode#147: v4l2-subdev /dev/v4l-subdev3
+interface intf_devnode#149: v4l2-subdev /dev/v4l-subdev4
+interface intf_devnode#151: v4l2-subdev /dev/v4l-subdev5
+interface intf_devnode#153: v4l2-subdev /dev/v4l-subdev6
+interface intf_devnode#155: v4l2-subdev /dev/v4l-subdev7
+interface intf_devnode#157: v4l2-subdev /dev/v4l-subdev8
+interface intf_devnode#159: v4l2-subdev /dev/v4l-subdev9
+interface intf_devnode#161: v4l2-subdev /dev/v4l-subdev10
+interface intf_devnode#163: v4l2-subdev /dev/v4l-subdev11
+interface intf_devnode#165: v4l2-subdev /dev/v4l-subdev12
+interface intf_devnode#167: v4l2-subdev /dev/v4l-subdev13
+interface intf_devnode#169: v4l2-subdev /dev/v4l-subdev14
+interface intf_devnode#171: v4l2-subdev /dev/v4l-subdev15
 
-Hi!
+I updated v4l2-compliance and ran again:
+root@ventana:~# v4l2-compliance -m0 -M
+v4l2-compliance SHA   : b2f8f9049056eb6f9e028927dacb2c715a062df8
+Media Driver Info:
+        Driver name      : imx-media
+        Model            : imx-media
+        Serial           :
+        Bus info         :
+        Media version    : 4.15.0
+        Hardware revision: 0x00000000 (0)
+        Driver version   : 4.15.0
 
-> > > > In v4.14, back camera on N900 works. On v4.15-rc1.. it works for few
-> > > > seconds, but then I get repeated oopses.
-> > > >=20
-> > > > On v4.15-rc0.5 (commit ed30b147e1f6e396e70a52dbb6c7d66befedd786),
-> > > > camera does not start.	 =20
-> > > >=20
-> > > > Any ideas what might be wrong there?
-> > >=20
-> > > What kind of oopses do you get?
-> >=20
-> > Hmm. bisect pointed to commit that can't be responsible.... Ideas
-> > welcome.
->=20
-> Hi Pavel,
->=20
-> I tested N9 and capture appears to be working from the CSI-2 receiver
-> (media tree master, i.e. v4.15-rc3 now).
->=20
-> Which pipeline did you use?
+Compliance test for device /dev/media0:
 
-I tested next-20180219 and camera does not work there. It leads to
-nasty oops. I tried to capture the oops with dmesg > file, and that
-one oopsed, too. usb networking also has problems... fun.
+Required ioctls:
+        test MEDIA_IOC_DEVICE_INFO: OK
 
-Camera works ok in V4.16-rc1, but if I use the camera, next shutdown
-will oops. I'll try to collect more data there, too.
+Allow for multiple opens:
+        test second /dev/media0 open: OK
+        test MEDIA_IOC_DEVICE_INFO: OK
+        test for unlimited opens: OK
 
-									Pavel
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blo=
-g.html
+Media Controller ioctls:
+                fail: v4l2-test-media.cpp(94): function ==
+MEDIA_ENT_F_V4L2_SUBDEV_UNKNOWN
+                fail: v4l2-test-media.cpp(156):
+checkFunction(ent.function, true)
+        test MEDIA_IOC_G_TOPOLOGY: FAIL
+                fail: v4l2-test-media.cpp(275): num_data_links != num_links
+        test MEDIA_IOC_ENUM_ENTITIES/LINKS: FAIL
+        test MEDIA_IOC_SETUP_LINK: OK
 
---NklN7DEeGtkPCoo3
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Total: 7, Succeeded: 5, Failed: 2, Warnings: 0
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+Regards,
 
-iEYEARECAAYFAlqLH8oACgkQMOfwapXb+vKrMwCgvQzZUCCQd86YKbYEfqyLpZyt
-0lwAoLJQMkFEUbNfoS3m7W8vc2dtCyWr
-=M7hn
------END PGP SIGNATURE-----
-
---NklN7DEeGtkPCoo3--
+Tim
