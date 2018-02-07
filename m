@@ -1,49 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:50350 "EHLO foss.arm.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1753763AbeBGMi4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Wed, 7 Feb 2018 07:38:56 -0500
-Subject: Re: [PATCH v5 03/16] media: rkisp1: Add user space ABI definitions
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-        Shunqian Zheng <zhengsq@rock-chips.com>,
-        linux-rockchip@lists.infradead.org, linux-media@vger.kernel.org
-Cc: Jose.Abreu@synopsys.com, devicetree@vger.kernel.org,
-        eddie.cai.linux@gmail.com, Joao.Pinto@synopsys.com,
-        heiko@sntech.de, jacob2.chen@rock-chips.com,
-        jeffy.chen@rock-chips.com, zyc@rock-chips.com,
-        linux-kernel@vger.kernel.org, tfiga@chromium.org,
-        Luis.Oliveira@synopsys.com, robh+dt@kernel.org,
-        hans.verkuil@cisco.com, laurent.pinchart@ideasonboard.com,
-        sakari.ailus@linux.intel.com, allon.huang@rock-chips.com,
-        mchehab@kernel.org, linux-arm-kernel@lists.infradead.org
-References: <1514533978-20408-1-git-send-email-zhengsq@rock-chips.com>
- <1514533978-20408-4-git-send-email-zhengsq@rock-chips.com>
- <5b29d890-8c6b-18ff-ade1-1923c25143a0@xs4all.nl>
-From: Robin Murphy <robin.murphy@arm.com>
-Message-ID: <d29bc615-2359-86c6-db5a-27cc111bc275@arm.com>
-Date: Wed, 7 Feb 2018 12:38:50 +0000
+Received: from mail-dm3nam03on0053.outbound.protection.outlook.com ([104.47.41.53]:1440
+        "EHLO NAM03-DM3-obe.outbound.protection.outlook.com"
+        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+        id S1750762AbeBGW3z (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 7 Feb 2018 17:29:55 -0500
+From: Satish Kumar Nagireddy <satish.nagireddy.nagireddy@xilinx.com>
+To: <linux-media@vger.kernel.org>, <laurent.pinchart@ideasonboard.com>,
+        <michal.simek@xilinx.com>, <hyun.kwon@xilinx.com>
+CC: Satish Kumar Nagireddy <satishna@xilinx.com>
+Subject: [PATCH 7/8] v4l: xilinx: dma: Add scaling and padding factor functions
+Date: Wed, 7 Feb 2018 14:29:37 -0800
+Message-ID: <1518042578-22771-8-git-send-email-satishna@xilinx.com>
+In-Reply-To: <1518042578-22771-1-git-send-email-satishna@xilinx.com>
+References: <1518042578-22771-1-git-send-email-satishna@xilinx.com>
 MIME-Version: 1.0
-In-Reply-To: <5b29d890-8c6b-18ff-ade1-1923c25143a0@xs4all.nl>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-GB
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/02/18 13:14, Hans Verkuil wrote:
-[...]
-> The one thing that I worry about is if these structs are the same for
-> 32 and 64 bit arm.
+scaling_factor function returns multiplying factor to calculate
+bytes per component based on color format.
+For eg. scaling factor of YUV420 8 bit format is 1
+so multiplying factor is 1 (8/8)
+scaling factor of YUV420 10 bit format is 1.25 (10/8)
 
-I see some enums and bools in there - in general the storage size of 
-those isn't even guaranteed to be consistent between different compiler 
-implementations on the same platform, let alone across multiple 
-platforms (especially WRT things like GCC's -fshort-enums).
+padding_factor function returns multiplying factor to calculate
+actual width of video according to color format.
+For eg. padding factor of YUV420 8 bit format: 8 bits per 1 component
+no padding bits here, so multiplying factor is 1
+padding factor of YUV422 10 bit format: 32 bits per 3 components
+each component is 10 bit and the factor is 32/30
 
-In practice, under the standard ABIs for 32-bit and 64-bit Arm[1], I'd 
-expect basic types other than longs and pointers to be pretty much the 
-same; it's the imp-def C stuff I'd be a lot less confident about.
+Signed-off-by: Satish Kumar Nagireddy <satishna@xilinx.com>
+---
+ drivers/media/platform/xilinx/xilinx-vip.c | 43 ++++++++++++++++++++++++++=
+++++
+ drivers/media/platform/xilinx/xilinx-vip.h |  2 ++
+ 2 files changed, 45 insertions(+)
 
-Robin.
+diff --git a/drivers/media/platform/xilinx/xilinx-vip.c b/drivers/media/pla=
+tform/xilinx/xilinx-vip.c
+index 51b7ef6..7543b75 100644
+--- a/drivers/media/platform/xilinx/xilinx-vip.c
++++ b/drivers/media/platform/xilinx/xilinx-vip.c
+@@ -94,6 +94,49 @@ const struct xvip_video_format *xvip_get_format_by_fourc=
+c(u32 fourcc)
+ EXPORT_SYMBOL_GPL(xvip_get_format_by_fourcc);
 
-[1]:http://infocenter.arm.com/help/topic/com.arm.doc.subset.swdev.abi/index.html
+ /**
++ * xvip_bpl_scaling_factor - Retrieve bpl scaling factor for a 4CC
++ * @fourcc: the format 4CC
++ *
++ * Return: Return numerator and denominator values by address
++ */
++void xvip_bpl_scaling_factor(u32 fourcc, u32 *numerator, u32 *denominator)
++{
++       switch (fourcc) {
++       case V4L2_PIX_FMT_XV15M:
++               *numerator =3D 10;
++               *denominator =3D 8;
++               break;
++       default:
++               *numerator   =3D 1;
++               *denominator =3D 1;
++               break;
++       }
++}
++EXPORT_SYMBOL_GPL(xvip_bpl_scaling_factor);
++
++/**
++ * xvip_width_padding_factor - Retrieve width's padding factor for a 4CC
++ * @fourcc: the format 4CC
++ *
++ * Return: Return numerator and denominator values by address
++ */
++void xvip_width_padding_factor(u32 fourcc, u32 *numerator, u32 *denominato=
+r)
++{
++       switch (fourcc) {
++       case V4L2_PIX_FMT_XV15M:
++               /* 32 bits are required per 30 bits of data */
++               *numerator =3D 32;
++               *denominator =3D 30;
++               break;
++       default:
++               *numerator   =3D 1;
++               *denominator =3D 1;
++               break;
++       }
++}
++EXPORT_SYMBOL_GPL(xvip_width_padding_factor);
++
++/**
+  * xvip_of_get_format - Parse a device tree node and return format informa=
+tion
+  * @node: the device tree node
+  *
+diff --git a/drivers/media/platform/xilinx/xilinx-vip.h b/drivers/media/pla=
+tform/xilinx/xilinx-vip.h
+index 006dcf77..26fada7 100644
+--- a/drivers/media/platform/xilinx/xilinx-vip.h
++++ b/drivers/media/platform/xilinx/xilinx-vip.h
+@@ -135,6 +135,8 @@ struct xvip_video_format {
+ const struct xvip_video_format *xvip_get_format_by_code(unsigned int code)=
+;
+ const struct xvip_video_format *xvip_get_format_by_fourcc(u32 fourcc);
+ const struct xvip_video_format *xvip_of_get_format(struct device_node *nod=
+e);
++void xvip_bpl_scaling_factor(u32 fourcc, u32 *numerator, u32 *denominator)=
+;
++void xvip_width_padding_factor(u32 fourcc, u32 *numerator, u32 *denominato=
+r);
+ void xvip_set_format_size(struct v4l2_mbus_framefmt *format,
+                          const struct v4l2_subdev_format *fmt);
+ int xvip_enum_mbus_code(struct v4l2_subdev *subdev,
+--
+2.7.4
+
+This email and any attachments are intended for the sole use of the named r=
+ecipient(s) and contain(s) confidential information that may be proprietary=
+, privileged or copyrighted under applicable law. If you are not the intend=
+ed recipient, do not read, copy, or forward this email message or any attac=
+hments. Delete this email message and any attachments immediately.
