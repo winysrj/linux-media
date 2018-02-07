@@ -1,38 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oln040092064060.outbound.protection.outlook.com ([40.92.64.60]:52012
-        "EHLO EUR01-DB5-obe.outbound.protection.outlook.com"
-        rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-        id S1751379AbeBVWrS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-        Thu, 22 Feb 2018 17:47:18 -0500
-From: Marc Urrutia Anglada <councilior@msn.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Request: Please add new device ID
-Date: Thu, 22 Feb 2018 22:47:16 +0000
-Message-ID: <DB6PR0801MB1301C1434FF429DD749FF8B8C0CD0@DB6PR0801MB1301.eurprd08.prod.outlook.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+Received: from mout.gmx.net ([212.227.15.15]:55430 "EHLO mout.gmx.net"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S1753625AbeBGI4K (ORCPT <rfc822;linux-media@vger.kernel.org>);
+        Wed, 7 Feb 2018 03:56:10 -0500
+Received: from obelix.fritz.box ([87.122.108.148]) by mail.gmx.com (mrgmx001
+ [212.227.17.190]) with ESMTPSA (Nemesis) id 0MhhwJ-1eN7Zy0V3T-00MvSJ for
+ <linux-media@vger.kernel.org>; Wed, 07 Feb 2018 09:56:09 +0100
+To: linux-media@vger.kernel.org
+From: "rwarsow@gmx.de" <rwarsow@gmx.de>
+Subject: BUG: unable to handle kernel NULL pointer dereference
+Message-ID: <1877648b-4ce4-7052-a37b-47e939959a8f@gmx.de>
+Date: Wed, 7 Feb 2018 09:56:08 +0100
 MIME-Version: 1.0
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: de-DE
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+hallo
 
-Please could someone add this "new" device ID to the main tree:
+is someone so neat to look into this or to provide suggestions to debug
+this ?
 
-ID: 1B80:D398
-Vendor: Zaapa
-Model: ZT-MINDVBZP
 
-Device type: USB DBV-T (RTL2832U + FC0012)
+https://bugzilla.redhat.com/show_bug.cgi?id=1542562
 
-I have patched the sources locally following this guide and it works fine: =
-=A0https://ubuntuforums.org/showthread.php?t=3D2337521
 
-The one on the guide is labelled as "Inventec DVB-T USB Tunner" but it look=
-s like exactly the same as my "Zaapa" and it uses the same device ID.
+maybe related:
 
-Thanks!
+https://bugzilla.kernel.org/show_bug.cgi?id=118101
+https://bugzilla.kernel.org/show_bug.cgi?id=195029
 
-Marc Urrutia Anglada
+
+
+-- 
+
+Greeting
+
+Ronald
